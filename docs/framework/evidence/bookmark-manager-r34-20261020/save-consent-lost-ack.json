@@ -1,0 +1,56 @@
+{
+  "candidate": {
+    "packageHash": "852d6a3366995cbafcc0ffc2d77fdeb93cbddf86c407eab0d7ced7a787e1437c",
+    "toolShellSha256": "68c41b2b4681aa3f8c8d62b5421ef0c39eec304fe824a37bcd2a9af5db00a8dd",
+    "appSha256": "d1c0dcb33ff24f46833a8872cd85d7211ac2fa10789770cfef75b2370f8959ec",
+    "at": "2026-10-20T09:13:31.707Z"
+  },
+  "kind": "REAL_MAC_CFT_NATIVE_WRITE_RECEIPT_LOSS",
+  "status": "PASS",
+  "at": "2026-10-20T09:23:06.927Z",
+  "method": "Pause original service-worker success-response callback after actual native create completes, then stop only the owned worker before it sends the response. No SDK/Host stubs or altered response.",
+  "workerSourceSha256": "ecf12f2001997b9afba316a24c13680ec1b0c452563ebb88800154d33d87e83d",
+  "fixtureTitle": "R34-lost-ack-1792488186928",
+  "breakpoint": [
+    {
+      "scriptId": "10",
+      "lineNumber": 0,
+      "columnNumber": 235450
+    }
+  ],
+  "pausedAfterNativeWrite": {
+    "id": "3572",
+    "title": "R34-lost-ack-1792488186928",
+    "nativeReply": true
+  },
+  "nativeBeforeStopping": [
+    {
+      "dateAdded": 1792488189969,
+      "dateGroupModified": 1792488189969,
+      "id": "3572",
+      "index": 6,
+      "parentId": "1",
+      "syncing": false,
+      "title": "R34-lost-ack-1792488186928"
+    }
+  ],
+  "stop": {
+    "success": true
+  },
+  "message": "写入结果未知：已停止重复提交。请刷新核对数据后再决定。",
+  "draft": "R34-lost-ack-1792488186928",
+  "retryDisabled": true,
+  "nativeAfterKeyboardRetry": [
+    {
+      "dateAdded": 1792488189969,
+      "dateGroupModified": 1792488189969,
+      "id": "3572",
+      "index": 6,
+      "parentId": "1",
+      "syncing": false,
+      "title": "R34-lost-ack-1792488186928"
+    }
+  ],
+  "keyboardCannotRepeatWrite": true,
+  "activeWorkerTarget": "DC23F7634DCD1C99A5318AB151DFFFEE"
+}

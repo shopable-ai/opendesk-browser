@@ -1,0 +1,25 @@
+{
+  "kind": "REAL_MAC_CHROME_BOOKMARKS_MANAGER_UI",
+  "candidate": {
+    "packageHash": "852d6a3366995cbafcc0ffc2d77fdeb93cbddf86c407eab0d7ced7a787e1437c",
+    "toolShellSha256": "68c41b2b4681aa3f8c8d62b5421ef0c39eec304fe824a37bcd2a9af5db00a8dd",
+    "appSha256": "d1c0dcb33ff24f46833a8872cd85d7211ac2fa10789770cfef75b2370f8959ec",
+    "at": "2026-10-20T09:13:31.707Z"
+  },
+  "status": "PASS",
+  "at": "2026-10-20T09:20:37.749Z",
+  "nativeWindowTarget": "7C50A38C869695FA268684B4FEAD0174",
+  "changedVia": "Trusted CDP mouse/key input to chrome://bookmarks edit dialog; native API only seeds fixture and reads result",
+  "expected": [
+    {
+      "dateAdded": 1792488028593,
+      "id": "3571",
+      "index": 5,
+      "parentId": "1",
+      "syncing": false,
+      "title": "R34-F4-native-ui-after",
+      "url": "https://example.com/f4-ui"
+    }
+  ],
+  "syncMs": 4590
+}

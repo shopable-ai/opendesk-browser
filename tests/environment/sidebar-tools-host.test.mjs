@@ -13,9 +13,11 @@ import {prepareAdblockUninstallCleanup} from '../../examples/sidebar-tools/adblo
 import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {initSidebarToolSandbox} from '../../src/sidebar-tools/bridge.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
+import {BROWSER_HOST_PROTOCOL} from '../../src/framework/sdk/browser-contract.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 import {officialToolFixture,officialFixtureFetch,officialFixtures} from '../helpers/official-tools.mjs';
 import {OFFICIAL_READING_TOC_RELEASE} from '../../src/sidebar-tools/official-reading-toc.js';
+import {TRUSTED_BOOKMARK_COMPONENT_VERSION} from '../../src/ui/trusted-bookmark-admission.js';
 import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation,recoverMarketOperation,
   TOOL_CLEANUP_STORE,retryUninstalledToolCleanup,getPendingToolCleanups,installReviewedSidebarTool,
   TOOL_REVOCATION_EPOCHS_STORE,recordToolUninstall} from '../../src/ui/sidebar-tools/installation.js';
@@ -411,7 +413,7 @@ function sharedLocks(){
     next.finally(()=>{if(queues.get(name)===next)queues.delete(name);}).catch(()=>{});
     return next;}};
 }
-async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch}={}){
+async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch,trustedBookmarkPilot=null}={}){
   const oldWindow=globalThis.window,oldConfirm=globalThis.confirm;
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
   const {doc,view,runtime,elements,emit,selectFile}=toolRuntimeFixture();
@@ -427,7 +429,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     async set(value){await setHook?.(value);for(const [key,row] of Object.entries(value))store.set(key,structuredClone(row));},
     async remove(key){store.delete(key);}
   }}};
-  const host=createSidebarTools({api,doc,view,currentPageTarget:target,lockManager:locks,fetcher,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
+  const host=createSidebarTools({api,doc,view,currentPageTarget:target,lockManager:locks,fetcher,trustedBookmarkPilot,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
   t.after(()=>{host.dispose();view.dispose();globalThis.window=oldWindow;globalThis.confirm=oldConfirm;});
   if(awaitReady)await host.ready;else await pause();host.setVisible(true);
   assert.equal(elements['sidebar-tool-frame'].children.length,0,'opening Tools never starts saved packages');
@@ -1863,6 +1865,151 @@ test('R10 canonical exports need real Side Panel click plus one-use Host authori
   const stale=await ask('browser.clipboard.writeText',{text:'stale'},'stale-copy');
   assert.equal(stale.ok,false);assert.equal(copied.length,2);
 });
+const bookmarkExpected={id:'saved-bookmark',parentId:'1',index:0,title:'Saved',
+  url:'https://example.com/saved',unmodifiable:null,folderType:null};
+const bookmarkSaveRequests=[
+  ['create',{title:'Saved',url:bookmarkExpected.url,parentId:'1',
+    sourcePage:{url:bookmarkExpected.url,tabRef:'bookmark-source-tab',documentRef:'bookmark-source-document'}}],
+  ['update',{id:bookmarkExpected.id,changes:{title:'Renamed'},expected:bookmarkExpected}],
+  ['move',{id:bookmarkExpected.id,destination:{parentId:'2',index:1},expected:bookmarkExpected}]
+];
+async function bookmarkConsentFixture(t,{trusted=true,hostError=null}={}){
+  const tool=await officialToolFixture('bookmark-manager');
+  const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
+  const epoch='bookmark-install-generation',hostInstanceId='01234567-89ab-4def-8123-456789abcdef';
+  const store=new Map([
+    [SIDEBAR_TOOL_STORE,[tool]],[SIDEBAR_TOOL_ENABLE_STORE,{[tool.id]:true}],
+    [TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:epoch}],
+    [MARKET_PROVENANCE_STORE,{[tool.id]:{marketId:release.id,version:release.version,sha256:release.sha256}}]
+  ]);
+  const oldLocation=globalThis.location;
+  globalThis.location={href:'chrome-extension://test/sidepanel.html?hostInstanceId='+hostInstanceId};
+  t.after(()=>{globalThis.location=oldLocation;});
+  const mounts=[],calls=[],writes=[];
+  const f=await hostFixture(t,{tool,store,startTool:!trusted,
+    trustedBookmarkPilot:trusted?{enabled:true,componentVersion:TRUSTED_BOOKMARK_COMPONENT_VERSION,
+      mount({sdk}){mounts.push(sdk);return ()=>{};}}:null});
+  f.api.runtime.sendMessage=async message=>{
+    calls.push(structuredClone(message));
+    if(message.kind==='host'&&message.operation==='browser.intent.confirm')
+      return {ok:true,data:{approvalRef:'bookmark-approval-'+calls.length}};
+    assert.equal(message.kind,'tool');
+    if(hostError)return {ok:false,error:{code:hostError,message:'Bookmark permission revoked'}};
+    writes.push(structuredClone(message));
+    return {ok:true,data:message.operation.startsWith('browser.bookmarks.remove')
+      ?{removed:true}:{...bookmarkExpected,id:message.args.id||bookmarkExpected.id}};
+  };
+  if(trusted){
+    f.host.openTool(tool.id);await settle(()=>mounts.length===1);
+    assert.equal(f.elements['sidebar-tool-frame'].dataset.bookmarkTrusted,'true');
+    assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'the SDK comes from admitted trusted UI');
+  }
+  return {...f,tool,epoch,hostInstanceId,mounts,calls,writes,
+    sdk:mounts[0],packageHash:await sidebarToolPackageHash(tool)};
+}
+function assertBookmarkIntent(f,index,name,args){
+  const [approval,request]=f.calls.slice(index*2,index*2+2);
+  const identity={toolId:f.tool.id,toolVersion:f.tool.version,installEpoch:f.epoch,
+    packageHash:f.packageHash,toolInstance:request?.toolInstance,hostInstanceId:f.hostInstanceId};
+  assert.ok(identity.toolInstance,'each intent binds the mounted tool instance');
+  assert.deepEqual(approval,{protocol:BROWSER_HOST_PROTOCOL,kind:'host',
+    operation:'browser.intent.confirm',...identity,targetOperation:'browser.bookmarks.'+name,targetArgs:args});
+  assert.deepEqual(request,{protocol:BROWSER_HOST_PROTOCOL,kind:'tool',
+    operation:'browser.bookmarks.'+name,...identity,args,approvalRef:'bookmark-approval-'+(index*2+1)});
+}
+
+test('R3.4 admitted Bookmark Save omits the second button but mints an exact Host intent for every write',async t=>{
+  const f=await bookmarkConsentFixture(t);
+  const requests=[...bookmarkSaveRequests,bookmarkSaveRequests[0]];
+  for(const [index,[name,args]] of requests.entries()){
+    const pending=f.sdk.bookmarks[name](args);
+    await settle(()=>f.calls.length>index*2||!f.elements['sidebar-tool-action-review'].hidden);
+    assert.equal(f.elements['sidebar-tool-action-review'].hidden,true,name+' must not ask to confirm Save again');
+    await pending;
+    assert.equal(f.calls.length,(index+1)*2,'each write has exactly one confirmation and one dispatch');
+    assertBookmarkIntent(f,index,name,args);
+  }
+  assert.equal(f.writes.length,4);
+  assert.equal(new Set(f.writes.map(row=>row.approvalRef)).size,4,'even an identical repeated write needs a fresh ticket');
+});
+
+test('R3.4 sandbox Bookmark writes still need a trusted review click even with official package identity',async t=>{
+  const f=await bookmarkConsentFixture(t,{trusted:false});
+  for(const [index,[name,args]] of bookmarkSaveRequests.entries()){
+    for(const trustedClick of [false,true]){
+      const id=name+'-'+trustedClick,before=f.calls.length;
+      f.ask('browser.bookmarks.'+name,args,id);
+      await settle(()=>!f.elements['sidebar-tool-action-review'].hidden||
+        f.frame.contentWindow.sent.some(row=>row.requestId===id));
+      assert.equal(f.elements['sidebar-tool-action-review'].hidden,false,'sandbox requests require review');
+      assert.equal(f.calls.length,before,'no approval or write before the real host click');
+      f.emit(f.elements['sidebar-tool-action-continue'],'click',{isTrusted:trustedClick});
+      await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId===id));
+      const response=f.frame.contentWindow.sent.find(row=>row.requestId===id);
+      assert.equal(response.ok,trustedClick);
+      if(trustedClick)assertBookmarkIntent(f,index,name,args);
+      else{
+        assert.equal(response.error.code,'E_CANCELLED');
+        assert.equal(f.calls.length,before,'synthetic review clicks cannot mint tickets');
+      }
+    }
+  }
+  assert.equal(f.writes.length,3);
+});
+
+test('R3.4 admitted Bookmark deletion still waits for its separate Host review',async t=>{
+  const f=await bookmarkConsentFixture(t);
+  const requests=[['remove',{id:bookmarkExpected.id,expected:bookmarkExpected}],
+    ['removeTree',{id:'saved-folder',ticket:'bookmark-delete-tree-ticket'}]];
+  for(const [index,[name,args]] of requests.entries()){
+    const pending=f.sdk.bookmarks[name](args);
+    await settle(()=>!f.elements['sidebar-tool-action-review'].hidden||f.calls.length>index*2);
+    assert.equal(f.elements['sidebar-tool-action-review'].hidden,false,name+' must retain destructive review');
+    assert.equal(f.calls.length,index*2,'deletion has no intent or dispatch before review');
+    f.emit(f.elements['sidebar-tool-action-continue'],'click',{isTrusted:true});
+    assert.deepEqual(await pending,{removed:true});
+    assertBookmarkIntent(f,index,name,args);
+  }
+  assert.equal(f.writes.length,2);
+});
+
+test('R3.4 stale Bookmark SDK instances cannot use the current trusted mount to save',async t=>{
+  const f=await bookmarkConsentFixture(t),oldSDK=f.sdk;
+  f.host.closeTool();f.host.openTool(f.tool.id);
+  await settle(()=>f.mounts.length===2);
+  const [name,args]=bookmarkSaveRequests[0];
+  await assert.rejects(oldSDK.bookmarks[name](args),{code:'E_TOOL_CHANGED'});
+  assert.equal(f.calls.length,0,'a closed generation cannot mint an intent after reopening');
+  await f.mounts[1].bookmarks[name](args);
+  assertBookmarkIntent(f,0,name,args);
+  assert.equal(f.writes.length,1);
+});
+
+test('R3.4 Bookmark saves recheck install generation, enablement and provenance before requesting approval',async t=>{
+  const changes={
+    epoch:f=>f.store.set(TOOL_REVOCATION_EPOCHS_STORE,{[f.tool.id]:'new-install-generation'}),
+    disabled:f=>f.store.set(SIDEBAR_TOOL_ENABLE_STORE,{[f.tool.id]:false}),
+    provenance:f=>f.store.delete(MARKET_PROVENANCE_STORE),
+    uninstall:f=>f.store.set(SIDEBAR_TOOL_STORE,[])
+  };
+  for(const [reason,change] of Object.entries(changes))await t.test(reason,async t=>{
+    const f=await bookmarkConsentFixture(t);change(f);
+    for(const [name,args] of bookmarkSaveRequests)
+      await assert.rejects(f.sdk.bookmarks[name](args),{code:'E_TOOL_CHANGED'});
+    assert.equal(f.calls.length,0,'invalid admission cannot mint a ticket or dispatch a write');
+    assert.equal(f.elements['sidebar-tool-action-review'].hidden,true);
+  });
+});
+
+test('R3.4 trusted Bookmark Save propagates Host grant revocation without retrying',async t=>{
+  const f=await bookmarkConsentFixture(t,{hostError:'E_GRANT_REVOKED'});
+  const [name,args]=bookmarkSaveRequests[0];
+  await assert.rejects(f.sdk.bookmarks[name](args),{code:'E_GRANT_REVOKED'});
+  assert.equal(f.calls.length,2,'the denied write is dispatched once and never replayed');
+  assertBookmarkIntent(f,0,name,args);
+  assert.equal(f.writes.length,0);
+});
+
 test('R1.3 frontend status and list reflect callable export services and include mounted package identity',async t=>{
   const tool={...sample,capabilities:[...sample.capabilities,'user.export']};
   const f=await hostFixture(t,{tool,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]])});

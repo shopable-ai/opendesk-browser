@@ -1,0 +1,33 @@
+{
+  "status": "PASS",
+  "kind": "REAL_MAC_CFT_SAME_PROFILE_RESTART",
+  "candidate": {
+    "packageHash": "852d6a3366995cbafcc0ffc2d77fdeb93cbddf86c407eab0d7ced7a787e1437c",
+    "toolShellSha256": "68c41b2b4681aa3f8c8d62b5421ef0c39eec304fe824a37bcd2a9af5db00a8dd",
+    "appSha256": "d1c0dcb33ff24f46833a8872cd85d7211ac2fa10789770cfef75b2370f8959ec",
+    "at": "2026-10-20T09:13:31.707Z"
+  },
+  "treeIdentical": true,
+  "nodeCount": 3509,
+  "permission": true,
+  "url": "chrome-extension://jbamnbckklhjolckjkbkpgonphncclhi/sidepanel.html",
+  "actualContext": {
+    "contextId": "76a32c58-5ddf-4656-a855-052933c2a34b",
+    "contextType": "SIDE_PANEL",
+    "documentId": "A96D8061DF27E9913B9020E96DBF89ED",
+    "documentOrigin": "chrome-extension://jbamnbckklhjolckjkbkpgonphncclhi",
+    "documentUrl": "chrome-extension://jbamnbckklhjolckjkbkpgonphncclhi/sidepanel.html",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": -1,
+    "windowId": -1
+  },
+  "version": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.20"
+  },
+  "at": "2026-10-20T09:13:45.969Z"
+}

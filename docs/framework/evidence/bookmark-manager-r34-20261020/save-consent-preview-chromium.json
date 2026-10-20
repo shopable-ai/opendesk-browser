@@ -1,0 +1,335 @@
+{
+  "kind": "CHROMIUM_FORMAL_REACT_MOCK_HOST",
+  "nativeVerified": false,
+  "installed": false,
+  "browser": "Chrome/155.0.8059.39",
+  "manifest": {
+    "format": "opendesk.ui-preview.v1",
+    "tool": "bookmark-manager",
+    "toolVersion": "0.3.8",
+    "surface": "side-panel",
+    "scenario": "success",
+    "theme": "light",
+    "viewport": {
+      "width": 360,
+      "height": 760
+    },
+    "sourceCommit": "f76dab1b75e598805494947cd290a193708f625c",
+    "designSha256": "f285f6b5e10fe26fce1d4c2e05fe234fc1e38ac3309c948b052f5a12ce422717",
+    "shellTheme": "light",
+    "previewBuild": "R3.0.5 REACT OFFLINE CANDIDATE",
+    "mock": true,
+    "installed": false,
+    "permissionsGranted": false,
+    "operations": [
+      "getTree",
+      "get",
+      "search",
+      "create",
+      "update",
+      "move",
+      "remove",
+      "prepareRemoveTree",
+      "removeTree",
+      "observe.start",
+      "observe.read",
+      "observe.stop"
+    ],
+    "r28Baseline": {
+      "sourceCommit": "f76dab1b75e598805494947cd290a193708f625c",
+      "designSha256": "f285f6b5e10fe26fce1d4c2e05fe234fc1e38ac3309c948b052f5a12ce422717",
+      "uiSha256": "c22fa65d190aef2f9194f204078e9e1c49ecaec15f0a9d25f515f95d97f68f24",
+      "shellSha256": "225ac01fe157930437a333133321e0daf8e40b82437a2e0a21f8774b59b7bae4"
+    },
+    "designStatus": "DESIGN_PROTOTYPE_NOT_SOURCE_BOUND",
+    "sourceBound": false,
+    "nativeVerified": false,
+    "previewViewportModes": [
+      360,
+      400,
+      960
+    ],
+    "reactRuntime": true,
+    "reactFiles": {
+      "bundle": "ff1b2038686e0b7d3f62aebe8bef11c3713613721a58b5f10d253c627657aec6",
+      "css": "f188c9d4dfb5b67b7d4571d691f450a9940c008e0d86bca275777f2f70f87a6f",
+      "model": "875cf0d61fb95f6c70901337118dd7382f33a2ff0ef45ac308a2a5e807aeee9c",
+      "service": "59095a42310828e86160e49a262352086c19a35fc15bce655bfc81d3e743c451",
+      "mock": "06399ef111d80879c83a64632996954a40eccf297be094c10857b3e40c4087ee",
+      "app": "d1c0dcb33ff24f46833a8872cd85d7211ac2fa10789770cfef75b2370f8959ec",
+      "main": "86a161fdf9ea78208d76e8eea1881bb75a89e28da2a003b427a69ee6a6418053"
+    },
+    "reactFrameSha256": "152558d290d32cb17a86e0cadbe3f92a6d989b5178057e268a8e28f761462908",
+    "previewCandidate": "REACT_OFFLINE_MOCK",
+    "formalEntry": true,
+    "hostAdapter": "MOCK_HOST_ADAPTER"
+  },
+  "sourceSha256": "ac58085219ae3cdcccc486c63fb9194afa96652349951440f32c33612450011f",
+  "report": [
+    {
+      "width": 360,
+      "treeHeight": 665,
+      "noPersistentInspector": true,
+      "mockHost": {
+        "kind": "MOCK_HOST_ADAPTER",
+        "nativeVerified": false,
+        "reviews": [
+          {
+            "operation": "remove",
+            "id": "100",
+            "expected": {
+              "id": "100",
+              "parentId": "10",
+              "index": 0,
+              "title": "OpenDesk 产品资料",
+              "url": "https://example.org/preview",
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "cancelled"
+          },
+          {
+            "operation": "remove",
+            "id": "100",
+            "expected": {
+              "id": "100",
+              "parentId": "10",
+              "index": 0,
+              "title": "OpenDesk 产品资料",
+              "url": "https://example.org/preview",
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "approved"
+          },
+          {
+            "operation": "prepareRemoveTree",
+            "id": "10",
+            "expected": {
+              "id": "10",
+              "parentId": "1",
+              "index": 0,
+              "title": "设计资料",
+              "url": null,
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "approved"
+          }
+        ],
+        "calls": {
+          "remove": 2,
+          "prepareRemoveTree": 1,
+          "removeTree": 1
+        },
+        "mutations": [
+          {
+            "operation": "remove",
+            "id": "100"
+          },
+          {
+            "operation": "removeTree",
+            "id": "10"
+          }
+        ]
+      },
+      "passed": [
+        "one-click-preview",
+        "five-click-five-previews",
+        "folder-row-toggle",
+        "folder-disclosure",
+        "folder-menu-details",
+        "nonmodal-preview",
+        "view-detail-on-demand",
+        "direct-cancel",
+        "edit-no-tree-jump",
+        "save-readback",
+        "search-2159",
+        "create-types",
+        "single-host-review-no-react-confirm",
+        "host-cancel-preserves-bookmark",
+        "ticketed-recursive-delete",
+        "focus-restore",
+        "menu-Escape"
+      ]
+    },
+    {
+      "width": 400,
+      "treeHeight": 665,
+      "noPersistentInspector": true,
+      "mockHost": {
+        "kind": "MOCK_HOST_ADAPTER",
+        "nativeVerified": false,
+        "reviews": [
+          {
+            "operation": "remove",
+            "id": "100",
+            "expected": {
+              "id": "100",
+              "parentId": "10",
+              "index": 0,
+              "title": "OpenDesk 产品资料",
+              "url": "https://example.org/preview",
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "cancelled"
+          },
+          {
+            "operation": "remove",
+            "id": "100",
+            "expected": {
+              "id": "100",
+              "parentId": "10",
+              "index": 0,
+              "title": "OpenDesk 产品资料",
+              "url": "https://example.org/preview",
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "approved"
+          },
+          {
+            "operation": "prepareRemoveTree",
+            "id": "10",
+            "expected": {
+              "id": "10",
+              "parentId": "1",
+              "index": 0,
+              "title": "设计资料",
+              "url": null,
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "approved"
+          }
+        ],
+        "calls": {
+          "remove": 2,
+          "prepareRemoveTree": 1,
+          "removeTree": 1
+        },
+        "mutations": [
+          {
+            "operation": "remove",
+            "id": "100"
+          },
+          {
+            "operation": "removeTree",
+            "id": "10"
+          }
+        ]
+      },
+      "passed": [
+        "one-click-preview",
+        "five-click-five-previews",
+        "folder-row-toggle",
+        "folder-disclosure",
+        "folder-menu-details",
+        "nonmodal-preview",
+        "view-detail-on-demand",
+        "direct-cancel",
+        "edit-no-tree-jump",
+        "save-readback",
+        "search-2159",
+        "create-types",
+        "single-host-review-no-react-confirm",
+        "host-cancel-preserves-bookmark",
+        "ticketed-recursive-delete",
+        "focus-restore",
+        "menu-Escape",
+        "folder-130",
+        "failure-preserve",
+        "unknown-draft-safety",
+        "search-folder-drilldown"
+      ]
+    },
+    {
+      "width": 960,
+      "treeHeight": 665,
+      "noPersistentInspector": true,
+      "mockHost": {
+        "kind": "MOCK_HOST_ADAPTER",
+        "nativeVerified": false,
+        "reviews": [
+          {
+            "operation": "remove",
+            "id": "100",
+            "expected": {
+              "id": "100",
+              "parentId": "10",
+              "index": 0,
+              "title": "OpenDesk 产品资料",
+              "url": "https://example.org/preview",
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "cancelled"
+          },
+          {
+            "operation": "remove",
+            "id": "100",
+            "expected": {
+              "id": "100",
+              "parentId": "10",
+              "index": 0,
+              "title": "OpenDesk 产品资料",
+              "url": "https://example.org/preview",
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "approved"
+          },
+          {
+            "operation": "prepareRemoveTree",
+            "id": "10",
+            "expected": {
+              "id": "10",
+              "parentId": "1",
+              "index": 0,
+              "title": "设计资料",
+              "url": null,
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "approved"
+          }
+        ],
+        "calls": {
+          "remove": 2,
+          "prepareRemoveTree": 1,
+          "removeTree": 1
+        },
+        "mutations": [
+          {
+            "operation": "remove",
+            "id": "100"
+          },
+          {
+            "operation": "removeTree",
+            "id": "10"
+          }
+        ]
+      },
+      "passed": [
+        "one-click-preview",
+        "five-click-five-previews",
+        "folder-row-toggle",
+        "folder-disclosure",
+        "folder-menu-details",
+        "nonmodal-preview",
+        "view-detail-on-demand",
+        "direct-cancel",
+        "edit-no-tree-jump",
+        "save-readback",
+        "search-2159",
+        "create-types",
+        "single-host-review-no-react-confirm",
+        "host-cancel-preserves-bookmark",
+        "ticketed-recursive-delete",
+        "focus-restore",
+        "menu-Escape"
+      ]
+    }
+  ]
+}

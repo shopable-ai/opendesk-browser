@@ -124,3 +124,11 @@ SDK 公共前置项仍跟踪 [Issue #75](https://github.com/shopable-ai/opendesk
 - 本阶段待原生验收重点：保存/移动是否仍有多次 Host 审阅、真实 Chrome 删除时是否只出现一次 Host 确认、真实 2,000+ 树与观察会话刷新、权限撤销中的草稿保护、100%/200% 缩放及正式包升级一致性。出现任何失败，先在同一 `main` 修复，再升级正式包和 Catalog。
 
 **当前状态：SOURCE_DEFAULT_REACT_ENABLED / NATIVE_NOT_TESTED / BOOKMARK_MANAGER_RELEASE_BLOCKED。**
+
+## R3.4 · 官方 React 保存不再重复审阅（2026-10-20）
+
+正常安装、独立授予 Full Bookmarks 的官方书签管理，在真实点击保存或按 Enter 保存时，创建、编辑、移动书签及文件夹直接完成；一次保存包含移动、名称和 URL 修改也无需再点 Host 确认。每次写入仍由原 Host 签发并消费绑定操作、参数、安装身份和代际的一次性票据，保存后按原生 ID 读回，重复点击、未知回执及部分写入保护保留。
+
+此策略仅适用于通过既有官方包/SHA/来源/启用/代际准入的静态 React UI。合成保存事件被拒绝；第三方和沙箱路径仍需原 Host 审阅。Full Bookmarks 独立授权、撤权、Chrome 权限及危险递归删除的票据与确认没有取消。正式工具 JSON 与 Catalog 保持 0.3.8 原字节。
+
+本次与历史候选的真实 Chrome、Mock、构建和 CI 状态分别记录在仓库的 `docs/framework/evidence/bookmark-manager-r34-20261020/save-consent-release.json`；旧候选的 PASS 不自动代表当前候选，排队中的 CI 不算发布通过。

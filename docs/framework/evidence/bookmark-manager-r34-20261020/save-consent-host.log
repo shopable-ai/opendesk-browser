@@ -1,0 +1,19 @@
+✔ R3.4 admitted Bookmark Save omits the second button but mints an exact Host intent for every write (200.86075ms)
+✔ R3.4 sandbox Bookmark writes still need a trusted review click even with official package identity (74.975584ms)
+✔ R3.4 admitted Bookmark deletion still waits for its separate Host review (31.589917ms)
+✔ R3.4 stale Bookmark SDK instances cannot use the current trusted mount to save (23.11125ms)
+▶ R3.4 Bookmark saves recheck install generation, enablement and provenance before requesting approval
+  ✔ epoch (12.536625ms)
+  ✔ disabled (12.205083ms)
+  ✔ provenance (13.865792ms)
+  ✔ uninstall (10.430333ms)
+✔ R3.4 Bookmark saves recheck install generation, enablement and provenance before requesting approval (49.585333ms)
+✔ R3.4 trusted Bookmark Save propagates Host grant revocation without retrying (15.822083ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 520.132917

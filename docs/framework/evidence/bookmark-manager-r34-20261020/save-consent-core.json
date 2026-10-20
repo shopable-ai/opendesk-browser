@@ -1,0 +1,168 @@
+{
+  "candidate": {
+    "packageHash": "852d6a3366995cbafcc0ffc2d77fdeb93cbddf86c407eab0d7ced7a787e1437c",
+    "toolShellSha256": "68c41b2b4681aa3f8c8d62b5421ef0c39eec304fe824a37bcd2a9af5db00a8dd",
+    "appSha256": "d1c0dcb33ff24f46833a8872cd85d7211ac2fa10789770cfef75b2370f8959ec",
+    "at": "2026-10-20T09:13:31.707Z"
+  },
+  "kind": "REAL_MAC_CFT_OFFICIAL_REACT_SAVE_CONSENT",
+  "profile": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/profile",
+  "extensionId": "jbamnbckklhjolckjkbkpgonphncclhi",
+  "startedAt": "2026-10-20T09:17:16.346Z",
+  "results": [
+    {
+      "name": "B:create-without-repeat-review",
+      "status": "PASS",
+      "evidence": {
+        "work": {
+          "children": [],
+          "dateAdded": 1792487686503,
+          "dateGroupModified": 1792487686503,
+          "id": "3565",
+          "index": 5,
+          "parentId": "1",
+          "syncing": false,
+          "title": "R34-consent-1792487683810-work"
+        },
+        "target": {
+          "children": [],
+          "dateAdded": 1792487691772,
+          "dateGroupModified": 1792487691772,
+          "id": "3566",
+          "index": 7,
+          "parentId": "2",
+          "syncing": false,
+          "title": "R34-consent-1792487683810-target"
+        },
+        "item": {
+          "dateAdded": 1792487697058,
+          "id": "3567",
+          "index": 0,
+          "parentId": "3565",
+          "syncing": false,
+          "title": "R34-consent-1792487683810-item",
+          "url": "https://example.com/consent"
+        }
+      }
+    },
+    {
+      "name": "D:bookmark-move-no-review-double-click-once",
+      "status": "PASS",
+      "evidence": {
+        "actual": {
+          "dateAdded": 1792487697058,
+          "id": "3567",
+          "index": 0,
+          "parentId": "3566",
+          "syncing": false,
+          "title": "R34-consent-1792487683810-item",
+          "url": "https://example.com/consent"
+        },
+        "events": [
+          {
+            "type": "move",
+            "id": "3567",
+            "info": {
+              "index": 0,
+              "oldIndex": 0,
+              "oldParentId": "3565",
+              "parentId": "3566"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "C:move-rename-url-one-save-no-review",
+      "status": "PASS",
+      "evidence": {
+        "dateAdded": 1792487697058,
+        "id": "3567",
+        "index": 0,
+        "parentId": "3565",
+        "syncing": false,
+        "title": "R34-consent-1792487785135-edited",
+        "url": "https://example.org/consent-edited"
+      }
+    },
+    {
+      "name": "D:folder-move-no-review",
+      "status": "PASS",
+      "evidence": {
+        "children": [
+          {
+            "dateAdded": 1792487697058,
+            "id": "3567",
+            "index": 0,
+            "parentId": "3565",
+            "syncing": false,
+            "title": "R34-consent-1792487785135-edited",
+            "url": "https://example.org/consent-edited"
+          }
+        ],
+        "dateAdded": 1792487686503,
+        "dateGroupModified": 1792487800224,
+        "id": "3565",
+        "index": 0,
+        "parentId": "3566",
+        "syncing": false,
+        "title": "R34-consent-1792487683810-work"
+      }
+    },
+    {
+      "name": "C:keyboard-save-no-review",
+      "status": "PASS",
+      "evidence": {
+        "dateAdded": 1792487697058,
+        "id": "3567",
+        "index": 0,
+        "parentId": "3565",
+        "syncing": false,
+        "title": "R34-consent-1792487836347-keyboard",
+        "url": "https://example.org/consent-edited"
+      }
+    },
+    {
+      "name": "safety:self-and-descendant-excluded",
+      "status": "PASS",
+      "evidence": {
+        "selfAbsent": true,
+        "descendantAbsent": true
+      }
+    }
+  ],
+  "priorDriverFailure": "Error: {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":72,\"scriptId\":\"56\",\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Missing button[aria-label=\\\"编辑\\\"]\\n    at <anonymous>:1:79\\n    at <anonymous>:1:339\",\"objectId\":\"5578120304723170067.2.2\"}}\n    at evaluate (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/sidebar-native-session.mjs:21:203)\n    at async click (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/drive.mjs:13:51)\n    at async edit (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/save-consent.mjs:34:263)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/save-consent.mjs:65:3\n    at async step (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/save-consent.mjs:42:45)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/save-consent.mjs:64:2",
+  "status": "PASS",
+  "fixture": {
+    "work": {
+      "children": [],
+      "dateAdded": 1792487686503,
+      "dateGroupModified": 1792487686503,
+      "id": "3565",
+      "index": 5,
+      "parentId": "1",
+      "syncing": false,
+      "title": "R34-consent-1792487683810-work"
+    },
+    "target": {
+      "children": [],
+      "dateAdded": 1792487691772,
+      "dateGroupModified": 1792487691772,
+      "id": "3566",
+      "index": 7,
+      "parentId": "2",
+      "syncing": false,
+      "title": "R34-consent-1792487683810-target"
+    },
+    "item": {
+      "dateAdded": 1792487697058,
+      "id": "3567",
+      "index": 0,
+      "parentId": "3565",
+      "syncing": false,
+      "title": "R34-consent-1792487836347-keyboard",
+      "url": "https://example.org/consent-edited"
+    }
+  },
+  "finishedAt": "2026-10-20T09:17:28.251Z"
+}

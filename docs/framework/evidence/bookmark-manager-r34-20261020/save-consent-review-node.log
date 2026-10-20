@@ -1,0 +1,45 @@
+✔ R3.4 trusted Save rejects isTrusted=false before any work (0.996292ms)
+✔ R3.4 trusted Save rejects isTrusted=undefined before any work (0.228833ms)
+✔ R3.4 trusted Save accepts its supported input and completes the write (0.689ms)
+✔ R3.4 preview Save accepts its supported input and completes the write (0.325291ms)
+✔ current-page fill retains the selected folder instead of shadowing it with its validity guard (4.561792ms)
+✔ R3.4 late current-page resolve preserves state after revoke (1.021084ms)
+✔ R3.4 late current-page reject preserves state after revoke (0.517ms)
+✔ R3.4 late current-page resolve preserves state after unmount (0.418584ms)
+✔ R3.4 late current-page reject preserves state after unmount (0.336333ms)
+✔ R3.4 late current-page resolve preserves state after cancel (0.317958ms)
+✔ R3.4 late current-page reject preserves state after cancel (0.655917ms)
+✔ R3.4 late current-page resolve preserves state after close (0.264ms)
+✔ R3.4 late current-page reject preserves state after close (0.235125ms)
+✔ R3.4 late current-page resolve preserves state after create (0.325458ms)
+✔ R3.4 late current-page reject preserves state after create (0.270875ms)
+✔ R3.4 late current-page resolve preserves state after edit (0.513584ms)
+✔ R3.4 late current-page reject preserves state after edit (0.357167ms)
+✔ R3.4 late current-page resolve preserves state after draft (0.272208ms)
+✔ R3.4 late current-page reject preserves state after draft (0.399709ms)
+✔ R3.4 newest current-page request wins over an older delayed context (0.364291ms)
+✔ R3.4 failed event snapshot retries before the next empty poll without unlocking writes (1.148708ms)
+✔ R3.4 discarded event snapshot retries before the next empty poll without unlocking writes (0.469333ms)
+✔ R3.4 mutation invalidates an earlier snapshot instead of overwriting verified data (0.147709ms)
+✔ R3.4 observer denial keeps data cleared after delayed save write (0.361625ms)
+✔ R3.4 observer denial keeps data cleared after delayed save readback (0.215084ms)
+✔ R3.4 observer denial keeps data cleared after delayed delete write (0.272208ms)
+✔ R3.4 observer denial keeps data cleared after delayed delete readback (0.209542ms)
+✔ R3.4 even an invalidated snapshot denial revokes the pending mutation (0.22525ms)
+✔ R3.4 reconciliation snapshot started before mutation cannot clear its later unknown outcome (0.134542ms)
+✔ R3.4 reconciliation snapshot started during mutation cannot clear its later unknown outcome (0.078541ms)
+✔ R3.4 only explicit reconciliation after unknown outcome unlocks subsequent writes (0.18375ms)
+✔ R3.4 revocation between move and update prevents the second mutation (1.224291ms)
+✔ R3.4 completed move followed by E_USER_CANCEL warns partial write and blocks retries (0.3695ms)
+✔ R3.4 completed move followed by E_OUTCOME_UNKNOWN warns partial write and blocks retries (0.2635ms)
+✔ R3.4 completed move followed by E_NATIVE_WRITE warns partial write and blocks retries (0.26375ms)
+✔ R3.4 an update denied before any completed write retains the draft without a partial warning (0.257041ms)
+✔ trusted Save rejects synthetic input before any write (0.203542ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 66.176583

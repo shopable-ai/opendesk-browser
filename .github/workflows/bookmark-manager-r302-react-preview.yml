@@ -22,6 +22,8 @@ on:
       - 'tests/environment/bookmark-manager-r33-default-react.test.mjs'
       - 'tests/environment/bookmark-manager-r34-write-order.test.mjs'
       - 'tests/environment/bookmark-manager-r34-transport.test.mjs'
+      - 'tests/environment/bookmark-manager-r34-save-consent.test.mjs'
+      - 'tests/environment/sidebar-tools-host.test.mjs'
       - 'tests/environment/sidebar-tools-view.test.mjs'
       - 'scripts/bundle-provenance.mjs'
       - '.github/workflows/bookmark-manager-r302-react-preview.yml'
@@ -52,10 +54,13 @@ jobs:
             tests/environment/bookmark-manager-r33-default-react.test.mjs \
             tests/environment/bookmark-manager-r34-write-order.test.mjs \
             tests/environment/bookmark-manager-r34-transport.test.mjs \
+            tests/environment/bookmark-manager-r34-save-consent.test.mjs \
             tests/environment/sidebar-tools-view.test.mjs \
             tests/environment/extension-center-r47-interaction.test.mjs \
             tests/environment/bookmark-manager-r24-lifecycle.test.mjs \
             tests/environment/bundle-provenance.test.mjs
+      - name: Official save intent and sandbox deletion boundaries
+        run: node --test --test-name-pattern='R3.4' tests/environment/sidebar-tools-host.test.mjs
       - name: Check formal source
         run: npm run check
       - name: Build official WXT code without promoting or installing any tool package

@@ -1,0 +1,24 @@
+{
+  "candidate": {
+    "packageHash": "852d6a3366995cbafcc0ffc2d77fdeb93cbddf86c407eab0d7ced7a787e1437c",
+    "toolShellSha256": "68c41b2b4681aa3f8c8d62b5421ef0c39eec304fe824a37bcd2a9af5db00a8dd",
+    "appSha256": "d1c0dcb33ff24f46833a8872cd85d7211ac2fa10789770cfef75b2370f8959ec",
+    "at": "2026-10-20T09:13:31.707Z"
+  },
+  "kind": "REAL_MAC_CFT_SIMPLE_DELETE",
+  "results": [
+    {
+      "kind": "bookmark",
+      "id": "3573",
+      "status": "PASS",
+      "oneHostReview": true
+    },
+    {
+      "kind": "empty-folder",
+      "id": "3574",
+      "status": "PASS",
+      "oneHostReview": true
+    }
+  ],
+  "status": "PASS"
+}

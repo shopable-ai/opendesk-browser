@@ -1392,9 +1392,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             documentId:contexts[0].documentId,documentLifecycle:'active'};
           assertSession(source,token);
         }
-        const approvalRef=await requestBrowserClick({toolId:tool.id,
-          message:'「'+tool.title+'」请求'+target+'；确认仅批准这一次操作。',
-          button:'允许本次操作',run:async event=>{
+        const confirmAction=async event=>{
             if(operation.startsWith('browser.proxy.managed.')&&!event?.isTrusted)
               throw Object.assign(new Error('代理操作需要可信 Side Panel 的真实点击'),
                 {code:'E_USER_GESTURE_REQUIRED'});
@@ -1419,7 +1417,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             if(!approval?.ok)throw Object.assign(new Error(approval?.error?.message||'Browser Host approval denied'),
               {code:approval?.error?.code||'E_BROWSER'});
             return approval.data.approvalRef;
-          }});
+          };
+        // Only the admitted, statically compiled Bookmark UI owns this source.
+        // Its Save already checks the real input event; retain exact one-use Host
+        // approvals for each write without asking the user to approve Save again.
+        const approvalRef=source===trustedBookmarkSource&&
+          ['browser.bookmarks.create','browser.bookmarks.update','browser.bookmarks.move'].includes(operation)
+          ?await confirmAction():await requestBrowserClick({toolId:tool.id,
+            message:'「'+tool.title+'」请求'+target+'；确认仅批准这一次操作。',
+            button:'允许本次操作',run:confirmAction});
         assertSession(source,token);
         envelope.approvalRef=approvalRef;
       }

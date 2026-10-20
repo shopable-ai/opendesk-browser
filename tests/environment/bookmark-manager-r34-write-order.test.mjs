@@ -125,7 +125,7 @@ for(const outcome of ['failed','discarded']){
           nextCursor:cursors.length===1?'0':'1',expiresAt:Date.now()+30000};
       }
     });
-    const lockWrites=async()=>{app.create();await app.ui.save({preventDefault(){}});app.render();assert.equal(app.ui.uncertain,true)};
+    const lockWrites=async()=>{app.create();await app.ui.save({isTrusted:true,preventDefault(){}});app.render();assert.equal(app.ui.uncertain,true)};
     await app.mount();
     if(outcome==='failed')await lockWrites();
     await app.poll();assert.equal(reads,2);
@@ -150,7 +150,7 @@ test('R3.4 mutation invalidates an earlier snapshot instead of overwriting verif
   const app=harness({load:()=>++reads===2?earlier.promise:Promise.resolve(snapshot({created:reads>2}))});
   await app.ui.load();app.render();
   const refresh=app.ui.load();app.create();
-  await app.ui.save({preventDefault(){}});app.render();
+  await app.ui.save({isTrusted:true,preventDefault(){}});app.render();
   assert.equal(app.ui.tree.byId.has('new'),true);
   earlier.resolve(snapshot());await refresh;app.render();
   assert.equal(app.ui.tree.byId.has('new'),true,'pre-write snapshot must not replace successful readback');
@@ -167,7 +167,7 @@ for(const operation of ['save','delete'])for(const phase of ['write','readback']
     });
     await app.mount();
     let writing;
-    if(operation==='save'){app.create();writing=app.ui.save({preventDefault(){}})}
+    if(operation==='save'){app.create();writing=app.ui.save({isTrusted:true,preventDefault(){}})}
     else writing=app.ui.removeConfirmed({id:'old',expected:app.ui.tree.byId.get('old'),descendantSignatures:[]});
     await settle();await app.poll();
     assert.equal(app.ui.tree,null);assert.equal(app.ui.draft,null);
@@ -187,7 +187,7 @@ test('R3.4 even an invalidated snapshot denial revokes the pending mutation',asy
   const app=harness({load:()=>++reads===1?Promise.resolve(snapshot()):reading.promise,
     createFolder:()=>writing.promise});
   await app.ui.load();app.render();
-  const refresh=app.ui.load();app.create();const save=app.ui.save({preventDefault(){}});
+  const refresh=app.ui.load();app.create();const save=app.ui.save({isTrusted:true,preventDefault(){}});
   reading.reject(denied());await refresh;app.render();
   assert.equal(app.ui.tree,null);assert.equal(app.ui.draft,null);
   writing.resolve({id:'new'});await save;app.render();
@@ -203,7 +203,7 @@ for(const phase of ['before','during']){
     await app.ui.load();app.render();
     let refresh;
     if(phase==='before')refresh=app.ui.load({reconcileUnknown:true});
-    app.create();const save=app.ui.save({preventDefault(){}});
+    app.create();const save=app.ui.save({isTrusted:true,preventDefault(){}});
     if(phase==='during')refresh=app.ui.load({reconcileUnknown:true});
     writing.reject(unknown());await save;app.render();assert.equal(app.ui.uncertain,true);
     reading.resolve(snapshot());await refresh;app.render();
@@ -215,13 +215,13 @@ for(const phase of ['before','during']){
 test('R3.4 only explicit reconciliation after unknown outcome unlocks subsequent writes',async()=>{
   let writes=0;
   const app=harness({createFolder:async()=>{writes++;throw unknown()}});
-  await app.ui.load();app.render();app.create();await app.ui.save({preventDefault(){}});app.render();
+  await app.ui.load();app.render();app.create();await app.ui.save({isTrusted:true,preventDefault(){}});app.render();
   assert.equal(app.ui.uncertain,true);
   await app.ui.load();app.render();assert.equal(app.ui.uncertain,true,'background refresh preserves the lock');
-  await app.ui.save({preventDefault(){}});assert.equal(writes,1,'unknown outcome blocks repeat submission');
+  await app.ui.save({isTrusted:true,preventDefault(){}});assert.equal(writes,1,'unknown outcome blocks repeat submission');
   await app.ui.load({reconcileUnknown:true});app.render();
   assert.equal(app.ui.uncertain,false);
-  await app.ui.save({preventDefault(){}});assert.equal(writes,2);
+  await app.ui.save({isTrusted:true,preventDefault(){}});assert.equal(writes,2);
 });
 
 test('R3.4 revocation between move and update prevents the second mutation',async()=>{
@@ -233,7 +233,7 @@ test('R3.4 revocation between move and update prevents the second mutation',asyn
     watchRead:async()=>{if(++polls>1)throw denied();return {events:[],nextCursor:'1',expiresAt:Date.now()+30000}}});
   await app.mount();app.ui.request({type:'edit',id:'old'});app.render();
   app.ui.setDraft(draft=>({...draft,parentId:'dest',title:'Changed'}));app.render();
-  const save=app.ui.save({preventDefault(){}});await settle();await app.poll();
+  const save=app.ui.save({isTrusted:true,preventDefault(){}});await settle();await app.poll();
   moving.resolve({...tree.byId.get('old'),parentId:'dest'});await save;app.render();
   assert.equal(updates,0,'a late move receipt cannot authorize an update after revocation');
   assert.equal(app.ui.tree,null);assert.equal(app.ui.uncertain,true);
@@ -249,10 +249,10 @@ for(const code of ['E_USER_CANCEL','E_OUTCOME_UNKNOWN','E_NATIVE_WRITE']){
   },update:async()=>{updates++;throw Object.assign(Error('Update did not complete'),{code})}});
   await app.mount();app.ui.request({type:'edit',id:'old'});app.render();
   app.ui.setDraft(d=>({...d,title:'Edited',parentId:'target'}));app.render();
-  await app.ui.save({preventDefault(){}});app.render();
+  await app.ui.save({isTrusted:true,preventDefault(){}});app.render();
   assert.match(app.ui.error,/部分写入风险/);assert.equal(app.ui.uncertain,true);
   assert.equal(app.ui.draft.title,'Edited');assert.equal(app.ui.draft.parentId,'target');
-  await app.ui.save({preventDefault(){}});assert.equal(moves,1);assert.equal(updates,1);
+  await app.ui.save({isTrusted:true,preventDefault(){}});assert.equal(moves,1);assert.equal(updates,1);
   assert.notEqual(app.ui.notice,'已保存');app.unmount();
  });
 }
@@ -262,7 +262,17 @@ test('R3.4 an update denied before any completed write retains the draft without
  }});
  await app.mount();app.ui.request({type:'edit',id:'old'});app.render();
  app.ui.setDraft(d=>({...d,title:'Edited'}));app.render();
- await app.ui.save({preventDefault(){}});app.render();
+ await app.ui.save({isTrusted:true,preventDefault(){}});app.render();
  assert.equal(app.ui.error,'Native update denied');assert.equal(app.ui.uncertain,false);
  assert.equal(app.ui.draft.title,'Edited');app.unmount();
+});
+
+// isTrusted is supplied only by this unit harness; production receives React's
+// native input event and never synthesizes or overwrites the property.
+test('trusted Save rejects synthetic input before any write',async()=>{
+ let writes=0;const app=harness({createFolder:async()=>{writes++;return {id:'new'}}});
+ await app.mount();app.create();
+ await app.ui.save({isTrusted:false,preventDefault(){}});
+ await app.ui.save({preventDefault(){}});
+ assert.equal(writes,0);app.render();assert.ok(app.ui.draft);
 });

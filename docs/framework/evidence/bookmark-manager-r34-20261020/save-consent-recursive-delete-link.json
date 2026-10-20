@@ -1,0 +1,60 @@
+{
+  "candidate": {
+    "packageHash": "852d6a3366995cbafcc0ffc2d77fdeb93cbddf86c407eab0d7ced7a787e1437c",
+    "toolShellSha256": "68c41b2b4681aa3f8c8d62b5421ef0c39eec304fe824a37bcd2a9af5db00a8dd",
+    "appSha256": "d1c0dcb33ff24f46833a8872cd85d7211ac2fa10789770cfef75b2370f8959ec",
+    "at": "2026-10-20T09:13:31.707Z"
+  },
+  "kind": "REAL_MAC_CFT_DELETE_AND_LINK_AFTER_SAVE_POLICY",
+  "results": [
+    {
+      "name": "F:safe-link",
+      "status": "PASS",
+      "url": "https://example.org/consent-edited"
+    },
+    {
+      "name": "E:recursive-delete-cancel-preserves-subtree",
+      "status": "PASS",
+      "message": "「书签管理」请求递归删除 Chrome 非空文件夹 3568 及其全部子项（不可撤销）；确认仅批准这一次操作。\n\n允许本次操作\n取消"
+    },
+    {
+      "name": "E:recursive-delete-one-review-and-native-readback",
+      "status": "PASS",
+      "message": "「书签管理」请求递归删除 Chrome 非空文件夹 3568 及其全部子项（不可撤销）；确认仅批准这一次操作。\n\n允许本次操作\n取消"
+    }
+  ],
+  "initialSubtree": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "dateAdded": 1792488002557,
+              "id": "3570",
+              "index": 0,
+              "parentId": "3569",
+              "syncing": false,
+              "title": "R34-consent-delete-leaf",
+              "url": "https://example.com/delete"
+            }
+          ],
+          "dateAdded": 1792488002557,
+          "dateGroupModified": 1792488002557,
+          "id": "3569",
+          "index": 0,
+          "parentId": "3568",
+          "syncing": false,
+          "title": "R34-consent-delete-child"
+        }
+      ],
+      "dateAdded": 1792488002556,
+      "dateGroupModified": 1792488002557,
+      "id": "3568",
+      "index": 7,
+      "parentId": "2",
+      "syncing": false,
+      "title": "R34-consent-delete-1792488002556"
+    }
+  ],
+  "status": "PASS"
+}

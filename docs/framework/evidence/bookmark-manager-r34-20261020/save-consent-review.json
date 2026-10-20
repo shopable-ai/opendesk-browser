@@ -1,0 +1,21 @@
+{
+  "status": "NO_PRODUCTION_BLOCKING_FINDINGS",
+  "reviewer": "Independent native Codex explorer",
+  "reviewScope": [
+    "private trusted source gate",
+    "exact Host intents and Full Bookmarks grant",
+    "identity/provenance/install-generation/enable/revoke",
+    "React real event reachability",
+    "deletion and unknown-outcome protection",
+    "provenance pin and regression tests"
+  ],
+  "finding": {
+    "priority": "P3",
+    "problem": "An added synthetic-event negative test counted createBookmark while its fixture created a folder",
+    "fix": "Count createFolder; independent save-consent callback tests also verify trusted and synthetic inputs",
+    "validation": "37/37 PASS after correction"
+  },
+  "nativeEvidence": "Reviewed source; did not rerun browser evidence",
+  "scores": "NOT_SCORED",
+  "at": "2026-10-20T09:30:52.695327+00:00"
+}

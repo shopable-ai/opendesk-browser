@@ -126,6 +126,9 @@ async function click(ctx,sel){
  return invoke(ctx,"const n=document.querySelector("+q+");if(!n)throw Error('no '+ "+q+");n.click();return true");
 }
 async function openMenu(ctx,id){
+ // Search resets tree scrolling; flush its render/scroll events before opening
+ // a menu, since the tree intentionally closes menus when it scrolls.
+ await invoke(ctx,"await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));return true");
  await click(ctx,'[data-node-id="'+id+'"] .bm-row-more');
  await until(ctx,"!!document.querySelector('[data-testid=\"action-menu\"]')",'menu '+id);
 }
