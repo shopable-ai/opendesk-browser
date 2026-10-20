@@ -37,6 +37,90 @@ test('R3.1 a disabled Focus cannot request Chrome native permissions',async t=>{
   assert.equal(operations,1);
 });
 
+test('R5.7 native React one-click adds only the current verified website',async t=>{
+  const f=settingsReactFixture('stayFocus',t),writes=[],notices=[];
+  let page={status:'available',url:'https://m.youtube.com/watch?v=abc',
+    tabId:7,documentId:'document-a'},subscriber=null;
+  const pageTarget={
+    get snapshot(){return page;},
+    subscribe(fn){subscriber=fn;fn(page);return()=>{subscriber=null;};},
+    capture(){return {...page};},
+    async revalidate(saved){
+      if(page.documentId!==saved.documentId||page.tabId!==saved.tabId||page.url!==saved.url)
+        throw Object.assign(new Error('网页已切换'),{code:'E_DOCUMENT_STALE'});
+      return page;
+    }
+  };
+  const state={enabled:true,sites:[],catalog:[{host:'youtube.com'}],
+    dailyBudget:{minutes:45},ruleReceipt:{verified:true}};
+  const controls=createStayFocusPermissionControls({api:{},ui:f.ui,pageTarget,
+    notice:(message,isError)=>notices.push({message,isError}),
+    readStatus:async()=>structuredClone(state),
+    runOperation:async(operation,payload,event)=>{
+      assert.equal(event.isTrusted,true,'only a genuine fixed Side Panel click may write');
+      assert.equal(operation,'focus.site.put');
+      writes.push(structuredClone(payload));
+      state.sites.push({...payload.site});
+      return structuredClone(state);
+    }});
+  t.after(()=>controls.dispose());
+  controls.render(tool,false,true);
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(f.model.currentPageHost,'m.youtube.com');
+  assert.equal(f.model.currentAction,'add');
+  assert.ok(f.find('stay-focus-current-add'),'fixed React Side Panel owns the visible button');
+  await f.invoke('stay-focus-current-add',{isTrusted:false});
+  assert.equal(writes.length,0,'synthetic iframe-like calls cannot write');
+  await f.invoke('stay-focus-current-add',{isTrusted:true});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(writes,[{site:{host:'youtube.com',subdomains:true,enabled:true,
+    mode:'limit',minutes:45,group:'entertainment'}}]);
+  assert.equal(f.model.currentAction,'managed');
+  assert.equal(f.find('stay-focus-current-add'),null,'managed site cannot be repeatedly added');
+  assert.ok(notices.some(row=>/已管理/.test(row.message)&&!row.isError));
+});
+test('R5.7 trusted quick-add refuses navigation races and resumes a paused rule unchanged',async t=>{
+  const f=settingsReactFixture('stayFocus',t),writes=[];
+  let page={status:'available',url:'https://m.youtube.com/',tabId:1,documentId:'first'};
+  let navigateOnValidate=false;
+  const pageTarget={
+    get snapshot(){return page;},subscribe(fn){fn(page);return()=>{};},
+    capture(){return {...page};},
+    async revalidate(saved){
+      if(navigateOnValidate){
+        navigateOnValidate=false;page={status:'available',url:'https://other.test/',tabId:2,documentId:'second'};
+      }
+      if(page.documentId!==saved.documentId||page.url!==saved.url)
+        throw Object.assign(new Error('当前网页已切换'),{code:'E_DOCUMENT_STALE'});
+      return page;
+    }
+  };
+  const existing={host:'youtube.com',subdomains:true,enabled:false,
+    mode:'always',minutes:9,group:''};
+  const state={enabled:true,sites:[existing],catalog:[{host:'youtube.com'}],
+    dailyBudget:{minutes:30},ruleReceipt:{verified:true}};
+  const controls=createStayFocusPermissionControls({api:{},ui:f.ui,pageTarget,
+    notice:()=>{},readStatus:async()=>structuredClone(state),
+    runOperation:async(op,payload,event)=>{
+      writes.push({op,payload:structuredClone(payload),trusted:event.isTrusted});
+      state.sites=[payload.site];return structuredClone(state);
+    }});
+  t.after(()=>controls.dispose());
+  controls.render(tool,false,true);
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(f.model.currentAction,'paused');
+  assert.equal(f.find('stay-focus-current-add').textContent,'恢复');
+  navigateOnValidate=true;
+  await f.invoke('stay-focus-current-add',{isTrusted:true});
+  assert.equal(writes.length,0,'tab navigation during validation never writes the old host');
+  page={status:'available',url:'https://m.youtube.com/',tabId:1,documentId:'third'};
+  controls.render(tool,false,false);
+  controls.render(tool,false,true);
+  await new Promise(resolve=>setImmediate(resolve));
+  await f.invoke('stay-focus-current-add',{isTrusted:true});
+  assert.deepEqual(writes,[{op:'focus.site.put',payload:{site:{...existing,enabled:true}},trusted:true}],
+    'resume preserves pause rule group, mode, budget and subdomain scope');
+});
 function fixture(){
   const focusState={enabled:true,usage:{pool:42}},otherState={keep:'time-review'};
   const data=new Map([[SIDEBAR_TOOL_STORE,[tool]],[FOCUS_STORE,focusState],[TIME_REVIEW_KEY,otherState],
