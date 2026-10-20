@@ -263,9 +263,11 @@ test('clear preview and execute validate the Host result before declaring succes
 test('bulk import preflight and native partial failure never replay writes',async()=>{
   const f=fixture();await f.controller.load();
   let calls=0;f.cookies.setMany=async({cookies})=>{
-    calls++;return {results:cookies.map((_,index)=>({
-      index,saved:index===0,verified:index===0
-    }))};
+    calls++;assert.equal(cookies.length,2);
+    return {saved:1,verified:1,stopped:true,results:[
+      {index:0,saved:true,verified:true},
+      {index:1,saved:false,verified:false,code:'E_OUTCOME_UNKNOWN'}
+    ]};
   };
   const source='new1=A; new2=B';
   const plan=await f.controller.previewImport(source);
@@ -274,6 +276,43 @@ test('bulk import preflight and native partial failure never replay writes',asyn
   assert.equal(await f.controller.executeImport(source),false);
   assert.equal(calls,1);
   assert.equal(f.controller.snapshot().messageType,'error');
+  assert.equal(f.controller.snapshot().importOutcome,'unknown');
+  assert.match(f.controller.snapshot().message,/已确认 1\\/2 条/);
+  assert.equal(await f.controller.executeImport(source),false);
+  assert.equal(calls,1,'unknown native effects must never trigger a second batch');
+  f.controller.dispose();
+});
+
+test('R5.25 known denial before any native write is not mislabeled UNKNOWN',async()=>{
+  const f=fixture();await f.controller.load();
+  let calls=0;
+  f.cookies.setMany=async()=>{
+    calls++;return {saved:0,verified:0,stopped:true,results:[
+      {index:0,saved:false,verified:false,code:'E_COOKIE_CONFLICT'}
+    ]};
+  };
+  const source='known=A; later=B';
+  assert.equal((await f.controller.previewImport(source)).accepted,2);
+  assert.equal(await f.controller.executeImport(source),false);
+  const outcome=f.controller.snapshot();
+  assert.equal(outcome.importOutcome,'denied');
+  assert.match(outcome.message,/已确认 0\\/2 条/);
+  assert.match(outcome.message,/明确拒绝/);
+  assert.equal(await f.controller.executeImport(source),false);
+  assert.equal(calls,1,'a denied operation is not automatically replayed');
+  f.controller.dispose();
+});
+
+test('R5.25 contradictory trusted batch counters fail closed instead of claiming success',async()=>{
+  const f=fixture();await f.controller.load();
+  f.cookies.setMany=async()=>({saved:2,verified:2,results:[
+    {index:0,saved:true,verified:true}
+  ]});
+  const source='single=A';
+  await f.controller.previewImport(source);
+  assert.equal(await f.controller.executeImport(source),false);
+  assert.equal(f.controller.snapshot().importOutcome,'unknown');
+  assert.notEqual(f.controller.snapshot().messageType,'success');
   f.controller.dispose();
 });
 

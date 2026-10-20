@@ -9,6 +9,13 @@ const isVerified=receipt=>receipt?.saved===true&&receipt.verified===true;
 const isRemoved=receipt=>receipt?.removed===true&&receipt.verified===true;
 const formatCode=(error,fallback)=>'（'+safeCode(error,fallback)+'）';
 const bounded=(text,limit)=>new Blob([text]).size<=limit;
+// These codes are rejected before the affected native Cookie write.
+const importPrewriteDenials=new Set([
+  'E_COOKIE_CONFLICT','E_COOKIE_SCOPE','E_COOKIE_STORE','E_COOKIE_PARTITION',
+  'E_CHROME_UNSUPPORTED','E_CHROME_PERMISSION_REQUIRED','E_SITE_GRANT_REQUIRED',
+  'E_GRANT_REVOKED','E_TOOL_CHANGED','E_TOOL_DISABLED','E_OWNER','E_CONTEXT',
+  'E_PERMISSION','E_SCHEMA','E_LIMIT'
+]);
 const accessLossCodes=new Set(['E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED',
   'E_SITE_PERMISSION_REVOKED','E_TOOL_CHANGED','E_TOOL_DISABLED',
   'E_OWNER','E_CONTEXT','E_DOCUMENT_CHANGED']);
@@ -19,17 +26,17 @@ export function createCookieController({adapter,onChange=()=>{}}){
   if(!adapter||typeof adapter.list!=='function')throw Error('E_COOKIE_CONTROLLER_ADAPTER');
   let epoch=0,closed=false,busy=false,target=null,rows=[],phase='idle',
     message='',messageType='info',importPlan=null,clearPlan=null;
-  let importRevision=0,clearRevision=0,valueRevision=0;
+  let importRevision=0,clearRevision=0,valueRevision=0,importOutcome=null;
   let syncStale=false,syncPending=null,syncGeneration=0;
   const current=(ticket,at)=>!closed&&epoch===ticket&&target?.url===at.url;
   const snapshot=()=>({epoch,busy,target:target?{...target}:null,rows:structuredClone(rows),
-    phase,message,messageType,syncStale});
+    phase,message,messageType,syncStale,importOutcome});
   const notify=()=>{if(!closed)onChange(snapshot());};
   function report(text='',type='info'){message=text;messageType=type;notify();}
   function invalidate(text='网站或权限已改变，先刷新并核对 Cookie。'){
     const uncertain=busy;
     retireSync();syncStale=false;
-    epoch++;valueRevision++;busy=false;target=null;rows=[];phase='idle';importPlan=null;
+    epoch++;valueRevision++;busy=false;target=null;rows=[];phase='idle';importPlan=null;importOutcome=null;
     clearPlan=null;
     report(uncertain?'网站或授权在操作中变化，结果可能未知；请手动核对，不要自动重试。':text,
       uncertain?'error':'info');
@@ -47,7 +54,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
   async function load(input='',{preserveMessage=false}={}){
     if(closed||busy)return;
     retireSync();syncStale=false;
-    const ticket=++epoch;valueRevision++;rows=[];target=null;phase='loading';importPlan=null;
+    const ticket=++epoch;valueRevision++;rows=[];target=null;phase='loading';importPlan=null;importOutcome=null;
     clearPlan=null;busy=true;
     if(!preserveMessage){message='';messageType='info';}
     notify();
@@ -262,7 +269,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
   }
   async function previewImport(source,format='auto',overwrite=false,{allSites=false}={}){
     const guard=lock();if(!guard)return null;
-    importPlan=null;
+    importPlan=null;importOutcome=null;
     const revision=++importRevision;
     try{
       const plan=inspectImport(source,format,guard.at.hostname,allSites);
@@ -367,7 +374,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
   }
   async function executeImport(source,format='auto',overwrite=false,{allSites=false}={}){
     const plan=importPlan,guard=lock();if(!guard)return false;
-    importPlan=null;let verified=0,complete=false;
+    importPlan=null;importOutcome=null;let verified=0,complete=false;
     try{
       if(!plan||plan.epoch!==guard.ticket||plan.url!==guard.at.url||
         plan.source!==source||plan.format!==format||plan.overwrite!==overwrite||
@@ -385,14 +392,35 @@ export function createCookieController({adapter,onChange=()=>{}}){
         if(batchSupported){
           const receipt=await adapter.writeMany({url:chunk.url},chunk.cookies);
           if(!verifiedRead(guard))return false;
-          if(!Array.isArray(receipt?.results)||receipt.results.length!==chunk.cookies.length)
+          // The Host stops at the first failed entry. Its genuine partial
+          // receipt is a verified prefix followed by ONE failed row; it is
+          // intentionally shorter than the requested batch.
+          const results=receipt?.results;
+          if(!Array.isArray(results)||!results.length||results.length>chunk.cookies.length)
             throw badReceipt();
-          for(let i=0;i<chunk.cookies.length;i++){
-            if(receipt.results[i]?.index!==i)throw badReceipt();
-            if(!isVerified(receipt.results[i]))
-              throw Object.assign(badReceipt(),{code:safeCode(receipt.results[i],'E_OUTCOME_UNKNOWN')});
-            verified++;
+          let succeeded=0,failedCode=null;
+          for(let i=0;i<results.length;i++){
+            const part=results[i];
+            if(part?.index!==i)throw badReceipt();
+            if(isVerified(part)){
+              if(failedCode!==null)throw badReceipt();
+              succeeded++;verified++;
+            }else{
+              if(failedCode!==null||receipt.stopped!==true||
+                part?.saved!==false||part?.verified!==false)
+                throw badReceipt();
+              failedCode=safeCode(part,'E_OUTCOME_UNKNOWN');
+            }
           }
+          if((receipt.saved!==undefined&&receipt.saved!==succeeded)||
+            (receipt.verified!==undefined&&receipt.verified!==succeeded))
+            throw badReceipt();
+          if(failedCode!==null){
+            if(results.length!==succeeded+1)throw badReceipt();
+            throw Object.assign(badReceipt(),{code:failedCode});
+          }
+          if(results.length!==chunk.cookies.length||receipt.stopped===true)
+            throw badReceipt();
         }else{
           const receipt=await adapter.write(chunk.target,chunk.cookie,
             {ifAbsent:!plan.overwrite});
@@ -405,9 +433,17 @@ export function createCookieController({adapter,onChange=()=>{}}){
         (plan.total-plan.accepted.length)+' 条。','success');
     }catch(error){if(verifiedRead(guard)){
       if(rejectLostAccess(error))return false;
+      // A clearly pre-write denial with zero effects is recoverable; any
+      // confirmed prefix or uncertain effect still requires manual readback.
+      importOutcome=verified===0&&importPrewriteDenials.has(error?.code)?'denied':'unknown';
       report('已确认 '+verified+'/'+(plan?.accepted.length||0)+
-        ' 条；其余写入结果未知'+formatCode(error,'E_COOKIE_IMPORT')+
-        '。先核对 Chrome，不能盲目重试。','error');
+        ' 条；'+(importOutcome==='denied'
+          ?'本次写入被明确拒绝，后续未执行'
+          :'其余结果未知或未执行，可能部分生效')+
+        formatCode(error,'E_COOKIE_IMPORT')+
+        (importOutcome==='denied'
+          ?'。检查 Cookie 冲突或权限后，可重新发起新的导入。'
+          :'。先核对 Chrome，不能盲目重试。'),'error');
     }
     }finally{unlock(guard);}
     if(complete&&current(guard.ticket,guard.at))
@@ -449,7 +485,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
   }
   function dispose(){
     retireSync();syncStale=false;
-    epoch++;closed=true;busy=false;rows=[];target=null;importPlan=null;
+    epoch++;closed=true;busy=false;rows=[];target=null;importPlan=null;importOutcome=null;
     clearPlan=null;
   }
   // Initial state is available synchronously through snapshot(). Do not

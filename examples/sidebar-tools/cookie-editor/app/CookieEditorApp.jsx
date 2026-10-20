@@ -249,9 +249,12 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       setPanel(null);setSelected(null);setDirty(false);setPage(1);
       return true;
     }
-    noteImport(controller.snapshot().message||
+    const outcome=controller.snapshot();
+    noteImport(outcome.message||
       '导入结果未完全确认，请先核对 Chrome，勿直接重复提交。');
-    return 'unknown';
+    // Only an explicit pre-write denial without any successful native effect
+    // permits another user-initiated attempt. Never auto-replay partial writes.
+    return outcome.importOutcome==='denied'?'failed':'unknown';
     }finally{
       finishImportIntent(sessionRef);
     }
