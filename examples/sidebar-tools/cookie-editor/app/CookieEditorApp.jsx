@@ -283,14 +283,33 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       setWorking(false);
     }
   };
-  const remove=async id=>{
-    if(locked)return;
-    // Deleting one explicitly selected identity is a single click. Native
-    // remove still requires a verified Host receipt and refreshes the list.
-    setWorking(true);
-    try{if(await controller.remove(id)){setSelected(null);setDirty(false);}}
-    finally{setWorking(false);}
-  };
+    const remove=async id=>{
+     if(locked||writeInFlight.current)return;
+     const state=controller.snapshot();
+     const row=state.rows?.find(item=>item.id===id);
+     if(modeRef.current!=='browser'||state.phase!=='ready'||!state.target||!row)return;
+     // Mint the narrow, single-delete Host intent in the original button click.
+     // Other tools and bulk deletes still use the ordinary Host review.
+     writeInFlight.current=true;
+     const pending=adapter.beginRemoveIntent(state.target,row);
+     let ref=null;
+     setWorking(true);
+     try{
+       const admitted=await pending;
+       if(admitted?.authorized!==true||!Number.isSafeInteger(admitted.ref)||admitted.ref<1){
+         setStatus('删除没有获得当前网站授权，请检查权限后重新操作。');
+         return;
+       }
+       ref=admitted.ref;
+       if(await controller.remove(id)){setSelected(null);setDirty(false);setStatus('');}
+     }catch{
+       setStatus('删除未确认，请先核对 Chrome，避免重复操作。');
+     }finally{
+       if(ref!==null)void adapter.finishWriteIntent(ref).catch(()=>{});
+       writeInFlight.current=false;
+       setWorking(false);
+     }
+   };
   const clear=async()=>{
     if(locked)return;
     if(dirty){setStatus('请先保存或取消当前修改，再清理本站 Cookie。');return;}

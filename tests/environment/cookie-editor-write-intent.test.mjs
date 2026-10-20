@@ -43,3 +43,26 @@ test('Host mints a single exact approval and preserves review for other callers'
   assert.match(code,/operation:'browser\.intent\.confirm'/);
   assert.match(code,/matchesOfficialRelease\(release,tool\)/);
 });
+
+test('one trusted Delete click authorizes only the exact Cookie removal',()=>{
+  const gate=createCookieWriteIntentGate();
+  const remove=gate.start({...args,action:'remove',verifiedUserActivation:true});
+  assert.equal(remove.authorized,true);
+  assert.throws(()=>gate.acquire({...args,action:'set'}),{code:'E_DOCUMENT_CHANGED'});
+  assert.equal(gate.acquire({...args,action:'remove'}),false);
+  gate.start({...args,action:'remove',verifiedUserActivation:true});
+  assert.equal(gate.acquire({...args,action:'remove'}),true);
+  gate.settle({owner});
+  assert.equal(gate.acquire({...args,action:'remove'}),false);
+});
+test('single-delete React and Host use the existing write-intent gate',async()=>{
+  const [panel,app,adapter]=await Promise.all([
+    readFile(new URL('../../src/ui/sidebar-tools.js',import.meta.url),'utf8'),
+    readFile(new URL('../../examples/sidebar-tools/cookie-editor/app/CookieEditorApp.jsx',import.meta.url),'utf8'),
+    readFile(new URL('../../examples/sidebar-tools/cookie-editor/app/adapters/browser-sdk.js',import.meta.url),'utf8')
+  ]);
+  assert.match(panel,/\['browser\.cookies\.set','browser\.cookies\.remove'\]\.includes\(operation\)/);
+  assert.match(panel,/action:operation==='browser\.cookies\.remove'\?'remove':'set'/);
+  assert.match(app,/adapter\.beginRemoveIntent\(state\.target,row\)/);
+  assert.match(adapter,/action:'remove'/);
+});

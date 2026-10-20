@@ -1189,7 +1189,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(operation==='cookieEditor.write.begin'){
       if(!verifiedGesture)
         throw Object.assign(new Error('请重新点击保存 Cookie'),{code:'E_USER_GESTURE_REQUIRED'});
-      if(!payload||Object.keys(payload).sort().join(',')!=='name,path,url'||
+      const writeAction=payload?.action??'set';
+      if(!payload||!['set','remove'].includes(writeAction)||
+         Object.keys(payload).sort().join(',')!==(writeAction==='remove'?'action,name,path,url':'name,path,url')||
          typeof payload.url!=='string'||typeof payload.name!=='string'||
          typeof payload.path!=='string'||!tool.capabilities.includes('browser.cookies.write'))
         throw Object.assign(new Error('无效的 Cookie 保存操作'),{code:'E_SCHEMA'});
@@ -1204,7 +1206,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
          cookieSiteRecord(tool,origin)?.write!==true)
         throw Object.assign(new Error('网站或授权已变化'),{code:'E_DOCUMENT_CHANGED'});
       return cookieWriteGate.start({owner:cookieImportOwner(tool,token,revocationEpoch),
-        origin,name:payload.name,path:payload.path,verifiedUserActivation:verifiedGesture});
+        origin,name:payload.name,path:payload.path,action:writeAction,verifiedUserActivation:verifiedGesture});
     }
     if(operation==='cookieEditor.write.finish'){
       if(!payload||Object.keys(payload).join(',')!=='ref'||
@@ -1457,10 +1459,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             }catch(error){cookieImportGate.revoke();throw error;}
           }
         }
-        if(operation==='browser.cookies.set'&&tool.id==='cookie-editor'&&
+        if(['browser.cookies.set','browser.cookies.remove'].includes(operation)&&
+           tool.id==='cookie-editor'&&
            await admittedOfficialCookieImport(tool,revocationEpoch)){
           const owner=cookieImportOwner(tool,token,revocationEpoch);
-          if(cookieWriteGate.acquire({owner,origin,name:payload.name,path:payload.path})){
+          if(cookieWriteGate.acquire({owner,origin,name:payload.name,path:payload.path,
+               action:operation==='browser.cookies.remove'?'remove':'set'})){
             writeIntentOwner=owner;
             try{
               assertSession(source,token);

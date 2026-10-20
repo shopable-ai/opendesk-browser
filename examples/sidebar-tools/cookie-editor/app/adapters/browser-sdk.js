@@ -84,8 +84,11 @@ export function createCookieSdkAdapter({getBrowser,request}){
     beginImportIntent:target=>request('cookieEditor.import.begin',{url:target.url}),
     finishImportIntent:ref=>request('cookieEditor.import.finish',{ref}),
     beginWriteIntent:(target,row)=>request('cookieEditor.write.begin',{
-      url:target.url,name:row.name,path:row.path||'/'
-    }),
+       url:target.url,name:row.name,path:row.path||'/'
+     }),
+     beginRemoveIntent:(target,row)=>request('cookieEditor.write.begin',{
+       url:target.url,name:row.name,path:row.path||'/',action:'remove'
+     }),
     finishWriteIntent:ref=>request('cookieEditor.write.finish',{ref}),
     getStore:target=>browser().cookies.getCurrentStore({url:target.url}),
     getPartition:target=>browser().cookies.getPartitionKey({url:target.url}),
