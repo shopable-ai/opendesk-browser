@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {createPortal} from 'react-dom';
 import {TimeReviewSettings,StayFocusSettings,StayFocusQuickAdd,AiAccessSettings} from './trusted-settings.tsx';
 
 const ToolContext = React.createContext(null);
@@ -6,6 +7,7 @@ const ToolContext = React.createContext(null);
 
 export function ToolHost({view}) {
   const snapshot = React.useSyncExternalStore(view.subscribe, view.getSnapshot, view.getSnapshot);
+  const importOpen = snapshot.fields['sidebar-tool-import']?.hidden === false;
   // These are the only editable inputs in this host. Business decisions remain
   // synchronous controller actions, with the original trusted browser event.
   const actions = React.useMemo(() => ({
@@ -44,6 +46,46 @@ export function ToolHost({view}) {
       target?.[effect.method]?.(options);
     }
   }, [view, snapshot.effectVersion]);
+  // Keep the trusted installer single-owned; the drawer changes only its layout.
+  React.useEffect(() => {
+    if(!importOpen)return;
+    const panel=refs.current.get('sidebar-tool-import');
+    if(!panel)return;
+    const doc=panel.ownerDocument,app=doc.getElementById('opendesk-react-app');
+    const priorFocus=doc.activeElement,priorInert=app?.inert;
+    const priorOverflow=doc.body.style.overflow;
+    if(app)app.inert=true;
+    doc.body.style.overflow='hidden';
+    panel.querySelector('#sidebar-tool-file')?.focus({preventScroll:true});
+    const onKeyDown=event=>{
+      if(event.key==='Escape'){
+        event.preventDefault();event.stopPropagation();
+        view.dispatch('sidebar-tool-import-close','click',event);return;
+      }
+      if(event.key!=='Tab')return;
+      const focusable=[...panel.querySelectorAll(
+        'button:not([disabled]),input:not([disabled]),summary,[tabindex]:not([tabindex="-1"])')]
+        .filter(node=>!node.closest('[hidden]')&&node.getClientRects().length);
+      const first=focusable[0],last=focusable.at(-1);
+      if(!first){event.preventDefault();panel.focus({preventScroll:true});return;}
+      if(event.shiftKey&&(doc.activeElement===first||!panel.contains(doc.activeElement))){
+        event.preventDefault();last.focus({preventScroll:true});
+      }else if(!event.shiftKey&&(doc.activeElement===last||!panel.contains(doc.activeElement))){
+        event.preventDefault();first.focus({preventScroll:true});
+      }
+    };
+    doc.addEventListener('keydown',onKeyDown,true);
+    return ()=>{
+      doc.removeEventListener('keydown',onKeyDown,true);
+      doc.body.style.overflow=priorOverflow;
+      if(app)app.inert=priorInert;
+      if(panel.contains(doc.activeElement)||doc.activeElement===doc.body){
+        const target=priorFocus?.isConnected&&!priorFocus.closest?.('[hidden]')?priorFocus:
+          doc.getElementById('extension-center-more')||doc.getElementById('extension-center-search');
+        target?.focus?.({preventScroll:true});
+      }
+    };
+  },[importOpen,view]);
   const context = React.useMemo(() => ({view, snapshot, refs}), [view, snapshot]);
   return <ToolContext.Provider value={context}><div className="sidebar-tool-host od-stack"><ToolField as="section" id="sidebar-tool-action-review" className="sidebar-tool-action-review od-surface" role="group" aria-label="确认当前工具操作" hidden={true}>
 <ToolField as="p" id="sidebar-tool-action-summary" role="status">
@@ -61,9 +103,12 @@ export function ToolHost({view}) {
 
 </ToolField>
 
-<ToolField as="div" id="sidebar-tool-import" className="sidebar-tool-import od-surface" hidden={true}>
+<ImportSheet open={importOpen}
+  onBackdrop={event=>view.dispatch('sidebar-tool-import-close','click',event.nativeEvent)}>
+<ToolField as="section" id="sidebar-tool-import" className="sidebar-tool-import od-surface"
+  role="dialog" aria-modal={importOpen} aria-labelledby="sidebar-tool-import-heading" hidden={true} tabIndex={-1}>
 <div className="sidebar-tool-import-head od-toolbar">
-<strong>
+<strong id="sidebar-tool-import-heading">
 {"导入扩展"}
 </strong>
 <ToolField as="button" type="button" id="sidebar-tool-import-close" className="sidebar-tool-icon-action od-icon-button" title="取消导入" aria-label="取消导入">
@@ -77,6 +122,7 @@ export function ToolHost({view}) {
 </ToolField>
 
 </div>
+<div className="od-import-sheet-body">
 <label htmlFor="sidebar-tool-file">
 {"选择应用包或网页增强安装包 JSON"}
 </label>
@@ -130,8 +176,6 @@ export function ToolHost({view}) {
 </ToolField>
 
 </ToolField>
-<ToolField as="button" type="button" id="sidebar-tool-install" className="od-button" disabled={true}>
-{"确认安装"}
 </ToolField>
 <ToolField as="p" id="page-install-import-status" role="status" aria-live="polite" hidden={true}>
 
@@ -145,10 +189,14 @@ export function ToolHost({view}) {
 </ToolField>
 
 </ToolField>
-
+</div>
+<div className="od-import-sheet-footer" hidden={snapshot.fields['sidebar-tool-preview'].hidden}>
+<ToolField as="button" type="button" id="sidebar-tool-install" className="od-button" disabled={true}>
+{"确认安装"}
 </ToolField>
-
+</div>
 </ToolField>
+</ImportSheet>
 
 <ToolField as="section" id="sidebar-tool-display" className="sidebar-tool-display" aria-label="当前工具界面" hidden={true}>
 <div className="sidebar-tool-view-head od-toolbar od-page-head">
@@ -400,6 +448,16 @@ export function ToolHost({view}) {
 
 </ToolField>
 </div></ToolContext.Provider>;
+}
+
+function ImportSheet({open,onBackdrop,children}) {
+  const overlay=<div className="od-import-overlay" hidden={!open}>
+    <button type="button" className="od-import-backdrop" tabIndex={-1}
+      aria-label="关闭导入扩展" onClick={onBackdrop}/>
+    {children}
+  </div>;
+  // SSR keeps the single expected host; Chrome portals it out of scroll clipping.
+  return typeof document==='undefined' ? overlay : createPortal(overlay,document.body);
 }
 
 function ToolLabel({name}) {return React.useContext(ToolContext).snapshot.labels[name];}
