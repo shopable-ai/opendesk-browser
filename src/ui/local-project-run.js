@@ -8,18 +8,18 @@ import {formatTaskError} from './task-run-diagnostics.js';
 // Owns Local Controller/Page execution, provider-bound preview receipts, and
 // original-page cleanup. The Native adapter and RunHost are existing authorities.
 export function createLocalProjectRun({api,host,view,currentPageTarget,localProject,localAdapter,
-  localInstaller,controllerResults,getCurrentPageState,isDisposed,isBlocked,getRunning,setRunning,
-  isStopping,setStopping,display,fail,hideUserScriptsRecovery,beginResult,update,
+  localInstaller,controllerResults,getCurrentPageState,isDisposed,isBlocked,
+  display,fail,hideUserScriptsRecovery,beginResult,update,
   setResultText,setResultKind}){
   const find=id=>view.fields[id],copyResult=find('script-copy-result');
   const pageTechnicalPanel=find('page-preview-technical-panel'),pageTechnical=find('page-preview-technical');
-  let ownedRunId=null,ownedManagedPreview=null,localPageResult=null,localPollTimer=null,finishLocalPoll=null;
+  let ownedRunId=null,ownedManagedPreview=null,localPageResult=null,localPollTimer=null,finishLocalPoll=null,running=false,stopping=false;
   async function retireLocalPreviewForInstall({source,binding,target,previewId}) {
     const owned=ownedManagedPreview;
     if(!owned||owned.previewId!==previewId||owned.sourceHash!==source.sourceHash||
       owned.bindingId!==binding.bindingId||['tabId','windowId','documentId','url'].some(key=>owned.target[key]!==target[key]))
       throw {code:'E_DEV_CONFLICT',message:'本次验证的原受管预览所有权已变化'};
-    setStopping(true);
+    stopping=true;update();
     try {
       const result=await localAdapter.handle({method:'page.dispose',requestId:crypto.randomUUID(),params:{previewId:owned.previewId}});
       if(result?.previewId!==owned.previewId||result.sourceHash!==owned.sourceHash||result.state!=='preview-retired'||
@@ -27,12 +27,12 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
         throw {code:'E_EFFECT_UNKNOWN',message:'原受管预览清理回执未确认'};
       if(ownedManagedPreview!==owned)throw {code:'E_DEV_CONFLICT',message:'清理期间预览所有权变化'};
       ownedManagedPreview=null;return result;
-    } finally {setStopping(false);}
+    } finally {stopping=false;update();}
   }
 
   function canStopManaged(){
     const currentPageState=getCurrentPageState();
-    if(!ownedManagedPreview||!localProject.active()||getRunning()||isBlocked()||
+    if(!ownedManagedPreview||!localProject.active()||running||isBlocked()||
       host.currentRun||!controllerResults.projection?.slotAvailable)return false;
     return localProject.selectedBindingId()===ownedManagedPreview.bindingId&&
       currentPageState?.status==='available'&&currentPageState.documentId===ownedManagedPreview.target.documentId&&
@@ -61,7 +61,7 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
     if(localPageResult)patchDeveloperField(view,copyResult,{disabled:!pageResultIsCurrent()});
   }
   function run(event){
-    if(!event.isTrusted||!localAdapter||!controllerResults.projection?.slotAvailable||!localProject.canAttemptRun()||getCurrentPageState()?.status!=='available')return;
+    if(!event.isTrusted||running||isBlocked()||!localAdapter||!controllerResults.projection?.slotAvailable||!localProject.canAttemptRun()||getCurrentPageState()?.status!=='available')return;
     let captured,binding,paramsText,permission;
     try{
       binding=localProject.capture();captured=currentPageTarget.capture();paramsText=find('local-project-params').value;
@@ -69,7 +69,7 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
     }catch(error){fail(error);return;}
     hideUserScriptsRecovery();
     let admittedRunId,page=false,startError;
-    ownedRunId=null;localPageResult=null;localInstaller.reset();setRunning(true);controllerResults.renderTask(null);update();beginResult();
+    ownedRunId=null;localPageResult=null;localInstaller.reset();running=true;controllerResults.renderTask(null);update();beginResult();
     patchDeveloperField(view,find('developer-results-panel'),{open:true});display('resolving','正在读取本地项目的当前源码…');
     (async()=>{
       await permission;
@@ -77,7 +77,7 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
       const source=await localProject.resolve(binding);
       await currentPageTarget.revalidate(captured);await localProject.assertReady(binding,source.sourceHash);localProject.assertCaptured(binding);
       if(isDisposed())throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭，本次未运行'};
-      if(isStopping()||isBlocked()||!controllerResults.projection?.slotAvailable||host.currentRun)
+      if(stopping||isBlocked()||!controllerResults.projection?.slotAvailable||host.currentRun)
         throw {code:'E_RUN_ACTIVE',message:'运行状态已变化；请等待当前任务释放后重新运行'};
       page=source.runtimeKind==='page-userscript';
       const params=page?{}:JSON.parse(paramsText);
@@ -139,7 +139,7 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
         patchDeveloperField(view,copyResult,{disabled:true});patchDeveloperField(view,find('developer-results-panel'),{open:true});
       }
     }).finally(async()=>{
-      setRunning(false);if(isDisposed())return;
+      running=false;if(isDisposed())return;
       if(admittedRunId)patchDeveloperField(view,find('script-run-id'),{value:admittedRunId});
       try{if(page)controllerResults.setProjection(await host.controller.snapshotControllerRun({}));else await controllerResults.read('');}catch{controllerResults.clearProjection();}
       if(startError)fail(startError);update();
@@ -147,8 +147,8 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
   }
 
   async function stopManaged(){
-    if(!canStopManaged()||isStopping())return;
-      const owned=ownedManagedPreview;setStopping(true);display('stopping','正在清理原网页中的受管资源…');
+    if(!canStopManaged()||stopping)return;
+      const owned=ownedManagedPreview;stopping=true;update();display('stopping','正在清理原网页中的受管资源…');
       try{
         const result=await localAdapter.handle({method:'page.dispose',requestId:crypto.randomUUID(),params:{previewId:owned.previewId}});
         if(result?.previewId!==owned.previewId||result.sourceHash!==owned.sourceHash||
@@ -166,18 +166,19 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
         patchDeveloperField(view,pageTechnicalPanel,{hidden:false});patchDeveloperField(view,pageTechnicalPanel,{open:false});
         patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify({stop:result},null,2)});
         display('completed','受管 UI 已清理；网页业务效果不会回滚。');
-      }finally{setStopping(false);}
+      }finally{stopping=false;update();}
       return;
   }
   async function stopController(){
-    if(!ownedRunId||host.currentRun!==ownedRunId||isStopping())return;
-    setStopping(true);display('stopping','正在提交停止并等待持久收尾…');
+    if(!ownedRunId||host.currentRun!==ownedRunId||stopping)return;
+    stopping=true;update();display('stopping','正在提交停止并等待持久收尾…');
     try{await host.stop({runId:ownedRunId,controller:true});}
-    finally{setStopping(false);}
+    finally{stopping=false;update();}
   }
   return Object.freeze({run,stopManaged,stopController,retireManagedPreviewForInstall:retireLocalPreviewForInstall,
     canStopManaged,pageResultIsCurrent,refreshResultValidity,
     get ownedRunId(){return ownedRunId;},get managed(){return ownedManagedPreview;},
+    get running(){return running;},get stopping(){return stopping;},
     resourceSnapshot:()=>({timers:Number(localPollTimer!=null)}),
     dispose(){clearTimeout(localPollTimer);finishLocalPoll?.();}});
 }

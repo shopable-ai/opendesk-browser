@@ -44,7 +44,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const scriptsCheck = find('script-user-scripts-check');
   const currentPageStatus = find('script-current-page-status'), currentPageHost = find('script-current-page-host'),
     currentPageDebug = find('script-current-page-debug');
-  let editingBusy = false, stopping = false, pagePreviewFlow;
+  let editingBusy = false, pagePreviewFlow;
   const componentSelector=find('page-component-framework'),componentStatus=find('page-component-status');
   const componentInputs=Object.freeze(Object.fromEntries(
     ['javascript','react','vue'].map(mode=>[mode,find('page-component-'+mode)])));
@@ -78,16 +78,20 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const setResultText=value=>patchDeveloperField(view,output,{textContent:value??''});
   const setResultKind=value=>patchDeveloperField(view,resultKind,{textContent:value??''});
   let currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
-    running = false, disposed = false;
+    disposed = false;
+  // Execution owners retain mutable Run/Stop state. The editor only reads
+  // their shared-slot occupancy to gate controls across environments.
+  const isRunning=()=>!!controllerRunner?.running||!!localRunner?.running;
+  const isStopping=()=>!!controllerRunner?.stopping||!!localRunner?.stopping||!!pagePreviewFlow?.stopping;
   const listeners = [];
   let dependencyResolver,dependencyReview,dependencyInstaller;
   let localProject;
   // Both field renderers share the original execution-ownership gate.
-  const frameworkBusy=()=>editingBusy||running||stopping||pagePreviewFlow?.busy||candidatePreparing||
+  const frameworkBusy=()=>editingBusy||isRunning()||isStopping()||pagePreviewFlow?.busy||candidatePreparing||
     !!host.currentRun||!!componentRemote?.busy||!!pagePreviewFlow?.managed||!!pagePreviewFlow?.unknown||
     !!localProject?.active()||!!programSource.snapshot();
   const localInstaller=createLocalInstallUI({client,api,doc,view,currentPageTarget,getProject:()=>localProject,readControllerRun:options=>host.controller.snapshotControllerRun(options),
-    isBusy:()=>running||pagePreviewFlow?.busy||stopping,retireManagedPreview:args=>localRunner.retireManagedPreviewForInstall(args),onState:()=>update()});
+    isBusy:()=>isRunning()||pagePreviewFlow?.busy||isStopping(),retireManagedPreview:args=>localRunner.retireManagedPreviewForInstall(args),onState:()=>update()});
   const listen = (element, event, listener) => {
     listeners.push(developerAction(view,element,event,listener));
   };
@@ -105,7 +109,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }});
   const resultDownloads=createRunArtifactDownload({client,host,document:doc,view,onState:update});
   const controllerResults=createControllerResultsView({host,view,resultDownloads,
-    isDisposed:()=>disposed,isRunning:()=>running,getOwnedRunId:()=>controllerRunner?.ownedRunId||localRunner?.ownedRunId,
+    isDisposed:()=>disposed,isRunning,getOwnedRunId:()=>controllerRunner?.ownedRunId||localRunner?.ownedRunId,
     isLocalPageResultCurrent:args=>localRunner?.pageResultIsCurrent(args)??false,onUpdate:update,onStatus:display,
     setResultText,setResultKind,displayCopyResult,
     showRecovery:showUserScriptsRecovery,hideRecovery:hideUserScriptsRecovery});
@@ -152,8 +156,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const fail = error => {
     const help = formatTaskError(error);
     display('error', help);
-    if (running) {
-      // Failed admission/preview is not a still-running script return value.
+    if (isRunning()) {
+      // Failed admission/preview is not a still-isRunning() script return value.
       setResultText('本次执行失败，未产生可显示的返回值');
       setResultKind('执行失败');
       patchDeveloperField(view,copyResult,{disabled:true});
@@ -207,7 +211,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
         '编辑源码不会自动执行；点击「运行」才执行。':
         '标准版支持 JavaScript；React/Vue 需要 Developer Edition。'):
       '切换代码类型不会替换当前源码；点击「运行」才执行。'});
-    const blocked=stopping||editingBusy||pagePreviewFlow?.busy||running||!controllerResults.projection?.slotAvailable||!!host.currentRun||currentPageState?.status!=='available';
+    const blocked=isStopping()||editingBusy||pagePreviewFlow?.busy||isRunning()||!controllerResults.projection?.slotAvailable||!!host.currentRun||currentPageState?.status!=='available';
     let runDisabled=blocked;
     if(local)runDisabled||=!localProject.canAttemptRun();
     else if(pageExecution)runDisabled||=!source.trim()||!!pagePreviewFlow?.unknown||pagePreviewFlow?.managed?.recoveredOnly||
@@ -216,7 +220,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
         (dependencyResolver?.sourceFormat?!dependencyReview?.readyForRun:!dependencyInstaller?.readyForRun)):!componentRemote?.readyForRun);
     else runDisabled||=!source.trim()||(browserCompilerEnabled&&hasUnbuiltESM(source)&&!componentRemote?.readyForRun)||!controllerClassic.readyForRun();
     const preparing=candidatePreparing||pagePreviewFlow?.preparing||controllerRunner?.preparing||controllerRevisions.preparing||componentRemote?.busy;
-    const stopDisabled = stopping || !preparing&&!canStopManaged()&&
+    const stopDisabled = isStopping() || !preparing&&!canStopManaged()&&
       (!localRunner?.ownedRunId || host.currentRun !== localRunner.ownedRunId)&&
       (!controllerRunner?.ownedRunId || host.currentRun !== controllerRunner.ownedRunId);
     const stopLabel=preparing?'取消准备':canStopManaged()?'停止受管 UI':'停止';
@@ -230,7 +234,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       const runButton=find('script-run'),stopButton=find('script-stop');
       patchDeveloperField(view,runButton,{disabled:runDisabled,textContent:local?'运行本地项目':'运行'});
       patchDeveloperField(view,find('script-save'),{
-        disabled:!localProject?.active()||editingBusy||running||stopping||pagePreviewFlow?.busy||!localInstaller.hasSelection(),
+        disabled:!localProject?.active()||editingBusy||isRunning()||isStopping()||pagePreviewFlow?.busy||!localInstaller.hasSelection(),
         textContent:localProject?.active()?localInstaller.saveLabel():'检查并保存本地项目'});
       patchDeveloperField(view,stopButton,{disabled:stopDisabled,hidden:local&&stopDisabled,textContent:stopLabel});
     }
@@ -260,7 +264,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   function start(event){
     // Leave the original trusted click intact: each execution owner requests
     // Chrome permission synchronously before the first await.
-    if(!event?.isTrusted||disposed||stopping||running||pagePreviewFlow?.busy||editingBusy||host.currentRun)return;
+    if(!event?.isTrusted||disposed||isStopping()||isRunning()||pagePreviewFlow?.busy||editingBusy||host.currentRun)return;
     if(localProject?.active()){localRunner?.run(event);return;}
     if(isComponentDraft()||isPageDraft()){
       if(controllerResults.projection?.slotAvailable)pagePreviewFlow.run(event);
@@ -278,7 +282,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     (javascriptWorld==='page'||loadedPageSource||programSource.kind()==='page-userscript');}
   function canPrepareComponentCandidate(){
     return isComponentDraft()&&!editingBusy&&!pagePreviewFlow?.busy&&!componentRemote?.busy&&!localProject?.active()&&
-      !running&&!stopping&&!host.currentRun&&currentPageState?.status==='available'&&!!programSource.source().trim();
+      !isRunning()&&!isStopping()&&!host.currentRun&&currentPageState?.status==='available'&&!!programSource.source().trim();
   }
   function canSavePagePreview(){
     return !editingBusy&&!pagePreviewFlow?.busy&&!componentRemote?.busy&&!localProject?.active()&&previewMatchesEditor(lastPagePreview)&&
@@ -336,12 +340,12 @@ export function createScriptEditor({client, currentPageTarget, development=false
   dependencyReview=createPageDependencyReview({client,resolver:dependencyResolver,api,document:doc,view,
     getSource:programSource.source,onState:update,
     isAvailable:()=>isPageDraft()&&!localProject?.active()&&!programSource.snapshot()&&
-      !editingBusy&&!running&&!pagePreviewFlow?.busy&&!stopping&&!host.currentRun});
+      !editingBusy&&!isRunning()&&!pagePreviewFlow?.busy&&!isStopping()&&!host.currentRun});
 
   dependencyInstaller=createPageDependencyInstaller({client,api,document:doc,view,resolver:dependencyResolver,
     getSource:programSource.source,getProgramId:scriptId,
     isVisible:()=>isPageDraft()&&!localProject?.active()&&programSource.kind()!=='controller',
-    isBlocked:()=>disposed||editingBusy||pagePreviewFlow?.busy||running||stopping||!!host.currentRun,
+    isBlocked:()=>disposed||editingBusy||pagePreviewFlow?.busy||isRunning()||isStopping()||!!host.currentRun,
     onState:update});
   componentRemote=createPageComponentRemote({client,preparer:browserPreparer,api,document:doc,view,
     getInput:()=>{
@@ -351,17 +355,15 @@ export function createScriptEditor({client, currentPageTarget, development=false
         controllerESMInput(source,scriptId()):
         {componentSource:source,framework:localProject?.active()||programSource.snapshot()?'javascript':componentMode};
     },
-    isBlocked:()=>editingBusy||pagePreviewFlow?.busy||running||stopping||!!host.currentRun,onState:update});
+    isBlocked:()=>editingBusy||pagePreviewFlow?.busy||isRunning()||isStopping()||!!host.currentRun,onState:update});
   controllerRunner=createControllerDraftRun({client,api,host,currentPageTarget,programSource,view,
     componentRemote,browserPreparer,controllerClassic,controllerResults,
     getRevisions:()=>controllerRevisions,browserCompilerEnabled,
-    isDisposed:()=>disposed,isBlocked:()=>stopping||pagePreviewFlow?.busy||editingBusy||!!localProject?.active(),
+    isDisposed:()=>disposed,isBlocked:()=>isStopping()||pagePreviewFlow?.busy||editingBusy||!!localProject?.active(),
     isControllerDraft:()=>componentMode==='javascript'&&!isPageDraft()&&!localProject?.active(),
-    getRunning:()=>running,setRunning:value=>{running=value;},
-    isStopping:()=>stopping,setStopping:value=>{stopping=value;update();},
     display,fail,hideUserScriptsRecovery,beginResult,update});
   const pageLibrary=createPageProgramLibrary({client,currentPageTarget,api,document:doc,view,onLoad:async row=>{
-    const loadBlocked=()=>editingBusy||running||pagePreviewFlow?.busy||stopping||host.currentRun||
+    const loadBlocked=()=>editingBusy||isRunning()||pagePreviewFlow?.busy||isStopping()||host.currentRun||
       pagePreviewFlow?.managed||!!pagePreviewFlow?.unknown||localProject?.active()||programSource.snapshot();
     if(loadBlocked())throw {code:'E_BUSY',message:'请先停止当前运行并切换为直接编辑'};
     const source=programSource.source(),activeId=scriptId(),revisionText=find('script-revision').value,
@@ -388,8 +390,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     dependencyResolver,dependencyReview,dependencyInstaller,componentRemote,prepareManagedSource,
     browserCompilerEnabled,browserBinding,
     state:{
-      get disposed(){return disposed;},get stopping(){return stopping;},
-      get editingBusy(){return editingBusy;},get running(){return running;},
+      get disposed(){return disposed;},get stopping(){return isStopping();},
+      get editingBusy(){return editingBusy;},get running(){return isRunning();},
       get mode(){return componentMode;},get loadedPageSource(){return loadedPageSource;},
       get localActive(){return !!localProject?.active();},
       get last(){return lastPagePreview;},set last(v){lastPagePreview=v;},
@@ -398,7 +400,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     },
     ui:{update,display,componentMessage,showRecovery:showUserScriptsRecovery,
       hideRecovery:hideUserScriptsRecovery,setResultText,setResultKind,
-      matches:previewMatchesEditor,setStopping:value=>{stopping=value;update();}}});
+      matches:previewMatchesEditor}});
   const on = (id, event, operation) => listen(find(id), event, () => Promise.resolve().then(operation).catch(fail));
   const edit = operation => async () => {
     if(editingBusy || disposed) return;
@@ -526,7 +528,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       componentMessage('completed','已取消本次准备；迟到结果不会运行。');update();return;
     }
     if(pagePreviewFlow?.canStop())return pagePreviewFlow.stop();
-    if(localRunner?.canStopManaged()&&!stopping)return localRunner.stopManaged();
+    if(localRunner?.canStopManaged()&&!isStopping())return localRunner.stopManaged();
     if(controllerRunner?.ownedRunId&&host.currentRun===controllerRunner.ownedRunId)return controllerRunner.stop();
     return localRunner?.stopController();
   }
@@ -576,7 +578,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   },async prepareDevelopmentReload(){
     // Preserve RunHost / Native / download idle gating during development
     // reload. There is no source backup or post-reload restoration.
-    return !disposed&&!editingBusy&&!stopping&&!running&&!pagePreviewFlow?.busy&&
+    return !disposed&&!editingBusy&&!isStopping()&&!isRunning()&&!pagePreviewFlow?.busy&&
       !candidatePreparing&&!controllerRunner?.preparing&&!componentRemote?.busy&&!localRunner?.managed&&!pagePreviewFlow?.managed&&
       !host.executionPending&&!host.currentRun&&!resultDownloads.busy()&&
       !client.resourceSnapshot?.().pending;
@@ -587,9 +589,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       onChange:()=>{localRunner?.refreshResultValidity();update();}});
     localRunner=createLocalProjectRun({api,host,view,currentPageTarget,localProject,localAdapter:adapter,
       localInstaller,controllerResults,getCurrentPageState:()=>currentPageState,
-      isDisposed:()=>disposed,isBlocked:()=>editingBusy||pagePreviewFlow?.busy||stopping,
-      getRunning:()=>running,setRunning:value=>{running=value;},
-      isStopping:()=>stopping,setStopping:value=>{stopping=value;update();},
+      isDisposed:()=>disposed,isBlocked:()=>editingBusy||pagePreviewFlow?.busy||isStopping(),
       display,fail,hideUserScriptsRecovery,beginResult,update,setResultText,setResultKind});
     update();
   },executionSource:()=>{

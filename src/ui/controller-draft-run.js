@@ -10,10 +10,10 @@ import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
 export const controllerESMInput=(source,id)=>({componentSource:source,framework:'controller',programId:id});
 export function createControllerDraftRun({client,api,host,currentPageTarget,programSource,view,
   componentRemote,browserPreparer,controllerClassic,controllerResults,getRevisions,
-  browserCompilerEnabled,isDisposed,isBlocked,isControllerDraft,getRunning,setRunning,
-  isStopping,setStopping,display,fail,hideUserScriptsRecovery,beginResult,update}){
+  browserCompilerEnabled,isDisposed,isBlocked,isControllerDraft,
+  display,fail,hideUserScriptsRecovery,beginResult,update}){
   const find=id=>view.fields[id],scriptId=()=>find('script-id').value.trim();
-  let generation=0,preparing=false,ownedRunId=null;
+  let generation=0,preparing=false,ownedRunId=null,running=false,stopping=false;
   function captureCurrentPage(){
     if(!currentPageTarget)throw {code:'E_TARGET',message:'当前网页服务不可用'};
     // Preserve the single exact-document CurrentPageTarget handoff to the existing RunHost.
@@ -37,7 +37,7 @@ export function createControllerDraftRun({client,api,host,currentPageTarget,prog
 
   }
   function run(event) {
-    if (!event?.isTrusted || isDisposed() || getRunning() || isBlocked() || host.currentRun || !controllerResults.projection?.slotAvailable) return;
+    if (!event?.isTrusted || isDisposed() || running || isBlocked() || host.currentRun || !controllerResults.projection?.slotAvailable) return;
     let chosen, params, permission, sourceUtf8,esm,classic;
     const runKind=programSource.kind();
     try {
@@ -65,7 +65,7 @@ export function createControllerDraftRun({client,api,host,currentPageTarget,prog
     hideUserScriptsRecovery();
     let startError, admittedRunId;
     const id=scriptId(),ticket=++generation;
-    ownedRunId=null;setRunning(true);preparing=esm||classic;controllerResults.renderTask(null);update();beginResult();
+    ownedRunId=null;running=true;preparing=esm||classic;controllerResults.renderTask(null);update();beginResult();
     display('checking',esm?'正在校验固定 ESM 依赖并编译 Controller 源码…':
       classic?'正在从 SHA 缓存准备固定 Controller Classic 库…':`正在检查访问权限并验证网页：${chosen.url}`);
     (async () => {
@@ -108,7 +108,7 @@ export function createControllerDraftRun({client,api,host,currentPageTarget,prog
       const result = await host.completion;
       if (result.error) throw result.error;
     })().catch(error => {startError=error;admittedRunId ||= error.runId;fail(error);}).finally(async () => {
-      setRunning(false);preparing=false;
+      running=false;preparing=false;
       if (isDisposed()) return;
       if (admittedRunId) patchDeveloperField(view,find('script-run-id'),{value:admittedRunId});
       // Observe all durable history; association comes from the admitted run,
@@ -121,14 +121,14 @@ export function createControllerDraftRun({client,api,host,currentPageTarget,prog
   }
 
   async function stop(){
-    if(!ownedRunId||host.currentRun!==ownedRunId||isStopping())return;
-    setStopping(true);display('stopping','正在提交停止并等待持久收尾…');
+    if(!ownedRunId||host.currentRun!==ownedRunId||stopping)return;
+    stopping=true;update();display('stopping','正在提交停止并等待持久收尾…');
     try{await host.stop({runId:ownedRunId,controller:true});}
-    finally{setStopping(false);}
+    finally{stopping=false;update();}
   }
   return Object.freeze({run,stop,prepareESM:prepareControllerESM,
     invalidate(){generation++;},
-    get preparing(){return preparing;},
+    get preparing(){return preparing;},get running(){return running;},get stopping(){return stopping;},
     get ownedRunId(){return ownedRunId;},
     dispose(){generation++;}});
 }

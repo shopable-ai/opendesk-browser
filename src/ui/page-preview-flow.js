@@ -12,7 +12,7 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
   const pagePreviewStatus=find('page-preview-status');
   const pageTechnicalPanel=find('page-preview-technical-panel'),pageTechnical=find('page-preview-technical');
   const copyResult=find('script-copy-result');
-  let busy=false,preparing=false,managed=null,unknown=null;
+  let busy=false,preparing=false,managed=null,unknown=null,stopping=false;
   // Unknown dispatch/Stop belongs to the original document; never replay.
   function quarantine(target){unknown={tabId:target.tabId,documentId:target.documentId};}
   function canStop(){
@@ -182,7 +182,7 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
   }
   async function stop(){
     if(!canStop()||state.stopping)return;
-      const owned=managed;ui.setStopping(true);
+      const owned=managed;stopping=true;ui.update();
       ui.display('stopping','正在清理受管页面组件…');
       try{
         const result=await client.request('retirePagePreview',{previewId:owned.previewId});
@@ -210,12 +210,12 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
           code:error.code||'E_UI_CLEANUP',message:error.message||String(error)}},null,2)});
         throw error;
       }
-      finally{ui.setStopping(false);}
+      finally{stopping=false;ui.update();}
       return;
   }
   return Object.freeze({run,stop,canStop,onTarget,onTabRemoved,
     cancelPreparation(){preparing=false;},
     get busy(){return busy;},get preparing(){return preparing;},
-    get managed(){return managed;},get unknown(){return unknown;}});
+    get managed(){return managed;},get unknown(){return unknown;},get stopping(){return stopping;}});
 
 }
