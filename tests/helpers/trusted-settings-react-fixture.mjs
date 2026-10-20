@@ -11,7 +11,8 @@ export const settingsModuleURL='data:text/javascript;base64,'+Buffer.from(result
 const components=await import(settingsModuleURL);
 const names={timeReview:'TimeReviewSettings',stayFocus:'StayFocusSettings',aiAccess:'AiAccessSettings'};
 const actionNames={'stay-focus-enable-native':'grant','stay-focus-disable':'stop','stay-focus-clear-open':'openClear',
-  'stay-focus-clear-approve':'approveClear','stay-focus-clear-cancel':'cancelClear','ai-access-toggle':'toggle',
+  'stay-focus-clear-approve':'approveClear','stay-focus-clear-cancel':'cancelClear',
+  'stay-focus-current-add':'quickAdd','ai-access-toggle':'toggle',
   'ai-access-local-activate':'activate'};
 export function settingsReactFixture(kind,t){
   const {window,document}=parseHTML('<html><body><div id="mount"></div></body></html>');
@@ -19,7 +20,11 @@ export function settingsReactFixture(kind,t){
   globalThis.window=window;globalThis.document=document;
   const mount=document.getElementById('mount'),root=createRoot(mount);
   let model=null,actions=null,closed=false;
-  const paint=()=>{if(!closed)flushSync(()=>root.render(React.createElement(components[names[kind]],{model,actions})));};
+  const paint=()=>{if(!closed)flushSync(()=>root.render(kind==='stayFocus'
+    ?React.createElement(React.Fragment,null,
+      React.createElement(components.StayFocusQuickAdd,{model,actions}),
+      React.createElement(components.StayFocusSettings,{model,actions}))
+    :React.createElement(components[names[kind]],{model,actions})));};
   const ui={render(next){model=next;paint();},connect(next){actions=next;paint();}};
   const close=async()=>{
     if(closed)return;closed=true;flushSync(()=>root.unmount());
