@@ -12,8 +12,47 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
   const pagePreviewStatus=find('page-preview-status');
   const pageTechnicalPanel=find('page-preview-technical-panel'),pageTechnical=find('page-preview-technical');
   const copyResult=find('script-copy-result');
+  let busy=false,preparing=false,managed=null,unknown=null;
+  // Unknown dispatch/Stop belongs to the original document; never replay.
+  function quarantine(target){unknown={tabId:target.tabId,documentId:target.documentId};}
+  function canStop(){
+    const current=state.currentPage;
+    return !!managed&&!unknown&&!state.localActive&&!state.running&&!state.stopping&&!busy&&!host.currentRun&&
+      current?.status==='available'&&current.documentId===managed.target.documentId&&
+      current.tabId===managed.target.tabId;
+  }
+  function onTarget(next){
+    if(next?.status==='available'&&Number.isSafeInteger(next.tabId)&&
+       typeof next.documentId==='string'&&next.documentId){
+      if(managed&&managed.target.tabId===next.tabId&&
+         managed.target.documentId!==next.documentId)
+        managed=null; // The owning tab actually navigated; do not mistake a tab switch for cleanup.
+      if(unknown&&
+         unknown.tabId===next.tabId&&
+         unknown.documentId!==next.documentId){
+        unknown=null;
+        ui.componentMessage('idle','已确认原标签页的新网页文档；未知结果不会重试，需重新明确点击运行');
+      }
+      if(managed&&managed.target.tabId!==next.tabId)
+        ui.componentMessage('idle','受管组件仍在另一标签页。请返回原网页停止后再切换运行目标。');
+    }
+
+  }
+  function onTabRemoved(tabId){
+    // Closing the exact owning tab proves its document is gone. Merely
+    // selecting a different tab is never evidence of successful Stop.
+    if(managed?.target.tabId===tabId){
+      managed=null;
+      ui.componentMessage('idle','原组件所属标签页已关闭；下次运行仍需明确授权');
+    }
+    if(unknown?.tabId===tabId){
+      unknown=null;
+    }
+    ui.update();
+  }
+
   function run(event) {
-    if (!event.isTrusted || state.disposed || state.stopping || state.busy ||
+    if (!event.isTrusted || state.disposed || state.stopping || busy ||
       componentRemote?.busy || (state.mode==='javascript'&&dependencyResolver?.busy) ||
       (state.mode==='javascript'&&(!dependencyResolver?.sourceFormat&&!dependencyInstaller?.readyForRun)) ||
       state.editingBusy || state.running || host.currentRun) return;
@@ -56,7 +95,7 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
           fixedFrameSource={source:pageSource.sourceUtf8};
         }
       }
-      if((componentSnapshot||frozenComponent||fixedFrameSource)&&(!!state.unknown||state.managed?.recoveredOnly))
+      if((componentSnapshot||frozenComponent||fixedFrameSource)&&(!!unknown||managed?.recoveredOnly))
         throw {code:'E_EFFECT_UNKNOWN',message:'上次受管运行仍需清理；已查询到的原回执只用于停止，不会自动重新运行'};
       // Source permission is requested synchronously from this trusted Run
       // gesture if the editor has already observed a missing Chrome grant.
@@ -71,7 +110,7 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
     } catch(error) {displayPreview('error',(error.code||'E_SOURCE')+'：'+(error.message||error));return;}
     const managedInput=componentSnapshot||frozenComponent||fixedFrameSource;
     prepareTicket=state.nextTicket();
-    if(managedInput)state.preparing=true;
+    if(managedInput)preparing=true;
     const assertPreparation=()=>{
       if(state.disposed||prepareTicket!==state.ticket)
         throw {code:'E_PAGE_COMPILER_STALE',message:'组件准备已取消；迟到结果不会运行'};
@@ -80,7 +119,7 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
       if(fixedFrameSource&&(state.mode!=='javascript'||programSource.kind()!==runKind))
         throw {code:'E_DEPENDENCY_STALE',message:'网页草稿或运行模式已变化；不会执行旧代码'};
     };
-    state.last=null;state.busy=true;ui.update();patchDeveloperField(view,pageTechnicalPanel,{hidden:true});patchDeveloperField(view,pageTechnical,{textContent:''});
+    state.last=null;busy=true;ui.update();patchDeveloperField(view,pageTechnicalPanel,{hidden:true});patchDeveloperField(view,pageTechnical,{textContent:''});
     displayPreview('running','正在核对当前文档与固定源码…','');
     (async()=>{
       await permission;
@@ -94,11 +133,11 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
           captured,pageSource,managedInput,fixedFrameSource,
           frozen:!!frozenComponent||!!fixedFrameSource,entryFormat:pageSource?.entryFormat,
           bindingId:browserBinding,check:assertPreparation,
-          onPrepared:()=>{state.preparing=false;ui.update();},
-          onOwner:identity=>{state.managed=identity;},
-          onUnknown:ui.quarantine,
+          onPrepared:()=>{preparing=false;ui.update();},
+          onOwner:identity=>{managed=identity;},
+          onUnknown:quarantine,
           onRecovered:(identity,observed)=>{
-            state.managed=identity;state.unknown=null;
+            managed=identity;unknown=null;
             patchDeveloperField(view,pageTechnicalPanel,{hidden:false});
             patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify({originalPreview:observed},null,2)});
           }
@@ -139,7 +178,44 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
       if(error.response?.state==='preview-failed'){
         patchDeveloperField(view,pageTechnicalPanel,{hidden:false});patchDeveloperField(view,pageTechnicalPanel,{open:false});patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify(error.response,null,2)});
       }
-    }).finally(()=>{state.preparing=false;state.busy=false;ui.update();});
+    }).finally(()=>{preparing=false;busy=false;ui.update();});
   }
-  return Object.freeze({run});
+  async function stop(){
+    if(!canStop()||state.stopping)return;
+      const owned=managed;ui.setStopping(true);
+      ui.display('stopping','正在清理受管页面组件…');
+      try{
+        const result=await client.request('retirePagePreview',{previewId:owned.previewId});
+        if(result.state!=='preview-retired'||result.sourceHash!==owned.sourceHash||
+          result.receipt?.ok!==true||result.receipt.scope!=='managed-ui-only')
+          throw {code:'E_UI_CLEANUP_FAILED',message:'没有收到可信的组件停止回执'};
+        if(managed===owned)managed=null;
+        ui.componentMessage('completed','已停止 · 受管组件和样式已清理');
+        if(!state.disposed)patchDeveloperField(view,pagePreviewStatus,{data:{...pagePreviewStatus.data,state:'completed'},textContent:'已停止 · 受管组件和样式已清理'});
+        patchDeveloperField(view,pageTechnicalPanel,{hidden:false});patchDeveloperField(view,pageTechnicalPanel,{open:false});
+        patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify({stop:result,framework:owned.framework},null,2)});
+        ui.display('completed','受管组件已清理；网页业务效果不会回滚。');
+      }catch(error){
+        if(error?.code==='E_DEV_RELOADING'){
+          // Dispatch was explicitly rejected; retain the original Stop right.
+          ui.display('blocked','源码更新暂缓了停止请求；原组件仍可停止，请稍后重试。');
+          return;
+        }
+        quarantine(owned.target); // Uncertain Stop is document-bound; never blindly retry.
+        ui.componentMessage('error',(error.code||'E_UI_CLEANUP')+'：'+error.message+
+          '；无法确认组件已清理，请重新加载目标网页');
+        if(!state.disposed)patchDeveloperField(view,pagePreviewStatus,{data:{...pagePreviewStatus.data,state:'error'},textContent:'无法确认组件已清理，请重新加载目标网页'});
+        patchDeveloperField(view,pageTechnicalPanel,{hidden:false,open:false});
+        patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify({error:{
+          code:error.code||'E_UI_CLEANUP',message:error.message||String(error)}},null,2)});
+        throw error;
+      }
+      finally{ui.setStopping(false);}
+      return;
+  }
+  return Object.freeze({run,stop,canStop,onTarget,onTabRemoved,
+    cancelPreparation(){preparing=false;},
+    get busy(){return busy;},get preparing(){return preparing;},
+    get managed(){return managed;},get unknown(){return unknown;}});
+
 }
