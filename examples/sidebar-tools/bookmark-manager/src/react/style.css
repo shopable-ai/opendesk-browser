@@ -51,7 +51,7 @@
 .bm-detail-url:hover>span{text-decoration:underline}
 .bm-detail-url--disabled{color:var(--od-sub);cursor:default}
 .bm-detail-url--disabled:hover{text-decoration:none}
-.bm-destructive{color:var(--od-negative)!important}.bm-empty-detail{font-size:11px;padding:0 12px 12px;margin:0;color:var(--od-sub)}
+.bm-destructive{color:var(--od-negative)!important}
 .bm-editor{padding:0 12px 12px;display:grid;gap:7px}
 .bm-field{display:grid;gap:3px}.bm-field label{color:var(--od-sub);font-size:11px}.bm-field input,.bm-picker input{border:1px solid var(--od-input-border);background:var(--od-paper);color:var(--od-ink);border-radius:7px;padding:7px 8px;height:34px;min-width:0;width:100%}
 .bm-parent-line{display:flex;align-items:center;gap:4px;min-width:0}.bm-parent-path{min-width:0;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:11px}

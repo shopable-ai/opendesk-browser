@@ -16,10 +16,9 @@ const iconPaths={
  x:<path d="m5 5 14 14M19 5 5 19"/>,
  external:<><path d="M13 5h6v6M19 5l-9 9"/><path d="M19 13v6H5V5h6"/></>,
  alert:<><path d="m12 3 10 18H2z"/><path d="M12 9v5M12 17v.2"/></>,
- arrow:<path d="M4 12h16m-6-6 6 6-6 6"/>
 };
 function Icon({name,size=18}){return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{iconPaths[name]||iconPaths.link}</svg>}
-function Button({icon,children,kind='secondary',...props}){return <OpenDeskButton variant={kind} className={'bm-button bm-button--'+kind} {...props}>{icon&&<Icon name={icon} size={16}/>}<span>{children}</span></OpenDeskButton>}
+function Button({icon,children,kind='secondary',...props}){return <OpenDeskButton variant={kind} className={'bm-button bm-button--'+kind} {...props}>{icon&&<Icon name={icon} size={16}/>}{children}</OpenDeskButton>}
 function isFolder(node){return model.isFolder(node)}
 function canTarget(tree,node){try{model.parentFolder(tree,node.id);return true}catch{return false}}
 function folderLabel(tree,id){const parts=[];let current=tree?.byId.get(id),count=0;while(current&&count++<12){if(current.parentId!==null)parts.unshift(current.title);current=tree.byId.get(current.parentId)}return parts.join(' / ')||'书签栏'}
@@ -143,7 +142,7 @@ function Inspector({tree,node,draft,setDraft,onSave,onCancel,onOpenPicker,picker
     </a>:
     <span className="bm-detail-url bm-detail-url--disabled" title="该网址协议不支持直接打开">{node.url}</span>)}
 
-  </div>:<p className="bm-empty-detail">选择书签可以查看详情，点击「编辑」才会修改内容。</p>}
+  </div>:null}
  </section>
 }
 
