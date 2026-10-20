@@ -34,7 +34,8 @@ export function createStayFocusPermissionControls({api,ui,notice,runOperation,pa
     }
   }
   async function quickAdd(event){
-    if(!trusted(event)||!model.canGrant||!['add','paused'].includes(model.currentAction))return;
+    if(!trusted(event)||!model.canGrant||!['add','paused','managed'].includes(model.currentAction))return;
+    const requestedAction=model.currentAction;
     const host=pageHost();
     if(!host||host!==model.currentPageHost||!pageTarget?.capture||!pageTarget?.revalidate||!readStatus)return;
     let captured;
@@ -49,12 +50,13 @@ export function createStayFocusPermissionControls({api,ui,notice,runOperation,pa
       if(!Array.isArray(state?.sites)||!Number.isInteger(state?.dailyBudget?.minutes))
         throw Error('无法核对当前网站的共享额度');
       const existing=managedSite(host,state.sites);
-      if(existing?.enabled){publish({currentAction:'managed'});return;}
+      const actualAction=existing?.enabled?'managed':existing?'paused':'add';
+      if(actualAction!==requestedAction){publish({currentAction:actualAction});return;}
       const known=(Array.isArray(state.catalog)?state.catalog:[])
         .filter(row=>hostnameMatches(host,row.host,true))
         .sort((a,b)=>b.host.length-a.host.length)[0];
       const site=existing?{host:existing.host,subdomains:existing.subdomains,
-        enabled:true,mode:existing.mode,minutes:existing.minutes,group:existing.group}:
+        enabled:requestedAction!=='managed',mode:existing.mode,minutes:existing.minutes,group:existing.group}:
         {host:known?.host||host,subdomains:true,enabled:true,mode:'limit',
           minutes:state.dailyBudget.minutes,group:'entertainment'};
       await pageTarget.revalidate(captured);
@@ -67,12 +69,13 @@ export function createStayFocusPermissionControls({api,ui,notice,runOperation,pa
         return;
       }
       const confirmed=managedSite(host,result?.sites);
-      if(!confirmed?.enabled)throw Error('保存回执没有确认当前网站，请读取状态');
-      publish({currentAction:'managed'});
+      if(!confirmed||confirmed.enabled!==site.enabled)
+        throw Error('保存回执没有确认当前网站状态，请读取状态');
+      publish({currentAction:site.enabled?'managed':'paused'});
       if(!result.enabled)message('网站已保存；开启浏览器专注限制后生效。');
       else if(result.ruleReceipt?.verified!==true)
         message('已保存网站，但 Chrome 规则尚未核对。',true);
-      else message('已管理 '+confirmed.host+'。');
+      else message(site.enabled?'已管理 '+confirmed.host+'。':'已暂停 '+confirmed.host+'。');
     }catch(error){
       if(!disposed&&current===epoch)message((error?.code||'E_FOCUS')+'：'+String(error?.message||error),true);
     }finally{
