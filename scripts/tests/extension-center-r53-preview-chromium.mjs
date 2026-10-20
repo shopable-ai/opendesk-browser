@@ -120,6 +120,28 @@ try{
     '返回扩展列表','Icon back must remain accessible');
   await click('#extension-center-back');
   await waitUntil('!document.getElementById("extension-center-list-view").hidden');
+  // Real pointer events against the SAME dialog shared by production and the
+  // source-bound preview. Cancelling must leave the installed list unchanged.
+  await click('[data-extension-key="app:demo-reading"][data-extension-action="main"]');
+  await click('#extension-center-detail [data-ec-detail-action="uninstall"]');
+  await waitUntil('!!document.querySelector(".od-uninstall-dialog[aria-modal=true]")');
+  assert.equal(await evaluate('document.activeElement?.hasAttribute("data-uninstall-cancel")'),
+    true,'Uninstall confirmation should first focus Cancel');
+  assert.equal(await evaluate('document.querySelectorAll(".od-uninstall-dialog").length'),1,
+    'Uninstall opens exactly one modal');
+  await click('.od-uninstall-dialog [data-uninstall-cancel]');
+  await waitUntil('!document.querySelector(".od-uninstall-dialog")');
+  assert.equal(await evaluate('document.querySelectorAll("#extension-center-list > li").length'),2,
+    'Cancel must not remove installed records');
+  await click('#extension-center-detail [data-ec-detail-action="uninstall"]');
+  await click('.od-uninstall-dialog .od-uninstall-confirm');
+  await waitUntil('document.querySelectorAll("#extension-center-list > li").length===1');
+  assert.equal(await evaluate('document.querySelector("#extension-center-list > li").dataset.extensionId'),
+    'page:demo-markup','Only the reviewed tool disappears from the installed list');
+  assert.match(await evaluate('document.getElementById("extension-center-status").textContent'),
+    /仅内存演示/,'Preview success cannot claim any real uninstall');
+  // A fresh isolated preview resets demo data before checking search and import.
+  await visit('?tab=tools&reset=uninstall');
   await click('#extension-center-search');
   await cdp('Input.insertText',{text:'标注'});
   await waitUntil('document.querySelectorAll("#extension-center-list > li").length===1');
