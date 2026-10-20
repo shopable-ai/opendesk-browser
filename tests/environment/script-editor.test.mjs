@@ -143,6 +143,40 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
     dispose(){editor.dispose();target.dispose();}};
 }
 
+test('R40.5 ordinary Controller edits never inspect Page dependencies',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const initial=f.dependencyInspections.length;
+  for(const source of ['async function main(){return 1;}',
+    'import value from "https://library.example.org/value.js";\nexport default async function main(){return value;}',
+    'async function main(){return params.value;}']){
+    f.find('script-source').value=source;f.find('script-source').fire('input',{isTrusted:true});
+    await tick();
+  }
+  assert.equal(f.dependencyInspections.length,initial,'Controller JS/ESM must not start a Page network inspection');
+});
+
+test('R40.5 Page to Controller transition fences stale Page inspection and keeps draft Run',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const gate=deferred(),requested=[];
+  const original=f.client.request;
+  f.client.request=async(type,payload)=>{
+    if(type==='inspectPageDependencies'){requested.push(payload);await gate.promise;}
+    return original(type,payload);
+  };
+  const world=f.find('script-javascript-world');
+  world.value='page';world.fire('change',{isTrusted:true});
+  const page='// @require https://cdn.example/library.js\nasync function main(){return document.title;}';
+  f.find('script-source').value=page;f.find('script-source').fire('input',{isTrusted:true});
+  await tick();assert.equal(requested.length,1);
+  world.value='controller';world.fire('change',{isTrusted:true});
+  f.find('script-source').value='return params.value;';f.find('script-source').fire('input',{isTrusted:true});
+  gate.resolve();await tick();await tick();
+  assert.equal(f.dependencyInspections.length,1,'old Page result must not start a fresh inspection for Controller');
+  assert.equal(f.find('script-javascript-world').value,'controller');
+  await f.click('script-run');assert.equal(f.starts.length,1,'ordinary Controller Run retains direct current-source admission');
+  await f.finish(1);
+});
+
 test('Developer shows one terminal status line and hides it for unrelated feedback',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   await f.click('script-run');await f.finish(7);
