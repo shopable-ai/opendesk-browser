@@ -126,6 +126,53 @@ try{
   assert.equal(await evaluate('document.querySelector("#extension-center-list > li").dataset.extensionId'),
     'page:demo-markup','Search should filter React rows');
   await visit('?tab=tools&reset=1');
+  // The import sheet must remain visible and clickable regardless of list length.
+  await click('#extension-center-more');
+  await waitUntil('!document.getElementById("extension-center-menu").hidden');
+  await click('#extension-center-import');
+  await waitUntil('!document.getElementById("sidebar-tool-import").hidden');
+  const sheet=await evaluate(`(()=>{
+    const panel=document.getElementById('sidebar-tool-import');
+    const overlay=document.querySelector('.od-import-overlay');
+    const rect=panel.getBoundingClientRect();
+    return {role:panel.getAttribute('role'),modal:panel.getAttribute('aria-modal'),
+      portal:panel.parentElement===overlay,position:getComputedStyle(overlay).position,
+      top:rect.top,bottom:rect.bottom,left:rect.left,right:rect.right,
+      width:innerWidth,height:innerHeight,active:document.activeElement?.id,
+      installDisabled:document.getElementById('sidebar-tool-install').disabled};
+  })()`);
+  assert.equal(sheet.role,'dialog','Importer must be an accessible dialog');
+  assert.equal(sheet.modal,'true','Importer must be a modal sheet');
+  assert.equal(sheet.portal,true,'Importer must escape the long list');
+  assert.equal(sheet.position,'fixed','Importer must use the viewport');
+  assert.equal(sheet.active,'sidebar-tool-file','File chooser should receive initial focus');
+  assert.ok(sheet.top>=-2&&sheet.bottom<=sheet.height+2&&sheet.right<=sheet.width+2,
+    'Import sheet must fit viewport: '+JSON.stringify(sheet));
+  assert.equal(sheet.installDisabled,true,'Offline preview must never enable real install');
+  for(const width of [320,360,400,440]){
+    await cdp('Emulation.setDeviceMetricsOverride',
+      {width,height:620,deviceScaleFactor:1,mobile:false});
+    const geometry=await evaluate(`(()=>{
+      const panel=document.getElementById('sidebar-tool-import');
+      const rect=panel.getBoundingClientRect();
+      return {left:rect.left,right:rect.right,top:rect.top,bottom:rect.bottom,
+        width:innerWidth,height:innerHeight,overflow:document.documentElement.scrollWidth};
+    })()`);
+    assert.ok(geometry.left>=-2&&geometry.right<=geometry.width+2&&
+      geometry.top>=-2&&geometry.bottom<=geometry.height+2&&
+      geometry.overflow<=geometry.width+2,
+      'Import drawer overflow at '+width+': '+JSON.stringify(geometry));
+    const capture=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+    await writeFile(join(artifacts,'import-sheet-'+width+'.png'),Buffer.from(capture.data,'base64'));
+  }
+  await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',
+    windowsVirtualKeyCode:27,nativeVirtualKeyCode:27});
+  await cdp('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',
+    windowsVirtualKeyCode:27,nativeVirtualKeyCode:27});
+  await waitUntil('document.getElementById("sidebar-tool-import").hidden');
+  await cdp('Emulation.setDeviceMetricsOverride',
+    {width:360,height:950,deviceScaleFactor:1,mobile:false});
+  // The existing extension filters and list remain intact after closing.
   await click('#extension-center-more');
   await waitUntil('!document.getElementById("extension-center-menu").hidden');
   await click('[data-ec-scope="available"]');
