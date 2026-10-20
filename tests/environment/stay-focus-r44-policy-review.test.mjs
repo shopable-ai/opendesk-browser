@@ -46,7 +46,10 @@ test('installed Stay Focus offers explicit per-site review, without a sandbox Ch
   const app=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/main.js',import.meta.url),'utf8');
   const html=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/index.html',import.meta.url),'utf8');
   const host=readFileSync(new URL('../../src/ui/sidebar-tools.js',import.meta.url),'utf8');
-  assert.match(app,/currentStatus\.catalog/);
+  assert.match(app,/api\.request\('focus\.status'/,
+    'React reads live worker status, not a local list of recommendations');
+  assert.match(app,/const sites=state\?\.sites\|\|\[\]/,
+    'rendered sites must come from explicit persisted rules, not catalog defaults');
   assert.match(app,/operate\('focus\.site\.put'/);
   assert.match(app,/SiteEditor/);
   assert.match(html,/id="tool-app"/);

@@ -345,6 +345,10 @@ test('R5.9 first enable prepares budget but never enrolls recommended websites',
 test('R1.4 page threshold is sent from settled Host time, retired on disable and uninstall',async()=>{
   const f=fixture();
   f.setUrl('https://youtube.com/watch');
+  // R5.9 no longer enrolls suggested websites during activation. The threshold
+  // belongs to an explicitly selected, shared-budget website.
+  await f.focus.dispatch(await f.msg('focus.site.put',{
+    site:{...mkSite('youtube.com','limit',2),group:'entertainment'}}),f.sender);
   await f.focus.dispatch(await f.msg('focus.enable'),f.sender);
   await f.focus.dispatch(await f.msg('focus.group.put',{id:'entertainment',minutes:2}),f.sender);
   await f.focus.tick();

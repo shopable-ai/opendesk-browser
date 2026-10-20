@@ -12,7 +12,8 @@ const components=await import(settingsModuleURL);
 const names={timeReview:'TimeReviewSettings',stayFocus:'StayFocusSettings',aiAccess:'AiAccessSettings'};
 const actionNames={'stay-focus-enable-native':'grant','stay-focus-disable':'stop','stay-focus-clear-open':'openClear',
   'stay-focus-clear-approve':'approveClear','stay-focus-clear-cancel':'cancelClear',
-  'stay-focus-current-add':'quickAdd','ai-access-toggle':'toggle',
+  'stay-focus-current-add':'quickAdd','stay-focus-current-pause':'quickAdd',
+  'ai-access-toggle':'toggle',
   'ai-access-local-activate':'activate'};
 export function settingsReactFixture(kind,t){
   const {window,document}=parseHTML('<html><body><div id="mount"></div></body></html>');
