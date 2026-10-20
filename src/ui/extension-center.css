@@ -120,3 +120,38 @@
 @media(pointer:coarse){.ec-name,.ec-detail-back,.ec-detail-actions button{min-height:44px;min-width:44px}}
 @media(prefers-reduced-motion:reduce){.ec-context-menu{scroll-behavior:auto}}
 @media(prefers-color-scheme:dark){.ec-more{box-shadow:0 12px 32px #0007}}
+
+/* R5.4: One Host-owned installer, lifted out of the long React list into a
+   viewport-bound sheet. The backdrop never performs an install operation. */
+.od-import-overlay{position:fixed;inset:0;z-index:2000;display:flex;align-items:flex-end;
+  justify-content:center;isolation:isolate}
+.od-import-overlay[hidden],.od-import-overlay [hidden]{display:none!important}
+.od-import-backdrop{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;
+  border:0;border-radius:0;background:rgba(16,26,42,.48);cursor:default}
+.od-import-overlay #sidebar-tool-import{position:relative;display:flex;flex-direction:column;
+  width:100%;max-width:520px;min-width:0;max-height:min(88dvh,760px);min-height:0;
+  margin:0;padding:0;overflow:hidden;border:1px solid var(--od-line);
+  border-bottom:0;border-radius:16px 16px 0 0;background:var(--od-paper);
+  box-shadow:0 -14px 48px rgba(16,26,42,.22);color:var(--od-ink)}
+.od-import-overlay .sidebar-tool-import-head{flex:none;min-height:52px;padding:8px 14px;
+  border-bottom:1px solid var(--od-line)}
+.od-import-overlay .sidebar-tool-import-head strong{font-size:14px;color:var(--od-ink)}
+.od-import-overlay #sidebar-tool-import-close{min-width:36px;min-height:36px;
+  background:var(--od-muted);color:var(--od-ink);border:1px solid var(--od-line)}
+.od-import-sheet-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  padding:12px 14px 16px;scrollbar-gutter:stable}
+.od-import-overlay .sidebar-tool-import label{display:block}
+.od-import-sheet-footer{flex:none;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));
+  border-top:1px solid var(--od-line);background:var(--od-paper)}
+.od-import-sheet-footer #sidebar-tool-install{width:100%;min-height:40px}
+.od-import-overlay #sidebar-tool-import:focus-visible,
+.od-import-overlay button:focus-visible,.od-import-overlay input:focus-visible{
+  outline:2px solid var(--od-focus);outline-offset:-2px}
+@media(min-width:600px) and (min-height:500px){
+  .od-import-overlay #sidebar-tool-import{margin-bottom:14px;border-bottom:1px solid var(--od-line);
+    border-radius:16px}
+}
+@media(max-height:480px){
+  .od-import-overlay #sidebar-tool-import{max-height:calc(100dvh - 8px)}
+  .od-import-overlay .sidebar-tool-import-head{min-height:42px;padding:4px 12px}
+}
