@@ -115,3 +115,16 @@ test('corrupt or oversize stored records never get replaced by a new library',as
  assert.deepEqual(JSON.parse(JSON.stringify(normalize(null))),{version:1,items:[]});
  assert.throws(()=>normalize({version:1,items:[{id:'invalid'}]}),e=>e.code==='E_STORAGE_CORRUPT');
 });
+
+test('one-click delete rejects stale records edited in another panel and preserves the newer text',async()=>{
+ const f=fixture(),first=f.create('clip-delete-111111');
+ const original=(await first.save({kind:'note',body:'保留的新内容'})).item;
+ const second=f.create('clip-delete-222222');
+ await second.edit(original.id,original,'另一窗口已修改');
+ await assert.rejects(first.remove(original.id,original),
+  e=>e.code==='E_STORAGE_CONFLICT');
+ assert.equal((await first.read()).data.items[0].body,'另一窗口已修改');
+ const fresh=(await first.read()).data.items[0];
+ assert.equal((await first.remove(fresh.id,fresh)).removed,true);
+ assert.equal((await second.read()).data.items.length,0);
+});
