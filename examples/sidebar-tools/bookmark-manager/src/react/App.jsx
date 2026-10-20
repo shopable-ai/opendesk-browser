@@ -239,7 +239,7 @@ function Confirm({title,description,confirm,cancelLabel='取消',canConfirm=true
 export default function App({runtime=null,mode='preview',onStateChange=null}={}){
  const sdk=runtime?.sdk??globalThis.OpenDeskSDK?.browser;
  const service=useMemo(()=>runtime?.service??globalThis.BookmarkR2Service.create(sdk),[runtime,sdk]);
- const [tree,setTree]=useState(null),[expanded,setExpanded]=useState(new Set(['1','2','10','11'])),[query,setQuery]=useState(''),[selectedId,setSelectedId]=useState(null),[activeId,setActiveId]=useState('1'),[draft,setDraft]=useState(null),[pickerOpen,setPickerOpen]=useState(false),[previewOpen,setPreviewOpen]=useState(false),[menu,setMenu]=useState(null),[confirmDiscard,setConfirmDiscard]=useState(false),[confirmDelete,setConfirmDelete]=useState(null),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[uncertain,setUncertain]=useState(false);
+ const [tree,setTree]=useState(null),[expanded,setExpanded]=useState(new Set(['1','2','10','11'])),[query,setQuery]=useState(''),[selectedId,setSelectedId]=useState(null),[activeId,setActiveId]=useState('1'),[draft,setDraft]=useState(null),[pickerOpen,setPickerOpen]=useState(false),[previewOpen,setPreviewOpen]=useState(false),[menu,setMenu]=useState(null),[confirmDiscard,setConfirmDiscard]=useState(false),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[uncertain,setUncertain]=useState(false);
  const scrollRef=useRef(null),pendingFolderReveal=useRef(null),readEpoch=useRef(0),activeRef=useRef(true),menuButtonRef=useRef(null),busyRef=useRef(false);
  useEffect(()=>{activeRef.current=true;return()=>{activeRef.current=false;readEpoch.current++}},[]);
  useEffect(()=>{onStateChange?.({dirty:dirtyDraft(draft),saving:busy,draft:draft?JSON.stringify({title:draft.title,url:draft.url,parentId:draft.parentId}).slice(0,8192):''})},[onStateChange,draft,busy]);
@@ -302,7 +302,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
  const folders=useMemo(()=>tree?[...tree.byId.values()].filter(n=>isFolder(n)&&!n.locked&&!tree.roots.has(n.id)):[],[tree]);
  const closeMenu=useCallback(()=>{setMenu(null);menuButtonRef.current?.focus()},[]);
  useEffect(()=>{
-  if(!previewOpen||draft||menu||confirmDiscard||confirmDelete)return;
+  if(!previewOpen||draft||menu||confirmDiscard)return;
   const key=event=>{
    if(event.key!=='Escape'||event.defaultPrevented)return;
    event.preventDefault();setPreviewOpen(false);
@@ -310,7 +310,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
   };
   document.addEventListener('keydown',key);
   return()=>document.removeEventListener('keydown',key);
- },[previewOpen,draft,menu,confirmDiscard,confirmDelete]);
+ },[previewOpen,draft,menu,confirmDiscard]);
  function closePreview(){setPreviewOpen(false);scrollRef.current?.focus({preventScroll:true})}
  async function copyPreviewUrl(url){
   if(!url)return;
@@ -361,7 +361,15 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
    setExpanded(next);setQuery('');
   }else toggle(id);
  }
- function prepareDelete(id){const node=tree?.byId.get(id);if(node&&!node.locked){setConfirmDelete({id,expected:{...node},descendantSignatures:isFolder(node)?model.descendantSignatures(tree,id):[],count:isFolder(node)?descendants(tree,id):0})}}
+ function prepareDelete(id){
+   const node=tree?.byId.get(id);
+   if(!node||node.locked)return;
+   // No second React confirmation. The trusted Host still demands the ONE
+   // operation-bound deletion review, after Service and native guards.
+   const target={id,expected:{...node},
+     descendantSignatures:isFolder(node)?model.descendantSignatures(tree,id):[]};
+   void removeConfirmed(target);
+  }
  function onMenu(id,button){setMenu(null);setSelectedId(id);setActiveId(id);menuButtonRef.current=button;const r=button.getBoundingClientRect();const max=window.innerWidth-190;setMenu({id,locked:Boolean(tree?.byId.get(id)?.locked),top:Math.max(8,Math.min(r.bottom+4,window.innerHeight-190)),left:Math.max(8,Math.min(r.right-182,max))})}
  function actionMenu(action,id){closeMenu();if(action==='detail')request({type:'detail',id});else if(action==='delete')request({type:'delete',id});else request({type:'edit',id,move:action==='move'})}
  async function save(e){if(mode==='preview')globalThis.__bmReactSaveStage='submit-handler';e.preventDefault();if(!draft||busy||busyRef.current||uncertain)return;
@@ -397,7 +405,30 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
    if(mode==='preview')globalThis.__bmReactSaveStage='readback-ok';if(!activeRef.current)return;setTree(verified);setSelectedId(actual.id);setActiveId(actual.id);setDraft(null);setPreviewOpen(true);setPickerOpen(false);setUncertain(false);setNotice('已保存');
   }catch(ex){const outcome=completedWrite&&ex?.code!=='E_OUTCOME_UNKNOWN'?Object.assign(Error('可能发生部分写入；须核对再操作'),{code:'E_OUTCOME_UNKNOWN',cause:ex}):ex;if(mode==='preview')globalThis.__bmReactSaveStage='error:'+(outcome?.code||outcome?.message||'unknown');if(activeRef.current){setError(humanError(outcome));if(outcome?.code==='E_OUTCOME_UNKNOWN')setUncertain(true)}}finally{busyRef.current=false;if(activeRef.current)setBusy(false)}
  }
- async function removeConfirmed(){if(!confirmDelete||busy||busyRef.current||uncertain)return;busyRef.current=true;setBusy(true);setError('');let completedWrite=false;try{await service.remove({expected:confirmDelete.expected,confirmed:true,expectedDescendantSignatures:confirmDelete.descendantSignatures});completedWrite=true;const refreshed=await service.load();if(refreshed.byId.has(confirmDelete.id))throw Object.assign(Error('删除后仍发现目标，拒绝认定成功'),{code:'E_OUTCOME_UNKNOWN'});if(!activeRef.current)return;setTree(refreshed);if(selectedId===confirmDelete.id)setSelectedId(null);setConfirmDelete(null);setDraft(null);setPreviewOpen(false);setNotice('已删除')}catch(ex){if(activeRef.current){const unknown=completedWrite||ex?.code==='E_OUTCOME_UNKNOWN';setError(humanError(unknown?Object.assign(Error('删除结果未知，先刷新核对'),{code:'E_OUTCOME_UNKNOWN'}):ex));if(unknown){setUncertain(true);setConfirmDelete(null)}}}finally{busyRef.current=false;if(activeRef.current)setBusy(false)}}
+ async function removeConfirmed(target){
+   if(!target||busy||busyRef.current||uncertain)return;
+   busyRef.current=true;setBusy(true);setError('');
+   let completedWrite=false;
+   try{
+    await service.remove({expected:target.expected,confirmed:true,
+      expectedDescendantSignatures:target.descendantSignatures});
+    completedWrite=true;
+    const refreshed=await service.load();
+    if(refreshed.byId.has(target.id))
+      throw Object.assign(Error('删除后仍发现目标，拒绝认定成功'),{code:'E_OUTCOME_UNKNOWN'});
+    if(!activeRef.current)return;
+    setTree(refreshed);if(selectedId===target.id)setSelectedId(null);
+    setActiveId(target.expected.parentId||[...refreshed.roots][0]);
+    setDraft(null);setPreviewOpen(false);setNotice('已删除');
+    scrollRef.current?.focus({preventScroll:true});
+   }catch(ex){
+    if(activeRef.current){
+     const unknown=completedWrite||['E_OUTCOME_UNKNOWN','E_TOOL_CHANGED'].includes(ex?.code);
+     setError(humanError(unknown?Object.assign(Error('删除结果未知，先刷新核对'),{code:'E_OUTCOME_UNKNOWN'}):ex));
+     if(unknown)setUncertain(true);
+    }
+   }finally{busyRef.current=false;if(activeRef.current)setBusy(false)}
+  }
  function bookmarkCurrentPage(){request({type:'currentPage'})}
  async function fillCurrentPage(){if(busy)return;try{
   const info=await sdk.page.getContext();
@@ -433,6 +464,5 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
   </Sheet>}
   {menu&&<ActionMenu state={menu} onAction={actionMenu} onClose={closeMenu}/>}
   {confirmDiscard&&<Confirm title={uncertain?"写入结果未知，确定放弃草稿？":"放弃未保存的修改？"} description={uncertain?"无法确认上次保存是否生效。此操作仅放弃本地草稿，不会重试写入；请刷新核对数据。":"草稿尚未保存。可以继续编辑或明确放弃。"} cancelLabel="继续编辑" confirm={uncertain?"放弃草稿":"放弃修改"} danger onConfirm={()=>{setConfirmDiscard(false);closeSheet()}} onCancel={()=>setConfirmDiscard(false)}/>}
-   {confirmDelete&&<Confirm title={confirmDelete.count?'删除文件夹及子项？':'删除书签？'} description={confirmDelete.count?'「'+confirmDelete.expected.title+'」及其 '+confirmDelete.count+' 个子项将被永久删除。':'「'+confirmDelete.expected.title+'」将被永久删除。'} confirm={busy?'正在删除…':confirmDelete.count?'删除文件夹':'删除书签'} danger canConfirm={!busy} onConfirm={()=>void removeConfirmed()} onCancel={()=>setConfirmDelete(null)}/>}
  </div>
 }
