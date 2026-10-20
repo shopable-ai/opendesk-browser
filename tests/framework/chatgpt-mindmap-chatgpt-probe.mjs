@@ -777,8 +777,8 @@ try{
   assert.equal(await t(2).getByRole('button',{name:'Good response'}).getAttribute('aria-pressed'),'true');
   report.checks.push('REBUILT_ACTION_BAR_REUSES_PRODUCT_BUTTON');
   await page.getByRole('button',{name:'更新 B 回复正文'}).click();
-  await viewer(2).getByText('原回复已更新，请刷新导图').waitFor({timeout:12000});
-  assert.ok(await viewer(2).getByRole('button',{name:'重新读取本条回复'}).isVisible());
+  await viewer(2).locator('.odmm-status[data-stale="true"]').waitFor({state:'attached',timeout:12000});
+  assert.ok(await viewer(2).getByRole('button',{name:'Reply updated · Refresh mind map'}).isVisible());
   report.checks.push('CONTENT_UPDATE_MARKS_ONLY_B_STALE');
   await page.getByRole('button',{name:'切换 320px 容器'}).click();
   await page.waitForFunction(()=>document.getElementById('preview-conversation').getBoundingClientRect().width<=321);

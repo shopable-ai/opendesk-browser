@@ -79,7 +79,12 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   function update(id,{glyph,label,disabled,pressed,hidden}={}){
     for(const button of buttons.get(id)||[]){
       if(glyph)button.replaceChildren(icon(document,glyph));
-      if(label){button.title=label;button.setAttribute('aria-label',label);}
+      if(label){
+        button.setAttribute('aria-label',label);
+        if(button.getAttribute('role')==='menuitem')button.setAttribute('data-label',label);
+        const tip=button.querySelector('.odmm-tooltip');
+        if(tip)tip.textContent=label;else button.title=label;
+      }
       if(disabled!==undefined)button.disabled=disabled;
       if(pressed!==undefined){
         if(button.getAttribute('role')==='menuitem')button.removeAttribute('aria-pressed');
@@ -93,26 +98,40 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     menuOpen=false;menu.hidden=true;more.setAttribute('aria-expanded','false');
     if(restoreFocus)more.focus();
   };
+  function addTooltip(button,label){
+    const tip=el('span','odmm-tooltip',label);tip.setAttribute('aria-hidden','true');button.append(tip);
+    button.removeAttribute('title');
+    const reset=()=>button.removeAttribute('data-tooltip-dismissed');
+    removers.push(owner.on(button,'pointerenter',reset),owner.on(button,'focus',reset));
+    return tip;
+  }
   function action({id,glyph,label,run,group,render=false,menuItem=false}){
     const button=el('button',menuItem?'odmm-tool odmm-menu-action':'odmm-tool');
     button.type='button';button.title=label;button.setAttribute('aria-label',label);
-    if(menuItem)button.setAttribute('role','menuitem');
+    if(menuItem){button.setAttribute('role','menuitem');button.setAttribute('data-label',label);}
     button.setAttribute('data-action',id);
     button.append(icon(document,glyph));remember(id,button);
+    if(id==='refresh'&&!menuItem)addTooltip(button,label);
     if(render){button.disabled=true;renderButtons.push(button);}
     removers.push(owner.on(button,'click',async()=>{
       if(disposed||button.disabled)return;
+      const focus=document.activeElement===host;
       if(menuItem)closeMenu({restoreFocus:true});
       const groupButtons=buttons.get(id)||[];
       groupButtons.forEach(item=>{
         item.disabled=true;item.setAttribute('aria-busy','true');
       });
-      try{await run();}
+      try{await run(id==='refresh'?{focus}:undefined);}
       catch(error){await onError(error);}
       finally{
-        if(!disposed)groupButtons.forEach(item=>{
-          item.disabled=false;item.removeAttribute('aria-busy');
-        });
+        if(!disposed){
+          groupButtons.forEach(item=>{item.disabled=false;item.removeAttribute('aria-busy');});
+          if(id==='refresh'&&focus&&(document.activeElement===document.body||
+            (document.activeElement===host&&(!shadow.activeElement||
+              shadow.activeElement===button||shadow.activeElement===more)))){
+            (menuItem?more:button).focus();
+          }
+        }
       }
     }));
     group.append(button);
@@ -140,19 +159,28 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   const toggleTheme=()=>onToggleTheme?onToggleTheme():setTheme(preferredSkin!=='dark');
   action({id:'theme',glyph:'sun',label:'切换为浅色导图',
     run:toggleTheme,group:themeGroup,render:true});
-  action({id:'refresh',glyph:'refresh',label:'重新读取本条回复',
-    run:onRefresh,group:refreshGroup});
+  const refreshMap=async({focus=false}={})=>{
+    const result=await onRefresh({focus});
+    if(result===false&&!disposed){
+      const message='Refresh mind map · Reply is still updating';
+      status.textContent=message;update('refresh',{label:message});
+      for(const button of buttons.get('refresh')||[])button.setAttribute('data-label','Refresh mind map');
+    }
+  };
+  action({id:'refresh',glyph:'refresh',label:'Refresh mind map',
+    run:refreshMap,group:refreshGroup});
   const more=el('button','odmm-tool odmm-more');
-  more.type='button';more.title='更多导图操作';more.setAttribute('aria-label','更多导图操作');
+  more.type='button';more.title='More actions';more.setAttribute('aria-label','More actions');
   more.setAttribute('aria-haspopup','menu');more.setAttribute('aria-controls',menu.id);
   more.setAttribute('aria-expanded','false');more.append(icon(document,'more'));
+  const moreTip=addTooltip(more,'More actions');
   menuGroup.append(more);
   action({id:'fold',glyph:'fold',label:'折叠所有分支',
     run:toggleFold,group:menu,render:true,menuItem:true});
   action({id:'theme',glyph:'sun',label:'切换为浅色导图',
     run:toggleTheme,group:menu,render:true,menuItem:true});
-  action({id:'refresh',glyph:'refresh',label:'重新读取本条回复',
-    run:onRefresh,group:menu,menuItem:true});
+  action({id:'refresh',glyph:'refresh',label:'Refresh mind map',
+    run:refreshMap,group:menu,menuItem:true});
   action({id:'export-open',glyph:'download',label:'Export',
     run:()=>openExport(true),group:menu,menuItem:true,render:true});
   menuGroup.append(menu);
@@ -219,10 +247,10 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   async function runExport(option){
     if(disposed||exportBusy)return;
     closeExport(true);
-    if(!renderer){setExportStatus('XMind 尚未准备就绪',true);return;}
+    if(!renderer){setExportStatus('Mind map is not ready yet',true);return;}
     exportBusy=true;exportToggle.disabled=true;
     for(const button of exportButtons)button.disabled=true;
-    setExportStatus('正在生成 '+option.label+'…');
+    setExportStatus('Preparing '+option.label+'…');
     try{
       let blob;
       if(option.id==='xmind')blob=await verifyXmindZip(await renderer.exportXmind());
@@ -234,9 +262,9 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
       if(disposed)return;
       if(!blob.size)throw Object.assign(new Error('文件内容为空'),{code:'E_XMIND_EXPORT_EMPTY'});
       startDownload(blob,exportFileBase(tree.title)+option.extension);
-      setExportStatus(truncated?'已发起下载（导图内容已截断）':'已发起文件下载');
+      setExportStatus(truncated?'Download started · Mind map truncated':'Download started');
     }catch(error){
-      if(!disposed)setExportStatus('导出失败：'+String(error?.code||error?.message||'未知错误'),true);
+      if(!disposed)setExportStatus('Export failed: '+String(error?.code||error?.message||'Unknown error'),true);
     }finally{
       exportBusy=false;
       if(!disposed){
@@ -280,6 +308,15 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     focusMenu(event.key==='ArrowUp');event.preventDefault();event.stopPropagation();
   }));
   removers.push(owner.on(shadow,'keydown',event=>{
+    if(event.key==='Escape'){
+      let dismissed=false;
+      for(const tip of shadow.querySelectorAll('.odmm-tooltip')){
+        if(window.getComputedStyle?.(tip).display==='block'){
+          tip.parentElement.setAttribute('data-tooltip-dismissed','true');dismissed=true;
+        }
+      }
+      if(dismissed){event.stopPropagation();event.preventDefault();return;}
+    }
     if(exportOpen){
       if(event.key==='Escape'){
         closeExport(true);event.stopPropagation();event.preventDefault();return;
@@ -315,10 +352,14 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   }));
   const canvas=el('div','odmm-canvas');canvas.tabIndex=0;
   canvas.setAttribute('aria-label','XMind 只读画布，可拖动和滚动浏览分支');
-  const status=el('div','odmm-status','正在打开 XMind…');status.setAttribute('role','status');
-  shell.append(toolbar,exportStatus,canvas,status);shadow.append(style,shell);
+  const status=el('div','odmm-status odmm-sr-only');status.setAttribute('role','status');
+  status.setAttribute('aria-live','polite');status.setAttribute('aria-atomic','true');
+  const loading=el('div','odmm-loading');loading.title='Loading mind map…';
+  loading.setAttribute('aria-hidden','true');loading.append(icon(document,'refresh'));
+  shell.append(toolbar,exportStatus,canvas,loading,status);shadow.append(style,shell);
   async function start(){
     if(disposed)return;
+    if(!status.hasAttribute('data-stale'))status.textContent='Loading mind map…';
     preferredSkin=host.getAttribute('data-dark')==='false'?'light':'dark';
     syncThemeButton();
     renderer=rendererFactory({window,canvas,tree,skinMode:preferredSkin,identity});
@@ -327,7 +368,9 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     await renderer.fit();
     if(disposed)return;
     renderButtons.forEach(button=>{button.disabled=false;});
-    status.textContent='';status.hidden=true;host.dataset.ready='true';
+    loading.hidden=true;
+    if(!status.hasAttribute('data-stale'))status.textContent='';
+    host.dataset.ready='true';
     host.dataset.layoutReady='inline';
     if(!host.dataset.skinPending)host.dataset.skinReady=preferredSkin;
   }
@@ -380,11 +423,16 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     if(!disposed&&fullscreen===value)host.dataset.layoutReady=value?'fullscreen':'inline';
   }
   function markStale(){
-    status.hidden=false;status.textContent='原回复已更新，请刷新导图';
+    if(disposed||status.hasAttribute('data-stale'))return;
+    status.textContent='Reply updated. Refresh mind map to sync.';
     status.setAttribute('data-stale','true');
-    update('refresh',{hidden:false});
-    more.classList.add('odmm-stale');
-    more.setAttribute('aria-label','更多导图操作，有可刷新的内容');
+    update('refresh',{hidden:false,label:'Reply updated · Refresh mind map'});
+    for(const button of [...buttons.get('refresh')||[],more]){
+      const dot=el('span','odmm-update-dot');dot.setAttribute('aria-hidden','true');button.append(dot);
+      if(button.getAttribute('role')==='menuitem')button.setAttribute('data-label','Refresh mind map');
+    }
+    more.setAttribute('aria-label','More actions · Reply updated');
+    moreTip.textContent='More actions · Reply updated';
   }
   function destroy(){
     if(closing)return closing;

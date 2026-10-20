@@ -35,7 +35,7 @@ function setup({firstDestroy,firstTheme,searchIdentity}={}){
     createView(options){
       const index=views.length,host=document.createElement('section');
       let retirement;
-      const view={host,options,destroyCalls:0,fullCalls:[],async start(){},focusPrimary(){},markStale(){},
+    const view={host,options,destroyCalls:0,fullCalls:[],focusCalls:0,async start(){},focusPrimary(){view.focusCalls++;},markStale(){},
         async setFull(value){view.fullCalls.push(value);},setTheme(){return index===0&&firstTheme?firstTheme.promise:Promise.resolve();},
         destroy(){
           if(!retirement){view.destroyCalls++;retirement=(index===0&&firstDestroy?firstDestroy.promise:Promise.resolve()).finally(()=>host.remove());}
@@ -53,6 +53,26 @@ function setup({firstDestroy,firstTheme,searchIdentity}={}){
     click:()=>handlers.get(trigger)(),
     theme:()=>observers.find(row=>row.options.attributeFilter?.includes('class')).listener()};
 }
+
+test('refresh restores keyboard focus to the new view and keeps the fullscreen state',async()=>{
+  const h=setup();await h.click();
+  await h.views[0].options.onFullscreen();
+  await h.views[0].options.onRefresh({focus:true});
+  assert.equal(h.views[0].destroyCalls,1);
+  assert.equal(h.views[1].focusCalls,1);
+  assert.deepEqual(h.views[1].fullCalls,[true]);
+  await h.registry.destroy();
+});
+
+test('refresh during reply streaming keeps the current view for an explicit retry',async()=>{
+  const h=setup();await h.click();
+  h.content.parentElement.setAttribute('data-is-streaming','true');
+  assert.equal(await h.views[0].options.onRefresh({focus:true}),false);
+  assert.equal(h.views.length,1);
+  assert.equal(h.views[0].destroyCalls,0);
+  h.content.parentElement.removeAttribute('data-is-streaming');
+  await h.registry.destroy();
+});
 
 test('search message identity changes retire the previous reply view',async()=>{
   for(const attribute of ['data-chatgpt-search-message-ids','data-content-search-unit-key']){

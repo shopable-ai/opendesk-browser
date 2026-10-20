@@ -197,7 +197,7 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
       identity:Object.freeze({instanceId,revision}),
       onError:error=>failed(error,nextView,session),
       onOriginal:()=>close({focus:true}),
-      onRefresh:()=>refresh(),
+      onRefresh:options=>refresh(options),
       onFullscreen:()=>coordinator.setFull(coordinator.full===api?null:api),
       onToggleTheme:()=>themePreference.toggle()});
     try{
@@ -212,12 +212,14 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
       else await coordinator.retire(nextView);
     }
   }
-  async function refresh(){
+  async function refresh({focus=false}={}){
     if(disposed||!view||!content.isConnected)return;
-    if(isStreaming(root)||Date.now()-lastChange<STABLE_MS)return;
+    if(isStreaming(root)||Date.now()-lastChange<STABLE_MS)return false;
     const full=coordinator.full===api;
     await close();await open();
-    if(full&&view)coordinator.setFull(api);
+    if(full&&view)await coordinator.setFull(api);
+    if(focus&&view)view.focusPrimary();
+    return true;
   }
   const api={
     syncTheme,

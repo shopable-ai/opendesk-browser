@@ -7,3 +7,4 @@ import '../../examples/programs/chatgpt-mindmap/tests/xmind-adapter.test.mjs';
 import '../../examples/programs/chatgpt-mindmap/tests/xmind-theme-toggle.test.mjs';
 import '../../examples/programs/chatgpt-mindmap/tests/export-r310.test.mjs';
 import '../../examples/programs/chatgpt-mindmap/tests/export-r310-integration.test.mjs';
+import '../../examples/programs/chatgpt-mindmap/tests/xmind-status.test.mjs';

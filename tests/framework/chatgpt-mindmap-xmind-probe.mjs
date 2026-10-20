@@ -136,7 +136,7 @@ try{
  await page.getByRole('button',{name:'重建 B 操作栏',exact:true}).click();await page.waitForTimeout(250);
  assert.equal(await page.locator('[data-opendesk-chatgpt-mindmap="button"]').count(),6);passed('Toolbar replacement does not duplicate buttons');
  await page.getByRole('button',{name:'更新 B 正文',exact:true}).click();await page.waitForTimeout(850);
- await control(2,'重新读取本条回复').click();await ready(2);passed('Refresh recreates B from its updated content');
+ await control(2,'Reply updated · Refresh mind map').click();await ready(2);passed('Refresh recreates B from its updated content');
  for(let i=0;i<20;i++){await trigger(3).click();await ready(3);await control(3,'返回完整原文').click();await viewer(3).waitFor({state:'detached'});}
  passed('20 actual SDK open/close cycles');
  await page.screenshot({path:join(out,'light-fixture.png'),fullPage:true});

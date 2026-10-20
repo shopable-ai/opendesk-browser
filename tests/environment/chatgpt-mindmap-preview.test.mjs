@@ -173,7 +173,7 @@ test('R3.5 icon toolbar is product-owned, mobile-capable and nonduplicating',asy
     'Menu text needs the full item hit target rather than overflowing the 44px icon');
   assert.match(css,/\.odmm-canvas::after\{content:'左右拖动查看分支'/,
     'A narrow canvas should disclose horizontal navigation without a secondary renderer');
-  assert.match(css,/\.odmm-shell\{container-type:inline-size/,
+  assert.match(css,/\.odmm-shell\{[^}]*container-type:inline-size/,
     'The toolbar itself cannot query its own container size');
   assert.doesNotMatch(css,/\.odmm-toolbar\{container-type:inline-size/);
   assert.match(css,/:host\(\[hidden\]\)/);

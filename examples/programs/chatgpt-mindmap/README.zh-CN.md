@@ -1,5 +1,11 @@
 # ChatGPT 思维导图 · OpenDesk 网页增强
 
+## 状态提示优化（2026-10-20）
+
+回复更新后，刷新图标显示圆点，悬停或键盘聚焦提示 `Reply updated · Refresh mind map`；左下角不再常驻更新文字。更多菜单保留可读的 `Refresh mind map`。加载使用独立图标，下载及导出反馈使用简短英文；读屏状态区持续挂载，刷新后恢复操作焦点。回复仍在生成时保留当前导图并提示稍后重试，不自动重放。
+
+当前已通过定向 Node 验证，以及使用真实界面源码、模拟画布的 Chromium 组件操作检查；该源码的已安装 ChatGPT 页面升级与 VoiceOver 朗读仍为 `NOT_TESTED`，不沿用下方旧版安装结论。
+
 ## 安装与日常使用（2026-10-18 修正）
 
 **本项目是 Page USER_SCRIPT 网页增强。** 正式 Page 安装包的格式为 `opendesk.page-install.v1`，本机文件为 `artifacts/chatgpt-mindmap-page-install-20261018/chatgpt-mindmap.opendesk-page.json`。在 OpenDesk「扩展 → 导入」选择它，查看名称、身份 `opendesk.chatgpt-mindmap`、版本 `0.2.0 / r1`、网站 `https://chatgpt.com/*` 及读取和修改网页的权限，然后确认安装。只有返回有效安装授权和 Chrome 注册回执才显示安装完成；无需进入「开发」，也无需安装后再次通用启用。用户主动停用的版本仍保持停用。
