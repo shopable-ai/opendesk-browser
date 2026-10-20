@@ -3,7 +3,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/ui/tool.html'
+      - 'src/ui/sidepanel.html'
       - 'src/ui/tool-shell.js'
       - 'src/ui/tool-shell.css'
       - 'src/ui/task-workbench.js'
@@ -71,6 +71,8 @@ jobs:
       - name: Verify actual installed MV3 App Shell and repeated opening
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_EXTENSION_DIR: dist/development
+          OPENDESK_BUILD_MODE: development
         run: node scripts/tests/react-sidebar-r352-installed-chrome.mjs
       - name: Upload installed Chrome diagnostics
         if: always()

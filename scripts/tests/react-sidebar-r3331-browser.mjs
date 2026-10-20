@@ -338,7 +338,10 @@ try{
   assert.equal(await evaluate('document.getElementById("extension-center-status").textContent'),'测试状态');
   assert.equal(await evaluate('document.getElementById("extension-center-empty").hidden'),true);
   assert.equal(await evaluate('document.getElementById("script-current-page-host").textContent'),'example.com');
-  assert.equal(await evaluate('document.querySelectorAll("#develop-dock .dock-buttons > button").length'),3);
+  assert.deepEqual(
+    await evaluate('[...document.querySelectorAll("#develop-dock .dock-buttons > button")].map(node=>node.id)'),
+    ['script-run','script-stop'],
+    'The current React Developer Dock owns exactly its Run/Stop controls');
   assert.equal(await evaluate('document.querySelectorAll("#page-component-framework input").length'),3);
   assert.equal(await evaluate('document.getElementById("script-status").textContent'),'可运行');
   assert.equal(await evaluate('document.getElementById("script-status").dataset.state'),'ready');
