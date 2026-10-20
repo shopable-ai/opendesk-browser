@@ -102,3 +102,48 @@ test('R1.0 current-page token stays local and does not upload private URL parame
  assert.equal(result.messages.length,1);
  assert.equal(f.nodes.find(n=>n.id===result.refs.bookmarkId).title,'当前文档');
 });
+
+test('R1.1 a verified folder is retained when a subsequent write is unknown',async()=>{
+ const f=fixture();let issued=0;
+ f.service.createBookmark=async()=>{issued++;throw Object.assign(Error('lost acknowledgement'),{code:'E_OUTCOME_UNKNOWN'});};
+ await assert.rejects(executeBookmarkPlan({
+  plan:{actions:[{type:'folder.create',title:'AI 工具'},
+   {type:'bookmark.create',title:'Example',url:'https://example.com',parent:'$lastFolder'}]},
+  context,service:f.service
+ }),error=>{
+  assert.equal(error.code,'E_OUTCOME_UNKNOWN');
+  assert.equal(error.refs.folderId,'3');
+  assert.equal(error.refs.bookmarkId,null);
+  assert.equal(error.partial.length,1);
+  assert.match(error.partial[0],/已创建文件夹/);
+  return true;
+ });
+ assert.equal(issued,1);
+ assert.equal(f.nodes.some(n=>n.id==='3'&&n.title==='AI 工具'),true);
+});
+
+test('R1.1 Stop after confirmed first step preserves references and issues no second write',async()=>{
+ const f=fixture(),controller=new AbortController();
+ await assert.rejects(executeBookmarkPlan({
+  plan:{actions:[{type:'folder.create',title:'已确认'},
+   {type:'folder.create',title:'不得执行'}]},
+  context,service:f.service,signal:controller.signal,
+  onStep:step=>{if(step.id)controller.abort()}
+ }),error=>{
+  assert.equal(error.code,'E_CANCELLED');
+  assert.equal(error.refs.folderId,'3');
+  assert.equal(error.partial.length,1);
+  assert.equal(error.writeIssued,false);
+  return true;
+ });
+ assert.equal(f.calls.filter(x=>x==='folder.create').length,1);
+});
+
+test('R1.1 preview uses the production App but distinctly labels offline AI',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const source=readFileSync(new URL('../../examples/sidebar-tools/bookmark-manager/preview/react/src/main.jsx',import.meta.url),'utf8');
+ assert.match(source,/import App from '\.\.\/\.\.\/\.\.\/src\/react\/App\.jsx'/);
+ assert.match(source,/离线演示（非真实 AI）/);
+ assert.match(source,/root\.render\(<App runtime=\{\{conversation\}\} mode="preview"\/>\)/);
+ assert.doesNotMatch(source,/fetch\(|chrome\.bookmarks/);
+});

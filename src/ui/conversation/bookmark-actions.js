@@ -113,7 +113,10 @@ export async function executeBookmarkPlan({plan,service,context,refs={},signal,o
   matches:[...(refs.matches||[]).slice(0,12)]};
  const messages=[];
  for(const action of checked.actions){
-  aborted(signal);
+  // A Stop between operations preserves the actual verified partial journal.
+  // Never issue or replay a later mutation after cancellation.
+  if(signal?.aborted)throw Object.assign(fail('E_CANCELLED','已停止，未再发送新的书签操作'),{
+   partial:[...messages],refs:{...nextRefs},writeIssued:false});
   let issued=false,kind='',target=null,actual=null;
   try{
    if(action.type==='bookmark.search'){

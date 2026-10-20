@@ -261,6 +261,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
   [chatBusy,setChatBusy]=useState(false),[chatError,setChatError]=useState('');
  const chatRefs=useRef(restoredChat.refs||{folderId:null,bookmarkId:null,matches:[]});
  const chatInput=useRef(null),chatAbort=useRef(null),chatInFlight=useRef(false),chatSequence=useRef(0);
+  const chatRowsRef=useRef(restoredChat.rows||[]);
  useEffect(()=>{
   conversation?.saveSession?.({open:chatOpen,draft:chatDraft,rows:chatRows,refs:chatRefs.current});
  },[conversation,chatOpen,chatDraft,chatRows]);
@@ -268,7 +269,12 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
  useEffect(()=>()=>{chatAbort.current?.abort()},[]);
  function appendConversation(speaker,message){
   const row={id:'bookmark-turn-'+Date.now()+'-'+(++chatSequence.current),speaker,message:String(message).slice(0,3500)};
-  setChatRows(rows=>[...rows,row].slice(-24));
+  const rows=[...chatRowsRef.current,row].slice(-24);
+   chatRowsRef.current=rows;
+   if(activeRef.current)setChatRows(rows);
+   // Commit verified messages and their real ID references immediately:
+   // the trusted portal may unmount before React runs another effect.
+   conversation?.saveSession?.({open:true,draft:'',rows,refs:chatRefs.current});
  }
  function toggleConversation(){
   if(draft){setError('请先完成或取消当前书签编辑，再打开对话。');return;}
@@ -312,8 +318,9 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
     context:{...pinned,pageContext},refs:pinned.refs,
     onStep:step=>{
      chatRefs.current=step.refs;
+     appendConversation('助手',step.message);
      if(activeRef.current){
-      setTree(step.tree);appendConversation('助手',step.message);
+      setTree(step.tree);
       if(step.id){setSelectedId(step.id);setActiveId(step.id);}
      }
     }});
@@ -328,7 +335,8 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
    const partial=error?.partial?.length?'已确认 '+error.partial.length+' 项操作。其余未完成。 ':'';
    const text=error?.code==='E_CANCELLED'?'本轮已停止，未发送后续操作。':
     partial+(error?.message||'操作失败。没有将未确认写入视为成功。');
-   if(activeRef.current){setChatError(text);appendConversation('系统',text);}
+   if(activeRef.current)setChatError(text);
+   appendConversation('系统',text);
   }finally{
    chatInFlight.current=false;chatAbort.current=null;busyRef.current=false;
    if(activeRef.current){setChatBusy(false);setBusy(false);}
