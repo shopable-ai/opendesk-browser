@@ -74,7 +74,7 @@ export interface OpenDeskBrowserSdk {
       readonly start: (input: { readonly durationMs?: number; readonly maxBufferedBytes?: number; readonly maxEvents?: number; readonly origins: Array<string>; readonly tabRef: string; }) => Promise<{ readonly expiresAt: number; readonly observationId: string; readonly operationId: string; readonly status: string; }>;
       readonly stop: (input: { readonly observationId: string; }) => Promise<{ readonly state: string; readonly stoppedAt: number; }>;
     };
-    readonly request: (input: { readonly config?: { readonly responseType?: "json" | "text"; readonly timeout?: number; }; readonly data?: unknown; readonly method: "GET" | "POST" | "PUT" | "DELETE"; readonly url: string; }) => Promise<{ readonly data?: unknown; readonly status: number; }>;
+    readonly request: (input: { readonly config?: { readonly headers?: { readonly [key: string]: unknown; }; readonly responseType?: "json" | "text"; readonly timeout?: number; }; readonly data?: unknown; readonly method: "GET" | "POST" | "PUT" | "DELETE"; readonly url: string; }) => Promise<{ readonly data?: unknown; readonly status: number; }>;
   };
   readonly operations: {
     readonly cancel: (input: { readonly operationId: string; }) => Promise<{ readonly cancelRequested?: boolean; readonly state: "running" | "completed" | "failed" | "cancelled" | "unknown"; }>;

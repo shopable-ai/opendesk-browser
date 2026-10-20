@@ -95,7 +95,7 @@ test('R2 schema rejects arbitrary tabs, credentials, bad methods and unsafe head
   assert.throws(()=>normalizeBrowserOperation('browser.tabs.create',{url:'https://user:secret@host.test/'}),err('E_SCHEMA'));
   assert.throws(()=>normalizeBrowserOperation('browser.network.request',{method:'GET',url:'https://host.test',data:'x'}),err('E_SCHEMA'));
   assert.throws(()=>normalizeBrowserOperation('browser.network.request',{method:'PATCH',url:'https://host.test'}),err('E_SCHEMA'));
-  assert.throws(()=>normalizeBrowserOperation('browser.network.request',{method:'POST',url:'https://host.test',config:{headers:{authorization:'secret'}}}),err('E_SCHEMA'));
+  assert.throws(()=>normalizeBrowserOperation('browser.network.request',{method:'POST',url:'https://host.test',config:{headers:{authorization:'secret'}}}),err('E_CONFIG_UNSUPPORTED'));
 });
 
 test('R2 Host requires exact one-use approved action, binds TabRef to package and rejects raw tabId',async()=>{

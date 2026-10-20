@@ -11,12 +11,16 @@ import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {serializeSidebarToolPackage,sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 import {REVIEWED_MANAGED_PROXY_PROFILES} from '../../src/platform/chrome/browser-managed-proxy-profiles.js';
 import {MANAGED_PROXY_STORE} from '../../src/platform/chrome/browser-managed-proxy.js';
+import {exerciseManagedProxyDevelopmentCore} from './managed-proxy-development-core.mjs';
 
 const buildMode=process.env.OPENDESK_PROXY_C1_BUILD||'production';
 assert(['production','development'].includes(buildMode),'Unknown C1 build mode');
 const development=buildMode==='development';
+const developmentCore=process.env.OPENDESK_PROXY_DEV_CORE==='1';
+assert(!developmentCore||development,'Local positive-flow driver requires development mode');
 const PATH=resolve('dist',buildMode);
-const devRunDirectory='artifacts/managed-proxy-r18/dev-runs/'+new Date().toISOString().replaceAll(':','-');
+const devRunDirectory=(developmentCore?'artifacts/managed-proxy-r19/dev-runs/':'artifacts/managed-proxy-r18/dev-runs/')+
+  new Date().toISOString().replaceAll(':','-');
 const screenshotPrefix=development?devRunDirectory.slice('artifacts/'.length)+'/':'managed-proxy-c1-';
 const OUTPUT=resolve(development?'artifacts/managed-proxy-installed-dev-c1.json':'artifacts/managed-proxy-installed-c1.json');
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -42,6 +46,14 @@ async function connect(url){
     new Promise((_,no)=>setTimeout(()=>no(Error('CDP connect timeout')),9000))]);
   ws.addEventListener('message',event=>{
     let reply;try{reply=JSON.parse(event.data);}catch{return;}
+    if(developmentCore&&['Network.responseReceived','Network.loadingFailed'].includes(reply.method)){
+      receipt.networkEvents??=[];
+      const p=reply.params,r=p.response;
+      if(receipt.networkEvents.length<300)receipt.networkEvents.push({sessionId:reply.sessionId,method:reply.method,
+        params:{type:p.type,errorText:p.errorText,response:r?{url:r.url,status:r.status,
+          remoteIPAddress:r.remoteIPAddress,remotePort:r.remotePort,protocol:r.protocol,
+          securityState:r.securityState,fromDiskCache:r.fromDiskCache}:undefined}});
+    }
     if(['Page.frameNavigated','Runtime.exceptionThrown','Runtime.executionContextsCleared'].includes(reply.method)){
       receipt.cdpEvents??=[];
       if(receipt.cdpEvents.length<200)receipt.cdpEvents.push({at:new Date().toISOString(),...reply});
@@ -82,8 +94,11 @@ async function elementIn(session,selector){
 }
 const element=selector=>elementIn(page,selector);
 async function clickIn(session,selector,surface='tool-tab'){
+  await evalAt(session,'document.querySelector('+JSON.stringify(selector)+')?.scrollIntoView({block:"center"})');
   const a=await elementIn(session,selector);
   assert(a?.visible,'Chrome input cannot reach '+selector+': '+JSON.stringify(a));
+  assert(a.x>=0&&a.y>=0&&a.x<a.viewport.width&&a.y<a.viewport.height,
+    'Chrome input point is outside the visible viewport: '+selector);
   for(const type of ['mouseMoved','mousePressed','mouseReleased'])
     await client.send('Input.dispatchMouseEvent',{type,button:'left',clickCount:1,x:a.x,y:a.y},session);
   step('CHROME_MOUSE_INPUT',{selector,surface,api:'Input.dispatchMouseEvent',point:a});
@@ -400,6 +415,12 @@ async function exerciseNativeSidePanel({panel,extensionId,worker,tabTargetId}){
   const officialFrame=await until(async()=>{
     try{return await toolFrame(panelSession,'#ai-vip-member-state');}catch{return null;}
   },'official AI VIP Share sandbox inside native Side Panel');
+  if(developmentCore){
+    await exerciseManagedProxyDevelopmentCore({client,panelSession,worker,officialFrame,
+      evalAt,until,clickIn,clickSandbox,toolFrame,readNative,screenshot,step,receipt});
+    receipt.sidePanelDocumentId=current.id;receipt.sidePanelInteracted=true;
+    return;
+  }
   const officialState=await until(async()=>{
     const result=await evalAt(officialFrame.session,'(()=>({member:document.querySelector("#ai-vip-member-state")?.textContent,'+
       'detail:document.querySelector("#ai-vip-proxy-detail")?.textContent,'+
@@ -503,6 +524,7 @@ async function exerciseNativeSidePanel({panel,extensionId,worker,tabTargetId}){
 }
 async function main(){
   receipt.driverSha256=hash(await readFile(new URL(import.meta.url)));
+  if(developmentCore)receipt.developmentCoreDriverSha256=hash(await readFile(new URL('./managed-proxy-development-core.mjs',import.meta.url)));
   assert(process.env.CHROME_FOR_TESTING_BIN,'Pinned Chrome for Testing required');
   const candidate=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
   const config=JSON.parse(await readFile('examples/sidebar-tools/ai-vip-share/tool.config.json','utf8'));
@@ -539,6 +561,11 @@ async function main(){
   const args=['--no-first-run','--no-default-browser-check','--disable-sync',
     '--window-size=1440,1000','--disable-background-networking','--remote-debugging-port=0','--user-data-dir='+profile,
     '--disable-extensions-except='+PATH,'--load-extension='+PATH,'about:blank'];
+  if(developmentCore){
+    receipt.netLog=resolve(devRunDirectory,'chrome-netlog.json');
+    await mkdir(devRunDirectory,{recursive:true});
+    args.unshift('--log-net-log='+receipt.netLog,'--net-log-capture-mode=Default');
+  }
   if(!headed)args.unshift('--headless=new');
   if(noSandbox)args.unshift('--no-sandbox');
   child=spawn(process.env.CHROME_FOR_TESTING_BIN,args,{stdio:['ignore','ignore','pipe']});
@@ -628,7 +655,7 @@ async function main(){
   // C1 needs an actual installed Consumer to exercise Host rejection, because
   // the production AI VIP UI correctly disables commercial ENABLE without Provider.
   // This isolated tool is not an official release and has no approved profile.
-  await exerciseProductionDeniedSdk(extensionId);
+  if(!developmentCore)await exerciseProductionDeniedSdk(extensionId);
   const after=await until(()=>readNative(worker),'post-UI native Chrome proxy readback');
   assert.equal(after.journal,null,'Unconfigured official tool wrote managed proxy journal');
   if(after.settings)assert.notEqual(after.settings.value?.mode,'pac_script');
@@ -671,13 +698,24 @@ async function main(){
         .map(t=>({type:t.type,url:t.url,id:t.targetId}));
       receipt.sidePanelDiagnostics=await nativeSidePanelDiagnostics(sidePanelSession,worker)
         .catch(diagnosticError=>({error:String(diagnosticError)}));
+      if(developmentCore&&sidePanelSession){
+        receipt.developmentCoreFailure=await (async()=>{
+          const frame=await toolFrame(sidePanelSession,'#ai-vip-member-state');
+          return evalAt(frame.session,`({text:document.body.innerText,
+            responses:globalThis.__managedDevResponses,
+            input:globalThis.__managedDevInput,
+            controls:[...document.querySelectorAll('button,input')].map(e=>({id:e.id,disabled:e.disabled,
+              hidden:!!e.closest('[hidden]'),text:e.tagName==='BUTTON'?e.textContent:null}))})`,frame.contextId);
+        })().catch(error=>({error:String(error)}));
+      }
       await screenshot('native-side-panel-blocked',sidePanelSession).catch(()=>{});
       step('C1_SIDE_PANEL_INTERACTION',{status:'NATIVE_UI_BLOCKED',error:receipt.sidePanelBlocker});
       console.error('MANAGED_PROXY_C1_SIDE_PANEL_DIAGNOSTICS='+
         JSON.stringify(receipt.sidePanelDiagnostics));
     }
   }
-  const required=['FORMAL_INSTALL_IDENTITY','C1_SDK_STATUS',
+  const required=developmentCore?['FORMAL_INSTALL_IDENTITY','C1_SIDE_PANEL_TOOLS_VISIBLE',
+    'DEV_MEMBER_REDEEMED','DEV_PROXY_ENABLED','DEV_NETWORK_RESPONSES','DEV_ACTIVE_STOP','DEV_REOPEN_RELEASED']:['FORMAL_INSTALL_IDENTITY','C1_SDK_STATUS',
     'C1_PRODUCTION_ENABLE_DENIED','C1_SDK_STOP','NO_UNAPPROVED_NATIVE_SET',
     'C1_SIDE_PANEL_TOOLS_VISIBLE','C1_SIDE_PANEL_OFFICIAL_UI',
     'C1_SIDE_PANEL_SDK_HOST_NATIVE'];
@@ -694,7 +732,7 @@ async function main(){
     console.error('MANAGED_PROXY_C1=NATIVE_UI_BLOCKED');
     return;
   }
-    receipt.result=development?'DEV_C1_NATIVE_PASS':'FORMAL_C1_NATIVE_PASS';
+    receipt.result=developmentCore?'DEV_CORE_NATIVE_PASS':development?'DEV_C1_NATIVE_PASS':'FORMAL_C1_NATIVE_PASS';
   console.log('MANAGED_PROXY_C1='+receipt.result);
 }
 try{await main();}catch(e){receipt.result='FAIL';receipt.errors.push(String(e.stack||e));
@@ -704,6 +742,10 @@ try{await main();}catch(e){receipt.result='FAIL';receipt.errors.push(String(e.st
   }
   console.error('MANAGED_PROXY_C1=FAIL',e);process.exitCode=1;
 }finally{
+  if(developmentCore&&child?.exitCode===null){
+    try{await client?.send('Browser.close');}catch{}
+    await sleep(500);
+  }
   await mkdir(dirname(OUTPUT),{recursive:true});
   if(development){
     await mkdir(devRunDirectory,{recursive:true});

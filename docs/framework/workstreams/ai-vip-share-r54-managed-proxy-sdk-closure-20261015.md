@@ -322,3 +322,79 @@ node --test --test-reporter=spec tests/environment/browser-managed-proxy-c1-fram
 - 前轮已通过的 Proxy Node、Stay Focus 43/43、来源锁正反向 2/2 及 React 定向 13/13 沿用原始日志，不因无关 main 更新重跑。未修改 SDK、Host、Driver、安装器或正式 Tab 产品逻辑；本次没有重新复现旧停留 tasks 的产品问题，不认定其历史唯一根因。
 
 **边界与延期：** STOP 仅证明无活动代理时可调用，活动代理释放、C2 仍 `NOT_TESTED`。正式 C1、production/完整 CI 和六维 >=95 评分均延期；本次 dev 成功不提升这些结论。隔离 CfT/Profile 已关闭；现有 dev watcher 保留。来源锁和共享预算夹具的远端等价修复按实际合并保留，不重复注册站点；其余 Owner 未提交文件和不完整验证器草稿不随任务交付。
+
+## R1.9 开发正向业务闭环（2026-10-20，进行中）
+
+用户本轮明确将会员/兑换激活、公共 SDK 实际 ENABLE、AI 网站/API 路由、活动代理 STOP 与重开状态纳入当前核心目标。历史 R1.8 的拒绝路径 PASS 仅保留原限定意义；不能作为当前完成标准。production 构建、正式 C2 全矩阵、同 SHA 全 CI 和评分继续延期。沿用唯一工作记录，不新建总 GOAL。
+
+开始核对：`main`、HEAD `ab4ca7e58e674a3365dde37e5b7a64941eaff948`，并行 Owner 文件保留。复用 PID 87007 的 `npm run dev`，固定 `dist/development`；Clash `verge-mih` PID 43518 监听 7897，7898 当时未监听。独立 CfT 155.0.8059.39 Profile，无 `--no-sandbox`，不操作日常 Chrome、系统代理、Clash 配置或 Native 配对。
+
+最短真实复现：原生 Side Panel → 扩展 → 已安装 AI VIP Share 1.3.5，会员“服务未配置”、启用隐藏，未执行真实激活/正向代理。基线驱动 exit 0 / `DEV_C1_NATIVE_PASS`，保存 `artifacts/managed-proxy-r19/baseline-{native.log,native.exit,receipt.json}`。这仅复核现状，不代表本轮完成。
+
+7897 首次最小线路探测：`curl --proxy http://127.0.0.1:7897 --noproxy '' --connect-timeout 10 --max-time 25 -sS -o /dev/null -w 'proxy_connect=%{http_connect} http=%{http_code} tls_verify=%{ssl_verify_result} peer=%{remote_ip}:%{remote_port}\n' https://api.openai.com/v1/models`，exit 0，`proxy_connect=200 http=401 tls_verify=0 peer=127.0.0.1:7897`。仅证明 HTTP CONNECT / TLS 与未认证 API 可达；不是 HTTPS 代理、SOCKS5、扩展路由或持 key API 成功。
+
+分工：工具 opaque sandbox 的业务/fixture 保留在 `examples/sidebar-tools/ai-vip-share/`，复用 `browser.network.request`、安装存储、兑换幂等与终态查询。通用 Managed Proxy 开发缺口是正式 profile registry 为空且生产端点校验拒绝 HTTP loopback，无法由沙箱合法自行解决；由平台 owner 最小修改公共 driver/可信编译配置，开发可用性绑定源码包身份，显式用户 opt-in 与可信确认，生产审核列表继续为空。既有 Registry/Host/Authority/安装器复用，不新建代理引擎，不降低 CSP。
+
+### R1.9 首轮真实正向失败与必要 SDK 缺口
+
+- 可信编译接线初试发现：WXT serve 的底层 build 可将 `import.meta.env.DEV` 设为 false；现有长驻 `.mjs` 配置在内部重载后也未替换新增 define。未停止 PID 87007、未另起 writer；改为既有真实 `import.meta.env.MODE==='development'` 与可信源码固定开发候选 hash，生产 MODE 不进入该分支。开发身份绑定不是工具包自报或 Storage 批准。首次冻结 1.3.6 候选 80,213 字节，包 hash `390c798a6382802dab39998422195c2256eae2859b8147307b32b94b31aaeed7`。
+- 本任务所属 fixture 启动 PID 20185，仅监听 `127.0.0.1:7898`，固定允许本次隔离扩展 Origin，日志 `artifacts/managed-proxy-r19/local-fixture.log`。7897 原 Clash 未修改。
+- 首轮正向原生命令带 `OPENDESK_PROXY_DEV_CORE=1 OPENDESK_PROXY_C1_BUILD=development OPENDESK_PROXY_C1_HEADED=native`，exit 1，原始日志/回执 `artifacts/managed-proxy-r19/core-native-1.{log,exit}`、`core-native-1-receipt.json`。运行 dev revision `90da9b206c4959d7f95a8e49e253886fbd9309fa58315ec2403cdb4365b854bf`。真实安装 1.3.6 → 原生扩展中心打开 → 明确连接本地开发成功选择服务，但会员“无法核验”，兑换保持禁用；未发生代理 ENABLE，Chrome `mode=system`、journal=null。
+- 新证实的通用 API 缺口：工具原 `businessSdk.request` 已复用公开 `browser.network.request`，7898 fixture 必须有 `X-OpenDesk-Local-Test:1`；公开 `browser-contract.js` 的 config 字段白名单及 `browser-schemas.js` 只允许 timeout/responseType，拒绝 headers，未到可信确认或网络服务。底层 `network.js`/`normalizeConfig` 原本支持并过滤普通 headers。工具内不能通过 CSP 禁止的 fetch 绕过，因此最小补齐公共接口 Schema/标准化并定向回归，复用原 Broker/Host，保持敏感头/CRLF 拒绝，不按 AI 工具特判。
+
+### R1.9 开发核心完成（2026-10-20；DEV_CORE_NATIVE_PASS）
+
+当前用户操作已跑通：真实扩展中心审阅安装同源 1.3.6 → 打开原生 SIDE_PANEL → 明确选择本地开发 → 读取尚未开通的会员 → 输入 `DEMO-VIP-01` → 预检及本人确认 → 服务端真实幂等回执与权益刷新 → 公共 Managed Proxy SDK ENABLE → 启用时返回并重开 → 网页/API 实际联网 → 主动 STOP → 停止后重开。最终原生命令 **exit 0**，结果 `DEV_CORE_NATIVE_PASS`。这是持续开发核心证据，不是 production C2、正式商业交付或 95+ 评分。
+
+- 环境：沿用 PID 87007 的 watcher、固定 `dist/development`，开发服务连接已从真实面板读取；未另起构建 writer、未覆盖日常扩展、未改变 Native 配对或 Clash。CfT 155.0.8059.39 使用独立临时 Profile，无 `--no-sandbox`，运行结束已由驱动关闭并移除自己的 Profile。7898 仅是本任务持有的本地 fixture；7897 仍由用户已有 HTTP CONNECT 服务提供。
+- 绑定：扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`；development revision `05a57e1d9187cdf245161185ccba0d6937ea1221d38a5913a949bd1711a25bcd`；SW SHA256 `3bd5aa8ac5e791310e105f0360473210ba4ad9e70d102dc6f2d1782ea7629294`；原生 SIDE_PANEL Document ID `D2A07BCBEFA14E9F50B275436C0C2360`。运行开始时 Git HEAD 为 `74741d723307c6eafd7e838e57e24c146f3747c0`，本轮工作树改动通过以下包/脚本哈希另外绑定，不能用 HEAD 替代运行输入。
+- 唯一工具候选/晋升包：`ai-vip-share` 1.3.6，81,343 bytes，packageHash `3e76953e6722fd349f823de08c4b338ae9ce10d54723f7cec344e4f2cd1cd2bb`。原生安装读回、可信源码 pin、临时候选、晋升后的唯一正式 JSON 四者相同。正式 JSON 是通过门禁后可手动导入的开发工具包，不能单独让 production Host 开启本地 profile。
+- 驱动 SHA256 `ed631105090c178b2b867d42577cb4438079dbbf617e959c160fb2e5ba9aac35`；开发核心 helper SHA256 `7562d48d6281ed09fb034b42bdeed071ac722962405697e04d2f17e41e093e80`。没有注入安装记录、权益或 Chrome proxy 状态；使用真实 Chrome 输入、文件安装、公开 SDK、宿主审阅和 Native 回读。
+
+**源码归属及缺口修复。** 业务 UI、本地选择、四条 fixture API、演示 feature/quota、兑换事务与重开逻辑留在 `examples/sidebar-tools/ai-vip-share/`。沿用安装隔离存储、CAS、原幂等及 status-only 恢复；兑换意图在异步边界固定 service revision/mode，撤销时不能写入错误的生产恢复记录。manifest sandbox 不允许原生表单提交，原生预检按钮曾无请求；现在按钮/Enter 直接调用同一可信处理器并阻止原生提交，不添加 `allow-forms` 或 fetch/CSP 例外。
+
+通用 SDK 仅修复有真实失败证据的两处：其一，受 development MODE、精确工具 ID/packageHash 和固定 HTTP 127.0.0.1:7897 + 七域集合约束的开发 profile/PAC；production 的商业审核注册表仍为空，production 不提供该 profile，仅允许识别先前精确开发 journal 来释放/恢复。其二，公开 network.request 原先拒绝已有 NetworkService 支持的安全 `config.headers`，造成 `X-OpenDesk-Local-Test` 的 E_SCHEMA；现在复用原 normalizeConfig，继续拒绝 Authorization/Cookie/Origin/Host/Proxy-Authorization/Sec-*、CRLF、非字符串与超限头。没有增加 Broker、Host、安装器、信任层或依赖。SDK 类型/说明和唯一矩阵的两个 sourceSha 同步更新。
+
+**真实网络结果（同一次最终运行）。** 八个 AI 目标都记录到安全 TLS 响应与 peer `127.0.0.1:7897`；非目标站点 example.com 为直接 443，HTTP 200。NetLog 同时记录 `PROXY 127.0.0.1:7897` 与 `DIRECT`。
+
+| 实际目标 | HTTP | 含义 |
+| --- | --- | --- |
+| chatgpt.com | 200 | 网站连通 |
+| api.openai.com/v1/models | 401 | API 已连通，缺凭据 |
+| claude.ai | 403 | 已到达网站，挑战/访问限制；不是付费可用证明 |
+| api.anthropic.com/v1/messages | 405 | API 已连通，GET 方法不支持 |
+| gemini.google.com | 200 | 网站连通 |
+| generativelanguage.googleapis.com/v1beta/models | 403 | API 已连通，缺可识别调用方/凭据 |
+| www.perplexity.ai | 200 | 网站连通 |
+| api.perplexity.ai/chat/completions | 401 | API 已连通，缺凭据 |
+
+主动 STOP 后 Chrome `mode:system`、`levelOfControl:controllable_by_this_extension`；journal 保留合同规定的 `phase:released` 凭证，工具显示「已停止」。再次打开仍显示服务端权益有效、启用按钮可用、没有自动恢复代理。未知回执不自动重发兑换。
+
+**运行中失败及修正。** 全部失败日志/回执保留在 `artifacts/managed-proxy-r19/`：core-native-1 为公开 headers schema 缺口；2 为 watcher 发布中指纹不同步；3 为 sandbox 原生表单提交；4 为标签会话失效；5 的返回坐标在视口外；6–9 定位返回等待，原生 Debugger 只读证实 `busy:false, dirty:true, saving:false`，是正常草稿保护，最终驱动补上真实“放弃未保存内容并继续”确认，宿主/React 无需修改；10 的 STOP 实际已成功，失败源于驱动错误要求 journal 为 null，按既有 released 凭证合同修正；11 全链通过。完整性检查初次读取了旧 NetLog 字段 proxy_list，按本次实际 proxy_info 字段修正并重新解析原日志，未重复原生运行。
+
+**精确命令与退出码。**
+
+```sh
+CHROME_FOR_TESTING_BIN="$PWD/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing" OPENDESK_PROXY_C1_BUILD=development OPENDESK_PROXY_C1_HEADED=native OPENDESK_PROXY_DEV_CORE=1 node tests/framework/browser-managed-proxy-installed-c1.mjs
+# exit 0；core-native-11.log / core-native-11.exit / core-native-11-receipt.json
+node artifacts/managed-proxy-r19/verify-core.mjs
+# exit 0；core-native-11-integrity.json：9 张截图 SHA/bytes、两份驱动 SHA、正式包身份、8 个 AI 实际代理 peer、1 个 DIRECT、NetLog SHA、STOP/reopen 一致
+node --test tests/environment/ai-vip-share-local-development.test.mjs
+# exit 0，11/11；local-development-final.log / .exit
+node --test --test-reporter=dot --test-skip-pattern='official package|candidate builds' tests/environment/ai-vip-share-r51-member.test.mjs tests/environment/ai-vip-share-r59-proxy-ui.test.mjs tests/environment/ai-vip-share-ui-parity.test.mjs
+# exit 0；business-final.log / .exit
+node --test --test-name-pattern='^trusted development MODE and reviewed source pin emit fixed HTTP PAC for website/API hosts$' tests/environment/browser-managed-proxy-development.test.mjs
+# exit 0，最终 3e7695… pin；development-pin-final.log / .exit
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-vip-share --promote-from artifacts/sidebar-tools/ai-vip-share/candidate.opendesk-tool.json
+# exit 0；promote.exit，按原唯一打包器原子晋升
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-vip-share --check-project
+# exit 0，PROJECT_PACKAGE_MATCH；check-project.log / .exit
+node --test --test-reporter=spec --test-name-pattern='official package|candidate builds' tests/environment/ai-vip-share-r51-member.test.mjs
+# exit 0，1/1；promoted-package-tests.log / .exit
+```
+
+补充沿用未变化切片的实际结果：fixture 14/14，原 frame 2/2、包校验 6/6 均 exit 0；平台 MODE 5/5、真实 SDK→Host→NetworkService→loopback HTTP headers 3/3、原网络保护 3/3、唯一矩阵 1/1，生成 bindings/types/coverage 与语法均 exit 0。部分早期 stdout 未保存，明确以 `artifacts/managed-proxy-r18/platform-sdk-executed-checks.json` 的会话执行记录标识，不能称作原始日志；最终 pin、原生及晋升日志均独立保存。不因无关 main 变化重复全量构建/测试。
+
+最新原生目录与九张截图的实际路径、SHA、NetLog 路径/SHA 全部以 `artifacts/managed-proxy-r19/core-native-11-integrity.json` 为准；根 `artifacts/managed-proxy-installed-dev-c1.json` 为最新副本，单次运行目录及备份回执保留。当前 fixture 保留运行以供开发操作，临时验收浏览器已退出。其他会话的 Cookie Editor/Reading TOC/Prompt Shortcuts 等改动和现有服务均保留。
+
+**仍不支持/未验证：** 商业 Provider、付费会员、激活 ticket 安装续接、商品生产目录及带 API key 的实际付费调用未完成；SOCKS5/HTTPS 本地代理不是本轮 profile。production 构建/正式 C2、最终 CI/PR 注入、完整 Worker/卸载/冲突与故障矩阵、独立 95+ 评分保持延期/NOT_TESTED，不以本地开发通过替代。

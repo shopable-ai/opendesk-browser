@@ -5,6 +5,8 @@ import {operationSchemas,assertBrowserSchemaCoverage,validateExportArguments,
   normalizeDirectBrowserArguments} from './browser-schemas.js';
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from './browser-direct.generated.js';
 import {APPROVED_BROWSER_SCOPED_BINDINGS} from './browser-services.generated.js';
+import {MANAGED_PROXY_DEVELOPMENT_ENABLED,isFixedDevelopmentManagedProxyConfig}
+  from '../../platform/chrome/browser-managed-proxy-profiles.js';
 const DIRECT_APPROVED_METHODS=new Set(APPROVED_BROWSER_DIRECT_BINDINGS.map(row=>row.operation));
 const COMPILED_SERVICE_METHODS=new Set(APPROVED_BROWSER_SCOPED_BINDINGS.map(row=>row.operation));
 export const BROWSER_API_VERSION='1.0.0';
@@ -346,6 +348,10 @@ export function normalizeBrowserOperation(operation,args={}){
       fields(args,[]);return {};
     case 'browser.proxy.managed.requestEnable':{
       const checked=normalizeDirectBrowserArguments(operation,args);
+      // Syntax admission is not profile approval. The existing trusted Host
+      // and Driver still check the installed hash, one-use intent and Chrome.
+      if(MANAGED_PROXY_DEVELOPMENT_ENABLED&&isFixedDevelopmentManagedProxyConfig(checked.config))
+        return checked;
       const safeHost=value=>typeof value==='string'&&value.length<=253&&
         value===value.toLowerCase()&&!value.endsWith('.')&&value.includes('.')&&
         !/^(?:localhost|.*\.localhost|.*\.local|.*\.internal)$/.test(value)&&
@@ -362,7 +368,7 @@ export function normalizeBrowserOperation(operation,args={}){
       if(!['GET','POST','PUT','DELETE'].includes(args.method))throw fail('E_SCHEMA','Unsupported HTTP method');
       const url=approvedHttpUrl(args.url);
       if(args.data!==undefined&&!['POST','PUT'].includes(args.method))throw fail('E_SCHEMA','Body not permitted for this HTTP method');
-      if(args.config!==undefined)fields(args.config,['timeout','responseType']);
+      if(args.config!==undefined)fields(args.config,['timeout','responseType','headers']);
       const config=normalizeConfig(args.config??{});
       if(args.data!==undefined)jsonValue(args.data);
       const normalized={method:args.method,url,config,...(args.data===undefined?{}:{data:args.data})};

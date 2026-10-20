@@ -3,15 +3,17 @@
 正式工具 ID：`ai-vip-share`；源码目录：`examples/sidebar-tools/ai-vip-share/`。
 用户从 OpenDesk Browser「扩展」安装，不需要持有浏览器项目源码；本工具不提供任意节点、PAC 编辑器、Cookie 会话移植或常驻日志。
 
-## 当前正式源码：R5.9.3 / 1.3.4
+## 当前源码：本地开发闭环 / 1.3.6
 
 唯一可导入包为本目录的 [`ai-vip-share.opendesk-tool.json`](ai-vip-share.opendesk-tool.json)，由唯一打包器验证候选后晋升。正式顺序为会员 → 兑换 → 商品 → 代理；沿用原控件 ID、opaque-origin 沙箱、现有安装存储和公共 Browser SDK。当前 v2 能力为 `storage.local`、`network`、`browser.tabs`、`browser.proxy.managed`；R2–R5.2 下文关于旧 `aiAccess.*` 与 `SDK_BLOCKED` 的描述仅是历史，不能当作当前接线。
 
 代理仅显示一个启停主按钮。START 等待期间可主动 STOP；晚到 START 与旧状态读取不能覆盖 STOP，未证明释放时保留停用入口与待确认提示。停用不依赖会员、商业 Provider 或合法启用端点。会员核验成功后会同步刷新启用条件，失败信息不会被普通重绘吞掉。兑换继续先预检、再本人确认；持久事务读回按已验证字段比较，写入等待后再次检查预检时限。存储暂时读取失败可主动重试；未知事务不自动重发、清除或认定成功。
 
-正式 `BUSINESS_ENDPOINTS` 四项、商品目录及 `APPROVED_PROXY_ENDPOINT` 仍为空。会员/兑换/商品与代理联网仍 `PROVIDER_BLOCKED`；专属激活 ticket 的安装意图续接仍未实施，需要正式服务和可信安装核验合同，不能把兑换恢复记录当作已实现的安装续接。测试中的会员、回执、目录和端点替身只存在于 Node VM，不进入可安装包。
+production 的 `BUSINESS_ENDPOINTS` 四项、商品目录及 `APPROVED_PROXY_ENDPOINT` 仍为空。商业会员、专属激活 ticket 的安装意图续接和带凭据的付费 API 尚未完成；兑换恢复记录不代表安装续接。
 
-本轮真实 CFT 156 的开发侧栏已完成产品导入、确认安装、主动打开、公共代理 `getStatus` 原生点击刷新和重开；确认安装包同源、服务未配置时禁用业务控件、沙箱 `window.origin === 'null'` 且无 `chrome.runtime`。这不证明真实商业兑换、代理 START/STOP、安装 ticket 或 Native PASS，也不代表 production 静态包验收。原始证据、包 SHA 和分层状态见 [R5.9 工作记录](../../../docs/framework/workstreams/ai-vip-share-r59-formal-core-20261016.md)。
+在持续 development 构建中，可信 SDK 仅向源码审阅锁定的本工具包返回固定本机 profile。用户主动选择「连接本地开发」后，工具经公开 `browser.network.request` 访问 7898 的会员、预检、兑换及回执 API；输入 `DEMO-VIP-01` 并确认兑换，真实 fixture 回执才授予演示权益。之后可以通过公开 `browser.proxy.managed` 启停 **HTTP 127.0.0.1:7897**，不使用旧 `aiAccess.*`。界面明确显示「本地开发」，不是付费会员。生产构建不提供该 profile，也不读取或复用本地选择来启用代理。
+
+具体运行方式见[本地联调说明](dev/local-test/README.zh-CN.md)；开发原生证据及尚未验证项只维护在[Managed Proxy 工作记录](../../../docs/framework/workstreams/ai-vip-share-r54-managed-proxy-sdk-closure-20261015.md)。旧候选历史见 [R5.9 工作记录](../../../docs/framework/workstreams/ai-vip-share-r59-formal-core-20261016.md)，不代表当前 production 验收。
 
 ## 产品设计与原型（R4）
 
@@ -36,7 +38,7 @@ node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-vip-share --check-
 
 2026-10-16 已定位的一例来自 **OpenDesk Schedule Demo CFT 的历史 production 验收候选**，其导入白名单没有这项能力。日常 Google Chrome 加载本仓库 `dist/development` 的实例已支持当前四项声明，并通过正式文件审阅、打开、返回及重开验证。使用日常开发实例时保留现有 ID 与 Native 配对；历史验收候选由所属工作流单独升级，不能覆盖旧候选或删减工具能力。Standard/Developer 名称本身不是支持能力的判断依据。
 
-已安装相同包时，导入面板显示“已安装相同工具”，直接取消导入并打开现有工具即可保留数据。会员、商品、兑换和代理 Provider 尚未配置，导入通过不代表这些真实服务已可用。
+已安装相同包时，导入面板显示“已安装相同工具”，直接取消导入并打开现有工具即可保留数据。商业会员、商品、兑换和代理 Provider 尚未配置；本地演示路径按下文主动选择，导入通过本身不授予权益。
 
 `ai-vip-share` 是新的独立安装身份，不能自动继承 `ai-smart-access` 的安装授权、epoch、激活租约或启用状态。
 旧版工具应在代理释放后明确卸载，再审核安装新版。旧版卸载只能清理旧身份数据，不能覆盖新版可能持有的代理设置。
@@ -97,7 +99,7 @@ node --test examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-ser
 node examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.mjs
 ```
 
-默认 `127.0.0.1:7898` 提供演示会员 API 与 PAC；`127.0.0.1:7897` 由用户自行提供真实 HTTP CONNECT/SOCKS5 代理。当前联调仅为独立开发验证，**尚未接入正式可信启停按钮**，不可当作商业 Provider 或 Chrome Native 验收。
+默认 `127.0.0.1:7898` 提供演示会员 API 与辅助 PAC；本轮公开 SDK 开发路径固定使用用户已有的 **HTTP CONNECT 127.0.0.1:7897**，不支持把 SOCKS5 或 HTTPS 填进这个 profile。安装工具后按本地联调说明操作；辅助 PAC 本身不等于公开 SDK 原生证据。
 
 
 ## R5.8 · 正式工具与 R5.7 主 HTML 原型的 UI 对齐（1.3.1）

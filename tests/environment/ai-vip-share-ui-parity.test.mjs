@@ -56,7 +56,7 @@ test('redeem uses actual user submit, preflight, explicit confirmation and maske
   assert.match(js,/const RECOVERY_KEY='aiVipRedeemR52'/);
   assert.match(js,/RECOVERY_COMPAT_VERSIONS=Object\.freeze/);
   assert.match(js,/'1\.3\.4','1\.3\.5'/);
-  assert.match(js,/await beginRecovery\(accountId,key\)/);
+  assert.match(js,/await beginRecovery\(accountId,key,redemptionIntent\)/);
   assert.match(js,/voucherStatus/);
   assert.doesNotMatch(js,/localStorage|sessionStorage/);
 });
@@ -81,12 +81,12 @@ test('responsive styling and explicit theme tokens cover narrow Sidebar tool',()
 
 test('v2 Sidebar Tool candidate builds from the real UI source, not preview',async()=>{
   assert.equal(config.id,'ai-vip-share');
-  assert.equal(config.version,'1.3.5');
+  assert.equal(config.version,'1.3.6');
   assert.equal(config.files.html,'src/index.html');
   assert.equal(config.files.css,'src/style.css');
   assert.equal(config.files.js,'src/main.js');
   const pkg=await createSidebarToolPackage(toolRoot);
-  assert.equal(pkg.version,'1.3.5');
+  assert.equal(pkg.version,'1.3.6');
   assert.equal(pkg.html,html);
   assert.match(pkg.css,/ai-vip-brand/);
   assert.match(pkg.js,/RECOVERY_COMPAT_VERSIONS/);

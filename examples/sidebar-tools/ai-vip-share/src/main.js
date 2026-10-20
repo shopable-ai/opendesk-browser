@@ -42,13 +42,15 @@
   const recoveryStatus=byId('ai-vip-recovery-status');
   const recoveryCheck=byId('ai-vip-recovery-check');
   const shop=byId('ai-vip-shop-open'),shopStatus=byId('ai-vip-shop-status');
+  const localSection=byId('ai-vip-local-development');
+  const localConnect=byId('ai-vip-local-connect'),localStatus=byId('ai-vip-local-status');
   if([memberState,accountName,productName,remaining,unit,expiry,verified,
     benefits,history,historyCount,refresh,code,redeem,redeemStatus,redeemError,
     previewPanel,previewTitle,previewDescription,previewAccount,cancel,
     recoveryPanel,recoveryStatus,recoveryCheck,shop,shopStatus,
     metricLabel,meter,meterBar,redeemForm,codeReveal,codeClear,confirm,
     memberCard,memberFacts,benefitSection,historyDetails,redeemIntro,redeemFine,
-    shopSection,proxySection]
+    shopSection,proxySection,localSection,localConnect,localStatus]
       .some(element=>!element))return;
 
   // Release-owned values: only populate after commercial/provider review.
@@ -86,18 +88,29 @@
     const origins=[member,voucherPreview,voucherRedeem,voucherStatus].map(url=>new URL(url).origin);
     return new Set(origins).size===1?{member,voucherPreview,voucherRedeem,voucherStatus}:null;
   }
-  const endpoints=validatedBusinessEndpoints();
+  const productionEndpoints=validatedBusinessEndpoints();
+  let endpoints=productionEndpoints;
+  const LOCAL_ORIGIN='http://127.0.0.1:7898';
+  const LOCAL_ENDPOINTS=Object.freeze({member:LOCAL_ORIGIN+'/api/member',
+    voucherPreview:LOCAL_ORIGIN+'/api/preview',voucherRedeem:LOCAL_ORIGIN+'/api/redeem',
+    voucherStatus:LOCAL_ORIGIN+'/api/status'});
+  const LOCAL_DOMAINS=Object.freeze(['chatgpt.com','openai.com','claude.ai','anthropic.com',
+    'gemini.google.com','generativelanguage.googleapis.com','perplexity.ai']);
+  const LOCAL_PREFERENCE_KEY='aiVipLocalDevelopmentR136';
   const catalog=validCatalogUrl(PRODUCT_CATALOG_URL);
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
-  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.3.5';
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.3.6';
   // Do not strand an unresolved 1.2.0 voucher journal after a tool upgrade.
-  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5']);
+  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6']);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   let recoveryReady=false,busy=false,seq=0;
   let refreshProxyPresentation=()=>{};
+  let developmentProfile=null,developmentRead=0,localMode=false,localConnecting=false;
+  let localChoiceLoaded=false,localChoice=false,localNotice='',serviceRevision=0;
+  let localSwitchBlocked=()=>false,refreshDevelopmentAvailability=async()=>{};
   // Provider clock, not device Date.now(), determines preview validity.
   // A stale member snapshot cannot authorize a new voucher side effect.
   const PREVIEW_MAX_LIFETIME_MS=5*60*1000;
@@ -133,11 +146,105 @@
     error.code=codeValue;
     throw error;
   }
+  function validatedDevelopmentProfile(value){
+    // Only getStatus supplies this field, after the platform's dev/package approval.
+    // Storage or a member/lease response can never supply proxy availability.
+    if(!plain(value)||!plain(value.endpoint)||value.endpoint.scheme!=='http'||
+      value.endpoint.host!=='127.0.0.1'||value.endpoint.port!==7897||
+      !Array.isArray(value.domains)||value.domains.length!==LOCAL_DOMAINS.length||
+      new Set(value.domains).size!==LOCAL_DOMAINS.length||
+      LOCAL_DOMAINS.some(domain=>!value.domains.includes(domain)))return null;
+    return {endpoint:{scheme:'http',host:'127.0.0.1',port:7897},domains:[...LOCAL_DOMAINS]};
+  }
+  function recoveryMatchesService(record=recovery,development=localMode){
+    return !record||(development?record.schemaVersion===2&&record.serviceOrigin===LOCAL_ORIGIN:
+      record.schemaVersion===1);
+  }
+  function renderLocalDevelopment(){
+    localSection.hidden=!developmentProfile;
+    localConnect.disabled=!developmentProfile||localConnecting||busy||
+      (localMode&&(Boolean(recoveryFault)||Boolean(recovery&&recoveryMatchesService())||localSwitchBlocked()));
+    localConnect.textContent=localConnecting?'正在连接…':localMode?'退出本地开发':'连接本地开发';
+    localConnect.setAttribute('aria-pressed',String(localMode));
+    localStatus.textContent=localNotice||(localMode?
+      '本地开发 · 已选择 127.0.0.1:7898 演示服务。兑换 DEMO-VIP-01 后才授予演示权益；不是付费会员。':
+      '本地开发 · 尚未连接。主动连接后使用本机演示账号与兑换服务，不代表正式会员或代理已启用。');
+  }
+  async function readLocalPreference(){
+    if(typeof storeRequest!=='function')fail('E_LOCAL_STORAGE','工具存储不可用');
+    const result=await storeRequest('storage.get',{key:LOCAL_PREFERENCE_KEY,withEtag:true});
+    if(!plain(result)||result.preview===true||typeof result.etag!=='string'||
+      !/^[a-f0-9]{64}$/.test(result.etag))fail('E_LOCAL_STORAGE','无法核对本地开发选择');
+    if(result.value!==null&&(!plain(result.value)||result.value.schemaVersion!==1||
+      typeof result.value.enabled!=='boolean'||Object.keys(result.value).sort().join(',')!=='enabled,schemaVersion'))
+      fail('E_LOCAL_STORAGE','本地开发选择格式无效');
+    return result;
+  }
+  function changeBusinessMode(development){
+    if(localMode===development)return;
+    localMode=development;
+    endpoints=development?LOCAL_ENDPOINTS:productionEndpoints;
+    ++serviceRevision;++seq;
+    snapshot=null;serverSampleAt=null;pending=null;code.value='';busy=false;
+    renderBusinessConfiguration();
+    renderLocalDevelopment();
+  }
+  async function acceptDevelopmentStatus(state){
+    const read=++developmentRead;
+    developmentProfile=validatedDevelopmentProfile(state?.developmentProfile);
+    if(!developmentProfile){
+      changeBusinessMode(false);
+      renderLocalDevelopment();return;
+    }
+    if(!localChoiceLoaded){
+      try{
+        const preference=await readLocalPreference();
+        if(read!==developmentRead)return;
+        localChoice=preference.value?.enabled===true;localChoiceLoaded=true;
+        localNotice='';
+      }catch{
+        if(read!==developmentRead)return;
+        localNotice='本地开发选择无法恢复；连接前将重新核对存储，不会自动激活。';
+        renderLocalDevelopment();return;
+      }
+    }
+    if(localChoice&&recoveryReady&&recoveryMatchesService(recovery,true))changeBusinessMode(true);
+    renderLocalDevelopment();
+  }
+  localConnect.addEventListener('click',event=>{
+    if(event?.isTrusted!==true||localConnect.disabled||localConnecting||busy)return;
+    const selected=!localMode;
+    localConnecting=true;localNotice='正在核对可信开发配置与本地选择…';renderLocalDevelopment();
+    void (async()=>{
+      try{
+        // Re-read trusted availability before using even a persisted development choice.
+        await refreshDevelopmentAvailability();
+        if(!developmentProfile||!recoveryMatchesService(recovery,selected)||
+          (!selected&&(recoveryFault||localSwitchBlocked())))
+          fail('E_LOCAL_UNAVAILABLE','开发配置不可用或仍有待完成操作');
+        const before=await readLocalPreference();
+        try{
+          await storeRequest('storage.set',{key:LOCAL_PREFERENCE_KEY,
+            value:{schemaVersion:1,enabled:selected},ifMatch:before.etag});
+        }catch{/* Verify a possibly committed preference; never assume success. */}
+        const after=await readLocalPreference();
+        if(after.value?.enabled!==selected||!developmentProfile)
+          fail('E_LOCAL_STORAGE','本地选择未持久确认或开发配置已撤销');
+        localChoice=selected;localChoiceLoaded=true;localNotice='';
+        changeBusinessMode(selected);
+      }catch{
+        localNotice='未能连接或切换本地开发服务。请核对开发配置、工具存储及待核对兑换记录。';
+      }finally{localConnecting=false;renderLocalDevelopment();}
+    })();
+  });
   function validRecovery(raw){
     if(raw===null)return null;
-    const fields=['accountId','createdAt','idempotencyKey','packageVersion','schemaVersion','toolId'];
+    const development=raw?.schemaVersion===2;
+    const fields=['accountId','createdAt','idempotencyKey','packageVersion','schemaVersion','toolId',
+      ...(development?['serviceOrigin']:[])];
     if(!plain(raw)||Object.keys(raw).sort().join(',')!==fields.sort().join(',')||
-      raw.schemaVersion!==1||raw.toolId!=='ai-vip-share'||
+      (!development&&raw.schemaVersion!==1)||(development&&raw.serviceOrigin!==LOCAL_ORIGIN)||
+      raw.toolId!=='ai-vip-share'||
       !RECOVERY_COMPAT_VERSIONS.includes(raw.packageVersion)||!safeString(raw.accountId,120)||
       !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(raw.idempotencyKey)||
       // Diagnostic local timestamp only: clock rollback must not hide an
@@ -176,15 +283,25 @@
     }catch{
       recoveryFault='无法核对本工具的持久兑换记录；已禁止兑换，请检查安装和存储授权。';
       redeemNotice(recoveryFault,true);
-    }finally{recoveryReady=true;renderRedeem();}
+    }finally{
+      recoveryReady=true;
+      if(developmentProfile&&localChoice&&recoveryMatchesService(recovery,true))changeBusinessMode(true);
+      renderRedeem();
+    }
   }
-  async function beginRecovery(accountId,key){
+  async function beginRecovery(accountId,key,redemptionIntent){
     const before=await readRecovery();
     if(before.record){
       recovery=before.record;
       fail('E_RECOVERY_PENDING','已有未核对交易，不允许提交第二笔兑换');
     }
-    const record={schemaVersion:1,toolId:'ai-vip-share',packageVersion:PACKAGE_VERSION,
+    if(redemptionIntent.revision!==serviceRevision||redemptionIntent.development!==localMode||
+      (redemptionIntent.development&&!developmentProfile))
+      fail('E_RECOVERY_SERVICE_CHANGED','服务环境已变化，本次未写入兑换事务');
+    // Once storage.set starts, retain this intent's service even if availability changes.
+    const record={schemaVersion:redemptionIntent.development?2:1,
+      ...(redemptionIntent.development?{serviceOrigin:LOCAL_ORIGIN}:{}),
+      toolId:'ai-vip-share',packageVersion:PACKAGE_VERSION,
       accountId,idempotencyKey:key,createdAt:Date.now()};
     await writeRecovery(before,record);
     recovery=record;
@@ -204,13 +321,15 @@
     if(!recovery&&!recoveryFault)return;
     if(recoveryFault)recoveryStatus.textContent=recoveryFault;
     else if(!endpoints)recoveryStatus.textContent='存在待核对交易，但正式兑换服务未配置；请保留记录。';
+    else if(!recoveryMatchesService())
+      recoveryStatus.textContent='上次兑换来自其他服务环境，请切回原服务核对；记录保留，不会重新提交。';
     else if(snapshot?.account.id!==recovery.accountId)
       recoveryStatus.textContent='当前账号与上次兑换的账号不一致。已阻止继承旧账号交易。';
     else recoveryStatus.textContent='有未完成的兑换回执。只能查询服务端终态，不会重新提交兑换。';
     recoveryCheck.hidden=!recovery&&!recoveryFault;
     recoveryCheck.textContent=recoveryFault?'重试读取恢复记录':'核对上次兑换';
     recoveryCheck.disabled=busy||!recoveryReady||(!recoveryFault&&
-      (!recovery||!endpoints||snapshot?.account.id!==recovery?.accountId));
+      (!recovery||!endpoints||!recoveryMatchesService()||snapshot?.account.id!==recovery?.accountId));
   }
   function verifiedEntitlement(raw){
     if(!plain(raw))fail('E_ENTITLEMENT','会员权益格式无效');
@@ -229,6 +348,10 @@
       e.remaining=raw.remaining;e.total=raw.total;e.unit=raw.unit.trim();
     }else{
       e.detail=safeString(raw.detail,120)||'以商品权益说明为准';
+      if(raw.featureId!==undefined){
+        e.featureId=safeString(raw.featureId,80);
+        if(!e.featureId)fail('E_ENTITLEMENT','功能权益标识无效');
+      }
     }
     return e;
   }
@@ -325,7 +448,7 @@
       expiry.textContent=primary.detail;
     }
     verified.hidden=!primary&&!redemptions.length;
-    verified.textContent=verified.hidden?'':'服务端已核验 · '+dateLabel(serverNow);
+    verified.textContent=verified.hidden?'':(localMode?'本地开发服务已核验 · ':'服务端已核验 · ')+dateLabel(serverNow);
     benefitSection.hidden=!entitlements.length;
     clear(benefits);
     entitlements.forEach(e=>addRow(benefits,e.title,benefitDescription(e,serverNow)));
@@ -371,6 +494,7 @@
     showRecovery();
     redeemStatus.hidden=!recoveryPanel.hidden||!redeemError.hidden;
     refreshProxyPresentation();
+    renderLocalDevelopment();
   }
   function redeemNotice(message,error=false){
     redeemStatus.textContent=message;
@@ -381,8 +505,15 @@
   async function businessRequest(method,url,data){
     if(!endpoints||typeof businessSdk?.request!=='function')
       fail('E_PROVIDER','正式会员服务或 Browser SDK 网络授权未配置');
+    const revision=serviceRevision,development=localMode;
+    const expected=method==='GET'?[endpoints.member]:method==='POST'?
+      [endpoints.voucherPreview,endpoints.voucherRedeem,endpoints.voucherStatus]:[];
+    if(!expected.includes(url)||(development&&(!developmentProfile||!Object.values(LOCAL_ENDPOINTS).includes(url))))
+      fail('E_PROVIDER_URL','请求不属于当前明确选择的会员服务');
     const result=await businessSdk.request({method,url,
-      ...(data===undefined?{}:{data}),config:{timeout:10000,responseType:'json'}});
+      ...(data===undefined?{}:{data}),config:{timeout:10000,responseType:'json',
+        ...(development?{headers:{'X-OpenDesk-Local-Test':'1'}}:{})}});
+    if(revision!==serviceRevision)fail('E_PROVIDER_CHANGED','服务环境已变化，忽略旧回执');
     if(!plain(result)||!Number.isInteger(result.status)||result.status<200||
       result.status>=300||!plain(result.data))
       fail('E_PROVIDER_RESPONSE','会员服务拒绝请求或响应无效');
@@ -497,6 +628,8 @@
       redeemNotice('无法安全生成兑换事务标识；本次兑换未提交。',true);return;
     }
     const accountId=pending.accountId,previewId=pending.id;
+    const redemptionIntent=Object.freeze({revision:serviceRevision,development:localMode});
+    const intentRevision=redemptionIntent.revision;
     busy=true;renderRedeem();
     redeemNotice('正在重新核对当前账号与预检时限；尚未提交兑换。');
     try{
@@ -505,7 +638,7 @@
       const latest=verifiedMember(await businessRequest('GET',endpoints.member));
       acceptMemberSnapshot(latest);
       const currentServerNow=estimatedServerNow();
-      if(latest.account.state!=='bound'||latest.account.id!==accountId||
+      if(intentRevision!==serviceRevision||latest.account.state!=='bound'||latest.account.id!==accountId||
         pending?.id!==previewId||currentServerNow===null||
         pending.expiresAt<=currentServerNow)
         fail('E_PRE_SUBMIT','账号或预检状态发生变化');
@@ -517,9 +650,9 @@
     }
     redeemNotice('正在持久保存兑换事务，再提交服务端；请勿重复操作。');
     try{
-      await beginRecovery(accountId,key); // Write-ahead and verified readback.
+      await beginRecovery(accountId,key,redemptionIntent); // Write-ahead and verified readback.
       const submitNow=estimatedServerNow();
-      if(snapshot?.account.id!==accountId||pending?.id!==previewId||
+      if(intentRevision!==serviceRevision||snapshot?.account.id!==accountId||pending?.id!==previewId||
         submitNow===null||pending.expiresAt<=submitNow)
         fail('E_PRE_SUBMIT','事务持久化后账号或预检时限变化；禁止提交');
       const result=await businessRequest('POST',endpoints.voucherRedeem,{
@@ -528,14 +661,18 @@
       pending=null;code.value='';
       // Valid receipt is authoritative; failed journal clearing keeps a lock.
       await clearRecovered(key);
-      redeemNotice('服务端已确认兑换成功。正在刷新权益与兑换记录；代理状态保持不变。');
+      redeemNotice((localMode?'本地开发服务':'服务端')+'已确认兑换成功。正在刷新权益与兑换记录；代理状态保持不变。');
       busy=false;renderRedeem();
       await refreshMember();
-    }catch{
+    }catch(error){
       pending=null;code.value='';
-      if(!recovery)recoveryFault='无法证明兑换事务的持久状态，已禁止再次提交。';
-      redeemNotice(recovery?'兑换结果未确认。请使用「核对上次兑换」查询服务端状态，切勿重复兑换。':
-        '无法确认本地兑换状态，已禁止提交。请检查存储授权。',true);
+      if(error?.code==='E_RECOVERY_SERVICE_CHANGED'&&!recovery){
+        redeemNotice('服务环境已变化，本次未提交兑换、未写入事务；请恢复服务后重新预检。',true);
+      }else{
+        if(!recovery)recoveryFault='无法证明兑换事务的持久状态，已禁止再次提交。';
+        redeemNotice(recovery?'兑换结果未确认。请使用「核对上次兑换」查询服务端状态，切勿重复兑换。':
+          '无法确认本地兑换状态，已禁止提交。请检查存储授权。',true);
+      }
     }finally{busy=false;renderRedeem();}
   }
   async function checkRecoveryClick(event){
@@ -546,13 +683,13 @@
       finally{busy=false;renderRedeem();}
       return;
     }
-    if(!endpoints||
+    if(!endpoints||!recoveryMatchesService()||
       recoveryFault||!recovery||snapshot?.account.id!==recovery.accountId)return;
     busy=true;renderRedeem();
     redeemNotice('正在查询上次兑换的服务端最终状态（不会再次消费兑换码）…');
     try{
       const saved=(await readRecovery()).record;
-      if(!saved||saved.idempotencyKey!==recovery.idempotencyKey||
+      if(!saved||!recoveryMatchesService(saved)||saved.idempotencyKey!==recovery.idempotencyKey||
         saved.accountId!==recovery.accountId)
         fail('E_RECOVERY_CHANGED','本地事务已变化');
       const latest=verifiedMember(await businessRequest('GET',endpoints.member));
@@ -568,6 +705,8 @@
         validateReceipt(data,saved.idempotencyKey);
         await clearRecovered(saved.idempotencyKey);
         redeemNotice('服务端已确认上次兑换成功，已解除重复提交保护；请刷新权益。');
+        busy=false;
+        await refreshMember();
       }else if(data.status==='rejected'&&data.final===true){
         await clearRecovered(saved.idempotencyKey);
         redeemNotice('服务端确认上次兑换未生效。已解除锁定，可重新预检兑换码。');
@@ -598,7 +737,17 @@
     renderRedeem();
     code.focus?.();
   });
-  // Both keyboard Enter and button click use one real form-submit handler.
+  // Manifest sandbox deliberately omits allow-forms. Use trusted input events
+  // for the same intent handler; never rely on a native form submission.
+  redeem.addEventListener('click',event=>{
+    event.preventDefault?.();
+    void redeemClick(event);
+  });
+  code.addEventListener('keydown',event=>{
+    if(event.key!=='Enter'||event.isComposing)return;
+    event.preventDefault?.();
+    void redeemClick(event);
+  });
   redeemForm.addEventListener('submit',event=>{
     event.preventDefault();
     void redeemClick(event);
@@ -647,7 +796,8 @@
   // never the public browser-wide proxy Driver. Production remains disabled
   // until a separately reviewed, authenticated Provider is configured.
   const AI_PROXY_DOMAINS=Object.freeze([
-    'chatgpt.com','openai.com','claude.ai','gemini.google.com','perplexity.ai'
+    'chatgpt.com','openai.com','claude.ai','anthropic.com','gemini.google.com',
+    'generativelanguage.googleapis.com','perplexity.ai'
   ]);
   const APPROVED_PROXY_ENDPOINT=null; // Release-owned; never use localhost for production.
   function setupManagedProxy(){
@@ -658,13 +808,18 @@
     const sdk=window.OpenDeskSDK?.browser?.proxy?.managed;
     let current=null,starting=false,stopping=false,reading=false;
     let stopRequired=false,stopConfirmed=false,operation=0,readSequence=0,notice='';
-    const safeEndpoint=APPROVED_PROXY_ENDPOINT&&
+    const approvedEndpoint=APPROVED_PROXY_ENDPOINT&&
       ['https','socks5'].includes(APPROVED_PROXY_ENDPOINT.scheme)&&
       typeof APPROVED_PROXY_ENDPOINT.host==='string'&&
       Number.isSafeInteger(APPROVED_PROXY_ENDPOINT.port)?APPROVED_PROXY_ENDPOINT:null;
+    const safeEndpoint=()=>localMode&&developmentProfile?developmentProfile.endpoint:approvedEndpoint;
     const hasEntitlement=()=>Boolean(endpoints&&snapshot&&estimatedServerNow()!==null&&
-      snapshot.account?.state==='bound'&&snapshot.entitlements?.some(row=>
-        row.status==='active'&&(row.type!=='time'||row.expiresAt>estimatedServerNow())));
+      snapshot.account?.state==='bound'&&(localMode?
+        snapshot.redemptions.some(row=>row.status==='redeemed')&&snapshot.entitlements.some(row=>
+          row.type==='feature'&&row.featureId==='local-managed-proxy'&&row.status==='active'):
+        snapshot.entitlements?.some(row=>row.status==='active'&&
+          (row.type!=='time'||row.expiresAt>estimatedServerNow())&&
+          (!['quota','credit'].includes(row.type)||row.remaining>0))));
     const validState=state=>state&&['enabled','disabled','conflict','unavailable'].includes(state.state)&&
       typeof state.canStop==='boolean'&&typeof state.permission==='boolean'&&
       ['not_controllable','controlled_by_other_extensions','controllable_by_this_extension',
@@ -672,10 +827,11 @@
     const released=state=>validState(state)&&state.state==='disabled'&&
       state.canStop===false&&state.permission===true&&state.control==='controllable_by_this_extension';
     const canStop=()=>stopRequired||starting||current?.canStop===true;
+    localSwitchBlocked=()=>canStop()||stopping;
     const paint=()=>{
       const stop=canStop();
       const ready=!stop&&!starting&&!stopping&&!reading&&
-        typeof sdk?.requestEnable==='function'&&safeEndpoint&&hasEntitlement()&&released(current);
+        typeof sdk?.requestEnable==='function'&&safeEndpoint()&&hasEntitlement()&&released(current);
       const controlIssue=stopRequired||['conflict','unavailable'].includes(current?.state)||
         Boolean(notice&&stop);
       status.textContent=stopping?'正在停用':starting?'启用待确认':
@@ -692,7 +848,7 @@
       refreshProxy.hidden=!sdk&&!stop;
       refreshProxy.disabled=reading||starting||stopping||!sdk;
       proxySection.setAttribute('data-mode',stop||controlIssue?'critical':ready?'ready':'passive');
-      status.hidden=!stop&&!controlIssue&&(!safeEndpoint||!sdk||!hasEntitlement());
+      status.hidden=!stop&&!controlIssue&&(!safeEndpoint()||!sdk||!hasEntitlement());
       const warning=controlIssue||Boolean(notice&&!current);
       alert.hidden=!warning;
       alertText.textContent=warning?(notice||(current?.state==='conflict'?
@@ -703,10 +859,13 @@
       else if(!sdk)detail.textContent='当前扩展没有可用的代理管理能力。';
       else if(stop)detail.textContent='本工具仍有代理控制意图，可随时请求停用。';
       else if(current?.state==='conflict')detail.textContent='代理控制权冲突，不会覆盖其他扩展。';
-      else if(!safeEndpoint)detail.textContent='代理服务尚未接入，暂不能启用。';
-      else if(!hasEntitlement())detail.textContent='需要经过服务端核验的有效会员权益。';
+      else if(!safeEndpoint())detail.textContent='代理服务尚未接入，暂不能启用。';
+      else if(!hasEntitlement())detail.textContent=localMode?
+        '本地开发：请先兑换 DEMO-VIP-01，取得开发代理功能回执。':'需要经过服务端核验的有效会员权益。';
       else if(!current)detail.textContent='正在检测浏览器代理状态。';
-      else detail.textContent='启用需经过可信 Side Panel 授权。';
+      else detail.textContent=localMode?'本地开发：仅将批准的 AI 网站/API 经 HTTP 127.0.0.1:7897；启用需可信面板授权。':
+        '启用需经过可信 Side Panel 授权。';
+      renderLocalDevelopment();
     };
     refreshProxyPresentation=paint;
     async function update(){
@@ -718,25 +877,30 @@
         if(token!==operation||read!==readSequence)return;
         if(!validState(state))throw Error('代理状态回执无效');
         current=state;
+        await acceptDevelopmentStatus(state);
+        if(token!==operation||read!==readSequence)return;
         if(stopConfirmed&&released(state))stopRequired=false;
         notice=stopRequired?'停用仍待确认；请明确请求 STOP，不能凭刷新推断已释放。':'';
       }catch(error){
         if(token!==operation||read!==readSequence)return;
         // Forget the stale displayed state, retain the owned STOP affordance.
         stopRequired=canStop();current=null;
+        await acceptDevelopmentStatus(null);
         notice='代理状态无法确认（'+String(error?.code||'E_PROXY_STATUS').slice(0,50)+'）；未确认释放。';
       }finally{if(read===readSequence){reading=false;paint();}}
     }
     refreshProxy.addEventListener('click',event=>{
       if(event?.isTrusted===true)void update();
     });
+    refreshDevelopmentAvailability=update;
     async function start(){
-      if(starting||stopping||reading||canStop()||!safeEndpoint||!hasEntitlement()||
+      if(starting||stopping||reading||canStop()||!safeEndpoint()||!hasEntitlement()||
         !released(current)||typeof sdk?.requestEnable!=='function')return;
       const token=++operation;++readSequence;reading=false;
       starting=true;stopRequired=true;stopConfirmed=false;notice='启用请求在途，仍可主动请求 STOP。';paint();
       try{
-        const state=await sdk.requestEnable({config:{endpoint:{...safeEndpoint},domains:[...AI_PROXY_DOMAINS]}});
+        const state=await sdk.requestEnable({config:{endpoint:{...safeEndpoint()},
+          domains:[...(localMode?developmentProfile.domains:AI_PROXY_DOMAINS)]}});
         if(token!==operation)return;
         if(!validState(state))throw Error('启用回执无效');
         current=state;
@@ -776,11 +940,8 @@
     paint();
     void update();
   }
-  setupManagedProxy();
-
-  // Recover independently of Provider configuration; never silently drop a journal.
-  void loadRecovery();
-  if(!endpoints){
+  function renderBusinessConfiguration(){
+    if(!endpoints){
     memberCard.setAttribute('data-view','unconfigured');
     memberState.textContent='服务未配置';
     memberState.setAttribute('data-tone','neutral');
@@ -791,9 +952,16 @@
     benefitSection.hidden=true;historyDetails.hidden=true;
     redeemNotice('会员服务接入后可使用兑换码。');
     refresh.hidden=true;refresh.disabled=true;
-  }else{
+    }else{
+    refresh.hidden=false;
     refresh.disabled=false;
     void refreshMember();
+    }
+    renderRedeem();
   }
+  // Recover independently of Provider configuration; never silently drop a journal.
+  void loadRecovery();
+  renderBusinessConfiguration();
+  setupManagedProxy();
   renderRedeem();
 })();

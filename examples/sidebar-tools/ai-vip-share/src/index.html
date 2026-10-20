@@ -1,5 +1,5 @@
 <main class="ai-vip" aria-label="AI VIP Share 会员与权益中心">
-  <!-- R5.7 production parity: no preview studio, fake accounts or fixtures in installed tool. -->
+  <!-- Production stays unconfigured; local development requires trusted SDK availability and opt-in. -->
   <header class="ai-vip-brand">
     <div class="ai-vip-logo" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
@@ -12,6 +12,12 @@
       <p>会员权益 · 兑换激活 · AI 网站访问</p>
     </div>
   </header>
+
+  <section id="ai-vip-local-development" class="ai-vip-review" aria-labelledby="ai-vip-local-title" hidden>
+    <strong id="ai-vip-local-title">本地开发</strong>
+    <p id="ai-vip-local-status" role="status" aria-live="polite">尚未连接本地开发服务。</p>
+    <button id="ai-vip-local-connect" class="od-button od-button--secondary" type="button" disabled>连接本地开发</button>
+  </section>
 
   <section id="ai-vip-member-card" class="ai-vip-membership" data-view="unconfigured" aria-labelledby="ai-vip-member-title">
     <div class="ai-vip-card-inner">

@@ -6,7 +6,8 @@ import {randomUUID} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 
 const AI_DOMAINS=Object.freeze([
-  'chatgpt.com','openai.com','claude.ai','gemini.google.com','perplexity.ai'
+  'chatgpt.com','openai.com','claude.ai','anthropic.com','gemini.google.com',
+  'generativelanguage.googleapis.com','perplexity.ai'
 ]);
 const ACCOUNT_ID='local-fixture-account';
 const DISPLAY_NAME='l***@fixture.test';
@@ -122,7 +123,8 @@ export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now
       const previewId=randomUUID(),expiresAt=now()+120000;
       previews.set(previewId,{accountId:account.id,expiresAt});
       json(res,200,{previewId,accountId:account.id,skuTitle:'本地测试配额',
-        grantSummary:'增加 20 次演示额度',voucherPreviewMasked:MASKED_CODE,expiresAt});return;
+        grantSummary:'增加 20 次演示额度，开通仅限本机 HTTP 7897 的开发代理；不是付费会员',
+        voucherPreviewMasked:MASKED_CODE,expiresAt});return;
     }
     if(path==='/api/redeem'){
       const {previewId,accountId,idempotencyKey}=data;
@@ -147,7 +149,9 @@ export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now
       }
       const receipt={status:'redeemed',accountId,idempotencyKey,
         redemptionId:randomUUID(),redeemedAt:now(),grantedEntitlements:[{
-          type:'quota',status:'active',title:'本地测试配额',remaining:20,total:20,unit:'次'}]};
+          type:'quota',status:'active',title:'本地测试配额',remaining:20,total:20,unit:'次'},
+          {type:'feature',status:'active',featureId:'local-managed-proxy',title:'本地开发代理',
+            detail:'仅限本机 HTTP 127.0.0.1:7897；演示权益，不是付费会员'}]};
       ledger.set(idempotencyKey,{previewId,receipt});
       previews.delete(previewId);
       if(req.headers['x-fixture-drop-ack']==='1'){

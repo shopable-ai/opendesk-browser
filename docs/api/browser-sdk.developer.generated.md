@@ -381,7 +381,7 @@
 
 ## OpenDeskSDK.browser.network.request
 
-- Signature: `(input: { readonly config?: { readonly responseType?: "json" | "text"; readonly timeout?: number; }; readonly data?: unknown; readonly method: "GET" | "POST" | "PUT" | "DELETE"; readonly url: string; }) => Promise<{ readonly data?: unknown; readonly status: number; }>`
+- Signature: `(input: { readonly config?: { readonly headers?: { readonly [key: string]: unknown; }; readonly responseType?: "json" | "text"; readonly timeout?: number; }; readonly data?: unknown; readonly method: "GET" | "POST" | "PUT" | "DELETE"; readonly url: string; }) => Promise<{ readonly data?: unknown; readonly status: number; }>`
 - Mode: COMPOSED; native: existing trusted service
 - Capabilities: `network`; Chrome permissions: none
 - Scope: target-origin; user gesture: required

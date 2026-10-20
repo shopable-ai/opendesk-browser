@@ -3,6 +3,8 @@
 import {fields,fail,jsonValue} from './registry.js';
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from './browser-direct.generated.js';
 import {APPROVED_BROWSER_SCOPED_BINDINGS} from './browser-services.generated.js';
+import {MANAGED_PROXY_DEVELOPMENT_ENABLED,DEVELOPMENT_MANAGED_PROXY_CONFIG}
+  from '../../platform/chrome/browser-managed-proxy-profiles.js';
 const obj=(properties={},required=[])=>({type:'object',additionalProperties:false,properties,required});
 const str=(maxLength=2048,pattern)=>({type:'string',maxLength,...(pattern?{pattern}:{})});
 const ref=str(160,'^[A-Za-z0-9_-]{16,160}$');
@@ -62,14 +64,22 @@ const cookieEvent=obj({seq:num(1),name:str(256),domain:str(253),path:str(512),
   removed:bool,cause:str(40),at:num()},['seq','name','domain','path','removed','cause','at']);
 const managedProxyEndpoint=obj({scheme:{enum:['https','socks5']},
   host:str(253,'^[a-z0-9.-]+$'),port:num(1,65535)},['scheme','host','port']);
-const managedProxyConfig=obj({endpoint:managedProxyEndpoint,domains:{
+const standardManagedProxyConfig=obj({endpoint:managedProxyEndpoint,domains:{
   type:'array',minItems:1,maxItems:16,uniqueItems:true,items:str(253,'^[a-z0-9.-]+$')}},
   ['endpoint','domains']);
+const developmentManagedProxyConfig=obj({endpoint:obj({scheme:{const:'http'},
+  host:{const:'127.0.0.1'},port:{const:7897}},['scheme','host','port']),
+  domains:{type:'array',minItems:7,maxItems:7,uniqueItems:true,
+    items:{enum:[...DEVELOPMENT_MANAGED_PROXY_CONFIG.domains]}}},['endpoint','domains']);
+const managedProxyConfig=MANAGED_PROXY_DEVELOPMENT_ENABLED?
+  {anyOf:[standardManagedProxyConfig,developmentManagedProxyConfig]}:standardManagedProxyConfig;
 const managedProxyStatus=obj({
   state:{enum:['enabled','disabled','unavailable','conflict']},
   control:{enum:['not_controllable','controlled_by_other_extensions',
     'controllable_by_this_extension','controlled_by_this_extension','unknown']},
-  permission:bool,canStop:bool,reason:nullableString
+  permission:bool,canStop:bool,reason:nullableString,
+  ...(MANAGED_PROXY_DEVELOPMENT_ENABLED?{developmentProfile:
+    {anyOf:[developmentManagedProxyConfig,{type:'null'}]}}:{})
 },['state','control','permission','canStop','reason']);
 const ops=Object.freeze({
  'browser.capabilities.list':[empty,arr(capabilityListRow,96)],
@@ -149,7 +159,8 @@ const ops=Object.freeze({
  'browser.proxy.managed.requestEnable':[obj({config:managedProxyConfig},['config']),managedProxyStatus],
  'browser.proxy.managed.requestDisable':[empty,managedProxyStatus],
  'browser.network.request':[obj({method:{enum:['GET','POST','PUT','DELETE']},url:http,
-   data:{},config:obj({timeout:num(1,60000),responseType:{enum:['json','text']}})},['method','url']),
+   data:{},config:obj({timeout:num(1,60000),responseType:{enum:['json','text']},
+     headers:{type:'object',additionalProperties:{type:'string'}}})},['method','url']),
    obj({status:num(100,599),data:{}},['status'])],
  'browser.network.observe.start':[obj({tabRef:ref,origins:arr(http,8),durationMs:num(1,30000),
    maxEvents:num(1,500),maxBufferedBytes:num(1024,524288)},['tabRef','origins']),
