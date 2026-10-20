@@ -269,3 +269,56 @@ npm run check
 - [R5 run 38917137836](https://github.com/shopable-ai/opendesk-browser/actions/runs/38917137836)：`sdk-host-contracts` 与 `sdk-real-chromium-pac` **SUCCESS**；`sdk-product-bundles` 与 `sdk-formal-chromium-c1` **FAIL**。C1 Job 生产构建审计报 `Unapproved dynamic constructor reference in ui/tool-shell.js: count=1`，实际来自打包 ReactDOM 事件重放的 `new (n=e.nativeEvent).constructor(n.type,n)`；本次**未启动**原生 Side Panel Chrome 测试，`artifacts/managed-proxy-installed-c1.json` 不存在属于构建前置失败，而不是面板 E2E 失败。
 - 上述 React 安全校验器、`wxt.config.mjs` 和 React UI 均由并行 Owner 修改，本工作流不关闭 CSP/AST 扫描、不绕过构建、不覆盖该 Owner 提交。必须先在同一 SHA 的 Production Build 成功后，读取本次新增的 `MANAGED_PROXY_C1_SIDE_PANEL_DIAGNOSTICS` 和真实截图，区分 Side Panel 的 Tab/列表/数据/CDP 身份根因，再最小修复并复验。
 - **当前验收**：R1.7 CI 假阳性 fail-closed 已经由真实 FAIL 证实；实际 `FORMAL_C1_NATIVE_PASS` 尚无证据，C2 保持 **NOT_TESTED**；六类 >=95 评分保持 **NOT_SCORED**。历史 R1.6 标签页原生成功不替代本轮同 SHA Side Panel 成功。
+
+
+## Managed Proxy SDK R1.8-MAC-C1 · dev 优先与真实文档证据（2026-10-20）
+
+本轮从 `origin/main=abb49c6780ce2424886c727b0ae55f35e1fcba0a` 安全快进开始；并行 Owner 随后提交到 `137d97f0689425811a941cc9c8d9b4d7dbaf055b`。用户最新要求仅完成 dev 核心流程，使用唯一日常目录 `dist/development` 与已有 `npm run dev`；production 构建、正式验收、同 SHA 四类 Actions、六维评分和 C2 均延期，本轮不自动进入这些阶段。不创建分支、worktree 或 PR，不操作个人 Chrome Profile。
+
+### 当前核心结果与实际修改原因
+
+- Mac Chrome for Testing `155.0.8059.39`，实际可执行文件 `tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing`；独立临时 Profile，`native` headed，无 `--no-sandbox`。开发服务真实连接，观察指纹 `d6610b8276be0137a2d83a3779ad33e4a8faf8ac9caf537aa2440192c5c52868`。
+- 当前 main 的「扩展」Tab 已能通过 CDP 可信鼠标点击切换；不复现旧 CI 的停留 tasks，不制造产品源码改动。已有 `8171d295c` 将导航和页面显示收敛到同一 React owner；`c910d8195` 补齐面板启动的 intent receiver import。这些是已存在的修复，不冒称本轮修复，也不据此断言历史 CI 的唯一根因。
+- 本轮 C1 驱动增加明确 macOS native headed 和 dev 模式，dev 只能报告 `DEV_C1_NATIVE_PASS`；记录坐标、elementFromPoint、四类 `isTrusted` 事件、canonical URL、hostInstanceId 和 Document ID。首次 Side Panel context 可能在 `location.replace()` 前产生，必须与实际交互文档分开保存，最终验收绑定后者。
+- 官方刷新验证由“旧文案仍在”收紧为真实 SDK 新请求及匹配 requestId/instance 的响应；保持 SDK、Host、Driver、安装器及正式 React UI 不变。
+- React 19 的 `Function.prototype.bind` 已有受限转换；最新 WXT 将可信 React runtime 固定为 production。独立检查官方 19.2.0 发布字节一致，定向安全测试 13/13，exit 0，本轮不重复改写或放宽安全规则。
+- 最新 main 的首次 production 构建 exit 1：Stay Focus 已提交可信源码与审核 SHA 锁不一致。审查后只更新两项来源锁；补充篡改/符号链接拒绝测试，修正两项过时的 Stay Focus 测试夹具，不修改其产品业务。
+
+### 证据与验证边界
+
+原始日志目录 `artifacts/managed-proxy-r18/`。已执行 `npm ci --ignore-scripts --no-audit --no-fund`、`npm run check`、修复后的 `npm run build`、`npm run build:dev`、`npm run build:size`、`npm run verify`，退出码均 0。构建在独立源码快照 `artifacts/managed-proxy-r18/source` 内进行，独立输出守卫端口 43121；不覆盖 watcher 输出。
+
+Managed Proxy Driver/Host/SDK 与 Tab 偏好定向 Node 测试 exit 0。Stay Focus 来源审查中发现的两项旧夹具失败保留在 `artifacts/stay-focus-source-lock/fixture-fix-c_z1k_q4/`；后续精确修复与退出码以该目录 `commands.json` 为准，不抹去首次失败。
+
+已观察 AI VIP Share `1.3.5`，packageHash `f6d782d1b6eaeac0ab8ea78443becf65764d13298728617bda5b923ae3171f7b`；实际安装 enabled=true，首次安装 epoch=null（现有生命周期合同的原始值，测试未写入）。同一真实 Side Panel 完成官方 STATUS、独立安装测试工具的 `E_PROXY_PROFILE_NOT_APPROVED` 拒绝和 STOP；原生 `mode=system`、`levelOfControl=controllable_by_this_extension`、journal=null。dev 操作与截图见 `artifacts/managed-proxy-installed-dev-c1.json`、`artifacts/managed-proxy-dev-c1-native-side-panel-ai-vip.png`；初期回执中的 opening context 不能替代 canonical 文档门禁，最终回执需通过共享严格校验。
+
+以上是前轮观察和旧快照验证，不能覆盖后续驱动失败；共享回执验证器仍是未集成草稿，不作为本轮 dev 门禁。Production/CI/六维正式审查延期，不以 dev 或 Node 结果宣布 `FORMAL_C1_NATIVE_PASS`。`REVIEWED_MANAGED_PROXY_PROFILES=[]`、`APPROVED_PROXY_ENDPOINT=null` 保持；旧 `src/ai-smart-access/` 六模块保留。C2 持续 `NOT_TESTED`。
+
+### R1.8 dev 核心链收尾（2026-10-20 18:49 CST）
+
+本次接手 HEAD 为 `a6077d92792b8c38a25d253e1cb42bcfd66bf685`；fetch 后 `origin/main=931f5855b9ee6f500d93fed15e425e877f5a5fe2`，领先 1 / 落后 9。保留本地 Prompt Shortcuts 提交，通过普通 merge 整合远端；不 rebase 其他 Owner。任务负责人为本次 Managed Proxy dev 续接对话；写入范围为 C1 驱动、新增 frame 回归、原有三个 Stay Focus/来源锁定向测试及本文。共享 `scripts/bundle-provenance.mjs` 只处理前轮两个 Stay Focus 锁的暂存，Reading TOC 新增来源锁、源码和 `bundle-provenance.test.mjs` 留给其 Owner；不纳入未完成的 `managed-proxy-c1-receipt.mjs` 草稿。
+
+**当前真实操作结果：`DEV_C1_NATIVE_PASS`，实际 native 进程退出 0。** Mac CfT `155.0.8059.39`，新临时 Profile、`native` headed、Chrome 沙箱开启；复用 PID 87007 的 dev watcher，未另起 writer、未静态构建。真实扩展 ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，实际面板显示“开发服务已连接”，运行 revision 为 `24e3bdaa212c4f5b4381a029f56a5ee4cb39d66ba6780bd94f97f2da9f862332`，运行结束即时读回 revision 相同。
+
+- 同一原生 Side Panel 从 tasks 通过 `Input.dispatchMouseEvent` 点击「扩展」，四类事件 `isTrusted=true`，Tab 和列表显示门禁通过；通过真实列表打开正式安装的 AI VIP Share `1.3.5`，显示“服务未配置”。安装 `enabled=true`、`installEpoch=null`，包 hash 仍为 `f6d782d1b6eaeac0ab8ea78443becf65764d13298728617bda5b923ae3171f7b`。
+- 真实刷新产生新 `browser.proxy.managed.getStatus` 请求，按 `requestId` 和 `instance` 匹配成功响应。独立已安装 fixture 的 ENABLE 准确返回 `E_PROXY_PROFILE_NOT_APPROVED`；经可信确认后的 STOP 成功。原生代理读回 `mode=system`、`levelOfControl=controllable_by_this_extension`、journal=null。
+- 两个测试取证缺口已修：HTML iframe `sandbox=null` 合法，驱动改读真实 `chrome.runtime.getManifest()`，验证 MV3 sandbox pages、iframe 精确 URL、CSP `sandbox allow-scripts` 且无 `allow-same-origin`，可信页仍为 `script-src 'self'; object-src 'self'`。未给产品 iframe 补属性，未修改 CSP。另在同进程分支创建 isolated world 前比较实际 frame ID 与 DOM iframe ID，证据存实际值；OOPIF 分支也存实际 frame ID。
+- 本次真实运行走 OOPIF；同进程分支另用必要 Node 回归覆盖“相同 URL、不同 frame 必须在创建 world 前拒绝”及同一 host/frame 成功返回，两项通过，退出 0。没有宣称同进程分支已经真实 Chrome 验收。
+- 原生 Document ID：`BDAC7851C533C02C510066AB17FC7645`；Target：`BFFF86FA195FF161A90E53E26AD5F523`；hostInstanceId：`1e670cdd-cbd5-4bac-82ff-e992ac5c62ff`。官方 frame `1E422B9BC5B3126E2AE65790CB83F062`、fixture frame `B639C55A598D241FA853611569EF1871` 均与同一 host DOM 的 expectedFrameId 一致。运行时 SW SHA256 为 `c083f84bce27b60cd5412afd7ab00dbad16ecb6719d79b15e68d19f6c4510a83`；驱动 SHA256 为 `238c1d8ad6870013034eb01aebeaf50eab30bf726cad490302dd7bb8d33d5dd8`。dev 证据绑定这些实际输入，不冒充后续合并后的 production 候选。
+
+命令和原始证据：
+
+```sh
+CHROME_FOR_TESTING_BIN="/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing" OPENDESK_PROXY_C1_BUILD=development OPENDESK_PROXY_C1_HEADED=native node tests/framework/browser-managed-proxy-installed-c1.mjs
+# exit 0
+node --check tests/framework/browser-managed-proxy-installed-c1.mjs
+# exit 0
+node --test --test-reporter=spec tests/environment/browser-managed-proxy-c1-frame.test.mjs
+# 2/2, exit 0
+```
+
+- 原始命令、日志、退出码、回执备份与完整性复核：`artifacts/managed-proxy-r18/dev-core-2026-10-20T10-49-26Z/{command.json,native.log,native.exit,receipt.json,integrity.json,integrity.exit,targeted-checks.json}`。完整性复核退出 0：必需步骤、同 Document/host/frame、新 STATUS 配对和全部六张截图 SHA256 一致；原失败回执保存在同目录 `previous-receipt.json`，原失败日志 `dev-c1-bound-frame.log/.exit` 保留。
+- 本次独立截图/回执目录：`artifacts/managed-proxy-r18/dev-runs/2026-10-20T10-49-26.448Z/`；真实面板截图为 `native-side-panel-ai-vip.png` 和 `native-side-panel-sdk-denied-stop.png`。驱动对后续 dev 运行也按运行目录保存，避免覆盖旧截图导致旧 JSON 哈希失配；根路径 `artifacts/managed-proxy-installed-dev-c1.json` 只是最新副本。
+- 前轮已通过的 Proxy Node、Stay Focus 43/43、来源锁正反向 2/2 及 React 定向 13/13 沿用原始日志，不因无关 main 更新重跑。未修改 SDK、Host、Driver、安装器或正式 Tab 产品逻辑；本次没有重新复现旧停留 tasks 的产品问题，不认定其历史唯一根因。
+
+**边界与延期：** STOP 仅证明无活动代理时可调用，活动代理释放、C2 仍 `NOT_TESTED`。正式 C1、production/完整 CI 和六维 >=95 评分均延期；本次 dev 成功不提升这些结论。隔离 CfT/Profile 已关闭；现有 dev watcher 保留。来源锁和共享预算夹具的远端等价修复按实际合并保留，不重复注册站点；其余 Owner 未提交文件和不完整验证器草稿不随任务交付。

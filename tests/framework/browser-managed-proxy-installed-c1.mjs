@@ -2,7 +2,7 @@
 // R1.6 C1: real Chrome pointer/file input through the current visible Extension Center.
 // This is NOT a Side Panel PASS unless a real SIDE_PANEL context is observed.
 import assert from 'node:assert/strict';
-import {spawn} from 'node:child_process';
+import {spawn,execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {readFile,mkdir,writeFile,mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -12,14 +12,20 @@ import {serializeSidebarToolPackage,sidebarToolPackageHash} from '../../src/ui/s
 import {REVIEWED_MANAGED_PROXY_PROFILES} from '../../src/platform/chrome/browser-managed-proxy-profiles.js';
 import {MANAGED_PROXY_STORE} from '../../src/platform/chrome/browser-managed-proxy.js';
 
-const PATH=resolve('dist/production'),OUTPUT=resolve('artifacts/managed-proxy-installed-c1.json');
+const buildMode=process.env.OPENDESK_PROXY_C1_BUILD||'production';
+assert(['production','development'].includes(buildMode),'Unknown C1 build mode');
+const development=buildMode==='development';
+const PATH=resolve('dist',buildMode);
+const devRunDirectory='artifacts/managed-proxy-r18/dev-runs/'+new Date().toISOString().replaceAll(':','-');
+const screenshotPrefix=development?devRunDirectory.slice('artifacts/'.length)+'/':'managed-proxy-c1-';
+const OUTPUT=resolve(development?'artifacts/managed-proxy-installed-dev-c1.json':'artifacts/managed-proxy-installed-c1.json');
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const sleep=ms=>new Promise(done=>setTimeout(done,ms));
-const receipt={schema:'opendesk.managed-proxy.c1.v1',sha:process.env.GITHUB_SHA||null,
-  build:'PRODUCTION',mockSdk:false,installed:false,sidePanelObserved:false,
+const receipt={schema:'opendesk.managed-proxy.c1.v1',sha:process.env.GITHUB_SHA||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),
+  build:buildMode.toUpperCase(),extensionPath:PATH,mockSdk:false,installed:false,sidePanelObserved:false,
   result:'NOT_TESTED',steps:[],screenshots:[],errors:[]};
 let child,profile,client,page,sidePanelSession;
-function step(name,data){receipt.steps.push({name,...data});}
+function step(name,data){receipt.steps.push({name,at:new Date().toISOString(),...data});}
 async function until(fn,label){
   let last='';
   for(let i=0;i<160;i++){
@@ -36,6 +42,10 @@ async function connect(url){
     new Promise((_,no)=>setTimeout(()=>no(Error('CDP connect timeout')),9000))]);
   ws.addEventListener('message',event=>{
     let reply;try{reply=JSON.parse(event.data);}catch{return;}
+    if(['Page.frameNavigated','Runtime.exceptionThrown','Runtime.executionContextsCleared'].includes(reply.method)){
+      receipt.cdpEvents??=[];
+      if(receipt.cdpEvents.length<200)receipt.cdpEvents.push({at:new Date().toISOString(),...reply});
+    }
     const pending=waiters.get(reply.id);if(!pending)return;
     waiters.delete(reply.id);clearTimeout(pending.timeout);
     if(reply.error)pending.no(Error(reply.error.message));else pending.ok(reply.result||{});
@@ -65,6 +75,8 @@ async function elementIn(session,selector){
     'if(!e)return null;const r=e.getBoundingClientRect(),s=getComputedStyle(e);'+
     'return {visible:r.width>0&&r.height>0&&s.display!=="none"&&s.visibility!=="hidden"'+
     '&&!e.disabled&&!e.closest("[hidden]"),x:r.x+r.width/2,y:r.y+r.height/2,'+
+    'viewport:{width:innerWidth,height:innerHeight},'+
+    'hit:document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.id,'+
     'text:e.textContent?.slice(0,100),disabled:!!e.disabled};})()';
   return evalAt(session,script);
 }
@@ -74,7 +86,7 @@ async function clickIn(session,selector,surface='tool-tab'){
   assert(a?.visible,'Chrome input cannot reach '+selector+': '+JSON.stringify(a));
   for(const type of ['mouseMoved','mousePressed','mouseReleased'])
     await client.send('Input.dispatchMouseEvent',{type,button:'left',clickCount:1,x:a.x,y:a.y},session);
-  step('CHROME_MOUSE_INPUT',{selector,surface,api:'Input.dispatchMouseEvent'});
+  step('CHROME_MOUSE_INPUT',{selector,surface,api:'Input.dispatchMouseEvent',point:a});
 }
 const click=selector=>clickIn(page,selector);
 
@@ -90,17 +102,25 @@ async function sandboxTargets(){
   return targetInfos.filter(x=>x.url?.includes('/sidebar-tools/sandbox.html'));
 }
 async function toolFrame(hostSession=page,requiredSelector='#tool-root'){
+  const {root}=await client.send('DOM.getDocument',{depth:1},hostSession);
+  const {nodeId}=await client.send('DOM.querySelector',{nodeId:root.nodeId,selector:'#sidebar-tool-frame iframe'},hostSession);
+  assert(nodeId,'The current host has no installed sandbox iframe');
+  const {node}=await client.send('DOM.describeNode',{nodeId},hostSession);
+  const expectedFrameId=node.frameId;
+  assert(expectedFrameId,'The current host iframe has no Chrome frame identity');
   // Sandbox may be a separate OOPIF target; match the exact installed tool DOM.
   const presence='document.querySelector('+JSON.stringify(requiredSelector)+')!==null';
   const tree=(await client.send('Page.getFrameTree',{},hostSession)).frameTree;
   const frame=frameFromTree(tree,'/sidebar-tools/sandbox.html');
   let parentWorldError=null;
   if(frame){
+    assert.equal(frame.id,expectedFrameId,'Sandbox frame tree must match the current host iframe');
     try{
       const world=await client.send('Page.createIsolatedWorld',{
         frameId:frame.id,worldName:'opendesk-proxy-c1-readonly'
       },hostSession);
-      const candidate={session:hostSession,contextId:world.executionContextId,via:'parent-frame'};
+      const candidate={session:hostSession,hostSession,frameId:frame.id,expectedFrameId,
+        contextId:world.executionContextId,via:'parent-frame'};
       if(await evalAt(candidate.session,presence,candidate.contextId))
         return candidate;
       parentWorldError='Parent isolated world did not resolve the installed sandbox DOM';
@@ -110,7 +130,10 @@ async function toolFrame(hostSession=page,requiredSelector='#tool-root'){
   for(const target of targets){
     try{
       const session=await attach(target.targetId);
-      const candidate={session,contextId:null,via:'oopif-target',targetId:target.targetId};
+      const targetTree=(await client.send('Page.getFrameTree',{},session)).frameTree;
+      if(targetTree?.frame?.id!==expectedFrameId)continue;
+      const candidate={session,hostSession,frameId:targetTree.frame.id,expectedFrameId,
+        contextId:null,via:'oopif-target',targetId:target.targetId};
       if(await evalAt(session,presence))
         return candidate;
     }catch(error){parentWorldError=String(error?.message||error);}
@@ -130,6 +153,7 @@ async function toolResult(frame){
   try{return JSON.parse(text);}catch{return null;}
 }
 async function clickSandbox(frame,selector,hostSession=page){
+  assert.equal(frame.hostSession,hostSession,'Sandbox input must use its owning host');
   const local=await evalAt(frame.session,'(()=>{const e=document.querySelector('+
     JSON.stringify(selector)+');if(!e)return null;const r=e.getBoundingClientRect();'+
     'return {x:r.left+r.width/2,y:r.top+r.height/2,width:r.width,height:r.height};})()',frame.contextId);
@@ -253,11 +277,11 @@ async function exerciseProductionDeniedSdk(extensionId){
 
 async function screenshot(name,session=page){
   const frame=await client.send('Page.captureScreenshot',{format:'png'},session);
-  const bytes=Buffer.from(frame.data,'base64'),file=resolve('artifacts/managed-proxy-c1-'+name+'.png');
+  const bytes=Buffer.from(frame.data,'base64'),file=resolve('artifacts/'+screenshotPrefix+name+'.png');
   await mkdir(dirname(file),{recursive:true});
   await writeFile(file,bytes);
   receipt.screenshots.push({name,sha256:hash(bytes),bytes:bytes.length,
-    path:'artifacts/managed-proxy-c1-'+name+'.png'});
+    path:'artifacts/'+screenshotPrefix+name+'.png'});
 }
 async function readNative(worker){
   const expression='(async()=>{const permission=await chrome.permissions.contains({permissions:["proxy"]});'+
@@ -286,6 +310,7 @@ async function nativeSidePanelDiagnostics(session,worker){
     return {url:location.href,readyState:document.readyState,
       surface:document.documentElement.dataset.opendeskSurface,
       tab:document.documentElement.dataset.opendeskTab,
+      events:globalThis.__proxyC1InputTrace??[],
       reactOwner:document.querySelector('#extension-center-list')?.dataset.opendeskReactOwner,
       entries:[...document.querySelectorAll('#extension-center-list [data-extension-key]')]
         .slice(0,30).map(el=>({key:el.dataset.extensionKey,action:el.dataset.extensionAction,
@@ -319,6 +344,38 @@ async function exerciseNativeSidePanel({panel,extensionId,worker,tabTargetId}){
   assert(current?.id,'Chrome lost the native SIDE_PANEL context');
   const hostUrl=await evalAt(panelSession,'location.href');
   assert(hostUrl.startsWith(base),'CDP target is not the real installed Side Panel host');
+  assert.equal(hostUrl,current.url,'CDP target must match the current SIDE_PANEL document URL');
+  assert(new URL(hostUrl).searchParams.get('hostInstanceId'),'Side Panel canonical document not ready');
+  // Opening context can precede the hostInstanceId location.replace(). Keep
+  // that observation separately; acceptance belongs to the canonical document.
+  receipt.sidePanelOpeningContexts=receipt.sidePanelContexts;
+  receipt.sidePanelContexts=live.panels;
+  receipt.sidePanelTarget={...receipt.sidePanelTarget,hostUrl,documentId:current.id,
+    hostInstanceId:new URL(hostUrl).searchParams.get('hostInstanceId')};
+  if(development){
+    receipt.developmentConnection=await until(async()=>{
+      const state=await evalAt(panelSession,`(()=>{const e=document.getElementById('opendesk-development-status');
+        return e?{text:e.textContent,title:e.title}:null;})()`);
+      return state?.text.includes('开发服务已连接')&&state.title.includes(receipt.developmentRevision)?state:null;
+    },'live development client and exact watcher revision');
+  }
+  await evalAt(panelSession,`(()=>{
+    const rows=globalThis.__proxyC1InputTrace=[];
+    const requests=globalThis.__proxyC1Requests=[];
+    window.addEventListener('message',event=>{
+      const m=event.data;
+      if(event.source===document.querySelector('#sidebar-tool-frame iframe')?.contentWindow&&
+        m?.kind==='request'&&m.operation==='browser.proxy.managed.getStatus')
+        requests.push({toolId:m.toolId,requestId:m.requestId,instance:m.instance,operation:m.operation});
+    });
+    for(const type of ['pointerdown','mousedown','mouseup','click'])
+      document.addEventListener(type,event=>rows.push({type,isTrusted:event.isTrusted,
+        target:event.target?.id,x:event.clientX,y:event.clientY,at:performance.now(),
+        tab:document.documentElement.dataset.opendeskTab}),true);
+    return true;
+  })()`);
+  step('C1_SIDE_PANEL_BEFORE_CLICK',{documentId:current.id,hostUrl,
+    diagnostics:await nativeSidePanelDiagnostics(panelSession,worker)});
   await clickIn(panelSession,'#tab-tools','native-side-panel');
   await until(async()=>{
     const state=await evalAt(panelSession,`(()=>{
@@ -331,7 +388,11 @@ async function exerciseNativeSidePanel({panel,extensionId,worker,tabTargetId}){
     })()`);
     return state?.selected==='true'&&state.paneVisible&&state.listVisible?state:null;
   },'trusted native Side Panel Tools navigation and visible list');
-  step('C1_SIDE_PANEL_TOOLS_VISIBLE',{status:'PASS',documentId:current.id});
+  const clickTrace=await evalAt(panelSession,'globalThis.__proxyC1InputTrace');
+  for(const type of ['pointerdown','mousedown','mouseup','click'])
+    assert(clickTrace.some(event=>event.type===type&&event.isTrusted&&event.target==='tab-tools'),
+      'Missing trusted Side Panel '+type+' on Tools tab');
+  step('C1_SIDE_PANEL_TOOLS_VISIBLE',{status:'PASS',documentId:current.id,clickTrace});
   const officialSelector='#extension-center-list button[data-extension-key="app:ai-vip-share"][data-extension-action="main"]';
   await until(async()=>{const e=await elementIn(panelSession,officialSelector);return e?.visible&&e;},
     'installed official AI VIP Share visible in native Side Panel');
@@ -348,15 +409,51 @@ async function exerciseNativeSidePanel({panel,extensionId,worker,tabTargetId}){
   },'formal AI VIP production unconfigured presentation');
   assert.equal(officialState.enableHidden,true,'Unreviewed production ENABLE must be hidden');
   assert.equal(officialState.refreshHidden,false,'Public SDK STATUS refresh must be visible');
+  const sandbox=await evalAt(panelSession,`(()=>{const e=document.querySelector('#sidebar-tool-frame iframe');
+    const manifest=chrome.runtime.getManifest();
+    return {src:e.src,htmlSandbox:e.getAttribute('sandbox'),
+      expectedSrc:chrome.runtime.getURL('sidebar-tools/sandbox.html'),
+      manifestVersion:manifest.manifest_version,pages:manifest.sandbox?.pages,
+      csp:manifest.content_security_policy};})()`);
+  assert.equal(sandbox.manifestVersion,3,'Official sandbox requires the installed MV3 manifest');
+  assert.equal(sandbox.src,sandbox.expectedSrc,'Official iframe must load the installed extension sandbox');
+  assert(sandbox.pages?.includes('sidebar-tools/sandbox.html'),'Official iframe must be a manifest sandbox page');
+  const sandboxDirectives=sandbox.csp?.sandbox?.split(';').map(value=>value.trim().split(/\s+/))||[];
+  const sandboxRules=sandboxDirectives.filter(tokens=>tokens[0]==='sandbox');
+  assert.equal(sandboxRules.length,1,'Manifest sandbox CSP must define one sandbox directive');
+  assert(sandboxRules[0].includes('allow-scripts'),'Manifest sandbox must permit its scripts');
+  assert(!sandboxRules[0].includes('allow-same-origin'),'Manifest sandbox must remain opaque');
+  assert.equal(sandbox.csp.extension_pages,"script-src 'self'; object-src 'self'",
+    'Trusted extension CSP must retain its existing strict policy');
+  if(sandbox.htmlSandbox!==null){
+    const tokens=sandbox.htmlSandbox.split(/\s+/);
+    assert(tokens.includes('allow-scripts'),'An additional HTML sandbox must permit scripts');
+    assert(!tokens.includes('allow-same-origin'),'An additional HTML sandbox must remain opaque');
+  }
+  await evalAt(officialFrame.session,`(()=>{
+    globalThis.__proxyC1Responses=[];
+    window.addEventListener('message',event=>{
+      if(event.source===parent&&event.data?.kind==='response')globalThis.__proxyC1Responses.push(event.data);
+    });return true;
+  })()`,officialFrame.contextId);
+  const requestCount=await evalAt(panelSession,'globalThis.__proxyC1Requests.length');
   await clickSandbox(officialFrame,'#ai-vip-proxy-refresh',panelSession);
-  await until(async()=>{
-    const detail=await evalAt(officialFrame.session,
-      'document.querySelector("#ai-vip-proxy-detail")?.textContent??null',officialFrame.contextId);
-    return detail?.includes('代理服务尚未接入')?detail:null;
-  },'public SDK STATUS refresh from trusted native Side Panel');
+  const statusRequest=await until(async()=>{
+    const requests=await evalAt(panelSession,'globalThis.__proxyC1Requests');
+    return requests.slice(requestCount).find(row=>row.toolId==='ai-vip-share');
+  },'new official public SDK STATUS request after trusted refresh click');
+  const officialStatus=await until(async()=>{
+    const responses=await evalAt(officialFrame.session,'globalThis.__proxyC1Responses',officialFrame.contextId);
+    return responses.find(row=>row.requestId===statusRequest.requestId&&row.instance===statusRequest.instance);
+  },'official public SDK STATUS response');
+  assert.equal(officialStatus.ok,true,'Official public SDK STATUS failed');
+  assert.equal(officialStatus.result.state,'disabled');
+  assert.equal(officialStatus.result.canStop,false);
   await screenshot('native-side-panel-ai-vip',panelSession);
   step('C1_SIDE_PANEL_OFFICIAL_UI',{status:'PASS',documentId:current.id,
-    chromeTargetType:candidate.type,hostUrl,via:officialFrame.via,officialState});
+    chromeTargetType:candidate.type,hostUrl,via:officialFrame.via,frameId:officialFrame.frameId,
+    expectedFrameId:officialFrame.expectedFrameId,hostSession:officialFrame.hostSession,
+    sandbox,officialState,statusRequest,officialStatus});
 
   // A separately installed fixture proves ENABLE rejection and STOP through
   // the *same* actual SIDE_PANEL, never by direct privileged Driver calls.
@@ -396,13 +493,16 @@ async function exerciseNativeSidePanel({panel,extensionId,worker,tabTargetId}){
   if(final.settings)assert.notEqual(final.settings.value?.mode,'pac_script');
   const fresh=final.panels.find(x=>x.type==='SIDE_PANEL');
   assert.equal(fresh?.id,current.id,'Native SIDE_PANEL document changed during trusted operations');
+  assert.equal(fresh?.url,hostUrl,'Native SIDE_PANEL URL changed during C1');
   await screenshot('native-side-panel-sdk-denied-stop',panelSession);
   receipt.sidePanelDocumentId=current.id;receipt.sidePanelInteracted=true;
   step('C1_SIDE_PANEL_SDK_HOST_NATIVE',{status:'PASS',documentId:current.id,
     statusOutput:status,enableDenied:rejected,stopOutput:stopped,readback:final.settings,
-    journal:final.journal,frameMode:frame.via,chromeTargetType:candidate.type});
+    journal:final.journal,frameMode:frame.via,frameId:frame.frameId,
+    expectedFrameId:frame.expectedFrameId,hostSession:frame.hostSession,chromeTargetType:candidate.type});
 }
 async function main(){
+  receipt.driverSha256=hash(await readFile(new URL(import.meta.url)));
   assert(process.env.CHROME_FOR_TESTING_BIN,'Pinned Chrome for Testing required');
   const candidate=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
   const config=JSON.parse(await readFile('examples/sidebar-tools/ai-vip-share/tool.config.json','utf8'));
@@ -415,18 +515,27 @@ async function main(){
   const manifest=JSON.parse(await readFile(join(PATH,'manifest.json'),'utf8'));
   assert.equal(manifest.manifest_version,3);
   assert([...(manifest.permissions||[]),...(manifest.optional_permissions||[])].includes('proxy'));
-  const receiptFile=JSON.parse(await readFile('docs/framework/evidence/wxt/builds/build-production.json','utf8'));
   const sw=await readFile(join(PATH,'sw.js'));
-  assert.equal(hash(sw),receiptFile.report.files.find(x=>x.path==='sw.js')?.sha256);
+  if(development){
+    const update=JSON.parse(await readFile(join(PATH,'development-update.json'),'utf8'));
+    assert.equal(hash(sw),update.files['sw.js'],'Development watcher fingerprint drift');
+    receipt.developmentRevision=update.revision;
+  }else{
+    const receiptFile=JSON.parse(await readFile('docs/framework/evidence/wxt/builds/build-production.json','utf8'));
+    assert.equal(hash(sw),receiptFile.report.files.find(x=>x.path==='sw.js')?.sha256);
+  }
   assert(!sw.toString().includes('R15_C2_TEST_ONLY_PROFILE'));
   receipt.formal={id:candidate.id,version:candidate.version,packageHash:identityHash,swSha256:hash(sw)};
-  step('PRODUCTION_BUILD',{status:'PASS',version:candidate.version,packageHash:identityHash});
+  step(development?'DEVELOPMENT_BUILD':'PRODUCTION_BUILD',{status:'PASS',version:candidate.version,packageHash:identityHash});
   const noSandbox=process.platform==='linux'&&process.env.GITHUB_ACTIONS==='true'&&
     process.env.GITHUB_REF==='refs/heads/main'&&
     process.env.OPENDESK_PROXY_C1_RUNNER==='github-hosted'&&
     process.env.OPENDESK_PROXY_C1_ALLOW_NO_SANDBOX==='yes';
   profile=await mkdtemp(join(tmpdir(),'opendesk-managed-c1-'));
-  const headed=process.env.OPENDESK_PROXY_C1_HEADED==='xvfb';
+  const headedMode=process.env.OPENDESK_PROXY_C1_HEADED||'headless';
+  assert(['headless','xvfb','native'].includes(headedMode),'Unknown C1 headed mode');
+  assert(headedMode!=='native'||process.platform==='darwin','Native C1 mode requires macOS');
+  const headed=headedMode!=='headless';
   const args=['--no-first-run','--no-default-browser-check','--disable-sync',
     '--window-size=1440,1000','--disable-background-networking','--remote-debugging-port=0','--user-data-dir='+profile,
     '--disable-extensions-except='+PATH,'--load-extension='+PATH,'about:blank'];
@@ -439,7 +548,8 @@ async function main(){
     return lines.length===2?lines:null;
   },'Chrome debugger');
   client=await connect('ws://127.0.0.1:'+location[0]+location[1]);
-  receipt.chrome={...(await client.send('Browser.getVersion')),noSandbox,headed};
+  receipt.chrome={...(await client.send('Browser.getVersion')),noSandbox,headed,headedMode,
+    executable:resolve(process.env.CHROME_FOR_TESTING_BIN),platform:process.platform,profile,args};
   const targets=()=>client.send('Target.getTargets').then(x=>x.targetInfos||[]);
   const swTarget=await until(async()=>(await targets()).find(x=>
     x.type==='service_worker'&&/^chrome-extension:\/\/[a-p]{32}\/sw\.js$/.test(x.url)),'production SW');
@@ -584,7 +694,7 @@ async function main(){
     console.error('MANAGED_PROXY_C1=NATIVE_UI_BLOCKED');
     return;
   }
-  receipt.result='FORMAL_C1_NATIVE_PASS';
+    receipt.result=development?'DEV_C1_NATIVE_PASS':'FORMAL_C1_NATIVE_PASS';
   console.log('MANAGED_PROXY_C1='+receipt.result);
 }
 try{await main();}catch(e){receipt.result='FAIL';receipt.errors.push(String(e.stack||e));
@@ -595,6 +705,10 @@ try{await main();}catch(e){receipt.result='FAIL';receipt.errors.push(String(e.st
   console.error('MANAGED_PROXY_C1=FAIL',e);process.exitCode=1;
 }finally{
   await mkdir(dirname(OUTPUT),{recursive:true});
+  if(development){
+    await mkdir(devRunDirectory,{recursive:true});
+    await writeFile(join(devRunDirectory,'receipt.json'),JSON.stringify(receipt,null,2)+'\n');
+  }
   await writeFile(OUTPUT,JSON.stringify(receipt,null,2)+'\n');
   try{client?.close()}catch{}
   if(child?.exitCode===null){child.kill('SIGTERM');await sleep(300);

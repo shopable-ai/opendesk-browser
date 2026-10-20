@@ -84,9 +84,10 @@ test('R5.7 native React one-click adds only the current verified website',async 
   assert.equal(f.find('stay-focus-current-add'),null,'managed site cannot be repeatedly added');
   assert.ok(notices.some(row=>/已管理/.test(row.message)&&!row.isError));
   assert.ok(f.find('stay-focus-current-pause'),'managed site exposes only trusted pause');
-  await f.invoke('stay-focus-current-pause',{isTrusted:false});
+  // The rendered Pause button shares quickAdd; the fixture has no pause-ID alias.
+  await f.invoke('quickAdd',{isTrusted:false});
   assert.equal(writes.length,1,'synthetic pause must not send another write');
-  await f.invoke('stay-focus-current-pause',{isTrusted:true});
+  await f.invoke('quickAdd',{isTrusted:true});
   await new Promise(resolve=>setImmediate(resolve));
   assert.deepEqual(writes[1],{site:{...writes[0].site,enabled:false}},
     'one native React pause preserves all existing limit settings');
