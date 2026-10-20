@@ -20,7 +20,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   let toolbarMenuOpen=false,searchText='';
   let sources={};
   let catalogError='',dataError='',statusOrigin='loading',hasLoaded=false,query='',kind='all',scope='smart',selectedKey=null,selectedInstalled=null;
-  let listScroll=0,focusKey=null,focusAction=null,detailFocusAction=null,selectedIdentity=null,uninstallReview=null;
+  let listScroll=0,focusKey=null,focusAction=null,detailFocusAction=null,selectedIdentity=null,uninstallReview=null,listUninstallReview=null;
   const language=()=>localeController?.getLocale?.()||'zh-CN';
   const readingTocOfficial=row=>row.kind==='app'&&row.id==='reading-toc'&&
     row.title===readingTocCatalog.messages['zh-CN'].title&&
@@ -160,19 +160,93 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           })();
         },'toggle');
       if(row.stateKnown!==false)
-        add('设置、权限与卸载…',()=>{backIfNeeded();sidebarTools.openSettings(row.id);},'settings');
+        add('设置与权限…',()=>{backIfNeeded();sidebarTools.openSettings(row.id);},'settings');
       if(row.update&&row.release)add('审阅新版…',()=>openReview(row.key),'update');
     }else if(row.kind==='page'){
       if(row.stateKnown!==false)add(installedPageEnableAction(row.record.installed).label,
         event=>{void togglePage(row,event);},'toggle');
       add('更新 / 导入新版…',()=>{backIfNeeded();sidebarTools.openImport();},'update');
-      add('卸载网页增强…',event=>{openDetail(key,'more');openUninstallReview(find(key),event);},'uninstall');
       add('前往开发',()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();},'develop');
     }
     add('查看详情',()=>openDetail(key,'more'),'detail');
     extensionList.renderRowMenu(menuItems,{
       key,title:titleOf(row),trigger,onClose:closeRowMenu
     });
+  }
+
+  // List reviews pin the actual installed identity. The sole trusted Host
+  // continues to own the app registry and Page Authority native deregistration.
+  function syncListUninstallReview(){
+    const review=listUninstallReview;
+    extensionList.renderUninstall?.(review?{
+      title:'卸载「'+review.title+'」？',
+      text:review.kind==='page'
+        ?'将停止该网页增强自动运行并移除本机安装记录；不会删除网站自己的数据。'
+        :'将卸载该应用并清理其本地数据与网站授权；此操作不可撤销。',
+      busy:Boolean(busy||pendingKey),
+      onCancel:cancelListUninstallReview,onConfirm:confirmListUninstallReview
+    }:null);
+  }
+  function matchesListReview(row,review){
+    return Boolean(row?.installed&&row.kind===review?.kind&&
+      (review.kind==='page'?samePageIdentity(row,review.identity):
+        sameSidebarToolPackage(row.record,review.package)));
+  }
+  function openListUninstallReview(key,event){
+    if(!event?.isTrusted||disposed||busy||pendingKey||listUninstallReview||uninstallReview)return;
+    const row=find(key);
+    if(!row?.installed||row.stateKnown===false)return;
+    if(row.kind==='page'){
+      const identity=pageIdentity(row);
+      if(!identity?.installationId||!Number.isSafeInteger(identity.expectedGeneration)){
+        message('安装授权身份不完整，不能卸载；请刷新后核对。','error');return;
+      }
+      uninstallReview=Object.freeze(identity);
+      listUninstallReview=Object.freeze({key,kind:'page',id:row.id,title:titleOf(row),identity});
+    }else{
+      listUninstallReview=Object.freeze({key,kind:'app',id:row.id,title:titleOf(row),
+        package:structuredClone(row.record)});
+    }
+    closeRowMenu();closeMenu();syncListUninstallReview();
+  }
+  function cancelListUninstallReview(event){
+    if(!event?.isTrusted||busy||pendingKey)return;
+    if(listUninstallReview?.kind==='page')uninstallReview=null;
+    listUninstallReview=null;syncListUninstallReview();
+  }
+  async function confirmListUninstallReview(event){
+    if(!event?.isTrusted||disposed||busy||pendingKey||!listUninstallReview)return;
+    const review=listUninstallReview;
+    if(!matchesListReview(find(review.key),review)){
+      cancelListUninstallReview(event);
+      message('安装身份已变化，原卸载确认已失效；请刷新后重试。','error');return;
+    }
+    // Page uses the existing generation-bound native unregister + receipt
+    // readback below. No alternate authority or duplicate removal sequence.
+    if(review.kind==='page')return confirmPageUninstall(event);
+    busy=true;pendingKey=review.key;draw();
+    let outcome,operationError,readback=false;
+    try{
+      try{
+        outcome=await sidebarTools.uninstallFromList(review.id,review.package,event);
+      }catch(error){operationError=error;}
+      try{readback=await refresh();}catch(error){operationError??=error;}
+      if(disposed)return;
+      if(operationError)message((operationError.code||'E_TOOL_UNINSTALL')+'：'+
+        String(operationError.message||operationError)+
+        '；不会自动重试。请核对已安装记录与清理恢复状态。','error');
+      else if(outcome===true&&readback&&appStatusKnown&&!find(review.key)?.installed&&
+        !pendingCleanups.has(review.id))
+        message('已从本机安装记录读回确认卸载，数据与授权清理已完成。','success');
+      else if(readback&&appStatusKnown&&!find(review.key)?.installed&&pendingCleanups.has(review.id))
+        message('已从已安装列表移除，但清理未完成；可在「可安装 / 更新」中恢复清理。','error');
+      else if(outcome===false)
+        message('卸载尚未执行；如有未保存编辑请先处理，然后重新核对安装状态。','error');
+      else message('卸载结果未完整确认；不会自动重试。请刷新后核对安装状态。','error');
+    }finally{
+      busy=false;pendingKey=null;listUninstallReview=null;
+      if(!disposed){draw();if(selectedKey)renderDetail();else search?.focus?.({preventScroll:true});}
+    }
   }
 
   function rowDescription(row){
@@ -188,6 +262,11 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   }
   function draw(){
     if(disposed)return;
+    if(listUninstallReview&&!busy&&!pendingKey&&
+      !matchesListReview(find(listUninstallReview.key),listUninstallReview)){
+      listUninstallReview=null;uninstallReview=null;
+      message('扩展安装身份已变化，原卸载确认已失效；请核对后重新点击。','error');
+    }
     const active=doc.activeElement;
     const key=list.contains(active)?active?.dataset?.extensionKey:null;
     const action=active?.dataset?.extensionAction;
@@ -208,11 +287,11 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     extensionList.renderRows({
         rows:rows.map(row=>({
           key:row.key,title:titleOf(row),kind:row.kind,type:typeOf(row),
-          description:rowDescription(row),installed:row.installed,
+          description:rowDescription(row),installed:row.installed,stateKnown:row.stateKnown,
           primaryAction:resolveExtensionPrimaryAction(row)?.label||null
         })),
         busy:Boolean(busy||pendingKey),pendingKey,
-        onOpenRow:openRow,onMore:showRowMenu
+        onOpenRow:openRow,onMore:showRowMenu,onUninstall:openListUninstallReview
       });
     const showEmpty=rows.length===0&&orphaned.length===0&&hasLoaded;
     const emptyText=dataError?
@@ -223,6 +302,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       dataError?'部分安装状态待核对':rows.length+' 个扩展';
     extensionList.renderFeedback({showEmpty,emptyText,countText});
     syncFilters();
+    syncListUninstallReview();
     if(!busy&&!pendingKey){
       if(key)restoreRowFocus(key,action);
       else if(menuFocusKey&&!restoreRowFocus(menuFocusKey,'more'))
@@ -420,8 +500,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         message('已从 Page Authority 回执和持久安装列表确认卸载。已打开的网页可能仍有旧效果，请刷新网页。','success');
       else message('卸载结果未得到完整确认；不会自动重试，请刷新后核对原生注册及安装状态。','error');
     }finally{
-      busy=false;pendingKey=null;uninstallReview=null;
-      if(!disposed){draw();if(selectedKey)renderDetail();else restoreRowFocus(expected.key,'more');}
+      busy=false;pendingKey=null;uninstallReview=null;listUninstallReview=null;
+      if(!disposed){draw();if(selectedKey)renderDetail();else if(!restoreRowFocus(expected.key,'uninstall'))
+        search?.focus?.({preventScroll:true});}
     }
   }
   async function togglePage(row,event){
@@ -551,7 +632,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const connChanged=client.subscribeConnection?.(state=>{if(state.connected)void refresh();});
   message('正在读取已安装扩展与授权状态…','loading','loading');draw();
   void readOfficial();void refresh();
-  return {refresh,dispose(){if(disposed)return;disposed=true;sequence++;officialSequence++;closeRowMenu();
+  return {refresh,dispose(){if(disposed)return;disposed=true;sequence++;officialSequence++;
+    listUninstallReview=null;uninstallReview=null;closeRowMenu();
     doc.removeEventListener('opendesk:page-installation-changed',pageInstallationChanged);
     api.storage.onChanged?.removeListener(storageChanged);connChanged?.();stopLanguage?.();}};
 }

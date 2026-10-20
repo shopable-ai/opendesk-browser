@@ -23,7 +23,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
   const root=createRoot(mount);
   mountedDocuments.add(doc);
   let disposed=false,navigationTab=initialTab,workflowController=null;
-  let extensionView='list',onExtensionBack=()=>{},menuKey=null,detailModel=null;
+  let extensionView='list',onExtensionBack=()=>{},menuKey=null,detailModel=null,uninstallModel=null;
   let model={rows:[],busy:false,pendingKey:null,onOpenRow:()=>{},onMore:()=>{}};
   let toolbarModel={query:'',kind:'all',scope:'smart',language:'zh-CN',menuOpen:false};
   let feedbackModel={showEmpty:false,emptyText:'',countText:'正在读取扩展…'};
@@ -51,7 +51,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
   }
   function paint(){
     if(disposed)return;
-    const extensionProps={rowsModel:model,menuKey,rowMenuModel,detailModel,toolbarModel,feedbackModel,recoveryModel,statusModel,
+    const extensionProps={rowsModel:model,menuKey,rowMenuModel,detailModel,uninstallModel,toolbarModel,feedbackModel,recoveryModel,statusModel,
       view:extensionView,onBack:onExtensionBack};
     flushSync(()=>root.render(<>
       <style data-opendesk-trusted-react-css="">{bookmarkPilotLayoutCSS}</style>
@@ -154,6 +154,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
     renderRows(next){if(disposed)return;model=next;paint();},
     setMenuKey(key){if(disposed||menuKey===key)return;menuKey=key;paint();},
     renderDetail(next){if(disposed)return;detailModel=next;paint();},
+    renderUninstall(next){if(disposed)return;uninstallModel=next;paint();},
     renderToolbar(next){if(disposed)return;toolbarModel=next;paint();},
     renderFeedback(next){if(disposed)return;feedbackModel=next;paint();},
     renderRecoveries(next){if(disposed)return;recoveryModel=next;paint();},
