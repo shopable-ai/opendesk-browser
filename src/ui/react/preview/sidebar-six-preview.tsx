@@ -670,7 +670,7 @@ function Preview(){
         {' 预览仅修改内存演示数据，不会卸载真实扩展。'}</p>
       <div className="od-uninstall-dialog-actions">
         <button type="button" className="od-button od-button--secondary"
-          data-uninstall-cancel onClick={()=>setExtensionReview(null)}>取消</button>
+          data-uninstall-cancel="true" onClick={()=>setExtensionReview(null)}>取消</button>
         <button type="button" className="od-button od-uninstall-confirm"
           onClick={confirmPreviewReview}>确认卸载（仅预览）</button>
       </div>
