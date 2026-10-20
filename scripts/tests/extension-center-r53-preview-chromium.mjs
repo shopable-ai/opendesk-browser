@@ -56,13 +56,19 @@ async function waitUntil(expression){
   throw Error('Condition failed: '+expression+'; '+exceptions.join('; '));
 }
 async function click(selector){
-  const box=await evaluate('(()=>{const n=document.querySelector('+JSON.stringify(selector)+');'+
+  // Reveal CSS hover actions using real pointer motion before the hit test.
+  const point=await evaluate('(()=>{const n=document.querySelector('+JSON.stringify(selector)+');'+
     'if(!n)return null;n.scrollIntoView({block:"center"});const r=n.getBoundingClientRect();'+
+    'return {x:r.left+r.width/2,y:r.top+r.height/2}})()');
+  assert.ok(point,'Missing pointer target '+selector);
+  await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:point.x,y:point.y});
+  await pause(180);
+  const box=await evaluate('(()=>{const n=document.querySelector('+JSON.stringify(selector)+');'+
+    'if(!n)return null;const r=n.getBoundingClientRect();'+
     'const h=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);'+
     'return {x:r.left+r.width/2,y:r.top+r.height/2,w:r.width,h:r.height,'+
     'hit:h===n||n.contains(h),hidden:Boolean(n.closest("[hidden]"))}})()');
   assert.ok(box&&box.w>0&&box.h>0&&box.hit&&!box.hidden,'Pointer cannot hit '+selector+' '+JSON.stringify(box));
-  await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:box.x,y:box.y});
   await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:box.x,y:box.y,button:'left',clickCount:1});
   await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:box.x,y:box.y,button:'left',clickCount:1});
 }
