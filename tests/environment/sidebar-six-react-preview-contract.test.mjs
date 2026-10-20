@@ -14,6 +14,8 @@ test('R37 offline preview generates from the empty official root with working pr
   const result=await generateSidebarSixReactPreview();
   const $=load(result.html);
   assert.equal($('#opendesk-react-app').length,1);
+  assert.match($('#od-official-ui-css').text(),/\.ec-row--action-visible \.ec-row-actions/,
+    'preview embeds production CSS for the last-hovered row affordance');
   assert.equal($('#opendesk-react-app').contents().length,0,'React receives an empty root, never an SSR template');
   assert.equal($('#opendesk-react-app').attr('class'),load(await read('src/ui/sidepanel.html'))('#opendesk-react-app').attr('class'));
   assert.equal($('nav.workbench-nav').length,0,'navigation is mounted by the production shell');
@@ -29,6 +31,8 @@ test('R37 offline preview generates from the empty official root with working pr
   const paths=result.sourceInputs.map(input=>input.path);
   assert.ok(paths.includes('src/ui/react/main.tsx'));
   assert.ok(paths.includes('src/ui/react/app-shell.tsx'));
+  assert.ok(paths.includes('src/ui/react/tabs/tools.tsx'));
+  assert.ok(paths.includes('src/ui/extension-center.css'));
   assert.ok(!paths.includes('src/ui/react/preview/sidebar-six-preview.tsx'),'retired Portal adapter is not a consumer');
   const previewSource=await read('scripts/preview/build-sidebar-six-react-preview.mjs');
   assert.match(previewSource,/app=mountSidebarApp\(document,\{debugEnabled:true,onNavigate/);

@@ -39,25 +39,68 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Verify React ownership, trusted history lifecycle and controller contracts
+      - name: Detect committed preview drift before regenerating anything
+        shell: bash
         run: |
-          node --test \
-            tests/environment/sidebar-history-placement.test.mjs \
-            tests/environment/browser-sdk-r106-history-ui.test.mjs \
-            tests/environment/extension-center-react-page.test.mjs \
-            tests/environment/extension-center-r47-interaction.test.mjs \
-            tests/environment/react-sidebar-app-shell-r351.test.mjs \
-            tests/environment/sidebar-six-react-preview-contract.test.mjs
-      - name: Generate actual React HTML (do not hand-edit compiled JS)
+          set -euo pipefail
+          if node scripts/preview/build-sidebar-six-react-preview.mjs --check; then
+            echo 'CHECKED_IN_PREVIEW_STATUS=SYNCED' >> "$GITHUB_ENV"
+            echo 'CHECKED_IN_PREVIEW_STATUS=SYNCED'
+          else
+            echo 'CHECKED_IN_PREVIEW_STATUS=STALE' >> "$GITHUB_ENV"
+            echo '::warning::Committed full React HTML was stale at checkout; this run must safely sync it to main.'
+          fi
+      - name: Regenerate the complete source-bound React preview
         run: |
           node scripts/preview/build-sidebar-six-react-preview.mjs
           node scripts/preview/build-sidebar-six-react-preview.mjs --check
+      - name: Verify actual React owner, preview contract and row behavior before sync
+        run: |
+          node --test \
+            tests/environment/sidebar-six-react-preview-contract.test.mjs \
+            tests/environment/extension-center-r42-row-action.test.mjs \
+            tests/environment/extension-center-react-page.test.mjs
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - name: Real Chromium 320/360/400/440 React preview pointer and layout smoke
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node scripts/tests/extension-center-r53-preview-chromium.mjs
+      - name: Sync generated React HTML only if remote main still matches this commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=prototypes/sidebar/react-preview/index.html
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          if [[ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]]; then
+            echo 'PREVIEW_SYNC_BLOCKED=MAIN_HEAD_ADVANCED'
+            echo 'Regenerate on current main; refusing stale or non-fast-forward upload.'
+            exit 1
+          fi
+          if git diff --quiet -- "$file"; then
+            echo 'PREVIEW_ALREADY_SYNCHRONIZED=true'
+            node scripts/preview/build-sidebar-six-react-preview.mjs --check
+            exit 0
+          fi
+          git add -- "$file"
+          git -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m 'chore(preview): sync official React Extension Center HTML [skip ci]'
+          git push origin HEAD:refs/heads/main
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" || {
+            echo 'PREVIEW_SYNC_BLOCKED=REMOTE_MOVED_AFTER_PUSH'; exit 1;
+          }
+          git diff --exit-code HEAD -- "$file"
+          node scripts/preview/build-sidebar-six-react-preview.mjs --check
+          echo "PREVIEW_SYNCED_MAIN_HEAD=$(git rev-parse HEAD)"
+      - name: Verify remaining React history and Host interaction regressions
+        run: |
+          node --test \
+            tests/environment/sidebar-history-placement.test.mjs \
+            tests/environment/browser-sdk-r106-history-ui.test.mjs \
+            tests/environment/extension-center-r47-interaction.test.mjs \
+            tests/environment/react-sidebar-app-shell-r351.test.mjs
       - name: Build and verify production and development WXT candidates
         run: |
           npm run check
@@ -70,29 +113,10 @@ jobs:
           OPENDESK_EXTENSION_DIR: dist/production
           OPENDESK_BUILD_MODE: production
         run: node scripts/tests/react-sidebar-r352-installed-chrome.mjs artifacts/extension-center-r53/installed-production
-      - name: Sync generated React HTML only if remote main still matches this commit
-        shell: bash
-        run: |
-          set -euo pipefail
-          file=prototypes/sidebar/react-preview/index.html
-          if git diff --quiet -- "$file"; then
-            echo 'PREVIEW_ALREADY_SYNCHRONIZED=true'
-            exit 0
-          fi
-          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
-          if [[ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]]; then
-            echo 'PREVIEW_SYNC_BLOCKED=MAIN_HEAD_ADVANCED'
-            echo 'Regenerate on current main; refusing stale or non-fast-forward upload.'
-            exit 1
-          fi
-          git add -- "$file"
-          git -c user.name='github-actions[bot]' \
-            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-            commit -m 'chore(preview): sync official React Extension Center HTML [skip ci]'
-          git push origin HEAD:refs/heads/main
       - name: Record evidence grade
         if: always()
         run: |
+          echo "CHECKED_IN_PREVIEW_STATUS=${CHECKED_IN_PREVIEW_STATUS:-NOT_CHECKED}"
           echo 'PREVIEW_GRADE=SOURCE_BOUND_UI_ONLY'
           echo 'INSTALLED_MV3_CHROME=NOT_TESTED_BY_THIS_JOB'
           echo 'MAC_NATIVE_SIDE_PANEL=NOT_TESTED'
