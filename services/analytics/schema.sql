@@ -7,9 +7,10 @@ CREATE TABLE IF NOT EXISTS analytics_events (
   occurred_at TEXT NOT NULL,
   received_at INTEGER NOT NULL,
   event_json TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','sent')),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','sending','sent')),
   attempts INTEGER NOT NULL DEFAULT 0,
   next_attempt_at INTEGER NOT NULL DEFAULT 0,
+  lease_until INTEGER NOT NULL DEFAULT 0,
   sent_at INTEGER
 );
 CREATE INDEX IF NOT EXISTS analytics_pending ON analytics_events (status,next_attempt_at,received_at);
