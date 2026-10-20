@@ -1,9 +1,11 @@
 import {AGENT_CONFIG_PROTOCOL} from './protocol.js';
+import {initAnalyticsConsentControls} from '../analytics/consent-ui.js';
 import {createDevelopmentPairingRequest} from './pairing.js';
 import {recoverControlFocus} from './control-focus.js';
 import {initTrustedPageLocale,subscribeLocale,translate} from '../i18n/index.js';
 export function initNativeAgentSettings({api=globalThis.chrome,document:doc=globalThis.document,navigate=url=>globalThis.location.assign(url)}={}) {
   initTrustedPageLocale({api,doc,page:'settings'});
+  initAnalyticsConsentControls({api,doc});
   const status=doc.getElementById('bridge-status'),enable=doc.getElementById('bridge-enable'),
     disable=doc.getElementById('bridge-disable'),refresh=doc.getElementById('bridge-refresh'),pair=doc.getElementById('bridge-pair');
   const show=value=>{status.textContent=value};

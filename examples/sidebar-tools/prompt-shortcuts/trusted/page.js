@@ -1,4 +1,5 @@
 import './model.js';
+import {ANALYTICS_PROTOCOL} from '../../../../src/analytics/contract.js';
 import {SIDEBAR_TOOL_STORE} from '../../../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled} from '../../../../src/ui/sidebar-tools/lifecycle.js';
 import {PROMPT_ID,PROMPT_DATA_STORE,PROMPT_PICKER_PROTOCOL,supportedOrigin,allowedPromptSite,installedPromptTool} from './policy.js';
@@ -601,6 +602,13 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       clearFeedback();
     },kind==='error'?5000:3000);
   };
+  const reportAnalytics=(event,channel='page_button',reason=null)=>{
+    // This bundled trusted content script sends no page text, URL or prompt body.
+    try{void Promise.resolve(api.runtime?.sendMessage?.({
+      protocol:ANALYTICS_PROTOCOL,kind:'event.page_report',
+      toolId:PROMPT_ID,event,channel,...(reason?{reason}:{})
+    })).catch(()=>{});}catch{/* Never affect editing or clipboard behavior. */}
+  };
   const fallbackCopy=async(body,_reason)=>{
     const token=epoch,location=win.location.href;
     const current=()=>!disposed&&!paused&&visible&&token===epoch&&location===win.location.href&&host?.isConnected;
@@ -609,10 +617,12 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     try{
       if(!win.navigator?.clipboard?.writeText)throw Error('浏览器没有提供可用的剪贴板写入接口');
       await win.navigator.clipboard.writeText(body);
-      if(current())showFeedback('已复制，请粘贴','success');
+      if(current()){showFeedback('已复制，请粘贴','success');
+        reportAnalytics('prompt.fallback_copied','fallback');}
     }catch(error){
-      if(current())showFeedback('插入失败，复制也失败：'+(error?.message||'剪贴板访问被拒绝')+
+      if(current()){showFeedback('插入失败，复制也失败：'+(error?.message||'剪贴板访问被拒绝')+
         '；请检查剪贴板权限。','error');
+        reportAnalytics('prompt.failed','page_button','clipboard_failed');}
     }
   };
   const editor=()=>{
@@ -714,10 +724,14 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       hideTip();clearFeedback();
       // The edit is its own visible confirmation; announce silently for screen readers.
       if(announcer&&host?.isConnected)announcer.textContent='提示词已插入草稿，未发送';
+      reportAnalytics('prompt.inserted');
     }catch(error){
       if(!disposed&&!paused&&visible&&!composing&&token===epoch&&location===win.location.href&&
          host?.isConnected&&!host.hidden){
-        if(error?.code==='E_EDITOR_CHANGED')showFeedback('输入框已切换，请重新点击快捷按钮','error');
+        if(error?.code==='E_EDITOR_CHANGED'){
+          showFeedback('输入框已切换，请重新点击快捷按钮','error');
+          reportAnalytics('prompt.failed','page_button','editor_changed');
+        }
         else await fallbackCopy(row.body,error.message);
       }
     }

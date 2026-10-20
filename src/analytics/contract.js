@@ -22,7 +22,7 @@ export function validateAnalyticsEvent(value,{now=Date.now()}={}){
     !uuid.test(value.eventId||'')||!uuid.test(value.installId||'')||
     !ANALYTICS_EVENTS.includes(value.event)||!toolId.test(value.toolId||'')||
     !sources.has(value.source)||!channels.has(value.channel)||
-    typeof value.timestamp!=='string'||!/^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d\\.\\d{3}Z$/.test(value.timestamp))
+    typeof value.timestamp!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(value.timestamp))
     throw Object.assign(new Error('Invalid analytics event'),{code:'E_ANALYTICS_SCHEMA'});
   const time=Date.parse(value.timestamp);
   if(!Number.isFinite(time)||time>now+5*60*1000||time<now-ANALYTICS_MAX_AGE_MS)

@@ -10,11 +10,14 @@ import {installAiAccessService} from '../examples/sidebar-tools/ai-vip-share/tru
 import {reconcileManagedProxy,MANAGED_PROXY_ALARM} from './platform/chrome/browser-managed-proxy.js';
 import {createCloudRunnerLifecycle} from './cloud-control/runner-lifecycle.js';
 import {handlePromptRailOpen} from '../examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
+import {installAnalyticsHost} from './analytics/host.js';
 
 
 export function initServiceWorker({development=null}={}) {
 let pendingFoundation=0;
 configureSidePanel(chrome).catch(error => console.error(`[side-panel ${error.code || 'E_TARGET'}] ${error.message}`));
+// Isolated trusted telemetry sidecar; disabled until a configured endpoint and opt-in.
+installAnalyticsHost({api:chrome});
 // Validated foundation ports are shared only with the fixed local Native
 // transport. Failure to load optional Native code cannot disable Sidebar.
 const hostPorts=globalThis.__opendeskNativeHostPorts=new Map();
