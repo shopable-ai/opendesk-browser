@@ -71,28 +71,20 @@ test('R4.7 installed Page still uses user gesture, grants, manifest and generati
   assert.match(page,/expectedGeneration:installed\.authorization\?\.generation\?\?null/);
 });
 
-test('R4.7 accessible context menu and low frequency controls, no invented preview/install shortcut',async()=>{
-  const [center,css]=await Promise.all([
+test('R5.11 React overflow owns uninstall while original trusted controller guards writes',async()=>{
+  const [center,react,css]=await Promise.all([
     readFile('src/ui/extension-center.js','utf8'),
+    readFile('src/ui/react/tabs/tools.tsx','utf8'),
     readFile('src/ui/extension-center.css','utf8')
   ]);
-  assert.match(center,/rowMenu\.setAttribute\('role','menu'\)/);
-  assert.match(center,/b\.setAttribute\('role','menuitem'\)/);
-  assert.match(center,/manage\.setAttribute\('aria-haspopup','menu'\)/);
-  assert.match(center,/manage\.setAttribute\('aria-expanded','false'\)/);
-  assert.match(center,/rowMenu\.hidden=false/);
-  assert.match(center,/if\(event\.key==='Escape'\)\{event\.preventDefault\(\);closeRowMenu\(true\);return;\}/);
-  assert.match(center,/\['ArrowDown','ArrowUp','Home','End'\]/);
-  assert.match(center,/doc\.addEventListener\('scroll',onScroll,true\)/);
-  // Candidates never get a one-click install shortcut. Detail shows the trusted
-  // review only after a pending uninstall cleanup has been recovered.
-  assert.match(center,/if\(row\.kind==='app'\)\{\s*if\(!row\.installed\)\{\s*if\(row\.cleanupPending\)\s*actions\.append\(detailButton\('恢复卸载清理'/);
-  assert.match(center,/else actions\.append\(detailButton\('审阅并安装',\(\)=>openReview\(row\.key\),'install'\)\)/);
-  assert.match(center,/if\(row\.cleanupPending\)\{message\('此应用卸载清理未完成/);
-  assert.match(center,/if\(resolveExtensionRowIntent\(row\)==='detail'\)\{openDetail\(key,'main'\);return;\}/);
-  assert.doesNotMatch(center,/if\(!row\.installed\)actions\.append\(detailButton\('审阅并安装'/);
-  assert.doesNotMatch(center,/const actionName=!row\.installed/);
-  assert.doesNotMatch(center,/button\('预览'/);
-  assert.match(css,/\.ec-context-menu\{position:fixed;z-index:1000/);
-  assert.match(css,/\.ec-row-actions\{[^}]*opacity:1;pointer-events:auto/);
+  assert.match(center,/add\('卸载…',event=>openListUninstallReview\(row\.key,event\),'uninstall'\)/);
+  assert.match(center,/if\(!event\?\.isTrusted\|\|disposed\|\|busy\|\|pendingKey\|\|listUninstallReview/);
+  assert.match(center,/samePageIdentity\(row,review\.identity\)/);
+  assert.match(center,/sameSidebarToolPackage\(row\.record,review\.package\)/);
+  assert.match(react,/data-extension-action="more" aria-haspopup="menu"/);
+  assert.match(react,/role="menuitem"/);
+  assert.match(react,/event\.key==='Escape'/);
+  assert.match(react,/\['ArrowDown','ArrowUp','Home','End'\]/);
+  assert.doesNotMatch(react,/data-extension-action="uninstall"/);
+  assert.match(css,/\.ec-context-action\[data-ec-context-action="uninstall"\]/);
 });
