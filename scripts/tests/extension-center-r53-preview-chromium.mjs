@@ -127,25 +127,29 @@ try{
     const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
     await writeFile(join(artifacts,'extensions.png'),Buffer.from(shot.data,'base64'));
   }
-  const listUninstall='[data-extension-key="app:demo-reading"][data-extension-action="uninstall"]';
+  const listMenu='[data-extension-key="app:demo-reading"][data-extension-action="more"]';
+  const chooseListUninstall=async key=>{
+    await click('[data-extension-key="'+key+'"][data-extension-action="more"]');
+    await waitUntil('!!document.querySelector("#extension-center-row-menu [data-ec-context-action=uninstall]")');
+    await click('#extension-center-row-menu [data-ec-context-action="uninstall"]');
+  };
   await click('[data-extension-key="app:demo-reading"][data-extension-action="main"]');
   await waitUntil('!document.getElementById("extension-center-detail").hidden');
   assert.equal(await evaluate('document.getElementById("extension-center-back").getAttribute("aria-label")'),
     '返回扩展列表','Icon back must remain accessible');
   await click('#extension-center-back');
   await waitUntil('!document.getElementById("extension-center-list-view").hidden');
-  // Real Chromium pointer input into the same existing shared modal, opened
-  // DIRECTLY from installed list trash. No settings/detail navigation is allowed.
+  // The destructive action lives only in the on-demand menu, never on the row.
   assert.equal(await evaluate('document.querySelectorAll("[data-extension-action=uninstall]").length'),
-    2,'Both installed types expose direct uninstall; candidates never do');
-  await click('[data-extension-key="app:demo-reading"][data-extension-action="uninstall"]');
+    0,'No installed row exposes a direct delete button');
+  await chooseListUninstall('app:demo-reading');
   await waitUntil('!!document.querySelector(".od-uninstall-dialog[aria-modal=true]")');
   assert.equal(await evaluate('document.getElementById("extension-center-detail").hidden'),true,
     'List uninstall must not navigate to detail');
   assert.equal(await evaluate('document.activeElement?.hasAttribute("data-uninstall-cancel")'),
     true,'Uninstall confirmation should first focus Cancel');
   assert.equal(await evaluate('document.querySelectorAll(".od-uninstall-dialog").length'),1,
-    'Direct uninstall opens exactly one modal, centered outside the list');
+    'Overflow uninstall opens exactly one modal, centered outside the list');
   assert.match(await evaluate('document.querySelector(".od-uninstall-dialog h2").textContent'),
     /演示 · 阅读/,'The modal identifies the exact selected app');
   {
@@ -166,23 +170,23 @@ try{
   await waitUntil('!document.querySelector(".od-uninstall-dialog")');
   assert.equal(await evaluate('document.querySelectorAll("#extension-center-list > li").length'),2,
     'Cancel must not remove any installed item');
-  assert.equal(await evaluate('document.activeElement?.matches('+JSON.stringify(listUninstall)+')'),true,
+  assert.equal(await evaluate('document.activeElement?.matches('+JSON.stringify(listMenu)+')'),true,
     'Cancelling restores focus to the reviewed row action');
-  await click('[data-extension-key="app:demo-reading"][data-extension-action="uninstall"]');
+  await chooseListUninstall('app:demo-reading');
   await click('.od-uninstall-dialog .od-uninstall-confirm');
   await waitUntil('document.querySelectorAll("#extension-center-list > li").length===1');
   assert.equal(await evaluate('document.querySelector("#extension-center-list > li").dataset.extensionId'),
     'page:demo-markup','Only the reviewed App disappears from the in-memory preview');
   assert.match(await evaluate('document.getElementById("extension-center-status").textContent'),
     /仅内存演示/,'Preview success cannot claim any real uninstall');
-  await click('[data-extension-key="page:demo-markup"][data-extension-action="uninstall"]');
+  await chooseListUninstall('page:demo-markup');
   await waitUntil('!!document.querySelector(".od-uninstall-dialog[aria-modal=true]")');
   assert.match(await evaluate('document.querySelector(".od-uninstall-dialog h2").textContent'),
     /网页内容标注/,'Page modal identifies its own selected identity');
   await click('.od-uninstall-dialog [data-uninstall-cancel]');
   assert.equal(await evaluate('document.querySelectorAll("#extension-center-list > li").length'),1,
     'Page cancel is also no-op');
-  await click('[data-extension-key="page:demo-markup"][data-extension-action="uninstall"]');
+  await chooseListUninstall('page:demo-markup');
   await click('.od-uninstall-dialog .od-uninstall-confirm');
   await waitUntil('document.querySelectorAll("#extension-center-list > li").length===0');
   // A fresh isolated preview resets demo data before checking search and import.
