@@ -233,7 +233,7 @@ try{
   await until(ctx,"document.querySelector('.bm-heading span')?.textContent.includes('2,159')",'initial data '+width);
    const hostButton=await invoke(ctx,"const b=document.createElement('button');document.querySelector('.bm-app').append(b);const s=getComputedStyle(b),value=[s.paddingLeft,s.minHeight];b.remove();return value;");
    assert.deepEqual(hostButton,['12px','34px'],'preview must include actual trusted host button defaults '+width);
-   await assertIconCentered(ctx,'.bm-icon-btn','topbar icon '+width,{shared:true});
+   await assertIconCentered(ctx,'.bm-topbar .bm-icon-btn','topbar icon '+width,{shared:true});
    await assertIconCentered(ctx,'.bm-disclosure:not(.is-placeholder)','tree folder chevron '+width);
    await assertIconCentered(ctx,'.bm-row-more','tree row action '+width,{shared:true});
   assert.deepEqual(await invoke(ctx,"return [...document.querySelectorAll('.bm-topbar .bm-icon-btn')].map(el=>el.getAttribute('aria-label'))"),['新建书签','新建文件夹','收藏当前页','对话','刷新书签'],'shared topbar labels '+width);
@@ -242,6 +242,7 @@ try{
   // No Provider is connected in this formal mock fixture.
   await click(ctx,'button[aria-label="对话"]');
   await until(ctx,"document.getElementById('bm-conversation')?.hidden===false",'conversation opens '+width);
+   assert.equal(await invoke(ctx,"return document.querySelector('#bm-conversation button[aria-label=\"发送\"]')?.type"),'submit','real conversation send must submit '+width);
   await click(ctx,'.bm-chat-samples button');
   await until(ctx,"document.getElementById('bm-chat-request')?.value.includes('AI 工具')",'conversation draft '+width);
   await click(ctx,'button[aria-label="对话"]');

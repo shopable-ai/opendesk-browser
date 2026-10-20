@@ -335,7 +335,12 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
    const partial=error?.partial?.length?'已确认 '+error.partial.length+' 项操作。其余未完成。 ':'';
    const text=error?.code==='E_CANCELLED'?'本轮已停止，未发送后续操作。':
     partial+(error?.message||'操作失败。没有将未确认写入视为成功。');
-   if(activeRef.current)setChatError(text);
+   if(activeRef.current){
+    setChatError(text);
+    // Restore editable input on Provider/pre-write failures, but never replay a write.
+    if(!error?.writeIssued&&!error?.partial?.length&&error?.code!=='E_OUTCOME_UNKNOWN')
+     setChatDraft(requestText);
+   }
    appendConversation('系统',text);
   }finally{
    chatInFlight.current=false;chatAbort.current=null;busyRef.current=false;
@@ -603,7 +608,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
      <div className="bm-chat-empty">
       <p>直接说出你想对书签做什么。</p>
       <div className="bm-chat-samples">
-       {['创建一个叫 AI 工具的文件夹','把当前网页收藏到 AI 工具','找出 React 相关书签'].map(sample=>
+       {['创建一个叫 AI 工具的文件夹，并把 https://example.com 收藏进去','把当前网页收藏到 AI 工具','找出 React 相关书签'].map(sample=>
         <button type="button" key={sample} onClick={()=>{setChatDraft(sample);chatInput.current?.focus()}}>{sample}</button>)}
       </div>
      </div>}
@@ -619,7 +624,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
       e.preventDefault();void sendConversation(e);
      }}}/>
     <div className="bm-chat-controls">
-     <small>{conversation?.source?.().label||'离线预览'} · 实际书签读回</small>
+     <small>{conversation?.source?.().label||'离线预览'} · {mode==='trusted'?'Chrome 书签读回核验':'模拟书签读回（非 Chrome）'}</small>
      {chatBusy?<OpenDeskIconButton label="停止对话" className="bm-icon-btn" onClick={stopConversation}><Icon name="stop" size={16}/></OpenDeskIconButton>:
       <OpenDeskIconButton label="发送" type="submit" className="bm-icon-btn bm-icon-btn--primary" disabled={!chatDraft.trim()||!tree||loading||uncertain}><Icon name="send" size={16}/></OpenDeskIconButton>}
     </div>
