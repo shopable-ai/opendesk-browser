@@ -6,19 +6,24 @@ const denied=(code,message)=>Object.assign(new Error(message),{code});
 export function createCookieImportIntentGate({now=()=>Date.now()}={}){
   let intent=null,sequence=0;
   return Object.freeze({
-    start({owner,origin,verifiedUserActivation}){
+    start({owner,origin,verifiedUserActivation,multiOrigin=false}){
       if(verifiedUserActivation!==true)
         throw denied('E_USER_GESTURE_REQUIRED','请重新点击导入按钮');
       if(typeof owner!=='string'||!owner||typeof origin!=='string'||
          !/^https?:\/\//.test(origin))
         throw denied('E_SCHEMA','无效的 Cookie 导入范围');
       if(intent?.inFlight)throw denied('E_BUSY','当前 Cookie 导入仍在写入');
-      intent={owner,origin,ref:++sequence,expiresAt:now()+COOKIE_IMPORT_INTENT_TTL_MS,used:0,inFlight:false};
+      intent={owner,origin,multiOrigin:multiOrigin===true,ref:++sequence,expiresAt:now()+COOKIE_IMPORT_INTENT_TTL_MS,used:0,inFlight:false};
       return {authorized:true,ref:intent.ref,expiresAt:intent.expiresAt};
     },
-    acquire({owner,origin,count}){
+    acquire({owner,origin,count,sourceOrigin=origin}){
       if(!intent||intent.owner!==owner)return false;
-      if(intent.origin!==origin||now()>=intent.expiresAt){
+      let destination;
+      try{destination=new URL(origin);}catch{}
+      if(intent.origin!==sourceOrigin||!destination||
+         !['http:','https:'].includes(destination.protocol)||
+         destination.origin!==origin||destination.username||destination.password||
+         (!intent.multiOrigin&&intent.origin!==origin)||now()>=intent.expiresAt){
         intent=null;throw denied('E_DOCUMENT_CHANGED','导入范围已变化或超时');
       }
       if(intent.inFlight)throw denied('E_BUSY','Cookie 批次正在写入');

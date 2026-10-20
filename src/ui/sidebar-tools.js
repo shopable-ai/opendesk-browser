@@ -1147,7 +1147,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
          cookieSiteRecord(tool,origin)?.write!==true)
         throw Object.assign(new Error('网站或授权已变化'),{code:'E_DOCUMENT_CHANGED'});
       return cookieImportGate.start({owner:cookieImportOwner(tool,token,revocationEpoch),
-        origin,verifiedUserActivation:verifiedGesture});
+        origin,verifiedUserActivation:verifiedGesture,multiOrigin:true});
     }
     if(operation==='cookieEditor.import.finish'){
       if(!payload||Object.keys(payload).join(',')!=='ref'||
@@ -1381,7 +1381,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         const origin=new URL(payload.url).origin;
         const requiredCookieGrant=operation==='browser.cookies.clearSite'?'clear':
           operation==='browser.cookies.observe.start'?'observe':'write';
-        if(cookieSiteRecord(tool,origin)?.[requiredCookieGrant]!==true){
+        const officialBatch=operation==='browser.cookies.setMany'&&
+          tool.id==='cookie-editor'&&await admittedOfficialCookieImport(tool,revocationEpoch);
+        if(!officialBatch&&cookieSiteRecord(tool,origin)?.[requiredCookieGrant]!==true){
           tocSettingsOpen=true;render();
           const currentOrigin=websiteOrigin(currentPageTarget?.snapshot?.url);
           throw Object.assign(new Error(currentOrigin!==origin?
@@ -1392,24 +1394,26 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         // Only the official Cookie Editor may consume a trusted one-click
         // import intent; all other callers still see the original Host review.
         // This trusted branch mints an EXACT one-shot Host approval per chunk.
-        if(operation==='browser.cookies.setMany'&&tool.id==='cookie-editor'&&
-          await admittedOfficialCookieImport(tool,revocationEpoch)){
+        if(officialBatch){
           assertSession(source,token);
           const owner=cookieImportOwner(tool,token,revocationEpoch);
-          if(!cookieImportGate.acquire({owner,origin,count:payload.cookies.length}))
+          const sourceOrigin=websiteOrigin(currentPageTarget?.snapshot?.url);
+          if(!sourceOrigin||cookieSiteRecord(tool,sourceOrigin)?.write!==true)
+            throw Object.assign(new Error('当前网站写入授权已改变'),{code:'E_SITE_GRANT_REQUIRED'});
+          if(!cookieImportGate.acquire({owner,origin,count:payload.cookies.length,sourceOrigin}))
             throw Object.assign(new Error('一键导入操作未授权或已结束'),
               {code:'E_USER_GESTURE_REQUIRED'});
           {
             importBatchOwner=owner;
             try{
-              if(websiteOrigin(currentPageTarget?.snapshot?.url)!==origin||
-                 cookieSiteRecord(tool,origin)?.write!==true)
+              if(websiteOrigin(currentPageTarget?.snapshot?.url)!==sourceOrigin||
+                 cookieSiteRecord(tool,sourceOrigin)?.write!==true)
                 throw Object.assign(new Error('网站或写入授权已改变'),
                   {code:'E_DOCUMENT_CHANGED'});
               const approval=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
                 operation:'browser.intent.confirm',toolId:tool.id,toolVersion:tool.version,
                 installEpoch:revocationEpoch,toolInstance:token,hostInstanceId,
-                targetOperation:operation,targetArgs:payload||{}});
+                targetOperation:operation,targetArgs:payload||{},cookieImportSource:sourceOrigin});
               if(!approval?.ok||typeof approval.data?.approvalRef!=='string')
                 throw Object.assign(new Error(approval?.error?.message||'可信 Host 拒绝本次写入'),
                   {code:approval?.error?.code||'E_BROWSER'});
