@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {createPortal} from 'react-dom';
 import {createRoot} from 'react-dom/client';
-import {ExtensionToolbar,ExtensionRows,ExtensionDetail,ExtensionEmpty,UninstallDialog} from '../tabs/tools.tsx';
+import {ExtensionToolbar,ExtensionRows,ExtensionDetail,ExtensionEmpty} from '../tabs/tools.tsx';
 import {DeveloperPage,DeveloperDock} from '../tabs/develop.tsx';
 import {createDeveloperPreviewView} from './developer-preview.js';
 import {WorkflowHeader,WorkflowHistory,WorkflowSourceName,WorkflowTranscript,WorkflowSettingsSheet} from '../tabs/workflow.tsx';
@@ -205,7 +205,6 @@ function Preview(){
         add('uninstall','卸载…');
       }else add('install','审阅并安装（预览）');
     }else{
-      if(row.installed)add('uninstall','卸载网页增强…');
       add('toggle',row.enabled?'停用自动运行':'启用自动运行');
       add('revoke','撤销网站授权…');
       add('develop','前往开发');
@@ -218,29 +217,6 @@ function Preview(){
       actions,busy:!!extensionReview,suspended:scene==='denied'||row.suspended===true,
       cleanupPending:false};
   })();
-  const confirmPreviewReview=()=>{
-    if(!extensionReview)return;
-    const {type,key}=extensionReview;
-    if(type==='develop'){setTab('develop');setExtensionReview(null);return;}
-    setExtensionRecords(previous=>previous.map(row=>{
-      if(row.key!==key)return row;
-      if(type==='install')return {...row,installed:true,enabled:true,primaryAction:'打开'};
-      if(type==='uninstall')return {...row,installed:false,enabled:false,primaryAction:'查看详情'};
-      if(type==='update')return {...row,version:extensionReview.proposedVersion,update:false};
-      if(type==='toggle')return {...row,enabled:!row.enabled};
-      if(type==='revoke')return {...row,suspended:true,enabled:false};
-      return row;
-    }));
-    if(type==='install'){setScope('smart');setSelected(null);}
-    if(type==='uninstall'){
-      setOpenToolKey(null);setToolSettingsOpen(false);setSelected(null);setScope('smart');
-      // An uninstalled entry must leave the installed list, not appear as a candidate.
-      requestAnimationFrame(()=>get('extension-center-search').focus({preventScroll:true}));
-    }
-    setNotice(type==='uninstall'?'仅预览 · 已从已安装列表移除（仅内存，无真实 Host 回执）':
-      '仅预览 · 仅修改内存扩展列表，无任何真实 Host 回执');
-    setExtensionReview(null);
-  };
   const transcript=workflowConversationCleared?[]:(messages[scene]||[]);
   const allTaskRows=scene==='empty'||scene==='loading'?[]:[
     {taskId:'preview-task',title:'网页资料填写',version:'1.0.0',
@@ -288,7 +264,7 @@ function Preview(){
     get('sidebar-tool-settings-view').hidden=true; // Host settings cannot execute offline.
     importPanel.hidden=!importOpen;
     if(importOverlay)importOverlay.hidden=!importOpen;
-    actionReview.hidden=!extensionReview||extensionReview.type==='uninstall';
+    actionReview.hidden=!extensionReview;
     get('sidebar-tool-preview').hidden=!importCandidate;
     get('sidebar-tool-install').disabled=!importCandidate;
     get('sidebar-tool-preview-title').textContent=importCandidate?.title||'';
@@ -427,7 +403,28 @@ function Preview(){
     const closed=bind('sidebar-tool-import-close',()=>setImportOpen(false));
     const open=bind('sidebar-tool-import-trigger',beginImport);
     const closeReview=bind('sidebar-tool-action-cancel',()=>setExtensionReview(null));
-    const confirm=bind('sidebar-tool-action-continue',confirmPreviewReview);
+    const confirm=bind('sidebar-tool-action-continue',()=>{
+      if(!extensionReview)return;
+      const {type,key}=extensionReview;
+      if(type==='develop'){setTab('develop');setExtensionReview(null);return;}
+      setExtensionRecords(previous=>previous.map(row=>{
+        if(row.key!==key)return row;
+        if(type==='install')return {...row,installed:true,enabled:true,primaryAction:'打开'};
+        if(type==='uninstall')return {...row,installed:false,enabled:false,primaryAction:'查看详情'};
+        if(type==='update')return {...row,version:extensionReview.proposedVersion,update:false};
+        if(type==='toggle')return {...row,enabled:!row.enabled};
+        if(type==='revoke')return {...row,suspended:true,enabled:false};
+        return row;
+      }));
+      if(type==='install'){setScope('smart');setSelected(null);}
+      if(type==='uninstall'){
+        setOpenToolKey(null);setToolSettingsOpen(false);setSelected(null);setScope('available');
+        // Restore focus to a visible control when the detail and review close.
+        requestAnimationFrame(()=>get('extension-center-search').focus({preventScroll:true}));
+      }
+      setNotice('仅预览 · 仅修改内存扩展列表，无任何真实 Host 回执');
+      setExtensionReview(null);
+    });
     const fileInput=get('sidebar-tool-file');
     const readFile=async event=>{
       const file=event.currentTarget.files?.[0];setImportCandidate(null);setImportError('');
@@ -660,21 +657,6 @@ function Preview(){
     {createPortal(<ExtensionEmpty model={{showEmpty:rows.length===0,
       emptyText:'仅预览 · 当前没有匹配项目'}} container={extensionEmpty}/>,extensionEmpty)}
     {createPortal(<ExtensionDetail model={detail} container={extensionDetail}/>,extensionDetail)}
-    <UninstallDialog open={extensionReview?.type==='uninstall'}
-      title={'卸载「'+(extensionReview?.title||'示例扩展')+'」？'}
-      returnFocusSelector="#extension-center-search"
-      onCancel={()=>setExtensionReview(null)}>
-      <p>{extensionReview?.kind==='page'?
-        '确认后将停止该网页增强的自动运行，并移出已安装列表。':
-        '确认后将移除工具。正式产品同时清理该工具的本地数据和网站授权。'}
-        {' 预览仅修改内存演示数据，不会卸载真实扩展。'}</p>
-      <div className="od-uninstall-dialog-actions">
-        <button type="button" className="od-button od-button--secondary"
-          data-uninstall-cancel="true" onClick={()=>setExtensionReview(null)}>取消</button>
-        <button type="button" className="od-button od-uninstall-confirm"
-          onClick={confirmPreviewReview}>确认卸载（仅预览）</button>
-      </div>
-    </UninstallDialog>
     {createPortal(<MyTaskCount value={taskRows.length+' 个已安装任务'}/>,myCount)}
     {createPortal(<MyTaskRows rows={taskRows} selectedId={selectedTask}
       workspace={myWorkspace} manageMode={taskManageMode}
