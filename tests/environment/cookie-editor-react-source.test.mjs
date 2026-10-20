@@ -99,6 +99,19 @@ test('R5.25 file selection never starts a Cookie write or trusted import intent'
   assert.doesNotMatch(importer,/onPick=\{[^\n]*beginIntent\(/);
 });
 
+test('R5.26 React import requires explicit opt-in before replacing native Cookie identities',async()=>{
+  const [importer,app]=await Promise.all([
+    get('app/components/CookieImport.jsx'),get('app/CookieEditorApp.jsx')]);
+  assert.match(importer,/\[overwrite,setOverwrite\]=React\.useState\(false\)/);
+  assert.match(importer,/type="checkbox" checked=\{overwrite\}/);
+  assert.match(importer,/onChange=\{event=>setOverwrite\(event\.currentTarget\.checked\)\}/);
+  assert.match(importer,/onImportText\?\.\(text,\{overwrite\}\)/);
+  assert.match(app,/const importFromText=async \(text,\{overwrite=false\}=\{\}\)=>/);
+  assert.match(app,/controller\.previewImport\(text,'auto',overwrite,\{allSites:true\}\)/);
+  assert.match(app,/controller\.executeImport\(text,'auto',overwrite,\{allSites:true\}\)/);
+  assert.doesNotMatch(app,/controller\.(?:previewImport|executeImport)\(text,'auto',true,\{allSites:true\}\)/);
+});
+
 test('advanced Cookie identities use shared-App JSX and remain read-only for existing records',async()=>{
   const [view,preview,editor]=await Promise.all([
     get('app/components/CookieEditorView.jsx'),

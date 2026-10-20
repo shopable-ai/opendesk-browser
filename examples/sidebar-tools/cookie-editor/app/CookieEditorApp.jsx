@@ -214,14 +214,14 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     activeImportRef.current=receipt.ref;
     return true;
   };
-  const importFromText=async text=>{
+  const importFromText=async (text,{overwrite=false}={})=>{
     // Keep Controller's real preflight/Host receipt, but make it one user action.
     // Raw Cookie values are never stored in React state or rendered as a preview.
     const initial=controller.snapshot();
     if(modeRef.current!=='browser'||initial.phase!=='ready')return false;
     const sessionRef=activeImportRef.current;
     try{
-    const plan=await controller.previewImport(text,'auto',true,{allSites:true});
+    const plan=await controller.previewImport(text,'auto',overwrite,{allSites:true});
     // Never report a stale success/error against a newly selected site.
     const currentSite=controller.snapshot();
     if(initial.epoch!==currentSite.epoch||
@@ -241,7 +241,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       noteImport('未导入 '+plan.total+' 条：'+reason);
       return false;
     }
-    const ok=await controller.executeImport(text,'auto',true,{allSites:true});
+    const ok=await controller.executeImport(text,'auto',overwrite,{allSites:true});
     if(ok){
       restoreImportFocus.current=true;
       noteImport('已导入 '+plan.accepted+' 条'+

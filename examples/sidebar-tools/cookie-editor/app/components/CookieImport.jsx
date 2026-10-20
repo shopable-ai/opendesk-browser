@@ -14,6 +14,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
   const sourceRef=React.useRef(null);
   const stagedFile=React.useRef(null);
   const [stagedName,setStagedName]=React.useState('');
+  const [overwrite,setOverwrite]=React.useState(false);
   const active=React.useRef(false);
   const running=React.useRef(false);
   const reading=React.useRef(false);
@@ -57,7 +58,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
         onNotice?.('本次导入未获得可信操作授权，请重新点击导入。','error');
         return;
       }
-      const imported=await onImportText?.(text);
+      const imported=await onImportText?.(text,{overwrite});
       if(imported==='unknown')setUncertain(true);
       if(imported===true){
         stagedFile.current=null;
@@ -144,6 +145,12 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
           autoComplete="off" spellCheck={false} data-cookie-secret-input="true"
           disabled={disabled||busy||uncertain}
           onInput={()=>{if(stagedFile.current){stagedFile.current=null;setStagedName('');}}}/>
+      </label>
+      <label className="cookie-import-overwrite">
+        <input type="checkbox" checked={overwrite}
+          disabled={disabled||busy||uncertain}
+          onChange={event=>setOverwrite(event.currentTarget.checked)}/>
+        <span>覆盖已存在的 Cookie（默认不覆盖）</span>
       </label>
       <div className="cookie-import-actions">
         <Button type="button" variant="primary" disabled={disabled||busy||uncertain}
