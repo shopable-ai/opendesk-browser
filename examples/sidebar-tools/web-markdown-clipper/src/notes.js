@@ -68,8 +68,13 @@ function createStore({request,now=()=>new Date().toISOString(),
     try{checked=await read();}catch{/* No read means unknown, never claim success. */}
     if(checked&&stable(checked.data)===stable(next))return change.result;
     if(problem?.code==='E_STORAGE_CONFLICT')throw fail('E_STORAGE_CONFLICT','其他窗口已修改摘录，请重新读取');
-    if(['E_LIMIT','E_TOOL_DATA_LIMIT'].includes(problem?.code))
+    if(['E_LIMIT','E_TOOL_DATA_LIMIT','E_HOST_STORAGE_QUOTA'].includes(problem?.code))
      throw fail('E_QUOTA','存储空间不足，请备份或删除旧内容');
+    // The existing verified Host emits E_HOST_STORAGE_WRITE only after it
+    // re-reads an unchanged previous value. A verified no-write is retryable.
+    if(problem?.code==='E_HOST_STORAGE_WRITE'&&checked&&
+       stable(checked.data)===stable(before.data))
+     throw fail('E_STORAGE_WRITE','保存失败，已确认旧数据未变化；可以重试');
     uncertain=true;
     throw fail('E_OUTCOME_UNKNOWN','保存结果尚未确认，请重新读取核对后再操作');
    }

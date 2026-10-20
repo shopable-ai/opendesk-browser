@@ -19,6 +19,7 @@ function fixture(){
   assert.equal(op,'storage.set');
   assert.equal(args.ifMatch,token(),'writes must use host ETag compare-and-swap');
   if(mode==='quota')throw error('E_TOOL_DATA_LIMIT');
+  if(mode==='host-failure')throw error('E_HOST_STORAGE_WRITE');
   if(mode==='lost-before')throw error('E_TOOL_TIMEOUT');
   value=structuredClone(args.value);writes++;
   if(mode==='lost-after'){mode='normal';throw error('E_TOOL_TIMEOUT');}
@@ -90,6 +91,16 @@ test('an unconfirmed write blocks further changes until explicit fresh read',asy
  assert.equal(a.uncertain,false);
  const r=await a.save({body:'new content',kind:'note'});
  assert.equal(r.item.body,'new content');
+});
+test('Host-confirmed no-write failure is recoverable without an unnecessary unknown outcome',async()=>{
+ const f=fixture(),a=f.create('clip-failed-111111');
+ f.setMode('host-failure');
+ await assert.rejects(a.save({body:'not persisted',kind:'note'}),e=>e.code==='E_STORAGE_WRITE');
+ assert.equal(a.uncertain,false);
+ assert.equal(f.read(),null);
+ f.setMode('normal');
+ await a.save({body:'persist after failure',kind:'note'});
+ assert.equal(f.read().items[0].body,'persist after failure');
 });
 test('stale edit baseline and invalid web sources fail closed',async()=>{
  const f=fixture(),a=f.create('clip-edit-111111');
