@@ -16,6 +16,7 @@ on:
       - 'tests/environment/bookmark-manager-r308-clickable-detail-url.test.mjs'
       - 'tests/environment/bookmark-manager-r306-trusted-react.test.mjs'
       - 'tests/environment/bookmark-manager-r32-formal-source.test.mjs'
+      - 'tests/environment/bookmark-manager-r33-default-react.test.mjs'
       - 'scripts/bundle-provenance.mjs'
       - '.github/workflows/bookmark-manager-r302-react-preview.yml'
   workflow_dispatch:
@@ -42,6 +43,7 @@ jobs:
             tests/environment/bookmark-manager-r306-trusted-react.test.mjs \
             tests/environment/bookmark-manager-r31-trusted-lifecycle.test.mjs \
             tests/environment/bookmark-manager-r32-formal-source.test.mjs \
+            tests/environment/bookmark-manager-r33-default-react.test.mjs \
             tests/environment/bookmark-manager-r24-lifecycle.test.mjs \
             tests/environment/bundle-provenance.test.mjs
       - name: Check formal source
