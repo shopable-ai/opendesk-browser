@@ -2,7 +2,7 @@ import * as React from 'react';
 import {Button} from '@opendesk/ui';
 import {createCookieSdkAdapter} from './adapters/browser-sdk.js';
 import {createCookieController} from './controller/cookie-controller.js';
-import {CookieEditorView,CookieIcon,CookieIconButton} from './components/CookieEditorView.jsx';
+import {CookieEditorView,CookieIconButton} from './components/CookieEditorView.jsx';
 import CookieInlineEditor from './components/CookieInlineEditor.jsx';
 import CookieClearDialog from './components/CookieClearDialog.jsx';
 import CookieImport from './components/CookieImport.jsx';
@@ -27,7 +27,6 @@ export default function CookieEditorApp({request,hostRoot,setState}){
   const [sort,setSort]=React.useState('name');
   const [page,setPage]=React.useState(1);
   const [expanded,setExpanded]=React.useState(false);
-  const [siteInput,setSiteInput]=React.useState('');
   const [dirty,updateDirty]=React.useState(false);
   const setDirty=value=>{syncGate.current.dirty=value;updateDirty(value);};
   const dirtyRef=React.useRef(false);
@@ -103,7 +102,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     const hadDirty=dirtyRef.current;
     controller.invalidate(reason);
     cleanEditor();setConfirmation(null);setQuery('');setPage(1);
-    if(siteChanged){appliedSite.current='';setSiteInput('');}
+    if(siteChanged)appliedSite.current='';
     if(wasBusy)setStatus('网站或权限在操作期间改变，写入结果可能未知。请核对 Chrome，禁止自动重试。');
     else{
       if(hadDirty)setStatus('网站或授权已改变，未保存的 Cookie 草稿已清除；请重新编辑。');
@@ -363,31 +362,6 @@ export default function CookieEditorApp({request,hostRoot,setState}){
         disabled={busy} onRetry={()=>guarded(refresh)}/>
       {snapshot.phase==='ready'&&<div className="od-surface cookie-editor-workspace">
         {panel===null&&<CookieEditorView site={target?.hostname||''} syncStale={snapshot.syncStale}
-          utilities={<details className="cookie-utility-settings od-disclosure">
-            <summary title="更多工具" aria-label="更多工具"><CookieIcon name="more"/></summary>
-            <div className="cookie-utility-content">
-              <label htmlFor="cookie-target-url" className="cookie-target-label">网站 URL
-                <input className="od-field" id="cookie-target-url" type="url"
-                  value={siteInput} disabled={locked} placeholder="https://example.com/"
-                  onChange={e=>setSiteInput(e.target.value)}/>
-              </label>
-              <div className="cookie-utility-actions">
-                <CookieIconButton name="check" label="切换网站"
-                  disabled={locked||!siteInput.trim()}
-                  onClick={()=>guarded(()=>{
-                    appliedSite.current=siteInput.trim();setSelected(null);setPanel(null);
-                    void controller.load(appliedSite.current);
-                  })}/>
-                <CookieIconButton name="globe" label="跟随当前页" disabled={locked}
-                  onClick={()=>guarded(()=>{
-                    appliedSite.current='';setSiteInput('');void controller.load();
-                  })}/>
-                <span className="cookie-utility-spacer"/>
-                <Button variant="secondary" disabled={locked}
-                  onClick={()=>switchMode('offline')}>离线文件</Button>
-              </div>
-            </div>
-          </details>}
           rows={snapshot.rows} selected={selected} onSelect={select}
           onRefresh={()=>guarded(refresh)}
           query={query} onQuery={v=>{setQuery(v);setPage(1);}}

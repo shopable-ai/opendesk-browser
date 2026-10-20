@@ -166,13 +166,12 @@ export function CookieAdvancedFields({draft,existing=false,disabled=false,onChan
   </details>;
 }
 // Pure presentation shared by Preview and official React.
-export function CookieSiteBar({site,loading=false,readonly=false,busy=false,granted=true,syncStale=false,onRefresh,utilities}){
+export function CookieSiteBar({site,loading=false,readonly=false,busy=false,granted=true,syncStale=false,onRefresh}){
   return <header className="site-bar">
     <strong className="site-hostname" title={site} aria-label={'网站 '+site}>{site}</strong>
     {loading&&<span className="site-status muted">读取中</span>}
     {readonly&&<span className="site-status limited">只读</span>}
     {syncStale&&<span className="site-status limited" title="自动同步暂不可用">未同步</span>}
-    {utilities}
     <Action name="refresh" label="刷新 Cookie" onClick={onRefresh}
       disabled={busy||!granted||typeof onRefresh!=='function'}/>
   </header>;
@@ -259,7 +258,7 @@ export function CookieRows({
   </section>;
 }
 export function CookieEditorView({
-  site,rows=[],selected=null,onSelect=()=>{},onRefresh,syncStale=false,utilities=null,
+  site,rows=[],selected=null,onSelect=()=>{},onRefresh,syncStale=false,
   query='',onQuery=()=>{},filter='all',onFilter=()=>{},sort='name',
   onSort=()=>{},expandedFilters=false,onToggleFilters=()=>{},
   onImport,onExport,onNew,onClear,clearDisabled=false,
@@ -281,7 +280,7 @@ export function CookieEditorView({
   // Keep expanded editor reachable even when the filter or page changes.
   if(current&&!currentPage.includes(current))currentPage.unshift(current);
   return <main className="cookie-react-view" aria-label="Cookie Editor">
-    <CookieSiteBar site={site} readonly={readonly} busy={busy} utilities={utilities}
+    <CookieSiteBar site={site} readonly={readonly} busy={busy}
       syncStale={syncStale} onRefresh={onRefresh}/>
     <CookieToolbar count={rows.length} onImport={onImport} onExport={onExport}
       onNew={onNew} onClear={onClear} clearDisabled={clearDisabled}

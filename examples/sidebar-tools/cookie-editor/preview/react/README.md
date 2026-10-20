@@ -1,5 +1,7 @@
 # Cookie Editor R5.20 · shared App offline preview
 
+2026-10-20 header update: removed the entire website-URL tools dropdown to the left of Refresh in the shared App. Rebuilt `index.html` (SHA-256 `2c6b3b5744a9b6dd63ffc33e2767fa1bb98c4f44a1b01c692299cbf33eede624`); preview build/source check and targeted offline Chromium refresh, search, edit/save, and import-return checks passed with fictional data and no page errors. Local evidence: `artifacts/cookie-editor-ui-dropdown/`. The extension Vite assets were emitted with the menu absent, but the build wrapper fails its existing literal `browser.cookies.setMany` check. Source/design checks passed 12/15; all three failing assertions also fail against the unchanged HEAD sources (surface class, import callback signature, minified CSS). No installation or package promotion was performed; native behavior remains **NOT_TESTED** for this update. Historical receipts below retain their original candidate identities.
+
 ## Development delivery
 
 The daily extension uses `dist/development`, extension ID `ccfcjegpkdlgbclopjmadlcjedelidmf`, and the existing `npm run dev` watcher. The installed React 2.0.25 candidate previously completed disposable localhost Cookie create/read/edit/clear-value/restore/save/reopen/delete operations through the real SDK. Its evidence remains in `artifacts/cookie-editor-r520/development-delivery.json`; it does not prove the merged candidate.
@@ -8,7 +10,7 @@ The current development candidate is **2.0.28**, built with the original packer 
 
 `official.jsx` → `CookieEditorApp` → Controller / SDK adapter → `OpenDeskSDK.browser` → existing Host / Authority → Chrome Cookies API is the only native path. The preview imports the same App. `src/mock-sdk.js` provides fictional responses and scene controls only; it is excluded from the native candidate.
 
-The merged App keeps the compact native controls, inline ×, restore-original action, icon-only cancel/delete, and an inline more-tools menu. Metadata checks run only while the browser list is visible and idle, normally every 2 seconds, with a 30-second delay after read failures. They neither read Cookie values nor write Cookies. Editing, dirty drafts, open panels/confirmations, hidden or disconnected surfaces block refresh application. Unknown writes never retry automatically. The merged Controller uses guarded metadata synchronization; there is no separate observation panel or observation method.
+The merged App keeps the compact native controls, inline ×, restore-original action, icon-only cancel/delete. The site header shows the hostname and refresh action; the more-tools dropdown entry has been removed from the shared preview and extension App. Metadata checks run only while the browser list is visible and idle, normally every 2 seconds, with a 30-second delay after read failures. They neither read Cookie values nor write Cookies. Editing, dirty drafts, open panels/confirmations, hidden or disconnected surfaces block refresh application. Unknown writes never retry automatically. The merged Controller uses guarded metadata synchronization; there is no separate observation panel or observation method.
 
 ## Local preview
 

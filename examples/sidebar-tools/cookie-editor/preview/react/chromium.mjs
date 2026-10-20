@@ -232,11 +232,12 @@ try{
   await scene('empty');await page.locator('.cookie-react-view').waitFor();assert.equal(await page.locator('.cookie-row').count(),0);
   await scene('readonly');await ready();await row('session_id').click();await nameInput().fill('denied_write');await button('保存').click();await page.getByText(/E_PERMISSION_REQUIRED/).waitFor();await reset();
  });
- await test('shared offline workspace starts empty and live data returns on explicit browser mode',async()=>{
-  const utility=page.locator('.cookie-utility-settings');await utility.locator('summary').click();
-  await button('离线文件').click();await page.locator('.cookie-offline').waitFor();
-  assert.equal(await page.locator('.cookie-row').count(),0);
-  await button('返回浏览器').click();await ready();
+ await test('site header keeps refresh without the website URL tools dropdown',async()=>{
+  const header=page.locator('.site-bar');
+  assert.equal(await header.locator('details,summary,select').count(),0);
+  assert.equal(await page.getByLabel('网站 URL',{exact:true}).count(),0);
+  assert.equal(await header.getByRole('button',{name:'刷新 Cookie',exact:true}).count(),1);
+  await button('刷新 Cookie').click();await ready();
  });
  await test('380px dark and editing evidence; clear-value icon stays inside input',async()=>{
   await reset();await button('深色').click();
