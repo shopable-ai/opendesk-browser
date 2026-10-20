@@ -34,7 +34,9 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: cookie-editor-r56-${{ github.ref }}
+  # GitHub keeps only one pending run per group; a ref-wide group cancels
+  # older queued commits even when in-progress cancellation is disabled.
+  group: cookie-editor-r56-${{ github.sha }}
   cancel-in-progress: false
 jobs:
   candidate:
