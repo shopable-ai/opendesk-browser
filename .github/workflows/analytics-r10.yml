@@ -1,0 +1,43 @@
+name: Analytics R1.0 bounded event and HTTP integration checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/analytics-r10.yml'
+      - 'src/analytics/**'
+      - 'services/analytics/**'
+      - 'tests/environment/analytics-r10*.test.mjs'
+      - 'src/sw.js'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/native-agent/settings.js'
+      - 'examples/sidebar-tools/prompt-shortcuts/src/main.js'
+      - 'examples/sidebar-tools/prompt-shortcuts/trusted/page.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analytics-http-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check production contract and all relevant integration points
+        run: |
+          node --check src/analytics/contract.js
+          node --check src/analytics/collector.js
+          node --check src/analytics/host.js
+          node --check src/analytics/consent-ui.js
+          node --check services/analytics/worker.mjs
+          node --check src/sw.js
+          node --check src/ui/sidebar-tools.js
+          node --check src/native-agent/settings.js
+          node --check examples/sidebar-tools/prompt-shortcuts/src/main.js
+          node --check examples/sidebar-tools/prompt-shortcuts/trusted/page.js
+      - name: Real HTTP + SQLite persistence and privacy checks (not Chrome or deployed PostHog)
+        run: node --test tests/environment/analytics-r10*.test.mjs
