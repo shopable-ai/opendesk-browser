@@ -10,13 +10,15 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore}){
   const titles=new Map();
   for(const row of rows)if(row.installed)
     titles.set(row.title,(titles.get(row.title)||0)+1);
+  // Keep one discoverable More button when the list is idle. Never show one on an uninstalled candidate.
+  const firstManageableKey=rows.find(row=>row.installed)?.key;
   return rows.map(row=>{
     const label=row.primaryAction||'查看详情';
     const identity=row.installed&&titles.get(row.title)>1&&row.key.startsWith('app:')
       ?row.key.slice(4):null;
     const accessible=label+'「'+row.title+'」'+(identity?' · 安装 ID：'+identity:'');
     return <li key={row.key} data-extension-id={row.key}
-      className="ec-row"
+      className={row.installed&&row.key===firstManageableKey?'ec-row ec-row--discoverable':'ec-row'}
       aria-busy={busy||pendingKey===row.key?'true':undefined}>
       <button type="button" className="ec-row-main" data-extension-key={row.key}
         data-extension-action="main" disabled={busy}

@@ -178,6 +178,31 @@ test('React page preserves list, search/filter, detail identity and native Page 
   assert.equal(await page.evaluate(()=>fixture.changes.size+fixture.connections.size),0);
 });
 
+test('The first manageable row hints More; filtered first row inherits it and hover still works',options,async t=>{
+  const page=await browserFixture(t);
+  const all=page.locator('#extension-center-list > li');
+  assert.equal(await all.count(),2);
+  const hinted=page.locator('#extension-center-list .ec-row--discoverable');
+  assert.equal(await hinted.count(),1,'exactly one row demonstrates the overflow entry');
+  assert.equal(await hinted.locator('.ec-row-actions').evaluate(node=>getComputedStyle(node).opacity),
+    '1','first installed row must show More at rest');
+  const other=page.locator('#extension-center-list > li:not(.ec-row--discoverable)');
+  assert.equal(await other.locator('.ec-row-actions').evaluate(node=>getComputedStyle(node).opacity),
+    '0','other rows should not need permanent button columns');
+  await other.hover();
+  await page.waitForFunction(()=>{
+    const actions=document.querySelector('#extension-center-list > li:not(.ec-row--discoverable) .ec-row-actions');
+    return actions&&getComputedStyle(actions).opacity==='1';
+  });
+  await other.locator('[data-extension-action="more"]').click();
+  assert.equal(await page.locator('#extension-center-row-menu').count(),1);
+  await page.keyboard.press('Escape');
+  await page.locator('#extension-center-search').fill('阅读');
+  assert.equal(await page.locator('#extension-center-list > li').count(),1);
+  assert.equal(await page.locator('.ec-row--discoverable').getAttribute('data-extension-id'),'page:reader',
+    'the visible hint follows the first available installed item after filtering');
+});
+
 test('React row menu preserves native gestures, keyboard/outside close, pending and disposal',options,async t=>{
   const page=await browserFixture(t);
   const more=page.locator('[data-extension-key="app:quick-notes"][data-extension-action="more"]');
