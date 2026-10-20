@@ -17,7 +17,7 @@ function fixture(){
   assert.equal(args.key,'clips','must use one tool-private storage key');
   if(op==='storage.get')return {value,etag:token()};
   assert.equal(op,'storage.set');
-  assert.equal(args.ifMatch,token(),'writes must use host ETag compare-and-swap');
+  if(args.ifMatch!==token())throw error('E_STORAGE_CONFLICT');
   if(mode==='quota')throw error('E_TOOL_DATA_LIMIT');
   if(mode==='host-failure')throw error('E_HOST_STORAGE_WRITE');
   if(mode==='lost-before')throw error('E_TOOL_TIMEOUT');
@@ -72,6 +72,46 @@ test('UTF-8 size and aggregate JSON quota reject without truncating or corruptin
  assert.equal(f.read().items.length,3);
  assert.equal(f.read().items[0].body,'中'.repeat(670));
 });
+test('2048 UTF-8 bytes save intact and 2049-byte save or edit preserves the existing record',async()=>{
+ const f=fixture(),store=f.create('clip-body-111111'),body='中'.repeat(682)+'ab';
+ assert.equal(bytes(body),2048);
+ const {item}=await store.save({kind:'note',body});
+ assert.equal(f.read().items[0].body,body);
+ await assert.rejects(store.edit(item.id,item,body+'c'),e=>e.code==='E_BODY_LIMIT');
+ await assert.rejects(store.save({kind:'note',body:body+'c'}),e=>e.code==='E_BODY_LIMIT');
+ assert.equal(f.writes,1);assert.equal(f.read().items[0].body,body);
+});
+
+test('the complete clips value accepts exactly 8192 bytes and rejects the next byte without writing',async()=>{
+ const f=fixture(),at='2026-10-20T02:30:00.000Z';
+ for(let i=1;i<=3;i++)await f.create('clip-limit-'+String(i).repeat(6)).save({kind:'note',body:'x'.repeat(2048)});
+ const id='clip-limit-444444',title='边界',base={id,kind:'note',body:'',title,source:'',createdAt:at,updatedAt:at};
+ const available=8192-bytes({version:1,items:[...f.read().items,base]});
+ assert.ok(available>0&&available<=2048);
+ const store=f.create(id),body='y'.repeat(available),{item}=await store.save({kind:'note',body,title});
+ assert.equal(bytes(f.read()),8192);
+ const before=JSON.stringify(f.read());
+ await assert.rejects(store.edit(id,item,body+'z'),e=>e.code==='E_QUOTA');
+ assert.equal(JSON.stringify(f.read()),before);assert.equal(f.writes,4);
+});
+
+test('simultaneous writers retry a stale ETag and preserve both records',async()=>{
+ const f=fixture(),a=f.create('clip-race-111111'),b=f.create('clip-race-222222');
+ await Promise.all([a.save({kind:'note',body:'窗口甲'}),b.save({kind:'note',body:'窗口乙'})]);
+ assert.deepEqual(f.read().items.map(x=>x.body).sort(),['窗口乙','窗口甲']);
+ assert.equal(f.writes,2);assert.equal(a.uncertain,false);assert.equal(b.uncertain,false);
+});
+
+test('Host quota rejection preserves old data and permits recovery without an unknown-write fence',async()=>{
+ const f=fixture(),a=f.create('clip-quota-111111');await a.save({kind:'note',body:'保留已有内容'});
+ f.setMode('quota');
+ const b=f.create('clip-quota-222222');
+ await assert.rejects(b.save({kind:'note',body:'超过宿主配额'}),e=>e.code==='E_QUOTA');
+ assert.equal(b.uncertain,false);assert.equal(f.read().items.length,1);
+ assert.equal(f.read().items[0].body,'保留已有内容');assert.equal(f.writes,1);
+ f.setMode('normal');await b.save({kind:'note',body:'恢复后保存'});assert.equal(f.read().items.length,2);
+});
+
 test('lost acknowledgement resolves through read-back without duplicate save',async()=>{
  const f=fixture(),a=f.create('clip-loss-111111');
  f.setMode('lost-after');

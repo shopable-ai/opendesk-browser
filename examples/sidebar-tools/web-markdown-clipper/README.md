@@ -1,6 +1,6 @@
-# 网页剪藏 Web Markdown Clipper · R1.6
+# 网页剪藏 Web Markdown Clipper · R1.7.5-LOCAL
 
-> 工具源码版本 1.1.1（正式安装须通过唯一 JSON 包的候选测试与晋升），非独立 React 应用。复用已有 Browser SDK、可信 Host、工具隔离 UI 和原生本地存储。
+> 工具源码版本 1.1.2（深色错误文字对比度修复；正式安装须通过唯一 JSON 包的候选测试与晋升），非独立 React 应用。复用已有 Browser SDK、可信 Host、工具隔离 UI 和原生本地存储。
 
 ## 普通用户怎么用？
 
@@ -18,7 +18,7 @@
 
 使用已有 storage.get({key:'clips',withEtag:true}) 与 storage.set({key:'clips',value,ifMatch})，工具私有命名空间中只用一个 JSON 键同时持有记录和顺序，避免跨键部分写入。可信 Host 的 per-tool Web Lock、ETag CAS、写入核对被原样复用。写入回执丢失会读回比对，无法确认时停止新的写入，待用户刷新核对。
 
-- 正文最多 2048 UTF-8 字节；含元数据的单项 JSON 最多 8192 字节；宿主总配额仍约为 32 KiB/32 键。不会自动截断。
+- 每条正文最多 2048 UTF-8 字节；整个 `clips` 键值（所有摘录及元数据）的 JSON 合计最多 8192 UTF-8 字节、最多 64 条记录。宿主每工具总配额为 32 KiB/32 键。不会自动截断。
 - 同一来源与内容重复摘录不会创建新记录；其他窗口编辑时不覆盖新数据。
 - 大篇幅完整文章继续使用复制或 .md 下载，不存入短摘录库，也不重复开发 Knowledge Inbox 全文数据库。
 - 「导出备份」提供 JSON 出口。数据**只在当前浏览器本地**，不表示云同步；卸载或清除浏览器数据之前必须导出并在真实 Chrome 核对文件。R1.6 不提供 JSON 备份导入。
@@ -52,7 +52,7 @@ node scripts/app-ci.mjs build web-markdown-clipper
 node scripts/app-ci.mjs node web-markdown-clipper
 ```
 
-使用开发者模式在 chrome://extensions 加载 dist/production，安装或升级官方网页剪藏。打包后工具包预期路径在 artifacts/sidebar-tools/web-markdown-clipper/1.1.1/，不是 Git 提交的一部分。
+正式验收在独立 Chrome Profile 加载已验证的 production 静态包；日常开发继续使用已有 watcher 的 dist/development。可导入的正式工具包只有本目录中的 `web-markdown-clipper.opendesk-tool.json`，与源码一起提交。临时候选先输出到 `artifacts/sidebar-tools/web-markdown-clipper/candidate.opendesk-tool.json`，受影响测试通过后由同一打包器 `--promote-from` 晋升，再执行 `--check-project`；不得覆盖已经发布的同版本内容。
 
 真实验收须分别检查：右键菜单逐站启用、选区与文档身份证明、保存后 Side Panel 重开和 Chrome 重启读回、系统剪贴板 pbpaste、下载文件实际 SHA-256、卸载前 JSON 备份。HTML/Node 的模拟测试不能冒充这些结果。
 

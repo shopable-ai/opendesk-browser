@@ -43,5 +43,5 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-vis
 .clip-editor-actions{justify-content:flex-end}.clip-empty{font-size:12px;color:var(--sub);margin:10px 0}
 [hidden],#clip-source[hidden],.clip-preview[hidden],#clip-notes[hidden],#clip-home[hidden],#clip-note-editor[hidden]{display:none!important}
 @media(max-width:360px){.clip{padding:9px}.clip-head{gap:5px}.clip-brand span{max-width:135px}.clip button{padding:5px 7px}.clip-export{gap:4px}.clip-export button{font-size:11px}.clip-notes-head{gap:5px}}
-@media(prefers-color-scheme:dark){body{color:#e3e8f4}.clip{--edge:#3b455e;--sub:#a1b0c6;--paper:#202633;--layer:#171e29;--brand:#a0b8ff}.clip button.primary{--brand:#496bda;color:white}.clip-preview pre{background:#2a3547}}
+@media(prefers-color-scheme:dark){body{color:#e3e8f4}.clip{--edge:#3b455e;--sub:#a1b0c6;--paper:#202633;--layer:#171e29;--brand:#a0b8ff}.clip button.primary{--brand:#496bda;color:white}.clip-status[data-error=true]{color:#ffb1bb}.clip-preview pre{background:#2a3547}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
