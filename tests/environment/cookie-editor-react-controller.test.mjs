@@ -277,7 +277,7 @@ test('bulk import preflight and native partial failure never replay writes',asyn
   assert.equal(calls,1);
   assert.equal(f.controller.snapshot().messageType,'error');
   assert.equal(f.controller.snapshot().importOutcome,'unknown');
-  assert.match(f.controller.snapshot().message,/已确认 1\\/2 条/);
+  assert.ok(f.controller.snapshot().message.includes('已确认 1/2 条'));
   assert.equal(await f.controller.executeImport(source),false);
   assert.equal(calls,1,'unknown native effects must never trigger a second batch');
   f.controller.dispose();
@@ -296,7 +296,7 @@ test('R5.25 known denial before any native write is not mislabeled UNKNOWN',asyn
   assert.equal(await f.controller.executeImport(source),false);
   const outcome=f.controller.snapshot();
   assert.equal(outcome.importOutcome,'denied');
-  assert.match(outcome.message,/已确认 0\\/2 条/);
+  assert.ok(outcome.message.includes('已确认 0/2 条'));
   assert.match(outcome.message,/明确拒绝/);
   assert.equal(await f.controller.executeImport(source),false);
   assert.equal(calls,1,'a denied operation is not automatically replayed');
