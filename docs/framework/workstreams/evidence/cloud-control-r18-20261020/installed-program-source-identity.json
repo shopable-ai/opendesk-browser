@@ -1,0 +1,29 @@
+{
+  "at": 1792462405903,
+  "heads": [
+    {
+      "tag": "script-head",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "scriptId": "task:cloud-r17-new-controller-1792426584969:1.0.0",
+      "revision": 1,
+      "contentHash": "61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925",
+      "tombstoned": false
+    }
+  ],
+  "revisions": [
+    {
+      "tag": "script-revision",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "scriptId": "task:cloud-r17-new-controller-1792426584969:1.0.0",
+      "revision": 1,
+      "parentRevision": 0,
+      "contentHash": "61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925",
+      "sourceUtf8": "async function main() {\n  await page.goto('http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form');\n  await page.locator('#name').fill('Cloud R17 newly delivered Controller');\n  return {receipt: await page.locator('#name').inputValue()};\n}\n",
+      "builtinIdentity": {
+        "abi": "opendesk-builtins.v10",
+        "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+        "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+      }
+    }
+  ]
+}

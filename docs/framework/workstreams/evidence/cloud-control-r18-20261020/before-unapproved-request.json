@@ -1,0 +1,91 @@
+{
+  "at": "2026-10-20T01:55:34.299Z",
+  "runs": [
+    {
+      "runId": "03b2be02-4354-4618-8f98-0873be1b0921",
+      "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+      "state": "failed"
+    },
+    {
+      "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+      "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+      "state": "completed"
+    },
+    {
+      "runId": "32c54889-7f99-47e6-b0d0-f8503797e782",
+      "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+      "state": "completed"
+    },
+    {
+      "runId": "7b4d3ca4-c9c3-4698-b4e8-fefb4ec2da04",
+      "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+      "state": "completed"
+    },
+    {
+      "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+      "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+      "state": "interrupted"
+    },
+    {
+      "runId": "9c29bee8-5c88-4aaf-82dd-868bc0033606",
+      "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+      "state": "completed"
+    },
+    {
+      "runId": "b3e36bd4-08b4-4b42-83bb-219623722f08",
+      "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+      "state": "stopped"
+    },
+    {
+      "runId": "beb7ec5c-391b-4bee-b8e0-6edc07f18278",
+      "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+      "state": "stopped"
+    },
+    {
+      "runId": "d9ae5525-f626-4841-994a-304a7cd6f942",
+      "contentHash": "61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925",
+      "state": "completed"
+    },
+    {
+      "runId": "e49bb231-979f-4b41-bc80-3e871c034260",
+      "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+      "state": "completed"
+    },
+    {
+      "runId": "e8ee1441-aed6-41be-ba30-a4fe07b4e48f",
+      "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+      "state": "failed"
+    }
+  ],
+  "installed": [
+    {
+      "tag": "task-installed-v1",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "taskId": "cloud-r17-new-controller-1792426584969",
+      "version": "1.0.0",
+      "scriptId": "task:cloud-r17-new-controller-1792426584969:1.0.0",
+      "manifestHash": "9a08e3fa1dfe96e66c84489195cb7fa704bef9f82e2730c587a0cd2e1e7e21a0",
+      "builtinIdentity": {
+        "abi": "opendesk-builtins.v10",
+        "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+        "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+      },
+      "enabled": true,
+      "installedAt": 1792461311726,
+      "authorization": {
+        "tag": "task-install-authorization-v1",
+        "installationId": "1052e6b9-b7cd-4861-8fa5-1758744bcde4",
+        "generation": 1,
+        "scope": {
+          "capabilities": [
+            "page.automation"
+          ],
+          "siteOrigins": [
+            "http://127.0.0.1:43111"
+          ],
+          "networkOrigins": []
+        }
+      }
+    }
+  ]
+}

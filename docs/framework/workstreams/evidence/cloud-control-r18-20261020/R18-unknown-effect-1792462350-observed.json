@@ -1,0 +1,15 @@
+{
+  "mode": "close",
+  "label": "R18-unknown-effect-1792462350",
+  "events": [
+    {
+      "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+      "value": "R18-unknown-effect-1792462350",
+      "isTrusted": false,
+      "at": 1792461807412,
+      "observedAt": 1792461807413
+    }
+  ],
+  "profileInode": 34901903,
+  "at": "2026-10-20T02:03:27.413Z"
+}

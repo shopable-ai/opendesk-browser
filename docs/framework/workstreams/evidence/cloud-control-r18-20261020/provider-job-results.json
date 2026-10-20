@@ -1,0 +1,234 @@
+{
+  "providerId": "6854f350-a976-4ef0-87ab-95cd6e4674fa",
+  "jobs": [
+    {
+      "jobId": "3bfd25a7-399d-4fb4-a152-2314e40dde24",
+      "state": "received",
+      "createdAt": 1792427026273,
+      "task": {
+        "taskId": "cloud-r17-fixed-1792424831759",
+        "version": "1.0.3",
+        "manifestHash": "148ec9f9d479576bd5b6d624dc5b7f5fb4704ab4e98eca91d1ee4c8d924609bf",
+        "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26"
+      },
+      "params": {
+        "name": "R17 restart unknown",
+        "delayMs": 45000
+      },
+      "target": {
+        "mode": "owned",
+        "url": "http://127.0.0.1:43111/demo-form.html"
+      },
+      "targetExecutorId": "d0cf716e-8d24-4530-b738-4e7e39ed7bc5",
+      "targetPairingId": "c40f609c-4326-4048-be66-ac4052ec3175",
+      "targetGrantId": "dfd1fc99-0cdb-4aec-a465-0d0d8666808c",
+      "attemptEpoch": 1,
+      "runRef": {
+        "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+        "resultId": "2a4812da-6eed-46e5-a8cb-c4419a18926d",
+        "requestId": "cloud:e2445f1c-b680-4ed7-b5aa-728ea7bc4aa9",
+        "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+        "manifestHash": "148ec9f9d479576bd5b6d624dc5b7f5fb4704ab4e98eca91d1ee4c8d924609bf",
+        "grantId": "dfd1fc99-0cdb-4aec-a465-0d0d8666808c"
+      },
+      "resultAllowed": true,
+      "receipt": {
+        "receiptId": "ecf98030-21aa-4eb1-bccc-67106578a064",
+        "receivedAt": 1792460866382,
+        "digest": "38cdd412e8f92443037d72db9ce3e1fd5ba1fe8482138c340b032587d905cab1",
+        "result": {
+          "visibility": "full",
+          "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+          "resultId": "2a4812da-6eed-46e5-a8cb-c4419a18926d",
+          "revision": {
+            "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+            "revision": 1,
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+              "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+            },
+            "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+            "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"912d8a99-ebae-4f67-946e-93fed5b31d48\",\"853d4835-c9d7-43c0-9b09-5c2f71c4c4f0\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+          },
+          "state": "interrupted",
+          "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "retirementState": "released",
+          "error": {
+            "code": "E_HOST_CLOSED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        }
+      }
+    },
+    {
+      "jobId": "b4c4118b-c90c-4ef1-972e-5f68ffa85cea",
+      "state": "received",
+      "createdAt": 1792461704916,
+      "task": {
+        "taskId": "cloud-r17-fixed-1792424831759",
+        "version": "1.0.3",
+        "manifestHash": "148ec9f9d479576bd5b6d624dc5b7f5fb4704ab4e98eca91d1ee4c8d924609bf",
+        "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26"
+      },
+      "params": {
+        "name": "R18-recovered-1792462210",
+        "delayMs": 0
+      },
+      "target": {
+        "mode": "owned",
+        "url": "http://127.0.0.1:43111/demo-form.html"
+      },
+      "targetExecutorId": "d0cf716e-8d24-4530-b738-4e7e39ed7bc5",
+      "targetPairingId": "c40f609c-4326-4048-be66-ac4052ec3175",
+      "targetGrantId": "dfd1fc99-0cdb-4aec-a465-0d0d8666808c",
+      "attemptEpoch": 1,
+      "runRef": {
+        "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+        "resultId": "03cbd070-b1d3-4425-a800-b980ec2371bf",
+        "requestId": "cloud:8b9f119f-9a9d-4105-8e8c-a30f0864b961",
+        "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+        "manifestHash": "148ec9f9d479576bd5b6d624dc5b7f5fb4704ab4e98eca91d1ee4c8d924609bf",
+        "grantId": "dfd1fc99-0cdb-4aec-a465-0d0d8666808c"
+      },
+      "resultAllowed": true,
+      "receipt": {
+        "receiptId": "2a381479-a5f5-4978-8fe2-955666614a97",
+        "receivedAt": 1792461725080,
+        "digest": "84709c0b7836cc75c12982ee6ac28012933ff262371704904a6fe4e0971ff6e4",
+        "result": {
+          "visibility": "full",
+          "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+          "resultId": "03cbd070-b1d3-4425-a800-b980ec2371bf",
+          "revision": {
+            "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+            "revision": 1,
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+              "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+            },
+            "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+            "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"ffcbb459-b542-489b-aabd-69f4256bc8de\",\"5d2c4db1-94b8-47d7-91e1-cca872a75a12\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+          },
+          "state": "completed",
+          "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "retirementState": "released",
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R18-recovered-1792462210"
+                }
+              ]
+            ]
+          }
+        }
+      }
+    },
+    {
+      "jobId": "d2bbd6f7-a96c-42b4-b167-1f9911e6d805",
+      "state": "admitted",
+      "createdAt": 1792461802733,
+      "task": {
+        "taskId": "cloud-r17-fixed-1792424831759",
+        "version": "1.0.3",
+        "manifestHash": "148ec9f9d479576bd5b6d624dc5b7f5fb4704ab4e98eca91d1ee4c8d924609bf",
+        "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26"
+      },
+      "params": {
+        "name": "R18-unknown-effect-1792462350",
+        "delayMs": 45000
+      },
+      "target": {
+        "mode": "owned",
+        "url": "http://127.0.0.1:43111/demo-form.html"
+      },
+      "targetExecutorId": "d0cf716e-8d24-4530-b738-4e7e39ed7bc5",
+      "targetPairingId": "c40f609c-4326-4048-be66-ac4052ec3175",
+      "targetGrantId": "dfd1fc99-0cdb-4aec-a465-0d0d8666808c",
+      "attemptEpoch": 1,
+      "runRef": {
+        "runId": "55600dbb-c6a4-4fd7-a837-5e7fafef52ab",
+        "resultId": "c432a39e-0049-46d7-86a3-9613b8856fd6",
+        "requestId": "cloud:f45ab58c-e10d-4c01-9e35-0a1d9eb2e3fa",
+        "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+        "manifestHash": "148ec9f9d479576bd5b6d624dc5b7f5fb4704ab4e98eca91d1ee4c8d924609bf",
+        "grantId": "dfd1fc99-0cdb-4aec-a465-0d0d8666808c"
+      },
+      "resultAllowed": true
+    },
+    {
+      "jobId": "ae5d9f45-52f0-4608-b958-3abb1ca17a7e",
+      "state": "received",
+      "createdAt": 1792461853314,
+      "task": {
+        "taskId": "cloud-r17-fixed-1792424831759",
+        "version": "1.0.3",
+        "manifestHash": "148ec9f9d479576bd5b6d624dc5b7f5fb4704ab4e98eca91d1ee4c8d924609bf",
+        "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26"
+      },
+      "params": {
+        "name": "R18-after-unknown-1792462500",
+        "delayMs": 0
+      },
+      "target": {
+        "mode": "owned",
+        "url": "http://127.0.0.1:43111/demo-form.html"
+      },
+      "targetExecutorId": "d0cf716e-8d24-4530-b738-4e7e39ed7bc5",
+      "targetPairingId": "c40f609c-4326-4048-be66-ac4052ec3175",
+      "targetGrantId": "dfd1fc99-0cdb-4aec-a465-0d0d8666808c",
+      "attemptEpoch": 1,
+      "runRef": {
+        "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+        "resultId": "a2c482ca-29b9-4d10-a82b-4da8284441e0",
+        "requestId": "cloud:eaecfe9d-22cf-4505-839b-07a07ab924f4",
+        "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+        "manifestHash": "148ec9f9d479576bd5b6d624dc5b7f5fb4704ab4e98eca91d1ee4c8d924609bf",
+        "grantId": "dfd1fc99-0cdb-4aec-a465-0d0d8666808c"
+      },
+      "resultAllowed": true,
+      "receipt": {
+        "receiptId": "9ff4fb3c-13df-40bc-ac4e-32be5958937b",
+        "receivedAt": 1792461861502,
+        "digest": "079f3b5bebd98401645236dbc5451bf80139fd0ac67a002b83d346c85507ea2f",
+        "result": {
+          "visibility": "full",
+          "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+          "resultId": "a2c482ca-29b9-4d10-a82b-4da8284441e0",
+          "revision": {
+            "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+            "revision": 1,
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v10",
+              "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+              "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+            },
+            "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+            "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01\",\"3a454a19-4c3b-4d96-bc08-37aa73288689\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+          },
+          "state": "completed",
+          "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "retirementState": "released",
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R18-after-unknown-1792462500"
+                }
+              ]
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

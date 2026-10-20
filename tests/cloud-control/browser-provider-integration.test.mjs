@@ -442,12 +442,14 @@ test('cloudStatus projects actual grants, slot resources and config drift withou
 });
 
 test('unknown side effects project only from interrupted unresolved operations or paused_unknown and reconcile preserves native facts',async t=>{
+  for (const retirementState of ['fenced','released']) {
   const f=await legacyProviderFixture(t),{service,storage,sender}=serviceFixture();
   const row=legacyRow(f,{state:'permitted',receipt:null,delivery:null});
   const c=legacyConfig(f);await storage.put(KV,c,CONFIG);await storage.put(KV,f.executorId,IDENTITY);await storage.put(KV,row,rowKey(row));
   const auth=await service.post(c,'auth',{}),adopted={...await service.adoptPairing(c,auth),enabled:true};
   await storage.put(KV,adopted,CONFIG);await storage.put(KV,f.executorId,IDENTITY);await installTask(storage);
-  const run={...runFor(row,{state:'interrupted',retirementState:'fenced'}),cancelSeq:1,terminalReason:'E_INTERRUPTED'};
+  const run={...runFor(row,{state:'interrupted',retirementState}),cancelSeq:1,terminalReason:'E_INTERRUPTED',
+    ...(retirementState==='released'?{targetQuarantine:{state:'quarantined',reason:'previous-session-ownership-unverified'}}:{})};
   await storage.put('runs',run,run.runId);
   const result={tag:'controller-result',runId:run.runId,resultId:run.resultId,namespace,state:'interrupted',
     revision:{sourceHash:pkg.manifest.program.sourceHash},outcome:{ok:false,error:{code:'E_INTERRUPTED'}}};
@@ -457,11 +459,16 @@ test('unknown side effects project only from interrupted unresolved operations o
   const unknown=await storage.get(KV,rowKey(row));
   assert.equal(unknown.state,'OUTCOME_UNKNOWN');
   assert.equal(unknown.reason,'E_OUTCOME_UNKNOWN');
+  assert.equal(unknown.receipt,null,'retiring execution resources must not invent a confirmed outcome');
+  await service.reconcile();
+  assert.deepEqual(await storage.get(KV,rowKey(row)),unknown,'reconciliation must not replay an unknown effect');
+  assert.equal((await storage.get('commandJournal','op-unknown')).state,'effect_unknown');
   assert.deepEqual(await storage.get('runs',run.runId),run);
   assert.deepEqual(await storage.get('results',run.resultId),result);
   const status=await service.cloudStatus({limit:1},sender);
   assert.equal(status.requests[0].outcomeUnknown,true);
   assert.equal(status.slotState,'available');
+  }
 
   const {service:service2,storage:storage2,sender:sender2}=serviceFixture();
   await storage2.put(KV,{providerId:'p',url:'https://provider.example',enabled:true,namespace,executorId:'e',tasks:[]},CONFIG);

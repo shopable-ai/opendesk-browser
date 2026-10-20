@@ -1,0 +1,23 @@
+{
+  "at": 1792462497153,
+  "url": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=2b8303b1-727d-40db-a83c-c32486ad68ca",
+  "contexts": [
+    {
+      "contextType": "SIDE_PANEL",
+      "documentId": "FEA5BBFB212D26646FFC5B7D39568C75",
+      "documentUrl": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=2b8303b1-727d-40db-a83c-c32486ad68ca"
+    }
+  ],
+  "selectedTab": "tab-cloud",
+  "overview": "我的\n扩展\n工作流\n开发\n云控\n调试\n云控\n\n托管已启用，连接和对账已完成；可等待已批准任务。 目标网站已授权。\n\n连接\n已连接\n已授权任务\n1\n运行环境与历史统计\n待审",
+  "taskApprovalCheckboxes": [
+    {
+      "checked": true,
+      "text": "Cloud R17 fixed Task v103 · v1.0.3 · 当前已批准\nServer-delivered Controller Task reviewed locally"
+    },
+    {
+      "checked": false,
+      "text": "Cloud R17 newly delivered Controller · v1.0.0\nServer-delivered Controller Task reviewed locally"
+    }
+  ]
+}

@@ -1,0 +1,178 @@
+{
+  "scope": "OpenDesk Browser 云控开发功能闭环；不代表 production 或局域网正式验收",
+  "observedAt": "2026-10-20T02:15:53.139827+00:00",
+  "baseCommit": "f86bc2aec403134c10d728c65418f175bdcd0057",
+  "commitBinding": "最终提交包含本报告、源码及独立哈希；提交 ID 见 Git 历史。",
+  "environment": {
+    "mode": "持续开发",
+    "loadPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "wxt": "ws://localhost:43119 connected",
+    "profileInode": 34901903,
+    "sameProfile": true,
+    "executorId": "d0cf716e-8d24-4530-b738-4e7e39ed7bc5",
+    "providerId": "6854f350-a976-4ef0-87ab-95cd6e4674fa",
+    "fingerprint": "development-fingerprint.json"
+  },
+  "userOperations": [
+    {
+      "operation": "重启后从原现场恢复执行能力",
+      "status": "PASS",
+      "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+      "jobId": "3bfd25a7-399d-4fb4-a152-2314e40dde24",
+      "outcome": "原 Run 保持 interrupted / E_HOST_CLOSED；隔离旧目标后释放已退休执行槽。Provider 收到原 Result 的 interrupted Receipt。原 cloud 请求还保留 E_CLOUD_CANCELLED 历史原因，未改写历史。",
+      "evidence": [
+        "before-recovery.json",
+        "final-native-database.json",
+        "provider-job-results.json",
+        "recovered-cloud-ready.png"
+      ]
+    },
+    {
+      "operation": "恢复后新的独立已授权固定 Task 执行",
+      "status": "PASS",
+      "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+      "jobId": "b4c4118b-c90c-4ef1-972e-5f68ffa85cea",
+      "outcome": "未改固定 Task 源码；自动定位、滚动、填写标准网页，持久 Result 和真实 Provider Receipt 均 completed。",
+      "evidence": [
+        "final-native-database.json",
+        "provider-job-results.json"
+      ]
+    },
+    {
+      "operation": "页面效果发生但回执未落盘时关闭并重启浏览器",
+      "status": "PASS_WITH_OUTCOME_UNKNOWN",
+      "runId": "55600dbb-c6a4-4fd7-a837-5e7fafef52ab",
+      "jobId": "d2bbd6f7-a96c-42b4-b167-1f9911e6d805",
+      "outcome": "真实网页 input 事件后立即关闭本任务浏览器，同 Profile 重启。fill 保留 effect_unknown，本地请求 OUTCOME_UNKNOWN；Provider 仍 admitted 且无 Receipt。执行槽已释放，未知目标保留 quarantine，未重放原任务。",
+      "evidence": [
+        "R18-unknown-effect-1792462350-observed.json",
+        "unknown-recovery-database.json",
+        "final-native-database.json",
+        "provider-job-results.json"
+      ]
+    },
+    {
+      "operation": "保留未知结果时继续新的独立任务",
+      "status": "PASS",
+      "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+      "jobId": "ae5d9f45-52f0-4608-b958-3abb1ca17a7e",
+      "outcome": "真实填写 R18-after-unknown-1792462500；持久 Result completed，Provider Receipt 9ff4fb3c-13df-40bc-ac4e-32be5958937b。",
+      "evidence": [
+        "R18-after-unknown-1792462500-observed.json",
+        "final-native-database.json",
+        "provider-job-results.json"
+      ]
+    },
+    {
+      "operation": "重复 requestKey 不重复执行",
+      "status": "PASS",
+      "outcome": "原重启请求、完成请求、未知请求和后续请求均返回各自原 Job。最后重复请求前后 Run ID 集完全相同，均为 14。",
+      "evidence": [
+        "request-key-replay-protection.json"
+      ]
+    },
+    {
+      "operation": "同一份服务器新程序经正式 React UI 审阅、试运行、验证、安装",
+      "status": "PASS",
+      "taskId": "cloud-r17-new-controller-1792426584969",
+      "version": "1.0.0",
+      "sourceHash": "61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925",
+      "trialRunId": "d9ae5525-f626-4841-994a-304a7cd6f942",
+      "outcome": "真实修改标准网页，Controller Run 和持久结果 completed。安装源码字节哈希与服务器交付原件相同；正式 task-installed-v1 记录保留。",
+      "evidence": [
+        "recovered-original-and-trial.json",
+        "installed-program-source-identity.json",
+        "installed-task-identity.json",
+        "new-program-installed.png"
+      ]
+    },
+    {
+      "operation": "新程序安装不等于云控授权",
+      "status": "PASS",
+      "outcome": "新程序云控勾选保持 false，真实 Provider 请求 E_GRANT；前后 11 个 Run ID 完全一致，网页仍保持试运行填写值。",
+      "evidence": [
+        "final-react-ui.json",
+        "unapproved-provider-response.json",
+        "before-unapproved-request.json",
+        "after-unapproved-request.json",
+        "after-unapproved-page.json"
+      ]
+    }
+  ],
+  "implementation": [
+    {
+      "file": "src/platform/host/controller-methods.js",
+      "change": "仅在原执行宿主确已消失、Worker 已退休及原 fencing 身份匹配后，隔离跨会话目标并释放执行槽；不对旧 tabId 发取消或关闭。保留操作日志与未知效果。Locator 使用最后一个 commitIntent/scrollCommitted/noEffect 判定未知。"
+    },
+    {
+      "file": "src/framework/control/native-driver.js",
+      "change": "已确认滚动后重新 prepare；每个动作最多提交一次滚动；丢失回执不重复动作。"
+    },
+    {
+      "file": "src/scripting/packaged/locator-dom.js",
+      "change": "视口外但其他条件可操作的元素，通过精确绑定的一次性提交令牌执行 instant scroll；prepare 仍只读，滚动后重新验证才填写。"
+    }
+  ],
+  "additionalDefectResolved": {
+    "trigger": "恢复后的固定 Task 创建后台网页，hash 的 smooth scroll 未完成，fill 因视口外元素超时。",
+    "failedJobs": [
+      "21a14906-bc07-4fbe-a1ea-044e3414c962",
+      "2ab3c1c8-b1f1-4a93-bd3d-e0bb00a1c8aa"
+    ],
+    "outcome": "在现有 staged Locator 中补最小受控滚动，未改变 Task 源码或公共 API；失败历史保留。",
+    "evidence": "locator-viewport-failures.json"
+  },
+  "verification": [
+    {
+      "scope": "k3-native-driver 与 r5-modern-page-api 两文件定向回归",
+      "command": "node --test tests/framework/k3-native-driver.test.mjs tests/framework/r5-modern-page-api.test.mjs",
+      "pass": 66,
+      "fail": 0,
+      "evidence": "执行 Agent 原工具输出；未独立落盘，后补新增测试不包含在该次 66 项内"
+    },
+    {
+      "scope": "原宿主消失、跨会话隔离、证据缺失保持 fenced",
+      "pass": 4,
+      "fail": 0,
+      "log": "r18-controller-tests.log"
+    },
+    {
+      "scope": "未知创建、pending effect 和滚动后最新动作回执丢失",
+      "pass": 3,
+      "fail": 0,
+      "log": "r18-authority-extra-tests.log"
+    },
+    {
+      "scope": "明确滚动 ACK 后 fill 回执丢失不重复",
+      "pass": 1,
+      "fail": 0,
+      "log": "r18-locator-tests.log"
+    },
+    {
+      "scope": "Cloud reconcile 在 retirement released 时仍保留未知结果，不伪造 Receipt",
+      "pass": 2,
+      "fail": 0,
+      "log": "r18-cloud-targeted.log"
+    },
+    {
+      "scope": "旧数字 tabId 不查询/删除，普通 tabs.get 失败不能证明资源消失",
+      "pass": 2,
+      "fail": 0,
+      "log": "r18-target-safety-tests.log"
+    },
+    {
+      "scope": "修改的三份生产 JS node --check，任务 diff --check",
+      "status": "PASS"
+    }
+  ],
+  "remainingBoundaries": [
+    "旧目标身份不能证明，物理目标未被自动关闭；quarantine 记录保留，绝不声称未知资源已销毁。",
+    "未知测试任务仍为 OUTCOME_UNKNOWN，Provider 无完成 Receipt，禁止自动重放；这是故障恢复的诚实终态。",
+    "Observer 只监听真实网页 input 事件；SDK 产生的事件 isTrusted=false，不称为人工键盘输入。",
+    "首次自动任务的外部 input observer 因跳过 bootstrap 页面超时，该次结果以原始操作日志和 Result/Receipt 为证；后两次 observer 已修正并捕获真实事件。",
+    "局域网远程执行、production 构建与最终验收、整组检查、完整矩阵、CI 和评分均按用户最新阶段延期。",
+    "共享 watcher、日常扩展路径和其他 Agent 文件保留；仅重启本任务独占 CFT，未清空 IDB 或替换 Profile。"
+  ],
+  "review": "单个独立源码审查未发现具体回归；其两个测试缺口已补并运行。"
+}

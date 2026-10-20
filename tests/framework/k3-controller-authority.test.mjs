@@ -902,6 +902,153 @@ test('restart retires only a Controller whose exact host document is natively ab
     assert.equal(f.calls.filter(c=>c.method==='execute').length,0,'recovery never executes user source');
   }
 });
+test('cross-session recovery quarantines the old owned target without touching a reused tab ID',async()=>{
+  const f=await fixture(),run=await f.start(await f.commit(),{mode:'owned',url:'https://a.example/page'});
+  const creation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-target-create');
+  f.frames.delete(1);
+  const replacement={frameId:0,documentId:'new-session-document',url:'https://unrelated.example/'};
+  f.frames.set(run.target.tabId,[replacement]);
+  f.tabs.set(run.target.tabId,{id:run.target.tabId,url:replacement.url,incognito:false});
+  const before=f.calls.length;
+  const recovered=createRunAuthority({loadBuiltin:loadFakeBuiltin,storage:f.storage,api:f.api,session:'new-browser-session',clock:f.clock});
+  await recovered.recover();
+  const stored=(await f.rows('runs')).find(row=>row.runId===run.runId);
+  assert.equal(stored.workerRetired,true);
+  assert.equal(stored.retirementState,'released');
+  assert.equal(stored.state,'interrupted');
+  assert.equal(stored.targetQuarantine.state,'quarantined');
+  assert.equal(stored.targetQuarantine.documentId,run.target.documentId);
+  assert.equal(stored.targetQuarantine.browserSessionIncarnation,'browser-session');
+  assert.equal((await f.rows('runs')).find(row=>row.tag==='slot').currentRunId,null);
+  assert.deepEqual(f.frames.get(run.target.tabId),[replacement]);
+  assert.deepEqual((await f.rows('commandJournal')).find(row=>row.tag==='controller-target-create'),creation);
+  assert.equal(f.calls.slice(before).length,0,'no old-session native target call, cancellation or replay');
+  await recovered.recover();
+  assert.equal((await f.rows('commandJournal')).filter(row=>row.tag==='controller-retirement').length,1);
+  assert.equal(f.calls.slice(before).length,0);
+});
+test('r18 authority cross-session recovery quarantines owned creation with an unknown tab receipt',async()=>{
+  const f=await fixture(),revision=await f.commit(),create=f.api.tabs.create;
+  f.api.tabs.create=async options=>{await create(options);throw Error('creation callback lost');};
+  let runId;
+  await assert.rejects(f.start(revision,{mode:'owned',url:'https://a.example/page'}),error=>{
+    assert.equal(error.message,'creation callback lost');runId=error.runId;assert.ok(runId);return true;
+  });
+  const creation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-target-create');
+  assert.equal(creation.tabId,null);assert.equal(creation.state,'dispatched');
+  assert.equal((await f.rows('runs')).find(row=>row.tag==='slot').currentRunId,runId);
+  f.frames.delete(1);
+  const remainingTabs=structuredClone([...f.tabs]),before=f.calls.length;
+  const recovered=()=>createRunAuthority({loadBuiltin:loadFakeBuiltin,storage:f.storage,api:f.api,session:'new-browser-session',clock:f.clock});
+  await recovered().recover();
+  const stored=(await f.rows('runs')).find(row=>row.runId===runId);
+  assert.equal(stored.workerRetired,true);assert.equal(stored.retirementState,'released');
+  assert.equal(stored.targetQuarantine.state,'quarantined');
+  assert.equal(stored.targetQuarantine.reason,'previous-session-ownership-unverified');
+  assert.equal(stored.targetQuarantine.creationId,creation.creationId);
+  assert.equal(stored.targetQuarantine.tabId,null);assert.equal(stored.targetQuarantine.documentId,null);
+  assert.equal(stored.targetQuarantine.browserSessionIncarnation,'browser-session');
+  const unknown={...creation,state:'effect_unknown'};
+  assert.deepEqual((await f.rows('commandJournal')).find(row=>row.tag==='controller-target-create'),unknown);
+  const retirement=(await f.rows('commandJournal')).find(row=>row.tag==='controller-retirement');
+  assert.deepEqual(retirement.targetQuarantine,stored.targetQuarantine);assert.equal(retirement.releaseCount,1);
+  await recovered().recover();
+  assert.deepEqual((await f.rows('runs')).find(row=>row.runId===runId),stored);
+  assert.deepEqual((await f.rows('commandJournal')).find(row=>row.tag==='controller-target-create'),unknown);
+  assert.deepEqual((await f.rows('commandJournal')).filter(row=>row.tag==='controller-retirement'),[retirement]);
+  const slot=(await f.rows('runs')).find(row=>row.tag==='slot');
+  assert.equal(slot.currentRunId,null);assert.equal(slot.state,'available');assert.equal(slot.releaseCount,1);
+  assert.deepEqual([...f.tabs],remainingTabs);
+  assert.deepEqual(f.calls.slice(before),[],'unknown creation is never closed, cancelled or replayed');
+});
+test('r18 authority cross-session recovery preserves a submitted owned operation while releasing its slot',async t=>{
+  const f=await fixture(),run=await f.start(await f.commit(),{mode:'owned',url:'https://a.example/page'});
+  const envelope={requestId:'r18-pending-owned',identity:run.identity,revision:run.revision,target:run.target,
+    operation:{kind:'packaged',method:'click',args:controlEncode(['#submit'])}};
+  const sendMessage=f.api.tabs.sendMessage;let submitted,release;
+  const dispatched=new Promise(resolve=>{submitted=resolve;});
+  f.api.tabs.sendMessage=(id,message,options,callback)=>{
+    if(message.action!=='execute'||message.envelope.requestId!==envelope.requestId)return sendMessage(id,message,options,callback);
+    f.calls.push({method:message.action,id,options});
+    release=()=>callback({requestId:envelope.requestId,runId:run.runId,ownerEpoch:run.identity.ownerEpoch,value:controlEncode(undefined)});
+    submitted();
+  };
+  t.after(()=>release?.());
+  const rejected=assert.rejects(f.authority.controllerOperation({envelope},f.sender));
+  await dispatched;
+  const pending=(await f.rows('commandJournal')).find(row=>row.tag==='controller-operation'&&row.envelope.requestId===envelope.requestId);
+  assert.equal(pending.state,'dispatched');assert.equal(pending.submissionCount,1);
+  const creation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-target-create');
+  f.frames.delete(1);
+  const replacement={frameId:0,documentId:'r18-reused-document',url:'https://unrelated.example/'};
+  f.frames.set(run.target.tabId,[replacement]);
+  f.tabs.set(run.target.tabId,{id:run.target.tabId,url:replacement.url,incognito:false});
+  const before=f.calls.length;
+  const recovered=()=>createRunAuthority({loadBuiltin:loadFakeBuiltin,storage:f.storage,api:f.api,session:'new-browser-session',clock:f.clock});
+  await recovered().recover();
+  assert.equal((await f.rows('commandJournal')).find(row=>row.tag==='controller-operation'&&row.envelope.requestId===envelope.requestId).state,'effect_unknown');
+  release();await rejected;
+  const unknown=(await f.rows('commandJournal')).find(row=>row.tag==='controller-operation'&&row.envelope.requestId===envelope.requestId);
+  assert.equal(unknown.state,'effect_unknown');assert.equal(unknown.submissionCount,1);assert.equal(unknown.reply,undefined);
+  const stored=(await f.rows('runs')).find(row=>row.runId===run.runId);
+  assert.equal(stored.workerRetired,true);assert.equal(stored.retirementState,'released');
+  assert.equal(stored.targetQuarantine.state,'quarantined');assert.equal(stored.targetQuarantine.tabId,run.target.tabId);
+  await recovered().recover();
+  assert.deepEqual((await f.rows('commandJournal')).find(row=>row.tag==='controller-operation'&&row.envelope.requestId===envelope.requestId),unknown);
+  assert.deepEqual((await f.rows('commandJournal')).find(row=>row.tag==='controller-target-create'),creation);
+  assert.deepEqual((await f.rows('runs')).find(row=>row.runId===run.runId),stored);
+  const slot=(await f.rows('runs')).find(row=>row.tag==='slot');
+  assert.equal(slot.currentRunId,null);assert.equal(slot.state,'available');assert.equal(slot.releaseCount,1);
+  assert.equal((await f.rows('commandJournal')).filter(row=>row.tag==='controller-retirement').length,1);
+  assert.deepEqual(f.frames.get(run.target.tabId),[replacement]);
+  assert.equal(f.tabs.get(run.target.tabId).url,replacement.url);
+  assert.deepEqual(f.calls.slice(before),[],'recovery and the late receipt never close, cancel or replay the reused target');
+});
+test('r18 authority latest Locator intent remains unknown after acknowledged scroll and a lost action receipt',async()=>{
+  const f=await fixture(),run=await f.start(await f.commit()),sendMessage=f.api.tabs.sendMessage;
+  let prepares=0,commits=0,scrolls=0,fills=0;
+  f.api.tabs.sendMessage=(id,message,options,callback)=>{
+    const e=message.envelope,method=e?.operation.method;
+    if(message.action!=='execute'||!['locatorPrepare','locatorCommit'].includes(method))return sendMessage(id,message,options,callback);
+    f.calls.push({method:message.action,id,options});let value;
+    if(method==='locatorPrepare'){
+      prepares++;value={ready:true,token:`r18-prepare-${prepares}`,...(prepares===1?{scrollOnly:true}:{})};
+    }else if(++commits===1){scrolls++;value={committed:true,scrolled:true};}
+    else {fills++;return;} // The action ran, but its callback is lost until the Locator timeout.
+    queueMicrotask(()=>callback({requestId:e.requestId,runId:run.runId,ownerEpoch:run.identity.ownerEpoch,value:controlEncode(value)}));
+  };
+  const envelope={requestId:'r18-scroll-then-lost-action',identity:run.identity,revision:run.revision,target:run.target,
+    operation:{kind:'packaged',method:'locatorAction',args:controlEncode([{kind:'css',value:'#name'},
+      {action:'fill',value:'Cloud task',timeout:200}])}};
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_TIMEOUT'));
+  assert.deepEqual({prepares,commits,scrolls,fills},{prepares:2,commits:2,scrolls:1,fills:1});
+  const operation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-operation'&&row.envelope.requestId===envelope.requestId);
+  assert.equal(operation.state,'effect_unknown');assert.equal(operation.failure.code,'E_TIMEOUT');assert.equal(operation.submissionCount,1);
+  assert.equal(operation.reply,undefined);
+  const intents=operation.nativeReceipts.filter(row=>['locator.commitIntent','locator.scrollCommitted','locator.commitNoEffect'].includes(row.stage));
+  assert.deepEqual(intents.map(row=>row.stage),['locator.commitIntent','locator.scrollCommitted','locator.commitIntent']);
+  assert.ok(intents.every(row=>row.requestId===envelope.requestId&&row.receipt.documentId===run.target.documentId));
+  assert.equal(operation.nativeReceipts.some(row=>['packaged.finalFailure','result'].includes(row.stage)),false);
+  assert.equal((await f.rows('runs')).find(row=>row.runId===run.runId).state,'paused_unknown');
+  const before=f.calls.length;
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_EFFECT_UNKNOWN'));
+  assert.deepEqual(f.calls.slice(before),[]);
+  assert.deepEqual((await f.rows('commandJournal')).find(row=>row.tag==='controller-operation'&&row.envelope.requestId===envelope.requestId),operation);
+});
+test('cross-session recovery keeps the owned execution fenced without exact host retirement evidence',async()=>{
+  for(const mode of ['live','unavailable']){
+    const f=await fixture(),run=await f.start(await f.commit(),{mode:'owned',url:'https://a.example/page'});
+    if(mode==='unavailable')f.api.runtime.getContexts=async()=>{throw Error('inventory unavailable');};
+    const before=f.calls.length;
+    const recovered=createRunAuthority({loadBuiltin:loadFakeBuiltin,storage:f.storage,api:f.api,session:'new-browser-session',clock:f.clock});
+    await recovered.recover();
+    const stored=(await f.rows('runs')).find(row=>row.runId===run.runId);
+    assert.notEqual(stored.retirementState,'released');
+    assert.equal(stored.targetQuarantine,undefined);
+    assert.equal((await f.rows('runs')).find(row=>row.tag==='slot').currentRunId,run.runId);
+    assert.equal(f.calls.slice(before).length,0);
+  }
+});
 test('host port loss pauses while live context remains, but recovered missing host tab retires once',async () => {
   const f=await fixture(),run=await f.start(await f.commit());
   f.frames.set(1,[{frameId:0,documentId:'host-doc',url:f.sender.url}]);
