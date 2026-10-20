@@ -169,6 +169,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       add('前往开发',()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();},'develop');
     }
     add('查看详情',()=>openDetail(key,'more'),'detail');
+    if(row.stateKnown!==false)
+      add('卸载…',event=>openListUninstallReview(row.key,event),'uninstall');
     extensionList.renderRowMenu(menuItems,{
       key,title:titleOf(row),trigger,onClose:closeRowMenu
     });
@@ -184,6 +186,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         ?'将停止该网页增强自动运行并移除本机安装记录；不会删除网站自己的数据。'
         :'将卸载该应用并清理其本地数据与网站授权；此操作不可撤销。',
       busy:Boolean(busy||pendingKey),
+      identity:{key:review.key,kind:review.kind,version:review.kind==='page'
+        ?find(review.key)?.version:review.package?.version},
       onCancel:cancelListUninstallReview,onConfirm:confirmListUninstallReview
     }:null);
   }
@@ -291,7 +295,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           primaryAction:resolveExtensionPrimaryAction(row)?.label||null
         })),
         busy:Boolean(busy||pendingKey),pendingKey,
-        onOpenRow:openRow,onMore:showRowMenu,onUninstall:openListUninstallReview
+        onOpenRow:openRow,onMore:showRowMenu
       });
     const showEmpty=rows.length===0&&orphaned.length===0&&hasLoaded;
     const emptyText=dataError?
@@ -501,7 +505,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       else message('卸载结果未得到完整确认；不会自动重试，请刷新后核对原生注册及安装状态。','error');
     }finally{
       busy=false;pendingKey=null;uninstallReview=null;listUninstallReview=null;
-      if(!disposed){draw();if(selectedKey)renderDetail();else if(!restoreRowFocus(expected.key,'uninstall'))
+      if(!disposed){draw();if(selectedKey)renderDetail();else if(!restoreRowFocus(expected.key,'more'))
         search?.focus?.({preventScroll:true});}
     }
   }
