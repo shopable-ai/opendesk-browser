@@ -126,7 +126,8 @@ jobs:
           name: extension-center-r53-source-preview
           path: |
             prototypes/sidebar/react-preview/index.html
-            artifacts/extension-center-r53/*.png
+            artifacts/extension-center-r541/preview/*.png
+            artifacts/extension-center-r541/preview/chromium-result.json
             artifacts/extension-center-r53/installed-production/report.json
             artifacts/extension-center-r53/installed-production/failure.png
           if-no-files-found: warn
