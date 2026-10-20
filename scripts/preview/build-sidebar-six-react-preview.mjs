@@ -92,6 +92,9 @@ const demoRows=Object.freeze([
   {key:'app:demo-import',title:'演示 · 待安装应用',kind:'app',type:'应用',
     description:'仅展示官方目录候选外观，不提供模拟安装',installed:false,version:'2.0.0'}
 ]);
+const demoRemoved=new Set();
+let pendingDemoReview=null,selectedDemoKey=null;
+const demoInstalled=row=>row.installed&&!demoRemoved.has(row.key);
 const toolbar={query:'',kind:'all',scope:'smart',language:'zh-CN',menuOpen:false};
 const previewNotice=()=>app.renderStatus({text:'仅预览 · 请在正式 Chrome 扩展中执行此操作',state:'info'});
 // The canonical React preview demonstrates the drawer and file metadata only.
@@ -137,16 +140,43 @@ toolView.bind('sidebar-tool-file','change',async event=>{
   }
 });
 const closeRowMenu=()=>app.renderRowMenu([]);
-const closeDetail=()=>{closeRowMenu();app.renderView('list');};
+const closeDetail=()=>{
+  pendingDemoReview=null;selectedDemoKey=null;closeRowMenu();app.renderView('list');
+};
+function openDemoUninstallReview(key,event){
+  if(!event?.isTrusted||!demoRows.some(row=>row.key===key&&demoInstalled(row)))return;
+  pendingDemoReview=key;openDemoDetail(key);
+}
+function cancelDemoUninstallReview(event){
+  if(!event?.isTrusted||!pendingDemoReview)return;
+  const key=pendingDemoReview;
+  pendingDemoReview=null;openDemoDetail(key);
+}
+function confirmDemoUninstallReview(event){
+  if(!event?.isTrusted||!pendingDemoReview||pendingDemoReview!==selectedDemoKey)return;
+  const key=pendingDemoReview,row=demoRows.find(item=>item.key===key);
+  if(!row||!demoInstalled(row)){cancelDemoUninstallReview(event);return;}
+  demoRemoved.add(key);closeDetail();publishRows();
+  app.renderStatus({text:'仅预览 · 已从安装列表移除「'+row.title+
+    '」（仅内存演示，没有真实卸载或权限变更）',state:'success'});
+  document.getElementById('extension-center-search')?.focus({preventScroll:true});
+}
 function openDemoDetail(key){
-  const row=demoRows.find(item=>item.key===key);
+  const row=demoRows.find(item=>item.key===key&&!demoRemoved.has(item.key));
   if(!row)return;
-  closeRowMenu();
+  selectedDemoKey=key;closeRowMenu();
+  const installed=demoInstalled(row),reviewing=pendingDemoReview===key;
   app.renderDetail({key:row.key,title:row.title,kind:row.kind,type:row.type,
-    description:row.description,installed:row.installed,cleanupPending:false,
-    version:row.version,busy:false,actions:[],
-    source:row.installed?{label:'演示来源（非真实安装）'}:null,
-    installationText:row.installed?'演示条目 · 非真实安装':'演示候选 · 尚未安装',
+    description:row.description,installed,cleanupPending:false,
+    version:row.version,busy:false,
+    actions:installed&&!reviewing?[{id:'uninstall',label:'卸载…',
+      onClick:event=>openDemoUninstallReview(key,event)}]:[],
+    confirmation:reviewing?{
+      text:'确认后，该演示条目会从已安装列表消失。这里不调用真实卸载、数据清理或权限 API。',
+      onCancel:cancelDemoUninstallReview,onConfirm:confirmDemoUninstallReview
+    }:null,
+    source:installed?{label:'演示来源（非真实安装）'}:null,
+    installationText:installed?'演示条目 · 非真实安装':'演示候选 · 尚未安装',
     usageText:'仅供审阅排版，不运行扩展',appDataText:'',
     sites:row.kind==='page'?['https://example.com/*']:[],suspended:false,
     pageInfo:row.kind==='page'?{
@@ -160,8 +190,9 @@ app.connectBack(closeDetail);
 function publishRows(){
   const query=toolbar.query.trim().toLocaleLowerCase();
   const shown=demoRows.filter(row=>
+    !demoRemoved.has(row.key)&&
     (toolbar.kind==='all'||toolbar.kind===row.kind)&&
-    (toolbar.scope==='available'?!row.installed:row.installed)&&
+    (toolbar.scope==='available'?!demoInstalled(row):demoInstalled(row))&&
     (!query||(row.title+' '+row.description).toLocaleLowerCase().includes(query)));
   app.renderRows({rows:shown.map(({key,title,kind,type,description,installed})=>
     ({key,title,kind,type,description,installed,primaryAction:null})),
@@ -169,8 +200,10 @@ function publishRows(){
     onMore:(key,trigger)=>{
       const row=demoRows.find(item=>item.key===key);
       if(!row)return;
-      app.renderRowMenu([{id:'detail',label:'查看详情',onClick:()=>openDemoDetail(key)}],
-        {key,title:row.title,trigger,onClose:closeRowMenu});
+      const items=[{id:'detail',label:'查看详情',onClick:()=>openDemoDetail(key)}];
+      if(demoInstalled(row))items.push({id:'uninstall',label:'卸载…',
+        onClick:event=>openDemoUninstallReview(key,event)});
+      app.renderRowMenu(items,{key,title:row.title,trigger,onClose:closeRowMenu});
     }});
   app.renderFeedback({showEmpty:shown.length===0,
     emptyText:'仅预览 · 当前筛选下没有演示条目',
