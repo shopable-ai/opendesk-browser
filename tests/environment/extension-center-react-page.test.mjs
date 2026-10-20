@@ -130,10 +130,14 @@ async function browserFixture(t){
   t.after(()=>assert.deepEqual(errors,[]));return page;
 }
 const options={skip:modulePath?false:'NOT_TESTED: set OPENDESK_PLAYWRIGHT_MODULE to an existing Playwright installation'};
+async function chooseListUninstall(page,key){
+  await page.locator('[data-extension-key="'+key+'"][data-extension-action="more"]').click();
+  await page.locator('#extension-center-row-menu [data-ec-context-action="uninstall"]').click();
+}
 
 test('React page preserves list, search/filter, detail identity and native Page actions',options,async t=>{
   const page=await browserFixture(t);
-  await page.locator('[data-extension-key="app:quick-notes"][data-extension-action="primary"]').click();
+  await page.locator('[data-extension-key="app:quick-notes"][data-extension-action="main"]').click();
   assert.equal(await page.evaluate(()=>fixture.calls.filter(x=>x.action==='open').length),1);
   await page.locator('#extension-center-search').fill('阅读');
   assert.equal(await page.locator('#extension-center-list > li').count(),1);
@@ -231,11 +235,11 @@ test('React row menu preserves native gestures, keyboard/outside close, pending 
   assert.equal(await page.evaluate(()=>fixture.changes.size+fixture.connections.size),0);
 });
 
-test('R5.6 installed App row opens one modal; cancel/Escape preserve state, confirm binds native gesture and persists removal',options,async t=>{
+test('R5.11 App overflow opens one modal; cancel/Escape preserve state, confirm binds native gesture and persists removal',options,async t=>{
   const page=await browserFixture(t);
-  const trash=page.locator('[data-extension-key="app:quick-notes"][data-extension-action="uninstall"]');
-  assert.equal(await trash.count(),1,'An installed App exposes the direct trash control');
-  await trash.click();
+  assert.equal(await page.locator('[data-extension-action="uninstall"]').count(),0,
+    'No destructive control appears on a list row');
+  await chooseListUninstall(page,'app:quick-notes');
   const modal=page.locator('.od-uninstall-dialog[aria-modal="true"]');
   await modal.waitFor();
   assert.equal(await modal.count(),1,'The list opens exactly one shared confirmation');
@@ -245,11 +249,11 @@ test('R5.6 installed App row opens one modal; cancel/Escape preserve state, conf
   await page.keyboard.press('Escape');
   assert.equal(await modal.count(),0,'Escape closes without removing anything');
   assert.equal(await page.evaluate(()=>fixture.installedApps().length),1);
-  await trash.click();
+  await chooseListUninstall(page,'app:quick-notes');
   await modal.locator('[data-uninstall-cancel]').click();
   assert.equal(await page.evaluate(()=>fixture.installedApps().length),1);
   assert.equal(await page.evaluate(()=>fixture.calls.filter(row=>row.action==='app-uninstall').length),0);
-  await trash.click();
+  await chooseListUninstall(page,'app:quick-notes');
   await modal.getByRole('button',{name:'确认卸载'}).click();
   await page.waitForFunction(()=>fixture.state.uninstallModel===null&&
     !document.querySelector('[data-extension-id="app:quick-notes"]'));
@@ -262,17 +266,16 @@ test('R5.6 installed App row opens one modal; cancel/Escape preserve state, conf
   assert.equal(await page.locator('[data-extension-id="app:quick-notes"]').count(),0);
 });
 
-test('R5.6 installed Page row directly opens one confirmation; fixed generation is passed to original authority and read back',options,async t=>{
+test('R5.11 Page overflow opens one confirmation; fixed generation is passed to original authority and read back',options,async t=>{
   const page=await browserFixture(t);
-  const trash=page.locator('[data-extension-key="page:reader"][data-extension-action="uninstall"]');
-  assert.equal(await trash.count(),1);
-  await trash.click();
+  assert.equal(await page.locator('[data-extension-action="uninstall"]').count(),0);
+  await chooseListUninstall(page,'page:reader');
   const modal=page.locator('.od-uninstall-dialog[aria-modal="true"]');
   await modal.waitFor();
   assert.match(await modal.innerText(),/阅读增强/);
   await modal.getByRole('button',{name:'取消'}).click();
   assert.equal(await page.evaluate(()=>fixture.calls.filter(row=>row.action==='page-uninstall').length),0);
-  await trash.click();
+  await chooseListUninstall(page,'page:reader');
   await modal.getByRole('button',{name:'确认卸载'}).click();
   await page.waitForFunction(()=>fixture.state.uninstallModel===null&&
     !document.querySelector('[data-extension-id="page:reader"]'));
@@ -287,7 +290,7 @@ test('R5.6 installed Page row directly opens one confirmation; fixed generation 
 
 test('R5.6 changes to Page installation identity invalidate the opened list dialog before dispatch',options,async t=>{
   const page=await browserFixture(t);
-  await page.locator('[data-extension-key="page:reader"][data-extension-action="uninstall"]').click();
+  await chooseListUninstall(page,'page:reader');
   await page.evaluate(async()=>{
     fixture.page.installed.authorization.generation++;
     await fixture.controller.refresh();
