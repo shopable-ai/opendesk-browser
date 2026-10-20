@@ -123,10 +123,13 @@ export function StayFocusQuickAdd({model,actions}){
     </span>
     {action==='managed'
       ?<span className="od-note" role="status">✓ 已管理</span>
+      :action==='error'
+      ?<button type="button" id="stay-focus-current-retry" className="od-button od-button--secondary"
+        disabled={model.busy} onClick={()=>actions?.refreshQuick()}>重试读取</button>
       :<button type="button" id="stay-focus-current-add" className="od-button"
         disabled={model.busy||!canChange}
         onClick={event=>actions?.quickAdd(event.nativeEvent)}>
-        {action==='paused'?'恢复':action==='loading'?'正在核对':action==='error'?'状态不可用':'加入'}
+        {action==='paused'?'恢复':action==='loading'?'正在核对':'加入'}
       </button>}
   </section>;
 }
