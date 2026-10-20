@@ -358,7 +358,20 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   });
   const timePermissions=settingsView?createTimeReviewPermissionControls({api,ui:trustedSettingsUI?.timeReview,notice,runOperation:runTrustedTimeReviewOperation}):null;
   const focusPermissions=settingsView&&focus?.createPermissionControls
-    ?focus.createPermissionControls({api,ui:trustedSettingsUI?.stayFocus,notice,runOperation:(operation,payload,event)=>{
+    ?focus.createPermissionControls({api,ui:trustedSettingsUI?.stayFocus,notice,
+      pageTarget:currentPageTarget,
+      readStatus:()=>{
+        const tool=active,revocationEpoch=frameRevocationEpoch;
+        if(!tool||tool.id!==FOCUS_ID||readOnlyPreview)
+          throw Object.assign(new Error('Stay Focus 工具已关闭'),{code:'E_TOOL_CHANGED'});
+        return focus.request({api,tool,operation:'focus.status',payload:{},revocationEpoch,
+          assertCurrent:()=>{
+            if(disposed||!samePackage(active,tool)||
+               revocationEpoch!==(revocationEpochs[tool.id]??null)||readOnlyPreview)
+              throw Object.assign(new Error('Stay Focus 安装身份已变化'),{code:'E_TOOL_CHANGED'});
+          },requestBrowserClick,openSettings:()=>{}});
+      },
+      runOperation:(operation,payload,event)=>{
       const tool=active,revocationEpoch=frameRevocationEpoch;
       return focus.runTrustedOperation({api,tool,operation,payload,event,revocationEpoch,assertCurrent:phase=>{
         if(disposed||!tool||!samePackage(active,tool)||
