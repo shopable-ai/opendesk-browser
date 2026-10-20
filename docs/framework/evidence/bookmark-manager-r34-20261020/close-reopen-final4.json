@@ -1,0 +1,14 @@
+{
+  "candidate": {
+    "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
+    "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
+    "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
+  },
+  "kind": "REAL_MAC_CFT_NATIVE_CLOSE_REOPEN_SIDE_PANEL",
+  "status": "PASS",
+  "at": "2026-10-20T07:02:37.806Z",
+  "method": "Native macOS click on observed Close Side Panel button, then normal extension toolbar action and product tool list",
+  "nativeBookmarksUnchanged": true,
+  "newContextId": "4f71294a-5429-4b0e-a5e8-a89fecd035a4",
+  "oldContextId": "fea0f63a-9b9d-4208-b5da-2394b43d7932"
+}

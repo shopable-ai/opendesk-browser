@@ -14,7 +14,19 @@ import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 
 const compiled = await transform(await readFile(new URL('../../src/ui/react/tabs/tool-host.tsx', import.meta.url), 'utf8'),
   {loader: 'tsx', format: 'esm', jsx: 'transform'});
-const moduleSource = compiled.code.replace('"react"', JSON.stringify(import.meta.resolve('react'))).replace('"./trusted-settings.tsx"',JSON.stringify(settingsModuleURL));
+const compileComponent = async (path, replacements) => {
+  const {code} = await transform(await readFile(new URL(path,import.meta.url),'utf8'),
+    {loader:'tsx',format:'esm',jsx:'transform'});
+  return 'data:text/javascript;base64,'+Buffer.from(Object.entries(replacements).reduce(
+    (text,[from,to])=>text.replaceAll(JSON.stringify(from),JSON.stringify(to)),code)).toString('base64');
+};
+const buttonModule = await compileComponent('../../src/ui/react/components/ui/button.tsx',{'react':import.meta.resolve('react')});
+const toolsModule = await compileComponent('../../src/ui/react/tabs/tools.tsx',{'react':import.meta.resolve('react'),
+  'react-dom':import.meta.resolve('react-dom'),'../components/ui/button.tsx':buttonModule});
+const moduleSource = compiled.code.replace('"react"', JSON.stringify(import.meta.resolve('react')))
+  .replace('"react-dom"',JSON.stringify(import.meta.resolve('react-dom')))
+  .replace('"./tools.tsx"',JSON.stringify(toolsModule))
+  .replace('"./trusted-settings.tsx"',JSON.stringify(settingsModuleURL));
 const {ToolHost} = await import('data:text/javascript;base64,' + Buffer.from(moduleSource).toString('base64'));
 const nextTick = () => new Promise(resolve => setImmediate(resolve));
 
@@ -90,7 +102,7 @@ test('SSR contains import, execution display and trusted reviews, with one owner
   assert.equal(new Set(ids).size, ids.length);
   for (const id of ['sidebar-tool-import', 'sidebar-tool-preview', 'sidebar-tool-install', 'page-install-import-receipt',
     'sidebar-tool-action-review', 'sidebar-tool-update', 'sidebar-tool-settings-view', 'sidebar-tool-frame',
-    'sidebar-tool-adblock-native', 'sidebar-tool-ai-proxy-native', 'sidebar-tool-inline-remove',
+    'sidebar-tool-adblock-native', 'sidebar-tool-ai-proxy-native',
     'sidebar-tool-visibility-settings', 'sidebar-tool-retired-draft', 'time-review-permission-settings']) {
     assert.ok(document.getElementById(id), id);
   }
@@ -98,6 +110,7 @@ test('SSR contains import, execution display and trusted reviews, with one owner
   assert.equal(document.getElementById('sidebar-tool-display').hidden, true);
   assert.equal(document.getElementById('extension-center'), null);
   assert.equal(document.getElementById('sidebar-tool-list'), null);
+  assert.equal(document.getElementById('sidebar-tool-inline-remove'), null, 'closed uninstall confirmation has no mounted modal');
   assert.equal(document.getElementById('sidebar-tool-official-catalog'), null);
   assert.equal(document.querySelector('iframe,script,img'), null);
   assert.match(html, /&lt;script&gt;untrusted\(\)&lt;\/script&gt;/);
@@ -115,7 +128,7 @@ test('React layout supplies real runtime refs, preserves opaque children, dispat
   const root = createRoot(document.getElementById('mount')), view = createSidebarToolsView();
   let initialized = 0, disposed = 0;
   const calls = [];
-  const methods = ['openTool', 'openSettings', 'toggleEnabled', 'retryUninstallCleanup', 'openOfficialReview',
+ const methods = ['openTool', 'openSettings', 'toggleEnabled', 'uninstallFromList', 'retryUninstallCleanup', 'openOfficialReview',
     'openImport', 'openReadOnlyPreview', 'openInTab', 'closeTool'];
   const facade = view.connect(() => {
     initialized++;
@@ -135,12 +148,16 @@ test('React layout supplies real runtime refs, preserves opaque children, dispat
   facade.setVisible(true);
   assert.equal(facade.isDirty(), false);
   assert.throws(() => facade.openTool('early'), /E_SIDEBAR_TOOL_RUNTIME_NOT_READY/);
+  assert.throws(() => facade.uninstallFromList('early', {}, {isTrusted:true}), /E_SIDEBAR_TOOL_RUNTIME_NOT_READY/);
   await React.act(async () => {root.render(React.createElement(ToolHost, {view}));});
   await facade.ready;
   assert.equal(initialized, 1); assert.deepEqual(calls, [['visible', true]]);
   assert.equal(view.resourceSnapshot().subscriptions, 1);
   assert.equal(facade.isDirty(), true); assert.equal(facade.isPreviewActive(), false);
   for (const name of methods) assert.equal(facade[name]('alpha'), name);
+  const baseline={id:'alpha',version:'0.3.8'},event={isTrusted:true};
+  facade.uninstallFromList('alpha',baseline,event);
+  assert.deepEqual(calls.at(-1),['uninstallFromList','alpha',baseline,event]);
   const frame = view.runtime.frameRoot.firstChild, trusted = document.getElementById('trusted-business-owner');
   const focused = [], scrolls = [];
   document.getElementById('sidebar-tool-back').focus = options => focused.push(options);

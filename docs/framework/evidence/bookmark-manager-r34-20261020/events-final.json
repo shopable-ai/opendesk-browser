@@ -1,0 +1,367 @@
+{
+  "candidate": {
+    "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
+    "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
+    "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
+  },
+  "kind": "REAL_MAC_CFT_NATIVE_EVENT_INJECTION",
+  "status": "PASS",
+  "at": "2026-10-20T06:48:51.546Z",
+  "observations": [
+    {
+      "at": 1792478943627,
+      "loading": false
+    },
+    {
+      "at": 1792478943705,
+      "loading": false
+    },
+    {
+      "at": 1792478943781,
+      "loading": false
+    },
+    {
+      "at": 1792478943859,
+      "loading": false
+    },
+    {
+      "at": 1792478943937,
+      "loading": false
+    },
+    {
+      "at": 1792478944015,
+      "loading": false
+    },
+    {
+      "at": 1792478944098,
+      "loading": false
+    },
+    {
+      "at": 1792478944178,
+      "loading": false
+    },
+    {
+      "at": 1792478944257,
+      "loading": false
+    },
+    {
+      "at": 1792478944335,
+      "loading": false
+    },
+    {
+      "at": 1792478944414,
+      "loading": false
+    },
+    {
+      "at": 1792478944493,
+      "loading": false
+    },
+    {
+      "at": 1792478944571,
+      "loading": false
+    },
+    {
+      "at": 1792478944648,
+      "loading": false
+    },
+    {
+      "at": 1792478944724,
+      "loading": false
+    },
+    {
+      "at": 1792478944802,
+      "loading": false
+    },
+    {
+      "at": 1792478944880,
+      "loading": false
+    },
+    {
+      "at": 1792478944957,
+      "loading": false
+    },
+    {
+      "at": 1792478945036,
+      "loading": false
+    },
+    {
+      "at": 1792478945115,
+      "loading": false
+    },
+    {
+      "at": 1792478945193,
+      "loading": false
+    },
+    {
+      "at": 1792478945270,
+      "loading": false
+    },
+    {
+      "at": 1792478945348,
+      "loading": false
+    },
+    {
+      "at": 1792478945425,
+      "loading": false
+    },
+    {
+      "at": 1792478945503,
+      "loading": false
+    },
+    {
+      "at": 1792478945587,
+      "loading": false
+    },
+    {
+      "at": 1792478945665,
+      "loading": false
+    },
+    {
+      "at": 1792478945743,
+      "loading": false
+    },
+    {
+      "at": 1792478945820,
+      "loading": false
+    },
+    {
+      "at": 1792478945898,
+      "loading": false
+    },
+    {
+      "at": 1792478945978,
+      "loading": false
+    },
+    {
+      "at": 1792478946062,
+      "loading": true
+    },
+    {
+      "at": 1792478946140,
+      "loading": true
+    },
+    {
+      "at": 1792478946218,
+      "loading": true
+    },
+    {
+      "at": 1792478946293,
+      "loading": true
+    },
+    {
+      "at": 1792478946372,
+      "loading": true
+    },
+    {
+      "at": 1792478946449,
+      "loading": true
+    },
+    {
+      "at": 1792478946527,
+      "loading": true
+    },
+    {
+      "at": 1792478946603,
+      "loading": true
+    },
+    {
+      "at": 1792478946682,
+      "loading": true
+    },
+    {
+      "at": 1792478946762,
+      "loading": true
+    },
+    {
+      "at": 1792478946839,
+      "loading": true
+    },
+    {
+      "at": 1792478946917,
+      "loading": true
+    },
+    {
+      "at": 1792478946995,
+      "loading": true
+    },
+    {
+      "at": 1792478947073,
+      "loading": true
+    },
+    {
+      "at": 1792478947151,
+      "loading": true
+    },
+    {
+      "at": 1792478947231,
+      "loading": true
+    },
+    {
+      "at": 1792478947309,
+      "loading": true
+    },
+    {
+      "at": 1792478947388,
+      "loading": true
+    },
+    {
+      "at": 1792478947467,
+      "loading": true
+    },
+    {
+      "at": 1792478947545,
+      "loading": true
+    },
+    {
+      "at": 1792478947622,
+      "loading": true
+    },
+    {
+      "at": 1792478947700,
+      "loading": true
+    },
+    {
+      "at": 1792478947777,
+      "loading": true
+    },
+    {
+      "at": 1792478947857,
+      "loading": true
+    },
+    {
+      "at": 1792478947936,
+      "loading": true
+    },
+    {
+      "at": 1792478948014,
+      "loading": true
+    },
+    {
+      "at": 1792478948093,
+      "loading": true
+    },
+    {
+      "at": 1792478948173,
+      "loading": true
+    },
+    {
+      "at": 1792478948252,
+      "loading": true
+    },
+    {
+      "at": 1792478948331,
+      "loading": true
+    },
+    {
+      "at": 1792478948409,
+      "loading": true
+    },
+    {
+      "at": 1792478948487,
+      "loading": true
+    },
+    {
+      "at": 1792478948565,
+      "loading": true
+    },
+    {
+      "at": 1792478948642,
+      "loading": true
+    },
+    {
+      "at": 1792478948720,
+      "loading": true
+    },
+    {
+      "at": 1792478948798,
+      "loading": true
+    },
+    {
+      "at": 1792478948876,
+      "loading": true
+    },
+    {
+      "at": 1792478948960,
+      "loading": true
+    },
+    {
+      "at": 1792478949038,
+      "loading": true
+    },
+    {
+      "at": 1792478949116,
+      "loading": true
+    },
+    {
+      "at": 1792478949195,
+      "loading": true
+    },
+    {
+      "at": 1792478949273,
+      "loading": true
+    },
+    {
+      "at": 1792478949350,
+      "loading": true
+    },
+    {
+      "at": 1792478949432,
+      "loading": true
+    },
+    {
+      "at": 1792478949510,
+      "loading": true
+    },
+    {
+      "at": 1792478949587,
+      "loading": true
+    },
+    {
+      "at": 1792478949667,
+      "loading": true
+    },
+    {
+      "at": 1792478949744,
+      "loading": true
+    },
+    {
+      "at": 1792478949820,
+      "loading": true
+    },
+    {
+      "at": 1792478949898,
+      "loading": true
+    },
+    {
+      "at": 1792478949975,
+      "loading": true
+    },
+    {
+      "at": 1792478950053,
+      "loading": true
+    },
+    {
+      "at": 1792478950130,
+      "loading": true
+    },
+    {
+      "at": 1792478950207,
+      "loading": true
+    },
+    {
+      "at": 1792478950287,
+      "loading": true
+    },
+    {
+      "at": 1792478950365,
+      "loading": true
+    }
+  ],
+  "fixtureWrites": "Native Chrome bookmarks API in own isolated profile; product reads/writes remain original SDK/Host",
+  "externalWindowId": 15192424,
+  "moveSyncMs": 4444,
+  "deleteSyncMs": 4139,
+  "finalNativeNodes": 3259,
+  "eventOverflowResnapshot": true,
+  "eventsCreated": 240
+}

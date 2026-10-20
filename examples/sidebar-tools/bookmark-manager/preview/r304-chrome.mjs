@@ -1,15 +1,14 @@
 #!/usr/bin/env node
-// R3.0.4 React browser preview regression. MOCK only, NOT SOURCE BOUND / NOT NATIVE.
+// Formal React JSX browser regression with a mock Host. NOT INSTALLED / NOT NATIVE.
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
-import {tmpdir} from 'node:os';
 import {pathToFileURL} from 'node:url';
 
-const out=resolve(process.argv[2]||'artifacts/preview-chrome-r304');
+const out=resolve(process.argv[2]||'examples/sidebar-tools/bookmark-manager/preview/react/.opendesk-preview/chrome-evidence');
 await mkdir(out,{recursive:true});
-const profile=await mkdtemp(join(tmpdir(),'bm-r304-chrome-'));
+const profile=await mkdtemp(join(out,'chrome-profile-'));
 const chrome=spawn(process.env.CHROME_BIN||'chromium',[
   '--headless=new','--no-sandbox','--disable-dev-shm-usage','--disable-gpu',
   '--no-first-run','--user-data-dir='+profile,'--remote-debugging-port=0','about:blank'
@@ -117,6 +116,9 @@ assert.match(html,/sandbox="allow-scripts"/);
 assert.doesNotMatch(html,/sandbox="[^"]*allow-same-origin/);
 const manifest=JSON.parse(html.match(/id="opendesk-preview-manifest">([^<]+)<\/script>/)[1]);
 assert.equal(manifest.reactRuntime,true);
+assert.equal(manifest.formalEntry,true,'Regression must mount actual formal.jsx');
+assert.equal(manifest.hostAdapter,'MOCK_HOST_ADAPTER');
+assert.equal(manifest.nativeVerified,false,'Mock Host is not Native evidence');
 const report=[];
 let browserInfo={};
 async function click(ctx,sel){
@@ -349,27 +351,75 @@ try{
    assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=bookmark-preview]')"),false,'search folder navigation stays list-first');
    await screenshot('bookmark-r304-400-search-folder-drilldown.png');
   }
-   // Preview has no Host consent UI. One delete selection must mutate the
-   // Mock once without a second React confirmation; native approval is separate.
+   // R3.3 removed the duplicate React delete dialog. The mock Host still
+   // requires one operation-bound review; cancel and pending must not mutate.
    await click(ctx,'button[aria-label="刷新书签"]');
    await until(ctx,"!document.querySelector('button[aria-label=\"刷新书签\"]')?.disabled",'reconcile unknown before delete');
    await setInput(ctx,'bm-search','https://example.org/preview');
    await until(ctx,"!!document.querySelector('[data-node-id=\"100\"]')",'known delete target');
    await openMenu(ctx,'100');
    await choose(ctx,3);
+   await until(ctx,"!!document.querySelector('[data-testid=mock-host-review]')",'one mock Host review');
+   assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=confirm-dialog]')"),false,'no duplicate React delete confirmation');
+   assert.equal(await invoke(ctx,"return (await OpenDeskSDK.browser.bookmarks.get({id:'100'})).length"),1,'pending Host review preserves bookmark');
+   assert.deepEqual(await invoke(ctx,"return __BookmarkMockHost.mutations"),[],'no mutation before Host approval');
+   await click(ctx,'[data-testid="mock-host-review"] [data-action="cancel"]');
+   await gone(ctx,'[data-testid="mock-host-review"]','cancel mock Host review');
+   await until(ctx,"!document.querySelector('button[aria-label=\"刷新书签\"]')?.disabled",'cancel releases delete busy guard');
+   assert.equal(await invoke(ctx,"return (await OpenDeskSDK.browser.bookmarks.get({id:'100'})).length"),1,'cancel leaves original bookmark');
+   assert.deepEqual(await invoke(ctx,"return __BookmarkMockHost.mutations"),[],'cancel causes no mutation');
+   await openMenu(ctx,'100');
+   await choose(ctx,3);
+   await until(ctx,"!!document.querySelector('[data-testid=mock-host-review]')",'retry requires fresh Host review');
+   assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=confirm-dialog]')"),false,'retry has no second React confirmation');
+   assert.deepEqual(await invoke(ctx,"return __BookmarkMockHost.mutations"),[],'retry still awaits approval');
+   await screenshot('bookmark-r304-'+width+'-mock-host-review.png');
+   await click(ctx,'[data-testid="mock-host-review"] [data-action="approve"]');
    await until(ctx,"!document.querySelector('[data-node-id=\"100\"]')",'delete mock readback');
+   await gone(ctx,'[data-testid="mock-host-review"]','approved review closes once');
    assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=\"confirm-dialog\"]')"),false,'no duplicate React deletion confirmation');
    assert.match(await invoke(ctx,"return document.querySelector('.bm-notice')?.textContent||''"),/已删除/);
+   assert.deepEqual(await invoke(ctx,"return await OpenDeskSDK.browser.bookmarks.get({id:'100'})"),[],'deleted bookmark readback');
+   assert.deepEqual(await invoke(ctx,"return __BookmarkMockHost.reviews.map(({operation,id,status})=>({operation,id,status}))"),[
+    {operation:'remove',id:'100',status:'cancelled'},
+    {operation:'remove',id:'100',status:'approved'}],'exactly one Host review per delete attempt');
+   assert.deepEqual(await invoke(ctx,"return __BookmarkMockHost.mutations"),[{operation:'remove',id:'100'}],'single approved bookmark mutation');
+   assert.deepEqual(await invoke(ctx,"return __BookmarkMockHost.calls"),{remove:2,prepareRemoveTree:0,removeTree:0},'no duplicate delete dispatch');
    await screenshot('bookmark-r304-'+width+'-delete.png');
-  report.push({width,treeHeight:originalHeight,noPersistentInspector:true,passed:['one-click-preview','five-click-five-previews','folder-row-toggle','folder-disclosure','folder-menu-details','nonmodal-preview','view-detail-on-demand','direct-cancel','edit-no-tree-jump','save-readback','search-2159','create-types','single-react-delete-mock-host-review-pending','focus-restore','menu-Escape',...(width===400?['folder-130','failure-preserve','unknown-draft-safety','search-folder-drilldown']:[])]});
+   // Non-empty folder deletion must retain the existing prepare/ticket flow,
+   // with one Host approval for the entire operation.
+   await setInput(ctx,'bm-search','设计资料');
+   await until(ctx,"!!document.querySelector('[data-node-id=\"10\"]')",'folder delete target');
+   const descendants=await invoke(ctx,"const tree=await BookmarkR2Service.create(OpenDeskSDK.browser).load();return BookmarkR2Model.descendantSignatures(tree,'10').map(row=>JSON.parse(row)[0])");
+   assert.ok(descendants.length>0,'non-empty folder exercises guarded recursive deletion');
+   await openMenu(ctx,'10');await choose(ctx,3);
+   await until(ctx,"!!document.querySelector('[data-testid=mock-host-review]')",'single recursive Host review');
+   assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=confirm-dialog]')"),false,'no duplicate recursive React confirmation');
+   assert.equal(await invoke(ctx,"return (await OpenDeskSDK.browser.bookmarks.get({id:'10'})).length"),1,'pending review preserves folder');
+   assert.equal(await invoke(ctx,"return __BookmarkMockHost.mutations.length"),1,'recursive mutation waits for approval');
+   await click(ctx,'[data-testid="mock-host-review"] [data-action="approve"]');
+   await until(ctx,"!document.querySelector('[data-node-id=\"10\"]')",'recursive delete readback');
+   assert.deepEqual(await invoke(ctx,"return await OpenDeskSDK.browser.bookmarks.get({id:'10'})"),[],'deleted folder readback');
+   assert.equal(await invoke(ctx,"const ids="+JSON.stringify(descendants)+";return (await Promise.all(ids.map(id=>OpenDeskSDK.browser.bookmarks.get({id})))).flat().length"),0,'all descendants removed');
+   assert.deepEqual(await invoke(ctx,"return __BookmarkMockHost.calls"),{remove:2,prepareRemoveTree:1,removeTree:1},'one prepare and one ticketed removal');
+   const host=await invoke(ctx,"return __BookmarkMockHost");
+   assert.deepEqual(host.reviews.map(({operation,id,status})=>({operation,id,status})),[
+    {operation:'remove',id:'100',status:'cancelled'},
+    {operation:'remove',id:'100',status:'approved'},
+    {operation:'prepareRemoveTree',id:'10',status:'approved'}],'no second review between prepare and removeTree');
+   assert.deepEqual(host.mutations,[{operation:'remove',id:'100'},{operation:'removeTree',id:'10'}]);
+  report.push({width,treeHeight:originalHeight,noPersistentInspector:true,mockHost:host,passed:['one-click-preview','five-click-five-previews','folder-row-toggle','folder-disclosure','folder-menu-details','nonmodal-preview','view-detail-on-demand','direct-cancel','edit-no-tree-jump','save-readback','search-2159','create-types','single-host-review-no-react-confirm','host-cancel-preserves-bookmark','ticketed-recursive-delete','focus-restore','menu-Escape',...(width===400?['folder-130','failure-preserve','unknown-draft-safety','search-folder-drilldown']:[])]});
  }
  assert.deepEqual(network,[],'no network requests');
  assert.deepEqual(exceptions,[],'no browser JS exceptions');
  const crypto=await import('node:crypto');
- await writeFile(join(out,'bookmark-r304-interaction.json'),JSON.stringify({kind:'CHROMIUM_REACT_MOCK',browser:browserInfo.product,manifest,sourceSha256:crypto.createHash('sha256').update(html).digest('hex'),report},null,2));
+ await writeFile(join(out,'bookmark-r304-interaction.json'),JSON.stringify({kind:'CHROMIUM_FORMAL_REACT_MOCK_HOST',nativeVerified:false,installed:false,browser:browserInfo.product,manifest,sourceSha256:crypto.createHash('sha256').update(html).digest('hex'),report},null,2));
  console.log('R304_REACT_CHROMIUM_PASS '+JSON.stringify(report));
 }catch(e){
  await writeFile(join(out,'bookmark-r304-failure.txt'),String(e?.stack||e));
+ await writeFile(join(out,'bookmark-r304-failure.json'),JSON.stringify({
+  kind:'CHROMIUM_FORMAL_REACT_MOCK_HOST',nativeVerified:false,
+  error:String(e?.stack||e),exceptions,network},null,2));
  console.error(e);process.exitCode=1;
 }finally{
  try{socket?.close()}catch{}

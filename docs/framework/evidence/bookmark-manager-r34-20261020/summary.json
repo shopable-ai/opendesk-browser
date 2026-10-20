@@ -1,0 +1,246 @@
+{
+  "schemaVersion": 1,
+  "title": "Bookmark Manager R3.4 local Mac production candidate evidence",
+  "observedAt": "2026-10-20T07:04:23.763079+00:00",
+  "status": "BOOKMARK_MANAGER_RELEASE_BLOCKED",
+  "source": {
+    "branch": "main",
+    "baseHead": "f2b56ece0c891c84812681f42a68f314778e893a",
+    "commitNote": "本报告随源码提交；最终提交ID以包含此文件的Git提交为准，不用旧HEAD替代最终提交。",
+    "appBlob": "f54cb8e74021068c1122ea736b2edabe752a174d",
+    "candidate": {
+      "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
+      "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
+      "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
+    },
+    "isolatedSourceCopy": "artifacts/bookmark-manager-r34/source",
+    "liveDevelopmentWatcher": "保留原dist/development watcher，未覆盖其输出或停止服务。"
+  },
+  "product": {
+    "toolVersion": "0.3.8",
+    "defaultOfficialUI": "React",
+    "legacyOrUntrustedUI": "existing isolated sandbox / Classic",
+    "runtime": "src/ui/react/main.tsx unique React root -> original BookmarkR2Model / BookmarkR2Service -> existing Browser SDK / Host",
+    "trustedAdmission": "Exact official id/version/raw SHA/market provenance/install epoch/enabled checks retained. Native unsigned different-id import stayed in manifest sandbox with no Full grant. Same-id SHA/provenance/epoch negatives remain targeted Node evidence.",
+    "packageSha256": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+    "packageBytes": 86736,
+    "capabilities": [
+      "browser.bookmarks.full",
+      "currentPage.read"
+    ],
+    "catalogEntry": {
+      "id": "opendesk/bookmark-manager",
+      "toolId": "bookmark-manager",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "0.3.8",
+      "packageTitle": "书签管理",
+      "description": "独立 SDK 书签管理：请求单独的 Chrome 全部书签授权；修改和危险删除经可信界面确认。",
+      "capabilities": [
+        "browser.bookmarks.full",
+        "currentPage.read"
+      ],
+      "packagePath": "official-tools/bookmark-manager/bookmark-manager.opendesk-tool.json",
+      "bytes": 86736,
+      "sha256": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76"
+    },
+    "versionDecision": "继续0.3.8：变更为扩展内静态React/Host接线和测试，沙箱正式包字节未变。正式JSON由已测候选逐字节晋升，未伪造版本升级或扩大能力。",
+    "upgrade": "正常导入由真实历史0.3.7源码经原打包器重建的包，再经官方市场升级0.3.8；不声称历史包字节等于旧Catalog发行SHA。"
+  },
+  "native": {
+    "kind": "REAL_MAC_CFT_NATIVE_BOOKMARKS",
+    "browser": "Chrome for Testing 155.0.8059.39 macOS arm64",
+    "extensionId": "jbamnbckklhjolckjkbkpgonphncclhi",
+    "loadedPath": "artifacts/bookmark-manager-r34/source/dist/production",
+    "profile": "artifacts/bookmark-manager-r34/native/profile",
+    "entry": "Real SIDE_PANEL extension toolbar action -> 扩展 -> official market review/install -> 打开 -> separate Full Bookmarks/Chrome permission. No React debug parameter or internal mount API.",
+    "interaction": "Trusted CDP Input mouse/key to actual product UI, native macOS AX for permission/zoom/side panel close; fixture setup and external event injection use native bookmarks API only in owned isolated profile; native API reads verify results.",
+    "scenarios": [
+      {
+        "scenario": "A",
+        "status": "PASS",
+        "evidence": "browse-final.json",
+        "detail": "真实原生树、中文/英文/URL/文件夹搜索、展开折叠；3122条书签/137个文件夹；固定100条分页由真实全量快照一致性及定向Service测试共同验证，未抓取每一页RPC。"
+      },
+      {
+        "scenario": "B",
+        "status": "PASS",
+        "evidence": "scenarios.json",
+        "detail": "新建文件夹/书签/收藏当前页，单次保存+一次Host审批后原生读回。"
+      },
+      {
+        "scenario": "C",
+        "status": "PASS",
+        "evidence": "scenarios.json",
+        "detail": "名称、URL、所属目录；保存期间禁重复提交；原生读回。"
+      },
+      {
+        "scenario": "D",
+        "status": "PASS",
+        "evidence": "scenarios.json",
+        "detail": "真实书签和文件夹移动、搜索目标及排除自身/子目录。"
+      },
+      {
+        "scenario": "E",
+        "status": "PASS",
+        "evidence": "scenarios.json",
+        "detail": "单书签、空目录、含子项目录；仅一次Host审批，递归删除仍走票据；原生确认删除。"
+      },
+      {
+        "scenario": "F",
+        "status": "PASS",
+        "evidence": "scenarios.json",
+        "detail": "一个HTTP(S)网址入口打开真实新标签；不安全协议无导航入口。"
+      },
+      {
+        "scenario": "G",
+        "status": "PASS",
+        "evidence": "crosswindow-real-ui-final4.json",
+        "detail": "另一Chrome窗口原生书签管理器真实UI改名后React自动更新；events-final.json另证原生外部移动/删除及240事件溢出后完整快照恢复。"
+      },
+      {
+        "scenario": "H",
+        "status": "PASS",
+        "evidence": "restart-final.json",
+        "detail": "全部写入后重启同一隔离Profile，3261项原生数据逐项一致；close-reopen-final4.json另证macOS关闭侧栏后正常重开新会话。"
+      }
+    ]
+  },
+  "validation": {
+    "targetedNode": {
+      "status": "PASS",
+      "tests": 122,
+      "log": "artifacts/bookmark-manager-r34/node-final4.log"
+    },
+    "syntax": {
+      "status": "PASS",
+      "files": 922,
+      "command": "npm run check"
+    },
+    "productionBuild": {
+      "status": "PASS",
+      "command": "OPENDESK_OUTPUT_GUARD_PORT=43290 npm --prefix artifacts/bookmark-manager-r34/source run build",
+      "log": "artifacts/bookmark-manager-r34/build-final4.log"
+    },
+    "verifyPackage": {
+      "status": "PASS",
+      "evidence": "verify-package.json"
+    },
+    "budgets": {
+      "toolShellBytes": 1043631,
+      "toolShellLimit": 1048576,
+      "previewJSBytes": 219916,
+      "previewJSLimit": 220000,
+      "previewPackageBytes": 263560,
+      "previewPackageLimit": 320000,
+      "limitsChanged": false
+    },
+    "previewChromium": {
+      "status": "PASS_MOCK_HOST_CHROMIUM",
+      "checks": 55,
+      "formalJSX": true,
+      "nativeVerified": false,
+      "evidence": "preview-chromium.json"
+    },
+    "responsiveA11y": {
+      "status": "PASS_FOR_OBSERVED_CHECKS",
+      "widths": [
+        360,
+        400,
+        960
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "zoom": "OS browser200% dpr4 on Retina dpr2 baseline",
+      "keyboard": "Home/ArrowDown real tree focus and valid aria-activedescendant",
+      "evidence": "ux-final.json",
+      "limitation": "未进行屏幕阅读器完整用户研究，不据此声称无障碍95分。"
+    },
+    "githubCI": {
+      "status": "PENDING_EXACT_COMMIT",
+      "reason": "本地结果与GitHub CI分开记录；推送后按最终main提交读取工作流，不使用旧Commit PASS。"
+    },
+    "chromeOptionalPermission": {
+      "status": "PASS_FOR_STOP_AND_REGRANT",
+      "evidence": "permission-native-final4.json"
+    }
+  },
+  "knownLimits": [
+    "未知写入、迟到异步回程和移动后更新失败由实际App回调/传输定向测试覆盖；未对Mac原生Host执行延迟写入故障注入。",
+    "分页端到端确认全量快照一致，未保存每条RPC的逐页原生跟踪。",
+    "现有其他扩展列表共存已观察；未声称已完成所有其他扩展的独立业务回归。",
+    "独立十维95+尚无充分可复核评分依据，保持NOT_SCORED。",
+    "Chrome全局书签权限撤销后，工具自己的旧授权仍显示为可撤销；恢复测试先撤销该工具授权再从正常设置重新申请。未声称该恢复路径为一次点击。"
+  ],
+  "scores": [
+    {
+      "dimension": "产品易用性",
+      "status": "NOT_SCORED",
+      "score": null
+    },
+    {
+      "dimension": "业务正确性",
+      "status": "NOT_SCORED",
+      "score": null
+    },
+    {
+      "dimension": "数据一致性",
+      "status": "NOT_SCORED",
+      "score": null
+    },
+    {
+      "dimension": "权限安全",
+      "status": "NOT_SCORED",
+      "score": null
+    },
+    {
+      "dimension": "架构一致性",
+      "status": "NOT_SCORED",
+      "score": null
+    },
+    {
+      "dimension": "React生命周期",
+      "status": "NOT_SCORED",
+      "score": null
+    },
+    {
+      "dimension": "性能",
+      "status": "NOT_SCORED",
+      "score": null
+    },
+    {
+      "dimension": "无障碍",
+      "status": "NOT_SCORED",
+      "score": null
+    },
+    {
+      "dimension": "错误恢复",
+      "status": "NOT_SCORED",
+      "score": null
+    },
+    {
+      "dimension": "构建发布",
+      "status": "NOT_SCORED",
+      "score": null
+    }
+  ],
+  "releaseBlockers": [
+    {
+      "id": "CI_EXACT_COMMIT_NOT_VERIFIED",
+      "next": "推送包含本次源码的main提交，并读取同一提交工作流结果。"
+    },
+    {
+      "id": "INDEPENDENT_95_NOT_VERIFIED",
+      "next": "独立评审按公开评价依据核定十维；缺真实证据的项保留NOT_SCORED，不自行填95。"
+    }
+  ],
+  "independentReview": {
+    "evidence": "independent-review.json",
+    "openProductFindings": 0,
+    "knownFindings": "ALL_RESOLVED",
+    "numericScores": "NOT_SCORED",
+    "reason": "定向证据可给分类PASS；任务效率、完整无障碍、性能分布和原生故障恢复不足以给出可审查的十维0–100数字。"
+  }
+}

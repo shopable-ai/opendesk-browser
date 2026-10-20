@@ -3,6 +3,8 @@ on:
   push:
     branches: [main]
     paths:
+      - 'package.json'
+      - 'package-lock.json'
       - 'examples/sidebar-tools/bookmark-manager/preview/react/**'
       - 'examples/sidebar-tools/bookmark-manager/src/react/**'
       - 'examples/sidebar-tools/bookmark-manager/preview/r304-chrome.mjs'
@@ -10,6 +12,7 @@ on:
       - 'examples/sidebar-tools/bookmark-manager/src/service.js'
       - 'src/ui/react/main.tsx'
       - 'src/ui/sidebar-tools.js'
+      - 'src/ui/sidebar-tools-view.js'
       - 'src/ui/trusted-bookmark-admission.js'
       - 'src/ui/tool-shell.js'
       - 'tests/environment/bookmark-manager-r31-trusted-lifecycle.test.mjs'
@@ -17,6 +20,9 @@ on:
       - 'tests/environment/bookmark-manager-r306-trusted-react.test.mjs'
       - 'tests/environment/bookmark-manager-r32-formal-source.test.mjs'
       - 'tests/environment/bookmark-manager-r33-default-react.test.mjs'
+      - 'tests/environment/bookmark-manager-r34-write-order.test.mjs'
+      - 'tests/environment/bookmark-manager-r34-transport.test.mjs'
+      - 'tests/environment/sidebar-tools-view.test.mjs'
       - 'scripts/bundle-provenance.mjs'
       - '.github/workflows/bookmark-manager-r302-react-preview.yml'
   workflow_dispatch:
@@ -44,6 +50,10 @@ jobs:
             tests/environment/bookmark-manager-r31-trusted-lifecycle.test.mjs \
             tests/environment/bookmark-manager-r32-formal-source.test.mjs \
             tests/environment/bookmark-manager-r33-default-react.test.mjs \
+            tests/environment/bookmark-manager-r34-write-order.test.mjs \
+            tests/environment/bookmark-manager-r34-transport.test.mjs \
+            tests/environment/sidebar-tools-view.test.mjs \
+            tests/environment/extension-center-r47-interaction.test.mjs \
             tests/environment/bookmark-manager-r24-lifecycle.test.mjs \
             tests/environment/bundle-provenance.test.mjs
       - name: Check formal source
@@ -88,6 +98,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install existing root-pinned build minifier
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Install pinned offline React 19 preview dependencies
         working-directory: examples/sidebar-tools/bookmark-manager/preview/react
         run: npm ci --no-audit --no-fund
@@ -97,6 +109,12 @@ jobs:
           npm run preview:build
           npm run preview:check
           npm run preview:budget
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          const report=JSON.parse(await readFile('.opendesk-preview/budget-report.json','utf8'));
+          assert.equal(report.status,'SCHEMA_BUNDLE_READY_NOT_INSTALLED',report.blocker||report.error);
+          NODE
       - name: Install CJK font support for readable Chinese Chromium evidence
         run: |
           sudo apt-get update -qq
@@ -116,7 +134,9 @@ jobs:
           name: bookmark-r32-react-chromium-${{ github.sha }}
           if-no-files-found: warn
           retention-days: 14
+          include-hidden-files: true
           path: |
             examples/sidebar-tools/bookmark-manager/preview/dev.html
+            examples/sidebar-tools/bookmark-manager/preview/react/.opendesk-preview/chrome-formal/formal-mock.html
             examples/sidebar-tools/bookmark-manager/preview/react/.opendesk-preview/chrome-evidence/
             examples/sidebar-tools/bookmark-manager/preview/react/.opendesk-preview/budget-report.json

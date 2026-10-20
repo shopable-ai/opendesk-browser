@@ -1,6 +1,18 @@
-# Bookmark Manager R2.8 · Full Bookmarks SDK 独立正式工具
+# Bookmark Manager · 正式 React 与 Classic 兼容工具
 
-> **状态：SOURCE_MIGRATED / OFFICIAL_OPTIONAL_REGISTERED / NATIVE_NOT_TESTED。** 已纳入官方源码目录，不代表用户设备已安装，也不代表 Chrome 原生验收通过。
+## R3.4 当前验证（2026-10-20）
+
+**当前状态：本地 Mac 原生 A–H 核心流程通过；`BOOKMARK_MANAGER_RELEASE_BLOCKED`，尚未宣称十维 95+ 或正式发布。** 下文 R2/R3 历史 `NATIVE_NOT_TESTED` 仅描述当时状态。
+
+- 官方 `0.3.8` 正常安装并独立授权后默认进入正式 React；沿用唯一 React Root、`BookmarkR2Model/Service` 与原 Browser SDK/Host。旧版及非官方身份包保留原沙箱路径。
+- 本轮修复：撤权/关闭后的迟到回程、未知写入重试保护、事件缺口快照恢复、收藏当前页的迟到填充与目录选择，以及 React 工具视图漏转发卸载方法造成的真实运行阻断。保存期间禁重复提交，删除保留一次 Host 审批及递归删除票据。
+- 同一生产候选在隔离 **Mac Chrome for Testing 155** 完成原生 CRUD、搜索及 3,000+ 书签规模、跨窗口原生界面修改、事件溢出、授权撤销/恢复、停用/恢复、正常卸载、历史 `0.3.7` Classic 导入后官方升级 `0.3.8`、侧栏关闭重开和 Chrome 重启。未操作个人 Chrome Profile。
+- 正常打开工具标签页完成 360/400/960、浅深色、实际浏览器 200% 缩放及键盘/ARIA 定向检查；CI 预览的 55 项 Chromium 检查明确使用 Mock Host，不能替代上述原生证据。
+- 正式包保持 `0.3.8`，SHA-256 `0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76`。同一打包器逐字节晋升目录唯一 JSON，与生产 Catalog 一致；沙箱包字节及能力未变，未仅修改版本号。
+- [候选身份、A–H 原始结果与剩余发布条件](../../../docs/framework/evidence/bookmark-manager-r34-20261020/summary.json)。未知写入及部分写入恢复的定向回调测试与真实原生故障注入分别记账；十维评分无充分证据时保持 `NOT_SCORED`。
+
+
+> **R2.8 历史状态：SOURCE_MIGRATED / OFFICIAL_OPTIONAL_REGISTERED / NATIVE_NOT_TESTED。** 已纳入官方源码目录，不代表用户设备已安装，也不代表 Chrome 原生验收通过。
 
 本项目 `examples/sidebar-tools/bookmark-manager/` 是唯一独立书签工具业务源码：`tool.config.json`、`src/index.html`、`src/style.css`、`src/model.js`、`src/service.js`、`src/main.js`。继续使用官方 Sidebar Tool v2 打包器、Opaque Origin iframe 和 `OpenDeskSDK.browser.bookmarks.*`；没有私有 Host、第二套 SDK 或直接 `chrome.*` 调用。
 

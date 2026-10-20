@@ -32,7 +32,7 @@ test('R3.2 formal JSX is the unique UI source and all four compiled modules rema
  assert.match(build,/join\(toolDir,'src\/react\/style\.css'\)/);
  assert.match(build,/fsWatch\(join\(toolDir,'src'\),\{recursive:true\},schedule\)/);
  assert.match(app,/export default function App\(\{runtime=null,mode='preview'/);
- assert.match(app,/function request\(action\)\{if\(busyRef\.current\)return/);
+ assert.match(app,/function request\(action\)\{fillEpoch\.current\+\+;if\(busyRef\.current\)return/);
  assert.match(app,/id="bm-edit-name" autoFocus disabled=\{busy\}/);
  assert.match(app,/id="bm-edit-url" type="url" required disabled=\{busy\}/);
  for(const path of files){

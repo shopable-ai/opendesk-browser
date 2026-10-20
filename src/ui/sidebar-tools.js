@@ -1525,7 +1525,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       }
       let reply;
       try{
-        reply=await api.runtime.sendMessage(envelope);
+        const bookmarkWrite=['browser.bookmarks.create','browser.bookmarks.update',
+          'browser.bookmarks.move','browser.bookmarks.remove','browser.bookmarks.removeTree'].includes(operation);
+        try{reply=await api.runtime.sendMessage(envelope);}
+        catch(error){
+          if(bookmarkWrite)throw Object.assign(new Error('书签写入回执丢失，请先核对原生数据，勿重复提交'),
+            {code:'E_OUTCOME_UNKNOWN',cause:error});
+          throw error;
+        }
+        if(bookmarkWrite&&typeof reply?.ok!=='boolean')
+          throw Object.assign(new Error('书签写入回执无法核验，请先核对原生数据'),{code:'E_OUTCOME_UNKNOWN'});
         assertSession(source,token);
         if(!reply?.ok)throw Object.assign(new Error(reply?.error?.message||'浏览器操作失败'),{
           code:reply?.error?.code||'E_BROWSER'});

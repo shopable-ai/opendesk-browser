@@ -11,7 +11,7 @@ const here=dirname(fileURLToPath(import.meta.url));
 const toolDir=resolve(here,'../..');
 const root=resolve(toolDir,'../../..');
 const out=join(here,'.opendesk-preview/package-candidate');
-const compiled=join(here,'dist-formal');
+const compiled=join(here,'.opendesk-preview/formal-dist');
 const sha=x=>createHash('sha256').update(x).digest('hex');
 const read=p=>readFile(p,'utf8');
 const report={status:'NOT_TESTED',candidateOnly:true,installed:false,

@@ -1,0 +1,296 @@
+{
+  "kind": "REAL_MAC_CFT_INSTALLED_NATIVE_SIDE_PANEL",
+  "candidate": {
+    "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
+    "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
+    "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
+  },
+  "scenarioSourceSha256": "b1556bd8576d0bc606374adab50b214d4c1be5fa742879c350740fe11b1ced71",
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.20"
+  },
+  "extension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/source/dist/production",
+  "profile": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/profile",
+  "startedAt": "2026-10-20T06:54:43.772Z",
+  "results": [
+    {
+      "name": "B:create-folder-bookmark-current-page",
+      "status": "PASS",
+      "candidate": {
+        "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
+        "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
+        "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
+      },
+      "at": "2026-10-20T06:55:03.305Z",
+      "evidence": {
+        "folder": {
+          "children": [],
+          "dateAdded": 1792479291199,
+          "dateGroupModified": 1792479291199,
+          "id": "3301",
+          "index": 3,
+          "parentId": "2",
+          "syncing": false,
+          "title": "R34-F4a-目标"
+        },
+        "bookmark": {
+          "dateAdded": 1792479296025,
+          "id": "3302",
+          "index": 0,
+          "parentId": "3300",
+          "syncing": false,
+          "title": "R34-F4a-中文 English",
+          "url": "https://example.com/r34"
+        },
+        "currentPage": {
+          "dateAdded": 1792479300926,
+          "id": "3303",
+          "index": 1,
+          "parentId": "3300",
+          "syncing": false,
+          "title": "R34-F4a-收藏当前页",
+          "url": "http://127.0.0.1:43111/demo-form.html"
+        }
+      }
+    },
+    {
+      "name": "C:edit-name-url-parent-single-save",
+      "status": "PASS",
+      "candidate": {
+        "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
+        "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
+        "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
+      },
+      "at": "2026-10-20T06:55:11.146Z",
+      "evidence": {
+        "before": {
+          "dateAdded": 1792479296025,
+          "id": "3302",
+          "index": 0,
+          "parentId": "3300",
+          "syncing": false,
+          "title": "R34-F4a-中文 English",
+          "url": "https://example.com/r34"
+        },
+        "after": {
+          "dateAdded": 1792479296025,
+          "id": "3302",
+          "index": 0,
+          "parentId": "3301",
+          "syncing": false,
+          "title": "R34-F4a-已编辑",
+          "url": "https://example.org/edited"
+        },
+        "concurrentSaveDisabled": true
+      }
+    },
+    {
+      "name": "D:move-bookmark-folder-prevent-cycle",
+      "status": "PASS",
+      "candidate": {
+        "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
+        "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
+        "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
+      },
+      "at": "2026-10-20T06:55:26.740Z",
+      "evidence": {
+        "bookmarkParent": "3300",
+        "folderParent": "2",
+        "cycleOptions": [
+          "R34-工作书签栏",
+          "R34-压力测试其他书签",
+          "R34-Folder-0其他书签 / R34-压力测试",
+          "R34-Folder-1其他书签 / R34-压力测试",
+          "R34-Folder-2其他书签 / R34-压力测试",
+          "R34-Folder-3其他书签 / R34-压力测试",
+          "R34-Folder-4其他书签 / R34-压力测试",
+          "R34-Folder-5其他书签 / R34-压力测试",
+          "R34-Folder-6其他书签 / R34-压力测试",
+          "R34-Folder-7其他书签 / R34-压力测试",
+          "R34-Folder-8其他书签 / R34-压力测试",
+          "R34-Folder-9其他书签 / R34-压力测试",
+          "R34-Folder-10其他书签 / R34-压力测试",
+          "R34-Folder-11其他书签 / R34-压力测试",
+          "R34-Folder-12其他书签 / R34-压力测试",
+          "R34-Folder-13其他书签 / R34-压力测试",
+          "R34-Folder-14其他书签 / R34-压力测试",
+          "R34-Folder-15其他书签 / R34-压力测试",
+          "R34-Folder-16其他书签 / R34-压力测试",
+          "R34-Folder-17其他书签 / R34-压力测试",
+          "R34-Folder-18其他书签 / R34-压力测试",
+          "R34-Folder-19其他书签 / R34-压力测试",
+          "R34-Folder-20其他书签 / R34-压力测试",
+          "R34-Folder-21其他书签 / R34-压力测试",
+          "R34-Folder-22其他书签 / R34-压力测试",
+          "R34-Folder-23其他书签 / R34-压力测试",
+          "R34-Folder-24其他书签 / R34-压力测试",
+          "R34-Folder-25其他书签 / R34-压力测试",
+          "R34-Folder-26其他书签 / R34-压力测试",
+          "R34-Folder-27其他书签 / R34-压力测试",
+          "R34-Folder-28其他书签 / R34-压力测试",
+          "R34-Folder-29其他书签 / R34-压力测试",
+          "R34-Folder-30其他书签 / R34-压力测试",
+          "R34-Folder-31其他书签 / R34-压力测试",
+          "R34-Folder-32其他书签 / R34-压力测试",
+          "R34-Folder-33其他书签 / R34-压力测试",
+          "R34-Folder-34其他书签 / R34-压力测试",
+          "R34-Folder-35其他书签 / R34-压力测试",
+          "R34-Folder-36其他书签 / R34-压力测试",
+          "R34-Folder-37其他书签 / R34-压力测试",
+          "R34-Folder-38其他书签 / R34-压力测试",
+          "R34-Folder-39其他书签 / R34-压力测试",
+          "R34-Folder-40其他书签 / R34-压力测试",
+          "R34-Folder-41其他书签 / R34-压力测试",
+          "R34-Folder-42其他书签 / R34-压力测试",
+          "R34-Folder-43其他书签 / R34-压力测试",
+          "R34-Folder-44其他书签 / R34-压力测试",
+          "R34-Folder-45其他书签 / R34-压力测试",
+          "R34-Folder-46其他书签 / R34-压力测试",
+          "R34-Folder-47其他书签 / R34-压力测试",
+          "R34-Folder-48其他书签 / R34-压力测试",
+          "R34-Folder-49其他书签 / R34-压力测试",
+          "R34-Folder-50其他书签 / R34-压力测试",
+          "R34-Folder-51其他书签 / R34-压力测试",
+          "R34-Folder-52其他书签 / R34-压力测试",
+          "R34-Folder-53其他书签 / R34-压力测试",
+          "R34-Folder-54其他书签 / R34-压力测试",
+          "R34-Folder-55其他书签 / R34-压力测试",
+          "R34-Folder-56其他书签 / R34-压力测试",
+          "R34-Folder-57其他书签 / R34-压力测试",
+          "R34-Folder-58其他书签 / R34-压力测试",
+          "R34-Folder-59其他书签 / R34-压力测试",
+          "R34-Folder-60其他书签 / R34-压力测试",
+          "R34-Folder-61其他书签 / R34-压力测试",
+          "R34-Folder-62其他书签 / R34-压力测试",
+          "R34-Folder-63其他书签 / R34-压力测试",
+          "R34-Folder-64其他书签 / R34-压力测试",
+          "R34-Folder-65其他书签 / R34-压力测试",
+          "R34-Folder-66其他书签 / R34-压力测试",
+          "R34-Folder-67其他书签 / R34-压力测试",
+          "R34-Folder-68其他书签 / R34-压力测试",
+          "R34-Folder-69其他书签 / R34-压力测试",
+          "R34-Folder-70其他书签 / R34-压力测试",
+          "R34-Folder-71其他书签 / R34-压力测试",
+          "R34-Folder-72其他书签 / R34-压力测试",
+          "R34-Folder-73其他书签 / R34-压力测试",
+          "R34-Folder-74其他书签 / R34-压力测试",
+          "R34-Folder-75其他书签 / R34-压力测试",
+          "R34-Folder-76其他书签 / R34-压力测试",
+          "R34-Folder-77其他书签 / R34-压力测试",
+          "R34-Folder-78其他书签 / R34-压力测试",
+          "R34-Folder-79其他书签 / R34-压力测试",
+          "R34-Folder-80其他书签 / R34-压力测试",
+          "R34-Folder-81其他书签 / R34-压力测试",
+          "R34-Folder-82其他书签 / R34-压力测试",
+          "R34-Folder-83其他书签 / R34-压力测试",
+          "R34-Folder-84其他书签 / R34-压力测试",
+          "R34-Folder-85其他书签 / R34-压力测试",
+          "R34-Folder-86其他书签 / R34-压力测试",
+          "R34-Folder-87其他书签 / R34-压力测试",
+          "R34-Folder-88其他书签 / R34-压力测试",
+          "R34-Folder-89其他书签 / R34-压力测试",
+          "R34-Folder-90其他书签 / R34-压力测试",
+          "R34-Folder-91其他书签 / R34-压力测试",
+          "R34-Folder-92其他书签 / R34-压力测试",
+          "R34-Folder-93其他书签 / R34-压力测试",
+          "R34-Folder-94其他书签 / R34-压力测试",
+          "R34-Folder-95其他书签 / R34-压力测试",
+          "R34-Folder-96其他书签 / R34-压力测试",
+          "R34-Folder-97其他书签 / R34-压力测试",
+          "R34-Folder-98其他书签 / R34-压力测试",
+          "R34-Folder-99其他书签 / R34-压力测试",
+          "R34-Folder-100其他书签 / R34-压力测试",
+          "R34-Folder-101其他书签 / R34-压力测试",
+          "R34-Folder-102其他书签 / R34-压力测试",
+          "R34-Folder-103其他书签 / R34-压力测试",
+          "R34-Folder-104其他书签 / R34-压力测试",
+          "R34-Folder-105其他书签 / R34-压力测试",
+          "R34-Folder-106其他书签 / R34-压力测试",
+          "R34-Folder-107其他书签 / R34-压力测试",
+          "R34-Folder-108其他书签 / R34-压力测试",
+          "R34-Folder-109其他书签 / R34-压力测试",
+          "R34-Folder-110其他书签 / R34-压力测试",
+          "R34-Folder-111其他书签 / R34-压力测试",
+          "R34-Folder-112其他书签 / R34-压力测试",
+          "R34-Folder-113其他书签 / R34-压力测试",
+          "R34-Folder-114其他书签 / R34-压力测试",
+          "R34-Folder-115其他书签 / R34-压力测试",
+          "R34-Folder-116其他书签 / R34-压力测试",
+          "R34-Folder-117其他书签 / R34-压力测试",
+          "R34-Folder-118其他书签 / R34-压力测试",
+          "R34-Folder-119其他书签 / R34-压力测试",
+          "R34-Folder-120其他书签 / R34-压力测试",
+          "R34-Folder-121其他书签 / R34-压力测试",
+          "R34-Folder-122其他书签 / R34-压力测试",
+          "R34-Folder-123其他书签 / R34-压力测试",
+          "R34-Folder-124其他书签 / R34-压力测试",
+          "R34-Folder-125其他书签 / R34-压力测试",
+          "R34-Folder-126其他书签 / R34-压力测试",
+          "R34-Folder-127其他书签 / R34-压力测试",
+          "R34-Folder-128其他书签 / R34-压力测试",
+          "R34-Folder-129其他书签 / R34-压力测试",
+          "R34-Folder-130其他书签 / R34-压力测试",
+          "R34-目标其他书签",
+          "R34-F4a-目标其他书签"
+        ]
+      }
+    },
+    {
+      "name": "F:one-safe-http-link-new-tab-unsafe-blocked",
+      "status": "PASS",
+      "candidate": {
+        "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
+        "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
+        "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
+      },
+      "at": "2026-10-20T06:55:31.767Z",
+      "evidence": {
+        "anchors": [
+          {
+            "href": "https://example.org/edited",
+            "target": "_blank",
+            "rel": "noopener noreferrer"
+          }
+        ],
+        "opened": "https://example.org/edited",
+        "unsafeId": "3305"
+      }
+    },
+    {
+      "name": "E:bookmark-empty-folder-recursive-folder-one-review",
+      "status": "PASS",
+      "candidate": {
+        "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
+        "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
+        "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
+      },
+      "at": "2026-10-20T06:55:46.358Z",
+      "evidence": [
+        {
+          "id": "3302",
+          "title": "R34-F4a-已编辑",
+          "nativeRemoved": true,
+          "reactDialog": false
+        },
+        {
+          "id": "3301",
+          "title": "R34-F4a-目标",
+          "nativeRemoved": true,
+          "reactDialog": false
+        },
+        {
+          "id": "3300",
+          "title": "R34-F4a-工作",
+          "nativeRemoved": true,
+          "reactDialog": false
+        }
+      ]
+    }
+  ],
+  "status": "PASS",
+  "historicalReportIgnored": true
+}

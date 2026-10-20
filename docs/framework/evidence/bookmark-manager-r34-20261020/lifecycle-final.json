@@ -1,0 +1,82 @@
+{
+  "candidate": {
+    "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
+    "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
+    "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
+  },
+  "kind": "REAL_MAC_CFT_PRODUCT_LIFECYCLE",
+  "status": "PASS",
+  "at": "2026-10-20T06:49:21.842Z",
+  "before": {
+    "opendesk.browser.context-menu-grants.v1": {
+      "activeActions": [],
+      "bookmarkFull": true,
+      "installEpoch": "2794f442-f21a-41ff-bfa3-86b911b31bcc",
+      "origins": [],
+      "packageHash": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+      "version": "0.3.8"
+    },
+    "opendesk.market.provenance.v1": {
+      "marketId": "opendesk/bookmark-manager",
+      "sha256": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+      "version": "0.3.8"
+    },
+    "opendesk.sidebar-tools.enabled.v1": true,
+    "opendesk.sidebar-tools.revocation-epochs.v1": "2794f442-f21a-41ff-bfa3-86b911b31bcc"
+  },
+  "otherSessionHadPrivateRows": true,
+  "revoked": {
+    "opendesk.browser.context-menu-grants.v1": {
+      "activeActions": [],
+      "bookmarkFull": false,
+      "installEpoch": "2794f442-f21a-41ff-bfa3-86b911b31bcc",
+      "origins": [],
+      "packageHash": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+      "version": "0.3.8"
+    },
+    "opendesk.market.provenance.v1": {
+      "marketId": "opendesk/bookmark-manager",
+      "sha256": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+      "version": "0.3.8"
+    },
+    "opendesk.sidebar-tools.enabled.v1": true,
+    "opendesk.sidebar-tools.revocation-epochs.v1": "2794f442-f21a-41ff-bfa3-86b911b31bcc"
+  },
+  "revokeClearsBoth": true,
+  "regrant": true,
+  "disabled": {
+    "opendesk.browser.context-menu-grants.v1": {
+      "activeActions": [],
+      "bookmarkFull": true,
+      "installEpoch": "24f3041d-eb6e-4e29-b9ea-dfbab9b5aa94",
+      "origins": [],
+      "packageHash": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+      "version": "0.3.8"
+    },
+    "opendesk.market.provenance.v1": {
+      "marketId": "opendesk/bookmark-manager",
+      "sha256": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+      "version": "0.3.8"
+    },
+    "opendesk.sidebar-tools.enabled.v1": false,
+    "opendesk.sidebar-tools.revocation-epochs.v1": "24f3041d-eb6e-4e29-b9ea-dfbab9b5aa94"
+  },
+  "restored": {
+    "opendesk.browser.context-menu-grants.v1": {
+      "activeActions": [],
+      "bookmarkFull": true,
+      "installEpoch": "6129ef7b-d592-4f98-8d4b-132a14883593",
+      "origins": [],
+      "packageHash": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+      "version": "0.3.8"
+    },
+    "opendesk.market.provenance.v1": {
+      "marketId": "opendesk/bookmark-manager",
+      "sha256": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+      "version": "0.3.8"
+    },
+    "opendesk.sidebar-tools.enabled.v1": true,
+    "opendesk.sidebar-tools.revocation-epochs.v1": "6129ef7b-d592-4f98-8d4b-132a14883593"
+  },
+  "bookmarksUnchanged": true
+}

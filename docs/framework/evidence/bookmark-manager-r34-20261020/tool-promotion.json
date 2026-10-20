@@ -1,0 +1,10 @@
+{
+  "status": "PROJECT_PACKAGE_PROMOTED",
+  "output": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/bookmark-manager/bookmark-manager.opendesk-tool.json",
+  "id": "bookmark-manager",
+  "version": "0.3.8",
+  "bytes": 86736,
+  "sha256": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+  "validated": true,
+  "installed": false
+}

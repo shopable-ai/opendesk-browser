@@ -1,0 +1,209 @@
+{
+  "schema": "opendesk.official-tools.releases.v1",
+  "sourceRepository": "https://github.com/shopable-ai/opendesk-browser",
+  "apps": [
+    {
+      "id": "opendesk/reading-toc",
+      "toolId": "reading-toc",
+      "kind": "sidebar-tool",
+      "installationPolicy": "preinstalled",
+      "version": "1.0.9",
+      "packageTitle": "阅读目录",
+      "description": "在侧边栏或授权网页中查看章节并精准跳转。",
+      "capabilities": [
+        "page.toc"
+      ],
+      "packagePath": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+      "bytes": 28525,
+      "sha256": "56890b9feeb6908c5967eb16aed19a1e811f8d376dd270c01e78c0c93b052071"
+    },
+    {
+      "id": "opendesk/web-markdown-clipper",
+      "toolId": "web-markdown-clipper",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.1.0",
+      "packageTitle": "网页剪藏",
+      "description": "网页选区右键摘录、Markdown 提取和本地轻量便签。短摘录保存到浏览器；全文可下载。",
+      "capabilities": [
+        "page.clip",
+        "user.export",
+        "storage.local",
+        "currentPage.read",
+        "browser.contextMenu"
+      ],
+      "packagePath": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+      "bytes": 40406,
+      "sha256": "eec22b6c426a0aa561bfd570cb41b073b51a333dde5ee75e918e0e7dc7642ff5"
+    },
+    {
+      "id": "opendesk/quick-notes",
+      "toolId": "quick-notes",
+      "kind": "sidebar-tool",
+      "installationPolicy": "preinstalled",
+      "version": "1.1.9",
+      "packageTitle": "网页笔记",
+      "description": "在侧栏离线管理多条本地笔记，可选择关联当前网页，不自动操作网站。",
+      "capabilities": [
+        "storage.local",
+        "currentPage.read",
+        "tasks.open"
+      ],
+      "packagePath": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+      "bytes": 32152,
+      "sha256": "9b8125e8f25734b86833e87ac27c40ca74a0775ef29929c660d75d84b6a5497d"
+    },
+    {
+      "id": "opendesk/markdown-workbench",
+      "toolId": "markdown-workbench",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.2",
+      "packageTitle": "Markdown 工作台",
+      "description": "离线编辑、预览、导入和导出 Markdown；无需网页权限。",
+      "capabilities": [
+        "user.export"
+      ],
+      "packagePath": "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+      "bytes": 15125,
+      "sha256": "68dbb8d1123cd1634a46139c207160f228a78da42b0f295fce4cde7f6c768b0d"
+    },
+    {
+      "id": "opendesk/knowledge-inbox",
+      "toolId": "knowledge-inbox",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.2.7",
+      "packageTitle": "知识收件箱",
+      "description": "保存 ChatGPT 回答，也可手动新建知识，整理标签、草稿并导出 Markdown。",
+      "capabilities": [
+        "page.capture",
+        "knowledge.store",
+        "user.export"
+      ],
+      "packagePath": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+      "bytes": 62341,
+      "sha256": "06433d9c8e08993d5c1dc1880f35ce7b472abda78bb733715af4574450e3f59d"
+    },
+    {
+      "id": "opendesk/time-review",
+      "toolId": "time-review",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.6.0",
+      "packageTitle": "Time Review · 时间回顾",
+      "description": "单独授权网站并主动开始后，在本机回顾前台非空闲网页时间；六分类、Canvas 分钟时间线、暂停与 JSON/CSV 导出。默认不上传。",
+      "capabilities": [
+        "time.review",
+        "user.export"
+      ],
+      "packagePath": "official-tools/time-review/time-review.opendesk-tool.json",
+      "bytes": 41548,
+      "sha256": "90f5029049ed4b2cadd69fa91c4efaefb45f031bd94c07e708c9f78d5f2776f6"
+    },
+    {
+      "id": "opendesk/stay-focus",
+      "toolId": "stay-focus",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.8",
+      "packageTitle": "Stay Focus · 保持专注",
+      "description": "本机娱乐限额、共享时间预算、工作时段和专注模式；由 Chrome 在得到独立授权后限制网站访问。",
+      "capabilities": [
+        "focus.control",
+        "currentPage.read"
+      ],
+      "packagePath": "official-tools/stay-focus/stay-focus.opendesk-tool.json",
+      "bytes": 28070,
+      "sha256": "b9ca0dbd604d71d42f15b871fc7a8f04df27ecd5b7c983febda92e3947ae5a9d"
+    },
+    {
+      "id": "opendesk/adblock",
+      "toolId": "adblock",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.2.1",
+      "packageTitle": "广告拦截",
+      "description": "离线阻断常见第三方广告与跟踪资源，支持全局启停和当前网站例外。",
+      "capabilities": [
+        "adblock.control"
+      ],
+      "packagePath": "official-tools/adblock/adblock.opendesk-tool.json",
+      "bytes": 12598,
+      "sha256": "8bdb91a0a613932e76d69953b06af3752d217eaee3e15e96e8e27ee314cdbc35"
+    },
+    {
+      "id": "opendesk/ai-vip-share",
+      "toolId": "ai-vip-share",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.3.5",
+      "packageTitle": "AI VIP Share",
+      "description": "AI VIP Share 独立会员与兑换工具；浏览器代理仅通过经确认的公共 Managed Proxy SDK 控制。未配置服务不伪造会员或连接成功。",
+      "capabilities": [
+        "storage.local",
+        "network",
+        "browser.tabs",
+        "browser.proxy.managed"
+      ],
+      "packagePath": "official-tools/ai-vip-share/ai-vip-share.opendesk-tool.json",
+      "bytes": 70823,
+      "sha256": "f6d782d1b6eaeac0ab8ea78443becf65764d13298728617bda5b923ae3171f7b"
+    },
+    {
+      "id": "opendesk/cookie-editor",
+      "toolId": "cookie-editor",
+      "kind": "sidebar-tool",
+      "installationPolicy": "preinstalled",
+      "version": "2.0.29",
+      "packageTitle": "Cookie Editor · Cookie 管理",
+      "description": "Cookie Editor：管理已授权网站的 Cookie，支持原位编辑、导入导出与安全清理。",
+      "capabilities": [
+        "currentPage.read",
+        "user.export",
+        "browser.cookies.read",
+        "browser.cookies.values",
+        "browser.cookies.write",
+        "browser.cookies.observe",
+        "browser.cookies.clear"
+      ],
+      "packagePath": "official-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+      "bytes": 113760,
+      "sha256": "3d3de7aa966d55275f36a7dc855415be09d6b3553b1a567679e9bee88650e305"
+    },
+    {
+      "id": "opendesk/bookmark-manager",
+      "toolId": "bookmark-manager",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "0.3.8",
+      "packageTitle": "书签管理",
+      "description": "独立 SDK 书签管理：请求单独的 Chrome 全部书签授权；修改和危险删除经可信界面确认。",
+      "capabilities": [
+        "browser.bookmarks.full",
+        "currentPage.read"
+      ],
+      "packagePath": "official-tools/bookmark-manager/bookmark-manager.opendesk-tool.json",
+      "bytes": 86736,
+      "sha256": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76"
+    },
+    {
+      "id": "opendesk/prompt-shortcuts",
+      "toolId": "prompt-shortcuts",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.1.6",
+      "packageTitle": "提示词快捷按钮",
+      "description": "内容优先管理提示词；ChatGPT 内置快捷按钮，常见 AI 网站可自动候选定位，其他网站可视化配置，原生右键快捷添加为可选功能。",
+      "capabilities": [
+        "storage.local",
+        "user.export",
+        "page.prompts",
+        "browser.contextMenu"
+      ],
+      "packagePath": "official-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json",
+      "bytes": 101615,
+      "sha256": "c84364c3e504a4e3aff7b822897971b034d2d45a829d2bc4cee9a743234dbc10"
+    }
+  ]
+}
