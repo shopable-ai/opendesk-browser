@@ -79,3 +79,56 @@
 ## 4. 下一阶段证据升级
 
 对 TOP30 每条至少补：指定竞品的准确 CWS 页面/版本、商店权限快照、3 个以上独立用户痛点原话（注意脱敏）、明确测试网站、竞品关键体验录像或操作描述、开发和维护工时实测。当前很多条只有“这个需求有产品在解决”的**存在性证据**，不能以假设高频自动立项。
+
+## R1.0-WEB · 2026-10-20 公开竞品/价格证据增量（22 家，非真实收入或全量评论研究）
+
+> 检索时间：2026-10-20；将本轮证据**增量放到原竞品文档**，而不是创建第二份 CSV 作为竞争事实源。本表是每家公司官网或官方渠道的 **FACT：产品功能/公布的定价**，不是公司财务或购买者付费证明；没有独立产品安装/抽样评论/实际购买，标明 MISSING。价目币种默认 USD；年付折算与月付不可直接横比；价格会变，未来广告前需重查。
+
+| 机会簇 | 竞品 | 官网当日公开能力/收费样例（非 OpenDesk 收入） | 核查结论/缺口 | 一手来源 |
+| --- | --- | --- | --- | --- |
+| AI 保存 | Obsidian Web Clipper | 免费开源；本地 Markdown 剪藏；图片需在笔记中另行下载附件 | FACT：官方有图文工作流；有单步摩擦；2026 社区样本 | [官方链接](https://obsidian.md/help/web-clipper) |
+| AI 保存 | Readwise Reader | 含 Reader $9.99/月（年付），导出与长期复习 | FACT：订阅价；用户留存 MISSING | [官方链接](https://readwise.io/pricing/reader) |
+| AI 保存 | Glasp | Pro $15/月，2026-05-01 官方调价通知 | FACT：价格公告；未做 CWS 体验 | [官方链接](https://blog.glasp.co/price-update-2026-05-01/) |
+| AI 保存 | Raindrop.io | 免费书签/高亮；Pro 搜索、备份、AI；动态结算价格 MISSING | FACT：免费/专业区分 | [官方链接](https://raindrop.io/pro/buy) |
+| AI 浏览器 | HARPA AI | $12/月（年付的一个个人档）；AI 网页工作流与连接 | FACT：公开档位，模型费与使用限制因方案而异 | [官方链接](https://harpa.ai/pricing) |
+| 客服短语 | Text Blaze | 免费，Pro $2.99/月年付，Business $6.99/席/月年付 | FACT：清晰个人→团队付费路径 | [官方链接](https://blaze.today/plans/) |
+| 网页自动化 | Axiom.ai | 免费试用；Starter $15/月，Pro $50/月；按运行小时分层 | FACT：任务可靠执行+持续运行收费 | [官方链接](https://axiom.ai/pricing/) |
+| 网页自动化 | Bardeen | Basic $10/月、Premium $50/月（官网示例档），按 credits 收费 | FACT：销售与获客自动化信用额度 | [官方链接](https://www.bardeen.ai/pricing) |
+| 网页自动化 | Automa | 开源浏览器工作流/录制与独立扩展构建；商业报价 MISSING | FACT：免费技术替代/强竞争 | [官方链接](https://github.com/AutomaApp/automa) |
+| 网页自动化 | UI.Vision RPA | 核心本地工具免费开源；Pro $299/年、企业支持 | FACT：开源核心+支持收费 | [官方链接](https://ui.vision/rpa/x/pricing) |
+| 数据采集 | Browse AI | Free 50 credits/月；Personal $19/月（年付），Professional $69/月（年付） | FACT：采集、监控、托管及服务付费 | [官方链接](https://www.browse.ai/pricing) |
+| 数据采集 | Data Miner | 免费 500 页/月（有条件）；Solo $19.99/月 | FACT：页面量与域名限制 | [官方链接](https://dataminer.io/pricing) |
+| 数据采集 | Apify | Free 起；Starter $19/月加按量；Actor 分成/计费 | FACT：运行/市场化执行模式 | [官方链接](https://apify.com/pricing) |
+| 销售数据 | Clay | 免费 credits/actions；Launch/Growth 用量层级，动态当前价 MISSING | FACT：数据来源+执行成本双计量 | [官方链接](https://www.clay.com/pricing) |
+| 销售数据 | Hunter | 免费额度；Starter $34/月（官网年付展示） | FACT：线索查询和邮件工作流 | [官方链接](https://hunter.io/pricing/) |
+| 电商卖家 | Helium 10 | Platinum $129/月（月付），Diamond $359/月（月付） | FACT：卖家岗位具有高价专业替代 | [官方链接](https://www.helium10.com/pricing/) |
+| 电商卖家 | Jungle Scout | 卖家 Catalyst/品牌 Cobalt 两类；当日可比价格 MISSING | FACT：专业卖家付费分层 | [官方链接](https://www.junglescout.com/pricing/) |
+| 技术识别 | Wappalyzer | 免费技术查询，Pro $250/月、Business $450/月 | FACT：免费技术标签→B2B 线索卖点 | [官方链接](https://www.wappalyzer.com/pricing/) |
+| SEO | Keywords Everywhere | 插件免费安装，搜索量/CPC 按年 credits 付费；当前精确价 MISSING | FACT：浏览器即场数据→付费积分 | [官方链接](https://keywordseverywhere.com/how-to-purchase.html) |
+| 写作 | Grammarly | Pro $30/月月付或 $12/席/月年付 | FACT：免费/付费写作辅助 | [官方链接](https://support.grammarly.com/hc/en-us/articles/115000090011-How-much-does-Grammarly-Pro-cost) |
+| 企业工作流 | Zapier | Free 100 tasks/月；Professional 起 $19.99/月 | FACT：SaaS 自动化与平台集成强替代 | [官方链接](https://zapier.com/pricing) |
+| 企业工作流 | Make | Free 1,000 credits/月；Core $12/月（10k credits/月月付示例） | FACT：场景执行与工作流收费 | [官方链接](https://www.make.com/en/pricing) |
+
+### Chrome Web Store 搜索的可核查基准
+
+以下数字是访问商店公开页面时返回的**约数/快照**，不是月活、留存、销售、独立用户意图或 OpenDesk 可争取的实际流量；动态页面与搜索缓存可能有延迟。
+
+| 官方 CWS 商品 | 商店公开显示的用户量级 | 2026-10-20 检索链接 | 不可作出的结论 |
+| --- | ---: | --- | --- |
+| Text Blaze | 800,000 用户 | [CWS](https://chromewebstore.google.com/detail/text-blaze-templates-and/idgadaccgipmpannjkmfddolnnhmeklj) | 不等于付费席位 |
+| Obsidian Web Clipper | 1,000,000 用户 | [CWS](https://chromewebstore.google.com/detail/obsidian-web-clipper/cnjifjpddelmedmihgijeibhnjfabmlf) | 不等于付费剪藏需求 |
+| Axiom.ai | 100,000 用户 | [CWS](https://chromewebstore.google.com/detail/axiom-ai-browser-automati/cpgamigjcbffkaiciiepndmonbfdimbb) | 不等于稳定运行成功率 |
+| Bardeen | 200,000 用户 | [CWS](https://chromewebstore.google.com/detail/bardeen-automate-browser/ihhkmalpkhkoedlmcnilbbhhbhnicjga) | 不等于用户平均工作时间节省（卖家自述） |
+
+### 正反证据与待补作业
+
+- **正例 FACT**：Text Blaze（个人→团队）、Axiom（运行小时）、Browse AI（抓取/监控 credits）、Wappalyzer（免费查询→付费线索/API）都公开展示了浏览器入口或简单任务如何连接收费层。事实仅说明该收费模式存在，不意味着 OpenDesk 用同一模式就能盈利。
+- **针对 A 的强反例 FACT**：Obsidian Web Clipper 官方说明已经支持选区、模板、图片高亮和 Markdown 保存，而且免费开源；[官方图片下载说明](https://obsidian.md/help/web-clipper/capture)目前要求先保存，再在 Obsidian 运行“Download attachments for current file”才能将远程图片转成离线附件。此处可能有更短的「一键图文产物完成交付」任务缝隙，但必须进行真实同任务比较。
+- **负面样本仅供线索**：[2026-04-15 图片入库讨论](https://www.reddit.com/r/ObsidianMD/comments/1smjzer/use_webclipper_to_grab_an_image/)希望选图后直接生成本地图片笔记；[2026-04-15 抽取不完整反馈](https://www.reddit.com/r/ObsidianMD/comments/1sm7cvk/web_clipper_does_not_save_full_article/)报告个别站点只剪到部分文章。这是少量自选帖子，非代表性投诉率、当前版本缺陷复现或用户付费证据。
+- **针对 B 的强反例 FACT**：[Automa](https://github.com/AutomaApp/automa)免费可执行网页流程；[UI.Vision](https://ui.vision/rpa/x/pricing)提供免费核心和付费支持；[Axiom](https://axiom.ai/pricing/)已支持本地/云运行。不能宣传“首次实现自然语言网页自动化”。
+- **针对 C 的强反例 FACT**：Browse AI、Apify、Clay 等已经具备监控、数据、API 和价格梯度。未经具体行业独有的许可数据或完成率优势，不进入通用采集 SaaS。
+- **MISSING（22 家深访与评论）**：每家最新版/权限声明、最近 30 条独立真实评论的正负主题、可靠安装活跃、流量来源、关键词/月搜索量、国家 CPC、实际营收、交叉卖货/付费转化及真实使用成功率均未通过产品级审计；禁止把本表视为这些指标已核验。
+
+### 复查流程
+
+先在 3 个候选方向各选不超过 3 家核心竞品，进行同任务（开始→结果→回执→失败重试）对照；对每家再记录商店永久 ID/语言地区/商店权限/最新版本/近期评论时间戳与评论 URL，采样时区分赞扬、投诉、重复评论、发行商答复。只在采样完成后把评价字段从 MISSING 升级为 FACT。竞品研究日不是产品真实验收日。

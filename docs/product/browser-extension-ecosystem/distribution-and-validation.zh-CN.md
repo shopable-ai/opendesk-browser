@@ -73,3 +73,57 @@ Chrome Web Store [统计指南](https://developer.chrome.com/docs/webstore/metri
 ## 七、商业渠道停止线
 
 不得出售浏览历史、未授权抓取网站数据、刷 CWS 安装或评价、未经用户相关动作自动放联盟代码、把同一插件公开换壳泛滥上架。CWS 的 [Spam 规则](https://developer.chrome.com/docs/webstore/program-policies/spam-and-abuse)、[有限用途](https://developer.chrome.com/docs/webstore/program-policies/limited-use)、[Affiliate 规则](https://developer.chrome.com/docs/webstore/program-policies/affiliate-ads)均应在每次商业化评审重新确认。
+
+## R1.0-WEB · 2026-10-20 获客经济、低成本实验和核验日志
+
+> 本节增量于原 R2 渠道文档；**没有广告账户授权、账户查询、KeyWord Planner 导出、投放预算批准、真实 CWS 发布效果或付费用户**。本日状态：DESK_RESEARCH_ONLY；CPC、搜索量、竞价强度、CAC、LTV、转化、留存一律 MISSING。不把一个试验计划当作投放 PASS。
+
+### 渠道选择：三种要分开归因
+
+| 渠道 | 搜索意图 | 优先投放/分发的产品 | 经济性风险 | 明确的验证动作 |
+| --- | --- | --- | --- | --- |
+| 竞品品牌词/替代词 Google Search | 替换现有方案；部分纯找官网 | A 仅针对有实际比较页的剪藏/交付；B 只在已解决具体任务时 | 可能昂贵，品牌词并不必然低竞争；有商标广告文案限制 | 用 Keyword Planner US/en 和 JP/ja 分区读取月搜索量/Competition/页首竞价，再审批小额测试 |
+| 任务长尾词 Google Search / 内容 SEO | 用户已描述具体要做的工作 | A 图文交付，B 表单自动化，C 卖家文件对账 | 搜索量可能很低，但首次任务完成意图更接近产品价值 | 落地页演示单任务，分析任务完成与合格线索，不只数点击 |
+| Chrome Web Store 自然发现 / 教程 / 推荐 | 搜索浏览器里可马上解决的问题 | 明确单一用途的 A；C 视是否适合发行 | CWS 曝光和安装不代表活跃，平台规则和编辑推荐不可购买 | 真实店铺元数据+可访问 UI+正式分析后台，和官网 UTM 访问分开统计 |
+
+政策 FACT：[Google 商标广告政策](https://support.google.com/adspolicy/answer/6118?hl=en)说明商标**仅作为关键词**通常不会受到该商标投诉限制；竞争对手在广告正文使用商标或误导性表达可能受限。不是商标可自由使用在文案、域名、店铺名中的授权。[Google 关键词规划工具](https://support.google.com/google-ads/answer/3022575)提供地区/网络条件下的平均月搜索量、Competition 与页首出价范围，但**未读取 OpenDesk 广告账号**。[CWS 搜索发现](https://developer.chrome.com/docs/webstore/discovery)依赖 Listing 质量、评分与使用等因素；[CWS Spam FAQ](https://developer.chrome.com/docs/webstore/program-policies/spam-faq/)禁止高度重复的换壳扩展、伪造评论/诱导安装。[CWS 隐私披露](https://developer.chrome.com/docs/webstore/program-policies/disclosure-requirements/)要求对用户数据用途透明并取得必要同意。
+
+### 首轮市场与关键词预注册（尚无实际量价）
+
+- 市场一：美国 US，英语 en；只研究英语网页任务和 Google Search/CWS，不把用户量视为全球平均。
+- 市场二：日本 JP，日语 ja；单独翻译和核查本地查询意图，不直接用英文的搜索量推日语 CPC。
+- A：`save ChatGPT generated images locally`；`export ChatGPT prompt and images`；`ChatGPT to Obsidian image attachments`；`save AI responses as markdown`；日语 `ChatGPT 画像 保存 フォルダ`。
+- B：`automate repetitive web forms`；`internal website form automation`；`browser based data entry workflow`；`Axiom alternative`（仅关键词候选，广告正文不能暗示关联）。
+- C：`shopify listing audit CSV`；`check product listing missing fields`；`seller product CSV validation`；`browse ai alternative`（同上）。
+- 对每个关键词必须先补：`keyword`、`country`、`language`、`intent`、`period`、`avgMonthlySearch`、`competition`、`topPageBidLow`、`topPageBidHigh`、`actualCpc`、`actualConversions`、`sourceURL`、`checkedAt`。目前数值全部 **MISSING**，不能由常识估计“低 CPC”。
+- 广告落地页目标：A 只承诺「主动将 AI 图文工作产物保存/导出」，B 只承诺「一个获授权的企业重复操作」，C 只承诺「用户提供的合法卖家文件核查」。不能借竞品商标伪装官网，不默认自动上传用户网页内容。
+
+### 第一次成功与付费漏斗（低数据版本）
+
+`landing_visit → cws_listing_visit(聚合) → install(聚合) → first_verified_save_or_task → user_initiated_second_work_cycle → qualified_team_request → paid_order → renewal`
+
+- 统计口径：落地页 UTM campaign/keyword、CTA、隐私披露后的可选匿名产品事件（首次成功/失败类、时间区间、无原文）、付款订单系统的已付款状态。CWS 商店安装是聚合量，**不能未经证据逐人归因为同一广告点击**。
+- **North Star：实际完成一个自主任务且用户拿到结果/写入回执**，不选「浏览器安装数」。随后按 cohort 跟踪至少两个自然使用周期；B2B 记有预算决策者、试点约定与到账，不把邮件回复算订单。
+- 原始 AI 提示词、网页正文、图像、Cookie、浏览记录、企业财务数据不应写入公开研究账本或默认分析事件；数据上报必须最小化、明确说明、允许拒绝。
+- `activationRate=verifiedFirstSuccess / eligibleFirstRuns`，`repeatRate=repeatIndependentUsers / eligibleActivatedCohort`，`paidRate=paidCustomers / qualifiedLeads`，`CAC=approvedChannelSpend / newAttributablePaidCustomers`（分母为 0 时 MISSING，而不是 0）；`contributionPerCustomer = collectedRevenue - variableCloudCost - refunds - paymentFees - directlyAttributableSupportAndMaintenance`；`payback = CAC / monthlyContribution` 只对真实贡献计算。
+- **竞价上限决策**：在真实用户得到初始漏斗后，`maxBreakEvenCPC = P(paidCustomer | adClick) × riskAdjustedExpectedContributionPerPaidCustomer`，实际愿付 CPC 应低于该值并留有支持/归因误差余量。公式不是当前可用 CPC 报价。
+- 预注册试验建议：先自然流量/定向访谈 10 位用户取得一次成功与两次自然周期；再申请单渠道限定预算的付费试验。**示例预算上限 $300、14 天只是供批准的 HYPOTHESIS，不表示用户已批准、平台已扣款或 CPC 已知**；未获批准即保持 $0 支出。不要平摊三个渠道稀释信号，优先 A 一个高意图词组。
+
+### 与唯一 EXP 实验账本对齐
+
+| 实验 | 最初业务目的 | 新增渠道可验证问题 | 缺口/停止条件 |
+| --- | --- | --- | --- |
+| EXP-003（A） | 研究剪藏及跨工作周期复用 | AI 图文完整交付后能否吸引自然搜索/CWS 用户且有重复使用？ | 两自然周期不复用、图片不能可靠读回、无实际付费请求即不升级 SaaS |
+| EXP-001（B） | 企业授权网页流程试点 | 能否直接找到愿为单任务部署与维护付款的买方？ | 无真实授权/买方/签约证据就不做多站点自动化销售 |
+| EXP-005（C） | 卖家 Listing QA | 卖家是否愿为合法数据的异常对账而付费？ | 缺官方文件/许可或无法复核异常则停止拓站 |
+
+### 2026-10-20 核验日志（原文档持续追加，不建第二工作流表）
+
+| 日期 | 事件 | 状态 | 证据/数字 | 后续动作 |
+| --- | --- | --- | --- | --- |
+| 2026-10-20 | GitHub main 原有 84 OPP、8 EXP、R5 24 场景索引核查 | FACT_FOR_REPO_SNAPSHOT | [OPP](opportunity-register.json)、[EXP](commercial-experiments.json)、[R5](domain-relevance-universe-r5.seed.json) | 仅挑既有 ID 试点，不加新功能账本 |
+| 2026-10-20 | 22 家官网价格/商店公开渠道参考 | FACT_FOR_PUBLIC_PRODUCT_AND_PRICE | [竞品增量](competitor-research.zh-CN.md)；非真实收入 | 补逐家 30 条近期评论和同任务复现 |
+| 2026-10-20 | Google Ads 搜索量/CPC/投放后台验证 | **MISSING / NOT_EXECUTED** | 账户、预算、查询导出、真实广告结果均无 | 获授权后读 Keyword Planner，未授权不付费 |
+| 2026-10-20 | 三项 OpenDesk 自有商业实验 | **NOT_TESTED** | 客户数/安装激活/成交/留存/收入均 MISSING | 优先 EXP-003 首次结果；并行寻找 EXP-001 的有预算买家 |
+
+验收定义：下一次迭代先把每一个 MISSING 对应到可访问的数据源、操作人及实际输出回执；不得将“创建实验卡”“写文档”“竞品有收费”当作用户转化或产品 UX 95+ 的证据。

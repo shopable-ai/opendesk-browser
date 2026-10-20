@@ -1,3 +1,5 @@
+> **2026-10-20 · 商业机会与低成本获客 R1.0 增量（研究，不是投放）：** [15 场景/30 个现有 OPP/独立评分](commercial-opportunity-framework.zh-CN.md#r10-web--2026-10-20-商业机会决策增量研究状态不替代已有-oppexp) · [22 家官方竞品收费及 CWS 基准](competitor-research.zh-CN.md) · [US/JP 获客关键词/漏斗/0 实际投放日志](distribution-and-validation.zh-CN.md) · [8 个唯一 EXP](commercial-experiments.json)。未建立新的竞争机会 CSV；价格是竞品官网快照，广告 CPC/收入依然 MISSING。
+
 > **R5 现行产品发现入口（2026-10-15，覆盖历史“默认开发方向”）**：[24 领域 × 全球/中国/日本 × 网站任务宇宙](domain-relevance-universe-r5.zh-CN.md) · [脚本市场发现/双榜/四路合法转换](script-market-discovery-r5.zh-CN.md) · [机器可读种子 JSON](domain-relevance-universe-r5.seed.json)。R4 财务 CSV 与 Shopify Listing 均为历史待验证工程候选，不能直接定为全球唯一首选。维持原 84 OPP、8 EXP、R8 188 能力和 E01–E40。
 
 > **2026-10-13 · Global First R5 最新入口**：[45 对手、TOP20、84 OPP、8 EXP、七道验收门及各机会退出标准](global-first-r5-portfolio.zh-CN.md)。AI 提示词重复和录制回放已经有 Chrome Skills/Claude in Chrome 强反例；OpenDesk 已获批第一仍为 0。全球第一标语不获准，当前 Mac Chrome 同版 AI→Installed→无模型两次运行 **NOT_TESTED**。
