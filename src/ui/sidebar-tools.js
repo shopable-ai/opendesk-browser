@@ -626,8 +626,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       throw error;
     }
   }
-// A verified release can opt into one React portal in developer mode. Every
-  // SDK call still uses dispatch(), its original Host envelope and approval UI.
+// The normal installed-tool path may mount the single statically compiled
+  // React portal only AFTER exact official-release/installation admission.
+  // Every SDK operation still uses the existing Host dispatcher and approval UI.
   async function admittedNativeBookmark(tool,expectedEpoch){
     if(trustedBookmarkPilot?.enabled!==true||
        trustedBookmarkPilot.componentVersion!==TRUSTED_BOOKMARK_COMPONENT_VERSION||
@@ -938,9 +939,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   function mountTool(tool,{readOnly=false,launchGate=null,forceSandbox=false}={}) {
     // An installed Focus tool opens with a visible trusted first-use grant.
+    // First-use Full Bookmarks consent remains a visible, separate trusted
+    // Chrome/Host grant; do not bury the button behind an empty React tree.
+    const bookmarkGrant=menuGrants?.[tool.id];
+    const bookmarkGranted=bookmarkGrant?.bookmarkFull===true&&
+      bookmarkGrant.version===tool.version&&
+      bookmarkGrant.installEpoch===(revocationEpochs[tool.id]??null);
     tocSettingsOpen=!readOnly&&(
       tool.id===FOCUS_ID&&tool.capabilities.includes(FOCUS_CAPABILITY)||
-      isCookieTool(tool)&&cookieSiteRecord(tool,websiteOrigin(currentPageTarget?.snapshot?.url))?.read!==true);
+      isCookieTool(tool)&&cookieSiteRecord(tool,websiteOrigin(currentPageTarget?.snapshot?.url))?.read!==true||
+      isFullBookmarkTool(tool)&&!bookmarkGranted);
     tocScope='site';destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;knowledgeDirty=false;
     frameRevocationEpoch=readOnly?null:(revocationEpochs[tool.id]??null);
     instance=crypto.randomUUID();
@@ -985,7 +993,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         if(disposed||active!==tool||instance!==token)return;
         if(!admitted){
           mountTool(tool,{forceSandbox:true});
-          notice('书签正式工具仍在原有沙箱中运行；未授予可信 UI 准入。');
+          notice('当前安装包未通过官方身份与安装代际核验，已隔离到原有沙箱界面。');
           return;
         }
         try{
@@ -1002,7 +1010,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           render();notice('');
         }catch(error){
           destroyFrame();tocSettingsOpen=true;render();
-          notice('书签可信 React 试点拒绝挂载：'+String(error?.message||error).slice(0,160),true);
+          notice('书签 React 界面启动失败，已停止可信会话：'+String(error?.message||error).slice(0,160),true);
         }
       }).catch(error=>{
         if(disposed||active!==tool||instance!==token)return;
@@ -2765,6 +2773,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const stored=await api.storage.local.get(BROWSER_MENU_GRANTS_STORE);
       menuGrants=stored[BROWSER_MENU_GRANTS_STORE]||{};
       notice(hadConsent?'已撤销本工具完整书签访问':'已授权本工具访问全部书签');
+      // An ungranted first-open observer fails closed. After the user grants
+      // access, remount the SAME verified tool to subscribe before reloading
+      // the native tree, rather than leaving a permanently stopped observer.
+      if(!hadConsent&&nativeUI?.kind==='bookmark'&&!toolDirty&&!toolSaving&&
+         active===tool&&instance&&sidebarToolEnabled(enableRecords,tool.id))
+        mountTool(tool);
     })().catch(error=>notice((error?.code||'E_PERMISSION')+'：'+String(error?.message||error),true))
       .finally(()=>{render();});
   });
