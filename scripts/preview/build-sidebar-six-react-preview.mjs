@@ -94,6 +94,48 @@ const demoRows=Object.freeze([
 ]);
 const toolbar={query:'',kind:'all',scope:'smart',language:'zh-CN',menuOpen:false};
 const previewNotice=()=>app.renderStatus({text:'仅预览 · 请在正式 Chrome 扩展中执行此操作',state:'info'});
+// The canonical React preview demonstrates the drawer and file metadata only.
+// Neither this adapter nor the disabled button can install, update or grant access.
+let previewSelection=0;
+const previewOpenImport=()=>{
+  toolbar.menuOpen=false;publishToolbar();
+  toolView.patch('sidebar-tool-import',{hidden:false});
+};
+toolView.bind('sidebar-tool-import-close','click',()=>{
+  previewSelection++;
+  toolView.patch('sidebar-tool-import',{hidden:true});
+  toolView.patch('sidebar-tool-preview',{hidden:true});
+  toolView.patch('sidebar-tool-file',{value:''});
+  toolView.patch('sidebar-tool-file-error',{hidden:true,textContent:''});
+});
+toolView.bind('sidebar-tool-file','change',async event=>{
+  const selection=++previewSelection,file=event?.target?.files?.[0];
+  toolView.patch('sidebar-tool-preview',{hidden:true});
+  toolView.patch('sidebar-tool-file-error',{hidden:true,textContent:''});
+  if(!file)return;
+  try{
+    if(file.size>1024*1024)throw Error('文件超过预览读取上限 1 MiB');
+    const value=JSON.parse(await file.text());
+    if(selection!==previewSelection)return;
+    if(!value||typeof value!=='object'||Array.isArray(value)||
+       typeof value.title!=='string'||!value.title.trim()||
+       typeof value.version!=='string'||!value.version.trim())
+      throw Error('无法识别标题和版本；这不是完整安装包校验');
+    toolView.patch('sidebar-tool-preview-title',{textContent:value.title.slice(0,100)});
+    toolView.patch('sidebar-tool-preview-version',{textContent:'v'+value.version.slice(0,40)});
+    toolView.patch('sidebar-tool-preview-description',{textContent:
+      '仅预览文件字段。未验证签名、安装身份、版本差异或权限，无法安装。'});
+    toolView.patch('sidebar-tool-preview-capabilities',{textContent:
+      Array.isArray(value.capabilities)?value.capabilities.map(String).slice(0,30).join('、'):'未读取'});
+    toolView.patch('sidebar-tool-preview-file',{textContent:file.name.slice(0,140)});
+    toolView.patch('sidebar-tool-install',{disabled:true,textContent:'仅预览 · 不执行安装'});
+    toolView.patch('sidebar-tool-preview',{hidden:false});
+  }catch(error){
+    if(selection!==previewSelection)return;
+    toolView.patch('sidebar-tool-file-error',{hidden:false,
+      textContent:'仅预览 · '+String(error?.message||error)});
+  }
+});
 const closeRowMenu=()=>app.renderRowMenu([]);
 const closeDetail=()=>{closeRowMenu();app.renderView('list');};
 function openDemoDetail(key){
@@ -144,7 +186,7 @@ function publishToolbar(){
     onCloseMenu:()=>{toolbar.menuOpen=false;publishToolbar();},
     onReset:()=>{toolbar.kind='all';toolbar.scope='smart';toolbar.menuOpen=false;
       publishToolbar();publishRows();},
-    onMarket:previewNotice,onImport:previewNotice,onReload:previewNotice
+    onMarket:previewNotice,onImport:previewOpenImport,onReload:previewNotice
   });
 }
 publishToolbar();
