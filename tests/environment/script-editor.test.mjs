@@ -177,6 +177,29 @@ test('R40.7 plain Controller edit and Run do not invoke Page or component prepar
   assert.equal(f.dependencyInspections.length,initial);
 });
 
+test('R40.9 ordinary Controller and Page edits do not cancel unrelated component compilation',async t=>{
+  let cancels=0;
+  const f=await fixture(undefined,undefined,{componentPreparerFactory:()=>({
+    inspect:async()=>({remoteRoots:[],missingUrls:[],modules:[],complete:true}),
+    prepare:async()=>{throw Error('irrelevant component preparation');},
+    cancel(){cancels++;},dispose(){}
+  })});
+  t.after(()=>f.dispose());
+  const baseline=cancels;
+  f.find('script-source').value='async function main(){return 21;}';
+  f.find('script-source').fire('input',{isTrusted:true});await tick();
+  assert.equal(cancels,baseline,'ordinary Controller JS must not cancel JSX preparation');
+  const world=f.find('script-javascript-world');
+  world.value='page';world.fire('change',{isTrusted:true});
+  f.find('script-source').value='async function main(){return document.title;}';
+  f.find('script-source').fire('input',{isTrusted:true});await tick();
+  assert.equal(cancels,baseline,'Page JavaScript must not cancel JSX preparation');
+  world.value='controller';world.fire('change',{isTrusted:true});
+  f.find('script-source').value='import value from "https://test.example/v1.0.0/a.js";';
+  f.find('script-source').fire('input',{isTrusted:true});
+  assert.ok(cancels>baseline,'Controller ESM must invalidate its own compiler work');
+});
+
 test('R40.5 Page to Controller transition fences stale Page inspection and keeps draft Run',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const gate=deferred(),requested=[];
@@ -1187,6 +1210,32 @@ test('R12: real Page preview gates explicit immutable Candidate import, never au
     'modified source invalidates successful preview: '+JSON.stringify({current:fx.find('script-source').value,last:source,sourceMismatch:fx.find('script-source').value!==source}));
   fx.find('page-candidate-save').fire('click',{isTrusted:true});await tick();
   assert.equal(requests.length,1,'stale source cannot be imported');
+});
+
+test('R40.9 component Candidate preparation cannot reuse an earlier Page execution receipt',async t=>{
+  const f=await fixture(undefined,undefined,{componentPreparerFactory:()=>({
+    inspect:async input=>componentInspectResult(input),
+    prepare:async()=>{throw {code:'E_PAGE_COMPILER',message:'invalid component author source'};},
+    cancel(){},dispose(){}
+  })});
+  t.after(()=>f.dispose());
+  const imports=[],original=f.client.request.bind(f.client);
+  f.client.request=async(method,payload)=>{
+    if(method==='importPageCandidate'){imports.push(payload);return {stage:'Candidate',candidateId:'unexpected',manifestHash:'f'.repeat(64)};}
+    return original(method,payload);
+  };
+  const world=f.find('script-javascript-world');
+  world.value='page';world.fire('change',{isTrusted:true});
+  f.find('script-source').value='async function main(){return document.title;}';
+  f.find('script-source').fire('input',{isTrusted:true});
+  await f.click('script-run');
+  await waitForComponentUI(()=>!f.find('page-candidate-save').disabled,'Page preview must finish first');
+  const react=f.find('page-component-react');
+  react.checked=true;react.fire('change',{isTrusted:true});
+  await f.click('page-candidate-save');
+  await waitForComponentUI(()=>f.find('page-candidate-status').dataset.state==='error','invalid component must not import old Page preview');
+  assert.equal(imports.length,0);
+  assert.match(f.find('page-candidate-status').textContent,/E_PAGE_COMPILER/);
 });
 
 test('R12: navigating the actual page or a rejected preview cannot save a Page Candidate',async t=>{

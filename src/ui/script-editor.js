@@ -73,7 +73,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     patchDeveloperField(view,componentStatus,{hidden:componentMode==='javascript'&&!message,
       data:{...componentStatus.data,state},textContent:message||''});
   }
-  let lastPagePreview=null,localRunner=null;
+  let localRunner=null;
   // The React view is the single presentation state. No duplicate result buffer.
   const setResultText=value=>patchDeveloperField(view,output,{textContent:value??''});
   const setResultKind=value=>patchDeveloperField(view,resultKind,{textContent:value??''});
@@ -104,7 +104,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     prepareESM:(...args)=>controllerRunner.prepareESM(...args),getGeneration:()=>browserPrepareGeneration,onUpdate:update,onStatus:display,
     onLoad:source=>{
       loadedPageSource=false;componentMode='javascript';javascriptWorld='controller';syncComponentInputs();
-      lastPagePreview=null;componentMessage('idle','');
+      pagePreviewFlow?.clearLast();componentMessage('idle','');
       programSource.replaceSource(source);sourceInput();
     }});
   const resultDownloads=createRunArtifactDownload({client,host,document:doc,view,onState:update});
@@ -157,7 +157,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const help = formatTaskError(error);
     display('error', help);
     if (isRunning()) {
-      // Failed admission/preview is not a still-isRunning() script return value.
+      // Failed admission/preview is not a running script return value.
       setResultText('本次执行失败，未产生可显示的返回值');
       setResultKind('执行失败');
       patchDeveloperField(view,copyResult,{disabled:true});
@@ -285,9 +285,10 @@ export function createScriptEditor({client, currentPageTarget, development=false
       !isRunning()&&!isStopping()&&!host.currentRun&&currentPageState?.status==='available'&&!!programSource.source().trim();
   }
   function canSavePagePreview(){
-    return !editingBusy&&!pagePreviewFlow?.busy&&!componentRemote?.busy&&!localProject?.active()&&previewMatchesEditor(lastPagePreview)&&
-      currentPageState?.status==='available'&&currentPageState.documentId===lastPagePreview.documentId&&
-      currentPageState.tabId===lastPagePreview.tabId&&currentPageState.url===lastPagePreview.previewUrl;
+    const previous=pagePreviewFlow?.last,target=currentPageState;
+    return !editingBusy&&!pagePreviewFlow?.busy&&!componentRemote?.busy&&!localProject?.active()&&previewMatchesEditor(previous)&&
+      target?.status==='available'&&target.documentId===previous.documentId&&
+      target.tabId===previous.tabId&&target.url===previous.previewUrl;
   }
   async function prepareManagedSource(input,captured,check,{frozen=false,entryFormat='async-main'}={}){
     if(frozen){
@@ -316,17 +317,18 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if(disposed||ticket!==browserPrepareGeneration||programSource.source()!==source||componentMode!==mode)
         throw {code:'E_PAGE_COMPILER_STALE',message:'准备已取消或源码已变化；旧结果不会保存或运行'};
     };
-    lastPagePreview=null;editingBusy=true;candidatePreparing=true;update();
+    pagePreviewFlow.clearLast();editingBusy=true;candidatePreparing=true;update();
     componentMessage('preparing','正在离线准备固定 Candidate；此操作不会运行或安装网页脚本');
+    let prepared;
     try{
-      lastPagePreview=await pageCandidates.prepareComponent({source,artifact,mode,captured,check,prepareManagedSource});
+      prepared=await pageCandidates.prepareComponent({source,artifact,mode,captured,check,prepareManagedSource});
       componentMessage('prepared','组件已准备；保存只创建 Candidate，尚未进行网页运行验收');
     }finally{editingBusy=false;candidatePreparing=false;update();}
-    await savePageCandidate();
+    await savePageCandidate(prepared);
   }
-  async function savePageCandidate(){
-    if(editingBusy||disposed||pagePreviewFlow?.busy||!lastPagePreview||localProject?.active())return;
-    const previous=lastPagePreview,programId=scriptId(),revisionText=find('script-revision').value.trim();
+  async function savePageCandidate(previous=pagePreviewFlow?.last){
+    if(editingBusy||disposed||pagePreviewFlow?.busy||!previous||localProject?.active())return;
+    const programId=scriptId(),revisionText=find('script-revision').value.trim();
     editingBusy=true;update();
     try{
       await pageCandidates.save({previous,source:programSource.source(),componentDraft:isComponentDraft(),
@@ -378,7 +380,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     loadedPageSource=true;componentMode=authoring?.framework??'javascript';javascriptWorld='page';syncComponentInputs();
     programSource.replaceSource(authoring?.sourceUtf8??saved.authorSourceUtf8??saved.sourceUtf8);
     patchDeveloperField(view,find('script-id'),{value:row.programId});
-    patchDeveloperField(view,find('script-revision'),{value:String(row.revision)});lastPagePreview=null;
+    patchDeveloperField(view,find('script-revision'),{value:String(row.revision)});pagePreviewFlow?.clearLast();
     if(saved.manifest?.compilation)await dependencyResolver.restore(saved.manifest.compilation);
     else dependencyResolver.refresh();
     browserPreparer.cancel();browserPrepareGeneration++;
@@ -394,7 +396,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
       get editingBusy(){return editingBusy;},get running(){return isRunning();},
       get mode(){return componentMode;},get loadedPageSource(){return loadedPageSource;},
       get localActive(){return !!localProject?.active();},
-      get last(){return lastPagePreview;},set last(v){lastPagePreview=v;},
       get currentPage(){return currentPageState;},
       get ticket(){return browserPrepareGeneration;},nextTicket(){return ++browserPrepareGeneration;}
     },
@@ -447,7 +448,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }
     componentMode=next;
     // Code type changes execution intent, never the current textarea bytes.
-    loadedPageSource=false;lastPagePreview=null;
+    loadedPageSource=false;pagePreviewFlow?.clearLast();
     syncComponentInputs();
     sourceInput();
     componentMessage('idle',next==='javascript'?'':'已切换代码类型；当前源码保持不变');
@@ -458,16 +459,19 @@ export function createScriptEditor({client, currentPageTarget, development=false
       componentMessage('error','请先结束当前执行或退出已导入的固定源码视图，再切换执行环境');
       update();return;
     }
-    javascriptWorld=next;loadedPageSource=false;lastPagePreview=null;
+    javascriptWorld=next;loadedPageSource=false;pagePreviewFlow?.clearLast();
     // Controller and Page use one visible source, not two hidden buffers.
     sourceInput();
     componentMessage('idle',next==='page'?'网页 JavaScript 使用当前网页 DOM；运行前仍须网站授权':'');
   }
   const javascriptWorldSelect=find('script-javascript-world');
   function sourceInput(){
-    browserPreparer.cancel();browserPrepareGeneration++;controllerRunner?.invalidate();
+    browserPrepareGeneration++;
     const local=!!localProject?.active(),page=!local&&componentMode==='javascript'&&isPageDraft();
     const remote=!local&&!page&&(componentMode!=='javascript'||hasUnbuiltESM(programSource.source()));
+    // Invalidate only preparation relevant to the edited/previous execution world.
+    if(remote||updatedContext==='component'||updatedContext==='controller-esm')browserPreparer.cancel();
+    if(!local&&!page||updatedContext?.startsWith('controller'))controllerRunner?.invalidate();
     if(page)dependencyResolver.refresh({sourceFormat:'esm-page'});
     else dependencyResolver.suspend();
     if(remote)componentRemote.refresh();
@@ -478,10 +482,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
     update();
   }
   on('script-id','input',()=>{
-    lastPagePreview=null;sourceInput();
+    pagePreviewFlow?.clearLast();sourceInput();
   });
   on('script-revision','input',update);
-  on('script-params','input',update);
   listen(scriptsSettings, 'click', event => {
     if (!event.isTrusted || disposed || scriptsRecovery.hidden) return;
     const url = userScriptsSettingsURL(api);

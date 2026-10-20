@@ -2,9 +2,8 @@ import {patchDeveloperField} from './develop-view.js';
 import {hasUnbuiltESM} from './esm-source-detector.js';
 import {preparePageCandidateDraft} from './page-candidate-source.js';
 
-// Candidate creation is independent from Run/Preview. The editor remains the
-// single owner of the shared preview receipt, preparation generation and busy
-// gates; no second copy of source or runtime state is retained here.
+// Prepared-only Candidates use a frozen one-save value, never the Preview receipt.
+// Only the Page execution owner retains successful Preview identities.
 export function createPageCandidateActions({client,view,currentPageTarget,pageLibrary}){
   async function prepareComponent({source,artifact,mode,captured,check,prepareManagedSource}){
     const frozen=artifact?.project.entryMode==='component';

@@ -12,7 +12,7 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
   const pagePreviewStatus=find('page-preview-status');
   const pageTechnicalPanel=find('page-preview-technical-panel'),pageTechnical=find('page-preview-technical');
   const copyResult=find('script-copy-result');
-  let busy=false,preparing=false,managed=null,unknown=null,stopping=false;
+  let busy=false,preparing=false,managed=null,unknown=null,stopping=false,last=null;
   // Unknown dispatch/Stop belongs to the original document; never replay.
   function quarantine(target){unknown={tabId:target.tabId,documentId:target.documentId};}
   function canStop(){
@@ -24,6 +24,7 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
   function onTarget(next){
     if(next?.status==='available'&&Number.isSafeInteger(next.tabId)&&
        typeof next.documentId==='string'&&next.documentId){
+      if(last?.tabId===next.tabId&&last.documentId!==next.documentId)last=null;
       if(managed&&managed.target.tabId===next.tabId&&
          managed.target.documentId!==next.documentId)
         managed=null; // The owning tab actually navigated; do not mistake a tab switch for cleanup.
@@ -39,6 +40,7 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
 
   }
   function onTabRemoved(tabId){
+    if(last?.tabId===tabId)last=null;
     // Closing the exact owning tab proves its document is gone. Merely
     // selecting a different tab is never evidence of successful Stop.
     if(managed?.target.tabId===tabId){
@@ -119,7 +121,7 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
       if(fixedFrameSource&&(state.mode!=='javascript'||programSource.kind()!==runKind))
         throw {code:'E_DEPENDENCY_STALE',message:'网页草稿或运行模式已变化；不会执行旧代码'};
     };
-    state.last=null;busy=true;ui.update();patchDeveloperField(view,pageTechnicalPanel,{hidden:true});patchDeveloperField(view,pageTechnical,{textContent:''});
+    last=null;busy=true;ui.update();patchDeveloperField(view,pageTechnicalPanel,{hidden:true});patchDeveloperField(view,pageTechnical,{textContent:''});
     displayPreview('running','正在核对当前文档与固定源码…','');
     (async()=>{
       await permission;
@@ -142,8 +144,8 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
             patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify({originalPreview:observed},null,2)});
           }
         });
-        state.last={...previous,componentMode:state.mode};
-        const editorChanged=!ui.matches(state.last);
+        last={...previous,componentMode:state.mode};
+        const editorChanged=!ui.matches(last);
         if(!fixedFrameSource)ui.componentMessage('completed',editorChanged?'旧源码已运行，但编辑内容已变化；先停止旧组件，再运行最新源码':
           '组件已运行 · 可停止或保存固定版本 · 保存不会自动运行或安装');
         displayPreview('completed',fixedFrameSource?
@@ -163,7 +165,7 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
         isCompiledCurrent:()=>!state.disposed&&programSource.source()===pageSource.sourceUtf8&&
           programSource.kind()===runKind&&state.mode==='javascript'&&!state.localActive
       });
-      state.last=previous;
+      last=previous;
       displayPreview('completed',readySource.sourceFormat?
         '当前精确文档试运行完成；可保存作者 import 源码、批准依赖锁与固定编译产物。保存不会自动安装。':
         '当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。',
@@ -216,6 +218,7 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
   return Object.freeze({run,stop,canStop,onTarget,onTabRemoved,
     cancelPreparation(){preparing=false;},
     get busy(){return busy;},get preparing(){return preparing;},
-    get managed(){return managed;},get unknown(){return unknown;},get stopping(){return stopping;}});
+    get managed(){return managed;},get unknown(){return unknown;},get stopping(){return stopping;},
+    get last(){return last;},clearLast(){last=null;}});
 
 }
