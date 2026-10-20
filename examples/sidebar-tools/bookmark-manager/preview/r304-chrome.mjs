@@ -279,19 +279,15 @@ try{
   await click(ctx,'.bm-editor-actions button:last-child');
   await gone(ctx,'[data-testid="bookmark-sheet"]','cancel dirty create');
   assert.equal(await invoke(ctx,"return !document.querySelector('[data-testid=\"confirm-dialog\"]')"),true);
-  await click(ctx,'[data-node-id="10"]');
-  await openMenu(ctx,'100');
-  assert.equal(await invoke(ctx,"return document.querySelector('[data-node-id=\"100\"]')?.getAttribute('aria-selected')"),'true','menu and target match');
-  await choose(ctx,3);
-  await until(ctx,"!!document.querySelector('[data-testid=\"confirm-dialog\"]')",'delete dialog');
-  const labels=await invoke(ctx,"const d=document.querySelector('[data-testid=\"confirm-dialog\"]');return [d.querySelector('button').textContent,d.querySelector('button:last-child').textContent,d.textContent]");
-  assert.equal(labels[0],'取消');
-  assert.equal(labels[1],'删除书签');
-  assert.match(labels[2],/OpenDesk 产品资料/);
-  await screenshot('bookmark-r304-'+width+'-delete.png');
-  await click(ctx,'[data-testid="confirm-dialog"] button:first-child');
-  await gone(ctx,'[data-testid="confirm-dialog"]','cancel delete');
-  assert.equal(await invoke(ctx,"return document.activeElement!==document.body"),true,'focus restored after delete');
+   await click(ctx,'[data-node-id="10"]');
+   await openMenu(ctx,'100');
+   assert.equal(await invoke(ctx,"return document.querySelector('[data-node-id=\"100\"]')?.getAttribute('aria-selected')"),'true','menu and target match');
+   assert.match(await invoke(ctx,"return document.querySelector('[data-testid=\"action-menu\"]')?.textContent"),/删除/);
+   // The real Chrome Host displays the ONE authoritative deletion review.
+   // Keep this bookmark for the later rename/move/unknown-write scenarios.
+   await screenshot('bookmark-r304-'+width+'-delete-menu.png');
+   assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=\"confirm-dialog\"]')"),false);
+   assert.equal(await invoke(ctx,"return document.activeElement!==document.body"),true,'menu keeps focus');
   await openMenu(ctx,'100');
   await invoke(ctx,"document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));return true");
   await gone(ctx,'[data-testid="action-menu"]','Escape menu');
@@ -353,7 +349,19 @@ try{
    assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=bookmark-preview]')"),false,'search folder navigation stays list-first');
    await screenshot('bookmark-r304-400-search-folder-drilldown.png');
   }
-  report.push({width,treeHeight:originalHeight,noPersistentInspector:true,passed:['one-click-preview','five-click-five-previews','folder-row-toggle','folder-disclosure','folder-menu-details','nonmodal-preview','view-detail-on-demand','direct-cancel','edit-no-tree-jump','save-readback','search-2159','create-types','delete-confirm-copy-and-target','focus-restore','menu-Escape',...(width===400?['folder-130','failure-preserve','unknown-draft-safety','search-folder-drilldown']:[])]});
+   // Preview has no Host consent UI. One delete selection must mutate the
+   // Mock once without a second React confirmation; native approval is separate.
+   await click(ctx,'button[aria-label="刷新书签"]');
+   await until(ctx,"!document.querySelector('button[aria-label=\"刷新书签\"]')?.disabled",'reconcile unknown before delete');
+   await setInput(ctx,'bm-search','https://example.org/preview');
+   await until(ctx,"!!document.querySelector('[data-node-id=\"100\"]')",'known delete target');
+   await openMenu(ctx,'100');
+   await choose(ctx,3);
+   await until(ctx,"!document.querySelector('[data-node-id=\"100\"]')",'delete mock readback');
+   assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=\"confirm-dialog\"]')"),false,'no duplicate React deletion confirmation');
+   assert.match(await invoke(ctx,"return document.querySelector('.bm-notice')?.textContent||''"),/已删除/);
+   await screenshot('bookmark-r304-'+width+'-delete.png');
+  report.push({width,treeHeight:originalHeight,noPersistentInspector:true,passed:['one-click-preview','five-click-five-previews','folder-row-toggle','folder-disclosure','folder-menu-details','nonmodal-preview','view-detail-on-demand','direct-cancel','edit-no-tree-jump','save-readback','search-2159','create-types','single-react-delete-mock-host-review-pending','focus-restore','menu-Escape',...(width===400?['folder-130','failure-preserve','unknown-draft-safety','search-folder-drilldown']:[])]});
  }
  assert.deepEqual(network,[],'no network requests');
  assert.deepEqual(exceptions,[],'no browser JS exceptions');
