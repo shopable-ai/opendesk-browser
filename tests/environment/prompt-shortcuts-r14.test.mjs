@@ -120,7 +120,7 @@ test('R1.4 provenance pins only audited trusted tool modules to exact fixed entr
   const fixtures=[
     ['trusted/model.js','9f58c21cd1754eb1a35961cb22424a73ba604afe'],
     ['trusted/policy.js','6544a03db0f11373dccdf67cc9b5ce808920a495'],
-    ['trusted/page.js','a64a436b8ecc3ba67287de6f6afec1ca94a2fcce']
+    ['trusted/page.js','900205ef784e13e1ff2d2b96a27017de477711c8']
   ];
   const examined=(path,target)=>describeBundle({chunk:{fileName:target,
       modules:{[resolve(ROOT+'/'+path)]:{renderedLength:1,originalLength:1}}},
@@ -129,6 +129,12 @@ test('R1.4 provenance pins only audited trusted tool modules to exact fixed entr
     assert.equal(examined(path,'agents/page-relay.js').reviewedFirstPartyBlob,sha);
     assert.equal(examined(path,'ui/sidebar-tool-host.js').reviewedFirstPartyBlob,sha);
     assert.throws(()=>examined(path,'sw.js'),/Historical\/user\/vendor code cannot enter/);
+  }
+  const jump='../../programs/chatgpt-jump-top/src/conversation.js';
+  assert.equal(examined(jump,'agents/page-relay.js').reviewedFirstPartyBlob,
+    'dc2ab912d8aff83a9b306d1e6a68206002620c4a');
+  for(const target of ['sw.js','ui/sidebar-tool-host.js']){
+    assert.throws(()=>examined(jump,target),/Historical\/user\/vendor code cannot enter/);
   }
   assert.throws(()=>examined('src/main.js','agents/page-relay.js'),
     /Historical\/user\/vendor code cannot enter/);

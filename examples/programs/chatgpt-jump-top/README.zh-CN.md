@@ -1,5 +1,7 @@
 # ChatGPT 长内容回顶 · OpenDesk Page 增强
 
+**日常产品入口已接入[提示词快捷按钮](../../sidebar-tools/prompt-shortcuts/README.zh-CN.md#chatgpt-长内容回到开头)**：安装并启用该工具、打开「网页按钮」后，由浏览器扩展固定适配器在进入或刷新 ChatGPT 时自动运行，无需另装或手动 Run 本项目。本目录继续保存唯一滚动算法、独立诊断入口及历史 Page 包；下文七次点击属于此前独立 USER_SCRIPT 开发证据，扩展自动运行的新增结果见[集成记录](../../sidebar-tools/prompt-shortcuts/evidence/chatgpt-jump-integration-20261020.json)。
+
 仅面向 `https://chatgpt.com/*` 的顶层 Page USER_SCRIPT，复用 `@opendesk/ui` 和现有 Page Authority。2026-10-20 已在真实已登录 ChatGPT 页面通过七条核心点击操作；正式安装、升级和 production 扩展验收仍为 `NOT_TESTED`，独立 95+ 评分为 `NOT_SCORED`。
 
 ## 按钮在哪里

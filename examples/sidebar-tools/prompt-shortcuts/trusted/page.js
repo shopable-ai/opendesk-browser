@@ -3,6 +3,7 @@ import {SIDEBAR_TOOL_STORE} from '../../../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled} from '../../../../src/ui/sidebar-tools/lifecycle.js';
 import {PROMPT_ID,PROMPT_DATA_STORE,PROMPT_PICKER_PROTOCOL,supportedOrigin,allowedPromptSite,installedPromptTool} from './policy.js';
 import {PROMPT_RAIL_OPEN_PROTOCOL} from './rail-open.js';
+import {installJumpToTop} from '../../../programs/chatgpt-jump-top/src/conversation.js';
 const MODEL=globalThis.OpenDeskPromptShortcutsModel;
 const SLOT='__openDeskPromptShortcutsPageV1';
 const STYLE=String.raw`
@@ -67,6 +68,65 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   let locationTimer=0,retryTimer=0,readFailures=0;
   let composing=false,inserting=false,lastAttempt=0,lastAttemptId=null;
   let activeRule=null,picker=null;
+  let jump=null,jumpRoot=null,releaseJump=null;
+  const stopJump=()=>{
+    jump?.dispose();jump=null;jumpRoot=null;
+    releaseJump?.();releaseJump=null;
+  };
+  const syncJump=()=>{
+    if(!supportedOrigin(win.location.href)){stopJump();return;}
+    if(jump&&jumpRoot===doc.documentElement)return;
+    stopJump();
+    const root=doc.documentElement,token=epoch,url=win.location.href;
+    let alive=true;
+    const resources=new Set();
+    const current=()=>alive&&!disposed&&!paused&&visible&&token===epoch&&
+      url===win.location.href&&root===doc.documentElement;
+    const track=cleanup=>{
+      resources.add(cleanup);
+      return ()=>{if(resources.delete(cleanup))cleanup();};
+    };
+    // Adapt the existing adapter's lifetime, not the USER_SCRIPT entry or its
+    // Authority. The scrolling algorithm remains one statically audited source.
+    const owner={
+      on(target,type,callback,options){
+        const wrapped=event=>{
+          if(!current())return;
+          if(type!=='click'){callback(event);return;}
+          event.preventDefault();event.stopPropagation();
+          if(event.isTrusted!==true)return;
+          void api.storage.local.get(KEYS).then(async values=>{
+            const permitted=await allowedPromptSite({
+              installed:values[SIDEBAR_TOOL_STORE],enabled:values[SIDEBAR_TOOL_ENABLE_STORE],url
+            });
+            if(!current())return;
+            if(!permitted||!model.load(values[PROMPT_DATA_STORE]?.library).settings.webButtons){
+              stopJump();return;
+            }
+            callback(event);
+          }).catch(()=>{if(current())stopJump();});
+        };
+        target.addEventListener(type,wrapped,options);
+        return track(()=>target.removeEventListener(type,wrapped,options));
+      },
+      observe(target,callback,options){
+        const observer=new win.MutationObserver(records=>{if(current())callback(records);});
+        observer.observe(target,options);track(()=>observer.disconnect());return observer;
+      },
+      setTimeout(callback,delay){
+        const cancel=()=>win.clearTimeout(timer);
+        const timer=win.setTimeout(()=>{resources.delete(cancel);if(current())callback();},delay);
+        track(cancel);return timer;
+      },
+      onDispose:track
+    };
+    releaseJump=()=>{
+      alive=false;
+      for(const cleanup of [...resources]){resources.delete(cleanup);cleanup();}
+    };
+    jumpRoot=root;
+    try{jump=installJumpToTop({doc,win,owner});}catch(error){stopJump();throw error;}
+  };
   const PICK_BLOCK_EVENTS=['pointerdown','pointerup','pointercancel','mousedown','mouseup',
     'dblclick','auxclick','contextmenu','touchstart','touchend','touchcancel'];
   const removePickerGuides=entry=>{
@@ -93,6 +153,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     if(announcer)announcer.textContent='';
   };
   const stop=()=>{
+    stopJump();
     visible=false;items=[];activeRule=null;closePicker();clearFeedback();
     observer?.disconnect();observer=null;observedRoot=null;
     resizeObserver?.disconnect();resizeObserver=null;observedRegions.clear();
@@ -399,6 +460,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     layoutTimer=0;if(!host||!visible||paused||disposed)return;
     if(href!==win.location.href){void refresh();return;}
     observeRoot();
+    syncJump();
     for(const old of observedRegions){
       if(old.isConnected)continue;
       resizeObserver?.unobserve?.(old);observedRegions.delete(old);
@@ -699,6 +761,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   async function refresh(){
     if(disposed||paused)return;
     closePicker();
+    stopJump();
     const token=++epoch,url=win.location.href;
     if(href!==url){
       clearFeedback();hideTip();
@@ -727,6 +790,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       win.clearTimeout(retryTimer);retryTimer=0;
       if(!resizeObserver&&win.ResizeObserver)resizeObserver=new win.ResizeObserver(schedule);
       items=rows.slice(0,4);visible=true;render();
+      syncJump();
       if(!observer){
         observer=new win.MutationObserver(records=>{
           if(records.every(record=>record.target===host||host?.contains(record.target)))return;

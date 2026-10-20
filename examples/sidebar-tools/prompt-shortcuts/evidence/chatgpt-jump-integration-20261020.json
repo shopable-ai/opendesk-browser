@@ -1,0 +1,170 @@
+{
+  "format": "opendesk.prompt-shortcuts.jump-integration-evidence.v1",
+  "date": "2026-10-20",
+  "timezone": "Asia/Shanghai",
+  "scope": "提示词快捷按钮原安装身份与固定 ISOLATED 适配器中的回顶功能；验证进入/刷新自动启动与本次受影响生命周期。",
+  "ownership": {
+    "toolId": "prompt-shortcuts",
+    "toolFormat": "opendesk.sidebar-tool.v2",
+    "world": "ISOLATED",
+    "entry": "既有 manifest document_start → agents/page-relay.js → initPromptShortcuts()",
+    "adapter": "examples/sidebar-tools/prompt-shortcuts/trusted/page.js",
+    "sharedAlgorithm": "examples/programs/chatgpt-jump-top/src/conversation.js",
+    "algorithmCopied": false,
+    "independentPageRunRequired": false,
+    "newCapabilities": []
+  },
+  "sources": [
+    {
+      "path": "examples/sidebar-tools/prompt-shortcuts/trusted/page.js",
+      "sha256": "270c6047d487eaf94496603dbea228a94662cfebe4a9aee9d2ae585f21e39ec6"
+    },
+    {
+      "path": "examples/programs/chatgpt-jump-top/src/conversation.js",
+      "sha256": "bad3374a69dd7cabf5ca55132e8870327fe5316386f8ebf854d9c2bbdf4679e3"
+    },
+    {
+      "path": "tests/environment/prompt-shortcuts-r14-page.test.mjs",
+      "sha256": "c99f6b38a841addcf7f57caedd6240d03bb5154c5e2b4b273a537dd2fdfe2eb6"
+    }
+  ],
+  "environment": {
+    "browserApplication": "/Users/shopme/Applications/Google Chrome.app",
+    "siteOrigin": "https://chatgpt.com",
+    "authenticatedPage": true,
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "pathCheck": "实际读取 Chrome Default 的指定扩展路径元数据，path 与上述 development 目录一致；不读取 Cookie 或登录凭据。",
+    "mode": "现有 npm run dev watcher；复用日常目录，没有另起 writer、全量构建或重装扩展。",
+    "serveClientConnection": "NOT_INDEPENDENTLY_INSPECTED",
+    "relaySha256": "4bf7bfb04f44fa86467ac37ac0af182b3d011d9bafda8144bd15d091339ac93c",
+    "developmentUpdateRevision": "db814a5c88326a2b9640b8c8d701b4fc6a942bc2ceb056069112215bafbe1927",
+    "updateManifestMatchesRelay": true,
+    "manifestSha256": "3bca7b7ed9eec1c02539e873fee7abe6601212f271a171c8656bca47c9ac0635",
+    "runtimeIdentityLimit": "新文档从已配置扩展目录载入，结合已更新 relay 指纹和自动出现的控件；未取得浏览器实际执行脚本逐字节回执。此入口不是 Page Program，不把旧 USER_SCRIPT preview/run 身份作证。"
+  },
+  "nativeOperations": {
+    "beforeFixNewDocument": {
+      "rawFile": "prompt-jump-enter-before.txt",
+      "rawSha256": "a1d3414e208028bf4c6a42461eae852a3eec02df56c1ae64678c5d98d9e45931",
+      "arrows": 0,
+      "promptLaunchers": 1
+    },
+    "afterFixExplicitReload": {
+      "rawFile": "prompt-jump-after-refresh.txt",
+      "rawSha256": "a21059352790ef813a705eea43982dc760f5165a717352551cdf199921ee4412",
+      "arrows": 5,
+      "promptLaunchers": 1,
+      "editableFingerprintsUnchanged": true,
+      "additionalPageScriptRun": false
+    },
+    "afterFixNewDocument": {
+      "rawFile": "prompt-jump-after-enter.txt",
+      "rawSha256": "c4ce476222cad81d38288eded7357328075cb92e191e3c4a4ad08c374e79ff78",
+      "arrows": 5,
+      "promptLaunchers": 1,
+      "additionalPageScriptRun": false
+    },
+    "installedWritingArrow": {
+      "rawFile": "prompt-jump-installed-click.json",
+      "rawSha256": "a721fc8e79175b9c3d94dbed623d833bec4b3b620852525b48d0eebd1eca495d",
+      "method": "对真实安装版 writing 工具栏箭头执行 AXPress",
+      "pressStatus": 0,
+      "editorVisibleBoundsBefore": {
+        "top": 120,
+        "height": 1
+      },
+      "editorVisibleBoundsAfter": {
+        "top": 184,
+        "height": 843
+      },
+      "writingContentUnchanged": true,
+      "allEditableFingerprintsUnchanged": true,
+      "nonEmptyComposerObserved": true,
+      "firstCharacterVisibility": "本次原生 AXBoundsForRange 返回零高度，不作为首字符可见性证据；没有将它伪记为 DOM Range 测量。"
+    },
+    "afterInstalledClick": {
+      "rawFile": "prompt-jump-after-installed-click.txt",
+      "rawSha256": "fdb16cb9148f3a8ee2cf5ad66db7e9c1fbad529f6d1286dc9de31a4ba181fc5e",
+      "arrows": 5,
+      "promptLaunchers": 1
+    },
+    "developmentIntermediateObservation": {
+      "beforeExplicitReload": {
+        "rawFile": "prompt-jump-pre-refresh.txt",
+        "rawSha256": "2ff632bdc2e7b762e5e4130affa6212488c2ee3bf619a28400545bde7cf4a229",
+        "arrows": 5,
+        "promptLaunchers": 3
+      },
+      "note": "持续开发多次更新后的旧文档曾观察到三个提示词入口；显式刷新及新进入文档均只有一个。旧文档热更新副本根因未在本轮追查，不作为普通进入/刷新场景的去重失败。"
+    },
+    "protection": "只对本轮新建的专用页签进入、刷新和点击；原有页签、非空草稿、选择区及其他任务页签未操作。没有清空、写入或发送内容。临时 AX 文件不随仓库分发；本记录不保存私人正文、草稿指纹、提示词标签、标题、会话 URL、Cookie、Token 或截图。"
+  },
+  "targetedValidation": [
+    {
+      "command": "node --test --test-name-pattern='Prompt jump integration|R1.13 ChatGPT rail|R1.5 IME|R2.8 history conversation navigation|R2.8 recover same-URL host detach|R2.8 composer temporarily absent' tests/environment/prompt-shortcuts-r14-page.test.mjs",
+      "passed": 24,
+      "failed": 0,
+      "provenance": "同任务原生子代理实施并报告；19个新增集成case和5个受影响原有行为。",
+      "behaviors": [
+        "安装后自动挂载、重复refresh不重复、原插入流程保留",
+        "未安装/停用/网页按钮关闭/伪Origin/自定义站点不得出现ChatGPT箭头",
+        "停用、卸载、网页按钮关闭清理，恢复仅当前session有效",
+        "SPA、同URL根替换、BFCache、内容DOM替换恢复",
+        "异步安装/启用/设置复查及epoch/URL/root fence阻止旧点击"
+      ],
+      "rawOutputSaved": false,
+      "sourceIdentityNote": "测试子代理未在运行时记录blob；主任务在该阶段没有再次修改适配器，收尾核对当前blob仍为900205ef784e13e1ff2d2b96a27017de477711c8。"
+    },
+    {
+      "command": "node --test --test-skip-pattern='Prompt jump integration|R1.13 ChatGPT rail|R1.5 IME|R2.8 history conversation navigation|R2.8 recover same-URL host detach|R2.8 composer temporarily absent' tests/environment/prompt-shortcuts-r14-page.test.mjs",
+      "passed": 54,
+      "failed": 0,
+      "rawFile": "prompt-jump-page-regression-rest.txt",
+      "rawSha256": "f243d510162b2c375a0f7e6c43e2ba11e3450e136c53190a91e2b151a53cab3b",
+      "reason": "新增生命周期observer及共享mock形状影响该文件的其他插入/定位场景，故只运行上轮24项以外的其余场景；不重复已有通过项。"
+    },
+    {
+      "command": "node --test --test-name-pattern='provenance pins|Prompt Shortcuts' tests/environment/prompt-shortcuts-r14.test.mjs tests/environment/bundle-provenance.test.mjs",
+      "passed": 3,
+      "failed": 0,
+      "rawFile": "prompt-jump-provenance-tests.txt",
+      "rawSha256": "faa8ea60e1ad397953be1ba45d7cdd3b5924e83cd6242d97c7705a2f8d6b2867",
+      "behaviors": [
+        "静态helper仅允许固定Page Relay输出",
+        "未审查的源码漂移被拒绝",
+        "Prompt适配器精确blob与固定输出核对"
+      ]
+    },
+    {
+      "command": "node --check examples/sidebar-tools/prompt-shortcuts/trusted/page.js",
+      "result": "PASS"
+    },
+    {
+      "command": "node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts --check-project",
+      "result": "PASS",
+      "packageSha256": "c84364c3e504a4e3aff7b822897971b034d2d45a829d2bc4cee9a743234dbc10",
+      "note": "只核对现有正式JSON同源，不执行安装；固定trusted适配器不在该JSON中，包无需变更。"
+    }
+  ],
+  "independentReview": {
+    "method": "原生子代理只读审查接线、点击授权、资源释放、导航/root/BFCache和精确来源pin",
+    "result": "NO_BLOCKING_FINDINGS",
+    "limits": "未代替浏览器和测试运行，也未复审原滚动算法。"
+  },
+  "previousAlgorithmEvidence": "examples/programs/chatgpt-jump-top/evidence/development-20261020.json：同一未修改算法此前55项Node通过及七次独立USER_SCRIPT真实点击。该历史范围与本次固定扩展集成证据分别保存，不当作安装版七次点击。",
+  "deferred": {
+    "productionExtensionAcceptance": "NOT_TESTED",
+    "realDisableUninstallRestoreAndBFCacheMatrix": "NOT_TESTED；本轮这些生命周期只有定向模拟DOM证据",
+    "nativeInstalledFirstCharacterRange": "NOT_MEASURED；实际AX可见区域变化及正文不变已记录",
+    "allSevenNativeClicksInInstalledAdapter": "NOT_REPEATED",
+    "themesAndDedicatedKeyboardAcceptance": "NOT_TESTED",
+    "widthZoomMatrix": "OUT_OF_SCOPE",
+    "independent95PlusScore": "NOT_SCORED"
+  },
+  "pageTestTotals": {
+    "distinctPassed": 78,
+    "failed": 0,
+    "selectionsDoNotOverlap": true
+  }
+}

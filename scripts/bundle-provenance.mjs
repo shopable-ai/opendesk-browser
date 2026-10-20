@@ -85,14 +85,18 @@ function reviewedCompiledBookmarkReact(target,path,root){
 const compiledPromptShortcutInputs=Object.freeze({
   'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'9f58c21cd1754eb1a35961cb22424a73ba604afe',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'6544a03db0f11373dccdf67cc9b5ce808920a495',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'a64a436b8ecc3ba67287de6f6afec1ca94a2fcce',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'900205ef784e13e1ff2d2b96a27017de477711c8',
+  // Shared with the standalone diagnostic harness; never an installed package import.
+  'examples/programs/chatgpt-jump-top/src/conversation.js':'dc2ab912d8aff83a9b306d1e6a68206002620c4a',
   // The first-party OD gesture bridge is fixed SW code, never an installed package.
   'examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js':'3f4c4fcb98db72ca8537f1e44e64809e0cd5d4d6'
 });
 const promptFixedTargets=new Set(['agents/page-relay.js','ui/sidebar-tool-host.js']);
 const promptRailTargets=new Set(['sw.js','agents/page-relay.js']);
+const promptJumpTargets=new Set(['agents/page-relay.js']);
 function reviewedCompiledPromptShortcuts(target,path,root){
-  const targets=path==='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js'?promptRailTargets:promptFixedTargets;
+  const targets=path==='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js'?promptRailTargets:
+    path==='examples/programs/chatgpt-jump-top/src/conversation.js'?promptJumpTargets:promptFixedTargets;
   if(!targets.has(target)||!Object.hasOwn(compiledPromptShortcutInputs,path))return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)

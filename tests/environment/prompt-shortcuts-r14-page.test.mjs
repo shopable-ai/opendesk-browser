@@ -53,6 +53,7 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
   ]);
   const events=new Map(),siteEvents=new Set(),calls=[],copied=[],docEvents=new Map(),runtimeMessages=new Set();
   const mutationObservers=[],intervals=[];
+  const windowListeners=new Map();
   // Preserve 3s/5s toast timeouts without making the Node suite wait for them.
   const toastTimers=new Map();let nextToastTimer=100000;
   const fireToast=()=>{
@@ -62,8 +63,15 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
   };
   const win={
     location:{href:CHATGPT_ORIGIN+'/c/mock'},innerWidth:1366,innerHeight:768,
-    addEventListener(name,fn){events.set(name,fn);},
-    removeEventListener(name){events.delete(name);},
+    addEventListener(name,fn){
+      if(!windowListeners.has(name))windowListeners.set(name,new Set());
+      windowListeners.get(name).add(fn);
+      events.set(name,(event={})=>{for(const listener of [...(windowListeners.get(name)||[])])listener(event);});
+    },
+    removeEventListener(name,fn){
+      const listeners=windowListeners.get(name);listeners?.delete(fn);
+      if(!listeners?.size){windowListeners.delete(name);events.delete(name);}
+    },
     setTimeout(fn,ms){
       if(ms===3000||ms===5000){
         const id=++nextToastTimer;toastTimers.set(id,{fn,ms});return id;
@@ -123,8 +131,13 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
   const rail=()=>root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined)
     ?.shadow?.children.find(item=>item.tagName==='nav');
   const buttons=()=>rail()?.children.filter(item=>item.className.includes('item'))||[];
+  const mutate=records=>{
+    for(const observer of [...mutationObservers])observer.notify(records.map(record=>({
+      type:'childList',addedNodes:[],removedNodes:[],...record
+    })));
+  };
   return {api,doc,win,values,change,calls,copied,buttons,rail,root,main,editor,events,siteEvents,
-    docEvents,runtimeMessages,toastTimers,fireToast,mutationObservers,intervals};
+    docEvents,runtimeMessages,toastTimers,fireToast,mutationObservers,mutate,intervals};
 }
 test('R1.13 ChatGPT rail: no second consent, one click-to-draft, independent enable lifecycle',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
@@ -179,6 +192,292 @@ test('R1.13 ChatGPT rail: no second consent, one click-to-draft, independent ena
   }finally{controller?.dispose();}
   assert.equal(f.siteEvents.size,0,'controller removes storage observer on dispose');
 });
+
+// Bounded light-DOM support for the real conversation adapter. This deliberately
+// models only tag/id/attribute selectors and does not enter shadow roots.
+function jumpDOM(node){
+  node.nodeType=1;
+  Object.defineProperties(node,{
+    parentElement:{get(){return node.parentNode||null;}},
+    id:{get(){return node.getAttribute('id')||'';},set(value){node.setAttribute('id',String(value));}},
+    nextElementSibling:{get(){
+      const siblings=node.parentNode?.children||[];
+      return siblings[siblings.indexOf(node)+1]||null;
+    }}
+  });
+  node.hasAttribute=name=>Object.hasOwn(node.attributes,name);
+  node.matches=selector=>selector.split(',').some(part=>{
+    let rest=part.trim();
+    const tag=rest.match(/^[a-z][\w-]*/i)?.[0];
+    if(tag){if(tag.toLowerCase()!==node.tagName.toLowerCase())return false;rest=rest.slice(tag.length);}
+    const id=rest.match(/^#([\w-]+)/);
+    if(id){if(node.id!==id[1])return false;rest=rest.slice(id[0].length);}
+    while(rest){
+      const attr=rest.match(/^\[([\w-]+)(?:(\^?=)"([^"]*)")?\]/);
+      if(!attr)return false;
+      const value=node.getAttribute(attr[1]);
+      if(!node.hasAttribute(attr[1])||(attr[2]==='='&&value!==attr[3])||
+        (attr[2]==='^='&&!String(value).startsWith(attr[3])))return false;
+      rest=rest.slice(attr[0].length);
+    }
+    return Boolean(part.trim());
+  });
+  node.closest=selector=>{
+    for(let current=node;current;current=current.parentElement)if(current.matches(selector))return current;
+    return null;
+  };
+  node.querySelectorAll=selector=>node.children.flatMap(child=>[
+    ...(child.matches(selector)?[child]:[]),...child.querySelectorAll(selector)
+  ]);
+  node.querySelector=selector=>node.querySelectorAll(selector)[0]||null;
+  node.setConnected=connected=>{
+    node.isConnected=connected;
+    for(const child of node.children)child.setConnected(connected);
+    node.shadow?.setConnected(connected);
+  };
+  node.remove=()=>{
+    if(node.parentNode)node.parentNode.children=node.parentNode.children.filter(child=>child!==node);
+    node.parentNode=null;node.setConnected(false);
+  };
+  node.append=(...children)=>{
+    for(const child of children){child.remove();child.parentNode=node;node.children.push(child);child.setConnected(node.isConnected);}
+  };
+  node.replaceChildren=(...children)=>{for(const child of [...node.children])child.remove();node.append(...children);};
+  node.before=child=>{
+    if(!node.parentNode)return;
+    child.remove();child.parentNode=node.parentNode;
+    node.parentNode.children.splice(node.parentNode.children.indexOf(node),0,child);
+    child.setConnected(node.isConnected);
+  };
+  node.attachShadow=()=>{node.shadow=jumpDOM(mockElement('shadow'));node.shadow.setConnected(node.isConnected);return node.shadow;};
+  return node;
+}
+
+async function jumpPage({installed=true,enabled=true,webButtons=true,url=CHATGPT_ORIGIN+'/c/mock',customSite=false}={}){
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const row=globalThis.OpenDeskPromptShortcutsModel.draft({body:'完整正文\n第二行'},null,()=> 'jump-prompt');
+  const library={schema:1,items:[row],settings:{webButtons}};
+  const f=fixture({pkg,library,grants:{}});
+  if(!installed)f.values.set(SIDEBAR_TOOL_STORE,[]);
+  if(!enabled)f.values.set(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});
+  if(customSite)f.values.set(PROMPT_DATA_STORE,{library,sites:{schema:1,rules:[{
+    origin:new URL(url).origin,pathScope:'/compose',containerSelector:'main',editorSelector:'textarea',enabled:true
+  }]}});
+  f.win.location.href=url;
+  const element=tag=>jumpDOM(mockElement(tag));
+  for(const node of [f.root,f.doc.body,f.main,f.editor])jumpDOM(node);
+  if(customSite){f.editor.tagName='textarea';f.editor.isContentEditable=false;}
+  f.editor.setAttribute('id','prompt-textarea');
+  f.main.getBoundingClientRect=()=>regionRect(260,40,900,700);
+  f.doc.body.append(f.main);f.main.append(f.editor);
+  f.doc.createElement=element;
+  f.doc.createElementNS=(_namespace,tag)=>element(tag);
+  const originalQuery=f.doc.querySelector;
+  f.doc.querySelectorAll=selector=>selector.startsWith('main ')?
+    (originalQuery(selector)?[f.editor]:[]):f.doc.documentElement.querySelectorAll(selector);
+  f.doc.querySelector=selector=>f.doc.querySelectorAll(selector)[0]||null;
+  f.win.getComputedStyle=node=>({display:'block',visibility:'visible',opacity:'1',position:'static',
+    overflowY:node===f.main?'auto':'visible',lineHeight:'20px',fontSize:'16px'});
+  f.main.scrollHeight=4000;f.main.clientHeight=650;f.main.scrollTop=1600;f.main.scrollLeft=0;
+  const scrolls=[];
+  f.main.scrollTo=options=>{scrolls.push(options);f.main.scrollTop=options.top;};
+  const conversation=()=>{
+    const turn=element('article'),header=element('header'),anchor=element('button'),pre=element('pre');
+    turn.setAttribute('data-testid','conversation-turn-1');
+    anchor.setAttribute('aria-label','复制');anchor.setAttribute('aria-controls','jump-content');
+    pre.setAttribute('id','jump-content');pre.textContent='code\n'.repeat(200);
+    header.getBoundingClientRect=()=>regionRect(300,200,800,40);
+    pre.getBoundingClientRect=()=>regionRect(300,300,800,1000);
+    pre.scrollHeight=1000;pre.clientHeight=1000;
+    header.append(anchor);turn.append(header,pre);
+    return {turn,header,anchor,pre};
+  };
+  const content=conversation();f.main.append(content.turn);
+  const arrowHosts=()=>f.doc.querySelectorAll('[data-opendesk-chatgpt-jump-top]');
+  const arrows=()=>arrowHosts().map(host=>host.shadow.querySelector('button'));
+  const click=button=>button.emit('click',{isTrusted:true,preventDefault(){},stopPropagation(){}});
+  const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+  return {...f,pkg,row,library,controller,element,conversation,content,scrolls,arrowHosts,arrows,click};
+}
+
+test('Prompt jump integration: installed initialization mounts one content arrow; refresh preserves insertion',async()=>{
+  const f=await jumpPage();
+  try{
+    await settle();
+    assert.equal(f.arrows().length,1,'installation alone activates the static adapter');
+    assert.equal(f.arrowHosts()[0].nextElementSibling,f.content.anchor,'arrow belongs to native content toolbar');
+    assert.equal(f.arrows()[0].getAttribute('aria-label'),'回到此内容开头');
+    assert.equal(f.buttons().length,1,'existing prompt rail remains available');
+    f.click(f.arrows()[0]);await settle();
+    assert(f.scrolls.length>0,'live arrow invokes the real scroll algorithm');
+    assert(f.scrolls.every(scroll=>Number.isFinite(scroll.top)&&scroll.behavior==='instant'));
+    assert.equal(f.calls.length,0,'jump never edits the draft');
+    const stale=f.arrows()[0];
+    await Promise.all([f.controller.refresh(),f.controller.refresh(),f.controller.refresh()]);await settle();
+    assert.equal(f.arrows().length,1,'repeated permission refresh never duplicates arrows');
+    const count=f.scrolls.length;f.click(stale);await settle();assert.equal(f.scrolls.length,count);
+    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    assert.deepEqual(f.calls,[{command:'insertText',text:'\n'+f.row.body}]);
+    assert.equal(f.editor.textContent,'已有草稿\n'+f.row.body);
+    assert.deepEqual(f.copied,[],'jump integration preserves confirmed native insertion');
+  }finally{f.controller.dispose();}
+  assert.equal(f.arrows().length,0);
+  assert.equal(f.events.size,0,'all window listeners are released');
+  assert(f.mutationObservers.every(observer=>!observer.target),'all observers are disconnected');
+});
+
+for(const gate of ['uninstalled','disabled','webButtons off','lookalike origin','custom site']){
+  test('Prompt jump integration: initial gate rejects '+gate,async()=>{
+    const options={uninstalled:{installed:false},disabled:{enabled:false},'webButtons off':{webButtons:false},
+      'lookalike origin':{url:'https://chatgpt.com.evil.example/c/mock'},
+      'custom site':{url:'https://example.org/compose',customSite:true}}[gate];
+    const f=await jumpPage(options);
+    try{
+      await settle();assert.equal(f.arrows().length,0);
+      if(gate==='custom site')assert.equal(f.buttons().length,1,'custom-site prompt rail does not grant ChatGPT scrolling');
+      await f.controller.refresh();await settle();assert.equal(f.arrows().length,0);
+      assert.deepEqual(f.scrolls,[]);
+    }finally{f.controller.dispose();}
+  });
+}
+
+for(const gate of ['disable','uninstall','webButtons']){
+  test('Prompt jump integration: '+gate+' cleans up and restore mounts a fresh arrow',async()=>{
+    const f=await jumpPage();
+    try{
+      await settle();assert.equal(f.arrows().length,1);
+      const stale=f.arrows()[0],host=f.arrowHosts()[0],observers=[...f.mutationObservers];
+      const [key,blocked,restored]={disable:[SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false},{}],
+        uninstall:[SIDEBAR_TOOL_STORE,[],[f.pkg]],
+        webButtons:[PROMPT_DATA_STORE,{library:{...f.library,settings:{webButtons:false}}},{library:f.library}]}[gate];
+      f.change(key,blocked);await settle();
+      assert.equal(f.arrows().length,0);assert.equal(host.isConnected,false);
+      assert.equal(f.buttons().length,0,'existing prompt controls share the same gate');
+      assert(observers.every(observer=>!observer.target),'revoked session releases its observers');
+      f.click(stale);await settle();assert.deepEqual(f.scrolls,[],'detached arrow cannot scroll');
+      f.change(key,restored);await settle();
+      assert.equal(f.arrows().length,1);assert.notEqual(f.arrows()[0],stale);
+      f.click(stale);await settle();assert.deepEqual(f.scrolls,[],'restoration cannot revive an old listener');
+      f.click(f.arrows()[0]);await settle();assert(f.scrolls.length>0,'fresh session works after restoration');
+    }finally{f.controller.dispose();}
+  });
+}
+
+test('Prompt jump integration: same-URL documentElement replacement restores only the current document arrow',async()=>{
+  const f=await jumpPage();
+  try{
+    await settle();assert.equal(f.arrows().length,1);
+    const stale=f.arrows()[0],oldRoot=f.doc.documentElement;
+    const root=f.element('html'),body=f.element('body'),content=f.conversation();
+    oldRoot.setConnected(false);root.append(body);body.append(f.main);
+    f.content.turn.remove();f.main.append(content.turn);
+    f.doc.documentElement=root;f.doc.body=body;
+    f.intervals[0]();await settle();
+    assert.equal(f.arrows().length,1,'normal fallback detects root replacement without URL change');
+    assert.equal(f.arrowHosts()[0].nextElementSibling,content.anchor);
+    assert(!oldRoot.querySelector('[data-opendesk-chatgpt-jump-top]'),'old document host removed');
+    f.click(stale);await settle();assert.deepEqual(f.scrolls,[]);
+    f.intervals[0]();await settle();assert.equal(f.arrows().length,1);
+    f.click(f.arrows()[0]);await settle();assert(f.scrolls.length>0);
+  }finally{f.controller.dispose();}
+});
+
+test('Prompt jump integration: SPA toolbar replacement and exact-origin exit invalidate stale arrows',async()=>{
+  const f=await jumpPage();
+  try{
+    await settle();assert.equal(f.arrows().length,1);
+    const stale=f.arrows()[0],content=f.conversation();
+    f.content.turn.remove();f.main.append(content.turn);
+    f.win.location.href=CHATGPT_ORIGIN+'/c/next';
+    f.click(stale);await settle();assert.deepEqual(f.scrolls,[],'URL changes invalidate clicks before navigation delivery');
+    f.events.get('popstate')?.();await settle();
+    assert.equal(f.arrows().length,1);assert.equal(f.arrowHosts()[0].nextElementSibling,content.anchor);
+    f.click(stale);await settle();assert.deepEqual(f.scrolls,[]);
+    const next=f.arrows()[0];
+    f.click(next);await settle();assert(f.scrolls.length>0);
+    const count=f.scrolls.length;
+    f.win.location.href='https://chatgpt.com.evil.example/c/next';
+    f.events.get('hashchange')?.();await settle();assert.equal(f.arrows().length,0);
+    f.click(next);await settle();assert.equal(f.scrolls.length,count);
+    f.win.location.href=CHATGPT_ORIGIN+'/c/returned';
+    f.events.get('popstate')?.();await settle();assert.equal(f.arrows().length,1);
+    f.click(next);await settle();assert.equal(f.scrolls.length,count);
+    f.click(f.arrows()[0]);await settle();assert(f.scrolls.length>count);
+  }finally{f.controller.dispose();}
+});
+
+test('Prompt jump integration: BFCache suspends the session and restores one fresh arrow',async()=>{
+  const f=await jumpPage();
+  try{
+    await settle();assert.equal(f.arrows().length,1);
+    const stale=f.arrows()[0];
+    f.events.get('pagehide')({persisted:true});await settle();
+    assert.equal(f.arrows().length,0);assert.equal(f.buttons().length,0);
+    f.click(stale);f.intervals[0]();await settle();assert.deepEqual(f.scrolls,[]);assert.equal(f.arrows().length,0);
+    f.events.get('pageshow')({persisted:true});await settle();
+    assert.equal(f.arrows().length,1);assert.equal(f.buttons().length,1);
+    f.click(stale);await settle();assert.deepEqual(f.scrolls,[]);
+    f.events.get('pageshow')({persisted:true});await settle();assert.equal(f.arrows().length,1);
+    f.click(f.arrows()[0]);await settle();assert(f.scrolls.length>0);
+  }finally{f.controller.dispose();}
+});
+
+test('Prompt jump integration: DOM replacement schedules one new binding and retires the old arrow',async()=>{
+  const f=await jumpPage();
+  try{
+    await settle();assert.equal(f.arrows().length,1);
+    const stale=f.arrows()[0],content=f.conversation();
+    f.content.turn.remove();f.main.append(content.turn);
+    f.mutate([{target:f.main,addedNodes:[content.turn],removedNodes:[f.content.turn]}]);
+    f.mutate([{target:f.main,addedNodes:[content.turn]}]);
+    await settle();
+    assert.equal(f.arrows().length,1,'observer/timer refreshes coalesce without duplicated controls');
+    assert.equal(f.arrowHosts()[0].nextElementSibling,content.anchor);
+    f.click(stale);await settle();assert.deepEqual(f.scrolls,[]);
+    f.click(f.arrows()[0]);await settle();assert(f.scrolls.length>0);
+  }finally{f.controller.dispose();}
+});
+
+for(const gate of ['disable','uninstall','webButtons']){
+  test('Prompt jump integration: trusted click rereads '+gate+' before storage notification',async()=>{
+    const f=await jumpPage();
+    try{
+      await settle();assert.equal(f.arrows().length,1);
+      const button=f.arrows()[0],get=f.api.storage.local.get;let reads=0;
+      f.api.storage.local.get=keys=>{reads++;return get(keys);};
+      button.emit('click',{isTrusted:false,preventDefault(){},stopPropagation(){}});
+      await settle();assert.equal(reads,0);assert.deepEqual(f.scrolls,[]);
+      const [key,blocked]={disable:[SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false}],
+        uninstall:[SIDEBAR_TOOL_STORE,[]],
+        webButtons:[PROMPT_DATA_STORE,{library:{...f.library,settings:{webButtons:false}}}]}[gate];
+      f.values.set(key,blocked); // Storage changed, but onChanged has not reached this document.
+      f.click(button);await settle();
+      assert.equal(reads,1,'trusted click rechecks current persisted authorization');
+      assert.deepEqual(f.scrolls,[]);assert.equal(f.arrows().length,0);
+    }finally{f.controller.dispose();}
+  });
+}
+
+for(const fence of ['refresh','url','root']){
+  test('Prompt jump integration: pending click cannot cross '+fence+' fence',async()=>{
+    const f=await jumpPage();let release;
+    try{
+      await settle();assert.equal(f.arrows().length,1);
+      const get=f.api.storage.local.get;
+      f.api.storage.local.get=keys=>{
+        f.api.storage.local.get=get;
+        return new Promise(resolve=>{release=()=>resolve(get(keys));});
+      };
+      f.click(f.arrows()[0]);assert.equal(typeof release,'function');
+      if(fence==='refresh')await f.controller.refresh();
+      if(fence==='url')f.win.location.href=CHATGPT_ORIGIN+'/c/changed-before-read';
+      if(fence==='root'){
+        const root=f.element('html');root.append(f.doc.body);f.doc.documentElement=root;
+      }
+      release();await settle();assert.deepEqual(f.scrolls,[],'stale asynchronous authorization cannot scroll');
+    }finally{release?.();f.controller.dispose();}
+  });
+}
 
 test('R1.5 IME composition prevents edit; corrupted line breaks never count as insertion success',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
@@ -1082,7 +1381,7 @@ test('R2.8 history conversation navigation restores one dock on the new composer
     };
     f.win.location.href=CHATGPT_ORIGIN+'/c/history-conversation';
     oldHost.remove(); // Site DOM rewrite removed the extension-owned node.
-    f.mutationObservers[0].notify([{target:f.doc.body}]);
+    f.mutate([{target:f.doc.body}]);
     await settle();
     assert.equal(f.host(),oldHost,'reuse the original host/shadow, do not duplicate');
     assert.equal(f.host().hidden,false,'dock visible in new conversation');
@@ -1101,6 +1400,7 @@ test('R2.8 recover same-URL host detach, including a replaced html root',async()
   const f=await readyPage();
   try{
     const host=f.host(),newRoot=mockElement('html'),newBody=mockElement('body');
+    const dockObserver=f.mutationObservers.at(-1);
     newRoot.append(newBody);
     host.remove();
     f.doc.documentElement=newRoot;f.doc.body=newBody;
@@ -1109,8 +1409,9 @@ test('R2.8 recover same-URL host detach, including a replaced html root',async()
     const hosts=newRoot.children.filter(node=>node.attributes['data-opendesk-prompts']!==undefined);
     assert.deepEqual(hosts,[host],'re-attach existing host only once');
     assert.equal(host.hidden,false);
-    assert.equal(f.mutationObservers.length,1,'never allocate a second observer');
-    assert.equal(f.mutationObservers[0].target,newRoot,'observe the current root');
+    assert.equal(dockObserver.target,newRoot,'reuse the dock observer on the current root');
+    assert.equal(f.mutationObservers.filter(observer=>observer.target).length,2,
+      'only the dock and the current jump session observe the new root');
     f.intervals[0]();await settle();
     assert.equal(newRoot.children.filter(node=>node===host).length,1,'periodic checks are idempotent');
   }finally{f.controller.dispose();}
@@ -1131,11 +1432,11 @@ test('R2.8 composer temporarily absent and CSS-hidden old main cannot strand the
     assert.equal(f.host().style.left,'538px','ignore the CSS-hidden previous main');
     f.doc.querySelectorAll=()=>[];
     f.doc.querySelector=()=>null;
-    f.mutationObservers[0].notify([{target:f.doc.body}]);await settle();
+    f.mutate([{target:f.doc.body}]);await settle();
     assert.equal(f.host().hidden,true,'hide only while no live area exists');
     f.doc.querySelectorAll=selector=>selector==='main'?[newMain]:originalQueryAll(selector);
     f.doc.querySelector=selector=>selector==='main'||selector==='main#main'?newMain:originalQuery(selector);
-    f.mutationObservers[0].notify([{target:f.doc.body}]);await settle();
+    f.mutate([{target:f.doc.body}]);await settle();
     assert.equal(f.host().hidden,false,'restore automatically without a reload');
     assert.equal(f.host().style.left,'538px');
   }finally{f.controller.dispose();}

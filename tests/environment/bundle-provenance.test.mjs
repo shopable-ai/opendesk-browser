@@ -241,6 +241,22 @@ test('Prompt Shortcuts OD rail bridge requires its reviewed SW blob and fixed ou
   assert.throws(()=>make('sw.js',root),/Trusted Prompt Shortcuts source changed/);
 });
 
+test('Prompt Shortcuts jump uses one reviewed source only in the Page Relay',async ctx=>{
+  const path='examples/programs/chatgpt-jump-top/src/conversation.js';
+  const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
+    modules:{[resolve(root,path)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
+  assert.equal(make('agents/page-relay.js').modules[0].reviewedFirstPartyBlob,
+    'dc2ab912d8aff83a9b306d1e6a68206002620c4a');
+  for(const target of ['sw.js','ui/sidebar-tool-host.js','ui/tool-shell.js'])
+    assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
+  const root=await realpath(await mkdtemp(join(tmpdir(),'prompt-jump-pin-')));
+  ctx.after(()=>rm(root,{recursive:true,force:true}));
+  const file=join(root,path);
+  await mkdir(join(root,'examples/programs/chatgpt-jump-top/src'),{recursive:true});
+  await writeFile(file,(await readFile(resolve(path),'utf8'))+'\n// unreviewed edit\n');
+  assert.throws(()=>make('agents/page-relay.js',root),/Trusted Prompt Shortcuts source changed/);
+});
+
 test('R1.3 pinned shared Markdown converter can only enter the existing Page Relay',async ctx=>{
   const path='examples/shared/markdown/convert.js';
   const legacy='examples/sidebar-tools/web-markdown-clipper/trusted/convert.js';
