@@ -1,7 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {createCookieImportIntentGate} from '../../src/ui/sidebar-tools/cookie-import-intent.js';
+import {createCookieImportIntentGate as createStrictGate} from '../../src/ui/sidebar-tools/cookie-import-intent.js';
+const documentFor=origin=>({tabId:12,windowId:7,documentId:'doc-1',url:origin+'/page',origin});
+// Existing regression calls now pass a real same-document identity to strict gate.
+const createCookieImportIntentGate=options=>{
+  const gate=createStrictGate(options);
+  return Object.freeze({...gate,
+    start:args=>gate.start({...args,document:args.document??documentFor(args.origin)}),
+    acquire:args=>gate.acquire({...args,document:args.document??documentFor(args.sourceOrigin??args.origin)})});
+};
 
 test('untrusted operations cannot mint an import intent without user activation',()=>{
   const gate=createCookieImportIntentGate();
@@ -72,4 +80,28 @@ test('a delayed finish from an earlier click cannot cancel a newer import',()=>{
   gate.settle({owner,count:25,confirmed:true});
   assert.deepEqual(gate.close(owner,second.ref),{closed:true});
   assert.equal(gate.acquire({owner,origin,count:1}),false);
+});
+
+test('Chrome document identity is mandatory and a reload or tab switch revokes import',()=>{
+  const origin='https://shop.example.com',owner='official',gate=createStrictGate();
+  const document=documentFor(origin);
+  assert.throws(()=>gate.start({owner,origin,verifiedUserActivation:true}),{code:'E_SCHEMA'});
+  gate.start({owner,origin,document,multiOrigin:true,verifiedUserActivation:true});
+  assert.throws(()=>gate.acquire({owner,origin:'https://auth.example.org',sourceOrigin:origin,
+    count:15,document:{...document,documentId:'new-document'}}),{code:'E_DOCUMENT_CHANGED'});
+  assert.equal(gate.acquire({owner,origin:'https://auth.example.org',sourceOrigin:origin,
+    count:15,document}),false);
+  gate.start({owner,origin,document,multiOrigin:true,verifiedUserActivation:true});
+  assert.throws(()=>gate.acquire({owner,origin:'https://auth.example.org',sourceOrigin:origin,
+    count:15,document:{...document,tabId:99}}),{code:'E_DOCUMENT_CHANGED'});
+});
+test('native approval and per-write callback verify original Chrome document',async()=>{
+  const [panel,host]=await Promise.all([
+    readFile(new URL('../../src/ui/sidebar-tools.js',import.meta.url),'utf8'),
+    readFile(new URL('../../src/platform/chrome/context-menus.js',import.meta.url),'utf8')
+  ]);
+  assert.match(panel,/captureCookieImportDocument/);
+  assert.match(panel,/cookieImportSource:sourceOrigin,document/);
+  assert.match(host,/verifyCookieImportDocument\(document,cookieImportSource\)/);
+  assert.match(host,/verifyCookieImportDocument\(importDocument,importSource\)/);
 });

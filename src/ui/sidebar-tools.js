@@ -441,6 +441,17 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       grant?.sha256===release.sha256&&await matchesOfficialRelease(release,tool);
   }
   const cookieImportOwner=(tool,token,epoch)=>JSON.stringify([tool.id,tool.version,token,epoch]);
+  const captureCookieImportDocument=()=>{
+    const captured=currentPageTarget?.capture?.();
+    if(!captured||!Number.isSafeInteger(captured.tabId)||captured.tabId<0||
+      !Number.isSafeInteger(captured.windowId)||captured.windowId<0||
+      typeof captured.documentId!=='string'||!captured.documentId||
+      websiteOrigin(captured.url)!==captured.origin)
+      throw Object.assign(new Error('原始 Chrome 页面已变化，请重新点击导入'),
+        {code:'E_DOCUMENT_CHANGED'});
+    const {tabId,windowId,documentId,url,origin}=captured;
+    return {captured,document:{tabId,windowId,documentId,url,origin}};
+  };
   // In-page decisions replace synchronous browser dialogs. Every destructive
   // confirmation is bound to a reviewed action and rechecks identity on commit.
   function cancelActionReview(){
@@ -1159,8 +1170,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(websiteOrigin(currentPageTarget?.snapshot?.url)!==origin||
          cookieSiteRecord(tool,origin)?.write!==true)
         throw Object.assign(new Error('网站或授权已变化'),{code:'E_DOCUMENT_CHANGED'});
+      const {captured,document}=captureCookieImportDocument();
+      await currentPageTarget.revalidate(captured);
+      assertSession(source,token);
+      if(document.origin!==origin)throw Object.assign(
+        new Error('原始 Chrome 页面已变化'),{code:'E_DOCUMENT_CHANGED'});
       return cookieImportGate.start({owner:cookieImportOwner(tool,token,revocationEpoch),
-        origin,verifiedUserActivation:verifiedGesture,multiOrigin:true});
+        origin,document,verifiedUserActivation:verifiedGesture,multiOrigin:true});
     }
     if(operation==='cookieEditor.import.finish'){
       if(!payload||Object.keys(payload).join(',')!=='ref'||
@@ -1215,7 +1231,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const hostInstanceId=new URL(globalThis.location.href).searchParams.get('hostInstanceId');
       const packageHash=await sidebarToolPackageHash(tool);
       assertSession(source,token);
-      let importBatchOwner=null,writeIntentOwner=null;
+      let importBatchOwner=null,importBatchDocument=null,writeIntentOwner=null;
       const envelope={protocol:BROWSER_HOST_PROTOCOL,kind:'tool',
         operation,args:payload||{},toolId:tool.id,toolVersion:tool.version,
         installEpoch:revocationEpoch,packageHash,toolInstance:token,hostInstanceId};
@@ -1413,11 +1429,17 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           const sourceOrigin=websiteOrigin(currentPageTarget?.snapshot?.url);
           if(!sourceOrigin||cookieSiteRecord(tool,sourceOrigin)?.write!==true)
             throw Object.assign(new Error('当前网站写入授权已改变'),{code:'E_SITE_GRANT_REQUIRED'});
-          if(!cookieImportGate.acquire({owner,origin,count:payload.cookies.length,sourceOrigin}))
+          const {captured,document}=captureCookieImportDocument();
+          await currentPageTarget.revalidate(captured);
+          assertSession(source,token);
+          if(document.origin!==sourceOrigin)
+            throw Object.assign(new Error('原始 Chrome 页面已变化'),{code:'E_DOCUMENT_CHANGED'});
+          if(!cookieImportGate.acquire({owner,origin,count:payload.cookies.length,sourceOrigin,document}))
             throw Object.assign(new Error('一键导入操作未授权或已结束'),
               {code:'E_USER_GESTURE_REQUIRED'});
           {
             importBatchOwner=owner;
+            importBatchDocument=captured;
             try{
               if(websiteOrigin(currentPageTarget?.snapshot?.url)!==sourceOrigin||
                  cookieSiteRecord(tool,sourceOrigin)?.write!==true)
@@ -1426,7 +1448,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
               const approval=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
                 operation:'browser.intent.confirm',toolId:tool.id,toolVersion:tool.version,
                 installEpoch:revocationEpoch,toolInstance:token,hostInstanceId,
-                targetOperation:operation,targetArgs:payload||{},cookieImportSource:sourceOrigin});
+                targetOperation:operation,targetArgs:payload||{},cookieImportSource:sourceOrigin,document});
               if(!approval?.ok||typeof approval.data?.approvalRef!=='string')
                 throw Object.assign(new Error(approval?.error?.message||'可信 Host 拒绝本次写入'),
                   {code:approval?.error?.code||'E_BROWSER'});
@@ -1487,6 +1509,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         if(!reply?.ok)throw Object.assign(new Error(reply?.error?.message||'浏览器操作失败'),{
           code:reply?.error?.code||'E_BROWSER'});
         if(importBatchOwner){
+          await currentPageTarget.revalidate(importBatchDocument);
+          assertSession(source,token);
           const receipts=reply.data?.results;
           const complete=Array.isArray(receipts)&&receipts.length===payload.cookies.length&&
             receipts.every((row,index)=>row?.index===index&&row.saved===true&&row.verified===true);
@@ -2889,7 +2913,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const nextPage=pageKey();
       if(nextPage===previousPage)return;
       previousPage=nextPage;
-      // The React sandbox independently re-reads its current site after navigation.
+       cookieImportGate.revoke();
+       cookieWriteGate.revoke();
+       // The React sandbox independently re-reads its current site after navigation.
       if(frame&&active&&instance)frame.contentWindow?.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'page-changed',instance,toolId:active.id
       },'*');

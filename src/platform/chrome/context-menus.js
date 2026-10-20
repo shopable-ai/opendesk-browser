@@ -274,7 +274,28 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     return {origin:destination.origin,storeId:anchor.storeId,
       partitionKey:options.partitionKey??null,grantEpoch:anchor.grantEpoch};
   }
-  const currentPageRefs=createCurrentPageReferences({api});
+     // Chrome document binding is checked on approval and before every native write.
+   async function verifyCookieImportDocument(document,origin){
+     const url=parsedHttp(document?.url);
+     if(!url||url.origin!==origin||document.origin!==origin||
+       !Number.isSafeInteger(document.tabId)||document.tabId<0||
+       !Number.isSafeInteger(document.windowId)||document.windowId<0||
+       typeof document.documentId!=='string'||!document.documentId)
+       throw failure('E_DOCUMENT_CHANGED','Original Cookie import document is invalid');
+     const [tabs,frame]=await Promise.all([
+       api.tabs.query({active:true,windowId:document.windowId}),
+       api.webNavigation.getFrame({tabId:document.tabId,frameId:0})
+     ]);
+     const tab=Array.isArray(tabs)&&tabs.length===1?tabs[0]:null;
+     if(!tab||tab.id!==document.tabId||tab.windowId!==document.windowId||
+       !tab.active||tab.incognito||tab.pendingUrl||tab.url!==document.url||
+       ['loading','unloaded'].includes(tab.status)||
+       !frame||frame.documentId!==document.documentId||frame.url!==document.url||
+       frame.documentLifecycle&&frame.documentLifecycle!=='active')
+       throw failure('E_DOCUMENT_CHANGED','Original Cookie import document changed');
+     return true;
+   }
+   const currentPageRefs=createCurrentPageReferences({api});
   const tabHost=createBrowserTabHost({api,authorize:async({operation,origin,context})=>{
     if(context.approvedOrigin!==null&&context.approvedOrigin!==origin)throw failure('E_SITE_GRANT_REQUIRED','Tab origin changed');
     await verifyBrowserOwner(context,operation,origin);
@@ -673,7 +694,9 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
             throw failure('E_USER_GESTURE_REQUIRED','Exact Cookie change requires a new trusted click');
         }
         const importSource=intent?.cookieImportSource;
-        const importOptions={storeId:checked.cookies?.[0]?.storeId,
+         const importDocument=intent?.cookieImportDocument;
+         if(importSource)await verifyCookieImportDocument(importDocument,importSource);
+         const importOptions={storeId:checked.cookies?.[0]?.storeId,
           partitionKey:checked.cookies?.[0]?.partitionKey??null};
         const allowed=importSource
           ?await authorizedImportedCookie(owner,operation,checked.url,importSource,importOptions)
@@ -684,7 +707,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         return trustedCookies.executeInstalled(operation,checked,{origin:allowed.origin,
           storeId:allowed.storeId,partitionKey:allowed.partitionKey,ownerKey,
           authorize:async({url,includeValues})=>{
-            const now=importSource
+             if(importSource)await verifyCookieImportDocument(importDocument,importSource);
+             const now=importSource
               ?await authorizedImportedCookie(owner,operation,url,importSource,{...importOptions,includeValues})
               :await authorizedCookie(owner,operation,url,{...checked,includeValues});
             if(now.grantEpoch!==allowed.grantEpoch||now.storeId!==allowed.storeId||
@@ -1062,9 +1086,11 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const identity={toolId,toolVersion,packageHash,epoch:installEpoch??null,
           installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
         await verifyBrowserOwner(identity,targetOperation,origin);
-        if(cookieImportSource!==undefined&&
-           (targetOperation!=='browser.cookies.setMany'||toolId!=='cookie-editor'))
-          throw failure('E_OWNER','Import scope cannot authorize other Browser operations');
+        if(cookieImportSource!==undefined){
+           if(targetOperation!=='browser.cookies.setMany'||toolId!=='cookie-editor')
+             throw failure('E_OWNER','Import scope cannot authorize other Browser operations');
+           await verifyCookieImportDocument(document,cookieImportSource);
+         }
         const cookieGrant=cookieCapabilities[targetOperation]
           ?cookieImportSource!==undefined
             ?await authorizedImportedCookie(identity,targetOperation,args.url,cookieImportSource,{
@@ -1107,11 +1133,15 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         }
         for(const [ref,intent] of browserIntents)if(Date.now()>=intent.expiresAt)browserIntents.delete(ref);
         if(browserIntents.size>=16)throw failure('E_LIMIT','Too many pending approvals');
-        const approvalRef=crypto.randomUUID(),expiresAt=Date.now()+INTENT_TTL;
-        browserIntents.set(approvalRef,{operation:targetOperation,args:canonicalJSON(args),toolId,toolVersion,
+        if(cookieImportSource!==undefined)
+           await verifyCookieImportDocument(document,cookieImportSource);
+         const approvalRef=crypto.randomUUID(),expiresAt=Date.now()+INTENT_TTL;
+         browserIntents.set(approvalRef,{operation:targetOperation,args:canonicalJSON(args),toolId,toolVersion,
           packageHash,epoch:installEpoch??null,toolInstance,hostInstanceId:actualHost,expiresAt,
           cookieGrantEpoch:cookieGrant?.grantEpoch??null,
-          ...(cookieImportSource!==undefined?{cookieImportSource}:{}),
+          ...(cookieImportSource!==undefined?{cookieImportSource,
+             cookieImportDocument:Object.fromEntries(['tabId','windowId','documentId','url','origin']
+               .map(key=>[key,document[key]]))}:{}),
           ...(targetOperation==='browser.scheduler.create'?{schedulerIntent:structuredClone(schedulerIntent)}:{})});
         return {approvalRef,expiresAt};
       }
