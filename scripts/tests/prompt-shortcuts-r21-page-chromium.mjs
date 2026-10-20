@@ -295,6 +295,10 @@ try{
     {width:1150,height:800,deviceScaleFactor:1,mobile:false});
   await evaluate(`(()=>{
     window.__controller.dispose();
+    // The next scene has one ChatGPT main region. Retiring the previous
+    // fixture also keeps its editor from pushing the new composer offscreen.
+    document.querySelector('#workspace').remove();
+    document.querySelector('#other').remove();
     const real=window,proxy={
       location:{href:'https://chatgpt.com/c/history-1'},
       innerWidth:real.innerWidth,innerHeight:real.innerHeight,
