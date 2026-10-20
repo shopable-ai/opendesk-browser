@@ -85,7 +85,7 @@ function reviewedCompiledBookmarkReact(target,path,root){
 const compiledPromptShortcutInputs=Object.freeze({
   'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'709620e151cc448844a263e1f367db23a5fbb2da',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'6544a03db0f11373dccdf67cc9b5ce808920a495',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'ad5e3bb10a0af62629db5bd0da474b71f1ae4ed4',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'36f97dd396e33abb712f2bc225bde13dfcb4efb8',
   // The first-party OD gesture bridge is fixed SW code, never an installed package.
   'examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js':'82575a84ed23bf57b8a5bf48ed2fefcd5cb6a24c'
 });

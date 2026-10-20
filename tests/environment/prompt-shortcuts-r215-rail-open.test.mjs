@@ -19,7 +19,7 @@ test('R2.15 genuine top-level ChatGPT sender opens existing Chrome panel synchro
   assert.equal(handlePromptRailOpen({api,message:message(),sender:sender(),respond:r.respond}),true);
   assert.equal(opened,1,'must call sidePanel.open before any awaited permission/storage read');
   assert.deepEqual(r.received,[]);
-  complete();await Promise.resolve();await Promise.resolve();
+  complete();await new Promise(resolve=>setImmediate(resolve));
   assert.deepEqual(r.received,[{ok:true,data:{opened:true}}]);
 });
 
