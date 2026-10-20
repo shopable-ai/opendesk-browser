@@ -33,16 +33,28 @@ test('30 fictional Cookies for two other websites use two verified Host batches'
       hostOnly:true,path:'/',session:true,secure:true,sameSite:'lax'
     }));
     const source=JSON.stringify(records);
-    const plan=await controller.previewImport(source,'json',true,{allSites:true});
+    const plan=await controller.previewImport(source,'json',false,{allSites:true});
     assert.equal(plan.accepted,30);
     assert.equal(plan.skipped,0);
-    assert.equal(await controller.executeImport(source,'json',true,{allSites:true}),true);
+    assert.equal(await controller.executeImport(source,'json',false,{allSites:true}),true);
     const calls=mock.inspect().calls.filter(item=>item.op==='setMany');
     assert.equal(calls.length,2);
     assert.deepEqual(calls.map(item=>new URL(item.args.url).hostname),
       ['accounts.example.net','auth.example.org']);
     assert.deepEqual(calls.map(item=>item.args.cookies.length),[15,15]);
+    assert.ok(calls.every(call=>call.args.cookies.every(item=>item.ifAbsent===true)),
+      'React default import must not silently replace existing Chrome Cookie slots');
     assert.equal(mock.inspect().rows.filter(item=>item.name.startsWith('import_')).length,30);
+    assert.doesNotMatch(JSON.stringify(snapshots),/PRIVATE_COOKIE_/);
+    // This transport is explicitly fictional; the real Chrome acceptance
+    // must separately verify the same no-overwrite property on native stores.
+    const original=mock.inspect().rows.filter(item=>item.name.startsWith('import_'));
+    const again=await controller.previewImport(source,'json',false,{allSites:true});
+    assert.equal(again.accepted,30,'foreign site has no arbitrary read grant');
+    assert.equal(await controller.executeImport(source,'json',false,{allSites:true}),false);
+    assert.equal(controller.snapshot().importOutcome,'denied');
+    assert.deepEqual(mock.inspect().rows.filter(item=>item.name.startsWith('import_')),original,
+      'conflicting backup must leave previously written Cookies unchanged');
     assert.doesNotMatch(JSON.stringify(snapshots),/PRIVATE_COOKIE_/);
   }finally{controller.dispose();mock.dispose();}
 });
