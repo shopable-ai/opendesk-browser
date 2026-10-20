@@ -47,9 +47,8 @@
 .ec-description{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.45}
 /* Only duplicate-title installed apps show their authoritative ID. Avoid truncating identity at 320px. */
 .ec-identity{overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:anywhere;line-height:1.35}
-.ec-row-more{display:grid;place-items:center;width:34px;min-width:34px;min-height:34px;padding:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);box-shadow:0 2px 8px #101a2a20;color:var(--od-sub);font-size:19px}
+.ec-row-more{display:grid;place-items:center;width:34px;min-width:34px;min-height:34px;padding:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);box-shadow:0 2px 8px #101a2a20;color:var(--od-sub)}
 .ec-row-more:hover:not(:disabled){background:var(--od-muted)}
-.ec-row-more svg{width:18px;height:18px}
 .ec-context-menu{position:fixed;z-index:1000;min-width:172px;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);overflow-y:auto;
   padding:5px;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);
   box-shadow:0 12px 32px #101a2a35}
