@@ -40,7 +40,7 @@ npm run dev
 
 如果此前已从同一个目录加载过 `build:dev` 的静态包，在首次切换到持续开发时，点击扩展卡片的「重新加载」一次，再打开 Sidebar。以后保留同一加载目录，不需重复安装或打包 ZIP。
 
-若已安装工具打开后显示“该文件可能已被移至别处、修改或删除”，先检查加载目录里的 `manifest.json`、`sidepanel.html` 和 `sidebar-tools/sandbox.html`。WXT 全量构建失败可能只留下部分 JS，工具 JSON 本身仍然有效；修复日志中的构建错误，再恢复同一个 `npm run dev`，无需卸载工具。可信工作台的开发包预算为 1088 KiB，给开发连接与状态代码保留 64 KiB 余量；正式包仍为 1 MiB。构建和包验证共用 `scripts/build-contract.mjs` 的门禁，CSP、来源锁定及其他入口限制继续生效。
+若已安装工具打开后显示“该文件可能已被移至别处、修改或删除”，先检查加载目录里的 `manifest.json`、`sidepanel.html` 和 `sidebar-tools/sandbox.html`。WXT 全量构建失败可能只留下部分 JS，工具 JSON 本身仍然有效；修复日志中的构建错误，再恢复同一个 `npm run dev`，无需卸载工具。可信工作台的开发包预算为 1088 KiB，给开发连接与状态代码保留 32 KiB 余量；正式包按已测候选采用 1056 KiB 有界预算（理由见 R23 的 2026-10-21 测量记录）。构建和包验证共用 `scripts/build-contract.mjs` 的门禁，CSP、来源锁定及其他入口限制继续生效。
 
 日常源码开发始终使用上述 `dist/development`。`~/.opendesk-browser/extensions/local-dev-<会话标识>` 是历史会话手工复制的静态安装包，`npm run dev` 不会更新它。隔离验收包只加载到验收专属 CFT/Profile，不替换日常 Chrome 的开发扩展；不要为日常修复再复制到一个新目录。
 

@@ -92,6 +92,14 @@ R23 当时不引入 React/shadcn，是对当时宿主状态、缺少挂载边界
 
 官方参考：[扩展消息](https://developer.chrome.com/docs/extensions/develop/concepts/messaging)、[Native Messaging](https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging)、[Sandbox](https://developer.chrome.com/docs/extensions/reference/manifest/sandbox)、[CSP](https://developer.chrome.com/docs/extensions/reference/manifest/content-security-policy)。这些不是上述 R1 数字的来源，也不能混作同一安装包上限。
 
+### 2026-10-21：可信工作台固定入口的有界生产预算
+
+Clipper 正式 Mac 验收记录的同一候选实际压缩后 `ui/tool-shell.js` 为 **1,074,242 UTF-8 字节**，超过原 1024 KiB 项目预算 25,666 字节；对应开发入口实测 1,076,688 字节，已有真实 Mac CFT 核心操作证据。Rollup 图显示 ReactDOM、五 Tab、书签及开发工作台是实际消费者；现有 sidecar 已复用，未发现足量可删除的闲置依赖。不通过删除现有功能或改造执行边界获得通过。
+
+按上述 R32.3 政策与独立只读审查，仅将此固定入口 production 预算调整为 **1056 KiB（1,081,344 字节）**，较旧值增加 32 KiB；对该观测候选余 7,102 字节。development 保持 **1088 KiB**，640 KiB 建议复核线保持。SW、其他固定入口、工具包、消息与存储限制不变。构建、源码检查、包验证和报告共用/核对同一合同；恰等于及超 1 字节的边界检查保留。
+
+这是为当前已存在产品实测确定的暂定单项预算；再次超限需重新归因复核，禁止自动续增。CSP、固定自包含入口、来源锁、安装身份和 Authority 检查继续运行。容量合同变更本身不证明候选成功；生产构建、原生操作及最终身份的实际状态由 [Clipper 验收记录](../../examples/sidebar-tools/web-markdown-clipper/ACCEPTANCE-R1.7.5-LOCAL.md) 和本机原始日志报告，未完成仍标 NOT_TESTED。
+
 ## 文档驱动与持续保存
 
 每个关键结论形成后立即更新权威文档：记录状态（已确认方向/待验证/已实施/已验证）、决定、证据、替代方案、风险、源码/构建身份和下一步，不等所有实验结束才保存。结果变化写替代关系并保留原始证据；保存可审阅的工程理由，不要求保存私有内部推理。

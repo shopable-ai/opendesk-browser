@@ -49,11 +49,11 @@ export const PACKAGE_ENTRIES = Object.freeze({
 // Keep the fixed, self-contained classic bundles and security scanners.
 // Production SW has a 1 MiB hard cap and a non-blocking 512 KiB review line.
 // Development SW has 1.5 MiB; ordinary generated JS retains the 512 KiB cap.
-// The fixed Side Panel / catalog host entry ui/tool-shell.js gets 1 MiB in
+// The fixed Side Panel / catalog host entry ui/tool-shell.js gets 1056 KiB in
 // production and 1088 KiB in development for its connection/status integration,
 // with a non-blocking 640 KiB review line. This is an engineering budget,
 // not a Chrome size limit, runtime permission grant or security exemption.
-export const BUILD_POLICY = Object.freeze({productionBytes: 512 * 1024, fixedEntryReviewBytes: 320 * 1024, toolShellProductionBytes: 1024 * 1024, toolShellDevelopmentBytes: 1088 * 1024, toolShellReviewBytes: 640 * 1024, serviceWorkerProductionBytes: 1024 * 1024, serviceWorkerReviewBytes: 512 * 1024, developmentBytes: 1536 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}});
+export const BUILD_POLICY = Object.freeze({productionBytes: 512 * 1024, fixedEntryReviewBytes: 320 * 1024, toolShellProductionBytes: 1056 * 1024, toolShellDevelopmentBytes: 1088 * 1024, toolShellReviewBytes: 640 * 1024, serviceWorkerProductionBytes: 1024 * 1024, serviceWorkerReviewBytes: 512 * 1024, developmentBytes: 1536 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}});
 // Existing reader/CLI limits, shared by the build and package verifier. These
 // are separate from the unchanged generated-entry budget above.
 export const RESOURCE_LIMITS = Object.freeze({vendorBytes:128 * 1024, manifestBytes:8192, licenseBytes:8192});
@@ -61,7 +61,7 @@ export function entryByteBudget(target, mode='production') {
   if(!['production','development'].includes(mode))throw Error('Unknown build mode: '+mode);
   if(target==='sw.js')return mode==='development'?BUILD_POLICY.developmentBytes:BUILD_POLICY.serviceWorkerProductionBytes;
   // Serve includes development connection/status code absent from production.
-  // Keep a bounded 64 KiB development allowance; all security checks still run.
+  // Keep a bounded 32 KiB development allowance; all security checks still run.
   if(target==='ui/tool-shell.js')return mode==='development'?BUILD_POLICY.toolShellDevelopmentBytes:BUILD_POLICY.toolShellProductionBytes;
   return BUILD_POLICY.productionBytes;
 }
