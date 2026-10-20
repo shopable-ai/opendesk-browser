@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {createPortal} from 'react-dom';
 import {TimeReviewSettings,StayFocusSettings,StayFocusQuickAdd,AiAccessSettings} from './trusted-settings.tsx';
+import {UninstallDialog} from './tools.tsx';
 
 const ToolContext = React.createContext(null);
 
@@ -432,21 +433,27 @@ export function ToolHost({view}) {
 
 </ToolField>
 
+<UninstallDialog open={snapshot.fields['sidebar-tool-inline-remove'].hidden===false}
+  title={'卸载「'+(snapshot.fields['sidebar-tool-title']?.textContent||'当前扩展')+'」？'}
+  busy={snapshot.fields['sidebar-tool-inline-remove-confirm'].disabled}
+  returnFocusSelector="#sidebar-tool-remove"
+  onCancel={event=>view.dispatch('sidebar-tool-inline-remove-cancel','click',event)}>
 <ToolField as="section" id="sidebar-tool-inline-remove" className="sidebar-tool-inline-remove od-surface" aria-label="卸载工具确认" hidden={true}>
 <ToolField as="p" id="sidebar-tool-inline-remove-text">
 
 </ToolField>
-<div className="sidebar-tool-inline-remove-actions">
-<ToolField as="button" type="button" id="sidebar-tool-inline-remove-confirm" className="od-button">
-{"确认卸载并删除数据"}
-</ToolField>
-<ToolField as="button" type="button" id="sidebar-tool-inline-remove-cancel" className="od-button od-button--secondary">
+<div className="sidebar-tool-inline-remove-actions od-uninstall-dialog-actions">
+<ToolField as="button" type="button" id="sidebar-tool-inline-remove-cancel" data-uninstall-cancel className="od-button od-button--secondary">
 {"取消"}
+</ToolField>
+<ToolField as="button" type="button" id="sidebar-tool-inline-remove-confirm" className="od-button od-uninstall-confirm">
+{"确认卸载"}
 </ToolField>
 
 </div>
 
 </ToolField>
+</UninstallDialog>
 </div></ToolContext.Provider>;
 }
 
