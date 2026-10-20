@@ -40,7 +40,7 @@ function projected(){
 // Use native <img> and textContent only; URLs were bounded by the shared trusted model.
 function picture(holder,row,{live=false}={}){
   const label=row.label||model.auto(row.body||'')||'…';
-  const fallback=()=>{holder.classList.remove('has-image');
+  const fallback=()=>{holder.classList.toggle('has-image',false);
     holder.replaceChildren(...model.parts(label).map(part=>dom('span','',part)));};
   if(row.appearance!=='image'){fallback();return;}
   let url;
