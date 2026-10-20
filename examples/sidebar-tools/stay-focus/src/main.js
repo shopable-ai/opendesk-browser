@@ -261,36 +261,6 @@
         next?{site:{host:next.host,subdomains:next.subdomains,enabled:next.enabled,
           mode:next.mode,minutes:next.minutes,group:next.group}}:{host:old.host});
     };
-    const addCurrent=async()=>{
-      if(writing.current||!page)return;
-      const revision=pageId.current,expected=page;
-      try{
-        const actual=activeHost(await api.request('currentPage.info',{}));
-        if(!actual||actual!==expected||revision!==pageId.current)
-          throw Error('当前网页已经切换，请重新核对后加入。');
-        const currentStatus=await api.request('focus.status',{});
-        if(!currentStatus?.dailyBudget||!Array.isArray(currentStatus.sites))
-          throw Error('无法核对网站是否已受管理');
-        if(revision!==pageId.current)throw Error('标签页已切换，未提交旧网站规则。');
-        const old=managed(actual,currentStatus.sites);
-        if(old?.enabled)return notice('当前网站已经受管理。');
-        // Only the trusted Host catalog may canonicalize a known subdomain.
-        // Page titles and string-substring matches never classify or authorize.
-        const known=(currentStatus.catalog||[]).find(row=>
-          actual===row.host||actual.endsWith('.'+row.host));
-        const normalized=known?.host||actual;
-        const doubleCheck=activeHost(await api.request('currentPage.info',{}));
-        if(doubleCheck!==actual||revision!==pageId.current)
-          throw Error('当前网页已切换，未提交旧网页的网站规则。');
-        const site=old?{host:old.host,subdomains:old.subdomains,enabled:true,
-          mode:old.mode,minutes:old.minutes,group:old.group}:
-          {host:normalized,subdomains:true,enabled:true,mode:'limit',
-            minutes:currentStatus.dailyBudget.minutes,group:'entertainment'};
-        const ok=await operate('focus.site.put',{site});
-        if(ok&&revision!==pageId.current)
-          notice('规则已保存，但网页已切换，请核对网站列表。',true);
-      }catch(e){notice(errorText(e),true);}
-    };
     const saveBudget=()=>{
       const minutes=Number(text),entered=text;
       if(!Number.isInteger(minutes)||minutes<1||minutes>1440)
@@ -342,9 +312,7 @@
         h('div',{className:'sf-current'},
           h('div',null,h('span',null,'当前网页'),h('strong',null,page||'请切换到普通网页')),
           current?.enabled?h('span',{className:'sf-managed'},h(Icon,{name:'check'}),'已管理'):
-            h(Button,{variant:'primary',disabled:!page||busy||loading||!state,
-              onClick:()=>void addCurrent()},h(Icon,{name:current?'play':'add'}),
-              current?'恢复':'加入')),
+            h('span',{className:'sf-current-status'},current?'已暂停':'在上方一键加入')),
         editing!==undefined?h(SiteEditor,{key:editing?.host||'new',initial:editing,
           budget,groups:state?.groups,busy,close:()=>setEditing(undefined),save:saveSite}):null,
         sites.length?h('div',{className:'sf-list'},
