@@ -312,3 +312,22 @@ test('R1.3 Reading TOC model, overview and placement require audited Page Relay 
   assert.throws(()=>make('agents/page-relay.js',tmp,['model.js']),
     /Trusted Reading TOC source changed/);
 });
+
+test('shared visible-selection helper is pinned only into existing Page Relay',async t=>{
+  const file='examples/shared/markdown/selection.js';
+  const project=await realpath(await mkdtemp(join(tmpdir(),'opendesk-selection-pin-')));
+  t.after(()=>rm(project,{recursive:true,force:true}));
+  await mkdir(join(project,'examples/shared/markdown'),{recursive:true});
+  const source=await readFile(file,'utf8');
+  await writeFile(join(project,file),source);
+  const make=target=>describeBundle({chunk:{fileName:target,modules:{
+    [resolve(project,file)]:{renderedLength:1,originalLength:source.length}
+  }},root:project,lock:{packages:{}}});
+  assert.equal(make('agents/page-relay.js').modules[0].reviewedFirstPartyBlob,
+    '747d1afe2cee9a745552a3a7ceb699d1af83b35b');
+  for(const target of ['sw.js','ui/tool-shell.js','ui/sidebar-tool-host.js',
+    'scripting/sandbox/worker-runtime.js','libs/runtime/page-core.js'])
+    assert.throws(()=>make(target),/Historical\/user\/vendor code cannot enter/);
+  await writeFile(join(project,file),source+'\n// changed');
+  assert.throws(()=>make('agents/page-relay.js'),/Shared Markdown source changed/);
+});

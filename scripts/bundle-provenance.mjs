@@ -198,21 +198,23 @@ function reviewedCompiledAppOwnedBackground(target,path,root){
 // Inbox. Its byte-reviewed source may enter only the existing Page Relay.
 // R1.8 source review: the shared converter only corrects nested-list
 // Markdown indentation; URL filtering and secret redaction are unchanged.
-const sharedMarkdownInput='examples/shared/markdown/convert.js';
-const sharedMarkdownBlob='58516382e28fc03b89b58371f9b905d89e05ae27';
+const sharedMarkdownInputs=Object.freeze({
+  'examples/shared/markdown/convert.js':'58516382e28fc03b89b58371f9b905d89e05ae27',
+  'examples/shared/markdown/selection.js':'747d1afe2cee9a745552a3a7ceb699d1af83b35b'
+});
 function reviewedCompiledSharedMarkdown(target,path,root){
-  if(path!==sharedMarkdownInput||target!=='agents/page-relay.js')return null;
+  if(!Object.hasOwn(sharedMarkdownInputs,path)||target!=='agents/page-relay.js')return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)throw Error('Shared Markdown source must not be a symlink: '+path);
   const bytes=readFileSync(file);
   const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
-  if(hash!==sharedMarkdownBlob)throw Error('Shared Markdown source changed; review and re-pin: '+path);
+  if(hash!==sharedMarkdownInputs[path])throw Error('Shared Markdown source changed; review and re-pin: '+path);
   return hash;
 }
 // Only byte-reviewed first-party Clipper page/policy sources enter fixed
 // Chrome Host/Relay targets; installed/user sources are not authorized.
 const compiledWebClipperInputs=Object.freeze({
-  'examples/sidebar-tools/web-markdown-clipper/trusted/page.js':'2e4f46ee205cd3749841a79d82c74f3c35b84c00',
+  'examples/sidebar-tools/web-markdown-clipper/trusted/page.js':'24c9a9b38965bc1a02931a243a99a5bd9edc5cab',
   'examples/sidebar-tools/web-markdown-clipper/trusted/policy.js':'35b60045acd85bc021f25e9e97b5de3474e44d08'
 });
 function reviewedCompiledWebClipper(target,path,root){
