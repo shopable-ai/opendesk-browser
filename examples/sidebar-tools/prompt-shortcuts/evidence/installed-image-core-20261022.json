@@ -52,12 +52,28 @@
   },
   "notTested": [
     "Daily Profile upgrade to 1.1.9",
-    "Native Finder image picker and cancellation",
     "JPEG/WebP file selection and image drag/drop",
-    "Installed source-switch draft guard with a reliable driver",
     "Real IME and Undo",
     "Production and full formal acceptance"
   ],
   "diagnosticLimit": "Intermittent menu/focus automation failures did not establish a product defect. Do not infer product failures from incomplete driver actions.",
-  "privacy": "Raw daily-profile Accessibility logs contain user draft text and remain ignored local artifacts; they are not included here."
+  "privacy": "Raw daily-profile Accessibility logs contain user draft text and remain ignored local artifacts; they are not included here.",
+  "followUpNativePicker": {
+    "observedOn": "2026-10-22",
+    "stage": "development core operations; no business source changes",
+    "dailyProfileUpgrade": "ENVIRONMENT_BLOCKED: daily Chrome still absent; version remains UNKNOWN; personal Profile not launched or changed",
+    "installedPackageReadback": "PASS: version 1.1.9; existing canonical encoder reproduced 126503 bytes and SHA-256 6baf71876feb969e6ee5434183db6a4a390f5b2445c177c0de38df07a20cee2b",
+    "nativePickerCancelNewDraft": "PASS: native Open sheet Cancel button; sheet closed, full unsaved body retained, upload button regained focus and document focus; continued body editing succeeded",
+    "nativeLocalImageSelection": "PASS: actual macOS Open sheet and native Open button produced complete 128x80 local image preview; processed resource 840 bytes",
+    "saveCloseAndReopen": "PASS: save receipt, return to extension list, reopen installed tool, edit saved entry; full body and complete local image restored",
+    "sourceSwitchDraftGuard": "PASS: only switching saved local image to URL source then Cancel showed unsaved-change guard and focused Continue editing; body retained",
+    "restoreLocalSource": "PASS: Continue editing and switch back restored complete local image and full body",
+    "cancelPreservesSavedImage": "PASS: reopen native picker and cancel; saved image/body retained, focus returned to upload button; unchanged form returned to list without discard dialog",
+    "testEntry": "PS-NATIVE-IMAGE-1022 retained only in independent test Profile",
+    "driverBoundary": "Initial helper matched the background form Cancel button. Subsequent native actions were scoped to the AXSheet and verified that the native sheet actually closed. Incomplete actions were not product failures.",
+    "runtimeBoundary": "Same existing continuous development runtime and independent Profile. A concurrent watcher reload interrupted one earlier attempt. Concurrent trusted/model edits changed generated catalog bytes during observation; the installed package and formal 1.1.9 package remained identical. Production and clean-commit runtime are not proven.",
+    "runtimePathAndConnection": "Extension ID observed in tool page URL; loaded path and serve connection were not freshly read back in this follow-up. Existing historical runtime evidence is retained above.",
+    "logs": "Ignored local artifacts/prompt-shortcuts-core-20261022/native-picker/",
+    "verification": "Actual installed product operations and canonical installed-byte readback; no product build or repeated Node tests because business source and formal package were unchanged"
+  }
 }
