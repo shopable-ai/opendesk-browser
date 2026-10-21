@@ -203,6 +203,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
   const model=React.useSyncExternalStore(controller?.subscribe||noSubscribe,controller?.getSnapshot||fallback,controller?.getSnapshot||fallback);
   const actions=controller?.actions||providedActions;
   const page=React.useRef(null),lastFocus=React.useRef(null),scroller=React.useRef(null);
+  const nearBottom=React.useRef(true),composing=React.useRef(false);
   const c=id=>model.controls?.[id]||{};
   const click=(id,event)=>actions.click?.(id,event.nativeEvent);
   const field=(id,value,event,eventName='input')=>actions.input?.(id,value,event.nativeEvent,eventName);
@@ -217,8 +218,15 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
     if(active&&lastFocus.current?.isConnected)lastFocus.current.focus?.({preventScroll:true});
     return ()=>{if(active&&page.current?.contains(doc?.activeElement))lastFocus.current=doc.activeElement;};
   },[active,doc]);
+  React.useEffect(()=>{
+    const node=scroller.current;if(!active||!node)return;
+    const onScroll=()=>{nearBottom.current=node.scrollHeight-node.scrollTop-node.clientHeight<=48;};
+    onScroll();node.addEventListener('scroll',onScroll,{passive:true});
+    return ()=>node.removeEventListener('scroll',onScroll);
+  },[active]);
   React.useLayoutEffect(()=>{
-    if(active&&scroller.current&&model.phase==='planning')scroller.current.scrollTop=scroller.current.scrollHeight;
+    if(active&&scroller.current&&nearBottom.current&&model.messages?.length)
+      scroller.current.scrollTop=scroller.current.scrollHeight;
   },[model.messages,model.phase,active]);
   const action=(id,label,{icon=false,primary=false,kind,...props}={})=>icon
       ?<IconButton id={id} label={label} title={id==='workflow-ai-plan'?'发送并执行':label}
@@ -348,7 +356,16 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
       <div className="workflow-composer">
         <label className="visually-hidden" htmlFor="workflow-ai-request">描述任务，或告诉 AI 怎样修改步骤</label>
         <ConversationInput id="workflow-ai-request" rows={2} maxLength={4000} placeholder="描述要自动完成的任务…" value={c('workflow-ai-request').value||''}
-          onChange={event=>field('workflow-ai-request',event.currentTarget.value,event)}/>
+          onChange={event=>field('workflow-ai-request',event.currentTarget.value,event)}
+          onCompositionStart={()=>{composing.current=true;}}
+          onCompositionEnd={()=>{composing.current=false;}}
+          onKeyDown={event=>{
+            if(event.key!=='Enter'||event.shiftKey||composing.current||
+              event.nativeEvent?.isComposing||event.nativeEvent?.keyCode===229)return;
+            event.preventDefault();
+            if(!c('workflow-ai-plan').hidden&&!c('workflow-ai-plan').disabled)
+              click('workflow-ai-plan',event);
+          }}/> 
         <div className="workflow-composer-actions">
           {action('workflow-provider-toggle','AI 设置',{icon:true,kind:'settings','aria-expanded':openSettings,'aria-controls':'workflow-provider-settings'})}
           <WorkflowSourceName value={model.sourceName||'Codex'}/>
