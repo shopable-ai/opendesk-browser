@@ -13,6 +13,8 @@ description: Engineer Chrome MV3/WXT Background/Content/MAIN, SDK/Host/Authority
 
 **可进入框架修改的判据**：明确要求修通用 Page Program 安装/撤权、Browser SDK、MV3/Host/Authority 的任务，本来就属于平台所有权，允许按职责修改 `src/`，不能被“凡 src 变更就拒绝”的 CI 误拦截。若从某独立扩展衍生，需先证明公开 SDK 的具体限制、可复现失败、为何业务目录无法解决、跨工具通用价值、最小公共接口/文件/测试及权限/兼容/生命周期影响，否则标 `SDK_GAP_NOT_PROVEN` 并保持平台只读。通用 Broker/Installer 禁止硬编码 ChatGPT、Mind Map、Cookie Editor 等单工具业务。
 
+**可复用 Runtime 与专属业务解耦门禁**：对 AdBlock / Stay Focus 等工具要优先遵循[宿主解耦合同与 AdBlock / Stay Focus 最新源码审计](../../../docs/architecture/browser-framework/sidebar-tool-host-decoupling.zh-CN.md)。L1 业务目录归属、L2 通用宿主去业务硬编码、L3 受限策略包独立升级、L4 新特权算法升级分别审查。现有 `src/platform/chrome/browser-managed-site-policy.js` 属于公共原语而非已发布的全量第三方 Browser SDK；新受管能力要经过原 Registry/Schema → Dispatcher/Host/Authority → Chrome Driver 与安装/撤权/原生读回全链，不可在 `src/sw.js`、安装器或 UI 总控继续复制产品专属分派。不创建第二套运行时，也不通过动态 JSON 执行 Worker JS。
+
 ## 用户先选需求，再调查运行环境
 
 先用 [五种使用场景与多 JS 分工指南](../../../docs/api/extension-development-selection.zh-CN.md) 解释：网页自动化用 Controller，网页增强用 Page USER_SCRIPT，界面用 Sidebar Tool，后台服务先核查固定可信能力，组合式应用跨现有职责协作。后台是独立产品场景，但不意味着普通作者可安装任意特权后台 JS；组合式应用不新增第五套 Runtime。触发源与 JS/React/Vue 技术分别选择。普通作者沿公开 API 与示例开发，不要求先读框架源码。
