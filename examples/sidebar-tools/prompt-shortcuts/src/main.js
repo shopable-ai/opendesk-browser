@@ -12,6 +12,57 @@ const SITE_KEY='sites';
 let sites=model.sitesDefaults(),sitesEtag=null,sitesReady=false,siteBusy=false,siteDetecting=false,siteDirty=false,siteUnconfirmedWrite=false;
 let siteOrigin=null,siteEditing=null,siteBaseline='',siteVerified=null,siteDelete=null;
 let sitePoll=0,siteSession=null,siteStarting=0,siteEpoch=0,siteDiscardPending=false;
+let aiGuardId=null,aiRefreshPending=false,aiFocusId=null;
+function aiEditable(){
+  return ready&&mode==='index'&&!dirty&&!siteDirty&&!busy&&!siteBusy&&
+    !siteDetecting&&!siteSession&&!siteStarting&&!uploadBusy&&!transferBusy&&
+    !stagedImport&&!pendingDelete&&!pendingLeave&&!unconfirmedWrite&&
+    !siteUnconfirmedWrite&&el('ps-site-form').hidden;
+}
+root.addEventListener('opendesk-tool-ai-guard',event=>{
+  const detail=event.detail;
+  if(!detail||typeof detail.guardId!=='string')return;
+  if(detail.phase==='acquire'){
+    const granted=!aiGuardId&&aiEditable();
+    if(granted){aiGuardId=detail.guardId;root.inert=true;}
+    root.dispatchEvent(new CustomEvent('opendesk-tool-ai-guard-reply',{
+      detail:{guardId:detail.guardId,granted}
+    }));
+  }else if(detail.phase==='release'&&aiGuardId===detail.guardId){
+    aiGuardId=null;root.inert=false;
+    if(aiRefreshPending)void refreshFromTrustedHost();
+  }
+});
+async function refreshFromTrustedHost(){
+  if(!aiRefreshPending||aiGuardId)return;
+  if(!aiEditable()){
+    status('AI 已修改提示词库。当前草稿不会被覆盖；完成编辑后可重新打开列表核对。');
+    return;
+  }
+  const started=etag;
+  try{
+    const fresh=await readLibrary();
+    // Recheck live editing state AFTER the asynchronous read. Never replace
+    // an unsaved local form with a potentially newer external snapshot.
+    if(aiGuardId||!aiEditable()||etag!==started)return;
+    data=fresh.value;etag=fresh.etag;aiRefreshPending=false;
+    await hydrateImageAssets(data.items);
+    render();
+    if(aiFocusId){
+      const card=[...el('ps-list').children].find(node=>node.dataset.promptId===aiFocusId);
+      card?.scrollIntoView?.({block:'nearest'});
+      aiFocusId=null;
+    }
+    status('已同步 AI 操作后的真实提示词列表。');
+  }catch(e){
+    status('AI 写入后的列表同步失败，请稍后重新打开核对：'+(e?.code||e?.message),true);
+  }
+}
+root.addEventListener('opendesk-tool-state-changed',event=>{
+  aiRefreshPending=true;
+  if(typeof event.detail?.targetId==='string')aiFocusId=event.detail.targetId;
+  void refreshFromTrustedHost();
+});
 function report(){setState({dirty:dirty||siteDirty||Boolean(stagedImport),busy:busy||siteBusy||siteDetecting||transferBusy||uploadBusy});}
 // The sandbox owns business navigation; the verified Host owns presentation only.
 function publishNavigation(){
@@ -664,6 +715,7 @@ function render(){
     const identity=(item.nameAuto?'':item.name?.trim())||
       item.body.trim().replace(/\s+/g,' ').slice(0,60)||'提示词';
     const card=dom('article','ps-card'+(!item.enabled?' is-disabled':''));
+    card.dataset.promptId=item.id;
     const mainRow=dom('div','ps-card-main');
     const glyph=dom('div','ps-glyph');glyph.setAttribute('aria-hidden','true');
     picture(glyph,item);
