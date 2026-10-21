@@ -556,23 +556,29 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       return ui('task-catalog-status').text=`已导入待验证任务 ${identity(value)}；未自动赋予可信状态`;
     }
   }
-  function run(event) {
-    if(!event.isTrusted||disposed||running||working||host.currentRun||ui('task-run').disabled)return;
+  function run(event,agentIntent=null) {
+    if(!event?.isTrusted||disposed||running||working||host.currentRun||
+      (agentIntent===null&&ui('task-run').disabled)){
+      if(agentIntent) return Promise.reject(Object.assign(new Error('运行宿主繁忙、已关闭或缺少用户确认'),{code:'E_TASK_BUSY'}));
+      return;
+    }
     let chosen,params,site,permission,captured;
     try {
-      chosen=installedRow();const info=candidateFor(chosen);
+      chosen=agentIntent?installed.find(row=>row.taskId===agentIntent.taskId):installedRow();
+      const info=candidateFor(chosen);
       if(!chosen?.enabled||info?.stage!=='available')throw {code:'E_PERMISSION',message:'当前任务未启用或不可安装'};
       captured=currentPageTarget.capture();
       site=new URL(captured.url).origin;
       if(!info.manifest.siteOrigins.includes(site))throw {code:'E_PERMISSION',message:'此任务不适用于当前网站'};
-      params=paramsFromForm(info.manifest.paramsSchema);
+      params=agentIntent?validateTaskParams(info.manifest.paramsSchema,agentIntent.params):
+        paramsFromForm(info.manifest.paramsSchema);
       chosen={...chosen,manifestHash:info.manifestHash,title:info.manifest.title};
       permission=requireChromePermissions({api,request:{origins:[permissionPattern(captured.url)]}});
-    }catch(error){fail(error);return;}
+    }catch(error){fail(error);return agentIntent?Promise.reject(error):undefined;}
     running=true;activeRunId=null;runOwnerKey=identity(chosen);runOwnerTitle=chosen.title||chosen.taskId;
     ui('task-result-panel').hidden=true;update();
     setTaskNotice(runOwnerKey,'正在检查访问权限并验证目标网页');
-    (async()=>{
+    return (async()=>{
       await permission;
       if(disposed)throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭'};
       await currentPageTarget.revalidate(captured);
@@ -595,9 +601,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       if(completion?.state==='paused_unknown'||completion?.pendingSettlement)
         setTaskNotice(runOwnerKey,unresolvedTaskRunMessage());
       else if(completion?.error)setTaskNotice(runOwnerKey,formatTaskError(completion.error));
+      return {runId:claim.runId,completion,taskId:resolved.taskId,
+        version:resolved.version,installationId:resolved.installationId};
     })().catch(async error=>{
       if(error.code==='E_REVISION'&&!disposed)await refresh(undefined,{skipUnchanged:true}).catch(fail);
       setTaskNotice(identity(chosen),formatTaskError(error));
+      if(agentIntent)throw error;
+      return null;
     }).finally(async()=>{
       running=false;
       if(disposed)return;
@@ -857,6 +867,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   },setScheduledRunOwner(runId) {
     scheduledRunId=typeof runId==='string'&&runId?runId:null;
     if(!disposed)syncRunDock();
+  },runInstalledForAgent({taskId,params,event}){
+    return run(event,{taskId,params});
+  },stopAgentTask({taskId,event}){
+    if(!event?.isTrusted||disposed||!activeRunId||host.currentRun!==activeRunId||
+      runOwnerKey!==identity(installed.find(row=>row.taskId===taskId)))
+      throw Object.assign(new Error('未找到该任务正在运行的有效执行槽'),{code:'E_RUN_NOT_ACTIVE'});
+    return host.stop({runId:activeRunId,controller:true});
   },focusInstalledTask(taskId) {
     // Selecting an installed task for management is safe even when it is disabled.
     // The Run button is gated separately by the installed enabled state.
