@@ -205,3 +205,44 @@ test('unverified Chrome Alarm effect marks policy unknown, never silently applie
   assert.equal(f.local.get(MANAGED_SITE_BUDGET_STORE)[id].status,'applied');
   assert.equal(f.alarms.get(MANAGED_SITE_BUDGET_ALARM).periodInMinutes,0.5);
 });
+
+test('activity invalidation fences every installed owner independently',async()=>{
+  const peer={...tool(),id:'budget-peer'};
+  const f=fixture([tool(),peer]);
+  await f.service.dispatch(await f.msg('setPolicy',
+    {...settings,expectedRev:0}),f.sender);
+  await f.service.dispatch({...await f.msg('setPolicy',
+    {...settings,expectedRev:0},peer,null),toolId:peer.id},f.sender);
+  f.tick(30000);
+  f.service.invalidate();
+  await f.service.run();
+  const interrupted=f.local.get(MANAGED_SITE_BUDGET_STORE);
+  assert.equal(interrupted[id].usage.daily||0,0);
+  assert.equal(interrupted[peer.id].usage.daily||0,0,
+    'second owner must not reuse first owner event acknowledgement');
+  f.tick(30000);
+  await f.service.run();
+  const resumed=f.local.get(MANAGED_SITE_BUDGET_STORE);
+  assert.equal(resumed[id].usage.daily,30000);
+  assert.equal(resumed[peer.id].usage.daily,30000);
+});
+
+test('event arriving during native reconciliation cannot be acknowledged by old sample',async()=>{
+  const f=fixture();
+  await f.service.dispatch(await f.msg('setPolicy',
+    {...settings,expectedRev:0}),f.sender);
+  f.tick(30000);
+  const original=f.api.declarativeNetRequest.getDynamicRules;
+  let interrupted=false;
+  f.api.declarativeNetRequest.getDynamicRules=async()=>{
+    if(!interrupted){interrupted=true;f.service.invalidate();}
+    return original();
+  };
+  await f.service.run();
+  assert.equal(interrupted,true);
+  assert.equal(f.local.get(MANAGED_SITE_BUDGET_STORE)[id].usage.daily,30000);
+  f.tick(30000);
+  await f.service.run();
+  assert.equal(f.local.get(MANAGED_SITE_BUDGET_STORE)[id].usage.daily,30000,
+    'an intervening event must discard unobserved elapsed time');
+});
