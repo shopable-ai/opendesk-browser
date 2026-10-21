@@ -15,7 +15,7 @@ export function loadSidebarReact(){
     try {
       result=await build({stdin:{resolveDir:root,contents:`
       export {SidebarAppShell} from './src/ui/react/app-shell.tsx';
-      export {SidebarNavigation} from './src/ui/react/tabs/navigation.tsx';
+      export {SidebarNavigation,sidebarKeyboardDestination} from './src/ui/react/tabs/navigation.tsx';
       export {ToolHost} from './src/ui/react/tabs/tool-host.tsx';
       export {DeveloperPage,DeveloperDock} from './src/ui/react/tabs/develop.tsx';
       export {createDeveloperPreviewView} from './src/ui/react/preview/developer-preview.js';

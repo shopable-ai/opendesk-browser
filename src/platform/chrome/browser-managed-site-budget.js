@@ -122,7 +122,9 @@ const safeStatus=(row,permission)=>({contract:MANAGED_SITE_RUNTIME_CONTRACT,
 export function createManagedSiteBudgetService({
   api=globalThis.chrome,lockManager=globalThis.navigator?.locks,now=Date.now
 }={}){
-  let session=null,generation=0,settledGeneration=-1,permissionRevoked=false;
+  let session=null,generation=0,permissionRevoked=false;
+  // Native activity invalidation is acknowledged per owner, never globally.
+  const settledGenerations=new Map();
   if(!lockManager?.request)fail('E_TOOL_LOCK','受管后台需要 Chrome Web Locks');
   const ownerLock=(id,work)=>lockManager.request('opendesk.sidebar-tools:tool:'+id,work);
   const resourceLock=work=>lockManager.request('opendesk.browser:managed-site-budget',work);
@@ -161,7 +163,7 @@ export function createManagedSiteBudgetService({
   }
   async function reconcileLocked(id,{boot=false,settings=null,expectedRev=null,cleanup=false,revoke=false,expectedLease=null}={}){
     return resourceLock(async()=>{
-      const at=now(),{raw,ledger}=await resourceRead();
+      const at=now(),observedGeneration=generation,{raw,ledger}=await resourceRead();
       let workingLedger=ledger,workingRaw=raw;
       const row=ledger[id];
       // Admission always comes from the original installed-tool registry, NOT
@@ -185,6 +187,7 @@ export function createManagedSiteBudgetService({
         await nativeRules(nextRow.slot,[]);
         workingLedger={...ledger};delete workingLedger[id];
         await save(workingLedger,raw);
+        settledGenerations.delete(id);
         workingRaw=workingLedger;
         nextRow=null;
       }
@@ -208,6 +211,7 @@ export function createManagedSiteBudgetService({
         await nativeRules(nextRow.slot,[]);
         const updated={...workingLedger};delete updated[id];
         await save(updated,workingRaw);
+        settledGenerations.delete(id);
         await nativeAlarm(updated,permission);
         return {receipt:{cleaned:true,verified:true}};
       }
@@ -247,7 +251,7 @@ export function createManagedSiteBudgetService({
         try{current=await observeManagedForeground(api,{ready:true,
           hostFromUrl,siteForHost:host=>selectedSite(nextRow.settings,host)});}catch{}
       const settled=settleManagedSiteBudget(nextRow,{at,session:await sessionId(),current,
-        boot:boot||generation!==settledGeneration},{dayFor:dayAt,poolFor:()=> 'daily',
+        boot:boot||observedGeneration!==settledGenerations.get(id)},{dayFor:dayAt,poolFor:()=> 'daily',
         matchSite:state=>selectedSite(state.settings,current?.host),
         blockedAt:(state,_site,checkpointAt)=>blocked(state,checkpointAt),
         maxGapMs:90000});
@@ -284,7 +288,7 @@ export function createManagedSiteBudgetService({
         await save({...updated,[id]:nextRow},currentRaw);
         throw error;
       }
-      settledGeneration=generation;
+      settledGenerations.set(id,observedGeneration);
       return {receipt:safeStatus(nextRow,permission)};
     });
   }

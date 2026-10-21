@@ -163,12 +163,18 @@ try{
    const frameActions=await evaluate('const slot=document.querySelector(".sidebar-tool-view-head .od-conversation-header-slot");return {chat:!!slot?.querySelector(".od-conversation-frame-trigger"),uninstallImmediatelyAfter:slot?.nextElementSibling?.getAttribute("aria-label")?.startsWith("卸载当前工具")===true};');
    assert.deepEqual(frameActions,{chat:true,uninstallImmediatelyAfter:true},
      'framework Chat icon must precede uninstall immediately');
-   const compact=await evaluate(`const input=document.querySelector(".od-conversation-input").getBoundingClientRect(),send=document.querySelector(".od-conversation-action").getBoundingClientRect();
+   const compact=await evaluate(`const input=document.querySelector(".od-conversation-input").getBoundingClientRect(),actionNode=document.querySelector(".od-conversation-action"),send=actionNode.getBoundingClientRect();
+     const track=document.querySelector(".od-conversation-dragbar"),sep=document.querySelector(".od-conversation-separator"),dock=document.querySelector(".od-conversation-dock");
      return {buttonInside:send.left>=input.left&&send.right<=input.right&&send.top>=input.top&&send.bottom<=input.bottom,
       noLegacy:!document.querySelector(".od-conversation-header,.od-conversation-controls,.od-conversation-samples"),
+      actionSharedPrimitive:actionNode.classList.contains('od-icon-button'),actionGridCell:getComputedStyle(actionNode).gridArea===getComputedStyle(document.querySelector('.od-conversation-input')).gridArea,
+      dragHeightCss:parseFloat(getComputedStyle(track).height),visibleDividerCss:parseFloat(getComputedStyle(dock).borderTopWidth),
+      gripHeightCss:parseFloat(getComputedStyle(sep,'::before').height),coarse:matchMedia('(pointer:coarse)').matches,
       bounds:{input:{left:input.left,right:input.right,top:input.top,bottom:input.bottom,height:input.height},
        action:{left:send.left,right:send.right,top:send.top,bottom:send.bottom,height:send.height}}};`);
-   assert.ok(compact.buttonInside&&compact.noLegacy,JSON.stringify(compact));
+   assert.ok(compact.buttonInside&&compact.noLegacy&&compact.actionSharedPrimitive&&compact.actionGridCell,JSON.stringify(compact));
+   assert.ok(compact.dragHeightCss<=(compact.coarse?18:12)+.5&&compact.visibleDividerCss===1&&compact.gripHeightCss===2,
+     'splitter is a thin 1px line and 2px grip, but retains its hit target '+JSON.stringify(compact));
    // Keep the action-layer URL canonicalization gap visible in the report;
    // this UI happy path uses an explicit canonical URL accepted by Service.
    await input('#od-conversation-input','创建一个叫 AI 工具的文件夹，并把 https://example.com/ 收藏进去');

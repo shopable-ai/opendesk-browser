@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>网页剪藏 · 最近摘录与完整资料库交互预览 R1.11</title>
+<title>网页剪藏 R1.2 · 统一标题栏与逐级返回交互预览</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#21314a;background:#f5f7fb;font-size:13px}
 *{box-sizing:border-box}body{margin:0;min-width:280px}
@@ -22,6 +22,19 @@ button:focus-visible{outline:2px solid #3a62d8;outline-offset:2px}
 .device{margin:0 auto;transition:width .18s ease;width:400px;max-width:none;box-shadow:0 12px 32px #20395a1b;border-radius:13px;overflow:hidden;background:#fff}
 .canvas.dark .device{background:#202633;box-shadow:0 12px 32px #0004}
 iframe{border:0;display:block;width:100%;height:760px;background:transparent}
+.demo-tool-head{display:flex;align-items:center;gap:6px;min-height:46px;padding:5px 9px;border-bottom:1px solid #e0e6ef;background:#fff}
+.demo-tool-head strong{flex:1;min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#243653}
+.demo-icon{width:34px;min-width:34px;height:34px;min-height:34px;padding:0;display:grid;place-items:center;border:1px solid transparent}
+.demo-icon:hover{background:#edf2fa}.demo-icon:disabled{opacity:.46}
+.demo-icon svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.demo-icon[hidden],.demo-tool-list[hidden],.demo-host-settings[hidden],iframe[hidden]{display:none!important}
+.demo-tool-list,.demo-host-settings{padding:14px;min-height:300px;background:#fff}
+.demo-tool-list h2,.demo-host-settings h2{font-size:14px;margin:0 0 12px}
+.demo-tool-list button,.demo-host-settings button{border:1px solid #d9e1ed;width:100%;text-align:left;min-height:40px;background:#f7f9fd}
+.demo-host-settings p{font-size:12px;color:#61728c;margin-bottom:12px}
+.canvas.dark .demo-tool-head,.canvas.dark .demo-tool-list,.canvas.dark .demo-host-settings{background:#202633;color:#e3e8f4;border-color:#44506c}
+.canvas.dark .demo-tool-head strong{color:#e3e8f4}
+.canvas.dark .demo-tool-list button,.canvas.dark .demo-host-settings button{background:#2c3444;border-color:#44506c;color:#e3e8f4}
 .log{margin-top:10px;min-height:21px;font-size:12px;color:#61728c;overflow-wrap:anywhere}
 @media(max-width:510px){.preview-shell{padding:12px 8px}.canvas{padding:8px}.controls{gap:6px}.group button{padding:5px 8px}.preview-head{align-items:flex-start}}
 @media(prefers-reduced-motion:reduce){.device{transition:none}}
@@ -30,10 +43,10 @@ iframe{border:0;display:block;width:100%;height:760px;background:transparent}
 <body>
 <div class="preview-shell">
  <header class="preview-head">
-  <div><h1>网页剪藏 · 最近摘录 / 完整资料库</h1><p class="subtitle">直接复用正式 src HTML / CSS / JS，导航、最近列表与图标不再使用预览专属适配器</p></div>
+  <div><h1>网页剪藏 · 手机 App 式逐级返回</h1><p class="subtitle">正式 src/notes.js 与 src/style.css 驱动业务；上方宿主标题栏为隔离模拟，不代表已运行正式 React Host</p></div>
   <span class="subtitle">UI 方案预览 · 非正式发布</span>
  </header>
- <p class="notice" role="note"><strong>R1.11 同源码演示：</strong>正式剪藏主页直接显示最近 4 条和资料库总数；点击卡片阅读全文，键盘或悬浮可编辑/删除；右侧图标进入完整列表，可搜索、筛选全部记录、加载更多。新建便签、返回位置恢复、删除确认、长文滚动与固定底部操作已迁移正式 src。<strong>仅 Host 为模拟：</strong>演示数据保存在 sessionStorage，复制/下载/备份不会真的操作设备；真实 Chrome 安装、持久化及授权仍需单独验收。</p>
+ <p class="notice" role="note"><strong>R1.2 交互预览：</strong>先从扩展列表打开工具，再用左上角单个返回按钮逐层返回；右侧只显示当前页面相关图标，设置可在详情进入并返回原页面。最近摘录仍与剪藏同屏，卡片正文优先。<strong>预览边界：</strong>业务 JS/CSS 来自正式源码，演示舞台 HTML 与 Host 控制为模拟；数据仅在 sessionStorage，剪贴板、下载、Chrome 权限、React Host 及安装升级均未真实执行。</p>
  <div class="controls">
   <div class="group" role="group" aria-label="模拟侧栏宽度">
    <button type="button" data-width="320" aria-pressed="false">320</button>
@@ -59,17 +72,65 @@ iframe{border:0;display:block;width:100%;height:760px;background:transparent}
  </div>
  <div class="canvas" id="canvas">
   <div class="device" id="device">
-   <iframe id="stage" src="stage.html" title="官方网页剪藏工具交互预览" loading="eager"></iframe>
+   <header class="demo-tool-head" role="toolbar" aria-label="模拟可信工具标题栏">
+    <button type="button" id="demo-back" class="demo-icon" aria-label="返回扩展列表" title="返回扩展列表"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7M7 12h14"/></svg></button>
+    <strong id="demo-title">网页剪藏</strong>
+    <button type="button" id="demo-action" class="demo-icon" title="当前页面操作" aria-label="当前页面操作" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button type="button" id="demo-settings" class="demo-icon" title="工具设置" aria-label="工具设置"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M10 2h4l.5 2.5 2 1 2.4-1 2.3 3-1.7 2v3l1.7 2-2.3 3-2.4-1-2 1L14 21h-4l-.5-2.5-2-1-2.4 1-2.3-3 1.7-2v-3l-1.7-2 2.3-3 2.4 1 2-1Z"/></svg></button>
+   </header>
+   <section id="demo-tool-list" class="demo-tool-list" aria-label="扩展列表" hidden>
+    <h2>扩展</h2><button type="button" id="demo-open">网页剪藏 →</button>
+   </section>
+   <section id="demo-host-settings" class="demo-host-settings" aria-label="工具设置" hidden>
+    <h2>工具设置</h2><p>仅模拟返回层级，不申请权限，也不关闭当前剪藏页面。</p>
+    <button type="button" id="demo-open-tab">在新标签页打开（预览不执行）</button>
+   </section>
+   <iframe id="stage" src="stage.html" title="正式剪藏 JS/CSS · 模拟 Host 数据" loading="eager"></iframe>
   </div>
  </div>
- <p class="log" id="log" role="status" aria-live="polite">正式同源码预览：剪藏主页与最近摘录同屏；图标和资料库导航使用正式控制逻辑。</p>
+ <p class="log" id="log" role="status" aria-live="polite">模拟宿主已打开 · 返回、卡片、列表、阅读、编辑与保存由正式业务控制器处理。</p>
 </div>
 <script>
 (function(){
  'use strict';
  const stage=document.querySelector('#stage'),device=document.querySelector('#device');
  const canvas=document.querySelector('#canvas'),log=document.querySelector('#log');
- let width=400,theme='light',zoom=1;
+ const back=document.querySelector('#demo-back'),action=document.querySelector('#demo-action');
+ const title=document.querySelector('#demo-title'),settings=document.querySelector('#demo-settings');
+ const toolList=document.querySelector('#demo-tool-list'),hostSettings=document.querySelector('#demo-host-settings');
+ const pages={home:'网页剪藏',library:'我的摘录',reader:'摘录详情',edit:'编辑摘录',new:'新建便签'};
+ const actions={library:['new','新建便签','M12 5v14M5 12h14'],
+  reader:['edit','编辑摘录','M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L9 17l-4 1 1-4z'],
+  edit:['save','保存摘录','M4 3h14l3 3v15H3V3h1M7 3v6h10V3M7 21v-8h10v8'],
+  new:['save','保存便签','M4 3h14l3 3v15H3V3h1M7 3v6h10V3M7 21v-8h10v8']};
+ let width=400,theme='light',zoom=1,page='home',view='tool',dirty=false,busy=false;
+ const paint=()=>{
+  title.textContent=view==='list'?'扩展':view==='settings'?'工具设置':pages[page];
+  back.hidden=view==='list';
+  const backLabel=view==='settings'?'返回上一页':page==='home'?'返回扩展列表':'返回上一级';
+  back.title=backLabel;back.setAttribute('aria-label',backLabel);
+  const next=view==='tool'?actions[page]:null;
+  action.hidden=!next;action.disabled=busy;
+  if(next){action.title=next[1];action.setAttribute('aria-label',next[1]);action.querySelector('path').setAttribute('d',next[2]);}
+  settings.hidden=view!=='tool';
+  stage.hidden=view!=='tool';toolList.hidden=view!=='list';hostSettings.hidden=view!=='settings';
+ };
+ const sendNav=choice=>stage.contentWindow?.postMessage({kind:'clipper-demo-nav-action',action:choice},'*');
+ back.addEventListener('click',()=>{
+  if(view==='settings'){view='tool';paint();return;}
+  if(view!=='tool')return;
+  if(busy){log.textContent='当前操作仍在进行，请完成后再返回。';return;}
+  if(page==='home'){view='list';paint();return;}
+  sendNav('back');
+ });
+ action.addEventListener('click',()=>{if(view==='tool'&&!busy)sendNav('primary');});
+ settings.addEventListener('click',()=>{
+  if(view!=='tool')return;
+  if(dirty||busy){log.textContent='有未保存的编辑或正在保存：请先保存或取消，再打开设置。';return;}
+  view='settings';paint();
+ });
+ document.querySelector('#demo-open').addEventListener('click',()=>{view='tool';paint();});
+ document.querySelector('#demo-open-tab').addEventListener('click',()=>{log.textContent='模拟设置入口：不会真正打开独立标签页。';});
  const sync=()=>{device.style.width=width+'px';canvas.classList.toggle('dark',theme==='dark');
    stage.contentWindow?.postMessage({kind:'clipper-demo-control',theme,zoom},'*');
  };
@@ -115,11 +176,19 @@ iframe{border:0;display:block;width:100%;height:760px;background:transparent}
   log.textContent='模拟已切换网页：官方 UI 应清空旧缓存，无法保存旧内容。';
  });
  window.addEventListener('message',event=>{
-  if(event.source!==stage.contentWindow||event.data?.kind!=='clipper-demo')return;
-  log.textContent='演示操作：'+event.data.name+' · '+event.data.bytes+' UTF-8 字节（非真实设备结果）';
+  if(event.source!==stage.contentWindow)return;
+  const message=event.data;
+  if(message?.kind==='clipper-demo-nav'&&Object.hasOwn(pages,message.page)){
+   page=message.page;paint();return;
+  }
+  if(message?.kind==='clipper-demo-state'){
+   dirty=message.dirty===true;busy=message.busy===true;paint();return;
+  }
+  if(message?.kind!=='clipper-demo')return;
+  log.textContent='演示操作：'+message.name+' · '+message.bytes+' UTF-8 字节（非真实设备结果）';
  });
- stage.addEventListener('load',sync);
- sync();
+ stage.addEventListener('load',()=>{page='home';dirty=false;busy=false;view='tool';paint();sync();});
+ paint();sync();
 })();
 </script>
 </body>
