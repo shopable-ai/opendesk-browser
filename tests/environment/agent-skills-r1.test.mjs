@@ -55,7 +55,7 @@ test('R2 user app delivery and administrator Browser deployment are independent 
     read('docs/product/extension-app-user-workflow.zh-CN.md'),
     read('scripts/app-update.mjs'),read('package.json')
   ]);
-  assert.match(index,/普通用户.*开发.*预览.*更新/);
+  assert.match(index,/普通用户.*创建.*预览.*更新/);
   assert.match(dev,/不要先卸载|禁止先卸载/);
   assert.match(pack,/PACKAGE_READY_INSTALL_NOT_TESTED/);
   assert.match(runtime,/管理员/);
