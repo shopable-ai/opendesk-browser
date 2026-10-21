@@ -4,6 +4,69 @@
 
 > **2026-10-12 商业方向调整：**原 GOAL 1 Page QA / GOAL 3 EXP-002 的“首款商业产品”建议属于历史计划。现有 Page QA 实验源码已从 main 移除，历史设计仅供追溯。电商业务研究按 [电商 R2 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r2-commercial-validation.zh-CN.md)，需要编写真实工具代码的工程工作按下方 Product Ecosystem R3 GOAL；勿影响其他 Agent 的独立任务。
 
+## 当前商业战略续接 GOAL（R1.2，2026-10-21）
+
+> **此节覆盖本文历史“默认仅研究电商”的跨行业商业研究续接入口，不废弃电商实验或独立工程 GOAL。** 先按最新 main 读取 [长期商业目标与七项结论](commercial-opportunity-framework.zh-CN.md)、[S0–S4 实际验证计划](distribution-and-validation.zh-CN.md)、[唯一 OPP](opportunity-register.json)、[唯一 EXP](commercial-experiments.json) 和 [竞品依据](competitor-research.zh-CN.md)。A 是低成本首个验证，不得把原始商业目标收缩为“开发 AI 图文剪藏”。
+
+~~~text
+# GOAL：OpenDesk Browser Commercial Strategy R1.2-VALIDATION-FIRST
+# 继承原始商业机会目标 · 关键任务防漂移 · 真实竞品/获客/买方证据
+默认中文｜LATEST MAIN｜BUSINESS FIRST｜EVIDENCE FIRST｜SAFE MAIN
+NO SECOND LEDGER｜NO FAKE BUSINESS METRICS｜MINIMAL DIFF
+
+仓库：shopable-ai/opendesk-browser；唯一可修改/提交/推送分支 main。
+不创建分支/Worktree/PR，不强推，不覆盖其他 Agent 提交。
+
+【原始最高目标】
+利用 OpenDesk 已有浏览器增强、自动化、UserScript、React/Vue/HTML
+工具和 Browser SDK，以免费单任务获得用户；
+通过 SaaS、专业数据、工作流、企业集成/维护产生可持续实际收入。
+不是多造扩展；不要预设 AI 图文保存就是 OpenDesk 最赚钱产品。
+
+【原始五问】
+1 Chrome Web Store 哪些产品具有真正可核查的商业模式？
+2 哪些竞品有可以合法争取的客户需求与搜索流量？
+3 竞品/替代词、任务长尾词、CWS 自然流量何者获取客户更经济？
+4 什么免费入口能带来真实高价值服务订单？
+5 现有 OpenDesk 代码能否切实降低开发与持续维护成本？
+
+【四项原始关键任务，不能删减】
+T1 核验 ≥15 个业务场景、约 30 个既有 OPP 候选、
+   约 20 家重点竞品的实际功能/价格/最近评论/反例/来源日期。
+T2 分别研究 A AI 图文/提示词交付，B 授权企业网页工作流，
+   C 卖家/行业合法数据核查；独立评估购买方、渠道、复用、
+   真实留存、收入潜力和维护合规风险，不抬高研究评分。
+T3 复用现有商业框架、竞品文件、唯一 84 OPP/8 EXP、
+   获客验证日志和 README；不建第二套账本或 Browser SDK/Host。
+T4 研究 Google 竞品品牌/替代词、明确任务长尾词、
+   CWS 自然搜索、SEO，US/en 与 JP/ja 分开；
+   用真实数据测首次完成、重复使用、实际付款、CPC/CAC/贡献；
+   未授权广告账户或预算时不投放，缺的指标记 MISSING。
+
+【本轮实施次序】
+S0 先确认最新 main 和既有 knowledge-inbox、
+   web-markdown-clipper、prompt-shortcuts、Workflow 的真实源码能力；
+   找到 A 图文附件完整保存、读回和可信回执的最小缺口，
+   不另造通用 AI 平台，正式 Chrome 未运行写 NOT_TESTED。
+S1 只在确有真实差异和最小可实施缺口时做 A 的单任务验证；
+   EXP-003 的 Research Clip & Cite 原身份保持不变。
+S2 B（EXP-001）并行找具有授权、明确流程、采购人和预算的客户；
+   C（EXP-005）必须先有合法数据样本；EXP-002 继续 ARCHIVED。
+S3 对竞品评论、关键词搜索量/CPC、用户激活、自然复用、
+   真实订单和成本逐项记录 FACT/ESTIMATE/HYPOTHESIS/MISSING。
+S4 独立安全/授权、首次成功、重复使用、付款、
+   单位经济否决门；GO/PIVOT/STOP/NOT_DECIDED 由实证决定。
+
+【交付】
+先写语义化关键结论、当前完成与未完成；
+随后给源码复用证据、三方向独立判断与反面理由、
+获客/采购实证缺口、S0–S4 进度、变更路径及提交 SHA。
+商业研究质量目标 95+ 不等于方向成功率；
+无真实产品/用户/广告数据不得宣称 PASS。
+~~~
+
+此 GOAL 是商业研究和证据优先级，**不自动授权广告花费、大规模产品重构或客户数据访问**。涉及实际新产品工程时另按对应工具所有权与真实验收执行。
+
 ## 当前工程任务（R3）：真实工具与通用架构
 
 > **新的工程执行入口**：[Product Ecosystem R3 GOAL](../../framework/prompts/goal-product-ecosystem-r3.zh-CN.md)，任务树与验收门见 [R3 Roadmap](product-ecosystem-r3-roadmap.zh-CN.md)。依序完成 P0 清理影响验证、P1 复用能力映射、P2 实际电商工具/UserScript 闭环；只有真实独立发行必要时才启动 P3 Extension Factory 通用化。当前并没有已交付的跨产品通用 Factory，也不应重新建立 Page QA。
