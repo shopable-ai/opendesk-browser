@@ -14,6 +14,7 @@ on:
       - 'src/ui/design-system.css'
       - 'scripts/preview/build-workflow-react-preview.mjs'
       - 'scripts/tests/workflow-source-preview-browser.mjs'
+      - 'scripts/tests/react-sidebar-r3331-browser.mjs'
       - 'tests/environment/workflow-react-preview-contract.test.mjs'
       - 'prototypes/sidebar/workflow/react-preview/**'
       - '.github/workflows/workflow-react-preview-r3336.yml'
