@@ -11,8 +11,8 @@
     "examples/sidebar-tools/quick-notes/assets/mark.png": "a8920cb7fdbb3fc95d4e4323dc83ba6fa4a19b1e",
     "scripts/build-sidebar-tool.mjs": "aa4895b76000106919b72531de65ae0a397b0df3",
     "scripts/preview/shared-tool-design.mjs": "d5f8fba474ff934298c6b897db45c2c3fff82981",
-    "scripts/preview/sidebar-shell-source.mjs": "3eaf3964a997fc71ce72385babe1fe48726a47b2",
-    "scripts/templates/sidebar-tool-preview-shell.html": "045ed375fa39a6107c9ee32649a25abbb7daeb49",
+    "scripts/preview/sidebar-shell-source.mjs": "a8127f66ab44a4c515cd68c781b0555f6da803ac",
+    "scripts/templates/sidebar-tool-preview-shell.html": "bbd539cb4fab151e19a87721750ba215c9752119",
     "scripts/preview/build-preview.mjs": "8e306b84fd5bc076554ad1b6c993a242b181c35f",
     "scripts/preview/quick-notes-mock.js": "65f447314af901386eb3b32136d2f224701dd7b6",
     "scripts/preview/check-preview-contract.mjs": "0fc4aa33ee084c864884f57fcce224e3b86e3770"

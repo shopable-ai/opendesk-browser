@@ -83,3 +83,37 @@ test('an unanswered policy query expires and its late positive reply cannot reap
   await f.resolve(1);assert.equal(f.styles(),0);
   f.instance.dispose();assert.equal(f.timeouts.size,0);
 });
+
+test('historical locate follows a scrolling target and cancels its frame on timeout or revocation',async()=>{
+  const f=fixture(),frames=new Map(),markers=[];
+  let frameId=0,top=2400;
+  const target={isConnected:true,scrollIntoView(){},
+    getBoundingClientRect:()=>({left:24,top,width:280,height:100})};
+  f.doc.querySelector=selector=>selector==='#saved-ad'?target:null;
+  f.doc.querySelectorAll=selector=>selector==='#saved-ad'?[target]:[];
+  f.doc.documentElement={append(node){markers.push(node);node.isConnected=true;}};
+  const create=f.doc.createElement;
+  f.doc.createElement=tag=>tag!=='div'?create(tag):{style:{},setAttribute(){},
+    remove(){this.isConnected=false;}};
+  f.win.requestAnimationFrame=fn=>{const id=++frameId;frames.set(id,fn);return id;};
+  f.win.cancelAnimationFrame=id=>frames.delete(id);
+  await f.resolve(0);
+  const locate=()=>{
+    let reply;
+    f.messages.emit({protocol:ADBLOCK_PAGE_PROTOCOL,type:'locate-selector',selector:'#saved-ad'},
+      {id:f.api.runtime.id},value=>{reply=value;});
+    assert.equal(reply.ok,true);
+    return markers.at(-1);
+  };
+  const marker=locate();assert.equal(marker.style.top,'2400px');
+  top=220;
+  const [id,follow]=frames.entries().next().value;frames.delete(id);follow();
+  assert.equal(marker.style.top,'220px','fixed blue frame tracks the new viewport coordinates');
+  assert.equal(frames.size,1);
+  for(const timeout of [...f.timeouts.values()])timeout();
+  assert.equal(marker.isConnected,false);assert.equal(frames.size,0);
+  locate();assert.equal(frames.size,1);
+  f.changes.emit({[ADBLOCK_STORE]:{}},'local');
+  assert.equal(markers.at(-1).isConnected,false);assert.equal(frames.size,0);
+  await f.resolve(1,false);f.instance.dispose();assert.equal(frames.size,0);
+});

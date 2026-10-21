@@ -88,6 +88,16 @@ node scripts/tests/adblock-preview-chrome.mjs artifacts/preview-chrome
 
 ## CI 与发布状态（以最新执行结果为准）
 
+### R2.7 核心操作验证（2026-10-21）
+
+- **持续开发核心链 PASS**：隔离 Chrome for Testing 155.0.8059.39 加载既有 `dist/development`（扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`），实际安装并打开 React 应用，经侧栏选择、网页蓝框、真实单击隐藏、Host 保存、本地存储读回、侧栏撤销及刷新恢复。该证据属于 `DEVELOPMENT_CORE_ONLY`，不证明 production 安装或 1.2.2 正式升级。
+- **长网页定位修复并实测**：平滑滚动后蓝框与目标的顶部偏差由 1872.5px 降为 0px；框跟随目标、到期恢复隐藏，持久规则不变。定位使用既有页面引擎，取消、撤权和销毁会清理动画帧。
+- **高级 CSS 核心链 PASS**：真实界面拒绝危险选择器和 16 个匹配；0 匹配规则经明确选择后可申请保存。Add 等待真实 Host 确认 9 秒后成功，Replace 经 Host 确认后原子替换并读回存储。桥接复用现有 120 秒确认等待与结果未知保护，避免原 8 秒 RPC 超时先于用户确认；未加入自动重试。
+- **自动检查**：React 编译及 Build Receipt PASS；AdBlock Node 套件 331 PASS、1 SKIPPED、0 FAIL；`npm run check` PASS。`app-ci node adblock` 最后因缺少完整构建生成的 `candidate-receipt.json` 退出，整个 App CI 不能记为 PASS。更新了与当前 React 入口不符的测试驱动和共享预览外壳断言；正式 Native 驱动仅完成语法核对。
+- **发行阻断**：保留已有 watcher，在独立源码快照执行 production 构建，当前先被 `prompt-shortcuts/trusted/asset-contract.js` 的固定可信来源校验拒绝。责任归属 Prompt Shortcuts / 共享固定构建来源审查；未修改该产品或 Web Clipper 的来源锁。Issue #76 保留历史阻断证据，不能据此称最新构建仍停在同一文件。
+- **未执行的门禁**：AdBlock 正式同源 HTML / Chromium 为 `PREVIEW_NOT_TESTED`；production Mac Chrome DNR、重启、同 ID 升级、撤权卸载与 Stay Focus 共存验收为 `NOT_TESTED`；五维正式专家评分为 `NOT_SCORED`。共享 Quick Notes 外壳的同源及浏览器检查通过，不替代 AdBlock 正式预览。
+- **本机原始证据**（Git 忽略）：`artifacts/adblock-r27-core/core-report.json`、`advanced-core-report.json`、`long-locate.png`、`app-ci-node-final.log`、`production-snapshot-local-deps.log` 与 `verification-summary.json`。测试基于 `0ae7533a16fc4d21e0b34f0db3a1de2d7bb72b97` 加本轮改动；证据摘要保留输入指纹。候选仍为 **1.2.2**，唯一正式包仍为 **1.2.1**，没有晋升或启用发布任务。
+
 ```bash
 node scripts/app-ci.mjs build adblock
 node scripts/app-ci.mjs node adblock

@@ -14,8 +14,10 @@ test('legacy UI shows read-only upgrade guidance with normal management retained
   assert.doesNotMatch(text,/adblock\.createPermissionControls\(/);
   assert.doesNotMatch(text,/adblockControls\?/);
   assert.match(text,/const legacyAdblock=managed&&id===ADBLOCK_ID/);
-  assert.match(text,/adblockContainer\.hidden=!legacyAdblock\|\|tocSettingsOpen/);
-  assert.match(text,/此版本 AdBlock 的旧控制界面已退役/);
+  assert.match(text,/view\.setLegacyAdblockVisible\(legacyAdblock&&!tocSettingsOpen\)/);
+  const ui=await readFile(new URL('../../src/ui/react/tabs/tool-host.tsx',import.meta.url),'utf8');
+  assert.match(ui,/此版本 AdBlock 的旧控制界面已退役/);
+  assert.match(ui,/id="sidebar-tool-adblock-native" hidden=\{!snapshot\.legacyAdblockVisible\}/);
   assert.match(text,/frameRoot\.hidden=.*[\s\S]*?legacyAdblock;/);
 });
 test('legacy cleanup and DNR authorization remain under installed package gates',async()=>{

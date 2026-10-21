@@ -74,6 +74,6 @@ test('development watcher republishes compiled AdBlock on JSX-only changes',asyn
   const source=await readFile(resolve('scripts/wxt-development.mjs'),'utf8');
   assert.match(source,/const adblockSourceChanged=changes\.some/);
   assert.match(source,/if\(adblockSourceChanged\)await buildAdblockReact/);
-  assert.match(source,/!catalogDirty&&!adblockSourceChanged&&!changes\.some/);
+  assert.match(source,/!catalogDirty&&!adblockSourceChanged&&[^;{}]*!changes\.some/);
   assert.match(source,/adblock\/dist/);
 });

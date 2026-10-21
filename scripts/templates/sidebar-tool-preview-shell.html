@@ -108,7 +108,6 @@ body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
   const modal=byId('od-preview-confirm-uninstall');
   let extensionPage='detail';
   byId('sidebar-tool-title').textContent={{TOOL_NAME_JSON}};
-  byId('sidebar-tool-open-tab').hidden=true;
   remove.disabled=false;
   // This preview must never claim the real tool and its stored data will be removed.
   remove.setAttribute('aria-label','模拟卸载当前工具（不会删除真实数据）');

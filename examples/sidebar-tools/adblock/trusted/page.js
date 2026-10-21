@@ -25,9 +25,10 @@ export function initAdblockCosmetics({api=globalThis.chrome,doc=globalThis.docum
   // Locator reveals a hidden match briefly without mutating stored rules or
   // a user's explicit temporary-visibility choice.
   let transientLocate=null;
-  let previewMarker=null,previewTimer=null;
+  let previewMarker=null,previewTimer=null,previewFrame=null;
   const clearPreview=()=>{previewMarker?.remove();previewMarker=null;
     if(previewTimer!==null){win.clearTimeout(previewTimer);previewTimer=null;}
+    if(previewFrame!==null){win.cancelAnimationFrame(previewFrame);previewFrame=null;}
     if(transientLocate!==null){transientLocate=null;apply();}};
   function preview(selector,{reveal=false}={}){
     clearPreview();
@@ -43,8 +44,16 @@ export function initAdblockCosmetics({api=globalThis.chrome,doc=globalThis.docum
     previewMarker.setAttribute('data-opendesk-adblock-picker-ui','');
     previewMarker.style.cssText='position:fixed!important;pointer-events:none!important;z-index:2147483646!important;border:2px solid #3675ef!important;box-sizing:border-box!important;border-radius:5px!important;background:#4a80ed18!important';
     doc.documentElement.append(previewMarker);
-    Object.assign(previewMarker.style,{left:rect.left+'px',top:rect.top+'px',
-      width:rect.width+'px',height:rect.height+'px'});
+    const follow=()=>{
+      previewFrame=null;
+      if(!previewMarker)return;
+      const currentRect=match.getBoundingClientRect();
+      if(!match.isConnected||currentRect.width<1||currentRect.height<1){clearPreview();return;}
+      Object.assign(previewMarker.style,{left:currentRect.left+'px',top:currentRect.top+'px',
+        width:currentRect.width+'px',height:currentRect.height+'px'});
+      previewFrame=win.requestAnimationFrame(follow);
+    };
+    follow();
     previewTimer=win.setTimeout(clearPreview,2500);
   }
   const current=()=>{try{return !disposed&&api.runtime.id===runtimeId;}catch{return false;}};

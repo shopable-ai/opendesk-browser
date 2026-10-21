@@ -6,7 +6,8 @@ import {browserOperation,normalizeBrowserOperation} from '../framework/sdk/brows
 // closes unconfirmed reviews after 90 seconds; ordinary tool RPCs stay short.
 // Waiting is never an authorization grant or a DNR deadline.
 export const ADBLOCK_CONFIRM_OPERATIONS=Object.freeze([
-  'adblock.enable','adblock.disable','adblock.site.set','adblock.site.restore'
+  'adblock.enable','adblock.disable','adblock.site.set','adblock.site.restore',
+  'adblock.cosmetic.add','adblock.cosmetic.replace'
 ]);
 export function sidebarToolRequestTimeout(operation,toolId){
  if(toolId==='web-markdown-clipper'&&operation.startsWith('clipNotes.'))

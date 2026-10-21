@@ -32,10 +32,13 @@ export function extractSidebarPreviewShell(html,css){
   const navigation=$('nav.workbench-nav'),toolbar=$('.sidebar-tool-view-head');
   if(navigation.length!==1||toolbar.length!==1||navigation.find('#tab-tools').text()!=='扩展')
     fail('real React navigation/toolbar contract unavailable');
-  for(const id of ['sidebar-tool-back','sidebar-tool-title','sidebar-tool-open-tab',
+  for(const id of ['sidebar-tool-back','sidebar-tool-title',
     'sidebar-tool-settings-open','sidebar-tool-remove']){
     if(toolbar.find('#'+id).length!==1)fail('React toolbar action missing: '+id);
   }
+  const settings=$('#sidebar-tool-settings-view');
+  if(settings.length!==1||settings.find('#sidebar-tool-open-tab').length!==1)
+    fail('React settings action missing: sidebar-tool-open-tab');
   if(navigation.find('[role=tab]').length!==6)fail('unexpected real Side Panel tab count');
   const nav=navigation.toString(),head=toolbar.toString();
   const rules=css.split('\n');

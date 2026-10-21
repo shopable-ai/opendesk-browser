@@ -1,7 +1,11 @@
 import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
+import {runInNewContext} from 'node:vm';
+import {load} from 'cheerio';
+import {parseHTML} from 'linkedom';
 import {generatePreview} from '../../scripts/preview/build-preview.mjs';
 import {extractSidebarPreviewShell,sidebarPreviewShellSource} from '../../scripts/preview/sidebar-shell-source.mjs';
 
@@ -15,12 +19,19 @@ test('preview shell extracts live Side Panel navigation, toolbar and public host
   const live=await sidebarPreviewShellSource();
   assert.deepEqual(extracted,live);
   assert.match(extracted.digest,/^[0-9a-f]{64}$/);
+  assert.equal(extracted.digest,createHash('sha256')
+    .update(extracted.nav+'\n'+extracted.head+'\n'+extracted.css).digest('hex'));
   assert.ok(html.includes(extracted.nav));
+  const $=load(html);
+  assert.equal(extracted.head,$('.sidebar-tool-view-head').toString());
+  assert.equal($('.sidebar-tool-view-head #sidebar-tool-open-tab').length,0);
+  assert.equal($('#sidebar-tool-settings-view #sidebar-tool-open-tab').length,1);
+  assert.ok(!extracted.head.includes('id="sidebar-tool-open-tab"'));
   assert.match(react,/className="sidebar-tool-view-head od-toolbar od-page-head"/);
   assert.doesNotMatch(await read('src/ui/sidepanel.html'),/id="sidebar-tool-remove"/,
     'preview must not reintroduce the deleted legacy toolbar');
   assert.match(extracted.nav,/id="tab-tools"[^>]*>扩展<\/button>/);
-  for(const id of ['sidebar-tool-back','sidebar-tool-title','sidebar-tool-remove'])
+  for(const id of ['sidebar-tool-back','sidebar-tool-title','sidebar-tool-settings-open','sidebar-tool-remove'])
     assert.ok(extracted.head.includes('id="'+id+'"'));
   assert.ok(extracted.css.includes('.workbench-nav{'));
   assert.ok(extracted.css.includes('.sidebar-tool-view-head{'));
@@ -31,8 +42,15 @@ test('preview shell rejects missing real button or stylesheet owners instead of 
   const [html,css,react]=await Promise.all([
     renderSidebarFixture({activeTab:'tools'}),read('src/ui/tool-shell.css'),read('src/ui/react/tabs/tool-host.tsx')
   ]);
-  assert.throws(()=>extractSidebarPreviewShell(html.replace('id="sidebar-tool-remove"','id="unsupported-action"'),css),
-    /E_PREVIEW_SHELL/);
+  for(const id of ['sidebar-tool-back','sidebar-tool-title','sidebar-tool-settings-open','sidebar-tool-remove'])
+    assert.throws(()=>extractSidebarPreviewShell(html.replace('id="'+id+'"','id="unsupported-action"'),css),
+      new RegExp('E_PREVIEW_SHELL: React toolbar action missing: '+id));
+  assert.throws(()=>extractSidebarPreviewShell(html.replace('id="sidebar-tool-open-tab"','id="unsupported-action"'),css),
+    /E_PREVIEW_SHELL: React settings action missing: sidebar-tool-open-tab/);
+  const $=load(html);
+  $('#sidebar-tool-open-tab').appendTo('.sidebar-tool-view-head');
+  assert.throws(()=>extractSidebarPreviewShell($.html(),css),
+    /E_PREVIEW_SHELL: React settings action missing: sidebar-tool-open-tab/);
   assert.throws(()=>extractSidebarPreviewShell(html,css.replace('.workbench-nav{','.other-nav{'),react),
     /E_PREVIEW_SHELL/);
   assert.throws(()=>extractSidebarPreviewShell(html.replace('id="tab-tools"','id="old-tools"'),css,react),
@@ -63,6 +81,13 @@ test('one light preview shell frames the same real sandboxed tool without other 
     assert.ok(preview.html.includes('模拟预览 · 非真实安装、权限或网络执行'));
     assert.ok(preview.html.includes('iframe.srcdoc=trustedFrameHtml;'));
     assert.ok(preview.html.includes("iframe.srcdoc='';"));
+    const {document}=parseHTML(preview.html);
+    assert.equal(document.getElementById('sidebar-tool-open-tab'),null);
+    const script=document.querySelector('script:not([type])').textContent;
+    assert.doesNotThrow(()=>runInNewContext(script,{document,atob,TextDecoder},{timeout:1000}));
+    assert.equal(document.getElementById('opendesk-preview-frame').srcdoc,preview.frameHtml);
+    assert.equal(document.getElementById('tab-tools').getAttribute('aria-selected'),'true');
+    assert.equal(document.getElementById('sidebar-tool-remove').disabled,false);
   }
 });
 

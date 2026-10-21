@@ -41,7 +41,7 @@ const compiledAdblockInputs=Object.freeze({
   'examples/sidebar-tools/adblock/trusted/host-controls.js':'79dbe97eaf1eb61315e634384d922079f2d4b136',
   'examples/sidebar-tools/adblock/rules/domains.js':'b6b2ad8bb2085018f355f046d9b2a787601039bd',
   'examples/sidebar-tools/adblock/trusted/cosmetic.js':'da37f1f0e8f40860ac059ef2f43a27daeeb6d3d3',
-  'examples/sidebar-tools/adblock/trusted/page.js':'69021b2fbab9c5656d00fac4ebf702dc1c2cafad',
+  'examples/sidebar-tools/adblock/trusted/page.js':'8a65d7d913b84282cc6d3b5f21eed1caf862b296',
   'examples/sidebar-tools/adblock/trusted/picker.js':'dd92c939a12a72be2239634bddf8fd878ca153dc',
   'examples/sidebar-tools/adblock/trusted/cosmetic-policy.js':'65804d9e8455fb9521f789744e4b3d276876b455'
 });

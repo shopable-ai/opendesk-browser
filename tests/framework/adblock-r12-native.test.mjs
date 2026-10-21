@@ -897,7 +897,7 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   // The filter popover stays open until dismissed; it overlays the actual row
   // and would make a synthesized element.click() wrongly appear successful.
   await click(client,sid,'#extension-center-more');
-  const installed='#extension-center-list button[data-extension-key="app:adblock"][data-extension-action="primary"]';
+  const installed='#extension-center-list button[data-extension-key="app:adblock"][data-extension-action="main"]';
   const openInstalled=async session=>{
     await until(()=>evaluate(client,session,'(()=>{'+
     'const tools=document.querySelector("#workbench-tools"),importing=document.querySelector("#sidebar-tool-import");'+
@@ -907,12 +907,12 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
     await until(()=>evaluate(client,session,'(()=>{const list=document.querySelector("#extension-center-list");'+
       'const b=document.querySelector('+JSON.stringify(installed)+'),row=b?.closest("li");'+
       'return list?.getAttribute("aria-busy")==="false"&&!!row&&'+
-      'row.getAttribute("aria-busy")!=="true"&&!!b&&!b.disabled&&b.textContent.trim()==="打开";})()'),
+      'row.getAttribute("aria-busy")!=="true"&&!!b&&!b.disabled&&b.getAttribute("aria-label")==="打开「广告拦截」";})()'),
       'installed AdBlock list and row finish refreshing before a single real Open click');
     await click(client,session,installed);
   };
   await until(()=>evaluate(client,sid,'(()=>{const b=document.querySelector('+
-    JSON.stringify(installed)+');return !!b&&!b.disabled&&b.textContent.trim()==="打开"})()'),
+    JSON.stringify(installed)+');return !!b&&!b.disabled&&b.getAttribute("aria-label")==="打开「广告拦截」"})()'),
     'reviewed official AdBlock installed and directly runnable in the unified list');
   await openInstalled(sid);
   const installedIdentity=await evaluate(client,uid,'chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1",'+
@@ -1366,9 +1366,17 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
     await until(async()=>{const dom=await manualDom(manualSession);return dom[regionKey]?.visible;},
       'region visible before actual user selection');
     await clickSandbox(client,sid,reactSession,pickerSelector);
+    await until(()=>evaluate(client,reactSession,
+      'document.querySelector(".adblock-pick-panel button")?.textContent.trim()==="取消选择"'),
+      'trusted Host acknowledges the new picker before moving the page pointer');
+    await manualMousePage.bringToFront();
+    await manualMousePage.locator(selector).hover();
     await until(()=>evaluate(client,manualSession,
-      'document.querySelector("[data-opendesk-adblock-picker][role=status]")?.textContent.includes("选择模式：")'),
+      '!!document.querySelector("[data-opendesk-adblock-picker]")'),
       'actual isolated-world page picker entered selection mode');
+    assert.equal(await evaluate(client,manualSession,
+      '[...document.querySelectorAll("[data-opendesk-adblock-picker]")].some(node=>node.textContent.trim())'),false,
+      'the page picker must only display its blue frame, without text controls');
     assert.equal(await evaluate(client,sid,
       'document.getElementById("sidebar-tool-action-review")?.hidden'),true,
       'manual selection has no secondary approval dialog');
@@ -1551,10 +1559,15 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
       return storage[COSMETIC_STORE]?.entries?.length===2?storage:null;
     },'second genuine selection persisted before page undo');
     assert.ok(selected[COSMETIC_STORE].entries.some(x=>x.host==='localhost'&&x.selector==='#manual-undo-slot'));
-    const undoSelector='button[aria-label="撤销刚才的隐藏规则"]';
-    await until(()=>evaluate(client,manualSession,
-      '!!document.querySelector('+JSON.stringify(undoSelector)+')'),'page success notice offers undo');
-    const input=await mouseClick(manualMousePage,undoSelector);
+    const undoSelector='.adblock-pick-panel button';
+    await until(()=>evaluate(client,resumedReact,
+      'document.querySelector('+JSON.stringify(undoSelector)+')?.textContent.trim()==="撤销"'),
+      'installed sidebar offers undo after the storage readback');
+    assert.equal(await evaluate(client,manualSession,
+      '!!document.querySelector("[data-opendesk-adblock-picker][role=status]")'),false,
+      'saved selection must not add a webpage toast or undo control');
+    await clickSandbox(client,sid,resumedReact,undoSelector);
+    const input={surface:'installed-sidebar',driver:'CDP Input'};
     const dom=await until(async()=>{const value=await manualDom(manualSession);
       return value.undoRegion?.connected&&value.undoRegion.visible&&value.region?.display==='none'&&value.normal?.visible?value:null;
     },'page undo restores only the last hidden region');
@@ -1570,7 +1583,7 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   await manualCase('listRestore',async()=>{
     await activateManual(resumedReact);
     await clickSandbox(client,sid,resumedReact,'.adblock-manual-actions button:nth-child(2)');
-    const restore='button[aria-label="撤销屏蔽 #manual-ad-slot"]';
+    const restore='button[aria-label="永久删除规则 #manual-ad-slot"]';
     await until(()=>evaluate(client,resumedReact,
       'document.querySelector('+JSON.stringify(restore)+')?.disabled===false'),'installed React lists the exact saved rule');
     await clickSandbox(client,sid,resumedReact,restore);
@@ -1801,9 +1814,9 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   await click(client,sid,'#extension-center-more');
   await click(client,sid,'#extension-center-menu [data-ec-scope="smart"]');
   await click(client,sid,'#extension-center-more');
-  const focusInstalled='[data-extension-key="app:stay-focus"][data-extension-action="primary"]';
+  const focusInstalled='[data-extension-key="app:stay-focus"][data-extension-action="main"]';
   await until(()=>evaluate(client,sid,'(()=>{const b=document.querySelector('+JSON.stringify(focusInstalled)+');'+
-    'return !!b&&!b.disabled&&b.textContent.trim()==="打开"})()'),'installed Stay Focus open control');
+    'return !!b&&!b.disabled&&b.getAttribute("aria-label")?.startsWith("打开「")})()'),'installed Stay Focus open control');
   await click(client,sid,focusInstalled);
   const focusFrameUrl=await until(()=>evaluate(client,sid,
     '(()=>{const host=document.querySelector("#sidebar-tool-frame"),frame=host?.querySelector("iframe");'+
@@ -1937,7 +1950,7 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   await client.send('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',modifiers:4},sid);
   await client.send('Input.insertText',{text:'专注'},sid);
   await until(()=>evaluate(client,sid,'(()=>{const b=document.querySelector('+JSON.stringify(focusInstalled)+');'+
-    'return !!b&&!b.disabled&&b.textContent.trim()==="打开"})()'),'existing Focus installation open after cleanup');
+    'return !!b&&!b.disabled&&b.getAttribute("aria-label")?.startsWith("打开「")})()'),'existing Focus installation open after cleanup');
   await click(client,sid,focusInstalled);
   const resumedFocusUrl=await until(()=>evaluate(client,sid,
     '(()=>{const h=document.querySelector("#sidebar-tool-frame"),f=h?.querySelector("iframe");'+
