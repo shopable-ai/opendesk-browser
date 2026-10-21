@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>网页剪藏 · 1.2.2 正式 UI 交互预览</title>
+<title>网页剪藏 · 同屏紧凑摘录列表交互预览 R1.9</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#21314a;background:#f5f7fb;font-size:13px}
 *{box-sizing:border-box}body{margin:0;min-width:280px}
@@ -21,7 +21,7 @@ button:focus-visible{outline:2px solid #3a62d8;outline-offset:2px}
 .canvas.dark{background:radial-gradient(circle at 10% 15%,#293246,#181e2b);border-color:#44506c}
 .device{margin:0 auto;transition:width .18s ease;width:400px;max-width:none;box-shadow:0 12px 32px #20395a1b;border-radius:13px;overflow:hidden;background:#fff}
 .canvas.dark .device{background:#202633;box-shadow:0 12px 32px #0004}
-iframe{border:0;display:block;width:100%;height:630px;background:transparent}
+iframe{border:0;display:block;width:100%;height:760px;background:transparent}
 .log{margin-top:10px;min-height:21px;font-size:12px;color:#61728c;overflow-wrap:anywhere}
 @media(max-width:510px){.preview-shell{padding:12px 8px}.canvas{padding:8px}.controls{gap:6px}.group button{padding:5px 8px}.preview-head{align-items:flex-start}}
 @media(prefers-reduced-motion:reduce){.device{transition:none}}
@@ -30,10 +30,10 @@ iframe{border:0;display:block;width:100%;height:630px;background:transparent}
 <body>
 <div class="preview-shell">
  <header class="preview-head">
-  <div><h1>网页剪藏 · 正式 UI 预览</h1><p class="subtitle">复用 src/index.html、src/style.css、src/notes.js、src/main.js · 版本 1.2.2</p></div>
-  <span class="subtitle">非 React · 正式 HTML/CSS/JS</span>
+  <div><h1>网页剪藏 · 同屏紧凑列表设计预览</h1><p class="subtitle">复用正式 style.css、notes.js、main.js，增加预览专属布局层 · 待评审，未迁移正式版</p></div>
+  <span class="subtitle">UI 方案预览 · 非正式发布</span>
  </header>
- <p class="notice" role="note"><strong>如何体验：</strong>① 文章提取 → 选区提取 → 引用（复用选区）→ 文章（恢复）→ 链接（可信来源）。重复点当前模式应保持原文。② 点击「模拟切换网页」，确认缓存失效并重新提取。③ 保存到我的摘录，或模拟右键入口；「模拟重开侧栏」验证演示读回。<strong>此页面只有演示数据，使用临时 sessionStorage 模拟重开，不写入 Chrome 扩展存储。复制、下载和备份均不操作真实设备；关闭演示会话后数据可能消失。</strong></p>
+ <p class="notice" role="note"><strong>本轮重点：</strong>当前剪藏与「我的摘录」保持同屏；已预置 4 条演示记录。将鼠标移到卡片上查看右上角删除图标（触屏常显），点击会先二次确认；可直接搜索、阅读、编辑、新建、保存，并观察列表更新。也可测试文章/选区/引用/链接切换、320–440px 宽度和深色主题。<strong>仅预览：复用正式 JS/Host 模拟适配，但新版布局仍是预览层；数据放在 sessionStorage，不是 Chrome 真实存储，复制/下载/备份亦非真实设备操作。</strong></p>
  <div class="controls">
   <div class="group" role="group" aria-label="模拟侧栏宽度">
    <button type="button" data-width="320" aria-pressed="false">320</button>
@@ -61,7 +61,7 @@ iframe{border:0;display:block;width:100%;height:630px;background:transparent}
    <iframe id="stage" src="stage.html" title="官方网页剪藏工具交互预览" loading="eager"></iframe>
   </div>
  </div>
- <p class="log" id="log" role="status" aria-live="polite">演示就绪：点击「提取当前文章」获取模拟 Markdown，或者新建便签。</p>
+ <p class="log" id="log" role="status" aria-live="polite">同屏预览已就绪：可以直接浏览下方的 4 条演示摘录，也可以提取文章后保存。</p>
 </div>
 <script>
 (function(){
