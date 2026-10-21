@@ -55,7 +55,7 @@ function decoderFixture(html){
       'setBusy(value){imageUploadBusy=value},'+
       'snapshot(){return {draftImageAssetId,draftImageMeta,imageAssets,imageUploadBusy,updates}}};'
   );
-  return {el,api:fn(deps)};
+  return {el,state:deps.state,api:fn(deps)};
 }
 test('R4 original full HTML retains complete preview, single upload affordance and 3 sizes',async()=>{
   const html=await load(),js=script(html);
@@ -127,4 +127,79 @@ test('R4 exact preview decoder: storage failure and overlapping jobs fail withou
   assert.equal(api.snapshot().draftImageAssetId,before);
   api.setBusy(false);
   assert.equal(api.snapshot().updates,1);
+});
+
+// R4.1: source-bound draft integrity checks. No alternate preview or second draft owner.
+test('R4.1 inactive image-source inputs remain dirty when returning to the original source',async()=>{
+  const js=script(await load());
+  const start=js.indexOf('function rawFormValues()');
+  const end=js.indexOf('function projection()',start);
+  assert(start>=0&&end>start,'exercise the exact original form value and draft snapshot');
+  const fields=new Map();
+  const el=id=>{
+    if(!fields.has(id))fields.set(id,{value:'',checked:false});
+    return fields.get(id);
+  };
+  el('promptBody').value='已有正文';
+  el('itemEnabled').checked=true;
+  el('appearanceImage').checked=true;
+  el('imageSourceLocal').checked=true;
+  const api=new Function('el','state',
+    'let editId=null,draftImageAssetId="psa_saved";\n'+
+    'function defaultShort(body){return body.slice(0,2)||"备用";}\n'+
+    js.slice(start,end)+
+    'return {rawFormValues,draftSnapshot,setLocalAsset(id){draftImageAssetId=id}};'
+  )(el,{items:[]});
+  const baseline=api.draftSnapshot(),persisted=JSON.stringify(api.rawFormValues());
+  el('imageSourceLocal').checked=false;
+  el('imageSourceUrl').checked=true;
+  el('imageUrl').value='https://example.com/unsaved.png';
+  el('imageSourceLocal').checked=true;
+  el('imageSourceUrl').checked=false;
+  assert.equal(JSON.stringify(api.rawFormValues()),persisted,
+    'active-only serialization alone cannot see the hidden URL draft');
+  assert.notEqual(api.draftSnapshot(),baseline,'inactive URL draft must protect cancel and host back');
+  el('imageUrl').value='';
+  assert.equal(api.draftSnapshot(),baseline,'restoring both source drafts clears dirty');
+  api.setLocalAsset('psa_temporary');
+  assert.notEqual(api.draftSnapshot(),baseline,'uncommitted local asset is tracked independently');
+});
+
+test('R4.1 abandoning the form cleans temporary assets but retains saved image bytes',async()=>{
+  const js=script(await load());
+  const cleanStart=js.indexOf('function cleanupDemoAssets()');
+  const cleanEnd=js.indexOf('const IMAGE_SIZES=',cleanStart);
+  const releaseStart=js.indexOf('function releaseDraftImage()');
+  const releaseEnd=js.indexOf('function exitTool()',releaseStart);
+  assert(cleanStart>=0&&cleanEnd>cleanStart&&releaseStart>=0&&releaseEnd>releaseStart);
+  assert.match(js,/function exitTool\(\)\{releaseDraftImage\(\);/);
+  assert.match(js,/function returnIndex\(\)\{\s*releaseDraftImage\(\);/);
+  const create=new Function('state','draftId',
+    'let imageAssets={saved:"saved-raster",temp:"new-raster",orphan:"orphan-raster"};'+
+    'let draftImageAssetId=draftId,draftImageMeta={name:"draft"},writes=0;'+
+    'function persistDemoAssets(next){imageAssets=next;writes++;return true;}'+
+    js.slice(cleanStart,cleanEnd)+js.slice(releaseStart,releaseEnd)+
+    'return {releaseDraftImage,snapshot(){return {imageAssets,draftImageAssetId,draftImageMeta,writes}}};'
+  );
+  const abandoned=create({items:[{imageAssetId:'saved'}]},'temp');
+  abandoned.releaseDraftImage();
+  assert.deepEqual(abandoned.snapshot().imageAssets,{saved:'saved-raster'});
+  assert.equal(abandoned.snapshot().draftImageAssetId,'');
+  assert.equal(abandoned.snapshot().draftImageMeta,null);
+  const persisted=create({items:[{imageAssetId:'saved'}]},'saved');
+  persisted.releaseDraftImage();
+  assert.deepEqual(persisted.snapshot().imageAssets,{saved:'saved-raster'},
+    'discard cannot delete an image referenced by the persisted prompt');
+});
+
+test('R4.1 replacing an edited image never deletes the still-saved asset before commit',async()=>{
+  const {state,api}=decoderFixture(await load());
+  await api.chooseLocalImage({name:'saved.png',type:'image/png',size:512});
+  const old=api.snapshot().draftImageAssetId;
+  state.items.push({imageAssetId:old});
+  await api.chooseLocalImage({name:'replacement.webp',type:'image/webp',size:1024});
+  const now=api.snapshot();
+  assert.notEqual(now.draftImageAssetId,old);
+  assert(now.imageAssets[old],'old persisted resource must survive uncommitted replacement');
+  assert(now.imageAssets[now.draftImageAssetId],'new draft resource must exist');
 });
