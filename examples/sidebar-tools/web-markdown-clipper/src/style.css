@@ -59,3 +59,7 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-vis
 .clip-note-reader[hidden],#clip-note-more[hidden],#clip-note-new[hidden],#clip-notes-tools[hidden],#clip-notes-meta[hidden],#clip-note-list[hidden]{display:none!important}
 @media(max-width:360px){.clip-note-reader{padding:8px}.clip-note-read-body{padding:8px}.clip-read-actions{gap:4px}}
 @media(prefers-color-scheme:dark){.clip-danger{color:#ffacb3!important}}
+
+/* Empty extraction state shares the official Markdown view. */
+.clip-preview .clip-empty-hint{color:var(--sub);font-size:12px;text-align:center;padding:28px 4px;margin:0}
+#clip-home[data-clip-state="extracting"] .clip-preview{opacity:.78}

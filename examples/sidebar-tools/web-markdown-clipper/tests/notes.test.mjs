@@ -221,3 +221,61 @@ test('Host request budget admits 150 KB escaped Markdown only for the clipper',a
  assert.equal(check(make('storage.get','x'.repeat(30000),'another-tool'))?.ok,false);
  assert.equal(check(make('clipNotes.list','x'.repeat(30000)))?.ok,false);
 });
+
+test('UI freezes an in-flight save snapshot, blocks double save, and keeps unsaved editor text',async()=>{
+ const source=await readFile(new URL('../src/notes.js',import.meta.url),'utf8');
+ class Element{
+  constructor(id){this.id=id;this.value='';this.textContent='';this.dataset={};this.events={};this.children=[];this.hidden=false;this.disabled=false;}
+  addEventListener(type,fn){(this.events[type]??=[]).push(fn);}
+  async fire(type){await Promise.all((this.events[type]||[]).map(fn=>fn()));}
+  append(...items){this.children.push(...items);}
+  replaceChildren(...items){this.children=items;}
+  setAttribute(key,value){this[key]=value;}
+  focus(){this.focused=true;}
+ }
+ const ids=[...source.matchAll(/q\('([^']+)'\)/g)].map(match=>match[1]);
+ const elements=Object.fromEntries([...new Set(ids)].map(id=>[id,new Element(id)]));
+ const doc={createElement:tag=>new Element(tag)};
+ const root={ownerDocument:doc,querySelector:key=>elements[key.slice(1)]};
+ let resolveSave,saveCalls=0,writeInput=null;
+ const pending=new Promise(resolve=>{resolveSave=resolve;});
+ const request=(operation,payload={})=>{
+  if(operation==='clipNotes.list')return Promise.resolve({
+   items:[],total:0,usedBytes:0,etag:'e',nextOffset:null
+  });
+  if(operation==='clipNotes.save'){
+   saveCalls++;writeInput={...payload};return pending;
+  }
+  if(operation==='clipNotes.get')return Promise.resolve({
+   item:{id:'clip-1',kind:'clip',body:writeInput.body,
+    title:writeInput.title,source:writeInput.source},etag:'e'
+  });
+  throw Error('unexpected operation: '+operation);
+ };
+ const ctx={OpenDeskTool:{setState(){}}};
+ runInNewContext(source,{globalThis:ctx,document:doc,TextEncoder,URL,Date,Math,setTimeout,clearTimeout});
+ const changes=[];
+ const notes=ctx.OpenDeskClipNotes.create({root,request,sdk:{},
+  onStatus:()=>{},renderMarkdown:()=>{},
+  onSaveBusy:active=>changes.push(active)});
+ notes.setClip({body:'旧网页敏感正文',title:'原文',source:'https://old.example/a'});
+ await elements['clip-save'].fire('click');
+ assert.equal(saveCalls,1);
+ assert.deepEqual(changes,[true]);
+ notes.setClip(null); // Simulated navigation while Host storage is pending.
+ await elements['clip-save'].fire('click');
+ assert.equal(saveCalls,1,'must not duplicate an uncertain write');
+ assert.equal(writeInput.body,'旧网页敏感正文');
+ assert.equal(writeInput.source,'https://old.example/a');
+ resolveSave({id:'clip-1',duplicate:false});
+ for(let i=0;i<20;i++)await Promise.resolve();
+ assert.deepEqual(changes,[true,false]);
+ assert.equal(elements['clip-save'].disabled,true,'old page must not become savable again');
+ await elements['clip-note-new'].fire('click');
+ elements['clip-note-body'].value='未保存的手动便签草稿';
+ await elements['clip-note-body'].fire('input');
+ notes.setClip(null);
+ assert.equal(elements['clip-note-body'].value,'未保存的手动便签草稿');
+ assert.equal(await notes.showLibrary(),undefined,'dirty editor blocks navigation');
+ assert.equal(elements['clip-note-body'].value,'未保存的手动便签草稿');
+});

@@ -69,7 +69,7 @@ function createStore({request}){
  const backup=()=>guard(()=>command('backup',{}));
  return {list,get,save,edit,remove,recover,backup,get uncertain(){return uncertain;}};
 }
-function create({root,request,sdk,onStatus,renderMarkdown}){
+function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
  const q=id=>root.querySelector('#'+id),doc=root.ownerDocument||document;
  const el=(tag,cls,text)=>{const node=doc.createElement(tag);if(cls)node.className=cls;if(text!==undefined)node.textContent=text;return node;};
  const store=createStore({request});
@@ -183,8 +183,9 @@ function create({root,request,sdk,onStatus,renderMarkdown}){
  }
  async function saveClip(){
   if(!clip||busy||bytes(clip.body)>BODY_LIMIT)return;
-  busy=true;setClip(clip);notify();
-  const wanted=clip;
+  // Capture a fixed payload before the asynchronous Host write begins.
+  const wanted=Object.freeze({body:clip.body,title:clip.title,source:clip.source});
+  busy=true;setClip(clip);notify();onSaveBusy?.(true);
   try{
    const result=await store.save({...wanted,kind:'clip'});
    // Keep the clipper home for recovery if the subsequent library read fails.
@@ -192,7 +193,7 @@ function create({root,request,sdk,onStatus,renderMarkdown}){
    const label=result.duplicate?'已保存过此全文，没有重复创建':'完整文章已保存到「我的摘录」';
    msg(label);onStatus(label);
   }catch(error){onStatus(error.message||'保存结果未确认',true);}
-  finally{busy=false;setClip(clip);notify();}
+  finally{busy=false;setClip(clip);notify();onSaveBusy?.(false);}
  }
  async function removeItem(id,etag){
   if(busy||dirty())return msg('请先保存或取消正在编辑的内容',true);

@@ -110,7 +110,8 @@ const sample=[
  '> 此内容来自预览环境，不代表真实网页。'
 ].join('\n')+'\n';
 const selection='在网页中选中的 **示例文字**，包含 [链接](https://example.com/selection)。\n';
-const source='https://example.com/articles/markdown-clipper';
+let source='https://example.com/articles/markdown-clipper';
+const pageTitle=()=>source.includes('next-page')?'第二个网页（内容不同）':'网页剪藏示例';
 const send=(name,bytes=0)=>parent.postMessage({kind:'clipper-demo',name,bytes},'*');
 const enc=new TextEncoder(),size=v=>enc.encode(JSON.stringify(v)).byteLength;
 let local={clips:null},caseName='normal',writes=0;
@@ -136,12 +137,14 @@ globalThis.OpenDeskTool={
  setState(){},
  async request(operation,args={}){
   if(['clip.article','clip.selection','clip.link'].includes(operation)){
-   const markdown=operation==='clip.article'?sample:
-    operation==='clip.selection'?selection:'[网页剪藏示例](https://example.com/articles/markdown-clipper)\n';
-   send('提取模拟网页内容',enc.encode(markdown).length);
-   return {markdown,title:'网页剪藏示例',site:'example.com',source,capturedAt:'2026-10-20T00:00:00.000Z'};
+   const another=source.includes('next-page');
+    const markdown=operation==='clip.article'?(another?'# 新网页文章\n\n本页是新的网页快照。\n':sample):
+     operation==='clip.selection'?(another?'来自新网页的选区内容。\n':selection):
+     '['+pageTitle()+']('+source+')\n';
+    send('提取模拟网页内容',enc.encode(markdown).length);
+   return {markdown,title:pageTitle(),site:new URL(source).hostname,source,capturedAt:'2026-10-20T00:00:00.000Z',mode:operation};
   }
-  if(operation==='currentPage.info')return {status:'available',title:'网页剪藏示例',url:source};
+  if(operation==='currentPage.info')return {status:'available',title:pageTitle(),url:source};
   if(operation.startsWith('clipNotes.')){
    const method=operation.slice('clipNotes.'.length),lib=safeLibrary(),at=new Date().toISOString();
    const compare=()=>{if(args.ifMatch!==etag(lib))throw reason('E_STORAGE_CONFLICT','演示：另一窗口已修改');};
@@ -222,7 +225,11 @@ window.addEventListener('message',({data})=>{
   caseName=data.storageCase;
   send('模拟存储场景：'+caseName+'（非浏览器真实写入）');
  }
- if(data.reset===true)document.querySelector('.clip').dispatchEvent(new Event('opendesk-page-changed'));
+ if(data.reset===true){
+   source=source.includes('next-page')?'https://example.com/articles/markdown-clipper':'https://example.org/next-page';
+   document.querySelector('.clip').dispatchEvent(new Event('opendesk-page-changed'));
+   send('模拟切换网页（四种模式旧缓存全部失效）');
+  }
 });
 })();
 </script>

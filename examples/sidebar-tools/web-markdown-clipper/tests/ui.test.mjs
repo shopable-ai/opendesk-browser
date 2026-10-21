@@ -18,7 +18,7 @@ class Node {
 function mounted({request=async()=>({}),clipboard=async()=>({copied:true}),download=async()=>({started:true}),
   launch=async()=>{throw Error('E_LAUNCH_EXPIRED');},notesFactory=null}={}){
   const ids=['clip-source','clip-preview','clip-status','clip-site','clip-title','clip-meta','clip-fetch',
-    'clip-show-source','clip-show-preview','clip-copy','clip-download'];
+    'clip-show-source','clip-show-preview','clip-copy','clip-download','clip-home','clip-selection-hint'];
   const nodes=Object.fromEntries(ids.map(id=>[id,new Node(id)]));
   nodes['clip-meta'].value='none';
   const modes=['article','selection','quote','link'].map(name=>{const n=new Node(name);n.dataset.clipMode=name;return n;});
@@ -49,6 +49,161 @@ test('switching modes invalidates stale extraction without unlocking a newer req
   assert.equal(nodes['clip-fetch'].disabled,false);
   assert.equal(nodes['clip-source'].value,'NEW');
 });
+test('same mode is a no-op; switching to empty selection does not leak article',async()=>{
+ let calls=0;
+ const {nodes,modes}=mounted({request:async()=>{calls++;return {
+  markdown:'# 全文\n',source:'https://example.com/a',title:'文章',site:'example.com'
+ };}});
+ await nodes['clip-fetch'].fire('click');
+ const original=nodes['clip-source'].value;
+ await modes[0].fire('click');await modes[0].fire('click');
+ assert.equal(nodes['clip-source'].value,original);assert.equal(calls,1);
+ await modes[1].fire('click');
+ assert.equal(nodes['clip-source'].value,'');
+ assert.equal(nodes['clip-copy'].disabled,true);
+ assert.equal(nodes['clip-download'].disabled,true);
+ assert.equal(nodes['clip-home'].dataset.clipState,'empty');
+ assert.match(nodes['clip-preview'].children[0].textContent,/选中文字/);
+ await modes[0].fire('click');
+ assert.equal(nodes['clip-source'].value,original);assert.equal(calls,1);
+});
+test('selection and quote reuse one Host extract; article and safe link restore without reads',async()=>{
+ const operations=[];
+ const {nodes,modes}=mounted({request:async op=>{
+  operations.push(op);
+  return {markdown:op==='clip.article'?'FULL ARTICLE\n':'SELECTION ONLY\n',
+   source:'https://example.com/a',title:'来源标题',site:'example.com',mode:op};
+ }});
+ await nodes['clip-fetch'].fire('click');await modes[1].fire('click');
+ assert.equal(nodes['clip-source'].value,'');
+ await nodes['clip-fetch'].fire('click');
+ await modes[2].fire('click');
+ assert.equal(nodes['clip-source'].value,'> SELECTION ONLY\n');
+ await modes[1].fire('click');
+ assert.equal(nodes['clip-source'].value,'SELECTION ONLY\n');
+ await modes[0].fire('click');
+ assert.equal(nodes['clip-source'].value,'FULL ARTICLE\n');
+ await modes[3].fire('click');
+ assert.equal(nodes['clip-source'].value,'[来源标题](https://example.com/a)\n');
+ assert.equal(operations.join(','),'clip.article,clip.selection');
+});
+test('raw text, footer, YAML and no metadata share exact save/copy/download snapshot',async()=>{
+ let saved=null,copied='',downloaded='';
+ const {nodes}=mounted({
+  notesFactory:()=>({setClip:v=>{saved=v;}}),
+  request:async op=>op==='currentPage.info'?{status:'unavailable'}:{
+   markdown:'## 正文\n\n含中文和 Unicode。\n',source:'https://example.com/a',
+   title:'文章',site:'example.com',capturedAt:'2026-10-21T00:00:00Z'},
+  clipboard:async value=>{copied=value;return {copied:true};},
+  download:async data=>{downloaded=data.text;return {started:true};}
+ });
+ await nodes['clip-fetch'].fire('click');
+ for(const style of ['footer','yaml','none','footer','yaml']){
+  nodes['clip-meta'].value=style;await nodes['clip-meta'].fire('change');
+  const body=nodes['clip-source'].value;
+  await nodes['clip-show-preview'].fire('click');
+  await nodes['clip-copy'].fire('click');await nodes['clip-download'].fire('click');
+  assert.equal(saved.body,body);assert.equal(copied,body);assert.equal(downloaded,body);
+  assert.equal((body.match(/来源：/g)||[]).length,style==='footer'?1:0);
+  assert.equal((body.match(/^---$/gm)||[]).length,style==='yaml'?2:0);
+ }
+});
+test('150 KB Unicode with code fence survives source and preview without truncation',async()=>{
+ const fence=String.fromCharCode(96).repeat(3);
+ const raw='中'.repeat(49000)+'\n'+fence+'js\nconsole.log("中文");\n'+fence+'\n';
+ const {nodes}=mounted({request:async()=>({
+  markdown:raw,source:'https://example.com/code',title:'代码',site:'example.com'
+ })});
+ nodes['clip-meta'].value='yaml';
+ await nodes['clip-fetch'].fire('click');
+ const expected=nodes['clip-source'].value;
+ assert.ok(expected.length>49000);
+ assert.ok(expected.startsWith('---\ntitle:'));
+ assert.ok(expected.includes('console.log("中文");'));
+ await nodes['clip-show-source'].fire('click');
+ assert.equal(nodes['clip-source'].value,expected);
+ await nodes['clip-show-preview'].fire('click');
+ assert.equal(nodes['clip-source'].value,expected);
+});
+
+
+test('overlapping same-mode Host requests accept only the newest reply',async()=>{
+ const first=deferred(),second=deferred();let n=0;
+ const {nodes}=mounted({request:()=>++n===1?first.promise:second.promise});
+ const older=nodes['clip-fetch'].fire('click');
+ const newer=nodes['clip-fetch'].fire('click');
+ second.resolve({markdown:'NEW',source:'https://example.com/a',title:'新',site:'example.com'});
+ await newer;
+ first.resolve({markdown:'OLD',source:'https://example.com/a',title:'旧',site:'example.com'});
+ await older;
+ assert.equal(nodes['clip-source'].value,'NEW');
+ assert.equal(nodes['clip-fetch'].disabled,false);
+});
+test('save operation freezes mode and actions until Host confirms it',async()=>{
+ let setBusy,clip;
+ const {nodes,modes}=mounted({
+  notesFactory:args=>{setBusy=args.onSaveBusy;return {setClip:v=>{clip=v;}};},
+  request:async op=>op==='currentPage.info'?{status:'unavailable'}:
+   {markdown:'要保存的内容',source:'https://example.com/a',title:'文章',site:'example.com'}
+ });
+ await nodes['clip-fetch'].fire('click');
+ const before=clip.body;
+ setBusy(true);await modes[1].fire('click');
+ assert.equal(clip.body,before);
+ assert.equal(nodes['clip-meta'].disabled,true);
+ assert.ok(modes.every(item=>item.disabled));
+ assert.equal(nodes['clip-copy'].disabled,true);
+ assert.equal(nodes['clip-download'].disabled,true);
+ setBusy(false);
+ assert.ok(modes.every(item=>!item.disabled));
+});
+test('navigation clears all four mode results and rejects a late article reply',async()=>{
+ const slow=deferred();let reads=0;
+ const {nodes,modes,root}=mounted({request:op=>op==='clip.article'?
+  ++reads===1?Promise.resolve({markdown:'文章旧内容',source:'https://old.example/a',title:'旧',site:'old.example'}):slow.promise:
+  Promise.resolve({markdown:'选区旧内容',source:'https://old.example/a',title:'旧',site:'old.example'})});
+ await nodes['clip-fetch'].fire('click');
+ await modes[1].fire('click');await nodes['clip-fetch'].fire('click');
+ await modes[0].fire('click');
+ assert.equal(nodes['clip-source'].value,'文章旧内容');
+ const reading=nodes['clip-fetch'].fire('click');
+ root.events['opendesk-page-changed']();
+ slow.resolve({markdown:'迟到正文',source:'https://old.example/a',title:'旧',site:'old.example'});
+ await reading;
+ for(const button of modes){
+  await button.fire('click');
+  assert.equal(nodes['clip-source'].value,'');
+  assert.equal(nodes['clip-copy'].disabled,true);
+ }
+});
+test('right-click launch cannot attach old selection to a different page context',async()=>{
+ let draft=null;
+ mounted({
+  notesFactory:()=>({setClip:v=>{draft=v;}}),
+  request:async op=>op==='currentPage.info'?
+   {status:'available',url:'https://new.example/a',title:'新网页'}:{},
+  launch:async()=>({toolId:'web-markdown-clipper',actionId:'save-selection',
+   selection:'旧页面私密选区',source:{url:'https://old.example/a'},
+   expiresAt:Date.now()+60000})
+ });
+ await Promise.resolve();await Promise.resolve();await Promise.resolve();
+ assert.equal(draft,null);
+});
+test('returned Host result from another page is rejected instead of cached',async()=>{
+ let current=null;
+ const {nodes}=mounted({
+  notesFactory:()=>({setClip:v=>{current=v;}}),
+  request:async op=>op==='currentPage.info'?
+   {status:'available',url:'https://expected.example/a',title:'预期网页'}:
+   {markdown:'恶意串页内容',source:'https://different.example/a',title:'其他网页',site:'different.example'}
+ });
+ await Promise.resolve();await Promise.resolve();
+ await nodes['clip-fetch'].fire('click');
+ assert.equal(nodes['clip-source'].value,'');
+ assert.equal(current,null);
+ assert.match(nodes['clip-status'].textContent,/网页已变化/);
+});
+
 test('copy/download use accepted Markdown and strip unsafe leading-dot filename',async()=>{
   let copied='',downloaded;
   const {nodes}=mounted({
@@ -82,6 +237,7 @@ test('quote mode folds unsafe multiline titles into one escaped source link',asy
  const {nodes,modes}=mounted({request:async()=>({
   markdown:'正文内容\n',source:'https://example.com/article',title:'复杂 [标题]\n另一行  ',site:'A'
  })});
+ nodes['clip-meta'].value='footer';
  await modes[2].fire('click');
  await nodes['clip-fetch'].fire('click');
  assert.equal(nodes['clip-source'].value,
@@ -109,8 +265,8 @@ test('late clipboard and download replies cannot override navigation or mode cha
  download.resolve({started:true});
  await downloading;
  assert.equal(downloadPayload,'# 正文\n');
- assert.equal(nodes['clip-status'].textContent,'点击提取获取内容');
- assert.equal(nodes['clip-source'].value,'');
+ assert.match(nodes['clip-status'].textContent,/已恢复本页链接/);
+ assert.equal(nodes['clip-source'].value,'[现在](https://example.com/a)\n');
 });
 
 test('starting another extraction immediately clears stale Markdown and source site',async()=>{
@@ -126,10 +282,10 @@ test('starting another extraction immediately clears stale Markdown and source s
  assert.equal(nodes['clip-site'].textContent,'当前网页','old origin must disappear');
  await nodes['clip-copy'].fire('click');
  assert.equal(copies,0,'stale content must not be exportable');
- next.resolve({markdown:'新内容',source:'https://new.example/b',title:'新',site:'new.example'});
+ next.resolve({markdown:'新内容',source:'https://old.example/a',title:'新',site:'old.example'});
  await fetching;
  assert.equal(nodes['clip-source'].value,'新内容');
- assert.equal(nodes['clip-site'].textContent,'new.example');
+ assert.equal(nodes['clip-site'].textContent,'old.example');
 });
 test('trusted export remains single-flight even if users repeat copy or download clicks',async()=>{
  const copy=deferred(),download=deferred();let copyCalls=0,downloadCalls=0;

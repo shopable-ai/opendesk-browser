@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>网页剪藏 · 1.2.0 正式 UI 交互预览</title>
+<title>网页剪藏 · 1.2.2 正式 UI 交互预览</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#21314a;background:#f5f7fb;font-size:13px}
 *{box-sizing:border-box}body{margin:0;min-width:280px}
@@ -30,10 +30,10 @@ iframe{border:0;display:block;width:100%;height:630px;background:transparent}
 <body>
 <div class="preview-shell">
  <header class="preview-head">
-  <div><h1>网页剪藏 · 正式 UI 预览</h1><p class="subtitle">复用 src/index.html、src/style.css、src/notes.js、src/main.js · 版本 1.2.0</p></div>
+  <div><h1>网页剪藏 · 正式 UI 预览</h1><p class="subtitle">复用 src/index.html、src/style.css、src/notes.js、src/main.js · 版本 1.2.2</p></div>
   <span class="subtitle">非 React · 正式 HTML/CSS/JS</span>
  </header>
- <p class="notice" role="note"><strong>如何体验：</strong>① 点击「提取当前文章」查看示例；② 通过「保存摘录」进入「我的摘录」，搜索并阅读全文、编辑、复制、删除；③ 点击「模拟右键摘录」体验选区，点击「模拟重开侧栏」验证当前预览会话读回。<strong>此页面只有演示数据，使用临时 sessionStorage 模拟重开，不写入 Chrome 扩展存储。复制、下载和备份均不操作真实设备；关闭演示会话后数据可能消失。</strong></p>
+ <p class="notice" role="note"><strong>如何体验：</strong>① 文章提取 → 选区提取 → 引用（复用选区）→ 文章（恢复）→ 链接（可信来源）。重复点当前模式应保持原文。② 点击「模拟切换网页」，确认缓存失效并重新提取。③ 保存到我的摘录，或模拟右键入口；「模拟重开侧栏」验证演示读回。<strong>此页面只有演示数据，使用临时 sessionStorage 模拟重开，不写入 Chrome 扩展存储。复制、下载和备份均不操作真实设备；关闭演示会话后数据可能消失。</strong></p>
  <div class="controls">
   <div class="group" role="group" aria-label="模拟侧栏宽度">
    <button type="button" data-width="320" aria-pressed="false">320</button>
@@ -47,7 +47,7 @@ iframe{border:0;display:block;width:100%;height:630px;background:transparent}
   </div>
   <button type="button" class="extra" id="zoom" aria-pressed="false">200% 缩放</button>
   <button type="button" class="extra" id="simulate-menu">模拟右键摘录</button>
-  <button type="button" class="extra" id="reset">模拟网页变化</button>
+  <button type="button" class="extra" id="reset">模拟切换网页</button>
   <button type="button" class="extra" id="reopen">模拟重开侧栏</button>
   <div class="group" role="group" aria-label="模拟存储状态">
    <button type="button" data-storage="normal" aria-pressed="true">模拟正常</button>
@@ -106,7 +106,7 @@ iframe{border:0;display:block;width:100%;height:630px;background:transparent}
  });
  document.querySelector('#reset').addEventListener('click',()=>{
   stage.contentWindow?.postMessage({kind:'clipper-demo-control',reset:true},'*');
-  log.textContent='模拟网页发生变化：官方 UI 应清空旧 Markdown。';
+  log.textContent='模拟已切换网页：官方 UI 应清空旧缓存，无法保存旧内容。';
  });
  window.addEventListener('message',event=>{
   if(event.source!==stage.contentWindow||event.data?.kind!=='clipper-demo')return;
