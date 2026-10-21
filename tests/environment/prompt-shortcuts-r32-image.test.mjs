@@ -220,7 +220,7 @@ test('R3.5 live raster gate: original HTML uses preview-only PNG, never formal d
   assert.match(preview,/oldSample=row\.id==='b'/,'migrate only untouched historical sample');
   assert.doesNotMatch(main,/PREVIEW_OFFLINE_PNG/);
   assert.doesNotMatch(page,/PREVIEW_OFFLINE_PNG/);
-  assert.match(main,/holder\.dataset\.failedImageUrl===url/);
+  assert.match(main,/holder\.dataset\.failedImageUrl===sourceKey/);
   assert.match(page,/button\.classList\.remove\('image'\)/);
   assert.match(model,/url\.protocol!=='https:'/);
   assert.match(chrome,/async function r35ImageEvidence/);
