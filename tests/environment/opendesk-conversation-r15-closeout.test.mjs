@@ -133,7 +133,8 @@ test('R1.5 React reveal respects filter/manual navigation; Provider lifecycle re
  assert.match(app,/disabled=\{!dock\} onClick=\{dock\?\.toggle\}/);
  assert.match(workflow,/api\.permissions\.onRemoved\?\.addListener\(removedPermissions\)/);
  assert.match(workflow,/invalidateBookmarkConversation\(/);
- assert.match(workflow,/api\.permissions\.contains\(\{origins:\[grantPattern\]\}\)/);
+ assert.match(workflow,/api\.permissions\.contains\(grantPattern\?/);
+ assert.match(workflow,/permissions:\['nativeMessaging'\]/);
  assert.match(workflow,/authorization:Object\.freeze\(\{signal:abortController\.signal,assertWrite,release\}\)/);
  assert.doesNotMatch(dock,/\.bookmarks\.|generateStructured\(|createRoot\(/);
  assert.match(preview,/创建\|新建/);
