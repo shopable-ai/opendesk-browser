@@ -26,6 +26,8 @@ jobs:
           test "$(git hash-object examples/sidebar-tools/web-markdown-clipper/tool.config.json)" = c75cd2031777fbecffcd7446d47329c5ef76f3be
           test "$(git hash-object examples/sidebar-tools/web-markdown-clipper/app.ci.json)" = f9e39e357ae116bd4e842e069bf905e1d32cbd79
           test "$(git hash-object examples/sidebar-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json)" = 8e37fd947d1a881228f3ceea8add32939abf56d8
+          test "$(git hash-object examples/sidebar-tools/web-markdown-clipper/tests/notes.test.mjs)" = 7ea2b13bd9f6f4d66a384e660ad793ee9fef264b
+          test "$(git hash-object tests/environment/sidebar-tool-hierarchical-back-r12.test.mjs)" = e97fa46464914f93bb7f3d57710db550f80f8ed0
           test ! -e examples/sidebar-tools/web-markdown-clipper/tests/navigation-r14.test.mjs
       - name: Restore pinned Node dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
@@ -47,6 +49,21 @@ jobs:
           if(profile.node.includes(test))throw Error('E_PROFILE_DRIFT');
           profile.node.push(test);
           writeFileSync(path+'app.ci.json',JSON.stringify(profile,null,2)+'\n');
+          // Keep old regression assertions while correcting stale version/copy assumptions.
+          const notesTestPath=path+'tests/notes.test.mjs';
+          const notesTest=readFileSync(notesTestPath,'utf8');
+          const beforeCopy="assert.match(adapter,/正式 src HTML/);";
+          const afterCopy="assert.ok(adapter.includes('正式 src/notes.js 与 src/style.css 驱动业务'));";
+          if(!notesTest.includes(beforeCopy))throw Error('E_PREVIEW_TEST_OWNER_DRIFT');
+          writeFileSync(notesTestPath,notesTest.replace(beforeCopy,afterCopy));
+          const navTestPath='tests/environment/sidebar-tool-hierarchical-back-r12.test.mjs';
+          const navTest=readFileSync(navTestPath,'utf8');
+          if(!navTest.includes("official 1.2.4 installable package")||
+             !navTest.includes("assert.equal(meta.version,'1.2.4')"))
+            throw Error('E_VERSION_TEST_OWNER_DRIFT');
+          writeFileSync(navTestPath,navTest
+            .replace("official 1.2.4 installable package","official 1.2.5 installable package")
+            .replace("assert.equal(meta.version,'1.2.4')","assert.equal(meta.version,'1.2.5')"));
           JS
       - name: Regression first before candidate promotion
         run: node --test examples/sidebar-tools/web-markdown-clipper/tests/navigation-r14.test.mjs
@@ -83,6 +100,7 @@ jobs:
               examples/sidebar-tools/web-markdown-clipper/ \
               src/ui/sidebar-tools.js src/ui/sidebar-tools/package.js \
               src/sidebar-tools/bridge.js scripts/build-sidebar-tool.mjs \
+              tests/environment/sidebar-tool-hierarchical-back-r12.test.mjs \
               .github/workflows/sidebar-navigation-r14-once.yml \
               .github/sidebar-r14/)"
             if [ -n "$touched" ]; then
@@ -91,7 +109,7 @@ jobs:
             fi
           fi
           git rm .github/sidebar-r14/notes.js .github/sidebar-r14/navigation-r14.test.mjs .github/workflows/sidebar-navigation-r14-once.yml
-          git add examples/sidebar-tools/web-markdown-clipper/src/notes.js examples/sidebar-tools/web-markdown-clipper/tests/navigation-r14.test.mjs examples/sidebar-tools/web-markdown-clipper/tool.config.json examples/sidebar-tools/web-markdown-clipper/app.ci.json examples/sidebar-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json
+          git add examples/sidebar-tools/web-markdown-clipper/src/notes.js examples/sidebar-tools/web-markdown-clipper/tests/navigation-r14.test.mjs examples/sidebar-tools/web-markdown-clipper/tool.config.json examples/sidebar-tools/web-markdown-clipper/app.ci.json examples/sidebar-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json examples/sidebar-tools/web-markdown-clipper/tests/notes.test.mjs tests/environment/sidebar-tool-hierarchical-back-r12.test.mjs
           git diff --cached --check
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
