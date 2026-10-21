@@ -31,6 +31,8 @@ jobs:
           cache: npm
       - name: Install exact locked dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Compile source-bound Stay Focus React assets for package contract tests
+        run: node scripts/build-stay-focus-react.mjs
       - name: Directed resource ownership, budget, SDK and regression tests
         run: |
           node --test tests/environment/managed-site-budget-r14.test.mjs tests/environment/browser-managed-site-policy-r44.test.mjs tests/environment/managed-site-authority-r44.test.mjs tests/environment/managed-site-runtime-contract-r45.test.mjs tests/environment/extension-runtime-r14-lifecycle.test.mjs tests/environment/stay-focus-r41-policy-package.test.mjs tests/environment/adblock-required-dnr-contract.test.mjs
