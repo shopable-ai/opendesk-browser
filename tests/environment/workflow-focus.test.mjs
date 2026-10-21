@@ -359,6 +359,7 @@ if(!vm.SourceTextModule) {
     const f=await make(t,{controllerOnly:true,resumable:true});
     const trusted={isTrusted:true},snapshot=()=>f.ui.getSnapshot();
     f.ui.actions.input('workflow-ai-request','保留未发送内容',trusted);
+    await tick(); // React consumes the microtask-published immutable UI snapshot.
     for(const kind of ['currentRun','executionPending']){
       f.host.currentRun=kind==='currentRun'?'active-run':null;
       f.host.executionPending=kind==='executionPending';
