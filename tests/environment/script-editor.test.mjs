@@ -155,6 +155,24 @@ test('R40.10.1 immediate Controller Run captures the most recent input without a
   await f.finish(314);
 });
 
+for(const change of ['source','script-id','stop'])test('R40.10.2 pending plain Controller permission rejects stale '+change,async t=>{
+  const gate=deferred(),f=await fixture();t.after(()=>{gate.resolve(true);f.dispose();});
+  f.setPermission(gate.promise);
+  f.find('script-run').fire('click',{isTrusted:true});
+  assert.equal(f.find('script-stop').disabled,false,'plain JS permission wait is cancellable before Host admission');
+  if(change==='stop')f.find('script-stop').fire('click',{isTrusted:true});
+  else{
+    const field=f.find(change==='source'?'script-source':'script-id');
+    field.value=change==='source'?'return 500;':'edited-id';
+    field.fire('input',{isTrusted:true});
+  }
+  gate.resolve(true);
+  for(let i=0;i<14;i++)await tick();
+  assert.equal(f.starts.length,0,'a stale or cancelled plain JS draft must never enter RunHost');
+  assert.match(f.find('script-status').textContent,/E_CONTROLLER_DRAFT_STALE/,
+    'the original draft failure should be visible and recoverable');
+});
+
 test('R40.5 ordinary Controller edits never inspect Page dependencies',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const initial=f.dependencyInspections.length;

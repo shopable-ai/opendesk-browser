@@ -65,7 +65,7 @@ export function createControllerDraftRun({client,api,host,currentPageTarget,prog
     hideUserScriptsRecovery();
     let startError, admittedRunId;
     const id=scriptId(),ticket=++generation;
-    ownedRunId=null;running=true;preparingKind=esm?'esm':classic?'classic':null;controllerResults.renderTask(null);update();beginResult();
+    ownedRunId=null;running=true;preparingKind=esm?'esm':classic?'classic':'permission';controllerResults.renderTask(null);update();beginResult();
     display('checking',esm?'正在校验固定 ESM 依赖并编译 Controller 源码…':
       classic?'正在从 SHA 缓存准备固定 Controller Classic 库…':`正在检查访问权限并验证网页：${chosen.url}`);
     (async () => {
@@ -76,17 +76,19 @@ export function createControllerDraftRun({client,api,host,currentPageTarget,prog
       // Authority still receives the exact `sourceUtf8` that will execute, via
       // the same draft admission, immutable revision hash and original RunHost.
       const authorSourceUtf8=sourceUtf8;
+      // Permission and exact-document revalidation are asynchronous even for
+      // plain JavaScript. All three Controller formats share one final gate.
+      const check=()=>{
+        if(isDisposed()||ticket!==generation||programSource.source()!==authorSourceUtf8||
+          scriptId()!==id||programSource.kind()!==runKind||!isControllerDraft())
+          throw {code:esm?'E_CONTROLLER_ESM_STALE':classic?'E_CONTROLLER_CLASSIC_STALE':'E_CONTROLLER_DRAFT_STALE',
+            message:'源码、程序或运行模式已变化；不会启动过期 Controller 草稿'};
+      };
+      check();
       if(esm){
-        const check=()=>{if(isDisposed()||ticket!==generation||
-          programSource.source()!==authorSourceUtf8||scriptId()!==id||
-          programSource.kind()!==runKind||!isControllerDraft())
-          throw {code:'E_CONTROLLER_ESM_STALE',message:'源码、程序、目标或运行模式已变化；不会启动过期代码'};};
         const prepared=await prepareControllerESM(authorSourceUtf8,id,check);check();
         sourceUtf8=getRevisions().savedControllerSource(authorSourceUtf8,prepared.built.sourceUtf8);
-        preparingKind=null;update();
       }else if(classic){
-        const check=()=>{if(isDisposed()||ticket!==generation||programSource.source()!==authorSourceUtf8||scriptId()!==id||!isControllerDraft())
-          throw {code:'E_CONTROLLER_CLASSIC_STALE',message:'源码已变化或准备已取消，不启动过期 Classic'};};
         const prepared=await client.request('prepareControllerClassicDependencies',{
           programId:id,sourceUtf8:authorSourceUtf8,explicitUserAction:true,allowDownload:true});check();
         if(prepared.world!=='CONTROLLER'||prepared.programId!==id||
@@ -94,8 +96,10 @@ export function createControllerDraftRun({client,api,host,currentPageTarget,prog
           !/^controller-classic-[a-f0-9]{64}$/.test(prepared.lockId))
           throw {code:'E_CONTROLLER_CLASSIC_LOCK',message:'固定 Classic 版本或技术锁无效'};
         sourceUtf8=getRevisions().savedControllerSource(authorSourceUtf8,prepared.sourceUtf8);
-        preparingKind=null;update();
       }
+      // Clearing the cancellable phase immediately before admission avoids
+      // claiming a committed Host call was undone by a later Stop.
+      check();preparingKind=null;update();
       const claim = await host.start({source:{kind:'draft',sourceUtf8},
         params, target:chosen.target, deadlineAt:Date.now() + 30000});
       admittedRunId = claim.runId;

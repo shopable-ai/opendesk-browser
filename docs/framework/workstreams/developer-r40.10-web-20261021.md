@@ -60,3 +60,5 @@
 - P1 本次真实减法：`page-preview-tools` 只由当前执行环境决定，原每次 Run/Result 状态变化都 patch React Snapshot；现在归入已有的 `modeProjection` 环境变化分支，移除每轮重复 patch，不新增字段缓存、管理器或执行层。扩展原生产 Fixture 验证稳定 Run/Result 保持字段对象身份，切换 Page 时更新。安全 Run/Stop、Source/Preview 代次不变。
 - 外部 CI 阻塞：`developer-release-smoke` 在 `73dab8a` 的 job `119115098565` 被 Web Markdown Clipper 固定来源 SHA 守卫阻断（`examples/sidebar-tools/web-markdown-clipper/trusted/policy.js`），不属本轮 Developer RunHost；未修改或弱化该守卫。
 - 验证等级：修改提交前源代码审计；精确新 commit 的 Developer Node、Local install Node、Chrome、Mac Native、Provider 均待实际 CI/运行结果，不允许由源代码推断 PASS。完整七项目标继续 `WEB_PARTIAL`。
+
+- R40.10.2 额外源码身份缺口与修复：`controller-draft-run.js` 的普通 JS 权限等待此前不具备 ESM/Classic 的最终 generation/source/id/world 校验，Stop 也不能取消纯 JS 等待。现将三种格式收敛到当前 Controller owner 同一个 admission 前 check，保留格式特定的 stale 错误码；纯 JS 等待标为原 preparation（非第二执行槽），Stop 只失效代次，原 Host 一旦提交绝不伪取消。新增 source/script-id/Stop 三个 gate 回归；CI/NODE 仍待本提交实际验证。
