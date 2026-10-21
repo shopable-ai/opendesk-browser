@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R3.5</title>
+<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R4.0</title>
 <meta name="description" content="OpenDesk Prompt Shortcuts 独立侧边栏交互原型。仅模拟、不安装、无真实权限请求。">
 <style>
 /* Offline design contract: semantic values mirror src/ui/design-tokens.css (blob 134dd7871da4bf0ee26b6d0135e69e7273fdabdb).
@@ -397,21 +397,61 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .image-size-button:focus-visible{outline:3px solid var(--od-focus);outline-offset:2px}
 .image-size-button .size-dot{display:block;width:var(--dot);height:var(--dot);border-radius:50%;background:currentColor}
 @media(max-width:380px){.image-size-setting{gap:6px;padding:5px 7px}.image-size-button{width:34px}}
-.ps-image-source{display:inline-grid;grid-template-columns:repeat(2,64px);gap:2px;justify-self:end;max-width:100%;
- background:var(--od-bg);padding:2px;border:1px solid var(--od-line);border-radius:9px}
-.ps-image-source label{position:relative;display:grid;place-items:center;min-height:28px;font-size:11px;font-weight:650;border-radius:7px;cursor:pointer}
-.ps-image-source label:has(input:checked){background:var(--od-paper);color:var(--od-accent-ink);box-shadow:0 1px 5px var(--od-line)}
+/* R4.0: image source and native drop interaction. Uses the existing OD tokens/buttons. */
+.ps-image-source{display:inline-grid;grid-template-columns:repeat(2,minmax(0,74px));gap:2px;justify-self:end;
+max-width:100%;background:var(--od-bg);padding:2px;border:1px solid var(--od-line);border-radius:var(--radius-control)}
+.ps-image-source label{position:relative;display:grid;place-items:center;min-height:34px;
+font-size:12px;font-weight:650;border-radius:6px;cursor:pointer;white-space:nowrap}
+.ps-image-source label:has(input:checked){background:var(--od-paper);color:var(--od-accent-ink);box-shadow:0 1px 5px #08172c16}
 .ps-image-source input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
 .ps-image-source label:has(input:focus-visible){outline:3px solid var(--od-focus);outline-offset:1px}
-.ps-image-upload-controls{display:flex;justify-content:flex-end;gap:8px}
-.ps-image-upload-controls .od-button{min-height:30px;padding:4px 10px}
-#imageUrlRow[hidden],#imageUploadControls[hidden]{display:none!important}
-.ps-image-fields{display:grid;gap:5px;border-top:1px solid var(--od-line)}
+.ps-image-fields{display:grid;gap:var(--space-2);min-width:0}
 .ps-image-fields[hidden]{display:none!important}
-.ps-image-preview-line{display:flex;align-items:center;gap:11px;padding:7px 0}
-.preview-picture{width:56px;height:44px;flex:none;display:grid;place-items:center;overflow:hidden;border:1px solid var(--od-line);border-radius:10px;background:var(--od-bg);font-size:12px;font-weight:700}
-#imageHelp{font-size:11px;line-height:1.5;color:var(--od-sub);overflow-wrap:anywhere;min-width:0}
-@media(max-width:380px){.page-rail{left:6px}.appearance-switch label{font-size:11px}.ps-image-preview-line{gap:7px}}
+.ps-image-upload-controls,.ps-image-link-field{min-width:0}
+.ps-image-dropzone{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-2);
+min-width:0;min-height:142px;padding:var(--space-3) var(--space-2);
+border:1.5px dashed var(--od-input-border);border-radius:var(--radius-surface);background:var(--od-bg);
+text-align:center;transition:background .15s ease,border-color .15s ease}
+.ps-image-dropzone:hover,.ps-image-dropzone:focus-within{border-color:var(--od-focus);background:var(--od-muted)}
+.ps-image-dropzone.is-dragover,.ps-image-selected.is-dragover{border-color:var(--od-focus);background:var(--od-muted);
+box-shadow:inset 0 0 0 1px var(--od-focus)}
+.ps-image-dropzone>.od-glyph{width:23px;height:23px;color:var(--od-sub)}
+.ps-image-dropzone .od-button{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);
+min-height:38px;padding:6px var(--space-3);font-size:12px}
+.ps-image-dropzone .od-button .od-glyph{width:16px;height:16px}
+.ps-image-drop-hint{font-size:12px;color:var(--od-ink);line-height:1.45}
+.ps-image-drop-types{font-size:11px;color:var(--od-sub);line-height:1.5;overflow-wrap:anywhere}
+.ps-image-link-field{display:grid;gap:var(--space-1)}
+.ps-image-link-field .compact-label{font-size:12px;line-height:1.5;font-weight:650;color:var(--od-ink)}
+.ps-image-link-field input.od-field{height:36px;min-height:36px;padding:7px 10px}
+.ps-image-link-field small{font-size:11px;color:var(--od-sub);line-height:1.5}
+.ps-image-selected{display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;
+gap:var(--space-2);min-width:0;padding:var(--space-2);border:1px solid var(--od-line);
+border-radius:var(--radius-surface);background:var(--od-paper)}
+.ps-image-selected .preview-picture{display:grid;place-items:center;width:52px;height:48px;min-width:52px;
+overflow:hidden;border:1px solid var(--od-line);border-radius:var(--radius-control);
+background:var(--od-bg);font-size:12px;font-weight:700}
+.ps-image-selected .preview-picture .ps-picture{display:block;width:100%;height:100%;object-fit:contain}
+.ps-image-file-text{display:flex;flex-direction:column;min-width:0;gap:var(--space-1)}
+.ps-image-file-text strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+font-size:12px;font-weight:650;color:var(--od-ink)}
+.ps-image-file-text small{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+font-size:11px;color:var(--od-sub)}
+.ps-image-selected-actions{display:flex;align-items:center;gap:2px;flex:none}
+.ps-image-selected-actions .od-icon-button{width:36px;min-width:36px;height:40px;min-height:40px;
+border:0;background:transparent;color:var(--od-sub)}
+.ps-image-selected-actions .od-icon-button:hover:not(:disabled){background:var(--od-muted);color:var(--od-ink)}
+.ps-image-selected-actions #imageClear:hover:not(:disabled){color:var(--od-negative)}
+.ps-image-selected-actions .od-glyph{width:17px;height:17px}
+.ps-image-error,.ps-image-status{margin:0;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.ps-image-error{color:var(--od-negative)}
+.ps-image-status{color:var(--od-sub)}
+@media(max-width:380px){.page-rail{left:6px}.appearance-switch label{font-size:11px}
+.ps-image-source{grid-template-columns:repeat(2,minmax(0,70px))}
+.ps-image-selected{gap:6px;padding:7px}
+.ps-image-selected-actions .od-icon-button{width:34px;min-width:34px}}
+@media(pointer:coarse){.ps-image-selected-actions .od-icon-button{width:42px;min-width:42px;height:44px;min-height:44px}}
+@media(prefers-reduced-motion:reduce){.ps-image-dropzone{transition:none}}
 </style>
 </head>
 <body>
@@ -435,11 +475,13 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  <symbol id="ps-icon-transfer" viewBox="0 0 24 24"><path d="M7 3v14m-4-4 4 4 4-4M17 21V7m-4 4 4-4 4 4"/></symbol>
  <symbol id="ps-icon-import" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4"/></symbol>
  <symbol id="ps-icon-export" viewBox="0 0 24 24"><path d="M12 21V9m-4 4 4-4 4 4M4 7V3h16v4"/></symbol>
+ <symbol id="ps-icon-image-upload" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m4 17 5-5 3 3 2-2 6 5M12 19v-5m-2 2 2-2 2 2"/></symbol>
+ <symbol id="ps-icon-image-replace" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v5h-5"/><path d="M8 14l3-3 2.5 2.5L16 11l2 2"/></symbol>
 </defs></svg>
 <header class="demo-header">
  <div class="demo-title"><span class="logo" aria-hidden="true">OD</span><div>
   <h1>Prompt Shortcuts · Side Panel UI</h1>
-  <p>交互预览 R3.5 · 默认离线示例图片 · 3 档尺寸可调 · 原功能保留</p></div></div>
+  <p>交互预览 R4.0 · 图片拖放与链接预览 · 原功能保留</p></div></div>
  <div class="demo-controls" aria-label="预览控制">
   <span class="design-badge">模拟预览 · 非真实安装</span>
   <a id="brandAdLabLink" class="od-button od-button--small" href="./brand-ad-lab-r213.html" title="打开 R2.13 四种 ChatGPT 对话状态与双广告区域高保真设计预览（仅 HTML 模拟）">R2.13 广告视觉预览 ↗</a>
@@ -548,20 +590,37 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
           <label><input id="appearanceImage" type="radio" name="appearance" value="image"><span>图片</span></label>
         </div></div>
         <div id="imageFields" class="ps-image-fields" hidden>
-           <div class="optional-row"><span class="compact-label" id="imageSourceLabel">图片来源</span>
-             <div class="ps-image-source" role="radiogroup" aria-labelledby="imageSourceLabel">
-               <label><input id="imageSourceLocal" type="radio" name="imageSource" value="local" checked><span>本地上传</span></label>
-               <label><input id="imageSourceUrl" type="radio" name="imageSource" value="url"><span>图片网址</span></label>
-             </div>
-           </div>
-           <div id="imageUploadControls" class="ps-image-upload-controls">
-             <input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp" hidden aria-label="选择本地图片">
-             <button id="imagePick" type="button" class="od-button">上传图片</button>
-             <button id="imageClear" type="button" class="od-button od-button--subtle" hidden>移除</button>
-           </div>
-           <div id="imageUrlRow" class="optional-row" hidden><label class="compact-label" for="imageUrl">图片 URL</label><input id="imageUrl" class="od-field" type="url" maxlength="512" spellcheck="false" autocomplete="off" placeholder="https://example.com/image.png"></div>
-           <div class="ps-image-preview-line"><span id="pictureExample" class="preview-picture" aria-hidden="true"></span><span id="imageHelp" role="status" aria-live="polite">PNG、JPEG、WebP，最大 2 MiB，压缩后模拟保存到浏览器本地；非正式 Host。</span></div>
+         <div class="optional-row"><span class="compact-label" id="imageSourceLabel">图片来源</span>
+          <div class="ps-image-source" role="radiogroup" aria-labelledby="imageSourceLabel">
+           <label><input id="imageSourceLocal" type="radio" name="imageSource" value="local" checked><span>本地图片</span></label>
+           <label><input id="imageSourceUrl" type="radio" name="imageSource" value="url"><span>图片链接</span></label>
+          </div>
          </div>
+         <input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp" hidden aria-label="从本机选择图片">
+         <div id="imageUploadControls" class="ps-image-upload-controls">
+          <div id="imageDropzone" class="ps-image-dropzone" role="group" aria-label="选择或拖动本地图片" aria-describedby="imageDropHint imageDropTypes">
+           <svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true"><use href="#ps-icon-image-upload"/></svg>
+           <button id="imagePick" type="button" class="od-button"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true"><use href="#ps-icon-image-upload"/></svg>选择图片</button>
+           <span class="ps-image-drop-hint" id="imageDropHint">或拖动图片到这里</span>
+           <span class="ps-image-drop-types" id="imageDropTypes">支持 PNG、JPG、WebP，最大 2 MB</span>
+          </div>
+         </div>
+         <div id="imageUrlRow" class="ps-image-link-field" hidden>
+          <label class="compact-label" for="imageUrl">图片链接</label>
+          <input id="imageUrl" class="od-field" type="url" maxlength="512" spellcheck="false" autocomplete="off" placeholder="https://example.com/image.png" aria-describedby="imageUrlHelp imageFieldError">
+          <small id="imageUrlHelp">粘贴以 https:// 开头的图片链接</small>
+         </div>
+         <div id="imageSelected" class="ps-image-selected" hidden>
+          <span id="pictureExample" class="preview-picture" role="img" aria-label="图片预览"></span>
+          <div class="ps-image-file-text"><strong id="imageFileName">本地图片</strong><small id="imageFileMeta">图片已准备好</small></div>
+          <div id="imageSelectedActions" class="ps-image-selected-actions">
+           <button id="imageReplace" type="button" class="od-icon-button" aria-label="更换图片" title="更换图片"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true"><use href="#ps-icon-image-replace"/></svg></button>
+           <button id="imageClear" type="button" class="od-icon-button" aria-label="移除图片" title="移除图片"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true"><use href="#ps-icon-trash"/></svg></button>
+          </div>
+         </div>
+         <p id="imageFieldError" class="ps-image-error" role="alert" hidden></p>
+         <p id="imageHelp" class="ps-image-status" role="status" aria-live="polite" hidden></p>
+        </div>
         <div class="optional-row"><label id="imageTextHint" class="compact-label" for="shortLabel">按钮短标签</label><input id="shortLabel" class="od-field" name="shortLabel" maxlength="24" placeholder="留空自动取前 2 字" autocomplete="off" aria-describedby="shortLabelHelp"></div>
         <div class="optional-row"><label class="compact-label" for="fullName">显示名称</label><input id="fullName" class="od-field" name="fullName" maxlength="60" placeholder="留空自动生成" autocomplete="off"></div>
         <div class="optional-row optional-row--switch"><label class="compact-label" for="itemEnabled">网页显示</label><label class="switch" title="是否在网页显示此按钮"><input id="itemEnabled" type="checkbox" role="switch" aria-label="在网页显示此按钮" checked><span class="switch-track" aria-hidden="true"></span></label></div>
@@ -636,7 +695,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
     /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(url)));
   }catch{return {};}
  }
- let imageAssets=restoreDemoAssets(),draftImageAssetId='',imageUploadBusy=false;
+ let imageAssets=restoreDemoAssets(),draftImageAssetId='',imageUploadBusy=false,draftImageMeta=null;
  function persistDemoAssets(next){
   try{localStorage.setItem(DEMO_ASSET_KEY,JSON.stringify(next));imageAssets=next;return true;}
   catch{return false;}
@@ -729,7 +788,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
     if(!url)throw Error('本地图片已丢失');
    }else{url=validPictureURL(item.imageUrl);if(!url)throw Error('请输入 HTTPS 图片 URL');}
   }
-  catch(e){holder.dataset.failedImageUrl='';fallback();if(notify)el('imageHelp').textContent=e.message;return;}
+  catch(e){holder.dataset.failedImageUrl='';fallback();if(holder.id==='pictureExample')setImageError('本地图片无法读取，请更换图片或检查链接');else if(notify)el('imageHelp').textContent=e.message;return;}
   // Do not refetch a failed URL on each label edit; continue rendering fallback text.
   if(holder.dataset.failedImageUrl===url){fallback();return;}
   if(holder.dataset.imageUrl===url)return;
@@ -740,7 +799,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   img.referrerPolicy='no-referrer';
   if(offlineSample)img.dataset.previewFixture='offline-png';
   img.addEventListener('error',()=>{if(holder.dataset.imageUrl!==url)return;
-   holder.dataset.failedImageUrl=url;fallback();if(notify)el('imageHelp').textContent='图片加载失败，已经回退备用短标签。请检查链接、格式和网页 CSP。';});
+   holder.dataset.failedImageUrl=url;fallback();if(holder.id==='pictureExample')setImageError('图片无法加载，请检查链接或换一张图片');else if(notify)el('imageHelp').textContent='图片加载失败，已经回退备用短标签。请检查链接、格式和网页 CSP。';});
   img.addEventListener('load',()=>{if(holder.dataset.imageUrl===url&&img.naturalWidth===0)img.dispatchEvent(new Event('error'));});
   holder.replaceChildren(img);img.src=offlineSample?PREVIEW_OFFLINE_PNG:url;
   if(notify)el('imageHelp').textContent=item.imageAssetId?
@@ -1046,25 +1105,47 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    await copyPrompt(item);
   }finally{using=false;}
  }
- // R3.7: original preview uses a separate browser-only asset slot.
- // This interactive simulation never claims a real Trusted Host write.
- async function chooseLocalImage(){
-  const input=el('imageFile'),file=input.files?.[0];input.value='';
-  if(!file||currentView!=='form'||saving||imageUploadBusy)return;
-  imageUploadBusy=true;el('imagePick').disabled=true;el('saveButton').disabled=true;
-  el('imageHelp').textContent='正在解码、缩放并保存到预览本地存储…';
+ // R4.0: preview-only file decoder remains the original implementation.
+ // Native file picker and real drag/drop share this one ingestion path.
+ function setImageError(message=''){
+  const error=el('imageFieldError');error.textContent=message;error.hidden=!message;
+  if(el('imageSourceUrl').checked&&message)el('imageUrl').setAttribute('aria-invalid','true');
+  else el('imageUrl').removeAttribute('aria-invalid');
+ }
+ function setImageStatus(message=''){
+  const status=el('imageHelp');status.textContent=message;status.hidden=!message;
+ }
+ function syncImageControls(){
+  const busy=saving||imageUploadBusy;
+  for(const id of ['imagePick','imageReplace','imageClear','imageSourceLocal','imageSourceUrl','imageUrl'])
+   el(id).disabled=busy;
+  el('imageFields').setAttribute('aria-busy',String(imageUploadBusy));
+ }
+ function imageUrlError(value,error){
+  if(!value.trim())return '请粘贴图片链接';
+  if(!value.trim().startsWith('https://')&&!/^http:\/\/(?:localhost|127\.0\.0\.1)(?:[:/]|$)/i.test(value.trim()))
+   return '图片链接必须以 https:// 开头';
+  return error?.message||'图片链接无效，请检查地址';
+ }
+ async function chooseLocalImage(droppedFile=null){
+  const input=el('imageFile'),file=droppedFile||input.files?.[0];input.value='';
+  if(!file||currentView!=='form'||saving||imageUploadBusy||!el('imageSourceLocal').checked)return;
+  imageUploadBusy=true;syncImageControls();setImageError('');setImageStatus('正在处理图片…');
   try{
    if(!['image/png','image/jpeg','image/webp'].includes(file.type))
-    throw Error('只支持 PNG、JPEG、WebP；SVG 不支持');
-   if(file.size<1||file.size>2*1024*1024)throw Error('原图需小于 2 MiB');
-   if(typeof createImageBitmap!=='function')throw Error('当前浏览器缺少 createImageBitmap');
-   const bitmap=await createImageBitmap(file);
-   let asset;
+    throw Error('请选择 PNG、JPG 或 WebP 图片');
+   if(file.size<1||file.size>2*1024*1024)throw Error('图片不能超过 2 MB');
+   if(typeof createImageBitmap!=='function')throw Error('当前浏览器无法处理图片，请使用最新版 Chrome');
+   let bitmap;
+   try{bitmap=await createImageBitmap(file);}
+   catch{throw Error('图片无法解码，请重新选择 PNG、JPG 或 WebP 图片');}
+   let asset,dimensions;
    try{
+    dimensions=bitmap.width+'×'+bitmap.height;
     if(!bitmap.width||!bitmap.height||bitmap.width>8192||bitmap.height>8192||
-      bitmap.width*bitmap.height>16000000)throw Error('图片像素尺寸过大');
+      bitmap.width*bitmap.height>16000000)throw Error('图片像素尺寸过大，请换一张图片');
     const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
-    if(!ctx)throw Error('图片压缩不可用');
+    if(!ctx)throw Error('当前浏览器无法压缩图片');
     for(const longest of [256,224,192,160,128,96]){
      if(asset)break;
      const ratio=Math.min(1,longest/Math.max(bitmap.width,bitmap.height));
@@ -1084,23 +1165,24 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
       }
      }
     }
-    if(!asset)throw Error('无法压缩到 64 KiB');
+    if(!asset)throw Error('无法处理这张图片，请选择更小的图片');
    }finally{bitmap.close?.();}
    const crypto=globalThis.crypto;
-   if(typeof crypto?.getRandomValues!=='function')throw Error('安全随机图片资源 ID 不可用');
+   if(typeof crypto?.getRandomValues!=='function')throw Error('当前浏览器无法安全保存图片');
    const id='psa_'+Array.from(crypto.getRandomValues(new Uint8Array(16)),v=>v.toString(16).padStart(2,'0')).join('');
    const before=draftImageAssetId,next={...imageAssets,[id]:asset.url};
-   if(!persistDemoAssets(next))throw Error('浏览器无法持久保存预览图片，请检查容量或权限');
+   if(!persistDemoAssets(next))throw Error('预览图片保存失败，请检查浏览器存储空间后重试');
    draftImageAssetId=id;
+   draftImageMeta={name:file.name||'本地图片',description:dimensions+' · '+(file.size/1024/1024).toFixed(1)+' MB'};
    el('imageSourceLocal').checked=true;el('imageSourceUrl').checked=false;
-   updateMeter();el('imageHelp').textContent='本地图片已在预览浏览器中保存（'+asset.bytes+' B），请保存提示词建立关联。';
+   updateMeter();setImageError('');setImageStatus('图片已准备好，保存提示词后即可使用');
    if(before&&!state.items.some(row=>row.imageAssetId===before)){
-     const copy={...imageAssets};delete copy[before];persistDemoAssets(copy);
+    const copy={...imageAssets};delete copy[before];persistDemoAssets(copy);
    }
   }catch(error){
-   showFormError('E_PREVIEW_IMAGE：'+error.message+'。之前的图片和草稿保留。');
-   el('imageHelp').textContent='上传失败；请重新选择图片或切换图片网址。';
-  }finally{imageUploadBusy=false;el('imagePick').disabled=false;el('saveButton').disabled=false;}
+   setImageError(error?.message||'图片处理失败，请重新选择图片');
+   setImageStatus('之前的图片及未保存草稿均已保留');
+  }finally{imageUploadBusy=false;syncImageControls();}
  }
  function rawFormValues(){const original=state.items.find(item=>item.id===editId);return {label:el('shortLabel').value.trim(),name:el('fullName').value.trim(),body:el('promptBody').value,enabled:el('itemEnabled').checked,shape:original?.shape||'square',appearance:el('appearanceImage').checked?'image':'text',imageUrl:el('imageSourceLocal').checked?'':el('imageUrl').value.trim(),imageAssetId:el('imageSourceLocal').checked?draftImageAssetId:''};}
  function formValues(){const raw=rawFormValues(),fallback=defaultShort(raw.body);return {...raw,label:raw.label||fallback,name:raw.name||fallback,labelAuto:!raw.label,nameAuto:!raw.name};}
@@ -1117,12 +1199,26 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   el('quotaHint').textContent=remaining<0?'请精简内容或删除其他提示词；当前草稿保留。':'';
   dirty=JSON.stringify(rawFormValues())!==baselineForm;
   const image=el('appearanceImage').checked,local=el('imageSourceLocal').checked;
+  const url=el('imageUrl').value.trim();
+  let validLink=false;
+  if(image&&!local&&url){try{validLink=Boolean(validPictureURL(url));}catch{}}
+  const selected=image&&(local?Boolean(draftImageAssetId):validLink);
   el('imageFields').hidden=!image;
-  el('imageUploadControls').hidden=!local;
-  el('imageUrlRow').hidden=local;
+  el('imageUploadControls').hidden=!image||!local||selected;
+  el('imageUrlRow').hidden=!image||local;
+  el('imageSelected').hidden=!selected;
+  el('imageSelectedActions').hidden=!local;
   el('imageClear').hidden=!draftImageAssetId;
   el('imageTextHint').textContent=image?'备用短标签':'按钮短标签';
-  if(image)paintPicture(el('pictureExample'),{...formValues(),id:editId},true);
+  if(selected){
+   const title=local?(draftImageMeta?.name||'本地图片'):'链接图片';
+   const meta=local?(draftImageMeta?.description||'已保存在模拟预览中'):(()=>{try{return new URL(url).hostname;}catch{return 'HTTPS 图片';}})();
+   el('imageFileName').textContent=title;el('imageFileName').title=title;
+   el('imageFileMeta').textContent=meta;el('imageFileMeta').title=meta;
+   paintPicture(el('pictureExample'),{...formValues(),id:editId},false);
+  }
+  if(!local)el('imageDropzone').classList.remove('is-dragover');
+  syncImageControls();
   el('leaveConfirm').hidden=true;el('bodyError').hidden=true;
   // Unknown write outcomes remain visible while the user edits; only explicit reconciliation or a new save clears them.
   if(!el('formError').textContent.startsWith('E_OUTCOME_UNKNOWN'))el('formError').hidden=true;
@@ -1146,7 +1242,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   el('shortLabel').value=value?.labelAuto?'':(value?.label??preset?.label??'');
   el('fullName').value=value?.nameAuto?'':(value?.name??preset?.name??'');
   el('appearanceImage').checked=value?.appearance==='image';el('appearanceText').checked=value?.appearance!=='image';
-  draftImageAssetId=value?.imageAssetId||'';
+  draftImageAssetId=value?.imageAssetId||'';draftImageMeta=null;setImageError('');setImageStatus('');
   el('imageSourceLocal').checked=Boolean(draftImageAssetId)||!value?.imageUrl;
   el('imageSourceUrl').checked=!el('imageSourceLocal').checked;
   el('imageUrl').value=value?.imageUrl??'';el('pictureExample').dataset.imageUrl='';
@@ -1172,7 +1268,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   if(draftImageAssetId&&!state.items.some(row=>row.imageAssetId===draftImageAssetId)){
    const copy={...imageAssets};delete copy[draftImageAssetId];persistDemoAssets(copy);
   }
-  draftImageAssetId='';cleanupDemoAssets();editId=null;dirty=false;setView('index');renderIndex();renderRail();
+  draftImageAssetId='';draftImageMeta=null;cleanupDemoAssets();editId=null;dirty=false;setView('index');renderIndex();renderRail();
   el('addButton').focus({preventScroll:true});
  }
  async function saveForm(event,continueCreating=false){
@@ -1183,13 +1279,14 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   if(!value.label||!validLabel(value.label)){showFormError('短标签须为 1–2 个可见 Unicode 字素，或留空自动生成。','label');return;}
   if(!value.name||value.name.length>60){showFormError('名称不能超过 60 字符；留空将自动生成。','name');return;}
   if(value.body.includes('\u0000')){showFormError('正文含不支持的 NUL 字符，请移除后保存。','body');return;}
+  if(value.appearance==='image'&&value.imageAssetId&&!imageAssets[value.imageAssetId]){setImageError('本地图片无法读取，请重新选择图片');el('imageReplace').focus({preventScroll:true});return;}
   try{if(value.appearance==='image'&&!value.imageAssetId){value.imageUrl=validPictureURL(value.imageUrl);
      if(!value.imageUrl)throw Error('图片模式需要本地图片或 HTTPS 图片 URL');}
    else if(!value.imageAssetId){try{value.imageUrl=validPictureURL(value.imageUrl);}catch{value.imageUrl='';}}}
-  catch(e){showFormError(e.message);el('advancedOptions').open=true;el('imageUrl').focus({preventScroll:true});return;}
+  catch(e){setImageError(el('imageSourceLocal').checked?'请先选择图片':imageUrlError(el('imageUrl').value,e));el('advancedOptions').open=true;(el('imageSourceLocal').checked?el('imagePick'):el('imageUrl')).focus({preventScroll:true});return;}
   if(quota>8192){showFormError('提示词库已达到 8 KiB 上限，超出 '+(quota-8192)+' B；请缩短正文或删除其他条目，草稿保留。','body');return;}
   if(revisionAtEdit!==state.revision){showFormError('E_STORAGE_CONFLICT：提示词库已有新版本，请核对列表后处理草稿；不会自动覆盖。');return;}
-  saving=true;el('saveButton').disabled=true;el('saveContinue').disabled=true;el('saveButton').textContent='保存中…';el('promptForm').setAttribute('aria-busy','true');
+  saving=true;syncImageControls();el('saveButton').disabled=true;el('saveContinue').disabled=true;el('saveButton').textContent='保存中…';el('promptForm').setAttribute('aria-busy','true');
   const status=el('formSaveStatus');status.hidden=false;status.textContent='正在保存当前提示词（模拟），请勿重复提交。';
   const fail=nextSaveFailure;nextSaveFailure=null;el('failureStatus').textContent='当前：正常保存';
   try{
@@ -1209,7 +1306,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    if(continueCreating&&!editId){
     const count=state.items.length;
     editId=null;el('promptBody').value='';el('shortLabel').value='';el('fullName').value='';el('appearanceImage').checked=false;el('appearanceText').checked=true;el('imageUrl').value='';
-     draftImageAssetId='';el('imageSourceLocal').checked=true;el('imageSourceUrl').checked=false;el('itemEnabled').checked=true;
+     draftImageAssetId='';draftImageMeta=null;setImageError('');setImageStatus('');el('imageSourceLocal').checked=true;el('imageSourceUrl').checked=false;el('itemEnabled').checked=true;
     revisionAtEdit=state.revision;baselineForm=JSON.stringify(rawFormValues());dirty=false;
     el('advancedOptions').open=true;expandedId=null;deleteId=null;
     renderIndex();renderRail();updateMeter();
@@ -1219,7 +1316,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    }
    returnIndex();notice('已保存「'+itemIdentity(updated)+'」（仅本页模拟）。列表已更新。','success');
   }catch(error){showFormError('E_PREVIEW_SAVE：模拟保存出现异常：'+(error?.message||String(error))+'。草稿保留，请核对后操作。');}
-  finally{saving=false;el('saveButton').disabled=false;el('saveContinue').disabled=false;el('saveButton').textContent='保存';el('promptForm').removeAttribute('aria-busy');}
+  finally{saving=false;syncImageControls();el('saveButton').disabled=false;el('saveContinue').disabled=false;el('saveButton').textContent='保存';el('promptForm').removeAttribute('aria-busy');}
  }
  function cryptoRandom(){return typeof globalThis.crypto?.randomUUID==='function'?globalThis.crypto.randomUUID():String(Date.now())+'-'+Math.random().toString(36).slice(2,8).padEnd(32,'0');}
  function prepareSelection(){el('mockContextMenu').hidden=true;if(!state.settings.contextMenu){notice('“选中文字快速添加”已关闭，请先开启开关。','error');return;}
@@ -1244,17 +1341,56 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  el('closeVerification').addEventListener('click',()=>{el('verificationPanel').hidden=true;el('promptBody').focus({preventScroll:true});});
  el('stayEditing').addEventListener('click',()=>{el('leaveConfirm').hidden=true;el('promptBody').focus();});el('discardEditing').addEventListener('click',()=>{const destination=pendingDestination;pendingDestination='index';if(destination==='host')exitTool();else returnIndex();notice('已主动放弃未保存更改。');});
  el('promptForm').addEventListener('submit',event=>void saveForm(event));el('saveContinue').addEventListener('click',event=>void saveForm(event,true));el('promptForm').addEventListener('input',updateMeter);el('promptForm').addEventListener('change',updateMeter);
- el('imagePick').addEventListener('click',()=>{
-  if(currentView==='form'&&!saving&&!imageUploadBusy)el('imageFile').click();
- });
+ function openImagePicker(){
+  if(currentView==='form'&&!saving&&!imageUploadBusy&&el('imageSourceLocal').checked)el('imageFile').click();
+ }
+ el('imagePick').addEventListener('click',openImagePicker);
+ el('imageReplace').addEventListener('click',openImagePicker);
  el('imageFile').addEventListener('change',()=>void chooseLocalImage());
+ for(const id of ['imageDropzone','imageSelected']){
+  const zone=el(id);
+  const acceptsDrop=()=>currentView==='form'&&el('appearanceImage').checked&&
+    el('imageSourceLocal').checked&&!saving&&!imageUploadBusy;
+  zone.addEventListener('dragenter',event=>{
+   if(!acceptsDrop())return;event.preventDefault();zone.classList.add('is-dragover');
+  });
+  zone.addEventListener('dragover',event=>{
+   if(!acceptsDrop())return;event.preventDefault();
+   if(event.dataTransfer)event.dataTransfer.dropEffect='copy';
+   zone.classList.add('is-dragover');
+  });
+  zone.addEventListener('dragleave',event=>{
+   if(!zone.contains(event.relatedTarget))zone.classList.remove('is-dragover');
+  });
+  zone.addEventListener('drop',event=>{
+   if(!acceptsDrop())return;
+   event.preventDefault();zone.classList.remove('is-dragover');
+   const files=event.dataTransfer?.files;
+   if(!files?.length){setImageError('请拖入 PNG、JPG 或 WebP 图片');return;}
+   if(files.length!==1){setImageError('请一次选择一张图片');return;}
+   void chooseLocalImage(files[0]);
+  });
+ }
+ for(const id of ['imageSourceLocal','imageSourceUrl'])el(id).addEventListener('change',()=>{
+  setImageError('');setImageStatus('');el('imageDropzone').classList.remove('is-dragover');
+  el('imageSelected').classList.remove('is-dragover');
+ });
+ el('imageUrl').addEventListener('input',()=>{
+  el('pictureExample').dataset.failedImageUrl='';setImageError('');setImageStatus('');
+ });
+ el('imageUrl').addEventListener('blur',()=>{
+  if(!el('appearanceImage').checked||!el('imageSourceUrl').checked)return;
+  const url=el('imageUrl').value.trim();if(!url)return;
+  try{validPictureURL(url);}catch(error){setImageError(imageUrlError(url,error));}
+ });
  el('imageClear').addEventListener('click',()=>{
-  if(saving||imageUploadBusy)return;
-  const old=draftImageAssetId;draftImageAssetId='';updateMeter();
+  if(saving||imageUploadBusy||!el('imageSourceLocal').checked)return;
+  const old=draftImageAssetId;draftImageAssetId='';draftImageMeta=null;updateMeter();
   if(old&&!state.items.some(row=>row.imageAssetId===old)){
    const copy={...imageAssets};delete copy[old];persistDemoAssets(copy);
   }
-  el('imageHelp').textContent='图片已从草稿移除；可重新上传或切换图片网址。';
+  setImageError('');setImageStatus('图片已从当前草稿移除，可重新选择图片');
+  el('imagePick').focus({preventScroll:true});
  });
  el('showBarSwitch').addEventListener('change',event=>{
   state.settings.showBar=event.currentTarget.checked;persistDemoSettings();state.revision++;renderIndex();renderRail();
