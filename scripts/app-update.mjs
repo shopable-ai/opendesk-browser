@@ -1,10 +1,9 @@
 // Local assistant entry: package a Sidebar App update without re-installing Chrome.
 // This only creates a verified JSON release. Installation remains in the trusted UI.
-import {readFile,writeFile,lstat,realpath} from 'node:fs/promises';
+import {readFile,writeFile,lstat,realpath,open,mkdir,unlink} from 'node:fs/promises';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
-import {createHash} from 'node:crypto';
 import {
   createSidebarToolPackage,encodeSidebarToolPackage,buildSidebarTool,
   promoteSidebarToolPackage,checkSidebarToolProjectPackage
@@ -36,6 +35,7 @@ function installAdvice(id,output,version,sha){
   console.log('\n应用安装包已准备好（尚未安装到 Chrome）：');
   console.log('  应用: '+id+'  版本: '+version+'  SHA-256: '+sha);
   console.log('  文件: '+output);
+  console.log('  状态: PACKAGE_READY_INSTALL_NOT_TESTED');
   console.log('  打开 OpenDesk →「扩展」→「更多操作」→「导入本地工具包」；');
   console.log('  核对应用 ID、版本和权限变化后确认「更新」，不要先卸载。');
   console.log('  重新打开应用并验证修改，数据、权限、实际安装均需真实 Chrome 核验。');
@@ -56,7 +56,6 @@ async function readPrevious(project,id){
 async function updateApp(id,{check=false}={}){
   if(!/^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/.test(id))
     fail('E_APP_ID','provide a valid Sidebar App ID');
-  if(!check)mainBranch();
   const project=join(root,'examples','sidebar-tools',id);
   const actual=await realpath(project);
   if(actual!==project)fail('E_APP_PATH','app path must not be a symlink');
@@ -115,9 +114,33 @@ async function updateApp(id,{check=false}={}){
     throw error;
   }
 }
+// Per-app lease protects the stable candidate against overlapping update commands.
+// A stale lock is a diagnostic, not permission to delete another owner's data.
+async function guardedUpdate(id,options){
+  if(options.check)return updateApp(id,options);
+  if(!/^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/.test(id))
+    fail('E_APP_ID','provide a valid Sidebar App ID');
+  mainBranch(); // Verify main before creating even an ignored lock.
+  const base=join(root,'artifacts','sidebar-tools',id);
+  await mkdir(base,{recursive:true});
+  const lock=join(base,'.app-update.lock');
+  let handle;
+  try{handle=await open(lock,'wx',0o600)}
+  catch(error){
+    if(error.code==='EEXIST')fail('E_APP_BUSY','another update owns this app; do not remove a live lock');
+    throw error;
+  }
+  try{
+    await handle.writeFile(JSON.stringify({pid:process.pid,appId:id})+'\n');
+    return await updateApp(id,options);
+  }finally{
+    await handle.close();
+    await unlink(lock);
+  }
+}
 const args=process.argv.slice(2),id=args[0],check=args.length===2&&args[1]==='--check';
 if(args.length<1||args.length>2||(args.length===2&&!check)||!id){
   console.error(usage);process.exitCode=2;
-}else updateApp(id,{check}).catch(error=>{
+}else guardedUpdate(id,{check}).catch(error=>{
   console.error(String(error.message||error));process.exitCode=1;
 });

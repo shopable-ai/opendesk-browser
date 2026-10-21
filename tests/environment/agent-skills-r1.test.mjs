@@ -62,6 +62,8 @@ test('R2 user app delivery and administrator Browser deployment are independent 
   assert.match(guide,/不需要先卸载/);
   assert.match(guide,/INSTALLED_CHROME_NOT_TESTED/);
   assert.match(cli,/promoteSidebarToolPackage/);
+  assert.match(cli,/E_APP_BUSY/,'same-app release must be serialized');
+  assert.match(cli,/!enteredPromotion/,'post-promotion failure cannot blindly roll back the source version');
   assert.doesNotMatch(cli,/chrome\.management\.install|chrome\.permissions\.request/);
   assert.equal(JSON.parse(manifest).scripts['app:update'],'node scripts/app-update.mjs');
 });
