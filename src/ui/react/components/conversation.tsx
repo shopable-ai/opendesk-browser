@@ -221,7 +221,7 @@ export function TrustedConversationWorkspace({
       e.preventDefault();send(e);
      }}}/>
     <div className="od-conversation-controls">
-     <small>{source} · {offline?'离线模拟读回':'真实业务读回'} · {resultLabel}</small>
+     <small>{offline?'离线模拟 · ':''}{resultLabel || (offline?'模拟结果需读回':'真实业务读回')}</small>
      {busy?<button className="od-conversation-action" type="button" aria-label="停止对话"
        onClick={stop}>■</button>:
       <button className="od-conversation-action od-conversation-action--primary" type="submit"
