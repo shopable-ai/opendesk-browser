@@ -40,6 +40,11 @@ jobs:
       - name: Parse trusted React Developer TSX
         run: |
           node --input-type=module -e "import {readFileSync} from 'node:fs'; import {transformSync} from 'esbuild'; for(const file of ['src/ui/react/tabs/develop.tsx','src/ui/react/main.tsx']) transformSync(readFileSync(file,'utf8'),{loader:'tsx',format:'esm',jsx:'automatic'});"
+      # Previous combined runs emitted 177 passing TAP cases but no Task Workbench
+      # cases or final summary. Prove this file's process exits independently;
+      # keep the original six-file suite below to detect cross-file leaks.
+      - name: Task Workbench isolated Node process-exit regression
+        run: node --test tests/environment/task-workbench.test.mjs
       - name: Controller, Page, React/Vue state, Task and Program regressions
         run: |
           node --test \
