@@ -173,7 +173,18 @@ export async function executeBookmarkPlan({plan,service,context,refs={},expected
      throw fail('E_DOCUMENT_BINDING_REQUIRED','发送时的当前网页已失效，请重新发送');
     const title=action.title==='$pageTitle'?source?.title:action.title;
     if(!value(title))throw fail('E_CONVERSATION_SCHEMA','当前网页缺少有效标题');
-    const url=source?.url||action.url;
+    // Chrome/Service persist canonical HTTP(S) URLs. Compare readback to
+    // the same normalized value (e.g. https://example.com/), never the
+    // unnormalized source string that can falsely produce UNKNOWN.
+    let url=source?.url||action.url;
+    if(source){
+     try{
+      const parsed=new URL(url);
+      if(!['https:','http:'].includes(parsed.protocol)||parsed.username||parsed.password)
+       throw Error('invalid page URL');
+      url=parsed.href;
+     }catch{throw fail('E_DOCUMENT_BINDING_REQUIRED','当前网页不是可收藏的 HTTP(S) 页面');}
+    }
     target=await write('createBookmark',{title,url,parentId:parent.id,
      ...(source?{sourcePage:{url,tabRef:source.tabRef,documentRef:source.documentRef}}:{})});
     kind='bookmark';actual={id:target?.id,title,url,parentId:parent.id};
