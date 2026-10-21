@@ -1297,7 +1297,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     // removed HTTPS origin may cover the active Provider through a broad grant.
     if(active&&((active.source==='local_codex'&&grant.permissions?.includes('nativeMessaging'))||
       (active.source!=='local_codex'&&grant.origins?.length))){
-      invalidateBookmarkConversation(err('E_GRANT_REVOKED','模型网站或 Native 权限已撤销，本轮 AI 提议失效'));
+      invalidateBookmarkConversation(err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已撤销，本轮 AI 提议失效'));
     }
     if(!grant.origins?.length&&!grant.permissions?.includes('nativeMessaging'))return;
     if(!grant.permissions?.includes('nativeMessaging')&&(!observationApproval||
@@ -1456,7 +1456,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         if(disposed||bookmarkConversationActive!==active)
           throw err('E_TOOL_CHANGED','书签扩展实例已切换，本轮操作失效');
         if(generation!==bookmarkConversationGrantEpoch)
-          throw err('E_GRANT_REVOKED','模型网站或 Native 权限已撤销，未继续写入');
+          throw err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已撤销，未继续写入');
         if(signal?.aborted||abortController.signal.aborted)
           throw err('E_CANCELLED','本轮已停止，未继续写入');
         if(provider()!==selected)
@@ -1469,8 +1469,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           try{permitted=await api.permissions.contains({origins:[grantPattern]});}
           catch{/* An unknown authorization state is not a grant. */}
           if(!permitted){
-            invalidateBookmarkConversation(err('E_GRANT_REVOKED','模型网站权限已失效'));
-            throw err('E_GRANT_REVOKED','模型网站权限已失效，拒绝继续书签写入');
+            invalidateBookmarkConversation(err('E_MODEL_GRANT_REVOKED','模型网站权限已失效'));
+            throw err('E_MODEL_GRANT_REVOKED','模型网站权限已失效，拒绝继续书签写入');
           }
         }
         assertLive();
@@ -1496,7 +1496,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }catch(error){
         const revoked=generation!==bookmarkConversationGrantEpoch;
         release();
-        if(revoked)throw err('E_GRANT_REVOKED','本轮模型权限已撤销；迟到提议已丢弃');
+        if(revoked)throw err('E_MODEL_GRANT_REVOKED','本轮模型权限已撤销；迟到提议已丢弃');
         if(signal?.aborted)throw err('E_CANCELLED','本轮已停止；迟到提议已丢弃');
         throw error;
       }
