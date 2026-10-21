@@ -125,7 +125,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
       const scopedConversation=conversation?Object.freeze({
         source:()=>conversation.source(),
         request:args=>conversation.request(args),
-        cancel:()=>conversation.cancel(),
+        cancel:options=>conversation.cancel(options),
         readSession:()=>({...oldSession,open:false,
           refs:{folderId:null,bookmarkId:null,matches:[]}}),
         saveSession:state=>conversation.saveSession(state)

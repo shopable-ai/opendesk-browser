@@ -85,10 +85,10 @@ test('R1.4 Send pins bookmark IDs; writing blocks conflicting draft and follows 
  assert.match(actions,/nextRefs\.folderId=found\.id/);
  assert.match(actions,/tree=await service\.load\(\)/);
  assert.match(actions,/if\(!found\|\|nodeFolder\(found\)/);
- assert.match(component,/onPhase:phase=>\{phaseRef\.current=phase;\}/);
+ assert.match(component,/onPhase:phase=>\{if\(current\(\)\)phaseRef\.current=phase;\}/);
  assert.match(component,/if\(unknown\)setNeedsReview\(true\)/);
  assert.match(component,/if\(!unknown&&!ex\?\.partial\?\.length/);
- assert.match(component,/controller\?\.cancel\?\.\(\)/);
+ assert.match(component,/controller\?\.cancel\?\.\(\{signal\}\)/);
 });
 
 test('R1.4 preview reuses production App and shared Dock and labels Mock honestly',async()=>{
@@ -106,4 +106,5 @@ test('R1.4 preview reuses production App and shared Dock and labels Mock honestl
  assert.match(preview,/title="AI 对话" placeholder/);
  assert.match(builder,/join\(root,'src\/ui\/react\/components\/conversation-dock\.css'\)/);
  assert.match(main,/mode="trusted" runtime=\{bookmarkPilot\.runtime\}/);
+ assert.match(main,/cancel:options=>conversation\.cancel\(options\)/,'Host must forward the exact Stop signal to the existing Workflow controller');
 });
