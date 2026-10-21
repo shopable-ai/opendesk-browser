@@ -59,7 +59,7 @@ test('R1.4 shared separator and edit draft coexistence retain keyboard access an
  assert.match(component,/controller\?\.saveSession/);
  assert.match(app,/hasDock=\{Boolean\(dock\)\}/);
  assert.match(app,/aria-modal=\{!hasDock\}/);
- assert.match(css,/\.bm-sheet-backdrop\[data-sharing="true"\]\{position:absolute;inset:42px 0 0\}/);
+ assert.match(css,/\.bm-sheet-backdrop\[data-sharing="true"\]\{position:absolute;inset:0\}/);
  assert.doesNotMatch(app,/if\(draft\)\{setError\('请先完成或取消当前书签编辑/);
 });
 

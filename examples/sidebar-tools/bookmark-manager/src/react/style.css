@@ -22,7 +22,7 @@
 .bm-button--danger{border-color:var(--od-negative);background:var(--od-negative);color:var(--od-paper)}
 .bm-error,.bm-notice{margin:7px 10px 0;border:1px solid color-mix(in srgb,var(--od-negative) 32%,var(--od-paper));background:var(--od-negative-bg);color:var(--od-negative);padding:8px 9px;border-radius:8px;display:flex;align-items:center;gap:8px;font-size:12px}
 .bm-error span{flex:1;min-width:0}.bm-error button{border:0;background:var(--od-paper);border-radius:5px;padding:4px 8px;color:var(--od-negative)}.bm-notice{display:block;border-color:color-mix(in srgb,var(--od-positive) 35%,var(--od-line));background:color-mix(in srgb,var(--od-positive) 8%,var(--od-paper));color:var(--od-positive)}
-.bm-workspace{display:flex;min-height:0;flex:1;flex-direction:column;gap:0;min-width:0;overflow:hidden}
+.bm-workspace{display:flex;position:relative;min-height:0;flex:1;flex-direction:column;gap:0;min-width:0;overflow:hidden}
 .bm-explorer{display:flex;flex-direction:column;min-height:0;flex:1;min-width:0;overflow:hidden}
 .bm-tree-head{height:36px;min-height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 13px;color:var(--od-sub);font-size:12px;border-bottom:1px solid var(--od-line);background:var(--od-bg)}
 .bm-tree-head span{font-weight:620;color:var(--od-ink)}.bm-tree-head small{font-size:11px;font-variant-numeric:tabular-nums}
@@ -79,7 +79,7 @@
 .bm-sheet-backdrop{position:fixed;inset:0;z-index:38;background:rgba(20,38,65,.27);display:flex;align-items:flex-end;justify-content:center}
 /* With the shared Dock, editing remains in its existing sheet but the
    business toolbar (including the chat toggle) stays available. */
-.bm-sheet-backdrop[data-sharing="true"]{position:absolute;inset:42px 0 0}
+.bm-sheet-backdrop[data-sharing="true"]{position:absolute;inset:0}
 .bm-sheet{width:100%;max-width:100%;max-height:min(88%,660px);overflow:auto;background:var(--od-paper);border-radius:16px 16px 0 0;box-shadow:0 -14px 42px rgba(26,48,80,.17);display:flex;flex-direction:column}
 .bm-sheet-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px 10px;border-bottom:1px solid var(--od-line);position:sticky;top:0;background:var(--od-paper);z-index:1;min-height:48px}
 .bm-sheet-header strong{font-size:14px;font-weight:670;letter-spacing:-.01em}
