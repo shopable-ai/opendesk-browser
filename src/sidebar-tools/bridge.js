@@ -266,6 +266,20 @@ export function initSidebarToolSandbox() {
       else {const error=new Error(message.error?.message||'工具请求被拒绝');error.code=message.error?.code||'E_TOOL';pending.reject(error);}
       return;
     }
+    if(message.kind==='layout'){
+      // Host-owned dimensions only; untrusted tools receive a CSS constraint,
+      // not an API for resizing or changing the trusted Side Panel.
+      if(message.instance===instance&&message.toolId===toolId&&
+         Number.isInteger(message.availableHeight)&&
+         message.availableHeight>=220&&message.availableHeight<=1600){
+        const size=message.availableHeight+'px';
+        if(root.style.getPropertyValue('--opendesk-host-available-height')!==size){
+          root.style.setProperty('--opendesk-host-available-height',size);
+          scheduleSize();
+        }
+      }
+      return;
+    }
     if (message.kind==='cookie-grants-changed') {
       if(message.instance===instance&&message.toolId===toolId)
         root.dispatchEvent(new Event('opendesk-cookie-grants-changed'));

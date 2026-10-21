@@ -279,3 +279,54 @@ test('UI freezes an in-flight save snapshot, blocks double save, and keeps unsav
  assert.equal(await notes.showLibrary(),undefined,'dirty editor blocks navigation');
  assert.equal(elements['clip-note-body'].value,'未保存的手动便签草稿');
 });
+
+
+test('R1.11 Host filters the full library before pagination, without changing total or ETag',async()=>{
+ const f=fixture();
+ const n1=await f.run('clipNotes.save',note('共同关键词 便签甲'));
+ const c1=await f.run('clipNotes.save',{kind:'clip',source:'https://example.com/a',body:'共同关键词 网页正文'});
+ const n2=await f.run('clipNotes.save',note('共同关键词 便签乙'));
+ const all=await f.run('clipNotes.list',{query:'共同关键词',offset:0});
+ const notes=await f.run('clipNotes.list',{query:'共同关键词',kind:'note',offset:0});
+ const clips=await f.run('clipNotes.list',{query:'共同关键词',kind:'clip',offset:0});
+ assert.equal(all.total,3);
+ assert.equal(notes.total,3);
+ assert.equal(notes.matched,2);
+ assert.deepEqual(new Set(notes.items.map(x=>x.id)),new Set([n1.id,n2.id]));
+ assert.deepEqual(clips.items.map(x=>x.id),[c1.id]);
+ assert.equal(clips.matched,1);
+ assert.equal(all.etag,notes.etag);
+ assert.equal(all.etag,clips.etag);
+ await assert.rejects(f.run('clipNotes.list',{query:'',kind:'invalid'}),e=>e.code==='E_SCHEMA');
+});
+
+test('R1.11 formal controls, preview and installable package use identical official UI',async()=>{
+ const [html,css,js,notes,stage,adapter,pkgRaw]=await Promise.all([
+  readFile(new URL('../src/index.html',import.meta.url),'utf8'),
+  readFile(new URL('../src/style.css',import.meta.url),'utf8'),
+  readFile(new URL('../src/main.js',import.meta.url),'utf8'),
+  readFile(new URL('../src/notes.js',import.meta.url),'utf8'),
+  readFile(new URL('../preview/stage.html',import.meta.url),'utf8'),
+  readFile(new URL('../preview/index.html',import.meta.url),'utf8'),
+  readFile(new URL('../web-markdown-clipper.opendesk-tool.json',import.meta.url),'utf8')
+ ]);
+ const pkg=JSON.parse(pkgRaw);
+ assert.equal(pkg.html,html);
+ assert.equal(pkg.css,css);
+ assert.equal(pkg.js,js);
+ assert.equal(pkg.scripts[0].code,notes);
+ assert.equal(pkg.scripts[0].sha256,createHash('sha256').update(notes).digest('hex'));
+ assert.ok(stage.includes('\n'+html+'\n'),'preview must embed installed HTML verbatim');
+ assert.doesNotMatch(stage,/src="ux\.js"/);
+ assert.match(adapter,/正式 src HTML/);
+ assert.match(html,/id="clip-recent-list"/);
+ assert.match(html,/id="clip-kind-filter"/);
+ assert.match(html,/id="clip-note-unsaved"/);
+ assert.match(html,/id="clip-notes-back"[^>]*aria-label="返回网页剪藏"[^>]*title="返回网页剪藏"/);
+ assert.doesNotMatch(html,/← 返回|← 列表|＋ 新建便签/);
+ assert.doesNotMatch(notes,/preview-remove|preview-edit|sessionStorage/);
+ assert.match(notes,/reloadRecent\(\)/);
+ assert.match(css,/--opendesk-host-available-height/);
+ for(const name of ['arrow-left','plus','list','pencil','trash-2','refresh-cw','copy','download','save','search','filter','eye','code-2','settings-2','archive','chevron-down'])
+  assert.ok(html.includes('id="clip-i-'+name+'"'),'missing semantic icon '+name);
+});

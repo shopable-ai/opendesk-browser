@@ -63,3 +63,131 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-vis
 /* Empty extraction state shares the official Markdown view. */
 .clip-preview .clip-empty-hint{color:var(--sub);font-size:12px;text-align:center;padding:28px 4px;margin:0}
 #clip-home[data-clip-state="extracting"] .clip-preview{opacity:.78}
+
+
+/* R1.11: one semantic icon vocabulary in the installed UI and its source-bound preview. */
+.clip .clip-icon-sprite{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
+.clip .clip-icon{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.clip button{display:inline-flex;align-items:center;justify-content:center;gap:5px}
+.clip button.clip-icon-button{width:32px;min-width:32px;height:32px;min-height:32px;padding:0;flex:none}
+.clip .clip-icon-button .clip-icon{width:17px;height:17px}
+.clip-head{margin-bottom:7px}.clip-brand{row-gap:2px}
+#clip-my-notes{display:none!important}
+.clip-page-title,.clip-modes{margin-bottom:7px}
+.clip .clip-fetch{min-height:34px}
+#clip-selection-hint{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:5px 0 7px}
+.clip-actions{margin:7px 0 5px}
+#clip-source,.clip-preview:not(.clip-note-read-body){height:148px;min-height:110px;max-height:190px}
+.clip-export{margin-top:7px}
+#clip-save-explain{margin:4px 0 1px}
+#clip-status{margin:4px 0 8px}
+.clip-settings summary{display:inline-flex;align-items:center;gap:5px}
+#clip-home{padding:0;border:0}
+#clip-recent{padding-top:10px;border-top:1px solid var(--edge)}
+.clip-recent-head{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:32px}
+.clip-recent-head strong{font-size:13px}
+.clip-recent-label{display:inline-flex;align-items:baseline;min-width:0;gap:6px}
+#clip-recent-count{font-size:12px;font-weight:400;color:var(--sub);font-variant-numeric:tabular-nums}
+.clip-recent-actions{display:flex;align-items:center;gap:4px;flex-shrink:0}
+#clip-view-all{color:var(--sub)}
+#clip-view-all:hover{color:var(--brand);border-color:#a5b8df}
+#clip-recent-list{margin-top:7px}
+#clip-recent-retry{margin-top:6px;font-size:11px}
+#clip-notes:not([hidden]){display:block;margin-top:2px}
+#clip-notes .clip-notes-head{flex-wrap:nowrap;min-height:32px;gap:5px}
+#clip-notes .clip-notes-head strong{flex:1;font-size:13px;min-width:0}
+#clip-notes .clip-notes-tools{gap:5px;margin-top:7px}
+.clip-search-wrap,.clip-filter-wrap{display:flex;align-items:center;gap:5px;min-width:0;border:1px solid var(--edge);border-radius:8px;color:var(--sub);background:var(--paper);padding-left:8px}
+.clip-search-wrap{flex:1}
+.clip-search-wrap .clip-icon,.clip-filter-wrap .clip-icon{width:14px;height:14px}
+.clip-notes-tools .clip-search-wrap input{padding:5px 7px 5px 0;border:0;outline-offset:-2px;width:100%;min-width:0}
+.clip-filter-wrap{flex:none;max-width:103px;padding-left:6px}
+#clip-kind-filter{min-width:0;max-width:80px;min-height:30px;padding:4px 2px 4px 0;border:0;border-radius:8px;color:inherit;background:var(--paper);font-size:11px}
+.clip-notes-meta{margin:5px 1px 2px}
+.clip-note-list{gap:6px;margin-top:7px}
+.clip-note-card{position:relative;padding:8px 9px;background:var(--paper);border:1px solid var(--edge);border-radius:9px;min-height:74px;cursor:pointer}
+.clip-note-card:hover,.clip-note-card:focus-within{border-color:#a3bae7}
+.clip-note-card .clip-note-open{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;border:0;background:transparent;min-height:56px;width:100%;padding:0;text-align:left;white-space:normal;font-weight:400}
+.clip-note-title{font-size:12px;line-height:1.4;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;padding-right:60px}
+.clip-note-meta{display:block;font-size:10px;margin-top:3px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;max-width:100%}
+.clip-note-excerpt{display:-webkit-box;font-size:11px;line-height:1.45;margin:4px 0 0;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%}
+.clip-note-buttons{position:absolute;top:5px;right:5px;display:flex;gap:2px;z-index:2;opacity:0;pointer-events:none;transition:opacity .12s ease}
+.clip-note-card:hover .clip-note-buttons,.clip-note-card:focus-within .clip-note-buttons{opacity:1;pointer-events:auto}
+.clip-note-buttons button.clip-icon-button{width:28px;min-width:28px;height:28px;min-height:28px;padding:5px;border:1px solid transparent;background:var(--layer);color:var(--sub)}
+.clip-note-buttons button:hover{border-color:#a5b8df;background:var(--paper);color:var(--brand)}
+.clip-note-buttons button.clip-danger:hover{border-color:#e5b4bd;background:#fff0f2;color:#a32f44}
+.clip-note-buttons .clip-icon{width:15px;height:15px}
+.clip-note-card[hidden]{display:none!important}
+.clip-remove-confirm{position:absolute;z-index:8;right:6px;top:36px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;width:200px;max-width:calc(100% - 12px);padding:8px;border:1px solid var(--edge);border-radius:9px;background:var(--paper);box-shadow:0 6px 22px #14294a36}
+.clip-remove-confirm span{width:100%;font-size:11px;color:var(--sub)}
+.clip-remove-confirm button{flex:1;font-size:11px;min-height:29px}
+.clip-remove-confirm .confirm-danger{color:#ae3346;border-color:#e5b4bd}
+.clip-editor-head{display:flex;align-items:center;gap:8px;min-height:32px}
+.clip-editor-head strong{font-size:13px;margin:0!important}
+.clip-unsaved{padding:8px;border-radius:8px;border:1px solid #dfb9c1;background:var(--paper);font-size:11px}
+.clip-unsaved>div{display:flex;gap:5px;margin-top:6px;justify-content:flex-end}
+.clip-unsaved[hidden]{display:none!important}
+.clip-note-reader{position:relative}
+.clip-note-editor{margin-top:0}
+#clip-notes[data-view=reading] .clip-notes-head,
+#clip-notes[data-view=editing] .clip-notes-head{display:none!important}
+/* The trusted Host supplies --opendesk-host-available-height from the Side Panel workspace;
+   fixed fallback avoids iframe auto-resize <-> viewport unit feedback. */
+.clip:has(#clip-note-reader:not([hidden])),
+.clip:has(#clip-note-editor:not([hidden])){
+ display:flex;flex-direction:column;
+ max-height:var(--opendesk-host-available-height,660px);overflow:hidden;min-height:0
+}
+.clip:has(#clip-note-reader:not([hidden])) #clip-notes,
+.clip:has(#clip-note-editor:not([hidden])) #clip-notes{
+ display:flex!important;flex-direction:column;flex:1 1 auto;min-height:0;overflow:hidden
+}
+#clip-notes .clip-notes-head,#clip-notes-status{flex-shrink:0}
+#clip-notes-status{max-height:4.8em;overflow:auto}
+#clip-note-reader:not([hidden]),#clip-note-editor:not([hidden]){
+ display:flex;flex:0 1 auto;flex-direction:column;min-height:0;max-height:100%;overflow:hidden
+}
+#clip-note-reader .clip-read-head,#clip-note-reader h2,#clip-note-read-meta,
+#clip-note-read-origin,#clip-note-reader .clip-read-actions,
+#clip-note-editor .clip-editor-head,#clip-note-origin,
+#clip-note-editor .clip-editor-actions,#clip-note-unsaved{flex-shrink:0}
+#clip-note-reader h2{font-size:15px;line-height:1.4;margin:9px 0 5px}
+#clip-note-read-origin{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#clip-note-read-body{
+ display:block;width:100%;height:auto;min-height:0;max-height:none;
+ margin:9px 0;flex:0 1 auto;overflow:auto;overscroll-behavior:contain;
+ background:var(--paper)
+}
+#clip-note-editor #clip-note-body{
+ field-sizing:content;resize:none;min-height:72px;max-height:none;
+ flex:0 1 auto;overflow:auto;overscroll-behavior:contain
+}
+#clip-note-reader .clip-remove-confirm{top:auto;bottom:44px}
+#clip-notes[data-view=editing] #clip-note-list[hidden]{
+ display:grid!important;flex:0 1 72px;min-height:0;max-height:72px;
+ opacity:.35;pointer-events:none;overflow:hidden
+}
+@media(pointer:coarse){.clip-note-buttons{opacity:0;pointer-events:none}
+ .clip-note-card:focus-within .clip-note-buttons{opacity:1;pointer-events:auto}}
+@media(max-width:360px){
+ .clip{padding:9px}
+ #clip-source,.clip-preview:not(.clip-note-read-body){height:130px}
+ .clip-note-card{padding:8px}
+ .clip-read-actions{gap:4px}
+ .clip-read-actions button{font-size:11px;padding:5px}
+ .clip-filter-wrap{max-width:88px}
+ #clip-kind-filter{max-width:61px}
+}
+@media(max-height:560px){
+ #clip-notes[data-view=editing] #clip-note-list[hidden]{display:none!important}
+ #clip-note-reader h2{margin:5px 0 2px}
+ #clip-note-read-body{margin:6px 0}
+ #clip-note-editor .clip-hint{margin:4px 0}
+}
+@media(prefers-color-scheme:dark){
+ .clip-note-card{background:var(--layer)}
+ .clip-note-buttons button.clip-icon-button{background:var(--paper)}
+ .clip-note-buttons button.clip-danger:hover{background:#503039;color:#ffc0cc;border-color:#754650}
+ .clip-remove-confirm{background:var(--paper)}
+}
+@media(prefers-reduced-motion:reduce){.clip-note-buttons{transition:none}}
