@@ -26,7 +26,7 @@ async function fixture({permission=true,kind='controller',lostInstallAck=false,p
   if(pageMatches)source.pageRules={matches:pageMatches,excludeMatches:[],
     runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'};
   if(managedUI)source.managedUI=true;
-  let liveSource=source,approvals=0,installs=0,requests=[],candidateHash,installed=null,pageCatalog=[],taskCatalog=[];
+  let liveSource=source,approvals=0,installs=0,requests=[],candidateHash,installed=null,pageCatalog=[],taskCatalog=[],localRunBusy=false;
   const client={request:async(name,args)=>{
     requests.push(name);
     if(name==='listTaskCatalog')return {catalog:structuredClone(taskCatalog),
@@ -109,7 +109,7 @@ async function fixture({permission=true,kind='controller',lostInstallAck=false,p
   }};
   let stateEvents=0;const installedNotices=[];
   const ui=createLocalInstallUI({client,api,view,currentPageTarget,getProject:()=>project,retireManagedPreview,
-    onState:()=>stateEvents++});
+    isBusy:()=>localRunBusy,onState:()=>stateEvents++});
   return {ui,get,view,source,binding,target,requests,installedNotices,project,client,
     get taskCatalog(){return taskCatalog;},
     get installs(){return installs;},get approvals(){return approvals;},
@@ -117,12 +117,28 @@ async function fixture({permission=true,kind='controller',lostInstallAck=false,p
     setSource:value=>{liveSource=value;},setPage:value=>{page=value;},
     setEpoch:value=>{epoch=value;},setPreparation:value=>{preparation=value;},
     setProjectSourceId:value=>{projectSourceId=value;},
-    setPermission:value=>{permission=value;},dispose(){ui.dispose();}};
+    setPermission:value=>{permission=value;},setBusy:value=>{localRunBusy=value;},dispose(){ui.dispose();}};
 }
 async function settle(predicate){
   for(let i=0;i<100&&!predicate();i++)await tick();
   assert.ok(predicate(),'asynchronous UI operation did not settle');
 }
+test('R40.10.1 a running Local program blocks an already-open install confirmation',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  f.ui.succeeded({source:f.source,binding:f.binding,target:f.target,runId:'verified-run-id'});
+  await f.ui.prepare();
+  assert.equal(f.get('local-install-confirm').disabled,false);
+  const before=f.requests.length;
+  f.setBusy(true);f.ui.update();
+  assert.equal(f.get('local-install-confirm').disabled,true);
+  f.get('local-install-confirm').fire('click',{isTrusted:true});await tick();
+  assert.equal(f.requests.length,before,'Run cannot start a second install transaction');
+  assert.equal(f.installs,0);assert.equal(f.approvals,0);
+  assert.equal(f.get('local-install-review').hidden,false,'existing review is preserved');
+  f.setBusy(false);f.ui.update();
+  assert.equal(f.get('local-install-confirm').disabled,false,'idle restores reviewed confirmation');
+});
+
 test('R25.1 passive target resolution blocks Save without discarding original proof in the same document',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   f.ui.succeeded({source:f.source,binding:f.binding,target:f.target,runId:'verified-run-id'});

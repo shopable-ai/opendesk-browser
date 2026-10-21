@@ -35,7 +35,7 @@ async function fixture({kind='controller',offline=false,withProof=false,installe
     attemptedManifestHash:'d'.repeat(64),sourceHash:source.sourceHash,
     siteOrigins:['https://example.com']}:null;
   let online=!offline,selectedBinding=binding.bindingId,prepared='preparation-A',
-    currentTarget=target,sourceNow=source,seenRuns=0;
+    currentTarget=target,sourceNow=source,seenRuns=0,localRunBusy=false;
   const requests=[];
   const installedRow=installed?{taskId:id,version:'1.0.0',manifestHash:'d'.repeat(64)}:null;
   const client={request:async(method)=>{
@@ -70,7 +70,7 @@ async function fixture({kind='controller',offline=false,withProof=false,installe
       throw Object.assign(new Error('stale document'),{code:'E_DOCUMENT_STALE'});}};
   const installedNotices=[];
   const ui=createLocalInstallUI({client,api,view,currentPageTarget:targetService,
-    getProject:()=>project,readControllerRun:async({runId:requested})=>{
+    getProject:()=>project,isBusy:()=>localRunBusy,readControllerRun:async({runId:requested})=>{
       seenRuns++;
       assert.equal(requested,runId);
       return {resultDeliveryDenied:revoked?[runId]:[],runs:[{runId,state:'completed',retirementState:'released',
@@ -86,9 +86,19 @@ async function fixture({kind='controller',offline=false,withProof=false,installe
     get reads(){return seenRuns;},
     setOnline:v=>{online=v;},setBinding:v=>{selectedBinding=v;},
     setTarget:v=>{currentTarget=v;},setSource:v=>{sourceNow=v;},
-    setProof:v=>{rememberedProof=v;},dispose:()=>ui.dispose()};
+    setBusy:v=>{localRunBusy=v;},setProof:v=>{rememberedProof=v;},dispose:()=>ui.dispose()};
 }
 async function settle(){for(let i=0;i<8;i++)await tick();}
+test('R40.10.1 active Local Run makes no passive Provider/catalog query',async t=>{
+  const f=await fixture({withProof:true,installed:true});t.after(f.dispose);
+  f.setBusy(true);f.ui.update();await settle();
+  assert.deepEqual(f.requests,[],'Run must not query installed catalog');
+  assert.equal(f.reads,0,'Run must not re-read old result proof');
+  f.setBusy(false);f.ui.update();await settle();
+  assert.ok(f.requests.includes('listTaskCatalog'),'idle owner restores read-only discovery');
+  assert.equal(f.reads,1,'original durable proof checked once after Run');
+});
+
 test('选中但未运行时安装入口存在，弹出阻塞理由不发起安装',async t=>{
   const f=await fixture();t.after(f.dispose);f.ui.update();await settle();
   assert.equal(f.ui.hasSelection(),true);

@@ -198,13 +198,19 @@ export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget
     // User-initiated prepare/confirm owns the frozen source transaction.
     // Do not start a second passive Provider.resolve while reviewing or
     // committing; status will be refreshed after the active step settles.
-    if(preparing||installing||reconciling||review)return;
+    if(preparing||installing||reconciling)return;
+    if(isBusy()){
+      // Run/Stop retires any old passive lookup; refresh only after idle.
+      if(lookupKey){lookupKey='';++lookupToken;checking=false;}
+      return;
+    }
+    if(review)return;
     const local=selected(),target=currentPageTarget?.snapshot;
     const key=JSON.stringify([local?.selectedBindingId()||'',local?.providerEpoch()||'',
       local?.connected()||false,local?.preparationIdentity()||'',
       local?.selectedProject()?.sourceId||'',local?.previousVerification?.()?.runId||'',
       local?.previousInstallation?.()?.id||'',
-      local?.previousInstallAttempt?.()?.attemptedVersion||'',isBusy(),
+      local?.previousInstallAttempt?.()?.attemptedVersion||'',
       target?.status||'',target?.windowId,target?.tabId,target?.documentId,target?.url]);
     if(key===lookupKey)return;
     if(!unknown&&!unknownReview&&sameInstalled()&&current()){
@@ -243,8 +249,8 @@ export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget
     if(verified&&!current()&&!resolvingSameWindow&&!unknown){
       verified=null;hide();onState();
     }
-    patchDeveloperField(view,confirmButton,{disabled:unknown?!unknownReview||reconciling||installing:
-      !review||preparing||installing||!current()});
+    patchDeveloperField(view,confirmButton,{disabled:isBusy()||(unknown?!unknownReview||reconciling||installing:
+      !review||preparing||installing||!current())});
     patchDeveloperField(view,confirmButton,{textContent:reconciling?'正在核对…':installing?'正在保存…':
       unknown?'只读核对已安装状态':'确认安装固定版本'});
     patchDeveloperField(view,cancelButton,{disabled:preparing||installing||reconciling});
@@ -319,7 +325,7 @@ export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget
     if(confirmedResult&&!disposed)onInstalled(confirmedResult);
   }
   async function prepare(){
-    if(disposed||preparing||installing||reconciling)return;
+    if(disposed||isBusy()||preparing||installing||reconciling)return;
     if(unknown&&unknownReview)return reconcileUnknown();
     if(!isSelected())return;
     if(checking&&!verified){
@@ -393,7 +399,7 @@ export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget
     }finally{preparing=false;if(!disposed){update();onState();}}
   }
   function confirm(event){
-    if(!event?.isTrusted)return;
+    if(!event?.isTrusted||isBusy())return;
     if(unknown&&unknownReview){void reconcileUnknown();return;}
     if(!review||installing||!current())return;
     const selected=review;
