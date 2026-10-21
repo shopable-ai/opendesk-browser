@@ -373,25 +373,27 @@ test('My searches a single installed task list on demand without executing or re
 test('R5.1 Escape closes inline My search, clears filters and restores keyboard focus without Run',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
   await f.click('task-search-toggle');
-  f.get('local-discover-search').value='不存在的任务';
-  await f.get('local-discover-search').fire('input');
+  f.field('local-discover-search').value='不存在的任务';
+  f.action('localDiscoverSearchInput');
   await f.click('local-filter-current');
-  assert.equal(f.get('task-run').disabled,true);
+  assert.equal(f.field('task-run').disabled,true);
   let prevented=false;
-  await f.get('task-search-panel').fire('keydown',{
+  f.action('taskSearchPanelKeydown',{
     key:'Escape',defaultPrevented:false,isComposing:false,preventDefault(){prevented=true;}
   });
-  assert.equal(prevented,true);
-  assert.equal(f.get('task-search-panel').hidden,true);
-  assert.equal(f.get('task-search-toggle').attributes['aria-expanded'],'false');
-  assert.equal(f.get('local-discover-search').value,'');
-  assert.equal(f.get('local-filter-all').attributes['aria-pressed'],'true');
-  assert.equal(f.get('task-installed-cards').children.length,2);
+  await tick();
+  assert.equal(prevented,true,'Escape action must consume the event');
+  assert.equal(f.field('task-search-panel').hidden,true);
+  assert.equal(f.field('task-search-toggle').attributes['aria-expanded'],'false');
+  assert.equal(f.field('local-discover-search').value,'');
+  assert.equal(f.field('local-filter-all').attributes['aria-pressed'],'true');
+  assert.equal(f.myView.data.taskRows.rows.length,2);
+  // The Node fixture observes the focus instruction only; browser focus and
+  // keyboard dispatch require actual React/Chrome, never a fake Element.fire.
   assert.equal(f.doc.activeElement,f.get('task-search-toggle'),
-    '搜索入口已显示，Escape 应恢复焦点到搜索图标');
-  assert.equal(f.get('task-run').disabled,false);
-  assert.equal(f.starts.length,0);
-  assert.equal(f.permissions.length,0);
+    'production action delegates the focus request to the search button');
+  assert.equal(f.field('task-run').disabled,false);
+  assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
 });
 
 test('My task filters use the one installed list and never run or grant permissions',async t=>{
@@ -399,131 +401,133 @@ test('My task filters use the one installed list and never run or grant permissi
   f.catalogState.installed[1].enabled=false;
   f.catalogState.catalog[1].manifest.siteOrigins=['https://elsewhere.example'];
   await f.ui.refresh();
-  assert.equal(f.get('task-run').disabled,false,'selected enabled Task is runnable before filtering');
-  const form=f.get('task-params-form');
+  assert.equal(f.field('task-run').disabled,false);
+  const param=f.field('task-param-name');
   await f.click('task-search-toggle');
-  const visibleTaskIds=()=>f.get('task-installed-cards').children
-    .filter(node=>node.className?.split(' ').includes('task-card-group'))
-    .map(group=>group.children[0].dataset.taskId);
+  const visibleTaskIds=()=>f.myView.data.taskRows.rows.map(row=>row.taskId);
   await f.click('local-filter-disabled');
-  assert.equal(f.get('local-filter-disabled').attributes['aria-pressed'],'true');
+  assert.equal(f.field('local-filter-disabled').attributes['aria-pressed'],'true');
   assert.deepEqual(visibleTaskIds(),['demo.second']);
-  assert.equal(f.get('task-run').disabled,true,'hidden selected Task cannot be triggered from the Run dock');
-  assert.equal(f.get('task-params-form'),form,'filtering preserves the live unsaved Task form');
+  assert.equal(f.field('task-run').disabled,true,
+    'a hidden selected Task must not gain Run authority');
+  assert.equal(f.field('task-param-name'),param,'filters retain the same live input state');
   await f.click('task-run');
-  assert.equal(f.starts.length,0,'a disabled hidden selection cannot run');
-  assert.equal(f.get('task-selected-workspace').hidden,true,
-    'filtered-out selected task keeps its live form without showing unrelated controls');
+  assert.equal(f.starts.length,0,'hidden selected Task cannot run');
+  assert.equal(f.myView.data.taskRows.selectedId,'demo.form');
+  assert.equal(visibleTaskIds().includes('demo.form'),false,
+    'the selected workspace is not rendered as a visible filtered card');
   await f.click('local-filter-current');
-  assert.equal(f.get('local-filter-current').attributes['aria-pressed'],'true');
+  assert.equal(f.field('local-filter-current').attributes['aria-pressed'],'true');
   assert.deepEqual(visibleTaskIds(),['demo.form']);
-  assert.equal(f.get('task-selected-workspace').hidden,false);
-  assert.equal(f.get('task-run').disabled,false,'returning to the visible Task restores its Run action');
+  assert.equal(f.field('task-run').disabled,false);
   await f.click('local-filter-all');
-  assert.equal(f.get('local-filter-all').attributes['aria-pressed'],'true');
+  assert.equal(f.field('local-filter-all').attributes['aria-pressed'],'true');
   assert.deepEqual(visibleTaskIds(),['demo.form','demo.second']);
-  assert.equal(f.starts.length,0);
-  assert.equal(f.permissions.length,0);
+  assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
 });
 
 test('opening the separate full-size catalog preserves its import and management view',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   f.ui.showCatalogPage();
-  assert.equal(f.get('workbench-discover').hidden,false);
-  assert.equal(f.get('workbench-tasks').hidden,true);
-  assert.equal(f.get('task-dock').hidden,true);
-  assert.equal(f.get('develop-dock').hidden,true);
-  assert.equal(f.get('task-catalog-cards').children.length,1);
-  f.get('task-search').value='no matches';
-  f.get('task-search').fire('input');
-  assert.equal(f.get('task-catalog-cards').children.length,1,'empty result is an explicit empty state');
-  assert.match(f.get('task-catalog-count').textContent,/0 个/);
-  assert.equal(f.catalogOpens.length,0,'already-open full catalog must not create another browser tab');
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'catalog');
+  assert.equal(f.myView.data.runDock.taskHidden,true);
+  assert.equal(f.myView.data.runDock.developHidden,true);
+  assert.equal(f.myView.data.catalogRows.rows.length,1);
+  f.field('task-search').value='no matches';
+  f.action('taskSearchInput');
+  assert.equal(f.myView.data.catalogRows.rows.length,0,'real React catalog projects empty rows');
+  assert.match(f.field('task-catalog-count').text,/0 个/);
+  assert.equal(f.catalogOpens.length,0,'opened full catalog cannot spawn another tab');
 });
 
 test('full-size catalog keeps its own reader after real install and re-reads the single Task Catalog state',async t=>{
   const f=make({installedInitially:false});t.after(()=>f.ui.dispose());await tick();await tick();
   f.ui.showCatalogPage();
-  f.get('task-catalog-list').value='demo.form@1.0.0';
-  f.get('task-catalog-list').fire('change');
-  assert.equal(f.get('task-install').disabled,true,'installation waits for its silent permission observation');
-  await tick();
-  assert.equal(f.get('task-install').disabled,false);
+  f.field('task-catalog-list').value='demo.form@1.0.0';
+  f.action('taskCatalogListChange');
+  assert.equal(f.field('task-install').disabled,true,
+    'installation must wait for silent Chrome permission observation');
+  await tick();await tick();
+  assert.equal(f.field('task-install').disabled,false);
   await f.click('task-install');
-  assert.equal(f.get('workbench-discover').hidden,false,'full catalog remains visible');
-  assert.equal(f.get('task-dock').hidden,true,'catalog cannot show an unrelated run dock');
-  assert.match(f.get('task-install-feedback').textContent,/已安装/);
-  assert.equal(f.get('task-installed-cards').children.length,1,'installed list now comes from real service mock');
-  assert.equal(f.get('task-run').disabled,false,'installed task is eligible on its own website');
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'catalog');
+  assert.equal(f.myView.data.runDock.taskHidden,true);
+  assert.match(f.field('task-install-feedback').text,/已安装/);
+  assert.equal(f.myView.data.taskRows.rows.length,1,'installed list re-reads original Task service');
+  assert.equal(f.field('task-run').disabled,false,'eligible on its own site');
 });
 
 test('R4 idle Extensions has no fixed footer and My task search import still opens the authenticated catalog',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   await f.click('tab-tools');
-  assert.equal(f.get('workspace-dock').hidden,true,'idle local search leaves all height for results');
+  assert.equal(f.myView.data.runDock.hidden,true,'idle Extensions have no manual run dock');
   await f.click('tab-my-tasks');
-  assert.equal(f.get('workspace-dock').hidden,false,'task Run is visible in My Tasks');
-  await f.click('tab-my-tasks');
+  assert.equal(f.myView.data.runDock.taskHidden,false,'My shows the legitimate Task Run dock');
   await f.click('task-open-catalog');
-  assert.equal(f.get('task-add-menu').hidden,false,'Add actions should be visible first');
-  assert.equal(f.catalogOpens.length,0,'Full catalog is not the primary Add page');
+  assert.equal(f.field('task-add-menu').hidden,false);
+  assert.equal(f.catalogOpens.length,0,'Add is compact before selecting catalog');
   await f.click('task-add-catalog');
-  assert.equal(f.catalogOpens.length,1,'Optional catalog opens on explicit choice');
-  assert.equal(f.starts.length,0);
-  assert.equal(f.permissions.length,0);
+  assert.equal(f.catalogOpens.length,1,'explicit action opens authenticated catalog');
+  assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
 });
 
 test('R5 result/history stay out of sight until a task has runs',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
-  assert.equal(f.get('task-result-panel').hidden,true);
-  assert.equal(f.get('task-history-panel').hidden,true);
+  assert.equal(f.field('task-result-panel').hidden,true);
+  assert.equal(f.field('task-history-panel').hidden,true);
   await f.click('tab-tools');
-  assert.equal(f.get('task-result-panel').hidden,true);
+  assert.equal(f.field('task-result-panel').hidden,true);
   await f.click('tab-my-tasks');
-  assert.equal(f.get('task-history-panel').hidden,true);
+  assert.equal(f.field('task-history-panel').hidden,true);
 });
 
 test('card view retains original action identities, history and parameter form across tab changes',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   for(const id of ['task-result','task-history','task-params-form','task-toggle','task-uninstall','task-refresh'])
-    assert(f.get(id),'existing action node exists: '+id);
-  const form=f.get('task-params-form'),field=form.children.find(node=>node.dataset.taskParam==='name');
-  field.value='unchanged';
+    assert(f.field(id),'production My View field exists: '+id);
+  const form=f.field('task-params-form'),param=f.field('task-param-name');
+  const runAction=f.myView.actions.taskRunClick,stopAction=f.myView.actions.taskStopClick;
+  param.value='unchanged';f.action('taskParamsFormInput');
   await f.click('tab-tools');await f.click('tab-develop');await f.click('tab-my-tasks');
-  assert.equal(form.children.find(node=>node.dataset.taskParam==='name').value,'unchanged');
-  assert.equal(f.get('task-installed-cards').children[0].children[1],f.get('task-selected-workspace'));
+  assert.equal(f.field('task-params-form'),form,'one original shared React form');
+  assert.equal(f.field('task-param-name'),param);
+  assert.equal(param.value,'unchanged');
+  assert.equal(f.myView.actions.taskRunClick,runAction);
+  assert.equal(f.myView.actions.taskStopClick,stopAction);
+  assert.equal(f.myView.data.taskRows.rows.length,1);
 });
 
 test('reopening My Tasks restores independent parameter drafts without permissions or execution',async t=>{
-  const values={};const draftStorage={get:async key=>({[key]:structuredClone(values[key])}),
-    set:async next=>Object.assign(values,structuredClone(next))};
+  const values={};const draftStorage={
+    get:async key=>({[key]:structuredClone(values[key])}),
+    set:async next=>Object.assign(values,structuredClone(next))
+  };
   const first=make({secondTask:true,draftStorage});await tick();await tick();
-  first.get('task-param-name').value='First';first.get('task-params-form').fire('input');
-  first.get('task-installed-cards').children[1].children[0].fire('click');
-  first.get('task-param-name').value='Second';first.get('task-params-form').fire('input');
-  await tick();first.ui.dispose();
-  const second=make({secondTask:true,draftStorage});t.after(()=>second.ui.dispose());await tick();await tick();
-  assert.equal(second.get('task-param-name').value,'First');
-  second.get('task-installed-cards').children[1].children[0].fire('click');
-  assert.equal(second.get('task-param-name').value,'Second');
+  first.field('task-param-name').value='First';first.action('taskParamsFormInput');
+  first.myView.data.taskRows.onSelect('demo.second');
+  first.field('task-param-name').value='Second';first.action('taskParamsFormInput');
+  await tick();await tick();first.ui.dispose();
+  const second=make({secondTask:true,draftStorage});t.after(()=>second.ui.dispose());
+  await tick();await tick();
+  assert.equal(second.field('task-param-name').value,'First');
+  second.myView.data.taskRows.onSelect('demo.second');
+  assert.equal(second.field('task-param-name').value,'Second');
   assert.equal(second.starts.length,0);assert.equal(second.permissions.length,0);
 });
 
 test('switching between two installed tasks preserves each independent unsaved parameter input',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
-  const form=f.get('task-params-form');
-  const field=()=>form.children.find(node=>node.dataset.taskParam==='name');
-  field().value='First';
-  f.get('task-installed-cards').children[1].children[0].fire('click');
-  assert.equal(f.get('task-installed-list').value,'demo.second');
-  field().value='Second';
-  f.get('task-installed-cards').children[0].children[0].fire('click');
-  assert.equal(f.get('task-installed-list').value,'demo.form');
-  assert.equal(field().value,'First');
-  f.get('task-installed-cards').children[1].children[0].fire('click');
-  assert.equal(field().value,'Second');
-  assert.equal(f.starts.length,0,'card selection never executes code');
-  assert.equal(f.permissions.length,0,'card selection never requests permission');
+  const param=f.field('task-param-name');
+  param.value='First';f.action('taskParamsFormInput');
+  f.myView.data.taskRows.onSelect('demo.second');
+  assert.equal(f.field('task-installed-list').value,'demo.second');
+  param.value='Second';f.action('taskParamsFormInput');
+  f.myView.data.taskRows.onSelect('demo.form');
+  assert.equal(f.field('task-installed-list').value,'demo.form');
+  assert.equal(param.value,'First');
+  f.myView.data.taskRows.onSelect('demo.second');
+  assert.equal(param.value,'Second');
+  assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
 });
 
 test('R4 accessible five production tabs support Arrow and Home/End',async t=>{
