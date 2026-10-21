@@ -23,7 +23,7 @@
 .od-conversation-feedback:focus-visible{outline:2px solid var(--od-focus);outline-offset:-2px}
 .od-conversation-composer{display:grid;grid-template-columns:minmax(0,1fr);position:relative;flex:none;min-width:0;padding:6px 10px 8px;border-top:1px solid var(--od-line)}
 .od-conversation-sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
-.od-conversation-input{grid-area:1/1;box-sizing:border-box;display:block;width:100%;min-width:0;min-height:44px;max-height:112px;resize:none;overflow-y:auto;border:1px solid var(--od-input-border);border-radius:var(--radius-surface);padding:10px 52px 9px 10px;background:var(--od-paper);color:var(--od-ink);font:inherit;font-size:var(--od-note-size);line-height:1.5;scrollbar-width:thin}
+.od-conversation-input{grid-area:1/1;margin:0;box-sizing:border-box;display:block;width:100%;min-width:0;min-height:44px;max-height:112px;resize:none;overflow-y:auto;border:1px solid var(--od-input-border);border-radius:var(--radius-surface);padding:10px 52px 9px 10px;background:var(--od-paper);color:var(--od-ink);font:inherit;font-size:var(--od-note-size);line-height:1.5;scrollbar-width:thin}
 .od-conversation-input::placeholder{color:var(--od-sub);opacity:1}
 .od-conversation-input:focus-visible,.od-conversation-close:focus-visible,.od-conversation-action:focus-visible,.od-conversation-frame-trigger:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 /* Input and action occupy one grid cell: no viewport/zoom-dependent bottom offset. */

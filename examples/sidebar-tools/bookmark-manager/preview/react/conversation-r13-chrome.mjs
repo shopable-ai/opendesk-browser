@@ -87,13 +87,20 @@ async function assertDockKeepsTreeVisible(){
 }
 function assertGeometry(g){assert.ok(g.appOverflow<=1,JSON.stringify(g));for(const e of g.controls){assert.ok(e.inside&&e.hittable,'Icon bounds/hit '+JSON.stringify(e));assert.ok(Math.abs(e.dx)<.7&&Math.abs(e.dy)<.7,'Icon center '+JSON.stringify(e));assert.equal(e.padding,'0px');assert.equal(e.type,'button')}assert.deepEqual(g.overflow,[])}
 async function contrast(){return evaluate(String.raw`const lum=c=>c.slice(0,3).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4}).reduce((s,v,i)=>s+v*[.2126,.7152,.0722][i],0);
- const parse=s=>{const components=(s.match(/-?(?:\d*\.?\d+)(?:e[+-]?\d+)?/gi)||[]).map(Number);
-  // Chromium color(srgb R G B / A) returns normalized RGB with an optional
-  // transparency channel. Preserve A: dropping it makes transparent layers
-  // appear opaque black, causing false WCAG contrast failures.
-  if(s.startsWith('color(srgb'))return [
-   ...components.slice(0,3).map(value=>value*255),...(components.length>3?[components[3]]:[])];
-  return components;};
+ const swatch=document.createElement('canvas');swatch.width=1;swatch.height=1;
+ const paint=swatch.getContext('2d',{willReadFrequently:true});
+ if(!paint)throw Error('Chromium contrast audit requires a 2D canvas');
+ const colorCache=new Map();
+ const parse=s=>{
+  if(colorCache.has(s))return colorCache.get(s);
+  if(!CSS.supports('color',s))throw Error('Unrecognized computed CSS color '+s);
+  // Chromium interpolates selected-row transitions using oklab(); reading its
+  // numeric channels as RGB yields a false black background and contrast FAIL.
+  // Rasterize the actual computed CSS color, preserving alpha for nested layers.
+  paint.clearRect(0,0,1,1);paint.fillStyle=s;paint.fillRect(0,0,1,1);
+  const [r,g,b,a]=paint.getImageData(0,0,1,1).data;
+  const sample=[r,g,b,a/255];colorCache.set(s,sample);return sample;
+ };
  const over=(a,b)=>{const alpha=a[3]??1;return a.slice(0,3).map((v,i)=>v*alpha+b[i]*(1-alpha)).concat(1)};
  const bg=e=>{if(!e)return [255,255,255,1];return over(parse(getComputedStyle(e).backgroundColor),bg(e.parentElement))};
  const rows=[];function sample(e,color,text,threshold=4.5){const fg=parse(color),back=bg(e),levels=[lum(over(fg,back)),lum(back)].sort((a,b)=>a-b),ratio=(levels[1]+.05)/(levels[0]+.05);rows.push({text,ratio,threshold,foreground:color,background:back.slice(0,3)})}
