@@ -8,6 +8,8 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
 import {load} from 'cheerio';
 import {build} from 'vite';
+import {clipperStagePaths,generateClipperStage} from './clipper-stage.mjs';
+import {compileSharedToolCss} from './shared-tool-design.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const output=join(root,'prototypes/sidebar/react-preview/index.html');
 const stylePaths=[
@@ -27,7 +29,8 @@ const inputs=[
   'src/ui/workflow/workflow-ui-state.js','src/ui/react/tabs/workflow.tsx',
   'src/ui/react/tabs/tasks.tsx','src/ui/react/tabs/my-page.tsx',
   'src/ui/react/tabs/schedule.tsx','src/ui/react/tabs/cloud.tsx','src/ui/react/tabs/debug.tsx',
-  'scripts/preview/build-sidebar-six-react-preview.mjs','package.json','package-lock.json'
+  'scripts/preview/build-sidebar-six-react-preview.mjs','scripts/preview/clipper-stage.mjs','scripts/preview/shared-tool-design.mjs',
+  ...clipperStagePaths,'examples/sidebar-tools/web-markdown-clipper/tool.config.json','package.json','package-lock.json'
 ];
 const must=(ok,message)=>{if(!ok)throw Error('E_SIX_TAB_PREVIEW: '+message);};
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -41,6 +44,7 @@ import {mountSidebarApp} from ${JSON.stringify(join(root,'src/ui/react/main.tsx'
 import {createDeveloperPreviewView} from ${JSON.stringify(join(root,'src/ui/react/preview/developer-preview.js'))};
 import {createMyWorkbenchView} from ${JSON.stringify(join(root,'src/ui/my-workbench-view.js'))};
 import {createSidebarToolsView} from ${JSON.stringify(join(root,'src/ui/sidebar-tools-view.js'))};
+import {createClipperPreview} from ${JSON.stringify(join(root,'src/ui/react/preview/clipper-preview.js'))};
 import {createWorkflowUIState} from ${JSON.stringify(join(root,'src/ui/workflow/workflow-ui-state.js'))};
 const proof={scope:'UI_PREVIEW_ONLY',realHost:false,realPermission:false,realResult:false};
 const names=['tasks','tools','workflow','develop','cloud','debug'];
@@ -77,6 +81,7 @@ const onNavigate=tab=>{
   app.renderNavigation(tab);return true;
 };
 app=mountSidebarApp(document,{debugEnabled:true,onNavigate,developerView,myView,toolView});
+const clipper=createClipperPreview({view:toolView,stage:CLIPPER_STAGE_DOCUMENT});
 app.connectWorkflowPage({...workflow,actions:workflowActions});
 // Debug-only, read-only preview: no Chrome permission, history query or data.
 app.renderBrowserHistory({text:'',startDate:'',endDate:'',limit:'25',busy:false,
@@ -85,6 +90,8 @@ app.connectBrowserHistoryActions(null);
 // Presentation data only: the real React component consumes the same snapshot
 // contract, while no Installer, Chrome permission or Host operation is present.
 const demoRows=Object.freeze([
+  {key:'app:web-markdown-clipper',title:'网页剪藏',kind:'app',type:'应用',
+    description:'正式业务源码 · 模拟 Host 与预览数据',installed:true,version:'CLIPPER_TOOL_VERSION'},
   {key:'app:demo-reading',title:'演示 · 阅读目录',kind:'app',type:'应用',
     description:'展示网页标题与文章大纲（演示数据）',installed:true,version:'1.0.0'},
   {key:'page:demo-markup',title:'演示 · 网页内容标注与阅读辅助工具',kind:'page',type:'网页增强',
@@ -224,7 +231,7 @@ function publishRows(){
     (!query||(row.title+' '+row.description).toLocaleLowerCase().includes(query)));
   app.renderRows({rows:shown.map(({key,title,kind,type,description,installed})=>
     ({key,title,kind,type,description,installed,stateKnown:true,primaryAction:null})),
-    busy:false,pendingKey:null,onOpenRow:openDemoDetail,
+    busy:false,pendingKey:null,onOpenRow:key=>key==='app:web-markdown-clipper'?clipper.open():openDemoDetail(key),
     onMore:(key,trigger)=>{
       const row=demoRows.find(item=>item.key===key);
       if(!row)return;
@@ -233,7 +240,14 @@ function publishRows(){
         trigger.focus({preventScroll:true});
         openDemoListUninstall(key,event);
       }});
-      app.renderRowMenu(items,{key,title:row.title,trigger,onClose:closeRowMenu});
+      app.renderRowMenu(items,{key,title:row.title,trigger,onClose:returnFocus=>{
+        closeRowMenu();
+        if(!returnFocus)return;
+        const next=trigger?.isConnected?trigger:
+          [...document.querySelectorAll('[data-extension-action="more"]')]
+            .find(node=>node.dataset.extensionKey===key);
+        next?.focus({preventScroll:true});
+      }});
     }});
   app.renderFeedback({showEmpty:shown.length===0,
     emptyText:'仅预览 · 当前筛选下没有演示条目',
@@ -256,7 +270,8 @@ publishToolbar();
 publishRows();
 publishDemoUninstall();
 app.renderDebugDiagnostics({cloudSummary:'仅预览 · 未连接真实 Host',snapshotText:'UI_PREVIEW_ONLY'});
-window.addEventListener('pagehide',()=>{app.dispose();developerView.dispose();workflow.dispose();},{once:true});
+if(new URLSearchParams(location.search).get('tool')==='web-markdown-clipper')clipper.open();
+window.addEventListener('pagehide',()=>{clipper.dispose();app.dispose();developerView.dispose();workflow.dispose();},{once:true});
 document.documentElement.dataset.previewProof=proof.scope;
 document.documentElement.dataset.previewBootScript='ready';
 `;
@@ -276,8 +291,10 @@ export async function generateSidebarSixReactPreview(){
   must(!/<\/style/i.test(officialCss),'official CSS cannot terminate its element');
   const temp=await mkdtemp(join(tmpdir(),'opendesk-six-react-'));
   const sources=new Map(initial),entry=join(temp,'preview-entry.mjs'),bundle=join(temp,'bundle');
+  const clipperStage=generateClipperStage(sources,{compiledCss:await compileSharedToolCss(sources.get(clipperStagePaths[1]).toString())});
   try{
-    await writeFile(entry,previewEntry);
+    const clipperVersion=JSON.parse(await readFile(join(root,'examples/sidebar-tools/web-markdown-clipper/tool.config.json'),'utf8')).version;
+    await writeFile(entry,previewEntry.replace('CLIPPER_STAGE_DOCUMENT',JSON.stringify(clipperStage)).replace('CLIPPER_TOOL_VERSION',clipperVersion));
     await build({root,configFile:false,logLevel:'error',
       plugins:[{name:'opendesk-offline-app-inputs',enforce:'pre',
         async load(id){
@@ -306,7 +323,7 @@ export async function generateSidebarSixReactPreview(){
       '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">',
       '<meta name="viewport" content="width=device-width,initial-scale=1">',
       '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src data:; '+
-        'style-src \'unsafe-inline\'; img-src data:; connect-src \'none\'; frame-src \'none\'; '+
+        'style-src \'unsafe-inline\'; img-src data:; connect-src \'none\'; frame-src \'self\' about:; '+
         'object-src \'none\'; base-uri \'none\'; form-action \'none\'">',
       '<meta name="od-preview-proof" content="UI_PREVIEW_ONLY">',
       '<meta name="od-source-input-sha256" content="'+inputSha256+'">',
@@ -325,17 +342,20 @@ export async function generateSidebarSixReactPreview(){
       '</body></html>\n'
     ].join('\n');
     must(!/<script(?=\s)[^>]*src="https?:/i.test(html),'network script unexpectedly included');
-    return {html,bytes:Buffer.byteLength(html),bundleBytes:compiled.length,inputSha256,bundleInputSha256,
+    return {html,clipperStage,bytes:Buffer.byteLength(html),bundleBytes:compiled.length,inputSha256,bundleInputSha256,
       sourceInputs:sourceInputs.map(([path,bytes])=>({path,sha256:sha(bytes)}))};
   }finally{await rm(temp,{recursive:true,force:true});}
 }
 export async function buildSidebarSixReactPreview({check=false,outputPath=output}={}){
   const result=await generateSidebarSixReactPreview();
   const target=resolve(outputPath);
+  const stageTarget=join(root,'examples/sidebar-tools/web-markdown-clipper/preview/stage.html');
   if(check){
     let current='';try{current=await readFile(target,'utf8');}catch{}
     must(current===result.html,'generated index.html missing or stale');
-  }else{await mkdir(dirname(target),{recursive:true});await writeFile(target,result.html,'utf8');}
+    must(await readFile(stageTarget,'utf8')===result.clipperStage,'generated clipper stage missing or stale');
+  }else{await mkdir(dirname(target),{recursive:true});await writeFile(target,result.html,'utf8');
+    await writeFile(stageTarget,result.clipperStage,'utf8');}
   return {path:target,bytes:result.bytes,bundleBytes:result.bundleBytes,inputSha256:result.inputSha256,
     bundleInputSha256:result.bundleInputSha256,sourceInputs:result.sourceInputs,check};
 }

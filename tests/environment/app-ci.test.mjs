@@ -88,3 +88,49 @@ test('an unprofiled Chrome-privileged App fails closed rather than silently skip
     await rm(join(ROOT,'artifacts/app-ci',x.name),{recursive:true,force:true});
   }
 });
+test('cookie privileges still require an explicit App CI profile',async()=>{
+  const x=await fixture(['browser.cookies.write']);
+  try{
+    const result=cli(['plan'],{APP_CI_SELECTED:x.name});
+    assert.notEqual(result.status,0);
+    assert.match(result.stderr,/cookie privileges require an explicit test profile/);
+    await assert.rejects(access(join(ROOT,'artifacts/app-ci',x.name,'candidate-receipt.json')));
+  }finally{
+    await rm(x.project,{recursive:true,force:true});
+    await rm(join(ROOT,'artifacts/app-ci',x.name),{recursive:true,force:true});
+  }
+});
+test('AI VIP Share declares its Cookie and lifecycle tests before discovery',async()=>{
+  const profile=JSON.parse(await readFile(join(ROOT,
+    'examples/sidebar-tools/ai-vip-share/app.ci.json'),'utf8'));
+  for(const file of ['ai-vip-share-local-development','ai-vip-share-r21-lifecycle',
+    'ai-vip-share-r53-development','ai-vip-share-r59-proxy-ui'])
+    assert.ok(profile.node.includes('tests/environment/'+file+'.test.mjs'),file);
+  const result=cli(['plan'],{APP_CI_SELECTED:'ai-vip-share'});
+  assert.equal(result.status,0,result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout).selected,['ai-vip-share']);
+});
+test('React Apps cannot discover without a declared browser suite',async()=>{
+  const x=await fixture(['storage.local']);
+  try{
+    await writeFile(join(x.project,'app.ci.json'),JSON.stringify({
+      schema:'opendesk.app-ci.v1',kind:'react'
+    }));
+    const result=cli(['plan'],{APP_CI_SELECTED:x.name});
+    assert.notEqual(result.status,0);
+    assert.match(result.stderr,/React installed UI requires browser tests/);
+    await assert.rejects(access(join(ROOT,'artifacts/app-ci',x.name,'candidate-receipt.json')));
+  }finally{
+    await rm(x.project,{recursive:true,force:true});
+    await rm(join(ROOT,'artifacts/app-ci',x.name),{recursive:true,force:true});
+  }
+});
+test('Cookie Editor keeps its React classification and discovers browser coverage',()=>{
+  const inspected=cli(['inspect','cookie-editor']);
+  assert.equal(inspected.status,0,inspected.stderr);
+  assert.equal(JSON.parse(inspected.stdout).kind,'react');
+  assert.equal(JSON.parse(inspected.stdout).chrome,'true');
+  const planned=cli(['plan'],{APP_CI_SELECTED:'cookie-editor'});
+  assert.equal(planned.status,0,planned.stderr);
+  assert.deepEqual(JSON.parse(planned.stdout).selected,['cookie-editor']);
+});

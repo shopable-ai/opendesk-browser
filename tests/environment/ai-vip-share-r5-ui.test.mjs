@@ -18,11 +18,11 @@ const tool={id:'ai-vip-share',capabilities:['ai.access']};
 test('R5 official tool compiles member, redeem and store UI with canonical design',async t=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
   assert.equal(pkg.id,'ai-vip-share');
-  assert.equal(pkg.version,'1.3.7');
+  assert.equal(pkg.version,'1.4.0');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
-  assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed','browser.cookies.write']);
+  assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed','browser.cookies.write','currentPage.read']);
   assert.match(pkg.css,/opendesk\.shared-design\.v1/);
-  for(const text of ['AI 会员','兑换激活','预检兑换','查看更多商品','AI 网站访问'])
+  for(const text of ['AI 会员','兑换激活','预检激活','查看更多商品','AI 网站访问'])
     assert(pkg.html.includes(text),text);
   assert.match(pkg.html,/id="ai-vip-redeem-code"[^>]*type="password"[^>]*data-sensitive/);
   assert.match(pkg.html,/id="ai-vip-redeem"[^>]*disabled/);
@@ -111,9 +111,9 @@ test('R5 no Provider, SKU or shop can invent business success',async t=>{
   const html=await readFile('examples/sidebar-tools/ai-vip-share/src/index.html','utf8');
   const script=await readFile('examples/sidebar-tools/ai-vip-share/src/main.js','utf8');
   assert.match(html,/暂无法查询账号与会员权益/);
-  assert.match(html,/会员服务接入后可使用兑换码/);
+  assert.match(html,/会员服务接入后可使用激活码/);
   assert.doesNotMatch(html,/id="ai-vip-remaining">—|id="ai-vip-remaining-unit">待核验/);
-  assert.match(html,/专属激活链接续接尚未接入正式安装与服务验证流程/);
+  assert.match(html,/专属激活链接与安装续接[\s\S]*?尚未实现。缺少短效凭据验证、安装后续接与回跳；安装 JSON 不会自动领取权益。/);
   assert.match(script,/PRODUCT_CATALOG_URL=''/);
   assert.match(script,/shopSdk\.create\(\{url:catalog\}\)/);
   assert(!/fetch\(|showModal\(|window\.open\(/.test(script));

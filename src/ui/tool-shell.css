@@ -392,7 +392,7 @@
 .sidebar-tool-view-head{display:flex;align-items:center;gap:8px;min-height:34px;margin-bottom:8px;font-size:11px;min-width:0}
 .sidebar-tool-view-head strong{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
 #sidebar-tool-back{color:var(--od-ink);background:var(--od-muted)}
-#sidebar-tool-remove{border-color:var(--od-negative);color:var(--od-negative);background:var(--od-paper)}
+#sidebar-tool-remove{border-color:var(--od-line);color:var(--od-sub);background:var(--od-paper)}
 
 /* Reading TOC settings are a trusted sibling view; hiding never destroys the iframe. */
 #sidebar-tool-frame[hidden],#sidebar-tool-settings-view[hidden],#sidebar-tool-settings-open[hidden],
@@ -713,7 +713,7 @@
 .sidebar-tool-icon-action{color:var(--od-sub)}
 .sidebar-tool-list-remove svg,.sidebar-tool-item-open-icon svg{display:block;width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .sidebar-tool-icon-action:hover:not(:disabled){background:var(--od-muted)}
-#sidebar-tool-remove:hover:not(:disabled),.sidebar-tool-list-remove:hover:not(:disabled){background:#fff1f2}
+#sidebar-tool-remove:hover:not(:disabled),.sidebar-tool-list-remove:hover:not(:disabled){background:var(--od-negative-bg);color:var(--od-negative);border-color:var(--od-negative)}
 .sidebar-tool-icon-action:focus-visible::after,.sidebar-tool-list-remove:focus-visible::after,.sidebar-tool-site:focus-visible::after,.sidebar-tool-settings:focus-visible::after,.sidebar-tool-list-tab:focus-visible::after{content:attr(aria-label);position:absolute;bottom:calc(100% + 5px);right:0;z-index:12;max-width:min(160px,calc(100vw - 24px));padding:4px 7px;background:#253951;color:#fff;font-size:11px;font-weight:500;line-height:1.45;white-space:normal;overflow-wrap:anywhere;text-align:left;border-radius:5px;box-shadow:0 2px 8px #15284a24;pointer-events:none}
 /* The first toolbar action sits at the scroll container's top edge. Keep its
  * keyboard label below the button, sized by its text instead of the icon. */

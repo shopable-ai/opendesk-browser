@@ -355,13 +355,14 @@ test('R1.11 formal controls, preview and installable package use identical offic
  ]);
  const pkg=JSON.parse(pkgRaw);
  assert.equal(pkg.html,html);
- assert.equal(pkg.css,css);
+ const {compileSharedToolCss}=await import('../../../../scripts/preview/shared-tool-design.mjs');
+ assert.equal(pkg.css,await compileSharedToolCss(css));
  assert.equal(pkg.js,js);
  assert.equal(pkg.scripts[0].code,notes);
  assert.equal(pkg.scripts[0].sha256,createHash('sha256').update(notes).digest('hex'));
  assert.ok(stage.includes('\n'+html+'\n'),'preview must embed installed HTML verbatim');
  assert.doesNotMatch(stage,/src="ux\.js"/);
- assert.ok(adapter.includes('正式 src/notes.js 与 src/style.css 驱动业务'));
+ assert.match(adapter,/正式业务源码、模拟 Host 和数据/);
  assert.match(html,/id="clip-recent-list"/);
  assert.match(html,/id="clip-kind-filter"/);
  assert.match(html,/id="clip-note-unsaved"/);

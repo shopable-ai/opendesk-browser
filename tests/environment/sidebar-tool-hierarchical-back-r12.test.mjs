@@ -37,27 +37,29 @@ test('clipper keeps data store intact and prioritizes saved content/touch action
  assert.match(source,/sidebarToolStorageKey\(toolId\)/);
 });
 
-test('official 1.2.5 installable package exactly embeds current clipper sources',async()=>{
+test('official installable package exactly embeds current clipper sources and canonical tokens',async()=>{
  const dir='examples/sidebar-tools/web-markdown-clipper/';
  const meta=JSON.parse(await src(dir+'tool.config.json'));
  const pkg=JSON.parse(await src(dir+'web-markdown-clipper.opendesk-tool.json'));
- assert.equal(meta.version,'1.2.5');assert.equal(pkg.version,meta.version);
+ assert.equal(meta.version,'1.2.6');assert.equal(pkg.version,meta.version);
  assert.equal(pkg.id,meta.id);
  assert.equal(pkg.html,await src(dir+meta.files.html));
- assert.equal(pkg.css,await src(dir+meta.files.css));
+ const {compileSharedToolCss}=await import('../../scripts/preview/shared-tool-design.mjs');
+ assert.equal(pkg.css,await compileSharedToolCss(await src(dir+meta.files.css)));
  assert.equal(pkg.js,await src(dir+meta.files.js));
  assert.equal(pkg.scripts.length,1);
  assert.equal(pkg.scripts[0].code,await src(dir+meta.files.dependencies[0]));
 });
-test('R1.2 preview uses fixed host icons and source-owned navigation actions',async()=>{
+test('preview forwards to the only official React root and embeds source-owned navigation actions',async()=>{
  const outer=await src('examples/sidebar-tools/web-markdown-clipper/preview/index.html');
  const stage=await src('examples/sidebar-tools/web-markdown-clipper/preview/stage.html');
- assert.match(outer,/id="demo-back"/);assert.match(outer,/id="demo-action"/);
- assert.match(outer,/clipper-demo-nav-action/);
- assert.match(stage,/setNavigation\(\{page\}/);
- assert.match(stage,/opendesk-tool-navigation/);
- assert.match(stage,/src="\.\.\/src\/notes\.js"/);
- assert.match(stage,/src="\.\.\/src\/main\.js"/);
+ assert.match(outer,/prototypes\/sidebar\/react-preview\/index.html/);
+ assert.doesNotMatch(outer,/demo-tool-head|<iframe/);
+ const scripts=[...stage.matchAll(/src="data:text\/javascript;base64,([^"]+)"/g)].map(m=>Buffer.from(m[1],'base64').toString());
+ assert.match(scripts[0],/setNavigation\(\{page\}/);
+ assert.match(scripts[0],/opendesk-tool-navigation/);
+ assert.equal(scripts[1],await src('examples/sidebar-tools/web-markdown-clipper/src/notes.js'));
+ assert.equal(scripts[2],await src('examples/sidebar-tools/web-markdown-clipper/src/main.js'));
 });
 
 test('navigation business controller exercises real note transitions and guarded draft',async()=>{

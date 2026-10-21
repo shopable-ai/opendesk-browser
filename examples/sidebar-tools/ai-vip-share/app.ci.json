@@ -1,0 +1,16 @@
+{
+  "schema": "opendesk.app-ci.v1",
+  "kind": "ui",
+  "node": [
+    "tests/environment/ai-vip-share-r2.test.mjs",
+    "tests/environment/ai-vip-share-r21-lifecycle.test.mjs",
+    "tests/environment/ai-vip-share-r5-ui.test.mjs",
+    "tests/environment/ai-vip-share-r51-member.test.mjs",
+    "tests/environment/ai-vip-share-local-development.test.mjs",
+    "tests/environment/ai-vip-share-r53-development.test.mjs",
+    "tests/environment/ai-vip-share-r59-proxy-ui.test.mjs",
+    "tests/environment/ai-vip-share-ui-parity.test.mjs",
+    "examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.test.mjs",
+    "examples/sidebar-tools/ai-vip-share/dev/local-test/proxy-line-probe.test.mjs"
+  ]
+}

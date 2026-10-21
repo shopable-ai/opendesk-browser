@@ -408,16 +408,17 @@ test('offline preview must embed the exact formal HTML and reuse official JS and
   readFile(new URL('../preview/index.html',import.meta.url),'utf8')
  ]);
  assert.ok(stage.includes('\n'+html+'\n'),'stage must embed the exact official UI, not a redesigned copy');
- assert.match(stage,/src="\.\.\/src\/notes\.js"/);
- assert.match(stage,/src="\.\.\/src\/main\.js"/);
- assert.match(stage,/href="\.\.\/src\/style\.css"/);
- assert.match(wrapper,/src="stage\.html"/);
- for(const width of [320,360,400,440])assert.ok(wrapper.includes('data-width="'+width+'"'));
+ const scripts=[...stage.matchAll(/src="data:text\/javascript;base64,([^"]+)"/g)].map(m=>Buffer.from(m[1],'base64').toString());
+ assert.equal(scripts[1],await readFile(new URL('../src/notes.js',import.meta.url),'utf8'));
+ assert.equal(scripts[2],source);
+ const {compileSharedToolCss}=await import('../../../../scripts/preview/shared-tool-design.mjs');
+ const css=await compileSharedToolCss(await readFile(new URL('../src/style.css',import.meta.url),'utf8'));
+ assert.ok(stage.includes('<style>'+css+'</style>'));
+ assert.match(wrapper,/prototypes\/sidebar\/react-preview\/index.html/);
  assert.match(wrapper,/非真实设备结果/);
- assert.match(stage,/模拟复制（未写入系统剪贴板）/);
- assert.match(stage,/模拟下载（未创建磁盘文件）/);
- for(const action of ['simulate-menu','data-storage="quota"','data-storage="failure"','data-storage="unknown"'])
-  assert.ok(wrapper.includes(action),'preview needs '+action);
+ assert.match(scripts[0],/模拟复制（未写入系统剪贴板）/);
+ assert.match(scripts[0],/模拟下载（未创建磁盘文件）/);
+ for(const action of ['quota','failure','unknown'])assert.ok(scripts[0].includes(action),'preview needs '+action);
 });
 
 test('one-use right-click selection strips sensitive URL fields and fragments before local save',async()=>{

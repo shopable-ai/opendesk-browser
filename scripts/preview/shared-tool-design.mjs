@@ -3,6 +3,7 @@ import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 
 export const SHARED_DESIGN_MARKER = '/* @opendesk-shared-design */';
+export const SHARED_TOKENS_MARKER = '/* @opendesk-shared-tokens */';
 const tokenUrl = new URL('../../src/ui/design-tokens.css', import.meta.url);
 const componentUrl = new URL('../../src/ui/design-system.css', import.meta.url);
 const sharedStart = '/* Shared primitives:';
@@ -52,6 +53,24 @@ export async function officialDesignSources() {
     digest:hash(tokens+'\n'+components)};
 }
 export async function compileSharedToolCss(sourceCss) {
+  if(sourceCss.trimStart().startsWith(SHARED_TOKENS_MARKER)){
+    const layout=sourceCss.trimStart().slice(SHARED_TOKENS_MARKER.length);
+    if(/#[0-9a-f]{3,8}\b|--od-[\w-]+\s*:|@import\b/i.test(layout))
+      throw Error('E_PREVIEW_DESIGN: shared tokens cannot contain a private palette');
+    // Color-bearing values may reference tokens or mix them. Reject literal
+    // functions/names, including colors hidden behind tool-local aliases.
+    const keywords=new Set(('transparent currentcolor inherit initial unset revert revert-layer none '+
+      'solid dashed dotted double groove ridge inset outset in srgb srgb-linear oklab color-mix '+
+      'px rem em vh vw vmin vmax ch ex calc min max clamp').split(' '));
+    for(const [,property,value] of layout.replace(/\/\*[\s\S]*?\*\//g,'').matchAll(/(?:^|[;{])\s*([\w-]+)\s*:([^;{}]+)/g)){
+      if(!/^(?:--|color$|background|border(?:$|-(?:color|top|right|bottom|left))|outline(?:$|-color)|(?:box|text)-shadow$|fill$|stroke$)/i.test(property))continue;
+      const remaining=value.replace(/var\(\s*--[\w-]+\s*\)/gi,'').replace(/!important/gi,'');
+      if(remaining.includes('\\')||[...remaining.matchAll(/[a-z][\w-]*/gi)].some(([word])=>!keywords.has(word.toLowerCase())))
+        throw Error('E_PREVIEW_DESIGN: shared tokens cannot contain a private palette');
+    }
+    const tokens=await readFile(tokenUrl,'utf8');
+    return '/* opendesk.shared-tokens.v1 sha256='+hash(tokens)+' */\n'+tokens+'\n'+layout;
+  }
   if(!sourceCss.trimStart().startsWith(SHARED_DESIGN_MARKER))return sourceCss;
   const layout=assertLayoutOnly(sourceCss);
   const {tokens,components,publicRules,digest}=await officialDesignSources();

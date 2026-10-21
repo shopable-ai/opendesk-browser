@@ -6,7 +6,7 @@ import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 const here=dirname(fileURLToPath(import.meta.url));
-const output=resolve(here,'../../../../../artifacts/cookie-editor-r523');
+const output=resolve(process.argv[2]||resolve(here,'../../../../../artifacts/cookie-editor-r523'));
 await mkdir(output,{recursive:true});
 const html=await readFile(join(here,'index.html'));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -56,24 +56,28 @@ try{
    assert.equal(await page.locator('dialog:modal').count(),0,'import has no extra modal');
    assert.equal(await page.locator('.cookie-row').count(),0,'list yields space to import');
    const area=await workspace.getByRole('textbox',{name:'粘贴 Cookie 内容'}).boundingBox();
-   assert.ok(area.width>=width-56&&area.height>=140,'editable region uses sidebar space');
+   const content=await workspace.locator('.cookie-import-body').evaluate(el=>{
+    const box=el.getBoundingClientRect(),style=getComputedStyle(el);
+    return {left:box.left+parseFloat(style.borderLeftWidth)+parseFloat(style.paddingLeft),
+     right:box.right-parseFloat(style.borderRightWidth)-parseFloat(style.paddingRight)};
+   });
+   assert.ok(Math.abs(area.x-content.left)<=1&&Math.abs(area.x+area.width-content.right)<=1&&area.height>=140,
+    'editable region fills the actual workspace content at '+width);
    await workspace.getByRole('button',{name:'关闭导入'}).click();
    await ready();
   }
   await page.setViewportSize({width:380,height:880});
  });
- await test('site change during a read exposes explicit read-only recovery',async()=>{
+ await test('site change during a read safely restarts without unknown-effect recovery',async()=>{
   await page.evaluate(()=>{
    document.querySelector('[aria-label="刷新 Cookie"]').click();
    document.querySelector('.cookie-app').dispatchEvent(new Event('opendesk-page-changed'));
   });
-  await button('重新读取 Cookie').waitFor();
-  assert.equal(await page.locator('.cookie-row').count(),0);
-  assert.equal(await page.getByText('正在读取 Cookie…',{exact:true}).count(),0);
-  await page.getByText(/结果可能未知；请手动核对/).waitFor();
-  await button('重新读取 Cookie').click();
   await ready();
   assert.equal(await button('重新读取 Cookie').count(),0);
+  assert.equal(await page.getByText('正在读取 Cookie…',{exact:true}).count(),0);
+  assert.equal(await page.getByText(/结果可能未知；请手动核对/).count(),0);
+  assert.equal(await page.locator('.site-hostname').innerText(),'shop.example.com');
  });
  await test('toolbar uses approved icons and a real scoped clear modal with inert cancel',async()=>{
   for(const name of ['导入 Cookie','导出 Cookie','新建 Cookie','安全清理本站 Cookie'])assert.equal(await button(name).count(),1);
@@ -159,6 +163,7 @@ try{
   assert.equal(await page.locator('.cookie-row').count(),0);
   assert.equal(await page.locator('.cookie-import-panel').count(),0);
   assert.equal(await page.getByRole('status',{name:'导入预检结果'}).count(),0);
+  assert.equal(await workspace.getByRole('checkbox',{name:/覆盖已存在的 Cookie/}).isChecked(),false);
   const input=workspace.getByRole('textbox',{name:'粘贴 Cookie 内容'});
   await input.fill(JSON.stringify([{name:'import_a',value:'fictional A'},
     {name:'import_b',value:'fictional B'},{name:'bad name',value:'invalid'},
@@ -168,14 +173,17 @@ try{
   await workspace.getByRole('button',{name:'导入',exact:true}).click();
   await row('import_a').waitFor();await workspace.waitFor({state:'detached'});
   assert.equal(await page.locator('.cookie-row').count(),10);
-  assert.match(await page.locator('.cookie-import-toast').innerText(),/已导入 3 条，跳过 1 条/);
+  assert.match(await page.locator('.cookie-import-toast').innerText(),/已导入 2 条，跳过 2 条/);
+  await row('theme').click();await valueInput().waitFor();
+  await page.waitForFunction(()=>document.querySelector('[data-cookie-secret-input]')?.value==='light');
+  assert.equal(await valueInput().inputValue(),'light','default import must preserve the existing Cookie');
   await reset();
  });
- await test('foreign-domain errors stay in workspace; real file chooser click imports once',async()=>{
+ await test('invalid-domain errors stay in workspace; real file chooser click imports once',async()=>{
   await button('导入 Cookie').click();
   const workspace=page.getByRole('region',{name:'导入 Cookie'});await workspace.waitFor();
   await workspace.getByRole('textbox',{name:'粘贴 Cookie 内容'}).fill(
-    JSON.stringify([{name:'foreign',value:'fictional',domain:'elsewhere.invalid'}]));
+    JSON.stringify([{name:'invalid_domain',value:'fictional',domain:'https://elsewhere.invalid'}]));
   await workspace.getByRole('button',{name:'导入',exact:true}).click();
   const alert=workspace.getByRole('alert');await alert.waitFor();
   assert.match(await alert.innerText(),/未导入 1 条/);
@@ -190,19 +198,22 @@ try{
   const file=JSON.stringify([{name:'import_file',value:'fictional'}]);
   await chooser.setFiles({
     name:'cookies.json',mimeType:'application/json',buffer:Buffer.from(file)});
+  await workspace.getByText('已选择 cookies.json · 点击导入即可写入',{exact:true}).waitFor();
+  assert.equal(await row('import_file').count(),0,'choosing a file must not write before import');
+  await workspace.getByRole('button',{name:'导入',exact:true}).click();
   await row('import_file').waitFor();await workspace.waitFor({state:'detached'});
   assert.equal(await page.locator('.cookie-row').count(),9);await reset();
  });
  await test('JSON copy/download complete within workspace and return to list',async()=>{
   await button('导出 Cookie').click();
   const workspace=page.getByRole('region',{name:'导出 Cookie'});await workspace.waitFor();
-  assert.equal(await button('关闭导出').isFocused(),true);
+  assert.equal(await button('关闭导出').evaluate(el=>el===el.ownerDocument.activeElement),true);
   assert.equal(await page.locator('dialog:modal').count(),0);
   assert.equal(await page.locator('.cookie-row').count(),0);
   assert.equal(await page.getByRole('checkbox',{name:/包含/}).isChecked(),true);
   await button('复制').click();await ready();
   assert.equal(await workspace.count(),0);
-  assert.equal(await button('导出 Cookie').isFocused(),true);
+  assert.equal(await button('导出 Cookie').evaluate(el=>el===el.ownerDocument.activeElement),true);
   await button('导出 Cookie').click();await workspace.waitFor();
   const downloadEvent=page.waitForEvent('download');await button('下载').click();
   const download=await downloadEvent;await download.saveAs(join(output,'fictional-cookies.json'));
@@ -212,13 +223,15 @@ try{
   await page.locator('.cookie-export-panel select').selectOption('header');
   assert.equal(await button('复制').isDisabled(),true);await page.getByText(/已禁止导出/).waitFor();
   await page.keyboard.press('Escape');await ready();
-  assert.equal(await button('导出 Cookie').isFocused(),true);
+  assert.equal(await button('导出 Cookie').evaluate(el=>el===el.ownerDocument.activeElement),true);
   await scene('valuesDenied');await ready();
-  await button('导出 Cookie').click();await button('复制').click();await page.getByText(/E_COOKIE_VALUES/).waitFor();await reset();
+  await button('导出 Cookie').click();await button('复制').click();
+  await workspace.getByRole('alert').filter({hasText:/E_COOKIE_VALUES/}).waitFor();await reset();
  });
  await test('one-shot export failure reports error; retry succeeds without remount',async()=>{
   await page.getByTestId('failure').selectOption('copy');await button('导出 Cookie').click();await button('复制').click();
-  await page.getByText(/E_CLIPBOARD/).waitFor();await button('复制').click();await ready();
+  await page.getByRole('region',{name:'导出 Cookie'}).getByRole('alert').filter({hasText:/E_CLIPBOARD/}).waitFor();
+  await button('复制').click();await ready();
   assert.equal(await page.locator('.cookie-export-workspace').count(),0);assert.equal(await page.getByRole('alert').count(),0);
  });
  await test('grant event synchronously scrubs the secret DOM and discards the invalidated editor',async()=>{

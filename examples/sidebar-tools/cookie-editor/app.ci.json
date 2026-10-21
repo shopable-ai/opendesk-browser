@@ -2,6 +2,12 @@
   "schema": "opendesk.app-ci.v1",
   "kind": "react",
   "host": "development",
+  "afterBuild": [
+    "examples/sidebar-tools/cookie-editor/tests/prepare-browser.mjs"
+  ],
+  "browser": [
+    "examples/sidebar-tools/cookie-editor/preview/react/chromium.mjs"
+  ],
   "node": [
     "tests/environment/cookie-editor-react-build.test.mjs",
     "tests/environment/cookie-editor-react-domain.test.mjs",
