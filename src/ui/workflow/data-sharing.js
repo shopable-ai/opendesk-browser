@@ -5,6 +5,8 @@ export function workflowForModel(workflow){
   for(const rule of Object.values(data.paramsSchema?.properties||{}))
     if(rule&&typeof rule==='object')delete rule.default;
   for(const step of data.steps||[]){
+    // Never include trusted local navigation targets in model context.
+    delete step.linkGuard;
     if(step.op==='fill'&&Object.hasOwn(step,'text'))step.text='[原填写值未发送，请使用运行参数]';
     if(step.op==='navigate'&&typeof step.url==='string'){
       try{const url=new URL(step.url);step.url=url.origin+url.pathname;}catch{}
