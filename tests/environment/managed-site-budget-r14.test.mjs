@@ -29,7 +29,7 @@ function fixture(installed=[tool()]){
     assert.equal(held.has(key),false,'nested owner lock: '+key);
     held.add(key);try{return await cb();}finally{held.delete(key);}
   }};
-  let time=start,url='https://example.com/watch',permissions=true,dropNative=false;
+  let time=start,url='https://example.com/watch',permissions=true,dropNative=false,dropAlarm=false;
   const clone=value=>structuredClone(value);
   const area=map=>({
     async get(keys){
@@ -54,7 +54,7 @@ function fixture(installed=[tool()]){
     windows:{getLastFocused:async()=>({id:2,focused:true,type:'normal',incognito:false})},
     tabs:{query:async()=>[{id:5,windowId:2,url,incognito:false}]},
     alarms:{get:async name=>alarms.get(name),
-      create:async(name,value)=>{alarms.set(name,value);},
+      create:async(name,value)=>{if(!dropAlarm)alarms.set(name,value);},
       clear:async name=>{alarms.delete(name);}},
     declarativeNetRequest:{
       getDynamicRules:async()=>clone(rules),
@@ -78,7 +78,7 @@ function fixture(installed=[tool()]){
   });
   return {api,service,sender,local,session,alarms,rules,writes,lockManager,msg,
     tick:ms=>{time+=ms;},setUrl:v=>{url=v;},allow:v=>{permissions=v;},
-    fault:v=>{dropNative=v;}};
+    fault:v=>{dropNative=v;},faultAlarm:v=>{dropAlarm=v;}};
 }
 test('bounded policy cannot accept unknown code, sites or missing CAS revision',()=>{
   assert.equal(validateSidebarToolPackage(tool()).backgroundPolicy.kind,'site-budget.v2');
@@ -192,4 +192,16 @@ test('native uninstall cleanup retires only own DNR slot',async()=>{
     ()=>stopManagedSiteBudgetForTool(f.api,id,{cleanup:true,lockManager:f.lockManager}));
   assert.equal(f.local.get(MANAGED_SITE_BUDGET_STORE)[id],undefined);
   assert.deepEqual(f.rules.map(row=>row.id),[730051]);
+});
+
+test('unverified Chrome Alarm effect marks policy unknown, never silently applied',async()=>{
+  const f=fixture();
+  f.faultAlarm(true);
+  await assert.rejects(f.service.dispatch(await f.msg('setPolicy',
+    {...settings,expectedRev:0}),f.sender),{code:'E_MANAGED_ALARM_UNVERIFIED'});
+  assert.equal(f.local.get(MANAGED_SITE_BUDGET_STORE)[id].status,'unknown');
+  f.faultAlarm(false);
+  await f.service.run({boot:true});
+  assert.equal(f.local.get(MANAGED_SITE_BUDGET_STORE)[id].status,'applied');
+  assert.equal(f.alarms.get(MANAGED_SITE_BUDGET_ALARM).periodInMinutes,0.5);
 });

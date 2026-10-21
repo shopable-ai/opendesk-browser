@@ -275,7 +275,15 @@ export function createManagedSiteBudgetService({
         updated={...updated,[id]:nextRow};
         await save(updated,observed);
       }
-      await nativeAlarm(updated,permission);
+      try{await nativeAlarm(updated,permission);}
+      catch(error){
+        // Native DNR may already be applied, but a failed Alarm readback
+        // cannot leave the durable owner marked fully applied.
+        nextRow.status='unknown';
+        const currentRaw=(await resourceRead()).raw;
+        await save({...updated,[id]:nextRow},currentRaw);
+        throw error;
+      }
       settledGeneration=generation;
       return {receipt:safeStatus(nextRow,permission)};
     });
