@@ -86,7 +86,7 @@ test('4 MiB whole library limit is real; failed 29th large document leaves 28 re
 test('fresh installation starts empty and exports every original Markdown field',async()=>{
  const f=fixture();
  assert.equal((await f.run('clipNotes.list')).total,0);
- const body='# 新建文章\\n\\n'+'中文段落'.repeat(8000)+'\\n结尾';
+ const body='# 新建文章\n\n'+'中文段落'.repeat(8000)+'\n结尾';
  const saved=await f.run('clipNotes.save',clip(body));
  assert.equal((await f.run('clipNotes.get',{id:saved.id})).item.body,body);
  const exported=await f.run('clipNotes.backup');
@@ -173,7 +173,7 @@ test('formal preview stage contains exact official interactive HTML, not a secon
 
 test('150,000 UTF-8 bytes plus YAML and long valid source are saved without truncation',async()=>{
  const f=fixture();
- const markdown='---\\ntitle: "一篇文章"\\n---\\n\\n'+makeBody(150000)+'\\n来源尾注';
+ const markdown='---\ntitle: "一篇文章"\n---\n\n'+makeBody(150000)+'\n来源尾注';
  const source='https://example.com/article?keep='+('x'.repeat(2300))+'&token=secret#heading';
  const stored=await f.run('clipNotes.save',{kind:'clip',body:markdown,title:'一篇文章',source});
  const read=await f.run('clipNotes.get',{id:stored.id});
@@ -198,13 +198,13 @@ test('replaying a note after a lost acknowledgement cannot create a second note'
 test('Host request budget admits 150 KB escaped Markdown only for the clipper',async()=>{
  const host=await readFile(new URL('../../../../src/ui/sidebar-tools.js',import.meta.url),'utf8');
  const begin=host.indexOf('export function checkSidebarToolRequestBudget(message)');
- const end=host.indexOf('\\n}\\n\\n// Trusted Side Panel',begin);
+ const end=host.indexOf('\n}\n\n// Trusted Side Panel',begin);
  assert.ok(begin>=0&&end>begin,'Host budget function must remain testable');
  const definition=host.slice(begin,end+2).replace(/^export /,'');
- const check=runInNewContext(definition+'\\ncheckSidebarToolRequestBudget',
+ const check=runInNewContext(definition+'\ncheckSidebarToolRequestBudget',
   {TextEncoder,browserOperation:()=>null});
  const make=(operation,body,toolId='web-markdown-clipper')=>({operation,toolId,payload:{body}});
- for(const body of ['\\n'.repeat(150000),'\\u0000'.repeat(150000),'中'.repeat(50000)])
+ for(const body of ['\n'.repeat(150000),'\u0000'.repeat(150000),'中'.repeat(50000)])
   assert.equal(check(make('clipNotes.save',body))?.ok,true,'full article should pass');
  assert.equal(check(make('clipNotes.save','x'.repeat(160001)))?.ok,false);
  assert.equal(check(make('clipNotes.save','x'.repeat(30000),'another-tool'))?.ok,false);
