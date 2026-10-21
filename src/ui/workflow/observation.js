@@ -12,7 +12,7 @@ export const WORKFLOW_OBSERVE_SOURCE=String.raw`async function main() {
   const query=String(params.request||'').replace(/\s+/g,'').slice(0,4000);
   let truncated=first.truncated===true;
   if(query){
-    const regions=page.locator('section[id],form[id]'),count=await regions.count();
+    const regions=page.locator('section[id],form[id],[id*="result" i],[role="list"]'),count=await regions.count();
     if(count>12)truncated=true;
     for(let i=0;i<Math.min(count,12)&&rows.length<24;i++){
       const id=await regions.nth(i).getAttribute('id');
