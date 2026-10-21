@@ -40,7 +40,7 @@ export function TrustedConversationWorkspace({
  const inFlight=React.useRef(false),alive=React.useRef(true),sequence=React.useRef(0);
  const rowsRef=React.useRef(rows),refsRef=React.useRef(restored.refs||newRefs());
  const draftRef=React.useRef(draft),openRef=React.useRef(open);
- const phaseRef=React.useRef('idle'),resizeRef=React.useRef(null);
+ const phaseRef=React.useRef('idle'),resizeRef=React.useRef(null),composingRef=React.useRef(false);
  draftRef.current=draft;openRef.current=open;
 
  const persist=React.useCallback((next={})=>{
@@ -111,7 +111,7 @@ export function TrustedConversationWorkspace({
  }
  function send(event){
   event.preventDefault();
-  if(event.nativeEvent?.isComposing||inFlight.current||needsReview)return;
+  if(event.nativeEvent?.isComposing||composingRef.current||inFlight.current||needsReview)return;
   const request=draftRef.current.trim();
   if(!request)return;
   const action=adapterRef.current?.request;
@@ -214,7 +214,10 @@ export function TrustedConversationWorkspace({
     <ConversationInput id="od-conversation-input" inputRef={inputRef} value={draft}
      className="od-conversation-input" rows={2} maxLength={4000} placeholder={placeholder}
      onChange={e=>setDraft(e.target.value)}
-     onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing){
+     onCompositionStart={()=>{composingRef.current=true;}}
+     onCompositionEnd={()=>{composingRef.current=false;}}
+     onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing&&
+      !composingRef.current&&e.nativeEvent.keyCode!==229){
       e.preventDefault();send(e);
      }}}/>
     <div className="od-conversation-controls">

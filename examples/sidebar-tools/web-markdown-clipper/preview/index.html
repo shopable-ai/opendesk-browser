@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>网页剪藏 · 同屏紧凑摘录列表交互预览 R1.9</title>
+<title>网页剪藏 · 最近摘录与完整资料库交互预览 R1.9</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#21314a;background:#f5f7fb;font-size:13px}
 *{box-sizing:border-box}body{margin:0;min-width:280px}
@@ -30,10 +30,10 @@ iframe{border:0;display:block;width:100%;height:760px;background:transparent}
 <body>
 <div class="preview-shell">
  <header class="preview-head">
-  <div><h1>网页剪藏 · 同屏紧凑列表设计预览</h1><p class="subtitle">复用正式 style.css、notes.js、main.js，增加预览专属布局层 · 待评审，未迁移正式版</p></div>
+  <div><h1>网页剪藏 · 最近摘录 / 完整资料库</h1><p class="subtitle">复用正式 Markdown 剪藏、摘录列表及全文编辑逻辑；两级导航为预览专属适配，尚未迁移正式产品</p></div>
   <span class="subtitle">UI 方案预览 · 非正式发布</span>
  </header>
- <p class="notice" role="note"><strong>本轮重点：</strong>当前剪藏与「我的摘录」保持同屏；已预置 4 条演示记录。将鼠标移到卡片上查看右上角删除图标（触屏常显），点击会先二次确认；可直接搜索、阅读、编辑、新建、保存，并观察列表更新。也可测试文章/选区/引用/链接切换、320–440px 宽度和深色主题。<strong>仅预览：复用正式 JS/Host 模拟适配，但新版布局仍是预览层；数据放在 sessionStorage，不是 Chrome 真实存储，复制/下载/备份亦非真实设备操作。</strong></p>
+ <p class="notice" role="note"><strong>本轮重点：</strong>剪藏主页直接显示最近 4 条，保存后不跳页。点击卡片阅读全文；鼠标经过仅显示编辑、删除，触屏使用「更多」菜单。点击「查看全部」进入完整列表（搜索与两类筛选）；返回保留剪藏草稿。支持新建便签、就地删除确认、320–440px 宽度、深色主题和失败注入。筛选目前仅作用于已加载记录，正式版本需要 Host 级筛选。<strong>仅预览：复用正式 JS/Host 模拟适配，但新版布局仍是预览层；数据放在 sessionStorage，不是 Chrome 真实存储，复制/下载/备份亦非真实设备操作。</strong></p>
  <div class="controls">
   <div class="group" role="group" aria-label="模拟侧栏宽度">
    <button type="button" data-width="320" aria-pressed="false">320</button>
@@ -61,7 +61,7 @@ iframe{border:0;display:block;width:100%;height:760px;background:transparent}
    <iframe id="stage" src="stage.html" title="官方网页剪藏工具交互预览" loading="eager"></iframe>
   </div>
  </div>
- <p class="log" id="log" role="status" aria-live="polite">同屏预览已就绪：可以直接浏览下方的 4 条演示摘录，也可以提取文章后保存。</p>
+ <p class="log" id="log" role="status" aria-live="polite">最近摘录预览：点击卡片打开全文；悬浮编辑/删除；查看全部进入完整列表。</p>
 </div>
 <script>
 (function(){

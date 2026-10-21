@@ -1464,13 +1464,15 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       };
       const assertWrite=async()=>{
         assertLive();
-        if(grantPattern){
+        if(grantPattern||selected==='local_codex'){
           let permitted=false;
-          try{permitted=await api.permissions.contains({origins:[grantPattern]});}
-          catch{/* An unknown authorization state is not a grant. */}
+          try{
+            permitted=await api.permissions.contains(grantPattern?
+              {origins:[grantPattern]}:{permissions:['nativeMessaging']});
+          }catch{/* An unknown authorization state is not a grant. */}
           if(!permitted){
-            invalidateBookmarkConversation(err('E_MODEL_GRANT_REVOKED','模型网站权限已失效'));
-            throw err('E_MODEL_GRANT_REVOKED','模型网站权限已失效，拒绝继续书签写入');
+            invalidateBookmarkConversation(err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已失效'));
+            throw err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已失效，拒绝继续书签写入');
           }
         }
         assertLive();
