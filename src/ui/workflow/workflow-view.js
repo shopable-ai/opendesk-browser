@@ -589,7 +589,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
             searchEffectVerified:Boolean(effect&&effect.kind.startsWith('search-')),
             navigationEffectVerified:Boolean(effect&&['link-page','product-page'].includes(effect.kind))
           });
-          if(lastRun==='success')
+          if(lastRun==='success'&&evidenceLevel==='BUSINESS_EFFECT_VERIFIED')
             lastTrustedRun={runId:claim.runId,sourceHash:freeze.sourceHash,siteOrigin:captured.origin};
           if(lastRun==='failed' && !hasError)
             status('运行未成功或结果无法确认，请检查真实结果及页面效果；不会自动重试。',true);
