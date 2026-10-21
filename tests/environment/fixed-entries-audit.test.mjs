@@ -28,8 +28,8 @@ test('all approved fixed entries use actual minified byte counts and retain a no
   assert.equal(summary.fixedEntryCount,FIXED_ENTRY_PATHS.length);
   assert.equal(summary.productionBudgetBytes,512 * 1024);
   assert.equal(summary.fixedEntryReviewBytes,320 * 1024);
-  assert.equal(summary.toolShellProductionBudgetBytes,1056 * 1024);
-  assert.equal(summary.toolShellReviewBytes,640 * 1024);
+  assert.equal(summary.toolShellProductionBudgetBytes,3 * 1024 * 1024);
+  assert.equal(summary.toolShellReviewBytes,2 * 1024 * 1024);
   assert.deepEqual(summary.critical,[]);
   assert.deepEqual(summary.reviewRequired,[]);
   assert.equal(summary.serviceWorkerProductionBudgetBytes,1024*1024);
@@ -170,9 +170,9 @@ test('SW review at 512 KiB is non-blocking and 1 MiB hard cap blocks +1 byte',()
   setBytes(BUILD_POLICY.serviceWorkerProductionBytes+1);
   assert.throws(()=>summarizeFixedEntries(f.receipt,f.measured),/exceeds configured/);
 });
-test('only the fixed Side Panel host receives 1056/1088 KiB; other fixed outputs retain the 512 KiB limit',()=>{
-  assert.equal(entryByteBudget('ui/tool-shell.js','production'),1056*1024);
-  assert.equal(entryByteBudget('ui/tool-shell.js','development'),1088*1024);
+test('only the fixed Side Panel host receives 3 MiB in both modes; other fixed outputs retain the 512 KiB limit',()=>{
+  assert.equal(entryByteBudget('ui/tool-shell.js','production'),3*1024*1024);
+  assert.equal(entryByteBudget('ui/tool-shell.js','development'),3*1024*1024);
   assert.equal(entryByteBudget('sw.js','production'),1024*1024);
   assert.equal(entryByteBudget('sw.js','development'),1536*1024);
   for(const target of ['ui/sidebar-tool-host.js','agents/page-relay.js','libs/packages/axios.js']){
@@ -181,7 +181,7 @@ test('only the fixed Side Panel host receives 1056/1088 KiB; other fixed outputs
   }
   assert.throws(()=>entryByteBudget('ui/tool-shell.js','unknown'),/Unknown build mode/);
 });
-test('Side Panel host 640 KiB soft review and 1056 KiB hard limit apply to exact output only',()=>{
+test('Side Panel host 2 MiB soft review and 3 MiB hard limit apply to exact output only',()=>{
   const f=fixture(),path='ui/tool-shell.js',row=f.receipt.bundleModules.find(item=>item.target===path);
   const setBytes=bytes=>{
     row.bytes=bytes;f.measured[path].bytes=bytes;
@@ -227,7 +227,7 @@ test('development distinguishes SW budget and source maps from executable code',
   f.receipt.report.files.push({path:'sw.js.map',...f.measured['sw.js.map']});
   const report=summarizePackageResources(f.receipt,f.measured);
   assert.equal(report.entries.find(row=>row.path==='sw.js').budgetBytes,1536*1024);
-  assert.equal(report.entries.find(row=>row.path==='ui/tool-shell.js').budgetBytes,1088*1024);
+  assert.equal(report.entries.find(row=>row.path==='ui/tool-shell.js').budgetBytes,3*1024*1024);
   assert.equal(report.sourceMapBytes,500000);
 });
 test('fails closed on missing, duplicated, unmeasured or mismatched fixed entries',()=>{
