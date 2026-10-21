@@ -28,7 +28,7 @@ test('AdBlock 1.2.2 candidate uses one compiled React 19 Shared UI tool',async()
   assert.equal(meta.files.css,'dist/tool.css');
   assert.match(jsx,/from '@opendesk\/ui'/);
   // Excepted sites must not allow a picker action that the trusted service rejects.
-  assert.match(jsx,/disabled=\{!siteOn\|\|loading\|\|busy\|\|Boolean\(state\?\.cosmeticError\)\}/);
+  assert.match(jsx,/disabled=\{!siteOn\|\|loading\|\|busy\|\|picking\|\|Boolean\(state\?\.cosmeticError\)\}/);
   for(const name of ['Card','Switch','Button'])assert.match(jsx,new RegExp('\\b'+name+'\\b'));
   for(const op of ['adblock.enable','adblock.disable','adblock.site.set','adblock.site.restore','adblock.status'])
     assert.ok(jsx.includes(op),'real SDK operation missing: '+op);

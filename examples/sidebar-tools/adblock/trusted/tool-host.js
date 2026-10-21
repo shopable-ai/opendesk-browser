@@ -81,7 +81,8 @@ export async function runTrustedAdblockOperation({
 }){
   if(!ADBLOCK_OPERATIONS.includes(operation))
     throw adblockError('E_ADBLOCK_OPERATION','未批准的广告操作');
-  if(operation!=='adblock.status'&&event?.isTrusted!==true)
+  if(!['adblock.status','adblock.cosmetic.inspect','adblock.cosmetic.check','adblock.cosmetic.locate'].includes(operation)&&
+     event?.isTrusted!==true)
     throw adblockError('E_ADBLOCK_TRUSTED_CLICK','请使用可信扩展工具按钮操作');
   const msg=await authenticated({api,tool,operation,payload,revocationEpoch,assertCurrent});
   return verifiedSend(api,msg,assertCurrent);
@@ -91,7 +92,21 @@ const sameArray=(a,b)=>Array.isArray(a)&&Array.isArray(b)&&
 function requestShape(operation,payload){
   const keys=Object.keys(payload).sort().join(',');
   if((operation==='adblock.enable'||operation==='adblock.disable'||operation==='adblock.status'||
-      operation==='adblock.cosmetic.pick')&&keys==='')return;
+      operation==='adblock.cosmetic.pick'||operation==='adblock.cosmetic.cancel')&&keys==='')return;
+  if(operation==='adblock.cosmetic.inspect'&&keys==='host'&&adblockHost(payload.host)===payload.host)return;
+  if((operation==='adblock.cosmetic.check'||operation==='adblock.cosmetic.locate'||operation==='adblock.cosmetic.display'||
+       operation==='adblock.cosmetic.add')&&
+       (operation==='adblock.cosmetic.add'&&keys==='allowUnmatched,host,selector'&&
+         typeof payload.allowUnmatched==='boolean'||
+        ['adblock.cosmetic.check','adblock.cosmetic.locate'].includes(operation)&&keys==='host,selector'||
+        operation==='adblock.cosmetic.display'&&keys==='host,selector,visible'&&
+         typeof payload.visible==='boolean')&&
+       adblockHost(payload.host)===payload.host&&validCosmeticSelector(payload.selector))return;
+  if(operation==='adblock.cosmetic.replace'&&
+       keys==='allowUnmatched,host,oldSelector,selector'&&
+       typeof payload.allowUnmatched==='boolean'&&
+       adblockHost(payload.host)===payload.host&&
+       validCosmeticSelector(payload.oldSelector)&&validCosmeticSelector(payload.selector))return;
   if(operation==='adblock.cosmetic.restore'&&keys==='host,selector'&&
       adblockHost(payload.host)===payload.host&&validCosmeticSelector(payload.selector))return;
   if(operation==='adblock.site.restore'&&keys==='host'&&adblockHost(payload.host)===payload.host)return;
@@ -148,7 +163,8 @@ export async function requestAdblockOperation({
     return verifiedSend(api,message,assertCurrent);
   };
   if(operation==='adblock.status')return send(operation,payload);
-  if(operation==='adblock.cosmetic.pick'||operation==='adblock.cosmetic.restore'){
+  if(['adblock.cosmetic.pick','adblock.cosmetic.cancel','adblock.cosmetic.restore',
+      'adblock.cosmetic.inspect','adblock.cosmetic.check','adblock.cosmetic.locate','adblock.cosmetic.display'].includes(operation)){
     // Start only enters highlight mode. A real trusted click on the *webpage*
     // authorizes saving; removing one's own rule is reversible and needs no
     // secondary confirmation dialog.
@@ -165,6 +181,29 @@ export async function requestAdblockOperation({
         !before.cosmeticRules?.some(row=>row.selector===payload.selector)))
       throw adblockError('E_ADBLOCK_COSMETIC_CHANGED','网页或隐藏规则已经变化');
     return send(operation,payload);
+  }
+  if(['adblock.cosmetic.add','adblock.cosmetic.replace'].includes(operation)){
+    // A sandbox must never manufacture a CSS-hiding write: manual editor
+    // changes require a real click in the trusted Side Panel confirmation.
+    const before=await send('adblock.status',{});
+    if(before.enabled!==true||before.currentSite?.status!=='ready'||
+       before.currentHost!==payload.host||before.exceptions.includes(payload.host)||
+       before.rules?.verified!==true||before.toolEnabled!==true)
+      throw adblockError('E_ADBLOCK_UNAVAILABLE','本站广告过滤尚未开启');
+    if(typeof requestBrowserClick!=='function')
+      throw adblockError('E_ADBLOCK_TRUSTED_CLICK','高级 CSS 操作需要可信确认界面');
+    return requestBrowserClick({toolId:ADBLOCK_ID,
+      message:operation==='adblock.cosmetic.add'?'保存这条高级 CSS 屏蔽规则？':
+        '替换本站已有的 CSS 屏蔽规则？',
+      button:'确认保存规则',run:async event=>{
+        if(event?.isTrusted!==true)
+          throw adblockError('E_ADBLOCK_TRUSTED_CLICK','只接受可信侧边栏真实点击');
+        const latest=await send('adblock.status',{});
+        if(!sameDecision(before,latest)||
+           JSON.stringify(before.cosmeticRules)!==JSON.stringify(latest.cosmeticRules))
+          throw adblockError('E_ADBLOCK_STATE_CHANGED','确认期间网页或规则已变化，请重新核对');
+        return send(operation,payload);
+      }});
   }
   // A sandbox cannot provide user activation, a Chrome permission, or a false
   // UI snapshot. Read the trusted service and pin one precise requested action.

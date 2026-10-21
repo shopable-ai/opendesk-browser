@@ -9,9 +9,11 @@ import {writeVerifiedLocalValue} from '../../src/ui/sidebar-tools/storage-state.
 
 test('selectors accept stable CSS paths and reject CSS injection',()=>{
   for(const selector of ['#sponsored','section:nth-of-type(2)',
-    '#main > aside:nth-of-type(1) > div:nth-of-type(2)'])
+    '#main > aside:nth-of-type(1) > div:nth-of-type(2)',
+    '.ad-banner','aside.sponsored-ad','div.promo-slot'])
     assert.equal(validCosmeticSelector(selector),true,selector);
   for(const selector of ['body:nth-of-type(1)','html:nth-of-type(1)',
+    'html.ad-banner','body.ad','head.sponsor',
     'main:nth-of-type(1)','#app','#root','#__next',
     '*','a[href=x]','.ad,body','div{display:block}','div:not(.ad)',
     'main:has(.ad)','a:nth-of-type(0)','section:nth-of-type(1000)',
@@ -143,7 +145,7 @@ test('picker uses outline-only mode, and timeout/Esc/tab switch release listener
 });
 
 function pickerOutcomeFixture(send){
-  const listeners=new Map(),nodes=[],calls=[],saved=[],undone=[];
+  const listeners=new Map(),nodes=[],calls=[],saved=[],undone=[],feedback=[];
   const body={nodeType:1,localName:'body'};
   const target={nodeType:1,localName:'aside',id:'promo',parentElement:body,
     getAttribute:()=>null,hasAttribute:()=>false,closest:()=>null,
@@ -159,14 +161,13 @@ function pickerOutcomeFixture(send){
     setTimeout,clearTimeout};
   const picker=createAdblockElementPicker({doc,win,
     api:{runtime:{sendMessage:async value=>{calls.push(value.type);return send(value);}}},
-    onSaved:selector=>saved.push(selector),onUndone:selector=>undone.push(selector)});
-  const notice=()=>nodes.find(node=>node.children.length);
+    onSaved:selector=>saved.push(selector),onUndone:selector=>undone.push(selector),
+    onFeedback:text=>feedback.push(text)});
   const flush=()=>new Promise(resolve=>setImmediate(resolve));
   const select=async()=>{picker.begin();listeners.get('click')({type:'click',isTrusted:true,target,
     preventDefault(){},stopImmediatePropagation(){}});await flush();};
   return {picker,win,calls,saved,undone,select,flush,
-    text:()=>notice()?.children.map(x=>x.textContent||'').join(''),
-    undo:async()=>{notice().children.find(node=>node.click).click({isTrusted:true});await flush();}};
+    text:()=>feedback.at(-1)||'',inserted:()=>nodes};
 }
 
 for(const present of [true,false,null]){
@@ -184,17 +185,14 @@ for(const present of [true,false,null]){
     assert.doesNotMatch(f.text(),/未保存，已恢复/);
     f.picker.dispose();
   });
-  test('lost undo receipt reports persisted rule truth: '+present,async()=>{
-    const f=pickerOutcomeFixture(async value=>{
-      if(value.type==='undo')throw Error('undo response lost');
-      return {ok:true,data:value.type==='lookup'?
-        {version:1,host:'news.example.com',selector:value.selector,present}:
-        {saved:true,host:'news.example.com',selector:value.selector}};
-    });
-    await f.select();await f.undo();
-    assert.deepEqual(f.calls,['hide','undo','lookup']);
-    assert.equal(f.undone.length,present===false?1:0);
-    assert.match(f.text(),present===true?/仍存在/:present===false?/已删除/:/无法确认/);
+  test('saving never injects webpage toast/undo controls: '+present,async()=>{
+    const f=pickerOutcomeFixture(async value=>value.type==='lookup'?
+      {ok:true,data:{version:1,host:'news.example.com',selector:value.selector,present}}:
+      {ok:true,data:{saved:true,host:'news.example.com',selector:value.selector}});
+    await f.select();
+    assert.equal(f.inserted().length,0,'no text elements or buttons on target webpage');
+    assert.match(f.text(),/已隐藏并保存/);
+    assert.deepEqual(f.calls,['hide']);
     f.picker.dispose();
   });
 }
@@ -229,4 +227,37 @@ test('an unanswered write expires and only reads back; an unanswered lookup stay
     assert.match(f.text(),lookupReplies?/已保存/:/无法确认/);
     f.picker.dispose();
   }
+});
+
+// R2.4: source-bound workflow checks complement (not replace) real Chrome tests.
+test('R2.4 host review keeps advanced CSS writes behind a separate trusted confirmation',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const host=await readFile(new URL('../../examples/sidebar-tools/adblock/trusted/tool-host.js',import.meta.url),'utf8');
+  const first=host.indexOf("if(['adblock.cosmetic.pick'");
+  const advanced=host.indexOf("if(['adblock.cosmetic.add','adblock.cosmetic.replace'].includes(operation))");
+  assert.ok(first>0&&advanced>first,'advanced write branch must remain reachable');
+  assert.doesNotMatch(host.slice(first,advanced),/adblock\.cosmetic\.add|adblock\.cosmetic\.replace/,
+    'CSS writes must not bypass trusted review');
+  assert.match(host.slice(advanced),/requestBrowserClick\(/);
+  assert.match(host.slice(advanced),/event\?\.isTrusted!==true/);
+});
+test('R2.4 locate, inspect and temporary display use the existing page and preview protocol',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const root=new URL('../../examples/sidebar-tools/adblock/',import.meta.url);
+  const load=(name)=>readFile(new URL(name,root),'utf8');
+  const [app,policy,service,page,mock,hostPreview,previewBuilder]=await Promise.all([
+    load('src/App.jsx'),load('trusted/policy.js'),load('trusted/service.js'),
+    load('trusted/page.js'),
+    readFile(new URL('../../scripts/preview/adblock-mock.js',import.meta.url),'utf8'),
+    readFile(new URL('../../scripts/preview/adblock-host-preview.js',import.meta.url),'utf8'),
+    readFile(new URL('../../scripts/preview/build-preview.mjs',import.meta.url),'utf8')]);
+  for(const [owner,source] of Object.entries({app,policy,service,mock,previewBuilder}))
+    assert.ok(source.includes('adblock.cosmetic.locate'),owner+' locate operation');
+  assert.match(page,/locate-selector/);
+  assert.match(page,/transientLocate/);
+  assert.match(page,/temporarilyVisible/);
+  assert.match(hostPreview,/target-locate/);
+  assert.match(previewBuilder,/pkg\.js/,'preview must execute compiled package');
+  assert.match(app,/validCosmeticSelector\(draft\)/);
+  assert.match(app,/draftChecked===null/,'do not save without matching readback');
 });
