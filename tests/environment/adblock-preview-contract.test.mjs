@@ -73,3 +73,11 @@ test('approved R1 design preview stays immutable and is never labeled current DN
     'c0a030441720ee74e599e47d9e61d7725b5f947aa62da9324e5ac5b56356c8b7');
   assert.match(bytes.toString('utf8'),/非真实广告拦截/);
 });
+
+test('R2 element-picker review keeps instructions in the sidebar, not the simulated website',async()=>{
+  const html=await read('preview/adblock-element-picker-r2-review.html');
+  assert.match(html,/id="pick-flow"/);
+  assert.match(html,/id="pick-cancel"/);
+  assert.match(html,/id="webpage"/);
+  assert.doesNotMatch(html,/id="page-banner"|id="page-banner-text"/);
+});
