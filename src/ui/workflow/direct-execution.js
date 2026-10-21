@@ -39,6 +39,8 @@ export function classifyWorkflowRunRisk(value) {
 // a Chrome origin grant, or authority to exceed the user's requested actions.
 export function prepareDirectExecution({request,workflow,target,observation}) {
   const clean=validateWorkflow(workflow);
+  if(clean.steps.some(step=>step.linkGuard!==undefined))
+    throw error('E_AI_REVIEW_REQUIRED','模型不得携带旧的链接执行证明');
   if(typeof request!=='string'||!request.trim()||request.length>4000)
     throw error('E_AI_REQUEST','任务描述无效');
   if(!target||!targetFields.every(key=>Object.hasOwn(target,key))||
@@ -123,6 +125,35 @@ export function prepareDirectExecution({request,workflow,target,observation}) {
     summary.nodes?.some(node=>node.role==='button'&&/^(?:搜索|search)$/i.test(node.name)&&
       node.state?.visible&&node.locator?.kind==='css'&&node.locator.value===step.selector&&
       !node.locator.parent&&node.locator.index===undefined);
+  const observedLink=step=>{
+    if(fills.length||clicks.length!==1||!summary||summary.origin!==target.origin||
+      summary.documentId!==target.documentId)return null;
+    const nodes=summary.nodes?.filter(node=>node?.role==='link'&&
+      node.state?.visible===true&&node.state?.disabled!==true&&
+      node.locator?.kind===step.locatorKind&&node.locator.value===step.selector&&
+      !node.locator.parent&&node.locator.index===undefined&&
+      (step.locatorKind!=='role'||step.selector==='link'&&
+        node.locator.exact===true&&node.locator.name===step.roleName&&
+        node.name===step.roleName))||[];
+    if(nodes.length!==1)return null;
+    const node=nodes[0],name=String(node.name||'').trim(),
+      intent=instruction.toLocaleLowerCase().replace(/\s+/g,' ');
+    if(name.length<3||name.length>120||
+      !intent.includes(name.toLocaleLowerCase().replace(/\s+/g,' ')))return null;
+    const nav=node.navigation;
+    let href;
+    try{href=new URL(nav?.href,target.url);}catch{return null;}
+    if(!nav||href.href!==nav.url||href.origin!==nav.origin||
+      !['http:','https:'].includes(href.protocol)||href.username||href.password||href.hash||
+      typeof nav.href!=='string'||nav.href.length>260||
+      /[^\x21-\x7e]|["'\\<>]/.test(nav.href)||nav.url.length>320||
+      /(?:login|account|checkout|payment|delete|logout|auth|token|reset|upload|send|order)/i.test(href.pathname)||
+      [...href.searchParams].some(([key,val])=>!['product','detail','sku','item','id'].includes(key)||
+        !/^[\w-]{1,60}$/.test(val)))return null;
+    return {href:nav.href,url:href.href,origin:href.origin,name,sourceUrl:target.url,
+      locatorKind:step.locatorKind,selector:step.selector,roleName:step.roleName||''};
+  };
+  const linkGuard=clicks.length===1?observedLink(clicks[0]):null;
   if(clicks.some(step=>riskyClickTarget.test([step.selector,step.roleName].filter(Boolean).join(' '))&&
     (!observedSearch(step)||riskyClickTarget.test(step.roleName||''))))
     throw error('E_AI_REVIEW_REQUIRED','模型选择了潜在不可撤销的点击，未执行');
@@ -141,7 +172,7 @@ export function prepareDirectExecution({request,workflow,target,observation}) {
   };
   // A model click must match a Search control observed in the current Document.
   // Unknown side effects must be refused rather than inferred safe from text.
-  if(clicks.some(step=>!searchButton(step)))
+  if(clicks.some(step=>!searchButton(step)&&!linkGuard))
     throw error('E_AI_REVIEW_REQUIRED','点击目标未经当前网页验证，未自动执行');
   // Only a one-query, one-click, observed Search button can opt in to a
   // read-only effect check. No model-authored assert is promoted to an oracle.
@@ -150,7 +181,7 @@ export function prepareDirectExecution({request,workflow,target,observation}) {
     typeof query==='string'&&query.trim().length>=2&&query.length<=120&&
     /(?:搜索|查找|检索|\bsearch\b)/i.test(instruction)&&searchButton(clicks[0])
       ?{kind:'search-results-v1',query}:null;
-  return {params,hasReadback:fills.length>0,hasUnprovenClick:clicks.length>0,effectExpectation};
+  return {params,hasReadback:fills.length>0,hasUnprovenClick:clicks.length>0,effectExpectation,linkGuard};
 }
 
 // A generated fill script compares inputValue() in the same RunHost execution.
@@ -237,11 +268,39 @@ export function verifySearchBusinessEffect({expectation,before,after,actionTarge
   return null;
 }
 
+// A click receipt is not a navigation result. Verify a new, separately
+// observed Document and its title before promoting the business outcome.
+export function verifyOpenedLinkPage({linkGuard,after,actionTarget,resultTarget}={}) {
+  if(!linkGuard||!after?.summary||after.format!=='opendesk.workflow-observation.v1'||
+    !after.runId||!after.resultId||!/^[a-f0-9]{64}$/.test(after.sourceHash||'')||
+    !actionTarget||!resultTarget||actionTarget.windowId!==resultTarget.windowId||
+    actionTarget.tabId!==resultTarget.tabId||resultTarget.frameId!==0||
+    resultTarget.documentId===actionTarget.documentId||
+    resultTarget.origin!==linkGuard.origin||resultTarget.url!==linkGuard.url||
+    after.summary.origin!==resultTarget.origin||
+    after.summary.documentId!==resultTarget.documentId||
+    !Array.isArray(after.summary.nodes)||after.summary.nodes.length>24)return null;
+  const title=after.summary.title;
+  if(typeof title!=='string'||!title.trim()||title.length>200||
+    /(?:access denied|not found|404|captcha|验证码|无权访问)/i.test(title))return null;
+  const visible=node=>node?.state?.visible===true;
+  const product=after.summary.nodes.find(node=>visible(node)&&node.role==='heading'&&
+    [node.name,node.text].some(v=>typeof v==='string'&&
+      v.trim().toLocaleLowerCase()===linkGuard.name.toLocaleLowerCase()));
+  const price=after.summary.nodes.find(node=>visible(node)&&
+    [node.name,node.text].some(v=>typeof v==='string'&&
+      /^(?:¥|￥|\$|€)\s?\d{1,9}(?:\.\d{1,2})?$/.test(v.trim())));
+  const amount=price&&[price.name,price.text].find(v=>typeof v==='string'&&
+    /^(?:¥|￥|\$|€)\s?\d{1,9}(?:\.\d{1,2})?$/.test(v.trim()));
+  if(product&&amount)return {kind:'product-page',title:title.trim(),name:linkGuard.name,price:amount.trim()};
+  return {kind:'link-page',title:title.trim()};
+}
+
 // Three independent levels: a durable receipt alone cannot prove click effects.
 export function directExecutionEvidenceLevel({receiptVerified=false,hasReadback=false,
-  hasUnprovenClick=false,searchEffectVerified=false}={}) {
+  hasUnprovenClick=false,searchEffectVerified=false,navigationEffectVerified=false}={}) {
   if(!receiptVerified)return 'PROPOSAL_VALID';
-  if(searchEffectVerified||(hasReadback&&!hasUnprovenClick))return 'BUSINESS_EFFECT_VERIFIED';
+  if(searchEffectVerified||navigationEffectVerified||(hasReadback&&!hasUnprovenClick))return 'BUSINESS_EFFECT_VERIFIED';
   return 'EXECUTION_RECEIPT_VERIFIED';
 }
 
