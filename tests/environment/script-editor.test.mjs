@@ -286,7 +286,7 @@ test('R40.10 Stop during Controller Revision Classic does not cancel JSX compile
     if(name==='prepareControllerClassicDependencies'){started.resolve();return gate.promise;}
     return original(name,args);
   };
-  f.find('script-source').value='// @require https://cdn.example/v1.0.0/library.js\\nasync function main(){return 1;}';
+  f.find('script-source').value='// @require https://cdn.example/v1.0.0/library.js\nasync function main(){return 1;}';
   f.find('script-source').fire('input',{isTrusted:true});await tick();
   const baseline=cancels;
   f.find('script-save-version').fire('click',{isTrusted:true});
