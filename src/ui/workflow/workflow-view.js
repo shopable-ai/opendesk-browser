@@ -10,8 +10,8 @@ import {createWorkflowProviderFacade} from './provider.js';
 import {promptInstructions,promptEditInstructions} from '../conversation/prompt-actions.js';
 import {deriveWorkflowViewState} from './view-state.js';
 import {createLocalCodexPlanner,describeLocalCodex} from './local-codex.js';
-import {createWorkflowObservation,workflowObservationGrantMatches,workflowObservationRecipientId} from './observation.js';
-import {classifyWorkflowRunRisk,prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect,verifySavedWorkflowRevision} from './direct-execution.js';
+import {createWorkflowObservation,workflowObservationForModel,workflowObservationGrantMatches,workflowObservationRecipientId} from './observation.js';
+import {classifyWorkflowRunRisk,prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect,verifyOpenedLinkPage,verifySavedWorkflowRevision} from './direct-execution.js';
 import {createTaskReviewHandoff,taskReviewHandoffKey} from './task-review-handoff.js';
 
 const STORAGE_PREFIX = 'opendesk.sidebar.workflow.v1:';
@@ -35,6 +35,8 @@ export function workflowExecutionFeedback({execution,workflow,params={},values}=
   if(execution.evidenceLevel!=='BUSINESS_EFFECT_VERIFIED')
     return '运行已结束。网页效果尚未确认，请检查当前网页；不会自动重复执行。';
   const effect=execution.effect;
+  if(effect?.kind==='product-page')return '已打开商品详情，独立读回“'+effect.name+'”和页面标价 '+effect.price+'；以实际页面显示为准。';
+  if(effect?.kind==='link-page')return '已打开目标结果，并在新网页独立读取标题“'+effect.title+'”。';
   if(effect?.kind==='search-results')
     return '搜索已完成，已核对出现 '+effect.visibleResultLinks+' 个新链接；结果是否相关仍需确认。';
   if(effect?.kind==='search-empty')return '搜索已完成，已核对页面显示“无结果”。';
@@ -430,6 +432,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       if(captured.origin!==freeze.workflow.siteOrigin)
         throw err('E_WORKFLOW_ORIGIN','当前网页不属于工作流保存的网站');
       params=prepared?prepared.params:readParams();
+      if(freeze.workflow.steps.some(step=>step.linkGuard&&step.linkGuard.sourceUrl!==captured.url))
+        throw err('E_DOCUMENT_STALE','已保存链接的入口网页已变化，不能使用旧链接证明');
       if(!prepared){
         const risk=classifyWorkflowRunRisk(freeze.workflow);
         if(risk.needsReview&&!approvedReview){
@@ -459,7 +463,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         }
       }
       // This remains the real user gesture for Chrome's separate site grant.
-      permission=prepared?.permission||api.permissions.request({origins:[permissionPattern(captured.url)]});
+      const extra=freeze.workflow.steps.filter(step=>step.linkGuard&&step.linkGuard.origin!==captured.origin)
+        .map(step=>permissionPattern(step.linkGuard.url));
+      permission=prepared?.permission||api.permissions.request({origins:[...new Set([permissionPattern(captured.url),...extra])]});
     }catch(error){
       status(format(error),true);return Promise.resolve({ok:false,error});
     }
@@ -554,11 +560,36 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
               }
             }catch{ /* Observation is optional; never promote or replay unknown click effects. */ }
           }
+          if(lastRun==='success'&&prepared.linkGuard&&!prepared.signal?.aborted) {
+            try {
+              let destination=null;
+              // A click receipt cannot prove navigation. Refresh the *active*
+              // main Document before performing one separately authorized read.
+              for(let attempt=0;attempt<7;attempt++){
+                const next=await currentPageTarget.refresh();
+                if(next.status==='available'&&next.windowId===captured.windowId&&
+                  next.tabId===captured.tabId&&next.frameId===0&&
+                  next.documentId!==captured.documentId){destination=next;break;}
+                if(attempt!==6)await new Promise(resolve=>setTimeout(resolve,220));
+              }
+              if(destination&&destination.origin===prepared.linkGuard.origin&&
+                destination.url===prepared.linkGuard.url&&
+                await api.permissions.contains({origins:[permissionPattern(destination.url)]})) {
+                const post=await observation.observe(destination,{signal:prepared.signal,
+                  requestId:'link-effect-'+crypto.randomUUID(),request:prepared.linkGuard.name});
+                if(!disposed&&!prepared.signal?.aborted)effect=verifyOpenedLinkPage({
+                  linkGuard:prepared.linkGuard,after:post,
+                  actionTarget:captured,resultTarget:destination});
+              }
+            }catch{ /* Unknown effects never authorize a repeat click or ungranted read. */ }
+          }
           const evidenceLevel=directExecutionEvidenceLevel({
             receiptVerified:lastRun==='success',hasReadback:readbackVerified,
-            hasUnprovenClick:prepared.hasUnprovenClick,searchEffectVerified:Boolean(effect)
+            hasUnprovenClick:prepared.hasUnprovenClick,
+            searchEffectVerified:Boolean(effect&&effect.kind.startsWith('search-')),
+            navigationEffectVerified:Boolean(effect&&['link-page','product-page'].includes(effect.kind))
           });
-          if(lastRun==='success')
+          if(lastRun==='success'&&evidenceLevel==='BUSINESS_EFFECT_VERIFIED')
             lastTrustedRun={runId:claim.runId,sourceHash:freeze.sourceHash,siteOrigin:captured.origin};
           if(lastRun==='failed' && !hasError)
             status('运行未成功或结果无法确认，请检查真实结果及页面效果；不会自动重试。',true);
@@ -633,6 +664,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   // and independent DOM readback. A completed worker is not an observed business effect.
   function describeExecution(reply) {
     if(reply?.ok) {
+      if(reply.effect?.kind==='product-page')
+        return '已在新 Document 独立核对商品名称与页面价格。';
+      if(reply.effect?.kind==='link-page')
+        return '已在新 Document 独立读回目标网页标题。';
       if(reply.effect?.kind==='search-results')
         return '搜索操作已执行，并独立读回与关键词关联的搜索结果状态及 '+
           reply.effect.visibleResultLinks+' 个新出现的可见链接；未验证结果相关性。';
@@ -668,7 +703,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         tabId:planned.captured.tabId,origin:planned.captured.origin};
     }
     appendChat('执行结果',message);
-    status(message,!reply?.ok);
+    // Conversation owns the plain-language outcome; technical bytes stay folded.
+    if(planned){writeWorkflowOutput(message);status(reply?.ok?'':message,!reply?.ok);}
+    else status(message,!reply?.ok);
   }
   // Called synchronously from the one trusted Confirm gesture. A plan has no
   // execution authority until this exact frozen source, params and target match.
@@ -688,7 +725,12 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     // This native click is the only Run gesture. Chrome may still request a
     // missing origin grant; already-granted origins do not need a product popup.
     let permission;
-    try {permission=api.permissions.request({origins:[permissionPattern(planned.captured.url)]});}
+    try {
+      const origins=[permissionPattern(planned.captured.url)];
+      if(planned.linkGuard&&planned.linkGuard.origin!==planned.captured.origin)
+        origins.push(permissionPattern(planned.linkGuard.url));
+      permission=api.permissions.request({origins:[...new Set(origins)]});
+    }
     catch(error){dismissRunReview();status(format(error),true);return Promise.resolve({ok:false,error});}
     dismissRunReview(); // consume before any asynchronous work or second click
     appendChat('对话状态','正在执行已确认的 '+planned.freeze.workflow.steps.length+' 步…');
@@ -697,6 +739,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       permission,signal:planned.signal,hasReadback:planned.hasReadback,
       hasUnprovenClick:planned.hasUnprovenClick,
       beforeObservation:planned.beforeObservation,effectExpectation:planned.effectExpectation,
+      linkGuard:planned.linkGuard,
       assertCurrent:()=>{
         if(disposed||planned.serial!==stable()||planned.selected!==provider()||
           planned.epoch!==planningGeneration)
@@ -944,7 +987,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         persistObservationApproval();renderObservationApproval();
       }else if(!validObservationApproval(row))throw err('E_AI_APPROVAL','授权失效，未发摘要');
       planningObservation=receipt;
-      row.settle({decision:'approve',result:receipt});
+      row.settle({decision:'approve',result:workflowObservationForModel(receipt)});
     }catch(error){
       row.settle({decision:'deny'});
       if(!disposed&&row.epoch===planningGeneration)status(format(error),true);
@@ -1065,7 +1108,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         throw err('E_AI_PERMISSION','网页摘要或模型接收方授权已撤销，未发送');
       planned=await workflowProviders.generateWorkflow({
         source:frozen.selected,request:frozen.request,workflow:frozen.workflow,
-        target:exactTarget,observationReceipt:planningObservation,signal:abort.signal,
+        target:exactTarget,observationReceipt:workflowObservationForModel(planningObservation),signal:abort.signal,
         settings:{endpoint:frozen.endpoint,apiKey:frozen.apiKey,model:frozen.model},
         history:verifiedTurnHistory,consent:frozen.consent,onEvent:progress,
         onApproval:(event,context)=>offerObservation(event,context,
@@ -1078,7 +1121,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       planningCurrent(epoch,frozen.serial,frozen.selected);
       if(control('workflow-provider-settings').open)closeAISettings();
       const prepared=prepareDirectExecution({request:frozen.request,workflow:result,target:captured,observation:planningObservation});
-      const freeze=await compileWorkflow(result,{verifyFill:true});
+      const executable=structuredClone(result);
+      if(prepared.linkGuard){
+        const click=executable.steps.find(step=>step.op==='click');
+        if(!click)throw err('E_AI_REVIEW_REQUIRED','链接确认缺少点击步骤');
+        click.linkGuard=structuredClone(prepared.linkGuard);
+      }
+      const freeze=await compileWorkflow(executable,{verifyFill:true});
       planningCurrent(epoch,frozen.serial,frozen.selected);
       if(!await permission)throw err('E_PERMISSION','网站权限未授权，未执行浏览器操作');
       await currentPageTarget.revalidate(captured);
@@ -1087,7 +1136,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       planningCurrent(epoch,frozen.serial,frozen.selected);
       // Keep the last committed Controller Revision as Save's optimistic base.
       // matchesRevision() still treats newly generated steps as unsaved.
-      workflow=structuredClone(result);touched=true;lastTrustedRun=null;
+      workflow=structuredClone(executable);touched=true;lastTrustedRun=null;
       directVerifiedSerial=stable();
       render();persistDraft();
       const executionSerial=stable();
@@ -1099,6 +1148,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         freeze,captured:structuredClone(captured),params:structuredClone(prepared.params),
         hasReadback:prepared.hasReadback,hasUnprovenClick:prepared.hasUnprovenClick,
         beforeObservation:planningObservation,effectExpectation:prepared.effectExpectation,
+        linkGuard:prepared.linkGuard,
         signal:abort.signal
       };
       // The planning abort signal has completed its job. Execution has its
@@ -1108,6 +1158,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       control('workflow-run-review-scope').text=
         '将在 '+captured.origin+' 执行 '+freeze.workflow.steps.length+' 步。'+
         (risk.needsReview?'涉及：'+risk.description+'。':'')+
+        (prepared.linkGuard?'链接目标：'+prepared.linkGuard.name+'（'+prepared.linkGuard.origin+'）；导航后重新验证。':'')+
         '请核对步骤、参数与影响范围，点击一次「执行」开始。';
       control('workflow-run-review').hidden=false;
       appendChat('Codex','已生成 '+freeze.workflow.steps.length+' 步，请检查后确认执行。');

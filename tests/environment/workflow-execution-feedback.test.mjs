@@ -72,3 +72,18 @@ test('search feedback keeps the limits of the independently verified effect',()=
   assert.match(workflowExecutionFeedback({execution:{...execution,
     effect:{kind:'search-inline'}}}),/未确认服务器数据已提交/);
 });
+
+test('verified navigation and product feedback uses readback without internal receipts',()=>{
+  for(const [effect,pattern] of [
+    [{kind:'link-page',title:'OpenDesk Browser 官方站点'},/新网页独立读取标题“OpenDesk Browser 官方站点”/],
+    [{kind:'product-page',title:'无线鼠标 · 商品详情',name:'无线鼠标 · 静音款',price:'¥89.00'},
+      /独立读回“无线鼠标 · 静音款”和页面标价 ¥89.00/]
+  ]) {
+    const message=workflowExecutionFeedback({execution:{...execution,effect}});
+    assert.match(message,pattern);
+    assert.doesNotMatch(message,/internal-run|internal-result|sourceHash|documentId|JSON|\{/);
+  }
+  assert.match(workflowExecutionFeedback({execution:{...execution,
+    evidenceLevel:'EXECUTION_RECEIPT_VERIFIED',
+    effect:{kind:'product-page',name:'无线鼠标',price:'¥1.00'}}}),/网页效果尚未确认/);
+});

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {runInNewContext} from 'node:vm';
-import {createWorkflowObservation,WORKFLOW_OBSERVE_SOURCE} from '../../src/ui/workflow/observation.js';
+import {createWorkflowObservation,workflowObservationForModel,WORKFLOW_OBSERVE_SOURCE} from '../../src/ui/workflow/observation.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 import {digestUtf8} from '../../src/platform/protocol.js';
 
@@ -46,7 +46,7 @@ test('fixed observer scans bounded semantic regions instead of guessing a demo s
         nodes:names,truncated:!opts.root};
     },
     locator(css){
-      assert.equal(css,'section[id],form[id]');
+      assert.equal(css,'section[id],form[id],[id*="result" i],[role="list"]');
       return {count:async()=>2,nth:i=>({getAttribute:async()=>i?'lab-search':'lab-form'})};
     }
   };
@@ -166,7 +166,7 @@ test('post-click observation includes a result status containing the bounded que
         nodes,truncated:false};
     },
     locator(selector){
-      assert.equal(selector,'section[id],form[id]');
+      assert.equal(selector,'section[id],form[id],[id*="result" i],[role="list"]');
       return {count:async()=>2,nth:i=>({getAttribute:async()=>i?'lab-search':'other-form'})};
     }
   };
@@ -188,4 +188,30 @@ test('demo search fixture exposes the empty result container to pre-click DOM ob
   assert.match(page,/#results\s*\{[^}]*min-height:\s*(?:1[0-9]|[2-9][0-9])px/);
   assert.match(page,/<div id="results" aria-live="polite"><\/div>/);
   assert.match(page,/results\.textContent = '结果：' \+ term/);
+});
+
+test('trusted observer reads bounded unique link href; Provider never receives navigation proof',async()=>{
+  const origin='https://example.com',name='OpenDesk Browser';
+  const row={role:'link',name,state:{visible:true,disabled:false},
+    locator:{kind:'role',value:'link',name,exact:true}};
+  const page={
+    observe:async()=>({kind:'semantic-dom-summary',document:{documentId:'new-doc',
+      url:origin+'/workflow-search.html?q=OpenDesk'},nodes:[row],truncated:false}),
+    locator:()=>({count:async()=>0}),
+    getByRole:(role,opts)=>{
+      assert.equal(role,'link');assert.equal(opts.name,name);assert.equal(opts.exact,true);
+      return {count:async()=>1,getAttribute:async key=>key==='href'?'?detail=browser':null};
+    },
+    title:async()=>name+' 项目'
+  };
+  const result=await runInNewContext(WORKFLOW_OBSERVE_SOURCE+';main()',
+    {page,params:{request:'打开 OpenDesk Browser'},URL});
+  assert.deepEqual(JSON.parse(JSON.stringify(result.nodes[0].navigation)),{
+    href:'?detail=browser',url:origin+'/workflow-search.html?detail=browser',origin});
+  assert.equal(result.title,name+' 项目');
+  const receipt={summary:{nodes:result.nodes,title:result.title}};
+  const shared=workflowObservationForModel(receipt);
+  assert.equal(shared.summary.title,undefined);
+  assert.equal(shared.summary.nodes[0].navigation,undefined);
+  assert.ok(receipt.summary.nodes[0].navigation); // Provider scrub never mutates trusted proof.
 });
