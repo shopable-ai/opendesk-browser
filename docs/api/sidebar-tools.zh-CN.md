@@ -101,9 +101,9 @@ await OpenDeskTool.request('browser.scheduler.create', {
 });
 ```
 
-这一路径不传 Task ID 或网页目标。计划管理复用原 Scheduler，查询自身计划用 `browser.scheduler.listOwn`；后台源码本身不能创建计划。安装审阅后不要求第二次通用启用。Side Panel 关闭、没有网页目标且 Cloud 关闭时，Chrome 仍可通过 Alarm 运行后台；Chrome 退出期间不执行 JavaScript，Alarm 不保证精确到秒。单次执行目前最多 30 秒，复用原单执行槽。停用、升级、卸载会使旧安装代次失效；恢复后新建的计划绑定当前代次，旧计划不会自动获得新授权。网络请求及远程代码装载受原 opaque Sandbox CSP 拒绝，不提供 OS 级内存隔离或任意副作用 exactly-once 保证。真实候选证据与未测项见动态应用运行验收记录；引擎可运行不代表 Chrome Web Store 已批准。
+这一路径不传 Task ID 或网页目标。计划管理复用原 Scheduler，查询自身计划用 `browser.scheduler.listOwn`；后台源码本身不能创建计划。安装审阅后不要求第二次通用启用。Side Panel 关闭、没有网页目标且 Cloud 关闭时，Chrome 仍可通过 Alarm 运行后台；Chrome 退出期间不执行 JavaScript，Alarm 不保证精确到秒。单次执行目前最多 30 秒，复用原单执行槽。停用、升级、卸载会使旧安装代次失效；恢复后新建的计划绑定当前代次，旧计划不会自动获得新授权。网络请求及远程代码装载受原 opaque Sandbox CSP 拒绝，不提供 OS 级内存隔离或任意副作用 exactly-once 保证。真实候选证据与未测项见[动态应用运行验收记录](../framework/workstreams/dynamic-app-runtime-r14-local-20261022.md)；引擎可运行不代表 Chrome Web Store 已批准。
 
-每次新安装或实际升级（含无后台的旧格式包）在既有 `opendesk.sidebar-tools.revocation-epochs.v1` 为该 ID 生成新随机字符串；相同规范包的 noop 不轮换。包和新代际在同一次 `storage.local.set` 提交并分别读回；丢失回执、部分持久化或读回不明保持 `E_OUTCOME_UNKNOWN`，不自动重放。新的市场事务记录绑定该代际，恢复只能核对并补完元数据，不能认可缺失或不同的代际。明确批准的菜单偏好可绑定新代际，其他敏感授权不会因此续期。本阶段仅证明包与安装合同；运行/调度、B0 冻结及冻结后的 A/B 应用验证另行执行，不能由 Node 包测试宣称通过。
+每次新安装或实际升级（含无后台的旧格式包）在既有 `opendesk.sidebar-tools.revocation-epochs.v1` 为该 ID 生成新随机字符串；相同规范包的 noop 不轮换。包和新代际在同一次 `storage.local.set` 提交并分别读回；丢失回执、部分持久化或读回不明保持 `E_OUTCOME_UNKNOWN`，不自动重放。新的市场事务记录绑定该代际，恢复只能核对并补完元数据，不能认可缺失或不同的代际。明确批准的菜单偏好可绑定新代际，其他敏感授权不会因此续期。包测试仅证明包与安装合同；运行、调度和冻结后双应用结论以同候选真实 Chrome 证据为准，不能由 Node 包测试宣称通过。
 
 ## 1.1 官方可选发行与安装状态（R4.5）
 

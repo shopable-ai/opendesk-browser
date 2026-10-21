@@ -1,0 +1,23 @@
+{
+  "format": "opendesk.sidebar-tool.v2",
+  "id": "app-primes-d50c3c971ed4",
+  "title": "素数筛选 · 冻结后应用 A",
+  "version": "1.2.0",
+  "description": "B1 frozen at 2026-10-21T21:59:43.735Z; created 2026-10-21T21:59:43.774Z; prime-sieve",
+  "capabilities": [
+    "browser.storage",
+    "browser.scheduler"
+  ],
+  "requires": {
+    "browserSdk": "1.0.0"
+  },
+  "contributes": {
+    "contextMenus": []
+  },
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js",
+    "background": "src/background.js"
+  }
+}

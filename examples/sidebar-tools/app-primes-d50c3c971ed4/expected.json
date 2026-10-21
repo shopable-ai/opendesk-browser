@@ -1,0 +1,24 @@
+{
+  "algorithm": "prime-sieve",
+  "payload": {
+    "limit": 10000,
+    "count": 1229,
+    "sum": 5736396,
+    "last": 9973
+  },
+  "security": {
+    "codeNonce": "614eaf5a83e7d8f22aebc8b2",
+    "readLimitHandled": "E_LIMIT",
+    "foreignWrite": "E_SCHEMA",
+    "foreignStorageKeyRejected": "E_SCHEMA",
+    "bindingForgeries": {
+      "appId": "E_SCHEMA",
+      "namespace": "E_SCHEMA",
+      "runId": "E_SCHEMA",
+      "generation": "E_SCHEMA",
+      "packageHash": "E_SCHEMA",
+      "codeHash": "E_SCHEMA",
+      "origin": "E_SCHEMA"
+    }
+  }
+}
