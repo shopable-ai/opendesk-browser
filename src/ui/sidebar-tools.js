@@ -67,9 +67,17 @@ export function checkSidebarToolRequestBudget(message){
       return {ok:false,code:'E_LIMIT'};
     return {ok:true};
   }
-  // Only official Web Markdown Clipper full-text writes may exceed the legacy 12 KB RPC budget.
-  if(['clipNotes.save','clipNotes.edit'].includes(message.operation))return
-    new TextEncoder().encode(serialized).byteLength<=190000?{ok:true}:{ok:false,code:'E_LIMIT'};
+  // A clipper-only exception: validate decoded UTF-8 body independently of
+  // JSON escaping (newlines, quotes and control characters may expand 6x).
+  // Other tools and all Browser SDK request budgets are unchanged.
+  if(['clipNotes.save','clipNotes.edit'].includes(message?.operation)){
+    const encoder=new TextEncoder();
+    const allowed=message?.toolId==='web-markdown-clipper'&&
+      typeof message.payload?.body==='string'&&
+      encoder.encode(message.payload.body).byteLength<=160000&&
+      encoder.encode(serialized).byteLength<=1100000;
+    return allowed?{ok:true}:{ok:false,code:'E_LIMIT'};
+  }
   // Keep other non-Browser tool request budgets unchanged.
   return serialized.length<=(
     ['browser.clipboard.writeText','browser.downloads.text','knowledge.update','knowledge.create'].includes(message.operation)
