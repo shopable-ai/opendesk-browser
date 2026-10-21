@@ -1,4 +1,3 @@
-import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test, {after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -9,31 +8,9 @@ import {createTaskReviewHandoff} from '../../src/ui/workflow/task-review-handoff
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 
 
-// DOM/controller fakes verify UI wiring only; never label these Chrome native.
-class Element {
-  constructor(){this.value='';this.textContent='';this.dataset={};this.hidden=false;this.checked=false;
-    this.disabled=false;this.children=[];this.listeners=new Map();this.attributes={};}
-  addEventListener(name,fn){const group=this.listeners.get(name)||new Set();group.add(fn);this.listeners.set(name,group);}
-  contains(node){return this===node || this.children.some(child=>child?.contains?.(node));}
-  focus(){if(this.ownerDocument)this.ownerDocument.activeElement=this;}
-  querySelectorAll(selector){
-    const found=[];
-    const walk=node=>{for(const child of node.children){
-      if(selector==='.task-card' && child.className==='task-card')found.push(child);
-      walk(child);
-    }};
-    walk(this);return found;
-  }
-  removeEventListener(name,fn){this.listeners.get(name)?.delete(fn);}
-  fire(name,data={}){return Promise.all([...this.listeners.get(name)||[]].map(fn=>fn(data)));}
-  setAttribute(name,value){this.attributes[name]=String(value);}
-  append(...items){this.children.push(...items);}
-  replaceChildren(...items){this.children=items;this.value=items[0]?.value??'';this.textContent='';}
-  dispatchEvent(event){this.fire(event.type,event);return true;}
-}
-globalThis.Option=class extends Element{constructor(text,value){super();this.textContent=text;this.value=value;}};
+// Task business tests exercise registered React actions and view projections.
+// The only document stub below records focus requests; it is not a DOM event engine.
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
-const html=await renderSidebarFixture();
 // Diagnostic only: the Node test worker must exit after all per-test disposals.
 // Keep the original assertions; report actual live resource kinds before any
 // runner timeout, rather than force-closing the process or hiding a leak.
@@ -44,14 +21,16 @@ after(()=>{
   }));
 });
 const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStorage}={})=>{
-  const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
-  const get=id=>nodes.get(id)||nodes.get('task-params-form')?.children.find(child=>child.id===id);
-  const doc={getElementById:get,querySelector:()=>null,createElement:()=>{const node=new Element();node.ownerDocument=doc;return node;},documentElement:{dataset:{}},activeElement:null};
-  for(const node of nodes.values())node.ownerDocument=doc;
-  // This lightweight DOM fake does not parse initial attributes. Reflect the
-  // real HTML collapsed state before dispatching search-toggle clicks.
-  get('task-search-panel').hidden=/<div id="task-search-panel"[^>]*\shidden\b/.test(html);
-  get('task-search-toggle').hidden=/<button id="task-search-toggle"[^>]*\shidden\b/.test(html);
+  const nodes=new Map();
+  const doc={documentElement:{dataset:{}},activeElement:null,querySelector:()=>null};
+  const get=id=>{
+    if(!nodes.has(id)){
+      const node={focus(){doc.activeElement=node;},click(){},scrollTo(){}};
+      nodes.set(id,node);
+    }
+    return nodes.get(id);
+  };
+  doc.getElementById=get;
   const programId='task:demo.form:1.0.0',hash='a'.repeat(64),manifestHash='b'.repeat(64);
   const manifest={title:'表单任务',description:'输入表单',author:'OpenDesk',source:'local',siteOrigins:['https://a.example'],
     permissions:['page.automation'],program:{sourceHash:hash},paramsSchema:{type:'object',
@@ -122,7 +101,7 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
     importDraft:source=>importedDrafts.push(source)});
   const ui={...workbench,dispose(){workbench.dispose();developerView.dispose();}};
   // Business tests invoke exactly the actions wired to the production React
-  // MyTasksPage/Dock. The old Element.fire() registry is NOT a React click.
+  // MyTasksPage/Dock. Node calls the same named actions as actual React.
   const action=(name,event={isTrusted:true})=>{
     const callback=workbench.myView.actions[name];
     assert.equal(typeof callback,'function',`Missing production React action: ${name}`);
