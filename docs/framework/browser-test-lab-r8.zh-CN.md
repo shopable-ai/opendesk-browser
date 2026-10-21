@@ -123,3 +123,27 @@ rg -n 'locator-acceptance|64687|/next|43113' examples tests scripts docs/framewo
 - 人工入口只维护 `examples/tasks/demo-form.html`，契约在 `tests/environment/basic-browser-page.test.mjs`。
 - 每增加一个场景，同步更新 README/矩阵、稳定选择器、reset 行为、Node 回归及原生可执行示例；避免把观测控件画成摆设。
 - 不删除私有本地 `43113` 服务或独立原生测试 Fixture，除非在实际机器验证其用途和全部引用。
+
+## R23.18：Workflow 搜索与电商专项 DOM Fixture（2026-10-22）
+
+仍然只有一个人工总入口：`http://127.0.0.1:43111/demo-form.html`。总入口的导航新增两个独立测试场景链接，并沿用已有本地 HTTP 服务，不引入第二套实验室。
+
+| 专项页面 | URL | DOM 行为及负例 |
+| --- | --- | --- |
+| 搜索引擎式页面 | `http://127.0.0.1:43111/workflow-search.html` | 输入 `#workflow-search-query` → 点击 `#workflow-search-submit` → 延迟 450ms 生成 `#workflow-search-results a` → 点击目标链接跳转到 `?detail=opendesk` → 从 `#workflow-search-detail-title` 读取标题；不存在的关键词产生空结果，同名「查看」按钮刻意用于歧义负例 |
+| 电商浏览页面 | `http://127.0.0.1:43111/workflow-commerce.html` | 输入 `#workflow-commerce-query` → 点击 `#workflow-commerce-submit` → 延迟 500ms 生成 `#workflow-commerce-results a` → 同源详情导航 `?product=mouse-silent` → 读取 `#workflow-commerce-product-title`、`#workflow-commerce-product-price`；支持分类、排序及空结果 |
+
+示例测试指令（AI 仅生成候选步骤；单次明确确认后才允许交给现有 RunHost）：
+
+1. 当前页搜索「OpenDesk」，读回结果标题与可见链接数量。确认动作后检查页面是否出现相应结果。
+2. 从**已验证的搜索结果**中选中标题为「OpenDesk Browser · 官方项目介绍」的链接，打开并读回新页面标题。若已有安全策略不允许任意链接点击，则应显示准确的受阻原因，不能绕过 `prepareDirectExecution` 或伪造跨 Document 验证；可用现有开发 / Task 运行机制另行明确授权测试。
+3. 在电商专项页面搜索「无线鼠标」，读取候选商品名称和价钱；另一步经用户确认打开「无线鼠标 · 静音款」并读取 `¥89.00`。不测试购物车、下单、付款或登录。
+
+验证层级严格独立：
+
+- `node --test tests/environment/workflow-fixtures.test.mjs`：静态 Fixture/安全入口契约，不代表 DOM 实操通过。
+- `node scripts/tests/workflow-fixtures-browser.mjs`：Chromium + 本地 HTTP + 原生指针和输入事件，只证明测试页面本身发生真正的 DOM 变化与同源文档导航；**不连接 OpenDesk 扩展或 RunHost**。
+- 正式 OpenDesk 扩展：本机 Chrome 加载最新构建，先核对 Workflow Controller 捕获的 Site/Origin/Tab/Document，再经模型真实规划、用户确认、RunHost 回执和独立 DOM 读回。保存脚本及更换参数再次运行需要关闭 Provider 后复验；保留 `runId/resultId/sourceHash` 与脱敏截图。
+- Google/Bing/百度、淘宝/京东：以上本地测试不能替代真实互联网可访问性、页面选择器、验证码、账号登录及平台规则检查。未实际运行一律 `NOT_TESTED`。
+
+安全边界：两张页面不发公网请求、不设 Cookie、不保存数据、不包含购买操作；点击结果导致页面 URL / Document 变化，必须沿用真实目标绑定和重新校验机制。**单个 AI 回合自动串联多次未核实点击，若当前 Compiler / RunHost 策略不支持，必须如实标记未完成，不应私自放宽安全门槛。**
