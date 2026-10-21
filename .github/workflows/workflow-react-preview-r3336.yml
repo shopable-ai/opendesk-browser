@@ -17,6 +17,8 @@ on:
       - 'scripts/tests/workflow-source-preview-browser.mjs'
       - 'scripts/tests/react-sidebar-r3331-browser.mjs'
       - 'tests/environment/workflow-react-preview-contract.test.mjs'
+      - 'tests/environment/workflow-react-page.test.mjs'
+      - 'tests/environment/workflow-direct-execution.test.mjs'
       - 'tests/environment/workflow-focus.test.mjs'
       - 'prototypes/sidebar/workflow/react-preview/**'
       - 'prototypes/sidebar/react-preview/**'
@@ -42,6 +44,8 @@ jobs:
           node scripts/preview/build-workflow-react-preview.mjs --check
           # Workflow-specific regression; generic React contracts also run in the package job.
           node --test tests/environment/workflow-react-preview-contract.test.mjs tests/environment/workflow-ui-states.test.mjs
+      - name: R23.16 risk-scoped Run and AI admission regression
+        run: node --test tests/environment/workflow-react-page.test.mjs tests/environment/workflow-direct-execution.test.mjs
       - name: Six-tab React source-bound integration preview
         run: |
           node scripts/preview/build-sidebar-six-react-preview.mjs
