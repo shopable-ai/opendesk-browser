@@ -14,7 +14,7 @@
 - 核查基线：`main` 在 2026-10-21 当前读回时为 `17cbb88eb41b39c688c1dbd4e9801f4f9986954a`。该 SHA 不是锁定版本，实施前必须重读最新 HEAD。
 - R1.2 源码提交已存在；`8fab559000883d4919f358179bee06f9014b470e` 进一步将 `web-markdown-clipper` 升级至 **1.2.4**、接入 `examples/sidebar-tools/web-markdown-clipper/app.ci.json` 的 R1.2 测试，并修复预览根节点可能就是 `.clip` 时的 `.clip-hosted` 匹配。
 - 逐字段对照 `tool.config.json`、唯一正式包 `web-markdown-clipper.opendesk-tool.json` 及当前 `src/index.html`、`src/style.css`、`src/main.js`、`src/notes.js`：**ID、version、capabilities、HTML、CSS、JS、唯一 scripts[0].code 均一致**。当次包 blob `8e37fd947d1a881228f3ceea8add32939abf56d8`，notes blob `fe82b337d287abe97aeef51849a2ba8581edb26f`。这是 GitHub 文件的直接字符串核对，**不能替代**实际构建器的 `--check-project`。
-- React 源 `src/ui/react/preview/sidebar-six-preview.tsx` 有 `clipper-preview`、正式剪藏 iframe 和页头操作；但当前静态 `prototypes/sidebar/react-preview/index.html` 的 HTML **及其内嵌 Base64 脚本解码结果**都没有 `clipper-preview` / `clipper-demo-nav-action` / 剪藏 stage 路径。**REACT_PREVIEW_VERIFIED = NO**，须查生成入口和 source fingerprint 后使用原构建器重生成，不能手写替代“同源 React”。
+- React 源 `src/ui/react/preview/sidebar-six-preview.tsx` 有 `clipper-preview`、正式剪藏 iframe 和页头操作；然而**正式静态预览生成器** `scripts/preview/build-sidebar-six-react-preview.mjs` 的 `previewEntry` 实际导入生产 `src/ui/react/main.tsx` / `mountSidebarApp`，**没有导入**这份 `sidebar-six-preview.tsx`。生成的 `prototypes/sidebar/react-preview/index.html` 及其内嵌 Base64 脚本因此都没有 `clipper-preview` / 剪藏 stage 路径。这不是已证实的“构建缓存过期”，而是**两个预览源码入口没有接通**。更重要的是静态预览 CSP 明确 `frame-src 'none'`，阻止直接嵌入真实剪藏舞台。**REACT_PREVIEW_VERIFIED = NO**；应在唯一正式 React 预览生成器中建立受控、来源绑定的业务舞台入口及最小 CSP 边界，验证无额外 Host 特权后使用原构建器生成并 `--check`，不能仅重复构建现有脚本，也不能手写替代正式 React。
 - `examples/sidebar-tools/web-markdown-clipper/preview/index.html` 与 `preview/stage.html` 提供正式剪藏 JS/CSS 加**模拟 Host 与会话数据**，已明确标记，不能冒充真实 React Host、Chrome 存储或安装验收。
 - `src/ui/sidebar-tools.js` 使用 null-origin、协议、`sameInstance(source, token)` 与工具 ID 约束导航消息；`src/sidebar-tools/bridge.js` 仅派发适配工具的展示/动作消息，业务页面状态仍由 `src/notes.js` 持有。没有证据需要新路由或新 Host。
 - 截至核查，无与当次 1.2.4 源码身份绑定的成功 GitHub Actions/Node/Chrome 原始回执。队列中 workflow 不等于 CI PASS。
@@ -32,7 +32,7 @@
 1. **先解决并发 P0**，在当前最新 `main` 读取受影响文件、差异及并行 owner；不要覆盖并行会话新增正文滚动相关改动。
 2. 在 Mac 真实仓库运行 `node --test tests/environment/sidebar-tool-hierarchical-back-r12.test.mjs examples/sidebar-tools/web-markdown-clipper/tests/ui.test.mjs examples/sidebar-tools/web-markdown-clipper/tests/notes.test.mjs`；补竞争回归，必要时定向 Host、安全来源及其他受影响工具测试。失败必须保留断言并定位。
 3. 按官方 Skill 的单一打包器运行 candidate → 定向测试/Schema/安全/哈希 → `--promote-from` 晋升**同一个**已验证 candidate → `--check-project`。如业务 JS 正式改变且 1.2.4 已安装，不得静默同版本覆盖；结合当前官方 `app:update` 合同确认合法下一个版本，确保同 ID、存储与权限不变。禁止人工直接编辑 JSON 来蒙混 package gate。
-4. 修复 React 静态 HTML 未包含最新 clipper preview 的源码漂移，核对正式 React `ToolHost` 与预览同源构建证明；不要把独立 preview 模拟页头标记为正式 React PASS。
+4. 修复 React **预览入口分离**：`scripts/preview/build-sidebar-six-react-preview.mjs` 使用 `mountSidebarApp` 而非新增的 `src/ui/react/preview/sidebar-six-preview.tsx`，且 CSP 禁止 iframe。先在正式源的单一预览入口设计 clipper 显示与受控静态舞台加载，再运行 `node scripts/preview/build-sidebar-six-react-preview.mjs` 与同脚本 `--check`，检查生成源码哈希、UI 操作、严格沙箱/权限隔离和窄屏。不要把独立 demo 模拟页头标记为正式 React PASS。
 5. 启动已有 watcher（若存在），不覆盖 `dist/development` 的其他 writer；原生 Chrome 同 ID 升级，在保存旧资料后验收：首页↔最近阅读、搜索/筛选/滚动恢复、阅读→编辑→保存、dirty/discard、保存中返回、详情→设置→返回、停用/撤权/更新/卸载、不同工具与旧实例消息、触屏/键盘/浅深色。核对真实持久化/权限/同 ID 版本与安装回执。
 6. 在 GitHub Actions 中找到**与最终提交 SHA 及当前业务输入绑定**的 workflow 运行，并逐项记录 PASS/FAIL/NOT_TESTED。未取得 Mac 真实 Chrome 回执必须标为 `CHROME_PASS=NOT_TESTED`、`NATIVE_PASS=NOT_TESTED`。
 
@@ -45,7 +45,7 @@
 | NODE_PASS | NOT_TESTED（没有仓库 Node 运行环境） |
 | CANONICAL_PACKAGE_CHECK | NOT_TESTED（不能在 GitHub GET 工具内执行打包器） |
 | CI_PASS | NOT_VERIFIED（未发现与当前最终候选对应的成功回执） |
-| REACT_PREVIEW_VERIFIED | FAIL / STALE_BUNDLE_SUSPECTED（TSX 与提交的 HTML 脚本不一致） |
+| REACT_PREVIEW_VERIFIED | FAIL / PREVIEW_ENTRY_DISCONNECTED（静态生成器未导入新增 TSX，且 CSP `frame-src 'none'`） |
 | CHROME_PASS / NATIVE_PASS | NOT_TESTED |
 | UI_QUALITY_95+ | NOT_CLAIMED（仍有竞态与原生证据缺口） |
 
