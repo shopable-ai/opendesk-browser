@@ -8,6 +8,7 @@ import vm from 'node:vm';
 import {load} from 'cheerio';
 import * as contract from '../../src/framework/workflow/contract.js';
 import {deriveWorkflowViewState} from '../../src/ui/workflow/view-state.js';
+import {createWorkflowUIState} from '../../src/ui/workflow/workflow-ui-state.js';
 import * as dataSharing from '../../src/ui/workflow/data-sharing.js';
 import * as taskReviewHandoff from '../../src/ui/workflow/task-review-handoff.js';
 import * as directExecution from '../../src/ui/workflow/direct-execution.js';
@@ -24,10 +25,8 @@ if(!vm.SourceTextModule) {
     assert.match(result.stdout,/component: action and locator changes/,'child must execute the component cases');
   });
 } else {
-  const [source,html]=await Promise.all([
-    readFile(new URL('../../src/ui/workflow/workflow-view.js',import.meta.url),'utf8'),
-    renderSidebarFixture()
-  ]);
+  const source=await readFile(new URL('../../src/ui/workflow/workflow-view.js',import.meta.url),'utf8');
+  let html;
   const tick=()=>new Promise(resolve=>setImmediate(resolve));
   const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
 
@@ -109,14 +108,18 @@ if(!vm.SourceTextModule) {
 
   async function make(t,{steps=[],approval=false,observeGate=null,storedGrant=null,
     sessionId='component-session',initialPermission=true,savedRecord=null,configureHost=null,
-    resumable=false}={}) {
-    const doc=documentFixture(),get=id=>doc.getElementById(id),draft=contract.emptyWorkflow('https://a.example',crypto.randomUUID());
+    resumable=false,controllerOnly=false,probe=null}={}) {
+    // Controller cases exercise the current React actions/snapshots without SSR
+    // compilation, browser access or the retired imperative DOM event path.
+    if(!controllerOnly)html??=await renderSidebarFixture();
+    const doc=controllerOnly?{getElementById:()=>null}:documentFixture();
+    const get=id=>doc.getElementById(id),draft=contract.emptyWorkflow('https://a.example',crypto.randomUUID());
     draft.steps=structuredClone(steps);
     const planGate=deferred(),approvalReady=deferred(),answers=[],observations=[];
-    let plannerOptions,currentSessionId=sessionId,resumeCalls=0;const compiled=[],sessionWrites=[];
+    let plannerOptions,projection,currentSessionId=sessionId,resumeCalls=0,probeCalls=0;const compiled=[],sessionWrites=[];
     const proposal=workflow=>({...structuredClone(workflow),title:'Component proposal',steps:[{stepId:'proposed',op:'observe'}]});
     const planner={snapshot:()=>({sessionId:currentSessionId,state:'READY_FOR_TURN',readyForTurn:true,resumable}),
-      probe:async()=>({state:'READY_FOR_TURN',readyForTurn:true}),
+      probe:async()=>{probeCalls++;return probe?probe():{state:'READY_FOR_TURN',readyForTurn:true};},
       async plan(options){
         plannerOptions=options;
         if(approval){
@@ -131,6 +134,7 @@ if(!vm.SourceTextModule) {
       observations.push(args);if(observeGate)await observeGate.promise;return {componentFixture:true};
     }};
     const bindings={
+      './workflow-ui-state.js':{createWorkflowUIState:()=>{projection=createWorkflowUIState();return projection;}},
       // Production modules share a realm. This VM-only component fixture
       // transfers UI-created params to the host realm before the same
       // strict validator checks the shape, values and defaults.
@@ -232,8 +236,8 @@ if(!vm.SourceTextModule) {
     };
     return {doc,get,ui,click,openCreation,clickNew,focusNew,control,stepsNow,startPlan,planGate,approvalReady,answers,observations,compiled,
       permissions,permissionRequests,sessionWrites,sessionStore,setPage,removePermission,host,savedKey,
-      setSessionId:value=>{currentSessionId=value;},
-      get plannerOptions(){return plannerOptions;},get resumeCalls(){return resumeCalls;}};
+      setSessionId:value=>{currentSessionId=value;},get projection(){return projection;},
+      get plannerOptions(){return plannerOptions;},get resumeCalls(){return resumeCalls;},get probeCalls(){return probeCalls;}};
   }
   const fill=id=>({stepId:id,op:'fill',locatorKind:'css',selector:'#keyword',text:''});
   const observe=id=>({stepId:id,op:'observe'});
@@ -249,6 +253,83 @@ if(!vm.SourceTextModule) {
     return {sessionId:'component-session',origin:'https://a.example',scope:'semantic-dom-summary-v1',
       approvedAt,expiresAt:approvedAt+30*60*1000,...overrides};
   };
+
+  test('component: local check prevents a concurrent probe even with a stale enabled Send control',async t=>{
+    const check=deferred(),probeErrors=[];let checking=false;
+    const f=await make(t,{controllerOnly:true,sessionId:null,probe:async()=>{
+      if(checking){probeErrors.push('E_BUSY');throw Object.assign(new Error('A planning turn is already active'),{code:'E_BUSY'});}
+      checking=true;await check.promise;checking=false;
+      return {state:'READY_FOR_TURN',readyForTurn:true};
+    }});
+    t.after(()=>check.resolve());
+    const trusted={isTrusted:true},initialCompiles=f.compiled.length;
+    f.ui.actions.input('workflow-ai-request','Component planning request',trusted);
+    f.ui.actions.click('workflow-provider-toggle',trusted);
+    f.ui.actions.closeSettings();
+    // Exercise plan's admission guard independently of the disabled projection.
+    f.projection.control('workflow-ai-plan').disabled=false;
+    const running=f.ui.actions.click('workflow-ai-plan',trusted);await tick();
+    assert.equal(f.probeCalls,1,'Send must not start a second probe while the settings probe is pending');
+    assert.deepEqual(probeErrors,[],'no Native E_BUSY collision');
+    assert.equal(f.plannerOptions,undefined);
+    assert.equal(f.compiled.length,initialCompiles,'blocked Send must not compile a new workflow');
+    check.resolve();await running;await tick();
+  });
+
+  for(const outcome of ['success','failure'])test('component: local check '+outcome+' restores Send after closing settings',async t=>{
+    const check=deferred();let checks=0;
+    const f=await make(t,{controllerOnly:true,sessionId:null,probe:async()=>{
+      if(++checks===1){await check.promise;if(outcome==='failure')throw Object.assign(new Error('Offline'),{code:'E_DISCONNECTED'});}
+      return {state:'READY_FOR_TURN',readyForTurn:true};
+    }});
+    t.after(()=>check.resolve());
+    const trusted={isTrusted:true},control=id=>f.ui.getSnapshot().controls[id];
+    f.ui.actions.input('workflow-ai-request','Component planning request',trusted);
+    f.ui.actions.click('workflow-provider-toggle',trusted);await tick();
+    assert.equal(control('workflow-local-refresh').disabled,true);
+    assert.equal(control('workflow-ai-plan').disabled,true,'local check immediately disables Send');
+    f.ui.actions.closeSettings();await tick();
+    assert.equal(control('workflow-provider-settings').open,false);
+    assert.equal(control('workflow-ai-plan').disabled,true,'closing settings must retain the pending check guard');
+    await f.ui.actions.click('workflow-ai-plan',trusted);
+    assert.equal(f.probeCalls,1);assert.equal(f.plannerOptions,undefined);
+    check.resolve();await tick();await tick();
+    assert.equal(control('workflow-local-refresh').disabled,false);
+    assert.equal(control('workflow-ai-plan').disabled,false,'success and failure must both allow retry');
+    await f.ui.actions.click('workflow-ai-plan',{isTrusted:false});await tick();
+    assert.equal(f.probeCalls,1,'untrusted Send must not probe even when enabled');
+    assert.equal(f.plannerOptions,undefined);
+    const running=f.ui.actions.click('workflow-ai-plan',trusted);await tick();
+    assert.equal(f.probeCalls,2,'trusted retry probes only after the settings check settled');
+    assert.ok(f.plannerOptions,'trusted retry reaches the planner');
+    f.planGate.resolve();await running;
+  });
+
+  for(const selected of ['custom_https','cloud_responses'])test('component: pending local check does not block '+selected+' Send',async t=>{
+    const check=deferred(),f=await make(t,{controllerOnly:true,sessionId:null,probe:async()=>{
+      await check.promise;return {state:'READY_FOR_TURN',readyForTurn:true};
+    }});
+    t.after(()=>check.resolve());
+    const trusted={isTrusted:true},control=id=>f.ui.getSnapshot().controls[id];
+    f.ui.actions.click('workflow-provider-toggle',trusted);
+    f.ui.actions.click('workflow-source-https',trusted);
+    if(selected==='cloud_responses')f.ui.actions.input('workflow-https-protocol',selected,
+      {...trusted,target:{value:selected}},'change');
+    for(const [id,value] of [['workflow-ai-endpoint','https://model.example/v1/responses'],
+      ['workflow-ai-model','component-model'],['workflow-ai-key','component-key'],
+      ['workflow-ai-request','Component HTTPS planning request']])f.ui.actions.input(id,value,trusted);
+    f.ui.actions.closeSettings();await tick();
+    assert.equal(control('workflow-local-refresh').disabled,true,'the unrelated local check is still pending');
+    assert.equal(control('workflow-ai-provider').value,selected);
+    assert.equal(control('workflow-ai-plan').disabled,false,'HTTPS Send remains available');
+    const running=f.ui.actions.click('workflow-ai-plan',trusted);await tick();await tick();
+    assert.equal(f.permissionRequests.length,1,'HTTPS Send still requests its own origin permission');
+    assert.equal(control('workflow-ai-approval').hidden,false,'HTTPS Send still requires its own observation approval');
+    assert.equal(f.probeCalls,1);assert.equal(f.plannerOptions,undefined);
+    await f.ui.actions.click('workflow-ai-cancel',trusted);await running;
+    check.resolve();await tick();
+    assert.equal(control('workflow-ai-plan').disabled,false);
+  });
 
   test('component: current AI-only markup initializes Run and Save without a manual-start control',async t=>{
     const f=await make(t);

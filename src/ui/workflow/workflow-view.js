@@ -195,7 +195,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     control('workflow-candidate').disabled=busy || !matchesRevision();
     control('workflow-stop').disabled=!runId || host.currentRun!==runId;
     control('workflow-open-code').disabled=!compiled;
-    control('workflow-ai-plan').disabled=busy||provider()==='opendesk_cloud';
+    control('workflow-ai-plan').disabled=busy||provider()==='opendesk_cloud'||
+      (provider()==='local_codex'&&localChecking);
     control('workflow-ai-plan').hidden=phase==='planning';
     control('workflow-ai-cancel').hidden=phase!=='planning';
     const sessionState=localPlanner.snapshot();
@@ -682,7 +683,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   }
   async function refreshLocal() {
     if(localChecking||disposed||provider()!=='local_codex')return;
-    localChecking=true;updateLocalStatus();
+    localChecking=true;updateLocalStatus();updateButtons();
     try {const capability=await localPlanner.probe();if(!disposed)localCapability=capability;}
     catch(error){if(!disposed)localCapability={state:error.code||'DISCONNECTED',readyForTurn:false};}
     finally{localChecking=false;if(!disposed){updateLocalStatus();updateButtons();}}
@@ -813,7 +814,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     }
   }
   async function plan(event) {
-    if(!event.isTrusted||busy)return;
+    if(!event.isTrusted||busy||(provider()==='local_codex'&&localChecking))return;
     let permission=null,captured=null,frozen;
     try {
       const selected=provider(),request=control('workflow-ai-request').value.trim();
@@ -1084,7 +1085,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     let permission;
     try{permission=api.permissions.request({permissions:['nativeMessaging']});}
     catch(error){status(format(error),true);return;}
-    localChecking=true;updateLocalStatus();
+    localChecking=true;updateLocalStatus();updateButtons();
     (async()=>{
       if(!await permission)throw err('E_PERMISSION_REQUIRED','未允许浏览器连接本机 OpenDesk');
       if(disposed)return;

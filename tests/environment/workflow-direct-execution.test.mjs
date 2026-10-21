@@ -145,6 +145,32 @@ test('core actions must be complete and search field labels do not authorize cli
     workflow:workflow([openDesk,{...click,locatorKind:'role',selector:'button',roleName:'搜索'}]),target}).hasReadback,true);
 });
 
+for(const [request,value] of [
+  ['请把当前测试网页中的姓名输入框填写为“测试甲”，然后读取输入框的实际值确认。不要提交表单，不要跳转页面。','测试甲'],
+  ['把刚才的姓名改成“测试乙”，再读取确认，不要提交，不要跳转。','测试乙'],
+  ['Fill the name with "Test A", then read it. Do not submit the form, do not navigate.','Test A']
+])test('negated clicks do not block the requested fill and read: '+value,()=>{
+  const steps=[{...fill,selector:'#name',text:value},{stepId:'read',op:'extract',locatorKind:'css',selector:'#name'}];
+  assert.equal(prepareDirectExecution({request,workflow:workflow(steps),target}).hasReadback,true);
+  assert.throws(()=>prepareDirectExecution({request,workflow:workflow([...steps,
+    {stepId:'extra',op:'click',locatorKind:'css',selector:'#safe-button'}]),target}),
+  {code:'E_AI_UNREQUESTED_ACTION'});
+});
+
+test('a negated submit does not hide an affirmative click in another clause',()=>{
+  assert.throws(()=>prepareDirectExecution({request:'填写 OpenDesk，不要提交，然后点击预览按钮。',
+    workflow:workflow([{...fill,text:'OpenDesk'}]),target}),{code:'E_AI_MISSING_ACTION'});
+});
+
+for(const request of [
+  '填写 OpenDesk，不要提交但点击预览按钮。',
+  '填写 OpenDesk，不要提交然后点击预览按钮。',
+  'Fill OpenDesk. Do not submit but click Preview.'
+])test('an affirmative click after an unpunctuated transition remains required: '+request,()=>{
+  assert.throws(()=>prepareDirectExecution({request,workflow:workflow([{...fill,text:'OpenDesk'}]),target}),
+    {code:'E_AI_MISSING_ACTION'});
+});
+
 test('proposal, durable receipt, and observed input effect remain different evidence levels',()=>{
   assert.equal(directExecutionEvidenceLevel(), 'PROPOSAL_VALID');
   assert.equal(directExecutionEvidenceLevel({receiptVerified:true}), 'EXECUTION_RECEIPT_VERIFIED');

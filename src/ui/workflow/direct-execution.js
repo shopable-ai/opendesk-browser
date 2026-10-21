@@ -4,8 +4,9 @@ const error=(code,message)=>Object.assign(new Error(message),{code});
 const targetFields=['windowId','tabId','frameId','documentId','url','origin'];
 const highImpact=/(?:付款|支付|购买|下单|结账|转账|提现|确认订单|提交订单|删除|永久移除|清空|注销|发布|群发|发送(?:邮件|消息)|发消息|退款|修改(?:密码|账号)|重设密码|pay(?:ment)?|purchase|checkout|transfer\s+money|delete|remove\s+account|reset\s+password|send\s+(?:email|message)|post\s+(?:comment|message)|confirm\s+order)/i;
 const riskyClickTarget=/(?:付款|支付|购买|下单|结账|转账|删除|清空|注销|发布|发送|退款|密码|订单确认|支付确认|pay|purchase|checkout|transfer|delete|remove|reset.?password|send|submit|提交|confirm.?order|logout|publish|billing)/i;
-const fillIntent=/(?:填入|填写|输入|填上|填到|写入|写在|设为|放入|设置输入框|\b(?:fill|type|enter)\b)/i;
+const fillIntent=/(?:填入|填写|输入|填上|填到|写入|写在|设为|改成|改为|放入|设置输入框|\b(?:fill|type|enter)\b)/i;
 const clickIntent=/(?:点击|点开|按下|打开|跳转|搜索(?!关键词|框|栏|输入框|结果|页面|记录|历史|列表)|提交|下一步|选择(?:按钮|菜单|选项|标签|条目|项目)|\bsearch\b(?!\s+(?:keyword|input|field|box)\b)|\b(?:click|open|navigate|submit|select|press)\b)/i;
+const negatedClickIntent=new RegExp(String.raw`(?:不要|不得|禁止|别|勿|无需|不允许|do\s+not|don['’]t|never)\s*${clickIntent.source}(?:(?!(?:但|然后|接着|随后|而是|不过|\b(?:but|then|however)\b))[^，。；,;.!！？?\n])*`,'gi');
 const readIntent=/(?:查看(?:页面|网页|内容|结果)?|读取|提取|显示(?:页面|内容|结果)|观察|检查网页|页面内容|\b(?:read|extract|observe|inspect|show)\b)/i;
 
 // Admission for the existing RunHost only. Model output is never executable code,
@@ -65,13 +66,16 @@ export function prepareDirectExecution({request,workflow,target,observation}) {
   // A fill literal is *data*, not authority. For example, the "选择" in
   // "ai自动化第一选择" must not authorize a model-invented extra click.
   const instruction=values.reduce((text,value)=>text.replace(value,''),request);
+  // Prohibiting submission/navigation grants no click authority. Strip only
+  // those negative clauses; affirmative actions in later clauses still count.
+  const requestedClick=clickIntent.test(instruction.replace(negatedClickIntent,''));
   if(fillIntent.test(instruction)&&!fills.length)
     throw error('E_AI_MISSING_ACTION','用户要求填写，模型没有返回填写步骤');
   if(fills.length&&!fillIntent.test(instruction))
     throw error('E_AI_UNREQUESTED_ACTION','本次未要求填写，模型额外生成填写动作');
-  if(clicks.length&&!clickIntent.test(instruction))
+  if(clicks.length&&!requestedClick)
     throw error('E_AI_UNREQUESTED_ACTION','本次未要求点击，模型额外生成点击动作');
-  if(clickIntent.test(instruction)&&!clicks.length)
+  if(requestedClick&&!clicks.length)
     throw error('E_AI_MISSING_ACTION','用户要求点击，模型没有返回点击步骤');
   const summary=observation?.summary;
   const observedSearch=step=>step.locatorKind==='css'&&
