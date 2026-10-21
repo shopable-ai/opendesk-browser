@@ -1062,7 +1062,7 @@ test('user-picked region survives worker restart and site disable; undo removes 
   f.api.tabs.get=async()=>({...tab});
   f.api.webNavigation={getFrame:async()=>({url,documentId:'page-doc',documentLifecycle:'active'})};
   f.api.tabs.sendMessage=async(id,msg,options)=>{
-    assert.equal(id,tab.id);assert.deepEqual(options,{frameId:0});
+    assert.equal(id,tab.id);assert.deepEqual(options,{frameId:0,documentId:'page-doc'});
     assert.equal(msg.protocol,ADBLOCK_PAGE_PROTOCOL);assert.equal(msg.type,'start-pick');
     assert.equal(msg.host,'news.example.com');
     return {ok:true,host:msg.host};
@@ -1091,4 +1091,32 @@ test('user-picked region survives worker restart and site disable; undo removes 
     type:'undo',selector:'#native-promo'},page);
   assert.equal(undone.restored,true);
   assert.equal((await status()).rules,undefined);
+  await assert.rejects(f.service.pagePolicy({protocol:ADBLOCK_PAGE_PROTOCOL,
+    type:'undo',selector:'#native-promo'},page),{code:'E_ADBLOCK_COSMETIC_CHANGED'});
+});
+
+test('switching Chrome tabs revokes an uncommitted gesture-bound picker session',async()=>{
+  const f=await fixture(),url='https://news.example.com/story';
+  f.setCurrent(url);
+  const tab={id:1,windowId:10,url,active:true,incognito:false};
+  f.api.tabs.get=async()=>({...tab});
+  f.api.webNavigation={getFrame:async()=>({url,documentId:'page-doc',documentLifecycle:'active'})};
+  const sent=[];
+  f.api.tabs.sendMessage=async(id,msg,options)=>{
+    sent.push({id,msg,options});
+    if(msg.type==='start-pick')return {ok:true,host:msg.host};
+    return undefined;
+  };
+  const page={id:senderId,url,frameId:0,documentId:'page-doc',
+    documentLifecycle:'active',tab};
+  await f.service.dispatch(f.message('adblock.enable'),sender);
+  const started=await f.service.dispatch(f.message('adblock.cosmetic.pick'),sender);
+  assert.equal(started.pickerActive,true);
+  assert.deepEqual(sent[0].options,{frameId:0,documentId:'page-doc'});
+  f.service.cancelPicksOnTabActivated({tabId:2,windowId:10});
+  assert.equal(sent.at(-1).msg.type,'cancel-pick');
+  assert.deepEqual(sent.at(-1).options,{documentId:'page-doc'});
+  await assert.rejects(f.service.pagePolicy({protocol:ADBLOCK_PAGE_PROTOCOL,
+    type:'hide',selector:'#native-promo'},page),{code:'E_ADBLOCK_COSMETIC_SESSION'});
+  assert.equal(f.stored.has('opendesk.adblock.cosmetic.v1'),false);
 });
