@@ -847,7 +847,17 @@ async function commit(next,analyticsSaveId=null){
       }catch{throw e;}
       unconfirmedWrite=false;
     }
+    const staleIds=[...new Set(data.items.map(item=>item.imageAssetId).filter(Boolean))]
+      .filter(id=>!next.items.some(item=>item.imageAssetId===id));
     data=next;etag=saved.etag;
+    let cleanupFailures=0;
+    for(const id of staleIds){
+      try{
+        const result=await request('prompt.asset.remove',{id});
+        if(result?.removed===true)imageAssets.delete(id);
+      }catch{cleanupFailures++;}
+    }
+    return {cleanupFailures};
   }finally{busy=false;lock();}
 }
 async function update(id,transform,restoreAction='toggle'){
@@ -908,13 +918,15 @@ async function save(event,continueCreating=false){
   }
   try{
     error('');status('保存中，请稍候…');
-    await commit(next,item.id);
+    const outcome=await commit(next,item.id);
     // The user may keep typing during the request. Future saves must edit this
     // acknowledged item, including when the original request created it.
     editId=item.id;el('ps-form-title').textContent='编辑提示词';
     if(snapshot===JSON.stringify(form())){
       if(continueCreating&&!old){start();status('已保存，可继续新建。');}
-      else{index();status('完整提示词已保存。');}
+      else{index();status(outcome.cleanupFailures?
+      '提示词已保存，旧图片清理未确认；可重新打开核对。':'完整提示词已保存。',
+      Boolean(outcome.cleanupFailures));}
     }
     else{baseline=snapshot;changed();status('先前版本已保存，当前新输入尚未保存。');
       error('保存期间有新的输入，先前版本已保存；请再次点击保存。');}
@@ -928,11 +940,13 @@ async function remove(){
   const deletedIndex=data.items.findIndex(item=>item.id===pendingDelete);
   const next=model.load({...data,items:data.items.filter(item=>item.id!==pendingDelete)
     .map((item,order)=>({...item,order}))});
-  try{await commit(next);pendingDelete=null;expanded=null;
+  try{const outcome=await commit(next);pendingDelete=null;expanded=null;
     render();
     const survivor=data.items[Math.min(deletedIndex,data.items.length-1)];
     if(survivor)focusListAction(survivor.id,'more');else el('ps-new').focus({preventScroll:true});
-    status('提示词已删除。');}
+    status(outcome.cleanupFailures?
+      '提示词已删除，但旧图片清理未确认；请留意本地图片容量。':'提示词已删除。',
+      Boolean(outcome.cleanupFailures));}
   catch(e){status('删除未确认，显示上次确认的列表：'+(e.code||e.message)+'；请重新打开核对已保存数据。',true);}
 }
 async function changeWeb(){
