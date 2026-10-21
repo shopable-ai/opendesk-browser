@@ -104,10 +104,14 @@ const compiledPromptShortcutInputs=Object.freeze({
   'examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js':'d8650195e9b43178caafa015edaf60649d994b2f'
 });
 const promptFixedTargets=new Set(['agents/page-relay.js','ui/sidebar-tool-host.js']);
+// Installer is shared by Marketplace. Allow only the byte-pinned asset identity
+// contract there for owner-scoped uninstall cleanup, never the asset Host or UI.
+const promptAssetContractTargets=new Set([...promptFixedTargets,'ui/marketplace.js']);
 const promptRailTargets=new Set(['sw.js','agents/page-relay.js']);
 const promptJumpTargets=new Set(['agents/page-relay.js']);
 function reviewedCompiledPromptShortcuts(target,path,root){
-  const targets=path==='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js'?promptRailTargets:
+  const targets=path==='examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js'?promptAssetContractTargets:
+    path==='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js'?promptRailTargets:
     (path==='examples/programs/chatgpt-jump-top/src/conversation.js'||
       path==='examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js')?promptJumpTargets:promptFixedTargets;
   if(!targets.has(target)||!Object.hasOwn(compiledPromptShortcutInputs,path))return null;
