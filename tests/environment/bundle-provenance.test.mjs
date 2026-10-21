@@ -243,6 +243,25 @@ test('Marketplace shares only the byte-pinned Prompt Shortcuts asset identity fo
   assert.throws(()=>make('ui/marketplace.js',root),/Trusted Prompt Shortcuts source changed/);
 });
 
+test('first-party Clipper full-text notes store is pinned exclusively to the original Sidebar Host',async ctx=>{
+  const path='examples/sidebar-tools/web-markdown-clipper/trusted/notes-store.js';
+  const pin='a801ebcf0b932cf4a9425588a8e2dbada0de3963';
+  const make=(target,root=process.cwd(),source=path)=>describeBundle({chunk:{fileName:target,
+    modules:{[resolve(root,source)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
+  assert.equal(make('ui/sidebar-tool-host.js').modules[0].reviewedFirstPartyBlob,pin);
+  for(const target of ['sw.js','ui/tool-shell.js','ui/marketplace.js','agents/page-relay.js',
+    'scripting/sandbox/sandbox.js','scripting/sandbox/worker-runtime.js'])
+    assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
+  assert.throws(()=>make('ui/sidebar-tool-host.js',process.cwd(),
+    'examples/sidebar-tools/web-markdown-clipper/trusted/unreviewed.js'),
+    /cannot enter a privileged fixed bundle/);
+  const root=await realpath(await mkdtemp(join(tmpdir(),'clip-notes-pin-')));
+  ctx.after(()=>rm(root,{recursive:true,force:true}));
+  await mkdir(join(root,'examples/sidebar-tools/web-markdown-clipper/trusted'),{recursive:true});
+  await writeFile(join(root,path),(await readFile(resolve(path),'utf8'))+'\n// unsigned change\n');
+  assert.throws(()=>make('ui/sidebar-tool-host.js',root),/Trusted Web Clipper source changed/);
+});
+
 test('Prompt Shortcuts OD rail bridge requires its reviewed SW blob and fixed outputs',async ctx=>{
   const path='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
   const pin='d8650195e9b43178caafa015edaf60649d994b2f';

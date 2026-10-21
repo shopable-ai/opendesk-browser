@@ -219,12 +219,17 @@ function reviewedCompiledSharedMarkdown(target,path,root){
 // Chrome Host/Relay targets; installed/user sources are not authorized.
 const compiledWebClipperInputs=Object.freeze({
   'examples/sidebar-tools/web-markdown-clipper/trusted/page.js':'24c9a9b38965bc1a02931a243a99a5bd9edc5cab',
-  'examples/sidebar-tools/web-markdown-clipper/trusted/policy.js':'35b60045acd85bc021f25e9e97b5de3474e44d08'
+  'examples/sidebar-tools/web-markdown-clipper/trusted/policy.js':'35b60045acd85bc021f25e9e97b5de3474e44d08',
+  'examples/sidebar-tools/web-markdown-clipper/trusted/notes-store.js':'a801ebcf0b932cf4a9425588a8e2dbada0de3963'
 });
 function reviewedCompiledWebClipper(target,path,root){
-  if(!Object.hasOwn(compiledWebClipperInputs,path)||
-    (path.endsWith('/policy.js')?(!preapprovedFixedTargets.has(target)||
-      target.startsWith('scripting/')||target.startsWith('libs/')):target!=='agents/page-relay.js'))return null;
+  // Notes storage is the reviewed first-party Clipper-only service imported by
+  // the original Sidebar Tools host; it is never a dynamic app privilege.
+  const permitted=path.endsWith('/notes-store.js')?target==='ui/sidebar-tool-host.js':
+    path.endsWith('/policy.js')?(preapprovedFixedTargets.has(target)&&
+      !target.startsWith('scripting/')&&!target.startsWith('libs/')):
+      target==='agents/page-relay.js';
+  if(!Object.hasOwn(compiledWebClipperInputs,path)||!permitted)return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)throw Error('Trusted Web Clipper source must not be a symlink: '+path);
   const bytes=readFileSync(file);
