@@ -102,7 +102,7 @@ test('sensitive click targets and unintended fills are rejected',()=>{
   const dangerous=workflow([{stepId:'danger',op:'click',locatorKind:'css',selector:'#confirm-order'}]);
   assert.throws(()=>prepareDirectExecution({request:'点击确认按钮',workflow:dangerous,target}),
     {code:'E_AI_REVIEW_REQUIRED'});
-  assert.throws(()=>prepareDirectExecution({request:'点击搜索按钮 ai自动化第一选择',workflow:workflow([fill]),target}),
+  assert.throws(()=>prepareDirectExecution({request:'点击预览按钮 ai自动化第一选择',workflow:workflow([fill]),target}),
     {code:'E_AI_UNREQUESTED_ACTION'});
 });
 test('submit in a CSS id needs fresh observed search semantics, not blanket submission authority',()=>{
