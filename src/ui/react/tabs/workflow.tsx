@@ -281,7 +281,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
             {model.progress?.map((item,index)=><li key={index} data-state={item.state}>{item.text}</li>)}
           </ol>
           <section id="workflow-ai-approval" className="workflow-ai-approval od-alert od-alert--warning" aria-labelledby="workflow-ai-approval-title" hidden={c('workflow-ai-approval').hidden!==false}>
-            <h3 id="workflow-ai-approval-title">{c('workflow-ai-approval-title').text||'允许本次网页任务？'}</h3>
+            <h3 id="workflow-ai-approval-title">{c('workflow-ai-approval-title').text||'允许共享网页摘要？'}</h3>
             {text('workflow-ai-approval-scope')}<div className="workflow-actions">
               {action('workflow-ai-approve','允许本轮并继续',{primary:true})}{action('workflow-ai-deny','拒绝')}
             </div>

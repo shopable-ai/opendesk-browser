@@ -12,6 +12,7 @@ import {createWorkflowUIState} from '../../src/ui/workflow/workflow-ui-state.js'
 import * as dataSharing from '../../src/ui/workflow/data-sharing.js';
 import * as taskReviewHandoff from '../../src/ui/workflow/task-review-handoff.js';
 import * as directExecution from '../../src/ui/workflow/direct-execution.js';
+import {workflowObservationGrantMatches,workflowObservationRecipientId} from '../../src/ui/workflow/observation.js';
 
 // Component grade only: actual view + current HTML hierarchy, lightweight DOM,
 // stubbed compiler/planner/observation. No browser, native input or real AI.
@@ -158,7 +159,8 @@ if(!vm.SourceTextModule) {
       './task-review-handoff.js':taskReviewHandoff,
       './direct-execution.js':directExecution,
       './local-codex.js':{createLocalCodexPlanner:()=>planner,describeLocalCodex:value=>({state:value.state,message:'Component fixture',ready:value.readyForTurn===true})},
-      './observation.js':{createWorkflowObservation:()=>observation}
+      './observation.js':{createWorkflowObservation:()=>observation,
+        workflowObservationGrantMatches,workflowObservationRecipientId}
     };
     const context=vm.createContext({crypto,structuredClone,URL,AbortController,
       Option:class extends Element{constructor(text,value){super('option',doc);this.textContent=text;this.value=value;}}});

@@ -44,6 +44,41 @@ export const WORKFLOW_OBSERVE_SOURCE=String.raw`async function main() {
 }
 `;
 const error=(code,message)=>Object.assign(new Error(message),{code});
+// One existing session-scoped observation grant, not a second permission store.
+// Recipient identity is a SHA-256 of the exact provider, endpoint and model:
+// never persist a credential-bearing HTTPS URL in chrome.storage.session.
+export async function workflowObservationRecipientId({selected,endpoint,model}={}) {
+  if(selected==='local_codex')return 'local_codex';
+  let url;
+  try{url=new URL(endpoint);}catch{}
+  if(!['cloud_responses','custom_https'].includes(selected)||
+    !url||url.protocol!=='https:'||url.username||url.password||url.hash||
+    typeof model!=='string'||!model.trim())
+    throw error('E_AI_CONFIG','AI 接收方范围无效');
+  return selected+':'+await digestUtf8(JSON.stringify([endpoint,model]));
+}
+export function workflowObservationGrantMatches(grant,row,now=Date.now()) {
+  const local=row?.selected==='local_codex';
+  if(!local&&!['cloud_responses','custom_https'].includes(row?.selected))return false;
+  // Local-Codex grants issued before R23.17 had no explicit recipient fields.
+  // Such legacy grants never authorize sharing with an HTTPS receiver.
+  const legacyLocal=local&&grant&&grant.provider===undefined&&
+    grant.recipientId===undefined&&grant.receiverPattern===undefined;
+  return Boolean(grant&&row&&typeof row.sessionId==='string'&&row.sessionId&&
+    typeof row.captured?.origin==='string'&&row.captured.origin&&
+    typeof row.recipientId==='string'&&row.recipientId&&
+    grant.sessionId===row.sessionId&&grant.origin===row.captured.origin&&
+    grant.scope==='semantic-dom-summary-v1'&&
+    (grant.provider===row.selected||legacyLocal)&&
+    (grant.recipientId===row.recipientId||legacyLocal)&&
+    (local?grant.receiverPattern==null:
+      typeof row.receiverPattern==='string'&&row.receiverPattern.length>0&&
+      grant.receiverPattern===row.receiverPattern)&&
+    Number.isSafeInteger(grant.approvedAt)&&Number.isSafeInteger(grant.expiresAt)&&
+    Number.isSafeInteger(now)&&grant.approvedAt<=now&&grant.expiresAt>now&&
+    grant.expiresAt-grant.approvedAt===30*60*1000);
+}
+
 export function createWorkflowObservation({api=globalThis.chrome,host,currentPageTarget,onRunOwner=()=>{},onRunId=()=>{}}) {
   let disposed=false,active=null,epoch=0;
   const used=new Set();

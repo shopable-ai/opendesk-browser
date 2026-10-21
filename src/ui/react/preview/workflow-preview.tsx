@@ -62,7 +62,7 @@ const apply=()=>{
   control('workflow-ai-approval').hidden=scene!=='approval';
   control('workflow-run-review').hidden=scene!=='run-review';
   control('workflow-run-review-scope').text='将对当前网站执行：点击 #submit。可能提交或更改网页数据，请核对影响对象（离线预览）。';
-  control('workflow-ai-approval-title').text='允许本轮网页任务？';
+  control('workflow-ai-approval-title').text='允许共享网页摘要？';
   control('workflow-ai-approval-scope').text=scene==='approval'
     ?'当前仅为授权界面预览，不会实际发送网页摘要。':'';
   control('workflow-ai-plan').hidden=busy;

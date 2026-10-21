@@ -10,7 +10,7 @@ import {formatRunValue} from '../run-value-format.js';
 import {createWorkflowProviderFacade} from './provider.js';
 import {deriveWorkflowViewState} from './view-state.js';
 import {createLocalCodexPlanner,describeLocalCodex} from './local-codex.js';
-import {createWorkflowObservation} from './observation.js';
+import {createWorkflowObservation,workflowObservationGrantMatches,workflowObservationRecipientId} from './observation.js';
 import {classifyWorkflowRunRisk,prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect,verifySavedWorkflowRevision} from './direct-execution.js';
 import {createTaskReviewHandoff,taskReviewHandoffKey} from './task-review-handoff.js';
 
@@ -68,26 +68,25 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   let verifiedTurnHistory=[],lastProviderTurn=null,verifiedContextTarget=null;
   const approvalKey=()=>session()?session()+':observation':null;
   function validObservationApproval(row) {
-    const grant=observationApproval,now=Date.now();
-    return grant?.sessionId===row.sessionId&&Boolean(row.sessionId)&&
-      grant.origin===row.captured.origin&&grant.scope==='semantic-dom-summary-v1'&&
-      Number.isSafeInteger(grant.approvedAt)&&Number.isSafeInteger(grant.expiresAt)&&
-      grant.approvedAt<=now&&grant.expiresAt>now&&grant.expiresAt-grant.approvedAt===30*60*1000&&
-      row.sessionId===localPlanner.snapshot().sessionId&&row.selected==='local_codex';
+    const expectedSession=row?.selected==='local_codex'
+      ?localPlanner.snapshot().sessionId:session();
+    return Boolean(expectedSession&&row?.sessionId===expectedSession&&
+      workflowObservationGrantMatches(observationApproval,row));
   }
   function persistObservationApproval() {
     const key=approvalKey(),value=observationApproval;if(!key)return;
     approvalWrites=approvalWrites.then(()=>api.storage.session.set({[key]:value})).catch(()=>{});
   }
   function renderObservationApproval() {
-    const grant=observationApproval,active=validObservationApproval({
-      sessionId:localPlanner.snapshot().sessionId,captured:{origin:currentOrigin()},selected:provider()
+    const selected=provider();
+    const active=selected==='local_codex'&&validObservationApproval({
+      selected,sessionId:localPlanner.snapshot().sessionId,
+      captured:{origin:currentOrigin()},recipientId:'local_codex',receiverPattern:null
     });
-    control('workflow-observation-scope').text=provider()!=='local_codex'
-      ?'HTTPS 模型：每次发送都须明确批准本轮网页摘要；仅发送最多 24 项语义节点，不复用其他 Provider 的会话。'
-      :active?grant.origin+' → Codex：摘要授权 30 分钟有效，任务逐次绑定文档。'
-      :'当前对话未授权；读取前说明网站、接收方与操作范围。';
-    control('workflow-observation-revoke').disabled=!grant;
+    control('workflow-observation-scope').text=selected==='local_codex'
+      ?(active?'网页摘要：已授权':'网页摘要：使用前检查授权')
+      :'网页摘要：同网站、对话及 AI 接收方的有效授权会自动复用。';
+    control('workflow-observation-revoke').disabled=!observationApproval;
   }
   const bindings=new Map();
   const bind=(id,event,fn)=>bindings.set(id+':'+event,fn);
@@ -672,8 +671,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     control('workflow-ai-endpoint').title=cloud?'Responses API 的 HTTPS 地址':'Chat Completions API 的 HTTPS 地址';
     control('workflow-provider-scope').text=local
       ?'Codex 在本机管理对话，模型推理可能联网；已同意的内容可能保存在 Codex 本机对话中。使用官方 CLI 登录，请勿填写 Codex 登录凭据。网页摘要按当前对话、网站与摘要范围授权，任务逐次绑定文档。'
-      :cloud?'网页数据仅在每轮明确批准后发送至配置的 Responses HTTPS 接口；store:false，不使用 previous_response_id。后续上下文仅携带本窗口的已验证任务概要。API Key 不保存。'
-      :custom?'旧版 HTTPS Chat Completions 仅支持单轮 JSON 规划；网页观察须逐次批准，Locator 通过本轮可信摘要校验。不提供服务端续聊或工具调用；API Key 不保存。'
+      :cloud?'网页摘要仅在首次明确授权后发送至指定 Responses HTTPS 接口；有效授权限定当前对话、网站、接收方和 30 分钟，可撤销。store:false，不使用 previous_response_id。API Key 不保存。'
+      :custom?'HTTPS Chat Completions 仅支持单轮 JSON 规划；网页摘要首次发送需授权，相同对话、网站及接收方的有效授权可复用。Locator 仍由本轮可信摘要校验。API Key 不保存。'
       :'OpenDesk 官方 AI 服务目前尚未开放。';
     updateLocalStatus();updateButtons();
   }
@@ -753,11 +752,12 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(serial!==stable()||selected!==provider())
       throw err('E_WORKFLOW_STALE','规划期间草稿或 AI 来源已改变，请重新发送');
   }
-  function offerObservation(event,context,{epoch,serial,selected,captured,request}) {
+  function offerObservation(event,context,{epoch,serial,selected,captured,request,recipientId,receiverPattern=null}) {
     planningCurrent(epoch,serial,selected);
     return new Promise(resolve=>{
       const row={event,context,epoch,serial,selected,captured,request,
-        sessionId:localPlanner.snapshot().sessionId,settled:false,processing:false,
+        sessionId:selected==='local_codex'?localPlanner.snapshot().sessionId:session(),
+        recipientId,receiverPattern,settled:false,processing:false,
         settle(answer){
           if(row.settled)return;row.settled=true;
           context.signal.removeEventListener('abort',abort);
@@ -772,17 +772,16 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         row.siteGranted=await api.permissions.contains({origins:[permissionPattern(captured.url)]});
         planningCurrent(epoch,serial,selected);
         if(row.settled||context.signal.aborted)return;
-        if(row.siteGranted&&validObservationApproval(row)){
+        if(row.siteGranted&&validObservationApproval(row)&&
+          (selected==='local_codex'||await api.permissions.contains({origins:[receiverPattern]}))){
           await processObservation(row,Promise.resolve(true));return;
         }
-        control('workflow-ai-approval-title').text='允许本次网页任务？';
+        control('workflow-ai-approval-title').text='允许共享网页摘要？';
         control('workflow-ai-approval-scope').text='网站：'+captured.origin+
-          (selected==='cloud_responses'?' → Cloud Responses':
-             selected==='custom_https'?' → 自定义 HTTPS 接口':' → 本机 Codex')+
+          (selected==='cloud_responses'?' → Cloud Responses ('+receiverPattern+')':
+             selected==='custom_https'?' → HTTPS 接口 ('+receiverPattern+')':' → 本机 Codex')+
           '：最多 24 项结构、名称、相关文字，可能含敏感文字；无截图/完整 URL。任务：'+request+
-          (selected!=='local_codex'
-            ?'。仅本次发送有效，不授予模型浏览器执行权限，数据发送后不可撤回。'
-            :'。同网站、对话、摘要范围有效 30 分钟，AI 设置可撤销；逐次绑定文档。')+
+          '。同网站、当前对话、接收方及摘要范围有效 30 分钟，可在 AI 设置撤销；每次仍绑定当前文档，不授予 AI 浏览器执行权限。外发后无法撤回。'+
           (row.siteGranted?'':'还需 Chrome 网站权限确认。');
         control('workflow-ai-approve').disabled=false;control('workflow-ai-deny').disabled=false;
         control('workflow-ai-approval').hidden=false;
@@ -814,7 +813,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     try{
       if(!await permission)throw err('E_AI_PERMISSION','网页授权被拒绝，未读取网页');
       planningCurrent(row.epoch,row.serial,row.selected);
-      if(row.selected==='local_codex'&&!remember&&!validObservationApproval(row))throw err('E_AI_APPROVAL','摘要授权已失效');
+      if(!remember&&!validObservationApproval(row))throw err('E_AI_APPROVAL','摘要授权已失效');
       if(row.context.signal.aborted)throw err('E_CANCELLED','网页观察已停止');
       const receipt=await observation.observe(row.captured,{signal:row.context.signal,requestId:row.context.requestId,request:row.request});
       await currentPageTarget.revalidate(row.captured);
@@ -822,14 +821,17 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         throw err('E_PERMISSION','网站权限已撤销，未向 AI 发送观察结果');
       planningCurrent(row.epoch,row.serial,row.selected);
       if(row.context.signal.aborted)throw err('E_CANCELLED','网页观察已停止');
-      if(remember&&row.selected==='local_codex'){
-        if(!row.sessionId||row.sessionId!==localPlanner.snapshot().sessionId)
-          throw err('E_AI_APPROVAL','接收方已变，未发摘要');
+      if(remember){
+        const currentSession=row.selected==='local_codex'?localPlanner.snapshot().sessionId:session();
+        if(!row.sessionId||row.sessionId!==currentSession||!row.recipientId)
+          throw err('E_AI_APPROVAL','接收方或对话已变，未发摘要');
         const approvedAt=Date.now();
-        observationApproval={sessionId:row.sessionId,origin:row.captured.origin,
-          scope:'semantic-dom-summary-v1',approvedAt,expiresAt:approvedAt+30*60*1000};
+        observationApproval={provider:row.selected,sessionId:row.sessionId,
+          origin:row.captured.origin,recipientId:row.recipientId,
+          receiverPattern:row.receiverPattern,scope:'semantic-dom-summary-v1',
+          approvedAt,expiresAt:approvedAt+30*60*1000};
         persistObservationApproval();renderObservationApproval();
-      }else if(row.selected==='local_codex'&&!validObservationApproval(row))throw err('E_AI_APPROVAL','授权失效，未发摘要');
+      }else if(!validObservationApproval(row))throw err('E_AI_APPROVAL','授权失效，未发摘要');
       planningObservation=receipt;
       row.settle({decision:'approve',result:receipt});
     }catch(error){
@@ -916,6 +918,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     };
     try {
       await aiCleanup.catch(()=>{});planningCurrent(epoch,frozen.serial,frozen.selected);
+      const recipientId=await workflowObservationRecipientId(frozen);
+      const receiverPattern=frozen.selected==='local_codex'?null:permissionPattern(frozen.endpoint);
+      planningCurrent(epoch,frozen.serial,frozen.selected);
       let planned;
       const exactTarget=Object.fromEntries(
         ['windowId','tabId','frameId','documentId','url','origin'].map(key=>[key,captured[key]]));
@@ -935,19 +940,26 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           const decision=await offerObservation(
             {type:'tool.request',tool:'browser.observe',canApprove:true},
             {signal:abort.signal,requestId:'cloud-'+crypto.randomUUID()},
-            {epoch,serial:frozen.serial,selected:frozen.selected,captured,request:frozen.request});
+            {epoch,serial:frozen.serial,selected:frozen.selected,captured,request:frozen.request,
+              recipientId,receiverPattern});
           planningCurrent(epoch,frozen.serial,frozen.selected);
           if(decision?.decision!=='approve'||!decision.result)
             throw err('E_AI_APPROVAL','本轮 HTTPS 网页摘要未获得明确批准；未调用模型');
         }
       }
+      if(frozen.selected!=='local_codex'&&
+        (!validObservationApproval({selected:frozen.selected,sessionId:session(),captured,
+          recipientId,receiverPattern})||
+         !await api.permissions.contains({origins:[receiverPattern]})))
+        throw err('E_AI_PERMISSION','网页摘要或模型接收方授权已撤销，未发送');
       planned=await workflowProviders.generateWorkflow({
         source:frozen.selected,request:frozen.request,workflow:frozen.workflow,
         target:exactTarget,observationReceipt:planningObservation,signal:abort.signal,
         settings:{endpoint:frozen.endpoint,apiKey:frozen.apiKey,model:frozen.model},
         history:verifiedTurnHistory,consent:frozen.consent,onEvent:progress,
         onApproval:(event,context)=>offerObservation(event,context,
-          {epoch,serial:frozen.serial,selected:frozen.selected,captured,request:frozen.request})});
+          {epoch,serial:frozen.serial,selected:frozen.selected,captured,request:frozen.request,
+            recipientId,receiverPattern})});
       planningCurrent(epoch,frozen.serial,frozen.selected);
       const result=planned.proposal;
       lastProviderTurn={businessWorkflowId:frozen.workflow.workflowId,
@@ -1350,8 +1362,16 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       invalidateBookmarkConversation(err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已撤销，本轮 AI 提议失效'));
     }
     if(!grant.origins?.length&&!grant.permissions?.includes('nativeMessaging'))return;
-    if(!grant.permissions?.includes('nativeMessaging')&&(!observationApproval||
-      await api.permissions.contains({origins:[observationApproval.origin+'/*']})))return;
+    const approval=observationApproval;
+    if(!approval)return;
+    let siteGranted=false,receiverGranted=false;
+    try {
+      siteGranted=await api.permissions.contains({origins:[permissionPattern(approval.origin+'/')]});
+      receiverGranted=approval.provider&&approval.provider!=='local_codex'
+        ?Boolean(approval.receiverPattern)&&await api.permissions.contains({origins:[approval.receiverPattern]})
+        :!grant.permissions?.includes('nativeMessaging');
+    }catch{/* Unknown permission state is not a grant. */}
+    if(approval!==observationApproval||(siteGranted&&receiverGranted))return;
     observationApproval=null;persistObservationApproval();
     void stopPlanning().catch(error=>status(format(error),true));
     if(!disposed)renderObservationApproval();
