@@ -81,3 +81,12 @@ test('R23.17 Controller: read-only manual Run does not request second OpenDesk c
   assert.equal(state(f,'workflow-run-review').hidden,true);
   assert.equal(f.requests.length,1);
 });
+
+test('R23.17 fixture: ordinary manually authored observe is not the privileged internal AI observation',async t=>{
+  const f=await workflowFixture();t.after(()=>f.view.dispose());
+  const run=await f.click('workflow-run');await tick();
+  assert.equal(run.ok,true);
+  assert.equal(f.starts.length,1);
+  assert.match(state(f,'workflow-output').text,/执行结果/);
+  assert.doesNotMatch(state(f,'workflow-output').text,/semantic-dom-summary/);
+});
