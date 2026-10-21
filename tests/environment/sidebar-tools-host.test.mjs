@@ -330,11 +330,24 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
   const {doc,view,elements,emit,selectFile}=toolRuntimeFixture();
   const store=new Map();
+  const changed=new Node();
   const api={runtime:{getURL:path=>'chrome-extension://test/'+path},
-    storage:{local:{
-      async get(key){return {[key]:store.get(key)};},
-      async set(value){for(const [key,row] of Object.entries(value))store.set(key,row);},
-      async remove(key){store.delete(key);}
+    storage:{onChanged:{
+      addListener:fn=>changed.addEventListener('change',fn),removeListener:fn=>changed.removeEventListener('change',fn)
+    },local:{
+      async get(key){return Object.fromEntries((Array.isArray(key)?key:[key]).map(name=>[name,structuredClone(store.get(name))]));},
+      async set(value){
+        const changes={};
+        for(const [key,row] of Object.entries(value)){
+          changes[key]={oldValue:structuredClone(store.get(key)),newValue:structuredClone(row)};
+          store.set(key,structuredClone(row));
+        }
+        for(const fn of changed.listeners.get('change')||[])fn(changes,'local');
+      },
+      async remove(key){
+        const oldValue=structuredClone(store.get(key));store.delete(key);
+        for(const fn of changed.listeners.get('change')||[])fn({[key]:{oldValue}},'local');
+      }
     }}};
   const target={snapshot:{status:'available',url:'https://example.com/a',title:'Example'}};
   let taskOpened='';

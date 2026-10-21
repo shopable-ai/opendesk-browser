@@ -75,12 +75,16 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
          !Number.isInteger(sender.tab.id)||sender.tab.id<0||sender.tab.incognito||
          sender.frameId!==0||typeof sender.documentId!=='string'||!sender.documentId||
          sender.documentLifecycle&&sender.documentLifecycle!=='active'||
-         url.origin!==market.origin||url.pathname!==market.pathname)
+         url.protocol!==market.protocol||url.host!==market.host||url.pathname!==market.pathname)
         throw Error('invalid marketplace');
+      // Same-document routing can leave sender.url with an earlier fragment.
+      // Bind the live document first; only the fragment may differ.
       const context=await api.runtime.getContexts({contextTypes:['TAB'],
-        documentUrls:[sender.url],tabIds:[sender.tab.id]});
-      if(context.length!==1||context[0].contextType!=='TAB'||
-         context[0].documentUrl!==sender.url||
+        documentIds:[sender.documentId],tabIds:[sender.tab.id]});
+      if(context.length!==1)throw Error('retired marketplace document');
+      const liveUrl=new URL(context[0].documentUrl);
+      url.hash='';liveUrl.hash='';
+      if(context[0].contextType!=='TAB'||liveUrl.href!==url.href||
          context[0].documentId!==sender.documentId||
          context[0].tabId!==sender.tab.id||context[0].frameId!==0||context[0].incognito)
         throw Error('retired marketplace document');

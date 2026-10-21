@@ -158,8 +158,30 @@ test('fresh reviewed official install enables verified DNR immediately, without 
 test('first-run default cannot override missing permission, explicit stop or forged tool',async()=>{
   const denied=await fixture({permission:false});
   denied.stored.delete(ADBLOCK_STORE);
-  assert.equal((await denied.service.tick()).enabled,false);
-  assert.equal(denied.stored.has(ADBLOCK_STORE),false);
+  const disabled={version:1,enabled:false,exceptions:[],approvedHash:null,approvedEpoch:null};
+  const initial=await denied.service.tick();
+  assert.equal(initial.enabled,false);
+  assert.equal(initial.permissions.dnr,false);
+  assert.equal(initial.rules.verified,false);
+  assert.equal(initial.rules.reason,'native-permission-missing');
+  assert.deepEqual(denied.stored.get(ADBLOCK_STORE),disabled);
+  assert.equal(denied.actions.length,0,'missing permission must never submit DNR changes');
+  assert.deepEqual(denied.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST]);
+  denied.setPermission(true);
+  const worker=await denied.restartService().tick();
+  assert.equal(worker.permissions.dnr,true);
+  assert.equal(worker.enabled,false,'permission re-grant and worker recreation cannot enable filtering');
+  assert.equal(worker.restartRequired,true,'worker recreation retains the first-grant session fence');
+  assert.equal(denied.actions.length,0);
+  // Chrome clears storage.session on extension reload, not worker recreation.
+  for(const key of denied.sessionChanges)denied.sessionStored.delete(key);
+  const reloaded=await denied.restartService().tick();
+  assert.equal(reloaded.permissions.dnr,true);
+  assert.equal(reloaded.restartRequired,false);
+  assert.equal(reloaded.rules.verified,true,'the ready session must reconcile native rules');
+  assert.equal(reloaded.enabled,false,'the durable disabled record survives session recreation');
+  assert.deepEqual(denied.stored.get(ADBLOCK_STORE),disabled);
+  assert.equal(denied.actions.length,0,'restored permission and session must not auto-enable DNR');
   assert.deepEqual(denied.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST]);
   const stopped=await fixture();
   assert.equal((await stopped.service.tick()).enabled,false);

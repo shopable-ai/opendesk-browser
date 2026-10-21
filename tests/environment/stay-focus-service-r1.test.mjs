@@ -412,22 +412,53 @@ test('R3.2 Marketplace has read-only live worker admission, never Focus mutation
   const sender={id:f.sender.id,url:market,frameId:0,documentId:'market-document-1',
     documentLifecycle:'active',tab:{id:91,incognito:false}};
   const message={protocol:FOCUS_PROTOCOL,toolId:'stay-focus',operation:FOCUS_PROBE_OPERATION,payload:{}};
-  f.api.runtime.getContexts=async query=>{
-    assert.deepEqual(query,{contextTypes:['TAB'],documentUrls:[market],tabIds:[91]});
-    return [{contextType:'TAB',documentUrl:market,documentId:'market-document-1',
-      frameId:0,tabId:91,incognito:false}];
-  };
+  const live={contextType:'TAB',documentUrl:market,documentId:'market-document-1',
+    frameId:0,tabId:91,incognito:false};
+  let contexts=[live];
+  const getContexts=async query=>contexts.filter(row=>
+    (!query.contextTypes||query.contextTypes.includes(row.contextType))&&
+    (!query.documentUrls||query.documentUrls.includes(row.documentUrl))&&
+    (!query.documentIds||query.documentIds.includes(row.documentId))&&
+    (!query.tabIds||query.tabIds.includes(row.tabId))).map(row=>structuredClone(row));
+  f.api.runtime.getContexts=getContexts;
   const response=await f.focus.probe(message,sender);
   assert.equal(response.serviceReady,true);
+  // Chrome retains the Sender's earlier fragment after same-document routing.
+  live.documentUrl=market.replace('#/apps/opendesk/stay-focus','#/apps/opendesk/prompt-shortcuts');
+  assert.equal((await f.focus.probe(message,sender)).serviceReady,true);
   await assert.rejects(f.focus.dispatch(await f.msg('focus.status'),sender),{code:'E_FOCUS_SENDER'});
   for(const bad of [
     {...sender,url:f.api.runtime.getURL('ui/other.html')},
     {...sender,url:'https://untrusted.example/ui/marketplace.html'},
+    {...sender,url:market.replace(f.sender.id,'another-extension')},
     {...sender,id:'another-extension'},
     {...sender,frameId:1},
     {...sender,documentId:'retired-document'},
+    {...sender,documentLifecycle:'prerender'},
+    {...sender,tab:undefined},
     {...sender,tab:{id:91,incognito:true}}
   ])await assert.rejects(f.focus.probe(message,bad),{code:'E_FOCUS_SENDER'});
+  for(const change of [
+    {documentUrl:live.documentUrl.replace('ui/marketplace.html','ui/other.html')},
+    {documentUrl:live.documentUrl.replace(f.sender.id,'another-extension')},
+    {documentUrl:live.documentUrl.replace('?intent=','?other=')},
+    {documentId:'retired-document'},{tabId:92},{frameId:1},{incognito:true},
+    {contextType:'SIDE_PANEL'}
+  ]){
+    contexts=[{...live,...change}];
+    await assert.rejects(f.focus.probe(message,sender),{code:'E_FOCUS_SENDER'});
+  }
+  contexts=[live,{...live}];
+  await assert.rejects(f.focus.probe(message,sender),{code:'E_FOCUS_SENDER'});
+  contexts=[live];
+  let checks=0;
+  f.api.runtime.getContexts=async query=>{
+    const rows=await getContexts(query);
+    if(++checks===1)contexts=[];
+    return rows;
+  };
+  await assert.rejects(f.focus.probe(message,sender),{code:'E_FOCUS_SENDER'});
+  assert.equal(checks,2,'probe must revalidate the live document before returning');
   assert.equal(f.rules.length,0);
   assert.equal(f.alarms.size,0);
   assert.equal(f.stored.has(FOCUS_STORE),false);
