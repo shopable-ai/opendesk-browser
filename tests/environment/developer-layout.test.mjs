@@ -6,9 +6,10 @@ import {load} from 'cheerio';
 const {createDeveloperView}=await loadSidebarReact();
 const view=createDeveloperView();
 view.patchDependencies('classic',{visible:true,entries:[],locks:[],selectedLockId:'',status:'',review:null});
-const [html,css,editor,design]=await Promise.all([
+const [html,css,editor,resultsOwner,design]=await Promise.all([
   renderSidebarFixture({developerView:view}),readFile('src/ui/tool-shell.css','utf8'),
-  readFile('src/ui/script-editor.js','utf8'),readFile('src/ui/design-system.css','utf8')]);
+  readFile('src/ui/script-editor.js','utf8'),readFile('src/ui/controller-results-view.js','utf8'),
+  readFile('src/ui/design-system.css','utf8')]);
 view.dispose();const $=load(html),dev=$('#workbench-develop');
 test('Dev has one live run-status row and keeps technical identity below results',()=>{
   assert.equal($('#developer-run-feedback[role=status][aria-live=polite]').length,1);
@@ -16,7 +17,7 @@ test('Dev has one live run-status row and keeps technical identity below results
   assert.ok($('#script-task-status').is('[hidden]'));
   assert.notEqual($('#script-task-status').attr('role'),'status');
   assert.ok(html.indexOf('id="developer-results-panel"')<html.indexOf('id="developer-run-technical"'));
-  assert.match(editor,/display\('results', focused \? '任务状态：' : '已读取持久结果'\)/);
+  assert.match(resultsOwner,/onStatus\('results', focused \? '任务状态：' : '已读取持久结果'\)/);
   assert.match(editor,/patchDeveloperField\(view,taskStatus,\{hidden:state !== 'results' \|\| !taskStatus.textContent\}\)/);
 });
 test('Dev editor retains readable minimum and user resizing',()=>{
