@@ -431,7 +431,7 @@ try{
   // is based on current user data, never the three special first-run IDs.
   const seedRows=pkg.initialData.library.items;
   const personal=Array.from({length:5},(_,i)=>({...seedRows[0],id:'r191-user-'+i,
-    label:'自'+i,name:'自定义提示词 '+i,body:'自定义完整正文 '+i+'\\n第二行',order:i}));
+    label:'自'+i,name:'自定义提示词 '+i,body:'自定义完整正文 '+i+'\n第二行',order:i}));
   const compactCases=[
     ['three seeds',seedRows],
     ['edited seed',seedRows.map((row,i)=>i===0?{...row,body:row.body+' 已编辑'}:row)],
@@ -456,7 +456,7 @@ try{
     await sleep(750);
     await clickJS('window.__railRoot.querySelectorAll(".item")['+(rows.length-1)+']');
     await poll('document.querySelector("main#main textarea#prompt-textarea").value==='+
-      JSON.stringify(before+'\\n'+target.body),'full-body insertion: '+name);
+      JSON.stringify(before+'\n'+target.body),'full-body insertion: '+name);
     assert.equal(await evaluate('window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")'),'false');
     assert.equal(await evaluate('document.querySelectorAll("[data-opendesk-prompts]").length'),1);
   }

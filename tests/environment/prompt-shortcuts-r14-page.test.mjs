@@ -332,7 +332,7 @@ test('R1.9.1 every saved prompt library retains one resting launcher independent
   const seed=pkg.initialData.library.items;
   const legacy=Array.from({length:5},(_,i)=>({...seed[0],
     id:'legacy-r191-'+i,label:'旧'+i,name:'历史提示词 '+i,
-    body:'历史完整正文 '+i+'\\n第二行',order:i,
+    body:'历史完整正文 '+i+'\n第二行',order:i,
     ...(i===1?{appearance:'image',imageUrl:'https://fixture.opendesk.invalid/icon.png'}:{})}));
   const scenarios=[
     ['first-run three',seed],
@@ -368,8 +368,8 @@ test('R1.9.1 every saved prompt library retains one resting launcher independent
           'the old image button remains available within the expanded menu');
       const target=expected.at(-1),before=f.editor.textContent;
       f.buttons().at(-1).emit('click',{isTrusted:true});await settle();
-      assert.deepEqual(f.calls,[{command:'insertText',text:'\\n'+target.body}],name);
-      assert.equal(f.editor.textContent,before+'\\n'+target.body,name+': preserved draft');
+      assert.deepEqual(f.calls,[{command:'insertText',text:'\n'+target.body}],name);
+      assert.equal(f.editor.textContent,before+'\n'+target.body,name+': preserved draft');
       assert.equal(f.rail().children.length,1,name+': collapse after insertion');
     }finally{controller.dispose();}
   }
