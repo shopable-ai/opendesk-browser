@@ -30,3 +30,7 @@
 2. **CI P0**：定位书签管理真实 Chromium 的 iframe 视口回归；先确认是否测试驱动或正式 CSS 问题，再最小修复。
 3. **交互验收**：知识收件箱、AdBlock、网页剪藏优先复用已有 fixture；其余 9 个按页面深度逐个验证 320/360/400/440、200% zoom、键盘/触屏和浅深色；没有证据不判 PASS。
 4. **发行门槛**：所有修改 Sidebar Tool 的 `tool.config.json` 版本、`dist/build-ready.json`（适用时）、候选包、唯一 `--promote-from`、`--check-project` 必须同源。此审查文档和 Host 改动不重建已安装包。
+
+## 2026-10-22 额外 CI 前置修复
+
+`.github/workflows/sidebar-tools-r1.yml` 已在运行官方目录打包依赖的 Node 测试前，调用**仓库既有** AdBlock、Stay Focus、Cookie Editor React 编译器，避免把 `dist/tool.css` / `dist/build-ready.json` 未生成误判为导航回归；同一测试步骤明确执行 `sidebar-tool-hierarchical-back-r12.test.mjs`。本次仅提交工作流和证据矩阵，不触碰发行包。必须以新 SHA 对应的 GitHub Actions 结果为准，旧的红色日志不自动视为修复成功。
