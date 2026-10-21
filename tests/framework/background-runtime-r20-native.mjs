@@ -139,6 +139,7 @@ async function main(){
     const target=await until(async()=>(await client.send('Target.getTargets')).targetInfos.find(x=>x.url===context.documentUrl),'Side Panel target');sideTargetId=target.targetId;
     side=(await client.send('Target.attachToTarget',{targetId:sideTargetId,flatten:true})).sessionId;
     await client.send('Runtime.enable',{},side);await client.send('Page.enable',{},side);
+    await evalRead(client,side,'globalThis.nativeBudgetFocus=[];chrome.windows.onFocusChanged.addListener(windowId=>nativeBudgetFocus.push({windowId,at:Date.now()}));true');
     report.hostDocument=await evalRead(client,side,'(async()=>({url:location.href,contexts:await chrome.runtime.getContexts({})}))()');
     const identityProbe='native-sender-readback-'+randomUUID();
     await evalRead(client,managerSession,`globalThis.nativeSenderReadback=(message,sender,respond)=>{if(message.protocol===${JSON.stringify(identityProbe)})respond(sender)};chrome.runtime.onMessage.addListener(globalThis.nativeSenderReadback);true`);
@@ -165,11 +166,23 @@ async function main(){
     const installed=await until(()=>evalRead(client,side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==="budget-fixture"))'),'original Installer persisted package');
     assert.equal(installed.version,'1.0.0');assert.deepEqual(installed,JSON.parse(packageBytes));report.steps.install='PASS';note('installed-original-package',{sha256:report.fixturePackageSha256});
     const entry='[data-extension-key="app:budget-fixture"][data-extension-action="main"]';await click(client,side,entry);
-    const frameTarget=await until(async()=>(await client.send('Target.getTargets')).targetInfos.find(x=>x.type==='iframe'&&x.url.includes('/sidebar-tools/sandbox.html')),'opaque tool iframe');
-    frame=(await client.send('Target.attachToTarget',{targetId:frameTarget.targetId,flatten:true})).sessionId;
+    const {root:hostDom}=await client.send('DOM.getDocument',{depth:1},side);
+    const {nodeId:iframeNodeId}=await client.send('DOM.querySelector',{nodeId:hostDom.nodeId,selector:'#sidebar-tool-frame iframe'},side);
+    assert.ok(iframeNodeId,'Current installed tool iframe exists');
+    const {node:iframeNode}=await client.send('DOM.describeNode',{nodeId:iframeNodeId},side);
+    assert.ok(iframeNode.frameId,'Current tool DOM has a native frame identity');
+    frame=await until(async()=>{
+      const targets=(await client.send('Target.getTargets')).targetInfos.filter(x=>x.type==='iframe'&&x.url.includes('/sidebar-tools/sandbox.html'));
+      for(const target of targets){
+        const attached=(await client.send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId;
+        const {frameTree}=await client.send('Page.getFrameTree',{},attached);
+        if(frameTree.frame.id===iframeNode.frameId)return attached;
+      }
+      return false;
+    },'sandbox belonging to the current installed tool DOM');
     await client.send('Runtime.enable',{},frame);await client.send('Page.enable',{},frame);inputParents.set(frame,side);
     await until(()=>evalRead(client,frame,'!!document.querySelector("#enable")'),'public tool UI');
-    const nativeRead=async label=>{const r=await evalRead(client,side,'(async()=>({rules:await chrome.declarativeNetRequest.getDynamicRules(),alarm:await chrome.alarms.get("opendesk.browser.site-budget.tick.v1"),storage:await chrome.storage.local.get(["opendesk.browser.site-budget.resources.v1","opendesk.sidebar-tools.revocation-epochs.v1"]),idle:await chrome.idle.queryState(60).catch(()=>"permission-missing")}))()');report.nativeReadbacks.push({label,at:Date.now(),...r});await persist();return r;};
+    const nativeRead=async label=>{const r=await evalRead(client,side,'(async()=>({rules:await chrome.declarativeNetRequest.getDynamicRules(),alarm:await chrome.alarms.get("opendesk.browser.site-budget.tick.v1"),storage:await chrome.storage.local.get(["opendesk.browser.site-budget.resources.v1","opendesk.sidebar-tools.revocation-epochs.v1"]),idle:await chrome.idle.queryState(60).catch(()=>"permission-missing"),window:await chrome.windows.getLastFocused(),tabs:await chrome.tabs.query({active:true}),focusEvents:globalThis.nativeBudgetFocus||[]}))()');report.nativeReadbacks.push({label,at:Date.now(),...r});await persist();return r;};
     current='consent';await click(client,frame,'#enable');
     await click(client,side,'#sidebar-tool-action-continue');
     // Native Chrome may display its optional-permission prompt. Use the
@@ -190,7 +203,7 @@ async function main(){
     const before=started.storage[ledgerKey]?.['budget-fixture']?.usage.daily||0;
     // Read-only native storage snapshots observe the existing Alarm. No RPC
     // polling, synthetic tick, clock injection, or ledger write is performed.
-    await sleep(34000);activity();
+    await sleep(34000);await nativeRead('foreground-before-activity');activity();
     const counted=await nativeRead('active-after-native-alarm');const used=counted.storage[ledgerKey]?.['budget-fixture']?.usage.daily||0;
     assert.ok(used>before,'Real foreground time must accumulate');report.steps.foreground='PASS';note('real-time-increment',{before,used});
     current='closed-panel';assert.equal((await client.send('Target.closeTarget',{targetId:sideTargetId})).success,true,'Close actual Side Panel');side=null;
@@ -205,8 +218,9 @@ async function main(){
     report.steps.nativeHttpBlock='PASS';
     // Reopen an original extension document solely to read native resources,
     // after the sidebar-closed interval has already completed.
-    const readPage=await client.send('Target.createTarget',{url:'chrome-extension://'+extensionId+'/sidepanel.html?hostInstanceId='+randomUUID(),background:true});
+    current='native-readback';const readPage=await client.send('Target.createTarget',{url:'chrome-extension://'+extensionId+'/sidepanel.html?hostInstanceId='+randomUUID(),background:true});
     managerTargetId=readPage.targetId;side=(await client.send('Target.attachToTarget',{targetId:readPage.targetId,flatten:true})).sessionId;
+    await until(()=>evalRead(client,side,'location.protocol==="chrome-extension:"&&!!chrome.declarativeNetRequest?.getDynamicRules'),'original readback document committed');
     const after=await nativeRead('after-closed-side-panel');
     assert.ok(after.rules.some(r=>r.id>=752000&&r.id<752040&&r.action.type==='block'),'Native owner DNR rule after closed panel');
     assert.ok((after.storage[ledgerKey]?.['budget-fixture']?.usage.daily||0)>=60000,'Closed-panel native timing reached budget');
