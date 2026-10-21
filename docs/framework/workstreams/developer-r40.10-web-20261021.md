@@ -184,3 +184,50 @@ GitHub Local run `39568063907`、job `119115102664` 原始日志提供：Local �
 - 精确 SHA `4dd37d3726ccbacc3cdaeb872391b64852b3535a` 的 [run 39609943170](https://github.com/shopable-ai/opendesk-browser/actions/runs/39609943170) 已核实 `developer-release-smoke` **FAIL**，原因仍是 AdBlock trusted/policy.js 固定来源身份；`developer-node` 在最近核查时仍运行独立 Task 步骤，完整退出/综合结果待其真实终态，不能推定成功。
 - 提交 [d3f8869](https://github.com/shopable-ai/opendesk-browser/commit/d3f88693b98cd9fcb143b17bd1bb88ece13af08a)：仅在 Task 测试原有收尾增加 `process.getActiveResourcesInfo()` 与活动句柄类型的诊断，保留所有断言与正常 Node 退出，**不强制 process.exit、不 unref、不延长 timeout**。诊断需由实际运行日志验证，当前不可当作成功证据。
 - P0 当前结论：`ENTRY_FIX_VERIFIED_BY_TAP`、`NODE_PROCESS_EXIT=FAIL_ON_8bffbfe`、`CURRENT_SOURCE_EXIT=NOT_CONFIRMED`。P2 整体代码减法、P3 四环境真实端到端与 P4 全链复杂度减法尚不满足交付门槛。全局阶段保持 **WEB_PARTIAL**。
+
+
+## R40.10.6-WEB：真实 React 测试迁移与 Node 退出关闭条件（2026-10-21，WEB_PARTIAL）
+
+### 原始最高目标与七项不变约束
+普通用户选择 Controller JS/ESM/Classic、Page JS/ESM、React JSX/Vue SFC 或 Local Provider，在当前编辑源码后直接 Run、看到真实结果并正确 Stop；不强迫保存 Revision、创建 Candidate 或正式安装。继续由 Controller、Page、Component、Local 四个已有业务 owner 执行，统一原 Host/Authority/共享执行槽；sourceHash、documentId、previewId、runId、bindingId、Provider epoch、源码/环境切换和撤权栅栏、不可逆提交、未知效果、持久结果、安装及下载不得退化。原始七项目标分别检查总入口职责、唯一业务所有权、Run/Stop 直接性、重复刷新删除、唯一基础设施、整体维护复杂度、安全及高级功能。
+
+### P0：实证故障与修复提交
+- 已完成历史精确 CI 复核：run 39584545806（f831b091）51 项 50 FAIL/1 PASS，原 developerView=null 构造异常，独立 Node 15 分钟取消。run 39608550598（8bffbfe）51 项 48 FAIL/3 PASS，构造错误被越过，但 Node 继续取消；run 39609943170（4dd37d3）已终结，48 FAIL/3 PASS，developer-node cancelled，六文件综合没有运行，developer-release-smoke 单独失败。均无完整 TAP 汇总和 Node 正常退出。
+- d3f8869 活动资源诊断提交尚没有查询到精确 head SHA 的 Developer CI；上述旧 Jobs 亦未输出 TASK_WORKBENCH_EXIT_RESOURCES，**不能指认某个具体残留活动资源或声称资源已清理**。
+- ef43a53、1fcebf0、e9b9546：旧 Task 测试开始直接调用正式 React myView.actions、myView.field/myView.data，迁移 Run、安装/授权、过滤、参数保存、持久结果、目录导航、原身份围栏等原业务断言。
+- 0744490、710e857：覆盖连续 20 次实际 Task RunHost 测试驱动、撤权禁止请求权限及 admission、跨任务结果隔离、原 owner Stop、迟到结果、导入错误、源码审阅和敏感信息遮盖。保留真实 Run/Stop、结果身份的原语义；Node Fixture 不宣称 Chrome 实测。
+- 9863c7e：目录 handoff 单次消费与错误 SHA/RunId 防护、任务管理撤销确认、导航 veto 与 Scheduled 所有权全部迁移现有 React 业务 action。
+- e2bc95d、8f21fa3：只将原正式 React Navigation 的 Arrow/Home/End 计算提取为可测试的纯函数，并通过原 SSR 辅助编译出口导出；未建立新导航、Runtime 或 Store。
+- 90de532：使用以上实际 React 键位决策及正式 React SSR 角色/激活属性，而不是旧 Fake 的 keyboard fire；真实 DOM 焦点及滚动必须由 Chrome 验证。
+- f80b723：删除测试中的历史 Element 事件类、Element.fire、全局 Option 及模块级拼装 HTML；只留下必要的 Document 焦点请求记录，所有 51 个 test() 保留。大量测试不再借旧 HTML 节点层级伪装 React 组件。
+- 这些提交全部是 SOURCE_FIX_COMMITTED；**没有获得当前最新 SHA 的完整单文件 Node TAP 和自然退出，也没有六文件综合 PASS**。首批 Developer 新 run 39615416195、后续 run 39617622368 最近查询均为 queued。不能以队列、源码迁移或断言条数代替通过证明。
+
+### P1：外部构建归责
+历史 developer-release-smoke 固定身份失败是 scripts/bundle-provenance.mjs 的 Trusted AdBlock source changed，文件 examples/sidebar-tools/adblock/trusted/policy.js。属于 AdBlock 原所有者，未修改或绕过 pin、SHA、Policy 和其它扩展源码。不能将其误报为 Developer Run/Stop 回归。
+
+### P2/P3：生产代码与分层验证
+- 因 P0 尚未关闭，**没有继续机械剪除** script-editor.js 的 Candidate/import，也未删除 componentRemote、dependencyReview、dependencyInstaller、localInstaller、controllerRevisions 的未证明冗余的 update；保留 R40.10.3 静态 React 投影减法与原安全状态。
+- NODE_PASS=NOT_CONFIRMED；ISOLATED_NODE_PASS=PENDING；COMBINED_NODE_PASS=NOT_TESTED；CI_PASS=NOT_CONFIRMED；CHROME_PASS=NOT_TESTED；NATIVE_PASS=NOT_TESTED；PROVIDER_PASS=NOT_TESTED。四环境端到端源码 Run/Stop 未在本轮网页环境确证。需要真实 CI、Linux Chrome、Mac Chrome/Native/Provider 逐项验收。
+
+### P4：可核实的生产维护变化（同基线逐文件行级 LCS）
+相对 R40.9 99ebef86 至 R40.10.6 f80b723，数据不含测试与文档：
+- src/ui/script-editor.js：636→657 行，新增 51 / 删除 30 / 净 +21。
+- src/ui/controller-draft-run.js：134→139，+17/-12，净 +5。
+- src/ui/controller-revision-view.js：153→158，+9/-4，净 +5。
+- src/ui/local-project-install-ui.js：497→503，+12/-6，净 +6。
+- 上述原四个文件合计 +89/-52，净 +37；不能称整体生产减法完成。
+- src/ui/task-workbench.js：880→885，+10/-5，净 +5（Channel 所有权时点修复）。
+- src/ui/react/tabs/navigation.tsx：59→64，+12/-7，净 +5（原处理器纯键位函数）。
+- **上述六个生产文件合计 +111/-64，净 +47**，仅是这六个文件的可比集合，不能充当完整 Developer 业务树。
+- 测试 task-workbench.test.mjs 1042→1080，+554/-516，净 +38；SSR 测试辅助 57→64，+10/-3，净 +7，均不计生产。R40.7 前主入口约 1231 行，当前约 657；主入口变短不等于整体生产代码收敛。
+
+### 原始七项目标与交付边界
+1. 主编辑器职责收敛 PARTIAL：Candidate/import 与必要共享安全协调仍在。
+2. 四环境唯一业务 owner PARTIAL：源码归属明确，缺四环境真实回归。
+3. 当前源码直接 Run/Stop PARTIAL：已有入口，最新完整 Node/Chrome 未通过。
+4. 重复协调删除 PARTIAL：历史 Fake 测试事件系统已删，生产重复仍需证据。
+5. 唯一执行 Host/Authority PASS_SOURCE_ONLY：未建立第二运行设施。
+6. 整体生产维护复杂度 NOT_PROVEN：六文件净增加 47 行，不能虚称代码减法完成。
+7. 权限、身份、Stop、结果及安装保护 PARTIAL：断言保留但仍待真实执行核验。
+
+阶段保持 **WEB_PARTIAL**；只有精确最新代码的 51 项独立 Node 全部语义通过且自然退出、原六文件综合也自然退出、Developer CI 和四世界网页级身份/Stop 回归可复核后，才允许进入 WEB_IMPLEMENTED_LOCAL_VALIDATION_PENDING。Mac Native/Provider 属后续 R40.11-LOCAL；不得伪称六位专家 ≥95。
