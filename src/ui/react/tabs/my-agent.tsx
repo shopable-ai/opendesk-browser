@@ -5,7 +5,8 @@ import {IconButton} from '../components/ui/button.tsx';
 const empty={open:false,rows:[],draft:'',status:'idle',pending:null,step:'',busy:false};
 const noSubscribe=()=>()=>{};
 const readEmpty=()=>empty;
-const examples=['查找当前网页可运行的任务','查看上一次任务失败原因','查看已有定时计划'];
+const examples=['查找当前网页可运行的任务','查看上一次任务失败原因',
+  '查看已有定时计划','修改已有计划的执行时间'];
 
 export function MyAgentToggle({agent,id='my-agent-toggle'}){
   const state=React.useSyncExternalStore(agent?.subscribe??noSubscribe,

@@ -384,6 +384,8 @@ try{
     actualChromiumDOM:true,oldHostReused:true,newRegionAnchored:true,
     nativeDraftConfirmed:true,installedExtension:false});
   await shot('chatgpt-spa-history-recovery');
+  await poll('window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")==="false"',
+    'native insert ends with exactly one resting launcher');
   await shot('r191-single-resting-entry');
   await expandPromptRail();
   // R3.5: Actual decoded HTTPS response in the trusted Shadow DOM with 3 sizes.
@@ -408,7 +410,7 @@ try{
     measured.push({size,...actual});await shot('r35-trusted-image-'+size);
   }
   await evaluate('window.__setImage("https://fixture.opendesk.invalid/bad.png","large")');
-  await poll('window.__railRoot?.querySelectorAll(".item").length===2 && '+
+  await poll('window.__railRoot?.querySelectorAll(".item").length===3 && '+
     '!window.__railRoot?.querySelector(".item.image")',
     'corrupt HTTPS response must fall back to short label');
   assert.equal(await evaluate('window.__railRoot.querySelectorAll(".item")[1].textContent'),'山景');
@@ -447,8 +449,11 @@ try{
       'window.__railRoot?.querySelectorAll(".item").length===0',
       'single resting launcher: '+name);
     await clickJS('window.__railRoot.querySelector(".brand")');
-    await poll('window.__railRoot?.querySelectorAll(".item").length==='+String(rows.length+1),
-      'expanded prompts and management: '+name);
+    await poll('window.__railRoot?.querySelectorAll(".item").length==='+String(rows.length+1)+' && '+
+      'Array.from(window.__railRoot.querySelectorAll(".item")).slice(0,'+rows.length+')'+
+      '.map(button=>button.getAttribute("aria-label")).join("|")==='+
+      JSON.stringify(rows.map(row=>'插入提示词：'+row.name).join('|')),
+      'expanded exact current prompts and management: '+name);
     if(name==='three seeds'||name==='legacy four')
       await shot('r191-menu-'+name.replaceAll(' ','-'));
     const target=rows.at(-1);

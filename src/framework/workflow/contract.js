@@ -3,7 +3,7 @@ import {checkParamsSchema, validateTaskParams} from '../../platform/tasks/contra
 export const WORKFLOW_FORMAT = 'opendesk.workflow.v1';
 export const WORKFLOW_OPERATIONS = Object.freeze(['navigate','observe','fill','click','wait','extract','assert','confirm']);
 export const WORKFLOW_LOCATORS = Object.freeze(['css','role','label','text','testId']);
-const STEP_FIELDS = new Set(['stepId','op','locatorKind','selector','roleName','param','text','url','timeout']);
+const STEP_FIELDS = new Set(['stepId','op','locatorKind','selector','roleName','param','text','url','timeout','linkGuard']);
 const STEP_ACTIONS = new Set(['fill','click','wait','extract','assert']);
 
 function check(ok, code, message) {
@@ -51,6 +51,35 @@ export function validateWorkflow(value) {
       string(step.selector, 512, 'selector', true);
       if (step.locatorKind === 'role' && step.roleName !== undefined) string(step.roleName, 200, 'roleName');
     }
+    // The trusted Controller attaches this proof from a fresh RunHost DOM
+    // observation; a Provider can never supply it. Keep it in frozen revisions.
+    if (step.linkGuard !== undefined) {
+      const g = step.linkGuard;
+      check(step.op === 'click' && g && typeof g === 'object' && !Array.isArray(g) &&
+        Object.keys(g).length === 8 &&
+        ['href','url','origin','name','sourceUrl','locatorKind','selector','roleName']
+          .every(key => typeof g[key] === 'string'),
+        'E_WORKFLOW_SCHEMA', 'Invalid observed link proof');
+      check(g.name.length >= 3 && g.name.length <= 120 &&
+        g.href.length >= 1 && g.href.length <= 260 &&
+        !/[^\x21-\x7e]|["'\\<>]/.test(g.href) &&
+        g.locatorKind === step.locatorKind && g.selector === step.selector &&
+        g.roleName === (step.roleName || ''),
+        'E_WORKFLOW_SCHEMA', 'Observed link identity changed');
+      let destination, source;
+      try {source = new URL(g.sourceUrl);destination = new URL(g.href,source);}
+      catch {check(false,'E_WORKFLOW_SCHEMA','Invalid observed link address');}
+      check(['http:','https:'].includes(destination.protocol) &&
+        ['http:','https:'].includes(source.protocol) &&
+        !source.username && !source.password && !source.hash &&
+        !destination.username && !destination.password && !destination.hash &&
+        source.origin === value.siteOrigin && destination.href === g.url &&
+        destination.origin === g.origin && g.url.length <= 320 &&
+        !/(?:login|account|checkout|payment|delete|logout|auth|token|reset|upload|send|order)/i.test(destination.pathname) &&
+        [...destination.searchParams].every(([key,val]) =>
+          ['product','detail','sku','item','id'].includes(key) && /^[\w-]{1,60}$/.test(val)),
+        'E_WORKFLOW_SCHEMA','Observed link is not a bounded navigation target');
+    }
     if (step.op === 'fill') {
       check(Boolean(step.param) !== (step.text !== undefined), 'E_WORKFLOW_SCHEMA',
         'Fill must use exactly one parameter or literal value');
@@ -84,7 +113,10 @@ export function normalizeAiProposal(response, original) {
     title:response.title,description:response.description || '',
     siteOrigin:original.siteOrigin,paramsSchema:response.paramsSchema,steps:response.steps};
   // Never accept model-supplied executable code, permissions, host identity, or origin.
-  return validateWorkflow(proposed);
+  const normalized=validateWorkflow(proposed);
+  check(!normalized.steps.some(step=>step.linkGuard!==undefined),
+    'E_WORKFLOW_AI','模型不得提供或继承链接执行证明');
+  return normalized;
 }
 export function validateWorkflowParams(workflow, params) {
   return validateTaskParams(workflow.paramsSchema, params);

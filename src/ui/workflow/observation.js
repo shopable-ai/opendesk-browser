@@ -40,10 +40,51 @@ export const WORKFLOW_OBSERVE_SOURCE=String.raw`async function main() {
       if(part.truncated)truncated=true;
     }
   }
-  return {...first,nodes:rows,truncated};
+  // Read-only proof for ordinary links already observed in this Document.
+  // New windows, downloads, opaque schemes and sensitive URLs are refused.
+  for(const row of rows){
+    if(row?.role!=='link'||row.state?.visible!==true||row.state?.disabled ||
+      !row.locator||row.locator.parent||row.locator.index!==undefined)continue;
+    const d=row.locator;
+    let loc;
+    if(d.kind==='role'&&d.value==='link'&&d.exact===true&&d.name===row.name)
+      loc=page.getByRole('link',{name:d.name,exact:true});
+    else if(d.kind==='css')loc=page.locator(d.value);
+    else if(d.kind==='testId')loc=page.getByTestId(d.value);
+    else continue;
+    try {
+      if(await loc.count()!==1)continue;
+      const href=await loc.getAttribute('href'),
+        target=await loc.getAttribute('target'),
+        download=await loc.getAttribute('download');
+      if(typeof href!=='string'||href.length<1||href.length>260||
+        /[^\x21-\x7e]|["'\\<>]/.test(href)||
+        download!==null||(target!==null&&target!==''&&target!=='_self'))continue;
+      const url=new URL(href,first.document?.url);
+      if(!['http:','https:'].includes(url.protocol)||url.username||url.password||
+        url.hash||url.href.length>320||
+        /(?:login|account|checkout|payment|delete|logout|auth|token|reset|upload|send|order)/i.test(url.pathname)||
+        [...url.searchParams].some(([key,val])=>!['product','detail','sku','item','id'].includes(key)||
+          !/^[\w-]{1,60}$/.test(val)))continue;
+      row.navigation={href,url:url.href,origin:url.origin};
+    }catch{}
+  }
+  let title='';
+  try{if(typeof page.title==='function')title=String(await page.title()).slice(0,200);}catch{}
+  return {...first,nodes:rows,title,truncated};
 }
 `;
 const error=(code,message)=>Object.assign(new Error(message),{code});
+// Do not disclose trusted link destinations or page titles to an AI receiver.
+export function workflowObservationForModel(receipt) {
+  if(!receipt)return receipt;
+  const data=structuredClone(receipt);
+  if(data.summary){
+    for(const node of data.summary.nodes||[])delete node.navigation;
+    delete data.summary.title;
+  }
+  return data;
+}
 // One existing session-scoped observation grant, not a second permission store.
 // Recipient identity is a SHA-256 of the exact provider, endpoint and model:
 // never persist a credential-bearing HTTPS URL in chrome.storage.session.
@@ -130,6 +171,7 @@ export function createWorkflowObservation({api=globalThis.chrome,host,currentPag
       const receipt={format:'opendesk.workflow-observation.v1',runId:proof.runId,resultId:proof.resultId,
         sourceHash:proof.sourceHash,
         summary:{kind:value.kind,origin:captured.origin,documentId:captured.documentId,
+          title:typeof value.title==='string'?value.title.slice(0,200):'',
           nodes:value.nodes,truncated:value.truncated===true}};
       if(new TextEncoder().encode(JSON.stringify(receipt)).length>12*1024)throw error('E_AI_LIMIT','观察摘要超过发送上限');
       return receipt;

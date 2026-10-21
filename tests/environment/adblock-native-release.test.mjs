@@ -81,7 +81,7 @@ function makeFixture(){
   const report=Object.assign(Object.fromEntries([
     'nativePermission','network','globalToggle','siteException','otherSite','iframe',
     'closedPanel','workerRestart','browserRestart','revocation','uninstall',
-    'installedUiParity','restoreCancellation'].map(key=>[key,'PASS'])),{
+    'installedUiParity','siteScopeSwitch','restoreOneClick'].map(key=>[key,'PASS'])),{
     status:'PASS',success:true,env:'real-macos-chrome',candidate:inputs.head,
     chrome:'Chrome/156.0.8078.4',extensionId:'a'.repeat(32),
     artifactPackageHash:inputs.artifactPackageHash,driverSHA256:digest(inputs.driver),
@@ -294,7 +294,7 @@ test('release CLI detects complete-artifact drift and malformed or missing evide
 
 test('release rejects skipped, incomplete, altered identity and manual cosmetic evidence',()=>{
   for(const change of [{status:'NOT_TESTED'},{success:false},{env:'preview'},
-    {restoreCancellation:'NOT_TESTED'},{workerRestart:'NOT_TESTED'},
+    {restoreOneClick:'NOT_TESTED'},{workerRestart:'NOT_TESTED'},
     {candidate:'b'.repeat(40)},{chrome:''},{extensionId:''},
     {installedIdentity:{version:'1.2.1',packageHash:digest(inputs.packageBytes)}},
     {environment:'DEVELOPMENT'},{releaseReady:false},{manualCosmetic:'NOT_TESTED'},

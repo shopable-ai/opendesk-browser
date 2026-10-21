@@ -12,7 +12,7 @@ import {ADBLOCK_STORE,readAdblockState}
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 const required=['nativePermission','network','globalToggle','siteException',
   'otherSite','iframe','closedPanel','workerRestart','browserRestart',
-  'revocation','uninstall','installedUiParity','restoreCancellation'];
+  'revocation','uninstall','installedUiParity','siteScopeSwitch','restoreOneClick'];
 
 // Native driver contract for 1.2.2. A DNR-only receipt cannot satisfy this gate.
 // report.manualCosmetic = 'PASS'; report.cases.manualCosmetic = {

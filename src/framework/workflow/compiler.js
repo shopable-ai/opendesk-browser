@@ -36,7 +36,21 @@ export async function compileWorkflow(value,{verifyFill=false}={}) {
         lines.push('    __results[' + id + '] = {kind:"input-readback",matched:true,value:__actual}; }');
       }
     }
-    if (step.op === 'click') lines.push('  await ' + locator(step) + '.click();');
+    if (step.op === 'click') {
+      if (step.linkGuard) {
+        // Frozen, trusted link identity is re-checked by the normal RunHost.
+        // CSS href equality is checked again during the native Locator commit.
+        const g=step.linkGuard,css='a[href='+JSON.stringify(g.href)+']';
+        lines.push('  { if (await page.url() !== '+JSON.stringify(g.sourceUrl)+
+          ') throw new Error("Workflow link source changed");');
+        lines.push('    const __named = page.getByRole("link",{name:'+JSON.stringify(g.name)+',exact:true});');
+        lines.push('    if ((await __named.count()) !== 1 || (await __named.getAttribute("href")) !== '+
+          JSON.stringify(g.href)+') throw new Error("Workflow link changed");');
+        lines.push('    const __fixed = page.locator('+JSON.stringify(css)+');');
+        lines.push('    if ((await __fixed.count()) !== 1) throw new Error("Workflow link is not unique");');
+        lines.push('    await __fixed.click(); }');
+      } else lines.push('  await ' + locator(step) + '.click();');
+    }
     if (step.op === 'wait') lines.push('  await ' + locator(step) +
       '.waitFor({state:"visible",timeout:' + (step.timeout ?? 10000) + '});');
     if (step.op === 'extract') lines.push('  __results[' + id + '] = await ' + locator(step) + '.innerText();');

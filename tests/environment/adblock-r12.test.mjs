@@ -35,7 +35,10 @@ async function fixture({permission:initialPermission=true,sessionFailure=null}={
   assert.equal(tool.capabilities.includes(ADBLOCK_CAPABILITY),true);
   const bytes=encodeSidebarToolPackage(tool),stored=new Map([
     [SIDEBAR_TOOL_STORE,[tool]],[SIDEBAR_TOOL_ENABLE_STORE,{}],
-    [TOOL_REVOCATION_EPOCHS_STORE,{[ADBLOCK_ID]:'epoch-1'}]]);
+    [TOOL_REVOCATION_EPOCHS_STORE,{[ADBLOCK_ID]:'epoch-1'}],
+    // Existing installations in legacy cases have an explicit paused choice.
+    [ADBLOCK_STORE,{version:1,enabled:false,exceptions:[],
+      approvedHash:null,approvedEpoch:null}]]);
   let current='https://news.example.com/story',permission=initialPermission,dropUpdates=false,
     unknownWrite=false,corruptNative=false;
   let rules=[structuredClone(focusRule)],sessionRules=[],enabledRulesets=[];
@@ -135,6 +138,48 @@ function pageSender(f){
   return {id:senderId,url,frameId:0,documentId:'page-doc',documentLifecycle:'active',tab};
 }
 
+test('fresh reviewed official install enables verified DNR immediately, without second approval',async()=>{
+  const f=await fixture();
+  f.stored.delete(ADBLOCK_STORE);
+  const initial=await f.service.tick();
+  assert.equal(initial.enabled,true);
+  assert.equal(initial.permissions.dnr,true);
+  assert.equal(initial.rules.verified,true);
+  assert.deepEqual(f.rules.map(rule=>rule.id),
+    [FOCUS_RULE_FIRST,ADBLOCK_RULE_FIRST,ADBLOCK_RULE_LAST]);
+  assert.deepEqual(f.stored.get(ADBLOCK_STORE),{
+    version:1,enabled:true,exceptions:[],
+    approvedHash:f.hash,approvedEpoch:'epoch-1'
+  });
+  const writes=f.changes.length;
+  assert.equal((await f.restartService().tick()).enabled,true);
+  assert.equal(f.changes.length,writes,'boot readback must not rewrite a user choice');
+});
+test('first-run default cannot override missing permission, explicit stop or forged tool',async()=>{
+  const denied=await fixture({permission:false});
+  denied.stored.delete(ADBLOCK_STORE);
+  assert.equal((await denied.service.tick()).enabled,false);
+  assert.equal(denied.stored.has(ADBLOCK_STORE),false);
+  assert.deepEqual(denied.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST]);
+  const stopped=await fixture();
+  assert.equal((await stopped.service.tick()).enabled,false);
+  assert.deepEqual(stopped.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST]);
+  const disabledTool=await fixture();
+  disabledTool.stored.delete(ADBLOCK_STORE);
+  disabledTool.stored.set(SIDEBAR_TOOL_ENABLE_STORE,{adblock:false});
+  assert.equal((await disabledTool.service.tick()).enabled,false);
+  assert.equal(disabledTool.stored.has(ADBLOCK_STORE),false);
+  const revoked=await fixture();
+  revoked.stored.delete(ADBLOCK_STORE);
+  revoked.service.invalidate(true);
+  assert.equal((await revoked.service.tick()).enabled,false);
+  assert.deepEqual(revoked.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST]);
+  const impostor=await fixture();
+  impostor.stored.delete(ADBLOCK_STORE);
+  impostor.stored.set(SIDEBAR_TOOL_STORE,[{...impostor.tool,title:'same ID, different bytes'}]);
+  assert.equal((await impostor.service.tick()).enabled,false);
+  assert.deepEqual(impostor.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST]);
+});
 test('lost picker write receipts reconcile read-only across worker restart and duplicate operations',async()=>{
   const f=await fixture(),page=pageSender(f);
   f.api.tabs.sendMessage=async(_,message)=>({ok:true,host:message.host});
@@ -976,43 +1021,47 @@ test('Host window drift after an acknowledged write is unknown and never replaye
   assert.equal(f.stored.get(ADBLOCK_STORE).enabled,true);
 });
 
-test('React sandbox proposes operations but cannot mutate DNR without host confirmation',async()=>{
+test('reviewed official routine AdBlock controls need no second Host dialog',async()=>{
   const f=await fixture();
   f.api.runtime.sendMessage=async message=>({ok:true,data:await f.service.dispatch(message,sender)});
-  const input={api:f.api,tool:f.tool,operation:'adblock.enable',payload:{},
-    revocationEpoch:'epoch-1',assertCurrent:()=>{}};
-  let review=null;
-  const pending=requestAdblockOperation({...input,requestBrowserClick:async args=>{
-    review=args;return args.run({isTrusted:false});
-  }});
-  await assert.rejects(pending,{code:'E_ADBLOCK_TRUSTED_CLICK'});
-  assert.equal(review.toolId,ADBLOCK_ID);
-  assert.deepEqual(f.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST],
-    'sandbox request must not reach native DNR before a trusted click');
-  const result=await requestAdblockOperation({...input,
-    requestBrowserClick:args=>args.run({isTrusted:true})});
-  assert.equal(result.enabled,true);assert.equal(result.rules.verified,true);
-  assert.deepEqual(f.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST,ADBLOCK_RULE_FIRST,ADBLOCK_RULE_LAST]);
-  await assert.rejects(runTrustedAdblockOperation({...input,
-    operation:'adblock.site.set',payload:{host:'news.example.com',filtering:false},
-    event:{isTrusted:false}}),{code:'E_ADBLOCK_TRUSTED_CLICK'});
+  let dialogs=0;
+  const request=(operation,payload={})=>requestAdblockOperation({
+    api:f.api,tool:f.tool,operation,payload,revocationEpoch:'epoch-1',
+    assertCurrent:()=>{},requestBrowserClick:()=>{dialogs++;throw Error('unexpected dialog');}
+  });
+  const enabled=await request('adblock.enable');
+  assert.equal(enabled.enabled,true);
+  assert.equal(enabled.rules.verified,true);
+  assert.deepEqual(f.rules.map(rule=>rule.id),
+    [FOCUS_RULE_FIRST,ADBLOCK_RULE_FIRST,ADBLOCK_RULE_LAST]);
+  const pausedSite=await request('adblock.site.set',{host:'news.example.com',filtering:false});
+  assert.deepEqual(pausedSite.exceptions,['news.example.com']);
+  assert.deepEqual((await request('adblock.site.restore',{host:'news.example.com'})).exceptions,[]);
+  assert.equal((await request('adblock.disable')).enabled,false);
+  assert.equal(dialogs,0);
+  assert.deepEqual(f.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST]);
+  await assert.rejects(runTrustedAdblockOperation({api:f.api,tool:f.tool,
+    operation:'adblock.enable',event:{isTrusted:false},revocationEpoch:'epoch-1'}),
+    {code:'E_ADBLOCK_TRUSTED_CLICK'});
 });
-test('trusted AdBlock approval expires when the active website changes',async()=>{
+test('one-click site toggle refuses navigation drift before native mutation',async()=>{
   const f=await fixture();
-  f.api.runtime.sendMessage=async message=>({ok:true,data:await f.service.dispatch(message,sender)});
   await f.service.dispatch(f.message('adblock.enable'),sender);
   const before=f.actions.length;
+  let reads=0;
+  f.api.runtime.sendMessage=async message=>{
+    const data=await f.service.dispatch(message,sender);
+    if(message.operation==='adblock.status'&&++reads===1)
+      f.setCurrent('https://other.example/article');
+    return {ok:true,data};
+  };
   await assert.rejects(requestAdblockOperation({
     api:f.api,tool:f.tool,operation:'adblock.site.set',
     payload:{host:'news.example.com',filtering:false},
-    revocationEpoch:'epoch-1',assertCurrent:()=>{},
-    requestBrowserClick:args=>{
-      f.setCurrent('https://other.example/article');
-      return args.run({isTrusted:true});
-    }
+    revocationEpoch:'epoch-1',assertCurrent:()=>{}
   }),{code:'E_ADBLOCK_STATE_CHANGED'});
   assert.deepEqual(f.stored.get(ADBLOCK_STORE).exceptions,[]);
-  assert.equal(f.actions.length,before,'stale approval must not mutate DNR');
+  assert.equal(f.actions.length,before,'stale site must not mutate Chrome DNR');
 });
 test.skip('R1.1 legacy fixed native view (superseded by installable React UI)',async()=>{
   class Node{
@@ -1061,30 +1110,21 @@ test.skip('R1.1 legacy fixed native view (superseded by installable React UI)',a
   assert.equal(site.attributes['aria-checked'],'true');
 });
 
-test('confirmation pins the first Host window even when both windows show the same site',async()=>{
-  for(const phase of ['confirmation','final-send','before-mutation']){
-    const f=await fixture();let windowId=10,mutations=0,statuses=0,windowReads=0;
-    f.api.windows.getCurrent=async()=>{
-      if(++windowReads===5&&phase==='before-mutation')windowId=20;
-      return {id:windowId,incognito:false};
-    };
-    f.api.runtime.sendMessage=async message=>{
-      if(message.operation!=='adblock.status')mutations++;
-      const data=await f.service.dispatch(message,sender);
-      if(message.operation==='adblock.status'&&++statuses===2&&phase==='final-send')
-        windowId=20;
-      return {ok:true,data};
-    };
-    await assert.rejects(requestAdblockOperation({api:f.api,tool:f.tool,
-      operation:'adblock.enable',revocationEpoch:'epoch-1',
-      requestBrowserClick:args=>{
-        if(phase==='confirmation')windowId=20;
-        return args.run({isTrusted:true});
-      }}),{code:phase==='final-send'?'E_OUTCOME_UNKNOWN':'E_ADBLOCK_SENDER'});
-    assert.equal(mutations,0);assert.equal(f.actions.length,0);
+test('one-click operations remain bound to the original trusted Host window',async()=>{
+  for(const [phase,changeAt,code,expectedWrites] of [
+    ['between status reads',3,'E_ADBLOCK_SENDER',0],
+    ['before native mutation',5,'E_ADBLOCK_SENDER',0],
+    ['after native mutation',6,'E_OUTCOME_UNKNOWN',1]
+  ]){
+    const f=await fixture();let windowReads=0;
+    f.api.windows.getCurrent=async()=>({id:++windowReads>=changeAt?20:10,incognito:false});
+    f.api.runtime.sendMessage=async message=>({ok:true,data:await f.service.dispatch(message,sender)});
+    await assert.rejects(requestAdblockOperation({
+      api:f.api,tool:f.tool,operation:'adblock.enable',revocationEpoch:'epoch-1'
+    }),{code},phase);
+    assert.equal(f.actions.length,expectedWrites,phase);
   }
 });
-
 test('lost or malformed mutation replies are unknown with exactly one send and write',async()=>{
   for(const reply of ['reject',undefined,null,{}, {ok:true}, {ok:'yes',data:{}},
     {ok:false}, {ok:true,data:{}}, {ok:true,data:[]}, {ok:true,data:null}]){
