@@ -6,12 +6,13 @@ const dom=(tag,cls='',text='')=>{const n=root.ownerDocument.createElement(tag);n
 const KEY='library',MENU_ACTION='add-selection';
 let data=model.defaults(),etag=null,ready=false,busy=false,dirty=false,mode='index',editId=null;
 let baseline='',expanded=null,pendingDelete=null,pendingLeave=null,unconfirmedWrite=false;
+ const imageAssets=new Map();let draftImageAssetId='',uploadBusy=false;
 let stagedImport=null,stagedEtag=null,replaceArmed=false,transferBusy=false,importTicket=0;
 const SITE_KEY='sites';
 let sites=model.sitesDefaults(),sitesEtag=null,sitesReady=false,siteBusy=false,siteDetecting=false,siteDirty=false,siteUnconfirmedWrite=false;
 let siteOrigin=null,siteEditing=null,siteBaseline='',siteVerified=null,siteDelete=null;
 let sitePoll=0,siteSession=null,siteStarting=0,siteEpoch=0,siteDiscardPending=false;
-function report(){setState({dirty:dirty||siteDirty||Boolean(stagedImport),busy:busy||siteBusy||siteDetecting||transferBusy});}
+function report(){setState({dirty:dirty||siteDirty||Boolean(stagedImport),busy:busy||siteBusy||siteDetecting||transferBusy||uploadBusy});}
 function status(message='',isError=false){const n=el('ps-status');n.textContent=message;n.hidden=!message;n.dataset.error=String(isError);}
 function error(message=''){el('ps-error').textContent=message;el('ps-error').hidden=!message;}
 function bodyError(message=''){el('ps-body-error').textContent=message;el('ps-body-error').hidden=!message;}
@@ -24,9 +25,11 @@ function options(open){
 }
 function form(){
   const previous=editId?data.items.find(item=>item.id===editId):null;
+  const local=el('ps-image-source-local').checked;
   return {body:el('ps-body').value,label:el('ps-label').value,name:el('ps-name').value,
     shape:previous?.shape==='round'?'round':'square',enabled:el('ps-enabled').checked,
-    appearance:el('ps-appearance-image').checked?'image':'text',imageUrl:el('ps-image-url').value};
+    appearance:el('ps-appearance-image').checked?'image':'text',
+    imageUrl:local?'':el('ps-image-url').value,imageAssetId:local?draftImageAssetId:''};
 }
 function projected(){
   const draft=form(),old=editId?data.items.find(row=>row.id===editId):null;
@@ -43,28 +46,34 @@ function picture(holder,row,{live=false}={}){
   const fallback=()=>{holder.classList.toggle('has-image',false);holder.dataset.imageUrl='';
     holder.replaceChildren(...model.parts(label).map(part=>dom('span','',part)));};
   if(row.appearance!=='image'){fallback();return;}
-  let url;
-  try{url=model.normalizeImageUrl(row.imageUrl,true);}
-  catch(e){fallback();if(live)el('ps-image-help').textContent=e.message;return;}
+  let url,sourceKey;
+  try{
+    if(row.imageAssetId){
+      const id=model.normalizeImageAssetId(row.imageAssetId);
+      url=imageAssets.get(id);
+      if(!url)throw Error('本地图片无法读取，已显示备用短标签；请重新上传或更换来源。');
+      sourceKey='asset:'+id;
+    }else{url=model.normalizeImageUrl(row.imageUrl,true);sourceKey=url;}
+  }catch(e){fallback();if(live)el('ps-image-help').textContent=e.message;return;}
   // Same failed HTTPS URL must not be requested again on every body edit.
-  if(holder.dataset.failedImageUrl===url){
+  if(holder.dataset.failedImageUrl===sourceKey){
     fallback();
     if(live)el('ps-image-help').textContent='图片加载失败，已回退备用短标签；修改图片 URL 后可重试。';
     return;
   }
-  if(holder.dataset.imageUrl===url&&holder.firstElementChild?.tagName==='IMG')return;
-  holder.dataset.failedImageUrl='';holder.dataset.imageUrl=url;
+  if(holder.dataset.imageUrl===sourceKey&&holder.firstElementChild?.tagName==='IMG')return;
+  holder.dataset.failedImageUrl='';holder.dataset.imageUrl=sourceKey;
   holder.classList.add('has-image');
   const img=dom('img');img.alt='';img.decoding='async';img.loading=live?'eager':'lazy';
   img.referrerPolicy='no-referrer';
   img.addEventListener('error',()=>{
-    if(holder.firstChild!==img||holder.dataset.imageUrl!==url)return;
-    holder.dataset.failedImageUrl=url;fallback();
+    if(holder.firstChild!==img||holder.dataset.imageUrl!==sourceKey)return;
+    holder.dataset.failedImageUrl=sourceKey;fallback();
     if(live)el('ps-image-help').textContent='图片加载失败，已显示备用短标签；请检查 URL、格式或网络限制。';
   });
-  img.addEventListener('load',()=>{if(holder.dataset.imageUrl===url&&!img.naturalWidth)img.dispatchEvent(new Event('error'));});
+  img.addEventListener('load',()=>{if(holder.dataset.imageUrl===sourceKey&&!img.naturalWidth)img.dispatchEvent(new Event('error'));});
   holder.replaceChildren(img);img.src=url;
-  if(live)el('ps-image-help').textContent='图片完整显示、不裁剪；加载失败显示短标签。远程图片服务器会收到图片请求。';
+  if(live)el('ps-image-help').textContent=row.imageAssetId?'已保存至本机资源库；完整显示、不裁剪。':'图片完整显示、不裁剪；加载失败显示短标签。远程服务器会收到图片请求。';
 }
 function preview(){
   const draft=form(),fallback=model.auto(draft.body),label=draft.label.trim()||fallback;
