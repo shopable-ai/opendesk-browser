@@ -31,6 +31,72 @@ function form(){
     appearance:el('ps-appearance-image').checked?'image':'text',
     imageUrl:local?'':el('ps-image-url').value,imageAssetId:local?draftImageAssetId:''};
 }
+
+ // Local raster processing only. Bytes are stored via the trusted Host, separately from text.
+ async function encodeLocalImage(file){
+   if(!['image/png','image/jpeg','image/webp'].includes(file?.type))
+     throw Error('只支持 PNG、JPEG、WebP；不支持 SVG');
+   if(file.size<1||file.size>2*1024*1024)throw Error('原图必须小于 2 MiB');
+   if(typeof globalThis.createImageBitmap!=='function')throw Error('当前环境不支持图片解码');
+   const bitmap=await globalThis.createImageBitmap(file);
+   try{
+     if(!bitmap.width||!bitmap.height||bitmap.width>8192||bitmap.height>8192||
+       bitmap.width*bitmap.height>16000000)throw Error('图片像素尺寸过大');
+     const canvas=root.ownerDocument.createElement('canvas'),ctx=canvas.getContext('2d');
+     if(!ctx)throw Error('浏览器不支持图片压缩');
+     for(const longest of [256,224,192,160,128,96]){
+       const ratio=Math.min(1,longest/Math.max(bitmap.width,bitmap.height));
+       canvas.width=Math.max(1,Math.round(bitmap.width*ratio));
+       canvas.height=Math.max(1,Math.round(bitmap.height*ratio));
+       ctx.clearRect(0,0,canvas.width,canvas.height);
+       ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+       for(const quality of [.82,.72,.6,.48]){
+         const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',quality));
+         if(blob&&['image/png','image/jpeg','image/webp'].includes(blob.type)&&blob.size>=12&&blob.size<=65536){
+           const dataUrl=await new Promise((resolve,reject)=>{
+             const reader=new FileReader();
+             reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error('读取压缩图片失败'));
+             reader.readAsDataURL(blob);
+           });
+           if(typeof dataUrl!=='string'||!dataUrl.startsWith('data:'+blob.type+';base64,'))
+             throw Error('压缩后图片格式无效');
+           return {dataUrl,mime:blob.type,bytes:blob.size};
+         }
+       }
+     }
+     throw Error('无法将此图片压缩到 64 KiB');
+   }finally{bitmap.close?.();}
+ }
+ async function uploadImage(){
+   const input=el('ps-image-file'),file=input.files?.[0];input.value='';
+   if(!file||mode!=='form'||uploadBusy||busy||unconfirmedWrite)return;
+   uploadBusy=true;lock();el('ps-image-help').textContent='正在处理并保存图片…';
+   try{
+     const image=await encodeLocalImage(file);
+     const receipt=await request('prompt.asset.put',{mime:image.mime,dataUrl:image.dataUrl});
+     const id=model.normalizeImageAssetId(receipt?.id);
+     if(!id||receipt.bytes!==image.bytes)throw Error('图片保存回执未确认，请重新打开核对');
+     const previous=draftImageAssetId;
+     imageAssets.set(id,image.dataUrl);draftImageAssetId=id;
+     el('ps-image-source-local').checked=true;el('ps-image-source-url').checked=false;
+     changed();
+     el('ps-image-help').textContent='图片已保存至本机资源库（'+image.bytes+' B），请保存提示词完成关联。';
+     if(previous&&!data.items.some(row=>row.imageAssetId===previous))
+       void request('prompt.asset.remove',{id:previous}).catch(()=>{});
+   }catch(e){
+     error('图片上传失败：'+(e.code||e.message)+'。已有草稿与图片保持不变。');
+     el('ps-image-help').textContent='可重新选择本地图片，或切换 HTTPS 图片网址。';
+   }finally{uploadBusy=false;lock();}
+ }
+ async function hydrateImageAssets(rows){
+   const ids=[...new Set(rows.map(row=>row.imageAssetId).filter(Boolean))];
+   for(const id of ids){
+     try{const a=await request('prompt.asset.get',{id});
+       if(/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(a?.dataUrl))
+         imageAssets.set(id,a.dataUrl);
+     }catch{/* A missing image must not hide the user's saved prompt. */}
+   }
+ }
 function projected(){
   const draft=form(),old=editId?data.items.find(row=>row.id===editId):null;
   if(!draft.body.trim())return null;
