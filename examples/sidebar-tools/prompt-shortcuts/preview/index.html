@@ -1185,6 +1185,8 @@ border:0;background:transparent;color:var(--od-sub)}
   }finally{imageUploadBusy=false;syncImageControls();}
  }
  function rawFormValues(){const original=state.items.find(item=>item.id===editId);return {label:el('shortLabel').value.trim(),name:el('fullName').value.trim(),body:el('promptBody').value,enabled:el('itemEnabled').checked,shape:original?.shape||'square',appearance:el('appearanceImage').checked?'image':'text',imageUrl:el('imageSourceLocal').checked?'':el('imageUrl').value.trim(),imageAssetId:el('imageSourceLocal').checked?draftImageAssetId:''};}
+ // Keep inactive source edits in the dirty check, but NOT the persisted library schema.
+ function draftSnapshot(){return JSON.stringify({...rawFormValues(),imageSource:el('imageSourceLocal').checked?'local':'url',localAssetDraftId:draftImageAssetId,urlDraft:el('imageUrl').value.trim()});}
  function formValues(){const raw=rawFormValues(),fallback=defaultShort(raw.body);return {...raw,label:raw.label||fallback,name:raw.name||fallback,labelAuto:!raw.label,nameAuto:!raw.name};}
  function projection(){const value=formValues(),next=state.items.map(x=>({...x}));const idx=next.findIndex(x=>x.id===editId);if(idx>=0)next[idx]={...next[idx],...value};else next.push({id:'mock-00000000-0000-4000-8000-000000000000',...value});return {schema:1,settings:{webButtons:state.settings.showBar,imageSize:state.settings.imageSize},items:next.map((row,order)=>({id:row.id,body:row.body,label:row.label,name:row.name,labelAuto:row.labelAuto===true,nameAuto:row.nameAuto===true,shape:row.shape,enabled:row.enabled,order,appearance:row.appearance??'text',imageUrl:row.imageUrl??'',...(row.imageAssetId?{imageAssetId:row.imageAssetId}:{})}))};}
 
@@ -1197,7 +1199,7 @@ border:0;background:transparent;color:var(--od-sub)}
   el('quotaValue').textContent=remaining<0?'超出 '+(-remaining)+' B':'剩余 '+remaining+' B';
   el('quotaHint').hidden=remaining>=0;
   el('quotaHint').textContent=remaining<0?'请精简内容或删除其他提示词；当前草稿保留。':'';
-  dirty=JSON.stringify(rawFormValues())!==baselineForm;
+  dirty=draftSnapshot()!==baselineForm;
   const image=el('appearanceImage').checked,local=el('imageSourceLocal').checked;
   const url=el('imageUrl').value.trim();
   let validLink=false;
@@ -1252,11 +1254,19 @@ border:0;background:transparent;color:var(--od-sub)}
   el('bodyError').hidden=true;el('formError').hidden=true;el('formSaveStatus').hidden=true;el('leaveConfirm').hidden=true;
   el('verifySaved').hidden=true;el('verificationPanel').hidden=true;
   el('saveButton').disabled=false;el('saveButton').textContent='保存';el('saveContinue').disabled=false;el('saveContinue').hidden=Boolean(id);
-  revisionAtEdit=state.revision;baselineForm=JSON.stringify(rawFormValues());dirty=false;
+  revisionAtEdit=state.revision;baselineForm=draftSnapshot();dirty=false;
   nextSaveFailure=null;el('failureStatus').textContent='当前：正常保存';
   notice('');setView('form');updateMeter();el('promptBody').focus({preventScroll:true});
  }
- function exitTool(){editId=null;dirty=false;notice('');setView('toolList');el('reopenTool').focus({preventScroll:true});}
+ function releaseDraftImage(){
+  const id=draftImageAssetId;draftImageAssetId='';draftImageMeta=null;
+  // Saved rows retain their old image until the new version is committed.
+  if(id&&!state.items.some(row=>row.imageAssetId===id)){
+   const copy={...imageAssets};delete copy[id];persistDemoAssets(copy);
+  }
+  cleanupDemoAssets();
+ }
+ function exitTool(){releaseDraftImage();editId=null;dirty=false;notice('');setView('toolList');el('reopenTool').focus({preventScroll:true});}
  function requestBack(destination='index'){
   if(saving||imageUploadBusy){showFormError('图片上传或保存中…请先确认当前操作的结果，草稿不会丢失。');return;}
   if(currentView!=='form'){if(destination==='host')exitTool();else returnIndex();return;}
@@ -1265,16 +1275,13 @@ border:0;background:transparent;color:var(--od-sub)}
   el('stayEditing').focus({preventScroll:true});el('leaveConfirm').scrollIntoView({block:'nearest'});
  }
  function returnIndex(){
-  if(draftImageAssetId&&!state.items.some(row=>row.imageAssetId===draftImageAssetId)){
-   const copy={...imageAssets};delete copy[draftImageAssetId];persistDemoAssets(copy);
-  }
-  draftImageAssetId='';draftImageMeta=null;cleanupDemoAssets();editId=null;dirty=false;setView('index');renderIndex();renderRail();
+  releaseDraftImage();editId=null;dirty=false;setView('index');renderIndex();renderRail();
   el('addButton').focus({preventScroll:true});
  }
  async function saveForm(event,continueCreating=false){
   event.preventDefault();if(saving||imageUploadBusy)return;
   el('bodyError').hidden=true;el('formError').hidden=true;el('formSaveStatus').hidden=true;
-  const value=formValues(),snapshot=JSON.stringify(rawFormValues()),quota=bytes(projection());
+  const value=formValues(),snapshot=draftSnapshot(),quota=bytes(projection());
   if(!value.body.trim()){showFormError('请输入提示词内容。','body');return;}
   if(!value.label||!validLabel(value.label)){showFormError('短标签须为 1–2 个可见 Unicode 字素，或留空自动生成。','label');return;}
   if(!value.name||value.name.length>60){showFormError('名称不能超过 60 字符；留空将自动生成。','name');return;}
@@ -1300,7 +1307,7 @@ border:0;background:transparent;color:var(--od-sub)}
    if(idx>=0)nextItems[idx]=updated;else nextItems.push(updated);
    if(!persistDemoItems(nextItems)){showFormError('E_PREVIEW_STORAGE：模拟存储写入失败；原列表未改变，表单草稿仍保留。');return;}
    state.items=nextItems;state.revision++;revisionAtEdit=state.revision;
-   if(snapshot!==JSON.stringify(rawFormValues())){
+   if(snapshot!==draftSnapshot()){
     baselineForm=snapshot;dirty=true;status.hidden=false;status.textContent='先前版本已保存；保存期间又输入的新内容尚未保存，请再次点击保存。';renderRail();return;
    }
    if(continueCreating&&!editId){
