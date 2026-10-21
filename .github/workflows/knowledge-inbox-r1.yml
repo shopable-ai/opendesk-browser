@@ -50,6 +50,9 @@ jobs:
           # The official fixture packs all 12 releases; compile both source-bound React tools
           # before its first Node test instead of depending on the later npm test prehook.
           npm run pretest
+          # Cookie Editor is also a compiled official release and must be present
+          # before the shared official-fixtures helper packages the catalog.
+          node scripts/build-cookie-editor-react.mjs
           node --check examples/sidebar-tools/knowledge-inbox/src/main.js
           node --test tests/environment/sidebar-navigation-r15.test.mjs tests/environment/knowledge-inbox-r24-ui.test.mjs tests/environment/knowledge-inbox-r1.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/task-workbench.test.mjs tests/environment/workspace-integration.test.mjs tests/environment/markdown-tools-r22.test.mjs
       - name: Build current production and development extension
