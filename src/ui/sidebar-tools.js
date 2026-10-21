@@ -46,6 +46,10 @@ import {AI_ID,AI_CAPABILITY} from '../../examples/sidebar-tools/ai-vip-share/tru
 import {PROMPT_ID,PROMPT_CAPABILITY,PROMPT_PICKER_PROTOCOL,PROMPT_PAGE_OPERATIONS,CHATGPT_ORIGIN,supportedOrigin} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
 import {PROMPT_ASSET_OPERATIONS} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js';
 import {executePromptAsset} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js';
+import '../../examples/sidebar-tools/prompt-shortcuts/trusted/model.js';
+import {createPromptConversationRequest} from './conversation/prompt-controller.js';
+import {admitsTrustedPrompt,TRUSTED_PROMPT_VERSION,
+  trustedPromptProvenanceChanged} from './trusted-prompt-admission.js';
 import {createTimeReviewPermissionControls} from '../../examples/sidebar-tools/time-review/trusted/host-controls.js';
 import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../../examples/sidebar-tools/time-review/trusted/trusted-admission.js';
 import {admitsTrustedBookmark,TRUSTED_BOOKMARK_ID,TRUSTED_BOOKMARK_VERSION,TRUSTED_BOOKMARK_COMPONENT_VERSION,
@@ -109,7 +113,7 @@ export function createSidebarTools(options={}) {
 }
 
 function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.document,
-  currentPageTarget,taskWorkbench,foundationClient,localeController=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,view,trustedSettingsUI=view.trustedSettings}) {
+  currentPageTarget,taskWorkbench,foundationClient,localeController=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,trustedPromptPilot=null,view,trustedSettingsUI=view.trustedSettings}) {
   // Native focus controls load from an audited extension-only classic WXT entry.
   // A missing sidecar fails closed; user-owned opaque sandbox cannot supply it.
   const focus=globalThis.__opendeskStayFocusTrustedUI||null;
@@ -213,6 +217,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let clipGrants={},clipSiteEpoch=0;
   let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, nativeUI=null, nativePending=false, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false;
   let frameExportPort=null;
+  let promptGuardWait=null,promptGuardId=null;
   let revocationEpochs={},frameRevocationEpoch=null,revocationReadEpoch=0;
   let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
   function refreshMenuStatus(tool,origin){
@@ -542,10 +547,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   // Only a private Symbol lets statically compiled JSX reuse the existing
   // Browser SDK dispatcher; no postMessage or user package can forge it.
   const trustedBookmarkSource=Symbol('opendesk.trusted.bookmark');
+  const trustedPromptSource=Symbol('opendesk.trusted.prompt');
   const sameInstance=(source,token)=>!disposed&&active&&instance===token&&
     ((frame&&frame.contentWindow===source)||
      (source===trustedBookmarkSource&&active.id===TRUSTED_BOOKMARK_ID&&
-      (nativePending||nativeUI?.kind==='bookmark')));
+      (nativePending||nativeUI?.kind==='bookmark'))||
+     (source===trustedPromptSource&&active.id===PROMPT_ID&&
+      (nativePending||nativeUI?.kind==='prompt')));
   const toolById=id=>installed.find(row=>row.id===id);
   // A matching ID or user-supplied hash alone NEVER grants silent writes.
   // Bind to the installed, enabled, signed-off official release and epoch.

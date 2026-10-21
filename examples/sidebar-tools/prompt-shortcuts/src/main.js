@@ -12,6 +12,57 @@ const SITE_KEY='sites';
 let sites=model.sitesDefaults(),sitesEtag=null,sitesReady=false,siteBusy=false,siteDetecting=false,siteDirty=false,siteUnconfirmedWrite=false;
 let siteOrigin=null,siteEditing=null,siteBaseline='',siteVerified=null,siteDelete=null;
 let sitePoll=0,siteSession=null,siteStarting=0,siteEpoch=0,siteDiscardPending=false;
+let aiGuardId=null,aiRefreshPending=false,aiFocusId=null;
+function aiEditable(){
+  return ready&&mode==='index'&&!dirty&&!siteDirty&&!busy&&!siteBusy&&
+    !siteDetecting&&!siteSession&&!siteStarting&&!uploadBusy&&!transferBusy&&
+    !stagedImport&&!pendingDelete&&!pendingLeave&&!unconfirmedWrite&&
+    !siteUnconfirmedWrite&&el('ps-site-form').hidden;
+}
+root.addEventListener('opendesk-tool-ai-guard',event=>{
+  const detail=event.detail;
+  if(!detail||typeof detail.guardId!=='string')return;
+  if(detail.phase==='acquire'){
+    const granted=!aiGuardId&&aiEditable();
+    if(granted){aiGuardId=detail.guardId;root.inert=true;}
+    root.dispatchEvent(new CustomEvent('opendesk-tool-ai-guard-reply',{
+      detail:{guardId:detail.guardId,granted}
+    }));
+  }else if(detail.phase==='release'&&aiGuardId===detail.guardId){
+    aiGuardId=null;root.inert=false;
+    if(aiRefreshPending)void refreshFromTrustedHost();
+  }
+});
+async function refreshFromTrustedHost(){
+  if(!aiRefreshPending||aiGuardId)return;
+  if(!aiEditable()){
+    status('AI 已修改提示词库。当前草稿不会被覆盖；完成编辑后可重新打开列表核对。');
+    return;
+  }
+  const started=etag;
+  try{
+    const fresh=await readLibrary();
+    // Recheck live editing state AFTER the asynchronous read. Never replace
+    // an unsaved local form with a potentially newer external snapshot.
+    if(aiGuardId||!aiEditable()||etag!==started)return;
+    data=fresh.value;etag=fresh.etag;aiRefreshPending=false;
+    await hydrateImageAssets(data.items);
+    render();
+    if(aiFocusId){
+      const card=[...el('ps-list').children].find(node=>node.dataset.promptId===aiFocusId);
+      card?.scrollIntoView?.({block:'nearest'});
+      aiFocusId=null;
+    }
+    status('已同步 AI 操作后的真实提示词列表。');
+  }catch(e){
+    status('AI 写入后的列表同步失败，请稍后重新打开核对：'+(e?.code||e?.message),true);
+  }
+}
+root.addEventListener('opendesk-tool-state-changed',event=>{
+  aiRefreshPending=true;
+  if(typeof event.detail?.targetId==='string')aiFocusId=event.detail.targetId;
+  void refreshFromTrustedHost();
+});
 function report(){setState({dirty:dirty||siteDirty||Boolean(stagedImport),busy:busy||siteBusy||siteDetecting||transferBusy||uploadBusy});}
 // The sandbox owns business navigation; the verified Host owns presentation only.
 function publishNavigation(){
@@ -664,6 +715,7 @@ function render(){
     const identity=(item.nameAuto?'':item.name?.trim())||
       item.body.trim().replace(/\s+/g,' ').slice(0,60)||'提示词';
     const card=dom('article','ps-card'+(!item.enabled?' is-disabled':''));
+    card.dataset.promptId=item.id;
     const mainRow=dom('div','ps-card-main');
     const glyph=dom('div','ps-glyph');glyph.setAttribute('aria-hidden','true');
     picture(glyph,item);
@@ -859,7 +911,10 @@ async function commit(next,analyticsSaveId=null){
   if(model.bytes(next)>8192)throw Object.assign(Error('提示词共用 8 KiB 数据项，超出存储上限'),{code:'E_TOOL_DATA_LIMIT'});
   busy=true;lock();
   try{
-    let saved;
+    let saved,verifiedReadback=false;
+    // Object key order is not a storage contract; all saved fields are.
+    const encode=value=>JSON.stringify(value,(_key,row)=>row&&typeof row==='object'&&!Array.isArray(row)
+      ?Object.fromEntries(Object.keys(row).sort().map(key=>[key,row[key]])):row);
     try{
       saved=await request('storage.set',{key:KEY,value:next,ifMatch:etag,
         ...(analyticsSaveId?{analyticsIntent:'save_prompt',itemId:analyticsSaveId}:{})});
@@ -869,12 +924,23 @@ async function commit(next,analyticsSaveId=null){
       unconfirmedWrite=true;status('写入回执未确认，正在核对已保存数据…',true);
       try{
         const checked=await readLibrary();
-        // Chrome Storage can reorder object keys. Confirm the entire intended library.
-        const encode=value=>JSON.stringify(value,(_key,row)=>row&&typeof row==='object'&&!Array.isArray(row)
-          ?Object.fromEntries(Object.keys(row).sort().map(key=>[key,row[key]])):row);
         if(encode(checked.value)!==encode(next))throw Error('读回数据与本次写入不一致');
-        saved={etag:checked.etag};
+        saved={etag:checked.etag};verifiedReadback=true;
       }catch{throw e;}
+      unconfirmedWrite=false;
+    }
+    // A positive Host acknowledgement also needs an independent, authoritative
+    // ETag + full-value readback. Never promote only an optimistic local list.
+    if(!verifiedReadback){
+      unconfirmedWrite=true;status('保存回执已收到，正在核对已保存数据…');
+      try{
+        const checked=await readLibrary();
+        if(checked.etag!==saved.etag||encode(checked.value)!==encode(next))
+          throw Error('存储读回与确认回执不一致');
+      }catch(e){
+        throw Object.assign(Error('权威读回无法确认本次保存，请重新打开核对，不要重放写入'),
+          {code:'E_OUTCOME_UNKNOWN',cause:e});
+      }
       unconfirmedWrite=false;
     }
     const staleIds=[...new Set(data.items.map(item=>item.imageAssetId).filter(Boolean))]

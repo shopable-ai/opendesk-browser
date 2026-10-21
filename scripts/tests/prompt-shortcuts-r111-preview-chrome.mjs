@@ -67,6 +67,18 @@ async function click(selector){
     ['mouseReleased',{button:'left',clickCount:1}]])
     await call('Input.dispatchMouseEvent',{type,x:rect.x,y:rect.y,...extra});
 }
+async function expandPreviewRail(){
+  const collapsed=await evalChrome('document.querySelector("#pageRail .starter-toggle")?.getAttribute("aria-expanded")==="false"');
+  if(collapsed)await click('#pageRail .starter-toggle');
+  await poll('document.querySelector("#pageRail .starter-toggle")?.getAttribute("aria-expanded")==="true"',
+    'expanded offline HTML launcher');
+}
+async function collapsePreviewRail(){
+  const expanded=await evalChrome('document.querySelector("#pageRail .starter-toggle")?.getAttribute("aria-expanded")==="true"');
+  if(expanded)await click('#pageRail .starter-toggle');
+  await poll('document.querySelector("#pageRail .starter-toggle")?.getAttribute("aria-expanded")==="false"',
+    'collapsed offline HTML launcher');
+}
 async function shot(name){
   const r=await call('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
   await writeFile(join(out,name+'.png'),Buffer.from(r.data,'base64'));
@@ -149,8 +161,15 @@ async function run(){
     'first-run button inserted the actual stored prompt');
   await poll('document.querySelectorAll("#pageRail .page-shortcut").length===1','starter rail closes after use');
   await evalChrome('document.querySelector("#mockDraft").value=""');
+  await evalChrome('(()=>{const select=document.querySelector("#previewDataScenario");select.value="empty";select.dispatchEvent(new Event("change",{bubbles:true}));})()');
+  await poll('document.querySelectorAll(".prompt-card").length===0','genuine intentionally empty library');
+  assert.equal(await evalChrome('document.querySelector("#pageRail .page-shortcut")?.textContent'),'OD',
+    'a genuinely empty built-in page keeps a single management entry');
   await evalChrome('(()=>{const select=document.querySelector("#previewDataScenario");select.value="legacy";select.dispatchEvent(new Event("change",{bubbles:true}));})()');
   await poll('document.querySelectorAll(".prompt-card").length===4','legacy four cards');
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),1,
+    'legacy data has one launcher at rest without any seed ID');
+  await expandPreviewRail();
   await poll('document.querySelector("#pageRail img[data-preview-fixture]")?.naturalWidth>0',
     'R3.5 offline example image decoded');
   report.r35ImageEvidence=[];
@@ -174,21 +193,24 @@ async function run(){
   assert(new Set(report.r35ImageEvidence.map(x=>x.width+'x'+x.height)).size===3,
     'three distinct pixel-measured sizes required');
   await shot('r35-full-original-mixed-text-and-image');
-  const useEvidence=await evalChrome('('+async function(){
-    const draft=document.querySelector('#mockDraft'),buttons=[...document.querySelectorAll('#pageRail .page-shortcut')];
-    draft.value='原草稿';draft.setSelectionRange(draft.value.length,draft.value.length);
-    buttons[0].click();await new Promise(done=>setTimeout(done,100));const text=draft.value;
-    buttons[1].click();await new Promise(done=>setTimeout(done,100));const image=draft.value;
-    draft.value='';
-    return {text,image,buttonCount:buttons.length,imageNode:!!buttons[1].querySelector('img')};
-  }.toString()+')()');
-  assert(useEvidence.imageNode&&useEvidence.buttonCount>=4);
-  assert(useEvidence.text.includes('原草稿')&&useEvidence.text.includes('不改变原意'));
-  assert(useEvidence.image.includes('原草稿')&&useEvidence.image.includes('重要依据'));
-  assert(!useEvidence.image.includes('images.unsplash.com'),'only prompt text is inserted');
+  await evalChrome('(()=>{const draft=document.querySelector("#mockDraft");draft.value="原草稿";draft.setSelectionRange(draft.value.length,draft.value.length);})()');
+  await expandPreviewRail();
+  await click('#pageRail .page-shortcut:nth-child(2)');
+  await poll('document.querySelector("#mockDraft").value.includes("不改变原意")',
+    'legacy text insertion from expanded launcher');
+  const textInsert=await evalChrome('document.querySelector("#mockDraft").value');
+  await expandPreviewRail();
+  await click('#pageRail .page-shortcut:nth-child(3)');
+  await poll('document.querySelector("#mockDraft").value.includes("重要依据")',
+    'legacy image insertion from expanded launcher');
+  const imageInsert=await evalChrome('document.querySelector("#mockDraft").value');
+  assert(textInsert.includes('原草稿')&&textInsert.includes('不改变原意'));
+  assert(imageInsert.includes('原草稿')&&imageInsert.includes('重要依据'));
+  assert(!imageInsert.includes('images.unsplash.com'),'only prompt text is inserted');
   report.r35PromptInsert=true;
   await r35ChooseSize('standard');
   await call('Page.reload',{ignoreCache:true});
+  await expandPreviewRail();
   await poll('document.querySelector("#pageRail img[data-preview-fixture]")?.naturalWidth>0',
     'offline image must recover after reload');
   const persisted=await r35ImageEvidence();
@@ -308,7 +330,12 @@ async function run(){
   await shot('r26-import-preview-360px');
   await click('#importAppend');
   assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),5);
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),5,'no extra fold button');
+  await collapsePreviewRail();
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),1,
+    'five imported-and-legacy prompts still have exactly one resting launcher');
+  await expandPreviewRail();
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),7,
+    'expanded five prompts and management preserve every item');
   assert.equal(await evalChrome('document.querySelector("#panelStatus").textContent.includes("网页按钮已即时同步")'),true);
   // Replacement is two explicit actions and never alters the list before confirmation.
   await evalChrome('(()=>{const dt=new DataTransfer();dt.items.add(new File([JSON.stringify({format:"opendesk.prompt-shortcuts",version:1,items:[{body:"替换确认样例",label:"替换",name:"仅此一条"}]})],"r26-replace.json",{type:"application/json"}));const input=document.getElementById("importFile");input.files=dt.files;input.dispatchEvent(new Event("change",{bubbles:true}));})()');
@@ -318,7 +345,14 @@ async function run(){
   assert.equal(await evalChrome('!document.querySelector("#replaceWarning").hidden'),true);
   await click('#importReplace');
   assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),1);
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),1);
+  await collapsePreviewRail();
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),1,
+    'an entirely custom replacement still uses one compact launcher');
+  assert.equal(await evalChrome('document.querySelector("#pageRail .starter-toggle")?.textContent'),'快捷');
+  await expandPreviewRail();
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),3,
+    'custom-only menu exposes prompt and management');
+  await collapsePreviewRail();
   assert.equal(await evalChrome('document.querySelector("#imageSizeGroup").hidden'),true,
     'text-only list retains original uncluttered header');
   await shot('r34-text-only-list-360px');
@@ -381,13 +415,22 @@ async function run(){
   await click('#saveContinue');
   await poll('document.querySelectorAll(".prompt-card").length===5&&document.querySelector("#promptBody").value===""','save and continue first');
   x=await state();assert.equal(x.editing,true);assert.equal(x.cards,5);
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),5,'save-and-continue instantly updates the injected rail');
+  await collapsePreviewRail();
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),1,
+    'save-and-continue updates five choices while keeping one resting launcher');
+  await expandPreviewRail();
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),7);
   await shot('batch-create-320px');
   await evalChrome('(()=>{const f=document.querySelector("#promptBody");f.value="连续创建第二条：列出下一步计划。";f.dispatchEvent(new Event("input",{bubbles:true}));})()');
   await click('#saveContinue');
   await poll('document.querySelectorAll(".prompt-card").length===6&&document.querySelector("#promptBody").value===""','save and continue second');
   x=await state();assert.equal(x.cards,6);assert.equal(x.editing,true);
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),6,'second save instantly updates the injected rail');
+  await collapsePreviewRail();
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),1,
+    'second save preserves one resting launcher');
+  await expandPreviewRail();
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),8,
+    'all six choices remain accessible without a hard cap');
   await poll('document.querySelector("#promptForm").getAttribute("aria-busy")!=="true"',
     'save-and-continue finishes before cancel');
   const batchCancelBefore=await evalChrome('('+function(){
@@ -542,12 +585,13 @@ async function run(){
   report.r41PickerAndErrors={...firstImage,blankDropzone:true,invalidPreserved:true,oversizedPreserved:true};
   await shot('r37-original-local-upload');
   await click('#saveButton');
-  await poll('document.querySelector("#formView").hidden&&document.querySelector("#pageRail .page-shortcut:nth-child(2) img")?.naturalWidth>0',
+  await expandPreviewRail();
+  await poll('document.querySelector("#formView").hidden&&document.querySelector("#pageRail .page-shortcut:nth-child(3) img")?.naturalWidth>0',
     'saved local raster appears on real rail');
   const uploadEvidence=await evalChrome('('+function(){
     const item=JSON.parse(localStorage.getItem('opendesk.prompt-shortcuts.preview.items-r3'))[1];
     const store=JSON.parse(localStorage.getItem('opendesk.prompt-shortcuts.preview.assets-r37'));
-    const img=document.querySelector('#pageRail .page-shortcut:nth-child(2) img');
+    const img=document.querySelector('#pageRail .page-shortcut:nth-child(3) img');
     const box=img.closest('button').getBoundingClientRect();
     const canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
     const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0);
@@ -561,13 +605,14 @@ async function run(){
   assert(Math.abs(uploadEvidence.width-68)<.6&&Math.abs(uploadEvidence.height-48)<.6);
   await shot('r37-original-local-image-saved');
   await call('Page.reload',{ignoreCache:true});
-  await poll('document.querySelector("#pageRail .page-shortcut:nth-child(2) img")?.naturalWidth>0',
+  await expandPreviewRail();
+  await poll('document.querySelector("#pageRail .page-shortcut:nth-child(3) img")?.naturalWidth>0',
     'same saved local image after reload');
-  assert.equal(await evalChrome('document.querySelector("#pageRail .page-shortcut:nth-child(2) img")?.dataset.previewFixture??null'),null,
+  assert.equal(await evalChrome('document.querySelector("#pageRail .page-shortcut:nth-child(3) img")?.dataset.previewFixture??null'),null,
     'saved local image must really be restored; initial offline sample is NOT reload evidence');
   const insert=await evalChrome('('+async function(){
     const field=document.querySelector('#mockDraft');field.value='原草稿';field.setSelectionRange(field.value.length,field.value.length);
-    document.querySelector('#pageRail .page-shortcut:nth-child(2)').click();
+    document.querySelector('#pageRail .page-shortcut:nth-child(3)').click();
     await new Promise(done=>setTimeout(done,110));
     return field.value;
   }.toString()+')()');
@@ -589,7 +634,7 @@ async function run(){
     const row=rows.find(r=>r.imageAssetId);
     const card=document.querySelector('.prompt-card[data-id="'+row?.id+'"]');
     const cardPicture=card?.querySelector('img');
-    const railPicture=document.querySelector('#pageRail .page-shortcut:nth-child(2) img');
+    const railPicture=document.querySelector('#pageRail .page-shortcut:nth-child(3) img');
     return {formVisible:!document.querySelector('#formView').hidden,
       sourceLocal:document.querySelector('#imageSourceLocal').checked,
       sourceUrl:document.querySelector('#imageSourceUrl').checked,
@@ -663,11 +708,13 @@ async function run(){
     'host back must clean temporary image without deleting the committed one');
   assert.equal(afterDiscard.saved,uploadEvidence.id);
   await click('#reopenTool');
-  await poll('document.querySelector("#pageRail .page-shortcut:nth-child(2) img")?.naturalWidth>0',
+  await expandPreviewRail();
+  await poll('document.querySelector("#pageRail .page-shortcut:nth-child(3) img")?.naturalWidth>0',
     'saved picture survives aborted host exit');
   report.r41DraftProtection={inactiveUrlGuard:true,realFilesystemJpegDrop:true,
     hostDiscardClean:true,oldSavedAssetRetained:true};
   await click('#resetButton');
+  await expandPreviewRail();
   await poll('document.querySelector("#pageRail img[data-preview-fixture]")?.naturalWidth>0','reset original fixtures');
   assert.equal(await evalChrome('localStorage.getItem("opendesk.prompt-shortcuts.preview.assets-r37")'),null);
   // R3.4: genuine Chromium storage-rejection fault, not a synthetic status banner.
@@ -716,7 +763,11 @@ async function run(){
   assert.equal(await evalChrome('document.querySelector("#pageRail").hidden'),true);
   await click('#resetButton');
   assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),4);
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),4);
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),1,
+    'reset preserves single entry for the legacy four-item library');
+  await expandPreviewRail();
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),6,
+    'four old actions and management are still available on demand');
   report.unifiedGearAndUninstall=true;report.result='PASS';
   console.log('PROMPT_SHORTCUTS_R111_REAL_CHROME_MOCK_PASS',JSON.stringify(report));
 }

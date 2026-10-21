@@ -257,7 +257,7 @@ function ConversationWorkspace({
    {(error||needsReview)&&<div className="od-conversation-feedback" tabIndex={0} aria-label="对话状态详情">
     {error&&<p className="od-conversation-error" role="alert">{error}</p>}
     {needsReview&&<p className="od-conversation-error" role="status">
-     上次写入结果不确定。请先刷新并核对上方书签，再继续操作。
+     上次写入结果不确定。请先刷新并核对原工具数据，再继续操作。
     </p>}
    </div>}
    <form className="od-conversation-composer" onSubmit={send}>

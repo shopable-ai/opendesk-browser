@@ -65,6 +65,18 @@ export function initSidebarToolSandbox() {
   window.addEventListener('click',event=>{
     if(trustedGetter&&apply(trustedGetter,event,[])===true)exportClick=event;
   },true);
+  // Presentation-only acknowledgement. It is NOT a grant: only the trusted
+  // Host checks official installation, locks and storage. The accepted sandbox
+  // uses this to freeze its own live draft while Host serializes a write.
+  let pendingPromptGuard=null;
+  root.addEventListener('opendesk-tool-ai-guard-reply',event=>{
+    const detail=event.detail;
+    if(!instance||toolId!=='prompt-shortcuts'||!pendingPromptGuard||
+       detail?.guardId!==pendingPromptGuard)return;
+    const guardId=pendingPromptGuard;pendingPromptGuard=null;
+    parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'ai-guard-response',
+      instance,toolId,guardId,granted:detail.granted===true},'*');
+  });
   let startupFailed=false;
   let uiLocale='zh-CN';
   const localeListeners=new Set();
@@ -286,6 +298,17 @@ export function initSidebarToolSandbox() {
       }
       return;
     }
+    if(message.kind==='ai-guard'||message.kind==='ai-guard-release'){
+      if(message.instance!==instance||message.toolId!=='prompt-shortcuts'||
+         toolId!=='prompt-shortcuts'||typeof message.guardId!=='string'||
+         !/^[a-f0-9-]{36}$/.test(message.guardId))return;
+      if(message.kind==='ai-guard')pendingPromptGuard=message.guardId;
+      else if(pendingPromptGuard===message.guardId)pendingPromptGuard=null;
+      root.dispatchEvent(new CustomEvent('opendesk-tool-ai-guard',{
+        detail:{guardId:message.guardId,phase:message.kind==='ai-guard'?'acquire':'release'}
+      }));
+      return;
+    }
     if (message.kind==='cookie-grants-changed') {
       if(message.instance===instance&&message.toolId===toolId)
         root.dispatchEvent(new Event('opendesk-cookie-grants-changed'));
@@ -309,7 +332,8 @@ export function initSidebarToolSandbox() {
     // No privileged data or authorization crosses the sandbox boundary.
     if (message.kind==='state-changed') {
       if(message.instance===instance&&message.toolId===toolId)
-        root.dispatchEvent(new Event('opendesk-tool-state-changed'));
+        root.dispatchEvent(new CustomEvent('opendesk-tool-state-changed',{
+          detail:{targetId:typeof message.targetId==='string'&&message.targetId.length<=64?message.targetId:null}}));
       return;
     }
     // Presentation-only navigation request. Sandbox owns its business history.

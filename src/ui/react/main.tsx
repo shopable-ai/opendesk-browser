@@ -12,6 +12,17 @@ import conversationDockCSS from './components/conversation-dock.css?raw';
 import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 import myAgentCSS from './tabs/my-agent.css?raw';
 
+// Prompt Shortcuts remains an installed opaque iframe. Only the trusted
+// conversation and its stable frame target are rendered by the single React root.
+function PromptSandboxBusiness({dock,onRequest}){
+  React.useLayoutEffect(()=>{
+    const adapter=Object.freeze({request:onRequest});
+    dock.adapterRef.current=adapter;
+    return ()=>{if(dock.adapterRef.current===adapter)dock.adapterRef.current=null;};
+  },[dock.adapterRef,onRequest]);
+  return <div className="od-prompt-frame-target" aria-label="原提示词管理界面"/>;
+}
+
 // A single trusted root owns every product page. Existing controllers supply
 // presentation snapshots and actions; installed tool code stays in its sandbox.
 const mountedDocuments=new WeakSet();
@@ -31,7 +42,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
   let feedbackModel={showEmpty:false,emptyText:'',countText:'正在读取扩展…'};
   let recoveryModel={ids:[],busy:false,onRetry:()=>{}};
   let statusModel={text:'',state:'info'},cloudPageModel={};
-  let rowMenuModel=null,bookmarkPilot=null;
+  let rowMenuModel=null,bookmarkPilot=null,promptPilot=null;
   let debugModel={},debugActions={},development=null;
   let browserHistoryModel=null,browserHistoryActions=null;
   const ownedNodes=[];
@@ -64,6 +75,12 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
         developerView={developerView} myView={myView} myAgent={myAgent} toolView={toolView} workflowController={workflowController}
         cloudModel={cloudPageModel.overview} cloudRequestsModel={cloudPageModel.requests}
         cloudSetupModel={cloudPageModel.setup} cloudPageModel={cloudPageModel}/>
+      {promptPilot&&createPortal(
+        <TrustedConversationWorkspace controller={promptPilot.controller}
+          headerTarget={promptPilot.headerTarget}
+          title="提示词 AI 对话" placeholder="例如：创建一条将中文翻译成日语的提示词"
+          renderBusiness={dock=><PromptSandboxBusiness dock={dock} onRequest={promptPilot.onRequest}/>}/>,
+        promptPilot.container)}
       {bookmarkPilot&&createPortal(<>
         <TrustedConversationWorkspace controller={bookmarkPilot.runtime.conversation}
           headerTarget={bookmarkPilot.headerTarget}
@@ -116,6 +133,58 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
       onExtensionBack=handler;paint();},
     renderView(view){if(disposed||!['list','detail'].includes(view))throw new Error('E_REACT_EXTENSION_VIEW');
       extensionView=view;paint();},
+    mountPromptConversation({container,conversation,onRequest}={}){
+      if(disposed||promptPilot||!container||container.ownerDocument!==doc||
+        container.childNodes.length||container.dataset.opendeskReactOwner||
+        !conversation||typeof conversation.request!=='function'||
+        typeof conversation.cancel!=='function'||typeof onRequest!=='function')
+        throw new Error('E_PROMPT_TRUSTED_DOCK_MOUNT');
+      const headerTarget=doc.getElementById('sidebar-tool-chat-slot');
+      if(!headerTarget||!doc.getElementById('sidebar-tool-title'))
+        throw new Error('E_PROMPT_TRUSTED_CHAT_HEADER');
+      // Transcript is display-only. Executable references never survive a
+      // tool instance change or cross into the Bookmark or Workflow sessions.
+      let session={open:false,draft:'',rows:[],needsReview:false,refs:{matches:[]}};
+      const controller=Object.freeze({
+        source:()=>conversation.source(),
+        request:args=>conversation.request({...args,scope:'prompt'}),
+        cancel:args=>conversation.cancel(args),
+        readSession:()=>structuredClone(session),
+        saveSession:next=>{
+          if(!next||typeof next!=='object')return;
+          session={open:next.open===true,
+            draft:typeof next.draft==='string'?next.draft.slice(0,4000):'',
+            needsReview:next.needsReview===true,
+            rows:Array.isArray(next.rows)?next.rows.slice(-24).filter(row=>
+              typeof row?.id==='string'&&typeof row?.message==='string'&&
+              ['你','助手','系统'].includes(row.speaker)).map(row=>({
+                id:row.id.slice(0,100),speaker:row.speaker,message:row.message.slice(0,3500)})):[],
+            refs:{matches:Array.isArray(next.refs?.matches)?
+              next.refs.matches.slice(0,12).filter(id=>typeof id==='string'&&id.length<=160):[]}};
+        }
+      });
+      promptPilot={container,headerTarget,controller,onRequest};
+      container.dataset.opendeskReactOwner='prompt-conversation-portal';
+      try{paint();}catch(error){
+        promptPilot=null;delete container.dataset.opendeskReactOwner;
+        try{paint();}catch{/* Keep the first trusted render failure. */}
+        throw error;
+      }
+      const frameTarget=container.querySelector('.od-prompt-frame-target');
+      if(!frameTarget){
+        promptPilot=null;delete container.dataset.opendeskReactOwner;paint();
+        throw new Error('E_PROMPT_IFRAME_TARGET_MISSING');
+      }
+      let released=false;
+      return {frameTarget,dispose(){
+        if(released)return;released=true;
+        if(promptPilot?.container===container){
+          promptPilot=null;
+          if(!disposed)paint();
+          delete container.dataset.opendeskReactOwner;
+        }
+      }};
+    },
     mountBookmarkPilot({container,sdk,onStateChange,conversation=null}={}){
       if(disposed||bookmarkPilot||!container||container.ownerDocument!==doc||
         container.childNodes.length||container.dataset.opendeskReactOwner||

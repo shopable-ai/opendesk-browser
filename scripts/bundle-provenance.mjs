@@ -106,10 +106,16 @@ export function trustedToolShellStyle(root=process.cwd()){
 // The Classic model is exactly the same audited resource declared in the
 // independent tool package; only these reviewed immutable blobs may enter
 // the pre-existing fixed Host/relay bundles. This is NOT a wildcard exception.
+// 2026-10-22 R1.8 exact-source review: model.js narrows DeepSeek to
+// #root and Perplexity to stable test-ID selectors. page.js preserves
+// existing origin, instance and permission gates; omits locale-based picker
+// selectors; accepts the exact ChatGPT footer mobile textarea; shows one
+// resting launcher for a bounded saved library and expands on trusted click.
+// No dynamic imports, privileged outputs, origins or installer rights added.
 const compiledPromptShortcutInputs=Object.freeze({
   'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'65444eb5ad35847701d21b4489d895028c5fa0c3',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'4c6f608a26e0d69278c18a0afda94b3c8ce8274c',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'b02a11a6d1b5bad60b2c70d620bd46017efb3bc9',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'6a1e7d4a13da530a7a8648ca67f1b8dc00c8097d',
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js':'86e95bff786e52efb9089f97126542430f39a716',
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js':'b960044deb5e7d059c26d5d520f912c0b72c7b0e',
   'examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js':'7c10e8270c43be93229afbf0d3171455de628030',

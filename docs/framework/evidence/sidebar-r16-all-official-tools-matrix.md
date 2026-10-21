@@ -1,36 +1,53 @@
-# Sidebar Navigation & Menu UX R1.6 — 十二项官方工具源码审查矩阵
+# Sidebar Navigation & Menu UX R1.8 — 十二项官方工具真实源码审查矩阵
 
-基准：依据 `official-tools/catalog.json` 确认的 12 个官方 Tool ID；2026-10-22 GitHub `main`；继承 R1.5 现有 Bridge / Host / React Root，不引入新路由和权限。下表基于正式源码、安装声明和已知 CI 日志，**不是 Chrome 真机交互验收**。真实尺寸、触屏、草稿恢复及权限读回在未运行前全部标为 `NOT_TESTED`，不能以静态审查给出 95 分。
+> 2026-10-22 续接 R1.7。本文件沿用 R1.6 证据矩阵路径，避免平行权威账本。工具 ID 唯一来源 `official-tools/catalog.json`。此文仅依据读取到的 GitHub `main`、正式源码、安装声明与测试实现；**不是已安装 Mac Chrome 操作验收**。并行 Agent 持续提交，源码结果不自动适用未来更改后的版本。
 
-| 官方 ID（源码版本） | 页面/入口结构与源码证据 | 真实源码审查结论；必要最小改动 | 状态/数据风险与测试门槛 |
+## 十二项用户操作与最低必要修改
+
+| 官方工具及源码版本 | 可追踪的实际操作、业务控制器 | R1.8 已证实结论与修复状态 | 尚需验收 |
 | --- | --- | --- | --- |
-| `knowledge-inbox` 1.2.8 | `src/index.html`：列表、新建、详情、编辑、卡片更多；`src/main.js`：发布共享页状态和业务返回；`src/style.css`：仅在获准时隐藏重复返回/标题 | R1.5 已有共享导航，静态未见重复框架返回；应实测未保存草稿返回、取消/搜索/滚动恢复和管理菜单 | 编辑草稿/ETag/保存中；`SOURCE_REVIEWED`、交互 `NOT_TESTED` |
-| `adblock` 1.2.3 | `src/App.jsx`：overview/cosmetics/exceptions/settings 四页、共享标题、规则草稿/忙碌守卫 | R1.5 内部返回按可信 Host 隐藏；保留关键文字动作“选择网页元素”；须实测产品设置齿轮、规则选择及写入中返回 | DNR/选择器草稿与未知写入；`SOURCE_REVIEWED`、交互 `NOT_TESTED` |
-| `markdown-workbench` 1.0.3 | `src/index.html`：编辑、预览、分栏单页、导入/复制/下载/清空 | 不应人为建立子路由；R1.5 标题修复需通过真正安装后的视觉复核 | 编辑内容未下载离开风险；`SOURCE_REVIEWED`、交互 `NOT_TESTED` |
-| `prompt-shortcuts` 1.1.8 | `src/index.html`：列表/新建编辑/网站配置/备份；`src/main.js`：`back()`、草稿确认，但**未调用 `setNavigation`** | **NEED_FIX：框架返回不了解表单层级**，不应直接关闭工具。需由正式业务控制器发布页面层级，修复后严格执行版本递增、唯一 packager、candidate/定向测试/promote-from/check-project | 文字/图片草稿、站点选择器、ETag；`SOURCE_CONFIRMED_ISSUE`、修复 `PENDING_PACKAGE_PIPELINE` |
-| `bookmark-manager` 0.3.10 | `src/react/App.jsx` 正式 React 树/详情/Sheet，`src/index.html` 为另一独立入口；工具可走可信原生试点 | 不把 Sheet 关闭等同业务返回；底部动作与行级动作的重叠需真实可视验收。已有 Chromium 400px 实际读到 960px 的视口测试失败，应先定位 CDP/尺寸根因 | 书签授权/删除确认/文件夹与编辑草稿；`SOURCE_REVIEWED`、`CHROMIUM_NEED_FIX` |
-| `cookie-editor` 2.0.30 | `src/index.html`：浏览器/离线工具切换、站点选择、编辑、导入导出与清理 | Tab 切换不是历史返回；当前工具栏操作较多，精简仅在真实截图证实冗余后实施，不触碰值/授权语义 | Cookie 密值、写入读回、敏感导出；`SOURCE_REVIEWED`、交互 `NOT_TESTED` |
-| `web-markdown-clipper` 1.2.6 | `src/index.html`：网页提取和最近摘录同屏；列表/详情/编辑页；R1.4 兼容旧 page 状态 | R1.6 **已修复**旧共享导航的仅凭 ID 放行问题，限定正式官方校验后才使用；保留同屏结构及原业务历史 | Markdown/未保存摘录/草稿与来源；`SOURCE_FIXED`、Node/安装回归 `NOT_TESTED` |
-| `quick-notes` 1.1.9 | `src/index.html`：单页笔记列表和编辑，新增/删除/保存已有图标语义与 aria-label | 单页不应制造返回栈；暂无独立源码证实的重复同级返回，需检查写作离开保护与 320px | 本地笔记存储与草稿；`SOURCE_REVIEWED`、交互 `NOT_TESTED` |
-| `time-review` 1.6.0 | `src/index.html`：日期、统计范围 Tab、分类编辑和详情内设置；框架另有可信权限设置 | 日期/Tab 不纳入逐级返回；统计偏好与可信权限入口并存，需视觉确认是否有无意义重复 | 记录授权/撤销/分钟数据/导出；`SOURCE_REVIEWED`、交互 `NOT_TESTED` |
-| `stay-focus` 1.0.9 | `src/index.html` 为正式 React Root，编译资源在 `dist/`；Host 持有可信站点/规则设置 | 不拆分已有可信控制器；启动/停止和编辑层级需真实安装检查，静态不足以证明无重复菜单 | 站点权限/限额/定时规则；`SOURCE_REVIEWED`、交互 `NOT_TESTED` |
-| `ai-vip-share` 1.4.0 | `src/index.html`：会员、激活、共享会话、Cookie 和代理长单页；内部品牌 `h1` | 已确认内部品牌大标题与框架标题可能视觉叠加，需产品证据决定保留品牌身份还是压缩；**不可因刷新重放兑换** | Cookie/代理状态/结果未知/兑换幂等；`SOURCE_REVIEWED`、交互 `NOT_TESTED` |
-| `reading-toc` 1.0.9 | `src/index.html`：目录模式按钮、刷新、章节列表和 AI 目录 | 展开/目录模式/章节跳转不是逐级返回；内部 CONTENTS 行是否重复须真实比较框架标题 | 网页定位、来源切换、设置和权限；`SOURCE_REVIEWED`、交互 `NOT_TESTED` |
+| `knowledge-inbox` 1.2.9 | `src/main.js`：列表→新建→详情→编辑→返回，原控制器发布 `setNavigation`，草稿与菜单保存/导出 | 共享导航已有，未找到应重写路由的源码证据；**不无故修改** | 逐级来源返回、草稿、保存中、搜索/滚动及焦点；`NOT_TESTED` |
+| `adblock` 1.2.3 | `src/App.jsx`：overview/cosmetics/exceptions/settings，规则草稿/操作按钮/删除与 `setNavigation` | 现有四页返回和可见「选择网页元素」保留；**不无故修改** | DNR、例外、规则编辑、菜单视觉与忙碌期间返回；`NOT_TESTED` |
+| `markdown-workbench` 1.0.4 | `src/main.js`：单页编辑/预览/分栏/导入/复制/下载，`setNavigation({page:'home',canBack:false})` | 同级标题已让出，不人为增加业务返回；**不无故修改** | 正式安装标题、导入覆盖保护、实际下载、窄幅；`NOT_TESTED` |
+| `prompt-shortcuts` 1.1.11 | `src/main.js`：index/create/edit、框架新建/返回、图片、网站规则、草稿和 ETag；`tool.config.json` 首装三条示例 | **旧表「未接入共享导航」已过时**。R1.8 `c2b9dc02` 修正常回执后的独立 ETag+完整数据读回，未知结果禁止重放，新增回归；`7edf9f21` 审查精确可信 pin。**源码 1.1.11 / 唯一正式 JSON 1.1.10，发行仍 BLOCKED** | Node/CI、candidate 晋升、正式保存重开、用户图片/规则、AI 并发草稿、升级；`NOT_TESTED` |
+| `bookmark-manager` 0.3.10 | `src/react/App.jsx` React 树、查询、行内更多→查看/编辑/移动/删除、Inspector、Sheet、AI 聊天 | 局部 Sheet 关闭不可当框架 Back；已有行级 icon 与 aria-label，**不无故修改** | 旧 Chromium 400px/960px 驱动问题归因、授权/删除/焦点/AI；`NOT_TESTED` |
+| `cookie-editor` 2.0.30 | `tool.config.json` 使用 `src/root.html` + `dist/tool.js/css` React 产物；`src/main.js` 浏览器/离线、掩码编辑、导入与安全清理 | 旧表「正式包使用 src/index.html」过时；切换 Tab 非层级返回，**不无故修改** | 敏感值/权限/真实回读、导出及批量清理、窄屏菜单；`NOT_TESTED` |
+| `web-markdown-clipper` 1.2.8 | `src/index.html` 同屏当前内容+最近摘录；`src/notes.js` 保存列表/编辑/阅读/返回、草稿/复制/下载/删除 | 同屏未拆；原业务页状态归 Notes 控制器，官方身份安全边界继续保留；**不无故修改** | 按进入来源返回、删除、焦点、持久化与同 ID 篡改隔离；`NOT_TESTED` |
+| `quick-notes` 1.1.9 | `src/main.js` 单页笔记列表、选择/新建/编辑/保存/删除、dirty guard | 不创建伪导航历史；**不无故修改** | 保存后重开、草稿离开、删除、窄幅；`NOT_TESTED` |
+| `time-review` 1.6.0 | `src/index.html` 日期、七天/所选日期 Tab、分类与统计；`src/main.js` 分类编辑 | 日期/Tab 不属于框架 Back；设置是否双入口需真实视觉，**不无故修改** | 授权/撤权/导出、分钟图键盘、标题视觉；`NOT_TESTED` |
+| `stay-focus` 1.0.9 | `src/index.html` React Root；`src/main.js` 站点列表更多/编辑、时段/组/启停；正式包用 `dist/tool.js/css` | 保留原权限 Host 和菜单所有者，**不无故修改** | 真规则/限额/撤权、删除确认、草稿与键盘；`NOT_TESTED` |
+| `ai-vip-share` 1.4.0 | `src/index.html` 单页会员/激活/共享/Cookie/代理，内部品牌 `h1`；`src/main.js` 权益校验 | 品牌与框架标题**可能**叠加，但尚无实际截图证明；绝不为统一删业务，刷新不得重放兑换 | 兑换/会话/Cookie/代理的真实授权及标题视觉；`NOT_TESTED` |
+| `reading-toc` 1.0.9 | `src/index.html` 内部 CONTENTS、模式/刷新/目录、AI；`src/main.js` 来源切换和章节跳转 | 模式与章节跳转不是返回；是否双标题须安装后比较，**不无故修改** | H1/H2、刷新、定位、权限、菜单和焦点；`NOT_TESTED` |
 
-## R1.6 已落实的跨工具改动
+## 统一 Host / SDK / 安全合同
 
-- Bridge/Host 按 `matchesOfficialRelease` 结果承认所有正式共享导航，包括网页剪藏旧页协议；同 ID 自定义工具无特殊提升。
-- 通用框架设置统一标题为“工具设置”；返回回到当前工具，而不是意外退出；没有业务子页时返回标签统一为“返回扩展列表”。
-- 共享 primary 操作文案按当前工具区分：摘录继续用“新建便签/编辑摘录/保存摘录”，其他获准的工具用通用“新建/编辑/保存”，避免叫错业务对象。
-- 添加强调同 ID 冒充和框架设置保留 iframe 的定向回归。所有实际测试仍按 GitHub CI / Chromium / Mac Chrome 的分层结果报告。
+- 继续唯一 `src/sidebar-tools/bridge.js`、`src/sidebar-tools/navigation-state.js`、`src/ui/sidebar-tools.js` 和 `src/ui/react/tabs/tool-host.tsx`；仅传纯展示导航状态，不建立第二套路由、Host、iframe 控制器。
+- Host 必须以 `matchesOfficialRelease` 的真实发行身份放行共享标题栏；同 ID 手动修改或第三方安装不提权。`tests/environment/sidebar-tools-host.test.mjs` 已有官方 Prompt Back/New 不重建及同 ID 篡改拒绝的测试**定义**；未运行时不标 PASS。
+- 自定义 HTML/CSS/JS、React JSX、Vue SFC UI 及已安装工具、权限、原存储命名空间继续保留；不能用导航统一理由偷偷替换业务 UI 或扩大能力。
+- R1.8 审查 Prompt 八个可信编译输入，其中六项保持原 pin，两个精确 Git blob 更新为 `trusted/model.js` = `65444eb5ad35847701d21b4489d895028c5fa0c3`、`trusted/page.js` = `6a1e7d4a13da530a7a8648ca67f1b8dc00c8097d`。新源码变更需重审，不能永久批准后继版本。
 
-## 阻塞与下一步
+## 正式 React 预览同源与限制
 
-1. **首要业务 P0**：提示词快捷按钮业务控制器接入共享页状态和未保存的业务返回；必须有本地真实 packager 晋升流水线，不能只提交源码。
-2. **CI P0**：定位书签管理真实 Chromium 的 iframe 视口回归；先确认是否测试驱动或正式 CSS 问题，再最小修复。
-3. **交互验收**：知识收件箱、AdBlock、网页剪藏优先复用已有 fixture；其余 9 个按页面深度逐个验证 320/360/400/440、200% zoom、键盘/触屏和浅深色；没有证据不判 PASS。
-4. **发行门槛**：所有修改 Sidebar Tool 的 `tool.config.json` 版本、`dist/build-ready.json`（适用时）、候选包、唯一 `--promote-from`、`--check-project` 必须同源。此审查文档和 Host 改动不重建已安装包。
+- `scripts/preview/build-sidebar-six-react-preview.mjs` 从正式 `src/ui/react/main.tsx`、App Shell、导航、UI primitives 等读取并输出 `prototypes/sidebar/react-preview/index.html`；输出带 `UI_PREVIEW_ONLY` 与来源摘要。**本轮没有运行编译对比最新输入 SHA**，不宣称与正在并行变化的 main 当前同源 PASS。
+- 网页剪藏更强的业务同源证据：`scripts/preview/clipper-stage.mjs` 同时读正式 `src/index.html`、`src/style.css`、`src/notes.js`、`src/main.js`，只替换 mock Host；业务源真实，Host 和存储仍模拟。不是安装环境。
+- Prompt Shortcuts、知识收件箱、AdBlock 需按各自现有预览/正式源对比后再认定，不可把共享 React 框架的同源性扩充成十二工具业务全 PASS。
+- 320/360/400/440px、Light/Dark、键盘、触屏、200% zoom 在本轮无新的运行证据，逐项均 `NOT_TESTED`。
 
-## 2026-10-22 额外 CI 前置修复
+## 独立发行与测试状态
 
-`.github/workflows/sidebar-tools-r1.yml` 已在运行官方目录打包依赖的 Node 测试前，调用**仓库既有** AdBlock、Stay Focus、Cookie Editor React 编译器，避免把 `dist/tool.css` / `dist/build-ready.json` 未生成误判为导航回归；同一测试步骤明确执行 `sidebar-tool-hierarchical-back-r12.test.mjs`。本次仅提交工作流和证据矩阵，不触碰发行包。必须以新 SHA 对应的 GitHub Actions 结果为准，旧的红色日志不自动视为修复成功。
+| 级别 | R1.8 本轮可证实状态 |
+| --- | --- |
+| Prompt 正式源码 | `PATCHED_SOURCE`：`c2b9dc02` 新增正常 Host ACK 后独立 ETag/完整读回、异常锁，随后有并行源码更新，须读取最新再做回归 |
+| Trusted 来源 | `PIN_UPDATED`：`7edf9f21` 仅重审两处审批 SHA，不等于运行通过 |
+| 唯一正式 JSON | `BLOCKED`：`tool.config.json` 1.1.11 vs `prompt-shortcuts.opendesk-tool.json` 1.1.10 |
+| Node 定向测试 | `NOT_RUN_THIS_TURN`：新用例已写入仓库，但无本轮 Node 结果 |
+| GitHub Actions | 最新有关 run 最后读取为 `QUEUED`，无法认定绿色，旧 SHA 的结果不可升级成当前状态 |
+| React 同源预览 | `SOURCE_WIRED / CURRENT_BUILD_NOT_TESTED` |
+| 独立 Chromium | `NOT_TESTED_THIS_TURN`，历史问题须单独归因 |
+| Mac Chrome / Native | `NOT_TESTED`，不是本轮提前开展的全量验收 |
+
+## 下一动作与停止条件
+
+先在最新 main 运行 Prompt 相关 Node/来源门禁，通过唯一 `scripts/build-sidebar-tool.mjs` 构建 candidate，再在**相同候选**上测试、`--promote-from`、`--check-project`，同步正式 JSON，并读取 GitHub Actions 真实 SHA 与日志。若 CI 持续排队，继续标明阻塞，不以人工更改版本冒充晋升。完成以后按十二工具中真实复现的问题做最小修复并复验。
+
+**当前未达到转入 Mac Codex 全量验收的硬门槛**：正式 JSON 版本不一致、当前目标 CI 无 PASS、十二工具实际 Chrome 菜单尚未验证。原 R1.5/R1.6 和 R1.7 `e970d330` / `621dcda9` 的改动照常保留，不为凑齐十二项而改无缺陷的业务。
