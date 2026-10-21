@@ -20,7 +20,7 @@ test('R1.0 SOURCE_ONLY: admitted Bookmark workspace inherits host height through
   // strictly stronger so the workspace actually gets a definite flex height.
   assert.ok(shell.includes('#workspace-content > #workbench-tools:not([hidden]):has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])){'),
     'the admitted Flex rule must outrank the existing workbench-tools Grid rule');
-  assert.match(shell,/#workspace-content>\\.od-page:not\\(\\[hidden\\]\\):not\\(#workbench-workflow\\):not\\(#workbench-discover\\)\\{display:grid;/);
+  assert.ok(shell.includes('#workspace-content>.od-page:not([hidden]):not(#workbench-workflow):not(#workbench-discover){display:grid;'));
   assert.ok(shell.includes('#sidebar-tools:has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > #sidebar-tool-display:not([hidden])'));
   assert.match(pilot,/flex:1 1 0;/);
   assert.match(pilot,/height:auto;/);
