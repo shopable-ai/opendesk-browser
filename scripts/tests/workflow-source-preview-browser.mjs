@@ -118,20 +118,34 @@ try {
     sourceBound:true,native:false,provider:false,runHost:false,permission:false,realResult:false
   });
   const scenes=['empty','conversation','planning','running','success','failure',
-    'unknown','approval','denied','disconnected','history','settings'];
+    'unknown','approval','run-review','denied','disconnected','history','settings'];
   for(const scene of scenes){
     assert.equal(await select('od-workflow-preview-scenario',scene),scene);
     if(scene==='conversation')await eventually(
       'document.querySelectorAll("#workflow-ai-transcript .workflow-chat-entry").length===2');
     if(scene==='approval')await eventually(
       '!document.getElementById("workflow-ai-approval").hidden');
+    if(scene==='run-review'){
+      await eventually('!document.getElementById("workflow-run-review").hidden');
+      assert.equal(await evaluate('document.querySelectorAll("#workflow-run-review button").length'),2);
+      assert.equal(await evaluate('document.querySelectorAll("#workflow-run-review input[type=checkbox]").length'),0);
+    }
     if(scene==='unknown')await eventually(
       'document.getElementById("workflow-output").textContent.includes("结果未知")');
     if(scene==='settings')await eventually(
       '!document.querySelector(".workflow-sheet-overlay").hidden');
   }
+  await select('od-workflow-preview-scenario','run-review');
+  await eventually('!document.getElementById("workflow-run-review").hidden');
+  await click('#workflow-run-review-cancel');
+  await eventually('document.getElementById("workflow-run-review").hidden');
+  assert.match(await evaluate('document.getElementById("workflow-ai-transcript").textContent'),/已取消预览操作/);
+  await select('od-workflow-preview-scenario','run-review');
+  await eventually('!document.getElementById("workflow-run-review").hidden');
+  await click('#workflow-run-review-confirm');
+  await eventually('document.getElementById("workflow-ai-transcript").textContent.includes("不会执行网页操作")');
   await select('od-workflow-preview-scenario','empty');
-  for(const width of ['320','360','400','440','520']){
+  for(const width of ['320','360','400','420','440','520']){
     await select('od-workflow-preview-width',width);
     await eventually('Math.round(document.getElementById("od-workflow-preview-stage").getBoundingClientRect().width)==='+width);
   }
@@ -162,9 +176,9 @@ try {
   assert.deepEqual(errors,[],'React/browser runtime must be exception-free');
   console.log(JSON.stringify({kind:'SOURCE_BOUND_WORKFLOW_PREVIEW_CHROMIUM',
     status:'PASS',browser:(await cdp('Browser.getVersion')).product,
-    scenarios:scenes,viewportWidths:[320,360,400,440,520],themes:['dark','light'],
+    scenarios:scenes,viewportWidths:[320,360,400,420,440,520],themes:['dark','light'],
     checks:['single production React root','no retired Portal','input and Enter',
-      'Shift+Enter','offline result guard','settings Escape and inert'],native:false}));
+      'Shift+Enter','offline result guard','run review Cancel/Confirm offline','settings Escape and inert'],native:false}));
 }catch(error){
   let snapshot;
   try{snapshot=await evaluate('({ready:document.documentElement.dataset.workflowPreviewReady,'+
