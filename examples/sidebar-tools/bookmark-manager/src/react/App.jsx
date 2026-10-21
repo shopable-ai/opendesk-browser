@@ -89,7 +89,7 @@ function Tree({rows,expanded,searchActive,searchTerm,selectedId,activeId,setActi
    else if(event.key==='Escape'){return} // document handles Escape for readonly preview or row menu
    else return;event.preventDefault();
  }
- return <div className="bm-tree-scroll" ref={scrollRef} onScroll={e=>{const el=e.currentTarget;setTop(el.scrollTop);onScrollClose(e);if(virtual&&rows.length){const first=Math.max(0,Math.floor(el.scrollTop/rowHeight));const last=Math.min(rows.length-1,Math.floor((el.scrollTop+el.clientHeight-1)/rowHeight));if(activeRow<first||activeRow>last)setActiveId(rows[first]?.node.id||rows[0].node.id)}}} role="tree" aria-label="书签目录与书签" aria-activedescendant={displayed.length?'bm-treeitem-'+(displayed.some(r=>r.node.id===activeId)?activeId:displayed[0].node.id):undefined} tabIndex={0} onKeyDown={onKey} data-testid="bookmark-tree">
+ return <div className="bm-tree-scroll" ref={scrollRef} onScroll={e=>{const el=e.currentTarget;setTop(el.scrollTop);const autoRevealScroll=onScrollClose(e);if(!autoRevealScroll&&virtual&&rows.length){const first=Math.max(0,Math.floor(el.scrollTop/rowHeight));const last=Math.min(rows.length-1,Math.floor((el.scrollTop+el.clientHeight-1)/rowHeight));if(activeRow<first||activeRow>last)setActiveId(rows[first]?.node.id||rows[0].node.id)}}} role="tree" aria-label="书签目录与书签" aria-activedescendant={displayed.length?'bm-treeitem-'+(displayed.some(r=>r.node.id===activeId)?activeId:displayed[0].node.id):undefined} tabIndex={0} onKeyDown={onKey} data-testid="bookmark-tree">
   {!rows.length?<div className="bm-empty">没有匹配的书签。试试其他关键词。</div>:
   <div className="bm-virtual-area" role="presentation" style={{height:virtual?rows.length*rowHeight:undefined}}>
    {displayed.map((row,i)=>{const node=row.node,folder=isFolder(node),open=expanded.has(node.id)||searchActive;
@@ -253,7 +253,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
  const service=useMemo(()=>runtime?.service??globalThis.BookmarkR2Service.create(sdk),[runtime,sdk]);
  const [tree,setTree]=useState(null),[expanded,setExpanded]=useState(new Set(['1','2','10','11'])),[query,setQuery]=useState(''),[selectedId,setSelectedId]=useState(null),[activeId,setActiveId]=useState('1'),[draft,updateDraft]=useState(null),[pickerOpen,setPickerOpen]=useState(false),[previewOpen,setPreviewOpen]=useState(false),[menu,setMenu]=useState(null),[confirmDiscard,setConfirmDiscard]=useState(false),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[uncertain,setUncertain]=useState(false);
  const [revealTarget,setRevealTarget]=useState(null);
- const interactionEpoch=useRef(0),pendingAiReveal=useRef(null),queryRef=useRef(query);
+ const interactionEpoch=useRef(0),pendingAiReveal=useRef(null),ignoreAutoScrollTop=useRef(null),queryRef=useRef(query);
  queryRef.current=query;
  const scrollRef=useRef(null),pendingFolderReveal=useRef(null),readEpoch=useRef(0),writeEpoch=useRef(0),authorityEpoch=useRef(0),activeRef=useRef(true),menuButtonRef=useRef(null),busyRef=useRef(false),fillEpoch=useRef(0);
 
@@ -428,6 +428,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
   }
   pendingAiReveal.current=null;
   scroller.scrollTop=Math.max(0,index*TREE_ROW_HEIGHT-Math.floor(scroller.clientHeight/3));
+  ignoreAutoScrollTop.current=scroller.scrollTop;
   setActiveId(pending.id); // Focus remains where the user is typing.
  },[rows,query,tree]);
  const current=tree?.byId.get(selectedId)||null;
@@ -622,7 +623,15 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
    <button type="button" onClick={locateAiResult}>{query.trim()?'清除搜索并定位':'查看新项目'}</button>
   </div>}
   <div className="bm-workspace"><section className="bm-explorer" aria-label="书签树">{query&&<div className="bm-tree-head"><span>搜索结果</span><small>{rows.filter(r=>((r.node.title+' '+(r.node.url||'')).toLocaleLowerCase()).includes(query.toLocaleLowerCase())).length} 条匹配</small></div>}
-  {loading&&!tree?<div className="bm-loading" role="status">正在读取书签…</div>:tree?<Tree rows={rows} expanded={expanded} selectedId={selectedId} activeId={activeId} setActiveId={id=>{interactionEpoch.current++;setActiveId(id)}} onSelect={select} onFolder={navigateFolder} onToggle={toggle} onMenu={onMenu} searchActive={Boolean(query.trim())} searchTerm={query} onEdit={id=>request({type:'edit',id})} onScrollClose={event=>{setMenu(null);if(event.nativeEvent?.isTrusted)interactionEpoch.current++}} scrollRef={scrollRef}/>:<div className="bm-empty">暂时无法读取书签。使用刷新重试。</div>}</section>
+  {loading&&!tree?<div className="bm-loading" role="status">正在读取书签…</div>:tree?<Tree rows={rows} expanded={expanded} selectedId={selectedId} activeId={activeId} setActiveId={id=>{interactionEpoch.current++;setActiveId(id)}} onSelect={select} onFolder={navigateFolder} onToggle={toggle} onMenu={onMenu} searchActive={Boolean(query.trim())} searchTerm={query} onEdit={id=>request({type:'edit',id})} onScrollClose={event=>{
+  setMenu(null);
+  const requested=ignoreAutoScrollTop.current;
+  if(requested!==null&&Math.abs(event.currentTarget.scrollTop-requested)<1){
+   ignoreAutoScrollTop.current=null;return true;
+  }
+  if(event.nativeEvent?.isTrusted)interactionEpoch.current++;
+  return false;
+ }} scrollRef={scrollRef}/>:<div className="bm-empty">暂时无法读取书签。使用刷新重试。</div>}</section>
   {previewNode&&<button type="button" tabIndex={-1} aria-hidden="true"
    className="bm-preview-backdrop" onClick={closePreview}/>}
   {previewNode&&<PreviewPane tree={tree} node={previewNode} onClose={closePreview} onEdit={id=>request({type:'edit',id})} onCopy={copyPreviewUrl}/>} 
