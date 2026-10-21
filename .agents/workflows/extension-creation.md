@@ -45,6 +45,8 @@
 
 当任务只是修已有工具时，先定位受影响的 F/S/A 编号，**只复查受影响环节**。用户明确只做设计/原型时止步相应阶段，不能自动发布。
 
+**业务代码所有权和独立升级必须同时审查**：有后台、拦截或页面注入诉求时，在 Gate A 按 [Sidebar Tool 与 Browser Host 解耦合同](../../docs/architecture/browser-framework/sidebar-tool-host-decoupling.zh-CN.md) 分别标记 L1 源码归属、L2 专属宿主接线、L3 有界策略可独立升级、L4 新特权算法的 Browser 发行需求。第三方应用不可默认新增固定 SW/Host 专用分支；只有公共能力缺口完成证据审查才由 Runtime owner 修改平台。此项是现有工作流增量检查，不新建 Skill/路由器或安装格式。
+
 ## 二-A、Extension Type & Ownership Gate（编码前强制）
 
 Phase 0–3 / Gate A 中先按[五种使用场景](../../docs/api/extension-development-selection.zh-CN.md#1-先选需求五种使用场景)判断需求：Controller 网页自动化、Page 网页增强、Sidebar Tool 应用界面、固定可信 Background Service，或多职责 Combined Application。**后台是独立使用场景，但不代表已提供任意后台 JS 安装器；组合式作为第五种场景，不新增第五套运行器或绕过各模块授权。**随后确定每个模块实际运行类型和源码所有权再编码。AI 输出一个**简短的架构确认摘要**，用户已有明确需求不重复征求分类确认，也不要求用户填技术表单。默认只读公开 [Sidebar Tool 规范](../../docs/api/sidebar-tool-development.zh-CN.md)、[Sidebar Tool API](../../docs/api/sidebar-tools.zh-CN.md)、[Page USER_SCRIPT](../../docs/api/page-userscript.zh-CN.md)、[Controller](../../docs/api/controller.zh-CN.md)、示例和当前项目；第三方开发不依赖宿主内部 `src/`。
