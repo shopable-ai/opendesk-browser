@@ -16,6 +16,7 @@ on:
       - 'scripts/tests/workflow-source-preview-browser.mjs'
       - 'scripts/tests/react-sidebar-r3331-browser.mjs'
       - 'tests/environment/workflow-react-preview-contract.test.mjs'
+      - 'tests/environment/workflow-focus.test.mjs'
       - 'prototypes/sidebar/workflow/react-preview/**'
       - '.github/workflows/workflow-react-preview-r3336.yml'
   workflow_dispatch:
