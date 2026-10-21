@@ -376,6 +376,8 @@ async function run(){
   await poll('document.querySelectorAll(".prompt-card").length===6&&document.querySelector("#promptBody").value===""','save and continue second');
   x=await state();assert.equal(x.cards,6);assert.equal(x.editing,true);
   assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),6,'second save instantly updates the injected rail');
+  await poll('document.querySelector("#promptForm").getAttribute("aria-busy")!=="true"',
+    'save-and-continue finishes before cancel');
   await click('#cancelForm');x=await state();assert.equal(x.editing,false);
   report.batchCreateAndReset=true;
   await click('#resetButton');
