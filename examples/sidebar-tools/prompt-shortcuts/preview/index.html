@@ -384,15 +384,19 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
 .web-tip{left:100px;width:min(335px,calc(100% - 112px))}
 .prompt-icon.has-image{width:48px;height:38px;min-width:48px;min-height:38px;overflow:hidden;padding:0;border-radius:9px}
-.appearance-switch{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--od-bg);padding:3px;border-radius:9px;border:1px solid var(--od-line)}
-.appearance-switch label{position:relative;display:grid;place-items:center;min-height:32px;font-size:12px;font-weight:650;cursor:pointer;border-radius:7px}
+.appearance-switch{display:inline-grid;grid-template-columns:repeat(2,54px);gap:2px;justify-self:end;max-width:100%;background:var(--od-bg);padding:2px;border-radius:9px;border:1px solid var(--od-line)}
+.appearance-switch label{position:relative;display:grid;place-items:center;min-height:28px;font-size:12px;font-weight:650;cursor:pointer;border-radius:7px}
 .appearance-switch label:has(input:checked){background:var(--od-paper);box-shadow:0 1px 4px #08172c1c;color:var(--od-accent-ink)}
 .appearance-switch input{position:absolute;opacity:0;inset:0;cursor:pointer}
 .appearance-switch label:has(input:focus-visible){outline:3px solid var(--od-focus);outline-offset:1px}
 .image-size-setting{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;margin:0 0 10px;padding:6px 8px}
-.image-size-setting label{display:flex;align-items:center;min-width:0;flex:1}
-.image-size-setting select{width:135px;max-width:52%;min-width:108px;min-height:34px;flex:none}
-@media(max-width:380px){.image-size-setting{gap:6px;padding:5px 7px}.image-size-setting select{width:128px;max-width:50%}}
+.image-size-setting>span{display:flex;align-items:center;min-width:0;flex:1;font-size:12px;font-weight:650}
+.image-size-buttons{display:flex;gap:3px;flex:none}
+.image-size-button{display:grid;place-items:center;width:36px;height:34px;padding:0;flex:none;background:var(--od-paper);color:var(--od-ink);border:1px solid var(--od-line);border-radius:8px;cursor:pointer}
+.image-size-button[aria-pressed="true"]{color:var(--od-accent-ink);background:var(--od-muted);border-color:var(--od-accent-ink)}
+.image-size-button:focus-visible{outline:3px solid var(--od-focus);outline-offset:2px}
+.image-size-button .size-dot{display:block;width:var(--dot);height:var(--dot);border-radius:50%;background:currentColor}
+@media(max-width:380px){.image-size-setting{gap:6px;padding:5px 7px}.image-size-button{width:34px}}
 .ps-image-fields{display:grid;gap:5px;border-top:1px solid var(--od-line)}
 .ps-image-fields[hidden]{display:none!important}
 .ps-image-preview-line{display:flex;align-items:center;gap:11px;padding:7px 0}
@@ -515,7 +519,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
       <p id="replaceWarning" class="replace-warning" role="alert" hidden></p>
       <div class="import-actions"><button id="cancelImport" type="button" class="od-button">取消</button><button id="importReplace" type="button" class="od-button od-button--danger">替换现有</button><button id="importAppend" type="button" class="od-button od-button--primary">追加导入</button></div>
      </div>
-     <div id="imageSizeGroup" class="host-setting-row od-surface image-size-setting" role="group" aria-label="图片快捷按钮尺寸设置"><label for="imageSizeSetting"><strong>图片按钮大小</strong></label><select id="imageSizeSetting" class="od-field" aria-label="图片按钮大小"><option value="compact">紧凑 · 48×40</option><option value="standard">标准 · 56×44</option><option value="large" selected>大图 · 68×48</option></select></div>
+     <div id="imageSizeGroup" class="host-setting-row od-surface image-size-setting" role="group" aria-label="图片快捷按钮尺寸设置"><span id="imageSizeLabel">图片按钮大小</span><input id="imageSizeSetting" type="hidden" value="large"><div class="image-size-buttons" role="group" aria-labelledby="imageSizeLabel"><button class="image-size-button" type="button" data-image-size="compact" aria-pressed="false" aria-label="紧凑图片尺寸，48×40 像素" title="紧凑 · 48×40"><span class="size-dot" style="--dot:6px"></span></button><button class="image-size-button" type="button" data-image-size="standard" aria-pressed="false" aria-label="标准图片尺寸，56×44 像素" title="标准 · 56×44"><span class="size-dot" style="--dot:10px"></span></button><button class="image-size-button" type="button" data-image-size="large" aria-pressed="true" aria-label="大图图片尺寸，68×48 像素" title="大图 · 68×48"><span class="size-dot" style="--dot:14px"></span></button></div></div>
      <div id="promptList" class="shortcuts-list"></div>
    </section>
    <section id="formView" hidden aria-labelledby="hostToolTitle">
@@ -745,6 +749,9 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   el('toolEnabledSwitch').checked=state.toolEnabled;
   el('contextSwitch').checked=state.settings.contextMenu;
   el('imageSizeSetting').value=IMAGE_SIZES.includes(state.settings.imageSize)?state.settings.imageSize:'large';
+   el('imageSizeGroup').querySelectorAll('[data-image-size]').forEach(button=>{
+    button.setAttribute('aria-pressed',String(button.dataset.imageSize===el('imageSizeSetting').value));
+   });
   el('imageSizeGroup').hidden=!state.items.some(item=>item.appearance==='image');
   el('showBarSwitch').disabled=!state.toolEnabled;
   el('contextSwitch').disabled=!state.toolEnabled;
@@ -1118,12 +1125,13 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   state.settings.contextMenu=event.currentTarget.checked;persistDemoSettings();state.revision++;renderIndex();renderRail();el('mockContextMenu').hidden=true;
   notice(state.settings.contextMenu?'模拟原生右键功能已开启；正式使用仍取决于 Chrome 菜单许可。':'模拟原生右键功能已关闭。');
  });
- el('imageSizeSetting').addEventListener('change',event=>{
-  const next=event.currentTarget.value;if(!IMAGE_SIZES.includes(next)){setSettings();return;}
+ el('imageSizeGroup').querySelectorAll('[data-image-size]').forEach(button=>button.addEventListener('click',()=>{
+  const next=button.dataset.imageSize;if(!IMAGE_SIZES.includes(next)){setSettings();return;}
+  if(next===state.settings.imageSize)return;
   const previous=state.settings.imageSize;state.settings.imageSize=next;
   if(!persistDemoSettings()){state.settings.imageSize=previous;setSettings();notice('浏览器拒绝保存尺寸设置，已恢复原尺寸。','error');return;}
-  state.revision++;renderIndex();renderRail();notice('图片按钮尺寸已设为 '+event.currentTarget.selectedOptions[0].textContent+'（模拟，刷新后保留）。','success');
- });
+  state.revision++;renderIndex();renderRail();notice('图片按钮尺寸已设为 '+button.title+'（模拟，刷新后保留）。','success');
+ }));
  el('hostSettings').addEventListener('click',()=>{if(currentView==='form'&&dirty){showFormError('请先处理未保存草稿。');return;}setView(currentView==='settings'?'index':'settings');setSettings();});
  el('sitesButton').addEventListener('click',()=>{
   const pane=el('siteDetails'),expanded=pane.hidden;pane.hidden=!expanded;
