@@ -58,6 +58,11 @@ function reviewedCompiledAdblock(target,path,root){
   return hash;
 }
 
+// R1.8 source review: Service now checks local cancellation before SDK writes
+// and preserves writeIssued evidence; App enforces trusted authorization,
+// prevents async AI reveals from hijacking newer user navigation, and shows a
+// readback-only locate action. CSS adds only that locate notice. Exact Git
+// blob locks stay fail-closed; any subsequent change requires re-review.
 // R3.2: The Bookmark Manager trusted React pilot compiles exactly four
 // reviewed first-party files into the EXISTING ui/tool-shell.js. They are
 // author-controlled static imports, not installed or user-supplied package
@@ -66,9 +71,9 @@ function reviewedCompiledAdblock(target,path,root){
 // admission and the dynamic opaque iframe boundary remain independent.
 const compiledBookmarkReactInputs=Object.freeze({
   'examples/sidebar-tools/bookmark-manager/src/model.js':'34cc7a737869ca502b4bcbbb47d2437d1b6b2bd5',
-  'examples/sidebar-tools/bookmark-manager/src/service.js':'1c1541ee128e37dd8897b073581bd476ce8f4171',
-  'examples/sidebar-tools/bookmark-manager/src/react/App.jsx':'253d8261ecde1ece6d6b32f1fbe1aa2998170f71',
-  'examples/sidebar-tools/bookmark-manager/src/react/style.css':'eb6043e6d686e10317f5dd5569073b6fa5a11a73'
+  'examples/sidebar-tools/bookmark-manager/src/service.js':'3a95b152f83b74638a57420b72bfa75de770bd55',
+  'examples/sidebar-tools/bookmark-manager/src/react/App.jsx':'54db2ca0c0a28c21c4682c493df65898e312be55',
+  'examples/sidebar-tools/bookmark-manager/src/react/style.css':'45df50633c993c32a5ba60d6889ab769a8e77ca6'
 });
 function reviewedCompiledBookmarkReact(target,path,root){
   if(target!=='ui/tool-shell.js'||!Object.hasOwn(compiledBookmarkReactInputs,path))return null;
@@ -191,8 +196,10 @@ function reviewedCompiledAppOwnedBackground(target,path,root){
 
 // One immutable Markdown domain converter is shared by Clipper and Knowledge
 // Inbox. Its byte-reviewed source may enter only the existing Page Relay.
+// R1.8 source review: the shared converter only corrects nested-list
+// Markdown indentation; URL filtering and secret redaction are unchanged.
 const sharedMarkdownInput='examples/shared/markdown/convert.js';
-const sharedMarkdownBlob='b53147ff3bd888f1291e81daf8a90d06b5a1a114';
+const sharedMarkdownBlob='58516382e28fc03b89b58371f9b905d89e05ae27';
 function reviewedCompiledSharedMarkdown(target,path,root){
   if(path!==sharedMarkdownInput||target!=='agents/page-relay.js')return null;
   const file=resolve(root,path);
