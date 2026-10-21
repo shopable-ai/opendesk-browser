@@ -192,7 +192,8 @@ const etag=value=>{
 const reason=(code,message)=>Object.assign(new Error(message),{code});
 globalThis.OpenDeskTool={
  root:document.querySelector('.clip'),
- setState(){},
+ setState({dirty,busy}={}){parent.postMessage({kind:'clipper-demo-state',dirty:dirty===true,busy:busy===true},'*');},
+ setNavigation({page}={}){parent.postMessage({kind:'clipper-demo-nav',page},'*');},
  async request(operation,args={}){
   if(['clip.article','clip.selection','clip.link'].includes(operation)){
    const another=source.includes('next-page');
@@ -277,7 +278,14 @@ globalThis.OpenDeskSDK={browser:{
   return {started:true};
  }}
 }};
-window.addEventListener('message',({data})=>{
+window.addEventListener('message',({source:sender,data})=>{
+ if(sender!==parent)return;
+ if(data?.kind==='clipper-demo-nav-action'){
+  if(['back','primary'].includes(data.action))
+   document.querySelector('.clip').dispatchEvent(
+    new CustomEvent('opendesk-tool-navigation',{detail:{action:data.action}}));
+  return;
+ }
  if(data?.kind!=='clipper-demo-control')return;
  if(data.theme==='dark'||data.theme==='light')document.documentElement.dataset.demoTheme=data.theme;
  if(data.zoom===1||data.zoom===2){
