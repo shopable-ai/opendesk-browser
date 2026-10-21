@@ -485,9 +485,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
     // Plain Controller edits must not refresh Page or JSX preparation.
     if(!local&&!page&&!remote&&componentMode==='javascript')controllerClassic.schedule();
     else controllerClassic.cancel();
-    // Active source owners synchronously notify update(); imported/Local drafts
-    // have no active source observer, so project those explicitly.
-    if(local||programSource.snapshot())update();
+    // Page Classic's dependency key omits body-only edits. Project its Run
+    // controls even when the resolver correctly skips a redundant inspection.
+    if(local||page||programSource.snapshot())update();
   }
   on('script-id','input',()=>{
     pagePreviewFlow?.clearLast();sourceInput();

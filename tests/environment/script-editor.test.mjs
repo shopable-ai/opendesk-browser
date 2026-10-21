@@ -239,6 +239,20 @@ test('R40.10 cancelling component Candidate preparation cancels its compiler onc
   await tick();
 });
 
+test('R40.10 Page body-only edits update Run gate without refreshing dependency identity',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const world=f.find('script-javascript-world');
+  world.value='page';world.fire('change',{isTrusted:true});await tick();
+  const inspected=f.dependencyInspections.length;
+  assert.equal(f.find('script-run').disabled,false,'nonempty Page draft should be runnable');
+  // Same classic-userscript entry/dependency key, different executable body.
+  f.find('script-source').value='  ';
+  f.find('script-source').fire('input',{isTrusted:true});
+  assert.equal(f.find('script-run').disabled,true,'empty Page draft cannot keep stale Run enabled');
+  assert.equal(f.dependencyInspections.length,inspected,
+    'body-only changes should not start dependency discovery');
+});
+
 test('R40.5 Page to Controller transition fences stale Page inspection and keeps draft Run',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const gate=deferred(),requested=[];
