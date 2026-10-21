@@ -13,11 +13,13 @@ on:
       - 'src/ui/design-tokens.css'
       - 'src/ui/design-system.css'
       - 'scripts/preview/build-workflow-react-preview.mjs'
+      - 'scripts/preview/build-sidebar-six-react-preview.mjs'
       - 'scripts/tests/workflow-source-preview-browser.mjs'
       - 'scripts/tests/react-sidebar-r3331-browser.mjs'
       - 'tests/environment/workflow-react-preview-contract.test.mjs'
       - 'tests/environment/workflow-focus.test.mjs'
       - 'prototypes/sidebar/workflow/react-preview/**'
+      - 'prototypes/sidebar/react-preview/**'
       - '.github/workflows/workflow-react-preview-r3336.yml'
   workflow_dispatch:
 permissions:
@@ -40,6 +42,10 @@ jobs:
           node scripts/preview/build-workflow-react-preview.mjs --check
           # Workflow-specific regression; generic React contracts also run in the package job.
           node --test tests/environment/workflow-react-preview-contract.test.mjs tests/environment/workflow-ui-states.test.mjs
+      - name: Six-tab React source-bound integration preview
+        run: |
+          node scripts/preview/build-sidebar-six-react-preview.mjs
+          node scripts/preview/build-sidebar-six-react-preview.mjs --check
       - name: Source-bound Workflow HTML interaction in real Chromium
         run: node scripts/tests/workflow-source-preview-browser.mjs
       - name: Real Chrome offline preview DOM and 360px screenshot
