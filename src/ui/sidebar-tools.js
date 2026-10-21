@@ -31,6 +31,7 @@ import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPA
   changeReadingTocVisibility,READING_TOC_PAGE_RULES_STORE,readingTocPageAllowed,
   disabledTocPages,changeTocPageAllowed} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
 import {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClipGrant} from '../../examples/sidebar-tools/web-markdown-clipper/trusted/policy.js';
+import {CLIP_NOTES_OPERATIONS,executeClipNotes} from '../../examples/sidebar-tools/web-markdown-clipper/trusted/notes-store.js';
 import {installedSiteAllowed,blockedInstalledOrigins} from './sidebar-tools/site-grants.js';
 import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABILITY,KNOWLEDGE_PROTOCOL,
   KNOWLEDGE_OPERATIONS,KNOWLEDGE_WORKSPACE_PREFIX,changeCaptureGrant,chatCaptureOrigin,knowledgePackageHash} from '../knowledge/policy.js';
@@ -66,7 +67,10 @@ export function checkSidebarToolRequestBudget(message){
       return {ok:false,code:'E_LIMIT'};
     return {ok:true};
   }
-  // Keep non-Browser tool request budgets unchanged in this scoped fix.
+  // Only official Web Markdown Clipper full-text writes may exceed the legacy 12 KB RPC budget.
+  if(['clipNotes.save','clipNotes.edit'].includes(message.operation))return
+    new TextEncoder().encode(serialized).byteLength<=190000?{ok:true}:{ok:false,code:'E_LIMIT'};
+  // Keep other non-Browser tool request budgets unchanged.
   return serialized.length<=(
     ['browser.clipboard.writeText','browser.downloads.text','knowledge.update','knowledge.create'].includes(message.operation)
       ?170000:12000
@@ -1770,6 +1774,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
        operation==='tasks.open'?'tasks.open':
        ['toc.snapshot','toc.navigate'].includes(operation)?TOC_CAPABILITY:
         CLIP_OPERATIONS.includes(operation)?CLIP_CAPABILITY:
+      CLIP_NOTES_OPERATIONS.includes(operation)?'storage.local':
       knowledgeOperation(operation)?KNOWLEDGE_CAPABILITY:
       PROMPT_PAGE_OPERATIONS.includes(operation)?PROMPT_CAPABILITY:
       TIME_REVIEW_OPERATIONS.includes(operation)?TIME_REVIEW_CAPABILITY:
@@ -1876,6 +1881,22 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         throw Object.assign(new Error('旧工具实例已撤销；请先保留草稿再重新打开'),{code:'E_TOOL_CHANGED'});
       assertSession(source,token);
 
+      if(CLIP_NOTES_OPERATIONS.includes(operation)){
+        if(tool.id!=='web-markdown-clipper')
+          throw Object.assign(new Error('只有网页剪藏可以访问摘录数据'),{code:'E_TOOL_CONTEXT'});
+        if(operation==='clipNotes.backup'&&!tool.capabilities.includes('user.export'))
+          throw Object.assign(new Error('工具没有获准导出摘录'),{code:'E_TOOL_CAPABILITY_REQUIRED'});
+        return executeClipNotes({api,operation,toolId:tool.id,payload,
+          authorize:async()=>{
+            assertSession(source,token);
+            await assertSidebarToolEnabled(api,tool.id);
+            const state=await api.storage.local.get([SIDEBAR_TOOL_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
+            if(!requireCompleteInstalledSidebarTools(state[SIDEBAR_TOOL_STORE]).some(row=>samePackage(row,tool))||
+              (state[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null)!==revocationEpoch)
+              throw Object.assign(new Error('工具已更新、禁用或卸载，请重新打开'),{code:'E_TOOL_CHANGED'});
+            assertSession(source,token);
+          },etagFor});
+      }
       if(PROMPT_PAGE_OPERATIONS.includes(operation)){
         if(tool.id!==PROMPT_ID||!currentPageTarget?.capture||!currentPageTarget?.revalidate)
           throw Object.assign(new Error('提示词网站配置需要已安装的正式工具与活动网页'),{code:'E_TOOL_CONTEXT'});

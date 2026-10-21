@@ -1,275 +1,262 @@
 (function(g){
 'use strict';
-// A single ETag-protected value stores records and ordering atomically.
-const KEY='clips',LIMIT=8192,BODY_LIMIT=2048,MAX_NOTES=64;
-const bytes=v=>new TextEncoder().encode(typeof v==='string'?v:JSON.stringify(v)).length;
+// The trusted Host owns clipping limits, the legacy "clips" data and atomic
+// mutations. The untrusted UI never reads or rewrites the whole 4 MiB library.
+const BODY_LIMIT=160000,LIBRARY_LIMIT=4*1024*1024;
+const bytes=value=>new TextEncoder().encode(value).byteLength;
 const fail=(code,message)=>Object.assign(new Error(message),{code});
-const stable=v=>JSON.stringify(v,(_k,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.fromEntries(Object.keys(x).sort().map(k=>[k,x[k]])):x);
-const empty=()=>({version:1,items:[]});
 const titleOf=body=>[...String(body).trim().replace(/^#{1,6}\s*/,'').split(/\r?\n/)[0]].slice(0,42).join('')||'新便签';
-function sourceOf(raw,{preserveLegacy=false}={}){
- if(!raw)return '';
- if(typeof raw!=='string'||bytes(raw)>1200)throw fail('E_SOURCE','来源地址过长或无效');
- let u;try{u=new URL(raw);}catch{throw fail('E_SOURCE','网页来源地址无效');}
- if(!['http:','https:'].includes(u.protocol)||u.username||u.password)
-  throw fail('E_SOURCE','只能保存有效 HTTP(S) 网页来源');
- // Normalize at the final storage boundary, including manual/other SDK callers.
- // Old 1.1.0 records must still load byte-for-byte; do not silently migrate
- // historical URLs during read or reject an otherwise valid existing library.
- if(preserveLegacy)return u.href;
- u.hash='';
- for(const key of [...u.searchParams.keys()]){
-  if(/^(?:access[_-]?token|id[_-]?token|token|auth(?:orization)?|jwt|api[_-]?key|session(?:[_-]?id)?|secret|password|credential|oauth[_-]?code)$/i.test(key))
-   u.searchParams.delete(key);
- }
- return u.href.replace(/[()]/g,ch=>ch==='('?'%28':'%29');
-}
-function normalize(value){
- if(value==null)return empty();
- if(!value||typeof value!=='object'||Array.isArray(value)||value.version!==1||
-    !Array.isArray(value.items)||value.items.length>MAX_NOTES||bytes(value)>LIMIT)
-   throw fail('E_STORAGE_CORRUPT','本地摘录数据无效；不会覆盖已有记录');
- const seen=new Set(),items=[];
- for(const x of value.items){
-  if(!x||typeof x!=='object'||Array.isArray(x)||
-     typeof x.id!=='string'||!/^clip-[a-z0-9-]{8,90}$/.test(x.id)||seen.has(x.id)||
-     !['note','clip'].includes(x.kind)||typeof x.body!=='string'||!x.body.trim()||bytes(x.body)>BODY_LIMIT||
-     typeof x.title!=='string'||bytes(x.title)>400||typeof x.source!=='string'||bytes(x.source)>1200||
-     (x.kind==='note'&&x.source!=='')||
-     typeof x.createdAt!=='string'||!Number.isFinite(Date.parse(x.createdAt))||
-     typeof x.updatedAt!=='string'||!Number.isFinite(Date.parse(x.updatedAt))||
-     (x.source&&sourceOf(x.source,{preserveLegacy:true})!==x.source))
-    throw fail('E_STORAGE_CORRUPT','发现无效的旧摘录；不会覆盖已有记录');
-  seen.add(x.id);
-  items.push({id:x.id,kind:x.kind,body:x.body,title:x.title,source:x.source,
-    createdAt:x.createdAt,updatedAt:x.updatedAt});
- }
- return {version:1,items};
-}
-function createStore({request,now=()=>new Date().toISOString(),
- newId=()=> 'clip-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,12)}){
+const filename=title=>(String(title||'网页摘录').normalize('NFKC')
+ .replace(/[\x00-\x1f\x7f\\/:*?"<>|]/g,'-').replace(/^[.\s]+|[.\s]+$/g,'').slice(0,60)||'web-clip')+'.md';
+
+function createStore({request}){
  let busy=false,uncertain=false;
- async function read(){
-  const reply=await request('storage.get',{key:KEY,withEtag:true});
-  if(!reply||!Object.hasOwn(reply,'value')||!/^[a-f0-9]{64}$/.test(reply.etag||''))
-   throw fail('E_STORAGE_READ','本地存储未返回可信版本');
-  return {data:normalize(reply.value),etag:reply.etag};
- }
- async function mutate(transform){
-  if(busy)throw fail('E_BUSY','正在保存，请勿重复操作');
-  if(uncertain)throw fail('E_OUTCOME_UNKNOWN','上次写入结果未确认，请先重新读取我的摘录');
+ const command=async(operation,payload)=>request('clipNotes.'+operation,payload);
+ const guard=async work=>{
+  if(busy)throw fail('E_BUSY','正在写入摘录，请勿重复操作');
+  if(uncertain)throw fail('E_OUTCOME_UNKNOWN','上次写入结果未确认，请先刷新我的摘录');
   busy=true;
-  try{
-   for(let i=0;i<3;i++){
-    const before=await read(),change=transform(before.data);
-    if(!change.next)return change.result;
-    if(bytes(change.next)>LIMIT)throw fail('E_QUOTA','摘录空间已满，请先备份或删除旧内容；不会截断正文');
-    const next=normalize(change.next);
-    if(bytes(next)>LIMIT)throw fail('E_QUOTA','摘录空间已满，请先备份或删除旧内容；不会截断正文');
-    let problem=null;
-    try{
-     const reply=await request('storage.set',{key:KEY,value:next,ifMatch:before.etag});
-     if(reply?.saved!==true||!/^[a-f0-9]{64}$/.test(reply.etag||''))
-      throw fail('E_OUTCOME_UNKNOWN','保存回执不完整');
-    }catch(error){problem=error;}
-    if(problem?.code==='E_STORAGE_CONFLICT'&&i<2)continue;
-    let checked=null;
-    try{checked=await read();}catch{/* No read means unknown, never claim success. */}
-    if(checked&&stable(checked.data)===stable(next))return change.result;
-    if(problem?.code==='E_STORAGE_CONFLICT')throw fail('E_STORAGE_CONFLICT','其他窗口已修改摘录，请重新读取');
-    if(['E_LIMIT','E_TOOL_DATA_LIMIT','E_HOST_STORAGE_QUOTA'].includes(problem?.code))
-     throw fail('E_QUOTA','存储空间不足，请备份或删除旧内容');
-    // The existing verified Host emits E_HOST_STORAGE_WRITE only after it
-    // re-reads an unchanged previous value. A verified no-write is retryable.
-    if(problem?.code==='E_HOST_STORAGE_WRITE'&&checked&&
-       stable(checked.data)===stable(before.data))
-     throw fail('E_STORAGE_WRITE','保存失败，已确认旧数据未变化；可以重试');
-    uncertain=true;
-    throw fail('E_OUTCOME_UNKNOWN','保存结果尚未确认，请重新读取核对后再操作');
-   }
-   throw fail('E_STORAGE_CONFLICT','其他窗口正在修改，请重新读取');
+  try{return await work();}
+  catch(error){
+   if(['E_OUTCOME_UNKNOWN','E_TOOL_TIMEOUT'].includes(error?.code))uncertain=true;
+   throw error;
   }finally{busy=false;}
- }
- function candidate(input){
-  if(typeof input?.body!=='string'||!input.body.trim())throw fail('E_EMPTY','请输入要保存的文字');
-  if(bytes(input.body)>BODY_LIMIT)throw fail('E_BODY_LIMIT','短摘录最多 2 KB；完整文章请下载 .md，不会截断');
-  const kind=input.kind==='note'?'note':'clip',source=kind==='note'?'':sourceOf(input.source);
-  if(kind==='clip'&&!source)throw fail('E_SOURCE','没有可信的网页来源');
-  const title=typeof input.title==='string'&&input.title.trim()
-   ?[...input.title.trim()].slice(0,70).join(''):titleOf(input.body);
-  return {kind,body:input.body,title,source};
- }
+ };
+ const list=(query='',offset=0)=>command('list',{query,offset});
+ const get=id=>command('get',{id});
  async function save(input){
-  const wanted=candidate(input),id=newId(),at=now();
-  return mutate(data=>{
-   const duplicate=data.items.find(x=>wanted.kind==='clip'&&x.kind==='clip'&&
-      x.source===wanted.source&&x.body.trim()===wanted.body.trim());
-   if(duplicate)return {next:null,result:{item:duplicate,duplicate:true}};
-   if(data.items.length>=MAX_NOTES)throw fail('E_QUOTA','已达到短摘录数量上限，请先备份或删除旧内容');
-   if(data.items.some(x=>x.id===id))throw fail('E_ID','新记录标识重复，请重试');
-   const item={id,...wanted,createdAt:at,updatedAt:at};
-   return {next:{version:1,items:[...data.items,item]},result:{item,duplicate:false}};
+  if(typeof input?.body!=='string'||!input.body.trim())throw fail('E_EMPTY','请输入要保存的文字');
+  if(bytes(input.body)>BODY_LIMIT)throw fail('E_BODY_LIMIT','正文超过 160,000 字节，不会截断');
+  return guard(async()=>{
+   let response=null;
+   try{
+    response=await command('save',input);
+    const confirmed=await get(response.id);
+    if(!confirmed?.item||confirmed.item.body!==input.body||
+       confirmed.item.kind!==(input.kind==='note'?'note':'clip')||
+       (input.kind!=='note'&&!confirmed.item.source)||
+       (input.title&&confirmed.item.title!==[...input.title.trim()].slice(0,70).join('')))
+     throw fail('E_OUTCOME_UNKNOWN','写入后逐字段核对未通过，请刷新我的摘录');
+    return {item:confirmed.item,etag:confirmed.etag,duplicate:response.duplicate===true};
+   }catch(error){if(response)uncertain=true;throw error;}
   });
  }
- async function edit(id,baseline,body){
+ async function edit(id,etag,body){
   if(typeof body!=='string'||!body.trim())throw fail('E_EMPTY','正文不能为空');
-  if(bytes(body)>BODY_LIMIT)throw fail('E_BODY_LIMIT','正文最多 2 KB，不会自动截断');
-  const at=now();
-  return mutate(data=>{
-   const old=data.items.find(x=>x.id===id);
-   if(!old)throw fail('E_NOT_FOUND','摘录已删除，请重新读取');
-   if(stable(old)!==stable(baseline))throw fail('E_STORAGE_CONFLICT','其他窗口已修改这条摘录；没有覆盖新数据');
-   if(old.body===body)return {next:null,result:{item:old,unchanged:true}};
-   const item={...old,body,title:old.kind==='note'?titleOf(body):old.title,updatedAt:at};
-   return {next:{version:1,items:data.items.map(x=>x.id===id?item:x)},result:{item,unchanged:false}};
+  if(bytes(body)>BODY_LIMIT)throw fail('E_BODY_LIMIT','正文超过 160,000 字节，不会截断');
+  return guard(async()=>{
+   let response=null;
+   try{
+    response=await command('edit',{id,ifMatch:etag,body});
+    const checked=await get(id);
+    if(checked?.item?.body!==body)throw fail('E_OUTCOME_UNKNOWN','编辑读回不一致，请刷新核对');
+    return {item:checked.item,etag:checked.etag,unchanged:response.unchanged===true};
+   }catch(error){if(response)uncertain=true;throw error;}
   });
  }
- async function remove(id,baseline=null){
-  return mutate(data=>{
-   const current=data.items.find(x=>x.id===id);
-   if(!current)return {next:null,result:{removed:false}};
-   // A one-click delete must not remove a newer edit made in another panel.
-   if(baseline&&stable(current)!==stable(baseline))
-    throw fail('E_STORAGE_CONFLICT','另一窗口已经修改这条摘录，请刷新后再删除');
-   return {next:{version:1,items:data.items.filter(x=>x.id!==id)},result:{removed:true}};
+ async function remove(id,etag){
+  return guard(async()=>{
+   const result=await command('remove',{id,ifMatch:etag});
+   try{await get(id);}
+   catch(error){
+    if(error?.code==='E_NOT_FOUND')return result;
+    uncertain=true;throw error;
+   }
+   uncertain=true;throw fail('E_OUTCOME_UNKNOWN','删除后仍能读到摘录，请刷新核对');
   });
  }
- async function recover(){const value=await read();uncertain=false;return value;}
- return {read,recover,save,edit,remove,get uncertain(){return uncertain;}};
+ async function recover(query='',offset=0){const result=await list(query,offset);uncertain=false;return result;}
+ const backup=()=>guard(()=>command('backup',{}));
+ return {list,get,save,edit,remove,recover,backup,get uncertain(){return uncertain;}};
 }
-function create({root,request,sdk,onStatus}){
+function create({root,request,sdk,onStatus,renderMarkdown}){
  const q=id=>root.querySelector('#'+id),doc=root.ownerDocument||document;
- const el=(tag,cls,text)=>{const n=doc.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
+ const el=(tag,cls,text)=>{const node=doc.createElement(tag);if(cls)node.className=cls;if(text!==undefined)node.textContent=text;return node;};
  const store=createStore({request});
- let data=empty(),clip=null,editing=null,baseline='',busy=false,selected=null;
+ let data={items:[],total:0,usedBytes:0,etag:null,nextOffset:null};
+ let clip=null,reading=null,editing=null,editingSource=null,baseline='',busy=false;
+ let generation=0,searchTimer=null;
  const msg=(text,error=false)=>{q('clip-notes-status').textContent=text;q('clip-notes-status').dataset.error=String(error);};
  const dirty=()=>editing!==null&&q('clip-note-body').value!==baseline;
  const notify=()=>g.OpenDeskTool?.setState?.({dirty:dirty(),busy});
- async function reload(recover=false){
-  const result=recover?await store.recover():await store.read();
-  data=result.data;render();return result;
- }
+ const statusError=(error,prefix='')=>msg(prefix+String(error?.message||error),true);
  function setClip(next){
-  if(clip?.source!==next?.source||clip?.body!==next?.body)selected=null;
   clip=next;
-  const long=next&&bytes(next.body)>BODY_LIMIT;
-  q('clip-save').disabled=!next||Boolean(long);
-  q('clip-save').title=long?'超过 2 KB：请下载完整 Markdown':'将短摘录保存到浏览器本地';
-  q('clip-save-explain').textContent=long?'内容超过短摘录上限，请使用「下载 .md」':'保存留在浏览器；复制进入剪贴板；下载生成文件';
-  q('clip-view-saved').hidden=!selected;
+  const large=next&&bytes(next.body)>BODY_LIMIT;
+  q('clip-save').disabled=!next||busy||Boolean(large);
+  q('clip-save').title=large?'超过 160,000 字节，请下载完整 Markdown':'完整保存到我的摘录';
+  q('clip-save-explain').textContent=large
+   ?'正文超过 160,000 字节，未截断；可下载完整 .md'
+   :'完整保存到本机「我的摘录」；也可以复制或下载 .md';
  }
- function render(){
-  const box=q('clip-note-list'),needle=q('clip-search').value.trim().toLocaleLowerCase();
-  box.replaceChildren();
-  const filtered=data.items.slice().reverse().filter(x=>[x.title,x.body,x.source]
-    .some(s=>s.toLocaleLowerCase().includes(needle)));
-  q('clip-note-count').textContent=data.items.length+' 条已保存';
-  if(!filtered.length)box.append(el('p','clip-empty',data.items.length?'没有找到匹配的内容':'还没有摘录。可以新建便签，或在网页选中文字后保存。'));
-  for(const x of filtered){
-   const card=el('article','clip-note-card'),open=el('button','clip-note-open',x.title||titleOf(x.body));
-   open.type='button';open.setAttribute('aria-label','打开 '+(x.title||'摘录'));
-   open.addEventListener('click',()=>openEditor(x));
+ function viewState(){
+  const list=!editing&&!reading;
+  q('clip-note-list').hidden=!list;
+  q('clip-notes-tools').hidden=!list;
+  q('clip-notes-meta').hidden=!list;
+  q('clip-note-more').hidden=!list||data.nextOffset===null;
+  q('clip-note-reader').hidden=!reading||Boolean(editing);
+  q('clip-note-editor').hidden=!editing;
+  q('clip-note-new').hidden=!list;
+  notify();
+ }
+ function renderList(){
+  const box=q('clip-note-list');box.replaceChildren();
+  q('clip-my-notes').textContent='我的摘录 · '+data.total;
+  q('clip-note-count').textContent=data.total+' 条 · '+(data.usedBytes/1048576).toFixed(2)+' / 4 MiB';
+  if(!data.items.length)box.append(el('p','clip-empty',data.total?'没有找到匹配的摘录':'还没有摘录。提取网页后点击「保存摘录」，以后都能从这里找回。'));
+  for(const x of data.items){
+   const card=el('article','clip-note-card');
+   const open=el('button','clip-note-open',x.title||titleOf(x.excerpt));
+   open.type='button';open.setAttribute('aria-label','阅读 '+(x.title||'摘录'));
+   open.addEventListener('click',()=>void openReader(x.id));
    const stamp=new Date(x.updatedAt).toLocaleString('zh-CN');
    const meta=el('div','clip-note-meta',(x.source?new URL(x.source).hostname:'便签')+' · '+stamp);
-   const body=el('p','clip-note-excerpt',x.body),actions=el('div','clip-note-buttons');
-   const copy=el('button','','复制'),remove=el('button','','删除');
-   copy.type=remove.type='button';copy.setAttribute('aria-label','复制这条摘录');
-   remove.setAttribute('aria-label','删除这条摘录');
-   copy.addEventListener('click',async()=>{
-    try{const result=await sdk.clipboard.writeText(x.body);
-     if(result?.copied!==true)throw Error('复制未确认');msg('已复制');
-    }catch(e){msg('复制未确认：'+String(e.message||e),true);}
-   });
-   remove.addEventListener('click',async()=>{
-    if(busy)return;
-    if(editing?.id===x.id&&dirty())return msg('请先保存或取消正在编辑的内容',true);
-    busy=true;notify();
-    try{await store.remove(x.id,x);if(editing?.id===x.id)closeEditor();
-     await reload();msg('已删除摘录');}
-    catch(e){msg(e.message||'删除结果未确认，请重新读取',true);}
-    finally{busy=false;notify();}
-   });
-   actions.append(copy,remove);card.append(open,meta,body,actions);box.append(card);
+   const excerpt=el('p','clip-note-excerpt',x.excerpt);
+   const actions=el('div','clip-note-buttons'),remove=el('button','','删除');
+   remove.type='button';remove.setAttribute('aria-label','删除 '+(x.title||'摘录'));
+   remove.addEventListener('click',()=>void removeItem(x.id,data.etag));
+   actions.append(remove);card.append(open,meta,excerpt,actions);box.append(card);
   }
+  viewState();
+ }
+ async function reload({append=false,recover=false}={}){
+  const seq=++generation,query=q('clip-search').value.trim();
+  const offset=append?data.items.length:0;
+  const result=recover?await store.recover(query,offset):await store.list(query,offset);
+  if(seq!==generation)return false;
+  if(append&&data.etag!==result.etag)return reload({recover:true});
+  data={...result,items:append?[...data.items,...result.items]:result.items};
+  renderList();return true;
+ }
+ function closeReading(){reading=null;editing=null;editingSource=null;baseline='';q('clip-note-body').value='';viewState();}
+ function renderReader(){
+  if(!reading)return;
+  const {item}=reading;
+  q('clip-note-read-title').textContent=item.title||titleOf(item.body);
+  q('clip-note-read-meta').textContent=new Date(item.updatedAt).toLocaleString('zh-CN')+
+   ' · '+(item.kind==='clip'?'网页摘录':'便签');
+  const origin=q('clip-note-read-origin');origin.replaceChildren();
+  if(item.source){
+   const a=el('a','',item.source);a.href=item.source;a.target='_blank';a.rel='noopener noreferrer';origin.append(a);
+  }else origin.textContent='手动便签';
+  const area=q('clip-note-read-body');area.replaceChildren();
+  if(typeof renderMarkdown==='function')renderMarkdown(item.body,area);
+  else area.textContent=item.body;
+  viewState();
+ }
+ async function openReader(id){
+  if(busy||dirty())return msg('请先保存或取消当前编辑',true);
+  const seq=++generation;
+  try{
+   const result=await store.get(id);
+   if(seq!==generation)return;
+   reading=result;editing=null;renderReader();msg('已读取完整正文');
+   q('clip-note-reader-back').focus();
+  }catch(error){statusError(error,'读取失败：');}
  }
  function openEditor(item=null){
-  if(dirty())return msg('请先保存或取消当前编辑',true);
-  editing=item?{...item}:{id:null,kind:'note',body:'',title:'',source:''};
+  if(busy||dirty())return msg('请先保存或取消当前编辑',true);
+  editingSource=reading;
+  editing=item?{id:item.id,kind:item.kind}:{id:null,kind:'note'};
   baseline=item?.body||'';
-  q('clip-note-editor').hidden=false;
-  q('clip-note-editor-title').textContent=item?'查看 / 修改摘录':'新建便签';
+  q('clip-note-editor-title').textContent=item?'编辑摘录':'新建便签';
   q('clip-note-body').value=baseline;
-  const origin=q('clip-note-origin');origin.replaceChildren();
-  if(item?.source){const a=el('a','',item.source);a.href=item.source;a.target='_blank';a.rel='noopener noreferrer';origin.append(a);}
-  else origin.textContent='手动便签不关联网页来源';
-  q('clip-note-body').focus();notify();
+  q('clip-note-origin').textContent=item?.source?'来源：'+item.source:'手动便签不关联网页来源';
+  if(!item)reading=null;
+  viewState();q('clip-note-body').focus();
  }
- function closeEditor(){editing=null;baseline='';q('clip-note-editor').hidden=true;q('clip-note-body').value='';notify();}
- async function showLibrary(id=null){
+ function cancelEditor(){
+  editing=null;baseline='';q('clip-note-body').value='';
+  reading=editingSource;editingSource=null;
+  if(reading)renderReader();else viewState();
+ }
+ async function showLibrary(){
   if(dirty())return msg('请先保存或取消当前编辑',true);
-  q('clip-home').hidden=true;q('clip-notes').hidden=false;
-  try{await reload(true);msg('数据仅在本机浏览器保存；卸载前请导出备份');
-   if(id){const found=data.items.find(x=>x.id===id);if(found)openEditor(found);}}
-  catch(e){msg('读取失败：'+String(e.message||e),true);}
+  closeReading();q('clip-home').hidden=true;q('clip-notes').hidden=false;
+  try{
+   const fresh=await reload({recover:true});
+   if(!fresh)throw fail('E_OUTCOME_UNKNOWN','页面已切换，请重新打开我的摘录');
+   msg('摘录保存在当前 Chrome 浏览器中；卸载前请导出备份');
+   return true;
+  }catch(error){statusError(error,'读取失败：');return false;}
  }
  async function saveClip(){
-  if(!clip||busy)return;
-  busy=true;q('clip-save').disabled=true;notify();
-  try{const result=await store.save({...clip,kind:'clip'});
-   selected=result.item.id;await reload();
-   onStatus(result.duplicate?'已保存过这段文字，没有重复创建':'已保存到「我的摘录」');
-  }catch(e){onStatus(e.message||'保存结果未确认',true);}
+  if(!clip||busy||bytes(clip.body)>BODY_LIMIT)return;
+  busy=true;setClip(clip);notify();
+  const wanted=clip;
+  try{
+   const result=await store.save({...wanted,kind:'clip'});
+   // Keep the clipper home for recovery if the subsequent library read fails.
+   if(!await showLibrary())throw fail('E_STORAGE_READ','保存已确认，但列表加载失败；请重新打开我的摘录核对');
+   const label=result.duplicate?'已保存过此全文，没有重复创建':'完整文章已保存到「我的摘录」';
+   msg(label);onStatus(label);
+  }catch(error){onStatus(error.message||'保存结果未确认',true);}
   finally{busy=false;setClip(clip);notify();}
  }
- q('clip-my-notes').addEventListener('click',()=>showLibrary());
- q('clip-view-saved').addEventListener('click',()=>showLibrary(selected));
+ async function removeItem(id,etag){
+  if(busy||dirty())return msg('请先保存或取消正在编辑的内容',true);
+  busy=true;notify();
+  try{await store.remove(id,etag);closeReading();await reload({recover:true});msg('已删除摘录');}
+  catch(error){statusError(error,'删除未确认：');}
+  finally{busy=false;notify();}
+ }
+ async function copyItem(){
+  if(!reading||busy)return;const content=reading.item.body;
+  try{const result=await sdk.clipboard.writeText(content);
+   if(result?.copied!==true)throw Error('复制未确认');msg('完整 Markdown 已复制');
+  }catch(error){statusError(error,'复制失败：');}
+ }
+ async function downloadItem(){
+  if(!reading||busy)return;const item=reading.item;
+  try{const result=await sdk.downloads.text({filename:filename(item.title),text:item.body});
+   if(result?.started!==true)throw Error('下载未确认');msg('已请求下载完整 Markdown');
+  }catch(error){statusError(error,'下载失败：');}
+ }
+ q('clip-my-notes').addEventListener('click',()=>void showLibrary());
  q('clip-notes-back').addEventListener('click',()=>{
-  if(dirty())return msg('请先保存或取消修改',true);
-  q('clip-notes').hidden=true;q('clip-home').hidden=false;
+  if(busy||dirty())return msg('请先保存或取消当前编辑',true);
+  closeReading();q('clip-notes').hidden=true;q('clip-home').hidden=false;
  });
  q('clip-note-new').addEventListener('click',()=>openEditor());
- q('clip-note-cancel').addEventListener('click',closeEditor);
+ q('clip-note-cancel').addEventListener('click',cancelEditor);
  q('clip-note-body').addEventListener('input',notify);
- q('clip-search').addEventListener('input',render);
- q('clip-note-reload').addEventListener('click',async()=>{
-  if(dirty())return msg('请先保存或取消修改',true);
-  try{await reload(true);msg('已重新读取本地摘录');}
-  catch(e){msg('读取失败：'+String(e.message||e),true);}
+ q('clip-search').addEventListener('input',()=>{
+  clearTimeout(searchTimer);searchTimer=setTimeout(()=>void reload().catch(e=>statusError(e,'搜索失败：')),180);
  });
+ q('clip-note-reload').addEventListener('click',()=>void reload({recover:true}).then(()=>msg('已重新读取摘录')).catch(e=>statusError(e,'刷新失败：')));
+ q('clip-note-more').addEventListener('click',()=>void reload({append:true}).catch(e=>statusError(e,'加载失败：')));
+ q('clip-note-reader-back').addEventListener('click',()=>{closeReading();void reload().catch(e=>statusError(e,'刷新失败：'));});
+ q('clip-note-read-edit').addEventListener('click',()=>{if(reading)openEditor(reading.item);});
+ q('clip-note-read-copy').addEventListener('click',()=>void copyItem());
+ q('clip-note-read-download').addEventListener('click',()=>void downloadItem());
+ q('clip-note-read-remove').addEventListener('click',()=>{if(reading)void removeItem(reading.item.id,reading.etag);});
  q('clip-note-save').addEventListener('click',async()=>{
   if(busy||!editing)return;
-  const body=q('clip-note-body').value,original=editing;
-  busy=true;notify();
-  try{const result=original.id?await store.edit(original.id,original,body):
-    await store.save({body,kind:'note'});
-   await reload();closeEditor();msg(result.unchanged?'内容没有变化':'已保存');}
-  catch(e){msg(e.message||'保存结果未确认',true);}
-  finally{busy=false;notify();}
- });
- q('clip-save').addEventListener('click',saveClip);
- q('clip-note-backup').addEventListener('click',async()=>{
-  if(busy)return;
-  if(dirty())return msg('请先保存或取消当前编辑，然后再备份',true);
+  const body=q('clip-note-body').value,original=editing,previous=editingSource;
   busy=true;notify();
   try{
-   const prepare=async()=>{
-    await reload(true); // Include other windows' latest confirmed records.
-    const text=JSON.stringify({format:'opendesk.clipper-notes.backup.v1',
-     exportedAt:new Date().toISOString(),items:data.items},null,2)+'\n';
-    return {filename:'web-clipper-notes.json',text};
-   };
-   const prepareText=sdk.downloads.prepareText;
-   // Reserve the explicit click before the fresh read. Older Hosts keep their
-   // existing review path; a failed/unknown preparation must never be replayed.
-   const result=prepareText===undefined?await sdk.downloads.text(await prepare()):await prepareText(prepare);
-   if(result?.started!==true)throw Error('下载未确认');
-   msg('已请求备份下载，请检查 Chrome 下载记录');
-  }catch(e){msg('备份下载未确认：'+String(e.message||e),true);}
+   const response=original.id?await store.edit(original.id,previous.etag,body):
+    await store.save({kind:'note',body});
+   cancelEditor();
+   if(original.id){reading={item:response.item,etag:response.etag};renderReader();}
+   await reload({recover:true});msg(response.unchanged?'内容没有变化':'已保存完整正文');
+  }catch(error){statusError(error,'保存失败：');}
   finally{busy=false;notify();}
  });
- void reload().catch(e=>msg('读取本地摘录失败：'+String(e.message||e),true));
+ q('clip-save').addEventListener('click',()=>void saveClip());
+ q('clip-note-backup').addEventListener('click',async()=>{
+  if(busy||dirty())return msg('请先保存或取消编辑',true);
+  busy=true;notify();
+  try{const result=await store.backup();
+   if(result?.started!==true)throw Error('备份未确认');
+   msg('已请求导出 '+result.count+' 条摘录；请核对 Chrome 下载记录');
+  }catch(error){statusError(error,'备份下载未确认：');}
+  finally{busy=false;notify();}
+ });
+ void reload().catch(error=>msg('读取摘录失败：'+String(error.message||error),true));
  setClip(null);
  return {setClip,saveClip,showLibrary};
 }
-g.OpenDeskClipNotes=Object.freeze({create,createStore,normalize,bytes,limitBytes:LIMIT,bodyLimitBytes:BODY_LIMIT});
+g.OpenDeskClipNotes=Object.freeze({create,createStore,bytes,bodyLimitBytes:BODY_LIMIT,limitBytes:LIBRARY_LIMIT});
 })(globalThis);

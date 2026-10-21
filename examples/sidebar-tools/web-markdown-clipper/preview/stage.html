@@ -23,7 +23,7 @@ html[data-demo-theme=light] .clip-preview a{color:#3159b9}
 <main class="clip" aria-label="网页剪藏">
 <header class="clip-head">
  <div class="clip-brand"><strong>网页剪藏</strong><span id="clip-site" aria-live="polite">当前网页</span></div>
- <button type="button" id="clip-my-notes" class="clip-outline">我的摘录</button>
+ <button type="button" id="clip-my-notes" class="clip-outline">我的摘录 · 0</button>
 </header>
 <section id="clip-home" aria-label="当前网页摘录">
 <p id="clip-title" class="clip-page-title">打开网页，提取文章或选中文字</p>
@@ -54,7 +54,6 @@ html[data-demo-theme=light] .clip-preview a{color:#3159b9}
  <button type="button" id="clip-download" aria-label="下载 Markdown" title="下载为本地 .md 文件">下载 .md</button>
 </div>
 <p id="clip-save-explain" class="clip-hint">保存留在浏览器；复制进入剪贴板；下载生成文件</p>
-<button type="button" id="clip-view-saved" class="clip-link" hidden>查看刚保存的摘录 →</button>
 <p id="clip-status" class="clip-status" role="status" aria-live="polite">选择文章提取，或先在网页中选中文字。</p>
 </section>
 <section id="clip-notes" aria-label="我的摘录" hidden>
@@ -63,11 +62,11 @@ html[data-demo-theme=light] .clip-preview a{color:#3159b9}
   <strong>我的摘录</strong>
   <button type="button" id="clip-note-new" class="primary">＋ 新建便签</button>
  </div>
- <div class="clip-notes-tools">
+ <div class="clip-notes-tools" id="clip-notes-tools">
   <input type="search" id="clip-search" placeholder="搜索文字或来源" aria-label="搜索我的摘录">
   <button type="button" id="clip-note-reload" class="clip-outline" title="重新读取本地摘录" aria-label="刷新摘录">↻</button>
  </div>
- <div class="clip-notes-meta"><span id="clip-note-count">0 条已保存</span><button type="button" id="clip-note-backup" class="clip-link">导出备份</button></div>
+ <div class="clip-notes-meta" id="clip-notes-meta"><span id="clip-note-count">0 条已保存</span><button type="button" id="clip-note-backup" class="clip-link">导出备份</button></div>
  <section id="clip-note-editor" class="clip-note-editor" aria-label="编辑便签" hidden>
   <strong id="clip-note-editor-title">新建便签</strong>
   <textarea id="clip-note-body" rows="5" aria-label="便签正文" placeholder="写下一段想保存的话；标题自动生成"></textarea>
@@ -78,6 +77,23 @@ html[data-demo-theme=light] .clip-preview a{color:#3159b9}
   </div>
  </section>
  <div id="clip-note-list" class="clip-note-list" aria-live="polite"></div>
+ <button type="button" id="clip-note-more" class="clip-outline clip-note-more" hidden>加载更多摘录</button>
+ <section id="clip-note-reader" class="clip-note-reader" aria-label="阅读完整摘录" hidden>
+  <div class="clip-read-head">
+   <button type="button" id="clip-note-reader-back" class="clip-outline">← 列表</button>
+   <span class="clip-spacer"></span>
+   <button type="button" id="clip-note-read-edit" class="clip-outline">编辑</button>
+  </div>
+  <h2 id="clip-note-read-title"></h2>
+  <p id="clip-note-read-meta" class="clip-note-meta"></p>
+  <p id="clip-note-read-origin" class="clip-hint"></p>
+  <div id="clip-note-read-body" class="clip-preview clip-note-read-body" role="document" aria-label="摘录 Markdown 全文"></div>
+  <div class="clip-editor-actions clip-read-actions">
+   <button type="button" id="clip-note-read-copy">复制</button>
+   <button type="button" id="clip-note-read-download">下载 .md</button>
+   <button type="button" id="clip-note-read-remove" class="clip-danger">删除</button>
+  </div>
+ </section>
  <p id="clip-notes-status" class="clip-status" role="status" aria-live="polite">仅保存在此浏览器。卸载前请导出备份。</p>
 </section>
 </main>
@@ -98,6 +114,16 @@ const source='https://example.com/articles/markdown-clipper';
 const send=(name,bytes=0)=>parent.postMessage({kind:'clipper-demo',name,bytes},'*');
 const enc=new TextEncoder(),size=v=>enc.encode(JSON.stringify(v)).byteLength;
 let local={clips:null},caseName='normal',writes=0;
+const key='opendesk.clipper.r18.simulated-session';
+try{const saved=sessionStorage.getItem(key);if(saved)local=JSON.parse(saved);}catch{/* Isolated demo fallback only. */}
+const persist=()=>{try{sessionStorage.setItem(key,JSON.stringify(local));}catch{/* Preview-only. */}};
+const limit=4*1024*1024,bodyLimit=160000;
+let counter=0;
+const atom=()=> 'clip-demo-'+Date.now().toString(36)+'-'+(++counter).toString(36)+'-sample';
+const safeLibrary=()=>local.clips||{version:1,items:[]};
+const titleOf=body=>String(body).trim().split(/\r?\n/)[0].replace(/^#{1,6}\s*/,'').slice(0,42)||'新便签';
+const summary=item=>({id:item.id,title:item.title,source:item.source,kind:item.kind,
+ createdAt:item.createdAt,updatedAt:item.updatedAt,excerpt:item.body.slice(0,180),bodyBytes:enc.encode(item.body).length});
 const etag=value=>{
  const json=JSON.stringify(value),buffer=enc.encode(json);
  let hash=2166136261;
@@ -116,23 +142,58 @@ globalThis.OpenDeskTool={
    return {markdown,title:'网页剪藏示例',site:'example.com',source,capturedAt:'2026-10-20T00:00:00.000Z'};
   }
   if(operation==='currentPage.info')return {status:'available',title:'网页剪藏示例',url:source};
-  if(operation==='storage.get'){
-   if(args.key!=='clips')throw reason('E_SCHEMA','未知模拟数据键');
-   return {value:local.clips,etag:etag(local.clips)};
-  }
-  if(operation==='storage.set'){
-   if(args.key!=='clips'||args.ifMatch!==etag(local.clips))
-    throw reason('E_STORAGE_CONFLICT','模拟的 ETag 版本冲突');
-   if(size(args.value)>8192||caseName==='quota')
-    throw reason('E_TOOL_DATA_LIMIT','模拟：本地存储已满');
-   if(caseName==='failure')throw reason('E_HOST_STORAGE_WRITE','模拟：Host 写入失败');
-   local.clips=JSON.parse(JSON.stringify(args.value));writes++;
-   send('模拟本地存储写入（仅此预览舞台内有效）',size(args.value));
-   if(caseName==='unknown'){
-    caseName='normal';
-    throw reason('E_OUTCOME_UNKNOWN','模拟：写入成功但回执丢失');
+  if(operation.startsWith('clipNotes.')){
+   const method=operation.slice('clipNotes.'.length),lib=safeLibrary(),at=new Date().toISOString();
+   const compare=()=>{if(args.ifMatch!==etag(lib))throw reason('E_STORAGE_CONFLICT','演示：另一窗口已修改');};
+   if(method==='list'){
+    const words=String(args.query||'').toLowerCase().split(/\s+/).filter(Boolean);
+    const matched=lib.items.filter(item=>words.every(w=>[item.title,item.source,item.body].some(t=>t.toLowerCase().includes(w))))
+     .sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)||b.createdAt.localeCompare(a.createdAt));
+    const offset=args.offset||0,page=matched.slice(offset,offset+50);
+    return {items:page.map(summary),total:lib.items.length,matched:matched.length,
+      nextOffset:offset+page.length<matched.length?offset+page.length:null,
+      usedBytes:size(lib),limits:{bodyBytes:bodyLimit,totalBytes:limit,maxNotes:1000},etag:etag(lib)};
    }
-   return {saved:true,etag:etag(local.clips)};
+   if(method==='get'){
+    const item=lib.items.find(x=>x.id===args.id);
+    if(!item)throw reason('E_NOT_FOUND','演示：摘录不存在');
+    return {item,etag:etag(lib)};
+   }
+   if(method==='backup'){send('模拟导出备份（未生成文件）',size(lib));return {started:true,count:lib.items.length};}
+   const items=lib.items.slice();
+   let result;
+   if(method==='save'){
+    if(typeof args.body!=='string'||!args.body.trim())throw reason('E_EMPTY','正文不能为空');
+    if(enc.encode(args.body).length>bodyLimit)throw reason('E_BODY_LIMIT','正文超过 160,000 字节');
+    const kind=args.kind==='note'?'note':'clip',source=kind==='note'?'':args.source;
+    const duplicate=items.find(x=>x.kind==='clip'&&kind==='clip'&&x.source===source&&x.body===args.body);
+    if(duplicate)return {id:duplicate.id,duplicate:true};
+    if(items.length>=1000)throw reason('E_QUOTA','演示：1000 条已满');
+    const id=atom();
+    items.push({id,kind,body:args.body,source,title:args.title||titleOf(args.body),createdAt:at,updatedAt:at});
+    result={id,duplicate:false};
+   }else if(method==='edit'){
+    compare();
+    const i=items.findIndex(x=>x.id===args.id);
+    if(i<0)throw reason('E_NOT_FOUND','演示：记录不存在');
+    if(enc.encode(args.body).length>bodyLimit)throw reason('E_BODY_LIMIT','正文超过 160,000 字节');
+    if(!args.body.trim())throw reason('E_EMPTY','正文不能为空');
+    if(items[i].body===args.body)return {id:args.id,unchanged:true};
+    items[i]={...items[i],body:args.body,title:items[i].kind==='note'?titleOf(args.body):items[i].title,updatedAt:at};
+    result={id:args.id,unchanged:false};
+   }else if(method==='remove'){
+    compare();
+    const i=items.findIndex(x=>x.id===args.id);
+    if(i<0)throw reason('E_NOT_FOUND','演示：记录不存在');
+    items.splice(i,1);result={id:args.id,removed:true};
+   }else throw reason('E_UNSUPPORTED','不支持的演示操作');
+   const next={version:1,items};
+   if(size(next)>limit||caseName==='quota')throw reason('E_QUOTA','演示：摘录库已达到 4 MiB');
+   if(caseName==='failure')throw reason('E_HOST_STORAGE_WRITE','演示：Host 写入失败');
+   local.clips=JSON.parse(JSON.stringify(next));persist();writes++;
+   send('模拟摘录写入（临时演示数据，非 Chrome 工具存储）',size(next));
+   if(caseName==='unknown'){caseName='normal';throw reason('E_OUTCOME_UNKNOWN','演示：回执丢失');}
+   return result;
   }
   throw reason('E_UNSUPPORTED','预览不支持 '+operation);
  }

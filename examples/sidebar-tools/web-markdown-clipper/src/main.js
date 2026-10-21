@@ -8,7 +8,7 @@ let mode='article',version=0,record=null,markdown='',exportBusy=false;
 const say=(value,error=false)=>{state.textContent=String(value);state.dataset.error=String(error);};
 const setExportBusy=busy=>{exportBusy=busy;q('clip-copy').disabled=busy;q('clip-download').disabled=busy;};
 const notes=globalThis.OpenDeskClipNotes?.create?.({
- root,request,sdk:globalThis.OpenDeskSDK.browser,onStatus:say
+ root,request,sdk:globalThis.OpenDeskSDK.browser,onStatus:say,renderMarkdown:renderPreview
 });
 const escapeLabel=s=>String(s||'').replace(/[\u0000-\u001f\u007f]+/g,' ').replace(/\s+/g,' ').trim().replace(/[\[\]\\]/g,'\\$&')||'网页链接';
 const clean=s=>String(s||'').replace(/[\u0000-\u001f]/g,' ').slice(0,900);
@@ -46,7 +46,7 @@ function previewInline(text,parent){
  }
  if(last<text.length)parent.append(previewNode('span',text.slice(last)));
 }
-function renderPreview(content){
+function renderPreview(content,target=display){
  const lines=content.replace(/\r\n?/g,'\n').split('\n'),out=document.createDocumentFragment();
  let paragraph=[],code=null,codeFence='',list=null,quote=null,tableBody=null;
  const flush=()=>{if(paragraph.length){const p=previewNode('p');previewInline(paragraph.join(' '),p);out.append(p);paragraph=[];}};
@@ -92,7 +92,7 @@ function renderPreview(content){
   list=null;paragraph.push(line.trim());
  }
  if(code!==null){const pre=previewNode('pre');pre.append(previewNode('code',code.join('\n')));out.append(pre);}
- flush();display.replaceChildren(out);
+ flush();target.replaceChildren(out);
 }
 function refresh(){
  if(!record){
@@ -110,7 +110,7 @@ function refresh(){
  }
  markdown=content;input.value=content;
  const title=q('clip-title');if(title)title.textContent=clean(record.title);
- notes?.setClip({body:mode==='quote'?content:record.markdown,
+ notes?.setClip({body:content,
    title:record.title,source:record.source});
  renderPreview(content);
 }
@@ -138,7 +138,7 @@ q('clip-fetch').addEventListener('click',async()=>{
      typeof result.source!=='string'||!/^https?:\/\//.test(result.source))
     throw Error('剪藏结果无效');
   record=result;q('clip-site').textContent=clean(result.site);refresh();
-  say('已提取内容，可保存短摘录、复制或下载 Markdown');
+  say('已提取完整 Markdown，可保存到「我的摘录」、复制或下载');
  }catch(e){if(token===version){record=null;refresh();say(e.message||'剪藏失败',true);}}
  finally{if(token===version)b.disabled=false;}
 });
