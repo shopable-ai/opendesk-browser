@@ -509,6 +509,60 @@
         "docs/framework/workstreams/ai-artifact-delivery-r1-20261020.md"
       ],
       "notes": "Preserved all 8 existing EXP definitions, metrics:null, all original gates and commercial priorities. Mac/CWS/Keyword Planner/customer evidence not fabricated; approved same-source preview gate blocks unapproved source implementation."
+    },
+    "researchAuditR14": {
+      "asOf": "2026-10-21",
+      "status": "SOURCE_AUDITED_OFFICIAL_COUNTEREVIDENCE_NATIVE_AND_COMMERCIAL_VALIDATION_OPEN",
+      "sourceReviewMain": "6a14e9cb222dc140de3d7a253b42f5908da45cda",
+      "sourceBasis": "GITHUB_MAIN_AND_OFFICIAL_COMPETITOR_DOCUMENTS_NOT_MAC_NATIVE",
+      "originalCommercialGoalPreserved": true,
+      "previousOpportunities": 84,
+      "previousCandidates": 30,
+      "previousExperiments": 8,
+      "previousCompetitorResearchRows": 22,
+      "sourceGate": "PREVIEW_PENDING_USER_CONFIRMATION_PRODUCT_IMPLEMENTATION_NOT_APPROVED",
+      "productChanged": "NO",
+      "sourceFinding": "KNOWLEDGE_CAPTURE_IMAGE_DIRECT_CHROME_DOWNLOAD_ID_NO_TERMINAL_ORIGINAL_ASSET_RECEIPT",
+      "existingDownloadsHost": "GETOWNED_AND_LISTOWNED_EXIST_BUT_NOT_WIRED_AS_KNOWLEDGE_IMAGE_DELIVERY_RECEIPT",
+      "promptImageAssets": "COMPRESSED_LOCAL_BUTTON_IMAGE_NOT_ORIGINAL_AI_FILE",
+      "nativeChrome": "NOT_TESTED_REAL_MAC_CHROME_AND_DISK_UNAVAILABLE",
+      "nativeExtensionId": null,
+      "nativeBuildSha": null,
+      "originalImageMimeBytesHash": null,
+      "finalFileHash": null,
+      "chromeTerminal": null,
+      "offlineReadback": "NOT_TESTED",
+      "obsidianSameInput": "OFFICIAL_DOCS_VERIFIED_NATIVE_NOT_TESTED",
+      "readwiseSameInput": "OFFICIAL_DOCS_VERIFIED_NATIVE_NOT_TESTED",
+      "bCounterevidence": "OFFICIAL_POWER_AUTOMATE_PREMIUM_USD15_PER_USER_AND_PROCESS_USD150_PER_BOT_NOT_REAL_QUOTE",
+      "cCounterevidence": "OFFICIAL_SHOPIFY_CSV_VALIDATION_GOOGLE_SHEETS_DEDUPLICATION_NOT_CUSTOMER_RESULT",
+      "exp001QualifiedBudgetInterviewsThisRun": 0,
+      "exp001BuyerContactsAuthorized": false,
+      "exp001WrittenQuote": "MISSING",
+      "exp001RealContractsAndPayments": "MISSING",
+      "exp005AuthorizedCsv": "MISSING",
+      "officialKeywordPlannerUSJP13": "MISSING_NO_ACCOUNT_AUTHORIZATION",
+      "adSpendThisRun": 0,
+      "acquisitionCAC": null,
+      "actualTaskActivation": null,
+      "naturalRepeatUse": null,
+      "realPaidOrders": null,
+      "actualNetContribution": null,
+      "implementationAndSupportHours": null,
+      "decisions": {
+        "A": "NOT_DECIDED",
+        "B": "NOT_DECIDED",
+        "C": "NOT_DECIDED",
+        "paidAcquisition": "NOT_DECIDED"
+      },
+      "references": [
+        "docs/product/browser-extension-ecosystem/distribution-and-validation.zh-CN.md",
+        "docs/product/browser-extension-ecosystem/competitor-research.zh-CN.md",
+        "https://learn.microsoft.com/en-us/power-platform/admin/powerapps-flow-licensing-faq",
+        "https://help.shopify.com/en/manual/products/import-export/common-import-issues",
+        "https://support.google.com/docs/answer/6325535?hl=en"
+      ],
+      "notes": "No new EXP/OPP/competitor ledger; no actual buyer contact, ad account metrics, authorized seller CSV or native Chrome file. Preserve EXP-002 ARCHIVED_STOP and all null actual experiment metrics. Native Codex proof is the next high-value action."
     }
   }
 }
