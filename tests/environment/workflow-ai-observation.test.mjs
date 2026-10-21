@@ -46,7 +46,7 @@ test('fixed observer scans bounded semantic regions instead of guessing a demo s
         nodes:names,truncated:!opts.root};
     },
     locator(css){
-      assert.equal(css,'section[id],form[id]');
+      assert.equal(css,'section[id],form[id],[id*="result" i],[role="list"]');
       return {count:async()=>2,nth:i=>({getAttribute:async()=>i?'lab-search':'lab-form'})};
     }
   };
@@ -166,7 +166,7 @@ test('post-click observation includes a result status containing the bounded que
         nodes,truncated:false};
     },
     locator(selector){
-      assert.equal(selector,'section[id],form[id]');
+      assert.equal(selector,'section[id],form[id],[id*="result" i],[role="list"]');
       return {count:async()=>2,nth:i=>({getAttribute:async()=>i?'lab-search':'other-form'})};
     }
   };
