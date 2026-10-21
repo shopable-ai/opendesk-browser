@@ -626,7 +626,9 @@ function render(){
   el('ps-web').checked=data.settings.webButtons;
   el('ps-image-size').value=data.settings.imageSize||'large';
    el('ps-image-size-setting').querySelectorAll('[data-image-size]').forEach(button=>{
-     button.setAttribute('aria-pressed',String(button.dataset.imageSize===el('ps-image-size').value));
+     const selected=button.dataset.imageSize===el('ps-image-size').value;
+      button.setAttribute('aria-pressed',String(selected));
+      button.classList.toggle('od-icon-button--primary',selected);
    });
   // Text-only collections keep their original uncluttered list.
   el('ps-image-size-setting').hidden=!data.items.some(item=>item.appearance==='image');
