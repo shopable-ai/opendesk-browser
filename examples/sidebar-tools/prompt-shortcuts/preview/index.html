@@ -397,6 +397,15 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .image-size-button:focus-visible{outline:3px solid var(--od-focus);outline-offset:2px}
 .image-size-button .size-dot{display:block;width:var(--dot);height:var(--dot);border-radius:50%;background:currentColor}
 @media(max-width:380px){.image-size-setting{gap:6px;padding:5px 7px}.image-size-button{width:34px}}
+.ps-image-source{display:inline-grid;grid-template-columns:repeat(2,64px);gap:2px;justify-self:end;max-width:100%;
+ background:var(--od-bg);padding:2px;border:1px solid var(--od-line);border-radius:9px}
+.ps-image-source label{position:relative;display:grid;place-items:center;min-height:28px;font-size:11px;font-weight:650;border-radius:7px;cursor:pointer}
+.ps-image-source label:has(input:checked){background:var(--od-paper);color:var(--od-accent-ink);box-shadow:0 1px 5px var(--od-line)}
+.ps-image-source input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+.ps-image-source label:has(input:focus-visible){outline:3px solid var(--od-focus);outline-offset:1px}
+.ps-image-upload-controls{display:flex;justify-content:flex-end;gap:8px}
+.ps-image-upload-controls .od-button{min-height:30px;padding:4px 10px}
+#imageUrlRow[hidden],#imageUploadControls[hidden]{display:none!important}
 .ps-image-fields{display:grid;gap:5px;border-top:1px solid var(--od-line)}
 .ps-image-fields[hidden]{display:none!important}
 .ps-image-preview-line{display:flex;align-items:center;gap:11px;padding:7px 0}
@@ -539,9 +548,20 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
           <label><input id="appearanceImage" type="radio" name="appearance" value="image"><span>图片</span></label>
         </div></div>
         <div id="imageFields" class="ps-image-fields" hidden>
-          <div class="optional-row"><label class="compact-label" for="imageUrl">图片 URL</label><input id="imageUrl" class="od-field" type="url" maxlength="512" spellcheck="false" autocomplete="off" placeholder="https://example.com/image.png"></div>
-          <div class="ps-image-preview-line"><span id="pictureExample" class="preview-picture" aria-hidden="true"></span><span id="imageHelp" role="status" aria-live="polite">使用 HTTPS 图片；打不开时显示备用短标签。仅本地演示服务可试用 HTTP localhost。</span></div>
-        </div>
+           <div class="optional-row"><span class="compact-label" id="imageSourceLabel">图片来源</span>
+             <div class="ps-image-source" role="radiogroup" aria-labelledby="imageSourceLabel">
+               <label><input id="imageSourceLocal" type="radio" name="imageSource" value="local" checked><span>本地上传</span></label>
+               <label><input id="imageSourceUrl" type="radio" name="imageSource" value="url"><span>图片网址</span></label>
+             </div>
+           </div>
+           <div id="imageUploadControls" class="ps-image-upload-controls">
+             <input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp" hidden aria-label="选择本地图片">
+             <button id="imagePick" type="button" class="od-button">上传图片</button>
+             <button id="imageClear" type="button" class="od-button od-button--subtle" hidden>移除</button>
+           </div>
+           <div id="imageUrlRow" class="optional-row" hidden><label class="compact-label" for="imageUrl">图片 URL</label><input id="imageUrl" class="od-field" type="url" maxlength="512" spellcheck="false" autocomplete="off" placeholder="https://example.com/image.png"></div>
+           <div class="ps-image-preview-line"><span id="pictureExample" class="preview-picture" aria-hidden="true"></span><span id="imageHelp" role="status" aria-live="polite">PNG、JPEG、WebP，最大 2 MiB，压缩后模拟保存到浏览器本地；非正式 Host。</span></div>
+         </div>
         <div class="optional-row"><label id="imageTextHint" class="compact-label" for="shortLabel">按钮短标签</label><input id="shortLabel" class="od-field" name="shortLabel" maxlength="24" placeholder="留空自动取前 2 字" autocomplete="off" aria-describedby="shortLabelHelp"></div>
         <div class="optional-row"><label class="compact-label" for="fullName">显示名称</label><input id="fullName" class="od-field" name="fullName" maxlength="60" placeholder="留空自动生成" autocomplete="off"></div>
         <div class="optional-row optional-row--switch"><label class="compact-label" for="itemEnabled">网页显示</label><label class="switch" title="是否在网页显示此按钮"><input id="itemEnabled" type="checkbox" role="switch" aria-label="在网页显示此按钮" checked><span class="switch-track" aria-hidden="true"></span></label></div>
