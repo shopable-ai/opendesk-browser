@@ -1,0 +1,68 @@
+name: Public site-budget R1.4 - canonical SDK, fixed worker and build candidate
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/platform/chrome/browser-managed-site-budget.js'
+      - 'src/platform/chrome/browser-managed-site-policy.js'
+      - 'src/platform/host/managed-site-runtime-contract.js'
+      - 'src/ui/sidebar-tools/**'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/framework/sdk/browser-contract.js'
+      - 'src/framework/sdk/browser-schemas.js'
+      - 'src/sw.js'
+      - 'tests/environment/managed-site-budget-r14.test.mjs'
+      - '.github/workflows/site-budget-r14.yml'
+  workflow_dispatch:
+concurrency:
+  group: site-budget-r14-${{ github.sha }}
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  source-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install exact locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Directed resource ownership, budget, SDK and regression tests
+        run: |
+          node --test tests/environment/managed-site-budget-r14.test.mjs tests/environment/browser-managed-site-policy-r44.test.mjs tests/environment/managed-site-authority-r44.test.mjs tests/environment/managed-site-runtime-contract-r45.test.mjs tests/environment/extension-runtime-r14-lifecycle.test.mjs tests/environment/stay-focus-r41-policy-package.test.mjs tests/environment/adblock-required-dnr-contract.test.mjs
+      - name: Source checks and immutable production package candidate
+        run: |
+          npm run check
+          npm run build
+          node scripts/verify-package.mjs dist/production
+      - name: Record source, production Worker and manifest fingerprints
+        env:
+          TESTED_HEAD: ${{ github.sha }}
+        run: |
+          mkdir -p artifacts/site-budget-r14
+          cp dist/production/manifest.json artifacts/site-budget-r14/manifest.json
+          sha256sum dist/production/sw.js dist/production/manifest.json > artifacts/site-budget-r14/file-sha256.txt
+          node -e 'const fs=require("fs");const m=JSON.parse(fs.readFileSync("dist/production/manifest.json"));const e={sourceSha:process.env.TESTED_HEAD,browserVersion:m.version,extensionId:"NOT_TESTED_NATIVE",contracts:{"site-budget.v2":"opendesk.managed-site-runtime.v1"}};fs.writeFileSync("artifacts/site-budget-r14/candidate.json",JSON.stringify(e,null,2)+"\n")'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site-budget-r14-b0-candidate-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            dist/production/
+            artifacts/site-budget-r14/
+            docs/framework/evidence/wxt/builds/build-production.json
+      - name: Preserve diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-budget-r14-failure-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            docs/framework/evidence/wxt/builds/
+            artifacts/site-budget-r14/

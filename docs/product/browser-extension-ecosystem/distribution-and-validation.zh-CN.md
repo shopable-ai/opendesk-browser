@@ -242,3 +242,100 @@ Chrome Web Store [统计指南](https://developer.chrome.com/docs/webstore/metri
 - **STOP**：原图真实性/授权不成立、买家无实际替代成本、跨两周期不复用、负贡献、长期维护不可控、竞品免费体验已足够；不得以主观 95 分强行继续。
 - **当前全部为 NOT_DECIDED**：R1.2 只收窄了产品和商业不确定性，没有新订单/DAU/CAC/留存，不能因“完成文档”宣布实验 GO。
 
+## R1.2-RECHECK-2026-10-21 · US/JP 获客计量核查与低成本实验可执行交接
+
+> **执行结论：RESEARCH_ONLY / ZERO_AUTHORIZED_SPEND / NO_NEW_USER_OR_ORDER_DATA**。本节只补齐已有 13 关键词和 EXP-003、EXP-001、EXP-005 的口径、反证优先级及下一操作人。未连接 Google Ads 账户、CWS 发布商后台、真实买方与 Mac Chrome；真实月搜索、竞价 CPC、CAC、支付与留存全部为 MISSING。不新增 EXP、OPP、广告预算或遥测基础设施。
+
+### 1. 官方口径：Google Ads 的“页首出价”不是实际 CPC
+
+- [Google Keyword Planner 官方](https://support.google.com/google-ads/answer/3022575?hl=en)：平均月搜为给定期间、位置、网络范围内**关键词及近似变体**的历史均值，默认约 12 个月；竞争等级是**广告客户竞拍竞争**而非 SEO 难度；页首低/高区间约为历史出价第 20/80 百分位，**不能当实际每次点击单价**。预测点击、消耗、平均 CPC 与历史指标分开记录。
+- 查询历史值按**同一完整月份时间窗**、同币种独立导出美国/en 与日本/ja 的 13 个已登记词。必填：keyword literal、market location、language targeting、network、range、search volume（若仅区间留区间）、competition、top bid low/high、currency、exportedAt、official source、文件摘要/校验 SHA。Planner 的“地区”筛选并不保证搜索者用该语言；要由 SERP 和用户意图复查。
+- [官方商标政策](https://support.google.com/adspolicy/answer/6118?hl=en)：**竞品品牌作为关键词**与把商标写入**广告正文**的审核不同；不得假扮官方、诱导误认关联、用竞争品牌进行误导落地。每个替代词页需具有真实同任务对比、正确品牌标识、价格与功能披露。未具实测不得做“比 X 更好”广告。
+- [官方 CWS 统计](https://developer.chrome.com/docs/webstore/metrics/)允许按地区/语言查询商店曝光、安装等；其“Users”指标基于**安装**，不代表活跃使用。不能把商店搜索/浏览/直接访问汇总指标硬分到搜索广告；不能以安装数量计算自然复用。
+- 第三方 SEO 工具、搜索结果趋势、竞品安装量只能为 HYPOTHESIS 或单独标注 ESTIMATE，不得覆写 Google 官方 Planner 栏位。当前已注册 13 词无一个完成官方数值核验。
+
+### 2. 三类渠道的“低成本”须按订单而非点击独立证伪
+
+| 渠道 | 当前先行判断（HYPOTHESIS） | 可直接实行的无广告费动作 | 真正证伪/准入门 |
+| --- | --- | --- | --- |
+| 工作任务长尾 SEO / 高意图教程（US+JP） | 现金投放开销可能低；但内容工时并非零 | 分别写 1 篇**真实功能**教学/限制说明并人工分发；用自愿同意的入口标记衡量首次成功 | 若无法带来合格安装→真实任务成功→自然复用，不因自然访问上涨就判成功 |
+| CWS 自然搜索 / 行业专业推荐 | 单一用途在商店可发现，获客不依赖竞价；但需发布审核与持续维护 | 先把单任务完成、权限与失败恢复在真实 Chrome 跑通，再注册明确可审查的商品资料/服务说明 | 不能把总安装视为活跃；用真实首次任务读回与 2 周期复用独立验证 |
+| 竞品品牌/替代词 Ads | 有高意图但 CPC、合规、竞争更不确定；应最后验证 | 仅在官方 Planner 取量后做合规 SERP、品牌词/文案分离审查；预算先报批 | 无广告账户、官方价量、落地页、真实合格转化基线及书面预算批准，**不得投放** |
+
+**经济否决公式（模型而非收入实绩）**：由实际点击与付款同一 cohort 得出 paidPerClick = attributedNewPayingCustomers / validAdClicks；由**真实**财务明细计算 monthlyContributionPerPayer（到账价减可变云/支付/退款/支持、维护费用）。允许的最高实际 CPC = paidPerClick × monthlyContributionPerPayer × 允许回本月数；前提是月贡献严格为正、回本月数有经营批准。再用现实 CPC、非广告获客工时和实际订单算渠道 CAC；无分母时全部 NOT_MEASURED，不能代入假定 2%/5% 转化率生成“精确 CAC”。B 的销售拜访、售前测试与实施时间也须计入实际获客/贡献成本。对自然流量同样记录研究/内容/审核/维护工时，不能假定永久免费。
+
+### 3. 不新造账本的最小化实验记录模板
+
+记录位置：**唯一** commercial-experiments.json 的原 EXP 状态/真实指标及本文件下的脱敏聚合证据链接。每次研究日志含 experimentId、UTC 时间/市场语言、FACT/ESTIMATE/HYPOTHESIS/MISSING、实际样本分母、同意状态、工作任务与既有替代、可核回执摘要、成功失败、第二自然周期、支付**确认**状态、可变工时/成本、来源 URL 或非公开证据编号。公开 GitHub 仅存脱敏聚合，**不上传用户对话、图片、订单号原件、客户 CSV、姓名、Cookie、授权 Token**。真实合同/订单在获授权的私有系统保管，仅在公共账本写“原件存在并经授权核验”及不可逆摘要。不要因为缺遥测而建立第二套采集/Storage Host。
+
+**三个原实验可直接交给执行人的任务与止损：**
+
+- **EXP-003 / A，10 位真实合格参与者**：提供同一个获授权 AI 图文任务，分别记录现有做法与 OpenDesk 无指导“选择→Markdown+一张原生图片真实文件→下载 complete→关闭/重开离线打开→来源仍可辨认”。符合画像首次无指导成功目标 ≥7/10，第二自然工作周期主动再次使用目标 ≥5/10；两组数字均为预注册 HYPOTHESIS，不是统计显著性。另问 2 个愿意支付的**具体外部交付工作结果**以及当前付费替代和可被批准的预算，口头愿意≠订单。若免费 Obsidian 已可同样可靠快捷交付，则先 PIVOT 为垂直任务而非继续开发通用剪藏 SaaS。
+- **EXP-001 / B，至少 5 位预算买家发现**：采购/运营/IT 能签字者、合法网站权限、可匿名描述的一个重复流程、月内真实次数、操作失败和人力成本、现有 Axiom/Automa/API-first 替代、审计/撤权与升级 SLA；先谈**范围固定的试点报价/实施费与维护费**，再决定是否演示。至少一条有书面范围+价格+批准人的记录才是合格商机；签署/到账后才可记 PAID_VALIDATED。若客户只求免费的泛用网页录制或风险不可控，STOP/缩窄。
+- **EXP-005 / C，3 份有书面许可的 CSV 输入**：收真实授权的产品 Listing/SKU 标准及人工核实的正确答案，比较字段缺失、重复/变更、误报漏报与每 100 行人工复核时间；报价是持续质量检查、对账与维护而非“解析 CSV”。不合法来源/无业务买家/服务误报过高，维持 BLOCKED；不得代替客户采集第三方受限站点。
+
+### 4. Mac Codex 的 S1 真实产品检验单（网页研究不能代替）
+
+1. 在用户 Mac 原路径打开现有仓库，核实最新 main、AGENTS.md、当前并行改动；不切分支、不重置、不抢占运行中的 watcher。只读核查 Knowledge、Clipper、Prompt Shortcuts 图片 asset-host 和 Browser Downloads Host，确认**单一 Knowledge 业务 Owner** 的最小补丁及授权边界。
+2. 用**测试者自主授权**的无敏感样本，录制保存一段 AI 答案和一张真实原图；报告原始 MIME、尺寸、hash、图片最终文件 hash、Markdown 引用/来源和下载状态转换。started / downloadId 仅是受理，不得当 complete。Chrome Worker 重启、网页关闭重开、断网读回必须逐项复验；不能读取用户任意文件夹，涉及 File System Access 必须真实授权。
+3. 失败注入：过期图片 URL、403、下载 interrupted/unknown、权限撤销、重复点击、关闭期间、下载路径冲突、不同格式 WebP/JPEG、原图与缩略图不一致。发生结果未知时先查实际产物后重试，不创建重复资产、不吞错误。
+4. 执行已有定向 tests/Node 及真实 Mac Chrome production 候选（固定扩展身份/版本）并记录命令、构建 SHA、错误日志、无敏感测试产物 hash。模拟 HTML 可以辅助 UX，但绝不宣称 CHROME_NATIVE_VERIFIED。不能运行则保留 NOT_TESTED；无真实样本/权限不开发更高层 SaaS 或跨工具文件存储。
+
+### 5. 决策含义和完成程度
+
+**本节新增：**官方量价统计解释和无法测量项、广告前法务/落地/预算门、真实 CAC 计算条件、三个旧 EXP 的执行交接与反证。**没有新增：**官方搜索量、实际 CPC、自然流量、Chrome Native PASS、用户、企业合同、合法 CSV、订单及续费。研究质量是继续降低决策的不确定性，不是把缺失指标改为 0 或为 95 分造证据。S0 已形成源码与竞品初审，S1/S2/S3 真实实施仍未开始，S4 仍 NOT_DECIDED。
+
+## R1.3-NATIVE-AND-BUYER · 2026-10-21 · 真机阻断、买方报价准备与投资门
+
+> 执行环境：已连接 GitHub，仅完成最新 main 文件/相邻提交只读核查、官方竞品资料复核和以下预注册材料；**没有连接用户 Mac 本地仓库/已加载 OpenDesk 的 Chrome 真实文档/Google Ads Keyword Planner/企业账户**。因此 `NATIVE_CHROME_NOT_TESTED` 是**未取得运行环境证据**，不等同已复现某项产品 FAIL。本节更新原验证日志而不是新建实验/第二套商业架构；正式产品修改仍受 [AI 交付同源预览审批门](../browser-extension-ecosystem/ai-artifact-delivery-r1.zh-CN.md) 约束。
+
+### S0：与 R1.2 基线相比的实际源码和并行工作核查
+
+- GitHub 主干本次初始 `9b29ebc94adccfdd64e3742bee271d837b258418`；再次刷新见 `d3f88693b98cd9fcb143b17bd1bb88ece13af08a`（都是**研究快照**，后续提交/测试必须重读 main）。从旧 R1.2 基线 `a5addc29f8f8e528a582eeae327c42909679612e` 到本轮初始快照发生 **96 次提交**，差异含 Prompt Shortcuts 图片可信存储和 Clipper UI，而 Knowledge/Downloads Host 的重要交付缺口未被同期间提交消除；本轮最新 6 次提交的匹配改动未见 Knowledge、Clipper、Prompt、Downloads、商业文件。后续并行提交可能继续发生，勿将此快照当作持续锁。
+- Knowledge `examples/sidebar-tools/knowledge-inbox/` 配置为 **1.2.7**；`src/knowledge/page.js` 仍取 `image.currentSrc || image.src`，`src/knowledge/model.js` 以 `imageCount` 保存图片数量；`src/knowledge/service.js` 的 `capture.image` 直接调用 `chrome.downloads.download` 并返回 `downloadId`。源代码中**没有**为该图片写入可持久回读的原始 MIME/bytes/SHA-256、下载终态、Markdown 本地资源绑定与跨 Worker 业务交付回执。**SOURCE_GAP_PROVEN / REAL_DOWNLOAD_NOT_TESTED**。
+- Web Markdown Clipper **1.2.3** 复用 `clipNotes.save/get` 的文本逐字段读回和结果未知防重试；该库没有原图二进制交付职责。Prompt Shortcuts **1.1.8** 的 `trusted/asset-host.js` 已在受控 Chrome local 保存经缩放或重新编码的 64 KiB 内 PNG/JPEG/WebP **按钮小图**，不能据此认定 Knowledge 可保留原图原始字节。不得混用两工具存储。
+- `src/platform/chrome/browser-downloads.js` 现有受限 Host 提供 `download/getOwned/listOwned/cancelOwned`；`download` 回 `{status:"started"}`，`getOwned` 区分 `in_progress/complete/interrupted` 并可查询收取字节；下载引用由内存 Map 持有，**Worker 重启会丢**。这是能复用的公共状态查询能力，但不是本次 Knowledge 已经接入的证据。另一 `src/platform/downloads/index.js` 属 Controller 通用结果导出，不是 Knowledge 图片附件实现。
+- [专项工作记录](../../framework/workstreams/ai-artifact-delivery-r1-20261020.md) 明确 `PREVIEW_PENDING_USER_CONFIRMATION / PRODUCT_IMPLEMENTATION_NOT_APPROVED`；本轮仅作只读验证、商业文件更新，**不改** `src/knowledge/*`、正式 Knowledge UI、Browser SDK/Host/Native、正式工具包。
+
+### S1 / EXP-003：真实 Mac Chrome 验收准入和失败矩阵（未执行，不是 PASS）
+
+**准入**：先由专项 Owner 确认现有同源预览（正式 Knowledge HTML/CSS/JS + 独立模拟 Host）是否获用户批准；没有批准不得为了 R1.3 直接重构正式产品。测试人员持有自选非敏感素材/合法 AI 会话及 Chrome/文件读回许可。可先**只读**验证现状；源码存在明确缺口不代表新实现自动获批。
+
+| 实测点 | 必须保留的真实证据和负面判据 | 本轮结果 |
+| --- | --- | --- |
+| 正常图文交付 | 固定候选构建 SHA、扩展真实 ID、同一回答的 Markdown/source/时间、原图可信来源与 MIME/尺寸/bytes/SHA-256、落盘文件 SHA-256、Chrome 由 started→complete 的状态及 Markdown 图片引用实际存在 | `NOT_TESTED`；源码只有启动下载，无终态/原图文件回执 |
+| 关闭重开和断网 | 重开 Knowledge 记录、**重新打开真正磁盘图片与 Markdown**；使用经过明确授权的文件读取，而非仅 Chrome 下载行或 HTML URL | `NOT_TESTED` |
+| HTTP 403 / 过期 URL | 获取失败后可辨认的具体错误，不能显示“已保存原图”；若仅返回下载 ID，继续核查 Chrome terminal | `NOT_TESTED` |
+| 下载 `interrupted` / `E_OUTCOME_UNKNOWN` | 终态与任务记录一致；未知时先核查已有文件/Chrome 记录，**不自动重试** | `NOT_TESTED`；现有 capture.image 不提供该任务级保证 |
+| 网站或工具撤权 | 所有后续敏感操作拒绝；已经开始的 Chrome 任务只如实报告可能存在的结果，不能伪造“已撤销下载” | `NOT_TESTED` |
+| 重复点击、路径冲突 | 同一业务交付至多一份经核实的资产；`conflictAction:uniquify` 不是业务幂等；多次点击不得无声生成重名副本 | `NOT_TESTED` |
+| Worker 重启/来源图片切换 | 重启后重新关联记录与真实状态；`getOwned` 引用可失效须显式 UNKNOWN 并核查 Chrome 下载，不能将缩略图声称为原图 | `NOT_TESTED`；当前 Host 内存引用是已核的源码风险 |
+| 回归/安全 | 原 Knowledge 搜索、编辑、未保存保护与来源、Clipper、Prompt Shortcuts 保持可用；拒绝非授权域名、越权本地文件写入 | `NOT_TESTED` |
+
+本网页执行场所 **未获取**：Mac 上可执行的源码/Chrome profile、候选生产构建 SHA、真实下载文件、原图 hash、测试日志和具体本地命令退出码。因此**没有运行** `npm run build`、`node --test` 或原生 Chrome 测试，不填任何 PASS、FAIL 数量。现场 Codex 需先用 `git status --short`、`git rev-parse HEAD`、实际加载扩展路径/ID/权限和当前 watcher 做非破坏性核验；仅在实际审批和诊断允许后执行相关已有定向测试与真实 Chrome 手动下载读回，保留文件摘要与操作日志。任何业务缺陷先锁定来源、复现及责任 Owner，再判断是否需要最小源码修改。
+
+### S2 / EXP-001：五位**真正有预算决策权**的买方访谈与固定范围报价卡（已准备、未联系）
+
+先定一个可被客户合法授权的试点：**一个指定 Origin/企业站点、一条人工触发的重复网页流程、最多八个明确字段、一个终态读回、用户审核/确认后才执行任何有影响的动作**；由现有受控 Workflow 和许可门执行，回归包括撤权、Stop、误操作恢复与版本更新。原则上不采集真实生产凭证，不接受越权录制；客户明确拒绝站点使用权即 STOP。无需为访谈开发第二套自动化引擎。
+
+| 访谈配额（仅角色候选，不是已找到真人） | 决定是否符合合格采购人的硬问题 |
+| --- | --- |
+| 1. 运营负责人 | 是否管理该重复任务、最近四周实际发生频次和可支配的流程改造预算？ |
+| 2. IT/信息安全预算负责人 | 能否批准该 Origin、权限、日志保存、撤权和支持协议？审批后是否真的有采购责任？ |
+| 3. 客服或销售运营负责人 | 上一次失败/返工时间和可验证的金额损失？是否有该工作流的席位或服务预算？ |
+| 4. 电商/财务运营负责人 | 现有 API/官方导出/Automa、Axiom、Ui.Vision 是否已经足够？自己会因哪项失败恢复付费？ |
+| 5. 采购/业务系统交付负责人 | 谁是最终签约人、采购流程/额度/法务约束、是否能签署试点及后续维护协议？ |
+
+每位都问**同一组**可证伪问题：① 最近一次真实任务的输入/输出和频次；② 当前人力分钟数及返工；③ 最强免费/付费替代；④ 谁拥有站点授权；⑤ **谁可以签付款和审批的书面文件**；⑥ 针对固定范围是否愿意审核 SOW、实施费及每月维护费；⑦ 自己可批准的金额区间、采购周期、合规限制；⑧ 什么条件下直接拒绝。候选若**没有预算/购买影响力**应从“五位预算买家”分母剔除，不把普通产品用户凑数。
+
+**统一 SOW/报价草案**（非正式报价，**未发送、未经买方批准**）：交付对象=上述 1 Origin/1 流程/≤8 字段/1 结果回读；包含权限审阅、审计与撤权测试、一次部署、一次现场验收及 30 天范围内缺陷处理；**不包含**绕过风控、客户系统账号共享、多个新站点、任意批量爬取、长期 24x7、支付/退款/不可逆自动提交。报价字段：实施费 `MISSING_PENDING_ESTIMATED_HOURS`；月维护费 `MISSING_PENDING_SUPPORT_COST`；含支持小时 `MISSING`；客户明确 SLA `MISSING`；第三方/API 成本 `MISSING`。先核实工程含成本工时和客户预算再冻结一个真实数字与币种；**未知价格不能算已报价验证**。每份真实回执仅在获得授权后以脱敏摘要和私有证据标识写回 EXP-001。
+
+访谈完成判据：先争取 **5/5 合格预算采购人实际完成访问**；至少 **1 份带范围、实施/维护金额与具名公司授权批准角色的书面反馈/报价请求** 才升格为有效商机。口头“感兴趣”不是报价/收入；只有实际签约与可核付款才能记 `PAID_VALIDATED`。当前 `INTERVIEWS_0_DONE / BUYERS_MISSING / QUOTES_NOT_SENT`，这里的 0 是**本轮执行记录**，不是把长期未知业务分母写成 0。
+
+### S3/S4：C 数据许可、13 关键词和获客经济硬门
+
+- **C / EXP-005**：尚无经卖家书面许可的 CSV、字段正确答案、预算买方。等到最少三份合法导出/客户提交文件、授权用途及人工标准后，才核对字段缺失、重复 SKU、误报漏报和每 100 行人工时间；文件原件留在客户授权位置，不公开上传。当前 `BLOCKED_BY_AUTHORIZED_DATA`，不启用 Seller 私有站点爬虫。
+- **Google US/en + JP/ja 13 词**：继续使用上节已列的 13 条 literal，**不翻译成别词、不另报新量价**；仅账户持有人在已授权 Keyword Planner 分别按地域、语言、同一完整月份、Google Search Network、官方币种导出 `avgMonthlySearches/competition/topOfPageBidLow/high`、导出时间和文件 SHA。Google 页首 bid percentile 是历史广告出价参考，**不是实际 CPC**；本轮 `13/13 OFFICIAL_METRICS_MISSING`，不接入广告账户、不建立 campaigns、`AD_SPEND_NOT_EXECUTED`。需另有合规比较落地页、预算书面批准及可归因的真实任务转化，才能测实际 CAC。
+- **免费→付费要有两条独立证据链**：免费首次结果和两个自然周期复用（分母为真实自愿参与 cohort）；团队买家独立承认具体维护/集成价值、固定报价、实际采购付款。贡献应扣云/API、实施与持续维护、支持、退款/支付和自然渠道内容工时；缺订单/工时与可归因点击，`CAC/payback/monthlyContribution=NOT_MEASURED`。CWS 安装和竞品安装都不替代活跃、复用或订单。
+- **当前决策（每方向独立）**：A=`NOT_DECIDED / BLOCKED_BY_PRODUCT_EVIDENCE`；B=`NOT_DECIDED / BUYER_MISSING`；C=`NOT_DECIDED / AUTHORIZED_CSV_MISSING`；付费渠道=`NOT_DECIDED / NO_ACCOUNT_OR_BUDGET`。没有真实付款、自然重复、可核 Mac Chrome 文件就不放大投入，也不发布“95 分已达标”。
+

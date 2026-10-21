@@ -15,6 +15,9 @@ import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../../example
 import {stopAdblockForTool,cleanupUninstalledAdblock} from '../../../examples/sidebar-tools/adblock/trusted/lifecycle.js';
 import {stopAiAccessForTool,cleanupUninstalledAiAccess} from '../../../examples/sidebar-tools/ai-vip-share/trusted/lifecycle.js';
 import {stopManagedProxyForTool} from '../../platform/chrome/browser-managed-proxy.js';
+import {stopManagedSiteBudgetForTool} from '../../platform/chrome/browser-managed-site-budget.js';
+import {MANAGED_SITE_BUDGET_CAPABILITY,MANAGED_SITE_BUDGET_PROTOCOL} from '../../platform/host/managed-site-runtime-contract.js';
+import {assertManagedSitePolicySupported} from '../../platform/host/managed-site-runtime-contract.js';
 
 export const MARKET_OPERATIONS_STORE='opendesk.market.operations.v1';
 export const TOOL_CLEANUP_STORE='opendesk.sidebar-tools.uninstall-cleanup.v1';
@@ -70,6 +73,7 @@ async function stopInstalledToolOwnedServices(api,toolId){
   await stopStayFocusForTool(api,toolId);
   await stopAdblockForTool(api,toolId);
   await stopAiAccessForTool(api,toolId);
+  await stopManagedSiteBudgetForTool(api,toolId);
   await stopManagedProxyForTool(api,toolId);
 }
 
@@ -206,6 +210,7 @@ export async function cleanupUninstalledToolLocked(api,id){
     // Delete private bookmark ownership IDs but do not silently remove user bookmarks.
     await removeVerifiedKey(api,BOOKMARK_OWNED_STORE_PREFIX+id);
     if(id==='time-review')await removeVerifiedKey(api,TIME_REVIEW_KEY);
+    await stopManagedSiteBudgetForTool(api,id,{cleanup:true});
     await cleanupUninstalledStayFocus(api,id,removeVerifiedKey,
       key=>removeVerifiedStorageKey(api.storage.session,key,'卸载专注会话'));
     await cleanupUninstalledAdblock(api,id,removeVerifiedKey);
@@ -324,6 +329,17 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
   if(reviewApproved!==true)throw error('必须先经过用户明确安装审阅','E_REVIEW_REQUIRED');
   const tool=validateSidebarToolPackage(candidate);
   const identity=marketIdentity(market,tool);
+  // Compatibility is decided by the already running, precompiled Worker
+  // BEFORE the registry's commit boundary. No arbitrary packaged JS admitted.
+  if(tool.capabilities.includes(MANAGED_SITE_BUDGET_CAPABILITY)){
+    let response;
+    try{response=await api.runtime.sendMessage({protocol:MANAGED_SITE_BUDGET_PROTOCOL,
+      toolId:tool.id,operation:'probe'});}
+    catch{throw error('公共后台能力无法连接到真实 Worker','E_TOOL_RUNTIME_UNAVAILABLE');}
+    if(!response?.ok)throw error(response?.error?.message||
+      '当前浏览器未实现此受管后台合同',response?.error?.code||'E_TOOL_RUNTIME_UNAVAILABLE');
+    assertManagedSitePolicySupported(tool,response.data);
+  }
   // An imported package cannot reserve or impersonate the built-in reader ID.
   // The trusted bundled release must match BOTH the reviewed source and bytes.
   if(tool.id===OFFICIAL_READING_TOC_RELEASE.id&&
@@ -340,6 +356,11 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
        (existing&&!sameSidebarToolPackage(existing,baseline)))
       throw error('安装状态已发生变化，请重新审阅','E_TOOL_CHANGED');
     const provenance=(await api.storage.local.get(MARKET_PROVENANCE_STORE))[MARKET_PROVENANCE_STORE]||{};
+    if(!identity&&existing&&provenance[tool.id]&&!sameSidebarToolPackage(existing,tool)){
+      if(typeof approveSourceChange!=='function')
+        throw error('官方来源工具不能被本地包静默接管，请审核来源替换','E_PUBLISHER_CONFLICT');
+      if(await approveSourceChange(existing,tool)!==true)return {state:'cancelled',tool};
+    }
     if(identity&&existing&&!sameSidebarToolPackage(existing,tool)){
       const record=provenance[tool.id];
       if(record?.marketId!==identity.marketId||!shaPattern.test(record?.sha256)){

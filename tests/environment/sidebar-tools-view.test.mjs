@@ -21,12 +21,18 @@ const compileComponent = async (path, replacements) => {
     (text,[from,to])=>text.replaceAll(JSON.stringify(from),JSON.stringify(to)),code)).toString('base64');
 };
 const buttonModule = await compileComponent('../../src/ui/react/components/ui/button.tsx',{'react':import.meta.resolve('react')});
+const conversationModule = await compileComponent('../../src/ui/react/components/conversation.tsx',{
+  'react':import.meta.resolve('react'),'react-dom':import.meta.resolve('react-dom'),
+  './ui/button.tsx':buttonModule});
 const toolsModule = await compileComponent('../../src/ui/react/tabs/tools.tsx',{'react':import.meta.resolve('react'),
   'react-dom':import.meta.resolve('react-dom'),'../components/ui/button.tsx':buttonModule});
 const moduleSource = compiled.code.replace('"react"', JSON.stringify(import.meta.resolve('react')))
   .replace('"react-dom"',JSON.stringify(import.meta.resolve('react-dom')))
   .replace('"./tools.tsx"',JSON.stringify(toolsModule))
-  .replace('"./trusted-settings.tsx"',JSON.stringify(settingsModuleURL));
+  .replace('"./trusted-settings.tsx"',JSON.stringify(settingsModuleURL))
+  // Relative imports cannot resolve inside the test's data: module. Compile
+  // the same real component with absolute React references for this fixture.
+  .replace('"../components/conversation.tsx"',JSON.stringify(conversationModule));
 const {ToolHost} = await import('data:text/javascript;base64,' + Buffer.from(moduleSource).toString('base64'));
 const nextTick = () => new Promise(resolve => setImmediate(resolve));
 

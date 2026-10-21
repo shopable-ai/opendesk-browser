@@ -6,7 +6,7 @@ import {createDeveloperView} from '../develop-view.js';
 import {createMyWorkbenchView} from '../my-workbench-view.js';
 import '../../../examples/sidebar-tools/bookmark-manager/src/model.js';
 import '../../../examples/sidebar-tools/bookmark-manager/src/service.js';
-import BookmarkReactApp,{bookmarkConversationSamples} from '../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx';
+import BookmarkReactApp from '../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx';
 import {TrustedConversationWorkspace} from './components/conversation.tsx';
 import conversationDockCSS from './components/conversation-dock.css?raw';
 import bookmarkScopedCSS from '../../../examples/sidebar-tools/bookmark-manager/src/react/style.css?raw';
@@ -66,9 +66,10 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
         cloudSetupModel={cloudPageModel.setup} cloudPageModel={cloudPageModel}/>
       {bookmarkPilot&&createPortal(<><style>{bookmarkScopedCSS}</style>
         <TrustedConversationWorkspace controller={bookmarkPilot.runtime.conversation}
-         title="书签对话" samples={bookmarkConversationSamples}
+          headerTarget={bookmarkPilot.headerTarget}
+         title="AI 对话"
          placeholder="例如：创建一个文件夹并收藏当前网页"
-         resultLabel="Chrome 书签读回核验"
+         
          renderBusiness={dock=><BookmarkReactApp mode="trusted" runtime={bookmarkPilot.runtime}
            onStateChange={bookmarkPilot.onStateChange} dock={dock}/>}/>
         </>,bookmarkPilot.container)}
@@ -124,12 +125,15 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
       const scopedConversation=conversation?Object.freeze({
         source:()=>conversation.source(),
         request:args=>conversation.request(args),
-        cancel:()=>conversation.cancel(),
+        cancel:options=>conversation.cancel(options),
         readSession:()=>({...oldSession,open:false,
           refs:{folderId:null,bookmarkId:null,matches:[]}}),
         saveSession:state=>conversation.saveSession(state)
       }):null;
-      bookmarkPilot={container,
+      const headerTarget=doc.getElementById('sidebar-tool-chat-slot');
+      if(!headerTarget||!doc.getElementById('sidebar-tool-title'))
+        throw new Error('E_BOOKMARK_TRUSTED_CHAT_HEADER');
+      bookmarkPilot={container,headerTarget,
         runtime:Object.freeze({sdk,service:globalThis.BookmarkR2Service.create(sdk),
           conversation:scopedConversation}),
         onStateChange};

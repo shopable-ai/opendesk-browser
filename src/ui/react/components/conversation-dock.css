@@ -1,37 +1,35 @@
-/* One trusted split Dock, shared by admitted extension adapters only.
- * The original business component remains mounted and scrollable. */
+/* Framework-owned, trusted shared Dock; the business tree stays mounted. */
 .od-conversation-workspace{height:100%;min-height:0;min-width:0;width:100%;display:flex;flex-direction:column;overflow:hidden;color:var(--od-ink)}
 .od-conversation-business{min-height:0;min-width:0;flex:1 1 auto;overflow:hidden}
-.od-conversation-dock{flex:none;min-height:0;min-width:0;display:flex;flex-direction:column;overflow:hidden;background:var(--od-paper);border-top:1px solid var(--od-line)}
+.od-conversation-header-slot:empty{display:none}
+.od-conversation-header-slot{display:inline-flex;align-items:center;flex:none}
+.od-conversation-frame-trigger[aria-pressed="true"]{background:var(--od-muted);border-color:var(--od-focus);color:var(--od-accent-ink)}
+.od-conversation-dock{position:relative;flex:none;min-height:0;min-width:0;display:flex;flex-direction:column;overflow:hidden;background:var(--od-paper);border-top:1px solid var(--od-line)}
 .od-conversation-dock[hidden]{display:none!important}
-.od-conversation-separator{position:relative;flex:0 0 8px;touch-action:none;cursor:row-resize;background:var(--od-bg);border-bottom:1px solid var(--od-line)}
-.od-conversation-separator:before{content:'';position:absolute;left:calc(50% - 20px);width:40px;height:3px;top:2px;background:var(--od-input-border);border-radius:4px}
+/* One visible 1px divider, with an invisible drag target. The old 23/34px band was visually heavy. */
+.od-conversation-dragbar{position:relative;z-index:1;flex:0 0 12px;min-height:12px;background:transparent}
+.od-conversation-separator{position:absolute;top:-4px;bottom:-4px;left:0;right:40px;touch-action:none;cursor:row-resize}
+.od-conversation-separator:before{content:'';position:absolute;left:calc(50% - 16px);width:32px;height:2px;top:8px;background:var(--od-input-border);border-radius:var(--radius-pill)}
 .od-conversation-separator:focus-visible{outline:2px solid var(--od-focus);outline-offset:-2px}
-.od-conversation-header{display:flex;align-items:center;gap:8px;padding:1px 9px 1px 12px;flex:none;min-height:30px;min-width:0}
-.od-conversation-header strong{font-size:12px;font-weight:650;white-space:nowrap}
-.od-conversation-source{flex:1;min-width:0;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;font-size:10px;color:var(--od-sub);text-align:right}
-.od-conversation-close{display:grid;place-items:center;width:28px;min-width:28px;height:28px;padding:0;border:0;background:transparent;color:var(--od-sub);border-radius:7px;font-size:19px;cursor:pointer}
+.od-conversation-close{position:absolute;z-index:2;top:-3px;right:6px;display:grid;place-items:center;width:28px;min-width:28px;height:28px;padding:0;border:0;background:var(--od-paper);color:var(--od-sub);border-radius:var(--radius-control);cursor:pointer}
+.od-conversation-close svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .od-conversation-close:hover{background:var(--od-muted)}
-.od-conversation-log{min-height:0;flex:1 1 auto;overflow:auto;overscroll-behavior:contain;padding:6px 11px;display:flex;flex-direction:column;gap:7px;scrollbar-width:thin}
-.od-conversation-entry{align-self:flex-start;max-width:94%;min-width:0;display:grid;gap:3px;background:var(--od-bg);border:1px solid var(--od-line);border-radius:10px;padding:7px 9px;overflow-wrap:anywhere}
+.od-conversation-log{min-height:0;flex:1 1 auto;overflow:auto;overscroll-behavior:contain;padding:13px 10px 6px;display:flex;flex-direction:column;gap:7px;scrollbar-width:thin}
+.od-conversation-entry{align-self:flex-start;max-width:94%;min-width:0;display:grid;gap:3px;background:var(--od-bg);border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:7px 9px;overflow-wrap:anywhere}
 .od-conversation-entry[data-speaker="user"]{align-self:flex-end;background:color-mix(in srgb,var(--od-brand) 8%,var(--od-paper))}
-.od-conversation-entry strong{color:var(--od-sub);font-size:10px}
-.od-conversation-entry p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;line-height:1.48;font-size:12px}
-.od-conversation-empty{display:grid;gap:6px;color:var(--od-sub);font-size:12px}
-.od-conversation-empty p{margin:0}
-.od-conversation-samples{display:flex;gap:5px;flex-wrap:wrap}
-.od-conversation-samples button{border:1px solid var(--od-line);border-radius:8px;background:var(--od-paper);color:var(--od-ink);padding:5px 7px;text-align:left;font:inherit;font-size:11px;cursor:pointer}
-.od-conversation-samples button:hover{background:var(--od-muted)}
-.od-conversation-error{margin:0;padding:4px 11px;color:var(--od-negative);font-size:11px;line-height:1.5}
-.od-conversation-composer{display:grid;gap:5px;flex:none;min-width:0;padding:6px 11px 9px;border-top:1px solid var(--od-line)}
+.od-conversation-entry p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;line-height:1.48;font-size:var(--od-note-size)}
+.od-conversation-error{margin:0;padding:4px 10px;color:var(--od-negative);font-size:var(--od-meta-size);line-height:1.5}
+.od-conversation-feedback{flex:0 1 auto;min-height:26px;max-height:25%;overflow:auto;overflow-wrap:anywhere;overscroll-behavior:contain}
+.od-conversation-feedback:focus-visible{outline:2px solid var(--od-focus);outline-offset:-2px}
+.od-conversation-composer{display:grid;grid-template-columns:minmax(0,1fr);position:relative;flex:none;min-width:0;padding:6px 10px 8px;border-top:1px solid var(--od-line)}
 .od-conversation-sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
-.od-conversation-input{width:100%;min-width:0;min-height:48px;max-height:90px;resize:vertical;border:1px solid var(--od-input-border);border-radius:9px;padding:7px 9px;background:var(--od-paper);color:var(--od-ink);font:inherit;font-size:12px;line-height:1.4}
+.od-conversation-input{grid-area:1/1;box-sizing:border-box;display:block;width:100%;min-width:0;min-height:44px;max-height:112px;resize:none;overflow-y:auto;border:1px solid var(--od-input-border);border-radius:var(--radius-surface);padding:10px 52px 9px 10px;background:var(--od-paper);color:var(--od-ink);font:inherit;font-size:var(--od-note-size);line-height:1.5;scrollbar-width:thin}
 .od-conversation-input::placeholder{color:var(--od-sub);opacity:1}
-.od-conversation-input:focus-visible,.od-conversation-close:focus-visible,.od-conversation-action:focus-visible,.od-conversation-samples button:focus-visible{outline:2px solid var(--od-focus);outline-offset:1px}
-.od-conversation-controls{display:flex;justify-content:space-between;align-items:center;min-width:0;gap:8px}
-.od-conversation-controls small{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--od-sub);font-size:10px}
- .od-conversation-action{padding:0;display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:8px;border:1px solid var(--od-line);background:var(--od-paper);color:var(--od-ink);cursor:pointer;font-size:15px}
+.od-conversation-input:focus-visible,.od-conversation-close:focus-visible,.od-conversation-action:focus-visible,.od-conversation-frame-trigger:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
+/* Input and action occupy one grid cell: no viewport/zoom-dependent bottom offset. */
+.od-conversation-action{position:relative;z-index:1;grid-area:1/1;align-self:end;justify-self:end;margin:0 6px 6px 0;display:grid;place-items:center;width:32px;min-width:32px;height:32px;min-height:32px;padding:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);cursor:pointer}
+.od-conversation-action svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .od-conversation-action--primary{background:var(--od-brand);color:var(--od-on-brand);border-color:var(--od-brand)}
 .od-conversation-action:disabled{opacity:.45;cursor:not-allowed}
-@media (max-height:520px){.od-conversation-header{min-height:25px}.od-conversation-composer{padding:4px 8px 5px}.od-conversation-input{min-height:42px;max-height:60px}.od-conversation-log{padding:4px 8px}}
-@media (pointer:coarse){.od-conversation-action,.od-conversation-close{min-width:44px;width:44px;min-height:44px;height:44px}}
+@media(max-height:520px){.od-conversation-composer{padding:4px 8px 5px}.od-conversation-input{max-height:76px}.od-conversation-log{padding-right:8px;padding-bottom:4px}}
+@media(pointer:coarse){.od-conversation-dragbar{flex-basis:18px;min-height:18px}.od-conversation-separator{top:-10px;bottom:-10px;right:48px}.od-conversation-separator:before{top:16px}.od-conversation-close{width:44px;min-width:44px;height:44px;top:-4px;right:2px}.od-conversation-log{padding-top:23px}.od-conversation-action{width:40px;min-width:40px;height:40px;min-height:40px;margin:0 5px 5px 0}.od-conversation-input{min-height:50px;padding-right:54px}}

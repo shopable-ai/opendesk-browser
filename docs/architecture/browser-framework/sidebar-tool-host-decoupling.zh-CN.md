@@ -76,3 +76,12 @@ Stay Focus 的 DNR ID 是 **730000–730199**，与 AdBlock 不重叠；跨工�
 ## 6. 本轮实际交付边界
 
 本次仅核查源代码并更新文档/Skills，**不修改 AdBlock/Stay Focus 业务、Browser 运行入口、权限、包、DNR 策略或已安装用户数据**，不声称已去除第 2 节的耦合。下一次实施从 P0 源码不回流防护、AdBlock/Stay Focus 真实业务迁移优先级开始；不得先推翻已正常工作的受审可信服务。
+
+## 7. R1.4 公共后台能力实施记录（2026-10-21，覆盖上方历史阶段说明）
+
+Browser main 已提交公共 `site-budget.v2` **源码候选**（首提交 `c6c979e8fb4f37e43e52c9d42ca6d3ff8f6ffa9e`）：`src/platform/chrome/browser-managed-site-budget.js` 是唯一 MV3 Worker 的受审固定执行器，沿用 SDK Registry/Schema、侧边栏可信 Host、Installer、Authority 和每工具 Web Lock；`src/platform/chrome/browser-managed-site-policy.js` 保留原有保守计量。安装工具拥有其包摘要、来源与撤权 epoch；共享资源账本校验所有者和 DNR 自有区间。公共规则优先级 10，位于 AdBlock allow=2 与 Stay Focus redirect>=20 之间，既有 730000–730199、741000–741199 保留。无沙箱 JS 获得特权 Worker 执行能力。
+
+- 普通应用只声明 `browser.siteBudget` 和 `backgroundPolicy.kind='site-budget.v2'`；最多 40 个经过审核的网站，数据模板不是用户批准，UI 通过 `OpenDeskSDK.browser.siteBudget.getStatus()` / `setPolicy({enabled,dailyMinutes,sites,schedule,expectedRev})` 与原可信 Host 确认更新。更新网站与时段不要求在 Browser 注册应用 ID。网站需出现在安装包 `suggestions` 且 `suggestLimit=true`，新版本撤销网站范围时自动停止旧生效意图而保留原数据。
+- 受控 DNR 区间由 Host 分配，单个策略只编译已有固定阻断动作；持久化 `desiredPolicyRev/appliedPolicyRev/status`，原生 DNR/Alarm 回读与存储记录分开核对。已停用、撤权、来源改变或卸载只清理自身，未知效果不得报告成功。
+- Stay Focus 与 AdBlock 第一方固定执行器**继续保留**，尚无正式生产所有权切换。公共预算不是任意过滤、共享分组、UI picker、CSS 或新算法的通用特权执行器。
+- **证据状态**：`SOURCE_COMMITTED`；`NODE_PASS`、`BUILD_PASS`、`B0_FROZEN`、`CHROMIUM_NATIVE_PASS`、`MAC_NATIVE_PASS` 在获得与同一候选绑定的实际报告前均为 `NOT_TESTED`。定向测试入口 `tests/environment/managed-site-budget-r14.test.mjs`；GitHub 工作流 `.github/workflows/site-budget-r14.yml` 输出的产物是 B0 **候选**，尚不能宣称已由 Chrome 实际加载。固定 B0 后，才在普通应用项目确定新的验收应用 ID、发行 1.0.0/1.0.1 并执行真实安装升级闭环。

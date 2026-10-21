@@ -287,13 +287,25 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
   try{pagePromise=Promise.resolve(sdk?.page?.getContext?.()).catch(()=>null)}
   catch{pagePromise=Promise.resolve(null)}
   const providerPromise=conversation.request({request,context:publicContext,signal,event});
-  const [providerResult,pageContext]=await Promise.all([providerPromise,pagePromise]);
-  const {proposal,authorization}=providerResult;
+  const {proposal,authorization}=await providerPromise;
+  let releasePageWait=()=>{};
   try{
    if(mode==='trusted'&&(!authorization?.signal||
      typeof authorization.assertWrite!=='function'||typeof authorization.release!=='function'))
     throw Object.assign(Error('缺少有效的模型权限与安装实例校验，拒绝执行'),{code:'E_MODEL_GRANT_REVOKED'});
    if(signal.aborted)throw Object.assign(Error('本轮已停止'),{code:'E_CANCELLED'});
+   // Page context starts in the Send gesture, but an unresponsive page must
+   // not keep a stopped/revoked Provider turn alive indefinitely.
+   const pageSignal=authorization?.signal||signal;
+   const pageContext=await new Promise((resolve,reject)=>{
+    const abort=()=>reject(pageSignal.reason?.code&&typeof pageSignal.reason.code==='string'?
+     pageSignal.reason:Object.assign(Error('本轮已停止'),{code:'E_CANCELLED'}));
+    if(pageSignal.aborted){abort();return;}
+    pageSignal.addEventListener('abort',abort,{once:true});
+    releasePageWait=()=>pageSignal.removeEventListener('abort',abort);
+    pagePromise.then(resolve,reject);
+   });
+   releasePageWait();
   if(authorityEpoch.current||!activeRef.current)
    throw Object.assign(Error('书签访问授权或当前安装实例已经失效，未发送后续操作。'),{code:'E_GRANT_REVOKED'});
   const willWrite=Array.isArray(proposal?.actions)&&proposal.actions.some(action=>action?.type!=='bookmark.search');
@@ -302,13 +314,15 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
    throw Object.assign(Error(draftRef.current?
     '存在未保存的书签编辑。可以继续只读搜索；请先保存或取消编辑，再重新发起写入。':
     '书签正在写入或结果尚未核实，请核对后重新发起操作。'),{code:'E_DRAFT_CONFLICT'});
-  if(willWrite){onPhase?.('writing');busyRef.current=true;setBusy(true);}
+  const write=willWrite?++writeEpoch.current:writeEpoch.current;
+  const current=()=>activeRef.current&&!authorityEpoch.current&&write===writeEpoch.current;
+  if(willWrite){readEpoch.current++;onPhase?.('writing');busyRef.current=true;setBusy(true);}
   try{
    const result=await executeBookmarkPlan({plan:proposal,service,
     signal:authorization?.signal||signal,beforeWrite:authorization?.assertWrite,
     expectedTree:tree,context:{...pinned,pageContext},refs:pinned.refs,
     onStep:step=>{
-     if(!activeRef.current||authorityEpoch.current)return;
+     if(!current())return;
      if(step.tree)setTree(step.tree);
      if(step.id){
       // Only a post-write readback may reveal a node. Never hijack a user
@@ -318,7 +332,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
        const mayReveal=interactionEpoch.current===interactionAtSend&&!queryRef.current.trim();
        pendingAiReveal.current=mayReveal?{id:node.id,epoch:interactionEpoch.current}:null;
        setRevealTarget(mayReveal?null:node.id);
-       setExpanded(previous=>{
+       if(mayReveal)setExpanded(previous=>{
         const next=new Set(previous);let parent=step.tree.byId.get(node.parentId),depth=0;
         while(parent&&depth++<100){next.add(parent.id);parent=step.tree.byId.get(parent.parentId);}
         return next;
@@ -329,14 +343,17 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
     }});
    return {question:result.question||null,refs:result.refs};
   }catch(error){
-   if(error?.code==='E_OUTCOME_UNKNOWN')setUncertain(true);
-   if(authorityDenied(error))revoke();
+   if(current()&&error?.code==='E_OUTCOME_UNKNOWN')setUncertain(true);
+   if(current()&&authorityDenied(error))revoke();
    if(error?.refs)onStep?.({refs:error.refs});
    throw error;
   }finally{
-   if(willWrite){busyRef.current=false;if(activeRef.current)setBusy(false);}
+   if(willWrite&&write===writeEpoch.current){
+    writeEpoch.current++;readEpoch.current++;busyRef.current=false;
+    if(activeRef.current){setBusy(false);setLoading(false);}
+   }
   }
-  }finally{authorization?.release?.();}
+  }finally{releasePageWait();authorization?.release?.();}
  }
 
  function setDraft(value){fillEpoch.current++;updateDraft(value)}
@@ -486,7 +503,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
   else if(action.type==='currentPage')void fillCurrentPage();
  }
  // Explicit cancel means discard. No modal for unsaved drafts.
- function request(action){interactionEpoch.current++;fillEpoch.current++;if(busyRef.current)return;if(uncertain&&['create','edit','delete','currentPage'].includes(action.type)){setError('上次写入结果未知，请先刷新核对后再继续。');return}perform(action)}
+ function request(action){interactionEpoch.current++;fillEpoch.current++;if(busyRef.current&&!['select','detail'].includes(action.type))return;if(uncertain&&['create','edit','delete','currentPage'].includes(action.type)){setError('上次写入结果未知，请先刷新核对后再继续。');return}perform(action)}
  function select(id){interactionEpoch.current++;setActiveId(id);if(draft)return;request({type:'select',id})}
  function changeSearch(value){
   interactionEpoch.current++;queryRef.current=value;
@@ -612,7 +629,6 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
     <OpenDeskIconButton label="新建书签" className="bm-icon-btn bm-icon-btn--primary" disabled={busy} onClick={()=>request({type:'create',kind:'bookmark'})}><Icon name="plus" size={18}/></OpenDeskIconButton>
     <OpenDeskIconButton label="新建文件夹" className="bm-icon-btn" disabled={busy} onClick={()=>request({type:'create',kind:'folder'})}><Icon name="folder" size={17}/></OpenDeskIconButton></div>
     <OpenDeskIconButton label="收藏当前页" className="bm-icon-btn" disabled={busy} onClick={bookmarkCurrentPage}><Icon name="star" size={17}/></OpenDeskIconButton>
-    <OpenDeskIconButton ref={dock?.triggerRef} label="对话" className={'bm-icon-btn'+(dock?.open?' bm-icon-btn--primary':'')} aria-pressed={Boolean(dock?.open)} aria-controls="opendesk-conversation-dock" disabled={!dock} onClick={dock?.toggle}><Icon name="chat" size={17}/></OpenDeskIconButton>
     <OpenDeskIconButton label="刷新书签" className="bm-icon-btn" onClick={()=>void load({reconcileUnknown:true})} disabled={busy||loading}><Icon name="refresh" size={17}/></OpenDeskIconButton>
    </div></header>
   <div className="bm-tools"><div className="bm-search-wrap"><Icon name="search" size={16}/><label className="bm-sr-only" htmlFor="bm-search">搜索名称、URL 或文件夹</label><input id="bm-search" value={query} placeholder="搜索书签、网址或文件夹" onChange={e=>changeSearch(e.target.value)}/>{query&&<OpenDeskIconButton label="清空搜索" onClick={()=>{changeSearch('');document.getElementById('bm-search')?.focus()}}><Icon name="x" size={14}/></OpenDeskIconButton>}</div></div>

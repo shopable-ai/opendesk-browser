@@ -3,6 +3,8 @@
 // An installable package may change data only within the advertised contract;
 // it cannot ask Chrome to run privileged JavaScript from a package.
 export const MANAGED_SITE_RUNTIME_CONTRACT='opendesk.managed-site-runtime.v1';
+export const MANAGED_SITE_BUDGET_CAPABILITY='browser.siteBudget';
+export const MANAGED_SITE_BUDGET_PROTOCOL='opendesk.browser.site-budget.v2';
 const unsupported=kind=>Object.assign(new Error(
   '当前 OpenDesk Browser 后台不能执行 '+String(kind).slice(0,80)+
   ' 声明式规则，请更新浏览器后再安装或升级此工具；不会执行安装包的特权 JavaScript'),

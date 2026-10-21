@@ -2,6 +2,16 @@
 
 本目录是项目**唯一现行 Agent Skills 入口**，不新建根目录 `skills/`；Skill 是 AI/Codex 指导而不是浏览器安装的扩展。保留技术 slug 与运行协议，用户产品术语统一引用 [R4 正式产品规格](../../docs/product/sidebar-ui-spec.zh-CN.md)。
 
+## 先看使用者：应用用户与 Browser 维护者不共享构建步骤
+
+| 你是谁 / 你要做什么 | 普通操作入口 | AI/Codex 背后的 Skill |
+| --- | --- | --- |
+| **普通用户**：创建、修改、预览、更新「扩展」中的应用 | 用自然语言描述需求 → 审阅预览 → 在 OpenDesk「扩展」确认安装/更新 → 复验 | `opendesk-sidebar-tool-dev` 串联需求与交付；打包阶段转 `opendesk-sidebar-tool-package` |
+| **普通用户**：开发「网页增强」脚本 | OpenDesk「开发」试运行 → 「扩展 → 网页增强」审阅安装 | `opendesk-script-authoring` → `opendesk-program-publish`，不可当作 Sidebar JSON |
+| **Browser 开发者/管理员**：修改 WXT/MV3、Host、可信页面代码并编译/重载插件本体 | 本地 Git/main + `npm run dev` + 已加载 `dist/development`，正式包另走独立验收 | `opendesk-extension-runtime`；第一方可信业务按 `opendesk-trusted-sidebar-feature` 分工 |
+
+**对普通用户不暴露 Browser 编译命令。** AI 负责调用当前已有编译器与打包器；常规应用更新不重新安装 Chrome 插件。可读流程见 [普通用户：扩展应用开发与更新](../../docs/product/extension-app-user-workflow.zh-CN.md)。要准备同 ID 应用更新时，AI 在本地可运行 `npm run app:update -- <id>`；它只生成经过测试的唯一正式 JSON，**不自行更新已安装实例**，安装仍由可信界面审阅确认。若 `trusted/` 或 SW/Content 等静态入口确实变化，AI 必须把 Browser 内置更新交给维护者，而不是谎称 JSON 可更换这些代码。
+
 **普通用户一句话创建工具的上游入口（R2）**：先按[自然语言扩展开发工作流](../workflows/extension-creation.md)执行现场恢复、需求推理、功能树及需求关卡（Phase 0–3 / Gate A），为 P0 建立 F-ID↔S-ID↔A-ID 后**才**从下表选一个主 Skill 进入 UI/源码阶段。用户不需要填写 Skill 名称或技术表单；这只是对现有 Skill 的执行指引，不表示浏览器已有一键创建/自动安装产品入口。
 
 | 主职责（唯一主 Skill） | Skill | 禁止混淆 |

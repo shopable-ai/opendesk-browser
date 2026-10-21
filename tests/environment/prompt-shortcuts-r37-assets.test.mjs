@@ -33,6 +33,11 @@ test('R3.7 reviewed Host stores decoded PNG under scoped resource key, not in 8 
  assert.match(saved.id,/^psa_[a-f0-9]{32}$/);assert.equal(saved.mime,'image/png');
  assert(saved.bytes>12);assert(authorizations>=3);
  assert.equal(changes[0],PROMPT_ASSET_STORE);
+ const retried=await executePromptAsset({api,operation:'prompt.asset.put',payload:{mime:'image/png',dataUrl},authorize});
+ assert.equal(retried.id,saved.id,'retrying the same verified bytes reuses the same resource ID');
+ assert.equal(retried.reused,true);
+ assert.equal(Object.keys(values.get(PROMPT_ASSET_STORE).assets).length,1);
+ assert.equal(changes.length,1,'deduplicated asset must not write a second copy');
  assert.equal(values.has(PROMPT_DATA_STORE),false,'image bytes cannot silently enter the text library');
  const got=await executePromptAsset({api,operation:'prompt.asset.get',payload:{id:saved.id},authorize});
  assert.equal(got.dataUrl,dataUrl);
@@ -40,6 +45,10 @@ test('R3.7 reviewed Host stores decoded PNG under scoped resource key, not in 8 
  values.set(PROMPT_DATA_STORE,{library:{schema:1,items:[{imageAssetId:saved.id}]}});
  await assert.rejects(executePromptAsset({api,operation:'prompt.asset.remove',payload:{id:saved.id},authorize}),
   error=>error?.code==='E_IMAGE_REFERENCED');
+ values.set(PROMPT_DATA_STORE,{library:{schema:1,items:null}});
+ await assert.rejects(executePromptAsset({api,operation:'prompt.asset.remove',payload:{id:saved.id},authorize}),
+  error=>error?.code==='E_STORAGE_CORRUPT');
+ assert(values.get(PROMPT_ASSET_STORE).assets[saved.id],'corrupt library must not delete the image');
  values.set(PROMPT_DATA_STORE,{library:{schema:1,items:[]}});
  assert.deepEqual(await executePromptAsset({api,operation:'prompt.asset.remove',payload:{id:saved.id},authorize}),{removed:true});
  await assert.rejects(executePromptAsset({api,operation:'prompt.asset.get',payload:{id:saved.id},authorize}),
@@ -52,7 +61,7 @@ test('R3.7 file-type mismatch, inline SVG and oversize payload are denied',async
    /图片头与格式不符/);
  await assert.rejects(executePromptAsset({api,operation:'prompt.asset.put',
    payload:{mime:'image/svg+xml',dataUrl:'data:image/svg+xml;base64,PHN2Zy8+'},authorize}),
-   /只支持 PNG/);
+   error=>error?.code==='E_PROMPT_ASSET'&&/PNG.*JPEG.*WebP/.test(error.message));
  const tooBig='data:image/png;base64,'+Buffer.alloc(65537,42).toString('base64');
  await assert.rejects(executePromptAsset({api,operation:'prompt.asset.put',
    payload:{mime:'image/png',dataUrl:tooBig},authorize}),/64 KiB/);
@@ -83,13 +92,23 @@ test('R3.7 original full preview and formal source reuse compact image controls'
   assert(preview.includes('id="'+id+'"'),id);
  for(const id of ['ps-image-source-local','ps-image-source-url','ps-image-file','ps-image-pick','ps-image-clear'])
   assert(html.includes('id="'+id+'"'),id);
- assert.equal((preview.match(/data-image-size="/g)||[]).length,3);
- assert.equal((html.match(/data-image-size="/g)||[]).length,3);
+ // Count actual HTML buttons, not CSS selectors or JavaScript query strings.
+ const sizeButtons=source=>[...source.matchAll(/<button\b[^>]*\bdata-image-size="([^"]+)"[^>]*>/g)]
+   .map(match=>match[1]);
+ assert.deepEqual(sizeButtons(preview),['compact','standard','large']);
+ assert.deepEqual(sizeButtons(html),['compact','standard','large']);
  assert.match(preview,/lastSitePromptId===item\.id/);
  assert.match(preview,/img\.src=offlineSample\?PREVIEW_OFFLINE_PNG:url/);
- assert.match(css,/\.ps-image-size-button\[aria-pressed="true"\]/);
+ // Selected appearance comes from the canonical shared icon-button, not a private skin.
+ assert.match(css,/\.ps-image-size-button\{[^}]*width:/);
+ assert.match(html,/class="od-icon-button od-icon-button--primary ps-image-size-button"[^>]*data-image-size="large"/);
+ assert.match(main,/button\.classList\.toggle\('od-icon-button--primary',selected\)/);
+ assert.match(main,/button\.setAttribute\('aria-pressed',String\(selected\)\)/);
  assert.match(main,/prompt\.asset\.put/);
  assert.match(main,/prompt\.asset\.get/);
+ assert.match(main,/function removeUnreferencedAsset\(id\)/);
+ assert.doesNotMatch(main,/prompt\.asset\.remove'[^\n]*\.catch\(\(\)=>\{\}\)/,
+   'resource cleanup errors must never be silently discarded');
  assert.match(page,/PROMPT_ASSET_STORE/);
  assert.match(page,/doc\.execCommand\('insertText'/);
  new Function(main);

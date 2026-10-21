@@ -29,3 +29,24 @@
 .adblock-manual-actions button{min-width:0;max-width:100%}
 .adblock-selector{font-family:ui-monospace,SFMono-Regular,monospace;overflow-wrap:anywhere;font-size:10px}
 @media(max-width:350px){.adblock-manual-actions button{width:100%}}
+
+/* Picker receipts stay inside the sidebar; do not create webpage banners. */
+.adblock-pick-panel{display:flex;gap:9px;align-items:center;border:1px solid var(--od-line);border-radius:10px;padding:10px;margin-top:5px;background:var(--od-surface,#f7f9fc)}
+.adblock-pick-panel button{flex:none}
+@media(max-width:340px){.adblock-pick-panel{flex-wrap:wrap}.adblock-pick-panel button{margin-left:auto}}
+
+/* Historical cosmetic rules and advanced CSS editing remain in product React. */
+.adblock-rule{display:grid;gap:8px;padding:12px 0;border-bottom:1px solid var(--od-line)}
+.adblock-rule:last-of-type{border-bottom:0}
+.adblock-rule-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.adblock-rule-actions button{min-width:0;font-size:11px}
+.adblock-advanced{border:1px solid var(--od-line);background:var(--od-paper);border-radius:12px;overflow:hidden}
+.adblock-advanced summary{padding:12px 14px;cursor:pointer;font-weight:650;font-size:12px}
+.adblock-advanced summary:focus-visible{outline:2px solid var(--od-brand);outline-offset:-3px}
+.adblock-advanced-body{display:grid;gap:10px;padding:4px 14px 14px}
+.adblock-advanced-body>label{font-size:11px;font-weight:650}
+.adblock-selector-input{width:100%;min-width:0;box-sizing:border-box;color:var(--od-ink);background:var(--od-paper);border:1px solid var(--od-line);border-radius:8px;padding:9px;font:12px/1.4 ui-monospace,SFMono-Regular,monospace}
+.adblock-selector-input:focus-visible{outline:2px solid var(--od-brand);outline-offset:2px}
+.adblock-dynamic{display:flex;align-items:flex-start;gap:8px;font-size:11px!important;line-height:1.5}
+.adblock-dynamic input{margin-top:3px}
+@media(max-width:340px){.adblock-rule-actions button{flex:1 1 auto}}

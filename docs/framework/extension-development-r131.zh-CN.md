@@ -1,5 +1,7 @@
 # 扩展源码开发：持续编译与自动刷新（R13.1）
 
+> **维护者/管理员专用。** 本页中的 WXT、`npm run dev`、`dist/development`、Chrome 扩展 ID 和生产包验收，都是 OpenDesk Browser 插件本体的开发操作。**普通用户在「扩展」里创建、修改、更新应用，不需要执行这些命令**；请用 [扩展应用普通用户指南](../product/extension-app-user-workflow.zh-CN.md)，由 Codex 通过原 Sidebar App 构建器准备包，再由原安装界面确认更新。涉及 `trusted/` 固定入口改动时仍需管理员处理 Browser 本体。
+
 这页用于修改 OpenDesk 扩展自身的 `src/` 源码。Sidebar 编写用户脚本、Native/MCP 读取本地项目，请继续使用[程序开发指南](../product/program-development-dual-format-and-sidebar.zh-CN.md)。源码更新不会替你运行用户脚本。
 
 ## 先确认当前运行方式（2026-10-14）

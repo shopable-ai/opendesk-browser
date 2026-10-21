@@ -14,12 +14,14 @@ const read=path=>readFile(join(PROJECT,path));
 const inputs=[
   'src/App.jsx','src/main.jsx','src/model.js','src/layout.css','src/index.html',
   'vite.config.mjs','package.json','tool.config.json',
+  'trusted/cosmetic-policy.js','trusted/policy.js',
   'dist/tool.js','dist/tool.css','dist/build-ready.json'
 ];
 async function cloneCandidate(t){
   const root=await mkdtemp(join(tmpdir(),'od-adblock-r211-'));
   t.after(()=>rm(root,{recursive:true,force:true}));
-  await Promise.all([mkdir(join(root,'src')),mkdir(join(root,'dist'))]);
+  await Promise.all([mkdir(join(root,'src')),mkdir(join(root,'dist')),
+    mkdir(join(root,'trusted'))]);
   for(const path of inputs)await copyFile(join(PROJECT,path),join(root,path));
   return root;
 }

@@ -1,11 +1,15 @@
 import * as React from 'react';
+import {createPortal} from 'react-dom';
+import {IconButton as OpenDeskIconButton} from './ui/button.tsx';
 
 // Shared, presentation-only primitives. Callers retain provider credentials,
 // permission checks, task execution and the business result journal.
-export function ConversationTranscript({rows=[],entryClassName='workflow-chat-entry'}){
+export function ConversationTranscript({rows=[],entryClassName='workflow-chat-entry',showSpeaker=true}){
  return rows.map(row=><div key={row.id} className={entryClassName}
-   data-speaker={row.speaker==='你'?'user':'assistant'}>
-   <strong>{row.speaker}</strong><p>{row.message}</p>
+   data-speaker={row.speaker==='你'?'user':'assistant'}
+   role={showSpeaker?undefined:'group'} aria-label={showSpeaker?undefined:
+    row.speaker==='你'?'你的消息':row.speaker==='系统'?'系统提示':'AI 回复'}>
+   {showSpeaker&&<strong>{row.speaker}</strong>}<p>{row.message}</p>
   </div>);
 }
 export function ConversationInput({id,value='',onChange,onKeyDown,placeholder='',rows=2,maxLength=4000,
@@ -15,6 +19,10 @@ export function ConversationInput({id,value='',onChange,onKeyDown,placeholder=''
   onChange={onChange} onKeyDown={onKeyDown} {...props}/>;
 }
 
+// ToolHost owns the slot. Only an admitted trusted workspace may portal Chat here.
+export const TrustedConversationHeaderSlot=React.forwardRef<HTMLSpanElement, Record<string, never>>(function TrustedConversationHeaderSlot(_,ref){
+ return <span id="sidebar-tool-chat-slot" className="od-conversation-header-slot" ref={ref}/>;
+});
 const newRefs=()=>({folderId:null,bookmarkId:null,matches:[]});
 const errorText=error=>String(error?.message||'操作失败，未将未核实的操作视为成功。').slice(0,1500);
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
@@ -22,9 +30,14 @@ const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 // This host owns exactly one Dock for its admitted tool instance. Installed
 // arbitrary JS/React/Vue tools are NOT allowed to mount into this trusted tree.
 // The tool supplies only an audited, business-specific request callback.
-export function TrustedConversationWorkspace({
- controller,renderBusiness,samples=[],title='AI 对话',placeholder='描述要完成的操作',
- resultLabel='仅显示经过核实的结果',offline=false
+export function TrustedConversationWorkspace({controller,...props}){
+ const owner=React.useRef({controller,revision:0});
+ if(owner.current.controller!==controller)
+  owner.current={controller,revision:owner.current.revision+1};
+ return <ConversationWorkspace key={owner.current.revision} controller={controller} {...props}/>;
+}
+function ConversationWorkspace({
+ controller,renderBusiness,headerTarget=null,title='AI 对话',placeholder='描述要完成的操作'
 }){
  const restored=React.useMemo(()=>controller?.readSession?.()||{},[controller]);
  const [open,setOpen]=React.useState(restored.open===true);
@@ -38,6 +51,7 @@ export function TrustedConversationWorkspace({
  const shellRef=React.useRef(null),inputRef=React.useRef(null),logRef=React.useRef(null);
  const triggerRef=React.useRef(null),adapterRef=React.useRef(null),abortRef=React.useRef(null);
  const inFlight=React.useRef(false),alive=React.useRef(true),sequence=React.useRef(0);
+ const runRef=React.useRef(null);
  const rowsRef=React.useRef(rows),refsRef=React.useRef(restored.refs||newRefs());
  const draftRef=React.useRef(draft),openRef=React.useRef(open);
  const phaseRef=React.useRef('idle'),resizeRef=React.useRef(null),composingRef=React.useRef(false);
@@ -52,9 +66,10 @@ export function TrustedConversationWorkspace({
   alive.current=true;
   return ()=>{
    alive.current=false;
-   abortRef.current?.abort();
-   if(inFlight.current){
-    void Promise.resolve(controller?.cancel?.()).catch(()=>{});
+   const signal=abortRef.current?.signal;
+   abortRef.current?.abort();runRef.current=null;
+   if(inFlight.current&&signal){
+    void Promise.resolve(controller?.cancel?.({signal})).catch(()=>{});
     if(phaseRef.current==='writing'){
      const warning={id:'dock-interrupted-'+(++sequence.current),speaker:'系统',
       message:'当前扩展实例已关闭。已发出的写入可能仍在完成；请先刷新并核对结果，不要重放旧指令。'};
@@ -71,6 +86,12 @@ export function TrustedConversationWorkspace({
   if(open&&logRef.current)logRef.current.scrollTop=logRef.current.scrollHeight;
  },[open,rows,error]);
  React.useLayoutEffect(()=>{
+  const input=inputRef.current;if(!open||!input)return;
+  input.style.height='auto';
+  input.style.height=clamp(input.scrollHeight,44,112)+'px';
+  input.style.overflowY=input.scrollHeight>112?'auto':'hidden';
+ },[draft,open]);
+ React.useLayoutEffect(()=>{
   const node=shellRef.current;
   if(!node)return;
   // CSS zoom changes visual pixels but Dock height is assigned in layout CSS pixels.
@@ -81,9 +102,12 @@ export function TrustedConversationWorkspace({
   return()=>observer.disconnect();
  },[]);
  const limits=React.useMemo(()=>{
-  const min=Math.min(190,Math.max(112,Math.floor(totalHeight*.5)));
-  return {min,max:Math.max(min,totalHeight-96)};
- },[totalHeight]);
+  // Leave an extra 6px for the original bookmark tree at 200% physical
+  // zoom while retaining a usable, independently scrollable compact Dock.
+  const min=Math.min(error||needsReview?184:156,Math.max(112,Math.floor(totalHeight*.46)));
+  const businessMin=Math.min(240,Math.floor(totalHeight*.6));
+  return {min,max:Math.max(min,totalHeight-businessMin)};
+ },[totalHeight,error,needsReview]);
  const dockHeight=height===null?clamp(Math.round(totalHeight*.38),limits.min,limits.max):
   clamp(height,limits.min,limits.max);
  React.useEffect(()=>{
@@ -107,8 +131,10 @@ export function TrustedConversationWorkspace({
   else persist({refs:refsRef.current});
  },[append,persist]);
  function stop(){
-  abortRef.current?.abort();
-  void Promise.resolve(controller?.cancel?.()).catch(()=>{});
+  const signal=abortRef.current?.signal;
+  if(!signal)return;
+  abortRef.current.abort();
+  void Promise.resolve(controller?.cancel?.({signal})).catch(()=>{});
  }
  function send(event){
   event.preventDefault();
@@ -121,6 +147,8 @@ export function TrustedConversationWorkspace({
   }
   const signal=new AbortController();
   abortRef.current=signal;inFlight.current=true;phaseRef.current='thinking';
+  const run={signal};runRef.current=run;
+  const current=()=>alive.current&&runRef.current===run;
   setBusy(true);setError('');
   draftRef.current='';setDraft('');append('你',request);
   // Do NOT defer invocation: existing HTTPS origin permission requests must
@@ -128,15 +156,16 @@ export function TrustedConversationWorkspace({
   let pending;
   try{
    pending=action({request,refs:structuredClone(refsRef.current),signal:signal.signal,
-    event:event.nativeEvent,onStep,onPhase:phase=>{phaseRef.current=phase;}});
+    event:event.nativeEvent,onStep:step=>{if(current())onStep(step);},
+    onPhase:phase=>{if(current())phaseRef.current=phase;}});
   }catch(ex){pending=Promise.reject(ex);}
   void Promise.resolve(pending).then(result=>{
-   if(!alive.current)return;
+   if(!current())return;
    if(result?.refs)refsRef.current=result.refs;
    if(result?.question)append('助手',result.question);
    else persist({refs:refsRef.current});
   }).catch(ex=>{
-   if(!alive.current)return;
+   if(!current())return;
    if(ex?.refs)refsRef.current=ex.refs;
    const unknown=ex?.code==='E_OUTCOME_UNKNOWN'||ex?.writeIssued===true;
    if(unknown)setNeedsReview(true);
@@ -149,6 +178,8 @@ export function TrustedConversationWorkspace({
     draftRef.current=request;setDraft(request);
    }
   }).finally(()=>{
+   if(!current())return;
+   runRef.current=null;
    inFlight.current=false;abortRef.current=null;phaseRef.current='idle';
    if(alive.current)setBusy(false);
   });
@@ -158,13 +189,15 @@ export function TrustedConversationWorkspace({
  }
  function separatorDown(e){
   if(e.button!==0)return;
-  resizeRef.current={y:e.clientY,height:dockHeight};
+  const shell=shellRef.current;
+  const scale=shell?.clientHeight?shell.getBoundingClientRect().height/shell.clientHeight:1;
+  resizeRef.current={y:e.clientY,height:dockHeight,scale:scale||1};
   e.currentTarget.setPointerCapture?.(e.pointerId);
   e.preventDefault();
  }
  function separatorMove(e){
   if(!resizeRef.current)return;
-  const next=resizeRef.current.height+resizeRef.current.y-e.clientY;
+  const next=resizeRef.current.height+(resizeRef.current.y-e.clientY)/resizeRef.current.scale;
   setHeight(clamp(Math.round(next),limits.min,limits.max));
  }
  function separatorKey(e){
@@ -175,59 +208,61 @@ export function TrustedConversationWorkspace({
   if(e.key==='End')next=limits.max;
   if(next!==null){e.preventDefault();setHeight(clamp(next,limits.min,limits.max));}
  }
- const bridge=React.useMemo(()=>({open,toggle,adapterRef,triggerRef,reconcile}),[open,toggle,reconcile]);
- const source=controller?.source?.()?.label||'未连接模型';
+ const bridge=React.useMemo(()=>({open,adapterRef,reconcile}),[open,reconcile]);
+
+ const trigger=headerTarget?createPortal(<button ref={triggerRef} type="button"
+   className="sidebar-tool-icon-action od-icon-button od-conversation-frame-trigger"
+   aria-label="AI 对话" title="打开或收起 AI 对话" aria-pressed={open} aria-expanded={open}
+   aria-controls="opendesk-conversation-dock" onClick={toggle}>
+   <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 11.5c0 4.6-3.9 8.5-8.8 8.5a10 10 0 0 1-4.2-.9L3 21l1.5-4.5A8.1 8.1 0 0 1 3 11.5C3 7 7 3 12.2 3s8.8 4 8.8 8.5Z"/>
+   </svg>
+  </button>,headerTarget):null;
  return <div ref={shellRef} className="od-conversation-workspace" data-chat-open={open?'true':'false'}>
-  <div className="od-conversation-business">
-   {renderBusiness(bridge)}
-  </div>
-  <section id="opendesk-conversation-dock" className="od-conversation-dock"
-   aria-label={title} hidden={!open} style={{height:dockHeight+'px'}}>
-   <div className="od-conversation-separator" role="separator" tabIndex={0}
-    aria-label="调整对话与原扩展的高度" aria-orientation="horizontal"
-    aria-valuemin={limits.min} aria-valuemax={limits.max} aria-valuenow={dockHeight}
-    onPointerDown={separatorDown} onPointerMove={separatorMove}
-    onPointerUp={e=>{resizeRef.current=null;e.currentTarget.releasePointerCapture?.(e.pointerId)}}
-    onPointerCancel={()=>{resizeRef.current=null;}}
-    onKeyDown={separatorKey}/>
-   <header className="od-conversation-header">
-    <strong>{title}</strong><span className="od-conversation-source">{source}</span>
+  {trigger}
+  <div className="od-conversation-business">{renderBusiness(bridge)}</div>
+  <section id="opendesk-conversation-dock" className="od-conversation-dock" aria-label={title}
+   hidden={!open} style={{height:dockHeight+'px'}}>
+   <div className="od-conversation-dragbar">
+    <div className="od-conversation-separator" role="separator" tabIndex={0}
+     aria-label="调整对话与原扩展的高度" aria-orientation="horizontal"
+     aria-valuemin={limits.min} aria-valuemax={limits.max} aria-valuenow={dockHeight}
+     onPointerDown={separatorDown} onPointerMove={separatorMove}
+     onPointerUp={e=>{resizeRef.current=null;e.currentTarget.releasePointerCapture?.(e.pointerId)}}
+     onPointerCancel={()=>{resizeRef.current=null;}} onKeyDown={separatorKey}/>
     <button type="button" className="od-conversation-close" aria-label="收起对话"
-     title="收起对话" onClick={close}>×</button>
-   </header>
-   <div ref={logRef} className="od-conversation-log" role="log"
-    aria-live="polite" aria-label="对话及已核实操作结果">
-    {rows.length?<ConversationTranscript rows={rows} entryClassName="od-conversation-entry"/>:
-     <div className="od-conversation-empty">
-      <p>通过对话操作上方的扩展。</p>
-      <div className="od-conversation-samples">
-       {samples.map(sample=><button key={sample} type="button"
-        onClick={()=>{setDraft(sample);inputRef.current?.focus();}}>{sample}</button>)}
-      </div>
-     </div>}
+     title="收起对话" onClick={close}>
+     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
    </div>
-   {error&&<p className="od-conversation-error" role="alert">{error}</p>}
-   {needsReview&&<p className="od-conversation-error" role="status">
-    上次写入结果不确定。请在上方刷新并核对后，再继续发送其他操作。
-   </p>}
+   <div ref={logRef} className="od-conversation-log" role="log" aria-live="polite"
+    aria-label="对话及已核实操作结果">
+    <ConversationTranscript rows={rows} entryClassName="od-conversation-entry" showSpeaker={false}/>
+   </div>
+   {(error||needsReview)&&<div className="od-conversation-feedback" tabIndex={0} aria-label="对话状态详情">
+    {error&&<p className="od-conversation-error" role="alert">{error}</p>}
+    {needsReview&&<p className="od-conversation-error" role="status">
+     上次写入结果不确定。请先刷新并核对上方书签，再继续操作。
+    </p>}
+   </div>}
    <form className="od-conversation-composer" onSubmit={send}>
     <label className="od-conversation-sr" htmlFor="od-conversation-input">对话输入</label>
     <ConversationInput id="od-conversation-input" inputRef={inputRef} value={draft}
-     className="od-conversation-input" rows={2} maxLength={4000} placeholder={placeholder}
+     className="od-conversation-input" rows={1} maxLength={4000} placeholder={placeholder}
      onChange={e=>setDraft(e.target.value)}
      onCompositionStart={()=>{composingRef.current=true;}}
      onCompositionEnd={()=>{composingRef.current=false;}}
      onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing&&
-      !composingRef.current&&e.nativeEvent.keyCode!==229){
-      e.preventDefault();send(e);
-     }}}/>
-    <div className="od-conversation-controls">
-     <small>{offline?'离线模拟 · ':''}{resultLabel || (offline?'模拟结果需读回':'真实业务读回')}</small>
-     {busy?<button className="od-conversation-action" type="button" aria-label="停止对话"
-       onClick={stop}>■</button>:
-      <button className="od-conversation-action od-conversation-action--primary" type="submit"
-       aria-label="发送" onClick={send} disabled={!draft.trim()||needsReview||!controller?.request}>➤</button>}
-    </div>
+      !composingRef.current&&e.nativeEvent.keyCode!==229){e.preventDefault();send(e);}}}/>
+    {busy?<OpenDeskIconButton className="od-conversation-action od-conversation-action--stop" type="button"
+      title="停止后续操作" label="停止对话" onClick={stop}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+     </OpenDeskIconButton>:
+     <OpenDeskIconButton className="od-conversation-action od-conversation-action--primary" type="submit"
+      title="发送消息" label="发送" onClick={send}
+      disabled={!draft.trim()||needsReview||!controller?.request}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-7 7 7-7 7 7"/></svg>
+     </OpenDeskIconButton>}
    </form>
   </section>
  </div>;

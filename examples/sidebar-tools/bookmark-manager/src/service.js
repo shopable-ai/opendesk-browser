@@ -106,14 +106,22 @@ function create(sdk){
   }
   // Keep cancellation local; never send AbortSignal or callbacks through the SDK.
   // Only the actual SDK dispatch makes an error's write outcome uncertain.
-  async function write(operation,prepare,{signal}={}){
+  async function write(operation,prepare,{signal,beforeWrite}={}){
     let writeIssued=false;
     try{
       const checkStopped=()=>{
-        if(signal?.aborted)fail('E_CANCELLED','已停止，未发送书签写入');
+        if(signal?.aborted){
+          if(signal.reason?.code==='E_MODEL_GRANT_REVOKED')
+            fail('E_MODEL_GRANT_REVOKED','模型权限已撤销，未发送书签写入');
+          fail('E_CANCELLED','已停止，未发送书签写入');
+        }
       };
       checkStopped();
       const args=await prepare();
+      checkStopped();
+      // Preparation awaits tree/capability reads. Recheck the same trusted
+      // round at its final dispatch boundary; callbacks never enter SDK args.
+      await beforeWrite?.();
       checkStopped();
       writeIssued=true;
       return await sdk.bookmarks[operation](args);

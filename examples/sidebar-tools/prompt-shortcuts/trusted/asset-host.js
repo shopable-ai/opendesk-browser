@@ -46,6 +46,14 @@ export async function executePromptAsset({api,operation,payload,authorize}){
     if(Object.keys(payload).length!==2||typeof payload.mime!=='string'||
       !PROMPT_ASSET_MIME.includes(payload.mime))fail('仅支持 PNG / JPEG / WebP');
     const entry=decodeBase64(payload.dataUrl,payload.mime);
+    // Retry-safe resource write: a lost acknowledgement must not allocate a
+    // second ID for exactly the same already-verified raster bytes.
+    const existing=Object.entries(assets).find(([,asset])=>
+      asset.mime===entry.mime&&asset.base64===entry.base64);
+    if(existing){
+      await authorize();
+      return {id:existing[0],mime:entry.mime,bytes:entry.bytes,reused:true};
+    }
     const entries=Object.values(assets);
     if(entries.length>=PROMPT_ASSET_MAX_COUNT||
       entries.reduce((n,a)=>n+a.bytes,0)+entry.bytes>PROMPT_ASSET_MAX_TOTAL)
@@ -63,8 +71,13 @@ export async function executePromptAsset({api,operation,payload,authorize}){
     await authorize();return {dataUrl:imageAssetDataUrl(entry,payload.id),mime:entry.mime,bytes:entry.bytes};
   }
   if(!assets[payload.id])return {removed:false};
-  const library=(await api.storage.local.get(PROMPT_DATA_STORE))[PROMPT_DATA_STORE]?.library;
-  if(library?.items?.some(row=>row?.imageAssetId===payload.id))
+  const libraryStore=(await api.storage.local.get(PROMPT_DATA_STORE))[PROMPT_DATA_STORE];
+  if(libraryStore!==undefined&&(!libraryStore||typeof libraryStore!=='object'||
+    Array.isArray(libraryStore)))fail('提示词数据异常，已保留图片','E_STORAGE_CORRUPT');
+  const library=libraryStore?.library;
+  if(library!==undefined&&(!library||library.schema!==1||!Array.isArray(library.items)))
+    fail('提示词库异常，已保留图片','E_STORAGE_CORRUPT');
+  if(library?.items.some(row=>row?.imageAssetId===payload.id))
     fail('图片仍被保存的提示词使用，不能删除','E_IMAGE_REFERENCED');
   const nextAssets={...assets};delete nextAssets[payload.id];
   await authorize();await writeVerifiedLocalValue(api,PROMPT_ASSET_STORE,{schema:1,assets:nextAssets},stored,'快捷按钮图片资源清理');

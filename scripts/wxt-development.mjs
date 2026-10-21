@@ -159,7 +159,7 @@ export function configureDevelopment(wxt,server) {
         if(generation!==officialGeneration)return;
         const changes=[...officialChanges];officialChanges.clear();
         const adblockSourceChanged=changes.some(path=>
-          /^examples\/sidebar-tools\/adblock\/(?:src\/|vite\.config\.mjs$|tool\.config\.json$|package\.json$)/.test(path));
+          /^examples\/sidebar-tools\/adblock\/(?:src\/|trusted\/(?:cosmetic-policy|policy)\.js$|vite\.config\.mjs$|tool\.config\.json$|package\.json$)/.test(path));
         if(adblockSourceChanged)await buildAdblockReact({log:false});
         const stayFocusSourceChanged=changes.some(path=>
           /^examples\/sidebar-tools\/stay-focus\/(?:src\/|vite\.config\.mjs$|tool\.config\.json$|package\.json$)/.test(path));

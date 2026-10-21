@@ -56,11 +56,19 @@ node scripts/tests/adblock-preview-chrome.mjs artifacts/preview-chrome
 
 ## 用户手动屏蔽网页元素 · 新增业务源码（待发布验证）
 
-- **交互**：在正式 React 的「当前网站」卡点击「选择网页元素」，再在目标网页**单击即隐藏**，没有预览或二次确认。误选可在网页提示中撤销，或在「已屏蔽」列表恢复；Esc 只退出选择。
+- **交互**：在正式 React 的「当前网站」卡点击「选择网页元素」，再在目标网页**单击即隐藏**，没有预览或二次确认。误选仅在侧边栏使用「撤销」，网页不显示文字浮层、撤销按钮或成功 Toast；Esc 和侧栏取消只退出本次选择。
 - **持久化**：规则按精确 hostname + 安全 CSS 选择器写入独立的 `chrome.storage.local` 键 `opendesk.adblock.cosmetic.v1`，写入后真实读回。下次刷新/重新打开网页自动应用 CSS，动态插入的匹配元素也由样式表处理；恢复操作会永久删除对应本地规则。
 - **复用现有运行链**：`src/entrypoints/page-relay.js` 的唯一 `initAdblockCosmetics` → `trusted/page.js` → `trusted/cosmetic.js`；新增 `trusted/picker.js` 仅处理真实网页点击，`trusted/cosmetic-policy.js` 验证存储和选择器。既有固定网站样式和 DNR 规则继续保留。后台 `trusted/service.js` 在原 Web Lock 内核对安装/页面/权限并保存/撤销，无新权限、无第二个 Host 或隐藏引擎。
 - **限制与恢复**：仅当前普通 HTTP(S) 主文档；按站点隔离，上限 35 条/站点、300 条总计。用户停用 AdBlock 或将网站加入例外时暂停隐藏，但**保留**已保存规则；重新开启后恢复应用。损坏的手动规则数据不得覆盖修复，网络 DNR 独立继续工作。页面结构大幅改变时，旧选择器可能不再匹配，需要重新选择并清理旧规则。
 - **验证边界**：本次代码变更属于未发布的新业务源码。必须执行 `node --test tests/environment/adblock-manual-picker.test.mjs tests/environment/adblock-cosmetic.test.mjs tests/environment/adblock-page-policy.test.mjs`、`node scripts/app-ci.mjs node adblock`、React 构建、同源预览和真实 Chrome 交互/刷新/重开/撤销/升级测试；没有实测结果不能称 PASS。唯一正式发行包 `adblock.opendesk-tool.json` 仍为此前 1.2.1，需按仓库打包晋升流程在所有门禁通过后更新，**禁止手改编译产物或旧包**。
+
+## R2.4：侧边栏管理与高级 CSS 的源代码候选
+
+- **网页仅负责选择和蓝色框**：单击后通过原有可信 Service Worker 保存；侧边栏显示会话状态、失败、结果未知与可永久撤销的回执。网页不提供撤销或文字提示。
+- **历史规则**：读取本站真实 `chrome.storage.local` 规则；可以「定位」（短暂揭示、蓝框高亮、自动恢复）、「临时显示 / 重新隐藏」（当前文档）、永久删除（存储读回确认）。
+- **高级编辑**：默认折叠；使用共享 `trusted/cosmetic-policy.js` 校验受限 ID、DOM 路径和广告相关 class；必须真实检查匹配量，0 个需主动许可，超过 15 个拒绝保存；原子替换保留旧数据格式。
+- **安全审批**：高级 CSS 添加/修改走可信 Host 二次确认，不可进入普通只读检查快捷分支。撤销、定位不修改 Chrome 网络 DNR。
+- **交付边界**：GitHub 源码修改不等于浏览器安装成功。只有构建、App CI、源代码同源预览与真实 Chromium 运行链验证完毕，才能晋升独立正式安装包。正式发行包版本与源码候选版本须分别核对。
 
 ## 真实产品与安全边界
 

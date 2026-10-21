@@ -32,7 +32,9 @@ test('R3.2 formal JSX is the unique UI source and all four compiled modules rema
  assert.match(build,/join\(toolDir,'src\/react\/style\.css'\)/);
  assert.match(build,/fsWatch\(join\(toolDir,'src'\),\{recursive:true\},schedule\)/);
  assert.match(app,/export default function App\(\{runtime=null,mode='preview'/);
- assert.match(app,/function request\(action\)\{fillEpoch\.current\+\+;if\(busyRef\.current\)return/);
+ assert.match(app,/const interactionEpoch=useRef\(0\)/,
+  'The selection epoch must exist to guard AI writes from hijacking navigation');
+ assert.match(app,/function request\(action\)\{interactionEpoch\.current\+\+;fillEpoch\.current\+\+;if\(busyRef\.current\)return/);
  assert.match(app,/id="bm-edit-name" autoFocus disabled=\{busy\}/);
  assert.match(app,/id="bm-edit-url" type="url" required disabled=\{busy\}/);
  for(const path of files){
@@ -42,6 +44,25 @@ test('R3.2 formal JSX is the unique UI source and all four compiled modules rema
  }
  assert.match(host,/import .*bookmark-manager\/src\/model\.js/);
  assert.match(host,/import .*bookmark-manager\/src\/service\.js/);
+});
+
+test('R1.8 offline fixture chrome is hashed separately from the production React CSS',async()=>{
+ const [preview,builder,formal]=await Promise.all([
+  read(prefix+'preview/react/src/main.jsx'),
+  read(prefix+'preview/react/build-preview.mjs'),
+  read(prefix+'preview/react/src/formal.jsx')
+ ]);
+ assert.doesNotMatch(preview,/^import '\.\/preview-shell\.css';/m,
+  'fixture-only chrome must never enter the formal-comparable React CSS');
+ assert.doesNotMatch(formal,/preview-shell\.css/);
+ for(const entry of [preview,formal]){
+  assert.match(entry,/import '\.\.\/\.\.\/\.\.\/src\/react\/style\.css';/);
+  assert.match(entry,/import '\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/src\/ui\/react\/components\/conversation-dock\.css';/);
+ }
+ assert.match(builder,/read\(join\(here,'src\/preview-shell\.css'\)\)/);
+ assert.match(builder,/data-preview-shell="offline-only"/);
+ assert.match(builder,/previewShell:sha\(previewShell\)/,
+  'fixture stylesheet must remain in the hashed preview manifest');
 });
 
 function makeSdk(){

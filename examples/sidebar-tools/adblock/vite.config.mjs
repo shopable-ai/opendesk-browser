@@ -10,7 +10,8 @@ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 // must never be silently packaged with a previous successful Vite output.
 export const ADBLOCK_REACT_SOURCE_FILES=[
   'src/App.jsx','src/main.jsx','src/model.js','src/layout.css',
-  'src/index.html','tool.config.json','vite.config.mjs','package.json'
+  'src/index.html','tool.config.json','vite.config.mjs','package.json',
+  'trusted/cosmetic-policy.js','trusted/policy.js'
 ];
 const fingerprint=bytes=>({bytes:bytes.length,sha256:hash(bytes)});
 function receiptPlugin(){

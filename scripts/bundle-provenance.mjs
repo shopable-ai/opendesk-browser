@@ -33,17 +33,17 @@ function reviewedCompiledTimeReview(target,path,root){
 // a single output and independently enforced release/package identity.
 const compiledAdblockInputs=Object.freeze({
   'examples/sidebar-tools/adblock/trusted/dnr-session.js':'d3e221eac17261a34751cb8ab035c622eb1b42a8',
-  'examples/sidebar-tools/adblock/trusted/service.js':'719fb6fe62ca2ec9aa8ba3a31e5ff0f8734fc3a0',
-  'examples/sidebar-tools/adblock/trusted/policy.js':'0778b402da311b175032a835f6dae537875c6111',
+  'examples/sidebar-tools/adblock/trusted/service.js':'f2d248d4a0e73aa01b86cc14613378c1f473e84f',
+  'examples/sidebar-tools/adblock/trusted/policy.js':'1ba80150d930f51130ceb7806371f7542f35871b',
   'examples/sidebar-tools/adblock/trusted/rules.js':'4bebe24f991783d6ceb14dd80aa507f8497fce61',
   'examples/sidebar-tools/adblock/trusted/lifecycle.js':'708e2b226eb327d46ac109afa6145fe9b13b1526',
-  'examples/sidebar-tools/adblock/trusted/tool-host.js':'71a55df61942af5ce2f20c06948d82b6dd6c8d8e',
+  'examples/sidebar-tools/adblock/trusted/tool-host.js':'485277ecf8c5f095b24f4e705db409d0bf48d6b0',
   'examples/sidebar-tools/adblock/trusted/host-controls.js':'79dbe97eaf1eb61315e634384d922079f2d4b136',
   'examples/sidebar-tools/adblock/rules/domains.js':'b6b2ad8bb2085018f355f046d9b2a787601039bd',
   'examples/sidebar-tools/adblock/trusted/cosmetic.js':'da37f1f0e8f40860ac059ef2f43a27daeeb6d3d3',
-  'examples/sidebar-tools/adblock/trusted/page.js':'2afdfa9757ab61b78d85c935f46bfae997fc7732',
-  'examples/sidebar-tools/adblock/trusted/picker.js':'3692b8d3e8e7e86f58870165debc8123a8d13bec',
-  'examples/sidebar-tools/adblock/trusted/cosmetic-policy.js':'2a1975fb2e6aeba09e82b673a542000bb4dde065'
+  'examples/sidebar-tools/adblock/trusted/page.js':'69021b2fbab9c5656d00fac4ebf702dc1c2cafad',
+  'examples/sidebar-tools/adblock/trusted/picker.js':'dd92c939a12a72be2239634bddf8fd878ca153dc',
+  'examples/sidebar-tools/adblock/trusted/cosmetic-policy.js':'65804d9e8455fb9521f789744e4b3d276876b455'
 });
 const preapprovedFixedTargets=new Set(['sw.js',...Object.values(FIXED_OUTPUTS)]);
 function reviewedCompiledAdblock(target,path,root){
@@ -58,6 +58,11 @@ function reviewedCompiledAdblock(target,path,root){
   return hash;
 }
 
+// R1.8 source review: Service now checks local cancellation before SDK writes
+// and preserves writeIssued evidence; App enforces trusted authorization,
+// prevents async AI reveals from hijacking newer user navigation, and shows a
+// readback-only locate action. CSS adds only that locate notice. Exact Git
+// blob locks stay fail-closed; any subsequent change requires re-review.
 // R3.2: The Bookmark Manager trusted React pilot compiles exactly four
 // reviewed first-party files into the EXISTING ui/tool-shell.js. They are
 // author-controlled static imports, not installed or user-supplied package
@@ -66,9 +71,9 @@ function reviewedCompiledAdblock(target,path,root){
 // admission and the dynamic opaque iframe boundary remain independent.
 const compiledBookmarkReactInputs=Object.freeze({
   'examples/sidebar-tools/bookmark-manager/src/model.js':'34cc7a737869ca502b4bcbbb47d2437d1b6b2bd5',
-  'examples/sidebar-tools/bookmark-manager/src/service.js':'1c1541ee128e37dd8897b073581bd476ce8f4171',
-  'examples/sidebar-tools/bookmark-manager/src/react/App.jsx':'253d8261ecde1ece6d6b32f1fbe1aa2998170f71',
-  'examples/sidebar-tools/bookmark-manager/src/react/style.css':'eb6043e6d686e10317f5dd5569073b6fa5a11a73'
+  'examples/sidebar-tools/bookmark-manager/src/service.js':'d072ace5379d0d4c8f8cda8d8d172cb60122576e',
+  'examples/sidebar-tools/bookmark-manager/src/react/App.jsx':'8e10734b13e81c3cbc249089bc6e9b27702b659b',
+  'examples/sidebar-tools/bookmark-manager/src/react/style.css':'45df50633c993c32a5ba60d6889ab769a8e77ca6'
 });
 function reviewedCompiledBookmarkReact(target,path,root){
   if(target!=='ui/tool-shell.js'||!Object.hasOwn(compiledBookmarkReactInputs,path))return null;
@@ -191,8 +196,10 @@ function reviewedCompiledAppOwnedBackground(target,path,root){
 
 // One immutable Markdown domain converter is shared by Clipper and Knowledge
 // Inbox. Its byte-reviewed source may enter only the existing Page Relay.
+// R1.8 source review: the shared converter only corrects nested-list
+// Markdown indentation; URL filtering and secret redaction are unchanged.
 const sharedMarkdownInput='examples/shared/markdown/convert.js';
-const sharedMarkdownBlob='b53147ff3bd888f1291e81daf8a90d06b5a1a114';
+const sharedMarkdownBlob='58516382e28fc03b89b58371f9b905d89e05ae27';
 function reviewedCompiledSharedMarkdown(target,path,root){
   if(path!==sharedMarkdownInput||target!=='agents/page-relay.js')return null;
   const file=resolve(root,path);

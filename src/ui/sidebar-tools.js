@@ -1,6 +1,8 @@
 import {patchToolField,setToolFieldAttribute,requestToolFieldEffect} from './sidebar-tools-view.js';
 import {ANALYTICS_PROTOCOL} from '../analytics/contract.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE,normalizeBrowserOperation,browserOperation} from '../framework/sdk/browser-contract.js';
+import {MANAGED_SITE_BUDGET_CAPABILITY,MANAGED_SITE_BUDGET_PROTOCOL} from '../platform/host/managed-site-runtime-contract.js';
+import {assertManagedSitePolicySupported} from '../platform/host/managed-site-runtime-contract.js';
 import {browserTextDownloadUrl} from '../framework/sdk/browser-schemas.js';
 import readingTocCatalog from '../../examples/sidebar-tools/reading-toc/trusted/locales.generated.js';
 import {uiMessage,resolveUiLocale} from './app-localization.js';
@@ -151,6 +153,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const updateCapabilities=view.fields["sidebar-tool-update-capabilities"];
   const updateWarning=view.fields["sidebar-tool-update-warning"];
   const title=view.fields["sidebar-tool-title"],openTabButton=view.fields["sidebar-tool-open-tab"];
+  const primaryAction=view.fields["sidebar-tool-primary-action"];
+  const clipNavigationTitles=Object.freeze({
+    home:'网页剪藏',library:'我的摘录',reader:'摘录详情',edit:'编辑摘录',new:'新建便签'
+  });
+  // Only the sandbox owns history; these are the current verified visual hints.
+  let clipPage=null;
   const actionReview=view.fields["sidebar-tool-action-review"],actionSummary=view.fields["sidebar-tool-action-summary"];
   const actionContinue=view.fields["sidebar-tool-action-continue"],actionCancel=view.fields["sidebar-tool-action-cancel"];
   let pendingAction=null,pendingPage=null;
@@ -282,6 +290,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     'browser.i18n':'读取浏览器语言偏好并识别工具提供的文本语言',
     'browser.contextMenu':'安装后在声明的网站显示 Chrome 右键菜单（最多三项，需 Chrome 允许）',
     'page.prompts':'在 ChatGPT 主内容区域显示提示词快捷按钮（安装启用后直接可用，仅插入草稿）',
+    'browser.siteBudget':'仅限已审阅网站的每日前台额度与固定时段，关闭工具 UI 后继续生效',
     'browser.scheduler':'经确认定时执行已安装的固定任务版本，只管理本工具的计划',
     'browser.tabs':'经用户单次批准打开或聚焦自己获准的标签页',
     'browser.sidePanel':'经真实点击打开 OpenDesk 自己的侧边栏',
@@ -663,7 +672,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   function destroyFrame() {
     if(frameExportPort){frameExportPort.onmessage=null;frameExportPort.close();frameExportPort=null;}
-    toolDirty=false;toolSaving=false;frameDraft='';
+    toolDirty=false;toolSaving=false;frameDraft='';clipPage=null;
     nativePending=false;
     if(nativeUI){const old=nativeUI;nativeUI=null;try{old.dispose();}catch{}}
     if(frame){frame.onload=null;frame.remove();frame=null;}
@@ -966,6 +975,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, title, {textContent: active?visibleTitle+(readOnlyPreview?' · '+(trustedTocTitle?
       readingTocHostText(currentTocLocale,'readonly'):'只读预览'):''):''});
     patchToolField(view, title, {title: active?'v'+active.version:''});
+    const clipNavigation=active?.id==='web-markdown-clipper'&&!!frame&&clipPage!==null;
+    if(clipNavigation)
+      patchToolField(view,title,{textContent:tocSettingsOpen?'工具设置':clipNavigationTitles[clipPage]});
+    const contextAction=clipNavigation&&!tocSettingsOpen?
+      ({library:'new',reader:'edit',edit:'save',new:'save'}[clipPage]||''):'';
+    const contextLabel=({new:'新建便签',edit:'编辑摘录',save:'保存摘录'})[contextAction]||'';
+    patchToolField(view,primaryAction,{hidden:!contextAction,disabled:!contextAction||busy||toolSaving,
+      title:contextLabel,data:{action:contextAction}});
+    setToolFieldAttribute(view,primaryAction,'aria-label',contextLabel||'当前页面操作');
     patchToolField(view, removeButton, {title: readOnlyPreview?'只读预览尚未安装，不能卸载':
       active?(trustedTocTitle?
         readingTocHostText(currentTocLocale,'uninstallPrefix')+visibleTitle+
@@ -996,6 +1014,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       setToolFieldAttribute(view, menuButton, 'aria-label', menuButton.title);
     }
     renderTocSettings();
+    if(clipNavigation){
+      const label=tocSettingsOpen?'返回上一页':clipPage==='home'?'返回扩展列表':'返回上一级';
+      patchToolField(view,backButton,{title:label});
+      setToolFieldAttribute(view,backButton,'aria-label',label);
+    }
     taskWorkbench.setToolActive?.(Boolean(visible && active));
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTool=visible && active?'active':'list';
   }
@@ -1412,6 +1435,53 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const envelope={protocol:BROWSER_HOST_PROTOCOL,kind:'tool',
         operation,args:payload||{},toolId:tool.id,toolVersion:tool.version,
         installEpoch:revocationEpoch,packageHash,toolInstance:token,hostInstanceId};
+      if(['browser.siteBudget.getStatus','browser.siteBudget.setPolicy'].includes(operation)){
+        // Reuse the original SDK Tool Host + installation hash/epoch envelope.
+        // No untrusted JavaScript enters the fixed background service.
+        if(operation==='browser.siteBudget.setPolicy'&&payload?.enabled&&
+           !await api.permissions.contains({permissions:['idle']})){
+          const approved=await requestBrowserClick({toolId:tool.id,
+            message:'「'+tool.title+'」需要 Chrome 空闲检测权限，才能计量已审阅网站的实际前台时间。',
+            button:'批准空闲检测',run:event=>{
+              assertSession(source,token);
+              if(!event?.isTrusted)throw Object.assign(new Error('需要真实用户点击'),
+                {code:'E_USER_GESTURE_REQUIRED'});
+              // The first native call is made synchronously inside the click.
+              return api.permissions.request({permissions:['idle']});
+            }});
+          if(approved!==true)throw Object.assign(new Error('Chrome 空闲检测权限尚未批准'),
+            {code:'E_CHROME_PERMISSION_REQUIRED'});
+          assertSession(source,token);
+        }
+        if(operation==='browser.siteBudget.setPolicy'){
+          const sites=payload.sites.join('、')||'无';
+          const approved=await requestBrowserClick({toolId:tool.id,
+            message:'「'+tool.title+'」请求'+(payload.enabled?'启用':'停用')+
+              '网站预算。网站：'+sites+'；每日额度 '+payload.dailyMinutes+
+              ' 分钟；固定时段 '+(payload.schedule.enabled?'开启':'关闭')+
+              '。策略经确认后在后台运行，关闭侧边栏不会停止。',
+            button:'确认预算策略',run:event=>{
+              assertSession(source,token);
+              if(!event?.isTrusted)throw Object.assign(new Error('请点击可信操作按钮'),
+                {code:'E_USER_GESTURE_REQUIRED'});
+              return true;
+            }});
+          if(approved!==true)throw Object.assign(new Error('未批准本次网站预算策略变更'),
+            {code:'E_USER_APPROVAL_REQUIRED'});
+          assertSession(source,token);
+        }
+        let response;
+        try{
+          response=await api.runtime.sendMessage({protocol:MANAGED_SITE_BUDGET_PROTOCOL,
+            toolId:tool.id,operation:operation.split('.').at(-1),
+            args:payload||{},packageHash,installEpoch:revocationEpoch});
+        }catch{throw Object.assign(new Error('后台结果无法确认；请先读取状态，不要重复提交'),
+          {code:'E_OUTCOME_UNKNOWN'});}
+        assertSession(source,token);
+        if(!response?.ok)throw Object.assign(new Error(response?.error?.message||'预算 Worker 拒绝操作'),
+          {code:response?.error?.code||'E_SITE_BUDGET'});
+        return response.data;
+      }
       if(operation==='browser.page.getContext'){
         const target=currentPageTarget?.snapshot;
         if(target?.status!=='available')return {status:'unavailable',
@@ -2172,7 +2242,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     if(message.kind==='edit-state'){
       if(typeof message.dirty==='boolean'&&typeof message.busy==='boolean'){
-        toolDirty=message.dirty;toolSaving=message.busy;
+        toolDirty=message.dirty;toolSaving=message.busy;render();
+      }
+      return;
+    }
+    if(message.kind==='navigation-state'){
+      if(active?.id==='web-markdown-clipper'&&!readOnlyPreview&&
+         Object.hasOwn(clipNavigationTitles,message.page)){
+        clipPage=message.page;render();
       }
       return;
     }
@@ -2848,6 +2925,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       }
       // A static adapter cannot substitute for a live MV3 worker protocol.
       // Missing optional idle/DNR grants do not block installation.
+      if(candidate.capabilities.includes(MANAGED_SITE_BUDGET_CAPABILITY)){
+        const probe=await api.runtime.sendMessage({protocol:MANAGED_SITE_BUDGET_PROTOCOL,
+          toolId:candidate.id,operation:'probe'});
+        if(!probe?.ok)throw Object.assign(new Error(probe?.error?.message||'后台能力不可用'),
+          {code:probe?.error?.code||'E_TOOL_RUNTIME_UNAVAILABLE'});
+        assertManagedSitePolicySupported(candidate,probe.data);
+      }
       if(candidate.capabilities.includes(FOCUS_CAPABILITY))await focus.probe({api,tool:candidate});
       if(candidate.capabilities.includes(AI_CAPABILITY))await aiAccess.probe({api});
       if(candidate.capabilities.includes(ADBLOCK_CAPABILITY))await adblock.probe({api,tool:candidate});
@@ -2998,11 +3082,23 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(pendingPage){void installPagePackage(event);return;}
     void action(install)();
   });
+  const requestClipNavigation=action=>{
+    if(!frame?.contentWindow||!instance||active?.id!=='web-markdown-clipper'||!clipPage)return false;
+    if(toolSaving){notice('摘录正在保存，请完成后再操作。',true);return true;}
+    frame.contentWindow.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,
+      kind:'navigation-action',instance,toolId:active.id,action},'*');
+    return true;
+  };
   listen(backButton,'click',()=>{
     if(busy)return;
     if(tocSettingsOpen){closePromptSettings();requestToolFieldEffect(view, settingsButton, 'focus', {preventScroll:true});return;}
+    if(clipPage&&clipPage!=='home'&&requestClipNavigation('back'))return;
     const id=active?.id;
     if(closeTool())focusToolInList(id);
+  });
+  listen(primaryAction,'click',()=>{
+    if(!tocSettingsOpen&&['library','reader','edit','new'].includes(clipPage))
+      requestClipNavigation('primary');
   });
   const toggleContextMenu=async event=>{
     if(!event.isTrusted||!active||readOnlyPreview||busy)return;
@@ -3145,6 +3241,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   listen(settingsButton,'click',()=>{
     if(!active||readOnlyPreview||busy)return;
+    if(active.id==='web-markdown-clipper'&&!tocSettingsOpen&&(toolDirty||toolSaving)){
+      notice('请先保存或取消当前摘录的未保存修改，再打开工具设置。',true);return;
+    }
     if(active.id===ADBLOCK_ID&&!tocSettingsOpen){
       // Reuse the real trusted toolbar action adjacent to Uninstall.
       // Product settings cannot trigger a native permission request.

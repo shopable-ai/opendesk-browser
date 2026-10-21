@@ -29,6 +29,8 @@ const SKILLS = [
 
 const CORE = [
   ['在扩展里开发一个小应用','opendesk-sidebar-tool-dev'],
+  ['请帮我修改阅读目录并更新当前已安装的应用，不想编译 Chrome 插件','opendesk-sidebar-tool-dev'],
+  ['我是管理员，需要重新编译和更新 OpenDesk Browser 本体','opendesk-extension-runtime'],
   ['编译 Cookie Editor 并生成可导入 JSON','opendesk-sidebar-tool-package'],
   ['为网页安装一个增强脚本','opendesk-program-publish'],
   ['修改扩展列表和安装管理界面','opendesk-extension-ui'],

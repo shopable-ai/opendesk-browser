@@ -268,3 +268,11 @@ v1 `opendesk.sidebar-tool.v1` 继续使用原严格字段；不会暗中开放�
 剩余三项的本轮决策：`tabs.open`、`tabs.focus`、`sidePanel.openSelf` 继续 **PLANNED**，调用返回 `E_SERVICE_UNSUPPORTED`，没有便捷方法。现有 Tabs driver 只注入固定资源；未建立供第三方工具使用的不可伪造 tab 引用及网站授权/打开批准合同。`clicked:*` 是选区来源的描述性引用，不是控制标签页的凭据。Side Panel 的真实用户手势来自原生菜单，由既有可信 Host 执行；不能把沙箱 `postMessage` 当作 Chrome 原生手势。参照 [Chrome Side Panel open](https://developer.chrome.com/docs/extensions/reference/api/sidePanel#method-open)。本轮不扩大 v1/v2 工具能力白名单，不开放通知、截图、录屏或语音。
 
 错误码补充：`E_LIMIT`（UTF-8/数据超限）、`E_SCHEMA`（参数/文件名）、`E_TOOL_CHANGED`（包摘要/代际/版本变化）、`E_LAUNCH_EXPIRED`（已领取/注销/到期）、`E_DOCUMENT_CHANGED`（同 URL 换文档/导航）、`E_LAUNCH_UNAVAILABLE`（状态查询无有效上下文）、`E_OUTCOME_UNKNOWN`（存储写入未确认）。未知写入结果先核对存储，禁止自动重放。
+
+## R1.4 已接入源码的有限公共后台预算（待原生验收）
+
+`browser.siteBudget` 是普通已安装 Sidebar Tool 可申请的有限能力（无需专属 `focus.control`）。公开入口从正式 Registry 和 Schema 生成，调用 `OpenDeskSDK.browser.siteBudget.getStatus()` 及 `setPolicy({enabled,dailyMinutes,sites,schedule,expectedRev})`；等价 `OpenDeskTool.request('browser.siteBudget.getStatus',{})` 和 `OpenDeskTool.request('browser.siteBudget.setPolicy',args)`。状态读取提供 `desiredPolicyRev`、`appliedPolicyRev`、`status`、`settings`、`usedMs`、`remainingMs` 与 `permissions`；写入 `expectedRev` 必须等于刚读取的 `desiredPolicyRev`，不能省略或盲重试。写入前在原可信 Host 显示网站/额度/时段并等待用户确认；首次启用需 Chrome idle 授权。
+
+安装包必须是 `opendesk.sidebar-tool.v2`，包含 `capabilities:['browser.siteBudget']` 和 `backgroundPolicy:{kind:'site-budget.v2',dailyMinutes,defaultSites,schedule,suggestions}`。其中 `schedule={enabled,days,startMinute,endMinute}`，`suggestions` 内站点字段为 `{host,name,category,suggestLimit,quick}`；最多 40 个经审核的网站，`defaultSites` 只能引用有 `suggestLimit` 的条目。应用能独立更新 UI 与已有算法参数，但不能提供 DNR ID、优先级、动作、远程特权 JS 或任意 Chrome API。版本升级保留已保存的用户策略；新模板不是自动启用意图。原包 SHA、安装 epoch、来源变化和用户停用始终重新经过现有 Host/Authority。
+
+**截至此记录状态：源码已提交，但未经固定 B0 + 真实 Chrome 安装升级验证，不能把上述合同写成原生 PASS。** 源码边界及迁移门槛见 [Sidebar Tool/Host 解耦](../architecture/browser-framework/sidebar-tool-host-decoupling.zh-CN.md)。

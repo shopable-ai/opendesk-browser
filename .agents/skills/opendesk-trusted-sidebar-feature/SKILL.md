@@ -93,3 +93,9 @@ Side Panel 优先复用 `od-page/od-stack/od-surface/od-button/od-field`，真�
 
 
 **R1.2 例外（统一书签文件树）**：文件夹和书签属于同一父子树时，不能机械套用「按集合拆区/区标题各放新增」；合并为单棵可折叠树，一行「收藏当前页 / ＋书签 / ＋文件夹」。详情见 R28；AI 重排、社区和商业推荐只能在独立已批准阶段开发，私人书签/历史及派生画像不得用于个性化广告。
+
+## 公共后台能力与暂留第一方服务的分界（R1.4）
+
+只有经过 `backgroundPolicy.kind='site-budget.v2'` 和 `browser.siteBudget` 审核的普通应用才进入 `src/platform/chrome/browser-managed-site-budget.js`；侧边栏 Host 负责确认，单一 Worker 负责事件/计量/DNR/Alarm，安装器复用其原有停用/撤权与清理日志。资源按 owner 隔离，记录来源、包摘要、epoch、期望/应用 Revision 并区分未知结果。不得从工具沙箱传任意规则、特权算法或自行指定规则 ID。
+
+Stay Focus 的共享分组、提醒、会话及 AdBlock 过滤清单/picker/cosmetic 目前仍依赖各自固定可信服务；在新普通应用相同 B0 下的真实安装、后台运行、原位升级和撤权清理没有原生 PASS 前，绝不改两产品的正式 DNR 所有者。新增普通受限预算数据可不改 Browser，新算法必须发布 Browser。验收依据 `tests/environment/managed-site-budget-r14.test.mjs` 和独立 Chrome 原生报告，不能把 Node Mock/Preview 记为 Chrome PASS。

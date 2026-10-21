@@ -26,10 +26,18 @@ export function createAdblockService({
 }={}){
   let compiled=null,generation=0,revoked=false;
   const pendingPicks=new Map();
+  const pickOutcomes=new Map();
+  let nextPickNonce=0;
+  // One ephemeral receipt per owning browser window; never persisted.
+  const outcome=(session,status,selector=null,code=null)=>{
+    pickOutcomes.set(session.windowId,{host:session.host,tabId:session.tabId,
+      documentId:session.documentId,nonce:session.nonce,status,selector,code});
+  };
   // A verified user selection belongs to exactly one window/tab/document.
   const dropPick=(tabId,session)=>{
     if(pendingPicks.get(tabId)!==session)return;
     pendingPicks.delete(tabId);
+    outcome(session,'cancelled');
     // A navigation may already have destroyed the old document. Cancellation
     // still succeeds because the trusted session is invalidated first.
     try{void api.tabs.sendMessage(tabId,{protocol:ADBLOCK_PAGE_PROTOCOL,
@@ -55,7 +63,7 @@ export function createAdblockService({
     return lockManager.request('opendesk.sidebar-tools:tool:'+ADBLOCK_ID,fn);
   };
   const invalidate=(nativeRevoked=false)=>{
-    generation++;pendingPicks.clear();if(nativeRevoked)revoked=true;
+    generation++;pendingPicks.clear();pickOutcomes.clear();if(nativeRevoked)revoked=true;
   };
   async function compiledPackage(){
     if(compiled)return compiled;
@@ -315,9 +323,75 @@ export function createAdblockService({
     if(JSON.stringify(previous)!==JSON.stringify(next))
       await writeVerifiedLocalValue(api,ADBLOCK_COSMETIC_STORE,next,previous,'手动屏蔽规则');
   }
-  async function addManualStatus(state){
-    try{return {...state,cosmeticRules:cosmeticForHost(await readManual(),state.currentHost)};}
-    catch(error){return {...state,cosmeticRules:[],cosmeticError:String(error.message||error)};}
+  async function addManualStatus(state,windowId){
+    let rules;
+    try{rules=cosmeticForHost(await readManual(),state.currentHost);}
+    catch(error){return {...state,cosmeticRules:[],pickerActive:false,pickOutcome:null,
+      cosmeticError:String(error.message||error)};}
+    let pickerActive=false,pickOutcome=null;
+    // A normal status read already resolved the active site; without an
+    // outstanding picker or receipt, a second tabs.getFrame/query adds a
+    // navigation race and must not read the page again.
+    const liveReceipt=Number.isSafeInteger(windowId)&&pickOutcomes.has(windowId);
+    const liveSession=Number.isSafeInteger(windowId)&&
+      [...pendingPicks.values()].some(session=>session.windowId===windowId);
+    if(state.currentHost&&(liveSession||liveReceipt)){
+      try{
+        const active=await api.tabs.query({active:true,windowId});
+        const tab=active.length===1?active[0]:null;
+        if(tab&&adblockHost(tab.url,{asUrl:true})===state.currentHost){
+          const frame=await api.webNavigation.getFrame({tabId:tab.id,frameId:0});
+          const session=pendingPicks.get(tab.id);
+          if(session&&session.expires<=Date.now())dropPick(tab.id,session);
+          pickerActive=Boolean(session&&pendingPicks.get(tab.id)===session&&
+            session.documentId===frame?.documentId&&session.host===state.currentHost);
+          const receipt=pickOutcomes.get(windowId);
+          if(receipt?.host===state.currentHost&&receipt.tabId===tab.id&&
+             receipt.documentId===frame?.documentId){
+            pickOutcome={nonce:receipt.nonce,status:receipt.status,
+              selector:receipt.selector,code:receipt.code};
+            if(pickOutcome.status==='saved'&&!rules.some(row=>row.selector===receipt.selector))
+              pickOutcome={...pickOutcome,status:'undone'};
+            if(pickOutcome.status==='unknown'&&rules.some(row=>row.selector===receipt.selector))
+              pickOutcome={...pickOutcome,status:'saved'};
+          }
+        }
+      }catch{ /* Keep verified rules; never guess a live selection. */ }
+    }
+    return {...state,cosmeticRules:rules,pickerActive,pickOutcome};
+  }
+  async function manualPageCommand(state,windowId,type,fields={}){
+    const host=state.currentHost;
+    if(!host||state.currentSite?.status!=='ready')
+      fail('E_ADBLOCK_COSMETIC_SITE','当前网站不可管理');
+    const active=await api.tabs.query({active:true,windowId});
+    const tab=active.length===1?active[0]:null;
+    if(!tab?.active||!Number.isSafeInteger(tab.id)||tab.incognito||tab.pendingUrl||
+       adblockHost(tab.url,{asUrl:true})!==host)
+      fail('E_ADBLOCK_COSMETIC_SITE','当前激活标签页已改变');
+    const frame=await api.webNavigation.getFrame({tabId:tab.id,frameId:0});
+    if(!frame?.documentId||frame.errorOccurred||
+       adblockHost(frame.url,{asUrl:true})!==host)
+      fail('E_ADBLOCK_COSMETIC_PAGE','网页文档尚未就绪');
+    if(!await api.permissions.contains({origins:[new URL(tab.url).origin+'/*']}))
+      fail('E_ADBLOCK_COSMETIC_PERMISSION','网页授权不可用');
+    let result;
+    try{
+      result=await api.tabs.sendMessage(tab.id,{protocol:ADBLOCK_PAGE_PROTOCOL,
+        type,...fields},{frameId:0,documentId:frame.documentId});
+    }catch{fail('E_ADBLOCK_COSMETIC_PAGE','网页选择脚本不可用，请刷新网页重试');}
+    const [latest,document]=await Promise.all([
+      api.tabs.query({active:true,windowId}),
+      api.webNavigation.getFrame({tabId:tab.id,frameId:0})]);
+    if(latest.length!==1||latest[0].id!==tab.id||
+       document?.documentId!==frame.documentId||
+       result?.ok!==true||result.host!==host||
+       !Array.isArray(result.inspection)||result.inspection.length>35||
+       result.inspection.some(row=>!validCosmeticSelector(row?.selector)||
+         !Number.isSafeInteger(row.matches)||row.matches<0||
+         typeof row.visible!=='boolean'))
+      fail('E_ADBLOCK_COSMETIC_PAGE','无法确认网页匹配结果或文档已变化');
+    return result.inspection;
   }
   async function startManualPicker(state,windowId){
     const host=state.currentHost;
@@ -328,11 +402,16 @@ export function createAdblockService({
     if(!tab||!Number.isSafeInteger(tab.id)||tab.incognito||tab.pendingUrl||
        adblockHost(tab.url,{asUrl:true})!==host)
       fail('E_ADBLOCK_COSMETIC_SITE','当前网页身份已变化');
-    const frame=await api.webNavigation.getFrame({tabId:tab.id,frameId:0});
+    let frame;
+    try{frame=await api.webNavigation.getFrame({tabId:tab.id,frameId:0});}
+    catch{fail('E_ADBLOCK_COSMETIC_SESSION','网页文档在启动选择时已变化');}
     if(!frame?.documentId||adblockHost(frame.url,{asUrl:true})!==host)
       fail('E_ADBLOCK_COSMETIC_SITE','网页尚未加载完毕');
-    const session={host,windowId,documentId:frame.documentId,
-      expires:Date.now()+ADBLOCK_COSMETIC_PICK_TTL_MS};
+    const prior=pendingPicks.get(tab.id);
+    if(prior)dropPick(tab.id,prior);
+    pickOutcomes.delete(windowId);
+    const session={host,windowId,tabId:tab.id,documentId:frame.documentId,
+      nonce:++nextPickNonce,expires:Date.now()+ADBLOCK_COSMETIC_PICK_TTL_MS};
     pendingPicks.set(tab.id,session);
     let ack;
     try{ack=await api.tabs.sendMessage(tab.id,{protocol:ADBLOCK_PAGE_PROTOCOL,
@@ -421,9 +500,11 @@ export function createAdblockService({
       }
       const session=pendingPicks.get(sender.tab.id);
       if(type==='cancel'){
-        if(session?.documentId===sender.documentId)pendingPicks.delete(sender.tab.id);
-        return {cancelled:true};
-      }
+         if(session?.documentId===sender.documentId){
+           pendingPicks.delete(sender.tab.id);outcome(session,'cancelled');
+         }
+         return {cancelled:true};
+       }
       const previous=await readManual();
       if(type==='undo'){
         if(!hasCosmeticRule(previous,host,message.selector))
@@ -440,8 +521,14 @@ export function createAdblockService({
       if(pendingPicks.get(sender.tab.id)!==session||session.expires<Date.now())
         fail('E_ADBLOCK_COSMETIC_SESSION','选择会话已经失效，请重新开始');
       pendingPicks.delete(sender.tab.id);
-      await writeManual(previous,addCosmeticRule(previous,host,message.selector));
-      return {saved:true,host,selector:message.selector};
+       try{
+         await writeManual(previous,addCosmeticRule(previous,host,message.selector));
+         outcome(session,'saved',message.selector);
+       }catch(error){
+         outcome(session,'unknown',message.selector,String(error?.code||'E_OUTCOME_UNKNOWN'));
+         throw error;
+       }
+       return {saved:true,host,selector:message.selector};
     });
   }
   async function probe(message,sender){
@@ -506,16 +593,99 @@ export function createAdblockService({
           '已安装的广告拦截与当前扩展内置版本不匹配，请在扩展管理中审阅更新；重启 Chrome 不会更新工具包');
       if(!own(message.payload,message.operation==='adblock.site.set'?['host','filtering']:
          message.operation==='adblock.site.restore'?['host']:
-         message.operation==='adblock.cosmetic.restore'?['host','selector']:[]))
+         message.operation==='adblock.cosmetic.restore'?['host','selector']:
+          message.operation==='adblock.cosmetic.inspect'?['host']:
+          ['adblock.cosmetic.check','adblock.cosmetic.locate'].includes(message.operation)?['host','selector']:
+          message.operation==='adblock.cosmetic.display'?['host','selector','visible']:
+          message.operation==='adblock.cosmetic.add'?['allowUnmatched','host','selector']:
+          message.operation==='adblock.cosmetic.replace'?
+            ['allowUnmatched','host','oldSelector','selector']:[]))
         fail('E_ADBLOCK_REQUEST','不允许的广告操作参数');
       await validateHost();
-      const manual=['adblock.cosmetic.pick','adblock.cosmetic.restore'].includes(message.operation);
+      const manual=['adblock.cosmetic.pick','adblock.cosmetic.cancel','adblock.cosmetic.restore',
+         'adblock.cosmetic.inspect','adblock.cosmetic.check','adblock.cosmetic.locate','adblock.cosmetic.display',
+         'adblock.cosmetic.add','adblock.cosmetic.replace'].includes(message.operation);
       const data=await reconcileLocked({operation:manual?'adblock.status':message.operation,
         payload:manual?{}:message.payload,windowId,validateHost,beforeWrite});
       if(message.operation==='adblock.cosmetic.pick'){
-        const result=await startManualPicker(data,windowId);
+         const result=await startManualPicker(data,windowId);
+         await validateHost();
+         return {...await addManualStatus(data,windowId),...result};
+       }
+       if(message.operation==='adblock.cosmetic.cancel'){
+         const active=await api.tabs.query({active:true,windowId});
+         const tab=active.length===1?active[0]:null;
+         const session=tab&&pendingPicks.get(tab.id);
+         if(session&&session.host===data.currentHost&&session.windowId===windowId)
+           dropPick(tab.id,session);
+         await validateHost();
+         return addManualStatus(data,windowId);
+       }
+      if(['adblock.cosmetic.inspect','adblock.cosmetic.check','adblock.cosmetic.locate','adblock.cosmetic.display',
+          'adblock.cosmetic.add','adblock.cosmetic.replace'].includes(message.operation)){
+        const op=message.operation,{host,selector,visible,allowUnmatched,oldSelector}=message.payload;
+        if(host!==data.currentHost)
+          fail('E_ADBLOCK_COSMETIC_SITE','网站已切换，请刷新状态');
+        const previous=await readManual();
+        if(op==='adblock.cosmetic.inspect'){
+          const inspection=await manualPageCommand(data,windowId,'inspect-rules',
+            {selectors:cosmeticForHost(previous,host).map(row=>row.selector)});
+          await validateHost();
+          return {...await addManualStatus(data,windowId),inspection};
+        }
+        if(!validCosmeticSelector(selector)||
+           op==='adblock.cosmetic.display'&&typeof visible!=='boolean'||
+           ['adblock.cosmetic.add','adblock.cosmetic.replace'].includes(op)&&
+             typeof allowUnmatched!=='boolean')
+          fail('E_ADBLOCK_COSMETIC_SELECTOR','请选择安全且受支持的 CSS 选择器');
+        if(op==='adblock.cosmetic.locate'){
+          if(!hasCosmeticRule(previous,host,selector))
+            fail('E_ADBLOCK_COSMETIC_CHANGED','该历史规则已经删除');
+          const inspection=await manualPageCommand(data,windowId,'locate-selector',{selector});
+          await validateHost();
+          return {...await addManualStatus(data,windowId),inspection};
+        }
+        if(op==='adblock.cosmetic.check'){
+          const inspection=await manualPageCommand(data,windowId,'check-selector',{selector});
+          await validateHost();
+          return {...await addManualStatus(data,windowId),inspection};
+        }
+        if(op==='adblock.cosmetic.display'){
+          if(!hasCosmeticRule(previous,host,selector))
+            fail('E_ADBLOCK_COSMETIC_CHANGED','规则已删除，请刷新');
+          if(data.enabled!==true||data.exceptions.includes(host))
+            fail('E_ADBLOCK_COSMETIC_SITE','本站广告保护已暂停');
+          const inspection=await manualPageCommand(data,windowId,'display-rule',{selector,visible});
+          if(inspection.length!==1||inspection[0].selector!==selector||
+             inspection[0].visible!==visible)
+            fail('E_OUTCOME_UNKNOWN','网页临时显示状态尚未确认');
+          await validateHost();
+          return {...await addManualStatus(data,windowId),inspection};
+        }
+        if(!data.enabled||!data.rules?.verified||data.exceptions.includes(host))
+          fail('E_ADBLOCK_COSMETIC_SITE','请先开启本站广告保护');
+        if(op==='adblock.cosmetic.replace'&&
+           (!validCosmeticSelector(oldSelector)||!hasCosmeticRule(previous,host,oldSelector)))
+          fail('E_ADBLOCK_COSMETIC_CHANGED','原规则已不存在');
+        if(op==='adblock.cosmetic.add'&&hasCosmeticRule(previous,host,selector)||
+           op==='adblock.cosmetic.replace'&&oldSelector!==selector&&
+             hasCosmeticRule(previous,host,selector))
+          fail('E_ADBLOCK_COSMETIC_CHANGED','这条规则已存在，请勿重复保存');
+        const inspection=await manualPageCommand(data,windowId,'check-selector',{selector});
+        const matches=inspection[0]?.selector===selector?inspection[0].matches:null;
+        if(matches===null)
+          fail('E_ADBLOCK_COSMETIC_PAGE','无法确认 CSS 选择器匹配数量');
+        if(matches>15)
+          fail('E_ADBLOCK_COSMETIC_BROAD','选择器匹配范围过大，请进一步缩小');
+        if(matches===0&&!allowUnmatched)
+          fail('E_ADBLOCK_COSMETIC_UNMATCHED','当前网页匹配 0 个元素；可明确选择保存动态规则');
+        const next=op==='adblock.cosmetic.replace'?
+          addCosmeticRule(removeCosmeticRule(previous,host,oldSelector),host,selector):
+          addCosmeticRule(previous,host,selector);
+        await beforeWrite();
+        await writeManual(previous,next);
         await validateHost();
-        return {...await addManualStatus(data),...result};
+        return {...await addManualStatus(data,windowId),inspection};
       }
       if(message.operation==='adblock.cosmetic.restore'){
         const {host,selector}=message.payload;
@@ -526,9 +696,12 @@ export function createAdblockService({
           fail('E_ADBLOCK_COSMETIC_CHANGED','规则已被其他页面恢复，请刷新规则列表');
         await beforeWrite();
         await writeManual(previous,removeCosmeticRule(previous,host,selector));
-      }
-      await validateHost();
-      return addManualStatus(data);
+         const receipt=pickOutcomes.get(windowId);
+         if(receipt?.host===host&&receipt.selector===selector)
+           pickOutcomes.set(windowId,{...receipt,status:'undone'});
+       }
+       await validateHost();
+       return addManualStatus(data,windowId);
       }catch(error){
         if(effectStarted)await validateHost();
         throw error;

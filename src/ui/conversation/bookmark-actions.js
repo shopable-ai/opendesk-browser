@@ -146,7 +146,8 @@ export async function executeBookmarkPlan({plan,service,context,refs={},expected
    // trusted Provider grant and instance immediately before EACH mutation.
    await beforeWrite({method,action});aborted(signal);
    issued=true;
-   try{return await service[method](args,{signal});}
+   try{return await service[method](args,{signal,
+    beforeWrite:()=>beforeWrite({method,action})});}
    catch(error){if(error?.writeIssued===false)issued=false;throw error;}
   };
   try{

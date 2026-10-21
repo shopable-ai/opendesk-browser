@@ -17,7 +17,9 @@ export const PREVIEW_SCENARIOS=Object.freeze(['success','empty','error','loading
 export const PREVIEW_MOCK_OPERATIONS=Object.freeze(['storage.get','storage.set','currentPage.info','tasks.open']);
 export const PREVIEW_ADBLOCK_OPERATIONS=Object.freeze([
   'adblock.status','adblock.enable','adblock.disable','adblock.site.set','adblock.site.restore',
-  'adblock.cosmetic.pick','adblock.cosmetic.restore'
+  'adblock.cosmetic.pick','adblock.cosmetic.cancel','adblock.cosmetic.restore',
+  'adblock.cosmetic.inspect','adblock.cosmetic.check','adblock.cosmetic.locate',
+  'adblock.cosmetic.display','adblock.cosmetic.add','adblock.cosmetic.replace'
 ]);
 export const PREVIEW_TOC_OPERATIONS=Object.freeze(['toc.snapshot','toc.navigate']);
 export const PREVIEW_BOOKMARK_OPERATIONS=Object.freeze([
@@ -163,7 +165,24 @@ export async function generatePreview({
   const hostKey=scenario==='success'?'on-site-off':scenario==='empty'||
     scenario==='permission-denied'?'no-permission':
     scenario==='untrusted'?'on-site-on':scenario;
+  // Offline target page is separate from the official React tool: only the
+  // left iframe mounts the exact production JSX bundle and shared UI runtime.
   const hostMarkup=adblock?'':'';
+  const adblockPage=adblock?[
+    '<section id="od-preview-adblock-target-site" aria-label="模拟目标网页">',
+    '<header class="ab-web-head"><strong>news.example.com</strong><span>模拟网页 · 无真实网络拦截</span></header>',
+    '<div class="ab-web-body"><h2>今日资讯</h2>',
+    '<p>报道内容与页面其他功能仍保持正常。</p>',
+    '<div class="ab-web-content">新闻正文示例。网页内容不是 AdBlock 产品 UI。</div>',
+    '<button type="button" id="native-promo" class="ab-web-ad ad-banner" data-preview-selector="#native-promo">',
+    '<span class="ab-web-ad-caption">推广区域</span><strong>原生推广横幅</strong><small>可单击隐藏 · 可以从侧栏恢复</small></button>',
+    '<button type="button" id="promo-sidebar" class="ab-web-ad" data-preview-selector="#promo-sidebar">',
+    '<span class="ab-web-ad-caption">广告</span><strong>侧边推荐广告</strong><small>用于测试隐藏与撤销</small></button>',
+    '<button type="button" id="sponsor-card" class="ab-web-ad" data-preview-selector="#sponsor-card">',
+    '<span class="ab-web-ad-caption">赞助</span><strong>赞助内容模块</strong><small>刷新后重新测试规则</small></button>',
+    '<div class="ab-web-content">其余正文仍然可读，不受手动屏蔽影响。</div>',
+    '</div></section>'
+  ].join(''):'';
   const adblockDialog=adblock?[
     '<dialog class="preview-confirm od-surface" id="od-preview-adblock-restore-dialog" aria-labelledby="od-preview-adblock-restore-title" aria-describedby="od-preview-adblock-restore-description">',
     '<h2 id="od-preview-adblock-restore-title">模拟确认 AdBlock 操作？</h2>',
@@ -198,6 +217,33 @@ export async function generatePreview({
     if(!used.has(key))fail('preview template is missing required slot '+key);
   if(/\{\{[A-Z0-9_]+\}\}/.test(outputHtml))
     fail('unresolved preview template slot');
+  if(adblock){
+    const marker='  </section>\n</div>\n<dialog class="preview-confirm od-surface"';
+    if(outputHtml.split(marker).length!==2)
+      fail('AdBlock target page insertion point is unavailable');
+    outputHtml=outputHtml.replace(marker,
+      '  </section>\n'+adblockPage+'\n</div>\n<dialog class="preview-confirm od-surface"');
+    const css=[
+      '.preview-stage:has(#od-preview-adblock-target-site){flex-wrap:wrap;gap:16px;align-items:flex-start}',
+      '#od-preview-adblock-target-site{width:min(470px,100%);min-width:260px;background:var(--od-paper);border:1px solid var(--od-line);border-radius:12px;overflow:hidden}',
+      '.ab-web-head{display:flex;justify-content:space-between;flex-wrap:wrap;gap:7px;padding:12px 16px;background:var(--od-bg);border-bottom:1px solid var(--od-line);font-size:12px}',
+      '.ab-web-head span{color:var(--od-sub);font-size:11px}',
+      '.ab-web-body{padding:18px;display:grid;gap:12px}',
+      '.ab-web-body h2{margin:0;font-size:18px}',
+      '.ab-web-body>p{margin:0;color:var(--od-sub);font-size:12px}',
+      '.ab-web-content{background:var(--od-bg);padding:14px;font-size:12px;border-radius:7px}',
+      '.ab-web-ad{position:relative;display:grid;gap:6px;text-align:left;padding:17px 14px;background:#f1f5fc;border:1px dashed #b9c9e2;border-radius:9px;cursor:default;color:#354b68}',
+      '.ab-web-ad-caption{font-size:10px;font-weight:700;letter-spacing:.04em}',
+      '.ab-web-ad small{color:#667d9f}',
+      '#od-preview-adblock-target-site.is-picking .ab-web-ad{cursor:crosshair}',
+      '#od-preview-adblock-target-site.is-picking .ab-web-ad:hover{outline:2px solid #3675ef;outline-offset:2px;background:#e7efff}',
+      '#od-preview-adblock-target-site .ab-web-ad.is-hidden{display:none}',
+       '#od-preview-adblock-target-site .ab-web-ad.is-located{outline:2px solid #3675ef;outline-offset:2px}',
+      '@media(max-width:660px){#od-preview-adblock-target-site{min-width:0}}'
+    ].join('\n');
+    outputHtml=outputHtml.replace('</head>',
+      '<style id="od-preview-adblock-target-css">\n'+css+'\n</style>\n</head>');
+  }
   if(tool==='bookmark-manager'){
     // Insert only for this OFFLINE tool, beyond .preview-device. The shared
     // Quick Notes, Reading TOC and AdBlock preview HTML is byte-identical.

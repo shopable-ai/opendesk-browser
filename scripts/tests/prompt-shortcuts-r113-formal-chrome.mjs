@@ -29,8 +29,10 @@ const escaped=source=>source.replace(/<\/script/gi,'<\\/script').replace(/<\/sty
 const bridge=String.raw`
 (()=>{
   const KEY='opendesk-r113-formal-chromium-fixture',SITES_KEY='opendesk-r20-formal-sites';
+  const ASSETS_KEY='opendesk-r39-formal-mock-assets';
   const initial={value:null,etag:'a'.repeat(64),revision:0};
   const read=()=>JSON.parse(localStorage.getItem(KEY)||'null')||initial;
+  const readAssets=()=>JSON.parse(localStorage.getItem(ASSETS_KEY)||'{}');
   const readSites=()=>JSON.parse(localStorage.getItem(SITES_KEY)||'null')||{value:null,etag:'b'.repeat(64),revision:0};
   globalThis.OpenDeskTool={
     root:document.querySelector('main.ps'),
@@ -47,6 +49,39 @@ const bridge=String.raw`
         const revision=previous.revision+1,etag=String(revision).padStart(64,'b');
         localStorage.setItem(SITES_KEY,JSON.stringify({value:payload.value,etag,revision}));
         return {saved:true,etag};
+      }
+      // Formal production JS + controlled persistent MOCK_HOST, never installed Chrome.
+      if(operation==='prompt.asset.put'){
+        if(!['image/png','image/jpeg','image/webp'].includes(payload?.mime)||
+           typeof payload?.dataUrl!=='string'||
+           !payload.dataUrl.startsWith('data:'+payload.mime+';base64,'))
+          throw Object.assign(Error('Invalid mock image'),{code:'E_PROMPT_ASSET'});
+        const bytes=atob(payload.dataUrl.split(',')[1]).length;
+        if(bytes<12||bytes>65536)throw Object.assign(Error('Asset exceeds limit'),{code:'E_IMAGE_LIMIT'});
+        const items=readAssets(),existing=Object.entries(items).find(([,item])=>
+          item.mime===payload.mime&&item.dataUrl===payload.dataUrl);
+        const id=existing?.[0]||'psa_'+Array.from(crypto.getRandomValues(new Uint8Array(16)),
+          b=>b.toString(16).padStart(2,'0')).join('');
+        if(!existing){
+          localStorage.setItem(ASSETS_KEY,JSON.stringify({...items,
+            [id]:{mime:payload.mime,dataUrl:payload.dataUrl,bytes}}));
+          if(readAssets()[id]?.bytes!==bytes)throw Error('Mock asset readback failed');
+        }
+        return {id,mime:payload.mime,bytes};
+      }
+      if(operation==='prompt.asset.get'){
+        const item=readAssets()[payload?.id];
+        if(!item)throw Object.assign(Error('Mock asset missing'),{code:'E_IMAGE_MISSING'});
+        return {...item};
+      }
+      if(operation==='prompt.asset.remove'){
+        if(read().value?.items?.some(item=>item.imageAssetId===payload?.id))
+          throw Object.assign(Error('Image is referenced'),{code:'E_IMAGE_REFERENCED'});
+        const items=readAssets(),removed=Object.hasOwn(items,payload?.id);
+        if(removed){
+          delete items[payload.id];localStorage.setItem(ASSETS_KEY,JSON.stringify(items));
+        }
+        return {removed};
       }
       if(operation==='storage.get'){
         if(payload?.key!=='library'||payload?.withEtag!==true)throw Error('unexpected read shape');
@@ -68,6 +103,7 @@ const bridge=String.raw`
   globalThis.OpenDeskSDK={browser:{launch:{consume:async()=>null}}};
   globalThis.__readFormalToolStore=read;
   globalThis.__readFormalSiteStore=readSites;
+  globalThis.__readFormalAssets=readAssets;
 })();
 `;
 const documentHtml='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+
@@ -386,7 +422,8 @@ async function run(){
   assert.equal(beforeSize,'large');
   const imageSizes=[];
   for(const [size,w,h] of [['compact',48,40],['standard',56,44],['large',68,48]]){
-    await evaluate('(()=>{const b=document.querySelector("#ps-image-size-setting [data-image-size='+JSON.stringify(size)+']");if(!b)throw Error("missing size dot");b.click();})()');
+    const sizeSelector=JSON.stringify('#ps-image-size-setting [data-image-size="'+size+'"]');
+    await evaluate('(()=>{const b=document.querySelector('+sizeSelector+');if(!b)throw Error("missing size dot");b.click();})()');
     await poll('globalThis.__readFormalToolStore().value.settings.imageSize==='+JSON.stringify(size),
       'formal Host CAS persists global image size '+size);
     const row=await evaluate('({size:document.querySelector("#ps-image-size").value,'+
@@ -406,6 +443,57 @@ async function run(){
   report.r35Image={controlledHttps:true,publicInternetNotTested:true,actualPreview:imagePreview,
     savedAndRecovered:true,sizesPersisted:imageSizes,installedExtension:false};
   await rpc('Fetch.disable');
+
+  // R3.9: use the native CDP file-input API with the exact packaged UI and
+  // a bounded LOCAL_STORAGE mock Host. This proves real decoding and reloading,
+  // but does NOT claim that an installed Trusted Host was exercised.
+  const inputPath=join(out,'r39-upload-source.png');
+  await writeFile(inputPath,Buffer.from(rasterFixture,'base64'));
+  await width(400);
+  await click('#ps-new');
+  await fill('#ps-body','R3.9 正式图片上传保存读回');
+  await evaluate('document.querySelector("#ps-appearance-image").click()');
+  await evaluate('document.querySelector("#ps-image-source-local").click()');
+  await rpc('DOM.enable');
+  const documentNode=(await rpc('DOM.getDocument',{depth:1})).root.nodeId;
+  const fileNode=(await rpc('DOM.querySelector',
+    {nodeId:documentNode,selector:'#ps-image-file'})).nodeId;
+  assert(fileNode,'formal original file selector exists');
+  await rpc('DOM.setFileInputFiles',{nodeId:fileNode,files:[inputPath]});
+  await evaluate('document.querySelector("#ps-image-file").dispatchEvent(new Event("change",{bubbles:true}))');
+  await poll('document.querySelector("#ps-image-help").textContent.includes("资源库")',
+    'real PNG decoded, compressed and stored by MOCK_HOST');
+  const localPreview=await evaluate('(()=>{const img=document.querySelector("#ps-image-preview img");'+
+    'return {naturalWidth:img?.naturalWidth||0,naturalHeight:img?.naturalHeight||0,'+
+    'objectFit:img?getComputedStyle(img).objectFit:""};})()');
+  assert(localPreview.naturalWidth>0&&localPreview.naturalHeight>0);
+  assert.equal(localPreview.objectFit,'contain');
+  await screenshot('r39-formal-local-upload');
+  await click('#ps-save');
+  await poll('globalThis.__readFormalToolStore().value?.items?.length===4',
+    'saved local image prompt into mock Host');
+  const assetId=await evaluate('globalThis.__readFormalToolStore().value.items.find('+
+    'row=>row.body==="R3.9 正式图片上传保存读回").imageAssetId');
+  assert.match(assetId,/^psa_[a-f0-9]{32}$/);
+  assert.equal(await evaluate('Object.keys(globalThis.__readFormalAssets()).length'),1);
+  await rpc('Page.reload',{ignoreCache:true});
+  await poll('document.querySelector("#ps-new")&&!document.querySelector("#ps-new").disabled',
+    'formal local image reload');
+  await poll('document.querySelector("#ps-list .ps-card:last-child .ps-glyph.has-image img")?.naturalWidth>0',
+    'real PNG loaded from persistent mock Host after reload');
+  assert.equal(await evaluate('globalThis.__readFormalToolStore().value.items.find('+
+    'row=>row.body==="R3.9 正式图片上传保存读回").imageAssetId'),assetId);
+  assert.equal(await evaluate('Object.keys(globalThis.__readFormalAssets()).length'),1);
+  await screenshot('r39-formal-local-reloaded');
+  await click('#ps-list .ps-card:last-child .ps-card-actions button');
+  await click('#ps-list .ps-card:last-child .ps-more button[data-action="delete"]');
+  await click('#ps-list .ps-card:last-child .ps-confirm .od-button--danger');
+  await poll('globalThis.__readFormalToolStore().value.items.length===3',
+    'mock Host deletion committed');
+  await poll('Object.keys(globalThis.__readFormalAssets()).length===0',
+    'mock Host unused local image cleaned after delete');
+  report.r39LocalImageMockHost={pngDecoded:true,preview:localPreview,
+    storedId:assetId,recoveredAfterReload:true,cleanedAfterDelete:true,installedExtension:false};
   assert.equal(jsErrors.length,0,'formal JavaScript console exceptions: '+jsErrors.join(' | '));
   report.consoleExceptions=jsErrors;report.result='PASS';
   console.log('PROMPT_SHORTCUTS_FORMAL_CHROMIUM_PASS',JSON.stringify(report));

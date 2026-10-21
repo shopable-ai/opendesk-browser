@@ -1293,10 +1293,19 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   });
   const removedPermissions=async grant=>{
     const active=bookmarkConversationActive;
-    // Fail closed immediately, before asynchronous contains() checks. Any
-    // removed HTTPS origin may cover the active Provider through a broad grant.
+    // Invalidate synchronously only when a removed Chrome match pattern covers
+    // this Provider. An unrelated site's grant must not cancel this round.
+    const affectsProvider=pattern=>{
+      if(pattern==='<all_urls>')return true;
+      const match=typeof pattern==='string'&&pattern.match(/^(\*|https?):\/\/([^/]+)\//i);
+      if(!match||!active?.grantPattern)return false;
+      const url=new URL(active.grantPattern),host=match[2].toLowerCase();
+      return (match[1]==='*'||match[1].toLowerCase()+':'===url.protocol)&&
+        (host==='*'||host===url.hostname||host.startsWith('*.')&&
+          (url.hostname===host.slice(2)||url.hostname.endsWith('.'+host.slice(2))));
+    };
     if(active&&((active.source==='local_codex'&&grant.permissions?.includes('nativeMessaging'))||
-      (active.source!=='local_codex'&&grant.origins?.length))){
+      (active.source!=='local_codex'&&grant.origins?.some(affectsProvider)))){
       invalidateBookmarkConversation(err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已撤销，本轮 AI 提议失效'));
     }
     if(!grant.origins?.length&&!grant.permissions?.includes('nativeMessaging'))return;
@@ -1443,14 +1452,15 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         err('E_CANCELLED','本轮已停止，未发出新的书签操作'));
       signal?.addEventListener('abort',abortFromParent,{once:true});
       if(signal?.aborted)abortFromParent();
-      const active={abortController,source:selected,generation,grantPattern};
+      const active={abortController,source:selected,generation,grantPattern,signal};
       bookmarkConversationBusy=true;bookmarkConversationActive=active;
       let released=false;
       const release=()=>{
         if(released)return;released=true;
         signal?.removeEventListener('abort',abortFromParent);
-        if(bookmarkConversationActive===active)bookmarkConversationActive=null;
-        bookmarkConversationBusy=false;
+        if(bookmarkConversationActive===active){
+          bookmarkConversationActive=null;bookmarkConversationBusy=false;
+        }
       };
       const assertLive=()=>{
         if(disposed||bookmarkConversationActive!==active)
@@ -1462,14 +1472,31 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         if(provider()!==selected)
           throw err('E_TOOL_CHANGED','AI 来源已切换，请重新发送本轮请求');
       };
+      // Permission prompts and transport responses can outlive the UI. Stop
+      // releases this wait immediately; late settlements stay attached only to
+      // their original round and cannot release or cancel a newer one.
+      const awaitActive=pending=>new Promise((resolve,reject)=>{
+        const stopped=()=>{
+          abortController.signal.removeEventListener('abort',stopped);
+          reject(abortController.signal.reason||err('E_CANCELLED','本轮已停止'));
+        };
+        abortController.signal.addEventListener('abort',stopped,{once:true});
+        Promise.resolve(pending).then(value=>{
+          abortController.signal.removeEventListener('abort',stopped);resolve(value);
+        },error=>{
+          abortController.signal.removeEventListener('abort',stopped);reject(error);
+        });
+        if(abortController.signal.aborted)stopped();
+      });
       const assertWrite=async()=>{
         assertLive();
         if(grantPattern||selected==='local_codex'){
           let permitted=false;
           try{
-            permitted=await api.permissions.contains(grantPattern?
-              {origins:[grantPattern]}:{permissions:['nativeMessaging']});
+            permitted=await awaitActive(api.permissions.contains(grantPattern?
+              {origins:[grantPattern]}:{permissions:['nativeMessaging']}));
           }catch{/* An unknown authorization state is not a grant. */}
+          assertLive();
           if(!permitted){
             invalidateBookmarkConversation(err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已失效'));
             throw err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已失效，拒绝继续书签写入');
@@ -1478,18 +1505,18 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         assertLive();
       };
       try{
-        if(permission&&!await permission)throw err('E_AI_PERMISSION','没有模型网站权限，未请求 AI');
+        if(permission&&!await awaitActive(permission))throw err('E_AI_PERMISSION','没有模型网站权限，未请求 AI');
         await assertWrite();
         if(selected==='local_codex'){
-          const capability=await conversationPlanner.probe();
+          const capability=await awaitActive(conversationPlanner.probe());
           await assertWrite();
           const readiness=describeLocalCodex(capability);
           if(!readiness.ready)throw err(readiness.state,readiness.message);
         }
-        const result=await workflowProviders.generateStructured({
+        const result=await awaitActive(workflowProviders.generateStructured({
           source:selected,request,context,instructions:bookmarkInstructions,settings,
           signal:abortController.signal
-        });
+        }));
         await assertWrite();
         // Keep this capability scoped to the whole readback-verified business
         // turn, not merely to the duration of model inference.
@@ -1503,14 +1530,17 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         throw error;
       }
     },
-    cancel(){
-      bookmarkConversationActive?.abortController.abort(
+    cancel({signal}={}){
+      const active=bookmarkConversationActive;
+      if(!active||signal&&active.signal!==signal)return Promise.resolve();
+      active.abortController.abort(
         err('E_CANCELLED','已停止当前书签对话'));
       return conversationPlanner.cancel();
     }
   });
   return {getSnapshot:ui.getSnapshot,subscribe:ui.subscribe,actions,conversation,dispose() {
     if(disposed)return;disposed=true;compileToken++;planningGeneration++;
+    bookmarkConversationActive?.abortController.abort(err('E_TOOL_CHANGED','书签扩展实例已关闭'));
     planningAbort?.abort(err('E_HOST_CLOSED','工作流窗口已关闭'));pendingApproval?.settle({decision:'deny'});
     localPlanner.dispose();conversationPlanner.dispose();void Promise.resolve(observation.dispose()).catch(()=>{});
     unsubscribePage?.();unsubscribeRun?.();unsubscribeNative?.();

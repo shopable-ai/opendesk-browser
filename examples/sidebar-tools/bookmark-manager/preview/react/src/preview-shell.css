@@ -1,0 +1,7 @@
+/* Offline fixture frame chrome; production App and Dock are imported unchanged. */
+.od-preview-trusted-host{height:100%;min-height:0;min-width:0;display:flex;flex-direction:column;overflow:hidden;background:var(--od-paper);color:var(--od-ink)}
+.od-preview-trusted-host .sidebar-tool-view-head{display:flex;align-items:center;gap:8px;flex:none;min-height:42px;padding:4px 9px;border-bottom:1px solid var(--od-line)}
+.od-preview-trusted-host .sidebar-tool-view-head strong{min-width:0;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:14px}
+.od-preview-trusted-host .sidebar-tool-icon-action{flex:0 0 var(--od-icon-size)}
+.od-preview-trusted-host .sidebar-tool-icon-action:disabled{opacity:.45;cursor:not-allowed}
+.od-preview-trusted-host .od-preview-trusted-frame{min-height:0;min-width:0;flex:1;overflow:hidden}

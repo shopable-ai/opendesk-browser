@@ -86,6 +86,20 @@ jobs:
           npm run verify
           node scripts/verify-package.mjs dist/production
           sha256sum dist/production/official-tools/adblock/adblock.opendesk-tool.json
+      # A source-bound React/CDP preview is distinct from installed Chrome DNR.
+      # Execute the exact compiled App.jsx and keep screenshots in the existing
+      # source-validated candidate artifact, without an independent mock UI.
+      - uses: browser-actions/setup-chrome@v2
+        id: preview-chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Verify compiled React AdBlock interactions in Chromium - not native DNR
+        env:
+          CHROME_BIN: ${{ steps.preview-chrome.outputs.chrome-path }}
+        run: |
+          node scripts/tests/adblock-preview-chrome.mjs artifacts/previews/adblock/chromium
+          test -s artifacts/previews/adblock/chromium/adblock-preview-chrome.json
+          sha256sum artifacts/previews/adblock/chromium/adblock-preview-chrome.json
       - name: Check candidate source identity - not native approval yet
         run: |
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --promote-from artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json

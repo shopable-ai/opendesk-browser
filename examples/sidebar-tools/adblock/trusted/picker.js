@@ -34,9 +34,9 @@ export function adblockElementSelector(node,doc=globalThis.document){
 }
 export function createAdblockElementPicker({
   api=globalThis.chrome,doc=globalThis.document,win=globalThis.window,
-  onPending=()=>{},onSaved=()=>{},onUndone=()=>{},onRefresh=()=>{}
+  onPending=()=>{},onSaved=()=>{},onUndone=()=>{},onRefresh=()=>{},onFeedback=()=>{}
 }={}){
-  let picking=false,marker=null,notice=null,hover=null,disposed=false,pending=false,pickTimer=null;
+  let picking=false,marker=null,hover=null,disposed=false,pending=false,pickTimer=null;
   const guard=node=>Boolean(node?.closest?.('['+UI+']'));
   const request=async(type,selector)=>{
     const body={protocol:ADBLOCK_PAGE_PROTOCOL,type};
@@ -71,7 +71,7 @@ export function createAdblockElementPicker({
     if(disposed)return;
     if(present===true){
       onSaved(selector);
-      message(operation==='hide'?'已核对：隐藏规则已保存':'已核对：规则仍存在，尚未撤销',()=>undo(selector));
+      message(operation==='hide'?'已核对：隐藏规则已保存':'已核对：规则仍存在，尚未撤销');
     }else if(present===false){
       onUndone(selector);
       message(operation==='hide'?'已核对：规则不存在，未保存':'已核对：规则已删除，已撤销');
@@ -79,23 +79,9 @@ export function createAdblockElementPicker({
       message('无法确认'+(operation==='hide'?'保存':'撤销')+'结果，请稍后查看屏蔽列表；未自动重试');
     }
   }
-  function message(text,undo=null){
-    if(!doc.documentElement)return;
-    if(!notice||!notice.isConnected){
-      notice=doc.createElement('div');notice.setAttribute(UI,'');
-      notice.setAttribute('role','status');
-      notice.style.cssText='position:fixed!important;z-index:2147483647!important;right:16px!important;bottom:16px!important;max-width:min(350px,calc(100vw - 32px))!important;display:flex!important;align-items:center!important;gap:9px!important;background:#20334f!important;color:white!important;padding:10px 12px!important;border-radius:10px!important;box-shadow:0 8px 25px #0005!important;font:13px/1.5 system-ui,sans-serif!important';
-      doc.documentElement.append(notice);
-    }
-    notice.replaceChildren(doc.createTextNode(text));
-    if(undo){
-      const button=doc.createElement('button');
-      button.type='button';button.textContent='撤销';button.setAttribute('aria-label','撤销刚才的隐藏规则');
-      button.style.cssText='background:white!important;color:#2758b8!important;border:0!important;border-radius:6px!important;padding:5px 9px!important;font:600 12px system-ui,sans-serif!important;cursor:pointer!important';
-      button.addEventListener('click',event=>{if(event.isTrusted)void undo();},{once:true});
-      notice.append(button);
-    }
-  }
+  // Feedback is reported out-of-band; the target webpage has NO user-facing
+  // status, toast, undo button or cancellation controls.
+  function message(text){onFeedback(text);}
   function end(){
     if(pickTimer!==null){win.clearTimeout(pickTimer);pickTimer=null;}
     picking=false;hover=null;marker?.remove();marker=null;
@@ -147,20 +133,6 @@ export function createAdblockElementPicker({
     marker.style.left=r.left+'px';marker.style.top=r.top+'px';
     marker.style.width=r.width+'px';marker.style.height=r.height+'px';
   }
-  async function undo(selector){
-    if(disposed||pending)return;
-    pending=true;
-    try{
-      await request('undo',selector);
-      if(disposed)return;
-      onUndone(selector);
-      message('已撤销，已删除本地屏蔽规则');
-      onRefresh();
-    }catch{
-      await uncertain(selector,'undo');
-      onRefresh();
-    }finally{pending=false;}
-  }
   async function commit(target){
     const selector=adblockElementSelector(target,doc);
     if(!selector){message('无法定位该区域，请换一个位置');return;}
@@ -170,7 +142,7 @@ export function createAdblockElementPicker({
       await request('hide',selector);
       if(disposed)return;
       onSaved(selector);
-      message('已隐藏并保存，下次访问自动隐藏',()=>undo(selector));
+      message('已隐藏并保存，下次访问自动隐藏');
       onRefresh();
     }catch{
       await uncertain(selector,'hide');
@@ -200,8 +172,6 @@ export function createAdblockElementPicker({
     if(picking)return true;
     if(!doc.documentElement)return false;
     // Selection mode only highlights target elements; instructions live in the Side Panel.
-    // A previous post-action undo notice must not overlap the new selection.
-    notice?.remove();notice=null;
     picking=true;
     pickTimer=win.setTimeout(()=>{
       if(!picking||disposed)return;
@@ -213,5 +183,5 @@ export function createAdblockElementPicker({
   }
   return Object.freeze({begin,cancel(){if(picking){
       end();void request('cancel').catch(()=>{});
-    }},dispose(){disposed=true;end();notice?.remove();notice=null;}});
+    }},dispose(){disposed=true;end();}});
 }

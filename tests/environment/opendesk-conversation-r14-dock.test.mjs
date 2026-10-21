@@ -30,17 +30,31 @@ test('R1.4 one trusted Root and one reusable bottom Dock, no new sandbox escalat
 });
 
 test('R1.4 original bookmark workspace and search never disappear with chat',async()=>{
- const [app,css]=await Promise.all([read(appPath),read('src/ui/react/components/conversation-dock.css')]);
+ const [app,css,component]=await Promise.all([read(appPath),
+  read('src/ui/react/components/conversation-dock.css'),read('src/ui/react/components/conversation.tsx')]);
  assert.match(app,/<div className="bm-tools">/);
  assert.match(app,/<div className="bm-workspace">/);
  assert.doesNotMatch(app,/hidden=\{chatOpen\}|className="bm-conversation"|id="bm-conversation"/);
- assert.match(app,/label="对话"[\s\S]*aria-controls="opendesk-conversation-dock"/);
- assert.match(app,/onClick=\{dock\?\.toggle\}/);
+ assert.doesNotMatch(app,/label="对话"[\s\S]*aria-controls="opendesk-conversation-dock"/);
+ const toolHost=await read('src/ui/react/tabs/tool-host.tsx');
+ assert.match(toolHost,/<TrustedConversationHeaderSlot\/>\s*<ToolField as="button" type="button" id="sidebar-tool-remove"/,
+  'framework Chat icon must be in ToolHost header immediately before uninstall');
+ assert.match(await read('src/ui/react/components/conversation.tsx'),/createPortal\(/);
  assert.match(css,/\.od-conversation-business\{min-height:0;min-width:0;flex:1/);
  assert.match(css,/\.od-conversation-dock\{flex:none/);
  assert.match(css,/\.od-conversation-log\{min-height:0;flex:1 1 auto;overflow:auto/);
  assert.match(css,/\.od-conversation-composer\{display:grid/);
  assert.match(css,/--od-brand/);
+ assert.match(css,/\.od-conversation-input\{grid-area:1\/1/,'composer textarea owns the same grid cell');
+ assert.match(css,/\.od-conversation-action\{position:relative;z-index:1;grid-area:1\/1/,
+  'Send and Stop align to the textarea, not to composer padding');
+ assert.match(css,/\.od-conversation-dragbar\{[^\n]*flex:0 0 12px/,'visual splitter is slim');
+ assert.match(css,/\.od-conversation-separator\{[^\n]*touch-action:none/,'slim visual splitter remains draggable');
+ assert.doesNotMatch(css,/\.od-conversation-separator\{[^\n]*border-bottom/,'avoid doubled visual separator lines');
+ assert.match(component,/IconButton as OpenDeskIconButton/,'reuse the canonical React icon button');
+ assert.match(component,/label="发送" onClick=\{send\}/);
+ assert.match(component,/label="停止对话" onClick=\{stop\}/);
+ assert.doesNotMatch(css,/\.od-conversation-controls/,'no second action row');
 });
 
 test('R1.4 shared separator and edit draft coexistence retain keyboard access and input',async()=>{
@@ -56,6 +70,8 @@ test('R1.4 shared separator and edit draft coexistence retain keyboard access an
  assert.match(component,/e\.nativeEvent\.isComposing/);
  assert.match(component,/e\.key==='Enter'&&!e\.shiftKey&&!e\.nativeEvent\.isComposing/);
  assert.match(component,/aria-label="收起对话"/);
+ assert.match(component,/showSpeaker=\{false\}/,'shared transcript removes redundant visible speaker labels');
+ assert.doesNotMatch(component,/od-conversation-samples|od-conversation-source/);
  assert.match(component,/controller\?\.saveSession/);
  assert.match(app,/hasDock=\{Boolean\(dock\)\}/);
  assert.match(app,/aria-modal=\{!hasDock\}/);
@@ -78,10 +94,10 @@ test('R1.4 Send pins bookmark IDs; writing blocks conflicting draft and follows 
  assert.match(actions,/nextRefs\.folderId=found\.id/);
  assert.match(actions,/tree=await service\.load\(\)/);
  assert.match(actions,/if\(!found\|\|nodeFolder\(found\)/);
- assert.match(component,/onPhase:phase=>\{phaseRef\.current=phase;\}/);
+ assert.match(component,/onPhase:phase=>\{if\(current\(\)\)phaseRef\.current=phase;\}/);
  assert.match(component,/if\(unknown\)setNeedsReview\(true\)/);
  assert.match(component,/if\(!unknown&&!ex\?\.partial\?\.length/);
- assert.match(component,/controller\?\.cancel\?\.\(\)/);
+ assert.match(component,/controller\?\.cancel\?\.\(\{signal\}\)/);
 });
 
 test('R1.4 preview reuses production App and shared Dock and labels Mock honestly',async()=>{
@@ -90,10 +106,14 @@ test('R1.4 preview reuses production App and shared Dock and labels Mock honestl
   read(bookmark+'preview/react/build-preview.mjs'),
   read('src/ui/react/main.tsx')]);
  assert.match(preview,/from '\.\.\/\.\.\/\.\.\/src\/react\/App\.jsx'/);
- assert.match(preview,/TrustedConversationWorkspace controller=\{conversation\}/);
+ assert.match(preview,/TrustedConversationWorkspace controller=\{conversation\} headerTarget=\{headerTarget\}/);
  assert.match(preview,/<App runtime=\{\{conversation\}\} mode="preview" dock=\{dock\}\/>/);
  assert.match(preview,/offline/);
- assert.match(preview,/离线演示（非真实 AI）/);
+ assert.doesNotMatch(preview,/离线演示（非真实 AI）|模拟书签读回（非 Chrome）|title="书签对话"/);
+ assert.match(preview,/provider:'offline_fixture'/,'offline fixture identity is retained internally');
+ assert.match(preview,/nativeVerified:false/,'fixture never claims installed/native behavior');
+ assert.match(preview,/title="AI 对话" placeholder/);
  assert.match(builder,/join\(root,'src\/ui\/react\/components\/conversation-dock\.css'\)/);
  assert.match(main,/mode="trusted" runtime=\{bookmarkPilot\.runtime\}/);
+ assert.match(main,/cancel:options=>conversation\.cancel\(options\)/,'Host must forward the exact Stop signal to the existing Workflow controller');
 });

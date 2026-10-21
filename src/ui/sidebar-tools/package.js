@@ -1,5 +1,6 @@
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../framework/sdk/browser-direct.generated.js';
-import {normalizeSidebarToolBackgroundPolicy} from './background-policy.js';
+import {normalizeSidebarToolBackgroundPolicy,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2} from './background-policy.js';
+import {MANAGED_SITE_BUDGET_CAPABILITY} from '../../platform/host/managed-site-runtime-contract.js';
 // Sidebar tool UI package contract. This is NOT a Task v1 program or an authority grant.
 export const SIDEBAR_TOOL_FORMAT = 'opendesk.sidebar-tool.v1';
 export const SIDEBAR_TOOL_FORMAT_V2 = 'opendesk.sidebar-tool.v2';
@@ -14,7 +15,7 @@ const LIMITS = Object.freeze({title:80,description:300,html:64000,css:120000,js:
 const CAPABILITIES = Object.freeze(['storage.local','currentPage.read','tasks.open','page.toc','page.clip','user.export','page.capture','knowledge.store','time.review','focus.control','ai.access','adblock.control']);
 const V2_CAPABILITIES = Object.freeze([...new Set([...CAPABILITIES,'page.prompts','browser.contextMenu','browser.tabs','browser.sidePanel','network',
   'browser.network.observe','browser.events','browser.operations','browser.screenshot','browser.bookmarks','browser.bookmarks.full','browser.scheduler',
-  'browser.cookies.read','browser.cookies.values','browser.cookies.write','browser.cookies.observe','browser.cookies.clear','browser.storage','browser.proxy.managed',
+  'browser.cookies.read','browser.cookies.values','browser.cookies.write','browser.cookies.observe','browser.cookies.clear','browser.storage','browser.proxy.managed',MANAGED_SITE_BUDGET_CAPABILITY,
   ...APPROVED_BROWSER_DIRECT_BINDINGS.flatMap(row=>row.requiredCapabilities)])]);
 const PACKAGE_FIELDS=Object.freeze(['format','id','version','title','description','capabilities','html','css','js','uiRuntime','backgroundPolicy']);
 const V2_FIELDS=Object.freeze([...PACKAGE_FIELDS,'requires','contributes','scripts']);
@@ -48,8 +49,13 @@ export function validateSidebarToolPackage(value) {
     fail('工具能力声明超出当前支持范围：'+names+(unsupportedCapabilities.length>4?'等 '+unsupportedCapabilities.length+' 项':'')+'。请核对工具包格式，并更新 OpenDesk Browser 扩展后重新导入。');
   }
   const backgroundPolicy=normalizeSidebarToolBackgroundPolicy(value.backgroundPolicy);
-  if(backgroundPolicy&&!value.capabilities.includes('focus.control'))
-    fail('网站预算策略模板需要已支持的 focus.control 能力','E_TOOL_POLICY');
+  if(backgroundPolicy&&!value.capabilities.includes('focus.control')&&
+     !value.capabilities.includes(MANAGED_SITE_BUDGET_CAPABILITY))
+    fail('网站预算声明需要已审阅的受管后台能力','E_TOOL_POLICY');
+  if(value.capabilities.includes(MANAGED_SITE_BUDGET_CAPABILITY)&&
+     (!v2||backgroundPolicy?.kind!==SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2||
+       value.capabilities.includes('focus.control')))
+    fail('公共预算能力只支持独立的 v2 有限预算合同','E_TOOL_POLICY');
   if(v2){
     if(!plain(value.requires)||!fields(value.requires,['browserSdk'])||
        value.requires.browserSdk!=='1.0.0')fail('浏览器 SDK 版本不受支持');

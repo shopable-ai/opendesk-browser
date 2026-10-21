@@ -3,6 +3,7 @@ import * as React from 'react';
 import {createPortal} from 'react-dom';
 import {TimeReviewSettings,StayFocusSettings,StayFocusQuickAdd,AiAccessSettings} from './trusted-settings.tsx';
 import {UninstallDialog} from './tools.tsx';
+import {TrustedConversationHeaderSlot} from '../components/conversation.tsx';
 
 const h=React.createElement.bind(React);
 const ToolContext = React.createContext(null);
@@ -11,6 +12,7 @@ const ToolContext = React.createContext(null);
 export function ToolHost({view}) {
   const snapshot = React.useSyncExternalStore(view.subscribe, view.getSnapshot, view.getSnapshot);
   const importOpen = snapshot.fields['sidebar-tool-import']?.hidden === false;
+  const topAction = snapshot.fields['sidebar-tool-primary-action']?.data?.action || '';
   // These are the only editable inputs in this host. Business decisions remain
   // synchronous controller actions, with the original trusted browser event.
   const actions = React.useMemo(() => ({
@@ -216,14 +218,12 @@ export function ToolHost({view}) {
 <ToolField as="strong" id="sidebar-tool-title" className="od-page-title">
 
 </ToolField>
-<ToolField as="button" type="button" id="sidebar-tool-open-tab" className="sidebar-tool-icon-action od-icon-button" title="在新标签页打开" aria-label="在新标签页打开当前工具" disabled={true}>
-<svg viewBox="0 0 24 24" aria-hidden="true">
-<path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6">
-
-</path>
-
+<ToolField as="button" type="button" id="sidebar-tool-primary-action" className="sidebar-tool-icon-action od-icon-button" title="当前页面操作" aria-label="当前页面操作" hidden={true}>
+<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+{topAction==='new' ? <path d="M12 5v14M5 12h14"/> :
+ topAction==='edit' ? <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L9 17l-4 1 1-4z"/> :
+ <path d="M4 3h14l3 3v15H3V3h1M7 3v6h10V3M7 21v-8h10v8"/>}
 </svg>
-
 </ToolField>
 <ToolField as="button" type="button" id="sidebar-tool-settings-open" className="sidebar-tool-icon-action od-icon-button" title="工具设置" aria-label="工具设置" aria-controls="sidebar-tool-settings-view" aria-expanded="false" hidden={true} nodeRef={runtimeRefs.settingsControl}>
 <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -258,6 +258,7 @@ export function ToolHost({view}) {
 </svg>
 
 </ToolField>
+<TrustedConversationHeaderSlot/>
 <ToolField as="button" type="button" id="sidebar-tool-remove" className="sidebar-tool-icon-action od-icon-button" title="卸载工具及本地数据" aria-label="卸载当前工具及本地数据" disabled={true}>
 <svg viewBox="0 0 24 24" aria-hidden="true">
 <path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5">
@@ -287,6 +288,10 @@ export function ToolHost({view}) {
 
 </ToolField>
 <ToolField as="section" id="sidebar-tool-settings-view" className="sidebar-tool-settings-view od-surface" aria-label="工具设置" hidden={true}>
+<ToolField as="button" type="button" id="sidebar-tool-open-tab" className="od-button od-button--secondary sidebar-tool-settings-open-tab" title="在新标签页打开" aria-label="在新标签页打开当前工具">
+<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"/></svg>
+{"在新标签页打开"}
+</ToolField>
 <CookieSettings onRevoke={actions.revoke}/><BookmarkSettings/><ToolField as="div" id="sidebar-tool-toc-language" className="sidebar-toc-settings-row" hidden={true}>
 <label htmlFor="sidebar-tool-toc-language-select">
 <ToolLabel name="languageLabel"/>
