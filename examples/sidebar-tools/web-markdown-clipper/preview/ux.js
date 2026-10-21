@@ -1,4 +1,4 @@
-/* R1.9 preview-only UX adapter: SAME official notes list, reader and editor.
+/* R1.10 preview-only UX adapter: SAME official notes list, reader and editor.
    Uses src/notes.js createStore for data; demo Host lives in stage.html.
    This file is NOT the installed extension. */
 (function(){
@@ -38,8 +38,7 @@ function showFull(fromRecent=false){
 }
 const iconPaths={
  edit:['M12 20h9','M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4z'],
- remove:['M3 6h18','M8 6V4h8v2','M6 6l1 15h10l1-15','M10 10v7','M14 10v7'],
- more:['M5 12h.01','M12 12h.01','M19 12h.01']
+ remove:['M3 6h18','M8 6V4h8v2','M6 6l1 15h10l1-15','M10 10v7','M14 10v7']
 };
 function svg(name){
  const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');
@@ -69,19 +68,8 @@ function decorate(){
   remove.classList.add('preview-remove');remove.replaceChildren(svg('remove'));
   remove.title=remove.getAttribute('aria-label')||'删除摘录';
   const edit=button('preview-edit','编辑完整正文','edit');
-  const more=button('preview-more','更多操作','more');more.setAttribute('aria-expanded','false');
-  more.addEventListener('click',event=>{
-   event.stopPropagation();
-   const active=actions.dataset.menuOpen==='true';
-   for(const other of list.querySelectorAll('.clip-note-buttons[data-menu-open=true]')){
-    other.dataset.menuOpen='false';other.querySelector('.preview-more')?.setAttribute('aria-expanded','false');
-   }
-   actions.dataset.menuOpen=String(!active);more.setAttribute('aria-expanded',String(!active));
-  });
-  edit.addEventListener('click',event=>{
-   event.stopPropagation();actions.dataset.menuOpen='false';void editCard(card);
-  });
-  actions.prepend(more,edit);
+  edit.addEventListener('click',event=>{event.stopPropagation();void editCard(card);});
+  actions.prepend(edit);
  }
  applyFilter();
 }
@@ -132,7 +120,7 @@ list.addEventListener('click',event=>{
  const card=event.target.closest('.clip-note-card');
  if(!card||event.target.closest('.clip-note-buttons,.preview-remove-confirm'))return;
  if(mode==='recent'){entry='recent';showFull(true);}
- else if(event.isTrusted)entry='full';
+ else if(event.isTrusted){entry='full';libraryScroll=window.scrollY;}
 },true);
 list.addEventListener('click',event=>{
  const card=event.target.closest('.clip-note-card');
@@ -153,6 +141,7 @@ $('clip-notes-back').addEventListener('click',()=>{
 });
 $('clip-note-reader-back').addEventListener('click',()=>{
  if(entry==='recent'){entry='full';showRecent(true);}
+ else requestAnimationFrame(()=>window.scrollTo(0,libraryScroll));
 });
 $('clip-note-cancel').addEventListener('click',()=>{
  if(newFromRecent&&$('clip-note-editor').hidden){newFromRecent=false;showRecent(true);}
@@ -208,19 +197,11 @@ $('clip-save').addEventListener('click',async event=>{
  }
 },true);
 list.addEventListener('keydown',event=>{
- if(event.key!=='Escape')return;
- const menu=list.querySelector('.clip-note-buttons[data-menu-open=true]');
- if(menu){menu.dataset.menuOpen='false';menu.querySelector('.preview-more')?.focus();}
- document.querySelectorAll('.preview-remove-confirm').forEach(x=>x.remove());
+ if(event.key==='Escape')document.querySelectorAll('.preview-remove-confirm').forEach(x=>x.remove());
 });
 document.addEventListener('pointerdown',event=>{
  if(!event.target.closest('.preview-remove-confirm'))
   document.querySelectorAll('.preview-remove-confirm').forEach(x=>x.remove());
- if(!event.target.closest('.clip-note-buttons')){
-  for(const m of list.querySelectorAll('.clip-note-buttons[data-menu-open=true]')){
-   m.dataset.menuOpen='false';m.querySelector('.preview-more')?.setAttribute('aria-expanded','false');
-  }
- }
 });
 // Observe freshly RENDERED cards only; never force a hidden page visible.
 new MutationObserver(()=>{decorate();void updateCount();}).observe(list,{childList:true});
