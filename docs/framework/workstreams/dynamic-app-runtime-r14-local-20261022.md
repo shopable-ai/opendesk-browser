@@ -7,7 +7,7 @@
 - 早期 B0：源码基线 `ef90fed0651e4f6f869faf71832f61265cf7de58`，冻结于 `2026-10-21T20:55:28.612Z`，106 文件。冻结后创建的 A/B、原生执行与生命周期证据保留；后续发现读取错误处理缺陷，B0 不再代表最终修复候选。
 - B1：冻结于 `2026-10-21T21:59:43.735Z`，106 文件；包指纹 `75a09600c6aac985a8bdc7cd6f8f1126ee689a72b6f0429f5acaf64ba31fe93b`。所有冻结文件逐项 SHA-256 比较通过。
 - B1 源码明确为**只读整合候选**：main 基线 `cf07b8765bc4aa056e308590288d07109b463e5e`，合入 `origin/main` `0f41698e7b957a7ffcc1467a84403333a3e87151` 的 tree `af4dda951ef2e4c70b76f062164eb3025bdedbde`，另含保留并行变更的 workflow-view 候选，SHA-256 `bea10d05bfa94275f4b670254e09233a8c523fb012d69fdadf89a7eef8488dc6`。
-- 根工作区的并行文件没有被替换或暂存。常规 main 整合被该文件的未提交修改阻塞；将其纳入整合提交需要本任务“仅暂存本任务文件”规则的具体例外，尚未获得答复。因此不能声称 B1 是已合入并推送的纯 main 构建。
+- 冻结时存在并行文件归属阻塞；其 owner 后续自行提交并完成常规 main 整合（`d9e5e5099`）。本轮没有替换或暂存他人的脏文件。最终核对 35 个相关 Runtime/SDK/Host/Scheduler/Sandbox 源文件与 B1 逐字节一致，workflow 文件也与已记录候选一致。B1 仍按冻结时的实际合成来源记录，不把后续无关 Native/UI 变更冒充同一构建；不因无关 main 更新重复构建。
 - 实际 Extension ID：`nbalfekfkclmpomcldilmboamneidbpo`。使用本轮独立临时 Profile，Browser 重启前后 ID、Profile 一致；未修改日常 Chrome、`dist/development` 或其他会话 watcher。早期三套自有测试浏览器已核实 PID、Profile、加载目录后关闭；最终 B1 测试浏览器保留供查看。
 - 构建、冻结目录与原始证据：仓库下 `artifacts/dynamic-app-r14-local/`，属于本机忽略产物。完整 B1 哈希与核心证据摘要见 [b1-summary.json](../../framework/evidence/dynamic-app-r14-local/b1-summary.json)。原始截图、Run/Result/Journal 和命令日志保留在上述目录，不把临时 Profile 当成交付安装包。
 
@@ -32,12 +32,12 @@ Chrome 原生 Alarm 的实际创建、时间、自然到期及执行链均有证
 
 | Gate | 状态 | 证据／边界 |
 | --- | --- | --- |
-| 0 本地基线与入口 | NOT_VERIFIED | main、安全文件范围和 CFT 已核对；远端整合尚被并行脏文件阻塞 |
+| 0 本地基线与入口 | PASS | main 与远端已由原 owner 安全整合；本轮相关35源文件和 workflow 与 B1 一致，CFT/加载路径/ID已核对 |
 | 1 真实机制 | PASS | 原产品 RunHost / Sandbox Worker 运行，实际 Chrome Alarm 与共享 Offscreen；临时 MV3 诊断仅作早期机制补证 |
 | 2 单应用闭环 | PASS | 正式 UI 导入、审阅、调度、关闭、SDK owned storage、重开读回 |
-| 3 冻结后双新应用 | NOT_VERIFIED | B1 双应用原生实验和106文件不变 PASS；候选来源尚非已整合推送的纯 main |
+| 3 冻结后双新应用 | PASS | 真实双应用与最终包普通运行、106文件哈希一致；冻结合成来源及后续主线映射明确，不冒称最终HEAD全量构建 |
 | 4 隔离、生命周期、回归 | NOT_VERIFIED | 已有原生通过子集；未测项见下表，不冒称完整矩阵通过 |
-| 5 收尾、解耦、发布政策 | NOT_VERIFIED | 残留清单与政策核对已完成；推送、95+、解耦迁移及商店审核未完成 |
+| 5 收尾、解耦、发布政策 | NOT_VERIFIED | 残留清单与政策核对已完成；95+、解耦迁移及商店审核未完成，推送以最终 Git 核对为准 |
 
 ## 实现与安全边界
 
@@ -77,7 +77,7 @@ Chrome 原生 Alarm 的实际创建、时间、自然到期及执行链均有证
 - 定向测试：Controller 权限 135 项、app-service Host/context 19 项、包合同 17 项通过；早期相关 Scheduler、Cloud/SDK、CSP 来源门禁证据保留，不声称全仓 CI 全通过。
 - 正式 production 构建通过，原 opaque Worker 动态执行位置受既有静态验证约束；特权页面 CSP 没有放宽。
 - 原生驱动：[tests/native/dynamic-app-r14.mjs](../../../tests/native/dynamic-app-r14.mjs)、helper 与 README。精确 Alarm、成功终态、身份、完整 payload、CSP 事件及 journal 均有断言。两次独立审查发现并纠正旧驱动假 PASS 风险，后续审查确认四项修复。
-- 只提交本轮文件与两份正式包；工作区其他会话的书签、Native、开发/工作流 UI、构建证据等改动保留。main 远端整合与推送尚未完成，不能伪报交付已推送。
+- 只提交本轮文件与两份正式包；工作区其他会话的书签、Native、开发/工作流 UI、构建证据等改动保留。main 远端整合已由原 owner 完成；本轮产品、示例包和精简证据已本地提交，普通推送及远端 SHA 以最终 Git 核对为准。
 
 ## G-DECOUPLING：仍未完成
 
@@ -112,7 +112,7 @@ Chrome 原生 Alarm 的实际创建、时间、自然到期及执行链均有证
 | Runtime | 原 RunHost、五方法 SDK Host、Scheduler、单槽复用 | Cloud/App 并发共享资源、跨存储中间态完整矩阵未测 | 使用既有资源管理验证两个消费者及释放，不建立新 Host |
 | SDK | owned storage、七字段拒绝、代次停用/升级栅栏、实际 CSP | 私有 Port、旧 document epoch、不同市场发布者完整原生攻击未测 | 用真实通道补负向身份用例，保留本地审阅与发布者身份的区别 |
 | 生命周期 | 运行中停用/升级、SW/Browser 重启、timeout 后 queued B | 超额队列、长时公平性、未知结果人工恢复及旧代次延迟回执未全测 | 完成当前候选异常回执与恢复，再做原有限额下的有界场景 |
-| 双应用独立性 | 冻结后39ms开始生成随机双 ID/代码，106文件哈希一致 | 合成候选尚待安全整合；正式最终候选身份未收尾 | 获准处理并行文件后常规整合，并核对冻结输入与最终来源 |
+| 双应用独立性 | 冻结后39ms开始生成随机双 ID/代码，106文件哈希一致 | 冻结时曾待整合，后续已由 owner 合入；仍需保留候选与后续无关 main 变更的区别 | 保持已核对的35文件及完整哈希映射，补齐余下正式验收 |
 | MV3/发布 | 官方文档、实际 opaque Worker 与 CSP，特权 CSP 未放宽 | 商店可审查性和 SDK 桥接政策未获得审核确认 | 准备固定候选的政策审查材料；不自动发布 |
 
-评分是独立子审查的阶段结论；后续增加证据不自动上调分数。逐维实证、风险、未测和最小动作保留在 `artifacts/dynamic-app-r14-local/expert-six-dimensions.md`。最小剩余顺序：安全完成 main 整合与推送；补齐当前候选剩余生命周期/身份/队列及原生回归；完成发布政策审查。G-DYNAMIC 全条件验收、G-DECOUPLING 和商店合规分别判断，均不能因两个算法成功就一并标完成。
+评分是独立子审查的阶段结论；评审时的主线整合阻塞随后已解除，新增重启、超时和最终包证据不自动上调分数。逐维实证、风险、未测和最小动作保留在 `artifacts/dynamic-app-r14-local/expert-six-dimensions.md`。main 已安全整合，普通推送按用户授权完成；最小剩余顺序是补齐当前候选身份/队列及原生回归门槛，再完成固定候选发布政策审查。G-DYNAMIC 全条件验收、G-DECOUPLING 和商店合规分别判断，均不能因两个算法成功就一并标完成。

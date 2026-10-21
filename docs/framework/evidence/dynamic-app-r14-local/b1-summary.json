@@ -875,7 +875,6 @@
       "report": "artifacts/dynamic-app-r14-local/b1-native/app-b/all-1792620370089.json"
     }
   ],
-  "sourceIntegration": "Pending ownership exception for parallel dirty workflow-view.js; frozen review snapshot is explicitly composite, not a pure main checkout.",
   "releasePolicy": "RELEASE_POLICY_NOT_VERIFIED",
   "finalApplications": [
     {
@@ -1133,5 +1132,14 @@
       "status": "FAULT_SCENARIO_OBSERVED",
       "mode": "ack-and-readback-lost"
     }
+  },
+  "sourceIntegrationAtFreeze": "Pending ownership exception for parallel dirty workflow-view.js; frozen review snapshot is explicitly composite, not a pure main checkout.",
+  "sourceIntegration": "RESOLVED_BY_PARALLEL_OWNER; merge d9e5e5099; 35 relevant source files and workflow candidate match B1 exactly; frozen source provenance retained.",
+  "sourceComparison": {
+    "status": "PASS",
+    "files": 35,
+    "different": [],
+    "main": "df5617e68e08b37f9bd38b08280f4747b57a7d44",
+    "originMain": "07e61ae702f2c600a92cd94b1d4d74cf451ea47e"
   }
 }
