@@ -8,16 +8,35 @@ export function createPageComponentEntry(project,{componentStyles=[]}={}){
   const options=JSON.stringify({id:project.id,pageRules:project.pageRules});
   const css=componentStyles.map(row=>row.css).join('\n');
   const body=project.framework==='react'?[
-    "import {createElement} from 'react';",
+    "import {createElement,useLayoutEffect} from 'react';",
     "import {createRoot} from 'react-dom/client';",
-    '    const root=createRoot(ui.content);',
-    '    ui.onDispose(()=>root.unmount());',
-    '    root.render(createElement(Component,{assets}));'
+    '    await new Promise((resolve,reject)=>{',
+    '      const root=createRoot(ui.content,{onUncaughtError:error=>{',
+    '        if(typeof reportError==="function")reportError(error);else console.error(error);',
+    '        reject(error);',
+    '      }});',
+    '      ui.onDispose(()=>root.unmount());',
+    '      function Committed(){',
+    '        useLayoutEffect(()=>{Promise.resolve().then(resolve);},[]);',
+    '        return createElement(Component,{assets});',
+    '      }',
+    '      root.render(createElement(Committed));',
+    '    });'
   ]:[
-    "import {createApp} from 'vue';",
+    "import {createApp,nextTick} from 'vue';",
     '    const app=createApp(Component,{assets});',
     '    ui.onDispose(()=>app.unmount());',
-    '    app.mount(ui.content);'
+    '    let mountError,hasMountError=false;',
+    '    const previousErrorHandler=app.config.errorHandler;',
+    '    const captureError=error=>{if(!hasMountError){hasMountError=true;mountError=error;}};',
+    '    app.config.errorHandler=captureError;',
+    '    try{',
+    '      app.mount(ui.content);',
+    '      await nextTick();',
+    '      if(hasMountError)throw mountError;',
+    '    }finally{',
+    '      if(app.config.errorHandler===captureError)app.config.errorHandler=previousErrorHandler;',
+    '    }'
   ];
   const imports=body.splice(0,project.framework==='react'?2:1);
   return [

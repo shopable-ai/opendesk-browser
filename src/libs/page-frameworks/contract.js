@@ -74,7 +74,7 @@ export const PAGE_BROWSER_PRIVATE_FILES=/* @__PURE__ */Object.freeze([
   /* @__PURE__ */Object.freeze({id:'page-component-linker',
     source:'src/libs/page-frameworks/page-component-linker-r243.mjs',
     output:'libs/page-frameworks/page-component-linker-r243.mjs',
-    bytes:24929,sha256:'14a01acb35e9afeeab5f06d30471001aa2ec655e20ecc0836581bacb95a494b2'}),
+    bytes:25758,sha256:'3aee6cf53ca9c05b3260383b16a74a5d8a903929cdac2b615905e5ad045b06d6'}),
   /* @__PURE__ */Object.freeze({id:'page-vue-sfc-transform',
     source:'src/libs/page-frameworks/vue-sfc-transform-r243.mjs',
     output:'libs/page-frameworks/vue-sfc-transform-r243.mjs',
@@ -86,6 +86,6 @@ export const PAGE_BROWSER_PRIVATE_FILES=/* @__PURE__ */Object.freeze([
 ]);
 
 // Fixed wrapper and linker identity accompanies the Babel identity.
-export const STATIC_ESM_COMPILER_PROFILE=/* @__PURE__ */Object.freeze(
+export const STATIC_ESM_COMPILER_PROFILE=/* @__PURE__ */(()=>Object.freeze(
   PAGE_BROWSER_PRIVATE_FILES.filter(row=>['static-esm-compiler-worker','static-esm-linker'].includes(row.id))
-    .map(({id,sha256})=>/* @__PURE__ */Object.freeze({id,sha256})));
+    .map(({id,sha256})=>/* @__PURE__ */Object.freeze({id,sha256}))))();
