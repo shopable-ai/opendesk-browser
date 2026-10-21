@@ -432,3 +432,118 @@ Node Fixture 的身份/Stop 断言仍不等于真实运行。此次没有绕过 
 六维保守分数更新：产品路径 **88**、四环境 owner **88**、协调简洁度 **85**、完整生产维护减法 **79**、身份权限 Stop 安全 **90**、真实交付证据 **87**；平均 **86.2**，最低 **79**，未达平均及最低 95。对新增 Linux Chrome 壳证据加分，不虚报四环境 Chrome/Native/Provider。
 
 **R40.11-LOCAL 精确入口**：在 Mac 真机 `/Users/shopme/Documents/workspace/opendesk-browser` 仅 `main`，先 `git status --short`、确认源 Blob/HEAD 与上述新 Linux Build 证据；仅首次真机构建 `npm run check`、`npm run build:developer`，已有成功 CI 无关测试不重复。安装真实 Developer Edition 到 Mac Chrome，用可见有授权目标网页分别 Controller JS/ESM/Classic、Page JS/ESM、React JSX/Vue SFC、真实 Local Provider 做**当前源码 Run→真实页面/结果读回→同 owner Stop**，重点验证源码准备中修改、tab/document 导航、撤权、Provider epoch、未知回执以及其它 owner 不受 Stop 波及。按环境记录 sourceHash / ownedRunId / previewId / documentId / scriptId / bindingId / Provider epoch、实际 Chrome/Native/Provider 证据与 PASS/FAIL/NOT_TESTED，失败才查源做最小补丁；不可将 Linux Shell PASS 冒充真实执行。
+
+
+## R40.11-LOCAL：Mac 当前源码 Run/Stop 实测收尾（2026-10-22）
+
+**结论：CORE_REAL_RUN_PASS / ACCEPTANCE_PARTIAL，未授予 95。** Controller JS/ESM/Classic、Page JS/ESM、React JSX、Vue SFC、真实 Local Controller/Page 九个核心场景均已在本机 Mac Chrome 实际执行。Controller 自然完成和已提交运行 Stop、React/Vue/Local Page 的受管清理均有结果读回。没有复现需要修改生产源码的核心故障，未为制造工作重构原 owner。总目标中的完整生产调用链减法及部分竞态/撤权证明仍未关闭。
+
+本轮仅更新本工作记录；原始七目标继续保留。全部本机证据位于仓库 `artifacts/developer-r4011-local-20261022/`（以下文件名均相对此目录），不把忽略的本机证据误称为已上传 CI 附件。[九场景完整字段矩阵](../../../artifacts/developer-r4011-local-20261022/final-core-matrix.json)、[独立审查](../../../artifacts/developer-r4011-local-20261022/independent-review.md)保留完整源码摘要、结果和审查边界。
+
+### A. 实际构建、安装和环境身份
+
+- 开始位于 `main`，HEAD `7ec6e154d0686b72a46c0c85a5049ecb9b951999`；`git fetch origin main` 成功，开始时 ahead/behind 为 0/0。现场已有其它 owner 未提交修改，未覆盖、stash 或拉取覆盖。冻结前 main 被并行提交推进至 `a4022a54e7ffd861121587a41613129331d2aaee`，收尾观察已到 `f9566fa984c80bdc37bc41482f8cca1d348d2076`；这些后续 HEAD 不代替本候选身份。
+- 仓库根 `npm run check` **PASS，退出 0**。根 `npm run build:developer` 在现有 dev watcher 的输出守卫 `127.0.0.1:43120` 返回 **EADDRINUSE**，尚未进入产品编译；这是共享 writer 冲突，不是 Developer 编译失败。保留 `p0.json`、`check.log`、`build-developer.log`。
+- 依既有 R37 独立快照/输出/守卫协议，使用普通文件快照 `/private/tmp/opendesk-r4011-inputs-n_tvrj6v`，没有 Git 分支、worktree、替代打包器或新 watcher。原依赖、原构建命令、原来源及预算 Guard 均保留，独立 guard 为 54840。在快照执行 `npm run check`、`npm run build:developer` **均退出 0**；证据 `snapshot.json`、`snapshot-check.log`、`snapshot-build-developer.log`。
+- 实际安装路径为 **`/private/tmp/opendesk-r4011-inputs-n_tvrj6v/dist/production-developer`**，不是日常 `dist/development`，也不冒称根目录受保护的输出已被更新。MV3、Developer Edition、`sw.js`、116 项资产及 646 项源码输入均记录在 `build-identity.json`、`build-receipts/build-production-developer.json`。
+- **构建身份 A：HEAD `a4022a54e7ffd861121587a41613129331d2aaee` + 已记录 dirty 输入；packageHash `634dd0b30fbdfe0d470480d8f1f4924a5885fab214093e7b32b66259164f5d3d`。** 构建收据 `sourceInputs` 是逐字节来源，`sourceDriftDuringBuild=[]`。不能把该包归为纯净 SHA 或较新 main 的产物。下表每行 Build SHA 的 `A*` 都指这一完整身份。
+- 使用原 `scripts/tests/react-sidebar-r352-installed-chrome.mjs`、headful、上述 extension/receipt 参数执行，安装版 Shell **PASS**；`installed/report.json` 和 `installed-shell.log` 仅证明安装/Shell。实际 Chrome 为 **Mac Chrome for Testing 156.0.8078.4**，扩展 ID **`khnmmokejhbehkdmanhjngocoikoegmb`**。后续真实点击“打开 OpenDesk 侧栏”，`native-side-panel-context.json` 读回 `contextType=SIDE_PANEL`、`chrome.tabs.getCurrent()=null`，单独证明运行入口确为原生侧栏。
+- 独立 Profile：`/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/od-r352-installed-52nGZU`。目标为既有 `http://127.0.0.1:43111/demo-form.html`；九场景使用 tabId `2142071105`、documentId **`79BE7C1B95591815F08CC2837C2CB872`**。B2 后真实导航的新 documentId 为 **`A7CC742959627183E6EA96180AD00184`**。
+- Run/Stop、环境切换、授权与目标交互使用实际 Playwright/CDP 输入；事件观察为 `isTrusted=true`、实际 userActivation，未以 dispatchEvent/伪造回执获取 PASS。Page 初始缺 USER_SCRIPT 能力时被拒绝；通过 Chrome 详情页实际开启“允许用户脚本”，重新检测并明确再次 Run。Chrome Native 授权使用所属隔离窗口的真实 HID 点击；安全 reload 后处理该 Profile 的 Chrome Developer Mode，未绕过权限。
+- Local 使用实际安装的 Go `/Applications/OpenDesk.app/Contents/MacOS/opendesk` 与 `@shopable/opendesk-dev`，不是 Mock。通过官方 `OPENDESK_NATIVE_INSTANCE=r4011-local-20261022` + `browser setup --extension-id … --browser cft --user-data-dir …` 隔离配对，再以 `browser dev --read-only <fixture>` 接入。测试项目复制自官方 `local-controller`、`local-page-ui` 示例，仅修改本轮 `provider-fixtures/`。CLI 的 E_PROFILE_TARGET 只影响自动打开自定义 Profile，实际注册、连接及运行已分别证明。
+
+### B. 九个核心场景实际结果
+
+下表 Platform 的 **Mac Chrome** 均指上述真实 Mac CFT + 原生 Side Panel；L1/L2 另经过真实 Native/Provider。`sourceHash` 为实际执行/编译产物摘要，作者文本 SHA 与锁另列，不能混同。
+
+| Scenario | Build SHA / Platform | Source identity（执行 SHA-256） | Execution identity | Observed result | Stop outcome | Result / Evidence |
+|---|---|---|---|---|---|---|
+| C1 Controller JS | A* / Mac Chrome | `0f5ac317a7e6b68374a1341e4a66a55573763d8a544ac03e94fbf1941bc20d35` | run `2ed3aedf-f461-471c-bf23-fdd5a24a965f`；独立 Stop run `84b0fe48-9177-4804-9c8e-64111efdfe91` | 返回场景标记、真实页面标题和 fixture URL；普通 Run 未自动建立 Revision | 自然 completed；另一仍在运行的 ownedRunId Stop 后 E_CANCELLED/fenced、released | **PASS**；`C1-observed.json`、`C1-STOP-observed.json` |
+| C2 Controller ESM | A* / Mac Chrome | `b480f62a6bebb804b105fcae706af7373d0c79547b0e5af1cc9b99e8b9cbbe01` | run `462a4be1-8da3-4905-a5f0-d1e6c64d4a15` | 官方固定 `mitt@3.0.1` import，events=[OpenDesk]、count=1、真实标题；自动锁，无逐库人工批准 | completed/released | **PASS**；`C2-observed.json`、持久锁 |
+| C3 Controller Classic | A* / Mac Chrome | `9026201d8c0a5a74a308e283f71c1fd56be892ffd6ce41707d7de36328897572` | run `cc0ea4bb-688c-4eaa-8cc4-fb55b0098067` | 原通用 @require 固定 mitt UMD，真实事件结果和标题，Classic 锁与 ESM 分开 | completed/released | **PASS**；`C3-observed.json`、持久锁 |
+| P1 Page JS | A* / Mac Chrome | `03630fd65470b5006e7d5765577ebf0ebccfbd8c13f69bee2a2d22b391821f6f` | USER_SCRIPT；上述精确文档；worldId `opendesk-preview-d1-cb57a4ad9dbf40a5bd9dd328ec721311`；nonce `e2f30521-95f0-4b56-af0f-09c7d8b05989` | DOM `output#r4011-p1` 真插入，返回 marker/title | 一次性 preview-evaluated，无持续资源；Stop 不适用 | **PASS**；`P1-approved-observed.json`、`P1-receipt.json` |
+| P2 Page ESM | A* / Mac Chrome | `802d0a36b52950c2f30333e64543e6e733cb141551adf60685f4378398e6c96b` | USER_SCRIPT；上述精确文档；worldId `opendesk-preview-d1-d0605864ce9748a29ead78087f8642d8` | 官方固定 d3-array v3.2.4 示例，DOM `R4011-P2 Page D3 max = 5`，真实返回 value=5 | 一次性 preview-evaluated；Stop 不适用 | **PASS（核心操作）**；`P2-observed.json`；作者锁→编译产物直接关联的保存仍不完整 |
+| U1 React JSX | A* / Mac Chrome | `129101613333416b242fb0bb5ac560a8f5a34de081909b1c02d94dd943656d50` | preview `b195179d-19d3-4d0c-934f-b72dfb11369a` | 原固定编译器真实挂载，按钮计数 0→1，受管样式存在 | 同 preview/hash 的 preview-retired、ok=true、managed-ui-only；DOM/样式归零 | **PASS**；`U1-observed.json`、`U1-page-mounted.png` |
+| U2 Vue SFC | A* / Mac Chrome | `bbf31ac9f5a38ca69d3447523295781d9108c3354c3f9e31a8f7fedb9c7357db` | preview `24ea23bc-4181-40cb-a4e0-6748b11145c1` | 原固定编译器真实挂载，按钮计数 0→1，scoped 样式存在 | 同 preview/hash 的 preview-retired、ok=true、managed-ui-only；scoped 样式归零；独立停止后 DOM 数量未单独保存 | **PASS（核心操作）**；`U2-observed.json`、`U2-page-mounted.png`；保留 DOM 证据缺口 |
+| L1 Local Controller | A* / Mac Chrome + Native/Provider | 自然完成 `eb86f3d04d0dc7e4a5c7149f19868e193a3adf97ddb2924f9faaae41b11fc103`；Stop 源码 `f2b532cde72bccb98dec2213ea2c478661433941c93430dc6d7e9e3e651e4414` | run `7b772756-b896-4894-bbba-f7d392d49750` / Stop run `1a7d43bb-17bf-4ff5-bd72-bcecbbfbfe81`；binding `local-v2-7b0bc18a9b465ac83eb56bdc`；epoch `39fabf4d-bc5d-4e3b-ae57-7cbcd9371eb3` | 官方本地项目冻结源码，version=1、实际标题/heading；修改本轮 fixture 后新 hash 明确运行 | 自然 completed；独立已提交运行 Stop；两条持久 run/result 对应，workerRetired=true、released | **PASS**；`L1-natural-identity-observed.json`、`L1-STOP-observed.json`、`persisted-runs-locks-final.json` |
+| L2 Local Page | A* / Mac Chrome + Native/Provider | `70f4edac48abd021315c535b0973a8ea03d7e6052c2c9feca6a0502070f690c1` | preview `25b2deae-9530-4846-9ab3-3e24b0b1f9d3`；binding `local-v2-67d7c18bd222634d259bdd2d`；epoch `04118726-7772-48a3-85b1-0e82b0c084b2` | 官方本地 Page 项目 CSS/PNG/真实 UI，Local v1，按钮计数=1 | preview-retired、ok=true、managed-ui-only，DOM 归零 | **PASS（核心操作）**；`L2-observed.json`、`L2-stop-identity.json`；原始 page.get 回执中 document/binding 联合关联未完整保存 |
+
+作者文本 SHA：C2 `aded783121ecd6d613e56ea26e59e6d4311e9e4a7e8b0bd43ca796bf6dd8b5e7`，C3 `d7b66fbde0dc8c5a95982a6b9c789ec757860dc6962573289523f8cef3fcd960`，P2 `b073a89316ecc11e80ad3abaec1f117db5a628ae7cbf4077be4b96bd8d5d675f`，React `2f4f616d9dc93768454e2fe05d79417d9ec2c0bf208c9da1f3527e816090d28b`，Vue `a6ed8a6c455457c5893c1e4f75278824890c4b7b67e9b11d2ce8ca1f7ced93d0`。C1 Stop 的实际源码 SHA 为 `0c4d99ec6522cd0fb05e51721da23b05c0d80b36892d23c62c2befb512be4365`。C3 固定依赖为 `https://cdn.jsdelivr.net/npm/mitt@3.0.1/dist/mitt.umd.js`；C2/C3 的作者锁、执行摘要、依赖图和真实结果在 `persisted-runs-locks-final.json` 的 frameworkKV/runs/results 相互核对。Page 回执 lockId=null 不能用旧 Controller runId 补齐，也不能因此判编译故障。
+
+L1 自然完成 resultId `a94e3a0c-ba96-4bd9-b6f5-870e2c2238e4`；Stop resultId `5dd4ace0-9823-49fb-920e-22b03a0f2be5`。早期 IDB 导出早于 Local 运行，曾缺这两条；最终导出已补齐，未将旧导出缺记录误判为产品未持久化。
+
+### C. 边界、UI 与失败分类
+
+| 项目 | 本轮真实观察 | 判定与未覆盖部分 | Evidence |
+|---|---|---|---|
+| B1 源码变化 | React 准备中修改作者源码，E_PAGE_COMPILER_STALE，旧 marker DOM=0 | **PASS**；不可逆 Revision 提交后的竞态 **NOT_TESTED** | `B1-source-generation.json` |
+| B2 网页身份 | 另一个真实 tab 激活后原 UI 仍存在、Stop 禁用；回原文档 Stop 才清理。另一次准备中真实导航，documentId 变化，E_DOCUMENT_STALE，新 DOM=0 | **PASS**；未将切换 tab 当作原资源已停止 | `B2-tab-identity.json`、`B2-prepare-navigation.json` |
+| B3 Stop owner | 经原候选/安装链安装测试 Task；“我的”运行时 Developer Stop 禁用，旧 Developer runId 未接管 Task。Task run `fd73b20b-8a5e-4f0c-9c81-8c648be03918` 随后自行 completed/released | **PASS（UI/真实 Task 隔离）**；恶意跨 owner API 请求不新增 Chrome PASS | `B3-task-owner-live.json`、`B3-task-owner-persisted.json` |
+| B4 撤权 | Chrome 实际关闭 USER_SCRIPT → 明确 Run 被拒绝且 marker=0；恢复后 marker 仍=0，重新检测和再次 Run 后才执行 | **PASS（USER_SCRIPT 能力）**；网站权限/Authority 撤销 **NOT_TESTED** | `B4-revocation.json` |
+| B5 Provider | 原 Provider SIGINT 后项目保留为离线、Run 禁用；真实重连 epoch `65e6fa4b-fb1e-4a80-9c48-df561a1e2c57`，Run 前无 DOM，明确 Run 新 SHA `bd641b634ccb1533e285eec3d8938531b41ca0ded4f900e1cc1e8af949b84001`，Local R4011 reconnect 按钮步长=2，Stop 清理 | **PASS（断连/epoch/新源码）**；binding 替换/迟到回执 **NOT_TESTED** | `B5-disconnected.json`、`B5-provider.json` |
+| B6 未知结果 | 30 秒等待触发真实 E_TIMEOUT/fenced，run `ec363582-dc1f-49be-bda2-f1f4f15cb5d4`，released、workerRetired=true；提示先检查网页/记录，不直接重复执行；同摘要仅一条运行 | **PASS（真实超时和不自动重试）**；人为丢失确认回执 **NOT_TESTED** | `B6-real-timeout.json`、`closeout-persisted-store.json` |
+| B7 高级能力 | 明确保存 Revision、创建候选；缺页面原生操作回执的候选被 E_VERIFICATION 拒绝；带真实 fixture 输入操作后核对、设为可用、安装 v1.0.2；历史 C1 结果读回；Chrome 下载完成后磁盘 SHA 核对一致；官方 React 项目导入同窗口草稿，无自动运行/安装 | **PASS（已执行链）**；不替代其它全部高级路径 | `B7-final-origin-chain.json`、`B7-history-download.json`、`B7-native-download-record.json`、`B7-disk-download-verification.json`、`B7-import-final.json` |
+| P5 UI | 真实 Side Panel 在 CDP 渲染宽度 360/400，scrollWidth 等于 innerWidth；运行中 Run/Stop/环境控件均可见且横向 fit；360 Run→400 Stop→E_CANCELLED、released；运行中 Run 禁用、Stop 可用 | **PASS（限定渲染宽度/核心操作）**；不是物理分隔栏或缩放矩阵 | `P5-running-widths.json`、`P5-stop-final.json`、`P5-running-width-360.png`、`P5-running-width-400.png` |
+
+B7 的保存 revision3、验证草稿 run `a3255792-2523-445d-8b03-12b9229796af`、安装后的 Task revision1 和 Task run 的源码 SHA 都为 **`f4a3a99011bf50311489a0b8d609282c9c554a33d690544c8215e59efd9ff748`**。同源链从最终 Chrome IDB 原始记录只读汇编，`B7-final-origin-chain.json.sameSource=true`，不是人为构造成功事件。下载产物 369 字节，SHA **`6c8bda754a5386d089e41b0c19dace3fd3bec08ee57fb41f13817565d692c1f9`**，见 `downloaded-C1-result.json`。导入官方 React 项目的实际 program.js SHA 为 **`97ff050d29977932156b130a01f2149799a2c821a65a25778c2f269591e3c557`**，同时显示实际执行代码与 `src/App.jsx` 只读快照。
+
+失败先分类的实际处理：
+
+- 初次 Page 测试用 selectOption 产生非可信 change，环境切换被原保护拒绝，实际仍是 Controller，出现 document is not defined。改用真实键盘选择后 Page 成功；初始失败仍在证据中，不记为产品 Page 故障。
+- Chrome USER_SCRIPT/Native 初始未允许、reload 后 Profile Developer Mode 未打开，均通过原 Chrome UI/真实手势处理；未放宽权限/来源校验或修改 Native allowed_origins 冒配。
+- 隐藏 details 控件、原生 select、异步候选创建切换活动 tab、Provider 离线选项保留等驱动假设均被校正，没有令有效产品适配错误断言。候选校验拒绝无原生页面回执、Controller 预期超时同样不是新增缺陷。
+- **保留 UX 问题：** Page/React/Vue 的 Page 回执成功时，技术区可能沿用上一次 Controller 的失败状态/runId。真实 Page 回执和 DOM 不因此失败；此问题未阻断本轮核心操作，未借验收扩大 UI 改造范围。
+
+### D. 独立证据层级
+
+| 层级 | 当前结论 |
+|---|---|
+| Node 历史基线 | 用户给定 `69a9ed19507eb8961aff0eac9983e2b967c26321` 的独立 51 PASS、六文件 293 PASS；[原 Developer Actions](https://github.com/shopable-ai/opendesk-browser/actions/runs/39643275440)。本轮五核心 owner 相对该基线无差异；没有无变化重跑历史全集，也不把历史 Node 扩写成新 dirty 候选整库 Node PASS。未可靠制造的 Chrome 竞态仍 NOT_TESTED。 |
+| 当前本机 source/build | 根 check PASS；根 build 被已有 writer guard 阻止；独立冻结输入 check/build:developer 均 PASS；精确收据和输入已保存。 |
+| Developer CI / Linux Chrome | 仅保留用户提供的上述基线 CI/Linux Shell 证据；本轮没有运行/授予新 SHA 的 CI 或 Linux PASS。 |
+| Mac Chrome | 原安装版 Shell PASS + 后续真实原生 Side Panel 九场景和限定边界 PASS；两层证据分开。 |
+| Native | 原 Go Host/隔离实例真实配对、Chrome 可信授权、连接、实际 Controller/Page 调用 PASS；不是全 Native 矩阵 PASS。 |
+| Provider | 真实只读项目注册、冻结、Run/Stop、断连重连/epoch/新源码 PASS；binding 替换、迟到回执仍 NOT_TESTED。 |
+
+### E. 原始七项目标审计
+
+独立 verifier 的有界源码审查与运行证据合并如下；PASS 不表示搜索了所有未来入口。
+
+| 原目标 | 判定 | 理由 |
+|---|---|---|
+| 主编辑器仅选择环境、分发、安全协调、UI 投影 | **PARTIAL** | 核心 Run 直达原 owner；仍承担 Candidate/import 与编译协调，纯协调目标尚未完整证明。 |
+| 四环境各一个原业务 owner | **PASS（核查范围）** | Controller、Page、组件、Local 路径沿用五个核心文件及原直接调用链。 |
+| 当前源码直接 Run | **PASS** | 九场景实际执行；首次高级保存前 IDB scriptHeads/scriptRevisions 均为空，未强制 Revision/Candidate/安装/目录扫描。 |
+| 消除已证明重复刷新/缓存/回调/Snapshot | **PARTIAL** | 本轮未产生新重复状态，也没有完成全链历史收敛比较。 |
+| 一套 RunHost/Authority/Host/SDK/槽 | **PASS（核查范围）** | 沿用原 Host/Adapter、持久槽与可信回执；无第二执行通路。 |
+| 完整生产调用链维护复杂度下降 | **FAIL（证据目标未达）** | 本轮生产代码零变更；既有 21 代表文件 4133 行不是完整生产树，不能据核心通过或主文件缩短证明全链减法。 |
+| 权限/身份/Stop/提交/撤权/历史/下载/安装零退化 | **PARTIAL** | 已执行路径通过；网站 Authority、不可逆提交、部分 Provider/丢回执竞态及个别原始身份关联仍有缺口。 |
+
+### F. 本轮变更、调用链与资源收尾
+
+**全部受影响生产文件：无，+0/-0；无生产修复提交。** `src/ui/script-editor.js`、`controller-draft-run.js`、`page-preview-flow.js`、`page-component-remote.js`、`local-project-run.js` 本轮未编辑，相对给定基线字节也未变化。只读核查核心入口→原业务 owner→既有 Host/Adapter/Authority；没有增加 Runtime、Manager、Store、SDK、订阅、计时器、回调或 Snapshot。不能因此声称历史完整调用链复杂度已经下降。
+
+唯一跟踪修改为本工作记录；临时构建、fixture、截图、回执、独立审查均在既有 artifacts/临时快照中。并行 Agent 的源码、包和工作流修改未纳入本轮提交。
+
+`closeout-persisted-store.json` 的所有实际 runId 最终均非活动状态、workerRetired=true、retirementState=released，槽记录 state=available；`closeout-target.json` 读回 React/Vue/Local 受管 UI 与本轮样式为零。普通 Page 副作用不要求 Stop 回滚。
+
+已用实际设置关闭本轮隔离 Native 连接，向两个所属 Provider 进程发 SIGINT，正常关闭所属 Chrome；PID 19922、26969、5258 均退出。日常 dev watcher PID 31980 与既有 fixture 服务 PID 68658 保留。`closeout-environment.json` 核对默认 Native install.json、日常 Chrome Native manifest、dev-tool-r17 entry 三文件哈希与测试前完全相同。隔离 Profile、冻结包及本轮 instance 配置保留为**不运行**的可审查资料，未手删/重写日常配对。
+
+### G. 独立质量评分
+
+Codex native 独立 verifier Lagrange（agent `01a15fbc-6e61-7a50-82d7-a7fa71132fc5`）未参与浏览器操作、测试执行或生产编辑，只读审查后独立出分；其后仅获准保存 `independent-review.md`。最终评分为证据成熟度评价，不是未经测量的质量保证：
+
+| 产品功能 | 正确性 | 安全性 | UX | 维护性 | 交付证据 | 平均 | 最低 |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 94 | 94 | 93 | 92 | 79 | 94 | **91.0** | **79** |
+
+**平均和最低均未达到 95，拒绝授予总验收 PASS。** 不通过新增测试数量、伪造成功回执、调整安全预算或未经失败证据重构来提高分数。
+
+### H. 剩余问题与最短步骤
+
+- **已执行核心链无新 P0 产品故障；总验收尚未关闭。** 95 门槛的主要 P1 证明缺口是完整生产调用链的实际前后比较。下一步先对现有生产调用树和重复状态做有界只读审计；仅发现真实重复且确需修复时，再在原 owner 内最小改动，不重开架构工程。
+- 原生仍未覆盖：不可逆 Revision 提交竞态、网站/Authority 撤权、Provider binding 替换/迟到回执、丢失确认回执。后续用所属隔离环境的真实操作定向补证；不能稳定制造的竞态保留相应 Node 范围和 Chrome NOT_TESTED。
+- 证据关联仍可最小补全：P2 作者锁→编译产物、L2 原始 preview target/binding 联合回执、U2 独立 DOM 清理数量。缺原始记录不冒充产品故障，不自动重跑九场景或全量验收。
+- Page 与旧 Controller 状态混显记为非阻断 UX 待办；需要修复时限对应投影，不改变执行 owner 或权限语义。
+
+本轮交付为**真实核心运行通过、总验收部分完成**。保留原始七目标与未达 95 的事实，不把本轮测试收尾冒充原始总目标完成。
