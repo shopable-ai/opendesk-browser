@@ -22,12 +22,13 @@
 | --- | --- | --- |
 | GitHub 源码核查 | PASS | 核对 `clip.*`、`currentPage.info`、正式源码和现有测试 |
 | 内嵌 JS 模拟交互 | PASS | 对真实 `main.js` 运行 11 项独立模拟，均通过；不是 Node 或 Chrome 实机 |
-| UI 模拟执行仓库测试 | PARTIAL | 先行运行 24 项，23 项通过；一条旧断言违反新页面身份约束，已更新但仍需正式 Node 重跑 |
+| UI 模拟执行仓库测试 | PASS（V8 模拟） | 保留并行富选区/嵌套列表用例后，实际 UI 测试函数在受限 V8 模拟宿主中执行 25/25 通过；**不是** Node/Chromium PASS |
+| 保存草稿保护模拟 | PASS（V8 模拟） | 新增冻结保存负载、防重复保存、未保存便签留存场景，实际测试函数在模拟宿主中执行 1/1 通过；正式 Node 未执行 |
 | 正式 Node 测试 | NOT_TESTED | GitHub 连接不提供仓库 Node 执行环境；已新增测试 |
 | 正式 `npm run build` | NOT_TESTED | 需真实构建回执 |
 | App CI / Chromium | NOT_TESTED | 推送 main 后应读取该提交对应的 App CI 工作流回执 |
 | Mac Chrome 与原生右键 | NOT_TESTED | 必须实际安装、授权、导航并检查右键及保存回读 |
-| `1.2.2` 正式包晋升 | BLOCKED | 只能从已验证 App CI 候选经 `app-release` 晋升，禁止手工编辑 `.opendesk-tool.json` |
+| `1.2.2` 正式包晋升 | BLOCKED | `1.2.1` 仍是当前正式包；等待 App CI 候选与 `app-release` 晋升，禁止手工编辑 `.opendesk-tool.json` |
 | 旧数据兼容 | NOT_APPLICABLE | 本工具尚未上线 |
 
 ## 真实验收命令
@@ -44,3 +45,9 @@ node scripts/build-sidebar-tool.mjs examples/sidebar-tools/web-markdown-clipper 
 ## 并行更新处理
 
 本轮最初核查后，main 上游并行新增富右键选区 `selectionMarkdown`、嵌套列表 Markdown 预览，以及 1.2.1 正式包。此轮从最新 main 重新合入这些特性、保留上游测试并将模式安全修复独立升级为 1.2.2 源码候选。1.2.1 旧正式包不代表 R1.8.2 已发布。
+
+## 最新提交及 CI 触发记录
+
+- R1.8.2 源码主提交：`65f641247ce059a96c54a3ac7127917453eec658`。
+- 自动触发 [OpenDesk App CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/39564666041) 与 [Markdown tools R22](https://github.com/shopable-ai/opendesk-browser/actions/runs/39564665881)，最后读取时为 `queued`，**不能宣称已通过**。
+- HTML 预览位于 `preview/index.html`、`preview/stage.html`，已做源码/脚本/嵌入一致性校验，未在真实 Chrome 图形界面打开，标记 `NOT_TESTED`。
