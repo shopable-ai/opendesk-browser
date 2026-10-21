@@ -536,7 +536,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   async function stop(){
     const componentPreparing=candidatePreparing||componentRemote?.busy||
       (pagePreviewFlow?.preparing&&isComponentDraft())||
-      (controllerRunner?.preparing&&hasUnbuiltESM(programSource.source()));
+      controllerRunner?.esmPreparing||controllerRevisions.esmPreparing;
     if(candidatePreparing||pagePreviewFlow?.preparing||controllerRunner?.preparing||controllerRevisions.preparing||componentRemote?.busy){
       browserPrepareGeneration++;candidatePreparing=false;
       if(pagePreviewFlow?.preparing)pagePreviewFlow.cancelPreparation();

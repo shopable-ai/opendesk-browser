@@ -253,6 +253,50 @@ test('R40.10 Page body-only edits update Run gate without refreshing dependency 
     'body-only changes should not start dependency discovery');
 });
 
+test('R40.10 Stop cancels Controller Revision ESM compiler through its owner',async t=>{
+  const compile=deferred(),started=deferred();let cancels=0;
+  const f=await fixture(undefined,undefined,{componentPreparerFactory:()=>({
+    inspect:async input=>componentInspectResult(input),
+    prepare:async()=>{started.resolve();return compile.promise;},
+    cancel(){cancels++;},dispose(){}
+  })});
+  t.after(()=>{compile.resolve();f.dispose();});
+  f.find('script-source').value='export default async function main(){return 1;}';
+  f.find('script-source').fire('input',{isTrusted:true});await tick();
+  const baseline=cancels;
+  f.find('script-save-version').fire('click',{isTrusted:true});
+  await started.promise;
+  await f.click('script-stop');
+  assert.equal(cancels,baseline+1,'Revision ESM cancellation belongs to the active compiler');
+  compile.resolve();await tick();await tick();
+  assert.equal(f.commits.length,0,'a cancelled ESM build cannot save a stale revision');
+  assert.equal(f.starts.length,0,'saving a revision never launches Run');
+});
+
+test('R40.10 Stop during Controller Revision Classic does not cancel JSX compiler',async t=>{
+  let cancels=0;const gate=deferred(),started=deferred();
+  const f=await fixture(undefined,undefined,{componentPreparerFactory:()=>({
+    inspect:async input=>componentInspectResult(input),
+    prepare:async()=>{throw Error('unrelated JSX compiler');},
+    cancel(){cancels++;},dispose(){}
+  })});
+  t.after(()=>{gate.resolve();f.dispose();});
+  const original=f.client.request.bind(f.client);
+  f.client.request=(name,args)=>{
+    if(name==='prepareControllerClassicDependencies'){started.resolve();return gate.promise;}
+    return original(name,args);
+  };
+  f.find('script-source').value='// @require https://cdn.example/v1.0.0/library.js\\nasync function main(){return 1;}';
+  f.find('script-source').fire('input',{isTrusted:true});await tick();
+  const baseline=cancels;
+  f.find('script-save-version').fire('click',{isTrusted:true});
+  await started.promise;
+  await f.click('script-stop');
+  assert.equal(cancels,baseline,'Classic revision cannot cancel unrelated React/Vue compilation');
+  gate.resolve();await tick();await tick();
+  assert.equal(f.commits.length,0,'cancelled Classic preparation cannot write a revision');
+});
+
 test('R40.5 Page to Controller transition fences stale Page inspection and keeps draft Run',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const gate=deferred(),requested=[];

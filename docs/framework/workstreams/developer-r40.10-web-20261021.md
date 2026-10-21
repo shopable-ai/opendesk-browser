@@ -8,3 +8,5 @@
 - Regression assertions added: static mode fields retain projection identity during Controller Run/Result but change on Page selection; a cancelled component Candidate compile calls its compiler's cancel once and dispatches neither Controller nor Page Run.
 - Evidence level: GitHub source review. Node tests, CI for this new commit, Chrome, Native and real provider are **NOT_TESTED** at commit creation. Previous unrelated workflow failures do not count as proof of this change. Follow-up must inspect exact commit checks before any release claim.
 - Security: no changed RunHost/Authority, permission gesture, previewId, sourceHash, documentId, bindingId, Side Panel host, or installation contract. Failed/unknown effects never replayed.
+
+- Stop ownership follow-up: Controller Draft Run and Revision now expose their own ESM-vs-Classic preparing kind (no new global runtime state). Exact ESM preparation triggers one component/compiler cancellation; Classic does not. Added both stale-save and no-cross-environment cancellation regression assertions. Browser execution remains untested.
