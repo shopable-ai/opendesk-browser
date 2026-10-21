@@ -255,6 +255,17 @@ export function createScriptEditor({client, currentPageTarget, development=false
     currentPageState = next;
     localRunner?.refreshResultValidity();
     const available=next?.status==='available',resolving=next?.status==='resolving';
+    const blockedProjection=controllerResults.projection;
+    if(available&&blockedProjection?.slotAvailable===false&&!isRunning()&&!isStopping()&&!host.currentRun&&!pagePreviewFlow?.busy){
+      // A removed preview's durable fence can be released outside this view.
+      // Refresh admission only; preserve the current result and newer owners.
+      void host.controller.snapshotControllerRun({}).then(snapshot=>{
+        if(disposed||currentPageState!==next||controllerResults.projection!==blockedProjection||
+          isRunning()||isStopping()||host.currentRun||pagePreviewFlow?.busy)return;
+        controllerResults.setProjection(snapshot);update();
+      }).catch(error=>{if(!disposed&&currentPageState===next&&controllerResults.projection===blockedProjection)
+        display('error',formatTaskError(error));});
+    }
     patchDeveloperField(view,find('script-current-page-title'),{textContent:available?next.title||next.url:
       resolving?'正在识别…':next?.message||'尚未识别可运行网页'});
     patchDeveloperField(view,find('script-current-page-url'),{textContent:available?next.url:''});

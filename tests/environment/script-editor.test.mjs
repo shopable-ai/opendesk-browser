@@ -143,6 +143,36 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
     dispose(){editor.dispose();target.dispose();}};
 }
 
+test('a new available page rechecks a released execution slot without replacing the visible result',async t=>{
+  const f=await fixture({scripts:[],runs:[{runId:'foreign-run',state:'running'}],results:[]});t.after(()=>f.dispose());
+  assert.equal(f.find('script-run').disabled,true);
+  f.find('script-result').textContent='Keep the current result';
+  const previousReads=f.snapshots.length;
+  f.persisted.runs[0].state='completed';
+  await f.switchTab();await tick();
+  assert.equal(f.find('script-run').disabled,false,'a fresh authoritative slot must restore Run without an advanced history query');
+  assert.ok(f.snapshots.length>previousReads);
+  assert.equal(f.find('script-result').textContent,'Keep the current result');
+});
+
+test('a delayed slot refresh cannot overwrite a newer occupied projection',async t=>{
+  const f=await fixture({scripts:[],runs:[{runId:'foreign-run',state:'running'}],results:[]});t.after(()=>f.dispose());
+  const gate=deferred(),read=f.client.controller.snapshotControllerRun;
+  let hold=true;
+  f.client.controller.snapshotControllerRun=async request=>{
+    const snapshot=await read(request);
+    if(hold){hold=false;await gate.promise;}
+    return snapshot;
+  };
+  f.persisted.runs[0].state='completed';
+  await f.switchTab();
+  f.persisted.runs.push({runId:'new-foreign-run',state:'running'});
+  await f.click('script-read');
+  assert.equal(f.find('script-run').disabled,true);
+  gate.resolve();await tick();await tick();
+  assert.equal(f.find('script-run').disabled,true,'late availability cannot replace the newer occupied slot');
+});
+
 test('R40.10.1 immediate Controller Run captures the most recent input without a microtask gap',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   f.find('script-source').value='return 314;';
