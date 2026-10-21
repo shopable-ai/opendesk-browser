@@ -880,7 +880,8 @@ test('R1.8 open tooltip follows rail scroll and window layout without rewriting 
     f.editor.getBoundingClientRect=()=>regionRect(350,220,540,70);
     f.win.innerHeight=320;f.events.get('resize')();await settle();
     assert.equal(tip.style.top,'88px');
-    assert.equal(tip.style.left,'auto');assert.equal(tip.style.right,'59px');
+    assert.equal(tip.style.left,'auto');assert.equal(tip.style.right,'64px',
+      'narrow rail respects the reviewed 64px minimum tooltip clearance');
     assert.equal(tip.children[1],content,'layout retains the original tooltip content');
     assert.equal(content.textContent,f.row.body);
     f.main.getBoundingClientRect=()=>({left:260,top:80,width:540,height:640});
