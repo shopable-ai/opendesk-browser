@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {emptyWorkflow} from '../../src/framework/workflow/contract.js';
 import {compileWorkflow} from '../../src/framework/workflow/compiler.js';
-import {classifyWorkflowRunRisk,prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect,verifySavedWorkflowRevision} from '../../src/ui/workflow/direct-execution.js';
+import {classifyWorkflowRunRisk,prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect,verifySavedWorkflowRevision,verifyOpenedLinkPage} from '../../src/ui/workflow/direct-execution.js';
 const origin='https://example.test';
 const target={windowId:1,tabId:2,frameId:0,documentId:'doc-1',url:origin+'/form',origin};
 const searchObservation={summary:{origin,documentId:target.documentId,nodes:[
@@ -357,4 +357,67 @@ test('trusted same-document search proves demo-form inline result without fabric
     {...args,after:{...after,summary:{...after.summary,nodes:[
       status,{...result,locator:{...locator,parent:{kind:'css',value:'#else'}}}]}}}
   ])assert.equal(verifySearchBusinessEffect(invalid),null);
+});
+
+test('current observed named link admits one frozen href-guarded RunHost click only',async()=>{
+  const name='OpenDesk Browser',href='?detail=browser';
+  const finalUrl=new URL(href,target.url).href;
+  const click={stepId:'open-result',op:'click',locatorKind:'role',
+    selector:'link',roleName:name};
+  const node={role:'link',name,state:{visible:true,disabled:false},
+    locator:{kind:'role',value:'link',name,exact:true},
+    navigation:{href,url:finalUrl,origin}};
+  const summary={summary:{origin,documentId:target.documentId,nodes:[node]}};
+  const steps=workflow([click]);
+  const admitted=prepareDirectExecution({
+    request:'打开 OpenDesk Browser 并读取网页标题',
+    workflow:steps,target,observation:summary});
+  assert.equal(admitted.linkGuard.name,name);
+  assert.equal(admitted.linkGuard.url,finalUrl);
+  const frozen=workflow([{...click,linkGuard:admitted.linkGuard}]);
+  const compiled=await compileWorkflow(frozen);
+  assert.match(compiled.sourceUtf8,/Workflow link changed/);
+  assert.match(compiled.sourceUtf8,/a\[href=/);
+  assert.match(compiled.sourceUtf8,/__fixed\.click/);
+  assert.throws(()=>prepareDirectExecution({
+    request:'打开 OpenDesk Browser',workflow:frozen,target,observation:summary
+  }),{code:'E_AI_REVIEW_REQUIRED'}); // A model cannot borrow a prior proof.
+  for(const invalid of [
+    {...summary,summary:{...summary.summary,documentId:'old-doc'}},
+    {...summary,summary:{...summary.summary,nodes:[{...node,state:{visible:false}}]}},
+    {...summary,summary:{...summary.summary,nodes:[{...node,locator:{...node.locator,index:0}}]}},
+    {...summary,summary:{...summary.summary,nodes:[{...node,navigation:{...node.navigation,
+      href:'https://evil.test/?token=abc',url:'https://evil.test/?token=abc',origin:'https://evil.test'}}]}},
+    {...summary,summary:{...summary.summary,nodes:[node,node]}}
+  ])assert.throws(()=>prepareDirectExecution({request:'打开 OpenDesk Browser',
+    workflow:steps,target,observation:invalid}),{code:'E_AI_REVIEW_REQUIRED'});
+  assert.throws(()=>prepareDirectExecution({request:'打开第一个结果',
+    workflow:steps,target,observation:summary}),{code:'E_AI_REVIEW_REQUIRED'});
+});
+test('only independently observed new Document title and product price prove navigation',()=>{
+  const linkGuard={name:'OpenDesk Browser',href:'?detail=browser',
+    url:origin+'/form?detail=browser',origin,sourceUrl:target.url,
+    locatorKind:'role',selector:'link',roleName:'OpenDesk Browser'};
+  const after={format:'opendesk.workflow-observation.v1',runId:'observation-2',
+    resultId:'receipt-2',sourceHash:hash,
+    summary:{origin,documentId:'doc-after',title:'OpenDesk Browser 详情',
+      nodes:[
+        {role:'heading',name:'OpenDesk Browser',state:{visible:true}},
+        {role:null,name:'',text:'¥129.00',state:{visible:true}}]}};
+  const resultTarget={...target,documentId:'doc-after',url:linkGuard.url};
+  assert.deepEqual(verifyOpenedLinkPage({linkGuard,after,actionTarget:target,resultTarget}),
+    {kind:'product-page',title:'OpenDesk Browser 详情',name:'OpenDesk Browser',price:'¥129.00'});
+  assert.deepEqual(verifyOpenedLinkPage({linkGuard,after:{...after,
+    summary:{...after.summary,nodes:[]}},actionTarget:target,resultTarget}),
+    {kind:'link-page',title:'OpenDesk Browser 详情'});
+  for(const changed of [
+    {resultTarget:target},
+    {resultTarget:{...resultTarget,tabId:4}},
+    {resultTarget:{...resultTarget,url:origin+'/wrong'}},
+    {resultTarget:{...resultTarget,origin:'https://elsewhere.test'}},
+    {after:{...after,runId:''}},
+    {after:{...after,summary:{...after.summary,documentId:target.documentId}}},
+    {after:{...after,summary:{...after.summary,title:'CAPTCHA'}}}
+  ])assert.equal(verifyOpenedLinkPage({linkGuard,after,actionTarget:target,
+    resultTarget,...changed}),null);
 });
