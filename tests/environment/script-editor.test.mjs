@@ -2329,3 +2329,35 @@ test('local Run is disabled on authoritative source error, without disabling rec
   preparationState='ready';f.find('local-project-refresh').fire('click');await tick();
   assert.equal(f.find('script-run').disabled,false,'Run becomes available after a trusted ready status');
 });
+
+test('R40.10.7 unchanged scalar React field projections reuse snapshots without dropping real or mutable changes',async ()=>{
+  const model=createDeveloperView();
+  let notifications=0;
+  const unsubscribe=model.subscribe(()=>{notifications++;});
+  const idle=model.getSnapshot();
+  for(let n=0;n<40;n++)model.patch('script-run',{disabled:model.fields['script-run'].disabled});
+  await Promise.resolve();
+  assert.strictEqual(model.getSnapshot(),idle,'unchanged Run controls must not rebuild the React field snapshot');
+  assert.equal(notifications,0,'unchanged controls must not notify the React subscriber');
+
+  model.patch('script-run',{disabled:!model.fields['script-run'].disabled});
+  await Promise.resolve();
+  assert.notStrictEqual(model.getSnapshot(),idle,'a real Run gate transition must publish');
+  assert.equal(notifications,1);
+  const changed=model.getSnapshot();
+  model.patch('script-run',{disabled:model.fields['script-run'].disabled});
+  await Promise.resolve();
+  assert.strictEqual(model.getSnapshot(),changed,'a repeated Run gate must reuse the latest snapshot');
+  assert.equal(notifications,1);
+
+  // Never suppress a mutable object payload, even if the caller reuses its reference.
+  const status=model.fields['script-status'];
+  const beforeStatus=model.getSnapshot();
+  status.data.state='preparing';
+  model.patch('script-status',{data:status.data});
+  await Promise.resolve();
+  assert.notStrictEqual(model.getSnapshot(),beforeStatus,'a mutable state patch must remain observable');
+  assert.equal(notifications,2);
+  unsubscribe();
+  model.dispose();
+});
