@@ -379,9 +379,7 @@ async function run(){
   await poll('document.querySelector("#promptForm").getAttribute("aria-busy")!=="true"',
     'save-and-continue finishes before cancel');
   const batchCancelBefore=await evalChrome('('+function(){
-    const snap=typeof draftSnapshot==='function'?draftSnapshot():'no snapshot';
-    return {dirty,saving,imageUploadBusy,baselineForm,now:snap,currentView,
-      cancelDisabled:document.querySelector('#cancelForm').disabled,
+    return {cancelDisabled:document.querySelector('#cancelForm').disabled,
       body:document.querySelector('#promptBody').value,
       formError:document.querySelector('#formError').textContent,
       status:document.querySelector('#formSaveStatus').textContent};
@@ -390,10 +388,10 @@ async function run(){
   if(x.editing){
     report.r41BatchCancelDiagnostic={before:batchCancelBefore,
       after:await evalChrome('('+function(){
-        return {dirty,saving,imageUploadBusy,currentView,
-          leaveConfirmHidden:document.querySelector('#leaveConfirm').hidden,
+        return {leaveConfirmHidden:document.querySelector('#leaveConfirm').hidden,
           error:document.querySelector('#formError').textContent,
-          status:document.querySelector('#formSaveStatus').textContent};
+          status:document.querySelector('#formSaveStatus').textContent,
+          activeId:document.activeElement?.id};
       }.toString()+')()')};
     await shot('r41-batch-cancel-diagnostic');
   }
