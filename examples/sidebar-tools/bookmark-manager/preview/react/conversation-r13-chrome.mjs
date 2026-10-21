@@ -87,7 +87,13 @@ async function assertDockKeepsTreeVisible(){
 }
 function assertGeometry(g){assert.ok(g.appOverflow<=1,JSON.stringify(g));for(const e of g.controls){assert.ok(e.inside&&e.hittable,'Icon bounds/hit '+JSON.stringify(e));assert.ok(Math.abs(e.dx)<.7&&Math.abs(e.dy)<.7,'Icon center '+JSON.stringify(e));assert.equal(e.padding,'0px');assert.equal(e.type,'button')}assert.deepEqual(g.overflow,[])}
 async function contrast(){return evaluate(String.raw`const lum=c=>c.slice(0,3).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4}).reduce((s,v,i)=>s+v*[.2126,.7152,.0722][i],0);
- const parse=s=>s.startsWith('color(srgb')?s.match(/[\d.]+/g).map(Number).slice(0,3).map(x=>x*255):s.match(/[\d.]+/g).map(Number);
+ const parse=s=>{const components=(s.match(/-?(?:\d*\.?\d+)(?:e[+-]?\d+)?/gi)||[]).map(Number);
+  // Chromium color(srgb R G B / A) returns normalized RGB with an optional
+  // transparency channel. Preserve A: dropping it makes transparent layers
+  // appear opaque black, causing false WCAG contrast failures.
+  if(s.startsWith('color(srgb'))return [
+   ...components.slice(0,3).map(value=>value*255),...(components.length>3?[components[3]]:[])];
+  return components;};
  const over=(a,b)=>{const alpha=a[3]??1;return a.slice(0,3).map((v,i)=>v*alpha+b[i]*(1-alpha)).concat(1)};
  const bg=e=>{if(!e)return [255,255,255,1];return over(parse(getComputedStyle(e).backgroundColor),bg(e.parentElement))};
  const rows=[];function sample(e,color,text,threshold=4.5){const fg=parse(color),back=bg(e),levels=[lum(over(fg,back)),lum(back)].sort((a,b)=>a-b),ratio=(levels[1]+.05)/(levels[0]+.05);rows.push({text,ratio,threshold,foreground:color,background:back.slice(0,3)})}
@@ -159,7 +165,9 @@ try{
      'framework Chat icon must precede uninstall immediately');
    const compact=await evaluate(`const input=document.querySelector(".od-conversation-input").getBoundingClientRect(),send=document.querySelector(".od-conversation-action").getBoundingClientRect();
      return {buttonInside:send.left>=input.left&&send.right<=input.right&&send.top>=input.top&&send.bottom<=input.bottom,
-      noLegacy:!document.querySelector(".od-conversation-header,.od-conversation-controls,.od-conversation-samples")};`);
+      noLegacy:!document.querySelector(".od-conversation-header,.od-conversation-controls,.od-conversation-samples"),
+      bounds:{input:{left:input.left,right:input.right,top:input.top,bottom:input.bottom,height:input.height},
+       action:{left:send.left,right:send.right,top:send.top,bottom:send.bottom,height:send.height}}};`);
    assert.ok(compact.buttonInside&&compact.noLegacy,JSON.stringify(compact));
    // Keep the action-layer URL canonicalization gap visible in the report;
    // this UI happy path uses an explicit canonical URL accepted by Service.
