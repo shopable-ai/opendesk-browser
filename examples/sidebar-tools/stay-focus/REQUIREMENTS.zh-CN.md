@@ -21,11 +21,13 @@
 
 ## 2. 当前真实基线与明确缺口
 
-- 正式应用 ID 为 **stay-focus**，当前配置版本 **1.0.1**，能力声明为 **focus.control** 和 **currentPage.read**；入口在本工程 **tool.config.json**、**src/index.html**、**src/style.css**、**src/main.js**。
-- R2 将唯一的产品侧业务源码归入本工程 **trusted/**，其中 **service.js** 同时包含产品额度/时段计算、Chrome 前台/idle 观察、Alarm、DNR 调整、安装校验等职责；**src/stay-focus/** 仍是测试/历史引用所需的兼容转发。
+- 正式应用 ID 为 **stay-focus**，当前配置版本 **1.0.9**（2026-10-21 源码审计快照；正式 JSON 晋升另行判定），能力声明为 **focus.control** 和 **currentPage.read**；入口在本工程 **tool.config.json**、**src/index.html**、**src/style.css**、**src/main.js**。
+- R2 将唯一的产品侧业务源码归入本工程 **trusted/**，其中 **service.js** 同时包含产品额度/时段计算、Chrome 前台/idle 观察、Alarm、DNR 调整、安装校验等职责；历史 **src/stay-focus/** 兼容转发已从当前 `main` 移除；不能把 R2 历史阶段描述当成现状。
 - 当前 JSON 工具包只发行 UI，不包含 **trusted/**；**src/sw.js** 静态安装 Stay Focus 专属服务，侧栏宿主及安装器也有专属接线。修改 trusted 业务代码仍需重新构建含它的 OpenDesk Browser。**R2 完成的是源码归属，不是后台业务独立升级。**
 - 公共 SDK 当前存在 browser.scheduler、browser.storage、browser.network、browser.proxy.managed 等能力，但 **browser.scheduler 是已安装 Task 的调度接口**，不能冒充工具自有的长期后台事件处理器；尚无已确认完整支持本需求的通用活动计时 + 规则执行契约。
 - 当前工具根没有按新约定晋升的唯一 **stay-focus.opendesk-tool.json** 正式文件。现有代码、历史 Mac 验收中的部分 PASS 不等于最新候选已完成真实额度耗尽、DNR 导航、撤权和新旧包独立升级的完整验收。
+
+跨应用残余耦合、L1–L4 状态及不创建第二套平台的后续路线，以 [统一宿主解耦合同](../../../docs/architecture/browser-framework/sidebar-tool-host-decoupling.zh-CN.md) 为准；本需求文档的目标能力不自动表示 Browser SDK 已发布或原生验收通过。
 
 ## 3. 同一应用可以有多个文件与执行角色
 

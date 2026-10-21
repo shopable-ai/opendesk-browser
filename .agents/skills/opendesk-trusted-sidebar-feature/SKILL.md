@@ -23,6 +23,8 @@ R4 正式五 Tab 见 [产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.
 
 独立源码、独立 UI 安装、关闭 UI 后继续运行、独立后台升级是四个不同目标。Stay Focus R2 已完成源码提取，已有 focus.* 支持参数变化；JSON 不替换固定计时/DNR/提醒代码。后续沿 [Stay Focus R4 唯一需求](../../../examples/sidebar-tools/stay-focus/REQUIREMENTS.zh-CN.md) 评估最小声明式公共能力，不能把未实现需求写成 API，不重开迁移或后台运行器。
 
+**现状审计与下一步**：[宿主解耦合同与 AdBlock / Stay Focus 最新源码审计](../../../docs/architecture/browser-framework/sidebar-tool-host-decoupling.zh-CN.md) 已按真实代码列出 AdBlock 与 Stay Focus 留在 SW、Content、可信 Host、Installer 的静态接线和 L1–L4 缺口。固定、审查并精确锁定来源的第一方适配器允许作为安全兼容例外，但新增每工具入口不能被默认当作可扩展框架方案。先验证公共能力、租约与独立策略升级；不为消除静态引用直接放开动态特权代码。仅在行为/权限/重启/DNR/跨工具清理与旧实现同等时移除旧入口。
+
 ## 先以当前源码确立可信界限
 
 先核查真实 `main`、`AGENTS.md` 的当前阶段、用户最新优先级及目标文件 diff。只读当前功能源码及直接依赖；涉及开发/安装合同才查[运行边界](../../../docs/architecture/browser-framework/custom-tool-ui-and-local-development.zh-CN.md)与[工具开发规范](../../../docs/api/sidebar-tool-development.zh-CN.md)，调整布局/导航才查 [R27](../../../docs/architecture/ui-layout-conventions-r27.zh-CN.md) / [R28](../../../docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md)，准备运行验证才查[测试指南](../../../docs/framework/testing-guide.md)和相关证据。不要求每次通读，不用旧 GOAL 替代现实或延续已被用户调整的验收目标。

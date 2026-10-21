@@ -45,6 +45,8 @@ description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI 
 
 **未来抽离的触发条件**：只有当独立发布节奏、跨产品复用或跨团队维护出现可验证的实际需求，并且现有 Catalog、源码哈希、固定入口、调试与验收可安全消费外部版本化源码时，才评估单独仓库或包。当前不引入跨仓库同步、符号链接式运行时加载、远程特权 JS 或自动扫描工具目录并授予权限。目录独立与安全隔离是两个不同指标。
 
+**独立交付/宿主耦合检查（新增必读）**：开发工具业务时参照[宿主解耦合同与 AdBlock / Stay Focus 最新源码审计](../../../docs/architecture/browser-framework/sidebar-tool-host-decoupling.zh-CN.md)，分别确认 L1 源码归属、L2 宿主编译依赖、L3 已支持策略 JSON 独立更新、L4 后台算法升级；只把业务搬到 `trusted/` 不等于 L2/L4 已通过。默认不新增 `src/sw.js`、`page-relay.js`、通用 `installation.js` 或 Sidebar Host 的单工具 ID 分支。只有已证实的公共 SDK 缺口才能按 Runtime Skill 审查 `src/`；有界受审固定服务保留现有安全栅栏，不允许 JSON 注入特权 JS。发布声明必须区分 UI 包、策略包与 Browser 固定后台版本。
+
 ## R3.1 发行、安装与真实能力门槛
 
 - 普通用户只需要发布的 OpenDesk Browser 扩展和既有官方 Catalog 离线工具包；不得要求下载 `examples/`、安装 Node 或复制 Background。普通工具项目仍在 `examples/sidebar-tools/<tool-id>/`。

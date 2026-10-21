@@ -101,14 +101,14 @@ test('single existing stylesheet controller supports user rules and disabling re
   controller.dispose();
 });
 
-test('picker timeout and tab switch release the capture listeners',async()=>{
-  const listeners=new Map(),timers=new Map(),sent=[];
+test('picker uses outline-only mode, and timeout/Esc/tab switch release listeners without webpage banners',async()=>{
+  const listeners=new Map(),timers=new Map(),sent=[],injected=[];
   let serial=0;
   const element=()=>({isConnected:false,style:{},setAttribute(){},
     replaceChildren(...items){this.children=items;},
     append(child){this.children.push(child);},
     remove(){this.isConnected=false;}});
-  const doc={documentElement:{append(node){node.isConnected=true;}},
+  const doc={documentElement:{append(node){node.isConnected=true;injected.push(node);}},
     createElement:element,createTextNode:value=>({textContent:value}),
     addEventListener:(name,handler)=>listeners.set(name,handler),
     removeEventListener:name=>listeners.delete(name)};
@@ -117,6 +117,7 @@ test('picker timeout and tab switch release the capture listeners',async()=>{
   const api={runtime:{async sendMessage(value){sent.push(value);return {ok:true};}}};
   const picker=createAdblockElementPicker({api,doc,win});
   assert.equal(picker.begin(),true);
+  assert.equal(injected.length,0,'selecting must not inject instruction text into the target page');
   assert.equal(listeners.size,3);
   const [deadline]=timers.values();
   assert.equal(deadline.ms,ADBLOCK_COSMETIC_PICK_TTL_MS);
@@ -125,11 +126,17 @@ test('picker timeout and tab switch release the capture listeners',async()=>{
   assert.equal(listeners.size,0);
   assert.equal(timers.size,0);
   assert.equal(sent.at(-1).type,'cancel');
+  assert.equal(injected.length,0,'timeout must not leave a banner on the target page');
   assert.equal(picker.begin(),true);
   picker.cancel('标签页已切换');
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(listeners.size,0);
   assert.equal(timers.size,0);
+  assert.equal(sent.at(-1).type,'cancel');
+  assert.equal(picker.begin(),true);
+  listeners.get('keydown')({type:'keydown',key:'Escape',isTrusted:true,preventDefault(){}});
+  assert.equal(listeners.size,0);
+  assert.equal(injected.length,0,'Esc must not create a banner on the target page');
   assert.equal(sent.at(-1).type,'cancel');
   picker.dispose();
   assert.equal(picker.begin(),false);
