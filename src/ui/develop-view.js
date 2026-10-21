@@ -19,6 +19,11 @@ export function createDeveloperView(){
     if(disposed)return;
     if(!fields[key])throw new Error('E_DEVELOPER_FIELD: '+key);
     if(Object.hasOwn(values,'textContent'))values={...values,textSet:true};
+    // Keep one React snapshot for unchanged scalar controls during Run/Result.
+    // Object payloads still publish because their contents may be mutated in place.
+    if(Object.entries(values).every(([name,value])=>
+      (value===null||typeof value!=='object'&&typeof value!=='function')&&
+      Object.is(fields[key][name],value)))return;
     Object.assign(fields[key],values);
     snapshot={...snapshot,fields:{...snapshot.fields,[key]:{...fields[key]}}};
     notify();
