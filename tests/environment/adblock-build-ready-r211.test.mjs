@@ -40,7 +40,7 @@ test('one ignored dist bundle has deterministic React source and compiled-byte i
   assert.equal((await checkCompiledToolBuildReady(PROJECT,config)).buildId,ready.buildId);
   assert.equal((await inspectSidebarToolProject(PROJECT)).buildId,ready.buildId);
   const pkg=await createSidebarToolPackage(PROJECT);
-  assert.equal(pkg.version,'1.2.1');
+  assert.equal(pkg.version,'1.2.2');
   assert.equal(pkg.js,(await read('dist/tool.js')).toString('utf8'));
 });
 test('standalone and staging refuse stale JSX even when previous JS bytes still match',async t=>{

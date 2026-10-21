@@ -31,7 +31,7 @@ function App(){
   const queued=React.useRef(false),current=React.useRef(null);
   const contextRevision=React.useRef(0);
   const api=globalThis.OpenDeskTool;
-  const refresh=React.useCallback(async(silent=false)=>{
+  const refresh=React.useCallback(async(silent=false,preserveNotice=false)=>{
     if(locked.current){queued.current=true;return;}
     const turn=++reading.current;
     if(!silent)setLoading(true);
@@ -40,7 +40,8 @@ function App(){
       const next=await api.request('adblock.status',{});
       if(!valid(next))throw Error('Chrome DNR 状态数据不完整');
       if(!alive.current||turn!==reading.current||locked.current)return;
-      current.current=next;setState(next);setProblem(false);setNotice('');
+      current.current=next;setState(next);
+      if(!preserveNotice){setProblem(false);setNotice('');}
     }catch(error){
       if(!alive.current||turn!==reading.current||locked.current)return;
       current.current=null;setState(null);setProblem(true);
@@ -92,6 +93,7 @@ function App(){
   },[api,refresh]);
   const operateCosmetic=React.useCallback(async(operation,payload={})=>{
     if(locked.current||!current.current)return;
+    let preserveCosmeticError=false;
     locked.current=true;reading.current++;
     const generation=contextRevision.current;
     setBusy(true);setProblem(false);setNotice('');
@@ -112,12 +114,16 @@ function App(){
         :'已删除本站的手动屏蔽规则，网页区域自动恢复。');
     }catch(error){
       if(!alive.current)return;
+      preserveCosmeticError=true;
       setProblem(true);setNotice(errorText(error));
-      void refresh(true);
     }finally{
       locked.current=false;
       if(alive.current){setBusy(false);setLoading(false);
-        if(queued.current){queued.current=false;void refresh(true);}}
+        if(queued.current||preserveCosmeticError){
+          queued.current=false;
+          // A failed native write requires readback without deleting the error.
+          void refresh(true,preserveCosmeticError);
+        }}
     }
   },[api,refresh]);
   React.useEffect(()=>{

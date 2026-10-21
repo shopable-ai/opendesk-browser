@@ -5,9 +5,13 @@ import {ADBLOCK_PAGE_PROTOCOL} from './policy.js';
 import {validCosmeticSelector} from './cosmetic-policy.js';
 
 const SAFE_ID=/^[A-Za-z][A-Za-z0-9_-]{0,63}$/;
+const ROOT_ID=/^(?:app|root|__next|__nuxt|main|application|site-root)$/i;
+const ROOT_TAG=new Set(['html','body','head','main','nav','form']);
 const UI='data-opendesk-adblock-picker';
 export function adblockElementSelector(node,doc=globalThis.document){
-  if(!node||node.nodeType!==1||node===doc.body||node===doc.documentElement)return null;
+  if(!node||node.nodeType!==1||node===doc.body||node===doc.documentElement||
+     ROOT_TAG.has(node.localName)||ROOT_ID.test(node.id||'')||
+     node.getAttribute?.('role')==='main'||node.hasAttribute?.('data-reactroot'))return null;
   const path=[];let current=node;
   while(current&&current!==doc.body&&path.length<12){
     const tag=current.localName;
@@ -65,15 +69,37 @@ export function createAdblockElementPicker({
   function targetOf(value){
     if(!value||value.nodeType!==1||guard(value))return null;
     const fit=el=>{
-      if(!el||el===doc.body||el===doc.documentElement)return false;
+      if(!el||el===doc.body||el===doc.documentElement||
+         ROOT_TAG.has(el.localName)||ROOT_ID.test(el.id||'')||
+         el.getAttribute?.('role')==='main'||el.hasAttribute?.('data-reactroot'))
+        return false;
       const rect=el.getBoundingClientRect();
       return rect.width>20&&rect.height>10&&
-        rect.width*rect.height<win.innerWidth*win.innerHeight*0.82;
+        rect.width*rect.height<win.innerWidth*win.innerHeight*0.66&&
+        !(rect.width>win.innerWidth*0.88&&rect.height>win.innerHeight*0.5);
     };
-    let el=value.closest?.('section,aside,article,[role="complementary"]')||null;
-    if(!fit(el))el=value.closest?.('div,li,figure')||value;
-    if(!fit(el))el=fit(value)?value:null;
-    return el&&adblockElementSelector(el,doc)?el:null;
+    // Only expand to an explicitly ad-like ancestor. A generic <article>,
+    // <section> or application layout must never be auto-selected.
+    let el=null,current=value;
+    for(let depth=0;current&&depth<4;depth++,current=current.parentElement){
+      const hint=((current.id||'')+' '+(typeof current.className==='string'?
+        current.className:'')+' '+(current.getAttribute?.('aria-label')||'')).toLowerCase();
+      if(/(?:^|[\s_-])(?:ad|ads|advert|advertisement|banner|sponsor|sponsored|promo|promotion)(?:$|[\s_-])/.test(hint)&&
+         fit(current)&&adblockElementSelector(current,doc)){el=current;break;}
+      if(ROOT_TAG.has(current.localName)||ROOT_ID.test(current.id||''))break;
+    }
+    if(!el){
+      let candidate=value;
+      for(let depth=0;candidate&&depth<4;depth++,candidate=candidate.parentElement){
+        if((depth===0||['div','li','figure','aside'].includes(candidate.localName))&&
+           fit(candidate)&&adblockElementSelector(candidate,doc)){
+          el=candidate;
+          if(['div','li','figure','aside'].includes(candidate.localName))break;
+        }
+        if(ROOT_TAG.has(candidate.localName)||ROOT_ID.test(candidate.id||''))break;
+      }
+    }
+    return el;
   }
   function mark(target){
     if(!target){marker?.remove();marker=null;return;}

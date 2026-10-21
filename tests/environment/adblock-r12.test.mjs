@@ -288,14 +288,14 @@ test('official optional AdBlock uses one canonical installable project package',
     const next=JSON.parse(expected);
     if(released.version===next.version)
       assert.deepEqual(actual,expected,'same-version package must match deterministic builder bytes');
-    else assert.equal(released.version,'1.2.0',
-      'only the previously published 1.2.0 can remain until native release approval');
+    else assert.equal(released.version,'1.2.1',
+      'only the previously published 1.2.1 can remain until native release approval');
   }
   await assert.rejects(access('src/sidebar-tools/adblock.opendesk-tool.json'),{code:'ENOENT'});
 });
 test('build-ready official project, current version, one declared restricted capability',async()=>{
   const pkg=await createSidebarToolPackage(PROJECT);
-  assert.equal(pkg.version,'1.2.1');
+  assert.equal(pkg.version,'1.2.2');
   assert.deepEqual(pkg.capabilities,[ADBLOCK_CAPABILITY]);
   assert.ok(pkg.js.includes("adblock.site.restore"));
 });

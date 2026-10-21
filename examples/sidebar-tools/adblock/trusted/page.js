@@ -60,7 +60,13 @@ export function initAdblockCosmetics({api=globalThis.chrome,doc=globalThis.docum
   }
   const invalidate=()=>{clear();void refresh();};
   const storageChanged=(changes,area)=>{
-    if(area==='local'&&keys.some(key=>Object.hasOwn(changes,key)))invalidate();
+    if(area!=='local')return;
+    if(keys.some(key=>key!==ADBLOCK_COSMETIC_STORE&&Object.hasOwn(changes,key))){
+      invalidate();return;
+    }
+    // A confirmed cosmetic write should not erase the temporary CSS while
+    // the click's acknowledgement and readback are still in flight.
+    if(Object.hasOwn(changes,ADBLOCK_COSMETIC_STORE))void refresh();
   };
   const message=(value,sender,reply)=>{
     if(value?.protocol!==ADBLOCK_PAGE_PROTOCOL||sender?.id!==runtimeId||sender.tab)

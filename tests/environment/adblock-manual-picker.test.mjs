@@ -31,6 +31,11 @@ test('selection uses unique stable id or bounded DOM path',()=>{
   assert.equal(adblockElementSelector(ad,doc),'#layout > aside:nth-of-type(2)');
   assert.equal(adblockElementSelector(wrapper,doc),'#layout');
   assert.equal(adblockElementSelector(body,doc),null);
+  // A root-like application surface must never become a saved hide rule.
+  const app={...wrapper,id:'app'};
+  assert.equal(adblockElementSelector(app,doc),null);
+  const main={...wrapper,localName:'main',id:'layout'};
+  assert.equal(adblockElementSelector(main,doc),null);
   ad.localName='*';assert.equal(adblockElementSelector(ad,doc),null);
 });
 

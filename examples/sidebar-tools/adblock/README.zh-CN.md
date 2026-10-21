@@ -89,7 +89,7 @@ node scripts/app-ci.mjs native adblock
 
 后两项要求真实 Chrome/真实 macOS 环境和对应回执；Node/Mock/离线预览通过绝不冒充真实拦截成功。升级保留已有数据和安装身份；同版本不同字节不能静默覆盖正式包。
 
-`tool.config.json` 与项目唯一正式安装包 `adblock.opendesk-tool.json` 现均为 **1.2.1**。2026-10-20 按现有打包器完成候选、定向测试和显式晋升；包 SHA-256 为 `8bdb91a0a613932e76d69953b06af3752d217eaee3e15e96e8e27ee314cdbc35`，与本次持续开发扩展 `dist/development/official-tools/adblock/adblock.opendesk-tool.json` 逐字节一致。
+当前开发源码 `tool.config.json` 为 **1.2.2 候选版本（未发布）**；仓库唯一正式安装包 `adblock.opendesk-tool.json` 仍为 **1.2.1**，须通过 App CI + Native Mac Chrome 校验再显式晋升。下列 1.2.1 数据是历史发行记录。2026-10-20 按现有打包器完成候选、定向测试和显式晋升；包 SHA-256 为 `8bdb91a0a613932e76d69953b06af3752d217eaee3e15e96e8e27ee314cdbc35`，与本次持续开发扩展 `dist/development/official-tools/adblock/adblock.opendesk-tool.json` 逐字节一致。
 
 旧项目包 **1.2.0**（SHA-256 `a7cfbf0dd773534a2aeb13b44064cfa26869c56eacdf0f9425728663bbd3a8fd`）与当前扩展固定资源不一致，导入时会被拒绝为 `E_TOOL_RUNTIME_UNAVAILABLE`。应重新选择本目录当前唯一正式包；保留固定发行哈希校验，不通过改版本字符串、卸载或放宽来源检查解决。
 
