@@ -79,6 +79,30 @@ background: {
 
 本地审阅安装、市场单项及批量安装沿用同一 `installReviewedSidebarTool`，在任何安装写入和市场意图消费前执行异步 SHA 校验；市场未知结果恢复也验证实际安装的后台源码。来源沿用用户明确本地审阅（`local-reviewed` 语义）或可信调用方核实的既有市场来源记录。后台 SHA 只证明内容一致，**不是发行者签名或信任声明**；包不能自报 publisher/official 来源。
 
+后台入口使用独立文件中的 `async function main()`。它获得受限词法变量 `browser`，不获得 `page`、`params`、`OpenDeskTool` 或 Chrome API。例如：
+
+```js
+async function main() {
+  const {items} = await browser.storage.local.get({keys: ['input']});
+  const result = {sum: (items.input || [1, 2, 3]).reduce((a, b) => a + b, 0)};
+  await browser.storage.local.set({items: {result}});
+  return result;
+}
+```
+
+首版后台只开放 `browser.storage.local.get/set/getQuota` 和只读 `browser.capabilities.list/getStatus`。存储归当前安装的应用所有，代码不能选择 owner、namespace、RunId 或安装代次。读响应预算和原工具存储配额继续生效；需要分批读取较大数据。UI 仍通过自己的 `OpenDeskTool.request('browser.storage.local.get', {keys: ['result']})` 读回数据。
+
+UI 通过既有 SDK 创建计划，用户在可信界面确认后生效：
+
+```js
+await OpenDeskTool.request('browser.scheduler.create', {
+  service: 'background',
+  schedule: {kind: 'once', expression: new Date(Date.now() + 120000).toISOString()}
+});
+```
+
+这一路径不传 Task ID 或网页目标。计划管理复用原 Scheduler，查询自身计划用 `browser.scheduler.listOwn`；后台源码本身不能创建计划。安装审阅后不要求第二次通用启用。Side Panel 关闭、没有网页目标且 Cloud 关闭时，Chrome 仍可通过 Alarm 运行后台；Chrome 退出期间不执行 JavaScript，Alarm 不保证精确到秒。单次执行目前最多 30 秒，复用原单执行槽。停用、升级、卸载会使旧安装代次失效；恢复后新建的计划绑定当前代次，旧计划不会自动获得新授权。网络请求及远程代码装载受原 opaque Sandbox CSP 拒绝，不提供 OS 级内存隔离或任意副作用 exactly-once 保证。真实候选证据与未测项见动态应用运行验收记录；引擎可运行不代表 Chrome Web Store 已批准。
+
 每次新安装或实际升级（含无后台的旧格式包）在既有 `opendesk.sidebar-tools.revocation-epochs.v1` 为该 ID 生成新随机字符串；相同规范包的 noop 不轮换。包和新代际在同一次 `storage.local.set` 提交并分别读回；丢失回执、部分持久化或读回不明保持 `E_OUTCOME_UNKNOWN`，不自动重放。新的市场事务记录绑定该代际，恢复只能核对并补完元数据，不能认可缺失或不同的代际。明确批准的菜单偏好可绑定新代际，其他敏感授权不会因此续期。本阶段仅证明包与安装合同；运行/调度、B0 冻结及冻结后的 A/B 应用验证另行执行，不能由 Node 包测试宣称通过。
 
 ## 1.1 官方可选发行与安装状态（R4.5）

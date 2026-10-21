@@ -21,6 +21,127 @@ import {CONTRACT_VERSION, CONTRACT_HASH, canonical, digest, digestUtf8} from '..
 import {encodeValue, decodeValue} from '../../src/platform/page-port/codec.js';
 import {encodeValue as controlEncode} from '../../src/framework/control/value.js';
 import {createTaskPackage,TASK_MANIFEST_FORMAT,installedKey} from '../../src/platform/tasks/contract.js';
+import {createContextMenuHost} from '../../src/platform/chrome/context-menus.js';
+import {readAppServiceInstallation} from '../../src/platform/tasks/app-service-installation.js';
+import {SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
+import {TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
+import {CLOUD_RUNNER_DOCUMENT_PATH} from '../../src/tool-document-url.js';
+
+// Real scheduled app admission, Authority journal and trusted storage Host;
+// only Chrome callbacks and Web Locks are replaced here.
+async function appServiceAuthorityFixture(t) {
+  const f=await fixture(),generation='12345678-1234-4123-8123-123456789abc';
+  const js='async function main(){return await browser.storage.local.getQuota();}';
+  const tool={format:'opendesk.sidebar-tool.v2',id:'authority-service',version:'1.0.0',title:'Authority service',
+    description:'App service Authority regression',capabilities:['browser.storage','browser.scheduler'],
+    html:'<main>Service</main>',css:'',js:'void 0;',requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]},
+    background:{kind:'opendesk.app-service.v1',js,sha256:await digestUtf8(js)}};
+  const local={[SIDEBAR_TOOL_STORE]:[tool],[TOOL_REVOCATION_EPOCHS_STORE]:{[tool.id]:generation}};
+  let writes=0,hostCalls=0,loseWriteReply=false,onDataRead=async()=>{};
+  const dataKey=sidebarToolStorageKey(tool.id);
+  f.api.storage={local:{async get(keys){
+    if(loseWriteReply&&writes&&keys===dataKey)throw new Error('Storage readback unavailable');
+    const value=Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(key=>[key,structuredClone(local[key])]));
+    if(keys===dataKey)await onDataRead();
+    return value;
+  },async set(rows){
+    writes++;Object.assign(local,structuredClone(rows));
+    if(loseWriteReply)throw new Error('Storage write callback lost');
+  }},onChanged:event()};
+  f.api.storage.session=f.api.storage.local;
+  const alarms=new Map();
+  f.api.alarms={getAll:async()=>[...alarms.values()],create:async(name,{when})=>alarms.set(name,{name,scheduledTime:when}),
+    clear:async name=>alarms.delete(name)};
+  f.sender.url=f.api.runtime.getURL(CLOUD_RUNNER_DOCUMENT_PATH);f.sender.documentId='app-host-doc';delete f.sender.tab;
+  f.api.runtime.getContexts=async()=>[{contextType:'OFFSCREEN_DOCUMENT',documentId:f.sender.documentId,
+    documentUrl:f.sender.url,frameId:0,incognito:false}];
+  await f.register();
+  const oldLocks=Object.getOwnPropertyDescriptor(navigator,'locks');
+  Object.defineProperty(navigator,'locks',{configurable:true,value:{request:async(...args)=>args.at(-1)()}});
+  t.after(()=>{if(oldLocks)Object.defineProperty(navigator,'locks',oldLocks);else delete navigator.locks;});
+  const host=createContextMenuHost({api:f.api,lockManager:navigator.locks,logger:{warn(){}}});
+  const previous=Object.getOwnPropertyDescriptor(globalThis,'__opendeskBrowserAppService');
+  Object.defineProperty(globalThis,'__opendeskBrowserAppService',{configurable:true,value:async request=>{
+    hostCalls++;return host.handleService(request);
+  }});
+  t.after(()=>{if(previous)Object.defineProperty(globalThis,'__opendeskBrowserAppService',previous);
+    else delete globalThis.__opendeskBrowserAppService;});
+  const {binding}=await readAppServiceInstallation(f.api,tool.id);
+  const owner={kind:'installed-tool-owned',toolId:tool.id,toolVersion:tool.version,packageHash:binding.packageHash,
+    epoch:generation,installEpoch:generation};
+  let time=Date.now();f.clock.now=()=>time;
+  const request={service:'background',schedule:{kind:'interval',expression:'1m'}};
+  await f.authority.schedules.create(request,owner,{kind:'trusted-app-service-schedule-intent-v1',request});
+  time+=61000;
+  const {fires:[fire]}=await f.authority.listDueSchedules({profile:'app-service'},f.sender);
+  assert.ok(fire,'A real approved schedule occurrence is required');
+  const run=await f.authority.startControllerRun({profile:'app-service',appId:tool.id,scheduledFireId:fire.fireId,
+    expectedScheduleOwner:fire.expectedScheduleOwner,requestId:fire.fireId,deadlineAt:time+30000},f.sender);
+  const envelope=(method,args={},requestId=crypto.randomUUID())=>({requestId,identity:run.identity,revision:run.revision,
+    target:run.target,operation:{kind:'browser-sdk',method,args:controlEncode([args])}});
+  const send=input=>f.authority.controllerOperation({envelope:input},f.sender);
+  const call=async(method,args)=>{const reply=await send(envelope(method,args));
+    if(reply.error)throw Object.assign(new Error(reply.error.message),reply.error);return reply;};
+  return {...f,tool,local,dataKey,run,envelope,send,call,binding,
+    counts:()=>({writes,hostCalls}),loseWriteReply:()=>{loseWriteReply=true;},
+    onDataRead:fn=>{onDataRead=fn;},advance:ms=>{time+=ms;}};
+}
+
+test('app-service Authority saves a no-effect read failure, replays it and allows caught errors to finish',async t=>{
+  const f=await appServiceAuthorityFixture(t);
+  await f.call('browser.storage.local.set',{items:{a:'a'.repeat(7000)}});
+  await f.call('browser.storage.local.set',{items:{b:'b'.repeat(7000)}});
+  const input=f.envelope('browser.storage.local.get',{keys:['a','b']},'oversized-read');
+  let caught;
+  try{const reply=await f.send(input);if(reply.error)throw Object.assign(new Error(reply.error.message),reply.error);}
+  catch(error){caught=error;}
+  assert.equal(caught?.code,'E_LIMIT');
+  const operation=(await f.rows('commandJournal')).find(row=>row.envelope?.requestId===input.requestId);
+  assert.equal(operation.state,'durable');assert.equal(operation.effectState,'failure-observed');
+  assert.equal(operation.reply.error.code,'E_LIMIT');assert.equal(operation.submissionCount,1);
+  assert.equal((await f.rows('runs')).find(row=>row.runId===f.run.runId&&row.tag==='controller-run').state,'running');
+  const before=f.counts();
+  assert.deepEqual(await f.send(structuredClone(input)),operation.reply);
+  assert.deepEqual(f.counts(),before,'Replay must not invoke the Host or dispatch storage again');
+  await f.call('browser.storage.local.getQuota');
+  const finished=await f.finish(f.run);
+  assert.equal(finished.run.state,'completed');assert.equal(finished.result.outcome.ok,true);
+});
+
+test('app-service Authority keeps a dispatched write without a receipt unknown and never replays it',async t=>{
+  const f=await appServiceAuthorityFixture(t),input=f.envelope('browser.storage.local.set',{items:{written:true}});
+  f.loseWriteReply();
+  await assert.rejects(f.send(input));
+  assert.equal(f.local[f.dataKey].written,true,'The write actually happened before its callback was lost');
+  const operation=(await f.rows('commandJournal')).find(row=>row.envelope?.requestId===input.requestId);
+  assert.equal(operation.state,'effect_unknown');assert.equal(operation.reply,undefined);assert.equal(operation.submissionCount,1);
+  assert.equal((await f.rows('runs')).find(row=>row.runId===f.run.runId&&row.tag==='controller-run').state,'paused_unknown');
+  const before=f.counts();
+  await assert.rejects(f.send(input),code('E_EFFECT_UNKNOWN'));
+  assert.deepEqual(f.counts(),before);
+  await assert.rejects(f.finish(f.run),code('E_EFFECT_UNKNOWN'));
+});
+
+test('app-service Authority no-effect failure delivery and replay retain stop, deadline and installation fences',async t=>{
+  for(const name of ['stop','deadline','binding','generation'])await t.test(name,async t=>{
+    const f=await appServiceAuthorityFixture(t);
+    await f.call('browser.storage.local.set',{items:{a:'a'.repeat(7000)}});
+    await f.call('browser.storage.local.set',{items:{b:'b'.repeat(7000)}});
+    const input=f.envelope('browser.storage.local.get',{keys:['a','b']});
+    f.onDataRead(async()=>{
+      f.onDataRead(async()=>{});
+      if(name==='stop')await f.authority.stopControllerRun({runId:f.run.runId,requestId:crypto.randomUUID()},f.sender);
+      else if(name==='deadline')f.advance(30001);
+      else if(name==='binding')f.local[SIDEBAR_TOOL_STORE][0].version='1.0.1';
+      else f.local[TOOL_REVOCATION_EPOCHS_STORE][f.tool.id]='changed-generation';
+    });
+    const expected=name==='stop'?'E_CANCELLED':name==='deadline'?'E_TIMEOUT':'E_OWNER';
+    await assert.rejects(f.send(input),code(expected));
+    const operation=(await f.rows('commandJournal')).find(row=>row.envelope?.requestId===input.requestId);
+    assert.equal(operation.state,'durable');assert.equal(operation.reply.error.code,'E_LIMIT');
+    const before=f.counts();await assert.rejects(f.send(input),code(expected));assert.deepEqual(f.counts(),before);
+  });
+});
 
 // Transaction/Chrome callback oracle: public product authority and repository,
 // plus a physical Node Worker for host ordering. Native extension proof is separate.

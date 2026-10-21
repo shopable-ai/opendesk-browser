@@ -771,9 +771,17 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           return reply;
         });
       } catch (error) {
-        const httpReply = await tx(RUN_WRITE, async transaction => {
+        const failureReply = await tx(RUN_WRITE, async transaction => {
           const operation = await transaction.get(COMMAND_JOURNAL, key);
           if (!operation || operation.state === 'durable') return;
+          // Only the trusted app Host can signal dispatch. Before that signal,
+          // a rejected read or write preflight has no effect to reconcile.
+          if (appCall && !appDispatched) {
+            operation.state='durable'; operation.effectState='failure-observed'; operation.receiptAt=now();
+            operation.failure=typed(error);
+            operation.reply={requestId:envelope.requestId,error:operation.failure};
+            await transaction.put(COMMAND_JOURNAL,operation,key); return operation.reply;
+          }
           if (serviceCall && error.code==='E_HTTP' && operation.nativeReceipts?.some(receipt=>Number.isInteger(receipt.status))) {
             operation.state='durable'; operation.effectState='response-observed'; operation.receiptAt=now();
             operation.reply={requestId:envelope.requestId,error:{...typed(error),cause:{status:error.status,response:error.response}}};
@@ -803,11 +811,11 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           }
           if (current) { await transaction.put(RUN_STORE, current, current.runId); await lease(transaction, current); }
         });
-        if (httpReply) {
+        if (failureReply) {
           // First delivery uses the saved error, behind the same native and
           // durable owner/permission/deadline fences as any service response.
           await authorizeOperation(envelope, {phase:'post'});
-          return httpReply;
+          return failureReply;
         }
         throw error;
       } finally { cancellations.delete(key); if (navigation) navigating.delete(run.runId); }
