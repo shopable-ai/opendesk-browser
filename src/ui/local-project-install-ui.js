@@ -357,6 +357,7 @@ export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget
     }
     if(sameInstalled()){onInstalled({kind:installed.kind,id:installed.id,focus:true});return;}
     if(review){reveal();return;}
+    ++lookupToken;checking=false;
     const before=verified;
     preparing=true;
     say('正在准备保存，请稍候…','pending');reveal();update();onState();

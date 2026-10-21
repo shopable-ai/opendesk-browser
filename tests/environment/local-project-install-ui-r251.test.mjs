@@ -5,12 +5,13 @@ import assert from 'node:assert/strict';
 import {webcrypto} from 'node:crypto';
 import {sha256Utf8} from '../../src/scripting/user-scripts/page-program-package.js';
 import {createLocalInstallUI} from '../../src/ui/local-project-install-ui.js';
+import {sourceContract} from '../../src/ui/local-project-install.js';
 globalThis.crypto ||= webcrypto;
 
 // Component DOM/RPC fakes only. This is NOT a Chrome permission prompt or native
 // effect receipt. Existing Page/Task services must still verify those authorities.
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
-async function fixture({permission=true,kind='controller',lostInstallAck=false,pageMatches=null,managedUI=false,retireManagedPreview}={}){
+async function fixture({permission=true,kind='controller',lostInstallAck=false,pageMatches=null,managedUI=false,retireManagedPreview,readControllerRun}={}){
   const view=createDeveloperView();
   const get=developerTestFields(view);
   const binding={bindingId:'local-'+'a'.repeat(20),providerEpoch:'provider-A',generation:1};
@@ -114,7 +115,7 @@ async function fixture({permission=true,kind='controller',lostInstallAck=false,p
       throw Object.assign(new Error('navigation'),{code:'E_DOCUMENT_STALE'});
   }};
   let stateEvents=0;const installedNotices=[];
-  const ui=createLocalInstallUI({client,api,view,currentPageTarget,getProject:()=>project,retireManagedPreview,
+  const ui=createLocalInstallUI({client,api,view,currentPageTarget,getProject:()=>project,retireManagedPreview,readControllerRun,
     isBusy:()=>localRunBusy,onState:()=>stateEvents++});
   return {ui,get,view,source,binding,target,requests,installedNotices,project,client,
     get taskCatalog(){return taskCatalog;},
@@ -129,6 +130,27 @@ async function settle(predicate){
   for(let i=0;i<100&&!predicate();i++)await tick();
   assert.ok(predicate(),'asynchronous UI operation did not settle');
 }
+test('an older passive proof cannot close a new explicit installation review',async t=>{
+  let entered=false,release;
+  const f=await fixture({readControllerRun:()=>{entered=true;return new Promise(resolve=>{release=resolve;});}});
+  t.after(()=>f.dispose());
+  f.project.previousVerification=()=>({kind:'controller',...f.binding,sourceId:'source-A',
+    ...f.source,sourceContract:sourceContract(f.source),target:f.target,
+    runId:'verified-run-id',resultId:'verified-result-id'});
+  f.ui.update();await settle(()=>entered);
+  f.ui.succeeded({source:f.source,binding:f.binding,target:f.target,runId:'verified-run-id'});
+  await f.ui.prepare();
+  assert.equal(f.get('local-install-review').hidden,false);
+  release({runs:[{runId:'verified-run-id',resultId:'verified-result-id',state:'completed',
+    retirementState:'released',revision:{sourceHash:f.source.sourceHash},
+    target:{...f.target,mode:'borrowed',allowedOrigin:f.target.origin}}],
+    results:[{runId:'verified-run-id',resultId:'verified-result-id',state:'completed',
+      revision:{sourceHash:f.source.sourceHash},outcome:{ok:true}}]});
+  await tick();await tick();
+  assert.equal(f.get('local-install-review').hidden,false,'late passive reads cannot cancel explicit review');
+  assert.equal(f.get('local-install-confirm').disabled,false);
+  assert.equal(f.installs,0);
+});
 test('R40.10.1 a running Local program blocks an already-open install confirmation',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   f.ui.succeeded({source:f.source,binding:f.binding,target:f.target,runId:'verified-run-id'});
