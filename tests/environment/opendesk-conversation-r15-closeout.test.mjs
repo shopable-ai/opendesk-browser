@@ -59,6 +59,20 @@ test('R1.5 verified folder then bookmark: only readback IDs enter next turn',asy
  assert.equal(events[1].tree.byId.get(result.refs.bookmarkId)?.parentId,result.refs.folderId);
 });
 
+test('R1.5 current-page URL is canonicalized before the verified write',async()=>{
+ const {service,issued,snapshot}=fixture();
+ const result=await executeBookmarkPlan({
+  plan:{actions:[{type:'bookmark.create',title:'$pageTitle',url:'$currentPage',parent:'$currentFolder'}]},
+  service,context:{...context,pageContext:{
+   status:'available',title:'示例当前网页',url:'https://example.com',
+   tabRef:'verified-tab-0123456789',documentRef:'verified-doc-0123456789'
+  }},refs,expectedTree:snapshot()
+ });
+ assert.equal(issued.length,1);
+ assert.equal(issued[0].url,'https://example.com/');
+ assert.equal(result.tree.byId.get(result.refs.bookmarkId).url,'https://example.com/');
+});
+
 test('R1.5 revoked model grant before first mutation makes zero Chrome writes',async()=>{
  const {service,issued,snapshot}=fixture();
  await assert.rejects(executeBookmarkPlan({
