@@ -186,3 +186,48 @@
 
 每个核心方向先挑 2 家（A：Obsidian+Readwise；B：Axiom+UI.Vision；C：Helium 10+Jungle Scout）；**当前只完成公开资料初审**，剩余逐家记录：CWS 商品 ID/当前版本/权限、同一预注册任务输入、成功/失败录像及产物、免费与付费差异、真实费率和国家口径、最近 30 条带 URL/时间/独立账号的评论主题（不可人为计算总体投诉率）、5 个可核查反例与 OpenDesk 实测结果。不能合法进入账号或无法提供真实素材时填 `NOT_TESTED`，不得编造体验。
 
+## R1.2-RECHECK-2026-10-21 · 公开商店身份、计费单位与反方任务（增量）
+
+> **证据边界**：2026-10-21 检索官方 CWS 商品及官网，来源类别 OFFICIAL_CWS/OFFICIAL_SITE；显示的用户数和评分为**索引检索时可见的快照**，其网页缓存/不同语言版本时点不一致，不能作为今天同一秒的同步数据、地区安装量或增长率。商店显示“用户”不是 US/JP 可触达搜索流量、DAU、留存或订单。绝不从当前页额定评分倒推独立评论的正负比例。本节增量复用既有 22 竞品池，不新增第二个竞品台账。
+
+### 额外 11 家官方 Chrome Web Store 身份/安装量级交叉核对
+
+| 方向 | 官方商品（永久 ID 链接） | 索引公开用户量级 | 评分/评价数公开快照（可能过期） | 直接可见的任务与不能证明的事实 |
+| --- | --- | ---: | --- | --- |
+| A | [Obsidian Web Clipper](https://chromewebstore.google.com/detail/obsidian-web-clipper/cnjifjpddelmedmihgijeibhnjfabmlf) | 1,000,000 | 约 4.8 / 572 | 本地 Markdown、网页选区；不能证明 AI 原图已一键离线 |
+| A | [Readwise Highlighter（官方）](https://chromewebstore.google.com/detail/readwise-highlighter/jjhefcfhmnkfeepcpnilbbkaadhngkbi) | 100,000 | 约 4.1 / 63 | 保存网页到 Reader、划线跨平台同步；不等于买付费订阅的用户 |
+| A | [Raindrop.io](https://chromewebstore.google.com/detail/raindropio/ldgfbffkinooeloadekpmfoklnobpien) | 500,000 | 约 4.1 / 783 | 多设备书签/标注/内容归档；非原图一致性交付验证 |
+| A/B | [Text Blaze](https://chromewebstore.google.com/detail/text-blaze-templates-and/idgadaccgipmpannjkmfddolnnhmeklj) | 800,000 | 约 4.9 / 1,890 | 文字模板、表单；并非团队付费席位数量 |
+| A/B | [Magical](https://chromewebstore.google.com/detail/magical-text-expander-aut/iibninhmiggehlcdolcilmhacighjamp) | 300,000 | 约 4.4 / 3,500 | 快捷输入/表单自动填充；其旧 R1.2 快照有 3.1，不能据此推断短期评分回升 |
+| B | [Axiom](https://chromewebstore.google.com/detail/axiom-ai-browser-automati/cpgamigjcbffkaiciiepndmonbfdimbb) | 100,000 | 约 4.5 / 245 | no-code/code/AI、云/本机、记录与集成；旧快照约 4.1，不能推断趋势 |
+| B | [Bardeen](https://chromewebstore.google.com/detail/bardeen-automate-browser/ihhkmalpkhkoedlmcnilbbhhbhnicjga) | 200,000 | 约 4.4 / 451 | 网页动作和销售集成；网页宣称节省工时非经审计实绩 |
+| B | [Automa](https://chromewebstore.google.com/detail/automa/infppggnoaenmfagbfknfkancpbljcca) | 200,000 | 约 4.3 / 288 | 免费可视化页面自动化/定时；收费差异不能靠功能数证明 |
+| B | [UI.Vision](https://chromewebstore.google.com/detail/uivision/gcbalfbdmfieckjlnblleoemohcganoc) | 200,000 | 约 3.9 / 239 | 本地宏、OCR/桌面/网页任务；稳定性/维护成本仍待操作 |
+| C | [Helium 10](https://chromewebstore.google.com/detail/helium-10-for-amazon-sell/njmehopjdpcckochcggncklnlmikcbnb) | 1,000,000 | 约 4.1 / 771 | 卖家商品/关键词/利润研究；不是单个 CSV 校验的购买证据 |
+| C | [Jungle Scout](https://chromewebstore.google.com/detail/jungle-scout/bckjlihkmgolmgkchbpiponapgjenaoa) | 300,000 | 约 3.8 / 368 | Amazon 产品/销售研究；与卖家导入文件质量审核不是同一工作结果 |
+
+**样本质量结论**：身份与大致安装档可公开独立交叉核查；22/22 官网任务/公开付费边界仍属于桌面研究，额外 11 家 CWS 信息并不升级为 22/22 产品实操。**同任务手测仍为 0，近 30 条逐家可追溯独立评论审计仍为 0，US/JP 活跃付费份额 MISSING**。官方商城索引有时返回不同版本/评分缓存，需要正式取证时保存页面日期、版号、语言参数与截图/存档；不能将语言切换当作地区收入样本。
+
+### 公开定价信号：收费的是持续结果、用量与管理，而不是简单插件安装
+
+| 官方最新可见边界 | 事实（默认显示 USD，月份/年付口径不可混合） | 对 OpenDesk 的投资含义 | 来源/置信度 |
+| --- | --- | --- | --- |
+| Text Blaze | Free 有模板额度；Pro 2.99 美元/年付折算月，开放图片/表格与完整表单；Business 6.99 美元/人/月（年付），包含管理、协作与报表 | 快捷输入本身已经免费；单纯 Prompt 模板无法形成独特高价产品 | [官方价格](https://blaze.today/plans/) · FACT_HIGH |
+| Readwise | Reader 30 天试用后 9.99 美元/月（按年计）或 12.99 美元/月（月付） | 用户为跨来源阅读、同步和回顾服务付费，不是仅为“导出 Markdown” | [官方价格](https://readwise.io/pricing/reader) · FACT_HIGH |
+| Axiom | Starter 15 美元/月含 5 小时运行；Pro 50 美元/月含 30 小时；API/webhook、云任务受档位限制 | B 必须估算每次有效结果的小时、失败重跑/售后成本；价格不是本产品 CAC | [官方价格](https://axiom.ai/pricing/) · FACT_HIGH |
+| UI.Vision | 自动化核心个人/商用免费；Pro 299 美元/年，Enterprise 999 美元起/年，突出更新管理和支持 | B 有潜在服务式付费边界，但需企业同意承担明确部署及持续维护责任 | [官方价格](https://ui.vision/rpa/x/pricing) · FACT_HIGH |
+| Bardeen | Basic 10 美元/月 100 credits；Premium 50 美元/月 1000 credits；每采集行和数据 enrich 分别计费 | 大量网页自动化按行计费已存在，不能凭“会自动抓”竞争 | [官方价格](https://www.bardeen.ai/pricing) · FACT_HIGH |
+| Browse AI | 免费 50 credits/月；Personal 19 美元/月、Professional 69 美元/月（官网按年计）；以页数/行数计价 | C 通用抓取与监控产品的功能和价格已充分成熟，避免烧钱竞争 | [官方价格](https://www.browse.ai/pricing) · FACT_HIGH |
+| Clay | 2026 年分离 Actions 与 Data Credits；默认月付 Launch 起 185 美元/月、Growth 起 495 美元/月，年付切换会变化 | 行业数据价值在数据源、更新和 CRM 结果，不在免费 CSV UI；口径不一致时禁止混算 | [官方 FAQ](https://www.clay.com/faq/what-features-are-included-in-the-new-plans-how-do-i-pick-the-right-plan) · FACT_HIGH |
+| Helium 10 | Platinum 129 美元/月、Diamond 359 美元/月（月付）；完整研究/运营/广告套件 | 仅证明“卖家套件可以标高价”，不能直接给单项 SKU QA 按相同价格收费 | [官方报价](https://pages.helium10.com/lp-pricing) · FACT_HIGH |
+| Jungle Scout | 当前官方报价页分 Catalyst 与面向品牌的 Cobalt 询价；历史帮助中心仍显示旧套餐价格，存在时点/版本冲突 | 在真实报价前保持当前可比套餐价格 MISSING；不得将旧帮助中心价格写作当日 Catalyst 成交价 | [当前官网](https://www.junglescout.com/pricing/) · [旧帮助](https://support.junglescout.com/hc/en-us/articles/27245557182359-Jungle-Scout-Subscriptions) · CONFLICT_NEEDS_CHECK |
+
+### 六家优先“同任务反证”实验，不把公开网页视为实操 PASS
+
+| 场景 | 对照竞品 | 同任务必须留下的可复查产物 | 重要反面假设 / 尚缺的证据 |
+| --- | --- | --- | --- |
+| A | Obsidian、Readwise | 经授权 AI 回答含 Markdown+原生图片，直接保存与离线断网读回；检查图片真实字节、来源 URL、文件名、点击数、失败提示及是否需另用软件 | Obsidian 官方支持单独“Download attachments for current file”，若该流程已足够简单可靠，OpenDesk 的差异可能消失；两款实操均 NOT_TESTED |
+| B | Axiom、UI.Vision | 授权测试站点完成固定的 8 字段→提交/确认→取消/撤权；记录 10 次重复中的真实失败、恢复、耗时与人工维护工时 | 成熟竞品已有宏/云执行和商业支持；若总工时不低于现有流程则 B 服务难盈利；未访问客户/未测试 |
+| C | Helium 10、Jungle Scout | 买家允许使用的导出 CSV，与业务规则比对丢失字段、重复 SKU、误报/漏报、人工复核时间，并对比既有卖家套件可得结果 | 竞品付费的核心是合法数据、市场洞察与持续报表，不是 CSV 基础校验；无授权数据与买家故 NOT_TESTED |
+
+**反方优先级**：先证伪 “A 很容易被 Obsidian 免费流程取代”、“B 维护成本超过受控实施收入”、“C 缺合法数据/现有表格功能已满足需求”，再考虑大规模功能开发。每家评论如未核到带日期的个体评论链接仍为 MISSING；不得根据 CWS 总评分杜撰缺陷主题、满意度或付费意愿。
