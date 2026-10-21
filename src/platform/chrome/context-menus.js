@@ -13,7 +13,7 @@ import {createApprovedBrowserBindings} from '../../framework/sdk/browser-binding
 import {createBrowserManagedProxy} from './browser-managed-proxy.js';
 import {REVIEWED_MANAGED_PROXY_PROFILES} from './browser-managed-proxy-profiles.js';
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../framework/sdk/browser-direct.generated.js';
-import {validateTrustedScheduleIntent} from '../tasks/schedule-contract.js';
+import {validateTrustedScheduleIntent,validateTrustedAppServiceScheduleIntent} from '../tasks/schedule-contract.js';
 import {createBrowserHistoryHost} from './history.js';
 import {executeBrowserToolStorage} from '../../ui/sidebar-tools/storage-state.js';
 import {readAppServiceInstallation,assertAppServiceBinding,APP_SERVICE_OPERATIONS} from '../tasks/app-service-installation.js';
@@ -1235,7 +1235,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
               partitionKey:args.cookies?.[0]?.partitionKey??null})
             :await authorizedCookie(identity,targetOperation,args.url,args):null;
         if(targetOperation==='browser.scheduler.create'&&args.service==='background'){
-          validateTrustedScheduleIntent(schedulerIntent,args);
+          validateTrustedAppServiceScheduleIntent(schedulerIntent,args);
           await readAppServiceInstallation(api,identity.toolId);
           await verifyBrowserOwner(identity,targetOperation);
         }
@@ -1498,7 +1498,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           authorization:{tool:APP_SERVICE_OPERATIONS.includes(method)?'granted':'missing',browser:'granted',site:'not-required'},
           callableNow:APP_SERVICE_OPERATIONS.includes(method),requiresUserGesture:false,
           reasonCode:APP_SERVICE_OPERATIONS.includes(method)?null:'E_CONTEXT',nextAction:null});
-        if(operation==='browser.capabilities.list')return browserCapabilityList('app-service').map(row=>({operation:row.operation,
+        if(operation==='browser.capabilities.list')return browserCapabilityList('app-service').filter(row=>APP_SERVICE_OPERATIONS.includes(row.operation)).map(row=>({operation:row.operation,
           implementation:row.implementation,riskLevel:row.riskLevel,requiredCapabilities:row.requiredCapabilities,
           requiredChromePermissions:row.requiredChromePermissions,status:serviceStatus(row.operation)}));
         if(operation==='browser.capabilities.getStatus')return serviceStatus(checked.operation);

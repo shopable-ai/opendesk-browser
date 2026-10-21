@@ -36,7 +36,7 @@ for (const mode of ['production', 'development']) {
     assert.equal(report.privilegedDynamicExecutionFound, false);
     assert.equal(report.approvedDynamicExecution.length, 1);
     assert.equal(report.approvedDynamicExecution[0].file, CONTROL_WORKER);
-    assert.equal(report.approvedDynamicExecution[0].approvedAsyncBodyConstructors, 1);
+    assert.equal(report.approvedDynamicExecution[0].approvedAsyncBodyConstructors, 2);
     for (const [path, expected] of Object.entries(FIXED_ASSETS)) {
       const asset = report.files.find(file => file.path === path); assert.ok(asset); assert.equal(asset.bytes, expected.bytes); assert.equal(asset.sha256, expected.sha256);
     }

@@ -370,7 +370,7 @@ export function inspectScript(text, file, options = {}) {
   const papaRow=BUILTIN_CATALOG.libraries.papaParse;
   const pinnedPapaParse=file===papaRow.output&&papaRow.version==='5.7.0'&&
     digest(Buffer.from(text,'utf8'))===papaRow.sha256;
-  let uses = 0;
+  let uses = 0,appUses=0;
   const rejectedConstructors=[];
   function resolveBinding(node) { for (let s = scopes.get(node); s; s = s.parent) if (s.names.has(node.name)) return s.names.get(node.name); }
   walk(ast, (node, ancestors) => {
@@ -379,9 +379,11 @@ export function inspectScript(text, file, options = {}) {
     if (node.type === 'Identifier' && !nonReference(node, parent)) {
       if (['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.name) && !safeFunctionReference(node, ancestors, file) && !approvedNativeImport(node,parent,file)) throw new Error(`Dynamic execution reference in ${file}: ${node.name} offset=${node.start} nearby=${JSON.stringify(text.slice(Math.max(0,node.start-100),node.end+100))}`);
       if (binding && resolveBinding(node) === binding && node !== approved.id) {
-        if (parent?.type !== 'NewExpression' || parent.callee !== node || parent.arguments.length !== 7 ||
-          ['page','params','axiosx','AppStorage','AppLocal','storage'].some((name,index)=>parent.arguments[index]?.value!==name) || property(parent.arguments[6]) !== 'body') throw new Error(`Unapproved dynamic constructor use in ${file}`);
-        uses++;
+        if(parent?.type!=='NewExpression'||parent.callee!==node)throw new Error(`Unapproved dynamic constructor use in ${file}`);
+        const controller=parent.arguments.length===7&&
+          ['page','params','axiosx','AppStorage','AppLocal','storage'].every((name,index)=>parent.arguments[index]?.value===name)&&property(parent.arguments[6])==='body';
+        const app=parent.arguments.length===2&&parent.arguments[0]?.value==='browser'&&property(parent.arguments[1])==='body';
+        if(controller)uses++;else if(app)appUses++;else throw new Error(`Unapproved dynamic constructor use in ${file}`);
       }
     }
     if (node.type === 'MemberExpression' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(property(node))) throw new Error(`Dynamic execution in ${file}: ${property(node)}`);
@@ -493,9 +495,9 @@ export function inspectScript(text, file, options = {}) {
   // ALL unreviewed constructor shapes in one CI run, not one whitelist at a time.
   if(rejectedConstructors.length)
     throw new Error(`Unapproved dynamic constructor reference in ${file}: count=${rejectedConstructors.length} examples=${JSON.stringify(rejectedConstructors.slice(0,20))}`);
-  if (binding && uses !== 1) throw new Error(`Expected one approved async-body constructor use in ${file}`);
+  if (binding && (uses !== 1 || appUses !== 1)) throw new Error(`Expected one Controller and one app-service constructor use in ${file}`);
   if (/__webpack_require__\.e\s*\(|https?:\/\/[^\s'"]+\.js(?:[?#][^\s'"]*)?(?=['"\s]|$)|\brequire\(['"](?:node:|fs|net|http)/.test(text)) throw new Error(`Remote/lazy/runtime-host execution in ${file}`);
-  return {approvedAsyncBodyConstructors: uses};
+  return {approvedAsyncBodyConstructors: uses+appUses};
 }
 function inspectReactMountHTML(text, file, rootId) {
   // Use the existing HTML parser so comments, entities and inert template
