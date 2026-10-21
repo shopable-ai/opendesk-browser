@@ -558,10 +558,27 @@ async function run(){
   assert(insert.includes('原草稿')&&insert.includes('重要依据')&&!insert.includes('data:image'));
   report.r37LocalImage={...uploadEvidence,reload:true,promptInsert:true};
   await shot('r37-original-local-image-reloaded');
-  // R4.1: editing a previously saved local image must track an inactive URL draft.
-  await click('.prompt-card:nth-child(2) .prompt-actions button');
+  // R4.1: reopen the EXACT persisted image row (not a position-dependent card).
+  const persistedImageRow=await evalChrome('('+function(){
+    const item=JSON.parse(localStorage.getItem('opendesk.prompt-shortcuts.preview.items-r3'))
+      .find(row=>row.imageAssetId);
+    return item&&{id:item.id,imageAssetId:item.imageAssetId,appearance:item.appearance};
+  }.toString()+')()');
+  assert.equal(persistedImageRow?.imageAssetId,uploadEvidence.id,
+    'expected saved local asset is still attached to a persisted prompt');
+  await click('.prompt-card[data-id="'+persistedImageRow.id+'"] .prompt-actions button');
   await click('.prompt-more button[aria-label^="编辑："]');
-  assert.equal(await evalChrome('document.querySelector("#imageSourceLocal").checked'),true);
+  const reopened=await evalChrome('('+function(){
+    return {formVisible:!document.querySelector('#formView').hidden,
+      sourceLocal:document.querySelector('#imageSourceLocal').checked,
+      sourceUrl:document.querySelector('#imageSourceUrl').checked,
+      appearanceImage:document.querySelector('#appearanceImage').checked,
+      bodyStart:document.querySelector('#promptBody').value.slice(0,45)};
+  }.toString()+')()');
+  if(!reopened.formVisible||!reopened.sourceLocal||!reopened.appearanceImage)
+    await shot('r41-saved-local-reopen-diagnostic');
+  assert(reopened.formVisible&&reopened.sourceLocal&&reopened.appearanceImage,
+    'saved local-image row reopens as local picture: '+JSON.stringify(reopened));
   await click('label:has(#imageSourceUrl)');
   await evalChrome('('+function(){
     const url=document.querySelector('#imageUrl');
