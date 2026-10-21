@@ -24,7 +24,8 @@ test('R3.1 trusted observer subscribes before first full paginated tree snapshot
 
 test('R3.1 event gap fails closed; background resync cannot silently clear unknown write',async()=>{
  const app=await read(appFile);
- assert.match(app,/if\(reconcileUnknown\)setUncertain\(false\)/);
+ assert.match(app,/if\(reconcileUnknown\)\{setUncertain\(false\);dockRef\.current\?\.reconcile\?\.\(\);\}/,
+  'Only an explicit successful reconciliation clears the unknown state in both tree and Dock');
  assert.doesNotMatch(app,/if\(!initial\)setUncertain\(false\)/);
  assert.match(app,/if\(result\.events\.length\)await load\(\)/);
  assert.match(app,/E_BOOKMARK_EVENT_GAP'[\s\S]*?setTree\(null\);setPreviewOpen\(false\);setLoading\(true\)/);
