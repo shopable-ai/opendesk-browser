@@ -161,8 +161,8 @@ test('fixed fill becomes a Chinese parameter and repeated saved runs do not rewr
   const f=await workflowFixture({steps:[fill]});t.after(()=>f.view.dispose());
   f.view.actions.parameterizeStep('fill');await tick();await tick();
   const {name,rule,value}=f.state().params[0];
-  assert.equal(name,'value');
-  assert.equal(rule.title,'填写内容');
+  assert.equal(name,'keyword');
+  assert.equal(rule.title,'搜索关键词');
   assert.equal(value,'OpenDesk');
   assert.equal(f.state().steps[0].param,name);
   assert.equal(f.state().steps[0].text,undefined);
