@@ -623,6 +623,24 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  const COPY=()=>INITIAL.map(item=>({...item}));
  const DEMO_ITEM_KEY='opendesk.prompt-shortcuts.preview.items-r3';
  const DEMO_SETTINGS_KEY='opendesk.prompt-shortcuts.preview.settings-r31';
+ // Original preview's browser-only simulator, not the real Host.
+ // Keep image bytes separate from the 8-KiB prompt library.
+ const DEMO_ASSET_KEY='opendesk.prompt-shortcuts.preview.assets-r37';
+ const ASSET_ID=/^psa_[a-f0-9]{32}$/;
+ function restoreDemoAssets(){
+  try{
+   const value=JSON.parse(localStorage.getItem(DEMO_ASSET_KEY)||'{}');
+   if(!value||typeof value!=='object'||Array.isArray(value))return {};
+   return Object.fromEntries(Object.entries(value).filter(([id,url])=>
+    ASSET_ID.test(id)&&typeof url==='string'&&url.length<90000&&
+    /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(url)));
+  }catch{return {};}
+ }
+ let imageAssets=restoreDemoAssets(),draftImageAssetId='',imageUploadBusy=false;
+ function persistDemoAssets(next){
+  try{localStorage.setItem(DEMO_ASSET_KEY,JSON.stringify(next));imageAssets=next;return true;}
+  catch{return false;}
+ }
  const IMAGE_SIZES=['compact','standard','large'];
  function restoreDemoSettings(){
   const fallback={showBar:true,contextMenu:false,imageSize:'large'};
@@ -644,8 +662,9 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
        (row.appearance===undefined||row.appearance==='text');
      const appearance=oldSample?'image':row.appearance??'text';
      const imageUrl=validPictureURL(oldSample?PREVIEW_DEFAULT_IMAGE_URL:row.imageUrl??'');
-     if(appearance==='image'&&!imageUrl)throw Error('missing image');
-     return {...row,appearance,imageUrl};
+     const imageAssetId=ASSET_ID.test(row.imageAssetId||'')?row.imageAssetId:'';
+     if(appearance==='image'&&!imageUrl&&!imageAssetId)throw Error('missing image');
+     return {...row,appearance,imageUrl,...(imageAssetId?{imageAssetId}:{})};
    });
   }catch{return COPY();}
  }
@@ -697,13 +716,19 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   const fallback=()=>{holder.dataset.imageUrl='';holder.classList.remove('has-image');holder.replaceChildren(stack(item.label||defaultShort(item.body)||'…'));};
   if(item.appearance!=='image'){holder.dataset.failedImageUrl='';fallback();return;}
   let url;
-  try{url=validPictureURL(item.imageUrl);if(!url)throw Error('请输入 HTTPS 图片 URL');}
+  try{
+   if(item.imageAssetId){
+    if(!ASSET_ID.test(item.imageAssetId))throw Error('本地图片资源 ID 无效');
+    url=imageAssets[item.imageAssetId];
+    if(!url)throw Error('本地图片已丢失');
+   }else{url=validPictureURL(item.imageUrl);if(!url)throw Error('请输入 HTTPS 图片 URL');}
+  }
   catch(e){holder.dataset.failedImageUrl='';fallback();if(notify)el('imageHelp').textContent=e.message;return;}
   // Do not refetch a failed URL on each label edit; continue rendering fallback text.
   if(holder.dataset.failedImageUrl===url){fallback();return;}
   if(holder.dataset.imageUrl===url)return;
   holder.dataset.failedImageUrl='';holder.dataset.imageUrl=url;holder.classList.add('has-image');
-  const offlineSample=item.id==='b'&&url===PREVIEW_DEFAULT_IMAGE_URL;
+  const offlineSample=!item.imageAssetId&&item.id==='b'&&url===PREVIEW_DEFAULT_IMAGE_URL;
   const img=create('img','ps-picture');img.alt='';img.decoding='async';
   img.loading=holder.classList.contains('page-shortcut')||notify?'eager':'lazy';
   img.referrerPolicy='no-referrer';
@@ -712,7 +737,9 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    holder.dataset.failedImageUrl=url;fallback();if(notify)el('imageHelp').textContent='图片加载失败，已经回退备用短标签。请检查链接、格式和网页 CSP。';});
   img.addEventListener('load',()=>{if(holder.dataset.imageUrl===url&&img.naturalWidth===0)img.dispatchEvent(new Event('error'));});
   holder.replaceChildren(img);img.src=offlineSample?PREVIEW_OFFLINE_PNG:url;
-  if(notify)el('imageHelp').textContent=offlineSample?
+  if(notify)el('imageHelp').textContent=item.imageAssetId?
+   '图片已保存至预览浏览器本地数据；正式扩展另经 Trusted Host 持久化。':
+   offlineSample?
    '原版预览默认示例显示离线 PNG；正式产品仍使用 HTTPS 链接，不保证该外部地址可访问。':
    (({compact:'48×40',standard:'56×44',large:'68×48'}[state.settings.imageSize]||'68×48')+
    ' 圆角矩形网页按钮 · 图片完整显示，不裁切；加载失败回退短标签。');
