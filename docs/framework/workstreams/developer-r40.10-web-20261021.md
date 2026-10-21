@@ -352,3 +352,56 @@ R40.11-LOCAL 最短 Codex 验收入口（仅 Mac 本地执行）：在 /Users/sh
 - 同 SHA 的 developer-release-smoke job **119311173812** 已完成 failure：`Source and Developer Edition build` 步骤 `scripts/bundle-provenance.mjs:306` 因 `examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js` 触发 `[opendesk-fixed-marketplace] Historical/user/vendor code cannot enter a privileged fixed bundle`。这是当前精确 SHA 的真实外部发布 blocker，其他扩展负责人处理；Developer 未更改 guard、pin、可信代码。
 - P0 Node 自然退出和本轮有变化的共享 React View 快照回归已具备精确 TAP 证据，状态 NODE_TAP_PASS@c5506fd；Developer Release/Installed MV3/真实四世界/Native/Provider 仍 **FAIL(外部构建) / NOT_TESTED**，综合交付状态仍 `WEB_PARTIAL`，不能宣称 95+ 或 `WEB_IMPLEMENTED_LOCAL_VALIDATION_PENDING`。
 - Node 新增数据表示测试总数由 292 到 293，**不是**为通过而删减或更换旧 292 项；同一次独立 Node 51 项未变。没有缩小不可逆提交、Stop owner 和来源身份的安全保护。
+## R40.10.8-WEB：实际发布阻塞更新、Developer CI 来源覆盖与四环境证据边界（2026-10-22）
+
+### 原始产品目标与七项目标（永久保留）
+普通用户选择 Controller JS/ESM/Classic、Page JS/ESM、React JSX/Vue SFC 或 Local Project，编写**当前源码**后直接 Run、看到真实返回和对应执行结果，再 Stop；普通 Run 不要求 Revision、Candidate、正式安装或目录扫描。必须保护原固定编译器、RunHost、Authority、Host/SDK、唯一执行槽、ownedRunId/sourceHash、previewId/documentId、bindingId/Provider epoch、冻结源码、撤权与迟到回执、不可逆 Host 提交后禁止假取消、未知执行效果禁止自动重试，以及安装/更新/历史/下载。
+
+七个验收目标：①主编辑器仅协调与 UI 投影；②Controller/Page/Component/Local 各归唯一原业务 owner；③当前源码直接 Run/Stop；④删重复刷新、状态缓存、回调链、React Snapshot patch；⑤唯一 RunHost/Authority/Host/SDK/执行槽；⑥**完整生产调用链**的维护复杂度有可审计下降；⑦权限、身份、Stop、不可逆提交及高级能力零退化。
+
+### P0：最新 main、可复用 Node 与真实发布错误（均按 SHA 绑定）
+- 起始冻结核对 HEAD `86076384b6ddb084ae3772c03d214d45e4028dd8`，后续并行 Agent 推进至 `f7ac8cea8ecb7578781105e07fe829683f739009`，本轮 Developer CI 路径覆盖提交的前一 HEAD `01a8ba6902226542de5c8aabf6364591ef186205`，提交 `98576db02460d625b03dd8ab95855d84676c0377`，直接 `main`、无分支/PR/Worktree/强推。
+- 当前 Developer 源码身份仍为 `src/ui/script-editor.js` Git blob `b12e444bf7e1fd15b045581ca7540e5df9e0adbf`（657 行）、`src/ui/develop-view.js` blob `24bbd8c13cdd3e17fae3439c5a3f57ccbd0b048b`（67 行）；四环境原业务 owner 源码未在 c5506fd→98576db 范围内改变。共享正式 React root `src/ui/react/main.tsx` 曾因 Bookmark 样式属主修正 +1/-2，非 Developer 执行 owner 改写，仍须相关新 CI。
+- R40.10.7 原始 GitHub Actions https://github.com/shopable-ai/opendesk-browser/actions/runs/39625966312 、developer-node Job 119311173285 已**最终完成 success**：独立 Task Workbench 51 PASS/0 FAIL，六文件综合 293 PASS/0 FAIL，两个 TAP 都正常退出，无 MessagePort。仅代表精确当时输入的 Node Fixture；不冒充 Native、Chrome 或 Provider。
+- 旧 Developer Release Smoke Job 119311173812 失败原因为 Prompt Shortcuts 固定来源身份：`[opendesk-fixed-marketplace]` + `examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js`。随后 `scripts/bundle-provenance.mjs` 等由对应外部 owner 调整，不能把**旧 SHA**的失败写作新 HEAD 结论。
+- 新的主线实际 WXT Release 构建：Actions https://github.com/shopable-ai/opendesk-browser/actions/runs/39638911361、audit Job 119356972250，绑定 `86076384b6ddb084ae3772c03d214d45e4028dd8`，经过来源图检查后在 `ui/tool-shell.js` 真实字节守卫失败：**1,098,124 B > 1,081,344 B**，超出 **16,780 B**；不是旧 Prompt Shortcuts 来源错误，也不是 Developer Run/Stop 失败。
+- 此后**其它并行提交** `f7ac8cea8ecb7578781105e07fe829683f739009` 已将 `scripts/build-contract.mjs` 的 Tool Shell production/development cap 更新为 `3 * 1024 * 1024` B；保留每入口预算检查、SW 独立预算和来源 pin 守卫。R40.10.8 **没有重复改动共享构建预算**。更高预算不是已完成构建的证据：必须等新精确 SHA 的实际 build Job，不能沿用旧 860 的 16,780 B 超额。
+- 另一共享 UI 工作流 https://github.com/shopable-ai/opendesk-browser/actions/runs/39641335083、Job 119366132513 绑定 f7ac，失败 `Unexpected build policy contract`，属于共享构建预算合同与对应测试同步的外部 owner 事项；不是 Controller/Page/Local 执行断言。禁止用关闭检查或回退 3 MiB 的方式造假。该失败独立于 Developer Release Smoke。
+- Developer 新 Actions https://github.com/shopable-ai/opendesk-browser/actions/runs/39641785654 已由本轮提交触发，developer-node Job 119366909740、developer-release-smoke Job 119366909874；**首次查询两者 QUEUED**，不得将排队视为 PASS。若后续读到实证，请追加 SHA/Job/conclusion/TAP，不倒填历史结论。
+
+### P1：实际实施（提交及 owner 边界）
+- 直接在 `main` 修改原 Developer 工作流 `.github/workflows/developer-r362.yml`，提交 `98576db02460d625b03dd8ab95855d84676c0377`（`ci(developer): gate owner source and fixed bundle changes on main`）。
+- 精确改动：**1 个原有工作流文件、+16/-0**，增加 `src/ui/develop-view.js`、`develop-fields.js`、Controller Draft/Classic、Page Preview/Component Preparer/Remote/Dependencies、Local Run/View、`src/run-host.js`、`scripts/build-contract.mjs`、`scripts/bundle-provenance.mjs`、`wxt.config.mjs` 等与四环境及发布关联的 push path 触发器；无新 CI job、Runtime、Store、Host、Manager、源码执行通道、隐藏重试或生产状态。
+- 修复的实际缺口：原 Developer 工作流缺失 `develop-view.js`、四环境执行 owner、固定构建预算等变更触发，即对应源码有变动却可能没有新 Developer CI。现在相关 main 改动可自动获得独立 Developer Node 与 Release Smoke 门禁。
+- 其它扩展 owner 的 Trusted 源码、固定来源 pin、Marketplace guard 均未擅自改动。文档仅使用既定 `docs/framework/workstreams/developer-r40.10-web-20261021.md`，无平行报告。
+
+### P2：四环境 Run/Stop 实际证据层级
+
+| 环境 | 原执行 owner 和关键安全身份 | 直接当前源码 Run/Stop | 本轮独立验收 |
+|---|---|---|---|
+| Controller JS/ESM/Classic | `controller-draft-run.js` → 既有 RunHost，`ownedRunId`、编译/Classic 固定来源、不可逆提交边界 | 源码路径已静态核对，Revision 非普通 Run 前置 | NODE_PASS@c5506fd；安装版 Run/Stop NOT_TESTED |
+| Page JS/ESM | `page-preview-flow.js`，原 documentId/previewId/target 与 USER_SCRIPT，撤权/导航/late receipt | 源码路径静态核对，Candidate 保存独立于普通 Run | NODE_PASS@c5506fd；真实 Chrome Page NOT_TESTED |
+| React JSX/Vue SFC | `page-preview-flow.js` + `page-component-remote.js` + 原编译器/受管挂载，Stop 清原 owner | 源码路径静态核对，不通过新增 Runtime | NODE_PASS@c5506fd；真实 DOM 挂载/Stop NOT_TESTED |
+| Local Project | `local-project-run.js` + `local-project.js` 原 Provider，bindingId、epoch、冻结字节 | 源码路径静态核对，离线断连/重连未在真实 Provider 验证 | NODE_PASS@c5506fd；真实 Provider NOT_TESTED |
+
+Node Fixture 的身份/Stop 断言仍不等于真实运行。此次没有绕过 Chrome 真用户手势；没有把源码/网站在准备期间变化的失效验证降级；没有声明 Host 已提交后的取消成功。
+
+### P3：精确协调减法与全生产复杂度
+- `src/ui/script-editor.js` 仍 657 行（约 604 行非空且非独立注释），未改动 Blob。178–250 的 context/UI 动态投影和共享执行槽检查、273–283 同步 Run 分发、284–345 Candidate 固定源码与准备保存、376–398 导入 Candidate 的双阶段异步变化检查、450–494 按执行环境失效、540–559 owner Stop 与取消准备、587–657 项目导入/Provider 接入/API/dispose 均有现存合同与不同业务 owner 的协调依赖；在没有对应失败或等价证明的前提下**没有机械截短**。
+- R40.10.7 21 个代表性 Developer 生产文件仍计 **4133 行**；本次这 21 个原文件 **+0/-0/净 0**（与 c5506fd 比较），Dev 工作流另 **+16/-0/净 +16**，不计入生产行数。c5506fd→98576db 全仓另有多个并行改动，包括 Shared React root 小幅减少、构建来源守卫及预算变更，不能归功本轮 Developer，也不能将 21 文件误称为全业务树。
+- 本次无新增运行状态、定时器、回调链、二级 Snapshot、跨环境执行入口或额外 Host，减少的是**CI 关键输入未覆盖造成的可观测性盲点**，而非已测的生产 LOC。R40.10.7 相同标量 React Snapshot patch 减法及 293 项回归原样复用。**七项目标第 6 项：全生产依赖图维护复杂度下降，仍 NOT_PROVEN**，不能凭 editor 由 1231→657 行或此次 Workflow 增加 16 条 path 就认定 PASS。
+
+### P4：七项目标、分层门禁、评分与 R40.11-LOCAL
+1. PARTIAL — 主 editor 已不持有四环境执行详情，但 Candidate/import/shared context 仍有必要协调。
+2. PARTIAL — 唯一 Controller/Page/Component/Local 原 owner 静态链成立，真实四环境未验证。
+3. PARTIAL — 当前源码 Run/Stop 无 Revision/Candidate/安装强制前置，缺 installed end-to-end。
+4. PARTIAL — 相同标量快照去重已 NODE_PASS，未证明全链重复刷新和无效状态全面消除。
+5. PASS_SOURCE_ONLY（验收归类为 PARTIAL）— 单一 RunHost/Authority/Host/SDK/槽静态结构保留，但 Native/Chrome 尚未验收。
+6. FAIL_NOT_PROVEN — 完整生产调用链维护复杂度净下降尚缺可审计证据。
+7. PARTIAL — 身份/权限/不可逆提交/Stop/未知效果与高级能力有 Node 合同，缺真实 Native/Chrome/Provider。
+
+分层门禁：Node = PASS@c5506fd（新工作流 Job 119366909740 首查 QUEUED）；Developer CI = PENDING@98576db；Release = 旧 SHA FAIL、3 MiB 新来源待实测；Linux installed MV3 Chrome = NOT_TESTED@98576db；Mac Chrome = NOT_TESTED；Native = NOT_TESTED；真实 Local Provider = NOT_TESTED。
+
+六维保守证据评分：产品路径 87；四环境业务所有权 86；协调简洁度 84；全生产维护复杂度 76；身份权限与 Stop 安全 89；真实交付证据 75。**平均 82.8，最低 75，未达 ≥95**，不可升级为 `WEB_IMPLEMENTED_LOCAL_VALIDATION_PENDING`。阶段仍为 **WEB_PARTIAL**。
+
+**R40.11-LOCAL 最短 Codex 入口**：Mac `/Users/shopme/Documents/workspace/opendesk-browser` 只使用原 main、无分支/Worktree/破坏性操作；先 `git status --short`、核查 HEAD 与本日志再 `npm run check` / `npm run build:developer`（复用已有成功证据，失败才读取源码）；安装真实开发版 MV3 Chrome，依次 Controller Classic/ESM、Page JS/ESM、React/Vue、真实 Local Provider 进行「当前源码 Run → 实际结果与身份读回 → Stop」，仅测相关导航/权限撤销/源码变化/Provider epoch/未知回执；输出截图与日志中的 ownedRunId/sourceHash/previewId/documentId/bindingId、每环境 PASS/FAIL/NOT_TESTED。Linux Chrome shell 只证明 shell，不得冒充四环境或 Mac Native。先处理最新构建门禁及相关 CI，否则保持 BLOCKED。
