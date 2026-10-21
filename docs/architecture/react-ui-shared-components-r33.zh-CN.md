@@ -1,5 +1,15 @@
 # OpenDesk Browser · 统一 React Side Panel 与自定义工具兼容合同（R33.1）
 
+## Conversation R1.5 · WEB_PARTIAL 增量修复（2026-10-21）
+
+**本节高于下方 R1.4 历史源码候选的实施状态，但不改变其原始产品目标。** 仍是书签首个真实业务试点：上方原书签管理器、下方共享可信 React Dock，Provider 只提议，Bookmark Service 与 SDK/Host 决定真实写入与读回。没有第二 Provider、Root、Chat iframe 或可执行动态 JSX 提权。
+
+本轮 main 已提交：模型请求的独立撤权 Abort 与代际校验、HTTPS/Native 每写前权限复验、写入回执实际 ID 的 React 树定位（尊重用户中途滚动/搜索并提供查看入口）、当前网页 URL 归一、IM 输入法组合保护和增量 Node/Chromium 回归用例。**这是源码变更事实，不是运行测试 PASS。**
+
+**关键边界：** 模型侧失权用 `E_MODEL_GRANT_REVOKED`，不得当作 Chrome Bookmarks Host 授权丢失而清空原树；已发出写入即使取消也须实际读回，UNKNOWN 禁止盲目重试。完整细节、未完成项、同源预览生成命令及分级测试账本见 [Conversation R1.5 WEB closeout](../framework/workstreams/conversation-r15-web-closeout-20261021.md)。
+
+**当前交付状态：`WEB_PARTIAL`。** 定向测试文件和 Chromium 用例已提交，但本环境未执行 Node、WXT、真实 Chromium、真实模型或本地 Mac Chrome。已提交的 `preview/index.html` 是旧版；待 `preview/react/build-preview.mjs` 生成新 `preview/dev.html` 并通过真实 Chromium 审批后才发布。第二试点 `PROMPT_SHORTCUTS_NOT_IMPLEMENTED`。
+
 ## Conversation R1.4 · 可信 React 底部 Dock（2026-10-21 源码候选）
 
 **原始产品目标不可缩减：** 用户保持原扩展界面可见，在底部对话区提出自然语言操作；AI 经现有 Workflow Provider 提议，扩展审计过的业务 Adapter 调用原 Service/SDK/Host，写后读回核验后原界面即时更新。首个真实业务试点为 Bookmark Manager；Prompt Shortcuts 为优先的第二试点，尚未完成准入和接入，不能当作正式 PASS。
