@@ -39,9 +39,10 @@ async function generate(){
  for(let attempt=0;attempt<3;attempt++){
   const before=await inputFingerprint();
   await build({configFile:join(here,'vite.config.mjs'),logLevel:'error',clearScreen:false});
-  const [out,bundle,style,tokens,designSystem,mock,model,service,main,app]=await Promise.all([
+  const [out,bundle,style,previewShell,tokens,designSystem,mock,model,service,main,app]=await Promise.all([
    read(approved),read(join(here,'dist/bookmark-react.js')),
-   read(join(here,'dist/bookmark-react.css')),read(join(root,'src/ui/design-tokens.css')),
+   read(join(here,'dist/bookmark-react.css')),read(join(here,'src/preview-shell.css')),
+   read(join(root,'src/ui/design-tokens.css')),
    read(join(root,'src/ui/design-system.css')),
    read(join(root,'scripts/preview/bookmark-manager-mock.js')),
    read(join(toolDir,'src/model.js')),read(join(toolDir,'src/service.js')),
@@ -62,11 +63,13 @@ async function generate(){
    '<meta name="viewport" content="width=device-width,initial-scale=1">'+
    '<meta http-equiv="Content-Security-Policy" content="default-src &#39;none&#39;; script-src data: &#39;unsafe-inline&#39;; style-src data: &#39;unsafe-inline&#39;; img-src data:; connect-src &#39;none&#39;; object-src &#39;none&#39;; base-uri &#39;none&#39;; form-action &#39;none&#39;">'+
    '<link rel="stylesheet" href="data:text/css;base64,'+encoded(tokens+'\n'+designSystem+'\n'+style)+'">'+
+   // Fixture-only chrome: same immutable preview source, separate from product CSS.
+   '<link rel="stylesheet" data-preview-shell="offline-only" href="data:text/css;base64,'+encoded(previewShell)+'">'+
    '<style>html,body{height:100%;width:100%;margin:0;overflow:hidden}</style>'+
    '</head><body><div id="tool-root" data-react-root="bookmark-r304" aria-label="书签管理" style="height:100vh;min-height:0;overflow:hidden"></div>'+
    '<script>globalThis.__opendeskPreviewScenario="success";</script>'+scripts+'</body></html>';
   assert.equal((frame.match(/data:text\/javascript;base64,/g)||[]).length,4);
-  const reactFiles={bundle:sha(bundle),css:sha(style),designSystem:sha(designSystem),model:sha(model),service:sha(service),mock:sha(mock),app:sha(app),main:sha(main)};
+  const reactFiles={bundle:sha(bundle),css:sha(style),previewShell:sha(previewShell),designSystem:sha(designSystem),model:sha(model),service:sha(service),mock:sha(mock),app:sha(app),main:sha(main)};
   const manifest={...oldManifest,previewBuild:'R1.7 COMPACT DOCK REACT OFFLINE CANDIDATE',
    reactRuntime:true,reactFiles,reactFrameSha256:sha(frame),
    previewCandidate:'REACT_SOURCE_BOUND_OFFLINE_MOCK',
