@@ -182,6 +182,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     host.hidden=contentTop+13>safeBottom;
   }
   let placement=readTocPlacement(initialPlacement),drag=null,disposed=false;
+  let restoredForContent=false;
   function applyPoint(left,top) {
     const point=tocClampPoint(left,top,host.getBoundingClientRect(),tocViewport(win));
     host.style.left=point.left+'px';host.style.top=point.top+'px';
@@ -196,6 +197,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   function setPlacement(next,{persist=false}={}) {
     if(drag||disposed)return;
     placement=readTocPlacement(next);
+    restoredForContent=true; // User drag/reset or external preference now owns the position.
     if(placement)reposition();
     else {
       for(const side of ['left','top','right','bottom'])host.style.removeProperty(side);
@@ -309,6 +311,12 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
       else button.removeAttribute('aria-current');
     }
     empty.hidden=show.length>0;
+    if(placement&&!restoredForContent&&scoped.length){
+      // The view mounted before its first snapshot. Resolve persisted Y once
+      // against the REAL outline height, not the empty 60px loading header.
+      host.style.removeProperty('--toc-scroll-limit');
+      reposition();restoredForContent=true;
+    }
     place();
     const current=list.querySelector('[aria-current="location"]');
     if(current){

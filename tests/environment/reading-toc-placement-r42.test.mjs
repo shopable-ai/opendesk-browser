@@ -306,7 +306,7 @@ test('R1.9.3 four in-page modes keep the toolbar Y while content height changes'
       return base;
     };
     const view=createReadingTocView({doc:f.doc,win:f.win,
-      initialPlacement:{v:1,dock:'right',x:1,y:.48},
+      initialPlacement:{v:1,dock:'right',x:1,y:.95},
       onNavigate:id=>navigations.push(id)});
     const items=Array.from({length:32},(_,i)=>({
       id:'h-'+i,sourceId:'s-1',label:'章节 '+i,
@@ -316,6 +316,9 @@ test('R1.9.3 four in-page modes keep the toolbar Y while content height changes'
       overview:{'s-1':{ids:['h-0','h-8','h-16','h-24'],representedId:'h-0'}}});
     const panel=f.host().shadow.children[0],modes=panel.children[0].children[1].children;
     const baseline=f.host().getBoundingClientRect().top;
+    assert.equal(f.host().hidden,false,'a low saved position must recover when the first real outline arrives');
+    assert(Number.parseFloat(f.host().style['--toc-scroll-limit'])>100,
+      'restored first outline must keep useful scrollable content');
     for(const index of [0,2,3,1,0,3,2,1]){
       modes[index].fire('click');
       for(const callback of resizeCallbacks)callback([{target:panel}]);
