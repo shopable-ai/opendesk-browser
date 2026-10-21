@@ -21,6 +21,8 @@ description: Build, validate, synchronize and install portable OpenDesk Sidebar 
 4. 首先检查工具项目的 `tool.config.json`、`src/index.html`、`src/style.css`、`src/main.js`（如有 `files.dependencies` 也检查）。`tool.config.json` 是输入，`<id>.opendesk-tool.json` 才是可导入文件；后者不是 Chrome Manifest，也不是第二份可以手工编辑的源码。
 5. 正式发布时审核源码/版本/许可证/权限差异。Cookie 等敏感数据和密钥不能出现在构建输入、提交文件、日志或交付包中。
 
+**发行级别审查**：依据[宿主解耦合同与 AdBlock / Stay Focus 最新源码审计](../../../docs/architecture/browser-framework/sidebar-tool-host-decoupling.zh-CN.md)先区分 `tool.config.json` 声明的 UI/有界 `backgroundPolicy` 数据与 `trusted/` 中随 Browser 固定编译的 SW、DNR、Content/Host 代码。候选 JSON 版本提升只证明相应包字节改变，不证明固定后台规则/算法随包升级。对 Stay Focus 的 `site-budget.v2`、AdBlock 的固定名单与受限手动 cosmetic 策略分别检查 Host 能力、授权/资源归属和同一 Browser build 的原生读回；正式 JSON、生产 Browser、Chrome 安装各自独立给证据。
+
 ## R32.3：容量可调整，安全机制不跳过
 
 用户于 2026-10-15 明确允许重评和调整早期 AI 设置的工具容量。现行政策与来源见 [UI 架构文档](../../../docs/architecture/browser-ui-r23.zh-CN.md)，不在 Skill 新建另一份容量数值表。
