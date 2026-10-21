@@ -1,0 +1,40 @@
+name: My AI Task Agent R1.1 - verified contract regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/ui/my-task-agent.js'
+      - 'src/ui/workflow/workflow-view.js'
+      - 'src/ui/workflow/provider.js'
+      - 'src/ui/react/tabs/my-agent.tsx'
+      - 'tests/environment/my-task-agent-r1.test.mjs'
+      - 'tests/environment/opendesk-conversation-r21-agent-loop.test.mjs'
+      - 'src/platform/tasks/schedule-*.js'
+      - '.github/workflows/my-task-agent-r11.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  task-agent-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: My AI agent read-confirm-edit and failure regression (simulated Host)
+        run: node --test tests/environment/my-task-agent-r1.test.mjs
+      - name: Existing bookmark Agent loop compatibility
+        run: node --test tests/environment/opendesk-conversation-r21-agent-loop.test.mjs
+      - name: Real schedule repository and Host contract unit regression
+        run: node --test tests/environment/scheduled-tasks-r1.test.mjs
+      - name: Source trust boundary and production build
+        run: |
+          npm run check
+          npm run build
+      - name: Native Mac Chrome evidence boundary
+        if: always()
+        run: echo "MAC_CHROME_MY_TASK_AGENT=NOT_TESTED; these jobs do not assert installed native acceptance"

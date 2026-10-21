@@ -7,8 +7,13 @@ import {presentTaskValue} from './task-run-diagnostics.js';
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const allowed=new Set(['list_tasks','get_task','task_history','run_task','stop_task',
   'set_task_enabled','list_schedules','get_schedule','schedule_history',
-  'create_schedule','change_schedule']);
-const changes=new Set(['run_task','stop_task','set_task_enabled','create_schedule','change_schedule']);
+  'create_schedule','change_schedule','edit_schedule']);
+const changes=new Set(['run_task','stop_task','set_task_enabled','create_schedule','change_schedule','edit_schedule']);
+const scheduleEditKeys=new Set(['title','params','targetUrl','timezone','triggerKind',
+  'triggerSpec','paused','openIfMissing','misfirePolicy','startDeadlineMs']);
+const scheduleIdentityKeys=['scheduleId','generation','taskId','version','manifestHash',
+  'sourceHash','installationId','taskGeneration','revision'];
+const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const clip=(value,max=300)=>String(value??'').slice(0,max);
 const plain=value=>Boolean(value&&typeof value==='object'&&!Array.isArray(value)&&
   (Object.getPrototypeOf(value)===Object.prototype||Object.getPrototypeOf(value)===null));
@@ -38,14 +43,15 @@ export function validateMyTaskAgentProposal(proposal){
       set_task_enabled:['type','taskId','enabled'],list_schedules:['type'],
       get_schedule:['type','scheduleId'],schedule_history:['type','scheduleId','limit'],
       create_schedule:['type','taskId','title','params','targetUrl','timezone','triggerKind','triggerSpec','paused'],
-      change_schedule:['type','scheduleId','operation']
+      change_schedule:['type','scheduleId','operation'],
+      edit_schedule:['type','scheduleId','changes']
     }[item.type];
     if(Object.keys(item).some(key=>!fields.includes(key)))
       throw fail('E_AI_SCHEMA','操作包含未授权的额外参数');
     if(changes.has(item.type))writes++;
     if(['get_task','task_history','run_task','stop_task','set_task_enabled','create_schedule'].includes(item.type))
       requireId(item.taskId,'任务 ID');
-    if(['get_schedule','schedule_history','change_schedule'].includes(item.type))
+    if(['get_schedule','schedule_history','change_schedule','edit_schedule'].includes(item.type))
       requireId(item.scheduleId,'计划 ID');
     if(item.query!==undefined)requireString(item.query,'搜索词',200);
     if(item.currentPageOnly!==undefined&&typeof item.currentPageOnly!=='boolean')
@@ -65,6 +71,27 @@ export function validateMyTaskAgentProposal(proposal){
         requireString(item[key],key,2048);
       if(!plain(item.triggerSpec)||typeof item.paused!=='boolean')
         throw fail('E_AI_SCHEMA','计划时间规则或暂停状态不完整');
+    }
+    if(item.type==='edit_schedule'){
+      const patch=item.changes;
+      if(!plain(patch)||!Object.keys(patch).length||
+        Object.keys(patch).some(key=>!scheduleEditKeys.has(key))||
+        JSON.stringify(patch).length>9000)
+        throw fail('E_AI_SCHEMA','计划编辑必须包含受支持的非空修改字段');
+      for(const key of ['title','targetUrl','timezone','triggerKind'])
+        if(Object.hasOwn(patch,key))requireString(patch[key],key,2048);
+      if(Object.hasOwn(patch,'params')&&!plain(patch.params)||
+        Object.hasOwn(patch,'triggerSpec')&&!plain(patch.triggerSpec))
+        throw fail('E_AI_SCHEMA','参数和触发规则必须是明确的对象');
+      for(const key of ['paused','openIfMissing'])
+        if(Object.hasOwn(patch,key)&&typeof patch[key]!=='boolean')
+          throw fail('E_AI_SCHEMA',key+'必须是布尔值');
+      if(Object.hasOwn(patch,'misfirePolicy')&&
+        !['skip','latest-within-hour'].includes(patch.misfirePolicy)||
+        Object.hasOwn(patch,'startDeadlineMs')&&
+        (!Number.isSafeInteger(patch.startDeadlineMs)||patch.startDeadlineMs<60000||
+          patch.startDeadlineMs>3600000))
+        throw fail('E_AI_SCHEMA','计划补偿规则或截止时间不合法');
     }
     return structuredClone(item);
   });
@@ -136,6 +163,35 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
     });
   }
   async function schedules(){const result=await client.request('listSchedules',{});return result.schedules||[];}
+  const schedulePin=row=>Object.fromEntries(scheduleIdentityKeys.map(key=>[key,row[key]]));
+  // LLM observations omit stored parameter values, owner tokens and installation
+  // records. Edit is an allowlisted patch merged with the persisted Host record.
+  const summarizeSchedule=row=>({
+    scheduleId:row.scheduleId,title:row.title,taskId:row.taskId,version:row.version,
+    generation:row.generation,paused:row.paused,timezone:row.timezone,
+    triggerKind:row.triggerKind,triggerSpec:row.triggerSpec,targetUrl:row.targetUrl,
+    openIfMissing:row.openIfMissing,misfirePolicy:row.misfirePolicy,
+    startDeadlineMs:row.startDeadlineMs,needsAttention:row.needsAttention,
+    parameterNames:Object.keys(row.params||{}).slice(0,16)
+  });
+  const buildScheduleEdit=(before,patch)=>validateScheduleInput({
+    scheduleId:before.scheduleId,expectedGeneration:before.generation,
+    title:patch.title??before.title,
+    taskId:before.taskId,version:before.version,manifestHash:before.manifestHash,
+    sourceHash:before.sourceHash,installationId:before.installationId,
+    taskGeneration:before.taskGeneration,
+    ...(before.revision==null?{}:{revision:before.revision}),
+    ...(before.owner?{owner:before.owner}:{}),
+    params:{...before.params,...(patch.params||{})},
+    targetUrl:patch.targetUrl??before.targetUrl,
+    openIfMissing:patch.openIfMissing??before.openIfMissing,
+    timezone:patch.timezone??before.timezone,
+    triggerKind:patch.triggerKind??before.triggerKind,
+    triggerSpec:patch.triggerSpec??before.triggerSpec,
+    misfirePolicy:patch.misfirePolicy??before.misfirePolicy,
+    startDeadlineMs:patch.startDeadlineMs??before.startDeadlineMs,
+    paused:patch.paused??before.paused
+  });
   async function read(action){
     switch(action.type){
       case 'list_tasks': {
@@ -160,15 +216,11 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
       case 'get_task':return summarizeTask(taskInfo(await tasks(),action.taskId));
       case 'task_history':return {taskId:action.taskId,
         records:await runHistory(action.taskId,action.limit)};
-      case 'list_schedules':return {schedules:(await schedules()).slice(0,100).map(v=>({
-        scheduleId:v.scheduleId,title:v.title,taskId:v.taskId,paused:v.paused,
-        timezone:v.timezone,triggerKind:v.triggerKind,triggerSpec:v.triggerSpec,
-        targetUrl:v.targetUrl,generation:v.generation,needsAttention:v.needsAttention
-      }))};
+      case 'list_schedules':return {schedules:(await schedules()).slice(0,100).map(summarizeSchedule)};
       case 'get_schedule': {
         const row=(await schedules()).find(v=>v.scheduleId===action.scheduleId);
         if(!row)throw fail('E_SCHEDULE_NOT_FOUND','找不到该计划：'+action.scheduleId);
-        return row;
+        return summarizeSchedule(row);
       }
       case 'schedule_history': {
         const row=(await schedules()).find(v=>v.scheduleId===action.scheduleId);
@@ -199,6 +251,9 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
       case 'change_schedule':return '计划「'+action.scheduleId+'」'+
         ({pause:'已暂停',resume:'已恢复',delete:'已删除'})[action.operation]+
         '，已重新读取计划列表验证。';
+      case 'edit_schedule':return '计划「'+receipt.title+'」已更新并重新读取验证。'+
+        '计划编号：'+receipt.scheduleId+'；版本代次：'+receipt.generation+
+        '；状态：'+(receipt.paused?'已暂停':'已启用')+'。';
       default:return '操作已返回真实执行回执。';
     }
   };
@@ -212,6 +267,8 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
         ' '+clip(JSON.stringify(action.triggerSpec),300);
       case 'change_schedule':return ({pause:'暂停',resume:'恢复',delete:'删除'})[action.operation]+
         '计划 '+action.scheduleId;
+      case 'edit_schedule':return '编辑已有计划 '+action.scheduleId+'；修改内容 '+
+        clip(JSON.stringify(action.changes),1000);
       default:return action.type;
     }
   };
@@ -277,8 +334,10 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
       stopCheck(signal);
       const saved=await client.request('saveSchedule',input);
       const actual=(await schedules()).find(p=>p.scheduleId===saved?.scheduleId);
-      if(!actual||actual.taskId!==row.taskId||actual.title!==input.title||
-        actual.timezone!==input.timezone||actual.targetUrl!==input.targetUrl)
+      if(!actual||actual.scheduleId!==saved?.scheduleId||actual.generation!==1||
+        ['taskId','version','manifestHash','sourceHash','installationId','taskGeneration',
+          'title','params','targetUrl','timezone','triggerKind','triggerSpec','paused',
+          'openIfMissing','misfirePolicy','startDeadlineMs'].some(key=>!equal(actual[key],input[key])))
         throw fail('E_OUTCOME_UNKNOWN','计划写入结果尚未核实；请刷新计划列表，勿重复创建');
       onScheduleChange();
       return {scheduleId:actual.scheduleId,title:actual.title,paused:actual.paused,verified:true};
@@ -294,10 +353,48 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
         expectedGeneration:before.generation,action:action.operation});
       const after=(await schedules()).find(p=>p.scheduleId===before.scheduleId);
       const verified=action.operation==='delete'?!after:
-        Boolean(after&&after.paused===(action.operation==='pause'));
+        Boolean(after&&after.generation===before.generation+1&&
+          after.taskId===before.taskId&&after.paused===(action.operation==='pause'));
       if(!verified)throw fail('E_OUTCOME_UNKNOWN','计划修改结果无法确认；请刷新后再决定，不要重复提交');
       onScheduleChange();
       return {scheduleId:before.scheduleId,operation:action.operation,verified:true};
+    }
+    if(action.type==='edit_schedule'){
+      const before=(await schedules()).find(row=>row.scheduleId===action.scheduleId);
+      if(!before)throw fail('E_SCHEDULE_NOT_FOUND','该计划已不存在，未执行编辑');
+      assertPinned(before,expected);
+      const {row,candidate}=taskInfo(await tasks(),before.taskId);
+      if(!row.enabled||candidate.stage!=='available')
+        throw fail('E_PERMISSION','固定任务未启用或不再可用，禁止编辑原计划');
+      const resolved=await client.request('resolveInstalledTask',{taskId:before.taskId});
+      if(resolved.taskId!==before.taskId||resolved.version!==before.version||
+        resolved.manifestHash!==before.manifestHash||
+        resolved.contentHash!==before.sourceHash||
+        resolved.installationId!==before.installationId||
+        resolved.generation!==before.taskGeneration)
+        throw fail('E_REVISION','原计划绑定的任务版本或安装身份已变化，禁止替换为其他任务');
+      const input=buildScheduleEdit(before,action.changes);
+      input.params=validateTaskParams(candidate.manifest.paramsSchema,input.params);
+      const target=new URL(input.targetUrl);
+      if(!candidate.manifest.siteOrigins.includes(target.origin))
+        throw fail('E_TARGET','新目标网站不属于原固定任务许可范围');
+      if(!await api.permissions.contains({origins:[permissionPattern(input.targetUrl)]}))
+        throw fail('E_PERMISSION','原网站访问权限不足，请先从计划界面授权');
+      stopCheck(signal);
+      const receipt=await client.request('saveSchedule',input);
+      const after=(await schedules()).find(v=>v.scheduleId===before.scheduleId);
+      if(receipt?.scheduleId!==before.scheduleId||!after||
+        after.generation!==before.generation+1||
+        ['scheduleId','title','taskId','version','manifestHash','sourceHash',
+          'installationId','taskGeneration','params','targetUrl','openIfMissing',
+          'timezone','triggerKind','triggerSpec','misfirePolicy','startDeadlineMs',
+          'paused'].some(key=>!equal(after[key],input[key]))||
+        (input.revision!==undefined&&after.revision!==input.revision)||
+        !equal(after.owner??null,before.owner??null))
+        throw fail('E_OUTCOME_UNKNOWN','计划编辑结果无法读回核对；请到原计划界面检查，禁止直接重试');
+      onScheduleChange();
+      return {scheduleId:after.scheduleId,title:after.title,paused:after.paused,
+        generation:after.generation,verified:true};
     }
     throw fail('E_AI_SCHEMA','不允许的修改操作');
   }
@@ -356,14 +453,26 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
               continue;
             }
           }
-          if(action.type==='change_schedule'){
-            const plan=(await schedules()).find(v=>v.scheduleId===action.scheduleId);
-            if(!plan){
-              context.push({action:'change_schedule.preflight',
-                observation:{error:'计划不存在',code:'E_SCHEDULE_NOT_FOUND'}});
-              add('系统','计划已不存在，请重新查询。');continue;
+          if(['change_schedule','edit_schedule'].includes(action.type)){
+            try{
+              const plan=(await schedules()).find(v=>v.scheduleId===action.scheduleId);
+              if(!plan)throw fail('E_SCHEDULE_NOT_FOUND','该计划不存在');
+              if(action.type==='edit_schedule'){
+                const {row,candidate}=taskInfo(await tasks(),plan.taskId);
+                if(!row.enabled||candidate.stage!=='available')
+                  throw fail('E_PERMISSION','原任务已停用或不再可用');
+                const input=buildScheduleEdit(plan,action.changes);
+                validateTaskParams(candidate.manifest.paramsSchema,input.params);
+                if(!candidate.manifest.siteOrigins.includes(new URL(input.targetUrl).origin))
+                  throw fail('E_TARGET','编辑目标网站超出原任务许可范围');
+              }
+              expected={...schedulePin(plan),title:plan.title};
+            }catch(error){
+              context.push({action:action.type+'.preflight',
+                observation:{error:clip(error.message,280),code:error.code||'E_SCHEDULE'}});
+              verifiedHistory=context.slice(-8);
+              add('系统','计划执行前核查失败：'+clip(error.message,360));continue;
             }
-            expected={generation:plan.generation,taskId:plan.taskId,title:plan.title};
           }
           if(session.confirmed?.has(JSON.stringify(action))){
             add('系统','这一操作在当前请求中已确认过，拒绝再次自动执行。');
@@ -451,9 +560,12 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
   }
   function stop(){
     if(!session?.active)return;
+    const effectInFlight=snapshot.status==='executing';
     session.controller.abort(fail('E_CANCELLED','用户停止 AI'));
     void provider.cancel({signal:session.signal}).catch(()=>{});
     publish({busy:false,pending:null,status:'idle',step:''});
+    if(effectInFlight)
+      add('系统','AI 已停止后续操作。此前确认的任务或计划可能已经提交；请先核对实际运行历史或计划状态，勿直接重试。');
     session.active=false;
   }
   return Object.freeze({
