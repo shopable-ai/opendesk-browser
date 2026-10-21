@@ -80,6 +80,59 @@ function fixture(installed=[tool()]){
     tick:ms=>{time+=ms;},setUrl:v=>{url=v;},allow:v=>{permissions=v;},
     fault:v=>{dropNative=v;},faultAlarm:v=>{dropAlarm=v;}};
 }
+test('compatibility probe admits the original live Side Panel installer before installation',async()=>{
+  const f=fixture([]);
+  const result=await f.service.dispatch({protocol:MANAGED_SITE_BUDGET_PROTOCOL,
+    toolId:id,operation:'probe'},f.sender);
+  assert.deepEqual(result.managedSiteRuntime.policyKinds,['site-budget.v2']);
+  assert.equal(result.managedSiteRuntime.privilegedJs,false);
+  assert.equal(f.local.has(MANAGED_SITE_BUDGET_STORE),false,'read-only admission must not create owner resources');
+});
+test('compatibility probe resolves Chrome Side Panel omitted fields only from a unique live native context',async()=>{
+  const f=fixture([]),message={protocol:MANAGED_SITE_BUDGET_PROTOCOL,toolId:id,operation:'probe'};
+  const sender={id:f.sender.id,url:f.sender.url,origin:'chrome-extension://'+f.sender.id};
+  const context={contextType:'SIDE_PANEL',documentUrl:f.sender.url,documentId:f.sender.documentId,
+    frameId:0,incognito:false};
+  f.api.runtime.getContexts=async()=>[context];
+  assert.equal((await f.service.dispatch(message,sender)).managedSiteRuntime.privilegedJs,false);
+  for(const contexts of [[],[context,context],[{...context,frameId:1}],
+    [{...context,incognito:true}],[{...context,documentUrl:f.sender.url+'#foreign'}]]){
+    f.api.runtime.getContexts=async()=>contexts;
+    await assert.rejects(f.service.dispatch(message,sender),{code:'E_TOOL_SENDER'});
+  }
+});
+test('compatibility probe rejects foreign, framed, inactive and stale Side Panel documents',async()=>{
+  const f=fixture([]),message={protocol:MANAGED_SITE_BUDGET_PROTOCOL,toolId:id,operation:'probe'};
+  for(const patch of [{id:'foreign-extension'},{frameId:1},{documentLifecycle:'cached'},
+    {documentId:'retired-document'},{url:f.sender.url.replace('hostInstanceId=','untrusted=')},
+    {tab:{id:1,incognito:true}}]){
+    await assert.rejects(f.service.dispatch(message,{...f.sender,...patch}),{code:'E_TOOL_SENDER'});
+  }
+  f.api.runtime.getContexts=async()=>[];
+  await assert.rejects(f.service.dispatch(message,f.sender),{code:'E_TOOL_SENDER'});
+});
+test('missing native sender fields cannot transfer policy authority to a replacement document',async()=>{
+  const f=fixture(),sender={id:f.sender.id,url:f.sender.url};let liveDocument=f.sender.documentId;
+  f.api.runtime.getContexts=async()=>[{contextType:'SIDE_PANEL',documentUrl:sender.url,
+    documentId:liveDocument,frameId:0,incognito:false}];
+  const read=f.api.storage.local.get;
+  f.api.storage.local.get=async keys=>{const result=await read(keys);liveDocument='replacement-doc';return result;};
+  await assert.rejects(f.service.dispatch(await f.msg('setPolicy',{...settings,expectedRev:0}),sender),
+    {code:'E_TOOL_SENDER'});
+  assert.equal(f.local.has(MANAGED_SITE_BUDGET_STORE),false,'replacement must be rejected before mutation');
+});
+test('replacement after a native policy effect reports unknown instead of acknowledging another document',async()=>{
+  const f=fixture(),sender={id:f.sender.id,url:f.sender.url};let liveDocument=f.sender.documentId;
+  f.api.runtime.getContexts=async()=>[{contextType:'SIDE_PANEL',documentUrl:sender.url,
+    documentId:liveDocument,frameId:0,incognito:false}];
+  const save=f.api.storage.local.set;
+  f.api.storage.local.set=async values=>{await save(values);
+    if(values[MANAGED_SITE_BUDGET_STORE]?.[id]?.settings.enabled)liveDocument='replacement-doc';};
+  await assert.rejects(f.service.dispatch(await f.msg('setPolicy',{...settings,expectedRev:0}),sender),
+    {code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(f.local.get(MANAGED_SITE_BUDGET_STORE)[id].settings.enabled,true,
+    'an observed effect must not be silently replayed or declared absent');
+});
 test('bounded policy cannot accept unknown code, sites or missing CAS revision',()=>{
   assert.equal(validateSidebarToolPackage(tool()).backgroundPolicy.kind,'site-budget.v2');
   assert.equal(normalizeBrowserOperation('browser.siteBudget.setPolicy',

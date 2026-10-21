@@ -139,6 +139,11 @@ async function main(){
     const target=await until(async()=>(await client.send('Target.getTargets')).targetInfos.find(x=>x.url===context.documentUrl),'Side Panel target');sideTargetId=target.targetId;
     side=(await client.send('Target.attachToTarget',{targetId:sideTargetId,flatten:true})).sessionId;
     await client.send('Runtime.enable',{},side);await client.send('Page.enable',{},side);
+    report.hostDocument=await evalRead(client,side,'(async()=>({url:location.href,contexts:await chrome.runtime.getContexts({})}))()');
+    const identityProbe='native-sender-readback-'+randomUUID();
+    await evalRead(client,managerSession,`globalThis.nativeSenderReadback=(message,sender,respond)=>{if(message.protocol===${JSON.stringify(identityProbe)})respond(sender)};chrome.runtime.onMessage.addListener(globalThis.nativeSenderReadback);true`);
+    report.nativeMessageSender=await evalRead(client,side,`chrome.runtime.sendMessage({protocol:${JSON.stringify(identityProbe)}})`);
+    await evalRead(client,managerSession,'chrome.runtime.onMessage.removeListener(globalThis.nativeSenderReadback);delete globalThis.nativeSenderReadback;true');
     report.steps.realSidePanel='PASS';
     const helper=path.join(OUT,'owned-native-input');
     const compile=spawnSync('swiftc',['tests/framework/time-review-native-input.swift','-o',helper],{encoding:'utf8'});
@@ -147,12 +152,12 @@ async function main(){
     activity();
     const project=path.join(OUT,'fixture-source');await mkdir(path.join(project,'src'),{recursive:true});
     const policy={kind:'site-budget.v2',dailyMinutes:1,defaultSites:[],schedule:{enabled:false,days:[1,2,3,4,5],startMinute:540,endMinute:1020},suggestions:[{host:'example.com',name:'Example',category:'验收',suggestLimit:true,quick:false}]};
-    const config={id:'budget-fixture',version:'1.0.0',title:'Budget Fixture',description:'Existing public budget fixture native acceptance',capabilities:['browser.siteBudget'],files:{html:'src/index.html',css:'src/style.css',js:'src/main.js'},backgroundPolicy:policy};
+    const config={format:'opendesk.sidebar-tool.v2',id:'budget-fixture',version:'1.0.0',title:'Budget Fixture',description:'Existing public budget fixture native acceptance',capabilities:['browser.siteBudget'],requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]},files:{html:'src/index.html',css:'src/style.css',js:'src/main.js'},backgroundPolicy:policy};
     await writeFile(path.join(project,'tool.config.json'),JSON.stringify(config,null,2)+'\n');
     await writeFile(path.join(project,'src/index.html'),'<main><h1>网站预算验收</h1><p>仅用户确认后按已审核范围运行。</p><button id="read">读取状态</button><button id="enable">批准并开始一分钟预算</button><button id="stop">停止预算</button><pre id="status" aria-live="polite"></pre></main>');
     await writeFile(path.join(project,'src/style.css'),'main{font:14px system-ui;padding:12px}button{display:block;margin:12px 0;padding:8px}pre{white-space:pre-wrap;overflow-wrap:anywhere}');
     await writeFile(path.join(project,'src/main.js'),`const {root,request}=OpenDeskTool;const display=root.querySelector('#status');async function read(){const s=await request('browser.siteBudget.getStatus',{});display.textContent=JSON.stringify(s);return s;}function action(fn){return async()=>{try{await fn();}catch(e){display.textContent=JSON.stringify({error:e.code||'ERROR',message:e.message});}};}root.querySelector('#read').onclick=action(read);for(const [id,enabled] of [['enable',true],['stop',false]])root.querySelector('#'+id).onclick=action(async()=>{const s=await read();const r=await request('browser.siteBudget.setPolicy',{enabled,dailyMinutes:1,sites:['example.com'],schedule:{enabled:false,days:[1,2,3,4,5],startMinute:540,endMinute:1020},expectedRev:s.desiredPolicyRev});display.textContent=JSON.stringify(r);});read().catch(e=>display.textContent=JSON.stringify({error:e.code,message:e.message}));`);
-    const packageFile=path.join(OUT,'budget-fixture.opendesk-tool.json');await buildSidebarTool(project,{out:packageFile});
+    current='fixture-package';const packageFile=path.join(OUT,'budget-fixture.opendesk-tool.json');await buildSidebarTool(project,{out:packageFile});
     const packageBytes=await readFile(packageFile);report.fixturePackageSha256=createHash('sha256').update(packageBytes).digest('hex');
     current='install';await click(client,side,'#tab-tools');
     if(!await evalRead(client,side,'document.querySelector("#sidebar-tool-import")?.hidden===false')){await click(client,side,'#extension-center-more');await click(client,side,'#extension-center-import');}

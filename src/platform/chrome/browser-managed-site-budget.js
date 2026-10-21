@@ -14,6 +14,7 @@ import {normalizeManagedSiteBudgetSettings,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V
   from '../../ui/sidebar-tools/background-policy.js';
 import {writeVerifiedLocalValue,sameStorageValue} from '../../ui/sidebar-tools/storage-state.js';
 import {isSidebarToolHostSender} from '../../sidebar-tools/sender.js';
+import {resolveToolSender} from '../../environment.js';
 import {observeManagedForeground,settleManagedSiteBudget,reconcileManagedDynamicRules}
   from './browser-managed-site-policy.js';
 import {subscribeManagedSiteActivity} from './managed-site-lifecycle.js';
@@ -311,6 +312,8 @@ export function createManagedSiteBudgetService({
     permissionRevoked=false;
   }
   async function senderDocument(sender){
+    try{sender=await resolveToolSender(api,sender);}
+    catch{fail('E_TOOL_SENDER','可信应用宿主文档无法核实');}
     if(!isSidebarToolHostSender(api,sender)||sender.tab?.incognito||
        sender.frameId!==0&&sender.frameId!==undefined||
        sender.documentLifecycle&&sender.documentLifecycle!=='active'||
@@ -345,7 +348,7 @@ export function createManagedSiteBudgetService({
   async function dispatch(message,sender){
     if(!idPattern.test(message?.toolId)||!['probe','getStatus','setPolicy'].includes(message.operation))
       fail('E_SCHEMA','不支持的预算操作');
-    await (message.operation==='probe'?probeDocument(sender):senderDocument(sender));
+    const documentId=await (message.operation==='probe'?probeDocument(sender):senderDocument(sender));
     if(message.operation==='probe'){
       if(Object.keys(message).sort().join(',')!=='operation,protocol,toolId')
         fail('E_SCHEMA','探测报文不合法');
@@ -365,9 +368,11 @@ export function createManagedSiteBudgetService({
       const expectedRev=message.operation==='setPolicy'?message.args.expectedRev:null;
       if(message.operation==='getStatus'&&!plain(message.args)||message.operation==='getStatus'&&Object.keys(message.args).length)
         fail('E_SCHEMA','状态查询参数无效');
+      if(await senderDocument(sender)!==documentId)
+        fail('E_TOOL_SENDER','可信应用宿主文档已更换');
       const result=await reconcileLocked(message.toolId,{settings,expectedRev,
         expectedLease:{epoch:auth.epoch,hash:message.packageHash}});
-      try{await senderDocument(sender);}catch{
+      try{if(await senderDocument(sender)!==documentId)throw new Error('replaced host document');}catch{
         fail(message.operation==='setPolicy'?'E_OUTCOME_UNKNOWN':'E_TOOL_SENDER',
           '运行结果可能已经生效；请重新打开真实侧边栏读取后台状态');
       }
