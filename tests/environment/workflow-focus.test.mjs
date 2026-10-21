@@ -97,12 +97,12 @@ if(!vm.SourceTextModule) {
       parent.append(element);
       for(const child of raw.children||[])copy(child,element);
     };
-    copy($('#workbench-workflow')[0],doc.body);
-    copy($('#workflow-dock')[0],doc.body);
-    // The fixture represents the selected Workflow tab, not its initial hidden tab.
+    const current=$('#workbench-workflow')[0];
+    assert.ok(current?.type==='tag','fixture must be based on installed WorkflowPage JSX');
+    copy(current,doc.body);
+    // No retired workflow-dock or hidden provider <select> exists in real React.
+    // Source is kept by the production Controller snapshot and action facade.
     doc.getElementById('workbench-workflow').hidden=false;
-    doc.getElementById('workflow-dock').hidden=false;
-    doc.getElementById('workflow-ai-provider').value='local_codex';
     return doc;
   }
 
