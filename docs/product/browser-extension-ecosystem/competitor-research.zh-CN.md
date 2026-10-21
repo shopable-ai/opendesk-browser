@@ -231,3 +231,25 @@
 | C | Helium 10、Jungle Scout | 买家允许使用的导出 CSV，与业务规则比对丢失字段、重复 SKU、误报/漏报、人工复核时间，并对比既有卖家套件可得结果 | 竞品付费的核心是合法数据、市场洞察与持续报表，不是 CSV 基础校验；无授权数据与买家故 NOT_TESTED |
 
 **反方优先级**：先证伪 “A 很容易被 Obsidian 免费流程取代”、“B 维护成本超过受控实施收入”、“C 缺合法数据/现有表格功能已满足需求”，再考虑大规模功能开发。每家评论如未核到带日期的个体评论链接仍为 MISSING；不得根据 CWS 总评分杜撰缺陷主题、满意度或付费意愿。
+## R1.3-NATIVE-AND-BUYER · 2026-10-21 · 同任务竞品反证协议
+
+> 证据级别：**OFFICIAL_DOCS_VERIFIED / COMPETITOR_PRODUCT_NOT_TESTED**。本节为原竞品账本的增量，不新设竞品池、评分榜或 EXP。GitHub 主干源码对照基线：\`d3f88693b98cd9fcb143b17bd1bb88ece13af08a\`（仅研究时点，正式对照须以执行候选 SHA 为准）。没有本地 Chrome 环境、竞品登录试用、原始图片文件与逐家独立评论复核证据。
+
+### A / EXP-003：Obsidian、Readwise 必须比同一份**最终可交付文件**，不是只比保存按钮
+
+| 替代品 | 当日可从官方材料确认的能力（FACT_OFFICIAL） | 对「原图 + Markdown + 离线重开」的实证边界 | 对 OpenDesk 的反面判断 |
+| --- | --- | --- | --- |
+| [Obsidian Web Clipper](https://obsidian.md/help/web-clipper/capture) | 支持从网页选区或模板剪藏到本地 Obsidian；官方明确图片默认为远程 URL，需在 Obsidian 对笔记执行 **Download attachments for current file** 才取得附件 | **REAL_NATIVE_NOT_TESTED**：该官方步骤可能已足够可靠；尚未检查相同测试素材的下载 MIME、原始字节 SHA、Markdown 引用和断网重读 | 不能声称 OpenDesk 一键更好；若 Obsidian 的额外一步几乎无损且更可靠，缩减通用剪藏付费假设 |
+| [Readwise Reader](https://docs.readwise.io/reader/docs/faqs/exporting) | 官方支持注释 Markdown 导出、经同步连接投递笔记工具；可通过 **Export Full Files and Articles** 发起完整文件/文章 ZIP 的异步导出；[Reader 价格](https://readwise.io/pricing/reader)为 30 天试用，年付折算 USD 9.99/月、月付 USD 12.99/月 | **REAL_NATIVE_NOT_TESTED**：官方「注释 Markdown」「全库 ZIP」「本地原图按字节导出」是三种不同能力；ZIP 生成后以邮件送链接不能当作当前任务即时落盘；原图一致性、下载耗时与来源回读未知 | 收费价值可能在持续阅读、同步、复习，而非一键导出；没有实际同任务结果不得宣传 Readwise 缺少离线能力 |
+
+**冻结同任务输入**：由自愿测试者本人获准使用、无敏感信息的一条 AI 回答（含文字、代码/表格以及至少一张可核来源的生成原图）；仅同一浏览器、同一输入、同一时段比较，明确其来源 URL、图片 MIME、原始 bytes/SHA-256、任务起点和目标输出。若原始图无法合法取得，单独记录 \`ORIGINAL_ASSET_NOT_VERIFIED\`，不以缩略图充当原图。
+
+**冻结同任务输出**：① Markdown 存在并保留来源和结构；② 单独图片文件的真实 MIME/bytes/SHA-256；③ Markdown 中资源引用实际可解析；④ 保存完成与失败/不确定回执真实可信；⑤ 关闭再开、断网后再次读取实际文件（需得到用户许可的文件读回）；⑥ 记录独立操作数、耗时、人为补救、失败提示与后续复用。即使某产品只支持另一种产品交付形态，也应记录 \`NOT_EQUIVALENT\`，不能强行记零分。
+
+**当前结论**：Obsidian、Readwise 同任务已执行次数均为 **NOT_TESTED**；Chrome 真实文件与差异率均为 **MISSING**。本节不把官网功能介绍当作功能实测。先证明「完全原图离线文件+可靠状态回执」确实存在有意义的任务差异，再讨论收费。
+
+### B / C 的强替代与降级条件
+
+- **B / EXP-001**：Axiom 和 UI.Vision 已提供任务自动化。固定一站点、一条获准的 8 字段任务，比较每次成功后的**真实人工介入、错误恢复、撤权、站点升级维护小时和合同责任**；当前没有企业权限、客户预算与竞品实际执行，均为 \`NOT_TESTED\`。现有功能不能直接对应付费合同。
+- **C / EXP-005**：Helium 10、Jungle Scout 的卖家套件与「客户明确授权 CSV 的字段/重复 SKU/业务差异核对」可能不是同一功能层级；授权 CSV 与标准答案、付费买方均 \`MISSING\`，目前只作高价套件的替代证据，不做竞品 SKU 导出抓取或无许可比价。
+- **文档风险线**：竞品官网收费不代表其付费人数；CWS 安装数字不代表活跃，Keyword Planner 需要 US/en 与 JP/ja 两组真实官方导出；未经真正同任务对照不发布优劣比较页和品牌竞价广告。
