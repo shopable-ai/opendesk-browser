@@ -196,6 +196,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const modeProjection=JSON.stringify([componentMode,javascriptWorld,loadedPageSource,local,pageExecution,!!programSource.snapshot()]);
     if(modeProjection!==projectedMode){
       projectedMode=modeProjection;
+      // Component status text/visibility changes are already owned by componentMessage().
+      if(componentStatus)patchDeveloperField(view,componentStatus,{hidden:componentMode==='javascript'&&!componentStatus.textContent});
       if(find('script-javascript-world-row'))patchDeveloperField(view,find('script-javascript-world-row'),{hidden:componentMode!=='javascript'||!!localProject?.active()||!!programSource.snapshot()});
       view.patch('manual-project-params-tools',{hidden:pageExecution||local});
       view.patch('script-version-identity',{hidden:local});
@@ -234,7 +236,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
       (!controllerRunner?.ownedRunId || host.currentRun !== controllerRunner.ownedRunId);
     const stopLabel=preparing?'取消准备':canStopManaged()?'停止受管 UI':'停止';
     if(componentSelector)patchDeveloperField(view,componentSelector,{disabled:frameworkBusy()});
-    if(componentStatus)patchDeveloperField(view,componentStatus,{hidden:componentMode==='javascript'&&!componentStatus.textContent});
     const pageCandidateButton=find('page-candidate-save');
     if(pageCandidateButton)patchDeveloperField(view,pageCandidateButton,{disabled:!canSavePagePreview()&&!canPrepareComponentCandidate(),title:''});
     if(local&&find('task-create-candidate'))patchDeveloperField(view,find('task-create-candidate'),{disabled:true});
