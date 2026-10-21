@@ -1321,7 +1321,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  const SITE_STORAGE='opendesk.prompt-shortcuts.preview.sites.r24';
  const SITE_ROOT=()=>document.querySelector('.web-main');
  let currentSite='chatgpt',sitePath=SITE_DEMOS.chatgpt.path,previewRules=[],siteEnabled={},storageCorrupt=false;
- let verifiedRule='',pickTarget='',hoverPick=null,composing=false,siteBusy=false,lastSiteClick=0,siteDrafts={};
+ let verifiedRule='',pickTarget='',hoverPick=null,composing=false,siteBusy=false,lastSiteClick=0,lastSitePromptId=null,siteDrafts={};
  function readSiteStorage(){try{const raw=localStorage.getItem(SITE_STORAGE);if(!raw)return;const parsed=JSON.parse(raw);
    if(parsed?.schema!==1||!Array.isArray(parsed.rules)||parsed.rules.length>30||!parsed.enabled||typeof parsed.enabled!=='object')throw Error('schema');
    if(!parsed.rules.every(r=>r&&typeof r.origin==='string'&&typeof r.path==='string'&&typeof r.mount==='string'&&typeof r.editor==='string'&&typeof r.enabled==='boolean'&&typeof r.override==='boolean'))throw Error('rule');
@@ -1513,7 +1513,8 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  usePrompt=async function(item){if(!item.enabled||!state.toolEnabled||!state.settings.showBar||siteBusy)return;
    const found=resolveSite();if(!found.editor){notice('安全停止：'+found.error,'error');return;}
    if(composing){notice('正在使用输入法组合文字，已暂停插入','error');return;}
-   if(Date.now()-lastSiteClick<450)return;lastSiteClick=Date.now();siteBusy=true;
+   if(lastSitePromptId===item.id&&Date.now()-lastSiteClick<450)return;
+    lastSitePromptId=item.id;lastSiteClick=Date.now();siteBusy=true;
    const field=found.editor,before=readEditor(field);let expected=before;
    try{if(field instanceof HTMLTextAreaElement||field instanceof HTMLInputElement){
       const start=Number.isInteger(field.selectionStart)?field.selectionStart:before.length;
