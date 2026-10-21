@@ -20,6 +20,7 @@ import {writeVerifiedLocalValue} from './sidebar-tools/storage-state.js';
 import {describeSidebarToolBackgroundPolicyChange} from './sidebar-tools/background-policy-review.js';
 import {toolPageHref} from './sidebar-tools/navigation.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';
+import {normalizeToolNavigation} from '../sidebar-tools/navigation-state.js';
 import {createCookieImportIntentGate} from './sidebar-tools/cookie-import-intent.js';
 import {createCookieWriteIntentGate} from './sidebar-tools/cookie-write-intent.js';
 import {createCookieExportIntentGate} from './sidebar-tools/cookie-export-intent.js';
@@ -159,6 +160,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   });
   // Only the sandbox owns history; these are the current verified visual hints.
   let clipPage=null;
+  // A display-only page hint; the sandbox remains the only business history owner.
+  let toolNavigation=null,navigationAllowed=false;
   const actionReview=view.fields["sidebar-tool-action-review"],actionSummary=view.fields["sidebar-tool-action-summary"];
   const actionContinue=view.fields["sidebar-tool-action-continue"],actionCancel=view.fields["sidebar-tool-action-cancel"];
   let pendingAction=null,pendingPage=null;
@@ -673,6 +676,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   function destroyFrame() {
     if(frameExportPort){frameExportPort.onmessage=null;frameExportPort.close();frameExportPort=null;}
     toolDirty=false;toolSaving=false;frameDraft='';clipPage=null;
+    toolNavigation=null;navigationAllowed=false;
     nativePending=false;
     if(nativeUI){const old=nativeUI;nativeUI=null;try{old.dispose();}catch{}}
     if(frame){frame.onload=null;frame.remove();frame=null;}
@@ -976,10 +980,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       readingTocHostText(currentTocLocale,'readonly'):'只读预览'):''):''});
     patchToolField(view, title, {title: active?'v'+active.version:''});
     const clipNavigation=active?.id==='web-markdown-clipper'&&!!frame&&clipPage!==null;
-    if(clipNavigation)
-      patchToolField(view,title,{textContent:tocSettingsOpen?'工具设置':clipNavigationTitles[clipPage]});
-    const contextAction=clipNavigation&&!tocSettingsOpen?
-      ({library:'new',reader:'edit',edit:'save',new:'save'}[clipPage]||''):'';
+    const navigation=navigationAllowed&&frame&&toolNavigation?toolNavigation:null;
+    if(clipNavigation||navigation)
+      patchToolField(view,title,{textContent:tocSettingsOpen?'工具设置':
+        navigation?.title||clipNavigationTitles[clipPage]});
+    const contextAction=tocSettingsOpen?'':navigation?.primary||
+      (clipNavigation?({library:'new',reader:'edit',edit:'save',new:'save'}[clipPage]||''):'');
     const contextLabel=({new:'新建便签',edit:'编辑摘录',save:'保存摘录'})[contextAction]||'';
     patchToolField(view,primaryAction,{hidden:!contextAction,disabled:!contextAction||busy||toolSaving,
       title:contextLabel,data:{action:contextAction}});
@@ -1014,8 +1020,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       setToolFieldAttribute(view, menuButton, 'aria-label', menuButton.title);
     }
     renderTocSettings();
-    if(clipNavigation){
-      const label=tocSettingsOpen?'返回上一页':clipPage==='home'?'返回扩展列表':'返回上一级';
+    if(clipNavigation||navigation){
+      const label=tocSettingsOpen?'返回上一页':navigation?
+        (navigation.canBack?'返回上一级':'返回扩展列表'):
+        clipPage==='home'?'返回扩展列表':'返回上一级';
       patchToolField(view,backButton,{title:label});
       setToolFieldAttribute(view,backButton,'aria-label',label);
     }
@@ -1177,6 +1185,19 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         }
         if(!sameInstance(frame?.contentWindow,token))return;
       }
+      // Only the exact bundled official release can replace an in-tool header.
+      // Tool ID, claimed capability and same-ID manual installs are insufficient.
+      let approvedNavigation=false;
+      if(!readOnly){
+        try{
+          const releases=officialLoaded?officialReleases:
+            (await loadOfficialCatalog({api,fetcher})).apps;
+          const release=releases.find(row=>row.toolId===tool.id);
+          approvedNavigation=Boolean(release&&await matchesOfficialRelease(release,tool));
+        }catch{/* No trusted catalog/proof: retain the tool's own navigation UI. */}
+      }
+      if(!sameInstance(frame?.contentWindow,token))return;
+      navigationAllowed=approvedNavigation;
       const source=frame.contentWindow;
       let transferred=[];
       if(!readOnly&&typeof MessageChannel==='function'){
@@ -1197,6 +1218,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       }
       frame.contentWindow.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:token,tool,
+        navigationAllowed:approvedNavigation,
         locale:localeController?.getLocale()||'zh-CN'},'*',transferred);
       sendToolAvailableHeight();
     };
@@ -2250,6 +2272,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(active?.id==='web-markdown-clipper'&&!readOnlyPreview&&
          Object.hasOwn(clipNavigationTitles,message.page)){
         clipPage=message.page;render();
+      }else if(navigationAllowed&&!readOnlyPreview){
+        const next=normalizeToolNavigation(message.state);
+        if(next){toolNavigation=next;render();}
       }
       return;
     }
@@ -3089,15 +3114,27 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       kind:'navigation-action',instance,toolId:active.id,action},'*');
     return true;
   };
+  const requestBusinessNavigation=action=>{
+    if(!navigationAllowed||!toolNavigation||!frame?.contentWindow||!instance)return false;
+    if(action==='back'&&!toolNavigation.canBack||
+       action==='primary'&&!toolNavigation.primary)return false;
+    if(toolSaving){notice('当前工具正在处理操作，请完成后再切换。',true);return true;}
+    frame.contentWindow.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,
+      kind:'navigation-action',instance,toolId:active.id,action},'*');
+    return true;
+  };
   listen(backButton,'click',()=>{
     if(busy)return;
     if(tocSettingsOpen){closePromptSettings();requestToolFieldEffect(view, settingsButton, 'focus', {preventScroll:true});return;}
+    if(requestBusinessNavigation('back'))return;
     if(clipPage&&clipPage!=='home'&&requestClipNavigation('back'))return;
     const id=active?.id;
     if(closeTool())focusToolInList(id);
   });
   listen(primaryAction,'click',()=>{
-    if(!tocSettingsOpen&&['library','reader','edit','new'].includes(clipPage))
+    if(tocSettingsOpen)return;
+    if(requestBusinessNavigation('primary'))return;
+    if(['library','reader','edit','new'].includes(clipPage))
       requestClipNavigation('primary');
   });
   const toggleContextMenu=async event=>{

@@ -1,6 +1,6 @@
 (()=>{
   'use strict';
-  const {root,request}=globalThis.OpenDeskTool;
+  const {root,request,setNavigation}=globalThis.OpenDeskTool;
   const doc=root.ownerDocument,q=id=>root.querySelector('#ki-'+id);
   const labels={inbox:'待整理',idea:'灵感',draft:'草稿',archived:'归档'};
   const textBytes=value=>new TextEncoder().encode(value).length;
@@ -49,6 +49,15 @@
   let selected=null,exportText='',exportReady=false,kind='all',tag='',records=[],total=0,bytes=0;
   let dirty=false,busy=false,editing=false,creating=false,restoring=false,generation=0,openedFrom=null,searchTimer=0,statusTimer=0,lockedFocus=null;
   let editorStateQueue=Promise.resolve();
+  function publishNavigation(){
+    if(typeof setNavigation!=='function')return;
+    const page=creating?'create':!q('detail').hidden?(editing?'edit':'detail'):'list';
+    const title=({list:'知识收件箱',create:'新建知识',detail:'知识详情',edit:'编辑知识'})[page];
+    // The bridge returns true only for a release verified by the trusted Host.
+    // The standalone/preview UI keeps its own header and in-tool back buttons.
+    if(setNavigation({page,title,canBack:page!=='list'})===true)
+      root.querySelector('.ki')?.classList.add('ki-host-nav');
+  }
 
   const date=value=>{
     const d=new Date(value);
@@ -381,7 +390,7 @@
     q('more').open=false;
     renderMarkdown(record.draft??record.markdown);
     syncControls();
-    q('view-title').focus();
+    q('view-title').focus();publishNavigation();
   }
   async function open(id){
     if(!await discard())return;
@@ -423,7 +432,7 @@
     updateEditMeta();detailLayout(true);setDirty(false);
     q('edit-state').textContent='尚未修改';q('edit-state').dataset.dirty='false';
     reflectValidation('edit');
-    syncControls();laterFocus(q('content'));
+    syncControls();publishNavigation();laterFocus(q('content'));
   }
   async function save(){
     if(!selected||!editing||!dirty)return;
@@ -468,13 +477,13 @@
     q('create-size').dataset.over='false';q('create-extra').open=false;updateCreateMeta();
     q('manage').open=false;
     q('list-view').hidden=true;q('detail').hidden=true;q('create-view').hidden=false;
-    setDirty(false);reflectValidation('create');syncControls();laterFocus(q('create-title'));say('');
+    setDirty(false);reflectValidation('create');syncControls();publishNavigation();laterFocus(q('create-title'));say('');
   }
   const cancelCreate=action(async()=>{
     if(!await discard())return;
     creating=false;setDirty(false);
     q('create-view').hidden=true;q('list-view').hidden=false;
-    await list();laterFocus(q('new'));say('');
+    publishNavigation();await list();laterFocus(q('new'));say('');
   });
   async function saveCreate(){
     if(!creating)return;
@@ -489,7 +498,7 @@
       const fresh=await request('knowledge.get',{id:result.record.id});
       presentation(fresh.record,fresh.markdown);say('新知识已保存。');
     }catch{
-      q('list-view').hidden=false;await list().catch(()=>{});
+      q('list-view').hidden=false;publishNavigation();await list().catch(()=>{});
       laterFocus(q('new'));say('已保存，但暂时无法打开详情，请在列表刷新后查看。',true);
     }
   }
@@ -521,7 +530,7 @@
     if(!await discard())return;
     selected=null;exportReady=false;setDirty(false);
     q('detail').hidden=true;q('list-view').hidden=false;
-    await list();const previous=root.querySelector('.ki-record[data-record-id="'+openedFrom+'"]');
+    publishNavigation();await list();const previous=root.querySelector('.ki-record[data-record-id="'+openedFrom+'"]');
     laterFocus(previous||q('search'));say('');
   });
   q('back').addEventListener('click',goBack);
@@ -610,7 +619,7 @@
     if(!selected||!await ask('确定删除「'+selected.title+'」及其备注和草稿？此操作无法撤销。'))return;
     await request('knowledge.remove',{id:selected.id,ifRevision:selected.revision});
     selected=null;exportReady=false;setDirty(false);
-    q('detail').hidden=true;q('list-view').hidden=false;await list();
+    q('detail').hidden=true;q('list-view').hidden=false;publishNavigation();await list();
     laterFocus(q('search'));say('记录已删除。');
   }));
   q('outline-toggle').addEventListener('click',()=>{
@@ -622,5 +631,12 @@
     q('outline-toggle').textContent=show?'查看正文':'结构导图';
     if(show)structure(selected.draft??selected.markdown);
   });
-  updateFilters();syncControls();void list();
+  // Shared header back never bypasses this tool's own unsaved-change dialog.
+  root.addEventListener('opendesk-tool-navigation',event=>{
+    if(event.detail?.action!=='back'||busy)return;
+    if(creating)void cancelCreate();
+    else if(editing)void action(toggleEdit)();
+    else if(!q('detail').hidden)void goBack();
+  });
+  updateFilters();syncControls();publishNavigation();void list();
 })();

@@ -2,6 +2,7 @@
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_SHARED_UI_RUNTIME} from '../ui/sidebar-tools/package.js';
 import {createBrowserSdk} from '../framework/sdk/browser.js';
 import {browserOperation,normalizeBrowserOperation} from '../framework/sdk/browser-contract.js';
+import {normalizeToolNavigation} from './navigation-state.js';
 // AdBlock confirmation is an actual separate Side Panel click. The trusted host
 // closes unconfirmed reviews after 90 seconds; ordinary tool RPCs stay short.
 // Waiting is never an authorization grant or a DNR deadline.
@@ -20,7 +21,7 @@ export function sidebarToolRequestTimeout(operation,toolId){
 export function initSidebarToolSandbox() {
   const root=document.getElementById('tool-root');
   const status=document.getElementById('tool-status');
-  let instance=null, toolId=null, sequence=0, scriptUrl=null,disposed=false;
+  let instance=null, toolId=null, sequence=0, scriptUrl=null,disposed=false, navigationAllowed=false;
   // Capture these before any package code runs. The port never enters the
   // public SDK; only this closure can attest a native click still in dispatch.
   const apply=Reflect.apply,NativePromise=Promise,NativeError=Error;
@@ -310,7 +311,7 @@ export function initSidebarToolSandbox() {
     // Presentation-only navigation request. Sandbox owns its business history.
     if(message.kind==='navigation-action'){
       if(message.instance===instance&&message.toolId===toolId&&
-         toolId==='web-markdown-clipper'&&['back','primary'].includes(message.action))
+         (toolId==='web-markdown-clipper'||navigationAllowed)&&['back','primary'].includes(message.action))
         root.dispatchEvent(new CustomEvent('opendesk-tool-navigation',{detail:{action:message.action}}));
       return;
     }
@@ -325,6 +326,9 @@ export function initSidebarToolSandbox() {
     if(currentTargetGetter&&trustedGetter&&portPost&&portClose&&event.ports?.length===1)
       exportPort=event.ports[0];
     instance=message.instance;toolId=tool.id;
+    // This is a presentation opt-in granted only after the trusted Host checks
+    // exact official release bytes. A same-ID imported tool never earns it.
+    navigationAllowed=message.navigationAllowed===true;
     // Snapshot installed capabilities before any package script can run.
     cookieExports=Array.isArray(tool.capabilities)&&tool.capabilities.some(capability=>
       typeof capability==='string'&&capability.startsWith('browser.cookies.'));
@@ -336,10 +340,19 @@ export function initSidebarToolSandbox() {
     // User HTML and code never enter privileged extension DOM or a browser API world.
     root.innerHTML=tool.html;
     // Bounded first-party visual hint, never a new privilege or route owner.
-    const setNavigation=({page}={})=>{
-      if(disposed||toolId!=='web-markdown-clipper'||
-         !['home','library','reader','edit','new'].includes(page))return;
-      parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'navigation-state',instance,toolId,page},'*');
+    const setNavigation=value=>{
+      if(disposed)return false;
+      if(toolId==='web-markdown-clipper'){
+        const page=value?.page;
+        if(!['home','library','reader','edit','new'].includes(page))return false;
+        parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'navigation-state',instance,toolId,page},'*');
+        return true;
+      }
+      if(!navigationAllowed)return false;
+      const state=normalizeToolNavigation(value);
+      if(!state)return false;
+      parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'navigation-state',instance,toolId,state},'*');
+      return true;
     };
     const setState=({dirty,busy})=>{
       if(typeof dirty!=='boolean'||typeof busy!=='boolean')return;
@@ -348,7 +361,7 @@ export function initSidebarToolSandbox() {
     };
     Object.defineProperty(window,'OpenDeskTool',{value:Object.freeze({
       root,request,setState,
-      ...(toolId==='web-markdown-clipper'?{setNavigation}:{}),
+      ...((toolId==='web-markdown-clipper'||navigationAllowed)?{setNavigation}:{}),
       get locale(){return uiLocale;},
       onLocaleChange(callback){
         if(typeof callback!=='function')throw Error('E_UI_LOCALE_CALLBACK');

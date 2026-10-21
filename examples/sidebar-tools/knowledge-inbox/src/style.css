@@ -75,3 +75,10 @@
   .ki .ki-action-group{gap:4px}
   .ki .ki-action-group button{white-space:nowrap;padding:5px 7px}
 }
+
+/* R1.5: only verified official instances yield their page-level header to ToolHost.
+   Standalone previews, old packages and third-party installs retain all controls. */
+.ki.ki-host-nav .ki-list-head h1,
+.ki.ki-host-nav #ki-back,
+.ki.ki-host-nav .ki-writing-heading,
+.ki.ki-host-nav #ki-writing-label{display:none!important}
