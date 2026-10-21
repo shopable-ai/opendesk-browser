@@ -17,6 +17,60 @@ html[data-demo-theme=light] .clip button.primary{background:#335bd0;border-color
 html[data-demo-theme=light] .clip-actions button[aria-pressed=true]{background:#eaf1ff;border-color:#b9c9f2;color:#2c56b7}
 html[data-demo-theme=light] .clip-preview pre{background:#e9eff8}
 html[data-demo-theme=light] .clip-preview a{color:#3159b9}
+
+/* R1.9 UX review: preview-only layout layer, formal src remains unchanged. */
+.clip{padding:11px;border-radius:12px}
+.clip-head{margin-bottom:6px}.clip-page-title{margin-bottom:7px}
+.clip-modes{margin-bottom:7px}
+.clip .clip-fetch{min-height:34px}
+#clip-selection-hint{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:5px 0 7px}
+.clip-actions{margin:7px 0 5px}
+#clip-source,.clip-preview:not(.clip-note-read-body){height:150px;min-height:110px;max-height:190px}
+.clip-export{margin-top:7px}
+#clip-save-explain{margin:4px 0 1px}
+#clip-status{margin:4px 0 8px}
+#clip-home{padding-bottom:10px;border-bottom:1px solid var(--edge)}
+#clip-notes{display:block;margin-top:10px}
+#clip-notes .clip-notes-head{flex-wrap:nowrap;min-height:32px;gap:5px}
+#clip-notes .clip-notes-head strong{flex:1;font-size:13px}
+#clip-notes-back{display:none!important}
+#clip-note-new{width:32px;min-width:32px;height:32px;font-size:0!important;display:inline-flex;align-items:center;justify-content:center;padding:0!important}
+#clip-note-new::before{content:"＋";font-size:19px;line-height:1}
+#clip-my-notes{font-size:0;min-width:70px}
+#clip-my-notes::after{content:"↓ 摘录";font-size:11px}
+.clip-notes-tools{margin-top:5px}
+.clip-notes-tools input{min-height:32px}
+.clip-notes-meta{margin:5px 1px 2px}
+.clip-note-list{gap:6px;margin-top:7px}
+.clip-note-card{position:relative;padding:8px 9px;background:var(--paper);border:1px solid var(--edge);border-radius:9px;min-height:78px}
+.clip-note-card:hover,.clip-note-card:focus-within{border-color:#a5b9e9}
+.clip-note-card .clip-note-open{max-width:calc(100% - 35px);font-size:12px;min-height:18px;line-height:1.45;font-weight:650}
+.clip-note-meta{font-size:10px;margin-top:3px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.clip-note-excerpt{font-size:11px;line-height:1.45;margin:4px 0 0;padding-right:23px;-webkit-line-clamp:2}
+.clip-note-buttons{position:absolute;top:7px;right:7px;gap:0;opacity:0;transform:translateY(-1px);transition:opacity .12s ease}
+.clip-note-card:hover .clip-note-buttons,.clip-note-card:focus-within .clip-note-buttons{opacity:1}
+.clip-note-buttons button{width:28px;height:28px;min-height:28px;padding:5px;border-radius:7px;display:flex;align-items:center;justify-content:center;border:1px solid transparent;background:var(--layer);color:var(--sub)}
+.clip-note-buttons button:hover{border-color:#e5b4bd;background:#fff0f2;color:#a32f44}
+.clip-note-buttons button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.preview-remove-confirm{position:absolute;z-index:4;right:6px;top:36px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;max-width:calc(100% - 12px);padding:7px;border:1px solid var(--edge);border-radius:9px;background:var(--paper);box-shadow:0 5px 20px #14294a2b}
+.preview-remove-confirm span{width:100%;font-size:11px;color:var(--sub)}
+.preview-remove-confirm button{flex:1;font-size:11px;min-height:28px}
+.preview-remove-confirm .confirm-danger{color:#a32f44;border-color:#e5b4bd}
+#clip-notes:has(#clip-note-editor:not([hidden])) #clip-note-list[hidden]{display:grid!important}
+#clip-notes:has(#clip-note-editor:not([hidden])) #clip-notes-tools[hidden],
+#clip-notes:has(#clip-note-editor:not([hidden])) #clip-notes-meta[hidden]{display:flex!important}
+#clip-notes:has(#clip-note-editor:not([hidden])) .clip-note-card{opacity:.74}
+.clip:has(#clip-note-reader:not([hidden])) #clip-home{display:none}
+.clip-note-editor{margin-top:8px}
+.clip-note-reader{margin-top:8px}
+@media(hover:none),(pointer:coarse){.clip-note-buttons{opacity:1}}
+@media(prefers-reduced-motion:reduce){.clip-note-buttons{transition:none}}
+@media(max-width:360px){.clip{padding:9px}#clip-source,.clip-preview:not(.clip-note-read-body){height:132px}#clip-my-notes{min-width:56px}}
+html[data-demo-theme=dark] .clip-note-card{background:var(--layer)}
+html[data-demo-theme=dark] .clip-note-buttons button{background:var(--paper)}
+html[data-demo-theme=dark] .clip-note-buttons button:hover{background:#503039;color:#ffc0cc;border-color:#754650}
+html[data-demo-theme=dark] .preview-remove-confirm{background:var(--paper)}
+
 </style>
 </head>
 <body>
@@ -56,7 +110,7 @@ html[data-demo-theme=light] .clip-preview a{color:#3159b9}
 <p id="clip-save-explain" class="clip-hint">保存留在浏览器；复制进入剪贴板；下载生成文件</p>
 <p id="clip-status" class="clip-status" role="status" aria-live="polite">选择文章提取，或先在网页中选中文字。</p>
 </section>
-<section id="clip-notes" aria-label="我的摘录" hidden>
+<section id="clip-notes" aria-label="我的摘录">
  <div class="clip-notes-head">
   <button type="button" id="clip-notes-back" class="clip-outline" aria-label="返回网页剪藏">← 返回</button>
   <strong>我的摘录</strong>
@@ -118,6 +172,19 @@ let local={clips:null},caseName='normal',writes=0;
 const key='opendesk.clipper.r18.simulated-session';
 try{const saved=sessionStorage.getItem(key);if(saved)local=JSON.parse(saved);}catch{/* Isolated demo fallback only. */}
 const persist=()=>{try{sessionStorage.setItem(key,JSON.stringify(local));}catch{/* Preview-only. */}};
+
+if(!local.clips){
+ const now='2026-10-21T08:00:00.000Z';
+ const older='2026-10-20T10:00:00.000Z';
+ local.clips={version:1,items:[
+  {id:'sample-01',kind:'clip',title:'为什么优秀的工具需要简单的交互',source:'https://example.com/articles/product-design',createdAt:now,updatedAt:now,body:'# 为什么优秀的工具需要简单的交互\n\n复杂的功能应该被隐藏在清晰的入口之后，而不是让每一个常用动作都增加额外步骤。\n\n## 关键原则\n\n- 保存后立即能看见记录\n- 删除与编辑不占用整行\n- 不同剪藏模式保留独立内容'},
+  {id:'sample-02',kind:'clip',title:'Markdown 中的引用与代码示例',source:'https://example.org/markdown/guide',createdAt:older,updatedAt:older,body:'# Markdown 中的引用与代码示例\n\n> 重要的句子应该容易回看。\n\n保存完整内容后可以再次阅读、编辑或下载。'},
+  {id:'sample-03',kind:'note',title:'本周阅读整理',source:'',createdAt:older,updatedAt:older,body:'本周阅读整理\n\n查看三篇长文，整理设计笔记，保留原始来源。'},
+  {id:'sample-04',kind:'clip',title:'网页剪藏的产品设计参考',source:'https://example.net/design/patterns',createdAt:older,updatedAt:older,body:'[网页剪藏的产品设计参考](https://example.net/design/patterns)\n\n简洁列表、同屏查看与可恢复的保存反馈。'}
+ ]};
+ persist();
+}
+
 const limit=4*1024*1024,bodyLimit=160000;
 let counter=0;
 const atom=()=> 'clip-demo-'+Date.now().toString(36)+'-'+(++counter).toString(36)+'-sample';
@@ -235,4 +302,60 @@ window.addEventListener('message',({data})=>{
 </script>
 <script src="../src/notes.js"></script>
 <script src="../src/main.js"></script>
+
+<script>
+/* Preview-only composition: keep the official app behavior and data adapters.
+   In the next implementation phase this same UX belongs in src/notes.js and src/style.css. */
+(function(){
+ 'use strict';
+ const home=document.getElementById('clip-home'),notes=document.getElementById('clip-notes');
+ const list=document.getElementById('clip-note-list'),header=document.getElementById('clip-my-notes');
+ const keepVisible=()=>{if(home.hidden)home.hidden=false;if(notes.hidden)notes.hidden=false;};
+ keepVisible();
+ const visibilityObserver=new MutationObserver(keepVisible);
+ for(const node of [home,notes])visibilityObserver.observe(node,{attributes:true,attributeFilter:['hidden']});
+ header.addEventListener('click',()=>requestAnimationFrame(()=>notes.scrollIntoView({block:'start',behavior:'smooth'})));
+ const newButton=document.getElementById('clip-note-new');
+ newButton.setAttribute('aria-label','新建便签');newButton.title='新建便签';
+ const count=document.getElementById('clip-note-count');
+ new MutationObserver(()=>{
+  const m=count.textContent.match(/^(\d+) 条/);
+  if(m&&count.textContent!==m[1]+' 条已保存')count.textContent=m[1]+' 条已保存';
+ }).observe(count,{childList:true,subtree:true,characterData:true});
+ const iconFor=button=>{
+  if(button.querySelector('svg'))return;
+  const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');
+  svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
+  for(const d of ['M3 6h18','M8 6V4h8v2','M6 6l1 15h10l1-15','M10 10v7','M14 10v7']){
+   const path=document.createElementNS(ns,'path');path.setAttribute('d',d);svg.append(path);
+  }
+  button.replaceChildren(svg);button.title=button.getAttribute('aria-label')||'删除摘录';
+ };
+ const decorate=()=>list.querySelectorAll('.clip-note-buttons button').forEach(iconFor);
+ new MutationObserver(decorate).observe(list,{childList:true,subtree:true});
+ decorate();
+ let approved=null;
+ list.addEventListener('click',event=>{
+  const button=event.target.closest('.clip-note-buttons button');
+  if(!button)return;
+  if(approved===button){approved=null;return;}
+  event.preventDefault();event.stopImmediatePropagation();
+  list.querySelector('.preview-remove-confirm')?.remove();
+  const card=button.closest('.clip-note-card');if(!card)return;
+  const menu=document.createElement('div');menu.className='preview-remove-confirm';
+  menu.setAttribute('role','group');menu.setAttribute('aria-label','确认删除摘录');
+  const label=document.createElement('span');label.textContent='确定删除这条摘录？';
+  const cancel=document.createElement('button');cancel.type='button';cancel.textContent='取消';
+  const confirm=document.createElement('button');confirm.type='button';confirm.className='confirm-danger';confirm.textContent='删除';
+  cancel.onclick=()=>{menu.remove();button.focus();};
+  confirm.onclick=()=>{menu.remove();approved=button;button.click();};
+  menu.addEventListener('keydown',ev=>{if(ev.key==='Escape'){ev.preventDefault();cancel.click();}});
+  menu.append(label,cancel,confirm);card.append(menu);confirm.focus();
+ },true);
+ document.addEventListener('pointerdown',event=>{
+  if(!event.target.closest('.preview-remove-confirm,.clip-note-buttons'))list.querySelector('.preview-remove-confirm')?.remove();
+ });
+})();
+</script>
+
 </body></html>
