@@ -206,3 +206,28 @@ test('R3.2 candidate package derives from updated official source and pinned cla
   assert.equal(pkg.scripts[0].name,'trusted/model.js');
   assert.equal(pkg.scripts[0].code,await read('trusted/model.js'));
 });
+
+test('R3.5 live raster gate: original HTML uses preview-only PNG, never formal data URLs',async()=>{
+  const [preview,page,main,model,chrome]=await Promise.all([
+    read('preview/index.html'),read('trusted/page.js'),read('src/main.js'),
+    read('trusted/model.js'),readFile('scripts/tests/prompt-shortcuts-r111-preview-chrome.mjs','utf8')
+  ]);
+  assert.match(preview,/PREVIEW_OFFLINE_PNG='data:image\/png;base64,/);
+  assert.match(preview,/item\.id==='b'&&url===PREVIEW_DEFAULT_IMAGE_URL/,
+    'only the untouched built-in sample can use offline PNG');
+  assert.match(preview,/img\.src=offlineSample\?PREVIEW_OFFLINE_PNG:url/,
+    'custom HTTPS URLs must still be loaded from their actual origin');
+  assert.match(preview,/oldSample=row\.id==='b'/,'migrate only untouched historical sample');
+  assert.doesNotMatch(main,/PREVIEW_OFFLINE_PNG/);
+  assert.doesNotMatch(page,/PREVIEW_OFFLINE_PNG/);
+  assert.match(main,/holder\.dataset\.failedImageUrl===url/);
+  assert.match(page,/button\.classList\.remove\('image'\)/);
+  assert.match(model,/url\.protocol!=='https:'/);
+  assert.match(chrome,/async function r35ImageEvidence/);
+  assert.match(chrome,/getImageData/);
+  assert.match(chrome,/Page\.captureScreenshot/);
+  assert.match(chrome,/r35-image-compact/);
+  assert.match(chrome,/r35-image-standard/);
+  assert.match(chrome,/r35-image-large-restored/);
+  assert.match(chrome,/r35ReloadSizePersisted=true/);
+});
