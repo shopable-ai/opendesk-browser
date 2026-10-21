@@ -1053,3 +1053,42 @@ test('site.set rechecks navigation after its initial site read before policy per
     assert.deepEqual(f.stored.get(ADBLOCK_STORE).exceptions,[]);
   }
 });
+
+test('user-picked region survives worker restart and site disable; undo removes the durable rule',async()=>{
+  const f=await fixture();
+  const url='https://news.example.com/story';
+  f.setCurrent(url);
+  const tab={id:1,windowId:10,url,active:true,incognito:false};
+  f.api.tabs.get=async()=>({...tab});
+  f.api.webNavigation={getFrame:async()=>({url,documentId:'page-doc',documentLifecycle:'active'})};
+  f.api.tabs.sendMessage=async(id,msg,options)=>{
+    assert.equal(id,tab.id);assert.deepEqual(options,{frameId:0});
+    assert.equal(msg.protocol,ADBLOCK_PAGE_PROTOCOL);assert.equal(msg.type,'start-pick');
+    assert.equal(msg.host,'news.example.com');
+    return {ok:true,host:msg.host};
+  };
+  const page={id:senderId,url,frameId:0,documentId:'page-doc',
+    documentLifecycle:'active',tab};
+  const status=()=>f.service.pagePolicy({protocol:ADBLOCK_PAGE_PROTOCOL},page);
+  await f.service.dispatch(f.message('adblock.enable'),sender);
+  const started=await f.service.dispatch(f.message('adblock.cosmetic.pick'),sender);
+  assert.equal(started.pickerActive,true);
+  const selected=await f.service.pagePolicy({protocol:ADBLOCK_PAGE_PROTOCOL,
+    type:'hide',selector:'#native-promo'},page);
+  assert.equal(selected.saved,true);
+  assert.deepEqual((await status()).rules,[{selector:'#native-promo'}]);
+  // A fresh SW instance reads the exact same Chrome local storage record.
+  const reloaded=f.restartService();
+  assert.deepEqual((await reloaded.pagePolicy({protocol:ADBLOCK_PAGE_PROTOCOL},page)).rules,
+    [{selector:'#native-promo'}]);
+  await f.service.dispatch(f.message('adblock.site.set',
+    {host:'news.example.com',filtering:false}),sender);
+  assert.equal((await status()).enabled,false);
+  await f.service.dispatch(f.message('adblock.site.restore',{host:'news.example.com'}),sender);
+  assert.deepEqual((await status()).rules,[{selector:'#native-promo'}]);
+  // The website's Undo control is a delete operation, not a temporary CSS show.
+  const undone=await f.service.pagePolicy({protocol:ADBLOCK_PAGE_PROTOCOL,
+    type:'undo',selector:'#native-promo'},page);
+  assert.equal(undone.restored,true);
+  assert.equal((await status()).rules,undefined);
+});
