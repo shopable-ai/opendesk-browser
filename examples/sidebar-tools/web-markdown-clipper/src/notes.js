@@ -238,6 +238,7 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
    if(seq!==generation)return;
    reading=result;readerOrigin=origin;editing=null;
    renderReader();msg('已读取完整正文');
+   q('clip-reader-content').scrollTop=0;
    q('clip-note-reader-back').setAttribute('aria-label',origin==='recent'?'返回最近摘录':'返回摘录列表');
    q('clip-note-reader-back').title=origin==='recent'?'返回最近摘录':'返回摘录列表';
    restoreScroll(0);q('clip-note-reader-back').focus();
@@ -302,7 +303,7 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
    q('clip-note-body').value='';q('clip-note-unsaved').hidden=true;
    if(where==='reader'&&original.id){
     reading={item:response.item,etag:response.etag};renderReader();
-   }else if(where==='recent')showHome();
+   }else if(where==='recent')showHome({allowBusy:true});
    else showList();
    let refreshFailed=false;
    try{await reloadRecent();await reload({recover:true});}catch{refreshFailed=true;}

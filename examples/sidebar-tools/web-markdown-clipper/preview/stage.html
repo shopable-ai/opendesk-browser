@@ -127,10 +127,12 @@ html[data-demo-theme=dark] .clip-note-card{background:var(--layer)}
    <span class="clip-spacer"></span>
    <button type="button" id="clip-note-read-edit" class="clip-outline clip-icon-button" aria-label="编辑完整正文" title="编辑完整正文"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-pencil"></use></svg></button>
   </div>
+    <div id="clip-reader-content" class="clip-reader-content" tabindex="0" aria-label="完整摘录内容">
   <h2 id="clip-note-read-title"></h2>
   <p id="clip-note-read-meta" class="clip-note-meta"></p>
   <p id="clip-note-read-origin" class="clip-hint"></p>
   <div id="clip-note-read-body" class="clip-preview clip-note-read-body" role="document" aria-label="摘录 Markdown 全文" tabindex="0"></div>
+  </div>
   <div class="clip-editor-actions clip-read-actions">
    <button type="button" id="clip-note-read-copy"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-copy"></use></svg>复制</button>
    <button type="button" id="clip-note-read-download"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-download"></use></svg>下载 .md</button>

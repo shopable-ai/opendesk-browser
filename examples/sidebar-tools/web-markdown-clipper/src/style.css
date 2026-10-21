@@ -136,36 +136,43 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-vis
 .clip:has(#clip-note-reader:not([hidden])),
 .clip:has(#clip-note-editor:not([hidden])){
  display:flex;flex-direction:column;
- max-height:var(--opendesk-host-available-height,660px);overflow:hidden;min-height:0
+ max-height:var(--opendesk-host-available-height,660px);overflow:hidden;min-height:0;
+ container-type:inline-size
 }
 .clip:has(#clip-note-reader:not([hidden])) #clip-notes,
 .clip:has(#clip-note-editor:not([hidden])) #clip-notes{
  display:flex!important;flex-direction:column;flex:1 1 auto;min-height:0;overflow:hidden
 }
 #clip-notes .clip-notes-head,#clip-notes-status{flex-shrink:0}
-#clip-notes-status{max-height:4.8em;overflow:auto}
+#clip-notes-status{max-height:1.55em;overflow:auto}
 #clip-note-reader:not([hidden]),#clip-note-editor:not([hidden]){
  display:flex;flex:0 1 auto;flex-direction:column;min-height:0;max-height:100%;overflow:hidden
 }
-#clip-note-reader .clip-read-head,#clip-note-reader h2,#clip-note-read-meta,
-#clip-note-read-origin,#clip-note-reader .clip-read-actions,
+#clip-note-reader .clip-read-head,#clip-note-reader .clip-read-actions,
 #clip-note-editor .clip-editor-head,#clip-note-origin,
 #clip-note-editor .clip-editor-actions,#clip-note-unsaved{flex-shrink:0}
 #clip-note-reader h2{font-size:15px;line-height:1.4;margin:9px 0 5px}
 #clip-note-read-origin{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.clip-reader-content{min-height:0;flex:1 1 auto;overflow:auto;overscroll-behavior:contain}
 #clip-note-read-body{
  display:block;width:100%;height:auto;min-height:0;max-height:none;
- margin:9px 0;flex:0 1 auto;overflow:auto;overscroll-behavior:contain;
+ margin:9px 0;overflow:visible;
  background:var(--paper)
 }
 #clip-note-editor #clip-note-body{
- field-sizing:content;resize:none;min-height:72px;max-height:none;
+ field-sizing:content;resize:none;min-height:24px;max-height:none;
  flex:0 1 auto;overflow:auto;overscroll-behavior:contain
 }
 #clip-note-reader .clip-remove-confirm{top:auto;bottom:44px}
 #clip-notes[data-view=editing] #clip-note-list[hidden]{
  display:grid!important;flex:0 1 72px;min-height:0;max-height:72px;
  opacity:.35;pointer-events:none;overflow:hidden
+}
+/* At narrow effective widths (including browser zoom), keep all three actions
+   in one row so the reader retains space for scrollable content. */
+@container(max-width:220px){
+ .clip-read-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px}
+ .clip-read-actions button{flex-direction:column;min-width:0;padding:3px 1px;gap:1px;font-size:11px}
 }
 @media(pointer:coarse){.clip-note-buttons{opacity:0;pointer-events:none}
  .clip-note-card:focus-within .clip-note-buttons{opacity:1;pointer-events:auto}}

@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
+import {load} from 'cheerio';
+import {PROMPT_ID} from '../../prompt-shortcuts/trusted/policy.js';
+import {PROMPT_ASSET_OPERATIONS} from '../../prompt-shortcuts/trusted/asset-contract.js';
 import {
  executeClipNotes,readClipLibrary,CLIP_NOTES_LIMITS,clipSource
 } from '../trusted/notes-store.js';
@@ -181,6 +184,33 @@ test('formal preview stage contains exact official interactive HTML, not a secon
  assert.doesNotMatch(official,/clip-view-saved/);
 });
 
+test('reader scrolls title, metadata and body together while keeping actions outside',async()=>{
+ const [html,stage,css]=await Promise.all([
+  readFile(new URL('../src/index.html',import.meta.url),'utf8'),
+  readFile(new URL('../preview/stage.html',import.meta.url),'utf8'),
+  readFile(new URL('../src/style.css',import.meta.url),'utf8')
+ ]);
+ for(const [name,source] of [['official',html],['preview',stage]]){
+  const $=load(source),reader=$('#clip-note-reader');
+  const content=reader.children('.clip-reader-content');
+  assert.equal(reader.length,1,name+' must have one reader');
+  assert.equal(content.length,1,name+' must have one reader scroll region');
+  for(const id of ['clip-note-read-title','clip-note-read-meta','clip-note-read-origin','clip-note-read-body'])
+   assert.equal(content.find('#'+id).length,1,name+' must scroll '+id+' with the content');
+  assert.equal(reader.children('.clip-read-head').length,1,name+' must keep header outside the scroll region');
+  assert.equal(reader.children('.clip-read-actions').length,1,name+' must keep footer outside the scroll region');
+  assert.equal(content.find('.clip-read-head,.clip-read-actions').length,0,name+' must not scroll the actions');
+ }
+ const contentRule=css.match(/\.clip-reader-content\s*\{([^}]*)\}/)?.[1];
+ assert.ok(contentRule,'reader content must own its scroll constraints');
+ assert.match(contentRule,/(?:^|;)\s*min-height\s*:\s*0\s*(?:;|$)/);
+ assert.match(contentRule,/(?:^|;)\s*overflow\s*:\s*auto\s*(?:;|$)/);
+ const bodyRule=css.match(/#clip-note-read-body\s*\{([^}]*)\}/)?.[1];
+ assert.ok(bodyRule,'reader body must release the shared preview scroll constraints');
+ assert.match(bodyRule,/(?:^|;)\s*min-height\s*:\s*0\s*(?:;|$)/);
+ assert.match(bodyRule,/(?:^|;)\s*overflow\s*:\s*visible\s*(?:;|$)/);
+});
+
 test('150,000 UTF-8 bytes plus YAML and long valid source are saved without truncation',async()=>{
  const f=fixture();
  const markdown='---\ntitle: "一篇文章"\n---\n\n'+makeBody(150000)+'\n来源尾注';
@@ -212,7 +242,7 @@ test('Host request budget admits 150 KB escaped Markdown only for the clipper',a
  assert.ok(begin>=0&&end>begin,'Host budget function must remain testable');
  const definition=host.slice(begin,end+2).replace(/^export /,'');
  const check=runInNewContext(definition+'\ncheckSidebarToolRequestBudget',
-  {TextEncoder,browserOperation:()=>null});
+  {TextEncoder,browserOperation:()=>null,PROMPT_ID,PROMPT_ASSET_OPERATIONS});
  const make=(operation,body,toolId='web-markdown-clipper')=>({operation,toolId,payload:{body}});
  for(const body of ['\n'.repeat(150000),'\u0000'.repeat(150000),'中'.repeat(50000)])
   assert.equal(check(make('clipNotes.save',body))?.ok,true,'full article should pass');
@@ -225,7 +255,7 @@ test('Host request budget admits 150 KB escaped Markdown only for the clipper',a
 test('UI freezes an in-flight save snapshot, blocks double save, and keeps unsaved editor text',async()=>{
  const source=await readFile(new URL('../src/notes.js',import.meta.url),'utf8');
  class Element{
-  constructor(id){this.id=id;this.value='';this.textContent='';this.dataset={};this.events={};this.children=[];this.hidden=false;this.disabled=false;}
+  constructor(id){this.id=id;this.value='';this.textContent='';this.dataset={};this.events={};this.children=[];this.hidden=false;this.disabled=false;this.classList={add(){}};}
   addEventListener(type,fn){(this.events[type]??=[]).push(fn);}
   async fire(type){await Promise.all((this.events[type]||[]).map(fn=>fn()));}
   append(...items){this.children.push(...items);}
@@ -235,19 +265,19 @@ test('UI freezes an in-flight save snapshot, blocks double save, and keeps unsav
  }
  const ids=[...source.matchAll(/q\('([^']+)'\)/g)].map(match=>match[1]);
  const elements=Object.fromEntries([...new Set(ids)].map(id=>[id,new Element(id)]));
- const doc={createElement:tag=>new Element(tag)};
+ const doc={createElement:tag=>new Element(tag),createElementNS:(_ns,tag)=>new Element(tag)};
  const root={ownerDocument:doc,querySelector:key=>elements[key.slice(1)]};
  let resolveSave,saveCalls=0,writeInput=null;
  const pending=new Promise(resolve=>{resolveSave=resolve;});
  const request=(operation,payload={})=>{
   if(operation==='clipNotes.list')return Promise.resolve({
-   items:[],total:0,usedBytes:0,etag:'e',nextOffset:null
+   items:writeInput?[{id:'clip-1',kind:writeInput.kind,title:writeInput.title}]:[],total:writeInput?1:0,usedBytes:0,etag:'e',nextOffset:null
   });
   if(operation==='clipNotes.save'){
    saveCalls++;writeInput={...payload};return pending;
   }
   if(operation==='clipNotes.get')return Promise.resolve({
-   item:{id:'clip-1',kind:'clip',body:writeInput.body,
+   item:{id:'clip-1',kind:writeInput.kind,body:writeInput.body,
     title:writeInput.title,source:writeInput.source},etag:'e'
   });
   throw Error('unexpected operation: '+operation);
@@ -278,6 +308,19 @@ test('UI freezes an in-flight save snapshot, blocks double save, and keeps unsav
  assert.equal(elements['clip-note-body'].value,'未保存的手动便签草稿');
  assert.equal(await notes.showLibrary(),undefined,'dirty editor blocks navigation');
  assert.equal(elements['clip-note-body'].value,'未保存的手动便签草稿');
+ await elements['clip-note-cancel'].fire('click');
+ await elements['clip-note-discard'].fire('click');
+ await elements['clip-recent-new'].fire('click');
+ elements['clip-note-body'].value='从主页新建并保存的便签';
+ await elements['clip-note-body'].fire('input');
+ await elements['clip-note-save'].fire('click');
+ for(let i=0;i<40;i++)await Promise.resolve();
+ assert.equal(elements['clip-home'].hidden,false,'confirmed saves from recent notes must return home while the save lock is held');
+ assert.equal(elements['clip-note-editor'].hidden,true);
+ elements['clip-reader-content'].scrollTop=8000;
+ await elements['clip-recent-list'].children[0].children[0].fire('click');
+ for(let i=0;i<20;i++)await Promise.resolve();
+ assert.equal(elements['clip-reader-content'].scrollTop,0,'opening another article must start at its title, not the previous article end');
 });
 
 
