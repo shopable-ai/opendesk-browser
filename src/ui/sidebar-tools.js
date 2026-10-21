@@ -1548,7 +1548,22 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           {code:response?.error?.code||'E_DOCUMENT_STALE'});
         return response.data;
       }
-      if(operation==='browser.scheduler.create'){
+      if(operation==='browser.scheduler.create'&&payload.service==='background'){
+        if(!tool.background)throw Object.assign(new Error('当前应用没有已安装的后台入口'),{code:'E_CAPABILITY'});
+        const schedulerIntent={kind:'trusted-app-service-schedule-intent-v1',request:payload};
+        envelope.approvalRef=await requestBrowserClick({toolId:tool.id,button:'创建后台计划',
+          message:'「'+tool.title+'」请求在侧边栏关闭后运行自己的后台计算，'+payload.schedule.kind+' '+payload.schedule.expression+'。仅可访问本应用已授权的数据；Chrome 退出后不会执行。源码 '+tool.background.sha256.slice(0,12)+'。',
+          run:async()=>{
+            assertSession(source,token);
+            const response=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',operation:'browser.intent.confirm',
+              toolId:tool.id,toolVersion:tool.version,installEpoch:revocationEpoch,packageHash,hostInstanceId,toolInstance:token,
+              targetOperation:operation,targetArgs:payload,schedulerIntent});
+            if(!response?.ok)throw Object.assign(new Error(response?.error?.message||'后台计划批准失败'),{code:response?.error?.code||'E_BROWSER'});
+            return response.data.approvalRef;
+          }});
+        assertSession(source,token);
+      }
+      if(operation==='browser.scheduler.create'&&payload.service!=='background'){
         if(!foundationClient?.request||!currentPageTarget?.capture||!currentPageTarget?.revalidate)
           throw Object.assign(new Error('现有任务与当前网页服务不可用'),{code:'E_SERVICE_UNSUPPORTED'});
         const selected=currentPageTarget.capture();
@@ -2754,7 +2769,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     pendingRelease=release;pendingOperationId=release?crypto.randomUUID():null;
     patchToolField(view, previewTitle, {textContent: candidate.title});
     patchToolField(view, previewVersion, {textContent: 'v'+candidate.version});
-    patchToolField(view, previewDescription, {textContent: candidate.description});
+    patchToolField(view, previewDescription, {textContent: candidate.description+(candidate.background?
+      '\n后台计算：可按你批准的计划在侧边栏关闭后运行，仅访问本应用已授权的数据。后台源码 '+candidate.background.sha256+'。':'')});
     patchToolField(view, previewCapabilities, {textContent: candidate.capabilities.length
       ?candidate.capabilities.map(readableCapability).join('、'):'无需额外能力'});
     patchToolField(view, previewFile, {textContent: sourceLabel+' · 候选包 SHA-256（规范序列化）：'+candidateHash+

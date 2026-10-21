@@ -11,6 +11,10 @@ import {normalizeControllerNetworkOrigins,assertControllerNetworkTarget} from '.
 import {permissionPattern} from '../../environment.js';
 import {loadBuiltinWorkerSource} from '../../libs/loader.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
+import {readAppServiceInstallation,assertAppServiceBinding,APP_SERVICE_OPERATIONS} from '../tasks/app-service-installation.js';
+import {requireCloudRunnerSender} from './cloud-observer.js';
+import {normalizeBrowserOperation} from '../../framework/sdk/browser-contract.js';
+import {withRunAdmissionLock} from './run-admission-lock.js';
 // Reuse exact literals within the fixed privileged bundle budget.
 const RUN_STORE="runs",
   RUN_WRITE="readwrite",
@@ -212,7 +216,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     if (!run) return null;
     return structuredClone(Object.fromEntries(['tag', 'runId', 'state', 'runRevision', 'ownerEpoch', 'cancelSeq', 'identity',
       'target', 'targetQuarantine', 'revision', 'deadlineAt', 'retirementId', 'retirementState', 'resultId', 'terminalReason', 'workerRetired',
-      'scriptId', 'contentHash', 'sourceKind', 'networkOrigins'].filter(key => run[key] !== undefined).map(key => [key, run[key]])));
+      'scriptId', 'contentHash', 'sourceKind', 'networkOrigins','profile','appBinding'].filter(key => run[key] !== undefined).map(key => [key, run[key]])));
   }
   async function snapshotControllerRun(request, sender) {
     fields(request, ['runId']); if (request.runId !== undefined) id(request.runId);
@@ -321,6 +325,10 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     return {...observed, creationId: intent.creationId};
   }
   async function startControllerRun(request, sender) {
+    return withRunAdmissionLock(()=>startControllerRunLocked(request,sender),{allowWithoutLocks:api!==globalThis.chrome});
+  }
+  async function startControllerRunLocked(request, sender) {
+    if(request?.profile==='app-service')return prepareAppServiceRun(request,sender);
     selection(request.target);
     let changed = false;
     const target = request.target;
@@ -344,6 +352,49 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     if (target.expectedWindowId !== undefined) for (const [event, listener] of fences) event?.addListener(listener);
     try { return await prepareControllerRun(request, sender, assertCandidate); }
     finally { if (target.expectedWindowId !== undefined) for (const [event, listener] of fences) event?.removeListener(listener); }
+  }
+  async function prepareAppServiceRun(request,sender){
+    fields(request,['profile','appId','scheduledFireId','expectedScheduleOwner','requestId','deadlineAt'],
+      ['profile','appId','scheduledFireId','expectedScheduleOwner','requestId','deadlineAt']);
+    id(request.requestId);
+    invariant(request.requestId===request.scheduledFireId,'E_OWNER','App service requires an approved schedule occurrence');
+    invariant(Number.isSafeInteger(request.deadlineAt)&&request.deadlineAt>now()&&request.deadlineAt<=now()+60000,CONTROLLER_TIMEOUT_ERROR);
+    await requireCloudRunnerSender(api,sender);
+    const locks=globalThis.navigator?.locks;
+    invariant(locks?.request,'E_TOOL_LOCK');
+    return locks.request('opendesk.sidebar-tools:tool:'+request.appId,()=>locks.request('opendesk.sidebar-tools:catalog',async()=>{
+      const {tool,binding}=await readAppServiceInstallation(api,request.appId);
+      const expectedScheduleOwner=await scheduled.prepareAdmission(request.scheduledFireId,request.expectedScheduleOwner);
+      const host=await assertHost(sender),environment=builtinIdentity(await loadBuiltin({runtime:api.runtime}));
+      const requestDigest=await digest(request,wireCanonicalOptions),admissionKey=`scheduled-start:${request.scheduledFireId}`;
+      return tx(RUN_WRITE,async transaction=>{
+        await currentHost(transaction,host,sender);
+        const old=await transaction.get(COMMAND_JOURNAL,admissionKey);
+        if(old){
+          invariant(old.requestDigest===requestDigest,REQUEST_CONFLICT);
+          const run=await owner(transaction,await transaction.get(RUN_STORE,old.runId),host,sender);
+          return {runId:run.runId,state:run.state,duplicate:true};
+        }
+        const slot=await transaction.get(RUN_STORE,'@slot');
+        invariant(!slot?.currentRunId&&!slot?.preview,CONTROLLER_OWNER_ERROR,'Previous execution still owns the single slot');
+        const fire=await scheduled.admit(transaction,request.scheduledFireId,{...request,expectedScheduleOwner,paramsDecoded:{}},null,now());
+        const runId=newId(),scriptId=`app:${binding.appId}`;
+        const revision={kind:'app-service',scriptId,revision:1,sourceHash:binding.codeHash,builtinIdentity:environment};
+        const identity={tag:CONTROLLER_RUN_TAG,profile:'app-service',appBinding:binding,runId,ownerEpoch:1,
+          hostInstanceId:host.hostInstanceId,hostDocumentId:host.hostDocumentId,scriptId,revision:1,contentHash:binding.codeHash,target:null};
+        const run={tag:CONTROLLER_RUN_TAG,profile:'app-service',appBinding:binding,runId,namespace:namespace(host),principal:host.principal,
+          registrationId:host.registrationId,hostDocumentId:host.hostDocumentId,hostInstanceId:host.hostInstanceId,browserSessionIncarnation:session,
+          scriptId,contentHash:binding.codeHash,builtinAbi:BUILTIN_ABI,builtinIdentity:environment,sourceKind:'app-service',
+          opId:newId(),resultId:newId(),requestId:request.requestId,requestDigest,deadlineAt:request.deadlineAt,paramsWire:encodeValue({}),
+          selection:{mode:'app-service'},startUrl:null,nativeTabId:null,networkOrigins:[],target:null,identity,revision,
+          state:'running',ownerEpoch:1,runRevision:1,eventSeq:1,cancelSeq:0,workerRetired:false,retirementState:'not-started',createdAt:now(),scheduledFireId:fire.fireId};
+        await transaction.put(RUN_STORE,run,runId);await lease(transaction,run);
+        await transaction.put(RUN_STORE,{tag:'slot',currentRunId:runId,state:'held',releaseCount:0,fencedEpoch:1,retirementId:null},'@slot');
+        await transaction.put(COMMAND_JOURNAL,{tag:'controller-start',runId,requestDigest},admissionKey);
+        await scheduled.bind(transaction,fire,run);
+        return {...project(run),sourceUtf8:tool.background.js,paramsWire:run.paramsWire};
+      });
+    }));
   }
   async function prepareControllerRun(request, sender, assertCandidate) {
     // A single admission API supports exact saved revisions and immutable draft
@@ -502,6 +553,11 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     return run;
   }
   function assertTaskCapability(run,operation){
+    if(run.profile==='app-service'){
+      invariant(operation.kind==='browser-sdk'&&APP_SERVICE_OPERATIONS.includes(operation.method),'E_CAPABILITY','App services cannot use Page, Controller or sensitive capabilities');
+      return;
+    }
+    invariant(operation.kind!=='browser-sdk','E_CAPABILITY','Browser app operations require an installed app-service');
     if(!run.installedTaskAuthorization)return;
     // Task v1 declares only page.automation. It must not inherit the developer
     // Controller's host storage, HTTP, Cookie or native service authority.
@@ -518,8 +574,13 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     id(envelope.identity.runId);
     fields(envelope.operation, ['kind', 'method', 'args'], ['kind', 'method', 'args']);
     invariant(Array.isArray(decodeControlValue(envelope.operation.args, {maxBytes: envelope.operation.method === 'uploadChunk' ? 131072 : 65536})), CONTROLLER_SCHEMA_ERROR);
-    const serviceCall = envelope.operation.kind === 'service';
+    const serviceCall = envelope.operation.kind === 'service',appCall=envelope.operation.kind==='browser-sdk';
     let serviceArgs;
+    if(appCall){
+      const args=decodeControlValue(envelope.operation.args);
+      invariant(APP_SERVICE_OPERATIONS.includes(envelope.operation.method)&&args.length===1,'E_CAPABILITY');
+      serviceArgs=normalizeBrowserOperation(envelope.operation.method,args[0]);
+    }
     if (serviceCall) {
       const method = envelope.operation.method, args = decodeControlValue(envelope.operation.args);
       invariant(Object.hasOwn(SDK_METHODS, method) && /^(AXIOS_|APPSTORAGE_|APPLOCAL_|CHROME_LOCAL_)/.test(method), 'E_CAPABILITY');
@@ -532,13 +593,15 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       if (value) invariant(value.requestDigest === requestDigest, REQUEST_CONFLICT);
       return {previous:value, run};
     });
+    assertTaskCapability(priorRun,envelope.operation);
+    if(priorRun.profile==='app-service')await assertAppServiceBinding(api,priorRun.appBinding);
     if (serviceCall && previous?.state === 'durable' && !previous.reply && Object.hasOwn(previous,'valueWire')) {
       previous.reply = {requestId:envelope.requestId,value:encodeControlValue(decodeValue(previous.valueWire))};
     }
     if (previous?.reply) {
       const target = previous.reply.handoff?.to || envelope.target;
       await requireRunGrants(priorRun);
-      await verifyControllerTarget({api, target});
+      if(priorRun.profile!=='app-service')await verifyControllerTarget({api, target});
       await tx(RUN_READ, async transaction => {
         const run = await owner(transaction, await transaction.get(RUN_STORE, envelope.identity.runId), host, sender, {active: true});
         assertTaskCapability(run,envelope.operation);
@@ -579,15 +642,20 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           await transaction.put(RUN_STORE, current, current.runId);
         }
         await transaction.put(COMMAND_JOURNAL, {tag: navigation ? 'controller-navigation' : 'controller-operation', runId: current.runId,
-          ...(serviceCall ? {lifecycle:'controller',namespace:current.namespace,principal:current.principal,grantIncarnation:current.registrationId,
+          ...(serviceCall||appCall ? {lifecycle:'controller',namespace:current.namespace,principal:current.principal,grantIncarnation:current.registrationId,
             browserSessionIncarnation:session,opId:key,requestId:envelope.requestId,resultId:`${key}:result`,method:envelope.operation.method} : {}),
           requestDigest, envelope, state: 'dispatched', submissionCount: 1, dispatchAt: now()}, key);
         return current;
       });
       if (navigation) navigating.set(run.runId, envelope.requestId);
       const abort = new AbortController(); cancellations.set(key, {runId: run.runId, abort});
+      let appDispatched=false;
       const authorizeOperation = async (captured, details = {}) => {
         invariant(same(captured, envelope), CONTROLLER_OWNER_ERROR);
+        if(run.profile==='app-service'){
+          await assertAppServiceBinding(api,run.appBinding);
+          return tx(RUN_READ,transaction=>admittedOperation(transaction,envelope,host,sender));
+        }
         if (details.url !== undefined) {
           assertControllerNetworkTarget({url:details.url,
             sourceOrigin:envelope.target.allowedOrigin, additionalOrigins:run.networkOrigins || [],
@@ -649,7 +717,14 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         return {requestId:envelope.requestId,value:encodeControlValue(value)};
       }
       try {
-        const reply = serviceCall ? await executeService() : await driver.execute(envelope, {signal:abort.signal,deadlineAt:run.deadlineAt,recordReceipt});
+        let reply;
+        if(appCall){
+          invariant(typeof globalThis.__opendeskBrowserAppService==='function','E_SERVICE_UNSUPPORTED');
+          const value=await globalThis.__opendeskBrowserAppService({operation:envelope.operation.method,args:serviceArgs,binding:run.appBinding,
+            authorize:()=>authorizeOperation(envelope),onDispatch:()=>{appDispatched=true;},recordEffect:recordServiceEffect});
+          await recordServiceEffect(value);
+          reply={requestId:envelope.requestId,value:encodeControlValue(value)};
+        }else reply = serviceCall ? await executeService() : await driver.execute(envelope, {signal:abort.signal,deadlineAt:run.deadlineAt,recordReceipt});
         invariant(reply?.requestId === envelope.requestId, 'E_RESULT_FORMAT');
         const valueWire = reply.error ? undefined : encodeValue(decodeControlValue(reply.value));
         // Record observed native effect before checking delivery permission.
@@ -683,6 +758,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
             from: structuredClone(reply.handoff.from), to: structuredClone(reply.handoff.to)};
           await transaction.put(COMMAND_JOURNAL, operation, key);
         });
+        if(appCall)await authorizeOperation(envelope,{phase:'post'});
         return await tx(RUN_WRITE, async transaction => {
           const current = await admittedOperation(transaction, envelope, host, sender, {post: true, handoff: reply.handoff});
           if (navigation) {
@@ -715,7 +791,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
             ['locator.commitIntent', 'locator.commitNoEffect', 'locator.scrollCommitted'].includes(receipt.stage)).at(-1);
           const uncertainAction = envelope.operation.kind === 'packaged' &&
             envelope.operation.method === 'locatorAction' && lastLocatorCommit?.stage === 'locator.commitIntent';
-          operation.state = uncertainAction ? 'effect_unknown' :
+          operation.state = uncertainAction || appCall&&appDispatched ? 'effect_unknown' :
             error.code === CANCELLED_CODE || error.code === CONTROLLER_TIMEOUT_ERROR ? 'cancelled' :
             failedWithoutEffect ? 'failed' : 'effect_unknown';
           operation.failure = typed(error); operation.deliveryState = 'fenced';
@@ -808,12 +884,26 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     invariant(['succeeded', 'error', 'stopped', 'timeout', 'host-closed'].includes(request.status) && typeof request.workerRetired === 'boolean', CONTROLLER_SCHEMA_ERROR);
     if (request.status === 'succeeded') decodeValue(request.valueWire);
     const host = await assertHost(sender);
-    await tx(RUN_READ, async transaction => owner(transaction, await transaction.get(RUN_STORE, request.runId), host, sender));
+    const run=await tx(RUN_READ, async transaction => owner(transaction, await transaction.get(RUN_STORE, request.runId), host, sender));
+    if(run.profile==='app-service'){
+      const locks=globalThis.navigator?.locks;invariant(locks?.request,'E_TOOL_LOCK');
+      return locks.request('opendesk.sidebar-tools:tool:'+run.appBinding.appId,()=>locks.request('opendesk.sidebar-tools:catalog',async()=>{
+        if(request.status==='succeeded'){
+          try{await assertAppServiceBinding(api,run.appBinding);}
+          catch(error){request={...request,status:'error',error:typed(error)};delete request.valueWire;}
+        }
+        return finishControllerSettlement(request,sender,host);
+      }));
+    }
+    return finishControllerSettlement(request,sender,host);
+  }
+  async function finishControllerSettlement(request,sender,host){
     const state = request.status === 'succeeded' ? 'completed' : request.status === 'error' ? 'failed' : request.status === 'host-closed' ? 'interrupted' : 'stopped';
     const answer = await settleInternal(request.runId, state, request.status === 'succeeded' ? {valueWire: request.valueWire} :
       {error: request.error || typed(new FoundationError(request.status === 'timeout' ? CONTROLLER_TIMEOUT_ERROR : CANCELLED_CODE, request.status))},
       {...request, host, sender, requestDigest: await digest(request, wireCanonicalOptions)});
     abortOperations(request.runId, request.status === 'timeout' ? CONTROLLER_TIMEOUT_ERROR : CANCELLED_CODE);
+    if(answer.run.profile==='app-service'&&!answer.result.outcome.ok)return answer;
     // Settlement persists even if permission is lost; delivery is separately authorized.
     const delivery=await snapshotControllerRun({runId:request.runId},sender);
     invariant(delivery.results.some(result=>result.resultId===answer.result.resultId),CONTROLLER_PERMISSION_ERROR,REVOKED_MESSAGE);
@@ -829,8 +919,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     if (run.retirementState === 'released') return {state: 'released', releaseCount: 1};
     if (!run.retirementId || !run.workerRetired) return {state: 'pending', releaseCount: 0, reason: 'worker-not-retired'};
     const previousSession = run.browserSessionIncarnation !== session;
-    if (!previousSession) await createControllerDriver({api, clock, authorize: async () => true}).cancel(run).catch(() => {});
-    let absence = 'borrowed-not-closed';
+    if (!previousSession&&run.profile!=='app-service') await createControllerDriver({api, clock, authorize: async () => true}).cancel(run).catch(() => {});
+    let absence = run.profile==='app-service'?'app-worker-retired':'borrowed-not-closed';
     let targetQuarantine = null;
     if (run.selection.mode === 'owned') {
       const intent = await tx(RUN_READ, transaction => transaction.get(COMMAND_JOURNAL, `controller-create:${run.runId}`), [COMMAND_JOURNAL]);
@@ -973,6 +1063,20 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     }
     return runs.map(project);
   }
+  async function invalidateAppServices(){
+    const runs=await tx(RUN_READ,async transaction=>(await transaction.all(RUN_STORE)).filter(run=>run.profile==='app-service'&&live.has(run.state)),[RUN_STORE]);
+    for(const run of runs){
+      try{await assertAppServiceBinding(api,run.appBinding);continue;}catch{}
+      const fenced=await tx(RUN_WRITE,async transaction=>{
+        const current=await transaction.get(RUN_STORE,run.runId);
+        if(!live.has(current?.state))return null;
+        current.cancelSeq++;current.ownerEpoch++;current.runRevision++;current.state='stopping';
+        current.resultDeliveryRevoked=true;current.terminalReason='E_TOOL_CHANGED';
+        await transaction.put(RUN_STORE,current,current.runId);await lease(transaction,current);return current;
+      },[RUN_STORE,COMMAND_JOURNAL]);
+      if(fenced){abortOperations(run.runId,'E_TOOL_CHANGED');await emitToHost(run.registrationId,{type:'controller-fenced',runId:run.runId,reasonCode:'E_TOOL_CHANGED'}).catch(()=>{});}
+    }
+  }
   async function recoverControllers() {
     const result=await tx(RUN_WRITE, async transaction => {
       for (const operation of await transaction.all(COMMAND_JOURNAL)) {
@@ -1006,5 +1110,5 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   }
   return Object.freeze({commitControllerScript, getControllerScript, listControllerScripts, tombstoneControllerScript, garbageCollectControllerScript,
     startControllerRun, controllerOperation, stopControllerRun,
-    finishControllerRun, snapshotControllerRun, retireControllerTarget, loseControllerHost, invalidateControllerTarget, recoverControllers});
+    finishControllerRun, snapshotControllerRun, retireControllerTarget, loseControllerHost, invalidateControllerTarget, invalidateAppServices, recoverControllers});
 }

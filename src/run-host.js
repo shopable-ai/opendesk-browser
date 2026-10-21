@@ -47,40 +47,49 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
     'controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget']
     .map(method => [method, request => client.request(method, request)]));
   async function start(request) {
-    if (request?.source !== undefined || request?.scriptId !== undefined)
+    if (request?.profile === 'app-service' || request?.source !== undefined || request?.scriptId !== undefined)
       return startController(request);
     return startScraping(request);
   }
-  async function startController({scriptId, revision, contentHash, source, params, target, networkOrigins = [], expectedTaskGeneration, expectedTaskInstallationId, cloudRequestId, scheduledFireId, expectedScheduleOwner,
-    deadlineAt = clock.now() + 30000, requestId = crypto.randomUUID()}) {
+  async function startController(request) {
+    const {profile, appId, scriptId, revision, contentHash, source, params, target, networkOrigins = [], expectedTaskGeneration, expectedTaskInstallationId, cloudRequestId, scheduledFireId, expectedScheduleOwner,
+      deadlineAt = clock.now() + 30000, requestId = crypto.randomUUID()} = request;
+    const appService = profile === 'app-service';
+    if (appService && Object.keys(request).some(key =>
+      !['profile', 'appId', 'scheduledFireId', 'expectedScheduleOwner', 'requestId', 'deadlineAt'].includes(key)))
+      throw new FoundationError('E_ARGUMENT_TYPE', 'App service admission accepts only an installed app and schedule binding');
     if (disposed || active) throw new FoundationError('E_OWNER', 'RunHost already owns a task or is disposed');
     // Reserve locally before the first await; the durable @slot remains the
     // cross-host authority. Serialization failure creates no admission.
     // Capture the caller's exact source variant before the first await. The
     // service worker hashes and durably authenticates draft bytes at admission.
     // Legacy saved runs retain their original r1 pin request unchanged.
-    const sourceRequest = source === undefined ? {scriptId, revision, contentHash} : {source: structuredClone(source)};
-    // Keep the exact target captured by the caller even while client.ready is pending.
-    // The UI's trusted-click snapshot is necessary but must not rely on caller object ownership.
-    const capturedTarget = structuredClone(target);
-    const capturedNetworkOrigins = structuredClone(networkOrigins);
-    const paramsWire = encodeValue(params), local = {controllerRun: true, state: 'preparing', controller: new AbortController()};
+    // Both profiles capture their admission before ready. Service source,
+    // params and target come exclusively from the installed Authority claim.
+    const admissionRequest = appService ? structuredClone({profile, appId, scheduledFireId, expectedScheduleOwner, deadlineAt, requestId}) : {
+      ...(source === undefined ? {scriptId, revision, contentHash} : {source: structuredClone(source)}),
+      paramsWire: encodeValue(params), target: structuredClone(target), deadlineAt, requestId,
+      ...(networkOrigins.length ? {networkOrigins: structuredClone(networkOrigins)} : {}),
+      ...(expectedTaskGeneration!==undefined?{expectedTaskGeneration}:{}),
+      ...(expectedTaskInstallationId!==undefined?{expectedTaskInstallationId}:{}),
+      ...(cloudRequestId?{cloudRequestId}:{}),
+      ...(scheduledFireId?{scheduledFireId}:{}),
+      ...(expectedScheduleOwner!==undefined?{expectedScheduleOwner}:{})};
+    const local = {controllerRun: true, state: 'preparing', controller: new AbortController()};
     let admitted, admissionDone;
     const admission = new Promise(resolve => { admissionDone = resolve; }); admissions.add(admission);
     active = local;
     try {
       await client.ready;
       if (disposed) throw new FoundationError('E_HOST_CLOSED', 'RunHost disposed during admission');
-      const claim = await controls.startControllerRun({...sourceRequest, paramsWire, target: capturedTarget, deadlineAt, requestId,
-        ...(capturedNetworkOrigins.length ? {networkOrigins:capturedNetworkOrigins} : {}),
-        ...(expectedTaskGeneration!==undefined?{expectedTaskGeneration}:{}),
-        ...(expectedTaskInstallationId!==undefined?{expectedTaskInstallationId}:{}),
-        ...(cloudRequestId?{cloudRequestId}:{}),
-        ...(scheduledFireId?{scheduledFireId}:{}),
-        ...(expectedScheduleOwner!==undefined?{expectedScheduleOwner}:{})});
+      const claim = await controls.startControllerRun(admissionRequest);
       local.runId = claim.runId;
       if (claim.duplicate) throw new FoundationError('E_EFFECT_UNKNOWN', 'Existing run is observable; its script is never replayed');
       admitted = claim;
+      if ((claim.profile === 'app-service' || claim.identity?.profile === 'app-service') !== appService ||
+          (appService && (claim.profile !== 'app-service' || claim.identity?.profile !== 'app-service' ||
+            claim.identity.appBinding?.appId !== appId || claim.identity.runId !== claim.runId || claim.target !== null)))
+        throw new FoundationError('E_OWNER', 'Authority claim does not match the requested run profile and app');
       if (disposed || local.controller.signal.aborted) {
         await controls.stopControllerRun({runId: claim.runId, requestId: crypto.randomUUID(), reason: 'E_HOST_CLOSED'});
         throw new FoundationError('E_HOST_CLOSED', 'RunHost closed during admission');

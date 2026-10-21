@@ -13,6 +13,19 @@ const num=(min=0,max=Number.MAX_SAFE_INTEGER)=>({type:'integer',minimum:min,maxi
 const arr=(items,maxItems=100)=>({type:'array',items,maxItems});
 const bool={type:'boolean'},nullableString={anyOf:[str(160),{type:'null'}]};
 const empty=obj();
+const schedulerSpec=obj({kind:str(128),expression:str(256)},['kind','expression']);
+const taskScheduleCreate=obj({taskId:str(128),revision:str(128,'^[1-9][0-9]{0,15}$'),
+  schedule:schedulerSpec},['taskId','revision','schedule']);
+const appServiceScheduleCreate=obj({service:{const:'background'},schedule:schedulerSpec},['service','schedule']);
+// Keep the object metadata used by discovery; each overload rejects fields
+// belonging to the other profile, including a service request with Task IDs.
+const scheduleCreate={...obj({...taskScheduleCreate.properties,...appServiceScheduleCreate.properties},['schedule']),
+  anyOf:[taskScheduleCreate,appServiceScheduleCreate]};
+const scheduleListRow={anyOf:[
+  obj({scheduleRef:ref,taskId:str(256),status:str(256)},['scheduleRef','taskId','status']),
+  obj({scheduleRef:ref,profile:{const:'app-service'},appId:str(40,'^[a-z][a-z0-9-]{1,39}$'),
+    service:{const:'background'},status:str(256)},['scheduleRef','profile','appId','service','status'])
+]};
 const storageKey=str(128,'^[A-Za-z][A-Za-z0-9._-]{0,127}$'),storageKeys=arr(storageKey,100);
 const sid=obj({observationId:ref},['observationId']);
 const oid=obj({operationId:ref},['operationId']),eid=obj({sessionRef:ref},['sessionRef']);
@@ -155,11 +168,9 @@ const ops=Object.freeze({
      usedMs:num(),remainingMs:num(),permissions:{type:'object'}},
      ['contract','kind','desiredPolicyRev','appliedPolicyRev','status','settings',
        'usedMs','remainingMs','permissions'])],
- 'browser.scheduler.create':[obj({taskId:str(128),revision:str(128,'^[1-9][0-9]{0,15}$'),
-   schedule:obj({kind:str(128),expression:str(256)},['kind','expression'])},['taskId','revision','schedule']),
+ 'browser.scheduler.create':[scheduleCreate,
    obj({scheduleRef:ref,status:{enum:['active','pending']}},['scheduleRef','status'])],
- 'browser.scheduler.listOwn':[empty,obj({schedules:arr(obj({scheduleRef:ref,taskId:str(256),status:str(256)},
-   ['scheduleRef','taskId','status']),100)},['schedules'])],
+ 'browser.scheduler.listOwn':[empty,obj({schedules:arr(scheduleListRow,100)},['schedules'])],
  'browser.scheduler.cancelOwn':[obj({scheduleRef:ref},['scheduleRef']),obj({cancelled:bool},['cancelled'])],
  'browser.storage.local.get':[obj({keys:storageKeys}),obj({items:{type:'object',additionalProperties:true}},['items'])],
   'browser.storage.local.getQuota':[empty,obj({usedBytes:num(),maxBytes:num(),keyCount:num(),

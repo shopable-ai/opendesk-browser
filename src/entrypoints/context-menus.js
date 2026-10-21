@@ -12,6 +12,7 @@ export default defineUnlistedScript(() => {
         throw Object.assign(new Error('Existing Scheduler unavailable'),{code:'E_SERVICE_UNSUPPORTED'});
       return globalThis.__opendeskBrowserSchedule(...args);
     }});
+  globalThis.__opendeskBrowserAppService=request=>host.handleService(request);
   const observe=(promise,label)=>void Promise.resolve(promise).catch(error=>
     console.error('Browser menu '+label,error));
   observe(host.synchronize(),'startup sync');

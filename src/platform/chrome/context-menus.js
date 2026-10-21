@@ -16,6 +16,7 @@ import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../framework/sdk/browser-dire
 import {validateTrustedScheduleIntent} from '../tasks/schedule-contract.js';
 import {createBrowserHistoryHost} from './history.js';
 import {executeBrowserToolStorage} from '../../ui/sidebar-tools/storage-state.js';
+import {readAppServiceInstallation,assertAppServiceBinding,APP_SERVICE_OPERATIONS} from '../tasks/app-service-installation.js';
 import {createTrustedCookieHost} from './browser-cookie-host.js';
 import {loadOfficialCatalog,matchesOfficialRelease} from '../../sidebar-tools/official-catalog.js';
 import {MARKET_PROVENANCE_STORE} from '../../sidebar-tools/official-reading-toc.js';
@@ -245,7 +246,19 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   const operationState=state=>({
     running:'running',stopped:'completed',cancelled:'cancelled',
     interrupted:'failed',revoked:'cancelled'})[state]??'unknown';
+  const serviceContexts=new WeakMap();
   async function verifyBrowserOwner(identity,operation,origin=null){
+    const service=serviceContexts.get(identity);
+    if(service){
+      if(origin!==null||!APP_SERVICE_OPERATIONS.includes(operation))throw failure('E_CAPABILITY');
+      const {tool}=await assertAppServiceBinding(api,service.binding);
+      const spec=browserOperation(operation);
+      if(!spec?.requiredCapabilities.every(cap=>tool.capabilities.includes(cap)))throw failure('E_TOOL_CAPABILITY_REQUIRED');
+      for(const permission of spec.requiredChromePermissions)
+        if(!await api.permissions.contains({permissions:[permission]}))throw failure('E_CHROME_PERMISSION_REQUIRED');
+      await service.authorize();
+      return tool;
+    }
     const owned=await readSources(api),tool=admittedTool(owned.tools,identity.toolId);
     if(!sidebarToolEnabled(owned.enabled,tool.id))throw failure('E_TOOL_DISABLED');
     if(tool.version!==identity.toolVersion||(owned.epochs[tool.id]??null)!==(identity.epoch??null)||
@@ -439,7 +452,9 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       authorizeEnable:owner=>verifyBrowserOwner(owner,'browser.proxy.managed.requestEnable')}),
     'storage.local':(input,owner,operation)=>executeBrowserToolStorage({
       api,operation,toolId:owner.toolId,input,
-      authorize:()=>verifyBrowserOwner(owner,operation)
+      authorize:()=>verifyBrowserOwner(owner,operation),
+      onDispatch:serviceContexts.get(owner)?.onDispatch,
+      recordEffect:serviceContexts.get(owner)?.recordEffect
     })
   },{
     // Approved Promise-native DIRECT calls are compiled from the pinned matrix.
@@ -840,7 +855,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
            intent.toolInstance!==toolInstance||intent.hostInstanceId!==hostInstanceId||
            intent.args!==canonicalJSON(checked))
           throw failure('E_USER_GESTURE_REQUIRED','New explicit approval required for this exact action');
-        const approvedOrigin=operation==='browser.scheduler.create'?new URL(intent.schedulerIntent.task.targetUrl).origin:
+        const approvedOrigin=operation==='browser.scheduler.create'&&checked.service!=='background'?new URL(intent.schedulerIntent.task.targetUrl).origin:
           operation==='browser.network.observe.start'?checked.origins[0]:
           ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request','browser.downloads.download','browser.bookmarks.createOwned'].includes(operation)
             ?new URL(checked.url).origin:null;
@@ -1219,7 +1234,12 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
               storeId:args.cookies?.[0]?.storeId,
               partitionKey:args.cookies?.[0]?.partitionKey??null})
             :await authorizedCookie(identity,targetOperation,args.url,args):null;
-        if(targetOperation==='browser.scheduler.create'){
+        if(targetOperation==='browser.scheduler.create'&&args.service==='background'){
+          validateTrustedScheduleIntent(schedulerIntent,args);
+          await readAppServiceInstallation(api,identity.toolId);
+          await verifyBrowserOwner(identity,targetOperation);
+        }
+        if(targetOperation==='browser.scheduler.create'&&args.service!=='background'){
           const plan=validateTrustedScheduleIntent(schedulerIntent,args);
           const site=new URL(plan.targetUrl).origin;
           if(!document||document.url!==plan.targetUrl||document.origin!==site||
@@ -1462,5 +1482,29 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     const rows=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE]||{};
     if(Object.keys(rows).length)await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,{});
   });
-  return Object.freeze({synchronize:sync,handleTool,handleHost,onClicked,ensureListener,invalidateTab,revokeLaunches,revokePermission,revokeBrowserOperations,noteNavigation,noteSourceContext,receiveSourceContext});
+  // Internal SW caller only. No message/Port route accepts this object or its
+  // authorize closure. Reuse the original Host bindings, locks and Driver.
+  async function handleService({operation,args={},binding,authorize,onDispatch,recordEffect}){
+    if(!APP_SERVICE_OPERATIONS.includes(operation)||typeof authorize!=='function')throw failure('E_CAPABILITY');
+    const checked=normalizeBrowserOperation(operation,args);
+    return runLocked(binding?.appId,async()=>{
+      const owner=Object.freeze({toolId:binding.appId});
+      serviceContexts.set(owner,{binding,authorize,onDispatch,recordEffect});
+      try{
+        await verifyBrowserOwner(owner,operation);
+        const serviceStatus=method=>({operation:method,apiVersion:BROWSER_API_VERSION,
+          implementation:browserOperation(method)?.implementation.toLowerCase().replaceAll('_','-')??'not-implemented',
+          exposure:APP_SERVICE_OPERATIONS.includes(method)?'allowed':'not-exposed',platform:'supported',
+          authorization:{tool:APP_SERVICE_OPERATIONS.includes(method)?'granted':'missing',browser:'granted',site:'not-required'},
+          callableNow:APP_SERVICE_OPERATIONS.includes(method),requiresUserGesture:false,
+          reasonCode:APP_SERVICE_OPERATIONS.includes(method)?null:'E_CONTEXT',nextAction:null});
+        if(operation==='browser.capabilities.list')return browserCapabilityList('app-service').map(row=>({operation:row.operation,
+          implementation:row.implementation,riskLevel:row.riskLevel,requiredCapabilities:row.requiredCapabilities,
+          requiredChromePermissions:row.requiredChromePermissions,status:serviceStatus(row.operation)}));
+        if(operation==='browser.capabilities.getStatus')return serviceStatus(checked.operation);
+        return await dispatchScoped(operation,checked,owner);
+      }finally{serviceContexts.delete(owner);}
+    });
+  }
+  return Object.freeze({synchronize:sync,handleTool,handleService,handleHost,onClicked,ensureListener,invalidateTab,revokeLaunches,revokePermission,revokeBrowserOperations,noteNavigation,noteSourceContext,receiveSourceContext});
 }

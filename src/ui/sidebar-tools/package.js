@@ -8,6 +8,7 @@ export const SIDEBAR_TOOL_STORE = 'opendesk.sidebar-tools.installed.v1';
 export const SIDEBAR_TOOL_DATA_PREFIX = 'opendesk.sidebar-tools.data.v1:';
 export const SIDEBAR_TOOL_PROTOCOL = 'opendesk.sidebar-tool.bridge.v1';
 export const SIDEBAR_TOOL_SHARED_UI_RUNTIME='opendesk.react-ui.v1';
+export const SIDEBAR_TOOL_BACKGROUND_KIND='opendesk.app-service.v1';
 export const MAX_INSTALLED_TOOLS = 12;
 export const SIDEBAR_TOOL_DATA_LIMITS=Object.freeze({itemBytes:8192,totalBytes:32768,maxKeys:32});
 const MAX_PACKAGE_BYTES = 320000;
@@ -18,7 +19,7 @@ const V2_CAPABILITIES = Object.freeze([...new Set([...CAPABILITIES,'page.prompts
   'browser.cookies.read','browser.cookies.values','browser.cookies.write','browser.cookies.observe','browser.cookies.clear','browser.storage','browser.proxy.managed',MANAGED_SITE_BUDGET_CAPABILITY,
   ...APPROVED_BROWSER_DIRECT_BINDINGS.flatMap(row=>row.requiredCapabilities)])]);
 const PACKAGE_FIELDS=Object.freeze(['format','id','version','title','description','capabilities','html','css','js','uiRuntime','backgroundPolicy']);
-const V2_FIELDS=Object.freeze([...PACKAGE_FIELDS,'requires','contributes','scripts','initialData']);
+const V2_FIELDS=Object.freeze([...PACKAGE_FIELDS,'requires','contributes','scripts','initialData','background']);
 const MENU_CONTEXTS=Object.freeze(['page','selection','link']);
 const fail = (message,code='E_TOOL_SCHEMA') => { const error=new Error(message);error.code=code;throw error; };
 const plain = value => value!==null && typeof value==='object' && !Array.isArray(value) &&
@@ -47,6 +48,18 @@ export function validateSidebarToolPackage(value) {
   if (unsupportedCapabilities.length) {
     const names=unsupportedCapabilities.slice(0,4).map(item=>item.length>80?item.slice(0,80)+'…':item).join('、');
     fail('工具能力声明超出当前支持范围：'+names+(unsupportedCapabilities.length>4?'等 '+unsupportedCapabilities.length+' 项':'')+'。请核对工具包格式，并更新 OpenDesk Browser 扩展后重新导入。');
+  }
+  if(value.background!==undefined){
+    const background=value.background;
+    if(!v2||!plain(background)||Object.keys(background).sort().join(',')!=='js,kind,sha256'||
+       background.kind!==SIDEBAR_TOOL_BACKGROUND_KIND||
+       typeof background.sha256!=='string'||!/^[a-f0-9]{64}$/.test(background.sha256)||
+       typeof background.js!=='string'||!background.js.trim()||
+       !['browser.storage','browser.scheduler'].every(capability=>value.capabilities.includes(capability)))
+      fail('后台服务需要固定 v2 源码、SHA 及 browser.storage/browser.scheduler 能力','E_TOOL_BACKGROUND');
+    if(background.js.length>LIMITS.js)fail('后台服务源码字段过大','E_TOOL_LIMIT');
+    if(/(?:^|\n)\s*(?:import|export)\s+(?:[\w*{]|["'])/.test(background.js))
+      fail('后台服务必须是 Classic JavaScript；ESM 请先使用可信构建器','E_TOOL_BACKGROUND');
   }
   const backgroundPolicy=normalizeSidebarToolBackgroundPolicy(value.backgroundPolicy);
   if(backgroundPolicy&&!value.capabilities.includes('focus.control')&&
@@ -152,6 +165,9 @@ export function serializeSidebarToolPackage(value){
   // A version-matched v2 contribution must have ONE canonical digest regardless
   // of object-key order; never let storage reordering revoke or inherit grants.
   if(isV2){
+    if(tool.background!==undefined)stable.background={
+      kind:tool.background.kind,js:tool.background.js,sha256:tool.background.sha256
+    };
     if(tool.initialData!==undefined){
       // Chrome Storage may reorder nested object keys; the approved package
       // hash and install identity must not depend on such key order.
@@ -178,7 +194,20 @@ export function sidebarToolStorageKey(id) {
 }
 
 export async function sidebarToolPackageHash(tool){
-  const bytes=new TextEncoder().encode(serializeSidebarToolPackage(tool));
+  const verified=await verifySidebarToolBackground(tool);
+  const bytes=new TextEncoder().encode(serializeSidebarToolPackage(verified));
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),
     value=>value.toString(16).padStart(2,'0')).join('');
+}
+
+// Shape admission remains synchronous. Installation and service consumers must
+// also verify the fixed UTF-8 payload; a self-declared hash is not publisher trust.
+export async function verifySidebarToolBackground(value){
+  const tool=validateSidebarToolPackage(value);
+  if(tool.background===undefined)return tool;
+  const bytes=new TextEncoder().encode(tool.background.js);
+  const sha256=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),
+    value=>value.toString(16).padStart(2,'0')).join('');
+  if(sha256!==tool.background.sha256)fail('后台服务源码与固定 SHA-256 不一致','E_TOOL_BACKGROUND_SHA');
+  return tool;
 }

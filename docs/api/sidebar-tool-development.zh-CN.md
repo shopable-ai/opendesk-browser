@@ -57,6 +57,7 @@ examples/sidebar-tools/<tool-id>/            # 独立工具项目；官方工具
     index.html                                # 工具主体 HTML 片段
     style.css                                 # 工具作用域样式
     main.js                                   # 经典浏览器脚本
+    background.js                             # 可选 v2 App Service 源码，由 files.background 选择，与 UI 独立
   assets/                                     # 可选：PNG、JPEG、WebP
   README.md 或 README.zh-CN.md                # 给使用者看的安装/操作/限制
   DEVELOPMENT.zh-CN.md                       # 可选：工具有特殊开发链路时

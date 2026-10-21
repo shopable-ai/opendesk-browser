@@ -122,11 +122,19 @@ chrome.runtime.onUserScriptMessage?.addListener((message,sender,sendResponse)=>{
 // Chrome alarms are wake hints only; the durable FireId transaction is authoritative.
 chrome.alarms.onAlarm.addListener(alarm=>{
   if(!alarm.name?.startsWith('opendesk.schedule.v1:'))return;
-  foundation.then(broker=>broker.authority.schedules.onAlarm(alarm))
+  foundation.then(async broker=>{await broker.authority.schedules.onAlarm(alarm);await ensureCloudRunner(broker);})
     .catch(error=>console.error('[scheduled alarm]',error));
 });
+chrome.storage.onChanged.addListener((changes,area)=>{
+  if(area!=='local'||!['opendesk.sidebar-tools.installed.v1','opendesk.sidebar-tools.enabled.v1','opendesk.sidebar-tools.revocation-epochs.v1','opendesk.market.provenance.v1'].some(key=>Object.hasOwn(changes,key)))return;
+  void foundation.then(async broker=>{
+    await broker.authority.invalidateAppServices();
+    await broker.authority.schedules.reconcile();
+    await ensureCloudRunner(broker);
+  }).catch(error=>console.warn('[app service revoke]',error?.code||error?.message));
+});
 chrome.runtime.onStartup?.addListener(()=>{
-  foundation.then(broker=>broker.authority.schedules.reconcile())
+  foundation.then(async broker=>{await broker.authority.schedules.reconcile();await ensureCloudRunner(broker);})
     .catch(error=>console.error('[scheduled startup]',error));
 });
 chrome.action.onClicked.addListener(tab => {
@@ -168,7 +176,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     return data;
   }).then(
-    data=>sendResponse({ok:true,data}),
+    data=>{sendResponse({ok:true,data});
+      if(message.type==='listDueSchedules'&&message.payload?.profile==='app-service'&&!data.fires?.length)
+        void foundation.then(ensureCloudRunner).catch(error=>console.warn('[shared RunHost release]',error?.code||error?.message));
+    },
     error=>sendResponse({ok:false,error:projectFoundationError(error)})
   ).finally(()=>pendingFoundation--);
   return true;

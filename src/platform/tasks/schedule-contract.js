@@ -20,6 +20,7 @@ export const fireKey=fireId=>{
   return SCHEDULE_FIRE_PREFIX+fireId;
 };
 export function validateScheduleInput(value){
+  if(value?.profile==='app-service')return validateAppServiceScheduleInput(value);
   const allowed=['scheduleId','expectedGeneration','title','taskId','version','manifestHash','sourceHash',
     'installationId','taskGeneration','revision','params','targetUrl','openIfMissing','timezone','triggerKind',
     'triggerSpec','misfirePolicy','startDeadlineMs','paused','owner'];
@@ -70,6 +71,18 @@ export function validateScheduleOwner(owner){
   return structuredClone({...owner,installEpoch:owner.installEpoch??String(owner.epoch??'initial-install')});
 }
 export function validateInstalledToolScheduleRequest(request){
+  if(request&&Object.hasOwn(request,'service')){
+    invariant(typeof request==='object'&&!Array.isArray(request)&&
+      request.service==='background'&&Object.keys(request).length===2&&
+      Object.hasOwn(request,'schedule'),'E_SCHEMA','Invalid background scheduler request');
+    const schedule=request.schedule;
+    invariant(schedule&&typeof schedule==='object'&&!Array.isArray(schedule)&&
+      Object.keys(schedule).length===2&&Object.hasOwn(schedule,'kind')&&Object.hasOwn(schedule,'expression')&&
+      ['interval','once','daily','weekly'].includes(schedule.kind)&&
+      typeof schedule.expression==='string'&&schedule.expression.length>=1&&schedule.expression.length<=256,
+      'E_SCHEMA','Invalid scheduler spec');
+    return {service:'background',schedule:{kind:schedule.kind,expression:schedule.expression}};
+  }
   invariant(request&&typeof request==='object'&&!Array.isArray(request)&&
     Object.keys(request).every(k=>['taskId','revision','schedule'].includes(k))&&
     ['taskId','revision','schedule'].every(k=>Object.hasOwn(request,k)),
@@ -85,6 +98,56 @@ export function validateInstalledToolScheduleRequest(request){
     typeof schedule.expression==='string'&&schedule.expression.length>=1&&schedule.expression.length<=256,
     'E_SCHEMA','Invalid scheduler spec');
   return structuredClone(request);
+}
+export function validateAppServiceBinding(binding){
+  const fields=['appId','packageHash','codeHash','generation','sourceIdentity'];
+  invariant(binding&&typeof binding==='object'&&!Array.isArray(binding)&&
+    Object.keys(binding).length===fields.length&&fields.every(key=>Object.hasOwn(binding,key))&&
+    typeof binding.appId==='string'&&/^[a-z][a-z0-9-]{1,39}$/.test(binding.appId)&&
+    [binding.packageHash,binding.codeHash].every(value=>typeof value==='string'&&HASH.test(value))&&
+    typeof binding.generation==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(binding.generation),
+    'E_SCHEMA','Invalid app service installation binding');
+  const source=binding.sourceIdentity;
+  invariant(source&&typeof source==='object'&&!Array.isArray(source)&&
+    (source.kind==='local-reviewed'&&Object.keys(source).length===1||
+      source.kind==='market'&&Object.keys(source).length===4&&
+      typeof source.marketId==='string'&&source.marketId.length>=1&&source.marketId.length<=256&&
+      typeof source.sha256==='string'&&HASH.test(source.sha256)&&
+      typeof source.version==='string'&&/^\d+\.\d+\.\d+$/.test(source.version)),
+    'E_SCHEMA','Invalid app service source identity');
+  return structuredClone(binding);
+}
+function validateAppServiceScheduleInput(value){
+  const required=['profile','appId','appBinding','owner','title','params','targetUrl','openIfMissing',
+    'timezone','triggerKind','triggerSpec','misfirePolicy','startDeadlineMs','paused'];
+  invariant(Object.keys(value).every(key=>[...required,'scheduleId','expectedGeneration'].includes(key))&&
+    required.every(key=>Object.hasOwn(value,key)),'E_SCHEMA','Invalid app service schedule fields');
+  if(value.scheduleId!==undefined)scheduleKey(value.scheduleId);
+  invariant(value.expectedGeneration===undefined||value.expectedGeneration===null||
+    Number.isSafeInteger(value.expectedGeneration)&&value.expectedGeneration>=1,'E_SCHEMA');
+  const binding=validateAppServiceBinding(value.appBinding),owner=validateScheduleOwner(value.owner);
+  invariant(value.appId===binding.appId&&owner.toolId===binding.appId&&
+    owner.packageHash===binding.packageHash&&owner.epoch===binding.generation,
+    'E_OWNER','App service owner differs from installation binding');
+  invariant(typeof value.title==='string'&&value.title.trim()===value.title&&
+    value.title.length>=1&&value.title.length<=100&&value.targetUrl===null&&value.openIfMissing===false&&
+    value.params&&typeof value.params==='object'&&!Array.isArray(value.params)&&Object.keys(value.params).length===0&&
+    typeof value.paused==='boolean'&&['skip','latest-within-hour'].includes(value.misfirePolicy)&&
+    Number.isSafeInteger(value.startDeadlineMs)&&value.startDeadlineMs>=60000&&value.startDeadlineMs<=3600000,
+    'E_SCHEMA','Invalid app service schedule');
+  validateTrigger(value.triggerKind,value.triggerSpec,value.timezone);
+  return structuredClone({...value,owner,appBinding:binding});
+}
+export function validateTrustedAppServiceScheduleIntent(intent,request){
+  invariant(intent&&typeof intent==='object'&&!Array.isArray(intent)&&
+    Object.keys(intent).length===2&&Object.hasOwn(intent,'request')&&
+    intent.kind==='trusted-app-service-schedule-intent-v1',
+    'E_USER_GESTURE_REQUIRED','A trusted app service schedule approval intent is required');
+  const normalized=validateInstalledToolScheduleRequest(request);
+  invariant(normalized.service==='background'&&
+    JSON.stringify(validateInstalledToolScheduleRequest(intent.request))===JSON.stringify(normalized),
+    'E_USER_GESTURE_REQUIRED','App service schedule approval does not match request');
+  return normalized;
 }
 export function validateTrustedScheduleIntent(intent,request){
   const allowed=['kind','request','task','schedule'];

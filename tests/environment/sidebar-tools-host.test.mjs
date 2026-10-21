@@ -765,11 +765,11 @@ test('R4.5 fresh reinstall preserves orphaned private data and requires explicit
   f.selectFile({name:'quick-notes.json',size:text.length,text:async()=>text});
   await settle(()=>!f.elements['sidebar-tool-preview'].hidden&&!f.elements['sidebar-tool-install'].disabled);
   f.emit(f.elements['sidebar-tool-install'],'click');
-  await settle(()=>/未关联卸载确认/.test(f.elements['sidebar-tool-status'].textContent||''));
+  await settle(()=>/未关联卸载确认/.test(f.elements['sidebar-tool-file-error'].textContent||''));
   assert.deepEqual(store.get(key),{privateNote:'left by interrupted uninstall'},'a blocked installation must preserve existing notes');
   assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[],'orphan data requires explicit cleanup before admission');
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'install must not start code');
-  assert.equal(f.elements['sidebar-tool-status'].attributes['data-state'],'error');
+  assert.equal(f.elements['sidebar-tool-file-error'].hidden,false);
 });
 
 test('R4.5 delayed initial revocation read preserves a newer epoch without losing the installed list',async t=>{
@@ -851,7 +851,7 @@ test('R4.5 orphaned private data blocks reinstall until the acknowledged uninsta
     f.emit(f.elements['sidebar-tool-install'],'click');
   }
   await reviewAndConfirm();
-  await settle(()=>/上次卸载仍有未完成/.test(f.elements['sidebar-tool-status'].textContent||''));
+  await settle(()=>/上次卸载仍有未完成/.test(f.elements['sidebar-tool-file-error'].textContent||''));
   assert.deepEqual(store.get(key),privateData,'failed admission preserves the previous owner data');
   assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[]);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'refused install must not start code');
@@ -874,7 +874,7 @@ test('R5.0 incomplete cleanup record blocks a new tool even when no orphan paylo
   f.selectFile({name:'quick-notes.json',size:text.length,text:async()=>text});
   await settle(()=>!f.elements['sidebar-tool-install'].disabled);
   f.emit(f.elements['sidebar-tool-install'],'click');
-  await settle(()=>/上次卸载仍有未完成/.test(f.elements['sidebar-tool-status'].textContent||''));
+  await settle(()=>/上次卸载仍有未完成/.test(f.elements['sidebar-tool-file-error'].textContent||''));
   assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[]);
   assert.deepEqual(store.get(TOOL_CLEANUP_STORE),pending,'recovery marker must remain');
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
@@ -1533,7 +1533,7 @@ test('R4.5 failure to refresh after a confirmed commit cannot reuse the consumed
     return get(key);
   };
   f.emit(f.elements['sidebar-tool-install'],'click');
-  await settle(()=>/post-commit list read failed/.test(f.elements['sidebar-tool-status'].textContent||''));
+  await settle(()=>/post-commit list read failed/.test(f.elements['sidebar-tool-file-error'].textContent||''));
   assert.equal(f.store.get(SIDEBAR_TOOL_STORE).length,1);
   assert.equal(f.elements['sidebar-tool-install'].disabled,true);assert.equal(f.elements['sidebar-tool-preview'].hidden,true);
 });
@@ -1545,7 +1545,7 @@ test('R4.5 an official package removed after review is rejected before any insta
   f.host.openOfficialReview((await officialFixtures()).catalog.apps[0].toolId);
   await settle(()=>!f.elements['sidebar-tool-preview'].hidden);removed=true;
   f.emit(f.elements['sidebar-tool-install'],'click');
-  await settle(()=>/E_PACKAGE_MISSING/.test(f.elements['sidebar-tool-status'].textContent||''));
+  await settle(()=>/E_PACKAGE_MISSING/.test(f.elements['sidebar-tool-file-error'].textContent||''));
   assert.equal(f.store.has(SIDEBAR_TOOL_STORE),false);assert.equal(f.store.has(MARKET_OPERATIONS_STORE),false);
 });
 
@@ -2428,5 +2428,5 @@ test('R3.2 a sidecar alone cannot install Focus when its worker probe fails',asy
   await settle(()=>probes===1);
   await settle(()=>f.elements['sidebar-tool-install'].disabled===false);
   assert.equal(f.store.has(SIDEBAR_TOOL_STORE),false,'failed worker preflight must not install');
-  assert.match(f.elements['sidebar-tool-status'].textContent,/后台无响应/);
+  assert.match(f.elements['sidebar-tool-file-error'].textContent,/后台无响应/);
 });

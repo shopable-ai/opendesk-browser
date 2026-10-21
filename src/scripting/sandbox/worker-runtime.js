@@ -29,8 +29,9 @@ export function installControlWorker(scope) {
     const port = event.ports[0], send = port.postMessage.bind(port), start = port.start.bind(port);
     const addPort = port.addEventListener.bind(port), pin = freeze(clone(event.data.identity));
     const proxy = createWorkerPageProxy({port, identity: pin, revision: event.data.revision, target: event.data.target});
-    // One immutable capability facade in this owned Worker realm. Keep the
-    // audited dynamic compiler signature and admitted source body unchanged.
+    const appService = pin.profile === 'app-service';
+    // One immutable capability facade in this owned Worker realm. Only the
+    // admitted identity chooses the lexical API; execution/settlement is shared.
     Object.defineProperty(scope, 'ctx', {value: proxy.scriptContext});
     let started = false;
     add('securitypolicyviolation', event => {
@@ -46,9 +47,12 @@ export function installControlWorker(scope) {
       }
       try {
         data.body = controllerProgramBody(data.body);
-        const body = new AsyncBody('page', 'params', 'axiosx', 'AppStorage', 'AppLocal', 'storage', data.body);
-        const params = clone(data.params);
-        then(NativePromise.resolve(apply(body, params, [proxy.page, params, proxy.services.axiosx, proxy.services.AppStorage, proxy.services.AppLocal, proxy.services.storage])), value => {
+        const body = appService ? new AsyncBody('browser', data.body) :
+          new AsyncBody('page', 'params', 'axiosx', 'AppStorage', 'AppLocal', 'storage', data.body);
+        const params = appService ? undefined : clone(data.params);
+        const args = appService ? [proxy.browser] :
+          [proxy.page, params, proxy.services.axiosx, proxy.services.AppStorage, proxy.services.AppLocal, proxy.services.storage];
+        then(NativePromise.resolve(apply(body, params, args)), value => {
           try {
             // Large final values are transported in ordered, bounded private
             // frames. This does not change page.content() or normal RPC budgets.

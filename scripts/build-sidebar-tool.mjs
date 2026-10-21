@@ -5,7 +5,7 @@ import {resolve,dirname,join,extname,basename} from 'node:path';
 import {pathToFileURL,fileURLToPath} from 'node:url';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 import {createHash,randomUUID} from 'node:crypto';
-import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,serializeSidebarToolPackage,SIDEBAR_TOOL_SHARED_UI_RUNTIME} from '../src/ui/sidebar-tools/package.js';
+import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,serializeSidebarToolPackage,SIDEBAR_TOOL_SHARED_UI_RUNTIME,SIDEBAR_TOOL_BACKGROUND_KIND} from '../src/ui/sidebar-tools/package.js';
 import {compileSharedToolCss} from './preview/shared-tool-design.mjs';
 import {compileToolLocaleCatalog} from '../src/ui/app-localization.js';
 const fail=(message)=>{throw new Error('E_TOOL_BUILD: '+message);};
@@ -78,11 +78,19 @@ export async function createSidebarToolPackage(projectPath) {
        :['id','version','title','description','capabilities','files','assets','locales','uiRuntime','backgroundPolicy']).includes(key))||
      (!v2&&Object.hasOwn(meta,'format'))||
      !meta.files||typeof meta.files!=='object'||Array.isArray(meta.files)||
-     Object.keys(meta.files).some(key=>!['html','css','js','dependencies'].includes(key))||
+     Object.keys(meta.files).some(key=>!['html','css','js','dependencies','background'].includes(key))||
      !['html','css','js'].every(key=>Object.hasOwn(meta.files,key))||
      (Object.hasOwn(meta.files,'dependencies')&&!v2))
     
     fail('tool.config.json needs exactly HTML, CSS and JS file paths');
+  if(Object.hasOwn(meta.files,'background')&&!v2)
+    fail('files.background requires a v2 tool.config.json');
+  let background;
+  if(Object.hasOwn(meta.files,'background')){
+    const js=await source(root,meta.files.background,220000);
+    background={kind:SIDEBAR_TOOL_BACKGROUND_KIND,js,
+      sha256:createHash('sha256').update(js,'utf8').digest('hex')};
+  }
   const html=await source(root,meta.files.html,64000);
   let css=await source(root,meta.files.css,120000);
   // Only opted-in tools import the canonical non-privileged component CSS at build time.
@@ -144,6 +152,7 @@ export async function createSidebarToolPackage(projectPath) {
     ...(meta.uiRuntime?{uiRuntime:meta.uiRuntime}:{}),
     ...(meta.backgroundPolicy!==undefined?{backgroundPolicy:meta.backgroundPolicy}:{}),
     ...(v2?{requires:meta.requires,contributes:meta.contributes,...(scripts.length?{scripts}:{}),
+      ...(background?{background}:{}),
       ...(meta.initialData!==undefined?{initialData:meta.initialData}:{})}:{})});
   return pkg;
 }

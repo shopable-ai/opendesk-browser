@@ -291,22 +291,45 @@ test('upgrade cancellation and failed registry commit leave menu preferences unt
   assert.equal((await menuStatus(f,host)).enabled,false);
 });
 
-test('interrupted menu preference migration preserves partially disabled actions',async()=>{
-  const f=await fixture({actions:2}),host=f.host();
-  await menuCall(f,host,'browser.contextMenu.register',{actionIds:['capture-selection']});
-  const candidate=structuredClone(f.tool);candidate.version='1.0.1';
-  const set=f.api.storage.local.set;
-  f.api.storage.local.set=async rows=>{
-    if(Object.hasOwn(rows,BROWSER_MENU_GRANTS_STORE))throw Error('menu preference write failed');
-    return set(rows);
-  };
-  await assert.rejects(installReviewedSidebarTool({api:f.api,lockManager:locks,candidate,baseline:f.tool,
-    reviewApproved:true}),{code:'E_OUTCOME_UNKNOWN'});
-  assert.equal(f.local.get(SIDEBAR_TOOL_STORE)[0].version,candidate.version);
-  const restarted=f.host();
-  assert.deepEqual((await menuStatus(f,restarted)).activeActions,['capture-selection']);
-  await restarted.synchronize();
-  assert.equal(f.menus.has(toolId),true);assert.equal(f.menus.has(linkId),false);
+test('interrupted menu preference migration preserves disabled actions with atomic generation',async()=>{
+  for(const committed of [false,true]){
+    const f=await fixture({actions:2}),host=f.host();
+    await menuCall(f,host,'browser.contextMenu.register',{actionIds:['capture-selection']});
+    const candidate=structuredClone(f.tool);candidate.version='1.0.1';
+    const beforeGrants=structuredClone(f.local.get(BROWSER_MENU_GRANTS_STORE));
+    const beforeEpochs=structuredClone(f.local.get(TOOL_REVOCATION_EPOCHS_STORE));
+    const set=f.api.storage.local.set;let attempts=0;
+    f.api.storage.local.set=async rows=>{
+      if(Object.hasOwn(rows,BROWSER_MENU_GRANTS_STORE)){
+        attempts++;
+        assert.ok(Object.hasOwn(rows,SIDEBAR_TOOL_STORE),'menu preferences share the package commit');
+        assert.ok(Object.hasOwn(rows,TOOL_REVOCATION_EPOCHS_STORE),'generation is present in the first registry commit');
+        if(committed)await set(rows);
+        throw Error(committed?'menu commit acknowledgement lost':'menu preference write refused');
+      }
+      return set(rows);
+    };
+    await assert.rejects(installReviewedSidebarTool({api:f.api,lockManager:locks,candidate,baseline:f.tool,
+      reviewApproved:true}),{code:committed?'E_OUTCOME_UNKNOWN':'E_HOST_STORAGE_WRITE'});
+    if(committed){
+      assert.deepEqual(f.local.get(SIDEBAR_TOOL_STORE),[candidate]);
+      const epoch=f.local.get(TOOL_REVOCATION_EPOCHS_STORE)[f.tool.id];
+      assert.equal(typeof epoch,'string');assert.ok(epoch);
+      assert.notEqual(epoch,beforeEpochs?.[f.tool.id]);
+      const menu=f.local.get(BROWSER_MENU_GRANTS_STORE)[f.tool.id].contextMenu;
+      assert.equal(menu.installEpoch,epoch);assert.equal(menu.packageHash,await sidebarToolPackageHash(candidate));
+      await assert.rejects(menuCall(f,host,'browser.contextMenu.getStatus'),{code:'E_TOOL_CHANGED'});
+    }else{
+      assert.deepEqual(f.local.get(SIDEBAR_TOOL_STORE),[f.tool]);
+      assert.deepEqual(f.local.get(TOOL_REVOCATION_EPOCHS_STORE),beforeEpochs);
+      assert.deepEqual(f.local.get(BROWSER_MENU_GRANTS_STORE),beforeGrants);
+    }
+    const restarted=f.host();
+    assert.deepEqual((await menuStatus(f,restarted)).activeActions,['capture-selection']);
+    await restarted.synchronize();
+    assert.equal(f.menus.has(toolId),true);assert.equal(f.menus.has(linkId),false);
+    assert.equal(attempts,1,'a failed or unacknowledged commit is not replayed');
+  }
 });
 
 test('R1.1 zero/one native entries: no permanent root, optional permission and top-level branding',async()=>{

@@ -42,6 +42,7 @@
 | --- | --- | --- |
 | v2 SDK 与贡献 | 源配置声明 `format: "opendesk.sidebar-tool.v2"`、`requires`、`contributes`，保留到最终包 | 具体名称与许可见 [Browser SDK](browser-sdk.zh-CN.md)，不是直接授权 |
 | v2 多 JS 依赖 | `files.dependencies`：最多 8 个有序、不重复的固定 Classic 文件；构建成 `scripts` 中的 name/sha256/code | 沙箱校验字节后依序加载，再运行主 js；v1 不接受 dependencies/scripts，不开放任意后台 JS |
+| v2 App Service（R1.4） | `files.background`：独立本地 Classic JS 入口；生成顶层 `background: {kind,js,sha256}` | 与 UI `js/scripts` 分离；安装前校验源码摘要，不赋予特权 Background/Chrome 权限；详见下节 |
 | 固定 Shared UI | v1/v2 均可显式声明 `uiRuntime: "opendesk.react-ui.v1"`，同名字段进入包 | 只选择已支持的固定沙箱 React/UI 资源；工具在自己的文档创建 Root，没有宿主 Chrome 权限 |
 | UI 本地化 | 源配置 `locales` 经构建校验后嵌入原 js，不增加最终 locales 字段 | 使用只读展示语言，详见 [本地化合同](sidebar-tool-localization.zh-CN.md) |
 
@@ -59,6 +60,26 @@
 | 图片 assets | 最多 16 个；每张 ≤96 KiB；PNG/JPEG/WebP，本地预嵌入 |
 
 HTML 不允许 `script/iframe/object/embed/base/link/meta/style` 标签、内联事件、`javascript:` 等；CSS 不允许远程 `@import`、HTTP/JS 资源；主 JS 及 v2 所选固定依赖必须是 Classic；原始 ESM/JSX/SFC 先按项目构建，不能直接保留顶层 `import/export`。校验器不能代替 CSP、安全审计或真实浏览器验收。
+
+### R1.4 可选 App Service 包合同
+
+只有 v2 可声明 `tool.config.json.files.background`，值为项目内本地 JS 相对路径，与 `files.js` 的 UI 源码分别读取。打包器复用原路径、符号链接和源文件预算检查，计算最终 `background.js` UTF-8 字节的固定 SHA-256。配置不接受手写顶层 `background` 或作者自报摘要。输出包的可选顶层字段严格为：
+
+```text
+background: {
+  kind: "opendesk.app-service.v1",
+  js: <非空 Classic JavaScript 源码字符串>,
+  sha256: <该源码 UTF-8 SHA-256 的 64 位小写十六进制字符串>
+}
+```
+
+必须同时声明既有 `browser.storage` 和 `browser.scheduler` capabilities；`storage.local` 不能替代 `browser.storage`。UI `js` 保持独立，后台源码不合并到 UI 或依赖资产，也不由安装器执行。后台源码沿用 JS 的 **220,000 字符、源文件 220,000 字节**限制；所有 UI、依赖、后台、数据及 JSON 开销共同占用原 **320,000 UTF-8 bytes** 包预算，没有新增容量。v1 拒绝 `background/files.background`，未声明后台的既有 v1/v2 包保持兼容。
+
+`validateSidebarToolPackage` 同步校验形状、能力、源码及完整包预算；`verifySidebarToolBackground(tool)` 异步返回验证后的工具快照，并核对后台源码 SHA（不匹配为 `E_TOOL_BACKGROUND_SHA`）。后台缺失时仍验证原包，随后直接返回。`serializeSidebarToolPackage` 和 `sidebarToolPackageHash` 包含 `background` 的 kind/js/sha256，以固定字段顺序序列化，不受存储重排字段影响；源码或摘要变化都会改变包身份。`sidebarToolPackageHash` 自身也先调用异步后台校验，拒绝错误的源码摘要；同步序列化仅校验形状，不能代替该检查。
+
+本地审阅安装、市场单项及批量安装沿用同一 `installReviewedSidebarTool`，在任何安装写入和市场意图消费前执行异步 SHA 校验；市场未知结果恢复也验证实际安装的后台源码。来源沿用用户明确本地审阅（`local-reviewed` 语义）或可信调用方核实的既有市场来源记录。后台 SHA 只证明内容一致，**不是发行者签名或信任声明**；包不能自报 publisher/official 来源。
+
+每次新安装或实际升级（含无后台的旧格式包）在既有 `opendesk.sidebar-tools.revocation-epochs.v1` 为该 ID 生成新随机字符串；相同规范包的 noop 不轮换。包和新代际在同一次 `storage.local.set` 提交并分别读回；丢失回执、部分持久化或读回不明保持 `E_OUTCOME_UNKNOWN`，不自动重放。新的市场事务记录绑定该代际，恢复只能核对并补完元数据，不能认可缺失或不同的代际。明确批准的菜单偏好可绑定新代际，其他敏感授权不会因此续期。本阶段仅证明包与安装合同；运行/调度、B0 冻结及冻结后的 A/B 应用验证另行执行，不能由 Node 包测试宣称通过。
 
 ## 1.1 官方可选发行与安装状态（R4.5）
 
@@ -172,7 +193,7 @@ HTML 不允许 `script/iframe/object/embed/base/link/meta/style` 标签、内联
 | 市场来源 | `opendesk.market.provenance.v1` | 安装来源、实际发行版本、规范化 SHA-256；**不放入严格 v1 包** |
 | 市场安装事务 | `opendesk.market.operations.v1` | 恢复核对的操作 ID、版本、摘要、状态；未知结果不得直接重放 |
 | 部分卸载清理 | `opendesk.sidebar-tools.uninstall-cleanup.v1` | 已确认卸载但清理仍未完成时保留；后续需手动恢复 |
-| 工具旧实例撤销代际 | `opendesk.sidebar-tools.revocation-epochs.v1` | 卸载时更新该 ID 的独立随机代际；即使再次安装完全相同包，旧 iframe 及知识收件箱旧会话也不能恢复数据写入权 |
+| 工具旧实例撤销代际 | `opendesk.sidebar-tools.revocation-epochs.v1` | 新安装、实际升级、卸载及启停转换更新该 ID 的独立随机代际；相同包安装 noop 不更新；即使再次安装完全相同包，旧 iframe 及知识收件箱旧会话也不能恢复数据写入权 |
 
 **宿主必须声明 `unlimitedStorage`**，在 `manifest.json` 和 `src/platform/chrome/permission-gate.js` 中同步维护。运行时用 `chrome.permissions.contains({permissions:['unlimitedStorage']})` 检查是否真正生效；若未生效，可读取既有本地工具，但写入仍受浏览器默认配额限制。该权限不是工具包的 capability，不授予工具直接操作 `chrome.storage` 的能力，不自动授权访问网站，也不取消设备物理空间限制。
 

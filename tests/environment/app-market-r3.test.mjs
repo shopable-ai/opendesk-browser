@@ -5,7 +5,7 @@ import {createHash} from 'node:crypto';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,MAX_INSTALLED_TOOLS,serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {installReviewedSidebarTool,reconcileMarketOperation,recoverMarketOperation,MARKET_OPERATIONS_STORE,
   MARKET_PROVENANCE_STORE,sameSidebarToolPackage,recordToolUninstall,getPendingToolCleanups,
-  cleanupUninstalledToolLocked,retryUninstalledToolCleanup,TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
+  cleanupUninstalledToolLocked,retryUninstalledToolCleanup,TOOL_CLEANUP_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/installation.js';
 
 import {strictTransfer,verifyMarketplaceToolRuntime} from '../../src/marketplace/page.js';
 import {OFFICIAL_COLLECTIONS,getOfficialCollection,officialMarketApps} from '../../src/marketplace/catalog.js';
@@ -87,17 +87,32 @@ test('reserved Reading TOC cannot be installed from a forged generic market fixt
   assert.deepEqual(values,{});
   assert.deepEqual(operations,[],'identity denial happens before storage writes');
 });
-test('manual tool replacement clears stale market publisher identity',async()=>{
-  const {api,locks,values}=browser(),candidate=tool();
+test('manual tool replacement requires source approval before clearing market provenance or rotating generation',async()=>{
+  const {api,locks,values,operations}=browser(),candidate=tool();
   await installReviewedSidebarTool({api,lockManager:locks,candidate,baseline:null,reviewApproved:true,market:identity()});
-  const edited=tool(MARKET_TEST_ID,'1.0.3');
-  const changed=await installReviewedSidebarTool({api,lockManager:locks,candidate:edited,baseline:candidate,reviewApproved:true});
+  const key=sidebarToolStorageKey(candidate.id),saved={note:'保留来源替换前的数据'};
+  values[key]=structuredClone(saved);
+  const before=structuredClone(values),writes=operations.length,edited=tool(MARKET_TEST_ID,'1.0.3');
+  const args={api,lockManager:locks,candidate:edited,baseline:candidate,reviewApproved:true};
+  await assert.rejects(installReviewedSidebarTool(args),{code:'E_PUBLISHER_CONFLICT'});
+  assert.deepEqual(values,before);assert.equal(operations.length,writes);
+  assert.equal((await installReviewedSidebarTool({...args,approveSourceChange:()=>false})).state,'cancelled');
+  assert.deepEqual(values,before);assert.equal(operations.length,writes);
+  let approvals=0;
+  const changed=await installReviewedSidebarTool({...args,approveSourceChange:(previous,next)=>{
+    approvals++;assert.deepEqual(previous,candidate);assert.deepEqual(next,edited);return true;
+  }});
+  assert.equal(approvals,1);
   assert.equal(changed.state,'installed');
   assert.equal(values[MARKET_PROVENANCE_STORE][MARKET_TEST_ID],undefined);
-  await assert.rejects(installReviewedSidebarTool({api,lockManager:locks,candidate:tool(MARKET_TEST_ID,'1.0.4'),
+  assert.deepEqual(values[key],saved);
+  assert.notEqual(values[TOOL_REVOCATION_EPOCHS_STORE][candidate.id],before[TOOL_REVOCATION_EPOCHS_STORE][candidate.id]);
+  const next=tool(MARKET_TEST_ID,'1.0.4'),localBaseline=structuredClone(values),localWrites=operations.length;
+  await assert.rejects(installReviewedSidebarTool({api,lockManager:locks,candidate:next,
     baseline:edited,reviewApproved:true,
-    market:{...identity(),operationId:'dddddddd-bbbb-4ccc-8ddd-eeeeeeeeeeee'}}),
-    e=>e.code==='E_PUBLISHER_CONFLICT');
+    market:{...identity(),sha256:createHash('sha256').update(serializeSidebarToolPackage(next)).digest('hex'),
+      operationId:'dddddddd-bbbb-4ccc-8ddd-eeeeeeeeeeee'}}),{code:'E_PUBLISHER_CONFLICT'});
+  assert.deepEqual(values,localBaseline);assert.equal(operations.length,localWrites);
 });
 test('never installs without explicit review or runs tool code',async()=>{
   const {api,locks,values,operations}=browser();

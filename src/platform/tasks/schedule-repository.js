@@ -18,6 +18,9 @@ export function createScheduleRepository({storage,clock,namespace,session}){
   const ownerAllowed=(row,ownerValidity)=>!row?.owner||
     ownerValidity?.get(ownerKey(row.owner))!==false&&
     ownerValidity?.get(ownerKey(row.owner)+':'+row.scheduleId)!==false;
+  const isAppService=row=>row?.profile==='app-service';
+  const definitionInput=row=>Object.fromEntries(Object.entries(row).filter(([key])=>
+    !['tag','namespace','generation','nextDueAt','createdAt','updatedAt','deleted'].includes(key)));
   // Existing v2 IndexedDB cursor reads by primary-key prefix; legacy unit
   // shims retain the tx.all fallback. No new store or migration is introduced.
   async function keyedRows(tx,store,prefix){
@@ -153,6 +156,10 @@ export function createScheduleRepository({storage,clock,namespace,session}){
     return hydrated;
   }
   async function checkInstalled(tx,input){
+    if(isAppService(input)){
+      validateScheduleInput(definitionInput(input));
+      return {params:input.params};
+    }
     const install=await tx.get('frameworkKV',installedKey(namespace,input.taskId));
     invariant(install?.tag==='task-installed-v1'&&install.enabled&&
       install.version===input.version&&install.manifestHash===input.manifestHash&&
@@ -180,14 +187,21 @@ export function createScheduleRepository({storage,clock,namespace,session}){
       invariant(old?old.namespace===namespace&&!old.deleted&&checked.expectedGeneration===old.generation:
         checked.expectedGeneration===undefined||checked.expectedGeneration===null,
         'E_REVISION','Schedule was modified by another host');
+      invariant(!old||isAppService(old)===isAppService(checked),
+        'E_PERMISSION','Schedule execution profile cannot change');
+      if(old&&isAppService(old))invariant(old.appId===checked.appId&&
+        canonical(old.appBinding)===canonical(checked.appBinding)&&sameOwner(old,checked.owner),
+        'E_OWNER','App service installation binding cannot change');
       const verified=await checkInstalled(tx,checked);
       const generation=(old?.generation??0)+1;
       const nextDueAt=checked.paused?null:nextScheduleAt(checked.triggerKind,checked.triggerSpec,checked.timezone,time-1);
       const definition={tag:'schedule-definition-v1',namespace,scheduleId:id,generation,
-        title:checked.title,taskId:checked.taskId,version:checked.version,
+        title:checked.title,...(isAppService(checked)?{
+          profile:'app-service',appId:checked.appId,appBinding:checked.appBinding
+        }:{taskId:checked.taskId,version:checked.version,
         manifestHash:checked.manifestHash,sourceHash:checked.sourceHash,
         installationId:checked.installationId,taskGeneration:checked.taskGeneration,
-        revision:verified.revision,params:verified.params,owner:checked.owner?validateScheduleOwner(checked.owner):null,
+        revision:verified.revision}),params:verified.params,owner:checked.owner?validateScheduleOwner(checked.owner):null,
         targetUrl:checked.targetUrl,openIfMissing:checked.openIfMissing,timezone:checked.timezone,
         triggerKind:checked.triggerKind,triggerSpec:checked.triggerSpec,misfirePolicy:checked.misfirePolicy,
         startDeadlineMs:checked.startDeadlineMs,paused:checked.paused,nextDueAt,
@@ -210,16 +224,18 @@ export function createScheduleRepository({storage,clock,namespace,session}){
       return structuredClone(row);
     });
   }
-  async function reconcile({activeDocumentIds,ownerValidity}={}){
+  async function reconcile({activeDocumentIds,activeAppServiceDocumentIds,ownerValidity}={}){
     invariant(activeDocumentIds===undefined||activeDocumentIds===null||activeDocumentIds instanceof Set,'E_SCHEMA','Live host document set required');
+    invariant(activeAppServiceDocumentIds===undefined||activeAppServiceDocumentIds===null||
+      activeAppServiceDocumentIds instanceof Set,'E_SCHEMA','Live app service document set required');
     invariant(ownerValidity===undefined||ownerValidity instanceof Map,'E_SCHEMA','Owner validity snapshot required');
     const time=now();
     return storage.transaction(['frameworkKV','commandJournal'],'readwrite',async tx=>{
       await ensurePendingIndex(tx);
-      const activeHost=(await keyedRows(tx,'commandJournal','host:')).some(row=>row?.tag==='host'&&
+      const hosts=(await keyedRows(tx,'commandJournal','host:')).filter(row=>row?.tag==='host'&&
         row.namespace===namespace&&row.active&&!row.revoked&&
-        (session===undefined||row.browserSessionIncarnation===session)&&
-        (activeDocumentIds==null||activeDocumentIds.has(row.hostDocumentId)));
+        (session===undefined||row.browserSessionIncarnation===session));
+      const activeHost=ids=>hosts.some(row=>ids==null||ids.has(row.hostDocumentId));
       const changed=[];
       for(const def of await definitions(tx)){
         if(def.paused||def.nextDueAt===null||def.nextDueAt>time)continue;
@@ -237,6 +253,8 @@ export function createScheduleRepository({storage,clock,namespace,session}){
         const status=time<=deadlineAt?'READY':'MISSED';
         if(!existing){
           await tx.put('frameworkKV',{tag:'schedule-fire-v1',namespace,fireId,scheduleId:def.scheduleId,
+            ...(isAppService(def)?{profile:'app-service',appId:def.appId,appBinding:def.appBinding,
+              expectedScheduleOwner:def.owner}:{}),
             generation:def.generation,scheduledAt:due,deadlineAt,status,createdAt:time,
             runId:null,resultId:null},key);
           if(pendingStates.has(status))
@@ -260,7 +278,7 @@ export function createScheduleRepository({storage,clock,namespace,session}){
         }
         const def=await tx.get('frameworkKV',scheduleKey(fire.scheduleId));
         const state=def?.generation!==fire.generation||def.paused||def.deleted?'CANCELLED':
-          fire.deadlineAt<time?'MISSED':!activeHost?'WAITING_HOST':
+          fire.deadlineAt<time?'MISSED':!activeHost(isAppService(def)?activeAppServiceDocumentIds:activeDocumentIds)?'WAITING_HOST':
           fire.status==='WAITING_HOST'?'READY':fire.status;
         let nextState=state;
         if(pendingStates.has(nextState)){
@@ -279,6 +297,11 @@ export function createScheduleRepository({storage,clock,namespace,session}){
     return storage.transaction(['frameworkKV','runs'],'readonly',async tx=>{
       const all=await definitions(tx),scheduleRows=[],installs=new Map();
       for(const def of all){
+        if(isAppService(def)){
+          const history=await hydrateHistory(tx,(await historySlice(tx,def,0,20)).slice(0,20));
+          scheduleRows.push({...def,needsAttention:false,history});
+          continue;
+        }
         if(!installs.has(def.taskId))
           installs.set(def.taskId,await tx.get('frameworkKV',installedKey(namespace,def.taskId)));
         const installed=installs.get(def.taskId);
@@ -306,8 +329,9 @@ export function createScheduleRepository({storage,clock,namespace,session}){
         history:await hydrateHistory(tx,page.slice(0,limit))};
     });
   }
-  async function ready({ownerValidity}={}){
+  async function ready({ownerValidity,profile}={}){
     invariant(ownerValidity===undefined||ownerValidity instanceof Map,'E_SCHEMA','Owner validity snapshot required');
+    invariant(profile===undefined||profile==='app-service','E_SCHEMA','Invalid scheduler execution profile');
     return storage.transaction(['frameworkKV'],'readonly',async tx=>{
       const all=await definitions(tx),map=new Map(all.map(row=>[row.scheduleId,row])),rows=[];
       for(const ref of await pendingRefs(tx)){
@@ -315,7 +339,8 @@ export function createScheduleRepository({storage,clock,namespace,session}){
         const def=fire&&map.get(fire.scheduleId);
         if(fire?.tag==='schedule-fire-v1'&&fire.namespace===namespace&&
           canRequeue(fire)&&fire.deadlineAt>=now()&&
-          def?.generation===fire.generation&&!def.paused&&ownerAllowed(def,ownerValidity))
+          def?.generation===fire.generation&&!def.paused&&ownerAllowed(def,ownerValidity)&&
+          isAppService(def)===(profile==='app-service'))
           rows.push({...fire,definition:structuredClone(def)});
       }
       return rows.sort((a,b)=>a.scheduledAt-b.scheduledAt).slice(0,12);
@@ -344,12 +369,14 @@ export function createScheduleRepository({storage,clock,namespace,session}){
       const rows=[];
       for(const def of await definitions(tx)){
         if(!def.owner||canonical(def.owner)!==key)continue;
-        const installed=await tx.get('frameworkKV',installedKey(namespace,def.taskId));
-        const needsAttention=!ownerAllowed(def,ownerValidity)||!installed||!installed.enabled||installed.version!==def.version||
+        const installed=isAppService(def)?null:await tx.get('frameworkKV',installedKey(namespace,def.taskId));
+        const needsAttention=!ownerAllowed(def,ownerValidity)||!isAppService(def)&&(!installed||!installed.enabled||installed.version!==def.version||
           installed.manifestHash!==def.manifestHash||
           installed.authorization?.installationId!==def.installationId||
-          installed.authorization?.generation!==def.taskGeneration;
-        rows.push({scheduleRef:scheduleRef(def.scheduleId),taskId:def.taskId,
+          installed.authorization?.generation!==def.taskGeneration);
+        rows.push({scheduleRef:scheduleRef(def.scheduleId),...(isAppService(def)?{
+          profile:'app-service',appId:def.appId,service:'background'
+        }:{taskId:def.taskId}),
           status:def.deleted?'cancelled':def.paused?'paused':needsAttention?'needs_attention':'active',
           nextDueAt:def.nextDueAt,generation:def.generation});
       }
@@ -388,7 +415,26 @@ export function createScheduleRepository({storage,clock,namespace,session}){
       'E_PERMISSION','Scheduled occurrence was consumed or expired');
     const definition=await tx.get('frameworkKV',scheduleKey(fire.scheduleId));
     invariant(definition?.tag==='schedule-definition-v1'&&!definition.deleted&&!definition.paused&&
-      definition.namespace===namespace&&definition.generation===fire.generation&&
+      definition.namespace===namespace&&definition.generation===fire.generation,
+      'E_PERMISSION','Scheduled definition is no longer approved');
+    if(isAppService(definition)){
+      validateScheduleInput(definitionInput(definition));
+      invariant(fire.profile==='app-service'&&fire.appId===definition.appId&&
+        canonical(fire.appBinding)===canonical(definition.appBinding)&&
+        canonical(fire.expectedScheduleOwner)===canonical(definition.owner)&&
+        request.profile==='app-service'&&request.appId===definition.appId&&origin===null&&
+        (!Object.hasOwn(request,'appBinding')||canonical(request.appBinding)===canonical(definition.appBinding))&&
+        (request.contentHash===undefined||request.contentHash===definition.appBinding.codeHash)&&
+        (request.source===undefined||request.source?.contentHash===definition.appBinding.codeHash)&&
+        (request.paramsDecoded===undefined||canonical(request.paramsDecoded)===canonical(definition.params))&&
+        request.target==null&&request.expectedTaskInstallationId===undefined&&request.expectedTaskGeneration===undefined,
+        'E_PERMISSION','Scheduled app service no longer matches immutable approval');
+      invariant(request.expectedScheduleOwner&&ownerKey(request.expectedScheduleOwner)===ownerKey(definition.owner),
+        'E_OWNER','Scheduled owner no longer matches approval');
+      invariant(request.requestId===fireId,'E_PERMISSION','Scheduled occurrence requestId must be stable');
+      return fire;
+    }
+    invariant(request.profile!=='app-service'&&
       definition.installationId===request.expectedTaskInstallationId&&
       definition.taskGeneration===request.expectedTaskGeneration&&
       definition.sourceHash===(request.source?.contentHash??request.contentHash)&&

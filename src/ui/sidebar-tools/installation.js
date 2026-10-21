@@ -1,6 +1,6 @@
 // One installation transaction path for Side Panel and Marketplace.
 // This is the EXISTING v1 tool registry and authority, not a second runner.
-import {SIDEBAR_TOOL_STORE, MAX_INSTALLED_TOOLS, validateSidebarToolPackage, sidebarToolStorageKey,serializeSidebarToolPackage,sidebarToolPackageHash} from './package.js';
+import {SIDEBAR_TOOL_STORE, MAX_INSTALLED_TOOLS, validateSidebarToolPackage, sidebarToolStorageKey,serializeSidebarToolPackage,sidebarToolPackageHash,verifySidebarToolBackground} from './package.js';
 import {MARKET_PROVENANCE_STORE,OFFICIAL_READING_TOC_RELEASE} from '../../sidebar-tools/official-reading-toc.js';
 export {MARKET_PROVENANCE_STORE} from '../../sidebar-tools/official-reading-toc.js';
 import {BROWSER_MENU_GRANTS_STORE,BOOKMARK_OWNED_STORE_PREFIX} from '../../framework/sdk/browser-contract.js';
@@ -257,6 +257,28 @@ async function canonicalSha256(tool){
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),
     value=>value.toString(16).padStart(2,'0')).join('');
 }
+// Submit package bytes and their generation together through the existing
+// storage/locks. Chrome writes are not a cross-call transaction: partial or
+// unreadable outcomes stay unknown and must never trigger an automatic replay.
+async function commitInstalledSidebarTools(api,next,previous,nextEpochs,previousEpochs,menuUpdate){
+  const updates={[SIDEBAR_TOOL_STORE]:next,[TOOL_REVOCATION_EPOCHS_STORE]:nextEpochs,
+    ...(menuUpdate?{[BROWSER_MENU_GRANTS_STORE]:menuUpdate.next}:{})};
+  const prior={[SIDEBAR_TOOL_STORE]:previous,[TOOL_REVOCATION_EPOCHS_STORE]:previousEpochs,
+    ...(menuUpdate?{[BROWSER_MENU_GRANTS_STORE]:menuUpdate.previous}:{})};
+  let failure=null;
+  try{await api.storage.local.set(updates);}
+  catch(cause){failure=cause;}
+  let actual;
+  try{
+    actual=Object.assign({},...await Promise.all(Object.keys(updates).map(key=>api.storage.local.get(key))));
+  }catch(cause){throw unknownStorageOutcome(cause,'工具安装及实例代际');}
+  if(Object.keys(updates).every(key=>sameStorageValue(actual[key],updates[key])))
+    return {confirmed:true,acknowledgementLost:Boolean(failure)};
+  if(failure&&Object.keys(prior).every(key=>sameStorageValue(actual[key],prior[key])||
+     (key===SIDEBAR_TOOL_STORE&&actual[key]===undefined&&previous.length===0)))
+    throw classifyStorageWriteError(failure,'工具安装及实例代际');
+  throw unknownStorageOutcome(failure,'工具安装及实例代际');
+}
 function matchesPreviousProvenance(row,source){
   const previous=row.previousProvenance;
   return Boolean(previous&&typeof previous==='object'&&!Array.isArray(previous)&&
@@ -277,7 +299,14 @@ export async function reconcileMarketOperation(api,operationId,expectedPackage=n
   let matched=Boolean(current&&current.version===row.version&&
     row.marketId==='opendesk/'+row.toolId&&
     (!expectedPackage||sameSidebarToolPackage(current,expectedPackage)));
-  if(matched)matched=await canonicalSha256(current)===row.sha256;
+  if(matched){
+    await verifySidebarToolBackground(current);
+    matched=await canonicalSha256(current)===row.sha256;
+    if(matched&&Object.hasOwn(row,'installEpoch')){
+      const epochs=requireToolRevocationEpochs((await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]);
+      matched=typeof row.installEpoch==='string'&&row.installEpoch.length>0&&epochs[row.toolId]===row.installEpoch;
+    }
+  }
   const source=(provenance[MARKET_PROVENANCE_STORE]||{})[row.toolId];
   const sourceMatched=source?.marketId===row.marketId&&source.sha256===row.sha256&&source.version===row.version;
   const sourceConflicts=Boolean(source&&!sourceMatched&&!matchesPreviousProvenance(row,source));
@@ -299,6 +328,7 @@ export async function recoverMarketOperation({api,lockManager,operationId,expect
   return lockManager.request('opendesk.sidebar-tools:tool:'+row.toolId,()=>
     lockManager.request('opendesk.sidebar-tools:catalog',async()=>{
       const matchesIdentity=active=>active&&['toolId','marketId','version','sha256'].every(key=>active[key]===row[key])&&
+        Object.hasOwn(active,'installEpoch')===Object.hasOwn(row,'installEpoch')&&active.installEpoch===row.installEpoch&&
         Object.hasOwn(active,'previousProvenance')===Object.hasOwn(row,'previousProvenance')&&
         sameStorageValue(active.previousProvenance,row.previousProvenance);
       const locked=(await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE];
@@ -327,10 +357,10 @@ export async function recoverMarketOperation({api,lockManager,operationId,expect
 export async function installReviewedSidebarTool({api,lockManager,candidate,baseline=null,
   market=null,reviewApproved=false,approveUpdate=()=>true,approveSourceChange=null,commitIntent=null}){
   if(reviewApproved!==true)throw error('必须先经过用户明确安装审阅','E_REVIEW_REQUIRED');
-  const tool=validateSidebarToolPackage(candidate);
+  const tool=await verifySidebarToolBackground(candidate);
   const identity=marketIdentity(market,tool);
-  // Compatibility is decided by the already running, precompiled Worker
-  // BEFORE the registry's commit boundary. No arbitrary packaged JS admitted.
+  // Managed policy compatibility is decided by the running, precompiled Worker
+  // BEFORE the registry's commit boundary. Installation never executes package JS.
   if(tool.capabilities.includes(MANAGED_SITE_BUDGET_CAPABILITY)){
     let response;
     try{response=await api.runtime.sendMessage({protocol:MANAGED_SITE_BUDGET_PROTOCOL,
@@ -387,6 +417,8 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         throw error('市场不允许同版本替换或自动降级','E_VERSION_CONFLICT');
       if(!(await approveUpdate(existing,tool)))return {state:'cancelled',tool};
     }
+    const rawEpochs=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE];
+    const epochs=requireToolRevocationEpochs(rawEpochs),nextEpoch=crypto.randomUUID();
     const ops=identity?recoverableOperations((await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE]):null;
     if(identity&&ops[identity.operationId])
       throw error('事务已存在，请先恢复核对，不能再次提交','E_OUTCOME_UNKNOWN');
@@ -402,7 +434,7 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       if(!identity)return;
       const original=(await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE]||{};
       const updated={...original,[identity.operationId]:{marketId:identity.marketId,sha256:identity.sha256,
-        toolId:tool.id,version:tool.version,...(previousProvenance?{previousProvenance}:{}),
+        toolId:tool.id,version:tool.version,installEpoch:nextEpoch,...(previousProvenance?{previousProvenance}:{}),
         state,reason:reason.slice(0,140),updatedAt:Date.now()}};
       await writeVerifiedLocalValue(api,MARKET_OPERATIONS_STORE,trimmedOperations(updated),original,'市场事务记录');
     };
@@ -447,7 +479,6 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
           throw error('工具浏览器授权记录损坏','E_STORAGE_CORRUPT');
         browserGrants=rawBrowserGrants||{};previousBrowserGrant=browserGrants[tool.id];
         previousMenu=previousBrowserGrant?.contextMenu??previousBrowserGrant;
-        const epochs=requireToolRevocationEpochs((await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]);
         preserveMenu=previousMenu?.version===existing.version&&
           previousMenu.installEpoch===(epochs[tool.id]??null)&&
           previousMenu.packageHash===await sidebarToolPackageHash(existing)&&
@@ -463,23 +494,24 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         await writeVerifiedLocalValue(api,key,tool.initialData,undefined,'工具首次安装数据');
         seeded=true;
       }
-      const next=existing?installed.map(row=>row.id===tool.id?tool:row):[...installed,tool];
-      registryAttempted=true;
-      const registry=await writeVerifiedLocalValue(api,SIDEBAR_TOOL_STORE,next,installed,'工具安装记录');
-      registryCommitted=true;
-      // Even if the local readback is durable, an unacknowledged package commit
-      // must require explicit recovery of provenance and operation state.
-      if(registry.acknowledgementLost)throw unknownStorageOutcome(null,'工具包写入回执');
+      let menuUpdate=null;
       if(preserveMenu){
         const oldActions=existing.contributes.contextMenus.map(action=>action.actionId);
         const newActions=tool.contributes.contextMenus.map(action=>action.actionId);
         const activeActions=previousMenu.activeActions.length&&oldActions.every(id=>previousMenu.activeActions.includes(id))
           ?newActions:previousMenu.activeActions.filter(id=>newActions.includes(id));
-        await writeVerifiedLocalValue(api,BROWSER_MENU_GRANTS_STORE,{...browserGrants,[tool.id]:{
+        menuUpdate={previous:rawBrowserGrants,next:{...browserGrants,[tool.id]:{
           ...previousBrowserGrant,contextMenu:{...previousMenu,version:tool.version,
-            packageHash:await sidebarToolPackageHash(tool),activeActions}
-        }},rawBrowserGrants,'右键菜单设置保留');
+            installEpoch:nextEpoch,packageHash:await sidebarToolPackageHash(tool),activeActions}
+        }}};
       }
+      const next=existing?installed.map(row=>row.id===tool.id?tool:row):[...installed,tool];
+      registryAttempted=true;
+      const registry=await commitInstalledSidebarTools(api,next,installed,{...epochs,[tool.id]:nextEpoch},rawEpochs,menuUpdate);
+      registryCommitted=true;
+      // Even if the local readback is durable, an unacknowledged package commit
+      // must require explicit recovery of provenance and operation state.
+      if(registry.acknowledgementLost)throw unknownStorageOutcome(null,'工具包写入回执');
       // Removing a capability makes its prior grant unusable immediately;
       // now clear that record after the successful registry boundary.
       for(const [store,capability] of siteStores)

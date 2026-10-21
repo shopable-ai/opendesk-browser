@@ -39,7 +39,7 @@ const sdkStorageKey=key=>typeof key==='string'&&
   !['__proto__','constructor','prototype'].includes(key);
 const sdkStorageBytes=value=>new TextEncoder().encode(JSON.stringify(value)).byteLength;
 const sdkStorageFail=(code,message=code)=>storageError(code,message);
-export async function executeBrowserToolStorage({api,operation,toolId,input={},authorize}={}){
+export async function executeBrowserToolStorage({api,operation,toolId,input={},authorize,onDispatch,recordEffect}={}){
   if(typeof authorize!=='function'||typeof api?.storage?.local?.get!=='function'||
      typeof api?.storage?.local?.set!=='function')
     throw sdkStorageFail('E_CONTEXT','Trusted Browser Host and existing Chrome storage required');
@@ -116,7 +116,9 @@ export async function executeBrowserToolStorage({api,operation,toolId,input={},a
     throw sdkStorageFail('E_LIMIT','Tool storage exceeds existing 32-key / 32 KB limit');
   await authorize();
   if(!sameStorageValue(current,next)){
+    onDispatch?.();
     await writeVerifiedLocalValue(api,namespace,next,current,'本工具 SDK 数据');
+    await recordEffect?.(action==='set'?{written:count}:{removed:count});
     try{await authorize();}catch{throw sdkStorageFail('E_OUTCOME_UNKNOWN','Tool data may have changed before revocation');}
   }
   return action==='set'?{written:count}:{removed:count};

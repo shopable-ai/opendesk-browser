@@ -4,19 +4,26 @@ import {BROWSER_OPERATIONS} from '../../framework/sdk/browser-contract.js';
 import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,validateSidebarToolPackage} from '../../ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,requireToolEnableRecords} from '../../ui/sidebar-tools/lifecycle.js';
 import {createScheduleRepository} from './schedule-repository.js';
-import {toolDocumentIdentity,SIDEPANEL_DOCUMENT_PATH} from '../../tool-document-url.js';
-import {SCHEDULE_ALARM_PREFIX,scheduleKey,scheduleIdFromRef,validateInstalledToolScheduleRequest,validateScheduleOwner,validateTrustedScheduleIntent} from './schedule-contract.js';
+import {toolDocumentIdentity,SIDEPANEL_DOCUMENT_PATH,CLOUD_RUNNER_DOCUMENT_PATH} from '../../tool-document-url.js';
+import {SCHEDULE_ALARM_PREFIX,scheduleKey,scheduleIdFromRef,validateInstalledToolScheduleRequest,validateScheduleOwner,validateTrustedScheduleIntent,validateTrustedAppServiceScheduleIntent} from './schedule-contract.js';
+import {scheduleSpecFromExpression} from './schedule-time.js';
+import {readAppServiceInstallation,assertAppServiceBinding} from './app-service-installation.js';
 
 // Only document contexts that actually run createScheduledTaskHost may
 // advertise scheduler availability. A regular Task catalog is a registered
 // Controller Host, but does not claim scheduled occurrences.
-export async function scheduledHostDocumentIds(api){
+export async function scheduledHostDocumentIds(api,{profile}={}){
   if(typeof api?.runtime?.getContexts!=='function')return null; // legacy deterministic test shim
   const contexts=await api.runtime.getContexts({}).catch(()=>[]);
   const base=api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH),ids=new Set();
   for(const row of contexts||[]){
     if(typeof row.documentId!=='string'||!row.documentId||typeof row.documentUrl!=='string')continue;
     if(row.documentLifecycle&&row.documentLifecycle!=='active')continue;
+    if(profile==='app-service'){
+      if(row.contextType==='OFFSCREEN_DOCUMENT'&&row.documentUrl===api.runtime.getURL(CLOUD_RUNNER_DOCUMENT_PATH))
+        ids.add(row.documentId);
+      continue;
+    }
     const route=toolDocumentIdentity(base,row.documentUrl);
     if(!route?.hostInstanceId)continue;
     if(row.contextType==='SIDE_PANEL'&&!route.hasLocator ||
@@ -74,6 +81,13 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
       const key=ownerKey(def.owner);
       if(map.get(key)===false){map.set(key+':'+def.scheduleId,false);return;}
       try{
+        if(def.profile==='app-service'){
+          const {tool}=await assertAppServiceBinding(api,def.appBinding);
+          invariant(def.appId===def.owner.toolId&&tool.version===def.owner.toolVersion,
+            'E_OWNER','App service owner changed');
+          map.set(key+':'+def.scheduleId,true);
+          return;
+        }
         const origin=new URL(def.targetUrl).origin;
         const granted=await api.permissions.contains({origins:[permissionPattern(origin)]});
         map.set(key+':'+def.scheduleId,granted===true);
@@ -107,14 +121,16 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
   }
   async function reconcile(){
     const activeDocumentIds=await scheduledHostDocumentIds(api);
+    const activeAppServiceDocumentIds=await scheduledHostDocumentIds(api,{profile:'app-service'});
     const ownerValidity=await currentOwnerValidity();
-    const changed=await repo.reconcile({activeDocumentIds,ownerValidity});
+    const changed=await repo.reconcile({activeDocumentIds,activeAppServiceDocumentIds,ownerValidity});
     await syncAlarms(ownerValidity);
     if(changed.length)await signal();
     return changed;
   }
   async function saveSchedule(request,sender){
     await checkSender(sender);
+    invariant(request?.profile!=='app-service','E_USER_GESTURE_REQUIRED','App service schedules require installed-app approval');
     // Saving an approval never prompts. Permission may be revoked at any time,
     // and the original Controller Authority checks again on real admission.
     const origin=new URL(request.targetUrl).origin;
@@ -138,12 +154,15 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
     invariant(request&&Object.keys(request).length===0,'E_SCHEMA');
     await reconcile();
     const schedules=await repo.list();
-    const origins=[...new Set(schedules.map(row=>new URL(row.targetUrl).origin))];
+    const origins=[...new Set(schedules.filter(row=>row.profile!=='app-service').map(row=>new URL(row.targetUrl).origin))];
     const grants=new Map(await Promise.all(origins.map(async origin=>[
       origin,api.permissions?.contains?await api.permissions.contains({origins:[permissionPattern(origin)]}).catch(()=>false):false
     ])));
+    const ownerValidity=await currentOwnerValidity();
     return {schedules:schedules.map(row=>({...row,
-      needsAttention:row.needsAttention||grants.get(new URL(row.targetUrl).origin)!==true}))};
+      needsAttention:row.needsAttention||(row.profile==='app-service'?
+        ownerValidity.get(ownerKey(row.owner)+':'+row.scheduleId)!==true:
+        grants.get(new URL(row.targetUrl).origin)!==true)}))};
   }
   async function listScheduleHistory(request,sender){
     await checkSender(sender);
@@ -154,9 +173,14 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
   }
   async function listDueSchedules(request,sender){
     await checkSender(sender);
-    invariant(request&&Object.keys(request).length===0,'E_SCHEMA');
+    invariant(request&&typeof request==='object'&&!Array.isArray(request)&&
+      (Object.keys(request).length===0||Object.keys(request).length===1&&request.profile==='app-service'),'E_SCHEMA');
     await reconcile();
-    return {fires:await repo.ready({ownerValidity:await currentOwnerValidity()})};
+    return {fires:await repo.ready({profile:request.profile,ownerValidity:await currentOwnerValidity()})};
+  }
+  async function hasPendingAppServices(){
+    await reconcile();
+    return (await repo.ready({profile:'app-service',ownerValidity:await currentOwnerValidity()})).length>0;
   }
   async function setScheduleFireState(request,sender){
     await checkSender(sender);
@@ -172,6 +196,21 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
   }
   async function create(request,owner,intent){
     const publicRequest=validateInstalledToolScheduleRequest(request);
+    if(publicRequest.service==='background'){
+      validateTrustedAppServiceScheduleIntent(intent,publicRequest);
+      const checkedOwner=await checkOwner(owner,'browser.scheduler.create');
+      const {tool,binding}=await readAppServiceInstallation(api,checkedOwner.toolId);
+      invariant(tool.version===checkedOwner.toolVersion&&binding.packageHash===checkedOwner.packageHash&&
+        binding.generation===checkedOwner.epoch,'E_OWNER','App service installation differs from owner');
+      const timezone='UTC',trigger=scheduleSpecFromExpression(publicRequest.schedule,timezone);
+      if(trigger.triggerKind==='once')invariant(trigger.triggerSpec.at>clock.now(),
+        'E_SCHEMA','One-time execution must be in the future');
+      const row=await repo.saveOwned({profile:'app-service',appId:binding.appId,appBinding:binding,
+        owner:checkedOwner,title:tool.title,params:{},targetUrl:null,openIfMissing:false,
+        timezone,...trigger,misfirePolicy:'skip',startDeadlineMs:300000,paused:false},checkedOwner);
+      await reconcile();
+      return {scheduleRef:row.scheduleId,status:row.paused?'pending':'active'};
+    }
     const input=validateTrustedScheduleIntent(intent,publicRequest);
     const checkedOwner=await checkOwner(owner,'browser.scheduler.create',new URL(input.targetUrl).origin);
     invariant(await api.permissions.contains({origins:[permissionPattern(new URL(input.targetUrl).origin)]}),
@@ -187,7 +226,8 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
     const checkedOwner=await checkOwner(owner,'browser.scheduler.listOwn');
     await reconcile();
     const rows=await repo.listOwn(checkedOwner,{ownerValidity:await currentOwnerValidity()});
-    return {schedules:rows.slice(0,100).map(({scheduleRef,taskId,status})=>({scheduleRef,taskId,status}))};
+    return {schedules:rows.slice(0,100).map(row=>({scheduleRef:row.scheduleRef,
+      ...(row.profile==='app-service'?{profile:'app-service',appId:row.appId,service:'background'}:{taskId:row.taskId}),status:row.status}))};
   }
   async function cancelOwn(request,owner){
     invariant(request&&typeof request==='object'&&!Array.isArray(request)&&
@@ -208,6 +248,14 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
     }
     const expected=validateScheduleOwner(expectedScheduleOwner);
     invariant(ownerKey(expected)===ownerKey(definition.owner),'E_OWNER','Scheduled owner no longer matches approval');
+    if(definition.profile==='app-service'){
+      const checkedOwner=await checkOwner(definition.owner,'browser.scheduler.listOwn');
+      const {tool}=await assertAppServiceBinding(api,definition.appBinding);
+      invariant(definition.appId===checkedOwner.toolId&&tool.version===checkedOwner.toolVersion&&
+        definition.appBinding.packageHash===checkedOwner.packageHash&&
+        definition.appBinding.generation===checkedOwner.epoch,'E_OWNER','App service owner changed');
+      return checkedOwner;
+    }
     const origin=new URL(definition.targetUrl).origin;
     const checkedOwner=await checkOwner(definition.owner,'browser.scheduler.listOwn',origin);
     invariant(await api.permissions.contains({origins:[permissionPattern(origin)]}),
@@ -215,6 +263,6 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
     return checkedOwner;
   }
   return {saveSchedule,changeSchedule,listSchedules,listScheduleHistory,listDueSchedules,setScheduleFireState,onAlarm,reconcile,
-    create,listOwn,cancelOwn,prepareAdmission,
+    create,listOwn,cancelOwn,prepareAdmission,hasPendingAppServices,
     admit:repo.admit,bind:repo.bind};
 }

@@ -1,9 +1,15 @@
 import {createHttp} from './sdk/http.js';
 import {createStorageFacades} from './sdk/storage.js';
 import {createBoundPage} from './ChromePage.js';
+import {createBrowserSdk} from './sdk/browser.js';
+import {normalizeBrowserOperation} from './sdk/browser-contract.js';
 import {PageError, requireValue, frozenCopy, encodeValue, decodeValue, newPageRequestId, options as validateOptions, selector} from './control/value.js';
 
 const relays = new WeakMap();
+// A profile restriction on the existing Browser Registry, never a grant or a
+// caller-selected storage namespace. Authority rechecks the installed binding.
+const appServiceMethods = new Set(['browser.storage.local.get', 'browser.storage.local.set', 'browser.storage.local.getQuota',
+  'browser.capabilities.list', 'browser.capabilities.getStatus']);
 function same(a, b) {
   if (!a || !b) return a === b;
   const keys = Object.keys(a).sort(), other = Object.keys(b).sort();
@@ -23,8 +29,20 @@ export function createRunContext({identity, revision, target = identity?.target,
     'E_PAGE_CONTEXT_REQUIRED', 'An admitted owner identity is required');
   requireValue(revision && Number.isSafeInteger(revision.revision) && revision.revision > 0 && /^[a-f0-9]{64}$/.test(revision.sourceHash),
     'E_PAGE_CONTEXT_REQUIRED', 'A committed revision pin is required');
-  requireValue(target && Number.isSafeInteger(target.tabId) && target.tabId >= 0 && Number.isSafeInteger(target.frameId) && target.frameId >= 0 && typeof target.documentId === 'string' && target.documentId,
-    'E_PAGE_CONTEXT_REQUIRED', 'An authenticated tab/frame/document is required');
+  const appService = identity.profile === 'app-service';
+  requireValue(identity.profile === undefined || identity.profile === 'controller' || appService, 'E_PAGE_CONTEXT_REQUIRED');
+  if (appService) {
+    const binding = identity.appBinding;
+    requireValue(target === null && identity.target == null && binding &&
+      typeof binding.appId === 'string' && /^[a-z][a-z0-9-]{1,39}$/.test(binding.appId) &&
+      /^[a-f0-9]{64}$/.test(binding.packageHash) && binding.codeHash === revision.sourceHash &&
+      typeof binding.generation === 'string' && binding.generation &&
+      binding.sourceIdentity && ['local-reviewed', 'market'].includes(binding.sourceIdentity.kind),
+    'E_PAGE_CONTEXT_REQUIRED', 'An installed app binding without a page target is required');
+  } else {
+    requireValue(target && Number.isSafeInteger(target.tabId) && target.tabId >= 0 && Number.isSafeInteger(target.frameId) && target.frameId >= 0 && typeof target.documentId === 'string' && target.documentId,
+      'E_PAGE_CONTEXT_REQUIRED', 'An authenticated tab/frame/document is required');
+  }
   requireValue(transport && typeof transport.request === 'function', 'E_PAGE_CONTEXT_REQUIRED', 'An owner-bound transport is required');
   requireValue(deadline === null || (Number.isFinite(deadline) && deadline >= 0), 'E_ARGUMENT_TYPE');
   const owner = frozenCopy(identity), pin = frozenCopy(revision);
@@ -108,10 +126,21 @@ export function createRunContext({identity, revision, target = identity?.target,
       return admittedPage(options);
     }
   }
-  const page = admittedPage();
-  const serviceCall = (method, args) => request(method, [args], {kind:'service'});
-  const services = Object.freeze({axiosx:createHttp(serviceCall), ...createStorageFacades(serviceCall)});
-  const context = Object.freeze({identity: owner, revision: pin, get target() { return current; }, page, services, ChromePage: SessionChromePage,
+  let facades;
+  if (appService) {
+    const sdk = createBrowserSdk({context: 'app-service', request: (method, payload) => {
+      requireValue(appServiceMethods.has(method), 'E_CAPABILITY');
+      return request(method, [payload], {kind: 'browser-sdk'});
+    }});
+    const {get, set, getQuota} = sdk.storage.local;
+    facades = {browser: Object.freeze({apiVersion: sdk.apiVersion, capabilities: sdk.capabilities,
+      storage: Object.freeze({local: Object.freeze({get, set, getQuota})})})};
+  } else {
+    const serviceCall = (method, args) => request(method, [args], {kind:'service'});
+    facades = {page: admittedPage(), services: Object.freeze({axiosx:createHttp(serviceCall), ...createStorageFacades(serviceCall)}),
+      ChromePage: SessionChromePage};
+  }
+  const context = Object.freeze({identity: owner, revision: pin, get target() { return current; }, ...facades,
     signal: lifetime.signal, dispose,
     resourceSnapshot: () => ({pending: pending.size, timers: Number(timer !== null), subscriptions: Number(abortListening)}),
     snapshot: () => Object.freeze({closed: closed?.code || null, pending: pending.size, timer: timer === null || closed ? 0 : 1})});
@@ -122,6 +151,12 @@ export function createRunContext({identity, revision, target = identity?.target,
     const captured = frozenCopy(envelope);
     const args = decodeValue(captured.operation.args, {maxBytes: captured.operation.method === 'uploadChunk' ? 131072 : 65536});
     requireValue(Array.isArray(args), 'E_ARGUMENT_TYPE');
+    if (appService) {
+      requireValue(captured.target === null, 'E_DOCUMENT_REPLACED');
+      requireValue(captured.operation.kind === 'browser-sdk' && appServiceMethods.has(captured.operation.method), 'E_CAPABILITY');
+      requireValue(args.length === 1, 'E_ARGUMENT_TYPE');
+      normalizeBrowserOperation(captured.operation.method, args[0]);
+    }
     return (await exchange(captured, captured.operation.kind === 'browser' && ['goto', 'reload'].includes(captured.operation.method))).reply;
   });
   return context;

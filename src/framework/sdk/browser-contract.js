@@ -42,8 +42,8 @@ function entry(operation,capability,contexts,chromePermissions,effect,risk,siteS
 }
 const tool=['sidebar-tool'],both=['sidebar-tool','page-sdk'];
 const MANUAL_BROWSER_OPERATIONS=Object.freeze({
-  'browser.capabilities.list':entry('browser.capabilities.list',null,both,[],'read','low'),
-  'browser.capabilities.getStatus':entry('browser.capabilities.getStatus',null,both,[],'read','low'),
+  'browser.capabilities.list':entry('browser.capabilities.list',null,[...both,'app-service'],[],'read','low'),
+  'browser.capabilities.getStatus':entry('browser.capabilities.getStatus',null,[...both,'app-service'],[],'read','low'),
   'browser.contextMenu.getStatus':entry('browser.contextMenu.getStatus','browser.contextMenu',tool,['contextMenus'],'read','low','approved-origin'),
   'browser.contextMenu.register':entry('browser.contextMenu.register','browser.contextMenu',tool,['contextMenus'],'write','medium','approved-origin','IMPLEMENTED','tool-install'),
   'browser.contextMenu.unregister':entry('browser.contextMenu.unregister','browser.contextMenu',tool,[],'write','low','approved-origin','IMPLEMENTED','tool-install'),
@@ -78,9 +78,9 @@ const MANUAL_BROWSER_OPERATIONS=Object.freeze({
   'browser.scheduler.create':entry('browser.scheduler.create','browser.scheduler',tool,['alarms'],'write','high','installed-task-revision','IMPLEMENTED','tool-install'),
   'browser.scheduler.listOwn':entry('browser.scheduler.listOwn','browser.scheduler',tool,['alarms'],'read','medium','owned-schedules','IMPLEMENTED','tool-install'),
   'browser.scheduler.cancelOwn':entry('browser.scheduler.cancelOwn','browser.scheduler',tool,['alarms'],'write','medium','owned-schedules','IMPLEMENTED','tool-install'),
-  'browser.storage.local.get':entry('browser.storage.local.get','browser.storage',tool,['storage'],'read','low','owned-storage'),
-  'browser.storage.local.getQuota':entry('browser.storage.local.getQuota','browser.storage',tool,['storage'],'read','low','owned-storage'),
-  'browser.storage.local.set':entry('browser.storage.local.set','browser.storage',tool,['storage'],'write','medium','owned-storage'),
+  'browser.storage.local.get':entry('browser.storage.local.get','browser.storage',[...tool,'app-service'],['storage'],'read','low','owned-storage'),
+  'browser.storage.local.getQuota':entry('browser.storage.local.getQuota','browser.storage',[...tool,'app-service'],['storage'],'read','low','owned-storage'),
+  'browser.storage.local.set':entry('browser.storage.local.set','browser.storage',[...tool,'app-service'],['storage'],'write','medium','owned-storage'),
   'browser.storage.local.remove':entry('browser.storage.local.remove','browser.storage',tool,['storage'],'write','medium','owned-storage'),
   'browser.storage.local.clear':entry('browser.storage.local.clear','browser.storage',tool,['storage'],'write','high','owned-storage'),
   'browser.tabs.activateOwned':entry('browser.tabs.activateOwned','browser.tabs',tool,['tabs','webNavigation'],'write','medium','tab-ref','IMPLEMENTED'),
@@ -274,15 +274,20 @@ export function normalizeBrowserOperation(operation,args={}){
       return {...settings,expectedRev:args.expectedRev};
     }
     case 'browser.scheduler.create':{
-      fields(args,['taskId','revision','schedule'],['taskId','revision','schedule']);
-      if(typeof args.taskId!=='string'||!args.taskId||args.taskId.length>128||
+      const service=Object.hasOwn(args,'service');
+      if(service){
+        fields(args,['service','schedule'],['service','schedule']);
+        if(args.service!=='background')throw fail('E_SCHEMA','Only background app service scheduling is supported');
+      }else fields(args,['taskId','revision','schedule'],['taskId','revision','schedule']);
+      if(!service&&(typeof args.taskId!=='string'||!args.taskId||args.taskId.length>128||
          typeof args.revision!=='string'||!/^[1-9][0-9]{0,15}$/.test(args.revision)||
-         !Number.isSafeInteger(Number(args.revision)))throw fail('E_SCHEMA','Fixed installed task Revision required');
+         !Number.isSafeInteger(Number(args.revision))))throw fail('E_SCHEMA','Fixed installed task Revision required');
       fields(args.schedule,['kind','expression'],['kind','expression']);
       if(!['interval','once','daily','weekly'].includes(args.schedule.kind)||
          typeof args.schedule.expression!=='string'||!args.schedule.expression||
          args.schedule.expression.length>256)throw fail('E_SCHEMA','Invalid bounded schedule expression');
-      return {taskId:args.taskId,revision:args.revision,schedule:{...args.schedule}};
+      return service?{service:'background',schedule:{...args.schedule}}:
+        {taskId:args.taskId,revision:args.revision,schedule:{...args.schedule}};
     }
     case 'browser.scheduler.listOwn':fields(args,[]);return {};
     case 'browser.scheduler.cancelOwn':

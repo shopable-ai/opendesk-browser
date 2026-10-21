@@ -219,12 +219,13 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     sender = await resolveToolSender(api, sender);
     invariant(isToolSender(api,sender),'E_OWNER','Only actual packaged tool documents may invoke foundation services');
     const runnerSender=sender.url===api.runtime.getURL(CLOUD_RUNNER_DOCUMENT_PATH);
-    if(runnerSender&&['registerHost','cloudStatus','cloudNext','cloudResolve'].includes(message.type))
+    if(runnerSender)
       await requireCloudRunnerSender(api,sender);
     if(['cloudStatus','cloudPair','cloudApprove','cloudRevokeResults','cloudCancelRequest','cloudStop','cloudUnpair','cloudClients','cloudClientGrant','cloudClientRevoke','cloudProgramInbox','cloudProgramFetch','cloudProgramReceived','cloudNext','cloudResolve'].includes(message.type)&&!runnerSender)
       await requireCloudSidePanelSender(api,sender);
-    if(runnerSender&&!['registerHost','cloudStatus','cloudNext','cloudResolve','startControllerRun','controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget'].includes(message.type))
+    if(runnerSender&&!['registerHost','cloudStatus','cloudNext','cloudResolve','listDueSchedules','startControllerRun','controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget'].includes(message.type))
       throw new FoundationError('E_OWNER','Cloud runner only owns original Controller execution');
+    if(runnerSender&&message.type==='listDueSchedules')invariant(message.payload?.profile==='app-service','E_OWNER','Offscreen only claims installed app services');
     if (!consumer && templateOperations.has(message.type)) unavailable();
     const route = Object.hasOwn(routes, message.type) ? routes[message.type] : undefined;
     invariant(route,'E_CAPABILITY','Unknown or unavailable foundation operation');
