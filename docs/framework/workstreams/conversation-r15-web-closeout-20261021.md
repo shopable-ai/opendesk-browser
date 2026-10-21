@@ -82,3 +82,9 @@ npm run preview:budget
 **本轮验收账本：** 原业务 React 源码复用 = `SOURCE_CONFIRMED`；历史离线操作 = `PASS_OLD_ARTIFACT`；新候选五档 Chromium/Stop/失败场景 = `AWAIT_CI`；当前聊天内同源码内嵌 = `INLINE_PREVIEW_UNAVAILABLE`；最新正式发布 `preview/index.html` = `NOT_PROMOTED`；正式 Chrome/Provider/Native = `NOT_TESTED`。七维独立评分需绑定同一候选新运行证据；不能虚报 95/100。
 
 **后续**：优先核对最新 `main` 的 `Bookmark Manager R3.2 · Formal React Source and Chromium` 工作流（workflow 文件 `bookmark-manager-r302-react-preview.yml`）；失败先在原源码修复并重跑。保存同源码候选构建 SHA、所有 UI 截图、正常/异常键盘和 Stop 的 CDP 结果，按原审批机制决定是否更新 `preview/index.html`，不得自动提升。真实 Chrome/Native 仅后续专项验收。
+
+### R1.6 后续发现：真实 200% 缩放缺陷（待同 SHA CI）
+
+在隔离 Chromium 的旧同源候选上，预览 iframe 物理宽度 320px、根 DOM `zoom=2`、原书签逻辑宽度 160 CSS px、物理高度 760px 时，原 `TrustedConversationWorkspace` 用 `getBoundingClientRect().height`（缩放后的 760 视觉像素）计算 CSS Dock 高度，导致书签树 `clientHeight=0`。该 P0 可复现，原先只验证“发送框可见”的 200% 测试不能视为 PASS。另有一次错误测试把 iframe 宽度再次除以 2，属于重复缩放；正式判定只采用物理宽度不重复缩小、并验证 `offsetWidth=物理宽度/2` 的正确用例。
+
+已提交共享 Dock `node.clientHeight` 布局单位测量与小窗口最小高度调整（提交 `edd2048d454b544703098ef409ed83d2fae0f3e0`），并将 200% 下书签树实际高度 ≥36 CSS px、聊天输入区未遮挡列为 Chromium 强制断言（提交 `869cc60586834b4f5f1cf3e116640c5c5ca49bcb`）。**未取得修复后打包和 Chromium 原始回执，状态仍为 `R16_ZOOM_FIX_SOURCE_ONLY`；不得声称 200% PASS 或 95+。** GitHub 同源 CI 任务：https://github.com/shopable-ai/opendesk-browser/actions/runs/39586658934。旧候选截图、历史 Run 和虚拟布局模拟均不能代替本次运行证据。
