@@ -34,7 +34,7 @@ test('R1.5 Markdown Workbench omits a duplicate official header without changing
     readFile('examples/sidebar-tools/markdown-workbench/src/main.js','utf8'),
     readFile('examples/sidebar-tools/markdown-workbench/src/style.css','utf8'),
     readFile('examples/sidebar-tools/markdown-workbench/tool.config.json','utf8')]);
-  assert.equal(JSON.parse(config).version,'1.0.3');
+  assert.equal(JSON.parse(config).version,'1.0.4');
   assert.match(js,/setNavigation\?\.\(\{page:'home',title:'Markdown 工作台',canBack:false\}\)===true/);
   assert.match(css,/\.mdw\.mdw-host-nav \.mdw-bar strong\{display:none/);
 });
@@ -45,7 +45,7 @@ test('R1.5 knowledge child back uses original save/discard controllers; fallback
     readFile('examples/sidebar-tools/knowledge-inbox/src/style.css','utf8'),
     readFile('examples/sidebar-tools/knowledge-inbox/src/index.html','utf8'),
     readFile('examples/sidebar-tools/knowledge-inbox/tool.config.json','utf8')]);
-  assert.equal(JSON.parse(config).version,'1.2.8');
+  assert.equal(JSON.parse(config).version,'1.2.9');
   for(const page of ['list','detail','edit','create'])assert.match(js,new RegExp(page));
   assert.match(js,/setNavigation\(\{page,title,canBack:page!=='list'\}\)===true/);
   assert.match(js,/if\(creating\)void cancelCreate\(\)/);

@@ -79,8 +79,10 @@ test('R1.9 package and shared model accept exact bounded editable first-run exam
     'missing data must NOT be invented by the page or by generic model.load');
   assert.deepEqual([...model.load({schema:1,items:[],settings:{webButtons:true}}).items],[]);
   const preview=await readFile(ROOT+'/preview/index.html','utf8');
-  for(const row of library.items)
-    assert(preview.includes(JSON.stringify(row)),'preview initial scenario must use the identical manifest row '+row.id);
+  const initial=preview.match(/\n const INITIAL=\[\n([\s\S]*?)\n \];/);
+  assert(initial,'preview first-run records must stay source-bound to official manifest');
+  const previewRows=JSON.parse('['+initial[1]+']');
+  assert.deepEqual(previewRows,library.items,'first-run preview must contain exactly the packaged data');
   assert.match(preview,/previewDataScenario/);
   assert.match(preview,/LEGACY_IMAGE_ITEMS/);
   assert.match(preview,/previewReopen/);

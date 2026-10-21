@@ -398,6 +398,8 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .image-size-button:focus-visible{outline:3px solid var(--od-focus);outline-offset:2px}
 .image-size-button .size-dot{display:block;width:var(--dot);height:var(--dot);border-radius:50%;background:currentColor}
 @media(max-width:380px){.image-size-setting{gap:6px;padding:5px 7px}.image-size-button{width:34px}}
+.page-shortcut.starter-toggle{background:#336bf4;border-color:#2c60dc;color:#fff;font-size:12px;font-weight:800}
+.page-shortcut.starter-toggle:hover{background:#245de8;border-color:#245de8}
 /* R4.0: image source and native drop interaction. Uses the existing OD tokens/buttons. */
 .ps-image-source{display:inline-grid;grid-template-columns:repeat(2,minmax(0,74px));gap:2px;justify-self:end;
 max-width:100%;background:var(--od-bg);padding:2px;border:1px solid var(--od-line);border-radius:var(--radius-control)}
@@ -755,6 +757,7 @@ border:0;background:transparent;color:var(--od-sub)}
  function persistDemoItems(items=state.items){try{localStorage.setItem(DEMO_ITEM_KEY,JSON.stringify(items));return true;}catch{return false;}}
  function persistDemoSettings(settings=state.settings){try{localStorage.setItem(DEMO_SETTINGS_KEY,JSON.stringify(settings));return true;}catch{return false;}}
  let state={version:1,revision:1,settings:restoreDemoSettings(),items:restoreDemoItems(),toolEnabled:true};
+ let previewStarterExpanded=false;
  let currentView='index', editId=null,baselineForm='',revisionAtEdit=1,dirty=false,saving=false,pendingDestination='index',expandedId=null,deleteId=null,copyId=null,tipButton=null,noticeKind='info',nextSaveFailure=null;
  let stagedImport=null,importRevision=0,replaceArmed=false,installed=true;
  const create=(tag,classes,text)=>{const n=document.createElement(tag);if(classes)n.className=classes;if(text!==undefined)n.textContent=text;return n;};
@@ -992,10 +995,28 @@ border:0;background:transparent;color:var(--od-sub)}
  function renderRail(){const rail=el('pageRail');rail.replaceChildren();rail.dataset.imageSize=state.settings.imageSize||'large';el('webTooltip').hidden=true;tipButton=null;
   if(!installed||!state.settings.showBar||!state.toolEnabled){rail.hidden=true;return;}rail.hidden=false;
   const active=state.items.filter(item=>item.enabled);
-  if(!active.length){rail.append(create('div','page-rail-empty','没有已启用的按钮'));return;}
+  if(!active.length){previewStarterExpanded=false;rail.append(create('div','page-rail-empty','没有已启用的按钮'));return;}
+  const starter=active.some(item=>['ps_seed_plugin','ps_seed_outsource','ps_seed_ai_prompt'].includes(item.id));
+  if(starter){
+   const toggle=create('button','page-shortcut starter-toggle','快捷');toggle.type='button';
+   toggle.title=previewStarterExpanded?'收起提示词':'展开提示词';
+   toggle.setAttribute('aria-label',toggle.title);toggle.setAttribute('aria-expanded',String(previewStarterExpanded));
+   toggle.addEventListener('click',()=>{previewStarterExpanded=!previewStarterExpanded;renderRail();el('pageRail').querySelector('button')?.focus();});
+   rail.append(toggle);
+   if(!previewStarterExpanded)return;
+  }else previewStarterExpanded=false;
   for(const item of active){const b=create('button','page-shortcut');b.type='button';b.title=itemIdentity(item);b.setAttribute('aria-label','插入提示词：'+itemIdentity(item));paintPicture(b,item);
-   b.addEventListener('click',()=>void usePrompt(item));
+   b.addEventListener('click',()=>{void usePrompt(item).finally(()=>{if(starter){previewStarterExpanded=false;renderRail();}});});
    b.addEventListener('mouseenter',()=>showTip(item,b));b.addEventListener('focus',()=>showTip(item,b));b.addEventListener('mouseleave',()=>hideTip(b));b.addEventListener('blur',()=>hideTip(b));rail.append(b);
+  }
+  if(starter){
+   const manage=create('button','page-shortcut','管理');manage.type='button';
+   manage.title='打开模拟侧边栏管理提示词';manage.setAttribute('aria-label',manage.title);
+   manage.addEventListener('click',()=>{
+    previewStarterExpanded=false;renderRail();setView('index');
+    el('sidepanel').scrollIntoView({block:'nearest'});notice('已打开模拟管理页面，不会切换真实扩展。');
+   });
+   rail.append(manage);
   }
  }
  function showTip(item,button){el('tipTitle').textContent=customTitle(item)||'提示词内容';el('tipBody').textContent=item.body;el('webTooltip').hidden=false;tipButton=button;}
@@ -1482,6 +1503,7 @@ border:0;background:transparent;color:var(--od-sub)}
   if(currentView==='form'&&dirty){showFormError('请先处理未保存草稿再切换测试数据。');return;}
   const next=COPY();
   if(!persistDemoItems(next)){notice('模拟存储写入失败，未切换数据。','error');return;}
+  previewStarterExpanded=false;
   try{localStorage.setItem(DEMO_SCENARIO_KEY,el('previewDataScenario').value);}catch{}
   state.items=next;state.revision++;expandedId=null;deleteId=null;copyId=null;
   discardImport();cleanupDemoAssets();returnIndex();
@@ -1494,7 +1516,7 @@ border:0;background:transparent;color:var(--od-sub)}
   notice('已重新读取已保存数据：'+countText()+'（仅模拟）。','success');
  });
  el('resetButton').addEventListener('click',()=>{if(currentView==='form'&&dirty){showFormError('当前编辑尚未保存，请先取消或保存，再重置模拟数据。');return;}
-  try{localStorage.removeItem(DEMO_ITEM_KEY);localStorage.removeItem(DEMO_SETTINGS_KEY);localStorage.removeItem(DEMO_ASSET_KEY);imageAssets={};draftImageAssetId='';}catch{}state={version:1,revision:state.revision+1,settings:{showBar:true,contextMenu:false,imageSize:'large'},items:COPY(),toolEnabled:true};installed=true;el('reopenTool').hidden=false;el('toolListMessage').textContent='已模拟返回宿主工具列表。选择下方工具可重新进入管理页。';closeUninstall();discardImport();nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockDraft').disabled=false;el('actionScenario').value='normal';document.querySelector('.browser-address').textContent='chatgpt.com · 模拟网页';el('mockContextMenu').hidden=true;el('siteDetails').hidden=true;el('sitesButton').setAttribute('aria-expanded','false');el('sitesButton').classList.remove('is-open');el('sitesButton').setAttribute('aria-label','展开适用网站');el('sitesButton').title='展开适用网站';returnIndex();notice('已重置为初始模拟数据。');});
+  try{localStorage.removeItem(DEMO_ITEM_KEY);localStorage.removeItem(DEMO_SETTINGS_KEY);localStorage.removeItem(DEMO_ASSET_KEY);imageAssets={};draftImageAssetId='';}catch{}previewStarterExpanded=false;state={version:1,revision:state.revision+1,settings:{showBar:true,contextMenu:false,imageSize:'large'},items:COPY(),toolEnabled:true};installed=true;el('reopenTool').hidden=false;el('toolListMessage').textContent='已模拟返回宿主工具列表。选择下方工具可重新进入管理页。';closeUninstall();discardImport();nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockDraft').disabled=false;el('actionScenario').value='normal';document.querySelector('.browser-address').textContent='chatgpt.com · 模拟网页';el('mockContextMenu').hidden=true;el('siteDetails').hidden=true;el('sitesButton').setAttribute('aria-expanded','false');el('sitesButton').classList.remove('is-open');el('sitesButton').setAttribute('aria-label','展开适用网站');el('sitesButton').title='展开适用网站';returnIndex();notice('已重置为初始模拟数据。');});
  for(const [id,mode,label] of [['simulateWriteFail','write','写入失败'],['simulateConflict','conflict','并发冲突'],['simulateUnknown','unknown','结果未知']])el(id).addEventListener('click',()=>{nextSaveFailure=mode;el('failureStatus').textContent='下次保存将模拟：'+label;notice('已设置下次保存模拟：'+label+'，当前草稿会保留。');});
  document.addEventListener('keydown',event=>{
   if(event.key!=='Escape')return;

@@ -139,8 +139,16 @@ async function run(){
   await call('Emulation.setDeviceMetricsOverride',{width:1200,height:1000,deviceScaleFactor:1,mobile:false});
   await call('Page.navigate',{url:pathToFileURL(resolve('examples/sidebar-tools/prompt-shortcuts/preview/index.html')).href});
   await poll('document.readyState==="complete"&&document.querySelectorAll(".prompt-card").length===3','three first-install demo cards');
-  assert.equal(await evalChrome('document.querySelector("#pageRail .page-shortcut")?.textContent'), '插件',
-    'new default fixture must expose the first seed');
+  assert.equal(await evalChrome('document.querySelector("#pageRail .starter-toggle")?.textContent'),'快捷');
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),1,
+    'one permanent launcher before expansion');
+  await click('#pageRail .starter-toggle');
+  await poll('document.querySelectorAll("#pageRail .page-shortcut").length===5','starter launcher expands to three choices and management');
+  await click('#pageRail .page-shortcut:nth-child(2)');
+  await poll('document.querySelector("#mockDraft").value.includes("浏览器插件定制开发需求")',
+    'first-run button inserted the actual stored prompt');
+  await poll('document.querySelectorAll("#pageRail .page-shortcut").length===1','starter rail closes after use');
+  await evalChrome('document.querySelector("#mockDraft").value=""');
   await evalChrome('(()=>{const select=document.querySelector("#previewDataScenario");select.value="legacy";select.dispatchEvent(new Event("change",{bubbles:true}));})()');
   await poll('document.querySelectorAll(".prompt-card").length===4','legacy four cards');
   await poll('document.querySelector("#pageRail img[data-preview-fixture]")?.naturalWidth>0',
