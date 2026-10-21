@@ -127,3 +127,31 @@ GitHub Local run `39568063907`、job `119115102664` 原始日志提供：Local �
 - 本轮新增执行基础设施和中间协调层为零；主文件中 Candidate/import 等高级协调保留，须由业务复现证明可迁走才继续减法。
 - 本轮最新触发的 Developer workflow https://github.com/shopable-ai/opendesk-browser/actions/runs/39579032547 绑定 e07d961efb5844ecd1f686281bcff27cb4e80101，记录时 queued。必须等正常结论，不把排队当 PASS。
 - 原始七目标：①主入口职责 PARTIAL；②四环境所有权 PARTIAL（SOURCE_REVIEWED）；③Run/Stop 直接性 PARTIAL（SOURCE_REVIEWED + 历史 TAP）；④重复协调删除 PARTIAL；⑤无第二套设施 PASS_SOURCE_ONLY；⑥整体生产代码和维护复杂度收敛 NOT_PROVEN；⑦安全与高级功能不退化 PARTIAL。当前新代码 NODE/CI 结论为 PENDING / NOT_TESTED，Chrome、Mac Native、真实 Provider 全为 NOT_TESTED。阶段继续 WEB_PARTIAL，不交付 R40.11-LOCAL。
+
+## R40.10.4-WEB：Node 退出隔离诊断与当前交付边界（2026-10-21，WEB_PARTIAL）
+
+### 原始目标与任务树
+- 目标保持：当前源码选择 Controller JS/ESM/Classic、Page JS/ESM、React JSX/Vue SFC 或 Local Provider → Run → 原执行世界真实结果 → Stop；无需先存 Revision/Candidate/安装；原 RunHost/Authority/共享槽与 sourceHash、documentId、previewId、runId、bindingId/Provider epoch、未知效果和高级功能不退化。
+- P0：先核查 R40.10.3 esbuild 资源释放修复的最新 CI，未正常退出则隔离具体测试文件与资源所有者；不允许增加 timeout、force exit 或删测试。
+- P1：Web Clipper 固定源码守卫、Page 内置版本 E_HASH、App CI cookie profile 分别归其原业务 owner；不绕过校验。
+- P2：核对剩余五个 owner.update() 的触发与 React Snapshot patch，只有证明无用才删除；保留 R40.10.3 page-component-status 减法。
+- P3：对 Controller/Page/React-Vue/Local Run/Stop 身份边界及真实测试分层；不能用 Node Fixture 代替安装 Chrome、Mac Native、Provider。
+- P4：对 R40.9 以来所有相关生产文件做 GitHub diff 统计，区分主文件缩小与整体维护复杂度下降。
+
+### 新证据与本轮提交
+- 最新 R40.10.3 核心 Run https://github.com/shopable-ai/opendesk-browser/actions/runs/39579032547 ，代码 SHA `e07d961efb5844ecd1f686281bcff27cb4e80101`；R40.10.4 复核时 developer-node / developer-release-smoke 均仍为 **queued**，没有运行证据。不能把已提交 `a04d622` 的 `esbuild.stop()` 视为确认消除 Node 卡住。
+- 两次旧 CI（https://github.com/shopable-ai/opendesk-browser/actions/runs/39571726541 和 https://github.com/shopable-ai/opendesk-browser/actions/runs/39572804196 ）Node 仅打印 `ok 177` 后约 15 分钟超时取消；没有完整 TAP 汇总。取消清理发现 Node、esbuild 子进程，说明需查进程/资源收尾但不是确定的单一根因。
+- 按最新六个源码文件的静态 test() 声明和旧 CI 实际 TAP 名称核对：`task-workbench.test.mjs` 51 条顶层声明均无可见 TAP；另外五个文件有输出。Node runner 可能延迟输出仍在运行文件的 TAP，**不能据此判断 51 条没有执行**。优先隔离此文件进程退出，再跑原六文件综合回归，以区分独立资源泄漏与跨文件问题。
+- 直接提交 `f831b0918cbfd1900f5b3f035cf9a47368e3ee73`：仅修改 `.github/workflows/developer-r362.yml`，在原六文件 Node 命令前增加独立 `node --test tests/environment/task-workbench.test.mjs` 步骤；原综合测试不变，15 分钟 Job timeout 不变，不强制退出，不跳过断言、不涉及生产 RunHost/SDK/权限。该提交的 Node/CI 结论仍待实际 GitHub Actions 运行。
+- 最新源代码比较 `e07d961...f831b091` 只触及上述 Developer workflow，没有修改此前四个 Developer 生产文件。因此 R40.9 至 R40.10.3 生产 +89/-52、净 +37 行仍为当前已知精确比较；不能称整体代码减法已完成。
+
+### 七项目标及验收
+1. 主编辑器职责收敛 **PARTIAL**：四环境已有独立 owner；Candidate/import 跨环境协调仍在主入口。
+2. 四环境唯一业务所有者 **PARTIAL**：静态边界已核查；缺真实 Chrome/Provider 同步结果。
+3. 当前源码直接 Run/Stop **PARTIAL**：既有入口、历史关键 TAP 有证据；最新总 CI 未正常退出。
+4. 删除重复协调 **PARTIAL**：静态投影减法已有提交；其他 owner.update 尚需证明为冗余才可删。
+5. 无第二套 Host/Authority/Runtime **PASS（源码范围）**：本轮未增加执行基础设施；不代表功能端到端 PASS。
+6. 整体生产复杂度下降 **PARTIAL / NOT_PROVEN**：主文件 1231→658，但四生产文件比较净 +37；不能以主文件缩短替代整体证据。
+7. 安全与高级功能无退化 **PARTIAL**：旧子测试通过及源码身份栅栏可见，最新综合 CI/真实运行尚未完成。
+
+**当前证据标签**：`NODE_PASS=NOT_TESTED_ON_NEW_SHA`、`CI_PASS=NOT_TESTED_ON_NEW_SHA`、`CHROME_PASS=NOT_TESTED`、`NATIVE_PASS=NOT_TESTED`、`PROVIDER_PASS=NOT_TESTED`。保持 `WEB_PARTIAL`，不提前宣布 `WEB_IMPLEMENTED_LOCAL_VALIDATION_PENDING`。后续只按 GitHub Actions 真实结果在原所有者修复资源；无确证不为行数指标改动高风险产品代码。
