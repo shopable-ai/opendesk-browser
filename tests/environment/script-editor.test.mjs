@@ -143,6 +143,18 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
     dispose(){editor.dispose();target.dispose();}};
 }
 
+test('R40.10.1 immediate Controller Run captures the most recent input without a microtask gap',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  f.find('script-source').value='return 314;';
+  f.find('script-source').fire('input',{isTrusted:true});
+  assert.equal(f.find('script-run').disabled,false);
+  f.find('script-run').fire('click',{isTrusted:true});
+  await tick();
+  assert.equal(f.starts.length,1,'synchronous source invalidation must preserve one admission');
+  assert.equal(f.starts[0].source.sourceUtf8,'return 314;','Run freezes the latest editor bytes');
+  await f.finish(314);
+});
+
 test('R40.5 ordinary Controller edits never inspect Page dependencies',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const initial=f.dependencyInspections.length;
@@ -229,13 +241,13 @@ test('R40.10 steady Run and Result do not re-project unchanged environment copy'
   const f=await fixture();t.after(()=>f.dispose());
   const fixed=['page-preview-mode-title','page-preview-mode-hint','page-component-hint',
     'manual-project-params-tools','developer-run-technical'];
-  const initial=Object.fromEntries(fixed.map(id=>[id,f.view.getSnapshot().fields[id]]));
+  const initial=Object.fromEntries(fixed.map(id=>[id,f.editor.model.getSnapshot().fields[id]]));
   await f.click('script-run');await f.finish(23);
-  for(const id of fixed)assert.strictEqual(f.view.getSnapshot().fields[id],initial[id],
+  for(const id of fixed)assert.strictEqual(f.editor.model.getSnapshot().fields[id],initial[id],
     id+' should only be projected when the execution mode changes');
   const world=f.find('script-javascript-world');
   world.value='page';world.fire('change',{isTrusted:true});
-  assert.notStrictEqual(f.view.getSnapshot().fields['page-component-hint'],initial['page-component-hint'],
+  assert.notStrictEqual(f.editor.model.getSnapshot().fields['page-component-hint'],initial['page-component-hint'],
     'switching to Page changes the visible execution intent');
 });
 

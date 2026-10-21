@@ -490,8 +490,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
     // controls even when the resolver correctly skips a redundant inspection.
     if(local||page||programSource.snapshot())update();
   }
-  on('script-id','input',()=>{
-    pagePreviewFlow?.clearLast();sourceInput();
+  listen(find('script-id'),'input',()=>{
+    try{pagePreviewFlow?.clearLast();sourceInput();}
+    catch(error){fail(error);}
   });
   on('script-revision','input',update);
   listen(scriptsSettings, 'click', event => {
@@ -563,7 +564,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if(!event?.isTrusted){update();return;}
       chooseJavascriptWorld(javascriptWorldSelect.value);
     });
-    on('script-source','input',sourceInput);
+    // Input identity must invalidate synchronously before the next trusted Run.
+    listen(find('script-source'),'input',()=>{try{sourceInput();}catch(error){fail(error);}});
     listen(find('script-run'),'click',start);
     on('script-stop','click',stop);
   }

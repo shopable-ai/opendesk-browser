@@ -50,3 +50,5 @@
 - 最新合并节点上新增三类回归测试未取得 CI 真实 PASS（Revision 提交边界、Controller ESM 高级检查、Local 忙态与迟到读回）。
 - 主编辑器尚保留 Candidate/import 等高级任务协调，需继续证明业务必要性或在原 owner 安全收敛；不得搬移为第二套管理框架。
 - 测试矩阵涵盖的真实 Chrome/Mac Native/Local Provider 不可在本轮 GitHub 源码审计中冒充已执行。保持 **WEB_PARTIAL**，不得提前交付 R40.11-LOCAL。
+
+- R40.10.1 P0 CI (actual macOS Node evidence): `local-dev` job `119107600523` at `fd1e361` ended **270 PASS / 4 FAIL**. Three failures were immediate source change/cancellation or Page preview timing (`R40.9 ordinary Controller and Page edits...`, `R40.10 Page body-only...`, `R40.9 component Candidate...`), and one test fixture incorrectly used `f.view.getSnapshot()` instead of the actual projection `f.editor.model.getSnapshot()`. Root-cause source/input ID handlers were deferred by `on()`'s microtask; now call `sourceInput()` synchronously with the same `fail` boundary, preserving trusted Run click and immediate generation fence. Added exact-bytes immediate Controller Run test. **FIX_SUBMITTED / RETEST_PENDING**; do not yet mark these four PASS. GitHub job: https://github.com/shopable-ai/opendesk-browser/actions/runs/39565786146/job/119107600523.
