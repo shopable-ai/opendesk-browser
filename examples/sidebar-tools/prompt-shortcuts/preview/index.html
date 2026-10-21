@@ -1032,9 +1032,9 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    await copyPrompt(item);
   }finally{using=false;}
  }
- function rawFormValues(){const original=state.items.find(item=>item.id===editId);return {label:el('shortLabel').value.trim(),name:el('fullName').value.trim(),body:el('promptBody').value,enabled:el('itemEnabled').checked,shape:original?.shape||'square',appearance:el('appearanceImage').checked?'image':'text',imageUrl:el('imageUrl').value.trim()};}
+ function rawFormValues(){const original=state.items.find(item=>item.id===editId);return {label:el('shortLabel').value.trim(),name:el('fullName').value.trim(),body:el('promptBody').value,enabled:el('itemEnabled').checked,shape:original?.shape||'square',appearance:el('appearanceImage').checked?'image':'text',imageUrl:el('imageSourceLocal').checked?'':el('imageUrl').value.trim(),imageAssetId:el('imageSourceLocal').checked?draftImageAssetId:''};}
  function formValues(){const raw=rawFormValues(),fallback=defaultShort(raw.body);return {...raw,label:raw.label||fallback,name:raw.name||fallback,labelAuto:!raw.label,nameAuto:!raw.name};}
- function projection(){const value=formValues(),next=state.items.map(x=>({...x}));const idx=next.findIndex(x=>x.id===editId);if(idx>=0)next[idx]={...next[idx],...value};else next.push({id:'mock-00000000-0000-4000-8000-000000000000',...value});return {schema:1,settings:{webButtons:state.settings.showBar,imageSize:state.settings.imageSize},items:next.map((row,order)=>({id:row.id,body:row.body,label:row.label,name:row.name,labelAuto:row.labelAuto===true,nameAuto:row.nameAuto===true,shape:row.shape,enabled:row.enabled,order,appearance:row.appearance??'text',imageUrl:row.imageUrl??''}))};}
+ function projection(){const value=formValues(),next=state.items.map(x=>({...x}));const idx=next.findIndex(x=>x.id===editId);if(idx>=0)next[idx]={...next[idx],...value};else next.push({id:'mock-00000000-0000-4000-8000-000000000000',...value});return {schema:1,settings:{webButtons:state.settings.showBar,imageSize:state.settings.imageSize},items:next.map((row,order)=>({id:row.id,body:row.body,label:row.label,name:row.name,labelAuto:row.labelAuto===true,nameAuto:row.nameAuto===true,shape:row.shape,enabled:row.enabled,order,appearance:row.appearance??'text',imageUrl:row.imageUrl??'',...(row.imageAssetId?{imageAssetId:row.imageAssetId}:{})}))};}
 
  function updateMeter(){
   const current=bytes(projection()),remaining=8192-current;
@@ -1046,7 +1046,11 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   el('quotaHint').hidden=remaining>=0;
   el('quotaHint').textContent=remaining<0?'请精简内容或删除其他提示词；当前草稿保留。':'';
   dirty=JSON.stringify(rawFormValues())!==baselineForm;
-  const image=el('appearanceImage').checked;el('imageFields').hidden=!image;
+  const image=el('appearanceImage').checked,local=el('imageSourceLocal').checked;
+  el('imageFields').hidden=!image;
+  el('imageUploadControls').hidden=!local;
+  el('imageUrlRow').hidden=local;
+  el('imageClear').hidden=!draftImageAssetId;
   el('imageTextHint').textContent=image?'备用短标签':'按钮短标签';
   if(image)paintPicture(el('pictureExample'),{...formValues(),id:editId},true);
   el('leaveConfirm').hidden=true;el('bodyError').hidden=true;
@@ -1064,7 +1068,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   else{target.focus({preventScroll:true});target.scrollIntoView({block:'nearest'});}
  }
  function openForm(id=null,preset=null){
-  if(saving){showFormError('当前保存尚未结束，请确认结果后再操作。');return;}
+  if(saving||imageUploadBusy){showFormError('图片上传或保存仍在进行；请核对结果后再操作。');return;}
   if(currentView==='form'&&dirty){showFormError('当前表单有未保存草稿，请先保存或取消。');return;}
   expandedId=null;deleteId=null;editId=id;const value=state.items.find(item=>item.id===id);
   if(id&&!value){notice('待编辑项不存在，请核对列表。','error');return;}
@@ -1072,6 +1076,9 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   el('shortLabel').value=value?.labelAuto?'':(value?.label??preset?.label??'');
   el('fullName').value=value?.nameAuto?'':(value?.name??preset?.name??'');
   el('appearanceImage').checked=value?.appearance==='image';el('appearanceText').checked=value?.appearance!=='image';
+  draftImageAssetId=value?.imageAssetId||'';
+  el('imageSourceLocal').checked=Boolean(draftImageAssetId)||!value?.imageUrl;
+  el('imageSourceUrl').checked=!el('imageSourceLocal').checked;
   el('imageUrl').value=value?.imageUrl??'';el('pictureExample').dataset.imageUrl='';
   el('itemEnabled').checked=value?.enabled??true;
   // Every new/edit entry begins expanded. Native <details> remains user-collapsible.
@@ -1085,24 +1092,30 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  }
  function exitTool(){editId=null;dirty=false;notice('');setView('toolList');el('reopenTool').focus({preventScroll:true});}
  function requestBack(destination='index'){
-  if(saving){showFormError('保存中…请先确认当前操作的结果，草稿不会丢失。');return;}
+  if(saving||imageUploadBusy){showFormError('图片上传或保存中…请先确认当前操作的结果，草稿不会丢失。');return;}
   if(currentView!=='form'){if(destination==='host')exitTool();else returnIndex();return;}
   if(!dirty){if(destination==='host')exitTool();else returnIndex();return;}
   pendingDestination=destination;el('leaveConfirm').hidden=false;
   el('stayEditing').focus({preventScroll:true});el('leaveConfirm').scrollIntoView({block:'nearest'});
  }
- function returnIndex(){editId=null;dirty=false;setView('index');renderIndex();renderRail();el('addButton').focus({preventScroll:true});}
+ function returnIndex(){
+  if(draftImageAssetId&&!state.items.some(row=>row.imageAssetId===draftImageAssetId)){
+   const copy={...imageAssets};delete copy[draftImageAssetId];persistDemoAssets(copy);
+  }
+  draftImageAssetId='';editId=null;dirty=false;setView('index');renderIndex();renderRail();
+  el('addButton').focus({preventScroll:true});
+ }
  async function saveForm(event,continueCreating=false){
-  event.preventDefault();if(saving)return;
+  event.preventDefault();if(saving||imageUploadBusy)return;
   el('bodyError').hidden=true;el('formError').hidden=true;el('formSaveStatus').hidden=true;
   const value=formValues(),snapshot=JSON.stringify(rawFormValues()),quota=bytes(projection());
   if(!value.body.trim()){showFormError('请输入提示词内容。','body');return;}
   if(!value.label||!validLabel(value.label)){showFormError('短标签须为 1–2 个可见 Unicode 字素，或留空自动生成。','label');return;}
   if(!value.name||value.name.length>60){showFormError('名称不能超过 60 字符；留空将自动生成。','name');return;}
   if(value.body.includes('\u0000')){showFormError('正文含不支持的 NUL 字符，请移除后保存。','body');return;}
-  try{if(value.appearance==='image'){value.imageUrl=validPictureURL(value.imageUrl);
-     if(!value.imageUrl)throw Error('图片模式需要 HTTPS 图片 URL');}
-   else{try{value.imageUrl=validPictureURL(value.imageUrl);}catch{value.imageUrl='';}}}
+  try{if(value.appearance==='image'&&!value.imageAssetId){value.imageUrl=validPictureURL(value.imageUrl);
+     if(!value.imageUrl)throw Error('图片模式需要本地图片或 HTTPS 图片 URL');}
+   else if(!value.imageAssetId){try{value.imageUrl=validPictureURL(value.imageUrl);}catch{value.imageUrl='';}}}
   catch(e){showFormError(e.message);el('advancedOptions').open=true;el('imageUrl').focus({preventScroll:true});return;}
   if(quota>8192){showFormError('提示词库已达到 8 KiB 上限，超出 '+(quota-8192)+' B；请缩短正文或删除其他条目，草稿保留。','body');return;}
   if(revisionAtEdit!==state.revision){showFormError('E_STORAGE_CONFLICT：提示词库已有新版本，请核对列表后处理草稿；不会自动覆盖。');return;}
@@ -1125,7 +1138,8 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    }
    if(continueCreating&&!editId){
     const count=state.items.length;
-    editId=null;el('promptBody').value='';el('shortLabel').value='';el('fullName').value='';el('appearanceImage').checked=false;el('appearanceText').checked=true;el('imageUrl').value='';el('itemEnabled').checked=true;
+    editId=null;el('promptBody').value='';el('shortLabel').value='';el('fullName').value='';el('appearanceImage').checked=false;el('appearanceText').checked=true;el('imageUrl').value='';
+     draftImageAssetId='';el('imageSourceLocal').checked=true;el('imageSourceUrl').checked=false;el('itemEnabled').checked=true;
     revisionAtEdit=state.revision;baselineForm=JSON.stringify(rawFormValues());dirty=false;
     el('advancedOptions').open=true;expandedId=null;deleteId=null;
     renderIndex();renderRail();updateMeter();
