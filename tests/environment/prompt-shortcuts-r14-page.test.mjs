@@ -136,13 +136,20 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
   };
   const rail=()=>root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined)
     ?.shadow?.children.find(item=>item.tagName==='nav');
-  const buttons=()=>rail()?.children.filter(item=>item.className.includes('item'))||[];
+  // A visible-button query never opens the launcher. Test interactions do so explicitly.
+  const buttons=()=>rail()?.children.filter(item=>item.className.includes('item')&&
+    item.getAttribute('aria-label')?.startsWith('插入提示词：'))||[];
+  const openPrompts=()=>{
+    const launcher=rail()?.children.find(item=>item.className==='brand');
+    if(launcher?.getAttribute('aria-expanded')==='false')launcher.emit('click',{isTrusted:true});
+    return buttons();
+  };
   const mutate=records=>{
     for(const observer of [...mutationObservers])observer.notify(records.map(record=>({
       type:'childList',addedNodes:[],removedNodes:[],...record
     })));
   };
-  return {api,doc,win,values,change,calls,copied,buttons,rail,root,main,editor,events,siteEvents,
+  return {api,doc,win,values,change,calls,copied,buttons,openPrompts,rail,root,main,editor,events,siteEvents,
     docEvents,runtimeMessages,toastTimers,fireToast,mutationObservers,mutate,intervals,activeIntervals,pendingTimers};
 }
 // Real light-DOM shapes for defaults; query descendant/class selectors against
@@ -227,10 +234,10 @@ for(const provider of ['DeepSeek','Gemini']){
       assert.equal(Object.hasOwn(f.values.get(PROMPT_DATA_STORE),'sites'),false,'no saved site rule');
       assert.equal(f.hosts().length,1);assert.equal(f.hosts()[0].hidden,false);
       assert.equal(f.rail().children.filter(node=>node.className==='brand').length,1);
-      assert.equal(f.buttons().length,1);
+      assert.equal(f.openPrompts().length,1);
       const before=f.draft();
-      f.buttons()[0].emit('click',{isTrusted:true});
-      f.buttons()[0].emit('click',{isTrusted:true});
+      f.openPrompts()[0].emit('click',{isTrusted:true});
+      f.openPrompts()[0].emit('click',{isTrusted:true});
       await settle();
       assert.equal(f.draft(),before+'\n'+f.row.body);
       assert.deepEqual(f.calls,[{command:'insertText',text:'\n'+f.row.body}]);
@@ -238,7 +245,7 @@ for(const provider of ['DeepSeek','Gemini']){
       assert.deepEqual(f.copied,[]);assert.deepEqual(f.submissions,[]);
       f.events.get('resize')?.();f.intervals[0]?.();await settle();
       assert.equal(f.hosts().length,1,'refresh reuses the only host');
-      assert.equal(f.buttons().length,1);
+      assert.equal(f.openPrompts().length,1);
       assert.equal(f.rail().children.filter(node=>node.className==='brand').length,1);
     }finally{f.controller.dispose();}
   });
@@ -247,7 +254,7 @@ for(const provider of ['DeepSeek','Gemini']){
     const f=await builtinPage(provider,{empty:true});
     try{
       assert.equal(f.hosts().length,1);assert.equal(f.hosts()[0].hidden,false);
-      assert.equal(f.buttons().length,0);assert.equal(f.rail().children.length,1);
+      assert.equal(f.openPrompts().length,0);assert.equal(f.rail().children.length,1);
       assert.equal(f.rail().children[0].className,'brand');
       assert.equal(f.rail().children[0].textContent,'OD');
       assert.equal(Object.hasOwn(f.values.get(PROMPT_DATA_STORE),'sites'),false);
@@ -259,7 +266,7 @@ for(const provider of ['DeepSeek','Gemini']){
     test('R2 builtin '+provider+' pending click is discarded on '+transition,async()=>{
       const f=await builtinPage(provider,{custom:transition.startsWith('custom')||transition==='disable-custom'});
       try{
-        assert.equal(f.buttons().length,1);
+        assert.equal(f.openPrompts().length,1);
         const before=f.draft(),nativeGet=f.api.storage.local.get;
         const snapshot=await nativeGet(KEYS_FOR_PENDING_READ);
         let release;
@@ -269,7 +276,7 @@ for(const provider of ['DeepSeek','Gemini']){
           // A read started before revocation may still return the old grant.
           return new Promise(resolve=>{release=()=>resolve(snapshot);});
         };
-        f.buttons()[0].emit('click',{isTrusted:true});
+        f.openPrompts()[0].emit('click',{isTrusted:true});
         assert.equal(typeof release,'function','click reached asynchronous authority read');
         if(transition==='disable-tool')f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});
         else if(transition==='custom-to-default')f.setRules([]);
@@ -279,9 +286,9 @@ for(const provider of ['DeepSeek','Gemini']){
         assert.deepEqual(f.calls,[]);assert.deepEqual(f.copied,[]);
         assert.deepEqual(f.submissions,[]);
         const disabled=transition.startsWith('disable');
-        assert.equal(f.buttons().length,disabled?0:1);
+        assert.equal(f.openPrompts().length,disabled?0:1);
         f.intervals[0]?.();await settle();
-        assert.equal(f.buttons().length,disabled?0:1,'periodic refresh cannot revive a disabled rule');
+        assert.equal(f.openPrompts().length,disabled?0:1,'periodic refresh cannot revive a disabled rule');
         assert(f.hosts().length<=1,'rule changes never duplicate the host');
       }finally{f.controller.dispose();}
     });
@@ -303,9 +310,9 @@ test('R1.9 three new default prompts have only one resting entry and expand to s
     assert.equal(f.rail().children.length,1,'synthetic click cannot expand');
     launcher.emit('click',{isTrusted:true});await settle();
     assert.equal(f.rail().children.length,5,'launcher, three real prompts, one management action');
-    assert.deepEqual(f.buttons().slice(0,3).map(button=>button.getAttribute('aria-label')),
+    assert.deepEqual(f.openPrompts().slice(0,3).map(button=>button.getAttribute('aria-label')),
       ['插入提示词：浏览器插件定制','插入提示词：软件定制与外包','插入提示词：AI 提示词扩展']);
-    const first=f.buttons()[0];
+    const first=f.openPrompts()[0];
     first.emit('click',{isTrusted:true});
     await settle();
     assert.equal(f.calls.length,1);
@@ -319,6 +326,55 @@ test('R1.9 three new default prompts have only one resting entry and expand to s
   }finally{controller.dispose();}
 });
 
+
+test('R1.9.1 every saved prompt library retains one resting launcher independent of seed IDs',async()=>{
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const seed=pkg.initialData.library.items;
+  const legacy=Array.from({length:5},(_,i)=>({...seed[0],
+    id:'legacy-r191-'+i,label:'旧'+i,name:'历史提示词 '+i,
+    body:'历史完整正文 '+i+'\\n第二行',order:i,
+    ...(i===1?{appearance:'image',imageUrl:'https://fixture.opendesk.invalid/icon.png'}:{})}));
+  const scenarios=[
+    ['first-run three',seed],
+    ['edited built-in IDs',seed.map((row,i)=>i===0?{...row,body:row.body+' 用户修改'}:row)],
+    ['deleted a built-in ID',[seed[0],seed[2]]],
+    ['built-in plus custom',[seed[0],{...legacy[0],order:1},seed[2]]],
+    ['one custom prompt',legacy.slice(0,1)],
+    ['all custom prompts',legacy.slice(0,3)],
+    ['legacy four with image',legacy.slice(0,4)],
+    ['more than four saved prompts',legacy]
+  ];
+  for(const [name,rows] of scenarios){
+    const f=fixture({pkg,library:{schema:1,items:rows,settings:{webButtons:true}},grants:{}});
+    const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+    try{
+      await settle();
+      const rail=f.rail();
+      assert.equal(rail.children.length,1,name+': one resting launcher');
+      const launcher=rail.children[0];
+      assert.equal(launcher.textContent,'快捷',name);
+      assert.equal(launcher.getAttribute('aria-expanded'),'false',name);
+      assert.equal(f.buttons().length,0,name+': prompt actions must be collapsed');
+      launcher.emit('click',{isTrusted:true});await settle();
+      const expected=globalThis.OpenDeskPromptShortcutsModel.load({
+        schema:1,items:rows,settings:{webButtons:true}
+      }).items;
+      assert.equal(f.buttons().length,expected.length,name+': all saved actions visible on demand');
+      assert.equal(f.rail().children.length,expected.length+2,name+': one brand and management');
+      assert.deepEqual(f.buttons().map(button=>button.getAttribute('aria-label')),
+        expected.map(row=>'插入提示词：'+row.name),name);
+      if(name==='legacy four with image')
+        assert(f.buttons().some(button=>button.className.includes('image')),
+          'the old image button remains available within the expanded menu');
+      const target=expected.at(-1),before=f.editor.textContent;
+      f.buttons().at(-1).emit('click',{isTrusted:true});await settle();
+      assert.deepEqual(f.calls,[{command:'insertText',text:'\\n'+target.body}],name);
+      assert.equal(f.editor.textContent,before+'\\n'+target.body,name+': preserved draft');
+      assert.equal(f.rail().children.length,1,name+': collapse after insertion');
+    }finally{controller.dispose();}
+  }
+});
+
 test('R1.13 ChatGPT rail: no second consent, one click-to-draft, independent enable lifecycle',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
   const model=globalThis.OpenDeskPromptShortcutsModel;
@@ -329,17 +385,17 @@ test('R1.13 ChatGPT rail: no second consent, one click-to-draft, independent ena
   const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
   try{
     await settle();
-    assert.equal(f.buttons().length,0,'uninstalled tool never renders');
+    assert.equal(f.openPrompts().length,0,'uninstalled tool never renders');
     f.change(SIDEBAR_TOOL_STORE,[pkg]);await settle();
-    assert.equal(f.buttons().length,1,'installed and enabled tool renders without a redundant site grant');
+    assert.equal(f.openPrompts().length,1,'installed and enabled tool renders without a redundant site grant');
     const grant=await changePromptSiteGrant({},pkg,'first',true);
     f.change(PROMPT_SITE_STORE,grant);await settle();
-    assert.equal(f.buttons().length,1,'legacy authorization record does not duplicate the button');
+    assert.equal(f.openPrompts().length,1,'legacy authorization record does not duplicate the button');
     assert.equal(controller.diagnostics().items,1);
-    f.buttons()[0].emit('click',{isTrusted:false});
+    f.openPrompts()[0].emit('click',{isTrusted:false});
     await settle();assert.equal(f.calls.length,0,'untrusted click cannot edit a draft');
-    f.buttons()[0].emit('click',{isTrusted:true});
-    f.buttons()[0].emit('click',{isTrusted:true}); // concurrent click must never double-insert
+    f.openPrompts()[0].emit('click',{isTrusted:true});
+    f.openPrompts()[0].emit('click',{isTrusted:true}); // concurrent click must never double-insert
     await settle();
     const host=f.root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined);
     const feedback=host?.shadow?.children.find(item=>item.className==='feedback');
@@ -351,24 +407,24 @@ test('R1.13 ChatGPT rail: no second consent, one click-to-draft, independent ena
     // The web-button setting is independent from the native menu; no menu
     // state or right-click host methods are used by this fixed page module.
     f.change(PROMPT_DATA_STORE,{library:{...library,settings:{webButtons:false}}});
-    await settle();assert.equal(f.buttons().length,0,'web-button preference immediately stops');
+    await settle();assert.equal(f.openPrompts().length,0,'web-button preference immediately stops');
     f.change(PROMPT_DATA_STORE,{library});await settle();
-    assert.equal(f.buttons().length,1);
+    assert.equal(f.openPrompts().length,1);
     f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});
-    await settle();assert.equal(f.buttons().length,0,'host tool disable removes page controls');
+    await settle();assert.equal(f.openPrompts().length,0,'host tool disable removes page controls');
     f.change(SIDEBAR_TOOL_ENABLE_STORE,{});
-    await settle();assert.equal(f.buttons().length,1);
+    await settle();assert.equal(f.openPrompts().length,1);
     f.change(PROMPT_SITE_STORE,{});await settle();
-    assert.equal(f.buttons().length,1,'legacy site grants do not gate the installed adapter');
+    assert.equal(f.openPrompts().length,1,'legacy site grants do not gate the installed adapter');
     f.change(SIDEBAR_TOOL_STORE,[]);await settle();
-    assert.equal(f.buttons().length,0,'uninstall tears down page controls');
+    assert.equal(f.openPrompts().length,0,'uninstall tears down page controls');
     f.change(SIDEBAR_TOOL_STORE,[pkg]);
     await settle();
     f.change(PROMPT_SITE_STORE,grant);
-    await settle();assert.equal(f.buttons().length,1);
+    await settle();assert.equal(f.openPrompts().length,1);
     f.win.location.href='https://chatgpt.com.evil.example/c/mock';
     f.events.get('popstate')?.();
-    await settle();assert.equal(f.buttons().length,0,'cross-origin SPA navigation revokes');
+    await settle();assert.equal(f.openPrompts().length,0,'cross-origin SPA navigation revokes');
   }finally{controller?.dispose();}
   assert.equal(f.siteEvents.size,0,'controller removes storage observer on dispose');
 });
@@ -487,7 +543,7 @@ test('Prompt jump integration: installed initialization mounts one content arrow
     assert.equal(f.arrows().length,1,'installation alone activates the static adapter');
     assert.equal(f.arrowHosts()[0].nextElementSibling,f.content.anchor,'arrow belongs to native content toolbar');
     assert.equal(f.arrows()[0].getAttribute('aria-label'),'回到此内容开头');
-    assert.equal(f.buttons().length,1,'existing prompt rail remains available');
+    assert.equal(f.openPrompts().length,1,'existing prompt rail remains available');
     f.click(f.arrows()[0]);await settle();
     assert(f.scrolls.length>0,'live arrow invokes the real scroll algorithm');
     assert(f.scrolls.every(scroll=>Number.isFinite(scroll.top)&&scroll.behavior==='instant'));
@@ -496,7 +552,7 @@ test('Prompt jump integration: installed initialization mounts one content arrow
     await Promise.all([f.controller.refresh(),f.controller.refresh(),f.controller.refresh()]);await settle();
     assert.equal(f.arrows().length,1,'repeated permission refresh never duplicates arrows');
     const count=f.scrolls.length;f.click(stale);await settle();assert.equal(f.scrolls.length,count);
-    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
     assert.deepEqual(f.calls,[{command:'insertText',text:'\n'+f.row.body}]);
     assert.equal(f.editor.textContent,'已有草稿\n'+f.row.body);
     assert.deepEqual(f.copied,[],'jump integration preserves confirmed native insertion');
@@ -514,7 +570,7 @@ for(const gate of ['uninstalled','disabled','webButtons off','lookalike origin',
     const f=await jumpPage(options);
     try{
       await settle();assert.equal(f.arrows().length,0);
-      if(gate==='custom site')assert.equal(f.buttons().length,1,'custom-site prompt rail does not grant ChatGPT scrolling');
+      if(gate==='custom site')assert.equal(f.openPrompts().length,1,'custom-site prompt rail does not grant ChatGPT scrolling');
       await f.controller.refresh();await settle();assert.equal(f.arrows().length,0);
       assert.deepEqual(f.scrolls,[]);
     }finally{f.controller.dispose();}
@@ -532,7 +588,7 @@ for(const gate of ['disable','uninstall','webButtons']){
         webButtons:[PROMPT_DATA_STORE,{library:{...f.library,settings:{webButtons:false}}},{library:f.library}]}[gate];
       f.change(key,blocked);await settle();
       assert.equal(f.arrows().length,0);assert.equal(host.isConnected,false);
-      assert.equal(f.buttons().length,0,'existing prompt controls share the same gate');
+      assert.equal(f.openPrompts().length,0,'existing prompt controls share the same gate');
       assert(observers.every(observer=>!observer.target),'revoked session releases its observers');
       f.click(stale);await settle();assert.deepEqual(f.scrolls,[],'detached arrow cannot scroll');
       f.change(key,restored);await settle();
@@ -587,7 +643,7 @@ test('Prompt jump integration: SPA toolbar replacement and exact-origin exit inv
 });
 
 function assertRuntimeDisposed(f){
-  assert.equal(f.buttons().length,0);
+  assert.equal(f.openPrompts().length,0);
   assert.equal(f.doc.querySelectorAll('[data-opendesk-prompts]').length,0);
   assert.equal(f.arrows().length,0);
   assert.equal(f.activeIntervals.size,0);
@@ -602,7 +658,7 @@ function assertRuntimeDisposed(f){
 test('Prompt runtime lifetime: invalidation removes controls and stale callbacks cannot revive them',async()=>{
   const f=await jumpPage();
   try{
-    await settle();assert.equal(f.arrows().length,1);assert.equal(f.buttons().length,1);
+    await settle();assert.equal(f.arrows().length,1);assert.equal(f.openPrompts().length,1);
     const stale=f.arrows()[0],pageShow=f.events.get('pageshow'),storage=[...f.siteEvents][0];
     f.mutate([{target:f.main,addedNodes:[f.content.turn]}]);
     const callbacks=[...f.pendingTimers.values()];
@@ -643,10 +699,10 @@ test('Prompt jump integration: BFCache suspends the session and restores one fre
     await settle();assert.equal(f.arrows().length,1);
     const stale=f.arrows()[0];
     f.events.get('pagehide')({persisted:true});await settle();
-    assert.equal(f.arrows().length,0);assert.equal(f.buttons().length,0);
+    assert.equal(f.arrows().length,0);assert.equal(f.openPrompts().length,0);
     f.click(stale);f.intervals[0]();await settle();assert.deepEqual(f.scrolls,[]);assert.equal(f.arrows().length,0);
     f.events.get('pageshow')({persisted:true});await settle();
-    assert.equal(f.arrows().length,1);assert.equal(f.buttons().length,1);
+    assert.equal(f.arrows().length,1);assert.equal(f.openPrompts().length,1);
     f.click(stale);await settle();assert.deepEqual(f.scrolls,[]);
     f.events.get('pageshow')({persisted:true});await settle();assert.equal(f.arrows().length,1);
     f.click(f.arrows()[0]);await settle();assert(f.scrolls.length>0);
@@ -722,12 +778,12 @@ test('R1.5 IME composition prevents edit; corrupted line breaks never count as i
   }});
   const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
   try{
-    await settle();assert.equal(f.buttons().length,1);
+    await settle();assert.equal(f.openPrompts().length,1);
     f.docEvents.get('compositionstart')?.();
-    f.buttons()[0].emit('click',{isTrusted:true});
+    f.openPrompts()[0].emit('click',{isTrusted:true});
     await settle();assert.equal(f.calls.length,0,'do not edit while IME is composing');
     f.docEvents.get('compositionend')?.();
-    f.buttons()[0].emit('click',{isTrusted:true});
+    f.openPrompts()[0].emit('click',{isTrusted:true});
     await settle();
     assert.equal(f.calls.length,1,'native edit is attempted once');
     assert.equal(f.editor.textContent,'已有草稿第一行第三行🧑‍💻');
@@ -758,8 +814,8 @@ test('R1.5 reconstructs sibling editor paragraphs and empty lines without relyin
   f.editor.children=[{tagName:'P',innerText:'已有草稿',textContent:'已有草稿'}];
   const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
   try{
-    await settle();assert.equal(f.buttons().length,1);
-    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    await settle();assert.equal(f.openPrompts().length,1);
+    f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
     assert.equal(f.calls.length,1);
     assert.equal(f.editor.textContent,'已有草稿第一行第三行');
     const host=f.root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined);
@@ -782,8 +838,8 @@ test('R1.11: when editor is missing, clipboard denial gives no false success',as
     library:{schema:1,items:[row],settings:{webButtons:true}}});
   const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
   try{
-    await settle();assert.equal(f.buttons().length,1);
-    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    await settle();assert.equal(f.openPrompts().length,1);
+    f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
     assert.equal(f.calls.length,0);
     assert.equal(f.copied.length,0);
     const host=f.root.children.find(x=>x.attributes['data-opendesk-prompts']!==undefined);
@@ -804,7 +860,7 @@ test('R1.11: when editor is missing, entire multiline prompt is copied',async()=
   const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
   try{
     await settle();
-    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
     assert.deepEqual(f.copied,[row.body]);
     const host=f.root.children.find(x=>x.attributes['data-opendesk-prompts']!==undefined);
     const feedback=host.shadow.children.find(x=>x.className==='feedback');
@@ -825,10 +881,10 @@ test('R2.6 narrow ChatGPT rail shows shortcuts immediately without a fold button
     await settle();
     assert.equal(f.rail().classList.items.has('narrow'),true);
     assert.equal(f.rail().classList.items.has('folded'),false);
-    assert.equal(f.buttons().length,1);
-    assert.equal(f.rail().children.length,2,'OD plus one shortcut, no fold button');
-    assert.deepEqual(f.buttons()[0].children.map(span=>span.textContent),['🧑‍💻','中']);
-    f.buttons()[0].emit('mouseenter');
+    assert.equal(f.openPrompts().length,1);
+    assert.equal(f.rail().children.length,3,'one launcher, one shortcut and management action');
+    assert.deepEqual(f.openPrompts()[0].children.map(span=>span.textContent),['🧑‍💻','中']);
+    f.openPrompts()[0].emit('mouseenter');
     const host=f.root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined);
     const tooltip=host.shadow.children.find(item=>item.className==='tip');
     assert.equal(tooltip.hidden,false);
@@ -847,15 +903,15 @@ test('R2.6 newly saved library entries appear on injected page via storage chang
   const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
   try{
     await settle();
-    assert.equal(f.buttons().length,1);
+    assert.equal(f.openPrompts().length,1);
     f.change(PROMPT_DATA_STORE,{library:{schema:1,items:[first,second],settings}});
     await settle();
-    assert.equal(f.buttons().length,2,'storage change must update currently opened page');
-    assert.equal(f.rail().children.length,3,'one OD plus two shortcuts, no duplicated injection');
-    assert.equal(f.buttons()[1].getAttribute('aria-label'),'插入提示词：'+second.name);
+    assert.equal(f.openPrompts().length,2,'storage change must update currently opened page');
+    assert.equal(f.rail().children.length,4,'one launcher, two shortcuts and management action');
+    assert.equal(f.openPrompts()[1].getAttribute('aria-label'),'插入提示词：'+second.name);
     f.change(PROMPT_DATA_STORE,{library:{schema:1,items:[first],settings}});
     await settle();
-    assert.equal(f.buttons().length,1,'delete also refreshes the same rail');
+    assert.equal(f.openPrompts().length,1,'delete also refreshes the same rail');
   }finally{controller.dispose();}
 });
 
@@ -874,7 +930,7 @@ async function readyPage(){
 test('R1.8 tooltip retains focus on itself or descendants, then hides after focus leaves',async()=>{
   const f=await readyPage();
   try{
-    const button=f.buttons()[0],tip=f.panel('tip');
+    const button=f.openPrompts()[0],tip=f.panel('tip');
     button.focus();button.emit('focus');button.emit('blur');
     tip.focus();tip.emit('focusin');
     // Pointer leaving must not dismiss keyboard-focused, scrollable content.
@@ -897,7 +953,7 @@ test('R1.8 tooltip retains focus on itself or descendants, then hides after focu
 test('R1.8 open tooltip follows rail scroll and window layout without rewriting content',async()=>{
   const f=await readyPage();
   try{
-    const button=f.buttons()[0],host=f.host(),tip=f.panel('tip');
+    const button=f.openPrompts()[0],host=f.host(),tip=f.panel('tip');
     let buttonTop=180,hostLeft=272,hostTop=100;
     host.getBoundingClientRect=()=>({left:hostLeft,top:hostTop,width:48,height:248});
     button.getBoundingClientRect=()=>({left:hostLeft,top:buttonTop,width:38,height:38});
@@ -932,7 +988,7 @@ for(const scenario of ['navigation','navigation-refresh','disposed','bfcache','r
       const pending=new Promise((yes,no)=>{resolve=yes;reject=no;});
       let first=true;
       f.api.storage.local.get=keys=>{if(first){first=false;return pending;}return read(keys);};
-      const button=f.buttons()[0],shadow=f.host().shadow;
+      const button=f.openPrompts()[0],shadow=f.host().shadow;
       button.focus();button.emit('click',{isTrusted:true});
       const priorFeedback=f.panel('feedback');
       if(scenario.startsWith('navigation')){
@@ -970,7 +1026,7 @@ test('R1.8 current insertion failure copies the complete prompt without focusing
   const f=await readyPage();
   try{
     f.doc.execCommand=()=>false;
-    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
     const feedback=f.panel('feedback');
     assert.deepEqual(f.copied,[f.row.body]);
     assert.equal(feedback.hidden,false);
@@ -1141,7 +1197,7 @@ for(const before of ['', '已有草稿\n第二段']){
     const f=await readyPage();
     try{
       loggedInComposer(f,{before});
-      f.buttons()[0].emit('click',{isTrusted:true});await settle();
+      f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
       const text=(before?'\n':'')+f.row.body;
       assert.deepEqual(f.calls,[{command:'insertText',text}],'only one native edit, no submit');
       assert.equal(f.editor.children.map(p=>p.innerText==='\n'?'':p.innerText).join('\n'),before+text);
@@ -1163,7 +1219,7 @@ for(const state of ['hidden','readonly','noneditable','duplicate','replaced-on-f
         const focus=f.editor.focus;
         f.editor.focus=()=>{focus();f.doc.querySelectorAll=()=>[old];};
       }
-      f.buttons()[0].emit('click',{isTrusted:true});await settle();
+      f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
       const refuse=['duplicate','replaced-on-focus'].includes(state);
       assert.equal(f.calls.length,refuse?0:1);
       assert.equal(old.value,'不能覆盖的旧草稿');
@@ -1233,7 +1289,7 @@ for(const locale of [
         const draft=()=>builtin?f.draft():mode==='logged-out'?f.editor.value:
           f.editor.children.map(p=>p.innerText==='\n'?'':p.innerText).join('\n');
         const before=draft();
-        f.buttons()[0].emit('click',{isTrusted:true});await settle();
+        f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
         assert.equal(draft(),before+'\n'+f.row.body);
         assert.deepEqual(f.calls,[{command:'insertText',text:'\n'+f.row.body}]);
         assert.deepEqual(f.copied,[]);
@@ -1319,7 +1375,7 @@ test(`R1.8 logged-out ${region} mobile-composer textarea appends complete draft 
   try{
     const selections=mobileComposer(f,{region}),before=f.editor.value;
     assert.equal(f.main.contains(f.editor),region==='main','model the real composer landmark');
-    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
     assert.deepEqual(selections,[[before.length,before.length]],'textarea caret moves to draft end');
     assert.deepEqual(f.calls,[{command:'insertText',text:'\n'+f.row.body}]);
     assert.equal(f.editor.value,before+'\n'+f.row.body);
@@ -1341,7 +1397,7 @@ for(const state of ['hidden','css-hidden','disabled','readonly','disconnected','
       if(state==='disabled')f.editor.disabled=true;
       if(state==='readonly')f.editor.readOnly=true;
       if(state==='disconnected')f.editor.isConnected=false;
-      f.buttons()[0].emit('click',{isTrusted:true});await settle();
+      f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
       assert.equal(f.editor.value,before,'failed or unavailable editor retains its draft');
       assert.equal(f.calls.length,state==='rejected'?1:0);
       if(state!=='rejected'){
@@ -1366,7 +1422,7 @@ for(const state of ['visible','hidden']){
       const other=jumpDOM(mockElement('TEXTAREA'));
       other.id='prompt-textarea';other.value='其他草稿';other.hidden=state==='hidden';
       f.main.append(other);
-      f.buttons()[0].emit('click',{isTrusted:true});await settle();
+      f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
       assert.equal(f.calls.length,state==='hidden'?1:0);
       assert.equal(f.editor.value,'已有草稿'+(state==='hidden'?'\n'+f.row.body:''));
       assert.equal(other.value,'其他草稿');
@@ -1381,7 +1437,7 @@ for(const region of ['aside','dialog']){
     try{
       mobileComposer(f,{region:region==='dialog'?'footer':region});
       if(region==='dialog')f.editor.parentElement.setAttribute('role','dialog');
-      f.buttons()[0].emit('click',{isTrusted:true});await settle();
+      f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
       assert.equal(f.calls.length,0);
       assert.equal(f.editor.value,'已有草稿');
       assert.deepEqual(f.copied,[f.row.body]);
@@ -1406,8 +1462,8 @@ test('R2 custom site exact two selectors, enabled lifecycle, ambiguous editor fa
   f.values.set(PROMPT_DATA_STORE,{library,sites:{schema:1,rules:[rule]}});
   const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
   try{
-    await settle();assert.equal(f.buttons().length,1,'enabled exact site renders');
-    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    await settle();assert.equal(f.openPrompts().length,1,'enabled exact site renders');
+    f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
     assert.equal(f.calls.length,1);assert.equal(f.editor.value,'旧草稿\n第一段\n\n中文🙂');
     const other=mockElement('textarea');
     f.doc.querySelectorAll=s=>s==='main'?[f.main]:s==='textarea'?[f.editor,other]:[];
@@ -1415,9 +1471,9 @@ test('R2 custom site exact two selectors, enabled lifecycle, ambiguous editor fa
     const host=f.root.children.find(x=>Object.hasOwn(x.attributes,'data-opendesk-prompts'));
     assert.equal(host.hidden,true,'ambiguous editor hides rail before a wrong-field write');
     f.change(PROMPT_DATA_STORE,{library,sites:{schema:1,rules:[{...rule,enabled:false}]}});
-    await settle();assert.equal(f.buttons().length,0,'per-site disable tears down rail');
+    await settle();assert.equal(f.openPrompts().length,0,'per-site disable tears down rail');
     f.win.location.href='https://example.org.other-site.test/compose';
-    f.events.get('popstate')?.();await settle();assert.equal(f.buttons().length,0);
+    f.events.get('popstate')?.();await settle();assert.equal(f.openPrompts().length,0);
   }finally{controller.dispose();}
 });
 const multisiteInputs=[
@@ -1494,8 +1550,8 @@ for(const site of multisiteInputs){
   test(`Multisite input: ${site.name} ${site.richtext?'Quill-shaped contenteditable':'textarea'} appends multiline draft with caret at end and never sends`,async()=>{
     const f=await multisiteInputPage(site);
     try{
-      await settle();assert.equal(f.buttons().length,1,'saved custom rule renders without a second site grant');
-      f.buttons()[0].emit('click',{isTrusted:true});await settle();
+      await settle();assert.equal(f.openPrompts().length,1,'saved custom rule renders without a second site grant');
+      f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
       const expected=f.before+'\n'+f.row.body;
       assert.deepEqual(f.calls,[{command:'insertText',text:'\n'+f.row.body}]);
       assert.equal(f.draft(),expected,'existing paragraphs, blank lines and emoji survive in order');
@@ -1515,21 +1571,21 @@ for(const site of multisiteInputs){
     test(`Multisite input: ${site.name} ${action} rule retires stale controls and pending authorization`,async()=>{
       const f=await multisiteInputPage(site);let pending;
       try{
-        await settle();assert.equal(f.buttons().length,1);
-        const stale=f.buttons()[0];pending=holdNextMultisiteRead(f);
+        await settle();assert.equal(f.openPrompts().length,1);
+        const stale=f.openPrompts()[0];pending=holdNextMultisiteRead(f);
         stale.emit('click',{isTrusted:true});assert.equal(pending.held,true);
         const rules=f.stored.sites.rules.flatMap(rule=>rule.origin!==f.rule.origin?[rule]:
           action==='removed'?[]:[{...rule,enabled:false}]);
         f.change(PROMPT_DATA_STORE,{...f.stored,sites:{schema:1,rules}});await settle();
         const expectedControls=action==='removed'&&globalThis.OpenDeskPromptShortcutsModel.builtinSite(f.win.location.href)?1:0;
-        assert.equal(f.buttons().length,expectedControls,'deletion restores a built-in default; explicit disable does not');
+        assert.equal(f.openPrompts().length,expectedControls,'deletion restores a built-in default; explicit disable does not');
         stale.emit('click',{isTrusted:true});await pending.release();await settle();
-        assert.equal(f.buttons().length,expectedControls,'old authorization cannot change the resolved rule');
+        assert.equal(f.openPrompts().length,expectedControls,'old authorization cannot change the resolved rule');
         assert.deepEqual(f.calls,[]);assert.equal(f.draft(),f.before);
         assert.deepEqual(f.caret,{start:1,end:4});assert.equal(f.editor.focused,undefined);
         assert.deepEqual(f.copied,[]);assert.deepEqual(f.dispatched,[]);assert.deepEqual(f.submissions,[]);
         f.change(PROMPT_DATA_STORE,f.stored);await settle();
-        assert.equal(f.buttons().length,1,'restoring the saved rule creates fresh controls');
+        assert.equal(f.openPrompts().length,1,'restoring the saved rule creates fresh controls');
       }finally{f.controller.dispose();await pending?.release();}
     });
   }
@@ -1537,8 +1593,8 @@ for(const site of multisiteInputs){
   test(`Multisite input: ${site.name} pending authorization never writes after switching to the other configured origin`,async()=>{
     const f=await multisiteInputPage(site);let pending;
     try{
-      await settle();assert.equal(f.buttons().length,1);
-      pending=holdNextMultisiteRead(f);f.buttons()[0].emit('click',{isTrusted:true});
+      await settle();assert.equal(f.openPrompts().length,1);
+      pending=holdNextMultisiteRead(f);f.openPrompts()[0].emit('click',{isTrusted:true});
       assert.equal(pending.held,true);
       // Keep the old editable DOM and suppress popstate: URL identity alone must
       // block a delayed click, even when the destination also has a saved rule.
@@ -1548,7 +1604,7 @@ for(const site of multisiteInputs){
       assert.deepEqual(f.caret,{start:1,end:4});assert.equal(f.editor.focused,undefined);
       assert.deepEqual(f.copied,[]);assert.deepEqual(f.dispatched,[]);assert.deepEqual(f.submissions,[]);
       f.events.get('popstate')?.();await settle();
-      assert.equal(f.buttons().length,1,'the destination gets its own newly checked controls');
+      assert.equal(f.openPrompts().length,1,'the destination gets its own newly checked controls');
       assert.deepEqual(f.calls,[],'refresh never replays the previous click on the destination');
     }finally{f.controller.dispose();await pending?.release();}
   });
@@ -1664,8 +1720,8 @@ for(const scenario of [
     }]}});
     const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
     try{
-      await settle();assert.equal(f.buttons().length,1);
-      f.buttons()[0].emit('click',{isTrusted:true});await settle();
+      await settle();assert.equal(f.openPrompts().length,1);
+      f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
       if(scenario.expected==='copy'){
         assert.equal(f.calls.length,0,'reject before native edit');
         assert.equal(f.editor.value,scenario.draft,'original draft unchanged');
@@ -1760,7 +1816,7 @@ test('R2.3 rejects disjoint website selector and hides stale custom rail',async(
     {id:'test-extension',url:'chrome-extension://test-extension/sidepanel.html'},resolve));
   try{
     await settle();
-    assert.equal(f.buttons().length,1,'valid same-region rule renders buttons');
+    assert.equal(f.openPrompts().length,1,'valid same-region rule renders buttons');
     selected=outsider;
     const rejected=await send('prompt.page.check',{rule});
     assert.equal(rejected.ok,false,'disjoint editor must fail configuration test');
@@ -1786,10 +1842,10 @@ test('R2.3 refuses native edit when site steals focus during editor focus()',asy
   f.values.set(PROMPT_DATA_STORE,{library,sites:{schema:1,rules:[rule]}});
   const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
   try{
-    await settle();assert.equal(f.buttons().length,1);
+    await settle();assert.equal(f.openPrompts().length,1);
     // The page's focus handler synchronously diverts attention to another node.
     f.editor.focus=()=>{f.doc.activeElement=f.main;};
-    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
     assert.equal(f.calls.length,0,'execCommand must not target a different field');
     assert.equal(f.editor.value,'原草稿','old draft preserved');
     assert.deepEqual(f.copied,[row.body],'copy fallback retains full body');
@@ -1801,7 +1857,7 @@ test('R2.7 transient fallback toast expires and old callback cannot hide a newer
   const f=await readyPage();
   try{
     f.doc.execCommand=()=>false;
-    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
     const first=f.toastTimers.values().next().value;
     assert.equal(first?.ms,3000);
     assert.equal(f.panel('feedback').hidden,false);
@@ -1809,7 +1865,7 @@ test('R2.7 transient fallback toast expires and old callback cannot hide a newer
     f.change(PROMPT_DATA_STORE,{library:{schema:1,items:[f.row,second],settings:{webButtons:true}}});
     await settle();
     assert.equal(f.toastTimers.size,0,'storage remount cancels old timeout');
-    f.buttons()[1].emit('click',{isTrusted:true});await settle();
+    f.openPrompts()[1].emit('click',{isTrusted:true});await settle();
     assert.equal(f.panel('feedback').hidden,false);
     first.fn(); // the already-cancelled callback is not allowed to clear the new toast
     assert.equal(f.panel('feedback').hidden,false);
@@ -1829,7 +1885,7 @@ test('R2.7 failed clipboard toast is bounded to five seconds and cleaned on disa
     library:{schema:1,items:[row],settings:{webButtons:true}}});
   const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
   try{
-    await settle();f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    await settle();f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
     const toast=f.root.children.find(x=>x.attributes['data-opendesk-prompts']!==undefined)
       .shadow.children.find(x=>x.className==='feedback');
     assert.equal(toast.hidden,false);assert.equal(toast.dataset.kind,'error');
@@ -1839,7 +1895,7 @@ test('R2.7 failed clipboard toast is bounded to five seconds and cleaned on disa
     assert.equal(f.toastTimers.size,0,'user close cancels error timer');
     // The trusted adapter intentionally blocks same-prompt double clicks for 700ms.
     await new Promise(resolve=>setTimeout(resolve,760));
-    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
     assert.equal(toast.hidden,false,'new failure can appear after double-click guard expires');
     f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});await settle();
     assert.equal(toast.hidden,true);
@@ -1856,26 +1912,26 @@ test('R2.7 storage-confirmed create/edit/reorder/delete/import and enable change
     const update=items=>f.change(PROMPT_DATA_STORE,{
       library:{schema:1,settings:{webButtons:true},items}
     });
-    assert.equal(f.buttons().length,1);
+    assert.equal(f.openPrompts().length,1);
     update([first,second]);await settle();
-    assert.equal(f.buttons().length,2,'confirmed create/import immediately appears');
-    assert.equal(f.buttons()[1].title,second.name);
+    assert.equal(f.openPrompts().length,2,'confirmed create/import immediately appears');
+    assert.equal(f.openPrompts()[1].title,second.name);
     const edited={...second,body:'更改后的正文',label:'更改',name:'自定义新名称',
       labelAuto:false,nameAuto:false};
     update([first,edited]);await settle();
-    assert.equal(f.buttons().length,2);
-    assert.equal(f.buttons()[1].title,'自定义新名称','confirmed edit updates the mounted label');
+    assert.equal(f.openPrompts().length,2);
+    assert.equal(f.openPrompts()[1].title,'自定义新名称','confirmed edit updates the mounted label');
     update([{...edited,order:0},{...first,order:1}]);await settle();
-    assert.equal(f.buttons()[0].title,'自定义新名称','confirmed reorder updates DOM order');
+    assert.equal(f.openPrompts()[0].title,'自定义新名称','confirmed reorder updates DOM order');
     update([{...edited,order:0,enabled:false},{...first,order:1}]);await settle();
-    assert.equal(f.buttons().length,1,'confirmed disable hides only that shortcut');
+    assert.equal(f.openPrompts().length,1,'confirmed disable hides only that shortcut');
     update([{...first,order:0}]);await settle();
-    assert.equal(f.buttons().length,1,'confirmed delete removes without page reload');
+    assert.equal(f.openPrompts().length,1,'confirmed delete removes without page reload');
     f.change(PROMPT_DATA_STORE,{library:{schema:1,items:[first],
       settings:{webButtons:false}}});await settle();
-    assert.equal(f.buttons().length,0,'global web disable removes rail');
+    assert.equal(f.openPrompts().length,0,'global web disable removes rail');
     update([first,second]);await settle();
-    assert.equal(f.buttons().length,2,'global re-enable remounts exactly once');
+    assert.equal(f.openPrompts().length,2,'global re-enable remounts exactly once');
     assert.equal(f.siteEvents.size,1,'no duplicate storage listener across remounts');
     assert.equal(f.runtimeMessages.size,2,'one picker and one analytics scope handler');
   }finally{f.controller.dispose();}
@@ -1911,9 +1967,9 @@ test('R2.8 history conversation navigation restores one dock on the new composer
     assert.equal(f.host(),oldHost,'reuse the original host/shadow, do not duplicate');
     assert.equal(f.host().hidden,false,'dock visible in new conversation');
     assert.equal(f.host().style.left,'428px','re-anchor 8px inside the new conversation');
-    assert.equal(f.buttons().length,1,'exactly one shortcut after navigation');
+    assert.equal(f.openPrompts().length,1,'exactly one shortcut after navigation');
     assert.equal(f.siteEvents.size,1,'single storage listener');
-    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
     assert.equal(nextEditor.textContent,'新会话草稿\n'+f.row.body);
     assert.equal(f.editor.textContent,oldDraft,'previous composer untouched');
     assert.equal(f.calls.length,1,'one native insertion, no automatic send');
@@ -1973,7 +2029,7 @@ test('R2.8 a same-URL editor replacement during permission read never modifies t
     const nativeGet=f.api.storage.local.get;
     let release;
     f.api.storage.local.get=()=>new Promise(resolve=>{release=resolve;});
-    f.buttons()[0].emit('click',{isTrusted:true});
+    f.openPrompts()[0].emit('click',{isTrusted:true});
     assert.equal(typeof release,'function');
     const replacement=mockElement('DIV');
     replacement.isContentEditable=true;replacement.setAttribute('contenteditable','true');
@@ -2000,12 +2056,12 @@ test('R2.8 temporary storage read failure recovers; disable still blocks revival
     f.win.location.href=CHATGPT_ORIGIN+'/c/another-history-conversation';
     f.events.get('popstate')();await settle();
     assert(reads>=2,'bounded retry reads storage again after transient failure');
-    assert.equal(f.buttons().length,1,'recovers without manual refresh');
+    assert.equal(f.openPrompts().length,1,'recovers without manual refresh');
     assert.equal(f.host().hidden,false);
     f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});await settle();
-    assert.equal(f.buttons().length,0);
+    assert.equal(f.openPrompts().length,0);
     f.intervals[0]();await settle();
-    assert.equal(f.buttons().length,0,'disabled extension never resurrects buttons');
+    assert.equal(f.openPrompts().length,0,'disabled extension never resurrects buttons');
   }finally{f.controller.dispose();}
 });
 
@@ -2018,7 +2074,7 @@ test('R2.8 long history scrolling keeps the shortcuts in the visible conversatio
   }finally{f.controller.dispose();}
 });
 
-test('R2.15 B rail keeps its OD entry with zero prompts, caps at four, respects theme',async()=>{
+test('R2.15 B rail keeps its OD entry with zero prompts and exposes all choices, respects theme',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
   const model=globalThis.OpenDeskPromptShortcutsModel;
   const make=i=>model.draft({label:'提'+i,body:'正文'+i},null,()=> 'prompt-r215-'+i);
@@ -2028,7 +2084,7 @@ test('R2.15 B rail keeps its OD entry with zero prompts, caps at four, respects 
     await settle();
     const rail=f.rail();
     assert(rail,'empty ChatGPT library must preserve OD entry');
-    assert.equal(f.buttons().length,0);
+    assert.equal(f.openPrompts().length,0);
     assert.equal(rail.children.length,1);
     assert.equal(rail.children[0].className,'brand');
     assert.equal(rail.children[0].textContent,'OD');
@@ -2036,8 +2092,8 @@ test('R2.15 B rail keeps its OD entry with zero prompts, caps at four, respects 
     f.change(PROMPT_DATA_STORE,{library:{schema:1,
       items:[1,2,3,4,5].map(make),settings:{webButtons:true}}});
     await settle();
-    assert.equal(f.buttons().length,4,'only four independently clickable prompts');
-    assert.equal(f.rail().children.length,5,'one OD, never a duplicated brand');
+    assert.equal(f.openPrompts().length,5,'all five prompts are accessible after expanding one launcher');
+    assert.equal(f.rail().children.length,7,'launcher plus five prompts plus management, never duplicated');
     f.doc.documentElement.setAttribute('data-theme','dark');
     f.events.get('resize')();await settle();
     const host=f.root.children.find(node=>node.attributes['data-opendesk-prompts']!==undefined);
@@ -2047,15 +2103,21 @@ test('R2.15 B rail keeps its OD entry with zero prompts, caps at four, respects 
   }finally{controller.dispose();}
 });
 
-test('R2.15 OD click uses one genuine gesture and never triggers draft insert',async()=>{
+test('R2.15 compact launcher and management use genuine gestures without editing drafts',async()=>{
   const f=await readyPage();
   try{
     const brand=f.rail().children[0];let invoked=0,captured;
     f.api.runtime.sendMessage=message=>{invoked++;captured=message;return Promise.resolve({ok:true,data:{opened:true}});};
     brand.emit('click',{isTrusted:false});await settle();
-    assert.equal(invoked,0,'synthetic page click is not eligible');
+    assert.equal(f.rail().children.length,1,'synthetic event cannot expand choices');
     brand.emit('click',{isTrusted:true});
-    assert.equal(invoked,1,'dispatch occurs synchronously on trusted click');
+    assert.equal(invoked,0,'expanding choices never opens the panel or edits a draft');
+    const manage=f.rail().children.at(-1);
+    assert.equal(manage.getAttribute('aria-label'),'打开侧边栏管理提示词');
+    manage.emit('click',{isTrusted:false});await settle();
+    assert.equal(invoked,0,'synthetic management click is rejected');
+    manage.emit('click',{isTrusted:true});
+    assert.equal(invoked,1,'management sends one synchronous genuine gesture');
     assert.equal(captured.protocol,'opendesk.prompt-shortcuts.rail-open.v1');
     assert.equal(captured.expectedUrl,f.win.location.href);
     await settle();
