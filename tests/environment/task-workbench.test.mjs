@@ -121,46 +121,84 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
   const workbench=createTaskWorkbench({client,host,currentPageTarget:page,api,document:doc,developerView,
     importDraft:source=>importedDrafts.push(source)});
   const ui={...workbench,dispose(){workbench.dispose();developerView.dispose();}};
-  return {ui,developerView,get,doc,page,host,client,view,starts,permissions,stops,catalogOpens,draftMessages,importedDrafts,api,catalogState,
-    click:async(id,trusted=true)=>{get(id).fire('click',{isTrusted:trusted});await tick();await tick();}};
+  // Business tests invoke exactly the actions wired to the production React
+  // MyTasksPage/Dock. The old Element.fire() registry is NOT a React click.
+  const action=(name,event={isTrusted:true})=>{
+    const callback=workbench.myView.actions[name];
+    assert.equal(typeof callback,'function',`Missing production React action: ${name}`);
+    return callback(event);
+  };
+  const field=id=>workbench.myView.field(id);
+  const click=async(id,trusted=true)=>{
+    if(id.startsWith('tab-')){
+      const tab={'tab-my-tasks':'tasks','tab-tools':'tools','tab-develop':'develop',
+        'tab-cloud':'cloud','tab-workflow':'workflow'}[id];
+      assert(tab,`Unknown production tab: ${id}`);
+      ui.navigate(tab);
+      if(tab==='tasks')await ui.refresh(undefined,{skipUnchanged:true});
+    }else if(!field(id).disabled){
+      await action(id.replace(/-([a-z])/g,(_,part)=>part.toUpperCase())+'Click',{isTrusted:trusted});
+    }
+    await tick();await tick();
+  };
+  return {ui,developerView,myView:workbench.myView,field,action,get,doc,page,host,client,view,starts,permissions,stops,catalogOpens,draftMessages,importedDrafts,api,catalogState,click};
 };
 
 test('legacy first-run migration refreshes the installed identity before the next explicit Run',async t=>{
-  const f=make();t.after(()=>f.ui.dispose());delete f.catalogState.installed[0].installationId;delete f.catalogState.installed[0].generation;
+  const f=make();t.after(()=>f.ui.dispose());
+  delete f.catalogState.installed[0].installationId;
+  delete f.catalogState.installed[0].generation;
   await tick();await tick();
   const request=f.client.request.bind(f.client),start=f.host.start.bind(f.host);
   f.client.request=async(method,payload)=>{
     const result=await request(method,payload);
-    if(method==='resolveInstalledTask')Object.assign(result,{installationId:f.catalogState.installed[0].installationId??null,
+    if(method==='resolveInstalledTask')Object.assign(result,{
+      installationId:f.catalogState.installed[0].installationId??null,
       generation:f.catalogState.installed[0].generation??null});
     return result;
   };
   f.host.start=async input=>{
     const result=await start(input);
-    Object.assign(f.catalogState.installed[0],{installationId:'11111111-1111-4111-8111-111111111111',generation:1});
+    Object.assign(f.catalogState.installed[0],{
+      installationId:'11111111-1111-4111-8111-111111111111',generation:1});
     return result;
   };
-  await f.click('task-run');assert.equal(f.starts[0].expectedTaskInstallationId,null);
+  await f.click('task-run');
+  assert.equal(f.starts.length,1,'the React Run action must admit the first saved version');
+  assert.equal(f.starts[0].expectedTaskInstallationId,null);
   f.host.complete(true);await tick();await tick();await tick();
-  await f.click('task-run');assert.equal(f.starts.length,2,f.get('task-status').textContent);
+  await f.click('task-run');
+  assert.equal(f.starts.length,2,f.field('task-status').text);
   assert.equal(f.starts[1].expectedTaskInstallationId,f.catalogState.installed[0].installationId);
-  assert.equal(f.starts[1].expectedTaskGeneration,1);assert.equal(f.permissions.length,0);f.host.complete(true);
+  assert.equal(f.starts[1].expectedTaskGeneration,1);
+  assert.equal(f.permissions.length,0);
+  f.host.complete(true);
 });
 
 test('Task Install requests only missing access on the trusted click and never installs after denial or close',async t=>{
   for(const closing of [false,true]){
-    const f=make({installedInitially:false});t.after(()=>f.ui.dispose());await tick();await tick();
-    f.api.permissions.contains=async()=>false;let release;const gate=new Promise(resolve=>release=resolve);
+    const f=make({installedInitially:false});t.after(()=>f.ui.dispose());
+    await tick();await tick();
+    f.api.permissions.contains=async()=>false;
+    let release;const gate=new Promise(resolve=>release=resolve);
     f.api.permissions.request=request=>{f.permissions.push(request);return gate;};
-    f.ui.showCatalogPage();f.get('task-catalog-list').value='demo.form@1.0.0';
-    f.get('task-catalog-list').fire('change');await tick();
-    assert.equal(f.get('task-install').disabled,false);
-    f.get('task-install').fire('click',{isTrusted:false});assert.equal(f.permissions.length,0);await tick();
-    f.get('task-install').fire('click',{isTrusted:true});
-    assert.deepEqual(f.permissions,[{origins:['https://a.example/*']}],'request must start synchronously in the click stack');
+    f.ui.showCatalogPage();
+    f.field('task-catalog-list').value='demo.form@1.0.0';
+    f.action('taskCatalogListChange');
+    await tick();await tick();
+    assert.equal(f.field('task-install').disabled,false);
+    // Invoke the registered React action synchronously to preserve gesture
+    // timing; awaiting first would invalidate the Chrome permission contract.
+    void f.action('taskInstallClick',{isTrusted:false});
+    assert.equal(f.permissions.length,0);
+    await tick();
+    void f.action('taskInstallClick',{isTrusted:true});
+    assert.deepEqual(f.permissions,[{origins:['https://a.example/*']}],
+      'the exact missing Chrome permission request begins in the trusted action stack');
     if(closing){f.ui.dispose();f.api.permissions.contains=async()=>true;}
     release(closing);await tick();await tick();
-    assert.equal(f.catalogState.installed.length,0);assert.equal(f.starts.length,0);
+    assert.equal(f.catalogState.installed.length,0);
+    assert.equal(f.starts.length,0);
   }
 });
 
@@ -170,9 +208,10 @@ test('R25.1 fixed-version manager can focus an installed disabled Task without r
   await f.ui.refresh();await tick();
   f.ui.navigate('develop');
   assert.equal(f.ui.focusInstalledTask('demo.form'),true);
-  assert.equal(f.get('workbench-tasks').hidden,false);
-  assert.equal(f.get('task-installed-list').value,'demo.form');
-  assert.equal(f.get('task-run').disabled,true,'management must not silently reenable Task');
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'tasks');
+  assert.equal(f.field('task-installed-list').value,'demo.form');
+  assert.equal(f.field('task-run').disabled,true,
+    'management must not silently reenable a disabled installed Task');
   assert.equal(f.starts.length,0);
 });
 
@@ -180,39 +219,39 @@ test('entering Sidebar task views reads external installations without executing
   const f=make();t.after(()=>f.ui.dispose());
   const installed=f.catalogState.installed.pop();
   await tick();await tick();
-  assert.equal(f.get('task-installed-cards').children.length,2);
-  assert.equal(f.get('task-installed-cards').children[1],f.get('task-selected-workspace'));
-  assert.equal(f.get('task-selected-workspace').hidden,true);
-  assert.match(f.get('task-installed-cards').children[0].textContent,/暂无任务.*导入/);
-  assert.equal(f.get('task-installed-detail').textContent,'','empty task scope stays compact under R5');
-  assert.equal(f.get('task-run').disabled,true);
+  assert.equal(f.myView.data.taskRows.rows.length,0);
+  assert.match(f.myView.data.taskRows.emptyText,/暂无任务.*导入/);
+  assert.equal(f.myView.data.taskRows.selectedId,'');
+  assert.equal(f.myView.data.taskDetail,'','an empty task scope stays compact');
+  assert.equal(f.field('task-run').disabled,true);
   f.catalogState.installed.push(installed);
   await f.click('tab-my-tasks');
-  assert.equal(f.get('task-run').disabled,false);
-  const input=f.get('task-param-name');
+  assert.equal(f.field('task-run').disabled,false);
+  const input=f.field('task-param-name');
   input.value='Preserved native input';
+  f.action('taskParamsFormInput');
   await f.click('tab-tools');
-  assert.equal(f.get('task-search-panel').hidden,true);
+  assert.equal(f.field('task-search-panel').hidden,true);
   await f.click('tab-my-tasks');
-  assert.equal(f.get('task-param-name'),input,'unchanged catalog must not replace the editable form');
+  assert.equal(f.field('task-param-name'),input,'unchanged catalog preserves the live React field');
   assert.equal(input.value,'Preserved native input');
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
   f.catalogState.installed=[];
-  // Switching back into My refreshes the original authoritative Task Catalog.
   await f.click('tab-tools');
   await f.click('tab-my-tasks');
-  assert.equal(f.get('task-installed-cards').children.length,2);
-  assert.match(f.get('task-installed-cards').children[0].textContent,/暂无任务/);
+  assert.equal(f.myView.data.taskRows.rows.length,0);
+  assert.match(f.myView.data.taskRows.emptyText,/暂无任务/);
 });
 
 test('installed tasks default page, render schema form and freeze the exact saved version/params/target',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
-  assert.equal(f.get('workbench-tasks').hidden,false);
-  assert.equal(f.get('workbench-develop').hidden,true);
-  assert.equal(f.get('task-run').disabled,false);
-  const input=f.get('task-params-form').children.find(node=>node.dataset?.taskParam==='name');
-  assert(input);input.value='Bob';
-  await f.click('task-run',false);assert.equal(f.starts.length,0,'untrusted clicks cannot start');
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'tasks');
+  assert.equal(f.field('task-run').disabled,false);
+  assert(f.myView.data.taskParams.some(item=>item.name==='name'));
+  f.field('task-param-name').value='Bob';
+  f.action('taskParamsFormInput');
+  await f.click('task-run',false);
+  assert.equal(f.starts.length,0,'an untrusted React action cannot start execution');
   await f.click('task-run');
   assert.equal(f.permissions.length,0);assert.equal(f.starts.length,1);
   assert.equal(f.starts[0].expectedTaskGeneration,1);
@@ -223,45 +262,47 @@ test('installed tasks default page, render schema form and freeze the exact save
   assert.deepEqual(f.starts[0].target,{mode:'borrowed',tabId:9,frameId:0,documentId:'doc-9',
     expectedUrl:'https://a.example/',expectedWindowId:7});
   await f.click('tab-tools');
-  assert.equal(f.get('workbench-tools').hidden,false,'Extension Center must show the existing tools panel');
-  assert.equal(f.get('workbench-discover').hidden,true,'full catalog must not occupy the Side Panel');
-  assert.equal(f.catalogOpens.length,0,'Extension Center navigation must not open a marketplace tab');
-  assert.equal(f.get('task-installed-cards').children.length,1,'installed tasks use the same visible list');
-  assert.equal(f.get('task-dock').hidden,false,'task-owned Stop remains accessible across tabs');
-  assert.equal(f.get('develop-dock').hidden,true,'Extensions must not expose a second runner');
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'tools');
+  assert.equal(f.catalogOpens.length,0,'Extensions navigation must not open the catalog');
+  assert.equal(f.myView.data.taskRows.rows.length,1,'installed Tasks use a single list');
+  assert.equal(f.myView.data.runDock.taskHidden,false,
+    'Task-owned Stop remains accessible across tabs');
+  assert.equal(f.myView.data.runDock.developHidden,true,
+    'Extensions must not expose a second runner');
   await f.click('tab-develop');
-  assert.equal(f.get('workbench-develop').hidden,false);
-  assert.equal(f.get('task-dock').hidden,false,'task-owned Stop remains accessible in Developer');
-  assert.equal(f.get('develop-dock').hidden,true,'an unrelated draft cannot take over the task dock');
-  assert.equal(f.host.currentRun,'run-task-1','switching Sidebar views must never retire RunHost');
-  f.host.complete({ok:true});await tick();await tick();
-  assert.match(f.get('task-result').textContent,/"ok": true/);
-  const latest=f.get('task-history').children[0].children[0];
-  assert.match(latest.children[0].textContent,/成功/);
-  assert.doesNotMatch(latest.children[0].textContent,/run-task-1/,'ordinary history line hides internal IDs');
-  assert.match(latest.children[2].children[1].textContent,/run-task-1/,'advanced record retains exact identity');
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'develop');
+  assert.equal(f.myView.data.runDock.taskHidden,false);
+  assert.equal(f.myView.data.runDock.developHidden,true);
+  assert.equal(f.host.currentRun,'run-task-1','switching views never retires RunHost');
+  f.host.complete({ok:true});await tick();await tick();await tick();
+  assert.match(f.field('task-result').text,/"ok": true/);
+  const latest=f.myView.data.taskHistory[0];
+  assert.match(latest.state,/成功/);
+  assert.doesNotMatch(latest.state,/run-task-1/,'ordinary history hides internal IDs');
+  assert.match(latest.technical,/run-task-1/,'advanced record retains exact identity');
   await f.click('tab-tools');
-  assert.equal(f.get('task-dock').hidden,true,'idle Extensions must not expose a borrowed Run dock');
+  assert.equal(f.myView.data.runDock.taskHidden,true,'idle Extensions cannot borrow Run');
 });
 
 test('installed task can be explicitly forked into an independent unsaved editor draft',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   await f.click('task-fork-draft');
-  assert.equal(f.get('workbench-develop').hidden,false);
-  assert.match(f.importedDrafts.at(-1),/async function main/,'fork delegates to the same source/compiled-artifact importer');
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'develop');
+  assert.match(f.importedDrafts.at(-1),/async function main/,
+    'fork delegates to the original source/compiled-artifact importer');
 });
 
-/* task-owned-stop-and-document-race-r3: focused UI regressions; this is not native Chrome evidence. */
+/* task-owned-stop-and-document-race-r3: business actions, not Chrome DOM evidence. */
 test('task Stop cannot cancel another view\u0027s in-flight draft; parameter form never navigates',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   let prevented=false;
-  f.get('task-params-form').fire('submit',{preventDefault(){prevented=true;}});
-  assert.equal(prevented,true,'native form submit must be cancelled');
+  f.action('taskParamsFormSubmit',{preventDefault(){prevented=true;}});
+  assert.equal(prevented,true,'registered React form submit action prevents navigation');
   await f.host.start({source:{kind:'draft',sourceUtf8:'return 1;'}});
   await f.ui.refresh();
-  assert.equal(f.get('task-stop').disabled,true,'another view owns the active run');
+  assert.equal(f.field('task-stop').disabled,true,'another view owns the active run');
   await f.click('task-stop');
-  assert.equal(f.stops.length,0,'must not forward stop for an unrelated run');
+  assert.equal(f.stops.length,0,'Stop must not forward for another run owner');
   assert.equal(f.host.currentRun,'run-task-1');
   f.host.complete({ok:true});
 });
@@ -273,11 +314,10 @@ test('installed task refuses stale target after async installed-version lookup',
     checks++;
     if(checks===2)throw Object.assign(new Error('Document changed during version lookup'),{code:'E_DOCUMENT_STALE'});
   };
-  await f.click('task-run');
-  await tick();await tick();
-  assert.equal(checks,2,'must fence before and after async resolve');
-  assert.equal(f.starts.length,0,'no Controller admission for a stale document');
-  assert.match(f.get('task-status').textContent,/E_DOCUMENT_STALE/);
+  await f.click('task-run');await tick();await tick();
+  assert.equal(checks,2,'must fence target before and after async saved-version resolve');
+  assert.equal(f.starts.length,0,'stale document must never reach Controller admission');
+  assert.match(f.field('task-status').text,/E_DOCUMENT_STALE/);
 });
 
 test('task cards retain readable selection and do not surface raw IDs as the main UI',async t=>{
