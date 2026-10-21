@@ -97,8 +97,8 @@ function targetOf(tree,target,context,refs){
 }
 const aborted=signal=>{
  if(!signal?.aborted)return;
- const revoked=signal.reason?.code==='E_GRANT_REVOKED';
- throw Object.assign(fail(revoked?'E_GRANT_REVOKED':'E_CANCELLED',
+ const revoked=signal.reason?.code==='E_MODEL_GRANT_REVOKED';
+ throw Object.assign(fail(revoked?'E_MODEL_GRANT_REVOKED':'E_CANCELLED',
   revoked?'模型权限已撤销，未再发送新的书签操作':'已停止，未再发送新的书签操作'),
   {writeIssued:false});
 };
