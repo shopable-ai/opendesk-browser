@@ -263,7 +263,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
         if(disposed||currentPageState!==next||controllerResults.projection!==blockedProjection||
           isRunning()||isStopping()||host.currentRun||pagePreviewFlow?.busy)return;
         controllerResults.setProjection(snapshot);update();
-      }).catch(error=>{if(!disposed&&currentPageState===next&&controllerResults.projection===blockedProjection)
+      }).catch(error=>{if(!disposed&&currentPageState===next&&controllerResults.projection===blockedProjection&&
+        !isRunning()&&!isStopping()&&!host.currentRun&&!pagePreviewFlow?.busy)
         display('error',formatTaskError(error));});
     }
     patchDeveloperField(view,find('script-current-page-title'),{textContent:available?next.title||next.url:

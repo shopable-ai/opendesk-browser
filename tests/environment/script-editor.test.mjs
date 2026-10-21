@@ -173,6 +173,25 @@ test('a delayed slot refresh cannot overwrite a newer occupied projection',async
   assert.equal(f.find('script-run').disabled,true,'late availability cannot replace the newer occupied slot');
 });
 
+test('a delayed failed slot refresh cannot replace a newer run result',async t=>{
+  const f=await fixture({scripts:[],runs:[{runId:'foreign-run',state:'running'}],results:[]});t.after(()=>f.dispose());
+  const gate=deferred(),read=f.client.controller.snapshotControllerRun;
+  let hold=true;
+  f.client.controller.snapshotControllerRun=async request=>{
+    if(hold){hold=false;await gate.promise;throw new Error('old admission read failed');}
+    return read(request);
+  };
+  f.persisted.runs[0].state='completed';
+  await f.switchTab();
+  await f.click('script-read');
+  await f.click('script-run');
+  assert.equal(f.starts.length,1);
+  const current=f.find('script-result').textContent;
+  gate.resolve();await tick();await tick();
+  assert.equal(f.find('script-result').textContent,current);
+  await f.finish(7);
+});
+
 test('R40.10.1 immediate Controller Run captures the most recent input without a microtask gap',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   f.find('script-source').value='return 314;';
