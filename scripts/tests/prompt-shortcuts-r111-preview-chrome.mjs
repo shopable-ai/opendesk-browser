@@ -191,9 +191,10 @@ async function run(){
   // Capture the browser Blob export in the source page without a download manager dependency.
   await evalChrome('(()=>{window.__anchorClick=HTMLAnchorElement.prototype.click;HTMLAnchorElement.prototype.click=function(){window.__exportUrl=this.href;window.__exportName=this.download;};})()');
   await click('#exportJson');
-  const backup=await evalChrome('(async()=>{const data=JSON.parse(await (await fetch(window.__exportUrl)).text());HTMLAnchorElement.prototype.click=window.__anchorClick;return {format:data.format,version:data.version,count:data.items.length,file:window.__exportName};})()');
+  const backup=await evalChrome('(async()=>{const data=JSON.parse(await (await fetch(window.__exportUrl)).text());HTMLAnchorElement.prototype.click=window.__anchorClick;return {format:data.format,version:data.version,count:data.items.length,file:window.__exportName,imageSize:data.imageSize,imageCount:data.items.filter(item=>item.appearance==="image").length};})()');
   assert.equal(backup.format,'opendesk.prompt-shortcuts');
-  assert.equal(backup.version,1);assert.equal(backup.count,4);
+  assert.equal(backup.version,2);assert.equal(backup.count,4);
+  assert.equal(backup.imageSize,'large');assert.equal(backup.imageCount,1);
   assert.match(backup.file,/^opendesk-prompt-shortcuts-\d{4}-\d{2}-\d{2}\.json$/);
   // HTML File selection, import precheck, duplicate filtering and target-page immediate repaint.
   await evalChrome('(()=>{const body=document.querySelector(".prompt-content").textContent,items=[{body,label:"润色",name:"duplicate"},{body:"R2.6 新导入的提示词正文",label:"导入",name:"立即同步"}];const dt=new DataTransfer();dt.items.add(new File([JSON.stringify({format:"opendesk.prompt-shortcuts",version:1,items})],"r26-append.json",{type:"application/json"}));const input=document.getElementById("importFile");input.files=dt.files;input.dispatchEvent(new Event("change",{bubbles:true}));})()');
@@ -213,8 +214,13 @@ async function run(){
   await click('#importReplace');
   assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),1);
   assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),1);
+  assert.equal(await evalChrome('document.querySelector("#imageSizeGroup").hidden'),true,
+    'text-only list retains original uncluttered header');
+  await shot('r34-text-only-list-360px');
   report.jsonImportExport=true;report.immediateRailSync=true;report.noUnexpectedFold=true;
   await click('#resetButton');
+  assert.equal(await evalChrome('document.querySelector("#imageSizeGroup").hidden'),false,
+    'image size control returns with restored image shortcut');
   await click('.prompt-use');x=await state();
   assert(x.draft.includes('请在不改变原意的前提下润色以下文字：\n1. '));
   assert.equal(x.kind,'success');report.emptyInsert=true;
@@ -315,6 +321,23 @@ async function run(){
   await click('#resetButton');
   assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),4);
   report.iconActionsReorderToggleDelete=true;report.managementSeparate=true;
+  // R3.4: genuine Chromium storage-rejection fault, not a synthetic status banner.
+  await click('#addButton');
+  await evalChrome('(()=>{const f=document.getElementById("promptBody");f.value="R3.4 本地存储失败仍保留草稿";f.dispatchEvent(new Event("input",{bubbles:true}));window.__originalPsSetItem=Storage.prototype.setItem;Storage.prototype.setItem=function(key,val){if(String(key).includes("prompt-shortcuts.preview.items-r3"))throw new DOMException("Storage blocked","QuotaExceededError");return window.__originalPsSetItem.call(this,key,val);};})()');
+  await click('#saveButton');
+  await poll('document.querySelector("#formError").textContent.includes("E_PREVIEW_STORAGE")',
+    'storage refused must show explicit error');
+  assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),4);
+  assert.equal(await evalChrome('document.querySelector("#promptBody").value.includes("R3.4")'),true);
+  assert.equal(await evalChrome('!document.querySelector("#formView").hidden'),true);
+  await shot('r34-storage-error-keeps-draft-360px');
+  await evalChrome('Storage.prototype.setItem=window.__originalPsSetItem');
+  await click('#saveButton');
+  await poll('document.querySelectorAll(".prompt-card").length===5&&document.querySelector("#formView").hidden',
+    'save succeeds once storage is restored');
+  await click('#resetButton');
+  assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),4);
+  report.r34FailedWriteSafe=true;
   await evalChrome('(()=>{const f=document.getElementById("actionScenario");f.value="clipboard-failure";f.dispatchEvent(new Event("change",{bubbles:true}));})()');
   // The preview deliberately debounces repeated activation of one prompt for 650ms.
   // Reaching the clipboard-failure scenario requires a fresh real user click.
