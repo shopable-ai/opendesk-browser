@@ -33,6 +33,12 @@ function normalizeImageUrl(value,required=false){
   if(/\.svg$/iu.test(url.pathname))fail('暂不支持 SVG 图片，请使用 PNG、JPEG 或 WebP');
   return url.href;
 }
+function normalizeImageAssetId(value){
+  if(value==null||value==='')return '';
+  if(typeof value!=='string'||!/^psa_[a-f0-9]{32}$/.test(value))
+    fail('无效的本地图片资源标识');
+  return value;
+}
 const defaults=()=>({schema:1,items:[],settings:{webButtons:true,imageSize:'large'}});
 const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).byteLength;
 function draft(input,previous=null,newId=secureId){
@@ -45,13 +51,17 @@ function draft(input,previous=null,newId=secureId){
   if(!fallback)fail('请输入包含可见字符的正文');
   const appearance=input.appearance??previous?.appearance??'text';
   if(!['text','image'].includes(appearance))fail('不支持的按钮外观');
-  // A hidden, invalid URL must never stop a text-only prompt from saving.
+  // Asset IDs reference separate trusted tool storage; never inline image bytes.
+  const imageAssetId=normalizeImageAssetId(input.imageAssetId??previous?.imageAssetId);
   let imageUrl='';
-  if(appearance==='image')imageUrl=normalizeImageUrl(input.imageUrl??previous?.imageUrl,true);
-  else try{imageUrl=normalizeImageUrl(input.imageUrl??previous?.imageUrl);}catch{/* Hidden stale URL is ignored. */}
+  if(appearance==='image'&&!imageAssetId)
+    imageUrl=normalizeImageUrl(input.imageUrl??previous?.imageUrl,true);
+  else if(!imageAssetId)try{imageUrl=normalizeImageUrl(input.imageUrl??previous?.imageUrl);}
+  catch{/* Hidden stale URL is ignored. */}
   return {id:previous?.id||newId(),body:input.body,label:label||fallback,name:name||fallback,
     labelAuto:!label,nameAuto:!name,shape:input.shape==='round'||(input.shape===undefined&&previous?.shape==='round')?'round':'square',
-    enabled:input.enabled!==false,order:previous?.order??0,appearance,imageUrl};
+    enabled:input.enabled!==false,order:previous?.order??0,appearance,imageUrl,
+    ...(imageAssetId?{imageAssetId}:{})};
 }
 const validId=id=>typeof id==='string'&&/^[a-zA-Z0-9_-]{8,64}$/.test(id);
 function load(value){
@@ -72,11 +82,14 @@ function load(value){
     const labelAuto=v.labelAuto===true,nameAuto=v.nameAuto===true||v.name===''||v.name===undefined;
     const appearance=v.appearance??'text';
     if(!['text','image'].includes(appearance))fail('提示词按钮外观无效');
+    const imageAssetId=normalizeImageAssetId(v.imageAssetId);
     let imageUrl='';
-    if(appearance==='image')imageUrl=normalizeImageUrl(v.imageUrl,true);
-    else try{imageUrl=normalizeImageUrl(v.imageUrl);}catch{/* Legacy text rows remain usable. */}
+    if(appearance==='image'&&!imageAssetId)imageUrl=normalizeImageUrl(v.imageUrl,true);
+    else if(!imageAssetId)try{imageUrl=normalizeImageUrl(v.imageUrl);}
+    catch{/* Legacy text rows remain usable. */}
     return {...v,labelAuto,nameAuto,label:labelAuto?fallback:v.label,
-      name:nameAuto?fallback:v.name,appearance,imageUrl};
+      name:nameAuto?fallback:v.name,appearance,imageUrl,
+      ...(imageAssetId?{imageAssetId}:{})};
   });
   return {schema:1,items:items.sort((a,b)=>a.order-b.order||a.id.localeCompare(b.id)),
     settings:{webButtons:value.settings.webButtons,imageSize:value.settings.imageSize??'large'}};
@@ -217,6 +230,9 @@ const validBackupItemFieldsV1=new Set(['id','body','label','name','labelAuto','n
 const validBackupItemFieldsV2=new Set([...validBackupItemFieldsV1,'appearance','imageUrl']);
 function backupExport(library,exportedAt=new Date().toISOString()){
   const saved=load(library);
+  // Never silently generate an incomplete v2 backup without the local asset bytes.
+  if(saved.items.some(item=>item.imageAssetId))
+    fail('当前提示词包含本地图片：v2 JSON 无法完整备份图片。请先保留当前数据并使用 HTTPS 图片，待图片备份格式可用后再导出');
   if(!Number.isFinite(Date.parse(exportedAt)))fail('导出时间无效');
   const items=saved.items.map(item=>({
     id:item.id,body:item.body,label:item.label,name:item.name,
@@ -306,7 +322,7 @@ function backupPlan(library,imported,mode='append'){
 }
 
 Object.defineProperty(globalThis,'OpenDeskPromptShortcutsModel',{
-  value:Object.freeze({parts,visible,auto,validLabel,IMAGE_SIZES,normalizeImageUrl,defaults,bytes,draft,load,
+  value:Object.freeze({parts,visible,auto,validLabel,IMAGE_SIZES,normalizeImageUrl,normalizeImageAssetId,defaults,bytes,draft,load,
      BACKUP_FORMAT,BACKUP_VERSION,BACKUP_MAX_BYTES,duplicateKey,backupExport,backupParse,backupPlan,
     sitesDefaults,siteUrl,validSelector,siteRule,sitesLoad,siteFor,builtinSite,siteHint}),configurable:true
 });
