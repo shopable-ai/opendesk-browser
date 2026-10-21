@@ -156,3 +156,9 @@ React/Vue 可复用项目本身的已有预编译配置，源码创建和 UI 调
 
 **源码与打包证据**：`tool.config.json.files` 只能指向真实存在的 HTML/CSS/JS。若引用 `dist/tool.js`、`dist/tool.css`，必须先真实构建并产生与源码绑定的 `dist/build-ready.json`；源码一改，旧回执作废。工具正式包经唯一 `scripts/build-sidebar-tool.mjs` 构建、回归、`--promote-from`、`--check-project` 晋升，禁止手改安装包。预览必须用本次已构建的确切 JS/CSS/同版本共享运行时，Mock 只在工具 iframe 外；不要让预览使用旧原生界面而包使用 React。证据明确区分 `SOURCE_WIRED`、`BUILD_PASS`、`PACKAGE_PASS`、`NATIVE_CHROME=NOT_TESTED`，不得以原型截图证明 Chrome 限制生效。
 
+
+## 普通 Sidebar App 申请后台网站预算（site-budget.v2）
+
+仅当现有 SDK Registry 支持 `browser.siteBudget` 时，在原项目 `tool.config.json` 声明受限能力与 `backgroundPolicy`：`{kind:'site-budget.v2',dailyMinutes:30,defaultSites:[],schedule:{enabled:false,days:[1,2,3,4,5],startMinute:540,endMinute:1020},suggestions:[{host:'example.com',name:'Example',category:'工作',suggestLimit:true,quick:false}]}`。保存/运行时由应用 UI 使用 `OpenDeskSDK.browser.siteBudget.getStatus()` 取得 `desiredPolicyRev`，再通过 `setPolicy({enabled,dailyMinutes,sites,schedule,expectedRev})` 申请用户审阅。安装/升级先由原 Installer 验证版本、容量、来源与包摘要；未批准时不得因模板自动创建规则。普通工具不要把 `chrome.*`、DNR ID、Worker JavaScript 或自建报警/保活器写入自己的项目。
+
+仍按已有 `scripts/build-sidebar-tool.mjs` → Extension Center 导入/审核 → 同 ID 升级 → 停用/卸载路径交付。不需要重编 Browser 来更改已支持的站点、额度、时段；但**此能力截至 R1.4 仅有源码提交，原生 Chrome 与固定 B0 验收尚未通过**。无原生证据不得声称侧边栏关闭后计时或新包独立升级已验证。见 `docs/api/browser-sdk.zh-CN.md`。

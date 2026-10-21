@@ -105,3 +105,9 @@ description: Engineer Chrome MV3/WXT Background/Content/MAIN, SDK/Host/Authority
 ## 验收评分
 
 仅在用户当前明确要求评分或适用正式合同要求评分时，对架构唯一性、Chrome API 正确性、执行世界/权限边界、生命周期/Stop、可靠性、源码与包体积、原生证据等适用维度独立评分。适用 95+ 目标时，相关高风险维度仍须逐项 ≥95；未测试标 `NOT_TESTED`，不伪造通过。普通开发报告核心操作和定向验证；原生项未测只限制原生结论，若确实阻塞当前核心操作才作为当前 blocker。
+
+## 有限公共 MV3 后台预算：R1.4 源码阶段
+
+只使用已存在的 `src/sw.js` 与 `src/platform/chrome/browser-managed-site-budget.js`、原有 Browser SDK/Installer/Authority。普通应用的 `site-budget.v2` 是经过审核的数据合同，**不是动态 Worker JS**；`browser.siteBudget.getStatus/setPolicy` 通过可信 Host，写策略需 `expectedRev` 和用户明确批准。应用独立升级已支持额度/网站/时段数据，新的可信算法仍属于 Browser 版本升级。
+
+管理员交付闭环：最新 main 定向执行 `node --test tests/environment/managed-site-budget-r14.test.mjs tests/environment/browser-managed-site-policy-r44.test.mjs tests/environment/extension-runtime-r14-lifecycle.test.mjs`；随后 `npm run check && npm run build && node scripts/verify-package.mjs dist/production`。必须从**真实构建产物**记录 `dist/production/sw.js` SHA-256、manifest/Browser 版本、源码 SHA 和 Chrome 实测 extension ID，四者一起冻结 B0；随后只更新独立应用包 1.0.0→1.0.1，原 Browser 构建指纹不得变化。没有真实浏览器证据不得写 `NODE_PASS/BUILD_PASS/CHROMIUM_NATIVE_PASS/MAC_NATIVE_PASS`。原有 Stay Focus/AdBlock 服务在公共应用原生验收以前不得卸载或抢占所有权。详情参见 `docs/architecture/browser-framework/sidebar-tool-host-decoupling.zh-CN.md`。
