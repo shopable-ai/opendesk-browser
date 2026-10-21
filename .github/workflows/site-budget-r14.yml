@@ -12,6 +12,7 @@ on:
       - 'src/framework/sdk/browser-schemas.js'
       - 'src/sw.js'
       - 'tests/environment/managed-site-budget-r14.test.mjs'
+      - 'tests/framework/background-runtime-r20-native.mjs'
       - 'tests/environment/bundle-provenance.test.mjs'
       - 'scripts/bundle-provenance.mjs'
       - '.github/workflows/site-budget-r14.yml'
@@ -37,6 +38,7 @@ jobs:
         run: node scripts/build-stay-focus-react.mjs
       - name: Directed resource ownership, budget, SDK and regression tests
         run: |
+          node --check tests/framework/background-runtime-r20-native.mjs
           node --test tests/environment/managed-site-budget-r14.test.mjs tests/environment/browser-managed-site-policy-r44.test.mjs tests/environment/managed-site-authority-r44.test.mjs tests/environment/managed-site-runtime-contract-r45.test.mjs tests/environment/extension-runtime-r14-lifecycle.test.mjs tests/environment/stay-focus-r41-policy-package.test.mjs tests/environment/adblock-required-dnr-contract.test.mjs tests/environment/bundle-provenance.test.mjs
       - name: Verify revised first-party trusted asset and TOC source behavior
         run: |

@@ -11,6 +11,7 @@ on:
       - 'package-lock.json'
       - 'tests/environment/fixed-entries-audit.test.mjs'
       - 'tests/environment/sw-budget-policy.test.mjs'
+      - 'tests/framework/background-runtime-r20-native.mjs'
       - 'tests/environment/*provenance.test.mjs'
       - 'tests/environment/download-*.test.mjs'
       - 'tests/environment/package.test.mjs'
@@ -26,6 +27,7 @@ on:
       - 'package-lock.json'
       - 'tests/environment/fixed-entries-audit.test.mjs'
       - 'tests/environment/sw-budget-policy.test.mjs'
+      - 'tests/framework/background-runtime-r20-native.mjs'
       - 'tests/environment/*provenance.test.mjs'
       - 'tests/environment/download-*.test.mjs'
       - 'tests/environment/package.test.mjs'
@@ -50,7 +52,9 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Audit contracts, Rollup provenance and SW sizing tests
-        run: node --test tests/environment/sw-budget-policy.test.mjs tests/environment/fixed-entries-audit.test.mjs tests/environment/sw-size-report.test.mjs tests/environment/bundle-provenance.test.mjs tests/environment/download-events.test.mjs tests/environment/download-build-boundary.test.mjs
+        run: |
+          node --check tests/framework/background-runtime-r20-native.mjs
+          node --test tests/environment/sw-budget-policy.test.mjs tests/environment/fixed-entries-audit.test.mjs tests/environment/sw-size-report.test.mjs tests/environment/bundle-provenance.test.mjs tests/environment/download-events.test.mjs tests/environment/download-build-boundary.test.mjs
       - name: Preserve Controller, legacy source and download recovery behavior
         run: node --test tests/foundation/runtime.test.mjs tests/foundation/download-service.test.mjs tests/framework/k2-generic-download.test.mjs tests/framework/k3-controller-authority.test.mjs tests/framework/k4-sdk-error-reference.test.mjs
       - run: npm run check
