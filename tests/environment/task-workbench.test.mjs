@@ -906,52 +906,52 @@ test('Final R2 tool navigation refusal leaves the selected pane and tab intact',
   f.ui.connectToolsView(visible=>visible||allow);
   await f.click('tab-tools');
   await f.click('tab-develop');
-  assert.equal(f.get('workbench-tools').hidden,false);
-  assert.equal(f.get('workbench-develop').hidden,true);
-  assert.equal(f.get('tab-tools').attributes['aria-selected'],'true');
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'tools',
+    'dirty tool veto retains current React navigation selection');
   allow=true;await f.click('tab-develop');
-  assert.equal(f.get('workbench-tools').hidden,true);
-  assert.equal(f.get('workbench-develop').hidden,false);
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'develop');
+  assert.equal(f.starts.length,0);
 });
 
 test('tool editor navigation veto retains visible panel, selected tab and keyboard focus',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();
-  f.ui.navigate('tools');f.get('tab-tools').focus();
-  let dirty=true;f.ui.connectToolsView(next=>next||!dirty);
+  f.ui.navigate('tools');
+  f.get('tab-tools').focus();
+  let dirty=true;
+  f.ui.connectToolsView(next=>next||!dirty);
   assert.equal(f.ui.navigate('tasks'),false);
   assert.equal(f.doc.documentElement.dataset.opendeskTab,'tools');
-  assert.equal(f.get('workbench-tools').hidden,false);
   await f.click('tab-cloud');
-  assert.equal(f.get('workbench-cloud').hidden,true,'dirty tool veto also applies to Cloud');
-  assert.equal(f.doc.documentElement.dataset.opendeskTab,'tools');
-  await f.get('tab-tools').fire('keydown',{key:'Home',preventDefault(){}});
-  assert.equal(f.doc.activeElement,f.get('tab-tools'));
-  assert.equal(f.get('tab-tools').attributes['aria-selected'],'true');
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'tools',
+    'dirty tool veto also blocks Cloud without selecting it');
+  assert.equal(f.doc.activeElement,f.get('tab-tools'),
+    'rejected business navigation does not steal modeled focus');
+  const {renderSidebarReact}=await import('../helpers/sidebar-react-fixture.mjs');
+  const markup=await renderSidebarReact({myView:f.myView,activeTab:'tools'});
+  assert.match(markup,/<button[^>]*id="tab-tools"[^>]*aria-selected="true"/);
   dirty=false;f.ui.navigate('tasks');
-  assert.equal(f.get('workbench-tools').hidden,true);
   assert.equal(f.doc.documentElement.dataset.opendeskTab,'tasks');
 });
 
 test('Scheduled Tasks hides idle manual Run dock and never borrows scheduled Run as Developer Stop',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
-  assert.equal(f.get('task-dock').hidden,false,'ordinary My remains unchanged');
+  assert.equal(f.myView.data.runDock.taskHidden,false,'ordinary My retains manual Task Run');
   f.ui.setScheduledSurfaceActive(true);
-  assert.equal(f.get('task-dock').hidden,true,'scheduled form must not display unrelated manual Run');
-  assert.equal(f.get('workspace-dock').hidden,true,'no empty fixed action bar on scheduled plans');
+  assert.equal(f.myView.data.runDock.taskHidden,true);
+  assert.equal(f.myView.data.runDock.hidden,true,'scheduled form hides unrelated manual Run');
   const admitted=await f.host.start({source:{kind:'saved'}});
   f.ui.setScheduledRunOwner(admitted.runId);
   f.ui.navigate('develop');
-  assert.equal(f.get('develop-dock').hidden,true,'scheduled run is not a developer draft');
-  assert.equal(f.get('workflow-dock').hidden,true,'scheduled run is not a workflow');
-  assert.equal(f.get('workspace-dock').hidden,true,'only scheduled owner Stop may control its Run');
+  assert.equal(f.myView.data.runDock.developHidden,true,'scheduled run is not Developer-owned');
+  assert.equal(f.myView.data.runDock.workflowHidden,true,'scheduled run is not Workflow-owned');
+  assert.equal(f.myView.data.runDock.hidden,true,'only the scheduled owner may Stop');
   f.host.complete(true);await f.host.completion;
   f.ui.setScheduledRunOwner(null);f.ui.setScheduledSurfaceActive(false);
   f.ui.navigate('tasks');
-  assert.equal(f.get('task-dock').hidden,false,'ordinary My Run dock is restored');
+  assert.equal(f.myView.data.runDock.taskHidden,false,'ordinary Task Run returns');
 });
 
 test('Workflow Task one-shot review handoff preselects exact candidate and runId but never verifies or installs',async t=>{
-  const {createTaskReviewHandoff,taskReviewHandoffKey}=await import('../../src/ui/workflow/task-review-handoff.js');
   const saved=new Map();
   const storage={
     async get(key){return {[key]:saved.get(key)};},
@@ -963,25 +963,23 @@ test('Workflow Task one-shot review handoff preselects exact candidate and runId
     sourceHash:'a'.repeat(64),manifestHash:'b'.repeat(64),
     siteOrigin:'https://a.example',runId:'run-previous-native-123',issuedAt:now});
   saved.set(key,hint);
-  const f=make({installedInitially:false,draftStorage:storage});
-  t.after(()=>f.ui.dispose());
+  const f=make({installedInitially:false,draftStorage:storage});t.after(()=>f.ui.dispose());
   f.catalogState.catalog[0].stage='candidate';
   f.api.windows={getCurrent:async()=>({id:7})};
   f.ui.showCatalogPage();
   for(let i=0;i<5;i++)await tick();
-  assert.equal(f.get('task-catalog-list').value,'demo.form@1.0.0');
-  assert.equal(f.get('task-verify-run').value,'run-previous-native-123');
-  assert.match(f.get('task-catalog-status').textContent,/仍需亲自核对/);
-  assert.equal(f.get('task-verify').disabled,false);
-  assert.equal(f.get('task-install').disabled,true);
+  assert.equal(f.field('task-catalog-list').value,'demo.form@1.0.0');
+  assert.equal(f.field('task-verify-run').value,'run-previous-native-123');
+  assert.match(f.field('task-catalog-status').text,/仍需亲自核对/);
+  assert.equal(f.field('task-verify').disabled,false);
+  assert.equal(f.field('task-install').disabled,true);
   assert.equal(f.catalogState.catalog[0].stage,'candidate');
   assert.equal(f.catalogState.installed.length,0);
   assert.equal(f.starts.length,0);
-  assert.equal(saved.has(key),false,'handoff must be single-use');
+  assert.equal(saved.has(key),false,'handoff is single-use');
 });
 
 test('Workflow Task review handoff rejects stale/wrong-hash hints without altering Task authority',async t=>{
-  const {createTaskReviewHandoff,taskReviewHandoffKey}=await import('../../src/ui/workflow/task-review-handoff.js');
   const key=taskReviewHandoffKey(7),store=new Map();
   const storage={async get(key){return {[key]:store.get(key)};},
     async set(value){for(const [k,v] of Object.entries(value))store.set(k,v);},
@@ -989,24 +987,21 @@ test('Workflow Task review handoff rejects stale/wrong-hash hints without alteri
   store.set(key,createTaskReviewHandoff({windowId:7,taskId:'demo.form',version:'1.0.0',
     sourceHash:'c'.repeat(64),manifestHash:'b'.repeat(64),
     siteOrigin:'https://a.example',runId:'run-other-version',issuedAt:Date.now()}));
-  const f=make({installedInitially:false,draftStorage:storage});
-  t.after(()=>f.ui.dispose());
+  const f=make({installedInitially:false,draftStorage:storage});t.after(()=>f.ui.dispose());
   f.catalogState.catalog[0].stage='candidate';
   f.api.windows={getCurrent:async()=>({id:7})};
   f.ui.showCatalogPage();
   for(let i=0;i<5;i++)await tick();
-  assert.equal(f.get('task-catalog-list').value,'');
-  assert.equal(f.get('task-verify-run').value,'');
-  assert.equal(f.get('task-install').disabled,true);
+  assert.equal(f.field('task-catalog-list').value,'');
+  assert.equal(f.field('task-verify-run').value,'');
+  assert.equal(f.field('task-install').disabled,true);
   assert.equal(f.catalogState.catalog[0].stage,'candidate');
   assert.equal(f.catalogState.installed.length,0);
   assert.equal(store.has(key),false);
 });
 
-
-// R6 exercises the existing DOM/Authority doubles, never a Chrome native assertion.
+// Controller-side source identity and selection races; actual React DOM is verified separately.
 test('R6 Workflow handoff overrides an old directory default and clears a mismatched verification RunId',async t=>{
-  const {taskReviewHandoffKey}=await import('../../src/ui/workflow/task-review-handoff.js');
   const key=taskReviewHandoffKey(7),hint=createTaskReviewHandoff({windowId:7,taskId:'demo.form',
     version:'1.0.0',sourceHash:'a'.repeat(64),manifestHash:'b'.repeat(64),
     siteOrigin:'https://a.example',runId:null});
@@ -1015,18 +1010,17 @@ test('R6 Workflow handoff overrides an old directory default and clears a mismat
   t.after(()=>f.ui.dispose());await tick();await tick();
   f.api.windows={getCurrent:async()=>({id:7})};
   f.catalogState.catalog[0].stage='candidate';
-  f.get('task-catalog-list').value='demo.second@1.0.0'; // Prior selection, no new user choice.
-  f.get('task-verify-run').value='run-from-another-version';
+  f.field('task-catalog-list').value='demo.second@1.0.0';
+  f.field('task-verify-run').value='run-from-another-version';
   f.ui.showCatalogPage();for(let n=0;n<5;n++)await tick();
-  assert.equal(f.get('task-catalog-list').value,'demo.form@1.0.0');
-  assert.equal(f.get('task-verify-run').value,'');
-  assert.equal(f.get('task-verify').disabled,false);
-  assert.equal(f.get('task-install').disabled,true);
+  assert.equal(f.field('task-catalog-list').value,'demo.form@1.0.0');
+  assert.equal(f.field('task-verify-run').value,'');
+  assert.equal(f.field('task-verify').disabled,false);
+  assert.equal(f.field('task-install').disabled,true);
   assert.equal(f.starts.length,0);
 });
 
 test('R6 user selection during asynchronous handoff read is never overridden',async t=>{
-  const {taskReviewHandoffKey}=await import('../../src/ui/workflow/task-review-handoff.js');
   const key=taskReviewHandoffKey(7),hint=createTaskReviewHandoff({windowId:7,
     taskId:'demo.form',version:'1.0.0',sourceHash:'a'.repeat(64),manifestHash:'b'.repeat(64),
     siteOrigin:'https://a.example',runId:'run-native-previous'});
@@ -1038,62 +1032,61 @@ test('R6 user selection during asynchronous handoff read is never overridden',as
   f.api.windows={getCurrent:async()=>({id:7})};
   f.ui.showCatalogPage();for(let n=0;n<3;n++)await tick();
   assert.equal(typeof release,'function');
-  f.get('task-catalog-list').value='demo.second@1.0.0';
-  f.get('task-catalog-list').fire('change');
+  f.field('task-catalog-list').value='demo.second@1.0.0';
+  f.action('taskCatalogListChange');
   release({[key]:hint});for(let n=0;n<4;n++)await tick();
-  assert.equal(f.get('task-catalog-list').value,'demo.second@1.0.0');
-  assert.equal(f.get('task-verify-run').value,'');
+  assert.equal(f.field('task-catalog-list').value,'demo.second@1.0.0');
+  assert.equal(f.field('task-verify-run').value,'');
   assert.equal(f.starts.length,0);
 });
 
 test('R6 Task reader reveals read-only exact frozen source and typed parameters without execution',async t=>{
   const f=make({installedInitially:false});t.after(()=>f.ui.dispose());await tick();await tick();
   f.ui.showCatalogPage();await tick();
-  f.get('task-catalog-list').value='demo.form@1.0.0';
-  f.get('task-catalog-list').fire('change');
-  const reader=f.get('task-catalog-detail');
-  const details=reader.children.find(node=>String(node.className||'').split(' ').includes('catalog-source-review'));
-  assert.ok(details);
-  assert.match(reader.children.find(node=>node.className==='catalog-reader-note').textContent,
-    /运行参数.*姓名.*必填/);
-  details.open=true;await details.fire('toggle');await tick();await tick();
-  assert.equal(details.children[1].textContent,'async function main(){return true;}');
+  f.field('task-catalog-list').value='demo.form@1.0.0';
+  f.action('taskCatalogListChange');
+  const detail=f.myView.data.catalogDetail;
+  assert.equal(detail.key,'demo.form@1.0.0');
+  assert.match(detail.paramsNote,/运行参数.*姓名.*必填/);
+  assert.match(detail.source,/展开后从正式任务目录读取固定版本/);
+  await f.action('taskCatalogSourceOpen',detail.key);
+  assert.equal(detail.source,'async function main(){return true;}');
+  assert.equal(detail.sourceLoaded,true);
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
   assert.equal(f.catalogState.installed.length,0);
-  // Reject an inconsistent Task Service identity even when its payload includes code.
   const original=f.client.request.bind(f.client);
   f.client.request=async(method,payload)=>method==='getTaskCandidate'
     ? {manifestHash:'c'.repeat(64),package:{sourceUtf8:'async function main(){return "forged";}'}}
     : original(method,payload);
-  f.get('task-catalog-list').fire('change');
-  const guarded=f.get('task-catalog-detail').children.find(node=>String(node.className||'').split(' ').includes('catalog-source-review'));
-  guarded.open=true;await guarded.fire('toggle');await tick();await tick();
-  assert.match(guarded.children[1].textContent,/E_REVIEW_IDENTITY|固定源码身份已变化/);
-  assert.doesNotMatch(guarded.children[1].textContent,/forged/);
+  f.action('taskCatalogListChange');
+  const guarded=f.myView.data.catalogDetail;
+  await f.action('taskCatalogSourceOpen',guarded.key);
+  assert.match(guarded.sourceError,/E_REVIEW_IDENTITY|固定源码身份已变化/);
+  assert.doesNotMatch(guarded.source,/forged/);
   assert.equal(f.starts.length,0);
 });
 
 test('R24 one installed management list opens focused actions and cancel protects installation',async t=>{
-  const f=make({secondTask:true});t.after(()=>f.ui.dispose());
-  await tick();await tick();
-  const countBefore=f.get('task-installed-cards').children.length;
+  const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
+  const rowsBefore=f.myView.data.taskRows.rows.map(row=>row.taskId);
   await f.click('task-manage-toggle');
-  assert.equal(f.get('task-manage-toggle').attributes['aria-pressed'],'true');
-  assert.equal(f.get('task-installed-cards').children.length,countBefore,
-    'management reuses the installed list, not a second catalog');
-  const second=f.get('task-installed-cards').children[1];
-  assert.ok(second.children[1],'per-task manage action must be visible');
-  second.children[1].fire('click');
-  assert.equal(f.get('task-installed-list').value,'demo.second');
-  assert.equal(f.get('task-tools').open,true);
+  assert.equal(f.field('task-manage-toggle').attributes['aria-pressed'],'true');
+  assert.deepEqual(f.myView.data.taskRows.rows.map(row=>row.taskId),rowsBefore);
+  assert.equal(f.myView.data.taskRows.manageMode,true);
+  const {renderSidebarReact}=await import('../helpers/sidebar-react-fixture.mjs');
+  const html=await renderSidebarReact({myView:f.myView});
+  assert.match(html,/aria-label="管理「另一个已安装任务」"/,
+    'same React list exposes focused management action');
+  f.myView.data.taskRows.onManage('demo.second');
+  assert.equal(f.field('task-installed-list').value,'demo.second');
+  assert.equal(f.field('task-tools').open,true);
   await f.click('task-uninstall');
-  assert.equal(f.get('task-uninstall-confirm').hidden,false,
-    'uninstall first requires explicit review');
-  assert.equal(f.catalogState.installed.length,2,'open review cannot uninstall');
+  assert.equal(f.field('task-uninstall-confirm').hidden,false);
+  assert.equal(f.catalogState.installed.length,2,'opening review never uninstalls');
   await f.click('task-uninstall-cancel');
-  assert.equal(f.get('task-uninstall-confirm').hidden,true);
-  assert.equal(f.catalogState.installed.length,2,'cancel never changes installed records');
+  assert.equal(f.field('task-uninstall-confirm').hidden,true);
+  assert.equal(f.catalogState.installed.length,2,'cancel preserves installation');
   await f.click('task-manage-toggle');
-  assert.equal(f.get('task-manage-toggle').attributes['aria-pressed'],'false');
-  assert.equal(f.get('task-tools').open,false);
+  assert.equal(f.field('task-manage-toggle').attributes['aria-pressed'],'false');
+  assert.equal(f.field('task-tools').open,false);
 });
