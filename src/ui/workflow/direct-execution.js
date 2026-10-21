@@ -108,7 +108,7 @@ export function prepareDirectExecution({request,workflow,target,observation}) {
   // Do not misclassify an omitted search click as an unsolicited fill. By
   // contrast, "在搜索框填入…" explicitly requests only the input value.
   if(fills.length===1&&!clicks.length&&!fillIntent.test(instruction)&&
-    /(?:搜索(?!框|栏|关键词|词|结果|页面|历史|记录|输入框)|查找|检索(?!词|结果)|\\bsearch\\b(?!\\s+(?:keyword|input|field|box|term)\\b))/i.test(instruction))
+    /(?:搜索(?!框|栏|关键词|词|结果|页面|历史|记录|输入框)|查找|检索(?!词|结果)|\bsearch\b(?!\s+(?:keyword|input|field|box|term)\b))/i.test(instruction))
     throw error('E_AI_MISSING_ACTION','用户要求执行搜索，但模型遗漏了搜索点击');
   if(fills.length&&!fillIntent.test(instruction)&&!groundedSearch)
     throw error('E_AI_UNREQUESTED_ACTION','本次未要求填写，模型额外生成填写动作');
