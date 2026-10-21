@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>网页剪藏 · 最近摘录与完整资料库交互预览 R1.9</title>
+<title>网页剪藏 · 最近摘录与完整资料库交互预览 R1.10</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#21314a;background:#f5f7fb;font-size:13px}
 *{box-sizing:border-box}body{margin:0;min-width:280px}
@@ -33,7 +33,7 @@ iframe{border:0;display:block;width:100%;height:760px;background:transparent}
   <div><h1>网页剪藏 · 最近摘录 / 完整资料库</h1><p class="subtitle">复用正式 Markdown 剪藏、摘录列表及全文编辑逻辑；两级导航为预览专属适配，尚未迁移正式产品</p></div>
   <span class="subtitle">UI 方案预览 · 非正式发布</span>
  </header>
- <p class="notice" role="note"><strong>本轮重点：</strong>剪藏主页直接显示最近 4 条，保存后不跳页。点击卡片阅读全文；鼠标经过仅显示编辑、删除，触屏使用「更多」菜单。点击「查看全部」进入完整列表（搜索与两类筛选）；返回保留剪藏草稿。支持新建便签、就地删除确认、320–440px 宽度、深色主题和失败注入。筛选目前仅作用于已加载记录，正式版本需要 Host 级筛选。<strong>仅预览：复用正式 JS/Host 模拟适配，但新版布局仍是预览层；数据放在 sessionStorage，不是 Chrome 真实存储，复制/下载/备份亦非真实设备操作。</strong></p>
+ <p class="notice" role="note"><strong>本轮重点：</strong>剪藏主页直接显示最近 4 条，保存后不跳页。点击卡片阅读全文；鼠标经过仅显示编辑、删除，触屏点击卡片后可在全文页编辑、删除。点击标题右侧列表图标进入完整列表（搜索与两类筛选）；返回保留剪藏草稿。支持新建便签、就地删除确认、长篇正文滚动、底部稳定操作栏、320–440px 宽度、深色主题和失败注入。筛选目前仅作用于已加载记录，正式版本需要 Host 级筛选。<strong>仅预览：复用正式 JS/Host 模拟适配，但新版布局仍是预览层；数据放在 sessionStorage，不是 Chrome 真实存储，复制/下载/备份亦非真实设备操作。</strong></p>
  <div class="controls">
   <div class="group" role="group" aria-label="模拟侧栏宽度">
    <button type="button" data-width="320" aria-pressed="false">320</button>
@@ -46,6 +46,7 @@ iframe{border:0;display:block;width:100%;height:760px;background:transparent}
    <button type="button" data-theme="dark" aria-pressed="false">深色</button>
   </div>
   <button type="button" class="extra" id="zoom" aria-pressed="false">200% 缩放</button>
+  <button type="button" class="extra" id="low-height" aria-pressed="false">低高度 500px</button>
   <button type="button" class="extra" id="simulate-menu">模拟右键摘录</button>
   <button type="button" class="extra" id="reset">模拟切换网页</button>
   <button type="button" class="extra" id="reopen">模拟重开侧栏</button>
@@ -88,6 +89,11 @@ iframe{border:0;display:block;width:100%;height:760px;background:transparent}
  }
  document.querySelector('#zoom').addEventListener('click',event=>{
   zoom=zoom===1?2:1;event.currentTarget.setAttribute('aria-pressed',String(zoom===2));sync();
+ });
+ document.querySelector('#low-height').addEventListener('click',event=>{
+  const low=event.currentTarget.getAttribute('aria-pressed')!=='true';
+  event.currentTarget.setAttribute('aria-pressed',String(low));
+  stage.style.height=(low?500:760)+'px';
  });
  document.querySelector('#simulate-menu').addEventListener('click',()=>{
   stage.src='stage.html?launch=1';log.textContent='右键摘录演示：预填一段可信模拟选区，仍须点击「保存摘录」。';
