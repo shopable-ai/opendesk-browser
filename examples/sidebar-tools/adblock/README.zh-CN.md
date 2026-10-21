@@ -54,6 +54,14 @@ open artifacts/previews/adblock/side-panel-success-light-360.html
 node scripts/tests/adblock-preview-chrome.mjs artifacts/preview-chrome
 ```
 
+## 用户手动屏蔽网页元素 · 新增业务源码（待发布验证）
+
+- **交互**：在正式 React 的「当前网站」卡点击「选择网页元素」，再在目标网页**单击即隐藏**，没有预览或二次确认。误选可在网页提示中撤销，或在「已屏蔽」列表恢复；Esc 只退出选择。
+- **持久化**：规则按精确 hostname + 安全 CSS 选择器写入独立的 `chrome.storage.local` 键 `opendesk.adblock.cosmetic.v1`，写入后真实读回。下次刷新/重新打开网页自动应用 CSS，动态插入的匹配元素也由样式表处理；恢复操作会永久删除对应本地规则。
+- **复用现有运行链**：`src/entrypoints/page-relay.js` 的唯一 `initAdblockCosmetics` → `trusted/page.js` → `trusted/cosmetic.js`；新增 `trusted/picker.js` 仅处理真实网页点击，`trusted/cosmetic-policy.js` 验证存储和选择器。既有固定网站样式和 DNR 规则继续保留。后台 `trusted/service.js` 在原 Web Lock 内核对安装/页面/权限并保存/撤销，无新权限、无第二个 Host 或隐藏引擎。
+- **限制与恢复**：仅当前普通 HTTP(S) 主文档；按站点隔离，上限 35 条/站点、300 条总计。用户停用 AdBlock 或将网站加入例外时暂停隐藏，但**保留**已保存规则；重新开启后恢复应用。损坏的手动规则数据不得覆盖修复，网络 DNR 独立继续工作。页面结构大幅改变时，旧选择器可能不再匹配，需要重新选择并清理旧规则。
+- **验证边界**：本次代码变更属于未发布的新业务源码。必须执行 `node --test tests/environment/adblock-manual-picker.test.mjs tests/environment/adblock-cosmetic.test.mjs tests/environment/adblock-page-policy.test.mjs`、`node scripts/app-ci.mjs node adblock`、React 构建、同源预览和真实 Chrome 交互/刷新/重开/撤销/升级测试；没有实测结果不能称 PASS。唯一正式发行包 `adblock.opendesk-tool.json` 仍为此前 1.2.1，需按仓库打包晋升流程在所有门禁通过后更新，**禁止手改编译产物或旧包**。
+
 ## 真实产品与安全边界
 
 安装包的 `adblock.control` 仅经原有可信宿主授权运行。Chrome DNR 所有权、权限、安装身份、状态读回、取消、停用、卸载、失败回退均由 `trusted/` 和宿主原流程负责；沙箱 JSX 不调用 `chrome.declarativeNetRequest`，不承担授予权限的职责。AdBlock 只清理自己的规则 ID 741000–741199，不能覆盖 Stay Focus 的规则或解除其它应用的限制。

@@ -16,7 +16,8 @@ export const PREVIEW_CONTEXT_FORMAT='opendesk.ui-preview-context.v1';
 export const PREVIEW_SCENARIOS=Object.freeze(['success','empty','error','loading','permission-denied','untrusted']);
 export const PREVIEW_MOCK_OPERATIONS=Object.freeze(['storage.get','storage.set','currentPage.info','tasks.open']);
 export const PREVIEW_ADBLOCK_OPERATIONS=Object.freeze([
-  'adblock.status','adblock.enable','adblock.disable','adblock.site.set','adblock.site.restore'
+  'adblock.status','adblock.enable','adblock.disable','adblock.site.set','adblock.site.restore',
+  'adblock.cosmetic.pick','adblock.cosmetic.restore'
 ]);
 export const PREVIEW_TOC_OPERATIONS=Object.freeze(['toc.snapshot','toc.navigate']);
 export const PREVIEW_BOOKMARK_OPERATIONS=Object.freeze([

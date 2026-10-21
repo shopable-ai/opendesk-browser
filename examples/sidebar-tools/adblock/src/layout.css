@@ -24,3 +24,8 @@
 .adblock-notice{margin:0;font-size:11px;line-height:1.6;color:var(--od-sub);overflow-wrap:anywhere}
 .adblock-notice[data-error=true]{color:var(--od-negative)}
 @media(max-width:340px){.adblock-app{padding-inline:6px;gap:9px}.adblock-card{padding:12px}.adblock-control-row{gap:7px}.adblock-exception{flex-wrap:wrap}.adblock-exception button{margin-left:auto}}
+
+.adblock-manual-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:11px;border-top:1px solid var(--od-line);padding-top:11px}
+.adblock-manual-actions button{min-width:0;max-width:100%}
+.adblock-selector{font-family:ui-monospace,SFMono-Regular,monospace;overflow-wrap:anywhere;font-size:10px}
+@media(max-width:350px){.adblock-manual-actions button{width:100%}}

@@ -5,6 +5,9 @@
   "host": "production",
   "node": [
     "tests/environment/adblock-r12.test.mjs",
+    "tests/environment/adblock-page-policy.test.mjs",
+    "tests/environment/adblock-cosmetic.test.mjs",
+    "tests/environment/adblock-manual-picker.test.mjs",
     "tests/environment/adblock-host-controls-r13.test.mjs",
     "tests/environment/adblock-preview-contract.test.mjs",
     "tests/environment/adblock-build-ready-r211.test.mjs",

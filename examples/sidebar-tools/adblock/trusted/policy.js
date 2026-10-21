@@ -11,7 +11,8 @@ export const ADBLOCK_RULE_FIRST=741000;
 export const ADBLOCK_RULE_LAST=741199;
 export const ADBLOCK_MAX_EXCEPTIONS=100;
 export const ADBLOCK_OPERATIONS=Object.freeze([
-  'adblock.status','adblock.enable','adblock.disable','adblock.site.set','adblock.site.restore'
+  'adblock.status','adblock.enable','adblock.disable','adblock.site.set','adblock.site.restore',
+  'adblock.cosmetic.pick','adblock.cosmetic.restore'
 ]);
 export const adblockError=(code,message)=>Object.assign(new Error(message),{code});
 export function adblockHost(value,{asUrl=false}={}){
