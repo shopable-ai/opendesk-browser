@@ -128,7 +128,9 @@ test('R1.5 React reveal respects filter/manual navigation; Provider lifecycle re
  assert.match(app,/pendingAiReveal\.current=mayReveal/);
  assert.match(app,/const mayReveal=interactionEpoch\.current===interactionAtSend&&!queryRef\.current\.trim\(\)/);
  assert.match(app,/function locateAiResult\(\)/);
- assert.match(app,/beforeWrite:authorization\?\.assertWrite/);
+ assert.match(app,/beforeWrite:authorization\?\.assertWrite&&beforeWrite/);
+ assert.match(app,/await authorization\?\.assertWrite\?\.\(args\)/);
+ assert.match(app,/if\(!current\(\)\)throw Object\.assign/);
  assert.match(app,/authorization\?\.release\?\.\(\)/);
  assert.doesNotMatch(app,/disabled=\{!dock\} onClick=\{dock\?\.toggle\}/);
   assert.match(dock,/className="sidebar-tool-icon-action od-icon-button od-conversation-frame-trigger"/);

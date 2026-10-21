@@ -2,9 +2,10 @@
 // Chrome Bookmarks and the existing admitted Service remain the only authority.
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
-const types=new Set(['folder.create','bookmark.create','bookmark.search','bookmark.move','bookmark.update']);
+const types=new Set(['folder.create','folder.ensure','bookmark.create','bookmark.search','bookmark.move','bookmark.update']);
 const fields=Object.freeze({
  'folder.create':['type','title','parent'],
+  'folder.ensure':['type','title','parent'],
  'bookmark.create':['type','title','url','parent'],
  'bookmark.search':['type','query'],
  'bookmark.move':['type','target','parent'],
@@ -14,8 +15,34 @@ const value=(v,max=256)=>typeof v==='string'&&v.trim()&&v.length<=max;
 const noExtras=(row,keys)=>Object.keys(row).every(key=>keys.includes(key));
 
 export function validateBookmarkPlan(plan){
- if(!plain(plan)||!noExtras(plan,['actions','question']))
+ if(!plain(plan)||!noExtras(plan,['actions','question','complete']))
   throw fail('E_CONVERSATION_SCHEMA','AI 操作内容不符合书签协议');
+ if(Object.hasOwn(plan,'complete')){
+  if(!noExtras(plan,['complete'])||!Array.isArray(plan.complete)||
+     plan.complete.length<1||plan.complete.length>4)
+   throw fail('E_CONVERSATION_SCHEMA','完成声明必须包含 1–4 个可独立核实的条件');
+  const shapes={
+   'folder.exists':['kind','folder'],
+   'bookmark.inFolder':['kind','folder','url'],
+   'bookmark.title':['kind','target','title'],
+   'bookmark.parent':['kind','target','folder'],
+   'search.observed':['kind','query']
+  };
+  const checks=plan.complete.map(row=>{
+   if(!plain(row)||!Object.hasOwn(shapes,row.kind)||!noExtras(row,shapes[row.kind]))
+    throw fail('E_CONVERSATION_SCHEMA','不支持该完成核验条件');
+   for(const key of shapes[row.kind].slice(1))
+    if(!value(row[key],key==='url'?2048:256))
+     throw fail('E_CONVERSATION_SCHEMA','完成核验条件缺少有效字段');
+   if(row.kind==='bookmark.inFolder'&&row.url!=='$currentPage'){
+    let url;try{url=new URL(row.url);}catch{}
+    if(!url||!['https:','http:'].includes(url.protocol)||url.username||url.password)
+     throw fail('E_CONVERSATION_SCHEMA','完成核验仅支持 HTTP(S) 地址');
+   }
+   return Object.freeze({...row});
+  });
+  return Object.freeze({complete:Object.freeze(checks),actions:[]});
+ }
  if(value(plan.question,240)&&!Object.hasOwn(plan,'actions'))
   return Object.freeze({question:plan.question.trim(),actions:[]});
  if(!Array.isArray(plan.actions)||plan.actions.length<1||plan.actions.length>4||
@@ -27,7 +54,7 @@ export function validateBookmarkPlan(plan){
   const normalized={...action};
   if(action.type==='bookmark.search'){
    if(!value(action.query,200))throw fail('E_CONVERSATION_SCHEMA','搜索词不能为空');
-  }else if(action.type==='folder.create'){
+  }else if(action.type==='folder.create'||action.type==='folder.ensure'){
    if(!value(action.title)||action.parent!==undefined&&!value(action.parent))
     throw fail('E_CONVERSATION_SCHEMA','文件夹名称或目标无效');
   }else if(action.type==='bookmark.create'){
@@ -117,6 +144,50 @@ export function bookmarkConversationContext(tree,{selectedId=null,currentFolderI
  });
 }
 
+
+// Completion is a fresh Service read, never a model-declared success receipt.
+// All references are resolved against the actual tree and ambiguity is fail-closed.
+export async function verifyBookmarkCompletion({checks,service,context,refs={},signal,searched=new Set()}){
+ const checked=validateBookmarkPlan({complete:checks});
+ aborted(signal);
+ const tree=await service.load();aborted(signal);
+ const missing=[];
+ for(const check of checked.complete){
+  let ok=false;
+  try{
+   if(check.kind==='folder.exists')ok=Boolean(resolveName(tree,check.folder,true));
+   if(check.kind==='bookmark.inFolder'){
+    const parent=parentOf(tree,check.folder,context,refs);
+    const source=check.url==='$currentPage'?context.pageContext:null;
+    if(check.url==='$currentPage'&&
+      (!source||source.status!=='available'||!source.tabRef||!source.documentRef))
+     throw fail('E_DOCUMENT_BINDING_REQUIRED','当前网页身份已失效，请重新发起任务');
+    let parsed;try{parsed=new URL(source?.url||check.url);}catch{}
+    if(!parsed||!['http:','https:'].includes(parsed.protocol)||parsed.username||parsed.password)
+     throw fail('E_CONVERSATION_SCHEMA','无法核实完成条件的网址');
+    ok=[...tree.byId.values()].some(node=>node.parentId===parent.id&&node.url===parsed.href);
+   }
+   if(check.kind==='bookmark.title')ok=targetOf(tree,check.target,context,refs).title===check.title;
+   if(check.kind==='bookmark.parent'){
+    const node=targetOf(tree,check.target,context,refs);
+    ok=node.parentId===parentOf(tree,check.folder,context,refs).id;
+   }
+   if(check.kind==='search.observed')ok=searched.has(check.query);
+  }catch(error){
+   if(!['E_BOOKMARK_NOT_FOUND','E_BOOKMARK_STALE'].includes(error?.code))throw error;
+  }
+  if(!ok)missing.push(check.kind);
+ }
+ const placement=checked.complete.find(check=>check.kind==='bookmark.inFolder');
+ const label=placement&&!missing.length?
+  parentOf(tree,placement.folder,context,refs).title:placement?.folder;
+ const summary=placement?
+  '已核实：'+(placement.url==='$currentPage'?'当前网页':'目标网址')+
+   '已在「'+label+'」中。':'已完成，已重新读取 Chrome 书签核实。';
+ return {complete:missing.length===0,reason:missing.length?
+  '尚未满足：'+missing.join('、'):null,tree,summary};
+}
+
 // A fresh complete Chrome snapshot starts every turn. Every mutation gets its
 // own post-write readback, and only verified IDs enter the next turn's context.
 export async function executeBookmarkPlan({plan,service,context,refs={},expectedTree=null,signal,beforeWrite=()=>{},onStep=()=>{}}){
@@ -125,7 +196,7 @@ export async function executeBookmarkPlan({plan,service,context,refs={},expected
  aborted(signal);let tree=await service.load();aborted(signal);
  const nextRefs={folderId:refs.folderId||null,bookmarkId:refs.bookmarkId||null,
   matches:[...(refs.matches||[]).slice(0,12)]};
- const messages=[],confirmedInTurn=new Set();
+ const messages=[],observations=[],confirmedInTurn=new Set();
  // Compare the pre-AI visible snapshot with the fresh Service snapshot before
  // any referenced write. Verified writes in this turn are not external changes.
  const requireFresh=node=>{
@@ -140,14 +211,24 @@ export async function executeBookmarkPlan({plan,service,context,refs={},expected
   // Never issue or replay a later mutation after cancellation.
   try{aborted(signal);}catch(error){throw Object.assign(error,{
    partial:[...messages],refs:{...nextRefs},writeIssued:false});}
-  let issued=false,kind='',target=null,actual=null;
+  let issued=false,kind='',target=null,actual=null,uniqueGuard=null;
   const write=async(method,args)=>{
    // A model proposal alone cannot authorize a bookmark write. Recheck the
    // trusted Provider grant and instance immediately before EACH mutation.
    await beforeWrite({method,action});aborted(signal);
    issued=true;
    try{return await service[method](args,{signal,
-    beforeWrite:()=>beforeWrite({method,action})});}
+    beforeWrite:async()=>{
+     await beforeWrite({method,action});aborted(signal);
+     // Final client-side conflict read, immediately before SDK dispatch.
+     // Chrome has no atomic uniqueness primitive; external writers can still race.
+     if(uniqueGuard){
+      const fresh=await service.load();aborted(signal);
+      const collision=[...fresh.byId.values()].some(node=>node.parentId===uniqueGuard.parentId&&
+       (uniqueGuard.folder?nodeFolder(node)&&node.title===uniqueGuard.title:node.url===uniqueGuard.url));
+      if(collision)throw fail('E_BOOKMARK_STALE','其他窗口刚刚创建了相同目标；已停止以避免重复写入，请刷新后继续');
+     }
+    }});}
    catch(error){if(error?.writeIssued===false)issued=false;throw error;}
   };
   try{
@@ -159,11 +240,33 @@ export async function executeBookmarkPlan({plan,service,context,refs={},expected
     const info=matches.length?matches.map((node,i)=>
      (i+1)+'. '+pathOf(tree,node.id)).join('\n'):'没有找到匹配的书签';
     const message='搜索「'+action.query+'」：'+info;
+    observations.push({kind:'search',status:matches.length?'FOUND':'NOT_FOUND',
+     query:action.query,matches:matches.map((node,i)=>({reference:'$search:'+(i+1),
+      title:node.title,path:pathOf(tree,node.id),kind:nodeFolder(node)?'folder':'bookmark'}))});
     messages.push(message);onStep({message,tree,refs:{...nextRefs}});
     continue;
    }
-   if(action.type==='folder.create'){
+   if(action.type==='folder.create'||action.type==='folder.ensure'){
+    if(action.type==='folder.ensure'){tree=await service.load();aborted(signal);}
     const parent=requireFresh(parentOf(tree,action.parent,context,nextRefs));
+    if(action.type==='folder.ensure'){
+     const candidates=[...tree.byId.values()].filter(node=>
+      node.parentId===parent.id&&nodeFolder(node)&&node.title===action.title);
+     if(candidates.length>1)
+      throw fail('E_BOOKMARK_AMBIGUOUS','目标目录下有多个同名文件夹「'+action.title+'」，请在书签树中选定具体文件夹后重试');
+     if(candidates.length===1){
+      tree=await service.load();aborted(signal);
+      const node=tree.byId.get(candidates[0].id);
+      if(!node||!nodeFolder(node)||node.title!==action.title||node.parentId!==parent.id)
+       throw fail('E_BOOKMARK_STALE','文件夹在复用前发生变化，请刷新后重试');
+      nextRefs.folderId=node.id;confirmedInTurn.add(node.id);
+      const message='已复用文件夹「'+node.title+'」 · '+pathOf(tree,node.id);
+      observations.push({kind:'folder',status:'VERIFIED_REUSED',title:node.title,path:pathOf(tree,node.id)});
+      messages.push(message);onStep({message,tree,refs:{...nextRefs},id:node.id});
+      continue;
+     }
+    }
+    if(action.type==='folder.ensure')uniqueGuard={folder:true,parentId:parent.id,title:action.title};
     target=await write('createFolder',{title:action.title,parentId:parent.id});
     kind='folder';actual={id:target?.id,title:action.title,parentId:parent.id};
    }else if(action.type==='bookmark.create'){
@@ -186,6 +289,24 @@ export async function executeBookmarkPlan({plan,service,context,refs={},expected
       url=parsed.href;
      }catch{throw fail('E_DOCUMENT_BINDING_REQUIRED','当前网页不是可收藏的 HTTP(S) 页面');}
     }
+    const existing=[...tree.byId.values()].filter(node=>node.parentId===parent.id&&node.url===url);
+    if(existing.length){
+     tree=await service.load();aborted(signal);
+     const verified=existing.filter(node=>{
+      const now=tree.byId.get(node.id);
+      return now?.parentId===parent.id&&now?.url===url;
+     });
+     if(!verified.length)throw fail('E_BOOKMARK_STALE','目标书签在复用前发生变化，请重新搜索');
+     nextRefs.bookmarkId=verified.length===1?verified[0].id:null;
+     if(verified.length===1)confirmedInTurn.add(verified[0].id);
+     const message='目标文件夹已收藏该网址，无需重复添加 · '+pathOf(tree,verified[0].id);
+     observations.push({kind:'bookmark',status:'VERIFIED_REUSED',
+      title:verified[0].title,path:pathOf(tree,verified[0].id)});
+     messages.push(message);onStep({message,tree,refs:{...nextRefs},
+      ...(verified.length===1?{id:verified[0].id}:{})});
+     continue;
+    }
+    uniqueGuard={folder:false,parentId:parent.id,url};
     target=await write('createBookmark',{title,url,parentId:parent.id,
      ...(source?{sourcePage:{url,tabRef:source.tabRef,documentRef:source.documentRef}}:{})});
     kind='bookmark';actual={id:target?.id,title,url,parentId:parent.id};
@@ -208,14 +329,15 @@ export async function executeBookmarkPlan({plan,service,context,refs={},expected
      (kind==='bookmark'&&found.url!==actual.url))
     throw fail('E_OUTCOME_UNKNOWN','写入后读回与期望不一致；已停止后续修改');
    confirmedInTurn.add(found.id);
-   if(action.type==='folder.create')nextRefs.folderId=found.id;
+   if(action.type==='folder.create'||action.type==='folder.ensure')nextRefs.folderId=found.id;
    if(action.type==='bookmark.create')nextRefs.bookmarkId=found.id;
    if(action.type==='bookmark.move'||action.type==='bookmark.update'){
     if(kind==='folder')nextRefs.folderId=found.id;else nextRefs.bookmarkId=found.id;
    }
-   const labels={'folder.create':'已创建文件夹','bookmark.create':'已收藏书签',
+   const labels={'folder.create':'已创建文件夹','folder.ensure':'已创建文件夹','bookmark.create':'已收藏书签',
     'bookmark.move':'已移动','bookmark.update':'已重命名'};
    const message=labels[action.type]+'「'+found.title+'」 · '+pathOf(tree,found.id);
+   observations.push({kind,status:'VERIFIED_WRITE',title:found.title,path:pathOf(tree,found.id)});
    messages.push(message);onStep({message,tree,refs:{...nextRefs},id:found.id});
   }catch(error){
    const code=issued?'E_OUTCOME_UNKNOWN':error?.code||'E_BOOKMARK';
@@ -226,5 +348,5 @@ export async function executeBookmarkPlan({plan,service,context,refs={},expected
    });
   }
  }
- return {messages,tree,refs:nextRefs};
+ return {messages,observations,tree,refs:nextRefs};
 }

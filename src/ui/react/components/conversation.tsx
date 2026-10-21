@@ -48,6 +48,7 @@ function ConversationWorkspace({
  const [draft,setDraft]=React.useState(typeof restored.draft==='string'?restored.draft:'');
  const [rows,setRows]=React.useState(Array.isArray(restored.rows)?restored.rows:[]);
  const [busy,setBusy]=React.useState(false);
+ const [phase,setPhase]=React.useState('idle');
  const [error,setError]=React.useState('');
  const [needsReview,setNeedsReview]=React.useState(restored.needsReview===true);
  const [height,setHeight]=React.useState(null);
@@ -158,7 +159,7 @@ function ConversationWorkspace({
   abortRef.current=signal;inFlight.current=true;phaseRef.current='thinking';
   const run={signal};runRef.current=run;
   const current=()=>alive.current&&runRef.current===run;
-  setBusy(true);setError('');
+  setBusy(true);setPhase('thinking');setError('');
   draftRef.current='';setDraft('');append('你',request);
   // Do NOT defer invocation: existing HTTPS origin permission requests must
   // start inside the original trusted Send click/keyboard gesture.
@@ -166,7 +167,7 @@ function ConversationWorkspace({
   try{
    pending=action({request,refs:structuredClone(refsRef.current),signal:signal.signal,
     event:event.nativeEvent,onStep:step=>{if(current())onStep(step);},
-    onPhase:phase=>{if(current())phaseRef.current=phase;}});
+    onPhase:next=>{if(current()){phaseRef.current=next;setPhase(next);}}});
   }catch(ex){pending=Promise.reject(ex);}
   void Promise.resolve(pending).then(result=>{
    if(!current())return;
@@ -189,7 +190,7 @@ function ConversationWorkspace({
   }).finally(()=>{
    if(!current())return;
    runRef.current=null;
-   inFlight.current=false;abortRef.current=null;phaseRef.current='idle';
+   inFlight.current=false;abortRef.current=null;phaseRef.current='idle';setPhase('idle');
    if(alive.current)setBusy(false);
   });
  }
@@ -249,6 +250,10 @@ function ConversationWorkspace({
     aria-label="对话及已核实操作结果">
     <ConversationTranscript rows={rows} entryClassName="od-conversation-entry" showSpeaker={false}/>
    </div>
+   {busy&&<div className="od-conversation-phase" role="status" aria-live="polite">
+    {{thinking:'正在判断下一步…',observing:'正在查找并核对书签…',
+      writing:'正在更新书签并读回确认…',verifying:'正在核实最终结果…'}[phase]||'正在执行任务…'}
+   </div>}
    {(error||needsReview)&&<div className="od-conversation-feedback" tabIndex={0} aria-label="对话状态详情">
     {error&&<p className="od-conversation-error" role="alert">{error}</p>}
     {needsReview&&<p className="od-conversation-error" role="status">

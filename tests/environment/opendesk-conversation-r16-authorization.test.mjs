@@ -218,3 +218,36 @@ test('R1.6 last dispatched write with Stop still reports its actual successful r
   assert.equal(result.refs.folderId,'11');assert.equal(result.messages.length,1);
   assert.equal(result.tree.byId.get('11').title,'AI 工具');assert.equal(f.writes.length,1);
 });
+
+test('R2.1 two Provider decisions reuse one trusted Send and one HTTPS grant',async t=>{
+ let prompts=0;
+ const f=viewFixture(t,{request:()=>{prompts++;return Promise.resolve(true);}});
+ const first=await f.send();
+ assert.equal(typeof first.continueWith,'function');
+ const next=await first.continueWith({progress:[{round:1,observations:[{
+  kind:'search',status:'NOT_FOUND',query:'AI 工具'}]}]});
+ assert.equal(next.actions[0].type,'folder.create');
+ assert.equal(f.calls.length,2,'same task invokes the real Provider facade twice');
+ assert.equal(prompts,1,'no second user gesture or permission prompt');
+ await first.authorization.assertWrite();
+ first.authorization.release();
+ await assert.rejects(first.continueWith({}),{code:'E_TOOL_CHANGED'});
+});
+
+test('R2.1 grant revoked during later Provider decision discards late model output',async t=>{
+ const inSecond=deferred(),late=deferred();let requests=0;
+ t.after(()=>late.resolve(response()));
+ const f=viewFixture(t,{transport:()=>{
+  if(++requests===1)return response();
+  inSecond.resolve();return late.promise;
+ }});
+ const first=await f.send();
+ const pending=first.continueWith({progress:[{round:1,observations:[]}]}).then(
+  value=>({value}),failure=>({failure}));
+ await inSecond.promise;
+ await f.remove([providerOrigin]);
+ late.resolve(response());
+ assert.equal((await settles(pending)).failure?.code,'E_MODEL_GRANT_REVOKED');
+ assert.equal(f.calls.length,2,'late decision cannot launch a third model call');
+ first.authorization.release();
+});

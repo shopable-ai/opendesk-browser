@@ -1,0 +1,63 @@
+name: Bookmark AI Agent Loop R2.1 - bounded real-source regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/ui/conversation/**'
+      - 'src/ui/workflow/workflow-view.js'
+      - 'src/ui/react/components/conversation.tsx'
+      - 'src/ui/react/components/conversation-dock.css'
+      - 'examples/sidebar-tools/bookmark-manager/src/react/App.jsx'
+      - 'tests/environment/opendesk-conversation-*.test.mjs'
+      - '.github/workflows/bookmark-agent-loop-r21.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  agent-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Bookmark production executor and Provider authorization regression
+        run: node --test tests/environment/opendesk-conversation-r*.test.mjs
+      - name: Existing bookmark editor lifecycle and trusted React regression
+        run: node --test tests/environment/bookmark-manager-r31-trusted-lifecycle.test.mjs tests/environment/bookmark-manager-r33-default-react.test.mjs
+      - name: Source / SDK trust boundary
+        run: npm run check
+  agent-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Actual official bookmark tool package from production source
+        run: npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager
+      - name: WXT production build
+        run: npm run build
+      - name: WXT production package verification
+        run: node scripts/verify-package.mjs dist/production
+      - name: Chromium setup
+        uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Source-bound Chrome interaction (offline fixture, NOT native installed extension)
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node scripts/tests/bookmark-manager-r26-preview-chrome.mjs artifacts/bookmark-agent-r21-preview
+      - name: Save source-bound visual evidence (NOT native Chrome/Provider)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bookmark-agent-r21-preview-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: ignore
+          path: artifacts/bookmark-agent-r21-preview/*

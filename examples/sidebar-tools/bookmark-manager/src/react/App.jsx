@@ -1,7 +1,8 @@
 /** @jsx h */
 import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {Button as OpenDeskButton,IconButton as OpenDeskIconButton} from '../../../../../src/ui/react/components/ui/button.tsx';
-import {bookmarkConversationContext,executeBookmarkPlan} from '../../../../../src/ui/conversation/bookmark-actions.js';
+import {bookmarkConversationContext} from '../../../../../src/ui/conversation/bookmark-actions.js';
+import {runBookmarkAgentLoop} from '../../../../../src/ui/conversation/bookmark-agent-loop.js';
 const model=globalThis.BookmarkR2Model;
 const TREE_ROW_HEIGHT=44;
 export const bookmarkConversationSamples=Object.freeze(['创建一个叫 AI 工具的文件夹，并把 https://example.com 收藏进去','把当前网页收藏到 AI 工具','找出 React 相关书签']);
@@ -273,7 +274,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
    throw Object.assign(Error('当前是离线 React 预览，未连接真实 AI 或 Chrome 书签 Host。'),{code:'E_AI_UNAVAILABLE'});
   if(!tree||loading||uncertainRef.current||busyRef.current)
    throw Object.assign(Error(uncertainRef.current?'写入结果未知，请刷新并核对书签后再操作。':'请先读取完整书签或等待当前操作完成。'),{code:'E_BOOKMARK_BUSY'});
-  // Freeze real selection and verified IDs at the Send event. Later UI selection is independent.
+  // Bind one task to the selection, tool instance and user gesture at Send.
   const selected=tree.byId.get(selectedId);
   const pinnedFolder=(selected&&isFolder(selected)?selected.id:selected?.parentId)||
    (tree.byId.has('1')?'1':[...tree.byId.values()].find(n=>n.parentId!==null&&isFolder(n)&&!n.locked)?.id);
@@ -281,24 +282,25 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
   const pinned={selectedId,currentFolderId:pinnedFolder,refs:{
    folderId:refs?.folderId||null,bookmarkId:refs?.bookmarkId||null,matches:[...(refs?.matches||[])]}};
   const publicContext={...bookmarkConversationContext(tree,pinned),currentPageAvailable:true};
-  // Both permission-sensitive requests start synchronously in the trusted Send gesture.
-  // Private URL / document identifiers are never sent as model context.
+  // Page capture and Provider permission both start synchronously inside Send.
   let pagePromise;
-  try{pagePromise=Promise.resolve(sdk?.page?.getContext?.()).catch(()=>null)}
-  catch{pagePromise=Promise.resolve(null)}
-  const providerPromise=conversation.request({request,context:publicContext,signal,event});
-  const {proposal,authorization}=await providerPromise;
-  let releasePageWait=()=>{};
+  try{pagePromise=Promise.resolve(sdk?.page?.getContext?.()).catch(()=>null);}
+  catch{pagePromise=Promise.resolve(null);}
+  const taskSerial=++writeEpoch.current;readEpoch.current++;
+  busyRef.current=true;setBusy(true);
+  let authorization=null,releasePageWait=()=>{};
+  const current=()=>activeRef.current&&!authorityEpoch.current&&taskSerial===writeEpoch.current;
   try{
+   const initial=await conversation.request({request,context:publicContext,signal,event});
+   authorization=initial.authorization;
    if(mode==='trusted'&&(!authorization?.signal||
-     typeof authorization.assertWrite!=='function'||typeof authorization.release!=='function'))
-    throw Object.assign(Error('缺少有效的模型权限与安装实例校验，拒绝执行'),{code:'E_MODEL_GRANT_REVOKED'});
+     typeof authorization.assertWrite!=='function'||
+     typeof authorization.release!=='function'||typeof initial.continueWith!=='function'))
+    throw Object.assign(Error('缺少持续任务权限与有效安装实例，拒绝执行'),{code:'E_MODEL_GRANT_REVOKED'});
    if(signal.aborted)throw Object.assign(Error('本轮已停止'),{code:'E_CANCELLED'});
-   // Page context starts in the Send gesture, but an unresponsive page must
-   // not keep a stopped/revoked Provider turn alive indefinitely.
    const pageSignal=authorization?.signal||signal;
    const pageContext=await new Promise((resolve,reject)=>{
-    const abort=()=>reject(pageSignal.reason?.code&&typeof pageSignal.reason.code==='string'?
+    const abort=()=>reject(pageSignal.reason?.code?
      pageSignal.reason:Object.assign(Error('本轮已停止'),{code:'E_CANCELLED'}));
     if(pageSignal.aborted){abort();return;}
     pageSignal.addEventListener('abort',abort,{once:true});
@@ -306,27 +308,37 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
     pagePromise.then(resolve,reject);
    });
    releasePageWait();
-  if(authorityEpoch.current||!activeRef.current)
-   throw Object.assign(Error('书签访问授权或当前安装实例已经失效，未发送后续操作。'),{code:'E_GRANT_REVOKED'});
-  const willWrite=Array.isArray(proposal?.actions)&&proposal.actions.some(action=>action?.type!=='bookmark.search');
-  // Allow read/search during a draft; defer any AI writes rather than silently discard the draft.
-  if(willWrite&&(draftRef.current||uncertainRef.current||busyRef.current))
-   throw Object.assign(Error(draftRef.current?
-    '存在未保存的书签编辑。可以继续只读搜索；请先保存或取消编辑，再重新发起写入。':
-    '书签正在写入或结果尚未核实，请核对后重新发起操作。'),{code:'E_DRAFT_CONFLICT'});
-  const write=willWrite?++writeEpoch.current:writeEpoch.current;
-  const current=()=>activeRef.current&&!authorityEpoch.current&&write===writeEpoch.current;
-  if(willWrite){readEpoch.current++;onPhase?.('writing');busyRef.current=true;setBusy(true);}
-  try{
-   const result=await executeBookmarkPlan({plan:proposal,service,
-    signal:authorization?.signal||signal,beforeWrite:authorization?.assertWrite,
-    expectedTree:tree,context:{...pinned,pageContext},refs:pinned.refs,
+   if(!current())
+    throw Object.assign(Error('书签授权或安装实例已失效，后续步骤未执行。'),{code:'E_GRANT_REVOKED'});
+   const context={...pinned,pageContext};
+   const beforeWrite=async args=>{
+    if(!current())throw Object.assign(Error('书签实例已切换，拒绝后续写入'),{code:'E_GRANT_REVOKED'});
+    if(draftRef.current||uncertainRef.current)
+     throw Object.assign(Error('存在未保存的编辑或未知结果；请先核对，再执行写入。'),{code:'E_DRAFT_CONFLICT'});
+    await authorization?.assertWrite?.(args);
+    if(!current())throw Object.assign(Error('书签实例已失效，拒绝后续写入'),{code:'E_GRANT_REVOKED'});
+   };
+   const result=await runBookmarkAgentLoop({
+    goal:request,initialProposal:initial.proposal,service,context,refs:pinned.refs,
+    expectedTree:tree,signal:authorization?.signal||signal,
+    beforeWrite:authorization?.assertWrite&&beforeWrite,
+    retryModel:conversation.source?.().provider!=='local_codex',
+    nextProposal:async nextContext=>{
+     await authorization?.assertWrite?.();
+     if(!current())throw Object.assign(Error('书签实例已失效，未继续模型决策'),{code:'E_GRANT_REVOKED'});
+     if(typeof initial.continueWith!=='function'&&mode!=='trusted')
+      return {question:'离线预览已展示首轮结果；持续 AI 决策需要在正式扩展中连接 Provider。'};
+     return initial.continueWith(nextContext);
+    },
+    onPhase:phase=>{
+     if(phase==='writing'&&draftRef.current)
+      throw Object.assign(Error('存在未保存的编辑，请保存或取消编辑后再执行书签写入'),{code:'E_DRAFT_CONFLICT'});
+     onPhase?.(phase);
+    },
     onStep:step=>{
      if(!current())return;
      if(step.tree)setTree(step.tree);
      if(step.id){
-      // Only a post-write readback may reveal a node. Never hijack a user
-      // selection, scroll position or active search changed during AI work.
       const node=step.tree?.byId.get(step.id);
       if(node){
        const mayReveal=interactionEpoch.current===interactionAtSend&&!queryRef.current.trim();
@@ -340,7 +352,10 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
       }
      }
      onStep?.({message:step.message,refs:step.refs});
-    }});
+    }
+   });
+   if(current()&&result.tree)setTree(result.tree);
+   if(current()&&result.completed)onStep?.({message:result.summary,refs:result.refs});
    return {question:result.question||null,refs:result.refs};
   }catch(error){
    if(current()&&error?.code==='E_OUTCOME_UNKNOWN')setUncertain(true);
@@ -348,12 +363,12 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
    if(error?.refs)onStep?.({refs:error.refs});
    throw error;
   }finally{
-   if(willWrite&&write===writeEpoch.current){
-    writeEpoch.current++;readEpoch.current++;busyRef.current=false;
-    if(activeRef.current){setBusy(false);setLoading(false);}
-   }
+   releasePageWait();authorization?.release?.();
+   // The task, not each individual step, owns the UI write lock.
+   if(taskSerial===writeEpoch.current){writeEpoch.current++;readEpoch.current++;}
+   busyRef.current=false;
+   if(activeRef.current){setBusy(false);setLoading(false);}
   }
-  }finally{releasePageWait();authorization?.release?.();}
  }
 
  function setDraft(value){fillEpoch.current++;updateDraft(value)}

@@ -65,7 +65,6 @@ button:active{transform:scale(.95)}
 `;
 const KEYS=[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,
   PROMPT_DATA_STORE,PROMPT_ASSET_STORE];
-const STARTER_IDS=new Set(['ps_seed_plugin','ps_seed_outsource','ps_seed_ai_prompt']);
 export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.document,win=globalThis.window}={}){
   if(!doc||!win||win.top!==win||!/^https?:\/\//i.test(win.location.href)||
     !api?.storage?.local?.get||!api.storage?.onChanged)return null;
@@ -83,8 +82,8 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   let host=null,shadow=null,rail=null,tip=null,tipOwner=null,hideTipTimer=0;
   let feedback=null,announcer=null,feedbackTimer=0,feedbackToken=0;
   let items=[],imageAssets={},imageSize='large',observer=null,observedRoot=null,resizeObserver=null,layoutTimer=0;
-  let starterExpanded=false;
-  const usesStarterMenu=()=>items.some(item=>STARTER_IDS.has(item.id));
+  let compactExpanded=false;
+  const usesCompactMenu=()=>items.length>0;
   const observedRegions=new Set();
   const themeMedia=win.matchMedia?.('(prefers-color-scheme: dark)');
   let locationTimer=0,retryTimer=0,readFailures=0;
@@ -183,7 +182,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   };
   const stop=()=>{
     stopJump();
-    visible=false;items=[];starterExpanded=false;activeRule=null;closePicker();clearFeedback();
+    visible=false;items=[];compactExpanded=false;activeRule=null;closePicker();clearFeedback();
     observer?.disconnect();observer=null;observedRoot=null;
     resizeObserver?.disconnect();resizeObserver=null;observedRegions.clear();
     win.clearTimeout(layoutTimer);layoutTimer=0;win.clearTimeout(hideTipTimer);hideTipTimer=0;
@@ -792,7 +791,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       shadow.addEventListener('keydown',event=>{
         if(event.key==='Escape'){
           hideTip();clearFeedback();
-          if(starterExpanded){starterExpanded=false;render();rail.children[0]?.focus();}
+          if(compactExpanded){compactExpanded=false;render();rail.children[0]?.focus();}
         }
       });
       feedback=doc.createElement('div');feedback.className='feedback';feedback.hidden=true;
@@ -802,18 +801,18 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       shadow.append(style,rail,tip,feedback,announcer);doc.documentElement.append(host);
     }
     hideTip();rail.replaceChildren();rail.dataset.imageSize=imageSize;
-    // New first-run prompts share one permanent launcher. The existing
-    // legacy rail remains unchanged for previously saved non-starter data.
-    const starter=usesStarterMenu(),builtin=builtInPage(win.location.href);
-    if(builtin||starter){
+    // Every saved library, including legacy and fully customized ones, shares a
+    // single resting launcher. Expanded buttons retain their image/label behavior.
+    const compact=usesCompactMenu(),builtin=builtInPage(win.location.href);
+    if(builtin||compact){
       const brand=doc.createElement('button');brand.type='button';brand.className='brand';
-      if(starter){
-        brand.textContent='快捷';brand.title=starterExpanded?'收起提示词':'展开提示词';
-        brand.setAttribute('aria-label',(starterExpanded?'收起':'展开')+items.length+' 个提示词快捷按钮');
-        brand.setAttribute('aria-expanded',String(starterExpanded));
+      if(compact){
+        brand.textContent='快捷';brand.title=compactExpanded?'收起提示词':'展开提示词';
+        brand.setAttribute('aria-label',(compactExpanded?'收起':'展开')+items.length+' 个提示词快捷按钮');
+        brand.setAttribute('aria-expanded',String(compactExpanded));
         brand.addEventListener('click',event=>{
           if(event?.isTrusted!==true)return;
-          starterExpanded=!starterExpanded;render();rail.children[0]?.focus();
+          compactExpanded=!compactExpanded;render();rail.children[0]?.focus();
         });
       }else{
         brand.textContent='OD';brand.title='打开提示词快捷按钮';
@@ -822,7 +821,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       }
       rail.append(brand);
     }
-    if(starter&&!starterExpanded){schedule();return;}
+    if(compact&&!compactExpanded){schedule();return;}
     for(const row of items){
       const button=doc.createElement('button');button.type='button';
       button.className='item';
@@ -854,12 +853,12 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       button.addEventListener('blur',delayHideTip);
       button.addEventListener('click',event=>{
         void insert(row,event).finally(()=>{
-          if(starter&&starterExpanded&&visible){starterExpanded=false;render();}
+          if(compact&&compactExpanded&&visible){compactExpanded=false;render();}
         });
       });
       rail.append(button);
     }
-    if(starter&&builtin){
+    if(compact&&builtin){
       const manage=doc.createElement('button');manage.type='button';manage.className='item';
       manage.textContent='管理';manage.title='管理提示词';
       manage.setAttribute('aria-label','打开侧边栏管理提示词');
@@ -873,7 +872,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     stopJump();
     const token=++epoch,url=win.location.href;
     if(href!==url){
-      starterExpanded=false;clearFeedback();hideTip();
+      compactExpanded=false;clearFeedback();hideTip();
       // Never show controls for the previous conversation while checking the
       // new route's installation, grant and library state.
       if(host)host.hidden=true;
@@ -899,7 +898,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       win.clearTimeout(retryTimer);retryTimer=0;
       if(!resizeObserver&&win.ResizeObserver)resizeObserver=new win.ResizeObserver(schedule);
       imageAssets=values[PROMPT_ASSET_STORE]?.assets||{};
-      items=rows.slice(0,4);imageSize=library.settings.imageSize;visible=true;render();
+      items=rows;imageSize=library.settings.imageSize;visible=true;render();
       syncJump();
       if(!observer){
         observer=new win.MutationObserver(records=>{

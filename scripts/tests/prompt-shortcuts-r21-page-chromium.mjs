@@ -111,6 +111,9 @@ boot=[
   '  shape:"square",enabled:true,order:1,appearance:"image",imageUrl:url});',
   ' lib.settings.imageSize=size;localStorage.setItem("ps-r21-fixture",JSON.stringify(values));',
   ' for(const fn of changes)fn({[DATA]:{newValue:values[DATA]}},"local");};',
+  'window.__setPrompts=rows=>{values[DATA].library.items=rows;',
+  ' localStorage.setItem("ps-r21-fixture",JSON.stringify(values));',
+  ' for(const fn of changes)fn({[DATA]:{newValue:values[DATA]}},"local");};',
   'window.__rule='+JSON.stringify(rule)+';',
   'localStorage.setItem("ps-r21-fixture",JSON.stringify(values));',
   'window.__initPromptShortcuts=initPromptShortcuts;window.__trustedApi=api;',
@@ -188,6 +191,11 @@ async function clickJS(expression,clickCount=1){
     ['mouseReleased',{button:'left',clickCount}]])
     await rpc('Input.dispatchMouseEvent',{type,x:rect.x,y:rect.y,...extra});
 }
+async function expandPromptRail(){
+  const collapsed=await evaluate('window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")==="false"');
+  if(collapsed)await clickJS('window.__railRoot.querySelector(".brand")');
+  await poll('window.__railRoot?.querySelector(".item")?.isConnected','real Chromium expanded prompt choices');
+}
 async function shot(name){
   const response=await rpc('Page.captureScreenshot',{format:'png'});
   await writeFile(join(out,name+'.png'),Buffer.from(response.data,'base64'));
@@ -198,7 +206,7 @@ const scenes=[];
 try{
   await connect();
   await rpc('Page.navigate',{url:origin+'/fixture'});
-  await poll('window.__ready&&window.__railRoot?.querySelector(".item")','ready trusted page rail');
+  await poll('window.__ready&&window.__railRoot?.querySelector(".brand")','ready trusted page rail');
   assert.equal(await evaluate('document.querySelector("#draft").value'),'旧草稿');
   const started=await evaluate('window.__send("prompt.page.pick.start",{kind:"container",session:'+JSON.stringify(sessionA)+'})');
   assert.equal(started.ok,true);
@@ -227,12 +235,13 @@ try{
   await poll('document.querySelector("[data-opendesk-prompts]")?.hidden===true',
     'retargeted editor outside region hides buttons');
   await evaluate('window.__setRule(window.__rule)');
-  await poll('window.__railRoot?.querySelector(".item")?.isConnected && '+
+  await poll('window.__railRoot?.querySelector(".brand")?.isConnected && '+
     '!document.querySelector("[data-opendesk-prompts]").hidden','restore safe editor');
   scenes.push({step:'disjoint container/editor and SPA retarget',safeFailClosed:true});
   // The trusted picker deliberately guards the selected target for 750 ms
   // against late click/double-click events. Do not race its release in CI.
   await sleep(825);
+  await expandPromptRail();
   await clickJS('window.__railRoot.querySelector(".item")');
   await poll('document.querySelector("#draft").value.includes("第二行")','native textarea insertion');
   assert.equal(await evaluate('document.querySelector("#draft").value'),'旧草稿\n'+body);
@@ -256,12 +265,13 @@ try{
   await evaluate('window.__setRule(null)');
   await poll('!document.querySelector("[data-opendesk-prompts]")','site rule disabled');
   await evaluate('window.__setRule(window.__rule)');
-  await poll('window.__railRoot?.querySelector(".item")?.isConnected','site rule re-enabled');
+  await poll('window.__railRoot?.querySelector(".brand")?.isConnected','site rule re-enabled');
   await rpc('Page.reload',{ignoreCache:true});
-  await poll('window.__ready&&window.__railRoot?.querySelector(".item")','reload restores stored site rule');
+  await poll('window.__ready&&window.__railRoot?.querySelector(".brand")','reload restores stored site rule');
   scenes.push({step:'disabled / reenabled / reload',persisted:true});
   await evaluate('window.__setRule({...window.__rule,editorSelector:"#single"})');
-  await poll('window.__railRoot?.querySelector(".item")?.isConnected','input rule mounted');
+  await poll('window.__railRoot?.querySelector(".brand")?.isConnected','input rule mounted');
+  await expandPromptRail();
   await clickJS('window.__railRoot.querySelector(".item")');
   await poll('window.__copied.length===1','multiline input safe clipboard fallback');
   assert.equal(await evaluate('document.querySelector("#single").value'),'旧单行');
@@ -278,12 +288,13 @@ try{
   assert.equal(richPick.data.editorType,'richtext');
   assert.equal(richPick.data.selector,'#rich-container div[contenteditable="true"]');
   await evaluate('window.__setRule({...window.__rule,editorSelector:'+JSON.stringify(richPick.data.selector)+'})');
-  await poll('window.__railRoot?.querySelector(".item")?.isConnected','richtext rule mounted');
+  await poll('window.__railRoot?.querySelector(".brand")?.isConnected','richtext rule mounted');
   const richChecked=await evaluate('window.__send("prompt.page.check",{rule:{...window.__rule,editorSelector:'+JSON.stringify(richPick.data.selector)+'}})');
   assert.equal(richChecked.data.editorType,'richtext');
   // The previous single-line clipboard fallback used this same prompt ID.
   // The trusted 700ms double-click guard must finish before a new user journey.
   await sleep(825);
+  await expandPromptRail();
   await clickJS('window.__railRoot.querySelector(".item")');
   await poll('window.__richInputs>0','native contenteditable input event');
   await sleep(420);
@@ -298,6 +309,7 @@ try{
   // adapter must report uncertain insertion rather than a false success.
   await sleep(800);
   await evaluate('window.__richRollback=true;window.__copied=[]');
+  await expandPromptRail();
   await clickJS('window.__railRoot.querySelector(".item")');
   await poll('window.__richRollbacks>0','controlled editor rolled back uncommitted DOM edit');
   await poll('window.__copied.length===1','unknown rich editor effect copied for explicit review');
@@ -306,7 +318,7 @@ try{
   scenes.push({step:'controlled editor reconciliation rollback',noFalseSuccess:true,
     noAutomaticRetry:true,fullCopyFallback:true});
   await evaluate('window.__setRule(window.__rule)');
-  await poll('window.__railRoot?.querySelector(".item")?.isConnected','return to textarea rule');
+  await poll('window.__railRoot?.querySelector(".brand")?.isConnected','return to textarea rule');
   await rpc('Emulation.setDeviceMetricsOverride',{width:360,height:780,deviceScaleFactor:1,mobile:false});
   await sleep(250);
   await shot('narrow-360-trusted-rail');
@@ -344,7 +356,7 @@ try{
   })()`);
   await poll('document.querySelector("main#main") && '+
     'document.querySelector("[data-opendesk-prompts]")?.hidden===false && '+
-    'window.__railRoot?.querySelector(".item")?.isConnected && '+
+    'window.__railRoot?.querySelector(".brand")?.isConnected && '+
     'document.querySelector("[data-opendesk-prompts]").style.left.endsWith("px")',
     'simulated ChatGPT fixed-site adapter mounted and positioned');
   const beforeHistoryLeft=await evaluate('document.querySelector("[data-opendesk-prompts]").style.left');
@@ -359,8 +371,9 @@ try{
   })()`);
   await poll('document.querySelector("[data-opendesk-prompts]")===window.__historyHost && '+
     '!window.__historyHost.hidden && window.__historyHost.style.left!=='+JSON.stringify(beforeHistoryLeft)+
-    ' && window.__railRoot?.querySelectorAll(".item").length===1',
+    ' && window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")==="false"',
     'history SPA remount reuses dock and repositions');
+  await expandPromptRail();
   await clickJS('window.__railRoot.querySelector(".item")');
   await poll('document.querySelector("main#main textarea#prompt-textarea").value.includes("第二行")',
     'history conversation native insertion');
@@ -371,6 +384,8 @@ try{
     actualChromiumDOM:true,oldHostReused:true,newRegionAnchored:true,
     nativeDraftConfirmed:true,installedExtension:false});
   await shot('chatgpt-spa-history-recovery');
+  await shot('r191-single-resting-entry');
+  await expandPromptRail();
   // R3.5: Actual decoded HTTPS response in the trusted Shadow DOM with 3 sizes.
   await rpc('Fetch.enable',{patterns:[{
     urlPattern:'https://fixture.opendesk.invalid/*',resourceType:'Image',requestStage:'Request'
@@ -401,6 +416,7 @@ try{
   await poll('window.__railRoot?.querySelector(".item.image img")?.naturalWidth>0',
     'corrected image URL recovers the decoded picture');
   await sleep(825);
+  await expandPromptRail();
   await clickJS('window.__railRoot.querySelector(".item.image")');
   await poll('document.querySelector("main#main textarea#prompt-textarea").value.includes("图片快捷按钮完整正文")',
     'trusted image button inserts only full body text');
@@ -411,6 +427,42 @@ try{
     controlledHttpsResponse:true,publicCdnNotTested:true,sizes:measured,
     recovered:true,insertsBodyOnly:true,installedExtension:false});
   await rpc('Fetch.disable');
+  // R1.9.1: real CDP pointer events on source page.js prove the compact entry
+  // is based on current user data, never the three special first-run IDs.
+  const seedRows=pkg.initialData.library.items;
+  const personal=Array.from({length:5},(_,i)=>({...seedRows[0],id:'r191-user-'+i,
+    label:'自'+i,name:'自定义提示词 '+i,body:'自定义完整正文 '+i+'\n第二行',order:i}));
+  const compactCases=[
+    ['three seeds',seedRows],
+    ['edited seed',seedRows.map((row,i)=>i===0?{...row,body:row.body+' 已编辑'}:row)],
+    ['deleted seed',[seedRows[0],seedRows[2]]],
+    ['mixed seeds and custom',[seedRows[0],{...personal[0],order:1},seedRows[2]]],
+    ['all custom',personal.slice(0,3)],
+    ['legacy four',personal.slice(0,4)],
+    ['five custom',personal]
+  ];
+  for(const [name,rows] of compactCases){
+    await evaluate('window.__setPrompts('+JSON.stringify(rows)+')');
+    await poll('window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")==="false" && '+
+      'window.__railRoot?.querySelectorAll(".item").length===0',
+      'single resting launcher: '+name);
+    await clickJS('window.__railRoot.querySelector(".brand")');
+    await poll('window.__railRoot?.querySelectorAll(".item").length==='+String(rows.length+1),
+      'expanded prompts and management: '+name);
+    if(name==='three seeds'||name==='legacy four')
+      await shot('r191-menu-'+name.replaceAll(' ','-'));
+    const target=rows.at(-1);
+    const before=await evaluate('document.querySelector("main#main textarea#prompt-textarea").value');
+    await sleep(750);
+    await clickJS('window.__railRoot.querySelectorAll(".item")['+(rows.length-1)+']');
+    await poll('document.querySelector("main#main textarea#prompt-textarea").value==='+
+      JSON.stringify(before+'\n'+target.body),'full-body insertion: '+name);
+    assert.equal(await evaluate('window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")'),'false');
+    assert.equal(await evaluate('document.querySelectorAll("[data-opendesk-prompts]").length'),1);
+  }
+  scenes.push({step:'R1.9.1 source-bound one launcher for default, edited, deleted, mixed and legacy libraries',
+    cases:compactCases.map(([name,rows])=>({name,count:rows.length})),
+    actualChromiumDOM:true,genuineCDPClicks:true,installedExtension:false});
   assert.equal(jsErrors.length,0,JSON.stringify(jsErrors));
   const report={kind:'ACTUAL_CHROMIUM_DOM_FIXED_PAGE_WITH_MOCK_HOST',installedExtension:false,
     realThirdPartySite:false,realMacIme:false,version:pkg.version,scenes,consoleErrors:jsErrors};

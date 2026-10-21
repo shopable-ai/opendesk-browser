@@ -10,6 +10,7 @@ import {SIDEBAR_TOOL_STORE,sidebarToolStorageKey,validateSidebarToolPackage}
   from '../../src/ui/sidebar-tools/package.js';
 import {installReviewedSidebarTool}
   from '../../src/ui/sidebar-tools/installation.js';
+import {PROMPT_ASSET_STORE} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js';
 
 const ROOT='examples/sidebar-tools/prompt-shortcuts';
 const TOOL_ID='prompt-shortcuts',STORAGE=sidebarToolStorageKey(TOOL_ID);
@@ -114,15 +115,19 @@ test('R1.9 installed user data, site rules and intentional empty list survive re
     enabled:i!==1,order:2-i,body:row.body+(i===0?' 用户补充':'')}))};
   const sites={schema:1,rules:[{origin:'https://example.org',pathScope:'/work',
     containerSelector:'main',editorSelector:'textarea',enabled:true}]};
+  const imageAssets={schema:1,assets:{'keep-user-asset':{mime:'image/png',data:'user-owned'}}};
   const four={...standard,items:[...standard.items,{...standard.items[0],
     id:'older-personal-prompt',label:'私人',name:'私人提示词',order:3}]};
   for(const library of [changed,four,{schema:1,items:[],settings:{...standard.settings}}]){
-    const f=fixture([[SIDEBAR_TOOL_STORE,[old]],[STORAGE,{library,sites}]]);
+    const f=fixture([[SIDEBAR_TOOL_STORE,[old]],[STORAGE,{library,sites}],
+      [PROMPT_ASSET_STORE,imageAssets]]);
     const outcome=await f.install(next,old);
     assert.equal(outcome.state,'installed');
     assert.deepEqual(f.store.get(STORAGE),{library,sites},
       'upgrade must not seed, append, reorder, revive disabled prompts or replace rules');
     assert.equal(f.writes.filter(row=>row.key===STORAGE).length,0);
+    assert.deepEqual(f.store.get(PROMPT_ASSET_STORE),imageAssets,
+      'reviewed upgrade must never erase the existing image asset namespace');
   }
 });
 
