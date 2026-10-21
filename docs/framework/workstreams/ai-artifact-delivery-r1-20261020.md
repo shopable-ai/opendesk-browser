@@ -89,3 +89,12 @@
 | **算术平均** | **80.0** | 73+75+81+90+77+84=480，除 6；**不是 UX 95+ 或商业验证通过** |
 
 计划状态 `PREVIEW_PENDING_USER_CONFIRMATION`。六维评审不可替代任何 P0 安全硬门槛；下一轮目标是先取得真正同源可操作预览及用户意见，再按源码 owner 逐段落地。
+
+## 8. R1.0 原始研究决策补录（2026-10-21）
+
+- **已实际保存**：将当前对话中的原始 24 项机会、七维权重（22/22/12/16/10/10/8）、TOP10 汇总值（仅有历史总分、不可独立重算）、10 家竞品与原始三条产品路线，补到 [产品文档附录 A](../../product/browser-extension-ecosystem/ai-artifact-delivery-r1.zh-CN.md)。这与本页 R1.1 的重新映射、另一套 TOP10 和更广的 A/B/C 投资组合**分别留存**，不覆盖旧判断。
+- **商业身份不变**：仍以现有 84 OPP 与 8 EXP 为唯一账本；EXP-003 原本是 Research Clip & Cite，EXP-005 仍为 Seller Listing QA；本次没有新增正式机会 ID、实验 ID、市场排名认证或假想收入数据。
+- **产品分工不变**：Prompt Shortcuts 管快捷复用，Knowledge Inbox 管知识/交付记录，Clipper 管网页 Markdown；原始优先验证 SKU 图片交付，但并未证明有客户付费。图片 CSV/JSON 清单是可选后置验证，不是已完成交付。
+- **工程状态不变**：正式 Knowledge Inbox、Trusted Host、SDK、Native 及工具包未因本次文档补录修改。已有 [同源预览](../../../examples/sidebar-tools/knowledge-inbox/preview/index.html) 仍为 MOCK，真实原图/MIME、Chrome 完成回执、SKU 持久化、Mac Chrome 与用户留存均 `NOT_TESTED` / `NOT_IMPLEMENTED`，不得宣称真实产品 PASS。
+- **后续唯一优先顺序**：审核和确认同源预览 → 必要正式源码最小改动 → 真实下载/重开读回与错误恢复 → 目标用户自然复用/付费证据；不为达到 95+ 评分而虚构通过。
+- 本次实际增量提交见 GitHub [原始产品归档提交](https://github.com/shopable-ai/opendesk-browser/commit/f17d865b97c0750ff8ebf9d2192f2ab0ae3cf476)。这一链接是文档保存证据，**不是** Chrome 产品验收证据。
