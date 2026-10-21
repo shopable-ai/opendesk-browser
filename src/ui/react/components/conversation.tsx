@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {createPortal} from 'react-dom';
+import {IconButton as OpenDeskIconButton} from './ui/button.tsx';
 
 // Shared, presentation-only primitives. Callers retain provider credentials,
 // permission checks, task execution and the business result journal.
@@ -253,15 +254,15 @@ function ConversationWorkspace({
      onCompositionEnd={()=>{composingRef.current=false;}}
      onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing&&
       !composingRef.current&&e.nativeEvent.keyCode!==229){e.preventDefault();send(e);}}}/>
-    {busy?<button className="od-conversation-action od-conversation-action--stop" type="button"
-      title="停止后续操作" aria-label="停止对话" onClick={stop}>
+    {busy?<OpenDeskIconButton className="od-conversation-action od-conversation-action--stop" type="button"
+      title="停止后续操作" label="停止对话" onClick={stop}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
-     </button>:
-     <button className="od-conversation-action od-conversation-action--primary" type="submit"
-      title="发送消息" aria-label="发送" onClick={send}
+     </OpenDeskIconButton>:
+     <OpenDeskIconButton className="od-conversation-action od-conversation-action--primary" type="submit"
+      title="发送消息" label="发送" onClick={send}
       disabled={!draft.trim()||needsReview||!controller?.request}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-7 7 7-7 7 7"/></svg>
-     </button>}
+     </OpenDeskIconButton>}
    </form>
   </section>
  </div>;
