@@ -78,7 +78,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
   api=globalThis.chrome,onScheduleChange=()=>{}}){
   if(!client?.request||!taskWorkbench?.runInstalledForAgent||!provider?.request)
     throw fail('E_AI_UNAVAILABLE','现有任务、Provider 或 RunHost 尚未连接');
-  let snapshot={open:false,rows:[],draft:'',status:'idle',pending:null,step:'',busy:false};
+  let snapshot={open:false,rows:[],draft:'',status:'idle',pending:null,step:'',busy:false,technical:''};
   const subscribers=new Set();
   let disposed=false,session=null,sequence=0,verifiedHistory=[];
   const publish=patch=>{
@@ -171,6 +171,24 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
       default:throw fail('E_AI_SCHEMA','该操作需要单次用户确认');
     }
   }
+  const summarizeWrite=(action,receipt)=>{
+    switch(action.type){
+      case 'run_task':return '任务「'+action.taskId+'」已结束本次执行，状态：'+
+        ({completed:'成功',failed:'失败',stopped:'已停止',interrupted:'中断',
+          paused_unknown:'结果待核对'}[receipt.state]||clip(receipt.state,70))+
+        '。'+(receipt.runId?'运行编号：'+receipt.runId+'。 ':'')+
+        (receipt.result?'结果：'+clip(receipt.result,400):'请在运行记录核对最终结果。');
+      case 'stop_task':return '已请求停止任务「'+action.taskId+'」。请查看运行记录确认最终状态。';
+      case 'set_task_enabled':return '任务「'+action.taskId+'」'+
+        (receipt.enabled?'已启用':'已停用')+'，已重新读取任务状态。';
+      case 'create_schedule':return '计划「'+receipt.title+'」已保存并重新读取验证。'+
+        '计划编号：'+receipt.scheduleId+'；状态：'+(receipt.paused?'已暂停':'已启用')+'。';
+      case 'change_schedule':return '计划「'+action.scheduleId+'」'+
+        ({pause:'已暂停',resume:'已恢复',delete:'已删除'})[action.operation]+
+        '，已重新读取计划列表验证。';
+      default:return '操作已返回真实执行回执。';
+    }
+  };
   const explain=action=>{
     switch(action.type){
       case 'run_task':return '运行已安装任务 '+action.taskId+'；参数 '+clip(JSON.stringify(action.params),700);
@@ -188,19 +206,15 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
     stopCheck(signal);
     if(!event?.isTrusted)throw fail('E_USER_GESTURE','只有点击可信确认按钮才能修改真实任务或计划');
     if(action.type==='run_task'){
-      const {row,candidate}=taskInfo(await tasks(),action.taskId);
-      if(!row.enabled||candidate.stage!=='available')
-        throw fail('E_PERMISSION','该任务未启用或尚未验证');
-      const params=validateTaskParams(candidate.manifest.paramsSchema,action.params);
-      const expected=currentPage();
-      if(!candidate.manifest.siteOrigins.includes(expected.origin))
-        throw fail('E_TARGET','当前网页不在该任务允许的网站范围内');
-      stopCheck(signal);
-      const completed=await taskWorkbench.runInstalledForAgent({taskId:row.taskId,params,event});
-      const history=await runHistory(row.taskId,3);
+      // This MUST be the first side effect in the trusted Confirm click.
+      // TaskWorkbench synchronously checks the pinned catalog, parameters and
+      // Chrome permissions before its own first await, then uses the only RunHost.
+      const completed=await taskWorkbench.runInstalledForAgent({
+        taskId:action.taskId,params:action.params,event});
+      const history=await runHistory(action.taskId,3);
       const observed=history.find(v=>v.runId===completed.runId);
       if(!observed||!observed.hasResult)throw fail('E_OUTCOME_UNKNOWN','任务已提交，但尚未读取到持久结果；请核查历史，不要重新运行');
-      return {taskId:row.taskId,runId:completed.runId,state:observed.state,result:observed.outcome,
+      return {taskId:action.taskId,runId:completed.runId,state:observed.state,result:observed.outcome,
         verified:isTerminal(observed.state)&&observed.hasResult};
     }
     if(action.type==='stop_task'){
@@ -298,6 +312,24 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
       for(const action of proposal.actions){
         stopCheck(signal);
         if(changes.has(action.type)){
+          if(action.type==='run_task'){
+            // Read-only preflight happens before the user clicks Confirm.
+            // No Chrome permission prompt or RunHost start is deferred here.
+            try{
+              const {row,candidate}=taskInfo(await tasks(),action.taskId);
+              if(!row.enabled||candidate.stage!=='available')
+                throw fail('E_PERMISSION','任务未启用或尚未验证');
+              validateTaskParams(candidate.manifest.paramsSchema,action.params);
+              if(!candidate.manifest.siteOrigins.includes(currentPage().origin))
+                throw fail('E_TARGET','该任务不适用于当前网页');
+            }catch(error){
+              context.push({action:'run_task.preflight',observation:{
+                error:clip(error.message,280),code:error.code||'E_TASK'}});
+              verifiedHistory=context.slice(-8);
+              add('系统','运行前核查失败：'+clip(error.message,360));
+              continue;
+            }
+          }
           if(session.confirmed?.has(JSON.stringify(action))){
             add('系统','这一操作在当前请求中已确认过，拒绝再次自动执行。');
             publish({busy:false,status:'idle',pending:null,step:''});
@@ -314,6 +346,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
           const observation=await read(action);
           context.push({action:action.type,observation});
           verifiedHistory=context.slice(-8);
+          publish({technical:clip(JSON.stringify({action:action.type,observation}),2400)});
           add('助手',action.type==='list_tasks'
             ?'已检查 '+observation.total+' 个已安装任务。'+
                observation.items.filter(x=>x.appliesToCurrentPage).map(x=>x.title).slice(0,6).join('、')
@@ -341,7 +374,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
     const current={active:true,event,goal,signal:controller.signal,controller,
       context:verifiedHistory.slice(-8),confirmed:new Set()};
     session=current;
-    publish({busy:true,pending:null,status:'thinking',step:'正在理解请求'});
+    publish({busy:true,pending:null,status:'thinking',step:'正在理解请求',technical:''});
     add('你',goal);
     try{await loop(current,goal,current.context);}
     catch(error){
@@ -366,7 +399,8 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
       record.observation=observation;
       current.context.push(record);
       verifiedHistory=current.context.slice(-8);
-      add('助手','已读取真实回执：'+clip(JSON.stringify(observation),750));
+      publish({technical:clip(JSON.stringify({action:pending.action.type,observation}),2400)});
+      add('助手',summarizeWrite(pending.action,observation));
       stopCheck(current.signal);
       await loop(current,current.goal,current.context,true);
     }catch(error){

@@ -76,15 +76,17 @@ test('confirmation is consumed before await and cannot double-run',async()=>{
   await pending;
   assert.equal(rigged.executions,1);
   assert.equal(rigged.agent.getSnapshot().pending,null);
+  assert.match(rigged.agent.getSnapshot().rows.map(x=>x.message).join(' '),/任务「search」已结束本次执行/);
+  assert.doesNotMatch(rigged.agent.getSnapshot().rows.map(x=>x.message).join(' '),/已读取真实回执：\\{/);
   rigged.agent.dispose();
 });
 
 test('unknown task is rejected before RunHost, without inventing success',async()=>{
   const rigged=rig([{actions:[{type:'run_task',taskId:'missing',params:{}}]}],{hasTask:false});
   await rigged.agent.send('运行不存在的任务',trusted);
-  await rigged.agent.confirm(trusted);
   assert.equal(rigged.executions,0);
-  assert.match(rigged.agent.getSnapshot().rows.at(-1).message,/没有找到已安装任务/);
+  assert.equal(rigged.agent.getSnapshot().pending,null);
+  assert.ok(rigged.agent.getSnapshot().rows.some(row=>/没有找到已安装任务/.test(row.message)));
   rigged.agent.dispose();
 });
 
