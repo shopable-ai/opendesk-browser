@@ -4,30 +4,32 @@
 .od-conversation-header-slot:empty{display:none}
 .od-conversation-header-slot{display:inline-flex;align-items:center;flex:none}
 .od-conversation-frame-trigger[aria-pressed="true"]{background:var(--od-muted);border-color:var(--od-focus);color:var(--od-accent-ink)}
-.od-conversation-dock{flex:none;min-height:0;min-width:0;display:flex;flex-direction:column;overflow:hidden;background:var(--od-paper);border-top:1px solid var(--od-line)}
+.od-conversation-dock{position:relative;flex:none;min-height:0;min-width:0;display:flex;flex-direction:column;overflow:hidden;background:var(--od-paper);border-top:1px solid var(--od-line)}
 .od-conversation-dock[hidden]{display:none!important}
-.od-conversation-dragbar{position:relative;flex:0 0 23px;min-height:23px;background:var(--od-paper)}
-.od-conversation-separator{position:absolute;inset:0;touch-action:none;cursor:row-resize;border-bottom:1px solid var(--od-line)}
-.od-conversation-separator:before{content:'';position:absolute;left:calc(50% - 20px);width:40px;height:3px;top:9px;background:var(--od-input-border);border-radius:var(--radius-pill)}
+/* One visible 1px divider, with an invisible drag target. The old 23/34px band was visually heavy. */
+.od-conversation-dragbar{position:relative;z-index:1;flex:0 0 12px;min-height:12px;background:transparent}
+.od-conversation-separator{position:absolute;top:-4px;bottom:-4px;left:0;right:40px;touch-action:none;cursor:row-resize}
+.od-conversation-separator:before{content:'';position:absolute;left:calc(50% - 16px);width:32px;height:2px;top:8px;background:var(--od-input-border);border-radius:var(--radius-pill)}
 .od-conversation-separator:focus-visible{outline:2px solid var(--od-focus);outline-offset:-2px}
-.od-conversation-close{position:absolute;z-index:1;top:0;right:6px;display:grid;place-items:center;width:25px;min-width:25px;height:23px;padding:0;border:0;background:transparent;color:var(--od-sub);border-radius:var(--radius-control);cursor:pointer}
+.od-conversation-close{position:absolute;z-index:2;top:-3px;right:6px;display:grid;place-items:center;width:28px;min-width:28px;height:28px;padding:0;border:0;background:var(--od-paper);color:var(--od-sub);border-radius:var(--radius-control);cursor:pointer}
 .od-conversation-close svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .od-conversation-close:hover{background:var(--od-muted)}
-.od-conversation-log{min-height:0;flex:1 1 auto;overflow:auto;overscroll-behavior:contain;padding:6px 10px;display:flex;flex-direction:column;gap:7px;scrollbar-width:thin}
+.od-conversation-log{min-height:0;flex:1 1 auto;overflow:auto;overscroll-behavior:contain;padding:13px 10px 6px;display:flex;flex-direction:column;gap:7px;scrollbar-width:thin}
 .od-conversation-entry{align-self:flex-start;max-width:94%;min-width:0;display:grid;gap:3px;background:var(--od-bg);border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:7px 9px;overflow-wrap:anywhere}
 .od-conversation-entry[data-speaker="user"]{align-self:flex-end;background:color-mix(in srgb,var(--od-brand) 8%,var(--od-paper))}
 .od-conversation-entry p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;line-height:1.48;font-size:var(--od-note-size)}
 .od-conversation-error{margin:0;padding:4px 10px;color:var(--od-negative);font-size:var(--od-meta-size);line-height:1.5}
 .od-conversation-feedback{flex:0 1 auto;min-height:26px;max-height:25%;overflow:auto;overflow-wrap:anywhere;overscroll-behavior:contain}
 .od-conversation-feedback:focus-visible{outline:2px solid var(--od-focus);outline-offset:-2px}
-.od-conversation-composer{display:grid;position:relative;flex:none;min-width:0;padding:6px 10px 8px;border-top:1px solid var(--od-line)}
+.od-conversation-composer{display:grid;grid-template-columns:minmax(0,1fr);position:relative;flex:none;min-width:0;padding:6px 10px 8px;border-top:1px solid var(--od-line)}
 .od-conversation-sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
-.od-conversation-input{box-sizing:border-box;display:block;width:100%;min-width:0;min-height:44px;max-height:112px;resize:none;overflow-y:auto;border:1px solid var(--od-input-border);border-radius:var(--radius-surface);padding:10px 52px 9px 10px;background:var(--od-paper);color:var(--od-ink);font:inherit;font-size:var(--od-note-size);line-height:1.5;scrollbar-width:thin}
+.od-conversation-input{grid-area:1/1;box-sizing:border-box;display:block;width:100%;min-width:0;min-height:44px;max-height:112px;resize:none;overflow-y:auto;border:1px solid var(--od-input-border);border-radius:var(--radius-surface);padding:10px 52px 9px 10px;background:var(--od-paper);color:var(--od-ink);font:inherit;font-size:var(--od-note-size);line-height:1.5;scrollbar-width:thin}
 .od-conversation-input::placeholder{color:var(--od-sub);opacity:1}
 .od-conversation-input:focus-visible,.od-conversation-close:focus-visible,.od-conversation-action:focus-visible,.od-conversation-frame-trigger:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
-.od-conversation-action{position:absolute;right:16px;bottom:18px;display:grid;place-items:center;width:32px;min-width:32px;height:32px;padding:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);cursor:pointer}
+/* Input and action occupy one grid cell: no viewport/zoom-dependent bottom offset. */
+.od-conversation-action{position:relative;z-index:1;grid-area:1/1;align-self:end;justify-self:end;margin:0 6px 6px 0;display:grid;place-items:center;width:32px;min-width:32px;height:32px;min-height:32px;padding:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);cursor:pointer}
 .od-conversation-action svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .od-conversation-action--primary{background:var(--od-brand);color:var(--od-on-brand);border-color:var(--od-brand)}
 .od-conversation-action:disabled{opacity:.45;cursor:not-allowed}
-@media(max-height:520px){.od-conversation-composer{padding:4px 8px 5px}.od-conversation-input{max-height:76px}.od-conversation-action{right:14px;bottom:15px}.od-conversation-log{padding:4px 8px}}
-@media(pointer:coarse){.od-conversation-dragbar{flex-basis:34px;min-height:34px}.od-conversation-separator:before{top:15px}.od-conversation-close{width:34px;height:34px;right:3px}.od-conversation-action{width:40px;min-width:40px;height:40px;right:12px;bottom:14px}.od-conversation-input{min-height:48px;padding-right:54px}}
+@media(max-height:520px){.od-conversation-composer{padding:4px 8px 5px}.od-conversation-input{max-height:76px}.od-conversation-log{padding-right:8px;padding-bottom:4px}}
+@media(pointer:coarse){.od-conversation-dragbar{flex-basis:18px;min-height:18px}.od-conversation-separator{top:-10px;bottom:-10px;right:48px}.od-conversation-separator:before{top:16px}.od-conversation-close{width:44px;min-width:44px;height:44px;top:-4px;right:2px}.od-conversation-log{padding-top:23px}.od-conversation-action{width:40px;min-width:40px;height:40px;min-height:40px;margin:0 5px 5px 0}.od-conversation-input{min-height:50px;padding-right:54px}}
