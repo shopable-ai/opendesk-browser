@@ -93,7 +93,9 @@ export function TrustedConversationWorkspace({
   return()=>observer.disconnect();
  },[]);
  const limits=React.useMemo(()=>{
-  const min=Math.min(190,Math.max(112,Math.floor(totalHeight*.5)));
+  // Leave an extra 6px for the original bookmark tree at 200% physical
+  // zoom while retaining a usable, independently scrollable compact Dock.
+  const min=Math.min(184,Math.max(112,Math.floor(totalHeight*.46)));
   return {min,max:Math.max(min,totalHeight-96)};
  },[totalHeight]);
  const dockHeight=height===null?clamp(Math.round(totalHeight*.38),limits.min,limits.max):
