@@ -40,3 +40,27 @@ button,input,textarea{font:inherit}button{cursor:pointer}button:focus-visible,te
 /* Preserve the standalone title; verified official Host already renders it. */
 .mdw.mdw-host-nav .mdw-bar strong{display:none!important}
 .mdw.mdw-host-nav .mdw-bar{justify-content:flex-end}
+
+/* Only the release-verified Host opts into flex-height editing.
+ * Independent editor pages preserve their original intrinsic pane dimensions. */
+#tool-root[data-opendesk-height-mode="workspace"] .mdw{
+  display:flex;flex-direction:column;height:var(--opendesk-host-available-height);
+  min-height:0;overflow-y:auto;overscroll-behavior:contain;
+}
+#tool-root[data-opendesk-height-mode="workspace"] .mdw-panes{
+  flex:1 0 160px;min-height:160px;grid-template-rows:minmax(0,1fr);
+}
+#tool-root[data-opendesk-height-mode="workspace"] .mdw-panes[data-mode="split"]{
+  grid-template-rows:repeat(2,minmax(0,1fr));
+}
+#tool-root[data-opendesk-height-mode="workspace"] .mdw-pane{
+  display:flex;flex-direction:column;min-height:0;
+}
+#tool-root[data-opendesk-height-mode="workspace"] :is(#mdw-source,.mdw-preview){
+  flex:1 1 auto;height:auto;min-height:0;
+}
+@media(min-width:740px){
+  #tool-root[data-opendesk-height-mode="workspace"] .mdw-panes[data-mode="split"]{
+    grid-template-rows:minmax(0,1fr);
+  }
+}

@@ -211,3 +211,9 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-vis
 .clip.clip-hosted .clip-note-editor,
 .clip.clip-hosted .clip-note-reader{margin-top:0}
 .clip-note-excerpt:empty{display:none}
+
+/* The official integrated Host supplies the whole workspace, while the
+ * existing reader/editor retain their content scrolling and tool navigation. */
+#tool-root[data-opendesk-height-mode="workspace"] .clip{
+  min-height:var(--opendesk-host-available-height);
+}

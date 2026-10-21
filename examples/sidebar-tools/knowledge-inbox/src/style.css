@@ -82,3 +82,23 @@
 .ki.ki-host-nav #ki-back,
 .ki.ki-host-nav .ki-writing-heading,
 .ki.ki-host-nav #ki-writing-label{display:none!important}
+
+/* Only release-verified Host workspaces use the whole available height.
+ * Lists/readers scroll independently; editor actions remain accessible. */
+#tool-root[data-opendesk-height-mode="workspace"] .ki{
+  display:flex;flex-direction:column;height:var(--opendesk-host-available-height);
+  min-height:0;overflow:hidden;
+}
+#tool-root[data-opendesk-height-mode="workspace"] .ki>section:not([hidden]){
+  flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+}
+#tool-root[data-opendesk-height-mode="workspace"] .ki>#ki-create-view:not([hidden]),
+#tool-root[data-opendesk-height-mode="workspace"] .ki>#ki-detail[data-mode="edit"]{
+  display:flex;flex-direction:column;
+}
+#tool-root[data-opendesk-height-mode="workspace"] .ki #ki-editor:not([hidden]){
+  display:flex;flex:1 1 auto;min-height:0;flex-direction:column;
+}
+#tool-root[data-opendesk-height-mode="workspace"] .ki .ki-writing-view .ki-content{
+  flex:1 1 auto;height:auto;min-height:140px;
+}
