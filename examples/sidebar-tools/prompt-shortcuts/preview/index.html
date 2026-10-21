@@ -641,6 +641,12 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   try{localStorage.setItem(DEMO_ASSET_KEY,JSON.stringify(next));imageAssets=next;return true;}
   catch{return false;}
  }
+ function cleanupDemoAssets(){
+  const used=new Set(state.items.map(item=>item.imageAssetId).filter(Boolean));
+  if(draftImageAssetId)used.add(draftImageAssetId);
+  const next=Object.fromEntries(Object.entries(imageAssets).filter(([id])=>used.has(id)));
+  return Object.keys(next).length===Object.keys(imageAssets).length||persistDemoAssets(next);
+ }
  const IMAGE_SIZES=['compact','standard','large'];
  function restoreDemoSettings(){
   const fallback={showBar:true,contextMenu:false,imageSize:'large'};
@@ -892,7 +898,9 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    }
    state.settings=nextSettings;
   }
-  state.items=result.items;state.revision++;expandedId=null;deleteId=null;discardImport();renderIndex();renderRail();
+  state.items=result.items;state.revision++;expandedId=null;deleteId=null;
+  if(!cleanupDemoAssets())notice('导入成功，但旧图片清理未确认（模拟）','error');
+  discardImport();renderIndex();renderRail();
   notice((mode==='replace'?'已替换':'已追加')+' '+result.added+' 条，跳过 '+result.skipped+' 条重复项目；网页按钮已即时同步（仅模拟）。','success');
   el('transferButton').focus({preventScroll:true});
  }
@@ -983,6 +991,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
      const nextItems=state.items.filter(x=>x.id!==item.id);
      if(!persistDemoItems(nextItems)){notice('模拟存储写入失败，未删除提示词。','error');return;}
      state.items=nextItems;state.revision++;
+     if(!cleanupDemoAssets())notice('提示词已删除，但旧图片清理未确认（模拟）','error');
      deleteId=null;expandedId=null;renderIndex();renderRail();
      const next=Math.min(i,state.items.length-1);
      (next<0?el('addButton'):el('prompt-more-'+next))?.focus({preventScroll:true});
@@ -1163,7 +1172,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   if(draftImageAssetId&&!state.items.some(row=>row.imageAssetId===draftImageAssetId)){
    const copy={...imageAssets};delete copy[draftImageAssetId];persistDemoAssets(copy);
   }
-  draftImageAssetId='';editId=null;dirty=false;setView('index');renderIndex();renderRail();
+  draftImageAssetId='';cleanupDemoAssets();editId=null;dirty=false;setView('index');renderIndex();renderRail();
   el('addButton').focus({preventScroll:true});
  }
  async function saveForm(event,continueCreating=false){
@@ -1292,7 +1301,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   el('themeButton').setAttribute('aria-pressed',String(dark));
  });
  el('resetButton').addEventListener('click',()=>{if(currentView==='form'&&dirty){showFormError('当前编辑尚未保存，请先取消或保存，再重置模拟数据。');return;}
-  try{localStorage.removeItem(DEMO_ITEM_KEY);localStorage.removeItem(DEMO_SETTINGS_KEY);}catch{}state={version:1,revision:state.revision+1,settings:{showBar:true,contextMenu:false,imageSize:'large'},items:COPY(),toolEnabled:true};installed=true;el('reopenTool').hidden=false;el('toolListMessage').textContent='已模拟返回宿主工具列表。选择下方工具可重新进入管理页。';closeUninstall();discardImport();nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockDraft').disabled=false;el('actionScenario').value='normal';document.querySelector('.browser-address').textContent='chatgpt.com · 模拟网页';el('mockContextMenu').hidden=true;el('siteDetails').hidden=true;el('sitesButton').setAttribute('aria-expanded','false');el('sitesButton').classList.remove('is-open');el('sitesButton').setAttribute('aria-label','展开适用网站');el('sitesButton').title='展开适用网站';returnIndex();notice('已重置为初始模拟数据。');});
+  try{localStorage.removeItem(DEMO_ITEM_KEY);localStorage.removeItem(DEMO_SETTINGS_KEY);localStorage.removeItem(DEMO_ASSET_KEY);imageAssets={};draftImageAssetId='';}catch{}state={version:1,revision:state.revision+1,settings:{showBar:true,contextMenu:false,imageSize:'large'},items:COPY(),toolEnabled:true};installed=true;el('reopenTool').hidden=false;el('toolListMessage').textContent='已模拟返回宿主工具列表。选择下方工具可重新进入管理页。';closeUninstall();discardImport();nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockDraft').disabled=false;el('actionScenario').value='normal';document.querySelector('.browser-address').textContent='chatgpt.com · 模拟网页';el('mockContextMenu').hidden=true;el('siteDetails').hidden=true;el('sitesButton').setAttribute('aria-expanded','false');el('sitesButton').classList.remove('is-open');el('sitesButton').setAttribute('aria-label','展开适用网站');el('sitesButton').title='展开适用网站';returnIndex();notice('已重置为初始模拟数据。');});
  for(const [id,mode,label] of [['simulateWriteFail','write','写入失败'],['simulateConflict','conflict','并发冲突'],['simulateUnknown','unknown','结果未知']])el(id).addEventListener('click',()=>{nextSaveFailure=mode;el('failureStatus').textContent='下次保存将模拟：'+label;notice('已设置下次保存模拟：'+label+'，当前草稿会保留。');});
  document.addEventListener('keydown',event=>{
   if(event.key!=='Escape')return;
