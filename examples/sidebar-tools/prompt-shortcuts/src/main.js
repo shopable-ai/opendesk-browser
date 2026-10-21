@@ -859,7 +859,10 @@ async function commit(next,analyticsSaveId=null){
   if(model.bytes(next)>8192)throw Object.assign(Error('提示词共用 8 KiB 数据项，超出存储上限'),{code:'E_TOOL_DATA_LIMIT'});
   busy=true;lock();
   try{
-    let saved;
+    let saved,verifiedReadback=false;
+    // Object key order is not a storage contract; all saved fields are.
+    const encode=value=>JSON.stringify(value,(_key,row)=>row&&typeof row==='object'&&!Array.isArray(row)
+      ?Object.fromEntries(Object.keys(row).sort().map(key=>[key,row[key]])):row);
     try{
       saved=await request('storage.set',{key:KEY,value:next,ifMatch:etag,
         ...(analyticsSaveId?{analyticsIntent:'save_prompt',itemId:analyticsSaveId}:{})});
@@ -869,12 +872,23 @@ async function commit(next,analyticsSaveId=null){
       unconfirmedWrite=true;status('写入回执未确认，正在核对已保存数据…',true);
       try{
         const checked=await readLibrary();
-        // Chrome Storage can reorder object keys. Confirm the entire intended library.
-        const encode=value=>JSON.stringify(value,(_key,row)=>row&&typeof row==='object'&&!Array.isArray(row)
-          ?Object.fromEntries(Object.keys(row).sort().map(key=>[key,row[key]])):row);
         if(encode(checked.value)!==encode(next))throw Error('读回数据与本次写入不一致');
-        saved={etag:checked.etag};
+        saved={etag:checked.etag};verifiedReadback=true;
       }catch{throw e;}
+      unconfirmedWrite=false;
+    }
+    // A positive Host acknowledgement also needs an independent, authoritative
+    // ETag + full-value readback. Never promote only an optimistic local list.
+    if(!verifiedReadback){
+      unconfirmedWrite=true;status('保存回执已收到，正在核对已保存数据…');
+      try{
+        const checked=await readLibrary();
+        if(checked.etag!==saved.etag||encode(checked.value)!==encode(next))
+          throw Error('存储读回与确认回执不一致');
+      }catch(e){
+        throw Object.assign(Error('权威读回无法确认本次保存，请重新打开核对，不要重放写入'),
+          {code:'E_OUTCOME_UNKNOWN',cause:e});
+      }
       unconfirmedWrite=false;
     }
     const staleIds=[...new Set(data.items.map(item=>item.imageAssetId).filter(Boolean))]

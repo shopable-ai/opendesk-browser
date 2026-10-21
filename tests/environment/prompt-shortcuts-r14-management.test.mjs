@@ -241,6 +241,49 @@ test('R1.8 Save click writes without requesting form submission in the restricte
   assert.equal(n['ps-index'].hidden,false);
 });
 
+test('R1.8 valid Host acknowledgement waits for independent full-library readback before navigating',async()=>{
+  const f=await fixture({deferReadback:true,sharedNavigation:true}),n=f.nodes;
+  n['ps-new'].click();n['ps-body'].value='读回保护的正文';n['ps-form'].emit('input');
+  n['ps-save'].click();await settle();
+  assert.equal(f.writes(),1);
+  assert.equal(f.readbacks.length,1,'saved:true is not authoritative readback');
+  assert.equal(f.states.at(-1).busy,true,'pending readback holds the busy guard');
+  assert.equal(n['ps-edit'].hidden,false,'do not show the list before readback');
+  f.root.emit('opendesk-tool-navigation',{detail:{action:'back'}});
+  assert.equal(n['ps-edit'].hidden,false,'shared back cannot discard pending save');
+  assert.equal(f.requests.filter(row=>row.op==='storage.set').length,1);
+  f.readbacks.shift().resolve();await settle();
+  assert.equal(n['ps-index'].hidden,false);
+  assert.equal(f.stored().items[0].body,'读回保护的正文');
+  assert.equal(f.states.at(-1).busy,false);
+  assert.equal(f.navigation.at(-1).page,'index');
+  assert.equal(f.requests.filter(row=>row.op==='storage.get'&&row.payload.key==='library').length,2);
+});
+
+for(const failure of ['readback failed','readback ETag mismatch','readback content mismatch']){
+  test('R1.8 positive Host acknowledgement '+failure+' blocks a second write and preserves draft',async()=>{
+    const f=await fixture({deferReadback:true}),n=f.nodes;
+    n['ps-new'].click();n['ps-body'].value='必须保留的正文';n['ps-form'].emit('input');
+    n['ps-save'].click();await settle();
+    assert.equal(f.readbacks.length,1);
+    const pending=f.readbacks.shift();
+    if(failure==='readback failed')pending.reject(Error('Host readback unavailable'));
+    else pending.resolve(failure==='readback ETag mismatch'?
+      {value:f.stored(),etag:'e'.repeat(64)}:
+      {value:null,etag:'1'.padStart(64,'0')});
+    await settle();
+    assert.equal(n['ps-edit'].hidden,false);
+    assert.equal(n['ps-body'].value,'必须保留的正文');
+    assert.match(n['ps-error'].textContent,/E_OUTCOME_UNKNOWN/);
+    assert.equal(n['ps-save'].disabled,true);
+    n['ps-save'].emit('click',{preventDefault(){}});
+    n['ps-form'].emit('submit',{preventDefault(){}});await settle();
+    assert.equal(f.requests.filter(row=>row.op==='storage.set').length,1,
+      'unknown outcome must not replay a possibly committed write');
+    assert.equal(f.stored().items[0].body,'必须保留的正文');
+  });
+}
+
 test('R1.8 keyboard save prevents submission and preserves multiline and IME Enter',async()=>{
   const f=await fixture(),n=f.nodes;
   n['ps-new'].click();n['ps-body'].value='键盘保存\n第二行';n['ps-form'].emit('input');
