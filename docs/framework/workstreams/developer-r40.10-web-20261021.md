@@ -1,5 +1,7 @@
 # Developer R40.10 Web ownership note (2026-10-21)
 
+**最新阶段（2026-10-22）：核心操作测试已收尾，新增结果见文末 I。** 复用同一候选的九场景真实证据，追加 Page ESM 当前源码 Run、Vue/Local Page 清理及网站/项目授权恢复证据；本轮无生产修改。全量矩阵、完整调用链复杂度审计、95 分及正式发布延期，历史清单不作为本阶段前置条件。
+
 - Owner: Developer R40.10-web, GitHub-only, `main` only. No branch/worktree/PR.
 - Write scope: `src/ui/script-editor.js`, `tests/environment/script-editor.test.mjs`, this evidence note. Shared RunHost, Authority, SDK, installations and build configuration are read-only.
 - Source baseline blob: `eb300db7ab31db9f17dce338a46d7d606dac57ac`; test baseline blob: `8c55b0b21b499f8c1af7f576976975cd1e2626e3`. Main parent for this write: `d30ce1bf7dadb7e3f3ff4f26698757acb1acb566`.
@@ -539,11 +541,32 @@ Codex native 独立 verifier Lagrange（agent `01a15fbc-6e61-7a50-82d7-a7fa71132
 
 **平均和最低均未达到 95，拒绝授予总验收 PASS。** 不通过新增测试数量、伪造成功回执、调整安全预算或未经失败证据重构来提高分数。
 
-### H. 剩余问题与最短步骤
+### H. 当前完成范围与延期项（按最新阶段更新）
 
-- **已执行核心链无新 P0 产品故障；总验收尚未关闭。** 95 门槛的主要 P1 证明缺口是完整生产调用链的实际前后比较。下一步先对现有生产调用树和重复状态做有界只读审计；仅发现真实重复且确需修复时，再在原 owner 内最小改动，不重开架构工程。
-- 原生仍未覆盖：不可逆 Revision 提交竞态、网站/Authority 撤权、Provider binding 替换/迟到回执、丢失确认回执。后续用所属隔离环境的真实操作定向补证；不能稳定制造的竞态保留相应 Node 范围和 Chrome NOT_TESTED。
-- 证据关联仍可最小补全：P2 作者锁→编译产物、L2 原始 preview target/binding 联合回执、U2 独立 DOM 清理数量。缺原始记录不冒充产品故障，不自动重跑九场景或全量验收。
-- Page 与旧 Controller 状态混显记为非阻断 UX 待办；需要修复时限对应投影，不改变执行 owner 或权限语义。
+- **已执行核心链无已知阻塞，本次核心阶段完成；完整验收仍未完成。** 复用九场景已有真实 Run/Stop 或自然结束证据，新增操作与补证见 I。未复现产品故障，不为提高评分或补齐旧清单修改生产源码。
+- 网站权限撤销/恢复、项目 Authority 撤销/恢复、实际选择另一 binding、Vue 独立 DOM/样式清理和 Local Page 原始 target/binding 联合身份已有下述新增证据；只适用于各自实际事件，不能覆盖旧事件的原始记录缺口。
+- 仍未实测：不可逆 Revision 提交后的特定竞态、Provider 迟到回执、确认回执丢失注入、运行中撤权竞态及其它未执行的高级路径。Page ESM 作者锁到本次编译产物的直接派发对象关联仍为补充证据缺口，不作为普通 Run 阻塞。
+- Page 与旧 Controller 技术状态混显仍为非阻断 UX 待办。完整生产调用链复杂度审计、架构整改、全量矩阵、全面 95 分和正式发布均延期，不自动进入下一阶段。
 
-本轮交付为**真实核心运行通过、总验收部分完成**。保留原始七目标与未达 95 的事实，不把本轮测试收尾冒充原始总目标完成。
+上文 G 是历史独立评分，E 的全链复杂度目标仍未证明。本阶段不重评，也不将核心阶段完成冒充旧完整目标完成。
+
+### I. 核心阶段续测与新增证据（2026-10-22）
+
+续接开始只读核对 `main` HEAD `cc5be451c39c129c1e0b37a8da242f7837ceae77`；五个 Developer 核心 owner 无未提交修改。其它 Agent 的 Workflow 冲突曾存在，随后已由并行工作消解，本轮未修改这些文件。未新建分支、worktree、Profile、watcher 或执行入口，未重建。Chrome 已安装列表实读扩展 **ENABLED / UNPACKED**，ID `khnmmokejhbehkdmanhjngocoikoegmb`、加载路径仍为 A 候选 production Developer；116 项资源重算与原构建收据逐字节一致，packageHash 仍为 `634dd0b30fbdfe0d470480d8f1f4924a5885fab214093e7b32b66259164f5d3d`。这不是当前 main 的新构建，也不是日常持续开发环境。
+
+接续 Chrome PID `49554`、Page Provider PID `56287`、既有 fixture 服务 PID `68658` 均仍在。原生 SIDE_PANEL 文档为 `B5484C9B471AEF6822EF8EFF155DF3FD`，hostInstanceId `f8c33998-7ac6-4f1b-a1c2-af17223e0e59`。本节路径前缀 **F** 指 `artifacts/developer-r4011-local-20261022/followup-20261022/`，属于本机忽略产物，未冒称已提交或上传；原 `final-core-matrix.json` 保留旧事件，本节补充最新范围。
+
+| 用户操作 | 实际来源与执行身份 | 真实结果与边界 | 证据（相对 F） |
+|---|---|---|---|
+| Page ESM：直接编辑当前源码 → Run → 自然结束 | 官方 `examples/programs/single-file/page-d3-max-esm.js` 仅加唯一显示标记；作者 SHA `8d5028778d410bd0dad19976c8baa588f4e1de932bad3c4d35f9b417d6c914cd`；执行 SHA `de1eafa623d0b39a5ca3fef7b98f7e4bcce194cc5fb98648ad0deca475593450`；tab `2142071199`、document `F9A2DBDC93D9A343BE59FD024496A748`、worldId `opendesk-preview-d1-effca7a4d5b24597a828c9adfd7440b9`、nonce `0666b348-2697-4358-92d7-4f6ee859d0b4` | 真实点击 `isTrusted=true/userActivation=true`；网页唯一 `#od-import-proof` 显示 `R4011-P2-followup-20261022 Page D3 max = 5`，返回 success/value=5/world=USER_SCRIPT；`preview-evaluated`，Run 可用、Stop 禁用。无 Revision/Candidate/安装；一次性脚本无需 Stop。**PASS（核心操作）** | [P2-current-source-run.json](../../../artifacts/developer-r4011-local-20261022/followup-20261022/P2-current-source-run.json)、`P2-current-source-panel.png`、`P2-current-source-page.png` |
+| Vue：交互后在同文档 Stop | 执行 SHA `bbf31ac9f5a38ca69d3447523295781d9108c3354c3f9e31a8f7fedb9c7357db`；新 preview `0214241b-e100-4917-948e-0958bfe92366`；tab `2142071199`、document `FDC596878BD742798F45746D669A08DA` | Stop 前按钮 `R4011 Vue 1`，DOM=1、style=1；同 preview/hash 的 `preview-retired`、ok=true、managed-ui-only；Stop 后 DOM=0、style=0。**PASS**，仅补新 preview，不回填旧 `24ea23bc…` 事件 | [U2-native-dom-cleanup.json](../../../artifacts/developer-r4011-local-20261022/followup-20261022/U2-native-dom-cleanup.json) |
+| Local Page：真实 Provider Run → Stop | 执行 SHA `bd641b634ccb1533e285eec3d8938531b41ca0ded4f900e1cc1e8af949b84001`；inputHash `caf0db7b283d5fc9596ee11c132d3fcfc0501e18573391868dacba5508a3d93b`；preview `aedac9c1-4a9d-4ae6-83e4-ff84d67a720a`；binding `local-v2-67d7c18bd222634d259bdd2d`、epoch `03c781db-7f7c-4417-b583-4ab9d7712bc3`；tab `2142071199`、document `F9A2DBDC93D9A343BE59FD024496A748` | 原始 claim、captured target、冻结源码、preview/result 身份闭合；实际 mounted、计数步长=2。Stop 回执同 preview/hash，`preview-retired`、ok=true、managed-ui-only，受管 group 1→0。**PASS**，只证明新 epoch，不回填旧 L2 事件；编辑器残留草稿和旧 UI runId 不作 Local 源码身份 | [L2-raw-preview-target-binding.json](../../../artifacts/developer-r4011-local-20261022/followup-20261022/L2-raw-preview-target-binding.json)、[L2-raw-run-stop.json](../../../artifacts/developer-r4011-local-20261022/followup-20261022/L2-raw-run-stop.json) |
+| 网站访问撤销 → Run 拒绝 → 恢复 → 再次 Run | Chrome 真实 ON_ALL_SITES→ON_CLICK；拒绝时 origins=[]；恢复后成功执行 SHA `9531b5e96df0ffb182797ca3861afe42362618625073aecff8fd0b4e613c0f06`；上述 `F9A2DB…` 文档、USER_SCRIPT | 权限缺失时主动 Run 得 E_PERMISSION、marker=0；恢复权限后仍为 0，明确再次 Run 才为 1。**PASS（本次操作链）**，不扩展到运行中撤权或正式安装 | [B4-site-revocation-final.json](../../../artifacts/developer-r4011-local-20261022/followup-20261022/B4-site-revocation-final.json)、`B4-site-restored-before-run.json` |
+| 项目 Authority 撤销 → 恢复 → 明确再 Run | 官方 Go CLI 操作；binding `local-3ab6eefc6d217c8892c6`；首次 run `10884a38-dfa4-404d-b5dc-dbd46d1a5f96`、恢复后 run `aabd0622-ad52-4e21-a76a-6b1f00b5aeea` | 撤销后项目列表为空、所选项目离线且 Run 禁用；恢复同 binding 后、Run 前 `#name` 仍为空；明确 Run 后返回 `R4011-Authority-A`，输入为 `R4011 authority A`，完成并释放。**PASS（UI/CLI 恢复链）**；禁用时未实际发起被拒运行，不虚构 sourceHash/epoch/document 关联 | [B4-authority-final.json](../../../artifacts/developer-r4011-local-20261022/followup-20261022/B4-authority-final.json)、`B4-authority-restored-before-run.json`、`authority-list-revoked.log` |
+| 选择另一已授权本地文件 → Run | 实际选择 `authority-b.js`，binding `local-c7bb1880f9fec9ef3408`；run `6ebac748-5977-415a-84c5-06b45c0f833e` | 选择 B 后、Run 前 `#name` 为空，结果区仍为旧 A；明确 Run 才返回 `R4011-Authority-B`、输入 `R4011 authority B`，完成并释放。**PASS（新 binding 选择和执行）**；sourceHash/epoch/document 未单独保存，迟到回执竞态仍 **NOT_TESTED** | [B5-new-binding-final.json](../../../artifacts/developer-r4011-local-20261022/followup-20261022/B5-new-binding-final.json)、`B5-new-binding-before-run.json` |
+
+P2 固定依赖的真实 IDB 锁已单独保存为 [P2-persisted-d3-locks.json](../../../artifacts/developer-r4011-local-20261022/followup-20261022/P2-persisted-d3-locks.json)：`USER_SCRIPT / locked / approved`，lockId `dep-lock-52b326deeb7aec0ffbb883d9a3941b9da2c56d512f4718d09a09794baf5e73a8`，manifestDigest `b04017ec8d9e4e1f66bb623e2797e438c7203768a5c734e71badd5c6031ec5eb`，D3 v3.2.4 `src/max.js` SHA `691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d`。用户没有逐库批准操作。**本次派发对象中的 authorLockId→compiledSourceUtf8 原始联合记录未留存**，不能仅凭该持久锁和 Page 回执 `lockId=null/dependencies=[]` 冒称直接关联已闭合，也不能判为产品编译失败。
+
+驱动事件观察器解析 console 消息时发生自身 JSON 异常，Node REPL 重置；重新连接后读取的是原文档已有 DOM/成功回执和 Chrome 缓存的真实点击事件，没有重复 Run 或伪造结果。只读 Debugger 已关闭，无生产插桩。Vue/Local 的补证据也来自原 owner 成功分支的只读观察。核心操作既已成功，未为补审计关联继续重跑或修改源码。
+
+**本轮唯一跟踪变更仍为本文档，生产文件 +0/-0。** 核对新增 JSON 身份与链接、文档差异及 main 单文件提交范围；无源码变化、无新产品失败或候选漂移，故复用原 check/build/定向测试，不运行新构建、全量回归或评分。隔离 Chrome/Profile/Page Provider 与原测试页服务保留，未停止并行服务、改写日常 Native 配对或扩展目录；后续资源操作仍由本对话负责。
