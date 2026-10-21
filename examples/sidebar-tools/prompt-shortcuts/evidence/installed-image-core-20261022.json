@@ -1,0 +1,63 @@
+{
+  "observedOn": "2026-10-22",
+  "stage": "development core operations; not production acceptance",
+  "toolId": "prompt-shortcuts",
+  "package": {
+    "version": "1.1.9",
+    "file": "examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json",
+    "bytes": 126503,
+    "sha256": "6baf71876feb969e6ee5434183db6a4a390f5b2445c177c0de38df07a20cee2b",
+    "issueFixed": "Existing image UI source was absent from the previous formal installable package.",
+    "identityAndRequestedCapabilities": "unchanged",
+    "projectPackageMatch": "PASS",
+    "installedCanonicalBytesMatch": "PASS"
+  },
+  "runtime": {
+    "browser": "Google Chrome 155.0.8059.85 on macOS",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "mode": "existing continuous development watcher",
+    "candidateBoundary": "Observed development runtime included concurrent uncommitted trusted adapter changes. This is not clean-commit or production evidence."
+  },
+  "independentProfile": {
+    "installation": "PASS: original local package review and confirm-install UI; first installation, not upgrade",
+    "installedVersion": "1.1.9",
+    "localPngInput": "PASS: actual installed sandbox file input supplied through CDP; not native Finder picker",
+    "preview": "PASS: complete 128x80 image",
+    "saveAndReopen": "PASS: actual Host retained name, full body and local image preview after manager reopened",
+    "resourceStorage": "PASS: local image resource stored separately; text library stores asset reference",
+    "site": "https://gemini.google.com/app",
+    "actualButtonClicks": "PASS: trusted pointer clicks on installed text and image buttons in closed shadow root",
+    "imagePromptFull": true,
+    "originalDraftPreserved": true,
+    "textPromptFull": true,
+    "imageDraftPreservedAfterText": true,
+    "noUserMessage": true,
+    "noModelResponse": true
+  },
+  "dailyProfile": {
+    "installedVersion": "NOT_READ",
+    "textSaveAndReopen": "PASS: actual native Accessibility actions",
+    "chatgptTextInsert": "PASS: complete prompt and existing user draft retained; no sending",
+    "originalDraftRestored": true,
+    "upgradeTo119": "NOT_TESTED: interrupted by development reload; no successful update receipt",
+    "lastProcessState": "Previous daily Chrome process absent at final observation; reason unknown",
+    "remainingTestEntry": "PS-CORE-TEXT-1022 may remain; existing user entry was preserved"
+  },
+  "targetedValidation": {
+    "sidebarToolPackageTests": "6/6 PASS",
+    "selectedImageAndAssetSafetyTests": "14/14 PASS",
+    "promotion": "Canonical build-sidebar-tool packer; tested candidate promoted using --promote-from; --check-project PASS",
+    "logs": "Ignored local artifacts/prompt-shortcuts-core-20261022/"
+  },
+  "notTested": [
+    "Daily Profile upgrade to 1.1.9",
+    "Native Finder image picker and cancellation",
+    "JPEG/WebP file selection and image drag/drop",
+    "Installed source-switch draft guard with a reliable driver",
+    "Real IME and Undo",
+    "Production and full formal acceptance"
+  ],
+  "diagnosticLimit": "Intermittent menu/focus automation failures did not establish a product defect. Do not infer product failures from incomplete driver actions.",
+  "privacy": "Raw daily-profile Accessibility logs contain user draft text and remain ignored local artifacts; they are not included here."
+}
