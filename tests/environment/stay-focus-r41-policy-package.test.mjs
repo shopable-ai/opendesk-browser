@@ -64,7 +64,7 @@ function fixture(){
   const stored=new Map([[SIDEBAR_TOOL_STORE,[old()]],[SIDEBAR_TOOL_ENABLE_STORE,{}],
     [TOOL_REVOCATION_EPOCHS_STORE,{'stay-focus':'epoch-1'}]]);
   const session=new Map(),alarms=new Map(),rules=[],writes=[];
-  let clock=at,url='https://existing.example.com/watch';
+  let clock=at,url='https://existing.example.com/watch',installEpoch='epoch-1';
   const sender={id:'abcdefghijklmnopabcdefghijklmnop',
     url:'chrome-extension://abcdefghijklmnopabcdefghijklmnop/sidepanel.html?hostInstanceId=123e4567-e89b-42d3-a456-426614174000',
     frameId:0,documentId:'doc-r41',documentLifecycle:'active'};
@@ -106,13 +106,23 @@ function fixture(){
     lockManager:{request:async(_name,work)=>work()},now:()=>clock});
   const msg=async(tool,operation,payload={})=>({protocol:FOCUS_PROTOCOL,
     toolId:'stay-focus',operation,payload,
-    packageHash:await focusPackageHash(tool),installEpoch:'epoch-1'});
+    packageHash:await focusPackageHash(tool),installEpoch});
   api.runtime.sendMessage=async message=>{
     try{return {ok:true,data:await focus.dispatch(message,sender)};}
     catch(error){return {ok:false,error:{code:error.code,message:error.message}};}
   };
   return {stored,focus,api,rules,writes,sender,msg,
+    get installEpoch(){return installEpoch;},
+    reopenHost(){installEpoch=stored.get(TOOL_REVOCATION_EPOCHS_STORE)?.['stay-focus']??null;},
     setTime:value=>{clock=value;},setUrl:value=>{url=value;}};
+}
+async function reopenUpgradedHost(f,tool){
+  const retiredEpoch=f.installEpoch;
+  f.reopenHost();
+  assert.notEqual(f.installEpoch,retiredEpoch,'the real installer rotates the installation lease');
+  const current=await f.msg(tool,'focus.status');
+  await assert.rejects(f.focus.dispatch({...current,installEpoch:retiredEpoch},f.sender),
+    {code:'E_TOOL_CHANGED'},'the current package cannot reuse a retired Host epoch');
 }
 test('same Host SHA / only app package changes: no silent rules, direct edits, native DNR readback',async()=>{
   const f=fixture(),base=old(),modern=next();
@@ -135,11 +145,12 @@ test('same Host SHA / only app package changes: no silent rules, direct edits, n
   assert.deepEqual(upgraded.sites.map(row=>row.host),['existing.example.com']);
   assert.ok(upgraded.catalog.some(row=>row.host==='pinterest.com'));
   assert.equal(f.stored.get(FOCUS_STORE).authorizedHash,null);
+  await reopenUpgradedHost(f,modern);
   await assert.rejects(f.focus.dispatch(await f.msg(base,'focus.status'),f.sender),
     {code:'E_TOOL_CHANGED'});
   let repeatedReview=false;
   await requestStayFocusOperation({api:f.api,tool:modern,operation:'focus.site.put',
-    payload:{site:site('pinterest.com')},revocationEpoch:'epoch-1',assertCurrent(){},
+    payload:{site:site('pinterest.com')},revocationEpoch:f.installEpoch,assertCurrent(){},
     requestBrowserClick(){repeatedReview=true;throw Error('unexpected second approval');},
     openSettings(){throw Error('not expected');}});
   assert.equal(repeatedReview,false);
@@ -209,6 +220,7 @@ test('R5.9 first-use v2 recommendations require explicit site add; upgrade keeps
   assert.ok(stopped.sites.some(row=>row.host==='user-choice.example.com'));
   assert.ok(!stopped.sites.some(row=>row.host==='github.com'));
   assert.ok(stopped.catalog.some(row=>row.host==='pinterest.com'));
+  await reopenUpgradedHost(f,upgraded);
   await assert.rejects(f.focus.dispatch(await f.msg(app,'focus.status'),f.sender),
     {code:'E_TOOL_CHANGED'});
   const resumed=await f.focus.dispatch(await f.msg(upgraded,'focus.enable'),f.sender);
@@ -247,12 +259,13 @@ test('R5.4 older package to 1.0.5: same worker, package-only upgrade and explici
   assert.equal(waiting.sites.find(row=>row.host==='youtube.com').enabled,false);
   assert.ok(!waiting.sites.some(row=>row.host==='pinterest.com'));
   assert.equal(waiting.catalog.find(row=>row.host==='pinterest.com').auto,true);
+  await reopenUpgradedHost(f,app);
   await assert.rejects(f.focus.dispatch(await f.msg(previous,'focus.status'),f.sender),
     {code:'E_TOOL_CHANGED'});
   await f.focus.dispatch(await f.msg(app,'focus.enable'),f.sender);
   const result=await requestStayFocusOperation({api:f.api,tool:app,
     operation:'focus.site.put',payload:{site:site('pinterest.com','always')},
-    revocationEpoch:'epoch-1',assertCurrent(){},
+    revocationEpoch:f.installEpoch,assertCurrent(){},
     requestBrowserClick(){throw Error('unexpected second approval');},
     openSettings(){throw Error('unexpected');}});
   assert.equal(result.enabled,true);

@@ -1,6 +1,6 @@
 // Trusted MV3 worker service. No sandbox may call Chrome DNR, idle or tabs.
-import {SIDEBAR_TOOL_STORE} from '../../../../src/ui/sidebar-tools/package.js';
-import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE}
+import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage} from '../../../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolLifecycleChanged}
   from '../../../../src/ui/sidebar-tools/lifecycle.js';
 import {readManagedSiteToolAuthority,assertManagedSiteToolLease}
   from '../../../../src/platform/host/managed-site-authority.js';
@@ -373,6 +373,34 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
   }
   return {tick,dispatch,probe,invalidate};
 }
+function focusStorageRevokes(changes){
+  try{
+    for(const key of [SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE]){
+      if(!Object.hasOwn(changes,key))continue;
+      const change=changes[key];
+      if(!change||typeof change!=='object'||Array.isArray(change)||
+         Object.keys(change).some(field=>!['oldValue','newValue'].includes(field))||
+         change.oldValue===undefined&&change.newValue===undefined)return true;
+    }
+    if(Object.hasOwn(changes,SIDEBAR_TOOL_STORE)){
+      const focusRow=rows=>{
+        if(!Array.isArray(rows))throw new Error('Unknown installed tool table');
+        const ids=new Set();
+        for(const row of rows){
+          validateSidebarToolPackage(row);
+          if(ids.has(row.id))throw new Error('Duplicate installed tool');
+          ids.add(row.id);
+        }
+        const own=rows.filter(row=>row.id===FOCUS_ID);
+        if(own.length!==1)throw new Error('Missing Focus identity');
+        return own[0];
+      };
+      const {oldValue,newValue}=changes[SIDEBAR_TOOL_STORE];
+      if(JSON.stringify(focusRow(oldValue))!==JSON.stringify(focusRow(newValue)))return true;
+    }
+    return sidebarToolLifecycleChanged(changes,FOCUS_ID);
+  }catch{return true;}
+}
 export function installStayFocusService({api=globalThis.chrome,...options}={}){
   const service=createStayFocusService({api,...options}),removers=[];
   const listen=(event,fn)=>{event?.addListener(fn);removers.push(()=>event?.removeListener(fn));};
@@ -406,7 +434,11 @@ export function installStayFocusService({api=globalThis.chrome,...options}={}){
         void clearPageNotices(api);
     }
     if(area==='local'&&[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE]
-      .some(key=>Object.hasOwn(changes,key))){service.invalidate({revoke:true});run({boot:true});}
+      .some(key=>Object.hasOwn(changes,key))){
+      // Every table event still invalidates timing and rechecks live authority.
+      // Only a proven unrelated change may retain the existing Focus grant.
+      service.invalidate({revoke:focusStorageRevokes(changes)});run({boot:true});
+    }
     }
   });
   return {service,dispose(){disposeActivity();for(const remove of removers)remove();}};

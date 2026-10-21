@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createStayFocusService} from '../../examples/sidebar-tools/stay-focus/trusted/service.js';
+import {createStayFocusService,installStayFocusService} from '../../examples/sidebar-tools/stay-focus/trusted/service.js';
 import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../examples/sidebar-tools/stay-focus/trusted/lifecycle.js';
 import {FOCUS_PROTOCOL,FOCUS_STORE,FOCUS_PAGE_NOTICE_PROTOCOL,FOCUS_PROBE_OPERATION,FOCUS_SERVICE_VERSION,focusPackageHash} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
@@ -316,6 +316,103 @@ test('Time Review presence or independent storage does not change Stay Focus aut
   assert.equal(f.rules.length,1);
   assert.deepEqual(f.stored.get('opendesk.time-review.v1'),{days:{'2026-10-13':{'example.com':300000}}});
 });
+
+// Exercise the installed worker's real storage listener, with the same serialized
+// tool lock as Chrome. Draining that queue observes reconciliation without sleeps.
+async function installedFocusFixture(t){
+  const f=fixture(),listeners=new Set();
+  let pending=Promise.resolve();
+  f.api.storage.onChanged={addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn)};
+  const installed=installStayFocusService({api:f.api,now:()=>f.clock,lockManager:{request(_name,work){
+    const result=pending.then(work);pending=result.catch(()=>{});return result;
+  }}});
+  t.after(()=>{installed.dispose();assert.equal(listeners.size,0,'dispose removes the storage listener');});
+  f.focus=installed.service;
+  f.storageChange=async(changes,{persist=true}={})=>{
+    if(persist)for(const [key,change] of Object.entries(changes)){
+      if(change.newValue===undefined)f.stored.delete(key);
+      else f.stored.set(key,structuredClone(change.newValue));
+    }
+    for(const listener of listeners)listener(changes,'local');
+    await pending;
+  };
+  await pending; // initial worker reconciliation
+  await f.focus.dispatch(await f.msg('focus.site.put',{site:mkSite('example.com','always')}),f.sender);
+  await f.focus.dispatch(await f.msg('focus.enable'),f.sender);
+  await f.focus.dispatch(await f.msg('focus.session.start',{minutes:25}),f.sender);
+  assert.equal(f.rules.length,1);
+  assert.match(f.rules[0].action.redirect.extensionPath,/blocked-session\.html$/);
+  assert.equal(f.stored.get(FOCUS_STORE).focusUntil,at+25*60000);
+  assert.equal(f.alarms.size,1);
+  return f;
+}
+const timeTool=()=>({...buildTool(),id:'time-review',title:'Time Review',capabilities:['time.review']});
+for(const change of ['install','disable','enable','epoch'])test('worker storage isolation: unrelated Time Review '+change+' keeps Focus protection',async t=>{
+  const f=await installedFocusFixture(t),before=structuredClone(f.stored.get(FOCUS_STORE));
+  const rules=structuredClone(f.rules),opCount=f.nativeOps.length;
+  let changes;
+  if(change==='install')changes={
+    [SIDEBAR_TOOL_STORE]:{oldValue:[f.tool],newValue:[structuredClone(f.tool),timeTool()]},
+    [SIDEBAR_TOOL_ENABLE_STORE]:{oldValue:{},newValue:{'time-review':true}},
+    [TOOL_REVOCATION_EPOCHS_STORE]:{oldValue:{'stay-focus':'epoch-1'},newValue:{'stay-focus':'epoch-1','time-review':'time-1'}}
+  };
+  else if(change==='epoch')changes={[TOOL_REVOCATION_EPOCHS_STORE]:{
+    oldValue:{'stay-focus':'epoch-1','time-review':'time-1'},newValue:{'stay-focus':'epoch-1','time-review':'time-2'}}};
+  else changes={[SIDEBAR_TOOL_ENABLE_STORE]:{oldValue:{'time-review':change==='disable'},
+    newValue:{'time-review':change==='enable'}}};
+  await f.storageChange(changes);
+  const saved=f.stored.get(FOCUS_STORE);
+  assert.equal(saved.enabled,true,'another app lifecycle cannot revoke Focus');
+  assert.equal(saved.authorizedHash,before.authorizedHash);
+  assert.equal(saved.authorizedEpoch,before.authorizedEpoch);
+  assert.equal(saved.focusUntil,before.focusUntil,'the active 25 minute block is preserved');
+  assert.deepEqual(f.rules,rules);
+  assert.equal(f.nativeOps.length,opCount,'unrelated changes never remove/reinstall live DNR rules');
+  assert.equal(f.alarms.size,1);
+  assert.deepEqual(f.permissionRemovals,[]);
+});
+for(const change of ['uninstall','identity','epoch','disable'])test('worker storage isolation: Focus '+change+' immediately retires only its own rules',async t=>{
+  const f=await installedFocusFixture(t),foreign={id:25,priority:1,action:{type:'block'},condition:{urlFilter:'other-tool'}};
+  f.rules.push(foreign);
+  const changes=change==='uninstall'?{[SIDEBAR_TOOL_STORE]:{oldValue:[f.tool],newValue:[timeTool()]}}:
+    change==='identity'?{[SIDEBAR_TOOL_STORE]:{oldValue:[f.tool],newValue:[{...f.tool,version:'1.0.1'}]}}:
+    change==='epoch'?{[TOOL_REVOCATION_EPOCHS_STORE]:{oldValue:{'stay-focus':'epoch-1'},newValue:{'stay-focus':'epoch-2'}}}:
+    {[SIDEBAR_TOOL_ENABLE_STORE]:{oldValue:{},newValue:{'stay-focus':false}}};
+  await f.storageChange(changes);
+  assert.deepEqual(f.rules,[foreign]);
+  assert.equal(f.alarms.size,0);
+  if(change!=='uninstall')assert.equal(f.stored.get(FOCUS_STORE).enabled,false);
+  await assert.rejects(f.focus.dispatch(await f.msg('focus.status'),f.sender),error=>error.code==='E_TOOL_CHANGED');
+  assert.deepEqual(f.permissionRemovals,[],'tool retirement does not revoke shared Chrome permissions');
+});
+for(const change of ['restored identity','restored epoch','restored disable','missing envelope','null envelope',
+  'invalid registry','duplicate Focus','invalid package','invalid enable map','invalid epoch map']){
+  test('worker storage isolation: '+change+' remains a conservative revocation fence',async t=>{
+    const f=await installedFocusFixture(t);
+    const changes=change==='restored identity'?{[SIDEBAR_TOOL_STORE]:{oldValue:[f.tool],newValue:[{...f.tool,js:'changed();'}]}}:
+      change==='restored epoch'?{[TOOL_REVOCATION_EPOCHS_STORE]:{oldValue:{'stay-focus':'epoch-1'},newValue:{'stay-focus':'retired'}}}:
+      change==='restored disable'?{[SIDEBAR_TOOL_ENABLE_STORE]:{oldValue:{},newValue:{'stay-focus':false}}}:
+      change==='missing envelope'?{[SIDEBAR_TOOL_ENABLE_STORE]:{}}:
+      change==='null envelope'?{[SIDEBAR_TOOL_STORE]:null}:
+      change==='invalid registry'?{[SIDEBAR_TOOL_STORE]:{oldValue:[f.tool],newValue:{'stay-focus':f.tool}}}:
+      change==='duplicate Focus'?{[SIDEBAR_TOOL_STORE]:{oldValue:[f.tool],newValue:[f.tool,f.tool]}}:
+      change==='invalid package'?{[SIDEBAR_TOOL_STORE]:{oldValue:[f.tool],newValue:[f.tool,{id:'time-review'}]}}:
+      change==='invalid enable map'?{[SIDEBAR_TOOL_ENABLE_STORE]:{oldValue:{},newValue:{'time-review':'yes'}}}:
+      {[TOOL_REVOCATION_EPOCHS_STORE]:{oldValue:{'stay-focus':'epoch-1'},newValue:{'stay-focus':'epoch-1','time-review':17}}};
+    // Even if storage already looks valid again by the time its queued event is
+    // processed, an own-authority transition or unknown event must stay fenced.
+    await f.storageChange(changes,{persist:false});
+    assert.equal(f.stored.get(FOCUS_STORE).enabled,false);
+    assert.equal(f.stored.get(FOCUS_STORE).authorizedHash,null);
+    assert.equal(f.stored.get(FOCUS_STORE).authorizedEpoch,null);
+    assert.equal(f.rules.length,0);
+    assert.equal(f.alarms.size,0);
+    await f.focus.tick({boot:true});
+    assert.equal(f.rules.length,0,'a later healthy observation cannot silently restore protection');
+    assert.equal(f.stored.get(FOCUS_STORE).enabled,false);
+    assert.deepEqual(f.permissionRemovals,[]);
+  });
+}
 
 test('R5.9 first enable prepares budget but never enrolls recommended websites',async()=>{
   const fresh=fixture();

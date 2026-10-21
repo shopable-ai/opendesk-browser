@@ -1,0 +1,166 @@
+{
+  "format": "opendesk.sidebar-tool.v1",
+  "id": "stay-focus",
+  "version": "1.0.10",
+  "title": "Stay Focus · 保持专注",
+  "description": "本机娱乐限额、共享时间预算、工作时段和专注模式；由 Chrome 在得到独立授权后限制网站访问。",
+  "capabilities": [
+    "focus.control",
+    "currentPage.read"
+  ],
+  "html": "<div id=\"tool-app\" aria-label=\"Stay Focus 应用\"></div>\n",
+  "css": ".sf{--sf-bg:var(--od-bg,#f6f8fb);--sf-paper:var(--od-paper,#fff);--sf-ink:var(--od-ink,#1c2a3a);--sf-muted:var(--od-sub,#657286);--sf-line:var(--od-line,#e4e9f0);--sf-brand:var(--od-brand,#3864c4);--sf-input:var(--od-input-border,#cbd4df);--sf-soft:#eff3fa;box-sizing:border-box;width:100%;min-width:0;min-height:100%;max-width:680px;margin:auto;padding:14px 12px 24px;background:var(--sf-bg);color:var(--sf-ink);overflow-wrap:anywhere;font:13px/1.5 system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}.sf *{box-sizing:border-box}.sf p,.sf h2,.sf h3{margin:0}.sf h2{font-size:17px;font-weight:760;line-height:1.2}.sf h3{font-size:14px;font-weight:730}.sf .od-shared-card{background:var(--sf-paper);border-color:var(--sf-line);color:var(--sf-ink)}.sf .od-shared-card-content{padding:14px}.sf .od-button{min-height:35px;white-space:nowrap}.sf .od-icon-button{width:36px;height:36px;min-width:36px;min-height:36px;display:inline-grid;place-items:center;padding:0;border-radius:10px;border:1px solid transparent;color:var(--sf-muted);background:transparent;cursor:pointer}.sf .od-icon-button:hover{color:var(--sf-ink);background:var(--sf-soft)}.sf button:focus-visible,.sf input:focus-visible,.sf select:focus-visible,.sf textarea:focus-visible,.sf summary:focus-visible{outline:2px solid var(--sf-brand);outline-offset:2px}.sf button:disabled{cursor:not-allowed;opacity:.5}.sf svg{display:block;flex:none}.sf input:not([type=checkbox]),.sf select,.sf textarea{min-width:0;width:100%;border:1px solid var(--sf-input);border-radius:9px;background:var(--sf-paper);color:var(--sf-ink);padding:8px 9px;min-height:36px;font:inherit}.sf input[type=checkbox]{accent-color:var(--sf-brand)}.sf-heading{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:14px}.sf-brand{display:flex;align-items:center;gap:10px;min-width:0}.sf-brand-symbol{flex:none;display:grid;place-items:center;width:36px;height:36px;background:#e9effc;color:#3764c2;border-radius:11px;font-size:23px}.sf-brand p{font-size:11px;color:var(--sf-muted);margin-top:2px}.sf-state{flex:none;max-width:42%;padding:5px 9px;border-radius:99px;font-size:10px;font-weight:700;color:#626e7f;background:#edf1f6;text-align:center}.sf-state[data-active=true]{color:#176a48;background:#e6f5ed}.sf-state[data-warning=true]{color:#925c1a;background:#fff1df}.sf-headrow{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11px;color:var(--sf-muted)}.sf-balance{margin:9px 0 0}.sf-balance span{display:block;color:var(--sf-muted);font-size:12px}.sf-balance strong{display:block;color:var(--sf-ink);font-size:34px;line-height:1.3;letter-spacing:-.04em;font-weight:780;font-variant-numeric:tabular-nums}.sf-progress{height:7px;background:var(--sf-soft);border-radius:10px;overflow:hidden;margin:12px 0 9px}.sf-progress i{height:100%;display:block;background:var(--sf-brand);border-radius:inherit;transition:width .2s}.sf-budget-form{margin-top:14px;padding-top:12px;border-top:1px solid var(--sf-line);display:flex;align-items:center;gap:7px;min-width:0;flex-wrap:wrap}.sf-budget-form label{font-size:12px;font-weight:650;white-space:nowrap;flex:none}.sf-budget-form input{width:69px!important;text-align:center;margin:0}.sf-budget-form span{color:var(--sf-muted);font-size:11px;white-space:nowrap}.sf-budget-form .od-button{margin-left:auto}.sf-hint{color:var(--sf-muted);font-size:11px;line-height:1.5}.sf-hero .sf-hint{margin-top:9px}.sf-session{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding:12px 13px;border:1px solid var(--sf-line);border-radius:12px;background:var(--sf-paper)}.sf-session strong{font-size:12px}.sf-session p{font-size:11px;color:var(--sf-muted);margin-top:2px}.sf-session .od-button{flex:none}.sf-notice{font-size:11px;line-height:1.5;padding:9px 10px;margin-top:9px!important;border-radius:10px;border:1px solid var(--sf-line);background:var(--sf-paper)}.sf-notice[data-error=true]{color:var(--od-negative,#ab4250);border-color:#e7c9cf}.sf-sites{margin-top:18px}.sf-sites-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}.sf-sites-actions{display:flex;align-items:center;gap:8px;color:var(--sf-muted);font-size:11px}.sf-sites-actions .od-icon-button{background:var(--sf-paper);border-color:var(--sf-line);color:var(--sf-brand)}.sf-current{display:flex;align-items:center;justify-content:space-between;gap:9px;background:var(--sf-paper);border:1px solid var(--sf-line);padding:11px 10px 11px 12px;border-radius:12px;margin-bottom:9px;min-width:0}.sf-current>div{min-width:0;flex:1}.sf-current span{display:block;color:var(--sf-muted);font-size:11px}.sf-current strong{display:block;font-size:13px;overflow-wrap:anywhere;line-height:1.4}.sf-current .od-button{gap:4px;flex:none}.sf-managed{display:inline-flex!important;align-items:center;gap:3px;color:#237b53!important;font-weight:700;white-space:nowrap}.sf-list{display:grid;gap:7px}.sf-site{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:8px 7px 8px 12px;border:1px solid var(--sf-line);border-radius:11px;background:var(--sf-paper)}.sf-site[data-paused=true] .sf-site-info{opacity:.67}.sf-site-info{min-width:0;flex:1}.sf-site-info strong{display:block;font-size:12px;font-weight:720;overflow-wrap:anywhere}.sf-site-info span{display:block;font-size:10px;line-height:1.4;color:var(--sf-muted);margin-top:3px}.sf-site-controls{display:flex;align-items:center;gap:2px;flex:none}.sf-menu{position:relative}.sf-popup{position:absolute;top:calc(100% + 4px);right:0;width:155px;z-index:25;padding:5px;border:1px solid var(--sf-line);border-radius:11px;background:var(--sf-paper);box-shadow:0 9px 26px #1d31502b}.sf-popup button{display:flex;align-items:center;gap:8px;min-height:37px;width:100%;border:0;border-radius:8px;background:transparent;color:var(--sf-ink);font:inherit;font-size:12px;font-weight:600;line-height:1.3;text-align:left;padding:7px 9px;cursor:pointer}.sf-popup button:hover,.sf-popup button:focus-visible{background:var(--sf-soft)}.sf-popup button.sf-danger{color:var(--od-negative,#b14453)}.sf-empty{font-size:12px;text-align:center;color:var(--sf-muted);border:1px dashed var(--sf-line);padding:18px 10px;border-radius:11px;background:var(--sf-paper)}.sf-show-all{width:100%;margin-top:2px}.sf-editor{margin-bottom:11px}.sf-editor-title{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.sf-editor-title strong{font-size:13px}.sf-field{display:block;font-size:11px;color:var(--sf-muted);font-weight:650;margin:8px 0}.sf-field input,.sf-field select{display:block;margin-top:5px}.sf-two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}.sf-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;margin-top:11px}.sf-actions{display:flex;justify-content:flex-end;margin-top:14px}.sf-advanced{border:1px solid var(--sf-line);border-radius:12px;background:var(--sf-paper);padding:12px 13px;margin-top:12px}.sf-advanced>summary{cursor:pointer;font-size:12px;font-weight:730}.sf-advanced>summary small{display:block;font-size:11px;font-weight:400;color:var(--sf-muted)}.sf-setting{border-top:1px solid var(--sf-line);margin-top:13px;padding-top:13px}.sf-setting>strong{display:block;font-size:12px;margin-bottom:4px}.sf-setting .sf-hint{margin:7px 0}.sf-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;margin:12px 0}.sf-days label{display:flex;align-items:center;justify-content:center;gap:3px;font-size:11px}.sf-setting textarea{resize:vertical}.sf-setting .od-button{margin-top:8px}.sf-group-add{display:grid;grid-template-columns:minmax(0,1fr) 66px auto;gap:6px;margin-top:10px}.sf-group-add .od-button{margin:0}.sf-group-row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px;font-size:11px;color:var(--sf-muted)}.sf-group-row .od-icon-button{width:32px;height:32px}@media(max-width:355px){.sf{padding:12px 10px 22px}.sf .od-shared-card-content{padding:12px}.sf-two{grid-template-columns:minmax(0,1fr);gap:0}.sf-group-add{grid-template-columns:minmax(0,1fr) 68px}.sf-group-add .od-button{grid-column:1/-1}.sf-session{flex-wrap:wrap}.sf-session .od-button{margin-left:auto}.sf-site{gap:4px;padding-left:9px}.sf-site-controls{gap:0}}@media(prefers-color-scheme:dark){.sf{--sf-bg:#101722;--sf-paper:#192232;--sf-ink:#edf2fa;--sf-muted:#b1bed0;--sf-line:#354359;--sf-brand:#86a8ff;--sf-input:#52617a;--sf-soft:#253146}.sf-brand-symbol{background:#273a5e}.sf-state{background:#293448;color:#e8ecf3}}@media(prefers-reduced-motion:reduce){.sf *{transition:none!important}}.sf[data-preview-theme=dark]{--sf-bg:#101722;--sf-paper:#192232;--sf-ink:#edf2fa;--sf-muted:#b1bed0;--sf-line:#354359;--sf-brand:#86a8ff;--sf-input:#52617a;--sf-soft:#253146}.sf[data-preview-theme=light]{--sf-bg:#f6f8fb;--sf-paper:#fff;--sf-ink:#1c2a3a;--sf-muted:#657286;--sf-line:#e4e9f0;--sf-brand:#3864c4;--sf-input:#cbd4df;--sf-soft:#eff3fa}\n",
+  "js": "(function(){\"use strict\";(()=>{const C=globalThis.OpenDeskTool,a=globalThis.OpenDeskPageReact,O=globalThis.OpenDeskSidebarUI;if(!C?.root||!C?.request||!a?.createRoot||!O?.IconButton||!O?.Switch)throw Error(\"E_STAY_FOCUS_SHARED_UI\");const e=a.createElement,{Button:U,IconButton:Y,Card:I,CardContent:_,Switch:q}=O,Z={add:[\"M12 5v14\",\"M5 12h14\"],edit:[\"M12 20h9\",\"M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z\"],more:[\"M5 12h.01\",\"M12 12h.01\",\"M19 12h.01\"],close:[\"M18 6 6 18\",\"M6 6l12 12\"],pause:[\"M9 5v14\",\"M15 5v14\"],play:[\"M7 4l13 8-13 8V4Z\"],delete:[\"M3 6h18\",\"M8 6V4h8v2\",\"M19 6l-1 14H6L5 6\",\"M10 10v6\",\"M14 10v6\"],check:[\"M20 6 9 17l-5-5\"]},x=({name:t})=>e(\"svg\",{viewBox:\"0 0 24 24\",width:17,height:17,fill:\"none\",stroke:\"currentColor\",strokeWidth:1.8,strokeLinecap:\"round\",strokeLinejoin:\"round\",\"aria-hidden\":!0},...(Z[t]||[]).map((r,i)=>e(\"path\",{d:r,key:i}))),T=({name:t,label:r,...i})=>e(Y,{label:r,title:r,...i},e(x,{name:t})),F=t=>String(t?.message||t||\"操作失败\").slice(0,220);function j(t){try{const r=String(t||\"\").trim(),i=new URL(/^https?:\\/\\//i.test(r)?r:\"https://\"+r);return![\"http:\",\"https:\"].includes(i.protocol)||i.username||i.password||i.port||!i.hostname.includes(\".\")&&i.hostname!==\"localhost\"?\"\":i.hostname.toLowerCase().replace(/\\.$/,\"\")}catch{return\"\"}}const H=t=>String(Math.floor(t/60)).padStart(2,\"0\")+\":\"+String(t%60).padStart(2,\"0\"),z=t=>{const r=/^([01]\\d|2[0-3]):([0-5]\\d)$/.exec(t);return r?Number(r[1])*60+Number(r[2]):null};function G({site:t,busy:r,edit:i,change:w}){const[v,y]=a.useState(!1),d=a.useRef(null),S=a.useRef(null),g=a.useRef(null),k=(f=!1)=>{y(!1),f&&S.current?.focus()},M=f=>{if(![\"ArrowDown\",\"ArrowUp\",\"Home\",\"End\"].includes(f.key))return;const b=[...d.current?.querySelectorAll('[role=\"menuitem\"]')||[]];if(!b.length)return;f.preventDefault();const m=b.indexOf(document.activeElement),E=f.key===\"Home\"?0:f.key===\"End\"?b.length-1:(m+(f.key===\"ArrowUp\"?-1:1)+b.length)%b.length;b[E].focus()};a.useEffect(()=>{if(!v)return;g.current?.focus();const f=m=>{d.current?.contains(m.target)||y(!1)},b=m=>{m.key===\"Escape\"&&(m.preventDefault(),m.stopPropagation(),k(!0))};return document.addEventListener(\"pointerdown\",f),document.addEventListener(\"keydown\",b,!0),()=>{document.removeEventListener(\"pointerdown\",f),document.removeEventListener(\"keydown\",b,!0)}},[v]);const l=f=>{k(!0),w(f)},u=t.group===\"entertainment\"?\"娱乐共享额度\":t.group?\"共享组 · \"+t.group:\"独立额度 · \"+t.minutes+\" 分钟\",N=t.enabled?{session:\"专注中\",schedule:\"工作时段\",always:\"始终限制\",quota:\"额度已耗尽\"}[t.reason]||\"正常\":\"已暂停\";return e(\"article\",{className:\"sf-site\",\"data-paused\":!t.enabled},e(\"div\",{className:\"sf-site-info\"},e(\"strong\",null,t.host),e(\"span\",null,u+\" · \"+N)),e(\"div\",{className:\"sf-site-controls\"},e(T,{name:\"edit\",label:\"编辑 \"+t.host,disabled:r,onClick:()=>i(t)}),e(\"div\",{className:\"sf-menu\",ref:d,onBlur:f=>{f.currentTarget.contains(f.relatedTarget)||y(!1)}},e(T,{name:\"more\",label:\"管理 \"+t.host,disabled:r,ref:S,\"aria-haspopup\":\"menu\",\"aria-expanded\":v,onClick:()=>y(!v)}),v?e(\"div\",{className:\"sf-popup\",role:\"menu\",\"aria-label\":t.host+\" 操作\",onKeyDown:M},e(\"button\",{type:\"button\",role:\"menuitem\",ref:g,onClick:()=>l({...t,enabled:!t.enabled})},e(x,{name:t.enabled?\"pause\":\"play\"}),t.enabled?\"暂停网站\":\"恢复网站\"),e(\"button\",{type:\"button\",role:\"menuitem\",className:\"sf-danger\",onClick:()=>l(null)},e(x,{name:\"delete\"}),\"移除网站\")):null)))}function Q({initial:t,budget:r,groups:i,busy:w,save:v,close:y}){const[d,S]=a.useState(()=>({host:t?.host||\"\",group:t?.group??\"entertainment\",mode:t?.mode||\"limit\",minutes:String(t?.minutes??r),subdomains:t?.subdomains??!0,enabled:t?.enabled??!0})),g=l=>S(u=>({...u,...l})),k=d.group===\"\"&&d.mode===\"limit\",M=()=>{const l=j(d.host),u=k?Number(d.minutes):t?.minutes??r;if(!l||!Number.isInteger(u)||u<1||u>1440)return v(null,\"请输入有效域名和 1–1440 分钟的额度。\");if(t&&l!==t.host)return v(null,\"编辑时不能更改域名。\");v({...d,host:l,minutes:u})};return e(I,{className:\"sf-editor\"},e(_,null,e(\"div\",{className:\"sf-editor-title\"},e(\"strong\",null,t?\"编辑 \"+t.host:\"添加网站\"),e(T,{name:\"close\",label:\"关闭编辑\",onClick:y})),e(\"label\",{className:\"sf-field\"},\"网站域名\",e(\"input\",{value:d.host,readOnly:!!t,placeholder:\"例如 youtube.com\",maxLength:253,autoComplete:\"off\",spellCheck:!1,onChange:l=>g({host:l.target.value})})),e(\"div\",{className:\"sf-two\"},e(\"label\",{className:\"sf-field\"},\"额度来源\",e(\"select\",{value:d.group,onChange:l=>g({group:l.target.value})},e(\"option\",{value:\"entertainment\"},\"娱乐共享额度\"),e(\"option\",{value:\"\"},\"独立额度\"),...Object.keys(i||{}).filter(l=>l!==\"entertainment\").map(l=>e(\"option\",{key:l,value:l},\"共享组 · \"+l)))),e(\"label\",{className:\"sf-field\"},\"限制方式\",e(\"select\",{value:d.mode,onChange:l=>g({mode:l.target.value})},e(\"option\",{value:\"limit\"},\"每日限额\"),e(\"option\",{value:\"always\"},\"始终限制\")))),k?e(\"label\",{className:\"sf-field\"},\"独立额度（分钟）\",e(\"input\",{type:\"number\",min:1,max:1440,value:d.minutes,onChange:l=>g({minutes:l.target.value})})):null,e(\"div\",{className:\"sf-toggle\"},e(\"span\",null,\"包含子域名\"),e(q,{isSelected:d.subdomains,onChange:l=>g({subdomains:l}),\"aria-label\":\"包含子域名\"})),e(\"div\",{className:\"sf-actions\"},e(U,{variant:\"primary\",disabled:w,onClick:M},t?\"保存修改\":\"添加网站\"))))}function X({state:t,busy:r,operate:i,error:w}){const[v,y]=a.useState(null),[d,S]=a.useState(null),[g,k]=a.useState(\"\"),[M,l]=a.useState(\"30\");if(a.useEffect(()=>{t&&(y(n=>n??{...t.schedule,days:[...t.schedule.days]}),S(n=>n??t.whitelist.join(`\n`)))},[!!t]),!t)return null;const u=v||t.schedule,N=n=>y({...u,...n}),f=JSON.stringify({...u,days:[...u.days].sort()})!==JSON.stringify({...t.schedule,days:[...t.schedule.days].sort()}),b=()=>{if(u.startMinute===u.endMinute||u.enabled&&!u.days.length)return w(\"请选择工作日，并设置不同的开始与结束时间。\");i(\"focus.schedule.set\",{schedule:u})},m=()=>{const n=(d??\"\").split(/\\r?\\n/).map(c=>c.trim()).filter(Boolean).map(j);if(n.includes(\"\")||n.length>50||new Set(n).size!==n.length)return w(\"白名单最多包含 50 个不同的有效域名。\");i(\"focus.whitelist.set\",{hosts:n})},E=()=>{const n=g.trim().toLowerCase(),c=Number(M);if(!/^[a-z][a-z0-9-]{0,23}$/.test(n)||!Number.isInteger(c)||c<1||c>1440)return w(\"额度组名称或分钟数无效。\");i(\"focus.group.put\",{id:n,minutes:c}).then(p=>{p&&k(\"\")})};return e(\"details\",{className:\"sf-advanced\"},e(\"summary\",null,\"更多设置\",e(\"small\",null,\"工作时段 · 白名单 · 共享组\")),e(\"section\",{className:\"sf-setting\"},e(\"div\",{className:\"sf-toggle\"},e(\"strong\",null,\"工作时段\"),e(q,{isSelected:u.enabled,onChange:n=>N({enabled:n}),\"aria-label\":\"启用工作时段限制\"})),e(\"p\",{className:\"sf-hint\"},\"时段限制独立于每日共享额度，不清零累计时间。\"),e(\"div\",{className:\"sf-days\"},...[[\"一\",1],[\"二\",2],[\"三\",3],[\"四\",4],[\"五\",5],[\"六\",6],[\"日\",0]].map(([n,c])=>e(\"label\",{key:c},e(\"input\",{type:\"checkbox\",checked:u.days.includes(c),onChange:p=>N({days:p.target.checked?[...u.days,c]:u.days.filter(L=>L!==c)})}),n))),e(\"div\",{className:\"sf-two\"},e(\"label\",{className:\"sf-field\"},\"开始时间\",e(\"input\",{type:\"time\",value:H(u.startMinute),onChange:n=>{const c=z(n.target.value);c!==null&&N({startMinute:c})}})),e(\"label\",{className:\"sf-field\"},\"结束时间\",e(\"input\",{type:\"time\",value:H(u.endMinute%1440),onChange:n=>{const c=z(n.target.value);c!==null&&N({endMinute:c})}}))),f?e(U,{disabled:r,onClick:b},\"保存时段\"):null),e(\"section\",{className:\"sf-setting\"},e(\"strong\",null,\"始终允许访问\"),e(\"p\",{className:\"sf-hint\"},\"每行一个域名。白名单优先于所有网站限制。\"),e(\"textarea\",{\"aria-label\":\"白名单域名\",rows:3,value:d??\"\",onChange:n=>S(n.target.value)}),(d??\"\")!==t.whitelist.join(`\n`)?e(U,{disabled:r,onClick:m},\"保存白名单\"):null),e(\"section\",{className:\"sf-setting\"},e(\"strong\",null,\"其他共享额度组\"),e(\"div\",{className:\"sf-group-add\"},e(\"input\",{value:g,placeholder:\"例如 social\",\"aria-label\":\"组名\",onChange:n=>k(n.target.value)}),e(\"input\",{type:\"number\",min:1,max:1440,value:M,\"aria-label\":\"每日分钟数\",onChange:n=>l(n.target.value)}),e(U,{disabled:r,onClick:E},\"保存\")),...Object.entries(t.groups||{}).filter(([n])=>n!==\"entertainment\").map(([n,c])=>e(\"div\",{className:\"sf-group-row\",key:n},e(\"span\",null,n+\" · \"+c+\" 分钟/天\"),e(T,{name:\"delete\",label:\"删除额度组 \"+n,disabled:r,onClick:()=>{i(\"focus.group.remove\",{id:n})}})))),e(\"section\",{className:\"sf-setting\"},e(\"strong\",null,\"临时屏蔽网站\"),e(\"p\",{className:\"sf-hint\"},t.focusUntil&&t.focusUntil>Date.now()?\"剩余 \"+Math.ceil((t.focusUntil-Date.now())/6e4)+\" 分钟。到期自动恢复原有规则，不重置每日额度。\":\"接下来 25 分钟限制已管理且未暂停的网站，到期恢复原有规则；不改变每日额度和工作时段。\"),e(U,{disabled:r||!t.enabled,onClick:()=>{i(t.focusUntil&&t.focusUntil>Date.now()?\"focus.session.stop\":\"focus.session.start\",t.focusUntil&&t.focusUntil>Date.now()?{}:{minutes:25})}},t.focusUntil&&t.focusUntil>Date.now()?\"提前结束\":\"屏蔽 25 分钟\")),e(\"p\",{className:\"sf-hint\"},\"全局停止与清空仅在外层可信扩展设置的「更多操作」中提供。\"))}function ee(){const[t,r]=a.useState(null),[i,w]=a.useState(!1),[v,y]=a.useState(!0),[d,S]=a.useState(\"\"),[g,k]=a.useState(!1),[M,l]=a.useState(null),[u,N]=a.useState(void 0),[f,b]=a.useState(!1),m=a.useRef(!1),E=a.useRef(0),n=a.useRef(!1),c=a.useRef(null),p=a.useCallback((o,s=!1)=>{m.current&&(S(o),k(s))},[]),L=a.useCallback(async()=>{if(n.current)return;const o=++E.current;try{const s=await C.request(\"focus.status\",{});if(!s?.dailyBudget||!Array.isArray(s.sites))throw Error(\"后台状态数据不完整\");if(!m.current||n.current||o!==E.current)return;c.current=s,r(s),y(!1)}catch(s){m.current&&o===E.current&&(y(!1),c.current||p(\"无法读取 Chrome 状态：\"+F(s),!0))}},[p]),D=a.useCallback(async(o,s={})=>{if(n.current||!c.current)return!1;n.current=!0,E.current++,w(!0),p(\"\");try{const h=await C.request(o,s);if(!h?.dailyBudget||!Array.isArray(h.sites))throw Error(\"保存回执尚未确认，请检查当前设置\");return m.current?(c.current=h,r(h),h.enabled&&h.ruleReceipt?.verified!==!0?p(\"设置已保存，但 Chrome 规则尚未核对。\",!0):h.enabled&&h.tabs?.failed>0?p(\"规则已保存，部分网页需要手动刷新。\",!0):h.enabled?p(\"\"):p(\"设置已保存，授权开启后生效。\"),!0):!1}catch(h){return m.current&&p(h?.code===\"E_OUTCOME_UNKNOWN\"?\"结果尚未确认，请先检查状态，不要重复提交。\":F(h),!0),!1}finally{n.current=!1,m.current&&(w(!1),L())}},[p,L]);a.useEffect(()=>{m.current=!0;const o=()=>{L()},s=()=>{document.hidden||L()};C.root.addEventListener(\"opendesk-page-changed\",o),C.root.addEventListener(\"opendesk-tool-state-changed\",s),document.addEventListener(\"visibilitychange\",s),globalThis.addEventListener(\"focus\",s);const h=globalThis.setInterval(()=>{document.hidden||L()},1e4);return L(),()=>{m.current=!1,E.current++,globalThis.clearInterval(h),C.root.removeEventListener(\"opendesk-page-changed\",o),C.root.removeEventListener(\"opendesk-tool-state-changed\",s),document.removeEventListener(\"visibilitychange\",s),globalThis.removeEventListener(\"focus\",s)}},[L]);const B=t?.sites||[],R=t?.dailyBudget?.minutes??30,K=t?.dailyBudget?.usedMs??0,te=t?.dailyBudget?.remainingMs??R*6e4,V=Math.min(100,Math.max(0,Math.round(K/(R*6e4)*100))),A=M??String(R),ne=M!==null&&A!==String(R),se=(o,s)=>{if(s)return p(s,!0);D(\"focus.site.put\",{site:o}).then(h=>{h&&N(void 0)})},ae=(o,s)=>{D(s?\"focus.site.put\":\"focus.site.remove\",s?{site:{host:s.host,subdomains:s.subdomains,enabled:s.enabled,mode:s.mode,minutes:s.minutes,group:s.group}}:{host:o.host})},le=()=>{const o=Number(A),s=A;if(!Number.isInteger(o)||o<1||o>1440)return p(\"每日额度必须在 1–1440 分钟之间。\",!0);D(\"focus.group.put\",{id:\"entertainment\",minutes:o}).then(h=>{h&&l(W=>W===s?null:W)})};return e(\"main\",{className:\"sf\",\"aria-label\":\"Stay Focus 保持专注\"},e(\"header\",{className:\"sf-heading\"},e(\"div\",{className:\"sf-brand\"},e(\"span\",{className:\"sf-brand-symbol\",\"aria-hidden\":!0},\"◷\"),e(\"div\",null,e(\"h2\",null,\"Stay Focus\"),e(\"p\",null,\"把时间留给重要的事\"))),e(\"span\",{className:\"sf-state\",\"data-active\":!!(t?.enabled&&t?.ruleReceipt?.verified),\"data-warning\":!!(t?.enabled&&!t?.ruleReceipt?.verified)},v?\"正在读取\":t?t.enabled?t.ruleReceipt?.verified?B.length?\"限制已开启\":\"已开启 · 待加入网站\":\"规则待核对\":\"未开启\":\"状态未知\")),e(I,{className:\"sf-hero\"},e(_,null,e(\"div\",{className:\"sf-headrow\"},e(\"span\",null,\"今日娱乐时间\"),e(\"time\",null,t?.day||\"—\")),e(\"div\",{className:\"sf-balance\"},e(\"span\",null,\"今天还剩\"),e(\"strong\",null,Math.max(0,Math.ceil(te/6e4))+\" 分钟\")),e(\"div\",{className:\"sf-progress\",role:\"progressbar\",\"aria-label\":\"已使用娱乐额度比例\",\"aria-valuemin\":0,\"aria-valuemax\":100,\"aria-valuenow\":V},e(\"i\",{style:{width:V+\"%\"}})),e(\"div\",{className:\"sf-headrow\"},e(\"span\",null,\"已使用 \"+Math.floor(K/6e4)+\" 分钟\"),e(\"span\",null,\"总额度 \"+R+\" 分钟\")),e(\"div\",{className:\"sf-budget-form\"},e(\"label\",{htmlFor:\"sf-daily-budget\"},\"每日额度\"),e(\"input\",{id:\"sf-daily-budget\",type:\"number\",min:1,max:1440,step:1,inputMode:\"numeric\",value:A,onChange:o=>l(o.target.value)}),e(\"span\",null,\"分钟\"),ne?e(U,{variant:\"primary\",disabled:i||!t,onClick:le},\"保存\"):null),e(\"p\",{className:\"sf-hint\"},\"所有娱乐网站共用这一份每日额度。\"))),d?e(\"p\",{className:\"sf-notice\",\"data-error\":g,role:g?\"alert\":\"status\",\"aria-live\":\"polite\"},d):null,e(\"section\",{className:\"sf-sites\",\"aria-label\":\"网站管理\"},e(\"div\",{className:\"sf-sites-head\"},e(\"h3\",null,\"管理的网站\"),e(\"div\",{className:\"sf-sites-actions\"},e(\"span\",null,B.length+\" 个\"),e(T,{name:\"add\",label:\"添加自定义网站\",disabled:i,onClick:()=>N(null)}))),u!==void 0?e(Q,{key:u?.host||\"new\",initial:u,budget:R,groups:t?.groups,busy:i,close:()=>N(void 0),save:se}):null,B.length?e(\"div\",{className:\"sf-list\"},...(f?B:B.slice(0,4)).map(o=>e(G,{key:o.host,site:o,busy:i,edit:N,change:s=>ae(o,s)})),B.length>4?e(U,{className:\"sf-show-all\",onClick:()=>b(o=>!o)},f?\"收起列表\":\"查看全部 \"+B.length+\" 个网站\"):null):e(\"p\",{className:\"sf-empty\"},\"暂无受管网站。请使用上方「当前网页」的一键加入，或点击加号添加网站。\")),e(X,{state:t,busy:i,operate:D,error:o=>p(o,!0)}))}const P=C.root.querySelector(\"#tool-app\");if(!P)throw Error(\"E_STAY_FOCUS_MOUNT\");const $=a.createRoot(P);$.render(e(ee));let J=!1;globalThis.addEventListener(\"pagehide\",()=>{J||(J=!0,$.unmount())},{once:!0})})()})();\n",
+  "uiRuntime": "opendesk.react-ui.v1",
+  "backgroundPolicy": {
+    "kind": "site-budget.v2",
+    "dailyMinutes": 30,
+    "defaultSites": [
+      "youtube.com",
+      "bilibili.com",
+      "tiktok.com",
+      "douyin.com",
+      "instagram.com",
+      "reddit.com",
+      "x.com",
+      "weibo.com",
+      "netflix.com",
+      "twitch.tv",
+      "roblox.com",
+      "pinterest.com"
+    ],
+    "schedule": {
+      "enabled": false,
+      "days": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "startMinute": 540,
+      "endMinute": 1020
+    },
+    "suggestions": [
+      {
+        "host": "youtube.com",
+        "name": "YouTube",
+        "category": "视频娱乐",
+        "suggestLimit": true,
+        "quick": true
+      },
+      {
+        "host": "bilibili.com",
+        "name": "哔哩哔哩",
+        "category": "视频娱乐",
+        "suggestLimit": true,
+        "quick": true
+      },
+      {
+        "host": "tiktok.com",
+        "name": "TikTok",
+        "category": "短视频",
+        "suggestLimit": true,
+        "quick": true
+      },
+      {
+        "host": "douyin.com",
+        "name": "抖音",
+        "category": "短视频",
+        "suggestLimit": true,
+        "quick": false
+      },
+      {
+        "host": "instagram.com",
+        "name": "Instagram",
+        "category": "社交娱乐",
+        "suggestLimit": true,
+        "quick": true
+      },
+      {
+        "host": "reddit.com",
+        "name": "Reddit",
+        "category": "社交娱乐",
+        "suggestLimit": true,
+        "quick": false
+      },
+      {
+        "host": "x.com",
+        "name": "X",
+        "category": "社交娱乐",
+        "suggestLimit": true,
+        "quick": false
+      },
+      {
+        "host": "weibo.com",
+        "name": "微博",
+        "category": "社交娱乐",
+        "suggestLimit": true,
+        "quick": false
+      },
+      {
+        "host": "netflix.com",
+        "name": "Netflix",
+        "category": "影视娱乐",
+        "suggestLimit": true,
+        "quick": false
+      },
+      {
+        "host": "twitch.tv",
+        "name": "Twitch",
+        "category": "直播娱乐",
+        "suggestLimit": true,
+        "quick": false
+      },
+      {
+        "host": "roblox.com",
+        "name": "Roblox",
+        "category": "游戏",
+        "suggestLimit": true,
+        "quick": false
+      },
+      {
+        "host": "github.com",
+        "name": "GitHub",
+        "category": "工作/开发",
+        "suggestLimit": false,
+        "quick": false
+      },
+      {
+        "host": "stackoverflow.com",
+        "name": "Stack Overflow",
+        "category": "工作/开发",
+        "suggestLimit": false,
+        "quick": false
+      },
+      {
+        "host": "docs.google.com",
+        "name": "Google Docs",
+        "category": "工作",
+        "suggestLimit": false,
+        "quick": false
+      },
+      {
+        "host": "wikipedia.org",
+        "name": "Wikipedia",
+        "category": "学习",
+        "suggestLimit": false,
+        "quick": false
+      },
+      {
+        "host": "coursera.org",
+        "name": "Coursera",
+        "category": "学习",
+        "suggestLimit": false,
+        "quick": false
+      },
+      {
+        "host": "pinterest.com",
+        "name": "Pinterest",
+        "category": "社交娱乐",
+        "suggestLimit": true,
+        "quick": true
+      }
+    ]
+  }
+}
