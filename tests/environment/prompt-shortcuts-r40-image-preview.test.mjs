@@ -203,3 +203,11 @@ test('R4.1 replacing an edited image never deletes the still-saved asset before 
   assert(now.imageAssets[old],'old persisted resource must survive uncommitted replacement');
   assert(now.imageAssets[now.draftImageAssetId],'new draft resource must exist');
 });
+
+test('R4.1 save-and-continue resets the same complete image draft baseline as form open',async()=>{
+  const js=script(await load());
+  assert.equal([...js.matchAll(/baselineForm=draftSnapshot\(\);dirty=false;/g)].length,2,
+    'opening and save-and-continue must both baseline active and inactive image drafts');
+  assert.doesNotMatch(js,/baselineForm=JSON\.stringify\(rawFormValues\(\)\)/,
+    'legacy active-only reset makes a blank form incorrectly dirty after save-and-continue');
+});
