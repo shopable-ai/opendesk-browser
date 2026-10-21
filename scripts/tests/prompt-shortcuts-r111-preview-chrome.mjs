@@ -111,8 +111,9 @@ async function r35Screenshot(name){
 }
 async function r35ChooseSize(value){
   await evalChrome('('+function(size){
-    const select=document.querySelector('#imageSizeSetting');
-    select.value=size;select.dispatchEvent(new Event('change',{bubbles:true}));
+    const button=document.querySelector('#imageSizeGroup button[data-image-size="'+size+'"]');
+    if(!button)throw Error('missing actual image size button: '+size);
+    button.click();
   }.toString()+')('+JSON.stringify(value)+')');
 }
 async function state(){
