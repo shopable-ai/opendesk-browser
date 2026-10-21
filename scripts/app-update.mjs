@@ -78,7 +78,7 @@ async function updateApp(id,{check=false}={}){
     console.log('仅应用 JSON 无变化；如修改了 trusted/，请更新 Browser 本体。');
     return;
   }
-  let bumpedText=null;
+  let bumpedText=null,enteredPromotion=false;
   try{
     if(decision.kind==='BUMP_PATCH'){
       bumpedText=replaceOnlyVersion(original,config.version,decision.version);
@@ -98,6 +98,7 @@ async function updateApp(id,{check=false}={}){
     const reencoded=encodeSidebarToolPackage(await createSidebarToolPackage(project));
     if(!reencoded.equals(await readFile(candidate)))
       fail('E_APP_SOURCE_CHANGED','app changed while running tests; no promotion');
+    enteredPromotion=true;
     const promoted=await promoteSidebarToolPackage(project,{from:candidate});
     const checked=await checkSidebarToolProjectPackage(project);
     if(promoted.version!==checked.version||promoted.sha256!==checked.sha256)
@@ -105,10 +106,12 @@ async function updateApp(id,{check=false}={}){
     installAdvice(id,checked.output,checked.version,checked.sha256);
   }catch(error){
     // Preserve a concurrent edit. Roll back only the exact version string we wrote.
-    if(bumpedText&&await readFile(configFile,'utf8').catch(()=>null)===bumpedText){
+    if(bumpedText&&!enteredPromotion&&await readFile(configFile,'utf8').catch(()=>null)===bumpedText){
       await writeFile(configFile,original,'utf8');
       console.error('原版本号已恢复；失败没有替换正式安装包。');
     }
+    if(enteredPromotion)
+      console.error('已进入正式包晋升阶段；保留版本与文件现场，请核对 --check-project 后再重试，不能盲目回滚。');
     throw error;
   }
 }

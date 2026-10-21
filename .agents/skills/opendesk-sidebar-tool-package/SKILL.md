@@ -18,7 +18,7 @@ npm run app:update -- reading-toc --check
 npm run app:update -- reading-toc
 ```
 
-命令为 `scripts/app-update.mjs`，只调用**现有** `build-sidebar-tool.mjs`、规范包校验、`installation.js` 版本比较和 `--promote-from`。它不会创建第二个 Installer/Runner，也不会触摸 Browser 的 `dist/development` 或 Chrome Profile。若 React/Vue 构建回执过期，先按应用现有构建脚本预编译，**不允许**用旧 `dist/build-ready.json` 通过门禁。若权限、依赖、托管策略变更而版本未升级，禁止静默 PATCH，要求明确审阅并设置新版本。失败时保留旧正式包，自动版本回滚仅在源文件没有其他并行改动时执行。
+命令为 `scripts/app-update.mjs`，只调用**现有** `build-sidebar-tool.mjs`、规范包校验、`installation.js` 版本比较和 `--promote-from`。它不会创建第二个 Installer/Runner，也不会触摸 Browser 的 `dist/development` 或 Chrome Profile。若 React/Vue 构建回执过期，先按应用现有构建脚本预编译，**不允许**用旧 `dist/build-ready.json` 通过门禁。若权限、依赖、托管策略变更而版本未升级，禁止静默 PATCH，要求明确审阅并设置新版本。晋升前失败时保留旧正式包；自动版本回滚仅在源文件未被并行修改时执行。进入晋升后如校验失败，保留现场并读回对账，不盲目回滚或重试。
 
 命令完成意味着 **`PACKAGE_READY_INSTALL_NOT_TESTED`**：输出真实版本、SHA-256 和正式文件位置。实际安装/升级由 OpenDesk「扩展」的**原有可信安装器**审阅确认；之后再核对旧数据、功能和原生 Chrome 结果。阅读目录网页悬浮层、Stay Focus/AdBlock 的 `trusted/` SW/Content 修改不是这个 JSON 的内容，不得把包升级当成 Browser 可信代码升级。
 
