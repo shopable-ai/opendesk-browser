@@ -165,10 +165,10 @@
 
 /* R3.2: in-place image appearance and one global size, no second settings page. */
 .ps-image-size-setting{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);
-  border:1px solid var(--od-line);border-radius:var(--radius-control);padding:8px 10px;min-width:0}
+  border:1px solid var(--od-line);border-radius:var(--radius-control);padding:6px 8px;min-width:0}
+.ps-image-size-setting[hidden]{display:none!important}
 .ps-image-size-setting label{font-size:var(--od-note-size);font-weight:650;min-width:0}
-.ps-image-size-setting label small{display:block;color:var(--od-sub);font-weight:400;font-size:var(--od-meta-size)}
-.ps-image-size-setting select{width:145px;max-width:52%;min-height:36px;flex:none}
+.ps-image-size-setting select{width:135px;max-width:52%;min-height:34px;flex:none}
 .ps-appearance-switch{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:3px;border:1px solid var(--od-line);
   border-radius:9px;background:var(--od-bg);min-width:0}
 .ps-appearance-switch label{display:grid;place-items:center;position:relative;min-height:34px;border-radius:7px;

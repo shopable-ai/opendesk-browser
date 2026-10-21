@@ -528,6 +528,8 @@ function render(){
   el('ps-empty').hidden=data.items.length>0;
   el('ps-web').checked=data.settings.webButtons;
   el('ps-image-size').value=data.settings.imageSize||'large';
+  // Text-only collections keep their original uncluttered list.
+  el('ps-image-size-setting').hidden=!data.items.some(item=>item.appearance==='image');
   for(const [i,item] of data.items.entries()){
     const identity=(item.nameAuto?'':item.name?.trim())||
       item.body.trim().replace(/\s+/g,' ').slice(0,60)||'提示词';

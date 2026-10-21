@@ -389,10 +389,10 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .appearance-switch label:has(input:checked){background:var(--od-paper);box-shadow:0 1px 4px #08172c1c;color:var(--od-accent-ink)}
 .appearance-switch input{position:absolute;opacity:0;inset:0;cursor:pointer}
 .appearance-switch label:has(input:focus-visible){outline:3px solid var(--od-focus);outline-offset:1px}
-.image-size-setting{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;margin:0 0 10px}
-.image-size-setting label{display:grid;gap:3px;min-width:0;flex:1}
-.image-size-setting select{width:145px;max-width:52%;min-width:108px;min-height:36px;flex:none}
-@media(max-width:380px){.image-size-setting{gap:6px;padding:8px}.image-size-setting select{width:131px;max-width:50%}}
+.image-size-setting{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;margin:0 0 10px;padding:6px 8px}
+.image-size-setting label{display:flex;align-items:center;min-width:0;flex:1}
+.image-size-setting select{width:135px;max-width:52%;min-width:108px;min-height:34px;flex:none}
+@media(max-width:380px){.image-size-setting{gap:6px;padding:5px 7px}.image-size-setting select{width:128px;max-width:50%}}
 .ps-image-fields{display:grid;gap:5px;border-top:1px solid var(--od-line)}
 .ps-image-fields[hidden]{display:none!important}
 .ps-image-preview-line{display:flex;align-items:center;gap:11px;padding:7px 0}
@@ -515,7 +515,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
       <p id="replaceWarning" class="replace-warning" role="alert" hidden></p>
       <div class="import-actions"><button id="cancelImport" type="button" class="od-button">取消</button><button id="importReplace" type="button" class="od-button od-button--danger">替换现有</button><button id="importAppend" type="button" class="od-button od-button--primary">追加导入</button></div>
      </div>
-     <div class="host-setting-row od-surface image-size-setting"><label for="imageSizeSetting"><strong>图片按钮大小</strong><small>全局应用；不影响文字快捷按钮</small></label><select id="imageSizeSetting" class="od-field" aria-label="图片按钮大小"><option value="compact">紧凑 · 48×40</option><option value="standard">标准 · 56×44</option><option value="large" selected>大图 · 68×48</option></select></div>
+     <div id="imageSizeGroup" class="host-setting-row od-surface image-size-setting" role="group" aria-label="图片快捷按钮尺寸设置"><label for="imageSizeSetting"><strong>图片按钮大小</strong></label><select id="imageSizeSetting" class="od-field" aria-label="图片按钮大小"><option value="compact">紧凑 · 48×40</option><option value="standard">标准 · 56×44</option><option value="large" selected>大图 · 68×48</option></select></div>
      <div id="promptList" class="shortcuts-list"></div>
    </section>
    <section id="formView" hidden aria-labelledby="hostToolTitle">
@@ -616,8 +616,8 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    });
   }catch{return COPY();}
  }
- function persistDemoItems(){try{localStorage.setItem(DEMO_ITEM_KEY,JSON.stringify(state.items));return true;}catch{return false;}}
- function persistDemoSettings(){try{localStorage.setItem(DEMO_SETTINGS_KEY,JSON.stringify(state.settings));return true;}catch{return false;}}
+ function persistDemoItems(items=state.items){try{localStorage.setItem(DEMO_ITEM_KEY,JSON.stringify(items));return true;}catch{return false;}}
+ function persistDemoSettings(settings=state.settings){try{localStorage.setItem(DEMO_SETTINGS_KEY,JSON.stringify(settings));return true;}catch{return false;}}
  let state={version:1,revision:1,settings:restoreDemoSettings(),items:restoreDemoItems(),toolEnabled:true};
  let currentView='index', editId=null,baselineForm='',revisionAtEdit=1,dirty=false,saving=false,pendingDestination='index',expandedId=null,deleteId=null,copyId=null,tipButton=null,noticeKind='info',nextSaveFailure=null;
  let stagedImport=null,importRevision=0,replaceArmed=false,installed=true;
@@ -661,16 +661,18 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   return url.href;
  }
  function paintPicture(holder,item,notify=false){
-  const fallback=()=>{holder.classList.remove('has-image');holder.replaceChildren(stack(item.label||defaultShort(item.body)||'…'));};
-  if(item.appearance!=='image'){holder.dataset.imageUrl='';fallback();return;}
+  const fallback=()=>{holder.dataset.imageUrl='';holder.classList.remove('has-image');holder.replaceChildren(stack(item.label||defaultShort(item.body)||'…'));};
+  if(item.appearance!=='image'){holder.dataset.failedImageUrl='';fallback();return;}
   let url;
   try{url=validPictureURL(item.imageUrl);if(!url)throw Error('请输入 HTTPS 图片 URL');}
-  catch(e){holder.dataset.imageUrl='';fallback();if(notify)el('imageHelp').textContent=e.message;return;}
+  catch(e){holder.dataset.failedImageUrl='';fallback();if(notify)el('imageHelp').textContent=e.message;return;}
+  // Do not refetch a failed URL on each label edit; continue rendering fallback text.
+  if(holder.dataset.failedImageUrl===url){fallback();return;}
   if(holder.dataset.imageUrl===url)return;
-  holder.dataset.imageUrl=url;holder.classList.add('has-image');
+  holder.dataset.failedImageUrl='';holder.dataset.imageUrl=url;holder.classList.add('has-image');
   const img=create('img','ps-picture');img.alt='';img.decoding='async';img.loading='lazy';img.referrerPolicy='no-referrer';
   img.addEventListener('error',()=>{if(holder.dataset.imageUrl!==url)return;
-   fallback();if(notify)el('imageHelp').textContent='图片加载失败，已经回退备用短标签。请检查链接、格式和网页 CSP。';});
+   holder.dataset.failedImageUrl=url;fallback();if(notify)el('imageHelp').textContent='图片加载失败，已经回退备用短标签。请检查链接、格式和网页 CSP。';});
   holder.replaceChildren(img);img.src=url;
   if(notify)el('imageHelp').textContent=({compact:'48×40',standard:'56×44',large:'68×48'}[state.settings.imageSize]||'68×48')+
    ' 圆角矩形网页按钮 · 图片完整显示，不裁切；加载失败回退短标签。';
@@ -727,6 +729,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   el('toolEnabledSwitch').checked=state.toolEnabled;
   el('contextSwitch').checked=state.settings.contextMenu;
   el('imageSizeSetting').value=IMAGE_SIZES.includes(state.settings.imageSize)?state.settings.imageSize:'large';
+  el('imageSizeGroup').hidden=!state.items.some(item=>item.appearance==='image');
   el('showBarSwitch').disabled=!state.toolEnabled;
   el('contextSwitch').disabled=!state.toolEnabled;
   for(const id of ['showBarSwitch','contextSwitch']){
@@ -804,9 +807,17 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   if(result.size>8192){notice('导入超过 8 KiB 上限，原有提示词未改变。','error');return;}
   if(mode==='replace'&&!replaceArmed){replaceArmed=true;el('replaceWarning').hidden=false;el('replaceWarning').textContent='这将删除现有 '+state.items.length+' 条提示词；再次点击「确认替换」才会执行。';el('importReplace').textContent='确认替换';el('importReplace').focus({preventScroll:true});return;}
   if(mode==='append'&&!result.added){discardImport();notice('没有新提示词，重复项目已经跳过。');return;}
-  state.items=result.items;
-  if(mode==='replace'&&stagedImport.imageSize)state.settings.imageSize=stagedImport.imageSize;
-  persistDemoItems();persistDemoSettings();state.revision++;expandedId=null;deleteId=null;discardImport();renderIndex();renderRail();
+  const oldItems=state.items;
+  if(!persistDemoItems(result.items)){notice('模拟存储写入失败，导入未应用；原有数据保留。','error');return;}
+  if(mode==='replace'&&stagedImport.imageSize){
+   const nextSettings={...state.settings,imageSize:stagedImport.imageSize};
+   if(!persistDemoSettings(nextSettings)){
+    const restored=persistDemoItems(oldItems);
+    notice(restored?'模拟尺寸设置写入失败，已恢复导入前数据。':'E_OUTCOME_UNKNOWN：模拟存储回滚失败，请刷新核对数据。','error');return;
+   }
+   state.settings=nextSettings;
+  }
+  state.items=result.items;state.revision++;expandedId=null;deleteId=null;discardImport();renderIndex();renderRail();
   notice((mode==='replace'?'已替换':'已追加')+' '+result.added+' 条，跳过 '+result.skipped+' 条重复项目；网页按钮已即时同步（仅模拟）。','success');
   el('transferButton').focus({preventScroll:true});
  }
@@ -870,10 +881,12 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
     const commands=create('div','prompt-more');commands.id='prompt-menu-'+i;commands.setAttribute('role','group');commands.setAttribute('aria-label','提示词操作');
     iconAction(commands,'pencil','编辑：'+identity,()=>openForm(item.id));
     iconAction(commands,item.enabled?'eye-off':'eye',item.enabled?'停用：'+identity:'启用：'+identity,()=>{
-     item.enabled=!item.enabled;persistDemoItems();state.revision++;renderIndex();renderRail();
+     const nextEnabled=!item.enabled,nextItems=state.items.map(row=>row.id===item.id?{...row,enabled:nextEnabled}:row);
+     if(!persistDemoItems(nextItems)){notice('模拟存储写入失败，启停状态未改变。','error');return;}
+     state.items=nextItems;state.revision++;renderIndex();renderRail();
      const index=state.items.findIndex(x=>x.id===item.id);
      el('prompt-menu-'+index)?.querySelectorAll('button')[1]?.focus({preventScroll:true});
-     notice(item.enabled?'「'+identity+'」已启用（模拟）':'「'+identity+'」已停用（模拟）');
+     notice(nextEnabled?'「'+identity+'」已启用（模拟）':'「'+identity+'」已停用（模拟）');
     });
     iconAction(commands,'arrow-up','上移：'+identity,()=>moveItem(i,-1),{disabled:i===0});
     iconAction(commands,'arrow-down','下移：'+identity,()=>moveItem(i,1),{disabled:i===state.items.length-1});
@@ -892,7 +905,9 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
      deleteId=null;renderIndex();el('prompt-more-'+i)?.focus({preventScroll:true});
     },{small:true});
     action(buttons,'确认删除',()=>{
-     state.items=state.items.filter(x=>x.id!==item.id);persistDemoItems();state.revision++;
+     const nextItems=state.items.filter(x=>x.id!==item.id);
+     if(!persistDemoItems(nextItems)){notice('模拟存储写入失败，未删除提示词。','error');return;}
+     state.items=nextItems;state.revision++;
      deleteId=null;expandedId=null;renderIndex();renderRail();
      const next=Math.min(i,state.items.length-1);
      (next<0?el('addButton'):el('prompt-more-'+next))?.focus({preventScroll:true});
@@ -906,8 +921,10 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  }
  function moveItem(i,delta){
   const target=i+delta;if(target<0||target>=state.items.length)return;
-  const moved=state.items[i];[state.items[i],state.items[target]]=[state.items[target],state.items[i]];
-  expandedId=moved.id;deleteId=null;persistDemoItems();state.revision++;renderIndex();renderRail();
+  const nextItems=state.items.slice(),moved=nextItems[i];
+  [nextItems[i],nextItems[target]]=[nextItems[target],nextItems[i]];
+  if(!persistDemoItems(nextItems)){notice('模拟存储写入失败，顺序未改变。','error');return;}
+  state.items=nextItems;expandedId=moved.id;deleteId=null;state.revision++;renderIndex();renderRail();
   el('prompt-menu-'+target)?.querySelectorAll('button')[delta<0?2:3]?.focus({preventScroll:true});
   notice('顺序已更新（模拟）');
  }
@@ -1028,9 +1045,11 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    if(fail==='write'){showFormError('E_HOST_STORAGE_WRITE：模拟存储写入失败，可能是权限或空间问题。请检查工具状态后重试；草稿完整保留。');return;}
    if(fail==='conflict'){showFormError('E_STORAGE_CONFLICT：模拟其他页面修改了提示词库；不会覆盖新版本。请核对列表，草稿保留。');return;}
    if(fail==='unknown'){showFormError('E_OUTCOME_UNKNOWN：模拟请求超时，无法确认保存是否成功。请先核对列表，避免重复写入；当前草稿保留。');return;}
-   const idx=state.items.findIndex(x=>x.id===editId),updated={id:editId||'mock-'+cryptoRandom(),...value};
-   if(idx>=0)state.items[idx]=updated;else state.items.push(updated);
-   persistDemoItems();state.revision++;revisionAtEdit=state.revision;
+   const nextItems=state.items.slice(),idx=nextItems.findIndex(x=>x.id===editId);
+   const updated={id:editId||'mock-'+cryptoRandom(),...value};
+   if(idx>=0)nextItems[idx]=updated;else nextItems.push(updated);
+   if(!persistDemoItems(nextItems)){showFormError('E_PREVIEW_STORAGE：模拟存储写入失败；原列表未改变，表单草稿仍保留。');return;}
+   state.items=nextItems;state.revision++;revisionAtEdit=state.revision;
    if(snapshot!==JSON.stringify(rawFormValues())){
     baselineForm=snapshot;dirty=true;status.hidden=false;status.textContent='先前版本已保存；保存期间又输入的新内容尚未保存，请再次点击保存。';renderRail();return;
    }

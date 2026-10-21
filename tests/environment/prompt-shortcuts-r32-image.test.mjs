@@ -179,6 +179,23 @@ test('R3.2 the original complete single-file interactive HTML preview remains pa
   for(const [,source] of scripts)new Function(source);
 });
 
+test('R3.4 source-bound UX: original preview, image controls and verified simulation writes',async()=>{
+  const [preview,html,main,css]=await Promise.all([
+    read('preview/index.html'),read('src/index.html'),read('src/main.js'),read('src/style.css')
+  ]);
+  assert(preview.length>100000,'full original interactive preview was reduced');
+  for(const id of ['hostBack','hostSettings','hostRemove','promptList','promptForm','pageRail',
+    'mockDraft','siteDetails','importPanel','transferMenu','appearanceText','appearanceImage','imageUrl'])
+    assert(preview.includes('id="'+id+'"'),id);
+  assert.match(preview,/id="imageSizeGroup"/);
+  assert.match(preview,/el\('imageSizeGroup'\)\.hidden=!state\.items\.some\(/);
+  assert.match(preview,/holder\.dataset\.failedImageUrl===url/);
+  assert.match(preview,/E_PREVIEW_STORAGE/);
+  assert.match(html,/id="ps-image-size-setting"/);
+  assert.match(main,/el\('ps-image-size-setting'\)\.hidden=!data\.items\.some\(/);
+  assert.match(css,/\.ps-image-size-setting\[hidden\]\{display:none!important\}/);
+});
+
 test('R3.2 candidate package derives from updated official source and pinned classic model',async()=>{
   const pkg=await createSidebarToolPackage(ROOT);
   const config=JSON.parse(await read('tool.config.json'));
