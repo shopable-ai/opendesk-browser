@@ -32,6 +32,8 @@ jobs:
           node --check src/ui/workflow/direct-execution.js
       - name: Install locked dependencies for real build and tests
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: R23.17 exact-recipient observation grant regressions
+        run: node --test tests/environment/workflow-observation-grant-r2317.test.mjs
       - name: Direct-send provider, payload minimization and workflow regressions
         run: |
           node --test tests/environment/workflow-direct-execution.test.mjs tests/environment/workflow-local-codex.test.mjs tests/environment/workflow-r15.test.mjs tests/environment/workflow-ai-observation.test.mjs tests/environment/workflow-ai-data-sharing.test.mjs tests/environment/workflow-ai-transport.test.mjs tests/environment/workflow-ui-states.test.mjs tests/environment/workflow-focus.test.mjs tests/environment/workflow-provider-facade.test.mjs
