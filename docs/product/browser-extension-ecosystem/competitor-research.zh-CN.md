@@ -132,3 +132,57 @@
 ### 复查流程
 
 先在 3 个候选方向各选不超过 3 家核心竞品，进行同任务（开始→结果→回执→失败重试）对照；对每家再记录商店永久 ID/语言地区/商店权限/最新版本/近期评论时间戳与评论 URL，采样时区分赞扬、投诉、重复评论、发行商答复。只在采样完成后把评价字段从 MISSING 升级为 FACT。竞品研究日不是产品真实验收日。
+
+## R1.2-VALIDATION-FIRST · 2026-10-21 · 官方收费边界、同任务反例与真实性检查
+
+> 研究窗口：2026-10-21；市场观察：US/en、JP/ja 候选，**本次直接读取的是公开官网默认地区/币种快照，并未按美日地区分别完成购买结算**。来源类别 OFFICIAL_SITE/OFFICIAL_CWS/COMMUNITY_REPORT；官方功能、价格为 FACT（可能随时间改变），OpenDesk 竞争切口为 HYPOTHESIS。22 家官网基础证据≠22 家完成产品实操/评论深度验收；与 R1.0 既有 22 家表同一事实源，此处是同任务、付费理由与强反例的增量，不建另一账本。
+
+### 22 家竞品的真实任务与付费边界（研究矩阵，产品实操未完成）
+
+| 商业方向 | 竞品 | 官网可验证的现有工作结果/收费边界 | 反方审查：OpenDesk 不能简单复制的理由 | 一手 URL | 证据状态 |
+| --- | --- | --- | --- | --- | --- |
+| A | Obsidian Web Clipper | 免费开源，Markdown/选区/模板/AI Interpret；图片默认引用远程 URL，需另行下载附件 | 免费替代极强；只能以已验证的原图+来源+附件交付竞争 | [官网/官方资料](https://obsidian.md/help/web-clipper/capture) | FACT_OFFICIAL |
+| A | Readwise Reader | Reader 年付折算 USD 9.99/月；标注、笔记同步与 Markdown 导出 | 已经解决大量阅读复用和导出；团队内容交付的额外付款意愿未知 | [官网/官方资料](https://readwise.io/pricing/reader) | FACT_OFFICIAL |
+| A | Raindrop.io | Free 无限书签与基础导出；Pro 全文搜索、归档、AI 与备份；动态地区成交价未核 | 通用收藏不是空白市场，不能以“可收藏”作为差异 | [官网/官方资料](https://raindrop.io/pro/buy) | FACT_OFFICIAL |
+| A | Glasp | 免费公开高亮；Pro 付费私密高亮和更高 AI 用量，网页展示月付 USD 15/年付折算 12.50 | 专业付费来自私密性/用量，而不是简单高亮本身 | [官网/官方资料](https://glasp.co/pricing) | FACT_OFFICIAL |
+| A | HARPA AI | 官网展示 AI 网页操作、复用命令与付费模型；当前 EUR 14.3/月（年付示例），与 R1.0 旧 USD 样例不同 | AI+网页工作流不是独有差异；地区/币种/税前价格不可混算 | [官网/官方资料](https://harpa.ai/pricing) | FACT_OFFICIAL |
+| A/B | Text Blaze | Free 模板；Pro USD 2.99/月、Business USD 6.99/人/月（均年付折算）；团队共享、图片/表单片段 | 提示词和短语模板已有强替代，不能只卖快捷输入 | [官网/官方资料](https://blaze.today/plans/) | FACT_OFFICIAL |
+| A/B | Magical | CWS 仍为文字扩展/表单自动填充；官网当前突出医疗行业运营 AI Agents，价格页跳回首页 | 说明竞品可能向行业采购工作流定位；价格、企业合同与成效 MISSING | [官网/官方资料](https://www.getmagical.com/) | FACT_OFFICIAL_POSITIONING_PRICE_MISSING |
+| B | Axiom.ai | 免费试用 2 小时；Starter USD 15/月（5 小时/月）；No-code/代码/AI、云与桌面执行 | 不能以浏览器录制/AI 生成自称独有；需比较失败恢复和实施总成本 | [官网/官方资料](https://axiom.ai/pricing/) | FACT_OFFICIAL |
+| B | Bardeen | Basic/Premium 与 credits；Premium USD 50/月的动态方案样例；CWS 有浏览器动作与集成 | 销售与数据工作流已有成熟竞品；信用额度使用成本须按实际任务核算 | [官网/官方资料](https://www.bardeen.ai/pricing) | FACT_OFFICIAL |
+| B | Automa | 开源浏览器块状自动化，无需按月购买通用录制功能 | 最强免费竞争；OpenDesk 需证明部署审计/站点维护价值 | [官网/官方资料](https://github.com/AutomaApp/automa) | FACT_OFFICIAL |
+| B | UI.Vision RPA | 免费开源可商用；付费价值在更新管理和优先支持/企业服务 | 印证支持合同可卖，但客户采购与利润未证 | [官网/官方资料](https://ui.vision/rpa/x/pricing) | FACT_OFFICIAL |
+| B | Zapier | 跨 SaaS 集成及按任务付费的现成 SaaS 工作流 | 能用稳定官方 API 的任务不应优先强行 DOM 自动化 | [官网/官方资料](https://zapier.com/pricing) | FACT_OFFICIAL |
+| B | Make | 免费/按 credits 执行；官网注明 credits 为动作成本单位 | API-first 集成替代很强；仅浏览器才可完成的授权任务值得进一步验证 | [官网/官方资料](https://www.make.com/pricing) | FACT_OFFICIAL_PRICE_DAILY_NOT_CAPTURED |
+| C | Browse AI | Free 与 Personal USD 19/月（年付），托管采集/监控/额度 | 无持续合法数据源和可靠校验时不做通用抓取竞争 | [官网/官方资料](https://www.browse.ai/pricing) | FACT_OFFICIAL |
+| C | Data Miner | 免费有限域名/每月 500 页；Solo USD 19.99/月且开放更多域名及自动化 | 已经覆盖网页表格采集；扩大量仅增加许可和维护风险 | [官网/官方资料](https://dataminer.io/pricing) | FACT_OFFICIAL |
+| C | Apify | Free USD 5 使用额度，Starter USD 19/月 + pay-as-you-go，运行/Actor 市场 | 泛化云采集先天劣势；应定位已授权领域的结果校验 | [官网/官方资料](https://apify.com/pricing) | FACT_OFFICIAL |
+| C | Clay | 免费 actions/data credits，Launch/Growth 按 actions 和数据计价；多来源 enrich | 付费价值来自多源数据与持续交付，非 CSV 解析按钮 | [官网/官方资料](https://www.clay.com/pricing) | FACT_OFFICIAL_DYNAMIC_PRICE |
+| C | Hunter | Free 50 credits/月；Starter USD 34/月（年付折算）与 B2B 验证/邮件业务 | 线索服务依赖来源许可和有效性；OpenDesk 不宜卖未经授权个人数据 | [官网/官方资料](https://hunter.io/pricing) | FACT_OFFICIAL |
+| C | Helium 10 | Platinum USD 129/月、Diamond USD 359/月（月付）；卖家产品/Listing/运营服务 | 证明行业存在高价商业产品，不能推导用户会付费买单一 CSV 校验 | [官网/官方资料](https://www.helium10.com/pricing/) | FACT_OFFICIAL |
+| C | Jungle Scout | Catalyst 面向卖家、Cobalt 面向品牌；本轮官网具体跨方案可比报价缺失 | 卖家研究与报告强替代，数据价值/许可不对称 | [官网/官方资料](https://www.junglescout.com/pricing/) | FACT_OFFICIAL_EXACT_PRICE_MISSING |
+| C | Wappalyzer | 免费技术研究入口；Pro USD 250/月、Business USD 450/月（官网月付档） | 昂贵的是合法 B2B 线索/API/更新；非识别单次技术栈 | [官网/官方资料](https://www.wappalyzer.com/pricing/) | FACT_OFFICIAL |
+| C | Keywords Everywhere | 浏览器插件免费安装；年付积分解锁搜索量/CPC 等关键词数据 | 关键词商业数据需要授权采集/供应商；OpenDesk 不拥有独家搜索数据 | [官网/官方资料](https://keywordseverywhere.com/how-to-purchase.html) | FACT_OFFICIAL |
+
+**证据解释**：以上 22 行逐一有官网/官方仓库来源，确认的是公开定位、功能和某些收费样例。没有真实付款人数、被争取的品牌词流量、首次任务完成率、实际支持时长。用户体验直接对照 **0/22**；每家最近 30 条带日期的独立 CWS 评论抽样 **0/22**；用户来源和自然留存 **MISSING**。此矩阵可用于筛选 3×2 个同任务基准，但**不能宣布“20 家深度研究已经全部通过”**。
+
+### CWS 身份与量级补核（2026-10-21，公开截图式文字快照，非活跃）
+
+| 商品 | 官方 CWS 永久 URL | 本轮公开显示 | 解释限制 |
+| --- | --- | --- | --- |
+| Text Blaze | [idgadaccgipmpannjkmfddolnnhmeklj](https://chromewebstore.google.com/detail/text-blaze-templates-and/idgadaccgipmpannjkmfddolnnhmeklj) | 约 800,000 用户；4.8 / 约 1.9K 评分 | 不等于付费或 US/JP 安装份额 |
+| Obsidian Web Clipper | [cnjifjpddelmedmihgijeibhnjfabmlf](https://chromewebstore.google.com/detail/obsidian-web-clipper/cnjifjpddelmedmihgijeibhnjfabmlf) | 约 1,000,000 用户；4.8 / 581 评分 | 免费装机不能换算收入 |
+| Axiom | [cpgamigjcbffkaiciiepndmonbfdimbb](https://chromewebstore.google.com/detail/axiom-ai-browser-automati/cpgamigjcbffkaiciiepndmonbfdimbb) | 约 100,000 用户；4.1 / 245 评分 | 不证明自动化成功率 |
+| Bardeen | [ihhkmalpkhkoedlmcnilbbhhbhnicjga](https://chromewebstore.google.com/detail/bardeen-automate-browser/ihhkmalpkhkoedlmcnilbbhhbhnicjga) | 约 200,000 用户；4.2 / 452 评分 | 商店自述节省工时不可当实测 |
+| Magical | [iibninhmiggehlcdolcilmhacighjamp](https://chromewebstore.google.com/detail/magical-text-expander-aut/iibninhmiggehlcdolcilmhacighjamp) | 约 300,000 用户；本次英文页面出现 3.1 / 约 3.5K 评分 | 搜索缓存/JP 语言页曾显示 4.4；**存在时点/地区显示不一致**，禁止拿评分差量做趋势推断 |
+
+### 能改变竞争假设的三组反方材料
+
+1. **A 的功能缝隙很窄，不是新赛道**：Obsidian 官方明确说明图片默认为远程 URL，须另执行「Download attachments for current file」，但它也已经有 Markdown、本地知识库、模板/选区、Interpret 等能力（[官方截图/附件说明](https://obsidian.md/help/web-clipper/capture)、[官方 CWS](https://chromewebstore.google.com/detail/obsidian-web-clipper/cnjifjpddelmedmihgijeibhnjfabmlf)）。2026-03-13 的[用户讨论](https://www.reddit.com/r/ObsidianMD/comments/1rsjnxw/obsidian_clipper_and_pictures/)询问一键图片保存，2026-09-19 的[论坛报告](https://forum.obsidian.md/t/could-webclipper-clip-download-the-images/98532)指出登录后附件获取可能失败；均为个人报告，不代表频率。**对照门**：同一获授权 AI 图文任务，同时让 Obsidian 与 OpenDesk 做「选择→最终本地图片→断网读回」，用产物及失败回执量差异；不证明优于免费竞品则不做收费 Pro。
+2. **B 已有大量成熟实现**：[Axiom CWS](https://chromewebstore.google.com/detail/axiom-ai-browser-automati/cpgamigjcbffkaiciiepndmonbfdimbb)描述 AI/no-code/code + 云/本地、调度与 Sheet 连接；[UI.Vision](https://ui.vision/rpa/x/pricing)免费核心收费维护支持；[Magical 当前官网](https://www.getmagical.com/)突出医疗运营垂直 Agent，且其旧 `/pricing` 当前跳回首页。**对照门**：真实授权企业网页同任务执行成功、取消/撤权、维护小时、合同责任及报价；不以“也能自动填表”决胜。
+3. **C 高价仅证明卖家存在高价值整套解决方案**：[Helium 10](https://www.helium10.com/pricing/)卖家工具 USD 129/359 月付，[Jungle Scout](https://www.junglescout.com/pricing/)卖家/品牌分层，[Apify](https://apify.com/pricing)与 [Clay](https://www.clay.com/pricing) 已有数据与服务层。单一文件缺失字段校验不等于付费需求；买家和许可都需实证。
+
+### 下一轮竞品“深度通过”的明确证据门
+
+每个核心方向先挑 2 家（A：Obsidian+Readwise；B：Axiom+UI.Vision；C：Helium 10+Jungle Scout）；**当前只完成公开资料初审**，剩余逐家记录：CWS 商品 ID/当前版本/权限、同一预注册任务输入、成功/失败录像及产物、免费与付费差异、真实费率和国家口径、最近 30 条带 URL/时间/独立账号的评论主题（不可人为计算总体投诉率）、5 个可核查反例与 OpenDesk 实测结果。不能合法进入账号或无法提供真实素材时填 `NOT_TESTED`，不得编造体验。
+

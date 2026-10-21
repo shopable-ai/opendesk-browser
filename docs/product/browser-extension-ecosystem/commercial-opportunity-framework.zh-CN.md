@@ -181,3 +181,44 @@
 按 G0 合法授权 → G1 真实痛点/有预算购买人 → G2 可复现自主成功与失败恢复 → G3 跨自然周期复用及付款证据 → G4 客户贡献和维护成本分别评审。任何硬门 BLOCKED 不能由评分平均掩盖，数据不足记 NOT_DECIDED。禁止未经授权采集、隐蔽读取、广告劫持、批量换壳扩展、平台数据滥用和误导性的竞品广告。
 
 下一步：**S0** 只读审计现有 knowledge-inbox、web-markdown-clipper、prompt-shortcuts 与 Workflow 的正式能力，决定能否低成本实现 A 的图片真实附件保存和读回；**S1** A 自主任务验证；**并行** B 的有预算企业买方发现；**条件触发** C 的合法数据样本与买方调查；**后置** 广告官方数据和审批；最后独立 GO/PIVOT/STOP/NOT_DECIDED。执行细节和实测日志只更新 [既有验证文档](distribution-and-validation.zh-CN.md)，不要复制第二套进度或 SDK/Host。
+
+## R1.2-VALIDATION-FIRST · 2026-10-21 · S0 源码能力审计与有限投资裁决
+
+> GitHub 最新 main 源码审计基线：`a5addc29f8f8e528a582eeae327c42909679612e`（UTC 2026-10-21）；**SOURCE_AUDITED，不是 CHROME_NATIVE_VERIFIED**。R1.0 的 15 场景/30 个 OPP 子集继续有效，原 84 OPP、R5 24 领域与 8 EXP 均保持唯一主账本；无实际用户访谈、Keyword Planner 报价、付费订单。此处更新技术可行性和投资条件，不将 A 写成默认最终商业赢家。
+
+### 一屏裁决：哪一项值得下一单位投入？
+
+- **首个最便宜的产品真实性验证：A / EXP-003 / OPP-022、OPP-025**。目标不是再做通用收藏，而是获用户批准后「AI 文字 + ≥1 张可核原图 → 真正离线 Markdown+图片文件 → 完成回执 → 关闭重开复核」。现有主知识工具可做最小试点，**完整二进制图片交付目前 BLOCKED**；先证明用户会反复做这个任务，才谈团队订阅。
+- **最值得并行进行的现金流验证：B / EXP-001 / OPP-057、OPP-059**。无需新增浏览器框架；从有采购权限的企业运营/IT 买家询问单一授权流程，范围明确的实施、维护和错误恢复是否能获实际付费定金。Axiom/Automa/UI.Vision 等强竞品使泛用自动化软件不是首发卖点。没有买家不得重构通用 Workflow。
+- **以合法客户文件为先决条件：C / EXP-005 / OPP-015、OPP-016**。有卖家提供或官方合法导出的 CSV 才做字段、变更、异常核查；不建设爬虫/监控 SaaS。不因 Helium 10 定价高便认为 CSV 检查能卖同价。
+- **15 场景/30 子集排序**：R1.0 现有 15×2 表保留，不虚构第 16 场景或新 TOP30。高验证优先级任务是企业表单/受控操作、研究来源与 AI 产物交付、合法 Listing/SKU 文件核查；其他候选维持研究，不声称全部独立验证过。
+
+### 最小复用矩阵：区分代码存在、真实结果和缺口
+
+| 正式 Owner / 证据链接 | 已在源码中出现的能力（FACT_SOURCE） | 阻断项（NOT_IMPLEMENTED / NOT_TESTED） | 复用裁决 |
+| --- | --- | --- | --- |
+| [Knowledge UI](../../../examples/sidebar-tools/knowledge-inbox/src/main.js)、[可信服务](../../../src/knowledge/service.js)、[来源页面](../../../src/knowledge/page.js)、[模型](../../../src/knowledge/model.js) | `knowledge.create/get/update`、local 写入核对、Markdown 下载、图片最多 12 个逐张菜单下载、来源及 Workspace 文本交接 | `imageCount` 是计数不是图片文件；正文可能只存图 URL；`capture.image` 由当前 URL 发起下载但不查询 complete；原图/MIME/字节与重开离线文件关联 **不存在证明** | A 唯一主试点可复用；修原业务而非新建图片库 |
+| [Web Markdown Clipper Notes UI](../../../examples/sidebar-tools/web-markdown-clipper/src/notes.js)、[可信资料库](../../../examples/sidebar-tools/web-markdown-clipper/trusted/notes-store.js)、[网页提取](../../../examples/sidebar-tools/web-markdown-clipper/trusted/page.js) | 完整 Markdown、`clipNotes.save` 后 `get` 核对、ETag 冲突保护、持久列表、文本导出；独立 4 MiB / 1000 条上限 | 只保存富文本/Markdown；链接图片未变为二进制附件；预览 Host 的 session 数据不代表 Chrome Storage | 可复用提取/读回模式，不启动第二个跨工具图文库 |
+| [Prompt Shortcuts UI](../../../examples/sidebar-tools/prompt-shortcuts/src/main.js)、[模型](../../../examples/sidebar-tools/prompt-shortcuts/trusted/model.js)、[可信页面](../../../examples/sidebar-tools/prompt-shortcuts/trusted/page.js) | 提示词列表、`storage.get/set` ETag 校验、远程 `imageUrl` 及三档图片按钮；展示异常回退文字 | 图片按钮不包含/保存图片字节，不能据此宣称生成图片附件已持久化；实际本地交付另需业务 | 仅复用选择/元信息思路；不扩展图片存储契约 |
+| [Browser SDK 合同](../../../src/framework/sdk/browser-contract.js)、[受控下载 Host](../../../src/platform/chrome/browser-downloads.js) | 现有 `downloads.download`、`getOwned`、`listOwned`、`cancelOwned`；状态区分 started/in_progress/complete/interrupted，权限与引用归属 | 下载回执 `started` 不等于完成；引用保存在 Worker 内存中，可在重启时丢失；网页访问原图和用户选目录未被授予 | 优先复用现有受控下载；未知结果先查证，禁止盲重试 |
+| [Workflow 合同](../../../src/framework/workflow/contract.js)、[编译器](../../../src/framework/workflow/compiler.js) | 固定 8 类流程操作、受控定位器、步骤/Origin 校验、确定性脚本生成 | 只是程序基础，不构成客户许可、真实企业站点验收、维护 SLA 或采购单 | B 先做客户任务与买方发现，暂不新建执行层 |
+| [现有 AI 交付并行审计](../../architecture/browser-framework/ai-artifact-delivery-r1.zh-CN.md) | 已有同源 Knowledge 预览与图片任务研发分析 | 文档记录为 SOURCE_AUDITED/正式实现未批准；预览模拟下载不能证明真实文件 | 作为历史/架构证据引用，不抢改其预览，不复制方案 |
+
+**下载语义红线**：`chrome.downloads.download()` 或服务返回 `downloadId` 只能证明请求被受理。图片任务必须核验可访问来源、实际 MIME/尺寸/字节、Chrome 下载状态、最终文件与 Markdown 资源引用一致；关闭/重开证明在允许范围内可定位记录与文件。任意静默写入指定 Mac 目录不属于普通插件默认授权。
+
+### A/B/C 独立投资优先级分数（ESTIMATE，证据置信度低）
+
+权重依次付费意愿 25%、可获客 20%、技术复用 15%、自然留存 15%、收入潜力 15%、交付风险可控 10%。R1.0 原先验 A 68.7/B 68.8/C 65.4，仅在 A 的 **技术复用 88→75、风险可控 72→62** 调整为本轮源码已证实的二进制/下载阻断；其他维度仍是未得到用户实测的先验，**不是新的市场事实**。
+
+| 方向 | 付款 25% | 渠道 20% | 复用 15% | 留存 15% | 收入 15% | 风险 10% | R1.2 加权 ESTIMATE |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| A 图文与提示词交付 | 62 | 74 | **75** | 62 | 58 | **62** | **65.75** |
+| B 企业受控网页工作流 | 80 | 50 | 69 | 78 | 85 | 40 | **68.80** |
+| C 合法行业文件核查 | 75 | 55 | 65 | 70 | 77 | 38 | **65.40** |
+
+- **A 正例**：文本存取基础确实存在、具体免费获客任务可描述。**反例**：Obsidian/Readwise/Raindrop 已完成多数免费/付费需求，自己还无法完整证明图片交付；真正付费人/留存均 MISSING。
+- **B 正例**：已有 Workflow + Host 能力，企业合同可能直接联系采购人。**反例**：Axiom、Automa、UI.Vision 与 API-first SaaS 强替代；售前、错误恢复、站点变更会吞噬收入；实际销售周期和预算 MISSING。
+- **C 正例**：Helium 10/Jungle Scout 等存在行业套件收费；授权 CSV 检查可避免爬虫许可。**反例**：完整套件价格不能推导简化 QA 的价格；数据源许可、误报率和可变支持成本 MISSING。
+
+得分差额远小于未量化不确定性，**不可按 68.80 > 65.75 将 B 宣称为统计上已胜出**。可执行优先顺序是 **A 先做最小可用性、B 同时找真正付款人、C 等合法输入数据**。S4 决策维持 `NOT_DECIDED`。
+

@@ -427,6 +427,33 @@
     "revenue": null,
     "paidAdRuns": 0,
     "interviews": null,
-    "notes": "No 2026-10-20 interviews, paid conversions, ad account metrics or Chrome-native test. No new opportunity or experiment IDs assigned."
+    "notes": "No 2026-10-20 interviews, paid conversions, ad account metrics or Chrome-native test. No new opportunity or experiment IDs assigned.",
+    "researchAuditR12": {
+      "asOf": "2026-10-21",
+      "baselineMain": "a5addc29f8f8e528a582eeae327c42909679612e",
+      "status": "SOURCE_AUDITED_MARKET_NOT_VALIDATED",
+      "scenarioSlices": 15,
+      "candidateRefs": 30,
+      "existingOpportunities": 84,
+      "existingExperiments": 8,
+      "publicCompetitorRowsReviewed": 22,
+      "competitorsProductTested": 0,
+      "competitorsWithThirtyRecentIndependentReviewsAudited": 0,
+      "authoritativeDocuments": [
+        "commercial-opportunity-framework.zh-CN.md",
+        "competitor-research.zh-CN.md",
+        "distribution-and-validation.zh-CN.md"
+      ],
+      "aFullTextAndBinaryAsset": "TEXT_REUSABLE_IMAGE_OFFLINE_BUNDLE_NOT_IMPLEMENTED",
+      "aNativeChrome": "NOT_TESTED",
+      "bBudgetBuyer": "MISSING",
+      "cAuthorizedCsv": "MISSING",
+      "keywordPlannerUSJP": "MISSING",
+      "paidAdExecution": "NOT_EXECUTED",
+      "actualCustomerValidation": "NOT_TESTED",
+      "realPaidOrders": "MISSING",
+      "mainBranchOnly": true,
+      "notes": "S0 is desk/source evidence only; no product implementation or market outcomes changed. Preserve EXP-002 ARCHIVED_STOP and all 8 IDs, null metrics and original gates."
+    }
   }
 }

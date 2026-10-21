@@ -183,3 +183,62 @@ Chrome Web Store [统计指南](https://developer.chrome.com/docs/webstore/metri
 下一轮的第一任务是 **S0：按最新 main 审计「现有保存/图片能力究竟有哪些，A 所需图片真实持久化和读回缺多少」**。这是建设之前的最小阻断核查，不是重做大范围研究。随后在同一现有工具真实源码上修好 S1，并交付有证据的 Mac Chrome 验收任务；B 的采购人访谈作为另一条低代码商业工作线并行。
 
 下轮必须报告：完成项 / NOT_TESTED / BLOCKED、现有与新增代码路径、源码提交 SHA、可复现使用流程、产品本地验收缺口、实际实验参与人数/数据及渠道预算批准状态。**暂不投入**通用爬虫平台、重复 CWS 换壳商品、未验证团队订阅后台或新一套 SDK/Host/产品统计框架。以前的 84 OPP / 8 EXP / R5 24 领域仍为唯一权威记录，不再加第九个同义实验。
+
+## R1.2-VALIDATION-FIRST · 2026-10-21 · 低成本获客 S0/S2/S3 证据矩阵与三个可证伪实验
+
+> 本次基于 2026-10-21 GitHub main、官方 CWS/Google Ads 资料和公开竞品/社区内容；**没有连接 Google Ads Keyword Planner、商店开发者后台、真实付款/广告/归因和客户访谈**。本轮广告花费 **未执行**，不把前期曾写的预算 `$300` 示例视为授权。下表所有搜索量、CPC、竞争指数和真实转化仍为 `MISSING`。关键词仅为 **HYPOTHESIS**，语言与搜索意图需由真实美日用户确认。
+
+### 获客优先判断（渠道技术可行性，不是 CAC 优胜证明）
+
+1. **US/en 与 JP/ja 任务长尾 SEO / 真实教程**：优先级第一的**低现金支出实验**；免费文章/产品演示可以检验任务意图，但制作成本、流量、自然激活均未测，不能把“可能低成本”改写成“低 CAC 已证实”。
+2. **CWS 单一用途自然发现**：仅在可用产品、真实审核页和合规权限证据具备后测试。Google 的[商店分析](https://developer.chrome.com/docs/webstore/metrics)和[搜索发现](https://developer.chrome.com/docs/webstore/discovery)只能支持聚合获客观察；安装数≠活跃数，来源不确定时不绑定到广告。
+3. **竞品品牌词与替代词 Google Ads**：最后才测试；[Google 商标政策](https://support.google.com/adspolicy/answer/6118?hl=en)对竞品关键词与广告文案采取不同审查，不能误导官方关联；[Keyword Planner 官方说明](https://support.google.com/google-ads/answer/3022575)提供搜索量、竞争、页首竞价的账号指标，但**此任务没有账号数据**。无审批不创建付费活动。
+
+### 预注册 13 个具体查询（不造假 CPC）
+
+| 地区/语言 | 实验 | 待核查词（字面查询） | 推测用户意图 | 对应的诚实落地页 | 分类 | 真实月搜量 | 竞争 | 顶部出价低/高 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| US/en | A | save ChatGPT images locally | AI 生成图真实离线 | 知识产物交付页 | 任务长尾 | MISSING | MISSING | MISSING |
+| US/en | A | export ChatGPT response markdown images | 图文一起交付 | 知识产物交付页 | 任务长尾 | MISSING | MISSING | MISSING |
+| US/en | A | Obsidian Web Clipper image alternative | 找替代、可能只寻竞品 | 真实功能对比页 | 竞品替代 | MISSING | MISSING | MISSING |
+| JP/ja | A | ChatGPT 画像 ローカル 保存 | AI 图片保存 | 日语交付页（未建立） | 任务长尾 | MISSING | MISSING | MISSING |
+| JP/ja | A | ChatGPT 回答 Markdown 画像 保存 | 回答与图片整体导出 | 日语交付页（未建立） | 任务长尾 | MISSING | MISSING | MISSING |
+| US/en | B | automate repetitive internal web forms | 企业内网定型输入 | 企业单任务演示页 | 任务长尾 | MISSING | MISSING | MISSING |
+| US/en | B | Axiom browser automation alternative | 现有付费自动化替代 | 有实测才发布的对比页 | 竞品替代 | MISSING | MISSING | MISSING |
+| JP/ja | B | 社内 Web フォーム 入力 自動化 | 企业授权的反复填表 | 日语企业服务页（未建立） | 任务长尾 | MISSING | MISSING | MISSING |
+| JP/ja | B | ブラウザ 定型業務 自動化 | 浏览器重复业务 | 日语企业服务页（未建立） | 任务长尾 | MISSING | MISSING | MISSING |
+| US/en | C | Shopify product CSV validation | 卖家提供文件校验 | 合法 CSV QA 页（未建立） | 任务长尾 | MISSING | MISSING | MISSING |
+| US/en | C | seller product listing audit checklist | Listing 字段/错误检查 | 卖家 Listing QA 页（未建立） | 任务长尾 | MISSING | MISSING | MISSING |
+| JP/ja | C | 商品 CSV 必須項目 チェック | 商品导入前字段核对 | 日语 CSV QA 页（未建立） | 任务长尾 | MISSING | MISSING | MISSING |
+| JP/ja | C | Shopify 商品 CSV エラー 確認 | Shopify 商品 CSV 错误 | 日语 CSV QA 页（未建立） | 任务长尾 | MISSING | MISSING | MISSING |
+
+**取得数据的实际动作**：账户持有人在 Google Keyword Planner 分别选 United States/English 与 Japan/Japanese，指定同一完整月份，导出 CSV 的 keyword、avgMonthlySearches、competition、topOfPageBidLow/High、currency、timePeriod、location；保存**必要聚合指标与来源、截图/导出哈希**到本文，不上传账号密码/私人客户线索。若 Google 只返回区间，应保留区间，不能改成精确值。每个词先检查 SERP 是竞品官网、功能教程、软件下载还是采购意图；竞品替代词需事实完整的对比页才考虑广告。
+
+### 三个旧 EXP 的可证伪预注册（以下都是未来目标，不是实测成绩）
+
+| 原实验 | 实验对象/样本建议（HYPOTHESIS） | 第一结果与可核验回执 | 付费与退出门 | 当前状态 |
+| --- | --- | --- | --- | --- |
+| **EXP-003 / A** | 10 位自愿参与、确实需要 AI 图文交付的用户；记录现用 Obsidian/复制/下载替代 | 10 人无指导首次任务 ≥7 完整通过（Markdown+≥1 原图文件、下载 complete、重开读回），跨两个自然工作周期 ≥5 人主动再用；明确分母及失败原因 | ≥2 人提出具体付费交付用途和现有替代成本仅是 **买方线索**；无独立付款凭证不得 `PAID_VALIDATED`。原图无法实际持久化先 BLOCKED；无复用则缩窄/STOP 团队 SaaS | `SOURCE_AUDITED / CHROME_NOT_TESTED / USER_NOT_TESTED` |
+| **EXP-001 / B** | 先定向 5 位有企业工作流与预算职责的采购候选，至少提供一项获准的非敏感测试任务 | 实际流程步骤、当前人工时间/错误、网站许可和审批/维护责任均被买方认可；模拟站点不等于生产交付 | 至少取得 1 份有范围/价格/维护条款的正式报价回执，**实际签约/到账**才证明付费；无预算买方不做大范围自动化平台 | `BUYER_MISSING / PERMISSION_MISSING / PAID_NOT_TESTED` |
+| **EXP-005 / C** | 3 份经明确许可的不同卖家产品 CSV（不入公开 GitHub）及对应真实字段要求 | 逐项复核缺字段、格式、重复 SKU、异常/误报；输出能复查的差异报告 | 与有预算的卖家运营方验证报价；数据许可不足、正确性不可复核或支持成本失控即 STOP；不采集未经授权后台 | `DATA_MISSING / USER_NOT_TESTED / PAID_NOT_TESTED` |
+
+**实验仪表口径**：`firstCompleteRate = confirmedCompleteAndReadback / eligibleFirstTasks`，`secondCycleUse = naturalSecondCycleUniqueUsers / firstActivatedUniqueUsers`，`paidRate = independentlyPaidCustomers / qualifiedBuyerLeads`，`CAC = attributableChannelSpend / attributedNewPayingCustomers`，`paybackMonths = CAC / positiveMonthlyContributionPerCustomer`。无真实分母或分母为 0 记 `MISSING/NOT_MEASURED`，**不能以 0 代替未知，也不能用商店显示安装量填 DAU**。记录每一步来源和授权；不收集原对话、敏感图、Cookie、企业文件正文和用户浏览历史。
+
+### S0–S4 更新日志（2026-10-21）
+
+| 阶段 | 本轮实际交付 | 当前门槛结论 | 下一位有条件的操作人 / 所需证据 |
+| --- | --- | --- | --- |
+| S0 源码核查 | [R1.2 技术复用矩阵](commercial-opportunity-framework.zh-CN.md)读 Knowledge、Clipper、Prompt Shortcuts、Downloads Host/Workflow，记具体阻断 | **SOURCE_AUDITED / PASS_FOR_DESK_RESEARCH**；正式图文交付还不具备 | Mac CodeX 按原源码及授权测试真实 Chrome，产出文件、状态、重开日志 |
+| S0 竞品/政策 | 现有 [22 家官网与任务反例](competitor-research.zh-CN.md)增量复核，含 CWS 快照及社区自选样本 | **PARTIAL**：公开档位和产品定位可查；22 家同任务测试、逐家近期评论未通过 | 先取每方向 2 家真实操作比较、近期 CWS 评论带日期采样 |
+| S1 A 产品 | 本轮**未修改任何正式工具代码** | **BLOCKED_BY_REAL_IMAGE_ASSET / CHROME_NOT_TESTED** | 有批准且先完成原图真实性门，再改现有 Knowledge 最小增量，不能以模拟预览通过 |
+| S2 买方/用户 | 未进行访谈、招募、客户数据访问与报价 | **NOT_TESTED** | 自愿 10 位 A 用户和 B 预算买家、C 合法 CSV 样本 |
+| S3 US/JP 获客 | 13 个意图查询预注册、官方政策核对，无 Google Ads 账户和预算 | **METRICS_MISSING / ADS_NOT_EXECUTED** | 账号持有人 US+JP Planner 导出、真实落地页、单独批准预算 |
+| S4 投资决策 | 保留 A/B/C 不同检验目标，2026-10-21 复核技术风险 | **NOT_DECIDED / NO_GO_TO_SCALE** | 实际激活、两周期自然复用、首个付款、可靠可变成本后方可 GO |
+
+### 退出条件与防止研究漂移
+
+- **GO 产品深入**需要安全许可、真实 Chrome 结果+故障恢复、明确用户可复用；**GO 商业放大**另需真实付款人、收款/净贡献与可追溯渠道，两个 GO 不能相互代替。
+- **PIVOT**：A 有自然复用但不愿为收藏付费，则改为单一企业文件投递；B 有明确预算但无法维护多个站点，则只做一种授权站点；C CSV 不够价值则验证团队异常核对服务，仍须许可。
+- **STOP**：原图真实性/授权不成立、买家无实际替代成本、跨两周期不复用、负贡献、长期维护不可控、竞品免费体验已足够；不得以主观 95 分强行继续。
+- **当前全部为 NOT_DECIDED**：R1.2 只收窄了产品和商业不确定性，没有新订单/DAU/CAC/留存，不能因“完成文档”宣布实验 GO。
+
