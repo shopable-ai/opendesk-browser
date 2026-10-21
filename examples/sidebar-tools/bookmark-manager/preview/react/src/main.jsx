@@ -1,6 +1,8 @@
 import React from 'react';
 import {createRoot} from 'react-dom/client';
-import App from '../../../src/react/App.jsx';
+import App,{bookmarkConversationSamples} from '../../../src/react/App.jsx';
+import {TrustedConversationWorkspace} from '../../../../../../src/ui/react/components/conversation.tsx';
+import '../../../../../../src/ui/react/components/conversation-dock.css';
 import '../../../src/react/style.css';
 
 // OFFLINE PREVIEW ONLY. Fixed phrases return bounded intents; the actual
@@ -9,7 +11,8 @@ import '../../../src/react/style.css';
 let session={open:false,draft:'',rows:[],refs:{folderId:null,bookmarkId:null,matches:[]}};
 function mockIntent(request){
  const input=String(request||'').trim();
- const folder=input.match(/(?:叫|名为|名称为)\s*([^，。；;]+?)\s*的?文件夹/);
+ const folder=input.match(/(?:叫|名为|名称为)\s*([^，。；;]+?)\s*的?文件夹/)||
+  input.match(/(?:创建|新建)\s*([^，。；;]+?)\s*文件夹/);
  const url=input.match(/https?:\/\/[^\s，。；;)\]】]+/i)?.[0]?.replace(/[,.]+$/,'');
  const rename=input.match(/(?:改名为|改成|重命名为)\s*([^，。；;]+)/);
  if(rename&&/(?:刚才|收藏|书签)/.test(input))
@@ -22,6 +25,8 @@ function mockIntent(request){
  }
  if(url&&/(?:收藏|添加|保存)/.test(input)&&/(?:刚才|AI 工具)/.test(input))
   return {actions:[{type:'bookmark.create',title:new URL(url).hostname,url,parent:'$lastFolder'}]};
+ if(/(?:当前网页|当前页).*(?:收藏|保存|添加)|(?:收藏|保存|添加).*(?:当前网页|当前页)/.test(input))
+  return {actions:[{type:'bookmark.create',title:'$pageTitle',url:'$currentPage',parent:'$lastFolder'}]};
  const find=input.match(/(?:找出|查找|搜索)\s*(.+?)(?:相关)?书签/);
  if(find)return {actions:[{type:'bookmark.search',query:find[1].replace(/相关$/,'').trim()}]};
  return {question:'这里只演示几个固定句式；真实 AI 需要在已安装的 OpenDesk 浏览器中连接。'};
@@ -39,7 +44,10 @@ const conversation=Object.freeze({
 const container=document.getElementById('tool-root');
 if(!container)throw Error('E_BOOKMARK_REACT_ROOT_MISSING');
 const root=createRoot(container);
-root.render(<App runtime={{conversation}} mode="preview"/>);
+root.render(<TrustedConversationWorkspace controller={conversation}
+ title="书签对话" samples={bookmarkConversationSamples} offline
+ placeholder="例如：创建文件夹并收藏当前网页" resultLabel="模拟书签读回（非 Chrome）"
+ renderBusiness={dock=><App runtime={{conversation}} mode="preview" dock={dock}/>}/>);
 Object.defineProperty(globalThis,'__BookmarkReactPreview',{value:Object.freeze({
  version:'R3.0.5',renderer:'react-dom/client',offlineMock:true,nativeVerified:false,
  unmount:()=>root.unmount()

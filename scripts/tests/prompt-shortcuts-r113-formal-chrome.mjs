@@ -17,6 +17,14 @@ const config=JSON.parse(await readFile('examples/sidebar-tools/prompt-shortcuts/
 assert.equal(pkg.version,config.version,'formal candidate must match the current tool manifest');
 assert.equal(pkg.scripts?.length,1);
 assert.equal(pkg.scripts[0].name,'trusted/model.js');
+// Read the SAME offline raster from the original full preview as browser fixture.
+// Official model still validates genuine HTTPS URLs; no data: is stored or exported.
+const previewSource=await readFile('examples/sidebar-tools/prompt-shortcuts/preview/index.html','utf8');
+const fixtureMarker="const PREVIEW_OFFLINE_PNG='data:image/png;base64,";
+const fixtureIndex=previewSource.indexOf(fixtureMarker);
+assert(fixtureIndex>=0,'original source-bound preview image exists');
+const rasterFixture=previewSource.slice(fixtureIndex+fixtureMarker.length).split("'")[0];
+assert(rasterFixture.length>500,'PNG fixture has real raster content');
 const escaped=source=>source.replace(/<\/script/gi,'<\\/script').replace(/<\/style/gi,'<\\/style');
 const bridge=String.raw`
 (()=>{
@@ -112,6 +120,15 @@ async function connect(){
   });
   socket.addEventListener('message',event=>{
     const m=JSON.parse(event.data);
+    if(m.method==='Fetch.requestPaused'){
+      const target=m.params.request.url;
+      void rpc('Fetch.fulfillRequest',{
+        requestId:m.params.requestId,responseCode:200,
+        responseHeaders:[{name:'Content-Type',value:'image/png'},{name:'Cache-Control',value:'no-store'}],
+        body:target.endsWith('/bad.png')?'bm90LWEtcG5n':rasterFixture
+      }).catch(error=>jsErrors.push('Controlled HTTPS image response: '+error.message));
+      return;
+    }
     if(m.method==='Runtime.exceptionThrown')
       jsErrors.push(m.params?.exceptionDetails?.exception?.description||m.params?.exceptionDetails?.text);
     if(!m.id||!outstanding.has(m.id))return;
@@ -332,6 +349,63 @@ async function run(){
   await rpc('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:'dark'}]});
   await screenshot('formal-dark-440px');
   report.darkScreenshot='formal-dark-440px.png';
+  // R3.5: real packaged UI path: new image, decoded preview, failed HTTPS
+  // response fallback, recovery, save/reopen, global size persistence.
+  // This is controlled HTTPS response in actual Chromium, not public CDN.
+  await rpc('Fetch.enable',{patterns:[{
+    urlPattern:'https://fixture.opendesk.invalid/*',resourceType:'Image',requestStage:'Request'
+  }]});
+  await click('#ps-new');
+  await fill('#ps-body','图片按钮正式源码测试：完整提示词正文');
+  await evaluate('document.querySelector("#ps-appearance-image").click()');
+  await fill('#ps-image-url','https://fixture.opendesk.invalid/bad.png');
+  await poll('document.querySelector("#ps-image-preview")?.textContent?.length>0 && '+
+    '!document.querySelector("#ps-image-preview").classList.contains("has-image")',
+    'formal live image invalid response falls back to short label');
+  assert.match(await evaluate('document.querySelector("#ps-image-help").textContent'),/失败/);
+  await fill('#ps-image-url','https://fixture.opendesk.invalid/ok.png');
+  await poll('document.querySelector("#ps-image-preview img")?.naturalWidth>0',
+    'formal live HTTPS image actually decoded');
+  const imagePreview=await evaluate('(()=>{const img=document.querySelector("#ps-image-preview img");'+
+    'const h=document.querySelector("#ps-image-preview"),r=h.getBoundingClientRect();return {'+
+    'naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight,width:r.width,height:r.height,'+
+    'visible:r.width>0&&r.height>0,objectFit:getComputedStyle(img).objectFit};})()');
+  assert(imagePreview.naturalWidth>0&&imagePreview.naturalHeight>0&&imagePreview.visible);
+  assert.equal(imagePreview.objectFit,'contain');
+  assert(Math.abs(imagePreview.width-68)<.6&&Math.abs(imagePreview.height-48)<.6);
+  await screenshot('r35-formal-live-image-preview');
+  await click('#ps-save');
+  await poll('document.querySelector("#ps-index")&&!document.querySelector("#ps-index").hidden&&'+
+    'document.querySelectorAll(".ps-card").length===3',
+    'formal tool persists a new image prompt');
+  await poll('document.querySelector(".ps-glyph.has-image img")?.naturalWidth>0',
+    'saved image prompt renders a decoded thumbnail');
+  await screenshot('r35-formal-image-saved');
+  const beforeSize=await evaluate('globalThis.__readFormalToolStore().value.settings.imageSize');
+  assert.equal(beforeSize,'large');
+  const imageSizes=[];
+  for(const [size,w,h] of [['compact',48,40],['standard',56,44],['large',68,48]]){
+    await evaluate('(()=>{const s=document.querySelector("#ps-image-size");s.value='+
+      JSON.stringify(size)+';s.dispatchEvent(new Event("change",{bubbles:true}));})()');
+    await poll('globalThis.__readFormalToolStore().value.settings.imageSize==='+JSON.stringify(size),
+      'formal Host CAS persists global image size '+size);
+    const row=await evaluate('({size:document.querySelector("#ps-image-size").value,'+
+      'thumbWidth:document.querySelector(".ps-glyph.has-image").getBoundingClientRect().width,'+
+      'thumbHeight:document.querySelector(".ps-glyph.has-image").getBoundingClientRect().height})');
+    assert.equal(row.size,size);
+    assert(Math.abs(row.thumbWidth-48)<.6&&Math.abs(row.thumbHeight-38)<.6,
+      'formal list thumbnails remain compact while web buttons change size');
+    imageSizes.push({size,width:w,height:h,compactListThumbnail:row});
+  }
+  await rpc('Page.reload',{ignoreCache:true});
+  await poll('document.querySelector("#ps-new")&&!document.querySelector("#ps-new").disabled&&'+
+    'document.querySelectorAll(".ps-card").length===3','formal reloaded image data');
+  assert.equal(await evaluate('globalThis.__readFormalToolStore().value.settings.imageSize'),'large');
+  await poll('document.querySelector(".ps-glyph.has-image img")?.naturalWidth>0',
+    'image remains visibly decoded after reload');
+  report.r35Image={controlledHttps:true,publicInternetNotTested:true,actualPreview:imagePreview,
+    savedAndRecovered:true,sizesPersisted:imageSizes,installedExtension:false};
+  await rpc('Fetch.disable');
   assert.equal(jsErrors.length,0,'formal JavaScript console exceptions: '+jsErrors.join(' | '));
   report.consoleExceptions=jsErrors;report.result='PASS';
   console.log('PROMPT_SHORTCUTS_FORMAL_CHROMIUM_PASS',JSON.stringify(report));

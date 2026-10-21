@@ -27,6 +27,8 @@ const inputs=[
  join(root,'scripts/preview/bookmark-manager-mock.js'),
  join(toolDir,'src/model.js'),join(toolDir,'src/service.js'),
  join(root,'src/ui/react/components/conversation.tsx'),
+ join(root,'src/ui/react/components/conversation-dock.css'),
+ join(root,'src/ui/react/components/ui/button.tsx'),
  join(root,'src/ui/conversation/bookmark-actions.js')
 ];
 async function inputFingerprint(){
@@ -64,10 +66,13 @@ async function generate(){
    '<script>globalThis.__opendeskPreviewScenario="success";</script>'+scripts+'</body></html>';
   assert.equal((frame.match(/data:text\/javascript;base64,/g)||[]).length,4);
   const reactFiles={bundle:sha(bundle),css:sha(style),designSystem:sha(designSystem),model:sha(model),service:sha(service),mock:sha(mock),app:sha(app),main:sha(main)};
-  const manifest={...oldManifest,previewBuild:'R3.0.5 REACT OFFLINE CANDIDATE',
+  const manifest={...oldManifest,previewBuild:'R1.5 REACT OFFLINE CANDIDATE',
    reactRuntime:true,reactFiles,reactFrameSha256:sha(frame),
-   previewCandidate:'REACT_OFFLINE_MOCK',designStatus:'DESIGN_PROTOTYPE_NOT_SOURCE_BOUND',
-   sourceBound:false,nativeVerified:false,previewViewportModes:[360,400,960]};
+   previewCandidate:'REACT_SOURCE_BOUND_OFFLINE_MOCK',
+   reactSourceBound:true,reactSourceScope:'production Bookmark App + shared TrustedConversationWorkspace',
+   designStatus:'REACT_APP_SOURCE_BOUND_LEGACY_PREVIEW_SHELL',
+   sourceBound:false, // The surrounding legacy offline shell is not the production React Host.
+   nativeVerified:false,previewViewportModes:[320,360,400,440,960]};
   const updated=out.replace(framePattern,()=>"atob('"+encoded(frame)+"')")
    .replace(manifestPattern,(_,open,ignored,close)=>open+JSON.stringify(manifest)+close);
   assert.match(updated,/"reactRuntime":true/);
@@ -111,7 +116,7 @@ if(process.argv.includes('--watch')){
   fsWatch(join(toolDir,'src'),{recursive:true},schedule),
   fsWatch(join(root,'scripts/preview'),{},(type,file)=>{if(String(file)==='bookmark-manager-mock.js')schedule()}),
   fsWatch(join(root,'src/ui'),{},(type,file)=>{if(String(file)==='design-tokens.css')schedule()}),
-  fsWatch(join(root,'src/ui/react/components'),{},(type,file)=>{if(String(file)==='conversation.tsx')schedule()}),
+  fsWatch(join(root,'src/ui/react/components'),{},(type,file)=>{if(['conversation.tsx','conversation-dock.css'].includes(String(file)))schedule()}),
   fsWatch(join(root,'src/ui/conversation'),{},(type,file)=>{if(String(file)==='bookmark-actions.js')schedule()}),
   fsWatch(here,{},(type,file)=>{if(['vite.config.mjs','package-lock.json','package.json'].includes(String(file)))schedule()}),
   fsWatch(dirname(approved),{},(type,file)=>{if(String(file)===basename(approved))schedule()})

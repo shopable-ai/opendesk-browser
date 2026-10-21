@@ -40,20 +40,29 @@ function projected(){
 // Use native <img> and textContent only; URLs were bounded by the shared trusted model.
 function picture(holder,row,{live=false}={}){
   const label=row.label||model.auto(row.body||'')||'…';
-  const fallback=()=>{holder.classList.toggle('has-image',false);
+  const fallback=()=>{holder.classList.toggle('has-image',false);holder.dataset.imageUrl='';
     holder.replaceChildren(...model.parts(label).map(part=>dom('span','',part)));};
   if(row.appearance!=='image'){fallback();return;}
   let url;
   try{url=model.normalizeImageUrl(row.imageUrl,true);}
   catch(e){fallback();if(live)el('ps-image-help').textContent=e.message;return;}
+  // Same failed HTTPS URL must not be requested again on every body edit.
+  if(holder.dataset.failedImageUrl===url){
+    fallback();
+    if(live)el('ps-image-help').textContent='图片加载失败，已回退备用短标签；修改图片 URL 后可重试。';
+    return;
+  }
+  if(holder.dataset.imageUrl===url&&holder.firstElementChild?.tagName==='IMG')return;
+  holder.dataset.failedImageUrl='';holder.dataset.imageUrl=url;
   holder.classList.add('has-image');
   const img=dom('img');img.alt='';img.decoding='async';img.loading=live?'eager':'lazy';
   img.referrerPolicy='no-referrer';
   img.addEventListener('error',()=>{
-    if(holder.firstChild!==img)return;
-    fallback();
+    if(holder.firstChild!==img||holder.dataset.imageUrl!==url)return;
+    holder.dataset.failedImageUrl=url;fallback();
     if(live)el('ps-image-help').textContent='图片加载失败，已显示备用短标签；请检查 URL、格式或网络限制。';
   });
+  img.addEventListener('load',()=>{if(holder.dataset.imageUrl===url&&!img.naturalWidth)img.dispatchEvent(new Event('error'));});
   holder.replaceChildren(img);img.src=url;
   if(live)el('ps-image-help').textContent='图片完整显示、不裁剪；加载失败显示短标签。远程图片服务器会收到图片请求。';
 }

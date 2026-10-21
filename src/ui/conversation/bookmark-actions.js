@@ -95,8 +95,13 @@ function targetOf(tree,target,context,refs){
  if(target.startsWith('$'))throw fail('E_BOOKMARK_REFERENCE','无法核实该条书签引用');
  return resolveName(tree,target);
 }
-const aborted=signal=>{if(signal?.aborted)throw Object.assign(
- fail('E_CANCELLED','已停止，未再发送新的书签操作'),{writeIssued:false});};
+const aborted=signal=>{
+ if(!signal?.aborted)return;
+ const revoked=signal.reason?.code==='E_MODEL_GRANT_REVOKED';
+ throw Object.assign(fail(revoked?'E_MODEL_GRANT_REVOKED':'E_CANCELLED',
+  revoked?'模型权限已撤销，未再发送新的书签操作':'已停止，未再发送新的书签操作'),
+  {writeIssued:false});
+};
 
 export function bookmarkConversationContext(tree,{selectedId=null,currentFolderId=null,refs={}}={}){
  const selected=tree?.byId.get(selectedId);
@@ -114,7 +119,7 @@ export function bookmarkConversationContext(tree,{selectedId=null,currentFolderI
 
 // A fresh complete Chrome snapshot starts every turn. Every mutation gets its
 // own post-write readback, and only verified IDs enter the next turn's context.
-export async function executeBookmarkPlan({plan,service,context,refs={},expectedTree=null,signal,onStep=()=>{}}){
+export async function executeBookmarkPlan({plan,service,context,refs={},expectedTree=null,signal,beforeWrite=()=>{},onStep=()=>{}}){
  const checked=validateBookmarkPlan(plan);
  if(checked.question)return {question:checked.question,refs,tree:null,messages:[]};
  aborted(signal);let tree=await service.load();aborted(signal);
@@ -133,10 +138,13 @@ export async function executeBookmarkPlan({plan,service,context,refs={},expected
  for(const action of checked.actions){
   // A Stop between operations preserves the actual verified partial journal.
   // Never issue or replay a later mutation after cancellation.
-  if(signal?.aborted)throw Object.assign(fail('E_CANCELLED','已停止，未再发送新的书签操作'),{
-   partial:[...messages],refs:{...nextRefs},writeIssued:false});
+  try{aborted(signal);}catch(error){throw Object.assign(error,{
+   partial:[...messages],refs:{...nextRefs},writeIssued:false});}
   let issued=false,kind='',target=null,actual=null;
   const write=async(method,args)=>{
+   // A model proposal alone cannot authorize a bookmark write. Recheck the
+   // trusted Provider grant and instance immediately before EACH mutation.
+   await beforeWrite({method,action});aborted(signal);
    issued=true;
    try{return await service[method](args,{signal});}
    catch(error){if(error?.writeIssued===false)issued=false;throw error;}

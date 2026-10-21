@@ -22,7 +22,11 @@
 .bm-button--danger{border-color:var(--od-negative);background:var(--od-negative);color:var(--od-paper)}
 .bm-error,.bm-notice{margin:7px 10px 0;border:1px solid color-mix(in srgb,var(--od-negative) 32%,var(--od-paper));background:var(--od-negative-bg);color:var(--od-negative);padding:8px 9px;border-radius:8px;display:flex;align-items:center;gap:8px;font-size:12px}
 .bm-error span{flex:1;min-width:0}.bm-error button{border:0;background:var(--od-paper);border-radius:5px;padding:4px 8px;color:var(--od-negative)}.bm-notice{display:block;border-color:color-mix(in srgb,var(--od-positive) 35%,var(--od-line));background:color-mix(in srgb,var(--od-positive) 8%,var(--od-paper));color:var(--od-positive)}
-.bm-workspace{display:flex;min-height:0;flex:1;flex-direction:column;gap:0;min-width:0;overflow:hidden}
+.bm-ai-reveal{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 10px 0;padding:6px 8px;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub);font-size:11px;line-height:1.4}
+.bm-ai-reveal span{min-width:0;flex:1}
+.bm-ai-reveal button{flex:none;border:1px solid var(--od-line);border-radius:6px;background:var(--od-bg);color:var(--od-accent-ink);font:inherit;padding:5px 8px;cursor:pointer}
+.bm-ai-reveal button:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
+.bm-workspace{display:flex;position:relative;min-height:0;flex:1;flex-direction:column;gap:0;min-width:0;overflow:hidden}
 .bm-explorer{display:flex;flex-direction:column;min-height:0;flex:1;min-width:0;overflow:hidden}
 .bm-tree-head{height:36px;min-height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 13px;color:var(--od-sub);font-size:12px;border-bottom:1px solid var(--od-line);background:var(--od-bg)}
 .bm-tree-head span{font-weight:620;color:var(--od-ink)}.bm-tree-head small{font-size:11px;font-variant-numeric:tabular-nums}
@@ -77,6 +81,9 @@
 /* R3.0.3: Tree is the sole persistent workspace. Details/edit are explicit
  * transient views, never a second independently scrolling bottom inspector. */
 .bm-sheet-backdrop{position:fixed;inset:0;z-index:38;background:rgba(20,38,65,.27);display:flex;align-items:flex-end;justify-content:center}
+/* With the shared Dock, editing remains in its existing sheet but the
+   business toolbar (including the chat toggle) stays available. */
+.bm-sheet-backdrop[data-sharing="true"]{position:absolute;inset:0}
 .bm-sheet{width:100%;max-width:100%;max-height:min(88%,660px);overflow:auto;background:var(--od-paper);border-radius:16px 16px 0 0;box-shadow:0 -14px 42px rgba(26,48,80,.17);display:flex;flex-direction:column}
 .bm-sheet-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px 10px;border-bottom:1px solid var(--od-line);position:sticky;top:0;background:var(--od-paper);z-index:1;min-height:48px}
 .bm-sheet-header strong{font-size:14px;font-weight:670;letter-spacing:-.01em}
@@ -154,27 +161,3 @@
  .bm-popover button,.bm-button,.bm-picker-item,.bm-text-button{min-height:44px}
  .bm-sheet .bm-editor-actions .bm-button{height:44px}
 }
-
-
-/* R1.0 Conversation: the original Tree stays mounted while chat is visible.
- * All surfaces inherit existing OpenDesk color tokens; no alternate theme. */
-.bm-conversation{min-height:0;min-width:0;flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--od-paper)}
-.bm-chat-log{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:14px 12px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin}
-.bm-chat-entry{max-width:94%;min-width:0;align-self:flex-start;display:grid;gap:4px;padding:9px 11px;border:1px solid var(--od-line);border-radius:12px;background:var(--od-bg);overflow-wrap:anywhere}
-.bm-chat-entry[data-speaker="user"]{align-self:flex-end;border-color:color-mix(in srgb,var(--od-brand) 25%,var(--od-line));background:color-mix(in srgb,var(--od-brand) 8%,var(--od-paper))}
-.bm-chat-entry strong{font-size:11px;color:var(--od-sub);font-weight:650}
-.bm-chat-entry p{margin:0;color:var(--od-ink);white-space:pre-wrap;font-size:12px;line-height:1.6}
-.bm-chat-empty{display:grid;gap:14px;padding:22px 6px;color:var(--od-sub)}
-.bm-chat-empty p{font-size:13px;margin:0;text-align:center}
-.bm-chat-samples{display:grid;gap:7px}
-.bm-chat-samples button{display:block;text-align:left;background:var(--od-paper);border:1px solid var(--od-line);border-radius:10px;min-height:39px;padding:8px 10px;color:var(--od-ink);font-size:12px}
-.bm-chat-samples button:hover{background:var(--od-muted)}
-.bm-chat-composer{flex:none;min-width:0;padding:10px 12px 11px;border-top:1px solid var(--od-line);display:grid;grid-template-columns:minmax(0,1fr);gap:7px;background:var(--od-paper)}
-.bm-chat-request{display:block;resize:vertical;min-width:0;min-height:66px;max-height:155px;width:100%;border:1px solid var(--od-input-border);border-radius:10px;background:var(--od-paper);color:var(--od-ink);padding:9px 11px;font:inherit;line-height:1.5}
-.bm-chat-request::placeholder{color:var(--od-sub);opacity:1}
-.bm-chat-request:focus-visible{outline:2px solid var(--od-focus);outline-offset:1px}
-.bm-chat-controls{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.bm-chat-controls small{font-size:11px;color:var(--od-sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bm-chat-controls .bm-icon-btn{flex:none}
-.bm-chat-error{margin:0 12px 5px;font-size:11px;line-height:1.5;color:var(--od-negative);overflow-wrap:anywhere}
-@media(pointer:coarse){.bm-chat-controls .bm-icon-btn{width:44px;min-width:44px;height:44px}}

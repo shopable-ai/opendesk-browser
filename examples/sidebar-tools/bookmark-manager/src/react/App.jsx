@@ -1,10 +1,10 @@
 /** @jsx h */
 import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {Button as OpenDeskButton,IconButton as OpenDeskIconButton} from '../../../../../src/ui/react/components/ui/button.tsx';
-import {ConversationTranscript,ConversationInput} from '../../../../../src/ui/react/components/conversation.tsx';
 import {bookmarkConversationContext,executeBookmarkPlan} from '../../../../../src/ui/conversation/bookmark-actions.js';
 const model=globalThis.BookmarkR2Model;
 const TREE_ROW_HEIGHT=44;
+export const bookmarkConversationSamples=Object.freeze(['创建一个叫 AI 工具的文件夹，并把 https://example.com 收藏进去','把当前网页收藏到 AI 工具','找出 React 相关书签']);
 function h(...args){return React.createElement(...args)}
 const iconPaths={
  chat:<path d="M21 11.5c0 4.6-3.9 8.5-8.8 8.5a10 10 0 0 1-4.2-.9L3 21l1.5-4.5A8.1 8.1 0 0 1 3 11.5C3 7 7 3 12.2 3s8.8 4 8.8 8.5Z"/>,
@@ -89,7 +89,7 @@ function Tree({rows,expanded,searchActive,searchTerm,selectedId,activeId,setActi
    else if(event.key==='Escape'){return} // document handles Escape for readonly preview or row menu
    else return;event.preventDefault();
  }
- return <div className="bm-tree-scroll" ref={scrollRef} onScroll={e=>{const el=e.currentTarget;setTop(el.scrollTop);onScrollClose();if(virtual&&rows.length){const first=Math.max(0,Math.floor(el.scrollTop/rowHeight));const last=Math.min(rows.length-1,Math.floor((el.scrollTop+el.clientHeight-1)/rowHeight));if(activeRow<first||activeRow>last)setActiveId(rows[first]?.node.id||rows[0].node.id)}}} role="tree" aria-label="书签目录与书签" aria-activedescendant={displayed.length?'bm-treeitem-'+(displayed.some(r=>r.node.id===activeId)?activeId:displayed[0].node.id):undefined} tabIndex={0} onKeyDown={onKey} data-testid="bookmark-tree">
+ return <div className="bm-tree-scroll" ref={scrollRef} onScroll={e=>{const el=e.currentTarget;setTop(el.scrollTop);const autoRevealScroll=onScrollClose(e);if(!autoRevealScroll&&virtual&&rows.length){const first=Math.max(0,Math.floor(el.scrollTop/rowHeight));const last=Math.min(rows.length-1,Math.floor((el.scrollTop+el.clientHeight-1)/rowHeight));if(activeRow<first||activeRow>last)setActiveId(rows[first]?.node.id||rows[0].node.id)}}} role="tree" aria-label="书签目录与书签" aria-activedescendant={displayed.length?'bm-treeitem-'+(displayed.some(r=>r.node.id===activeId)?activeId:displayed[0].node.id):undefined} tabIndex={0} onKeyDown={onKey} data-testid="bookmark-tree">
   {!rows.length?<div className="bm-empty">没有匹配的书签。试试其他关键词。</div>:
   <div className="bm-virtual-area" role="presentation" style={{height:virtual?rows.length*rowHeight:undefined}}>
    {displayed.map((row,i)=>{const node=row.node,folder=isFolder(node),open=expanded.has(node.id)||searchActive;
@@ -189,7 +189,7 @@ function ActionMenu({state,onAction,onClose}){const menuRef=useRef(null);useEffe
    {!state.locked&&<button role="menuitem" className="bm-destructive" onClick={()=>onAction('delete',state.id)}><Icon name="trash" size={16}/>删除</button>}
   </div>
 }
-function Sheet({title,onClose,children,canClose=true,dismissOnBackdrop=true}){
+function Sheet({title,onClose,children,canClose=true,dismissOnBackdrop=true,hasDock=false}){
  const ref=useRef(null),closeRef=useRef(onClose),origin=useRef(null),canCloseRef=useRef(canClose);
  closeRef.current=onClose;canCloseRef.current=canClose;
  useEffect(()=>{
@@ -199,8 +199,9 @@ function Sheet({title,onClose,children,canClose=true,dismissOnBackdrop=true}){
   (field||region)?.focus();
   const key=e=>{
    if(document.querySelector('[data-testid="confirm-dialog"]'))return;
+    if(hasDock&&!region?.contains(document.activeElement))return;
     if(e.key==='Escape'){e.preventDefault();e.stopPropagation();if(canCloseRef.current)closeRef.current();return}
-   if(e.key!=='Tab'||!region)return;
+   if(e.key!=='Tab'||!region||hasDock)return;
    const items=[...region.querySelectorAll('button:not(:disabled),input:not(:disabled),a[href],select:not(:disabled)')].filter(el=>el.getClientRects().length);
    if(!items.length)return;
    const first=items[0],last=items[items.length-1];
@@ -214,9 +215,9 @@ function Sheet({title,onClose,children,canClose=true,dismissOnBackdrop=true}){
    if(target?.isConnected)target.focus();
    else document.querySelector('.bm-tree-scroll')?.focus();
   };
- },[]);
- return <div className="bm-sheet-backdrop" role="presentation" onMouseDown={e=>{if(dismissOnBackdrop&&canClose&&e.target===e.currentTarget)closeRef.current()}}>
-  <section ref={ref} className="bm-sheet" role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} data-testid="bookmark-sheet">
+ },[hasDock]);
+ return <div className="bm-sheet-backdrop" data-sharing={hasDock?'true':undefined} role="presentation" onMouseDown={e=>{if(dismissOnBackdrop&&canClose&&e.target===e.currentTarget)closeRef.current()}}>
+  <section ref={ref} className="bm-sheet" role="dialog" aria-modal={!hasDock} aria-label={title} tabIndex={-1} data-testid="bookmark-sheet">
    <header className="bm-sheet-header"><strong>{title}</strong><OpenDeskIconButton className="bm-sheet-close" label="关闭" disabled={!canClose} onClick={onClose}><Icon name="x" size={17}/></OpenDeskIconButton></header>
    {children}
   </section>
@@ -247,108 +248,95 @@ function Confirm({title,description,confirm,cancelLabel='取消',canConfirm=true
   </div>
  </div>;
 }
-export default function App({runtime=null,mode='preview',onStateChange=null}={}){
+export default function App({runtime=null,mode='preview',onStateChange=null,dock=null}={}){
  const sdk=runtime?.sdk??globalThis.OpenDeskSDK?.browser;
  const service=useMemo(()=>runtime?.service??globalThis.BookmarkR2Service.create(sdk),[runtime,sdk]);
  const [tree,setTree]=useState(null),[expanded,setExpanded]=useState(new Set(['1','2','10','11'])),[query,setQuery]=useState(''),[selectedId,setSelectedId]=useState(null),[activeId,setActiveId]=useState('1'),[draft,updateDraft]=useState(null),[pickerOpen,setPickerOpen]=useState(false),[previewOpen,setPreviewOpen]=useState(false),[menu,setMenu]=useState(null),[confirmDiscard,setConfirmDiscard]=useState(false),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[uncertain,setUncertain]=useState(false);
+ const [revealTarget,setRevealTarget]=useState(null);
+ const interactionEpoch=useRef(0),pendingAiReveal=useRef(null),ignoreAutoScrollTop=useRef(null),queryRef=useRef(query);
+ queryRef.current=query;
  const scrollRef=useRef(null),pendingFolderReveal=useRef(null),readEpoch=useRef(0),writeEpoch=useRef(0),authorityEpoch=useRef(0),activeRef=useRef(true),menuButtonRef=useRef(null),busyRef=useRef(false),fillEpoch=useRef(0);
 
+
  const conversation=runtime?.conversation||null;
- const restoredChat=useMemo(()=>conversation?.readSession?.()||{},[conversation]);
- const [chatOpen,setChatOpen]=useState(Boolean(restoredChat.open)),
-  [chatDraft,setChatDraft]=useState(restoredChat.draft||''),
-  [chatRows,setChatRows]=useState(restoredChat.rows||[]),
-  [chatBusy,setChatBusy]=useState(false),[chatError,setChatError]=useState('');
- const chatRefs=useRef(restoredChat.refs||{folderId:null,bookmarkId:null,matches:[]});
- const chatInput=useRef(null),chatLog=useRef(null),chatAbort=useRef(null),chatInFlight=useRef(false),chatSequence=useRef(0);
-  const chatRowsRef=useRef(restoredChat.rows||[]);
- useEffect(()=>{
-  conversation?.saveSession?.({open:chatOpen,draft:chatDraft,rows:chatRows,refs:chatRefs.current});
- },[conversation,chatOpen,chatDraft,chatRows]);
- useEffect(()=>{if(chatOpen)chatInput.current?.focus({preventScroll:true})},[chatOpen]);
+ const dockRef=useRef(dock);dockRef.current=dock;
+ const draftRef=useRef(draft);draftRef.current=draft;
+ const uncertainRef=useRef(uncertain);uncertainRef.current=uncertain;
+ // The admitted App provides business capability; Host React alone owns Chat Dock UI.
  useLayoutEffect(()=>{
-  if(chatOpen&&chatLog.current)chatLog.current.scrollTop=chatLog.current.scrollHeight;
- },[chatOpen,chatRows,chatError]);
- useEffect(()=>()=>{chatAbort.current?.abort()},[]);
- function appendConversation(speaker,message){
-  const row={id:'bookmark-turn-'+Date.now()+'-'+(++chatSequence.current),speaker,message:String(message).slice(0,3500)};
-  const rows=[...chatRowsRef.current,row].slice(-24);
-   chatRowsRef.current=rows;
-   if(activeRef.current)setChatRows(rows);
-   // Commit verified messages and their real ID references immediately:
-   // the trusted portal may unmount before React runs another effect.
-   conversation?.saveSession?.({open:true,draft:'',rows,refs:chatRefs.current});
- }
- function toggleConversation(){
-  if(draft){setError('请先完成或取消当前书签编辑，再打开对话。');return;}
-  setChatOpen(open=>!open);setPreviewOpen(false);setMenu(null);setChatError('');
- }
- function stopConversation(){
-  chatAbort.current?.abort();
-  void conversation?.cancel?.()?.catch?.(()=>{});
- }
- async function sendConversation(event){
-  event.preventDefault();
-  if(event.nativeEvent?.isComposing||chatInFlight.current||!chatDraft.trim())return;
-  if(!tree||loading||uncertain||busyRef.current){
-   setChatError(uncertain?'写入结果未知，请先返回列表刷新核对。':'请先读取完整书签，或等待当前操作完成。');return;
-  }
-  if(!conversation?.request){
-   setChatError('当前是离线 React 预览，未连接真实 AI 或 Chrome 书签 Host。');return;
-  }
-  const requestText=chatDraft.trim();
-  const pinnedFolder=(current&&isFolder(current)?current.id:current?.parentId)||
-    (tree.byId.has('1')?'1':[...tree.byId.values()].find(n=>n.parentId!==null&&isFolder(n)&&!n.locked)?.id);
+  const bridge=dock?.adapterRef;if(!bridge)return;
+  const active={request:runBookmarkConversation};bridge.current=active;
+  return()=>{if(bridge.current===active)bridge.current=null};
+ });
+ async function runBookmarkConversation({request,refs,signal,event,onStep,onPhase}){
+  if(!conversation?.request)
+   throw Object.assign(Error('当前是离线 React 预览，未连接真实 AI 或 Chrome 书签 Host。'),{code:'E_AI_UNAVAILABLE'});
+  if(!tree||loading||uncertainRef.current||busyRef.current)
+   throw Object.assign(Error(uncertainRef.current?'写入结果未知，请刷新并核对书签后再操作。':'请先读取完整书签或等待当前操作完成。'),{code:'E_BOOKMARK_BUSY'});
+  // Freeze real selection and verified IDs at the Send event. Later UI selection is independent.
+  const selected=tree.byId.get(selectedId);
+  const pinnedFolder=(selected&&isFolder(selected)?selected.id:selected?.parentId)||
+   (tree.byId.has('1')?'1':[...tree.byId.values()].find(n=>n.parentId!==null&&isFolder(n)&&!n.locked)?.id);
+  const interactionAtSend=interactionEpoch.current;
   const pinned={selectedId,currentFolderId:pinnedFolder,refs:{
-   folderId:chatRefs.current.folderId,bookmarkId:chatRefs.current.bookmarkId,
-   matches:[...(chatRefs.current.matches||[])]
-  }};
+   folderId:refs?.folderId||null,bookmarkId:refs?.bookmarkId||null,matches:[...(refs?.matches||[])]}};
   const publicContext={...bookmarkConversationContext(tree,pinned),currentPageAvailable:true};
-  const signal=new AbortController();chatAbort.current=signal;chatInFlight.current=true;
-  busyRef.current=true;setBusy(true);
-  setChatBusy(true);setChatError('');setChatDraft('');appendConversation('你',requestText);
-  // Both tasks start from the real user Send gesture. Current-page content
-  // stays local; the Provider sees only a "$currentPage" capability marker.
+  // Both permission-sensitive requests start synchronously in the trusted Send gesture.
+  // Private URL / document identifiers are never sent as model context.
   let pagePromise;
   try{pagePromise=Promise.resolve(sdk?.page?.getContext?.()).catch(()=>null)}
   catch{pagePromise=Promise.resolve(null)}
+  const providerPromise=conversation.request({request,context:publicContext,signal,event});
+  const [providerResult,pageContext]=await Promise.all([providerPromise,pagePromise]);
+  const {proposal,authorization}=providerResult;
   try{
-   const providerPromise=conversation.request({request:requestText,context:publicContext,
-    signal:signal.signal,event:event.nativeEvent});
-   const [{proposal},pageContext]=await Promise.all([providerPromise,pagePromise]);
-   if(signal.signal.aborted)throw Object.assign(Error('本轮已停止'),{code:'E_CANCELLED'});
-   const result=await executeBookmarkPlan({plan:proposal,service,signal:signal.signal,
+   if(mode==='trusted'&&(!authorization?.signal||
+     typeof authorization.assertWrite!=='function'||typeof authorization.release!=='function'))
+    throw Object.assign(Error('缺少有效的模型权限与安装实例校验，拒绝执行'),{code:'E_MODEL_GRANT_REVOKED'});
+   if(signal.aborted)throw Object.assign(Error('本轮已停止'),{code:'E_CANCELLED'});
+  if(authorityEpoch.current||!activeRef.current)
+   throw Object.assign(Error('书签访问授权或当前安装实例已经失效，未发送后续操作。'),{code:'E_GRANT_REVOKED'});
+  const willWrite=Array.isArray(proposal?.actions)&&proposal.actions.some(action=>action?.type!=='bookmark.search');
+  // Allow read/search during a draft; defer any AI writes rather than silently discard the draft.
+  if(willWrite&&(draftRef.current||uncertainRef.current||busyRef.current))
+   throw Object.assign(Error(draftRef.current?
+    '存在未保存的书签编辑。可以继续只读搜索；请先保存或取消编辑，再重新发起写入。':
+    '书签正在写入或结果尚未核实，请核对后重新发起操作。'),{code:'E_DRAFT_CONFLICT'});
+  if(willWrite){onPhase?.('writing');busyRef.current=true;setBusy(true);}
+  try{
+   const result=await executeBookmarkPlan({plan:proposal,service,
+    signal:authorization?.signal||signal,beforeWrite:authorization?.assertWrite,
     expectedTree:tree,context:{...pinned,pageContext},refs:pinned.refs,
     onStep:step=>{
-     chatRefs.current=step.refs;
-     appendConversation('助手',step.message);
-     if(activeRef.current){
-      setTree(step.tree);
-      if(step.id){setSelectedId(step.id);setActiveId(step.id);}
+     if(!activeRef.current||authorityEpoch.current)return;
+     if(step.tree)setTree(step.tree);
+     if(step.id){
+      // Only a post-write readback may reveal a node. Never hijack a user
+      // selection, scroll position or active search changed during AI work.
+      const node=step.tree?.byId.get(step.id);
+      if(node){
+       const mayReveal=interactionEpoch.current===interactionAtSend&&!queryRef.current.trim();
+       pendingAiReveal.current=mayReveal?{id:node.id,epoch:interactionEpoch.current}:null;
+       setRevealTarget(mayReveal?null:node.id);
+       setExpanded(previous=>{
+        const next=new Set(previous);let parent=step.tree.byId.get(node.parentId),depth=0;
+        while(parent&&depth++<100){next.add(parent.id);parent=step.tree.byId.get(parent.parentId);}
+        return next;
+       });
+      }
      }
+     onStep?.({message:step.message,refs:step.refs});
     }});
-   if(result.question)appendConversation('助手',result.question);
-   else{
-    chatRefs.current=result.refs;
-    if(result.tree)setTree(result.tree);
-   }
+   return {question:result.question||null,refs:result.refs};
   }catch(error){
-   if(error?.refs)chatRefs.current=error.refs;
    if(error?.code==='E_OUTCOME_UNKNOWN')setUncertain(true);
-   const partial=error?.partial?.length?'已确认 '+error.partial.length+' 项操作。其余未完成。 ':'';
-   const text=error?.code==='E_CANCELLED'?'本轮已停止，未发送后续操作。':
-    partial+(error?.message||'操作失败。没有将未确认写入视为成功。');
-   if(activeRef.current){
-    setChatError(text);
-    // Restore editable input on Provider/pre-write failures, but never replay a write.
-    if(!error?.writeIssued&&!error?.partial?.length&&error?.code!=='E_OUTCOME_UNKNOWN')
-     setChatDraft(requestText);
-   }
-   appendConversation('系统',text);
+   if(authorityDenied(error))revoke();
+   if(error?.refs)onStep?.({refs:error.refs});
+   throw error;
   }finally{
-   chatInFlight.current=false;chatAbort.current=null;busyRef.current=false;
-   if(activeRef.current){setChatBusy(false);setBusy(false);}
+   if(willWrite){busyRef.current=false;if(activeRef.current)setBusy(false);}
   }
+  }finally{authorization?.release?.();}
  }
 
  function setDraft(value){fillEpoch.current++;updateDraft(value)}
@@ -367,7 +355,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
    const next=await service.load();
    if(!activeRef.current||authorityEpoch.current||stamp!==readEpoch.current)return null;
    if(write!==writeEpoch.current||busyRef.current){setLoading(false);return null}
-   setTree(next);setLoading(false);if(reconcileUnknown)setUncertain(false);setNotice('');return next;
+   setTree(next);setLoading(false);if(reconcileUnknown){setUncertain(false);dockRef.current?.reconcile?.();}setNotice('');return next;
   }catch(ex){
    if(activeRef.current&&!authorityEpoch.current&&authorityDenied(ex))revoke();
    else if(activeRef.current&&!authorityEpoch.current&&stamp===readEpoch.current){setLoading(false);setError(humanError(ex))}
@@ -427,7 +415,36 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
   pendingFolderReveal.current=null;
   scroller.scrollTop=Math.max(0,index*TREE_ROW_HEIGHT); // Position entered folder at the top, not amid unrelated sibling bookmarks.
  },[rows]);
+ useLayoutEffect(()=>{
+  const pending=pendingAiReveal.current,scroller=scrollRef.current;
+  if(!pending||!scroller)return;
+  if(interactionEpoch.current!==pending.epoch||queryRef.current.trim()){
+   pendingAiReveal.current=null;setRevealTarget(pending.id);return;
+  }
+  const index=rows.findIndex(row=>row.node.id===pending.id);
+  if(index<0){
+   if(tree&&!tree.byId.has(pending.id))pendingAiReveal.current=null;
+   return; // Wait until the verified node and its expanded ancestors render.
+  }
+  pendingAiReveal.current=null;
+  scroller.scrollTop=Math.max(0,index*TREE_ROW_HEIGHT-Math.floor(scroller.clientHeight/3));
+  ignoreAutoScrollTop.current=scroller.scrollTop;
+  setActiveId(pending.id); // Focus remains where the user is typing.
+ },[rows,query,tree]);
  const current=tree?.byId.get(selectedId)||null;
+ function locateAiResult(){
+  const id=revealTarget,node=tree?.byId.get(id);
+  if(!node){setRevealTarget(null);setError('该书签已变化，请刷新后重新查找。');return;}
+  interactionEpoch.current++;
+  pendingAiReveal.current={id,epoch:interactionEpoch.current};
+  setExpanded(previous=>{
+   const next=new Set(previous);let parent=node,depth=0;
+   while(parent&&depth++<100){next.add(parent.id);parent=tree.byId.get(parent.parentId);}
+   return next;
+  });
+  if(queryRef.current.trim()){queryRef.current='';setQuery('');}
+  setRevealTarget(null);
+ }
  const previewNode=previewOpen&&!draft?current:null;
  const folders=useMemo(()=>tree?[...tree.byId.values()].filter(n=>isFolder(n)&&!n.locked&&!tree.roots.has(n.id)):[],[tree]);
  const closeMenu=useCallback(()=>{setMenu(null);menuButtonRef.current?.focus()},[]);
@@ -454,7 +471,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
   }
   setNotice(copied?'网址已复制':'无法自动复制，请选择网址手动复制');
  }
- function toggle(id){if(expanded.has(id)&&tree){let node=tree.byId.get(activeId),limit=0;while(node&&limit++<100){if(node.parentId===id){setActiveId(id);break}node=tree.byId.get(node.parentId)}}setExpanded(prev=>{const n=new Set(prev);if(n.has(id))n.delete(id);else n.add(id);return n})}
+ function toggle(id){interactionEpoch.current++;if(expanded.has(id)&&tree){let node=tree.byId.get(activeId),limit=0;while(node&&limit++<100){if(node.parentId===id){setActiveId(id);break}node=tree.byId.get(node.parentId)}}setExpanded(prev=>{const n=new Set(prev);if(n.has(id))n.delete(id);else n.add(id);return n})}
  function startEdit(node,{move=false}={}){if(!node||node.locked)return;setDraft(initialDraft('edit',isFolder(node)?'folder':'bookmark',node,node.parentId));setSelectedId(node.id);setPickerOpen(move);setUncertain(false)}
  function closeSheet(){if(busy)return;if(uncertain)setNotice('写入结果未知，请先刷新核对书签。');setDraft(null);setPickerOpen(false);setError('')}
  function requestCloseSheet(){if(busy)return;fillEpoch.current++;if(dirtyDraft(draft)||uncertain){setConfirmDiscard(true);return}closeSheet()}
@@ -469,15 +486,17 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
   else if(action.type==='currentPage')void fillCurrentPage();
  }
  // Explicit cancel means discard. No modal for unsaved drafts.
- function request(action){fillEpoch.current++;if(busyRef.current)return;if(uncertain&&['create','edit','delete','currentPage'].includes(action.type)){setError('上次写入结果未知，请先刷新核对后再继续。');return}perform(action)}
- function select(id){setActiveId(id);if(draft)return;request({type:'select',id})}
+ function request(action){interactionEpoch.current++;fillEpoch.current++;if(busyRef.current)return;if(uncertain&&['create','edit','delete','currentPage'].includes(action.type)){setError('上次写入结果未知，请先刷新核对后再继续。');return}perform(action)}
+ function select(id){interactionEpoch.current++;setActiveId(id);if(draft)return;request({type:'select',id})}
  function changeSearch(value){
+  interactionEpoch.current++;queryRef.current=value;
   setQuery(value);setPreviewOpen(false);setMenu(null);
   if(scrollRef.current)scrollRef.current.scrollTop=0;
  }
  function navigateFolder(id){
   const folder=tree?.byId.get(id);
   if(!folder||!isFolder(folder)||draft)return;
+  interactionEpoch.current++;
   setActiveId(id);setSelectedId(id);setPreviewOpen(false);setMenu(null);
   if(query.trim()){
    // Search shows matching descendants plus context ancestors. Entering a
@@ -500,7 +519,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
      descendantSignatures:isFolder(node)?model.descendantSignatures(tree,id):[]};
    void removeConfirmed(target);
   }
- function onMenu(id,button){setMenu(null);setSelectedId(id);setActiveId(id);menuButtonRef.current=button;const r=button.getBoundingClientRect();const max=window.innerWidth-190;setMenu({id,locked:Boolean(tree?.byId.get(id)?.locked),top:Math.max(8,Math.min(r.bottom+4,window.innerHeight-190)),left:Math.max(8,Math.min(r.right-182,max))})}
+ function onMenu(id,button){interactionEpoch.current++;setMenu(null);setSelectedId(id);setActiveId(id);menuButtonRef.current=button;const r=button.getBoundingClientRect();const max=window.innerWidth-190;setMenu({id,locked:Boolean(tree?.byId.get(id)?.locked),top:Math.max(8,Math.min(r.bottom+4,window.innerHeight-190)),left:Math.max(8,Math.min(r.right-182,max))})}
  function actionMenu(action,id){closeMenu();if(action==='detail')request({type:'detail',id});else if(action==='delete')request({type:'delete',id});else request({type:'edit',id,move:action==='move'})}
  async function save(e){if(mode==='trusted'&&!e.isTrusted)return;e.preventDefault();if(!draft||busy||busyRef.current||uncertain||authorityEpoch.current)return;
   let title,url;try{title=model.displayName(draft.title);url=draft.kind==='bookmark'?model.asHttpUrl(draft.url):undefined;model.parentFolder(tree,draft.parentId);
@@ -593,49 +612,33 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
     <OpenDeskIconButton label="新建书签" className="bm-icon-btn bm-icon-btn--primary" disabled={busy} onClick={()=>request({type:'create',kind:'bookmark'})}><Icon name="plus" size={18}/></OpenDeskIconButton>
     <OpenDeskIconButton label="新建文件夹" className="bm-icon-btn" disabled={busy} onClick={()=>request({type:'create',kind:'folder'})}><Icon name="folder" size={17}/></OpenDeskIconButton></div>
     <OpenDeskIconButton label="收藏当前页" className="bm-icon-btn" disabled={busy} onClick={bookmarkCurrentPage}><Icon name="star" size={17}/></OpenDeskIconButton>
-    <OpenDeskIconButton label="对话" className={'bm-icon-btn'+(chatOpen?' bm-icon-btn--primary':'')} aria-pressed={chatOpen} aria-controls="bm-conversation" disabled={busy} onClick={toggleConversation}><Icon name="chat" size={17}/></OpenDeskIconButton>
+    <OpenDeskIconButton ref={dock?.triggerRef} label="对话" className={'bm-icon-btn'+(dock?.open?' bm-icon-btn--primary':'')} aria-pressed={Boolean(dock?.open)} aria-controls="opendesk-conversation-dock" disabled={!dock} onClick={dock?.toggle}><Icon name="chat" size={17}/></OpenDeskIconButton>
     <OpenDeskIconButton label="刷新书签" className="bm-icon-btn" onClick={()=>void load({reconcileUnknown:true})} disabled={busy||loading}><Icon name="refresh" size={17}/></OpenDeskIconButton>
    </div></header>
-  <div className="bm-tools" hidden={chatOpen}><div className="bm-search-wrap"><Icon name="search" size={16}/><label className="bm-sr-only" htmlFor="bm-search">搜索名称、URL 或文件夹</label><input id="bm-search" value={query} placeholder="搜索书签、网址或文件夹" onChange={e=>changeSearch(e.target.value)}/>{query&&<OpenDeskIconButton label="清空搜索" onClick={()=>{changeSearch('');document.getElementById('bm-search')?.focus()}}><Icon name="x" size={14}/></OpenDeskIconButton>}</div></div>
+  <div className="bm-tools"><div className="bm-search-wrap"><Icon name="search" size={16}/><label className="bm-sr-only" htmlFor="bm-search">搜索名称、URL 或文件夹</label><input id="bm-search" value={query} placeholder="搜索书签、网址或文件夹" onChange={e=>changeSearch(e.target.value)}/>{query&&<OpenDeskIconButton label="清空搜索" onClick={()=>{changeSearch('');document.getElementById('bm-search')?.focus()}}><Icon name="x" size={14}/></OpenDeskIconButton>}</div></div>
   {error&&!draft&&<div className="bm-error" role="alert"><Icon name="alert" size={17}/><span>{error}</span><button type="button" disabled={busy} onClick={()=>{setError('');void load({reconcileUnknown:true})}}>刷新</button></div>}
   {(busy||notice)&&<div className="bm-notice" role="status">{busy?'正在处理书签…':notice}</div>}
-  <div className="bm-workspace" hidden={chatOpen}><section className="bm-explorer" aria-label="书签树">{query&&<div className="bm-tree-head"><span>搜索结果</span><small>{rows.filter(r=>((r.node.title+' '+(r.node.url||'')).toLocaleLowerCase()).includes(query.toLocaleLowerCase())).length} 条匹配</small></div>}
-  {loading&&!tree?<div className="bm-loading" role="status">正在读取书签…</div>:tree?<Tree rows={rows} expanded={expanded} selectedId={selectedId} activeId={activeId} setActiveId={setActiveId} onSelect={select} onFolder={navigateFolder} onToggle={toggle} onMenu={onMenu} searchActive={Boolean(query.trim())} searchTerm={query} onEdit={id=>request({type:'edit',id})} onScrollClose={()=>setMenu(null)} scrollRef={scrollRef}/>:<div className="bm-empty">暂时无法读取书签。使用刷新重试。</div>}</section>
+  {revealTarget&&tree?.byId.has(revealTarget)&&<div className="bm-ai-reveal" role="status">
+   <span>{query.trim()?'AI 写入已核实，当前搜索可能隐藏新项目。':'AI 写入已核实，已保留你的浏览位置。'}</span>
+   <button type="button" onClick={locateAiResult}>{query.trim()?'清除搜索并定位':'查看新项目'}</button>
+  </div>}
+  <div className="bm-workspace"><section className="bm-explorer" aria-label="书签树">{query&&<div className="bm-tree-head"><span>搜索结果</span><small>{rows.filter(r=>((r.node.title+' '+(r.node.url||'')).toLocaleLowerCase()).includes(query.toLocaleLowerCase())).length} 条匹配</small></div>}
+  {loading&&!tree?<div className="bm-loading" role="status">正在读取书签…</div>:tree?<Tree rows={rows} expanded={expanded} selectedId={selectedId} activeId={activeId} setActiveId={id=>{interactionEpoch.current++;setActiveId(id)}} onSelect={select} onFolder={navigateFolder} onToggle={toggle} onMenu={onMenu} searchActive={Boolean(query.trim())} searchTerm={query} onEdit={id=>request({type:'edit',id})} onScrollClose={event=>{
+  setMenu(null);
+  const requested=ignoreAutoScrollTop.current;
+  if(requested!==null&&Math.abs(event.currentTarget.scrollTop-requested)<1){
+   ignoreAutoScrollTop.current=null;return true;
+  }
+  if(event.nativeEvent?.isTrusted)interactionEpoch.current++;
+  return false;
+ }} scrollRef={scrollRef}/>:<div className="bm-empty">暂时无法读取书签。使用刷新重试。</div>}</section>
   {previewNode&&<button type="button" tabIndex={-1} aria-hidden="true"
    className="bm-preview-backdrop" onClick={closePreview}/>}
   {previewNode&&<PreviewPane tree={tree} node={previewNode} onClose={closePreview} onEdit={id=>request({type:'edit',id})} onCopy={copyPreviewUrl}/>} 
-  </div>
-  <section id="bm-conversation" className="bm-conversation" aria-label="书签对话" hidden={!chatOpen}>
-   <div ref={chatLog} className="bm-chat-log" role="log" aria-live="polite" aria-label="书签对话及已核实的操作结果">
-    {chatRows.length?<ConversationTranscript rows={chatRows} entryClassName="bm-chat-entry"/>:
-     <div className="bm-chat-empty">
-      <p>直接说出你想对书签做什么。</p>
-      <div className="bm-chat-samples">
-       {['创建一个叫 AI 工具的文件夹，并把 https://example.com 收藏进去','把当前网页收藏到 AI 工具','找出 React 相关书签'].map(sample=>
-        <button type="button" key={sample} onClick={()=>{setChatDraft(sample);chatInput.current?.focus()}}>{sample}</button>)}
-      </div>
-     </div>}
-   </div>
-   {chatError&&<p className="bm-chat-error" role="alert">{chatError}</p>}
-   <form className="bm-chat-composer" onSubmit={sendConversation}>
-    <label className="bm-sr-only" htmlFor="bm-chat-request">书签对话输入</label>
-    <ConversationInput id="bm-chat-request" inputRef={chatInput} value={chatDraft}
-     className="bm-chat-request" rows={3} maxLength={4000}
-     placeholder="例如：创建一个文件夹并收藏当前网页"
-     onChange={e=>setChatDraft(e.target.value)}
-     onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing){
-      e.preventDefault();void sendConversation(e);
-     }}}/>
-    <div className="bm-chat-controls">
-     <small>{conversation?.source?.().label||'离线预览'} · {mode==='trusted'?'Chrome 书签读回核验':'模拟书签读回（非 Chrome）'}</small>
-     {chatBusy?<OpenDeskIconButton label="停止对话" className="bm-icon-btn" onClick={stopConversation}><Icon name="stop" size={16}/></OpenDeskIconButton>:
-      <OpenDeskIconButton label="发送" type="submit" onClick={sendConversation} className="bm-icon-btn bm-icon-btn--primary" disabled={!chatDraft.trim()||!tree||loading||uncertain}><Icon name="send" size={16}/></OpenDeskIconButton>}
-    </div>
-   </form>
-  </section>
-  {tree&&draft&&<Sheet title={draft?(draft.mode==='create'?(draft.kind==='folder'?'新建文件夹':'新建书签'):'编辑'+(draft.kind==='folder'?'文件夹':'书签')):'书签详情'} onClose={requestCloseSheet} canClose={!busy} dismissOnBackdrop={!busy&&!dirtyDraft(draft)}>
+  {tree&&draft&&<Sheet title={draft?(draft.mode==='create'?(draft.kind==='folder'?'新建文件夹':'新建书签'):'编辑'+(draft.kind==='folder'?'文件夹':'书签')):'书签详情'} onClose={requestCloseSheet} canClose={!busy} dismissOnBackdrop={!busy&&!dirtyDraft(draft)} hasDock={Boolean(dock)}>
     <Inspector tree={tree} node={current} draft={draft} setDraft={setDraft} onSave={save} onCancel={uncertain?requestCloseSheet:closeSheet} onOpenPicker={setPickerOpen} pickerOpen={pickerOpen} setPickerOpen={setPickerOpen} busy={busy} uncertain={uncertain} error={error}/>
   </Sheet>}
+  </div>
   {menu&&<ActionMenu state={menu} onAction={actionMenu} onClose={closeMenu}/>}
   {confirmDiscard&&<Confirm title={uncertain?"写入结果未知，确定放弃草稿？":"放弃未保存的修改？"} description={uncertain?"无法确认上次保存是否生效。此操作仅放弃本地草稿，不会重试写入；请刷新核对数据。":"草稿尚未保存。可以继续编辑或明确放弃。"} cancelLabel="继续编辑" confirm={uncertain?"放弃草稿":"放弃修改"} danger onConfirm={()=>{setConfirmDiscard(false);closeSheet()}} onCancel={()=>setConfirmDiscard(false)}/>}
  </div>

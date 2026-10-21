@@ -802,7 +802,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       button.setAttribute('aria-label','插入提示词：'+row.name);
       button.title=row.name; // Full multiline details appear on focus/hover.
       const fallbackLabel=()=>{
-        button.replaceChildren();
+        button.classList.remove('image');button.replaceChildren();
         for(const part of model.parts(row.label)){
           const span=doc.createElement('span');span.textContent=part;button.append(span);
         }
@@ -812,8 +812,9 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
           const url=model.normalizeImageUrl(row.imageUrl,true);
           button.classList.add('image');
           const img=doc.createElement('img');
-          img.alt='';img.decoding='async';img.loading='lazy';img.referrerPolicy='no-referrer';
+          img.alt='';img.decoding='async';img.loading='eager';img.referrerPolicy='no-referrer';
           img.addEventListener('error',()=>{if(img.parentNode===button)fallbackLabel();});
+          img.addEventListener('load',()=>{if(img.parentNode===button&&!img.naturalWidth)fallbackLabel();});
           button.append(img);img.src=url;
         }catch{fallbackLabel();}
       }else fallbackLabel();

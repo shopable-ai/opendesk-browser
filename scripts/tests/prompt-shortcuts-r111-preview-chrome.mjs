@@ -70,6 +70,51 @@ async function shot(name){
   const r=await call('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
   await writeFile(join(out,name+'.png'),Buffer.from(r.data,'base64'));
 }
+// R3.5: a DOM <img> and CSS variable are NOT evidence of actual pixels.
+async function r35ImageEvidence(){
+  return evalChrome('('+function(){
+    const rail=document.querySelector('#pageRail');
+    const img=rail?.querySelector('img[data-preview-fixture="offline-png"]');
+    const b=img?.closest('button'),r=b?.getBoundingClientRect(),i=img?.getBoundingClientRect();
+    const style=b&&getComputedStyle(b);
+    const colors=new Set();
+    if(img?.complete&&img.naturalWidth>0&&img.naturalHeight>0){
+      const canvas=document.createElement('canvas');
+      canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
+      const ctx=canvas.getContext('2d',{willReadFrequently:true});
+      ctx.drawImage(img,0,0);
+      const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+      for(let p=0;p<pixels.length;p+=64)
+        colors.add(pixels[p]+','+pixels[p+1]+','+pixels[p+2]+','+pixels[p+3]);
+    }
+    return {size:rail?.dataset.imageSize,complete:img?.complete??false,
+      naturalWidth:img?.naturalWidth||0,naturalHeight:img?.naturalHeight||0,
+      colors:colors.size,objectFit:img&&getComputedStyle(img).objectFit,
+      width:r?.width||0,height:r?.height||0,
+      visible:!!(r&&r.width>0&&r.height>0&&i?.width>0&&i.height>0&&
+        style.display!=='none'&&style.visibility==='visible'&&
+        !rail.hidden&&r.left>=0&&r.top>=0&&r.right<=innerWidth&&r.bottom<=innerHeight)};
+  }.toString()+')()');
+}
+async function r35Screenshot(name){
+  const clip=await evalChrome('('+function(){
+    const b=document.querySelector('#pageRail img[data-preview-fixture]')?.closest('button');
+    if(!b)throw Error('Cannot crop: missing visible image button');
+    const r=b.getBoundingClientRect();
+    return {x:Math.max(0,Math.floor(r.x-10)),y:Math.max(0,Math.floor(r.y-10)),
+      width:Math.ceil(r.width+20),height:Math.ceil(r.height+20),scale:1};
+  }.toString()+')()');
+  const result=await call('Page.captureScreenshot',{format:'png',clip,captureBeyondViewport:false});
+  const png=Buffer.from(result.data,'base64');
+  assert(png.byteLength>800,'actual image button screenshot not blank');
+  await writeFile(join(out,name+'.png'),png);
+}
+async function r35ChooseSize(value){
+  await evalChrome('('+function(size){
+    const select=document.querySelector('#imageSizeSetting');
+    select.value=size;select.dispatchEvent(new Event('change',{bubbles:true}));
+  }.toString()+')('+JSON.stringify(value)+')');
+}
 async function state(){
   return evalChrome('('+function(){
     const q=x=>document.querySelector(x);
@@ -92,6 +137,52 @@ async function run(){
   await call('Emulation.setDeviceMetricsOverride',{width:1200,height:1000,deviceScaleFactor:1,mobile:false});
   await call('Page.navigate',{url:pathToFileURL(resolve('examples/sidebar-tools/prompt-shortcuts/preview/index.html')).href});
   await poll('document.readyState==="complete"&&document.querySelectorAll(".prompt-card").length===4','four cards');
+  await poll('document.querySelector("#pageRail img[data-preview-fixture]")?.naturalWidth>0',
+    'R3.5 offline example image decoded');
+  report.r35ImageEvidence=[];
+  for(const [size,dims,name] of [
+    ['large',[68,48],'r35-image-large'],
+    ['compact',[48,40],'r35-image-compact'],
+    ['standard',[56,44],'r35-image-standard'],
+    ['large',[68,48],'r35-image-large-restored']]){
+    await r35ChooseSize(size);
+    const image=await r35ImageEvidence();
+    assert.equal(image.size,size);
+    assert(image.complete&&image.naturalWidth>0&&image.naturalHeight>0,'decoded PNG must be visible');
+    assert(image.colors>10,'image must contain real multi-colored raster content');
+    assert(image.visible,'decoded image must be visible inside Chromium viewport');
+    assert.equal(image.objectFit,'contain','do not crop image content');
+    assert(Math.abs(image.width-dims[0])<.6&&Math.abs(image.height-dims[1])<.6,
+      'real rendered button dimensions: '+size);
+    report.r35ImageEvidence.push(image);
+    await r35Screenshot(name);
+  }
+  assert(new Set(report.r35ImageEvidence.map(x=>x.width+'x'+x.height)).size===3,
+    'three distinct pixel-measured sizes required');
+  await shot('r35-full-original-mixed-text-and-image');
+  const useEvidence=await evalChrome('('+async function(){
+    const draft=document.querySelector('#mockDraft'),buttons=[...document.querySelectorAll('#pageRail .page-shortcut')];
+    draft.value='原草稿';draft.setSelectionRange(draft.value.length,draft.value.length);
+    buttons[0].click();await new Promise(done=>setTimeout(done,100));const text=draft.value;
+    buttons[1].click();await new Promise(done=>setTimeout(done,100));const image=draft.value;
+    draft.value='';
+    return {text,image,buttonCount:buttons.length,imageNode:!!buttons[1].querySelector('img')};
+  }.toString()+')()');
+  assert(useEvidence.imageNode&&useEvidence.buttonCount>=4);
+  assert(useEvidence.text.includes('原草稿')&&useEvidence.text.includes('不改变原意'));
+  assert(useEvidence.image.includes('原草稿')&&useEvidence.image.includes('重要依据'));
+  assert(!useEvidence.image.includes('images.unsplash.com'),'only prompt text is inserted');
+  report.r35PromptInsert=true;
+  await r35ChooseSize('standard');
+  await call('Page.reload',{ignoreCache:true});
+  await poll('document.querySelector("#pageRail img[data-preview-fixture]")?.naturalWidth>0',
+    'offline image must recover after reload');
+  const persisted=await r35ImageEvidence();
+  assert.equal(persisted.size,'standard');
+  assert(Math.abs(persisted.width-56)<.6&&Math.abs(persisted.height-44)<.6,
+    'refresh must retain the selected pixel dimensions');
+  report.r35ReloadSizePersisted=true;
+  await r35ChooseSize('large');
   let x=await state();
   assert.equal(x.cards,4);assert.equal(x.clamp,'2');assert(x.firstContent.includes('\n1. '));
   assert(x.firstButton.startsWith('使用完整提示词'));

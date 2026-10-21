@@ -1,5 +1,17 @@
 # OpenDesk Browser · 统一 React Side Panel 与自定义工具兼容合同（R33.1）
 
+## Conversation R1.4 · 可信 React 底部 Dock（2026-10-21 源码候选）
+
+**原始产品目标不可缩减：** 用户保持原扩展界面可见，在底部对话区提出自然语言操作；AI 经现有 Workflow Provider 提议，扩展审计过的业务 Adapter 调用原 Service/SDK/Host，写后读回核验后原界面即时更新。首个真实业务试点为 Bookmark Manager；Prompt Shortcuts 为优先的第二试点，尚未完成准入和接入，不能当作正式 PASS。
+
+**首期最小职责：**
+- `src/ui/react/components/conversation.tsx` 的 `TrustedConversationWorkspace` 归可信 React Root，负责打开/收起、消息、草稿、Stop、滚动、可调高度和界面生命周期；`conversation-dock.css` 只消费原设计 Tokens。通用共享层不含书签实体、提示词数据、模型密钥、SDK 方法和执行器。
+- 经现有 `trusted-bookmark-admission.js` 官方版本/包/摘要/安装/撤权代际核验后，既有 `src/ui/react/main.tsx` Portal 挂载书签 `App.jsx`，其窄 Adapter 在用户 Send 时固定真实选择 ID、经核实的连续引用和当前页上下文；仍由原 `workflow-view.js` Conversation/Provider 与 `bookmark-actions.js`/`BookmarkR2Service` 实际执行并逐写读回。
+- 开 Dock 不隐藏、不卸载搜索或书签树；编辑草稿保持，先允许读/搜索，冲突写入须由用户先处理草稿；停止只阻止尚未发送的写入，不能撤销已发出操作；UNKNOWN/失权不自动重放。收起不等于 Stop。会话与引用仅在本次可信 Side Panel 存活期间按原内存会话能力恢复，不声称浏览器重启恢复。
+- 原用户/AI/第三方 HTML/JS/React/Vue 安装包及 Classic 回退仍属于 opaque-origin sandbox；共享 React Root 仅消费经审计固定编译的第一方代码。不能从工具 ID、包自报 trusted 或 JSX 标签推定准入；不扩大 CSP/权限/包体门槛。
+
+**证据分级：** 截至此段更新属于 `SOURCE_CANDIDATE`；Node 定向测试、正式 WXT build/预算、Chromium 同源预览、真实 Provider/Chrome Bookmarks、Mac 正式安装/升级，均须绑定提交与原始回执，未执行标 `NOT_TESTED`。独立 `preview/react/build-preview.mjs` 生成的 `preview/dev.html` 为隔离 Mock 候选，原 `preview/index.html` 的旧预览标识不得作为 R1.4 交付证据。第二试点 `NOT_IMPLEMENTED`，不以单个试点推导所有扩展适用。
+
 ## R37 正式入口与单根合同（2026-10-19，替代下文阶段性 HTML 接管约束）
 
 正式入口为 `src/ui/sidepanel.html`，静态构建输出根目录 `sidepanel.html`，Manifest 的 `side_panel.default_path` 指向此处。`ui/tool.html` 已退役，无别名、重定向或第二 Host。HTML 仅声明文档、既有 CSP/样式/启动脚本和空的 `#opendesk-react-app`；不承载业务模板。
