@@ -338,3 +338,9 @@ GitHub Local run `39568063907`、job `119115102664` 原始日志提供：Local �
 
 R40.11-LOCAL 最短 Codex 验收入口（仅 Mac 本地执行）：在 /Users/shopme/Documents/workspace/opendesk-browser 查看 main HEAD 与本记录绑定源码；核实已有 npm run dev 的 dist/development 与扩展 ID/Native allowed_origins，不新建 watcher/Worktree；对 Controller JS/ESM/Classic、Page JS/ESM、React/Vue、真实 Local Provider 逐个用当前源码 Run→真实结果→Stop，并对源码中途变化、导航、Provider epoch、权限撤权及非 owner Stop 做最小验证；输出真实命令、日志、RunId/sourceHash/previewId/documentId/bindingId 和 PASS/FAIL/NOT_TESTED，不覆盖并行 Agent 产物。当前网页会话无法把未运行的 Mac 验收标记为通过。
 
+### R40.10.7 后续 CI 时间顺序核对：旧 SHA 迟到不得降级新证据
+
+- 另查到较晚结束的 Developer run https://github.com/shopable-ai/opendesk-browser/actions/runs/39622376092 （developer-node job 119298938236），Task Workbench 51 项中 41 PASS / 10 FAIL；该 run 绑定 SHA **710e857f776e31f4a77d74f672d7f3933903b03f**，不是最新 main，更不是 R40.10.7 生产代码。
+- 精确 GitHub compare d702cd7...710e857 的结果：status=behind、ahead=0、behind=17、merge base=710e857。即 **710e857 是 d702cd7 前 17 个提交的旧祖先**；后结束的 CI 只是旧 SHA 迟到，不能据完成时间把旧 41/51 覆盖后续 d702cd7 的 51/51 与 292/292 PASS。
+- 该旧 run 的 developer-release-smoke job 119298937775 在 Source and Developer Edition build 报 scripts/bundle-provenance.mjs 的 Web Clipper trusted/policy.js 固定来源守卫失败；这是较旧 SHA 的第三类外部 blocker，不得声称与 d702cd7 的 Prompt Shortcuts blocker 同一版本发生，也不得改其它扩展 guard。
+- 当前 R40.10.7 开发新增 view/test Blob 的独立 CI 仍 **NOT_TESTED / 无可引用的新 Job**；已完成的 d702cd7 Node 成绩仍是未变化执行 owner 的可靠历史门槛，而不是新增 view 代码的绿灯。
