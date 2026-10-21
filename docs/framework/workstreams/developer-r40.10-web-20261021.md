@@ -92,3 +92,38 @@ GitHub Local run `39568063907`、job `119115102664` 原始日志提供：Local �
 - 真实减法包括：环境不变的 Run/Result 不再重写 `page-preview-tools` React 静态投影；原 Controller Owner 三份最终 source/generation 校验收敛为一个共享内部 `check()`，并为普通 JS 权限等待补齐 Stop/身份 fence。没有新增 Host/Authority/Context/Manager/Store/EventBus。
 - 四环境所有权：Controller `controller-draft-run` + `controller-revision-view` / `controller-results-view`；Page `page-preview-flow` + `page-dependencies` / `page-candidate-actions`；React/Vue `page-component-remote` 与原 Page 受管预览；Local `local-project` + `local-project-run` / `local-project-install-ui`。总入口继续负责选择、状态投影与共享安全协调。
 - R40.10.2 新增三种普通 Controller JS 权限等待竞态测试与 React 环境静态投影检查；截至本段写入，**最新精确 SHA 仍无完成的全套 Developer/Local CI 结果**，Node 综合及真实 Chrome/Mac Native/Provider 不可宣称 PASS。仍为 `WEB_PARTIAL`，暂不交接 R40.11。
+
+## R40.10.3-WEB：真实 CI 超时审计、测试资源释放与 UI 协调减法（2026-10-21，WEB_PARTIAL）
+
+### 范围、目标和真实任务树
+- **唯一写入分支 main**；本次 owner 是 Developer R40.10.3。写入文件：scripts/preview/react-sidebar-ssr.mjs（现有 SSR 测试辅助所有者）、src/ui/script-editor.js、tests/environment/script-editor.test.mjs、本工作记录。不修改 RunHost、Authority、Native、固定来源守卫。
+- 原始产品目标：Controller JS/ESM/Classic、Page JS/ESM、React/Vue、Local Project 四环境均可从当前源码直接 Run；Stop 仅取消本 owner 的准备、运行、受管 UI。Local 使用真实 bindingId/Provider epoch 与冻结源码。Revision、Candidate、结果、下载、安装和权限保持独立。禁止第二套 Host/Authority/Runtime/Store。
+- 任务树与关闭条件：
+  - P0：核对两个历史 CI 的精确提交、15 分钟取消原因、Controller 普通 JS 权限等待三个栅栏；修复真实资源收尾，最新 NODE/CI 须正常退出才可关闭。
+  - P1：区分 Web Clipper 固定来源、Page 内置版本身份、App CI profile 的外部 owner；不改变安全校验。
+  - P2：移除可证实的跨环境/稳态 UI 重复刷新，保留忙态和权限协作；原测试加断言。
+  - P3：Controller/Page/React-Vue/Local 执行与 Stop/撤权/未知效果按身份复核；未做真实 Chrome/Provider 不记 PASS。
+  - P4：按真实生产范围统计新增/删除/净变化，保留 Candidate/import 协调未完成的证据。
+
+### P0：精确 CI 日志证据
+- Actions https://github.com/shopable-ai/opendesk-browser/actions/runs/39571726541 ，developer-node job 119127296495：checkout SHA 0758e2bf2eb44385b465daca6c0be6c913204e8a；顶层 TAP 输出截至 ok 177，随后约 15 分钟没有汇总便取消。
+- Actions https://github.com/shopable-ai/opendesk-browser/actions/runs/39572804196 ，developer-node job 119130892079：checkout SHA 9c58fd6e6262037c49c5989de85270f66bd4da84；同样至 ok 177 后取消。实际工作流 .github/workflows/developer-r362.yml 明确 developer-node.timeout-minutes: 15。**不能据此宣称全部 177 项通过后 Node 正常退出，更不能认定某一个未释放对象已被精确定位。**任务完成时清理了 Node/esbuild 子进程；task-workbench.test.mjs 在日志中未输出自身顶层测试，待重新判别是输出缓冲还是测试进程未退出。
+- 后一精确 SHA 的原始 Node 子测试：Controller 普通 JS 权限等待时源码编辑 ok 61、scriptId 修改 ok 62、Stop 取消 ok 63；普通 Controller/Page 编辑不误取消组件准备 ok 66，稳态 Run/Result UI 投影 ok 68。**仅承认该历史 SHA 的子测试 PASS**，不是本次提交的整体 CI_PASS。
+- 最小测试辅助资源修复：a04d622b39e000696b9039b41e74d3f67c5d57f5。现有 React SSR Fixture 在一次性 esbuild.build 调用结束（成功或抛错）后 finally stop()，不建立生命周期管理器，不触碰生产执行入口。它是否修复 Node 退出仍需同输入新 CI 的最终退出状态确认。
+
+### P1：外部阻塞不误归因
+- 两次 developer-release-smoke 的原始失败仍为 scripts/bundle-provenance.mjs 固定 Web Markdown Clipper trusted/policy.js 字节身份检查；未绕过 SHA 或替独立业务 owner 改代码。
+- 历史 page-installed-programs.test.mjs:646 的 E_BUILTIN_VERSION_UNAVAILABLE / E_HASH 与 E_APP_CI: cookie privileges require an explicit test profile 属 Page 内置资源、App CI 其他 owner；本轮没有改动，是否仍重现应按最新 CI 证据独立确认。
+
+### P2/P3：真正删除重复协调，保留安全所有者
+- 913927929d2384a175d31dcccd5074a3d7fa412e：主入口原先每次 update 都重新投影 page-component-status.hidden；现在仅在已有 modeProjection 环境变化时投影。组件消息与显隐仍由原 componentMessage 状态投影，无新 Store/Manager/EventBus。
+- e07d961efb5844ecd1f686281bcff27cb4e80101：在现有 script-editor.test.mjs 的稳态 Run/Result 对象身份回归中加入 page-component-status 检查，保留全部原断言。**新精确 SHA 的 Node/CI 尚未完成**。
+- 必要回调仍需保留：componentRemote.update 负责当前组件或 Controller ESM 依赖 busy；dependencyReview/Installer.update 管 Page 依赖及授权；localInstaller.update 管 Local 安装可用性；controllerRevisions.update 管 Controller 版本按钮和检查繁忙状态。普通 Run 不应刷新无关世界。
+- 所有者边界：Controller＝controller-draft-run / controller-revision-view / controller-results-view；Page＝page-preview-flow / page-dependencies / page-candidate-actions；React/Vue＝page-component-remote + 原 Page 受管 Preview；Local＝local-project / local-project-run / local-project-install-ui。原 generation、sourceHash、previewId、documentId、runId、bindingId、Provider epoch、不可逆提交和未知效果仍须真实运行复核。主入口仍含 Candidate/import/加载协调。
+
+### P4：精确维护复杂度数据、验收分级
+- GitHub compare 从 R40.9 SHA 99ebef86f3cc840c5326e087e9cbf331295222cc 到本轮源码测试提交 e07d961efb5844ecd1f686281bcff27cb4e80101：四个实际受影响的生产文件 script-editor、controller-draft-run、controller-revision-view、local-project-install-ui，**新增 89、删除 52、净增加 37 行**。不将此标记为整体代码减法完成。测试专用 SSR helper 另为 +9/-2，不计生产。
+- script-editor.js 历史精确行数：R40.7 前 SHA fdfcf74c7fab97c6052a6145208b5017ed125252 为 1231 行，R40.9 637 行，本次 e07d961 658 行；主文件职责确实拆出，**仍不能证明所有受影响 Developer 生产调用链整体净减少**。跨 R40.7 compare 超过 300 文件、不完整的 per-file diff 不能当作全部统计。
+- 本轮新增执行基础设施和中间协调层为零；主文件中 Candidate/import 等高级协调保留，须由业务复现证明可迁走才继续减法。
+- 本轮最新触发的 Developer workflow https://github.com/shopable-ai/opendesk-browser/actions/runs/39579032547 绑定 e07d961efb5844ecd1f686281bcff27cb4e80101，记录时 queued。必须等正常结论，不把排队当 PASS。
+- 原始七目标：①主入口职责 PARTIAL；②四环境所有权 PARTIAL（SOURCE_REVIEWED）；③Run/Stop 直接性 PARTIAL（SOURCE_REVIEWED + 历史 TAP）；④重复协调删除 PARTIAL；⑤无第二套设施 PASS_SOURCE_ONLY；⑥整体生产代码和维护复杂度收敛 NOT_PROVEN；⑦安全与高级功能不退化 PARTIAL。当前新代码 NODE/CI 结论为 PENDING / NOT_TESTED，Chrome、Mac Native、真实 Provider 全为 NOT_TESTED。阶段继续 WEB_PARTIAL，不交付 R40.11-LOCAL。
