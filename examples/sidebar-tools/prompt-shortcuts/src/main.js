@@ -14,6 +14,19 @@ let siteOrigin=null,siteEditing=null,siteBaseline='',siteVerified=null,siteDelet
 let sitePoll=0,siteSession=null,siteStarting=0,siteEpoch=0,siteDiscardPending=false;
 function report(){setState({dirty:dirty||siteDirty||Boolean(stagedImport),busy:busy||siteBusy||siteDetecting||transferBusy||uploadBusy});}
 function status(message='',isError=false){const n=el('ps-status');n.textContent=message;n.hidden=!message;n.dataset.error=String(isError);}
+// Keep the original one-Host lifecycle: remove only unreferenced assets and
+// surface cleanup errors rather than silently leaking local raster storage.
+function removeUnreferencedAsset(id){
+  if(!id||data.items.some(row=>row.imageAssetId===id))return;
+  void request('prompt.asset.remove',{id}).then(reply=>{
+    if(typeof reply?.removed!=='boolean')throw Error('图片清理回执无效');
+    imageAssets.delete(id);
+  }).catch(e=>{
+    if(e?.code==='E_IMAGE_REFERENCED')return; // Concurrent save protected the image.
+    status('未引用图片清理未确认：'+(e?.code||e?.message||'未知错误')+
+      '。图片仍保留在本机；重新选择同一图片后点击移除可重试。',true);
+  });
+}
 function error(message=''){el('ps-error').textContent=message;el('ps-error').hidden=!message;}
 function bodyError(message=''){el('ps-body-error').textContent=message;el('ps-body-error').hidden=!message;}
 function options(open){
@@ -82,7 +95,7 @@ function form(){
      changed();
      el('ps-image-help').textContent='图片已保存至本机资源库（'+image.bytes+' B），请保存提示词完成关联。';
      if(previous&&!data.items.some(row=>row.imageAssetId===previous))
-       void request('prompt.asset.remove',{id:previous}).catch(()=>{});
+       removeUnreferencedAsset(previous);
    }catch(e){
      error('图片上传失败：'+(e.code||e.message)+'。已有草稿与图片保持不变。');
      el('ps-image-help').textContent='可重新选择本地图片，或切换 HTTPS 图片网址。';
@@ -198,7 +211,7 @@ function lock(){
 }
 function index(){
   if(draftImageAssetId&&!data.items.some(item=>item.imageAssetId===draftImageAssetId))
-    void request('prompt.asset.remove',{id:draftImageAssetId}).catch(()=>{});
+    removeUnreferencedAsset(draftImageAssetId);
   draftImageAssetId='';
   mode='index';editId=null;dirty=false;pendingLeave=null;pendingDelete=null;
   el('ps-index').hidden=false;el('ps-edit').hidden=true;el('ps-leave').hidden=true;
@@ -1035,7 +1048,7 @@ el('ps-image-clear').addEventListener('click',()=>{
   const previous=draftImageAssetId;draftImageAssetId='';changed();
   el('ps-image-help').textContent='本地图片已从草稿移除；请选择新图片或切换外观。';
   if(previous&&!data.items.some(row=>row.imageAssetId===previous))
-    void request('prompt.asset.remove',{id:previous}).catch(()=>{});
+    removeUnreferencedAsset(previous);
 });
 el('ps-cancel').addEventListener('click',()=>back());
 el('ps-stay').addEventListener('click',()=>{el('ps-leave').hidden=true;pendingLeave=null;el('ps-body').focus();});
