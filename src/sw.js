@@ -5,6 +5,7 @@ import {registerDownloadEvents} from './platform/downloads/events.js';
 import {PAGE_BOOT_PROTOCOL} from './scripting/user-scripts/installed-programs.js';
 import {reportBrowserCleanupError} from './platform/chrome/lifecycle-errors.js';
 import {installStayFocusService} from '../examples/sidebar-tools/stay-focus/trusted/service.js';
+import {installManagedSiteBudgetService} from './platform/chrome/browser-managed-site-budget.js';
 import {installAdblockService} from '../examples/sidebar-tools/adblock/trusted/service.js';
 import {installAiAccessService} from '../examples/sidebar-tools/ai-vip-share/trusted/service.js';
 import {reconcileManagedProxy,MANAGED_PROXY_ALARM} from './platform/chrome/browser-managed-proxy.js';
@@ -29,6 +30,7 @@ try{importScripts('native-agent/transport.js');}catch(e){console.warn('E_NATIVE_
 try{importScripts('knowledge/knowledge-host.js');}catch(e){console.warn('E_KNOWLEDGE_HOST_LOAD',e);}
 try{importScripts('platform/context-menus.js');}catch(e){console.warn('E_BROWSER_MENU_HOST_LOAD',e);}
   try{importScripts('time-review/time-review-host.js');}catch(e){console.warn('E_TIME_REVIEW_HOST_LOAD',e);}
+try{installManagedSiteBudgetService({api:chrome});}catch(e){console.warn('E_SITE_BUDGET_HOST_LOAD',e);}
 try{installStayFocusService({api:chrome});}catch(e){console.warn('E_STAY_FOCUS_HOST_LOAD',e);}
 try{installAdblockService({api:chrome});}catch(e){console.warn('E_ADBLOCK_HOST_LOAD',e);}
 try{installAiAccessService({api:chrome});}catch(e){console.warn('E_AI_ACCESS_HOST_LOAD',e);}

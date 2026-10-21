@@ -58,3 +58,20 @@ export function normalizeSidebarToolBackgroundPolicy(raw){
   return {kind:SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2,dailyMinutes:raw.dailyMinutes,
     defaultSites:[...raw.defaultSites],schedule:schedule(raw.schedule),suggestions};
 }
+
+ // Public mutable site-budget configuration. App code cannot inject rules or
+ // change native DNR actions; hostnames must already be reviewed in the package.
+export function normalizeManagedSiteBudgetSettings(raw){
+  const keys=['enabled','dailyMinutes','sites','schedule'];
+  const hasRevision=plain(raw)&&Object.hasOwn(raw,'expectedRev');
+  if(!exact(raw,hasRevision?[...keys,'expectedRev']:keys)||
+     typeof raw.enabled!=='boolean'||
+     !Number.isInteger(raw.dailyMinutes)||raw.dailyMinutes<1||raw.dailyMinutes>1440||
+     !Array.isArray(raw.sites)||raw.sites.length>SIDEBAR_TOOL_BACKGROUND_POLICY_MAX_SITES||
+     raw.sites.some(host=>!canonicalHost(host))||
+     new Set(raw.sites).size!==raw.sites.length||
+     hasRevision&&(!Number.isSafeInteger(raw.expectedRev)||raw.expectedRev<0))
+    fail('受管网站预算设置无效；只能使用有限网站、每日额度和固定时段');
+  return {enabled:raw.enabled,dailyMinutes:raw.dailyMinutes,
+    sites:[...raw.sites],schedule:schedule(raw.schedule)};
+}

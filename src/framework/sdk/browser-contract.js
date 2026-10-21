@@ -5,6 +5,8 @@ import {operationSchemas,assertBrowserSchemaCoverage,validateExportArguments,
   normalizeDirectBrowserArguments} from './browser-schemas.js';
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from './browser-direct.generated.js';
 import {APPROVED_BROWSER_SCOPED_BINDINGS} from './browser-services.generated.js';
+import {normalizeManagedSiteBudgetSettings} from '../../ui/sidebar-tools/background-policy.js';
+import {MANAGED_SITE_BUDGET_CAPABILITY} from '../../platform/host/managed-site-runtime-contract.js';
 import {MANAGED_PROXY_DEVELOPMENT_ENABLED,isFixedDevelopmentManagedProxyConfig}
   from '../../platform/chrome/browser-managed-proxy-profiles.js';
 const DIRECT_APPROVED_METHODS=new Set(APPROVED_BROWSER_DIRECT_BINDINGS.map(row=>row.operation));
@@ -71,6 +73,8 @@ const MANUAL_BROWSER_OPERATIONS=Object.freeze({
   'browser.bookmarks.observe.start':entry('browser.bookmarks.observe.start','browser.bookmarks.full',tool,['bookmarks'],'read','high','all-bookmarks','IMPLEMENTED','bounded-session'),
   'browser.bookmarks.observe.read':entry('browser.bookmarks.observe.read','browser.bookmarks.full',tool,['bookmarks'],'read','high','all-bookmarks','IMPLEMENTED','bounded-session'),
   'browser.bookmarks.observe.stop':entry('browser.bookmarks.observe.stop','browser.bookmarks.full',tool,['bookmarks'],'write','low','all-bookmarks','IMPLEMENTED','bounded-session'),
+  'browser.siteBudget.getStatus':entry('browser.siteBudget.getStatus',MANAGED_SITE_BUDGET_CAPABILITY,tool,[],'read','medium','installed-policy','IMPLEMENTED','durable-policy'),
+  'browser.siteBudget.setPolicy':entry('browser.siteBudget.setPolicy',MANAGED_SITE_BUDGET_CAPABILITY,tool,[],'write','high','installed-policy','IMPLEMENTED','durable-policy'),
   'browser.scheduler.create':entry('browser.scheduler.create','browser.scheduler',tool,['alarms'],'write','high','installed-task-revision','IMPLEMENTED','tool-install'),
   'browser.scheduler.listOwn':entry('browser.scheduler.listOwn','browser.scheduler',tool,['alarms'],'read','medium','owned-schedules','IMPLEMENTED','tool-install'),
   'browser.scheduler.cancelOwn':entry('browser.scheduler.cancelOwn','browser.scheduler',tool,['alarms'],'write','medium','owned-schedules','IMPLEMENTED','tool-install'),
@@ -263,6 +267,12 @@ export function normalizeBrowserOperation(operation,args={}){
       if(typeof args.bookmarkRef!=='string'||!/^[A-Za-z0-9_-]{16,160}$/.test(args.bookmarkRef))
         throw fail('E_SCHEMA','Invalid owned BookmarkRef');
       return {bookmarkRef:args.bookmarkRef};
+    case 'browser.siteBudget.getStatus':fields(args,[]);return {};
+    case 'browser.siteBudget.setPolicy':{
+      if(!Object.hasOwn(args,'expectedRev'))throw fail('E_SCHEMA','预算策略必须指定 expectedRev');
+      const settings=normalizeManagedSiteBudgetSettings(args);
+      return {...settings,expectedRev:args.expectedRev};
+    }
     case 'browser.scheduler.create':{
       fields(args,['taskId','revision','schedule'],['taskId','revision','schedule']);
       if(typeof args.taskId!=='string'||!args.taskId||args.taskId.length>128||

@@ -1,6 +1,8 @@
 import {patchToolField,setToolFieldAttribute,requestToolFieldEffect} from './sidebar-tools-view.js';
 import {ANALYTICS_PROTOCOL} from '../analytics/contract.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE,normalizeBrowserOperation,browserOperation} from '../framework/sdk/browser-contract.js';
+import {MANAGED_SITE_BUDGET_CAPABILITY,MANAGED_SITE_BUDGET_PROTOCOL} from '../platform/host/managed-site-runtime-contract.js';
+import {assertManagedSitePolicySupported} from '../platform/host/managed-site-runtime-contract.js';
 import {browserTextDownloadUrl} from '../framework/sdk/browser-schemas.js';
 import readingTocCatalog from '../../examples/sidebar-tools/reading-toc/trusted/locales.generated.js';
 import {uiMessage,resolveUiLocale} from './app-localization.js';
@@ -282,6 +284,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     'browser.i18n':'读取浏览器语言偏好并识别工具提供的文本语言',
     'browser.contextMenu':'安装后在声明的网站显示 Chrome 右键菜单（最多三项，需 Chrome 允许）',
     'page.prompts':'在 ChatGPT 主内容区域显示提示词快捷按钮（安装启用后直接可用，仅插入草稿）',
+    'browser.siteBudget':'仅限已审阅网站的每日前台额度与固定时段，关闭工具 UI 后继续生效',
     'browser.scheduler':'经确认定时执行已安装的固定任务版本，只管理本工具的计划',
     'browser.tabs':'经用户单次批准打开或聚焦自己获准的标签页',
     'browser.sidePanel':'经真实点击打开 OpenDesk 自己的侧边栏',
@@ -1412,6 +1415,53 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const envelope={protocol:BROWSER_HOST_PROTOCOL,kind:'tool',
         operation,args:payload||{},toolId:tool.id,toolVersion:tool.version,
         installEpoch:revocationEpoch,packageHash,toolInstance:token,hostInstanceId};
+      if(['browser.siteBudget.getStatus','browser.siteBudget.setPolicy'].includes(operation)){
+        // Reuse the original SDK Tool Host + installation hash/epoch envelope.
+        // No untrusted JavaScript enters the fixed background service.
+        if(operation==='browser.siteBudget.setPolicy'&&payload?.enabled&&
+           !await api.permissions.contains({permissions:['idle']})){
+          const approved=await requestBrowserClick({toolId:tool.id,
+            message:'「'+tool.title+'」需要 Chrome 空闲检测权限，才能计量已审阅网站的实际前台时间。',
+            button:'批准空闲检测',run:event=>{
+              assertSession(source,token);
+              if(!event?.isTrusted)throw Object.assign(new Error('需要真实用户点击'),
+                {code:'E_USER_GESTURE_REQUIRED'});
+              // The first native call is made synchronously inside the click.
+              return api.permissions.request({permissions:['idle']});
+            }});
+          if(approved!==true)throw Object.assign(new Error('Chrome 空闲检测权限尚未批准'),
+            {code:'E_CHROME_PERMISSION_REQUIRED'});
+          assertSession(source,token);
+        }
+        if(operation==='browser.siteBudget.setPolicy'){
+          const sites=payload.sites.join('、')||'无';
+          const approved=await requestBrowserClick({toolId:tool.id,
+            message:'「'+tool.title+'」请求'+(payload.enabled?'启用':'停用')+
+              '网站预算。网站：'+sites+'；每日额度 '+payload.dailyMinutes+
+              ' 分钟；固定时段 '+(payload.schedule.enabled?'开启':'关闭')+
+              '。策略经确认后在后台运行，关闭侧边栏不会停止。',
+            button:'确认预算策略',run:event=>{
+              assertSession(source,token);
+              if(!event?.isTrusted)throw Object.assign(new Error('请点击可信操作按钮'),
+                {code:'E_USER_GESTURE_REQUIRED'});
+              return true;
+            }});
+          if(approved!==true)throw Object.assign(new Error('未批准本次网站预算策略变更'),
+            {code:'E_USER_APPROVAL_REQUIRED'});
+          assertSession(source,token);
+        }
+        let response;
+        try{
+          response=await api.runtime.sendMessage({protocol:MANAGED_SITE_BUDGET_PROTOCOL,
+            toolId:tool.id,operation:operation.split('.').at(-1),
+            args:payload||{},packageHash,installEpoch:revocationEpoch});
+        }catch{throw Object.assign(new Error('后台结果无法确认；请先读取状态，不要重复提交'),
+          {code:'E_OUTCOME_UNKNOWN'});}
+        assertSession(source,token);
+        if(!response?.ok)throw Object.assign(new Error(response?.error?.message||'预算 Worker 拒绝操作'),
+          {code:response?.error?.code||'E_SITE_BUDGET'});
+        return response.data;
+      }
       if(operation==='browser.page.getContext'){
         const target=currentPageTarget?.snapshot;
         if(target?.status!=='available')return {status:'unavailable',
@@ -2848,6 +2898,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       }
       // A static adapter cannot substitute for a live MV3 worker protocol.
       // Missing optional idle/DNR grants do not block installation.
+      if(candidate.capabilities.includes(MANAGED_SITE_BUDGET_CAPABILITY)){
+        const probe=await api.runtime.sendMessage({protocol:MANAGED_SITE_BUDGET_PROTOCOL,
+          toolId:candidate.id,operation:'probe'});
+        if(!probe?.ok)throw Object.assign(new Error(probe?.error?.message||'后台能力不可用'),
+          {code:probe?.error?.code||'E_TOOL_RUNTIME_UNAVAILABLE'});
+        assertManagedSitePolicySupported(candidate,probe.data);
+      }
       if(candidate.capabilities.includes(FOCUS_CAPABILITY))await focus.probe({api,tool:candidate});
       if(candidate.capabilities.includes(AI_CAPABILITY))await aiAccess.probe({api});
       if(candidate.capabilities.includes(ADBLOCK_CAPABILITY))await adblock.probe({api,tool:candidate});
