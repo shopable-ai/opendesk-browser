@@ -1,6 +1,6 @@
 import {execFileSync} from 'node:child_process';
 import {readFile, stat} from 'node:fs/promises';
-import {filesAt, PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, SANDBOX_HTML, SANDBOX_META_CSP, TOOL_SANDBOX_HTML, TOOL_SANDBOX_META_CSP, FIXED_ASSETS, verifyManifest, inspectScript, BUILD_CONTRACT_SOURCE} from './verify-package.mjs';
+import {filesAt, PACKAGE_ENTRIES, FIXED_OUTPUTS, SANDBOX_HTML, SANDBOX_META_CSP, TOOL_SANDBOX_HTML, TOOL_SANDBOX_META_CSP, FIXED_ASSETS, verifyManifest, inspectScript, BUILD_CONTRACT_SOURCE} from './verify-package.mjs';
 import {PINNED_USER_SCRIPT_LIBRARIES} from './build-contract.mjs';
 import {JQUERY_371} from '../src/scripting/user-scripts/page-program-package.js';
 import {SDK_FILES} from '../src/framework/sdk/registry.js';
@@ -34,7 +34,8 @@ for(const [name,version] of [['lodash-es','4.18.1'],['dayjs','1.11.23']]) {
     packageLock.packages['node_modules/'+name].license!=='MIT') throw new Error('Built-in npm lock drift: '+name);
 }
 
-if (JSON.stringify(BUILD_POLICY) !== JSON.stringify({productionBytes: 512 * 1024, fixedEntryReviewBytes: 320 * 1024, toolShellProductionBytes: 1056 * 1024, toolShellDevelopmentBytes: 1088 * 1024, toolShellReviewBytes: 640 * 1024, serviceWorkerProductionBytes: 1024 * 1024, serviceWorkerReviewBytes: 512 * 1024, developmentBytes: 1536 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}})) throw new Error('Unexpected build policy contract');
+// verify-package.mjs already checks the complete exact BUILD_POLICY during import.
+// Keep one fail-closed policy guard instead of two drifting hard-coded copies.
 if (Object.entries(PACKAGE_ENTRIES).some(([name]) => name !== 'sw' && FIXED_OUTPUTS[name.split('/').at(-1)] !== `${name}.js`)) throw new Error('Unexpected fixed output contract');
 if (JSON.stringify(SDK_FILES) !== JSON.stringify({relay: 'agents/page-relay.js', main: 'framework/sdk-main.js'})) throw new Error('SDK fixed MAIN/ISOLATED output paths changed');
 if (!Object.isFrozen(SDK_RESOURCE_PATHS) || JSON.stringify(SDK_RESOURCE_PATHS) !== JSON.stringify([SDK_FILES.main, SDK_FILES.relay]) || SDK_RESOURCE_MANIFEST !== 'framework/sdk-resources.json') throw new Error('SDK resource manifest paths changed');
