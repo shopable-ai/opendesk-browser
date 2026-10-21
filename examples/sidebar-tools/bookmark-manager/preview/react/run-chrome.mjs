@@ -10,7 +10,9 @@ import {build} from 'vite';
 import {withMockHostAdapter} from './mock-host-adapter.mjs';
 const here=dirname(fileURLToPath(import.meta.url));
 const toolDir=resolve(here,'../..'),root=resolve(toolDir,'../../..');
-const out=join(here,'.opendesk-preview/chrome-formal');
+const conversationR13=process.argv.includes('--conversation-r13');
+const evidence=resolve(process.env.BOOKMARK_REACT_EVIDENCE_DIR||join(here,'.opendesk-preview/chrome-evidence'));
+const out=conversationR13?join(evidence,'formal-candidate'):join(here,'.opendesk-preview/chrome-formal');
 const compiled=join(out,'dist');
 await mkdir(out,{recursive:true});
 // Exercise the actual formal mount and shared App.jsx, with mock SDK/Host only.
@@ -51,7 +53,7 @@ const candidate=join(out,'formal-mock.html');
 await writeFile(candidate,template.replace(framePattern,()=>"atob('"+encode(frame)+"')")
  .replace(manifestPattern,(_,open,ignored,close)=>open+JSON.stringify(manifest)+close));
 const result=spawnSync(process.execPath,[
- join(toolDir,'preview/r304-chrome.mjs'),join(here,'.opendesk-preview/chrome-evidence')
+ conversationR13?join(here,'conversation-r13-chrome.mjs'):join(toolDir,'preview/r304-chrome.mjs'),evidence
 ],{cwd:root,stdio:'inherit',env:{...process.env,BOOKMARK_REACT_PREVIEW_HTML:candidate}});
 if(result.error)throw result.error;
 process.exitCode=result.status??1;

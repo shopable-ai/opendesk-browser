@@ -24,6 +24,7 @@ export function validateBookmarkPlan(plan){
  const actions=plan.actions.map(action=>{
   if(!plain(action)||!types.has(action.type)||!noExtras(action,fields[action.type]))
    throw fail('E_CONVERSATION_SCHEMA','模型提出了不受支持的书签操作');
+  const normalized={...action};
   if(action.type==='bookmark.search'){
    if(!value(action.query,200))throw fail('E_CONVERSATION_SCHEMA','搜索词不能为空');
   }else if(action.type==='folder.create'){
@@ -36,13 +37,15 @@ export function validateBookmarkPlan(plan){
     let url;try{url=new URL(action.url);}catch{}
     if(!url||!['https:','http:'].includes(url.protocol)||url.username||url.password)
      throw fail('E_CONVERSATION_SCHEMA','仅允许普通 HTTP(S) 书签网址');
+    normalized.url=url.href;
    }
   }else if(action.type==='bookmark.move'){
    if(!value(action.target)||!value(action.parent))
     throw fail('E_CONVERSATION_SCHEMA','移动操作缺少真实目标');
   }else if(!value(action.target)||!value(action.title))
    throw fail('E_CONVERSATION_SCHEMA','重命名操作缺少目标或名称');
-  return Object.freeze({...action});
+  if(typeof normalized.title==='string')normalized.title=normalized.title.trim();
+  return Object.freeze(normalized);
  });
  return Object.freeze({actions:Object.freeze(actions)});
 }
@@ -56,9 +59,14 @@ function pathOf(tree,id){
  return parts.join(' / ');
 }
 function nodeFolder(node){return node&&typeof node.url!=='string';}
+function availableNode(tree,node,parent=false){
+ return node&&node.parentId!==null&&(parent?
+  nodeFolder(node)&&node.unmodifiable!=='managed'&&node.folderType!=='managed'&&
+   (!node.locked||tree.roots?.has(node.parentId)):!node.locked);
+}
 function resolveName(tree,name,folderOnly=false){
  const matches=[...tree.byId.values()].filter(node=>
-  (!folderOnly||nodeFolder(node))&&!node.locked&&node.parentId!==null&&
+  availableNode(tree,node,folderOnly)&&
   (node.title===name||pathOf(tree,node.id)===name));
  if(matches.length!==1)throw fail(matches.length?'E_BOOKMARK_AMBIGUOUS':'E_BOOKMARK_NOT_FOUND',
   matches.length?'存在多个「'+name+'」，请提供完整目录路径：'+
@@ -67,7 +75,7 @@ function resolveName(tree,name,folderOnly=false){
 }
 function assertNode(tree,id,folder=false){
  const node=tree.byId.get(id);
- if(!node||node.locked||node.parentId===null||(folder&&!nodeFolder(node)))
+ if(!availableNode(tree,node,folder))
   throw fail('E_BOOKMARK_STALE','目标已删除、受保护或不再是可编辑的文件夹');
  return node;
 }
@@ -87,7 +95,8 @@ function targetOf(tree,target,context,refs){
  if(target.startsWith('$'))throw fail('E_BOOKMARK_REFERENCE','无法核实该条书签引用');
  return resolveName(tree,target);
 }
-const aborted=signal=>{if(signal?.aborted)throw fail('E_CANCELLED','已停止，未再发送新的书签操作');};
+const aborted=signal=>{if(signal?.aborted)throw Object.assign(
+ fail('E_CANCELLED','已停止，未再发送新的书签操作'),{writeIssued:false});};
 
 export function bookmarkConversationContext(tree,{selectedId=null,currentFolderId=null,refs={}}={}){
  const selected=tree?.byId.get(selectedId);
@@ -108,7 +117,7 @@ export function bookmarkConversationContext(tree,{selectedId=null,currentFolderI
 export async function executeBookmarkPlan({plan,service,context,refs={},expectedTree=null,signal,onStep=()=>{}}){
  const checked=validateBookmarkPlan(plan);
  if(checked.question)return {question:checked.question,refs,tree:null,messages:[]};
- let tree=await service.load();aborted(signal);
+ aborted(signal);let tree=await service.load();aborted(signal);
  const nextRefs={folderId:refs.folderId||null,bookmarkId:refs.bookmarkId||null,
   matches:[...(refs.matches||[]).slice(0,12)]};
  const messages=[],confirmedInTurn=new Set();
@@ -116,9 +125,9 @@ export async function executeBookmarkPlan({plan,service,context,refs={},expected
  // any referenced write. Verified writes in this turn are not external changes.
  const requireFresh=node=>{
   const prior=expectedTree?.byId?.get(node.id);
-  if(prior&&!confirmedInTurn.has(node.id)&&
-    (prior.title!==node.title||prior.url!==node.url||prior.parentId!==node.parentId))
-   throw fail('E_BOOKMARK_STALE','「'+prior.title+'」已在其他窗口变化，请刷新并重新确认目标');
+  if(expectedTree&&!confirmedInTurn.has(node.id)&&
+    (!prior||prior.title!==node.title||prior.url!==node.url||prior.parentId!==node.parentId))
+   throw fail('E_BOOKMARK_STALE','「'+(prior?.title||node.title)+'」已在其他窗口变化，请刷新并重新确认目标');
   return node;
  };
  for(const action of checked.actions){
@@ -127,6 +136,11 @@ export async function executeBookmarkPlan({plan,service,context,refs={},expected
   if(signal?.aborted)throw Object.assign(fail('E_CANCELLED','已停止，未再发送新的书签操作'),{
    partial:[...messages],refs:{...nextRefs},writeIssued:false});
   let issued=false,kind='',target=null,actual=null;
+  const write=async(method,args)=>{
+   issued=true;
+   try{return await service[method](args,{signal});}
+   catch(error){if(error?.writeIssued===false)issued=false;throw error;}
+  };
   try{
    if(action.type==='bookmark.search'){
     const term=action.query.toLocaleLowerCase();
@@ -141,7 +155,7 @@ export async function executeBookmarkPlan({plan,service,context,refs={},expected
    }
    if(action.type==='folder.create'){
     const parent=requireFresh(parentOf(tree,action.parent,context,nextRefs));
-    issued=true;target=await service.createFolder({title:action.title,parentId:parent.id});
+    target=await write('createFolder',{title:action.title,parentId:parent.id});
     kind='folder';actual={id:target?.id,title:action.title,parentId:parent.id};
    }else if(action.type==='bookmark.create'){
     const parent=requireFresh(parentOf(tree,action.parent,context,nextRefs));
@@ -152,25 +166,25 @@ export async function executeBookmarkPlan({plan,service,context,refs={},expected
     const title=action.title==='$pageTitle'?source?.title:action.title;
     if(!value(title))throw fail('E_CONVERSATION_SCHEMA','当前网页缺少有效标题');
     const url=source?.url||action.url;
-    issued=true;target=await service.createBookmark({title,url,parentId:parent.id,
+    target=await write('createBookmark',{title,url,parentId:parent.id,
      ...(source?{sourcePage:{url,tabRef:source.tabRef,documentRef:source.documentRef}}:{})});
     kind='bookmark';actual={id:target?.id,title,url,parentId:parent.id};
    }else if(action.type==='bookmark.move'){
     const expected=requireFresh(targetOf(tree,action.target,context,nextRefs));
     const parent=requireFresh(parentOf(tree,action.parent,context,nextRefs));
-    issued=true;target=await service.move({expected,parentId:parent.id});
+    target=await write('move',{expected,parentId:parent.id});
     kind=nodeFolder(expected)?'folder':'bookmark';
     actual={id:expected.id,title:expected.title,url:expected.url,parentId:parent.id};
    }else if(action.type==='bookmark.update'){
     const expected=requireFresh(targetOf(tree,action.target,context,nextRefs));
-    issued=true;target=await service.update({expected,title:action.title,url:expected.url});
+    target=await write('update',{expected,title:action.title,url:expected.url});
     kind=nodeFolder(expected)?'folder':'bookmark';
     actual={id:expected.id,title:action.title,url:expected.url,parentId:expected.parentId};
    }
    if(!value(actual?.id,160))throw fail('E_OUTCOME_UNKNOWN','写入已发出，但未得到可以读回的节点 ID');
    tree=await service.load();
    const found=tree.byId.get(actual.id);
-   if(!found||found.title!==actual.title||found.parentId!==actual.parentId||
+   if(!found||nodeFolder(found)!==(kind==='folder')||found.title!==actual.title||found.parentId!==actual.parentId||
      (kind==='bookmark'&&found.url!==actual.url))
     throw fail('E_OUTCOME_UNKNOWN','写入后读回与期望不一致；已停止后续修改');
    confirmedInTurn.add(found.id);

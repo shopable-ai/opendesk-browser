@@ -260,12 +260,15 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
   [chatRows,setChatRows]=useState(restoredChat.rows||[]),
   [chatBusy,setChatBusy]=useState(false),[chatError,setChatError]=useState('');
  const chatRefs=useRef(restoredChat.refs||{folderId:null,bookmarkId:null,matches:[]});
- const chatInput=useRef(null),chatAbort=useRef(null),chatInFlight=useRef(false),chatSequence=useRef(0);
+ const chatInput=useRef(null),chatLog=useRef(null),chatAbort=useRef(null),chatInFlight=useRef(false),chatSequence=useRef(0);
   const chatRowsRef=useRef(restoredChat.rows||[]);
  useEffect(()=>{
   conversation?.saveSession?.({open:chatOpen,draft:chatDraft,rows:chatRows,refs:chatRefs.current});
  },[conversation,chatOpen,chatDraft,chatRows]);
  useEffect(()=>{if(chatOpen)chatInput.current?.focus({preventScroll:true})},[chatOpen]);
+ useLayoutEffect(()=>{
+  if(chatOpen&&chatLog.current)chatLog.current.scrollTop=chatLog.current.scrollHeight;
+ },[chatOpen,chatRows,chatError]);
  useEffect(()=>()=>{chatAbort.current?.abort()},[]);
  function appendConversation(speaker,message){
   const row={id:'bookmark-turn-'+Date.now()+'-'+(++chatSequence.current),speaker,message:String(message).slice(0,3500)};
@@ -603,7 +606,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
   {previewNode&&<PreviewPane tree={tree} node={previewNode} onClose={closePreview} onEdit={id=>request({type:'edit',id})} onCopy={copyPreviewUrl}/>} 
   </div>
   <section id="bm-conversation" className="bm-conversation" aria-label="书签对话" hidden={!chatOpen}>
-   <div className="bm-chat-log" role="log" aria-live="polite" aria-label="书签对话及已核实的操作结果">
+   <div ref={chatLog} className="bm-chat-log" role="log" aria-live="polite" aria-label="书签对话及已核实的操作结果">
     {chatRows.length?<ConversationTranscript rows={chatRows} entryClassName="bm-chat-entry"/>:
      <div className="bm-chat-empty">
       <p>直接说出你想对书签做什么。</p>
@@ -626,7 +629,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
     <div className="bm-chat-controls">
      <small>{conversation?.source?.().label||'离线预览'} · {mode==='trusted'?'Chrome 书签读回核验':'模拟书签读回（非 Chrome）'}</small>
      {chatBusy?<OpenDeskIconButton label="停止对话" className="bm-icon-btn" onClick={stopConversation}><Icon name="stop" size={16}/></OpenDeskIconButton>:
-      <OpenDeskIconButton label="发送" type="submit" className="bm-icon-btn bm-icon-btn--primary" disabled={!chatDraft.trim()||!tree||loading||uncertain}><Icon name="send" size={16}/></OpenDeskIconButton>}
+      <OpenDeskIconButton label="发送" type="submit" onClick={sendConversation} className="bm-icon-btn bm-icon-btn--primary" disabled={!chatDraft.trim()||!tree||loading||uncertain}><Icon name="send" size={16}/></OpenDeskIconButton>}
     </div>
    </form>
   </section>

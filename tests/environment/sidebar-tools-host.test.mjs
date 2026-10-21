@@ -14,6 +14,7 @@ import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {initSidebarToolSandbox} from '../../src/sidebar-tools/bridge.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE} from '../../src/framework/sdk/browser-contract.js';
+import {ANALYTICS_PROTOCOL} from '../../src/analytics/contract.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 import {officialToolFixture,officialFixtureFetch,officialFixtures} from '../helpers/official-tools.mjs';
 import {OFFICIAL_READING_TOC_RELEASE} from '../../src/sidebar-tools/official-reading-toc.js';
@@ -2004,6 +2005,11 @@ async function bookmarkConsentFixture(t,{trusted=true,hostError=null}={}){
     trustedBookmarkPilot:trusted?{enabled:true,componentVersion:TRUSTED_BOOKMARK_COMPONENT_VERSION,
       mount({sdk}){mounts.push(sdk);return ()=>{};}}:null});
   f.api.runtime.sendMessage=async message=>{
+    if(message.protocol===ANALYTICS_PROTOCOL){
+      assert.deepEqual(message,{protocol:ANALYTICS_PROTOCOL,kind:'event.host_report',
+        event:'tool.opened',toolId:tool.id,channel:'sidepanel'});
+      return {ok:true,data:{}};
+    }
     calls.push(structuredClone(message));
     if(message.kind==='host'&&message.operation==='browser.intent.confirm')
       return {ok:true,data:{approvalRef:'bookmark-approval-'+calls.length}};

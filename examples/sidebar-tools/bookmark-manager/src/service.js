@@ -104,42 +104,64 @@ function create(sdk){
     if(!expected||model.nodeSignature(item)!==model.nodeSignature(expected))stale();
     return {item,tree};
   }
-  async function createFolder({title,parentId}){
-    const name=model.displayName(title),tree=await load();
-    model.parentFolder(tree,parentId);await requireReady('create');
-    return sdk.bookmarks.create({title:name,parentId});
+  // Keep cancellation local; never send AbortSignal or callbacks through the SDK.
+  // Only the actual SDK dispatch makes an error's write outcome uncertain.
+  async function write(operation,prepare,{signal}={}){
+    let writeIssued=false;
+    try{
+      const checkStopped=()=>{
+        if(signal?.aborted)fail('E_CANCELLED','已停止，未发送书签写入');
+      };
+      checkStopped();
+      const args=await prepare();
+      checkStopped();
+      writeIssued=true;
+      return await sdk.bookmarks[operation](args);
+    }catch(error){throw Object.assign(error,{writeIssued});}
   }
-  async function createBookmark({title,url,parentId,sourcePage}){
-    const name=model.displayName(title),target=model.asHttpUrl(url),tree=await load();
-    model.parentFolder(tree,parentId);
-    if(sourcePage){
-      if(typeof sourcePage.documentRef!=='string'||!SESSION.test(sourcePage.documentRef)||
-        typeof sourcePage.tabRef!=='string'||!SESSION.test(sourcePage.tabRef)||
-        sourcePage.url!==target)
-        fail('E_DOCUMENT_BINDING_REQUIRED','当前网页没有可信的 Tab/Document 绑定');
-    }
-    await requireReady('create');
-    return sdk.bookmarks.create({title:name,url:target,parentId,
-      ...(sourcePage?{sourcePage:{url:target,tabRef:sourcePage.tabRef,
-        documentRef:sourcePage.documentRef}}:{})});
+  async function createFolder({title,parentId},options){
+    return write('create',async()=>{
+      const name=model.displayName(title),tree=await load();
+      model.parentFolder(tree,parentId);await requireReady('create');
+      return {title:name,parentId};
+    },options);
   }
-  async function update({expected,title,url}){
-    const {item}=await currentNode(expected);
-    const changes={title:model.displayName(title)};
-    if(!model.isFolder(item)&&url!==item.url)changes.url=model.asHttpUrl(url);
-    await requireReady('update');
-    // SDK single-object contract; the trusted Host must compare 'expected'
-    // against the native node again immediately before modifying Chrome.
-    return sdk.bookmarks.update({id:item.id,changes,expected:model.nodePrecondition(item)});
+  async function createBookmark({title,url,parentId,sourcePage},options){
+    return write('create',async()=>{
+      const name=model.displayName(title),target=model.asHttpUrl(url),tree=await load();
+      model.parentFolder(tree,parentId);
+      if(sourcePage){
+        if(typeof sourcePage.documentRef!=='string'||!SESSION.test(sourcePage.documentRef)||
+          typeof sourcePage.tabRef!=='string'||!SESSION.test(sourcePage.tabRef)||
+          sourcePage.url!==target)
+          fail('E_DOCUMENT_BINDING_REQUIRED','当前网页没有可信的 Tab/Document 绑定');
+      }
+      await requireReady('create');
+      return {title:name,url:target,parentId,
+        ...(sourcePage?{sourcePage:{url:target,tabRef:sourcePage.tabRef,
+          documentRef:sourcePage.documentRef}}:{})};
+    },options);
   }
-  async function move({expected,parentId}){
-    const {item,tree}=await currentNode(expected);
-    model.parentFolder(tree,parentId);
-    if(model.isFolder(item)&&model.isDescendant(tree,parentId,item.id))
-      fail('E_SCHEMA','文件夹不能移动到自身或子目录');
-    await requireReady('move');
-    return sdk.bookmarks.move({id:item.id,destination:{parentId},
-      expected:model.nodePrecondition(item)});
+  async function update({expected,title,url},options){
+    return write('update',async()=>{
+      const {item}=await currentNode(expected);
+      const changes={title:model.displayName(title)};
+      if(!model.isFolder(item)&&url!==item.url)changes.url=model.asHttpUrl(url);
+      await requireReady('update');
+      // SDK single-object contract; the trusted Host must compare 'expected'
+      // against the native node again immediately before modifying Chrome.
+      return {id:item.id,changes,expected:model.nodePrecondition(item)};
+    },options);
+  }
+  async function move({expected,parentId},options){
+    return write('move',async()=>{
+      const {item,tree}=await currentNode(expected);
+      model.parentFolder(tree,parentId);
+      if(model.isFolder(item)&&model.isDescendant(tree,parentId,item.id))
+        fail('E_SCHEMA','文件夹不能移动到自身或子目录');
+      await requireReady('move');
+      return {id:item.id,destination:{parentId},expected:model.nodePrecondition(item)};
+    },options);
   }
   async function remove({expected,confirmed=false,expectedDescendantSignatures=null}){
     if(confirmed!==true)fail('E_CONFIRM','删除前必须获得用户明确确认');

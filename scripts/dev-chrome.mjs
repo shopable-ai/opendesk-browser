@@ -44,7 +44,7 @@ async function main() {
   await Promise.all([
     realpath(executable).catch(() => { throw new Error('Missing pinned CFT binary: ' + executable); }),
     readFile(path.join(extension, 'manifest.json'), 'utf8').then(content => {
-      if (JSON.parse(content).name !== 'OpenDesk Browser')
+      if (!['OpenDesk Browser', 'OpenDesk Browser Developer'].includes(JSON.parse(content).name))
         throw new Error('dist/development is not an OpenDesk Browser extension');
     }).catch(error => { throw new Error('Build the current worktree with npm run build:dev first: ' + error.message); })
   ]);
