@@ -11,6 +11,7 @@ test('selectors accept stable CSS paths and reject CSS injection',()=>{
     '#main > aside:nth-of-type(1) > div:nth-of-type(2)'])
     assert.equal(validCosmeticSelector(selector),true,selector);
   for(const selector of ['body:nth-of-type(1)','html:nth-of-type(1)',
+    'main:nth-of-type(1)','#app','#root','#__next',
     '*','a[href=x]','.ad,body','div{display:block}','div:not(.ad)',
     'main:has(.ad)','a:nth-of-type(0)','section:nth-of-type(1000)',
     'div:nth-of-type(1)\nbody','',null])

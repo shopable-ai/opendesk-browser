@@ -14,6 +14,8 @@ const PATH=new RegExp('^'+ATOM+'(?: > '+ATOM+'){0,11}$');
 export function validCosmeticSelector(selector){
   return typeof selector==='string'&&selector.length>1&&selector.length<=320&&
     PATH.test(selector)&&!/(?:^| > )(?:html|body):nth-of-type\(/.test(selector)&&
+    !/(?:^| > )(?:main|nav|form):nth-of-type\([1-9][0-9]{0,2}\)$/.test(selector)&&
+    !/(?:^| > )#(?:app|root|__next|__nuxt|main|site-root)$/i.test(selector)&&
     !selector.endsWith(' > ');
 }
 const fields=(v,keys)=>Boolean(v)&&typeof v==='object'&&!Array.isArray(v)&&
