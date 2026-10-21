@@ -147,7 +147,7 @@ export function createAdblockElementPicker({
     if(!picking||disposed)return;
     if(e.type==='keydown'){
       if(e.key==='Escape'&&e.isTrusted){e.preventDefault();end();
-        void request('cancel').catch(()=>{});message('已退出选择模式');}
+        void request('cancel').catch(()=>{});}
       return;
     }
     const target=targetOf(e.target);
@@ -163,18 +163,19 @@ export function createAdblockElementPicker({
     if(disposed||pending)return false;
     if(picking)return true;
     if(!doc.documentElement)return false;
+    // Selection mode only highlights target elements; instructions live in the Side Panel.
+    // A previous post-action undo notice must not overlap the new selection.
+    notice?.remove();notice=null;
     picking=true;
     pickTimer=win.setTimeout(()=>{
       if(!picking||disposed)return;
       end();void request('cancel').catch(()=>{});
-      message('选择模式已超时，请重新点击「选择网页元素」');
     },ADBLOCK_COSMETIC_PICK_TTL_MS);
     for(const type of ['pointermove','click','keydown'])
       doc.addEventListener(type,event,true);
-    message('选择模式：单击目标区域立即隐藏；Esc 取消');
     return true;
   }
-  return Object.freeze({begin,cancel(reason=''){if(picking){
-      end();void request('cancel').catch(()=>{});if(reason)message(reason);
+  return Object.freeze({begin,cancel(){if(picking){
+      end();void request('cancel').catch(()=>{});
     }},dispose(){disposed=true;end();notice?.remove();notice=null;}});
 }
