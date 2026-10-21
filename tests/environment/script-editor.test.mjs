@@ -2358,6 +2358,16 @@ test('R40.10.7 unchanged scalar React field projections reuse snapshots without 
   await Promise.resolve();
   assert.notStrictEqual(model.getSnapshot(),beforeStatus,'a mutable state patch must remain observable');
   assert.equal(notifications,2);
+
+  // Test drivers and legacy adapters can mutate a field before asking it to project.
+  const id=model.fields['script-id'];
+  id.value='directly-edited';
+  const beforeReadback=model.getSnapshot();
+  model.patch('script-id',{value:id.value});
+  await Promise.resolve();
+  assert.notStrictEqual(model.getSnapshot(),beforeReadback,'external field drift must still publish');
+  assert.equal(model.getSnapshot().fields['script-id'].value,'directly-edited');
+  assert.equal(notifications,3);
   unsubscribe();
   model.dispose();
 });
