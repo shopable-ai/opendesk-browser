@@ -327,6 +327,28 @@ test('R1.9 three new default prompts have only one resting entry and expand to s
 });
 
 
+test('R1.9.1 each of the three built-in commercial prompts inserts its full stored body',async()=>{
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const seed=pkg.initialData.library.items;
+  assert.deepEqual(seed.map(row=>row.label),['插件','外包','提示']);
+  for(const [index,row] of seed.entries()){
+    const f=fixture({pkg,library:pkg.initialData.library,grants:{}});
+    const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+    try{
+      await settle();
+      assert.equal(f.rail().children.length,1,'one resting launcher for '+row.name);
+      const options=f.openPrompts();
+      assert.equal(options.length,3);
+      assert.equal(options[index].getAttribute('aria-label'),'插入提示词：'+row.name);
+      options[index].emit('click',{isTrusted:true});await settle();
+      assert.deepEqual(f.calls,[{command:'insertText',text:'\n'+row.body}],row.name);
+      assert.equal(f.editor.textContent,'已有草稿\n'+row.body,row.name);
+      assert.deepEqual(f.copied,[],'verified editor insertion must not also copy');
+      assert.equal(f.rail().children.length,1,'launcher collapses after '+row.name);
+    }finally{controller.dispose();}
+  }
+});
+
 test('R1.9.1 every saved prompt library retains one resting launcher independent of seed IDs',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
   const seed=pkg.initialData.library.items;
