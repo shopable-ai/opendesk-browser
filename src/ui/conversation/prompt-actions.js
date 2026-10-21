@@ -139,17 +139,20 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
   }else verb='批量修改';
  }
  if(!affected.length)throw error('E_PROMPT_NOT_FOUND','目标提示词不存在');
- if(reviewRequired){
-  if(typeof review!=='function')throw error('E_PROMPT_REVIEW','缺少可信确认界面');
-  stop(signal);
-  const agreed=await review({action:a.type,label:verb,count:affected.length,
-   items:affected.map(summary),query:a.query,etag});
-  if(agreed!==true)throw error('E_CANCELLED','已取消，没有写入任何提示词');
- }
  if(a.type==='batch_edit'){
   const revisions=new Map();
   for(const row of affected){stop(signal);revisions.set(row.id,await edit(row));}
   nextItems=items.map(row=>revisions.get(row.id)||row);
+ }
+ if(reviewRequired){
+  if(typeof review!=='function')throw error('E_PROMPT_REVIEW','缺少可信确认界面');
+  stop(signal);
+  const agreed=await review({action:a.type,label:verb,count:affected.length,
+   items:affected.map(summary),query:a.query,etag,
+   changes:affected.map(row=>({
+    id:row.id,before:row,after:nextItems.find(item=>item.id===row.id)||null
+   }))});
+  if(agreed!==true)throw error('E_CANCELLED','已取消，没有写入任何提示词');
  }
  if(canonical(items)===canonical(nextItems)){
   const message='匹配记录已经是目标状态，没有重复写入';
