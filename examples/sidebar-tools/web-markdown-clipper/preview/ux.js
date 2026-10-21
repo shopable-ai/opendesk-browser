@@ -189,9 +189,17 @@ $('clip-save').addEventListener('click',async event=>{
  saving=true;$('clip-save').disabled=true;
  try{
   const result=await saveStore.save({...clip,kind:'clip'});
-  $('clip-note-reload').click();await updateCount();
+  // Successful read-back is distinct from the UI list finishing its refresh.
+  const refreshed=new Promise(resolve=>{
+   const obs=new MutationObserver(()=>{obs.disconnect();clearTimeout(timer);resolve(true);});
+   obs.observe(list,{childList:true});
+   const timer=setTimeout(()=>{obs.disconnect();resolve(false);},2000);
+  });
+  $('clip-note-reload').click();
+  const rendered=await refreshed;await updateCount();
   $('clip-recent-retry').hidden=true;
-  say(result.duplicate?'这条全文已存在，没有重复保存':'摘录已保存，最近列表已刷新');
+  say(!rendered?'保存已读回确认，但列表刷新未确认，请重新打开摘录核对':
+   result.duplicate?'这条全文已存在，没有重复保存':'摘录已保存，最近列表已更新');
  }catch(error){
   $('clip-recent-retry').hidden=!saveStore.uncertain;
   say((saveStore.uncertain?'保存结果未知，请先重新核对：':'保存失败：')+String(error.message||error),true);
