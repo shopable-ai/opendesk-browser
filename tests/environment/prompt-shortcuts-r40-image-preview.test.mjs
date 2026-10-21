@@ -69,6 +69,8 @@ test('R4 original full HTML retains complete preview, single upload affordance a
     .map(match=>match[1]);
   assert.deepEqual(sizes,['compact','standard','large']);
   assert.match(html,/选择图片/);
+  assert.match(html,/<button id="imagePick"[^>]*>选择图片<\/button>/,
+    'keep one central upload glyph while the primary picker stays a readable text button');
   assert.match(html,/或拖动图片到这里/);
   assert.match(html,/本地图片/);
   assert.match(html,/图片链接/);
@@ -91,6 +93,7 @@ test('R4 exact preview decoder: picker cancellation and invalid files preserve t
   assert.equal(Object.keys(before.imageAssets).length,1);
   assert.equal(before.draftImageMeta.name,'first.png');
   assert.match(before.draftImageMeta.description,/100×50/);
+  assert.match(before.draftImageMeta.description,/1 KB/,'small image must not misleadingly say 0.0 MB');
   assert.match(el('imageHelp').textContent,/图片已准备好/);
   assert.equal(el('imagePick').disabled,false);
 
