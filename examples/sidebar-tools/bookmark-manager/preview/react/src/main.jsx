@@ -11,7 +11,8 @@ import '../../../src/react/style.css';
 let session={open:false,draft:'',rows:[],refs:{folderId:null,bookmarkId:null,matches:[]}};
 function mockIntent(request){
  const input=String(request||'').trim();
- const folder=input.match(/(?:叫|名为|名称为)\s*([^，。；;]+?)\s*的?文件夹/);
+ const folder=input.match(/(?:叫|名为|名称为)\s*([^，。；;]+?)\s*的?文件夹/)||
+  input.match(/(?:创建|新建)\s*([^，。；;]+?)\s*文件夹/);
  const url=input.match(/https?:\/\/[^\s，。；;)\]】]+/i)?.[0]?.replace(/[,.]+$/,'');
  const rename=input.match(/(?:改名为|改成|重命名为)\s*([^，。；;]+)/);
  if(rename&&/(?:刚才|收藏|书签)/.test(input))
@@ -24,6 +25,8 @@ function mockIntent(request){
  }
  if(url&&/(?:收藏|添加|保存)/.test(input)&&/(?:刚才|AI 工具)/.test(input))
   return {actions:[{type:'bookmark.create',title:new URL(url).hostname,url,parent:'$lastFolder'}]};
+ if(/(?:当前网页|当前页).*(?:收藏|保存|添加)|(?:收藏|保存|添加).*(?:当前网页|当前页)/.test(input))
+  return {actions:[{type:'bookmark.create',title:'$pageTitle',url:'$currentPage',parent:'$lastFolder'}]};
  const find=input.match(/(?:找出|查找|搜索)\s*(.+?)(?:相关)?书签/);
  if(find)return {actions:[{type:'bookmark.search',query:find[1].replace(/相关$/,'').trim()}]};
  return {question:'这里只演示几个固定句式；真实 AI 需要在已安装的 OpenDesk 浏览器中连接。'};
