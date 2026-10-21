@@ -29,6 +29,7 @@ test('standalone DOM review makes all four rule actions interactive without Chro
   const html=await read('preview/adblock-element-picker-r2-review.html');
   for(const kind of ['locate','display','edit','remove'])
     assert.ok(html.includes("ruleAction('"+kind+"'"),kind+' preview action missing');
+  assert.match(html,/class="primary grow" id="pick-start"/);
   for(const id of ['rule-list','rule-editor','rule-editor-save','pick-start','pick-cancel','undo-last','notice'])
     assert.ok(html.includes('id="'+id+'"'),id+' missing');
   assert.match(html,/button\.setAttribute\('aria-label',label\)/);
