@@ -8,7 +8,7 @@ import '../../../src/react/style.css';
 // OFFLINE PREVIEW ONLY. Fixed phrases return bounded intents; the actual
 // React App and bookmark adapter execute against the existing isolated SDK mock.
 // This neither contacts a real Provider nor proves Chrome/Native bookmarks.
-let session={open:false,draft:'',rows:[],refs:{folderId:null,bookmarkId:null,matches:[]}};
+let session={open:true,draft:'',rows:[],refs:{folderId:null,bookmarkId:null,matches:[]}};
 function mockIntent(request){
  const input=String(request||'').trim();
  const folder=input.match(/(?:叫|名为|名称为)\s*([^，。；;]+?)\s*的?文件夹/)||
@@ -37,6 +37,17 @@ const conversation=Object.freeze({
  saveSession:next=>{session=structuredClone(next)},
  async request({request,signal}={}){
   if(signal?.aborted)throw Object.assign(Error('已停止'),{code:'E_CANCELLED'});
+  // Make Stop and concurrent user interactions observable in this preview only.
+  // Abort before proposal delivery: the business adapter must not issue writes.
+  await new Promise((resolve,reject)=>{
+   const cancel=()=>Object.assign(Error('已停止'),{code:'E_CANCELLED'});
+   const onAbort=()=>{clearTimeout(timer);signal?.removeEventListener('abort',onAbort);reject(cancel())};
+   const timer=setTimeout(()=>{signal?.removeEventListener('abort',onAbort);resolve()},800);
+   signal?.addEventListener('abort',onAbort,{once:true});
+   if(signal?.aborted)onAbort();
+  });
+  if(String(request).trim()==='模拟 Provider 失败')
+   throw Object.assign(Error('离线模拟：模型服务暂时不可用，请检查后重试。'),{code:'E_OFFLINE_PROVIDER_FAILED'});
   return {proposal:mockIntent(request),metadata:{provider:'offline_fixture',nativeVerified:false}};
  },
  cancel:async()=>{}
