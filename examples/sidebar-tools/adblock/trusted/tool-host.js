@@ -1,5 +1,5 @@
-// Reviewed, extension-owned bridge: a sandbox may propose an AdBlock change,
-// but only an explicit click on the trusted Side Panel can authorize it.
+// Reviewed, extension-owned bridge. Routine controls use the once-reviewed
+// official install; sensitive manual CSS editor writes still need trusted review.
 import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash} from '../../../../src/ui/sidebar-tools/package.js';
 import {TOOL_REVOCATION_EPOCHS_STORE,assertSidebarToolEnabled} from '../../../../src/ui/sidebar-tools/lifecycle.js';
 import {requireCompleteInstalledSidebarTools,sameSidebarToolPackage} from '../../../../src/ui/sidebar-tools/installation.js';
@@ -139,13 +139,6 @@ function sameDecision(a,b){
     a?.permissions?.dnr===b?.permissions?.dnr&&a?.rules?.verified===b?.rules?.verified&&
     sameArray(a?.exceptions,b?.exceptions);
 }
-function reviewCopy(operation,payload){
-  if(operation==='adblock.enable')return ['开启全局过滤？Chrome 将应用 AdBlock 自有 DNR 广告规则。','确认开启'];
-  if(operation==='adblock.disable')return ['关闭全局过滤？Chrome 将移除 AdBlock 自有规则，不影响 Stay Focus。','确认关闭'];
-  if(operation==='adblock.site.restore')return ['恢复 '+payload.host+' 的广告过滤？已有网页可能需要刷新。','确认恢复'];
-  return [payload.filtering?'恢复 '+payload.host+' 的广告过滤？':'关闭 '+payload.host+' 的广告过滤？此网站将加入例外列表。',
-    payload.filtering?'确认恢复':'确认设为例外'];
-}
 export async function requestAdblockOperation({
   api,tool,operation,payload={},revocationEpoch,assertCurrent,requestBrowserClick
 }){
@@ -205,22 +198,13 @@ export async function requestAdblockOperation({
         return send(operation,payload);
       }});
   }
-  // A sandbox cannot provide user activation, a Chrome permission, or a false
-  // UI snapshot. Read the trusted service and pin one precise requested action.
+  // The reviewed official installation authorizes bounded routine controls.
+  // Keep identity, window, live-site and native DNR checks; no second popup.
   const before=await send('adblock.status',{});
   canApply(operation,payload,before);
-  const [message,button]=reviewCopy(operation,payload);
-  if(typeof requestBrowserClick!=='function')
-    throw adblockError('E_ADBLOCK_TRUSTED_CLICK','可信操作确认界面不可用');
-  return requestBrowserClick({toolId:ADBLOCK_ID,message,button,run:async event=>{
-    if(event?.isTrusted!==true)
-      throw adblockError('E_ADBLOCK_TRUSTED_CLICK','仅可信 Side Panel 的真实确认可修改 Chrome DNR');
-    // Revalidate AFTER confirmation; tab/installation/exception drift cancels
-    // the approval rather than silently acting on a different site or state.
-    const latest=await send('adblock.status',{});
-    if(!sameDecision(before,latest))
-      throw adblockError('E_ADBLOCK_STATE_CHANGED','确认期间 Chrome 状态已变化，操作未提交；请重新读取');
-    canApply(operation,payload,latest);
-    return send(operation,payload);
-  }});
+  const latest=await send('adblock.status',{});
+  if(!sameDecision(before,latest))
+    throw adblockError('E_ADBLOCK_STATE_CHANGED','操作前 Chrome 状态或网站已变化，请重新读取');
+  canApply(operation,payload,latest);
+  return send(operation,payload);
 }

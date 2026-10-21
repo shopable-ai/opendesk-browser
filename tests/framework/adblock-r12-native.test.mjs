@@ -226,17 +226,11 @@ async function reactSwitch(c,session,label){
     label+' native input.checked must agree with React selected state');
   return state;
 }
-async function requestReactReview(c,side,react,selector,expectedCopy){
+async function operateReactControl(c,side,react,selector,description){
   await clickSandbox(c,side,react,selector);
-  const review=await until(()=>evaluate(c,side,
-    '(()=>{const panel=document.getElementById("sidebar-tool-action-review");'+
-    'if(!panel||panel.hidden)return null;return {'+
-    'summary:document.getElementById("sidebar-tool-action-summary")?.textContent,'+
-    'button:document.getElementById("sidebar-tool-action-continue")?.textContent};})()'),
-    'trusted Host approval review for real React input');
-  assert.ok(review.summary?.includes(expectedCopy),
-    'review must describe the exact React operation: '+JSON.stringify(review));
-  return review;
+  assert.equal(await evaluate(c,side,
+    'document.getElementById("sidebar-tool-action-review")?.hidden!==false'),true,
+    'Reviewed AdBlock '+description+' must not open another Host confirmation dialog');
 }
 async function approveReactReview(c,side){
   await click(c,side,'#sidebar-tool-action-continue');
@@ -579,8 +573,8 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
     status:'NOT_TESTED',nativePermission:'NOT_TESTED',
     network:'NOT_TESTED',globalToggle:'NOT_TESTED',siteException:'NOT_TESTED',
     otherSite:'NOT_TESTED',iframe:'NOT_TESTED',nestedIframe:'NOT_TESTED',
-    siteReviewDrift:'NOT_TESTED',closedPanel:'NOT_TESTED',
-    restoreCancellation:'NOT_TESTED',workerStoppedDnr:'NOT_TESTED',
+    siteReviewDrift:'NOT_TESTED',siteScopeSwitch:'NOT_TESTED',closedPanel:'NOT_TESTED',
+    restoreOneClick:'NOT_TESTED',workerStoppedDnr:'NOT_TESTED',
     workerRestart:'NOT_TESTED',browserRestart:'NOT_TESTED',upgrade:'NOT_TESTED',coexistence:'NOT_TESTED',priorityIsolation:'NOT_TESTED',
     physicalWidths:{status:'NOT_TESTED',requested:[320,360,400,480],
       reason:'This driver has no native Side Panel splitter adapter; viewport emulation does not prove physical width.'},
@@ -853,7 +847,7 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
       await preserve('chrome-stderr.log',errors);
       if(!CLOSEOUT)updateManualSummary();
       const requiredNative=['nativePermission','network','globalToggle','siteException','otherSite','iframe',
-        'closedPanel','workerRestart','browserRestart','revocation','uninstall','installedUiParity','restoreCancellation'];
+        'closedPanel','workerRestart','browserRestart','revocation','uninstall','installedUiParity','siteScopeSwitch','restoreOneClick'];
       report.missingReleaseCoverage=requiredNative.filter(key=>report[key]!=='PASS');
       const eligible=passed&&report.cases?.manualCosmetic?.status==='PASS'&&
         report.missingReleaseCoverage.length===0&&report.evidenceErrors.length===0&&report.cleanupErrors.length===0;
@@ -1111,7 +1105,7 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   assert.equal(installedToolbar.removeVisible,true);
   report.installedUiParity='PASS';
   note('installed-react-ui-parity',installedToolbar);
-  report.screenshots.push(await screenshot(client,sid,'adblock-installed-react-off'));
+  report.screenshots.push(await screenshot(client,sid,'adblock-installed-react-on'));
   if(process.env.OPENDESK_ADBLOCK_NATIVE_MANUAL_LAYOUT==='1'){
     await writeFile(path.join(OUT,'manual-layout-ready.json'),JSON.stringify({
       profile,extensionId:id,panelTargetId:panel.targetId,reactSession:react,root:ROOT},null,2)+'\n');
@@ -1133,21 +1127,12 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   const globalLabel='全局广告拦截';
   const globalSelector=reactSwitchSelector('全局广告拦截');
   const currentSelector=reactSwitchSelector('当前网站广告过滤');
-  await until(async()=>{
-    const x=await reactSwitch(client,react,globalLabel);return x&&!x.disabled&&!x.on;
-  },'installed React starts with global protection OFF');
-  const beforeEnable=await getOwned(client,uid);
-  assert.equal(beforeEnable.owned.length,0,'fresh install must not auto-block');
-  assert.equal((await probe(client,site,adUrl())).success,true,'fresh installation must allow the ad before opt-in');
-  await requestReactReview(client,sid,react,globalSelector,'开启全局过滤');
-  assert.equal((await getOwned(client,uid)).owned.length,0,
-    'React requesting approval must not write DNR early');
-  await approveReactReview(client,sid);
+  // The reviewed official installation automatically applies basic DNR.
   const enabled=await until(async()=>{
     const result=await getOwned(client,uid);
     const ui=await reactSwitch(client,react,globalLabel);
     return result.state?.enabled===true&&result.owned.some(x=>x.id===F)&&ui?.on?result:null;
-  },'real React ON, trusted Host, Chrome DNR readback',25000);
+  },'real React ON from installation, Chrome DNR readback',25000);
   assert.equal(enabled.owned.find(x=>x.id===F).condition.domainType,'thirdParty');
   const beforeBlock=counts.ad;
   const blocked=await probe(client,site,adUrl());
@@ -1158,16 +1143,14 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   report.network='PASS';note('real-react-network-block',{
     request:blocked,adServerHits:counts.ad,ownedRules:enabled.owned.map(x=>x.id)});
 
-  await requestReactReview(client,sid,react,globalSelector,'关闭全局过滤');
-  await approveReactReview(client,sid);
+  await operateReactControl(client,sid,react,globalSelector,'关闭全局过滤');
   await until(async()=>{
     const r=await getOwned(client,uid),ui=await reactSwitch(client,react,globalLabel);
     return r.state?.enabled===false&&r.owned.length===0&&ui&&!ui.on;
   },'React OFF and real DNR removal');
   const paused=await probe(client,site,adUrl());
   assert.equal(paused.success,true,'real HTTP ad request must resume after OFF');
-  await requestReactReview(client,sid,react,globalSelector,'开启全局过滤');
-  await approveReactReview(client,sid);
+  await operateReactControl(client,sid,react,globalSelector,'开启全局过滤');
   await until(async()=>{
     const r=await getOwned(client,uid),ui=await reactSwitch(client,react,globalLabel);
     return r.state?.enabled===true&&r.owned.some(x=>x.id===F)&&ui?.on;
@@ -1195,49 +1178,32 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   await until(async()=>{
     const x=await reactSwitch(client,react,currentLabel);return x&&!x.disabled&&x.on;
   },'React site switch enabled for the current HTTP website');
-  const beforeStaleReview=await getOwned(client,uid);
-  const beforeStaleRules=await evaluate(client,uid,'chrome.declarativeNetRequest.getDynamicRules()');
-  // Capture the actual Host reply. React immediately rereads the new page and
-  // can clear the transient notice before the next CDP polling interval.
-  await evaluate(client,react,`(()=>{
-    globalThis.__adblockDriftReplies=[];
-    globalThis.__adblockDriftObserver=event=>{
-      const value=event.data;
-      if(event.source===parent&&value?.toolId==='adblock'&&value.kind==='response')
-        globalThis.__adblockDriftReplies.push(structuredClone(value));
-    };
-    addEventListener('message',globalThis.__adblockDriftObserver);
-  })()`);
-  const dnrWrites=()=>nativeCallTrace.filter(x=>x.kind==='call'&&
-    x.name==='updateDynamicRules'&&x.sessionId===workerSession);
-  const writesBeforeStale=dnrWrites().length;
-  await requestReactReview(client,sid,react,currentSelector,'关闭 127.0.0.1 的广告过滤');
+  // Real tab changes are scoped: a B toggle cannot silently pause site A.
+  const scopeBefore=await getOwned(client,uid);
   const reviewOther=await client.send('Target.createTarget',{url:otherPage});
   const reviewOtherSession=await attach(client,reviewOther.targetId);
   await until(()=>evaluate(client,reviewOtherSession,
     'document.querySelector("h1")?.textContent==="Network fixture ready"'),
-    'website B loaded while A review remains open');
+    'website B ready for cross-tab site scope');
   await evaluate(client,uid,'(async()=>{const t=(await chrome.tabs.query({url:'+JSON.stringify(otherPage)+'}))[0];'+
     'if(!t)throw Error("website B tab unavailable");await chrome.tabs.update(t.id,{active:true});'+
     'await chrome.windows.update(t.windowId,{focused:true});return t.id;})()');
-  await until(()=>evaluate(client,uid,'chrome.tabs.query({active:true,lastFocusedWindow:true}).then(t=>t[0]?.url==='+
-    JSON.stringify(otherPage)+')'),'website B is truly active before confirming A review');
-  await approveReactReview(client,sid);
-  const staleReply=await until(()=>evaluate(client,react,
-    'globalThis.__adblockDriftReplies.find(x=>x.ok===false&&'+
-    '/^E_ADBLOCK_(SITE|STATE)_CHANGED$/.test(x.error?.code))'),
-    'trusted A review rejects the changed active website');
-  await evaluate(client,react,'removeEventListener("message",globalThis.__adblockDriftObserver)');
-  assert.deepEqual(await getOwned(client,uid),beforeStaleReview,
-    'rejected A review must preserve both A/B exceptions and state');
-  const afterStaleRules=await evaluate(client,uid,'chrome.declarativeNetRequest.getDynamicRules()');
-  assert.deepEqual([...afterStaleRules].sort((a,b)=>a.id-b.id),
-    [...beforeStaleRules].sort((a,b)=>a.id-b.id),'changed-site review must preserve all DNR rules');
-  assert.equal(dnrWrites().length,writesBeforeStale,
-    'changed-site review must not even issue an extra DNR write');
-  report.siteReviewDrift='PASS';
-  note('trusted-review-site-change-rejected',{reply:staleReply,
-    exceptions:beforeStaleReview.state?.exceptions,dnrWrites:dnrWrites().length-writesBeforeStale});
+  await until(()=>evaluate(client,react,
+    'document.querySelector(".adblock-host")?.textContent.trim()==="localhost"'),
+    'React reflects active site B');
+  await operateReactControl(client,sid,react,currentSelector,'site B pause');
+  await until(async()=>{const status=await getOwned(client,uid);
+    return status.state?.exceptions?.includes('localhost')&&
+      !status.state.exceptions.includes('127.0.0.1')?status:null;},
+    'one click pauses only site B');
+  await operateReactControl(client,sid,react,currentSelector,'site B restore');
+  await until(async()=>{const status=await getOwned(client,uid);
+    return status.state?.exceptions?.length===0?status:null;},
+    'one click restores B without changing A');
+  assert.deepEqual(scopeBefore.state?.exceptions,[]);
+  report.siteScopeSwitch='PASS';
+  note('trusted-active-tab-site-scope',{siteA:'127.0.0.1',siteB:'localhost',
+    exceptionsRestored:true});
   await client.send('Target.closeTarget',{targetId:reviewOther.targetId});
   await activateFixture();
   await until(()=>evaluate(client,react,
@@ -1245,8 +1211,7 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
     'website A identity restored after rejected review');
   await until(async()=>{const x=await reactSwitch(client,react,currentLabel);
     return x&&!x.disabled&&x.on;},'website A remains filtered after rejected review');
-  await requestReactReview(client,sid,react,currentSelector,'关闭 127.0.0.1 的广告过滤');
-  await approveReactReview(client,sid);
+  await operateReactControl(client,sid,react,currentSelector,'关闭 127.0.0.1 的广告过滤');
   await until(async()=>{
     const r=await getOwned(client,uid),ui=await reactSwitch(client,react,currentLabel);
     return r.state?.exceptions?.includes('127.0.0.1')&&
@@ -1333,31 +1298,15 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
     'installed React exception list offers website A restore');
   report.screenshots.push(await screenshot(client,sid,'adblock-installed-react-exceptions'));
   const beforeRestore=await getOwned(client,uid);
-  const beforeRestoreRules=await evaluate(client,uid,'chrome.declarativeNetRequest.getDynamicRules()');
   const sortedRules=rules=>[...rules].sort((a,b)=>a.id-b.id);
-  await requestReactReview(client,sid,react,restoreSelector,'恢复 127.0.0.1 的广告过滤');
-  assert.deepEqual(await getOwned(client,uid),beforeRestore,'review cannot restore without trusted click');
-  await click(client,sid,'#sidebar-tool-action-cancel');
-  await until(()=>evaluate(client,sid,'document.getElementById("sidebar-tool-action-review")?.hidden===true'),
-    'Cancel closes trusted Host review');
-  await until(()=>evaluate(client,react,
-    'document.querySelector(".adblock-notice")?.textContent.includes("已取消")'),
-    'React displays user cancellation without claiming a write');
-  const cancelled=await getOwned(client,uid);
-  assert.deepEqual(cancelled.state,beforeRestore.state,'Cancel preserves stored exceptions');
-  assert.deepEqual(sortedRules(await evaluate(client,uid,'chrome.declarativeNetRequest.getDynamicRules()')),
-    sortedRules(beforeRestoreRules),'Cancel leaves all Chrome DNR rules unchanged');
-  note('fixture-reload',await reloadFixture(client,site,'site A reload after cancel'));
-  assert.equal((await probe(client,site,adUrl())).success,true,
-    'cancelled restore must not suppress website A exception');
-  report.restoreCancellation='PASS';
-  await requestReactReview(client,sid,react,restoreSelector,'恢复 127.0.0.1 的广告过滤');
-  await approveReactReview(client,sid);
+  assert.ok(beforeRestore.state?.exceptions?.includes('127.0.0.1'));
+  await operateReactControl(client,sid,react,restoreSelector,'exception-list restore');
   await until(async()=>{
     const r=await getOwned(client,uid);
     return r.state?.exceptions?.length===0&&
       JSON.stringify(sortedRules(r.owned))===JSON.stringify(sortedRules(enabled.owned))?r:null;
   },'real React restoration and Chrome DNR readback');
+  report.restoreOneClick='PASS';
   note('fixture-reload',await reloadFixture(client,site,'site A reload after restore'));
   assert.equal((await probe(client,site,adUrl())).network.errorText,'net::ERR_BLOCKED_BY_CLIENT');
   note('react-site-restored',{exceptions:0});
@@ -1380,9 +1329,8 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   for(const type of ['keyDown','keyUp'])await client.send('Input.dispatchKeyEvent',
     {type,key:' ',code:'Space',windowsVirtualKeyCode:32},sid);
   await until(()=>evaluate(client,sid,
-    'document.getElementById("sidebar-tool-action-review")?.hidden===false'),
-    'Space on React Aria Switch requests trusted review');
-  await approveReactReview(client,sid);
+    'document.getElementById("sidebar-tool-action-review")?.hidden!==false'),
+    'Space OFF needs no second approval');
   await until(async()=>{const r=await getOwned(client,uid);
     return r.state?.enabled===false&&r.owned.length===0;},'Space OFF removes real rules');
   assert.equal((await probe(client,site,adUrl())).success,true);
@@ -1407,13 +1355,12 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   for(const type of ['keyDown','keyUp'])await client.send('Input.dispatchKeyEvent',
     {type,key:' ',code:'Space',windowsVirtualKeyCode:32},sid);
   await until(()=>evaluate(client,sid,
-    'document.getElementById("sidebar-tool-action-review")?.hidden===false'),
-    'Space ON requests trusted review');
-  await approveReactReview(client,sid);
+    'document.getElementById("sidebar-tool-action-review")?.hidden!==false'),
+    'Space ON needs no second approval');
   await until(async()=>{const r=await getOwned(client,uid);
     return r.state?.enabled===true&&r.owned.some(x=>x.id===F);},'Space ON restores DNR');
   assert.equal((await probe(client,site,adUrl())).network.errorText,'net::ERR_BLOCKED_BY_CLIENT');
-  note('react-keyboard-tab-space',{keyboardTrusted:true,hostReviewed:true});
+  note('react-keyboard-tab-space',{keyboardTrusted:true,noExtraApproval:true});
 
   // The native Side Panel can close; DNR belongs to the extension worker.
   await client.send('Target.closeTarget',{targetId:panel.targetId});
@@ -1594,8 +1541,7 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
     'document.querySelector(".adblock-host")?.textContent.trim()==="127.0.0.1"'),'restart exception targets A');
   await until(async()=>{const value=await reactSwitch(client,beforeRestartReact,currentLabel);
     return value&&!value.disabled&&value.on;},'A filtered before restart exception');
-  await requestReactReview(client,sid,beforeRestartReact,currentSelector,'关闭 127.0.0.1 的广告过滤');
-  await approveReactReview(client,sid);
+  await operateReactControl(client,sid,beforeRestartReact,currentSelector,'关闭 127.0.0.1 的广告过滤');
   const beforeRestart=await until(async()=>{const value=await getOwned(client,uid);
     return value.state?.enabled===true&&value.state.exceptions?.includes('127.0.0.1')&&
       value.owned.some(rule=>rule.action?.type==='allowAllRequests')?value:null;
@@ -1772,15 +1718,13 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
     await until(()=>evaluate(client,resumedReact,
       '!document.querySelector('+JSON.stringify(globalSelector)+')?.hasAttribute("data-disabled")'),
       'React is ready for global pause');
-    await requestReactReview(client,sid,resumedReact,globalSelector,'关闭全局过滤');
-    await approveReactReview(client,sid);
-    await until(async()=>{const value=await getOwned(client,again);return value.state?.enabled===false&&value.owned.length===0;},
+    await operateReactControl(client,sid,resumedReact,globalSelector,'关闭全局过滤');
+      await until(async()=>{const value=await getOwned(client,again);return value.state?.enabled===false&&value.owned.length===0;},
       'global pause removes network protection');
     const paused=await manualVisibility(false,'global pause releases manual CSS immediately');
     assert.deepEqual((await manualStorage())[COSMETIC_STORE],expectedManual,'pause retains saved manual rule');
-    await requestReactReview(client,sid,resumedReact,globalSelector,'开启全局过滤');
-    await approveReactReview(client,sid);
-    await until(async()=>{const value=await getOwned(client,again);return value.state?.enabled===true&&value.owned.length>0;},
+    await operateReactControl(client,sid,resumedReact,globalSelector,'开启全局过滤');
+      await until(async()=>{const value=await getOwned(client,again);return value.state?.enabled===true&&value.owned.length>0;},
       'global protection resumes');
     const resumed=await manualVisibility(true,'global resume reapplies saved manual rule');
     assert.deepEqual((await manualStorage())[COSMETIC_STORE],expectedManual);
@@ -1788,15 +1732,13 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   });
   await manualCase('sitePauseResume',async()=>{
     await activateManual(resumedReact);
-    await requestReactReview(client,sid,resumedReact,currentSelector,'关闭 localhost 的广告过滤');
-    await approveReactReview(client,sid);
-    await until(async()=>{const value=await getOwned(client,again);return value.state?.exceptions?.includes('localhost');},
+    await operateReactControl(client,sid,resumedReact,currentSelector,'关闭 localhost 的广告过滤');
+      await until(async()=>{const value=await getOwned(client,again);return value.state?.exceptions?.includes('localhost');},
       'localhost exception persisted');
     const paused=await manualVisibility(false,'website exception releases manual CSS');
     assert.deepEqual((await manualStorage())[COSMETIC_STORE],expectedManual,'website pause retains manual rule');
-    await requestReactReview(client,sid,resumedReact,currentSelector,'恢复 localhost 的广告过滤');
-    await approveReactReview(client,sid);
-    await until(async()=>{const value=await getOwned(client,again);return !value.state?.exceptions?.includes('localhost');},
+    await operateReactControl(client,sid,resumedReact,currentSelector,'恢复 localhost 的广告过滤');
+      await until(async()=>{const value=await getOwned(client,again);return !value.state?.exceptions?.includes('localhost');},
       'localhost exception removed');
     const resumed=await manualVisibility(true,'website resume restores saved hiding');
     assert.deepEqual((await manualStorage())[COSMETIC_STORE],expectedManual);
@@ -1812,9 +1754,8 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
     // paused site would hide an accidental cross-host cosmetic rule leak.
     await until(async()=>{const value=await reactSwitch(client,resumedReact,currentLabel);
       return value&&!value.disabled&&!value.on;},'other website currently excepted');
-    await requestReactReview(client,sid,resumedReact,currentSelector,'恢复 127.0.0.1 的广告过滤');
-    await approveReactReview(client,sid);
-    const protectedOther=await until(async()=>{const value=await getOwned(client,again);
+    await operateReactControl(client,sid,resumedReact,currentSelector,'恢复 127.0.0.1 的广告过滤');
+      const protectedOther=await until(async()=>{const value=await getOwned(client,again);
       return value.state?.enabled===true&&!value.state.exceptions.includes('127.0.0.1')&&value.owned.length>0?value:null;
     },'other website protection enabled during isolation check');
     const otherDom=await manualVisibility(false,'same selector stays visible on protected other hostname',manualOtherSession);
@@ -1826,9 +1767,8 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
     const reload=await reloadFixture(client,manualOtherSession,'protected other site isolation refresh');
     await manualVisibility(false,'other hostname remains visible after refresh',manualOtherSession);
     // Leave the surrounding DNR scenarios in their original A-exception state.
-    await requestReactReview(client,sid,resumedReact,currentSelector,'关闭 127.0.0.1 的广告过滤');
-    await approveReactReview(client,sid);
-    await until(async()=>{const value=await getOwned(client,again);return value.state?.exceptions?.includes('127.0.0.1');},
+    await operateReactControl(client,sid,resumedReact,currentSelector,'关闭 127.0.0.1 的广告过滤');
+      await until(async()=>{const value=await getOwned(client,again);return value.state?.exceptions?.includes('127.0.0.1');},
       'original DNR exception restored after isolation check');
     assert.deepEqual(sortedRules((await getOwned(client,again)).owned),sortedRules(persisted.owned),
       'manual coverage preserves surrounding DNR rule expectations');
@@ -1929,20 +1869,20 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   const reinstallHash=await sidebarToolPackageHash(reinstalledTool);
   assert.equal(reinstallHash,report.installedIdentity.packageHash,'reinstall uses identical formal package');
   assert.equal(reinstalledTool.version,report.installedIdentity.version,'reinstall preserves candidate version');
-  await until(async()=>{const value=await reactSwitch(client,reinstalledReact,'全局广告拦截');
-    return value&&!value.disabled&&!value.on;},'fresh reinstall global switch OFF');
-  const reinstalledState=await getOwned(client,again);
-  assert.equal(reinstalledState.owned.length,0,'reinstall must leave no owned DNR');
-  assert.ok(reinstalledState.state==null||(reinstalledState.state.enabled===false&&
-    Array.isArray(reinstalledState.state.exceptions)&&reinstalledState.state.exceptions.length===0),
-    'reinstall cannot revive prior enablement or exceptions');
-  assert.deepEqual(reinstalledState.focus,focusBefore,'reinstall preserves unrelated rules');
+  const reinstalledState=await until(async()=>{
+    const state=await getOwned(client,again);
+    const ui=await reactSwitch(client,reinstalledReact,'全局广告拦截');
+    return state.state?.enabled===true&&state.owned.some(rule=>rule.id===F)&&ui?.on?state:null;
+  },'fresh reviewed reinstall automatically enables basic DNR');
+  assert.deepEqual(reinstalledState.state.exceptions,[],'reinstall must not restore old exceptions');
+  assert.deepEqual(reinstalledState.focus,focusBefore,'reinstall keeps unrelated rules');
   const reinstallUrl=adUrl(),reinstallNonce=new URL(reinstallUrl).searchParams.get('nonce');
   const reinstallNetwork=await probe(client,pageAgain,reinstallUrl);
-  assert.equal(reinstallNetwork.success,true,'fresh reinstall allows network without opt-in');
-  assert.equal(hits(reinstallNonce),1,'reinstall exact nonce reaches HTTP server');
+  assert.equal(reinstallNetwork.network.errorText,'net::ERR_BLOCKED_BY_CLIENT',
+    'reinstall auto-on filters matching requests');
+  assert.equal(hits(reinstallNonce),0,'filtered request must not reach HTTP server');
   report.reinstall='PASS';
-  report.reinstallEvidence={packageHash:reinstallHash,version:reinstalledTool.version,globalOn:false,
+  report.reinstallEvidence={packageHash:reinstallHash,version:reinstalledTool.version,globalOn:true,
     state:reinstalledState,network:reinstallNetwork,url:reinstallUrl,httpHits:hits(reinstallNonce)};
   note('real-reinstall',report.reinstallEvidence);
   // Real high-priority Stay Focus policy must override the approved AdBlock exception.
@@ -1952,15 +1892,10 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   await until(()=>evaluate(client,reinstalledReact,
     'document.querySelector(".adblock-host")?.textContent.trim()==="127.0.0.1"'),'coexistence active site settled before review');
   await until(async()=>{const value=await reactSwitch(client,reinstalledReact,'全局广告拦截');
-    return value&&!value.disabled&&!value.on;},'coexistence global control ready after active tab change');
-  await requestReactReview(client,sid,reinstalledReact,globalSelector,'开启全局过滤');
-  await approveReactReview(client,sid);
-  await until(async()=>{const value=await reactSwitch(client,reinstalledReact,'全局广告拦截');
-    return value?.on&&!value.disabled;},'reinstalled AdBlock enabled via React');
+    return value&&!value.disabled&&value.on;},'coexistence remains enabled after reinstall');
   await until(()=>evaluate(client,reinstalledReact,
     'document.querySelector(".adblock-host")?.textContent.trim()==="127.0.0.1"'),'coexistence actual active website A');
-  await requestReactReview(client,sid,reinstalledReact,currentSelector,'关闭 127.0.0.1 的广告过滤');
-  await approveReactReview(client,sid);
+  await operateReactControl(client,sid,reinstalledReact,currentSelector,'关闭 127.0.0.1 的广告过滤');
   const coexistAdblock=await until(async()=>{const value=await getOwned(client,again);
     return value.state?.enabled&&value.state.exceptions?.includes('127.0.0.1')&&
       value.owned.some(rule=>rule.id===741001&&rule.action?.type==='allowAllRequests'&&rule.priority===2)?value:null;

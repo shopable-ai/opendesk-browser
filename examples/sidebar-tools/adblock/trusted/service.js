@@ -233,6 +233,11 @@ export function createAdblockService({
       throw error;
     }
     const hash=await sidebarToolPackageHash(auth.tool);
+    // The first reviewed immutable official install already has the required
+    // Chrome DNR permission. Only ABSENT policy gets the first-run default;
+    // a recorded stop, native revocation, cleanup fence or impostor cannot.
+    if(auth.raw===undefined&&hasPermission&&dnrReady&&!revoked&&!cleanupPending)
+      state={...state,enabled:true,approvedHash:hash,approvedEpoch:auth.epoch};
     // The reviewed official 1.2.1 -> 1.2.2/1.2.3 update keeps the existing
     // DNR choice. Only that exact shipped predecessor may cross this boundary;
     // arbitrary same-ID uploads, revoked epochs and missing permissions cannot.
