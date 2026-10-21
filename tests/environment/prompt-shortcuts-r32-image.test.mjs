@@ -168,7 +168,7 @@ test('R3.2 the original complete single-file interactive HTML preview remains pa
     'preview global size control must appear in the tool list, matching formal source');
   assert.equal(html.match(/id="imageSizeSetting"/g)?.length,1,
     'preview must not duplicate the image-size setting inside Host settings');
-  const scripts=[...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/g)];
+  const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)];
   assert(scripts.length>=1);
   for(const [,source] of scripts)new Function(source);
 });
