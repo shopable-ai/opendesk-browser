@@ -98,7 +98,8 @@ function hideNow(id){
  if(!eligible()||!catalog[state.host]?.[id]||mode!=='pick')return;
  const host=state.host,label=catalog[host][id][0];
  const exists=state.rules.some(r=>r.host===host&&r.id===id);
- if(!exists&&state.rules.length>=35){cancel();setNotice('已达到 35 条演示规则上限，请先恢复不需要的规则。');return;}\n if(!exists){state.rules.push({host,id});if(!save()){state.rules.pop();setNotice('本地保存失败，区域未被永久隐藏；请检查浏览器存储。');cancel();return;}}
+ if(!exists&&state.rules.length>=35){cancel();setNotice('已达到 35 条演示规则上限，请先恢复不需要的规则。');return;}
+ if(!exists){state.rules.push({host,id});if(!save()){state.rules.pop();setNotice('本地保存失败，区域未被永久隐藏；请检查浏览器存储。');cancel();return;}}
  lastHidden={host,id,label,added:!exists};cancel();render();
  setNotice(exists?'该区域已经保存了屏蔽规则。':'已隐藏「'+label+'」并保存本地。误选可直接点「撤销」。');
 }
