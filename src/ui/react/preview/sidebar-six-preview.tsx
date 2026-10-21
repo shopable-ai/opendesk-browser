@@ -63,6 +63,9 @@ for(const node of [toolbar,extensionList,extensionDetail,extensionEmpty,toolFram
   workflowHistoryHost,workflowSourceHost,...Object.values(debugNodes)])
   node.replaceChildren();
 const sampleExtensions=Object.freeze([
+  {key:'clipper-preview',kind:'app',type:'应用',title:'网页剪藏',
+    description:'正式网页剪藏 JS/CSS 交互预览 · 模拟 Host 和会话数据',
+    installed:true,enabled:true,version:'1.2.4',update:false,primaryAction:'打开'},
   {key:'preview-app',kind:'app',type:'应用',title:'示例工具（仅预览）',
     description:'仅内存演示的安装条目 · 无真实记录',installed:true,enabled:true,
     version:'1.0.0',update:true,primaryAction:'打开'},
@@ -121,6 +124,10 @@ function Preview(){
   const [toolSettingsOpen,setToolSettingsOpen]=React.useState(false);
   const [toolDraft,setToolDraft]=React.useState('');
   const [toolFeedback,setToolFeedback]=React.useState('');
+  const [clipperPage,setClipperPage]=React.useState('home');
+  const [clipperDirty,setClipperDirty]=React.useState(false);
+  const [clipperBusy,setClipperBusy]=React.useState(false);
+  const clipperFrame=React.useRef(null);
   const [selectedTask,setSelectedTask]=React.useState('preview-task');
   const [taskManageMode,setTaskManageMode]=React.useState(false);
   const [taskEnabled,setTaskEnabled]=React.useState({'preview-task':true,'preview-off':false});
@@ -179,6 +186,27 @@ function Preview(){
     [scene,kind,scope,search,extensionRecords]);
   const opened=extensionRecords.find(row=>row.key===openToolKey&&row.kind==='app'&&
     row.installed===true&&row.enabled===true)||null;
+  const clipperPreviewOpened=opened?.key==='clipper-preview';
+  const clipperPageNames={home:'网页剪藏',library:'我的摘录',reader:'摘录详情',edit:'编辑摘录',new:'新建便签'};
+  const clipperPageActions={library:['new','新建便签','M12 5v14M5 12h14'],
+    reader:['edit','编辑摘录','M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L9 17l-4 1 1-4z'],
+    edit:['save','保存摘录','M4 3h14l3 3v15H3V3h1M7 3v6h10V3M7 21v-8h10v8'],
+    new:['save','保存便签','M4 3h14l3 3v15H3V3h1M7 3v6h10V3M7 21v-8h10v8']};
+  React.useEffect(()=>{
+    if(!clipperPreviewOpened)return;
+    const frame=clipperFrame.current;
+    const receive=event=>{
+      if(event.source!==frame?.contentWindow)return;
+      if(event.data?.kind==='clipper-demo-nav'&&Object.hasOwn(clipperPageNames,event.data.page))
+        setClipperPage(event.data.page);
+      if(event.data?.kind==='clipper-demo-state'){
+        setClipperDirty(event.data.dirty===true);setClipperBusy(event.data.busy===true);
+      }
+    };
+    const loaded=()=>{setClipperPage('home');setClipperDirty(false);setClipperBusy(false);};
+    window.addEventListener('message',receive);frame?.addEventListener('load',loaded);
+    return ()=>{window.removeEventListener('message',receive);frame?.removeEventListener('load',loaded);};
+  },[clipperPreviewOpened]);
   // Mirrors resolveExtensionRowIntent: an active installed app opens usage UI.
   // All Host, install, permissions and Sandbox behavior remain unavailable here.
   const openExtensionRow=key=>{
@@ -257,7 +285,17 @@ function Preview(){
     });
     get('sidebar-tool-list-view').hidden=!!opened;
     get('sidebar-tool-display').hidden=!opened;
-    get('sidebar-tool-title').textContent=opened?.title||'';
+    get('sidebar-tool-title').textContent=clipperPreviewOpened?
+      (toolSettingsOpen?'工具设置':clipperPageNames[clipperPage]):opened?.title||'';
+    const primary=doc.getElementById('sidebar-tool-primary-action');
+    if(primary){
+      const action=clipperPreviewOpened&&!toolSettingsOpen?clipperPageActions[clipperPage]:null;
+      primary.hidden=!action;primary.disabled=clipperBusy;
+      if(action){
+        primary.title=action[1];primary.setAttribute('aria-label',action[1]);
+        primary.querySelector('path')?.setAttribute('d',action[2]);
+      }
+    }
     get('sidebar-tool-settings-open').hidden=!opened;
     get('sidebar-tool-settings-open').setAttribute('aria-expanded',String(!!opened&&toolSettingsOpen));
     get('sidebar-tool-remove').disabled=!opened;
@@ -332,7 +370,7 @@ function Preview(){
     workflowStatus.textContent=workflowFeedback;
     workflowStatus.hidden=!workflowFeedback;
   },[tab,width,scene,cloudScenario,cloudDetailOpen,selected,sheetOpen,history,workflowNewReview,workflowFeedback,transcript.length,workflowEntry,detail,taskMode,
-    opened,openToolKey,toolSettingsOpen,
+    opened,openToolKey,toolSettingsOpen,clipperPreviewOpened,clipperPage,clipperBusy,
     importOpen,importCandidate,importError,extensionReview,extensionRecords,taskNotice]);
   React.useEffect(()=>{
     const handlers=tabButtons.map((button,i)=>{
@@ -376,13 +414,25 @@ function Preview(){
     };
   },[tab]);
   React.useEffect(()=>{
+    const sendClipper=action=>clipperFrame.current?.contentWindow?.postMessage(
+      {kind:'clipper-demo-nav-action',action},'*');
     const back=()=>{
+      if(clipperPreviewOpened){
+        if(toolSettingsOpen){setToolSettingsOpen(false);return;}
+        if(clipperBusy){setToolFeedback('操作进行中，请完成后返回。');return;}
+        if(clipperPage!=='home'){sendClipper('back');return;}
+      }
       const key=openToolKey;
       setOpenToolKey(null);setToolSettingsOpen(false);
       requestAnimationFrame(()=>doc.querySelector('[data-extension-id="'+key+'"] .ec-row-main')
         ?.focus({preventScroll:true}));
     };
-    const settings=()=>setToolSettingsOpen(value=>!value);
+    const settings=()=>{
+      if(clipperPreviewOpened&&!toolSettingsOpen&&(clipperDirty||clipperBusy)){
+        setToolFeedback('请先保存或取消当前编辑，再打开工具设置。');return;
+      }
+      setToolSettingsOpen(value=>!value);
+    };
     const uninstall=()=>{
       if(!opened)return;
       setExtensionReview({type:'uninstall',key:opened.key,title:opened.title,
@@ -390,9 +440,11 @@ function Preview(){
     };
     const handlers=[['sidebar-tool-back',back],['sidebar-tool-settings-open',settings],
       ['sidebar-tool-remove',uninstall]];
+    if(doc.getElementById('sidebar-tool-primary-action'))
+      handlers.push(['sidebar-tool-primary-action',()=>{if(clipperPreviewOpened&&!clipperBusy)sendClipper('primary');}]);
     for(const [id,fn] of handlers)get(id).addEventListener('click',fn);
     return ()=>{for(const [id,fn] of handlers)get(id).removeEventListener('click',fn);};
-  },[openToolKey,opened]);
+  },[openToolKey,opened,clipperPreviewOpened,clipperPage,clipperDirty,clipperBusy,toolSettingsOpen]);
   // The real import card, file chooser, update review and confirm IDs are
   // borrowed from tool.html. No browser storage or installer is invoked.
   React.useEffect(()=>{
@@ -639,7 +691,20 @@ function Preview(){
       onMore={setSelected}/>,extensionList)}
     {createPortal(opened&&<section className="od-preview-card od-stack"
       aria-label="已安装工具使用页面 · 仅预览">
-      <strong>工具工作区 · {opened.title}</strong>
+      <strong>{clipperPreviewOpened?'网页剪藏 · 正式业务源码预览':'工具工作区 · '+opened.title}</strong>
+      {clipperPreviewOpened ? <>
+        <small>v1.2.4 · 实际 src/notes.js / src/style.css；会话模拟数据，不使用 Chrome 授权、持久化或 React Host 真正消息通道。</small>
+        {toolSettingsOpen&&<div className="od-preview-card">
+          <strong>工具设置（模拟）</strong>
+          <p>返回后仍在原有摘录页面。真实权限管理只能通过已安装工具验收。</p>
+          <button className="od-button od-button--secondary" type="button"
+            onClick={()=>setToolFeedback('预览不会打开独立标签页。')}>在新标签页打开（预览不执行）</button>
+        </div>}
+        <iframe ref={clipperFrame} title="网页剪藏正式 JS/CSS · 模拟 Host"
+          src="../../../examples/sidebar-tools/web-markdown-clipper/preview/stage.html"
+          hidden={toolSettingsOpen} style={{width:'100%',height:660,border:0}}/>
+        {toolFeedback&&<p role="status">{toolFeedback}</p>}
+      </> : <>
       <small>v{opened.version} · 仅预览 · 隔离 Fixture，未连接真实 iframe 或 Host。</small>
       {toolSettingsOpen?<div className="od-preview-card">
         <strong>工具设置（仅预览）</strong>
@@ -652,6 +717,7 @@ function Preview(){
         <button type="button" className="od-button"
           onClick={()=>setToolFeedback('仅预览 · 当前页内存草稿，未调用扩展 API')}>保存预览草稿</button>
         {toolFeedback&&<p role="status">{toolFeedback}</p>}
+      </>}
       </>}
     </section>,toolFrame)}
     {createPortal(<ExtensionEmpty model={{showEmpty:rows.length===0,
