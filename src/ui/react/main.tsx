@@ -10,6 +10,7 @@ import BookmarkReactApp from '../../../examples/sidebar-tools/bookmark-manager/s
 import {TrustedConversationWorkspace} from './components/conversation.tsx';
 import conversationDockCSS from './components/conversation-dock.css?raw';
 import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
+import myAgentCSS from './tabs/my-agent.css?raw';
 
 // A single trusted root owns every product page. Existing controllers supply
 // presentation snapshots and actions; installed tool code stays in its sandbox.
@@ -23,7 +24,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
   const initialTab=doc.documentElement?.dataset?.opendeskTab||'tasks';
   const root=createRoot(mount);
   mountedDocuments.add(doc);
-  let disposed=false,navigationTab=initialTab,workflowController=null;
+  let disposed=false,navigationTab=initialTab,workflowController=null,myAgent=null;
   let extensionView='list',onExtensionBack=()=>{},menuKey=null,detailModel=null,uninstallModel=null;
   let model={rows:[],busy:false,pendingKey:null,onOpenRow:()=>{},onMore:()=>{}};
   let toolbarModel={query:'',kind:'all',scope:'smart',language:'zh-CN',menuOpen:false};
@@ -55,12 +56,12 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
     const extensionProps={rowsModel:model,menuKey,rowMenuModel,detailModel,uninstallModel,toolbarModel,feedbackModel,recoveryModel,statusModel,
       view:extensionView,onBack:onExtensionBack};
     flushSync(()=>root.render(<>
-      <style data-opendesk-trusted-react-css="">{bookmarkPilotLayoutCSS+'\n'+conversationDockCSS}</style>
+      <style data-opendesk-trusted-react-css="">{bookmarkPilotLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS}</style>
       <SidebarAppShell activeTab={navigationTab}
         debugEnabled={debugEnabled} debugModel={debugModel} debugActions={debugActions} development={development}
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
         onNavigate={onNavigate} extensionProps={extensionProps}
-        developerView={developerView} myView={myView} toolView={toolView} workflowController={workflowController}
+        developerView={developerView} myView={myView} myAgent={myAgent} toolView={toolView} workflowController={workflowController}
         cloudModel={cloudPageModel.overview} cloudRequestsModel={cloudPageModel.requests}
         cloudSetupModel={cloudPageModel.setup} cloudPageModel={cloudPageModel}/>
       {bookmarkPilot&&createPortal(<>
@@ -100,6 +101,11 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
       if(navigationTab===view)return;
       if(navigationTab==='cloud'&&view!=='cloud')cloudPageModel.onHide?.();
       navigationTab=view;paint();
+    },
+    connectMyAgent(controller){
+      if(disposed||myAgent||typeof controller?.subscribe!=='function')
+        throw new Error('E_REACT_MY_AGENT_OWNER');
+      myAgent=controller;paint();
     },
     connectWorkflowPage(controller){
       if(disposed||workflowController||typeof controller?.subscribe!=='function')

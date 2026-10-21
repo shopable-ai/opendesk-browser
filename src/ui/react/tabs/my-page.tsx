@@ -3,6 +3,7 @@ import {MyControl} from './my-controls.tsx';
 import {MyTaskRows,MyTaskDetail} from './tasks.tsx';
 import {SchedulePlanRows,ScheduleManagerRows} from './schedule.tsx';
 import {MyTaskParams,MyTaskHistory,MyScheduleDetail,MyCopyConfirmation} from './my-sections.tsx';
+import {MyAgentPanel,MyAgentToggle} from './my-agent.tsx';
 
 export function MyTasksDock({view,hidden=false}){
   React.useSyncExternalStore(view.subscribe,view.getSnapshot,view.getSnapshot);
@@ -82,9 +83,10 @@ function MyTaskWorkspace({view}){return (<MyControl view={view} as="div" id="tas
 </MyControl>
 </MyControl>);}
 
-export function MyTasksPage({view,hidden=false}){
+export function MyTasksPage({view,agent=null,hidden=false}){
   React.useSyncExternalStore(view.subscribe,view.getSnapshot,view.getSnapshot);
   return <div id="workbench-tasks" role="tabpanel" aria-labelledby="tab-my-tasks" className="od-page" data-workbench-page="tasks" hidden={hidden}>
+<MyAgentPanel agent={agent}/>
 
 <MyControl view={view} as="section" className="tasks-surface" aria-label="已安装任务" id="my-task-surface">
 <div className="task-section-head od-toolbar">
@@ -94,6 +96,7 @@ export function MyTasksPage({view,hidden=false}){
 </MyControl>
 </div>
 <div className="task-section-actions">
+<MyAgentToggle agent={agent}/>
 <MyControl view={view} as="button" id="task-search-toggle" onClick={event=>view.actions.taskSearchToggleClick?.(event.nativeEvent)} type="button" className="od-icon-button" title="搜索和筛选任务" aria-label="搜索和筛选任务" aria-expanded="false" aria-controls="task-search-panel">
 <svg viewBox="0 0 24 24" aria-hidden="true">
 <circle cx="10.8" cy="10.8" r="6.8"/>
@@ -175,6 +178,7 @@ export function MyTasksPage({view,hidden=false}){
 </MyControl>
 </div>
 <div className="od-page-actions">
+<MyAgentToggle agent={agent} id="my-agent-schedule-toggle"/>
 <MyControl view={view} as="button" id="schedule-open-manager" onClick={event=>view.actions.scheduleOpenManagerClick?.(event.nativeEvent)} type="button" className="od-icon-button" title="任务管理" aria-label="任务管理">
 <svg viewBox="0 0 24 24" aria-hidden="true">
 <path d="M9 6h12M9 12h12M9 18h12M3 6l1 1 2-2M3 12l1 1 2-2M3 18l1 1 2-2"/>

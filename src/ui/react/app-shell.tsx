@@ -16,7 +16,7 @@ const subscribeEmptyTool=()=>()=>{};
 export function SidebarAppShell({
   activeTab='tasks',debugEnabled=false,onNavigate=()=>{},
   extensionProps={},cloudModel={},cloudRequestsModel={},cloudSetupModel={},cloudPageModel={},
-  developerView,myView,toolView=null,workflowController=null,debugModel={},debugActions={},development=null,
+  developerView,myView,myAgent=null,toolView=null,workflowController=null,debugModel={},debugActions={},development=null,
   browserHistoryModel=null,browserHistoryActions=null
 }){
   React.useSyncExternalStore(myView.subscribe,myView.getSnapshot,myView.getSnapshot);
@@ -47,7 +47,7 @@ export function SidebarAppShell({
         </button>
       </div>
       <TaskCatalogPage view={myView} hidden={activeTab!=='catalog'} standalone={activeTab==='catalog'}/>
-      <MyTasksPage view={myView} hidden={activeTab!=='tasks'}/>
+      <MyTasksPage view={myView} agent={myAgent} hidden={activeTab!=='tasks'}/>
       <div id="workbench-tools" role="tabpanel" aria-labelledby="tab-tools"
         className="od-page" data-workbench-page="tools" hidden={activeTab!=='tools'}>
         <section id="sidebar-tools" className="sidebar-tools" aria-label="自定义工具">

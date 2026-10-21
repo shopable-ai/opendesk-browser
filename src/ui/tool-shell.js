@@ -14,6 +14,7 @@ import {createExtensionCenter} from './extension-center.js';
 import {mountSidebarApp} from './react/main.tsx';
 import {createDeveloperView} from './develop-view.js';
 import {createMyWorkbenchView} from './my-workbench-view.js';
+import {createMyTaskAgent} from './my-task-agent.js';
 import {createSidebarToolsView} from './sidebar-tools-view.js';
 import {TRUSTED_BOOKMARK_COMPONENT_VERSION} from './trusted-bookmark-admission.js';
 import {isActualSidePanelContext} from './sidepanel-context.js';
@@ -149,6 +150,10 @@ const scheduleStatus=message=>{
 scheduleUI=createScheduledTaskWorkbench({client:foundationClient,host:scriptEditor.host,taskWorkbench,
   api:chrome,document,myView,developerView,onOpen:()=>scheduleStatus(scheduleHost?
     scheduleHost.status:'没有活动运行页')});
+const myAgent=createMyTaskAgent({client:foundationClient,taskWorkbench,
+  provider:workflowView.taskConversation,currentPageTarget,api:chrome,
+  onScheduleChange:()=>void scheduleUI?.refresh().catch(error=>console.warn('AI schedule refresh',error))});
+extensionList.connectMyAgent(myAgent);
 function startScheduledHost(){
   if(shellClosed||scheduleHost)return;
   scheduleHost=createScheduledTaskHost({client:foundationClient,host:scriptEditor.host,api:chrome,
@@ -366,7 +371,7 @@ listen(window, 'pagehide', () => {
   developHostControls.dispose();
   for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
   listeners.length = 0;
-  scheduleHost?.dispose();scheduleUI?.dispose();
+  myAgent.dispose();scheduleHost?.dispose();scheduleUI?.dispose();
   panelToolIntents?.dispose();tabMemory.dispose(); localeController.dispose(); debugWorkbench?.dispose(); workflowView.dispose(); extensionCenter.dispose(); sidebarTools.dispose(); extensionList.dispose(); toolView.dispose(); nativeAgentHost.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); sharedRunHost.dispose(); developerView.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
 }, {once: true});
 
