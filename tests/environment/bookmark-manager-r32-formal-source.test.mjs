@@ -60,6 +60,9 @@ test('R1.8 offline fixture chrome is hashed separately from the production React
  assert.doesNotMatch(preview,/^import '\.\/preview-shell\.css';/m,
   'fixture-only chrome must never enter the formal-comparable React CSS');
  assert.doesNotMatch(formal,/preview-shell\.css/);
+ assert.match(preview,/TrustedConversationWorkspace/,'admitted offline Host exercises shared Dock');
+ assert.doesNotMatch(formal,/TrustedConversationWorkspace|TrustedConversationHeaderSlot/,
+  'independent sandbox IIFE must not embed trusted Chat UI');
  for(const entry of [preview,formal]){
   assert.match(entry,/import '\.\.\/\.\.\/\.\.\/src\/react\/style\.css';/);
   assert.match(entry,/import '\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/src\/ui\/react\/components\/conversation-dock\.css';/);
