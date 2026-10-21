@@ -10,11 +10,35 @@ const review=q('mdw-inline-review'),reviewText=q('mdw-review-text');
 const reviewConfirm=q('mdw-review-confirm'),reviewCancel=q('mdw-review-cancel');
 const buttons=[...root.querySelectorAll('[data-mode]')],MARK=String.fromCharCode(96);
 let dirty=false,timer=0,filename='markdown.md',importSerial=0,reviewAction=null;
+// Remember only explicit end-of-document reading, never a pixel/height ratio.
+let followEnd=false,editorWidth=editor.clientWidth,editorHeight=editor.clientHeight;
+const releaseEnd=()=>{followEnd=false;};
+const rememberEnd=()=>{
+ // Reflow can itself emit scroll before ResizeObserver reports the new box.
+ if(editor.clientWidth!==editorWidth||editor.clientHeight!==editorHeight)return;
+ followEnd=editor.scrollTop>0&&editor.scrollHeight-editor.clientHeight-editor.scrollTop<=2;
+};
+const scrollIntent=['wheel','touchstart','pointerdown','keydown'];
+editor.addEventListener('scroll',rememberEnd,{passive:true});
+scrollIntent.forEach(type=>editor.addEventListener(type,releaseEnd,{passive:true}));
+const editorResize=typeof ResizeObserver==='function'?new ResizeObserver(()=>{
+ const width=editor.clientWidth,height=editor.clientHeight;
+ if(!width||!height)return;
+ const changed=width!==editorWidth||height!==editorHeight;
+ editorWidth=width;editorHeight=height;
+ if(changed&&followEnd)editor.scrollTop=editor.scrollHeight;
+}):null;
+editorResize?.observe(editor);
+globalThis.addEventListener('pagehide',()=>{
+ releaseEnd();editorResize?.disconnect();clearTimeout(timer);
+ editor.removeEventListener('scroll',rememberEnd);
+ scrollIntent.forEach(type=>editor.removeEventListener(type,releaseEnd));
+},{once:true});
 const node=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
 const bytes=text=>new TextEncoder().encode(text).length;
 const status=(text,error=false)=>{message.textContent=text;message.dataset.error=String(error);};
 const cancelReview=()=>{reviewAction=null;review.hidden=true;};
-const markDirty=()=>{cancelReview();importSerial++;dirty=true;state.textContent='未保存的修改';};
+const markDirty=()=>{releaseEnd();cancelReview();importSerial++;dirty=true;state.textContent='未保存的修改';};
 function reviewDiscard(message,action){
  cancelReview();reviewAction=action;reviewText.textContent=message;review.hidden=false;
  reviewConfirm.focus({preventScroll:true});
@@ -103,6 +127,7 @@ function preview(markdown){
 const refresh=()=>{timer=0;preview(editor.value);};
 editor.addEventListener('input',()=>{markDirty();clearTimeout(timer);timer=setTimeout(refresh,100);});
 buttons.forEach(b=>b.addEventListener('click',()=>{
+ releaseEnd();
  pane.dataset.mode=b.dataset.mode;buttons.forEach(x=>x.setAttribute('aria-pressed',String(x===b)));refresh();
 }));
 q('mdw-import').addEventListener('click',()=>{cancelReview();file.click();});

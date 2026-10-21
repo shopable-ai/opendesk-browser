@@ -34,7 +34,7 @@ test('R1.5 Markdown Workbench omits a duplicate official header without changing
     readFile('examples/sidebar-tools/markdown-workbench/src/main.js','utf8'),
     readFile('examples/sidebar-tools/markdown-workbench/src/style.css','utf8'),
     readFile('examples/sidebar-tools/markdown-workbench/tool.config.json','utf8')]);
-  assert.equal(JSON.parse(config).version,'1.0.4');
+  assert.equal(JSON.parse(config).version,'1.0.5');
   assert.match(js,/setNavigation\?\.\(\{page:'home',title:'Markdown 工作台',canBack:false\}\)===true/);
   assert.match(css,/\.mdw\.mdw-host-nav \.mdw-bar strong\{display:none/);
 });
