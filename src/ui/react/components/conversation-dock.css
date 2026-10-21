@@ -18,6 +18,8 @@
 .od-conversation-entry[data-speaker="user"]{align-self:flex-end;background:color-mix(in srgb,var(--od-brand) 8%,var(--od-paper))}
 .od-conversation-entry p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;line-height:1.48;font-size:var(--od-note-size)}
 .od-conversation-error{margin:0;padding:4px 10px;color:var(--od-negative);font-size:var(--od-meta-size);line-height:1.5}
+.od-conversation-feedback{flex:0 1 auto;min-height:26px;max-height:25%;overflow:auto;overflow-wrap:anywhere;overscroll-behavior:contain}
+.od-conversation-feedback:focus-visible{outline:2px solid var(--od-focus);outline-offset:-2px}
 .od-conversation-composer{display:grid;position:relative;flex:none;min-width:0;padding:6px 10px 8px;border-top:1px solid var(--od-line)}
 .od-conversation-sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 .od-conversation-input{box-sizing:border-box;display:block;width:100%;min-width:0;min-height:44px;max-height:112px;resize:none;overflow-y:auto;border:1px solid var(--od-input-border);border-radius:var(--radius-surface);padding:10px 52px 9px 10px;background:var(--od-paper);color:var(--od-ink);font:inherit;font-size:var(--od-note-size);line-height:1.5;scrollbar-width:thin}

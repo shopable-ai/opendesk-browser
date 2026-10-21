@@ -29,7 +29,13 @@ const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 // This host owns exactly one Dock for its admitted tool instance. Installed
 // arbitrary JS/React/Vue tools are NOT allowed to mount into this trusted tree.
 // The tool supplies only an audited, business-specific request callback.
-export function TrustedConversationWorkspace({
+export function TrustedConversationWorkspace({controller,...props}){
+ const owner=React.useRef({controller,revision:0});
+ if(owner.current.controller!==controller)
+  owner.current={controller,revision:owner.current.revision+1};
+ return <ConversationWorkspace key={owner.current.revision} controller={controller} {...props}/>;
+}
+function ConversationWorkspace({
  controller,renderBusiness,headerTarget=null,title='AI 对话',placeholder='描述要完成的操作'
 }){
  const restored=React.useMemo(()=>controller?.readSession?.()||{},[controller]);
@@ -44,6 +50,7 @@ export function TrustedConversationWorkspace({
  const shellRef=React.useRef(null),inputRef=React.useRef(null),logRef=React.useRef(null);
  const triggerRef=React.useRef(null),adapterRef=React.useRef(null),abortRef=React.useRef(null);
  const inFlight=React.useRef(false),alive=React.useRef(true),sequence=React.useRef(0);
+ const runRef=React.useRef(null);
  const rowsRef=React.useRef(rows),refsRef=React.useRef(restored.refs||newRefs());
  const draftRef=React.useRef(draft),openRef=React.useRef(open);
  const phaseRef=React.useRef('idle'),resizeRef=React.useRef(null),composingRef=React.useRef(false);
@@ -58,9 +65,10 @@ export function TrustedConversationWorkspace({
   alive.current=true;
   return ()=>{
    alive.current=false;
-   abortRef.current?.abort();
-   if(inFlight.current){
-    void Promise.resolve(controller?.cancel?.()).catch(()=>{});
+   const signal=abortRef.current?.signal;
+   abortRef.current?.abort();runRef.current=null;
+   if(inFlight.current&&signal){
+    void Promise.resolve(controller?.cancel?.({signal})).catch(()=>{});
     if(phaseRef.current==='writing'){
      const warning={id:'dock-interrupted-'+(++sequence.current),speaker:'系统',
       message:'当前扩展实例已关闭。已发出的写入可能仍在完成；请先刷新并核对结果，不要重放旧指令。'};
@@ -95,9 +103,10 @@ export function TrustedConversationWorkspace({
  const limits=React.useMemo(()=>{
   // Leave an extra 6px for the original bookmark tree at 200% physical
   // zoom while retaining a usable, independently scrollable compact Dock.
-  const min=Math.min(184,Math.max(112,Math.floor(totalHeight*.46)));
-  return {min,max:Math.max(min,totalHeight-96)};
- },[totalHeight]);
+  const min=Math.min(error||needsReview?184:156,Math.max(112,Math.floor(totalHeight*.46)));
+  const businessMin=Math.min(240,Math.floor(totalHeight*.6));
+  return {min,max:Math.max(min,totalHeight-businessMin)};
+ },[totalHeight,error,needsReview]);
  const dockHeight=height===null?clamp(Math.round(totalHeight*.38),limits.min,limits.max):
   clamp(height,limits.min,limits.max);
  React.useEffect(()=>{
@@ -121,8 +130,10 @@ export function TrustedConversationWorkspace({
   else persist({refs:refsRef.current});
  },[append,persist]);
  function stop(){
-  abortRef.current?.abort();
-  void Promise.resolve(controller?.cancel?.()).catch(()=>{});
+  const signal=abortRef.current?.signal;
+  if(!signal)return;
+  abortRef.current.abort();
+  void Promise.resolve(controller?.cancel?.({signal})).catch(()=>{});
  }
  function send(event){
   event.preventDefault();
@@ -135,6 +146,8 @@ export function TrustedConversationWorkspace({
   }
   const signal=new AbortController();
   abortRef.current=signal;inFlight.current=true;phaseRef.current='thinking';
+  const run={signal};runRef.current=run;
+  const current=()=>alive.current&&runRef.current===run;
   setBusy(true);setError('');
   draftRef.current='';setDraft('');append('你',request);
   // Do NOT defer invocation: existing HTTPS origin permission requests must
@@ -142,27 +155,30 @@ export function TrustedConversationWorkspace({
   let pending;
   try{
    pending=action({request,refs:structuredClone(refsRef.current),signal:signal.signal,
-    event:event.nativeEvent,onStep,onPhase:phase=>{phaseRef.current=phase;}});
+    event:event.nativeEvent,onStep:step=>{if(current())onStep(step);},
+    onPhase:phase=>{if(current())phaseRef.current=phase;}});
   }catch(ex){pending=Promise.reject(ex);}
   void Promise.resolve(pending).then(result=>{
-   if(!alive.current)return;
+   if(!current())return;
    if(result?.refs)refsRef.current=result.refs;
    if(result?.question)append('助手',result.question);
    else persist({refs:refsRef.current});
   }).catch(ex=>{
-   if(!alive.current)return;
+   if(!current())return;
    if(ex?.refs)refsRef.current=ex.refs;
    const unknown=ex?.code==='E_OUTCOME_UNKNOWN'||ex?.writeIssued===true;
    if(unknown)setNeedsReview(true);
    const partial=ex?.partial?.length?'已核实 '+ex.partial.length+' 步，其余未完成。 ':'';
    const message=ex?.code==='E_CANCELLED'?'已停止后续操作；此前已核实的写入不会撤销。':
     partial+errorText(ex);
-   setError('');append('系统',message);
+   setError(message);append('系统',message);
    // Never silently repeat an issued or ambiguous write.
    if(!unknown&&!ex?.partial?.length&&ex?.code!=='E_CANCELLED'&&!draftRef.current){
     draftRef.current=request;setDraft(request);
    }
   }).finally(()=>{
+   if(!current())return;
+   runRef.current=null;
    inFlight.current=false;abortRef.current=null;phaseRef.current='idle';
    if(alive.current)setBusy(false);
   });
@@ -172,13 +188,15 @@ export function TrustedConversationWorkspace({
  }
  function separatorDown(e){
   if(e.button!==0)return;
-  resizeRef.current={y:e.clientY,height:dockHeight};
+  const shell=shellRef.current;
+  const scale=shell?.clientHeight?shell.getBoundingClientRect().height/shell.clientHeight:1;
+  resizeRef.current={y:e.clientY,height:dockHeight,scale:scale||1};
   e.currentTarget.setPointerCapture?.(e.pointerId);
   e.preventDefault();
  }
  function separatorMove(e){
   if(!resizeRef.current)return;
-  const next=resizeRef.current.height+resizeRef.current.y-e.clientY;
+  const next=resizeRef.current.height+(resizeRef.current.y-e.clientY)/resizeRef.current.scale;
   setHeight(clamp(Math.round(next),limits.min,limits.max));
  }
  function separatorKey(e){
@@ -220,10 +238,12 @@ export function TrustedConversationWorkspace({
     aria-label="对话及已核实操作结果">
     <ConversationTranscript rows={rows} entryClassName="od-conversation-entry" showSpeaker={false}/>
    </div>
-   {error&&<p className="od-conversation-error" role="alert">{error}</p>}
-   {needsReview&&<p className="od-conversation-error" role="status">
-    上次写入结果不确定。请先刷新并核对上方书签，再继续操作。
-   </p>}
+   {(error||needsReview)&&<div className="od-conversation-feedback" tabIndex={0} aria-label="对话状态详情">
+    {error&&<p className="od-conversation-error" role="alert">{error}</p>}
+    {needsReview&&<p className="od-conversation-error" role="status">
+     上次写入结果不确定。请先刷新并核对上方书签，再继续操作。
+    </p>}
+   </div>}
    <form className="od-conversation-composer" onSubmit={send}>
     <label className="od-conversation-sr" htmlFor="od-conversation-input">对话输入</label>
     <ConversationInput id="od-conversation-input" inputRef={inputRef} value={draft}
