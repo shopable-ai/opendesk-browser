@@ -50,7 +50,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate independent tool, storage and fixed-adapter provenance
         run: |
-          node --test tests/environment/prompt-shortcuts-r14*.test.mjs tests/environment/prompt-shortcuts-r20.test.mjs tests/environment/prompt-shortcuts-r215-rail-open.test.mjs tests/environment/prompt-shortcuts-panel-deeplink.test.mjs tests/environment/prompt-shortcuts-r32-image.test.mjs tests/environment/prompt-shortcuts-r37-assets.test.mjs
+          node --test tests/environment/prompt-shortcuts-r14*.test.mjs tests/environment/prompt-shortcuts-r20.test.mjs tests/environment/prompt-shortcuts-r215-rail-open.test.mjs tests/environment/prompt-shortcuts-panel-deeplink.test.mjs tests/environment/prompt-shortcuts-r32-image.test.mjs tests/environment/prompt-shortcuts-r37-assets.test.mjs tests/environment/prompt-shortcuts-r40-image-preview.test.mjs
           node --test tests/environment/sidebar-tools.test.mjs
       - name: Check standalone and trusted JavaScript syntax
         run: |
