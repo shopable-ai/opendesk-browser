@@ -88,3 +88,29 @@ npm run preview:budget
 在隔离 Chromium 的旧同源候选上，预览 iframe 物理宽度 320px、根 DOM `zoom=2`、原书签逻辑宽度 160 CSS px、物理高度 760px 时，原 `TrustedConversationWorkspace` 用 `getBoundingClientRect().height`（缩放后的 760 视觉像素）计算 CSS Dock 高度，导致书签树 `clientHeight=0`。该 P0 可复现，原先只验证“发送框可见”的 200% 测试不能视为 PASS。另有一次错误测试把 iframe 宽度再次除以 2，属于重复缩放；正式判定只采用物理宽度不重复缩小、并验证 `offsetWidth=物理宽度/2` 的正确用例。
 
 已提交共享 Dock `node.clientHeight` 布局单位测量与小窗口最小高度调整（提交 `edd2048d454b544703098ef409ed83d2fae0f3e0`），并将 200% 下书签树实际高度 ≥36 CSS px、聊天输入区未遮挡列为 Chromium 强制断言（提交 `869cc60586834b4f5f1cf3e116640c5c5ca49bcb`）。**未取得修复后打包和 Chromium 原始回执，状态仍为 `R16_ZOOM_FIX_SOURCE_ONLY`；不得声称 200% PASS 或 95+。** GitHub 同源 CI 任务：https://github.com/shopable-ai/opendesk-browser/actions/runs/39586658934。旧候选截图、历史 Run 和虚拟布局模拟均不能代替本次运行证据。
+
+## R1.8-RECOVERY-CI-CLOSEOUT · 最新 main 安全增量接续（2026-10-21）
+
+**继承的唯一原始目标**：在原版 Bookmark Manager 内通过框架标题栏右上角 Chat 图标展开底部共享 Dock，使用原 Workflow Provider → Bookmark Adapter → executeBookmarkPlan → Bookmark Service → SDK/可信 Host，在第一轮创建“AI 工具”文件夹、读回真实 Chrome folderId 并定位原树，第二轮严格将当前页写入前轮读回的 folderId；保留手动书签功能、搜索/重命名/移动、安全撤权/Stop/UNKNOWN、Custom HTML/React/Vue 隔离。**不实施 Prompt Shortcuts 第二试点，不新增 Provider/Runtime/Root。**
+
+### 已提交的增量源代码（不能冒充执行 PASS）
+
+1. `298a830e2fd263c4ad215d7c6b6660d27d5a4de2`：在 R1.6 暂存 tree 与已更新的 main 基础上，恢复 Service 写前二次授权、受控执行器/Workflow 生命周期、R16 测试和现有 CI 触发；正式工具包、可信准入与配置协调为 0.3.9，精确更新 Service 来源锁。
+2. `0a0a87596a8c238985ec80e9330527b8311ded90`：恢复正式 Bookmark React App 的可中断页面上下文、读回代际保护、只读浏览与写入锁，精确更新 App 来源锁，**保留 R1.7 框架聊天按钮和紧凑发送**。
+3. `7eeeefb34c54f1ae3758a3ae2cbd8017f0143d6a`：恢复共享 Dock 的 controller/run 代际、带 signal 的 Stop、旧 Promise/旧 finally 隔离、200% 拖动比例、原树可见空间和独立错误滚动；未恢复旧标题/离线业务标签/快捷按钮。
+4. `6d808dc20207e42519d35cf9b0b471db36b50311`：修复 formal React **非发布测试挂载入口**以共用原 App、Dock 和框架标题栏图标槽，未添加第二 Runtime 或额外生产 CSS。
+5. `c1ccb94775caa7874e945e8aaa313de1884df27c`：主 React Host 恢复 `cancel:options=>conversation.cancel(options)`，防止 Stop 在 Host 边界被降为取消“当前未知回合”；迁移 R1.4 安全断言，不删用例。
+
+以上五笔均以 latest main 为父提交的受控 fast-forward/lease 写入；没有从 R1.6 tree 整体覆盖并行代码。旧 `0f6e0ba` 对应的 CI 源码回归是 147 项、142 PASS / 5 FAIL；**这不是上述新提交的测试成绩**。
+
+### 当前真实验证状态 / P0 阻断
+
+- `SOURCE_IMPLEMENTED`：已落到 main；R1.7 交互外观与 R1.6 安全回合逻辑源码核对通过，**不是 Runtime PASS**。
+- `CI_PENDING_OR_FAILURE`：历史 Bookmark CI `39605577487` 实际失败；本次相关 Bookmark workflow `39612684277` 曾排队、被并行推送取消；后续已观察到新 run `39613641133` 排队。必须对**最终提交 SHA**单独核查最新工作流、作业退出码和结果。
+- `P0-BUDGET_BLOCKED`：旧 CI 的 standalone formal 候选 JS **241233 B**，高于严格 **220000 B** 单文件限额。不能擅自放宽预算、改期待值或称正式 WXT 构建通过。正式 WXT 与 standalone 是不同构建身份，需分别核验。
+- `P0-PROVENANCE`：旧 CI 的 Bookmark/Shared Markdown 来源锁失败。R1.8 只对经审计的 Bookmark Service/App 精确重锁，其他扩展来源锁不借机覆盖；另一次 Shared UI 构建首次确定性失败源于 Web Clipper policy 的来源锁，不能归因于 Conversation。
+- `PREVIEW_NOT_BUILT_THIS_ROUND`：正式 `build-preview.mjs` 源码同源机制存在、正式与 preview 的 CSS 只比较共同生产样式，尚无本次正式生成 HTML SHA、Chromium 全矩阵、截图及可打开的当前候选，旧 OFFLINE_MOCK 不冒充真实 Provider。
+- `NOT_TESTED`：本轮 Linux/GitHub 接口环境不能直接打开 Mac 实际 Chrome 扩展、读取 Native Bookmarks 或使用用户实际 Workflow Provider；所以正式 WXT、Mac 安装升级、两轮真实 Chrome folderId/当前页读回以及触屏/200% 均不得记 PASS。
+- `PROMPT_SHORTCUTS_NOT_IMPLEMENTED`：未扩大可信聊天试点；自定义 HTML/JS/React/Vue 沙箱合同保持原机制，未取得同 SHA 全量运行验收。
+
+**下一 P0**：在具备完整 checkout 的 CI/Mac 上，依次完成定向 Node R10/R14/R15/R16/Bookmark/Workflow 与自定义扩展合同 → 同版本正式 WXT/check/build/来源锁/安全/预算 → 同源 preview build/check/chrome（320/360/400/440/960、两主题、200%） → 真实 Provider/Chrome 第一轮创建读回 folderId → 第二轮用核实 folderId 收藏当前页 → 原树与对话一致 → 安装/更新/恢复/权限撤销/Stop/UNKNOWN。只保存真实命令、退出码、指纹和原始回执，不扩大功能。七维产品实施验收均为 `NOT_SCORED`，95+ 仅为待达成质量门槛。
