@@ -52,7 +52,7 @@ test('R3.7 file-type mismatch, inline SVG and oversize payload are denied',async
    /图片头与格式不符/);
  await assert.rejects(executePromptAsset({api,operation:'prompt.asset.put',
    payload:{mime:'image/svg+xml',dataUrl:'data:image/svg+xml;base64,PHN2Zy8+'},authorize}),
-   /只支持 PNG/);
+   error=>error?.code==='E_PROMPT_ASSET'&&/PNG.*JPEG.*WebP/.test(error.message));
  const tooBig='data:image/png;base64,'+Buffer.alloc(65537,42).toString('base64');
  await assert.rejects(executePromptAsset({api,operation:'prompt.asset.put',
    payload:{mime:'image/png',dataUrl:tooBig},authorize}),/64 KiB/);
@@ -83,11 +83,18 @@ test('R3.7 original full preview and formal source reuse compact image controls'
   assert(preview.includes('id="'+id+'"'),id);
  for(const id of ['ps-image-source-local','ps-image-source-url','ps-image-file','ps-image-pick','ps-image-clear'])
   assert(html.includes('id="'+id+'"'),id);
- assert.equal((preview.match(/data-image-size="/g)||[]).length,3);
- assert.equal((html.match(/data-image-size="/g)||[]).length,3);
+ // Count actual HTML buttons, not CSS selectors or JavaScript query strings.
+ const sizeButtons=source=>[...source.matchAll(/<button\b[^>]*\bdata-image-size="([^"]+)"[^>]*>/g)]
+   .map(match=>match[1]);
+ assert.deepEqual(sizeButtons(preview),['compact','standard','large']);
+ assert.deepEqual(sizeButtons(html),['compact','standard','large']);
  assert.match(preview,/lastSitePromptId===item\.id/);
  assert.match(preview,/img\.src=offlineSample\?PREVIEW_OFFLINE_PNG:url/);
- assert.match(css,/\.ps-image-size-button\[aria-pressed="true"\]/);
+ // Selected appearance comes from the canonical shared icon-button, not a private skin.
+ assert.match(css,/\.ps-image-size-button\{[^}]*width:/);
+ assert.match(html,/class="od-icon-button od-icon-button--primary ps-image-size-button"[^>]*data-image-size="large"/);
+ assert.match(main,/button\.classList\.toggle\('od-icon-button--primary',selected\)/);
+ assert.match(main,/button\.setAttribute\('aria-pressed',String\(selected\)\)/);
  assert.match(main,/prompt\.asset\.put/);
  assert.match(main,/prompt\.asset\.get/);
  assert.match(page,/PROMPT_ASSET_STORE/);
