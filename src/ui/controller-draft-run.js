@@ -13,7 +13,7 @@ export function createControllerDraftRun({client,api,host,currentPageTarget,prog
   browserCompilerEnabled,isDisposed,isBlocked,isControllerDraft,
   display,fail,hideUserScriptsRecovery,beginResult,update}){
   const find=id=>view.fields[id],scriptId=()=>find('script-id').value.trim();
-  let generation=0,preparing=false,ownedRunId=null,running=false,stopping=false;
+  let generation=0,preparingKind=null,ownedRunId=null,running=false,stopping=false;
   function captureCurrentPage(){
     if(!currentPageTarget)throw {code:'E_TARGET',message:'当前网页服务不可用'};
     // Preserve the single exact-document CurrentPageTarget handoff to the existing RunHost.
@@ -65,7 +65,7 @@ export function createControllerDraftRun({client,api,host,currentPageTarget,prog
     hideUserScriptsRecovery();
     let startError, admittedRunId;
     const id=scriptId(),ticket=++generation;
-    ownedRunId=null;running=true;preparing=esm||classic;controllerResults.renderTask(null);update();beginResult();
+    ownedRunId=null;running=true;preparingKind=esm?'esm':classic?'classic':null;controllerResults.renderTask(null);update();beginResult();
     display('checking',esm?'正在校验固定 ESM 依赖并编译 Controller 源码…':
       classic?'正在从 SHA 缓存准备固定 Controller Classic 库…':`正在检查访问权限并验证网页：${chosen.url}`);
     (async () => {
@@ -83,7 +83,7 @@ export function createControllerDraftRun({client,api,host,currentPageTarget,prog
           throw {code:'E_CONTROLLER_ESM_STALE',message:'源码、程序、目标或运行模式已变化；不会启动过期代码'};};
         const prepared=await prepareControllerESM(authorSourceUtf8,id,check);check();
         sourceUtf8=getRevisions().savedControllerSource(authorSourceUtf8,prepared.built.sourceUtf8);
-        preparing=false;update();
+        preparingKind=null;update();
       }else if(classic){
         const check=()=>{if(isDisposed()||ticket!==generation||programSource.source()!==authorSourceUtf8||scriptId()!==id||!isControllerDraft())
           throw {code:'E_CONTROLLER_CLASSIC_STALE',message:'源码已变化或准备已取消，不启动过期 Classic'};};
@@ -94,7 +94,7 @@ export function createControllerDraftRun({client,api,host,currentPageTarget,prog
           !/^controller-classic-[a-f0-9]{64}$/.test(prepared.lockId))
           throw {code:'E_CONTROLLER_CLASSIC_LOCK',message:'固定 Classic 版本或技术锁无效'};
         sourceUtf8=getRevisions().savedControllerSource(authorSourceUtf8,prepared.sourceUtf8);
-        preparing=false;update();
+        preparingKind=null;update();
       }
       const claim = await host.start({source:{kind:'draft',sourceUtf8},
         params, target:chosen.target, deadlineAt:Date.now() + 30000});
@@ -108,7 +108,7 @@ export function createControllerDraftRun({client,api,host,currentPageTarget,prog
       const result = await host.completion;
       if (result.error) throw result.error;
     })().catch(error => {startError=error;admittedRunId ||= error.runId;fail(error);}).finally(async () => {
-      running=false;preparing=false;
+      running=false;preparingKind=null;
       if (isDisposed()) return;
       if (admittedRunId) patchDeveloperField(view,find('script-run-id'),{value:admittedRunId});
       // Observe all durable history; association comes from the admitted run,
@@ -128,7 +128,8 @@ export function createControllerDraftRun({client,api,host,currentPageTarget,prog
   }
   return Object.freeze({run,stop,prepareESM:prepareControllerESM,
     invalidate(){generation++;},
-    get preparing(){return preparing;},get running(){return running;},get stopping(){return stopping;},
+    get preparing(){return !!preparingKind;},get esmPreparing(){return preparingKind==='esm';},
+    get running(){return running;},get stopping(){return stopping;},
     get ownedRunId(){return ownedRunId;},
     dispose(){generation++;}});
 }

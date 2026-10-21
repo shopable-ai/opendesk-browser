@@ -3,12 +3,15 @@ import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE}
   from '../../../../src/ui/sidebar-tools/lifecycle.js';
 import {ADBLOCK_STORE,ADBLOCK_PAGE_PROTOCOL,adblockHost} from './policy.js';
 import {ADBLOCK_COSMETIC_HOSTS,createAdblockCosmeticController} from './cosmetic.js';
+import {ADBLOCK_COSMETIC_STORE} from './cosmetic-policy.js';
+import {createAdblockElementPicker} from './picker.js';
 
 const SLOT='__opendeskAdblockCosmeticsV1';
-const keys=[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,ADBLOCK_STORE];
+const keys=[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,
+  TOOL_REVOCATION_EPOCHS_STORE,ADBLOCK_STORE,ADBLOCK_COSMETIC_STORE];
 
 export function initAdblockCosmetics({api=globalThis.chrome,doc=globalThis.document,win=globalThis.window}={}){
-  if(!doc||!win||win.top!==win||!ADBLOCK_COSMETIC_HOSTS.includes(adblockHost(win.location?.href,{asUrl:true}))||
+  if(!doc||!win||win.top!==win||!adblockHost(win.location?.href,{asUrl:true})||
      !api?.runtime?.sendMessage||!api.storage?.onChanged)return null;
   if(win[SLOT])return win[SLOT];
   let runtimeId;
@@ -17,8 +20,21 @@ export function initAdblockCosmetics({api=globalThis.chrome,doc=globalThis.docum
   const controller=createAdblockCosmeticController({document:doc,location:win.location});
   const deadlines=new Set();
   let disposed=false,paused=false,generation=0;
+  let latest={enabled:false},pendingSelector=null;
   const current=()=>{try{return !disposed&&api.runtime.id===runtimeId;}catch{return false;}};
-  const clear=()=>{generation++;controller.apply({enabled:false});};
+  const apply=()=>controller.apply({...latest,pendingSelector});
+  const picker=createAdblockElementPicker({api,doc,win,
+    onPending:selector=>{pendingSelector=selector;apply();},
+    onSaved:selector=>{
+      latest={...latest,rules:[...(latest.rules||[]).filter(v=>v.selector!==selector),{selector}]};
+      apply();
+    },
+    onUndone:selector=>{
+      latest={...latest,rules:(latest.rules||[]).filter(v=>v.selector!==selector)};
+      apply();
+    },
+    onRefresh:()=>void refresh()});
+  const clear=()=>{generation++;latest={enabled:false};pendingSelector=null;apply();picker.cancel();};
   async function refresh(){
     if(!current()){dispose();return;}
     if(paused)return;
@@ -26,16 +42,17 @@ export function initAdblockCosmetics({api=globalThis.chrome,doc=globalThis.docum
     let expired=false;
     const timeout=win.setTimeout(()=>{
       expired=true;deadlines.delete(timeout);
-      if(token===generation)controller.apply({enabled:false});
+      if(token===generation){latest={enabled:false};pendingSelector=null;apply();}
     },3000);
     deadlines.add(timeout);
     try{
       const result=await api.runtime.sendMessage({protocol:ADBLOCK_PAGE_PROTOCOL});
       if(!current()){dispose();return;}
       if(expired||paused||token!==generation||href!==win.location.href)return;
-      controller.apply(result?.ok===true&&result.data?.version===1?result.data:{enabled:false});
+      latest=result?.ok===true&&result.data?.version===1?result.data:{enabled:false};
+      apply();
     }catch{
-      if(token===generation)controller.apply({enabled:false});
+      if(token===generation){latest={enabled:false};pendingSelector=null;apply();}
       if(!current())dispose();
     }finally{
       win.clearTimeout(timeout);deadlines.delete(timeout);
@@ -43,11 +60,22 @@ export function initAdblockCosmetics({api=globalThis.chrome,doc=globalThis.docum
   }
   const invalidate=()=>{clear();void refresh();};
   const storageChanged=(changes,area)=>{
-    if(area==='local'&&keys.some(key=>Object.hasOwn(changes,key)))invalidate();
+    if(area!=='local')return;
+    if(keys.some(key=>key!==ADBLOCK_COSMETIC_STORE&&Object.hasOwn(changes,key))){
+      invalidate();return;
+    }
+    // A confirmed cosmetic write should not erase the temporary CSS while
+    // the click's acknowledgement and readback are still in flight.
+    if(Object.hasOwn(changes,ADBLOCK_COSMETIC_STORE))void refresh();
   };
-  const message=(value,sender)=>{
-    if(value?.protocol===ADBLOCK_PAGE_PROTOCOL&&value.type==='invalidate'&&
-       sender?.id===runtimeId&&!sender.tab)invalidate();
+  const message=(value,sender,reply)=>{
+    if(value?.protocol!==ADBLOCK_PAGE_PROTOCOL||sender?.id!==runtimeId||sender.tab)
+      return false;
+    if(value.type==='invalidate')invalidate();
+    if(value.type==='start-pick'&&value.host===adblockHost(win.location?.href,{asUrl:true})){
+      const ok=latest.enabled===true&&picker.begin();
+      reply?.({ok,host:value.host});
+    }
     return false;
   };
   const pagehide=event=>{paused=true;clear();if(!event.persisted)dispose();};
@@ -60,12 +88,13 @@ export function initAdblockCosmetics({api=globalThis.chrome,doc=globalThis.docum
     api.runtime.onMessage?.removeListener(message);
     win.removeEventListener('pagehide',pagehide);win.removeEventListener('pageshow',pageshow);
     doc.removeEventListener('DOMContentLoaded',invalidate);
-    controller.dispose();
+    picker.dispose();controller.dispose();
     if(win[SLOT]===instance)delete win[SLOT];
   }
-  // A revoked origin can prevent a push from reaching an existing document.
-  // Recheck the same authority periodically; failed reads always restore CSS.
-  const timer=win.setInterval(()=>{void refresh();},5000);
+  // Existing fixed-site rules re-check frequently; other sites get local
+  // storage invalidation and a slower fail-closed backstop.
+  const timer=win.setInterval(()=>{void refresh();},
+    ADBLOCK_COSMETIC_HOSTS.includes(adblockHost(win.location?.href,{asUrl:true}))?5000:30000);
   const instance={refresh,dispose};win[SLOT]=instance;
   api.storage.onChanged.addListener(storageChanged);
   api.runtime.onMessage?.addListener(message);

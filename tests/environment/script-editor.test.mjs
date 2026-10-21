@@ -200,6 +200,103 @@ test('R40.9 ordinary Controller and Page edits do not cancel unrelated component
   assert.ok(cancels>baseline,'Controller ESM must invalidate its own compiler work');
 });
 
+test('R40.10 steady Run and Result do not re-project unchanged environment copy',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const fixed=['page-preview-mode-title','page-preview-mode-hint','page-component-hint',
+    'manual-project-params-tools','developer-run-technical'];
+  const initial=Object.fromEntries(fixed.map(id=>[id,f.view.getSnapshot().fields[id]]));
+  await f.click('script-run');await f.finish(23);
+  for(const id of fixed)assert.strictEqual(f.view.getSnapshot().fields[id],initial[id],
+    id+' should only be projected when the execution mode changes');
+  const world=f.find('script-javascript-world');
+  world.value='page';world.fire('change',{isTrusted:true});
+  assert.notStrictEqual(f.view.getSnapshot().fields['page-component-hint'],initial['page-component-hint'],
+    'switching to Page changes the visible execution intent');
+});
+
+test('R40.10 cancelling component Candidate preparation cancels its compiler once',async t=>{
+  const compile=deferred(),started=deferred();let cancels=0;
+  const f=await fixture(undefined,undefined,{componentPreparerFactory:()=>({
+    inspect:async input=>componentInspectResult(input),
+    prepare:async()=>{started.resolve();return compile.promise;},
+    cancel(){cancels++;},dispose(){}
+  })});
+  t.after(()=>{compile.resolve();f.dispose();});
+  const react=f.find('page-component-react');
+  react.checked=true;react.fire('change',{isTrusted:true});await tick();
+  assert.equal(react.checked,true);
+  f.find('script-source').value='export default function App(){return null;}';
+  f.find('script-source').fire('input',{isTrusted:true});await tick();
+  const baseline=cancels;
+  f.find('page-candidate-save').fire('click',{isTrusted:true});
+  await started.promise;
+  await f.click('script-stop');
+  assert.equal(cancels,baseline+1,
+    'the component owner must cancel the shared compiler once, not twice');
+  assert.equal(f.starts.length,0,'cancelled Candidate preparation must not run Controller');
+  assert.equal(f.previews.length,0,'cancelled Candidate preparation must not dispatch Page');
+  compile.resolve();
+  await tick();
+});
+
+test('R40.10 Page body-only edits update Run gate without refreshing dependency identity',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const world=f.find('script-javascript-world');
+  world.value='page';world.fire('change',{isTrusted:true});await tick();
+  const inspected=f.dependencyInspections.length;
+  assert.equal(f.find('script-run').disabled,false,'nonempty Page draft should be runnable');
+  // Same classic-userscript entry/dependency key, different executable body.
+  f.find('script-source').value='  ';
+  f.find('script-source').fire('input',{isTrusted:true});
+  assert.equal(f.find('script-run').disabled,true,'empty Page draft cannot keep stale Run enabled');
+  assert.equal(f.dependencyInspections.length,inspected,
+    'body-only changes should not start dependency discovery');
+});
+
+test('R40.10 Stop cancels Controller Revision ESM compiler through its owner',async t=>{
+  const compile=deferred(),started=deferred();let cancels=0;
+  const f=await fixture(undefined,undefined,{componentPreparerFactory:()=>({
+    inspect:async input=>componentInspectResult(input),
+    prepare:async()=>{started.resolve();return compile.promise;},
+    cancel(){cancels++;},dispose(){}
+  })});
+  t.after(()=>{compile.resolve();f.dispose();});
+  f.find('script-source').value='export default async function main(){return 1;}';
+  f.find('script-source').fire('input',{isTrusted:true});await tick();
+  const baseline=cancels;
+  f.find('script-save-version').fire('click',{isTrusted:true});
+  await started.promise;
+  await f.click('script-stop');
+  assert.equal(cancels,baseline+1,'Revision ESM cancellation belongs to the active compiler');
+  compile.resolve();await tick();await tick();
+  assert.equal(f.commits.length,0,'a cancelled ESM build cannot save a stale revision');
+  assert.equal(f.starts.length,0,'saving a revision never launches Run');
+});
+
+test('R40.10 Stop during Controller Revision Classic does not cancel JSX compiler',async t=>{
+  let cancels=0;const gate=deferred(),started=deferred();
+  const f=await fixture(undefined,undefined,{componentPreparerFactory:()=>({
+    inspect:async input=>componentInspectResult(input),
+    prepare:async()=>{throw Error('unrelated JSX compiler');},
+    cancel(){cancels++;},dispose(){}
+  })});
+  t.after(()=>{gate.resolve();f.dispose();});
+  const original=f.client.request.bind(f.client);
+  f.client.request=(name,args)=>{
+    if(name==='prepareControllerClassicDependencies'){started.resolve();return gate.promise;}
+    return original(name,args);
+  };
+  f.find('script-source').value='// @require https://cdn.example/v1.0.0/library.js\nasync function main(){return 1;}';
+  f.find('script-source').fire('input',{isTrusted:true});await tick();
+  const baseline=cancels;
+  f.find('script-save-version').fire('click',{isTrusted:true});
+  await started.promise;
+  await f.click('script-stop');
+  assert.equal(cancels,baseline,'Classic revision cannot cancel unrelated React/Vue compilation');
+  gate.resolve();await tick();await tick();
+  assert.equal(f.commits.length,0,'cancelled Classic preparation cannot write a revision');
+});
+
 test('R40.5 Page to Controller transition fences stale Page inspection and keeps draft Run',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const gate=deferred(),requested=[];

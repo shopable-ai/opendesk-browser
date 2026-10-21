@@ -9,6 +9,8 @@ export const ADBLOCK_CONFIRM_OPERATIONS=Object.freeze([
   'adblock.enable','adblock.disable','adblock.site.set','adblock.site.restore'
 ]);
 export function sidebarToolRequestTimeout(operation,toolId){
+ if(toolId==='web-markdown-clipper'&&operation.startsWith('clipNotes.'))
+   return ['clipNotes.save','clipNotes.edit','clipNotes.remove','clipNotes.backup'].includes(operation)?60000:30000;
  return (toolId==='adblock'&&ADBLOCK_CONFIRM_OPERATIONS.includes(operation))||
    (toolId==='stay-focus'&&operation.startsWith('focus.')&&operation!=='focus.status')||
    (toolId==='time-review'&&['time.start','time.clear'].includes(operation))||
@@ -128,7 +130,9 @@ export function initSidebarToolSandbox() {
         apply(mapDelete,waiting,[requestId]);
         // Once sent the Host may already have committed the effect.
         const exporting=operation==='browser.clipboard.writeText'||operation==='browser.downloads.text';
-        const uncertain=exporting||toolId==='adblock'&&ADBLOCK_CONFIRM_OPERATIONS.includes(operation)||
+        const uncertain=exporting||toolId==='web-markdown-clipper'&&
+          ['clipNotes.save','clipNotes.edit','clipNotes.remove','clipNotes.backup'].includes(operation)||
+          toolId==='adblock'&&ADBLOCK_CONFIRM_OPERATIONS.includes(operation)||
           toolId==='stay-focus'&&operation.startsWith('focus.')&&operation!=='focus.status';
         reject(exportError(uncertain?'E_OUTCOME_UNKNOWN':'E_TOOL_TIMEOUT',
           exporting?'导出回执超时，结果未知；请核对实际结果，勿自动重试':uncertain?

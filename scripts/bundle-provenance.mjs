@@ -28,18 +28,22 @@ function reviewedCompiledTimeReview(target,path,root){
 }
 
 // This is a deliberately fixed, build-reviewed extension source allowance, NOT
-// permission for arbitrary examples/ JS. All eight AdBlock privileged/business
+// permission for arbitrary examples/ JS. All twelve AdBlock privileged/business
 // inputs are exact file-blob pinned; the bundle still has a fixed entry point,
 // a single output and independently enforced release/package identity.
 const compiledAdblockInputs=Object.freeze({
   'examples/sidebar-tools/adblock/trusted/dnr-session.js':'d3e221eac17261a34751cb8ab035c622eb1b42a8',
-  'examples/sidebar-tools/adblock/trusted/service.js':'dfb86edf93a84066b71f81df8c4f4934cb8a8679',
-  'examples/sidebar-tools/adblock/trusted/policy.js':'0a4801d44af9232052eec86bd4e9a720743762e7',
-  'examples/sidebar-tools/adblock/trusted/rules.js':'8100276a38117c3e6f88f04f65a4a6ea1a7cddc6',
-  'examples/sidebar-tools/adblock/trusted/lifecycle.js':'1c750e4367a978a9a82e2d4709433ea77b93c505',
-  'examples/sidebar-tools/adblock/trusted/tool-host.js':'b4d5e973ad0e9168b57512ad38da41263d2cc30b',
+  'examples/sidebar-tools/adblock/trusted/service.js':'5071f7ee206d6aa75418caf9b3834ada713b9312',
+  'examples/sidebar-tools/adblock/trusted/policy.js':'0778b402da311b175032a835f6dae537875c6111',
+  'examples/sidebar-tools/adblock/trusted/rules.js':'4bebe24f991783d6ceb14dd80aa507f8497fce61',
+  'examples/sidebar-tools/adblock/trusted/lifecycle.js':'708e2b226eb327d46ac109afa6145fe9b13b1526',
+  'examples/sidebar-tools/adblock/trusted/tool-host.js':'71a55df61942af5ce2f20c06948d82b6dd6c8d8e',
   'examples/sidebar-tools/adblock/trusted/host-controls.js':'79dbe97eaf1eb61315e634384d922079f2d4b136',
-  'examples/sidebar-tools/adblock/rules/domains.js':'e78bbaea99f39b52cd3bc57d4379af68b166c2f9'
+  'examples/sidebar-tools/adblock/rules/domains.js':'b6b2ad8bb2085018f355f046d9b2a787601039bd',
+  'examples/sidebar-tools/adblock/trusted/cosmetic.js':'da37f1f0e8f40860ac059ef2f43a27daeeb6d3d3',
+  'examples/sidebar-tools/adblock/trusted/page.js':'7bae00383754cccce126ecd229c89f672b0afc93',
+  'examples/sidebar-tools/adblock/trusted/picker.js':'361a9944b20e8d215e298366417d0ec8607e96df',
+  'examples/sidebar-tools/adblock/trusted/cosmetic-policy.js':'753ba32ce36e5badc84c213f3abec52094a742fd'
 });
 const preapprovedFixedTargets=new Set(['sw.js',...Object.values(FIXED_OUTPUTS)]);
 function reviewedCompiledAdblock(target,path,root){

@@ -9,7 +9,7 @@ import {parseControllerClassicDependencies} from '../scripting/user-scripts/cont
 export function createControllerRevisionView({host,client,view,programSource,prepareESM,getGeneration,onLoad,onUpdate,onStatus}){
   const find=id=>view.fields[id],list=find('script-list');
   const heads=new Map();
-  let current=null,currentAuthorSource=null,sequence=0,disposed=false,preparing=false;
+  let current=null,currentAuthorSource=null,sequence=0,disposed=false,preparingKind=null;
   const scriptId=()=>find('script-id').value.trim(),getSource=()=>programSource.source();
   const head=id=>heads.get(id);
   const has=id=>heads.has(id);
@@ -108,7 +108,7 @@ export function createControllerRevisionView({host,client,view,programSource,pre
     const previous=head(id)||0,generation=getGeneration();
     const check=()=>{if(disposed||generation!==getGeneration()||getSource()!==source||scriptId()!==id)
       throw {code:esm?'E_CONTROLLER_ESM_STALE':'E_CONTROLLER_CLASSIC_STALE',message:'源码、身份已变化或准备已取消，不保存过期版本'};};
-    preparing=esm||classic;onUpdate();
+    preparingKind=esm?'esm':classic?'classic':null;onUpdate();
     try{
       let executable=source;
       if(esm){
@@ -125,7 +125,7 @@ export function createControllerRevisionView({host,client,view,programSource,pre
       if(scriptId()===id)remember(row,{authorSourceUtf8:row.sourceUtf8===executable?source:null});
       await refresh({silent:true});
       onStatus('saved',`${id} · r${row.revision} 已持久保存固定${esm?' ESM ':classic?' Classic ':''}版本；${host.currentRun?'当前任务继续使用启动时的版本':'保存不会运行脚本'}`);
-    }finally{preparing=false;onUpdate();}
+    }finally{preparingKind=null;onUpdate();}
   }
   async function load(fromList=false){
     const id=fromList?list.value:scriptId(),activeId=scriptId(),revisionText=find('script-revision').value.trim(),
@@ -147,7 +147,8 @@ export function createControllerRevisionView({host,client,view,programSource,pre
     onStatus('loaded',fromList?`已加载 ${id} 最新 r${row.revision}`:`已加载持久版本 r${row.revision}`);
   }
   return {savedControllerSource,executionSource,update,refresh,remove,save,load,
-    loadLatest:()=>load(true),get preparing(){return preparing;},
+    loadLatest:()=>load(true),get preparing(){return !!preparingKind;},
+    get esmPreparing(){return preparingKind==='esm';},
     clearCurrent(){current=null;currentAuthorSource=null;},
     dispose(){disposed=true;sequence++;}};
 }

@@ -138,6 +138,10 @@ test('R3.2 actual HTML/CSS/main.js and page.js reuse the existing controls & ins
   assert.match(html,/class="ps-settings"[^>]+hidden/,'no revived legacy duplicate settings page');
   assert.match(css,/\.ps-appearance-switch/);
   assert.match(css,/\.ps-image-preview img/);
+  // R3.3: --od-brand is only 3.06:1 on the dark surface; selected text
+  // must use the canonical semantic accent token (dark: #9dc1ff).
+  assert.match(css,/\.ps-appearance-switch label:has\(input:checked\)\{[^}]*color:var\(--od-accent-ink\)/);
+  assert.doesNotMatch(css,/\.ps-appearance-switch label:has\(input:checked\)\{[^}]*color:var\(--od-brand\)/);
   assert.match(main,/img\.referrerPolicy='no-referrer'/);
   assert.match(main,/changeImageSize/);
   assert.match(page,/img\.referrerPolicy='no-referrer'/);
@@ -158,6 +162,18 @@ test('R3.2 the original complete single-file interactive HTML preview remains pa
   }
   assert.match(html,/const DEMO_SETTINGS_KEY=/);
   assert.match(html,/68×48/);
+  assert.match(html,/\.appearance-switch label:has\(input:checked\)\{[^}]*color:var\(--od-accent-ink\)/,
+    'historical demo selection foreground must follow the formal light/dark accent token');
+  // R3.3: the historical simulator must show the same SINGLE size control as
+  // the formal tool: list header, not React Host settings. It is not a Host test.
+  const listStart=html.indexOf('id="indexView"');
+  const sizeControl=html.indexOf('id="imageSizeSetting"');
+  const promptList=html.indexOf('id="promptList"');
+  const hostSettings=html.indexOf('id="settingsView"');
+  assert(listStart>=0&&listStart<sizeControl&&sizeControl<promptList&&promptList<hostSettings,
+    'preview global size control must appear in the tool list, matching formal source');
+  assert.equal(html.match(/id="imageSizeSetting"/g)?.length,1,
+    'preview must not duplicate the image-size setting inside Host settings');
   const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)];
   assert(scripts.length>=1);
   for(const [,source] of scripts)new Function(source);

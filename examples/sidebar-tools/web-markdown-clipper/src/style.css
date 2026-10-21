@@ -45,3 +45,17 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-vis
 @media(max-width:360px){.clip{padding:9px}.clip-head{gap:5px}.clip-brand span{max-width:135px}.clip button{padding:5px 7px}.clip-export{gap:4px}.clip-export button{font-size:11px}.clip-notes-head{gap:5px}}
 @media(prefers-color-scheme:dark){body{color:#e3e8f4}.clip{--edge:#3b455e;--sub:#a1b0c6;--paper:#202633;--layer:#171e29;--brand:#a0b8ff}.clip button.primary{--brand:#496bda;color:white}.clip-status[data-error=true]{color:#ffb1bb}.clip-preview pre{background:#2a3547}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+/* My Clippings: full text reader shares the official Markdown preview styles. */
+.clip-note-more{display:block;width:100%;margin-top:8px;border:1px solid var(--edge)}
+.clip-note-reader{padding:10px;min-width:0;margin-top:10px;border:1px solid var(--edge);border-radius:10px;background:var(--layer)}
+.clip-read-head{display:flex;gap:8px;align-items:center}
+.clip-note-reader h2{font-size:15px;line-height:1.4;margin:12px 0 5px;overflow-wrap:anywhere}
+.clip-note-read-body{margin:12px 0;max-height:none;min-height:110px;padding:12px;border:1px solid var(--edge);border-radius:9px;background:var(--paper);overflow-wrap:anywhere}
+.clip-note-read-body pre{white-space:pre-wrap;overflow-x:auto;overflow-wrap:anywhere}
+.clip-read-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px}
+.clip-read-actions button{flex:0 1 auto}
+.clip-danger{color:#ad3344!important}
+.clip-note-reader[hidden],#clip-note-more[hidden],#clip-note-new[hidden],#clip-notes-tools[hidden],#clip-notes-meta[hidden],#clip-note-list[hidden]{display:none!important}
+@media(max-width:360px){.clip-note-reader{padding:8px}.clip-note-read-body{padding:8px}.clip-read-actions{gap:4px}}
+@media(prefers-color-scheme:dark){.clip-danger{color:#ffacb3!important}}

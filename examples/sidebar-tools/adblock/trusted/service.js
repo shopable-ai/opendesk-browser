@@ -12,6 +12,8 @@ import {wantedAdblockRules,reconcileAdblockRules,clearAdblockRules} from './rule
 import {adblockDnrSessionReady,adblockDnrCleanupPending,confirmAdblockDnrCleanup} from './dnr-session.js';
 import {ADBLOCK_RULE_VERSION,ADBLOCK_REQUEST_DOMAINS} from '../rules/domains.js';
 import {ADBLOCK_COSMETIC_HOSTS} from './cosmetic.js';
+import {ADBLOCK_COSMETIC_STORE,readCosmeticState,cosmeticForHost,
+  addCosmeticRule,removeCosmeticRule,validCosmeticSelector} from './cosmetic-policy.js';
 
 const PROBE='adblock.probe';
 const own=(value,names)=>Boolean(value)&&typeof value==='object'&&!Array.isArray(value)&&
@@ -22,11 +24,14 @@ export function createAdblockService({
   api=globalThis.chrome,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch
 }={}){
   let compiled=null,generation=0,revoked=false;
+  const pendingPicks=new Map();
   const lock=fn=>{
     if(!lockManager?.request)fail('E_ADBLOCK_LOCK','当前浏览器缺少跨窗口规则互斥锁');
     return lockManager.request('opendesk.sidebar-tools:tool:'+ADBLOCK_ID,fn);
   };
-  const invalidate=(nativeRevoked=false)=>{generation++;if(nativeRevoked)revoked=true;};
+  const invalidate=(nativeRevoked=false)=>{
+    generation++;pendingPicks.clear();if(nativeRevoked)revoked=true;
+  };
   async function compiledPackage(){
     if(compiled)return compiled;
     const uri=api.runtime.getURL('official-tools/adblock/adblock.opendesk-tool.json');
@@ -279,12 +284,44 @@ export function createAdblockService({
       operation==='adblock.site.restore'};
   }
   const tick=options=>lock(()=>reconcileLocked(options));
+  const readManual=async()=>readCosmeticState(
+    (await api.storage.local.get(ADBLOCK_COSMETIC_STORE))[ADBLOCK_COSMETIC_STORE]);
+  async function writeManual(previous,next){
+    if(JSON.stringify(previous)!==JSON.stringify(next))
+      await writeVerifiedLocalValue(api,ADBLOCK_COSMETIC_STORE,next,previous,'手动屏蔽规则');
+  }
+  async function addManualStatus(state){
+    try{return {...state,cosmeticRules:cosmeticForHost(await readManual(),state.currentHost)};}
+    catch(error){return {...state,cosmeticRules:[],cosmeticError:String(error.message||error)};}
+  }
+  async function startManualPicker(state,windowId){
+    const host=state.currentHost;
+    if(!state.enabled||!state.rules?.verified||!host||
+       state.currentSite?.status!=='ready'||state.exceptions.includes(host))
+      fail('E_ADBLOCK_COSMETIC_SITE','请先开启当前网页的广告过滤');
+    const tabs=await api.tabs.query({active:true,windowId}),tab=tabs.length===1?tabs[0]:null;
+    if(!tab||!Number.isSafeInteger(tab.id)||tab.incognito||tab.pendingUrl||
+       adblockHost(tab.url,{asUrl:true})!==host)
+      fail('E_ADBLOCK_COSMETIC_SITE','当前网页身份已变化');
+    const frame=await api.webNavigation.getFrame({tabId:tab.id,frameId:0});
+    if(!frame?.documentId||adblockHost(frame.url,{asUrl:true})!==host)
+      fail('E_ADBLOCK_COSMETIC_SITE','网页尚未加载完毕');
+    pendingPicks.set(tab.id,{host,documentId:frame.documentId,expires:Date.now()+120000});
+    let ack;
+    try{ack=await api.tabs.sendMessage(tab.id,{protocol:ADBLOCK_PAGE_PROTOCOL,
+      type:'start-pick',host},{frameId:0});}
+    catch{pendingPicks.delete(tab.id);fail('E_ADBLOCK_COSMETIC_PAGE','网页选择脚本不可用，请刷新网页重试');}
+    if(ack?.ok!==true||ack.host!==host){
+      pendingPicks.delete(tab.id);fail('E_ADBLOCK_COSMETIC_PAGE','网页未进入选择模式');
+    }
+    return {pickerActive:true};
+  }
   async function pageDocument(sender){
     const host=adblockHost(sender?.url,{asUrl:true});
     if(sender?.id!==api.runtime.id||sender.frameId!==0||!sender.documentId||
        !Number.isSafeInteger(sender.tab?.id)||sender.tab.id<0||sender.tab.incognito||
        sender.documentLifecycle&&sender.documentLifecycle!=='active'||
-       !ADBLOCK_COSMETIC_HOSTS.includes(host))
+       !host)
       fail('E_ADBLOCK_SENDER','仅受支持网站的当前顶层文档可读取隐藏策略');
     const [tab,frame,allowed]=await Promise.all([
       api.tabs.get(sender.tab.id),
@@ -300,17 +337,45 @@ export function createAdblockService({
     return host;
   }
   async function pagePolicy(message,sender){
-    if(!own(message,['protocol'])||message.protocol!==ADBLOCK_PAGE_PROTOCOL)
-      fail('E_ADBLOCK_REQUEST','网页只能读取固定隐藏策略');
+    const keys=Object.keys(message||{}).sort().join(',');
+    const type=keys==='protocol'?'snapshot':
+      keys==='protocol,type'&&message.type==='cancel'?'cancel':
+      keys==='protocol,selector,type'&&['hide','undo'].includes(message.type)?
+        message.type:null;
+    if(message?.protocol!==ADBLOCK_PAGE_PROTOCOL||!type||
+       ['hide','undo'].includes(type)&&!validCosmeticSelector(message.selector))
+      fail('E_ADBLOCK_REQUEST','网页只能提交安全的用户手动屏蔽规则');
     return lock(async()=>{
       const epoch=generation,host=await pageDocument(sender);
-      // Reuse the existing package/epoch/permission/DNR authority. The page
-      // cannot select an operation, target, stylesheet or installation identity.
       const state=await reconcileLocked();
+      const enabled=state.enabled===true&&state.rules.verified===true&&
+        !state.exceptions.includes(host);
       if(await pageDocument(sender)!==host||generation!==epoch)
-        fail('E_TOOL_CHANGED','读取期间文档或广告拦截授权已改变');
-      return {version:1,host,enabled:state.enabled===true&&state.rules.verified===true&&
-        !state.exceptions.includes(host)};
+        fail('E_TOOL_CHANGED','网页或广告授权已改变');
+      if(type==='snapshot'){
+        if(!enabled)return {version:1,host,enabled:false};
+        const rules=cosmeticForHost(await readManual(),host);
+        return {version:1,host,enabled:true,...(rules.length?{rules}:{})};
+      }
+      const session=pendingPicks.get(sender.tab.id);
+      if(type==='cancel'){
+        if(session?.documentId===sender.documentId)pendingPicks.delete(sender.tab.id);
+        return {cancelled:true};
+      }
+      const previous=await readManual();
+      if(type==='undo'){
+        await writeManual(previous,removeCosmeticRule(previous,host,message.selector));
+        return {restored:true};
+      }
+      if(!enabled||!session||session.host!==host||
+         session.documentId!==sender.documentId||session.expires<Date.now())
+        fail('E_ADBLOCK_COSMETIC_SESSION','选择会话已失效，请重新开始');
+      const active=await api.tabs.query({active:true,windowId:sender.tab.windowId});
+      if(active.length!==1||active[0].id!==sender.tab.id)
+        fail('E_ADBLOCK_COSMETIC_SITE','当前标签页已切换');
+      pendingPicks.delete(sender.tab.id);
+      await writeManual(previous,addCosmeticRule(previous,host,message.selector));
+      return {saved:true,host,selector:message.selector};
     });
   }
   async function probe(message,sender){
@@ -374,13 +439,28 @@ export function createAdblockService({
         fail('E_ADBLOCK_UPDATE_REQUIRED',
           '已安装的广告拦截与当前扩展内置版本不匹配，请在扩展管理中审阅更新；重启 Chrome 不会更新工具包');
       if(!own(message.payload,message.operation==='adblock.site.set'?['host','filtering']:
-         message.operation==='adblock.site.restore'?['host']:[]))
+         message.operation==='adblock.site.restore'?['host']:
+         message.operation==='adblock.cosmetic.restore'?['host','selector']:[]))
         fail('E_ADBLOCK_REQUEST','不允许的广告操作参数');
       await validateHost();
-      const data=await reconcileLocked({operation:message.operation,payload:message.payload,windowId,
-        validateHost,beforeWrite});
+      const manual=['adblock.cosmetic.pick','adblock.cosmetic.restore'].includes(message.operation);
+      const data=await reconcileLocked({operation:manual?'adblock.status':message.operation,
+        payload:manual?{}:message.payload,windowId,validateHost,beforeWrite});
+      if(message.operation==='adblock.cosmetic.pick'){
+        const result=await startManualPicker(data,windowId);
+        await validateHost();
+        return {...await addManualStatus(data),...result};
+      }
+      if(message.operation==='adblock.cosmetic.restore'){
+        const {host,selector}=message.payload;
+        if(host!==data.currentHost||!validCosmeticSelector(selector))
+          fail('E_ADBLOCK_COSMETIC_SITE','当前网页已改变');
+        const previous=await readManual();
+        await beforeWrite();
+        await writeManual(previous,removeCosmeticRule(previous,host,selector));
+      }
       await validateHost();
-      return data;
+      return addManualStatus(data);
       }catch(error){
         if(effectStarted)await validateHost();
         throw error;
@@ -395,7 +475,7 @@ export function installAdblockService({api=globalThis.chrome,...options}={}){
   const recover=()=>{void service.tick().catch(e=>console.warn('E_ADBLOCK_RECONCILE',e?.code||'E_ADBLOCK'));};
   const notifyPages=()=>{
     void (async()=>{
-      const tabs=await api.tabs.query({url:ADBLOCK_COSMETIC_HOSTS.map(host=>'*://'+host+'/*')});
+      const tabs=await api.tabs.query({url:['http://*/*','https://*/*']});
       await Promise.allSettled(tabs.filter(tab=>!tab.incognito).map(tab=>
         api.tabs.sendMessage(tab.id,{protocol:ADBLOCK_PAGE_PROTOCOL,type:'invalidate'},{frameId:0})));
     })().catch(()=>{});

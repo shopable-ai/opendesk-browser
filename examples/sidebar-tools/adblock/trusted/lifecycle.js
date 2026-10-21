@@ -2,6 +2,7 @@
 // uninstall journal and verified storage removal.
 import {ADBLOCK_ID,ADBLOCK_STORE,ADBLOCK_PERMISSION,ADBLOCK_DNR_CLEANUP_STORE,adblockError} from './policy.js';
 import {clearAdblockRules} from './rules.js';
+import {ADBLOCK_COSMETIC_STORE} from './cosmetic-policy.js';
 import {adblockDnrSessionReady,adblockDnrCleanupPending,confirmAdblockDnrCleanup} from './dnr-session.js';
 export async function stopAdblockForTool(api,toolId){
   if(toolId!==ADBLOCK_ID)return;
@@ -17,5 +18,6 @@ export async function cleanupUninstalledAdblock(api,toolId,removeVerifiedKey){
   if(toolId!==ADBLOCK_ID)return;
   await stopAdblockForTool(api,toolId);
   await removeVerifiedKey(api,ADBLOCK_STORE);
+  await removeVerifiedKey(api,ADBLOCK_COSMETIC_STORE);
   await removeVerifiedKey(api,ADBLOCK_DNR_CLEANUP_STORE);
 }

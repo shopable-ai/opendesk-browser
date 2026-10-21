@@ -174,7 +174,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       (managed.target.tabId!==currentPageState.tabId||managed.target.documentId!==currentPageState.documentId);
   }
   const canStopManaged=()=>!!pagePreviewFlow?.canStop()||!!localRunner?.canStopManaged();
-  let updatedContext=null;
+  let updatedContext=null,projectedMode=null;
   function update() {
     if (disposed) return;
     const pageExecution=isComponentDraft()||isPageDraft(),local=!!localProject?.active(),source=programSource.source();
@@ -191,26 +191,32 @@ export function createScriptEditor({client, currentPageTarget, development=false
     // Keep the original result, but do not expose it as current until resolved.
     if(context==='controller'||context==='controller-esm'||changed)
       controllerRevisions.update({busy:editingBusy,local,page:pageExecution});
-    const worldRow=find('script-javascript-world-row'),worldChoice=find('script-javascript-world');
-    if(worldRow)patchDeveloperField(view,worldRow,{hidden:componentMode!=='javascript'||!!localProject?.active()||!!programSource.snapshot()});
+    // Static mode presentation is not a Run/Stop side effect. Project it only
+    // when the visible execution intent changes; keep live controls below.
+    const modeProjection=JSON.stringify([componentMode,javascriptWorld,loadedPageSource,local,pageExecution,!!programSource.snapshot()]);
+    if(modeProjection!==projectedMode){
+      projectedMode=modeProjection;
+      if(find('script-javascript-world-row'))patchDeveloperField(view,find('script-javascript-world-row'),{hidden:componentMode!=='javascript'||!!localProject?.active()||!!programSource.snapshot()});
+      view.patch('manual-project-params-tools',{hidden:pageExecution||local});
+      view.patch('script-version-identity',{hidden:local});
+      // Describe the selected official source format instead of telling React /
+      // Vue authors to write the legacy async function main() entry.
+      view.patch('developer-run-technical',{hidden:componentMode!=='javascript'||loadedPageSource});
+      view.patch('page-preview-mode-title',{textContent:componentMode==='javascript'?
+        '网页 JavaScript 试运行':componentMode==='react'?'网页 React JSX 组件试运行':'网页 Vue SFC 组件试运行'});
+      view.patch('page-preview-mode-hint',{textContent:componentMode==='react'?
+        '使用官方 React import、App JSX 和默认导出组件。系统按需编译并受管挂载；无需 main() 或手动 Vite。仅获授权网页可运行。':
+        componentMode==='vue'?
+          '使用官方 Vue script setup、template 与 scoped CSS。系统按需编译并受管挂载；无需 main() 或手动 Vite。仅获授权网页可运行。':
+          '直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。运行前仍需网站授权。'});
+      view.patch('page-component-hint',{textContent:componentMode==='javascript'?
+        (isPageDraft()?'Page JavaScript 使用当前网页 DOM；Controller 使用 page 自动化 API，二者执行环境不同。':browserCompilerEnabled?
+          '编辑源码不会自动执行；点击「运行」才执行。':
+          '标准版支持 JavaScript；React/Vue 需要 Developer Edition。'):
+        '切换代码类型不会替换当前源码；点击「运行」才执行。'});
+    }
+    const worldChoice=find('script-javascript-world');
     if(worldChoice)patchDeveloperField(view,worldChoice,{value:javascriptWorld,disabled:frameworkBusy()});
-    view.patch('manual-project-params-tools',{hidden:pageExecution||local});
-    view.patch('script-version-identity',{hidden:local});
-    // Describe the selected official source format instead of telling React /
-    // Vue authors to write the legacy async function main() entry.
-    view.patch('developer-run-technical',{hidden:componentMode!=='javascript'||loadedPageSource});
-    view.patch('page-preview-mode-title',{textContent:componentMode==='javascript'?
-      '网页 JavaScript 试运行':componentMode==='react'?'网页 React JSX 组件试运行':'网页 Vue SFC 组件试运行'});
-    view.patch('page-preview-mode-hint',{textContent:componentMode==='react'?
-      '使用官方 React import、App JSX 和默认导出组件。系统按需编译并受管挂载；无需 main() 或手动 Vite。仅获授权网页可运行。':
-      componentMode==='vue'?
-        '使用官方 Vue script setup、template 与 scoped CSS。系统按需编译并受管挂载；无需 main() 或手动 Vite。仅获授权网页可运行。':
-        '直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。运行前仍需网站授权。'});
-    view.patch('page-component-hint',{textContent:componentMode==='javascript'?
-      (isPageDraft()?'Page JavaScript 使用当前网页 DOM；Controller 使用 page 自动化 API，二者执行环境不同。':browserCompilerEnabled?
-        '编辑源码不会自动执行；点击「运行」才执行。':
-        '标准版支持 JavaScript；React/Vue 需要 Developer Edition。'):
-      '切换代码类型不会替换当前源码；点击「运行」才执行。'});
     const blocked=isStopping()||editingBusy||pagePreviewFlow?.busy||isRunning()||!controllerResults.projection?.slotAvailable||!!host.currentRun||currentPageState?.status!=='available';
     let runDisabled=blocked;
     if(local)runDisabled||=!localProject.canAttemptRun();
@@ -471,7 +477,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const remote=!local&&!page&&(componentMode!=='javascript'||hasUnbuiltESM(programSource.source()));
     // Invalidate only preparation relevant to the edited/previous execution world.
     if(remote||updatedContext==='component'||updatedContext==='controller-esm')browserPreparer.cancel();
-    if(!local&&!page||updatedContext?.startsWith('controller'))controllerRunner?.invalidate();
+    if(updatedContext?.startsWith('controller')||!local&&!page&&!remote)controllerRunner?.invalidate();
     if(page)dependencyResolver.refresh({sourceFormat:'esm-page'});
     else dependencyResolver.suspend();
     if(remote)componentRemote.refresh();
@@ -479,7 +485,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
     // Plain Controller edits must not refresh Page or JSX preparation.
     if(!local&&!page&&!remote&&componentMode==='javascript')controllerClassic.schedule();
     else controllerClassic.cancel();
-    update();
+    // Page Classic's dependency key omits body-only edits. Project its Run
+    // controls even when the resolver correctly skips a redundant inspection.
+    if(local||page||programSource.snapshot())update();
   }
   on('script-id','input',()=>{
     pagePreviewFlow?.clearLast();sourceInput();
@@ -526,8 +534,16 @@ export function createScriptEditor({client, currentPageTarget, development=false
     });
   });
   async function stop(){
+    const componentPreparing=candidatePreparing||componentRemote?.busy||
+      (pagePreviewFlow?.preparing&&isComponentDraft())||
+      controllerRunner?.esmPreparing||controllerRevisions.esmPreparing;
     if(candidatePreparing||pagePreviewFlow?.preparing||controllerRunner?.preparing||controllerRevisions.preparing||componentRemote?.busy){
-      browserPrepareGeneration++;candidatePreparing=false;pagePreviewFlow?.cancelPreparation();controllerRunner?.invalidate();browserPreparer.cancel();componentRemote.cancel();
+      browserPrepareGeneration++;candidatePreparing=false;
+      if(pagePreviewFlow?.preparing)pagePreviewFlow.cancelPreparation();
+      if(controllerRunner?.preparing)controllerRunner.invalidate();
+      // Component owner cancels the compiler once. Classic/Page/Revision work
+      // cannot cancel unrelated compiler preparation.
+      if(componentPreparing)componentRemote.cancel();
       componentMessage('completed','已取消本次准备；迟到结果不会运行。');update();return;
     }
     if(pagePreviewFlow?.canStop())return pagePreviewFlow.stop();

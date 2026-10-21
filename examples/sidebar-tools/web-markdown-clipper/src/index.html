@@ -1,7 +1,7 @@
 <main class="clip" aria-label="网页剪藏">
 <header class="clip-head">
  <div class="clip-brand"><strong>网页剪藏</strong><span id="clip-site" aria-live="polite">当前网页</span></div>
- <button type="button" id="clip-my-notes" class="clip-outline">我的摘录</button>
+ <button type="button" id="clip-my-notes" class="clip-outline">我的摘录 · 0</button>
 </header>
 <section id="clip-home" aria-label="当前网页摘录">
 <p id="clip-title" class="clip-page-title">打开网页，提取文章或选中文字</p>
@@ -32,7 +32,6 @@
  <button type="button" id="clip-download" aria-label="下载 Markdown" title="下载为本地 .md 文件">下载 .md</button>
 </div>
 <p id="clip-save-explain" class="clip-hint">保存留在浏览器；复制进入剪贴板；下载生成文件</p>
-<button type="button" id="clip-view-saved" class="clip-link" hidden>查看刚保存的摘录 →</button>
 <p id="clip-status" class="clip-status" role="status" aria-live="polite">选择文章提取，或先在网页中选中文字。</p>
 </section>
 <section id="clip-notes" aria-label="我的摘录" hidden>
@@ -41,11 +40,11 @@
   <strong>我的摘录</strong>
   <button type="button" id="clip-note-new" class="primary">＋ 新建便签</button>
  </div>
- <div class="clip-notes-tools">
+ <div class="clip-notes-tools" id="clip-notes-tools">
   <input type="search" id="clip-search" placeholder="搜索文字或来源" aria-label="搜索我的摘录">
   <button type="button" id="clip-note-reload" class="clip-outline" title="重新读取本地摘录" aria-label="刷新摘录">↻</button>
  </div>
- <div class="clip-notes-meta"><span id="clip-note-count">0 条已保存</span><button type="button" id="clip-note-backup" class="clip-link">导出备份</button></div>
+ <div class="clip-notes-meta" id="clip-notes-meta"><span id="clip-note-count">0 条已保存</span><button type="button" id="clip-note-backup" class="clip-link">导出备份</button></div>
  <section id="clip-note-editor" class="clip-note-editor" aria-label="编辑便签" hidden>
   <strong id="clip-note-editor-title">新建便签</strong>
   <textarea id="clip-note-body" rows="5" aria-label="便签正文" placeholder="写下一段想保存的话；标题自动生成"></textarea>
@@ -56,6 +55,23 @@
   </div>
  </section>
  <div id="clip-note-list" class="clip-note-list" aria-live="polite"></div>
+ <button type="button" id="clip-note-more" class="clip-outline clip-note-more" hidden>加载更多摘录</button>
+ <section id="clip-note-reader" class="clip-note-reader" aria-label="阅读完整摘录" hidden>
+  <div class="clip-read-head">
+   <button type="button" id="clip-note-reader-back" class="clip-outline">← 列表</button>
+   <span class="clip-spacer"></span>
+   <button type="button" id="clip-note-read-edit" class="clip-outline">编辑</button>
+  </div>
+  <h2 id="clip-note-read-title"></h2>
+  <p id="clip-note-read-meta" class="clip-note-meta"></p>
+  <p id="clip-note-read-origin" class="clip-hint"></p>
+  <div id="clip-note-read-body" class="clip-preview clip-note-read-body" role="document" aria-label="摘录 Markdown 全文"></div>
+  <div class="clip-editor-actions clip-read-actions">
+   <button type="button" id="clip-note-read-copy">复制</button>
+   <button type="button" id="clip-note-read-download">下载 .md</button>
+   <button type="button" id="clip-note-read-remove" class="clip-danger">删除</button>
+  </div>
+ </section>
  <p id="clip-notes-status" class="clip-status" role="status" aria-live="polite">仅保存在此浏览器。卸载前请导出备份。</p>
 </section>
 </main>

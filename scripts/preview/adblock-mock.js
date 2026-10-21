@@ -6,13 +6,15 @@
   if(!root||!['success','empty','error','loading','permission-denied','untrusted'].includes(scenario))
     throw Error('E_ADBLOCK_PREVIEW_SCENARIO');
   const allowed=new Set(['news.example.com','video.example.com','shop.example.com']);
-  const writes=new Set(['adblock.enable','adblock.disable','adblock.site.set','adblock.site.restore']);
+  const writes=new Set(['adblock.enable','adblock.disable','adblock.site.set',
+    'adblock.site.restore','adblock.cosmetic.pick','adblock.cosmetic.restore']);
   const state={installed:true,toolEnabled:true,enabled:scenario==='success'||scenario==='untrusted',
     restartRequired:false,exceptions:scenario==='success'?['news.example.com']:
       scenario==='untrusted'?['<img src=x onerror=alert(1)>']:[],
     currentHost:'news.example.com',currentSite:{status:'ready'},domainCount:67,
     permissions:{dnr:!['empty','permission-denied'].includes(scenario)},
-    rules:{verified:!['empty','permission-denied'].includes(scenario),ruleIds:[]}};
+    rules:{verified:!['empty','permission-denied'].includes(scenario),ruleIds:[]},
+    cosmeticRules:scenario==='success'?[{selector:'#native-promo'}]:[]};
   const clone=value=>JSON.parse(JSON.stringify(value));
   const pending=new Map();let sequence=0;
   const error=(code,message)=>Object.assign(Error('[离线模拟] '+message),{code});
@@ -42,6 +44,19 @@
     if(scenario==='loading')return new Promise(()=>{});
     if(scenario==='error')return Promise.reject(error('E_ADBLOCK_READ','离线状态读取错误'));
     if(operation==='adblock.status')return Promise.resolve(clone(state));
+    if(operation==='adblock.cosmetic.pick'){
+      if(state.enabled&&state.permissions.dnr&&state.rules.verified&&
+         !state.exceptions.includes(state.currentHost))
+        return Promise.resolve({...clone(state),pickerActive:true});
+      return Promise.reject(error('E_ADBLOCK_UNAVAILABLE','当前网页无法选择元素'));
+    }
+    if(operation==='adblock.cosmetic.restore'){
+      if(payload.host!==state.currentHost||
+         !state.cosmeticRules.some(row=>row.selector===payload.selector))
+        return Promise.reject(error('E_ADBLOCK_COSMETIC_CHANGED','规则不存在或网站已切换'));
+      state.cosmeticRules=state.cosmeticRules.filter(row=>row.selector!==payload.selector);
+      return Promise.resolve(clone(state));
+    }
     if(!state.permissions.dnr||!state.rules.verified||!state.toolEnabled)
       return Promise.reject(error('E_ADBLOCK_PERMISSION','过滤权限不可用'));
     try{validate(operation,payload);}catch(cause){return Promise.reject(cause);}

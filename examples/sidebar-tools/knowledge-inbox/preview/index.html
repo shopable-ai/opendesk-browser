@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>OpenDesk · Knowledge Inbox 正式 UI 同源交互预览 · AI SKU 图片交付 R1.1</title>
+  <!-- 真实生产 CSS：没有复制原有 Knowledge Inbox 样式 -->
+  <link rel="stylesheet" href="../src/style.css">
+  <style>
+    :root{--pf-bg:#f3f5f8;--pf-card:#fff;--pf-fg:#182536;--pf-text:#546377;--pf-rule:#dce3ea;--pf-brand:#285ab7;--pf-shadow:0 6px 28px #25334b12}
+    html[data-theme="dark"]{color-scheme:dark;--ki-bg:#141a23;--ki-ink:#f3f5fa;--ki-muted:#b1bac9;--ki-line:#48536b;--ki-soft:#283449;--ki-hover:#323f56;--ki-accent:#88b5ff;--ki-selected:#2c4161;--ki-danger:#ff909c;--ki-focus:#8dc0ff;--pf-bg:#11151d;--pf-card:#1d2531;--pf-fg:#eff3fa;--pf-text:#c1cbda;--pf-rule:#425066;--pf-brand:#95bfff;--pf-shadow:none}
+    body{background:var(--pf-bg);color:var(--pf-fg);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;margin:0}
+    .pf-header{position:sticky;top:0;z-index:10;padding:10px 18px;background:var(--pf-card);border-bottom:1px solid var(--pf-rule);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+    .pf-header h1{font-size:15px;margin:0;font-weight:750}
+    .pf-muted{color:var(--pf-text);font-size:12px;line-height:1.6}.pf-badge{display:inline-flex;align-items:center;border:1px solid var(--pf-rule);border-radius:12px;padding:2px 7px;font-size:11px;font-weight:700;color:var(--pf-text);margin-left:7px}
+    .pf-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.pf-tools button,.pf-tools select,.pf-btn{font:inherit;border:1px solid var(--pf-rule);background:var(--pf-card);color:var(--pf-fg);min-height:34px;padding:6px 9px;border-radius:8px;cursor:pointer}
+    .pf-tools [aria-pressed=true]{background:#d9e8ff;color:#164884;border-color:#afc9ee}
+    html[data-theme=dark] .pf-tools [aria-pressed=true]{background:#2c4161;color:#b9d4ff}
+    .pf-main{display:grid;grid-template-columns:minmax(290px,1fr) minmax(0,480px);gap:18px;max-width:1300px;margin:18px auto;padding:0 16px 34px;align-items:start}
+    .pf-card{background:var(--pf-card);border:1px solid var(--pf-rule);border-radius:14px;box-shadow:var(--pf-shadow);min-width:0}
+    .pf-caption{color:var(--pf-text);font-size:12px;line-height:1.6;padding:11px 14px;border-bottom:1px solid var(--pf-rule)}
+    .pf-chat{padding:16px 17px 20px}.pf-reply{margin:0 auto;max-width:560px}.pf-role{font-size:12px;color:var(--pf-text);font-weight:700;margin:0 0 11px}.pf-reply p{margin:0 0 13px;font-size:14px;line-height:1.6}
+    .pf-image-wrap{position:relative;max-width:430px;margin:0 auto;background:#ece8e0;border-radius:12px;overflow:hidden;aspect-ratio:5/4}
+    .pf-image-wrap svg{display:block;width:100%;height:100%}
+    .pf-image-action{position:absolute;right:10px;top:10px;border:1px solid #d8e2ed;background:#fff;color:#253348;box-shadow:0 2px 10px #1113;border-radius:9px;min-width:39px;min-height:39px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .pf-image-action:focus-visible,.pf-btn:focus-visible,.pf-header button:focus-visible,.pf-fields :focus-visible{outline:3px solid var(--pf-brand);outline-offset:2px}
+    .pf-image-action svg{width:18px;height:18px}.pf-under-image{display:flex;align-items:center;gap:8px;margin:10px 0 0;font-size:12px;color:var(--pf-text)}
+    .pf-under-image button{margin-left:auto;border:0;color:var(--pf-brand);background:transparent;cursor:pointer;text-decoration:underline}
+    .pf-delivery{margin:12px 0 0;border:1px solid var(--pf-rule);border-radius:11px;padding:13px;background:var(--pf-card)}.pf-delivery[hidden],.pf-hidden[hidden]{display:none!important}
+    .pf-delivery h2{font-size:14px;margin:0 0 10px}.pf-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+    .pf-fields label{display:block;font-size:12px;color:var(--pf-text);font-weight:650}.pf-fields input,.pf-fields select{display:block;width:100%;font:inherit;margin-top:5px;border:1px solid var(--pf-rule);padding:8px;min-width:0;border-radius:7px;background:var(--pf-card);color:var(--pf-fg);min-height:36px}
+    .pf-fields .pf-full{grid-column:1/-1}.pf-fields .pf-check{display:flex;align-items:center;gap:7px;font-weight:500}.pf-fields .pf-check input{width:16px;height:16px;margin:0;min-height:auto}
+    .pf-file{font:12px/1.5 ui-monospace,monospace;background:var(--pf-bg);border-radius:7px;padding:9px 11px;overflow-wrap:anywhere;margin:10px 0}.pf-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .pf-primary{background:var(--pf-brand)!important;color:#fff!important;border-color:var(--pf-brand)!important;font-weight:700}.pf-primary:disabled{opacity:.5;cursor:default}
+    .pf-outcome{margin-top:12px;font-size:12px;padding:10px;border-radius:8px;background:var(--pf-bg);color:var(--pf-fg)}.pf-outcome[data-error=true]{border:1px solid #c45d69}
+    .pf-fixture-controls{margin-top:16px;padding:12px;border-top:1px dashed var(--pf-rule);font-size:12px;color:var(--pf-text)}
+    .pf-fixture-controls select{max-width:100%;background:var(--pf-card);color:var(--pf-fg);padding:7px;border:1px solid var(--pf-rule);border-radius:6px}
+    .pf-panel{min-width:0}.pf-panel-head{display:flex;align-items:center;justify-content:space-between;gap:7px;padding:10px 12px;border-bottom:1px solid var(--pf-rule);font-size:12px;font-weight:700}
+    .pf-panel-scroll{overflow:auto;padding:7px;max-width:100%}.pf-panel-shell{width:360px;max-width:none;margin:0 auto;border:1px solid var(--pf-rule);border-radius:10px;background:var(--ki-bg);min-height:490px;overflow:hidden}
+    .pf-panel-shell .ki{padding:12px;max-width:1080px}.pf-panel-note{font-size:11px;color:var(--pf-text);padding:10px 12px;line-height:1.55;border-top:1px solid var(--pf-rule)}
+    .pf-fail{margin:12px;color:#c43e49;font-size:13px}.pf-fixture-controls button{border:1px solid var(--pf-rule);border-radius:7px;padding:6px 10px;background:var(--pf-card);color:var(--pf-fg);cursor:pointer}
+    #pf-live{position:fixed;z-index:30;bottom:12px;left:12px;max-width:min(390px,calc(100vw - 24px));border-radius:9px;background:#233448;color:#fff;padding:9px 14px;font-size:12px;box-shadow:0 3px 18px #0004}#pf-live:empty{display:none}
+    @media(max-width:850px){.pf-main{grid-template-columns:minmax(0,1fr)}.pf-panel{max-width:600px}.pf-image-wrap{max-width:330px}}
+    @media(max-width:400px){.pf-header{padding:9px 10px}.pf-main{padding:0 7px;gap:9px;margin:9px auto}.pf-chat{padding:11px}.pf-fields{grid-template-columns:minmax(0,1fr)}.pf-delivery{padding:10px}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+  </style>
+</head>
+<body>
+<header class="pf-header">
+  <div><h1>OpenDesk · AI 商品图交付</h1><span class="pf-badge">R1.1 / MOCK Host</span><div class="pf-muted">右侧加载正式 Knowledge Inbox 的 HTML、CSS、JS；左侧仅模拟 ChatGPT 图片与交接。</div></div>
+  <div class="pf-tools" aria-label="预览设备和主题">
+    <label class="pf-muted" for="pf-width">内容宽度</label>
+    <select id="pf-width" aria-label="收件箱宽度"><option>320</option><option selected>360</option><option>400</option><option>440</option><option>800</option></select>
+    <button id="pf-zoom" type="button" aria-pressed="false" title="模拟 200% CSS 缩放">200%</button>
+    <button id="pf-theme" type="button" aria-pressed="false" title="切换深浅色">深色</button>
+    <button id="pf-reset" type="button" title="清空当前仅预览用的模拟记录">重置 MOCK</button>
+  </div>
+</header>
+<main class="pf-main">
+  <section class="pf-card" aria-label="ChatGPT 页面模拟">
+    <div class="pf-caption"><strong>① ChatGPT 图片交付入口</strong> · 页面 Fixture（不是线上 ChatGPT DOM，不调用真正下载）</div>
+    <div class="pf-chat">
+      <div class="pf-reply">
+        <div class="pf-role">ChatGPT · 示例对话</div>
+        <p>已生成一张适合商品主图的陶瓷马克杯示意图。右上角保存图标用于模拟 SKU 交付。</p>
+        <div class="pf-image-wrap">
+          <svg viewBox="0 0 600 480" role="img" aria-label="模拟商品图：米色背景上的白色陶瓷马克杯，非真实下载资源">
+            <defs><linearGradient id="pf-bg-grad" x2="1" y2="1"><stop stop-color="#f8f6f2"/><stop offset="1" stop-color="#e1dbd0"/></linearGradient><linearGradient id="pf-mug" x1="0" x2=".7" y2="1"><stop stop-color="#fff"/><stop offset=".75" stop-color="#e3e5e7"/><stop offset="1" stop-color="#d5d9dc"/></linearGradient></defs>
+            <rect width="600" height="480" fill="url(#pf-bg-grad)"/><ellipse cx="293" cy="404" rx="185" ry="26" fill="#afa99c" opacity=".28"/>
+            <path d="M404 176 C525 157 520 340 402 318" fill="none" stroke="#eceef0" stroke-width="53" stroke-linecap="round"/><path d="M416 182 C504 178 490 308 413 304" fill="none" stroke="#fff" stroke-width="24" stroke-linecap="round"/>
+            <path d="M167 151 L418 151 L390 367 Q289 409 193 367 Z" fill="url(#pf-mug)" stroke="#d0d4d6" stroke-width="3"/><ellipse cx="293" cy="151" rx="126" ry="30" fill="#fdfdfd" stroke="#dde0e4" stroke-width="5"/><ellipse cx="293" cy="154" rx="113" ry="18" fill="#f4f4f4"/><path d="M201 188 Q215 325 230 354" fill="none" stroke="#fff" opacity=".6" stroke-width="14" stroke-linecap="round"/>
+          </svg>
+          <button id="pf-image-save" class="pf-image-action" type="button" aria-label="保存这张图片并设置 SKU" aria-expanded="false" aria-controls="pf-delivery" title="保存图片并设置 SKU">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M5 17v3h14v-3"/></svg>
+          </button>
+        </div>
+        <div class="pf-under-image"><span>Fixture：image/webp · 模拟 1536×1024 原图</span><button id="pf-image-tell" type="button">查看来源说明</button></div>
+        <section id="pf-delivery" class="pf-delivery" hidden aria-label="SKU 图片交付设置">
+          <form id="pf-form" novalidate>
+            <h2>保存图片到交付记录</h2>
+            <div class="pf-fields">
+              <label class="pf-full">SKU（必填）<input id="pf-sku" maxlength="48" placeholder="例如 MUG-1024" autocomplete="off" aria-describedby="pf-field-error" required></label>
+              <label>图片用途<select id="pf-role"><option value="main">主图</option><option value="scene">场景图</option><option value="detail">详情图</option></select></label>
+              <label>编号<input id="pf-seq" type="number" min="1" max="99" value="1"></label>
+              <label class="pf-full">项目标签（选填）<input id="pf-project" maxlength="32" placeholder="例如 秋季新品"></label>
+              <label class="pf-full pf-check"><input id="pf-prompt" type="checkbox">关联人工确认的示例提示词（默认不关联）</label>
+            </div>
+            <div id="pf-name" class="pf-file" role="status" aria-live="polite">文件名：等待 SKU</div>
+            <p id="pf-field-error" class="pf-muted" role="alert" hidden></p>
+            <div class="pf-actions">
+              <button type="button" id="pf-cancel" class="pf-btn">取消</button>
+              <button type="submit" id="pf-save" class="pf-btn pf-primary">保存并交付</button>
+            </div>
+          </form>
+        </section>
+        <div id="pf-outcome" class="pf-outcome pf-hidden" role="status" aria-live="polite" hidden></div>
+        <div class="pf-actions" style="margin-top:8px">
+          <button id="pf-recheck" type="button" class="pf-btn" hidden>核对下载结果</button>
+          <button id="pf-retry" type="button" class="pf-btn" hidden>核对后重试</button>
+          <button id="pf-find" type="button" class="pf-btn" hidden>去收件箱搜索 SKU →</button>
+        </div>
+        <div class="pf-fixture-controls">
+          <label for="pf-case">模拟下一次下载结果：</label>
+          <select id="pf-case">
+            <option value="complete" selected>完成（complete）</option>
+            <option value="interrupted">下载中断（interrupted）</option>
+            <option value="unknown">回执未知（outcome unknown）</option>
+            <option value="expired">图片链接失效（blocked）</option>
+            <option value="thumbnail">只有缩略图（blocked）</option>
+          </select>
+          <p>切换情景后再次保存可测试失败；“结果未知”只提供核对，不自动二次下载。重复保存相同 SKU、用途和编号应复用同一记录。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="pf-card pf-panel" aria-label="正式知识收件箱同源实例">
+    <div class="pf-panel-head"><span>② 正式 Knowledge Inbox UI</span><span class="pf-badge">SOURCE-BOUND</span></div>
+    <div id="pf-panel-scroll" class="pf-panel-scroll"><div id="pf-panel-shell" class="pf-panel-shell"><div id="pf-official-root"><p class="pf-muted" style="padding:14px">正在加载原版正式源码…</p></div></div></div>
+    <div class="pf-panel-note">原版行为：保存回答 / Markdown / 更多菜单 / 列表搜索 / 分类与标签 / 新建 / 编辑 / 来源 / 下载 / Workspace / 键盘保护。仅 \`knowledge.*\` 请求由隔离的 MOCK Host 模拟，数据非真实扩展存储。生产源码加载失败时不会退回另一套简化 UI。</div>
+  </section>
+</main>
+<div id="pf-live" role="status" aria-live="polite"></div>
+<script>
+(() => {
+  'use strict';
+  // Source-bound fixture: ONLY the sandbox bridge, fake ChatGPT image and simulated downloads.
+  // The actual list, Markdown reader, search, create/edit, keyboard and dirty-confirmation
+  // are owned exclusively by ../src/index.html + ../src/style.css + ../src/main.js.
+  const $ = id => document.getElementById(id), storeKey='opendesk.ai-artifact-delivery.r11.fixture';
+  let memory;
+  try { memory=JSON.parse(sessionStorage.getItem(storeKey)||'null'); } catch { memory=null; }
+  const now=()=>new Date().toISOString(), clone=x=>JSON.parse(JSON.stringify(x));
+  let serial=0, pending=null, busy=false, lastFocus=null, lastKey='';
+  function baseRecord(data,overrides={}){
+    const stamp=now();
+    return {id:'mock-'+Date.now()+'-'+(++serial),revision:1,mode:'manual',source:'',messageId:'',
+      question:'',questionTruncated:false,imageCount:0,kind:'inbox',title:data.title,markdown:data.markdown,
+      draft:null,note:data.note||'',tags:data.tags||[],createdAt:stamp,updatedAt:stamp,...overrides};
+  }
+  function seed(){
+    const a=baseRecord({title:'知识收件箱原有功能示例',markdown:'# 知识收件箱原有功能示例\n\n这里使用正式的 Markdown 阅读、搜索、标签筛选及编辑功能。\n\n- 支持 Markdown\n- 保存后可编辑\n- 支持来源与导出（MOCK Host）',tags:['产品','示例'],note:'这是供原有 UI 回归的 Fixture 记录。'});
+    const b=baseRecord({title:'ChatGPT 回答：设计规范',markdown:'## 一、商品图片\n\n为每张图保留 SKU、交付用途与来源说明。\n\n**此处为示例文本**。',tags:['设计','ChatGPT']},{
+      mode:'reply',source:'https://chatgpt.com/c/preview-fixture-only',question:'生成商品主图',imageCount:1});
+    return {records:[a,b],deliveries:[]};
+  }
+  if(!memory||!Array.isArray(memory.records)||!Array.isArray(memory.deliveries))memory=seed();
+  const persist=()=>{try{sessionStorage.setItem(storeKey,JSON.stringify(memory));}catch{}};
+  const get=id=>memory.records.find(x=>x.id===id);
+  const textRecord=record=>'---\n'+'title: '+JSON.stringify(record.title)+'\nkind: '+JSON.stringify(record.kind)+'\ntags: '+JSON.stringify(record.tags)+'\n---\n\n'+(record.note?'## 备注\n\n'+record.note+'\n\n':'')+(record.draft??record.markdown)+(record.source?'\n\n来源：'+record.source:'')+'\n';
+  function update(data){
+    const record=get(data.id);
+    if(!record)throw Error('记录不存在，请刷新');
+    if(data.ifRevision!==record.revision)throw Error('记录已在其他窗口修改，请刷新后核对');
+    Object.assign(record,{title:data.title,kind:data.kind,tags:data.tags,note:data.note,draft:data.draft,revision:record.revision+1,updatedAt:now()});
+    persist();return clone(record);
+  }
+  async function request(operation,payload={}){
+    await Promise.resolve();
+    switch(operation){
+      case 'knowledge.list': {
+        const words=String(payload.query||'').trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
+        const records=memory.records.filter(r=>(!payload.kind||payload.kind==='all'||r.kind===payload.kind)&&
+          words.every(w=>[r.title,r.markdown,r.draft||'',r.question,r.note,...r.tags].join(' ').toLocaleLowerCase().includes(w)))
+          .sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)).map(r=>({...r,excerpt:(r.draft??r.markdown).slice(0,140)}));
+        return {records:clone(records),total:memory.records.length,bytes:JSON.stringify(memory.records).length};
+      }
+      case 'knowledge.editorState':return {ok:true};
+      case 'knowledge.create': {
+        if(!payload.title?.trim()||!payload.markdown?.trim())throw Error('标题和正文必填');
+        const record=baseRecord(payload);memory.records.push(record);persist();return {saved:true,record:clone(record)};
+      }
+      case 'knowledge.get': {
+        const row=get(payload.id);if(!row)throw Error('记录已不存在');return {record:clone(row),markdown:textRecord(row),filename:row.title+'.md'};
+      }
+      case 'knowledge.update':return {saved:true,record:update(payload)};
+      case 'knowledge.remove': {
+        const row=get(payload.id);if(!row||row.revision!==payload.ifRevision)throw Error('记录已变化，请刷新');
+        memory.records=memory.records.filter(x=>x.id!==payload.id);memory.deliveries=memory.deliveries.filter(x=>x.recordId!==payload.id);persist();return {saved:true,removed:true};
+      }
+      case 'knowledge.download':return {downloadId:1,mock:true};
+      case 'knowledge.backup':return {downloadId:2,records:memory.records.length,mock:true};
+      case 'knowledge.workspace':return {opened:true,savedToDisk:false,mock:true};
+      case 'knowledge.openSource':say('MOCK：只展示来源信息，不打开模拟对话。');return {opened:false,mock:true};
+      default:throw Error('MOCK Host 不支持：'+operation);
+    }
+  }
+  globalThis.OpenDeskTool={root:$('pf-official-root'),request,setState:()=>{}};
+  globalThis.OpenDeskSDK={browser:{clipboard:{writeText:async text=>{
+    if(!navigator.clipboard?.writeText)throw Error('当前预览浏览器不支持自动复制');
+    return navigator.clipboard.writeText(text);
+  }}}};
+  let liveTimer;
+  function say(message){$('pf-live').textContent=message;clearTimeout(liveTimer);if(message)liveTimer=setTimeout(()=>$('pf-live').textContent='',3500);}
+  function showOutcome(text,isError=false){
+    const node=$('pf-outcome');node.hidden=false;node.textContent=text;node.dataset.error=String(isError);say(text);
+  }
+  function closeForm(){
+    $('pf-delivery').hidden=true;$('pf-image-save').setAttribute('aria-expanded','false');
+    if(lastFocus?.isConnected)lastFocus.focus();else $('pf-image-save').focus();
+  }
+  function openForm(){
+    lastFocus=document.activeElement;$('pf-delivery').hidden=false;$('pf-image-save').setAttribute('aria-expanded','true');
+    $('pf-field-error').hidden=true;previewName();$('pf-sku').focus();
+  }
+  $('pf-image-save').addEventListener('click',()=> $('pf-delivery').hidden?openForm():closeForm());
+  $('pf-cancel').addEventListener('click',closeForm);
+  $('pf-delivery').addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();closeForm();}});
+  $('pf-image-tell').addEventListener('click',()=>showOutcome('MOCK：图片仅用 SVG 模拟，image/webp 是夹具中的格式假设；尚未访问 ChatGPT、提取原图或进行真实下载。'));
+  function normalizeSku(s){return s.trim().normalize('NFKC').toUpperCase();}
+  function previewName(){
+    const sku=normalizeSku($('pf-sku').value),role=$('pf-role').value,seq=+$('pf-seq').value;
+    const valid=/^[A-Z0-9][A-Z0-9._-]{0,47}$/.test(sku)&&!sku.startsWith('.')&&!sku.includes('..')&&seq>=1&&seq<=99;
+    const name=valid?sku+'-'+role+'-'+String(seq).padStart(2,'0')+'.webp':'等待有效 SKU（仅 A–Z、0–9、-、_、.）';
+    $('pf-name').textContent='文件名：'+name;
+    return valid?name:null;
+  }
+  ['pf-sku','pf-role','pf-seq','pf-project','pf-prompt'].forEach(id=>{
+    $(id).addEventListener('input',previewName);$(id).addEventListener('change',previewName);
+  });
+  const roleName={main:'主图',scene:'场景图',detail:'详情图'};
+  function markdownFor(x){
+    return '# '+x.sku+' · '+roleName[x.role]+' '+String(x.seq).padStart(2,'0')+
+      '\n\n- SKU：'+x.sku+'\n- 文件名：'+x.filename+'\n- 项目：'+(x.project||'未设置')+
+      '\n- 下载状态：**'+x.state+'**（MOCK）\n- 资源格式：image/webp（Fixture 假设）'+
+      '\n- 图片来源：ChatGPT 示例对话（未验证真实原图）\n- 已确认提示词：'+(x.prompt?'“生成白色马克杯商品主图”（人工勾选的 Fixture 样本）':'未关联')+
+      '\n- 更新：'+x.updatedAt+'\n\n> 仅预览数据，不是 Chrome 文件或真实磁盘交付回执。';
+  }
+  async function saveDelivery(x){
+    const text=markdownFor(x);
+    const row=get(x.recordId);
+    if(row)await request('knowledge.update',{id:row.id,ifRevision:row.revision,title:row.title,
+      kind:row.kind,tags:row.tags,note:row.note,draft:text});
+    else {
+      const record=(await request('knowledge.create',{title:x.sku+' · '+roleName[x.role]+' '+String(x.seq).padStart(2,'0'),
+        markdown:text,kind:'inbox',tags:[x.sku,'图片交付',...(x.project?[x.project]:[])],note:'本记录来自交付 MOCK 预览'})).record;
+      x.recordId=record.id;persist();
+    }
+  }
+  async function refreshList(){
+    if(!$('ki-list-view')?.hidden)$('ki-refresh')?.click();
+  }
+  async function complete(x,outcome){
+    x.updatedAt=now();x.state=outcome==='complete'?'COMPLETE':outcome==='interrupted'?'INTERRUPTED':'OUTCOME_UNKNOWN';
+    await saveDelivery(x);persist();pending=x;lastKey=x.key;
+    $('pf-find').hidden=false;$('pf-retry').hidden=outcome!=='interrupted';$('pf-recheck').hidden=outcome!=='unknown';
+    if(outcome==='complete')showOutcome('MOCK 完成：已模拟 Chrome complete 并保存一条可搜索的 SKU 交付记录。');
+    else if(outcome==='interrupted')showOutcome('MOCK 中断：交付记录保留，尚未成功下载。请核对后再重试。',true);
+    else showOutcome('MOCK 结果未知：请核对，不会自动重试或伪装完成。',true);
+    await refreshList();
+  }
+  async function runSave({retry=false}={}){
+    if(busy)return;const filename=previewName(), sku=normalizeSku($('pf-sku').value);
+    $('pf-field-error').hidden=!!filename;
+    $('pf-field-error').textContent='SKU 或编号不合法，请使用安全文件名字符。';
+    if(!filename){$('pf-sku').focus();return;}
+    const role=$('pf-role').value,seq=+$('pf-seq').value,project=$('pf-project').value.trim(),prompt=$('pf-prompt').checked;
+    if(project&&!/^[^\x00-\x1f\/\\]{1,32}$/.test(project)){
+      $('pf-field-error').hidden=false;$('pf-field-error').textContent='项目标签不能包含路径字符';return;
+    }
+    const key=sku+'|'+role+'|'+seq+'|sample-image-1';
+    const existing=memory.deliveries.find(x=>x.key===key);
+    if(existing&&!retry){
+      pending=existing;lastKey=key;$('pf-find').hidden=false;
+      $('pf-retry').hidden=existing.state!=='INTERRUPTED';$('pf-recheck').hidden=existing.state!=='OUTCOME_UNKNOWN';
+      showOutcome('发现相同 SKU/图片/用途/编号的记录（'+existing.state+'），未创建第二条、未重新发起下载。');closeForm();return;
+    }
+    const scenario=$('pf-case').value;
+    if(scenario==='expired'||scenario==='thumbnail'){
+      showOutcome(scenario==='expired'?'MOCK 阻断：图片 URL 已失效，未开始下载，也没有写成成功。':
+        'MOCK 阻断：只有缩略图，不能冒充原图交付。',true);return;
+    }
+    busy=true;$('pf-save').disabled=true;
+    try{
+      const x=existing||{key,sku,role,seq,filename,project,prompt,updatedAt:now(),state:'STARTED'};
+      if(!existing)memory.deliveries.push(x);
+      else Object.assign(x,{project,prompt});
+      await saveDelivery(x);persist();
+      showOutcome('MOCK 下载 started：正在模拟查询 Chrome 下载状态，尚未完成。');
+      await new Promise(resolve=>setTimeout(resolve,550));
+      await complete(x,scenario);
+      closeForm();
+    }catch(e){showOutcome('MOCK Host 操作失败：'+e.message,true);}
+    finally{busy=false;$('pf-save').disabled=false;}
+  }
+  $('pf-form').addEventListener('submit',e=>{e.preventDefault();void runSave();});
+  $('pf-retry').addEventListener('click',async()=>{
+    if(!pending)return;
+    if($('pf-case').value!=='complete'){showOutcome('请先将下载情景切至「完成」，表示已人工核对并准备重试。',true);return;}
+    // Reuse the SAME business intent, not a duplicate Knowledge record.
+    $('pf-sku').value=pending.sku;$('pf-role').value=pending.role;$('pf-seq').value=pending.seq;
+    $('pf-project').value=pending.project;$('pf-prompt').checked=pending.prompt;await runSave({retry:true});
+  });
+  $('pf-recheck').addEventListener('click',async()=>{
+    if(!pending)return;
+    if($('pf-case').value==='complete'){await complete(pending,'complete');$('pf-recheck').hidden=true;}
+    else showOutcome('MOCK 核对：Chrome 状态仍未知。不会自动重试，请人工检查下载列表。',true);
+  });
+  $('pf-find').addEventListener('click',()=>{
+    const sku=pending?.sku||$('pf-sku').value;
+    if(!$('ki-search')){showOutcome('正式收件箱 UI 尚未加载',true);return;}
+    if($('ki-list-view').hidden){showOutcome('请先在收件箱点击「返回列表」后查找 SKU。',true);return;}
+    const search=$('ki-search');search.value=sku;search.dispatchEvent(new Event('input',{bubbles:true}));search.focus();
+    $('pf-panel-scroll').scrollIntoView({block:'nearest',behavior:'smooth'});
+  });
+  function setSizing(){
+    const width=Number($('pf-width').value),zoom=$('pf-zoom').getAttribute('aria-pressed')==='true'?2:1;
+    $('pf-panel-shell').style.width=(width/zoom)+'px';$('pf-panel-shell').style.zoom=String(zoom);
+  }
+  $('pf-width').addEventListener('change',setSizing);
+  $('pf-zoom').addEventListener('click',()=>{const button=$('pf-zoom'),next=button.getAttribute('aria-pressed')!=='true';button.setAttribute('aria-pressed',String(next));setSizing();});
+  $('pf-theme').addEventListener('click',()=>{const dark=document.documentElement.dataset.theme!=='dark';document.documentElement.dataset.theme=dark?'dark':'light';$('pf-theme').setAttribute('aria-pressed',String(dark));$('pf-theme').textContent=dark?'浅色':'深色';});
+  $('pf-reset').addEventListener('click',()=>{memory=seed();persist();pending=null;lastKey='';$('pf-outcome').hidden=true;
+    for(const id of ['pf-find','pf-retry','pf-recheck'])$(id).hidden=true;closeForm();void refreshList();say('已重置当前页面的模拟数据；没有接触真实 Knowledge Inbox 存储。');});
+  setSizing();
+  fetch('../src/index.html',{cache:'no-store'}).then(response=>{
+    if(!response.ok)throw Error('无法读取正式 index.html，HTTP '+response.status);
+    return response.text();
+  }).then(source=>{
+    const host=$('pf-official-root');host.innerHTML=source;
+    const script=document.createElement('script');
+    script.src='../src/main.js';script.async=false;
+    script.onerror=()=>host.insertAdjacentHTML('beforeend','<p class="pf-fail">正式 main.js 加载失败，无法预览。</p>');
+    document.body.appendChild(script);
+  }).catch(error=>{
+    $('pf-official-root').textContent='加载正式 UI 失败：'+error.message+'。请通过 HTTP 服务打开仓库预览目录，不要直接使用 file://。不会退回简化 UI。';
+  });
+})();
+</script>
+</body>
+</html>

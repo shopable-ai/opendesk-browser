@@ -5,6 +5,7 @@ import {TOOL_REVOCATION_EPOCHS_STORE,assertSidebarToolEnabled} from '../../../..
 import {requireCompleteInstalledSidebarTools,sameSidebarToolPackage} from '../../../../src/ui/sidebar-tools/installation.js';
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PROTOCOL,ADBLOCK_SERVICE_VERSION,
   ADBLOCK_OPERATIONS,adblockError,adblockHost} from './policy.js';
+import {validCosmeticSelector} from './cosmetic-policy.js';
 const requireTool=tool=>{
   if(tool?.id!==ADBLOCK_ID||!tool.capabilities?.includes(ADBLOCK_CAPABILITY))
     throw adblockError('E_TOOL_CHANGED','未安装可信 AdBlock 扩展工具');
@@ -89,7 +90,10 @@ const sameArray=(a,b)=>Array.isArray(a)&&Array.isArray(b)&&
   a.length===b.length&&a.every((item,index)=>item===b[index]);
 function requestShape(operation,payload){
   const keys=Object.keys(payload).sort().join(',');
-  if((operation==='adblock.enable'||operation==='adblock.disable'||operation==='adblock.status')&&keys==='')return;
+  if((operation==='adblock.enable'||operation==='adblock.disable'||operation==='adblock.status'||
+      operation==='adblock.cosmetic.pick')&&keys==='')return;
+  if(operation==='adblock.cosmetic.restore'&&keys==='host,selector'&&
+      adblockHost(payload.host)===payload.host&&validCosmeticSelector(payload.selector))return;
   if(operation==='adblock.site.restore'&&keys==='host'&&adblockHost(payload.host)===payload.host)return;
   if(operation==='adblock.site.set'&&keys==='filtering,host'&&
       adblockHost(payload.host)===payload.host&&typeof payload.filtering==='boolean')return;
@@ -144,6 +148,24 @@ export async function requestAdblockOperation({
     return verifiedSend(api,message,assertCurrent);
   };
   if(operation==='adblock.status')return send(operation,payload);
+  if(operation==='adblock.cosmetic.pick'||operation==='adblock.cosmetic.restore'){
+    // Start only enters highlight mode. A real trusted click on the *webpage*
+    // authorizes saving; removing one's own rule is reversible and needs no
+    // secondary confirmation dialog.
+    const before=await send('adblock.status',{});
+    if(before.toolEnabled!==true||before.permissions?.dnr!==true||
+       before.rules?.verified!==true||before.restartRequired)
+      throw adblockError('E_ADBLOCK_UNAVAILABLE','广告过滤状态尚未确认');
+    if(operation==='adblock.cosmetic.pick'&&
+       (before.enabled!==true||before.currentSite?.status!=='ready'||
+        before.exceptions.includes(before.currentHost)))
+      throw adblockError('E_ADBLOCK_COSMETIC_SITE','本站广告保护未开启');
+    if(operation==='adblock.cosmetic.restore'&&
+       (before.currentHost!==payload.host||
+        !before.cosmeticRules?.some(row=>row.selector===payload.selector)))
+      throw adblockError('E_ADBLOCK_COSMETIC_CHANGED','网页或隐藏规则已经变化');
+    return send(operation,payload);
+  }
   // A sandbox cannot provide user activation, a Chrome permission, or a false
   // UI snapshot. Read the trusted service and pin one precise requested action.
   const before=await send('adblock.status',{});

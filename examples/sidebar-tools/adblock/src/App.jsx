@@ -31,7 +31,7 @@ function App(){
   const queued=React.useRef(false),current=React.useRef(null);
   const contextRevision=React.useRef(0);
   const api=globalThis.OpenDeskTool;
-  const refresh=React.useCallback(async(silent=false)=>{
+  const refresh=React.useCallback(async(silent=false,preserveNotice=false)=>{
     if(locked.current){queued.current=true;return;}
     const turn=++reading.current;
     if(!silent)setLoading(true);
@@ -40,7 +40,8 @@ function App(){
       const next=await api.request('adblock.status',{});
       if(!valid(next))throw Error('Chrome DNR 状态数据不完整');
       if(!alive.current||turn!==reading.current||locked.current)return;
-      current.current=next;setState(next);setProblem(false);setNotice('');
+      current.current=next;setState(next);
+      if(!preserveNotice){setProblem(false);setNotice('');}
     }catch(error){
       if(!alive.current||turn!==reading.current||locked.current)return;
       current.current=null;setState(null);setProblem(true);
@@ -90,6 +91,41 @@ function App(){
         if(queued.current||needsReadback){queued.current=false;void refresh(true);}}
     }
   },[api,refresh]);
+  const operateCosmetic=React.useCallback(async(operation,payload={})=>{
+    if(locked.current||!current.current)return;
+    let preserveCosmeticError=false;
+    locked.current=true;reading.current++;
+    const generation=contextRevision.current;
+    setBusy(true);setProblem(false);setNotice('');
+    try{
+      const result=await api.request(operation,payload);
+      const checked=await api.request('adblock.status',{});
+      if(!valid(checked)||!alive.current||generation!==contextRevision.current){
+        throw Error('当前网页已变化，请重新读取');
+      }
+      if(operation==='adblock.cosmetic.pick'&&result?.pickerActive!==true)
+        throw Error('网页未进入选择模式');
+      if(operation==='adblock.cosmetic.restore'&&
+         checked.cosmeticRules?.some(row=>row.selector===payload.selector))
+        throw Error('本地规则读回仍存在，撤销结果未确认');
+      current.current=checked;setState(checked);
+      setNotice(operation==='adblock.cosmetic.pick'
+        ?'请在目标网页单击要隐藏的区域；单击即保存，Esc 取消。'
+        :'已删除本站的手动屏蔽规则，网页区域自动恢复。');
+    }catch(error){
+      if(!alive.current)return;
+      preserveCosmeticError=true;
+      setProblem(true);setNotice(errorText(error));
+    }finally{
+      locked.current=false;
+      if(alive.current){setBusy(false);setLoading(false);
+        if(queued.current||preserveCosmeticError){
+          queued.current=false;
+          // A failed native write requires readback without deleting the error.
+          void refresh(true,preserveCosmeticError);
+        }}
+    }
+  },[api,refresh]);
   React.useEffect(()=>{
     alive.current=true;
     const onVisible=()=>{if(!document.hidden)void refresh(true);};
@@ -126,6 +162,7 @@ function App(){
   const host=siteHost(state);
   const exceptions=Array.isArray(state?.exceptions)?state.exceptions:[];
   const siteOn=Boolean(on&&host&&!exceptions.includes(host));
+  const cosmeticRules=Array.isArray(state?.cosmeticRules)?state.cosmeticRules:[];
   const switchLocked=loading||busy||!ready;
   const siteLocked=switchLocked||!on||!host;
   const canRestore=ready&&!busy&&!loading;
@@ -154,6 +191,13 @@ function App(){
         <p className="adblock-help">{host?(!on?'开启全局保护后可管理本站。':
           siteOn?'正在过滤本站匹配的第三方广告请求。':'本站已加入例外列表。'):
           siteCopy[state?.currentSite?.status]||'等待 Chrome 读取当前网站身份。'}</p>
+        <div className="adblock-manual-actions">
+          <Button variant="secondary" disabled={siteLocked||Boolean(state?.cosmeticError)}
+            onClick={()=>void operateCosmetic('adblock.cosmetic.pick')}
+            aria-label="在当前网页中点击选择要隐藏的元素">⊙ 选择网页元素</Button>
+          <Button variant="secondary" disabled={!host||loading||busy}
+            onClick={()=>setView('cosmetics')}>已屏蔽 {cosmeticRules.length} 处 →</Button>
+        </div>
       </CardContent></Card>
       <Card><CardContent className="adblock-card">
         <div className="adblock-control-row"><div className="adblock-copy">
@@ -164,6 +208,23 @@ function App(){
       <Button className="adblock-link" variant="secondary" onClick={()=>setView('exceptions')}>
         已停用的网站 <span>{exceptions.length}</span><span aria-hidden="true">→</span>
       </Button>
+    </>:view==='cosmetics'?<>
+      <div className="adblock-page-head">{back}<strong>手动屏蔽规则</strong>
+        <span>{cosmeticRules.length} 处</span></div>
+      <Card><CardContent className="adblock-exceptions">
+        {state?.cosmeticError?<p className="adblock-help" role="alert">{state.cosmeticError}</p>:
+          !state?<p className="adblock-help">规则尚未读取。</p>:
+          !cosmeticRules.length?<p className="adblock-empty">本站尚无手动屏蔽区域</p>:
+          cosmeticRules.map(rule=><div className="adblock-exception" key={rule.selector}>
+            <div className="adblock-copy"><strong>隐藏的网页区域</strong>
+              <span className="adblock-muted adblock-selector" title={rule.selector}>{rule.selector}</span></div>
+            <Button variant="secondary" disabled={!canRestore}
+              onClick={()=>void operateCosmetic('adblock.cosmetic.restore',
+                {host,selector:rule.selector})}
+              aria-label={'撤销屏蔽 '+rule.selector}>恢复</Button>
+          </div>)}
+      </CardContent></Card>
+      <p className="adblock-help">恢复会同时删除本地规则；已经打开的网页会自动恢复显示。</p>
     </>:view==='exceptions'?<>
       <div className="adblock-page-head">{back}<strong>已停用的网站</strong><span>{exceptions.length}</span></div>
       <Card><CardContent className="adblock-exceptions">
@@ -180,6 +241,8 @@ function App(){
       <Card><CardContent className="adblock-card">
         <strong>过滤范围</strong><p className="adblock-help">使用 OpenDesk Browser 内置离线 DNR 规则，仅对符合规则的第三方请求生效。</p>
         <strong>网站例外</strong><p className="adblock-help">关闭本站过滤可加入例外；例外列表支持逐个恢复。</p>
+        <strong>手动屏蔽</strong><p className="adblock-help">点击「选择网页元素」后，在网页上单击区域立即隐藏并保存到本地；下次访问仍然生效。误选可直接撤销，或在列表逐条恢复。</p>
+        <Button variant="secondary" onClick={()=>setView('cosmetics')}>管理手动屏蔽规则</Button>
         <strong>网页异常</strong><p className="adblock-help">更改后请刷新网页；遇到异常可暂时关闭全局保护。</p>
         <Button variant="secondary" onClick={()=>setView('exceptions')}>管理网站例外</Button>
       </CardContent></Card>
