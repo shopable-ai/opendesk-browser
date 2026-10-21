@@ -116,12 +116,12 @@ test('Workflow chat keeps speaker semantics without labels, compact green user b
     read('scripts/preview/build-workflow-react-preview.mjs'),
     read('src/ui/workflow/workflow-view.js')
   ]);
-  assert.match(component,/ConversationTranscript rows=\\{rows\\} showSpeaker=\\{false\\}/);
-  assert.match(css,/\\.workflow-chat-entry\\[data-speaker=user\\]\\{[^}]*var\\(--od-positive\\)/);
-  assert.match(css,/\\.workflow-chat-transcript\\{[^}]*overflow:visible/);
-  assert.doesNotMatch(css,/\\.workflow-chat-transcript\\{[^}]*max-height:210px/);
-  assert.match(css,/\\.workflow-composer:focus-within/);
-  assert.match(builder,/src\\/ui\\/react\\/components\\/conversation\\.tsx/);
-  assert.doesNotMatch(view,/appendChat\\('模型来源'/);
-  assert.doesNotMatch(view,/appendChat\\('执行结果',[^\\n]*execution\\.runId/);
+  assert.ok(component.includes('ConversationTranscript rows={rows} showSpeaker={false}'));
+  assert.ok(css.includes('background:color-mix(in srgb,var(--od-positive) 13%,var(--od-paper))'));
+  assert.ok(css.includes('.workflow-chat-transcript{display:flex;flex-direction:column;gap:6px;min-width:0;max-height:none;overflow:visible}'));
+  assert.ok(!css.includes('max-height:210px'));
+  assert.ok(css.includes('.workflow-composer:focus-within'));
+  assert.ok(builder.includes('src/ui/react/components/conversation.tsx'));
+  assert.ok(!view.includes("appendChat('模型来源'"));
+  assert.ok(!view.includes("execution.runId+' / '+execution.resultId+effectMessage"));
 });
