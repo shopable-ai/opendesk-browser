@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "prompt-shortcuts",
-  "version": "1.1.10",
+  "version": "1.1.11",
   "title": "提示词快捷按钮",
   "description": "提示词快捷按钮：ChatGPT、DeepSeek、Gemini 对话页默认适配，保留草稿，只插入不发送；其他网站可自定义规则。",
   "capabilities": [
@@ -36,5 +36,55 @@
       "trusted/model.js"
     ]
   },
-  "assets": []
+  "assets": [],
+  "initialData": {
+    "library": {
+      "schema": 1,
+      "items": [
+        {
+          "id": "ps_seed_plugin",
+          "label": "插件",
+          "name": "浏览器插件定制",
+          "body": "请帮我整理一份浏览器插件定制开发需求。包括使用场景、核心功能、适用网站、权限要求、交互界面、技术可行性、开发周期和验收标准。如果信息不足，先向我提出关键问题。",
+          "labelAuto": false,
+          "nameAuto": false,
+          "shape": "square",
+          "enabled": true,
+          "order": 0,
+          "appearance": "text",
+          "imageUrl": ""
+        },
+        {
+          "id": "ps_seed_outsource",
+          "label": "外包",
+          "name": "软件定制与外包",
+          "body": "我准备开发一款软件，请帮我梳理项目需求，包括目标用户、核心功能、Web 或 App 平台选择、MVP 范围、技术方案、人员配置、开发周期、预算影响因素和验收标准。请先帮我明确关键需求。",
+          "labelAuto": false,
+          "nameAuto": false,
+          "shape": "square",
+          "enabled": true,
+          "order": 1,
+          "appearance": "text",
+          "imageUrl": ""
+        },
+        {
+          "id": "ps_seed_ai_prompt",
+          "label": "提示",
+          "name": "AI 提示词扩展",
+          "body": "请帮我设计一个 AI 提示词快捷按钮扩展，让用户可以保存、分类和快速使用常用提示词。请给出核心功能、按钮交互、数据存储、网站兼容、权限控制和 MVP 开发建议，并提供 3 个实用提示词示例。",
+          "labelAuto": false,
+          "nameAuto": false,
+          "shape": "square",
+          "enabled": true,
+          "order": 2,
+          "appearance": "text",
+          "imageUrl": ""
+        }
+      ],
+      "settings": {
+        "webButtons": true,
+        "imageSize": "large"
+      }
+    }
+  }
 }

@@ -649,6 +649,7 @@ function render(){
   const list=el('ps-list');list.replaceChildren();
   const enabled=data.items.filter(item=>item.enabled).length;
   el('ps-count').textContent=data.items.length+' 个 · '+enabled+' 个启用';
+  el('ps-seed-hint').hidden=!data.items.some(item=>['ps_seed_plugin','ps_seed_outsource','ps_seed_ai_prompt'].includes(item.id));
   el('ps-empty').hidden=data.items.length>0;
   el('ps-web').checked=data.settings.webButtons;
   el('ps-image-size').value=data.settings.imageSize||'large';

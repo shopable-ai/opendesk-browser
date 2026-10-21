@@ -18,7 +18,7 @@ const V2_CAPABILITIES = Object.freeze([...new Set([...CAPABILITIES,'page.prompts
   'browser.cookies.read','browser.cookies.values','browser.cookies.write','browser.cookies.observe','browser.cookies.clear','browser.storage','browser.proxy.managed',MANAGED_SITE_BUDGET_CAPABILITY,
   ...APPROVED_BROWSER_DIRECT_BINDINGS.flatMap(row=>row.requiredCapabilities)])]);
 const PACKAGE_FIELDS=Object.freeze(['format','id','version','title','description','capabilities','html','css','js','uiRuntime','backgroundPolicy']);
-const V2_FIELDS=Object.freeze([...PACKAGE_FIELDS,'requires','contributes','scripts']);
+const V2_FIELDS=Object.freeze([...PACKAGE_FIELDS,'requires','contributes','scripts','initialData']);
 const MENU_CONTEXTS=Object.freeze(['page','selection','link']);
 const fail = (message,code='E_TOOL_SCHEMA') => { const error=new Error(message);error.code=code;throw error; };
 const plain = value => value!==null && typeof value==='object' && !Array.isArray(value) &&
@@ -86,6 +86,29 @@ export function validateSidebarToolPackage(value) {
       used.add(action.actionId);
     }
   }
+  // Declarative first-install content is inert JSON, never executable package code.
+  // It occupies the existing tool-owned storage namespace and its item limits.
+  if(value.initialData!==undefined){
+    if(!v2||!plain(value.initialData)||!Object.keys(value.initialData).length||
+       Object.keys(value.initialData).length>SIDEBAR_TOOL_DATA_LIMITS.maxKeys)
+      fail('首次安装数据必须是非空的 v2 工具存储对象');
+    let total=0;
+    for(const [key,row] of Object.entries(value.initialData)){
+      if(!/^[a-zA-Z][a-zA-Z0-9._-]{0,59}$/.test(key)||
+         ['constructor','prototype','__proto__'].includes(key))
+        fail('首次安装存储字段无效');
+      let json;
+      try{json=JSON.stringify(row);}catch{fail('首次安装数据必须为可序列化的 JSON');}
+      if(typeof json!=='string'||json==='null')
+        fail('首次安装数据不能是空字段');
+      const size=new TextEncoder().encode(json).byteLength;
+      if(size>SIDEBAR_TOOL_DATA_LIMITS.itemBytes)fail('首次安装单项数据超过 8 KiB');
+      total+=size;
+    }
+    if(new TextEncoder().encode(JSON.stringify(value.initialData)).byteLength>
+       SIDEBAR_TOOL_DATA_LIMITS.totalBytes||total>SIDEBAR_TOOL_DATA_LIMITS.totalBytes)
+      fail('首次安装数据超过 32 KiB');
+  }
   // V2 standalone tools may pin several Classic assets for ordered execution
   // in the existing opaque sandbox. The SHA is revalidated from UTF-8 bytes
   // by the sandbox before any dependency code runs; no remote URL is trusted.
@@ -129,6 +152,14 @@ export function serializeSidebarToolPackage(value){
   // A version-matched v2 contribution must have ONE canonical digest regardless
   // of object-key order; never let storage reordering revoke or inherit grants.
   if(isV2){
+    if(tool.initialData!==undefined){
+      // Chrome Storage may reorder nested object keys; the approved package
+      // hash and install identity must not depend on such key order.
+      const canonical=row=>Array.isArray(row)?row.map(canonical):
+        row&&typeof row==='object'?
+          Object.fromEntries(Object.keys(row).sort().map(key=>[key,canonical(row[key])])):row;
+      stable.initialData=canonical(tool.initialData);
+    }
     if(tool.scripts!==undefined)stable.scripts=tool.scripts.map(asset=>({
       name:asset.name,sha256:asset.sha256,code:asset.code
     }));
