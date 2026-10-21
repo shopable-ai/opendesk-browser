@@ -60,3 +60,25 @@ npm run preview:budget
 5. Prompt Shortcuts 在独立可信准入核实之前继续保留沙箱与 `PROMPT_SHORTCUTS_NOT_IMPLEMENTED`；不可使用 Mock Adapter 假称已完成。
 
 评分：**方案目标每维 ≥95（目标值，不代表实现分数）**；实施后的真实产品 7 项评分统一 `NOT_SCORED`，必须等对应独立运行证据而非源码推断。当前总状态：`WEB_PARTIAL`，禁止声明 `COMPLETE`。
+
+## R1.6 PREVIEW-FIRST 增量执行（2026-10-21，不能覆盖 R1.5 历史）
+
+**定位**：继承上面的唯一原始产品目标。本轮只做原版 Bookmark React App + 共享 TrustedConversationWorkspace 的离线交互预览；不重建 Provider，不扩大 Sandbox 权限，不把离线模拟当正式 Chrome 写入。当前对话内无法以同源码 React 构建作为内嵌可执行应用呈现：`INLINE_PREVIEW_UNAVAILABLE`，不可用截图或静态 Mock 替代。
+
+**已核查并在 main 增量提交：**
+- `examples/sidebar-tools/bookmark-manager/preview/react/src/main.jsx`：预览初次默认展开 Dock，离线 Provider 增加可 Abort 的 800ms 等待以真实操作 Stop；固定句式“模拟 Provider 失败”显式离线报错。真实 Provider、Service 和业务 Executor 不变。
+- `src/ui/react/components/conversation.tsx`：删减冗余离线状态文字，减少 320/360 宽度下的截断。
+- `examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs`：React Chromium 脚本兼容初次已打开的 Dock。
+- `.github/workflows/bookmark-manager-r302-react-preview.yml`：增加 `npm run preview:chrome -- --conversation-r13` 场景和共享 Dock CSS 变更触发。
+- `examples/sidebar-tools/bookmark-manager/preview/react/build-preview.mjs`：只在生成 `dev.html` 时扩充外层控制为 320/360/400/440/960px，不覆盖已批准的旧 `preview/index.html`。
+
+**实际证据与分级：**
+- 历史相同生产 App/Dock 输入对应 GitHub Actions `39577428007` 的 `react-chromium` Job = `PASS`，候选构建文件 `dev.html` SHA-256 为 `b849068f3354c5cf6da234bbe025dc846e7789a7a135014d1245812b65d2c7a9`。原候选 manifest：`reactRuntime:true`、`reactSourceBound:true`、`sourceBound:false`（外壳旧版）、`nativeVerified:false`。不得宣传为正式发布。
+- 本会话隔离 Chromium 实际操作了书签树、编辑未保存草稿、Dock 开关、键盘高度、两轮创建/收藏的真实离线 Service ID 读回、搜索过滤定位、Enter/Shift+Enter、权限撤销、UNKNOWN、模拟读取超时。旧候选五档宽度与深浅主题使用 DOM 观察；可用的 200% 验证为 CSS/布局仿真，不是 Mac Chrome 菜单缩放。
+- 旧 Chromium 测试日志 143 项中有 6 项失败（包括 Source pin 漂移），且独立 standalone package budget 报 `BUDGET_BLOCKED`：`E_TOOL_BUILD: source file exceeds budget: src/main.js`。这些真实阻断不得用局部 React Chromium PASS 掩盖。
+- 当前新增 R1.6 主线 `main` 候选编译与两轮 + Stop 新版截图结果，**必须等待对应 SHA 的 CI/本地 Chromium 成功才可标 PASS**；历史截图不属于本次修复的验证回执。
+- 已知 UX 缺陷：外层独立预览尚不能嵌入当前对话成为源码级交互组件；写入前故障 Fixture 在聊天中仍可能被谨慎归类为 UNKNOWN；正式 Native/Provider/Chrome 实际写入未验证。
+
+**本轮验收账本：** 原业务 React 源码复用 = `SOURCE_CONFIRMED`；历史离线操作 = `PASS_OLD_ARTIFACT`；新候选五档 Chromium/Stop/失败场景 = `AWAIT_CI`；当前聊天内同源码内嵌 = `INLINE_PREVIEW_UNAVAILABLE`；最新正式发布 `preview/index.html` = `NOT_PROMOTED`；正式 Chrome/Provider/Native = `NOT_TESTED`。七维独立评分需绑定同一候选新运行证据；不能虚报 95/100。
+
+**后续**：优先核对最新 `main` 的 `Bookmark Manager R3.2 · Formal React Source and Chromium` 工作流（workflow 文件 `bookmark-manager-r302-react-preview.yml`）；失败先在原源码修复并重跑。保存同源码候选构建 SHA、所有 UI 截图、正常/异常键盘和 Stop 的 CDP 结果，按原审批机制决定是否更新 `preview/index.html`，不得自动提升。真实 Chrome/Native 仅后续专项验收。
