@@ -9,6 +9,7 @@ on:
       - 'src/ui/tool-shell.css'
       - 'src/ui/react/tabs/develop-advanced.tsx'
       - 'src/ui/react/tabs/develop-diagnostics.tsx'
+      - 'src/ui/react/tabs/develop-execution.tsx'
       - 'tests/environment/develop-host-controls.test.mjs'
       - 'src/ui/develop-fields.js'
       - 'src/ui/controller-draft-run.js'
