@@ -5,6 +5,17 @@ description: Engineer Chrome MV3/WXT Background/Content/MAIN, SDK/Host/Authority
 
 # OpenDesk Browser · 扩展管理员多运行环境与 Chrome API 工程
 
+## 仅 Browser 开发者/管理员：插件本体构建与更新
+
+此 Skill 属于**OpenDesk Browser Chrome 插件自身**的工程维护，和普通用户在「扩展」中创建/更新应用是**两个不同的操作主体**。管理员编辑 WXT/MV3/Host/SDK/固定 Content/Background 时复用现有开发流程 [Browser 持续开发与安全刷新](../../../docs/framework/extension-development-r131.zh-CN.md)：
+
+- 本地 `main`、`npm run dev`、稳定 `dist/development` 负责持续编译与安全刷新；已有 watcher 时复用，不重启第二个写入者。
+- 确需发布插件本体才独立执行 `npm run build`、包校验及隔离 Chrome 验收；不能把每次普通应用改动都升级为整包重建。
+- Chrome 的扩展 ID、Profile、Native `allowed_origins` 和用户授权由维护者核验；禁止以删除/重装日常 Chrome 扩展处理应用版本。
+- 受审第一方 `trusted/` 若进入 Browser 固定入口，静态代码变更必须走本体开发部署；`opendesk-sidebar-tool-package` 生成的 JSON 不包含这些特权代码。
+
+普通用户只看 [应用开发与更新](../../../docs/product/extension-app-user-workflow.zh-CN.md)，不需要这些编译指令，也不能为了安装应用取得 Chrome 原生特权。两类更新的完成证据分别记录：应用包 `PACKAGE_READY` / 安装 `INSTALLED_CHROME_NOT_TESTED` 与插件本体 `BUILD_PASS` / `CHROME_NATIVE_NOT_TESTED`，不能相互提升。
+
 ## 触发范围：维护扩展，不是给用户写脚本
 
 当用户要求修改 OpenDesk Browser 自身 Chrome 插件的 `background / service worker`、Content Script、`page / Controller`、浏览器原生 API、权限、消息桥、扩展入口、WXT Manifest、Native 连接或跨运行环境行为时触发。解决常见混淆：**代码在哪里编译、在哪里实际执行、谁检查来源和授权、结果由谁接收**。

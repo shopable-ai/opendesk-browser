@@ -13,6 +13,9 @@ on:
       - '.github/workflows/extension-creation-intake.lock.yml'
       - 'tests/environment/agent-skills-r1.test.mjs'
       - 'scripts/agent-skills-r22-eval.mjs'
+      - 'scripts/app-update.mjs'
+      - 'scripts/app-update-plan.mjs'
+      - 'tests/environment/app-update-workflow.test.mjs'
       - '.github/workflows/agent-skills-governance.yml'
       - 'docs/product/sidebar-ui-spec.zh-CN.md'
       - 'docs/architecture/ui-layout-conventions-r27.zh-CN.md'
@@ -40,6 +43,9 @@ on:
       - '.github/workflows/extension-creation-intake.lock.yml'
       - 'tests/environment/agent-skills-r1.test.mjs'
       - 'scripts/agent-skills-r22-eval.mjs'
+      - 'scripts/app-update.mjs'
+      - 'scripts/app-update-plan.mjs'
+      - 'tests/environment/app-update-workflow.test.mjs'
       - '.github/workflows/agent-skills-governance.yml'
       - 'docs/product/sidebar-ui-spec.zh-CN.md'
       - 'docs/architecture/ui-layout-conventions-r27.zh-CN.md'
@@ -69,6 +75,7 @@ jobs:
       - run: node --test tests/environment/agent-skills-r1.test.mjs
       - run: node --test tests/environment/sidebar-r21-design-system.test.mjs
       - run: node scripts/agent-skills-r22-eval.mjs --self-test
+      - run: node --test tests/environment/app-update-workflow.test.mjs
       - run: node --test tests/environment/browser-tool-creation-workflow-r21.test.mjs
       - name: Install locked dependencies for source check
         run: npm ci --ignore-scripts --no-audit --no-fund

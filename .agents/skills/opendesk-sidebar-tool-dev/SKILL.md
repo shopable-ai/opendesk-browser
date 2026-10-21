@@ -5,6 +5,17 @@ description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI 
 
 # OpenDesk Browser · 扩展中心应用（Sidebar Tool）开发 Skill
 
+## 普通用户的完整操作闭环：描述 → 预览 → 更新
+
+**这是普通用户的入口 Skill。** 用户可以只说「修改阅读目录四个按钮，然后更新我已安装的阅读目录」。AI/Codex 自行定位原应用、复用已确认需求、修改原源码并运行核心交互，用户不必阅读 `src/`、WXT、MV3 或执行 Browser 编译命令。用户端操作说明见 [扩展应用开发与更新](../../../docs/product/extension-app-user-workflow.zh-CN.md)。
+
+- **新建**：用一句话描述功能 → AI 确定应用/网页增强类型与原有权限合同 → 正式源码同源预览和定向修复 → 转打包 Skill 准备版本 → 用户通过「扩展」审阅确认安装 → 打开并验证。
+- **更新已安装应用**：核对旧工具 ID、版本、数据和能力 → 在原项目修复 → 只验证变化 → Codex 调用 `npm run app:update -- <id>` 准备同 ID 正式包 → 用户在「扩展」审阅确认更新 → 重开应用、核对旧数据和功能。**禁止先卸载再安装**。
+- **网页增强**：保留 Page Program 的独立冻结和安装机制，切勿用 Sidebar JSON 假装能装它。
+- **混合型第一方应用**：例如阅读目录侧栏 UI 可独立更新，但其 `trusted/` 网页悬浮目录由 Browser 固定 Content Script 提供；仅更新 JSON 不改变网页脚本。AI 应协调受信功能/Browser 维护者处理实际静态变更；用户仍只接收一个完整的更新结论，不必自行编译插件。
+
+当前 `app:update` 命令自动处理应用版本检查、无扩权的 PATCH 提升、相关 Node 测试、单一正式包晋升与 SHA 核验；**不会调用 Chrome 安装器、绕过安装确认或承诺用户 Mac 的安装已生效**。如需要真实本机验收但无设备条件，明确 `INSTALLED_CHROME_NOT_TESTED`。用户描述中出现「浏览器插件本体编译/重载/打包」时应直接路由管理员 Skill，而非要求普通应用用户学习 WXT。
+
 ## 触发与文档优先级
 
 当用户说「在**扩展**里开发、安装、打开或管理一个**小应用**」或要求 AI/Codex 创建、修改、打包、预览、安装和验收 Side Panel 可安装应用时使用。**「扩展」是一级 Tab，「应用」是行级类型标签**，不是单独 Tab。本 Skill 不负责 Controller Task、Page USER_SCRIPT「网页增强」或第一方可信功能。

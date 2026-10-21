@@ -7,6 +7,21 @@ description: Build, validate, synchronize and install portable OpenDesk Sidebar 
 
 **独立工具交付，不改平台**：本 Skill 只负责已存在的 Sidebar Tool JSON 打包、校验、正式包晋升和安装证据；业务留 `examples/sidebar-tools/<id>/`，使用现有 `scripts/build-sidebar-tool.mjs`。不得把 Page Program/Controller 包转为 Sidebar JSON，也不要求第三方阅读 `src/` Installer 或为单工具创建新 Host。公共 SDK 缺口未经证明先记 `SDK_GAP_NOT_PROVEN`。
 
+## 应用用户无需接触构建命令；Codex 的一条命令
+
+应用创建、修改、预览由 `opendesk-sidebar-tool-dev` 面向用户统筹。交付安装包由本 Skill 执行；**普通用户只看到版本、能力变化、确认安装/更新与结果**，不是让用户执行 `npm run build` 或重装 Browser。见 [普通用户操作流程](../../../docs/product/extension-app-user-workflow.zh-CN.md)。
+
+```bash
+# AI/Codex 在真实仓库 main 上执行；只查版本、身份和变化，不修改文件。
+npm run app:update -- reading-toc --check
+# 应用确有变化时自动处理无扩权 PATCH、运行定向测试并晋升唯一正式 JSON。
+npm run app:update -- reading-toc
+```
+
+命令为 `scripts/app-update.mjs`，只调用**现有** `build-sidebar-tool.mjs`、规范包校验、`installation.js` 版本比较和 `--promote-from`。它不会创建第二个 Installer/Runner，也不会触摸 Browser 的 `dist/development` 或 Chrome Profile。若 React/Vue 构建回执过期，先按应用现有构建脚本预编译，**不允许**用旧 `dist/build-ready.json` 通过门禁。若权限、依赖、托管策略变更而版本未升级，禁止静默 PATCH，要求明确审阅并设置新版本。失败时保留旧正式包，自动版本回滚仅在源文件没有其他并行改动时执行。
+
+命令完成意味着 **`PACKAGE_READY_INSTALL_NOT_TESTED`**：输出真实版本、SHA-256 和正式文件位置。实际安装/升级由 OpenDesk「扩展」的**原有可信安装器**审阅确认；之后再核对旧数据、功能和原生 Chrome 结果。阅读目录网页悬浮层、Stay Focus/AdBlock 的 `trusted/` SW/Content 修改不是这个 JSON 的内容，不得把包升级当成 Browser 可信代码升级。
+
 ## 唯一职责、触发与分工
 
 当任务是「编译应用」「生成可导入 JSON」「把安装包放在工具项目目录」「校验安装包是否与源码一致」「离线分发」「安装/更新验收」时，以本 Skill 为**唯一主 Skill**。常规 UI、交互、业务逻辑的创作以 [工具开发 Skill](../opendesk-sidebar-tool-dev/SKILL.md) 为主；可信 Chrome 服务由 `opendesk-trusted-sidebar-feature`、通用 SDK/Host 由 `opendesk-extension-runtime` 管理；扩展中心的市场列表 UI 由 `opendesk-extension-ui` 管理。Controller/Page Program 的构建和 Authority 归 `opendesk-program-publish`，**不是本格式**。

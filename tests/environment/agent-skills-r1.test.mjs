@@ -47,6 +47,25 @@ test('Skills directory routes every canonical Skill exactly once with valid fron
     assert.match(universe,new RegExp('`'+name+'`[^\\n]*\\*\\*(?:98|96)\\*\\*'),'new Skill must be individually scored '+name);
 });
 
+test('R2 user app delivery and administrator Browser deployment are independent workflows',async()=>{
+  const [index,dev,pack,runtime,guide,cli,manifest]=await Promise.all([
+    read('.agents/skills/README.md'),read('.agents/skills/opendesk-sidebar-tool-dev/SKILL.md'),
+    read('.agents/skills/opendesk-sidebar-tool-package/SKILL.md'),
+    read('.agents/skills/opendesk-extension-runtime/SKILL.md'),
+    read('docs/product/extension-app-user-workflow.zh-CN.md'),
+    read('scripts/app-update.mjs'),read('package.json')
+  ]);
+  assert.match(index,/普通用户.*开发.*预览.*更新/);
+  assert.match(dev,/不要先卸载|禁止先卸载/);
+  assert.match(pack,/PACKAGE_READY_INSTALL_NOT_TESTED/);
+  assert.match(runtime,/管理员/);
+  assert.match(guide,/不需要先卸载/);
+  assert.match(guide,/INSTALLED_CHROME_NOT_TESTED/);
+  assert.match(cli,/promoteSidebarToolPackage/);
+  assert.doesNotMatch(cli,/chrome\.management\.install|chrome\.permissions\.request/);
+  assert.equal(JSON.parse(manifest).scripts['app:update'],'node scripts/app-update.mjs');
+});
+
 test('UI preview Skill routes to the original kit and real package adapter without a second design system',async()=>{
   const [index,skill,contract]=await Promise.all([
     read('.agents/skills/README.md'),
