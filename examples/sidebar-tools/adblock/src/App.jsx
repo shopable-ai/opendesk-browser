@@ -95,18 +95,22 @@ function App(){
     if(locked.current||!current.current)return;
     let preserveCosmeticError=false;
     locked.current=true;reading.current++;
-    const generation=contextRevision.current;
+    const generation=contextRevision.current,expectedHost=siteHost(current.current);
     setBusy(true);setProblem(false);setNotice('');
     try{
       const result=await api.request(operation,payload);
       const checked=await api.request('adblock.status',{});
-      if(!valid(checked)||!alive.current||generation!==contextRevision.current){
+      if(!valid(checked)||!alive.current||generation!==contextRevision.current||
+         !expectedHost||siteHost(result)!==expectedHost||siteHost(checked)!==expectedHost){
         throw Error('当前网页已变化，请重新读取');
       }
-      if(operation==='adblock.cosmetic.pick'&&result?.pickerActive!==true)
-        throw Error('网页未进入选择模式');
+      if(operation==='adblock.cosmetic.pick'&&
+        (result?.pickerActive!==true||!verified(checked)||!checked.enabled||
+         checked.exceptions.includes(expectedHost)))
+        throw Error('网页未进入选择模式或本站保护已暂停');
       if(operation==='adblock.cosmetic.restore'&&
-         checked.cosmeticRules?.some(row=>row.selector===payload.selector))
+         (checked.cosmeticError||!Array.isArray(checked.cosmeticRules)||
+          checked.cosmeticRules.some(row=>row.selector===payload.selector)))
         throw Error('本地规则读回仍存在，撤销结果未确认');
       current.current=checked;setState(checked);
       setNotice(operation==='adblock.cosmetic.pick'
@@ -192,7 +196,7 @@ function App(){
           siteOn?'正在过滤本站匹配的第三方广告请求。':'本站已加入例外列表。'):
           siteCopy[state?.currentSite?.status]||'等待 Chrome 读取当前网站身份。'}</p>
         <div className="adblock-manual-actions">
-          <Button variant="secondary" disabled={siteLocked||Boolean(state?.cosmeticError)}
+          <Button variant="secondary" disabled={!siteOn||loading||busy||Boolean(state?.cosmeticError)}
             onClick={()=>void operateCosmetic('adblock.cosmetic.pick')}
             aria-label="在当前网页中点击选择要隐藏的元素">⊙ 选择网页元素</Button>
           <Button variant="secondary" disabled={!host||loading||busy}

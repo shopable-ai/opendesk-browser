@@ -72,6 +72,7 @@ export function initAdblockCosmetics({api=globalThis.chrome,doc=globalThis.docum
     if(value?.protocol!==ADBLOCK_PAGE_PROTOCOL||sender?.id!==runtimeId||sender.tab)
       return false;
     if(value.type==='invalidate')invalidate();
+    if(value.type==='cancel-pick')picker.cancel('切换标签页后已退出选择模式');
     if(value.type==='start-pick'&&value.host===adblockHost(win.location?.href,{asUrl:true})){
       const ok=latest.enabled===true&&picker.begin();
       reply?.({ok,host:value.host});

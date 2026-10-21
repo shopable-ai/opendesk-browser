@@ -2,7 +2,7 @@
 // Only a real user click on the actual page can send a selector to the existing
 // trusted AdBlock worker. The worker owns storage and installation authority.
 import {ADBLOCK_PAGE_PROTOCOL} from './policy.js';
-import {validCosmeticSelector} from './cosmetic-policy.js';
+import {ADBLOCK_COSMETIC_PICK_TTL_MS,validCosmeticSelector} from './cosmetic-policy.js';
 
 const SAFE_ID=/^[A-Za-z][A-Za-z0-9_-]{0,63}$/;
 const ROOT_ID=/^(?:app|root|__next|__nuxt|main|application|site-root)$/i;
@@ -36,7 +36,7 @@ export function createAdblockElementPicker({
   api=globalThis.chrome,doc=globalThis.document,win=globalThis.window,
   onPending=()=>{},onSaved=()=>{},onUndone=()=>{},onRefresh=()=>{}
 }={}){
-  let picking=false,marker=null,notice=null,hover=null,disposed=false,pending=false;
+  let picking=false,marker=null,notice=null,hover=null,disposed=false,pending=false,pickTimer=null;
   const guard=node=>Boolean(node?.closest?.('['+UI+']'));
   const request=async(type,selector)=>{
     const body={protocol:ADBLOCK_PAGE_PROTOCOL,type};
@@ -63,6 +63,7 @@ export function createAdblockElementPicker({
     }
   }
   function end(){
+    if(pickTimer!==null){win.clearTimeout(pickTimer);pickTimer=null;}
     picking=false;hover=null;marker?.remove();marker=null;
     for(const type of ['pointermove','click','keydown'])doc.removeEventListener(type,event,true);
   }
@@ -163,11 +164,17 @@ export function createAdblockElementPicker({
     if(picking)return true;
     if(!doc.documentElement)return false;
     picking=true;
+    pickTimer=win.setTimeout(()=>{
+      if(!picking||disposed)return;
+      end();void request('cancel').catch(()=>{});
+      message('选择模式已超时，请重新点击「选择网页元素」');
+    },ADBLOCK_COSMETIC_PICK_TTL_MS);
     for(const type of ['pointermove','click','keydown'])
       doc.addEventListener(type,event,true);
     message('选择模式：单击目标区域立即隐藏；Esc 取消');
     return true;
   }
-  return Object.freeze({begin,cancel(){if(picking){end();void request('cancel').catch(()=>{});}},
-    dispose(){disposed=true;end();notice?.remove();notice=null;}});
+  return Object.freeze({begin,cancel(reason=''){if(picking){
+      end();void request('cancel').catch(()=>{});if(reason)message(reason);
+    }},dispose(){disposed=true;end();notice?.remove();notice=null;}});
 }

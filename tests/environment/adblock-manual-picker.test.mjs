@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {ADBLOCK_COSMETIC_STORE,validCosmeticSelector,readCosmeticState,
-  addCosmeticRule,removeCosmeticRule,cosmeticForHost} from '../../examples/sidebar-tools/adblock/trusted/cosmetic-policy.js';
-import {adblockElementSelector} from '../../examples/sidebar-tools/adblock/trusted/picker.js';
+  addCosmeticRule,removeCosmeticRule,cosmeticForHost,hasCosmeticRule,
+  ADBLOCK_COSMETIC_PICK_TTL_MS} from '../../examples/sidebar-tools/adblock/trusted/cosmetic-policy.js';
+import {adblockElementSelector,createAdblockElementPicker} from '../../examples/sidebar-tools/adblock/trusted/picker.js';
 import {createAdblockCosmeticController} from '../../examples/sidebar-tools/adblock/trusted/cosmetic.js';
 import {writeVerifiedLocalValue} from '../../src/ui/sidebar-tools/storage-state.js';
 
@@ -48,7 +49,10 @@ test('host-specific rules deduplicate and undo without affecting other sites',()
   assert.deepEqual(cosmeticForHost(second,'news.example.com'),[{selector:'#promo'}]);
   assert.deepEqual(cosmeticForHost(second,'shop.example.com'),[{selector:'#promo'}]);
   assert.deepEqual(cosmeticForHost(second,'evil.news.example.com'),[]);
+  assert.equal(hasCosmeticRule(second,'news.example.com','#promo'),true);
   const restored=removeCosmeticRule(second,'news.example.com','#promo');
+  assert.equal(hasCosmeticRule(restored,'news.example.com','#promo'),false);
+  assert.equal(hasCosmeticRule(restored,'shop.example.com','#promo'),true);
   assert.deepEqual(cosmeticForHost(restored,'news.example.com'),[]);
   assert.deepEqual(cosmeticForHost(restored,'shop.example.com'),[{selector:'#promo'}]);
   assert.deepEqual(readCosmeticState(second),second);
@@ -95,4 +99,36 @@ test('single existing stylesheet controller supports user rules and disabling re
     rules:[{selector:'#native-ad'}]}),false);
   assert.equal(head.nodes.length,0);
   controller.dispose();
+});
+
+test('picker timeout and tab switch release the capture listeners',async()=>{
+  const listeners=new Map(),timers=new Map(),sent=[];
+  let serial=0;
+  const element=()=>({isConnected:false,style:{},setAttribute(){},
+    replaceChildren(...items){this.children=items;},
+    append(child){this.children.push(child);},
+    remove(){this.isConnected=false;}});
+  const doc={documentElement:{append(node){node.isConnected=true;}},
+    createElement:element,createTextNode:value=>({textContent:value}),
+    addEventListener:(name,handler)=>listeners.set(name,handler),
+    removeEventListener:name=>listeners.delete(name)};
+  const win={setTimeout:(fn,ms)=>{const id=++serial;timers.set(id,{fn,ms});return id;},
+    clearTimeout:id=>timers.delete(id)};
+  const api={runtime:{async sendMessage(value){sent.push(value);return {ok:true};}}};
+  const picker=createAdblockElementPicker({api,doc,win});
+  assert.equal(picker.begin(),true);
+  assert.equal(listeners.size,3);
+  const [deadline]=timers.values();
+  assert.equal(deadline.ms,ADBLOCK_COSMETIC_PICK_TTL_MS);
+  deadline.fn();
+  assert.equal(listeners.size,0);
+  assert.equal(timers.size,0);
+  assert.equal(sent.at(-1).type,'cancel');
+  assert.equal(picker.begin(),true);
+  picker.cancel('标签页已切换');
+  assert.equal(listeners.size,0);
+  assert.equal(timers.size,0);
+  assert.equal(sent.at(-1).type,'cancel');
+  picker.dispose();
+  assert.equal(picker.begin(),false);
 });
