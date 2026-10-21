@@ -64,3 +64,31 @@
 - R40.10.2 额外源码身份缺口与修复：`controller-draft-run.js` 的普通 JS 权限等待此前不具备 ESM/Classic 的最终 generation/source/id/world 校验，Stop 也不能取消纯 JS 等待。现将三种格式收敛到当前 Controller owner 同一个 admission 前 check，保留格式特定的 stale 错误码；纯 JS 等待标为原 preparation（非第二执行槽），Stop 只失效代次，原 Host 一旦提交绝不伪取消。新增 source/script-id/Stop 三个 gate 回归；CI/NODE 仍待本提交实际验证。
 
 - R40.10.2 Developer layout 旧归属断言：精确历史 Node 日志（run `39568063901`，job `119115099038`，最终被取消）报告 `developer-layout.test.mjs` 首项失败，因测试仍在 `script-editor.js` 查找结果展示字面量。生产逻辑实际归 `controller-results-view.js`，由 `onStatus('results', ...)` 回调投影回原主界面；本次仅将测试源码检查改为当前真实结果 owner，原状态文案与主视图语义断言保留。回归结果待本提交 CI，取消的原 job 不能判为 PASS。
+
+## R40.10.2 最新证据整理（WEB_PARTIAL，不替代整体 CI PASS）
+
+### 四项原始 P0 回归（真实 Node 子测试）
+
+GitHub Developer Node run `39568063901`、job `119115099038`，SHA `73dab8a859e1d372a047967dcba0c8f8ec2a9bc3`：
+
+- Controller ESM 编辑取消：`ok 63`。
+- UI 投影 Fixture / Run-Result：`ok 65`。
+- Page 空源码立即禁用 Run：`ok 67`。
+- Page Preview 与 Component Candidate 结果隔离：`ok 136`。
+
+这些是四条真实 TAP 通过记录；**整体 job 随后被取消，因此不是 CI_PASS**。同一旧 job 的 `developer-layout.test.mjs:13` 静态断言仍旧查找旧 `script-editor.js` 业务代码；`0758e2b` 仅更新该断言到原有的 `controller-results-view.js` 所有者，保留 `onStatus('results', ...)` 的实际回调与文案。
+
+GitHub Local run `39568063907`、job `119115102664` 原始日志提供：Local 已打开的安装确认 `ok 39`；迟到安装查询隔离 `ok 64`；Run 禁止被动 Provider/catalog 查询 `ok 65`；Controller ESM 高级检查 `ok 187`；Revision ESM/Classic 提交边界 `ok 193`/`ok 194`。该工作流也不是整体 PASS，因为其它 Page 测试与取消状态仍存在。
+
+### 独立阻塞
+
+- `developer-release-smoke` 在相关提交被 `scripts/bundle-provenance.mjs` 的固定来源守卫阻断，准确文件为 `examples/sidebar-tools/web-markdown-clipper/trusted/policy.js`；属 Web Markdown Clipper 固定来源重签职责，本轮不改弱守卫。
+- `tests/environment/page-installed-programs.test.mjs:646`：对已安装内置 Page 测试预期 `E_BUILTIN_VERSION_UNAVAILABLE`，收到 `E_HASH`；与 CORE 内置资源身份/哈希检查相关，未在本轮 Editor / RunHost 源码路径中修改，需该 Page 身份所有者单独审计，不能放宽 SHA 校验。
+
+### 最新生产结构审计（相对 R40.9 `99ebef86` 至 R40.10.2 `3ee1086`）
+
+- 四个受影响生产文件的真实 GitHub compare：**+87/-51，净 +36 行**（包括 R40.10、R40.10.1、R40.10.2）。`script-editor.js` +49/-29；`controller-draft-run.js` +17/-12；`controller-revision-view.js` +9/-4；`local-project-install-ui.js` +12/-6。
+- `script-editor.js` 当前约 656 源码行；R40.7 以前约 1231 行。当前主入口仍掌握 Candidate 保存/加载与导入协调，**未证明原始七项目标全部完成，亦未证明完整 Developer 生产代码净下降**。
+- 真实减法包括：环境不变的 Run/Result 不再重写 `page-preview-tools` React 静态投影；原 Controller Owner 三份最终 source/generation 校验收敛为一个共享内部 `check()`，并为普通 JS 权限等待补齐 Stop/身份 fence。没有新增 Host/Authority/Context/Manager/Store/EventBus。
+- 四环境所有权：Controller `controller-draft-run` + `controller-revision-view` / `controller-results-view`；Page `page-preview-flow` + `page-dependencies` / `page-candidate-actions`；React/Vue `page-component-remote` 与原 Page 受管预览；Local `local-project` + `local-project-run` / `local-project-install-ui`。总入口继续负责选择、状态投影与共享安全协调。
+- R40.10.2 新增三种普通 Controller JS 权限等待竞态测试与 React 环境静态投影检查；截至本段写入，**最新精确 SHA 仍无完成的全套 Developer/Local CI 结果**，Node 综合及真实 Chrome/Mac Native/Provider 不可宣称 PASS。仍为 `WEB_PARTIAL`，暂不交接 R40.11。
