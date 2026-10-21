@@ -21,7 +21,7 @@ const manifestPattern=/(<script type="application\/json" id="opendesk-preview-ma
 const framePattern=/atob\('[A-Za-z0-9+/=]+'\)/;
 const encoded=x=>Buffer.from(x,'utf8').toString('base64');
 const inputs=[
- join(toolDir,'src/react/App.jsx'),join(here,'src/main.jsx'),join(toolDir,'src/react/style.css'),
+ join(toolDir,'src/react/App.jsx'),join(here,'src/main.jsx'),join(here,'src/preview-shell.css'),join(toolDir,'src/react/style.css'),
  join(here,'vite.config.mjs'),join(here,'package-lock.json'),
  join(root,'src/ui/design-tokens.css'),join(root,'src/ui/design-system.css'),
  join(root,'scripts/preview/bookmark-manager-mock.js'),
@@ -29,6 +29,7 @@ const inputs=[
  join(root,'src/ui/react/components/conversation.tsx'),
  join(root,'src/ui/react/components/conversation-dock.css'),
  join(root,'src/ui/react/components/ui/button.tsx'),
+ join(root,'src/ui/react/tabs/tool-host.tsx'),join(root,'src/ui/react/main.tsx'),
  join(root,'src/ui/conversation/bookmark-actions.js')
 ];
 async function inputFingerprint(){
@@ -66,10 +67,10 @@ async function generate(){
    '<script>globalThis.__opendeskPreviewScenario="success";</script>'+scripts+'</body></html>';
   assert.equal((frame.match(/data:text\/javascript;base64,/g)||[]).length,4);
   const reactFiles={bundle:sha(bundle),css:sha(style),designSystem:sha(designSystem),model:sha(model),service:sha(service),mock:sha(mock),app:sha(app),main:sha(main)};
-  const manifest={...oldManifest,previewBuild:'R1.5 REACT OFFLINE CANDIDATE',
+  const manifest={...oldManifest,previewBuild:'R1.7 COMPACT DOCK REACT OFFLINE CANDIDATE',
    reactRuntime:true,reactFiles,reactFrameSha256:sha(frame),
    previewCandidate:'REACT_SOURCE_BOUND_OFFLINE_MOCK',
-   reactSourceBound:true,reactSourceScope:'production Bookmark App + shared TrustedConversationWorkspace',
+   reactSourceBound:true,reactSourceScope:'production Bookmark App + Workspace + shared header slot; offline frame chrome fixture',
    designStatus:'REACT_APP_SOURCE_BOUND_LEGACY_PREVIEW_SHELL',
    sourceBound:false, // The surrounding legacy offline shell is not the production React Host.
    nativeVerified:false,previewViewportModes:[320,360,400,440,960]};

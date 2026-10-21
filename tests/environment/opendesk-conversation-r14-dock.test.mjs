@@ -34,8 +34,9 @@ test('R1.4 original bookmark workspace and search never disappear with chat',asy
  assert.match(app,/<div className="bm-tools">/);
  assert.match(app,/<div className="bm-workspace">/);
  assert.doesNotMatch(app,/hidden=\{chatOpen\}|className="bm-conversation"|id="bm-conversation"/);
- assert.match(app,/label="对话"[\s\S]*aria-controls="opendesk-conversation-dock"/);
- assert.match(app,/onClick=\{dock\?\.toggle\}/);
+ assert.doesNotMatch(app,/label="对话"[\s\S]*aria-controls="opendesk-conversation-dock"/);
+ assert.match(await read('src/ui/react/tabs/tool-host.tsx'),/TrustedConversationHeaderSlot/);
+ assert.match(await read('src/ui/react/components/conversation.tsx'),/createPortal\(/);
  assert.match(css,/\.od-conversation-business\{min-height:0;min-width:0;flex:1/);
  assert.match(css,/\.od-conversation-dock\{flex:none/);
  assert.match(css,/\.od-conversation-log\{min-height:0;flex:1 1 auto;overflow:auto/);
@@ -90,7 +91,7 @@ test('R1.4 preview reuses production App and shared Dock and labels Mock honestl
   read(bookmark+'preview/react/build-preview.mjs'),
   read('src/ui/react/main.tsx')]);
  assert.match(preview,/from '\.\.\/\.\.\/\.\.\/src\/react\/App\.jsx'/);
- assert.match(preview,/TrustedConversationWorkspace controller=\{conversation\}/);
+ assert.match(preview,/TrustedConversationWorkspace controller=\{conversation\} headerTarget=\{headerTarget\}/);
  assert.match(preview,/<App runtime=\{\{conversation\}\} mode="preview" dock=\{dock\}\/>/);
  assert.match(preview,/offline/);
  assert.match(preview,/离线演示（非真实 AI）/);

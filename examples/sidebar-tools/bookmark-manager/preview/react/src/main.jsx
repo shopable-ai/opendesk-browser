@@ -1,9 +1,10 @@
 import React from 'react';
 import {createRoot} from 'react-dom/client';
-import App,{bookmarkConversationSamples} from '../../../src/react/App.jsx';
-import {TrustedConversationWorkspace} from '../../../../../../src/ui/react/components/conversation.tsx';
+import App from '../../../src/react/App.jsx';
+import {TrustedConversationWorkspace,TrustedConversationHeaderSlot} from '../../../../../../src/ui/react/components/conversation.tsx';
 import '../../../../../../src/ui/react/components/conversation-dock.css';
 import '../../../src/react/style.css';
+import './preview-shell.css';
 
 // OFFLINE PREVIEW ONLY. Fixed phrases return bounded intents; the actual
 // React App and bookmark adapter execute against the existing isolated SDK mock.
@@ -55,10 +56,27 @@ const conversation=Object.freeze({
 const container=document.getElementById('tool-root');
 if(!container)throw Error('E_BOOKMARK_REACT_ROOT_MISSING');
 const root=createRoot(container);
-root.render(<TrustedConversationWorkspace controller={conversation}
- title="书签对话" samples={bookmarkConversationSamples} offline
- placeholder="例如：创建文件夹并收藏当前网页" resultLabel="模拟书签读回（非 Chrome）"
- renderBusiness={dock=><App runtime={{conversation}} mode="preview" dock={dock}/>}/>);
+// The surrounding ToolHost chrome is an isolated offline fixture. The real
+// App, shared Workspace, frame slot and Composer are imported from production.
+function OfflineTrustedToolHost(){
+ const [headerTarget,setHeaderTarget]=React.useState(null);
+ return <div className="od-preview-trusted-host">
+  <header className="sidebar-tool-view-head od-toolbar od-page-head" aria-label="框架工具标题栏（离线预览）">
+   <strong className="od-page-title">书签管理</strong>
+   <TrustedConversationHeaderSlot ref={setHeaderTarget}/>
+   <button type="button" className="sidebar-tool-icon-action od-icon-button"
+    aria-label="卸载当前工具（离线预览禁用）" title="预览中不可卸载" disabled>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5"/></svg>
+   </button>
+  </header>
+  <div className="od-preview-trusted-frame">
+   <TrustedConversationWorkspace controller={conversation} headerTarget={headerTarget}
+    title="书签对话" placeholder="描述要完成的操作"
+    renderBusiness={dock=><App runtime={{conversation}} mode="preview" dock={dock}/>}/>
+  </div>
+ </div>;
+}
+root.render(<OfflineTrustedToolHost/>);
 Object.defineProperty(globalThis,'__BookmarkReactPreview',{value:Object.freeze({
  version:'R3.0.5',renderer:'react-dom/client',offlineMock:true,nativeVerified:false,
  unmount:()=>root.unmount()

@@ -130,7 +130,8 @@ test('R1.5 React reveal respects filter/manual navigation; Provider lifecycle re
  assert.match(app,/function locateAiResult\(\)/);
  assert.match(app,/beforeWrite:authorization\?\.assertWrite/);
  assert.match(app,/authorization\?\.release\?\.\(\)/);
- assert.match(app,/disabled=\{!dock\} onClick=\{dock\?\.toggle\}/);
+ assert.doesNotMatch(app,/disabled=\{!dock\} onClick=\{dock\?\.toggle\}/);
+  assert.match(dock,/className="sidebar-tool-icon-action od-icon-button od-conversation-frame-trigger"/);
  assert.match(workflow,/api\.permissions\.onRemoved\?\.addListener\(removedPermissions\)/);
  assert.match(workflow,/invalidateBookmarkConversation\(/);
  assert.match(workflow,/api\.permissions\.contains\(grantPattern\?/);

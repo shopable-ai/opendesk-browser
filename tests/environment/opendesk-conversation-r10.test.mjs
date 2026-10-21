@@ -144,7 +144,8 @@ test('R1.1 preview uses the production App but distinctly labels offline AI',asy
  const source=readFileSync(new URL('../../examples/sidebar-tools/bookmark-manager/preview/react/src/main.jsx',import.meta.url),'utf8');
  assert.match(source,/import App from '\.\.\/\.\.\/\.\.\/src\/react\/App\.jsx'/);
  assert.match(source,/离线演示（非真实 AI）/);
- assert.match(source,/root\.render\(<TrustedConversationWorkspace controller=\{conversation\}/);
+ assert.match(source,/root\.render\(<OfflineTrustedToolHost\/>\)/);
+  assert.match(source,/TrustedConversationWorkspace controller=\{conversation\} headerTarget=\{headerTarget\}/);
  assert.match(source,/<App runtime=\{\{conversation\}\} mode="preview" dock=\{dock\}\/>/);
  assert.doesNotMatch(source,/fetch\(|chrome\.bookmarks/);
 });

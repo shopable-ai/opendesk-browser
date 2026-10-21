@@ -3,6 +3,7 @@ import * as React from 'react';
 import {createPortal} from 'react-dom';
 import {TimeReviewSettings,StayFocusSettings,StayFocusQuickAdd,AiAccessSettings} from './trusted-settings.tsx';
 import {UninstallDialog} from './tools.tsx';
+import {TrustedConversationHeaderSlot} from '../components/conversation.tsx';
 
 const h=React.createElement.bind(React);
 const ToolContext = React.createContext(null);
@@ -216,6 +217,7 @@ export function ToolHost({view}) {
 <ToolField as="strong" id="sidebar-tool-title" className="od-page-title">
 
 </ToolField>
+<TrustedConversationHeaderSlot/>
 <ToolField as="button" type="button" id="sidebar-tool-open-tab" className="sidebar-tool-icon-action od-icon-button" title="在新标签页打开" aria-label="在新标签页打开当前工具" disabled={true}>
 <svg viewBox="0 0 24 24" aria-hidden="true">
 <path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6">
