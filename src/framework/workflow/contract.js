@@ -73,7 +73,11 @@ export function validateWorkflow(value) {
         ['http:','https:'].includes(source.protocol) &&
         !source.username && !source.password && !source.hash &&
         !destination.username && !destination.password && !destination.hash &&
-        source.origin === value.siteOrigin && destination.href === g.url &&
+        source.origin === value.siteOrigin && source.href.length <= 500 &&
+        [...source.searchParams].every(([key,val])=>
+          ['q','query','keyword','search','s'].includes(key) &&
+          /^[\p{L}\p{N} _.-]{1,120}$/u.test(val)) &&
+        destination.href === g.url &&
         destination.origin === g.origin && g.url.length <= 320 &&
         !/(?:login|account|checkout|payment|delete|logout|auth|token|reset|upload|send|order)/i.test(destination.pathname) &&
         [...destination.searchParams].every(([key,val]) =>
