@@ -21,8 +21,11 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
     return agentTargetFromSnapshot(currentPageTarget.capture());
   }
   const sameJson=(a,b)=>agentCanonical(a??null)===agentCanonical(b??null);
-  async function handle(request) {
+  async function handle(request, {beforeStart} = {}) {
     await requireReady();
+    // Local UI supplies a synchronous final admission check out of band. It is
+    // never accepted from Native RPC params, and cannot yield before dispatch.
+    const admit=()=>{if(disposed)throw new AgentBridgeError('E_HOST_NOT_READY');beforeStart?.();};
     const {method, params = {}} = request;
     if (method === 'target.current') {
       const target = await freshTarget();
@@ -67,14 +70,17 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
       if(p.sourceHash!==await sha256Utf8(sourceUtf8)||p.sourceBytes!==new TextEncoder().encode(sourceUtf8).length)
         throw new AgentBridgeError('E_DEV_HASH');
       await currentPageTarget.revalidate({...current,status:'available'});
+      admit();
       const previewId=crypto.randomUUID(),row={kind:'page-userscript',previewId,sourceHash:p.sourceHash,target:current,state:'preview-pending',durable:false,
         ...(p.managedUI?{managedUI:true,bindingId:p.bindingId}:{})};
       previews.set(previewId,row);
       // One existing USER_SCRIPT preview promise; this adapter neither starts a
       // Controller nor evaluates code. Page identities never masquerade as runId.
-      Promise.resolve().then(()=>client.request('previewPageScript',{sourceUtf8,entryFormat:p.entryFormat,lockId:null,
+      // Invoke in the same synchronous turn as admission. The Promise executor
+      // also captures a synchronous transport error in the original receipt chain.
+      new Promise(resolve=>resolve(client.request('previewPageScript',{sourceUtf8,entryFormat:p.entryFormat,lockId:null,
         ...(p.bindingId?{managedUI:{previewId,bindingId:p.bindingId,enabled:p.managedUI===true}}:{}),
-        target:{tabId:current.tabId,frameId:0,documentId:current.documentId,expectedUrl:current.url,expectedWindowId:current.windowId}}))
+        target:{tabId:current.tabId,frameId:0,documentId:current.documentId,expectedUrl:current.url,expectedWindowId:current.windowId}})))
         .then(result=>{
           if(!result||result.sourceHash!==row.sourceHash||result.world!=='USER_SCRIPT'||result.documentId!==current.documentId||result.tabId!==current.tabId)
             throw new AgentBridgeError('E_DEV_HASH',undefined,'OUTCOME_UNKNOWN');
@@ -107,7 +113,6 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
       // Native callbacks MUST NOT call permissions.request. Users grant hosts in Chrome UI.
       if (!await api.permissions.contains({origins:[permissionPattern(current.url)]}))
         throw new AgentBridgeError('E_PERMISSION_REQUIRED', 'Grant this website in the Sidebar first');
-      await currentPageTarget.revalidate({...current,status:'available'});
       let source;
       if (params.source.kind === 'draft' && typeof params.source.sourceUtf8 === 'string' && params.source.sourceUtf8.trim()) {
         source = {kind:'draft',sourceUtf8:params.source.sourceUtf8};
@@ -124,6 +129,8 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
       const deadlineMs = params.deadlineMs === undefined ? 30000 : params.deadlineMs;
       if (!Number.isSafeInteger(deadlineMs) || deadlineMs < 1000 || deadlineMs > 120000)
         throw new AgentBridgeError('E_SCHEMA', 'deadlineMs must be 1000..120000');
+      await currentPageTarget.revalidate({...current,status:'available'});
+      admit();
       const claim = await host.start({source,params:params.params,
         target:{mode:'borrowed',tabId:current.tabId,frameId:0,documentId:current.documentId,
           expectedUrl:current.url,expectedWindowId:current.windowId},

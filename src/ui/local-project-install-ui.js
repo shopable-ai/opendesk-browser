@@ -291,18 +291,23 @@ export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget
   }
   async function reconcileUnknown(){
     if(!unknown||!unknownReview||reconciling||disposed)return;
-    const pending=unknownReview;reconciling=true;
+    const pending=unknownReview,local=project();
+    const same=()=>!disposed&&unknownReview===pending&&project()===local&&local?.active()&&
+      local.selectedBindingId()===pending.bindingId&&
+      (local.selectedProject()?.sourceId||'')===pending.projectSourceId;
+    if(!same())return;
+    reconciling=true;
     let confirmedResult=null;
     say('正在读取已安装版本；不会重新运行或安装…','pending');
     reveal();update();onState();
     try{
       const observed=await readLocalInstallOutcome({client,review:pending,
         version:pending.attemptedVersion});
-      if(disposed||unknownReview!==pending)return;
+      if(!same())return;
       if(observed.state==='confirmed'){
         installed={...observed,sourceHash:pending.sourceHash,inputHash:pending.inputHash,exact:true};
-        rememberInstalled(installed,project());
-        unknown=false;unknownReview=null;project()?.rememberInstallAttempt?.(null);
+        rememberInstalled(installed,local);
+        unknown=false;unknownReview=null;local.rememberInstallAttempt?.(null);
         // Invalidate passive reads started before durable reconciliation. Their
         // delayed completion must not relabel or downgrade this confirmed install.
         ++lookupToken;lookupKey='';checking=false;hide();
@@ -318,7 +323,7 @@ export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget
         patchDeveloperField(view,panel,{hidden:false});
       }
     }catch(error){
-      if(!disposed)say(message(error)+'；只读核对失败，尚未重试任何安装或验证。','unknown');
+      if(same())say(message(error)+'；只读核对失败，尚未重试任何安装或验证。','unknown');
     }finally{reconciling=false;if(!disposed){update();onState();}}
     // Completion observers see the settled Save state, not the transient
     // "checking" label. No additional install or verification is dispatched.
@@ -402,7 +407,10 @@ export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget
     if(!event?.isTrusted||isBusy())return;
     if(unknown&&unknownReview){void reconcileUnknown();return;}
     if(!review||installing||!current())return;
-    const selected=review;
+    const selected=review,local=project();
+    const selection={bindingId:local?.selectedBindingId(),sourceId:local?.selectedProject()?.sourceId||''};
+    const sameSelection=()=>project()===local&&local?.selectedBindingId()===selection.bindingId&&
+      (local.selectedProject()?.sourceId||'')===selection.sourceId;
     // Freeze user-reviewed labels and version synchronously with the real click:
     // editing fields while an asynchronous permission prompt is open cannot
     // swap the Task version or title after approval.
@@ -420,11 +428,24 @@ export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget
     // Permission request is made synchronously from a trusted confirmation click.
     const permission=consent.confirm(event,permissionRequest(selected.planned));
     installing=true;update();onState();say('正在验证已确认的固定源码和安装基线…','pending');
-    let dispatched=false,attemptedManifestHash=null;
+    let dispatched=false,attempt=null;
+    const markDispatched=async binding=>{
+      if(dispatched)return;
+      attempt={...selected.planned,attemptId:crypto.randomUUID(),attemptedVersion:approvedVersion,
+        attemptedManifestHash:null,attemptedTitle:approvedTitle};
+      // The existing selection owner retains this recovery hint even when the
+      // UI closes before an effect acknowledgement. It grants no install rights.
+      await local.rememberInstallAttempt?.(attempt,{strict:true});
+      await currentPageTarget.revalidate(selected.target);local.assertCaptured(binding);
+      if(disposed||review!==selected||!sameSelection()||!current()||
+          local.previousInstallAttempt?.()?.attemptId!==attempt.attemptId)
+        throw issue('E_DEV_CONFLICT','安装确认已失效');
+      dispatched=true;
+    };
     void (async()=>{
       await permission;
-      if(disposed||review!==selected)throw issue('E_DEV_CONFLICT','安装确认已失效');
-      const local=project(),binding=local.capture(),source=await local.resolve(binding);
+      if(disposed||review!==selected||!sameSelection())throw issue('E_DEV_CONFLICT','安装确认已失效');
+      const binding=local.capture(),source=await local.resolve(binding);
       assertLocalInstallVersion(selected.planned,source,binding);
       if((local.selectedProject()?.sourceId||'')!==selected.planned.projectSourceId)
         throw issue('E_DEV_CONFLICT','原本审阅的项目来源身份已变化，请重新运行');
@@ -434,7 +455,7 @@ export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget
         if(typeof retireManagedPreview!=='function'||!selected.previewId)
           throw issue('E_UI_RETIRE_REQUIRED','需要原本地预览的清理入口，才能正式验证固定版本');
         say('正在清理本次运行的原受管预览；确认回执后再正式验证固定源码…','pending');
-        dispatched=true;
+        await markDispatched(binding);
         const retired=await retireManagedPreview({source,binding,target:selected.target,previewId:selected.previewId});
         if(retired?.previewId!==selected.previewId||retired.sourceHash!==source.sourceHash||
           retired.state!=='preview-retired'||retired.receipt?.ok!==true||
@@ -446,25 +467,28 @@ export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget
       }
       // The following workflow may persist a Candidate or replay Page Verify.
       // Only errors before this boundary are guaranteed not to have an effect.
-      dispatched=true;
+      if(!dispatched)await markDispatched(binding);
       const result=await commitLocalProjectInstallation({client,review:selected.planned,source,
         target:selected.target,title:approvedTitle,version:approvedVersion,
-        onCandidate:value=>{attemptedManifestHash=value;}});
-      if(disposed)return;
+        onCandidate:value=>{
+          attempt={...attempt,attemptedManifestHash:value};
+          return local.rememberInstallAttempt?.(attempt,{expectedAttemptId:attempt.attemptId,strict:true});
+        }});
+      if(disposed||!sameSelection())return;
       installed={...result,sourceHash:source.sourceHash,inputHash:source.inputHash,exact:true};
-      local.rememberInstallAttempt?.(null);
+      local.rememberInstallAttempt?.(null,{expectedAttemptId:attempt.attemptId});
       rememberInstalled(installed,local);
       hide();say('已安装固定版本；修改本地源码不会自动更新已安装内容。','success');
       onInstalled({kind:result.kind,id:result.id,version:result.version});
     })().catch(error=>{
-      if(disposed)return;
+      if(!dispatched&&attempt)local.rememberInstallAttempt?.(null,{expectedAttemptId:attempt.attemptId});
+      if(disposed||!sameSelection())return;
       // No installed version can change before the first managed-preview
       // retirement or Candidate submission. Pre-dispatch identity, navigation
       // and permission failures are retryable, not phantom UNKNOWN receipts.
       unknown=dispatched;
-      unknownReview=unknown?{...selected.planned,attemptedVersion:approvedVersion,
-        attemptedManifestHash,attemptedTitle:approvedTitle}:null;
-      project()?.rememberInstallAttempt?.(unknownReview);
+      unknownReview=unknown?attempt:null;
+      if(dispatched)local.rememberInstallAttempt?.(unknownReview,{expectedAttemptId:attempt.attemptId});
       review=null;patchDeveloperField(view,confirmButton,{disabled:true});
       say(unknown
         ?message(error)+'。原有安装保留；先在正式列表只读核对持久状态，禁止盲目重试。'

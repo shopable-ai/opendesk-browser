@@ -3,13 +3,199 @@ import {developerTestFields} from './develop-view-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createLocalProjectView} from '../../src/ui/local-project.js';
+import {createLocalProjectRun} from '../../src/ui/local-project-run.js';
+import {createNativeAgentHostAdapter} from '../../src/native-agent/host-adapter.js';
+import {sha256Utf8} from '../../src/scripting/user-scripts/page-program-package.js';
+import {createLocalInstallUI} from '../../src/ui/local-project-install-ui.js';
+import {createControllerResultsView} from '../../src/ui/controller-results-view.js';
+import {encodeValue} from '../../src/platform/page-port/codec.js';
 
 // Component evidence only; these events do not claim trusted browser input.
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
-const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
+const deferred=()=>{let resolve,reject;const promise=new Promise((done,fail)=>{resolve=done;reject=fail;});return {promise,resolve,reject};};
 const project={bindingId:'local-a',name:'TOC',sourceId:'source-a',runtimeKind:'page-userscript',preparation:{state:'ready'}};
 const workspace={workspaceId:'workspace-00000000-0000-0000-0000-000000000001',name:'prompt-shortcuts',sourceId:'source-'+'a'.repeat(24),access:'read-write',leaseEpoch:'lease-'+'a'.repeat(24)};
+// Exercise the real selection owner -> Local Run -> Native adapter circuit.
+// Only external Chrome/RunHost effects and their async scheduling are simulated.
+for(const kind of ['controller','page-userscript']){
+  for(const boundary of ['target','permission','hash']){
+    for(const change of ['selection','epoch','preparation','close','unchanged']){
+      test(`Local final admission rejects ${kind} ${change} during adapter ${boundary}`,async t=>{
+        const f=fixture(t,{connected:true}),entered=deferred(),release=deferred();
+        const bindingId='local-'+'a'.repeat(20),otherBinding='local-'+'c'.repeat(20);
+        const sourceUtf8='async function main(){return 1;}';
+        const source={bindingId,providerEpoch:'epoch-a',projectId:'project-a',runtimeKind:kind,
+          entryFormat:'async-main',sourceUtf8,sourceHash:await sha256Utf8(sourceUtf8),
+          sourceBytes:new TextEncoder().encode(sourceUtf8).length,inputHash:'b'.repeat(64),
+          siteOrigins:['https://example.com']};
+        let preparation={state:'ready',sourceHash:source.sourceHash},closed=false,hashes=0,permissions=0;
+        const catalog=()=>[{...project,bindingId,runtimeKind:kind,preparation},
+          {...project,bindingId:otherBinding,sourceId:'source-c',runtimeKind:kind}];
+        f.setProjects(catalog());f.find('local-project-refresh').fire('click');await tick();
+        f.find('local-project-select').value=bindingId;f.find('local-project-select').fire('change');
+        f.find('local-project-params').value='{}';
+        f.client.requestLocalProject=async method=>method==='project.resolve'?structuredClone(source):
+          method==='projects.list'?{providerEpoch:'epoch-a',projects:catalog()}:
+          method==='workspaces.list'?fileCatalog([]):{connected:true,nativeConnected:true,providerEpoch:'epoch-a'};
+        const target={status:'available',tabId:11,windowId:3,frameId:0,documentId:'doc-a',
+          url:'https://example.com/form',origin:'https://example.com'};
+        const pause=async()=>{entered.resolve();await release.promise;};
+        const currentPageTarget={ready:Promise.resolve(),capture:()=>({...target}),
+          refresh:async()=>{if(boundary==='target')await pause();},revalidate:async()=>{}};
+        const api={permissions:{contains:async()=>{if(++permissions===2&&boundary==='permission')await pause();return true;}}};
+        if(boundary==='hash'){
+          const digest=crypto.subtle.digest.bind(crypto.subtle);
+          t.mock.method(crypto.subtle,'digest',async(...args)=>{if(++hashes===2)await pause();return digest(...args);});
+        }
+        const effects=[],errors=[];
+        const client={ready:Promise.resolve(),registration:{registrationId:'registration-a'},
+          subscribeNativeAgent:()=>()=>{},request:async method=>{effects.push(method);throw Error('unexpected Page dispatch');}};
+        const host={currentRun:null,start:async()=>{effects.push('run.start');throw Error('unexpected Controller dispatch');},
+          controller:{snapshotControllerRun:async()=>({slotAvailable:true})}};
+        const adapter=createNativeAgentHostAdapter({client,host,api,currentPageTarget});
+        const owner=createLocalProjectRun({api,host,view:f.developerView,currentPageTarget,localProject:f.view,localAdapter:adapter,
+          localInstaller:{reset(){},succeeded(){}},controllerResults:{projection:{slotAvailable:true},renderTask(){},read:async()=>{},setProjection(){},clearProjection(){}},
+          getCurrentPageState:()=>target,isDisposed:()=>closed,isBlocked:()=>false,display(){},fail:error=>errors.push(error),
+          hideUserScriptsRecovery(){},beginResult(){},update(){},setResultText(){},setResultKind(){}});
+        t.after(()=>{release.resolve();owner.dispose();adapter.dispose();});
+        owner.run({isTrusted:true});await entered.promise;
+        if(change==='selection'){f.find('local-project-select').value=otherBinding;f.find('local-project-select').fire('change');}
+        if(change==='epoch'){f.setState({connected:true,nativeConnected:true,providerEpoch:'epoch-b'});f.notify({connected:true,nativeConnected:true,providerEpoch:'epoch-b'});}
+        if(change==='preparation'){preparation={state:'updating'};f.setProjects(catalog());f.notify({connected:true,nativeConnected:true,providerEpoch:'epoch-a'});await tick();}
+        if(change==='close')closed=true;
+        release.resolve();
+        for(let i=0;i<300&&owner.running;i++)await new Promise(resolve=>setTimeout(resolve,2));
+        assert.equal(owner.running,false,'original Local operation must settle');
+        if(change==='unchanged')assert.deepEqual(effects,[kind==='controller'?'run.start':'previewPageScript'],
+          'unchanged Local draft must still reach the original execution owner');
+        else {
+          assert.deepEqual(effects,[],'stale Local operation must never reach RunHost or USER_SCRIPT dispatch');
+          if(change!=='close')assert.ok(errors.some(error=>error.code==='E_DEV_CONFLICT'),JSON.stringify(errors));
+        }
+      });
+    }
+  }
+}
 const fileCatalog=workspaces=>({workspaces,sessionId:'files-session-'+'a'.repeat(24)});
+for(const previousController of [false,true]){
+test(`LocalPage claim displays its captured target through completion: previousController=${previousController}`,async t=>{
+  const bindingId='local-'+'a'.repeat(20),sourceUtf8='async function main(){return document.title;}';
+  const source={bindingId,providerEpoch:'epoch-a',projectId:'project-a',runtimeKind:'page-userscript',
+    entryFormat:'async-main',sourceUtf8,sourceHash:await sha256Utf8(sourceUtf8),
+    sourceBytes:new TextEncoder().encode(sourceUtf8).length,inputHash:'b'.repeat(64),siteOrigins:['https://example.com']};
+  const f=fixture(t,{connected:true,saved:{bindingId,sourceId:project.sourceId,localMode:true,paramsText:'{}'}});
+  f.setProjects([{...project,bindingId,preparation:{state:'ready',sourceHash:source.sourceHash}}]);await tick();
+  const resolve=f.client.requestLocalProject;
+  f.client.requestLocalProject=(method,args)=>method==='project.resolve'?Promise.resolve(structuredClone(source)):resolve(method,args);
+  const captured={status:'available',tabId:11,windowId:3,frameId:0,documentId:'doc-local-page',
+    url:'https://example.com/local-page',origin:'https://example.com'};
+  const entered=deferred(),receipt=deferred(),errors=[],succeeded=[];
+  const currentPageTarget={ready:Promise.resolve(),capture:()=>({...captured}),refresh:async()=>{},revalidate:async()=>{}};
+  const client={ready:Promise.resolve(),registration:{registrationId:'registration-a'},subscribeNativeAgent:()=>()=>{},
+    request:async(method,args)=>{
+      assert.equal(method,'previewPageScript');assert.equal(args.target.documentId,captured.documentId);
+      entered.resolve();return receipt.promise;
+    }};
+  const api={permissions:{contains:async()=>true}};
+  const host={currentRun:null,controller:{snapshotControllerRun:async()=>({slotAvailable:true,runs:[],results:[]})}};
+  const controllerResults=createControllerResultsView({host,view:f.developerView,isDisposed:()=>false});
+  controllerResults.setProjection({slotAvailable:true});
+  if(previousController)controllerResults.renderTask({runId:'previous-controller',state:'completed',
+    target:{tabId:91,frameId:0,documentId:'doc-old',url:'https://old.example/'}});
+  const adapter=createNativeAgentHostAdapter({client,host,api,currentPageTarget});
+  const owner=createLocalProjectRun({api,host,view:f.developerView,currentPageTarget,localProject:f.view,localAdapter:adapter,
+    localInstaller:{reset(){},succeeded:value=>succeeded.push(value)},controllerResults,
+    getCurrentPageState:()=>captured,isDisposed:()=>false,isBlocked:()=>false,display(){},fail:error=>errors.push(error),
+    hideUserScriptsRecovery(){},beginResult(){},update(){},setResultText(){},setResultKind(){}});
+  t.after(()=>{receipt.resolve();owner.dispose();adapter.dispose();});
+  owner.run({isTrusted:true});await entered.promise;await tick();
+  assert.match(f.find('script-task-id').textContent,/^previewId：/);
+  const assertTarget=()=>{
+    assert.equal(f.find('script-running-target').textContent,'运行目标：'+captured.url);
+    assert.deepEqual(JSON.parse(f.find('script-running-target').title),{
+      tabId:captured.tabId,frameId:0,documentId:captured.documentId,url:captured.url});
+  };
+  assertTarget();assert.equal(owner.running,true,'target is visible while the admitted Page receipt is pending');
+  receipt.resolve({state:'preview-evaluated',sourceHash:source.sourceHash,world:'USER_SCRIPT',
+    documentId:captured.documentId,tabId:captured.tabId,resultText:'LocalPage success'});
+  for(let i=0;i<250&&owner.running;i++)await new Promise(resolve=>setTimeout(resolve,2));
+  assert.equal(owner.running,false);assert.deepEqual(errors,[]);assert.equal(succeeded.length,1);assertTarget();
+});
+}
+for(const change of ['epoch','selection','mode','preparation','new-owner']){
+test(`Local running Controller fences its original execution on session change: ${change}`,async t=>{
+  const f=fixture(t,{connected:true,saved:{bindingId:project.bindingId,sourceId:project.sourceId,localMode:true,paramsText:'{}'}});
+  f.setProjects([{...project,runtimeKind:'controller'},{...project,bindingId:'local-b',sourceId:'source-b'}]);await tick();
+  const sourceUtf8='async function main(){return 1;}',source={bindingId:project.bindingId,providerEpoch:'epoch-a',projectId:'project-a',
+    runtimeKind:'controller',entryFormat:'async-main',sourceUtf8,sourceHash:await sha256Utf8(sourceUtf8),
+    sourceBytes:new TextEncoder().encode(sourceUtf8).length,inputHash:'b'.repeat(64),siteOrigins:['https://example.com']};
+  const request=f.client.requestLocalProject;
+  f.client.requestLocalProject=(method,args)=>method==='project.resolve'?Promise.resolve(structuredClone(source)):request(method,args);
+  const target={status:'available',tabId:11,windowId:3,frameId:0,documentId:'doc-a',url:'https://example.com/form',origin:'https://example.com'};
+  const currentPageTarget={ready:Promise.resolve(),capture:()=>({...target}),refresh:async()=>{},revalidate:async()=>{}};
+  const completion=deferred(),stops=[],api={permissions:{contains:async()=>true}};
+  const host={currentRun:null,completion:completion.promise,
+    start:async()=>{host.currentRun='original-run';return {runId:'original-run',state:'running'};},
+    stop:async value=>{stops.push(value);host.currentRun=null;completion.resolve({error:{code:'E_CANCELLED',message:'Original execution stopped'}});},
+    controller:{snapshotControllerRun:async()=>({slotAvailable:!host.currentRun})}};
+  const client={ready:Promise.resolve(),registration:{registrationId:'registration-a'},subscribeNativeAgent:()=>()=>{}};
+  const adapter=createNativeAgentHostAdapter({client,host,api,currentPageTarget});
+  const owner=createLocalProjectRun({api,host,view:f.developerView,currentPageTarget,localProject:f.view,localAdapter:adapter,
+    localInstaller:{reset(){},succeeded(){}},controllerResults:{projection:{slotAvailable:true},renderTask(){},read:async()=>{},setProjection(){},clearProjection(){}},
+    getCurrentPageState:()=>target,isDisposed:()=>false,isBlocked:()=>false,display(){},fail(){},hideUserScriptsRecovery(){},beginResult(){},update(){},setResultText(){},setResultKind(){}});
+  t.after(()=>{completion.resolve({error:{code:'E_CANCELLED'}});owner.dispose();adapter.dispose();});
+  owner.run({isTrusted:true});for(let i=0;i<300&&!owner.ownedRunId;i++)await new Promise(resolve=>setTimeout(resolve,2));
+  assert.equal(owner.ownedRunId,'original-run');
+  if(change==='selection'){f.find('local-project-select').value='local-b';f.find('local-project-select').fire('change');}
+  else if(change==='mode'){f.find('local-project-mode').checked=false;f.find('local-project-mode').fire('change');}
+  else if(change==='preparation'){
+    f.setProjects([{...project,runtimeKind:'controller',preparation:{state:'updating'}}]);
+    f.notify({connected:true,nativeConnected:true,providerEpoch:'epoch-a'});await tick();
+  }else{
+    if(change==='new-owner')host.currentRun='new-run';
+    f.setState({connected:true,nativeConnected:true,providerEpoch:'epoch-b'});
+    f.notify({connected:true,nativeConnected:true,providerEpoch:'epoch-b'});
+  }
+  // The original Script Editor onChange calls this existing lifecycle entry.
+  owner.refreshResultValidity();await tick();
+  assert.deepEqual(stops,['epoch','selection','mode'].includes(change)?[{runId:'original-run',controller:true}]:[],
+    'revoke the captured execution only; frozen source updates and another owner must remain untouched');
+});
+}
+test('Local rejected preparation keeps its error while Controller history remains explicitly readable',async t=>{
+  const f=fixture(t,{connected:true,saved:{bindingId:project.bindingId,sourceId:project.sourceId,localMode:true,paramsText:'{}'}});
+  f.setProjects([{...project,runtimeKind:'controller'},{...project,bindingId:'local-b',sourceId:'source-b'}]);await tick();
+  const entered=deferred(),reply=deferred(),request=f.client.requestLocalProject;
+  f.client.requestLocalProject=(method,args)=>method==='project.resolve'?(entered.resolve(),reply.promise):request(method,args);
+  const target={status:'available',tabId:11,windowId:3,frameId:0,documentId:'doc-a',url:'https://example.com/form',origin:'https://example.com'};
+  const oldRun={runId:'previous-controller-A',state:'completed',retirementState:'released',sourceKind:'draft',
+    revision:{kind:'draft',sourceHash:'a'.repeat(64)},target};
+  const snapshot={run:oldRun,runs:[oldRun],results:[{runId:oldRun.runId,resultId:'result-a',state:'completed',
+    revision:oldRun.revision,outcome:{ok:true,valueWire:encodeValue({scenario:'A_OLD_VALUE'})}}],downloads:[],slotAvailable:true};
+  const host={currentRun:null,controller:{snapshotControllerRun:async()=>snapshot}};
+  let owner,text='',kind='';
+  const setResultText=value=>{text=value;},setResultKind=value=>{kind=value;};
+  const controllerResults=createControllerResultsView({host,view:f.developerView,resultDownloads:{showResults(){}},
+    isDisposed:()=>false,isRunning:()=>owner?.running||false,getOwnedRunId:()=>null,isLocalPageResultCurrent:()=>false,
+    onUpdate(){},onStatus(){},setResultText,setResultKind,displayCopyResult(){},showRecovery(){},hideRecovery(){}});
+  await controllerResults.read(oldRun.runId);assert.match(text,/A_OLD_VALUE/);
+  owner=createLocalProjectRun({api:{permissions:{contains:async()=>true}},host,view:f.developerView,
+    currentPageTarget:{capture:()=>target,revalidate:async()=>{}},localProject:f.view,
+    localAdapter:{handle:async()=>{throw Error('rejected preparation must not dispatch');}},
+    localInstaller:{reset(){},succeeded(){}},controllerResults,getCurrentPageState:()=>target,
+    isDisposed:()=>false,isBlocked:()=>false,display(){},fail(){},hideUserScriptsRecovery(){},beginResult(){},update(){},setResultText,setResultKind});
+  const sourceUtf8='async function main(){return 1;}',source={bindingId:project.bindingId,providerEpoch:'epoch-a',
+    projectId:'project-a',runtimeKind:'controller',entryFormat:'async-main',sourceUtf8,sourceHash:await sha256Utf8(sourceUtf8),
+    sourceBytes:new TextEncoder().encode(sourceUtf8).length,inputHash:'b'.repeat(64),siteOrigins:['https://example.com']};
+  t.after(()=>{reply.resolve(source);owner.dispose();});
+  owner.run({isTrusted:true});await entered.promise;
+  f.find('local-project-select').value='local-b';f.find('local-project-select').fire('change');reply.resolve(source);
+  for(let i=0;i<300&&owner.running;i++)await new Promise(resolve=>setTimeout(resolve,2));
+  assert.equal(owner.running,false);assert.match(text,/E_DEV_CONFLICT/);assert.equal(kind,'本地项目 · 未启动');
+  assert.equal(f.find('script-task-id').textContent,'尚未运行');
+  await controllerResults.read(oldRun.runId,{reveal:true});assert.match(text,/A_OLD_VALUE/);
+  assert.equal(f.find('script-task-id').textContent,'runId：'+oldRun.runId);
+});
 function fixture(t,{nativeConnected=true,connected=false,saved,files=[]}={}){
   const developerView=createDeveloperView(),find=developerTestFields(developerView);
   find('local-project-mode').checked=true;
@@ -20,13 +206,256 @@ function fixture(t,{nativeConnected=true,connected=false,saved,files=[]}={}){
   const api={runtime:{getURL:path=>'chrome-extension://test/'+path,openOptionsPage:async()=>opened.push('options')},tabs:{create:async value=>opened.push(value)},storage:{local:{get:async()=>saved?{'opendesk.local-project.selection.v1':saved}:{},set:async value=>{writes.push(value);}}}};
   const view=createLocalProjectView({client,api,view:developerView,onChange:()=>changes++,preparationDelayMs:0});
   t.after(()=>view.dispose());
-  return {view,find,calls,writes,opened,client,setState:value=>{state=value;},setProjects:value=>{projects=value;},setFiles:value=>{files=value;},notify:value=>listener(value),
+  return {view,developerView,api,find,calls,writes,opened,client,setState:value=>{state=value;},setProjects:value=>{projects=value;},setFiles:value=>{files=value;},notify:value=>listener(value),
     activity:()=>{
       const snapshot=developerView.getSnapshot();
       if(snapshot!==observedSnapshot){observedSnapshot=snapshot;publications++;}
       return {publications,changes,writes:writes.length};
     }};
 }
+for(const storageOutcome of ['resolve','reject','navigate','selection','close','new-B-attempt','new-A-attempt']){
+test(`Local installation awaits real selection storage before effects: ${storageOutcome}`,async t=>{
+  const f=fixture(t,{connected:true,saved:{bindingId:project.bindingId,sourceId:project.sourceId,localMode:true,paramsText:'{}'}});
+  f.setProjects([{...project,runtimeKind:'controller'},
+    {...project,bindingId:'local-b',sourceId:'source-b',runtimeKind:'controller'}]);await tick();
+  const binding=f.view.capture(),sourceUtf8='async function main(){return 1;}';
+  const source={bindingId:binding.bindingId,providerEpoch:binding.providerEpoch,projectId:'project-a',
+    runtimeKind:'controller',entryFormat:'async-main',sourceUtf8,sourceHash:await sha256Utf8(sourceUtf8),
+    sourceBytes:new TextEncoder().encode(sourceUtf8).length,inputHash:'b'.repeat(64),siteOrigins:['https://example.com']};
+  const request=f.client.requestLocalProject;
+  f.client.requestLocalProject=(method,args)=>method==='project.resolve'?Promise.resolve(structuredClone(source)):request(method,args);
+  const target={status:'available',tabId:11,windowId:3,frameId:0,documentId:'doc-a',url:'https://example.com/form'};
+  const gate=deferred(),entered=deferred(),storageGate=deferred(),storageEntered=deferred(),methods=[];
+  let candidate,installed=null,held=false;
+  const save=f.api.storage.local.set;
+  f.api.storage.local.set=async value=>{
+    if(value['opendesk.local-project.selection.v1'].lastUnknownInstall&&!held){
+      held=true;storageEntered.resolve();await storageGate.promise;
+    }
+    return save(value);
+  };
+  f.client.request=async(method,args)=>{
+    methods.push(method);
+    if(method==='listTaskCatalog')return {catalog:candidate?[candidate]:[],installed:installed?[installed]:[]};
+    if(method==='importTaskPackage'){
+      assert.ok(f.writes.at(-1)['opendesk.local-project.selection.v1'].lastUnknownInstall,
+        'the real selection owner completes recovery storage before any Candidate mutation');
+      candidate={...args.package.manifest,manifest:args.package.manifest,manifestHash:args.package.manifestHash,stage:'candidate'};
+      return candidate;
+    }
+    if(method==='verifyTaskCandidate'){candidate.stage='verified';return candidate;}
+    if(method==='makeTaskAvailable'){candidate.stage='available';return candidate;}
+    if(method==='installTask'){
+      installed={taskId:args.taskId,version:args.version,manifestHash:args.manifestHash};
+      entered.resolve();await gate.promise;
+      throw Object.assign(new Error('closed before ACK'),{code:'E_EFFECT_UNKNOWN'});
+    }
+    throw Error('unexpected mutation '+method);
+  };
+  const options={client:f.client,api:{permissions:{contains:async()=>true}},currentPageTarget:{snapshot:target,revalidate:async()=>{}}};
+  const ui=createLocalInstallUI({...options,view:f.developerView,getProject:()=>f.view});
+  t.after(()=>{storageGate.resolve();gate.resolve();ui.dispose();});
+  ui.succeeded({source,binding,target,runId:'run-a'});await ui.prepare();ui.confirm({isTrusted:true});await storageEntered.promise;
+  await tick();
+  assert.ok(methods.every(method=>method==='listTaskCatalog'),'pending storage must block every Candidate/Verify/Install effect');
+  if(storageOutcome==='navigate')options.currentPageTarget.snapshot={...target,documentId:'doc-b'};
+  if(['selection','new-B-attempt'].includes(storageOutcome)){
+    f.find('local-project-select').value='local-b';f.find('local-project-select').fire('change');ui.reset();
+  }
+  if(storageOutcome==='close')ui.dispose();
+  let replacement=null;
+  if(['new-B-attempt','new-A-attempt'].includes(storageOutcome)){
+    replacement={...f.view.previousInstallAttempt(),attemptId:'new-attempt-'+storageOutcome,
+      bindingId:f.view.selectedBindingId(),projectSourceId:f.view.selectedProject().sourceId};
+    await f.view.rememberInstallAttempt(replacement);
+  }
+  if(storageOutcome==='reject')storageGate.reject(Object.assign(new Error('disk write rejected'),{code:'E_STORAGE_WRITE'}));
+  else storageGate.resolve();
+  if(storageOutcome!=='resolve'){
+    for(let i=0;i<8;i++)await tick();
+    assert.ok(methods.every(method=>method==='listTaskCatalog'),'failed write or changed selection/target/owner must have zero effects');
+    if(storageOutcome==='reject'){
+      assert.match(f.find('local-install-status').textContent,/E_STORAGE_WRITE/);
+      assert.equal(f.view.previousInstallAttempt(),null);
+      assert.notEqual(ui.saveLabel(),'核对安装状态','a failed write cannot create an unknown installation');
+    }
+    assert.deepEqual(f.view.previousInstallAttempt(),replacement,'only the exact undispatched hint may be cleared');
+    assert.deepEqual(f.writes.at(-1)['opendesk.local-project.selection.v1'].lastUnknownInstall,replacement,
+      'late storage completion must preserve a newer hint');
+    f.find('local-project-select').value=project.bindingId;f.find('local-project-select').fire('change');
+    const returned=createLocalInstallUI({...options,view:f.developerView,getProject:()=>f.view});t.after(()=>returned.dispose());
+    returned.reset();
+    if(storageOutcome==='new-A-attempt')assert.equal(returned.saveLabel(),'核对安装状态');
+    else{
+      assert.notEqual(returned.saveLabel(),'核对安装状态','returning to A must not invent UNKNOWN before any submission');
+      options.currentPageTarget.snapshot=target;
+      returned.succeeded({source,binding:f.view.capture(),target,runId:'run-after-return'});await returned.prepare();
+      assert.equal(f.find('local-install-confirm').disabled,false,'A can be reviewed again without replaying any installation');
+    }
+    return;
+  }
+  await entered.promise;
+  const saved=structuredClone(f.writes.at(-1)['opendesk.local-project.selection.v1']);
+  assert.match(saved.lastUnknownInstall.attemptedManifestHash,/^[a-f0-9]{64}$/);
+  ui.dispose();f.view.dispose();gate.resolve();await tick();
+  const restored=fixture(t,{connected:true,saved});restored.setProjects([{...project,runtimeKind:'controller'}]);await tick();
+  const reopened=createLocalInstallUI({...options,view:restored.developerView,getProject:()=>restored.view});t.after(()=>reopened.dispose());
+  reopened.reset();assert.equal(reopened.saveLabel(),'核对安装状态');
+  const count=methods.length;await reopened.prepare();
+  assert.deepEqual(methods.slice(count),['listTaskCatalog'],'recovery reads the original ledger without replay');
+  assert.equal(restored.view.previousInstallAttempt(),null);
+  assert.equal(restored.view.previousInstallation().bindingId,binding.bindingId);
+});
+}
+for(const kind of ['controller','page-userscript'])for(const lostAck of [false,true,'new-B-attempt']){
+test(`dispatched ${kind} preserves A recovery hash across B selection: lostAck=${lostAck}`,async t=>{
+  const f=fixture(t,{connected:true,saved:{bindingId:project.bindingId,sourceId:project.sourceId,localMode:true,paramsText:'{}'}});
+  f.setProjects([{...project,runtimeKind:kind},{...project,bindingId:'local-b',sourceId:'source-b',runtimeKind:kind}]);await tick();
+  const binding=f.view.capture(),sourceUtf8=kind==='controller'?'async function main(){return 1;}':'async function main(){return document.title;}';
+  const source={bindingId:binding.bindingId,providerEpoch:binding.providerEpoch,projectId:'project-a',
+    runtimeKind:kind,entryFormat:'async-main',sourceUtf8,sourceHash:await sha256Utf8(sourceUtf8),
+    sourceBytes:new TextEncoder().encode(sourceUtf8).length,inputHash:'b'.repeat(64),siteOrigins:['https://example.com']};
+  if(kind==='page-userscript')source.pageRules={matches:['https://example.com/*'],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'};
+  const resolve=f.client.requestLocalProject;
+  f.client.requestLocalProject=(method,args)=>method==='project.resolve'?Promise.resolve(structuredClone(source)):resolve(method,args);
+  const gate=deferred(),entered=deferred(),methods=[];
+  let held=false,candidate=null,installed=null;
+  f.client.request=async(method,args)=>{
+    methods.push(method);
+    if(['listTaskCatalog','listPagePrograms'].includes(method)){
+      if(!held&&f.view.previousInstallAttempt()){
+        held=true;entered.resolve();await gate.promise;
+      }
+      return {catalog:candidate?[candidate]:[],installed:installed?[installed]:[]};
+    }
+    if(method==='importTaskPackage'){
+      candidate={...args.package.manifest,manifest:args.package.manifest,manifestHash:args.package.manifestHash,stage:'candidate'};
+      return candidate;
+    }
+    if(method==='importPageCandidate'){
+      candidate={programId:args.programId,revision:args.revision,sourceHash:source.sourceHash,
+        manifestHash:'d'.repeat(64),pageRules:args.pageRules,stage:'Candidate'};return candidate;
+    }
+    if(method==='verifyTaskCandidate'){candidate.stage='verified';return candidate;}
+    if(method==='verifyPageCandidate'){candidate.stage='Verified';return candidate;}
+    if(method==='makeTaskAvailable'){candidate.stage='available';return candidate;}
+    if(method==='makePageAvailable'){candidate.stage='Available';return candidate;}
+    if(method==='installTask'||method==='installPageProgram'){
+      assert.equal(f.view.selectedBindingId(),'local-b','the original operation completes while B is selected');
+      installed=kind==='controller'?{taskId:args.taskId,version:args.version,manifestHash:args.manifestHash}:
+        {programId:args.programId,revision:args.revision,sourceHash:source.sourceHash,manifestHash:args.manifestHash,
+          pageRules:candidate.pageRules,title:args.title,nativeState:'registered',enabled:true,authorization:{status:'active'}};
+      if(lostAck===true)throw Object.assign(new Error('installation ACK lost'),{code:'E_EFFECT_UNKNOWN'});
+      return installed;
+    }
+    throw Error('unexpected '+method);
+  };
+  const target={status:'available',tabId:11,windowId:3,frameId:0,documentId:'doc-a',url:'https://example.com/form'};
+  const options={client:f.client,api:{permissions:{contains:async()=>true}},currentPageTarget:{snapshot:target,revalidate:async()=>{}}};
+  const ui=createLocalInstallUI({...options,view:f.developerView,getProject:()=>f.view});t.after(()=>{gate.resolve();ui.dispose();});
+  ui.succeeded({source,binding,target,runId:'run-a'});await ui.prepare();ui.confirm({isTrusted:true});await entered.promise;
+  assert.equal(f.view.previousInstallAttempt().attemptedManifestHash,null);
+  f.find('local-project-select').value='local-b';f.find('local-project-select').fire('change');ui.reset();
+  let replacement=null;
+  if(lostAck==='new-B-attempt'){
+    replacement={...f.view.previousInstallAttempt(),attemptId:'new-dispatched-hint',
+      bindingId:'local-b',projectSourceId:'source-b'};
+    await f.view.rememberInstallAttempt(replacement);
+  }
+  gate.resolve();
+  for(let i=0;i<8;i++)await tick();
+  assert.ok(installed,'A installation reached its original authority');
+  assert.equal(f.view.previousInstallation(),null,'A completion cannot install a reference under B');
+  const pending=f.view.previousInstallAttempt();
+  if(replacement){
+    assert.deepEqual(pending,replacement,'late A hash and completion cannot replace a newer B hint');
+    assert.deepEqual(f.writes.at(-1)['opendesk.local-project.selection.v1'].lastUnknownInstall,replacement);
+    f.find('local-project-select').value=project.bindingId;f.find('local-project-select').fire('change');ui.reset();
+    assert.notEqual(ui.saveLabel(),'核对安装状态','B hint cannot become A recovery authority');
+    return;
+  }
+  assert.equal(pending.bindingId,binding.bindingId);assert.equal(pending.projectSourceId,project.sourceId);
+  assert.equal(pending.attemptedManifestHash,installed.manifestHash,'the original A hint must retain its exact candidate hash');
+  assert.equal(f.writes.at(-1)['opendesk.local-project.selection.v1'].lastUnknownInstall.attemptedManifestHash,installed.manifestHash);
+  f.find('local-project-select').value=project.bindingId;f.find('local-project-select').fire('change');ui.reset();
+  assert.equal(ui.saveLabel(),'核对安装状态');
+  const count=methods.length;await ui.prepare();
+  assert.deepEqual(methods.slice(count),[kind==='controller'?'listTaskCatalog':'listPagePrograms'],'return to A only reads the original ledger');
+  assert.equal(f.view.previousInstallAttempt(),null);assert.equal(f.view.previousInstallation().bindingId,binding.bindingId);
+});
+}
+for(const kind of ['controller','page-userscript'])for(const outcome of ['resolve','reject']){
+test(`Local ${kind} awaits strict candidate hash storage: ${outcome}`,async t=>{
+  const f=fixture(t,{connected:true});f.setProjects([{...project,runtimeKind:kind}]);await tick();
+  const binding=f.view.capture(),sourceUtf8=kind==='controller'?'async function main(){return 1;}':'async function main(){return document.title;}';
+  const source={bindingId:binding.bindingId,providerEpoch:binding.providerEpoch,projectId:'project-a',runtimeKind:kind,
+    entryFormat:'async-main',sourceUtf8,sourceHash:await sha256Utf8(sourceUtf8),sourceBytes:new TextEncoder().encode(sourceUtf8).length,
+    inputHash:'b'.repeat(64),siteOrigins:['https://example.com']};
+  if(kind==='page-userscript')source.pageRules={matches:['https://example.com/*'],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'};
+  const resolve=f.client.requestLocalProject;
+  f.client.requestLocalProject=(method,args)=>method==='project.resolve'?Promise.resolve(structuredClone(source)):resolve(method,args);
+  const hashGate=deferred(),hashEntered=deferred(),methods=[];
+  const save=f.api.storage.local.set;
+  f.api.storage.local.set=async value=>{
+    const hint=value['opendesk.local-project.selection.v1'].lastUnknownInstall;
+    if(hint?.attemptedManifestHash){hashEntered.resolve(hint.attemptedManifestHash);await hashGate.promise;}
+    return save(value);
+  };
+  let candidate=null,installed=null;
+  f.client.request=async(method,args)=>{
+    methods.push(method);
+    if(['listTaskCatalog','listPagePrograms'].includes(method))return {catalog:candidate?[candidate]:[],installed:installed?[installed]:[]};
+    if(method==='importTaskPackage'){
+      candidate={...args.package.manifest,manifest:args.package.manifest,manifestHash:args.package.manifestHash,stage:'candidate'};return candidate;
+    }
+    if(method==='importPageCandidate'){
+      candidate={programId:args.programId,revision:args.revision,sourceHash:source.sourceHash,
+        manifestHash:'d'.repeat(64),pageRules:args.pageRules,stage:'Candidate'};return candidate;
+    }
+    if(method==='verifyTaskCandidate'){candidate.stage='verified';return candidate;}
+    if(method==='verifyPageCandidate'){candidate.stage='Verified';return candidate;}
+    if(method==='makeTaskAvailable'){candidate.stage='available';return candidate;}
+    if(method==='makePageAvailable'){candidate.stage='Available';return candidate;}
+    if(method==='installTask'||method==='installPageProgram'){
+      installed=kind==='controller'?{taskId:args.taskId,version:args.version,manifestHash:args.manifestHash}:
+        {programId:args.programId,revision:args.revision,sourceHash:source.sourceHash,manifestHash:args.manifestHash,
+          pageRules:candidate.pageRules,title:args.title,nativeState:'registered',enabled:true,authorization:{status:'active'}};
+      return installed;
+    }
+    throw Error('unexpected '+method);
+  };
+  const target={status:'available',tabId:11,windowId:3,frameId:0,documentId:'doc-a',url:'https://example.com/form'};
+  const ui=createLocalInstallUI({client:f.client,api:{permissions:{contains:async()=>true}},view:f.developerView,
+    currentPageTarget:{snapshot:target,revalidate:async()=>{}},getProject:()=>f.view});
+  t.after(()=>{hashGate.resolve();ui.dispose();});
+  ui.succeeded({source,binding,target,runId:'run-a'});await ui.prepare();ui.confirm({isTrusted:true});
+  const attemptedHash=await hashEntered.promise;await tick();
+  const hints=()=>f.writes.map(row=>row['opendesk.local-project.selection.v1'].lastUnknownInstall);
+  assert.ok(hints().some(hint=>hint&&hint.attemptedManifestHash===null),'the original null hint must already be persisted');
+  assert.equal(hints().some(hint=>hint?.attemptedManifestHash===attemptedHash),false,'the exact hash write is genuinely pending');
+  const allowed=kind==='controller'?['listTaskCatalog']:['listPagePrograms','importPageCandidate'];
+  assert.ok(methods.every(method=>allowed.includes(method)),
+    'pending exact-hash storage blocks Controller import and Page Verify/Install');
+  if(outcome==='reject')hashGate.reject(Object.assign(new Error('candidate hash write rejected'),{code:'E_STORAGE_WRITE'}));
+  else hashGate.resolve();
+  for(let i=0;i<50&&(outcome==='resolve'?!installed:!f.find('local-install-status').textContent.includes('E_STORAGE_WRITE'));i++)await tick();
+  if(outcome==='reject'){
+    assert.match(f.find('local-install-status').textContent,/E_STORAGE_WRITE/);
+    assert.equal(installed,null,'failed exact-hash persistence cannot install');
+    assert.ok(methods.every(method=>allowed.includes(method)),'failed storage cannot cross the next mutation boundary');
+  }else{
+    assert.ok(hints().some(hint=>hint?.attemptedManifestHash===attemptedHash));
+    assert.equal(installed?.manifestHash,attemptedHash);
+  }
+});
+}
+test('Local attempt storage only propagates write failures for strict saves',async t=>{
+  const f=fixture(t,{connected:true});await tick();
+  const error=Object.assign(new Error('disk write rejected'),{code:'E_STORAGE_WRITE'});
+  f.api.storage.local.set=async()=>{throw error;};
+  await assert.doesNotReject(f.view.rememberInstallAttempt(null));
+  await assert.rejects(f.view.rememberInstallAttempt(null,{strict:true}),error);
+});
 test('file-only catalog stays metadata-only and opens only through a trusted explicit action',async t=>{
   const f=fixture(t,{files:[workspace]});await tick();
   const binding='file-workspace:'+workspace.workspaceId;

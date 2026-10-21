@@ -113,7 +113,8 @@ async function fixture(t,{targetAvailable=true,slotAvailable=true,files=[workspa
     assert.ok(hostRequests.every(row=>['listPagePrograms','listTaskCatalog','inspectPageDependencies'].includes(row.method)),
       'without confirmation only read-only catalogs and dependency inspection are allowed: '+JSON.stringify(hostRequests));
   });
-  editor.connectLocalProjects({handle:async request=>{
+  editor.connectLocalProjects({handle:async (request,options={})=>{
+    options.beforeStart?.();
     effects.push(request.method);trace.push('adapter.'+request.method);dispatches.push(request);
     if(handle)return handle(request,{host,projection});
     if(request.method==='run.start'){

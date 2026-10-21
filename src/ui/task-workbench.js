@@ -582,7 +582,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     running=true;activeRunId=null;runOwnerKey=identity(chosen);runOwnerTitle=chosen.title||chosen.taskId;
     ui('task-result-panel').hidden=true;update();
     setTaskNotice(runOwnerKey,'正在检查访问权限并验证目标网页');
-    return (async()=>{
+    const pendingRun=(async()=>{
       await permission;
       if(disposed)throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭'};
       await currentPageTarget.revalidate(captured);
@@ -624,6 +624,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       }catch(error){fail(error);}
       renderTaskStatus();update();
     });
+    return agentIntent?pendingRun:undefined;
   }
   async function verify() {
     const row=candidate();

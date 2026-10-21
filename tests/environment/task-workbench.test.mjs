@@ -123,6 +123,25 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
   return {ui,developerView,myView:workbench.myView,field,action,get,doc,page,host,client,view,starts,permissions,stops,catalogOpens,draftMessages,importedDrafts,api,catalogState,click};
 };
 
+test('ordinary Task Run returns immediately while the agent receives its exact completion',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  assert.equal(f.action('taskRunClick'),undefined);
+  await tick();await tick();
+  assert.equal(f.starts.length,1);
+  f.host.complete({first:true});await tick();await tick();await tick();
+  const installed=f.catalogState.installed[0];
+  const pending=f.ui.runInstalledForAgent({taskId:installed.taskId,
+    params:{name:'Agent'},event:{isTrusted:true},expected:{...installed}});
+  assert.equal(typeof pending?.then,'function');
+  await tick();await tick();
+  assert.equal(f.starts.length,2);
+  f.host.complete({agent:true});
+  const result=await pending;
+  assert.equal(result.runId,'run-task-1');
+  assert.equal(result.taskId,installed.taskId);
+  assert.equal(result.installationId,installed.installationId);
+});
+
 test('legacy first-run migration refreshes the installed identity before the next explicit Run',async t=>{
   const f=make();t.after(()=>f.ui.dispose());
   delete f.catalogState.installed[0].installationId;

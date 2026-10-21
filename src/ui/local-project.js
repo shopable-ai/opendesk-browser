@@ -172,13 +172,19 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
     if(selection&&!selected())appendDeveloperOptions(view,select,[{label:sourceLabel({name:savedName,sourceId:savedSourceId,bindingId:selection},{offline:true}),value:selection}]);
     patchDeveloperField(view,select,{value:selection});
   }
-  function persist(){
+  async function persist({strict=false}={}){
     const row=selected();
     if(row){savedName=sourceName(row.name);savedSourceId=row.sourceId||'';}
     const paramsText=find('local-project-params').value;
-    if(new TextEncoder().encode(paramsText).length>32768)return;
-    api.storage?.local?.set({[KEY]:{bindingId:selection,name:savedName,sourceId:savedSourceId,
-      paramsText,localMode:active(),lastVerifiedProof,lastInstalledRef,lastUnknownInstall}}).catch(()=>{});
+    if(new TextEncoder().encode(paramsText).length>32768){
+      if(strict)throw failure('E_STORAGE_WRITE','本地参数过长，无法保存安装恢复状态');
+      return;
+    }
+    try{
+      if(strict&&!api.storage?.local?.set)throw failure('E_STORAGE_WRITE','本地安装恢复存储不可用');
+      await api.storage?.local?.set({[KEY]:{bindingId:selection,name:savedName,sourceId:savedSourceId,
+        paramsText,localMode:active(),lastVerifiedProof,lastInstalledRef,lastUnknownInstall}});
+    }catch(error){if(strict)throw error;}
   }
   async function readWorkspaces(){
     try{
@@ -386,7 +392,13 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
     rememberVerification:proof=>{lastVerifiedProof=proof?structuredClone(proof):null;persist();},
     previousInstallation:()=>lastInstalledRef?structuredClone(lastInstalledRef):null,
     previousInstallAttempt:()=>lastUnknownInstall?structuredClone(lastUnknownInstall):null,
-    rememberInstallAttempt:attempt=>{lastUnknownInstall=attempt?structuredClone(attempt):null;persist();},
+    rememberInstallAttempt:(attempt,options)=>{
+      // A late completion may only replace its own hint. Persist the current
+      // owner snapshot even on a mismatch, after any older pending write.
+      if(!options?.expectedAttemptId||lastUnknownInstall?.attemptId===options.expectedAttemptId)
+        lastUnknownInstall=attempt?structuredClone(attempt):null;
+      return persist(options);
+    },
     rememberInstallation:ref=>{
       if(!ref||lastInstalledRef?.id===ref.id&&lastInstalledRef?.kind===ref.kind&&
           lastInstalledRef?.bindingId===ref.bindingId&&lastInstalledRef?.sourceId===ref.sourceId)return;

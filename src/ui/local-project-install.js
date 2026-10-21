@@ -144,7 +144,7 @@ export async function commitLocalProjectInstallation({client,review,source,targe
     let row=await client.request('importPageCandidate',prepared.request);
     if(!SHA.test(row?.manifestHash))throw fail('E_PAGE_VERIFICATION','Page 候选缺少确定的 manifest 身份');
     const attemptedHash=row.manifestHash;
-    onCandidate(attemptedHash);
+    await onCandidate(attemptedHash);
     if(row.stage==='Candidate'){
       // Formal Page Verify executes the frozen code once more. The review UI must
       // explicitly warn and require an actual trusted confirmation beforehand.
@@ -177,7 +177,7 @@ export async function commitLocalProjectInstallation({client,review,source,targe
     entryFormat:'async-main',program:{revision:1,sourceHash:review.sourceHash},
     paramsSchema:source.paramsSchema||emptyParams()};
   const pkg=await createTaskPackage(manifest,source.sourceUtf8);
-  onCandidate(pkg.manifestHash);
+  await onCandidate(pkg.manifestHash);
   let candidate=await client.request('importTaskPackage',{package:pkg});
   if(candidate.stage==='candidate')candidate=await client.request('verifyTaskCandidate',{
     taskId:review.id,version,runId:review.runId});

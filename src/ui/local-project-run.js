@@ -13,7 +13,7 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
   setResultText,setResultKind}){
   const find=id=>view.fields[id],copyResult=find('script-copy-result');
   const pageTechnicalPanel=find('page-preview-technical-panel'),pageTechnical=find('page-preview-technical');
-  let ownedRunId=null,ownedManagedPreview=null,localPageResult=null,localPollTimer=null,finishLocalPoll=null,running=false,stopping=false;
+  let ownedRunId=null,ownedRunBinding=null,ownedManagedPreview=null,localPageResult=null,localPollTimer=null,finishLocalPoll=null,running=false,stopping=false;
   async function retireLocalPreviewForInstall({source,binding,target,previewId}) {
     const owned=ownedManagedPreview;
     if(!owned||owned.previewId!==previewId||owned.sourceHash!==source.sourceHash||
@@ -52,6 +52,14 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
   }
 
   function refreshResultValidity(){
+    if(ownedRunBinding&&host.currentRun===ownedRunId&&!stopping&&
+      (!localProject.active()||localProject.selectedBindingId()!==ownedRunBinding.bindingId||
+       localProject.providerEpoch()!==ownedRunBinding.providerEpoch)){
+      localInstaller.reset();
+      // Stop only this owner's original run. Source preparation can change
+      // independently without invalidating an already frozen execution.
+      void stopController().catch(error=>{if(!isDisposed())fail(error);});
+    }
     if(localPageResult&&!pageResultIsCurrent({allowResolving:true})){
       localPageResult=null;
       setResultText('上次本地 Page 结果对应的项目、连接或网页已变化；请重新运行。');
@@ -69,16 +77,14 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
     }catch(error){fail(error);return;}
     hideUserScriptsRecovery();
     let admittedRunId,page=false,startError;
-    ownedRunId=null;localPageResult=null;localInstaller.reset();running=true;controllerResults.renderTask(null);update();beginResult();
+    ownedRunId=null;ownedRunBinding=null;localPageResult=null;localInstaller.reset();running=true;controllerResults.renderTask(null);update();beginResult();
     patchDeveloperField(view,find('developer-results-panel'),{open:true});display('resolving','正在读取本地项目的当前源码…');
     (async()=>{
       await permission;
       if(isDisposed())throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭，本次未运行'};
       const source=await localProject.resolve(binding);
-      await currentPageTarget.revalidate(captured);await localProject.assertReady(binding,source.sourceHash);localProject.assertCaptured(binding);
-      if(isDisposed())throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭，本次未运行'};
-      if(stopping||isBlocked()||!controllerResults.projection?.slotAvailable||host.currentRun)
-        throw {code:'E_RUN_ACTIVE',message:'运行状态已变化；请等待当前任务释放后重新运行'};
+      await currentPageTarget.revalidate(captured);await localProject.assertReady(binding,source.sourceHash);
+      const preparationIdentity=localProject.preparationIdentity();
       page=source.runtimeKind==='page-userscript';
       const params=page?{}:JSON.parse(paramsText);
       if(!localProjectAllowsOrigin(source,captured.origin))throw {code:'E_DEV_ORIGIN',message:'当前网站不在本地项目的允许范围内；请检查项目 siteOrigins（所有网页使用 ["<all_urls>"]）'};
@@ -87,10 +93,21 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
       const claim=await localAdapter.handle({method:page?'page.preview':'run.start',requestId:crypto.randomUUID(),params:{
         sourceHash:source.sourceHash,sourceBytes:source.sourceBytes,target,
           ...(page?{sourceUtf8:source.sourceUtf8,entryFormat:source.entryFormat,bindingId:source.bindingId,...(source.managedUI?{managedUI:true}:{}),...(source.pageRules?{pageRules:source.pageRules}:{})}:
-          {source:{kind:'draft',sourceUtf8:source.sourceUtf8},params,deadlineMs:30000})}});
+          {source:{kind:'draft',sourceUtf8:source.sourceUtf8},params,deadlineMs:30000})}},
+        {beforeStart:()=>{
+          if(isDisposed())throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭，本次未运行'};
+          localProject.assertCaptured(binding);
+          if(localProject.preparationIdentity()!==preparationIdentity)
+            throw {code:'E_DEV_CONFLICT',message:'准备版本在运行前发生变化；本次未运行，请重新运行最新源码'};
+          if(stopping||isBlocked()||!controllerResults.projection?.slotAvailable||host.currentRun)
+            throw {code:'E_RUN_ACTIVE',message:'运行状态已变化；请等待当前任务释放后重新运行'};
+        }});
       if(page){
         patchDeveloperField(view,find('script-task-id'),{textContent:'previewId：'+claim.previewId});
         patchDeveloperField(view,find('script-task-version'),{textContent:'Page USER_SCRIPT · SHA-256 '+source.sourceHash});
+        patchDeveloperField(view,find('script-running-target'),{textContent:'运行目标：'+captured.url,
+          title:JSON.stringify({tabId:captured.tabId,frameId:captured.frameId??0,
+            documentId:captured.documentId,url:captured.url})});
         let result=claim;
         while(!isDisposed()&&result.state==='preview-pending'){
           await new Promise(resolve=>{finishLocalPoll=resolve;localPollTimer=setTimeout(resolve,200);});localPollTimer=null;finishLocalPoll=null;
@@ -118,6 +135,7 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
         if(isDisposed())return;
         patchDeveloperField(view,find('script-run-id'),{value:claim.runId});controllerResults.renderTask(claim);
         display('running','已运行本地源码快照；修改文件只影响下一次运行');update();
+        ownedRunBinding=binding;refreshResultValidity();
         const result=await host.completion;
         if(result.error)throw result.error;
         if(result.pendingSettlement||result.state==='paused_unknown')throw {code:'E_EFFECT_UNKNOWN',message:'任务完成状态仍不明确'};
@@ -141,7 +159,7 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
     }).finally(async()=>{
       running=false;if(isDisposed())return;
       if(admittedRunId)patchDeveloperField(view,find('script-run-id'),{value:admittedRunId});
-      try{if(page)controllerResults.setProjection(await host.controller.snapshotControllerRun({}));else await controllerResults.read('');}catch{controllerResults.clearProjection();}
+      try{if(page||!admittedRunId)controllerResults.setProjection(await host.controller.snapshotControllerRun({}));else await controllerResults.read('');}catch{controllerResults.clearProjection();}
       if(startError)fail(startError);update();
     });
   }

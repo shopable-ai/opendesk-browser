@@ -419,6 +419,23 @@ test('R40.5 Page to Controller transition fences stale Page inspection and keeps
   await f.finish(1);
 });
 
+test('Page Run replaces prior Controller technical identity while keeping history query input',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  await f.click('script-run');await f.finish(7);
+  const oldRunId=f.find('script-run-id').value;
+  const world=f.find('script-javascript-world');
+  world.value='page';world.fire('change',{isTrusted:true});
+  f.find('script-source').value='async function main(){return document.title;}';
+  f.find('script-source').fire('input',{isTrusted:true});await tick();await tick();
+  await f.click('script-run');await tick();await tick();
+  assert.equal(f.find('script-result').textContent,'{"ok":true}');
+  assert.equal(f.find('script-task-id').textContent,'documentId：doc-11');
+  assert.equal(f.find('script-task-version').textContent,'Page USER_SCRIPT · SHA-256 '+ 'a'.repeat(64));
+  assert.equal(f.find('script-running-target').textContent,'运行目标：https://a.example/');
+  assert.equal(f.find('script-task-status').hidden,true);
+  assert.equal(f.find('script-run-id').value,oldRunId,'explicit Controller history stays queryable');
+});
+
 test('Developer shows one terminal status line and hides it for unrelated feedback',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   await f.click('script-run');await f.finish(7);
@@ -519,6 +536,8 @@ for(const framework of ['react','vue'])test(framework+' primary Run compiles a m
   assert.equal(f.find('script-result-kind').textContent,'网页试运行结果');
   assert.equal(f.find('script-task-status').hidden,true);
   assert.equal(f.find('script-copy-result').disabled,false);
+  assert.equal(f.find('script-task-id').textContent,'previewId：'+f.previews[0].managedUI.previewId);
+  assert.match(f.find('script-task-version').textContent,/^Page USER_SCRIPT · SHA-256 [a-f0-9]{64}$/);
   assert.equal(f.find('script-stop').disabled,false);
   assert.equal(f.starts.length,0);assert.equal(f.commits.length,0);
 });

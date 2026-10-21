@@ -27,11 +27,13 @@ async function fixture({permission=true,kind='controller',lostInstallAck=false,p
     runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'};
   if(managedUI)source.managedUI=true;
   let liveSource=source,approvals=0,installs=0,requests=[],candidateHash,installed=null,pageCatalog=[],taskCatalog=[],localRunBusy=false;
+  let installAttempt=null,installReference=null;
   const client={request:async(name,args)=>{
     requests.push(name);
     if(name==='listTaskCatalog')return {catalog:structuredClone(taskCatalog),
       installed:installed?[structuredClone(installed)]:[]};
-    if(name==='listPagePrograms')return {catalog:structuredClone(pageCatalog)};
+    if(name==='listPagePrograms')return {catalog:structuredClone(pageCatalog),
+      installed:structuredClone(pageCatalog.flatMap(row=>row.installed?[row.installed]:[]))};
     if(name==='importPageCandidate'){
       const row={programId:args.programId,revision:args.revision,
         manifestHash:'d'.repeat(64),sourceHash:source.sourceHash,
@@ -51,7 +53,7 @@ async function fixture({permission=true,kind='controller',lostInstallAck=false,p
       installs++;
       const result={programId:args.programId,revision:args.revision,sourceHash:source.sourceHash,
         manifestHash:args.manifestHash,pageRules:pageCatalog.at(-1).pageRules,
-        nativeState:'registered',enabled:true};
+        nativeState:'registered',enabled:true,title:args.title,authorization:{status:'active'}};
       pageCatalog.at(-1).installed=result;
       return structuredClone(result);
     }
@@ -97,6 +99,10 @@ async function fixture({permission=true,kind='controller',lostInstallAck=false,p
   const project={active:()=>true,connected:()=>true,
     selectedBindingId:()=>binding.bindingId,providerEpoch:()=>epoch,
     preparationIdentity:()=>preparation,
+    previousInstallAttempt:()=>installAttempt,
+    rememberInstallAttempt:value=>{installAttempt=value?structuredClone(value):null;},
+    previousInstallation:()=>installReference,
+    rememberInstallation:value=>{installReference=structuredClone(value);},
     selectedProject:()=>({name:'本地控制器',sourceId:projectSourceId}),
     capture:()=>({...binding,providerEpoch:epoch}),
     resolve:async()=>structuredClone(liveSource),
@@ -342,6 +348,67 @@ test('R25.1 source ID change after review cannot install under stale project ide
 
 const verified=f=>f.ui.succeeded({source:f.source,binding:f.binding,target:f.target,runId:'verified-run-id',
   previewId:'11111111-1111-4111-8111-111111111111'});
+for(const change of ['binding','source']){
+  test(`Local reconciliation cannot write an A receipt into changed ${change} B`,async t=>{
+    const f=await fixture({lostInstallAck:true});t.after(()=>f.dispose());verified(f);await f.ui.prepare();
+    f.ui.setOnInstalled(row=>f.installedNotices.push(row));
+    f.ui.confirm({isTrusted:true});await settle(()=>f.ui.saveLabel()==='核对安装状态');
+    const pending=structuredClone(f.project.previousInstallAttempt());
+    const before=structuredClone(f.project.previousInstallation());
+    let release,entered;
+    const gate=new Promise(resolve=>{release=resolve;}),started=new Promise(resolve=>{entered=resolve;});
+    const request=f.client.request;
+    f.client.request=async(name,args)=>{if(name==='listTaskCatalog'){entered();await gate;}return request(name,args);};
+    const read=f.ui.prepare();await started;
+    if(change==='binding')f.project.selectedBindingId=()=> 'local-'+'c'.repeat(20);
+    else f.setProjectSourceId('source-B');
+    release();await read;
+    assert.deepEqual(f.project.previousInstallation(),before,'A cannot become B installation hint');
+    assert.deepEqual(f.project.previousInstallAttempt(),pending,'A recovery pointer cannot be cleared for B');
+    assert.deepEqual(f.installedNotices,[],'A completion must not navigate the B selection');
+    assert.equal(f.installs,1,'reconciliation only reads the original Task registry');
+  });
+}
+for(const kind of ['controller','page-userscript']){
+  for(const result of ['reject','resolve']){
+    test(`Local close preserves ${kind} pending installation before ${result} acknowledgement`,async t=>{
+      const f=await fixture({kind});t.after(()=>f.dispose());verified(f);await f.ui.prepare();
+      const method=kind==='controller'?'installTask':'installPageProgram';
+      let release,entered;
+      const gate=new Promise(resolve=>{release=resolve;}),started=new Promise(resolve=>{entered=resolve;});
+      const request=f.client.request;
+      f.client.request=async(name,args)=>{
+        if(name=== (kind==='controller'?'importTaskPackage':'importPageCandidate')){
+          const attempt=f.project.previousInstallAttempt();
+          assert.ok(attempt,'recovery must be recorded before the first Candidate mutation');
+          assert.equal(attempt.bindingId,f.binding.bindingId);
+        }
+        if(name!==method)return request(name,args);
+        const installed=await request(name,args);entered();await gate;
+        if(result==='reject')throw Object.assign(new Error('closed before install ACK'),{code:'E_EFFECT_UNKNOWN'});
+        return installed;
+      };
+      f.ui.confirm({isTrusted:true});await started;
+      const pending=f.project.previousInstallAttempt();
+      f.dispose();release();await tick();await tick();
+      assert.ok(pending,'original owner must record the recovery pointer before installation dispatch');
+      assert.match(pending.attemptedManifestHash,/^[a-f0-9]{64}$/);
+      assert.equal(pending.bindingId,f.binding.bindingId);
+      assert.equal(pending.projectSourceId,'source-A');
+      assert.deepEqual(f.project.previousInstallAttempt(),pending,'closed UI cannot lose the pending outcome');
+      const view=createDeveloperView();
+      const reopened=createLocalInstallUI({client:f.client,api:{permissions:{contains:async()=>true}},view,
+        currentPageTarget:{snapshot:f.target},getProject:()=>f.project});
+      t.after(()=>reopened.dispose());
+      reopened.update();assert.equal(reopened.saveLabel(),'核对安装状态');
+      const count=f.requests.length;
+      await reopened.prepare();
+      assert.equal(f.project.previousInstallAttempt(),null,'only original durable registry confirmation clears recovery');
+      assert.ok(f.requests.slice(count).every(name=>name=== (kind==='controller'?'listTaskCatalog':'listPagePrograms')));
+      assert.equal(f.installs,1,'reopening must not execute or install again');
+    });
+  }
+}
 test('Save immediately exposes progress and ignores duplicate preparation',async t=>{
   const f=await fixture();t.after(()=>f.dispose());verified(f);await tick();
   let release,reads=0;

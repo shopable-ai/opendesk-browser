@@ -63,6 +63,16 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
     const runKind=programSource.kind();
     const displayPreview=(stage,message,result)=>{
       if(state.disposed)return;
+      if(captured){
+        const current=stage==='completed'?last:null;
+        patchDeveloperField(view,find('script-task-id'),{textContent:current?.previewId
+          ? 'previewId：'+current.previewId:'documentId：'+captured.documentId});
+        patchDeveloperField(view,find('script-task-version'),{textContent:'Page USER_SCRIPT'+
+          (current?.sourceHash?' · SHA-256 '+current.sourceHash:'')});
+        patchDeveloperField(view,find('script-running-target'),{textContent:'运行目标：'+captured.url,
+          data:{state:stage},title:JSON.stringify({tabId:captured.tabId,frameId:0,
+            documentId:captured.documentId,url:captured.url})});
+      }
       patchDeveloperField(view,pagePreviewStatus,{data:{...pagePreviewStatus.data,state:stage},textContent:message});
       ui.display(stage,message);
       if(stage==='error' && message.startsWith('E_USER_SCRIPTS_UNAVAILABLE')) ui.showRecovery();
