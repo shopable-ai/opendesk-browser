@@ -581,60 +581,68 @@ test('R32 visible Cloud tab selects its existing panel without execution or perm
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   await f.click('tab-cloud');
   assert.equal(f.doc.documentElement.dataset.opendeskTab,'cloud');
-  assert.equal(f.get('workbench-cloud').hidden,false);
-  for(const id of ['workbench-tasks','workbench-workflow','workbench-develop','workbench-tools'])
-    assert.equal(f.get(id).hidden,true,id);
-  assert.equal(f.get('tab-cloud').attributes['aria-selected'],'true');
-  assert.equal(f.get('tab-cloud').tabIndex,0);
-  assert.equal(f.get('workspace-dock').hidden,true,'idle Cloud never offers a borrowed Run action');
+  assert.equal(f.myView.data.runDock.hidden,true,'idle Cloud cannot borrow Run');
+  const {renderSidebarReact}=await import('../helpers/sidebar-react-fixture.mjs');
+  const html=await renderSidebarReact({myView:f.myView,activeTab:'cloud',debugEnabled:false});
+  assert.match(html,/<button[^>]+id="tab-cloud"[^>]+aria-selected="true"/);
+  for(const page of ['tasks','workflow','develop','tools'])
+    assert.match(html,new RegExp('id="workbench-'+page+'"[^>]*hidden=""'),
+      page+' React panel stays hidden while Cloud is selected');
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
   await f.click('tab-my-tasks');
-  assert.equal(f.get('workbench-cloud').hidden,true);
-  assert.equal(f.get('tab-cloud').attributes['aria-selected'],'false');
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'tasks');
 });
 
 test('twenty installed Task runs never request Chrome permission; revoked access stops admission',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   for(let n=0;n<20;n++){
-    await f.click('task-run');assert.equal(f.starts.length,n+1);f.host.complete({iteration:n});await tick();await tick();
+    await f.click('task-run');
+    assert.equal(f.starts.length,n+1,'each trusted React Run must reach the same RunHost exactly once');
+    f.host.complete({iteration:n});
+    await tick();await tick();
   }
-  f.api.permissions.contains=async()=>false;await f.click('task-run');
-  assert.equal(f.starts.length,20);assert.equal(f.permissions.length,0);
-  assert.match(f.get('task-status').textContent,/E_PERMISSION|恢复访问/);
+  f.api.permissions.contains=async()=>false;
+  await f.click('task-run');
+  assert.equal(f.starts.length,20,'revoked access blocks admission');
+  assert.equal(f.permissions.length,0,'ordinary Run cannot request new Chrome permissions');
+  assert.match(f.field('task-status').text,/E_PERMISSION|恢复访问/);
 });
 
 test('R6 late run start/result cannot become the newly selected task status',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
   let release;
   f.api.permissions.contains=()=>new Promise(resolve=>{release=resolve;});
-  f.get('task-run').fire('click',{isTrusted:true});
-  f.get('task-installed-cards').children[1].children[0].fire('click');
-  assert.equal(f.get('task-installed-list').value,'demo.second');
-  assert.match(f.get('task-status').textContent,/表单任务.*正在准备/);
+  f.action('taskRunClick',{isTrusted:true});
+  f.myView.data.taskRows.onSelect('demo.second');
+  assert.equal(f.field('task-installed-list').value,'demo.second');
+  assert.match(f.field('task-status').text,/表单任务.*正在准备/);
+  assert.equal(typeof release,'function');
   release(true);await tick();await tick();await tick();
   assert.equal(f.starts.length,1);
-  assert.match(f.get('task-status').textContent,/表单任务.*正在运行/);
-  assert.equal(f.get('task-stop').disabled,false,'owner Stop survives selection change');
+  assert.match(f.field('task-status').text,/表单任务.*正在运行/);
+  assert.equal(f.field('task-stop').disabled,false,'Stop remains bound to original runId');
   f.host.complete({ok:true});await tick();await tick();await tick();
-  assert.equal(f.get('task-result-panel').hidden,true,'B must not show A result');
-  assert.doesNotMatch(f.get('task-status').textContent,/表单任务|本次任务/);
-  f.get('task-installed-cards').children[0].children[0].fire('click');
+  assert.equal(f.field('task-result-panel').hidden,true,'B cannot see A result');
+  assert.doesNotMatch(f.field('task-status').text,/表单任务|本次任务/);
+  f.myView.data.taskRows.onSelect('demo.form');
   await tick();await tick();
-  assert.match(f.get('task-result').textContent,/"ok": true/);
-  assert.match(f.get('task-status').textContent,/成功/);
+  assert.match(f.field('task-result').text,/"ok": true/);
+  assert.match(f.field('task-status').text,/成功/);
 });
 
 test('R6 previous-version notices and results do not leak after installed upgrade',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   await f.click('task-run');
+  assert.equal(f.starts.length,1);
   f.host.complete({ok:true});await tick();await tick();await tick();
-  assert.match(f.get('task-status').textContent,/成功/);
+  assert.match(f.field('task-status').text,/成功/);
   f.catalogState.catalog[0].version='2.0.0';
   f.catalogState.installed[0].version='2.0.0';
   f.catalogState.installed[0].scriptId='task:demo.form:2.0.0';
   await f.ui.refresh();await tick();
-  assert.equal(f.get('task-status').textContent,'','new installed version has no inherited run notice');
-  assert.equal(f.get('task-history-panel').hidden,true,'new version has no old-version history');
+  assert.equal(f.field('task-status').text,'','new installation identity has no prior run notice');
+  assert.equal(f.field('task-history-panel').hidden,true);
+  assert.equal(f.myView.data.taskHistory.length,0,'old-version durable results remain isolated');
 });
 
 test('two extension documents share only a refresh hint and re-read authoritative installed state',async t=>{
@@ -643,76 +651,76 @@ test('two extension documents share only a refresh hint and re-read authoritativ
   const catalog=make({installedInitially:false,sharedStore:store});
   t.after(()=>{sidebar.ui.dispose();catalog.ui.dispose();});
   await tick();await tick();
-  assert.match(sidebar.get('task-installed-cards').children[0].textContent,/暂无任务/);
+  assert.equal(sidebar.myView.data.taskRows.rows.length,0);
   catalog.ui.showCatalogPage();
-  catalog.get('task-catalog-list').value='demo.form@1.0.0';
-  catalog.get('task-catalog-list').fire('change');
-  await tick();
+  catalog.field('task-catalog-list').value='demo.form@1.0.0';
+  catalog.action('taskCatalogListChange');
+  await tick();await tick();
   await catalog.click('task-install');
-  await tick();await tick();await tick();
-  assert.equal(sidebar.get('task-installed-cards').children[0].children[0].dataset.taskId,'demo.form',
-    'Sidebar discovers the same installed version via a fresh Catalog request');
-  assert.equal(sidebar.get('task-run').disabled,false);
-  assert.equal(sidebar.starts.length,0,'catalog notification never runs a task');
-  assert.equal(sidebar.permissions.length,0,'catalog notification never requests permission');
+  for(let i=0;i<5;i++)await tick();
+  assert.deepEqual(sidebar.myView.data.taskRows.rows.map(row=>row.taskId),['demo.form'],
+    'recipient re-reads authoritative service after catalog refresh hint');
+  assert.equal(sidebar.field('task-run').disabled,false);
+  assert.equal(sidebar.starts.length,0);assert.equal(sidebar.permissions.length,0);
 });
 
 test('catalog installation stays in the complete directory and directs running back to Sidebar',async t=>{
-  const f=make({installedInitially:false});t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
-  f.get('task-catalog-list').value='demo.form@1.0.0';
-  f.get('task-catalog-list').fire('change');await tick();
+  const f=make({installedInitially:false});t.after(()=>f.ui.dispose());await tick();await tick();
+  f.ui.showCatalogPage();
+  f.field('task-catalog-list').value='demo.form@1.0.0';
+  f.action('taskCatalogListChange');await tick();await tick();
   await f.click('task-install');
-  assert.equal(f.get('workbench-discover').hidden,false);
-  assert.equal(f.get('workbench-tasks').hidden,true);
-  assert.match(f.get('task-catalog-status').textContent,/已安装.*Sidebar「我的」/);
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'catalog');
+  assert.equal(f.myView.data.runDock.taskHidden,true);
+  assert.match(f.field('task-catalog-status').text,/已安装.*Sidebar「我的」/);
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
 });
 
 test('compact task Add rejects Sidebar Tool packages and explains the correct import tab',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   const text=JSON.stringify({format:'opendesk.sidebar-tool.v2',id:'demo-tool',version:'1.0.0'});
-  const input=f.get('task-add-file');
+  const input=f.field('task-add-file');
   input.files=[{name:'demo-tool.opendesk-tool.json',size:Buffer.byteLength(text),text:async()=>text}];
-  await input.fire('change');await tick();
-  assert.match(f.get('task-add-status').textContent,/扩展工具包/);
-  assert.equal(f.catalogOpens.length,0,'wrong file must not open the task catalog');
-  assert.equal(f.starts.length,0,'wrong file must never execute');
-  assert.equal(input.value,'','failed selection can be retried');
+  await f.action('taskAddFileChange');
+  assert.match(f.field('task-add-status').text,/扩展工具包/);
+  assert.equal(f.catalogOpens.length,0,'wrong package cannot open Task Catalog');
+  assert.equal(f.starts.length,0,'wrong package cannot execute');
+  assert.equal(input.value,'','same file remains selectable after rejection');
 });
 
 test('catalog JS import hands source to Sidebar and never enters a view with a hidden runner',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
   const source='async function main() { return "file draft"; }';
-  f.get('task-package-file').value='draft.js';
-  f.get('task-package-file').files=[{name:'draft.js',size:source.length,text:async()=>source}];
-  await f.get('task-package-file').fire('change');
+  const file=f.field('task-package-file');
+  file.value='draft.js';
+  file.files=[{name:'draft.js',size:source.length,text:async()=>source}];
+  await f.action('taskPackageFileChange');
   assert.deepEqual(f.draftMessages,[{protocol:'opendesk.sidebar.draft-import.v1',sourceUtf8:source}]);
-  assert.equal(f.get('workbench-discover').hidden,false);
-  assert.equal(f.get('workbench-develop').hidden,true);
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'catalog');
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
-  assert.match(f.get('task-catalog-status').textContent,/未保存草稿/);
-  assert.equal(f.get('task-package-file').value,'','the same file can be imported again');
+  assert.match(f.field('task-catalog-status').text,/未保存草稿/);
+  assert.equal(file.value,'');
 });
 
 test('missing Sidebar refuses import with an actionable message, without losing the directory',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
   f.api.runtime.sendMessage=async()=>{throw Error('Receiving end does not exist');};
-  f.get('task-package-file').value='draft.js';
-  f.get('task-package-file').files=[{name:'draft.js',size:1,text:async()=>'x'}];
-  await f.get('task-package-file').fire('change');
-  assert.match(f.get('task-catalog-status').textContent,/同一窗口打开 Sidebar/);
-  assert.equal(f.get('workbench-discover').hidden,false);assert.equal(f.starts.length,0);
-  assert.equal(f.get('task-package-file').value,'','retrying after opening Sidebar must fire change again');
+  const file=f.field('task-package-file');file.value='draft.js';
+  file.files=[{name:'draft.js',size:1,text:async()=>'x'}];
+  await f.action('taskPackageFileChange');
+  assert.match(f.field('task-catalog-status').text,/同一窗口打开 Sidebar/);
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'catalog');
+  assert.equal(f.starts.length,0);assert.equal(file.value,'');
 });
 
 test('catalog draft transport errors retain their cause instead of claiming Sidebar is missing',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
   f.api.runtime.sendMessage=async()=>{throw Error('Extension context invalidated');};
-  f.get('task-package-file').value='draft.js';
-  f.get('task-package-file').files=[{name:'draft.js',size:1,text:async()=>'x'}];
-  f.get('task-package-file').fire('change');await tick();await tick();
-  assert.match(f.get('task-catalog-status').textContent,/E_DRAFT_TRANSPORT：Extension context invalidated/);
-  assert.equal(f.get('task-package-file').value,'');assert.equal(f.starts.length,0);
+  const file=f.field('task-package-file');file.value='draft.js';
+  file.files=[{name:'draft.js',size:1,text:async()=>'x'}];
+  await f.action('taskPackageFileChange');
+  assert.match(f.field('task-catalog-status').text,/E_DRAFT_TRANSPORT：Extension context invalidated/);
+  assert.equal(file.value,'');assert.equal(f.starts.length,0);
 });
 
 test('receiving a source-only import selects Sidebar Developer without creating a run',async t=>{
