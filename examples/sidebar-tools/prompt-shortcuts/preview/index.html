@@ -1314,7 +1314,7 @@ border:0;background:transparent;color:var(--od-sub)}
     const count=state.items.length;
     editId=null;el('promptBody').value='';el('shortLabel').value='';el('fullName').value='';el('appearanceImage').checked=false;el('appearanceText').checked=true;el('imageUrl').value='';
      draftImageAssetId='';draftImageMeta=null;setImageError('');setImageStatus('');el('imageSourceLocal').checked=true;el('imageSourceUrl').checked=false;el('itemEnabled').checked=true;
-    revisionAtEdit=state.revision;baselineForm=JSON.stringify(rawFormValues());dirty=false;
+    revisionAtEdit=state.revision;baselineForm=draftSnapshot();dirty=false;
     el('advancedOptions').open=true;expandedId=null;deleteId=null;
     renderIndex();renderRail();updateMeter();
     status.hidden=false;status.textContent='已保存第 '+count+' 条提示词（仅模拟），可以继续添加。';
