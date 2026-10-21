@@ -74,7 +74,7 @@ test('host controls start without DOM, expose site recovery, and clean only thei
     await f.controller.ready;
     assert.equal(f.field('site-access-status').data.websites, false);
     assert.equal(f.field('site-access-grant').disabled, false);
-    assert.equal(f.field('scraping-panel').data.moduleStatus, 'MODULE_NOT_INSTALLED');
+    assert.equal(f.field('scraping-panel'),undefined,'retired diagnostic stub has no model or owner');
     assert.equal(f.field('sdk-capabilities').rows.find(row => row.value === 'network.info').disabled, true);
     assert.equal(f.state.requests.length, 0);
     assert.equal(f.state.rpc.length, 0);

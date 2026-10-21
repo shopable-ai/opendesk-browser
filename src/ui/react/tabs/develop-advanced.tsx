@@ -6,15 +6,10 @@ export function DevelopAdvanced(){
   return (
         <DevelopField as="details" id="developer-program-management" className="od-disclosure">
           <summary>
-            {"保存与安装（高级）"}
+            {"保存与管理"}
           </summary>
-          <DevelopField as="details" id="script-version-identity" className="od-disclosure">
-            <summary>
-              {"正式版本身份（仅保存或加载时需要）"}
-            </summary>
-            <p className="hint">
-              {"临时代码运行无需脚本 ID 或版本号；保存固定程序或创建任务时才设置。"}
-            </p>
+          <DevelopField as="section" id="script-version-identity" className="developer-management-section">
+            <h3 className="od-field-label">版本身份</h3>
             <label htmlFor="script-id" className="od-field-label">
               {"脚本名称 / ID"}
             </label>
@@ -29,8 +24,8 @@ export function DevelopAdvanced(){
               </DevelopField>
             </div>
           </DevelopField>
-          <DevelopField as="details" id="page-preview-tools" className="od-disclosure">
-            <DevelopField as="summary" id="page-preview-mode-title">
+          <DevelopField as="section" id="page-preview-tools" className="developer-management-section">
+            <DevelopField as="h3" id="page-preview-mode-title" className="od-field-label">
               {"网页 JavaScript 试运行"}
             </DevelopField>
             <DevelopField as="p" id="page-preview-mode-hint" className="hint">
@@ -95,10 +90,8 @@ export function DevelopAdvanced(){
               {"正式安装支持顶层网页与 document-idle；停用不会撤销已有网页效果。效果未知时不自动重放。"}
             </DevelopField>
           </DevelopField>
-          <DevelopField as="details" id="script-library-tools" className="od-disclosure">
-            <summary>
-              {"版本管理与任务制作"}
-            </summary>
+          <DevelopField as="section" id="script-library-tools" className="developer-management-section">
+            <h3 className="od-field-label">Controller 版本与任务</h3>
             <label htmlFor="script-list" className="od-field-label">
               {"已保存脚本"}
             </label>

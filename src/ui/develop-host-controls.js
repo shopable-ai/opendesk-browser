@@ -41,8 +41,6 @@ export function createDeveloperHostControls({api, client, view}) {
   bind('site-access-restore', grantSiteAccess);
   bind('site-access-refresh', () => siteAccess.refresh().catch(error => warn('Chrome site access refresh failed', error)));
 
-  patch('scraping-panel', {data:{moduleStatus:'MODULE_NOT_INSTALLED'},
-    textContent:'采集模块未注册；普通 JavaScript 与网页 SDK 可独立使用。'});
   function displayHealth(error, data) {
     patch('status', {data:{error:String(Boolean(error))}, textContent:error
       ? `${error.code || 'E_TARGET'}：${error.message}`

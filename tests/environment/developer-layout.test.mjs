@@ -35,11 +35,16 @@ test('Dev disclosures inherit shared typography and content inset',()=>{
   assert.doesNotMatch(css,/#workbench-develop \.developer-editor \.row\{margin:0\}/);
   assert.match(css,/\.row:not\(\.od-disclosure>\.row\)\{margin:0\}/);
 });
-test('Develop primary cards and nested diagnostics retain their shared hierarchy',()=>{
+test('Develop keeps normal disclosures and flattens version management to one entry',()=>{
   for(const id of ['developer-target-detail','manual-project-params-tools','developer-results-panel',
-    'developer-run-technical','page-preview-tools','script-library-tools','script-advanced','tool-diagnostics','local-project-params-tools']){
+    'developer-run-technical','script-advanced','tool-diagnostics','local-project-params-tools']){
     assert.equal($('details#'+id).length,1,id);assert.ok($('#'+id).hasClass('od-disclosure'),id);
     assert.ok(!$('#'+id).hasClass('od-disclosure--flat'),id);
+  }
+  for(const id of ['script-version-identity','page-preview-tools','script-library-tools']){
+    assert.equal($('#developer-program-management > section#'+id).length,1,id);
+    assert.ok($('#'+id).hasClass('developer-management-section'),id);
+    assert.equal($('#'+id+' > summary').length,0,'no redundant nested toggle: '+id);
   }
   assert.ok($('#local-project-diagnostics').closest('details').hasClass('od-disclosure--flat'));
   for(const id of ['script-history-panel','page-dependency-panel','program-generated'])assert.ok($('#'+id).hasClass('od-disclosure--flat'),id);
@@ -50,10 +55,14 @@ test('Develop primary cards and nested diagnostics retain their shared hierarchy
   assert.doesNotMatch(css,/#tool-diagnostics>section\{/);
 });
 test('Advanced tools follow parameters and retain SDK authority actions',()=>{
-  const body=dev.html();assert.ok(body.indexOf('id="manual-project-params-tools"')<body.indexOf('id="tool-diagnostics"'));
+  const body=dev.html();
+  const source=body.indexOf('id="manual-source-editor"'),results=body.indexOf('id="developer-run-feedback"'),
+    management=body.indexOf('id="developer-program-management"'),diagnostics=body.indexOf('id="tool-diagnostics"');
+  assert.ok(source>=0&&source<results&&results<management&&management<diagnostics,
+    'source → results → management → diagnostics, never diagnostics before results');
   assert.equal($('#tool-diagnostics>summary').text(),'高级诊断与网页 SDK');
   for(const id of ['developer-sdk-diagnostics','developer-health-diagnostics'])assert.ok($('#'+id).hasClass('od-disclosure--flat'));
-  assert.equal($('#scraping-panel').attr('aria-label'),'采集模块');assert.ok($('#scraping-panel').is('[hidden]'));
+  assert.equal($('#scraping-panel').length,0,'retired hidden module cannot be a production field');
   for(const id of ['sdk-install','sdk-inspect','sdk-revoke','sdk-approval-preview','create-target','check-source','check-target'])assert.equal($('#tool-diagnostics #'+id).length,1,id);
   assert.match(css,/#workbench-develop #sdk-capabilities\{display:grid;gap:var\(--space-2\)/);
   assert.doesNotMatch(css,/#scraping-panel\{border-left/);

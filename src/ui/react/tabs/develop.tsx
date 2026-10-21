@@ -15,9 +15,9 @@ export function DeveloperPage({model,view=model,actions=view.actions,hidden=fals
         <DevelopContextHeader/>
         <DevelopLocalProject/>
         <DevelopSourceEditor view={view} actions={actions}/>
-        <DevelopDiagnostics/>
         <DevelopExecution/>
         <DevelopAdvanced/>
+        <DevelopDiagnostics/>
       </section>
     </div>
   </DevelopProvider>;

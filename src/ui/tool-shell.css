@@ -138,6 +138,9 @@
 #workbench-develop .developer-editor .row:not(.od-disclosure>.row){margin:0}
 #workbench-develop .developer-editor .row>label{margin:0}
 #workbench-develop .developer-editor>:not([hidden]){min-width:0}
+/* One management disclosure; version, library and Page actions need no second click. */
+#workbench-develop .developer-management-section:not([hidden]){display:grid;gap:var(--space-2);min-width:0}
+#workbench-develop .developer-management-section>:not([hidden]){margin-block:0}
 #workbench-develop .developer-editor :is(input,select,textarea).od-field{line-height:1.5}
 #workbench-develop .result-toolbar{margin-bottom:0}
 .developer-page-label{flex:none;font-weight:650}

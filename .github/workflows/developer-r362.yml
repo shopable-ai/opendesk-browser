@@ -5,6 +5,11 @@ on:
     paths:
       - 'src/ui/script-editor.js'
       - 'src/ui/develop-view.js'
+      - 'src/ui/develop-host-controls.js'
+      - 'src/ui/tool-shell.css'
+      - 'src/ui/react/tabs/develop-advanced.tsx'
+      - 'src/ui/react/tabs/develop-diagnostics.tsx'
+      - 'tests/environment/develop-host-controls.test.mjs'
       - 'src/ui/develop-fields.js'
       - 'src/ui/controller-draft-run.js'
       - 'src/ui/controller-classic-readiness.js'
@@ -70,6 +75,7 @@ jobs:
             tests/environment/script-editor-ui.test.mjs \
             tests/environment/script-editor.test.mjs \
             tests/environment/developer-layout.test.mjs \
+            tests/environment/develop-host-controls.test.mjs \
             tests/environment/program-source.test.mjs \
             tests/environment/page-program-library.test.mjs \
             tests/environment/task-workbench.test.mjs
