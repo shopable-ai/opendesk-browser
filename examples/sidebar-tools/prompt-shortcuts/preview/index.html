@@ -418,7 +418,6 @@ box-shadow:inset 0 0 0 1px var(--od-focus)}
 .ps-image-dropzone>.od-glyph{width:23px;height:23px;color:var(--od-sub)}
 .ps-image-dropzone .od-button{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);
 min-height:38px;padding:6px var(--space-3);font-size:12px}
-.ps-image-dropzone .od-button .od-glyph{width:16px;height:16px}
 .ps-image-drop-hint{font-size:12px;color:var(--od-ink);line-height:1.45}
 .ps-image-drop-types{font-size:11px;color:var(--od-sub);line-height:1.5;overflow-wrap:anywhere}
 .ps-image-link-field{display:grid;gap:var(--space-1)}
@@ -600,7 +599,7 @@ border:0;background:transparent;color:var(--od-sub)}
          <div id="imageUploadControls" class="ps-image-upload-controls">
           <div id="imageDropzone" class="ps-image-dropzone" role="group" aria-label="选择或拖动本地图片" aria-describedby="imageDropHint imageDropTypes">
            <svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true"><use href="#ps-icon-image-upload"/></svg>
-           <button id="imagePick" type="button" class="od-button"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true"><use href="#ps-icon-image-upload"/></svg>选择图片</button>
+           <button id="imagePick" type="button" class="od-button">选择图片</button>
            <span class="ps-image-drop-hint" id="imageDropHint">或拖动图片到这里</span>
            <span class="ps-image-drop-types" id="imageDropTypes">支持 PNG、JPG、WebP，最大 2 MB</span>
           </div>
@@ -1173,7 +1172,7 @@ border:0;background:transparent;color:var(--od-sub)}
    const before=draftImageAssetId,next={...imageAssets,[id]:asset.url};
    if(!persistDemoAssets(next))throw Error('预览图片保存失败，请检查浏览器存储空间后重试');
    draftImageAssetId=id;
-   draftImageMeta={name:file.name||'本地图片',description:dimensions+' · '+(file.size/1024/1024).toFixed(1)+' MB'};
+   draftImageMeta={name:file.name||'本地图片',description:dimensions+' · '+(file.size<1024*1024?Math.max(1,Math.ceil(file.size/1024))+' KB':(file.size/1024/1024).toFixed(1)+' MB')};
    el('imageSourceLocal').checked=true;el('imageSourceUrl').checked=false;
    updateMeter();setImageError('');setImageStatus('图片已准备好，保存提示词后即可使用');
    if(before&&!state.items.some(row=>row.imageAssetId===before)){
