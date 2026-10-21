@@ -582,6 +582,8 @@ async function run(){
       appearanceImage:document.querySelector('#appearanceImage').checked,
       bodyStart:document.querySelector('#promptBody').value.slice(0,45),
       persistedRow:row,
+      persistedRows:rows.map(r=>({id:r.id,label:r.label,appearance:r.appearance,
+        imageUrl:r.imageUrl,imageAssetId:r.imageAssetId,bodyType:typeof r.body})),
       cardHasImg:!!cardPicture,cardImgMime:cardPicture?.src.slice(0,36),
       railImgMime:railPicture?.src.slice(0,36),railOfflineFixture:railPicture?.dataset.previewFixture};
   }.toString()+')()');
