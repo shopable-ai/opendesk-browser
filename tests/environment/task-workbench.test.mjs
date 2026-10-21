@@ -727,50 +727,47 @@ test('receiving a source-only import selects Sidebar Developer without creating 
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   f.ui.receiveDraft('async function main() {}');
   assert.deepEqual(f.importedDrafts,['async function main() {}']);
-  assert.equal(f.get('workbench-develop').hidden,false);assert.equal(f.starts.length,0);
-  assert.equal(f.permissions.length,0);
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'develop');
+  assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
 });
 
 test('R6.1 task-owned Stop is the sole cross-view action and names the launching task',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
   await f.click('task-run');
-  assert.equal(f.get('workspace-dock').dataset.stopOnly,'false','the owning task view retains its controls');
-  f.get('task-installed-cards').children[1].children[0].fire('click');
-  assert.equal(f.get('workspace-dock').dataset.stopOnly,'true','a different selected task cannot own Run actions');
-  assert.equal(f.get('task-run').disabled,true);
-  assert.match(f.get('task-stop').attributes['aria-label'],/表单任务/,'Stop names the real launch owner, not selected B');
-  await f.click('tab-tools');
-  assert.equal(f.get('task-dock').hidden,false);
-  assert.equal(f.get('develop-dock').hidden,true);
-  assert.equal(f.get('workspace-dock').dataset.stopOnly,'true');
-  await f.click('tab-develop');
-  assert.equal(f.get('task-dock').hidden,false);
-  assert.equal(f.get('workspace-dock').dataset.stopOnly,'true');
-  await f.click('tab-cloud');
-  assert.equal(f.get('workbench-cloud').hidden,false);
-  assert.equal(f.get('task-dock').hidden,false);
-  assert.equal(f.get('workspace-dock').dataset.stopOnly,'true');
-  assert.equal(f.starts.length,1,'Cloud navigation never restarts the owning Task');
+  assert.equal(f.myView.data.runDock.stopOnly,false,'owner view retains Run/Stop controls');
+  f.myView.data.taskRows.onSelect('demo.second');
+  assert.equal(f.myView.data.runDock.stopOnly,true,
+    'selecting another Task cannot borrow the active owner slot');
+  assert.equal(f.field('task-run').disabled,true);
+  assert.match(f.field('task-stop').attributes['aria-label'],/表单任务/);
+  for(const tab of ['tools','develop','cloud']){
+    await f.click('tab-'+tab);
+    assert.equal(f.doc.documentElement.dataset.opendeskTab,tab);
+    assert.equal(f.myView.data.runDock.taskHidden,false,'owning Task Stop is available across '+tab);
+    assert.equal(f.myView.data.runDock.developHidden,true);
+    assert.equal(f.myView.data.runDock.stopOnly,true);
+  }
+  assert.equal(f.starts.length,1,'navigation never starts a second Task');
   f.host.complete({ok:true});await tick();await tick();await tick();
-  assert.equal(f.get('workspace-dock').dataset.stopOnly,'false','stop-only mode retires with the owning run');
+  assert.equal(f.myView.data.runDock.stopOnly,false,'retired owner no longer forces Stop-only');
   await f.click('tab-tools');
-  assert.equal(f.get('workspace-dock').hidden,true,'idle Extensions remain free of borrowed Run actions');
+  assert.equal(f.myView.data.runDock.hidden,true,'idle Extensions cannot borrow Run');
 });
 
 test('R4 draft-owned run exposes only its Stop while viewing My or Extensions',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   await f.host.start({source:{kind:'draft',sourceUtf8:'return 1;'}});
   f.ui.navigate('tasks');
-  assert.equal(f.get('task-dock').hidden,true);
-  assert.equal(f.get('develop-dock').hidden,false);
-  assert.equal(f.get('workspace-dock').dataset.stopOnly,'true');
+  assert.equal(f.myView.data.runDock.taskHidden,true);
+  assert.equal(f.myView.data.runDock.developHidden,false);
+  assert.equal(f.myView.data.runDock.stopOnly,true);
   f.ui.navigate('tools');
-  assert.equal(f.get('workspace-dock').dataset.stopOnly,'true');
+  assert.equal(f.myView.data.runDock.stopOnly,true);
   f.ui.navigate('develop');
-  assert.equal(f.get('workspace-dock').dataset.stopOnly,'false','owner view retains saved-version actions');
+  assert.equal(f.myView.data.runDock.stopOnly,false,'Developer owner view keeps draft actions');
   f.host.complete({ok:true});
   f.ui.navigate('tools');
-  assert.equal(f.get('workspace-dock').hidden,true);
+  assert.equal(f.myView.data.runDock.hidden,true);
 });
 
 test('R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop',async()=>{
@@ -784,55 +781,54 @@ test('R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop'
 test('catalog project JSON import validates snapshots and hands frozen bytes to Sidebar without running',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
   const draft=await programDraft(),text=JSON.stringify(draft,null,2)+'\n';
-  f.get('task-package-file').value='program.opendesk-draft.json';
-  f.get('task-package-file').files=[{name:'program.opendesk-draft.json',size:Buffer.byteLength(text),text:async()=>text}];
-  await f.get('task-package-file').fire('change');
+  const file=f.field('task-package-file');file.value='program.opendesk-draft.json';
+  file.files=[{name:'program.opendesk-draft.json',size:Buffer.byteLength(text),text:async()=>text}];
+  await f.action('taskPackageFileChange');
   assert.deepEqual(f.draftMessages,[{protocol:'opendesk.sidebar.draft-import.v1',draft}]);
-  assert.equal(f.get('workbench-develop').hidden,true);
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'catalog');
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
-  assert.match(f.get('task-catalog-status').textContent,/未保存草稿/);
-  assert.equal(f.get('task-package-file').value,'');
+  assert.match(f.field('task-catalog-status').text,/未保存草稿/);
+  assert.equal(file.value,'');
 });
 
 test('catalog rejects a changed project snapshot before handoff and permits reselecting the file',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
   const draft=await programDraft();draft.authoring.files[0].sourceUtf8+='\n// altered';
   const text=JSON.stringify(draft);
-  f.get('task-package-file').value='program.opendesk-draft.json';
-  f.get('task-package-file').files=[{name:'program.opendesk-draft.json',size:Buffer.byteLength(text),text:async()=>text}];
-  await f.get('task-package-file').fire('change');
+  const file=f.field('task-package-file');file.value='program.opendesk-draft.json';
+  file.files=[{name:'program.opendesk-draft.json',size:Buffer.byteLength(text),text:async()=>text}];
+  await f.action('taskPackageFileChange');
   assert.equal(f.draftMessages.length,0);assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
-  assert.match(f.get('task-catalog-status').textContent,/E_PROGRAM_HASH/);
-  assert.equal(f.get('task-package-file').value,'');
+  assert.match(f.field('task-catalog-status').text,/E_PROGRAM_HASH/);
+  assert.equal(file.value,'');
 });
-
 
 test('R8 R2 task history masks sensitive values and exposes only durable technical identifiers',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   await f.click('task-run');
   f.host.complete({ok:true,apiKey:'must-not-display',description:'Bearer another-secret'});
   await tick();await tick();await tick();
-  const history=f.get('task-history').children[0].children[0];
-  assert.match(f.get('task-result').textContent,/"ok": true/);
-  assert.doesNotMatch(f.get('task-result').textContent,/must-not-display|another-secret/);
-  const technical=history.children.find(node=>String(node.className||'').split(' ').includes('task-history-tech'));
-  assert.ok(technical,'technical details remain available after optional privacy reveal');
-  assert.match(technical.children[1].textContent,/runId：run-task-1/);
-  assert.match(technical.children[1].textContent,/resultId：result-task-1/);
-  assert.doesNotMatch(technical.children[1].textContent,/sourceHash：/,
-    'do not invent a sourceHash missing from the durable test fixture');
-  const reveal=history.children.find(node=>node.className==='task-result-reveal');
-  assert.ok(reveal,'explicit reveal action appears for redacted values');
-  assert.doesNotMatch(history.children[1].textContent,/must-not-display/);
-  await reveal.fire('click');
-  assert.match(history.children[1].textContent,/must-not-display/);
-  await reveal.fire('click');
-  assert.doesNotMatch(history.children[1].textContent,/must-not-display/);
-  assert.equal(f.get('task-result-reveal').hidden,false);
-  await f.get('task-result-reveal').fire('click');
-  assert.match(f.get('task-result').textContent,/must-not-display/);
-  await f.get('task-result-reveal').fire('click');
-  assert.doesNotMatch(f.get('task-result').textContent,/must-not-display/);
+  const history=f.myView.data.taskHistory[0],latest=f.field('task-result');
+  assert.match(latest.text,/"ok": true/);
+  assert.doesNotMatch(latest.text,/must-not-display|another-secret/);
+  assert.match(history.technical,/runId：run-task-1/);
+  assert.match(history.technical,/resultId：result-task-1/);
+  assert.doesNotMatch(history.technical,/sourceHash：/,
+    'must not invent missing source identity');
+  assert.doesNotMatch(history.text,/must-not-display|another-secret/);
+  assert.match(history.fullText,/must-not-display/,'full result is retained only for explicit reveal');
+  const {renderSidebarReact}=await import('../helpers/sidebar-react-fixture.mjs');
+  const markup=await renderSidebarReact({myView:f.myView});
+  assert.match(markup,/class="task-result-reveal[^"]*"/,
+    'production React renders the optional per-history reveal action');
+  assert.doesNotMatch(markup,/must-not-display|another-secret/,
+    'initial React render never exposes redacted secret content');
+  assert.equal(f.field('task-result-reveal').hidden,false);
+  f.action('taskResultRevealClick');
+  assert.match(latest.text,/must-not-display/);
+  f.action('taskResultRevealClick');
+  assert.doesNotMatch(latest.text,/must-not-display/);
+  // Per-history React useState click and focus remain real-Chrome acceptance.
 });
 
 test('R8 R2 a persisted timeout gives an actionable warning without leaking request credentials',async t=>{
@@ -844,12 +840,12 @@ test('R8 R2 a persisted timeout gives an actionable warning without leaking requ
     revision:{scriptId:'task:demo.form:1.0.0',revision:2,sourceHash:'f'.repeat(64)},
     outcome:{ok:false,error:{code:'E_TIMEOUT',message:'https://a.example/search?token=should-hide failed'}}});
   await f.ui.refresh();await tick();
-  const history=f.get('task-history').children[0].children[0];
-  assert.match(f.get('task-result').textContent,/E_TIMEOUT/);
-  assert.match(f.get('task-result').textContent,/不要直接重复执行/);
-  assert.doesNotMatch(f.get('task-result').textContent,/should-hide/);
-  assert.match(history.children[2].children[1].textContent,/sourceHash：f{64}/);
-  assert.match(history.children[2].children[1].textContent,/documentId：doc-real/);
+  const history=f.myView.data.taskHistory[0];
+  assert.match(f.field('task-result').text,/E_TIMEOUT/);
+  assert.match(f.field('task-result').text,/不要直接重复执行/);
+  assert.doesNotMatch(f.field('task-result').text,/should-hide/);
+  assert.match(history.technical,/sourceHash：f{64}/);
+  assert.match(history.technical,/documentId：doc-real/);
 });
 
 test('R8 R2 an unresolved persisted run warns before an unsafe repeat',async t=>{
@@ -857,34 +853,28 @@ test('R8 R2 an unresolved persisted run warns before an unsafe repeat',async t=>
   f.view.runs.push({runId:'run-unknown',state:'paused_unknown',
     revision:{scriptId:'task:demo.form:1.0.0'}});
   await f.ui.refresh();await tick();
-  assert.match(f.get('task-result').textContent,/状态待确认/);
-  assert.match(f.get('task-result').textContent,/不要直接重复执行/);
-  const history=f.get('task-history').children[0].children[0];
-  assert.match(history.children[1].textContent,/不要直接重复执行/);
+  assert.match(f.field('task-result').text,/状态待确认/);
+  assert.match(f.field('task-result').text,/不要直接重复执行/);
+  assert.match(f.myView.data.taskHistory[0].text,/不要直接重复执行/);
 });
-
 
 test('R32 an in-flight task keeps its original Stop owner across Tools and Cloud navigation',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
   await f.click('task-run');
-  f.get('task-installed-cards').children[1].children[0].fire('click');
-  await f.click('tab-tools');
-  assert.equal(f.get('workbench-tools').hidden,false);
-  assert.equal(f.get('task-dock').hidden,false,'the original task Stop stays available in Tools');
-  assert.equal(f.get('develop-dock').hidden,true);
-  assert.equal(f.get('workspace-dock').dataset.stopOnly,'true','no unrelated Run is exposed');
-  assert.match(f.get('task-stop').attributes['aria-label'],/表单任务/);
-  assert.equal(f.host.currentRun,'run-task-1','navigation never stops the RunHost');
-  await f.click('tab-cloud');
-  assert.equal(f.get('workbench-cloud').hidden,false);
-  assert.equal(f.get('task-dock').hidden,false,'Cloud retains the original task Stop');
-  assert.equal(f.get('develop-dock').hidden,true);
-  assert.equal(f.get('workspace-dock').dataset.stopOnly,'true');
-  assert.equal(f.host.currentRun,'run-task-1','Cloud cannot replace the run owner');
+  f.myView.data.taskRows.onSelect('demo.second');
+  for(const tab of ['tools','cloud']){
+    await f.click('tab-'+tab);
+    assert.equal(f.doc.documentElement.dataset.opendeskTab,tab);
+    assert.equal(f.myView.data.runDock.taskHidden,false,'the original Task Stop remains visible');
+    assert.equal(f.myView.data.runDock.developHidden,true);
+    assert.equal(f.myView.data.runDock.stopOnly,true);
+    assert.match(f.field('task-stop').attributes['aria-label'],/表单任务/);
+    assert.equal(f.host.currentRun,'run-task-1','navigation cannot retire another run');
+  }
   await f.click('task-stop');
   assert.deepEqual(f.stops.at(-1),{runId:'run-task-1',controller:true});
   assert.equal(f.host.currentRun,null);
-  assert.equal(f.get('workspace-dock').hidden,true,'stop-only dock retires after original run stops');
+  assert.equal(f.myView.data.runDock.hidden,true,'owner Stop retires after real RunHost stop');
 });
 
 test('R14.1 pending task RunHost admission cannot borrow the Developer Stop dock',async t=>{
@@ -894,18 +884,20 @@ test('R14.1 pending task RunHost admission cannot borrow the Developer Stop dock
   f.host.start=async request=>{const claim=await start(request);await pending;return claim;};
   await f.click('task-run');
   for(let i=0;i<10&&!f.starts.length;i++)await tick();
-  assert.equal(f.starts.length,1,'the original task request reached RunHost');
-  assert.equal(f.host.currentRun,'run-task-1','RunHost already has a run before the claim returns');
+  assert.equal(f.starts.length,1,'original task request must reach RunHost');
+  assert.equal(f.host.currentRun,'run-task-1','RunHost already claims slot');
   await f.click('tab-tools');
-  assert.equal(f.get('task-dock').hidden,true,'task Stop requires its actual claimed runId');
-  assert.equal(f.get('develop-dock').hidden,true,'unfinished task start is never a Developer draft');
-  assert.equal(f.get('workspace-dock').hidden,true,'there is no unrelated Stop action');
+  assert.equal(f.myView.data.runDock.taskHidden,true,
+    'Task Stop requires exact runId; admission pending cannot claim Stop');
+  assert.equal(f.myView.data.runDock.developHidden,true,
+    'unfinished Task start is never Developer draft');
+  assert.equal(f.myView.data.runDock.hidden,true,'no unrelated Stop is available');
   admit();await tick();await tick();await tick();
-  assert.equal(f.get('task-dock').hidden,false,'the owning Stop appears on successful admission');
-  assert.equal(f.get('develop-dock').hidden,true);
-  assert.equal(f.get('workspace-dock').dataset.stopOnly,'true');
+  assert.equal(f.myView.data.runDock.taskHidden,false,'owning Stop appears on admission');
+  assert.equal(f.myView.data.runDock.developHidden,true);
+  assert.equal(f.myView.data.runDock.stopOnly,true);
   f.host.complete({ok:true});await tick();await tick();
-  assert.equal(f.get('workspace-dock').hidden,true,'the cross-view Stop retires at completion');
+  assert.equal(f.myView.data.runDock.hidden,true,'Stop retires on completion');
 });
 
 test('Final R2 tool navigation refusal leaves the selected pane and tab intact',async t=>{
