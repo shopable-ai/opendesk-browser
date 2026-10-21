@@ -10,25 +10,31 @@ const reader=$('clip-note-reader');
 const request=globalThis.OpenDeskTool.request;
 const saveStore=globalThis.OpenDeskClipNotes.createStore({request});
 const queryStore=globalThis.OpenDeskClipNotes.createStore({request});
-let mode='recent',savedSearch='',entry='full',newFromRecent=false,saving=false,approved=null;
+let mode='recent',savedSearch='',savedFilter='all',recentScroll=0,libraryScroll=0,entry='full',newFromRecent=false,saving=false,approved=null;
 const say=(value,error=false)=>{const p=$('clip-status');p.textContent=value;p.dataset.error=String(error);};
 async function updateCount(){
  try{$('clip-recent-count').textContent=String((await queryStore.list('',0)).total);}
  catch{$('clip-recent-count').textContent='?';}
 }
-function showRecent(){
- if(mode==='full')savedSearch=search.value;
+function showRecent(preserveLibraryState=false){
+ if(mode==='full'&&!preserveLibraryState){
+  savedSearch=search.value;savedFilter=filter.value;libraryScroll=window.scrollY;
+ }
  mode='recent';root.dataset.previewView=mode;
  slot.append(list);search.value='';filter.value='all';
  home.hidden=false;notes.hidden=true;
  search.dispatchEvent(new Event('input',{bubbles:true}));
+ requestAnimationFrame(()=>window.scrollTo(0,recentScroll));
  void updateCount();
 }
 function showFull(fromRecent=false){
+ recentScroll=window.scrollY;
  mode='full';root.dataset.previewView=mode;
  notes.insertBefore(list,$('clip-note-more'));
- if(!fromRecent)search.value=savedSearch;
+ if(!fromRecent){search.value=savedSearch;filter.value=savedFilter;}
+ else filter.value='all';
  home.hidden=true;notes.hidden=false;applyFilter();
+ requestAnimationFrame(()=>window.scrollTo(0,fromRecent?0:libraryScroll));
 }
 const iconPaths={
  edit:['M12 20h9','M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4z'],
@@ -143,20 +149,20 @@ $('clip-recent-new').addEventListener('click',()=>{
 });
 $('clip-notes-back').addEventListener('click',()=>{
  // Original controller ran its busy/dirty guard first.
- if(!home.hidden){entry='full';newFromRecent=false;showRecent();}
+ if(!home.hidden){const preserve=entry==='recent'||newFromRecent;entry='full';newFromRecent=false;showRecent(preserve);}
 });
 $('clip-note-reader-back').addEventListener('click',()=>{
- if(entry==='recent'){entry='full';showRecent();}
+ if(entry==='recent'){entry='full';showRecent(true);}
 });
 $('clip-note-cancel').addEventListener('click',()=>{
- if(newFromRecent&&$('clip-note-editor').hidden){newFromRecent=false;showRecent();}
+ if(newFromRecent&&$('clip-note-editor').hidden){newFromRecent=false;showRecent(true);}
 });
 $('clip-note-save').addEventListener('click',()=>{
  if(!newFromRecent)return;
  const status=$('clip-notes-status');
  const obs=new MutationObserver(()=>{
   if($('clip-note-editor').hidden&&status.textContent.includes('已保存完整正文')){
-   obs.disconnect();clearTimeout(timer);newFromRecent=false;showRecent();
+   obs.disconnect();clearTimeout(timer);newFromRecent=false;showRecent(true);
   }
  });
  obs.observe(status,{childList:true,characterData:true,subtree:true});
