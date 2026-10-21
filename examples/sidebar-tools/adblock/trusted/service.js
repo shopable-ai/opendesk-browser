@@ -30,13 +30,25 @@ export function createAdblockService({
   const dropPick=(tabId,session)=>{
     if(pendingPicks.get(tabId)!==session)return;
     pendingPicks.delete(tabId);
-    void api.tabs.sendMessage(tabId,{protocol:ADBLOCK_PAGE_PROTOCOL,
-      type:'cancel-pick'},{documentId:session.documentId}).catch(()=>{});
+    // A navigation may already have destroyed the old document. Cancellation
+    // still succeeds because the trusted session is invalidated first.
+    try{void api.tabs.sendMessage(tabId,{protocol:ADBLOCK_PAGE_PROTOCOL,
+      type:'cancel-pick'},{documentId:session.documentId}).catch(()=>{});}
+    catch{ /* The old tab/document may already be gone. */ }
   };
   const cancelPicksOnTabActivated=({tabId,windowId}={})=>{
     if(!Number.isSafeInteger(tabId)||!Number.isSafeInteger(windowId))return;
     for(const [oldTab,session] of pendingPicks)
       if(session.windowId===windowId&&oldTab!==tabId)dropPick(oldTab,session);
+  };
+  const cancelPickOnNavigation=({tabId,frameId}={})=>{
+    if(frameId!==0||!Number.isSafeInteger(tabId))return;
+    const session=pendingPicks.get(tabId);
+    if(session)dropPick(tabId,session);
+  };
+  const cancelPickOnTabRemoved=tabId=>{
+    // The document cannot receive another message once Chrome removes its tab.
+    pendingPicks.delete(tabId);
   };
   const lock=fn=>{
     if(!lockManager?.request)fail('E_ADBLOCK_LOCK','当前浏览器缺少跨窗口规则互斥锁');
@@ -329,10 +341,16 @@ export function createAdblockService({
     if(ack?.ok!==true||ack.host!==host){
       pendingPicks.delete(tab.id);fail('E_ADBLOCK_COSMETIC_PAGE','网页未进入选择模式');
     }
-    const [active,liveFrame]=await Promise.all([
-      api.tabs.query({active:true,windowId}),
-      api.webNavigation.getFrame({tabId:tab.id,frameId:0})
-    ]);
+    let active,liveFrame;
+    try{
+      [active,liveFrame]=await Promise.all([
+        api.tabs.query({active:true,windowId}),
+        api.webNavigation.getFrame({tabId:tab.id,frameId:0})
+      ]);
+    }catch{
+      dropPick(tab.id,session);
+      fail('E_ADBLOCK_COSMETIC_SESSION','网页或标签页在开始选择时已变化');
+    }
     if(pendingPicks.get(tab.id)!==session||active.length!==1||
        active[0].id!==tab.id||liveFrame?.documentId!==frame.documentId){
       dropPick(tab.id,session);
@@ -497,7 +515,8 @@ export function createAdblockService({
       }
     });
   }
-  return {tick,dispatch,probe,pagePolicy,invalidate,cancelPicksOnTabActivated};
+  return {tick,dispatch,probe,pagePolicy,invalidate,cancelPicksOnTabActivated,
+    cancelPickOnNavigation,cancelPickOnTabRemoved};
 }
 export function installAdblockService({api=globalThis.chrome,...options}={}){
   const service=createAdblockService({api,...options}),removers=[];
@@ -520,6 +539,9 @@ export function installAdblockService({api=globalThis.chrome,...options}={}){
     return true;
   });
   listen(api.tabs.onActivated,service.cancelPicksOnTabActivated);
+  listen(api.tabs.onRemoved,service.cancelPickOnTabRemoved);
+  listen(api.webNavigation?.onCommitted,service.cancelPickOnNavigation);
+  listen(api.webNavigation?.onHistoryStateUpdated,service.cancelPickOnNavigation);
   listen(api.runtime.onStartup,recover);
   listen(api.runtime.onInstalled,recover);
   listen(api.permissions.onRemoved,removed=>{

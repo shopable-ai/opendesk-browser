@@ -1120,3 +1120,53 @@ test('switching Chrome tabs revokes an uncommitted gesture-bound picker session'
     type:'hide',selector:'#native-promo'},page),{code:'E_ADBLOCK_COSMETIC_SESSION'});
   assert.equal(f.stored.has('opendesk.adblock.cosmetic.v1'),false);
 });
+
+test('top-level navigations and tab removal revoke old gesture-bound picks',async()=>{
+  for(const action of ['navigation','history','tab-removed']){
+    const f=await fixture(),url='https://news.example.com/story';
+    f.setCurrent(url);
+    const tab={id:1,windowId:10,url,active:true,incognito:false};
+    f.api.tabs.get=async()=>({...tab});
+    f.api.webNavigation={getFrame:async()=>({url,documentId:'page-doc',documentLifecycle:'active'})};
+    const sent=[];
+    f.api.tabs.sendMessage=async(id,msg,options)=>{
+      sent.push({id,msg,options});
+      return msg.type==='start-pick'?{ok:true,host:msg.host}:undefined;
+    };
+    const page={id:senderId,url,frameId:0,documentId:'page-doc',
+      documentLifecycle:'active',tab};
+    await f.service.dispatch(f.message('adblock.enable'),sender);
+    assert.equal((await f.service.dispatch(f.message('adblock.cosmetic.pick'),sender)).pickerActive,true);
+    if(action==='tab-removed')f.service.cancelPickOnTabRemoved(1);
+    else{
+      f.service.cancelPickOnNavigation({tabId:1,frameId:2});
+      assert.equal(sent.length,1,'a subframe cannot cancel a top-level selection');
+      f.service.cancelPickOnNavigation({tabId:1,frameId:0});
+      assert.equal(sent.at(-1).msg.type,'cancel-pick');
+    }
+    await assert.rejects(f.service.pagePolicy({protocol:ADBLOCK_PAGE_PROTOCOL,
+      type:'hide',selector:'#native-promo'},page),{code:'E_ADBLOCK_COSMETIC_SESSION'});
+    assert.equal(f.stored.has('opendesk.adblock.cosmetic.v1'),false);
+  }
+});
+
+test('failed document recheck after picker activation invalidates the picker',async()=>{
+  const f=await fixture(),url='https://news.example.com/story';
+  f.setCurrent(url);
+  const tab={id:1,windowId:10,url,active:true,incognito:false};
+  f.api.tabs.get=async()=>({...tab});
+  let frames=0;
+  f.api.webNavigation={getFrame:async()=>{
+    if(++frames>1)throw Error('navigation replaced document');
+    return {url,documentId:'page-doc',documentLifecycle:'active'};
+  }};
+  const sent=[];
+  f.api.tabs.sendMessage=async(id,msg)=>{
+    sent.push(msg.type);
+    return msg.type==='start-pick'?{ok:true,host:msg.host}:undefined;
+  };
+  await f.service.dispatch(f.message('adblock.enable'),sender);
+  await assert.rejects(f.service.dispatch(f.message('adblock.cosmetic.pick'),sender),
+    {code:'E_ADBLOCK_COSMETIC_SESSION'});
+  assert.deepEqual(sent,['start-pick','cancel-pick']);
+});
