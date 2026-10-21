@@ -284,3 +284,58 @@ Chrome Web Store [统计指南](https://developer.chrome.com/docs/webstore/metri
 ### 5. 决策含义和完成程度
 
 **本节新增：**官方量价统计解释和无法测量项、广告前法务/落地/预算门、真实 CAC 计算条件、三个旧 EXP 的执行交接与反证。**没有新增：**官方搜索量、实际 CPC、自然流量、Chrome Native PASS、用户、企业合同、合法 CSV、订单及续费。研究质量是继续降低决策的不确定性，不是把缺失指标改为 0 或为 95 分造证据。S0 已形成源码与竞品初审，S1/S2/S3 真实实施仍未开始，S4 仍 NOT_DECIDED。
+
+## R1.3-NATIVE-AND-BUYER · 2026-10-21 · 真机阻断、买方报价准备与投资门
+
+> 执行环境：已连接 GitHub，仅完成最新 main 文件/相邻提交只读核查、官方竞品资料复核和以下预注册材料；**没有连接用户 Mac 本地仓库/已加载 OpenDesk 的 Chrome 真实文档/Google Ads Keyword Planner/企业账户**。因此 `NATIVE_CHROME_NOT_TESTED` 是**未取得运行环境证据**，不等同已复现某项产品 FAIL。本节更新原验证日志而不是新建实验/第二套商业架构；正式产品修改仍受 [AI 交付同源预览审批门](../browser-extension-ecosystem/ai-artifact-delivery-r1.zh-CN.md) 约束。
+
+### S0：与 R1.2 基线相比的实际源码和并行工作核查
+
+- GitHub 主干本次初始 `9b29ebc94adccfdd64e3742bee271d837b258418`；再次刷新见 `d3f88693b98cd9fcb143b17bd1bb88ece13af08a`（都是**研究快照**，后续提交/测试必须重读 main）。从旧 R1.2 基线 `a5addc29f8f8e528a582eeae327c42909679612e` 到本轮初始快照发生 **96 次提交**，差异含 Prompt Shortcuts 图片可信存储和 Clipper UI，而 Knowledge/Downloads Host 的重要交付缺口未被同期间提交消除；本轮最新 6 次提交的匹配改动未见 Knowledge、Clipper、Prompt、Downloads、商业文件。后续并行提交可能继续发生，勿将此快照当作持续锁。
+- Knowledge `examples/sidebar-tools/knowledge-inbox/` 配置为 **1.2.7**；`src/knowledge/page.js` 仍取 `image.currentSrc || image.src`，`src/knowledge/model.js` 以 `imageCount` 保存图片数量；`src/knowledge/service.js` 的 `capture.image` 直接调用 `chrome.downloads.download` 并返回 `downloadId`。源代码中**没有**为该图片写入可持久回读的原始 MIME/bytes/SHA-256、下载终态、Markdown 本地资源绑定与跨 Worker 业务交付回执。**SOURCE_GAP_PROVEN / REAL_DOWNLOAD_NOT_TESTED**。
+- Web Markdown Clipper **1.2.3** 复用 `clipNotes.save/get` 的文本逐字段读回和结果未知防重试；该库没有原图二进制交付职责。Prompt Shortcuts **1.1.8** 的 `trusted/asset-host.js` 已在受控 Chrome local 保存经缩放或重新编码的 64 KiB 内 PNG/JPEG/WebP **按钮小图**，不能据此认定 Knowledge 可保留原图原始字节。不得混用两工具存储。
+- `src/platform/chrome/browser-downloads.js` 现有受限 Host 提供 `download/getOwned/listOwned/cancelOwned`；`download` 回 `{status:"started"}`，`getOwned` 区分 `in_progress/complete/interrupted` 并可查询收取字节；下载引用由内存 Map 持有，**Worker 重启会丢**。这是能复用的公共状态查询能力，但不是本次 Knowledge 已经接入的证据。另一 `src/platform/downloads/index.js` 属 Controller 通用结果导出，不是 Knowledge 图片附件实现。
+- [专项工作记录](../../framework/workstreams/ai-artifact-delivery-r1-20261020.md) 明确 `PREVIEW_PENDING_USER_CONFIRMATION / PRODUCT_IMPLEMENTATION_NOT_APPROVED`；本轮仅作只读验证、商业文件更新，**不改** `src/knowledge/*`、正式 Knowledge UI、Browser SDK/Host/Native、正式工具包。
+
+### S1 / EXP-003：真实 Mac Chrome 验收准入和失败矩阵（未执行，不是 PASS）
+
+**准入**：先由专项 Owner 确认现有同源预览（正式 Knowledge HTML/CSS/JS + 独立模拟 Host）是否获用户批准；没有批准不得为了 R1.3 直接重构正式产品。测试人员持有自选非敏感素材/合法 AI 会话及 Chrome/文件读回许可。可先**只读**验证现状；源码存在明确缺口不代表新实现自动获批。
+
+| 实测点 | 必须保留的真实证据和负面判据 | 本轮结果 |
+| --- | --- | --- |
+| 正常图文交付 | 固定候选构建 SHA、扩展真实 ID、同一回答的 Markdown/source/时间、原图可信来源与 MIME/尺寸/bytes/SHA-256、落盘文件 SHA-256、Chrome 由 started→complete 的状态及 Markdown 图片引用实际存在 | `NOT_TESTED`；源码只有启动下载，无终态/原图文件回执 |
+| 关闭重开和断网 | 重开 Knowledge 记录、**重新打开真正磁盘图片与 Markdown**；使用经过明确授权的文件读取，而非仅 Chrome 下载行或 HTML URL | `NOT_TESTED` |
+| HTTP 403 / 过期 URL | 获取失败后可辨认的具体错误，不能显示“已保存原图”；若仅返回下载 ID，继续核查 Chrome terminal | `NOT_TESTED` |
+| 下载 `interrupted` / `E_OUTCOME_UNKNOWN` | 终态与任务记录一致；未知时先核查已有文件/Chrome 记录，**不自动重试** | `NOT_TESTED`；现有 capture.image 不提供该任务级保证 |
+| 网站或工具撤权 | 所有后续敏感操作拒绝；已经开始的 Chrome 任务只如实报告可能存在的结果，不能伪造“已撤销下载” | `NOT_TESTED` |
+| 重复点击、路径冲突 | 同一业务交付至多一份经核实的资产；`conflictAction:uniquify` 不是业务幂等；多次点击不得无声生成重名副本 | `NOT_TESTED` |
+| Worker 重启/来源图片切换 | 重启后重新关联记录与真实状态；`getOwned` 引用可失效须显式 UNKNOWN 并核查 Chrome 下载，不能将缩略图声称为原图 | `NOT_TESTED`；当前 Host 内存引用是已核的源码风险 |
+| 回归/安全 | 原 Knowledge 搜索、编辑、未保存保护与来源、Clipper、Prompt Shortcuts 保持可用；拒绝非授权域名、越权本地文件写入 | `NOT_TESTED` |
+
+本网页执行场所 **未获取**：Mac 上可执行的源码/Chrome profile、候选生产构建 SHA、真实下载文件、原图 hash、测试日志和具体本地命令退出码。因此**没有运行** `npm run build`、`node --test` 或原生 Chrome 测试，不填任何 PASS、FAIL 数量。现场 Codex 需先用 `git status --short`、`git rev-parse HEAD`、实际加载扩展路径/ID/权限和当前 watcher 做非破坏性核验；仅在实际审批和诊断允许后执行相关已有定向测试与真实 Chrome 手动下载读回，保留文件摘要与操作日志。任何业务缺陷先锁定来源、复现及责任 Owner，再判断是否需要最小源码修改。
+
+### S2 / EXP-001：五位**真正有预算决策权**的买方访谈与固定范围报价卡（已准备、未联系）
+
+先定一个可被客户合法授权的试点：**一个指定 Origin/企业站点、一条人工触发的重复网页流程、最多八个明确字段、一个终态读回、用户审核/确认后才执行任何有影响的动作**；由现有受控 Workflow 和许可门执行，回归包括撤权、Stop、误操作恢复与版本更新。原则上不采集真实生产凭证，不接受越权录制；客户明确拒绝站点使用权即 STOP。无需为访谈开发第二套自动化引擎。
+
+| 访谈配额（仅角色候选，不是已找到真人） | 决定是否符合合格采购人的硬问题 |
+| --- | --- |
+| 1. 运营负责人 | 是否管理该重复任务、最近四周实际发生频次和可支配的流程改造预算？ |
+| 2. IT/信息安全预算负责人 | 能否批准该 Origin、权限、日志保存、撤权和支持协议？审批后是否真的有采购责任？ |
+| 3. 客服或销售运营负责人 | 上一次失败/返工时间和可验证的金额损失？是否有该工作流的席位或服务预算？ |
+| 4. 电商/财务运营负责人 | 现有 API/官方导出/Automa、Axiom、Ui.Vision 是否已经足够？自己会因哪项失败恢复付费？ |
+| 5. 采购/业务系统交付负责人 | 谁是最终签约人、采购流程/额度/法务约束、是否能签署试点及后续维护协议？ |
+
+每位都问**同一组**可证伪问题：① 最近一次真实任务的输入/输出和频次；② 当前人力分钟数及返工；③ 最强免费/付费替代；④ 谁拥有站点授权；⑤ **谁可以签付款和审批的书面文件**；⑥ 针对固定范围是否愿意审核 SOW、实施费及每月维护费；⑦ 自己可批准的金额区间、采购周期、合规限制；⑧ 什么条件下直接拒绝。候选若**没有预算/购买影响力**应从“五位预算买家”分母剔除，不把普通产品用户凑数。
+
+**统一 SOW/报价草案**（非正式报价，**未发送、未经买方批准**）：交付对象=上述 1 Origin/1 流程/≤8 字段/1 结果回读；包含权限审阅、审计与撤权测试、一次部署、一次现场验收及 30 天范围内缺陷处理；**不包含**绕过风控、客户系统账号共享、多个新站点、任意批量爬取、长期 24x7、支付/退款/不可逆自动提交。报价字段：实施费 `MISSING_PENDING_ESTIMATED_HOURS`；月维护费 `MISSING_PENDING_SUPPORT_COST`；含支持小时 `MISSING`；客户明确 SLA `MISSING`；第三方/API 成本 `MISSING`。先核实工程含成本工时和客户预算再冻结一个真实数字与币种；**未知价格不能算已报价验证**。每份真实回执仅在获得授权后以脱敏摘要和私有证据标识写回 EXP-001。
+
+访谈完成判据：先争取 **5/5 合格预算采购人实际完成访问**；至少 **1 份带范围、实施/维护金额与具名公司授权批准角色的书面反馈/报价请求** 才升格为有效商机。口头“感兴趣”不是报价/收入；只有实际签约与可核付款才能记 `PAID_VALIDATED`。当前 `INTERVIEWS_0_DONE / BUYERS_MISSING / QUOTES_NOT_SENT`，这里的 0 是**本轮执行记录**，不是把长期未知业务分母写成 0。
+
+### S3/S4：C 数据许可、13 关键词和获客经济硬门
+
+- **C / EXP-005**：尚无经卖家书面许可的 CSV、字段正确答案、预算买方。等到最少三份合法导出/客户提交文件、授权用途及人工标准后，才核对字段缺失、重复 SKU、误报漏报和每 100 行人工时间；文件原件留在客户授权位置，不公开上传。当前 `BLOCKED_BY_AUTHORIZED_DATA`，不启用 Seller 私有站点爬虫。
+- **Google US/en + JP/ja 13 词**：继续使用上节已列的 13 条 literal，**不翻译成别词、不另报新量价**；仅账户持有人在已授权 Keyword Planner 分别按地域、语言、同一完整月份、Google Search Network、官方币种导出 `avgMonthlySearches/competition/topOfPageBidLow/high`、导出时间和文件 SHA。Google 页首 bid percentile 是历史广告出价参考，**不是实际 CPC**；本轮 `13/13 OFFICIAL_METRICS_MISSING`，不接入广告账户、不建立 campaigns、`AD_SPEND_NOT_EXECUTED`。需另有合规比较落地页、预算书面批准及可归因的真实任务转化，才能测实际 CAC。
+- **免费→付费要有两条独立证据链**：免费首次结果和两个自然周期复用（分母为真实自愿参与 cohort）；团队买家独立承认具体维护/集成价值、固定报价、实际采购付款。贡献应扣云/API、实施与持续维护、支持、退款/支付和自然渠道内容工时；缺订单/工时与可归因点击，`CAC/payback/monthlyContribution=NOT_MEASURED`。CWS 安装和竞品安装都不替代活跃、复用或订单。
+- **当前决策（每方向独立）**：A=`NOT_DECIDED / BLOCKED_BY_PRODUCT_EVIDENCE`；B=`NOT_DECIDED / BUYER_MISSING`；C=`NOT_DECIDED / AUTHORIZED_CSV_MISSING`；付费渠道=`NOT_DECIDED / NO_ACCOUNT_OR_BUDGET`。没有真实付款、自然重复、可核 Mac Chrome 文件就不放大投入，也不发布“95 分已达标”。
+
