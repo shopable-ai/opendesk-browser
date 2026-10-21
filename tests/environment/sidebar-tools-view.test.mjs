@@ -22,7 +22,8 @@ const compileComponent = async (path, replacements) => {
 };
 const buttonModule = await compileComponent('../../src/ui/react/components/ui/button.tsx',{'react':import.meta.resolve('react')});
 const conversationModule = await compileComponent('../../src/ui/react/components/conversation.tsx',{
-  'react':import.meta.resolve('react'),'react-dom':import.meta.resolve('react-dom')});
+  'react':import.meta.resolve('react'),'react-dom':import.meta.resolve('react-dom'),
+  './ui/button.tsx':buttonModule});
 const toolsModule = await compileComponent('../../src/ui/react/tabs/tools.tsx',{'react':import.meta.resolve('react'),
   'react-dom':import.meta.resolve('react-dom'),'../components/ui/button.tsx':buttonModule});
 const moduleSource = compiled.code.replace('"react"', JSON.stringify(import.meta.resolve('react')))
