@@ -71,8 +71,8 @@ test('R1.4 Send pins bookmark IDs; writing blocks conflicting draft and follows 
  assert.match(app,/bookmarkConversationContext\(tree,pinned\)/);
  assert.match(app,/conversation\.request\(\{request,context:publicContext,signal,event\}\)/);
  assert.match(app,/if\(willWrite&&\(draftRef\.current\|\|uncertainRef\.current\|\|busyRef\.current\)\)/);
- assert.match(app,/executeBookmarkPlan\\(\\{plan:proposal,service,/);
- assert.match(app,/signal:authorization\\?\\.signal\\|\\|signal,beforeWrite:authorization\\?\\.assertWrite/);
+ assert.match(app,/executeBookmarkPlan\(\{plan:proposal,service,/);
+ assert.match(app,/signal:authorization\?\.signal\|\|signal,beforeWrite:authorization\?\.assertWrite/);
  assert.match(app,/if\(step\.tree\)setTree\(step\.tree\)/);
  assert.match(app,/onStep\?\.\(\{message:step\.message,refs:step\.refs\}\)/);
  assert.match(actions,/nextRefs\.folderId=found\.id/);
