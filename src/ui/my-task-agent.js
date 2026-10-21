@@ -107,6 +107,12 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
       throw fail('E_REVISION','安装的任务版本或清单已变化，请刷新任务');
     return {row,candidate};
   };
+  const pinned=row=>({version:row.version,manifestHash:row.manifestHash,
+    generation:row.generation,installationId:row.installationId});
+  const assertPinned=(row,expected)=>{
+    if(expected&&(!row||Object.keys(expected).some(key=>row[key]!==expected[key])))
+      throw fail('E_REVISION','任务或计划在确认期间已变化，请重新检查并确认');
+  };
   const summarizeTask=({row,candidate})=>({
     taskId:row.taskId,title:clip(candidate.manifest?.title||row.taskId,100),
     description:clip(candidate.manifest?.description,220),
@@ -134,7 +140,14 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
     switch(action.type){
       case 'list_tasks': {
         const data=await tasks(),origin=currentPage().origin;
-        const rows=data.installed.slice(0,100).map(row=>summarizeTask(taskInfo(data,row.taskId)));
+        const rows=data.installed.slice(0,100).map(row=>{
+          const candidate=data.catalog.find(c=>c.taskId===row.taskId&&
+            c.version===row.version&&c.manifestHash===row.manifestHash);
+          return candidate?summarizeTask({row,candidate}):{
+            taskId:row.taskId,title:row.taskId,description:'安装记录需要核查',
+            enabled:false,version:row.version,stage:'needs_attention',siteOrigins:[]
+          };
+        });
         const mapped=rows.map(({paramsSchema,...v})=>({...v,
           appliesToCurrentPage:Boolean(origin&&v.enabled&&v.siteOrigins.includes(origin))}));
         const needle=action.query?.trim().toLocaleLowerCase();
@@ -202,7 +215,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
       default:return action.type;
     }
   };
-  async function write(action,event,signal){
+  async function write(action,event,signal,expected=null){
     stopCheck(signal);
     if(!event?.isTrusted)throw fail('E_USER_GESTURE','只有点击可信确认按钮才能修改真实任务或计划');
     if(action.type==='run_task'){
@@ -210,7 +223,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
       // TaskWorkbench synchronously checks the pinned catalog, parameters and
       // Chrome permissions before its own first await, then uses the only RunHost.
       const completed=await taskWorkbench.runInstalledForAgent({
-        taskId:action.taskId,params:action.params,event});
+        taskId:action.taskId,params:action.params,event,expected});
       const history=await runHistory(action.taskId,3);
       const observed=history.find(v=>v.runId===completed.runId);
       if(!observed||!observed.hasResult)throw fail('E_OUTCOME_UNKNOWN','任务已提交，但尚未读取到持久结果；请核查历史，不要重新运行');
@@ -224,6 +237,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
     }
     if(action.type==='set_task_enabled'){
       const {row,candidate}=taskInfo(await tasks(),action.taskId);
+      assertPinned(row,expected);
       if(row.enabled===action.enabled)return {taskId:row.taskId,enabled:row.enabled,unchanged:true};
       const patterns=candidate.manifest.siteOrigins.map(origin=>permissionPattern(origin));
       if(action.enabled&&!await api.permissions.contains({origins:patterns}))
@@ -239,6 +253,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
     }
     if(action.type==='create_schedule'){
       const {row,candidate}=taskInfo(await tasks(),action.taskId);
+      assertPinned(row,expected);
       if(row.enabled!==true||candidate.stage!=='available'||!row.installationId)
         throw fail('E_PERMISSION','计划要求已启用、已验证且具安装身份的任务');
       const params=validateTaskParams(candidate.manifest.paramsSchema,action.params);
@@ -271,6 +286,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
     if(action.type==='change_schedule'){
       const before=(await schedules()).find(p=>p.scheduleId===action.scheduleId);
       if(!before)throw fail('E_SCHEDULE_NOT_FOUND','该计划不存在，未执行修改');
+      assertPinned(before,expected);
       if((action.operation==='pause'&&before.paused)||(action.operation==='resume'&&!before.paused))
         return {scheduleId:before.scheduleId,paused:before.paused,unchanged:true};
       stopCheck(signal);
@@ -312,30 +328,51 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
       for(const action of proposal.actions){
         stopCheck(signal);
         if(changes.has(action.type)){
-          if(action.type==='run_task'){
+          let expected=null;
+          if(['run_task','set_task_enabled','create_schedule'].includes(action.type)){
             // Read-only preflight happens before the user clicks Confirm.
             // No Chrome permission prompt or RunHost start is deferred here.
             try{
               const {row,candidate}=taskInfo(await tasks(),action.taskId);
-              if(!row.enabled||candidate.stage!=='available')
+              if(candidate.stage!=='available'||
+                (action.type!=='set_task_enabled'&&!row.enabled))
                 throw fail('E_PERMISSION','任务未启用或尚未验证');
-              validateTaskParams(candidate.manifest.paramsSchema,action.params);
-              if(!candidate.manifest.siteOrigins.includes(currentPage().origin))
+              if(action.type==='run_task')validateTaskParams(candidate.manifest.paramsSchema,action.params);
+              if(action.type==='run_task'&&
+                !candidate.manifest.siteOrigins.includes(currentPage().origin))
                 throw fail('E_TARGET','该任务不适用于当前网页');
+              if(action.type==='create_schedule'){
+                validateTaskParams(candidate.manifest.paramsSchema,action.params);
+                let origin;try{origin=new URL(action.targetUrl).origin;}catch{}
+                if(!candidate.manifest.siteOrigins.includes(origin))
+                  throw fail('E_TARGET','定时计划目标网站不匹配任务清单');
+              }
+              expected=pinned(row);
             }catch(error){
-              context.push({action:'run_task.preflight',observation:{
+              context.push({action:action.type+'.preflight',observation:{
                 error:clip(error.message,280),code:error.code||'E_TASK'}});
               verifiedHistory=context.slice(-8);
-              add('系统','运行前核查失败：'+clip(error.message,360));
+              add('系统','执行前核查失败：'+clip(error.message,360));
               continue;
             }
+          }
+          if(action.type==='change_schedule'){
+            const plan=(await schedules()).find(v=>v.scheduleId===action.scheduleId);
+            if(!plan){
+              context.push({action:'change_schedule.preflight',
+                observation:{error:'计划不存在',code:'E_SCHEDULE_NOT_FOUND'}});
+              add('系统','计划已不存在，请重新查询。');continue;
+            }
+            expected={generation:plan.generation,taskId:plan.taskId,title:plan.title};
           }
           if(session.confirmed?.has(JSON.stringify(action))){
             add('系统','这一操作在当前请求中已确认过，拒绝再次自动执行。');
             publish({busy:false,status:'idle',pending:null,step:''});
             session.active=false;return;
           }
-          const pending={action,summary:explain(action)};
+          const pinnedLabel=expected?.version?' · 固定 v'+expected.version:'';
+          const targetLabel=action.type==='run_task'?' · 目标 '+clip(currentPage().url,250):'';
+          const pending={action,expected,summary:explain(action)+pinnedLabel+targetLabel};
           session.context=context;
           publish({busy:false,status:'review',step:'请检查目标与影响',pending});
           add('助手','准备执行：'+pending.summary+'。确认后才会修改真实数据。');
@@ -394,7 +431,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
     const record={action:pending.action.type,observation:null};
     current.confirmed.add(JSON.stringify(pending.action));
     try{
-      const observation=await write(pending.action,event,current.signal);
+      const observation=await write(pending.action,event,current.signal,pending.expected);
       if(session!==current||current.signal.aborted)return;
       record.observation=observation;
       current.context.push(record);

@@ -11,10 +11,10 @@ const candidate=()=>({taskId:'search',version:'1.0.0',manifestHash:'pinned',
     siteOrigins:['https://example.com'],paramsSchema:schema}});
 const trusted={isTrusted:true};
 function rig(proposals,{hasTask=true}={}){
-  let executions=0,changes=0,planned=0,paused=false;
+  let executions=0,changes=0,planned=0,paused=false,generation=1,pinned=null;
   const client={
     async request(name,payload){
-      if(name==='listTaskCatalog')return {installed:hasTask?[installed()]:[],
+      if(name==='listTaskCatalog')return {installed:hasTask?[{...installed(),generation}]:[],
         catalog:hasTask?[candidate()]:[]};
       if(name==='listSchedules')return {schedules:[{
         scheduleId:'plan1',title:'早间计划',taskId:'search',paused,generation:1
@@ -28,7 +28,7 @@ function rig(proposals,{hasTask=true}={}){
         revision:{scriptId:'task:search:1.0.0'}}]
     };}}
   };
-  const taskWorkbench={runInstalledForAgent:async()=>{executions++;return {runId:'run1'};},
+  const taskWorkbench={runInstalledForAgent:async({expected})=>{executions++;pinned=expected;return {runId:'run1'};},
     stopAgentTask:async()=>{},myView:{field:()=>({value:'search'})}};
   const provider={source:()=>({provider:'local_codex'}),
     request:async()=>({proposal:proposals[Math.min(planned++,proposals.length-1)],
@@ -37,7 +37,7 @@ function rig(proposals,{hasTask=true}={}){
   const agent=createMyTaskAgent({client,taskWorkbench,provider,currentPageTarget:target,
     api:{permissions:{contains:async()=>true}}});
   return {agent,get executions(){return executions;},get changes(){return changes;},
-    get planned(){return planned;}};
+    get pinned(){return pinned;},bumpGeneration(){generation++;},get planned(){return planned;}};
 }
 
 test('strict whitelist prevents fabricated Chrome methods, unexpected fields and multiple writes',()=>{
@@ -75,6 +75,8 @@ test('confirmation is consumed before await and cannot double-run',async()=>{
   await rigged.agent.confirm(trusted);
   await pending;
   assert.equal(rigged.executions,1);
+  assert.equal(rigged.pinned.version,'1.0.0');
+  assert.equal(rigged.pinned.generation,1);
   assert.equal(rigged.agent.getSnapshot().pending,null);
   assert.match(rigged.agent.getSnapshot().rows.map(x=>x.message).join(' '),/任务「search」已结束本次执行/);
   assert.doesNotMatch(rigged.agent.getSnapshot().rows.map(x=>x.message).join(' '),/已读取真实回执：\\{/);
@@ -105,5 +107,16 @@ test('untrusted synthetic event cannot initiate a modifying AI turn',async()=>{
   await assert.rejects(rigged.agent.send('run',{isTrusted:false}),/可信对话/);
   assert.equal(rigged.planned,0);
   assert.equal(rigged.executions,0);
+  rigged.agent.dispose();
+});
+
+test('task generation change between review and confirmation fails closed',async()=>{
+  const rigged=rig([{actions:[{type:'set_task_enabled',taskId:'search',enabled:false}]}]);
+  await rigged.agent.send('停用网页搜索任务',trusted);
+  assert.equal(rigged.agent.getSnapshot().status,'review');
+  rigged.bumpGeneration();
+  await rigged.agent.confirm(trusted);
+  assert.equal(rigged.executions,0);
+  assert.ok(rigged.agent.getSnapshot().rows.some(row=>/确认期间已变化/.test(row.message)));
   rigged.agent.dispose();
 });

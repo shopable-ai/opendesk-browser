@@ -565,6 +565,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     let chosen,params,site,permission,captured;
     try {
       chosen=agentIntent?installed.find(row=>row.taskId===agentIntent.taskId):installedRow();
+      if(agentIntent?.expected&&(!chosen||
+        ['version','manifestHash','generation','installationId'].some(key=>
+          chosen[key]!==agentIntent.expected[key])))
+        throw {code:'E_REVISION',message:'确认期间任务固定版本或安装授权已变化，请重新核查'};
       const info=candidateFor(chosen);
       if(!chosen?.enabled||info?.stage!=='available')throw {code:'E_PERMISSION',message:'当前任务未启用或不可安装'};
       captured=currentPageTarget.capture();
@@ -867,8 +871,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   },setScheduledRunOwner(runId) {
     scheduledRunId=typeof runId==='string'&&runId?runId:null;
     if(!disposed)syncRunDock();
-  },runInstalledForAgent({taskId,params,event}){
-    return run(event,{taskId,params});
+  },runInstalledForAgent({taskId,params,event,expected}){
+    return run(event,{taskId,params,expected});
   },stopAgentTask({taskId,event}){
     if(!event?.isTrusted||disposed||!activeRunId||host.currentRun!==activeRunId||
       runOwnerKey!==identity(installed.find(row=>row.taskId===taskId)))
