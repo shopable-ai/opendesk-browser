@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R3.1</title>
+<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R3.5</title>
 <meta name="description" content="OpenDesk Prompt Shortcuts 独立侧边栏交互原型。仅模拟、不安装、无真实权限请求。">
 <style>
 /* Offline design contract: semantic values mirror src/ui/design-tokens.css (blob 134dd7871da4bf0ee26b6d0135e69e7273fdabdb).
@@ -426,7 +426,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 <header class="demo-header">
  <div class="demo-title"><span class="logo" aria-hidden="true">OD</span><div>
   <h1>Prompt Shortcuts · Side Panel UI</h1>
-  <p>交互预览 R3.1 · 默认大图 · 3 档尺寸可调 · 原功能保留</p></div></div>
+  <p>交互预览 R3.5 · 默认离线示例图片 · 3 档尺寸可调 · 原功能保留</p></div></div>
  <div class="demo-controls" aria-label="预览控制">
   <span class="design-badge">模拟预览 · 非真实安装</span>
   <a id="brandAdLabLink" class="od-button od-button--small" href="./brand-ad-lab-r213.html" title="打开 R2.13 四种 ChatGPT 对话状态与双广告区域高保真设计预览（仅 HTML 模拟）">R2.13 广告视觉预览 ↗</a>
@@ -585,9 +585,13 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 <footer class="demo-footer">原型关联：<a href="./mock.html" target="_blank" rel="noopener">查看已确认的 ChatGPT 左侧网页完整原型</a>。本页保存、导入和启停会即时更新左侧模拟按钮；允许 localStorage 的环境刷新后仍可恢复模拟提示词；两个独立 HTML 文件之间不宣称跨标签同步。正式版仍需真实 Chrome 安装、菜单权限与持久存储验收，预览不申请真实权限。</footer>
 <script>
 (()=>{'use strict';
+ // Preview-only decoded PNG fixture. The original HTTPS sample remains the only
+ // user-facing URL; neither exports nor the trusted model ever see this data: URI.
+ const PREVIEW_DEFAULT_IMAGE_URL='https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=160&h=120&fit=crop';
+ const PREVIEW_OFFLINE_PNG='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAABgCAMAAADipIp7AAAAYFBMVEUeWUZFZoAxb1tnqN+HueBaot55suBSnt6YweL/5pvt9/dxruBOnN4ZSjmRvuGmyeJEQzexz+O10OMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACXZQ/FAAACtElEQVR42u2W2ZKcMAxFr5UJCcrSy/9/bHoDbCzZkscDlS7uG8i65zRNTw1+7xzsLvBj5xwC+wt83zmHwCHw5gLjM0WBb1+XcYl+CFvgSwrYiK8aYCu+ZoDN+IrBmwqMo9ngPQXG0W7wXwtwF4FfzWFmZaIKCGfxGf7+AtxBYGgMPyPOVAHhLD7HlwUGO79VgJkbHsGXCDgMhn4CvLMAc4vB0E2AucVg2FhgsPEHfLjDWZSDEV5vQwc+q2er+AYBZo9BPX0EeDsB3lmAubcBWvghhG4GfoHwzOyypcCCnwwilw0E+CMESeB1scETCGFlkFw1Cvy1J6zCq8t6Ayq34BNYRVxJYcgJ+BklucgSahFXkn7kBEjz0MQP8krSnxtIAnqZz2B9uyYwzeWPE9wG69uAZJAL1NqsAtn9msBrLveF4DXI7gOigSiArM8tkA8SAeQC8zwWmBpDcBrkAyA2KAukX4SL/zIIFYHoi8DpmWi+EginU4VJ6WnxPOLcaacJnAtk72KNf0vd98+SJywVQLsAUWqgPK+KwGkZ+wxoTvlcxJ8IXQSIjAY1gXxMXn5RQeC/DKA8AJMBZSmfP5/Pt5+MJCD5Efn5lZ2bAFH8c5wFlnk0rtSRkq4C5OeXdlaAhwFmPtFtnoxLbVRKaScTuFwu01QSoAa+vDWNovftxr5g4a/HhjKHgQB4GOCaFCZjrYxMUXYSwvV6RdooClALP1lTAHcDlMbixykQoRhQUYD0MQSDAn5+cVdr+dHHH4TH9ApSx2mfjS8YkE64j1UBrAtNeEGhKECagNhn41sMFgGqCxj6sv+nrL8T8Szg7YN/JdozlJXr4F9J1ixlpb6GFfWdRSlefMFAOYVK3Hzjjq1JrGvYUU7AGD8/3VEOwB43PlpCn1BDXUf8ZIBdszf/yJEjnfMPBwDKsOWXzB0AAAAASUVORK5CYII=';
  const INITIAL=[
   {id:'a',label:'润色',name:'专业文字润色',body:'请在不改变原意的前提下润色以下文字：\n1. 保持语气专业、自然；\n2. 改进逻辑和清晰度；\n3. 输出优化后的完整正文。',enabled:true,shape:'square'},
-  {id:'b',label:'总结',appearance:'image',imageUrl:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=160&h=120&fit=crop',name:'重点总结',body:'请将上述信息总结为：\n一、核心结论；\n二、重要依据；\n三、建议下一步。',enabled:true,shape:'square'},
+  {id:'b',label:'总结',appearance:'image',imageUrl:PREVIEW_DEFAULT_IMAGE_URL,name:'重点总结',body:'请将上述信息总结为：\n一、核心结论；\n二、重要依据；\n三、建议下一步。',enabled:true,shape:'square'},
   {id:'c',label:'翻译',name:'中英双向翻译',body:'请根据原文语言进行中英双向翻译，保留段落结构、专有名词和原有语气。',enabled:true,shape:'round'},
   {id:'d',label:'检查',name:'',body:'请检查内容中的逻辑漏洞、遗漏与相互矛盾处，逐条说明并提供修复建议。',enabled:true,shape:'square'}
  ];
@@ -610,9 +614,14 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    if(!Array.isArray(rows)||rows.length>80)throw Error('invalid demo data');
    return rows.map(row=>{if(!row||typeof row.body!=='string'||!row.body.trim()||!validLabel(row.label)||
       !['text','image'].includes(row.appearance??'text'))throw Error('invalid demo item');
-     const imageUrl=validPictureURL(row.imageUrl??'');
-     if(row.appearance==='image'&&!imageUrl)throw Error('missing image');
-     return {...row,appearance:row.appearance??'text',imageUrl};
+     // Upgrade only the untouched historical sample; never rewrite custom rows.
+     const oldSample=row.id==='b'&&row.label===INITIAL[1].label&&row.body===INITIAL[1].body&&
+       row.name===INITIAL[1].name&&!row.imageUrl&&
+       (row.appearance===undefined||row.appearance==='text');
+     const appearance=oldSample?'image':row.appearance??'text';
+     const imageUrl=validPictureURL(oldSample?PREVIEW_DEFAULT_IMAGE_URL:row.imageUrl??'');
+     if(appearance==='image'&&!imageUrl)throw Error('missing image');
+     return {...row,appearance,imageUrl};
    });
   }catch{return COPY();}
  }
@@ -670,12 +679,19 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   if(holder.dataset.failedImageUrl===url){fallback();return;}
   if(holder.dataset.imageUrl===url)return;
   holder.dataset.failedImageUrl='';holder.dataset.imageUrl=url;holder.classList.add('has-image');
-  const img=create('img','ps-picture');img.alt='';img.decoding='async';img.loading='lazy';img.referrerPolicy='no-referrer';
+  const offlineSample=item.id==='b'&&url===PREVIEW_DEFAULT_IMAGE_URL;
+  const img=create('img','ps-picture');img.alt='';img.decoding='async';
+  img.loading=holder.classList.contains('page-shortcut')||notify?'eager':'lazy';
+  img.referrerPolicy='no-referrer';
+  if(offlineSample)img.dataset.previewFixture='offline-png';
   img.addEventListener('error',()=>{if(holder.dataset.imageUrl!==url)return;
    holder.dataset.failedImageUrl=url;fallback();if(notify)el('imageHelp').textContent='图片加载失败，已经回退备用短标签。请检查链接、格式和网页 CSP。';});
-  holder.replaceChildren(img);img.src=url;
-  if(notify)el('imageHelp').textContent=({compact:'48×40',standard:'56×44',large:'68×48'}[state.settings.imageSize]||'68×48')+
-   ' 圆角矩形网页按钮 · 图片完整显示，不裁切；加载失败回退短标签。';
+  img.addEventListener('load',()=>{if(holder.dataset.imageUrl===url&&img.naturalWidth===0)img.dispatchEvent(new Event('error'));});
+  holder.replaceChildren(img);img.src=offlineSample?PREVIEW_OFFLINE_PNG:url;
+  if(notify)el('imageHelp').textContent=offlineSample?
+   '原版预览默认示例显示离线 PNG；正式产品仍使用 HTTPS 链接，不保证该外部地址可访问。':
+   (({compact:'48×40',standard:'56×44',large:'68×48'}[state.settings.imageSize]||'68×48')+
+   ' 圆角矩形网页按钮 · 图片完整显示，不裁切；加载失败回退短标签。');
  }
  // An automatic name is data compatibility, not a user-entered title.
  function customTitle(item){return item?.nameAuto===true?'':String(item?.name||'').trim();}
@@ -978,7 +994,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   dirty=JSON.stringify(rawFormValues())!==baselineForm;
   const image=el('appearanceImage').checked;el('imageFields').hidden=!image;
   el('imageTextHint').textContent=image?'备用短标签':'按钮短标签';
-  if(image)paintPicture(el('pictureExample'),{...formValues()},true);
+  if(image)paintPicture(el('pictureExample'),{...formValues(),id:editId},true);
   el('leaveConfirm').hidden=true;el('bodyError').hidden=true;
   // Unknown write outcomes remain visible while the user edits; only explicit reconciliation or a new save clears them.
   if(!el('formError').textContent.startsWith('E_OUTCOME_UNKNOWN'))el('formError').hidden=true;
