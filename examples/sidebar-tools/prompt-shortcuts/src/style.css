@@ -167,11 +167,16 @@
 .ps-image-size-setting{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);
   border:1px solid var(--od-line);border-radius:var(--radius-control);padding:6px 8px;min-width:0}
 .ps-image-size-setting[hidden]{display:none!important}
-.ps-image-size-setting label{font-size:var(--od-note-size);font-weight:650;min-width:0}
-.ps-image-size-setting select{width:135px;max-width:52%;min-height:34px;flex:none}
-.ps-appearance-switch{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:3px;border:1px solid var(--od-line);
-  border-radius:9px;background:var(--od-bg);min-width:0}
-.ps-appearance-switch label{display:grid;place-items:center;position:relative;min-height:34px;border-radius:7px;
+.ps-image-size-setting>span{font-size:var(--od-note-size);font-weight:650;min-width:0;flex:1}
+.ps-image-size-buttons{display:flex;flex:none;gap:3px}
+.ps-image-size-button{display:grid;place-items:center;flex:none;width:36px;height:34px;padding:0;
+  border:1px solid var(--od-line);border-radius:8px;background:var(--od-paper);color:var(--od-ink)}
+.ps-image-size-button[aria-pressed="true"]{border-color:var(--od-accent-ink);color:var(--od-accent-ink);background:var(--od-muted)}
+.ps-image-size-button:focus-visible{outline:3px solid var(--od-focus);outline-offset:2px}
+.ps-image-size-button .ps-size-dot{display:block;width:var(--dot);height:var(--dot);border-radius:50%;background:currentColor}
+.ps-appearance-switch{display:inline-grid;grid-template-columns:repeat(2,54px);justify-self:end;gap:2px;padding:2px;border:1px solid var(--od-line);
+  border-radius:9px;background:var(--od-bg);min-width:0;max-width:100%}
+.ps-appearance-switch label{display:grid;place-items:center;position:relative;min-height:28px;border-radius:7px;
   font-size:var(--od-meta-size);font-weight:650;cursor:pointer}
 .ps-appearance-switch input{position:absolute;inset:0;opacity:0;cursor:pointer;margin:0}
 .ps-appearance-switch label:has(input:checked){background:var(--od-paper);color:var(--od-accent-ink);
@@ -189,7 +194,7 @@
 .ps-card:has(.ps-glyph.has-image) .ps-card-caption{padding-left:calc(48px + var(--space-2))}
 @media(max-width:340px){
   .ps-image-size-setting{padding:7px;gap:6px}
-  .ps-image-size-setting select{width:131px;max-width:50%}
+  .ps-image-size-button{width:34px}
   .ps-card-main:has(.ps-glyph.has-image){gap:var(--space-1)}
 }
 @media(prefers-reduced-motion:reduce){.ps-appearance-switch label{transition:none}}
