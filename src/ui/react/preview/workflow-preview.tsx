@@ -8,6 +8,7 @@ import {createSidebarToolsView} from '../../sidebar-tools-view.js';
 // the one React root. This adapter is presentation state only: no Host, Provider,
 // Browser Authority, permission request, storage or synthetic execution receipt.
 const doc=document;
+doc.documentElement.dataset.opendeskTab='workflow';
 const get=id=>{
   const node=doc.getElementById(id);
   if(!node)throw Error('E_WORKFLOW_PREVIEW_MISSING:'+id);
