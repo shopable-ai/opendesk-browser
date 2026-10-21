@@ -155,3 +155,26 @@ GitHub Local run `39568063907`、job `119115102664` 原始日志提供：Local �
 7. 安全与高级功能无退化 **PARTIAL**：旧子测试通过及源码身份栅栏可见，最新综合 CI/真实运行尚未完成。
 
 **当前证据标签**：`NODE_PASS=NOT_TESTED_ON_NEW_SHA`、`CI_PASS=NOT_TESTED_ON_NEW_SHA`、`CHROME_PASS=NOT_TESTED`、`NATIVE_PASS=NOT_TESTED`、`PROVIDER_PASS=NOT_TESTED`。保持 `WEB_PARTIAL`，不提前宣布 `WEB_IMPLEMENTED_LOCAL_VALIDATION_PENDING`。后续只按 GitHub Actions 真实结果在原所有者修复资源；无确证不为行数指标改动高风险产品代码。
+
+## R40.10.5-WEB：Task Workbench 测试初始化与 Node 资源所有权修复（2026-10-21，WEB_PARTIAL）
+
+### 原始目标与边界
+- 原始七项均继承：① script-editor 总入口职责收敛；② Controller/Page/React-Vue/Local 四环境由已有 owner 唯一负责；③ 当前源码直接 Run/Stop；④ 删除被证实重复的协调；⑤ 原 Host/Authority/共享执行槽唯一；⑥整体维护复杂度下降；⑦保存、安装、结果、权限/身份/撤权及不可逆效果无退化。
+- 本轮先 P0 Node 正常退出，不为 CI 绿灯改写 RunHost、权限、固定来源 guard 或 Task 执行路径。P2 减法及 P3 Chrome/Provider 须建立在真实 P0 结果后。
+
+### P0：隔离日志揭示的真实根因与最小修复
+- R40.10.4 隔离 run [39584545806](https://github.com/shopable-ai/opendesk-browser/actions/runs/39584545806)，绑定 SHA `f831b0918cbfd1900f5b3f035cf9a47368e3ee73`；Job developer-node `119170090057` 独立测试 51 项打印 **50 not ok、1 ok**，50 项都在 `task-workbench.js:787` 调用 `developerAction(developerView=null,...)` 处抛 `Cannot read properties of null (reading 'actions')`；之后无完整 TAP，15 分钟取消，清理了两个 Node 进程。不能归结为 esbuild.stop() 不生效，也不能记为 51/51 PASS。
+- 正式 `src/ui/tool-shell.js` 已使用 `createDeveloperView()` 并向 Task Workbench 传入真实 `developerView`；旧 `task-workbench.test.mjs` 的 `make()` 仍使用无 Developer View 的 DOM Fixture。构造函数之前已建立 `BroadcastChannel`，异常发生在返回 dispose() 之前；失败实例不能归原 dispose 收尾，能够解释持续活动资源。
+- 提交 [a29a42e](https://github.com/shopable-ai/opendesk-browser/commit/a29a42edc9e4c7d8219ef25673d52aaabc0c0dd6)：测试 Fixture 按正式 Side Panel 初始化现有 Developer View，并在原 Task Workbench dispose 后释放视图，不新增生产 UI/Runtime。
+- 提交 [8bffbfe](https://github.com/shopable-ai/opendesk-browser/commit/8bffbfea5b29897fbed77a2929d3a5b796797d73)：将 Task Workbench 测试路径纳入既有 Developer 工作流 push filter，隔离测试和原六文件综合命令不变。
+- 提交 [4dd37d3](https://github.com/shopable-ai/opendesk-browser/commit/4dd37d3726ccbacc3cdaeb872391b64852b3535a)：在 Task Workbench 原所有者内部，延后建立同一个 catalog BroadcastChannel，直到全部同步视图/控制器接线成功且将要返回带 dispose() 的实例；保留原订阅、refresh hint 和 close，不另设资源管理器。初始化同步失败不再预先持有此资源。
+- 需要特别核验：旧 Task 测试大量断言仍引用历史 DOM Fake / Element.fire；本次只修复已证实的入口与资源故障，并**未**将这些旧断言预先认定为 React View PASS。若新日志出现测试语义不匹配，应按正式 React View owner 修复，不可删除/跳过测试或构造第二套产品 UI。
+
+### 精确新 CI 及当前限制
+- [Developer workflow run 39608550598](https://github.com/shopable-ai/opendesk-browser/actions/runs/39608550598)，精确 SHA `8bffbfea5b29897fbed77a2929d3a5b796797d73`：最近读取时 isolated Task Node **in_progress**，尚无完整 TAP/退出结论。独立 `developer-release-smoke` **FAIL**：`scripts/bundle-provenance.mjs` 固定来源守卫指向 `examples/sidebar-tools/adblock/trusted/policy.js`，外部 AdBlock owner，未绕过安全。
+- [Developer workflow run 39609943170](https://github.com/shopable-ai/opendesk-browser/actions/runs/39609943170)，精确 SHA `4dd37d3726ccbacc3cdaeb872391b64852b3535a`：最近查询时 queued，不能冒充 NODE_PASS 或 CI_PASS。后续以实际各 Job 和完整 TAP 更新，不引用其它 main 提交替代。
+- **P0=FIX_SUBMITTED / RETEST_IN_PROGRESS**，不是 CLOSED；P1 外部构建归责已证实；P2/P3/P4 新版完整安全/维护验收未完成；`CHROME_PASS`、`NATIVE_PASS`、`PROVIDER_PASS` 均 `NOT_TESTED`。七目标仍保持上一节的逐项 PARTIAL/PASS_SOURCE_ONLY/NOT_PROVEN 边界，不能提供 ≥95 的伪评分。阶段 **WEB_PARTIAL**。
+
+### 复杂度与改动边界
+- 本轮 Task Workbench 生产代码仅重新安排已有 BroadcastChannel 取得时点，保留原通道、监听与 dispose；测试 Fixture 复用真实 Developer View，工作流只补充路径触发；未触碰 Controller/Page/React-Vue/Local Run/Stop、基础 Authority、RunHost、依赖锁和持久 Store，也未迁移 Candidate/import。
+- R40.9 至 R40.10.3 的四个 Developer 生产文件基准仍是 **+89/-52、净 +37 行**；这次 Task 资源修复不等于对完整 Developer 调用链完成代码减法，P4 保留 NOT_PROVEN。应先关闭准确 Node 失败，不因行数或无关 main 更新执行机械搬迁。
