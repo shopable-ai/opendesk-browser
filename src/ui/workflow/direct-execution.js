@@ -143,6 +143,11 @@ export function prepareDirectExecution({request,workflow,target,observation}) {
     const nav=node.navigation;
     let href;
     try{href=new URL(nav?.href,target.url);}catch{return null;}
+    const source=new URL(target.url);
+    if(source.href.length>500||source.hash||
+      [...source.searchParams].some(([key,val])=>
+        !['q','query','keyword','search','s'].includes(key)||
+        !/^[\p{L}\p{N} _.-]{1,120}$/u.test(val)))return null;
     if(!nav||href.href!==nav.url||href.origin!==nav.origin||
       !['http:','https:'].includes(href.protocol)||href.username||href.password||href.hash||
       typeof nav.href!=='string'||nav.href.length>260||
