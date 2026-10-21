@@ -979,11 +979,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, title, {textContent: active?visibleTitle+(readOnlyPreview?' · '+(trustedTocTitle?
       readingTocHostText(currentTocLocale,'readonly'):'只读预览'):''):''});
     patchToolField(view, title, {title: active?'v'+active.version:''});
-    const clipNavigation=active?.id==='web-markdown-clipper'&&!!frame&&clipPage!==null;
+    const clipNavigation=navigationAllowed&&active?.id==='web-markdown-clipper'&&!!frame&&clipPage!==null;
     const navigation=navigationAllowed&&frame&&toolNavigation?toolNavigation:null;
-    if(clipNavigation||navigation)
-      patchToolField(view,title,{textContent:tocSettingsOpen?'工具设置':
-        navigation?.title||clipNavigationTitles[clipPage]});
+    if(tocSettingsOpen)patchToolField(view,title,{textContent:'工具设置'});
+    else if(clipNavigation||navigation)
+      patchToolField(view,title,{textContent:navigation?.title||clipNavigationTitles[clipPage]});
     const contextAction=tocSettingsOpen?'':navigation?.primary||
       (clipNavigation?({library:'new',reader:'edit',edit:'save',new:'save'}[clipPage]||''):'');
     const contextLabel=({new:'新建便签',edit:'编辑摘录',save:'保存摘录'})[contextAction]||'';
@@ -1020,7 +1020,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       setToolFieldAttribute(view, menuButton, 'aria-label', menuButton.title);
     }
     renderTocSettings();
-    if(clipNavigation||navigation){
+    if(tocSettingsOpen||clipNavigation||navigation){
       const label=tocSettingsOpen?'返回上一页':navigation?
         (navigation.canBack?'返回上一级':'返回扩展列表'):
         clipPage==='home'?'返回扩展列表':'返回上一级';
@@ -2269,7 +2269,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       return;
     }
     if(message.kind==='navigation-state'){
-      if(active?.id==='web-markdown-clipper'&&!readOnlyPreview&&
+      if(navigationAllowed&&active?.id==='web-markdown-clipper'&&!readOnlyPreview&&
          Object.hasOwn(clipNavigationTitles,message.page)){
         clipPage=message.page;render();
       }else if(navigationAllowed&&!readOnlyPreview){
@@ -3108,7 +3108,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     void action(install)();
   });
   const requestClipNavigation=action=>{
-    if(!frame?.contentWindow||!instance||active?.id!=='web-markdown-clipper'||!clipPage)return false;
+    if(!navigationAllowed||!frame?.contentWindow||!instance||active?.id!=='web-markdown-clipper'||!clipPage)return false;
     if(toolSaving){notice('摘录正在保存，请完成后再操作。',true);return true;}
     frame.contentWindow.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,
       kind:'navigation-action',instance,toolId:active.id,action},'*');

@@ -23,6 +23,26 @@ test('sandbox navigation uses existing instance-gated channel, not DOM or histor
  assert.match(bridge,/opendesk-tool-navigation/);
  assert.doesNotMatch(bridge,/history\.back\(/);
 });
+test('shared header is admitted by exact official release, including Clipper legacy pages',async()=>{
+ const host=await src('src/ui/sidebar-tools.js'),bridge=await src('src/sidebar-tools/bridge.js');
+ assert.ok(host.includes('approvedNavigation=Boolean(release&&await matchesOfficialRelease(release,tool))'));
+ assert.ok(host.includes("const clipNavigation=navigationAllowed&&active?.id==='web-markdown-clipper'"));
+ assert.ok(host.includes("if(navigationAllowed&&active?.id==='web-markdown-clipper'&&!readOnlyPreview&&"));
+ assert.ok(host.includes("if(!navigationAllowed||!frame?.contentWindow||!instance||active?.id!=='web-markdown-clipper'"));
+ assert.ok(bridge.includes('navigationAllowed=message.navigationAllowed===true'));
+ assert.ok(bridge.includes("navigationAllowed&&['back','primary'].includes(message.action)"));
+ assert.ok(bridge.includes('if(disposed||!navigationAllowed)return false;'));
+ assert.ok(bridge.includes('...(navigationAllowed?{setNavigation}:{})'));
+ assert.ok(!bridge.includes("toolId==='web-markdown-clipper'||navigationAllowed"),'a same-ID manual install never earns shared navigation');
+});
+test('framework settings title and back label apply to tools with no business router',async()=>{
+ const host=await src('src/ui/sidebar-tools.js');
+ assert.ok(host.includes("if(tocSettingsOpen)patchToolField(view,title,{textContent:'工具设置'})"));
+ assert.ok(host.includes('if(tocSettingsOpen||clipNavigation||navigation){'));
+ assert.ok(host.includes("const label=tocSettingsOpen?'返回上一页'"));
+ assert.ok(host.includes('if(tocSettingsOpen){closePromptSettings();'));
+});
+
 test('clipper keeps data store intact and prioritizes saved content/touch actions',async()=>{
  const notes=await src('examples/sidebar-tools/web-markdown-clipper/src/notes.js');
  const css=await src('examples/sidebar-tools/web-markdown-clipper/src/style.css');
