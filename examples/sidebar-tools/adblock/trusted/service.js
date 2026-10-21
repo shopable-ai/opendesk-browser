@@ -329,7 +329,13 @@ export function createAdblockService({
     catch(error){return {...state,cosmeticRules:[],pickerActive:false,pickOutcome:null,
       cosmeticError:String(error.message||error)};}
     let pickerActive=false,pickOutcome=null;
-    if(Number.isSafeInteger(windowId)&&state.currentHost){
+    // A normal status read already resolved the active site; without an
+    // outstanding picker or receipt, a second tabs.getFrame/query adds a
+    // navigation race and must not read the page again.
+    const liveReceipt=Number.isSafeInteger(windowId)&&pickOutcomes.has(windowId);
+    const liveSession=Number.isSafeInteger(windowId)&&
+      [...pendingPicks.values()].some(session=>session.windowId===windowId);
+    if(state.currentHost&&(liveSession||liveReceipt)){
       try{
         const active=await api.tabs.query({active:true,windowId});
         const tab=active.length===1?active[0]:null;
@@ -396,7 +402,9 @@ export function createAdblockService({
     if(!tab||!Number.isSafeInteger(tab.id)||tab.incognito||tab.pendingUrl||
        adblockHost(tab.url,{asUrl:true})!==host)
       fail('E_ADBLOCK_COSMETIC_SITE','当前网页身份已变化');
-    const frame=await api.webNavigation.getFrame({tabId:tab.id,frameId:0});
+    let frame;
+    try{frame=await api.webNavigation.getFrame({tabId:tab.id,frameId:0});}
+    catch{fail('E_ADBLOCK_COSMETIC_SESSION','网页文档在启动选择时已变化');}
     if(!frame?.documentId||adblockHost(frame.url,{asUrl:true})!==host)
       fail('E_ADBLOCK_COSMETIC_SITE','网页尚未加载完毕');
     const prior=pendingPicks.get(tab.id);
