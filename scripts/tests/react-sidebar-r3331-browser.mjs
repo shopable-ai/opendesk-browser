@@ -69,9 +69,12 @@ patchDeveloper('develop-dock',{hidden:false});
 const dev={runDisabled:false,runLabel:'运行草稿',saveDisabled:false,saveHidden:false,saveTitle:'保存草稿',saveLabel:'保存版本',stopDisabled:false,stopLabel:'停止'};
 function paintDeveloperDock(){
   for(const action of ['run','save','stop']){
-    patchDeveloper('script-'+action,{textContent:dev[action+'Label'],disabled:dev[action+'Disabled'],
+    // Save moved into the real Developer advanced > version management section.
+    // Keep the trusted click assertion, but bind its current React-owned ID.
+    const id=action==='save'?'script-save-version':'script-'+action;
+    patchDeveloper(id,{textContent:dev[action+'Label'],disabled:dev[action+'Disabled'],
       hidden:!!dev[action+'Hidden'],title:dev[action+'Title']||''});
-    developerView.actions['script-'+action]=event=>calls.push(action+':'+event.isTrusted);
+    developerView.actions[id]=event=>calls.push(action+':'+event.isTrusted);
   }
 }
 paintDeveloperDock();
@@ -365,7 +368,13 @@ try{
   await evaluate('window.__reactTest.framework.mode="javascript";window.__reactTest.framework.compilerEnabled=false;window.__reactTest.paintFramework()');
   await checkEventually('document.getElementById("page-component-react").disabled');
   assert.equal(await evaluate('document.getElementById("page-component-react").disabled'),true);
-  await click('#script-run');await click('#script-save');await click('#script-stop');
+  await click('#script-run');
+  await click('#developer-program-management > summary');
+  await checkEventually('document.getElementById("developer-program-management").open');
+  await click('#script-library-tools > summary');
+  await checkEventually('document.getElementById("script-library-tools").open');
+  await click('#script-save-version');
+  await click('#script-stop');
   await checkEventually('window.__reactTest.calls.includes("stop:true")');
   for(const action of ['run:true','save:true','stop:true'])
     assert.equal(await evaluate('window.__reactTest.calls.filter(x=>x==='+JSON.stringify(action)+').length'),1);
@@ -519,7 +528,8 @@ try{
   assert.equal(await evaluate('document.querySelectorAll("#extension-center-react-root").length'),0);
   assert.equal(await evaluate('window.__reactTest.detached.settings.isConnected'),false,
     'The React-owned settings subtree is removed on disposal');
-  assert.equal(await evaluate('document.querySelectorAll("#workflow-settings-react-host > *").length'),0);
+  assert.equal(await evaluate('document.querySelectorAll(".workflow-sheet-panel").length'),0,
+    'Unmount must remove the actual React-owned Workflow settings panel');
   assert.equal(await evaluate('document.querySelector("#extension-center-list") === null'),true,
     'React root unmount must remove the complete Extension Center view');
   assert.equal(await evaluate('document.getElementById("extension-center")'),null);
