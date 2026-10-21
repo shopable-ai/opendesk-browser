@@ -8,8 +8,6 @@ export function DevelopDiagnostics(){
           <summary>
             {"高级诊断与网页 SDK"}
           </summary>
-          <DevelopField as="section" id="scraping-panel" aria-label="采集模块">
-          </DevelopField>
           <DevelopField as="details" id="developer-sdk-diagnostics" className="od-disclosure od-disclosure--flat">
             <DevelopField as="summary" id="sdk-title">
               {"网页 SDK 授权管理"}
@@ -121,9 +119,6 @@ export function DevelopDiagnostics(){
               </DevelopField>
             </section>
           </DevelopField>
-          <aside>
-            {"SDK 授权与自动化任务独立；健康检查只确认环境通信。"}
-          </aside>
         </DevelopField>
   );
 }

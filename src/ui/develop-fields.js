@@ -236,9 +236,6 @@ export const DEVELOPER_FIELDS = {
   "tool-diagnostics": {
     "className": "od-disclosure"
   },
-  "scraping-panel": {
-    "hidden": true
-  },
   "developer-sdk-diagnostics": {
     "className": "od-disclosure od-disclosure--flat"
   },
@@ -271,9 +268,7 @@ export const DEVELOPER_FIELDS = {
   "sdk-target-origins": {
     "value": ""
   },
-  "sdk-target-help": {
-    "textContent": "留空仅允许来源同源；这里是完整的新范围，不与旧授权自动合并。协议、主机和有效端口精确匹配；不能填写账户、路径、查询或通配符。回环与局域网也须明确列出。原生权限可能覆盖更多端口，但不会扩大应用授权；此检查不是 DNS 重绑定防护。"
-  },
+  "sdk-target-help": {},
   "sdk-approval-preview": {
     "className": "od-result"
   },
@@ -430,7 +425,7 @@ export const DEVELOPER_FIELDS = {
     "className": "od-disclosure"
   },
   "script-version-identity": {
-    "className": "od-disclosure"
+    "className": "developer-management-section"
   },
   "script-id": {
     "value": "my-script",
@@ -443,7 +438,7 @@ export const DEVELOPER_FIELDS = {
     "textContent": "加载版本"
   },
   "page-preview-tools": {
-    "className": "od-disclosure"
+    "className": "developer-management-section"
   },
   "page-preview-mode-title": {
     "textContent": "网页 JavaScript 试运行"
@@ -513,7 +508,7 @@ export const DEVELOPER_FIELDS = {
     "textContent": "正式安装支持顶层网页与 document-idle；停用不会撤销已有网页效果。效果未知时不自动重放。"
   },
   "script-library-tools": {
-    "className": "od-disclosure"
+    "className": "developer-management-section"
   },
   "script-list": {
     "options": [
