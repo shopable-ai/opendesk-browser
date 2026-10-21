@@ -570,3 +570,13 @@ P2 固定依赖的真实 IDB 锁已单独保存为 [P2-persisted-d3-locks.json](
 驱动事件观察器解析 console 消息时发生自身 JSON 异常，Node REPL 重置；重新连接后读取的是原文档已有 DOM/成功回执和 Chrome 缓存的真实点击事件，没有重复 Run 或伪造结果。只读 Debugger 已关闭，无生产插桩。Vue/Local 的补证据也来自原 owner 成功分支的只读观察。核心操作既已成功，未为补审计关联继续重跑或修改源码。
 
 **本轮唯一跟踪变更仍为本文档，生产文件 +0/-0。** 核对新增 JSON 身份与链接、文档差异及 main 单文件提交范围；无源码变化、无新产品失败或候选漂移，故复用原 check/build/定向测试，不运行新构建、全量回归或评分。隔离 Chrome/Profile/Page Provider 与原测试页服务保留，未停止并行服务、改写日常 Native 配对或扩展目录；后续资源操作仍由本对话负责。
+
+### J. 用户续问后的限定补证（2026-10-22）
+
+用户询问是否还有未完成工作并要求继续。本轮未恢复已延期的全量验收、复杂度审计或评分，仅尝试补 P2 直接来源关联。原 Chrome/Profile、SIDE_PANEL 文档、Provider、目标文档和 A 候选路径均仍在；继续使用原官方 D3 样例，仅改变显示标记。两次明确 Run 均读到成功返回与新 DOM；第二次源于只读观察器未命中后的诊断调整，未将未知运行自动重放。随后只读取已完成结果并点击复制，反馈为“已复制”，不再 Run。
+
+最新一次作者 SHA 为 `07dab8baca0c76b0b65dfebb0510018bcf71d84a1a71c350639e719544d5a084`，执行 SHA 为 `9cc65e257ac0ec6e8bbf3ddacf99ee7ea37c7731fafa30bdea30a2cd3618f220`；tab `2142071199`、document `F9A2DBDC93D9A343BE59FD024496A748`，worldId `opendesk-preview-d1-3dcac6a39d7f44ff9ff2d64580d34813`、receiptNonce `a2376893-d1d8-4539-be9e-31b4eb808dcc`。可信 Run 事件 `isTrusted=true/userActivation=true`；网页唯一 `#od-import-proof` 为 `R4011-P2-linked-v2-20261022 Page D3 max = 5`，返回 `{success:true,value:5,world:"USER_SCRIPT"}`，`preview-evaluated`，Run 可用、Stop 禁用。证据：[P2-linked-followup-result.json](../../../artifacts/developer-r4011-local-20261022/followup-20261022/P2-linked-followup-result.json)。这些身份属于本次新事件，不替换 I 的旧事件。
+
+**直接 authorLockId→compiledSourceUtf8 关联仍为 NOT_CAPTURED。** 原 owner 代码位置断点未命中；只读显式暂停探针能够触发，复制结果入口也未采集到原 owner 的联合对象。这些观察不能用于断言产品未校验锁，也不能用分别取得的作者文本、持久锁和执行回执冒充同次直接关联。本轮没有生产源码修改，未为观察器改造运行架构。断点/Debugger 已关闭，新增点击观察器已移除，见 `followup-20261022/P2-linked-observer-cleanup.json`；不再反复执行同一补证。
+
+结论仍是**核心操作无已知阻塞，补充来源关联有缺口，完整验收延期**。只核对本次真实回执、源码摘要、JSON、链接与文档差异；不重建、不重跑历史矩阵，不改变原对话 paused goal。当前对话 `get_goal` 无未完成目标；未因本次续问另建或恢复完整目标。
