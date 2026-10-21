@@ -364,7 +364,7 @@ test('R1.9.1 every saved prompt library retains one resting launcher independent
       assert.deepEqual(f.buttons().map(button=>button.getAttribute('aria-label')),
         expected.map(row=>'插入提示词：'+row.name),name);
       if(name==='legacy four with image')
-        assert(f.buttons().some(button=>button.className.includes('image')),
+        assert(f.buttons().some(button=>button.classList.contains('image')),
           'the old image button remains available within the expanded menu');
       const target=expected.at(-1),before=f.editor.textContent;
       f.buttons().at(-1).emit('click',{isTrusted:true});await settle();
