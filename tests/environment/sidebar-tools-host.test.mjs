@@ -933,6 +933,36 @@ test('stopped tool detail opens a fixed full-page route without running sidebar 
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
 });
 
+test('R1.2 verified official Markdown workspace ignores content-resize hints and cleans up layout',async t=>{
+  const official=await officialToolFixture('markdown-workbench');
+  const f=await hostFixture(t,{tool:official,store:new Map([[SIDEBAR_TOOL_STORE,[official]]])});
+  assert.equal(f.runtime.frameRoot.dataset.officialWorkspace,'true',
+    'only exact official released bytes may opt in to the shared workspace height');
+  assert.equal(f.frame.style.height,'');
+  f.win.emit('message',{source:f.frame.contentWindow,origin:'null',data:{
+    protocol:f.loaded.protocol,kind:'resize',instance:f.loaded.instance,
+    toolId:official.id,height:1400
+  }});
+  assert.equal(f.frame.style.height,'','an intrinsic content resize cannot override verified flex sizing');
+  f.host.closeTool();
+  assert.equal(f.runtime.frameRoot.dataset.officialWorkspace,undefined,
+    'closing a tool revokes the layout mode along with its frame session');
+});
+
+test('R1.2 same-ID user-installed Markdown package cannot claim the official full-height layout',async t=>{
+  const official=await officialToolFixture('markdown-workbench');
+  const altered={...official,css:official.css+'\n.mdw{outline:0}'};
+  const f=await hostFixture(t,{tool:altered,store:new Map([[SIDEBAR_TOOL_STORE,[altered]]])});
+  assert.equal(f.runtime.frameRoot.dataset.officialWorkspace,undefined,
+    'official ID or name without a matching release hash never grants layout admission');
+  f.win.emit('message',{source:f.frame.contentWindow,origin:'null',data:{
+    protocol:f.loaded.protocol,kind:'resize',instance:f.loaded.instance,
+    toolId:altered.id,height:240
+  }});
+  assert.equal(f.frame.style.height,'240px',
+    'unverified user package retains the ordinary content-height iframe policy');
+});
+
 test('R18 resize and status messages accept only the live opaque frame and bounded sizes',async t=>{
   const f=await hostFixture(t);
   const loaded=f.frame.contentWindow.sent[0];

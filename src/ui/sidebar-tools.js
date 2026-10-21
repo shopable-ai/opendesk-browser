@@ -251,7 +251,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const sendToolAvailableHeight=()=>{
     if(!frame||!instance||!active||frameRoot.hidden||disposed)return;
     const workspace=doc.getElementById('workspace-content');
-    const bounds=frame.getBoundingClientRect();
+    const bounds=frame.getBoundingClientRect?.();
+    if(!bounds)return;
     const bottom=workspace?.getBoundingClientRect?.().bottom??globalThis.innerHeight;
     const mode=frameRoot.dataset?.officialWorkspace==='true'?'workspace':'content';
     if(!Number.isFinite(bottom)||!Number.isFinite(bounds.top))return;
@@ -273,7 +274,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
        frameRoot.dataset?.officialWorkspace==='true')return;
     const workspace=doc.getElementById('workspace-content');
     const bottom=workspace?.getBoundingClientRect?.().bottom??globalThis.innerHeight;
-    const top=frame.getBoundingClientRect().top;
+    const top=frame.getBoundingClientRect?.()?.top;
     if(!Number.isFinite(bottom)||!Number.isFinite(top))return;
     const height=Math.max(260,Math.min(1600,Math.floor(bottom-top-12)));
     if(frame.style.height!==height+'px')frame.style.height=height+'px';
