@@ -239,3 +239,102 @@ GitHub Local run `39568063907`、job `119115102664` 原始日志提供：Local �
 - 六项失败：#20/#21 当时尚未迁移的旧 Fake 键盘与焦点；#46–49 迁移时错误移除了 taskReviewHandoffKey 原导入。#20/#21 后由 90de532 改为正式 React 键位函数/状态与 SSR，Chrome 原生 focus 另记 NOT_TESTED；#46–49 在 [d702cd7](https://github.com/shopable-ai/opendesk-browser/commit/d702cd7306be28f88dac82c63b31ac5206d19a69) 补回原 taskReviewHandoffKey import。实际最新 SHA 的 51 项和六文件综合仍需新 CI 证明。
 - 最新已结束的 developer-release-smoke job 119282615496（绑定 9863c7e）失败是固定 Marketplace 来源守卫 opendesk-fixed-marketplace 在 scripts/bundle-provenance.mjs:304 拒绝 examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js（Historical/user/vendor code cannot enter a privileged fixed bundle）；属 Prompt Shortcuts owner，**与旧 AdBlock trusted/policy.js 失败是不同精确 SHA 的不同外部阻塞**。两者均不能绕过 pin 或重新归咎 Developer Run/Stop。
 - 因最新代码的最终隔离和六文件综合尚无实证，保留全局 **WEB_PARTIAL**。完整 TAP 与退出资源新证据使 P0 由“未知卡死”推进到“中间 SHA 进程正常退出，剩余断言已提交修复待复验”，**不提前标记 ISOLATED_NODE_PASS 或 COMBINED_NODE_PASS**。
+
+
+## R40.10.7-WEB：Node 证据复用、主编辑器职责审计与 React 快照定向收敛
+
+### 原始用户目标与七项永久约束
+
+普通用户的核心路径仍为：选择 Controller JS/ESM/Classic、Page JS/ESM、React JSX/Vue SFC 或 Local Project → 编辑当前源码 → Run → 看真实结果 → Stop。普通 Run 不要求 Revision/Candidate/安装/项目目录扫描。只使用已有 RunHost、Authority、固定编译器、Page 受管挂载、Provider bindingId+epoch 与执行槽，保留来源身份、撤权、未知结果和不可逆提交保护。
+
+七项验收维度继续为：①主编辑器只保留必要协调和 UI；②四环境业务 owner 唯一；③当前源码 Run/Stop 直接；④删重复刷新/快照；⑤单 RunHost/Authority/Host/SDK；⑥整体生产维护复杂度有证据下降；⑦安全和高级功能无退化。文件行数并不等于产品完成度。
+
+### P0：真实 GitHub 身份与已通过 Node 证据（READBACK）
+
+- 核对基线：d702cd7306be28f88dac82c63b31ac5206d19a69；Actions run https://github.com/shopable-ai/opendesk-browser/actions/runs/39620085344；developer-node job https://github.com/shopable-ai/opendesk-browser/actions/runs/39620085344/job/119290906186。
+- 原始完整 TAP：Task Workbench 独立子进程 1..51、51 PASS、0 FAIL；原六文件综合 292 PASS、0 FAIL。两个 Node 进程均正常退出；日志诊断只有 PipeWrap/Socket，不存在 MessagePort。标注 NODE_PASS@d702cd7，而非新文件输入的 PASS。
+- d702cd7 至本轮首次读取最新 main 的 compare 中，script-editor、Controller/Page/Local 运行 owner、六文件 Node 测试与 Developer 工作流未发生改动；无关 AGENTS / 其他扩展 / 其他 workflow 提交不使历史 Node 证据自动失效。
+- R40.10.7 已写入的源码 commit：4ed8b19278509cf7c8a75232c2e31a87739cdb81，后续安全补丁 a64750e4d0b7084de44134880da49cfaa00eb197。新测试 commit：a141f3c3a001b291056beb5afd133d745fdaff98，后续读回覆盖 c5506fd0993b1f94c726e645463b08649f67460a。
+- 源码 Blob：script-editor.js b12e444bf7e1fd15b045581ca7540e5df9e0adbf；develop-view.js 新 Blob 24bbd8c13cdd3e17fae3439c5a3f57ccbd0b048b；script-editor.test.mjs 新 Blob 896147044001aac6fb8b53a3d5047bf28189a01f。新改动提交后的完整 CI/TAP 尚未读到，标记 NODE_REGRESSION_PENDING，不可把 d702cd7 的 292/292 冒充为 c5506fd 的新测试 PASS。
+
+### P0.1–P0.7：script-editor.js 精确职责审计
+
+| 主编辑器原行号 | 现有业务 owner 与触发事件 | Controller 普通 Run 是否必要 | 决策及理由 |
+|---|---|---|---|
+| 178–250 update() | editor 判定 context；componentRemote / dependencyReview / dependencyInstaller / localInstaller / controllerRevisions 各自持有准备/检查/安装状态；Run、结果、权限回执和切换均可调用 | 只有共享执行槽、Run/Stop、当前身份门禁和 Controller Revision 状态必要；Page/Local 检查按上下文受限 | 保留安全门禁和 context 限制；R40.10.3 静态模式投影 key 不变。减少共享视图相同标量字段无效 React Snapshot 克隆，未移除必要 owner 更新；Page dependency projection 有对象/权限副作用，暂无证据可盲删 |
+| 273–283 start() | Local→localRunner；Page/组件→pagePreviewFlow；其它→controllerRunner；可信手势同步归原执行 owner | 必要 | 保留：无额外 Manager、无 Revision/Candidate/安装前置条件 |
+| 284–345 Candidate | pageCandidates 为 Page 保存 owner，componentRemote/browserPreparer 为编译 owner，pagePreviewFlow 保留真实预览；editor 只持源码模式/票据和 UI busy | 非必要，且不进入直接 Run | 保留：冻结 Candidate 需独立源码/编译身份、目标复验及不可逆保存边界；强行迁移将重复 store/state |
+| 376–398 Page Candidate load | pageLibrary 发起获取；validatePageCandidateAuthoring、dependencyResolver 和 componentRemote 各保有验证或失效逻辑 | 非必要 | 保留前后两次 changed() 和编译代次，防止异步返回期间编辑器切换后覆盖当前内容 |
+| 450–494 sourceInput()/world change | controllerRunner generation；browserPreparer/componentRemote；Page dependencyResolver；Classic readiness；各 owner 的局部失效 | 有关 Controller/source/scriptId 的同步栅栏必要 | 保留按世界的失效与仅对 Page Classic body-only 更新控件；不能为了减一次通知允许迟到执行 |
+| 540–559 stop() | 原 pagePreviewFlow、localRunner、controllerRunner 以真实 ownedRunId/managed preview 判断可 Stop，组件 compiler 在准备中只取消一次 | 必要 | 保留：权限等待、不可逆提交和外部 owner 运行的 Stop 边界需统一安全分发 |
+| 587–657 import/openRun/dispose | programSource 负责项目输入验证与来源快照；page-bundle validator 校验固定字节；localProject 负责 Provider；editor 负责导入后的当前世界/字段同步及资源收尾 | import 对普通 Run 非必要；公开接口/资源收尾必要 | 保留目前项目与 Page Bundle 分别校验，不能用同一后验 source equality 替换：importProject() 成功时会先切换可读源码 snapshot；简单合并易误判合法项目为 stale。未来仅有可靠测试时再消除重复分支 |
+
+结论：主文件 **657 行、604 行非空且非独立 // 注释**；R40.7 前约 1231 行，缩小约 46.6%。热点主要是 Candidate、load/import 与动态状态投影；本轮没有证明 219 行可以删除。没有业务迁往新 Manager，未改主编辑器已有调用链。
+
+### P1：整体 owner 与生产维护复杂度审计
+
+调用关系：正式 React DevelopField → develop-view 的单一字段快照与动作 → script-editor 的共享 context/状态投影 → Controller Draft Run / Page Preview Flow / Component Remote+原 Compiler / Local Project Run 各自执行业务 → 原 RunHost/Authority/Host/SDK。结果/历史/下载由 Controller Results View + Run Artifact Download，Candidate 由 Page Candidate Actions + Page Library，导入字节由 Program Source 负责。未新增第二 Runtime、Store、Host、Manager、事件总线或执行入口。
+
+本轮最小生产变更：在原 src/ui/develop-view.js 的 patch() 里，对“字段已有值与旧 snapshot 值均不变”的纯标量 patch 快速返回。对象/函数数据继续原样发布（防止原地可变状态丢通知），textContent 首次 textSet、源码编辑/Run/Stop 真实状态变化也必须发布；只增加五行，不增加持久状态、计时器、回调链或新抽象。
+
+针对该变化新增 Node 回归（原 script-editor.test.mjs）：40 次相同 Run disabled 投影应为同一快照、零订阅通知；真实 Run gate 转换发布一次；相同 gate 后续无重复通知；data 对象可变更新必须通知；字段先由外部修改再请求同值投影时仍能读回。此为测试合同，尚待新精确 SHA 的真实 TAP。
+
+下表是**同一套 21 个有代表性的生产文件在本轮最新源码的行数**（不代表全部 Developer 生产代码树）；R40.10.6 的同组总数 4128，本轮总数 4133，增加 5 行：
+
+| 生产文件（src/ui/ 下；React 独立标出） | 本轮行数 | R40.10.7 + / - / 净变化 |
+|---|---:|---:|
+| script-editor.js | 657 | +0 / -0 / +0 |
+| controller-draft-run.js | 139 | +0 / -0 / +0 |
+| controller-revision-view.js | 158 | +0 / -0 / +0 |
+| controller-results-view.js | 97 | +0 / -0 / +0 |
+| controller-classic-readiness.js | 52 | +0 / -0 / +0 |
+| page-preview-flow.js | 224 | +0 / -0 / +0 |
+| page-dependencies.js | 337 | +0 / -0 / +0 |
+| page-dependency-review.js | 150 | +0 / -0 / +0 |
+| page-dependency-install.js | 170 | +0 / -0 / +0 |
+| page-candidate-actions.js | 42 | +0 / -0 / +0 |
+| page-program-library.js | 170 | +0 / -0 / +0 |
+| page-component-remote.js | 316 | +0 / -0 / +0 |
+| page-component-preparer.js | 115 | +0 / -0 / +0 |
+| local-project.js | 400 | +0 / -0 / +0 |
+| local-project-run.js | 184 | +0 / -0 / +0 |
+| local-project-install-ui.js | 503 | +0 / -0 / +0 |
+| program-source.js | 156 | +0 / -0 / +0 |
+| run-artifact-download.js | 104 | +0 / -0 / +0 |
+| static-esm-preparer.js | 53 | +0 / -0 / +0 |
+| develop-view.js | 67 | +5 / -0 / +5 |
+| react/tabs/develop.tsx | 39 | +0 / -0 / +0 |
+| 合计（代表性样本，非完整业务树） | **4133** | **+5 / -0 / +5** |
+
+另保留 R40.9→R40.10.6 六个不同生产文件的历史增减基准 +111/-64、净 +47；本轮新 view 不在那组六文件中。不得把 UI 通知/克隆减少等价为全生产 LOC 净减或整体维护质量 95+。当前确证的是“无新运行抽象、删掉无效标量投影的实际工作”，完整生产调用链净减少仍为 NOT_PROVEN。
+
+### P2：四环境 Run/Stop 证据矩阵
+
+| 环境与核心用户路径 | 本轮源码归属审计 | 历史 Node | 新视图输入回归 | Installed Chrome / Mac Native |
+|---|---|---|---|---|
+| Controller JS/ESM/Classic：草稿 Run / owned Stop / 结果 | SOURCE_REVIEWED | NODE_PASS@d702cd7 覆盖对应 Fixture（不代表真实 Chrome） | PENDING | NOT_TESTED |
+| Page JS/ESM：documentId / 导航 / late result / managed Stop | SOURCE_REVIEWED | NODE_PASS@d702cd7 覆盖对应 Fixture | PENDING | NOT_TESTED |
+| React JSX/Vue SFC：固定编译 / Page 受管 UI / Stop | SOURCE_REVIEWED | NODE_PASS@d702cd7 覆盖对应 Fixture | PENDING | NOT_TESTED |
+| Local：Provider bindingId/epoch / 冻结源码 / owned Stop | SOURCE_REVIEWED | NODE_PASS@d702cd7 覆盖 Mock/Fixture | PENDING | NOT_TESTED（真实 Provider） |
+
+旧 Node 使用了原完整 TAP，不是实际 Mac、真实 Provider 或生产 MV3 的使用证据。真实源码修改后的单独 Developer Node CI、Developer Chrome Shell smoke、四环境产品级 Run/Stop 实测仍各自等待独立证据。
+
+### P3：发布 CI 与外部 blocker
+
+- 同一个 d702cd7 的 developer-release-smoke Job 119290906594 未通过 Source and Developer Edition build；原日志报 scripts/bundle-provenance.mjs:304、examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js、opendesk-fixed-marketplace。属于 Prompt Shortcuts 固定来源身份的 owner，不是 Developer Node 或 Stop 断言失败。
+- 历史 AdBlock trusted/policy.js 属另一精确早期构建阻塞。bundle-provenance.mjs 在随后 main 中已有其他 owner 修改（d702cd7 compare 显示 +7/-5），因此旧失败不等于最新提交的构建仍因同文件失败；必须看新 CI 日志。绝不禁用 Guard/伪造 Blob/pin，不改别的 Agent 扩展。
+
+### P4：七项目标、当前进度、质量与下阶段
+
+1. 主编辑器职责收敛 PARTIAL：执行 owner 已拆出，Candidate/import 和必要共享安全协调仍在。
+2. 四环境唯一业务 owner PARTIAL：静态调用链唯一，四环境安装后的真实行为 NOT_TESTED。
+3. 当前源码简单 Run/Stop PARTIAL：入口直达，Node Fixture 完整通过，但未做原生四世界实测。
+4. 重复协调减法 PARTIAL：R40.10.3 稳态静态字段 guard 保留；本轮消除相同标量快照复制，其他依赖状态与通知不可无证据删。
+5. 单 RunHost/Authority PASS_SOURCE_ONLY：本轮未引入第二设施。
+6. 整体生产维护复杂度 PARTIAL/NOT_PROVEN：单一 view 的零重复快照路径有可测语义；生产代表性样本净 +5 行，整体删除量不足以证明全链下降。
+7. 安全与高级功能 PARTIAL：身份/权限/Stop/未知回执/安装/历史源码合同保留，仍需新 Node 和原生实测。
+
+保守六维证据评分（非正式验收）：产品一致性 86，四环境归属 84，协调简洁性 82，生产维护减法 75，身份权限 Stop 安全 86，真实交付证据 74；平均 81.2，最低 74，均未达到要求的 95+。拒绝对未测项授予 Chrome/Native/Provider PASS。阶段 **WEB_PARTIAL**。
+
+R40.11-LOCAL 最短 Codex 验收入口（仅 Mac 本地执行）：在 /Users/shopme/Documents/workspace/opendesk-browser 查看 main HEAD 与本记录绑定源码；核实已有 npm run dev 的 dist/development 与扩展 ID/Native allowed_origins，不新建 watcher/Worktree；对 Controller JS/ESM/Classic、Page JS/ESM、React/Vue、真实 Local Provider 逐个用当前源码 Run→真实结果→Stop，并对源码中途变化、导航、Provider epoch、权限撤权及非 owner Stop 做最小验证；输出真实命令、日志、RunId/sourceHash/previewId/documentId/bindingId 和 PASS/FAIL/NOT_TESTED，不覆盖并行 Agent 产物。当前网页会话无法把未运行的 Mac 验收标记为通过。
+
