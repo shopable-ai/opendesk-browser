@@ -78,6 +78,12 @@ async function geometry(){return evaluate(`const app=document.querySelector('.bm
  return {label:e.getAttribute('aria-label'),type:e.type,width:b.width,height:b.height,dx:(s.x+s.width/2)-(b.x+b.width/2),dy:(s.y+s.height/2)-(b.y+b.height/2),inside:b.left>=a.left-.5&&b.right<=a.right+.5,hittable:e.contains(hit),padding:getComputedStyle(e).paddingLeft};});
  const overflow=[...app.querySelectorAll('*')].filter(e=>{const s=getComputedStyle(e);return e.getClientRects().length&&s.overflowX==='visible'&&e.scrollWidth>e.clientWidth+2&&e.clientWidth>0}).map(e=>({tag:e.tagName,cls:e.className,overflow:e.scrollWidth-e.clientWidth}));
  return {appOverflow:app.scrollWidth-app.clientWidth,controls,overflow};`)}
+async function assertDockKeepsTreeVisible(){
+ const g=await evaluate('const tree=document.querySelector(".bm-tree-scroll"),input=document.querySelector(".od-conversation-input"),dock=document.querySelector(".od-conversation-dock"),a=input?.getBoundingClientRect(),b=dock?.getBoundingClientRect();return {treeCssHeight:tree?.clientHeight||0,composerVisible:!!a&&!!b&&a.bottom<=b.bottom+1&&a.top>=b.top}');
+ assert.ok(g.treeCssHeight>=36,'split Dock collapsed the bookmark tree '+JSON.stringify(g));
+ assert.ok(g.composerVisible,'split Dock hid the chat composer '+JSON.stringify(g));
+ return g;
+}
 function assertGeometry(g){assert.ok(g.appOverflow<=1,JSON.stringify(g));for(const e of g.controls){assert.ok(e.inside&&e.hittable,'Icon bounds/hit '+JSON.stringify(e));assert.ok(Math.abs(e.dx)<.7&&Math.abs(e.dy)<.7,'Icon center '+JSON.stringify(e));assert.equal(e.padding,'0px');assert.equal(e.type,'button')}assert.deepEqual(g.overflow,[])}
 async function contrast(){return evaluate(String.raw`const lum=c=>c.slice(0,3).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4}).reduce((s,v,i)=>s+v*[.2126,.7152,.0722][i],0);
  const parse=s=>s.startsWith('color(srgb')?s.match(/[\d.]+/g).map(Number).slice(0,3).map(x=>x*255):s.match(/[\d.]+/g).map(Number);
@@ -158,6 +164,7 @@ try{
    await until(()=>evaluate('return document.querySelectorAll(".od-conversation-entry").length>=3'),'mock create + bookmark verified');
    assert.match(await evaluate('return document.querySelector(".od-conversation-log").textContent'),/已创建/);
    assertGeometry(await geometry());
+   await assertDockKeepsTreeVisible();
    const colors=await contrast();
    assert.ok(colors.length>5,'rendered text contrast samples');
    assert.deepEqual(colors.filter(c=>c.ratio<c.threshold),[],'text/placeholder contrast >=4.5 and enabled icons >=3');
@@ -182,6 +189,7 @@ try{
    await ensureDockOpen();
    await click('.od-conversation-samples button');
    assertGeometry(await geometry());
+   await assertDockKeepsTreeVisible();
    const screenshotFile=await screenshot('reflow-physical-'+physicalWidth+'-'+(dark?'dark':'light')+'-200');
    matrix.push({...currentCase,status:'PASS',viewport,screenshot:screenshotFile});
    return {screenshot:screenshotFile};
