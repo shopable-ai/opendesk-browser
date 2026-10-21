@@ -30,7 +30,7 @@ test('R23.17: external recipient grant is exact, bounded and never leaks endpoin
   const repeated=await workflowObservationRecipientId({selected:'cloud_responses',endpoint,model:'m1'});
   assert.equal(repeated,recipientId);
   assert.match(recipientId,/^cloud_responses:[0-9a-f]{64}$/);
-  assert.doesNotMatch(recipientId,/NOT_FOR_STORAGE|api.example.test|responses/);
+  assert.doesNotMatch(recipientId,/NOT_FOR_STORAGE|api\.example\.test|\/v1\/responses/);
   const pattern='https://api.example.test/*',row=rowFor('cloud_responses',recipientId,pattern);
   const grant=grantFor(row);
   assert.equal(workflowObservationGrantMatches(grant,row,now),true);
