@@ -468,7 +468,8 @@
   min-width:0;
 }
 #workbench-tools:has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > #sidebar-tools,
-#sidebar-tools:has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > #sidebar-tool-display:not([hidden]){
+#sidebar-tools:has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > .sidebar-tool-host,
+#sidebar-tools:has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > .sidebar-tool-host > #sidebar-tool-display:not([hidden]){
   display:flex;
   flex:1 1 auto;
   flex-direction:column;

@@ -13,3 +13,7 @@
   flex:1 1 auto;
   min-height:0;
 }
+/* The fixed bookmark menu may cross the split into the adjacent Dock. */
+#sidebar-tool-frame[data-bookmark-trusted="true"] .bm-app:has(> .bm-popover){
+  z-index:1;
+}

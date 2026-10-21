@@ -53,6 +53,7 @@ function ConversationWorkspace({
  const [height,setHeight]=React.useState(null);
  const [totalHeight,setTotalHeight]=React.useState(600);
  const shellRef=React.useRef(null),inputRef=React.useRef(null),logRef=React.useRef(null);
+ const logScrollRef=React.useRef(null);
  const triggerRef=React.useRef(null),adapterRef=React.useRef(null),abortRef=React.useRef(null);
  const inFlight=React.useRef(false),alive=React.useRef(true),sequence=React.useRef(0);
  const runRef=React.useRef(null);
@@ -87,8 +88,11 @@ function ConversationWorkspace({
   if(open)inputRef.current?.focus({preventScroll:true});
  },[open]);
  React.useLayoutEffect(()=>{
+  const log=logRef.current;if(open&&log)log.scrollTop=logScrollRef.current??log.scrollHeight;
+ },[open]);
+ React.useLayoutEffect(()=>{
   if(open&&logRef.current)logRef.current.scrollTop=logRef.current.scrollHeight;
- },[open,rows,error]);
+ },[rows,error]);
  React.useLayoutEffect(()=>{
   const input=inputRef.current;if(!open||!input)return;
   input.style.height='auto';
@@ -241,6 +245,7 @@ function ConversationWorkspace({
     </button>
    </div>
    <div ref={logRef} className="od-conversation-log" role="log" aria-live="polite"
+    onScroll={event=>{if(openRef.current&&event.currentTarget.clientHeight>0)logScrollRef.current=event.currentTarget.scrollTop;}}
     aria-label="对话及已核实操作结果">
     <ConversationTranscript rows={rows} entryClassName="od-conversation-entry" showSpeaker={false}/>
    </div>

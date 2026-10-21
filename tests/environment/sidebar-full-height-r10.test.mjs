@@ -5,9 +5,10 @@ import {readFile} from 'node:fs/promises';
 const read=path=>readFile(new URL('../../'+path,import.meta.url),'utf8');
 
 test('R1.0 SOURCE_ONLY: admitted Bookmark workspace inherits host height through one flex chain',async()=>{
-  const [shell,pilot,app,dock]=await Promise.all([
+  const [shell,pilot,app,dock,host]=await Promise.all([
     read('src/ui/tool-shell.css'),read('src/ui/react/tabs/bookmark-pilot.css'),
-    read('src/ui/react/app-shell.tsx'),read('src/ui/react/components/conversation-dock.css')
+    read('src/ui/react/app-shell.tsx'),read('src/ui/react/components/conversation-dock.css'),
+    read('src/ui/react/tabs/tool-host.tsx')
   ]);
   assert.match(app,/<main id="workspace-content">/);
   assert.match(app,/<div id="workbench-tools"/);
@@ -21,7 +22,10 @@ test('R1.0 SOURCE_ONLY: admitted Bookmark workspace inherits host height through
   assert.ok(shell.includes('#workspace-content > #workbench-tools:not([hidden]):has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])){'),
     'the admitted Flex rule must outrank the existing workbench-tools Grid rule');
   assert.ok(shell.includes('#workspace-content>.od-page:not([hidden]):not(#workbench-workflow):not(#workbench-discover){display:grid;'));
-  assert.ok(shell.includes('#sidebar-tools:has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > #sidebar-tool-display:not([hidden])'));
+  assert.match(host,/<div className="sidebar-tool-host od-stack">/);
+  assert.ok(shell.includes('#sidebar-tools:has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > .sidebar-tool-host,'),
+    'the actual React ToolHost wrapper must participate in the admitted height chain');
+  assert.ok(shell.includes('#sidebar-tools:has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > .sidebar-tool-host > #sidebar-tool-display:not([hidden])'));
   assert.match(pilot,/flex:1 1 0;/);
   assert.match(pilot,/height:auto;/);
   assert.match(pilot,/max-height:none;/);
