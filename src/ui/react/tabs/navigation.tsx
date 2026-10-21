@@ -11,18 +11,23 @@ const TABS=Object.freeze([
   {key:'debug',id:'tab-debug',label:'调试'}
 ]);
 
+// Pure keyboard route shared by the production React handler and Node semantic tests.
+// Event dispatch and focus remain owned by React/Chrome, not a DOM test double.
+export function sidebarKeyboardDestination(key,index,tabs){
+  if(index<0||index>=tabs.length)return null;
+  const next=key==='ArrowRight'?(index+1)%tabs.length
+    :key==='ArrowLeft'?(index+tabs.length-1)%tabs.length
+    :key==='Home'?0:key==='End'?tabs.length-1:-1;
+  return next<0?null:tabs[next];
+}
+
 export function SidebarNavigation({activeTab='tasks',debugEnabled=false,onNavigate=()=>{}}){
   const available=TABS.filter(tab=>tab.key!=='debug'||debugEnabled);
   const navigate=key=>onNavigate(key)!==false;
   const onKeyDown=(event,index)=>{
-    let next;
-    if(event.key==='ArrowRight')next=(index+1)%available.length;
-    else if(event.key==='ArrowLeft')next=(index+available.length-1)%available.length;
-    else if(event.key==='Home')next=0;
-    else if(event.key==='End')next=available.length-1;
-    else return; // Native button Enter/Space activation remains intact.
+    const destination=sidebarKeyboardDestination(event.key,index,available);
+    if(!destination)return; // Native Enter/Space activation remains intact.
     event.preventDefault();
-    const destination=available[next];
     if(!navigate(destination.key))return; // Leave veto retains focus and tab.
     event.currentTarget.ownerDocument.getElementById(destination.id)
       ?.focus({preventScroll:true});
