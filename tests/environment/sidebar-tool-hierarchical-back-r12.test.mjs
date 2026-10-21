@@ -37,11 +37,11 @@ test('clipper keeps data store intact and prioritizes saved content/touch action
  assert.match(source,/sidebarToolStorageKey\(toolId\)/);
 });
 
-test('official 1.2.4 installable package exactly embeds current clipper sources',async()=>{
+test('official 1.2.5 installable package exactly embeds current clipper sources',async()=>{
  const dir='examples/sidebar-tools/web-markdown-clipper/';
  const meta=JSON.parse(await src(dir+'tool.config.json'));
  const pkg=JSON.parse(await src(dir+'web-markdown-clipper.opendesk-tool.json'));
- assert.equal(meta.version,'1.2.4');assert.equal(pkg.version,meta.version);
+ assert.equal(meta.version,'1.2.5');assert.equal(pkg.version,meta.version);
  assert.equal(pkg.id,meta.id);
  assert.equal(pkg.html,await src(dir+meta.files.html));
  assert.equal(pkg.css,await src(dir+meta.files.css));

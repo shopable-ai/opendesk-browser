@@ -361,7 +361,7 @@ test('R1.11 formal controls, preview and installable package use identical offic
  assert.equal(pkg.scripts[0].sha256,createHash('sha256').update(notes).digest('hex'));
  assert.ok(stage.includes('\n'+html+'\n'),'preview must embed installed HTML verbatim');
  assert.doesNotMatch(stage,/src="ux\.js"/);
- assert.match(adapter,/正式 src HTML/);
+ assert.ok(adapter.includes('正式 src/notes.js 与 src/style.css 驱动业务'));
  assert.match(html,/id="clip-recent-list"/);
  assert.match(html,/id="clip-kind-filter"/);
  assert.match(html,/id="clip-note-unsaved"/);
