@@ -13,6 +13,13 @@ const out=resolve(process.argv[2]||'artifacts/prompt-shortcuts-r21-page-chromium
 await mkdir(out,{recursive:true});
 const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
 assert.equal(pkg.id,'prompt-shortcuts');
+// Controlled HTTPS response for the trusted page; public CDN is NOT tested.
+const previewSource=await readFile('examples/sidebar-tools/prompt-shortcuts/preview/index.html','utf8');
+const fixtureMarker="const PREVIEW_OFFLINE_PNG='data:image/png;base64,";
+const fixtureIndex=previewSource.indexOf(fixtureMarker);
+assert(fixtureIndex>=0,'original preview must embed a raster PNG');
+const rasterFixture=previewSource.slice(fixtureIndex+fixtureMarker.length).split("'")[0];
+assert(rasterFixture.length>500,'fixture is not a real PNG');
 const root=resolve('.');
 let boot='',initial={};
 const html='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+
@@ -98,6 +105,12 @@ boot=[
   'window.__setRule=next=>{values[DATA].sites={schema:1,rules:next?[next]:[]};',
   ' localStorage.setItem("ps-r21-fixture",JSON.stringify(values));',
   ' for(const fn of changes)fn({[DATA]:{newValue:values[DATA]}},"local");};',
+  'window.__setImage=(url,size)=>{const lib=values[DATA].library;',
+  ' lib.items=lib.items.filter(row=>row.id!=="r35-image-fixture");',
+  ' lib.items.push({id:"r35-image-fixture",body:"图片快捷按钮完整正文",label:"山景",name:"图片快捷按钮",',
+  '  shape:"square",enabled:true,order:1,appearance:"image",imageUrl:url});',
+  ' lib.settings.imageSize=size;localStorage.setItem("ps-r21-fixture",JSON.stringify(values));',
+  ' for(const fn of changes)fn({[DATA]:{newValue:values[DATA]}},"local");};',
   'window.__rule='+JSON.stringify(rule)+';',
   'localStorage.setItem("ps-r21-fixture",JSON.stringify(values));',
   'window.__initPromptShortcuts=initPromptShortcuts;window.__trustedApi=api;',
@@ -134,6 +147,15 @@ async function connect(){
   await new Promise((ok,fail)=>{socket.addEventListener('open',ok,{once:true});socket.addEventListener('error',fail,{once:true});});
   socket.addEventListener('message',event=>{
     const response=JSON.parse(event.data);
+    if(response.method==='Fetch.requestPaused'){
+      const url=response.params.request.url;
+      void rpc('Fetch.fulfillRequest',{
+        requestId:response.params.requestId,responseCode:200,
+        responseHeaders:[{name:'Content-Type',value:'image/png'},{name:'Cache-Control',value:'no-store'}],
+        body:url.endsWith('/bad.png')?'bm90LWEtcG5n':rasterFixture
+      }).catch(error=>jsErrors.push('Controlled HTTPS image response: '+error.message));
+      return;
+    }
     if(response.method==='Runtime.exceptionThrown'){
       jsErrors.push(response.params.exceptionDetails.exception?.description||response.params.exceptionDetails.text);
     }
@@ -349,6 +371,46 @@ try{
     actualChromiumDOM:true,oldHostReused:true,newRegionAnchored:true,
     nativeDraftConfirmed:true,installedExtension:false});
   await shot('chatgpt-spa-history-recovery');
+  // R3.5: Actual decoded HTTPS response in the trusted Shadow DOM with 3 sizes.
+  await rpc('Fetch.enable',{patterns:[{
+    urlPattern:'https://fixture.opendesk.invalid/*',resourceType:'Image',requestStage:'Request'
+  }]});
+  const measured=[];
+  for(const [size,w,h] of [['large',68,48],['compact',48,40],['standard',56,44]]){
+    await evaluate('window.__setImage("https://fixture.opendesk.invalid/ok.png",'+JSON.stringify(size)+')');
+    await poll('window.__railRoot?.querySelector(".item.image img")?.naturalWidth>0 && '+
+      'window.__railRoot?.querySelector(".rail")?.dataset.imageSize==='+JSON.stringify(size),
+      'trusted decoded HTTPS picture: '+size);
+    const actual=await evaluate('(()=>{const img=window.__railRoot.querySelector(".item.image img");'+
+      'const b=img.closest("button"),r=b.getBoundingClientRect();return {loaded:img.complete,'+
+      'naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight,width:r.width,height:r.height,'+
+      'visible:r.width>0&&r.height>0&&r.left>=0&&r.top>=0&&r.right<=innerWidth&&r.bottom<=innerHeight,'+
+      'objectFit:getComputedStyle(img).objectFit};})()');
+    assert(actual.loaded&&actual.naturalWidth>0&&actual.naturalHeight>0&&actual.visible);
+    assert.equal(actual.objectFit,'contain');
+    assert(Math.abs(actual.width-w)<.6&&Math.abs(actual.height-h)<.6,
+      size+' trusted image bounds: '+JSON.stringify(actual));
+    measured.push({size,...actual});await shot('r35-trusted-image-'+size);
+  }
+  await evaluate('window.__setImage("https://fixture.opendesk.invalid/bad.png","large")');
+  await poll('window.__railRoot?.querySelectorAll(".item").length===2 && '+
+    '!window.__railRoot?.querySelector(".item.image")',
+    'corrupt HTTPS response must fall back to short label');
+  assert.equal(await evaluate('window.__railRoot.querySelectorAll(".item")[1].textContent'),'山景');
+  await evaluate('window.__setImage("https://fixture.opendesk.invalid/ok.png","standard")');
+  await poll('window.__railRoot?.querySelector(".item.image img")?.naturalWidth>0',
+    'corrected image URL recovers the decoded picture');
+  await sleep(825);
+  await clickJS('window.__railRoot.querySelector(".item.image")');
+  await poll('document.querySelector("main#main textarea#prompt-textarea").value.includes("图片快捷按钮完整正文")',
+    'trusted image button inserts only full body text');
+  const imageDraft=await evaluate('document.querySelector("main#main textarea#prompt-textarea").value');
+  assert(imageDraft.includes('新历史会话草稿')&&!imageDraft.includes('fixture.opendesk.invalid'),
+    'image button preserves draft and never inserts URL');
+  scenes.push({step:'R3.5 trusted controlled HTTPS image, three dimensions, error/recovery and insertion',
+    controlledHttpsResponse:true,publicCdnNotTested:true,sizes:measured,
+    recovered:true,insertsBodyOnly:true,installedExtension:false});
+  await rpc('Fetch.disable');
   assert.equal(jsErrors.length,0,JSON.stringify(jsErrors));
   const report={kind:'ACTUAL_CHROMIUM_DOM_FIXED_PAGE_WITH_MOCK_HOST',installedExtension:false,
     realThirdPartySite:false,realMacIme:false,version:pkg.version,scenes,consoleErrors:jsErrors};
