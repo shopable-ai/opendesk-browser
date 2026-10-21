@@ -89,17 +89,31 @@ test('malicious AI output never changes site, adds authority or injects JavaScri
 });
 test('R15 navigation and executor wiring is real source, not simulated preview',async()=>{
   const {readFile}=await import('node:fs/promises');
+  const {load}=await import('cheerio');
   const [html,css,shell,task,view]=await Promise.all([
-    renderSidebarFixture(),readFile('src/ui/tool-shell.css','utf8'),
+    renderSidebarFixture({activeTab:'workflow'}),readFile('src/ui/tool-shell.css','utf8'),
     readFile('src/ui/tool-shell.js','utf8'),readFile('src/ui/task-workbench.js','utf8'),
     readFile('src/ui/workflow/workflow-view.js','utf8')]);
   for (const id of ['tab-workflow','workbench-workflow','workflow-steps','workflow-params',
     'workflow-run','workflow-save','workflow-stop','workflow-candidate','workflow-output'])
     assert.match(html,new RegExp('id="'+id+'"'));
   assert.match(css,/\.workbench-nav\{[^}]*display:flex;[^}]*overflow-x:auto;/);
-  assert.match(task,/\['workflow','tab-workflow'\]/);
+  // Navigation DOM now belongs to the production React tree. Check its
+  // rendered tab/panel relationship and the retained controller handoff,
+  // rather than requiring the removed legacy TaskWorkbench tab array.
+  const $=load(html),tab=$('#tab-workflow'),panel=$('#workbench-workflow');
+  assert.equal(tab.length,1);assert.equal(panel.length,1);
+  assert.equal(tab.attr('role'),'tab');
+  assert.equal(tab.attr('aria-selected'),'true');
+  assert.equal(tab.attr('tabindex'),'0');
+  assert.equal(tab.attr('aria-controls'),panel.attr('id'));
+  assert.equal(panel.attr('aria-labelledby'),tab.attr('id'));
+  assert.equal(panel.attr('hidden'),undefined);
+  assert.match(task,/reactNavigation\?\.connect\(tab=>\{\s*if\(navigate\(tab\)===false\)return false;/);
+  assert.match(task,/reactNavigation\?\.select\(name\)/);
   assert.match(task,/setWorkflowRunOwner\(runId\)/);
   assert.match(shell,/createWorkflowView\(/);
+  assert.match(shell,/extensionList\.connectWorkflowPage\(workflowView\)/);
   assert.match(view,/onRunOwner\('pending'\)/);
   assert.match(view,/currentPageTarget\.revalidate\(captured\)/);
   assert.match(view,/host\.start\(\{source,params/);

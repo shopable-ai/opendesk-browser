@@ -65,7 +65,7 @@ test('R3.0.6 one audited JSX source and one React Host root; dynamic iframe inta
  ].map(read));
  assert.match(react,/createPortal\(<[\s\S]*BookmarkReactApp/);
  assert.match(react,/mountBookmarkPilot\(/);
- assert.match(react,/BookmarkReactApp from .*bookmark-manager\/src\/react\/App\.jsx/);
+ assert.match(react,/import BookmarkReactApp,\{bookmarkConversationSamples\} from '\.\.\/\.\.\/\.\.\/examples\/sidebar-tools\/bookmark-manager\/src\/react\/App\.jsx'/);
  assert.equal((react.match(/createRoot\(/g)||[]).length,1);
  assert.match(shell,/trustedBookmarkPilot:\{[\s\S]*?enabled:true,/);
  assert.doesNotMatch(shell,/bookmarkReactPilot/);

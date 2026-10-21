@@ -71,7 +71,7 @@ function reviewedCompiledAdblock(target,path,root){
 // admission and the dynamic opaque iframe boundary remain independent.
 const compiledBookmarkReactInputs=Object.freeze({
   'examples/sidebar-tools/bookmark-manager/src/model.js':'34cc7a737869ca502b4bcbbb47d2437d1b6b2bd5',
-  'examples/sidebar-tools/bookmark-manager/src/service.js':'3a95b152f83b74638a57420b72bfa75de770bd55',
+  'examples/sidebar-tools/bookmark-manager/src/service.js':'d072ace5379d0d4c8f8cda8d8d172cb60122576e',
   'examples/sidebar-tools/bookmark-manager/src/react/App.jsx':'54db2ca0c0a28c21c4682c493df65898e312be55',
   'examples/sidebar-tools/bookmark-manager/src/react/style.css':'45df50633c993c32a5ba60d6889ab769a8e77ca6'
 });
