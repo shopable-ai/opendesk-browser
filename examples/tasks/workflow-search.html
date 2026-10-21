@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>搜索场景 · OpenDesk Browser Test Lab</title><style>
+:root{font:14px/1.6 system-ui,-apple-system,"PingFang SC",sans-serif;color:#1b2c44;background:#f6f8fc}
+*{box-sizing:border-box}body{max-width:850px;margin:0 auto;padding:20px 18px 60px}
+a{color:#2458b0}h1{font-size:23px;margin:16px 0 8px}h2{font-size:17px}
+header,main,footer{background:#fff;border:1px solid #dfe7f1;border-radius:12px;padding:16px;margin:12px 0}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px}
+form{display:flex;align-items:end;gap:10px;flex-wrap:wrap}
+label{display:grid;gap:4px;flex:1;min-width:175px}
+input,select,button{font:inherit;border:1px solid #bdcee0;border-radius:8px;padding:10px;min-height:40px}
+input{width:100%}button{cursor:pointer;background:#265bc1;color:white;border-color:#265bc1}
+button:disabled{opacity:.6;cursor:wait}button.secondary{background:#fff;color:#2458b0}
+:focus-visible{outline:3px solid #8baffe;outline-offset:2px}
+.result{padding:12px;margin:10px 0;border-radius:8px;border:1px solid #dce5f2}
+.result a{font-weight:650;font-size:15px}
+.meta{color:#596b82;font-size:12px;margin:5px 0}
+#workflow-search-status,#workflow-commerce-status{color:#315e53;margin:12px 0}
+[hidden]{display:none!important}small{color:#60728a}p{overflow-wrap:anywhere}
+@media(max-width:390px){body{padding:8px}header,main,footer{padding:12px}}
+</style></head>
+<body><header><strong>OpenDesk · 搜索场景</strong><a href="./demo-form.html">返回实验室</a></header>
+<main><h1>搜索引擎交互测试</h1>
+<p class="meta">LOCAL FIXTURE · 仅用于可复现的真实 DOM 自动化，不访问互联网，不代表扩展验收通过。</p>
+<form id="workflow-search-form" autocomplete="off">
+<label for="workflow-search-query">搜索关键词<input id="workflow-search-query" type="search" name="q" value="" required></label>
+<button id="workflow-search-submit" type="submit">搜索</button></form>
+<p id="workflow-search-status" role="status" aria-live="polite">等待搜索</p>
+<p id="workflow-search-complete" role="status" hidden>搜索完成</p>
+<p id="workflow-search-result-label" role="region" aria-label="搜索结果" hidden>搜索结果：</p>
+<h2 id="workflow-search-heading" hidden>搜索结果</h2>
+<div id="workflow-search-results" role="list"></div>
+<p id="workflow-search-count" class="meta" aria-live="polite">提交次数：0</p>
+<div id="workflow-search-detail" hidden>
+<h2>目标页面详情</h2><h3 id="workflow-search-detail-title"></h3>
+<p id="workflow-search-detail-description"></p></div>
+<div id="workflow-search-duplicates" aria-label="定位歧义负例">
+<h2>歧义定位负例</h2><button type="button" class="secondary" data-testid="duplicate-a">查看</button>
+<button type="button" class="secondary" data-testid="duplicate-b">查看</button>
+<output id="workflow-search-duplicate-result">未点击</output></div>
+</main><footer><small>预期：搜索并独立读回 DOM，点击目标结果将发生同源文档导航。若找不到结果，不允许猜测。</small></footer>
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const catalog=[
+ {id:'opendesk',title:'OpenDesk Browser · 官方项目介绍',description:'开源浏览器扩展平台与 Sidebar Workflow 示例',terms:['opendesk','browser','浏览器','工作流']},
+ {id:'workflow',title:'OpenDesk Workflow · 使用指南',description:'自然语言、编译、运行与结果核验',terms:['opendesk','workflow','工作流','browser']},
+ {id:'unrelated',title:'浏览器安全建议',description:'权限隔离与不可撤销操作的注意事项',terms:['安全','浏览器']}
+];
+const params=new URL(location.href).searchParams;
+const target=params.get('detail');
+if(target){
+ const item=catalog.find(row=>row.id===target);
+ if(item){
+  $('workflow-search-form').hidden=true;
+  $('workflow-search-results').hidden=true;
+  $('workflow-search-duplicates').hidden=true;
+  $('workflow-search-status').textContent='已打开目标结果';
+  $('workflow-search-detail').hidden=false;
+  $('workflow-search-detail-title').textContent=item.title;
+  $('workflow-search-detail-description').textContent=item.description;
+  document.title=item.title;
+ }else $('workflow-search-status').textContent='目标不存在';
+ return;
+}
+let generation=0,count=0;
+$('workflow-search-form').addEventListener('submit',event=>{
+ event.preventDefault();
+ const q=$('workflow-search-query').value.trim();
+ if(!q)return;
+ const token=++generation;count++;
+ $('workflow-search-count').textContent='提交次数：'+count;
+ $('workflow-search-submit').disabled=true;
+ $('workflow-search-status').textContent='正在搜索…';
+ $('workflow-search-complete').hidden=true;
+ $('workflow-search-result-label').hidden=true;
+ $('workflow-search-heading').hidden=true;
+ $('workflow-search-results').replaceChildren();
+ setTimeout(()=>{
+  if(token!==generation)return;
+  history.replaceState(null,'','?q='+encodeURIComponent(q));
+  const matches=catalog.filter(row=>row.terms.some(term=>q.toLowerCase().includes(term)||term.includes(q.toLowerCase())));
+  $('workflow-search-status').textContent='搜索完成';
+  $('workflow-search-complete').hidden=false;
+  $('workflow-search-result-label').textContent='搜索结果：'+q;
+  $('workflow-search-result-label').hidden=false;
+  $('workflow-search-heading').textContent=matches.length?'搜索结果 · '+q:'没有找到与 '+q+' 匹配的结果';
+  $('workflow-search-heading').hidden=false;
+  for(const item of matches){
+   const row=document.createElement('article');row.className='result';row.setAttribute('role','listitem');
+   const link=document.createElement('a');link.href='?detail='+encodeURIComponent(item.id);link.textContent=item.title;
+   const summary=document.createElement('p');summary.className='meta';summary.textContent=item.description;
+   row.append(link,summary);$('workflow-search-results').append(row);
+  }
+  $('workflow-search-submit').disabled=false;
+ },450);
+});
+for(const button of $('workflow-search-duplicates').querySelectorAll('button'))button.addEventListener('click',()=>{
+ $('workflow-search-duplicate-result').textContent=button.dataset.testid;
+});
+})();
+</script></body></html>

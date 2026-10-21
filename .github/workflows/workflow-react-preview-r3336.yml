@@ -17,6 +17,9 @@ on:
       - 'scripts/tests/workflow-source-preview-browser.mjs'
       - 'scripts/tests/react-sidebar-r3331-browser.mjs'
       - 'tests/environment/workflow-react-preview-contract.test.mjs'
+      - 'tests/environment/workflow-fixtures.test.mjs'
+      - 'examples/tasks/workflow-*.html'
+      - 'scripts/tests/workflow-fixtures-browser.mjs'
       - 'tests/environment/workflow-react-page.test.mjs'
       - 'tests/environment/workflow-direct-execution.test.mjs'
       - 'tests/environment/workflow-focus.test.mjs'
@@ -46,6 +49,10 @@ jobs:
           node --test tests/environment/workflow-react-preview-contract.test.mjs tests/environment/workflow-ui-states.test.mjs
       - name: R23.16 risk-scoped Run and AI admission regression
         run: node --test tests/environment/workflow-react-page.test.mjs tests/environment/workflow-direct-execution.test.mjs
+      - name: Browser Test Lab search/commerce fixture contracts
+        run: node --test tests/environment/workflow-fixtures.test.mjs
+      - name: Browser Test Lab real Chromium DOM interaction (not RunHost)
+        run: node scripts/tests/workflow-fixtures-browser.mjs
       - name: Six-tab React source-bound integration preview
         run: |
           node scripts/preview/build-sidebar-six-react-preview.mjs

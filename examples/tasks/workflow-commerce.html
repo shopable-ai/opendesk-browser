@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>商品搜索 · OpenDesk Browser Test Lab</title><style>
+:root{font:14px/1.6 system-ui,-apple-system,"PingFang SC",sans-serif;color:#1b2c44;background:#f6f8fc}
+*{box-sizing:border-box}body{max-width:850px;margin:0 auto;padding:20px 18px 60px}
+a{color:#2458b0}h1{font-size:23px;margin:16px 0 8px}h2{font-size:17px}
+header,main,footer{background:#fff;border:1px solid #dfe7f1;border-radius:12px;padding:16px;margin:12px 0}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px}
+form{display:flex;align-items:end;gap:10px;flex-wrap:wrap}
+label{display:grid;gap:4px;flex:1;min-width:175px}
+input,select,button{font:inherit;border:1px solid #bdcee0;border-radius:8px;padding:10px;min-height:40px}
+input{width:100%}button{cursor:pointer;background:#265bc1;color:white;border-color:#265bc1}
+button:disabled{opacity:.6;cursor:wait}button.secondary{background:#fff;color:#2458b0}
+:focus-visible{outline:3px solid #8baffe;outline-offset:2px}
+.result{padding:12px;margin:10px 0;border-radius:8px;border:1px solid #dce5f2}
+.result a{font-weight:650;font-size:15px}
+.meta{color:#596b82;font-size:12px;margin:5px 0}
+#workflow-search-status,#workflow-commerce-status{color:#315e53;margin:12px 0}
+[hidden]{display:none!important}small{color:#60728a}p{overflow-wrap:anywhere}
+@media(max-width:390px){body{padding:8px}header,main,footer{padding:12px}}
+</style></head><body>
+<header><strong>OpenDesk · 电商浏览场景</strong><a href="./demo-form.html">返回实验室</a></header>
+<main><h1>商品搜索与详情测试</h1>
+<p class="meta">LOCAL FIXTURE · 无真实订单、支付、购物车、远程请求或账户功能。</p>
+<form id="workflow-commerce-form" autocomplete="off">
+<label for="workflow-commerce-query">搜索商品<input id="workflow-commerce-query" name="keyword" type="search" value="" required></label>
+<button id="workflow-commerce-submit" type="submit">搜索</button></form>
+<section id="workflow-commerce-filters" aria-label="商品筛选">
+<label for="workflow-commerce-category">商品分类<select id="workflow-commerce-category"><option value="all">全部</option><option value="mouse">鼠标</option><option value="keyboard">键盘</option></select></label>
+<label for="workflow-commerce-sort">排序<select id="workflow-commerce-sort"><option value="relevance">默认排序</option><option value="price-asc">价格从低到高</option><option value="price-desc">价格从高到低</option></select></label>
+</section>
+<p id="workflow-commerce-status" role="status" aria-live="polite">等待搜索</p>
+<p id="workflow-commerce-complete" role="status" hidden>搜索完成</p>
+<p id="workflow-commerce-result-label" role="region" aria-label="搜索结果" hidden>搜索结果：</p>
+<h2 id="workflow-commerce-heading" hidden>商品搜索结果</h2>
+<div id="workflow-commerce-results" role="list"></div>
+<p id="workflow-commerce-count" class="meta" aria-live="polite">提交次数：0</p>
+<section id="workflow-commerce-detail" hidden aria-label="商品详情">
+<h2 id="workflow-commerce-product-title" data-testid="product-title"></h2>
+<p id="workflow-commerce-product-price" data-testid="product-price"></p>
+<p id="workflow-commerce-product-description"></p>
+<p class="meta">本地示例商品，无购买和下单操作。</p>
+<a href="./workflow-commerce.html">返回商品搜索</a></section>
+</main><footer><small>预期：搜索、筛选、排序、打开详情、核对标题与价格；不允许执行付款或绕过身份验证。</small></footer>
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const products=[
+ {id:'mouse-silent',name:'无线鼠标 · 静音款',price:89,category:'mouse',description:'静音按键、无线连接，适合日常办公'},
+ {id:'mouse-pro',name:'无线鼠标 · 专业款',price:159,category:'mouse',description:'高精度传感器，适合多设备办公'},
+ {id:'keyboard',name:'蓝牙键盘 · 便携款',price:129,category:'keyboard',description:'便携蓝牙键盘与多设备切换'}
+];
+const url=new URL(location.href),id=url.searchParams.get('product');
+if(id){
+ const row=products.find(item=>item.id===id);
+ $('workflow-commerce-form').hidden=true;
+ $('workflow-commerce-filters').hidden=true;
+ $('workflow-commerce-results').hidden=true;
+ if(row){
+  $('workflow-commerce-detail').hidden=false;
+  $('workflow-commerce-status').textContent='已打开商品详情';
+  $('workflow-commerce-product-title').textContent=row.name;
+  $('workflow-commerce-product-price').textContent='¥'+row.price.toFixed(2);
+  $('workflow-commerce-product-description').textContent=row.description;
+  document.title=row.name+' · 商品详情';
+ }else $('workflow-commerce-status').textContent='商品不存在';
+ return;
+}
+let count=0,generation=0,keyword='';
+function present(){
+ const type=$('workflow-commerce-category').value,sort=$('workflow-commerce-sort').value;
+ const q=keyword.toLocaleLowerCase();
+ const matches=products.filter(item=>(type==='all'||item.category===type)&&
+   [item.name,item.description].some(text=>text.toLocaleLowerCase().includes(q)));
+ if(sort!=='relevance')matches.sort((a,b)=>sort==='price-asc'?a.price-b.price:b.price-a.price);
+ const list=$('workflow-commerce-results');list.replaceChildren();
+ for(const product of matches){
+  const row=document.createElement('article');row.className='result';row.setAttribute('role','listitem');
+  const link=document.createElement('a');link.href='?product='+encodeURIComponent(product.id);link.textContent=product.name;
+  const price=document.createElement('p');price.className='meta';price.textContent='¥'+product.price.toFixed(2);
+  row.append(link,price);list.append(row);
+ }
+ $('workflow-commerce-status').textContent='搜索完成';
+ $('workflow-commerce-complete').hidden=false;
+ $('workflow-commerce-result-label').textContent='搜索结果：'+keyword;
+ $('workflow-commerce-result-label').hidden=false;
+ $('workflow-commerce-heading').textContent=matches.length?'商品搜索结果 · '+keyword:'没有找到与 '+keyword+' 匹配的商品';
+ $('workflow-commerce-heading').hidden=false;
+}
+$('workflow-commerce-form').addEventListener('submit',event=>{
+ event.preventDefault();
+ const value=$('workflow-commerce-query').value.trim();if(!value)return;
+ keyword=value;const token=++generation;count++;
+ $('workflow-commerce-count').textContent='提交次数：'+count;
+ $('workflow-commerce-submit').disabled=true;
+ $('workflow-commerce-status').textContent='正在搜索…';
+ $('workflow-commerce-complete').hidden=true;$('workflow-commerce-result-label').hidden=true;
+ $('workflow-commerce-results').replaceChildren();
+ setTimeout(()=>{
+  if(token!==generation)return;
+  history.replaceState(null,'','?keyword='+encodeURIComponent(keyword));
+  present();$('workflow-commerce-submit').disabled=false;
+ },500);
+});
+for(const id of ['workflow-commerce-category','workflow-commerce-sort'])
+ $(id).addEventListener('change',()=>{if(keyword)present();});
+})();
+</script></body></html>
