@@ -16,7 +16,7 @@ class Element {
   this.classList={add(){}};
  }
  addEventListener(type,callback){(this.events[type]??=[]).push(callback);}
- async fire(type,event={}){for(const callback of this.events[type]||[])await callback(event);}
+ async fire(type,event={}){const action={preventDefault(){},stopPropagation(){},...event};for(const callback of this.events[type]||[])await callback(action);}
  append(...children){this.children.push(...children);}
  replaceChildren(...children){this.children=[...children];}
  setAttribute(key,value){this[key]=value;}

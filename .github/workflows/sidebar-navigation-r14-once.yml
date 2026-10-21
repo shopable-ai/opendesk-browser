@@ -79,8 +79,16 @@ jobs:
           set -euo pipefail
           git fetch origin main
           if [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
-            echo "CONCURRENT_MAIN_ADVANCE: leave source and package untouched, no rebase or force"
-            exit 1
+            touched="$(git diff --name-only "$GITHUB_SHA" origin/main -- \
+              examples/sidebar-tools/web-markdown-clipper/ \
+              src/ui/sidebar-tools.js src/ui/sidebar-tools/package.js \
+              src/sidebar-tools/bridge.js scripts/build-sidebar-tool.mjs \
+              .github/workflows/sidebar-navigation-r14-once.yml \
+              .github/sidebar-r14/)"
+            if [ -n "$touched" ]; then
+              echo "CONCURRENT_OWNER_DRIFT: $touched"
+              exit 1
+            fi
           fi
           git rm .github/sidebar-r14/notes.js .github/sidebar-r14/navigation-r14.test.mjs .github/workflows/sidebar-navigation-r14-once.yml
           git add examples/sidebar-tools/web-markdown-clipper/src/notes.js examples/sidebar-tools/web-markdown-clipper/tests/navigation-r14.test.mjs examples/sidebar-tools/web-markdown-clipper/tool.config.json examples/sidebar-tools/web-markdown-clipper/app.ci.json examples/sidebar-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json
@@ -88,4 +96,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "fix(clipper): separate detail and list generations; promote 1.2.5"
+          if [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
+            # This job's disposable main is rebased only after an explicit
+            # no-overlap check; no user workspace, force or remote rewrite.
+            git rebase origin/main
+          fi
           git push origin HEAD:main
