@@ -20,6 +20,7 @@ on:
       - 'scripts/build-contract.mjs'
       - 'scripts/bundle-provenance.mjs'
       - 'scripts/verify-package.mjs'
+      - 'scripts/check-source.mjs'
       - 'wxt.config.mjs'
       - 'src/ui/controller-revision-view.js'
       - 'src/ui/react/tabs/develop.tsx'
