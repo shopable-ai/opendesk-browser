@@ -1,12 +1,12 @@
 {
   "schema": "opendesk.adblock.offline-rules.v1",
-  "version": "2026-10-15.1",
+  "version": "2026-10-21.1",
   "file": "domains.js",
-  "sha256": "ac9f0766958a06c81e27e0d2cf292a200b6bcec8f50ddf34ce03b49d4da543ec",
+  "sha256": "ac92262be3b3350f740d6ac6f2b48b51b07cdecdd2881aefd2a33b35c920b2f3",
   "rules": {
-    "advertisingDomains": 47,
+    "advertisingDomains": 48,
     "trackingDomains": 20,
-    "totalUnique": 67,
+    "totalUnique": 68,
     "requestType": "thirdParty",
     "resources": [
       "script",
@@ -16,11 +16,22 @@
       "ping",
       "media",
       "other"
+    ],
+    "siteImageFilters": [
+      {
+        "domain": "javbus.com",
+        "path": "/forum/data/attachment/forum/ads/",
+        "resourceTypes": [
+          "image"
+        ],
+        "source": "trusted/rules.js",
+        "ruleId": 741199
+      }
     ]
   },
   "origin": "Original hand-curated first-party snapshot; no copied third-party subscription list",
   "license": "Repository-maintained original domain compilation; no third-party rule-list or executable-license dependency",
-  "generatedAt": "2026-10-15",
+  "generatedAt": "2026-10-21",
   "updates": "Only through reviewed source changes and a new extension build, not at runtime",
-  "notes": "Coarse whole-domain network filtering, not cosmetic filtering or full EasyList conversion"
+  "notes": "Third-party domain filtering plus a JavBus-only image-path rule. Fixed site-scoped cosmetic CSS lives in trusted/cosmetic.js; no DOM removal or full EasyList conversion"
 }

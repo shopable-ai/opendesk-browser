@@ -120,8 +120,8 @@ HTML 不允许 `script/iframe/object/embed/base/link/meta/style` 标签、内联
 | capability | 现有固定操作/服务 | 限制 |
 | --- | --- | --- |
 | `page.toc` | `toc.snapshot`、`toc.navigate` | 复用阅读目录可信 Content Script、明确网站许可及目标文档再校验；非通用页面选择器 |
-| `page.clip` | `clip.article`、`clip.selection`、`clip.link` 等固定剪藏操作 | 复用剪藏可信 Content Script、单独的网站许可及定向结果 |
-| `page.capture` | ChatGPT 知识保存专用页面捕获 | 已批准网站和官方扩展固定入口；不能自行定义任意采集脚本 |
+| `page.clip` | `clip.article`、`clip.selection`、`clip.link` 等固定剪藏操作 | 安装审阅后在 Chrome 允许的 HTTP(S) 网页按点击直接使用；复用固定 Content Script、当前文档再校验及站点停用例外 |
+| `page.capture` | ChatGPT 知识保存专用页面捕获 | 安装审阅后在原有 ChatGPT 网站显示固定保存入口，点击才读取；可主动停用，不另要求逐站授权；不能自行定义任意采集脚本 |
 | `knowledge.store` | `knowledge.list/get/update/remove/backup/download/openSource/workspace` 等 | 只有 `knowledge-inbox` 固定宿主与服务识别的工具身份允许相应操作；不是通用存储配额 |
 | `time.review` | `time.status/start/pause/revoke/settings/clear/export`、R1.3 `time.day/classify/minuteConsent` | 仅固定 `time-review` 工具使用可信 MV3 后台；空闲检测需要 Chrome 原生授权，开始/清空/分钟采集选择由受信任详情设置区的真实点击批准。默认只保存域名、日期及毫秒日汇总；可选择性保存未来真实分钟/域名/毫秒，不会补造历史 |
 
@@ -145,7 +145,7 @@ HTML 不允许 `script/iframe/object/embed/base/link/meta/style` 标签、内联
 - 可信宿主使用 sandbox `event.source`、opaque `origin`、`instance`、工具 ID、当前安装包和能力权限约束消息。`origin=null` 本身并不是可信身份。
 - 宿主可给工具的 `root` 派发 `opendesk-page-changed` 事件，用于在页面目标变化后重新查询信息；不能假定旧目标仍可继续使用。
 - 工具里显示不可信正文时应使用 `textContent`，避免把用户输入、网页内容或远端 HTML 当成可信 DOM 注入。
-- 工具安装不会自动授予网站权限；独立标签页的页面目标/剪藏权限不等于原 Side Panel 的已绑定目标。对敏感操作需由实际 UI 授权并处理不可用状态。
+- 工具安装批准的基础能力直接复用，不再要求剪藏/知识保存逐站二次授权；Chrome 网站访问仍须有效，独立标签页仍须绑定自身目标文档。Cookie 等独立敏感操作继续按原授权处理。统一规则见[安装即用合同](../architecture/browser-framework/site-permission-onboarding.zh-CN.md)。
 - 更新、卸载与工具写入使用既有宿主锁和重新验证，卸载还会删除本工具本地数据。交付前必须明确提醒用户备份重要数据。
 
 ## 4. 维护和排错入口

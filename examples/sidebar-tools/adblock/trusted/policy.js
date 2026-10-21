@@ -2,6 +2,7 @@
 export const ADBLOCK_ID='adblock';
 export const ADBLOCK_CAPABILITY='adblock.control';
 export const ADBLOCK_PROTOCOL='opendesk.adblock.v1';
+export const ADBLOCK_PAGE_PROTOCOL='opendesk.adblock.page.v1';
 export const ADBLOCK_SERVICE_VERSION=1;
 export const ADBLOCK_STORE='opendesk.adblock.state.v1';
 export const ADBLOCK_DNR_CLEANUP_STORE='opendesk.adblock.dnr-cleanup-unconfirmed.v1';

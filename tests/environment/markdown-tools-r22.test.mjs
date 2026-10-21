@@ -51,16 +51,16 @@ test('R22 packer is reproducible and matches the official build output',async()=
   }
  }finally{await rm(out,{recursive:true,force:true});}
 });
-test('R22 body authority is distinct from TOC and revoked without fallback',async()=>{
+test('R22 installed body capability is available by default and explicit site denial wins',async()=>{
  const pkg=await readPkg('web-markdown-clipper');
  const url='https://news.example/article?id=1';
  const allow=changeClipGrant({},pkg.id,url,true);
  assert.equal(CLIP_CAPABILITY,'page.clip');
  assert.match(CLIP_SITE_STORE,/clip-sites/);
- assert.deepEqual(allow[pkg.id],['https://news.example']);
+ assert.deepEqual(allow,{});
  assert.equal(clipGrantAllowed([pkg],allow,pkg.id,url),true);
- assert.equal(clipGrantAllowed([pkg],{},pkg.id,url),false);
- assert.equal(clipGrantAllowed([pkg],allow,pkg.id,'https://other.example'),false);
+ assert.equal(clipGrantAllowed([pkg],{},pkg.id,url),true);
+ assert.equal(clipGrantAllowed([pkg],allow,pkg.id,'https://other.example'),true);
  assert.equal(clipGrantAllowed([],allow,pkg.id,url),false);
  assert.equal(clipGrantAllowed([{...pkg,capabilities:['page.toc']}],allow,pkg.id,url),false);
  assert.equal(clipGrantAllowed([pkg],changeClipGrant(allow,pkg.id,url,false),pkg.id,url),false);
@@ -106,7 +106,7 @@ test('R22 reinstated clipper checks the exact install epoch; missing, stale, dis
   values[SIDEBAR_TOOL_ENABLE_STORE]={[pkg.id]:false};
   assert.equal((await ask(validEpoch)).ok,false,'turning off the tool revokes content reads');
   values[SIDEBAR_TOOL_ENABLE_STORE]={};
-  values[CLIP_SITE_STORE]={};
+  values[CLIP_SITE_STORE]=changeClipGrant({},pkg.id,url,false);
   assert.equal((await ask(validEpoch)).ok,false,'site revocation continues to deny');
  }finally{clipper.dispose();}
  assert.equal(handler,null);

@@ -58,7 +58,17 @@ node scripts/tests/adblock-preview-chrome.mjs artifacts/preview-chrome
 
 安装包的 `adblock.control` 仅经原有可信宿主授权运行。Chrome DNR 所有权、权限、安装身份、状态读回、取消、停用、卸载、失败回退均由 `trusted/` 和宿主原流程负责；沙箱 JSX 不调用 `chrome.declarativeNetRequest`，不承担授予权限的职责。AdBlock 只清理自己的规则 ID 741000–741199，不能覆盖 Stay Focus 的规则或解除其它应用的限制。
 
-固定离线名单当前 67 个域名，不宣传未经实测的请求拦截数。网站例外仅在当前受支持 HTTP(S) 标签页身份核实后可修改；导航期间旧请求结果不可用于新网站。规则更新后的真实效果应通过独立 Chrome 网络请求与 DNR 读回验证。
+固定离线名单当前 68 个域名，不宣传未经实测的请求拦截数。网站例外仅在当前受支持 HTTP(S) 标签页身份核实后可修改；导航期间旧请求结果不可用于新网站。规则更新后的真实效果应通过独立 Chrome 网络请求与 DNR 读回验证。
+
+网络层使用 Chrome DNR 阻止匹配请求。规则 `2026-10-21.1` 根据 JavBus 首页实际请求补入 `jads.co`，并以自有 ID `741199` 仅拦截 JavBus 发起的 `/forum/data/attachment/forum/ads/` 图片请求；普通封面、导航/搜索脚本和其它网站不受该路径规则影响。网站例外保持更高优先级，同时修复带末尾点域名的归一化与例外匹配不一致。
+
+页面层由固定编译的可信 ISOLATED 脚本，在 `javbus.com` / `www.javbus.com` 上为广告容器 `.ad-box` 添加 `display: none !important`。不删除 DOM、不注入网站 MAIN 脚本、不接受沙箱传入任意选择器。页面只读取现有 AdBlock 安装哈希、撤权 epoch、总开关、网站例外、真实顶层文档和 Chrome 来源权限核验后的策略；关闭、例外或停用时撤除自己的样式。旧文档结果和超时后的响应不能重新启用样式；权限推送丢失时还有定时复核，因此不承诺所有撤权情况下零延迟移除。CSS 只负责隐藏占位，网络阻断仍由 DNR 执行。网站可以从资源失败或元素可见性推断广告拦截，不能保证无法被检测。
+
+本次使用当前源码生成的规则在独立 Chrome 149.0.7827.55 中检查真实首页：12 个广告图片元素均未加载、3 次广告脚本请求被阻断、30 个正常封面全部加载；加入本站例外和全局关闭后，12 个广告图片及 3 个广告 iframe 恢复加载，未出现拦截检测提示。规则匹配同时检查了正常资源、伪造域名、其它发起站点及末尾点域名。临时原始回执见 `artifacts/adblock-javbus/engine-receipt.json`（Git 忽略）。这是当前规则的真实引擎及网站验证，不替代已安装产品 UI、production 安装或正式验收；下方 1.2.1 安装记录仍是此前候选的历史证据。
+
+2026-10-21 已完成本次开发目标：日常 Mac Chrome 155.0.8059.85 实际加载本仓库 `dist/development`，扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，继续使用原 watcher。首次生效观察指纹 `e0633710541f9f9a261587b1b360743b6bd1f7d74ba2294ff3635cbad1a7726b`；收尾时并行开发已更新为 `8d191f1c000691780d04dafd53f177944d7942c8beffcf108aea898fac45e1a8`，本次广告拦截源码未变。真实界面显示 68 域名，刷新后广告与占位消失，正常封面、导航、搜索入口保留；DevTools 记录 15 条广告资源 `ERR_BLOCKED_BY_CLIENT`。网站例外、全局关闭均恢复广告，恢复过滤后再次消失；从扩展列表停用应用后样式撤除、刷新可重新加载广告。恢复应用保留关闭状态，重新确认开启后过滤恢复，最终全局/本站开启、例外为空。截图与回执位于 `artifacts/adblock-javbus/system-chrome/` 和 `system-chrome-receipt.json`（均为 Git 忽略的本机证据）。正常封面 30/30 的 DOM 与加载计数来自上述独立浏览器检查；日常 Chrome 仅核对可见正常封面，未读取其完整 DOM 计数。
+
+此前日常 Chrome 仍显示 67 域名的原因也已定位：共享官方工具 CSS 校验被 `prompt-shortcuts/src/style.css` 中未使用设计 token 的颜色阻断，发布器保留了旧的开发指纹。将该颜色替换为既有 `--od-line` token 后，原 watcher 自动完成安全更新，无需替换加载目录、重装或放宽校验。测试全程未开启“允许 Apple 事件中的 JavaScript”。定向测试 97 项中 96 通过、1 项历史入口跳过，覆盖网络规则、CSS 所有权、身份/权限、旧响应及 BFCache。单独撤销 Chrome 来源权限和 production 安装验收未实测，不由本次开发证据代替。
 
 ## CI 与发布状态（以最新执行结果为准）
 
@@ -75,4 +85,4 @@ node scripts/app-ci.mjs native adblock
 
 旧项目包 **1.2.0**（SHA-256 `a7cfbf0dd773534a2aeb13b44064cfa26869c56eacdf0f9425728663bbd3a8fd`）与当前扩展固定资源不一致，导入时会被拒绝为 `E_TOOL_RUNTIME_UNAVAILABLE`。应重新选择本目录当前唯一正式包；保留固定发行哈希校验，不通过改版本字符串、卸载或放宽来源检查解决。
 
-本次真实 Mac Chrome 开发环境已验证：导入 1.2.1、确认安装、打开 React 应用、开启全局过滤、添加当前网站例外及恢复过滤。实际加载路径为本仓库 `dist/development`，扩展 ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，开发服务已连接，观察到的构建指纹为 `959fb62e599042064653df5de816619f4fc2ed2838ccd289e032fffa0635fcf0`。测试结束时全局过滤开启、网站例外为空。临时网络对照页被浏览器控制限制拦截，未取得请求阻断证据；真实网络拦截、production 安装验收与独立 95 分验收仍为 `NOT_TESTED`。后续源码修改继续走候选验证后显式晋升，不自动覆盖此正式包。
+2026-10-20 历史安装记录：真实 Mac Chrome 开发环境已验证导入 1.2.1、确认安装、打开 React 应用、开启全局过滤、添加当前网站例外及恢复过滤。实际加载路径为本仓库 `dist/development`，扩展 ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，当时指纹为 `959fb62e599042064653df5de816619f4fc2ed2838ccd289e032fffa0635fcf0`。该次临时网络对照页未取得请求阻断证据；本次 JavBus 开发验证见上文，不将新证据追记为旧候选通过。production 安装验收与独立 95 分验收仍为 `NOT_TESTED`。后续工具 UI 源码修改继续走候选验证后显式晋升，不自动覆盖此正式包。

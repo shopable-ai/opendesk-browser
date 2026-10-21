@@ -25,10 +25,16 @@ export function wantedAdblockRules(state){
     if(adblockHost(host)!==host)throw adblockError('E_ADBLOCK_HOST','无效网站域名');
     const escaped=host.replace(/\./g,'\\.');
     return {id:ADBLOCK_RULE_FIRST+index+1,priority:2,action:{type:'allowAllRequests'},
-      condition:{regexFilter:'^https?://'+escaped+'(?::[0-9]{1,5})?(?:[/?#]|$)',
+      condition:{regexFilter:'^https?://'+escaped+'\\.?(?::[0-9]{1,5})?(?:[/?#]|$)',
         resourceTypes:['main_frame','sub_frame']}};
   });
-  return [blocked,...sites];
+  // JavBus also serves banner images from its own origin. Do not put the
+  // website in the domain denylist or match generic "ad" classes/URL text.
+  // Reserve the last owned ID, outside the 100 site-exception IDs.
+  const siteImages={id:ADBLOCK_RULE_LAST,priority:1,action:{type:'block'},
+    condition:{regexFilter:'^https?://(?:[a-z0-9-]+\\.)*javbus\\.com\\.?(?::[0-9]{1,5})?/forum/data/attachment/forum/ads/',
+      isUrlFilterCaseSensitive:true,initiatorDomains:['javbus.com'],resourceTypes:['image']}};
+  return [blocked,...sites,siteImages];
 }
 export async function reconcileAdblockRules(api,wanted=[],{beforeWrite=async()=>{},onPriorityConflict=async()=>{}}={}){
   const dnr=api?.declarativeNetRequest;

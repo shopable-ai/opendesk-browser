@@ -54,10 +54,11 @@ test('knowledge tool is a distinct, bounded, reproducible v1 package with explic
     assert.equal(built,(await officialFixtures()).resources.get(officialPackagePath(pkg.id)).toString('utf8'));
   }finally{await rm(dir,{recursive:true,force:true});}
 });
-test('capture requires separate origin consent and both declared capabilities',()=>{
+test('capture reuses installed capabilities within its fixed sites and respects explicit denial',()=>{
   const grants=changeCaptureGrant({},pkg.id,url,true);
   assert.equal(captureAllowed([pkg],grants,url),true);
-  assert.equal(captureAllowed([pkg],{},url),false);
+  assert.equal(captureAllowed([pkg],{},url),true);
+  assert.equal(captureAllowed([pkg],changeCaptureGrant({},pkg.id,url,false),url),false);
   assert.equal(captureAllowed([] ,grants,url),false);
   assert.equal(captureAllowed([{...pkg,capabilities:['page.clip','knowledge.store']}],grants,url),false);
   assert.equal(captureAllowed([pkg],grants,'https://chatgpt.com.evil.example/c/a'),false);

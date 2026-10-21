@@ -127,7 +127,7 @@ test('menus use browser optional permission, idempotent sync, real click and one
   fake.setPermission(true);
   await host.synchronize();
   assert.equal(menus.has(BROWSER_MENU_ROOT),false,'no permanent parent or open-menu entry');
-  assert.equal(menus.size,0,'no approved tool action means no context-menu items');
+  assert.equal(menus.size,1,'installed menu declarations need no second enable');
   await host.handleHost({operation:'browser.contextMenu.userToggle',toolId:sample.id,enabled:true,
     origin:'https://example.com',document:{tabId:9,documentId:'document-A',url:'https://example.com/post'},
     hostInstanceId:uid},sender);
@@ -184,12 +184,12 @@ test('uninstall, site revocation, stale package, stale document invalidate menus
   const revised=structuredClone(sample);revised.contributes.contextMenus[0].title='new title';
   await api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[revised]});
   await host.synchronize();
-  assert.equal(menus.has('opendesk.tool.selection-notes.capture-selection'),false,
-    'same-version modified package must not inherit the old digest grant');
+  assert.equal(menus.has('opendesk.tool.selection-notes.capture-selection'),true,
+    'installed replacement uses its own declarations; old instances still fail identity checks');
   await api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[]});
   await host.synchronize();
   assert.equal(menus.size,0,'uninstall must remove all owned tool menu IDs');
-  assert.equal((await api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE]?.[sample.id]?.version,sample.version,
+  assert.equal((await api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE]?.[sample.id]?.contextMenu.version,sample.version,
     'actual installer handles durable grant cleanup, not menu sync');
 });
 test('denied Chrome permission and untrusted sender never create site menus',async()=>{
@@ -226,19 +226,19 @@ test('Chrome permission revocation and install epoch invalidate old menu grants'
   assert(menus.has('opendesk.tool.selection-notes.capture-selection'));
   await api.storage.local.set({'opendesk.sidebar-tools.revocation-epochs.v1':{[pkg.id]:'revoked-owner-1'}});
   await host.synchronize();
-  assert(!menus.has('opendesk.tool.selection-notes.capture-selection'),
-    'stale site grant must not outlive a tool revocation epoch');
+  assert(menus.has('opendesk.tool.selection-notes.capture-selection'),
+    'new install epoch materializes declarations while old instances remain revoked');
   await assert.rejects(host.handleTool({operation:'browser.contextMenu.register',
     args:{actionIds:['capture-selection']},...hostContext},sender),{code:'E_TOOL_CHANGED'});
   await host.revokePermission();
   const saved=(await api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE];
-  assert.deepEqual(saved,{},'Chrome permission revocation durably drops past tool approvals');
+  assert(saved[pkg.id].contextMenu,'Chrome permission revocation preserves preferences without issuing new grants');
   fake.setPermission(false);
   assert.equal((await host.synchronize()).enabled,false);
   fake.setPermission(true);
   await host.synchronize();
-  assert.equal(menus.has('opendesk.tool.selection-notes.capture-selection'),false,
-    'Chrome permission reapproval must not resurrect former site grants');
+  assert.equal(menus.has('opendesk.tool.selection-notes.capture-selection'),true,
+    'Chrome permission reapproval restores basic installed menu availability');
 });
 
 test('disabled tool removes menu and pending selection, and rejects later tool/host requests',async()=>{
@@ -273,7 +273,7 @@ test('disabled tool removes menu and pending selection, and rejects later tool/h
   await api.storage.local.set({'opendesk.sidebar-tools.revocation-epochs.v1':{[pkg.id]:'new-instance-after-resume'},
     'opendesk.sidebar-tools.enabled.v1':{[pkg.id]:true}});
   await cycle(host);
-  assert(!menus.has(menuId),'old site grant must not revive when disabled tool is re-enabled');
+  assert(menus.has(menuId),'resumed install uses declarations while old instances remain revoked');
   await assert.rejects(host.handleTool({operation:'browser.contextMenu.register',
     args:{actionIds:['capture-selection']},...hostContext},sender),{code:'E_TOOL_CHANGED'});
   await host.handleHost({operation:'browser.contextMenu.userToggle',toolId:pkg.id,
@@ -299,7 +299,7 @@ test('unregister stays idempotent after site approval has been revoked',async()=
   const first=await host.handleTool({operation:'browser.contextMenu.unregister',args:{},...hostContext},sender);
   assert.deepEqual(first,{registered:false,actionIds:[]});
   const snapshot=(await fake.api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE];
-  assert.equal(snapshot,undefined,'a revocation path cannot create a new approval record');
+  assert.deepEqual(snapshot[pkg.id].contextMenu.activeActions,[],'unregister persists a close preference even without an old grant');
   await host.handleHost({operation:'browser.contextMenu.userToggle',toolId:pkg.id,enabled:true,
     origin:'https://example.com',document:{tabId:9,documentId:'document-A',url:'https://example.com/post'},
     hostInstanceId:uid},sender);
@@ -644,6 +644,6 @@ test('unregister with zero approved origins clears authority before later site r
     origin:'https://example.com',document:{tabId:9,documentId:'document-A',url:'https://example.com/post'},hostInstanceId:uid},sender);
   await toggle(false);await f.ask('browser.contextMenu.unregister');
   assert.equal(f.fake.sessionValues.get(BROWSER_MENU_LAUNCH_STORE)?.[f.sample.id],undefined);
-  assert.deepEqual(f.fake.values.get(BROWSER_MENU_GRANTS_STORE)[f.sample.id].activeActions,[]);
+  assert.deepEqual(f.fake.values.get(BROWSER_MENU_GRANTS_STORE)[f.sample.id].contextMenu.activeActions,[]);
   await toggle(true);await assert.rejects(f.ask('browser.launch.consume'),{code:'E_LAUNCH_EXPIRED'});
 });

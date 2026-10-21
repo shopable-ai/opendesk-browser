@@ -16,13 +16,23 @@ OpenDesk Browser 是用户主动安装的浏览器自动化扩展。为减少每
 | Installed Page USER_SCRIPT | 复用已获准的固定版本、匹配范围及 Chrome 条件，在后续匹配的文档按既有原生规则自动运行；用户主动停用/撤销时停止未来准入 | 同版本、同权限范围每个新文档重复请求授权 |
 | Controller / Task / Workflow / 定时操作 | 安装或保存后具备调用资格；用户点击 Run 或已有明确授权的触发条件出现才执行有副作用的任务 | 无意义的第二次安装级启用；同时严禁仅因安装就擅自自动 Run |
 
-**权限边界仍然有效。** Chrome 原生网站访问被限制、User Scripts 被关闭、已安装版本/能力/Origin 改变、用户主动停用、授权撤销、来源不可信时必须停止相应准入。读取/保存网页正文、Cookie、历史、空闲检测、持续记录、网络或 Native 等额外能力，不因宿主 manifest 拥有权限就自动转授第三方工具；已有合法授权应静默复用，缺失权限只在可信用户动作中按精确范围申请，拒绝后不自动重放。官方阅读目录专用的默认站点放行绝不扩展到第三方自报的 `page.toc`，更不能扩大为通用 DOM 访问。
+**权限边界仍然有效。** Chrome 原生网站访问被限制、User Scripts 被关闭、已安装版本/能力/Origin 改变、用户主动停用、授权撤销、来源不可信时必须停止相应准入。安装审阅已批准的基础能力复用该批准，不再另设逐站白名单作为正常使用前置。Cookie、历史、空闲检测、持续记录、网络或 Native 等额外能力，不因宿主 manifest 拥有权限就自动转授第三方工具；已有合法授权应静默复用，缺失权限只在可信用户动作中按精确范围申请，拒绝后不自动重放。官方阅读目录的自动注入仍须核验官方来源，不能转授给第三方自报的 `page.toc`，更不能扩大为通用 DOM 访问。
+
+### 基础能力一次审阅与站点停用（2026-10-21）
+
+网页剪藏的 `page.clip`、知识保存的 `page.capture` 以及声明式 `browser.contextMenu` 在安装审阅后按各自支持范围直接可用。剪藏仍由用户点击提取；知识保存仅在原有 ChatGPT 网站显示固定入口，点击才读取/保存；右键动作仍仅执行包中已审阅的声明。它们不继承阅读目录专属授权，也不获得任意 DOM/后台代码执行权。真正缺失的 Chrome optional 权限仍从可信用户动作申请。
+
+`src/ui/sidebar-tools/site-grants.js` 统一提供基础能力的站点可用性：未停用即可用，主动停用写入 `{mode:'all-except',blockedOrigins:[精确Origin]}`，恢复移除对应例外。继续使用原 `clip-sites.v1` / `capture-sites.v1` 存储，不增加授权层；宿主、页面与后台使用同一判断。旧正向数组可读，按本次默认可用决策解释；旧系统删除条目后的撤销与从未授权无法区分，不能声称保留不存在的历史负向记录。现有工具级停用和新写入的站点停用均保留；损坏记录拒绝使用/覆盖。单工具最多保留 64 个站点例外。
+
+右键菜单复用现有 Browser Host，从已安装包声明计算默认状态，设置存于原浏览器授权记录的 `contextMenu` 子项；不改写同记录中的 Cookie/完整书签授权。明确关闭的动作、精确 Origin 例外及升级中断后的限制继续生效。Side Panel 从 Host 读取可用状态，已有 Chrome 菜单权限时不重复申请。
+
+运行仍检查真实安装及 capability、包身份/代际、Chrome 权限、当前活动文档和回包；停用、导航、卸载或撤权必须让旧请求失效。设置显示“恢复 / 停用当前网站”及“已停用的网站”，不再要求用户找到隐藏的“授权”才能完成第一次操作。组件测试不等于当前 Chrome 已加载新框架。
 
 **运行时单一事实来源**：Sidebar Tool 的安装记录为 `SIDEBAR_TOOL_STORE`，停用覆盖为 `SIDEBAR_TOOL_ENABLE_STORE`；默认缺失停用记录即处于可用状态，损坏记录则拒绝。阅读目录由 `src/entrypoints/page-relay.js` 的固定 Content Script 和 `src/reading-toc/page.js` 的存储变更监听启动，安装写入后无需宿主额外启用 RPC。对安装前已打开的网页，可信 Service Worker 在核实官方包内容、来源与 Chrome 网站访问后，仅补注入内置 `agents/page-relay.js`；Content Script 使用文档级单例避免重复目录。被 Chrome 拒绝或其他受限标签页不绕过权限，仍须提示用户刷新网页或恢复网站访问；不能假称已注入。手动停用、升级、卸载、站点例外、SPA/BFCache 和权限撤销必须继续沿原有 Host/Authority 的身份校验和回收规则执行。
 
 **交互文案合同**：阅读目录显示“安装后自动显示目录”“停用/恢复”，Side Panel 的“打开”解释为“查看侧栏目录”。Sidebar 应用显示“安装后可打开”，不要把可打开状态误报为后台代码已执行；Installed Page 显示安装/自动运行/受限实际状态。不要新增通用确认模态框、权限存储副本或第二套安装器。新扩展先按类型与权限评审，不能通过更改名称、工具 ID、CSS 或前缀绕过受信运行资格。
 
-**验收**：官方阅读目录首次安装后在已有 Content Script 的普通网页立即可读取目录，且 `permissions.request=0`、无需写入“启用=true”；主动停用的网站不出现；恢复后自动出现；Side Panel 未打开仍可索引；Chrome 限权/受限网页正确失败；第三方 TOC/剪藏/知识保存不继承官方默认授权；显式停用的旧安装更新后仍停用。相关 Node 测试属于组件证据，Mac Chrome 仍需独立验证。
+**验收**：官方阅读目录首次安装后在已有 Content Script 的普通网页立即可读取目录，且 `permissions.request=0`、无需写入“启用=true”；主动停用的网站不出现；恢复后自动出现；Side Panel 未打开仍可索引；Chrome 限权/受限网页正确失败；第三方 TOC 不继承官方自动注入资格；剪藏/知识保存按自身已安装 capability 默认可用；显式停用的旧安装更新后仍停用。相关 Node 测试属于组件证据，Mac Chrome 仍需独立验证。
 
 
 ### Extension Lifecycle R1.1：已安装工具的权限与运行类型审计
@@ -38,14 +48,14 @@ OpenDesk Browser 是用户主动安装的浏览器自动化扩展。为减少每
 | Bookmark Manager / Sidebar Tool | 安装后可打开书签管理 | 否 | Chrome Bookmarks 原生许可及写操作 | `examples/sidebar-tools/bookmark-manager/tool.config.json`、`src/platform/chrome/permission-gate.js`；保留按需检查 |
 | AdBlock / Sidebar Tool + Trusted Service | 安装后可打开并配置过滤规则 | 不以普通安装替代用户启用拦截 | DNR / 敏感规则及配置生命周期 | `examples/sidebar-tools/adblock/tool.config.json`、`trusted/lifecycle.js`；不自动撤销敏感确认 |
 | Quick Notes / Sidebar Tool | 预装后立即可打开笔记 | 否 | Storage 与用户主动打开 Task | `examples/sidebar-tools/quick-notes/tool.config.json`；不增加启用步骤 |
-| Knowledge Inbox / Sidebar Tool | 安装后可打开收集界面 | 否 | `page.capture`、`knowledge.store` 及精确网站批准 | `examples/sidebar-tools/knowledge-inbox/tool.config.json`；保留正文采集边界 |
+| Knowledge Inbox / Sidebar Tool | 安装后可打开收集界面，支持的 ChatGPT 网站显示保存入口 | 固定入口显示，点击才保存 | 安装审阅中的 `page.capture`、`knowledge.store`，Chrome 访问及站点停用例外 | `examples/sidebar-tools/knowledge-inbox/tool.config.json`；保留原固定网站和正文读取边界 |
 | Time Review / Trusted UI | 安装后可打开配置；不能仅因安装开始持续记录 | 否 | 明确站点授权、`idle` 与开始记录动作 | `src/ui/sidebar-tools.js` 的 `time.start` 审查；保留独立授权 |
 | Stay Focus / Trusted Service | 安装后可配置限制 | 不因安装自动创建限制规则 | 规则启用、阻断与可恢复控制 | `examples/sidebar-tools/stay-focus/tool.config.json`、`src/stay-focus/lifecycle.js` |
 | AI VIP Share / Sidebar + Proxy | 安装后可打开代理配置 | 否 | `browser.proxy.managed`、`network`、目标站点与明确代理启用 | `examples/sidebar-tools/ai-vip-share/tool.config.json`；不自动切换代理 |
-| 其他官方工具 / Sidebar | Markdown Workbench、Web Markdown Clipper 按需安装后可打开 | 否 | Clip 需网站来源授权；导出由用户动作触发 | `official-tools/catalog.json` 和各自 `tool.config.json` |
+| 其他官方工具 / Sidebar | Markdown Workbench、Web Markdown Clipper 按需安装后可打开；剪藏直接提取 | 剪藏仍由点击触发 | 安装批准的基础能力、Chrome 网站访问及站点停用例外；导出由用户动作触发 | `official-tools/catalog.json` 和各自 `tool.config.json` |
 | Page Program / Task / Workflow | 已保存、已安装或已批准才具有运行资格 | 仅固定 Page Program 在匹配范围自动运行 | Task/Workflow 的 Run 或既有定时触发；不可由安装自动执行 | `src/scripting/user-scripts/page-install-authorization.js`、`src/ui/installed-page-tools.js` |
 
-**审计处置**：本轮只修复证实的官方 TOC 默认准入漏洞、现有标签页注入缺失、重复脚本实例、Chrome 访问失效与 Side Panel 身份校验。其余工具没有仅凭上述源码审计就可安全删除的通用二次授权；敏感授权和用户主动停用仍保留，待各自原生端到端验证后再按实际证据做最小修改。
+**历史 R1.1 处置**：当时只修复证实的官方 TOC 默认准入漏洞、现有标签页注入缺失、重复脚本实例、Chrome 访问失效与 Side Panel 身份校验。2026-10-21 的基础能力一次审阅规则补充了剪藏、知识保存和声明式菜单的默认准入；敏感授权和用户主动停用仍保留。以上源码结论不代表各工具已有当前候选的原生验收。
 
 ### 1. 浏览器层声明（唯一入口：根目录 `manifest.json`）
 
@@ -80,10 +90,10 @@ Sidebar 当前有「我的／发现／工作流／开发／工具」五个主页
 ## 工具站点设置的统一交互规则（2026-10-11）
 
 - **一次用户动作只确认一次**：可信宿主的“可用／不可用”“授权此网站／撤销此网站”开关本身即是用户意愿，不再叠加 `window.confirm` 或 `globalThis.confirm`。覆盖阅读目录、网页剪藏、知识收件箱，也适用于后续沿用该通道的本地工具。页面加载、恢复配置或切换标签页不可自动新增授权。
-- **权限边界绝不省略**：继续按独立 Origin 保存工具应用级授权，复核安装包身份、能力、当前文档、现有 Web Lock、后台执行时的 Chrome 网站访问及撤权状态。不得绕过 `chrome.permissions.request` 所需的原生提示，也不可把应用级开关当作浏览器级新权限。
+- **权限边界绝不省略**：基础能力按安装批准默认可用，以独立 Origin 保存主动停用例外；敏感能力保留独立授权。复核安装包身份、能力、当前文档、现有 Web Lock、后台执行时的 Chrome 网站访问及撤权状态。不得绕过 `chrome.permissions.request` 所需的原生提示，也不可把应用级开关当作浏览器级新权限。
 - **风险操作例外**：卸载并删除本机数据、丢弃未保存编辑、跨来源替换工具、增加敏感能力等仍需明确审阅／必要确认；普通开关、显示与隐藏、撤销历史站点不应反复出现 JavaScript 模态框。
 - **统一控件密度**：并列状态按钮采用 Side Panel 常规按钮规模（约 34px 最小高度、12px 文本、按内容宽度），不能用两块大面积 50% 宽的授权按钮；保持键盘焦点、`aria-pressed`、禁用状态、当前目标来源说明。未知网页目标时只提供准确的行内状态，不误判“用户没打开普通网页”。
-- **定向回归**：每一工具至少包含一次用户点击授权/撤销、无额外 JS 对话、锁与站点隔离；测试 320/360/420px 和 200% 缩放的状态按钮不溢出。Chrome 原生提示、撤权和失败降级需独立真实验收。
+- **定向回归**：覆盖首次直接使用、用户停用/恢复、无额外 JS 对话、锁与站点隔离。宽度和缩放专项只在当前任务明确要求时执行。Chrome 原生提示、撤权和失败降级需独立真实验收。
 
 ## 非弹窗交互统一规范（2026-10-11，R50）
 
@@ -103,4 +113,4 @@ Sidebar 当前有「我的／发现／工作流／开发／工具」五个主页
 - 不可替代边界：Chrome User Scripts 开关、禁用网站、Native Host 缺失、CORS 与 SDK/RunHost 应用授权均应继续被拒绝，不得因清单扩权变成成功。
 - 组件测试不等于真实 Chrome。无法从当前环境启动原生浏览器时记录为 `CHROME_NATIVE_NOT_TESTED`，不能伪造 PASS。
 
-日常开发使用同一路径的 `npm run build:dev && npm run dev:chrome` 和稳定专用开发 Profile；原生正式验收继续使用新建隔离 Profile，绝不采用开发 Profile 的已授权状态充当首装证据。
+日常开发使用 `npm run dev` 持续更新固定的 `dist/development`，复用已有服务并核对客户端连接；不反复静态构建或更换加载目录。原生正式验收继续使用新建隔离 Profile，绝不采用开发 Profile 的已授权状态充当首装证据。

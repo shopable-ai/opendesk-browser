@@ -256,30 +256,30 @@ test('browser.capabilities.list: real Host returns bounded installed-tool status
 test('browser.contextMenu.getStatus: exact grant/action receipt; permission revocation disables and uninstalled owner rejects', async () => {
   const f = await fixture(); await f.grant();
   assert.deepEqual(await f.sdk.contextMenu.getStatus(), {operation: 'browser.contextMenu.getStatus',
-    enabled: true, approvedOrigins: [ORIGIN], activeActions: [ACTION], browserPermission: true});
+    enabled: true, approvedOrigins: [ORIGIN], activeActions: [ACTION], browserPermission: true, disabledOrigins: [], siteEnabled: null});
   f.permissions.delete('contextMenus');
   assert.deepEqual(await f.sdk.contextMenu.getStatus(), {operation: 'browser.contextMenu.getStatus',
-    enabled: false, approvedOrigins: [ORIGIN], activeActions: [ACTION], browserPermission: false});
+    enabled: false, approvedOrigins: [ORIGIN], activeActions: [ACTION], browserPermission: false, disabledOrigins: [], siteEnabled: null});
   f.uninstall(); await assert.rejects(f.sdk.contextMenu.getStatus(), code('E_TOOL_CHANGED'));
 });
 
-test('browser.contextMenu.register: persists declared action and native menu; missing site, Chrome permission and undeclared action reject', async () => {
+test('browser.contextMenu.register: installed declarations suffice; missing Chrome permissions and undeclared action reject', async () => {
   const f = await fixture();
-  await assert.rejects(f.sdk.contextMenu.register({actionIds: [ACTION]}), code('E_SITE_GRANT_REQUIRED'));
+  assert.deepEqual(await f.sdk.contextMenu.register({actionIds: [ACTION]}), {registered: true, actionIds: [ACTION]});
   await f.grant(); await f.sdk.contextMenu.unregister();
   assert.deepEqual(await f.sdk.contextMenu.register({actionIds: [ACTION]}), {registered: true, actionIds: [ACTION]});
-  assert.deepEqual(f.local.get(BROWSER_MENU_GRANTS_STORE)[f.pkg.id].activeActions, [ACTION]);
+  assert.deepEqual(f.local.get(BROWSER_MENU_GRANTS_STORE)[f.pkg.id].contextMenu.activeActions, [ACTION]);
   assert.equal(f.menus.get(`opendesk.tool.${f.pkg.id}.${ACTION}`).title, 'Capture selection');
   await assert.rejects(f.sdk.contextMenu.register({actionIds: ['not-declared']}), code('E_TOOL_CAPABILITY_REQUIRED'));
   f.permissions.delete('contextMenus');
   await assert.rejects(f.sdk.contextMenu.register({actionIds: [ACTION]}), code('E_CHROME_PERMISSION_REQUIRED'));
-  assert.deepEqual(f.local.get(BROWSER_MENU_GRANTS_STORE)[f.pkg.id].activeActions, [ACTION]);
+  assert.deepEqual(f.local.get(BROWSER_MENU_GRANTS_STORE)[f.pkg.id].contextMenu.activeActions, [ACTION]);
 });
 
 test('browser.contextMenu.unregister: clears actions and pending ticket even without Chrome permission; uninstalled owner rejects', async () => {
   const f = await fixture(); await f.launch(); f.permissions.delete('contextMenus'); f.setSite(false);
   assert.deepEqual(await f.sdk.contextMenu.unregister(), {registered: false, actionIds: []});
-  assert.deepEqual(f.local.get(BROWSER_MENU_GRANTS_STORE)[f.pkg.id].activeActions, []);
+  assert.deepEqual(f.local.get(BROWSER_MENU_GRANTS_STORE)[f.pkg.id].contextMenu.activeActions, []);
   assert.equal(Object.hasOwn(f.session.get(BROWSER_MENU_LAUNCH_STORE), f.pkg.id), false);
   f.permissions.add('contextMenus'); f.setSite(true); await f.host.synchronize();
   assert.equal(f.menus.has(`opendesk.tool.${f.pkg.id}.${ACTION}`), false);
@@ -324,7 +324,8 @@ test('browser.page.getContext: existing Side Panel returns bounded current page 
     'a display snapshot cannot override the trusted captured Chrome document');
   front.target.snapshot = {status: 'unavailable', message: '页面已关闭'};
   assert.deepEqual(await front.sdk.page.getContext(), {status: 'unavailable', message: '页面已关闭'});
-  assert.equal(front.messages.length,2,'available receipts pass through the existing trusted Host');
+  assert.equal(front.messages.filter(row=>row.operation==='browser.page.getContext').length,2,
+    'available receipts pass through the existing trusted Host');
 });
 
 test('browser.page.getContext: real frontend rejects uninstalled package', async t => {
@@ -354,10 +355,12 @@ for (const operation of ['browser.clipboard.writeText', 'browser.downloads.text'
         filename: args.filename, saveAs: true, conflictAction: 'uniquify'}]);
       assert.deepEqual(front.copied, []);
     }
-    assert.deepEqual(front.messages.map(row => [row.kind, row.operation]), [
+    const effectMessages=front.messages.filter(row=>row.kind!=='event.host_report'&&
+      row.operation!=='browser.contextMenu.getStatus');
+    assert.deepEqual(effectMessages.map(row => [row.kind, row.operation]), [
       ['host', 'browser.intent.confirm'], ['tool', operation]
     ]);
-    const execution = front.messages[1];
+    const execution = effectMessages[1];
     assert.match(execution.approvalRef, /^[0-9a-f-]{36}$/i);
     await assert.rejects(f.host.handleTool(execution, f.sender), code('E_USER_GESTURE_REQUIRED'));
     assert.equal(front.copied.length + f.calls.downloads.length, 1, 'no automatic replay of effects');

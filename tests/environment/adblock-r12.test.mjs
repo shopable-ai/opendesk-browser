@@ -11,8 +11,8 @@ import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/
 import {setInstalledSidebarToolEnabled,recordToolUninstall,retryUninstalledToolCleanup,
   TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {FOCUS_RULE_FIRST} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
-import {ADBLOCK_ID,ADBLOCK_STORE,ADBLOCK_PROTOCOL,ADBLOCK_CAPABILITY,
-  ADBLOCK_RULE_FIRST,ADBLOCK_DNR_CLEANUP_STORE,adblockHost} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
+import {ADBLOCK_ID,ADBLOCK_STORE,ADBLOCK_PROTOCOL,ADBLOCK_PAGE_PROTOCOL,ADBLOCK_CAPABILITY,
+  ADBLOCK_RULE_FIRST,ADBLOCK_RULE_LAST,ADBLOCK_DNR_CLEANUP_STORE,adblockHost} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
 import {wantedAdblockRules,clearAdblockRules,reconcileAdblockRules}
   from '../../examples/sidebar-tools/adblock/trusted/rules.js';
 import {createAdblockService,installAdblockService} from '../../examples/sidebar-tools/adblock/trusted/service.js';
@@ -126,6 +126,53 @@ async function fixture({permission:initialPermission=true,sessionFailure=null}={
     setDelay:value=>{nativeDelay=value;},
     setUnknownWrite:value=>{unknownWrite=value;}};
 }
+function pageSender(f){
+  const url='https://www.javbus.com/';
+  f.setCurrent(url);
+  const tab={id:1,windowId:10,url,incognito:false};
+  f.api.tabs.get=async()=>({...tab});
+  f.api.webNavigation={getFrame:async()=>({url,documentId:'page-doc',documentLifecycle:'active'})};
+  return {id:senderId,url,frameId:0,documentId:'page-doc',documentLifecycle:'active',tab};
+}
+test('page cosmetics require the existing enabled authority and respect exact-host exceptions',async()=>{
+  const f=await fixture(),page=pageSender(f),request={protocol:ADBLOCK_PAGE_PROTOCOL};
+  assert.equal((await f.service.pagePolicy(request,page)).enabled,false);
+  await f.service.dispatch(await f.message('adblock.enable'),sender);
+  const actions=f.actions.length;
+  assert.deepEqual(await f.service.pagePolicy(request,page),{version:1,host:'www.javbus.com',enabled:true});
+  assert.equal(f.actions.length,actions,'policy reads do not change an already reconciled matcher');
+  await f.service.dispatch(await f.message('adblock.site.set',{host:'www.javbus.com',filtering:false}),sender);
+  assert.equal((await f.service.pagePolicy(request,page)).enabled,false);
+  await f.service.dispatch(await f.message('adblock.site.restore',{host:'www.javbus.com'}),sender);
+  assert.equal((await f.service.pagePolicy(request,page)).enabled,true);
+  await f.service.dispatch(await f.message('adblock.disable'),sender);
+  assert.equal((await f.service.pagePolicy(request,page)).enabled,false);
+});
+test('page policy refuses untrusted targets, subframes, stale documents and caller-selected CSS',async()=>{
+  const f=await fixture(),page=pageSender(f),request={protocol:ADBLOCK_PAGE_PROTOCOL};
+  for(const bad of [{...page,id:'forged'},{...page,frameId:1},{...page,documentId:'old'},
+    {...page,tab:{...page.tab,incognito:true}},{...page,documentLifecycle:'cached'},
+    {...page,url:'https://www.javbus.com.evil.test/'},{...page,url:'chrome-extension://'+senderId+'/sidepanel.html'}])
+    await assert.rejects(f.service.pagePolicy(request,bad),{code:'E_ADBLOCK_SENDER'});
+  await assert.rejects(f.service.pagePolicy({...request,css:'body{display:none}'},page),{code:'E_ADBLOCK_REQUEST'});
+  await assert.rejects(f.service.pagePolicy({...request,operation:'adblock.enable'},page),{code:'E_ADBLOCK_REQUEST'});
+  assert.equal(f.actions.length,0);
+});
+test('page policy never returns active CSS after navigation, origin revocation or package tampering',async()=>{
+  const f=await fixture(),page=pageSender(f),request={protocol:ADBLOCK_PAGE_PROTOCOL};
+  await f.service.dispatch(await f.message('adblock.enable'),sender);
+  let reads=0;
+  f.api.webNavigation.getFrame=async()=>({url:page.url,documentId:++reads===1?'page-doc':'new-doc'});
+  await assert.rejects(f.service.pagePolicy(request,page),{code:'E_ADBLOCK_SENDER'});
+  pageSender(f);
+  const original=f.api.permissions.contains;
+  f.api.permissions.contains=async value=>value.origins?false:original(value);
+  await assert.rejects(f.service.pagePolicy(request,page),{code:'E_ADBLOCK_SENDER'});
+  f.api.permissions.contains=original;
+  f.stored.set(SIDEBAR_TOOL_STORE,[{...f.tool,js:f.tool.js+'\n// same-id modified package'}]);
+  assert.equal((await f.service.pagePolicy(request,page)).enabled,false);
+  assert.deepEqual(f.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST]);
+});
 test('installation probe accepts Chrome hiding ungranted optional DNR but rejects a broken granted runtime',async()=>{
   const f=await fixture({permission:false});
   delete f.api.declarativeNetRequest;
@@ -252,9 +299,9 @@ test('build-ready official project, current version, one declared restricted cap
   assert.deepEqual(pkg.capabilities,[ADBLOCK_CAPABILITY]);
   assert.ok(pkg.js.includes("adblock.site.restore"));
 });
-test('67-domain offline snapshot compiles to one third-party-only DNR block',()=>{
+test('offline snapshot keeps the domain block third-party-only alongside scoped site rules',()=>{
   const rules=wantedAdblockRules({enabled:true,exceptions:[]});
-  assert.equal(rules.length,1);
+  assert.equal(rules.length,2);
   assert.equal(rules[0].id,ADBLOCK_RULE_FIRST);
   assert.equal(rules[0].priority,1);
   assert.equal(rules[0].action.type,'block');
@@ -265,8 +312,8 @@ test('67-domain offline snapshot compiles to one third-party-only DNR block',()=
 test('independent offline rule provenance SHA-256 and version match the bytes',async()=>{
   const bytes=await readFile(resolve(PROJECT,'rules/domains.js'));
   const meta=JSON.parse(await readFile(resolve(PROJECT,'rules/manifest.json'),'utf8'));
-  assert.equal(meta.rules.totalUnique,67);
-  assert.equal(meta.version,'2026-10-15.1');
+  assert.equal(meta.rules.totalUnique,68);
+  assert.equal(meta.version,'2026-10-21.1');
   assert.equal(createHash('sha256').update(bytes).digest('hex'),meta.sha256);
   assert.equal(meta.origin.includes('first-party'),true);
 });
@@ -280,6 +327,9 @@ test('hostname normalization refuses path/host confusion and exact example.com.e
   const rule=wantedAdblockRules({enabled:true,exceptions:['example.com']})[1];
   const pattern=new RegExp(rule.condition.regexFilter);
   assert.equal(pattern.test('https://example.com/news'),true);
+  assert.equal(pattern.test('https://example.com./news'),true,'same normalized hostname');
+  assert.equal(pattern.test('https://example.com.:8443/news'),true);
+  assert.equal(pattern.test('https://example.com..'),false);
   assert.equal(pattern.test('https://example.com.evil.test/news'),false);
   assert.equal(pattern.test('https://news.example.com'),false,'exact hostname, not child domain');
   assert.equal(rule.action.type,'allowAllRequests');
@@ -508,7 +558,7 @@ test('Chrome DNR enable/readback, pause, resume and owned-only cleanup',async()=
   const f=await fixture();
   const first=await f.service.dispatch(await f.message('adblock.enable'),sender);
   assert.equal(first.rules.verified,true);assert.equal(first.enabled,true);
-  assert.deepEqual(f.rules.map(x=>x.id),[FOCUS_RULE_FIRST,ADBLOCK_RULE_FIRST]);
+  assert.deepEqual(f.rules.map(x=>x.id),[FOCUS_RULE_FIRST,ADBLOCK_RULE_FIRST,ADBLOCK_RULE_LAST]);
   const paused=await f.service.dispatch(await f.message('adblock.disable'),sender);
   assert.equal(paused.rules.verified,true);assert.equal(paused.enabled,false);
   assert.deepEqual(f.rules.map(x=>x.id),[FOCUS_RULE_FIRST]);
@@ -533,7 +583,7 @@ test('site exceptions preserve other sites and site frames without elevating Sta
   const restored=await f.service.dispatch(await f.message('adblock.site.restore',{
     host:'news.example.com'}),sender);
   assert.deepEqual(restored.exceptions,[]);
-  assert.deepEqual(f.rules.map(x=>x.id),[FOCUS_RULE_FIRST,ADBLOCK_RULE_FIRST]);
+  assert.deepEqual(f.rules.map(x=>x.id),[FOCUS_RULE_FIRST,ADBLOCK_RULE_FIRST,ADBLOCK_RULE_LAST]);
 });
 test('other low-priority dynamic redirect forces fail-closed AdBlock exceptions',async()=>{
   const f=await fixture();await f.service.dispatch(await f.message('adblock.enable'),sender);
@@ -865,7 +915,7 @@ test('React sandbox proposes operations but cannot mutate DNR without host confi
   const result=await requestAdblockOperation({...input,
     requestBrowserClick:args=>args.run({isTrusted:true})});
   assert.equal(result.enabled,true);assert.equal(result.rules.verified,true);
-  assert.deepEqual(f.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST,ADBLOCK_RULE_FIRST]);
+  assert.deepEqual(f.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST,ADBLOCK_RULE_FIRST,ADBLOCK_RULE_LAST]);
   await assert.rejects(runTrustedAdblockOperation({...input,
     operation:'adblock.site.set',payload:{host:'news.example.com',filtering:false},
     event:{isTrusted:false}}),{code:'E_ADBLOCK_TRUSTED_CLICK'});

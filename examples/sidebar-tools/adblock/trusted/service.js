@@ -6,11 +6,12 @@ import {requireCompleteInstalledSidebarTools} from '../../../../src/ui/sidebar-t
 import {writeVerifiedLocalValue,sameStorageValue} from '../../../../src/ui/sidebar-tools/storage-state.js';
 import {isSidebarToolHostSender} from '../../../../src/sidebar-tools/sender.js';
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PROTOCOL,ADBLOCK_SERVICE_VERSION,
-  ADBLOCK_STORE,ADBLOCK_PERMISSION,ADBLOCK_MAX_EXCEPTIONS,ADBLOCK_OPERATIONS,
+  ADBLOCK_STORE,ADBLOCK_PERMISSION,ADBLOCK_MAX_EXCEPTIONS,ADBLOCK_OPERATIONS,ADBLOCK_PAGE_PROTOCOL,
   adblockError,adblockHost,readAdblockState} from './policy.js';
 import {wantedAdblockRules,reconcileAdblockRules,clearAdblockRules} from './rules.js';
 import {adblockDnrSessionReady,adblockDnrCleanupPending,confirmAdblockDnrCleanup} from './dnr-session.js';
 import {ADBLOCK_RULE_VERSION,ADBLOCK_REQUEST_DOMAINS} from '../rules/domains.js';
+import {ADBLOCK_COSMETIC_HOSTS} from './cosmetic.js';
 
 const PROBE='adblock.probe';
 const own=(value,names)=>Boolean(value)&&typeof value==='object'&&!Array.isArray(value)&&
@@ -278,6 +279,40 @@ export function createAdblockService({
       operation==='adblock.site.restore'};
   }
   const tick=options=>lock(()=>reconcileLocked(options));
+  async function pageDocument(sender){
+    const host=adblockHost(sender?.url,{asUrl:true});
+    if(sender?.id!==api.runtime.id||sender.frameId!==0||!sender.documentId||
+       !Number.isSafeInteger(sender.tab?.id)||sender.tab.id<0||sender.tab.incognito||
+       sender.documentLifecycle&&sender.documentLifecycle!=='active'||
+       !ADBLOCK_COSMETIC_HOSTS.includes(host))
+      fail('E_ADBLOCK_SENDER','仅受支持网站的当前顶层文档可读取隐藏策略');
+    const [tab,frame,allowed]=await Promise.all([
+      api.tabs.get(sender.tab.id),
+      api.webNavigation.getFrame({tabId:sender.tab.id,frameId:0}),
+      api.permissions.contains({origins:[new URL(sender.url).origin+'/*']})
+    ]);
+    if(tab?.id!==sender.tab.id||tab.incognito||tab.pendingUrl||
+       adblockHost(tab.url,{asUrl:true})!==host||!allowed||
+       frame?.documentId!==sender.documentId||frame.errorOccurred||
+       frame.documentLifecycle&&frame.documentLifecycle!=='active'||
+       adblockHost(frame.url,{asUrl:true})!==host)
+      fail('E_ADBLOCK_SENDER','网站文档或访问权限已改变');
+    return host;
+  }
+  async function pagePolicy(message,sender){
+    if(!own(message,['protocol'])||message.protocol!==ADBLOCK_PAGE_PROTOCOL)
+      fail('E_ADBLOCK_REQUEST','网页只能读取固定隐藏策略');
+    return lock(async()=>{
+      const epoch=generation,host=await pageDocument(sender);
+      // Reuse the existing package/epoch/permission/DNR authority. The page
+      // cannot select an operation, target, stylesheet or installation identity.
+      const state=await reconcileLocked();
+      if(await pageDocument(sender)!==host||generation!==epoch)
+        fail('E_TOOL_CHANGED','读取期间文档或广告拦截授权已改变');
+      return {version:1,host,enabled:state.enabled===true&&state.rules.verified===true&&
+        !state.exceptions.includes(host)};
+    });
+  }
   async function probe(message,sender){
     if(!own(message,['protocol','toolId','operation','payload','packageHash'])||
        message.protocol!==ADBLOCK_PROTOCOL||message.toolId!==ADBLOCK_ID||
@@ -352,15 +387,23 @@ export function createAdblockService({
       }
     });
   }
-  return {tick,dispatch,probe,invalidate};
+  return {tick,dispatch,probe,pagePolicy,invalidate};
 }
 export function installAdblockService({api=globalThis.chrome,...options}={}){
   const service=createAdblockService({api,...options}),removers=[];
   const listen=(event,fn)=>{event?.addListener(fn);removers.push(()=>event?.removeListener(fn));};
   const recover=()=>{void service.tick().catch(e=>console.warn('E_ADBLOCK_RECONCILE',e?.code||'E_ADBLOCK'));};
+  const notifyPages=()=>{
+    void (async()=>{
+      const tabs=await api.tabs.query({url:ADBLOCK_COSMETIC_HOSTS.map(host=>'*://'+host+'/*')});
+      await Promise.allSettled(tabs.filter(tab=>!tab.incognito).map(tab=>
+        api.tabs.sendMessage(tab.id,{protocol:ADBLOCK_PAGE_PROTOCOL,type:'invalidate'},{frameId:0})));
+    })().catch(()=>{});
+  };
   listen(api.runtime.onMessage,(message,sender,reply)=>{
-    if(message?.protocol!==ADBLOCK_PROTOCOL)return false;
-    const work=message.operation===PROBE?service.probe(message,sender):service.dispatch(message,sender);
+    if(![ADBLOCK_PROTOCOL,ADBLOCK_PAGE_PROTOCOL].includes(message?.protocol))return false;
+    const work=message.protocol===ADBLOCK_PAGE_PROTOCOL?service.pagePolicy(message,sender):
+      message.operation===PROBE?service.probe(message,sender):service.dispatch(message,sender);
     void work.then(data=>reply({ok:true,data}),
       e=>reply({ok:false,error:{code:e.code||'E_ADBLOCK',
         message:String(e.message||e).slice(0,240)}}));
@@ -370,11 +413,11 @@ export function installAdblockService({api=globalThis.chrome,...options}={}){
   listen(api.runtime.onInstalled,recover);
   listen(api.permissions.onRemoved,removed=>{
     if(removed?.permissions?.includes(ADBLOCK_PERMISSION)||removed?.origins?.length){
-      service.invalidate(true);recover();
+      service.invalidate(true);notifyPages();recover();
     }
   });
   // A re-grant never automatically re-enables a revoked or paused tool.
-  listen(api.permissions.onAdded,()=>{service.invalidate();recover();});
+  listen(api.permissions.onAdded,()=>{service.invalidate();notifyPages();recover();});
   listen(api.storage.onChanged,(changes,area)=>{
     if(area==='local'&&[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,
       TOOL_REVOCATION_EPOCHS_STORE,ADBLOCK_STORE].some(key=>Object.hasOwn(changes,key))){

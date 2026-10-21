@@ -26,11 +26,12 @@ import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPa
   recordToolUninstall,cleanupUninstalledToolLocked,retryUninstalledToolCleanup,getPendingToolCleanups,TOOL_REVOCATION_EPOCHS_STORE,
   requireCompleteInstalledSidebarTools,setInstalledSidebarToolEnabled,MARKET_PROVENANCE_STORE} from './sidebar-tools/installation.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPABILITY,
-  websiteOrigin,grantedOrigins,tocSiteAllowed,tocGrantAllowed,verifyOfficialReadingToc,blockedTocOrigins,changeTocSiteAllowed,READING_TOC_PLACEMENT_PREFIX,
+  websiteOrigin,tocSiteAllowed,tocGrantAllowed,verifyOfficialReadingToc,blockedTocOrigins,changeTocSiteAllowed,READING_TOC_PLACEMENT_PREFIX,
   READING_TOC_VISIBILITY_STORE,readingTocPageScope,readingTocDisplayState,
   changeReadingTocVisibility,READING_TOC_PAGE_RULES_STORE,readingTocPageAllowed,
   disabledTocPages,changeTocPageAllowed} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
 import {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClipGrant} from '../../examples/sidebar-tools/web-markdown-clipper/trusted/policy.js';
+import {installedSiteAllowed,blockedInstalledOrigins} from './sidebar-tools/site-grants.js';
 import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABILITY,KNOWLEDGE_PROTOCOL,
   KNOWLEDGE_OPERATIONS,KNOWLEDGE_WORKSPACE_PREFIX,changeCaptureGrant,chatCaptureOrigin,knowledgePackageHash} from '../knowledge/policy.js';
 import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from '../../examples/sidebar-tools/time-review/trusted/policy.js';
@@ -165,6 +166,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const readOnlyBanner=view.fields["sidebar-tool-readonly-banner"];
   let officialReleases=[],officialError='',officialLoaded=false;
   let siteGrants={},menuGrants={},siteEpoch=0,tocVisibility={},tocVisibilityEpoch=0;
+  let menuStatusKey='',menuStatus=null,menuStatusPending=false,menuStatusRequest=0;
   let tocPageRules={},tocPageRulesEpoch=0,tocSettingsOpen=false,tocScope='site',lastTocSettingsRows='';
   const siteTogglePending=new Set();
   let captureGrants={},enableRecords,enableReadEpoch=0,enableReadError=true;
@@ -177,6 +179,25 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let frameExportPort=null;
   let revocationEpochs={},frameRevocationEpoch=null,revocationReadEpoch=0;
   let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
+  function refreshMenuStatus(tool,origin){
+    const key=JSON.stringify([tool.id,tool.version,revocationEpochs[tool.id]??null,origin,
+      menuGrants[tool.id]??null,sidebarToolEnabled(enableRecords,tool.id)]);
+    if(key===menuStatusKey)return;
+    const request=++menuStatusRequest;
+    menuStatusKey=key;menuStatus=null;menuStatusPending=true;
+    void (async()=>{
+      try{
+        const reply=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
+          operation:'browser.contextMenu.getStatus',toolId:tool.id,toolVersion:tool.version,
+          installEpoch:revocationEpochs[tool.id]??null,origin,
+          hostInstanceId:new URL(globalThis.location.href).searchParams.get('hostInstanceId')});
+        if(!reply?.ok||typeof reply.data?.siteEnabled!=='boolean'||
+           typeof reply.data?.browserPermission!=='boolean')throw new Error('右键菜单状态暂时不可用');
+        if(!disposed&&request===menuStatusRequest&&key===menuStatusKey)menuStatus=reply.data;
+      }catch{/* A failed status read cannot invent a new permission decision. */}
+      finally{if(!disposed&&request===menuStatusRequest&&key===menuStatusKey){menuStatusPending=false;render();}}
+    })();
+  }
   // Host-only, fire-and-forget. A telemetry failure never rejects a business effect.
   const reportAnalytics=(kind,event,toolId,channel)=>{
     if(disposed||readOnlyPreview)return;
@@ -213,9 +234,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     'currentPage.read':'读取当前网页标题和地址',
     'tasks.open':'打开已安装任务',
     'page.toc':'读取已授权网站的目录、定位章节和显示网页目录',
-    'page.clip':'按点击读取单独授权网站的正文或选区',
+    'page.clip':'按点击读取当前网页的正文或选区，安装后直接可用',
     'user.export':'复制文本或请求文件下载',
-    'page.capture':'在单独授权的 ChatGPT 网站显示保存按钮，按点击保存回答、选区或下载图片',
+    'page.capture':'安装后在支持的 ChatGPT 网站显示保存按钮，按点击保存回答、选区或下载图片',
     'knowledge.store':'管理此工具的本机知识收件箱（200 条 / 4 MiB）',
     'time.review':'明确开始后在后台记录聚焦、非空闲网站的域名与时长（仅本机）',
     'focus.control':'按单独批准的网站执行每日额度、时段与专注限制，Chrome DNR 拦截（仅本机）',
@@ -224,7 +245,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     'browser.proxy.managed':'经可信确认管理浏览器级独占代理；仅提交有限域名及 HTTPS/SOCKS5 端点',
     'browser.runtime':'读取操作系统和处理器架构，用于工具兼容性判断',
     'browser.i18n':'读取浏览器语言偏好并识别工具提供的文本语言',
-    'browser.contextMenu':'在明确授权的网站显示 Chrome 右键菜单（最多三项）',
+    'browser.contextMenu':'安装后在声明的网站显示 Chrome 右键菜单（最多三项，需 Chrome 允许）',
     'page.prompts':'在 ChatGPT 主内容区域显示提示词快捷按钮（安装启用后直接可用，仅插入草稿）',
     'browser.scheduler':'经确认定时执行已安装的固定任务版本，只管理本工具的计划',
     'browser.tabs':'经用户单次批准打开或聚焦自己获准的标签页',
@@ -845,7 +866,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const origin=capability===CAPTURE_CAPABILITY?chatCaptureOrigin(url):websiteOrigin(url);
     const grants=capability===CAPTURE_CAPABILITY?captureGrants:capability===CLIP_CAPABILITY?clipGrants:siteGrants;
     const grant=Boolean(capability&&origin&&(capability===TOC_CAPABILITY?
-      tocSiteAllowed(grants,id,url):grantedOrigins(grants,id).includes(origin)));
+      tocSiteAllowed(grants,id,url):installedSiteAllowed(grants,id,url)));
     const appearance=readingTocDisplayState(tocVisibility,id,url);
     const pageAllowed=readingTocPageAllowed(tocPageRules,id,url);
     if(eyeButton){
@@ -864,37 +885,37 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const field=view.fields[id];if(field)patchToolField(view,field,{hidden:!capabilityOnly});
     }
     patchToolField(view, settingsHint, {hidden: !capabilityOnly});
-    patchToolField(view, settingsScopeLabel, {textContent: isToc?tocText('siteAvailability'):'当前网站授权'});
+    patchToolField(view, settingsScopeLabel, {textContent: isToc?tocText('siteAvailability'):'当前网站可用性'});
     patchToolField(view, settingsTarget, {textContent: capability?(origin||(isToc?tocText('selectPage'):'请选择适用网页')):'此工具不需要网站授权'});
     patchToolField(view, settingsScopeButton, {hidden: true});
     for(const [button,chosen] of [[settingsAllow,grant],[settingsDeny,!grant]]){
       patchToolField(view,button,{textContent:isToc?tocText(button===settingsAllow?'siteEnable':'siteDisable'):
-        button===settingsAllow?'授权当前网站':'撤销当前网站授权',hidden:!capability,disabled:busy||sitePending||!origin});
+        button===settingsAllow?'恢复当前网站':'停用当前网站',hidden:!capability,disabled:busy||sitePending||!origin});
       setToolFieldAttribute(view,button,'aria-pressed',String(Boolean(origin)&&chosen));
     }
     patchToolField(view, settingsHint, {textContent: promptSettings?'默认在 chatgpt.com 使用网页快捷按钮，无需二次网站授权；点击只填写草稿，不会自动发送。':isToc?tocText('tocIntro')+
       tocText(!origin?'unsupportedPage':grant?'siteAvailable':'siteDisabled'):
       !capability?'工具能力以安装时的审阅为准。':!origin?'请切换到适用网页，设置仍可管理。':
-      grant?'当前网站已授权；授权与工具启停、外观显隐互相独立。':
-        '点击授权后直接生效：'+readableCapability(capability)+'。仅适用于上方网站，可随时撤销。'});
+      grant?'安装时已批准基础能力，当前网站可直接使用。可在这里主动停用。':
+        '当前网站已停用，点击恢复即可使用。Chrome 网站访问仍须保持允许。'});
     if(visibilitySection)patchToolField(view, visibilitySection, {hidden: !isToc});
     if(pageExceptionSection)patchToolField(view, pageExceptionSection, {hidden: !isToc});
     for(const [button,hidden] of [[settingsSiteVisibility,appearance.hiddenOnSite],[settingsPageVisibility,appearance.hiddenOnPage]]){
       patchToolField(view,button,{hidden:!isToc,textContent:isToc?tocText(hidden?'restoreVisibility':'hide'):hidden?'恢复显示':'隐藏',disabled:busy||sitePending||!enabled||!grant||!origin});
       setToolFieldAttribute(view,button,'aria-pressed',String(!hidden));
     }
-    const origins=isToc?blockedTocOrigins(grants):capability?grantedOrigins(grants,id):[],denied=isToc?disabledTocPages(tocPageRules,id):[];
-    if(settingsSitesTitle)patchToolField(view, settingsSitesTitle, {textContent: isToc?tocText('disabledSites'):'已授权的网站'});
+    const origins=isToc?blockedTocOrigins(grants):capability?blockedInstalledOrigins(grants,id):[],denied=isToc?disabledTocPages(tocPageRules,id):[];
+    if(settingsSitesTitle)patchToolField(view, settingsSitesTitle, {textContent: isToc?tocText('disabledSites'):'已停用的网站'});
     const identity=JSON.stringify([id,origins,denied,busy,sitePending,isToc?tocLocale:null]);
     if(identity===lastTocSettingsRows)return;lastTocSettingsRows=identity;
     const section=(container,items,handler,emptyLabel)=>{
-      const label=container===settingsSites&&!isToc?'撤销':tocText('restore');
+      const label=container===settingsSites&&!isToc?'恢复':tocText('restore');
       view.setRows(container.key,items.map(entry=>({id:entry,text:entry,label,disabled:busy||sitePending})),emptyLabel,
         entry=>action(()=>runSiteToggle(id,()=>handler(entry)))());
     };
     section(settingsPages,denied,url=>setTocPageAvailability(true,url),isToc?tocText('noPages'):'没有排除的页面');
-    section(settingsSites,origins,url=>capability===CAPTURE_CAPABILITY?changeCaptureSite(id,url,false):
-      capability===CLIP_CAPABILITY?revokeClipOrigin(id,url):revokeTocOrigin(id,url,isToc),isToc?tocText('noSites'):'尚未授权任何网站');
+    section(settingsSites,origins,url=>capability===CAPTURE_CAPABILITY?changeCaptureSite(id,url,true):
+      capability===CLIP_CAPABILITY?restoreClipOrigin(id,url):revokeTocOrigin(id,url,isToc),isToc?tocText('noSites'):'没有停用的网站，安装后默认可用');
   }
   function render() {
     if(disposed)return;
@@ -926,14 +947,17 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const hasActions=!readOnlyPreview&&active?.capabilities.includes('browser.contextMenu')&&
         Array.isArray(actions)&&actions.length>0;
       const origin=websiteOrigin(currentPageTarget?.snapshot?.url);
-      const enabled=Boolean(active&&origin&&menuGrants[active.id]?.version===active.version&&
-        menuGrants[active.id]?.origins?.includes(origin)&&menuGrants[active.id]?.activeActions?.length);
+      const toolEnabled=!enableReadError&&sidebarToolEnabled(enableRecords,active?.id);
+      if(hasActions&&origin&&toolEnabled)refreshMenuStatus(active,origin);
+      else{menuStatusKey='';menuStatus=null;menuStatusPending=false;}
+      const enabled=menuStatus?.siteEnabled===true;
       patchToolField(view, menuButton, {hidden: !hasActions||active?.id===PROMPT_ID});
-      patchToolField(view, menuButton, {disabled: busy||!origin||!hasActions||enableReadError||
-        !sidebarToolEnabled(enableRecords,active?.id)});
+      patchToolField(view, menuButton, {disabled: busy||!origin||!hasActions||!toolEnabled||menuStatusPending});
       setToolFieldAttribute(view, menuButton, 'data-enabled', String(enabled));
       setToolFieldAttribute(view, menuButton, 'aria-pressed', String(enabled));
-      patchToolField(view, menuButton, {title: enabled?'停用此网站的右键菜单':'为当前网站启用右键菜单'});
+      patchToolField(view, menuButton, {title: menuStatusPending?'正在读取右键菜单状态':
+        !menuStatus?'重新检查右键菜单状态':enabled?'停用此网站的右键菜单':
+          !menuStatus.browserPermission?'允许 Chrome 右键菜单权限':'恢复此网站的右键菜单'});
       setToolFieldAttribute(view, menuButton, 'aria-label', menuButton.title);
     }
     renderTocSettings();
@@ -1968,8 +1992,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           throw new Error('网页剪藏不可用');
         const target=currentPageTarget.capture();
         const grants=(await api.storage.local.get(CLIP_SITE_STORE))[CLIP_SITE_STORE];
-        if(!target.origin||!grantedOrigins(grants,tool.id).includes(target.origin))
-          throw new Error('请先在工具列表授权当前网站的剪藏权限');
+        if(!target.origin||!installedSiteAllowed(grants,tool.id,target.url))
+          throw new Error('当前网站的剪藏已停用或设置异常，请在工具设置中恢复');
         await currentPageTarget.revalidate(target);
         assertSession(source,token);
         const response=await api.tabs.sendMessage(target.tabId,{
@@ -1984,7 +2008,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           new TextEncoder().encode(JSON.stringify(data)).length>160000)
           throw new Error('剪藏响应过大或格式无效');
         const latest=(await api.storage.local.get(CLIP_SITE_STORE))[CLIP_SITE_STORE];
-        if(!grantedOrigins(latest,tool.id).includes(target.origin))
+        if(!installedSiteAllowed(latest,tool.id,target.url))
           throw new Error('网站剪藏授权已撤销');
         assertSession(source,token);return data;
       }
@@ -2189,7 +2213,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           kind:'cookie-grants-changed',instance,toolId:active.id},'*');
     }
     if(Object.hasOwn(changes||{},CAPTURE_SITE_STORE)){
-      captureGrants=changes[CAPTURE_SITE_STORE]?.newValue||{};render();
+      captureGrants=changes[CAPTURE_SITE_STORE]?.newValue;render();
       // Revoking capture stops future page reads; explicitly saved local assets remain available.
     }
     if(Object.hasOwn(changes||{},READING_TOC_SITE_STORE)){
@@ -2203,13 +2227,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     if(Object.hasOwn(changes||{},CLIP_SITE_STORE)){
       const change=changes[CLIP_SITE_STORE];
-      clipSiteEpoch++;clipGrants=change?.newValue||{};
+      clipSiteEpoch++;clipGrants=change?.newValue;
       // A revoked body-read grant also discards already visible content
       // in the active clipper iframe; never leave cached body text on screen.
       if(active?.capabilities.includes(CLIP_CAPABILITY)&&!readOnlyPreview){
-        const oldOrigins=grantedOrigins(change?.oldValue||{},active.id);
-        const newOrigins=grantedOrigins(clipGrants,active.id);
-        if(oldOrigins.some(origin=>!newOrigins.includes(origin))){
+        const oldBlocked=blockedInstalledOrigins(change?.oldValue,active.id);
+        const newBlocked=blockedInstalledOrigins(clipGrants,active.id);
+        if(newBlocked.some(origin=>!oldBlocked.includes(origin))||
+           !installedSiteAllowed(clipGrants,active.id,currentPageTarget?.snapshot?.url)){
           suspendTool();notice('网站剪藏授权已撤销；已关闭含正文的工具界面。',true);
         }
       }
@@ -2339,7 +2364,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const epoch=clipSiteEpoch;
     const stored=await api.storage.local.get(CLIP_SITE_STORE);
     if(disposed||epoch!==clipSiteEpoch)return;
-    clipGrants=stored[CLIP_SITE_STORE]||{};render();
+    clipGrants=stored[CLIP_SITE_STORE];render();
   }
   // Clicking the precise-origin permission/visibility control is the user's
   // explicit choice. Serialize a tool's in-flight UI actions instead of asking
@@ -2358,7 +2383,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const current=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
       if(!current.some(row=>samePackage(row,tool)))throw new Error('知识保存工具已更新');
       if(target)await currentPageTarget.revalidate(target);
-      const raw=(await api.storage.local.get(CAPTURE_SITE_STORE))[CAPTURE_SITE_STORE],saved=raw||{};
+      const raw=(await api.storage.local.get(CAPTURE_SITE_STORE))[CAPTURE_SITE_STORE],saved=raw;
       const next=changeCaptureGrant(saved,id,origin,enabled);
       await writeVerifiedLocalValue(api,CAPTURE_SITE_STORE,next,raw,'知识保存网站授权');captureGrants=next;
     }));
@@ -2368,7 +2393,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(disposed||busy||!currentPageTarget?.capture||!currentPageTarget?.revalidate)return;
     const target=currentPageTarget.capture(),origin=chatCaptureOrigin(target.url);
     if(!origin)throw new Error('请先打开 ChatGPT 对话页面');
-    const enabled=grantedOrigins(captureGrants,id).includes(origin);
+    const enabled=installedSiteAllowed(captureGrants,id,target.url);
     // The labeled site control already expresses the user's permission choice.
     // Chrome host permissions and operation-time checks remain separate.
     await changeCaptureSite(id,origin,!enabled,target);
@@ -2380,32 +2405,32 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       throw new Error('剪藏工具或网页不可用');
     const target=currentPageTarget.capture(),origin=websiteOrigin(target.url);
     if(!origin)throw new Error('当前网站不支持剪藏授权');
-    const enabled=grantedOrigins(clipGrants,id).includes(origin);
+    const enabled=installedSiteAllowed(clipGrants,id,target.url);
     // The user-initiated site toggle is the application-level permission decision.
     // Keep browser permissions, origin identity and document revalidation intact.
     await locked('tool:'+id,()=>locked('catalog',async()=>{
       const current=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
       if(!current.some(row=>samePackage(row,tool)))throw new Error('剪藏工具已变化');
       await currentPageTarget.revalidate(target);
-      const raw=(await api.storage.local.get(CLIP_SITE_STORE))[CLIP_SITE_STORE],saved=raw||{};
-      if(grantedOrigins(saved,id).includes(origin)!==enabled)throw new Error('剪藏授权已在其他窗口改变');
+      const raw=(await api.storage.local.get(CLIP_SITE_STORE))[CLIP_SITE_STORE],saved=raw;
+      if(installedSiteAllowed(saved,id,target.url)!==enabled)throw new Error('剪藏网站设置已在其他窗口改变');
       const next=changeClipGrant(saved,id,target.url,!enabled);
       await writeVerifiedLocalValue(api,CLIP_SITE_STORE,next,raw,'剪藏网站授权');clipGrants=next;
     }));
-    render();notice(enabled?'已撤销网站剪藏授权':'已授权当前网站剪藏');
+    render();notice(enabled?'已停用当前网站剪藏':'已恢复当前网站剪藏');
   }
-  async function revokeClipOrigin(id,origin){
+  async function restoreClipOrigin(id,origin){
     if(disposed||busy)return;
     const tool=toolById(id);
     if(!tool?.capabilities.includes(CLIP_CAPABILITY))throw new Error('剪藏工具已变化');
     await locked('tool:'+id,()=>locked('catalog',async()=>{
       const current=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
       if(!current.some(row=>samePackage(row,tool)))throw new Error('剪藏工具已变化');
-      const raw=(await api.storage.local.get(CLIP_SITE_STORE))[CLIP_SITE_STORE],saved=raw||{};
-      const next=changeClipGrant(saved,id,origin,false);
+      const raw=(await api.storage.local.get(CLIP_SITE_STORE))[CLIP_SITE_STORE],saved=raw;
+      const next=changeClipGrant(saved,id,origin,true);
       await writeVerifiedLocalValue(api,CLIP_SITE_STORE,next,raw,'剪藏网站授权');clipGrants=next;
     }));
-    render();notice('已撤销 '+origin+' 的剪藏授权');
+    render();notice('已恢复 '+origin+' 的剪藏');
   }
   async function toggleTocDisplay(id,scope){
     if(disposed||busy)return;
@@ -2919,27 +2944,29 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(!document?.tabId||!document?.documentId||!websiteOrigin(document.url))
       throw new Error('请先打开普通 HTTP(S) 网页再启用右键菜单');
     const origin=websiteOrigin(document.url);
+    if(!menuStatus){menuStatusKey='';refreshMenuStatus(tool,origin);render();return;}
     if(!tool.contributes?.contextMenus?.some(action=>action.documentUrlPatterns?.some(pattern=>{
       try{const b=new URL(document.url);
         if(pattern===b.protocol+'//*/*')return true;
         const a=new URL(pattern);
         return a.protocol===b.protocol&&a.hostname===b.hostname;}catch{return false;}
     })))throw new Error('此工具没有声明当前网站的右键菜单');
-    const enabled=!(menuGrants[tool.id]?.version===tool.version&&
-      menuGrants[tool.id]?.origins?.includes(origin));
+    const enabled=!menuStatus.siteEnabled;
     // Permission request starts directly from this trusted user click. Do not
     // put an await, a sandbox message or a settings read before this call.
-    const permission=enabled?api.permissions.request({permissions:['contextMenus']}):Promise.resolve(true);
+    const permission=enabled&&!menuStatus.browserPermission?
+      api.permissions.request({permissions:['contextMenus']}):Promise.resolve(true);
     if(!await permission)throw Object.assign(new Error('没有批准 Chrome 右键菜单权限'),{code:'E_CHROME_PERMISSION_REQUIRED'});
     await currentPageTarget.revalidate(document);
     const response=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
       operation:'browser.contextMenu.userToggle',hostInstanceId:new URL(globalThis.location.href).searchParams.get('hostInstanceId'),
-      toolId:tool.id,enabled,origin,document:{
+      toolId:tool.id,toolVersion:tool.version,installEpoch:revocationEpochs[tool.id]??null,enabled,origin,document:{
         tabId:document.tabId,documentId:document.documentId,url:document.url}});
     if(!response?.ok)throw Object.assign(new Error(response?.error?.message||'右键菜单状态未确认'),{
       code:response?.error?.code||'E_BROWSER'});
     const updated=await api.storage.local.get(BROWSER_MENU_GRANTS_STORE);
     menuGrants=updated[BROWSER_MENU_GRANTS_STORE]||{};
+    menuStatusKey='';
     render();notice(enabled?'已为当前网站启用右键菜单':'已停用当前网站右键菜单');
   };
   if(promptNativeAction)listen(promptNativeAction,'click',event=>{
@@ -3074,7 +3101,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const grants=capability===CAPTURE_CAPABILITY?captureGrants:capability===CLIP_CAPABILITY?clipGrants:siteGrants;
     const origin=capability===CAPTURE_CAPABILITY?chatCaptureOrigin(url):websiteOrigin(url);
     if(!origin)throw new Error('请选择适用网页');
-    const permitted=capability===TOC_CAPABILITY?tocSiteAllowed(grants,id,url):grantedOrigins(grants,id).includes(origin);
+    const permitted=capability===TOC_CAPABILITY?tocSiteAllowed(grants,id,url):installedSiteAllowed(grants,id,url);
     if(Boolean(permitted)===allowed)return;
     return capability===CAPTURE_CAPABILITY?toggleCaptureSite(id):capability===CLIP_CAPABILITY?toggleClipSite(id):toggleTocSite(id);
   };
@@ -3166,11 +3193,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const tocPagesReady=loadTocPageRules().catch(error=>notice('页面例外读取失败：'+error.message,true));
   const clipSitesReady=loadClipSites().catch(error=>notice('剪藏授权读取失败：'+error.message,true));
   const captureSitesReady=api.storage.local.get(CAPTURE_SITE_STORE).then(saved=>{
-    if(disposed)return;captureGrants=saved[CAPTURE_SITE_STORE]||{};render();
+    if(disposed)return;captureGrants=saved[CAPTURE_SITE_STORE];render();
   }).catch(error=>notice('知识保存授权读取失败：'+error.message,true));
   const officialReady=loadOfficial();
   const preinstallReady=runDefaultPreinstall();
   const ready=Promise.all([enableReady,installedReady,sitesReady,menuReady,tocVisibilityReady,tocPagesReady,clipSitesReady,captureSitesReady,officialReady,preinstallReady]);
+  const menuPermissionsChanged=()=>{menuStatusKey='';render();};
+  for(const event of [api.permissions?.onAdded,api.permissions?.onRemoved]){
+    event?.addListener?.(menuPermissionsChanged);
+    if(event?.removeListener)listeners.push(()=>event.removeListener(menuPermissionsChanged));
+  }
   if(currentPageTarget?.subscribe){
     // revalidate() intentionally observes the same document before and after a
     // privileged read. Only an actual target transition invalidates tool output;

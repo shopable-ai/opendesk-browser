@@ -20,7 +20,7 @@ import {createTrustedCookieHost} from './browser-cookie-host.js';
 import {loadOfficialCatalog,matchesOfficialRelease} from '../../sidebar-tools/official-catalog.js';
 import {MARKET_PROVENANCE_STORE} from '../../sidebar-tools/official-reading-toc.js';
 import {chromeCall} from './tabs.js';
-import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled} from '../../ui/sidebar-tools/lifecycle.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,requireToolRevocationEpochs,sidebarToolEnabled} from '../../ui/sidebar-tools/lifecycle.js';
 // Trusted Chrome MV3 context-menu driver. No third-party code executes here.
 // Listener registration is synchronous; storage and install checks are async.
 import {SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_FORMAT_V2,validateSidebarToolPackage,sidebarToolPackageHash} from '../../ui/sidebar-tools/package.js';
@@ -86,8 +86,8 @@ export function matchesMenuDocument(action,url){
   const doc=parsedHttp(url);
   if(!doc||!action?.documentUrlPatterns)return false;
   return action.documentUrlPatterns.some(pattern=>{
-    // This declaration is a template; native entries remain restricted to
-    // exact approved Origins under the existing Host/Chrome consent.
+    // Installation reviews these patterns. Clicks still validate the actual
+    // document, Chrome access and any explicit exact-Origin stop.
     if(pattern===doc.protocol+'//*/*')return true;
     const rule=parsedHttp(pattern);
     return Boolean(rule&&rule.protocol===doc.protocol&&rule.hostname===doc.hostname&&rule.pathname==='/*');
@@ -124,18 +124,58 @@ function admittedTool(rows,id){
 async function approvedOrigins(grants,tool){
   const row=grants?.[tool.id];
   return row?.version===tool.version&&row.packageHash===await digestTool(tool)&&Array.isArray(row.origins)&&
-    row.origins.every(origin=>Boolean(parsedHttp(origin))&&new URL(origin).origin===origin)
+    row.origins.every(origin=>['http://*','https://*'].includes(origin)||Boolean(parsedHttp(origin))&&new URL(origin).origin===origin)
       ?row.origins:[];
+}
+// Installed declarations are the basic menu authority. This projection never
+// changes Cookie/Full Bookmarks grants stored alongside the menu preferences.
+async function effectiveMenuState(grants,tool,epochs){
+  const actions=menuActions(tool);
+  if(!actions.length)return {origins:[],activeActions:[],disabledOrigins:[]};
+  const packageHash=await digestTool(tool),installEpoch=epochs[tool.id]??null;
+  const stored=grants[tool.id],row=stored?.contextMenu??stored;
+  const current=row?.version===tool.version&&row.packageHash===packageHash&&row.installEpoch===installEpoch;
+  const declared=actions.map(action=>action.actionId);
+  // Same-install preferences still restrict authority after an interrupted update.
+  const previous=!current&&row?.installEpoch===installEpoch?row:null;
+  const hasPreferences=Boolean((current||previous)&&
+    (Object.hasOwn(row,'activeActions')||Object.hasOwn(row,'origins')));
+  if(hasPreferences&&(!Array.isArray(row.activeActions)||!Array.isArray(row.origins)||
+     (row.defaults!==undefined&&typeof row.defaults!=='boolean')||
+     !row.origins.every(origin=>Boolean(parsedHttp(origin))&&new URL(origin).origin===origin)||
+     (row.disabledOrigins!==undefined&&(!Array.isArray(row.disabledOrigins)||
+       !row.disabledOrigins.every(origin=>Boolean(parsedHttp(origin))&&new URL(origin).origin===origin)))))
+    throw failure('E_STORAGE_CORRUPT','Invalid context menu preferences');
+  // A legacy positive allowlist recorded approvals, not explicit site stops.
+  // Reuse installation approval there too; retain explicit action shutdowns.
+  const defaults=!hasPreferences||row.defaults!==false;
+  const origins=defaults?[...new Set(actions.flatMap(action=>action.documentUrlPatterns.map(pattern=>
+    pattern==='http://*/*'?'http://*':pattern==='https://*/*'?'https://*':new URL(pattern).origin)))]:row.origins;
+  const disabledOrigins=hasPreferences?row.disabledOrigins||[]:[];
+  return {version:tool.version,packageHash,installEpoch,defaults,
+    origins:defaults?origins:origins.filter(origin=>!disabledOrigins.includes(origin)),disabledOrigins,
+    activeActions:hasPreferences?row.activeActions.filter(id=>declared.includes(id)):declared};
+}
+function menuOriginAllowed(record,origin){
+  const site=parsedHttp(origin);
+  return Boolean(site&&site.origin===origin&&!record?.disabledOrigins?.includes(origin)&&
+    record?.origins?.some(approved=>approved===origin||approved===site.protocol+'//*'||
+      record.defaults===true&&parsedHttp(approved)?.protocol===site.protocol&&
+        parsedHttp(approved)?.hostname===site.hostname));
+}
+function storedMenuState(state,changes={}){
+  // Wildcards come only from the installed package, never a stored site grant.
+  return {...state,origins:state.origins.filter(origin=>!['http://*','https://*'].includes(origin)),...changes};
 }
 async function readSources(api){
   const r=await api.storage.local.get([SIDEBAR_TOOL_STORE,BROWSER_MENU_GRANTS_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_ENABLE_STORE]);
   const tools=requireCompleteInstalledSidebarTools(r[SIDEBAR_TOOL_STORE]);
-  const epochs=r[TOOL_REVOCATION_EPOCHS_STORE]||{};
-  const grants={...(r[BROWSER_MENU_GRANTS_STORE]||{})};
-  // Same package bytes cannot inherit site approval after uninstall/revoke.
-  for(const [id,row] of Object.entries(grants))
-    if(row?.installEpoch!==(epochs[id]??null))delete grants[id];
-  return {tools,grants,epochs,enabled:requireToolEnableRecords(r[SIDEBAR_TOOL_ENABLE_STORE])};
+  const epochs=requireToolRevocationEpochs(r[TOOL_REVOCATION_EPOCHS_STORE]);
+  const grants=r[BROWSER_MENU_GRANTS_STORE]??{};
+  if(!grants||typeof grants!=='object'||Array.isArray(grants))throw failure('E_STORAGE_CORRUPT','Invalid browser grants');
+  const menus={};
+  for(const tool of tools)menus[tool.id]=await effectiveMenuState(grants,tool,epochs);
+  return {tools,grants,menus,epochs,enabled:requireToolEnableRecords(r[SIDEBAR_TOOL_ENABLE_STORE])};
 }
 async function permissionGranted(api){
   return Boolean(api.contextMenus&&api.permissions?.contains&&
@@ -149,7 +189,9 @@ async function chromeSitePermitted(api,origin){
 }
 async function permittedOrigins(api,origins,cache=new Map()){
   const results=await Promise.all(origins.map(async origin=>{
-    if(!cache.has(origin))cache.set(origin,chromeSitePermitted(api,origin));
+    if(!cache.has(origin))cache.set(origin,['http://*','https://*'].includes(origin)
+      ?Promise.resolve(api.permissions?.contains?.({origins:[origin+'/*']})).catch(()=>false)
+      :chromeSitePermitted(api,origin));
     return await cache.get(origin)?origin:null;
   }));
   return results.filter(Boolean);
@@ -170,10 +212,12 @@ function launchActionEnabled(row,tool,grants){
     menuActions(tool).some(action=>action.actionId===row?.actionId&&matchesMenuDocument(action,row.url));
 }
 function scopedMenuPatterns(origins,action){
-  return [...new Set(origins.filter(origin=>matchesMenuDocument(action,origin)).map(origin=>{
+  return [...new Set(origins.flatMap(origin=>{
+    if(['http://*','https://*'].includes(origin))return action.documentUrlPatterns.filter(pattern=>pattern.startsWith(origin.split('*')[0]));
+    if(!matchesMenuDocument(action,origin))return [];
     const url=new URL(origin);
     // Chrome match patterns have no port; host authorization still checks exact origin.
-    return url.protocol+'//'+url.hostname+'/*';
+    return [url.protocol+'//'+url.hostname+'/*'];
   }))];
 }
 export function createContextMenuHost({api=globalThis.chrome,logger=console,lockManager=globalThis.navigator?.locks,fetchImpl=globalThis.fetch,scheduleService=null,
@@ -183,7 +227,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   const recentSourceContexts=new Map();
   const pendingSourceContexts=new Map();
   let menuActionsAvailable=false;
-  const activeMenuOrigins=new Set(); // Ephemeral projection of approved menus, never a grant store.
+  const activeMenuStates=[]; // Ephemeral projection of installed menus, never a grant store.
   // Single-use intents are created only by the trusted extension UI after a user click.
   // They do not survive Worker restart and are never supplied by tool script.
   const browserIntents=new Map(),INTENT_TTL=15000;
@@ -451,7 +495,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   }
   function noteSourceContext(message,sender){
     const source=validatedSourceIdentity(message,sender);
-    if(!source||!menuActionsAvailable||!activeMenuOrigins.has(source.origin))return false;
+    if(!source||!menuActionsAvailable||!activeMenuStates.some(state=>menuOriginAllowed(state,source.origin)))return false;
     pendingSourceContexts.delete(source.key);
     recentSourceContexts.set(source.key,{
       tabId:source.tabId,frameId:source.frameId,
@@ -471,13 +515,13 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     if(menuActionsAvailable)return false; // cached approved origin does not match
     const promise=(async()=>{
       if(!await permissionGranted(api))return false;
-      const {tools,grants,enabled}=await readSources(api);
+      const {tools,menus,enabled}=await readSources(api);
       let eligible=false;
       for(const tool of tools){
         if(!sidebarToolEnabled(enabled,tool.id))continue;
-        const active=grants[tool.id]?.activeActions;
+        const active=menus[tool.id]?.activeActions;
         if(!Array.isArray(active)||!active.length)continue;
-        if(!(await approvedOrigins(grants,tool)).includes(source.origin))continue;
+        if(!menuOriginAllowed(menus[tool.id],source.origin))continue;
         if(menuActions(tool).some(action=>active.includes(action.actionId)&&
           matchesMenuDocument(action,source.origin))){eligible=true;break;}
       }
@@ -532,22 +576,22 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,retained);
     if(!await permissionGranted(api)){
       menuActionsAvailable=false;
-      recentSourceContexts.clear();pendingSourceContexts.clear();activeMenuOrigins.clear();
+      recentSourceContexts.clear();pendingSourceContexts.clear();activeMenuStates.length=0;
       return {enabled:false,reason:'E_CHROME_PERMISSION_REQUIRED'};
     }
-    const {tools,grants,enabled}=await readSources(api);
-    const nextMenuOrigins=new Set(),sitePermissionCache=new Map();
+    const {tools,menus,enabled}=await readSources(api);
+    const nextMenuStates=[],sitePermissionCache=new Map();
     const desired=new Map();
     // Synchronous Chrome runtime API: built Standard/Developer branding, not
     // untrusted tool metadata or an async fetch that could lose click gestures.
     const brand=api.runtime?.getManifest?.()||{};
     for(const tool of tools)for(const action of menuActions(tool)){
       if(!sidebarToolEnabled(enabled,tool.id))continue;
-      const origins=await permittedOrigins(api,await approvedOrigins(grants,tool),sitePermissionCache);
+      const origins=await permittedOrigins(api,await approvedOrigins(menus,tool),sitePermissionCache);
       const patterns=scopedMenuPatterns(origins,action);
-      const active=grants[tool.id]?.activeActions;
+      const active=menus[tool.id]?.activeActions;
       if(!patterns.length||!Array.isArray(active)||!active.includes(action.actionId))continue;
-      for(const origin of origins)if(matchesMenuDocument(action,origin))nextMenuOrigins.add(origin);
+      nextMenuStates.push({...menus[tool.id],origins:origins.filter(origin=>scopedMenuPatterns([origin],action).length)});
       const id=menuId(tool.id,action.actionId);
       desired.set(id,{id,title:formatBrowserMenuTitle(action.title,brand),contexts:action.contexts,
         documentUrlPatterns:patterns});
@@ -583,19 +627,31 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     for(const item of desired.values())await apiMenu('create',[item]);
     await confirmedWrite(api.storage.local,BROWSER_MENU_MATERIALIZED_STORE,[...desired.keys()]);
     menuActionsAvailable=desired.size>0;
-    activeMenuOrigins.clear();
-    for(const origin of nextMenuOrigins)activeMenuOrigins.add(origin);
+    activeMenuStates.splice(0,activeMenuStates.length,...nextMenuStates);
     for(const [key,context] of recentSourceContexts)
-      if(!activeMenuOrigins.has(context.origin))recentSourceContexts.delete(key);
+      if(!activeMenuStates.some(state=>menuOriginAllowed(state,context.origin)))recentSourceContexts.delete(key);
     if(!menuActionsAvailable){recentSourceContexts.clear();pendingSourceContexts.clear();}
     return {enabled:true,count:desired.size};
   }
   const sync=()=>serial(synchronize);
+  async function menuStatus(tool,owned,origin){
+    if(origin!==undefined&&(!parsedHttp(origin)||new URL(origin).origin!==origin))
+      throw failure('E_SCHEMA','Exact menu Origin required');
+    const state=owned.menus[tool.id];
+    const sites=await permittedOrigins(api,await approvedOrigins(owned.menus,tool));
+    const browserPermission=await permissionGranted(api);
+    const enabled=sidebarToolEnabled(owned.enabled,tool.id)&&browserPermission&&state.activeActions.length>0;
+    return {operation:'browser.contextMenu.getStatus',enabled:enabled&&sites.length>0,
+      approvedOrigins:sites,activeActions:state.activeActions,browserPermission,
+      disabledOrigins:state.disabledOrigins,siteEnabled:origin===undefined?null:
+        enabled&&menuOriginAllowed(state,origin)&&await chromeSitePermitted(api,origin)&&
+          menuActions(tool).some(action=>state.activeActions.includes(action.actionId)&&matchesMenuDocument(action,origin))};
+  }
   async function status(operation,tool,owned=null,identity=null){
     const op=browserOperation(operation);
     if(!op)return deniedBrowserStatus(operation);
     const sources=owned??await readSources(api);
-    const origins=await permittedOrigins(api,await approvedOrigins(sources.grants,tool));
+    const origins=await permittedOrigins(api,await approvedOrigins(sources.menus,tool));
     const menu=origins.length>0;
     const isMenu=operation.startsWith('browser.contextMenu')||operation.startsWith('browser.launch')||
       operation==='browser.page.getSelection';
@@ -651,8 +707,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       const row=rows[tool.id];
       hasLaunch=Boolean(validLaunch(row)&&row.boundTo?.hostInstanceId===identity?.hostInstanceId&&
         row.boundTo?.toolInstance===identity?.toolInstance&&row.packageHash===await digestTool(tool)&&
-        row.installEpoch===(sources.epochs[tool.id]??null)&&origins.includes(row.origin)&&
-        launchActionEnabled(row,tool,sources.grants));
+        row.installEpoch===(sources.epochs[tool.id]??null)&&menuOriginAllowed(sources.menus[tool.id],row.origin)&&
+        await chromeSitePermitted(api,row.origin)&&launchActionEnabled(row,tool,sources.menus));
       if(hasLaunch){
         try {
           const current=await api.webNavigation.getFrame({tabId:row.tabId,frameId:row.frameId});
@@ -927,23 +983,19 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       if(operation==='browser.contextMenu.getStatus'){
         normalizeBrowserOperation(operation,args);
         ensureToolActions(tool,{});
-        const sites=await permittedOrigins(api,await approvedOrigins(owned.grants,tool));
-        const activeActions=owned.grants[toolId]?.activeActions||[];
-        const browserPermission=await permissionGranted(api);
-        return {operation,enabled:sites.length>0&&browserPermission&&
-          activeActions.some(id=>menuActions(tool).some(action=>action.actionId===id)),
-          approvedOrigins:sites,activeActions,browserPermission};
+        return menuStatus(tool,owned);
       }
       if(operation==='browser.contextMenu.register'||operation==='browser.contextMenu.unregister'){
         normalizeBrowserOperation(operation,args);
         ensureToolActions(tool,args);
         const current=owned.grants[toolId];
-        const origins=await permittedOrigins(api,await approvedOrigins(owned.grants,tool));
+        const state=owned.menus[toolId];
+        const origins=await permittedOrigins(api,await approvedOrigins(owned.menus,tool));
         if(operation==='browser.contextMenu.unregister'){
           // Zero-site unregister still retires old authority. Clear actions first
           // so a ticket deletion with an unknown outcome cannot revive selection.
-          if(current)await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,
-            {...owned.grants,[toolId]:{...current,activeActions:[]}});
+          await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,
+            {...owned.grants,[toolId]:{...current,contextMenu:storedMenuState(state,{activeActions:[]})}});
           const launches=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE]||{};
           if(Object.hasOwn(launches,toolId)){
             const cleared={...launches};delete cleared[toolId];
@@ -952,11 +1004,11 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           await synchronize();return {registered:false,actionIds:[]};
         }
         if(!origins.length)
-          throw failure('E_SITE_GRANT_REQUIRED','Enable this tool on a specific site in its details first');
+          throw failure('E_SITE_GRANT_REQUIRED','Chrome website access is unavailable for the declared menu scope');
         if(!await permissionGranted(api))
           throw failure('E_CHROME_PERMISSION_REQUIRED','Chrome context menu permission was revoked');
         const activeActions=args.actionIds;
-        const next={...owned.grants,[toolId]:{...current,activeActions}};
+        const next={...owned.grants,[toolId]:{...current,contextMenu:storedMenuState(state,{activeActions})}};
         await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,next);
         await synchronize();
         return {registered:activeActions.length>0,actionIds:activeActions};
@@ -969,8 +1021,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const row=source[toolId];
         if(!validLaunch(row)||row.boundTo?.hostInstanceId!==actualHost||
           row.boundTo?.toolInstance!==toolInstance||row.packageHash!==await digestTool(tool)||
-           row.installEpoch!==(installEpoch??null)||!launchActionEnabled(row,tool,owned.grants)||
-           !(await approvedOrigins(owned.grants,tool)).includes(row.origin))
+           row.installEpoch!==(installEpoch??null)||!launchActionEnabled(row,tool,owned.menus)||
+           !menuOriginAllowed(owned.menus[toolId],row.origin))
           throw failure('E_LAUNCH_EXPIRED','Menu launch expired, unbound or permission changed');
         if(!await chromeSitePermitted(api,row.origin))
           throw failure('E_SITE_PERMISSION_REVOKED','Chrome website access was revoked');
@@ -1214,6 +1266,15 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           ...(targetOperation==='browser.scheduler.create'?{schedulerIntent:structuredClone(schedulerIntent)}:{})});
         return {approvalRef,expiresAt};
       }
+      if(operation==='browser.contextMenu.getStatus'){
+        const owned=await readSources(api),tool=admittedTool(owned.tools,toolId);
+        if(toolVersion!==undefined&&toolVersion!==tool.version||
+           packageHash!==undefined&&packageHash!==await digestTool(tool)||
+           installEpoch!==undefined&&installEpoch!==(owned.epochs[toolId]??null))
+          throw failure('E_TOOL_CHANGED','Menu settings belong to an old installation');
+        ensureToolActions(tool,{});
+        return menuStatus(tool,owned,origin);
+      }
       if(operation==='browser.contextMenu.userToggle'){
         const doc=await api.webNavigation.getFrame({tabId:document?.tabId,frameId:0});
         const url=parsedHttp(document?.url);
@@ -1221,6 +1282,10 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           url.origin!==origin||typeof enabled!=='boolean')
           throw failure('E_DOCUMENT_CHANGED','Target document changed during menu approval');
         const owned=await readSources(api),tool=admittedTool(owned.tools,toolId);
+        if(toolVersion!==undefined&&toolVersion!==tool.version||
+           packageHash!==undefined&&packageHash!==await digestTool(tool)||
+           installEpoch!==undefined&&installEpoch!==(owned.epochs[toolId]??null))
+          throw failure('E_TOOL_CHANGED','Menu settings belong to an old installation');
         if(!sidebarToolEnabled(owned.enabled,toolId))
           throw failure('E_TOOL_DISABLED','Disabled tools cannot enable Chrome menus');
         if(!menuActions(tool).some(action=>matchesMenuDocument(action,url.href)))
@@ -1230,15 +1295,17 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(enabled&&!await chromeSitePermitted(api,origin))
           throw failure('E_SITE_PERMISSION_REVOKED','Chrome website access is unavailable');
         const current=owned.grants[toolId];
-        const sites=await approvedOrigins(owned.grants,tool);
+        const state=owned.menus[toolId];
+        const sites=state.origins.filter(site=>!['http://*','https://*'].includes(site));
         const origins=enabled?[...new Set([...sites,origin])]:sites.filter(item=>item!==origin);
-        if(origins.length>20)throw failure('E_LIMIT','Each installed tool may approve at most 20 website Origins');
+        const disabledOrigins=enabled?state.disabledOrigins.filter(site=>site!==origin):[...new Set([...state.disabledOrigins,origin])];
+        if(origins.length>20||disabledOrigins.length>20)throw failure('E_LIMIT','Each installed tool may manage at most 20 website exceptions');
         const activeActions=enabled?menuActions(tool).map(action=>action.actionId):
-          (Array.isArray(current?.activeActions)?current.activeActions:[]);
-        const next={...owned.grants,[toolId]:{version:tool.version,packageHash:await digestTool(tool),installEpoch:owned.epochs[toolId]??null,origins,activeActions}};
+          state.activeActions;
+        const next={...owned.grants,[toolId]:{...current,contextMenu:storedMenuState(state,{origins,activeActions,disabledOrigins})}};
         await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,next);
         await synchronize();
-        return {enabled:origins.includes(origin),origins};
+        return {enabled,origins,disabledOrigins};
       }
       if(operation==='browser.launch.bind'){
         if(typeof launchId!=='string'||typeof toolInstance!=='string'||
@@ -1250,8 +1317,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(!await permissionGranted(api))
           throw failure('E_CHROME_PERMISSION_REQUIRED','Chrome context menu permission is no longer present');
         if(!validLaunch(row)||row.ticketId!==launchId||row.packageHash!==await digestTool(tool)||
-           row.installEpoch!==(owned.epochs[toolId]??null)||!launchActionEnabled(row,tool,owned.grants)||
-          !(await approvedOrigins(owned.grants,tool)).includes(row.origin))
+           row.installEpoch!==(owned.epochs[toolId]??null)||!launchActionEnabled(row,tool,owned.menus)||
+          !menuOriginAllowed(owned.menus[toolId],row.origin))
           throw failure('E_LAUNCH_EXPIRED','No valid matching menu launch');
         if(!await chromeSitePermitted(api,row.origin))
           throw failure('E_SITE_PERMISSION_REVOKED','Chrome website access was revoked');
@@ -1273,13 +1340,13 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     const start=Date.now(),source=await readSources(api),tool=admittedTool(source.tools,toolId);
     if(!sidebarToolEnabled(source.enabled,toolId)||!await permissionGranted(api))return;
     const action=menuActions(tool).find(row=>row.actionId===actionId);
-    if(!action||!source.grants[toolId]?.activeActions?.includes(actionId))return;
+    if(!action||!source.menus[toolId]?.activeActions?.includes(actionId))return;
     const frameId=Number.isInteger(info.frameId)?info.frameId:0;
     if(!sourceDocument||captureEpoch(tab.id,frameId)!==clickEpoch)return;
     const url=String(frameId===0?info.pageUrl||tab.url:info.frameUrl||'');
     const parsed=parsedHttp(url);
     if(!parsed||!await chromeSitePermitted(api,parsed.origin)||
-      !(await approvedOrigins(source.grants,tool)).includes(parsed.origin)||
+      !menuOriginAllowed(source.menus[toolId],parsed.origin)||
       !matchesMenuDocument(action,url))return;
     const before=await api.webNavigation.getFrame({tabId:tab.id,frameId});
     if(!before?.documentId||before.documentId!==sourceDocument.documentId||
@@ -1304,7 +1371,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     if(!sidebarToolEnabled(latest.enabled,toolId)||!await permissionGranted(api)||
       !await chromeSitePermitted(api,row.origin))return;
     if(!installed||await digestTool(installed)!==row.packageHash||
-      !(await approvedOrigins(latest.grants,installed)).includes(row.origin)||
+      !menuOriginAllowed(latest.menus[toolId],row.origin)||
+      !launchActionEnabled(row,installed,latest.menus)||
       (latest.epochs[toolId]??null)!==row.installEpoch)return;
     const current=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE]||{};
     if(captureEpoch(tab.id,frameId)!==clickEpoch)return;
@@ -1372,10 +1440,10 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     return invalidated;
   });
   const revokePermission=()=>serial(async()=>{
-    // Chrome permission reapproval must never restore an old tool site grant.
+    // Permission loss retires tickets, not preferences or unrelated sensitive
+    // grants. Every subsequent menu use checks Chrome's live permission again.
     menuActionsAvailable=false;
-    recentSourceContexts.clear();pendingSourceContexts.clear();activeMenuOrigins.clear();
-    await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,{});
+    recentSourceContexts.clear();pendingSourceContexts.clear();activeMenuStates.length=0;
     await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,{});
   });
   const revokeLaunches=()=>serial(async()=>{

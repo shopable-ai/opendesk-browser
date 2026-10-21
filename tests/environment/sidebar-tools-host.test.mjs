@@ -22,6 +22,7 @@ import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation
   TOOL_CLEANUP_STORE,retryUninstalledToolCleanup,getPendingToolCleanups,installReviewedSidebarTool,
   TOOL_REVOCATION_EPOCHS_STORE,recordToolUninstall} from '../../src/ui/sidebar-tools/installation.js';
 import {CLIP_SITE_STORE} from '../../examples/sidebar-tools/web-markdown-clipper/trusted/policy.js';
+import {installedSiteAllowed,changeInstalledSiteAccess} from '../../src/ui/sidebar-tools/site-grants.js';
 import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
 import {READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,READING_TOC_PLACEMENT_PREFIX,changeReadingTocVisibility,changeTocSiteAllowed,tocSiteAllowed} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
 import {createSidebarToolsView} from '../../src/ui/sidebar-tools-view.js';
@@ -1019,7 +1020,7 @@ test('R4.5 identical page revalidation preserves actual clipper results, while s
   // that exact epoch into the real clipper content message, not silently send
   // an undefined value that the page correctly rejects as revoked.
   const clipInstallEpoch='f462e128-21c3-4b8d-9f2a-51bdc82378ac';
-  const store=new Map([[SIDEBAR_TOOL_STORE,[tool]],[CLIP_SITE_STORE,{[tool.id]:['https://article.example']}],
+  const store=new Map([[SIDEBAR_TOOL_STORE,[tool]],
     [TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:clipInstallEpoch}]]);
   const f=await hostFixture(t,{tool,store,target});
   let gate=null,reads=0;
@@ -1055,7 +1056,7 @@ test('R4.5 identical page revalidation preserves actual clipper results, while s
   gate=deferred();fetchButton.emit('click');await settle(()=>reads===2);
   documentId='document-c';const refreshed=target.refresh();
   assert.equal(source.value,'','resolving invalidates a pending clip before the new document is available');
-  await refreshed;gate.resolve();await settle(()=>fetchButton.disabled===false);
+  await refreshed;gate.resolve();await settle(()=>f.frame.contentWindow.sent.filter(row=>row.kind==='response').length===2);
   assert.equal(source.value,'','same URL with a new document ID must reject the old reply');
   assert.equal(f.frame.contentWindow.sent.filter(row=>row.kind==='page-changed').length,3);
   assert.equal(f.frame.contentWindow.sent.filter(row=>row.kind==='response').at(-1).ok,false);
@@ -1147,10 +1148,10 @@ for(const [toolId,key,url,origin] of [
   ['knowledge-inbox',CAPTURE_SITE_STORE,'https://chatgpt.com/c/fixture','https://chatgpt.com']
 ])test('site permission settings apply one click without a second dialog: '+toolId,async t=>{
   const tool=await officialToolFixture(toolId),store=new Map([[SIDEBAR_TOOL_STORE,[tool]]]);
-  if(toolId==='reading-toc')store.set(key,changeTocSiteAllowed({},toolId,url,false));
+  store.set(key,toolId==='reading-toc'?changeTocSiteAllowed({},toolId,url,false):changeInstalledSiteAccess({},toolId,url,false));
   const siteAllowed=()=>toolId==='reading-toc'?tocSiteAllowed(store.get(key),toolId,url):
-    Boolean(store.get(key)?.[toolId]?.includes(origin));
-  const allowedRecord=toolId==='reading-toc'?{}:{[toolId]:[origin]};
+    installedSiteAllowed(store.get(key),toolId,url);
+  const allowedRecord={};
   let invalidated=false,validated=0,dialogCount=0;
   const target={snapshot:{status:'available',url},
     capture(){return {url,origin,windowId:1,tabId:7,frameId:0,documentId:'doc-a'};},
@@ -1163,7 +1164,7 @@ for(const [toolId,key,url,origin] of [
   const deny=f.elements['sidebar-tool-settings-deny'];
   assert.equal(allow.disabled,false);
   assert.equal(allow.attributes['aria-pressed'],'false');
-  assert.match(f.elements['sidebar-tool-settings-hint'].textContent,toolId==='reading-toc'?/安装后默认适用于普通 HTTP\(S\) 网页.*无需逐站授权/:/点击授权后直接生效/);
+  assert.match(f.elements['sidebar-tool-settings-hint'].textContent,toolId==='reading-toc'?/安装后默认适用于普通 HTTP\(S\) 网页.*无需逐站授权/:/当前网站已停用/);
   globalThis.confirm=()=>{dialogCount++;return false;};
   f.emit(allow,'click');
   f.emit(allow,'click'); // repeated clicks before the first commit must not flip consent
@@ -1519,7 +1520,7 @@ test('default TOC availability needs no grant; stopping and restoring use one cl
   assert.deepEqual(f.store.get(READING_TOC_SITE_STORE),{});
 });
 
-test('R4.9 clipboard and knowledge site toggles authorize directly without a second modal',async t=>{
+test('R4.9 clipper and knowledge are available by default with one-click stop and restore',async t=>{
   const scenarios=[
     {id:'web-markdown-clipper',capabilities:['page.clip'],url:'https://article.example/post',
       origin:'https://article.example',storeKey:CLIP_SITE_STORE},
@@ -1540,14 +1541,18 @@ test('R4.9 clipboard and knowledge site toggles authorize directly without a sec
     f.host.setVisible(true);
     f.host.openTool(scenario.id);
     if(f.elements['sidebar-tool-settings-view'].hidden)f.emit(f.elements['sidebar-tool-settings-open'],'click');
-    f.emit(f.elements['sidebar-tool-settings-allow'],'click');
-    await settle(()=>f.store.get(scenario.storeKey)?.[scenario.id]?.includes(scenario.origin));
+    assert.equal(installedSiteAllowed(f.store.get(scenario.storeKey),scenario.id,scenario.url),true);
+    assert.equal(f.store.has(scenario.storeKey),false,'first use needs no extra site permission write');
     assert.equal(prompts,0,scenario.id+' does not issue a second confirmation');
     assert.equal(f.elements['sidebar-tool-frame'].children.length,0,
       'authorizing a website never runs its tool sandbox');
     f.emit(f.elements['sidebar-tool-settings-deny'],'click');
-    await settle(()=>!f.store.get(scenario.storeKey)?.[scenario.id]);
+    await settle(()=>!installedSiteAllowed(f.store.get(scenario.storeKey),scenario.id,scenario.url))
+      .catch(error=>{throw new Error(scenario.id+': '+f.elements['sidebar-tool-status'].textContent,{cause:error});});
     assert.equal(prompts,0,'grant revocation also uses just the site control');
+    await settle(()=>!f.elements['sidebar-tool-settings-allow'].disabled);
+    f.emit(f.elements['sidebar-tool-settings-allow'],'click');
+    await settle(()=>installedSiteAllowed(f.store.get(scenario.storeKey),scenario.id,scenario.url));
     f.host.closeTool();
   }
 });
@@ -1576,7 +1581,8 @@ test('R5.1 three official tool site grants require no extra JavaScript modal',as
     capture(){return {url:this.snapshot.url,origin:new URL(this.snapshot.url).origin,tabId:5,documentId:'doc'};},
     async revalidate(){return true;}};
   const f=await hostFixture(t,{store:new Map([[SIDEBAR_TOOL_STORE,packages],
-    [READING_TOC_SITE_STORE,changeTocSiteAllowed({},'reading-toc',scenarios[0].url,false)]]),target,startTool:false});
+    ...scenarios.map(row=>[row.store,row.id==='reading-toc'?changeTocSiteAllowed({},row.id,row.url,false):
+      changeInstalledSiteAccess({},row.id,row.url,false)])]),target,startTool:false});
   let prompts=0;globalThis.confirm=()=>{prompts++;return false;};
   for(const row of scenarios){
     target.snapshot={status:'available',url:row.url};
@@ -1584,7 +1590,7 @@ test('R5.1 three official tool site grants require no extra JavaScript modal',as
     f.emit(f.elements['sidebar-tool-settings-open'],'click');
     f.emit(f.elements['sidebar-tool-settings-allow'],'click');
     const allowed=()=>row.id==='reading-toc'?tocSiteAllowed(f.store.get(row.store),row.id,row.url):
-      Boolean(f.store.get(row.store)?.[row.id]?.includes(row.origin));
+      installedSiteAllowed(f.store.get(row.store),row.id,row.url);
     await settle(()=>allowed());
     assert.equal(prompts,0,row.id+' does not invoke confirm');
     f.emit(f.elements['sidebar-tool-settings-deny'],'click');
@@ -1672,6 +1678,41 @@ test('a stopped v2 tool cannot request Chrome contextMenus even if click is spoo
   await pause();await pause();
   assert.match(f.elements['sidebar-tool-status'].textContent,/E_TOOL_DISABLED/,
     'the trusted click handler independently denies disabled tools');
+});
+test('installed menu UI uses Host default status and stop/restore reuses existing Chrome permission',async t=>{
+  const tool=await officialToolFixture('web-markdown-clipper');
+  const oldLocation=globalThis.location;
+  globalThis.location={href:'chrome-extension://test/sidepanel.html?hostInstanceId=12345678-1234-4234-8234-123456789abc'};
+  t.after(()=>{globalThis.location=oldLocation;});
+  const target={snapshot:{status:'available',url:'https://example.com/article'},
+    capture:()=>({url:'https://example.com/article',tabId:7,documentId:'document-a'}),
+    async revalidate(){return true;}};
+  const f=await hostFixture(t,{store:new Map([[SIDEBAR_TOOL_STORE,[tool]]]),tool,target,startTool:false});
+  let enabled=true,permissionRequests=0;
+  const toggles=[];
+  f.api.permissions={request(){permissionRequests++;return Promise.resolve(true);}};
+  f.api.runtime.sendMessage=async message=>{
+    if(message.operation==='browser.contextMenu.getStatus')return {ok:true,data:{siteEnabled:enabled,browserPermission:true}};
+    if(message.operation==='browser.contextMenu.userToggle'){
+      toggles.push(message);enabled=message.enabled;
+      return {ok:true,data:{enabled}};
+    }
+    return {ok:true};
+  };
+  f.host.openTool(tool.id);
+  const button=f.elements['sidebar-tool-context-menu'];
+  await settle(()=>button.attributes['data-enabled']==='true'&&!button.disabled);
+  assert.match(button.title,/停用/);
+  assert.equal(f.store.has(BROWSER_MENU_GRANTS_STORE),false,'the UI recognizes the default without another grant');
+  f.view.actions[button.key].click({isTrusted:true});
+  await settle(()=>toggles.length===1&&button.attributes['data-enabled']==='false'&&!button.disabled);
+  assert.equal(toggles[0].enabled,false,'first click stops the already available menu');
+  assert.equal(toggles[0].toolVersion,tool.version);
+  assert.equal(toggles[0].installEpoch,null);
+  f.view.actions[button.key].click({isTrusted:true});
+  await settle(()=>toggles.length===2&&button.attributes['data-enabled']==='true'&&!button.disabled);
+  assert.equal(toggles[1].enabled,true);
+  assert.equal(permissionRequests,0,'already permitted Chrome menus require no repeated request');
 });
 
 

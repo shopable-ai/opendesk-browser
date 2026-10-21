@@ -320,14 +320,14 @@ export const SIDEBAR_TOOL_FIELDS = {
     "type": "button"
   },
   "sidebar-tool-settings-scope-label": {
-    "textContent": "当前网站授权",
+    "textContent": "当前网站可用性",
     "className": "sidebar-toc-settings-caption"
   },
   "sidebar-tool-settings-target": {
     "textContent": "请选择适用网页"
   },
   "sidebar-tool-settings-allow": {
-    "textContent": "授权当前网站",
+    "textContent": "恢复当前网站",
     "className": "od-button od-button--secondary",
     "type": "button",
     "attributes": {
@@ -335,7 +335,7 @@ export const SIDEBAR_TOOL_FIELDS = {
     }
   },
   "sidebar-tool-settings-deny": {
-    "textContent": "撤销当前网站授权",
+    "textContent": "停用当前网站",
     "className": "od-button od-button--danger",
     "type": "button",
     "attributes": {

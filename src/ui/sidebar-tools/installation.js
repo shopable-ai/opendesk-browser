@@ -100,6 +100,10 @@ export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabl
       const preserveGrant=grant?.version===current.version&&
         grant.installEpoch===(epochs[tool.id]??null)&&
         grant.packageHash===await sidebarToolPackageHash(current);
+      const menu=grant?.contextMenu;
+      const preserveMenu=menu?.version===current.version&&
+        menu.installEpoch===(epochs[tool.id]??null)&&
+        menu.packageHash===await sidebarToolPackageHash(current);
       // Stop first. Resume fences every old frame/request before it becomes available.
       // A crash between these writes leaves the tool stopped, never silently resumed.
       if(!enabled){
@@ -116,8 +120,9 @@ export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabl
         {...epochs,[tool.id]:nextEpoch},rawEpochs,'工具实例撤销');
       // Only an already valid, unchanged package grant crosses this transition.
       // Old frames and pending requests retain the old epoch and remain revoked.
-      if(preserveGrant)await writeVerifiedLocalValue(api,BROWSER_MENU_GRANTS_STORE,
-        {...rawGrants,[tool.id]:{...grant,installEpoch:nextEpoch}},rawGrants,'工具网站授权保留');
+      if(preserveGrant||preserveMenu)await writeVerifiedLocalValue(api,BROWSER_MENU_GRANTS_STORE,
+        {...rawGrants,[tool.id]:{...grant,...(preserveGrant?{installEpoch:nextEpoch}:{}),
+          ...(preserveMenu?{contextMenu:{...menu,installEpoch:nextEpoch}}:{})}},rawGrants,'工具网站授权保留');
       if(enabled)await writeVerifiedLocalValue(api,SIDEBAR_TOOL_ENABLE_STORE,
         {...previous,[tool.id]:true},raw,'工具启停');
       return {enabled};
@@ -399,8 +404,7 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       }
       const siteStores=[[READING_TOC_SITE_STORE,'page.toc'],[READING_TOC_PAGE_RULES_STORE,'page.toc'],
         [CLIP_SITE_STORE,'page.clip'],[CAPTURE_SITE_STORE,'page.capture'],
-        [PROMPT_SHORTCUTS_SITE_CLEANUP_STORE,'page.prompts'],
-        [BROWSER_MENU_GRANTS_STORE,'browser.contextMenu']];
+        [PROMPT_SHORTCUTS_SITE_CLEANUP_STORE,'page.prompts']];
       const clearGrant=async store=>{
         const value=(await api.storage.local.get(store))[store]||{};
         if(Object.hasOwn(value,tool.id)){
@@ -410,6 +414,22 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       };
       for(const [store,capability] of siteStores)
         if(!existing?.capabilities.includes(capability))await clearGrant(store);
+      if(!existing)await clearGrant(BROWSER_MENU_GRANTS_STORE);
+      // Only menu preferences cross this explicitly reviewed update. Rebinding
+      // the shared row would also silently approve Cookie/Full Bookmarks data.
+      let rawBrowserGrants,browserGrants,previousBrowserGrant,previousMenu,preserveMenu=false;
+      if(existing?.capabilities.includes('browser.contextMenu')&&tool.capabilities.includes('browser.contextMenu')){
+        rawBrowserGrants=(await api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE];
+        if(rawBrowserGrants!==undefined&&(!rawBrowserGrants||typeof rawBrowserGrants!=='object'||Array.isArray(rawBrowserGrants)))
+          throw error('工具浏览器授权记录损坏','E_STORAGE_CORRUPT');
+        browserGrants=rawBrowserGrants||{};previousBrowserGrant=browserGrants[tool.id];
+        previousMenu=previousBrowserGrant?.contextMenu??previousBrowserGrant;
+        const epochs=requireToolRevocationEpochs((await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]);
+        preserveMenu=previousMenu?.version===existing.version&&
+          previousMenu.installEpoch===(epochs[tool.id]??null)&&
+          previousMenu.packageHash===await sidebarToolPackageHash(existing)&&
+          Array.isArray(previousMenu.activeActions)&&Array.isArray(previousMenu.origins);
+      }
       const next=existing?installed.map(row=>row.id===tool.id?tool:row):[...installed,tool];
       registryAttempted=true;
       const registry=await writeVerifiedLocalValue(api,SIDEBAR_TOOL_STORE,next,installed,'工具安装记录');
@@ -417,6 +437,16 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       // Even if the local readback is durable, an unacknowledged package commit
       // must require explicit recovery of provenance and operation state.
       if(registry.acknowledgementLost)throw unknownStorageOutcome(null,'工具包写入回执');
+      if(preserveMenu){
+        const oldActions=existing.contributes.contextMenus.map(action=>action.actionId);
+        const newActions=tool.contributes.contextMenus.map(action=>action.actionId);
+        const activeActions=previousMenu.activeActions.length&&oldActions.every(id=>previousMenu.activeActions.includes(id))
+          ?newActions:previousMenu.activeActions.filter(id=>newActions.includes(id));
+        await writeVerifiedLocalValue(api,BROWSER_MENU_GRANTS_STORE,{...browserGrants,[tool.id]:{
+          ...previousBrowserGrant,contextMenu:{...previousMenu,version:tool.version,
+            packageHash:await sidebarToolPackageHash(tool),activeActions}
+        }},rawBrowserGrants,'右键菜单设置保留');
+      }
       // Removing a capability makes its prior grant unusable immediately;
       // now clear that record after the successful registry boundary.
       for(const [store,capability] of siteStores)

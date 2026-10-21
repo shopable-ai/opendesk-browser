@@ -7,7 +7,7 @@
 ## 使用
 
 1. 更新 OpenDesk Browser 到包含本工具的版本。在侧栏 **工具 → 知识收件箱 → 安装** 中审阅能力，确认安装。
-2. 打开 `https://chatgpt.com` 的对话，回到工具列表点击知识收件箱旁的 **网站按钮**，单独启用当前网站。安装本身不会授权正文捕获。
+2. 打开 `https://chatgpt.com` 的对话，安装审阅后会直接显示固定保存入口，无需回到设置逐站授权。若主动停用过该网站，可在工具设置中恢复；Chrome 网站访问仍须允许。
 3. 等回答生成完成，点击回答下面的 **保存**。**更多** 中可保存为灵感、草稿，或只保存这一条回答内的选中文字。**Markdown** 直接请求完整 MD 文件下载。
 4. 打开 **知识收件箱**，可以搜索正文、提问、标签或备注，按分类/标签筛选，按最近修改、保存时间或标题排序。点击记录后直接阅读排版后的 Markdown。键盘可在记录间使用 ↑/↓、Home/End，按 Enter 打开，阅读时按 Esc 返回列表；遇到展开菜单或结构导图时 Esc 优先关闭当前层。
 5. 阅读时若原始 Markdown 第一条标题与记录标题完全一致，页面仅显示一份标题；编辑、复制和下载保留完整原文。在详情页点击 **编辑**，修改标题、分类、标签、备注或 Markdown 正文；只有有更改时才可保存，也可按 Ctrl/Cmd+S。退出编辑会提示放弃未保存内容；点击 **恢复原文** 并确认保存才会清除个人草稿。原始回答始终独立保留。保存期间宿主会阻止关闭；保存或删除确认完成后会清除保护，正常返回列表不会再次提示放弃。浏览器异常崩溃后自动恢复仍未实现。
@@ -35,13 +35,13 @@
 
 工具 ID：`knowledge-inbox`，版本：`1.2.7`。声明能力：`page.capture`、`knowledge.store`、`user.export`。
 
-页面捕获由扩展固定 content script 按真实点击执行；收件箱沙箱不能任意读取页面，也不能直接使用 Chrome 或 Native API。捕获站点授权独立于阅读目录与网页剪藏；撤销授权移除页面按钮，已收藏内容保留。扩展可信宿主在每次操作时复核工具包哈希、真实 sender/document、站点权限和当前文档。
+页面捕获由扩展固定 content script 按真实点击执行；收件箱沙箱不能任意读取页面，也不能直接使用 Chrome 或 Native API。固定网站范围内复用安装审阅的捕获能力；主动停用网站会移除页面按钮，已收藏内容保留。扩展可信宿主在每次操作时复核工具包哈希、真实 sender/document、站点可用性和当前文档。
 
 ```sh
 npm run build:sidebar-tool -- examples/sidebar-tools/knowledge-inbox
 ```
 
-更新源码后，正式扩展构建自动生成 `dist/production/official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json` 与 Catalog 摘要，不维护第二份 JSON。该资源默认未安装：官方入口和本地导入都须明确审核，ChatGPT 网站权限另行批准；卸载后重启不复装。旧版 OpenDesk 不认识新增能力，必须先更新扩展框架，不能只把新工具 JSON 导入旧版本。
+更新源码后，正式扩展构建自动生成 `dist/production/official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json` 与 Catalog 摘要，不维护第二份 JSON。该资源默认未安装：官方入口和本地导入都须明确审核，安装批准后直接使用支持网站的固定保存入口；卸载后重启不复装。默认可用规则由新版扩展框架实现，不能只把工具 JSON 导入旧版本就宣称宿主已更新。
 
 产品排序与分期见 `docs/product/chatgpt-knowledge-inbox-r1.zh-CN.md`；实际验证等级见 `docs/framework/workstreams/knowledge-inbox-r1-20261011.md`。本工具尚未接入博客、Notion、飞书、企业云盘 API，也不会自动发布文章。
 
