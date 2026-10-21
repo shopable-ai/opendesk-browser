@@ -358,6 +358,7 @@ async function run(){
   await click('#ps-new');
   await fill('#ps-body','图片按钮正式源码测试：完整提示词正文');
   await evaluate('document.querySelector("#ps-appearance-image").click()');
+  await evaluate('document.querySelector("#ps-image-source-url").click()');
   await fill('#ps-image-url','https://fixture.opendesk.invalid/bad.png');
   await poll('document.querySelector("#ps-image-preview")?.textContent?.length>0 && '+
     '!document.querySelector("#ps-image-preview").classList.contains("has-image")',
@@ -385,8 +386,7 @@ async function run(){
   assert.equal(beforeSize,'large');
   const imageSizes=[];
   for(const [size,w,h] of [['compact',48,40],['standard',56,44],['large',68,48]]){
-    await evaluate('(()=>{const s=document.querySelector("#ps-image-size");s.value='+
-      JSON.stringify(size)+';s.dispatchEvent(new Event("change",{bubbles:true}));})()');
+    await evaluate('(()=>{const b=document.querySelector("#ps-image-size-setting [data-image-size='+JSON.stringify(size)+']");if(!b)throw Error("missing size dot");b.click();})()');
     await poll('globalThis.__readFormalToolStore().value.settings.imageSize==='+JSON.stringify(size),
       'formal Host CAS persists global image size '+size);
     const row=await evaluate('({size:document.querySelector("#ps-image-size").value,'+
