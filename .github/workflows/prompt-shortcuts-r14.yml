@@ -124,6 +124,15 @@ jobs:
           path: artifacts/prompt-shortcuts-r111-preview/
           if-no-files-found: warn
           retention-days: 14
+      # Ship the exact original product preview file as review evidence.
+      # No second UI, rewritten mock, or browser permissions are involved.
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prompt-shortcuts-r34-original-html-${{ github.sha }}
+          path: examples/sidebar-tools/prompt-shortcuts/preview/index.html
+          if-no-files-found: error
+          retention-days: 14
       - uses: actions/upload-artifact@v4
         with:
           name: prompt-shortcuts-v2-${{ github.sha }}
