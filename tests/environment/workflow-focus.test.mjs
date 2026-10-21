@@ -376,6 +376,7 @@ if(!vm.SourceTextModule) {
     }
     f.host.currentRun=null;f.host.executionPending=false;
     f.ui.actions.onHistory(trusted);
+    await tick(); // Controller publishes an immutable snapshot on the next microtask.
     assert.equal(snapshot().history.open,true,
       'history may open again only after RunHost releases');
   });

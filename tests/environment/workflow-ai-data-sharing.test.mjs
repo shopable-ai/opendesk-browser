@@ -72,7 +72,7 @@ test('user-initiated AI sends directly without custom consent UI or ledger',asyn
   assert.doesNotMatch(sharing,/createModelConsent|modelDataScope|CONSENT_STORAGE_KEY|ConsentManager|AuthorizationManager/);
   assert.doesNotMatch(view,/create(?:Consent|Authorization|Permission)Manager|new (?:Consent|Authorization|Permission)Manager/);
   assert.match(view,/bind\('workflow-ai-plan','click',plan\)/);
-  assert.match(view,/async function plan\(event\)\s*\{\s*if\(!event\.isTrusted\|\|busy\)return/);
+  assert.match(view,/async function plan\(event\)\s*\{\s*if\(!event\.isTrusted\|\|busy\|\|\(provider\(\)==='local_codex'&&localChecking\)\)return/);
   assert.match(view,/const origins=\[permissionPattern\(captured\.url\)\]/);
   assert.match(view,/if\(selected!=='local_codex'\)origins\.push\(permissionPattern\(frozen\.endpoint\)\)/);
   assert.match(view,/selected==='cloud_responses'/);

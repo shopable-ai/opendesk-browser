@@ -37,7 +37,7 @@ test('R33.3 real TSX transformation and privilege-free UI modules',async()=>{
     const auditedBookmarkImports=[
       "import '../../../examples/sidebar-tools/bookmark-manager/src/model.js';",
       "import '../../../examples/sidebar-tools/bookmark-manager/src/service.js';",
-      "import BookmarkReactApp,{bookmarkConversationSamples} from '../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx';",
+      "import BookmarkReactApp from '../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx';",
       "import bookmarkScopedCSS from '../../../examples/sidebar-tools/bookmark-manager/src/react/style.css?raw';"
     ];
     const checkedCode=path==='src/ui/react/main.tsx'
