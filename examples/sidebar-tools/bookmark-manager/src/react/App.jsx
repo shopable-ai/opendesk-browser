@@ -292,7 +292,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
   try{
    if(mode==='trusted'&&(!authorization?.signal||
      typeof authorization.assertWrite!=='function'||typeof authorization.release!=='function'))
-    throw Object.assign(Error('缺少有效的模型权限与安装实例校验，拒绝执行'),{code:'E_GRANT_REVOKED'});
+    throw Object.assign(Error('缺少有效的模型权限与安装实例校验，拒绝执行'),{code:'E_MODEL_GRANT_REVOKED'});
    if(signal.aborted)throw Object.assign(Error('本轮已停止'),{code:'E_CANCELLED'});
   if(authorityEpoch.current||!activeRef.current)
    throw Object.assign(Error('书签访问授权或当前安装实例已经失效，未发送后续操作。'),{code:'E_GRANT_REVOKED'});
