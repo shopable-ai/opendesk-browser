@@ -99,7 +99,12 @@ export function prepareDirectExecution({request,workflow,target,observation}) {
   const requestedClick=clickIntent.test(instruction.replace(negatedClickIntent,''));
   if(fillIntent.test(instruction)&&!fills.length)
     throw error('E_AI_MISSING_ACTION','用户要求填写，模型没有返回填写步骤');
-  if(fills.length&&!fillIntent.test(instruction))
+  // "搜索 OpenDesk" is ordinary user intent for filling one query and
+  // pressing the observed search control. It must not license other fills,
+  // extra clicks, ungrounded literals, or an unobserved button.
+  const groundedSearch=clicks.length===1&&fills.length===1&&values.length===1&&
+    /(?:搜索|查找|检索|\\bsearch\\b)/i.test(instruction);
+  if(fills.length&&!fillIntent.test(instruction)&&!groundedSearch)
     throw error('E_AI_UNREQUESTED_ACTION','本次未要求填写，模型额外生成填写动作');
   if(clicks.length&&!requestedClick)
     throw error('E_AI_UNREQUESTED_ACTION','本次未要求点击，模型额外生成点击动作');

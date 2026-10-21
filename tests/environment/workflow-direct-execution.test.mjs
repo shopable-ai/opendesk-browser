@@ -66,6 +66,18 @@ test('a single send may fill and click search, but literals cannot authorize ext
     request:'在搜索框填入 OpenDesk，然后点击搜索按钮',workflow:search,target,
     observation:searchObservation
   });
+  // Natural language search does not need to say "fill" explicitly.
+  const natural=prepareDirectExecution({
+    request:'搜索 OpenDesk',workflow:search,target,observation:searchObservation
+  });
+  assert.equal(natural.hasReadback,true);
+  assert.deepEqual(natural.effectExpectation,{kind:'search-results-v1',query:'OpenDesk'});
+  assert.throws(()=>prepareDirectExecution({
+    request:'搜索 OpenDesk',workflow:search,target,observation:undefined
+  }),{code:'E_AI_REVIEW_REQUIRED'});
+  assert.throws(()=>prepareDirectExecution({
+    request:'搜索 OpenDesk',workflow:workflow([{...fill,text:'OpenDesk'}]),target
+  }),{code:'E_AI_MISSING_ACTION'});
   assert.equal(requested.hasReadback,true);
   assert.equal(requested.hasUnprovenClick,true);
   const extra=workflow([fill,{stepId:'click1',op:'click',locatorKind:'css',selector:'#safe-button'}]);
