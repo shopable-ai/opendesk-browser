@@ -14,7 +14,7 @@ const chrome=spawn(process.env.CHROME_BIN||'chromium',['--headless=new','--no-sa
   '--disable-gpu','--disable-dev-shm-usage','--no-first-run',
   '--user-data-dir='+profile,'--remote-debugging-port=0','about:blank'],{stdio:'ignore'});
 let socket,seq=0;
-const pending=new Map(),report={kind:'REAL_CHROME_OFFLINE_PREVIEW_ONLY',installedExtension:false,scenes:[]};
+const pending=new Map(),fileChooserEvents=[],report={kind:'REAL_CHROME_OFFLINE_PREVIEW_ONLY',installedExtension:false,scenes:[]};
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function connect(){
   let port=0;
@@ -30,6 +30,7 @@ async function connect(){
   await new Promise((ok,fail)=>{socket.addEventListener('open',ok,{once:true});socket.addEventListener('error',fail,{once:true});});
   socket.addEventListener('message',event=>{
     const response=JSON.parse(event.data);
+    if(response.method==='Page.fileChooserOpened'){fileChooserEvents.push(response.params);return;}
     if(!response.id||!pending.has(response.id))return;
     const cb=pending.get(response.id);pending.delete(response.id);
     if(response.error)cb.fail(Error(response.error.message));else cb.ok(response.result);
@@ -417,6 +418,31 @@ async function run(){
   await click('.prompt-card:nth-child(2) .prompt-actions button');
   await click('.prompt-more button[aria-label^="编辑："]');
   await click('label:has(#imageSourceLocal)');
+  assert.equal(await evalChrome('!document.querySelector("#imageUploadControls").hidden'),true);
+  // R4.1: screenshots of the ACTUAL original dropzone, never a second screenshot fixture.
+  report.r41Dropzone=[];
+  for(const width of [320,360,400,440]){
+    await click('#size'+width);
+    const ui=await evalChrome('('+function(){
+      const p=document.querySelector('#sidepanel'),zone=document.querySelector('#imageDropzone');
+      const r=zone.getBoundingClientRect();
+      return {width:Math.round(p.getBoundingClientRect().width),
+        overflow:p.scrollWidth>p.clientWidth+1,zoneVisible:r.width>0&&r.height>=100,
+        label:document.querySelector('#imagePick').textContent.trim()};
+    }.toString()+')()');
+    assert(ui.zoneVisible&&!ui.overflow&&ui.label.includes('选择图片'),'dropzone '+width+'px');
+    await shot('r41-dropzone-'+width+'px');
+    report.r41Dropzone.push(ui);
+  }
+  await click('#themeButton');
+  await shot('r41-dropzone-dark-440px');
+  await click('#themeButton');
+  // Real CDP-intercepted native file chooser: a click must reach input[type=file].
+  await call('Page.setInterceptFileChooserDialog',{enabled:true});
+  await click('#imagePick');
+  for(let i=0;i<20&&!fileChooserEvents.length;i++)await sleep(80);
+  assert(fileChooserEvents.length>=1,'the visible Choose Image button opens the real file picker');
+  report.r41NativePicker=true;
   const previewHTML=await readFile(resolve('examples/sidebar-tools/prompt-shortcuts/preview/index.html'),'utf8');
   const pngBase64=previewHTML.split("const PREVIEW_OFFLINE_PNG='")[1]?.split("'")[0]?.split(',')[1];
   assert(pngBase64,'source-bound PNG fixture');
@@ -427,9 +453,60 @@ async function run(){
   const {nodeId:fileNode}=await call('DOM.querySelector',{nodeId:domRoot.nodeId,selector:'#imageFile'});
   assert(fileNode,'real original input[type=file] exists');
   await call('DOM.setFileInputFiles',{nodeId:fileNode,files:[imageFilePath]});
-  await poll('document.querySelector("#imageHelp").textContent.includes("已在预览浏览器中保存")',
+  await poll('document.querySelector("#imageHelp").textContent.includes("图片已准备好")',
     'original image upload write is confirmed');
   await poll('document.querySelector("#pictureExample img")?.naturalWidth>0','uploaded PNG decoded');
+  const firstImage=await evalChrome('('+function(){
+    const selected=document.querySelector('#imageSelected');
+    return {selected:!selected.hidden,name:document.querySelector('#imageFileName').textContent,
+      meta:document.querySelector('#imageFileMeta').textContent,
+      pictureDecoded:document.querySelector('#pictureExample img')?.naturalWidth>0};
+  }.toString()+')()');
+  assert(firstImage.selected&&firstImage.name==='r37-file.png'&&firstImage.pictureDecoded);
+  assert.match(firstImage.meta,/\d+×\d+/);
+  for(const width of [320,360,400,440]){
+    await click('#size'+width);
+    const fits=await evalChrome('('+function(){
+      const p=document.querySelector('#sidepanel'),card=document.querySelector('#imageSelected'),
+        actions=document.querySelector('#imageSelectedActions');
+      return p.scrollWidth<=p.clientWidth+1&&card.scrollWidth<=card.clientWidth+1&&
+        actions.querySelectorAll('button[aria-label]').length===2;
+    }.toString()+')()');
+    assert(fits,'selected image card must fit '+width+'px');
+    await shot('r41-selected-'+width+'px');
+  }
+  await click('#themeButton');
+  await shot('r41-selected-dark-440px');
+  await click('#themeButton');
+  // Invalid input must retain the accepted image; the existing decoder is unchanged.
+  const invalidFile=join(profile,'r41-unsupported.svg');
+  await writeFile(invalidFile,'<svg xmlns="http://www.w3.org/2000/svg"/>');
+  await call('DOM.setFileInputFiles',{nodeId:fileNode,files:[invalidFile]});
+  await poll('document.querySelector("#imageFieldError").textContent.includes("PNG")','unsupported type error');
+  assert.equal(await evalChrome('document.querySelector("#imageFileName").textContent'),'r37-file.png');
+  const oversized=join(profile,'r41-oversized.png');
+  await writeFile(oversized,Buffer.alloc(2*1024*1024+1,42));
+  await call('DOM.setFileInputFiles',{nodeId:fileNode,files:[oversized]});
+  await poll('document.querySelector("#imageFieldError").textContent.includes("2 MB")','oversized error');
+  assert.equal(await evalChrome('document.querySelector("#imageFileName").textContent'),'r37-file.png');
+  // The entire empty dashed region must also open the native file chooser.
+  await click('#imageClear');
+  assert.equal(await evalChrome('!document.querySelector("#imageUploadControls").hidden'),true);
+  const count=fileChooserEvents.length;
+  const blank=await evalChrome('('+function(){
+    const r=document.querySelector('#imageDropzone').getBoundingClientRect();
+    return {x:r.left+12,y:r.top+12};
+  }.toString()+')()');
+  for(const [type,extra] of [['mouseMoved',{}],['mousePressed',{button:'left',clickCount:1}],
+    ['mouseReleased',{button:'left',clickCount:1}]])
+    await call('Input.dispatchMouseEvent',{type,x:blank.x,y:blank.y,...extra});
+  for(let i=0;i<20&&fileChooserEvents.length===count;i++)await sleep(80);
+  assert(fileChooserEvents.length>count,'blank dropzone click opens real picker');
+  await call('DOM.setFileInputFiles',{nodeId:fileNode,files:[imageFilePath]});
+  await poll('document.querySelector("#pictureExample img")?.naturalWidth>0&&document.querySelector("#imageFileName").textContent==="r37-file.png"',
+    'reselect after clearing image');
+  await call('Page.setInterceptFileChooserDialog',{enabled:false});
+  report.r41PickerAndErrors={...firstImage,blankDropzone:true,invalidPreserved:true,oversizedPreserved:true};
   await shot('r37-original-local-upload');
   await click('#saveButton');
   await poll('document.querySelector("#formView").hidden&&document.querySelector("#pageRail .page-shortcut:nth-child(2) img")?.naturalWidth>0',
@@ -462,6 +539,72 @@ async function run(){
   assert(insert.includes('原草稿')&&insert.includes('重要依据')&&!insert.includes('data:image'));
   report.r37LocalImage={...uploadEvidence,reload:true,promptInsert:true};
   await shot('r37-original-local-image-reloaded');
+  // R4.1: editing a previously saved local image must track an inactive URL draft.
+  await click('.prompt-card:nth-child(2) .prompt-actions button');
+  await click('.prompt-more button[aria-label^="编辑："]');
+  assert.equal(await evalChrome('document.querySelector("#imageSourceLocal").checked'),true);
+  await click('label:has(#imageSourceUrl)');
+  await evalChrome('('+function(){
+    const url=document.querySelector('#imageUrl');
+    url.value='https://example.com/unsaved-alternative.png';
+    url.dispatchEvent(new Event('input',{bubbles:true}));
+  }.toString()+')()');
+  await click('label:has(#imageSourceLocal)');
+  await click('#cancelForm');
+  assert.equal(await evalChrome('!document.querySelector("#leaveConfirm").hidden'),true,
+    'inactive URL must not silently bypass the leave guard');
+  await click('#stayEditing');
+  await click('label:has(#imageSourceUrl)');
+  assert.equal(await evalChrome('document.querySelector("#imageUrl").value'),
+    'https://example.com/unsaved-alternative.png');
+  await click('label:has(#imageSourceLocal)');
+  // Native Chromium drag/drop with an actual filesystem-backed JPEG, not dispatchEvent(mock).
+  const jpegBase64=await evalChrome('('+function(){
+    const canvas=document.createElement('canvas');canvas.width=120;canvas.height=80;
+    const ctx=canvas.getContext('2d');
+    for(let y=0;y<80;y++){
+      ctx.fillStyle='rgb('+Math.round(255*y/80)+','+(120+y)+','+(200-y)+')';
+      ctx.fillRect(0,y,120,1);
+    }
+    return canvas.toDataURL('image/jpeg',0.88).split(',')[1];
+  }.toString()+')()');
+  const dragFile=join(profile,'r41-native-drop.jpg');
+  await writeFile(dragFile,Buffer.from(jpegBase64,'base64'));
+  const target=await evalChrome('('+function(){
+    const r=document.querySelector('#imageSelected').getBoundingClientRect();
+    return {x:r.left+r.width/2,y:r.top+r.height/2};
+  }.toString()+')()');
+  const dragData={items:[],files:[dragFile],dragOperationsMask:1};
+  for(const type of ['dragEnter','dragOver','drop'])
+    await call('Input.dispatchDragEvent',{type,x:target.x,y:target.y,data:dragData});
+  await poll('document.querySelector("#imageFileName").textContent==="r41-native-drop.jpg"',
+    'real Chromium filesystem drag/drop ingested');
+  await poll('document.querySelector("#pictureExample img")?.naturalWidth>0',
+    'native-dropped JPEG decoded');
+  await shot('r41-native-jpeg-drop-preview');
+  const draftAssets=await evalChrome('('+function(){
+    const assets=JSON.parse(localStorage.getItem('opendesk.prompt-shortcuts.preview.assets-r37'));
+    return Object.keys(assets);
+  }.toString()+')()');
+  assert(draftAssets.includes(uploadEvidence.id)&&draftAssets.length>=2,
+    'saved old asset remains while JPEG replacement is an uncommitted draft');
+  await click('#hostBack');
+  assert.equal(await evalChrome('!document.querySelector("#leaveConfirm").hidden'),true);
+  await click('#discardEditing');
+  assert.equal(await evalChrome('!document.querySelector("#toolListView").hidden'),true);
+  const afterDiscard=await evalChrome('('+function(){
+    const assets=JSON.parse(localStorage.getItem('opendesk.prompt-shortcuts.preview.assets-r37'));
+    const items=JSON.parse(localStorage.getItem('opendesk.prompt-shortcuts.preview.items-r3'));
+    return {ids:Object.keys(assets),saved:items[1].imageAssetId};
+  }.toString()+')()');
+  assert.deepEqual(afterDiscard.ids,[uploadEvidence.id],
+    'host back must clean temporary image without deleting the committed one');
+  assert.equal(afterDiscard.saved,uploadEvidence.id);
+  await click('#reopenTool');
+  await poll('document.querySelector("#pageRail .page-shortcut:nth-child(2) img")?.naturalWidth>0',
+    'saved picture survives aborted host exit');
+  report.r41DraftProtection={inactiveUrlGuard:true,realFilesystemJpegDrop:true,
+    hostDiscardClean:true,oldSavedAssetRetained:true};
   await click('#resetButton');
   await poll('document.querySelector("#pageRail img[data-preview-fixture]")?.naturalWidth>0','reset original fixtures');
   assert.equal(await evalChrome('localStorage.getItem("opendesk.prompt-shortcuts.preview.assets-r37")'),null);
