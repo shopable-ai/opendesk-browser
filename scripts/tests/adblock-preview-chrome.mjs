@@ -289,6 +289,48 @@ try{
         'global-disable-enable','site-exception','settings-back',
         'opaque-sandbox','offline-no-network','forged-review-ignored']});
   }
+  // R2.4: real pointer clicks into the compiled JSX and simulated target webpage.
+  {
+    const {ctx,built}=await open('success');
+    await poll(async()=>selected(await child(ctx),'全局广告拦截').selected,'picker ready');
+    await clickReact(SITE,ctx);
+    await poll(async()=>(await parent()).dialog,'filtering approval');
+    await clickOuter('#od-preview-adblock-restore-accept');
+    await poll(async()=>selected(await child(ctx),'当前网站广告过滤').selected,'site enabled');
+    const hidden=()=>evaluate('document.getElementById("promo-sidebar").classList.contains("is-hidden")');
+    const pick=async()=>{
+      await clickReact('.adblock-manual-actions button:first-child',ctx);
+      await poll(async()=>(await child(ctx)).text.includes('正在选择网页区域'),'picker active');
+      await clickOuter('#promo-sidebar');
+      await poll(hidden,'one-click hide');
+      await poll(async()=>(await child(ctx)).text.includes('已隐藏并保存'),'saved receipt');
+    };
+    await pick();
+    await clickReact('.adblock-pick-panel button',ctx);
+    await poll(async()=>!(await hidden()),'side panel undo');
+    await pick();
+    await clickReact('.adblock-manual-actions button:nth-child(2)',ctx);
+    const row='.adblock-rule:has(.adblock-selector[title="#promo-sidebar"])';
+    const found=()=>evaluate('Boolean(document.querySelector('+JSON.stringify(row)+'))',ctx);
+    await poll(found,'persistent history');
+    await poll(()=>evaluate('!document.querySelector('+JSON.stringify(row+' .adblock-rule-actions button:first-child')+').disabled',ctx),'history match count');
+    await clickReact(row+' .adblock-rule-actions button:first-child',ctx);
+    await poll(()=>evaluate('document.getElementById("promo-sidebar").classList.contains("is-located")'),'locate highlight');
+    await delay(2600);
+    await poll(hidden,'locate auto restores hide');
+    await clickReact(row+' .adblock-rule-actions button:nth-child(2)',ctx);
+    await poll(async()=>!(await hidden()),'temporarily visible');
+    await clickReact(row+' .adblock-rule-actions button:nth-child(2)',ctx);
+    await poll(hidden,'re-hidden');
+    await clickReact(row+' .adblock-rule-actions button:nth-child(4)',ctx);
+    await poll(async()=>!(await hidden()),'permanently restored');
+    await poll(async()=>!(await found()),'rule removed from history');
+    await screenshot('r24-picker-history');
+    offlineSafety();
+    report.push({scenario:'r24-picker-history',uiSha256:built.uiSha256,
+      checks:['one-click-hide','undo','history','locate','temporary-show',
+        're-hide','delete','offline']});
+  }
   // Browser-delivered external state change during an unconfirmed write.
   // The 8+ second wait is deliberate: a stale request must not target the
   // newly active site, even when the old preview confirmation remains open.
