@@ -142,6 +142,15 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
   return frame;
  }
  const page=await openTab(url);article=page.cdp;
+ const rangeSources=await Promise.all(['examples/shared/markdown/convert.js','examples/shared/markdown/selection.js',
+  'src/agents/context-menu-selection.js','tests/helpers/menu-selection-browser-cases.mjs',
+  'examples/sidebar-tools/web-markdown-clipper/src/index.html','examples/sidebar-tools/web-markdown-clipper/src/notes.js',
+  'examples/sidebar-tools/web-markdown-clipper/src/main.js'].map(path=>readFile(path,'utf8')));
+ const rangeChecks=await evalIn(article,'(()=>{const BROWSER_MENU_SELECTION_PROTOCOL="opendesk.browser.menu-selection.v1";'+
+  rangeSources.slice(0,4).map(source=>source.replace(/^import .*;\n/gm,'').replace(/\bexport /g,'')).join('\n')+
+  '\nreturn runMenuSelectionBrowserCases({cloneVisibleSelection,domToMarkdown,createMenuSelectionSnapshot,tool:'+
+  JSON.stringify({html:rangeSources[4],notes:rangeSources[5],main:rangeSources[6]})+'});})()');
+ assert.equal(rangeChecks.status,'PASS');
  console.log('R22_NATIVE_STAGE: fixture article tab opened');
  const extensionId=await until(async()=>{
   const items=(await browser.send('Target.getTargets')).targetInfos;

@@ -341,7 +341,7 @@ test('native menu ignores missing proof and same-URL replaced source documents',
   assert.equal(host.noteSourceContext({protocol:BROWSER_MENU_SOURCE_PROTOCOL,kind:'contextmenu'},
     {...authenticSender(api),documentId:undefined}),false);
 });
-test('Page relay only sends metadata on trusted contextmenu; no selection or URL is read',()=>{
+test('Page relay only sends metadata on trusted contextmenu; no page content is forwarded',()=>{
   const listeners=new Map(),messages=[];
   const window={
     addEventListener(type,fn){listeners.set(type,fn);},

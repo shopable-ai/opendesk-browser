@@ -48,9 +48,9 @@ function previewInline(text,parent){
 }
 function renderPreview(content){
  const lines=content.replace(/\r\n?/g,'\n').split('\n'),out=document.createDocumentFragment();
- let paragraph=[],code=null,codeFence='',list=null,quote=null,tableBody=null;
+ let paragraph=[],code=null,codeFence='',lists=[],quote=null,tableBody=null;
  const flush=()=>{if(paragraph.length){const p=previewNode('p');previewInline(paragraph.join(' '),p);out.append(p);paragraph=[];}};
- const end=()=>{flush();list=null;quote=null;tableBody=null;};
+ const end=()=>{flush();lists=[];quote=null;tableBody=null;};
  const cells=line=>line.replace(/^\||\|$/g,'').split(/(?<!\\)\|/).map(x=>x.trim().replace(/\\\|/g,'|'));
  const row=(tag,line,parent)=>{const tr=previewNode('tr');for(const value of cells(line).slice(0,24)){
   const td=previewNode(tag);previewInline(value,td);tr.append(td);
@@ -79,17 +79,27 @@ function renderPreview(content){
   if(heading){end();const h=previewNode('h'+heading[1].length);previewInline(heading[2],h);out.append(h);continue;}
   if(/^\s*(?:-{3,}|\*{3,}|_{3,})\s*$/.test(line)){end();out.append(previewNode('hr'));continue;}
   const quoted=line.match(/^>\s?(.*)$/);
-  if(quoted){flush();list=null;if(!quote){quote=previewNode('blockquote');out.append(quote);}
+  if(quoted){flush();lists=[];if(!quote){quote=previewNode('blockquote');out.append(quote);}
    if(quoted[1]){const p=previewNode('p');previewInline(quoted[1],p);quote.append(p);}continue;
   }
   quote=null;
   const item=line.match(/^(\s*)([-+*]|\d+\.)\s+(.+)$/);
   if(item){
    const type=item[2].endsWith('.')?'ol':'ul';
-   if(!list||list.tagName.toLowerCase()!==type){end();list=previewNode(type);out.append(list);}
-   const li=previewNode('li');previewInline(item[3],li);list.append(li);continue;
+   flush();
+   const indent=item[1].replace(/\t/g,'    ').length;
+   while(lists.length&&lists.at(-1).indent>indent)lists.pop();
+   if(lists.at(-1)?.indent===indent&&lists.at(-1).type!==type)lists.pop();
+   if(!lists.length||lists.at(-1).indent<indent){
+    const node=previewNode(type);
+    if(type==='ol')node.setAttribute('start',String(parseInt(item[2],10)));
+    const parent=lists.at(-1)?.last;
+    (parent||out).append(node);lists.push({indent,type,node,last:null});
+   }
+   const li=previewNode('li');previewInline(item[3],li);
+   lists.at(-1).node.append(li);lists.at(-1).last=li;continue;
   }
-  list=null;paragraph.push(line.trim());
+  lists=[];paragraph.push(line.trim());
  }
  if(code!==null){const pre=previewNode('pre');pre.append(previewNode('code',code.join('\n')));out.append(pre);}
  flush();display.replaceChildren(out);
@@ -225,10 +235,11 @@ async function receiveRightClick(){
   modes.forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.clipMode===mode)));
   q('clip-fetch').textContent='提取选中文字';
   q('clip-fetch').setAttribute('aria-label','提取选中文字');
-  record={markdown:launch.selection,title:url.hostname,site:url.hostname,
+  const rich=typeof launch.selectionMarkdown==='string'&&launch.selectionMarkdown.trim();
+  record={markdown:rich?launch.selectionMarkdown:launch.selection,title:url.hostname,site:url.hostname,
     source:url.href,capturedAt:new Date().toISOString()};
   q('clip-site').textContent=url.hostname;refresh();
-  say('已载入右键选中的文字，点击「保存摘录」即可保存。');
+  say(rich?'已载入右键选区及格式，点击「保存摘录」即可保存。':'已载入右键文字（未取得格式，可尝试「提取选中文字」），点击「保存摘录」即可保存。');
  }catch{/* Ordinary opening has no trusted right-click launch ticket. */}
 }
 root.addEventListener('opendesk-page-changed',()=>{

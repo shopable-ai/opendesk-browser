@@ -1,3 +1,4 @@
+import {createMenuSelectionSnapshot} from './context-menu-selection.js';
 import {decodeValue, encodeValue} from '../platform/page-port/codec.js';
 import {BROWSER_MENU_SOURCE_PROTOCOL} from '../framework/sdk/browser-contract.js';
 import {PROTOCOL, SDK_VERSION, SDK_LIMITS, SDK_REQUEST_EVENT, SDK_RESULT_EVENT, SDK_HELLO_EVENT, SDK_READY_EVENT,
@@ -7,8 +8,8 @@ import {projectFoundationError} from '../platform/protocol.js';
 
 export function installPageRelay({window = globalThis.window, api = globalThis.chrome, CustomEvent = globalThis.CustomEvent,
   clock = Date, setTimer = setTimeout, clearTimer = clearTimeout} = {}) {
-  const pending = new Map(); let disposed = false, suspended = false;
-  const counts = () => Object.freeze({pending: pending.size, timers: pending.size, subscriptions: disposed ? 0 : suspended ? 2 : 7, ports: 0, workers: 0, blobs: 0});
+  const pending = new Map(); let disposed = false, suspended = false, menuSelection=null;
+  const counts = () => Object.freeze({pending: pending.size, timers: pending.size+(menuSelection?.timerCount||0), subscriptions: disposed ? 0 : (suspended ? 2 : 7)+Number(Boolean(api.runtime.onMessage?.addListener)), ports: 0, workers: 0, blobs: 0});
   const resourceDiagnostics = () => Object.freeze({scope: 'relay.window', counts: counts(), observationMissing: null});
   const projectError = projectFoundationError;
   const publish = (type, requestId, response, helloId) => {
@@ -87,13 +88,20 @@ export function installPageRelay({window = globalThis.window, api = globalThis.c
       else if (id) publish(responseEvent, event.type === SDK_HELLO_EVENT ? undefined : id, response, helloId);
     }
   }
-  // A trusted native contextmenu event supplies only a document-identity
-  // observation. Never capture/send selection or page content at this stage.
-  // The Side Panel may consume text only after a real Chrome menu selection.
+  menuSelection=createMenuSelectionSnapshot({window,api,clock,setTimer,clearTimer});
+  const readMenuSelection=(message,sender,reply)=>{
+    const result=menuSelection.receive(message,sender);
+    if(result)reply(result);
+    return false;
+  };
+  api.runtime.onMessage?.addListener(readMenuSelection);
+  // Freeze only the selected visible DOM before the side panel changes focus.
+  // The source proof contains an opaque ID, never page text or Markdown.
   const onSourceContextMenu=event=>{
     if(disposed||suspended||event?.isTrusted!==true||!api.runtime?.sendMessage)return;
     try{
-      const pending=api.runtime.sendMessage({protocol:BROWSER_MENU_SOURCE_PROTOCOL,kind:'contextmenu'});
+      const snapshotId=menuSelection.capture();
+      const pending=api.runtime.sendMessage({protocol:BROWSER_MENU_SOURCE_PROTOCOL,kind:'contextmenu',...(snapshotId?{snapshotId}:{})});
       pending?.catch?.(()=>{}); // A worker suspension cannot turn this into a page error.
     }catch{/* Missing worker is fail-closed: no document proof will exist. */}
   };
@@ -103,7 +111,7 @@ export function installPageRelay({window = globalThis.window, api = globalThis.c
   };
   const onPageHide = event => {
     if(!event.persisted)return removeEventListeners();
-    suspended=true;cancelPending();
+    suspended=true;cancelPending();menuSelection.clear();
     events.forEach(type=>window.removeEventListener(type,messager));
     window.removeEventListener('contextmenu',onSourceContextMenu,true);
   };
@@ -116,6 +124,7 @@ export function installPageRelay({window = globalThis.window, api = globalThis.c
   const removeEventListeners = () => {
     if (disposed) return;
     disposed = true;
+    menuSelection.clear();api.runtime.onMessage?.removeListener(readMenuSelection);
     for (const [entry, digest] of pending) finish(entry, digest,
       {ok: false, error: {code: 'E_CANCELLED', message: 'Relay document closed'}});
     events.forEach(type => window.removeEventListener(type, messager));

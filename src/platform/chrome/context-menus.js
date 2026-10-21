@@ -37,7 +37,7 @@ function requireCompleteInstalledSidebarTools(rows){
     seen.add(tool.id);return tool;
   });
 }
-import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_SOURCE_PROTOCOL,BROWSER_MENU_ROOT,BROWSER_MENU_GRANTS_STORE,
+import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_SOURCE_PROTOCOL,BROWSER_MENU_SELECTION_PROTOCOL,BROWSER_MENU_ROOT,BROWSER_MENU_GRANTS_STORE,
   BROWSER_MENU_MATERIALIZED_STORE,BROWSER_MENU_LAUNCH_STORE,
   BROWSER_API_VERSION,BROWSER_OPERATIONS,browserCapabilityList,browserOperation,
   deniedBrowserStatus,normalizeBrowserOperation} from '../../framework/sdk/browser-contract.js';
@@ -477,10 +477,11 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   }
 
   const SOURCE_PROOF_LIFETIME_MS=60000;
-  // Content scripts send no selected text: only Chrome's native sender exposes
+  // Source proofs send no selected text: only Chrome's native sender exposes
   // the real tab/frame/document of a trusted right-click gesture.
   function validatedSourceIdentity(message,sender){
-    if(!message||Object.keys(message).sort().join(',')!=='kind,protocol'||
+    if(!message||!['kind,protocol','kind,protocol,snapshotId'].includes(Object.keys(message).sort().join(','))||
+       message.snapshotId!==undefined&&(typeof message.snapshotId!=='string'||!/^[0-9a-f]{32}$/i.test(message.snapshotId))||
        message.protocol!==BROWSER_MENU_SOURCE_PROTOCOL||message.kind!=='contextmenu'||
        sender?.id!==api.runtime?.id||sender?.tab?.incognito||
        !Number.isSafeInteger(sender?.tab?.id)||sender.tab.id<0||
@@ -491,7 +492,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     if(!url)return null;
     return {key:epochKey(sender.tab.id,sender.frameId),origin:url.origin,
       tabId:sender.tab.id,frameId:sender.frameId,documentId:sender.documentId,
-      at:Date.now(),epoch:captureEpoch(sender.tab.id,sender.frameId)};
+      at:Date.now(),epoch:captureEpoch(sender.tab.id,sender.frameId),snapshotId:message.snapshotId??null};
   }
   function noteSourceContext(message,sender){
     const source=validatedSourceIdentity(message,sender);
@@ -499,7 +500,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     pendingSourceContexts.delete(source.key);
     recentSourceContexts.set(source.key,{
       tabId:source.tabId,frameId:source.frameId,
-      documentId:source.documentId,origin:source.origin,at:source.at});
+      documentId:source.documentId,origin:source.origin,at:source.at,snapshotId:source.snapshotId});
     if(recentSourceContexts.size>128)
       recentSourceContexts.delete(recentSourceContexts.keys().next().value);
     return true;
@@ -530,7 +531,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
          captureEpoch(source.tabId,source.frameId)!==source.epoch)return false;
       recentSourceContexts.set(source.key,{
         tabId:source.tabId,frameId:source.frameId,
-        documentId:source.documentId,origin:source.origin,at:source.at});
+        documentId:source.documentId,origin:source.origin,at:source.at,snapshotId:source.snapshotId});
       return true;
     })();
     pendingSourceContexts.set(source.key,promise);
@@ -1030,12 +1031,12 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(!current?.documentId||current.documentId!==row.documentId||current.url!==row.url)
           throw failure('E_DOCUMENT_CHANGED','Clicked document was replaced; selection discarded');
         if(!validLaunch(row))throw failure('E_LAUNCH_EXPIRED','Menu launch expired during validation');
-        const next={...source,[toolId]:{...row,state:'consumed',selection:null,consumedAt:Date.now()}};
+        const next={...source,[toolId]:{...row,state:'consumed',selection:null,selectionMarkdown:null,consumedAt:Date.now()}};
         await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,next);
         if(!validLaunch(row))throw failure('E_LAUNCH_EXPIRED','Menu launch expired before delivery');
         return {ticketId:row.ticketId,toolId,actionId:row.actionId,source:{
           url:row.url,origin:row.origin,tabRef:row.tabRef},
-          selection:row.selection,linkUrl:row.linkUrl??null,expiresAt:row.expiresAt};
+          selection:row.selection,selectionMarkdown:row.selectionMarkdown??null,linkUrl:row.linkUrl??null,expiresAt:row.expiresAt};
       }
       throw failure('E_SERVICE_UNSUPPORTED','Browser operation is not available to installed tools');
     }));
@@ -1354,12 +1355,23 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
        (before.documentLifecycle&&before.documentLifecycle!=='active'))return;
     const selection=typeof info.selectionText==='string'&&jsonBytes(info.selectionText)<=MAX_SELECTION?
       info.selectionText:null;
+    // Only after menu/site/document admission request the contextmenu-time
+    // snapshot from that exact Chrome document, never the now-focused selection.
+    let selectionMarkdown=null;
+    if(selection&&sourceDocument.snapshotId&&api.tabs?.sendMessage){
+      try{
+        const rich=await api.tabs.sendMessage(tab.id,{protocol:BROWSER_MENU_SELECTION_PROTOCOL,
+          snapshotId:sourceDocument.snapshotId,url,selection},{frameId,documentId:before.documentId});
+        if(rich?.snapshotId===sourceDocument.snapshotId&&typeof rich.markdown==='string'&&
+          rich.markdown.trim()&&jsonBytes(rich.markdown)<=MAX_SELECTION)selectionMarkdown=rich.markdown;
+      }catch{/* Old content script or expired snapshot: retain explicit plain-text fallback. */}
+    }
     // A missing / replaced document cannot be treated as the clicked selection.
     const after=await api.webNavigation.getFrame({tabId:tab.id,frameId});
     if(after?.documentId!==before.documentId||after?.url!==before.url||captureEpoch(tab.id,frameId)!==clickEpoch)return;
     const row={ticketId:crypto.randomUUID(),toolId,actionId,issuedAt:start,expiresAt:start+LIFETIME,
       windowId:tab.windowId,tabId:tab.id,tabRef:'clicked:'+crypto.randomUUID(),frameId,
-      documentId:sourceDocument.documentId,url,origin:parsed.origin,selection,
+      documentId:sourceDocument.documentId,url,origin:parsed.origin,selection,selectionMarkdown,
       linkUrl:parsedHttp(info.linkUrl)?.href||null,
       packageHash:await digestTool(tool),version:tool.version,
       installEpoch:source.epochs[toolId]??null,state:'pending',boundTo:null};
@@ -1432,7 +1444,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     const next={...rows},invalidated=[];
     for(const [id,row] of Object.entries(rows)){
       if(row.tabId===tabId&&(frameId===0||row.frameId===frameId)){
-        next[id]={...row,state:'invalidated',selection:null,linkUrl:null};
+        next[id]={...row,state:'invalidated',selection:null,selectionMarkdown:null,linkUrl:null};
         invalidated.push(id);
       }
     }

@@ -11,6 +11,7 @@ const DIRECT_APPROVED_METHODS=new Set(APPROVED_BROWSER_DIRECT_BINDINGS.map(row=>
 const COMPILED_SERVICE_METHODS=new Set(APPROVED_BROWSER_SCOPED_BINDINGS.map(row=>row.operation));
 export const BROWSER_API_VERSION='1.0.0';
 export const BROWSER_HOST_PROTOCOL='opendesk.browser.v1';
+export const BROWSER_MENU_SELECTION_PROTOCOL='opendesk.browser.menu-selection.v1';
 export const BROWSER_MENU_SOURCE_PROTOCOL='opendesk.browser.source-context.v1';
 export const BROWSER_MENU_GRANTS_STORE='opendesk.browser.context-menu-grants.v1';
 // Per-installed-tool bookmark ownership metadata; never exposed through SDK storage.

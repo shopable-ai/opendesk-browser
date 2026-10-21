@@ -1,6 +1,6 @@
 # 网页剪藏 Web Markdown Clipper · R1.7.5-LOCAL
 
-> 工具源码版本 1.1.4（深色搜索提示复用可读次要文字色；鲜读备份使用一次点击的异步准备入口；正式安装须通过唯一 JSON 包的候选测试与晋升），非独立 React 应用。复用已有 Browser SDK、可信 Host、工具隔离 UI 和原生本地存储。
+> 工具源码版本 1.1.5（右键富选区、块内语义保留与嵌套列表预览；正式安装须通过唯一 JSON 包的候选测试与晋升），非独立 React 应用。复用已有 Browser SDK、可信 Host、工具隔离 UI 和原生本地存储。
 
 ## 普通用户怎么用？
 
@@ -9,6 +9,10 @@
 首次使用：从 OpenDesk Browser 侧栏「扩展」安装「网页剪藏」，完成能力审阅后直接打开并点击提取，无需在工具设置里逐站授权。声明的右键菜单同样复用安装审阅；真正缺失 Chrome 右键菜单权限时才需要批准浏览器请求。设置仅用于主动停用或恢复某个网站。右键当前使用已有的 open-self：打开本工具，安全预填一次性选区，再由用户点击「保存摘录」，不会后台静默保存。此规则由新版扩展框架实现，单独重导入旧工具 JSON 不会升级宿主权限策略。
 
 备用流程：网页选中文字 → 侧栏选择「选区」→「提取选中文字」→「保存摘录」。
+
+1.1.5 优先展示同次右键选区的 Markdown，保留标题层级、普通/有序/嵌套列表及已有链接、强调、代码语义。局部选区只包含选中的字符；保存仍需点击，原有短摘录配额不变。需要同时更新可信扩展框架（日常固定 `dist/development`）；只导入 JSON 无法让旧宿主提供富选区。未取得格式时会明确提示，可保持网页选区后使用备用提取入口。已有同 ID 工具直接导入更新，勿卸载清数据。
+
+本次通用 SDK 缺口已由源码及组件复现证明：原 `launch.consume()` 只有 Chrome `selectionText`，不含 DOM，工具沙箱无法恢复标题/列表，也无法在打开侧栏后可靠找回原选区。最小公共扩展为同一 ticket 的可空 `selectionMarkdown`，由通用 Content 快照与原菜单 Host 提供，供任何已批准菜单工具使用，无 ChatGPT 分支或新增权限/依赖。复用共用转换器及可见 Range 克隆，保留安装身份、精确文档/URL、一次消费、导航/撤权与原限额。API 合同见 [Browser SDK](../../../docs/api/browser-sdk.zh-CN.md)。真实用户 ChatGPT 右键→预览→保存重开尚未实测，标记 `NOT_TESTED`；DOM/Range、Host 与存储组件证据不能替代该结论。
 
 日常功能：默认提取文章；保留文章/选区/引用/链接及 Markdown 预览，复制和 .md 下载；「我的摘录」提供搜索、查看、修改、复制、删除；「新建便签」只要求正文，不伪造网页来源。普通操作不重复弹窗。
 
@@ -54,7 +58,7 @@ node scripts/app-ci.mjs node web-markdown-clipper
 
 正式验收在独立 Chrome Profile 加载已验证的 production 静态包；日常开发继续使用已有 watcher 的 dist/development。可导入的正式工具包只有本目录中的 `web-markdown-clipper.opendesk-tool.json`，与源码一起提交。临时候选先输出到 `artifacts/sidebar-tools/web-markdown-clipper/candidate.opendesk-tool.json`，受影响测试通过后由同一打包器 `--promote-from` 晋升，再执行 `--check-project`；不得覆盖已经发布的同版本内容。
 
-真实验收须分别检查：右键菜单逐站启用、选区与文档身份证明、保存后 Side Panel 重开和 Chrome 重启读回、系统剪贴板 pbpaste、下载文件实际 SHA-256、卸载前 JSON 备份。HTML/Node 的模拟测试不能冒充这些结果。
+正式验收须分别检查：安装审阅后右键直接可用、主动停用/恢复、选区与文档身份证明、保存后 Side Panel 重开和 Chrome 重启读回、系统剪贴板 pbpaste、下载文件实际 SHA-256、卸载前 JSON 备份。HTML/Node 的模拟测试不能冒充这些结果；本次开发仅执行受影响的定向验证。
 
 ## 边界与安全
 

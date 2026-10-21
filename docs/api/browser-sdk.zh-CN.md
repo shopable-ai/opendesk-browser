@@ -129,7 +129,7 @@ OpenDeskSDK
 | `contextMenu.getStatus` | `{}` | `{enabled,approvedOrigins,activeActions,browserPermission}` | v2 菜单工具 |
 | `contextMenu.register` | `{actionIds:string[]}` | `{registered,actionIds}` | 只激活已声明的 actionIds，先在详情批准当前网站 |
 | `contextMenu.unregister` | `{}` | `{registered:false,actionIds:[]}` | 只停用该工具菜单 |
-| `launch.consume` | `{}` | `{ticketId,toolId,actionId,source,selection,linkUrl,expiresAt}` | 60 秒、单次、安装包/实例/文档校验 |
+| `launch.consume` | `{}` | `{ticketId,toolId,actionId,source,selection,selectionMarkdown,linkUrl,expiresAt}` | 60 秒、单次、安装包/实例/文档校验 |
 | `page.getContext` | `{}` | `currentPage.info 同形结果` | 复用现有 currentPage.read |
 | `page.getSelection` | `{}` | `同 launch.consume` | 从一次性右键上下文读取；消耗同一 ticket |
 | `clipboard.writeText` | `text:string` | `{copied:true}` | 映射旧 clipboard.writeText；需要前台 Clipboard API |
@@ -151,8 +151,11 @@ if (!menu.callableNow) {
   await OpenDeskSDK.browser.contextMenu.register({actionIds:['capture-selection']});
 }
 const clicked = await OpenDeskSDK.browser.launch.consume(); // 只有当次菜单打开的工具可领取
-// 此处展示 clicked.selection；是否持久保存仍由用户点击确认
+// selection 保留 Chrome 原始文字；selectionMarkdown 是同次选区的 Markdown 或 null。
+// 此处展示 clicked.selectionMarkdown ?? clicked.selection；是否持久保存仍由用户点击确认
 ```
+
+富选区与普通文本共用同一 ticket。可信 Content 在真实 `contextmenu` 时仅在隔离世界暂存所选可见 DOM，来源证明只发送不含正文的快照 ID；只有真实菜单点击经现有工具、网站、安装与文档校验后，SW 才向精确 `documentId` 领取。快照同时绑定 URL、ID、Chrome 点击文字和 60 秒期限，单次领取，页面离开/BFCache 暂停时清除；不会在打开侧栏后重新读取已变化的选区或整页。Markdown 与原文字分别沿用 16 KiB JSON 字节上限，整个上下文沿用 64 KiB。旧 Content、无快照或超限时 `selectionMarkdown` 为 null，消费者应提示格式未取得；不会截断或增加存储额度。纯工具 JSON 无法更新这段可信框架逻辑。
 
 ```js
 // 兼容旧层：不改变底层请求协议

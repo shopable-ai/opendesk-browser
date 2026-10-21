@@ -341,7 +341,7 @@
 
 ## OpenDeskSDK.browser.launch.consume
 
-- Signature: `(input?: {  }) => Promise<{ readonly actionId: string; readonly expiresAt: number; readonly linkUrl?: string | null; readonly selection: string; readonly source: {  }; readonly ticketId: string; readonly toolId: string; }>`
+- Signature: `(input?: {  }) => Promise<{ readonly actionId: string; readonly expiresAt: number; readonly linkUrl?: string | null; readonly selection: string; readonly selectionMarkdown?: string | null; readonly source: {  }; readonly ticketId: string; readonly toolId: string; }>`
 - Mode: EXISTING_SERVICE; native: `chrome.contextMenus.onClicked`, `chrome.webNavigation.getFrame`
 - Capabilities: `browser.contextMenu`; Chrome permissions: none
 - Scope: clicked-document; user gesture: not required
@@ -413,7 +413,7 @@
 
 ## OpenDeskSDK.browser.page.getSelection
 
-- Signature: `(input?: {  }) => Promise<{ readonly selection: string; readonly ticketId: string; }>`
+- Signature: `(input?: {  }) => Promise<{ readonly selection: string; readonly selectionMarkdown?: string | null; readonly ticketId: string; }>`
 - Mode: EXISTING_SERVICE; native: `chrome.contextMenus.onClicked`
 - Capabilities: `browser.contextMenu`; Chrome permissions: none
 - Scope: clicked-document; user gesture: not required

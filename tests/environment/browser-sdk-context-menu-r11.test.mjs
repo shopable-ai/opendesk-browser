@@ -6,7 +6,7 @@ import {sidebarToolPackageHash,validateSidebarToolPackage} from '../../src/ui/si
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {BROWSER_MENU_ROOT,BROWSER_MENU_GRANTS_STORE,BROWSER_MENU_MATERIALIZED_STORE}
   from '../../src/framework/sdk/browser-contract.js';
-import {BROWSER_MENU_LAUNCH_STORE,BROWSER_MENU_SOURCE_PROTOCOL} from '../../src/framework/sdk/browser-contract.js';
+import {BROWSER_MENU_LAUNCH_STORE,BROWSER_MENU_SOURCE_PROTOCOL,BROWSER_MENU_SELECTION_PROTOCOL} from '../../src/framework/sdk/browser-contract.js';
 import {installReviewedSidebarTool,setInstalledSidebarToolEnabled,TOOL_REVOCATION_EPOCHS_STORE}
   from '../../src/ui/sidebar-tools/installation.js';
 
@@ -95,6 +95,57 @@ const menuCall=async(f,host,operation,args={})=>host.handleTool({operation,args,
   toolId:f.tool.id,toolVersion:f.tool.version,packageHash:await sidebarToolPackageHash(f.tool),
   installEpoch:f.local.get(TOOL_REVOCATION_EPOCHS_STORE)?.[f.tool.id]??null,
   toolInstance:instance,hostInstanceId:instance},hostSender);
+
+test('rich selection is fetched only after a verified native click and consumed with the same ticket',async()=>{
+  for(const warm of [false,true]){
+    const f=await fixture(),host=f.host(),url='https://example.com/post';
+    const snapshotId=crypto.randomUUID().replaceAll('-',''),calls=[];
+    f.api.webNavigation.getFrame=async()=>({url,documentId:'source-doc',documentLifecycle:'active'});
+    f.api.tabs={sendMessage:async(...args)=>{calls.push(args);return {snapshotId,markdown:'## Heading\n\n- First\n  - Nested\n'};}};
+    if(warm)await host.synchronize();
+    assert.equal(host.receiveSourceContext({protocol:BROWSER_MENU_SOURCE_PROTOCOL,kind:'contextmenu',snapshotId},
+      {id:'menu-test',tab:{id:9},frameId:0,documentId:'source-doc',url}),true);
+    assert.equal(calls.length,0,'source proof never sends page content');
+    host.onClicked({menuItemId:toolId,pageUrl:url,frameId:0,selectionText:'Heading First Nested'},
+      {id:9,windowId:2,url,incognito:false});
+    await host.synchronize();
+    assert.deepEqual(calls,[[9,{protocol:BROWSER_MENU_SELECTION_PROTOCOL,snapshotId,url,selection:'Heading First Nested'},
+      {frameId:0,documentId:'source-doc'}]]);
+    const row=f.session.get(BROWSER_MENU_LAUNCH_STORE)[f.tool.id];
+    await host.handleHost({operation:'browser.launch.bind',toolId:f.tool.id,launchId:row.ticketId,
+      toolInstance:instance,hostInstanceId:instance},hostSender);
+    const result=await menuCall(f,host,'browser.launch.consume');
+    assert.equal(result.selectionMarkdown,'## Heading\n\n- First\n  - Nested\n');
+    assert.equal(result.selection,'Heading First Nested','existing text consumers keep their field');
+    assert.equal(f.session.get(BROWSER_MENU_LAUNCH_STORE)[f.tool.id].selectionMarkdown,null);
+    await assert.rejects(menuCall(f,host,'browser.launch.consume'),{code:'E_LAUNCH_EXPIRED'});
+  }
+});
+
+test('rich selection rejects stale documents, revocation and unbounded or mismatched replies',async()=>{
+  for(const mode of ['navigate','revoke','permission','wrong-snapshot','oversize','missing']){
+    const f=await fixture(),host=f.host(),url='https://example.com/post';
+    const snapshotId=crypto.randomUUID().replaceAll('-','');let documentId='source-doc';
+    f.api.webNavigation.getFrame=async()=>({url,documentId});
+    f.api.tabs={sendMessage:async()=>{
+      if(mode==='navigate')documentId='new-doc';
+      if(mode==='revoke')f.local.set(TOOL_REVOCATION_EPOCHS_STORE,{[f.tool.id]:'revoked'});
+      if(mode==='permission')f.setPermission(false);
+      if(mode==='missing')throw Error('old content script');
+      return {snapshotId:mode==='wrong-snapshot'?'wrong':snapshotId,
+        markdown:mode==='oversize'?'x'.repeat(16385):'## Selected\n'};
+    }};
+    await host.synchronize();
+    host.receiveSourceContext({protocol:BROWSER_MENU_SOURCE_PROTOCOL,kind:'contextmenu',snapshotId},
+      {id:'menu-test',tab:{id:9},frameId:0,documentId:'source-doc',url});
+    host.onClicked({menuItemId:toolId,pageUrl:url,frameId:0,selectionText:'Selected'},
+      {id:9,windowId:2,url,incognito:false});
+    await host.synchronize();
+    const row=f.session.get(BROWSER_MENU_LAUNCH_STORE)?.[f.tool.id];
+    if(['navigate','revoke','permission'].includes(mode))assert.equal(row,undefined,mode);
+    else{assert.equal(row.selectionMarkdown,null,mode);assert.equal(row.selection,'Selected');}
+  }
+});
 
 test('legacy positive menu grants reuse installation approval on other declared sites',async()=>{
   const f=await fixture();

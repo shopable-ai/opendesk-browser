@@ -31,6 +31,16 @@ function fixture(){
   now:()=> '2026-10-20T02:30:00.000Z'});
  return {create,request,read:()=>value,setMode:m=>mode=m,get writes(){return writes;}};
 }
+test('formatted selection survives save, reopen and edit without flattening Markdown',async()=>{
+ const f=fixture(),store=f.create('clip-formatted-111111');
+ const body='## Selected heading\n\n- First\n  - Nested\n\n3. Ordered\n\n**Bold** and `code()`\n';
+ const saved=await store.save({kind:'clip',source:'https://example.com/post',body});
+ const reopened=f.create('clip-formatted-222222');
+ const item=(await reopened.read()).data.items[0];
+ assert.equal(item.body,body);assert.equal(item.id,saved.item.id);
+ await reopened.edit(item.id,item,body+'\nMore text\n');
+ assert.equal((await store.read()).data.items[0].body,body+'\nMore text\n');
+});
 test('short selection persists after fresh store instance and deduplicates exact source and body',async()=>{
  const f=fixture(),a=f.create('clip-example-111111');
  const first=await a.save({kind:'clip',source:'https://example.com/page',body:'一句 **引用**'});

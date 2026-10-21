@@ -4,48 +4,8 @@ import {isSidebarToolHostSender} from '../../../../src/sidebar-tools/sender.js';
 import {CLIP_SITE_STORE,CLIP_PROTOCOL,CLIP_OPERATIONS,clipGrantAllowed} from './policy.js';
 import {chooseArticle,domToMarkdown,safeClipSource} from '../../../shared/markdown/convert.js';
 
-// Build selected content from connected nodes: Range.cloneContents() loses
-// stylesheet visibility and can inadvertently export hidden page text.
-export function cloneVisibleSelection(range,doc,win){
-  const fragment=doc.createDocumentFragment();
-  let visited=0;
-  const hidden=element=>{
-    if(element.hidden||element.inert||element.getAttribute('aria-hidden')==='true')return true;
-    const style=win.getComputedStyle(element);
-    return style.display==='none'||style.visibility==='hidden'||style.visibility==='collapse'||style.contentVisibility==='hidden';
-  };
-  const root=range.commonAncestorContainer;
-  for(let ancestor=root.nodeType===1?root:root.parentElement;ancestor;ancestor=ancestor.parentElement){
-    if(hidden(ancestor))throw new Error('选区没有可剪藏的可见内容');
-  }
-  const visit=node=>{
-    if(++visited>9000)throw new Error('选区结构超过处理上限，请缩小范围');
-    if(!range.intersectsNode(node))return null;
-    if(node.nodeType===3){
-      const start=node===range.startContainer?range.startOffset:0;
-      const end=node===range.endContainer?range.endOffset:node.nodeValue.length;
-      return start<end?doc.createTextNode(node.nodeValue.slice(start,end)):null;
-    }
-    if(node.nodeType!==1||hidden(node))return null;
-    const copy=node.cloneNode(false);
-    for(const child of node.childNodes){
-      if(!range.intersectsNode(child))continue;
-      const selected=visit(child);
-      if(selected)copy.appendChild(selected);
-    }
-    return copy.childNodes.length||['IMG','BR','HR'].includes(node.tagName)?copy:null;
-  };
-  if(root.nodeType===3){
-    const selected=visit(root);if(selected)fragment.appendChild(selected);
-  }else{
-    for(const child of root.childNodes){
-      if(!range.intersectsNode(child))continue;
-      const selected=visit(child);
-      if(selected)fragment.appendChild(selected);
-    }
-  }
-  return fragment;
-}
+import {cloneVisibleSelection} from '../../../shared/markdown/selection.js';
+export {cloneVisibleSelection} from '../../../shared/markdown/selection.js';
 
 export function initPageClip({api=globalThis.chrome,doc=globalThis.document,win=globalThis.window}={}){
   if(!api?.runtime?.onMessage||!api?.storage?.local||!doc||!win||win.top!==win)return null;

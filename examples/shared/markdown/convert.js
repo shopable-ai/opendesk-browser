@@ -111,20 +111,20 @@ function renderTable(node,state){
   return '| '+lines[0]+' |\n| '+Array(cols).fill('---').join(' | ')+' |\n'+
     lines.slice(1).map(l=>'| '+l+' |').join('\n')+'\n\n';
 }
-function renderList(node,state,depth){
+function renderList(node,state,depth,indent=''){
   if(depth>6)throw new Error('列表嵌套过深');
   const ordered=node.tagName==='OL',start=Number(node.getAttribute('start')||1);
   return [...node.children].filter(c=>c.tagName==='LI').map((li,i)=>{
     let value='',nested='';
+    const prefix=(ordered?String((Number.isInteger(start)?start:1)+i)+'.':'-')+' ';
     for(const child of li.childNodes){
-      if(child.nodeType===1&&['UL','OL'].includes(child.tagName))nested+=renderList(child,state,depth+1);
+      if(child.nodeType===1&&['UL','OL'].includes(child.tagName))nested+=renderList(child,state,depth+1,indent+' '.repeat(prefix.length));
       else if(child.nodeType===1&&BLOCK.has(child.tagName)&&child.tagName!=='DIV')value+=renderBlock(child,state,depth+1).trim();
       else value+=inline(child,state);
     }
     const check=li.querySelector(':scope > input[type="checkbox"]');
-    const prefix=(ordered?String((Number.isInteger(start)?start:1)+i)+'.':'-')+' ';
     const checkbox=check?'['+(check.checked?'x':' ')+'] ':'';
-    return '  '.repeat(depth)+prefix+checkbox+squeeze(value)+(nested?'\n'+nested.trimEnd():'');
+    return indent+prefix+checkbox+squeeze(value)+(nested?'\n'+nested.trimEnd():'');
   }).join('\n')+'\n\n';
 }
 function renderBlock(node,state,depth=0){

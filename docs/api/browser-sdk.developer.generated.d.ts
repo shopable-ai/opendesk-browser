@@ -65,7 +65,7 @@ export interface OpenDeskBrowserSdk {
     readonly getAcceptLanguages: (input?: {  }) => Promise<Array<string>>;
   };
   readonly launch: {
-    readonly consume: (input?: {  }) => Promise<{ readonly actionId: string; readonly expiresAt: number; readonly linkUrl?: string | null; readonly selection: string; readonly source: {  }; readonly ticketId: string; readonly toolId: string; }>;
+    readonly consume: (input?: {  }) => Promise<{ readonly actionId: string; readonly expiresAt: number; readonly linkUrl?: string | null; readonly selection: string; readonly selectionMarkdown?: string | null; readonly source: {  }; readonly ticketId: string; readonly toolId: string; }>;
   };
   readonly network: {
     readonly observe: {
@@ -82,7 +82,7 @@ export interface OpenDeskBrowserSdk {
   };
   readonly page: {
     readonly getContext: (input?: {  }) => Promise<{ readonly documentRef?: string; readonly message?: string; readonly status: "available" | "unavailable"; readonly tabRef?: string; readonly title?: string; readonly url?: string; }>;
-    readonly getSelection: (input?: {  }) => Promise<{ readonly selection: string; readonly ticketId: string; }>;
+    readonly getSelection: (input?: {  }) => Promise<{ readonly selection: string; readonly selectionMarkdown?: string | null; readonly ticketId: string; }>;
   };
   readonly proxy: {
     readonly managed: {

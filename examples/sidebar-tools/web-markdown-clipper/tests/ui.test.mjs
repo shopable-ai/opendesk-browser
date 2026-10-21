@@ -188,6 +188,25 @@ function previewTags(node,found=[]){
  for(const child of node?.children||[])previewTags(child,found);
  return found;
 }
+test('right-click Markdown reaches source, nested semantic preview and save draft',async()=>{
+ let draft=null;
+ const markdown='## Selected heading\n\n3. Ordered\n   - Nested\n4. Next\n';
+ const {nodes}=mounted({notesFactory:()=>({setClip:value=>{draft=value;}}),
+  launch:async()=>({toolId:'web-markdown-clipper',actionId:'save-selection',
+   selection:'Selected heading Ordered Nested Next',selectionMarkdown:markdown,
+   source:{url:'https://example.com/post'},expiresAt:Date.now()+60000})});
+ await Promise.resolve();await Promise.resolve();await Promise.resolve();
+ assert.equal(nodes['clip-source'].value,markdown);
+ assert.equal(draft.body,markdown);
+ const tags=previewTags(nodes['clip-preview']);
+ assert.equal(tags.find(n=>n.tagName==='H2').children[0].textContent,'Selected heading');
+ const ol=tags.find(n=>n.tagName==='OL');
+ assert.equal(ol.start,'3');assert.equal(ol.children.length,2);
+ const nested=ol.children[0].children.find(n=>n.tagName==='UL');
+ assert.ok(nested,'nested list belongs to the parent list item');
+ assert.equal(nested.children[0].children[0].textContent,'Nested');
+ assert.match(nodes['clip-status'].textContent,/选区及格式/);
+});
 test('formal read-only preview renders Markdown structure without injecting webpage HTML',async()=>{
  const fence=String.fromCharCode(96).repeat(3);
  const sample=[
