@@ -19,6 +19,8 @@ const inputs=[
   'src/ui/design-system.css',
   'src/ui/tool-shell.css',
   'src/ui/react/preview/workflow-preview.tsx',
+  'src/ui/react/app-shell.tsx',
+  'src/ui/workflow/workflow-ui-state.js',
   'src/ui/react/tabs/workflow.tsx',
   'src/ui/react/components/conversation.tsx',
   'src/ui/react/main.tsx',
@@ -38,19 +40,16 @@ export async function generateWorkflowReactPreview(){
   const workflow=$('#workbench-workflow');
   must(nav.length===1&&workflow.length===1,'installed Side Panel navigation/Workflow DOM not found');
   for(const id of ['workflow-editor','workflow-ai-transcript','workflow-provider-settings',
-    'workflow-settings-react-host','workflow-ai-request','workflow-provider-toggle']){
+    'workflow-sheet-title','workflow-history-panel','workflow-ai-request',
+    'workflow-provider-toggle','workflow-local-status-detail']){
     must(workflow.find('#'+id).length===1,'real DOM element missing '+id);
   }
   must(workflow.find('.workflow-head-actions').length===1,'React header target missing');
-  nav.find('button').each((_,node)=>{
-    const el=$(node),active=el.attr('id')==='tab-workflow';
-    el.attr('aria-selected',String(active)).attr('tabindex',active?'0':'-1');
-    if(!active)el.attr('aria-disabled','true').attr('disabled','');
-  });
-  workflow.removeAttr('hidden');
+  // Validate the installed JSX SSR, but mount the installed SidebarAppShell
+  // through mountSidebarApp rather than portalling into its already-owned DOM.
+  // One product React root renders navigation, WorkflowPage and its settings.
   const actualDom='<div id="od-workflow-preview-stage" class="od-workflow-preview-stage"'+
-    ' style="width:360px">'+nav.toString()+
-    '<main id="workspace-content">'+workflow.toString()+'</main></div>';
+    ' data-preview-theme="light" style="width:360px"><div id="opendesk-react-app"></div></div>';
   const officialCss=bytes.slice(1,4).map(b=>b.toString('utf8')).join('\n');
   must(!/<\/style/i.test(officialCss),'CSS contains a style-closing token');
   const temp=await mkdtemp(join(tmpdir(),'opendesk-workflow-react-'));
@@ -87,10 +86,29 @@ export async function generateWorkflowReactPreview(){
       // In the real extension the Side Panel IS the viewport. Here the
       // external 360px review frame must bound the unchanged modal.
       '.od-workflow-preview-stage .workflow-sheet-overlay{position:absolute}',
-      '.od-workflow-preview-stage>.workbench-nav{flex:0 0 auto}',
-      '.od-workflow-preview-stage>#workspace-content{flex:1;min-height:0;'+
+      '.od-workflow-preview-stage #opendesk-react-app{height:100%;min-height:0;'+
+        'display:flex;flex-direction:column;overflow:hidden}',
+      '.od-workflow-preview-stage .workbench-nav{flex:0 0 auto}',
+      '.od-workflow-preview-stage #workspace-content{flex:1;min-height:0;'+
         'max-width:none;width:100%;overflow:hidden}',
       '.od-workflow-preview-stage #workbench-workflow{height:100%;min-height:0}',
+      // Only review controls override tokens; production components use the
+      // unchanged official design system. Dark values reuse its dark palette.
+      '.od-workflow-preview-stage[data-preview-theme="dark"]{'+
+        '--od-ink:var(--od-dark-ink);--od-sub:var(--od-dark-sub);'+
+        '--od-line:var(--od-dark-line);--od-brand:var(--od-dark-brand);'+
+        '--od-paper:var(--od-dark-paper);--od-bg:var(--od-dark-bg);'+
+        '--od-input-border:var(--od-dark-input-border);--od-focus:var(--od-dark-accent-ink);'+
+        '--od-positive:var(--od-dark-positive);--od-negative:var(--od-dark-negative);'+
+        '--od-muted:var(--od-dark-muted);--od-accent-ink:var(--od-dark-accent-ink);'+
+        '--od-nav-active:var(--od-dark-accent-ink);--od-warning-bg:#392d21;'+
+        '--od-warning-border:#8b6841;--od-warning-ink:#f6dca8}',
+      '.od-workflow-preview-stage[data-preview-theme="light"]{'+
+        '--od-ink:#1b2c49;--od-sub:#53647e;--od-line:#e1e8f1;--od-brand:#365eda;'+
+        '--od-paper:#fff;--od-bg:#f5f7fb;--od-input-border:#7f8da1;'+
+        '--od-focus:#365eda;--od-positive:#117a5d;--od-negative:#ae3d4b;'+
+        '--od-muted:#f5f7fb;--od-accent-ink:#365eda;--od-nav-active:#365eda;'+
+        '--od-warning-bg:#fff9ec;--od-warning-border:#dcc58a;--od-warning-ink:#76501b}',
       '.od-workflow-preview-footer{text-align:center;padding:0 10px 12px;'+
         'font-size:10px;color:var(--od-sub)}',
       '@media(max-width:380px){.od-workflow-preview-frame{padding-inline:0}'+
@@ -109,7 +127,25 @@ export async function generateWorkflowReactPreview(){
       '<style id="od-official-ui-css">'+officialCss+'</style>',
       '<style id="od-preview-viewport-css">'+previewCss+'</style>',
       '</head><body>',
-      '<div class="od-workflow-preview-top" id="od-workflow-preview-controls"></div>',
+      '<div class="od-workflow-preview-top" id="od-workflow-preview-controls">',
+      '<div class="od-workflow-preview-controls">',
+      '<div class="od-workflow-preview-copy"><strong>正式 React 同源预览</strong>',
+      '<span>仅预览界面 · 不连接本机，不执行网页操作</span></div>',
+      '<label>界面状态<select id="od-workflow-preview-scenario" data-preview-scenario>',
+      '<option value="empty">空白</option><option value="conversation">对话</option>',
+      '<option value="planning">规划中</option><option value="running">执行中</option>',
+      '<option value="success">成功</option><option value="failure">失败</option>',
+      '<option value="unknown">结果未知</option><option value="approval">本轮授权</option>',
+      '<option value="denied">授权拒绝</option><option value="disconnected">连接中断</option>',
+      '<option value="history">历史</option><option value="settings">设置</option>',
+      '</select></label>',
+      '<label>宽度<select id="od-workflow-preview-width" data-preview-width>',
+      '<option value="320">320px</option><option value="360" selected>360px</option>',
+      '<option value="400">400px</option><option value="440">440px</option>',
+      '<option value="520">520px</option></select></label>',
+      '<label>主题<select id="od-workflow-preview-theme" data-preview-theme>',
+      '<option value="light">浅色</option><option value="dark">深色</option>',
+      '</select></label></div></div>',
       '<div class="od-workflow-preview-frame">'+actualDom+'</div>',
       '<p class="od-workflow-preview-footer">交互仅用于界面审阅，不会连接模型或操作网页</p>',
       '<div id="od-workflow-preview-root" hidden></div>',
