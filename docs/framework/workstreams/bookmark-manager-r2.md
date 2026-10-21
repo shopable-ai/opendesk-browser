@@ -10,6 +10,8 @@
 - 唯一书签管理业务位于 `examples/sidebar-tools/bookmark-manager/`，版本 `0.3.0`，正式 Full Capability `browser.bookmarks.full` 与 `currentPage.read`。
 - `official-tools/catalog.json` 已登记 `optional`。已移除 `tool.html` 内置入口及 `sidebar-tools.js` 对 `createBookmarkManager` 的依赖，普通用户使用现有「扩展」目录内的安装、审阅授权、启动/停用/卸载路径；不是 GitHub Artifact/ZIP 导入。
 - `browser.page.getContext()` 的可信 Side Panel 调用通过原 Browser Host 发放短期 `tabRef/documentRef`，与 Owned TabRef 不可互换；Chrome 标签窗口、活动状态、URL、主 Document 和工具身份均被复核，刷新、撤权、导航和 Worker 重启使旧引用失效。书签写入前二次核验；SDK 客户端把读取授权与写入需用户点击的授权状态区分开。
+
+  R2.1.1 长任务修正：引用自签发起固定八分钟失效，重复 `getContext()` 不续期；它仍绑定最初的真实 Document，不在模型返回后替换目标。这一通用引用上限不授予写权限，也不延长可信 Send 的独立八分钟任务截止。真实模型等待超过一分钟时仍须在写入前复核活动标签、主 Document、URL、安装身份和撤权状态；过期、导航、撤权或 Worker 重启后不自动重发写入。
 - `scripts/prepare-public.mjs` 与 `scripts/verify-package.mjs` 的资源白名单已同步删除旧 CSS。独立 R2 CI 已更新到 v0.3.0 和新身份回归。
 - 验收证据边界：本轮 GitHub 源码提交与隔离 V8 语法/单元冒烟检查**不能**代替 Node、`npm run check`、构建、GitHub CI 或真正 Mac Chrome。各门禁应凭最终提交对应结果单独标为 PASS / FAIL / QUEUED / NOT_TESTED；原生 1001 项、跨窗口并发删除、真实授权与 Worker 生命周期在完成原生测试之前均为 **NOT_TESTED**。不能宣称九维 95+。
 

@@ -147,15 +147,17 @@ export function bookmarkConversationContext(tree,{selectedId=null,currentFolderI
 
 // Completion is a fresh Service read, never a model-declared success receipt.
 // All references are resolved against the actual tree and ambiguity is fail-closed.
-export async function verifyBookmarkCompletion({checks,service,context,refs={},signal,searched=new Set()}){
+export async function verifyBookmarkCompletion({checks,requiredChecks=[],service,context,refs={},signal,searched=new Set()}){
  const checked=validateBookmarkPlan({complete:checks});
+ const required=requiredChecks.length?validateBookmarkPlan({complete:requiredChecks}).complete:[];
+ const conditions=[...required,...checked.complete];
  aborted(signal);
  const tree=await service.load();aborted(signal);
  const missing=[];
- for(const check of checked.complete){
+ for(const check of conditions){
   let ok=false;
   try{
-   if(check.kind==='folder.exists')ok=Boolean(resolveName(tree,check.folder,true));
+   if(check.kind==='folder.exists')ok=Boolean(parentOf(tree,check.folder,context,refs));
    if(check.kind==='bookmark.inFolder'){
     const parent=parentOf(tree,check.folder,context,refs);
     const source=check.url==='$currentPage'?context.pageContext:null;
@@ -178,7 +180,7 @@ export async function verifyBookmarkCompletion({checks,service,context,refs={},s
   }
   if(!ok)missing.push(check.kind);
  }
- const placement=checked.complete.find(check=>check.kind==='bookmark.inFolder');
+ const placement=conditions.find(check=>check.kind==='bookmark.inFolder');
  const label=placement&&!missing.length?
   parentOf(tree,placement.folder,context,refs).title:placement?.folder;
  const summary=placement?

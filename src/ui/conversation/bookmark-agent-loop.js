@@ -7,7 +7,8 @@ const failure=(code,message)=>Object.assign(new Error(message),{code});
 const LIMITS=Object.freeze({rounds:8,actions:24,durationMs:480000});
 function interrupted(signal){
  if(!signal?.aborted)return;
- throw signal.reason?.code?signal.reason:failure('E_CANCELLED','已停止，未执行后续书签操作');
+ throw typeof signal.reason?.code==='string'?signal.reason:
+  failure('E_CANCELLED','已停止，未执行后续书签操作');
 }
 function publicObservation(row){
  // Never pass Chrome node IDs, URLs, document refs or permission tokens to AI.
@@ -39,26 +40,33 @@ function filingTarget(goal){
  if(!name||name.length>256)return {filing:true,name:null};
  return {filing:true,name};
 }
-function requiredChecks(goal,checks,tree,refs,context){
+function requiredChecks(goal){
  const {filing,name}=filingTarget(goal);
- if(!filing){
-  if(/^(?:搜索|查找|找出|检索)/.test(goal.trim()))return true;
-  return !/(?:创建|新建|收藏|移动|重命名|改名|放入|放到)/.test(goal)||
-   checks.some(check=>check.kind!=='search.observed');
+ if(filing){
+  if(/(?:[，,；;\n]|并|然后|同时|再)\s*(?:(?:把|将).{0,80})?(?:重命名|改名|修改|删除|移动|创建|新建|搜索|查找)/.test(goal))
+   return null;
+  if(!name&&!/^(?:请)?(?:收藏|保存)当前(?:网页|页面|页)[。！!]?$/.test(goal.trim()))
+   return null;
+  return [{kind:'bookmark.inFolder',folder:name||'$currentFolder',url:'$currentPage'}];
  }
- return checks.some(check=>{
-  if(check.kind!=='bookmark.inFolder'||check.url!=='$currentPage')return false;
-  if(!name)return true;
-  const id=check.folder==='$lastFolder'?refs.folderId:
-   check.folder==='$currentFolder'?context.currentFolderId:
-   check.folder==='$selected'?context.selectedId:null;
-  const actual=id?tree?.byId?.get(id)?.title:null;
-  const label=actual||check.folder.split(/\s*\/\s*/).at(-1);
-  return label===name;
- });
+ const text=goal.trim();
+ const search=text.match(/^(?:搜索|查找|找出|检索)\s*(.+?)\s*(?:相关(?:的)?书签|书签)?[。！!]?$/);
+ if(search)return [{kind:'search.observed',query:search[1].trim()}];
+ const folder=text.match(/^确保\s*(.+?)(?:文件夹|目录)存在[。！!]?$/)||
+  text.match(/^(?:创建|新建)\s*(?:一个)?(?:名为|叫做)?\s*(.+?)(?:的)?(?:文件夹|目录)[。！!]?$/)||
+  text.match(/^(?:创建|新建)\s*(?:一个)?(?:文件夹|目录)\s*(.+?)[。！!]?$/);
+ if(folder){
+  const title=folder[1].trim().replace(/^[「“『"'](.+)[」”』"']$/,'$1');
+  return [{kind:'folder.exists',folder:title}];
+ }
+ // An unrecognized or compound intent must be clarified, never reduced to
+ // whichever weaker condition the model happened to claim.
+ return null;
 }
 export async function runBookmarkAgentLoop({goal,initialProposal,nextProposal,service,
- context,refs={},expectedTree=null,signal,beforeWrite=()=>{},onStep=()=>{},
+ context,refs={},expectedTree=null,signal,beforeWrite=()=>{
+  throw failure('E_MODEL_GRANT_REQUIRED','未确认本次书签任务的写入授权');
+ },onStep=()=>{},
  onPhase=()=>{},retryModel=false,limits=LIMITS}={}){
  if(typeof goal!=='string'||!goal.trim()||goal.length>4000||
    typeof nextProposal!=='function'||typeof service?.load!=='function')
@@ -67,36 +75,51 @@ export async function runBookmarkAgentLoop({goal,initialProposal,nextProposal,se
   actions:Math.min(24,limits.actions||24),
   durationMs:Math.min(480000,limits.durationMs||480000)};
  const started=Date.now(),history=[],allMessages=[],searched=new Set();
+ const goalConditions=requiredChecks(goal),parentSignal=signal,controller=new AbortController();
+ const stop=()=>{try{interrupted(parentSignal);}catch(error){controller.abort(error);}};
+ parentSignal?.addEventListener('abort',stop,{once:true});
+ if(parentSignal?.aborted)stop();
+ signal=controller.signal;
+ const timeout=setTimeout(()=>controller.abort(failure('E_AGENT_LIMIT',
+  '运行时间已达上限。已完成的操作保留，请核对书签后继续。')),maximum.durationMs);
  let proposal=initialProposal,latest=expectedTree,nextRefs={...refs,
   matches:[...(refs.matches||[]).slice(0,12)]};
  let modelCalls=1,actionCount=0,lastFingerprint='',stallCount=0;
  const bound=()=>{
   interrupted(signal);
-  if(Date.now()-started>maximum.durationMs)
+  if(Date.now()-started>=maximum.durationMs)
    throw failure('E_AGENT_LIMIT','运行时间已达上限。已完成的操作保留，请核对书签后继续。');
  };
  try{
   for(let round=0;round<maximum.rounds;round++){
    bound();
-   const checked=validateBookmarkPlan(proposal);
-   if(checked.question)return {question:checked.question,refs:nextRefs,
+   let checked,observed=[];
+   try{checked=validateBookmarkPlan(proposal);}
+   catch(error){
+    // Only this pre-execution validation may ask for a corrected plan.
+    // Keep feedback fixed: invalid payloads and raw errors may contain private data.
+    if(error?.code!=='E_CONVERSATION_SCHEMA')throw error;
+    observed=[{kind:'validation',status:'INVALID',
+     title:'计划格式校验失败（E_CONVERSATION_SCHEMA）。actions 的动作使用 type，complete 的条件使用 kind；仅提交 actions、complete 或 question 之一。示例：{"actions":[{"type":"folder.ensure","title":"目录","parent":"$currentFolder"}]}'}];
+   }
+   if(checked?.question)return {question:checked.question,refs:nextRefs,
     completed:false,messages:allMessages,modelCalls,actionCount};
-   let observed=[];
-   if(checked.complete){
+   if(checked?.complete){
     onPhase('verifying');
     const verification=await verifyBookmarkCompletion({checks:checked.complete,
-     service,context,refs:nextRefs,signal,searched});
+     requiredChecks:goalConditions||[],service,context,refs:nextRefs,signal,searched});
     latest=verification.tree;
-    if(verification.complete&&requiredChecks(goal,checked.complete,verification.tree,nextRefs,context)){
+    bound();
+    if(verification.complete&&goalConditions){
      return {completed:true,question:null,refs:nextRefs,tree:latest,
       messages:allMessages,modelCalls,actionCount,
       summary:verification.summary};
     }
     observed=[{kind:'verification',status:'NOT_MET',
-     title:!requiredChecks(goal,checked.complete,verification.tree,nextRefs,context)?
-      '用户目标尚未满足：必须核实当前网页确实位于用户指定的目标文件夹':
+     title:!goalConditions?
+      '无法独立核实原始用户目标，请明确目标条件或询问必要信息':
       verification.reason||'目标仍未满足'}];
-   }else{
+   }else if(checked){
     if(actionCount+checked.actions.length>maximum.actions)
      throw failure('E_AGENT_LIMIT','本次操作数达到安全上限；请核对已完成操作。');
     actionCount+=checked.actions.length;
@@ -138,7 +161,9 @@ export async function runBookmarkAgentLoop({goal,initialProposal,nextProposal,se
      observed=[{kind:'resolution',status:'NOT_FOUND',title:String(error.message).slice(0,240)}];
     }
    }
-   const serial=JSON.stringify({proposal:checked,observed});
+   const serial=JSON.stringify({observed,refs:nextRefs,
+    tree:[...(latest?.byId?.values()||[])].map(node=>
+     [node.id,node.parentId,node.title,node.url]).sort((a,b)=>a[0].localeCompare(b[0]))});
    stallCount=serial===lastFingerprint?stallCount+1:0;
    lastFingerprint=serial;
    if(stallCount>=1)
@@ -147,12 +172,26 @@ export async function runBookmarkAgentLoop({goal,initialProposal,nextProposal,se
    if(history.length>6)history.shift();
    if(round===maximum.rounds-1)break;
    bound();onPhase('thinking');
-   const modelContext={bookmarkState:bookmarkConversationContext(latest,{
+   const modelContext={goal,bookmarkState:bookmarkConversationContext(latest,{
     selectedId:context.selectedId,currentFolderId:context.currentFolderId,refs:nextRefs}),
     currentPageAvailable:context.pageContext?.status==='available',
     progress:history,remainingActions:maximum.actions-actionCount,
     instructions:'原始用户目标尚未核实；根据真实观察继续，或提交可读回验证的 complete 条件。'};
-   const ask=()=>nextProposal(modelContext);
+   const ask=async()=>{
+    bound();
+    let onAbort;
+    const stopped=new Promise((_,reject)=>{
+     onAbort=()=>{try{interrupted(signal);}catch(error){reject(error);}};
+     signal.addEventListener('abort',onAbort,{once:true});
+     if(signal.aborted)onAbort();
+    });
+    try{
+     const result=await Promise.race([stopped,Promise.resolve().then(()=>{
+      bound();return nextProposal(modelContext,{signal});
+     })]);
+     bound();return result;
+    }finally{signal.removeEventListener('abort',onAbort);}
+   };
    let next;
    try{next=await ask();}
    catch(error){
@@ -167,10 +206,17 @@ export async function runBookmarkAgentLoop({goal,initialProposal,nextProposal,se
   }
   throw failure('E_AGENT_LIMIT','达到本次最大决策轮次，未确认完整目标；已完成操作不会回滚。');
  }catch(error){
+  // Service preflight reports cancellation for an expired task signal. Keep
+  // the task's deadline reason, but never relabel an issued UNKNOWN write.
+  if(error?.code==='E_CANCELLED'&&error.writeIssued!==true&&signal.reason?.code==='E_AGENT_LIMIT'){
+   error.code='E_AGENT_LIMIT';error.message=signal.reason.message;
+  }
   // Retain the entire verified multi-round journal without marking UNKNOWN safe.
   const current=Array.isArray(error.partial)?error.partial:[];
   error.partial=[...allMessages,...current];
   error.refs=error.refs||nextRefs;
   throw error;
+ }finally{
+  clearTimeout(timeout);parentSignal?.removeEventListener('abort',stop);
  }
 }

@@ -219,6 +219,9 @@ function ConversationWorkspace({
   if(next!==null){e.preventDefault();setHeight(clamp(next,limits.min,limits.max));}
  }
  const bridge=React.useMemo(()=>({open,adapterRef,reconcile}),[open,reconcile]);
+ // The live transcript already announces the latest system error once.
+ const lastRow=rows.at(-1);
+ const feedbackError=lastRow?.speaker==='系统'&&lastRow.message===error?'':error;
 
  const trigger=headerTarget?createPortal(<button ref={triggerRef} type="button"
    className="sidebar-tool-icon-action od-icon-button od-conversation-frame-trigger"
@@ -254,8 +257,8 @@ function ConversationWorkspace({
     {{thinking:'正在判断下一步…',observing:'正在查找并核对书签…',
       writing:'正在更新书签并读回确认…',verifying:'正在核实最终结果…'}[phase]||'正在执行任务…'}
    </div>}
-   {(error||needsReview)&&<div className="od-conversation-feedback" tabIndex={0} aria-label="对话状态详情">
-    {error&&<p className="od-conversation-error" role="alert">{error}</p>}
+   {(feedbackError||needsReview)&&<div className="od-conversation-feedback" tabIndex={0} aria-label="对话状态详情">
+    {feedbackError&&<p className="od-conversation-error" role="alert">{feedbackError}</p>}
     {needsReview&&<p className="od-conversation-error" role="status">
      上次写入结果不确定。请先刷新并核对原工具数据，再继续操作。
     </p>}

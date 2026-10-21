@@ -290,8 +290,14 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
   busyRef.current=true;setBusy(true);
   let authorization=null,releasePageWait=()=>{};
   const current=()=>activeRef.current&&!authorityEpoch.current&&taskSerial===writeEpoch.current;
+  // Workflow conversation changes stop this AI round, not bookmark access.
+  // SDK/tool lifecycle errors retain E_TOOL_CHANGED and still revoke below.
+  const conversationFailure=error=>error?.code==='E_TOOL_CHANGED'?
+   Object.assign(new Error(error.message),error,{code:'E_AI_CONTEXT_CHANGED',cause:error}):error;
   try{
-   const initial=await conversation.request({request,context:publicContext,signal,event});
+   let initial;
+   try{initial=await conversation.request({request,context:publicContext,signal,event});}
+   catch(error){throw conversationFailure(error);}
    authorization=initial.authorization;
    if(mode==='trusted'&&(!authorization?.signal||
      typeof authorization.assertWrite!=='function'||
@@ -315,7 +321,8 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
     if(!current())throw Object.assign(Error('书签实例已切换，拒绝后续写入'),{code:'E_GRANT_REVOKED'});
     if(draftRef.current||uncertainRef.current)
      throw Object.assign(Error('存在未保存的编辑或未知结果；请先核对，再执行写入。'),{code:'E_DRAFT_CONFLICT'});
-    await authorization?.assertWrite?.(args);
+    try{await authorization?.assertWrite?.(args);}
+    catch(error){throw conversationFailure(error);}
     if(!current())throw Object.assign(Error('书签实例已失效，拒绝后续写入'),{code:'E_GRANT_REVOKED'});
    };
    const result=await runBookmarkAgentLoop({
@@ -323,12 +330,14 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
     expectedTree:tree,signal:authorization?.signal||signal,
     beforeWrite:authorization?.assertWrite&&beforeWrite,
     retryModel:conversation.source?.().provider!=='local_codex',
-    nextProposal:async nextContext=>{
-     await authorization?.assertWrite?.();
-     if(!current())throw Object.assign(Error('书签实例已失效，未继续模型决策'),{code:'E_GRANT_REVOKED'});
-     if(typeof initial.continueWith!=='function'&&mode!=='trusted')
-      return {question:'离线预览已展示首轮结果；持续 AI 决策需要在正式扩展中连接 Provider。'};
-     return initial.continueWith(nextContext);
+    nextProposal:async(nextContext,options)=>{
+     try{
+      await authorization?.assertWrite?.();
+      if(!current())throw Object.assign(Error('书签实例已失效，未继续模型决策'),{code:'E_GRANT_REVOKED'});
+      if(typeof initial.continueWith!=='function'&&mode!=='trusted')
+       return {question:'离线预览已展示首轮结果；持续 AI 决策需要在正式扩展中连接 Provider。'};
+      return await initial.continueWith(nextContext,options);
+     }catch(error){throw conversationFailure(error);}
     },
     onPhase:phase=>{
      if(phase==='writing'&&draftRef.current)

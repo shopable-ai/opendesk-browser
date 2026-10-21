@@ -10,7 +10,11 @@ function isHttp(value){
 }
 export function createCurrentPageReferences({api=globalThis.chrome,clock=Date,
   makeRef=()=>crypto.randomUUID()}={}){
-  const refs=new Map(),TTL=60000,CAP=64;
+  // A bounded foreground task may spend minutes awaiting a Provider. Keep the
+  // original Send-bound document for at most that eight-minute task budget.
+  // Reads never renew this deadline; every write still revalidates the active
+  // Chrome document and installation, and revocation/restart drops the refs.
+  const refs=new Map(),TTL=480000,CAP=64;
   const owner=c=>{
     if(typeof c?.toolId!=='string'||typeof c?.toolVersion!=='string'||
       !/^[a-f0-9]{64}$/.test(c?.packageHash||'')||

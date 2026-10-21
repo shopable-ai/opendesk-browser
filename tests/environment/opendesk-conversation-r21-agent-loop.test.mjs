@@ -69,12 +69,110 @@ function proposals(rows){
 }
 function run(f,{goal='把当前页面放入测试收藏夹，如果没有，就创建目录',
  initialProposal={actions:[{type:'bookmark.search',query:'测试收藏夹'}]},
- nextProposal,signal,beforeWrite,service=f.service,retryModel=false,limits,onStep,onPhase}={}){
+ nextProposal,signal,beforeWrite=()=>{},service=f.service,retryModel=false,limits,onStep,onPhase}={}){
  return runBookmarkAgentLoop({goal,initialProposal,service,context,
   nextProposal,signal,beforeWrite,retryModel,limits,onStep,onPhase});
 }
 const created=f=>f.writes.filter(item=>item.method==='create');
 const currentIn=(f,parentId)=>f.nodes.filter(node=>node.parentId===parentId&&node.url===page.url);
+
+test('R2.1 invalid kind actions are corrected with the original goal before fresh completion',async()=>{
+ const f=fixture(),goal='把当前页面放入测试收藏夹，如果没有，就创建目录';
+ const initialProposal={actions:[
+  {kind:'folder.ensure',title:'测试收藏夹',parent:'$currentFolder'},
+  {kind:'bookmark.create',title:'$pageTitle',url:'$currentPage',parent:'$lastFolder'}
+ ]};
+ assert.throws(()=>validateBookmarkPlan(initialProposal),{code:'E_CONVERSATION_SCHEMA'});
+ let calls=0,grants=0,readsBeforeVerification;
+ const result=await run(f,{goal,initialProposal,beforeWrite:()=>{grants++;},
+  onPhase:phase=>{if(phase==='verifying')readsBeforeVerification=f.reads.length;},
+  nextProposal:async(input,{signal})=>{
+   assert.equal(input.goal,goal);assert.equal(signal.aborted,false);
+   if(calls++===0){
+    assert.equal(f.writes.length,0);
+    const observation=input.progress.at(-1).observations[0];
+    assert.equal(observation.kind,'validation');assert.equal(observation.status,'INVALID');
+    assert.match(observation.title,/E_CONVERSATION_SCHEMA/);
+    assert.match(observation.title,/type/);assert.match(observation.title,/kind/);
+    assert.equal(input.remainingActions,24);
+    return {actions:[ensure,save]};
+   }
+   return done;
+  }});
+ assert.equal(result.completed,true);assert.equal(result.modelCalls,3);
+ assert.equal(result.actionCount,2);assert.equal(created(f).length,2);
+ assert.ok(grants>0);assert.ok(f.reads.length>readsBeforeVerification);
+ assert.equal(currentIn(f,result.refs.folderId).length,1);
+});
+
+test('R2.1 invalid action after a valid prefix executes nothing and leaks no invalid payload',async()=>{
+ const f=fixture(),secret='UNTRUSTED_SCHEMA_PAYLOAD';
+ const result=await run(f,{initialProposal:{actions:[ensure,{kind:'bookmark.create',
+  title:secret,url:'https://private.example/?token='+secret,parent:'$lastFolder'}]},
+  nextProposal:async input=>{
+   assert.equal(f.writes.length,0);assert.equal(f.reads.length,0);
+   assert.ok(!JSON.stringify(input).includes(secret));
+   assert.ok(input.progress[0].observations[0].title.length<=256);
+   return {question:'请明确目标'};
+  }});
+ assert.equal(result.question,'请明确目标');assert.equal(result.actionCount,0);
+ assert.equal(f.writes.length,0);
+});
+
+test('R2.1 repeated invalid plans stop through the existing no-progress guard',async()=>{
+ const f=fixture(),invalid={actions:[{kind:'folder.ensure',title:'目录'}]};let calls=0;
+ await assert.rejects(run(f,{initialProposal:invalid,nextProposal:async()=>{
+  calls++;return invalid;
+ }}),{code:'E_AGENT_NO_PROGRESS'});
+ assert.equal(calls,1);assert.equal(f.writes.length,0);
+});
+
+test('R2.1 invalid plans consume the existing round budget without executing actions',async()=>{
+ const f=fixture();let calls=0;
+ await assert.rejects(run(f,{initialProposal:{actions:[{kind:'folder.ensure',title:'目录'}]},
+  limits:{rounds:1},nextProposal:async()=>{calls++;return {actions:[ensure]};}}),
+ {code:'E_AGENT_LIMIT'});
+ assert.equal(calls,0);assert.equal(f.writes.length,0);
+});
+
+test('R2.1 Provider schema errors are not retried as invalid plans',async()=>{
+ const f=fixture();let calls=0;
+ await assert.rejects(run(f,{nextProposal:async()=>{
+  calls++;throw err('E_CONVERSATION_SCHEMA');
+ }}),{code:'E_CONVERSATION_SCHEMA'});
+ assert.equal(calls,1);assert.equal(f.writes.length,0);
+});
+
+test('R2.1 execution schema errors stay terminal and issued writes remain UNKNOWN',async()=>{
+ for(const issued of [false,true]){
+  const f=fixture();let calls=0;
+  if(issued)f.sdk.onCreate=()=>{throw err('E_CONVERSATION_SCHEMA');};
+  const service=issued?f.service:{...f.service,
+   load:async()=>{throw err('E_CONVERSATION_SCHEMA');}};
+  await assert.rejects(run(f,{service,initialProposal:{actions:[ensure]},retryModel:true,
+   nextProposal:async()=>{calls++;return done;}}),error=>{
+    assert.equal(error.code,issued?'E_OUTCOME_UNKNOWN':'E_CONVERSATION_SCHEMA');
+    if(issued)assert.equal(error.writeIssued,true);
+    return true;
+   });
+  assert.equal(calls,0);assert.equal(f.writes.length,issued?1:0);
+ }
+});
+
+test('R2.1 schema correction preserves write authorization and parent cancellation',async()=>{
+ for(const cancel of [false,true]){
+  const f=fixture(),controller=new AbortController();let calls=0;
+  await assert.rejects(run(f,{signal:controller.signal,
+   initialProposal:{actions:[{kind:'folder.ensure',title:'目录'}]},
+   beforeWrite:()=>{throw err('E_MODEL_GRANT_REQUIRED');},
+   nextProposal:async(input,{signal})=>{
+    calls++;assert.equal(input.progress[0].observations[0].kind,'validation');
+    if(cancel){controller.abort();assert.equal(signal.aborted,true);}
+    return {actions:[ensure,save]};
+   }}),{code:cancel?'E_CANCELLED':'E_MODEL_GRANT_REQUIRED'});
+  assert.equal(calls,1);assert.equal(f.writes.length,0);
+ }
+});
 
 test('R2.1 T1 T5 T6: one user request, NOT_FOUND -> ensure -> save -> fresh verification',async()=>{
  const f=fixture(),p=proposals([{actions:[ensure]},{actions:[save]},done]),steps=[],phases=[];
@@ -258,4 +356,177 @@ test('R2.1 TOCTOU: conflicting folder created during Service preflight blocks du
   nextProposal:()=>done}),error=>error.code==='E_BOOKMARK_STALE'&&error.writeIssued===false);
  assert.equal(injected,true);
  assert.equal(created(f).length,0,'pre-dispatch conflict is definite and not issued');
+});
+
+test('R2.1 keeps the exact original goal in every Provider decision',async()=>{
+ const f=fixture(),goal='把当前页面放入测试收藏夹，如果没有，就创建目录';
+ const p=proposals([{actions:[ensure]},{actions:[save]},done]);
+ assert.equal((await run(f,{goal,nextProposal:p.nextProposal})).completed,true);
+ assert.deepEqual(p.contexts.map(row=>row.goal),[goal,goal,goal]);
+});
+
+test('R2.1 Provider wait counts against the task deadline and late proposals never write',async()=>{
+ const f=fixture();let resolveProposal,taskSignal,decisionAbortReason;
+ const pending=run(f,{limits:{durationMs:20},
+  nextProposal:(_,{signal}={})=>{
+   assert.ok(signal instanceof AbortSignal,'continuation must receive the task signal');
+   taskSignal=signal;
+   signal.addEventListener('abort',()=>{decisionAbortReason=signal.reason;},{once:true});
+   return new Promise(resolve=>{resolveProposal=resolve;});
+  }});
+ let watchdog;
+ try{
+  await assert.rejects(Promise.race([pending,new Promise((_,reject)=>{
+   watchdog=setTimeout(()=>reject(err('E_TEST_DEADLINE_NOT_ENFORCED')),500);
+  })]),{code:'E_AGENT_LIMIT'});
+ }finally{
+  clearTimeout(watchdog);
+  resolveProposal?.({actions:[ensure]});
+  await pending.catch(()=>{});
+ }
+ assert.equal(taskSignal.aborted,true);
+ assert.equal(decisionAbortReason?.code,'E_AGENT_LIMIT');
+ assert.equal(decisionAbortReason,taskSignal.reason);
+ assert.equal(f.writes.length,0);
+});
+
+test('R2.1 Stop interrupts a pending Provider decision',async()=>{
+ const f=fixture(),controller=new AbortController();let resolveProposal;
+ const pending=run(f,{signal:controller.signal,nextProposal:()=>new Promise(resolve=>{
+  resolveProposal=resolve;controller.abort();
+ })});
+ let watchdog;
+ try{
+  await assert.rejects(Promise.race([pending,new Promise((_,reject)=>{
+   watchdog=setTimeout(()=>reject(err('E_TEST_STOP_NOT_ENFORCED')),500);
+  })]),{code:'E_CANCELLED'});
+ }finally{
+  clearTimeout(watchdog);resolveProposal?.({question:'不应等待模型'});
+  await pending.catch(()=>{});
+ }
+ assert.equal(f.writes.length,0);
+});
+
+test('R2.1 missing trusted write authorization denies mutation',async()=>{
+ const f=fixture();
+ await assert.rejects(runBookmarkAgentLoop({goal:'创建资料文件夹',service:f.service,
+  context,initialProposal:{actions:[ensure]},nextProposal:()=>done}),
+ error=>error.code==='E_MODEL_GRANT_REQUIRED'&&error.writeIssued===false);
+ assert.equal(f.writes.length,0);
+});
+
+test('R2.1 unrelated folder existence cannot complete the original creation goal',async()=>{
+ const f=fixture(),p=proposals([{question:'请确认资料文件夹位置'}]);
+ const result=await run(f,{goal:'确保资料文件夹存在',
+  initialProposal:{complete:[{kind:'folder.exists',folder:'其他'}]},nextProposal:p.nextProposal});
+ assert.equal(result.completed,false);
+ assert.equal(p.contexts[0].progress[0].observations[0].status,'NOT_MET');
+ assert.equal(f.writes.length,0);
+});
+
+test('R2.1 independent readback checks the original filing goal even with weak model checks',async()=>{
+ const f=fixture();f.nodes.push({id:'folder',title:'测试收藏夹',parentId:'1'},
+  {id:'book',title:'Example',url:page.url,parentId:'folder'});
+ const result=await run(f,{initialProposal:{complete:[{kind:'folder.exists',folder:'测试收藏夹'}]},
+  nextProposal:()=>{throw err('E_TEST_GOAL_ALREADY_MET');}});
+ assert.equal(result.completed,true);
+ assert.match(result.summary,/当前网页.+测试收藏夹/);
+ assert.equal(f.writes.length,0);
+});
+
+test('R2.1 search completion must cover the original query',async()=>{
+ const f=fixture(),p=proposals([
+  {complete:[{kind:'search.observed',query:'Vue'}]}, {question:'还需要搜索 React'}]);
+ const result=await run(f,{goal:'搜索 React 相关书签',
+  initialProposal:{actions:[{type:'bookmark.search',query:'Vue'}]},nextProposal:p.nextProposal});
+ assert.equal(result.completed,false);
+ assert.equal(p.contexts[1].progress.at(-1).observations[0].status,'NOT_MET');
+});
+
+test('R2.1 named full destination path is verified against the fresh tree',async()=>{
+ const f=fixture();f.nodes.push({id:'folder',title:'测试收藏夹',parentId:'1'},
+  {id:'book',title:'Example',url:page.url,parentId:'folder'});
+ const result=await runBookmarkAgentLoop({goal:'把当前页面放入书签栏 / 测试收藏夹',
+  initialProposal:done,nextProposal:()=>{throw err('E_TEST_GOAL_ALREADY_MET');},
+  service:f.service,context,refs:{folderId:'folder'}});
+ assert.equal(result.completed,true);
+ assert.equal(f.writes.length,0);
+});
+
+test('R2.1 unchanged observations cannot evade the stall guard by changing plan syntax',async()=>{
+ const f=fixture();f.nodes.push({id:'folder',title:'测试收藏夹',parentId:'1'});
+ let calls=0;
+ await assert.rejects(run(f,{initialProposal:{actions:[ensure]},nextProposal:()=>{
+  calls++;
+  return {actions:[calls%2?{type:'folder.ensure',title:ensure.title}:ensure]};
+ }}),{code:'E_AGENT_NO_PROGRESS'});
+ assert.equal(calls,1);
+ assert.equal(f.writes.length,0);
+});
+
+test('R2.1 resolution NOT_FOUND preserves confirmed work and continues without replay',async()=>{
+ const f=fixture(),p=proposals([{actions:[save]},done]);
+ const result=await run(f,{initialProposal:{actions:[ensure,{...save,parent:'缺失目录'}]},
+  nextProposal:p.nextProposal});
+ assert.equal(result.completed,true);
+ assert.equal(p.contexts[0].progress[0].observations[0].status,'NOT_FOUND');
+ assert.equal(created(f).length,2);
+ assert.equal(result.messages.filter(message=>message.startsWith('已创建文件夹')).length,1);
+ assert.equal(currentIn(f,result.refs.folderId).length,1);
+});
+
+test('R2.1 UNKNOWN in a later round retains the earlier journal and never retries',async()=>{
+ const f=fixture();let calls=0;
+ f.sdk.onCreate=async args=>{if(args.url)throw err('E_TIMEOUT','lost receipt');};
+ await assert.rejects(run(f,{initialProposal:{actions:[ensure]},retryModel:true,
+  nextProposal:()=>{calls++;return {actions:[save]};}}),error=>
+ error.code==='E_OUTCOME_UNKNOWN'&&error.writeIssued===true&&
+ error.partial.length===1&&typeof error.refs.folderId==='string');
+ assert.equal(calls,1);
+ assert.equal(created(f).length,2);
+});
+
+test('R2.1 a compound original goal is not reduced to filing alone',async()=>{
+ const f=fixture();f.nodes.push({id:'folder',title:'测试收藏夹',parentId:'1'},
+  {id:'book',title:'旧标题',url:page.url,parentId:'folder'});
+ const p=proposals([{question:'请确认要修改的书签标题'}]);
+ const result=await run(f,{goal:'把当前页面放入“测试收藏夹”，并将书签重命名为“新标题”',
+  initialProposal:{complete:[{kind:'bookmark.inFolder',folder:'测试收藏夹',url:'$currentPage'}]},
+  nextProposal:p.nextProposal});
+ assert.equal(result.completed,false);
+ assert.equal(f.writes.length,0);
+});
+
+test('R2.1 deadline expiry during trusted preflight prevents SDK dispatch',async()=>{
+ const f=fixture();
+ await assert.rejects(run(f,{initialProposal:{actions:[ensure]},nextProposal:()=>done,
+  limits:{durationMs:10},beforeWrite:()=>new Promise(resolve=>setTimeout(resolve,30))}),
+ error=>error.code==='E_AGENT_LIMIT'&&error.writeIssued===false);
+ assert.equal(f.writes.length,0);
+});
+
+test('R2.1 task expiry after SDK dispatch never turns UNKNOWN into a retryable timeout',async()=>{
+ const f=fixture();let calls=0;
+ f.sdk.onCreate=async()=>{await new Promise(resolve=>setTimeout(resolve,30));throw err('E_TIMEOUT');};
+ await assert.rejects(run(f,{initialProposal:{actions:[ensure]},limits:{durationMs:10},retryModel:true,
+  nextProposal:()=>{calls++;return done;}}),
+ error=>error.code==='E_OUTCOME_UNKNOWN'&&error.writeIssued===true);
+ assert.equal(f.writes.length,1);assert.equal(calls,0);
+});
+
+test('R2.1 an unparsed explicit destination never falls back to the current folder',async()=>{
+ const f=fixture();f.nodes.push({id:'book',title:'Example',url:page.url,parentId:'1'});
+ const p=proposals([{question:'请明确目标目录'}]);
+ const result=await run(f,{goal:'将当前页面收藏至测试收藏夹',
+  initialProposal:{complete:[{kind:'bookmark.inFolder',folder:'$currentFolder',url:'$currentPage'}]},
+  nextProposal:p.nextProposal});
+ assert.equal(result.completed,false);assert.equal(f.writes.length,0);
+});
+
+test('R2.1 plain current-page filing still verifies the current folder',async()=>{
+ const f=fixture();
+ const result=await run(f,{goal:'收藏当前页面',
+  initialProposal:{actions:[{...save,parent:'$currentFolder'}]},
+  nextProposal:()=>({complete:[{kind:'folder.exists',folder:'$currentFolder'}]})});
+ assert.equal(result.completed,true);assert.equal(currentIn(f,'1').length,1);
 });

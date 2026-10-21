@@ -7,8 +7,10 @@ on:
       - 'src/ui/workflow/workflow-view.js'
       - 'src/ui/react/components/conversation.tsx'
       - 'src/ui/react/components/conversation-dock.css'
+      - 'src/platform/chrome/current-page-refs.js'
       - 'examples/sidebar-tools/bookmark-manager/src/react/App.jsx'
       - 'tests/environment/opendesk-conversation-*.test.mjs'
+      - 'tests/environment/browser-sdk-r124-current-page.test.mjs'
       - '.github/workflows/bookmark-agent-loop-r21.yml'
   workflow_dispatch:
 permissions:
@@ -28,6 +30,8 @@ jobs:
         run: node --test tests/environment/opendesk-conversation-r*.test.mjs
       - name: Existing bookmark editor lifecycle and trusted React regression
         run: node --test tests/environment/bookmark-manager-r31-trusted-lifecycle.test.mjs tests/environment/bookmark-manager-r33-default-react.test.mjs
+      - name: Original document binding across slow Provider decisions and revocation
+        run: node --test tests/environment/browser-sdk-r112-full-bookmarks.test.mjs tests/environment/browser-sdk-r124-current-page.test.mjs
       - name: Source / SDK trust boundary
         run: npm run check
   agent-build:

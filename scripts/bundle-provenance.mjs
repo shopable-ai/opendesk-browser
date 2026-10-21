@@ -73,7 +73,7 @@ function reviewedCompiledAdblock(target,path,root){
 const compiledBookmarkReactInputs=Object.freeze({
   'examples/sidebar-tools/bookmark-manager/src/model.js':'34cc7a737869ca502b4bcbbb47d2437d1b6b2bd5',
   'examples/sidebar-tools/bookmark-manager/src/service.js':'d072ace5379d0d4c8f8cda8d8d172cb60122576e',
-  'examples/sidebar-tools/bookmark-manager/src/react/App.jsx':'93af9dd0485d2069d30eb42841e32c422dde6026',
+  'examples/sidebar-tools/bookmark-manager/src/react/App.jsx':'5df3df059e601bf343b698a0300cccbfdd58ad8a',
   'examples/sidebar-tools/bookmark-manager/src/react/style.css':'45df50633c993c32a5ba60d6889ab769a8e77ca6'
 });
 function reviewedCompiledBookmarkReact(target,path,root){

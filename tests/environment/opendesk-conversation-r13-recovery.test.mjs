@@ -118,11 +118,22 @@ for(const reference of ['target','parent']){
 }
 
 test('R1.3 bare-origin URL succeeds through the actual Service and readback',async()=>{
- const f=fixture(),result=await f.run([{...bookmark,url:'https://example.com'}]);
+ const f=fixture(),result=await f.run([{...bookmark,url:'https://new.example.com'}]);
  assert.equal(result.messages.length,1);
- assert.equal(result.tree.byId.get(result.refs.bookmarkId).url,'https://example.com/');
+ assert.equal(result.tree.byId.get(result.refs.bookmarkId).url,'https://new.example.com/');
  assert.equal(f.writes.length,1);
- assert.deepEqual(f.writes[0].args,{title:bookmark.title,url:'https://example.com/',parentId:'folder'});
+ assert.deepEqual(f.writes[0].args,{title:bookmark.title,url:'https://new.example.com/',parentId:'folder'});
+});
+
+test('R1.3 normalized existing URL reuses the bookmark without an SDK write',async()=>{
+ const f=fixture(),before=structuredClone(f.nodes);
+ const result=await f.run([{...bookmark,url:'https://EXAMPLE.com:443'}]);
+ assert.equal(result.messages.length,1);
+ assert.equal(result.refs.bookmarkId,'bookmark');
+ assert.equal(result.tree.byId.get('bookmark').url,'https://example.com/');
+ assert.equal(result.tree.byId.get('bookmark').title,'原书签');
+ assert.equal(f.writes.length,0);
+ assert.deepEqual(f.nodes,before);
 });
 
 test('R1.3 an already stopped request performs no tree read or SDK write',async()=>{

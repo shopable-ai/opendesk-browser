@@ -251,3 +251,57 @@ test('R2.1 grant revoked during later Provider decision discards late model outp
  assert.equal(f.calls.length,2,'late decision cannot launch a third model call');
  first.authorization.release();
 });
+
+test('R2.1 task deadline aborts the first pending Provider request',async t=>{
+ const entered=deferred(),late=deferred();
+ const f=viewFixture(t,{transport:()=>{entered.resolve();return late.promise;}});
+ t.mock.timers.enable({apis:['setTimeout']});
+ t.after(()=>late.resolve(response()));
+ const pending=f.send().then(value=>({value}),failure=>({failure}));
+ await entered.promise;
+ t.mock.timers.tick(480000);
+ assert.equal((await pending).failure?.code,'E_AGENT_LIMIT');
+ assert.equal(f.calls[0].signal.aborted,true,'transport receives the actual abort');
+ assert.equal(f.calls.length,1,'no automatic replay after the deadline');
+});
+
+test('R2.1 task deadline includes the pending permission review',async t=>{
+ const permission=deferred();
+ const f=viewFixture(t,{request:()=>permission.promise});
+ t.mock.timers.enable({apis:['setTimeout']});
+ const pending=f.send().then(value=>({value}),failure=>({failure}));
+ t.mock.timers.tick(480000);
+ assert.equal((await pending).failure?.code,'E_AGENT_LIMIT');
+ permission.resolve(true);
+ await Promise.resolve();
+ assert.equal(f.calls.length,0,'late approval cannot start expired inference');
+});
+
+test('R2.1 loop signal aborts the later Provider and its write authority',async t=>{
+ const entered=deferred(),late=deferred();let calls=0;
+ const f=viewFixture(t,{transport:()=>{
+  if(++calls===1)return response();
+  entered.resolve();return late.promise;
+ }});
+ t.after(()=>late.resolve(response()));
+ const first=await f.send(),task=new AbortController();
+ const pending=first.continueWith({}, {signal:task.signal}).then(
+  value=>({value}),failure=>({failure}));
+ await entered.promise;
+ task.abort(error('E_AGENT_LIMIT'));
+ assert.equal((await settles(pending)).failure?.code,'E_AGENT_LIMIT');
+ assert.equal(f.calls[1].signal.aborted,true);
+ await assert.rejects(first.authorization.assertWrite(),{code:'E_AGENT_LIMIT'});
+ await assert.rejects(first.continueWith({}),{code:'E_AGENT_LIMIT'});
+ assert.equal(f.calls.length,2);
+ first.authorization.release();
+});
+
+test('R2.1 ordinary abort retains the public cancellation error code',async t=>{
+ const f=viewFixture(t),parent=new AbortController();
+ const first=await f.send(parent.signal);
+ parent.abort();
+ await assert.rejects(first.authorization.assertWrite(),{code:'E_CANCELLED'});
+ await assert.rejects(first.continueWith({}),{code:'E_CANCELLED'});
+ first.authorization.release();
+});

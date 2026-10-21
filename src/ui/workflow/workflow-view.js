@@ -1587,6 +1587,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     'Allowed one of: {"actions":[...1 to 4...]}, {"complete":[...1 to 4...]}, {"question":"clarification"}.',
     'Actions: folder.ensure(title,parent?), folder.create(title,parent?), bookmark.create(title,url,parent?),',
     'bookmark.search(query), bookmark.move(target,parent), bookmark.update(target,title).',
+    'Every action object requires the field "type" with one of those exact action names; include only its named arguments.',
+    'Example search: {"actions":[{"type":"bookmark.search","query":"target folder"}]}.',
+    'Example dependent actions: {"actions":[{"type":"folder.ensure","title":"target folder","parent":"$currentFolder"},{"type":"bookmark.create","title":"$pageTitle","url":"$currentPage","parent":"$lastFolder"}]}.',
+    'The field "kind" is only used in completion checks. A validation observation means no action from that invalid proposal ran; correct the JSON and continue the original goal.',
     'Use folder.ensure for "if missing create": reuse exactly one existing same-name child in a verified parent,',
     'create only if absent, and pause when ambiguous. Never blindly create after a broad search.',
     'No remove/delete, browser scripts, permissions or unrelated operations. Maximum 4 actions per round.',
@@ -1668,8 +1672,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           api.permissions.request({origins:[grantPattern]});
       }
       const abortController=new AbortController(),generation=bookmarkConversationGrantEpoch;
-      const abortFromParent=()=>abortController.abort(signal?.reason||
-        err('E_CANCELLED','本轮已停止，未发出新的书签操作'));
+      // The task budget starts at Send, including permission and first inference.
+      const deadlineTimer=scope==='bookmark'?setTimeout(()=>abortController.abort(
+        err('E_AGENT_LIMIT','运行时间已达上限。已完成的操作保留，请核对书签后继续。')),480000):null;
+      const clearDeadline=()=>clearTimeout(deadlineTimer);
+      abortController.signal.addEventListener('abort',clearDeadline,{once:true});
+      const abortFromParent=()=>abortController.abort(typeof signal?.reason?.code==='string'?
+        signal.reason:err('E_CANCELLED','本轮已停止，未发出新的书签操作'));
       signal?.addEventListener('abort',abortFromParent,{once:true});
       if(signal?.aborted)abortFromParent();
       const active={abortController,source:selected,generation,grantPattern,signal,scope};
@@ -1677,6 +1686,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       let released=false,deciding=false;
       const release=()=>{
         if(released)return;released=true;
+        clearDeadline();
+        abortController.signal.removeEventListener('abort',clearDeadline);
         signal?.removeEventListener('abort',abortFromParent);
         if(bookmarkConversationActive===active){
           bookmarkConversationActive=null;bookmarkConversationBusy=false;
@@ -1687,7 +1698,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           throw err('E_TOOL_CHANGED','书签扩展实例已切换，本轮操作失效');
         if(generation!==bookmarkConversationGrantEpoch)
           throw err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已撤销，未继续写入');
-        if(signal?.aborted||abortController.signal.aborted)
+        if(abortController.signal.aborted)
+          throw abortController.signal.reason||err('E_CANCELLED','本轮已停止，未继续写入');
+        if(signal?.aborted)
           throw err('E_CANCELLED','本轮已停止，未继续写入');
         if(provider()!==selected)
           throw err('E_TOOL_CHANGED','AI 来源已切换，请重新发送本轮请求');
@@ -1744,11 +1757,15 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         // turn, not merely to the duration of model inference.
         // Continue only the originally authorized bookmark task; no synthetic
         // user gesture, new permission grant, scheduler or execution Host.
-        const continueWith=async nextContext=>{
+        const continueWith=async(nextContext,{signal:taskSignal}={})=>{
           if(scope!=='bookmark')throw err('E_AI_SCOPE','非书签任务无法使用书签连续决策');
           if(released)throw err('E_TOOL_CHANGED','书签任务已结束，不能重放后续模型调用');
           assertLive();
           if(deciding)throw err('E_AI_BUSY','当前任务已经在生成后续决策');
+          const stopTask=()=>abortController.abort(typeof taskSignal.reason?.code==='string'?
+            taskSignal.reason:err('E_CANCELLED','本轮已停止，未继续模型决策'));
+          taskSignal?.addEventListener('abort',stopTask,{once:true});
+          if(taskSignal?.aborted)stopTask();
           deciding=true;
           try{
             await assertWrite();
@@ -1758,7 +1775,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
             }));
             await assertWrite();
             return next.proposal;
-          }finally{deciding=false;}
+          }finally{
+            taskSignal?.removeEventListener('abort',stopTask);
+            deciding=false;
+          }
         };
         return {proposal:result.proposal,provider:selected,metadata:result.metadata,
           ...(scope==='bookmark'?{continueWith}:{}),
