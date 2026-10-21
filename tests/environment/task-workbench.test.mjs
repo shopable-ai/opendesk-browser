@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {programDraft} from '../fixtures/program-draft.mjs';
 import {createTaskWorkbench} from '../../src/ui/task-workbench.js';
 import {createDeveloperView} from '../../src/ui/develop-view.js';
-import {createTaskReviewHandoff} from '../../src/ui/workflow/task-review-handoff.js';
+import {createTaskReviewHandoff,taskReviewHandoffKey} from '../../src/ui/workflow/task-review-handoff.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 
 
