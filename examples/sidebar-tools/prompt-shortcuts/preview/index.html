@@ -766,7 +766,8 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  function uninstallMock(){
   closeUninstall();closeTransfer();discardImport();
   state={version:1,revision:state.revision+1,settings:{showBar:false,contextMenu:false,imageSize:'large'},items:[],toolEnabled:false};
-  persistDemoItems();persistDemoSettings();installed=false;editId=null;dirty=false;expandedId=null;deleteId=null;copyId=null;
+  persistDemoItems();persistDemoSettings();persistDemoAssets({});
+  draftImageAssetId='';installed=false;editId=null;dirty=false;expandedId=null;deleteId=null;copyId=null;
   el('mockContextMenu').hidden=true;
   previewRules=[];siteEnabled={};siteDrafts={};storageCorrupt=false;
   try{localStorage.removeItem(SITE_STORAGE);}catch{}
@@ -814,6 +815,10 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  function discardImport(){stagedImport=null;replaceArmed=false;el('importPanel').hidden=true;el('replaceWarning').hidden=true;el('importReplace').textContent='替换现有';}
  function exportJson(){
   closeTransfer();
+  if(state.items.some(row=>row.imageAssetId)){
+   notice('现有 v2 JSON 不能完整包含本地图片；为避免静默丢失，已阻止不完整导出（仅预览）。','error');
+   return;
+  }
   const items=state.items.map(x=>({body:x.body,label:x.label,name:x.name||'',labelAuto:x.labelAuto===true,nameAuto:x.nameAuto===true,enabled:x.enabled!==false,shape:x.shape==='round'?'round':'square',appearance:x.appearance??'text',imageUrl:x.imageUrl??''}));
   const json=JSON.stringify({format:BACKUP_FORMAT,version:BACKUP_VERSION,exportedAt:new Date().toISOString(),imageSize:state.settings.imageSize,items},null,2)+'\n';
   const url=URL.createObjectURL(new Blob([json],{type:'application/json;charset=utf-8'})),a=create('a');
@@ -1230,6 +1235,18 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  el('closeVerification').addEventListener('click',()=>{el('verificationPanel').hidden=true;el('promptBody').focus({preventScroll:true});});
  el('stayEditing').addEventListener('click',()=>{el('leaveConfirm').hidden=true;el('promptBody').focus();});el('discardEditing').addEventListener('click',()=>{const destination=pendingDestination;pendingDestination='index';if(destination==='host')exitTool();else returnIndex();notice('已主动放弃未保存更改。');});
  el('promptForm').addEventListener('submit',event=>void saveForm(event));el('saveContinue').addEventListener('click',event=>void saveForm(event,true));el('promptForm').addEventListener('input',updateMeter);el('promptForm').addEventListener('change',updateMeter);
+ el('imagePick').addEventListener('click',()=>{
+  if(currentView==='form'&&!saving&&!imageUploadBusy)el('imageFile').click();
+ });
+ el('imageFile').addEventListener('change',()=>void chooseLocalImage());
+ el('imageClear').addEventListener('click',()=>{
+  if(saving||imageUploadBusy)return;
+  const old=draftImageAssetId;draftImageAssetId='';updateMeter();
+  if(old&&!state.items.some(row=>row.imageAssetId===old)){
+   const copy={...imageAssets};delete copy[old];persistDemoAssets(copy);
+  }
+  el('imageHelp').textContent='图片已从草稿移除；可重新上传或切换图片网址。';
+ });
  el('showBarSwitch').addEventListener('change',event=>{
   state.settings.showBar=event.currentTarget.checked;persistDemoSettings();state.revision++;renderIndex();renderRail();
   notice(state.settings.showBar?'网页悬浮按钮已开启（模拟）':'网页悬浮按钮已关闭，提示词仍保留（模拟）');
@@ -1288,7 +1305,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    if(index>=0)el('prompt-more-'+index)?.focus({preventScroll:true});event.preventDefault();
   }
  });
- window.addEventListener('beforeunload',event=>{if(currentView==='form'&&(dirty||saving)){event.preventDefault();event.returnValue='';}});
+ window.addEventListener('beforeunload',event=>{if(currentView==='form'&&(dirty||saving||imageUploadBusy)){event.preventDefault();event.returnValue='';}});
 /* R2.4: Offline site-adapter laboratory. This is intentionally not production site code. */
  const SITE_DEMOS=Object.freeze({
   chatgpt:{name:'ChatGPT',origin:'https://chatgpt.com',path:'/c/demo',builtIn:true,mount:['[data-demo-container="chatgpt"]'],editor:['[data-demo-editor="chatgpt"]']},
