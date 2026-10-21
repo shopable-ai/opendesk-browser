@@ -1,6 +1,8 @@
 import React from 'react';
 import {createRoot} from 'react-dom/client';
-import App from '../../../src/react/App.jsx';
+import App,{bookmarkConversationSamples} from '../../../src/react/App.jsx';
+import {TrustedConversationWorkspace} from '../../../../../../src/ui/react/components/conversation.tsx';
+import '../../../../../../src/ui/react/components/conversation-dock.css';
 import '../../../src/react/style.css';
 
 // OFFLINE PREVIEW ONLY. Fixed phrases return bounded intents; the actual
@@ -39,7 +41,10 @@ const conversation=Object.freeze({
 const container=document.getElementById('tool-root');
 if(!container)throw Error('E_BOOKMARK_REACT_ROOT_MISSING');
 const root=createRoot(container);
-root.render(<App runtime={{conversation}} mode="preview"/>);
+root.render(<TrustedConversationWorkspace controller={conversation}
+ title="书签对话" samples={bookmarkConversationSamples} offline
+ placeholder="例如：创建文件夹并收藏当前网页" resultLabel="模拟书签读回（非 Chrome）"
+ renderBusiness={dock=><App runtime={{conversation}} mode="preview" dock={dock}/>}/>);
 Object.defineProperty(globalThis,'__BookmarkReactPreview',{value:Object.freeze({
  version:'R3.0.5',renderer:'react-dom/client',offlineMock:true,nativeVerified:false,
  unmount:()=>root.unmount()

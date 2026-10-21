@@ -68,20 +68,20 @@ async function load(path,width,dark=false,zoom=1){
  return size;
 }
 async function geometry(){return evaluate(`const app=document.querySelector('.bm-app'),a=app.getBoundingClientRect();
- const controls=[...document.querySelectorAll('.bm-topbar .bm-icon-btn,#bm-conversation:not([hidden]) .bm-chat-controls .bm-icon-btn')].map(e=>{
+ const controls=[...document.querySelectorAll('.bm-topbar .bm-icon-btn')].map(e=>{
  const b=e.getBoundingClientRect(),s=e.querySelector('svg').getBoundingClientRect(),hit=document.elementFromPoint(b.x+b.width/2,b.y+b.height/2);
  return {label:e.getAttribute('aria-label'),type:e.type,width:b.width,height:b.height,dx:(s.x+s.width/2)-(b.x+b.width/2),dy:(s.y+s.height/2)-(b.y+b.height/2),inside:b.left>=a.left-.5&&b.right<=a.right+.5,hittable:e.contains(hit),padding:getComputedStyle(e).paddingLeft};});
  const overflow=[...app.querySelectorAll('*')].filter(e=>{const s=getComputedStyle(e);return e.getClientRects().length&&s.overflowX==='visible'&&e.scrollWidth>e.clientWidth+2&&e.clientWidth>0}).map(e=>({tag:e.tagName,cls:e.className,overflow:e.scrollWidth-e.clientWidth}));
  return {appOverflow:app.scrollWidth-app.clientWidth,controls,overflow};`)}
-function assertGeometry(g){assert.ok(g.appOverflow<=1,JSON.stringify(g));for(const e of g.controls){assert.ok(e.inside&&e.hittable,'Icon bounds/hit '+JSON.stringify(e));assert.ok(Math.abs(e.dx)<.7&&Math.abs(e.dy)<.7,'Icon center '+JSON.stringify(e));assert.equal(e.padding,'0px');assert.equal(e.type,e.label==='发送'?'submit':'button')}assert.deepEqual(g.overflow,[])}
+function assertGeometry(g){assert.ok(g.appOverflow<=1,JSON.stringify(g));for(const e of g.controls){assert.ok(e.inside&&e.hittable,'Icon bounds/hit '+JSON.stringify(e));assert.ok(Math.abs(e.dx)<.7&&Math.abs(e.dy)<.7,'Icon center '+JSON.stringify(e));assert.equal(e.padding,'0px');assert.equal(e.type,'button')}assert.deepEqual(g.overflow,[])}
 async function contrast(){return evaluate(String.raw`const lum=c=>c.slice(0,3).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4}).reduce((s,v,i)=>s+v*[.2126,.7152,.0722][i],0);
  const parse=s=>s.startsWith('color(srgb')?s.match(/[\d.]+/g).map(Number).slice(0,3).map(x=>x*255):s.match(/[\d.]+/g).map(Number);
  const over=(a,b)=>{const alpha=a[3]??1;return a.slice(0,3).map((v,i)=>v*alpha+b[i]*(1-alpha)).concat(1)};
  const bg=e=>{if(!e)return [255,255,255,1];return over(parse(getComputedStyle(e).backgroundColor),bg(e.parentElement))};
  const rows=[];function sample(e,color,text,threshold=4.5){const fg=parse(color),back=bg(e),levels=[lum(over(fg,back)),lum(back)].sort((a,b)=>a-b),ratio=(levels[1]+.05)/(levels[0]+.05);rows.push({text,ratio,threshold,foreground:color,background:back.slice(0,3)})}
- for(const e of document.querySelectorAll('.bm-app *')){if(!e.getClientRects().length||!e.textContent.trim()||e.disabled)continue;if(![...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim()))continue;sample(e,getComputedStyle(e).color,e.textContent.trim().slice(0,65));}
- const input=document.querySelector('.bm-chat-request');if(input?.getClientRects().length)sample(input,getComputedStyle(input,'::placeholder').color,'textarea placeholder');
- for(const e of document.querySelectorAll('.bm-topbar .bm-icon-btn:not(:disabled),.bm-chat-controls .bm-icon-btn:not(:disabled)')){if(e.getClientRects().length)sample(e,getComputedStyle(e).color,'icon '+e.getAttribute('aria-label'),3)}return rows;`)}
+ for(const e of document.querySelectorAll('.bm-app *, .od-conversation-dock *')){if(!e.getClientRects().length||!e.textContent.trim()||e.disabled)continue;if(![...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim()))continue;sample(e,getComputedStyle(e).color,e.textContent.trim().slice(0,65));}
+ const input=document.querySelector('.od-conversation-input');if(input?.getClientRects().length)sample(input,getComputedStyle(input,'::placeholder').color,'textarea placeholder');
+ for(const e of document.querySelectorAll('.bm-topbar .bm-icon-btn:not(:disabled)')){if(e.getClientRects().length)sample(e,getComputedStyle(e).color,'icon '+e.getAttribute('aria-label'),3)}return rows;`)}
 const formal=resolve(process.env.BOOKMARK_REACT_PREVIEW_HTML);
 const preview=resolve(here,'../dev.html');
 const inputPaths=['../../src/react/App.jsx','../../src/react/style.css','src/main.jsx','src/formal.jsx',
@@ -120,10 +120,10 @@ try{
   await click('.bm-topbar [aria-label="刷新书签"]');
   await until(()=>evaluate('return !document.querySelector(".bm-topbar [aria-label=刷新书签]").disabled'),'refresh finished');
   await click('.bm-topbar [aria-label="对话"]');
-  assert.equal(await evaluate('return document.activeElement.id'),'bm-chat-request');
-  await click('.bm-chat-samples button');
-  await click('.bm-chat-controls [aria-label="发送"]');
-  assert.match(await evaluate('return document.querySelector(".bm-chat-error")?.textContent'),/离线 React 预览/);
+  assert.equal(await evaluate('return document.activeElement.id'),'od-conversation-input');
+  await click('.od-conversation-samples button');
+  assert.equal(await evaluate('return document.querySelector(".od-conversation-controls [aria-label=发送]").disabled'),true);
+  assert.match(await evaluate('return document.querySelector(".od-conversation-controls").textContent'),/未连接模型/);
   return {screenshot:await screenshot('formal-320-offline-send'),mockOnly:true};
  });
  for(const width of (process.env.BOOKMARK_R13_SMOKE?[320]:[320,360,400,440,960,1280]))for(const dark of [false,true])for(const zoom of [1,2]){
@@ -136,30 +136,31 @@ try{
    // separate action/Host contract belongs to the primary agent.
    await click('[data-node-id="10"]');
    await click('.bm-topbar [aria-label="对话"]');
-   assert.equal(await evaluate('return document.activeElement.id'),'bm-chat-request');
+   assert.equal(await evaluate('return document.activeElement.id'),'od-conversation-input');
+   assert.equal(await evaluate('return document.querySelector(".bm-workspace").getClientRects().length>0 && document.querySelector("#bm-search").getClientRects().length>0'),true,'tree and search remain visible while chat is open');
    const hoveredColors=await contrast();
    assert.deepEqual(hoveredColors.filter(c=>c.ratio<c.threshold),[],'hovered header contrast');
-   await click('.bm-chat-samples button');
-   assert.match(await evaluate('return document.getElementById("bm-chat-request").value'),/AI 工具/);
+   await click('.od-conversation-samples button');
+   assert.match(await evaluate('return document.getElementById("od-conversation-input").value'),/AI 工具/);
    // Keep the action-layer URL canonicalization gap visible in the report;
    // this UI happy path uses an explicit canonical URL accepted by Service.
-   await input('#bm-chat-request','创建一个叫 AI 工具的文件夹，并把 https://example.com/ 收藏进去');
+   await input('#od-conversation-input','创建一个叫 AI 工具的文件夹，并把 https://example.com/ 收藏进去');
    await key('Tab');
    assert.equal(await evaluate('return document.activeElement.getAttribute("aria-label")'),'发送');
    const focus=await evaluate('const s=getComputedStyle(document.activeElement);return {visible:document.activeElement.matches(":focus-visible"),style:s.outlineStyle,width:s.outlineWidth}');
    assert.ok(focus.visible&&focus.style!=='none'&&parseFloat(focus.width)>=2,JSON.stringify(focus));
    await key(' ',0); // browser keyboard activation; submit actual App form
-   await until(()=>evaluate('return document.querySelectorAll(".bm-chat-entry").length>=3'),'mock create + bookmark verified');
-   assert.match(await evaluate('return document.querySelector(".bm-chat-log").textContent'),/已创建/);
+   await until(()=>evaluate('return document.querySelectorAll(".od-conversation-entry").length>=3'),'mock create + bookmark verified');
+   assert.match(await evaluate('return document.querySelector(".od-conversation-log").textContent'),/已创建/);
    assertGeometry(await geometry());
    const colors=await contrast();
    assert.ok(colors.length>5,'rendered text contrast samples');
    assert.deepEqual(colors.filter(c=>c.ratio<c.threshold),[],'text/placeholder contrast >=4.5 and enabled icons >=3');
    const name='conversation-'+width+'-'+(dark?'dark':'light')+'-'+(zoom*100);
    const screenshotFile=await screenshot(name);
-   await input('#bm-chat-request','把刚才收藏的书签改名为 React 文档');await key('Enter');
-   await until(()=>evaluate('return document.querySelectorAll(".bm-chat-entry").length>=5'),'mock multi-turn rename');
-   assert.match(await evaluate('return document.querySelector(".bm-chat-log").textContent'),/React 文档/);
+   await input('#od-conversation-input','把刚才收藏的书签改名为 React 文档');await key('Enter');
+   await until(()=>evaluate('return document.querySelectorAll(".od-conversation-entry").length>=5'),'mock multi-turn rename');
+   assert.match(await evaluate('return document.querySelector(".od-conversation-log").textContent'),/React 文档/);
    await click('.bm-topbar [aria-label="对话"]');
    await input('#bm-search','React 文档');
    await until(()=>evaluate('return [...document.querySelectorAll(".bm-node-title")].some(e=>e.textContent==="React 文档")'),'list reflects mock rename');
@@ -174,7 +175,7 @@ try{
   await check('200% CSS zoom reflow at fixed physical width/height',async()=>{
    assertGeometry(await geometry());
    await click('.bm-topbar [aria-label="对话"]');
-   await click('.bm-chat-samples button');
+   await click('.od-conversation-samples button');
    assertGeometry(await geometry());
    const screenshotFile=await screenshot('reflow-physical-'+physicalWidth+'-'+(dark?'dark':'light')+'-200');
    matrix.push({...currentCase,status:'PASS',viewport,screenshot:screenshotFile});
@@ -185,18 +186,18 @@ try{
  await evaluate('document.getElementById("opendesk-preview-frame").style.height="800px";',outer);
  await check('long message wrapping and multiline keyboard input',async()=>{
   await click('.bm-topbar [aria-label="对话"]');
-  await input('#bm-chat-request','长文本'+('https://example.com/'+('path'.repeat(250))));
+  await input('#od-conversation-input','长文本'+('https://example.com/'+('path'.repeat(250))));
   await key('Enter',8);
-  assert.ok((await evaluate('return document.getElementById("bm-chat-request").value')).includes('\n'),'Shift+Enter preserves newline');
-  assert.equal(await evaluate('return document.querySelectorAll(".bm-chat-entry").length'),0);
-  await key('Enter');await until(()=>evaluate('return document.querySelectorAll(".bm-chat-entry").length>=2'),'long mock reply');
+  assert.ok((await evaluate('return document.getElementById("od-conversation-input").value')).includes('\n'),'Shift+Enter preserves newline');
+  assert.equal(await evaluate('return document.querySelectorAll(".od-conversation-entry").length'),0);
+  await key('Enter');await until(()=>evaluate('return document.querySelectorAll(".od-conversation-entry").length>=2'),'long mock reply');
   assertGeometry(await geometry());return {screenshot:await screenshot('long-message-physical-320-dark-200')};
  });
  currentCase='transcript-scroll-320';await load(preview,320);
  await click('.bm-topbar [aria-label="对话"]');
  await check('new conversation replies remain visible after log fills',async()=>{
-  for(let i=0;i<9;i++){await input('#bm-chat-request','找出 React 相关书签');await key('Enter');await until(()=>evaluate('return document.querySelectorAll(".bm-chat-entry").length>='+((i+1)*2)),'search reply '+i)}
-  const scroll=await evaluate('const e=document.querySelector(".bm-chat-log");return {scrollTop:e.scrollTop,clientHeight:e.clientHeight,scrollHeight:e.scrollHeight,bottom:e.scrollHeight-e.clientHeight-e.scrollTop}');
+  for(let i=0;i<9;i++){await input('#od-conversation-input','找出 React 相关书签');await key('Enter');await until(()=>evaluate('return document.querySelectorAll(".od-conversation-entry").length>='+((i+1)*2)),'search reply '+i)}
+  const scroll=await evaluate('const e=document.querySelector(".od-conversation-log");return {scrollTop:e.scrollTop,clientHeight:e.clientHeight,scrollHeight:e.scrollHeight,bottom:e.scrollHeight-e.clientHeight-e.scrollTop}');
   await screenshot('transcript-scroll-320');assert.ok(scroll.bottom<=2,'latest verified reply must be visible '+JSON.stringify(scroll));return scroll;
  });
  assert.deepEqual(await hashes(),before,'relevant App/preview sources stable');

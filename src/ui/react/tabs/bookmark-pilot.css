@@ -1,11 +1,13 @@
-/* Non-release developer pilot only: an intrinsic bounded viewport for
+/* Admitted static React Bookmark Manager: a viewport for
    the existing Bookmark Manager virtual tree. No shared tab CSS is changed. */
 #sidebar-tool-frame[data-bookmark-trusted="true"]{
-  height:clamp(440px,calc(100dvh - 210px),900px);
-  min-height:440px;
+  height:clamp(180px,calc(100dvh - 210px),900px);
+  min-height:0;
+  max-height:calc(100dvh - 96px);
   overflow:hidden;
 }
 [data-opendesk-surface="tool-page"] #sidebar-tool-frame[data-bookmark-trusted="true"]{
-  height:calc(100dvh - 160px);
-  min-height:440px;
+  height:clamp(180px,calc(100dvh - 160px),900px);
+  min-height:0;
+  max-height:calc(100dvh - 96px);
 }

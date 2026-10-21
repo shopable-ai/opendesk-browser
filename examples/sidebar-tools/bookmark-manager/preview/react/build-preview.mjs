@@ -27,6 +27,7 @@ const inputs=[
  join(root,'scripts/preview/bookmark-manager-mock.js'),
  join(toolDir,'src/model.js'),join(toolDir,'src/service.js'),
  join(root,'src/ui/react/components/conversation.tsx'),
+ join(root,'src/ui/react/components/conversation-dock.css'),
  join(root,'src/ui/conversation/bookmark-actions.js')
 ];
 async function inputFingerprint(){
@@ -111,7 +112,7 @@ if(process.argv.includes('--watch')){
   fsWatch(join(toolDir,'src'),{recursive:true},schedule),
   fsWatch(join(root,'scripts/preview'),{},(type,file)=>{if(String(file)==='bookmark-manager-mock.js')schedule()}),
   fsWatch(join(root,'src/ui'),{},(type,file)=>{if(String(file)==='design-tokens.css')schedule()}),
-  fsWatch(join(root,'src/ui/react/components'),{},(type,file)=>{if(String(file)==='conversation.tsx')schedule()}),
+  fsWatch(join(root,'src/ui/react/components'),{},(type,file)=>{if(['conversation.tsx','conversation-dock.css'].includes(String(file)))schedule()}),
   fsWatch(join(root,'src/ui/conversation'),{},(type,file)=>{if(String(file)==='bookmark-actions.js')schedule()}),
   fsWatch(here,{},(type,file)=>{if(['vite.config.mjs','package-lock.json','package.json'].includes(String(file)))schedule()}),
   fsWatch(dirname(approved),{},(type,file)=>{if(String(file)===basename(approved))schedule()})

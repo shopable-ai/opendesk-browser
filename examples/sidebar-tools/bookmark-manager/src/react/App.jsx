@@ -1,10 +1,10 @@
 /** @jsx h */
 import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {Button as OpenDeskButton,IconButton as OpenDeskIconButton} from '../../../../../src/ui/react/components/ui/button.tsx';
-import {ConversationTranscript,ConversationInput} from '../../../../../src/ui/react/components/conversation.tsx';
 import {bookmarkConversationContext,executeBookmarkPlan} from '../../../../../src/ui/conversation/bookmark-actions.js';
 const model=globalThis.BookmarkR2Model;
 const TREE_ROW_HEIGHT=44;
+export const bookmarkConversationSamples=Object.freeze(['创建一个叫 AI 工具的文件夹，并把 https://example.com 收藏进去','把当前网页收藏到 AI 工具','找出 React 相关书签']);
 function h(...args){return React.createElement(...args)}
 const iconPaths={
  chat:<path d="M21 11.5c0 4.6-3.9 8.5-8.8 8.5a10 10 0 0 1-4.2-.9L3 21l1.5-4.5A8.1 8.1 0 0 1 3 11.5C3 7 7 3 12.2 3s8.8 4 8.8 8.5Z"/>,
@@ -189,7 +189,7 @@ function ActionMenu({state,onAction,onClose}){const menuRef=useRef(null);useEffe
    {!state.locked&&<button role="menuitem" className="bm-destructive" onClick={()=>onAction('delete',state.id)}><Icon name="trash" size={16}/>删除</button>}
   </div>
 }
-function Sheet({title,onClose,children,canClose=true,dismissOnBackdrop=true}){
+function Sheet({title,onClose,children,canClose=true,dismissOnBackdrop=true,hasDock=false}){
  const ref=useRef(null),closeRef=useRef(onClose),origin=useRef(null),canCloseRef=useRef(canClose);
  closeRef.current=onClose;canCloseRef.current=canClose;
  useEffect(()=>{
@@ -199,8 +199,9 @@ function Sheet({title,onClose,children,canClose=true,dismissOnBackdrop=true}){
   (field||region)?.focus();
   const key=e=>{
    if(document.querySelector('[data-testid="confirm-dialog"]'))return;
+    if(hasDock&&!region?.contains(document.activeElement))return;
     if(e.key==='Escape'){e.preventDefault();e.stopPropagation();if(canCloseRef.current)closeRef.current();return}
-   if(e.key!=='Tab'||!region)return;
+   if(e.key!=='Tab'||!region||hasDock)return;
    const items=[...region.querySelectorAll('button:not(:disabled),input:not(:disabled),a[href],select:not(:disabled)')].filter(el=>el.getClientRects().length);
    if(!items.length)return;
    const first=items[0],last=items[items.length-1];
@@ -214,9 +215,9 @@ function Sheet({title,onClose,children,canClose=true,dismissOnBackdrop=true}){
    if(target?.isConnected)target.focus();
    else document.querySelector('.bm-tree-scroll')?.focus();
   };
- },[]);
- return <div className="bm-sheet-backdrop" role="presentation" onMouseDown={e=>{if(dismissOnBackdrop&&canClose&&e.target===e.currentTarget)closeRef.current()}}>
-  <section ref={ref} className="bm-sheet" role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} data-testid="bookmark-sheet">
+ },[hasDock]);
+ return <div className="bm-sheet-backdrop" data-sharing={hasDock?'true':undefined} role="presentation" onMouseDown={e=>{if(dismissOnBackdrop&&canClose&&e.target===e.currentTarget)closeRef.current()}}>
+  <section ref={ref} className="bm-sheet" role="dialog" aria-modal={!hasDock} aria-label={title} tabIndex={-1} data-testid="bookmark-sheet">
    <header className="bm-sheet-header"><strong>{title}</strong><OpenDeskIconButton className="bm-sheet-close" label="关闭" disabled={!canClose} onClick={onClose}><Icon name="x" size={17}/></OpenDeskIconButton></header>
    {children}
   </section>
@@ -247,107 +248,77 @@ function Confirm({title,description,confirm,cancelLabel='取消',canConfirm=true
   </div>
  </div>;
 }
-export default function App({runtime=null,mode='preview',onStateChange=null}={}){
+export default function App({runtime=null,mode='preview',onStateChange=null,dock=null}={}){
  const sdk=runtime?.sdk??globalThis.OpenDeskSDK?.browser;
  const service=useMemo(()=>runtime?.service??globalThis.BookmarkR2Service.create(sdk),[runtime,sdk]);
  const [tree,setTree]=useState(null),[expanded,setExpanded]=useState(new Set(['1','2','10','11'])),[query,setQuery]=useState(''),[selectedId,setSelectedId]=useState(null),[activeId,setActiveId]=useState('1'),[draft,updateDraft]=useState(null),[pickerOpen,setPickerOpen]=useState(false),[previewOpen,setPreviewOpen]=useState(false),[menu,setMenu]=useState(null),[confirmDiscard,setConfirmDiscard]=useState(false),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[uncertain,setUncertain]=useState(false);
  const scrollRef=useRef(null),pendingFolderReveal=useRef(null),readEpoch=useRef(0),writeEpoch=useRef(0),authorityEpoch=useRef(0),activeRef=useRef(true),menuButtonRef=useRef(null),busyRef=useRef(false),fillEpoch=useRef(0);
 
+
  const conversation=runtime?.conversation||null;
- const restoredChat=useMemo(()=>conversation?.readSession?.()||{},[conversation]);
- const [chatOpen,setChatOpen]=useState(Boolean(restoredChat.open)),
-  [chatDraft,setChatDraft]=useState(restoredChat.draft||''),
-  [chatRows,setChatRows]=useState(restoredChat.rows||[]),
-  [chatBusy,setChatBusy]=useState(false),[chatError,setChatError]=useState('');
- const chatRefs=useRef(restoredChat.refs||{folderId:null,bookmarkId:null,matches:[]});
- const chatInput=useRef(null),chatLog=useRef(null),chatAbort=useRef(null),chatInFlight=useRef(false),chatSequence=useRef(0);
-  const chatRowsRef=useRef(restoredChat.rows||[]);
- useEffect(()=>{
-  conversation?.saveSession?.({open:chatOpen,draft:chatDraft,rows:chatRows,refs:chatRefs.current});
- },[conversation,chatOpen,chatDraft,chatRows]);
- useEffect(()=>{if(chatOpen)chatInput.current?.focus({preventScroll:true})},[chatOpen]);
+ const dockRef=useRef(dock);dockRef.current=dock;
+ const draftRef=useRef(draft);draftRef.current=draft;
+ const uncertainRef=useRef(uncertain);uncertainRef.current=uncertain;
+ // The admitted App provides business capability; Host React alone owns Chat Dock UI.
  useLayoutEffect(()=>{
-  if(chatOpen&&chatLog.current)chatLog.current.scrollTop=chatLog.current.scrollHeight;
- },[chatOpen,chatRows,chatError]);
- useEffect(()=>()=>{chatAbort.current?.abort()},[]);
- function appendConversation(speaker,message){
-  const row={id:'bookmark-turn-'+Date.now()+'-'+(++chatSequence.current),speaker,message:String(message).slice(0,3500)};
-  const rows=[...chatRowsRef.current,row].slice(-24);
-   chatRowsRef.current=rows;
-   if(activeRef.current)setChatRows(rows);
-   // Commit verified messages and their real ID references immediately:
-   // the trusted portal may unmount before React runs another effect.
-   conversation?.saveSession?.({open:true,draft:'',rows,refs:chatRefs.current});
- }
- function toggleConversation(){
-  if(draft){setError('请先完成或取消当前书签编辑，再打开对话。');return;}
-  setChatOpen(open=>!open);setPreviewOpen(false);setMenu(null);setChatError('');
- }
- function stopConversation(){
-  chatAbort.current?.abort();
-  void conversation?.cancel?.()?.catch?.(()=>{});
- }
- async function sendConversation(event){
-  event.preventDefault();
-  if(event.nativeEvent?.isComposing||chatInFlight.current||!chatDraft.trim())return;
-  if(!tree||loading||uncertain||busyRef.current){
-   setChatError(uncertain?'写入结果未知，请先返回列表刷新核对。':'请先读取完整书签，或等待当前操作完成。');return;
-  }
-  if(!conversation?.request){
-   setChatError('当前是离线 React 预览，未连接真实 AI 或 Chrome 书签 Host。');return;
-  }
-  const requestText=chatDraft.trim();
-  const pinnedFolder=(current&&isFolder(current)?current.id:current?.parentId)||
-    (tree.byId.has('1')?'1':[...tree.byId.values()].find(n=>n.parentId!==null&&isFolder(n)&&!n.locked)?.id);
+  const bridge=dock?.adapterRef;if(!bridge)return;
+  const active={request:runBookmarkConversation};bridge.current=active;
+  return()=>{if(bridge.current===active)bridge.current=null};
+ });
+ async function runBookmarkConversation({request,refs,signal,event,onStep,onPhase}){
+  if(!conversation?.request)
+   throw Object.assign(Error('当前是离线 React 预览，未连接真实 AI 或 Chrome 书签 Host。'),{code:'E_AI_UNAVAILABLE'});
+  if(!tree||loading||uncertainRef.current||busyRef.current)
+   throw Object.assign(Error(uncertainRef.current?'写入结果未知，请刷新并核对书签后再操作。':'请先读取完整书签或等待当前操作完成。'),{code:'E_BOOKMARK_BUSY'});
+  // Freeze real selection and verified IDs at the Send event. Later UI selection is independent.
+  const selected=tree.byId.get(selectedId);
+  const pinnedFolder=(selected&&isFolder(selected)?selected.id:selected?.parentId)||
+   (tree.byId.has('1')?'1':[...tree.byId.values()].find(n=>n.parentId!==null&&isFolder(n)&&!n.locked)?.id);
   const pinned={selectedId,currentFolderId:pinnedFolder,refs:{
-   folderId:chatRefs.current.folderId,bookmarkId:chatRefs.current.bookmarkId,
-   matches:[...(chatRefs.current.matches||[])]
-  }};
+   folderId:refs?.folderId||null,bookmarkId:refs?.bookmarkId||null,matches:[...(refs?.matches||[])]}};
   const publicContext={...bookmarkConversationContext(tree,pinned),currentPageAvailable:true};
-  const signal=new AbortController();chatAbort.current=signal;chatInFlight.current=true;
-  busyRef.current=true;setBusy(true);
-  setChatBusy(true);setChatError('');setChatDraft('');appendConversation('你',requestText);
-  // Both tasks start from the real user Send gesture. Current-page content
-  // stays local; the Provider sees only a "$currentPage" capability marker.
+  // Both permission-sensitive requests start synchronously in the trusted Send gesture.
+  // Private URL / document identifiers are never sent as model context.
   let pagePromise;
   try{pagePromise=Promise.resolve(sdk?.page?.getContext?.()).catch(()=>null)}
   catch{pagePromise=Promise.resolve(null)}
+  const providerPromise=conversation.request({request,context:publicContext,signal,event});
+  const [{proposal},pageContext]=await Promise.all([providerPromise,pagePromise]);
+  if(signal.aborted)throw Object.assign(Error('本轮已停止'),{code:'E_CANCELLED'});
+  if(authorityEpoch.current||!activeRef.current)
+   throw Object.assign(Error('书签访问授权或当前安装实例已经失效，未发送后续操作。'),{code:'E_GRANT_REVOKED'});
+  const willWrite=Array.isArray(proposal?.actions)&&proposal.actions.some(action=>action?.type!=='bookmark.search');
+  // Allow read/search during a draft; defer any AI writes rather than silently discard the draft.
+  if(willWrite&&(draftRef.current||uncertainRef.current||busyRef.current))
+   throw Object.assign(Error(draftRef.current?
+    '存在未保存的书签编辑。可以继续只读搜索；请先保存或取消编辑，再重新发起写入。':
+    '书签正在写入或结果尚未核实，请核对后重新发起操作。'),{code:'E_DRAFT_CONFLICT'});
+  if(willWrite){onPhase?.('writing');busyRef.current=true;setBusy(true);}
   try{
-   const providerPromise=conversation.request({request:requestText,context:publicContext,
-    signal:signal.signal,event:event.nativeEvent});
-   const [{proposal},pageContext]=await Promise.all([providerPromise,pagePromise]);
-   if(signal.signal.aborted)throw Object.assign(Error('本轮已停止'),{code:'E_CANCELLED'});
-   const result=await executeBookmarkPlan({plan:proposal,service,signal:signal.signal,
+   const result=await executeBookmarkPlan({plan:proposal,service,signal,
     expectedTree:tree,context:{...pinned,pageContext},refs:pinned.refs,
     onStep:step=>{
-     chatRefs.current=step.refs;
-     appendConversation('助手',step.message);
-     if(activeRef.current){
-      setTree(step.tree);
-      if(step.id){setSelectedId(step.id);setActiveId(step.id);}
+     if(!activeRef.current||authorityEpoch.current)return;
+     if(step.tree)setTree(step.tree);
+     if(step.id){
+      // Reveal verified writes without hijacking a newer manual selection.
+      const node=step.tree?.byId.get(step.id);
+      if(node)setExpanded(previous=>{
+       const next=new Set(previous);let parent=step.tree.byId.get(node.parentId),depth=0;
+       while(parent&&depth++<100){next.add(parent.id);parent=step.tree.byId.get(parent.parentId);}
+       return next;
+      });
      }
+     onStep?.({message:step.message,refs:step.refs});
     }});
-   if(result.question)appendConversation('助手',result.question);
-   else{
-    chatRefs.current=result.refs;
-    if(result.tree)setTree(result.tree);
-   }
+   return {question:result.question||null,refs:result.refs};
   }catch(error){
-   if(error?.refs)chatRefs.current=error.refs;
    if(error?.code==='E_OUTCOME_UNKNOWN')setUncertain(true);
-   const partial=error?.partial?.length?'已确认 '+error.partial.length+' 项操作。其余未完成。 ':'';
-   const text=error?.code==='E_CANCELLED'?'本轮已停止，未发送后续操作。':
-    partial+(error?.message||'操作失败。没有将未确认写入视为成功。');
-   if(activeRef.current){
-    setChatError(text);
-    // Restore editable input on Provider/pre-write failures, but never replay a write.
-    if(!error?.writeIssued&&!error?.partial?.length&&error?.code!=='E_OUTCOME_UNKNOWN')
-     setChatDraft(requestText);
-   }
-   appendConversation('系统',text);
+   if(authorityDenied(error))revoke();
+   if(error?.refs)onStep?.({refs:error.refs});
+   throw error;
   }finally{
-   chatInFlight.current=false;chatAbort.current=null;busyRef.current=false;
-   if(activeRef.current){setChatBusy(false);setBusy(false);}
+   if(willWrite){busyRef.current=false;if(activeRef.current)setBusy(false);}
   }
  }
 
@@ -367,7 +338,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
    const next=await service.load();
    if(!activeRef.current||authorityEpoch.current||stamp!==readEpoch.current)return null;
    if(write!==writeEpoch.current||busyRef.current){setLoading(false);return null}
-   setTree(next);setLoading(false);if(reconcileUnknown)setUncertain(false);setNotice('');return next;
+   setTree(next);setLoading(false);if(reconcileUnknown){setUncertain(false);dockRef.current?.reconcile?.();}setNotice('');return next;
   }catch(ex){
    if(activeRef.current&&!authorityEpoch.current&&authorityDenied(ex))revoke();
    else if(activeRef.current&&!authorityEpoch.current&&stamp===readEpoch.current){setLoading(false);setError(humanError(ex))}
@@ -593,47 +564,19 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
     <OpenDeskIconButton label="新建书签" className="bm-icon-btn bm-icon-btn--primary" disabled={busy} onClick={()=>request({type:'create',kind:'bookmark'})}><Icon name="plus" size={18}/></OpenDeskIconButton>
     <OpenDeskIconButton label="新建文件夹" className="bm-icon-btn" disabled={busy} onClick={()=>request({type:'create',kind:'folder'})}><Icon name="folder" size={17}/></OpenDeskIconButton></div>
     <OpenDeskIconButton label="收藏当前页" className="bm-icon-btn" disabled={busy} onClick={bookmarkCurrentPage}><Icon name="star" size={17}/></OpenDeskIconButton>
-    <OpenDeskIconButton label="对话" className={'bm-icon-btn'+(chatOpen?' bm-icon-btn--primary':'')} aria-pressed={chatOpen} aria-controls="bm-conversation" disabled={busy} onClick={toggleConversation}><Icon name="chat" size={17}/></OpenDeskIconButton>
+    <OpenDeskIconButton ref={dock?.triggerRef} label="对话" className={'bm-icon-btn'+(dock?.open?' bm-icon-btn--primary':'')} aria-pressed={Boolean(dock?.open)} aria-controls="opendesk-conversation-dock" disabled={busy||!dock} onClick={dock?.toggle}><Icon name="chat" size={17}/></OpenDeskIconButton>
     <OpenDeskIconButton label="刷新书签" className="bm-icon-btn" onClick={()=>void load({reconcileUnknown:true})} disabled={busy||loading}><Icon name="refresh" size={17}/></OpenDeskIconButton>
    </div></header>
-  <div className="bm-tools" hidden={chatOpen}><div className="bm-search-wrap"><Icon name="search" size={16}/><label className="bm-sr-only" htmlFor="bm-search">搜索名称、URL 或文件夹</label><input id="bm-search" value={query} placeholder="搜索书签、网址或文件夹" onChange={e=>changeSearch(e.target.value)}/>{query&&<OpenDeskIconButton label="清空搜索" onClick={()=>{changeSearch('');document.getElementById('bm-search')?.focus()}}><Icon name="x" size={14}/></OpenDeskIconButton>}</div></div>
+  <div className="bm-tools"><div className="bm-search-wrap"><Icon name="search" size={16}/><label className="bm-sr-only" htmlFor="bm-search">搜索名称、URL 或文件夹</label><input id="bm-search" value={query} placeholder="搜索书签、网址或文件夹" onChange={e=>changeSearch(e.target.value)}/>{query&&<OpenDeskIconButton label="清空搜索" onClick={()=>{changeSearch('');document.getElementById('bm-search')?.focus()}}><Icon name="x" size={14}/></OpenDeskIconButton>}</div></div>
   {error&&!draft&&<div className="bm-error" role="alert"><Icon name="alert" size={17}/><span>{error}</span><button type="button" disabled={busy} onClick={()=>{setError('');void load({reconcileUnknown:true})}}>刷新</button></div>}
   {(busy||notice)&&<div className="bm-notice" role="status">{busy?'正在处理书签…':notice}</div>}
-  <div className="bm-workspace" hidden={chatOpen}><section className="bm-explorer" aria-label="书签树">{query&&<div className="bm-tree-head"><span>搜索结果</span><small>{rows.filter(r=>((r.node.title+' '+(r.node.url||'')).toLocaleLowerCase()).includes(query.toLocaleLowerCase())).length} 条匹配</small></div>}
+  <div className="bm-workspace"><section className="bm-explorer" aria-label="书签树">{query&&<div className="bm-tree-head"><span>搜索结果</span><small>{rows.filter(r=>((r.node.title+' '+(r.node.url||'')).toLocaleLowerCase()).includes(query.toLocaleLowerCase())).length} 条匹配</small></div>}
   {loading&&!tree?<div className="bm-loading" role="status">正在读取书签…</div>:tree?<Tree rows={rows} expanded={expanded} selectedId={selectedId} activeId={activeId} setActiveId={setActiveId} onSelect={select} onFolder={navigateFolder} onToggle={toggle} onMenu={onMenu} searchActive={Boolean(query.trim())} searchTerm={query} onEdit={id=>request({type:'edit',id})} onScrollClose={()=>setMenu(null)} scrollRef={scrollRef}/>:<div className="bm-empty">暂时无法读取书签。使用刷新重试。</div>}</section>
   {previewNode&&<button type="button" tabIndex={-1} aria-hidden="true"
    className="bm-preview-backdrop" onClick={closePreview}/>}
   {previewNode&&<PreviewPane tree={tree} node={previewNode} onClose={closePreview} onEdit={id=>request({type:'edit',id})} onCopy={copyPreviewUrl}/>} 
   </div>
-  <section id="bm-conversation" className="bm-conversation" aria-label="书签对话" hidden={!chatOpen}>
-   <div ref={chatLog} className="bm-chat-log" role="log" aria-live="polite" aria-label="书签对话及已核实的操作结果">
-    {chatRows.length?<ConversationTranscript rows={chatRows} entryClassName="bm-chat-entry"/>:
-     <div className="bm-chat-empty">
-      <p>直接说出你想对书签做什么。</p>
-      <div className="bm-chat-samples">
-       {['创建一个叫 AI 工具的文件夹，并把 https://example.com 收藏进去','把当前网页收藏到 AI 工具','找出 React 相关书签'].map(sample=>
-        <button type="button" key={sample} onClick={()=>{setChatDraft(sample);chatInput.current?.focus()}}>{sample}</button>)}
-      </div>
-     </div>}
-   </div>
-   {chatError&&<p className="bm-chat-error" role="alert">{chatError}</p>}
-   <form className="bm-chat-composer" onSubmit={sendConversation}>
-    <label className="bm-sr-only" htmlFor="bm-chat-request">书签对话输入</label>
-    <ConversationInput id="bm-chat-request" inputRef={chatInput} value={chatDraft}
-     className="bm-chat-request" rows={3} maxLength={4000}
-     placeholder="例如：创建一个文件夹并收藏当前网页"
-     onChange={e=>setChatDraft(e.target.value)}
-     onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing){
-      e.preventDefault();void sendConversation(e);
-     }}}/>
-    <div className="bm-chat-controls">
-     <small>{conversation?.source?.().label||'离线预览'} · {mode==='trusted'?'Chrome 书签读回核验':'模拟书签读回（非 Chrome）'}</small>
-     {chatBusy?<OpenDeskIconButton label="停止对话" className="bm-icon-btn" onClick={stopConversation}><Icon name="stop" size={16}/></OpenDeskIconButton>:
-      <OpenDeskIconButton label="发送" type="submit" onClick={sendConversation} className="bm-icon-btn bm-icon-btn--primary" disabled={!chatDraft.trim()||!tree||loading||uncertain}><Icon name="send" size={16}/></OpenDeskIconButton>}
-    </div>
-   </form>
-  </section>
-  {tree&&draft&&<Sheet title={draft?(draft.mode==='create'?(draft.kind==='folder'?'新建文件夹':'新建书签'):'编辑'+(draft.kind==='folder'?'文件夹':'书签')):'书签详情'} onClose={requestCloseSheet} canClose={!busy} dismissOnBackdrop={!busy&&!dirtyDraft(draft)}>
+  {tree&&draft&&<Sheet title={draft?(draft.mode==='create'?(draft.kind==='folder'?'新建文件夹':'新建书签'):'编辑'+(draft.kind==='folder'?'文件夹':'书签')):'书签详情'} onClose={requestCloseSheet} canClose={!busy} dismissOnBackdrop={!busy&&!dirtyDraft(draft)} hasDock={Boolean(dock)}>
     <Inspector tree={tree} node={current} draft={draft} setDraft={setDraft} onSave={save} onCancel={uncertain?requestCloseSheet:closeSheet} onOpenPicker={setPickerOpen} pickerOpen={pickerOpen} setPickerOpen={setPickerOpen} busy={busy} uncertain={uncertain} error={error}/>
   </Sheet>}
   {menu&&<ActionMenu state={menu} onAction={actionMenu} onClose={closeMenu}/>}

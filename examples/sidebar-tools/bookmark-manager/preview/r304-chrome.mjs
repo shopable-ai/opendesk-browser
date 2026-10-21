@@ -241,14 +241,15 @@ try{
   // Check the original React conversation pane, not a recreated HTML panel.
   // No Provider is connected in this formal mock fixture.
   await click(ctx,'button[aria-label="对话"]');
-  await until(ctx,"document.getElementById('bm-conversation')?.hidden===false",'conversation opens '+width);
-   assert.equal(await invoke(ctx,"return document.querySelector('#bm-conversation button[aria-label=\"发送\"]')?.type"),'submit','real conversation send must submit '+width);
-  await click(ctx,'.bm-chat-samples button');
-  await until(ctx,"document.getElementById('bm-chat-request')?.value.includes('AI 工具')",'conversation draft '+width);
+  await until(ctx,"document.getElementById('opendesk-conversation-dock')?.hidden===false",'conversation opens '+width);
+  assert.equal(await invoke(ctx,"return document.querySelector('.bm-workspace').getClientRects().length>0 && document.querySelector('#bm-search').getClientRects().length>0"),true,'original tree and search remain visible while chat is open '+width);
+   assert.equal(await invoke(ctx,"return document.querySelector('#opendesk-conversation-dock button[aria-label=\"发送\"]')?.type"),'submit','real conversation send must submit '+width);
+  await click(ctx,'.od-conversation-samples button');
+  await until(ctx,"document.getElementById('od-conversation-input')?.value.includes('AI 工具')",'conversation draft '+width);
   await click(ctx,'button[aria-label="对话"]');
-  await until(ctx,"document.getElementById('bm-conversation')?.hidden===true",'conversation closes '+width);
+  await until(ctx,"document.getElementById('opendesk-conversation-dock')?.hidden===true",'conversation closes '+width);
   await click(ctx,'button[aria-label="对话"]');
-  assert.match(await invoke(ctx,"return document.getElementById('bm-chat-request').value"),/AI 工具/,'chat draft retained '+width);
+  assert.match(await invoke(ctx,"return document.getElementById('od-conversation-input').value"),/AI 工具/,'chat draft retained '+width);
   await click(ctx,'button[aria-label="对话"]');
   await until(ctx,"document.querySelector('.bm-workspace')?.hidden===false",'bookmark tree restored '+width);
   await assertTreeGeometry(ctx,'initial tree '+width);

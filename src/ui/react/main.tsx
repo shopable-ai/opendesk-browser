@@ -6,7 +6,9 @@ import {createDeveloperView} from '../develop-view.js';
 import {createMyWorkbenchView} from '../my-workbench-view.js';
 import '../../../examples/sidebar-tools/bookmark-manager/src/model.js';
 import '../../../examples/sidebar-tools/bookmark-manager/src/service.js';
-import BookmarkReactApp from '../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx';
+import BookmarkReactApp,{bookmarkConversationSamples} from '../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx';
+import {TrustedConversationWorkspace} from './components/conversation.tsx';
+import conversationDockCSS from './components/conversation-dock.css?raw';
 import bookmarkScopedCSS from '../../../examples/sidebar-tools/bookmark-manager/src/react/style.css?raw';
 import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 
@@ -54,7 +56,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
     const extensionProps={rowsModel:model,menuKey,rowMenuModel,detailModel,uninstallModel,toolbarModel,feedbackModel,recoveryModel,statusModel,
       view:extensionView,onBack:onExtensionBack};
     flushSync(()=>root.render(<>
-      <style data-opendesk-trusted-react-css="">{bookmarkPilotLayoutCSS}</style>
+      <style data-opendesk-trusted-react-css="">{bookmarkPilotLayoutCSS+'\n'+conversationDockCSS}</style>
       <SidebarAppShell activeTab={navigationTab}
         debugEnabled={debugEnabled} debugModel={debugModel} debugActions={debugActions} development={development}
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
@@ -63,7 +65,12 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
         cloudModel={cloudPageModel.overview} cloudRequestsModel={cloudPageModel.requests}
         cloudSetupModel={cloudPageModel.setup} cloudPageModel={cloudPageModel}/>
       {bookmarkPilot&&createPortal(<><style>{bookmarkScopedCSS}</style>
-        <BookmarkReactApp mode="trusted" runtime={bookmarkPilot.runtime} onStateChange={bookmarkPilot.onStateChange}/>
+        <TrustedConversationWorkspace controller={bookmarkPilot.runtime.conversation}
+         title="书签对话" samples={bookmarkConversationSamples}
+         placeholder="例如：创建一个文件夹并收藏当前网页"
+         resultLabel="Chrome 书签读回核验"
+         renderBusiness={dock=><BookmarkReactApp mode="trusted" runtime={bookmarkPilot.runtime}
+           onStateChange={bookmarkPilot.onStateChange} dock={dock}/>}/>
         </>,bookmarkPilot.container)}
     </>));
   }
@@ -110,8 +117,21 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
         typeof onStateChange!=='function'||!globalThis.BookmarkR2Service?.create||
         !globalThis.BookmarkR2Model)
         throw new Error('E_BOOKMARK_TRUSTED_PILOT_MOUNT');
+      // The trusted SDK token is new for each mount. A reopened tool may keep
+      // a display-only draft/transcript, but MUST NOT inherit executable
+      // bookmark object IDs or authority from a previous portal instance.
+      const oldSession=conversation?.readSession?.()||{};
+      const scopedConversation=conversation?Object.freeze({
+        source:()=>conversation.source(),
+        request:args=>conversation.request(args),
+        cancel:()=>conversation.cancel(),
+        readSession:()=>({...oldSession,open:false,
+          refs:{folderId:null,bookmarkId:null,matches:[]}}),
+        saveSession:state=>conversation.saveSession(state)
+      }):null;
       bookmarkPilot={container,
-        runtime:Object.freeze({sdk,service:globalThis.BookmarkR2Service.create(sdk),conversation}),
+        runtime:Object.freeze({sdk,service:globalThis.BookmarkR2Service.create(sdk),
+          conversation:scopedConversation}),
         onStateChange};
       container.dataset.opendeskReactOwner='bookmark-react-pilot';
       try{paint();}catch(error){

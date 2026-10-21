@@ -1381,7 +1381,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     'Your JSON is merely a proposal; independent SDK/Host validation and readback determine success.'
   ].join('\n');
   let bookmarkConversationBusy=false;
-  let bookmarkConversationSession={open:false,draft:'',rows:[],
+  let bookmarkConversationSession={open:false,draft:'',rows:[],needsReview:false,
     refs:{folderId:null,bookmarkId:null,matches:[]}};
   const conversation=Object.freeze({
     source(){const selected=provider();return {
@@ -1396,6 +1396,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           id:row.id.slice(0,100),speaker:row.speaker,message:row.message})):bookmarkConversationSession.rows;
       const refs=snapshot.refs||{};
       bookmarkConversationSession={open:snapshot.open===true,
+        needsReview:snapshot.needsReview===true,
         draft:typeof snapshot.draft==='string'?snapshot.draft.slice(0,4000):'',
         rows,refs:{
           folderId:typeof refs.folderId==='string'?refs.folderId.slice(0,160):null,
