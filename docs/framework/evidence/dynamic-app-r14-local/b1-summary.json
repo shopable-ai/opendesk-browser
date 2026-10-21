@@ -1188,10 +1188,30 @@
       "source": "controller-native/proof.json"
     },
     "page": {
-      "status": "NOT_TESTED",
-      "classification": "HARNESS_ACTION_INCOMPLETE",
-      "source": "page-native/proof.json",
-      "reason": "Mac select native input did not choose Page; Run was never clicked. No product failure or Page PASS is claimed."
+      "status": "PASS",
+      "classification": "NATIVE_PAGE_RUN_AFTER_CHROME_PERMISSION_ONBOARDING",
+      "source": "page-native/native-success-proof.json",
+      "historicalAttempts": [
+        "page-native/selection-driver-failure.json",
+        "page-native/proof.json",
+        "page-native/pid-input-proof.json"
+      ],
+      "permissionBefore": false,
+      "permissionAfter": true,
+      "permissionMethod": "actual Chrome extension settings UI allow-user-scripts toggle, owned isolated Profile only",
+      "nativeSelectorInput": {
+        "pid": 53719,
+        "active": true,
+        "keys": [
+          125,
+          36
+        ]
+      },
+      "result": "{\"count\":\"1\",\"kind\":\"page-r14-regression\"}",
+      "pageCount": "1",
+      "world": "page",
+      "excludedUiTechnicalTitleFromIdentityProof": true,
+      "scope": "Actual current fixture target DOM effect and matching Page preview result; not a Task result or full Page identity attack matrix"
     },
     "bundleHashVerification": {
       "status": "PASS",
@@ -1204,6 +1224,10 @@
       "branch": "main",
       "remote": "origin/main",
       "method": "normal push; local and remote SHA verified equal"
+    },
+    "pageUiTechnicalMetadata": {
+      "status": "OBSERVED_NON_BLOCKING_LIMITATION",
+      "detail": "Page result succeeds; technical target title retains previous Controller metadata. Actual target and result observations are used instead; no claim this was introduced by app-service. Parallel UI files were not modified."
     }
   },
   "independentFinalReview": {

@@ -68,11 +68,13 @@ Chrome 原生 Alarm 的实际创建、时间、自然到期及执行链均有证
 | 写成功、回执与读回都丢失 | B1 FAULT_SCENARIO_OBSERVED；`fault-b1-unknown/report.json`，native commit 1 次，记录未知结果，不自动重放，临时注入已恢复 |
 | 伪造 SDK/Sender | B1 应用自身七字段、跨应用与全局消息绕过探针 PASS；B0 有 24 项真实拒绝；私有 Port 提取、旧 document epoch 及不同市场发布者完整原生矩阵 NOT_TESTED |
 | 有界队列超额、长期公平性 | 单槽双应用和超时排队 PASS；超额及长期饥饿场景 NOT_TESTED |
-| 原 Controller/Page/Cloud/官方应用 | B1 原 Controller 网页点击、结果读回及资源释放原生 PASS；Page 在原生 select 驱动处未完成、没有执行脚本，记 NOT_TESTED；Cloud/官方应用完整原生矩阵 NOT_TESTED |
+| 原 Controller/Page/Cloud/官方应用 | B1 原 Controller 网页点击、结果读回及资源释放原生 PASS；Page 经测试 Profile 的 Chrome 用户脚本权限 UI 审阅后，实际 DOM 操作和结果原生 PASS；Cloud/官方应用完整原生矩阵 NOT_TESTED |
 
 补充原生负向场景：冻结后生成的临时应用 `app-port-probe-b27124ba17e1` 通过正式 UI 安装并由真实 Alarm 执行，尝试四条全局 Worker 伪造消息、合成 bind/execute 和 MessagePort 原型拦截。观测到假通道回复 0、捕获私有发送 0、伪造 journal 0、B 无伪造存储；普通 SDK 后续正常，Run `0fb47b7b-806e-414d-b91d-80e3ae425a7e` completed 且 Worker 退役。随后通过正式 UI 卸载临时应用；它不是交付的 A/B 包，不代表已完成私有 Port 提取及旧 document epoch 矩阵。证据 `private-port-probe/proof.json`。
 
-同 B1 的原 Controller 回归从真实开发 UI 编辑零参数 `main()` 并点击运行，标准 demo-form 按钮仅点击一次、计数 0→1，UI 显示正确结果和资源释放，Run `2d9d8c59-f2a0-4866-8fb5-1719ee07acfa`。证据 `controller-native/proof.json`。Page 回归尚未通过 Mac 原生 select 操作，停在点击运行之前；这是驱动操作未完成，不据此修改产品或声称 Page PASS。自有网页/测试 UI 已关闭，既有 43111 服务未停止。
+同 B1 的原 Controller 回归从真实开发 UI 编辑零参数 `main()` 并点击运行，标准 demo-form 按钮仅点击一次、计数 0→1，UI 显示正确结果和资源释放，Run `2d9d8c59-f2a0-4866-8fb5-1719ee07acfa`。证据 `controller-native/proof.json`。Page 的早期两次原生 select 驱动未完成，随后针对已核对 PID 53719 的系统按键成功选择 Page。首次 Run 明确因 Chrome 未开「允许用户脚本」而拒绝且 DOM 无效果；经该隔离实例的扩展设置 UI 点击许可、返回检测，再明确点击 Run，新网页计数 0→1，UI 返回 page-r14-regression 的相符结果。当前 Page 主流程原生 PASS，证据 `page-native/native-success-proof.json`；不是正式 Task 结果，不代表完整身份攻击矩阵。自有网页与设置 TAB 已关闭，43111 服务保留，B 的应用 UI 已重新显示结果。
+
+尚存非阻断 UI 限制：Page 成功读回时，技术目标标题保留了上一 Controller 的元数据。本次证据使用实际新建网页 target 的 DOM 效果与对应 Page 结果，不把该旧标题当成当次身份依据；没有证据将其归因为本轮 app-service 引入，也未改动并行 UI owner 的文件。
 
 30 秒执行期限、原存储/响应预算继续生效。无 OS 级 Worker 强制内存隔离、任意副作用 exactly-once、精确秒级 Alarm、浏览器关闭后继续执行或商店审核承诺。临时故障注入明确与普通无 debugger 的正常链分开，恢复后才离开场景。
 
@@ -121,4 +123,6 @@ Chrome 原生 Alarm 的实际创建、时间、自然到期及执行链均有证
 
 评分是独立子审查的阶段结论；评审时的主线整合阻塞随后已解除，新增重启、超时和最终包证据不自动上调分数。逐维实证、风险、未测和最小动作保留在 `artifacts/dynamic-app-r14-local/expert-six-dimensions.md`。main 已安全整合，普通推送按用户授权完成；最小剩余顺序是补齐当前候选身份/队列及原生回归门槛，再完成固定候选发布政策审查。G-DYNAMIC 全条件验收、G-DECOUPLING 和商店合规分别判断，均不能因两个算法成功就一并标完成。
 
-最后一次独立复核依据新增原生消息负向、Controller 与主线整合证据，维持上述六项分数，未确认新增阻断性产品缺陷。原始15条件中 1–10、13、14 在已明确的证据边界内得到支持；11（完整权限／计划／结果隔离）、12（独立撤权和旧身份迟到消息等相关边界）、15（Page／Cloud／官方应用受影响的原生回归）尚未完全闭合。不得将未测项改写成产品 FAIL，也不得将核心链提升为完整 G-DYNAMIC PASS。独立复核正文由父 agent 原样保存于 `artifacts/dynamic-app-r14-local/expert-final-followup.md`，复核子 agent 未修改产品文件或操作浏览器。
+最后一次独立复核依据新增原生消息负向、Controller 与主线整合证据，维持上述六项分数，未确认新增阻断性产品缺陷。原始15条件中 1–10、13、14 在已明确的证据边界内得到支持；11（完整权限／计划／结果隔离）、12（独立撤权和旧身份迟到消息等相关边界）、15（Cloud／官方应用受影响的原生回归；Page 主流程在复核后补证通过）尚未完全闭合。不得将未测项改写成产品 FAIL，也不得将核心链提升为完整 G-DYNAMIC PASS。独立复核正文由父 agent 原样保存于 `artifacts/dynamic-app-r14-local/expert-final-followup.md`，复核子 agent 未修改产品文件或操作浏览器。
+
+复核后的补证：Page 主流程随后按上述正式 Chrome 权限 UI 完成；独立评分不据此自行上调，Cloud／官方应用及其余身份、撤权边界仍按未测保留。用户脚本开关仅对隔离测试 Profile 开启；此前 A/B 后台成功不依赖此开关。
