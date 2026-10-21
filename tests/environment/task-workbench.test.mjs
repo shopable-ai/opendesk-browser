@@ -322,53 +322,51 @@ test('installed task refuses stale target after async installed-version lookup',
 
 test('task cards retain readable selection and do not surface raw IDs as the main UI',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
-  const cards=f.get('task-installed-cards');
-  assert.equal(cards.children.length,1,'one installed task should have one visible group');
-  const group=cards.children[0], button=group.children[0];
-  assert.equal(button.attributes['aria-pressed'],'true');
-  assert.equal(button.attributes['aria-expanded'],'true');
-  assert.equal(button.attributes['aria-controls'],'task-selected-workspace');
-  assert.equal(group.children[1],f.get('task-selected-workspace'),'parameters and history remain under selected card');
-  assert.match(button.children[1].children[0].textContent,/表单任务/);
-  assert.match(button.children[1].children[1].textContent,/输入表单/,'card already communicates its purpose');
-  assert.match(f.get('task-installed-detail').textContent,/适用网站/,'secondary details show scope and permissions');
-  assert.doesNotMatch(f.get('task-installed-detail').textContent,/输入表单/,'R5 avoids repeating the task purpose');
-  assert.doesNotMatch(f.get('task-installed-detail').textContent,/[a-f0-9]{64}/,'raw hashes belong in diagnostics');
-  assert.equal(f.get('workbench-discover').hidden,true);
+  const rows=f.myView.data.taskRows;
+  assert.equal(rows.rows.length,1,'one installed Task projects one visible React card');
+  assert.equal(rows.selectedId,'demo.form');
+  assert.equal(rows.rows[0].title,'表单任务');
+  assert.equal(rows.rows[0].description,'输入表单');
+  assert.match(f.myView.data.taskDetail,/适用网站/);
+  assert.doesNotMatch(f.myView.data.taskDetail,/输入表单|[a-f0-9]{64}/,
+    'secondary details show permissions without repeating purpose or exposing hashes');
+  // SSR is generated from the production React component tree, not hand-coded DOM.
+  const {renderSidebarReact}=await import('../helpers/sidebar-react-fixture.mjs');
+  const html=await renderSidebarReact({myView:f.myView});
+  assert.match(html,/<button[^>]*class="task-card"[^>]*data-task-id="demo.form"[^>]*aria-pressed="true"[^>]*aria-expanded="true"[^>]*aria-controls="task-selected-workspace"/);
+  assert.match(html,/task-card-copy[^>]*><strong>表单任务<\/strong><small>输入表单<\/small>/);
+  assert.equal((html.match(/id="task-selected-workspace"/g)||[]).length,1,
+    'React owns exactly one shared task workspace, not a duplicated form');
 });
 
 test('My searches a single installed task list on demand without executing or requesting permissions',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
-  const cards=f.get('task-installed-cards');
-  assert.equal(cards.children.length,2);
-  assert.equal(f.get('task-search-panel').hidden,true,'default view has no persistent search block');
+  assert.deepEqual(f.myView.data.taskRows.rows.map(row=>row.taskId),['demo.form','demo.second']);
+  assert.equal(f.field('task-search-panel').hidden,true,'My search is collapsed by default');
   await f.click('task-search-toggle');
-  assert.equal(f.get('task-search-panel').hidden,false);
-  assert.equal(f.get('task-search-toggle').attributes['aria-expanded'],'true');
-  f.get('local-discover-search').value='不存在的任务';
-  f.get('local-discover-search').fire('input');
-  assert.equal(cards.children.length,2,'empty state and same live workspace, never a second list');
-  assert.match(cards.children[0].textContent,/没有匹配/);
-  assert.match(f.get('local-discover-count').textContent,/0 个任务/);
-  assert.equal(f.get('task-selected-workspace').hidden,true);
-  f.get('local-discover-search').value='表单';
-  f.get('local-discover-search').fire('input');
-  assert.equal(cards.children.length,1);
-  assert.equal(cards.children[0].children[0].dataset.taskId,'demo.form');
-  cards.children[0].children[0].fire('click');
-  assert.equal(f.get('task-installed-list').value,'demo.form');
-  assert.equal(f.starts.length,0);
-  assert.equal(f.permissions.length,0);
+  assert.equal(f.field('task-search-panel').hidden,false);
+  assert.equal(f.field('task-search-toggle').attributes['aria-expanded'],'true');
+  f.field('local-discover-search').value='不存在的任务';f.action('localDiscoverSearchInput');
+  assert.equal(f.myView.data.taskRows.rows.length,0);
+  assert.match(f.myView.data.taskRows.emptyText,/没有匹配/);
+  assert.match(f.field('local-discover-count').text,/0 个任务/);
+  assert.equal(f.myView.data.taskRows.selectedId,'demo.form',
+    'filtering never changes the authoritative installed selection');
+  f.field('local-discover-search').value='表单';f.action('localDiscoverSearchInput');
+  assert.deepEqual(f.myView.data.taskRows.rows.map(row=>row.taskId),['demo.form']);
+  f.myView.data.taskRows.onSelect('demo.form');
+  assert.equal(f.field('task-installed-list').value,'demo.form');
+  assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
   await f.click('task-search-toggle');
-  assert.equal(f.get('task-search-panel').hidden,true);
-  assert.equal(f.get('task-search-toggle').attributes['aria-expanded'],'false');
-  assert.equal(cards.children.length,2,'closing search restores all installed tasks');
-  assert.equal(f.get('local-discover-search').value,'','search text resets on collapse');
+  assert.equal(f.field('task-search-panel').hidden,true);
+  assert.equal(f.field('task-search-toggle').attributes['aria-expanded'],'false');
+  assert.equal(f.field('local-discover-search').value,'');
+  assert.equal(f.myView.data.taskRows.rows.length,2);
   await f.click('task-open-catalog');
-  assert.equal(f.get('task-add-menu').hidden,false,'Add opens the compact inline actions');
-  assert.equal(f.catalogOpens.length,0,'Add must not open full catalog automatically');
+  assert.equal(f.field('task-add-menu').hidden,false,'Add first opens inline actions');
+  assert.equal(f.catalogOpens.length,0);
   await f.click('task-add-catalog');
-  assert.equal(f.catalogOpens.length,1,'Catalog only opens on explicit catalog choice');
+  assert.equal(f.catalogOpens.length,1,'only explicit catalog choice opens full tab');
   assert.equal(f.catalogOpens[0].url,'chrome-extension://extension/sidepanel.html');
 });
 
