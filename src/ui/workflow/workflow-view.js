@@ -7,6 +7,7 @@ import {permissionPattern} from '../../environment.js';
 import {decodeValue} from '../../platform/page-port/codec.js';
 import {presentTaskValue,formatTaskError} from '../task-run-diagnostics.js';
 import {createWorkflowProviderFacade} from './provider.js';
+import {promptInstructions,promptEditInstructions} from '../conversation/prompt-actions.js';
 import {deriveWorkflowViewState} from './view-state.js';
 import {createLocalCodexPlanner,describeLocalCodex} from './local-codex.js';
 import {createWorkflowObservation,workflowObservationGrantMatches,workflowObservationRecipientId} from './observation.js';
@@ -1645,7 +1646,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     async request({request,context={},event,signal,scope='bookmark',continuation=false}={}){
       if(disposed||!event?.isTrusted)
         throw err('E_USER_GESTURE','请从可信 AI 对话输入框发送');
-      if(!['bookmark','tasks'].includes(scope))throw err('E_AI_SCOPE','未知 AI 业务作用域');
+      if(!['bookmark','tasks','prompt','prompt-edit'].includes(scope))throw err('E_AI_SCOPE','未知 AI 业务作用域');
       if(bookmarkConversationBusy)throw err('E_AI_BUSY','已有书签请求正在执行');
       const selected=provider();
       if(!['local_codex','cloud_responses','custom_https'].includes(selected))
@@ -1731,7 +1732,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           if(!readiness.ready)throw err(readiness.state,readiness.message);
         }
         const result=await awaitActive(workflowProviders.generateStructured({
-          source:selected,request,context,instructions:scope==='tasks'?taskInstructions:bookmarkInstructions,
+          source:selected,request,context,instructions:scope==='tasks'?taskInstructions:
+            scope==='prompt'?promptInstructions:scope==='prompt-edit'?promptEditInstructions:bookmarkInstructions,
           scope,settings,
           signal:abortController.signal
         }));
