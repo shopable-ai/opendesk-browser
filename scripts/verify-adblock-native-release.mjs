@@ -6,6 +6,8 @@ import {pathToFileURL} from 'node:url';
 import {packageFingerprint} from './verify-package.mjs';
 import {ADBLOCK_COSMETIC_STORE,readCosmeticState,validCosmeticSelector}
   from '../examples/sidebar-tools/adblock/trusted/cosmetic-policy.js';
+import {ADBLOCK_STORE,readAdblockState}
+  from '../examples/sidebar-tools/adblock/trusted/policy.js';
 
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 const required=['nativePermission','network','globalToggle','siteException',
@@ -22,6 +24,13 @@ const required=['nativePermission','network','globalToggle','siteException',
 // storage:{[ADBLOCK_COSMETIC_STORE]:{version:1,entries:[{host,selector}]}}.
 // pick/cancel/restore also require input:{isTrusted:true,type:'pointerdown'|'keydown'}.
 // upgrade additionally requires fromVersion:'1.2.1', toVersion:'1.2.2'.
+// Its snapshots query both storage keys: 1.2.1 has no cosmetic key, and 1.2.2
+// has no manual rules yet. Preserve enabled DNR state/exceptions and approval
+// epoch; rebind only the approval hash to the installed package in each phase.
+// step.runtime.{before,after} records extensionId, profile, root,
+// artifactPackageHash, installedVersion and installedPackageHash for each load.
+// Runtime roots bind to report.deployedRoot (fallback: report.root); report.root
+// remains the frozen artifact source used for independent package verification.
 // evidence is a separate JSON copy of the manualCosmetic object without its
 // evidence descriptor; all screenshots use the existing report.screenshots format.
 export const MANUAL_COSMETIC_CASES=Object.freeze(['pick','cancel','reload','reopen',
@@ -72,7 +81,7 @@ function verifyManualCosmetic(report,evidenceFiles){
   }
   assert.ok(object(manual.steps),'native manualCosmetic steps required');
   const usedShots=new Set();
-  const snapshot=(value,label)=>{
+  const snapshot=(value,label,{uninstalled=false,upgrade=false}={})=>{
     assert.ok(object(value),`${label} snapshot required`);
     const url=new URL(value.url);
     assert.ok(['http:','https:'].includes(url.protocol)&&!url.username&&!url.password,
@@ -81,8 +90,24 @@ function verifyManualCosmetic(report,evidenceFiles){
     assert.ok(typeof value.documentId==='string'&&value.documentId.length>0,`${label} document identity required`);
     assert.equal(typeof value.targetPresent,'boolean',`${label} target presence required`);
     assert.equal(typeof value.targetHidden,'boolean',`${label} visibility required`);
-    assert.ok(object(value.storage)&&Object.hasOwn(value.storage,ADBLOCK_COSMETIC_STORE),
-      `${label} Chrome storage readback required`);
+    assert.ok(object(value.storage),`${label} Chrome storage readback required`);
+    const removed=!Object.hasOwn(value.storage,ADBLOCK_COSMETIC_STORE);
+    if(upgrade){
+      assert.ok(Array.isArray(value.storageReadKeys)&&
+        [ADBLOCK_STORE,ADBLOCK_COSMETIC_STORE].every(key=>value.storageReadKeys.includes(key)),
+      `${label} upgrade storage query required`);
+      if(removed)return {url,state:{version:1,entries:[]},present:false};
+    }
+    if(uninstalled){
+      // The existing trusted lifecycle removes this key on uninstall. Preserve
+      // the raw Chrome result, and require proof that the missing key was read.
+      assert.ok(Array.isArray(value.storageReadKeys)&&
+        value.storageReadKeys.includes(ADBLOCK_COSMETIC_STORE),
+      `${label} uninstall storage query required`);
+      assert.ok(removed,`${label} uninstall must remove cosmetic storage`);
+      return {url,state:{version:1,entries:[]},present:false};
+    }
+    assert.ok(!removed,`${label} Chrome storage readback required`);
     const state=readCosmeticState(value.storage[ADBLOCK_COSMETIC_STORE]);
     // undefined cannot stand in for a Chrome readback of the persisted schema.
     assert.deepEqual(value.storage[ADBLOCK_COSMETIC_STORE],state,`${label} rule readback schema drift`);
@@ -92,13 +117,14 @@ function verifyManualCosmetic(report,evidenceFiles){
     const step=manual.steps[name],label='manualCosmetic '+name;
     assert.ok(object(step),`${label} evidence required`);
     assert.equal(step.status,'PASS',`${label} incomplete`);
-    const before=snapshot(step.before,label+' before'),after=snapshot(step.after,label+' after');
+    const before=snapshot(step.before,label+' before',{upgrade:name==='upgrade'}),
+      after=snapshot(step.after,label+' after',{uninstalled:name==='uninstall',upgrade:name==='upgrade'});
     assert.equal(before.url.hostname,manual.host,`${label} source host drift`);
     assert.equal(step.before.targetPresent,name!=='dynamic',`${label} initial target presence drift`);
     assert.equal(step.after.targetPresent,true,`${label} target must remain in DOM`);
-    const initialRule=!['pick','cancel'].includes(name);
-    const finalRule=!['cancel','restore'].includes(name);
-    const finalHidden=['pick','reload','reopen','dynamic','upgrade'].includes(name);
+    const initialRule=!['pick','cancel','upgrade'].includes(name);
+    const finalRule=!['cancel','restore','uninstall','upgrade'].includes(name);
+    const finalHidden=['pick','reload','reopen','dynamic'].includes(name);
     assert.equal(before.present,initialRule,`${label} initial rule readback drift`);
     assert.equal(after.present,finalRule,`${label} final rule readback drift`);
     assert.equal(step.before.targetHidden,initialRule&&name!=='dynamic',`${label} initial visibility drift`);
@@ -110,7 +136,7 @@ function verifyManualCosmetic(report,evidenceFiles){
         a.host.localeCompare(b.host)||a.selector.localeCompare(b.selector)),`${label} must only add the selected rule`);
     else if(name==='restore')assert.deepEqual(after.state.entries,before.state.entries.filter(row=>
       row.host!==manual.host||row.selector!==manual.selector),`${label} must only remove the selected rule`);
-    else assert.deepEqual(after.state,before.state,`${label} must preserve stored rules`);
+    else if(name!=='uninstall')assert.deepEqual(after.state,before.state,`${label} must preserve stored rules`);
     if(['reload','reopen'].includes(name))
       assert.notEqual(step.after.documentId,step.before.documentId,`${label} must create a new document`);
     if(name==='reopen')assert.notEqual(step.after.tabId,step.before.tabId,'reopen must create a new tab');
@@ -121,6 +147,40 @@ function verifyManualCosmetic(report,evidenceFiles){
     if(name==='upgrade'){
       assert.equal(step.fromVersion,'1.2.1','manualCosmetic upgrade source version required');
       assert.equal(step.toVersion,'1.2.2','manualCosmetic upgrade target version required');
+      assert.ok(!Object.hasOwn(step.before.storage,ADBLOCK_COSMETIC_STORE),
+        `${label} 1.2.1 must have no cosmetic key`);
+      for(const phase of ['before','after']){
+        const storage=step[phase].storage;
+        assert.ok(Object.hasOwn(storage,ADBLOCK_STORE),`${label} ${phase} complete DNR state required`);
+        const state=readAdblockState(storage[ADBLOCK_STORE]);
+        assert.equal(state.enabled,true,`${label} ${phase} global enabled required`);
+        assert.ok(state.exceptions.length>0,`${label} ${phase} nonempty exceptions required`);
+        const runtime=step.runtime?.[phase];
+        assert.ok(object(runtime),`${label} ${phase} runtime identity required`);
+        assert.equal(runtime.extensionId,report.extensionId,`${label} ${phase} extension ID drift`);
+        assert.ok(typeof runtime.root==='string'&&isAbsolute(runtime.root),
+          `${label} ${phase} absolute deployed root required`);
+        assert.equal(runtime.root,report.deployedRoot??report.root,`${label} ${phase} deployed root drift`);
+        assert.ok(typeof runtime.profile==='string'&&isAbsolute(runtime.profile),
+          `${label} ${phase} profile required`);
+        assert.equal(runtime.installedVersion,phase==='before'?'1.2.1':'1.2.2',
+          `${label} ${phase} installed version drift`);
+        for(const key of ['artifactPackageHash','installedPackageHash'])
+          assert.match(runtime[key],sha256,`${label} ${phase} ${key} required`);
+        assert.equal(state.approvedHash,runtime.installedPackageHash,
+          `${label} ${phase} approval must bind installed package`);
+      }
+      for(const key of ['enabled','exceptions','version','approvedEpoch'])
+        assert.deepEqual(step.after.storage[ADBLOCK_STORE][key],step.before.storage[ADBLOCK_STORE][key],
+          `${label} must preserve DNR ${key}`);
+      assert.equal(step.runtime.after.profile,step.runtime.before.profile,`${label} profile drift`);
+      assert.equal(step.runtime.after.root,step.runtime.before.root,`${label} deployed root must remain unchanged`);
+      for(const key of ['artifactPackageHash','installedPackageHash'])
+        assert.notEqual(step.runtime.after[key],step.runtime.before[key],`${label} ${key} must change`);
+      assert.equal(step.runtime.after.artifactPackageHash,report.artifactPackageHash,
+        `${label} reviewed artifact drift`);
+      assert.equal(step.runtime.after.installedPackageHash,report.installedIdentity.packageHash,
+        `${label} installed package drift`);
     }
     for(const phase of ['before','after']){
       const file=step.screenshots?.[phase];

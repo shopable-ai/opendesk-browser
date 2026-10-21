@@ -22,7 +22,7 @@ test('AdBlock picker stays textual while secondary rule operations use host-owne
   assert.match(css,/\.adblock-rule-actions--icons\{flex-wrap:nowrap/);
   assert.match(css,/--od-icon-size:34px/);
   assert.match(css,/@media\(pointer:coarse\).*--od-icon-size:44px/);
-  assert.match(css,/\.adblock-rule-action--danger/);
+  assert.match(jsx,/adblock-rule-action od-icon-button--danger/);
   assert.doesNotMatch(jsx,/chrome\.declarativeNetRequest|chrome\.permissions/);
 });
 test('standalone DOM review makes all four rule actions interactive without Chrome claims',async()=>{

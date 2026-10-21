@@ -13,6 +13,10 @@ node scripts/preview/build-preview.mjs --tool adblock --surface side-panel --sce
 open artifacts/previews/adblock/review.html
 ```
 
+已有持续开发 watcher 时，保留其 `dist/development` 和输出守卫。正式验收使用现有独立源码快照流程，在快照中构建并生成预览；`GITHUB_SHA` 固定为该快照的来源提交。预览所用 `dist/production/sidebar-shared-ui.js`、React 资源及工具包应与同一验收候选的哈希一致。
+
+主题覆盖在共享 UI 运行时安装样式之后应用，深浅色预览使用当前 Design Tokens。规则操作保持「定位 → 临时显示／重新隐藏 → 编辑 → 删除」；编辑自动聚焦原选择器，Esc 或「取消编辑」返回原编辑按钮。四档常规宽度保持一行图标，200% 重排空间不足时按原顺序分为两列。CSS `zoom:2` 只证明重排，真实 Chrome 页面缩放须另有 `tabs.setZoom/getZoom` 或浏览器输入回执。
+
 预览是真实 JSX 编译包 + 固定 Shared UI Runtime + 仅在预览宿主模拟的 SDK 操作回执，**不是**另一套 React UI；更不是安装的 Chrome 扩展或网络拦截证据。可以用 `--width 320/360/400/440`、`--theme light/dark` 和既有场景选项生成不同状态。真实浏览器 DOM 交互回归运行 `node scripts/tests/adblock-preview-chrome.mjs artifacts/preview-chrome`。
 
 ## 手动屏蔽网页元素 · 点击即隐藏交互合同

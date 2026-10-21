@@ -1173,13 +1173,23 @@ for(const state of ['hidden','readonly','noneditable','duplicate','replaced-on-f
   });
 }
 
-function mobileComposer(f,{accepted=true}={}){
-  const query=f.doc.querySelector,selections=[];
+function mobileComposer(f,{accepted=true,region='main'}={}){
+  const selections=[];
+  for(const node of [f.root,f.doc.body,f.main,f.editor])jumpDOM(node);
+  f.doc.body.append(f.main);
+  const container=region==='main'?f.main:jumpDOM(mockElement(region));
+  if(container!==f.main)f.doc.body.append(container);
+  container.append(f.editor);
   f.editor.tagName='TEXTAREA';
+  f.editor.removeAttribute('contenteditable');
   f.editor.isContentEditable=false;f.editor.id='mobile-composer-prompt';f.editor.value='已有草稿';
   f.editor.setSelectionRange=(start,end)=>selections.push([start,end]);
-  f.doc.querySelector=selector=>selector.startsWith('main ')?
-    (selector.split(',').includes('main textarea#mobile-composer-prompt')?f.editor:null):query(selector);
+  f.doc.querySelectorAll=selector=>[...new Set(selector.split(',').flatMap(part=>{
+    let found=[f.root];
+    for(const term of part.trim().split(/\s+/u))found=found.flatMap(node=>node.querySelectorAll(term));
+    return found;
+  }))];
+  f.doc.querySelector=selector=>f.doc.querySelectorAll(selector)[0]||null;
   f.doc.execCommand=(command,_show,text)=>{
     f.calls.push({command,text});
     if(!accepted)return false;
@@ -1188,10 +1198,127 @@ function mobileComposer(f,{accepted=true}={}){
   return selections;
 }
 
-test('R1.8 logged-out mobile-composer textarea appends complete draft via accepted native command',async()=>{
+for(const locale of [
+  {placeholder:'输入消息',label:'对话输入',title:'发送内容'},
+  {placeholder:'Write a message',label:'Chat input',title:'Message draft'}
+]){
+  for(const mode of ['logged-out','logged-in','DeepSeek','Gemini']){
+    test(`language-independent ${mode} editor preserves a multiline draft: ${locale.label}`,async()=>{
+      const builtin=['DeepSeek','Gemini'].includes(mode);
+      const f=builtin?await builtinPage(mode):await readyPage();
+      try{
+        if(mode==='logged-out')mobileComposer(f,{region:'footer'});
+        if(mode==='logged-in'){
+          mobileComposer(f,{region:'main'});
+          f.editor.tagName='DIV';f.editor.isContentEditable=true;
+          f.editor.removeAttribute('id');
+          f.editor.setAttribute('contenteditable','true');
+          f.editor.setAttribute('role','textbox');
+          f.editor.setAttribute('data-composer-markdown','');
+          const write=text=>f.editor.replaceChildren(...text.split('\n').map(line=>{
+            const p=jumpDOM(mockElement('P'));p.innerText=line||'\n';return p;
+          }));
+          write('已有草稿\n第二行');
+          f.doc.execCommand=(command,_show,text)=>{
+            f.calls.push({command,text});
+            write(f.editor.children.map(p=>p.innerText==='\n'?'':p.innerText).join('\n')+text);
+            return true;
+          };
+        }
+        f.editor.setAttribute('placeholder',locale.placeholder);
+        f.editor.setAttribute('aria-label',locale.label);
+        f.editor.setAttribute('title',locale.title);
+        f.main.setAttribute('aria-label',locale.label);
+        f.main.setAttribute('title',locale.title);
+        const draft=()=>builtin?f.draft():mode==='logged-out'?f.editor.value:
+          f.editor.children.map(p=>p.innerText==='\n'?'':p.innerText).join('\n');
+        const before=draft();
+        f.buttons()[0].emit('click',{isTrusted:true});await settle();
+        assert.equal(draft(),before+'\n'+f.row.body);
+        assert.deepEqual(f.calls,[{command:'insertText',text:'\n'+f.row.body}]);
+        assert.deepEqual(f.copied,[]);
+        if(builtin)assert.deepEqual(f.submissions,[]);
+      }finally{f.controller.dispose();}
+    });
+  }
+}
+
+for(const target of ['named textarea','anonymous richtext','container','scoped textarea']){
+  test(`language-independent picker prefers structural identity for ${target}`,async()=>{
+    const f=await readyPage();
+    try{
+      mobileComposer(f,{region:'main'});
+      f.doc.createElement=tag=>jumpDOM(mockElement(tag));
+      f.editor.removeAttribute('id');
+      f.main.setAttribute('aria-label','对话');
+      f.editor.setAttribute('aria-label','消息');
+      f.editor.setAttribute('placeholder','消息');
+      f.editor.setAttribute('title','消息');
+      if(target==='named textarea')f.editor.setAttribute('name','prompt');
+      if(target==='anonymous richtext'){
+        f.editor.tagName='DIV';f.editor.isContentEditable=true;
+        f.editor.setAttribute('contenteditable','true');
+      }
+      if(target==='scoped textarea'){
+        const other=jumpDOM(mockElement('TEXTAREA'));
+        f.doc.body.append(other);
+        f.main.setAttribute('id','conversation');
+      }
+      // Retain the real picker expiry while the fixture accelerates layout timers.
+      f.win.setTimeout=(fn,ms)=>setTimeout(fn,ms>=65000?ms:0);
+      const send=(operation,extra={})=>new Promise(resolve=>{
+        [...f.runtimeMessages][0]({protocol:'opendesk.prompt-shortcuts.picker.v1',
+          toolId:PROMPT_ID,operation,expectedUrl:f.win.location.href,...extra},
+        {id:'test-extension',url:'chrome-extension://test-extension/sidepanel.html'},resolve);
+      });
+      const session='41234567-89ab-cdef-0123-456789abcdef';
+      const started=await send('prompt.page.pick.start',{
+        session,kind:target==='container'?'container':'editor'});
+      assert.equal(started.ok,true,JSON.stringify(started));
+      const node=target==='container'?f.main:f.editor;
+      f.docEvents.get('click')({isTrusted:true,target:node,
+        preventDefault(){},stopImmediatePropagation(){}});
+      const selected=await send('prompt.page.pick.status',{session});
+      const expected=target==='named textarea'?'[name="prompt"]':
+        target==='anonymous richtext'?'[contenteditable="true"]':
+        target==='container'?'main':'#conversation textarea';
+      assert.equal(selected.data.state,'selected');
+      assert.equal(selected.data.selector,expected);
+      node.setAttribute('aria-label','Chat');node.setAttribute('placeholder','Message');
+      node.setAttribute('title','Draft');
+      assert.deepEqual(f.doc.querySelectorAll(selected.data.selector),[node],
+        'changing translated text leaves the selected target unchanged');
+    }finally{f.controller.dispose();}
+  });
+}
+
+test('language-independent site hints avoid translated attributes and generated class names',()=>{
+  const m=globalThis.OpenDeskPromptShortcutsModel;
+  for(const origin of ['https://claude.ai','https://gemini.google.com',
+    'https://chat.deepseek.com','https://perplexity.ai','https://www.perplexity.ai',
+    'https://grok.com','https://x.com']){
+    const hint=m.siteHint(origin,origin==='https://x.com'?'/i/grok':'/');
+    for(const selector of [...hint.containers,...hint.editors]){
+      assert.equal(m.validSelector(selector),true);
+      assert.doesNotMatch(selector,/placeholder|aria-label|\[title|\._[a-f0-9]+|nth-/u,origin);
+    }
+  }
+  const hint=m.siteHint('https://chat.deepseek.com','/');
+  const rule=m.builtinSite('https://chat.deepseek.com/');
+  assert(hint.containers.includes(rule.containerSelector));
+  assert(hint.editors.includes(rule.editorSelector));
+  const custom={origin:'https://chat.deepseek.com',pathScope:'/',
+    containerSelector:'#root ._7780f2e',editorSelector:'textarea[placeholder="Message DeepSeek"]'};
+  assert.equal(m.siteFor({schema:1,rules:[custom]},custom.origin).editorSelector,
+    custom.editorSelector,'saved custom rules retain their explicit selector');
+});
+
+for(const region of ['main','footer']){
+test(`R1.8 logged-out ${region} mobile-composer textarea appends complete draft via accepted native command`,async()=>{
   const f=await readyPage();
   try{
-    const selections=mobileComposer(f),before=f.editor.value;
+    const selections=mobileComposer(f,{region}),before=f.editor.value;
+    assert.equal(f.main.contains(f.editor),region==='main','model the real composer landmark');
     f.buttons()[0].emit('click',{isTrusted:true});await settle();
     assert.deepEqual(selections,[[before.length,before.length]],'textarea caret moves to draft end');
     assert.deepEqual(f.calls,[{command:'insertText',text:'\n'+f.row.body}]);
@@ -1205,10 +1332,10 @@ test('R1.8 logged-out mobile-composer textarea appends complete draft via accept
 });
 
 for(const state of ['hidden','css-hidden','disabled','readonly','disconnected','rejected']){
-  test('R1.8 mobile-composer textarea safely falls back when '+state,async()=>{
+  test(`R1.8 ${region} mobile-composer textarea safely falls back when ${state}`,async()=>{
     const f=await readyPage();
     try{
-      const selections=mobileComposer(f,{accepted:state!=='rejected'}),before=f.editor.value;
+      const selections=mobileComposer(f,{region,accepted:state!=='rejected'}),before=f.editor.value;
       if(state==='hidden')f.editor.getBoundingClientRect=()=>({width:0,height:0});
       if(state==='css-hidden')f.win.getComputedStyle=()=>({visibility:'hidden'});
       if(state==='disabled')f.editor.disabled=true;
@@ -1226,6 +1353,38 @@ for(const state of ['hidden','css-hidden','disabled','readonly','disconnected','
       assert.equal(feedback.dataset.kind,'success');
       assert.deepEqual(f.copied,[f.row.body]);
       assert.equal(feedback.focused,undefined,'copy feedback must not steal focus');
+    }finally{f.controller.dispose();}
+  });
+}
+}
+
+for(const state of ['visible','hidden']){
+  test(`ChatGPT footer composer handles a ${state} main composer without ambiguous insertion`,async()=>{
+    const f=await readyPage();
+    try{
+      mobileComposer(f,{region:'footer'});
+      const other=jumpDOM(mockElement('TEXTAREA'));
+      other.id='prompt-textarea';other.value='其他草稿';other.hidden=state==='hidden';
+      f.main.append(other);
+      f.buttons()[0].emit('click',{isTrusted:true});await settle();
+      assert.equal(f.calls.length,state==='hidden'?1:0);
+      assert.equal(f.editor.value,'已有草稿'+(state==='hidden'?'\n'+f.row.body:''));
+      assert.equal(other.value,'其他草稿');
+      assert.deepEqual(f.copied,state==='hidden'?[]:[f.row.body]);
+    }finally{f.controller.dispose();}
+  });
+}
+
+for(const region of ['aside','dialog']){
+  test(`ChatGPT mobile composer outside approved landmarks or inside a ${region} is not edited`,async()=>{
+    const f=await readyPage();
+    try{
+      mobileComposer(f,{region:region==='dialog'?'footer':region});
+      if(region==='dialog')f.editor.parentElement.setAttribute('role','dialog');
+      f.buttons()[0].emit('click',{isTrusted:true});await settle();
+      assert.equal(f.calls.length,0);
+      assert.equal(f.editor.value,'已有草稿');
+      assert.deepEqual(f.copied,[f.row.body]);
     }finally{f.controller.dispose();}
   });
 }

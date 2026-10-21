@@ -28,6 +28,29 @@ function defaultStep(op = 'observe') {
   if (op === 'assert' || op === 'confirm') step.text='期望的文字';
   return step;
 }
+// Presentation only: describe effects only after RunHost and readback verification.
+export function workflowExecutionFeedback({execution,workflow,params={},values}={}) {
+  if(!execution?.ok)return '本次未能确认成功；不会自动重试。请检查真实网页与运行详情。';
+  if(execution.evidenceLevel!=='BUSINESS_EFFECT_VERIFIED')
+    return '运行已结束。网页效果尚未确认，请检查当前网页；不会自动重复执行。';
+  const effect=execution.effect;
+  if(effect?.kind==='search-results')
+    return '搜索已完成，已核对出现 '+effect.visibleResultLinks+' 个新链接；结果是否相关仍需确认。';
+  if(effect?.kind==='search-empty')return '搜索已完成，已核对页面显示“无结果”。';
+  if(effect?.kind==='search-inline')return '搜索已完成，已核对页面出现与关键词对应的新结果；未确认服务器数据已提交。';
+  if(execution.readbackVerified!==true||!verifyDirectFillReadbacks({workflow,params,values}))
+    return '运行已结束。输入值尚未确认，请检查当前网页；不会自动重复执行。';
+  const fills=workflow.steps.filter(step=>step.op==='fill');
+  if(fills.length!==1)return '已填写 '+fills.length+' 个输入框，并逐项核对输入值一致；未确认服务器已提交。';
+  const step=fills[0],value=values[step.stepId].value;
+  const label=(step.locatorKind==='label'?step.selector:step.roleName)||'输入框';
+  // Reuse the result preview's redaction and keep long/sensitive values out of chat.
+  const sensitive=/密码|密钥|令牌|凭据|验证码/.test(label)||
+    presentTaskValue({[label]:value}).redacted;
+  const detail=!sensitive&&value.length<=80&&!/[\r\n]/.test(value)?'为“'+value+'”':'';
+  return (detail?'已将“'+label+'”填写'+detail:'已填写“'+label+'”')+
+    '，并核对输入值一致；未确认服务器已提交。';
+}
 export function createWorkflowView({api=globalThis.chrome,document:doc=globalThis.document,
   client,host,currentPageTarget,onRunOwner=()=>{},openDeveloper=()=>{},openCatalog=()=>{},
   reactUI=null}) {
@@ -206,7 +229,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     control('workflow-ai-resume').disabled=operationBusy;
     const selected=provider();
     ui.patch({
-      sourceName:selected==='local_codex'?'Codex':
+      sourceName:selected==='local_codex'?'本机 Codex':
         ['cloud_responses','custom_https'].includes(selected)?control('workflow-ai-model').value.trim():'',
       history:{open:historyOpen,busy:operationBusy,
         canResume:selected==='local_codex'&&Boolean(sessionState.resumable),
@@ -372,6 +395,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   function resultDisplay(runId,view) {
     const run=view?.run,result=view?.results?.find(row=>row.runId===runId);
     control('workflow-technical').text=JSON.stringify({
+      workflowId:workflow.workflowId,
+      modelSource:lastProviderTurn?.businessWorkflowId===workflow.workflowId?lastProviderTurn:null,
       runId,state:run?.state||'unknown',revision:run?.revision||null,
       resultId:result?.resultId||null,sourceHash:run?.revision?.sourceHash||null,
       resultSourceHash:result?.revision?.sourceHash||null,documentId:run?.target?.documentId||null,
@@ -481,7 +506,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         await host.stop({controller:true,runId:claim.runId,reason:'E_CANCELLED'});
         throw err('E_CANCELLED','已停止，不重放');
       }
-      status('运行中 · '+runId+'；编辑草稿不会改变本次冻结版本');
+      status('正在运行；编辑草稿不会改变本次执行内容。');
       const completed=await host.completion;
       if(completed?.state==='paused_unknown'||completed?.pendingSettlement)
         status('执行或收尾状态未知，禁止自动重新执行。请检查历史与网页副作用。',true);
@@ -536,7 +561,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           if(lastRun==='failed' && !hasError)
             status('运行未成功或结果无法确认，请检查真实结果及页面效果；不会自动重试。',true);
           return {ok:lastRun==='success',runId:claim.runId,resultId:proof?.resultId||null,
-            evidenceLevel,readbackVerified,effect};
+            evidenceLevel,readbackVerified,effect,
+            readbackValues:readbackVerified?decodeValue(result.outcome.valueWire):null};
         }
         let receiptProof=null;
         try{receiptProof=verifyDirectExecutionReceipt({
@@ -623,7 +649,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   }
   function reportExecution(reply,planned=null) {
     if(reply?.skipped||reply?.reviewRequired)return;
-    const message=describeExecution(reply);
+    const message=reply?.ok&&planned
+      ?workflowExecutionFeedback({execution:reply,workflow:planned.freeze.workflow,
+        params:planned.params,values:reply.readbackValues})
+      :describeExecution(reply);
     if(planned&&reply?.ok&&reply.evidenceLevel==='BUSINESS_EFFECT_VERIFIED') {
       verifiedTurnHistory=[...verifiedTurnHistory,{
         request:planned.request.slice(0,4000),outcome:'verified',

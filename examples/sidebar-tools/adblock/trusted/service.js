@@ -233,6 +233,15 @@ export function createAdblockService({
       throw error;
     }
     const hash=await sidebarToolPackageHash(auth.tool);
+    // The reviewed official 1.2.1 -> 1.2.2/1.2.3 update keeps the existing
+    // DNR choice. Only that exact shipped predecessor may cross this boundary;
+    // arbitrary same-ID uploads, revoked epochs and missing permissions cannot.
+    const official121='8bdb91a0a613932e76d69953b06af3752d217eaee3e15e96e8e27ee314cdbc35';
+    if(state.enabled&&state.approvedHash===official121&&state.approvedEpoch===auth.epoch&&
+       ['1.2.2','1.2.3'].includes(auth.tool.version)&&auth.tool.capabilities.length===1&&
+       auth.tool.capabilities[0]===ADBLOCK_CAPABILITY&&hasPermission&&dnrReady&&!revoked&&!cleanupPending){
+      state={...state,approvedHash:hash};
+    }
     const approvalValid=state.approvedHash===hash&&state.approvedEpoch===auth.epoch;
     if(hasPermission&&!dnrReady){
       if(operation==='adblock.enable')

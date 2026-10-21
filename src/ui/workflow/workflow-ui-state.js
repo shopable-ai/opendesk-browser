@@ -118,7 +118,7 @@ export function createWorkflowUIState() {
   let disposed=false,pending=false,version=0;
   const listeners=new Set(),controls={},proxies=new Map();
   const state={controls,steps:[],params:[],messages:[],progress:[],savedOptions:[],
-    history:{open:false,rows:[],canResume:false},header:{},sourceName:'Codex',
+    history:{open:false,rows:[],canResume:false},header:{},sourceName:'本机 Codex',
     entryMode:'new-workflow',focusRequest:null};
   let snapshot;
   const publish=()=>{

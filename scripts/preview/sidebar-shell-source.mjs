@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {load} from 'cheerio';
 import {renderSidebarReact} from './react-sidebar-ssr.mjs';
+import {createSidebarToolsView} from '../../src/ui/sidebar-tools-view.js';
 
 const sourceCss=new URL('../../src/ui/tool-shell.css',import.meta.url);
 const selectors=Object.freeze([
@@ -51,9 +52,19 @@ export function extractSidebarPreviewShell(html,css){
   return Object.freeze({nav,head,css:shellCss,
     digest:sha256(nav+'\n'+head+'\n'+shellCss)});
 }
-export async function sidebarPreviewShellSource(){
-  const [html,css]=await Promise.all([
-    renderSidebarReact({activeTab:'tools',debugEnabled:true}),readFile(sourceCss,'utf8')
-  ]);
-  return extractSidebarPreviewShell(html,css);
+export async function sidebarPreviewShellSource({tool}={}){
+  const toolView=createSidebarToolsView();
+  try{
+    if(tool==='adblock'){
+      // Match the existing Host's opened-AdBlock presentation state. Rendering
+      // the unopened default would leave its real React settings action hidden.
+      toolView.patch('sidebar-tool-settings-open',{hidden:false,
+        title:'打开 AdBlock 产品设置',attributes:{
+          'aria-label':'打开 AdBlock 产品设置','aria-controls':'sidebar-tool-frame'}});
+    }
+    const [html,css]=await Promise.all([
+      renderSidebarReact({activeTab:'tools',debugEnabled:true,toolView}),readFile(sourceCss,'utf8')
+    ]);
+    return extractSidebarPreviewShell(html,css);
+  }finally{toolView.dispose();}
 }

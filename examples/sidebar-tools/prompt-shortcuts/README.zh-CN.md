@@ -2,6 +2,14 @@
 
 独立工具 ID：`prompt-shortcuts`，正式可安装包版本 **1.1.9**。ChatGPT、DeepSeek、Gemini 对话页使用内置默认适配；源码、工具包与实际安装状态见下方证据，其他网站仍可建立自定义规则。
 
+## 输入框与容器识别（2026-10-22）
+
+ChatGPT 内置识别使用编辑器 ID、`data-testid` 或 `data-composer-markdown` / `role`，包括未登录页在 `main` 外的 `footer textarea#mobile-composer-prompt`。DeepSeek、Gemini 内置规则不依赖翻译文案；匹配仍保留可见、可编辑、作用域与唯一性校验，只追加草稿，不发送。
+
+自动拾取不再生成依赖 `placeholder` / `aria-label` 的选择器，改用机器属性、编辑语义或唯一容器关系。DeepSeek 源码中的配置建议复用内置 `#root` / `#root textarea`，移除旧生成式 class；Perplexity 建议移除英文 placeholder。用户已保存的自定义规则保持原样，建议仍须通过原网页检查，不能自动取得权限。
+
+本轮 48 项定向 Node 检查通过，覆盖中英文属性切换、多行草稿、隐藏/歧义/失效节点、安全回退及异步规则变更。真实未登录 ChatGPT 的 footer DOM 已核对，但站点脚本/样式返回 403，本轮完整点击插入为 `NOT_TESTED`；已登录真实会话、安装升级及 production 验收也未执行。现有 watcher 已更新 `dist/development/agents/page-relay.js`；日常 Chrome 的加载路径、ID 和 serve 连接未验证。本轮只交付源码，未晋升正式 JSON，已安装 JSON 中的配置建议仍待后续包更新。
+
 ## 文字与图片快捷按钮（2026-10-22）
 
 新建或编辑提示词时，正文仍是唯一必填项。在默认展开的「按钮设置」中选择文字或图片；图片可使用本地 PNG/JPEG/WebP，或 HTTPS 图片网址。本地原图上限为 2 MiB，保存前由现有工具压缩至最多 64 KiB，并经原 Trusted Host 存入独立资源库；8 KiB 文本库只保存资源引用。再次编辑可预览、更换或移除图片。文字和图片条目共存，网页点击均插入完整正文、保留原草稿，不自动发送。

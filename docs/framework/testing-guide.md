@@ -14,6 +14,7 @@
 
 | 工作范围 | 人可读记录与原始证据入口 | 本次已核对的范围 | 后续责任 |
 | --- | --- | --- | --- |
+| 工作流真实 Codex 两轮核心冒烟 | [固定复测手册](guides/workflow-core-smoke.zh-CN.md)、[2026-10-21 本机记录与证据哈希](workstreams/workflow-core-20261021.md) | 指定开发候选中，同一真实 SIDE_PANEL 对话完成姓名“测试甲 → 测试乙”；独立 DOM、Run/Result、唯一填写及释放记录相符 | 最后追加的边界修复尚未进入受测产物；新候选按相关输入选择最小复测，不提升为 production 全量验收／评分；本机记录及原始 artifacts 不可读时记证据不完整 |
 | 安装一次授权 R3.1 | [授权复用工作流](workstreams/install-once-authorization-r31.md)及其原始证据索引 | 普通运行静默检查、Page／Task 程序安装身份、撤销和升级、真实 Chrome 安装／20 文档／Worker 与整浏览器重启；按记录的固定候选和最终状态复用 | 程序私有 HTTP／Cookie／Native 桥与尚未实测的原生异常项另列；不提升为整体 F3／ZIP，不覆盖下列 Program R3.1 工作流 |
 | Page UI R1.3.1 | [验收与复用结论](workstreams/page-ui-r131-mac-01a11ff7.md)、[机器规则/证据哈希](workstreams/page-ui-r131-mac-01a11ff7.json) 的 `reuseAgreement`；原始证据在本地 `evidence/page-ui-r131-mac-01a11ff7/` | 原候选正式 Sidebar Page USER_SCRIPT、A→B→C/D、CSS/资产/表单、窄视口与真实 200%、20 轮、SPA/BFCache、受管清理；原候选定向 58/58、环境组件 353/353（排除独立 Native Chrome 文件） | 输入/合同/环境未变时离线核对后复用，不因新对话或无关 main 更新重跑；后续 HTTP fixture 已变，按 JSON 最新影响核对只补受影响项；保留限制/未测/失败，不提升为 Installed/F3/ZIP |
 | R5.2 现代 Page API | [工作流记录](workstreams/r5-2-modern-page-api-acceptance.md)、[15 项真实运行索引](evidence/r52-final-20261009-01a11c0d/acceptance.json)、[源码绑定](evidence/r52-final-20261009-01a11c0d/source-binding.json)、[本次复用核对](evidence/r52-final-20261009-01a11c0d/reuse-review.json) | 指定 Chrome 155/生产包上的两轮搜索、Locator/观察、生命周期；定向组件 123/123，双构建与 verify；不含 AI 制作、最终 F3/ZIP | 精确候选可复用这些记录；新候选先分析变化，只验证受影响项 |

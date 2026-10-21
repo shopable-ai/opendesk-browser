@@ -50,6 +50,7 @@ function App(){
   const [inspection,setInspection]=React.useState({});
   const [draftSelector,setDraftSelector]=React.useState('');
   const [editingSelector,setEditingSelector]=React.useState(null);
+  const selectorInput=React.useRef(null),editTrigger=React.useRef(null);
   const [allowUnmatched,setAllowUnmatched]=React.useState(false);
   const [checkedMatches,setCheckedMatches]=React.useState(null);
   const [inspectionBusy,setInspectionBusy]=React.useState(false);
@@ -337,6 +338,13 @@ function App(){
   };
   const back=sharedNavigation?null:<IconButton className="adblock-back" label="返回广告拦截概览" title="返回"
     onClick={()=>setView('overview')}><ActionGlyph kind="back"/></IconButton>;
+  React.useEffect(()=>{
+    if(editingSelector!==null)selectorInput.current?.focus();
+  },[editingSelector]);
+  const cancelEditing=()=>{
+    setEditingSelector(null);setDraftSelector('');setCheckedMatches(null);
+    setAllowUnmatched(false);editTrigger.current?.focus();
+  };
   return <div className="adblock-app">
     {view==='overview'?<>
       <Card><CardContent className="adblock-card">
@@ -420,11 +428,13 @@ function App(){
                   <ActionGlyph kind={match?.visible?'hide':'show'}/></IconButton>
                 <IconButton className="adblock-rule-action" label={'编辑屏蔽规则：'+rule.selector}
                   title="编辑" disabled={!canEdit}
-                  onClick={()=>{
+                  onClick={event=>{
+                    editTrigger.current=event.currentTarget;
                     setEditingSelector(rule.selector);setDraftSelector(rule.selector);
                     setCheckedMatches(null);setAllowUnmatched(false);
+                    if(editingSelector===rule.selector)selectorInput.current?.focus();
                   }}><ActionGlyph kind="edit"/></IconButton>
-                <IconButton className="adblock-rule-action adblock-rule-action--danger"
+                <IconButton className="adblock-rule-action od-icon-button--danger"
                   label={'永久删除屏蔽规则：'+rule.selector} title="删除规则" disabled={!canRestore}
                   onClick={()=>void operateCosmetic('adblock.cosmetic.restore',
                     {host,selector:rule.selector})}><ActionGlyph kind="remove"/></IconButton>
@@ -436,11 +446,16 @@ function App(){
       </CardContent></Card>
       <p className="adblock-help">「临时显示」仅针对当前网页，刷新后继续屏蔽；「删除」永久移除本地规则。没有匹配的历史规则仍可删除。</p>
       <details className="adblock-advanced" open={editingSelector!==null?true:undefined}
+        onKeyDown={event=>{
+          if(event.key==='Escape'&&editingSelector!==null&&!busy){
+            event.preventDefault();event.stopPropagation();cancelEditing();
+          }
+        }}
         onToggle={event=>{if(!event.currentTarget.open&&editingSelector!==null)setEditingSelector(null);}}>
         <summary>高级 · CSS 选择器</summary>
         <div className="adblock-advanced-body">
           <label htmlFor="adblock-selector-input">{editingSelector===null?'新增选择器':'修改现有选择器'}</label>
-          <input id="adblock-selector-input" className="adblock-selector-input"
+          <input ref={selectorInput} id="adblock-selector-input" className="adblock-selector-input"
             placeholder=".ad-banner 或 #sponsor" value={draftSelector} maxLength={320}
             disabled={!canEdit} spellCheck={false} onChange={event=>{
               setDraftSelector(event.target.value);setCheckedMatches(null);
@@ -460,10 +475,7 @@ function App(){
             <Button disabled={!canEdit||!safeDraft||draftChecked===null||draftChecked>15||
               draftChecked===0&&!allowUnmatched}
               onClick={saveAdvanced}>{editingSelector===null?'添加规则':'保存修改'}</Button>
-            {editingSelector!==null?<Button variant="secondary" onClick={()=>{
-              setEditingSelector(null);setDraftSelector('');setCheckedMatches(null);
-              setAllowUnmatched(false);
-            }}>取消编辑</Button>:null}
+            {editingSelector!==null?<Button variant="secondary" onClick={cancelEditing}>取消编辑</Button>:null}
           </div>
         </div>
       </details>

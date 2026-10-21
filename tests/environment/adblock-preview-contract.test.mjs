@@ -5,12 +5,23 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {createHash} from 'node:crypto';
+import {load} from 'cheerio';
+import {sidebarPreviewShellSource} from '../../scripts/preview/sidebar-shell-source.mjs';
 import {createSidebarToolPackage,checkSidebarToolProjectPackage}
   from '../../scripts/build-sidebar-tool.mjs';
 import {SIDEBAR_TOOL_SHARED_UI_RUNTIME}
   from '../../src/ui/sidebar-tools/package.js';
 const project=resolve('examples/sidebar-tools/adblock');
 const read=path=>readFile(resolve(project,path),'utf8');
+
+test('opened AdBlock preview renders the real React settings entry visibly',async()=>{
+  const shell=await sidebarPreviewShellSource({tool:'adblock'});
+  const button=load(shell.head)('#sidebar-tool-settings-open');
+  assert.equal(button.length,1);
+  assert.equal(button.attr('hidden'),undefined);
+  assert.equal(button.attr('aria-label'),'打开 AdBlock 产品设置');
+  assert.equal(button.attr('aria-controls'),'sidebar-tool-frame');
+});
 
 test('AdBlock 1.2.3 candidate uses one compiled React 19 Shared UI tool',async()=>{
   const [pkg,config,jsx,entry,css,compiled]=await Promise.all([

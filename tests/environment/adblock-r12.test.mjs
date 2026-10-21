@@ -414,6 +414,37 @@ test('an installed package from an older bundle requires review without changing
     installEpoch:'old'},sender),{code:'E_TOOL_CHANGED'});
 });
 
+test('reviewed official 1.2.1 upgrade preserves global choice and exceptions with the new package approval',async()=>{
+  const f=await fixture();
+  const old={version:1,enabled:true,exceptions:['127.0.0.1'],
+    approvedHash:'8bdb91a0a613932e76d69953b06af3752d217eaee3e15e96e8e27ee314cdbc35',approvedEpoch:'epoch-1'};
+  f.stored.set(ADBLOCK_STORE,old);
+  const result=await f.service.dispatch(f.message('adblock.status'),sender);
+  assert.equal(result.enabled,true);assert.deepEqual(result.exceptions,old.exceptions);
+  assert.deepEqual(f.stored.get(ADBLOCK_STORE),{...old,approvedHash:f.hash});
+  assert.deepEqual(f.rules.find(rule=>rule.id===FOCUS_RULE_FIRST),focusRule);
+});
+test('official upgrade cannot renew disabled, revoked, mismatched or uncertain approval',async t=>{
+  for(const kind of ['disabled','hash','epoch','toolDisabled','impostor','permission','revoked','cleanup']){
+    await t.test(kind,async()=>{
+      const f=await fixture();
+      const old={version:1,enabled:true,exceptions:['127.0.0.1'],
+        approvedHash:'8bdb91a0a613932e76d69953b06af3752d217eaee3e15e96e8e27ee314cdbc35',approvedEpoch:'epoch-1'};
+      if(kind==='disabled')old.enabled=false;
+      if(kind==='hash')old.approvedHash='f'.repeat(64);
+      if(kind==='epoch')old.approvedEpoch='old-epoch';
+      f.stored.set(ADBLOCK_STORE,old);
+      if(kind==='toolDisabled')f.stored.set(SIDEBAR_TOOL_ENABLE_STORE,{adblock:false});
+      if(kind==='impostor')f.stored.set(SIDEBAR_TOOL_STORE,[{...f.tool,title:'Altered same-ID package'}]);
+      if(kind==='permission')f.setPermission(false);
+      if(kind==='revoked')f.service.invalidate(true);
+      if(kind==='cleanup')f.stored.set(ADBLOCK_DNR_CLEANUP_STORE,true);
+      const result=await f.service.tick();
+      assert.equal(result.enabled,false);assert.notEqual(f.stored.get(ADBLOCK_STORE)?.approvedHash,f.hash);
+      assert.deepEqual(f.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST]);
+    });
+  }
+});
 test('forged sender, same-ID package digest and obsolete epoch are denied',async()=>{
   const f=await fixture(),msg=await f.message('adblock.enable');
   await assert.rejects(f.service.dispatch(msg,{...sender,id:'forged'}),{code:'E_ADBLOCK_SENDER'});

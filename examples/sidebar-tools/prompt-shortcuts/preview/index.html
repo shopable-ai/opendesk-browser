@@ -48,6 +48,7 @@ button,input,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:
 .od-icon-button{width:34px;height:34px;display:grid;place-items:center;padding:0;border:1px solid var(--od-line);border-radius:8px;background:var(--od-paper);color:var(--od-ink);font-size:15px;flex:none}
 .od-icon-button:hover:not(:disabled){background:var(--od-muted)}
 .od-field{display:block;width:100%;min-width:0;min-height:36px;padding:8px 10px;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink)}
+.od-field::placeholder{color:var(--od-sub);opacity:1}
 textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .od-surface{border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper)}
 .canvas{display:flex;gap:16px;align-items:stretch;max-width:1540px;min-height:748px;margin:0 auto;padding:8px 22px 24px;min-width:0}
@@ -386,7 +387,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .prompt-icon.has-image{width:48px;height:38px;min-width:48px;min-height:38px;overflow:hidden;padding:0;border-radius:9px}
 .appearance-switch{display:inline-grid;grid-template-columns:repeat(2,54px);gap:2px;justify-self:end;max-width:100%;background:var(--od-bg);padding:2px;border-radius:9px;border:1px solid var(--od-line)}
 .appearance-switch label{position:relative;display:grid;place-items:center;min-height:28px;font-size:12px;font-weight:650;cursor:pointer;border-radius:7px}
-.appearance-switch label:has(input:checked){background:var(--od-paper);box-shadow:0 1px 4px #08172c1c;color:var(--od-accent-ink)}
+.appearance-switch label:has(input:checked){background:var(--od-paper);box-shadow:inset 0 0 0 1px var(--od-input-border),0 1px 4px #08172c1c;color:var(--od-accent-ink)}
 .appearance-switch input{position:absolute;opacity:0;inset:0;cursor:pointer}
 .appearance-switch label:has(input:focus-visible){outline:3px solid var(--od-focus);outline-offset:1px}
 .image-size-setting{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;margin:0 0 10px;padding:6px 8px}
@@ -402,7 +403,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 max-width:100%;background:var(--od-bg);padding:2px;border:1px solid var(--od-line);border-radius:var(--radius-control)}
 .ps-image-source label{position:relative;display:grid;place-items:center;min-height:34px;
 font-size:12px;font-weight:650;border-radius:6px;cursor:pointer;white-space:nowrap}
-.ps-image-source label:has(input:checked){background:var(--od-paper);color:var(--od-accent-ink);box-shadow:0 1px 5px #08172c16}
+.ps-image-source label:has(input:checked){background:var(--od-paper);color:var(--od-accent-ink);box-shadow:inset 0 0 0 1px var(--od-input-border),0 1px 5px #08172c16}
 .ps-image-source input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
 .ps-image-source label:has(input:focus-visible){outline:3px solid var(--od-focus);outline-offset:1px}
 .ps-image-fields{display:grid;gap:var(--space-2);min-width:0}
@@ -1199,7 +1200,13 @@ border:0;background:transparent;color:var(--od-sub)}
   }catch(error){
    setImageError(error?.message||'图片处理失败，请重新选择图片');
    setImageStatus('之前的图片及未保存草稿均已保留');
-  }finally{imageUploadBusy=false;syncImageControls();}
+  }finally{
+   imageUploadBusy=false;syncImageControls();
+   // A native picker hides/disables its launcher while decoding. Restore that keyboard position,
+   // but do not take focus from a field the user reached while processing or from a drop target.
+   if(!droppedFile&&[document.body,input,el('imagePick'),el('imageReplace')].includes(document.activeElement))
+    (draftImageAssetId?el('imageReplace'):el('imagePick')).focus({preventScroll:true});
+  }
  }
  function rawFormValues(){const original=state.items.find(item=>item.id===editId);return {label:el('shortLabel').value.trim(),name:el('fullName').value.trim(),body:el('promptBody').value,enabled:el('itemEnabled').checked,shape:original?.shape||'square',appearance:el('appearanceImage').checked?'image':'text',imageUrl:el('imageSourceLocal').checked?'':el('imageUrl').value.trim(),imageAssetId:el('imageSourceLocal').checked?draftImageAssetId:''};}
  // Keep inactive source edits in the dirty check, but NOT the persisted library schema.
@@ -1366,7 +1373,10 @@ border:0;background:transparent;color:var(--od-sub)}
  el('stayEditing').addEventListener('click',()=>{el('leaveConfirm').hidden=true;el('promptBody').focus();});el('discardEditing').addEventListener('click',()=>{const destination=pendingDestination;pendingDestination='index';if(destination==='host')exitTool();else returnIndex();notice('已主动放弃未保存更改。');});
  el('promptForm').addEventListener('submit',event=>void saveForm(event));el('saveContinue').addEventListener('click',event=>void saveForm(event,true));el('promptForm').addEventListener('input',updateMeter);el('promptForm').addEventListener('change',updateMeter);
  function openImagePicker(){
-  if(currentView==='form'&&!saving&&!imageUploadBusy&&el('imageSourceLocal').checked)el('imageFile').click();
+  if(currentView==='form'&&!saving&&!imageUploadBusy&&el('imageSourceLocal').checked){
+   (draftImageAssetId?el('imageReplace'):el('imagePick')).focus({preventScroll:true});
+   el('imageFile').click();
+  }
  }
  el('imagePick').addEventListener('click',openImagePicker);
  el('imageDropzone').addEventListener('click',event=>{
@@ -1374,6 +1384,9 @@ border:0;background:transparent;color:var(--od-sub)}
  });
  el('imageReplace').addEventListener('click',openImagePicker);
  el('imageFile').addEventListener('change',()=>void chooseLocalImage());
+ el('imageFile').addEventListener('cancel',()=>{
+  (draftImageAssetId?el('imageReplace'):el('imagePick')).focus({preventScroll:true});
+ });
  for(const id of ['imageDropzone','imageSelected']){
   const zone=el(id);
   const acceptsDrop=()=>currentView==='form'&&el('appearanceImage').checked&&

@@ -183,7 +183,8 @@ test('R1.4 provenance pins only audited trusted tool modules to exact fixed entr
     ['trusted/policy.js','4c6f608a26e0d69278c18a0afda94b3c8ce8274c'],
     ['trusted/page.js','cb9874151086f719136d126f467edfae6ae0da86'],
     ['trusted/asset-contract.js','86e95bff786e52efb9089f97126542430f39a716'],
-    ['trusted/asset-host.js','d2cb73dce44c18c3c59b7e4ccd1f7feded672dfd']
+    // Exact approval was updated by bffde8f49 after the audited asset recovery fix 3d75d1a13.
+    ['trusted/asset-host.js','b960044deb5e7d059c26d5d520f912c0b72c7b0e']
   ];
   const examined=(path,target)=>describeBundle({chunk:{fileName:target,
       modules:{[resolve(ROOT+'/'+path)]:{renderedLength:1,originalLength:1}}},

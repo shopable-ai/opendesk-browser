@@ -22,6 +22,7 @@ function decoderFixture(html){
   const el=id=>{
     if(!nodes.has(id))nodes.set(id,{
       id,checked:false,disabled:false,hidden:false,files:[],value:'',dataset:{},
+      focus(){deps.document.activeElement=this},
       setAttribute(key,value){this[key]=value},
       removeAttribute(key){delete this[key]}
     });
@@ -34,7 +35,7 @@ function decoderFixture(html){
       serial++;for(let index=0;index<bytes.length;index++)bytes[index]=(index+serial)%256;
       return bytes;
     }},
-    document:{createElement(name){
+    document:{body:{},activeElement:null,createElement(name){
       assert.equal(name,'canvas');
       return {getContext(){return {clearRect(){},drawImage(){}}},
         toBlob(done){done({size:128,type:'image/webp'})}};
@@ -55,8 +56,22 @@ function decoderFixture(html){
       'setBusy(value){imageUploadBusy=value},'+
       'snapshot(){return {draftImageAssetId,draftImageMeta,imageAssets,imageUploadBusy,updates}}};'
   );
-  return {el,state:deps.state,api:fn(deps)};
+  return {el,state:deps.state,document:deps.document,api:fn(deps)};
 }
+test('R4 native picker restores the image action without stealing focus from an edited field',async()=>{
+  const {el,document,api}=decoderFixture(await load());
+  el('imageFile').files=[{name:'native.png',type:'image/png',size:512}];
+  document.activeElement=el('imagePick');
+  await api.chooseLocalImage();
+  assert.equal(document.activeElement,el('imageReplace'));
+  const pending=api.chooseLocalImage();
+  document.activeElement=el('promptBody');
+  await pending;
+  assert.equal(document.activeElement,el('promptBody'));
+  document.activeElement=el('imagePick');
+  await api.chooseLocalImage({name:'dropped.webp',type:'image/webp',size:512});
+  assert.equal(document.activeElement,el('imagePick'),'a drop does not take keyboard focus');
+});
 test('R4 original full HTML retains complete preview, single upload affordance and 3 sizes',async()=>{
   const html=await load(),js=script(html);
   assert(html.length>125000,'must NOT replace original with a simplified mock');

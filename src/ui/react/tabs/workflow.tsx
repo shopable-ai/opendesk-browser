@@ -314,7 +314,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
             <details id="workflow-result-raw" className="od-disclosure od-disclosure--flat" hidden={c('workflow-result-raw').hidden!==false} key={c('workflow-technical').text}>
               <summary>查看脱敏说明</summary><pre id="workflow-raw">{c('workflow-raw').text}</pre>
             </details>
-            <pre id="workflow-technical" aria-label="运行证据身份">{c('workflow-technical').text}</pre>
+            <details id="workflow-technical-details" className="workflow-advanced od-disclosure od-disclosure--flat"><summary>诊断详情（模型来源与执行编号）</summary><pre id="workflow-technical" aria-label="运行证据身份">{c('workflow-technical').text}</pre></details>
           </details>
         </section>
         <section id="workflow-plan-panel" className="workflow-card od-surface--padded workflow-plan od-surface" aria-label="可编辑语义步骤" hidden={c('workflow-plan-panel').hidden!==false}>
@@ -386,7 +386,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
           }}/> 
         <div className="workflow-composer-actions">
           {action('workflow-provider-toggle','AI 设置',{icon:true,kind:'settings','aria-expanded':openSettings,'aria-controls':'workflow-provider-settings'})}
-          <WorkflowSourceName value={model.sourceName||'Codex'}/>
+          <WorkflowSourceName value={model.sourceName||'本机 Codex'}/>
         {action('workflow-ai-plan','发送任务并生成步骤',{icon:true,primary:true,kind:'send'})}
           {action('workflow-ai-cancel','停止 AI 规划')}
         </div>
@@ -400,7 +400,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
       <details id="workflow-provider-settings" className="workflow-provider od-disclosure od-disclosure--flat" open>
         <summary>AI 设置</summary>
         <div className="workflow-source-switch" role="group" aria-label="AI 来源">
-          {action('workflow-source-local','Codex',{'aria-pressed':c('workflow-ai-provider').value==='local_codex'})}
+          {action('workflow-source-local','本机 Codex',{'aria-pressed':c('workflow-ai-provider').value==='local_codex'})}
           {action('workflow-source-https','HTTPS',{'aria-pressed':['custom_https','cloud_responses'].includes(c('workflow-ai-provider').value)})}
         </div>
         <div id="workflow-https-mode" className="workflow-https-mode" hidden={c('workflow-https-mode').hidden!==false}>

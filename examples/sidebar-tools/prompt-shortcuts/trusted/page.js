@@ -261,7 +261,9 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     if(typeof id==='string'&&/^[A-Za-z_][A-Za-z0-9_-]{0,62}$/.test(id)&&
        !/(?:^|[-_])(?:react|headlessui|radix|auto|generated)[-_]?\d/i.test(id)&&
        unique('#'+id))return '#'+id;
-    for(const key of ['data-testid','data-test','data-cy','aria-label','placeholder','name','role']){
+    // Labels and placeholders can change with locale. Generate selectors from
+    // machine identity/semantics; explicitly saved user rules stay untouched.
+    for(const key of ['data-testid','data-test','data-cy','name','role']){
       const val=node.getAttribute?.(key);
       if(typeof val!=='string'||!/^[\p{L}\p{N}_ .-]{1,72}$/u.test(val))continue;
       const selector='['+key+'="'+val+'"]';
@@ -639,10 +641,11 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   };
   const editor=()=>{
     if(activeRule)return checkedEditor();
+    // Logged-out ChatGPT mounts its mobile composer in footer, outside main.
     // Logged-in ChatGPT also uses an anonymous markdown composer without
     // the legacy id/testid. Ignore stale hidden fields, but never choose
     // arbitrarily between multiple visible, editable composers.
-    const nodes=Array.from(doc.querySelectorAll('main #prompt-textarea[contenteditable="true"],main [data-testid="composer-text-input"][contenteditable="true"],main textarea#prompt-textarea,main textarea#mobile-composer-prompt,main [data-composer-markdown][contenteditable="true"][role="textbox"]'))
+    const nodes=Array.from(doc.querySelectorAll('main #prompt-textarea[contenteditable="true"],main [data-testid="composer-text-input"][contenteditable="true"],main textarea#prompt-textarea,main textarea#mobile-composer-prompt,footer textarea#mobile-composer-prompt,main [data-composer-markdown][contenteditable="true"][role="textbox"]'))
       .filter(node=>editorKind(node));
     return nodes.length===1?nodes[0]:null;
   };

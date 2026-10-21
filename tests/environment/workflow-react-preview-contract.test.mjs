@@ -147,3 +147,20 @@ test('Workflow chat keeps speaker semantics without labels, compact green user b
   assert.ok(!view.includes("appendChat('模型来源'"));
   assert.ok(!view.includes("execution.runId+' / '+execution.resultId+effectMessage"));
 });
+
+test('Workflow diagnostics disclose source and execution identities only on demand',async t=>{
+  const {createWorkflowUIState}=await loadSidebarReact();
+  const ui=createWorkflowUIState();t.after(()=>ui.dispose());
+  ui.control('workflow-technical').text=JSON.stringify({workflowId:'wf-private',
+    modelSource:{source:'local_codex'},runId:'run-private',resultId:'result-private'});
+  await Promise.resolve();
+  const $=load(await renderSidebarFixture({activeTab:'workflow',
+    workflowController:{...ui,actions:{}}}));
+  const details=$('#workflow-technical-details');
+  assert.equal(details.attr('open'),undefined);
+  assert.match(details.find('summary').text(),/诊断详情/);
+  assert.match(details.find('#workflow-technical').text(),/local_codex.*run-private.*result-private/);
+  assert.doesNotMatch($('#workflow-ai-transcript').text(),/wf-private|local_codex|run-private|result-private/);
+  assert.equal($('#workflow-source-local').text(),'本机 Codex');
+  assert.equal($('#workflow-source-name').text(),'本机 Codex');
+});

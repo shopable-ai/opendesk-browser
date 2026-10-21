@@ -34,7 +34,7 @@ function reviewedCompiledTimeReview(target,path,root){
 // a single output and independently enforced release/package identity.
 const compiledAdblockInputs=Object.freeze({
   'examples/sidebar-tools/adblock/trusted/dnr-session.js':'d3e221eac17261a34751cb8ab035c622eb1b42a8',
-  'examples/sidebar-tools/adblock/trusted/service.js':'f2d248d4a0e73aa01b86cc14613378c1f473e84f',
+  'examples/sidebar-tools/adblock/trusted/service.js':'9ece6f224779971c3144bec802c969de2c14e877',
   'examples/sidebar-tools/adblock/trusted/policy.js':'1ba80150d930f51130ceb7806371f7542f35871b',
   'examples/sidebar-tools/adblock/trusted/rules.js':'4bebe24f991783d6ceb14dd80aa507f8497fce61',
   'examples/sidebar-tools/adblock/trusted/lifecycle.js':'708e2b226eb327d46ac109afa6145fe9b13b1526',

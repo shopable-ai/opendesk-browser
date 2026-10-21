@@ -37,6 +37,484 @@
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {fileURLToPath} from 'node:url';
+import assert from 'node:assert/strict';
+import {MANUAL_COSMETIC_CASES} from '../../../scripts/verify-adblock-native-release.mjs';
+
+// React Aria owns an internal native input. aria-label may be forwarded to that
+// input or retained on its label; neither the thumb nor aria-checked is state.
+export function adblockSwitchSelector(label) {
+  const name=JSON.stringify(label);
+  return `[data-slot="switch"]:has(input[role="switch"][aria-label=${name}]),`+
+    `[data-slot="switch"][aria-label=${name}]:has(input[role="switch"])`;
+}
+
+export async function runAdblockChromeZoom200({client,hostSession,reactSession,evaluate,until,screenshot}) {
+  const ev=(session,code)=>evaluate(client,session,code);
+  const tab=await ev(hostSession,'chrome.tabs.getCurrent()');
+  assert.ok(Number.isSafeInteger(tab?.id),'zoom requires an actual owned Chrome tab');
+  const baseline=await ev(hostSession,'chrome.tabs.getZoom('+tab.id+')');
+  const read=async()=>({getZoom:await ev(hostSession,'chrome.tabs.getZoom('+tab.id+')'),
+    host:await ev(hostSession,'({url:location.href,dpr:devicePixelRatio,width:innerWidth,height:innerHeight})'),
+    tool:await ev(reactSession,`(()=>{const root=document.querySelector('.adblock-app');
+      if(!root)throw Error('installed tool absent');return {url:location.href,dpr:devicePixelRatio,
+        width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,
+        root:root.getBoundingClientRect().toJSON(),text:root.textContent,
+        controls:[...root.querySelectorAll('button,input')].map(n=>({tag:n.tagName,
+          label:n.getAttribute('aria-label'),rect:n.getBoundingClientRect().toJSON()}))};})()`)});
+  const receipt={status:'RUNNING',surface:'INSTALLED_TOOL_IN_EXTENSION_TAB',method:'chrome.tabs.setZoom/getZoom',tabId:tab.id,
+    before:await read()};
+  try{
+    await ev(hostSession,'chrome.tabs.setZoom('+tab.id+',2)');
+    await until(async()=>{
+      const value=await read();return Math.abs(value.getZoom-2)<.001&&
+        Math.abs(value.tool.dpr/receipt.before.tool.dpr-2/baseline)<.025;
+    },'Chrome 200% page zoom reaches actual installed iframe DPR');
+    receipt.at200=await read();
+    receipt.screenshot=await screenshot(client,hostSession,'closeout-real-chrome-page-zoom-200');
+    assert.ok(receipt.at200.tool.scrollWidth<=receipt.at200.tool.width+1,'installed tool no horizontal page overflow at real Chrome 200%');
+    receipt.status='PASS';return receipt;
+  }catch(error){receipt.status='FAIL';receipt.error=String(error.stack||error);error.zoomEvidence=receipt;throw error;}
+  finally{
+    await ev(hostSession,'chrome.tabs.setZoom('+tab.id+','+baseline+')');
+    await until(async()=>{const v=await read();return Math.abs(v.getZoom-baseline)<.001&&
+      Math.abs(v.tool.dpr-receipt.before.tool.dpr)<.025;},'original Chrome zoom and tool DPR restored');
+    receipt.restored=await read();
+    receipt.restoredScreenshot=await screenshot(client,hostSession,'closeout-real-chrome-page-zoom-restored');
+  }
+}
+
+export function assertAdblockManualStep(name,step,{host,selector}) {
+  assert.ok(MANUAL_COSMETIC_CASES.includes(name),'declared release manual step');
+  if(name==='upgrade'){
+    const stateKey='opendesk.adblock.state.v1',cosmeticKey='opendesk.adblock.cosmetic.v1';
+    for(const phase of ['before','after']){
+      const snapshot=step[phase],runtime=step.runtime?.[phase];
+      assert.ok(Number.isSafeInteger(snapshot?.tabId)&&snapshot.tabId>0);
+      assert.ok(snapshot.documentId);assert.equal(new URL(snapshot.url).hostname,host);
+      assert.ok(['http:','https:'].includes(new URL(snapshot.url).protocol));
+      assert.equal(snapshot.targetPresent,true);assert.equal(snapshot.targetHidden,false);
+      for(const key of [stateKey,cosmeticKey])assert.ok(snapshot.storageReadKeys?.includes(key));
+      assert.equal(snapshot.storage?.[stateKey]?.enabled,true);
+      assert.ok(snapshot.storage[stateKey].exceptions?.length>0);
+      assert.ok(runtime?.extensionId&&runtime.profile&&runtime.root);
+      for(const key of ['artifactPackageHash','installedPackageHash'])assert.match(runtime[key],/^[a-f0-9]{64}$/);
+    }
+    assert.equal(Object.hasOwn(step.before.storage,cosmeticKey),false,'1.2.1 has no manual rules');
+    if(Object.hasOwn(step.after.storage,cosmeticKey))assert.deepEqual(step.after.storage[cosmeticKey],{version:1,entries:[]});
+    assert.equal(step.before.storage[stateKey].approvedHash,step.runtime.before.installedPackageHash);
+    assert.deepEqual(step.after.storage[stateKey],{...step.before.storage[stateKey],approvedHash:step.runtime.after.installedPackageHash});
+    assert.equal(step.fromVersion,'1.2.1');assert.equal(step.toVersion,'1.2.2');
+    for(const phase of ['before','after'])assert.equal(step.runtime[phase].installedVersion,step[phase==='before'?'fromVersion':'toVersion']);
+    for(const key of ['extensionId','profile','root'])assert.equal(step.runtime.after[key],step.runtime.before[key]);
+    for(const key of ['artifactPackageHash','installedPackageHash'])assert.notEqual(step.runtime.after[key],step.runtime.before[key]);
+    assert.ok(step.screenshots?.before&&step.screenshots?.after);
+    assert.notEqual(step.screenshots.before,step.screenshots.after);return;
+  }
+  const saved=(snapshot,phase)=>{
+    assert.ok(snapshot&&Number.isSafeInteger(snapshot.tabId)&&snapshot.tabId>0,'Chrome tab identity');
+    assert.ok(typeof snapshot.documentId==='string'&&snapshot.documentId,'Chrome document identity');
+    const url=new URL(snapshot.url);assert.ok(['http:','https:'].includes(url.protocol));
+    const state=snapshot.storage?.['opendesk.adblock.cosmetic.v1'];
+    if(name==='uninstall'&&phase==='after'){
+      assert.ok(snapshot.storageReadKeys?.includes('opendesk.adblock.cosmetic.v1'),'uninstall explicitly queried cosmetic storage');
+      assert.ok(snapshot.storage&&typeof snapshot.storage==='object');
+      assert.equal(Object.hasOwn(snapshot.storage,'opendesk.adblock.cosmetic.v1'),false,'uninstall deletes cosmetic key');
+      return false;
+    }
+    assert.equal(state?.version,1,'actual persisted cosmetic schema required');
+    assert.ok(Array.isArray(state.entries));
+    return state.entries.some(row=>row.host===host&&row.selector===selector);
+  };
+  const initial=!['pick','cancel'].includes(name),final=!['cancel','restore','uninstall'].includes(name);
+  assert.equal(saved(step.before,'before'),initial,name+' initial rule');
+  assert.equal(saved(step.after,'after'),final,name+' final rule');
+  assert.equal(new URL(step.before.url).hostname,host);
+  if(name==='siteIsolation')assert.notEqual(new URL(step.after.url).hostname,host);
+  else assert.equal(new URL(step.after.url).hostname,host);
+  assert.equal(step.before.targetPresent,name!=='dynamic');assert.equal(step.after.targetPresent,true);
+  assert.equal(step.before.targetHidden,initial&&name!=='dynamic');
+  assert.equal(step.after.targetHidden,['pick','reload','reopen','dynamic','upgrade'].includes(name));
+  const key='opendesk.adblock.cosmetic.v1';
+  if(name==='pick')assert.deepEqual(step.after.storage[key].entries,
+    [...step.before.storage[key].entries,{host,selector}].sort((a,b)=>a.host.localeCompare(b.host)||a.selector.localeCompare(b.selector)));
+  else if(name==='restore')assert.deepEqual(step.after.storage[key].entries,
+    step.before.storage[key].entries.filter(row=>row.host!==host||row.selector!==selector));
+  else if(name!=='uninstall')assert.deepEqual(step.after.storage[key],step.before.storage[key],name+' preserves rules');
+  if(['reload','reopen'].includes(name))assert.notEqual(step.before.documentId,step.after.documentId);
+  if(name==='reopen')assert.notEqual(step.before.tabId,step.after.tabId);
+  if(['pick','cancel','restore'].includes(name)){
+    assert.equal(step.input?.isTrusted,true);assert.ok(['pointerdown','keydown'].includes(step.input.type));
+  }
+  if(name==='upgrade'){assert.equal(step.fromVersion,'1.2.1');assert.equal(step.toVersion,'1.2.2');}
+  assert.ok(step.screenshots?.before&&step.screenshots?.after);
+  assert.notEqual(step.screenshots.before,step.screenshots.after);
+}
+
+/** Explicit, owned-CFT development closeout. Does not claim the full release gate.
+ * All writes use installed UI/SDK -> existing Host; extension CDP is readback.
+ * Original runner remains available for the other native/security scenarios.
+ */
+export async function runAdblockCloseoutNative(ctx) {
+  let {client:c,hostSession:sid,launcherSession:uid}=ctx;
+  const {evaluate,click,clickSandbox,
+    screenshot,until,attach,attachActualReact,reactSwitch,requestReactReview,
+    approveReactReview,reloadFixture,mousePage,mouseClick,probe,getOwned,
+    report,preserve,packageHash}=ctx;
+  const STORE='opendesk.adblock.state.v1',COSMETIC='opendesk.adblock.cosmetic.v1';
+  const INSTALLED='opendesk.sidebar-tools.installed.v1',EPOCH='opendesk.sidebar-tools.revocation-epochs.v1';
+  const ENABLED='opendesk.sidebar-tools.enabled.v1',host=new URL(ctx.manualUrl).hostname,selector='#manual-ad-slot';
+  const manual={schemaVersion:1,status:'NOT_TESTED',host,selector,
+    steps:Object.fromEntries(MANUAL_COSMETIC_CASES.map(name=>[name,{status:'NOT_TESTED'}])),
+    ...Object.fromEntries(['candidate','artifactPackageHash','extensionId','packageSHA256','driverSHA256'].map(key=>[key,report[key]]))};
+  report.cases={...report.cases,manualCosmetic:manual};
+  report.manualCosmetic='NOT_TESTED';
+  report.closeout.requiredReleaseCoverage='INCOMPLETE';
+  let react,pageSession,pageTarget,pageMouse;
+  const ev=(session,code)=>evaluate(c,session,code);
+  const storageReadKeys=[STORE,COSMETIC,INSTALLED,EPOCH,ENABLED];
+  const storage=()=>ev(uid,'chrome.storage.local.get('+JSON.stringify(storageReadKeys)+')');
+  const shot=async(session,name)=>{const value=await screenshot(c,session,'closeout-'+name);report.screenshots.push(value);return value.file;};
+  const installed='[data-extension-key="app:adblock"][data-extension-action="main"]';
+  const rowMore='[data-extension-key="app:adblock"][data-extension-action="more"]';
+  const label=text=>'button[aria-label='+JSON.stringify(text)+']';
+  const save=async()=>{
+    const statuses=MANUAL_COSMETIC_CASES.map(name=>manual.steps[name]?.status);
+    manual.status=statuses.includes('FAIL')?'FAIL':statuses.every(value=>value==='PASS')?'PASS':'NOT_TESTED';
+    report.manualCosmetic=manual.status;
+    const {evidence,...record}=manual;
+    manual.evidence=await preserve('manual-cosmetic-release.json',JSON.stringify(record,null,2)+'\n');
+  };
+  const openTool=async(hostSession=sid)=>{
+    await until(()=>ev(hostSession,'(()=>{const b=document.querySelector('+JSON.stringify(installed)+');'+
+      'return b&&!b.disabled&&b.getAttribute("aria-label")==="打开「广告拦截」"})()'),'installed AdBlock ready');
+    await click(c,hostSession,installed);const session=await attachActualReact(c,hostSession);
+    await ev(session,`(()=>{globalThis.__adblockCloseoutInputs=[];
+      document.addEventListener('pointerdown',e=>globalThis.__adblockCloseoutInputs.push({
+        type:e.type,isTrusted:e.isTrusted,at:Date.now(),label:e.target.closest('button')?.getAttribute('aria-label'),
+        text:e.target.closest('button')?.textContent}),true);})()`);
+    return session;
+  };
+  const ui=async(selector)=>{
+    const start=await ev(react,'globalThis.__adblockCloseoutInputs.length');
+    await clickSandbox(c,sid,react,selector);
+    return until(()=>ev(react,'globalThis.__adblockCloseoutInputs.slice('+start+').find(e=>e.isTrusted)'),
+      'trusted installed UI pointerdown');
+  };
+  const textButton=async(text)=>{
+    const index=await ev(react,'[...document.querySelectorAll("button")].findIndex(b=>b.textContent.trim()==='+JSON.stringify(text)+')');
+    assert.ok(index>=0,'installed UI button '+text);
+    // Selector uses the actual DOM ordinal, with no text/event mutation.
+    const buttons=await ev(react,'[...document.querySelectorAll("button")].map(b=>b.outerHTML)');
+    const selector=await ev(react,'(()=>{const b=[...document.querySelectorAll("button")]['+index+'];'+
+      'const parts=[];for(let n=b;n&&n!==document.documentElement;n=n.parentElement){'+
+      'parts.unshift(n.tagName.toLowerCase()+":nth-child("+([...n.parentElement.children].indexOf(n)+1)+")");}return parts.join(" > ");})()');
+    assert.ok(buttons[index]);return ui(selector);
+  };
+  const overview=async()=>{
+    if(await ev(react,'!!document.querySelector("button[aria-label=返回广告拦截概览]")'))
+      await ui(label('返回广告拦截概览'));
+  };
+  const rules=async()=>{
+    await overview();
+    const copy=await until(()=>ev(react,'[...document.querySelectorAll("button")].find(b=>/^已屏蔽 \\d+ 处/.test(b.textContent.trim()))?.textContent.trim()'),'manual list button');
+    await textButton(copy);
+    await until(()=>ev(react,'!!document.querySelector(".adblock-page-head")'),'manual list mounted');
+  };
+  const fixture=async(url)=>{
+    const target=await c.send('Target.createTarget',{url});
+    const session=await attach(c,target.targetId),mouse=await mousePage(target.targetId);
+    await until(()=>ev(session,'!!document.querySelector("#manual-normal")'),'real HTTP manual fixture');
+    await mouse.bringToFront();return {target,session,mouse};
+  };
+  const useFixture=async(url)=>{
+    const value=await fixture(url);pageTarget=value.target;pageSession=value.session;pageMouse=value.mouse;
+    return value;
+  };
+  const dom=()=>ev(pageSession,`(()=>{const n=document.querySelector(${JSON.stringify(selector)}),s=n&&getComputedStyle(n);
+    return {url:location.href,targetPresent:!!n,targetHidden:!!n&&(s.display==='none'||s.visibility==='hidden'),
+      normalVisible:document.querySelector('#manual-normal').getBoundingClientRect().height>0,
+      marker:!!document.querySelector('[data-opendesk-adblock-picker-ui]'),dpr:devicePixelRatio,
+      events:window.manualFixtureEvents};})()`);
+  const visible=hidden=>until(async()=>{const value=await dom();
+    return value.targetPresent&&value.targetHidden===hidden&&value.normalVisible?value:null;},'real page hidden='+hidden);
+  const snapshot=async(name,phase)=>{
+    const state=await dom(),saved=await storage();
+    const identity=await ev(uid,`(async()=>{const tabs=(await chrome.tabs.query({url:${JSON.stringify(state.url)}}))
+      .filter(t=>t.url===${JSON.stringify(state.url)});if(tabs.length!==1)throw Error('ambiguous fixture tab');
+      const frame=await chrome.webNavigation.getFrame({tabId:tabs[0].id,frameId:0});
+      return {url:frame.url,tabId:tabs[0].id,documentId:frame.documentId};})()`);
+    assert.equal(identity.url,state.url);
+    return {value:{...identity,targetPresent:state.targetPresent,targetHidden:state.targetHidden,
+      storage:saved,storageReadKeys:[...storageReadKeys],dom:state},
+      screenshot:await shot(pageSession,name+'-'+phase)};
+  };
+  const step=async(name,job,extra={})=>{
+    const row=manual.steps[name]={status:'RUNNING',...extra};
+    try{
+      const before=await snapshot(name,'before');row.before=before.value;row.screenshots={before:before.screenshot};
+      Object.assign(row,await job());
+      const after=await snapshot(name,'after');row.after=after.value;row.screenshots.after=after.screenshot;
+      assertAdblockManualStep(name,row,manual);row.status='PASS';
+    }catch(error){row.status='FAIL';row.error=String(error.stack||error);throw error;}
+    finally{await save();}
+  };
+  const upload=async(file,bytes,version)=>{
+    await click(c,sid,'#tab-tools');
+    // Public import toolbar opens the same trusted installer for both versions.
+    await click(c,sid,'#extension-center-more');
+    await click(c,sid,'#extension-center-import');
+    await until(()=>ev(sid,'document.querySelector("#sidebar-tool-import")?.hidden===false'),'trusted local import');
+    await c.send('Page.setInterceptFileChooserDialog',{enabled:true},sid);
+    try{
+      const start=c.events.length;await click(c,sid,'#sidebar-tool-file');
+      const chooser=await until(()=>c.events.slice(start).find(e=>e.sessionId===sid&&e.method==='Page.fileChooserOpened'),'real Chrome file chooser');
+      await c.send('DOM.setFileInputFiles',{files:[file],backendNodeId:chooser.params.backendNodeId},sid);
+    }finally{await c.send('Page.setInterceptFileChooserDialog',{enabled:false},sid);}
+    await until(()=>ev(sid,'document.querySelector("#sidebar-tool-preview")?.hidden===false'),'package review visible');
+    const review=await ev(sid,'document.querySelector("#sidebar-tool-preview").textContent');
+    assert.ok(review.includes(version),'review exact package version');
+    await shot(sid,'install-'+version+'-review');await click(c,sid,'#sidebar-tool-install');
+    const expected=await packageHash(JSON.parse(bytes));
+    const state=await until(async()=>{
+      const error=await ev(sid,'document.querySelector("#sidebar-tool-file-error")?.textContent.trim()');
+      if(error)return {error,storage:await storage()};
+      const s=await storage(),tool=s[INSTALLED]?.find(t=>t.id==='adblock');
+      return tool?.version===version&&await packageHash(tool)===expected?{storage:s,tool,packageHash:expected}:null;
+    },'unique installer committed exact '+version+' package');
+    if(state.error){
+      const failure={version,file,error:state.error,storage:state.storage,
+        screenshot:await shot(sid,'install-'+version+'-rejected')};
+      report.closeout.installerFailure=failure;
+      await preserve('installer-'+version+'-rejected.json',JSON.stringify(failure,null,2)+'\n');
+      throw Error('Unique installer rejected '+version+': '+state.error);
+    }
+    return {version,packageHash:state.packageHash,epoch:state.storage[EPOCH]?.adblock??null,review,
+      fileChooser:'trusted pointer + Page.fileChooserOpened + DOM.setFileInputFiles'};
+  };
+  const change=async(name,on,copy)=>{
+    await overview();await pageMouse.bringToFront();
+    const expectedHost=new URL((await dom()).url).hostname;
+    await until(()=>ev(react,'document.querySelector(".adblock-host")?.textContent.trim()==='+JSON.stringify(expectedHost)),
+      'switch review bound to active exact hostname');
+    await until(async()=>{const value=await reactSwitch(c,react,name);return value&&!value.disabled;},name+' ready');
+    const before=await reactSwitch(c,react,name);
+    if(before.on===on)return;
+    await requestReactReview(c,sid,react,adblockSwitchSelector(name),copy);await approveReactReview(c,sid);
+    await until(async()=>{const value=await reactSwitch(c,react,name);return value?.on===on;},name+' changed');
+    await until(async()=>{const value=await getOwned(c,uid);
+      return name==='全局广告拦截'?value.state?.enabled===on:
+        Array.isArray(value.state?.exceptions)&&value.state.exceptions.includes(expectedHost)===!on;
+    },name+' independently persisted Chrome state');
+  };
+  const enable=()=>change('全局广告拦截',true,'开启全局过滤');
+  const picker=async()=>{
+    await overview();await pageMouse.bringToFront();
+    await until(()=>ev(react,'document.querySelector(".adblock-host")?.textContent.trim()==='+JSON.stringify(host)),'picker exact host');
+    await ui(label('在当前网页中点击选择要隐藏的元素'));
+    await until(()=>ev(react,'!!document.querySelector(".adblock-pick-panel")'),'picker acknowledgement');
+  };
+  const toggleTool=async(expected)=>{
+    await click(c,sid,rowMore);
+    await until(()=>ev(sid,'document.querySelector("#extension-center-row-menu [data-ec-context-action=toggle]")?.textContent.includes('+JSON.stringify(expected)+')'),'management toggle '+expected);
+    await click(c,sid,'#extension-center-row-menu [data-ec-context-action="toggle"]');
+  };
+  const leaveTool=async()=>{
+    await click(c,sid,'#sidebar-tool-back');
+    const route=await until(()=>ev(sid,`(()=>{
+      const review=document.querySelector('#sidebar-tool-action-review');
+      if(review&&!review.hidden)return {review:true,text:review.textContent};
+      const row=document.querySelector(${JSON.stringify(rowMore)});
+      return row?.getBoundingClientRect().height>0?{review:false}:null;})()`),'real return or draft protection');
+    if(route.review){
+      assert.ok(route.text.includes('未保存内容'),'only explicit unsaved-draft exit review accepted');
+      const before=await storage();
+      await shot(sid,'draft-exit-review');await click(c,sid,'#sidebar-tool-action-cancel');
+      assert.equal(await ev(react,'!!document.querySelector(".adblock-app")'),true,'cancel retains installed UI');
+      assert.deepEqual((await storage())[COSMETIC],before[COSMETIC],'cancel preserves saved rules');
+      await click(c,sid,'#sidebar-tool-back');
+      await until(()=>ev(sid,'document.querySelector("#sidebar-tool-action-review")?.hidden===false'),'second deliberate draft exit review');
+      await click(c,sid,'#sidebar-tool-action-continue');
+      report.closeout.unsavedDraftExit={review:route.text,cancelRetainedUi:true,cancelPreservedStorage:true,
+        confirmation:'real Chrome pointer input through existing Host review'};
+    }
+  };
+  try{
+    const permission=await ev(uid,'chrome.permissions.contains({permissions:["declarativeNetRequestWithHostAccess"]})');
+    assert.equal(permission,true);report.nativePermission='PASS';
+    if(ctx.candidateOnly){
+      manual.steps.upgrade={status:'NOT_TESTED',reason:'Candidate-only diagnostics; old package installation blocked in separate raw receipt'};
+      report.closeout.candidateInstalled=await upload(ctx.candidatePackage,ctx.candidateBytes,'1.2.2');
+    }else report.closeout.oldInstalled=await upload(ctx.oldPackage,ctx.oldBytes,'1.2.1');
+    react=await openTool();
+    await useFixture(ctx.manualOtherUrl);await enable();
+    await change('当前网站广告过滤',false,'关闭 127.0.0.1 的广告过滤');
+    await until(async()=>(await storage())[STORE]?.exceptions?.includes('127.0.0.1'),'old UI exception persisted');
+    await c.send('Target.closeTarget',{targetId:pageTarget.targetId});
+    await useFixture(ctx.manualUrl);await pageMouse.bringToFront();
+    await until(()=>ev(react,'document.querySelector(".adblock-host")?.textContent.trim()==='+JSON.stringify(host)),'old UI exact historical host');
+    report.closeout.historicalSetup={method:'installed-UI-global-switch-and-site-exception',
+      oldPickerUi:false,storage:await storage(),dom:await dom()};
+    if(!ctx.candidateOnly){await step('upgrade',async()=>{
+      assert.ok(ctx.upgradeRuntime,'real 1.2.1 runtime required before complete artifact upgrade');
+      const before=await storage();assert.equal(Object.hasOwn(before,COSMETIC),false);
+      const oldIdentity={...ctx.runtimeIdentity(),installedVersion:'1.2.1',
+        installedPackageHash:report.closeout.oldInstalled.packageHash};
+      const next=await ctx.upgradeRuntime();({client:c,hostSession:sid,launcherSession:uid}=next);
+      const preserved=await storage();
+      assert.deepEqual(preserved[STORE],before[STORE],'whole extension upgrade preserves old intent before tool update');
+      assert.equal(preserved[INSTALLED].find(t=>t.id==='adblock')?.version,'1.2.1','no uninstall/reinstall during runtime upgrade');
+      report.closeout.candidateInstalled=await upload(ctx.candidatePackage,ctx.candidateBytes,'1.2.2');
+      react=await openTool();await useFixture(ctx.manualUrl);await pageMouse.bringToFront();await visible(false);
+      const after=await storage();assert.deepEqual(after[STORE],{...before[STORE],
+        approvedHash:report.closeout.candidateInstalled.packageHash},'upgrade preserves choice and exceptions with current package approval');
+      assert.equal(after[INSTALLED].filter(t=>t.id==='adblock').length,1,'same tool ID without uninstall');
+      return {historySetup:report.closeout.historicalSetup.method,runtime:{before:oldIdentity,
+        after:{...ctx.runtimeIdentity(),installedVersion:'1.2.2',installedPackageHash:report.closeout.candidateInstalled.packageHash}}};
+    },{fromVersion:'1.2.1',toVersion:'1.2.2'});
+    report.upgrade='PASS';}
+    const identity=report.closeout.candidateInstalled;
+    report.installedIdentity={version:identity.version,packageHash:identity.packageHash,epoch:identity.epoch};
+    const loadedManifest=await ev(uid,'chrome.runtime.getManifest()');
+    assert.equal(loadedManifest.version,ctx.manifest.version);assert.equal(loadedManifest.name,ctx.manifest.name);
+    report.packageIdentity={root:report.root,loadedManifestMatched:true,
+      manifestVersion:loadedManifest.version,manifestName:loadedManifest.name,
+      ...Object.fromEntries(['artifactPackageHash','swSHA256','manifestSHA256','packageSHA256'].map(k=>[k,report[k]])),
+      installedPackageHash:identity.packageHash};
+    // The first manual rule belongs to 1.2.2. Never seed storage or call an API
+    // that the real historical release did not implement.
+    const initial=await snapshot('first-pick','before');
+    await picker();await pageMouse.bringToFront();await pageMouse.locator(selector).hover();
+    await until(()=>ev(pageSession,'!!document.querySelector("[data-opendesk-adblock-picker]")'),'real page picker outline');
+    const selected=await mouseClick(pageMouse,selector);await visible(true);
+    await until(async()=>(await storage())[COSMETIC]?.entries.some(row=>row.host===host&&row.selector===selector),'first selection persisted');
+    const picked=await snapshot('first-pick','after');
+    assert.equal(selected.event.isTrusted,true);
+    assert.deepEqual(picked.value.storage[COSMETIC],{version:1,entries:[{host,selector}]});
+    report.closeout.firstPick={before:initial.value,after:picked.value,input:selected,
+      screenshots:{before:initial.screenshot,after:picked.screenshot}};
+    await step('reload',async()=>{await reloadFixture(c,pageSession,'first selected rule refresh');await visible(true);});
+    await step('reopen',async()=>{await c.send('Target.closeTarget',{targetId:pageTarget.targetId});await useFixture(ctx.manualUrl);await visible(true);});
+    await rules();
+    const beforeIcons=await storage(),icons={status:'RUNNING',steps:{}};report.closeout.icons=icons;
+    await ui(label('定位网页元素：'+selector));
+    const located=await until(async()=>{const v=await dom();return v.marker&&!v.targetHidden?v:null;},'locate reveals and outlines actual target');
+    icons.steps.locate={dom:located,screenshot:await shot(pageSession,'icon-locate')};await visible(true);
+    await ui(label('临时显示：'+selector));icons.steps.display={dom:await visible(false),screenshot:await shot(pageSession,'icon-display')};
+    await ui(label('重新隐藏：'+selector));icons.steps.hide={dom:await visible(true),screenshot:await shot(pageSession,'icon-hide')};
+    assert.deepEqual((await storage())[COSMETIC],beforeIcons[COSMETIC],'locate/display/hide retain persistent rules');
+    const edit=async(from,to)=>{
+      await ui(label('编辑屏蔽规则：'+from));
+      await until(()=>ev(react,'document.activeElement===document.querySelector("#adblock-selector-input")'),'edit autofocus');
+      const focus=()=>ev(react,'({activeTag:document.activeElement?.tagName,activeId:document.activeElement?.id,'+
+        'focusedInput:document.activeElement===document.querySelector("#adblock-selector-input"),'+
+        'value:document.querySelector("#adblock-selector-input")?.value})');
+      const firstFocus=await focus();
+      await ui(label('编辑屏蔽规则：'+from));
+      await until(()=>ev(react,'document.activeElement===document.querySelector("#adblock-selector-input")'),'repeated same-rule edit autofocus');
+      (icons.steps.editFocus??=[]).push({selector:from,firstFocus,repeatedFocus:await focus(),
+        screenshot:await shot(sid,'edit-focus-'+icons.steps.editFocus.length)});
+      await ui('#adblock-selector-input');
+      await c.send('Input.dispatchKeyEvent',{type:'keyDown',key:'a',code:'KeyA',modifiers:4,commands:['selectAll']},sid);
+      await c.send('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',modifiers:4},sid);
+      await c.send('Input.insertText',{text:to},sid);await textButton('检查匹配 · 高亮');
+      await until(()=>ev(react,'[...document.querySelectorAll("button")].some(b=>b.textContent.trim()==="保存修改"&&!b.disabled)'),'checked edit can save');
+      await textButton('保存修改');
+      await until(()=>ev(sid,'document.querySelector("#sidebar-tool-action-review")?.hidden===false'),'edit trusted save review');
+      await approveReactReview(c,sid);
+      await until(async()=>(await storage())[COSMETIC]?.entries.some(r=>r.host===host&&r.selector===to),'edited rule independently persisted');
+      await visible(true);
+    };
+    await edit(selector,'.ad-banner');
+    icons.steps.edit={storage:await storage(),screenshot:await shot(sid,'icon-edit-saved')};
+    await reloadFixture(c,pageSession,'edited rule refresh');await visible(true);
+    const editedTab=pageTarget.targetId;await c.send('Target.closeTarget',{targetId:editedTab});
+    await useFixture(ctx.manualUrl);await visible(true);
+    icons.steps.refreshReopen={storage:await storage(),dom:await dom(),screenshot:await shot(pageSession,'edited-refresh-reopen')};
+    await edit('.ad-banner',selector);
+    await step('restore',async()=>{const input=await ui(label('永久删除屏蔽规则：'+selector));await visible(false);return {input};});
+    icons.steps.delete=manual.steps.restore;icons.status='PASS';
+    if(ctx.coreOnly){
+      const protectedRequest=await probe(c,pageSession,ctx.adUrl());
+      assert.equal(protectedRequest.success,false);
+      assert.equal(protectedRequest.network.errorText,'net::ERR_BLOCKED_BY_CLIENT');
+      const own={pageSession,pageTarget,pageMouse};
+      await useFixture(ctx.manualOtherUrl);
+      const exceptionRequest=await probe(c,pageSession,ctx.adUrl());assert.equal(exceptionRequest.success,true);
+      await c.send('Target.closeTarget',{targetId:pageTarget.targetId});({pageSession,pageTarget,pageMouse}=own);
+      report.core={status:'PASS',scope:'1.2.1 global/settings upgrade; 1.2.2 picker, refresh/reopen and rule actions',
+        releaseReady:false,upgrade:manual.steps.upgrade.status,firstPick:true,
+        refresh:manual.steps.reload.status,reopen:manual.steps.reopen.status,icons:icons.status,
+        migratedNetwork:{status:'PASS',protectedRequest,exceptionRequest}};
+      await save();return;
+    }
+    await step('cancel',async()=>{await picker();const input=await textButton('取消选择');await visible(false);return {input};});
+    await step('pick',async()=>{
+      await picker();await pageMouse.bringToFront();await pageMouse.locator(selector).hover();
+      await until(()=>ev(pageSession,'!!document.querySelector("[data-opendesk-adblock-picker]")'),'real page picker overlay');
+      await mouseClick(pageMouse,selector);await visible(true);
+      await until(async()=>(await storage())[COSMETIC]?.entries.some(row=>row.host===host&&row.selector===selector),
+        'selected rule committed after immediate optimistic hiding');
+      const input=(await dom()).events.findLast(e=>e.type==='pointerdown'&&e.target==='manual-ad-slot');
+      return {input};
+    });
+    await step('reload',async()=>{await reloadFixture(c,pageSession,'manual rule page reload');await visible(true);});
+    await step('reopen',async()=>{await c.send('Target.closeTarget',{targetId:pageTarget.targetId});await useFixture(ctx.manualUrl);await visible(true);});
+    await mouseClick(pageMouse,'#manual-remove');
+    await until(async()=>!(await dom()).targetPresent,'fixture user removes dynamic target');
+    await step('dynamic',async()=>{await mouseClick(pageMouse,'#manual-insert');await visible(true);});
+    const own={pageSession,pageTarget,pageMouse};
+    await step('siteIsolation',async()=>{
+      await useFixture(ctx.manualOtherUrl);await visible(false);
+      // The A exception is deliberate; additionally prove B can be protected.
+      await change('当前网站广告过滤',true,'恢复 127.0.0.1 的广告过滤');await visible(false);
+      const request=await probe(c,pageSession,ctx.adUrl());assert.equal(request.success,false);assert.equal(request.network.errorText,'net::ERR_BLOCKED_BY_CLIENT');
+      report.closeout.AB={B:request};
+      await change('当前网站广告过滤',false,'关闭 127.0.0.1 的广告过滤');
+      await reloadFixture(c,pageSession,'A exception takes effect on a new document');
+      const allowed=await probe(c,pageSession,ctx.adUrl());assert.equal(allowed.success,true);report.closeout.AB.A=allowed;
+    });
+    await c.send('Target.closeTarget',{targetId:pageTarget.targetId});({pageSession,pageTarget,pageMouse}=own);
+    await pageMouse.bringToFront();
+    // A real installed tool in the owned extension tab is a Chrome page-zoom
+    // target. The Side Panel is not assumed to inherit tabs.setZoom.
+    const zoomUrl=await ev(uid,'chrome.runtime.getURL("sidepanel.html?toolId=adblock")');
+    const zoomTarget=await c.send('Target.createTarget',{url:zoomUrl});
+    const zoomHost=await attach(c,zoomTarget.targetId),zoomReact=await attachActualReact(c,zoomHost);
+    await c.send('Page.bringToFront',{},zoomHost);
+    report.closeout.chromeZoom200=await runAdblockChromeZoom200({client:c,hostSession:zoomHost,
+      reactSession:zoomReact,evaluate,until,screenshot:async(client,session,name)=>{
+        const value=await screenshot(client,session,name);report.screenshots.push(value);return value;
+      }});
+    await c.send('Target.closeTarget',{targetId:zoomTarget.targetId});
+    await pageMouse.bringToFront();
+    await step('globalOff',async()=>{await change('全局广告拦截',false,'关闭全局过滤');await visible(false);});
+    await enable();await visible(true);
+    await step('siteException',async()=>{await change('当前网站广告过滤',false,'关闭 '+host+' 的广告过滤');await visible(false);});
+    await change('当前网站广告过滤',true,'恢复 '+host+' 的广告过滤');await visible(true);
+    for(const name of ['disable','revocation']){
+      await step(name,async()=>{
+        const before=await storage();await leaveTool();await toggleTool('停用');
+        await until(async()=>(await getOwned(c,uid)).owned.length===0,'disabled tool releases owned Chrome DNR');await visible(false);
+        const after=await storage();assert.equal(after[ENABLED]?.adblock,false);
+        assert.notEqual(after[EPOCH]?.adblock,before[EPOCH]?.adblock,'installed authority epoch revoked');
+        return {revocationScope:'installed-tool-authority-epoch',beforeEpoch:before[EPOCH]?.adblock,afterEpoch:after[EPOCH]?.adblock};
+      });
+      await toggleTool('启用');react=await openTool();await pageMouse.bringToFront();await enable();await visible(true);
+    }
+    await step('uninstall',async()=>{
+      await click(c,sid,'#sidebar-tool-remove');
+      await until(()=>ev(sid,'document.querySelector("#sidebar-tool-inline-remove-confirm")?.hidden===false'),'unique installer uninstall confirmation');
+      await click(c,sid,'#sidebar-tool-inline-remove-confirm');
+      await until(async()=>!(await storage())[INSTALLED]?.some(t=>t.id==='adblock'),'tool removed by real Host');await visible(false);
+    });
+    await save();
+  }catch(error){
+    report.closeout.error=String(error.stack||error);
+    if(error.zoomEvidence)report.closeout.chromeZoom200=error.zoomEvidence;
+    throw error;
+  }
+  finally{await save();}
+}
 
 const execute = promisify(execFile);
 const nativeInput = fileURLToPath(new URL('../r251-visual-native-input.swift',import.meta.url));

@@ -188,21 +188,18 @@ const SITE_HINTS=Object.freeze({
   'https://chat.deepseek.com':{
     // Observed 2026-10-20: the chat column has no main landmark and the
     // textarea has no id. These remain checked proposals, never permissions.
-    name:'DeepSeek',pathScope:'/',containers:['main','[role="main"]','#root ._7780f2e'],
-    editors:['textarea#chat-input','#chat-input','textarea[placeholder="给 DeepSeek 发送消息 "]',
-      'textarea[placeholder="Message DeepSeek"]']
+    name:'DeepSeek',pathScope:'/',containers:['#root'],
+    editors:['#root textarea']
   },
   'https://www.perplexity.ai':{
     name:'Perplexity',pathScope:'/',containers:['main','[role="main"]'],
     editors:['textarea[data-testid="search-input"]',
-      'textarea[data-testid="composer-input"]',
-      'textarea[placeholder="Ask anything"]']
+      'textarea[data-testid="composer-input"]']
   },
   'https://perplexity.ai':{
     name:'Perplexity',pathScope:'/',containers:['main','[role="main"]'],
     editors:['textarea[data-testid="search-input"]',
-      'textarea[data-testid="composer-input"]',
-      'textarea[placeholder="Ask anything"]']
+      'textarea[data-testid="composer-input"]']
   },
   'https://grok.com':{
     name:'Grok',pathScope:'/',containers:['main','[role="main"]'],

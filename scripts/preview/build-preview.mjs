@@ -83,7 +83,7 @@ export async function generatePreview({
   }
   const {tokens,components,digest}=await officialDesignSources();
   const override=await canonicalThemeOverride(theme);
-  const shell=await sidebarPreviewShellSource();
+  const shell=await sidebarPreviewShellSource({tool});
   const tocOverlay=tool==='reading-toc'?await readingTocOverlayPreview({scenario}):null;
   const adblock=tool==='adblock'?await canonicalAdblockPreviewHost():null;
   // The offline preview runs the SAME fixed, host-owned React 19 + Shared UI
@@ -96,7 +96,7 @@ export async function generatePreview({
   const shellTemplate=await readFile(new URL('../templates/sidebar-tool-preview-shell.html',import.meta.url),'utf8');
   const lightShellOverride=await canonicalThemeOverride('light');
   let commit;
-  try {commit=execFileSync('git',['-C',repoRoot,'rev-parse','HEAD'],{encoding:'utf8'}).trim();}
+  try {commit=process.env.GITHUB_SHA||execFileSync('git',['-C',repoRoot,'rev-parse','HEAD'],{encoding:'utf8'}).trim();}
   catch {fail('a checked-out Git source revision is required');}
   if(!/^[0-9a-f]{40}$/.test(commit))fail('invalid Git source revision');
   const uiDigest=sha256(JSON.stringify([pkg.id,pkg.version,pkg.html,pkg.css,pkg.js,
@@ -106,7 +106,6 @@ export async function generatePreview({
     '<meta name="viewport" content="width=device-width,initial-scale=1">',
     '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src data: \'unsafe-inline\'; style-src data: \'unsafe-inline\'; img-src data:; connect-src \'none\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'">',
     '<link rel="stylesheet" href="'+dataUrl('text/css',pkg.css)+'">',
-    '<style>'+override+'</style>',
     '</head><body><div id="tool-root">'+pkg.html+'</div>',
     '<script>Object.defineProperty(globalThis,"__opendeskPreviewScenario",{value:'+JSON.stringify(scenario)+'});</script>',
     '<script src="'+dataUrl('text/javascript',mock)+'"></script>',
@@ -114,6 +113,9 @@ export async function generatePreview({
     // The v2 package runs its pinned Classic dependencies before its entrypoint.
     // Omitting these produced a plausible HTML shell but a nonfunctional bookmark UI.
     ...(pkg.scripts||[]).map(script=>'<script src="'+dataUrl('text/javascript',script.code)+'"></script>'),
+    // Shared UI installs canonical styles at runtime. Force the requested
+    // preview theme after those styles, so it does not depend on the OS theme.
+    '<style>'+override+'</style>',
     '<script src="'+dataUrl('text/javascript',pkg.js)+'"></script>',
     '</body></html>'
   ].join('');

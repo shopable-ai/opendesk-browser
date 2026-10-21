@@ -93,6 +93,8 @@ description: Engineer Chrome MV3/WXT Background/Content/MAIN, SDK/Host/Authority
 
 ## 一次工程变更的最短闭环
 
+工作流真实本机 Codex 的中文两轮复测，使用[唯一核心冒烟手册](../../../docs/framework/guides/workflow-core-smoke.zh-CN.md)。它包含真实 SIDE_PANEL、同一对话、独立 DOM、Run/Result/sourceHash、唯一填写及资源释放的判定；已有证据先按相关输入复用。只解释结果或整理经验时不启动模型／浏览器；该用例不自动触发正式验收，也不把历史 Profile、CLI 版本或 RunId 固化为默认配置。
+
 按 [AGENTS.md 的开发阶段规则](../../../AGENTS.md#开发阶段先完成核心需求与最小验证用户于2026-10-17明确)先修当前核心操作；用户调整阶段后，旧 GOAL、计划与历史清单不继续充当完成条件。仅改文档/Skill 时只核对链接、事实、元数据及阶段逻辑，不运行产品测试、构建或浏览器。
 
 - **当前缺口**：先在现有入口执行最短核心操作链，记录失败或未验证步骤；只核对相关源码/入口、执行世界、来源/目标身份、结果与 Stop 归属，不为普通修复制作完整研究表。

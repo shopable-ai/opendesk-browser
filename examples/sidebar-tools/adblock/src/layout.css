@@ -1,4 +1,4 @@
-.adblock-app{box-sizing:border-box;display:grid;gap:12px;min-width:0;padding:8px 12px 16px;overflow-wrap:anywhere;font-size:12px;color:var(--od-ink)}
+.adblock-app{box-sizing:border-box;display:grid;gap:12px;min-width:0;padding:8px 12px 16px;overflow-wrap:anywhere;font-size:12px;color:var(--od-ink);background:var(--od-paper)}
 .adblock-card{display:grid;gap:6px;padding:15px 16px}
 .adblock-control-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
 .adblock-copy{display:grid;gap:5px;min-width:0;flex:1}
@@ -33,12 +33,12 @@
 @media(max-width:350px){.adblock-manual-actions button{width:100%}}
 
 /* Picker receipts stay inside the sidebar; do not create webpage banners. */
-.adblock-pick-panel{display:flex;gap:9px;align-items:center;border:1px solid var(--od-line);border-radius:10px;padding:10px;margin-top:5px;background:var(--od-surface,#f7f9fc)}
+.adblock-pick-panel{display:flex;gap:9px;align-items:center;border:1px solid var(--od-line);border-radius:10px;padding:10px;margin-top:5px;background:var(--od-muted)}
 .adblock-pick-panel button{flex:none}
 @media(max-width:340px){.adblock-pick-panel{flex-wrap:wrap}.adblock-pick-panel button{margin-left:auto}}
 
 /* Historical cosmetic rules and advanced CSS editing remain in product React. */
-.adblock-rule{display:grid;gap:8px;padding:12px 0;border-bottom:1px solid var(--od-line)}
+.adblock-rule{display:grid;container-type:inline-size;gap:8px;padding:12px 0;border-bottom:1px solid var(--od-line)}
 .adblock-rule:last-of-type{border-bottom:0}
 .adblock-rule-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .adblock-rule-actions button{min-width:0;font-size:11px}
@@ -46,20 +46,27 @@
 .adblock-rule-actions--icons{flex-wrap:nowrap;justify-content:flex-end;gap:6px}
 .adblock-rule-actions--icons .adblock-rule-action{--od-icon-size:34px;flex:0 0 34px}
 @media(pointer:coarse){.adblock-rule-actions--icons .adblock-rule-action{--od-icon-size:44px;flex-basis:44px}}
-.adblock-rule-action--danger:not(:disabled):hover,
-.adblock-rule-action--danger:focus-visible{color:var(--od-negative);background:var(--od-negative-bg);border-color:var(--od-negative)}
+/* At 200% zoom retain DOM order and full targets in two predictable columns. */
+@container(max-width:193px){.adblock-rule-actions--icons{display:grid;grid-template-columns:repeat(2,max-content)}}
 @media(min-width:440px){.adblock-rule{grid-template-columns:minmax(0,1fr) auto;align-items:center}}
 
 .adblock-advanced{border:1px solid var(--od-line);background:var(--od-paper);border-radius:12px;overflow:hidden}
 .adblock-advanced summary{padding:12px 14px;cursor:pointer;font-weight:650;font-size:12px}
-.adblock-advanced summary:focus-visible{outline:2px solid var(--od-brand);outline-offset:-3px}
+.adblock-advanced summary:focus-visible{outline:2px solid var(--od-focus);outline-offset:-3px}
 .adblock-advanced-body{display:grid;gap:10px;padding:4px 14px 14px}
 .adblock-advanced-body>label{font-size:11px;font-weight:650}
-.adblock-selector-input{width:100%;min-width:0;box-sizing:border-box;color:var(--od-ink);background:var(--od-paper);border:1px solid var(--od-line);border-radius:8px;padding:9px;font:12px/1.4 ui-monospace,SFMono-Regular,monospace}
-.adblock-selector-input:focus-visible{outline:2px solid var(--od-brand);outline-offset:2px}
+.adblock-selector-input{width:100%;min-width:0;box-sizing:border-box;color:var(--od-ink);background:var(--od-paper);border:1px solid var(--od-input-border);border-radius:8px;padding:9px;font:12px/1.4 ui-monospace,SFMono-Regular,monospace}
+.adblock-selector-input:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 .adblock-dynamic{display:flex;align-items:flex-start;gap:8px;font-size:11px!important;line-height:1.5}
 .adblock-dynamic input{margin-top:3px}
 @media(max-width:340px){.adblock-rule-actions:not(.adblock-rule-actions--icons) button{flex:1 1 auto}}
+/* The visual switch track stays compact inside its 44px touch target. */
+@media(pointer:coarse){
+  .adblock-app button{min-width:44px;min-height:44px}
+  .adblock-app .od-shared-switch{box-sizing:content-box;padding:11px 4px;background-clip:content-box}
+  .adblock-advanced summary{min-height:44px;box-sizing:border-box}
+  .adblock-dynamic{min-height:44px;align-items:center}
+}
 
 /* Verified shared ToolHost owns page headings; counts remain visible. */
 .adblock-page-count{margin:0;color:var(--od-sub);font-size:11px;line-height:1.5}
