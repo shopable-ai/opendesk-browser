@@ -12,16 +12,16 @@ test('R1.0 SOURCE_ONLY: admitted Bookmark workspace inherits host height through
   assert.match(app,/<main id="workspace-content">/);
   assert.match(app,/<div id="workbench-tools"/);
   assert.match(app,/<section id="sidebar-tools"/);
-  assert.ok(shell.includes('#workspace-content:has(> #workbench-tools:not([hidden]) #sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden]))'),
+  assert.ok(shell.includes('#workspace-content:has(> #workbench-tools:not([hidden]) #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden]))'),
     'height mode must be scoped to the visible Tools tab and admitted Bookmark portal');
-  assert.ok(shell.includes('#workbench-tools:has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > #sidebar-tools'));
+  assert.ok(shell.includes('#workbench-tools:has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])) > #sidebar-tools'));
   // Existing #workspace-content > .od-page:not(...):not(...) grid has higher
   // specificity than a bare #workbench-tools:has(...). Keep the flex override
   // strictly stronger so the workspace actually gets a definite flex height.
-  assert.ok(shell.includes('#workspace-content > #workbench-tools:not([hidden]):has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])){'),
+  assert.ok(shell.includes('#workspace-content > #workbench-tools:not([hidden]):has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])){'),
     'the admitted Flex rule must outrank the existing workbench-tools Grid rule');
   assert.ok(shell.includes('#workspace-content>.od-page:not([hidden]):not(#workbench-workflow):not(#workbench-discover){display:grid;'));
-  assert.ok(shell.includes('#sidebar-tools:has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > #sidebar-tool-display:not([hidden])'));
+  assert.ok(shell.includes('#sidebar-tools:has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])) > #sidebar-tool-display:not([hidden])'));
   assert.match(pilot,/flex:1 1 0;/);
   assert.match(pilot,/height:auto;/);
   assert.match(pilot,/max-height:none;/);

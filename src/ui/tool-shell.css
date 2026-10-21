@@ -451,39 +451,47 @@
 .sidebar-tool-frame{min-width:0;width:calc(100% + var(--od-page-gutter) + var(--od-page-gutter));margin-inline:calc(0px - var(--od-page-gutter))}
 .sidebar-tool-iframe{display:block;width:100%;min-width:0;min-height:0;height:220px;max-height:1600px;border:0;border-radius:0;background:#fff}
 
-/* R1.0 admitted full-height workspaces: size against the real flex parent.
- * Only the verified trusted Bookmark portal opts in. Compact settings and
- * sandboxed user tools keep their existing content-height/scroll policy. */
-#workspace-content:has(> #workbench-tools:not([hidden]) #sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])){
+/* Verified full-height chain: admitted Bookmark React or catalog-verified official
+ * sandbox workspace. Ordinary user tools/settings retain content-height flow. */
+#workspace-content:has(> #workbench-tools:not([hidden]) #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])){
   display:flex;
   flex-direction:column;
   overflow:hidden;
   padding-bottom:0;
 }
-#workspace-content > #workbench-tools:not([hidden]):has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])){
+#workspace-content > #workbench-tools:not([hidden]):has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])){
   display:flex;
   flex:1 1 auto;
   flex-direction:column;
   min-height:0;
   min-width:0;
 }
-#workbench-tools:has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > #sidebar-tools,
-#sidebar-tools:has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > #sidebar-tool-display:not([hidden]){
+#workbench-tools:has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])) > #sidebar-tools,
+#sidebar-tools:has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])) > #sidebar-tool-display:not([hidden]){
   display:flex;
   flex:1 1 auto;
   flex-direction:column;
   min-height:0;
   min-width:0;
 }
-#sidebar-tool-display:has(> #sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > .sidebar-tool-view-head{
+#sidebar-tool-display:has(> #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])) > .sidebar-tool-view-head{
   flex:none;
 }
-#sidebar-tool-display:has(> #sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > #sidebar-tool-settings-view:not([hidden]){
+#sidebar-tool-display:has(> #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])) > #sidebar-tool-settings-view:not([hidden]){
   flex:0 1 auto;
   min-height:0;
   max-height:min(38%,280px);
   overflow-y:auto;
   overscroll-behavior:contain;
+}
+
+/* The verified official iframe owns its scroll; the Host never adds a second
+ * scrollbar or guesses fixed viewport offsets for workspace applications. */
+#sidebar-tool-frame[data-official-workspace="true"]{
+  display:flex;flex:1 1 0;flex-direction:column;min-height:0;min-width:0;overflow:hidden;
+}
+#sidebar-tool-frame[data-official-workspace="true"]>.sidebar-tool-iframe{
+  flex:1 1 auto;height:auto;min-height:0;max-height:none;
 }
 
 .task-section-head{margin:0 0 8px}
