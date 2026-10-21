@@ -78,7 +78,8 @@ test('confirmation is consumed before await and cannot double-run',async()=>{
   assert.equal(rigged.pinned.version,'1.0.0');
   assert.equal(rigged.pinned.generation,1);
   assert.equal(rigged.agent.getSnapshot().pending,null);
-  assert.match(rigged.agent.getSnapshot().rows.map(x=>x.message).join(' '),/任务「search」已结束本次执行/);
+  assert.match(rigged.agent.getSnapshot().rows.map(x=>x.message).join(' '),/任务「search」执行返回错误/);
+  assert.doesNotMatch(rigged.agent.getSnapshot().rows.map(x=>x.message).join(' '),/状态：成功/);
   assert.doesNotMatch(rigged.agent.getSnapshot().rows.map(x=>x.message).join(' '),/已读取真实回执：\\{/);
   rigged.agent.dispose();
 });

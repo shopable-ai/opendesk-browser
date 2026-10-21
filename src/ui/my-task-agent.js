@@ -159,7 +159,9 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
         try{outcome=clip(presentTaskValue(decodeValue(result.outcome.valueWire)).text,280);}
         catch{outcome='结果格式暂不可读取';}
       }else if(result?.outcome?.error)outcome=clip(result.outcome.error?.message||result.outcome.error?.code,240);
-      return {runId:run.runId,state:run.state,outcome,hasResult:Boolean(result?.outcome)};
+      else if(result?.outcome?.ok===false)outcome='任务失败，但未返回具体错误原因';
+      return {runId:run.runId,state:run.state,outcome,
+        hasError:result?.outcome?.ok===false,hasResult:Boolean(result?.outcome)};
     });
   }
   async function schedules(){const result=await client.request('listSchedules',{});return result.schedules||[];}
@@ -238,7 +240,15 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
   }
   const summarizeWrite=(action,receipt)=>{
     switch(action.type){
-      case 'run_task':return '任务「'+action.taskId+'」已结束本次执行，状态：'+
+      case 'run_task':return receipt.hasError
+        ?'任务「'+action.taskId+'」执行返回错误。'+
+          (receipt.runId?'运行编号：'+receipt.runId+'。 ':'')+
+          '错误：'+clip(receipt.result,400)
+        :!receipt.verified
+          ?'任务「'+action.taskId+'」已提交但终态尚未核实。'+
+            (receipt.runId?'运行编号：'+receipt.runId+'。 ':'')+
+            '请在运行历史中确认，不要直接重试。'
+          :'任务「'+action.taskId+'」已结束本次执行，状态：'+
         ({completed:'成功',failed:'失败',stopped:'已停止',interrupted:'中断',
           paused_unknown:'结果待核对'}[receipt.state]||clip(receipt.state,70))+
         '。'+(receipt.runId?'运行编号：'+receipt.runId+'。 ':'')+
@@ -284,7 +294,8 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
       const history=await runHistory(action.taskId,3);
       const observed=history.find(v=>v.runId===completed.runId);
       if(!observed||!observed.hasResult)throw fail('E_OUTCOME_UNKNOWN','任务已提交，但尚未读取到持久结果；请核查历史，不要重新运行');
-      return {taskId:action.taskId,runId:completed.runId,state:observed.state,result:observed.outcome,
+      return {taskId:action.taskId,runId:completed.runId,state:observed.state,
+        result:observed.outcome,hasError:observed.hasError,
         verified:isTerminal(observed.state)&&observed.hasResult};
     }
     if(action.type==='stop_task'){
