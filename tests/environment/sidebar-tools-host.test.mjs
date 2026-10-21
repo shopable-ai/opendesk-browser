@@ -1041,7 +1041,7 @@ test('R4.5 identical page revalidation preserves actual clipper results, while s
     const waiter=pending.get(message.requestId);
     if(message.kind==='response'&&waiter){pending.delete(message.requestId);message.ok?waiter.resolve(message.result):waiter.reject(Error(message.error.message));}
   };
-  runInNewContext(tool.js,{OpenDeskTool:{root,request(operation,payload){
+  runInNewContext(tool.js,{URL,OpenDeskTool:{root,request(operation,payload){
     const id=String(++requestId);return new Promise((resolve,reject)=>{
       pending.set(id,{resolve,reject});f.ask(operation,payload,id);
     });

@@ -167,3 +167,25 @@ test('R1.4: reader edit/save has a busy navigation lock and returns to updated r
  await e['clip-note-reader-back'].fire('click');
  assert.equal(f.document.scrollingElement.scrollTop,122);
 });
+
+test('saving after cancel confirmation cannot discard the pending edit',async()=>{
+ const f=await setup(),e=f.elements;
+ await f.notes.showLibrary();await f.row(1).children[0].fire('click');await flush();
+ await e['clip-note-read-edit'].fire('click');
+ e['clip-note-body'].value='保存期间保留正文';await e['clip-note-body'].fire('input');
+ await e['clip-note-cancel'].fire('click');
+ assert.equal(e['clip-note-unsaved'].hidden,false);
+ const hold=f.holdEdit();
+ await e['clip-note-save'].fire('click');await flush();
+ assert.equal(e['clip-note-unsaved'].hidden,true,'saving closes the old discard confirmation');
+ // A queued discard event must also respect the pending write.
+ await e['clip-note-discard'].fire('click');
+ await f.root.fire('opendesk-tool-navigation',{detail:{action:'back'}});
+ assert.equal(e['clip-notes'].dataset.view,'editing');
+ assert.equal(e['clip-note-body'].value,'保存期间保留正文');
+ assert.equal(f.editCalls.length,1);
+ hold.resolve();await flush();
+ assert.equal(e['clip-notes'].dataset.view,'reading');
+ assert.equal(e['clip-note-read-body'].textContent,'保存期间保留正文');
+ assert.equal(f.states.at(-1).busy,false);
+});

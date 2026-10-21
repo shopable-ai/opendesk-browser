@@ -300,6 +300,7 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
   }catch(error){if(seq===detailGeneration)statusError(error,'读取失败：');}
  }
  function discardEditor(){
+  if(busy)return msg('保存仍在进行，请勿放弃修改',true);
   const where=editorReturn,source=editingSource;
   editing=null;editingSource=null;baseline='';
   q('clip-note-body').value='';q('clip-note-unsaved').hidden=true;
@@ -321,7 +322,7 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
   if(busy||!editing)return;
   const body=q('clip-note-body').value;
   const original=editing,previous=editingSource,where=editorReturn;
-  busy=true;notify();
+  busy=true;q('clip-note-unsaved').hidden=true;notify();
   try{
    const response=original.id?
     await store.edit(original.id,previous.etag,body):

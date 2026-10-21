@@ -10,10 +10,11 @@ import {pathToFileURL} from 'node:url';
 import {connect,evaluate} from '../../tests/framework/sidebar-native-session.mjs';
 const chromeBin=process.env.CHROME_BIN||['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome','/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser'].find(existsSync);
 assert(chromeBin,'Chromium required');
-const artifacts=resolve('artifacts/sidebar-navigation-r15/preview'),profile=await mkdtemp(join(tmpdir(),'od-clipper-r15-'));
+const coreOnly=process.argv.includes('--core-navigation');
+const artifacts=resolve('artifacts/sidebar-navigation-r15/'+(coreOnly?'core-navigation':'preview')),profile=await mkdtemp(join(tmpdir(),'od-clipper-r15-'));
 await mkdir(artifacts,{recursive:true});
 const browser=spawn(chromeBin,['--headless=new','--no-sandbox','--no-first-run','--no-default-browser-check','--disable-dev-shm-usage','--user-data-dir='+profile,'--remote-debugging-port=0','about:blank'],{stdio:'ignore'});
-let client,host,child;const errors=[],checks=[],screenshots=[];
+let client,host,child;const errors=[],checks=[],screenshots=[],cases=[];
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const ev=(expression,frame=false)=>evaluate(client,expression,frame?child:host);
 const command=(method,params={},frame=false)=>client.send(method,params,frame?child:host);
@@ -40,6 +41,37 @@ try{
  await command('Runtime.enable');await command('Page.enable');await until('document.documentElement.dataset.previewBootScript==="ready"');await attachFrame();await until('document.querySelectorAll("#clip-recent-list .clip-note-card").length===4',true);
  assert.equal(await ev('document.querySelector("#sidebar-tool-frame iframe").sandbox.value'),'allow-scripts');
  assert.equal(await ev('document.querySelector(".clip").classList.contains("clip-hosted")',true),true);checks.push('single formal React ToolHost / sandboxed exact sources');
+ if(coreOnly){
+ await click('#clip-recent-list .clip-note-open',true);await title('摘录详情');
+ await click('#sidebar-tool-primary-action');await type('#clip-note-body','核心保存导航回归',true);
+ await click('#sidebar-tool-back');await until('!document.getElementById("clip-note-unsaved").hidden',true);
+ await control({latencyMs:400});await click('#sidebar-tool-primary-action');
+ await until('document.getElementById("sidebar-tool-back").disabled');
+ assert.equal(await ev('document.getElementById("clip-note-unsaved").hidden',true),true);
+ assert.equal(await ev('document.getElementById("clip-note-body").value',true),'核心保存导航回归');
+ await click('#clip-note-cancel',true);
+ assert.equal(await ev('document.getElementById("clip-notes").dataset.view',true),'editing');
+ await title('摘录详情');assert.equal(await ev('document.getElementById("clip-note-read-body").textContent',true),'核心保存导航回归');
+ await control({latencyMs:0});checks.push('save closes discard confirmation; pending cancel/back preserve editor; completion opens saved reader');
+ await click('#sidebar-tool-primary-action');await type('#clip-note-body','将被放弃的草稿',true);
+ await click('#sidebar-tool-back');await click('#clip-note-continue',true);
+ assert.equal(await ev('document.getElementById("clip-note-body").value',true),'将被放弃的草稿');
+ await click('#sidebar-tool-back');await click('#clip-note-discard',true);await title('摘录详情');
+ assert.equal(await ev('document.getElementById("clip-note-read-body").textContent',true),'核心保存导航回归');
+ checks.push('continue preserves draft; discard returns to unchanged saved reader');
+ await click('#sidebar-tool-back');await title('网页剪藏');await click('#clip-view-all',true);await title('我的摘录');
+ // Populate only the isolated mock through its existing public request path.
+ // Two compact search results cannot prove scroll restoration.
+ for(let i=0;i<18;i++)await ev('OpenDeskTool.request("clipNotes.save",'+JSON.stringify({kind:'note',body:'核心滚动记录 '+i+'\n\n用于检查列表返回位置的隔离预览数据。'})+')',true);
+ await type('#clip-search','核心滚动记录',true);await until('document.querySelectorAll("#clip-note-list .clip-note-card").length===18',true);
+ const position=await ev('(()=>{const s=document.scrollingElement;s.scrollTop=s.scrollHeight;return s.scrollTop;})()',true);
+ assert(position>0,'the search results must actually scroll');
+ await click('#clip-note-list .clip-note-card:last-child .clip-note-open',true);await title('摘录详情');
+ await click('#sidebar-tool-back');await title('我的摘录');
+ assert.equal(await ev('document.getElementById("clip-search").value',true),'核心滚动记录');
+ await until('document.scrollingElement.scrollTop==='+position,true);
+ checks.push('search and actual scrolling position survive reader/back');await shot('core-navigation-complete');
+ }else{
  await click('#clip-recent-list .clip-note-open',true);await title('摘录详情');
  await ev('globalThis.__previewFrame=document.querySelector("iframe")');await click('#sidebar-tool-settings-open');await until('!document.getElementById("sidebar-tool-settings-view").hidden');await click('#sidebar-tool-back');await title('摘录详情');assert.equal(await ev('globalThis.__previewFrame===document.querySelector("iframe")'),true);checks.push('settings/back retains identical iframe and reader');
  await click('#sidebar-tool-primary-action');await title('编辑摘录');await type('#clip-note-body','R15 preview edited body',true);await click('#sidebar-tool-back');await until('!document.getElementById("clip-note-unsaved").hidden',true);await click('#clip-note-continue',true);
@@ -47,7 +79,6 @@ try{
  await click('#sidebar-tool-back');await title('网页剪藏');await click('#clip-view-all',true);await title('我的摘录');await type('#clip-search','Markdown',true);await click('#clip-note-list .clip-note-open',true);await title('摘录详情');await click('#sidebar-tool-back');await title('我的摘录');assert.equal(await ev('document.getElementById("clip-search").value',true),'Markdown');checks.push('debounced search/detail interleave and search restoration');
  await click('#sidebar-tool-primary-action');await title('新建便签');await type('#clip-note-body','R15 new preview note',true);await click('#sidebar-tool-primary-action');await title('我的摘录');await type('#clip-search','R15 new preview note',true);await until('document.querySelectorAll("#clip-note-list .clip-note-card").length===1',true);await click('#clip-note-list .clip-note-open',true);await title('摘录详情');await click('#clip-note-read-remove',true);await until('!!document.querySelector(".clip-remove-confirm")',true);await shot('delete-confirmation');await click('.clip-remove-confirm button:not(.confirm-danger)',true);await title('摘录详情');await click('#clip-note-read-remove',true);await click('.clip-remove-confirm .confirm-danger',true);await title('我的摘录');await until('document.querySelectorAll("#clip-note-list .clip-note-card").length===0',true);checks.push('new/save/reader/delete cancel/confirm with original business controller');
  await type('#clip-search','',true);
- const cases=[];
  for(const theme of ['light','dark'])for(const width of [320,360,400,440]){
    await command('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:theme}]});await command('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:theme}]},true);
    await command('Emulation.setDeviceMetricsOverride',{width:width+24,height:1060,deviceScaleFactor:1,mobile:false});await ev('document.querySelector(".od-sidebar-preview-stage").style.width="'+width+'px"');
@@ -61,6 +92,7 @@ try{
  await control({storageCase:'normal'});await click('#sidebar-tool-back');await click('#clip-note-discard',true);await title('我的摘录');
  await click('#sidebar-tool-back');await title('网页剪藏');await click('#sidebar-tool-back');await until('!document.getElementById("sidebar-tool-list-view").hidden');
  await click('[data-extension-key="app:web-markdown-clipper"][data-extension-action="main"]');await attachFrame();await title('网页剪藏');checks.push('home back returns installed list; reopen starts clean isolated preview');
+ }
  assert.deepEqual(errors,[]);
  const report={status:'PASS',scope:'SOURCE_BOUND_CHROMIUM_PREVIEW_ONLY',browser:version.Browser,installedChrome:'NOT_TESTED_BY_THIS_SCRIPT',native:'NOT_TESTED_BY_THIS_SCRIPT',realBrowserZoom200:'NOT_TESTED_BY_THIS_SCRIPT',checks,cases,screenshots,errors};await writeFile(join(artifacts,'interaction-result.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({status:report.status,checks:checks.length,screenshots:screenshots.length}));
 }catch(error){

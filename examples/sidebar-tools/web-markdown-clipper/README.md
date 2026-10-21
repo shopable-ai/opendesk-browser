@@ -1,4 +1,20 @@
-# Web Markdown Clipper R1.2 · 层级返回与内容优先
+# Web Markdown Clipper · 1.2.7
+
+保存开始时收起未保存确认；保存尚未完成时，返回、取消与迟到的放弃操作均保留编辑状态及正文，成功后回到更新后的阅读页。工具 ID、权限与本地数据命名空间不变，已安装版本通过同 ID 更新。
+
+正式 React 同源预览：[打开网页剪藏](preview/index.html)。预览复用正式 ToolHost 与工具源码，Host 数据和权限均为隔离模拟；不能代替 Chrome 安装、存储和权限证据。
+
+本轮核心验证：
+
+```bash
+node --test examples/sidebar-tools/web-markdown-clipper/tests/navigation-r14.test.mjs
+node scripts/tests/clipper-react-preview-interaction.mjs --core-navigation
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/web-markdown-clipper --check-project
+```
+
+`--core-navigation` 仅验证保存期间导航、继续/放弃草稿及搜索/滚动恢复，不运行旧宽度矩阵。1.2.7 的真实安装更新尚未验证；下方旧版本记录保留历史含义。
+
+## 历史：R1.2 · 层级返回与内容优先
 
 正式安装版本：**1.2.4**。适配 React 可信标题栏，左上角固定单返回按钮，子页面返回由正式 src/notes.js 控制；右上角按上下文显示新建、编辑或保存图标，“在新标签页打开”移入可信设置。网页剪藏主页和最近摘录仍同屏；卡片正文优先、来源移至阅读详情，触屏可发现卡片编辑/删除。
 
