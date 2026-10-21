@@ -10,6 +10,7 @@ import {CAPTURE_SITE_STORE, KNOWLEDGE_TOOL_ID, KNOWLEDGE_WORKSPACE_PREFIX} from 
 import {writeVerifiedLocalValue,classifyStorageWriteError,unknownStorageOutcome,sameStorageValue} from './storage-state.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,requireToolRevocationEpochs,TOOL_REVOCATION_EPOCHS_STORE} from './lifecycle.js';
 import {TIME_REVIEW_KEY} from '../../../examples/sidebar-tools/time-review/trusted/model.js';
+import {PROMPT_ASSET_STORE} from '../../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js';
 import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../../examples/sidebar-tools/stay-focus/trusted/lifecycle.js';
 import {stopAdblockForTool,cleanupUninstalledAdblock} from '../../../examples/sidebar-tools/adblock/trusted/lifecycle.js';
 import {stopAiAccessForTool,cleanupUninstalledAiAccess} from '../../../examples/sidebar-tools/ai-vip-share/trusted/lifecycle.js';
@@ -201,6 +202,7 @@ export async function cleanupUninstalledToolLocked(api,id){
     return {state:'still-installed',toolId:id};
   try{
     await removeVerifiedKey(api,sidebarToolStorageKey(id));
+    if(id==='prompt-shortcuts')await removeVerifiedKey(api,PROMPT_ASSET_STORE);
     // Delete private bookmark ownership IDs but do not silently remove user bookmarks.
     await removeVerifiedKey(api,BOOKMARK_OWNED_STORE_PREFIX+id);
     if(id==='time-review')await removeVerifiedKey(api,TIME_REVIEW_KEY);
