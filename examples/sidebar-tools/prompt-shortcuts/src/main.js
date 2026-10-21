@@ -6,12 +6,13 @@ const dom=(tag,cls='',text='')=>{const n=root.ownerDocument.createElement(tag);n
 const KEY='library',MENU_ACTION='add-selection';
 let data=model.defaults(),etag=null,ready=false,busy=false,dirty=false,mode='index',editId=null;
 let baseline='',expanded=null,pendingDelete=null,pendingLeave=null,unconfirmedWrite=false;
+ const imageAssets=new Map();let draftImageAssetId='',uploadBusy=false;
 let stagedImport=null,stagedEtag=null,replaceArmed=false,transferBusy=false,importTicket=0;
 const SITE_KEY='sites';
 let sites=model.sitesDefaults(),sitesEtag=null,sitesReady=false,siteBusy=false,siteDetecting=false,siteDirty=false,siteUnconfirmedWrite=false;
 let siteOrigin=null,siteEditing=null,siteBaseline='',siteVerified=null,siteDelete=null;
 let sitePoll=0,siteSession=null,siteStarting=0,siteEpoch=0,siteDiscardPending=false;
-function report(){setState({dirty:dirty||siteDirty||Boolean(stagedImport),busy:busy||siteBusy||siteDetecting||transferBusy});}
+function report(){setState({dirty:dirty||siteDirty||Boolean(stagedImport),busy:busy||siteBusy||siteDetecting||transferBusy||uploadBusy});}
 function status(message='',isError=false){const n=el('ps-status');n.textContent=message;n.hidden=!message;n.dataset.error=String(isError);}
 function error(message=''){el('ps-error').textContent=message;el('ps-error').hidden=!message;}
 function bodyError(message=''){el('ps-body-error').textContent=message;el('ps-body-error').hidden=!message;}
@@ -24,10 +25,78 @@ function options(open){
 }
 function form(){
   const previous=editId?data.items.find(item=>item.id===editId):null;
+  const local=el('ps-image-source-local').checked;
   return {body:el('ps-body').value,label:el('ps-label').value,name:el('ps-name').value,
     shape:previous?.shape==='round'?'round':'square',enabled:el('ps-enabled').checked,
-    appearance:el('ps-appearance-image').checked?'image':'text',imageUrl:el('ps-image-url').value};
+    appearance:el('ps-appearance-image').checked?'image':'text',
+    imageUrl:local?'':el('ps-image-url').value,imageAssetId:local?draftImageAssetId:''};
 }
+
+ // Local raster processing only. Bytes are stored via the trusted Host, separately from text.
+ async function encodeLocalImage(file){
+   if(!['image/png','image/jpeg','image/webp'].includes(file?.type))
+     throw Error('只支持 PNG、JPEG、WebP；不支持 SVG');
+   if(file.size<1||file.size>2*1024*1024)throw Error('原图必须小于 2 MiB');
+   if(typeof globalThis.createImageBitmap!=='function')throw Error('当前环境不支持图片解码');
+   const bitmap=await globalThis.createImageBitmap(file);
+   try{
+     if(!bitmap.width||!bitmap.height||bitmap.width>8192||bitmap.height>8192||
+       bitmap.width*bitmap.height>16000000)throw Error('图片像素尺寸过大');
+     const canvas=root.ownerDocument.createElement('canvas'),ctx=canvas.getContext('2d');
+     if(!ctx)throw Error('浏览器不支持图片压缩');
+     for(const longest of [256,224,192,160,128,96]){
+       const ratio=Math.min(1,longest/Math.max(bitmap.width,bitmap.height));
+       canvas.width=Math.max(1,Math.round(bitmap.width*ratio));
+       canvas.height=Math.max(1,Math.round(bitmap.height*ratio));
+       ctx.clearRect(0,0,canvas.width,canvas.height);
+       ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+       for(const quality of [.82,.72,.6,.48]){
+         const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',quality));
+         if(blob&&['image/png','image/jpeg','image/webp'].includes(blob.type)&&blob.size>=12&&blob.size<=65536){
+           const dataUrl=await new Promise((resolve,reject)=>{
+             const reader=new FileReader();
+             reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error('读取压缩图片失败'));
+             reader.readAsDataURL(blob);
+           });
+           if(typeof dataUrl!=='string'||!dataUrl.startsWith('data:'+blob.type+';base64,'))
+             throw Error('压缩后图片格式无效');
+           return {dataUrl,mime:blob.type,bytes:blob.size};
+         }
+       }
+     }
+     throw Error('无法将此图片压缩到 64 KiB');
+   }finally{bitmap.close?.();}
+ }
+ async function uploadImage(){
+   const input=el('ps-image-file'),file=input.files?.[0];input.value='';
+   if(!file||mode!=='form'||uploadBusy||busy||unconfirmedWrite)return;
+   uploadBusy=true;lock();el('ps-image-help').textContent='正在处理并保存图片…';
+   try{
+     const image=await encodeLocalImage(file);
+     const receipt=await request('prompt.asset.put',{mime:image.mime,dataUrl:image.dataUrl});
+     const id=model.normalizeImageAssetId(receipt?.id);
+     if(!id||receipt.bytes!==image.bytes)throw Error('图片保存回执未确认，请重新打开核对');
+     const previous=draftImageAssetId;
+     imageAssets.set(id,image.dataUrl);draftImageAssetId=id;
+     el('ps-image-source-local').checked=true;el('ps-image-source-url').checked=false;
+     changed();
+     el('ps-image-help').textContent='图片已保存至本机资源库（'+image.bytes+' B），请保存提示词完成关联。';
+     if(previous&&!data.items.some(row=>row.imageAssetId===previous))
+       void request('prompt.asset.remove',{id:previous}).catch(()=>{});
+   }catch(e){
+     error('图片上传失败：'+(e.code||e.message)+'。已有草稿与图片保持不变。');
+     el('ps-image-help').textContent='可重新选择本地图片，或切换 HTTPS 图片网址。';
+   }finally{uploadBusy=false;lock();}
+ }
+ async function hydrateImageAssets(rows){
+   const ids=[...new Set(rows.map(row=>row.imageAssetId).filter(Boolean))];
+   for(const id of ids){
+     try{const a=await request('prompt.asset.get',{id});
+       if(/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(a?.dataUrl))
+         imageAssets.set(id,a.dataUrl);
+     }catch{/* A missing image must not hide the user's saved prompt. */}
+   }
+ }
 function projected(){
   const draft=form(),old=editId?data.items.find(row=>row.id===editId):null;
   if(!draft.body.trim())return null;
@@ -43,41 +112,50 @@ function picture(holder,row,{live=false}={}){
   const fallback=()=>{holder.classList.toggle('has-image',false);holder.dataset.imageUrl='';
     holder.replaceChildren(...model.parts(label).map(part=>dom('span','',part)));};
   if(row.appearance!=='image'){fallback();return;}
-  let url;
-  try{url=model.normalizeImageUrl(row.imageUrl,true);}
-  catch(e){fallback();if(live)el('ps-image-help').textContent=e.message;return;}
+  let url,sourceKey;
+  try{
+    if(row.imageAssetId){
+      const id=model.normalizeImageAssetId(row.imageAssetId);
+      url=imageAssets.get(id);
+      if(!url)throw Error('本地图片无法读取，已显示备用短标签；请重新上传或更换来源。');
+      sourceKey='asset:'+id;
+    }else{url=model.normalizeImageUrl(row.imageUrl,true);sourceKey=url;}
+  }catch(e){fallback();if(live)el('ps-image-help').textContent=e.message;return;}
   // Same failed HTTPS URL must not be requested again on every body edit.
-  if(holder.dataset.failedImageUrl===url){
+  if(holder.dataset.failedImageUrl===sourceKey){
     fallback();
     if(live)el('ps-image-help').textContent='图片加载失败，已回退备用短标签；修改图片 URL 后可重试。';
     return;
   }
-  if(holder.dataset.imageUrl===url&&holder.firstElementChild?.tagName==='IMG')return;
-  holder.dataset.failedImageUrl='';holder.dataset.imageUrl=url;
+  if(holder.dataset.imageUrl===sourceKey&&holder.firstElementChild?.tagName==='IMG')return;
+  holder.dataset.failedImageUrl='';holder.dataset.imageUrl=sourceKey;
   holder.classList.add('has-image');
   const img=dom('img');img.alt='';img.decoding='async';img.loading=live?'eager':'lazy';
   img.referrerPolicy='no-referrer';
   img.addEventListener('error',()=>{
-    if(holder.firstChild!==img||holder.dataset.imageUrl!==url)return;
-    holder.dataset.failedImageUrl=url;fallback();
+    if(holder.firstChild!==img||holder.dataset.imageUrl!==sourceKey)return;
+    holder.dataset.failedImageUrl=sourceKey;fallback();
     if(live)el('ps-image-help').textContent='图片加载失败，已显示备用短标签；请检查 URL、格式或网络限制。';
   });
-  img.addEventListener('load',()=>{if(holder.dataset.imageUrl===url&&!img.naturalWidth)img.dispatchEvent(new Event('error'));});
+  img.addEventListener('load',()=>{if(holder.dataset.imageUrl===sourceKey&&!img.naturalWidth)img.dispatchEvent(new Event('error'));});
   holder.replaceChildren(img);img.src=url;
-  if(live)el('ps-image-help').textContent='图片完整显示、不裁剪；加载失败显示短标签。远程图片服务器会收到图片请求。';
+  if(live)el('ps-image-help').textContent=row.imageAssetId?'已保存至本机资源库；完整显示、不裁剪。':'图片完整显示、不裁剪；加载失败显示短标签。远程服务器会收到图片请求。';
 }
 function preview(){
   const draft=form(),fallback=model.auto(draft.body),label=draft.label.trim()||fallback;
   const glyph=el('ps-preview-glyph');
   glyph.replaceChildren(...model.parts(label||'—').map(char=>dom('span','',char)));
   el('ps-preview-name').textContent=draft.name.trim()||fallback||'待生成';
-  const image=draft.appearance==='image';
+  const image=draft.appearance==='image',local=el('ps-image-source-local').checked;
   el('ps-image-fields').hidden=!image;
+  el('ps-image-upload-controls').hidden=!local;
+  el('ps-image-url-row').hidden=local;
+  el('ps-image-clear').hidden=!draftImageAssetId;
   if(image){
     const holder=el('ps-image-preview'),dims=model.IMAGE_SIZES[data.settings.imageSize]||model.IMAGE_SIZES.large;
     holder.style.width=dims[0]+'px';holder.style.height=dims[1]+'px';
     // Avoid re-requesting the same remote image when the prompt body is edited.
-    const token=JSON.stringify([draft.imageUrl,label,data.settings.imageSize]);
+    const token=JSON.stringify([draft.imageAssetId,draft.imageUrl,label,data.settings.imageSize]);
     if(holder.dataset.token!==token){
       holder.dataset.token=token;
       picture(holder,{...draft,label}, {live:true});
@@ -97,9 +175,13 @@ function changed(){
 }
 function lock(){
   for(const id of ['ps-new','ps-save','ps-save-next','ps-web','ps-transfer','ps-image-size'])
-    el(id).disabled=!ready||busy||transferBusy||unconfirmedWrite||
+    el(id).disabled=!ready||busy||uploadBusy||transferBusy||unconfirmedWrite||
       (id==='ps-new'&&Boolean(stagedImport))||(id==='ps-image-size'&&Boolean(stagedImport));
-  const blocked=!ready||busy||transferBusy||unconfirmedWrite;
+  const blocked=!ready||busy||uploadBusy||transferBusy||unconfirmedWrite;
+   el('ps-image-size-setting').querySelectorAll('[data-image-size]').forEach(button=>{
+     button.disabled=blocked||Boolean(stagedImport);
+   });
+   for(const id of ['ps-image-pick','ps-image-clear'])el(id).disabled=blocked;
   el('ps-import').disabled=blocked;
   el('ps-export').disabled=blocked||Boolean(stagedImport);
   const append=stagedImport?importCandidate('append'):null;
@@ -115,17 +197,20 @@ function lock(){
   report();
 }
 function index(){
+  if(draftImageAssetId&&!data.items.some(item=>item.imageAssetId===draftImageAssetId))
+    void request('prompt.asset.remove',{id:draftImageAssetId}).catch(()=>{});
+  draftImageAssetId='';
   mode='index';editId=null;dirty=false;pendingLeave=null;pendingDelete=null;
   el('ps-index').hidden=false;el('ps-edit').hidden=true;el('ps-leave').hidden=true;
   error('');bodyError('');render();report();
 }
 function back(callback=index){
-  if(busy)return;
+  if(busy||uploadBusy)return;
   if(!dirty){callback();return;}
   pendingLeave=callback;el('ps-leave').hidden=false;el('ps-stay').focus();
 }
 function start(id=null,preset=''){
-  if(!ready||busy||transferBusy||unconfirmedWrite||stagedImport)return;
+  if(!ready||busy||uploadBusy||transferBusy||unconfirmedWrite||stagedImport)return;
   const row=id?data.items.find(item=>item.id===id):null;
   if(id&&!row){status('原条目已变化，请重新打开工具核对。',true);return;}
   mode='form';editId=id;expanded=null;pendingDelete=null;
@@ -137,6 +222,9 @@ function start(id=null,preset=''){
   el('ps-name').value=row&&!row.nameAuto?row.name:'';
   el('ps-appearance-image').checked=row?.appearance==='image';
   el('ps-appearance-text').checked=row?.appearance!=='image';
+  draftImageAssetId=row?.imageAssetId||'';
+  el('ps-image-source-local').checked=Boolean(draftImageAssetId)||!row?.imageUrl;
+  el('ps-image-source-url').checked=!el('ps-image-source-local').checked;
   el('ps-image-url').value=row?.imageUrl||'';
   delete el('ps-image-preview').dataset.token;
   el('ps-enabled').checked=row?.enabled!==false;error('');bodyError('');options(true);el('ps-leave').hidden=true;
@@ -537,6 +625,9 @@ function render(){
   el('ps-empty').hidden=data.items.length>0;
   el('ps-web').checked=data.settings.webButtons;
   el('ps-image-size').value=data.settings.imageSize||'large';
+   el('ps-image-size-setting').querySelectorAll('[data-image-size]').forEach(button=>{
+     button.setAttribute('aria-pressed',String(button.dataset.imageSize===el('ps-image-size').value));
+   });
   // Text-only collections keep their original uncluttered list.
   el('ps-image-size-setting').hidden=!data.items.some(item=>item.appearance==='image');
   for(const [i,item] of data.items.entries()){
@@ -756,7 +847,17 @@ async function commit(next,analyticsSaveId=null){
       }catch{throw e;}
       unconfirmedWrite=false;
     }
+    const staleIds=[...new Set(data.items.map(item=>item.imageAssetId).filter(Boolean))]
+      .filter(id=>!next.items.some(item=>item.imageAssetId===id));
     data=next;etag=saved.etag;
+    let cleanupFailures=0;
+    for(const id of staleIds){
+      try{
+        const result=await request('prompt.asset.remove',{id});
+        if(result?.removed===true)imageAssets.delete(id);
+      }catch{cleanupFailures++;}
+    }
+    return {cleanupFailures};
   }finally{busy=false;lock();}
 }
 async function update(id,transform,restoreAction='toggle'){
@@ -800,7 +901,7 @@ async function save(event,continueCreating=false){
   event?.preventDefault();
   if(mode!=='form'){status('当前不在编辑页面，未执行保存。',true);return;}
   if(!ready){error('宿主存储尚未就绪，未执行保存；草稿保留。');return;}
-  if(busy){error('上一笔保存尚未确认，请勿重复提交；草稿保留。');return;}
+  if(busy||uploadBusy){error('图片上传或保存尚未确认，请勿重复提交；草稿保留。');return;}
   if(unconfirmedWrite){error('上次写入结果未确认，请保留草稿并重新打开核对。');return;}
   const input=form(),snapshot=JSON.stringify(input),old=editId?data.items.find(row=>row.id===editId):null;
   if(editId&&!old){error('记录已变化，请保留草稿并重新打开');return;}
@@ -817,13 +918,15 @@ async function save(event,continueCreating=false){
   }
   try{
     error('');status('保存中，请稍候…');
-    await commit(next,item.id);
+    const outcome=await commit(next,item.id);
     // The user may keep typing during the request. Future saves must edit this
     // acknowledged item, including when the original request created it.
     editId=item.id;el('ps-form-title').textContent='编辑提示词';
     if(snapshot===JSON.stringify(form())){
       if(continueCreating&&!old){start();status('已保存，可继续新建。');}
-      else{index();status('完整提示词已保存。');}
+      else{index();status(outcome.cleanupFailures?
+      '提示词已保存，旧图片清理未确认；可重新打开核对。':'完整提示词已保存。',
+      Boolean(outcome.cleanupFailures));}
     }
     else{baseline=snapshot;changed();status('先前版本已保存，当前新输入尚未保存。');
       error('保存期间有新的输入，先前版本已保存；请再次点击保存。');}
@@ -837,11 +940,13 @@ async function remove(){
   const deletedIndex=data.items.findIndex(item=>item.id===pendingDelete);
   const next=model.load({...data,items:data.items.filter(item=>item.id!==pendingDelete)
     .map((item,order)=>({...item,order}))});
-  try{await commit(next);pendingDelete=null;expanded=null;
+  try{const outcome=await commit(next);pendingDelete=null;expanded=null;
     render();
     const survivor=data.items[Math.min(deletedIndex,data.items.length-1)];
     if(survivor)focusListAction(survivor.id,'more');else el('ps-new').focus({preventScroll:true});
-    status('提示词已删除。');}
+    status(outcome.cleanupFailures?
+      '提示词已删除，但旧图片清理未确认；请留意本地图片容量。':'提示词已删除。',
+      Boolean(outcome.cleanupFailures));}
   catch(e){status('删除未确认，显示上次确认的列表：'+(e.code||e.message)+'；请重新打开核对已保存数据。',true);}
 }
 async function changeWeb(){
@@ -919,12 +1024,27 @@ el('ps-form').addEventListener('keydown',e=>{
   e.preventDefault();void save();
 });
 el('ps-form').addEventListener('input',changed);el('ps-form').addEventListener('change',changed);
+el('ps-image-pick').addEventListener('click',()=>{
+  if(mode==='form'&&!uploadBusy&&!busy)el('ps-image-file').click();
+});
+el('ps-image-file').addEventListener('change',()=>void uploadImage());
+el('ps-image-clear').addEventListener('click',()=>{
+  if(mode!=='form'||uploadBusy||busy)return;
+  const previous=draftImageAssetId;draftImageAssetId='';changed();
+  el('ps-image-help').textContent='本地图片已从草稿移除；请选择新图片或切换外观。';
+  if(previous&&!data.items.some(row=>row.imageAssetId===previous))
+    void request('prompt.asset.remove',{id:previous}).catch(()=>{});
+});
 el('ps-cancel').addEventListener('click',()=>back());
 el('ps-stay').addEventListener('click',()=>{el('ps-leave').hidden=true;pendingLeave=null;el('ps-body').focus();});
 el('ps-discard').addEventListener('click',()=>{if(busy)return;const action=pendingLeave;pendingLeave=null;if(action)action();});
 el('ps-toggle-settings').addEventListener('click',()=>options(el('ps-setting-fields').hidden));
 el('ps-web').addEventListener('change',()=>void changeWeb());
-el('ps-image-size').addEventListener('change',()=>void changeImageSize());
+el('ps-image-size-setting').querySelectorAll('[data-image-size]').forEach(button=>
+   button.addEventListener('click',()=>{
+     el('ps-image-size').value=button.dataset.imageSize;
+     void changeImageSize();
+   }));
 el('ps-sites-panel').hidden=true;el('ps-site-form').hidden=true;
 el('ps-sites-open').addEventListener('click',()=>void toggleSites());
 el('ps-site-current').addEventListener('click',()=>void openCurrentSite());
@@ -943,7 +1063,9 @@ el('ps-site-cancel').addEventListener('click',()=>void cancelSiteForm());
   lock();
   try{
     const saved=await readLibrary();
-    data=saved.value;etag=saved.etag;ready=true;index();status('');
+    data=saved.value;etag=saved.etag;
+    await hydrateImageAssets(data.items);
+    ready=true;index();status('');
     await launch();
   }catch(e){ready=false;lock();status('数据读取失败，已阻止写入以保护本机数据：'+e.message,true);}
 })();

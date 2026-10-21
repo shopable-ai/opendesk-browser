@@ -12,6 +12,7 @@ on:
       - 'examples/sidebar-tools/bookmark-manager/src/service.js'
       - 'src/ui/react/main.tsx'
       - 'src/ui/react/components/conversation.tsx'
+      - 'src/ui/react/components/conversation-dock.css'
       - 'src/ui/conversation/bookmark-actions.js'
       - 'src/ui/workflow/provider.js'
       - 'src/ui/workflow/workflow-view.js'
@@ -175,6 +176,11 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: npm run preview:chrome
+      - name: Shared Chat Dock real Chromium interaction, two-turn readback and responsive regression
+        working-directory: examples/sidebar-tools/bookmark-manager/preview/react
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: npm run preview:chrome -- --conversation-r13
       - name: Preserve exact candidate and Chromium evidence (never auto-promote)
         if: always()
         uses: actions/upload-artifact@v4

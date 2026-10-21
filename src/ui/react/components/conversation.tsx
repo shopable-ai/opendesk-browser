@@ -73,14 +73,15 @@ export function TrustedConversationWorkspace({
  React.useLayoutEffect(()=>{
   const node=shellRef.current;
   if(!node)return;
-  const measure=()=>setTotalHeight(node.getBoundingClientRect().height||600);
+  // CSS zoom changes visual pixels but Dock height is assigned in layout CSS pixels.
+  const measure=()=>setTotalHeight(node.clientHeight||node.getBoundingClientRect().height||600);
   measure();
   if(typeof ResizeObserver==='undefined')return;
   const observer=new ResizeObserver(measure);observer.observe(node);
   return()=>observer.disconnect();
  },[]);
  const limits=React.useMemo(()=>{
-  const min=Math.min(156,Math.max(112,Math.floor(totalHeight*.49)));
+  const min=Math.min(190,Math.max(112,Math.floor(totalHeight*.5)));
   return {min,max:Math.max(min,totalHeight-96)};
  },[totalHeight]);
  const dockHeight=height===null?clamp(Math.round(totalHeight*.38),limits.min,limits.max):
@@ -221,7 +222,7 @@ export function TrustedConversationWorkspace({
       e.preventDefault();send(e);
      }}}/>
     <div className="od-conversation-controls">
-     <small>{source} · {offline?'离线模拟读回':'真实业务读回'} · {resultLabel}</small>
+     <small>{offline?'离线模拟 · ':''}{resultLabel || (offline?'模拟结果需读回':'真实业务读回')}</small>
      {busy?<button className="od-conversation-action" type="button" aria-label="停止对话"
        onClick={stop}>■</button>:
       <button className="od-conversation-action od-conversation-action--primary" type="submit"

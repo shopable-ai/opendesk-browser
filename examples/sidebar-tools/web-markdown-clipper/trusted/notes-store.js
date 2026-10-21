@@ -88,7 +88,7 @@ export async function executeClipNotes({
     typeof api?.storage?.local?.get!=='function'||typeof api?.storage?.local?.set!=='function')
   throw error('E_TOOL_CONTEXT','只有已安装网页剪藏可以读取自己的摘录');
  const name=operation.slice('clipNotes.'.length);
- const fields={list:['query','offset'],get:['id'],save:['kind','body','title','source'],
+ const fields={list:['query','offset','kind'],get:['id'],save:['kind','body','title','source'],
   edit:['id','body','ifMatch'],remove:['id','ifMatch'],backup:[]};
  if(!payloadOnly(payload,fields[name]))throw error('E_SCHEMA','摘录请求字段无效');
  await authorize();
@@ -98,11 +98,11 @@ export async function executeClipNotes({
  const library=readClipLibrary(stored.clips);
  await authorize();
  if(name==='list'){
-  const query=payload.query??'',offset=payload.offset??0;
-  if(typeof query!=='string'||query.length>100||!Number.isInteger(offset)||offset<0||offset>CLIP_NOTES_LIMITS.maxNotes)
+  const query=payload.query??'',offset=payload.offset??0,kind=payload.kind??'all';
+  if(typeof query!=='string'||query.length>100||!Number.isInteger(offset)||offset<0||offset>CLIP_NOTES_LIMITS.maxNotes||!['all','clip','note'].includes(kind))
    throw error('E_SCHEMA','搜索条件无效');
   const words=query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
-  const matches=library.items.filter(row=>words.every(word=>
+  const matches=library.items.filter(row=>(kind==='all'||row.kind===kind)&&words.every(word=>
    [row.title,row.source,row.body].some(text=>text.toLocaleLowerCase().includes(word))))
    .sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)||b.createdAt.localeCompare(a.createdAt));
   const page=matches.slice(offset,offset+50);

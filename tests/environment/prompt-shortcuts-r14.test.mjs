@@ -179,9 +179,11 @@ test('R1.4 fixed controller only uses scoped selectors, native insertion and no 
 
 test('R1.4 provenance pins only audited trusted tool modules to exact fixed entry points',()=>{
   const fixtures=[
-    ['trusted/model.js','ed4584eb7024663d9251e270480b0dbdc719936f'],
+    ['trusted/model.js','ee444f332d2824b1e330d89a3cc85944d7f96e3d'],
     ['trusted/policy.js','4c6f608a26e0d69278c18a0afda94b3c8ce8274c'],
-    ['trusted/page.js','86b661069dd4d40fb2553e3d54c57c1e34bde415']
+    ['trusted/page.js','cb9874151086f719136d126f467edfae6ae0da86'],
+    ['trusted/asset-contract.js','86e95bff786e52efb9089f97126542430f39a716'],
+    ['trusted/asset-host.js','d2cb73dce44c18c3c59b7e4ccd1f7feded672dfd']
   ];
   const examined=(path,target)=>describeBundle({chunk:{fileName:target,
       modules:{[resolve(ROOT+'/'+path)]:{renderedLength:1,originalLength:1}}},

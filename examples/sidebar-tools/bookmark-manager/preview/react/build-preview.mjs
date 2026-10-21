@@ -73,7 +73,19 @@ async function generate(){
    designStatus:'REACT_APP_SOURCE_BOUND_LEGACY_PREVIEW_SHELL',
    sourceBound:false, // The surrounding legacy offline shell is not the production React Host.
    nativeVerified:false,previewViewportModes:[320,360,400,440,960]};
-  const updated=out.replace(framePattern,()=>"atob('"+encoded(frame)+"')")
+  // Extend only the generated candidate's external preview controls; keep
+  // the previously approved preview/index.html and its legacy shell unchanged.
+  const viewportButton=width=>'<button type="button" class="od-button od-button--secondary" data-bookmark-viewport="'+width+'" aria-pressed="false">'+width+'px</button>';
+  assert.match(out,/data-bookmark-viewport="360"/);
+  assert.match(out,/data-bookmark-viewport="400"/);
+  assert.match(out,/data-bookmark-viewport="960"/);
+  assert.match(out,/\['360','400','960'\]/);
+  const widthReady=out
+   .replace(/(<button[^>]*data-bookmark-viewport="360")/,viewportButton(320)+'$1')
+   .replace(/(<button[^>]*data-bookmark-viewport="960")/,viewportButton(440)+'$1')
+   .replace("['360','400','960']","['320','360','400','440','960']");
+  for(const width of [320,360,400,440,960])assert.match(widthReady,new RegExp('data-bookmark-viewport="'+width+'"'));
+  const updated=widthReady.replace(framePattern,()=>"atob('"+encoded(frame)+"')")
    .replace(manifestPattern,(_,open,ignored,close)=>open+JSON.stringify(manifest)+close);
   assert.match(updated,/"reactRuntime":true/);
   return {html:updated,sha256:sha(updated),bytes:Buffer.byteLength(updated),

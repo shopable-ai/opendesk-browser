@@ -87,9 +87,11 @@ function reviewedCompiledBookmarkReact(target,path,root){
 // independent tool package; only these reviewed immutable blobs may enter
 // the pre-existing fixed Host/relay bundles. This is NOT a wildcard exception.
 const compiledPromptShortcutInputs=Object.freeze({
-  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'ed4584eb7024663d9251e270480b0dbdc719936f',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'ee444f332d2824b1e330d89a3cc85944d7f96e3d',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'4c6f608a26e0d69278c18a0afda94b3c8ce8274c',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'86b661069dd4d40fb2553e3d54c57c1e34bde415',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'cb9874151086f719136d126f467edfae6ae0da86',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js':'86e95bff786e52efb9089f97126542430f39a716',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js':'d2cb73dce44c18c3c59b7e4ccd1f7feded672dfd',
   'examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js':'7c10e8270c43be93229afbf0d3171455de628030',
   // Shared with the standalone diagnostic harness; never an installed package import.
   'examples/programs/chatgpt-jump-top/src/conversation.js':'e9a342a409b60e1b5c162ef275cb1a8bb8b6ce3a',

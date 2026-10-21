@@ -1,4 +1,28 @@
-# Web Markdown Clipper R1.8 · 完整网页保存与「我的摘录」
+# Web Markdown Clipper R1.11 · 正式列表 / 图标 / 长文布局
+
+安装包版本：**1.2.3**。本次是真实功能升级，市场安装流程拒绝同版本覆盖，因此从 1.2.2 升级到 1.2.3；存储 ID、命名空间及正文限制不变。**通过同 ID 更新安装，不得先卸载旧版**。
+
+- **正式 UI**：主页下方直接显示最近 4 条，左侧数字表示完整资料库总数。保存后留在主页，读回确认后刷新列表。`+` 与列表图标为新建和查看全部；悬浮/键盘聚焦显示编辑与删除，触屏在详情内操作。
+- **图标语义**：16 个本地 SVG symbol 统一按钮和卡片图标。返回、刷新、新建、编辑等使用纯图标，保留 `title` 和 `aria-label`；保存、复制、下载和危险确认保留文字。
+- **真实同源**：正式 `src/notes.js` 实现最近列表、全文阅读、编辑、删除确认、搜索/类型筛选、加载更多和返回位置恢复。预览嵌入同一份正式 HTML、加载相同的 CSS/JS，不再依赖预览版 `ux.js` 导航。
+- **响应式正文**：可信 Side Panel Host 提供通用只读尺寸变量 `--opendesk-host-available-height`，隔离 iframe 仍按内容自动缩放；正式 CSS 约束中部可滚动、底部按钮可见。预览缩放补偿只存在于 stage。
+- **存储安全**：复用旧 `clipNotes.*`、逐字段写后读回、ETag、结果未知人工核对、单条 160,000 字节与总库 4 MiB 上限。Host `clipNotes.list` 新增可选 `kind`，在分页前完成筛选；旧数据不迁移或覆盖。
+- **验收边界**：预览使用 sessionStorage 模拟 Host，不能证明真实 Chrome Storage、右键授权、剪贴板、下载和安装升级。Mac/Chromium 实际证据未取得时明确 NOT_TESTED。
+
+## Mac 本地最小验收
+
+```bash
+cd /Users/shopme/Documents/workspace/opendesk-browser
+git switch main && git pull --ff-only
+node --test examples/sidebar-tools/web-markdown-clipper/tests/*.test.mjs
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/web-markdown-clipper --check-project
+python3 -m http.server 8765 --bind 127.0.0.1
+```
+
+预览：`http://127.0.0.1:8765/examples/sidebar-tools/web-markdown-clipper/preview/index.html`。随后使用真实 Chrome **同 ID 升级 1.2.3**，实测保存→主页列表→全文→编辑→删除→重启读回，搜索筛选、320–440px、低高度与缩放。
+
+---
+# 历史：Web Markdown Clipper R1.8 · 完整网页保存与「我的摘录」
 
 正式安装包版本：**1.2.2**（四种模式无损切换、保存后进入摘录列表及页面切换时旧正文失效）。唯一业务源码：`src/index.html`、`src/style.css`、`src/main.js`、`src/notes.js`；可信存储适配器：`trusted/notes-store.js`。仅使用既有 Sidebar Tool、Browser SDK、可信 Host 与 Chrome Storage，不新增云服务或数据库平台。
 

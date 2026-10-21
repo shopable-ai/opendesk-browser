@@ -111,8 +111,9 @@ async function r35Screenshot(name){
 }
 async function r35ChooseSize(value){
   await evalChrome('('+function(size){
-    const select=document.querySelector('#imageSizeSetting');
-    select.value=size;select.dispatchEvent(new Event('change',{bubbles:true}));
+    const button=document.querySelector('#imageSizeGroup button[data-image-size="'+size+'"]');
+    if(!button)throw Error('missing actual image size button: '+size);
+    button.click();
   }.toString()+')('+JSON.stringify(value)+')');
 }
 async function state(){
@@ -412,6 +413,58 @@ async function run(){
   await click('#resetButton');
   assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),4);
   report.iconActionsReorderToggleDelete=true;report.managementSeparate=true;
+  // R3.7: real native PNG file input, pixel decode, preview storage and reload.
+  await click('.prompt-card:nth-child(2) .prompt-actions button');
+  await click('.prompt-more button[aria-label^="编辑："]');
+  await click('label:has(#imageSourceLocal)');
+  const previewHTML=await readFile(resolve('examples/sidebar-tools/prompt-shortcuts/preview/index.html'),'utf8');
+  const pngBase64=previewHTML.split("const PREVIEW_OFFLINE_PNG='")[1]?.split("'")[0]?.split(',')[1];
+  assert(pngBase64,'source-bound PNG fixture');
+  const imageFilePath=join(profile,'r37-file.png');
+  await writeFile(imageFilePath,Buffer.from(pngBase64,'base64'));
+  await call('DOM.enable');
+  const {root:domRoot}=await call('DOM.getDocument',{depth:1});
+  const {nodeId:fileNode}=await call('DOM.querySelector',{nodeId:domRoot.nodeId,selector:'#imageFile'});
+  assert(fileNode,'real original input[type=file] exists');
+  await call('DOM.setFileInputFiles',{nodeId:fileNode,files:[imageFilePath]});
+  await poll('document.querySelector("#imageHelp").textContent.includes("已在预览浏览器中保存")',
+    'original image upload write is confirmed');
+  await poll('document.querySelector("#pictureExample img")?.naturalWidth>0','uploaded PNG decoded');
+  await shot('r37-original-local-upload');
+  await click('#saveButton');
+  await poll('document.querySelector("#formView").hidden&&document.querySelector("#pageRail .page-shortcut:nth-child(2) img")?.naturalWidth>0',
+    'saved local raster appears on real rail');
+  const uploadEvidence=await evalChrome('('+function(){
+    const item=JSON.parse(localStorage.getItem('opendesk.prompt-shortcuts.preview.items-r3'))[1];
+    const store=JSON.parse(localStorage.getItem('opendesk.prompt-shortcuts.preview.assets-r37'));
+    const img=document.querySelector('#pageRail .page-shortcut:nth-child(2) img');
+    const box=img.closest('button').getBoundingClientRect();
+    const canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0);
+    const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data,colors=new Set();
+    for(let i=0;i<pixels.length;i+=64)colors.add(pixels[i]+','+pixels[i+1]+','+pixels[i+2]+','+pixels[i+3]);
+    return {id:item.imageAssetId,stored:!!store[item.imageAssetId],bytesInLibrary:JSON.stringify(item).includes('base64,'),
+      pixels:img.naturalWidth*img.naturalHeight,colors:colors.size,width:box.width,height:box.height};
+  }.toString()+')()');
+  assert.match(uploadEvidence.id,/^psa_[a-f0-9]{32}$/);
+  assert(uploadEvidence.stored&&!uploadEvidence.bytesInLibrary&&uploadEvidence.pixels>0&&uploadEvidence.colors>10);
+  assert(Math.abs(uploadEvidence.width-68)<.6&&Math.abs(uploadEvidence.height-48)<.6);
+  await shot('r37-original-local-image-saved');
+  await call('Page.reload',{ignoreCache:true});
+  await poll('document.querySelector("#pageRail .page-shortcut:nth-child(2) img")?.naturalWidth>0',
+    'same saved local image after reload');
+  const insert=await evalChrome('('+async function(){
+    const field=document.querySelector('#mockDraft');field.value='原草稿';field.setSelectionRange(field.value.length,field.value.length);
+    document.querySelector('#pageRail .page-shortcut:nth-child(2)').click();
+    await new Promise(done=>setTimeout(done,110));
+    return field.value;
+  }.toString()+')()');
+  assert(insert.includes('原草稿')&&insert.includes('重要依据')&&!insert.includes('data:image'));
+  report.r37LocalImage={...uploadEvidence,reload:true,promptInsert:true};
+  await shot('r37-original-local-image-reloaded');
+  await click('#resetButton');
+  await poll('document.querySelector("#pageRail img[data-preview-fixture]")?.naturalWidth>0','reset original fixtures');
+  assert.equal(await evalChrome('localStorage.getItem("opendesk.prompt-shortcuts.preview.assets-r37")'),null);
   // R3.4: genuine Chromium storage-rejection fault, not a synthetic status banner.
   await click('#addButton');
   await evalChrome('(()=>{const f=document.getElementById("promptBody");f.value="R3.4 本地存储失败仍保留草稿";f.dispatchEvent(new Event("input",{bubbles:true}));window.__originalPsSetItem=Storage.prototype.setItem;Storage.prototype.setItem=function(key,val){if(String(key).includes("prompt-shortcuts.preview.items-r3"))throw new DOMException("Storage blocked","QuotaExceededError");return window.__originalPsSetItem.call(this,key,val);};})()');

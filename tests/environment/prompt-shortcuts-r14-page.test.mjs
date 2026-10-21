@@ -17,7 +17,8 @@ function mockElement(tag='div'){
   const handlers=new Map(),node={
     tagName:tag,children:[],attributes:{},dataset:{},style:{},hidden:false,isConnected:true,textContent:'',
     className:'',value:'',title:'',readOnly:false,disabled:false,
-    classList:{items:new Set(),contains(name){return this.items.has(name);},toggle(name,enabled){
+    classList:{items:new Set(),contains(name){return this.items.has(name);},
+      add(name){this.items.add(name);},remove(name){this.items.delete(name);},toggle(name,enabled){
       if(enabled)this.items.add(name);else this.items.delete(name);
     }},
     addEventListener(name,fn){const list=handlers.get(name)||[];list.push(fn);handlers.set(name,list);},

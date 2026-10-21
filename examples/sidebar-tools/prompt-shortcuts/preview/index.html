@@ -384,15 +384,28 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
 .web-tip{left:100px;width:min(335px,calc(100% - 112px))}
 .prompt-icon.has-image{width:48px;height:38px;min-width:48px;min-height:38px;overflow:hidden;padding:0;border-radius:9px}
-.appearance-switch{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--od-bg);padding:3px;border-radius:9px;border:1px solid var(--od-line)}
-.appearance-switch label{position:relative;display:grid;place-items:center;min-height:32px;font-size:12px;font-weight:650;cursor:pointer;border-radius:7px}
+.appearance-switch{display:inline-grid;grid-template-columns:repeat(2,54px);gap:2px;justify-self:end;max-width:100%;background:var(--od-bg);padding:2px;border-radius:9px;border:1px solid var(--od-line)}
+.appearance-switch label{position:relative;display:grid;place-items:center;min-height:28px;font-size:12px;font-weight:650;cursor:pointer;border-radius:7px}
 .appearance-switch label:has(input:checked){background:var(--od-paper);box-shadow:0 1px 4px #08172c1c;color:var(--od-accent-ink)}
 .appearance-switch input{position:absolute;opacity:0;inset:0;cursor:pointer}
 .appearance-switch label:has(input:focus-visible){outline:3px solid var(--od-focus);outline-offset:1px}
 .image-size-setting{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;margin:0 0 10px;padding:6px 8px}
-.image-size-setting label{display:flex;align-items:center;min-width:0;flex:1}
-.image-size-setting select{width:135px;max-width:52%;min-width:108px;min-height:34px;flex:none}
-@media(max-width:380px){.image-size-setting{gap:6px;padding:5px 7px}.image-size-setting select{width:128px;max-width:50%}}
+.image-size-setting>span{display:flex;align-items:center;min-width:0;flex:1;font-size:12px;font-weight:650}
+.image-size-buttons{display:flex;gap:3px;flex:none}
+.image-size-button{display:grid;place-items:center;width:36px;height:34px;padding:0;flex:none;background:var(--od-paper);color:var(--od-ink);border:1px solid var(--od-line);border-radius:8px;cursor:pointer}
+.image-size-button[aria-pressed="true"]{color:var(--od-accent-ink);background:var(--od-muted);border-color:var(--od-accent-ink)}
+.image-size-button:focus-visible{outline:3px solid var(--od-focus);outline-offset:2px}
+.image-size-button .size-dot{display:block;width:var(--dot);height:var(--dot);border-radius:50%;background:currentColor}
+@media(max-width:380px){.image-size-setting{gap:6px;padding:5px 7px}.image-size-button{width:34px}}
+.ps-image-source{display:inline-grid;grid-template-columns:repeat(2,64px);gap:2px;justify-self:end;max-width:100%;
+ background:var(--od-bg);padding:2px;border:1px solid var(--od-line);border-radius:9px}
+.ps-image-source label{position:relative;display:grid;place-items:center;min-height:28px;font-size:11px;font-weight:650;border-radius:7px;cursor:pointer}
+.ps-image-source label:has(input:checked){background:var(--od-paper);color:var(--od-accent-ink);box-shadow:0 1px 5px var(--od-line)}
+.ps-image-source input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+.ps-image-source label:has(input:focus-visible){outline:3px solid var(--od-focus);outline-offset:1px}
+.ps-image-upload-controls{display:flex;justify-content:flex-end;gap:8px}
+.ps-image-upload-controls .od-button{min-height:30px;padding:4px 10px}
+#imageUrlRow[hidden],#imageUploadControls[hidden]{display:none!important}
 .ps-image-fields{display:grid;gap:5px;border-top:1px solid var(--od-line)}
 .ps-image-fields[hidden]{display:none!important}
 .ps-image-preview-line{display:flex;align-items:center;gap:11px;padding:7px 0}
@@ -515,7 +528,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
       <p id="replaceWarning" class="replace-warning" role="alert" hidden></p>
       <div class="import-actions"><button id="cancelImport" type="button" class="od-button">取消</button><button id="importReplace" type="button" class="od-button od-button--danger">替换现有</button><button id="importAppend" type="button" class="od-button od-button--primary">追加导入</button></div>
      </div>
-     <div id="imageSizeGroup" class="host-setting-row od-surface image-size-setting" role="group" aria-label="图片快捷按钮尺寸设置"><label for="imageSizeSetting"><strong>图片按钮大小</strong></label><select id="imageSizeSetting" class="od-field" aria-label="图片按钮大小"><option value="compact">紧凑 · 48×40</option><option value="standard">标准 · 56×44</option><option value="large" selected>大图 · 68×48</option></select></div>
+     <div id="imageSizeGroup" class="host-setting-row od-surface image-size-setting" role="group" aria-label="图片快捷按钮尺寸设置"><span id="imageSizeLabel">图片按钮大小</span><input id="imageSizeSetting" type="hidden" value="large"><div class="image-size-buttons" role="group" aria-labelledby="imageSizeLabel"><button class="image-size-button" type="button" data-image-size="compact" aria-pressed="false" aria-label="紧凑图片尺寸，48×40 像素" title="紧凑 · 48×40"><span class="size-dot" style="--dot:6px"></span></button><button class="image-size-button" type="button" data-image-size="standard" aria-pressed="false" aria-label="标准图片尺寸，56×44 像素" title="标准 · 56×44"><span class="size-dot" style="--dot:10px"></span></button><button class="image-size-button" type="button" data-image-size="large" aria-pressed="true" aria-label="大图图片尺寸，68×48 像素" title="大图 · 68×48"><span class="size-dot" style="--dot:14px"></span></button></div></div>
      <div id="promptList" class="shortcuts-list"></div>
    </section>
    <section id="formView" hidden aria-labelledby="hostToolTitle">
@@ -535,9 +548,20 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
           <label><input id="appearanceImage" type="radio" name="appearance" value="image"><span>图片</span></label>
         </div></div>
         <div id="imageFields" class="ps-image-fields" hidden>
-          <div class="optional-row"><label class="compact-label" for="imageUrl">图片 URL</label><input id="imageUrl" class="od-field" type="url" maxlength="512" spellcheck="false" autocomplete="off" placeholder="https://example.com/image.png"></div>
-          <div class="ps-image-preview-line"><span id="pictureExample" class="preview-picture" aria-hidden="true"></span><span id="imageHelp" role="status" aria-live="polite">使用 HTTPS 图片；打不开时显示备用短标签。仅本地演示服务可试用 HTTP localhost。</span></div>
-        </div>
+           <div class="optional-row"><span class="compact-label" id="imageSourceLabel">图片来源</span>
+             <div class="ps-image-source" role="radiogroup" aria-labelledby="imageSourceLabel">
+               <label><input id="imageSourceLocal" type="radio" name="imageSource" value="local" checked><span>本地上传</span></label>
+               <label><input id="imageSourceUrl" type="radio" name="imageSource" value="url"><span>图片网址</span></label>
+             </div>
+           </div>
+           <div id="imageUploadControls" class="ps-image-upload-controls">
+             <input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp" hidden aria-label="选择本地图片">
+             <button id="imagePick" type="button" class="od-button">上传图片</button>
+             <button id="imageClear" type="button" class="od-button od-button--subtle" hidden>移除</button>
+           </div>
+           <div id="imageUrlRow" class="optional-row" hidden><label class="compact-label" for="imageUrl">图片 URL</label><input id="imageUrl" class="od-field" type="url" maxlength="512" spellcheck="false" autocomplete="off" placeholder="https://example.com/image.png"></div>
+           <div class="ps-image-preview-line"><span id="pictureExample" class="preview-picture" aria-hidden="true"></span><span id="imageHelp" role="status" aria-live="polite">PNG、JPEG、WebP，最大 2 MiB，压缩后模拟保存到浏览器本地；非正式 Host。</span></div>
+         </div>
         <div class="optional-row"><label id="imageTextHint" class="compact-label" for="shortLabel">按钮短标签</label><input id="shortLabel" class="od-field" name="shortLabel" maxlength="24" placeholder="留空自动取前 2 字" autocomplete="off" aria-describedby="shortLabelHelp"></div>
         <div class="optional-row"><label class="compact-label" for="fullName">显示名称</label><input id="fullName" class="od-field" name="fullName" maxlength="60" placeholder="留空自动生成" autocomplete="off"></div>
         <div class="optional-row optional-row--switch"><label class="compact-label" for="itemEnabled">网页显示</label><label class="switch" title="是否在网页显示此按钮"><input id="itemEnabled" type="checkbox" role="switch" aria-label="在网页显示此按钮" checked><span class="switch-track" aria-hidden="true"></span></label></div>
@@ -599,6 +623,30 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  const COPY=()=>INITIAL.map(item=>({...item}));
  const DEMO_ITEM_KEY='opendesk.prompt-shortcuts.preview.items-r3';
  const DEMO_SETTINGS_KEY='opendesk.prompt-shortcuts.preview.settings-r31';
+ // Original preview's browser-only simulator, not the real Host.
+ // Keep image bytes separate from the 8-KiB prompt library.
+ const DEMO_ASSET_KEY='opendesk.prompt-shortcuts.preview.assets-r37';
+ const ASSET_ID=/^psa_[a-f0-9]{32}$/;
+ function restoreDemoAssets(){
+  try{
+   const value=JSON.parse(localStorage.getItem(DEMO_ASSET_KEY)||'{}');
+   if(!value||typeof value!=='object'||Array.isArray(value))return {};
+   return Object.fromEntries(Object.entries(value).filter(([id,url])=>
+    ASSET_ID.test(id)&&typeof url==='string'&&url.length<90000&&
+    /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(url)));
+  }catch{return {};}
+ }
+ let imageAssets=restoreDemoAssets(),draftImageAssetId='',imageUploadBusy=false;
+ function persistDemoAssets(next){
+  try{localStorage.setItem(DEMO_ASSET_KEY,JSON.stringify(next));imageAssets=next;return true;}
+  catch{return false;}
+ }
+ function cleanupDemoAssets(){
+  const used=new Set(state.items.map(item=>item.imageAssetId).filter(Boolean));
+  if(draftImageAssetId)used.add(draftImageAssetId);
+  const next=Object.fromEntries(Object.entries(imageAssets).filter(([id])=>used.has(id)));
+  return Object.keys(next).length===Object.keys(imageAssets).length||persistDemoAssets(next);
+ }
  const IMAGE_SIZES=['compact','standard','large'];
  function restoreDemoSettings(){
   const fallback={showBar:true,contextMenu:false,imageSize:'large'};
@@ -620,8 +668,9 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
        (row.appearance===undefined||row.appearance==='text');
      const appearance=oldSample?'image':row.appearance??'text';
      const imageUrl=validPictureURL(oldSample?PREVIEW_DEFAULT_IMAGE_URL:row.imageUrl??'');
-     if(appearance==='image'&&!imageUrl)throw Error('missing image');
-     return {...row,appearance,imageUrl};
+     const imageAssetId=ASSET_ID.test(row.imageAssetId||'')?row.imageAssetId:'';
+     if(appearance==='image'&&!imageUrl&&!imageAssetId)throw Error('missing image');
+     return {...row,appearance,imageUrl,...(imageAssetId?{imageAssetId}:{})};
    });
   }catch{return COPY();}
  }
@@ -673,13 +722,19 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   const fallback=()=>{holder.dataset.imageUrl='';holder.classList.remove('has-image');holder.replaceChildren(stack(item.label||defaultShort(item.body)||'…'));};
   if(item.appearance!=='image'){holder.dataset.failedImageUrl='';fallback();return;}
   let url;
-  try{url=validPictureURL(item.imageUrl);if(!url)throw Error('请输入 HTTPS 图片 URL');}
+  try{
+   if(item.imageAssetId){
+    if(!ASSET_ID.test(item.imageAssetId))throw Error('本地图片资源 ID 无效');
+    url=imageAssets[item.imageAssetId];
+    if(!url)throw Error('本地图片已丢失');
+   }else{url=validPictureURL(item.imageUrl);if(!url)throw Error('请输入 HTTPS 图片 URL');}
+  }
   catch(e){holder.dataset.failedImageUrl='';fallback();if(notify)el('imageHelp').textContent=e.message;return;}
   // Do not refetch a failed URL on each label edit; continue rendering fallback text.
   if(holder.dataset.failedImageUrl===url){fallback();return;}
   if(holder.dataset.imageUrl===url)return;
   holder.dataset.failedImageUrl='';holder.dataset.imageUrl=url;holder.classList.add('has-image');
-  const offlineSample=item.id==='b'&&url===PREVIEW_DEFAULT_IMAGE_URL;
+  const offlineSample=!item.imageAssetId&&item.id==='b'&&url===PREVIEW_DEFAULT_IMAGE_URL;
   const img=create('img','ps-picture');img.alt='';img.decoding='async';
   img.loading=holder.classList.contains('page-shortcut')||notify?'eager':'lazy';
   img.referrerPolicy='no-referrer';
@@ -688,7 +743,9 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    holder.dataset.failedImageUrl=url;fallback();if(notify)el('imageHelp').textContent='图片加载失败，已经回退备用短标签。请检查链接、格式和网页 CSP。';});
   img.addEventListener('load',()=>{if(holder.dataset.imageUrl===url&&img.naturalWidth===0)img.dispatchEvent(new Event('error'));});
   holder.replaceChildren(img);img.src=offlineSample?PREVIEW_OFFLINE_PNG:url;
-  if(notify)el('imageHelp').textContent=offlineSample?
+  if(notify)el('imageHelp').textContent=item.imageAssetId?
+   '图片已保存至预览浏览器本地数据；正式扩展另经 Trusted Host 持久化。':
+   offlineSample?
    '原版预览默认示例显示离线 PNG；正式产品仍使用 HTTPS 链接，不保证该外部地址可访问。':
    (({compact:'48×40',standard:'56×44',large:'68×48'}[state.settings.imageSize]||'68×48')+
    ' 圆角矩形网页按钮 · 图片完整显示，不裁切；加载失败回退短标签。');
@@ -715,7 +772,8 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  function uninstallMock(){
   closeUninstall();closeTransfer();discardImport();
   state={version:1,revision:state.revision+1,settings:{showBar:false,contextMenu:false,imageSize:'large'},items:[],toolEnabled:false};
-  persistDemoItems();persistDemoSettings();installed=false;editId=null;dirty=false;expandedId=null;deleteId=null;copyId=null;
+  persistDemoItems();persistDemoSettings();persistDemoAssets({});
+  draftImageAssetId='';installed=false;editId=null;dirty=false;expandedId=null;deleteId=null;copyId=null;
   el('mockContextMenu').hidden=true;
   previewRules=[];siteEnabled={};siteDrafts={};storageCorrupt=false;
   try{localStorage.removeItem(SITE_STORAGE);}catch{}
@@ -745,6 +803,9 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   el('toolEnabledSwitch').checked=state.toolEnabled;
   el('contextSwitch').checked=state.settings.contextMenu;
   el('imageSizeSetting').value=IMAGE_SIZES.includes(state.settings.imageSize)?state.settings.imageSize:'large';
+   el('imageSizeGroup').querySelectorAll('[data-image-size]').forEach(button=>{
+    button.setAttribute('aria-pressed',String(button.dataset.imageSize===el('imageSizeSetting').value));
+   });
   el('imageSizeGroup').hidden=!state.items.some(item=>item.appearance==='image');
   el('showBarSwitch').disabled=!state.toolEnabled;
   el('contextSwitch').disabled=!state.toolEnabled;
@@ -760,6 +821,10 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  function discardImport(){stagedImport=null;replaceArmed=false;el('importPanel').hidden=true;el('replaceWarning').hidden=true;el('importReplace').textContent='替换现有';}
  function exportJson(){
   closeTransfer();
+  if(state.items.some(row=>row.imageAssetId)){
+   notice('现有 v2 JSON 不能完整包含本地图片；为避免静默丢失，已阻止不完整导出（仅预览）。','error');
+   return;
+  }
   const items=state.items.map(x=>({body:x.body,label:x.label,name:x.name||'',labelAuto:x.labelAuto===true,nameAuto:x.nameAuto===true,enabled:x.enabled!==false,shape:x.shape==='round'?'round':'square',appearance:x.appearance??'text',imageUrl:x.imageUrl??''}));
   const json=JSON.stringify({format:BACKUP_FORMAT,version:BACKUP_VERSION,exportedAt:new Date().toISOString(),imageSize:state.settings.imageSize,items},null,2)+'\n';
   const url=URL.createObjectURL(new Blob([json],{type:'application/json;charset=utf-8'})),a=create('a');
@@ -833,7 +898,9 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    }
    state.settings=nextSettings;
   }
-  state.items=result.items;state.revision++;expandedId=null;deleteId=null;discardImport();renderIndex();renderRail();
+  state.items=result.items;state.revision++;expandedId=null;deleteId=null;
+  if(!cleanupDemoAssets())notice('导入成功，但旧图片清理未确认（模拟）','error');
+  discardImport();renderIndex();renderRail();
   notice((mode==='replace'?'已替换':'已追加')+' '+result.added+' 条，跳过 '+result.skipped+' 条重复项目；网页按钮已即时同步（仅模拟）。','success');
   el('transferButton').focus({preventScroll:true});
  }
@@ -924,6 +991,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
      const nextItems=state.items.filter(x=>x.id!==item.id);
      if(!persistDemoItems(nextItems)){notice('模拟存储写入失败，未删除提示词。','error');return;}
      state.items=nextItems;state.revision++;
+     if(!cleanupDemoAssets())notice('提示词已删除，但旧图片清理未确认（模拟）','error');
      deleteId=null;expandedId=null;renderIndex();renderRail();
      const next=Math.min(i,state.items.length-1);
      (next<0?el('addButton'):el('prompt-more-'+next))?.focus({preventScroll:true});
@@ -978,9 +1046,65 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    await copyPrompt(item);
   }finally{using=false;}
  }
- function rawFormValues(){const original=state.items.find(item=>item.id===editId);return {label:el('shortLabel').value.trim(),name:el('fullName').value.trim(),body:el('promptBody').value,enabled:el('itemEnabled').checked,shape:original?.shape||'square',appearance:el('appearanceImage').checked?'image':'text',imageUrl:el('imageUrl').value.trim()};}
+ // R3.7: original preview uses a separate browser-only asset slot.
+ // This interactive simulation never claims a real Trusted Host write.
+ async function chooseLocalImage(){
+  const input=el('imageFile'),file=input.files?.[0];input.value='';
+  if(!file||currentView!=='form'||saving||imageUploadBusy)return;
+  imageUploadBusy=true;el('imagePick').disabled=true;el('saveButton').disabled=true;
+  el('imageHelp').textContent='正在解码、缩放并保存到预览本地存储…';
+  try{
+   if(!['image/png','image/jpeg','image/webp'].includes(file.type))
+    throw Error('只支持 PNG、JPEG、WebP；SVG 不支持');
+   if(file.size<1||file.size>2*1024*1024)throw Error('原图需小于 2 MiB');
+   if(typeof createImageBitmap!=='function')throw Error('当前浏览器缺少 createImageBitmap');
+   const bitmap=await createImageBitmap(file);
+   let asset;
+   try{
+    if(!bitmap.width||!bitmap.height||bitmap.width>8192||bitmap.height>8192||
+      bitmap.width*bitmap.height>16000000)throw Error('图片像素尺寸过大');
+    const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+    if(!ctx)throw Error('图片压缩不可用');
+    for(const longest of [256,224,192,160,128,96]){
+     if(asset)break;
+     const ratio=Math.min(1,longest/Math.max(bitmap.width,bitmap.height));
+     canvas.width=Math.max(1,Math.round(bitmap.width*ratio));
+     canvas.height=Math.max(1,Math.round(bitmap.height*ratio));
+     ctx.clearRect(0,0,canvas.width,canvas.height);
+     ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+     for(const quality of [.82,.72,.6,.48]){
+      const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',quality));
+      if(!blob||blob.size<12||blob.size>65536||!['image/png','image/jpeg','image/webp'].includes(blob.type))continue;
+      const url=await new Promise((resolve,reject)=>{
+       const reader=new FileReader();reader.onload=()=>resolve(reader.result);
+       reader.onerror=()=>reject(Error('读取图片失败'));reader.readAsDataURL(blob);
+      });
+      if(typeof url==='string'&&/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(url)){
+       asset={url,bytes:blob.size};break;
+      }
+     }
+    }
+    if(!asset)throw Error('无法压缩到 64 KiB');
+   }finally{bitmap.close?.();}
+   const crypto=globalThis.crypto;
+   if(typeof crypto?.getRandomValues!=='function')throw Error('安全随机图片资源 ID 不可用');
+   const id='psa_'+Array.from(crypto.getRandomValues(new Uint8Array(16)),v=>v.toString(16).padStart(2,'0')).join('');
+   const before=draftImageAssetId,next={...imageAssets,[id]:asset.url};
+   if(!persistDemoAssets(next))throw Error('浏览器无法持久保存预览图片，请检查容量或权限');
+   draftImageAssetId=id;
+   el('imageSourceLocal').checked=true;el('imageSourceUrl').checked=false;
+   updateMeter();el('imageHelp').textContent='本地图片已在预览浏览器中保存（'+asset.bytes+' B），请保存提示词建立关联。';
+   if(before&&!state.items.some(row=>row.imageAssetId===before)){
+     const copy={...imageAssets};delete copy[before];persistDemoAssets(copy);
+   }
+  }catch(error){
+   showFormError('E_PREVIEW_IMAGE：'+error.message+'。之前的图片和草稿保留。');
+   el('imageHelp').textContent='上传失败；请重新选择图片或切换图片网址。';
+  }finally{imageUploadBusy=false;el('imagePick').disabled=false;el('saveButton').disabled=false;}
+ }
+ function rawFormValues(){const original=state.items.find(item=>item.id===editId);return {label:el('shortLabel').value.trim(),name:el('fullName').value.trim(),body:el('promptBody').value,enabled:el('itemEnabled').checked,shape:original?.shape||'square',appearance:el('appearanceImage').checked?'image':'text',imageUrl:el('imageSourceLocal').checked?'':el('imageUrl').value.trim(),imageAssetId:el('imageSourceLocal').checked?draftImageAssetId:''};}
  function formValues(){const raw=rawFormValues(),fallback=defaultShort(raw.body);return {...raw,label:raw.label||fallback,name:raw.name||fallback,labelAuto:!raw.label,nameAuto:!raw.name};}
- function projection(){const value=formValues(),next=state.items.map(x=>({...x}));const idx=next.findIndex(x=>x.id===editId);if(idx>=0)next[idx]={...next[idx],...value};else next.push({id:'mock-00000000-0000-4000-8000-000000000000',...value});return {schema:1,settings:{webButtons:state.settings.showBar,imageSize:state.settings.imageSize},items:next.map((row,order)=>({id:row.id,body:row.body,label:row.label,name:row.name,labelAuto:row.labelAuto===true,nameAuto:row.nameAuto===true,shape:row.shape,enabled:row.enabled,order,appearance:row.appearance??'text',imageUrl:row.imageUrl??''}))};}
+ function projection(){const value=formValues(),next=state.items.map(x=>({...x}));const idx=next.findIndex(x=>x.id===editId);if(idx>=0)next[idx]={...next[idx],...value};else next.push({id:'mock-00000000-0000-4000-8000-000000000000',...value});return {schema:1,settings:{webButtons:state.settings.showBar,imageSize:state.settings.imageSize},items:next.map((row,order)=>({id:row.id,body:row.body,label:row.label,name:row.name,labelAuto:row.labelAuto===true,nameAuto:row.nameAuto===true,shape:row.shape,enabled:row.enabled,order,appearance:row.appearance??'text',imageUrl:row.imageUrl??'',...(row.imageAssetId?{imageAssetId:row.imageAssetId}:{})}))};}
 
  function updateMeter(){
   const current=bytes(projection()),remaining=8192-current;
@@ -992,7 +1116,11 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   el('quotaHint').hidden=remaining>=0;
   el('quotaHint').textContent=remaining<0?'请精简内容或删除其他提示词；当前草稿保留。':'';
   dirty=JSON.stringify(rawFormValues())!==baselineForm;
-  const image=el('appearanceImage').checked;el('imageFields').hidden=!image;
+  const image=el('appearanceImage').checked,local=el('imageSourceLocal').checked;
+  el('imageFields').hidden=!image;
+  el('imageUploadControls').hidden=!local;
+  el('imageUrlRow').hidden=local;
+  el('imageClear').hidden=!draftImageAssetId;
   el('imageTextHint').textContent=image?'备用短标签':'按钮短标签';
   if(image)paintPicture(el('pictureExample'),{...formValues(),id:editId},true);
   el('leaveConfirm').hidden=true;el('bodyError').hidden=true;
@@ -1010,7 +1138,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   else{target.focus({preventScroll:true});target.scrollIntoView({block:'nearest'});}
  }
  function openForm(id=null,preset=null){
-  if(saving){showFormError('当前保存尚未结束，请确认结果后再操作。');return;}
+  if(saving||imageUploadBusy){showFormError('图片上传或保存仍在进行；请核对结果后再操作。');return;}
   if(currentView==='form'&&dirty){showFormError('当前表单有未保存草稿，请先保存或取消。');return;}
   expandedId=null;deleteId=null;editId=id;const value=state.items.find(item=>item.id===id);
   if(id&&!value){notice('待编辑项不存在，请核对列表。','error');return;}
@@ -1018,6 +1146,9 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   el('shortLabel').value=value?.labelAuto?'':(value?.label??preset?.label??'');
   el('fullName').value=value?.nameAuto?'':(value?.name??preset?.name??'');
   el('appearanceImage').checked=value?.appearance==='image';el('appearanceText').checked=value?.appearance!=='image';
+  draftImageAssetId=value?.imageAssetId||'';
+  el('imageSourceLocal').checked=Boolean(draftImageAssetId)||!value?.imageUrl;
+  el('imageSourceUrl').checked=!el('imageSourceLocal').checked;
   el('imageUrl').value=value?.imageUrl??'';el('pictureExample').dataset.imageUrl='';
   el('itemEnabled').checked=value?.enabled??true;
   // Every new/edit entry begins expanded. Native <details> remains user-collapsible.
@@ -1031,24 +1162,30 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  }
  function exitTool(){editId=null;dirty=false;notice('');setView('toolList');el('reopenTool').focus({preventScroll:true});}
  function requestBack(destination='index'){
-  if(saving){showFormError('保存中…请先确认当前操作的结果，草稿不会丢失。');return;}
+  if(saving||imageUploadBusy){showFormError('图片上传或保存中…请先确认当前操作的结果，草稿不会丢失。');return;}
   if(currentView!=='form'){if(destination==='host')exitTool();else returnIndex();return;}
   if(!dirty){if(destination==='host')exitTool();else returnIndex();return;}
   pendingDestination=destination;el('leaveConfirm').hidden=false;
   el('stayEditing').focus({preventScroll:true});el('leaveConfirm').scrollIntoView({block:'nearest'});
  }
- function returnIndex(){editId=null;dirty=false;setView('index');renderIndex();renderRail();el('addButton').focus({preventScroll:true});}
+ function returnIndex(){
+  if(draftImageAssetId&&!state.items.some(row=>row.imageAssetId===draftImageAssetId)){
+   const copy={...imageAssets};delete copy[draftImageAssetId];persistDemoAssets(copy);
+  }
+  draftImageAssetId='';cleanupDemoAssets();editId=null;dirty=false;setView('index');renderIndex();renderRail();
+  el('addButton').focus({preventScroll:true});
+ }
  async function saveForm(event,continueCreating=false){
-  event.preventDefault();if(saving)return;
+  event.preventDefault();if(saving||imageUploadBusy)return;
   el('bodyError').hidden=true;el('formError').hidden=true;el('formSaveStatus').hidden=true;
   const value=formValues(),snapshot=JSON.stringify(rawFormValues()),quota=bytes(projection());
   if(!value.body.trim()){showFormError('请输入提示词内容。','body');return;}
   if(!value.label||!validLabel(value.label)){showFormError('短标签须为 1–2 个可见 Unicode 字素，或留空自动生成。','label');return;}
   if(!value.name||value.name.length>60){showFormError('名称不能超过 60 字符；留空将自动生成。','name');return;}
   if(value.body.includes('\u0000')){showFormError('正文含不支持的 NUL 字符，请移除后保存。','body');return;}
-  try{if(value.appearance==='image'){value.imageUrl=validPictureURL(value.imageUrl);
-     if(!value.imageUrl)throw Error('图片模式需要 HTTPS 图片 URL');}
-   else{try{value.imageUrl=validPictureURL(value.imageUrl);}catch{value.imageUrl='';}}}
+  try{if(value.appearance==='image'&&!value.imageAssetId){value.imageUrl=validPictureURL(value.imageUrl);
+     if(!value.imageUrl)throw Error('图片模式需要本地图片或 HTTPS 图片 URL');}
+   else if(!value.imageAssetId){try{value.imageUrl=validPictureURL(value.imageUrl);}catch{value.imageUrl='';}}}
   catch(e){showFormError(e.message);el('advancedOptions').open=true;el('imageUrl').focus({preventScroll:true});return;}
   if(quota>8192){showFormError('提示词库已达到 8 KiB 上限，超出 '+(quota-8192)+' B；请缩短正文或删除其他条目，草稿保留。','body');return;}
   if(revisionAtEdit!==state.revision){showFormError('E_STORAGE_CONFLICT：提示词库已有新版本，请核对列表后处理草稿；不会自动覆盖。');return;}
@@ -1071,7 +1208,8 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    }
    if(continueCreating&&!editId){
     const count=state.items.length;
-    editId=null;el('promptBody').value='';el('shortLabel').value='';el('fullName').value='';el('appearanceImage').checked=false;el('appearanceText').checked=true;el('imageUrl').value='';el('itemEnabled').checked=true;
+    editId=null;el('promptBody').value='';el('shortLabel').value='';el('fullName').value='';el('appearanceImage').checked=false;el('appearanceText').checked=true;el('imageUrl').value='';
+     draftImageAssetId='';el('imageSourceLocal').checked=true;el('imageSourceUrl').checked=false;el('itemEnabled').checked=true;
     revisionAtEdit=state.revision;baselineForm=JSON.stringify(rawFormValues());dirty=false;
     el('advancedOptions').open=true;expandedId=null;deleteId=null;
     renderIndex();renderRail();updateMeter();
@@ -1106,6 +1244,18 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  el('closeVerification').addEventListener('click',()=>{el('verificationPanel').hidden=true;el('promptBody').focus({preventScroll:true});});
  el('stayEditing').addEventListener('click',()=>{el('leaveConfirm').hidden=true;el('promptBody').focus();});el('discardEditing').addEventListener('click',()=>{const destination=pendingDestination;pendingDestination='index';if(destination==='host')exitTool();else returnIndex();notice('已主动放弃未保存更改。');});
  el('promptForm').addEventListener('submit',event=>void saveForm(event));el('saveContinue').addEventListener('click',event=>void saveForm(event,true));el('promptForm').addEventListener('input',updateMeter);el('promptForm').addEventListener('change',updateMeter);
+ el('imagePick').addEventListener('click',()=>{
+  if(currentView==='form'&&!saving&&!imageUploadBusy)el('imageFile').click();
+ });
+ el('imageFile').addEventListener('change',()=>void chooseLocalImage());
+ el('imageClear').addEventListener('click',()=>{
+  if(saving||imageUploadBusy)return;
+  const old=draftImageAssetId;draftImageAssetId='';updateMeter();
+  if(old&&!state.items.some(row=>row.imageAssetId===old)){
+   const copy={...imageAssets};delete copy[old];persistDemoAssets(copy);
+  }
+  el('imageHelp').textContent='图片已从草稿移除；可重新上传或切换图片网址。';
+ });
  el('showBarSwitch').addEventListener('change',event=>{
   state.settings.showBar=event.currentTarget.checked;persistDemoSettings();state.revision++;renderIndex();renderRail();
   notice(state.settings.showBar?'网页悬浮按钮已开启（模拟）':'网页悬浮按钮已关闭，提示词仍保留（模拟）');
@@ -1118,12 +1268,13 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   state.settings.contextMenu=event.currentTarget.checked;persistDemoSettings();state.revision++;renderIndex();renderRail();el('mockContextMenu').hidden=true;
   notice(state.settings.contextMenu?'模拟原生右键功能已开启；正式使用仍取决于 Chrome 菜单许可。':'模拟原生右键功能已关闭。');
  });
- el('imageSizeSetting').addEventListener('change',event=>{
-  const next=event.currentTarget.value;if(!IMAGE_SIZES.includes(next)){setSettings();return;}
+ el('imageSizeGroup').querySelectorAll('[data-image-size]').forEach(button=>button.addEventListener('click',()=>{
+  const next=button.dataset.imageSize;if(!IMAGE_SIZES.includes(next)){setSettings();return;}
+  if(next===state.settings.imageSize)return;
   const previous=state.settings.imageSize;state.settings.imageSize=next;
   if(!persistDemoSettings()){state.settings.imageSize=previous;setSettings();notice('浏览器拒绝保存尺寸设置，已恢复原尺寸。','error');return;}
-  state.revision++;renderIndex();renderRail();notice('图片按钮尺寸已设为 '+event.currentTarget.selectedOptions[0].textContent+'（模拟，刷新后保留）。','success');
- });
+  state.revision++;renderIndex();renderRail();notice('图片按钮尺寸已设为 '+button.title+'（模拟，刷新后保留）。','success');
+ }));
  el('hostSettings').addEventListener('click',()=>{if(currentView==='form'&&dirty){showFormError('请先处理未保存草稿。');return;}setView(currentView==='settings'?'index':'settings');setSettings();});
  el('sitesButton').addEventListener('click',()=>{
   const pane=el('siteDetails'),expanded=pane.hidden;pane.hidden=!expanded;
@@ -1150,7 +1301,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   el('themeButton').setAttribute('aria-pressed',String(dark));
  });
  el('resetButton').addEventListener('click',()=>{if(currentView==='form'&&dirty){showFormError('当前编辑尚未保存，请先取消或保存，再重置模拟数据。');return;}
-  try{localStorage.removeItem(DEMO_ITEM_KEY);localStorage.removeItem(DEMO_SETTINGS_KEY);}catch{}state={version:1,revision:state.revision+1,settings:{showBar:true,contextMenu:false,imageSize:'large'},items:COPY(),toolEnabled:true};installed=true;el('reopenTool').hidden=false;el('toolListMessage').textContent='已模拟返回宿主工具列表。选择下方工具可重新进入管理页。';closeUninstall();discardImport();nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockDraft').disabled=false;el('actionScenario').value='normal';document.querySelector('.browser-address').textContent='chatgpt.com · 模拟网页';el('mockContextMenu').hidden=true;el('siteDetails').hidden=true;el('sitesButton').setAttribute('aria-expanded','false');el('sitesButton').classList.remove('is-open');el('sitesButton').setAttribute('aria-label','展开适用网站');el('sitesButton').title='展开适用网站';returnIndex();notice('已重置为初始模拟数据。');});
+  try{localStorage.removeItem(DEMO_ITEM_KEY);localStorage.removeItem(DEMO_SETTINGS_KEY);localStorage.removeItem(DEMO_ASSET_KEY);imageAssets={};draftImageAssetId='';}catch{}state={version:1,revision:state.revision+1,settings:{showBar:true,contextMenu:false,imageSize:'large'},items:COPY(),toolEnabled:true};installed=true;el('reopenTool').hidden=false;el('toolListMessage').textContent='已模拟返回宿主工具列表。选择下方工具可重新进入管理页。';closeUninstall();discardImport();nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockDraft').disabled=false;el('actionScenario').value='normal';document.querySelector('.browser-address').textContent='chatgpt.com · 模拟网页';el('mockContextMenu').hidden=true;el('siteDetails').hidden=true;el('sitesButton').setAttribute('aria-expanded','false');el('sitesButton').classList.remove('is-open');el('sitesButton').setAttribute('aria-label','展开适用网站');el('sitesButton').title='展开适用网站';returnIndex();notice('已重置为初始模拟数据。');});
  for(const [id,mode,label] of [['simulateWriteFail','write','写入失败'],['simulateConflict','conflict','并发冲突'],['simulateUnknown','unknown','结果未知']])el(id).addEventListener('click',()=>{nextSaveFailure=mode;el('failureStatus').textContent='下次保存将模拟：'+label;notice('已设置下次保存模拟：'+label+'，当前草稿会保留。');});
  document.addEventListener('keydown',event=>{
   if(event.key!=='Escape')return;
@@ -1163,7 +1314,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    if(index>=0)el('prompt-more-'+index)?.focus({preventScroll:true});event.preventDefault();
   }
  });
- window.addEventListener('beforeunload',event=>{if(currentView==='form'&&(dirty||saving)){event.preventDefault();event.returnValue='';}});
+ window.addEventListener('beforeunload',event=>{if(currentView==='form'&&(dirty||saving||imageUploadBusy)){event.preventDefault();event.returnValue='';}});
 /* R2.4: Offline site-adapter laboratory. This is intentionally not production site code. */
  const SITE_DEMOS=Object.freeze({
   chatgpt:{name:'ChatGPT',origin:'https://chatgpt.com',path:'/c/demo',builtIn:true,mount:['[data-demo-container="chatgpt"]'],editor:['[data-demo-editor="chatgpt"]']},
@@ -1179,7 +1330,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  const SITE_STORAGE='opendesk.prompt-shortcuts.preview.sites.r24';
  const SITE_ROOT=()=>document.querySelector('.web-main');
  let currentSite='chatgpt',sitePath=SITE_DEMOS.chatgpt.path,previewRules=[],siteEnabled={},storageCorrupt=false;
- let verifiedRule='',pickTarget='',hoverPick=null,composing=false,siteBusy=false,lastSiteClick=0,siteDrafts={};
+ let verifiedRule='',pickTarget='',hoverPick=null,composing=false,siteBusy=false,lastSiteClick=0,lastSitePromptId=null,siteDrafts={};
  function readSiteStorage(){try{const raw=localStorage.getItem(SITE_STORAGE);if(!raw)return;const parsed=JSON.parse(raw);
    if(parsed?.schema!==1||!Array.isArray(parsed.rules)||parsed.rules.length>30||!parsed.enabled||typeof parsed.enabled!=='object')throw Error('schema');
    if(!parsed.rules.every(r=>r&&typeof r.origin==='string'&&typeof r.path==='string'&&typeof r.mount==='string'&&typeof r.editor==='string'&&typeof r.enabled==='boolean'&&typeof r.override==='boolean'))throw Error('rule');
@@ -1371,7 +1522,8 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  usePrompt=async function(item){if(!item.enabled||!state.toolEnabled||!state.settings.showBar||siteBusy)return;
    const found=resolveSite();if(!found.editor){notice('安全停止：'+found.error,'error');return;}
    if(composing){notice('正在使用输入法组合文字，已暂停插入','error');return;}
-   if(Date.now()-lastSiteClick<450)return;lastSiteClick=Date.now();siteBusy=true;
+   if(lastSitePromptId===item.id&&Date.now()-lastSiteClick<450)return;
+    lastSitePromptId=item.id;lastSiteClick=Date.now();siteBusy=true;
    const field=found.editor,before=readEditor(field);let expected=before;
    try{if(field instanceof HTMLTextAreaElement||field instanceof HTMLInputElement){
       const start=Number.isInteger(field.selectionStart)?field.selectionStart:before.length;

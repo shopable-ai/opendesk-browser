@@ -4,6 +4,7 @@ import {SIDEBAR_TOOL_STORE} from '../../../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled} from '../../../../src/ui/sidebar-tools/lifecycle.js';
 import {PROMPT_ID,PROMPT_DATA_STORE,PROMPT_PICKER_PROTOCOL,supportedOrigin,allowedPromptSite,installedPromptTool} from './policy.js';
 import {PROMPT_RAIL_OPEN_PROTOCOL} from './rail-open.js';
+import {PROMPT_ASSET_STORE,imageAssetDataUrl} from './asset-contract.js';
 import {installJumpToTop} from '../../../programs/chatgpt-jump-top/src/conversation.js';
 import {deepSeekConversation,findDeepSeekBindings} from './conversation-sites.js';
 const MODEL=globalThis.OpenDeskPromptShortcutsModel;
@@ -63,7 +64,7 @@ button:active{transform:scale(.95)}
  clip:rect(0,0,0,0)!important;white-space:nowrap!important;pointer-events:none!important}
 `;
 const KEYS=[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,
-  PROMPT_DATA_STORE];
+  PROMPT_DATA_STORE,PROMPT_ASSET_STORE];
 export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.document,win=globalThis.window}={}){
   if(!doc||!win||win.top!==win||!/^https?:\/\//i.test(win.location.href)||
     !api?.storage?.local?.get||!api.storage?.onChanged)return null;
@@ -80,7 +81,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   };
   let host=null,shadow=null,rail=null,tip=null,tipOwner=null,hideTipTimer=0;
   let feedback=null,announcer=null,feedbackTimer=0,feedbackToken=0;
-  let items=[],imageSize='large',observer=null,observedRoot=null,resizeObserver=null,layoutTimer=0;
+  let items=[],imageAssets={},imageSize='large',observer=null,observedRoot=null,resizeObserver=null,layoutTimer=0;
   const observedRegions=new Set();
   const themeMedia=win.matchMedia?.('(prefers-color-scheme: dark)');
   let locationTimer=0,retryTimer=0,readFailures=0;
@@ -809,7 +810,10 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       };
       if(row.appearance==='image'){
         try{
-          const url=model.normalizeImageUrl(row.imageUrl,true);
+          const url=row.imageAssetId
+            ?imageAssetDataUrl(imageAssets[row.imageAssetId],row.imageAssetId)
+            :model.normalizeImageUrl(row.imageUrl,true);
+          if(!url)throw Error('本地图片资源不存在或已损坏');
           button.classList.add('image');
           const img=doc.createElement('img');
           img.alt='';img.decoding='async';img.loading='eager';img.referrerPolicy='no-referrer';
@@ -858,6 +862,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       readFailures=0;
       win.clearTimeout(retryTimer);retryTimer=0;
       if(!resizeObserver&&win.ResizeObserver)resizeObserver=new win.ResizeObserver(schedule);
+      imageAssets=values[PROMPT_ASSET_STORE]?.assets||{};
       items=rows.slice(0,4);imageSize=library.settings.imageSize;visible=true;render();
       syncJump();
       if(!observer){

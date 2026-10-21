@@ -28,12 +28,13 @@
       </div>
     </section>
     <div id="ps-image-size-setting" class="ps-image-size-setting od-surface" role="group" aria-label="图片快捷按钮尺寸设置">
-      <label for="ps-image-size">图片按钮大小</label>
-      <select id="ps-image-size" class="od-field" aria-label="图片按钮大小">
-        <option value="compact">紧凑 · 48×40</option>
-        <option value="standard">标准 · 56×44</option>
-        <option value="large" selected>大图 · 68×48</option>
-      </select>
+      <span id="ps-image-size-label">图片按钮大小</span>
+       <input id="ps-image-size" type="hidden" value="large">
+       <div class="ps-image-size-buttons" role="group" aria-labelledby="ps-image-size-label">
+         <button type="button" class="ps-image-size-button" data-image-size="compact" aria-label="紧凑图片尺寸，48×40 像素" aria-pressed="false" title="紧凑 · 48×40"><span class="ps-size-dot" style="--dot:6px" aria-hidden="true"></span></button>
+         <button type="button" class="ps-image-size-button" data-image-size="standard" aria-label="标准图片尺寸，56×44 像素" aria-pressed="false" title="标准 · 56×44"><span class="ps-size-dot" style="--dot:10px" aria-hidden="true"></span></button>
+         <button type="button" class="ps-image-size-button" data-image-size="large" aria-label="大图图片尺寸，68×48 像素" aria-pressed="true" title="大图 · 68×48"><span class="ps-size-dot" style="--dot:14px" aria-hidden="true"></span></button>
+       </div>
     </div>
     <div id="ps-list" class="ps-list"></div>
     <div id="ps-empty" class="ps-empty" hidden><strong>尚未创建提示词</strong><p>点击右上角的新建图标添加第一个快捷按钮。</p></div>
@@ -71,9 +72,20 @@
            </div>
          </div>
          <div id="ps-image-fields" class="ps-image-fields" hidden>
-           <div class="ps-compact-row"><label class="od-field-label" for="ps-image-url">图片 URL</label><input id="ps-image-url" class="od-field" type="url" maxlength="512" autocomplete="off" spellcheck="false" inputmode="url" placeholder="https://example.com/picture.png"></div>
-           <div class="ps-image-live"><div id="ps-image-preview" class="ps-image-preview" role="img" aria-label="图片按钮实时预览"></div><small id="ps-image-help" role="status" aria-live="polite">仅 HTTPS 图片；远程服务器可以看到图片请求，加载失败会回退短标签。</small></div>
-         </div>
+            <div class="ps-compact-row"><span class="od-field-label" id="ps-image-source-label">图片来源</span>
+              <div class="ps-image-source" role="radiogroup" aria-labelledby="ps-image-source-label">
+                <label><input id="ps-image-source-local" name="ps-image-source" type="radio" value="local" checked><span>本地上传</span></label>
+                <label><input id="ps-image-source-url" name="ps-image-source" type="radio" value="url"><span>图片网址</span></label>
+              </div>
+            </div>
+            <div id="ps-image-upload-controls" class="ps-image-upload-controls">
+              <input id="ps-image-file" type="file" accept="image/png,image/jpeg,image/webp" hidden aria-label="从本机选择图片">
+              <button id="ps-image-pick" type="button" class="od-button od-button--secondary">上传图片</button>
+              <button id="ps-image-clear" type="button" class="od-button od-button--subtle" hidden>移除</button>
+            </div>
+            <div id="ps-image-url-row" class="ps-compact-row" hidden><label class="od-field-label" for="ps-image-url">图片 URL</label><input id="ps-image-url" class="od-field" type="url" maxlength="512" autocomplete="off" spellcheck="false" inputmode="url" placeholder="https://example.com/picture.png"></div>
+            <div class="ps-image-live"><div id="ps-image-preview" class="ps-image-preview" role="img" aria-label="图片按钮实时预览"></div><small id="ps-image-help" role="status" aria-live="polite">PNG、JPEG、WebP；最大 2 MiB，保存前缩放压缩。图片仅保存在本机。</small></div>
+          </div>
          <div class="ps-compact-row"><label class="od-field-label" for="ps-name">显示名称</label><input id="ps-name" class="od-field" maxlength="60" placeholder="留空自动生成" autocomplete="off"></div>
         <label class="ps-enabled od-surface"><span>网页显示此按钮</span><span class="ps-switch"><input id="ps-enabled" type="checkbox" role="switch" checked aria-label="显示此按钮"><span class="ps-switch-track" aria-hidden="true"></span></span></label>
         </div>

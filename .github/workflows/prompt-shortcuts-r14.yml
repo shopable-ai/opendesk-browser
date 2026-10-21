@@ -9,6 +9,7 @@ on:
       - 'tests/environment/prompt-shortcuts-r14*.test.mjs'
       - 'tests/environment/prompt-shortcuts-r20.test.mjs'
       - 'tests/environment/prompt-shortcuts-r32-image.test.mjs'
+      - 'tests/environment/prompt-shortcuts-r37-assets.test.mjs'
       - 'tests/environment/prompt-shortcuts-r215-rail-open.test.mjs'
       - 'tests/environment/prompt-shortcuts-panel-deeplink.test.mjs'
       - 'src/ui/sidebar-tools/panel-tool-intent.js'
@@ -49,7 +50,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate independent tool, storage and fixed-adapter provenance
         run: |
-          node --test tests/environment/prompt-shortcuts-r14*.test.mjs tests/environment/prompt-shortcuts-r20.test.mjs tests/environment/prompt-shortcuts-r215-rail-open.test.mjs tests/environment/prompt-shortcuts-panel-deeplink.test.mjs tests/environment/prompt-shortcuts-r32-image.test.mjs
+          node --test tests/environment/prompt-shortcuts-r14*.test.mjs tests/environment/prompt-shortcuts-r20.test.mjs tests/environment/prompt-shortcuts-r215-rail-open.test.mjs tests/environment/prompt-shortcuts-panel-deeplink.test.mjs tests/environment/prompt-shortcuts-r32-image.test.mjs tests/environment/prompt-shortcuts-r37-assets.test.mjs
           node --test tests/environment/sidebar-tools.test.mjs
       - name: Check standalone and trusted JavaScript syntax
         run: |
@@ -58,6 +59,8 @@ jobs:
           node --check examples/sidebar-tools/prompt-shortcuts/trusted/page.js
           node --check examples/sidebar-tools/prompt-shortcuts/trusted/policy.js
           node --check examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js
+          node --check examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js
+          node --check examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js
           node --check src/sw.js
           node --check src/ui/sidebar-tools.js
       - name: Build and validate real portable v2 tool package

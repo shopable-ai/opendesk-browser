@@ -41,6 +41,8 @@ import {FOCUS_ID,FOCUS_CAPABILITY} from '../../examples/sidebar-tools/stay-focus
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
 import {AI_ID,AI_CAPABILITY} from '../../examples/sidebar-tools/ai-vip-share/trusted/policy.js';
 import {PROMPT_ID,PROMPT_CAPABILITY,PROMPT_PICKER_PROTOCOL,PROMPT_PAGE_OPERATIONS,CHATGPT_ORIGIN,supportedOrigin} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
+import {PROMPT_ASSET_OPERATIONS} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js';
+import {executePromptAsset} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js';
 import {createTimeReviewPermissionControls} from '../../examples/sidebar-tools/time-review/trusted/host-controls.js';
 import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../../examples/sidebar-tools/time-review/trusted/trusted-admission.js';
 import {admitsTrustedBookmark,TRUSTED_BOOKMARK_ID,TRUSTED_BOOKMARK_VERSION,TRUSTED_BOOKMARK_COMPONENT_VERSION,
@@ -78,6 +80,11 @@ export function checkSidebarToolRequestBudget(message){
       encoder.encode(serialized).byteLength<=1100000;
     return allowed?{ok:true}:{ok:false,code:'E_LIMIT'};
   }
+  // Only the reviewed Prompt Shortcuts image pipeline may send encoded raster
+  // bytes. Never widen the default 1200-character sandbox budget.
+  if(message?.toolId===PROMPT_ID&&PROMPT_ASSET_OPERATIONS.includes(message?.operation))
+    return serialized.length<=(message.operation==='prompt.asset.put'?91000:1200)
+      ?{ok:true}:{ok:false,code:'E_LIMIT'};
   // Keep other non-Browser tool request budgets unchanged.
   return serialized.length<=(
     ['browser.clipboard.writeText','browser.downloads.text','knowledge.update','knowledge.create'].includes(message.operation)
@@ -221,6 +228,21 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let pendingUninstallId=null,pendingUninstallBaseline=null;
   const listeners=[];
   const listen=(field,type,fn)=>listeners.push(view.bind(field.key,type,fn));
+  // Shared, read-only Side Panel sizing hint; existing iframe content resize stays intact.
+  let lastHostHeight=null;
+  const sendToolAvailableHeight=()=>{
+    if(!frame||!instance||!active||frameRoot.hidden||disposed)return;
+    const workspace=doc.getElementById('workspace-content');
+    const bottom=workspace?.getBoundingClientRect?.().bottom??globalThis.innerHeight;
+    const top=frame.getBoundingClientRect().top;
+    if(!Number.isFinite(bottom)||!Number.isFinite(top))return;
+    const availableHeight=Math.max(220,Math.min(1600,Math.floor(bottom-top-12)));
+    if(availableHeight===lastHostHeight)return;
+    lastHostHeight=availableHeight;
+    frame.contentWindow?.postMessage({
+      protocol:SIDEBAR_TOOL_PROTOCOL,kind:'layout',instance,toolId:active.id,availableHeight
+    },'*');
+  };
   // Only Cookie Editor uses the available Side Panel height. Other tools
   // preserve their content-based resize policy.
   const fitCookieFrame=()=>{
@@ -233,8 +255,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(frame.style.height!==height+'px')frame.style.height=height+'px';
   };
   if(typeof globalThis.addEventListener==='function'){
-    globalThis.addEventListener('resize',fitCookieFrame);
-    listeners.push(()=>globalThis.removeEventListener('resize',fitCookieFrame));
+    const fitToolFrames=()=>{fitCookieFrame();sendToolAvailableHeight();};
+    globalThis.addEventListener('resize',fitToolFrames);
+    listeners.push(()=>globalThis.removeEventListener('resize',fitToolFrames));
   }
   const notice=(message,problem=false)=>{
     if(disposed)return;
@@ -644,7 +667,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     nativePending=false;
     if(nativeUI){const old=nativeUI;nativeUI=null;try{old.dispose();}catch{}}
     if(frame){frame.onload=null;frame.remove();frame=null;}
-    instance=null;requestCount=0;requestWindow=Date.now();
+    instance=null;requestCount=0;requestWindow=Date.now();lastHostHeight=null;
     frameRoot.replaceChildren();
     if(frameRoot.dataset){delete frameRoot.dataset.timeReviewNative;delete frameRoot.dataset.bookmarkTrusted;}
   }
@@ -1152,6 +1175,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       frame.contentWindow.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:token,tool,
         locale:localeController?.getLocale()||'zh-CN'},'*',transferred);
+      sendToolAvailableHeight();
     };
     frameRoot.append(frame);render();fitCookieFrame();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
     notice(readOnly?'正在加载隔离只读预览（不会安装或保存）…':'正在打开「'+tool.title+'」…');
@@ -1785,6 +1809,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       CLIP_NOTES_OPERATIONS.includes(operation)?'storage.local':
       knowledgeOperation(operation)?KNOWLEDGE_CAPABILITY:
       PROMPT_PAGE_OPERATIONS.includes(operation)?PROMPT_CAPABILITY:
+      PROMPT_ASSET_OPERATIONS.includes(operation)?'storage.local':
       TIME_REVIEW_OPERATIONS.includes(operation)?TIME_REVIEW_CAPABILITY:
       focus?.operations?.includes(operation)?focus.capability:
       adblock?.operations?.includes(operation)?adblock.capability:
@@ -1889,6 +1914,20 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         throw Object.assign(new Error('旧工具实例已撤销；请先保留草稿再重新打开'),{code:'E_TOOL_CHANGED'});
       assertSession(source,token);
 
+      if(PROMPT_ASSET_OPERATIONS.includes(operation)){
+        if(tool.id!==PROMPT_ID)throw Object.assign(new Error('仅提示词工具可访问自身图片资源'),{code:'E_TOOL_CONTEXT'});
+        return executePromptAsset({api,operation,payload,
+          authorize:async()=>{
+            assertSession(source,token);
+            await assertSidebarToolEnabled(api,PROMPT_ID);
+            const current=await api.storage.local.get([SIDEBAR_TOOL_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
+            if(!requireCompleteInstalledSidebarTools(current[SIDEBAR_TOOL_STORE])
+              .some(row=>samePackage(row,tool))||
+              (current[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null)!==revocationEpoch)
+              throw Object.assign(new Error('工具在图片保存过程中被更新或卸载'),{code:'E_TOOL_CHANGED'});
+            assertSession(source,token);
+          }});
+      }
       if(CLIP_NOTES_OPERATIONS.includes(operation)){
         if(tool.id!=='web-markdown-clipper')
           throw Object.assign(new Error('只有网页剪藏可以访问摘录数据'),{code:'E_TOOL_CONTEXT'});
@@ -2147,6 +2186,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         const isTimeReview=active?.id===TIME_REVIEW_ID;
         frame.style.height=Math.max(140,Math.min(isTimeReview?4000:1600,message.height))+'px';
         if(isTimeReview)frame.style.maxHeight='none';
+        sendToolAvailableHeight();
       }
       return;
     }

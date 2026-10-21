@@ -22,7 +22,7 @@ function createStore({request}){
    throw error;
   }finally{busy=false;}
  };
- const list=(query='',offset=0)=>command('list',{query,offset});
+ const list=(query='',offset=0,kind='all')=>command('list',kind==='all'?{query,offset}:{query,offset,kind});
  const get=id=>command('get',{id});
  async function save(input){
   if(typeof input?.body!=='string'||!input.body.trim())throw fail('E_EMPTY','请输入要保存的文字');
@@ -65,21 +65,48 @@ function createStore({request}){
    uncertain=true;throw fail('E_OUTCOME_UNKNOWN','删除后仍能读到摘录，请刷新核对');
   });
  }
- async function recover(query='',offset=0){const result=await list(query,offset);uncertain=false;return result;}
+ async function recover(query='',offset=0,kind='all'){const result=await list(query,offset,kind);uncertain=false;return result;}
  const backup=()=>guard(()=>command('backup',{}));
  return {list,get,save,edit,remove,recover,backup,get uncertain(){return uncertain;}};
 }
 function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
  const q=id=>root.querySelector('#'+id),doc=root.ownerDocument||document;
- const el=(tag,cls,text)=>{const node=doc.createElement(tag);if(cls)node.className=cls;if(text!==undefined)node.textContent=text;return node;};
+ const el=(tag,cls,text)=>{const n=doc.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
  const store=createStore({request});
- let data={items:[],total:0,usedBytes:0,etag:null,nextOffset:null};
- let clip=null,reading=null,editing=null,editingSource=null,baseline='',busy=false;
- let generation=0,searchTimer=null;
- const msg=(text,error=false)=>{q('clip-notes-status').textContent=text;q('clip-notes-status').dataset.error=String(error);};
+ const empty=()=>({items:[],total:0,matched:0,usedBytes:0,etag:null,nextOffset:null});
+ let data=empty(),recent=empty();
+ let clip=null,reading=null,readerOrigin='library',editing=null,editingSource=null;
+ let editorReturn='library',baseline='',busy=false,pendingDelete=null;
+ let generation=0,recentGeneration=0,searchTimer=null,recentScroll=0,libraryScroll=0;
+ const msg=(text,error=false)=>{
+  q('clip-notes-status').textContent=text;
+  q('clip-notes-status').dataset.error=String(error);
+  if(!q('clip-home').hidden&&typeof onStatus==='function')onStatus(text,error);
+ };
+ const statusError=(e,prefix='')=>msg(prefix+String(e?.message||e),true);
  const dirty=()=>editing!==null&&q('clip-note-body').value!==baseline;
  const notify=()=>g.OpenDeskTool?.setState?.({dirty:dirty(),busy});
- const statusError=(error,prefix='')=>msg(prefix+String(error?.message||error),true);
+ const scrollParent=()=>doc.scrollingElement||doc.documentElement||root.parentElement||null;
+ const scrollNow=()=>scrollParent()?.scrollTop||0;
+ const restoreScroll=position=>{
+  const run=()=>{const node=scrollParent();if(node)node.scrollTop=position;};
+  if(typeof requestAnimationFrame==='function')requestAnimationFrame(run);else run();
+ };
+ const confirmHidden=()=>{if(pendingDelete?.panel)pendingDelete.panel.remove();pendingDelete=null;};
+ const svgIcon=name=>{
+  const ns='http://www.w3.org/2000/svg';
+  const svg=doc.createElementNS(ns,'svg'),use=doc.createElementNS(ns,'use');
+  svg.classList.add('clip-icon');
+  svg.setAttribute('aria-hidden','true');svg.setAttribute('focusable','false');
+  use.setAttribute('href','#clip-i-'+name);svg.append(use);return svg;
+ };
+ const action=(icon,label,onClick,extra='')=>{
+  const button=el('button','clip-icon-button '+extra);
+  button.type='button';button.title=label;button.setAttribute('aria-label',label);
+  button.append(svgIcon(icon));
+  button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();onClick();});
+  return button;
+ };
  function setClip(next){
   clip=next;
   const large=next&&bytes(next.body)>BODY_LIMIT;
@@ -91,6 +118,7 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
  }
  function viewState(){
   const list=!editing&&!reading;
+  q('clip-notes-head').hidden=!list;
   q('clip-note-list').hidden=!list;
   q('clip-notes-tools').hidden=!list;
   q('clip-notes-meta').hidden=!list;
@@ -98,38 +126,91 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
   q('clip-note-reader').hidden=!reading||Boolean(editing);
   q('clip-note-editor').hidden=!editing;
   q('clip-note-new').hidden=!list;
+  q('clip-notes').dataset.view=editing?'editing':reading?'reading':'list';
   notify();
  }
- function renderList(){
-  const box=q('clip-note-list');box.replaceChildren();
-  q('clip-my-notes').textContent='我的摘录 · '+data.total;
-  q('clip-note-count').textContent=data.total+' 条 · '+(data.usedBytes/1048576).toFixed(2)+' / 4 MiB';
-  if(!data.items.length)box.append(el('p','clip-empty',data.total?'没有找到匹配的摘录':'还没有摘录。提取网页后点击「保存摘录」，以后都能从这里找回。'));
-  for(const x of data.items){
-   const card=el('article','clip-note-card');
-   const open=el('button','clip-note-open',x.title||titleOf(x.excerpt));
-   open.type='button';open.setAttribute('aria-label','阅读 '+(x.title||'摘录'));
-   open.addEventListener('click',()=>void openReader(x.id));
-   const stamp=new Date(x.updatedAt).toLocaleString('zh-CN');
-   const meta=el('div','clip-note-meta',(x.source?new URL(x.source).hostname:'便签')+' · '+stamp);
-   const excerpt=el('p','clip-note-excerpt',x.excerpt);
-   const actions=el('div','clip-note-buttons'),remove=el('button','','删除');
-   remove.type='button';remove.setAttribute('aria-label','删除 '+(x.title||'摘录'));
-   remove.addEventListener('click',()=>void removeItem(x.id,data.etag));
-   actions.append(remove);card.append(open,meta,excerpt,actions);box.append(card);
+ function renderCards(box,items,etag,origin){
+  box.replaceChildren();
+  if(!items.length){
+   box.append(el('p','clip-empty',origin==='recent'?
+    '还没有摘录。保存网页或新建便签后会显示在这里。':
+    data.total?'没有找到匹配的摘录':'还没有摘录。提取网页后点击「保存摘录」，以后都能从这里找回。'));
+   return;
   }
+  for(const x of items){
+   const card=el('article','clip-note-card'),open=el('button','clip-note-open');
+   open.type='button';open.setAttribute('aria-label','阅读 '+(x.title||'摘录'));
+   const title=el('span','clip-note-title',x.title||titleOf(x.excerpt));
+   let host='便签';if(x.source){try{host=new URL(x.source).hostname;}catch{host='网页摘录';}}
+   const stamp=Number.isFinite(Date.parse(x.updatedAt))?new Date(x.updatedAt).toLocaleString('zh-CN'):'';
+   const meta=el('span','clip-note-meta',host+' · '+stamp);
+   const excerpt=el('span','clip-note-excerpt',x.excerpt||'');
+   open.append(title,meta,excerpt);
+   open.addEventListener('click',()=>void openReader(x.id,origin));
+   const actions=el('div','clip-note-buttons');
+   actions.append(
+    action('pencil','编辑 '+(x.title||'摘录'),()=>void editCard(x.id,origin)),
+    action('trash-2','删除 '+(x.title||'摘录'),()=>confirmRemove(x.id,etag,card,origin),'clip-danger')
+   );
+   card.append(open,actions);box.append(card);
+  }
+ }
+ function renderList(){
+  q('clip-note-count').textContent=data.matched===data.total?
+   data.total+' 条 · '+(data.usedBytes/1048576).toFixed(2)+' / 4 MiB':
+   '匹配 '+data.matched+' / '+data.total+' 条';
+  renderCards(q('clip-note-list'),data.items,data.etag,'library');
   viewState();
  }
  async function reload({append=false,recover=false}={}){
-  const seq=++generation,query=q('clip-search').value.trim();
+  const seq=++generation,query=q('clip-search').value.trim(),kind=q('clip-kind-filter').value||'all';
   const offset=append?data.items.length:0;
-  const result=recover?await store.recover(query,offset):await store.list(query,offset);
+  const result=recover?await store.recover(query,offset,kind):await store.list(query,offset,kind);
   if(seq!==generation)return false;
   if(append&&data.etag!==result.etag)return reload({recover:true});
   data={...result,items:append?[...data.items,...result.items]:result.items};
   renderList();return true;
  }
- function closeReading(){reading=null;editing=null;editingSource=null;baseline='';q('clip-note-body').value='';viewState();}
+ async function reloadRecent({recover=false}={}){
+  const seq=++recentGeneration;
+  const result=recover?await store.recover('',0):await store.list('',0);
+  if(seq!==recentGeneration)return false;
+  recent=result;
+  q('clip-recent-count').textContent=String(recent.total);
+  q('clip-my-notes').textContent='我的摘录 · '+recent.total;
+  renderCards(q('clip-recent-list'),recent.items.slice(0,4),recent.etag,'recent');
+  q('clip-recent-retry').hidden=true;
+  return true;
+ }
+ function showHome({allowBusy=false}={}){
+  if((busy&&!allowBusy)||dirty())return statusError(fail('E_DIRTY','请先保存或取消当前编辑'));
+  if(!q('clip-notes').hidden&&data.nextOffset!==undefined&&
+     q('clip-notes').dataset.view==='list')libraryScroll=scrollNow();
+  confirmHidden();reading=null;editing=null;editingSource=null;baseline='';
+  q('clip-note-body').value='';q('clip-note-unsaved').hidden=true;
+  q('clip-home').hidden=false;q('clip-notes').hidden=true;
+  viewState();restoreScroll(recentScroll);
+ }
+ async function showLibrary(){
+  if(busy||dirty()){msg('请先保存或取消当前编辑',true);return;}
+  if(!q('clip-home').hidden)recentScroll=scrollNow();
+  confirmHidden();reading=null;editing=null;editingSource=null;baseline='';
+  q('clip-note-body').value='';q('clip-note-unsaved').hidden=true;
+  q('clip-home').hidden=true;q('clip-notes').hidden=false;
+  viewState();
+  try{
+   const fresh=await reload({recover:true});
+   if(!fresh)throw fail('E_OUTCOME_UNKNOWN','页面已切换，请重新打开我的摘录');
+   msg('摘录保存在当前 Chrome 浏览器中；卸载前请导出备份');
+   restoreScroll(libraryScroll);return true;
+  }catch(error){statusError(error,'读取失败：');return false;}
+ }
+ function showList(){
+  confirmHidden();reading=null;editing=null;editingSource=null;baseline='';
+  q('clip-note-body').value='';q('clip-note-unsaved').hidden=true;
+  q('clip-home').hidden=true;q('clip-notes').hidden=false;
+  viewState();restoreScroll(libraryScroll);
+ }
  function renderReader(){
   if(!reading)return;
   const {item}=reading;
@@ -138,69 +219,129 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
    ' · '+(item.kind==='clip'?'网页摘录':'便签');
   const origin=q('clip-note-read-origin');origin.replaceChildren();
   if(item.source){
-   const a=el('a','',item.source);a.href=item.source;a.target='_blank';a.rel='noopener noreferrer';origin.append(a);
+   const a=el('a','',item.source);
+   a.href=item.source;a.target='_blank';a.rel='noopener noreferrer';origin.append(a);
   }else origin.textContent='手动便签';
   const area=q('clip-note-read-body');area.replaceChildren();
   if(typeof renderMarkdown==='function')renderMarkdown(item.body,area);
   else area.textContent=item.body;
+  q('clip-home').hidden=true;q('clip-notes').hidden=false;
   viewState();
  }
- async function openReader(id){
+ async function openReader(id,origin='library'){
   if(busy||dirty())return msg('请先保存或取消当前编辑',true);
+  confirmHidden();
+  if(origin==='recent')recentScroll=scrollNow();else libraryScroll=scrollNow();
   const seq=++generation;
   try{
    const result=await store.get(id);
    if(seq!==generation)return;
-   reading=result;editing=null;renderReader();msg('已读取完整正文');
-   q('clip-note-reader-back').focus();
+   reading=result;readerOrigin=origin;editing=null;
+   renderReader();msg('已读取完整正文');
+   q('clip-note-reader-back').setAttribute('aria-label',origin==='recent'?'返回最近摘录':'返回摘录列表');
+   q('clip-note-reader-back').title=origin==='recent'?'返回最近摘录':'返回摘录列表';
+   restoreScroll(0);q('clip-note-reader-back').focus();
   }catch(error){statusError(error,'读取失败：');}
  }
- function openEditor(item=null){
+ function backReader(){
+  if(busy)return msg('操作仍在进行中，请勿切换',true);
+  if(readerOrigin==='recent')showHome();else showList();
+ }
+ function openEditor(item=null,source=null,origin='library'){
   if(busy||dirty())return msg('请先保存或取消当前编辑',true);
-  editingSource=reading;
+  confirmHidden();
+  editorReturn=origin;editingSource=source;
   editing=item?{id:item.id,kind:item.kind}:{id:null,kind:'note'};
   baseline=item?.body||'';
   q('clip-note-editor-title').textContent=item?'编辑摘录':'新建便签';
   q('clip-note-body').value=baseline;
   q('clip-note-origin').textContent=item?.source?'来源：'+item.source:'手动便签不关联网页来源';
-  if(!item)reading=null;
-  viewState();q('clip-note-body').focus();
+  q('clip-note-unsaved').hidden=true;
+  reading=origin==='reader'?source:null;
+  q('clip-home').hidden=true;q('clip-notes').hidden=false;
+  viewState();restoreScroll(0);q('clip-note-body').focus();
+ }
+ async function editCard(id,origin){
+  if(busy||dirty())return msg('请先保存或取消当前编辑',true);
+  if(origin==='recent')recentScroll=scrollNow();else libraryScroll=scrollNow();
+  const seq=++generation;
+  try{
+   const source=await store.get(id);
+   if(seq!==generation)return;
+   openEditor(source.item,source,origin);
+  }catch(error){statusError(error,'读取失败：');}
+ }
+ function discardEditor(){
+  const where=editorReturn,source=editingSource;
+  editing=null;editingSource=null;baseline='';
+  q('clip-note-body').value='';q('clip-note-unsaved').hidden=true;
+  if(where==='reader'&&source){reading=source;renderReader();}
+  else if(where==='recent')showHome({allowBusy:true});
+  else showList();
  }
  function cancelEditor(){
-  editing=null;baseline='';q('clip-note-body').value='';
-  reading=editingSource;editingSource=null;
-  if(reading)renderReader();else viewState();
+  if(busy)return msg('保存仍在进行，请勿取消',true);
+  if(dirty()){
+   q('clip-note-unsaved').hidden=false;
+   msg('正文尚未保存，可继续编辑或放弃修改',true);
+   q('clip-note-continue').focus();
+   return;
+  }
+  discardEditor();
  }
- async function showLibrary(){
-  if(dirty())return msg('请先保存或取消当前编辑',true);
-  closeReading();q('clip-home').hidden=true;q('clip-notes').hidden=false;
-  try{
-   const fresh=await reload({recover:true});
-   if(!fresh)throw fail('E_OUTCOME_UNKNOWN','页面已切换，请重新打开我的摘录');
-   msg('摘录保存在当前 Chrome 浏览器中；卸载前请导出备份');
-   return true;
-  }catch(error){statusError(error,'读取失败：');return false;}
- }
- async function saveClip(){
-  if(!clip||busy||bytes(clip.body)>BODY_LIMIT)return;
-  // Capture a fixed payload before the asynchronous Host write begins.
-  const wanted=Object.freeze({body:clip.body,title:clip.title,source:clip.source});
-  busy=true;setClip(clip);notify();onSaveBusy?.(true);
-  try{
-   const result=await store.save({...wanted,kind:'clip'});
-   // Keep the clipper home for recovery if the subsequent library read fails.
-   if(!await showLibrary())throw fail('E_STORAGE_READ','保存已确认，但列表加载失败；请重新打开我的摘录核对');
-   const label=result.duplicate?'已保存过此全文，没有重复创建':'完整文章已保存到「我的摘录」';
-   msg(label);onStatus(label);
-  }catch(error){onStatus(error.message||'保存结果未确认',true);}
-  finally{busy=false;setClip(clip);notify();onSaveBusy?.(false);}
- }
- async function removeItem(id,etag){
-  if(busy||dirty())return msg('请先保存或取消正在编辑的内容',true);
+ async function saveEditor(){
+  if(busy||!editing)return;
+  const body=q('clip-note-body').value;
+  const original=editing,previous=editingSource,where=editorReturn;
   busy=true;notify();
-  try{await store.remove(id,etag);closeReading();await reload({recover:true});msg('已删除摘录');}
-  catch(error){statusError(error,'删除未确认：');}
-  finally{busy=false;notify();}
+  try{
+   const response=original.id?
+    await store.edit(original.id,previous.etag,body):
+    await store.save({kind:'note',body});
+   editing=null;editingSource=null;baseline='';
+   q('clip-note-body').value='';q('clip-note-unsaved').hidden=true;
+   if(where==='reader'&&original.id){
+    reading={item:response.item,etag:response.etag};renderReader();
+   }else if(where==='recent')showHome();
+   else showList();
+   let refreshFailed=false;
+   try{await reloadRecent();await reload({recover:true});}catch{refreshFailed=true;}
+   msg(refreshFailed?'保存已逐字段读回，但列表刷新失败，请手动刷新核对':
+    response.unchanged?'内容没有变化':'已保存完整正文',refreshFailed);
+  }catch(error){
+   const uncertain=store.uncertain;
+   msg((uncertain?'写入结果未知，请先重新核对摘录：':'保存失败：')+String(error?.message||error),true);
+   q('clip-recent-retry').hidden=!uncertain;
+  }finally{busy=false;notify();}
+ }
+ function confirmRemove(id,etag,container,origin){
+  if(busy||dirty())return msg('请先保存或取消当前编辑',true);
+  confirmHidden();
+  const panel=el('div','clip-remove-confirm');
+  panel.setAttribute('role','group');panel.setAttribute('aria-label','确认删除摘录');
+  const prompt=el('span','','删除后不能恢复，确定删除？');
+  const cancel=el('button','','取消'),yes=el('button','confirm-danger','删除');
+  cancel.type='button';yes.type='button';
+  cancel.addEventListener('click',()=>{confirmHidden();});
+  yes.addEventListener('click',()=>{confirmHidden();void removeItem(id,etag,origin);});
+  panel.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();cancel.click();}});
+  panel.append(prompt,cancel,yes);
+  container.append(panel);pendingDelete={panel};cancel.focus();
+ }
+ async function removeItem(id,etag,origin){
+  if(busy||dirty())return msg('请先保存或取消当前编辑',true);
+  busy=true;notify();
+  try{
+   await store.remove(id,etag);
+   reading=null;editing=null;editingSource=null;
+   let refreshFailed=false;
+   try{await reloadRecent();await reload({recover:true});}catch{refreshFailed=true;}
+   if(origin==='recent')showHome({allowBusy:true});else showList();
+   msg(refreshFailed?'已删除，但列表刷新失败，请手动刷新确认':'已删除摘录',refreshFailed);
+  }catch(error){
+   msg((store.uncertain?'删除结果未知，请刷新核对：':'删除未确认：')+String(error?.message||error),true);
+   q('clip-recent-retry').hidden=!store.uncertain;
+  }finally{busy=false;notify();}
  }
  async function copyItem(){
   if(!reading||busy)return;const content=reading.item.body;
@@ -214,38 +355,62 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
    if(result?.started!==true)throw Error('下载未确认');msg('已请求下载完整 Markdown');
   }catch(error){statusError(error,'下载失败：');}
  }
+ async function saveClip(){
+  if(!clip||busy||bytes(clip.body)>BODY_LIMIT)return;
+  const wanted=Object.freeze({body:clip.body,title:clip.title,source:clip.source});
+  busy=true;setClip(clip);notify();onSaveBusy?.(true);
+  try{
+   const result=await store.save({...wanted,kind:'clip'});
+   let refreshed=false;
+   try{refreshed=await reloadRecent();}catch{/* Already saved; must never report storage failure. */}
+   if(!refreshed)q('clip-recent-retry').hidden=false;
+   const label=!refreshed?'已读回确认保存，但最近列表刷新失败，请核对':
+    result.duplicate?'这条全文已存在，没有重复保存':'摘录已保存，最近列表已更新';
+   onStatus?.(label,!refreshed);
+  }catch(error){
+   const uncertain=store.uncertain;
+   q('clip-recent-retry').hidden=!uncertain;
+   onStatus?.((uncertain?'保存结果未知，请先重新核对：':'保存失败：')+
+    String(error?.message||error),true);
+  }finally{busy=false;setClip(clip);notify();onSaveBusy?.(false);}
+ }
  q('clip-my-notes').addEventListener('click',()=>void showLibrary());
- q('clip-notes-back').addEventListener('click',()=>{
-  if(busy||dirty())return msg('请先保存或取消当前编辑',true);
-  closeReading();q('clip-notes').hidden=true;q('clip-home').hidden=false;
+ q('clip-view-all').addEventListener('click',()=>void showLibrary());
+ q('clip-notes-back').addEventListener('click',showHome);
+ q('clip-recent-new').addEventListener('click',()=>{
+  recentScroll=scrollNow();openEditor(null,null,'recent');
  });
- q('clip-note-new').addEventListener('click',()=>openEditor());
+ q('clip-note-new').addEventListener('click',()=>openEditor(null,null,'library'));
+ q('clip-note-editor-back').addEventListener('click',cancelEditor);
  q('clip-note-cancel').addEventListener('click',cancelEditor);
- q('clip-note-body').addEventListener('input',notify);
- q('clip-search').addEventListener('input',()=>{
-  clearTimeout(searchTimer);searchTimer=setTimeout(()=>void reload().catch(e=>statusError(e,'搜索失败：')),180);
+ q('clip-note-continue').addEventListener('click',()=>{q('clip-note-unsaved').hidden=true;q('clip-note-body').focus();});
+ q('clip-note-discard').addEventListener('click',discardEditor);
+ q('clip-note-body').addEventListener('input',()=>{
+  q('clip-note-unsaved').hidden=true;notify();
  });
- q('clip-note-reload').addEventListener('click',()=>void reload({recover:true}).then(()=>msg('已重新读取摘录')).catch(e=>statusError(e,'刷新失败：')));
+ q('clip-search').addEventListener('input',()=>{
+  clearTimeout(searchTimer);searchTimer=setTimeout(()=>{
+   void reload().catch(e=>statusError(e,'搜索失败：'));
+  },180);
+ });
+ q('clip-kind-filter').addEventListener('change',()=>void reload().catch(e=>statusError(e,'筛选失败：')));
+ q('clip-note-reload').addEventListener('click',()=>void Promise.all([reload({recover:true}),reloadRecent()])
+  .then(()=>msg('已重新读取摘录')).catch(e=>statusError(e,'刷新失败：')));
  q('clip-note-more').addEventListener('click',()=>void reload({append:true}).catch(e=>statusError(e,'加载失败：')));
- q('clip-note-reader-back').addEventListener('click',()=>{closeReading();void reload().catch(e=>statusError(e,'刷新失败：'));});
- q('clip-note-read-edit').addEventListener('click',()=>{if(reading)openEditor(reading.item);});
+ q('clip-note-reader-back').addEventListener('click',backReader);
+ q('clip-note-read-edit').addEventListener('click',()=>{
+  if(reading)openEditor(reading.item,reading,'reader');
+ });
  q('clip-note-read-copy').addEventListener('click',()=>void copyItem());
  q('clip-note-read-download').addEventListener('click',()=>void downloadItem());
- q('clip-note-read-remove').addEventListener('click',()=>{if(reading)void removeItem(reading.item.id,reading.etag);});
- q('clip-note-save').addEventListener('click',async()=>{
-  if(busy||!editing)return;
-  const body=q('clip-note-body').value,original=editing,previous=editingSource;
-  busy=true;notify();
-  try{
-   const response=original.id?await store.edit(original.id,previous.etag,body):
-    await store.save({kind:'note',body});
-   cancelEditor();
-   if(original.id){reading={item:response.item,etag:response.etag};renderReader();}
-   await reload({recover:true});msg(response.unchanged?'内容没有变化':'已保存完整正文');
-  }catch(error){statusError(error,'保存失败：');}
-  finally{busy=false;notify();}
+ q('clip-note-read-remove').addEventListener('click',()=>{
+  if(reading)confirmRemove(reading.item.id,reading.etag,q('clip-note-reader'),readerOrigin);
  });
+ q('clip-note-save').addEventListener('click',()=>void saveEditor());
  q('clip-save').addEventListener('click',()=>void saveClip());
+ q('clip-recent-retry').addEventListener('click',()=>void reloadRecent({recover:true})
+  .then(()=>{msg('已重新核对全部摘录，请检查是否存在目标记录');})
+  .catch(e=>statusError(e,'核对失败：')));
  q('clip-note-backup').addEventListener('click',async()=>{
   if(busy||dirty())return msg('请先保存或取消编辑',true);
   busy=true;notify();
@@ -255,9 +420,16 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
   }catch(error){statusError(error,'备份下载未确认：');}
   finally{busy=false;notify();}
  });
- void reload().catch(error=>msg('读取摘录失败：'+String(error.message||error),true));
+ root.addEventListener?.('keydown',event=>{
+  if(event.key==='Escape'&&pendingDelete){event.preventDefault();confirmHidden();}
+ });
+ doc.addEventListener?.('pointerdown',event=>{
+  if(pendingDelete&&!pendingDelete.panel.contains(event.target))confirmHidden();
+ });
+ void reloadRecent().catch(error=>msg('读取最近摘录失败：'+String(error.message||error),true));
  setClip(null);
  return {setClip,saveClip,showLibrary};
 }
+
 g.OpenDeskClipNotes=Object.freeze({create,createStore,bytes,bodyLimitBytes:BODY_LIMIT,limitBytes:LIBRARY_LIMIT});
 })(globalThis);
