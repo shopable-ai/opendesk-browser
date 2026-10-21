@@ -99,10 +99,11 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Source and Developer Edition build
+      - name: Source, Developer Edition build and package verification
         run: |
           npm run check
           npm run build:developer
+          npm run verify:developer
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - name: Real installed MV3 React shell smoke (not script execution evidence)
