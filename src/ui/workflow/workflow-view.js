@@ -324,7 +324,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     clearChat();
     control('workflow-ai-request').value='';
     runId=null;onRunOwner(null);
-    workflow=clean;lastTrustedRun=null;
+    workflow=clean;paramValues={};lastTrustedRun=null;
     directVerifiedSerial=record.verificationMode==='fill-readback'?stable():null;
     revision=record;touched=true;lastRun='none';hasError=false;
     render();persistDraft();
@@ -1272,7 +1272,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     observationApproval=null;persistObservationApproval();
     verifiedTurnHistory=[];lastProviderTurn=null;
     lastTrustedRun=null;runId=null;onRunOwner(null);
-    workflow=emptyWorkflow(currentOrigin()||'',crypto.randomUUID());directVerifiedSerial=null;
+    workflow=emptyWorkflow(currentOrigin()||'',crypto.randomUUID());paramValues={};directVerifiedSerial=null;
     revision=null;touched=true;lastRun='none';hasError=false;phase='idle';
     clearChat();entryMode='new-workflow';
     control('workflow-manage-panel').hidden=true;
@@ -1482,6 +1482,36 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       if(pendingAIReview){dismissRunReview();status('参数已变化，旧步骤确认已失效；请重新检查后运行。');}
       paramValues[name]=value;renderParams();
     }},
+    parameterizeStep(stepId) {
+      if(disposed||busy||host.executionPending||host.currentRun)return;
+      const step=workflow.steps.find(row=>row.stepId===stepId);
+      if(!step||step.op!=='fill'||step.param||typeof step.text!=='string'||!step.text.trim())return;
+      try {
+        const schema=structuredClone(workflow.paramsSchema);
+        const keys=Object.keys(schema.properties);
+        if(keys.length>=16)throw err('E_WORKFLOW_PARAMS','当前已达到最多 16 个参数');
+        const search=/(?:search|query|keyword|搜索|检索|查找)/i.test([step.selector,step.roleName,workflow.title].join(' '));
+        const base=search?'keyword':'value';
+        let name=base,index=2;
+        while(Object.hasOwn(schema.properties,name))name=base+index++;
+        const title=search?'搜索关键词':'填写内容';
+        const secret=/(?:password|passwd|secret|credential|token|cookie|authorization|api.?key|验证码|密码|密钥|令牌|凭证|银行卡|身份证|支付)/i.test(
+          [step.selector,step.roleName,step.text].join(' '));
+        const original=step.text;
+        schema.properties[name]={type:'string',title,maxLength:512,
+          ...(!secret?{default:original}:{})};
+        schema.required.push(name);
+        checkParamsSchema(schema);
+        // A parameter changes the source contract, but values at replay do not.
+        step.param=name;delete step.text;
+        workflow.paramsSchema=schema;
+        paramValues[name]=secret?'':original;
+        control('workflow-schema').value=JSON.stringify(schema,null,2);
+        renderParams();renderSteps(stepId);edited();
+        status('已创建参数「'+title+'」。今后运行只需修改参数，无需编辑 JavaScript。'+
+          (secret?'敏感内容不会作为默认值保存。':''));
+      }catch(error){status(format(error),true);}
+    },
     removeParam(name) {
       if(disposed||!Object.hasOwn(workflow.paramsSchema.properties,name))return;
       const next=structuredClone(workflow.paramsSchema);delete next.properties[name];

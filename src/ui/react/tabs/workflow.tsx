@@ -183,6 +183,8 @@ function WorkflowStep({step,index,count,model,actions}) {
       {step.op==='fill'&&<>
         <StepField step={step} field="param" label="参数名（有值时使用参数）" actions={actions} maxLength={40}/>
         <StepField step={step} field="text" label="固定填写值（参数名留空时生效）" actions={actions}/>
+        {!step.param&&typeof step.text==='string'&&step.text.trim()&&
+          <Button onClick={()=>actions.parameterizeStep?.(step.stepId)}>将填写值设为参数</Button>}
       </>}
       {['assert','confirm'].includes(step.op)&&<StepField step={step} field="text" label={step.op==='assert'?'预期包含文字':'确认事项'} actions={actions}/>}
       {step.op==='wait'&&<StepField step={step} field="timeout" label="最长等待毫秒（100–30000）" type="number" maxLength={5} actions={actions}/>}
@@ -297,7 +299,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
             {model.awaitingReview&&<><h3>准备执行 {model.steps?.length||0} 步</h3>
               <ol className="workflow-ai-review-steps">{model.steps?.map((step,index)=><li key={step.stepId}>
                 {index+1}. {({observe:'观察页面',fill:'填写内容',click:'点击网页元素',wait:'等待元素',extract:'读取文本',assert:'验证内容',navigate:'打开网页'})[step.op]||'执行操作'}
-                {step.param?' · 参数 '+step.param:step.roleName?' · '+step.roleName:step.selector?' · '+step.selector:''}
+                {step.param?' · 参数 '+step.param:step.op==='fill'&&step.text?' · 「'+String(step.text).slice(0,64)+'」':step.roleName?' · '+step.roleName:step.selector?' · '+step.selector:''}
               </li>)}</ol></>}
             {text('workflow-run-review-scope')}
             <div className="workflow-actions">
