@@ -214,3 +214,13 @@ test('R4.1 save-and-continue resets the same complete image draft baseline as fo
   assert.doesNotMatch(js,/baselineForm=JSON\.stringify\(rawFormValues\(\)\)/,
     'legacy active-only reset makes a blank form incorrectly dirty after save-and-continue');
 });
+
+test('R4.1 stored local images restore only after grapheme label validator dependencies initialize',async()=>{
+  const js=script(await load());
+  const segmenter=js.indexOf('const segmenter=');
+  const bootRestore=js.indexOf('items:restoreDemoItems()');
+  assert(segmenter>=0&&bootRestore>segmenter,
+    'Intl.Segmenter must exist before restoreDemoItems calls validLabel/glyphs');
+  assert.match(js,/if\(appearance==='image'&&!imageUrl&&!imageAssetId\)throw Error\('missing image'\)/,
+    'saved local resources remain valid even without an HTTPS URL');
+});
