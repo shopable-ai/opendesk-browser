@@ -16,7 +16,8 @@
 .od-conversation-close:hover{background:var(--od-muted)}
 .od-conversation-log{min-height:0;flex:1 1 auto;overflow:auto;overscroll-behavior:contain;padding:13px 10px 6px;display:flex;flex-direction:column;gap:7px;scrollbar-width:thin}
 .od-conversation-entry{align-self:flex-start;max-width:94%;min-width:0;display:grid;gap:3px;background:var(--od-bg);border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:7px 9px;overflow-wrap:anywhere}
-.od-conversation-entry[data-speaker="user"]{align-self:flex-end;background:color-mix(in srgb,var(--od-brand) 8%,var(--od-paper))}
+/* User-only outgoing bubble; assistant, system and error states remain neutral. */
+.od-conversation-entry[data-speaker="user"]{align-self:flex-end;background:var(--od-conversation-user-bg);color:var(--od-conversation-user-ink);border-color:transparent}
 .od-conversation-entry p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;line-height:1.48;font-size:var(--od-note-size)}
 .od-conversation-error{margin:0;padding:4px 10px;color:var(--od-negative);font-size:var(--od-meta-size);line-height:1.5}
 .od-conversation-feedback{flex:0 1 auto;min-height:26px;max-height:25%;overflow:auto;overflow-wrap:anywhere;overscroll-behavior:contain}

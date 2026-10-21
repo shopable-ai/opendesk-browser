@@ -195,6 +195,22 @@ try{
    assertGeometry(await geometry());
    await assertDockKeepsTreeVisible();
    const colors=await contrast();
+   // Verify the production React DOM actually paints outgoing messages green
+   // in both themes; screenshots alone can miss a regression to pale blue.
+   const userBubble=await evaluate(`const e=document.querySelector('.od-conversation-entry[data-speaker="user"]');
+    if(!e)throw Error('Outgoing user bubble missing');
+    const style=getComputedStyle(e),r=e.getBoundingClientRect(),log=document.querySelector('.od-conversation-log').getBoundingClientRect();
+    return {background:style.backgroundColor,foreground:style.color,align:style.alignSelf,
+      aria:e.getAttribute('aria-label'),visibleSpeaker:!!e.querySelector('strong'),
+      contained:r.left>=log.left-.5&&r.right<=log.right+.5,
+      othersNeutral:[...document.querySelectorAll('.od-conversation-entry:not([data-speaker="user"])')]
+        .every(other=>getComputedStyle(other).backgroundColor!==style.backgroundColor)};`);
+   assert.deepEqual({background:userBubble.background,foreground:userBubble.foreground},
+    dark?{background:'rgb(49, 84, 60)',foreground:'rgb(239, 250, 240)'}:
+      {background:'rgb(149, 236, 105)',foreground:'rgb(32, 52, 30)'});
+   assert.ok(userBubble.align==='flex-end'&&userBubble.aria==='你的消息'&&
+    !userBubble.visibleSpeaker&&userBubble.contained&&userBubble.othersNeutral,
+    'Outgoing message must be right aligned, accessible, label-free, bounded and visually distinct '+JSON.stringify(userBubble));
    assert.ok(colors.length>5,'rendered text contrast samples');
    assert.deepEqual(colors.filter(c=>c.ratio<c.threshold),[],'text/placeholder contrast >=4.5 and enabled icons >=3');
    const name='conversation-'+width+'-'+(dark?'dark':'light')+'-'+(zoom*100);

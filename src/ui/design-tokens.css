@@ -15,6 +15,9 @@
   --od-muted:#f5f7fb;
   --od-positive:#117a5d;
   --od-negative:#ae3d4b;
+  /* Shared Chat Dock user bubble; text meets WCAG AA on the outgoing green. */
+  --od-conversation-user-bg:#95ec69;
+  --od-conversation-user-ink:#20341e;
   --space-1:4px;
   --space-2:8px;
   --space-3:12px;
@@ -74,6 +77,8 @@
     --od-muted:var(--od-dark-muted);
     --od-positive:var(--od-dark-positive);
     --od-negative:var(--od-dark-negative);
+    --od-conversation-user-bg:#31543c;
+    --od-conversation-user-ink:#effaf0;
     --od-warning-bg:#392d21;
     --od-warning-border:#8b6841;
     --od-warning-ink:#f6dca8;
