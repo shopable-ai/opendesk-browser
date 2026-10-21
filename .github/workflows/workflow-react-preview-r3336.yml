@@ -13,6 +13,7 @@ on:
       - 'src/ui/design-tokens.css'
       - 'src/ui/design-system.css'
       - 'scripts/preview/build-workflow-react-preview.mjs'
+      - 'scripts/tests/workflow-source-preview-browser.mjs'
       - 'tests/environment/workflow-react-preview-contract.test.mjs'
       - 'prototypes/sidebar/workflow/react-preview/**'
       - '.github/workflows/workflow-react-preview-r3336.yml'
@@ -37,8 +38,8 @@ jobs:
           node scripts/preview/build-workflow-react-preview.mjs --check
           # Workflow-specific regression; generic React contracts also run in the package job.
           node --test tests/environment/workflow-react-preview-contract.test.mjs tests/environment/workflow-ui-states.test.mjs
-      - name: Actual source JSX in Chromium (not installed extension)
-        run: node scripts/tests/react-sidebar-r3331-browser.mjs
+      - name: Source-bound Workflow HTML interaction in real Chromium
+        run: node scripts/tests/workflow-source-preview-browser.mjs
       - name: Real Chrome offline preview DOM and 360px screenshot
         shell: bash
         run: |
@@ -105,6 +106,10 @@ jobs:
           console.log('R3336_VERIFIED_PREVIEW_BLOB_SHA='+result.sha);
           console.log('R3336_VERIFIED_PREVIEW_BYTES='+file.length);
           JS
+      # Preserve the broad source JSX integration check. Its unrelated page
+      # failures must not erase independently verified Workflow HTML evidence.
+      - name: Shared source JSX in Chromium (all product tabs)
+        run: node scripts/tests/react-sidebar-r3331-browser.mjs
 
   workflow-focused-controller:
     needs: workflow-react-preview
