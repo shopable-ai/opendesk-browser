@@ -240,7 +240,7 @@ test('R40.10.1 Controller ESM Run and Revision are gated during its own advanced
 test('R40.10 steady Run and Result do not re-project unchanged environment copy',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const fixed=['page-preview-mode-title','page-preview-mode-hint','page-component-hint',
-    'manual-project-params-tools','developer-run-technical'];
+    'manual-project-params-tools','developer-run-technical','page-preview-tools'];
   const initial=Object.fromEntries(fixed.map(id=>[id,f.editor.model.getSnapshot().fields[id]]));
   await f.click('script-run');await f.finish(23);
   for(const id of fixed)assert.strictEqual(f.editor.model.getSnapshot().fields[id],initial[id],
@@ -249,6 +249,8 @@ test('R40.10 steady Run and Result do not re-project unchanged environment copy'
   world.value='page';world.fire('change',{isTrusted:true});
   assert.notStrictEqual(f.editor.model.getSnapshot().fields['page-component-hint'],initial['page-component-hint'],
     'switching to Page changes the visible execution intent');
+  assert.notStrictEqual(f.editor.model.getSnapshot().fields['page-preview-tools'],initial['page-preview-tools'],
+    'Page-only tools must be projected on world switch, not ordinary Run/Result');
 });
 
 test('R40.10 cancelling component Candidate preparation cancels its compiler once',async t=>{

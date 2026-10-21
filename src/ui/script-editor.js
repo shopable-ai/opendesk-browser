@@ -199,6 +199,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if(find('script-javascript-world-row'))patchDeveloperField(view,find('script-javascript-world-row'),{hidden:componentMode!=='javascript'||!!localProject?.active()||!!programSource.snapshot()});
       view.patch('manual-project-params-tools',{hidden:pageExecution||local});
       view.patch('script-version-identity',{hidden:local});
+      // Page tools depend on the environment, not on Run/Result updates.
+      view.patch('page-preview-tools',{hidden:local||!pageExecution});
       // Describe the selected official source format instead of telling React /
       // Vue authors to write the legacy async function main() entry.
       view.patch('developer-run-technical',{hidden:componentMode!=='javascript'||loadedPageSource});
@@ -236,7 +238,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const pageCandidateButton=find('page-candidate-save');
     if(pageCandidateButton)patchDeveloperField(view,pageCandidateButton,{disabled:!canSavePagePreview()&&!canPrepareComponentCandidate(),title:''});
     if(local&&find('task-create-candidate'))patchDeveloperField(view,find('task-create-candidate'),{disabled:true});
-    patchDeveloperField(view,find('page-preview-tools'),{hidden:!!localProject?.active()||!pageExecution});
     {
       const runButton=find('script-run'),stopButton=find('script-stop');
       patchDeveloperField(view,runButton,{disabled:runDisabled,textContent:local?'运行本地项目':'运行'});
