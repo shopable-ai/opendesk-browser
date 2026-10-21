@@ -1122,7 +1122,7 @@ test('R4.7 settings live next to retained TOC iframe; appearance remains separat
   assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
   assert.equal(f.elements['sidebar-tool-frame'].hidden,true);
   assert.equal(f.elements['sidebar-tool-frame'].children[0],iframe,'the sandbox is retained, not reloaded');
-  assert.equal(f.elements['sidebar-tool-title'].textContent,toc.title);
+  assert.equal(f.elements['sidebar-tool-title'].textContent,'工具设置');
   const pagePrefs=changeReadingTocVisibility({},toc.id,url,'page',true);
   f.changeStorage({[READING_TOC_VISIBILITY_STORE]:{newValue:pagePrefs}});
   assert.equal(f.elements['sidebar-tool-settings-page-visibility'].textContent,'恢复显示');

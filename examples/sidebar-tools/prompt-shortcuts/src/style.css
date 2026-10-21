@@ -205,3 +205,6 @@
   .ps-card-main:has(.ps-glyph.has-image){gap:var(--space-1)}
 }
 @media(prefers-reduced-motion:reduce){.ps-appearance-switch label{transition:none}}
+
+/* Verified official Host owns the same-level heading and New action only. */
+.ps.ps-host-nav #ps-new,.ps.ps-host-nav .ps-form-head{display:none!important}
