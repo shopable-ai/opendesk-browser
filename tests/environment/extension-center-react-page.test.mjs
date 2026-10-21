@@ -122,7 +122,9 @@ async function browserFixture(t){
   t.after(()=>{server.closeAllConnections();return new Promise(resolve=>server.close(resolve));});
   const browser=await chromium.launch({headless:true,args:['--no-sandbox'],
     ...(process.env.OPENDESK_CHROMIUM_EXECUTABLE?{executablePath:process.env.OPENDESK_CHROMIUM_EXECUTABLE}:{})});
-  t.after(()=>browser.close());const page=await browser.newPage();page.setDefaultTimeout(5000);
+  t.after(()=>browser.close());
+  // Keep hit-testing deterministic; motion has separate preview/native coverage.
+  const page=await browser.newPage({reducedMotion:'reduce'});page.setDefaultTimeout(5000);
   const errors=[];page.on('pageerror',error=>errors.push(String(error)));
   await page.goto(`http://127.0.0.1:${server.address().port}/`);
   await page.locator('[data-extension-id="page:reader"]').waitFor().catch(async error=>{
@@ -131,8 +133,13 @@ async function browserFixture(t){
   t.after(()=>assert.deepEqual(errors,[]));return page;
 }
 const options={skip:modulePath?false:'NOT_TESTED: set OPENDESK_PLAYWRIGHT_MODULE to an existing Playwright installation'};
+// A desktop action intentionally has no pointer target until its row is active.
+async function clickRowMore(button){
+  await button.locator('..').locator('..').hover();
+  await button.click();
+}
 async function chooseListUninstall(page,key){
-  await page.locator('[data-extension-key="'+key+'"][data-extension-action="more"]').click();
+  await clickRowMore(page.locator('[data-extension-key="'+key+'"][data-extension-action="more"]'));
   await page.locator('#extension-center-row-menu [data-ec-context-action="uninstall"]').click();
 }
 
@@ -218,7 +225,7 @@ test('The last hovered or focused installed row keeps the only desktop More butt
 test('React row menu preserves native gestures, keyboard/outside close, pending and disposal',options,async t=>{
   const page=await browserFixture(t);
   const more=page.locator('[data-extension-key="app:quick-notes"][data-extension-action="more"]');
-  await more.click();
+  await clickRowMore(more);
   const menu=page.locator('#extension-center-row-menu');await menu.waitFor();
   assert.equal(await menu.getByRole('menuitem').first().evaluate(node=>node===document.activeElement),true,
     'first menu item receives focus on opening');
@@ -232,10 +239,10 @@ test('React row menu preserves native gestures, keyboard/outside close, pending 
   assert.equal(await menu.getByRole('menuitem').first().evaluate(node=>node===document.activeElement),true);
   await page.keyboard.press('Escape');assert.equal(await menu.count(),0);
   assert.equal(await more.evaluate(node=>node===document.activeElement),true);
-  await more.click();await page.keyboard.press('Tab');assert.equal(await menu.count(),0);
-  await more.click();await page.locator('#extension-center-search').click();assert.equal(await menu.count(),0);
-  await more.click();await page.evaluate(()=>document.dispatchEvent(new Event('scroll')));assert.equal(await menu.count(),0);
-  await more.click();
+  await clickRowMore(more);await page.keyboard.press('Tab');assert.equal(await menu.count(),0);
+  await clickRowMore(more);await page.locator('#extension-center-search').click();assert.equal(await menu.count(),0);
+  await clickRowMore(more);await page.evaluate(()=>document.dispatchEvent(new Event('scroll')));assert.equal(await menu.count(),0);
+  await clickRowMore(more);
   await menu.locator('[data-ec-context-action="toggle"]').evaluate(node=>node.click());
   assert.equal(await page.evaluate(()=>fixture.calls.filter(x=>x.action==='toggle').length),0);
   await page.evaluate(()=>fixture.hold());
@@ -250,12 +257,12 @@ test('React row menu preserves native gestures, keyboard/outside close, pending 
   await page.evaluate(()=>fixture.release());
   await page.waitForFunction(()=>fixture.state.rowsModel.busy===false);
   assert.equal(await page.locator('#extension-center-status').innerText(),'已从本机安装记录确认应用停用。');
-  await more.click();await menu.locator('[data-ec-context-action="detail"]').click();
+  await clickRowMore(more);await menu.locator('[data-ec-context-action="detail"]').click();
   assert.equal(await page.locator('#extension-center-detail').isVisible(),true);
   await page.keyboard.press('Escape');assert.equal(await page.locator('#extension-center-list-view').isVisible(),true);
-  await more.click();await menu.locator('[data-ec-context-action="settings"]').click();
+  await clickRowMore(more);await menu.locator('[data-ec-context-action="settings"]').click();
   assert.equal(await page.evaluate(()=>fixture.calls.filter(x=>x.action==='settings').length),1);
-  await more.click();
+  await clickRowMore(more);
   await page.evaluate(()=>{
     window.stale={onClick:fixture.state.rowMenuModel.items[0].onClick,event:fixture.nativeEvent()};
     fixture.dispose();
