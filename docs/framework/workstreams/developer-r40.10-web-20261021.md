@@ -231,3 +231,11 @@ GitHub Local run `39568063907`、job `119115102664` 原始日志提供：Local �
 7. 权限、身份、Stop、结果及安装保护 PARTIAL：断言保留但仍待真实执行核验。
 
 阶段保持 **WEB_PARTIAL**；只有精确最新代码的 51 项独立 Node 全部语义通过且自然退出、原六文件综合也自然退出、Developer CI 和四世界网页级身份/Stop 回归可复核后，才允许进入 WEB_IMPLEMENTED_LOCAL_VALIDATION_PENDING。Mac Native/Provider 属后续 R40.11-LOCAL；不得伪称六位专家 ≥95。
+
+
+### R40.10.6 后续 CI 实证修订（以 Job 原始日志为准）
+- 早期迁移提交 ef43a53 的 Developer run 39615416195、developer-node job 119274998544 最终 **cancelled**，旧测试仍大量失败，诊断显示 activeResources 有 PipeWrap、MessagePort，测试语义及 Node 退出均未关闭。
+- 关键中间提交 9863c7e 的 [run 39617622368](https://github.com/shopable-ai/opendesk-browser/actions/runs/39617622368)、developer-node job 119282616115：**完整 TAP 1..51，45 PASS / 6 FAIL / 0 CANCELLED，约 887.95 ms，Node 自然退出（exit code 1 原因仅断言失败）**。诊断 TASK_WORKBENCH_EXIT_RESOURCES 仅有 PipeWrap、PipeWrap 和 Socket、Socket，未再出现 MessagePort。这是该精确中间版本的 **NODE_NATURAL_EXIT_VERIFIED_WITH_FAILED_ASSERTIONS**，不是 51/51 PASS，也不是六文件综合 PASS。
+- 六项失败：#20/#21 当时尚未迁移的旧 Fake 键盘与焦点；#46–49 迁移时错误移除了 taskReviewHandoffKey 原导入。#20/#21 后由 90de532 改为正式 React 键位函数/状态与 SSR，Chrome 原生 focus 另记 NOT_TESTED；#46–49 在 [d702cd7](https://github.com/shopable-ai/opendesk-browser/commit/d702cd7306be28f88dac82c63b31ac5206d19a69) 补回原 taskReviewHandoffKey import。实际最新 SHA 的 51 项和六文件综合仍需新 CI 证明。
+- 最新已结束的 developer-release-smoke job 119282615496（绑定 9863c7e）失败是固定 Marketplace 来源守卫 opendesk-fixed-marketplace 在 scripts/bundle-provenance.mjs:304 拒绝 examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js（Historical/user/vendor code cannot enter a privileged fixed bundle）；属 Prompt Shortcuts owner，**与旧 AdBlock trusted/policy.js 失败是不同精确 SHA 的不同外部阻塞**。两者均不能绕过 pin 或重新归咎 Developer Run/Stop。
+- 因最新代码的最终隔离和六文件综合尚无实证，保留全局 **WEB_PARTIAL**。完整 TAP 与退出资源新证据使 P0 由“未知卡死”推进到“中间 SHA 进程正常退出，剩余断言已提交修复待复验”，**不提前标记 ISOLATED_NODE_PASS 或 COMBINED_NODE_PASS**。
