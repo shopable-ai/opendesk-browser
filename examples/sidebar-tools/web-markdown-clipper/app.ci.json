@@ -8,6 +8,7 @@
     "tests/environment/app-business-ownership-r1.test.mjs",
     "tests/environment/knowledge-inbox-r1.test.mjs",
     "tests/environment/app-ci.test.mjs",
+    "tests/environment/sidebar-tool-hierarchical-back-r12.test.mjs",
     "examples/sidebar-tools/web-markdown-clipper/tests/ui.test.mjs",
     "examples/sidebar-tools/web-markdown-clipper/tests/notes.test.mjs"
   ],
