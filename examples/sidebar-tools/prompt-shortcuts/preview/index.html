@@ -1002,10 +1002,10 @@ border:0;background:transparent;color:var(--od-sub)}
    manage.addEventListener('click',()=>{setView('index');el('sidepanel').scrollIntoView({block:'nearest'});});
    rail.append(manage);return;
   }
-  // Match the installed trusted adapter: user data, not compact IDs, owns the launcher.
+  // Match the installed trusted adapter: user data, not initial-seed IDs, owns the launcher.
   const compact=active.length>0;
   if(compact){
-   const toggle=create('button','page-shortcut compact-toggle','快捷');toggle.type='button';
+   const toggle=create('button','page-shortcut starter-toggle','快捷');toggle.type='button';
    toggle.title=previewCompactExpanded?'收起提示词':'展开提示词';
    toggle.setAttribute('aria-label',toggle.title);toggle.setAttribute('aria-expanded',String(previewCompactExpanded));
    toggle.addEventListener('click',()=>{previewCompactExpanded=!previewCompactExpanded;renderRail();el('pageRail').querySelector('button')?.focus();});
