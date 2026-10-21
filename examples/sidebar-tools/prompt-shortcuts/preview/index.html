@@ -1032,6 +1032,62 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    await copyPrompt(item);
   }finally{using=false;}
  }
+ // R3.7: original preview uses a separate browser-only asset slot.
+ // This interactive simulation never claims a real Trusted Host write.
+ async function chooseLocalImage(){
+  const input=el('imageFile'),file=input.files?.[0];input.value='';
+  if(!file||currentView!=='form'||saving||imageUploadBusy)return;
+  imageUploadBusy=true;el('imagePick').disabled=true;el('saveButton').disabled=true;
+  el('imageHelp').textContent='正在解码、缩放并保存到预览本地存储…';
+  try{
+   if(!['image/png','image/jpeg','image/webp'].includes(file.type))
+    throw Error('只支持 PNG、JPEG、WebP；SVG 不支持');
+   if(file.size<1||file.size>2*1024*1024)throw Error('原图需小于 2 MiB');
+   if(typeof createImageBitmap!=='function')throw Error('当前浏览器缺少 createImageBitmap');
+   const bitmap=await createImageBitmap(file);
+   let asset;
+   try{
+    if(!bitmap.width||!bitmap.height||bitmap.width>8192||bitmap.height>8192||
+      bitmap.width*bitmap.height>16000000)throw Error('图片像素尺寸过大');
+    const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+    if(!ctx)throw Error('图片压缩不可用');
+    for(const longest of [256,224,192,160,128,96]){
+     if(asset)break;
+     const ratio=Math.min(1,longest/Math.max(bitmap.width,bitmap.height));
+     canvas.width=Math.max(1,Math.round(bitmap.width*ratio));
+     canvas.height=Math.max(1,Math.round(bitmap.height*ratio));
+     ctx.clearRect(0,0,canvas.width,canvas.height);
+     ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+     for(const quality of [.82,.72,.6,.48]){
+      const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',quality));
+      if(!blob||blob.size<12||blob.size>65536||!['image/png','image/jpeg','image/webp'].includes(blob.type))continue;
+      const url=await new Promise((resolve,reject)=>{
+       const reader=new FileReader();reader.onload=()=>resolve(reader.result);
+       reader.onerror=()=>reject(Error('读取图片失败'));reader.readAsDataURL(blob);
+      });
+      if(typeof url==='string'&&/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(url)){
+       asset={url,bytes:blob.size};break;
+      }
+     }
+    }
+    if(!asset)throw Error('无法压缩到 64 KiB');
+   }finally{bitmap.close?.();}
+   const crypto=globalThis.crypto;
+   if(typeof crypto?.getRandomValues!=='function')throw Error('安全随机图片资源 ID 不可用');
+   const id='psa_'+Array.from(crypto.getRandomValues(new Uint8Array(16)),v=>v.toString(16).padStart(2,'0')).join('');
+   const before=draftImageAssetId,next={...imageAssets,[id]:asset.url};
+   if(!persistDemoAssets(next))throw Error('浏览器无法持久保存预览图片，请检查容量或权限');
+   draftImageAssetId=id;
+   el('imageSourceLocal').checked=true;el('imageSourceUrl').checked=false;
+   updateMeter();el('imageHelp').textContent='本地图片已在预览浏览器中保存（'+asset.bytes+' B），请保存提示词建立关联。';
+   if(before&&!state.items.some(row=>row.imageAssetId===before)){
+     const copy={...imageAssets};delete copy[before];persistDemoAssets(copy);
+   }
+  }catch(error){
+   showFormError('E_PREVIEW_IMAGE：'+error.message+'。之前的图片和草稿保留。');
+   el('imageHelp').textContent='上传失败；请重新选择图片或切换图片网址。';
+  }finally{imageUploadBusy=false;el('imagePick').disabled=false;el('saveButton').disabled=false;}
+ }
  function rawFormValues(){const original=state.items.find(item=>item.id===editId);return {label:el('shortLabel').value.trim(),name:el('fullName').value.trim(),body:el('promptBody').value,enabled:el('itemEnabled').checked,shape:original?.shape||'square',appearance:el('appearanceImage').checked?'image':'text',imageUrl:el('imageSourceLocal').checked?'':el('imageUrl').value.trim(),imageAssetId:el('imageSourceLocal').checked?draftImageAssetId:''};}
  function formValues(){const raw=rawFormValues(),fallback=defaultShort(raw.body);return {...raw,label:raw.label||fallback,name:raw.name||fallback,labelAuto:!raw.label,nameAuto:!raw.name};}
  function projection(){const value=formValues(),next=state.items.map(x=>({...x}));const idx=next.findIndex(x=>x.id===editId);if(idx>=0)next[idx]={...next[idx],...value};else next.push({id:'mock-00000000-0000-4000-8000-000000000000',...value});return {schema:1,settings:{webButtons:state.settings.showBar,imageSize:state.settings.imageSize},items:next.map((row,order)=>({id:row.id,body:row.body,label:row.label,name:row.name,labelAuto:row.labelAuto===true,nameAuto:row.nameAuto===true,shape:row.shape,enabled:row.enabled,order,appearance:row.appearance??'text',imageUrl:row.imageUrl??'',...(row.imageAssetId?{imageAssetId:row.imageAssetId}:{})}))};}
