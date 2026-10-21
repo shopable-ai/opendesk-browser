@@ -73,14 +73,15 @@ export function TrustedConversationWorkspace({
  React.useLayoutEffect(()=>{
   const node=shellRef.current;
   if(!node)return;
-  const measure=()=>setTotalHeight(node.getBoundingClientRect().height||600);
+  // CSS zoom changes visual pixels but Dock height is assigned in layout CSS pixels.
+  const measure=()=>setTotalHeight(node.clientHeight||node.getBoundingClientRect().height||600);
   measure();
   if(typeof ResizeObserver==='undefined')return;
   const observer=new ResizeObserver(measure);observer.observe(node);
   return()=>observer.disconnect();
  },[]);
  const limits=React.useMemo(()=>{
-  const min=Math.min(156,Math.max(112,Math.floor(totalHeight*.49)));
+  const min=Math.min(190,Math.max(112,Math.floor(totalHeight*.5)));
   return {min,max:Math.max(min,totalHeight-96)};
  },[totalHeight]);
  const dockHeight=height===null?clamp(Math.round(totalHeight*.38),limits.min,limits.max):
