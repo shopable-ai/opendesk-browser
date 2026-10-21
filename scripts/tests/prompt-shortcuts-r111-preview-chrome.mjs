@@ -571,11 +571,19 @@ async function run(){
   await click('.prompt-card[data-id="'+persistedImageRow.id+'"] .prompt-actions button');
   await click('.prompt-more button[aria-label^="编辑："]');
   const reopened=await evalChrome('('+function(){
+    const rows=JSON.parse(localStorage.getItem('opendesk.prompt-shortcuts.preview.items-r3'));
+    const row=rows.find(r=>r.imageAssetId);
+    const card=document.querySelector('.prompt-card[data-id="'+row?.id+'"]');
+    const cardPicture=card?.querySelector('img');
+    const railPicture=document.querySelector('#pageRail .page-shortcut:nth-child(2) img');
     return {formVisible:!document.querySelector('#formView').hidden,
       sourceLocal:document.querySelector('#imageSourceLocal').checked,
       sourceUrl:document.querySelector('#imageSourceUrl').checked,
       appearanceImage:document.querySelector('#appearanceImage').checked,
-      bodyStart:document.querySelector('#promptBody').value.slice(0,45)};
+      bodyStart:document.querySelector('#promptBody').value.slice(0,45),
+      persistedRow:row,
+      cardHasImg:!!cardPicture,cardImgMime:cardPicture?.src.slice(0,36),
+      railImgMime:railPicture?.src.slice(0,36),railOfflineFixture:railPicture?.dataset.previewFixture};
   }.toString()+')()');
   if(!reopened.formVisible||!reopened.sourceLocal||!reopened.appearanceImage)
     await shot('r41-saved-local-reopen-diagnostic');
