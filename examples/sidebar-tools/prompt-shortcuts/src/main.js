@@ -891,7 +891,7 @@ async function save(event,continueCreating=false){
   event?.preventDefault();
   if(mode!=='form'){status('当前不在编辑页面，未执行保存。',true);return;}
   if(!ready){error('宿主存储尚未就绪，未执行保存；草稿保留。');return;}
-  if(busy){error('上一笔保存尚未确认，请勿重复提交；草稿保留。');return;}
+  if(busy||uploadBusy){error('图片上传或保存尚未确认，请勿重复提交；草稿保留。');return;}
   if(unconfirmedWrite){error('上次写入结果未确认，请保留草稿并重新打开核对。');return;}
   const input=form(),snapshot=JSON.stringify(input),old=editId?data.items.find(row=>row.id===editId):null;
   if(editId&&!old){error('记录已变化，请保留草稿并重新打开');return;}
@@ -1010,6 +1010,17 @@ el('ps-form').addEventListener('keydown',e=>{
   e.preventDefault();void save();
 });
 el('ps-form').addEventListener('input',changed);el('ps-form').addEventListener('change',changed);
+el('ps-image-pick').addEventListener('click',()=>{
+  if(mode==='form'&&!uploadBusy&&!busy)el('ps-image-file').click();
+});
+el('ps-image-file').addEventListener('change',()=>void uploadImage());
+el('ps-image-clear').addEventListener('click',()=>{
+  if(mode!=='form'||uploadBusy||busy)return;
+  const previous=draftImageAssetId;draftImageAssetId='';changed();
+  el('ps-image-help').textContent='本地图片已从草稿移除；请选择新图片或切换外观。';
+  if(previous&&!data.items.some(row=>row.imageAssetId===previous))
+    void request('prompt.asset.remove',{id:previous}).catch(()=>{});
+});
 el('ps-cancel').addEventListener('click',()=>back());
 el('ps-stay').addEventListener('click',()=>{el('ps-leave').hidden=true;pendingLeave=null;el('ps-body').focus();});
 el('ps-discard').addEventListener('click',()=>{if(busy)return;const action=pendingLeave;pendingLeave=null;if(action)action();});
@@ -1038,7 +1049,9 @@ el('ps-site-cancel').addEventListener('click',()=>void cancelSiteForm());
   lock();
   try{
     const saved=await readLibrary();
-    data=saved.value;etag=saved.etag;ready=true;index();status('');
+    data=saved.value;etag=saved.etag;
+    await hydrateImageAssets(data.items);
+    ready=true;index();status('');
     await launch();
   }catch(e){ready=false;lock();status('数据读取失败，已阻止写入以保护本机数据：'+e.message,true);}
 })();
