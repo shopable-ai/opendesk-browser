@@ -178,3 +178,9 @@ GitHub Local run `39568063907`、job `119115102664` 原始日志提供：Local �
 ### 复杂度与改动边界
 - 本轮 Task Workbench 生产代码仅重新安排已有 BroadcastChannel 取得时点，保留原通道、监听与 dispose；测试 Fixture 复用真实 Developer View，工作流只补充路径触发；未触碰 Controller/Page/React-Vue/Local Run/Stop、基础 Authority、RunHost、依赖锁和持久 Store，也未迁移 Candidate/import。
 - R40.9 至 R40.10.3 的四个 Developer 生产文件基准仍是 **+89/-52、净 +37 行**；这次 Task 资源修复不等于对完整 Developer 调用链完成代码减法，P4 保留 NOT_PROVEN。应先关闭准确 Node 失败，不因行数或无关 main 更新执行机械搬迁。
+
+### R40.10.5 后续实证：第一轮修复未关闭 P0
+- 精确 SHA `8bffbfea5b29897fbed77a2929d3a5b796797d73` 的 [run 39608550598](https://github.com/shopable-ai/opendesk-browser/actions/runs/39608550598) 已产生完整 **51 项逐项 TAP**，**3 ok / 48 not ok**，但仍无文件最终 `1..51 / # tests / # pass / # fail` 汇总，`developer-node` 15 分钟 `cancelled`，工作流不能视为 Node PASS。50 个统一构造错误消失，证实真实 Developer View 注入解决原入口异常；剩余 48 项为历史 DOM Fake 对已迁移 React View 的过期事件/DOM 投影断言或未完成 run，必须面向真实 React View 业务 owner 迁移，不得增加兼容 DOM 运行器、删除或跳过测试。
+- 精确 SHA `4dd37d3726ccbacc3cdaeb872391b64852b3535a` 的 [run 39609943170](https://github.com/shopable-ai/opendesk-browser/actions/runs/39609943170) 已核实 `developer-release-smoke` **FAIL**，原因仍是 AdBlock trusted/policy.js 固定来源身份；`developer-node` 在最近核查时仍运行独立 Task 步骤，完整退出/综合结果待其真实终态，不能推定成功。
+- 提交 [d3f8869](https://github.com/shopable-ai/opendesk-browser/commit/d3f88693b98cd9fcb143b17bd1bb88ece13af08a)：仅在 Task 测试原有收尾增加 `process.getActiveResourcesInfo()` 与活动句柄类型的诊断，保留所有断言与正常 Node 退出，**不强制 process.exit、不 unref、不延长 timeout**。诊断需由实际运行日志验证，当前不可当作成功证据。
+- P0 当前结论：`ENTRY_FIX_VERIFIED_BY_TAP`、`NODE_PROCESS_EXIT=FAIL_ON_8bffbfe`、`CURRENT_SOURCE_EXIT=NOT_CONFIRMED`。P2 整体代码减法、P3 四环境真实端到端与 P4 全链复杂度减法尚不满足交付门槛。全局阶段保持 **WEB_PARTIAL**。
