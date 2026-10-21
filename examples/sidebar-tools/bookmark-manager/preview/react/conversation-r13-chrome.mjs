@@ -46,6 +46,11 @@ async function click(selector){
  await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,x:point.x,y:point.y},ctx.session);
  await wait(45);
 }
+async function ensureDockOpen(){
+ const visible=await evaluate('return !!document.querySelector(".od-conversation-dock:not([hidden])")');
+ if(!visible)await click('.bm-topbar [aria-label="对话"]');
+ await until(()=>evaluate('return !!document.querySelector(".od-conversation-dock:not([hidden])")'),'shared chat Dock visible');
+}
 async function input(selector,value){await click(selector);await key('a',4);await cdp('Input.insertText',{text:value},ctx.session);await wait(35)}
 async function screenshot(name){
  const b=await evaluate('document.getElementById("opendesk-preview-frame").scrollIntoView({block:"start"});const b=document.getElementById("opendesk-preview-frame").getBoundingClientRect();return {x:b.left+scrollX,y:b.top+scrollY,width:b.width,height:b.height,scale:1}',outer);
@@ -119,7 +124,7 @@ try{
   }
   await click('.bm-topbar [aria-label="刷新书签"]');
   await until(()=>evaluate('return !document.querySelector(".bm-topbar [aria-label=刷新书签]").disabled'),'refresh finished');
-  await click('.bm-topbar [aria-label="对话"]');
+  await ensureDockOpen();
   assert.equal(await evaluate('return document.activeElement.id'),'od-conversation-input');
   await click('.od-conversation-samples button');
   assert.equal(await evaluate('return document.querySelector(".od-conversation-controls [aria-label=发送]").disabled'),true);
@@ -135,7 +140,7 @@ try{
    // this fixture and bookmark-actions rejects it as a write target; that
    // separate action/Host contract belongs to the primary agent.
    await click('[data-node-id="10"]');
-   await click('.bm-topbar [aria-label="对话"]');
+   await ensureDockOpen();
    assert.equal(await evaluate('return document.activeElement.id'),'od-conversation-input');
    assert.equal(await evaluate('return document.querySelector(".bm-workspace").getClientRects().length>0 && document.querySelector("#bm-search").getClientRects().length>0'),true,'tree and search remain visible while chat is open');
    const hoveredColors=await contrast();
@@ -174,7 +179,7 @@ try{
   await evaluate('document.getElementById("opendesk-preview-frame").style.height="800px";',outer);
   await check('200% CSS zoom reflow at fixed physical width/height',async()=>{
    assertGeometry(await geometry());
-   await click('.bm-topbar [aria-label="对话"]');
+   await ensureDockOpen();
    await click('.od-conversation-samples button');
    assertGeometry(await geometry());
    const screenshotFile=await screenshot('reflow-physical-'+physicalWidth+'-'+(dark?'dark':'light')+'-200');
@@ -186,7 +191,7 @@ try{
  await load(preview,360);
  await check('R1.5 real React click path: create, follow up, search filter, locate virtual node',async()=>{
   await click('[data-node-id="10"]');
-  await click('.bm-topbar [aria-label="对话"]');
+  await ensureDockOpen();
   await input('#od-conversation-input','创建 AI 工具文件夹');await key('Enter');
   await until(()=>evaluate('return [...document.querySelectorAll(".bm-node-title")].some(e=>e.textContent==="AI 工具")'),'R15 folder visible');
   const folderId=await evaluate('return [...document.querySelectorAll(".bm-tree-row")].find(e=>e.querySelector(".bm-node-title")?.textContent==="AI 工具")?.dataset.nodeId');
@@ -211,7 +216,7 @@ try{
  currentCase='long-unbroken-message-320-dark-200';await load(preview,160,true,2);
  await evaluate('document.getElementById("opendesk-preview-frame").style.height="800px";',outer);
  await check('long message wrapping and multiline keyboard input',async()=>{
-  await click('.bm-topbar [aria-label="对话"]');
+  await ensureDockOpen();
   await input('#od-conversation-input','长文本'+('https://example.com/'+('path'.repeat(250))));
   await key('Enter',8);
   assert.ok((await evaluate('return document.getElementById("od-conversation-input").value')).includes('\n'),'Shift+Enter preserves newline');
@@ -220,7 +225,7 @@ try{
   assertGeometry(await geometry());return {screenshot:await screenshot('long-message-physical-320-dark-200')};
  });
  currentCase='transcript-scroll-320';await load(preview,320);
- await click('.bm-topbar [aria-label="对话"]');
+ await ensureDockOpen();
  await check('new conversation replies remain visible after log fills',async()=>{
   for(let i=0;i<9;i++){await input('#od-conversation-input','找出 React 相关书签');await key('Enter');await until(()=>evaluate('return document.querySelectorAll(".od-conversation-entry").length>='+((i+1)*2)),'search reply '+i)}
   const scroll=await evaluate('const e=document.querySelector(".od-conversation-log");return {scrollTop:e.scrollTop,clientHeight:e.clientHeight,scrollHeight:e.scrollHeight,bottom:e.scrollHeight-e.clientHeight-e.scrollTop}');
