@@ -1,13 +1,15 @@
-/* Admitted static React Bookmark Manager: a viewport for
-   the existing Bookmark Manager virtual tree. No shared tab CSS is changed. */
+/* Admitted Bookmark Manager portal fills the remaining Host workspace;
+ * Dock and bookmark tree own their own scrolling. No viewport guesses. */
 #sidebar-tool-frame[data-bookmark-trusted="true"]{
-  height:clamp(180px,calc(100dvh - 210px),900px);
+  display:flex;
+  flex:1 1 0;
+  flex-direction:column;
+  height:auto;
   min-height:0;
-  max-height:calc(100dvh - 96px);
+  max-height:none;
   overflow:hidden;
 }
-[data-opendesk-surface="tool-page"] #sidebar-tool-frame[data-bookmark-trusted="true"]{
-  height:clamp(180px,calc(100dvh - 160px),900px);
+#sidebar-tool-frame[data-bookmark-trusted="true"] > .od-conversation-workspace{
+  flex:1 1 auto;
   min-height:0;
-  max-height:calc(100dvh - 96px);
 }

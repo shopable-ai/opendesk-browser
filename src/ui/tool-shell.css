@@ -447,6 +447,42 @@
  * Tool frame outdents to full canvas width; never stack two page gutters. */
 .sidebar-tool-frame{min-width:0;width:calc(100% + var(--od-page-gutter) + var(--od-page-gutter));margin-inline:calc(0px - var(--od-page-gutter))}
 .sidebar-tool-iframe{display:block;width:100%;min-width:0;min-height:0;height:220px;max-height:1600px;border:0;border-radius:0;background:#fff}
+
+/* R1.0 admitted full-height workspaces: size against the real flex parent.
+ * Only the verified trusted Bookmark portal opts in. Compact settings and
+ * sandboxed user tools keep their existing content-height/scroll policy. */
+#workspace-content:has(> #workbench-tools:not([hidden]) #sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])){
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  padding-bottom:0;
+}
+#workbench-tools:has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])){
+  display:flex;
+  flex:1 1 auto;
+  flex-direction:column;
+  min-height:0;
+  min-width:0;
+}
+#workbench-tools:has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > #sidebar-tools,
+#sidebar-tools:has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > #sidebar-tool-display:not([hidden]){
+  display:flex;
+  flex:1 1 auto;
+  flex-direction:column;
+  min-height:0;
+  min-width:0;
+}
+#sidebar-tool-display:has(> #sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > .sidebar-tool-view-head{
+  flex:none;
+}
+#sidebar-tool-display:has(> #sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > #sidebar-tool-settings-view:not([hidden]){
+  flex:0 1 auto;
+  min-height:0;
+  max-height:min(38%,280px);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+}
+
 .task-section-head{margin:0 0 8px}
 .task-section-actions{display:flex;align-items:center;gap:6px;min-width:0;flex:0 0 auto}
 #task-installed-count{font-size:11px;color:var(--od-sub);white-space:nowrap}
