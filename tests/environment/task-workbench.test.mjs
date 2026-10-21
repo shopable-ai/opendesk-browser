@@ -1,5 +1,5 @@
 import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
-import test from 'node:test';
+import test, {after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {programDraft} from '../fixtures/program-draft.mjs';
@@ -34,6 +34,15 @@ class Element {
 globalThis.Option=class extends Element{constructor(text,value){super();this.textContent=text;this.value=value;}};
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
 const html=await renderSidebarFixture();
+// Diagnostic only: the Node test worker must exit after all per-test disposals.
+// Keep the original assertions; report actual live resource kinds before any
+// runner timeout, rather than force-closing the process or hiding a leak.
+after(()=>{
+  console.error('TASK_WORKBENCH_EXIT_RESOURCES='+JSON.stringify({
+    activeResources:process.getActiveResourcesInfo?.()??[],
+    activeHandles:process._getActiveHandles?.().map(handle=>handle.constructor?.name)??[]
+  }));
+});
 const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStorage}={})=>{
   const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
   const get=id=>nodes.get(id)||nodes.get('task-params-form')?.children.find(child=>child.id===id);
