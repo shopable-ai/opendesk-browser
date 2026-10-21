@@ -75,7 +75,7 @@ export async function workflowFixture(options={}) {
     host.currentRun=null;notify('run');
     resolve({runId:claim.runId,state,retirement:{state:'released'},result});
   }
-  const client={ready:Promise.resolve(),subscribeWorkflowAI:fn=>{subscriptions.native.add(fn);return ()=>subscriptions.native.delete(fn);},
+  const client=options.client||{ready:Promise.resolve(),subscribeWorkflowAI:fn=>{subscriptions.native.add(fn);return ()=>subscriptions.native.delete(fn);},
     requestWorkflowAI:async method=>method==='ai.connection.read'?{nativeConnected:false,protocolAvailable:false,state:'NATIVE_PERMISSION_REQUIRED'}:
       {state:'DISCONNECTED',readyForTurn:false}};
   const currentPageTarget={windowId:7,snapshot:target,ready:Promise.resolve(),capture:()=>({...target}),

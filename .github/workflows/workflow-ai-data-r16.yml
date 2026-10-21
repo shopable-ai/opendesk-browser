@@ -36,6 +36,8 @@ jobs:
         run: node --test tests/environment/workflow-observation-grant-r2317.test.mjs
       - name: R23.17 two-turn Controller authorization reuse and revoke
         run: node --test tests/environment/workflow-recipient-grant-integration-r2317.test.mjs
+      - name: R23.17 local Native consent reuse and revoke
+        run: node --test tests/environment/workflow-native-observation-grant-r2317.test.mjs
       - name: Direct-send provider, payload minimization and workflow regressions
         run: |
           node --test tests/environment/workflow-direct-execution.test.mjs tests/environment/workflow-local-codex.test.mjs tests/environment/workflow-r15.test.mjs tests/environment/workflow-ai-observation.test.mjs tests/environment/workflow-ai-data-sharing.test.mjs tests/environment/workflow-ai-transport.test.mjs tests/environment/workflow-ui-states.test.mjs tests/environment/workflow-focus.test.mjs tests/environment/workflow-provider-facade.test.mjs
