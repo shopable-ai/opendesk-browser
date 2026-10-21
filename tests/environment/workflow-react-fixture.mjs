@@ -2,6 +2,7 @@
 // are production sources. No DOM facade or privileged browser is simulated.
 import {createWorkflowView} from '../../src/ui/workflow/workflow-view.js';
 import {emptyWorkflow} from '../../src/framework/workflow/contract.js';
+import {WORKFLOW_OBSERVE_SOURCE} from '../../src/ui/workflow/observation.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const hash=async text=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text))),b=>b.toString(16).padStart(2,'0')).join('');
@@ -49,7 +50,7 @@ export async function workflowFixture(options={}) {
       const revision={sourceHash,...(source.kind==='saved'?{scriptId:source.scriptId,revision:source.revision}:{})};
       const bound={windowId:7,tabId:9,frameId:0,documentId:options.target.documentId,url:options.target.expectedUrl,allowedOrigin:target.origin};
       const claim={runId,resultId,revision,target:bound};
-      const isObservation=source.kind==='draft'&&source.sourceUtf8.includes('await page.observe(');
+      const isObservation=source.kind==='draft'&&source.sourceUtf8===WORKFLOW_OBSERVE_SOURCE;
       host.completion=new Promise(resolve=>{pending={resolve,claim,isObservation};});
       notify('run');if(!service.hold)queueMicrotask(()=>finish(service.fail?'failed':'completed'));
       return claim;
