@@ -36,3 +36,7 @@ button,input,textarea{font:inherit}button{cursor:pointer}button:focus-visible,te
 @media(prefers-color-scheme:dark){body{color:#e1e6f2}.mdw{--edge:#39435b;--sub:#a0adc3;--paper:#202633;--layer:#171e29}
 .mdw-actions .primary{background:#4568d4;border-color:#4568d4}.mdw-preview pre{background:#2a3547}.mdw-preview a{color:#9bbaff}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+/* Preserve the standalone title; verified official Host already renders it. */
+.mdw.mdw-host-nav .mdw-bar strong{display:none!important}
+.mdw.mdw-host-nav .mdw-bar{justify-content:flex-end}

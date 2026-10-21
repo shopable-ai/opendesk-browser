@@ -3,6 +3,9 @@
 const {root,request}=globalThis.OpenDeskTool,q=id=>root.querySelector('#'+id);
 const editor=q('mdw-source'),rendered=q('mdw-preview'),pane=q('mdw-panes');
 const message=q('mdw-status'),state=q('mdw-state'),file=q('mdw-file');
+// Only verified official instances yield their duplicate page title to ToolHost.
+if(globalThis.OpenDeskTool.setNavigation?.({page:'home',title:'Markdown 工作台',canBack:false})===true)
+  root.querySelector('.mdw')?.classList.add('mdw-host-nav');
 const review=q('mdw-inline-review'),reviewText=q('mdw-review-text');
 const reviewConfirm=q('mdw-review-confirm'),reviewCancel=q('mdw-review-cancel');
 const buttons=[...root.querySelectorAll('[data-mode]')],MARK=String.fromCharCode(96);

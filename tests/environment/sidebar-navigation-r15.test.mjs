@@ -29,6 +29,16 @@ test('R1.5 host verifies release bytes and sandbox/session before accepting navi
   assert.match(bridge,/normalizeToolNavigation\(value\)/);
   assert.match(bridge,/opendesk-tool-navigation/);
 });
+test('R1.5 Markdown Workbench omits a duplicate official header without changing its editor',async()=>{
+  const [js,css,config]=await Promise.all([
+    readFile('examples/sidebar-tools/markdown-workbench/src/main.js','utf8'),
+    readFile('examples/sidebar-tools/markdown-workbench/src/style.css','utf8'),
+    readFile('examples/sidebar-tools/markdown-workbench/tool.config.json','utf8')]);
+  assert.equal(JSON.parse(config).version,'1.0.3');
+  assert.match(js,/setNavigation\?\.\(\{page:'home',title:'Markdown 工作台',canBack:false\}\)===true/);
+  assert.match(css,/\.mdw\.mdw-host-nav \.mdw-bar strong\{display:none/);
+});
+
 test('R1.5 knowledge child back uses original save/discard controllers; fallback UI remains',async()=>{
   const [js,css,html,config]=await Promise.all([
     readFile('examples/sidebar-tools/knowledge-inbox/src/main.js','utf8'),
