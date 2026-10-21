@@ -1141,5 +1141,104 @@
     "different": [],
     "main": "df5617e68e08b37f9bd38b08280f4747b57a7d44",
     "originMain": "07e61ae702f2c600a92cd94b1d4d74cf451ea47e"
+  },
+  "nativeFollowup": {
+    "at": "2026-10-21T23:06:03.410Z",
+    "globalMessageForgery": {
+      "status": "PASS",
+      "appId": "app-port-probe-b27124ba17e1",
+      "createdAt": "2026-10-21T22:55:54.637Z",
+      "packageHash": "0af5c0f26b18d4f16965081a84d11f6a84ae4548935cf8507f2d0efaacd7a023",
+      "binding": {
+        "appId": "app-port-probe-b27124ba17e1",
+        "packageHash": "0af5c0f26b18d4f16965081a84d11f6a84ae4548935cf8507f2d0efaacd7a023",
+        "codeHash": "c228145b0a9391c03796ef1429695efa789f2355f2e138135b1f0004ea1dd767",
+        "generation": "a6e7adc3-6fc0-4994-adde-497d461cae42",
+        "sourceIdentity": {
+          "kind": "local-reviewed"
+        }
+      },
+      "runId": "0fb47b7b-806e-414d-b91d-80e3ae425a7e",
+      "resultId": "4c4c39e9-43bb-4e9c-a82f-9bd3ec963808",
+      "fireId": "sched:805360bc-ce01-4e3a-8c77-2ecc3421adc3:1:1792623480779",
+      "observations": {
+        "fakeReplies": 0,
+        "globalForgeryCount": 4,
+        "intercepted": 0,
+        "ordinarySdkContinued": true
+      },
+      "forgedJournalCount": 0,
+      "foreignForgeryPresent": false,
+      "cleanup": {
+        "status": "PASS",
+        "action": "formal UI uninstall",
+        "source": "lifecycle/private-port-cleanup/uninstall-1792623542467-00d3b81f-ff95-418f-baae-cc7315d6ebcf.json"
+      },
+      "source": "private-port-probe/proof.json",
+      "scope": "Native installed-app global message and synthetic rebind attempts; no private-port extraction or stale-document epoch claim."
+    },
+    "controller": {
+      "status": "PASS",
+      "runId": "2d9d8c59-f2a0-4866-8fb5-1719ee07acfa",
+      "pageCount": "1",
+      "result": "{\n  \"count\": \"1\",\n  \"kind\": \"controller-r14-regression\"\n}",
+      "task": "已完成 · 资源已释放",
+      "nativeInput": true,
+      "url": "http://127.0.0.1:43111/demo-form.html",
+      "source": "controller-native/proof.json"
+    },
+    "page": {
+      "status": "NOT_TESTED",
+      "classification": "HARNESS_ACTION_INCOMPLETE",
+      "source": "page-native/proof.json",
+      "reason": "Mac select native input did not choose Page; Run was never clicked. No product failure or Page PASS is claimed."
+    },
+    "bundleHashVerification": {
+      "status": "PASS",
+      "files": 106,
+      "manifest": "b1-files.sha256.json"
+    },
+    "gitPush": {
+      "status": "PASS",
+      "sha": "a5002804135a9c6a04dde28bf29e1c1f92143a00",
+      "branch": "main",
+      "remote": "origin/main",
+      "method": "normal push; local and remote SHA verified equal"
+    }
+  },
+  "independentFinalReview": {
+    "status": "BELOW_95",
+    "source": "artifacts/dynamic-app-r14-local/expert-final-followup.md",
+    "scores": {
+      "真实 Chrome 可行性": 93,
+      "Runtime 架构唯一性与精简性": 88,
+      "SDK 身份、权限与安全隔离": 92,
+      "生命周期与运行可靠性": 89,
+      "编译后双应用独立性": 93,
+      "MV3 与发布合规": 78
+    },
+    "supportedFinalConditions": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      13,
+      14
+    ],
+    "incompleteFinalConditions": [
+      11,
+      12,
+      15
+    ],
+    "newBlockingProductDefectConfirmed": false,
+    "gDynamic": "CORE_NATIVE_CHAIN_PASS; FULL_GOAL_NOT_VERIFIED",
+    "gDecoupling": "NOT_COMPLETE",
+    "releasePolicy": "RELEASE_POLICY_NOT_VERIFIED"
   }
 }

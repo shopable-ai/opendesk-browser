@@ -53,7 +53,7 @@ Chrome 原生 Alarm 的实际创建、时间、自然到期及执行链均有证
 
 ## 生命周期与异常证据
 
-以下状态将随本轮最后的原生步骤补齐；未执行项目保持 NOT_TESTED，不将 B0 结果自动提升为 B1 PASS。
+以下按实际已执行范围记录；未执行项目保持 NOT_TESTED，不将 B0 结果自动提升为 B1 PASS。
 
 | 行为 | B1 状态与证据 |
 | --- | --- |
@@ -66,9 +66,13 @@ Chrome 原生 Alarm 的实际创建、时间、自然到期及执行链均有证
 | 运行中卸载 A、B 继续运行 | PASS；`uninstall-active-1792621507956/proof.json` 及 `lifecycle/b1-after-uninstall-proof.json`，A 安装和 owned storage 清理，B 后续 Alarm 成功 |
 | 写成功、回执丢失后对账 | B1 FAULT_SCENARIO_OBSERVED；`fault-b1-ack-lost/report.json`，实际 native set 成功后丢失回执，原对账完成；临时注入已恢复 |
 | 写成功、回执与读回都丢失 | B1 FAULT_SCENARIO_OBSERVED；`fault-b1-unknown/report.json`，native commit 1 次，记录未知结果，不自动重放，临时注入已恢复 |
-| 伪造 SDK/Sender | B1 源码自身七字段和跨应用探针 PASS；B0 有 24 项真实拒绝；所有私有 Port、旧 document epoch 及不同市场发布者完整原生矩阵 NOT_TESTED |
+| 伪造 SDK/Sender | B1 应用自身七字段、跨应用与全局消息绕过探针 PASS；B0 有 24 项真实拒绝；私有 Port 提取、旧 document epoch 及不同市场发布者完整原生矩阵 NOT_TESTED |
 | 有界队列超额、长期公平性 | 单槽双应用和超时排队 PASS；超额及长期饥饿场景 NOT_TESTED |
-| 原 Controller/Page/Cloud/官方应用 | 受影响权限与边界定向 Node 测试通过；同 B1 完整原生回归矩阵 NOT_TESTED |
+| 原 Controller/Page/Cloud/官方应用 | B1 原 Controller 网页点击、结果读回及资源释放原生 PASS；Page 在原生 select 驱动处未完成、没有执行脚本，记 NOT_TESTED；Cloud/官方应用完整原生矩阵 NOT_TESTED |
+
+补充原生负向场景：冻结后生成的临时应用 `app-port-probe-b27124ba17e1` 通过正式 UI 安装并由真实 Alarm 执行，尝试四条全局 Worker 伪造消息、合成 bind/execute 和 MessagePort 原型拦截。观测到假通道回复 0、捕获私有发送 0、伪造 journal 0、B 无伪造存储；普通 SDK 后续正常，Run `0fb47b7b-806e-414d-b91d-80e3ae425a7e` completed 且 Worker 退役。随后通过正式 UI 卸载临时应用；它不是交付的 A/B 包，不代表已完成私有 Port 提取及旧 document epoch 矩阵。证据 `private-port-probe/proof.json`。
+
+同 B1 的原 Controller 回归从真实开发 UI 编辑零参数 `main()` 并点击运行，标准 demo-form 按钮仅点击一次、计数 0→1，UI 显示正确结果和资源释放，Run `2d9d8c59-f2a0-4866-8fb5-1719ee07acfa`。证据 `controller-native/proof.json`。Page 回归尚未通过 Mac 原生 select 操作，停在点击运行之前；这是驱动操作未完成，不据此修改产品或声称 Page PASS。自有网页/测试 UI 已关闭，既有 43111 服务未停止。
 
 30 秒执行期限、原存储/响应预算继续生效。无 OS 级 Worker 强制内存隔离、任意副作用 exactly-once、精确秒级 Alarm、浏览器关闭后继续执行或商店审核承诺。临时故障注入明确与普通无 debugger 的正常链分开，恢复后才离开场景。
 
@@ -77,7 +81,7 @@ Chrome 原生 Alarm 的实际创建、时间、自然到期及执行链均有证
 - 定向测试：Controller 权限 135 项、app-service Host/context 19 项、包合同 17 项通过；早期相关 Scheduler、Cloud/SDK、CSP 来源门禁证据保留，不声称全仓 CI 全通过。
 - 正式 production 构建通过，原 opaque Worker 动态执行位置受既有静态验证约束；特权页面 CSP 没有放宽。
 - 原生驱动：[tests/native/dynamic-app-r14.mjs](../../../tests/native/dynamic-app-r14.mjs)、helper 与 README。精确 Alarm、成功终态、身份、完整 payload、CSP 事件及 journal 均有断言。两次独立审查发现并纠正旧驱动假 PASS 风险，后续审查确认四项修复。
-- 只提交本轮文件与两份正式包；工作区其他会话的书签、Native、开发/工作流 UI、构建证据等改动保留。main 远端整合已由原 owner 完成；本轮产品、示例包和精简证据已本地提交，普通推送及远端 SHA 以最终 Git 核对为准。
+- 只提交本轮文件与两份正式包；工作区其他会话的书签、Native、开发/工作流 UI、构建证据等改动保留。main 远端整合已由原 owner 完成；本轮产品、示例包和精简证据已普通推送 `a5002804135a9c6a04dde28bf29e1c1f92143a00`，当时核对本地与 origin/main SHA 一致；补充记录后的最终 SHA 以交付 Git 核对为准。
 
 ## G-DECOUPLING：仍未完成
 
@@ -95,7 +99,7 @@ Chrome 原生 Alarm 的实际创建、时间、自然到期及执行链均有证
 
 隔离上下文中的远程逻辑例外仍要求功能可审查和数据政策合规。该文档不是对本产品动态应用及 SDK 桥接范围的商店认可；尚未提交商店，也没有审核结论：`RELEASE_POLICY_NOT_VERIFIED`。
 
-## 独立六维阶段评分
+## 独立六维复核评分
 
 | 维度 | 分数 | ≥95 |
 | --- | ---: | --- |
@@ -116,3 +120,5 @@ Chrome 原生 Alarm 的实际创建、时间、自然到期及执行链均有证
 | MV3/发布 | 官方文档、实际 opaque Worker 与 CSP，特权 CSP 未放宽 | 商店可审查性和 SDK 桥接政策未获得审核确认 | 准备固定候选的政策审查材料；不自动发布 |
 
 评分是独立子审查的阶段结论；评审时的主线整合阻塞随后已解除，新增重启、超时和最终包证据不自动上调分数。逐维实证、风险、未测和最小动作保留在 `artifacts/dynamic-app-r14-local/expert-six-dimensions.md`。main 已安全整合，普通推送按用户授权完成；最小剩余顺序是补齐当前候选身份/队列及原生回归门槛，再完成固定候选发布政策审查。G-DYNAMIC 全条件验收、G-DECOUPLING 和商店合规分别判断，均不能因两个算法成功就一并标完成。
+
+最后一次独立复核依据新增原生消息负向、Controller 与主线整合证据，维持上述六项分数，未确认新增阻断性产品缺陷。原始15条件中 1–10、13、14 在已明确的证据边界内得到支持；11（完整权限／计划／结果隔离）、12（独立撤权和旧身份迟到消息等相关边界）、15（Page／Cloud／官方应用受影响的原生回归）尚未完全闭合。不得将未测项改写成产品 FAIL，也不得将核心链提升为完整 G-DYNAMIC PASS。独立复核正文由父 agent 原样保存于 `artifacts/dynamic-app-r14-local/expert-final-followup.md`，复核子 agent 未修改产品文件或操作浏览器。
