@@ -454,6 +454,61 @@
       "realPaidOrders": "MISSING",
       "mainBranchOnly": true,
       "notes": "S0 is desk/source evidence only; no product implementation or market outcomes changed. Preserve EXP-002 ARCHIVED_STOP and all 8 IDs, null metrics and original gates."
+    },
+    "researchAuditR13": {
+      "asOf": "2026-10-21",
+      "sourceReviewMain": "d3f88693b98cd9fcb143b17bd1bb88ece13af08a",
+      "sourceReviewStatus": "SOURCE_AUDITED_WITH_DOCUMENTED_GAPS_NOT_PRODUCT_PASS",
+      "originalCommercialGoalPreserved": true,
+      "sourceGate": "PRODUCT_IMPLEMENTATION_NOT_APPROVED_PREVIEW_PENDING_USER_CONFIRMATION",
+      "researchMode": "READ_ONLY_PRODUCT_SOURCE_PUBLIC_COMPETITOR_DOCS",
+      "sourceOwnersReviewed": [
+        "src/knowledge/page.js",
+        "src/knowledge/model.js",
+        "src/knowledge/service.js",
+        "examples/sidebar-tools/knowledge-inbox/src/main.js",
+        "examples/sidebar-tools/web-markdown-clipper/src/notes.js",
+        "examples/sidebar-tools/web-markdown-clipper/trusted/notes-store.js",
+        "examples/sidebar-tools/prompt-shortcuts/src/main.js",
+        "examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js",
+        "src/platform/chrome/browser-downloads.js",
+        "src/platform/downloads/index.js"
+      ],
+      "concurrentImplementationFinding": "PROMPT_SHORTCUTS_HAS_COMPRESSED_LOCAL_IMAGE_ASSETS_KNOWLEDGE_ORIGINAL_IMAGE_COMPLETION_AND_OFFLINE_BUNDLE_STILL_UNPROVEN",
+      "exp003SourceBlocker": "CAPTURE_IMAGE_RETURNS_DOWNLOAD_ID_WITHOUT_TERMINAL_FILE_MIME_SHA_RECEIPT_OR_MARKDOWN_IMAGE_BINDING",
+      "browserDownloadsConstraint": "OWNED_DOWNLOAD_REFS_VOLATILE_ACROSS_WORKER_RESTART",
+      "macChrome": "NOT_TESTED_BROWSER_CONTEXT_UNAVAILABLE",
+      "nativeCandidateBuildSha": null,
+      "nativeFileHash": null,
+      "nativeTestArtifact": null,
+      "sourceReadOnlyChecks": "GITHUB_BLOB_AND_COMPARE_ONLY_NOT_NODE_OR_CHROME_TEST",
+      "previewUserApproval": "MISSING",
+      "obsidianSameTask": "NOT_TESTED_OFFICIAL_DOCS_ONLY",
+      "readwiseSameTask": "NOT_TESTED_OFFICIAL_DOCS_ONLY",
+      "exp001BudgetBuyerInterviews": "PREPARED_FIVE_SLOTS_NO_INTERVIEWS_COMPLETED",
+      "exp001WrittenQualifiedQuote": "MISSING",
+      "exp005AuthorizedSellerCsv": "MISSING",
+      "officialKeywordPlannerWordsPreRegistered": 13,
+      "officialKeywordPlannerUSJP": "MISSING_NO_AUTHORIZED_ACCOUNT_EXPORT",
+      "approvedAdBudget": "MISSING",
+      "paidAdExecution": "NOT_EXECUTED",
+      "userRepeatUse": "NOT_MEASURED",
+      "realPaidOrders": "MISSING",
+      "newOpportunities": 0,
+      "newExperiments": 0,
+      "formalProductChanges": "NONE",
+      "investmentDecision": {
+        "A": "NOT_DECIDED",
+        "B": "NOT_DECIDED",
+        "C": "NOT_DECIDED",
+        "paidAcquisition": "NOT_DECIDED"
+      },
+      "evidenceReferences": [
+        "docs/product/browser-extension-ecosystem/competitor-research.zh-CN.md#r13-native-and-buyer--2026-10-21--同任务竞品反证协议",
+        "docs/product/browser-extension-ecosystem/distribution-and-validation.zh-CN.md",
+        "docs/framework/workstreams/ai-artifact-delivery-r1-20261020.md"
+      ],
+      "notes": "Preserved all 8 existing EXP definitions, metrics:null, all original gates and commercial priorities. Mac/CWS/Keyword Planner/customer evidence not fabricated; approved same-source preview gate blocks unapproved source implementation."
     }
   }
 }
