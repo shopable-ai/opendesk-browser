@@ -74,7 +74,7 @@ export async function createSidebarToolPackage(projectPath) {
     fail('unsupported shared UI runtime');
   if(!meta||typeof meta!=='object'||Array.isArray(meta)||
      Object.keys(meta).some(key=>!(v2
-       ?['format','id','version','title','description','capabilities','files','assets','requires','contributes','locales','uiRuntime','backgroundPolicy']
+       ?['format','id','version','title','description','capabilities','files','assets','requires','contributes','locales','uiRuntime','backgroundPolicy','initialData']
        :['id','version','title','description','capabilities','files','assets','locales','uiRuntime','backgroundPolicy']).includes(key))||
      (!v2&&Object.hasOwn(meta,'format'))||
      !meta.files||typeof meta.files!=='object'||Array.isArray(meta.files)||
@@ -143,7 +143,8 @@ export async function createSidebarToolPackage(projectPath) {
     title:meta.title,description:meta.description,capabilities:meta.capabilities||[],html:embeddedHtml,css,js,
     ...(meta.uiRuntime?{uiRuntime:meta.uiRuntime}:{}),
     ...(meta.backgroundPolicy!==undefined?{backgroundPolicy:meta.backgroundPolicy}:{}),
-    ...(v2?{requires:meta.requires,contributes:meta.contributes,...(scripts.length?{scripts}:{})}:{})});
+    ...(v2?{requires:meta.requires,contributes:meta.contributes,...(scripts.length?{scripts}:{}),
+      ...(meta.initialData!==undefined?{initialData:meta.initialData}:{})}:{})});
   return pkg;
 }
 // The digest/size must describe the actual portable UTF-8 file, including its

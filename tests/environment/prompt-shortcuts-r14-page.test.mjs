@@ -288,6 +288,37 @@ for(const provider of ['DeepSeek','Gemini']){
   }
 }
 
+
+test('R1.9 three new default prompts have only one resting entry and expand to safe insert choices',async()=>{
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const f=fixture({pkg,library:pkg.initialData.library,grants:{}});
+  const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+  try{
+    await settle();
+    assert.equal(f.rail().children.length,1,'initial rail is exactly one launcher');
+    const launcher=f.rail().children[0];
+    assert.equal(launcher.textContent,'快捷');
+    assert.equal(launcher.getAttribute('aria-expanded'),'false');
+    launcher.emit('click',{isTrusted:false});
+    assert.equal(f.rail().children.length,1,'synthetic click cannot expand');
+    launcher.emit('click',{isTrusted:true});await settle();
+    assert.equal(f.rail().children.length,5,'launcher, three real prompts, one management action');
+    assert.deepEqual(f.buttons().slice(0,3).map(button=>button.getAttribute('aria-label')),
+      ['插入提示词：浏览器插件定制','插入提示词：软件定制与外包','插入提示词：AI 提示词扩展']);
+    const first=f.buttons()[0];
+    first.emit('click',{isTrusted:true});
+    await settle();
+    assert.equal(f.calls.length,1);
+    assert.equal(f.calls[0].command,'insertText');
+    assert.equal(f.calls[0].text,'\n'+pkg.initialData.library.items[0].body);
+    assert.equal(f.editor.textContent,'已有草稿\n'+pkg.initialData.library.items[0].body);
+    assert.equal(f.rail().children.length,1,'after insertion the rail collapses again');
+    assert.equal(controller.diagnostics().items,3);
+    f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});await settle();
+    assert.equal(f.rail(),undefined,'revocation removes launcher immediately');
+  }finally{controller.dispose();}
+});
+
 test('R1.13 ChatGPT rail: no second consent, one click-to-draft, independent enable lifecycle',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
   const model=globalThis.OpenDeskPromptShortcutsModel;

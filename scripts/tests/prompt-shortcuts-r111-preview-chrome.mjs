@@ -138,7 +138,11 @@ async function run(){
   await connect();
   await call('Emulation.setDeviceMetricsOverride',{width:1200,height:1000,deviceScaleFactor:1,mobile:false});
   await call('Page.navigate',{url:pathToFileURL(resolve('examples/sidebar-tools/prompt-shortcuts/preview/index.html')).href});
-  await poll('document.readyState==="complete"&&document.querySelectorAll(".prompt-card").length===4','four cards');
+  await poll('document.readyState==="complete"&&document.querySelectorAll(".prompt-card").length===3','three first-install demo cards');
+  assert.equal(await evalChrome('document.querySelector("#pageRail .page-shortcut")?.textContent'), '插件',
+    'new default fixture must expose the first seed');
+  await evalChrome('(()=>{const select=document.querySelector("#previewDataScenario");select.value="legacy";select.dispatchEvent(new Event("change",{bubbles:true}));})()');
+  await poll('document.querySelectorAll(".prompt-card").length===4','legacy four cards');
   await poll('document.querySelector("#pageRail img[data-preview-fixture]")?.naturalWidth>0',
     'R3.5 offline example image decoded');
   report.r35ImageEvidence=[];

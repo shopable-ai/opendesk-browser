@@ -484,7 +484,13 @@ border:0;background:transparent;color:var(--od-sub)}
  <div class="demo-controls" aria-label="预览控制">
   <span class="design-badge">模拟预览 · 非真实安装</span>
   <a id="brandAdLabLink" class="od-button od-button--small" href="./brand-ad-lab-r213.html" title="打开 R2.13 四种 ChatGPT 对话状态与双广告区域高保真设计预览（仅 HTML 模拟）">R2.13 广告视觉预览 ↗</a>
-  <button id="size320" class="od-button od-button--small" type="button">320px</button>
+  <label class="demo-mode">数据场景 <select id="previewDataScenario" aria-label="模拟提示词初始化和旧版升级">
+  <option value="fresh">首次安装 · 3 条</option>
+  <option value="legacy">已有数据升级 · 4 条</option>
+  <option value="empty">主动清空 · 0 条</option>
+ </select></label>
+ <button id="previewReopen" class="od-button od-button--small" type="button">模拟重新打开</button>
+ <button id="size320" class="od-button od-button--small" type="button">320px</button>
   <button id="size360" class="od-button od-button--small" type="button">360px</button>
   <button id="size400" class="od-button od-button--small" type="button">400px</button>
   <button id="size440" class="od-button od-button--small" type="button">440px</button>
@@ -671,17 +677,28 @@ border:0;background:transparent;color:var(--od-sub)}
  // user-facing URL; neither exports nor the trusted model ever see this data: URI.
  const PREVIEW_DEFAULT_IMAGE_URL='https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=160&h=120&fit=crop';
  const PREVIEW_OFFLINE_PNG='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAABgCAMAAADipIp7AAAAYFBMVEUeWUZFZoAxb1tnqN+HueBaot55suBSnt6YweL/5pvt9/dxruBOnN4ZSjmRvuGmyeJEQzexz+O10OMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACXZQ/FAAACtElEQVR42u2W2ZKcMAxFr5UJCcrSy/9/bHoDbCzZkscDlS7uG8i65zRNTw1+7xzsLvBj5xwC+wt83zmHwCHw5gLjM0WBb1+XcYl+CFvgSwrYiK8aYCu+ZoDN+IrBmwqMo9ngPQXG0W7wXwtwF4FfzWFmZaIKCGfxGf7+AtxBYGgMPyPOVAHhLD7HlwUGO79VgJkbHsGXCDgMhn4CvLMAc4vB0E2AucVg2FhgsPEHfLjDWZSDEV5vQwc+q2er+AYBZo9BPX0EeDsB3lmAubcBWvghhG4GfoHwzOyypcCCnwwilw0E+CMESeB1scETCGFlkFw1Cvy1J6zCq8t6Ayq34BNYRVxJYcgJ+BklucgSahFXkn7kBEjz0MQP8krSnxtIAnqZz2B9uyYwzeWPE9wG69uAZJAL1NqsAtn9msBrLveF4DXI7gOigSiArM8tkA8SAeQC8zwWmBpDcBrkAyA2KAukX4SL/zIIFYHoi8DpmWi+EginU4VJ6WnxPOLcaacJnAtk72KNf0vd98+SJywVQLsAUWqgPK+KwGkZ+wxoTvlcxJ8IXQSIjAY1gXxMXn5RQeC/DKA8AJMBZSmfP5/Pt5+MJCD5Efn5lZ2bAFH8c5wFlnk0rtSRkq4C5OeXdlaAhwFmPtFtnoxLbVRKaScTuFwu01QSoAa+vDWNovftxr5g4a/HhjKHgQB4GOCaFCZjrYxMUXYSwvV6RdooClALP1lTAHcDlMbixykQoRhQUYD0MQSDAn5+cVdr+dHHH4TH9ApSx2mfjS8YkE64j1UBrAtNeEGhKECagNhn41sMFgGqCxj6sv+nrL8T8Szg7YN/JdozlJXr4F9J1ixlpb6GFfWdRSlefMFAOYVK3Hzjjq1JrGvYUU7AGD8/3VEOwB43PlpCn1BDXUf8ZIBdszf/yJEjnfMPBwDKsOWXzB0AAAAASUVORK5CYII=';
- const INITIAL=[
+ const LEGACY_IMAGE_ITEMS=[
   {id:'a',label:'润色',name:'专业文字润色',body:'请在不改变原意的前提下润色以下文字：\n1. 保持语气专业、自然；\n2. 改进逻辑和清晰度；\n3. 输出优化后的完整正文。',enabled:true,shape:'square'},
   {id:'b',label:'总结',appearance:'image',imageUrl:PREVIEW_DEFAULT_IMAGE_URL,name:'重点总结',body:'请将上述信息总结为：\n一、核心结论；\n二、重要依据；\n三、建议下一步。',enabled:true,shape:'square'},
   {id:'c',label:'翻译',name:'中英双向翻译',body:'请根据原文语言进行中英双向翻译，保留段落结构、专有名词和原有语气。',enabled:true,shape:'round'},
   {id:'d',label:'检查',name:'',body:'请检查内容中的逻辑漏洞、遗漏与相互矛盾处，逐条说明并提供修复建议。',enabled:true,shape:'square'}
  ];
+ // This scenario uses the same three data rows as the signed first-install manifest.
+ const INITIAL=[
+  {"id":"ps_seed_plugin","label":"插件","name":"浏览器插件定制","body":"请帮我整理一份浏览器插件定制开发需求。包括使用场景、核心功能、适用网站、权限要求、交互界面、技术可行性、开发周期和验收标准。如果信息不足，先向我提出关键问题。","enabled":true,"shape":"square","appearance":"text","imageUrl":"","labelAuto":false,"nameAuto":false,"order":0},
+  {"id":"ps_seed_outsource","label":"外包","name":"软件定制与外包","body":"我准备开发一款软件，请帮我梳理项目需求，包括目标用户、核心功能、Web 或 App 平台选择、MVP 范围、技术方案、人员配置、开发周期、预算影响因素和验收标准。请先帮我明确关键需求。","enabled":true,"shape":"square","appearance":"text","imageUrl":"","labelAuto":false,"nameAuto":false,"order":1},
+  {"id":"ps_seed_ai_prompt","label":"提示","name":"AI 提示词扩展","body":"请帮我设计一个 AI 提示词快捷按钮扩展，让用户可以保存、分类和快速使用常用提示词。请给出核心功能、按钮交互、数据存储、网站兼容、权限控制和 MVP 开发建议，并提供 3 个实用提示词示例。","enabled":true,"shape":"square","appearance":"text","imageUrl":"","labelAuto":false,"nameAuto":false,"order":2}
+ ];
  const $=selector=>document.querySelector(selector), el=id=>document.getElementById(id), encoder=new TextEncoder();
- const COPY=()=>INITIAL.map(item=>({...item}));
+ const COPY=()=>((el('previewDataScenario')?.value==='legacy'?LEGACY_IMAGE_ITEMS:el('previewDataScenario')?.value==='empty'?[]:INITIAL).map(item=>({...item})));
  // Initialize before restoreDemoItems() calls validLabel/glyphs on stored rows.
  const segmenter=typeof Intl.Segmenter==='function'?new Intl.Segmenter('zh',{granularity:'grapheme'}):null;
  const DEMO_ITEM_KEY='opendesk.prompt-shortcuts.preview.items-r3';
+ const DEMO_SCENARIO_KEY='opendesk.prompt-shortcuts.preview.scenario-r19';
+ try{
+   const scenario=localStorage.getItem(DEMO_SCENARIO_KEY);
+   if(['fresh','legacy','empty'].includes(scenario))el('previewDataScenario').value=scenario;
+ }catch{/* Offline preview still works without localStorage. */}
  const DEMO_SETTINGS_KEY='opendesk.prompt-shortcuts.preview.settings-r31';
  // Original preview's browser-only simulator, not the real Host.
  // Keep image bytes separate from the 8-KiB prompt library.
@@ -723,8 +740,8 @@ border:0;background:transparent;color:var(--od-sub)}
    return rows.map(row=>{if(!row||typeof row.body!=='string'||!row.body.trim()||!validLabel(row.label)||
       !['text','image'].includes(row.appearance??'text'))throw Error('invalid demo item');
      // Upgrade only the untouched historical sample; never rewrite custom rows.
-     const oldSample=row.id==='b'&&row.label===INITIAL[1].label&&row.body===INITIAL[1].body&&
-       row.name===INITIAL[1].name&&!row.imageUrl&&
+     const oldSample=row.id==='b'&&row.label===LEGACY_IMAGE_ITEMS[1].label&&row.body===LEGACY_IMAGE_ITEMS[1].body&&
+       row.name===LEGACY_IMAGE_ITEMS[1].name&&!row.imageUrl&&
        (row.appearance===undefined||row.appearance==='text');
      const appearance=oldSample?'image':row.appearance??'text';
      const imageUrl=validPictureURL(oldSample?PREVIEW_DEFAULT_IMAGE_URL:row.imageUrl??'');
@@ -1445,6 +1462,23 @@ border:0;background:transparent;color:var(--od-sub)}
   el('themeButton').querySelector('use').setAttribute('href',dark?'#ps-icon-sun':'#ps-icon-moon');
   el('themeButton').setAttribute('aria-label',label);el('themeButton').title=label;
   el('themeButton').setAttribute('aria-pressed',String(dark));
+ });
+ // The scenario switch simulates storage states without touching real tool data.
+ // An intentionally saved [] must remain [] on reopen instead of being seeded.
+ el('previewDataScenario').addEventListener('change',()=>{
+  if(currentView==='form'&&dirty){showFormError('请先处理未保存草稿再切换测试数据。');return;}
+  const next=COPY();
+  if(!persistDemoItems(next)){notice('模拟存储写入失败，未切换数据。','error');return;}
+  try{localStorage.setItem(DEMO_SCENARIO_KEY,el('previewDataScenario').value);}catch{}
+  state.items=next;state.revision++;expandedId=null;deleteId=null;copyId=null;
+  discardImport();cleanupDemoAssets();returnIndex();
+  notice('已加载'+(next.length?' '+next.length+' 条':'空列表')+'的模拟数据，刷新后仍保留。','success');
+ });
+ el('previewReopen').addEventListener('click',()=>{
+  if(currentView==='form'&&dirty){showFormError('请先处理未保存草稿再模拟重开。');return;}
+  state.items=restoreDemoItems();state.settings=restoreDemoSettings();state.revision++;
+  expandedId=null;deleteId=null;copyId=null;discardImport();returnIndex();
+  notice('已重新读取已保存数据：'+countText()+'（仅模拟）。','success');
  });
  el('resetButton').addEventListener('click',()=>{if(currentView==='form'&&dirty){showFormError('当前编辑尚未保存，请先取消或保存，再重置模拟数据。');return;}
   try{localStorage.removeItem(DEMO_ITEM_KEY);localStorage.removeItem(DEMO_SETTINGS_KEY);localStorage.removeItem(DEMO_ASSET_KEY);imageAssets={};draftImageAssetId='';}catch{}state={version:1,revision:state.revision+1,settings:{showBar:true,contextMenu:false,imageSize:'large'},items:COPY(),toolEnabled:true};installed=true;el('reopenTool').hidden=false;el('toolListMessage').textContent='已模拟返回宿主工具列表。选择下方工具可重新进入管理页。';closeUninstall();discardImport();nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockDraft').disabled=false;el('actionScenario').value='normal';document.querySelector('.browser-address').textContent='chatgpt.com · 模拟网页';el('mockContextMenu').hidden=true;el('siteDetails').hidden=true;el('sitesButton').setAttribute('aria-expanded','false');el('sitesButton').classList.remove('is-open');el('sitesButton').setAttribute('aria-label','展开适用网站');el('sitesButton').title='展开适用网站';returnIndex();notice('已重置为初始模拟数据。');});

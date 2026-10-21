@@ -406,7 +406,7 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         state,reason:reason.slice(0,140),updatedAt:Date.now()}};
       await writeVerifiedLocalValue(api,MARKET_OPERATIONS_STORE,trimmedOperations(updated),original,'市场事务记录');
     };
-    let registryAttempted=false,registryCommitted=false;
+    let registryAttempted=false,registryCommitted=false,seeded=false;
     try{
       // The registry write is the commit boundary. Preserve the installed
       // tool's data and valid grants if that write fails. Orphan grants for
@@ -453,6 +453,16 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
           previousMenu.packageHash===await sidebarToolPackageHash(existing)&&
           Array.isArray(previousMenu.activeActions)&&Array.isArray(previousMenu.origins);
       }
+      // Only a new installation with a genuinely absent namespace may receive
+      // reviewed initialData. Never seed on upgrades, empty saved libraries, or
+      // failed uninstall cleanup. The existing catalog/tool lock serializes writes.
+      if(!existing&&tool.initialData!==undefined){
+        const key=sidebarToolStorageKey(tool.id);
+        if((await api.storage.local.get(key))[key]!==undefined)
+          throw error('首次安装数据位置已被占用，拒绝覆盖','E_TOOL_ORPHAN_DATA');
+        await writeVerifiedLocalValue(api,key,tool.initialData,undefined,'工具首次安装数据');
+        seeded=true;
+      }
       const next=existing?installed.map(row=>row.id===tool.id?tool:row):[...installed,tool];
       registryAttempted=true;
       const registry=await writeVerifiedLocalValue(api,SIDEBAR_TOOL_STORE,next,installed,'工具安装记录');
@@ -489,6 +499,22 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       await writeOp('succeeded');
       return {state:'installed',tool,operationId:identity?.operationId||null};
     }catch(cause){
+      // A confirmed pre-commit failure must not strand default data as an orphan,
+      // but an unknown/committed registry outcome must NEVER delete it.
+      if(seeded&&!registryCommitted&&cause?.code!=='E_OUTCOME_UNKNOWN'){
+        try{
+          const present=await getInstalledSidebarTools(api);
+          if(!present.some(row=>row.id===tool.id)){
+            const key=sidebarToolStorageKey(tool.id);
+            const raw=(await api.storage.local.get(key))[key];
+            if(!sameStorageValue(raw,tool.initialData))
+              throw unknownStorageOutcome(null,'首次安装数据回滚前核对');
+            await removeVerifiedStorageKey(api.storage.local,key,'首次安装数据回滚');
+          }
+        }catch(rollbackError){
+          throw unknownStorageOutcome(rollbackError,'首次安装数据恢复');
+        }
+      }
       if(!registryCommitted&&cause?.code!=='E_OUTCOME_UNKNOWN'&&(!registryAttempted||
         ['E_HOST_STORAGE_WRITE','E_HOST_STORAGE_QUOTA'].includes(cause?.code))){
         try{await writeOp('failed',cause?.code||'pre-commit');}catch{}
