@@ -457,7 +457,7 @@
   overflow:hidden;
   padding-bottom:0;
 }
-#workbench-tools:has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])){
+#workspace-content > #workbench-tools:not([hidden]):has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])){
   display:flex;
   flex:1 1 auto;
   flex-direction:column;
