@@ -67,6 +67,10 @@ export function MyAgentPanel({agent}){
       <ConversationTranscript rows={state.rows} showSpeaker={false} entryClassName="my-agent-message"/>
     </div>
     {state.step&&<p role="status" className="my-agent-progress">{state.step}</p>}
+    {state.technical&&<details className="my-agent-technical">
+      <summary>技术详情</summary>
+      <pre>{state.technical}</pre>
+    </details>}
     {state.pending&&<div className="my-agent-review" role="group" aria-label="确认 AI 操作">
       <p><strong>执行前确认</strong></p>
       <p>{state.pending.summary}</p>
