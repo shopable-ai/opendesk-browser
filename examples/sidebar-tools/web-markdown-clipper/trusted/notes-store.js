@@ -1,8 +1,7 @@
 import {sidebarToolStorageKey} from '../../../../src/ui/sidebar-tools/package.js';
 import {writeVerifiedLocalValue} from '../../../../src/ui/sidebar-tools/storage-state.js';
 
-// Same installed-tool namespace and existing "clips" value as 1.1.4.
-// No cross-tool read, migration reset, or generic SDK quota relaxation.
+// A single tool-owned "clips" library; no cross-tool read or generic SDK quota relaxation.
 export const CLIP_NOTES_OPERATIONS=Object.freeze([
   'clipNotes.list','clipNotes.get','clipNotes.save','clipNotes.edit','clipNotes.remove','clipNotes.backup'
 ]);
@@ -17,18 +16,19 @@ const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const titleOf=body=>[...String(body).trim().replace(/^#{1,6}\s*/,'').split(/\r?\n/)[0]]
   .slice(0,42).join('')||'新便签';
 const idValid=id=>typeof id==='string'&&/^clip-[a-z0-9-]{8,90}$/.test(id);
-export function clipSource(raw,{legacy=false}={}){
+export function clipSource(raw){
  if(!raw)return '';
- if(typeof raw!=='string'||bytes(raw)>1200)throw error('E_SOURCE','来源地址过长或无效');
+ if(typeof raw!=='string'||bytes(raw)>4096)throw error('E_SOURCE','来源地址过长或无效');
  let u;try{u=new URL(raw);}catch{throw error('E_SOURCE','网页来源地址无效');}
  if(!['http:','https:'].includes(u.protocol)||u.username||u.password)
   throw error('E_SOURCE','只能保存有效 HTTP(S) 网页来源');
- if(legacy)return u.href;
  u.hash='';
  for(const key of [...u.searchParams.keys()])
   if(/^(?:access[_-]?token|id[_-]?token|token|auth(?:orization)?|jwt|api[_-]?key|session(?:[_-]?id)?|secret|password|credential|oauth[_-]?code)$/i.test(key))
    u.searchParams.delete(key);
- return u.href.replace(/[()]/g,ch=>ch==='('?'%28':'%29');
+ const normalized=u.href.replace(/[()]/g,ch=>ch==='('?'%28':'%29');
+ if(bytes(normalized)>4096)throw error('E_SOURCE','来源地址过长或无效');
+ return normalized;
 }
 export function readClipLibrary(value){
  if(value==null)return empty();
@@ -41,12 +41,12 @@ export function readClipLibrary(value){
      !['note','clip'].includes(row.kind)||typeof row.body!=='string'||!row.body.trim()||
      bytes(row.body)>CLIP_NOTES_LIMITS.bodyBytes||
      typeof row.title!=='string'||bytes(row.title)>400||
-     typeof row.source!=='string'||bytes(row.source)>1200||
+     typeof row.source!=='string'||bytes(row.source)>4096||
      (row.kind==='note'&&row.source!=='')||
      typeof row.createdAt!=='string'||!Number.isFinite(Date.parse(row.createdAt))||
      typeof row.updatedAt!=='string'||!Number.isFinite(Date.parse(row.updatedAt))||
-     (row.source&&clipSource(row.source,{legacy:true})!==row.source))
-    throw error('E_STORAGE_CORRUPT','发现异常旧摘录，不会覆盖原有数据');
+     (row.source&&clipSource(row.source)!==row.source))
+    throw error('E_STORAGE_CORRUPT','发现异常摘录，不会覆盖原有数据');
   ids.add(row.id);
   return {id:row.id,kind:row.kind,body:row.body,title:row.title,source:row.source,
    createdAt:row.createdAt,updatedAt:row.updatedAt};
@@ -132,7 +132,7 @@ export async function executeClipNotes({
  let next,result;
  if(name==='save'){
   const wanted=candidate(payload);
-  const duplicate=library.items.find(row=>wanted.kind==='clip'&&row.kind==='clip'&&
+  const duplicate=library.items.find(row=>row.kind===wanted.kind&&
    row.source===wanted.source&&row.body===wanted.body);
   if(duplicate)return {id:duplicate.id,duplicate:true};
   if(library.items.length>=CLIP_NOTES_LIMITS.maxNotes)
