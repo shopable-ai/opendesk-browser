@@ -7,14 +7,15 @@
 <title>AdBlock · 点击即隐藏 · 手动屏蔽交互评审</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#223047;background:#eff3f8;font-synthesis:none;font-size:14px;--panel:#fff;--paper:#fff;--muted:#66758b;--text:#223047;--line:#e0e7ef;--wash:#f6f8fb;--blue:#315bd0;--soft:#ecf2ff;--good:#197958;--danger:#bd4650;--shadow:0 12px 40px #233a5520}
-*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0}button,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}button:focus-visible,select:focus-visible,[data-block]:focus-visible{outline:3px solid #5e86ed;outline-offset:2px}svg{display:block}p{margin:0}h1,h2,h3{margin:0}
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0}button,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}button:focus-visible,select:focus-visible,input:focus-visible,[data-block]:focus-visible{outline:3px solid #5e86ed;outline-offset:2px}svg{display:block}p{margin:0}h1,h2,h3{margin:0}
 .workspace{max-width:1240px;padding:24px 18px 40px;margin:auto}.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px}.top h1{font-size:19px;letter-spacing:-.4px}.sub{font-size:12px;color:var(--muted);margin-top:4px}.tag{border:1px solid var(--line);background:var(--paper);border-radius:30px;font-size:11px;color:var(--muted);padding:6px 11px}.layout{display:grid;grid-template-columns:minmax(300px,364px) minmax(0,1fr);align-items:start;gap:20px}
 .shell,.browser{border:1px solid var(--line);background:var(--paper);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;min-width:0}.shell{position:sticky;top:12px}.shell-head{height:50px;background:var(--wash);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 12px;gap:9px}.shell-head strong{font-size:14px;flex:1}.head-icon,.icon{border:0;background:transparent;color:var(--muted);display:grid;place-items:center;width:30px;height:30px;border-radius:9px;padding:0}.head-icon:hover,.icon:hover{background:var(--soft);color:var(--blue)}.head-icon svg,.icon svg{width:17px;height:17px}.shell-body{background:var(--wash);padding:12px;min-height:520px;display:grid;align-content:start;gap:12px}.card{border:1px solid var(--line);background:var(--panel);border-radius:13px;padding:15px}.card-title{font-size:13px;font-weight:750}.card-row{display:flex;justify-content:space-between;align-items:center;gap:12px}.card-copy{min-width:0;flex:1}.mini{font-size:11px;line-height:1.55;color:var(--muted);margin-top:6px}.host{display:block;font-size:14px;font-weight:700;margin-top:5px;overflow-wrap:anywhere}.status{font-size:11px;color:var(--good);display:flex;align-items:center;gap:7px;margin-top:7px}.dot{width:7px;height:7px;background:currentColor;border-radius:99px;flex:none}.status.off{color:var(--muted)}.switch{border:0;border-radius:100px;width:42px;height:25px;padding:3px;background:#a8b4c4;flex:none;text-align:left}.switch>span{display:block;width:19px;height:19px;border-radius:100px;background:white;box-shadow:0 1px 4px #0003;transition:transform .12s}.switch[aria-checked=true]{background:var(--blue)}.switch[aria-checked=true]>span{transform:translateX(17px)}.site-actions{border-top:1px solid var(--line);padding-top:12px;margin-top:12px;display:flex;align-items:center;gap:8px}.primary,.secondary,.light{border-radius:9px;border:1px solid transparent;min-height:34px;padding:7px 11px;font-size:12px;font-weight:650;display:inline-flex;justify-content:center;align-items:center;gap:6px}.primary{background:var(--blue);color:#fff}.primary:hover{background:#2448ae}.secondary{background:var(--paper);border-color:var(--line);color:var(--text)}.secondary:hover{border-color:#98add7}.light{background:var(--soft);color:var(--blue)}.light:hover{background:#dce8ff}.grow{flex:1}.text-button{border:0;background:none;color:var(--blue);padding:8px 0;font-size:12px;white-space:nowrap}.text-button:hover{text-decoration:underline}.rowlink{display:flex;align-items:center;justify-content:space-between;border:0;width:100%;background:transparent;padding:6px 2px;text-align:left;font-size:12px;color:var(--text);font-weight:700}.rowlink:hover{color:var(--blue)}.rowlink .count{margin-left:auto;margin-right:12px;color:var(--muted);font-size:11px}.rules-note{font-size:11px;color:var(--muted);line-height:1.6}
-.pick-card{border-color:#9cb7f4;background:var(--panel)}.step-title{display:flex;gap:9px;align-items:center;font-size:13px;font-weight:730}.step-dot{display:grid;place-items:center;width:23px;height:23px;background:var(--soft);color:var(--blue);border-radius:8px;font-size:12px}.pick-guide{font-size:12px;color:var(--muted);line-height:1.65;margin:10px 0}.selection-name{font-weight:760;color:var(--text);font-size:14px;margin:9px 0 4px}.selection-meta{display:block;padding:8px 9px;margin:8px 0 12px;border:1px solid var(--line);border-radius:8px;background:var(--wash);font-size:11px;color:var(--muted);overflow-wrap:anywhere}.selection-warning{font-size:11px;color:#a26021;margin:8px 0}.button-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}.button-row>*{flex:1;min-width:0}.info{font-size:11px;color:var(--muted);line-height:1.6}.notice{border:1px solid var(--line);border-radius:9px;background:var(--paper);padding:8px 10px;font-size:11px;color:var(--muted);line-height:1.5;min-height:33px}.page-head{display:flex;gap:8px;align-items:center}.page-head h2{font-size:14px;flex:1}.rule-list{display:grid;gap:0}.rule-row{padding:12px 0;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:7px}.rule-row:last-child{border-bottom:0}.rule-content{flex:1;min-width:0}.rule-content strong{font-size:12px}.rule-content p{font-size:10px;color:var(--muted);overflow-wrap:anywhere;margin-top:3px}.empty{text-align:center;color:var(--muted);font-size:12px;padding:26px 5px}.footer{font-size:10px;color:var(--muted);line-height:1.55;padding:2px 4px}
+.pick-card{border-color:#9cb7f4;background:var(--panel)}.step-title{display:flex;gap:9px;align-items:center;font-size:13px;font-weight:730}.step-dot{display:grid;place-items:center;width:23px;height:23px;background:var(--soft);color:var(--blue);border-radius:8px;font-size:12px}.pick-guide{font-size:12px;color:var(--muted);line-height:1.65;margin:10px 0}.selection-name{font-weight:760;color:var(--text);font-size:14px;margin:9px 0 4px}.selection-meta{display:block;padding:8px 9px;margin:8px 0 12px;border:1px solid var(--line);border-radius:8px;background:var(--wash);font-size:11px;color:var(--muted);overflow-wrap:anywhere}.selection-warning{font-size:11px;color:#a26021;margin:8px 0}.button-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}.button-row>*{flex:1;min-width:0}.info{font-size:11px;color:var(--muted);line-height:1.6}.notice{border:1px solid var(--line);border-radius:9px;background:var(--paper);padding:8px 10px;font-size:11px;color:var(--muted);line-height:1.5;min-height:33px}.page-head{display:flex;gap:8px;align-items:center}.page-head h2{font-size:14px;flex:1}.rule-list{display:grid;gap:0}.rule-row{padding:10px 0;border-bottom:1px solid var(--line);display:grid;gap:7px}.rule-row:last-child{border-bottom:0}.rule-content{flex:1;min-width:0}.rule-content strong{font-size:12px}.rule-content p{font-size:10px;color:var(--muted);overflow-wrap:anywhere;margin-top:3px}.rule-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px}.rule-action{width:34px;height:34px;min-width:34px;min-height:34px;border:1px solid var(--line);border-radius:9px;display:grid;place-items:center;padding:0;background:var(--paper);color:var(--muted)}.rule-action:hover:not(:disabled){background:var(--soft);color:var(--blue)}.rule-action svg{width:18px;height:18px}.rule-action--delete:hover:not(:disabled),.rule-action--delete:focus-visible{background:color-mix(in srgb,var(--danger) 10%,var(--paper));border-color:var(--danger);color:var(--danger)}.rule-editor{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}.rule-editor label{display:block;font-size:11px;font-weight:700;margin-bottom:6px}.rule-editor input{width:100%;min-height:36px;border:1px solid var(--line);border-radius:9px;padding:8px;color:var(--text);background:var(--paper)}.rule-editor .button-row{justify-content:flex-end}.rule-editor .button-row>*{flex:0 1 auto}.empty{text-align:center;color:var(--muted);font-size:12px;padding:26px 5px}.footer{font-size:10px;color:var(--muted);line-height:1.55;padding:2px 4px}
 .browser-head{background:var(--wash);border-bottom:1px solid var(--line);padding:12px 14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;align-items:center}.address{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);min-width:0}.address svg{width:15px;height:15px}.preview-controls{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.preview-controls select{padding:6px 8px;font-size:12px;border-radius:8px;border:1px solid var(--line);color:var(--text);background:var(--paper);max-width:170px}.tiny{border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--text);padding:7px 9px;font-size:11px;white-space:nowrap}.tiny:hover{border-color:#9aadd4}.webpage{min-height:510px;padding:24px 27px 38px;background:var(--paper);color:var(--text);font-size:13px;line-height:1.6}.web-brand{display:flex;justify-content:space-between;gap:10px;align-items:center;padding-bottom:14px;border-bottom:2px solid var(--text)}.web-brand strong{font-size:23px;letter-spacing:-.9px}.web-brand small{color:var(--muted)}.web-nav{display:flex;flex-wrap:wrap;gap:18px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--line);padding:10px 0}.web-content{display:grid;gap:15px;margin-top:18px}.web-unit{border-radius:9px;transition:outline-color .1s,box-shadow .1s;outline:3px solid transparent;outline-offset:2px}.sponsor{padding:15px 18px;border:1px solid #debfaa;background:#fff6eb}.sponsor strong{font-size:16px}.sponsor p,.web-unit p{font-size:12px;line-height:1.65;color:var(--muted)}.sponsor .mark,.promotile .mark{display:inline-flex;border-radius:5px;border:1px solid #e0bf9b;color:#9d652d;font-size:10px;font-weight:700;padding:1px 5px;margin-bottom:7px}.webgrid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(160px,1fr);gap:16px}.mainstory{padding:16px;background:var(--wash);border:1px solid var(--line)}.mainstory h2{font-size:20px;line-height:1.35;margin:8px 0}.hero-surface{height:125px;border-radius:6px;background:linear-gradient(140deg,#a3c8dd,#d4e3df 52%,#87a8c2);margin:12px 0}.storylines{display:grid;gap:7px;margin:12px 0}.storylines i{height:8px;background:var(--line);border-radius:10px}.storylines i:nth-child(2){width:85%}.storylines i:nth-child(3){width:65%}.rightstack{display:grid;align-content:start;gap:11px;padding:6px;border:1px dashed #ccd4e1}.promotile{padding:13px;background:#f5efff;border:1px solid #d9cafa}.promotile h3{font-size:14px}.editorial{padding:13px;background:var(--wash);border:1px solid var(--line)}.editorial strong{font-size:12px}.smallcards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.smallcard{border:1px solid var(--line);padding:12px}.smallcard strong{font-size:13px}.webpage.is-picking{cursor:crosshair}.webpage.is-picking [data-block]{cursor:crosshair}.webpage [data-block].hovered{outline-color:#5482ef;background-image:linear-gradient(#638ef010,#638ef010);box-shadow:0 0 0 5px #5479db24}.webpage [data-block].chosen{outline-color:#2868dc;box-shadow:0 0 0 6px #3571eb2d}.webpage [data-block].removed{display:none!important}.no-access{margin-top:50px;text-align:center;padding:40px 14px;border:1px dashed var(--line);border-radius:12px;color:var(--muted)}.no-access strong{display:block;font-size:16px;color:var(--text);margin-bottom:6px}.webpage.is-picking [data-block]:hover{outline-color:#5482ef}
 .legend{padding:12px 16px;border-top:1px solid var(--line);font-size:11px;color:var(--muted);line-height:1.6}.legend strong{color:var(--text)}.callout{margin-top:15px;padding:13px 16px;border:1px solid var(--line);background:var(--paper);border-radius:12px;font-size:12px;color:var(--muted);line-height:1.7}.callout strong{color:var(--text)}.callout ul{margin:4px 0 0;padding-left:18px}.theme-dark{--panel:#1d2b40;--paper:#1a283b;--wash:#142137;--muted:#a2b1c9;--text:#edf2fc;--line:#344860;--blue:#8faeff;--soft:#283e63;--good:#65d2a4;--danger:#ffa1ae;--shadow:0 12px 40px #080e2045;background:#111c2d;color:var(--text)}.theme-dark .primary{background:#5b85e0;color:#fff}.theme-dark .sponsor{background:#3d322d;border-color:#6a5240}.theme-dark .promotile{background:#322c46;border-color:#54436f}.theme-dark .hero-surface{background:linear-gradient(140deg,#345372,#52727b,#314969)}.theme-dark .rightstack{border-color:#46576d}
 @media(max-width:850px){.workspace{padding:12px 10px 28px}.layout{grid-template-columns:minmax(0,1fr)}.shell{position:static;max-width:460px;width:100%;margin:auto}.browser{width:100%}.webpage{padding:20px}}
 @media(max-width:440px){.workspace{padding:9px 6px 24px}.top h1{font-size:16px}.shell-body{padding:9px;min-height:0}.card{padding:12px}.webpage{padding:14px}.webgrid{grid-template-columns:minmax(0,1fr)}.rightstack{grid-template-columns:repeat(2,minmax(0,1fr))}.browser-head{padding:9px}.preview-controls select{max-width:155px}.smallcards{grid-template-columns:minmax(0,1fr)}}
+@media(pointer:coarse){.rule-action{width:44px;height:44px;min-width:44px;min-height:44px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
@@ -28,7 +29,7 @@
    <div class="shell-body">
     <section id="overview">
      <div class="card" style="margin-bottom:12px"><div class="card-row"><div class="card-copy"><strong class="card-title">全局保护</strong><div class="status" id="global-status"><i class="dot"></i><span id="global-copy">保护已开启（演示）</span></div></div><button id="global-toggle" role="switch" class="switch" type="button" aria-label="全局保护" aria-checked="true"><span></span></button></div></div>
-     <div class="card" style="margin-bottom:12px"><div class="card-row"><div class="card-copy"><strong class="card-title">当前网站</strong><span class="host" id="current-host">news.example.com</span></div><button id="site-toggle" role="switch" class="switch" type="button" aria-label="在此网站拦截广告" aria-checked="true"><span></span></button></div><p class="mini" id="site-note">正在过滤本站匹配的第三方广告请求。</p><div class="site-actions"><button type="button" class="light grow" id="pick-start"><span aria-hidden="true">⊙</span> 选择网页元素</button><button type="button" class="text-button" id="rules-open">已屏蔽 <span id="rule-count">0</span> 处 →</button></div></div>
+     <div class="card" style="margin-bottom:12px"><div class="card-row"><div class="card-copy"><strong class="card-title">当前网站</strong><span class="host" id="current-host">news.example.com</span></div><button id="site-toggle" role="switch" class="switch" type="button" aria-label="在此网站拦截广告" aria-checked="true"><span></span></button></div><p class="mini" id="site-note">正在过滤本站匹配的第三方广告请求。</p><div class="site-actions"><button type="button" class="primary grow" id="pick-start"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="6"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>选择网页元素</button><button type="button" class="text-button" id="rules-open">已屏蔽 <span id="rule-count">0</span> 处 →</button></div></div>
      <div class="card" style="margin-bottom:12px"><div class="card-row"><div class="card-copy"><strong class="card-title">内置过滤规则</strong><p class="mini">67 个离线域名 · 不显示未经核实的拦截数</p></div></div></div>
      <button type="button" class="rowlink" id="exceptions-open">已停用的网站 <span class="count" id="exception-count">0</span><span aria-hidden="true">→</span></button>
     </section>
@@ -42,11 +43,11 @@
     </div>
     <section id="rules-view" hidden>
      <div class="page-head" style="margin-bottom:12px"><button id="rules-back" class="head-icon" type="button" aria-label="返回概览">←</button><h2>手动屏蔽规则</h2><span id="rules-summary" class="mini"></span></div>
-     <div class="card"><p class="rules-note">仅针对 <strong id="rules-host"></strong>。误屏蔽时可以单击「恢复」，无需重新设置整个网站。</p><div id="rule-list" class="rule-list" aria-live="polite"></div></div>
+     <div class="card"><p class="rules-note">仅针对 <strong id="rules-host"></strong>。依次为定位、临时显示／重新隐藏、编辑、删除；图标支持悬停说明和键盘操作。</p><div id="rule-list" class="rule-list" aria-live="polite"></div><div id="rule-editor" class="rule-editor" hidden><label for="rule-selector-input">修改选择器</label><input id="rule-selector-input" type="text" spellcheck="false" autocomplete="off" maxlength="180"><p class="mini">演示仅支持此网站的预设选择器；正式扩展使用安全 CSS 校验与网页读回。</p><div class="button-row"><button id="rule-editor-cancel" type="button" class="secondary">取消编辑</button><button id="rule-editor-save" type="button" class="primary">保存修改</button></div></div></div>
     </section>
     <section id="exceptions-view" hidden><div class="page-head" style="margin-bottom:12px"><button class="head-icon go-overview" type="button">←</button><h2>已停用的网站</h2></div><div class="card"><div id="exception-list" class="rule-list"></div></div></section>
     <section id="settings-view" hidden><div class="page-head" style="margin-bottom:12px"><button class="head-icon go-overview" type="button">←</button><h2>设置说明</h2></div><div class="card"><strong class="card-title">内置过滤</strong><p class="mini">保留原有网络请求过滤和网站例外功能。</p><hr style="border:0;border-top:1px solid var(--line);margin:13px 0"><strong class="card-title">手动屏蔽</strong><p class="mini">点击网页区域立即隐藏并保存本地规则，下次打开自动生效；误选可直接撤销或在规则列表恢复。</p><button id="settings-rules" type="button" class="secondary" style="margin-top:12px">管理手动规则</button></div></section>
-    <p id="notice" class="notice" role="status" aria-live="polite">仅模拟页面 DOM 隐藏；正式 Chrome 功能尚未开发。</p>
+    <p id="notice" class="notice" role="status" aria-live="polite">仅模拟页面 DOM 隐藏；不会修改真实 Chrome 规则。</p>
     <p class="footer">设计评审用 HTML。此处开关、规则与浏览器页面均为演示状态；不会修改实际广告过滤、权限或网站。</p>
    </div>
   </aside>
@@ -77,6 +78,28 @@ const PAGES={
  'video.example.com':`<div class="web-brand"><strong>ViewTube</strong><small>视频内容 · 演示</small></div><div class="web-nav">精选 <span>音乐</span><span>纪录片</span><span>科技</span></div><div class="web-content"><div class="webgrid"><article class="web-unit mainstory" data-block="video-main" tabindex="-1"><div class="hero-surface" style="height:190px;background:linear-gradient(145deg,#495879,#161f36);display:grid;place-items:center;color:white;font-size:38px">▶</div><h2>你可能喜欢的科技频道</h2><p>正常视频播放器与介绍，不应被广告识别规则误删。</p></article><aside class="web-unit rightstack" data-block="video-sidebar" tabindex="-1"><section class="web-unit promotile" data-block="video-native" tabindex="-1"><span class="mark">付费推广</span><h3>本周特别合作视频</h3><p>由平台自身绘制的内容。</p></section><section class="web-unit editorial" data-block="video-normal" tabindex="-1"><strong>下一个播放</strong><p>相关视频推荐</p></section></aside></div><section class="web-unit sponsor" data-block="video-promo" tabindex="-1"><span class="mark">合作内容</span><strong>视频会员优惠专区</strong><p>站内可见推广内容。</p></section></div>`,
  'shop.example.com':`<div class="web-brand"><strong>Good Shop</strong><small>灵感好物精选</small></div><div class="web-nav">首页 <span>新品</span><span>家居</span><span>数码</span></div><div class="web-content"><section class="web-unit sponsor" data-block="shop-top" tabindex="-1"><span class="mark">特别推广</span><strong>精选品牌周</strong><p>商店自己的品牌推广横幅。</p></section><div class="webgrid"><article class="web-unit mainstory" data-block="shop-hero" tabindex="-1"><small>最新上架</small><h2>为你的办公桌增添新灵感</h2><div class="hero-surface" style="background:linear-gradient(145deg,#dfc8ae,#b4bcc6)"></div><p>普通商品详情与图片。</p></article><aside class="web-unit rightstack" data-block="shop-side" tabindex="-1"><section class="web-unit promotile" data-block="shop-paid" tabindex="-1"><span class="mark">赞助商品</span><h3>品牌主推款</h3><p>平台自主插入的推广区。</p></section><section class="web-unit editorial" data-block="shop-normal" tabindex="-1"><strong>人气商品</strong><p>用户真实热销的普通商品。</p></section></aside></div></div>`
 };
+// Same action semantics as the actual React rule toolbar; this is a DOM-only review.
+const glyphStart='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">';
+const glyphEnd='</svg>';
+const glyphs=Object.freeze({
+ locate:glyphStart+'<circle cx="12" cy="12" r="6"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/>'+glyphEnd,
+ show:glyphStart+'<path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/>'+glyphEnd,
+ hide:glyphStart+'<path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/>'+glyphEnd,
+ edit:glyphStart+'<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>'+glyphEnd,
+ remove:glyphStart+'<path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6M10 10v6m4-6v6"/>'+glyphEnd
+});
+const temporaryVisible=new Set();
+let locating=null,locateTimer=null,editingId=null;
+const ruleKey=(host,id)=>host+'|'+id;
+function clearLocate(){if(locateTimer!==null)clearTimeout(locateTimer);locateTimer=null;locating=null;}
+function closeEditor(){editingId=null;$('rule-editor').hidden=true;}
+function ruleAction(kind,id,glyph,title,label){
+ const button=document.createElement('button');button.type='button';
+ button.className='rule-action'+(kind==='remove'?' rule-action--delete':'');
+ button.dataset.ruleAction=kind;button.dataset.id=id;button.title=title;
+ button.setAttribute('aria-label',label);button.innerHTML=glyphs[glyph];
+ return button;
+}
 const initial=()=>({host:sites[0],global:true,exceptions:[],rules:[],dark:false});
 let state=initial(),mode='idle',hover=null,view='overview',lastHidden=null;
 try{const old=JSON.parse(localStorage.getItem(KEY)||'null');if(old&&typeof old==='object'){
@@ -89,9 +112,9 @@ const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}};
 const eligible=()=>catalog[state.host]&&state.global&&!state.exceptions.includes(state.host);
 const rulesForHost=()=>state.rules.filter(r=>r.host===state.host);
 const setNotice=s=>{$('notice').textContent=s};
-function show(next){view=next;for(const id of ['overview','rules-view','exceptions-view','settings-view'])$(id).hidden=id!==next;if(mode!=='idle')cancel();renderLists();}
+function show(next){view=next;for(const id of ['overview','rules-view','exceptions-view','settings-view'])$(id).hidden=id!==next;if(next!=='rules-view')closeEditor();if(mode!=='idle')cancel();renderLists();}
 function cancel(){mode='idle';hover=null;renderMode();renderPage();}
-function begin(){if(!eligible())return;show('overview');mode='pick';hover=null;renderMode();renderPage();$('webpage').scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});setNotice('选择模式：单击蓝框区域后立即隐藏并保存。按 Esc 取消。');}
+function begin(){if(!eligible())return;clearLocate();show('overview');mode='pick';hover=null;renderMode();renderPage();$('webpage').scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});setNotice('选择模式：单击蓝框区域后立即隐藏并保存。按 Esc 取消。');}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));return true;}catch{return false;}}
 function hideNow(id){
  if(!eligible()||!catalog[state.host]?.[id]||mode!=='pick')return;
@@ -99,13 +122,14 @@ function hideNow(id){
  const exists=state.rules.some(r=>r.host===host&&r.id===id);
  if(!exists&&state.rules.length>=35){cancel();setNotice('已达到 35 条演示规则上限，请先恢复不需要的规则。');return;}
  if(!exists){state.rules.push({host,id});if(!save()){state.rules.pop();setNotice('本地保存失败，区域未被永久隐藏；请检查浏览器存储。');cancel();return;}}
- lastHidden={host,id,label,added:!exists};cancel();render();
+ lastHidden={host,id,label,added:!exists};temporaryVisible.delete(ruleKey(host,id));clearLocate();cancel();render();
  setNotice(exists?'该区域已经保存了屏蔽规则。':'已隐藏「'+label+'」并保存本地。误选可直接点「撤销」。');
 }
 function blockTargets(){for(const node of $('webpage').querySelectorAll('[data-block]')){
  const id=node.dataset.block;
- node.classList.toggle('removed',Boolean(eligible()&&state.rules.some(r=>r.host===state.host&&r.id===id)));
- node.classList.remove('chosen');node.classList.toggle('hovered',Boolean(mode==='pick'&&hover===id));
+ const key=ruleKey(state.host,id);
+ node.classList.toggle('removed',Boolean(eligible()&&state.rules.some(r=>r.host===state.host&&r.id===id)&&!temporaryVisible.has(key)&&locating!==key));
+ node.classList.toggle('chosen',locating===key);node.classList.toggle('hovered',Boolean(mode==='pick'&&hover===id));
  node.tabIndex=mode==='pick'?0:-1;
 }}
 function renderPage(){const page=$('webpage');if(!catalog[state.host])page.innerHTML='<div class="no-access"><strong>此网页无法选择元素</strong>Chrome 内部页面不允许普通扩展注入或修改网页。</div>';
@@ -113,9 +137,31 @@ function renderPage(){const page=$('webpage');if(!catalog[state.host])page.inner
  page.classList.toggle('is-picking',mode==='pick');blockTargets();
 }
 function renderMode(){ $('pick-flow').hidden=mode!=='pick';$('undo-card').hidden=!lastHidden||lastHidden.host!==state.host||!lastHidden.added||!rulesForHost().some(r=>r.id===lastHidden.id);if(lastHidden)$('undo-title').textContent='已隐藏「'+lastHidden.label+'」';}
-function renderLists(){const list=$('rule-list');list.replaceChildren();const rules=rulesForHost();$('rules-summary').textContent=rules.length+' 处';$('rules-host').textContent=state.host;
-if(!rules.length){const p=document.createElement('p');p.className='empty';p.textContent='本站暂无手动屏蔽规则';list.append(p);}else for(const item of rules){const row=document.createElement('div');row.className='rule-row';const left=document.createElement('div');left.className='rule-content';const title=document.createElement('strong');title.textContent=catalog[item.host][item.id][0];const meta=document.createElement('p');meta.textContent=catalog[item.host][item.id][1];left.append(title,meta);const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent='恢复';b.dataset.remove=item.id;b.setAttribute('aria-label','恢复 '+title.textContent);row.append(left,b);list.append(row);}
-const exceptions=$('exception-list');exceptions.replaceChildren();if(!state.exceptions.length){const p=document.createElement('p');p.className='empty';p.textContent='没有停用的网站';exceptions.append(p);}else for(const host of state.exceptions){const row=document.createElement('div');row.className='rule-row';const title=document.createElement('strong');title.className='grow';title.textContent=host;const b=document.createElement('button');b.type='button';b.className='secondary';b.dataset.restore=host;b.textContent='恢复拦截';row.append(title,b);exceptions.append(row);}}
+function renderLists(){
+ const list=$('rule-list');list.replaceChildren();const rules=rulesForHost();
+ $('rules-summary').textContent=rules.length+' 处';$('rules-host').textContent=state.host;
+ if(editingId&&!rules.some(rule=>rule.id===editingId))closeEditor();
+ if(!rules.length){const p=document.createElement('p');p.className='empty';p.textContent='本站暂无手动屏蔽规则';list.append(p);}
+ else for(const item of rules){
+  const row=document.createElement('div');row.className='rule-row';
+  const left=document.createElement('div');left.className='rule-content';
+  const title=document.createElement('strong');title.textContent=catalog[item.host][item.id][0];
+  const selector=catalog[item.host][item.id][1];const meta=document.createElement('p');meta.textContent=selector;
+  left.append(title,meta);
+  const actions=document.createElement('div');actions.className='rule-actions';actions.setAttribute('aria-label','此规则的操作');
+  const temporary=temporaryVisible.has(ruleKey(item.host,item.id));
+  actions.append(
+   ruleAction('locate',item.id,'locate','定位','定位网页元素：'+selector),
+   ruleAction('display',item.id,temporary?'hide':'show',temporary?'重新隐藏':'临时显示',(temporary?'重新隐藏：':'临时显示：')+selector),
+   ruleAction('edit',item.id,'edit','编辑','编辑屏蔽规则：'+selector),
+   ruleAction('remove',item.id,'remove','删除规则','永久删除屏蔽规则：'+selector)
+  );
+  row.append(left,actions);list.append(row);
+ }
+ const exceptions=$('exception-list');exceptions.replaceChildren();
+ if(!state.exceptions.length){const p=document.createElement('p');p.className='empty';p.textContent='没有停用的网站';exceptions.append(p);}
+ else for(const host of state.exceptions){const row=document.createElement('div');row.className='rule-row';const title=document.createElement('strong');title.className='grow';title.textContent=host;const b=document.createElement('button');b.type='button';b.className='secondary';b.dataset.restore=host;b.textContent='恢复拦截';row.append(title,b);exceptions.append(row);}
+}
 function render(){const siteOk=Boolean(catalog[state.host]);const on=Boolean(eligible());$('stage').classList.toggle('theme-dark',state.dark);$('theme-toggle').textContent=state.dark?'浅色':'深色';$('domain-select').value=state.host;$('address-host').textContent=state.host;$('current-host').textContent=state.host;
 $('global-toggle').setAttribute('aria-checked',String(state.global));$('global-copy').textContent=state.global?'保护已开启（演示）':'保护已关闭（演示）';$('global-status').classList.toggle('off',!state.global);
 $('site-toggle').disabled=!state.global||!siteOk;$('site-toggle').setAttribute('aria-checked',String(on));$('site-note').textContent=!siteOk?'受限页面无法管理':!state.global?'请先开启全局保护':on?'请求拦截已开启；可补充手动隐藏网页内容':'本站已停用广告拦截';$('pick-start').disabled=!on;
@@ -127,13 +173,51 @@ $('webpage').addEventListener('keydown',e=>{if(mode!=='pick'||!['Enter',' '].inc
 $('pick-cancel').addEventListener('click',()=>{cancel();setNotice('已退出选择，未修改规则。');});$('pick-start').addEventListener('click',begin);
 $('undo-last').addEventListener('click',()=>{if(!lastHidden)return;const {host,id,label,added}=lastHidden;lastHidden=null;if(added){const old=state.rules;state.rules=state.rules.filter(r=>r.host!==host||r.id!==id);if(!save()){state.rules=old;lastHidden={host,id,label,added};render();setNotice('本地保存失败，未能撤销；请重试。');return;}}render();setNotice('已撤销「'+label+'」的隐藏规则，刷新后也会正常显示。');});
 $('rules-open').addEventListener('click',()=>show('rules-view'));$('rules-back').addEventListener('click',()=>show('overview'));$('settings-rules').addEventListener('click',()=>show('rules-view'));$('exceptions-open').addEventListener('click',()=>show('exceptions-view'));$('settings-open').addEventListener('click',()=>show('settings-view'));$('header-back').addEventListener('click',()=>show('overview'));document.querySelectorAll('.go-overview').forEach(b=>b.addEventListener('click',()=>show('overview')));
-$('rule-list').addEventListener('click',e=>{const id=e.target.closest('[data-remove]')?.dataset.remove;if(!id)return;const label=catalog[state.host]?.[id]?.[0]||id;const old=state.rules;state.rules=state.rules.filter(r=>r.host!==state.host||r.id!==id);if(!save()){state.rules=old;setNotice('保存失败，规则未删除。');return;}if(lastHidden?.id===id&&lastHidden.host===state.host)lastHidden=null;render();setNotice('已恢复「'+label+'」，刷新后也不会再隐藏。');});
+$('rule-list').addEventListener('click',e=>{
+ const button=e.target.closest('[data-rule-action]');const id=button?.dataset.id;
+ if(!button||!catalog[state.host]?.[id])return;
+ const kind=button.dataset.ruleAction,host=state.host;
+ const label=catalog[host][id][0],key=ruleKey(host,id);
+ if(kind==='locate'){
+  clearLocate();show('overview');locating=key;renderPage();
+  const target=Array.from($('webpage').querySelectorAll('[data-block]')).find(node=>node.dataset.block===id);
+  target?.scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+  locateTimer=setTimeout(()=>{clearLocate();renderPage();},1500);
+  setNotice('已定位「'+label+'」，随后自动恢复隐藏状态。');return;
+ }
+ if(kind==='display'){
+  if(temporaryVisible.has(key))temporaryVisible.delete(key);else temporaryVisible.add(key);
+  render();setNotice((temporaryVisible.has(key)?'仅在当前预览中临时显示「':'已在预览中重新隐藏「')+label+'」。');return;
+ }
+ if(kind==='edit'){
+  editingId=id;$('rule-selector-input').value=catalog[host][id][1];
+  $('rule-editor').hidden=false;$('rule-selector-input').focus();setNotice('修改示例规则选择器。');return;
+ }
+ if(kind!=='remove')return;
+ const old=state.rules;state.rules=state.rules.filter(r=>r.host!==host||r.id!==id);
+ if(!save()){state.rules=old;setNotice('保存失败，规则未删除。');return;}
+ temporaryVisible.delete(key);
+ if(lastHidden?.id===id&&lastHidden.host===host)lastHidden=null;
+ render();setNotice('已删除「'+label+'」的永久屏蔽规则，刷新后也不会再隐藏。');
+});
+$('rule-editor-cancel').addEventListener('click',()=>{closeEditor();setNotice('已取消编辑。');});
+$('rule-editor-save').addEventListener('click',()=>{
+ if(!editingId||!catalog[state.host]?.[editingId])return;
+ const host=state.host,previous=editingId,value=$('rule-selector-input').value.trim();
+ const next=Object.keys(catalog[host]).find(id=>catalog[host][id][1]===value);
+ if(!next){setNotice('离线演示仅能使用此网站预设的完整选择器；正式扩展支持经安全校验的 CSS。');return;}
+ if(next!==previous&&state.rules.some(rule=>rule.host===host&&rule.id===next)){setNotice('该区域已有屏蔽规则，请选择另一个区域。');return;}
+ const old=state.rules;state.rules=state.rules.map(rule=>rule.host===host&&rule.id===previous?{host,id:next}:rule);
+ if(!save()){state.rules=old;setNotice('本地保存失败，原规则仍保留。');return;}
+ temporaryVisible.delete(ruleKey(host,previous));closeEditor();render();
+ setNotice('已保存预览规则「'+catalog[host][next][0]+'」，刷新后仍会隐藏。');
+});
 $('exception-list').addEventListener('click',e=>{const host=e.target.closest('[data-restore]')?.dataset.restore;if(!host)return;state.exceptions=state.exceptions.filter(x=>x!==host);persist();render();setNotice('已为 '+host+' 恢复过滤。');});
 $('global-toggle').addEventListener('click',()=>{if(mode!=='idle')cancel();state.global=!state.global;persist();render();setNotice(state.global?'已在演示中开启全局保护。':'已在演示中关闭全局保护，隐藏规则暂停。');});
 $('site-toggle').addEventListener('click',()=>{if(!state.global||!catalog[state.host])return;if(mode!=='idle')cancel();if(state.exceptions.includes(state.host))state.exceptions=state.exceptions.filter(x=>x!==state.host);else state.exceptions.push(state.host);persist();render();setNotice(eligible()?'本站已恢复过滤。':'本站已停用过滤，隐藏规则暂停。');});
-$('domain-select').addEventListener('change',e=>{cancel();lastHidden=null;state.host=sites.includes(e.target.value)?e.target.value:sites[0];show('overview');persist();render();setNotice(catalog[state.host]?'切换模拟网站；规则按网站隔离。':'受限页面不能选择元素。');});
+$('domain-select').addEventListener('change',e=>{cancel();clearLocate();temporaryVisible.clear();closeEditor();lastHidden=null;state.host=sites.includes(e.target.value)?e.target.value:sites[0];show('overview');persist();render();setNotice(catalog[state.host]?'切换模拟网站；规则按网站隔离。':'受限页面不能选择元素。');});
 $('theme-toggle').addEventListener('click',()=>{state.dark=!state.dark;persist();render();});
-$('reset').addEventListener('click',()=>{state=initial();lastHidden=null;cancel();show('overview');persist();render();setNotice('全部演示状态已重置。');});
+$('reset').addEventListener('click',()=>{state=initial();lastHidden=null;clearLocate();temporaryVisible.clear();closeEditor();cancel();show('overview');persist();render();setNotice('全部演示状态已重置。');});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&mode!=='idle'){e.preventDefault();cancel();setNotice('已退出选择，未修改已有屏蔽规则。');}});
 render();
 })();

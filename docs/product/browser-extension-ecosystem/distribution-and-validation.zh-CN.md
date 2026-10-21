@@ -339,3 +339,35 @@ Chrome Web Store [统计指南](https://developer.chrome.com/docs/webstore/metri
 - **免费→付费要有两条独立证据链**：免费首次结果和两个自然周期复用（分母为真实自愿参与 cohort）；团队买家独立承认具体维护/集成价值、固定报价、实际采购付款。贡献应扣云/API、实施与持续维护、支持、退款/支付和自然渠道内容工时；缺订单/工时与可归因点击，`CAC/payback/monthlyContribution=NOT_MEASURED`。CWS 安装和竞品安装都不替代活跃、复用或订单。
 - **当前决策（每方向独立）**：A=`NOT_DECIDED / BLOCKED_BY_PRODUCT_EVIDENCE`；B=`NOT_DECIDED / BUYER_MISSING`；C=`NOT_DECIDED / AUTHORIZED_CSV_MISSING`；付费渠道=`NOT_DECIDED / NO_ACCOUNT_OR_BUDGET`。没有真实付款、自然重复、可核 Mac Chrome 文件就不放大投入，也不发布“95 分已达标”。
 
+## R1.4-EVIDENCE-EXECUTION-CLOSEOUT · 2026-10-21 · 实际执行结果与未跨过的证据门
+
+> **保留原始商业目标 T1–T4 与 A/B/C、84 OPP / 30 候选 / 8 EXP；EXP-003 仍是 Research Clip & Cite，EXP-002 Page QA 继续商业 STOP。** 本轮**只执行** GitHub 最新 main / AGENTS.md / 三份权威商业文件 / 有关正式源码只读对照，以及官网证据复核；没有执行 Chrome 或企业购买实验。相对 R1.3 历史快照 `795429a47bdb9b2e19420ea80ffe7d225aa41c9a`，本轮该次主干快照 `c5506fd0993b1f94c726e645463b08649f67460a` 前进 72 次提交；compare 中匹配的 Prompt Shortcuts、Web Markdown Clipper、Knowledge / scoped Downloads 文件路径共 14 个（具体见 GitHub compare，主干随并行工作继续变化）。此处 SHA **只是源审计点，不是 Chrome 构建 SHA**。
+
+### P1：单一真实任务、代码所能证明的边界
+
+- **FACT_SOURCE**：`src/knowledge/page.js` 获取显示中图片的 `currentSrc || src`，操作后 UI 仅提示“已请求下载，请在 Chrome 确认保存”；`src/knowledge/service.js` 中 `capture.image` 直接调用 `api.downloads.download` 并仅回传 `downloadId`；`src/knowledge/model.js` 的 `imageCount` 只是计数。未看到 Knowledge 交付链把原图实际 MIME/bytes/hash、Markdown 本地附件引用、Chrome 下载 terminal 及离线重开读回做成同一持久回执。
+- **FACT_SOURCE**：`src/platform/chrome/browser-downloads.js` 已有 `getOwned/listOwned` 查 `in_progress/complete/interrupted`，但 Knowledge `capture.image` **尚未通过该状态回执完成交付**，且 Host 使用 Worker 内存 owned-ref，重启可能无法恢复引用。通用服务存在不等于此正式功能已接线；Prompt Shortcuts 的 ≤64 KiB 压缩按钮图也不证明保存 AI 原图。
+- **BLOCKED_BY_APPROVAL_FOR_PRODUCT_CHANGES**：专项目录 [原版 UI 同源模拟预览](../../../examples/sidebar-tools/knowledge-inbox/preview/index.html)仍待用户确认；既有工作记录状态 `PREVIEW_PENDING_USER_CONFIRMATION`。本商业任务不得未经批准改 Knowledge、Host、SDK、Native 或独立工具正式包。只读源核查和经授权的现有产品手动点击不需要此产品修改批准。
+- **真实产品验证 `NOT_TESTED`**：本执行环境没有用户本机已安装 OpenDesk 的 Chrome 控制、Profile/真实扩展 ID、文件落盘访问与授权样本。未运行 Mac `git`、`npm`、Node、真实 Chrome，未取得候选 build SHA、原始/最终文件哈希、Chrome started→complete/interrupted 状态、PNG/JPEG/WebP 读回、网络中断/403/撤权/重启/双击回归结果。**源码阻断不是已复现的 Chrome FAIL**。
+- **本地下一条最短操作**：Mac Codex 先只读核实 `git status --short`、`git rev-parse HEAD`、`dist/development` 的真实加载状态/extension ID、Profile、现存 watcher；用户授权的无敏感 AI 原文+一张原生图，按正式功能“保存回答/Markdown/下载图片”分别执行，再查 Chrome 下载终态、本地文件 MIME/bytes/SHA-256、Markdown 来源与图片引用，关闭/重开并断网读回。只评价原正式产品**实际上达到哪步**，不能把分别落盘的文件当成已经业务绑定的交付。无批准不修改正式源码；失败保留精确动作/截图/错误及现有数据未退化证据。
+- **公平竞品基准**：同一素材给 Obsidian、Readwise；Obsidian 的“Download attachments for current file”、Readwise 的注释 MD/全库 ZIP/带标注 PDF 必须区分交付形态。没有可运行账号和文件的项目仍 `OFFICIAL_DOCUMENTED / NATIVE_NOT_TESTED`。
+
+### P2–P6：真实预算、合法数据和获客经济
+
+| 工作 | 本轮新增/核对的事实 | 真实商业结果 / 阻断 |
+| --- | --- | --- |
+| EXP-001 有预算买家 | 五位合格采购人角色、固定范围试点 SOW 仍按 R1.3：一个获准站点 / 一条明确任务 / ≤8 字段 / 一次结果读回 / 人审 / 撤权恢复；新核 [Power Automate 官方许可](https://learn.microsoft.com/en-us/power-platform/admin/powerapps-flow-licensing-faq) Premium 15 USD/用户/月有人值守与 Process 150 USD/机器人/月无人值守，作为强成熟替代。 | 本轮合格访谈 **0**、真实报价反馈 **0**、付款 **0**；尚无用户授予的联系对象/对外沟通授权，客户现有 RPA 授权、预算、实施/支持小时、维护 SLA **MISSING**。不外联、不造数字。 |
+| EXP-005 卖家 CSV | [Shopify 已有 CSV 导入校验](https://help.shopify.com/en/manual/products/import-export/common-import-issues)，[Google Sheets 已支持按列去重](https://support.google.com/docs/answer/6325535?hl=en)；基础格式/重复检查付费差异进一步变弱。 | 卖家授权 CSV、字段正确答案、真实误报/漏报、每百行人工核对、买方预算均 **MISSING**；不访问后台、不开发通用爬虫或新产品。 |
+| US/en + JP/ja 13 词 | **严格保留 R1.2 的 13 条 literal**、两个目标市场和同一个完整月份；[Google 官方帮助](https://support.google.com/google-ads/answer/6325025?hl=en-en)说明 Planner 账号与账单资料准入及地区/语言/网络筛选。 | **13/13 官方月搜量/竞争/低高 bid MISSING**，没有账号授权；真实 CPC、渠道激活/自然复用、获客净成本、订单、CAC、回本 **NOT_MEASURED**，本轮花费广告费 **0**。 |
+| 实际代码复用经济 | 现有 Knowledge/Clipper/Prompt、SDK/Host/Workflow 和发行能力真实存在。 | 只成立 `SOURCE_EXISTS`；新增代码、开发/验收/安装权限/兼容/售前/客服/站点维护工时与净贡献还没有同一候选实测，不可把框架复用直接计作盈利。 |
+
+### 现实决策与最小下一动作
+
+| 方向 | 决策 | 核心不足与下一证据 |
+| --- | --- | --- |
+| A · EXP-003 | `NOT_DECIDED` | **完整原图+MD+离线重开未测**；先让真实 Mac 的现有产品跑单次任务并同步用 Obsidian 作强免费反证；专项源码需预览审批后才能修。 |
+| B · EXP-001 | `NOT_DECIDED` | **有预算人/真实 SOW 金额/采购反馈缺失**；授权后先完成一位真正有预算采购人的访谈，特别核对客户已有 Microsoft/Axiom 替代和支持责任。 |
+| C · EXP-005 | `NOT_DECIDED` | **无合法 CSV/业务真值/买家**；只有证明超出 Shopify/Sheets 原生检查的具体复核结果才值得做。 |
+| 付费获客 | `NOT_DECIDED` | 13 词真实量价、真实购买归因与所有维护成本均缺；先取授权 Planner 导出而非投钱测假想转化。 |
+
+**最低成本最能缩小不确定性的单步**：在现有 Mac Chrome 不改代码，用一个自己有授权的非敏感图文样本获取可重开的实际 MD/图片文件及下载终态、原图/最终文件哈希，必要时同一素材运行 Obsidian。若已暴露产品链缺口，就锁定 `NOT_COMPLETE` 的具体环节并走现有审批；继续写规划文档不能替代真实产品结果。B 合格买家联系授权可独立并行。

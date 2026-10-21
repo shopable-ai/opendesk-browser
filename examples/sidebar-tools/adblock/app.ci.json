@@ -10,6 +10,7 @@
     "tests/environment/adblock-manual-picker.test.mjs",
     "tests/environment/adblock-host-controls-r13.test.mjs",
     "tests/environment/adblock-preview-contract.test.mjs",
+    "tests/environment/adblock-rule-actions-ui.test.mjs",
     "tests/environment/adblock-build-ready-r211.test.mjs",
     "tests/environment/adblock-native-release.test.mjs",
     "tests/environment/adblock-sandbox-refresh.test.mjs",

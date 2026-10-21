@@ -5,12 +5,16 @@ import {IconButton as OpenDeskIconButton} from './ui/button.tsx';
 // Shared, presentation-only primitives. Callers retain provider credentials,
 // permission checks, task execution and the business result journal.
 export function ConversationTranscript({rows=[],entryClassName='workflow-chat-entry',showSpeaker=true}){
- return rows.map(row=><div key={row.id} className={entryClassName}
-   data-speaker={row.speaker==='你'?'user':'assistant'}
-   role={showSpeaker?undefined:'group'} aria-label={showSpeaker?undefined:
-    row.speaker==='你'?'你的消息':row.speaker==='系统'?'系统提示':'AI 回复'}>
+ return rows.map(row=>{
+  const speaker=row.speaker==='你'?'user':
+   ['系统','本机权限','对话状态'].includes(row.speaker)?'system':'assistant';
+  const accessibleName=speaker==='user'?'你的消息':speaker==='system'?'系统提示':
+   row.speaker==='执行结果'?'运行反馈':'AI 回复';
+  return <div key={row.id} className={entryClassName} data-speaker={speaker}
+   role={showSpeaker?undefined:'group'} aria-label={showSpeaker?undefined:accessibleName}>
    {showSpeaker&&<strong>{row.speaker}</strong>}<p>{row.message}</p>
-  </div>);
+  </div>;
+ });
 }
 export function ConversationInput({id,value='',onChange,onKeyDown,placeholder='',rows=2,maxLength=4000,
  disabled=false,className='',inputRef,...props}){
@@ -102,10 +106,11 @@ function ConversationWorkspace({
   return()=>observer.disconnect();
  },[]);
  const limits=React.useMemo(()=>{
-  // Leave an extra 6px for the original bookmark tree at 200% physical
-  // zoom while retaining a usable, independently scrollable compact Dock.
-  const min=Math.min(error||needsReview?184:156,Math.max(112,Math.floor(totalHeight*.46)));
-  const businessMin=Math.min(240,Math.floor(totalHeight*.6));
+  // At 200% zoom an 800px physical viewport can yield only 400 CSS px.
+  // Prefer a scrollable transcript over collapsing the original bookmark tree.
+  // Reserve up to 260 CSS px for business toolbar, tree header and visible rows.
+  const min=Math.min(error||needsReview?184:156,Math.max(112,Math.floor(totalHeight*.34)));
+  const businessMin=Math.min(260,Math.floor(totalHeight*.65));
   return {min,max:Math.max(min,totalHeight-businessMin)};
  },[totalHeight,error,needsReview]);
  const dockHeight=height===null?clamp(Math.round(totalHeight*.38),limits.min,limits.max):

@@ -93,7 +93,9 @@ function focusableElements(panel) {
 // Only trusted, already-minimized UI strings cross the adapter. Never mount
 // provider HTML/markdown or give a page script access to this React tree.
 export function WorkflowTranscript({rows=[]}) {
-  return <ConversationTranscript rows={rows}/>;
+  // Speaker is expressed by alignment and accessible group naming; never by a
+  // repeated visible title in the already narrow Workflow transcript.
+  return <ConversationTranscript rows={rows} showSpeaker={false}/>;
 }
 
 // Only the trusted Durable Result presentation is React-owned; its value comes

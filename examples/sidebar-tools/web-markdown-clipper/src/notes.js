@@ -79,7 +79,10 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
  let data=empty(),recent=empty();
  let clip=null,reading=null,readerOrigin='library',editing=null,editingSource=null;
  let editorReturn='library',baseline='',busy=false,pendingDelete=null;
- let generation=0,recentGeneration=0,searchTimer=null,recentScroll=0,libraryScroll=0;
+ // List refreshes must not cancel explicit detail reads. Detail intents are
+  // invalidated only by a newer detail intent or leaving their view context.
+  let listGeneration=0,detailGeneration=0,recentGeneration=0,searchTimer=null,recentScroll=0,libraryScroll=0;
+  const invalidateDetail=()=>{detailGeneration++;};
  const msg=(text,error=false)=>{
   q('clip-notes-status').textContent=text;
   q('clip-notes-status').dataset.error=String(error);
@@ -183,10 +186,10 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
   viewState();
  }
  async function reload({append=false,recover=false}={}){
-  const seq=++generation,query=q('clip-search').value.trim(),kind=q('clip-kind-filter').value||'all';
+  const seq=++listGeneration,query=q('clip-search').value.trim(),kind=q('clip-kind-filter').value||'all';
   const offset=append?data.items.length:0;
   const result=recover?await store.recover(query,offset,kind):await store.list(query,offset,kind);
-  if(seq!==generation)return false;
+  if(seq!==listGeneration)return false;
   if(append&&data.etag!==result.etag)return reload({recover:true});
   data={...result,items:append?[...data.items,...result.items]:result.items};
   renderList();return true;
@@ -204,6 +207,7 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
  }
  function showHome({allowBusy=false}={}){
   if((busy&&!allowBusy)||dirty())return statusError(fail('E_DIRTY','请先保存或取消当前编辑'));
+  invalidateDetail();
   if(!q('clip-notes').hidden&&data.nextOffset!==undefined&&
      q('clip-notes').dataset.view==='list')libraryScroll=scrollNow();
   confirmHidden();reading=null;editing=null;editingSource=null;baseline='';
@@ -213,6 +217,7 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
  }
  async function showLibrary(){
   if(busy||dirty()){msg('请先保存或取消当前编辑',true);return;}
+  invalidateDetail();
   if(!q('clip-home').hidden)recentScroll=scrollNow();
   confirmHidden();reading=null;editing=null;editingSource=null;baseline='';
   q('clip-note-body').value='';q('clip-note-unsaved').hidden=true;
@@ -226,7 +231,7 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
   }catch(error){statusError(error,'读取失败：');return false;}
  }
  function showList(){
-  confirmHidden();reading=null;editing=null;editingSource=null;baseline='';
+  invalidateDetail();confirmHidden();reading=null;editing=null;editingSource=null;baseline='';
   q('clip-note-body').value='';q('clip-note-unsaved').hidden=true;
   q('clip-home').hidden=true;q('clip-notes').hidden=false;
   viewState();restoreScroll(libraryScroll);
@@ -252,10 +257,10 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
   if(busy||dirty())return msg('请先保存或取消当前编辑',true);
   confirmHidden();
   if(origin==='recent')recentScroll=scrollNow();else libraryScroll=scrollNow();
-  const seq=++generation;
+  const seq=++detailGeneration;
   try{
    const result=await store.get(id);
-   if(seq!==generation)return;
+   if(seq!==detailGeneration)return;
    reading=result;readerOrigin=origin;editing=null;
    renderReader();msg('已读取完整正文');
    q('clip-reader-content').scrollTop=0;
@@ -264,7 +269,7 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
    restoreScroll(0);
    if(hostedNavigation)q('clip-note-read-body').focus({preventScroll:true});
    else q('clip-note-reader-back').focus();
-  }catch(error){statusError(error,'读取失败：');}
+  }catch(error){if(seq===detailGeneration)statusError(error,'读取失败：');}
  }
  function backReader(){
   if(busy)return msg('操作仍在进行中，请勿切换',true);
@@ -272,7 +277,7 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
  }
  function openEditor(item=null,source=null,origin='library'){
   if(busy||dirty())return msg('请先保存或取消当前编辑',true);
-  confirmHidden();
+  invalidateDetail();confirmHidden();
   editorReturn=origin;editingSource=source;
   editing=item?{id:item.id,kind:item.kind}:{id:null,kind:'note'};
   baseline=item?.body||'';
@@ -287,12 +292,12 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
  async function editCard(id,origin){
   if(busy||dirty())return msg('请先保存或取消当前编辑',true);
   if(origin==='recent')recentScroll=scrollNow();else libraryScroll=scrollNow();
-  const seq=++generation;
+  const seq=++detailGeneration;
   try{
    const source=await store.get(id);
-   if(seq!==generation)return;
+   if(seq!==detailGeneration)return;
    openEditor(source.item,source,origin);
-  }catch(error){statusError(error,'读取失败：');}
+  }catch(error){if(seq===detailGeneration)statusError(error,'读取失败：');}
  }
  function discardEditor(){
   const where=editorReturn,source=editingSource;

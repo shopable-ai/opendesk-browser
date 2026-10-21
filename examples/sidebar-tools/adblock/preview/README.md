@@ -30,3 +30,10 @@ open artifacts/previews/adblock/review.html
 过去用于独立验证设计方向的 `index-react.html`、`app.js`、`style.css`、HTM vendor 及 `acceptance.mjs` 已退出产品开发和 CI 链路，可从 Git 历史按旧提交查看，但不能作为现行 UI 的修改入口。生成快照统一放到被忽略的 `artifacts/previews/`，不在应用根目录追踪大型生成 HTML。
 
 请使用上层 [README.zh-CN.md](../README.zh-CN.md) 了解编译、发布及真实 Chrome 验收边界。
+
+## R2 图标动作优化（正式 React 与独立交互评审）
+
+- **「选择网页元素」保留文字**并作为醒目的主操作；选择中的「取消选择」和成功后的「撤销」也保留文字，避免增加误操作风险。
+- 正式 `src/App.jsx` 复用宿主已有 `IconButton`：定位、临时显示／重新隐藏、编辑、删除使用一致的 SVG 和触发器；`title` 与 `aria-label` 保留可翻译的语义文本，不把“无文字”误当作“无需本地化”。
+- 此目录的 `adblock-element-picker-r2-review.html` 是可操作的**独立演示**，新增图标定位、临时显示、编辑预设选择器、删除；不具备真实 Host／DNR 权限，不能作为正式 React 的源码同源证据。正式同源 React 预览仍需通过 `scripts/preview/build-preview.mjs --tool adblock` 生成并验收。
+- `index.html` 是 R1 固定历史基准，不修改。正式安装包、构建回执和真实 Chrome 验收必须另外完成，不可使用此 HTML 代替。

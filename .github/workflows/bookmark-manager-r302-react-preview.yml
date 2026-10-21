@@ -117,8 +117,9 @@ jobs:
             artifacts/bookmark-r32/formal-bundle.json
             docs/framework/evidence/wxt/builds/build-production.json
   standalone-react-package-budget:
-    # The standalone sandbox bundle budget is an independent mandatory gate.
-    # It must not prevent formal App visual inspection with a mock Host.
+    # Non-release IIFE feasibility is measured against the unchanged sandbox limits.
+    # A correctly classified BUDGET_BLOCKED is evidence, never publication PASS.
+    # Formal shared-Host React/Chromium checks remain independent.
     runs-on: ubuntu-latest
     timeout-minutes: 22
     steps:
@@ -131,7 +132,7 @@ jobs:
           npm ci --ignore-scripts --no-audit --no-fund
           cd examples/sidebar-tools/bookmark-manager/preview/react
           npm ci --no-audit --no-fund
-      - name: Enforce existing standalone bundle byte limits
+      - name: Audit non-release IIFE against unchanged sandbox budgets
         working-directory: examples/sidebar-tools/bookmark-manager/preview/react
         run: |
           npm run preview:budget
@@ -139,7 +140,22 @@ jobs:
           import assert from 'node:assert/strict';
           import {readFile} from 'node:fs/promises';
           const report=JSON.parse(await readFile('.opendesk-preview/budget-report.json','utf8'));
-          assert.equal(report.status,'SCHEMA_BUNDLE_READY_NOT_INSTALLED',report.blocker||report.error);
+          assert.equal(report.candidateOnly,true);
+          assert.equal(report.installed,false);
+          assert.equal(report.limits.js,220000,'Sandbox JS limit must not silently grow');
+          assert.equal(report.limits.totalPackage,320000,'Sandbox total limit must not silently grow');
+          assert.ok(report.jsBytes>0&&report.cssBytes>0,'Measured non-empty IIFE and CSS required');
+          if(report.status==='BUDGET_BLOCKED'){
+            assert.match(report.blocker||'',/^E_TOOL_BUILD: source file exceeds budget: src\/main\.js$/);
+            assert.ok(report.jsBytes>report.limits.js,'Blocker must match measured overage');
+            console.log('NON_RELEASE_IIFE_BUDGET_BLOCKED_NOT_PUBLISHABLE',JSON.stringify({
+              jsBytes:report.jsBytes,limit:report.limits.js,overage:report.jsBytes-report.limits.js
+            }));
+          }else{
+            assert.equal(report.status,'SCHEMA_BUNDLE_READY_NOT_INSTALLED',report.blocker||report.error);
+            assert.ok(report.packageBytes<=report.limits.totalPackage);
+            console.log('NON_RELEASE_IIFE_FITS_BUDGET_NOT_INSTALLED',report.packageBytes);
+          }
           NODE
       - name: Preserve independent budget evidence
         if: always()

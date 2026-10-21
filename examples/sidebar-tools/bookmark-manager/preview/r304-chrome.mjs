@@ -242,8 +242,8 @@ try{
   // is intentionally unavailable here; real admitted preview runs separately.
   assert.equal(await invoke(ctx,"return !!document.querySelector('.bm-topbar [aria-label=对话],.od-conversation-frame-trigger')"),false,
     'standalone sandbox has no trusted Chat trigger '+width);
-  assert.equal(await invoke(ctx,"return document.querySelector('#opendesk-conversation-dock')?.hidden===true"),true,
-    'unadmitted Dock remains closed '+width);
+  assert.equal(await invoke(ctx,"return !!document.querySelector('#opendesk-conversation-dock')"),false,
+    'standalone sandbox must never mount a trusted shared Dock '+width);
   await assertTreeGeometry(ctx,'initial tree '+width);
   const originalHeight=await invoke(ctx,"return Math.round(document.querySelector('.bm-tree-scroll').getBoundingClientRect().height)");
   assert.equal(await invoke(ctx,"return document.querySelector('.bm-inspector')===null"),true);

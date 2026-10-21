@@ -253,3 +253,17 @@
 - **B / EXP-001**：Axiom 和 UI.Vision 已提供任务自动化。固定一站点、一条获准的 8 字段任务，比较每次成功后的**真实人工介入、错误恢复、撤权、站点升级维护小时和合同责任**；当前没有企业权限、客户预算与竞品实际执行，均为 `NOT_TESTED`。现有功能不能直接对应付费合同。
 - **C / EXP-005**：Helium 10、Jungle Scout 的卖家套件与「客户明确授权 CSV 的字段/重复 SKU/业务差异核对」可能不是同一功能层级；授权 CSV 与标准答案、付费买方均 `MISSING`，目前只作高价套件的替代证据，不做竞品 SKU 导出抓取或无许可比价。
 - **文档风险线**：竞品官网收费不代表其付费人数；CWS 安装数字不代表活跃，Keyword Planner 需要 US/en 与 JP/ja 两组真实官方导出；未经真正同任务对照不发布优劣比较页和品牌竞价广告。
+
+## R1.4-EVIDENCE-EXECUTION · 2026-10-21 · 官方低价替代反证
+
+> **OFFICIAL_DOCS_VERIFIED / NATIVE_NOT_TESTED / BUYER_NOT_CONTACTED**。保持原 22 家竞品研究池、六家优先同任务对照、84 OPP / 30 候选 / 8 EXP，不增加新编号。微软、Shopify 和 Google Sheets 是**外部原生/低价替代证据**，不虚增“22 家已真实使用”的分母。价格是官网列表口径，不是实际买方成交价。
+
+| 投资方向 | 公开一手事实（FACT_OFFICIAL） | 最强反证/降级条件 | 仍未获得的商业或真实产品证据 |
+| --- | --- | --- | --- |
+| A · EXP-003 | [Obsidian Web Clipper 官方帮助](https://obsidian.md/help/web-clipper/capture)说明远程图片可通过 `Download attachments for current file` 命令离线化，该命令还能设置快捷键；[CWS](https://chromewebstore.google.com/detail/obsidian-web-clipper/cnjifjpddelmedmihgijeibhnjfabmlf)当前展示 1.7.1、约 100 万安装、34 种语言含日语。 | 不能凭“免费竞品要额外一步/缺日语”建立护城河；Obsidian 若能以相近总成本完成同一获准 AI 原图+Markdown 离线读回，缩小或放弃 A 的通用剪藏收费。 | 同一素材双方原生操作、图片 MIME/bytes/SHA、Markdown 引用及断网读回均 `NOT_TESTED`；安装不等于付款。 |
+| A · EXP-003 | [Readwise 导出 FAQ](https://docs.readwise.io/reader/docs/faqs/exporting)支持单篇注释 Markdown、完整文件与文章 ZIP（生成后邮件送下载链接）以及带标注 PDF 打印。 | 禁止宣称“Readwise 无法导出”；注释 Markdown、异步全库 ZIP、即时原图单任务交付不是同一个输出合同；公平记录 `NOT_EQUIVALENT`。 | 相同来源图片原始字节和最终文件一致性、操作耗时及离线重开 `NOT_TESTED`。 |
+| B · EXP-001 | [Microsoft Power Automate 官方许可 FAQ](https://learn.microsoft.com/en-us/power-platform/admin/powerapps-flow-licensing-faq)列 Premium **USD 15/用户/月**（含 attended desktop RPA）、Process **USD 150/机器人/月**（含 unattended RPA）。现有 [Axiom 官网](https://axiom.ai/pricing/)列 Starter USD 15/月含 5 小时运行。 | 企业可能已有成熟 RPA 许可和采购通道；只能围绕**获准特殊站点、任务责任、权限撤销、可核恢复和实施维护总成本**证明需要新供应商，不能仅卖通用录制。 | 客户已有许可、同任务 Axiom/Power Automate 成本、实际采购预算、售后小时和订单都 `MISSING/NOT_TESTED`。 |
+| C · EXP-005 | [Shopify 官方 CSV 错误说明](https://help.shopify.com/en/manual/products/import-export/common-import-issues)覆盖缺标题、非法引号、重复选项和无效图片 URL；[导入指南](https://help.shopify.com/en/manual/products/import-export/import-products)说明缺标头/格式不符会被拒。 | 基础 CSV 格式和缺列核查已存在于卖家平台；只有真实客户愿为**导入前跨文件业务规则、例外审计和返工减少**付费，才保留独立 Listing QA 收费。 | 卖家书面授权 CSV、真值规则、误报漏报、实际复核时间及预算 `MISSING`。 |
+| C · EXP-005 | [Google Sheets 官方帮助](https://support.google.com/docs/answer/6325535?hl=en)支持按指定列去重和空格清理。 | “找到重复 SKU”本身难以单独卖钱；Sheets 的去重也不等同可审核的非破坏性 QA 报告，须用同一合法 CSV 实测价值差距。 | 同任务真实输入、结果、人工补救和付款 `NOT_TESTED`。 |
+
+**结论边界**：新增官方强替代使 B/C 的付费价值门更严格，未推翻它们可能有窄任务服务收入的假设；A 的免费替代继续强劲。以上是公开功能/定价实证，不是 Mac Chrome 用户操作、企业成交或合规可用性实测。任一竞争结果达到同等或更低**真实总成本**时，应明确考虑 `PIVOT/STOP` 而不是更换营销口号。

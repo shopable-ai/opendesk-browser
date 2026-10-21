@@ -50,7 +50,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate independent tool, storage and fixed-adapter provenance
         run: |
-          node --test tests/environment/prompt-shortcuts-r14*.test.mjs tests/environment/prompt-shortcuts-r20.test.mjs tests/environment/prompt-shortcuts-r215-rail-open.test.mjs tests/environment/prompt-shortcuts-panel-deeplink.test.mjs tests/environment/prompt-shortcuts-r32-image.test.mjs tests/environment/prompt-shortcuts-r37-assets.test.mjs
+          node --test tests/environment/prompt-shortcuts-r14*.test.mjs tests/environment/prompt-shortcuts-r20.test.mjs tests/environment/prompt-shortcuts-r215-rail-open.test.mjs tests/environment/prompt-shortcuts-panel-deeplink.test.mjs tests/environment/prompt-shortcuts-r32-image.test.mjs tests/environment/prompt-shortcuts-r37-assets.test.mjs tests/environment/prompt-shortcuts-r40-image-preview.test.mjs
           node --test tests/environment/sidebar-tools.test.mjs
       - name: Check standalone and trusted JavaScript syntax
         run: |
@@ -142,6 +142,37 @@ jobs:
           path: artifacts/sidebar-tools/prompt-shortcuts/candidate.opendesk-tool.json
           if-no-files-found: error
           retention-days: 7
+
+  original-preview-r41:
+    name: R4.1 original full HTML image UX in real Chromium
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    # Preview evidence is independent of formal trusted-source provenance and package promotion.
+    # The separate scoped job must still fail on a rejected trusted asset-host pin.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: R4 original source-bound image safety tests
+        run: node --test tests/environment/prompt-shortcuts-r40-image-preview.test.mjs
+      - name: Readable CJK fonts for screenshot evidence
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y fonts-noto-cjk
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Test actual original HTML picker drag and drop draft protection and screenshots
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node scripts/tests/prompt-shortcuts-r111-preview-chrome.mjs artifacts/prompt-shortcuts-r41-original-chrome
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prompt-shortcuts-r41-original-chromium-${{ github.sha }}
+          path: artifacts/prompt-shortcuts-r41-original-chrome/
+          if-no-files-found: warn
+          retention-days: 14
 
   sync-project-package:
     name: Commit verified portable JSON into tool project
