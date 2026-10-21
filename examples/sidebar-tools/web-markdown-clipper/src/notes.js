@@ -73,6 +73,8 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
  const q=id=>root.querySelector('#'+id),doc=root.ownerDocument||document;
  const el=(tag,cls,text)=>{const n=doc.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
  const store=createStore({request});
+ const hostedNavigation=typeof g.OpenDeskTool?.setNavigation==='function';
+ if(hostedNavigation)root.querySelector('.clip')?.classList.add('clip-hosted');
  const empty=()=>({items:[],total:0,matched:0,usedBytes:0,etag:null,nextOffset:null});
  let data=empty(),recent=empty();
  let clip=null,reading=null,readerOrigin='library',editing=null,editingSource=null;
@@ -86,6 +88,12 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
  const statusError=(e,prefix='')=>msg(prefix+String(e?.message||e),true);
  const dirty=()=>editing!==null&&q('clip-note-body').value!==baseline;
  const notify=()=>g.OpenDeskTool?.setState?.({dirty:dirty(),busy});
+ const publishNavigation=()=>{
+  if(!hostedNavigation)return;
+  const page=editing?(editing.id?'edit':'new'):reading?'reader':
+   q('clip-notes').hidden?'home':'library';
+  g.OpenDeskTool.setNavigation({page});
+ };
  const scrollParent=()=>doc.scrollingElement||doc.documentElement||root.parentElement||null;
  const scrollNow=()=>scrollParent()?.scrollTop||0;
  const restoreScroll=position=>{
@@ -127,7 +135,19 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
   q('clip-note-editor').hidden=!editing;
   q('clip-note-new').hidden=!list;
   q('clip-notes').dataset.view=editing?'editing':reading?'reading':'list';
-  notify();
+  publishNavigation();notify();
+ }
+ function cardCopy(item){
+  // Read-only presentation: legacy stored page title/source remain unchanged.
+  const raw=String(item.excerpt||''),lines=raw.split(/\r?\n/).map(v=>v.trim()).filter(Boolean);
+  const line=lines.find(v=>!(/^(---|\.\.\.|title:|source:|url:|date:|https?:\/\/)/i.test(v)))||'';
+  const content=line.replace(/^#{1,6}\s+/,'').replace(/^>\s*/,'')
+   .replace(/^\[([^\]]+)\]\(https?:\/\/[^)]+\)\s*$/,'$1').trim();
+  const headline=content||String(item.title||'').trim()||'摘录';
+  const title=[...headline].slice(0,68).join('');
+  const rest=line?raw.slice(raw.indexOf(line)+line.length).trim().replace(/^(---|\.\.\.)\s*/,'').trim():'';
+  const excerpt=rest||(headline.length>68?headline.slice(68).trim():'');
+  return {title,excerpt};
  }
  function renderCards(box,items,etag,origin){
   box.replaceChildren();
@@ -139,13 +159,13 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
   }
   for(const x of items){
    const card=el('article','clip-note-card'),open=el('button','clip-note-open');
-   open.type='button';open.setAttribute('aria-label','阅读 '+(x.title||'摘录'));
-   const title=el('span','clip-note-title',x.title||titleOf(x.excerpt));
-   let host='便签';if(x.source){try{host=new URL(x.source).hostname;}catch{host='网页摘录';}}
-   const stamp=Number.isFinite(Date.parse(x.updatedAt))?new Date(x.updatedAt).toLocaleString('zh-CN'):'';
-   const meta=el('span','clip-note-meta',host+' · '+stamp);
-   const excerpt=el('span','clip-note-excerpt',x.excerpt||'');
-   open.append(title,meta,excerpt);
+   const copy=cardCopy(x);
+   open.type='button';open.setAttribute('aria-label','阅读 '+copy.title);
+   const title=el('span','clip-note-title',copy.title);
+   const stamp=Number.isFinite(Date.parse(x.updatedAt))?new Date(x.updatedAt).toLocaleDateString('zh-CN'):'';
+   const meta=el('span','clip-note-meta',(x.kind==='note'?'便签':'网页')+(stamp?' · '+stamp:''));
+   const excerpt=el('span','clip-note-excerpt',copy.excerpt);
+   open.append(title,excerpt,meta);
    open.addEventListener('click',()=>void openReader(x.id,origin));
    const actions=el('div','clip-note-buttons');
    actions.append(
@@ -240,7 +260,9 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
    renderReader();msg('已读取完整正文');
    q('clip-note-reader-back').setAttribute('aria-label',origin==='recent'?'返回最近摘录':'返回摘录列表');
    q('clip-note-reader-back').title=origin==='recent'?'返回最近摘录':'返回摘录列表';
-   restoreScroll(0);q('clip-note-reader-back').focus();
+   restoreScroll(0);
+   if(hostedNavigation)q('clip-note-read-body').focus({preventScroll:true});
+   else q('clip-note-reader-back').focus();
   }catch(error){statusError(error,'读取失败：');}
  }
  function backReader(){
@@ -302,7 +324,7 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
    q('clip-note-body').value='';q('clip-note-unsaved').hidden=true;
    if(where==='reader'&&original.id){
     reading={item:response.item,etag:response.etag};renderReader();
-   }else if(where==='recent')showHome();
+   }else if(where==='recent')showHome({allowBusy:true});
    else showList();
    let refreshFailed=false;
    try{await reloadRecent();await reload({recover:true});}catch{refreshFailed=true;}
@@ -420,12 +442,25 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
   }catch(error){statusError(error,'备份下载未确认：');}
   finally{busy=false;notify();}
  });
+ root.addEventListener?.('opendesk-tool-navigation',event=>{
+  const intent=event.detail?.action;
+  if(intent==='back'){
+   if(editing)cancelEditor();
+   else if(reading)backReader();
+   else if(!q('clip-notes').hidden)showHome();
+  }else if(intent==='primary'){
+   if(editing)void saveEditor();
+   else if(reading)openEditor(reading.item,reading,'reader');
+   else if(!q('clip-notes').hidden)openEditor(null,null,'library');
+  }
+ });
  root.addEventListener?.('keydown',event=>{
   if(event.key==='Escape'&&pendingDelete){event.preventDefault();confirmHidden();}
  });
  doc.addEventListener?.('pointerdown',event=>{
   if(pendingDelete&&!pendingDelete.panel.contains(event.target))confirmHidden();
  });
+ publishNavigation();
  void reloadRecent().catch(error=>msg('读取最近摘录失败：'+String(error.message||error),true));
  setClip(null);
  return {setClip,saveClip,showLibrary};

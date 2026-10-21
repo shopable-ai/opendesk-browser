@@ -131,10 +131,18 @@ export const SIDEBAR_TOOL_FIELDS = {
     "textContent": "",
     "className": "od-page-title"
   },
+  "sidebar-tool-primary-action": {
+    "hidden": true,
+    "title": "",
+    "className": "sidebar-tool-icon-action od-icon-button",
+    "type": "button",
+    "data": {"action": ""},
+    "attributes": {"aria-label": "当前页面操作"}
+  },
   "sidebar-tool-open-tab": {
     "disabled": true,
     "title": "在新标签页打开",
-    "className": "sidebar-tool-icon-action od-icon-button",
+    "className": "od-button od-button--secondary sidebar-tool-settings-open-tab",
     "type": "button",
     "attributes": {
       "aria-label": "在新标签页打开当前工具"

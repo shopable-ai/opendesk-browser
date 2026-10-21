@@ -1521,3 +1521,8 @@
 .cloud-program-trial-result{margin:var(--space-3) 0;padding:var(--space-3);min-width:0;border:1px solid var(--od-line);border-radius:var(--od-radius-md,10px)}
 .cloud-program-trial-result>p{margin:var(--space-2) 0;overflow-wrap:anywhere}
 .cloud-program-trial-result .cloud-program-hash{word-break:break-all;font-size:10px;color:var(--od-sub)}
+
+/* R1.2: rare "open in tab" lives within trusted tool settings, not the toolbar. */
+#sidebar-tool-settings-view .sidebar-tool-settings-open-tab{display:flex;align-items:center;justify-content:center;gap:8px;min-height:34px;width:100%;margin-bottom:10px;font-size:12px}
+#sidebar-tool-settings-view .sidebar-tool-settings-open-tab svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#sidebar-tool-primary-action[hidden]{display:none!important}

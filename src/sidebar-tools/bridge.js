@@ -306,6 +306,13 @@ export function initSidebarToolSandbox() {
         root.dispatchEvent(new Event('opendesk-tool-state-changed'));
       return;
     }
+    // Presentation-only navigation request. Sandbox owns its business history.
+    if(message.kind==='navigation-action'){
+      if(message.instance===instance&&message.toolId===toolId&&
+         toolId==='web-markdown-clipper'&&['back','primary'].includes(message.action))
+        root.dispatchEvent(new CustomEvent('opendesk-tool-navigation',{detail:{action:message.action}}));
+      return;
+    }
     if (message.kind!=='load' || instance || typeof message.instance!=='string' ||
         message.instance.length>90 || !message.tool || typeof message.tool!=='object')return;
     const tool=message.tool;
@@ -327,6 +334,12 @@ export function initSidebarToolSandbox() {
     document.head.append(style);
     // User HTML and code never enter privileged extension DOM or a browser API world.
     root.innerHTML=tool.html;
+    // Bounded first-party visual hint, never a new privilege or route owner.
+    const setNavigation=({page}={})=>{
+      if(disposed||toolId!=='web-markdown-clipper'||
+         !['home','library','reader','edit','new'].includes(page))return;
+      parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'navigation-state',instance,toolId,page},'*');
+    };
     const setState=({dirty,busy})=>{
       if(typeof dirty!=='boolean'||typeof busy!=='boolean')return;
       if(dirty||busy)sendDraft();
@@ -334,6 +347,7 @@ export function initSidebarToolSandbox() {
     };
     Object.defineProperty(window,'OpenDeskTool',{value:Object.freeze({
       root,request,setState,
+      ...(toolId==='web-markdown-clipper'?{setNavigation}:{}),
       get locale(){return uiLocale;},
       onLocaleChange(callback){
         if(typeof callback!=='function')throw Error('E_UI_LOCALE_CALLBACK');
