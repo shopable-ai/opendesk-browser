@@ -1920,6 +1920,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           authorize:async()=>{
             assertSession(source,token);
             await assertSidebarToolEnabled(api,PROMPT_ID);
+            const current=await api.storage.local.get([SIDEBAR_TOOL_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
+            if(!requireCompleteInstalledSidebarTools(current[SIDEBAR_TOOL_STORE])
+              .some(row=>samePackage(row,tool))||
+              (current[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null)!==revocationEpoch)
+              throw Object.assign(new Error('工具在图片保存过程中被更新或卸载'),{code:'E_TOOL_CHANGED'});
             assertSession(source,token);
           }});
       }
