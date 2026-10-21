@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {programDraft} from '../fixtures/program-draft.mjs';
 import {createTaskWorkbench} from '../../src/ui/task-workbench.js';
+import {createDeveloperView} from '../../src/ui/develop-view.js';
 import {createTaskReviewHandoff} from '../../src/ui/workflow/task-review-handoff.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 
@@ -105,8 +106,13 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
   const api={storage:draftStorage?{session:draftStorage}:undefined,permissions:{contains:async()=>true,request:value=>{permissions.push(value);return Promise.resolve(true);}},
     runtime:{getURL:path=>'chrome-extension://extension/'+path,sendMessage:async message=>{draftMessages.push(message);return {ok:true};}},
     tabs:{create:async request=>{catalogOpens.push(request);return {id:99};}}};
-  const ui=createTaskWorkbench({client,host,currentPageTarget:page,api,document:doc,importDraft:source=>importedDrafts.push(source)});
-  return {ui,get,doc,page,host,client,view,starts,permissions,stops,catalogOpens,draftMessages,importedDrafts,api,catalogState,
+  // Mirror the real React Side Panel: Task Workbench receives the shared
+  // Developer view rather than a legacy DOM-only candidate control.
+  const developerView=createDeveloperView();
+  const workbench=createTaskWorkbench({client,host,currentPageTarget:page,api,document:doc,developerView,
+    importDraft:source=>importedDrafts.push(source)});
+  const ui={...workbench,dispose(){workbench.dispose();developerView.dispose();}};
+  return {ui,developerView,get,doc,page,host,client,view,starts,permissions,stops,catalogOpens,draftMessages,importedDrafts,api,catalogState,
     click:async(id,trusted=true)=>{get(id).fire('click',{isTrusted:trusted});await tick();await tick();}};
 };
 
