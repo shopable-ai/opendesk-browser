@@ -55,6 +55,37 @@ function App(){
   const [inspectionBusy,setInspectionBusy]=React.useState(false);
   const inspectSerial=React.useRef(0);
   const api=globalThis.OpenDeskTool;
+  // The shared bridge enables this only after exact first-party release verification.
+  // Standalone previews and custom installs retain the original internal controls.
+  const sharedNavigation=typeof api?.setNavigation==='function';
+  const selectorDraftDirty=view==='cosmetics'&&Boolean(draftSelector.trim())&&
+    (editingSelector===null||draftSelector.trim()!==editingSelector);
+  const navigationGuard=React.useRef(false);
+  navigationGuard.current=selectorDraftDirty||busy;
+  React.useEffect(()=>{
+    if(!sharedNavigation)return;
+    const titles={overview:'广告拦截',cosmetics:'手动屏蔽规则',
+      exceptions:'已停用的网站',settings:'广告拦截设置'};
+    api.setNavigation({page:view,title:titles[view]||titles.overview,canBack:view!=='overview'});
+  },[api,sharedNavigation,view]);
+  React.useEffect(()=>{
+    if(sharedNavigation)api.setState?.({dirty:selectorDraftDirty,busy});
+  },[api,sharedNavigation,selectorDraftDirty,busy]);
+  React.useEffect(()=>{
+    if(!sharedNavigation)return;
+    const onNavigate=event=>{
+      if(event.detail?.action!=='back'||view==='overview')return;
+      if(busy||locked.current){
+        setProblem(true);setNotice('正在处理广告规则，请完成后再返回。');return;
+      }
+      if(selectorDraftDirty){
+        setProblem(true);setNotice('规则草稿尚未保存，请先保存或取消编辑。');return;
+      }
+      setView('overview');
+    };
+    api.root?.addEventListener?.('opendesk-tool-navigation',onNavigate);
+    return ()=>api.root?.removeEventListener?.('opendesk-tool-navigation',onNavigate);
+  },[api,sharedNavigation,view,busy,selectorDraftDirty]);
   const refresh=React.useCallback(async(silent=false,preserveNotice=false)=>{
     if(locked.current){queued.current=true;return;}
     const turn=++reading.current;
@@ -210,8 +241,13 @@ function App(){
     };
     const onMessage=event=>{
       if(event.source!==globalThis.parent)return;
-      if(event.data?.protocol==='opendesk.adblock.ui.v1'&&event.data?.kind==='settings')
+      if(event.data?.protocol==='opendesk.adblock.ui.v1'&&event.data?.kind==='settings'){
+        if(navigationGuard.current||locked.current){
+          setProblem(true);setNotice('请先完成或取消当前规则编辑，再打开设置。');
+          return;
+        }
         setView('settings');
+      }
     };
     document.addEventListener('visibilitychange',onVisible);
     globalThis.addEventListener('focus',onVisible);
@@ -299,7 +335,7 @@ function App(){
     void operateCosmetic(editingSelector===null?'adblock.cosmetic.add':
       'adblock.cosmetic.replace',payload);
   };
-  const back=<IconButton className="adblock-back" label="返回广告拦截概览" title="返回"
+  const back=sharedNavigation?null:<IconButton className="adblock-back" label="返回广告拦截概览" title="返回"
     onClick={()=>setView('overview')}><ActionGlyph kind="back"/></IconButton>;
   return <div className="adblock-app">
     {view==='overview'?<>
@@ -353,8 +389,9 @@ function App(){
         已停用的网站 <span>{exceptions.length}</span><span aria-hidden="true">→</span>
       </Button>
     </>:view==='cosmetics'?<>
-      <div className="adblock-page-head">{back}<strong>手动屏蔽规则</strong>
-        <span>{cosmeticRules.length} 处</span></div>
+      {sharedNavigation?<p className="adblock-page-count">{cosmeticRules.length} 处手动屏蔽规则</p>:
+        <div className="adblock-page-head">{back}<strong>手动屏蔽规则</strong>
+          <span>{cosmeticRules.length} 处</span></div>}
       <Card><CardContent className="adblock-exceptions">
         {state?.cosmeticError?<p className="adblock-help" role="alert">{state.cosmeticError}</p>:
           !state?<p className="adblock-help">规则尚未读取。</p>:
@@ -431,7 +468,8 @@ function App(){
         </div>
       </details>
     </>:view==='exceptions'?<>
-      <div className="adblock-page-head">{back}<strong>已停用的网站</strong><span>{exceptions.length}</span></div>
+      {sharedNavigation?<p className="adblock-page-count">{exceptions.length} 个网站例外</p>:
+        <div className="adblock-page-head">{back}<strong>已停用的网站</strong><span>{exceptions.length}</span></div>}
       <Card><CardContent className="adblock-exceptions">
         {!state?<p className="adblock-help">例外状态未确认，恢复操作不可用。</p>:
           !exceptions.length?<p className="adblock-empty">暂无网站例外</p>:
@@ -442,7 +480,7 @@ function App(){
           </div>)}
       </CardContent></Card>
     </>:<>
-      <div className="adblock-page-head">{back}<strong>设置说明</strong></div>
+      {!sharedNavigation?<div className="adblock-page-head">{back}<strong>设置说明</strong></div>:null}
       <Card><CardContent className="adblock-card">
         <strong>过滤范围</strong><p className="adblock-help">使用 OpenDesk Browser 内置离线 DNR 规则，仅对符合规则的第三方请求生效。</p>
         <strong>网站例外</strong><p className="adblock-help">关闭本站过滤可加入例外；例外列表支持逐个恢复。</p>

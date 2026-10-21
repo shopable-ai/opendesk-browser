@@ -1,6 +1,6 @@
 {
   "id": "adblock",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "title": "广告拦截",
   "description": "离线阻断广告与跟踪资源，支持网站例外、点击屏蔽网页元素和本地自动恢复。",
   "capabilities": [

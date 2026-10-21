@@ -60,3 +60,6 @@
 .adblock-dynamic{display:flex;align-items:flex-start;gap:8px;font-size:11px!important;line-height:1.5}
 .adblock-dynamic input{margin-top:3px}
 @media(max-width:340px){.adblock-rule-actions:not(.adblock-rule-actions--icons) button{flex:1 1 auto}}
+
+/* Verified shared ToolHost owns page headings; counts remain visible. */
+.adblock-page-count{margin:0;color:var(--od-sub);font-size:11px;line-height:1.5}
