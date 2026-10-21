@@ -94,12 +94,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const listeners=[];
   // This channel is a hint only. The recipient always re-reads the authoritative
   // Task Catalog through the existing Host Client; no task data crosses it.
-  const updates=typeof globalThis.BroadcastChannel==='function'
-    ?new globalThis.BroadcastChannel('opendesk-task-catalog-updates-v1'):null;
+  // Do not acquire a BroadcastChannel before the synchronous UI/controller
+  // wiring succeeds. A failed constructor has no dispose() owner to close it.
+  let updates=null;
   const announce=()=>updates?.postMessage({type:'catalog-changed'});
-  updates?.addEventListener?.('message',event=>{
-    if(!disposed&&event.data?.type==='catalog-changed')refresh().catch(fail);
-  });
   const focus=(id,options)=>{
     myView.publish();queueMicrotask(()=>get(id)?.focus?.(options));
   };
@@ -836,6 +834,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(!disposed)return refresh();
   }).catch(fail);
   navigate('tasks',{initial:true});update();
+  // Subscribe to cross-document refresh hints only once the instance can be
+  // returned and its existing dispose() can own the channel's lifetime.
+  updates=typeof globalThis.BroadcastChannel==='function'
+    ?new globalThis.BroadcastChannel('opendesk-task-catalog-updates-v1'):null;
+  updates?.addEventListener?.('message',event=>{
+    if(!disposed&&event.data?.type==='catalog-changed')refresh().catch(fail);
+  });
   return {navigate,showCatalogPage,refresh,myView,setWorkflowRunOwner(runId) {
     workflowClaimPending=runId==='pending';
     workflowRunId=runId && runId!=='pending'?runId:null;
