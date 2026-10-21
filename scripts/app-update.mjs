@@ -74,7 +74,8 @@ async function updateApp(id,{check=false}={}){
   if(decision.kind==='ALREADY_CURRENT'){
     const matched=await checkSidebarToolProjectPackage(project);
     console.log(JSON.stringify({...matched,status:'APP_PACKAGE_CURRENT_NOT_INSTALLED'},null,2));
-    console.log('仅应用 JSON 无变化；如修改了 trusted/，请更新 Browser 本体。');
+    installAdvice(id,matched.output,matched.version,matched.sha256);
+    console.log('应用 JSON 无需重新打包；如修改了 trusted/，请由维护者更新 Browser 本体。');
     return;
   }
   let bumpedText=null,enteredPromotion=false;

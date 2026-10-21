@@ -63,6 +63,7 @@ test('R2 user app delivery and administrator Browser deployment are independent 
   assert.match(guide,/INSTALLED_CHROME_NOT_TESTED/);
   assert.match(cli,/promoteSidebarToolPackage/);
   assert.match(cli,/E_APP_BUSY/,'same-app release must be serialized');
+  assert.match(cli,/installAdvice\(id,matched\.output/,'up-to-date formal releases must still expose the original install path');
   assert.match(cli,/!enteredPromotion/,'post-promotion failure cannot blindly roll back the source version');
   assert.doesNotMatch(cli,/chrome\.management\.install|chrome\.permissions\.request/);
   assert.equal(JSON.parse(manifest).scripts['app:update'],'node scripts/app-update.mjs');
