@@ -67,7 +67,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
       {bookmarkPilot&&createPortal(<><style>{bookmarkScopedCSS}</style>
         <TrustedConversationWorkspace controller={bookmarkPilot.runtime.conversation}
           headerTarget={bookmarkPilot.headerTarget}
-         title="书签对话"
+         title="AI 对话"
          placeholder="例如：创建一个文件夹并收藏当前网页"
          
          renderBusiness={dock=><BookmarkReactApp mode="trusted" runtime={bookmarkPilot.runtime}

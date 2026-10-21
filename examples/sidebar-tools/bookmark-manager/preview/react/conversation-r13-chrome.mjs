@@ -154,6 +154,9 @@ try{
    assert.equal(await evaluate('return document.querySelector(".od-conversation-composer [aria-label=发送]").disabled'),true);
    assert.equal(await evaluate('return !!document.querySelector(".bm-topbar [aria-label=对话]")'),false);
    assert.equal(await evaluate('return !!document.querySelector(".sidebar-tool-view-head .od-conversation-frame-trigger")'),true);
+   const frameActions=await evaluate('const slot=document.querySelector(".sidebar-tool-view-head .od-conversation-header-slot");return {chat:!!slot?.querySelector(".od-conversation-frame-trigger"),uninstallImmediatelyAfter:slot?.nextElementSibling?.getAttribute("aria-label")?.startsWith("卸载当前工具")===true};');
+   assert.deepEqual(frameActions,{chat:true,uninstallImmediatelyAfter:true},
+     'framework Chat icon must precede uninstall immediately');
    const compact=await evaluate(`const input=document.querySelector(".od-conversation-input").getBoundingClientRect(),send=document.querySelector(".od-conversation-action").getBoundingClientRect();
      return {buttonInside:send.left>=input.left&&send.right<=input.right&&send.top>=input.top&&send.bottom<=input.bottom,
       noLegacy:!document.querySelector(".od-conversation-header,.od-conversation-controls,.od-conversation-samples")};`);

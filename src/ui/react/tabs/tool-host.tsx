@@ -217,7 +217,6 @@ export function ToolHost({view}) {
 <ToolField as="strong" id="sidebar-tool-title" className="od-page-title">
 
 </ToolField>
-<TrustedConversationHeaderSlot/>
 <ToolField as="button" type="button" id="sidebar-tool-open-tab" className="sidebar-tool-icon-action od-icon-button" title="在新标签页打开" aria-label="在新标签页打开当前工具" disabled={true}>
 <svg viewBox="0 0 24 24" aria-hidden="true">
 <path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6">
@@ -260,6 +259,7 @@ export function ToolHost({view}) {
 </svg>
 
 </ToolField>
+<TrustedConversationHeaderSlot/>
 <ToolField as="button" type="button" id="sidebar-tool-remove" className="sidebar-tool-icon-action od-icon-button" title="卸载工具及本地数据" aria-label="卸载当前工具及本地数据" disabled={true}>
 <svg viewBox="0 0 24 24" aria-hidden="true">
 <path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5">

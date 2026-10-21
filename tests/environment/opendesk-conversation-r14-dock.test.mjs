@@ -35,7 +35,9 @@ test('R1.4 original bookmark workspace and search never disappear with chat',asy
  assert.match(app,/<div className="bm-workspace">/);
  assert.doesNotMatch(app,/hidden=\{chatOpen\}|className="bm-conversation"|id="bm-conversation"/);
  assert.doesNotMatch(app,/label="对话"[\s\S]*aria-controls="opendesk-conversation-dock"/);
- assert.match(await read('src/ui/react/tabs/tool-host.tsx'),/TrustedConversationHeaderSlot/);
+ const toolHost=await read('src/ui/react/tabs/tool-host.tsx');
+ assert.match(toolHost,/<TrustedConversationHeaderSlot\/>\s*<ToolField as="button" type="button" id="sidebar-tool-remove"/,
+  'framework Chat icon must be in ToolHost header immediately before uninstall');
  assert.match(await read('src/ui/react/components/conversation.tsx'),/createPortal\(/);
  assert.match(css,/\.od-conversation-business\{min-height:0;min-width:0;flex:1/);
  assert.match(css,/\.od-conversation-dock\{flex:none/);
@@ -98,7 +100,10 @@ test('R1.4 preview reuses production App and shared Dock and labels Mock honestl
  assert.match(preview,/TrustedConversationWorkspace controller=\{conversation\} headerTarget=\{headerTarget\}/);
  assert.match(preview,/<App runtime=\{\{conversation\}\} mode="preview" dock=\{dock\}\/>/);
  assert.match(preview,/offline/);
- assert.match(preview,/离线演示（非真实 AI）/);
+ assert.doesNotMatch(preview,/离线演示（非真实 AI）|模拟书签读回（非 Chrome）|title="书签对话"/);
+ assert.match(preview,/provider:'offline_fixture'/,'offline fixture identity is retained internally');
+ assert.match(preview,/nativeVerified:false/,'fixture never claims installed/native behavior');
+ assert.match(preview,/title="AI 对话" placeholder/);
  assert.match(builder,/join\(root,'src\/ui\/react\/components\/conversation-dock\.css'\)/);
  assert.match(main,/mode="trusted" runtime=\{bookmarkPilot\.runtime\}/);
 });

@@ -33,7 +33,7 @@ function mockIntent(request){
  return {question:'这里只演示几个固定句式；真实 AI 需要在已安装的 OpenDesk 浏览器中连接。'};
 }
 const conversation=Object.freeze({
- source:()=>({provider:'offline_fixture',label:'离线演示（非真实 AI）'}),
+ source:()=>({provider:'offline_fixture'}),
  readSession:()=>structuredClone(session),
  saveSession:next=>{session=structuredClone(next)},
  async request({request,signal}={}){
@@ -71,7 +71,7 @@ function OfflineTrustedToolHost(){
   </header>
   <div className="od-preview-trusted-frame">
    <TrustedConversationWorkspace controller={conversation} headerTarget={headerTarget}
-    title="书签对话" placeholder="描述要完成的操作"
+    title="AI 对话" placeholder="描述要完成的操作"
     renderBusiness={dock=><App runtime={{conversation}} mode="preview" dock={dock}/>}/>
   </div>
  </div>;
