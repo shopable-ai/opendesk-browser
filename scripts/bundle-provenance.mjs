@@ -96,7 +96,7 @@ const compiledPromptShortcutInputs=Object.freeze({
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'4c6f608a26e0d69278c18a0afda94b3c8ce8274c',
   'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'cb9874151086f719136d126f467edfae6ae0da86',
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js':'86e95bff786e52efb9089f97126542430f39a716',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js':'d2cb73dce44c18c3c59b7e4ccd1f7feded672dfd',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js':'b960044deb5e7d059c26d5d520f912c0b72c7b0e',
   'examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js':'7c10e8270c43be93229afbf0d3171455de628030',
   // Shared with the standalone diagnostic harness; never an installed package import.
   'examples/programs/chatgpt-jump-top/src/conversation.js':'e9a342a409b60e1b5c162ef275cb1a8bb8b6ce3a',
@@ -243,7 +243,7 @@ const compiledReadingTocInputs=Object.freeze({
   'examples/sidebar-tools/reading-toc/trusted/model.js':'9a7320084caa2efa2acb40dcaf5c00e60659bc66',
   'examples/sidebar-tools/reading-toc/trusted/placement.js':'b29ddc6e66d0203fefccbcb98c071b046aaaa2c0',
   'examples/sidebar-tools/reading-toc/trusted/page.js':'8c9c3faa71c26a84e3388c41c31dffcac947d76e',
-  'examples/sidebar-tools/reading-toc/trusted/view.js':'71f6d57ad101936c963c41c118c8e78ef74bbf3b',
+  'examples/sidebar-tools/reading-toc/trusted/view.js':'623ff8831e8400d0598e600fd0d274d4788d9358',
   'examples/sidebar-tools/reading-toc/trusted/policy.js':'17d930495245bf92c6e36a9228a7cd286dc611b3',
   'examples/sidebar-tools/reading-toc/trusted/locales.generated.js':'0484bd67fadb23a88c6a7164435d5bf90acd8295',
   'examples/sidebar-tools/reading-toc/trusted/existing-tabs.js':'f5d9882cd1de65ef2ed0115c4d002114575c1058'

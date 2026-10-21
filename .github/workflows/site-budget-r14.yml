@@ -38,6 +38,9 @@ jobs:
       - name: Directed resource ownership, budget, SDK and regression tests
         run: |
           node --test tests/environment/managed-site-budget-r14.test.mjs tests/environment/browser-managed-site-policy-r44.test.mjs tests/environment/managed-site-authority-r44.test.mjs tests/environment/managed-site-runtime-contract-r45.test.mjs tests/environment/extension-runtime-r14-lifecycle.test.mjs tests/environment/stay-focus-r41-policy-package.test.mjs tests/environment/adblock-required-dnr-contract.test.mjs tests/environment/bundle-provenance.test.mjs
+      - name: Verify revised first-party trusted asset and TOC source behavior
+        run: |
+          node --test tests/environment/prompt-shortcuts-r37-assets.test.mjs tests/environment/reading-toc-placement-r42.test.mjs tests/environment/reading-toc-visibility-r46.test.mjs
       - name: Source checks and immutable production package candidate
         run: |
           npm run check
