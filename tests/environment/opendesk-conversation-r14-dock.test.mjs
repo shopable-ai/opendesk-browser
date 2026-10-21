@@ -41,7 +41,7 @@ test('R1.4 original bookmark workspace and search never disappear with chat',asy
   'framework Chat icon must be in ToolHost header immediately before uninstall');
  assert.match(await read('src/ui/react/components/conversation.tsx'),/createPortal\(/);
  assert.match(css,/\.od-conversation-business\{min-height:0;min-width:0;flex:1/);
- assert.match(css,/\.od-conversation-dock\{flex:none/);
+ assert.match(css,/\.od-conversation-dock\{[^\n]*flex:none/);
  assert.match(css,/\.od-conversation-log\{min-height:0;flex:1 1 auto;overflow:auto/);
  assert.match(css,/\.od-conversation-composer\{display:grid/);
  assert.match(css,/--od-brand/);
