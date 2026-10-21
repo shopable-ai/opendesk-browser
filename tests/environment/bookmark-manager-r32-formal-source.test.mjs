@@ -46,6 +46,25 @@ test('R3.2 formal JSX is the unique UI source and all four compiled modules rema
  assert.match(host,/import .*bookmark-manager\/src\/service\.js/);
 });
 
+test('R1.8 offline fixture chrome is hashed separately from the production React CSS',async()=>{
+ const [preview,builder,formal]=await Promise.all([
+  read(prefix+'preview/react/src/main.jsx'),
+  read(prefix+'preview/react/build-preview.mjs'),
+  read(prefix+'preview/react/src/formal.jsx')
+ ]);
+ assert.doesNotMatch(preview,/^import '\.\/preview-shell\.css';/m,
+  'fixture-only chrome must never enter the formal-comparable React CSS');
+ assert.doesNotMatch(formal,/preview-shell\.css/);
+ for(const entry of [preview,formal]){
+  assert.match(entry,/import '\.\.\/\.\.\/\.\.\/src\/react\/style\.css';/);
+  assert.match(entry,/import '\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/src\/ui\/react\/components\/conversation-dock\.css';/);
+ }
+ assert.match(builder,/read\(join\(here,'src\/preview-shell\.css'\)\)/);
+ assert.match(builder,/data-preview-shell="offline-only"/);
+ assert.match(builder,/previewShell:sha\(previewShell\)/,
+  'fixture stylesheet must remain in the hashed preview manifest');
+});
+
 function makeSdk(){
  const nodes=[{id:'0',title:'root'},{id:'1',parentId:'0',title:'书签栏',index:0}];
  for(let i=1;i<=130;i++)nodes.push({id:'f'+i,parentId:'1',title:'目录 '+i,index:i});
