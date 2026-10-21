@@ -20,6 +20,7 @@ const inputs=[
   'src/ui/tool-shell.css',
   'src/ui/react/preview/workflow-preview.tsx',
   'src/ui/react/tabs/workflow.tsx',
+  'src/ui/react/components/conversation.tsx',
   'src/ui/react/main.tsx',
   'src/ui/workflow/workflow-view.js',
   'scripts/preview/build-workflow-react-preview.mjs',

@@ -473,7 +473,7 @@
 .workflow-pill{border:1px solid #dfe7f1;background:#f9fbff;color:#607391;border-radius:var(--radius-pill);padding:4px 7px;max-width:97px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}
 .workflow-icon-button{flex:none}
 .workflow-target-warning{margin-top:var(--space-2);font-size:var(--od-note-size);line-height:1.55}
-.workflow-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;display:flex;flex-direction:column;gap:var(--space-3);padding:8px 1px 13px}
+.workflow-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;display:flex;flex-direction:column;gap:var(--space-2);padding:6px 1px 9px}
 .workflow-card{min-width:0}
 .workflow-card h3,.workflow-management h3{font-size:var(--od-body-size);color:var(--od-ink)}
 .workflow-card textarea,.workflow-management textarea{line-height:1.5;font-family:inherit;margin:var(--space-1) 0 var(--space-2)}
@@ -499,21 +499,24 @@
 .workflow-editor[data-view-state="ai-unconfigured"] .workflow-chat-mark,
 .workflow-editor[data-view-state="empty"] .workflow-chat-mark{margin-inline:auto}
 .workflow-text-action{font-size:var(--od-note-size);min-height:28px;padding:var(--space-1);font-weight:650;color:var(--od-brand)}
-.workflow-chat-transcript{display:grid;gap:8px;max-height:210px;overflow-y:auto;scrollbar-width:thin}
-.workflow-chat-transcript:empty{display:none}
-.workflow-planning-indicator{font-size:11.5px;line-height:1.5;padding:12px;color:#506eab;background:#eef4ff;border-radius:var(--radius-control);margin:3px 0}
-.workflow-chat-entry{min-width:0;padding:var(--space-2) var(--space-3);border-radius:var(--radius-control);background:var(--od-muted);border:1px solid var(--od-line)}
-.workflow-chat-entry[data-speaker=user]{margin-left:var(--space-4);background:var(--od-paper);border-color:var(--od-input-border)}
-.workflow-chat-entry strong{display:block;font-size:var(--od-note-size);color:var(--od-sub);font-weight:650}
-.workflow-chat-entry p{font-size:var(--od-note-size);line-height:1.55;margin:var(--space-1) 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+/* One native scroll owner. The old nested 210px transcript wasted scarce vertical space. */
+.workflow-chat:has(>.workflow-chat-transcript:not([hidden])){padding:var(--space-1) 0;border:0;background:transparent;box-shadow:none}
+.workflow-chat-transcript{display:flex;flex-direction:column;gap:6px;min-width:0;max-height:none;overflow:visible}
+.workflow-chat-transcript[hidden],.workflow-chat-transcript:empty{display:none!important}
+.workflow-planning-indicator{font-size:11.5px;line-height:1.5;padding:6px 8px;color:#506eab;background:#eef4ff;border-radius:var(--radius-control);margin:2px 0}
+.workflow-chat-entry{min-width:0;max-width:100%;align-self:flex-start;padding:3px 0;background:transparent;border:0;border-radius:0}
+.workflow-chat-entry[data-speaker=user]{align-self:flex-end;width:fit-content;max-width:90%;margin-left:auto;padding:7px 10px;border-radius:14px 14px 4px 14px;background:color-mix(in srgb,var(--od-positive) 13%,var(--od-paper));border:1px solid color-mix(in srgb,var(--od-positive) 25%,var(--od-paper))}
+.workflow-chat-entry[data-speaker=system]{align-self:stretch;padding:5px 8px;background:var(--od-warning-bg);color:var(--od-warning-ink);border-left:2px solid var(--od-warning-border);border-radius:var(--radius-control)}
+.workflow-chat-entry p{font-size:var(--od-note-size);line-height:1.5;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
 .workflow-proposal{margin-top:var(--space-3);padding-top:var(--space-3);border-top:1px solid var(--od-line)}
 .workflow-ai-step-preview{list-style:none;margin:4px 0 10px;padding:0;counter-reset:workflow-steps}
 .workflow-ai-step-preview li{counter-increment:workflow-steps;border-bottom:1px solid var(--od-line);padding:var(--space-2) 0 var(--space-2) calc(var(--space-4) * 2);position:relative;color:var(--od-ink);font-size:var(--od-note-size);overflow-wrap:anywhere}
 .workflow-ai-step-preview li:before{content:counter(workflow-steps);position:absolute;left:0;top:9px;border-radius:var(--radius-control);width:21px;height:21px;display:grid;place-items:center;background:#eaf0fc;color:#4167b4;font-size:10px;font-weight:760}
 .workflow-ai-step-preview li strong{display:block;font-size:var(--od-body-size);font-weight:650}
 .workflow-ai-step-preview li span{display:block;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.55;margin-top:var(--space-1)}
-.workflow-composer{flex:none;min-width:0;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:var(--space-2) var(--space-3);margin:var(--space-1) 0 var(--space-2)}
-.workflow-composer textarea{display:block;border:0;background:transparent;outline:none;padding:var(--space-1) 0;width:100%;font:var(--od-body-size)/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;color:var(--od-ink);resize:vertical;min-height:47px;max-height:122px;margin:0 0 var(--space-2)}
+.workflow-composer{flex:none;min-width:0;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:6px 10px;margin:var(--space-1) 0 var(--space-2)}
+.workflow-composer:focus-within{outline:2px solid var(--od-focus);outline-offset:1px}
+.workflow-composer textarea{display:block;border:0;background:transparent;outline:none;padding:2px 0;width:100%;font:var(--od-body-size)/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;color:var(--od-ink);resize:vertical;min-height:42px;max-height:122px;margin:0 0 var(--space-1)}
 .workflow-composer-actions{display:flex;justify-content:flex-end;align-items:center;gap:var(--space-2);flex-wrap:nowrap}
 /* Send, stop and settings always keep the public 34px icon footprint, including first use. */
 .workflow-composer .workflow-send-button{flex:none}

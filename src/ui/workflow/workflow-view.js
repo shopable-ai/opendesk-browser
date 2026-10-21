@@ -962,10 +962,6 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           }].slice(-4);
           verifiedContextTarget={windowId:captured.windowId,tabId:captured.tabId,origin:captured.origin};
         }
-        appendChat('模型来源',lastProviderTurn.source+
-          (lastProviderTurn.metadata.responseId?' · response '+lastProviderTurn.metadata.responseId:'')+
-          ' · 工作流 '+lastProviderTurn.businessWorkflowId+
-          ' · 本次结果 '+execution.resultId);
         const effectMessage=execution.effect?.kind==='search-results'
           ?'。已独立观察到与搜索关键词关联的结果状态和至少 '+execution.effect.visibleResultLinks+' 个新出现的可见链接；不代表结果相关性已验证。'
           :execution.effect?.kind==='search-empty'
@@ -975,7 +971,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
               :execution.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'
               ?'。页面输入值已在同次运行中核对匹配（不代表服务器已提交）。'
               :'。网页业务效果仍待核对，不会自动重复搜索或提交。';
-        appendChat('执行结果','已通过 RunHost 核对持久执行回执：'+execution.runId+' / '+execution.resultId+effectMessage);
+        // Detailed Run/Result identities remain in the technical results panel;
+        // the conversation only needs a concise, evidence-qualified outcome.
+        appendChat('执行结果','运行已结束'+effectMessage);
         status(execution.effect?'已独立核对搜索页面效果；可以保存工作流。':
           execution.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'
             ?'已验证页面输入读回；可以保存工作流。'

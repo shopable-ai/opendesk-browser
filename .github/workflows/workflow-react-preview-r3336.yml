@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'src/ui/react/tabs/workflow.tsx'
+      - 'src/ui/react/components/conversation.tsx'
       - 'src/ui/react/main.tsx'
       - 'src/ui/workflow/workflow-view.js'
       - 'src/ui/react/preview/workflow-preview.tsx'

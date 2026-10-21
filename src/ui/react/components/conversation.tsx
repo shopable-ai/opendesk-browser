@@ -5,12 +5,16 @@ import {IconButton as OpenDeskIconButton} from './ui/button.tsx';
 // Shared, presentation-only primitives. Callers retain provider credentials,
 // permission checks, task execution and the business result journal.
 export function ConversationTranscript({rows=[],entryClassName='workflow-chat-entry',showSpeaker=true}){
- return rows.map(row=><div key={row.id} className={entryClassName}
-   data-speaker={row.speaker==='你'?'user':'assistant'}
-   role={showSpeaker?undefined:'group'} aria-label={showSpeaker?undefined:
-    row.speaker==='你'?'你的消息':row.speaker==='系统'?'系统提示':'AI 回复'}>
+ return rows.map(row=>{
+  const speaker=row.speaker==='你'?'user':
+   ['系统','本机权限','对话状态'].includes(row.speaker)?'system':'assistant';
+  const accessibleName=speaker==='user'?'你的消息':speaker==='system'?'系统提示':
+   row.speaker==='执行结果'?'运行反馈':'AI 回复';
+  return <div key={row.id} className={entryClassName} data-speaker={speaker}
+   role={showSpeaker?undefined:'group'} aria-label={showSpeaker?undefined:accessibleName}>
    {showSpeaker&&<strong>{row.speaker}</strong>}<p>{row.message}</p>
-  </div>);
+  </div>;
+ });
 }
 export function ConversationInput({id,value='',onChange,onKeyDown,placeholder='',rows=2,maxLength=4000,
  disabled=false,className='',inputRef,...props}){

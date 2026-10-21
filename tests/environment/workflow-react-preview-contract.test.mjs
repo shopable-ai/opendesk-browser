@@ -1,4 +1,5 @@
-import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
+import {renderSidebarFixture,loadSidebarReact} from '../helpers/sidebar-react-fixture.mjs';
+import {load} from 'cheerio';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -84,4 +85,43 @@ test('R23.14 source-bound preview keeps honest disconnected state with productio
   assert.doesNotMatch(entry,/尚未连接 OpenDesk（离线预览，不探测）|示例规划中|本轮批准交互示例|UNKNOWN（模拟 UI 状态）/);
   assert.match(html,/id="workflow-local-status-detail"/);
   assert.match(view,/control\('workflow-local-status-detail'\)\.text=detail/);
+});
+
+test('Workflow chat keeps speaker semantics without labels, compact green user bubbles and one scroll owner',async t=>{
+  const {createWorkflowUIState}=await loadSidebarReact();
+  const ui=createWorkflowUIState();t.after(()=>ui.dispose());
+  ui.patch({messages:[
+    {id:'u',speaker:'你',message:'请读取当前网页 <script>alert(1)</script>'},
+    {id:'a',speaker:'Codex',message:'已整理浏览器步骤'},
+    {id:'r',speaker:'执行结果',message:'运行已结束。读回一致，但未提交服务器'},
+    {id:'s',speaker:'本机权限',message:'不允许命令行操作，已拒绝'}
+  ]});
+  await Promise.resolve();
+  const $=load(await renderSidebarFixture({
+    activeTab:'workflow',workflowController:{...ui,actions:{}}
+  }));
+  const transcript=$('#workflow-ai-transcript'),rows=transcript.children('.workflow-chat-entry');
+  assert.equal(transcript.attr('role'),'log');
+  assert.equal(rows.length,4);
+  assert.deepEqual(rows.map((_,node)=>$(node).attr('data-speaker')).get(),
+    ['user','assistant','assistant','system']);
+  assert.deepEqual(rows.map((_,node)=>$(node).attr('aria-label')).get(),
+    ['你的消息','AI 回复','运行反馈','系统提示']);
+  assert.equal(rows.find('strong').length,0,'speaker names never occupy a visible line');
+  assert.match(rows.eq(0).text(),/请读取当前网页/);
+  assert.equal(rows.find('script').length,0,'untrusted message text must be escaped');
+  assert.match(rows.eq(2).text(),/未提交服务器/);
+  const [css,component,builder,view]=await Promise.all([
+    read('src/ui/tool-shell.css'),read('src/ui/react/tabs/workflow.tsx'),
+    read('scripts/preview/build-workflow-react-preview.mjs'),
+    read('src/ui/workflow/workflow-view.js')
+  ]);
+  assert.match(component,/ConversationTranscript rows=\\{rows\\} showSpeaker=\\{false\\}/);
+  assert.match(css,/\\.workflow-chat-entry\\[data-speaker=user\\]\\{[^}]*var\\(--od-positive\\)/);
+  assert.match(css,/\\.workflow-chat-transcript\\{[^}]*overflow:visible/);
+  assert.doesNotMatch(css,/\\.workflow-chat-transcript\\{[^}]*max-height:210px/);
+  assert.match(css,/\\.workflow-composer:focus-within/);
+  assert.match(builder,/src\\/ui\\/react\\/components\\/conversation\\.tsx/);
+  assert.doesNotMatch(view,/appendChat\\('模型来源'/);
+  assert.doesNotMatch(view,/appendChat\\('执行结果',[^\\n]*execution\\.runId/);
 });
