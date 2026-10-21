@@ -283,6 +283,8 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     // while awaiting it must not be reported as current-document success or replayed.
     await verifyTarget(frozen.target,receiptNonce);
     await guard();
+    // A confirmed effect cannot restore a capability revoked while it ran.
+    await nativeAPI();
     const value=completion.value;
     let resultText;
     try {resultText = value === undefined ? 'undefined' : JSON.stringify(value);}

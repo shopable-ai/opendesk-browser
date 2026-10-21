@@ -28,7 +28,10 @@ function fixture(overrides = {}) {
         url:target.expectedUrl,documentLifecycle:'active'}];
     }},
     permissions:{contains:async()=>overrides.permission!==false},
-    userScripts:{getScripts:async()=>[],getWorldConfigurations:async()=>[],configureWorld:async()=>{},resetWorldConfiguration:async()=>{},execute:async request=>{
+    userScripts:{getScripts:async()=>{
+      if(nativeCompleted&&overrides.userScriptsRevokedAfterExecute)throw Error("'userScripts.getScripts' is not available in this context.");
+      return [];
+    },getWorldConfigurations:async()=>[],configureWorld:async()=>{},resetWorldConfiguration:async()=>{},execute:async request=>{
       const probe=request.js.length===1 && /^(?:const |typeof )?__opendesk_probe_/.test(request.js[0].code);
       if(!probe){
         calls.push(request);
@@ -55,6 +58,16 @@ function fixture(overrides = {}) {
 }
 const request=(extra={})=>({sourceUtf8:source,withJquery:false,target:{...target},...extra});
 const fails=async (promise,code)=>assert.rejects(promise,e=>e.code===code);
+
+test('a completed Page receipt cannot revive revoked USER_SCRIPT access',async()=>{
+  const f=fixture({userScriptsRevokedAfterExecute:true});
+  await assert.rejects(f.preview.preview(request(),{}),error=>
+    error.code==='E_USER_SCRIPTS_UNAVAILABLE'&&error.effectConfirmed===true);
+  assert.equal(f.page.title,'Preview OK','revocation must not claim to roll back an already confirmed effect');
+  assert.equal(f.calls.length,1);
+  await fails(f.preview.preview(request(),{}),'E_USER_SCRIPTS_UNAVAILABLE');
+  assert.equal(f.calls.length,1,'a revoked capability cannot dispatch another execution');
+});
 
 test('internal verification guard blocks final dispatch and confirmed effects are never replayed',async()=>{
   const blocked=fixture();
