@@ -33,17 +33,17 @@ function reviewedCompiledTimeReview(target,path,root){
 // a single output and independently enforced release/package identity.
 const compiledAdblockInputs=Object.freeze({
   'examples/sidebar-tools/adblock/trusted/dnr-session.js':'d3e221eac17261a34751cb8ab035c622eb1b42a8',
-  'examples/sidebar-tools/adblock/trusted/service.js':'719fb6fe62ca2ec9aa8ba3a31e5ff0f8734fc3a0',
-  'examples/sidebar-tools/adblock/trusted/policy.js':'0778b402da311b175032a835f6dae537875c6111',
+  'examples/sidebar-tools/adblock/trusted/service.js':'f2d248d4a0e73aa01b86cc14613378c1f473e84f',
+  'examples/sidebar-tools/adblock/trusted/policy.js':'1ba80150d930f51130ceb7806371f7542f35871b',
   'examples/sidebar-tools/adblock/trusted/rules.js':'4bebe24f991783d6ceb14dd80aa507f8497fce61',
   'examples/sidebar-tools/adblock/trusted/lifecycle.js':'708e2b226eb327d46ac109afa6145fe9b13b1526',
-  'examples/sidebar-tools/adblock/trusted/tool-host.js':'71a55df61942af5ce2f20c06948d82b6dd6c8d8e',
+  'examples/sidebar-tools/adblock/trusted/tool-host.js':'485277ecf8c5f095b24f4e705db409d0bf48d6b0',
   'examples/sidebar-tools/adblock/trusted/host-controls.js':'79dbe97eaf1eb61315e634384d922079f2d4b136',
   'examples/sidebar-tools/adblock/rules/domains.js':'b6b2ad8bb2085018f355f046d9b2a787601039bd',
   'examples/sidebar-tools/adblock/trusted/cosmetic.js':'da37f1f0e8f40860ac059ef2f43a27daeeb6d3d3',
-  'examples/sidebar-tools/adblock/trusted/page.js':'2afdfa9757ab61b78d85c935f46bfae997fc7732',
-  'examples/sidebar-tools/adblock/trusted/picker.js':'3692b8d3e8e7e86f58870165debc8123a8d13bec',
-  'examples/sidebar-tools/adblock/trusted/cosmetic-policy.js':'2a1975fb2e6aeba09e82b673a542000bb4dde065'
+  'examples/sidebar-tools/adblock/trusted/page.js':'69021b2fbab9c5656d00fac4ebf702dc1c2cafad',
+  'examples/sidebar-tools/adblock/trusted/picker.js':'dd92c939a12a72be2239634bddf8fd878ca153dc',
+  'examples/sidebar-tools/adblock/trusted/cosmetic-policy.js':'65804d9e8455fb9521f789744e4b3d276876b455'
 });
 const preapprovedFixedTargets=new Set(['sw.js',...Object.values(FIXED_OUTPUTS)]);
 function reviewedCompiledAdblock(target,path,root){
