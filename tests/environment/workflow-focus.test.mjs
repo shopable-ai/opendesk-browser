@@ -354,22 +354,29 @@ if(!vm.SourceTextModule) {
   });
 
   test('component: active RunHost blocks history switching, Codex resume and new conversation',async t=>{
-    const f=await make(t,{resumable:true});
-    const field=f.get('workflow-ai-request');
-    field.value='保留未发送内容';
+    // The installed React page consumes this Controller snapshot/actions API;
+    // it no longer dispatches events into a retired #workflow-dock tree.
+    const f=await make(t,{controllerOnly:true,resumable:true});
+    const trusted={isTrusted:true},snapshot=()=>f.ui.getSnapshot();
+    f.ui.actions.input('workflow-ai-request','保留未发送内容',trusted);
     for(const kind of ['currentRun','executionPending']){
       f.host.currentRun=kind==='currentRun'?'active-run':null;
       f.host.executionPending=kind==='executionPending';
-      await f.click(f.get('workflow-history-toggle'));
-      assert.equal(f.get('workflow-manage-panel').hidden,true,'active RunHost must keep the current view visible');
-      await f.click(f.get('workflow-ai-resume'));
-      assert.equal(f.resumeCalls,0,'active RunHost must not restore a provider session');
-      await f.click(f.get('workflow-ai-new-session'));
-      assert.equal(field.value,'保留未发送内容','active RunHost must not discard draft context');
+      f.ui.actions.onHistory(trusted);
+      assert.equal(snapshot().history.open,false,
+        'active RunHost must not switch away from the current conversation');
+      f.ui.actions.click('workflow-ai-resume',trusted);
+      assert.equal(f.resumeCalls,0,
+        'active RunHost must not resume a provider session');
+      f.ui.actions.onNewSession(trusted);
+      assert.equal(snapshot().controls['workflow-ai-request'].value,'保留未发送内容',
+        'active RunHost must not discard an unsent draft');
+      assert.equal(snapshot().history.open,false);
     }
     f.host.currentRun=null;f.host.executionPending=false;
-    await f.click(f.get('workflow-history-toggle'));
-    assert.equal(f.get('workflow-manage-panel').hidden,false,'history works again after RunHost releases');
+    f.ui.actions.onHistory(trusted);
+    assert.equal(snapshot().history.open,true,
+      'history may open again only after RunHost releases');
   });
 
   test('component: New conversation clears conversation but keeps current unsaved workflow and draft request',async t=>{
