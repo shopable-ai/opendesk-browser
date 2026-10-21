@@ -1,4 +1,3 @@
-import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test, {after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -9,31 +8,9 @@ import {createTaskReviewHandoff} from '../../src/ui/workflow/task-review-handoff
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 
 
-// DOM/controller fakes verify UI wiring only; never label these Chrome native.
-class Element {
-  constructor(){this.value='';this.textContent='';this.dataset={};this.hidden=false;this.checked=false;
-    this.disabled=false;this.children=[];this.listeners=new Map();this.attributes={};}
-  addEventListener(name,fn){const group=this.listeners.get(name)||new Set();group.add(fn);this.listeners.set(name,group);}
-  contains(node){return this===node || this.children.some(child=>child?.contains?.(node));}
-  focus(){if(this.ownerDocument)this.ownerDocument.activeElement=this;}
-  querySelectorAll(selector){
-    const found=[];
-    const walk=node=>{for(const child of node.children){
-      if(selector==='.task-card' && child.className==='task-card')found.push(child);
-      walk(child);
-    }};
-    walk(this);return found;
-  }
-  removeEventListener(name,fn){this.listeners.get(name)?.delete(fn);}
-  fire(name,data={}){return Promise.all([...this.listeners.get(name)||[]].map(fn=>fn(data)));}
-  setAttribute(name,value){this.attributes[name]=String(value);}
-  append(...items){this.children.push(...items);}
-  replaceChildren(...items){this.children=items;this.value=items[0]?.value??'';this.textContent='';}
-  dispatchEvent(event){this.fire(event.type,event);return true;}
-}
-globalThis.Option=class extends Element{constructor(text,value){super();this.textContent=text;this.value=value;}};
+// Task business tests exercise registered React actions and view projections.
+// The only document stub below records focus requests; it is not a DOM event engine.
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
-const html=await renderSidebarFixture();
 // Diagnostic only: the Node test worker must exit after all per-test disposals.
 // Keep the original assertions; report actual live resource kinds before any
 // runner timeout, rather than force-closing the process or hiding a leak.
@@ -44,14 +21,16 @@ after(()=>{
   }));
 });
 const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStorage}={})=>{
-  const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
-  const get=id=>nodes.get(id)||nodes.get('task-params-form')?.children.find(child=>child.id===id);
-  const doc={getElementById:get,querySelector:()=>null,createElement:()=>{const node=new Element();node.ownerDocument=doc;return node;},documentElement:{dataset:{}},activeElement:null};
-  for(const node of nodes.values())node.ownerDocument=doc;
-  // This lightweight DOM fake does not parse initial attributes. Reflect the
-  // real HTML collapsed state before dispatching search-toggle clicks.
-  get('task-search-panel').hidden=/<div id="task-search-panel"[^>]*\shidden\b/.test(html);
-  get('task-search-toggle').hidden=/<button id="task-search-toggle"[^>]*\shidden\b/.test(html);
+  const nodes=new Map();
+  const doc={documentElement:{dataset:{}},activeElement:null,querySelector:()=>null};
+  const get=id=>{
+    if(!nodes.has(id)){
+      const node={focus(){doc.activeElement=node;},click(){},scrollTo(){}};
+      nodes.set(id,node);
+    }
+    return nodes.get(id);
+  };
+  doc.getElementById=get;
   const programId='task:demo.form:1.0.0',hash='a'.repeat(64),manifestHash='b'.repeat(64);
   const manifest={title:'表单任务',description:'输入表单',author:'OpenDesk',source:'local',siteOrigins:['https://a.example'],
     permissions:['page.automation'],program:{sourceHash:hash},paramsSchema:{type:'object',
@@ -122,7 +101,7 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
     importDraft:source=>importedDrafts.push(source)});
   const ui={...workbench,dispose(){workbench.dispose();developerView.dispose();}};
   // Business tests invoke exactly the actions wired to the production React
-  // MyTasksPage/Dock. The old Element.fire() registry is NOT a React click.
+  // MyTasksPage/Dock. Node calls the same named actions as actual React.
   const action=(name,event={isTrusted:true})=>{
     const callback=workbench.myView.actions[name];
     assert.equal(typeof callback,'function',`Missing production React action: ${name}`);
@@ -532,49 +511,58 @@ test('switching between two installed tasks preserves each independent unsaved p
 
 test('R4 accessible five production tabs support Arrow and Home/End',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
-  assert.equal(f.get('tab-my-tasks').tabIndex,0);
-  assert.equal(f.get('tab-tools').tabIndex,-1);
-  let prevented=false;
-  f.get('tab-my-tasks').fire('keydown',{key:'ArrowRight',preventDefault(){prevented=true;}});
-  assert.equal(prevented,true);
-  assert.equal(f.get('workbench-tools').hidden,false);
-  assert.equal(f.get('tab-tools').tabIndex,0);
-  assert.equal(f.doc.activeElement,f.get('tab-tools'));
-  f.get('tab-tools').fire('keydown',{key:'End',preventDefault(){}});
-  assert.equal(f.get('workbench-cloud').hidden,false,'End selects Cloud, the last production tab');
-  assert.equal(f.get('tab-cloud').attributes['aria-selected'],'true');
-  assert.equal(f.get('tab-cloud').tabIndex,0);
-  f.get('tab-cloud').fire('keydown',{key:'ArrowLeft',preventDefault(){}});
-  assert.equal(f.get('workbench-cloud').hidden,true);
-  assert.equal(f.get('workbench-develop').hidden,false);
-  assert.equal(f.get('tab-develop').tabIndex,0);
-  f.get('tab-develop').fire('keydown',{key:'ArrowLeft',preventDefault(){}});
-  assert.equal(f.get('workbench-workflow').hidden,false);
-  f.get('tab-workflow').fire('keydown',{key:'ArrowLeft',preventDefault(){}});
-  assert.equal(f.get('workbench-tools').hidden,false);
-  assert.equal(f.get('tab-tools').tabIndex,0);
-  f.get('tab-tools').fire('keydown',{key:'Home',preventDefault(){}});
-  assert.equal(f.get('workbench-tasks').hidden,false);
-  assert.equal(f.get('tab-my-tasks').tabIndex,0);
+  const {loadSidebarReact,renderSidebarReact}=await import('../helpers/sidebar-react-fixture.mjs');
+  const {sidebarKeyboardDestination}=await loadSidebarReact();
+  const available=[
+    {key:'tasks',id:'tab-my-tasks'},{key:'tools',id:'tab-tools'},
+    {key:'workflow',id:'tab-workflow'},{key:'develop',id:'tab-develop'},
+    {key:'cloud',id:'tab-cloud'}];
+  assert.equal(sidebarKeyboardDestination('Enter',0,available),null,
+    'Enter/Space keep their native button activation');
+  let index=0;
+  const steps=[
+    ['ArrowRight','tools'],['End','cloud'],['ArrowLeft','develop'],
+    ['ArrowLeft','workflow'],['ArrowLeft','tools'],['Home','tasks'],
+    ['ArrowLeft','cloud'],['ArrowRight','tasks']
+  ];
+  for(const [key,expected] of steps){
+    const target=sidebarKeyboardDestination(key,index,available);
+    assert.equal(target?.key,expected,'production keyboard handler routes '+key);
+    f.ui.navigate(target.key);
+    assert.equal(f.doc.documentElement.dataset.opendeskTab,expected);
+    const html=await renderSidebarReact({myView:f.myView,activeTab:expected,debugEnabled:false});
+    const button=html.match(new RegExp('<button[^>]*id="'+target.id+'"[^>]*>'))?.[0];
+    assert(button,'real React tab renders '+target.id);
+    assert.match(button,/role="tab"/);
+    assert.match(button,/aria-selected="true"/);
+    assert.match(button,/tabindex="0"/i);
+    index=available.findIndex(row=>row.key===expected);
+  }
+  assert.equal(f.starts.length,0,'tab keyboard routes cannot execute code');
+  // Actual event preventDefault(), roving focus and scroll remain Chrome-level checks.
 });
-test('R4 task selection and My search handoff retain focus restore focus',async t=>{
+
+test('R4 task selection and My search handoff retain React row identity; DOM focus needs Chrome',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
-  const before=f.get('task-installed-cards').children[0].children[0];
-  before.focus();await f.ui.refresh();
-  const next=f.get('task-installed-cards').children[0].children[0];
-  assert.notEqual(before,next);assert.equal(f.doc.activeElement,next);
-  const second=f.get('task-installed-cards').children[1].children[0];
-  second.focus();second.fire('click');
-  assert.equal(f.get('task-installed-list').value,'demo.second');
-  assert.equal(f.doc.activeElement,f.get('task-installed-cards').children[1].children[0]);
+  assert.deepEqual(f.myView.data.taskRows.rows.map(row=>row.taskId),
+    ['demo.form','demo.second']);
+  const selected=f.myView.data.taskRows.selectedId;
+  await f.ui.refresh();
+  assert.equal(f.myView.data.taskRows.selectedId,selected,
+    'authoritative refresh cannot discard the expanded Task selection');
+  f.myView.data.taskRows.onSelect('demo.second');
+  assert.equal(f.field('task-installed-list').value,'demo.second');
   await f.click('tab-my-tasks');
   await f.click('task-search-toggle');
-  f.get('local-discover-search').value='表单';
-  f.get('local-discover-search').fire('input');
-  const first=f.get('task-installed-cards').children[0].children[0];
-  first.focus();first.fire('click');
-  assert.equal(f.doc.activeElement,f.get('task-installed-cards').children[0].children[0]);
-  assert.equal(f.starts.length,0);
+  f.field('local-discover-search').value='表单';
+  f.action('localDiscoverSearchInput');
+  assert.deepEqual(f.myView.data.taskRows.rows.map(row=>row.taskId),['demo.form']);
+  f.myView.data.taskRows.onSelect('demo.form');
+  assert.equal(f.field('task-installed-list').value,'demo.form');
+  assert.equal(f.myView.data.taskRows.selectedId,'demo.form');
+  assert.equal(f.starts.length,0,'search selection cannot execute');
+  assert.equal(f.permissions.length,0);
+  // React useLayoutEffect preserves focused card after rerender; verify in Chrome.
 });
 
 test('R32 visible Cloud tab selects its existing panel without execution or permission requests',async t=>{

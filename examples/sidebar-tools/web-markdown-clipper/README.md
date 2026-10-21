@@ -1,4 +1,28 @@
-# Web Markdown Clipper R1.11 · 正式列表 / 图标 / 长文布局
+# Web Markdown Clipper R1.2 · 层级返回与内容优先
+
+正式安装版本：**1.2.4**。适配 React 可信标题栏，左上角固定单返回按钮，子页面返回由正式 src/notes.js 控制；右上角按上下文显示新建、编辑或保存图标，“在新标签页打开”移入可信设置。网页剪藏主页和最近摘录仍同屏；卡片正文优先、来源移至阅读详情，触屏可发现卡片编辑/删除。
+
+兼容边界：保留旧存储命名空间、ID、完整 Markdown、Host 读回和同 ID 升级；不得卸载旧版后重装。未接入导航契约的第三方工具使用旧行为。正式包已同步当前源码，标准构建核对和 Mac Chrome 安装升级仍需真实执行，不得以演示预览代替。
+
+真实交互预览：`examples/sidebar-tools/web-markdown-clipper/preview/index.html`，业务 JS/CSS 同源，宿主标题栏及数据为模拟，不代表正式 React Host 和 Chrome 授权通过。
+
+本地关键验收：
+
+```bash
+cd /Users/shopme/Documents/workspace/opendesk-browser
+git switch main && git pull --ff-only
+node --test tests/environment/sidebar-tool-hierarchical-back-r12.test.mjs examples/sidebar-tools/web-markdown-clipper/tests/*.test.mjs
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/web-markdown-clipper --check-project
+npm run build
+python3 -m http.server 8765 --bind 127.0.0.1
+```
+
+在真实 Chrome 中以相同 ID **升级到 1.2.4**，验收逐级返回、未保存草稿保护、剪藏保存→重开读回、权限与卸载确认；不以本地预览数据冒充真实持久化。
+
+---
+
+## 历史：R1.11 / 1.2.3
+
 
 安装包版本：**1.2.3**。本次是真实功能升级，市场安装流程拒绝同版本覆盖，因此从 1.2.2 升级到 1.2.3；存储 ID、命名空间及正文限制不变。**通过同 ID 更新安装，不得先卸载旧版**。
 

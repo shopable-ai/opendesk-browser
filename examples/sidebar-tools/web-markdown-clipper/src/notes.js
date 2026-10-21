@@ -74,7 +74,7 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
  const el=(tag,cls,text)=>{const n=doc.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
  const store=createStore({request});
  const hostedNavigation=typeof g.OpenDeskTool?.setNavigation==='function';
- if(hostedNavigation)root.querySelector('.clip')?.classList.add('clip-hosted');
+ if(hostedNavigation)(root.matches?.('.clip')?root:root.querySelector('.clip'))?.classList.add('clip-hosted');
  const empty=()=>({items:[],total:0,matched:0,usedBytes:0,etag:null,nextOffset:null});
  let data=empty(),recent=empty();
  let clip=null,reading=null,readerOrigin='library',editing=null,editingSource=null;
