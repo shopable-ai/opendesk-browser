@@ -679,6 +679,8 @@ border:0;background:transparent;color:var(--od-sub)}
  ];
  const $=selector=>document.querySelector(selector), el=id=>document.getElementById(id), encoder=new TextEncoder();
  const COPY=()=>INITIAL.map(item=>({...item}));
+ // Initialize before restoreDemoItems() calls validLabel/glyphs on stored rows.
+ const segmenter=typeof Intl.Segmenter==='function'?new Intl.Segmenter('zh',{granularity:'grapheme'}):null;
  const DEMO_ITEM_KEY='opendesk.prompt-shortcuts.preview.items-r3';
  const DEMO_SETTINGS_KEY='opendesk.prompt-shortcuts.preview.settings-r31';
  // Original preview's browser-only simulator, not the real Host.
@@ -757,7 +759,6 @@ border:0;background:transparent;color:var(--od-sub)}
  }
  function notice(message,kind='info'){const n=el('panelStatus');n.textContent=message;n.dataset.kind=kind;n.hidden=!message;noticeKind=kind;}
  function bytes(value){return encoder.encode(JSON.stringify(value)).byteLength;}
- const segmenter=typeof Intl.Segmenter==='function'?new Intl.Segmenter('zh',{granularity:'grapheme'}):null;
  function glyphs(text){return segmenter?Array.from(segmenter.segment(text),part=>part.segment):Array.from(text);}
  function visible(char){return /[\p{L}\p{N}\p{M}\p{P}\p{S}]/u.test(char);}
  function validLabel(label){const chars=glyphs(label);return chars.length>=1&&chars.length<=2&&chars.every(visible);}
