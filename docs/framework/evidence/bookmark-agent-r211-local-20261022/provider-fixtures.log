@@ -1,0 +1,562 @@
+TAP version 13
+# Subtest: Go hello verifies R16 capabilities but tolerates additive fields
+ok 1 - Go hello verifies R16 capabilities but tolerates additive fields
+  ---
+  duration_ms: 0.879416
+  type: 'test'
+  ...
+# Subtest: OpenDesk executable is a Node-free Chrome Native Host with CLI parity (simulated Chrome)
+ok 2 - OpenDesk executable is a Node-free Chrome Native Host with CLI parity (simulated Chrome) # SKIP
+  ---
+  duration_ms: 0.094083
+  type: 'test'
+  ...
+# Subtest: capabilities do not misrepresent stateless Cloud as an active server conversation
+ok 3 - capabilities do not misrepresent stateless Cloud as an active server conversation
+  ---
+  duration_ms: 0.424292
+  type: 'test'
+  ...
+# Subtest: local Native plans only; provides session identity without running a browser
+ok 4 - local Native plans only; provides session identity without running a browser
+  ---
+  duration_ms: 0.22875
+  type: 'test'
+  ...
+# Subtest: Cloud Responses never sends without this turn trusted observation
+ok 5 - Cloud Responses never sends without this turn trusted observation
+  ---
+  duration_ms: 0.986166
+  type: 'test'
+  ...
+# Subtest: Native Facade forwards exact page identity and retains real turn ID
+ok 6 - Native Facade forwards exact page identity and retains real turn ID
+  ---
+  duration_ms: 0.223792
+  type: 'test'
+  ...
+# Subtest: legacy HTTPS Facade cannot dispatch an unobserved proposal
+ok 7 - legacy HTTPS Facade cannot dispatch an unobserved proposal
+  ---
+  duration_ms: 0.156541
+  type: 'test'
+  ...
+# Subtest: legacy HTTPS locators must belong to approved current observation
+ok 8 - legacy HTTPS locators must belong to approved current observation
+  ---
+  duration_ms: 13.39225
+  type: 'test'
+  ...
+# Subtest: official wire uses input/instructions/text.format and not messages/temperature
+ok 9 - official wire uses input/instructions/text.format and not messages/temperature
+  ---
+  duration_ms: 15.662208
+  type: 'test'
+  ...
+# Subtest: strict schema is an explicit trusted option, with no silent format fallback
+ok 10 - strict schema is an explicit trusted option, with no silent format fallback
+  ---
+  duration_ms: 0.432291
+  type: 'test'
+  ...
+# Subtest: capabilities distinguish JSON mode, strict schema transport, local abort and confirmed remote cancel
+ok 11 - capabilities distinguish JSON mode, strict schema transport, local abort and confirmed remote cancel
+  ---
+  duration_ms: 0.100916
+  type: 'test'
+  ...
+# Subtest: rejects unimplemented/insecure endpoint http://127.0.0.1:8000/v1/responses
+ok 12 - rejects unimplemented/insecure endpoint http://127.0.0.1:8000/v1/responses
+  ---
+  duration_ms: 0.252458
+  type: 'test'
+  ...
+# Subtest: rejects unimplemented/insecure endpoint http://[::1]:8000/v1/responses
+ok 13 - rejects unimplemented/insecure endpoint http://[::1]:8000/v1/responses
+  ---
+  duration_ms: 0.073709
+  type: 'test'
+  ...
+# Subtest: rejects unimplemented/insecure endpoint http://10.0.0.2/v1/responses
+ok 14 - rejects unimplemented/insecure endpoint http://10.0.0.2/v1/responses
+  ---
+  duration_ms: 0.058416
+  type: 'test'
+  ...
+# Subtest: rejects unimplemented/insecure endpoint http://example.test/v1/responses
+ok 15 - rejects unimplemented/insecure endpoint http://example.test/v1/responses
+  ---
+  duration_ms: 0.055291
+  type: 'test'
+  ...
+# Subtest: rejects unimplemented/insecure endpoint https://user:key@example.test/v1/responses
+ok 16 - rejects unimplemented/insecure endpoint https://user:key@example.test/v1/responses
+  ---
+  duration_ms: 0.065625
+  type: 'test'
+  ...
+# Subtest: rejects unimplemented/insecure endpoint https://example.test/v1/responses\#x
+ok 17 - rejects unimplemented/insecure endpoint https://example.test/v1/responses\#x
+  ---
+  duration_ms: 0.059958
+  type: 'test'
+  ...
+# Subtest: rejects unimplemented/insecure endpoint https://example.test/v1/responses?key=x
+ok 18 - rejects unimplemented/insecure endpoint https://example.test/v1/responses?key=x
+  ---
+  duration_ms: 0.071291
+  type: 'test'
+  ...
+# Subtest: rejects unimplemented/insecure endpoint https://example.test/v1/chat/completions
+ok 19 - rejects unimplemented/insecure endpoint https://example.test/v1/chat/completions
+  ---
+  duration_ms: 0.055917
+  type: 'test'
+  ...
+# Subtest: rejects unimplemented/insecure endpoint https://example.test/v1/responses/
+ok 20 - rejects unimplemented/insecure endpoint https://example.test/v1/responses/
+  ---
+  duration_ms: 0.043792
+  type: 'test'
+  ...
+# Subtest: unsupported request field is rejected, not ignored: tools
+ok 21 - unsupported request field is rejected, not ignored: tools
+  ---
+  duration_ms: 0.066583
+  type: 'test'
+  ...
+# Subtest: unsupported request field is rejected, not ignored: stream
+ok 22 - unsupported request field is rejected, not ignored: stream
+  ---
+  duration_ms: 0.044
+  type: 'test'
+  ...
+# Subtest: unsupported request field is rejected, not ignored: previous_response_id
+ok 23 - unsupported request field is rejected, not ignored: previous_response_id
+  ---
+  duration_ms: 0.039666
+  type: 'test'
+  ...
+# Subtest: unsupported request field is rejected, not ignored: store
+ok 24 - unsupported request field is rejected, not ignored: store
+  ---
+  duration_ms: 0.040375
+  type: 'test'
+  ...
+# Subtest: unsupported request field is rejected, not ignored: background
+ok 25 - unsupported request field is rejected, not ignored: background
+  ---
+  duration_ms: 0.050375
+  type: 'test'
+  ...
+# Subtest: unsupported request field is rejected, not ignored: conversation
+ok 26 - unsupported request field is rejected, not ignored: conversation
+  ---
+  duration_ms: 0.062167
+  type: 'test'
+  ...
+# Subtest: unsupported request field is rejected, not ignored: temperature
+ok 27 - unsupported request field is rejected, not ignored: temperature
+  ---
+  duration_ms: 0.051667
+  type: 'test'
+  ...
+# Subtest: unsupported request field is rejected, not ignored: tool_choice
+ok 28 - unsupported request field is rejected, not ignored: tool_choice
+  ---
+  duration_ms: 0.048666
+  type: 'test'
+  ...
+# Subtest: never admits noncompleted response failed
+ok 29 - never admits noncompleted response failed
+  ---
+  duration_ms: 0.072375
+  type: 'test'
+  ...
+# Subtest: never admits noncompleted response incomplete
+ok 30 - never admits noncompleted response incomplete
+  ---
+  duration_ms: 0.035958
+  type: 'test'
+  ...
+# Subtest: never admits noncompleted response cancelled
+ok 31 - never admits noncompleted response cancelled
+  ---
+  duration_ms: 0.041583
+  type: 'test'
+  ...
+# Subtest: never admits noncompleted response queued
+ok 32 - never admits noncompleted response queued
+  ---
+  duration_ms: 0.045875
+  type: 'test'
+  ...
+# Subtest: never admits noncompleted response in_progress
+ok 33 - never admits noncompleted response in_progress
+  ---
+  duration_ms: 0.035083
+  type: 'test'
+  ...
+# Subtest: never admits noncompleted response undefined
+ok 34 - never admits noncompleted response undefined
+  ---
+  duration_ms: 0.032792
+  type: 'test'
+  ...
+# Subtest: completed response with an error still fails
+ok 35 - completed response with an error still fails
+  ---
+  duration_ms: 0.048584
+  type: 'test'
+  ...
+# Subtest: completed response with incomplete details still fails
+ok 36 - completed response with incomplete details still fails
+  ---
+  duration_ms: 0.04675
+  type: 'test'
+  ...
+# Subtest: ignores SDK-only output_text convenience property
+ok 37 - ignores SDK-only output_text convenience property
+  ---
+  duration_ms: 0.071
+  type: 'test'
+  ...
+# Subtest: ignores reasoning while parsing final typed message; never returns hidden reasoning
+ok 38 - ignores reasoning while parsing final typed message; never returns hidden reasoning
+  ---
+  duration_ms: 0.06475
+  type: 'test'
+  ...
+# Subtest: joins fragments of one output message without assuming output[0]
+ok 39 - joins fragments of one output message without assuming output[0]
+  ---
+  duration_ms: 0.067291
+  type: 'test'
+  ...
+# Subtest: does not impersonate caller-managed tools: function_call
+ok 40 - does not impersonate caller-managed tools: function_call
+  ---
+  duration_ms: 0.049042
+  type: 'test'
+  ...
+# Subtest: does not impersonate caller-managed tools: computer_call
+ok 41 - does not impersonate caller-managed tools: computer_call
+  ---
+  duration_ms: 0.03925
+  type: 'test'
+  ...
+# Subtest: does not impersonate caller-managed tools: web_search_call
+ok 42 - does not impersonate caller-managed tools: web_search_call
+  ---
+  duration_ms: 0.034583
+  type: 'test'
+  ...
+# Subtest: does not impersonate caller-managed tools: local_shell_call
+ok 43 - does not impersonate caller-managed tools: local_shell_call
+  ---
+  duration_ms: 0.038917
+  type: 'test'
+  ...
+# Subtest: does not impersonate caller-managed tools: future_unknown_type
+ok 44 - does not impersonate caller-managed tools: future_unknown_type
+  ---
+  duration_ms: 0.034375
+  type: 'test'
+  ...
+# Subtest: refusal is terminal and not a usable proposal
+ok 45 - refusal is terminal and not a usable proposal
+  ---
+  duration_ms: 0.049542
+  type: 'test'
+  ...
+# Subtest: rejects incomplete/nonfinal/nonassistant message {"status":"incomplete"}
+ok 46 - rejects incomplete/nonfinal/nonassistant message {"status":"incomplete"}
+  ---
+  duration_ms: 0.046334
+  type: 'test'
+  ...
+# Subtest: rejects incomplete/nonfinal/nonassistant message {"role":"user"}
+ok 47 - rejects incomplete/nonfinal/nonassistant message {"role":"user"}
+  ---
+  duration_ms: 0.030959
+  type: 'test'
+  ...
+# Subtest: rejects incomplete/nonfinal/nonassistant message {"phase":"commentary"}
+ok 48 - rejects incomplete/nonfinal/nonassistant message {"phase":"commentary"}
+  ---
+  duration_ms: 0.032833
+  type: 'test'
+  ...
+# Subtest: rejects incomplete/nonfinal/nonassistant message {"phase":"future_unknown_phase"}
+ok 49 - rejects incomplete/nonfinal/nonassistant message {"phase":"future_unknown_phase"}
+  ---
+  duration_ms: 0.031792
+  type: 'test'
+  ...
+# Subtest: rejects nonobject or malformed final JSON "```json\\n{}\\n```"
+ok 50 - rejects nonobject or malformed final JSON "```json\\n{}\\n```"
+  ---
+  duration_ms: 0.061083
+  type: 'test'
+  ...
+# Subtest: rejects nonobject or malformed final JSON "[]"
+ok 51 - rejects nonobject or malformed final JSON "[]"
+  ---
+  duration_ms: 0.031833
+  type: 'test'
+  ...
+# Subtest: rejects nonobject or malformed final JSON "null"
+ok 52 - rejects nonobject or malformed final JSON "null"
+  ---
+  duration_ms: 0.028916
+  type: 'test'
+  ...
+# Subtest: rejects nonobject or malformed final JSON "not json"
+ok 53 - rejects nonobject or malformed final JSON "not json"
+  ---
+  duration_ms: 0.718333
+  type: 'test'
+  ...
+# Subtest: rejects nonobject or malformed final JSON ""
+ok 54 - rejects nonobject or malformed final JSON ""
+  ---
+  duration_ms: 0.078583
+  type: 'test'
+  ...
+# Subtest: rejects a proposal split across separate complete messages
+ok 55 - rejects a proposal split across separate complete messages
+  ---
+  duration_ms: 0.070666
+  type: 'test'
+  ...
+# Subtest: does not invent usage; preserves real usage only when present
+ok 56 - does not invent usage; preserves real usage only when present
+  ---
+  duration_ms: 0.134417
+  type: 'test'
+  ...
+# Subtest: retains upstream request id separately from response id
+ok 57 - retains upstream request id separately from response id
+  ---
+  duration_ms: 0.308125
+  type: 'test'
+  ...
+# Subtest: HTTP failure exposes status but not upstream secrets and never retries
+ok 58 - HTTP failure exposes status but not upstream secrets and never retries
+  ---
+  duration_ms: 0.223792
+  type: 'test'
+  ...
+# Subtest: HTTP 200 invalid JSON is rejected
+ok 59 - HTTP 200 invalid JSON is rejected
+  ---
+  duration_ms: 0.202834
+  type: 'test'
+  ...
+# Subtest: non-JSON media type is rejected: text/event-stream
+ok 60 - non-JSON media type is rejected: text/event-stream
+  ---
+  duration_ms: 0.148417
+  type: 'test'
+  ...
+# Subtest: non-JSON media type is rejected: text/html
+ok 61 - non-JSON media type is rejected: text/html
+  ---
+  duration_ms: 0.123583
+  type: 'test'
+  ...
+# Subtest: non-JSON media type is rejected: text/plain
+ok 62 - non-JSON media type is rejected: text/plain
+  ---
+  duration_ms: 0.118917
+  type: 'test'
+  ...
+# Subtest: declared Content-Length over the cap is rejected before buffering
+ok 63 - declared Content-Length over the cap is rejected before buffering
+  ---
+  duration_ms: 0.19375
+  type: 'test'
+  ...
+# Subtest: UTF-8 byte cap rejects Chinese body without Content-Length
+ok 64 - UTF-8 byte cap rejects Chinese body without Content-Length
+  ---
+  duration_ms: 0.234791
+  type: 'test'
+  ...
+# Subtest: incremental body crossing cap cancels its stream
+ok 65 - incremental body crossing cap cancels its stream
+  ---
+  duration_ms: 0.422125
+  type: 'test'
+  ...
+# Subtest: request budget is UTF-8 bounded before fetch
+ok 66 - request budget is UTF-8 bounded before fetch
+  ---
+  duration_ms: 0.182584
+  type: 'test'
+  ...
+# Subtest: already aborted request never sends network traffic
+ok 67 - already aborted request never sends network traffic
+  ---
+  duration_ms: 0.084542
+  type: 'test'
+  ...
+# Subtest: abort prevents late success even when fetch ignores AbortSignal
+ok 68 - abort prevents late success even when fetch ignores AbortSignal
+  ---
+  duration_ms: 7.261125
+  type: 'test'
+  ...
+# Subtest: timeout with uncooperative fetch returns unknown outcome without retry
+ok 69 - timeout with uncooperative fetch returns unknown outcome without retry
+  ---
+  duration_ms: 9.223417
+  type: 'test'
+  ...
+# Subtest: abort while HTTP body is stalled cancels reading
+ok 70 - abort while HTTP body is stalled cancels reading
+  ---
+  duration_ms: 2.967333
+  type: 'test'
+  ...
+# Subtest: network error is sanitized, unknown and not automatically retried
+ok 71 - network error is sanitized, unknown and not automatically retried
+  ---
+  duration_ms: 0.233542
+  type: 'test'
+  ...
+# Subtest: adapter rejects a followed redirect even with a custom fetch implementation
+ok 72 - adapter rejects a followed redirect even with a custom fetch implementation
+  ---
+  duration_ms: 0.179
+  type: 'test'
+  ...
+# Subtest: observation projection omits unrelated URL/history and receipt ids
+ok 73 - observation projection omits unrelated URL/history and receipt ids
+  ---
+  duration_ms: 0.205208
+  type: 'test'
+  ...
+# Subtest: rejects unbound/oversized observation: missing receipt
+ok 74 - rejects unbound/oversized observation: missing receipt
+  ---
+  duration_ms: 0.056625
+  type: 'test'
+  ...
+# Subtest: rejects unbound/oversized observation: wrong document
+ok 75 - rejects unbound/oversized observation: wrong document
+  ---
+  duration_ms: 0.074542
+  type: 'test'
+  ...
+# Subtest: rejects unbound/oversized observation: wrong origin
+ok 76 - rejects unbound/oversized observation: wrong origin
+  ---
+  duration_ms: 0.039584
+  type: 'test'
+  ...
+# Subtest: rejects unbound/oversized observation: missing durable result
+ok 77 - rejects unbound/oversized observation: missing durable result
+  ---
+  duration_ms: 0.051209
+  type: 'test'
+  ...
+# Subtest: rejects unbound/oversized observation: bad source hash
+ok 78 - rejects unbound/oversized observation: bad source hash
+  ---
+  duration_ms: 0.048917
+  type: 'test'
+  ...
+# Subtest: rejects unbound/oversized observation: no nodes
+ok 79 - rejects unbound/oversized observation: no nodes
+  ---
+  duration_ms: 0.041458
+  type: 'test'
+  ...
+# Subtest: rejects unbound/oversized observation: too many nodes
+ok 80 - rejects unbound/oversized observation: too many nodes
+  ---
+  duration_ms: 0.047458
+  type: 'test'
+  ...
+# Subtest: rejects unbound/oversized observation: over byte budget
+ok 81 - rejects unbound/oversized observation: over byte budget
+  ---
+  duration_ms: 0.065292
+  type: 'test'
+  ...
+# Subtest: rejects invalid target identity {"frameId":1}
+ok 82 - rejects invalid target identity {"frameId":1}
+  ---
+  duration_ms: 0.046
+  type: 'test'
+  ...
+# Subtest: rejects invalid target identity {"tabId":"2"}
+ok 83 - rejects invalid target identity {"tabId":"2"}
+  ---
+  duration_ms: 0.026792
+  type: 'test'
+  ...
+# Subtest: rejects invalid target identity {"tabId":-1}
+ok 84 - rejects invalid target identity {"tabId":-1}
+  ---
+  duration_ms: 0.02525
+  type: 'test'
+  ...
+# Subtest: rejects invalid target identity {"windowId":-1}
+ok 85 - rejects invalid target identity {"windowId":-1}
+  ---
+  duration_ms: 0.025083
+  type: 'test'
+  ...
+# Subtest: rejects invalid target identity {"documentId":""}
+ok 86 - rejects invalid target identity {"documentId":""}
+  ---
+  duration_ms: 0.026958
+  type: 'test'
+  ...
+# Subtest: rejects invalid target identity {"url":"https://evil.test/form"}
+ok 87 - rejects invalid target identity {"url":"https://evil.test/form"}
+  ---
+  duration_ms: 0.030917
+  type: 'test'
+  ...
+# Subtest: only exact approved visible fill/click locators are accepted
+ok 88 - only exact approved visible fill/click locators are accepted
+  ---
+  duration_ms: 0.141875
+  type: 'test'
+  ...
+# Subtest: fill rejects hidden or scoped/indexed targets {"state":{"visible":false}}
+ok 89 - fill rejects hidden or scoped/indexed targets {"state":{"visible":false}}
+  ---
+  duration_ms: 0.055792
+  type: 'test'
+  ...
+# Subtest: fill rejects hidden or scoped/indexed targets {"locator":{"kind":"css","value":"\#keyword","index":0}}
+ok 90 - fill rejects hidden or scoped/indexed targets {"locator":{"kind":"css","value":"\#keyword","index":0}}
+  ---
+  duration_ms: 0.023541
+  type: 'test'
+  ...
+# Subtest: fill rejects hidden or scoped/indexed targets {"locator":{"kind":"css","value":"\#keyword","parent":{"kind":"css","value":"body"}}}
+ok 91 - fill rejects hidden or scoped/indexed targets {"locator":{"kind":"css","value":"\#keyword","parent":{"kind":"css","value":"body"}}}
+  ---
+  duration_ms: 0.025708
+  type: 'test'
+  ...
+# Subtest: role locator must retain exact accessible name
+ok 92 - role locator must retain exact accessible name
+  ---
+  duration_ms: 0.049916
+  type: 'test'
+  ...
+1..92
+# tests 92
+# suites 0
+# pass 91
+# fail 0
+# cancelled 0
+# skipped 1
+# todo 0
+# duration_ms 92.573584

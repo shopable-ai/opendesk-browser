@@ -1,0 +1,60 @@
+{
+  "kind": "actual isolated Mac Chrome bookmark permission removal; driver could not finish post-revocation SDK readback",
+  "request": "把当前页面放入书签撤权验证1792622026294收藏夹，如果没有，就创建目录",
+  "trustedSend": {
+    "event": "send",
+    "trusted": true,
+    "at": 1792622026298
+  },
+  "afterDocument": {
+    "text": "我的\n扩展\n工作流\n开发\n云控\n工具设置\n打开工具\n在新标签页打开\n完整 Chrome 书签访问\n\n可读取、编辑、移动及删除所有 Chrome 书签和文件夹（包括其他工具创建的）。仅此工具安装版本可用，递归删除仍需逐次确认。\n\n撤销此工具的完整书签访问\n使用状态\n停用工具\n\n工具已启用。启用不会自动运行代码。\n\nChrome 完整书签权限已撤销；可信界面及书签数据已清空。",
+    "trace": [
+      {
+        "at": 1792622026297,
+        "text": "把当前页面放入停止验证1792621207592收藏夹，如果没有，就创建目录\n\n已停止后续操作；此前已核实的写入不会撤销。\n\n把当前页面放入测试收藏夹，如果没有，就创建目录。请使用幂等的目录和收藏操作重新核对后完成。\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入测试收藏夹，如果没有，就创建目录。请先使用幂等操作确保目录，再执行收藏操作，最后核实，避免重复。\n\n已核实：当前网页已在「测试收藏夹」中。\n\n对话输入"
+      },
+      {
+        "event": "send",
+        "trusted": true,
+        "at": 1792622026298
+      },
+      {
+        "at": 1792622026300,
+        "text": "把当前页面放入停止验证1792621207592收藏夹，如果没有，就创建目录\n\n已停止后续操作；此前已核实的写入不会撤销。\n\n把当前页面放入测试收藏夹，如果没有，就创建目录。请使用幂等的目录和收藏操作重新核对后完成。\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入测试收藏夹，如果没有，就创建目录。请先使用幂等操作确保目录，再执行收藏操作，最后核实，避免重复。\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入书签撤权验证1792622026294收藏夹，如果没有，就创建目录\n\n正在判断下一步…\n对话输入"
+      }
+    ],
+    "sdk": [],
+    "at": 1792622088022,
+    "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sidepanel.html?hostInstanceId=541f63e3-a17a-43b6-aacd-54c6b8e0da65"
+  },
+  "independentPermissionsAndWrites": {
+    "permissions": {
+      "origins": [
+        "<all_urls>",
+        "http://*/*",
+        "https://*/*"
+      ],
+      "permissions": [
+        "activeTab",
+        "alarms",
+        "cookies",
+        "downloads",
+        "nativeMessaging",
+        "notifications",
+        "proxy",
+        "storage",
+        "tabs",
+        "unlimitedStorage",
+        "webNavigation",
+        "scripting",
+        "declarativeNetRequestWithHostAccess",
+        "offscreen",
+        "sidePanel",
+        "userScripts"
+      ]
+    },
+    "writes": [],
+    "at": 1792622088501
+  },
+  "classification": "PARTIAL_REAL_EVIDENCE: tool and data cleared, bookmarks permission absent, observed writes empty; model interrupt not independently proven"
+}

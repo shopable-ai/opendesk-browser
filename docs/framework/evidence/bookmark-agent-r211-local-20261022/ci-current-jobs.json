@@ -1,0 +1,253 @@
+{
+  "total_count": 2,
+  "jobs": [
+    {
+      "id": 119526535651,
+      "run_id": 39687903895,
+      "workflow_name": "Bookmark AI Agent Loop R2.1 - bounded real-source regression",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/39687903895",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOU7N2Cc8AAAAb1FYx4w",
+      "head_sha": "07e61ae702f2c600a92cd94b1d4d74cf451ea47e",
+      "url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/jobs/119526535651",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/39687903895/job/119526535651",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-21T22:38:08Z",
+      "started_at": "2026-10-21T22:38:49Z",
+      "completed_at": "2026-10-21T22:39:37Z",
+      "name": "agent-contract",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-21T22:38:50Z",
+          "completed_at": "2026-10-21T22:38:51Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-21T22:38:51Z",
+          "completed_at": "2026-10-21T22:39:00Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-21T22:39:00Z",
+          "completed_at": "2026-10-21T22:39:06Z"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-21T22:39:06Z",
+          "completed_at": "2026-10-21T22:39:12Z"
+        },
+        {
+          "name": "Bookmark production executor and Provider authorization regression",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-21T22:39:12Z",
+          "completed_at": "2026-10-21T22:39:13Z"
+        },
+        {
+          "name": "Existing bookmark editor lifecycle and trusted React regression",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-21T22:39:13Z",
+          "completed_at": "2026-10-21T22:39:13Z"
+        },
+        {
+          "name": "Original document binding across slow Provider decisions and revocation",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-21T22:39:13Z",
+          "completed_at": "2026-10-21T22:39:13Z"
+        },
+        {
+          "name": "Source / SDK trust boundary",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-21T22:39:13Z",
+          "completed_at": "2026-10-21T22:39:35Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-10-21T22:39:35Z",
+          "completed_at": "2026-10-21T22:39:35Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16,
+          "started_at": "2026-10-21T22:39:35Z",
+          "completed_at": "2026-10-21T22:39:35Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17,
+          "started_at": "2026-10-21T22:39:35Z",
+          "completed_at": "2026-10-21T22:39:35Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/check-runs/119526535651",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000099635,
+      "runner_name": "GitHub Actions 1000099635",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 119526535955,
+      "run_id": 39687903895,
+      "workflow_name": "Bookmark AI Agent Loop R2.1 - bounded real-source regression",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/39687903895",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOU7N2Cc8AAAAb1FYzEw",
+      "head_sha": "07e61ae702f2c600a92cd94b1d4d74cf451ea47e",
+      "url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/jobs/119526535955",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/39687903895/job/119526535955",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-21T22:38:08Z",
+      "started_at": "2026-10-21T22:39:00Z",
+      "completed_at": "2026-10-21T22:41:21Z",
+      "name": "agent-build",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-21T22:39:00Z",
+          "completed_at": "2026-10-21T22:39:01Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-21T22:39:01Z",
+          "completed_at": "2026-10-21T22:39:11Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-21T22:39:11Z",
+          "completed_at": "2026-10-21T22:39:21Z"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-21T22:39:21Z",
+          "completed_at": "2026-10-21T22:39:30Z"
+        },
+        {
+          "name": "Actual official bookmark tool package from production source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-21T22:39:30Z",
+          "completed_at": "2026-10-21T22:39:30Z"
+        },
+        {
+          "name": "WXT production build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-21T22:39:30Z",
+          "completed_at": "2026-10-21T22:41:01Z"
+        },
+        {
+          "name": "WXT production package verification",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-21T22:41:01Z",
+          "completed_at": "2026-10-21T22:41:05Z"
+        },
+        {
+          "name": "Chromium setup",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-21T22:41:05Z",
+          "completed_at": "2026-10-21T22:41:11Z"
+        },
+        {
+          "name": "Source-bound Chrome interaction (offline fixture, NOT native installed extension)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-21T22:41:11Z",
+          "completed_at": "2026-10-21T22:41:18Z"
+        },
+        {
+          "name": "Save source-bound visual evidence (NOT native Chrome/Provider)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-10-21T22:41:18Z",
+          "completed_at": "2026-10-21T22:41:19Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19,
+          "started_at": "2026-10-21T22:41:19Z",
+          "completed_at": "2026-10-21T22:41:19Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20,
+          "started_at": "2026-10-21T22:41:19Z",
+          "completed_at": "2026-10-21T22:41:20Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21,
+          "started_at": "2026-10-21T22:41:20Z",
+          "completed_at": "2026-10-21T22:41:20Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/check-runs/119526535955",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000099642,
+      "runner_name": "GitHub Actions 1000099642",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ]
+}

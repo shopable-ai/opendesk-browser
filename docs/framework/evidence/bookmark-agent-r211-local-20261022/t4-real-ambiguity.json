@@ -1,0 +1,49 @@
+{
+  "body": "我的\n扩展\n工作流\n开发\n云控\n书签管理\n书签管理\n9 项\n搜索名称、URL 或文件夹\n书签栏\n4\n测试收藏夹\n1\nOpenDesk Browser · Browser Test Lab\n继续收藏夹\n1\nOpenDesk Browser · Browser Test Lab\n歧义收藏夹\n0\n歧义收藏夹\n0\n其他书签\n0\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已核实：当前网页已在「测试收藏夹」中。\n\n请先搜索继续收藏夹。把当前页面放入继续收藏夹，如果没有，就创建目录\n\n搜索「继续收藏夹」：没有找到匹配的书签\n\n已创建文件夹「继续收藏夹」 · 书签栏 / 继续收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 继续收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「继续收藏夹」中。\n\n把当前页面放入歧义收藏夹，如果没有，就创建目录\n\n目标目录下有多个同名文件夹「歧义收藏夹」，请在书签树中选定具体文件夹后重试\n\n对话输入",
+  "trace": [
+    {
+      "at": 1792620405983,
+      "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已核实：当前网页已在「测试收藏夹」中。\n\n请先搜索继续收藏夹。把当前页面放入继续收藏夹，如果没有，就创建目录\n\n搜索「继续收藏夹」：没有找到匹配的书签\n\n已创建文件夹「继续收藏夹」 · 书签栏 / 继续收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 继续收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「继续收藏夹」中。\n\n对话输入"
+    },
+    {
+      "event": "send",
+      "trusted": true,
+      "at": 1792620406350
+    },
+    {
+      "at": 1792620406352,
+      "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已核实：当前网页已在「测试收藏夹」中。\n\n请先搜索继续收藏夹。把当前页面放入继续收藏夹，如果没有，就创建目录\n\n搜索「继续收藏夹」：没有找到匹配的书签\n\n已创建文件夹「继续收藏夹」 · 书签栏 / 继续收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 继续收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「继续收藏夹」中。\n\n把当前页面放入歧义收藏夹，如果没有，就创建目录\n\n正在判断下一步…\n对话输入"
+    },
+    {
+      "at": 1792620412240,
+      "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已核实：当前网页已在「测试收藏夹」中。\n\n请先搜索继续收藏夹。把当前页面放入继续收藏夹，如果没有，就创建目录\n\n搜索「继续收藏夹」：没有找到匹配的书签\n\n已创建文件夹「继续收藏夹」 · 书签栏 / 继续收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 继续收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「继续收藏夹」中。\n\n把当前页面放入歧义收藏夹，如果没有，就创建目录\n\n正在更新书签并读回确认…\n对话输入"
+    },
+    {
+      "at": 1792620412977,
+      "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已核实：当前网页已在「测试收藏夹」中。\n\n请先搜索继续收藏夹。把当前页面放入继续收藏夹，如果没有，就创建目录\n\n搜索「继续收藏夹」：没有找到匹配的书签\n\n已创建文件夹「继续收藏夹」 · 书签栏 / 继续收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 继续收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「继续收藏夹」中。\n\n把当前页面放入歧义收藏夹，如果没有，就创建目录\n\n目标目录下有多个同名文件夹「歧义收藏夹」，请在书签树中选定具体文件夹后重试\n\n对话输入"
+    }
+  ],
+  "sdk": [
+    {
+      "method": "getTree",
+      "at": 1792620405509
+    },
+    {
+      "method": "getTree",
+      "at": 1792620412391
+    },
+    {
+      "method": "getTree",
+      "at": 1792620412774
+    },
+    {
+      "method": "getTree",
+      "at": 1792620423810
+    },
+    {
+      "method": "getTree",
+      "at": 1792620449782
+    }
+  ],
+  "metrics": []
+}

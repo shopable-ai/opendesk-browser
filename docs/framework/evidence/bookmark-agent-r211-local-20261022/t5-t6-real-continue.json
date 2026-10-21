@@ -1,0 +1,140 @@
+{
+  "body": "我的\n扩展\n工作流\n开发\n云控\n书签管理\n书签管理\n7 项\n搜索名称、URL 或文件夹\n书签栏\n2\n测试收藏夹\n1\nOpenDesk Browser · Browser Test Lab\n继续收藏夹\n1\nOpenDesk Browser · Browser Test Lab\n其他书签\n0\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已核实：当前网页已在「测试收藏夹」中。\n\n请先搜索继续收藏夹。把当前页面放入继续收藏夹，如果没有，就创建目录\n\n搜索「继续收藏夹」：没有找到匹配的书签\n\n已创建文件夹「继续收藏夹」 · 书签栏 / 继续收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 继续收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「继续收藏夹」中。\n\n对话输入",
+  "trace": [
+    {
+      "at": 1792620310849,
+      "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已核实：当前网页已在「测试收藏夹」中。\n\n对话输入"
+    },
+    {
+      "event": "send",
+      "trusted": true,
+      "at": 1792620311591
+    },
+    {
+      "at": 1792620311593,
+      "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已核实：当前网页已在「测试收藏夹」中。\n\n请先搜索继续收藏夹。把当前页面放入继续收藏夹，如果没有，就创建目录\n\n正在判断下一步…\n对话输入"
+    },
+    {
+      "at": 1792620316260,
+      "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已核实：当前网页已在「测试收藏夹」中。\n\n请先搜索继续收藏夹。把当前页面放入继续收藏夹，如果没有，就创建目录\n\n正在查找并核对书签…\n对话输入"
+    },
+    {
+      "at": 1792620316593,
+      "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已核实：当前网页已在「测试收藏夹」中。\n\n请先搜索继续收藏夹。把当前页面放入继续收藏夹，如果没有，就创建目录\n\n搜索「继续收藏夹」：没有找到匹配的书签\n\n正在判断下一步…\n对话输入"
+    },
+    {
+      "at": 1792620322289,
+      "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已核实：当前网页已在「测试收藏夹」中。\n\n请先搜索继续收藏夹。把当前页面放入继续收藏夹，如果没有，就创建目录\n\n搜索「继续收藏夹」：没有找到匹配的书签\n\n正在更新书签并读回确认…\n对话输入"
+    },
+    {
+      "at": 1792620324428,
+      "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已核实：当前网页已在「测试收藏夹」中。\n\n请先搜索继续收藏夹。把当前页面放入继续收藏夹，如果没有，就创建目录\n\n搜索「继续收藏夹」：没有找到匹配的书签\n\n已创建文件夹「继续收藏夹」 · 书签栏 / 继续收藏夹\n\n正在更新书签并读回确认…\n对话输入"
+    },
+    {
+      "at": 1792620325605,
+      "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已核实：当前网页已在「测试收藏夹」中。\n\n请先搜索继续收藏夹。把当前页面放入继续收藏夹，如果没有，就创建目录\n\n搜索「继续收藏夹」：没有找到匹配的书签\n\n已创建文件夹「继续收藏夹」 · 书签栏 / 继续收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 继续收藏夹 / OpenDesk Browser · Browser Test Lab\n\n正在判断下一步…\n对话输入"
+    },
+    {
+      "at": 1792620328497,
+      "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已核实：当前网页已在「测试收藏夹」中。\n\n请先搜索继续收藏夹。把当前页面放入继续收藏夹，如果没有，就创建目录\n\n搜索「继续收藏夹」：没有找到匹配的书签\n\n已创建文件夹「继续收藏夹」 · 书签栏 / 继续收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 继续收藏夹 / OpenDesk Browser · Browser Test Lab\n\n正在核实最终结果…\n对话输入"
+    },
+    {
+      "at": 1792620328828,
+      "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已核实：当前网页已在「测试收藏夹」中。\n\n请先搜索继续收藏夹。把当前页面放入继续收藏夹，如果没有，就创建目录\n\n搜索「继续收藏夹」：没有找到匹配的书签\n\n已创建文件夹「继续收藏夹」 · 书签栏 / 继续收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 继续收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「继续收藏夹」中。\n\n对话输入"
+    }
+  ],
+  "sdk": [
+    {
+      "method": "getTree",
+      "at": 1792620316417
+    },
+    {
+      "method": "getTree",
+      "at": 1792620317844
+    },
+    {
+      "method": "getTree",
+      "at": 1792620320707
+    },
+    {
+      "method": "getTree",
+      "at": 1792620322432
+    },
+    {
+      "method": "getTree",
+      "at": 1792620322760
+    },
+    {
+      "method": "getTree",
+      "at": 1792620323180
+    },
+    {
+      "method": "getTree",
+      "at": 1792620323646
+    },
+    {
+      "method": "getTree",
+      "at": 1792620323785
+    },
+    {
+      "method": "create",
+      "at": 1792620324053
+    },
+    {
+      "method": "getTree",
+      "at": 1792620324254
+    },
+    {
+      "method": "getTree",
+      "at": 1792620324573
+    },
+    {
+      "method": "getTree",
+      "at": 1792620325043
+    },
+    {
+      "method": "create",
+      "at": 1792620325219
+    },
+    {
+      "method": "getTree",
+      "at": 1792620325432
+    },
+    {
+      "method": "getTree",
+      "at": 1792620326578
+    },
+    {
+      "method": "getTree",
+      "at": 1792620328643
+    },
+    {
+      "method": "getTree",
+      "at": 1792620329403
+    },
+    {
+      "method": "getTree",
+      "at": 1792620329757
+    },
+    {
+      "method": "getTree",
+      "at": 1792620345519
+    },
+    {
+      "method": "getTree",
+      "at": 1792620371519
+    },
+    {
+      "method": "getTree",
+      "at": 1792620397505
+    }
+  ],
+  "metrics": [
+    {
+      "completed": true,
+      "modelCalls": 3,
+      "actionCount": 3,
+      "at": 1792620328826
+    }
+  ]
+}

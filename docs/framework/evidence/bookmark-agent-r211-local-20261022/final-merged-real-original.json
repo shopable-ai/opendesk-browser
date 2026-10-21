@@ -1,0 +1,453 @@
+{
+  "request": "把当前页面放入测试收藏夹，如果没有，就创建目录",
+  "mode": "real installed Chrome, real Provider, no mocks",
+  "ui": {
+    "body": "我的\n扩展\n工作流\n开发\n云控\n书签管理\n书签管理\n19 项\n搜索名称、URL 或文件夹\n书签栏\n8\n测试收藏夹\n3\nOpenDesk Browser · Browser Test Lab\nOpenDesk Browser · Browser Test Lab\nOpenDesk Browser · Browser Test Lab\n继续收藏夹\n1\n歧义收藏夹\n0\n歧义收藏夹\n0\n停止收藏夹\n1\n实例切换验证收藏夹\n1\n实例切换验证1792620704547收藏夹\n1\n实例切换验证1792620818783收藏夹\n1\n其他书签\n0\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n对话输入",
+    "trace": [
+      {
+        "at": 1792622569488,
+        "text": "对话输入"
+      },
+      {
+        "event": "send",
+        "trusted": true,
+        "at": 1792622569489
+      },
+      {
+        "at": 1792622569491,
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n正在判断下一步…\n对话输入"
+      },
+      {
+        "at": 1792622689651,
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n正在更新书签并读回确认…\n对话输入"
+      },
+      {
+        "at": 1792622690545,
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n正在更新书签并读回确认…\n对话输入"
+      },
+      {
+        "at": 1792622691628,
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n正在判断下一步…\n对话输入"
+      },
+      {
+        "at": 1792622694833,
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n正在核实最终结果…\n对话输入"
+      },
+      {
+        "at": 1792622695138,
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n对话输入"
+      }
+    ],
+    "sdk": [
+      {
+        "method": "getTree",
+        "at": 1792622584131
+      },
+      {
+        "method": "getTree",
+        "at": 1792622586935
+      },
+      {
+        "method": "getTree",
+        "at": 1792622589764
+      },
+      {
+        "method": "getTree",
+        "at": 1792622592571
+      },
+      {
+        "method": "getTree",
+        "at": 1792622595390
+      },
+      {
+        "method": "getTree",
+        "at": 1792622598223
+      },
+      {
+        "method": "getTree",
+        "at": 1792622601050
+      },
+      {
+        "method": "getTree",
+        "at": 1792622603857
+      },
+      {
+        "method": "getTree",
+        "at": 1792622606709
+      },
+      {
+        "method": "getTree",
+        "at": 1792622609703
+      },
+      {
+        "method": "getTree",
+        "at": 1792622612527
+      },
+      {
+        "method": "getTree",
+        "at": 1792622615316
+      },
+      {
+        "method": "getTree",
+        "at": 1792622618183
+      },
+      {
+        "method": "getTree",
+        "at": 1792622620972
+      },
+      {
+        "method": "getTree",
+        "at": 1792622623787
+      },
+      {
+        "method": "getTree",
+        "at": 1792622626615
+      },
+      {
+        "method": "getTree",
+        "at": 1792622629413
+      },
+      {
+        "method": "getTree",
+        "at": 1792622632218
+      },
+      {
+        "method": "getTree",
+        "at": 1792622635233
+      },
+      {
+        "method": "getTree",
+        "at": 1792622638063
+      },
+      {
+        "method": "getTree",
+        "at": 1792622640888
+      },
+      {
+        "method": "getTree",
+        "at": 1792622643680
+      },
+      {
+        "method": "getTree",
+        "at": 1792622646482
+      },
+      {
+        "method": "getTree",
+        "at": 1792622649314
+      },
+      {
+        "method": "getTree",
+        "at": 1792622652145
+      },
+      {
+        "method": "getTree",
+        "at": 1792622654968
+      },
+      {
+        "method": "getTree",
+        "at": 1792622657761
+      },
+      {
+        "method": "getTree",
+        "at": 1792622660774
+      },
+      {
+        "method": "getTree",
+        "at": 1792622663567
+      },
+      {
+        "method": "getTree",
+        "at": 1792622666378
+      },
+      {
+        "method": "getTree",
+        "at": 1792622669191
+      },
+      {
+        "method": "getTree",
+        "at": 1792622671999
+      },
+      {
+        "method": "getTree",
+        "at": 1792622674786
+      },
+      {
+        "method": "getTree",
+        "at": 1792622677605
+      },
+      {
+        "method": "getTree",
+        "at": 1792622680449
+      },
+      {
+        "method": "getTree",
+        "at": 1792622683265
+      },
+      {
+        "method": "getTree",
+        "at": 1792622686257
+      },
+      {
+        "method": "getTree",
+        "at": 1792622689064
+      },
+      {
+        "method": "getTree",
+        "at": 1792622689788
+      },
+      {
+        "method": "getTree",
+        "at": 1792622690089
+      },
+      {
+        "method": "getTree",
+        "at": 1792622690380
+      },
+      {
+        "method": "getTree",
+        "at": 1792622690674
+      },
+      {
+        "method": "getTree",
+        "at": 1792622691089
+      },
+      {
+        "method": "create",
+        "at": 1792622691261
+      },
+      {
+        "method": "getTree",
+        "at": 1792622691452
+      },
+      {
+        "method": "getTree",
+        "at": 1792622691858
+      },
+      {
+        "method": "getTree",
+        "at": 1792622694649
+      },
+      {
+        "method": "getTree",
+        "at": 1792622694961
+      }
+    ],
+    "metrics": [
+      {
+        "completed": true,
+        "modelCalls": 2,
+        "actionCount": 2,
+        "at": 1792622695137
+      }
+    ],
+    "at": 1792622695261
+  },
+  "chrome": {
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792620138462,
+                    "id": "7",
+                    "index": 0,
+                    "parentId": "6",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html"
+                  },
+                  {
+                    "dateAdded": 1792621749495,
+                    "id": "20",
+                    "index": 1,
+                    "parentId": "6",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html?bookmark-case=r211-existing"
+                  },
+                  {
+                    "dateAdded": 1792622691317,
+                    "id": "21",
+                    "index": 2,
+                    "parentId": "6",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html?bookmark-case=r211-final-merged"
+                  }
+                ],
+                "dateAdded": 1792620137066,
+                "dateGroupModified": 1792622691317,
+                "id": "6",
+                "index": 0,
+                "parentId": "1",
+                "syncing": false,
+                "title": "测试收藏夹"
+              },
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792620325289,
+                    "id": "9",
+                    "index": 0,
+                    "parentId": "8",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ],
+                "dateAdded": 1792620324103,
+                "dateGroupModified": 1792620325289,
+                "id": "8",
+                "index": 1,
+                "parentId": "1",
+                "syncing": false,
+                "title": "继续收藏夹"
+              },
+              {
+                "children": [],
+                "dateAdded": 1792620404741,
+                "dateGroupModified": 1792620404741,
+                "id": "10",
+                "index": 2,
+                "parentId": "1",
+                "syncing": false,
+                "title": "歧义收藏夹"
+              },
+              {
+                "children": [],
+                "dateAdded": 1792620404744,
+                "dateGroupModified": 1792620404744,
+                "id": "11",
+                "index": 3,
+                "parentId": "1",
+                "syncing": false,
+                "title": "歧义收藏夹"
+              },
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792620477468,
+                    "id": "13",
+                    "index": 0,
+                    "parentId": "12",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ],
+                "dateAdded": 1792620476287,
+                "dateGroupModified": 1792620477468,
+                "id": "12",
+                "index": 4,
+                "parentId": "1",
+                "syncing": false,
+                "title": "停止收藏夹"
+              },
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792620663234,
+                    "id": "15",
+                    "index": 0,
+                    "parentId": "14",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ],
+                "dateAdded": 1792620662152,
+                "dateGroupModified": 1792620663234,
+                "id": "14",
+                "index": 5,
+                "parentId": "1",
+                "syncing": false,
+                "title": "实例切换验证收藏夹"
+              },
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792620713171,
+                    "id": "17",
+                    "index": 0,
+                    "parentId": "16",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ],
+                "dateAdded": 1792620711804,
+                "dateGroupModified": 1792620713171,
+                "id": "16",
+                "index": 6,
+                "parentId": "1",
+                "syncing": false,
+                "title": "实例切换验证1792620704547收藏夹"
+              },
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792620826274,
+                    "id": "19",
+                    "index": 0,
+                    "parentId": "18",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ],
+                "dateAdded": 1792620824998,
+                "dateGroupModified": 1792620826274,
+                "id": "18",
+                "index": 7,
+                "parentId": "1",
+                "syncing": false,
+                "title": "实例切换验证1792620818783收藏夹"
+              }
+            ],
+            "dateAdded": 1792617954199,
+            "dateGroupModified": 1792620824999,
+            "folderType": "bookmarks-bar",
+            "id": "1",
+            "index": 0,
+            "parentId": "0",
+            "syncing": false,
+            "title": "书签栏"
+          },
+          {
+            "children": [],
+            "dateAdded": 1792617954199,
+            "folderType": "other",
+            "id": "2",
+            "index": 1,
+            "parentId": "0",
+            "syncing": false,
+            "title": "其他书签"
+          }
+        ],
+        "dateAdded": 1792617954199,
+        "id": "0",
+        "syncing": false,
+        "title": ""
+      }
+    ],
+    "writes": [
+      {
+        "id": "21",
+        "node": {
+          "dateAdded": 1792622691317,
+          "id": "21",
+          "index": 2,
+          "parentId": "6",
+          "syncing": false,
+          "title": "OpenDesk Browser · Browser Test Lab",
+          "url": "http://127.0.0.1:43111/demo-form.html?bookmark-case=r211-final-merged"
+        },
+        "at": 1792622691318
+      }
+    ],
+    "at": 1792622695262
+  }
+}

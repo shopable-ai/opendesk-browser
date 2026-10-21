@@ -1,0 +1,262 @@
+TAP version 13
+# Subtest: R3.1 trusted observer subscribes before first full paginated tree snapshot
+ok 1 - R3.1 trusted observer subscribes before first full paginated tree snapshot
+  ---
+  duration_ms: 2.827292
+  type: 'test'
+  ...
+# Subtest: R3.1 event gap fails closed; background resync cannot silently clear unknown write
+ok 2 - R3.1 event gap fails closed; background resync cannot silently clear unknown write
+  ---
+  duration_ms: 0.849916
+  type: 'test'
+  ...
+# Subtest: R3.1 Chromium assertions use the approved responsive details instead of stale R3.0.4 non-modal contract
+ok 3 - R3.1 Chromium assertions use the approved responsive details instead of stale R3.0.4 non-modal contract
+  ---
+  duration_ms: 1.91075
+  type: 'test'
+  ...
+# Subtest: R3.1 trusted React CSS uses the existing fixed stylesheet and a single root
+ok 4 - R3.1 trusted React CSS uses the existing fixed stylesheet and a single root
+  ---
+  duration_ms: 1.068959
+  type: 'test'
+  ...
+# Subtest: R3.3 normal open tries the single compiled React root without developer parameters
+ok 5 - R3.3 normal open tries the single compiled React root without developer parameters
+  ---
+  duration_ms: 3.17325
+  type: 'test'
+  ...
+# Subtest: R3.3 default route keeps official package identity and original Host dispatcher
+ok 6 - R3.3 default route keeps official package identity and original Host dispatcher
+  ---
+  duration_ms: 1.213042
+  type: 'test'
+  ...
+# Subtest: R3.3 first Full Bookmarks approval visibly leads into a fresh observer
+ok 7 - R3.3 first Full Bookmarks approval visibly leads into a fresh observer
+  ---
+  duration_ms: 1.4685
+  type: 'test'
+  ...
+# Subtest: R3.3 React does not duplicate the trusted Host deletion review
+ok 8 - R3.3 React does not duplicate the trusted Host deletion review
+  ---
+  duration_ms: 0.824125
+  type: 'test'
+  ...
+# Subtest: Bookmarks: real native create, durable opaque ownership and remove after Worker restart
+ok 9 - Bookmarks: real native create, durable opaque ownership and remove after Worker restart
+  ---
+  duration_ms: 1.775041
+  type: 'test'
+  ...
+# Subtest: Bookmarks: owner, version, epoch, opaque ID and schema boundaries are enforced
+ok 10 - Bookmarks: owner, version, epoch, opaque ID and schema boundaries are enforced
+  ---
+  duration_ms: 0.578
+  type: 'test'
+  ...
+# Subtest: Bookmarks: revoked permission and external edit refuse native deletion
+ok 11 - Bookmarks: revoked permission and external edit refuse native deletion
+  ---
+  duration_ms: 0.278459
+  type: 'test'
+  ...
+# Subtest: Bookmarks: uninstall or missing mapping does not replay against native IDs
+ok 12 - Bookmarks: uninstall or missing mapping does not replay against native IDs
+  ---
+  duration_ms: 0.243041
+  type: 'test'
+  ...
+# Subtest: Bookmarks: unknown create, remove and get failures do not return success or auto-replay
+ok 13 - Bookmarks: unknown create, remove and get failures do not return success or auto-replay
+  ---
+  duration_ms: 0.524417
+  type: 'test'
+  ...
+# Subtest: Bookmarks: revoked-after-effect never returns success
+ok 14 - Bookmarks: revoked-after-effect never returns success
+  ---
+  duration_ms: 0.106792
+  type: 'test'
+  ...
+# Subtest: Bookmarks: externally deleted bookmark clears owned mapping without global lookup
+ok 15 - Bookmarks: externally deleted bookmark clears owned mapping without global lookup
+  ---
+  duration_ms: 0.259
+  type: 'test'
+  ...
+# Subtest: Bookmarks: rejected external delete is treated as missing and released once
+ok 16 - Bookmarks: rejected external delete is treated as missing and released once
+  ---
+  duration_ms: 0.397583
+  type: 'test'
+  ...
+# Subtest: Bookmarks: permission, service and malformed-ID get errors retain owned mapping
+ok 17 - Bookmarks: permission, service and malformed-ID get errors retain owned mapping
+  ---
+  duration_ms: 0.467209
+  type: 'test'
+  ...
+# Subtest: Bookmarks: user changes to title invalidate removal without deleting the native bookmark
+ok 18 - Bookmarks: user changes to title invalidate removal without deleting the native bookmark
+  ---
+  duration_ms: 0.262417
+  type: 'test'
+  ...
+# Subtest: Bookmarks: user changes to parentId invalidate removal without deleting the native bookmark
+ok 19 - Bookmarks: user changes to parentId invalidate removal without deleting the native bookmark
+  ---
+  duration_ms: 0.145125
+  type: 'test'
+  ...
+# Subtest: Bookmarks: legacy development records cannot delete a possibly edited bookmark
+ok 20 - Bookmarks: legacy development records cannot delete a possibly edited bookmark
+  ---
+  duration_ms: 0.287708
+  type: 'test'
+  ...
+# Subtest: R11.2 Owned and Full use separately gated Registry operations and one generated facade
+ok 21 - R11.2 Owned and Full use separately gated Registry operations and one generated facade
+  ---
+  duration_ms: 2.025083
+  type: 'test'
+  ...
+# Subtest: R11.2 100 bookmarks paginate completely within a fixed 12KB Host IPC
+ok 22 - R11.2 100 bookmarks paginate completely within a fixed 12KB Host IPC
+  ---
+  duration_ms: 2.262833
+  type: 'test'
+  ...
+# Subtest: R11.2 500 bookmarks paginate completely within a fixed 12KB Host IPC
+ok 23 - R11.2 500 bookmarks paginate completely within a fixed 12KB Host IPC
+  ---
+  duration_ms: 9.737917
+  type: 'test'
+  ...
+# Subtest: R11.2 550 bookmarks paginate completely within a fixed 12KB Host IPC
+ok 24 - R11.2 550 bookmarks paginate completely within a fixed 12KB Host IPC
+  ---
+  duration_ms: 10.718625
+  type: 'test'
+  ...
+# Subtest: R11.2 1001 bookmarks paginate completely within a fixed 12KB Host IPC
+ok 25 - R11.2 1001 bookmarks paginate completely within a fixed 12KB Host IPC
+  ---
+  duration_ms: 21.943708
+  type: 'test'
+  ...
+# Subtest: R11.2 snapshot pages do not truncate or include mid-stream inserts; cursor binds owner and worker generation
+ok 26 - R11.2 snapshot pages do not truncate or include mid-stream inserts; cursor binds owner and worker generation
+  ---
+  duration_ms: 18.439042
+  type: 'test'
+  ...
+# Subtest: R11.2 full CRUD uses expected preconditions and never deletes a nonempty folder as a simple leaf
+ok 27 - R11.2 full CRUD uses expected preconditions and never deletes a nonempty folder as a simple leaf
+  ---
+  duration_ms: 1.077958
+  type: 'test'
+  ...
+# Subtest: R11.2 protected browser folders, managed descendants and recursive moves fail closed
+ok 28 - R11.2 protected browser folders, managed descendants and recursive moves fail closed
+  ---
+  duration_ms: 0.492375
+  type: 'test'
+  ...
+# Subtest: R11.2 deletion ticket is one-use; external mutation cancels the native recursive delete
+ok 29 - R11.2 deletion ticket is one-use; external mutation cancels the native recursive delete
+  ---
+  duration_ms: 6.355375
+  type: 'test'
+  ...
+# Subtest: R11.2 event queue reports overflow/gap, worker restart and owner mismatch explicitly
+ok 30 - R11.2 event queue reports overflow/gap, worker restart and owner mismatch explicitly
+  ---
+  duration_ms: 0.406708
+  type: 'test'
+  ...
+# Subtest: R11.2 Full authorization blocks writes and reads before Chrome and any write is dispatched once
+ok 31 - R11.2 Full authorization blocks writes and reads before Chrome and any write is dispatched once
+  ---
+  duration_ms: 0.516291
+  type: 'test'
+  ...
+# Subtest: R11.2 SDK facade and single approved Dispatcher execute the eight Full CRUD calls
+ok 32 - R11.2 SDK facade and single approved Dispatcher execute the eight Full CRUD calls
+  ---
+  duration_ms: 3.040917
+  type: 'test'
+  ...
+# Subtest: R2.4 revocation during asynchronous write preflight prevents every native write
+ok 33 - R2.4 revocation during asynchronous write preflight prevents every native write
+  ---
+  duration_ms: 0.417083
+  type: 'test'
+  ...
+# Subtest: R2.4 create and move reject destinations below a managed ancestor
+ok 34 - R2.4 create and move reject destinations below a managed ancestor
+  ---
+  duration_ms: 0.134875
+  type: 'test'
+  ...
+# Subtest: R2.4 repeated refresh recycles only its own oldest snapshot within the existing bound
+ok 35 - R2.4 repeated refresh recycles only its own oldest snapshot within the existing bound
+  ---
+  duration_ms: 8.703083
+  type: 'test'
+  ...
+# Subtest: R2.4 revoke/regrant during final preflight cannot reuse a prior mutation generation
+ok 36 - R2.4 revoke/regrant during final preflight cannot reuse a prior mutation generation
+  ---
+  duration_ms: 1.196209
+  type: 'test'
+  ...
+# Subtest: R2.4 recursive-delete ticket that expires during preflight never reaches Chrome
+ok 37 - R2.4 recursive-delete ticket that expires during preflight never reaches Chrome
+  ---
+  duration_ms: 0.473083
+  type: 'test'
+  ...
+# Subtest: R2.4 reviewed node objects compare values independently of JSON property order
+ok 38 - R2.4 reviewed node objects compare values independently of JSON property order
+  ---
+  duration_ms: 0.309625
+  type: 'test'
+  ...
+# Subtest: R2.4 a native change observed after final subtree read cancels recursive deletion
+ok 39 - R2.4 a native change observed after final subtree read cancels recursive deletion
+  ---
+  duration_ms: 0.297292
+  type: 'test'
+  ...
+# Subtest: R2.4 bounded Unicode titles and existing non-HTTP bookmarks retain exact values across pages
+ok 40 - R2.4 bounded Unicode titles and existing non-HTTP bookmarks retain exact values across pages
+  ---
+  duration_ms: 2.337208
+  type: 'test'
+  ...
+# Subtest: R2.4 all seven native event kinds are delivered and expired sessions explicitly fail
+ok 41 - R2.4 all seven native event kinds are delivered and expired sessions explicitly fail
+  ---
+  duration_ms: 0.195708
+  type: 'test'
+  ...
+# Subtest: R2.4 concurrent subtree hashing cannot overfill the bounded deletion ticket pool
+ok 42 - R2.4 concurrent subtree hashing cannot overfill the bounded deletion ticket pool
+  ---
+  duration_ms: 1.860334
+  type: 'test'
+  ...
+1..42
+# tests 42
+# suites 0
+# pass 42
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 148.83225

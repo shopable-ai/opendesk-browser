@@ -1,0 +1,54 @@
+{
+  "phase": "independent reconciliation after UNKNOWN; before new task",
+  "tree": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "dateAdded": 1792619102784,
+              "dateGroupModified": 1792619102784,
+              "id": "5",
+              "index": 0,
+              "parentId": "1",
+              "syncing": false,
+              "title": "测试收藏夹"
+            }
+          ],
+          "dateAdded": 1792617954199,
+          "dateGroupModified": 1792619102785,
+          "folderType": "bookmarks-bar",
+          "id": "1",
+          "index": 0,
+          "parentId": "0",
+          "syncing": false,
+          "title": "书签栏"
+        },
+        {
+          "children": [],
+          "dateAdded": 1792617954199,
+          "folderType": "other",
+          "id": "2",
+          "index": 1,
+          "parentId": "0",
+          "syncing": false,
+          "title": "其他书签"
+        }
+      ],
+      "dateAdded": 1792617954199,
+      "id": "0",
+      "syncing": false,
+      "title": ""
+    }
+  ],
+  "writes": [
+    {
+      "event": "created",
+      "id": "5",
+      "parentId": "1",
+      "title": "测试收藏夹",
+      "at": 1792619102785
+    }
+  ]
+}

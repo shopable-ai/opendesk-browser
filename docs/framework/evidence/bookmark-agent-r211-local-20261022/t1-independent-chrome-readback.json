@@ -1,0 +1,78 @@
+{
+  "tree": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "dateAdded": 1792620138462,
+                  "id": "7",
+                  "index": 0,
+                  "parentId": "6",
+                  "syncing": false,
+                  "title": "OpenDesk Browser · Browser Test Lab",
+                  "url": "http://127.0.0.1:43111/demo-form.html"
+                }
+              ],
+              "dateAdded": 1792620137066,
+              "dateGroupModified": 1792620138462,
+              "id": "6",
+              "index": 0,
+              "parentId": "1",
+              "syncing": false,
+              "title": "测试收藏夹"
+            }
+          ],
+          "dateAdded": 1792617954199,
+          "dateGroupModified": 1792620137066,
+          "folderType": "bookmarks-bar",
+          "id": "1",
+          "index": 0,
+          "parentId": "0",
+          "syncing": false,
+          "title": "书签栏"
+        },
+        {
+          "children": [],
+          "dateAdded": 1792617954199,
+          "folderType": "other",
+          "id": "2",
+          "index": 1,
+          "parentId": "0",
+          "syncing": false,
+          "title": "其他书签"
+        }
+      ],
+      "dateAdded": 1792617954199,
+      "id": "0",
+      "syncing": false,
+      "title": ""
+    }
+  ],
+  "writes": [
+    {
+      "event": "created",
+      "id": "6",
+      "parentId": "1",
+      "title": "测试收藏夹",
+      "at": 1792620137067
+    },
+    {
+      "event": "created",
+      "id": "7",
+      "parentId": "6",
+      "title": "OpenDesk Browser · Browser Test Lab",
+      "url": "http://127.0.0.1:43111/demo-form.html",
+      "at": 1792620138463
+    }
+  ],
+  "active": [
+    {
+      "id": 375360082,
+      "url": "http://127.0.0.1:43111/demo-form.html"
+    }
+  ],
+  "at": 1792620188631
+}

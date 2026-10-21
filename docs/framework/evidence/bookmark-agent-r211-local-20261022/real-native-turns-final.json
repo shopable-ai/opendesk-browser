@@ -1,0 +1,2293 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUTC": "2026-10-21T22:15:51.818585+00:00",
+  "evidenceKind": "REAL_NATIVE_CODEX_SQLITE_MATCHED_TO_REAL_SEND_ARTIFACTS",
+  "fixture": false,
+  "scope": {
+    "codexHome": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/bm-r211-codex-rnbdpxkz",
+    "selectorSource": "artifacts/bookmark-agent-r211-local/resume-runtime.json.codexHome",
+    "defaultCodexHomeRead": false,
+    "sqliteReadOnly": true,
+    "outputIsIgnoredArtifact": true,
+    "databases": [
+      "thread_history_1.sqlite",
+      "state_5.sqlite",
+      "logs_2.sqlite"
+    ],
+    "threadIds": [
+      "01a1607a-c291-75d2-9c08-84c0e81a9c87",
+      "01a16093-5867-7541-95cb-e8c56b97a660",
+      "01a160a1-bae0-7800-8867-6c5d3f4f8371",
+      "01a160ab-76c5-7931-ba90-7d2a9d92c92c"
+    ],
+    "nativeCoverageAtStopCloseAudit": {
+      "checkedAtUTC": "2026-10-21T22:24:00.231915+00:00",
+      "latestTurnStartedAtSeconds": 1792621430,
+      "latestTurnCompletedAtSeconds": 1792620829,
+      "latestLogAtSeconds": 1792621431,
+      "latestLogAtUTC": "2026-10-21T22:23:51.000+00:00",
+      "limitation": "No matching request item, turn, or log row exists in either bounded Stop/close window. The database now also contains later Native records; those do not fill these case-specific gaps. Absence here cannot establish that no request occurred in another process/home, or that a model was interrupted."
+    }
+  },
+  "method": {
+    "correlation": "Original T1/T2-T3/T5-T6/T4 cases use recorded trusted Send windows. T9 Stop uses the explicitly approximate user-supplied Send time because before.trace is empty; T9-close uses its recorded trusted Send. New Stop/close queries include a 2000 ms lookback through readback time and exact unique-request matching.",
+    "plans": "Only thread_items.item_type=agentMessage for matched thread/turn IDs; original public text plus parsed JSON. No reasoning, user context, credentials or headers exported.",
+    "model": "state_5 threads metadata is thread-level; logs_2 whitelisted model identifiers are bounded by case time and matched thread IDs. These are metadata evidence, not independent provider-side attestation.",
+    "realVsFixture": "Real UI/SDK/Native evidence, not model/SDK fixtures. Matched SQLite turns establish local Native lifecycle records; public agentMessage JSON establishes model decisions; real Chrome readback/write events separately establish effects. Original Stop/close coverage gaps remain unchanged. Later Stop and bookmarks-revoke cases add independently matched interrupted turns; nativeMessaging removal does not currently prove interruption.",
+    "stopCaveat": "Original 4500ms Stop and document-close cases retain their Native coverage gaps. Long-inference attempt remains DRIVER_TIMING_NOT_STOP. New T9-inflight-stop-native matches a unique real request to interrupted status and post-Stop session/task log metadata. Bookmarks revoke also matches interrupted status, with approximate removal timing and driver limitations. Native permission revoke remains NOT_PROVEN for interruption/provider cancellation. No case attests remote provider computation termination."
+  },
+  "cases": [
+    {
+      "case": "T1",
+      "artifact": "artifacts/bookmark-agent-r211-local/t1-real-complete.json",
+      "artifactSha256": "1c82489131993be754dbfed152f87ac900953e39e944b9aa0c5231b497da9a10",
+      "sendAtMs": 1792620017416,
+      "sendAtUTC": "2026-10-21T22:00:17.416+00:00",
+      "trustedSendRecorded": true,
+      "observationEndAtMs": 1792620142339,
+      "observationEndUTC": "2026-10-21T22:02:22.339+00:00",
+      "modelTurnCount": 2,
+      "planSequence": [
+        {
+          "turnSequence": 1,
+          "turnId": "01a1607a-c2b6-7c12-a237-01c05b85d93d",
+          "itemId": "msg_043eabae32a61413016ad93666c9cc8198a82868bdf4c25750",
+          "steps": [
+            "folder.ensure",
+            "bookmark.create"
+          ],
+          "plan": {
+            "actions": [
+              {
+                "type": "folder.ensure",
+                "title": "测试收藏夹",
+                "parent": "$currentFolder"
+              },
+              {
+                "type": "bookmark.create",
+                "title": "$pageTitle",
+                "url": "$currentPage",
+                "parent": "$lastFolder"
+              }
+            ]
+          }
+        },
+        {
+          "turnSequence": 2,
+          "turnId": "01a1607c-912d-7680-bf07-1f32eebbde21",
+          "itemId": "msg_043eabae32a61413016ad9366d6b04819889c5eb0e17199b87",
+          "steps": [
+            "complete"
+          ],
+          "plan": {
+            "complete": [
+              {
+                "kind": "bookmark.inFolder",
+                "folder": "书签栏 / 测试收藏夹",
+                "url": "$currentPage"
+              }
+            ]
+          }
+        }
+      ],
+      "turns": [
+        {
+          "sequence": 1,
+          "thread_id": "01a1607a-c291-75d2-9c08-84c0e81a9c87",
+          "turn_id": "01a1607a-c2b6-7c12-a237-01c05b85d93d",
+          "status": "completed",
+          "started_at": 1792620020,
+          "completed_at": 1792620135,
+          "duration_ms": 114951,
+          "startedAtUTC": "2026-10-21T22:00:20.000+00:00",
+          "completedAtUTC": "2026-10-21T22:02:15.000+00:00",
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          },
+          "agentMessages": [
+            {
+              "item_id": "msg_043eabae32a61413016ad93666c9cc8198a82868bdf4c25750",
+              "created_at_ms": 1792620134596,
+              "started_at_ms": 1792620134596,
+              "completed_at_ms": 1792620135166,
+              "phase": "final_answer",
+              "text": "{\"actions\":[{\"type\":\"folder.ensure\",\"title\":\"测试收藏夹\",\"parent\":\"$currentFolder\"},{\"type\":\"bookmark.create\",\"title\":\"$pageTitle\",\"url\":\"$currentPage\",\"parent\":\"$lastFolder\"}]}",
+              "plan": {
+                "actions": [
+                  {
+                    "type": "folder.ensure",
+                    "title": "测试收藏夹",
+                    "parent": "$currentFolder"
+                  },
+                  {
+                    "type": "bookmark.create",
+                    "title": "$pageTitle",
+                    "url": "$currentPage",
+                    "parent": "$lastFolder"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "sequence": 2,
+          "thread_id": "01a1607a-c291-75d2-9c08-84c0e81a9c87",
+          "turn_id": "01a1607c-912d-7680-bf07-1f32eebbde21",
+          "status": "completed",
+          "started_at": 1792620138,
+          "completed_at": 1792620141,
+          "duration_ms": 3117,
+          "startedAtUTC": "2026-10-21T22:02:18.000+00:00",
+          "completedAtUTC": "2026-10-21T22:02:21.000+00:00",
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          },
+          "agentMessages": [
+            {
+              "item_id": "msg_043eabae32a61413016ad9366d6b04819889c5eb0e17199b87",
+              "created_at_ms": 1792620141239,
+              "started_at_ms": 1792620141239,
+              "completed_at_ms": 1792620141723,
+              "phase": "final_answer",
+              "text": "{\"complete\":[{\"kind\":\"bookmark.inFolder\",\"folder\":\"书签栏 / 测试收藏夹\",\"url\":\"$currentPage\"}]}",
+              "plan": {
+                "complete": [
+                  {
+                    "kind": "bookmark.inFolder",
+                    "folder": "书签栏 / 测试收藏夹",
+                    "url": "$currentPage"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "logModelMetadata": [
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "codex_core::session::turn",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 2,
+          "firstAtSeconds": 1792620135,
+          "lastAtSeconds": 1792620141
+        },
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "feedback_tags",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 16,
+          "firstAtSeconds": 1792620036,
+          "lastAtSeconds": 1792620140
+        },
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "codex_core::client",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 1,
+          "firstAtSeconds": 1792620132,
+          "lastAtSeconds": 1792620132
+        }
+      ],
+      "modelsObservedInLogs": [
+        "gpt-6.1-sol"
+      ],
+      "interpretation": "Real Native Codex turns matched to the artifact Send window; plan text is copied from SQLite thread_items agentMessage, not reconstructed from UI or fixtures.",
+      "evidenceKind": "REAL_NATIVE_MODEL_TURNS"
+    },
+    {
+      "case": "T2/T3",
+      "artifact": "artifacts/bookmark-agent-r211-local/t2-t3-real-reuse.json",
+      "artifactSha256": "f4ea78c2df035d1cc56be2d5806be2a8cfaea173ca6f4e798f796136f589f0d2",
+      "sendAtMs": 1792620230168,
+      "sendAtUTC": "2026-10-21T22:03:50.168+00:00",
+      "trustedSendRecorded": true,
+      "observationEndAtMs": 1792620235256,
+      "observationEndUTC": "2026-10-21T22:03:55.256+00:00",
+      "modelTurnCount": 1,
+      "planSequence": [
+        {
+          "turnSequence": 1,
+          "turnId": "01a1607d-fc0f-7c03-945d-f3e42338b1a1",
+          "itemId": "msg_043eabae32a61413016ad936ca63b88198a6bd39b89bdaf839",
+          "steps": [
+            "complete"
+          ],
+          "plan": {
+            "complete": [
+              {
+                "kind": "bookmark.inFolder",
+                "folder": "书签栏 / 测试收藏夹",
+                "url": "$currentPage"
+              }
+            ]
+          }
+        }
+      ],
+      "turns": [
+        {
+          "sequence": 1,
+          "thread_id": "01a1607a-c291-75d2-9c08-84c0e81a9c87",
+          "turn_id": "01a1607d-fc0f-7c03-945d-f3e42338b1a1",
+          "status": "completed",
+          "started_at": 1792620231,
+          "completed_at": 1792620234,
+          "duration_ms": 3077,
+          "startedAtUTC": "2026-10-21T22:03:51.000+00:00",
+          "completedAtUTC": "2026-10-21T22:03:54.000+00:00",
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          },
+          "agentMessages": [
+            {
+              "item_id": "msg_043eabae32a61413016ad936ca63b88198a6bd39b89bdaf839",
+              "created_at_ms": 1792620234195,
+              "started_at_ms": 1792620234195,
+              "completed_at_ms": 1792620234588,
+              "phase": "final_answer",
+              "text": "{\"complete\":[{\"kind\":\"bookmark.inFolder\",\"folder\":\"书签栏 / 测试收藏夹\",\"url\":\"$currentPage\"}]}",
+              "plan": {
+                "complete": [
+                  {
+                    "kind": "bookmark.inFolder",
+                    "folder": "书签栏 / 测试收藏夹",
+                    "url": "$currentPage"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "logModelMetadata": [
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "codex_core::session::turn",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 1,
+          "firstAtSeconds": 1792620234,
+          "lastAtSeconds": 1792620234
+        },
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "feedback_tags",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 2,
+          "firstAtSeconds": 1792620231,
+          "lastAtSeconds": 1792620233
+        }
+      ],
+      "modelsObservedInLogs": [
+        "gpt-6.1-sol"
+      ],
+      "interpretation": "Real Native Codex turns matched to the artifact Send window; plan text is copied from SQLite thread_items agentMessage, not reconstructed from UI or fixtures.",
+      "evidenceKind": "REAL_NATIVE_MODEL_TURNS"
+    },
+    {
+      "case": "T5/T6",
+      "artifact": "artifacts/bookmark-agent-r211-local/t5-t6-real-continue.json",
+      "artifactSha256": "b970d78775a449dbfcd98fed8544001b6956e7c89386d3c257f82c0b63105899",
+      "sendAtMs": 1792620311591,
+      "sendAtUTC": "2026-10-21T22:05:11.591+00:00",
+      "trustedSendRecorded": true,
+      "observationEndAtMs": 1792620328828,
+      "observationEndUTC": "2026-10-21T22:05:28.828+00:00",
+      "modelTurnCount": 3,
+      "planSequence": [
+        {
+          "turnSequence": 1,
+          "turnId": "01a1607f-39ec-70c0-ac50-603630a07fcb",
+          "itemId": "msg_043eabae32a61413016ad9371bb2b08198ba656724df20a6e5",
+          "steps": [
+            "bookmark.search"
+          ],
+          "plan": {
+            "actions": [
+              {
+                "type": "bookmark.search",
+                "query": "继续收藏夹"
+              }
+            ]
+          }
+        },
+        {
+          "turnSequence": 2,
+          "turnId": "01a1607f-47b3-7f52-8265-3633f3847d9d",
+          "itemId": "msg_043eabae32a61413016ad937215ffc81989408121f84b0f8d0",
+          "steps": [
+            "folder.ensure",
+            "bookmark.create"
+          ],
+          "plan": {
+            "actions": [
+              {
+                "type": "folder.ensure",
+                "title": "继续收藏夹",
+                "parent": "$currentFolder"
+              },
+              {
+                "type": "bookmark.create",
+                "title": "$pageTitle",
+                "url": "$currentPage",
+                "parent": "$lastFolder"
+              }
+            ]
+          }
+        },
+        {
+          "turnSequence": 3,
+          "turnId": "01a1607f-6ae8-7260-8147-29c004591d43",
+          "itemId": "msg_043eabae32a61413016ad93727fbf081989f4292a7b2813be5",
+          "steps": [
+            "complete"
+          ],
+          "plan": {
+            "complete": [
+              {
+                "kind": "bookmark.inFolder",
+                "folder": "书签栏 / 继续收藏夹",
+                "url": "$currentPage"
+              }
+            ]
+          }
+        }
+      ],
+      "turns": [
+        {
+          "sequence": 1,
+          "thread_id": "01a1607a-c291-75d2-9c08-84c0e81a9c87",
+          "turn_id": "01a1607f-39ec-70c0-ac50-603630a07fcb",
+          "status": "completed",
+          "started_at": 1792620313,
+          "completed_at": 1792620316,
+          "duration_ms": 2999,
+          "startedAtUTC": "2026-10-21T22:05:13.000+00:00",
+          "completedAtUTC": "2026-10-21T22:05:16.000+00:00",
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          },
+          "agentMessages": [
+            {
+              "item_id": "msg_043eabae32a61413016ad9371bb2b08198ba656724df20a6e5",
+              "created_at_ms": 1792620315601,
+              "started_at_ms": 1792620315601,
+              "completed_at_ms": 1792620315869,
+              "phase": "final_answer",
+              "text": "{\"actions\":[{\"type\":\"bookmark.search\",\"query\":\"继续收藏夹\"}]}",
+              "plan": {
+                "actions": [
+                  {
+                    "type": "bookmark.search",
+                    "query": "继续收藏夹"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "sequence": 2,
+          "thread_id": "01a1607a-c291-75d2-9c08-84c0e81a9c87",
+          "turn_id": "01a1607f-47b3-7f52-8265-3633f3847d9d",
+          "status": "completed",
+          "started_at": 1792620316,
+          "completed_at": 1792620322,
+          "duration_ms": 5450,
+          "startedAtUTC": "2026-10-21T22:05:16.000+00:00",
+          "completedAtUTC": "2026-10-21T22:05:22.000+00:00",
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          },
+          "agentMessages": [
+            {
+              "item_id": "msg_043eabae32a61413016ad937215ffc81989408121f84b0f8d0",
+              "created_at_ms": 1792620321172,
+              "started_at_ms": 1792620321172,
+              "completed_at_ms": 1792620321753,
+              "phase": "final_answer",
+              "text": "{\"actions\":[{\"type\":\"folder.ensure\",\"title\":\"继续收藏夹\",\"parent\":\"$currentFolder\"},{\"type\":\"bookmark.create\",\"title\":\"$pageTitle\",\"url\":\"$currentPage\",\"parent\":\"$lastFolder\"}]}",
+              "plan": {
+                "actions": [
+                  {
+                    "type": "folder.ensure",
+                    "title": "继续收藏夹",
+                    "parent": "$currentFolder"
+                  },
+                  {
+                    "type": "bookmark.create",
+                    "title": "$pageTitle",
+                    "url": "$currentPage",
+                    "parent": "$lastFolder"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "sequence": 3,
+          "thread_id": "01a1607a-c291-75d2-9c08-84c0e81a9c87",
+          "turn_id": "01a1607f-6ae8-7260-8147-29c004591d43",
+          "status": "completed",
+          "started_at": 1792620325,
+          "completed_at": 1792620328,
+          "duration_ms": 2775,
+          "startedAtUTC": "2026-10-21T22:05:25.000+00:00",
+          "completedAtUTC": "2026-10-21T22:05:28.000+00:00",
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          },
+          "agentMessages": [
+            {
+              "item_id": "msg_043eabae32a61413016ad93727fbf081989f4292a7b2813be5",
+              "created_at_ms": 1792620327808,
+              "started_at_ms": 1792620327808,
+              "completed_at_ms": 1792620328135,
+              "phase": "final_answer",
+              "text": "{\"complete\":[{\"kind\":\"bookmark.inFolder\",\"folder\":\"书签栏 / 继续收藏夹\",\"url\":\"$currentPage\"}]}",
+              "plan": {
+                "complete": [
+                  {
+                    "kind": "bookmark.inFolder",
+                    "folder": "书签栏 / 继续收藏夹",
+                    "url": "$currentPage"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "logModelMetadata": [
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "codex_core::session::turn",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 3,
+          "firstAtSeconds": 1792620316,
+          "lastAtSeconds": 1792620328
+        },
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "feedback_tags",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 6,
+          "firstAtSeconds": 1792620313,
+          "lastAtSeconds": 1792620327
+        }
+      ],
+      "modelsObservedInLogs": [
+        "gpt-6.1-sol"
+      ],
+      "interpretation": "Real Native Codex turns matched to the artifact Send window; plan text is copied from SQLite thread_items agentMessage, not reconstructed from UI or fixtures.",
+      "evidenceKind": "REAL_NATIVE_MODEL_TURNS"
+    },
+    {
+      "case": "T4",
+      "artifact": "artifacts/bookmark-agent-r211-local/t4-real-ambiguity.json",
+      "artifactSha256": "197126fe2c49cfc1f4331b3b9fc5978a19d820448e15ab51277e077314b06b82",
+      "sendAtMs": 1792620406350,
+      "sendAtUTC": "2026-10-21T22:06:46.350+00:00",
+      "trustedSendRecorded": true,
+      "observationEndAtMs": 1792620412977,
+      "observationEndUTC": "2026-10-21T22:06:52.977+00:00",
+      "modelTurnCount": 1,
+      "planSequence": [
+        {
+          "turnSequence": 1,
+          "turnId": "01a16080-ab60-7ac3-b422-adc8d568a9ce",
+          "itemId": "msg_043eabae32a61413016ad9377a1a388198859230f1c4293fed",
+          "steps": [
+            "folder.ensure",
+            "bookmark.create"
+          ],
+          "plan": {
+            "actions": [
+              {
+                "type": "folder.ensure",
+                "title": "歧义收藏夹",
+                "parent": "$currentFolder"
+              },
+              {
+                "type": "bookmark.create",
+                "title": "$pageTitle",
+                "url": "$currentPage",
+                "parent": "$lastFolder"
+              }
+            ]
+          }
+        }
+      ],
+      "turns": [
+        {
+          "sequence": 1,
+          "thread_id": "01a1607a-c291-75d2-9c08-84c0e81a9c87",
+          "turn_id": "01a16080-ab60-7ac3-b422-adc8d568a9ce",
+          "status": "completed",
+          "started_at": 1792620407,
+          "completed_at": 1792620411,
+          "duration_ms": 4247,
+          "startedAtUTC": "2026-10-21T22:06:47.000+00:00",
+          "completedAtUTC": "2026-10-21T22:06:51.000+00:00",
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          },
+          "agentMessages": [
+            {
+              "item_id": "msg_043eabae32a61413016ad9377a1a388198859230f1c4293fed",
+              "created_at_ms": 1792620409919,
+              "started_at_ms": 1792620409919,
+              "completed_at_ms": 1792620411694,
+              "phase": "final_answer",
+              "text": "{\"actions\":[{\"type\":\"folder.ensure\",\"title\":\"歧义收藏夹\",\"parent\":\"$currentFolder\"},{\"type\":\"bookmark.create\",\"title\":\"$pageTitle\",\"url\":\"$currentPage\",\"parent\":\"$lastFolder\"}]}",
+              "plan": {
+                "actions": [
+                  {
+                    "type": "folder.ensure",
+                    "title": "歧义收藏夹",
+                    "parent": "$currentFolder"
+                  },
+                  {
+                    "type": "bookmark.create",
+                    "title": "$pageTitle",
+                    "url": "$currentPage",
+                    "parent": "$lastFolder"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "logModelMetadata": [
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "codex_core::session::turn",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 1,
+          "firstAtSeconds": 1792620411,
+          "lastAtSeconds": 1792620411
+        },
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "feedback_tags",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 2,
+          "firstAtSeconds": 1792620407,
+          "lastAtSeconds": 1792620409
+        }
+      ],
+      "modelsObservedInLogs": [
+        "gpt-6.1-sol"
+      ],
+      "interpretation": "Real Native Codex turns matched to the artifact Send window; plan text is copied from SQLite thread_items agentMessage, not reconstructed from UI or fixtures.",
+      "evidenceKind": "REAL_NATIVE_MODEL_TURNS"
+    },
+    {
+      "case": "T9",
+      "artifact": "artifacts/bookmark-agent-r211-local/t9-real-stop.json",
+      "artifactSha256": "9286a39e12d3ea32bbfecc16878c7e05c784c0dae6b2ee0b9334bf692de6ad03",
+      "action": "stop",
+      "request": "把当前页面放入停止验证1792621207592收藏夹，如果没有，就创建目录",
+      "requestUniqueTimestamp": "1792621207592",
+      "sendAtMs": 1792621207604,
+      "sendAtUTC": "2026-10-21T22:20:07.604+00:00",
+      "sendTimestampPrecision": "approximate",
+      "sendTimestampSource": "User supplied estimate: before.at 1792621212104 minus 4500 ms; corroborating unique request timestamp 1792621207592. MutationObserver was absent, so no Send trace event is available.",
+      "trustedSendRecorded": null,
+      "beforeAtMs": 1792621212104,
+      "beforePhase": "正在判断下一步…",
+      "stopVisibleBeforeAction": true,
+      "nativeQueryWindow": {
+        "startAtMs": 1792621205604,
+        "endAtMs": 1792621224132,
+        "lookbackMs": 2000
+      },
+      "observationEndAtMs": 1792621224132,
+      "observationEndUTC": "2026-10-21T22:20:24.132+00:00",
+      "modelTurnCount": 0,
+      "planSequence": [],
+      "turns": [],
+      "matchingRequestItems": [],
+      "matchingRequestMarkerLogCount": 0,
+      "logRowsInWindow": 0,
+      "logModelMetadata": [],
+      "modelsObservedInLogs": [],
+      "nativeModelStartedEvidence": "NOT_OBSERVED_IN_SELECTED_HOME",
+      "nativeModelInterruptedEvidence": "NOT_OBSERVED_IN_SELECTED_HOME",
+      "nativeCoverage": {
+        "checkedAtUTC": "2026-10-21T22:24:00.231915+00:00",
+        "latestTurnStartedAtSeconds": 1792621430,
+        "latestTurnCompletedAtSeconds": 1792620829,
+        "latestLogAtSeconds": 1792621431,
+        "latestLogAtUTC": "2026-10-21T22:23:51.000+00:00",
+        "limitation": "No matching request item, turn, or log row exists in either bounded Stop/close window. The database now also contains later Native records; those do not fill these case-specific gaps. Absence here cannot establish that no request occurred in another process/home, or that a model was interrupted."
+      },
+      "readbackAtMs": 1792621224132,
+      "readbackSDKWrites": [],
+      "sdkWritesObserved": 0,
+      "evidenceKind": "REAL_UI_ACTION_WITHOUT_MATCHING_NATIVE_RECORDS",
+      "interpretation": "The artifact records a real UI action and zero SDK writes during the observation period. This isolated home contains no matching request, turn, model metadata, or interrupt record in the window; model start/interruption is unproven.",
+      "stopEvents": [
+        {
+          "event": "stop",
+          "atMs": 1792621212117,
+          "trusted": true
+        }
+      ],
+      "readbackDelayAfterStopMs": 12015,
+      "limitations": [
+        "The new SidePanel did not have the old MutationObserver; before.trace is empty. Send timestamp is approximate and must not be presented as an observed trusted Send event."
+      ]
+    },
+    {
+      "case": "T9-close",
+      "artifact": "artifacts/bookmark-agent-r211-local/t9-real-close.json",
+      "artifactSha256": "179f6fa8710ffbf0a2bb5504e9cae91be74a263392680445e62d42f10b67e94c",
+      "action": "close",
+      "request": "把当前页面放入关闭实例验证1792620866944收藏夹，如果没有，就创建目录",
+      "requestUniqueTimestamp": "1792620866944",
+      "sendAtMs": 1792620866949,
+      "sendAtUTC": "2026-10-21T22:14:26.949+00:00",
+      "sendTimestampPrecision": "exact artifact event",
+      "sendTimestampSource": "before.trace event=send, trusted=true",
+      "trustedSendRecorded": true,
+      "beforeAtMs": 1792620867452,
+      "beforePhase": "正在判断下一步…",
+      "stopVisibleBeforeAction": true,
+      "nativeQueryWindow": {
+        "startAtMs": 1792620864949,
+        "endAtMs": 1792620879455,
+        "lookbackMs": 2000
+      },
+      "observationEndAtMs": 1792620879455,
+      "observationEndUTC": "2026-10-21T22:14:39.455+00:00",
+      "modelTurnCount": 0,
+      "planSequence": [],
+      "turns": [],
+      "matchingRequestItems": [],
+      "matchingRequestMarkerLogCount": 0,
+      "logRowsInWindow": 0,
+      "logModelMetadata": [],
+      "modelsObservedInLogs": [],
+      "nativeModelStartedEvidence": "NOT_OBSERVED_IN_SELECTED_HOME",
+      "nativeModelInterruptedEvidence": "NOT_OBSERVED_IN_SELECTED_HOME",
+      "nativeCoverage": {
+        "checkedAtUTC": "2026-10-21T22:24:00.231915+00:00",
+        "latestTurnStartedAtSeconds": 1792621430,
+        "latestTurnCompletedAtSeconds": 1792620829,
+        "latestLogAtSeconds": 1792621431,
+        "latestLogAtUTC": "2026-10-21T22:23:51.000+00:00",
+        "limitation": "No matching request item, turn, or log row exists in either bounded Stop/close window. The database now also contains later Native records; those do not fill these case-specific gaps. Absence here cannot establish that no request occurred in another process/home, or that a model was interrupted."
+      },
+      "readbackAtMs": 1792620879455,
+      "readbackSDKWrites": [],
+      "sdkWritesObserved": 0,
+      "evidenceKind": "REAL_UI_ACTION_WITHOUT_MATCHING_NATIVE_RECORDS",
+      "interpretation": "The artifact records a real UI action and zero SDK writes during the observation period. This isolated home contains no matching request, turn, model metadata, or interrupt record in the window; model start/interruption is unproven.",
+      "documentCloseEvidence": {
+        "source": "after.body",
+        "text": "actual Chrome document closed",
+        "remainingTargetIds": [
+          "778AB5AEE8A6E7B6D7ECE252901B62A4",
+          "4FD1AD32C0425EFB6D96A3823E7B3A22",
+          "29666E0BB668E5DD97F123A35831ACF9",
+          "1EDFDB733FC25C926CCCD3D2E4145782",
+          "A3E61EC525034543CD736A1655D060F8",
+          "AEF9239CBD80546F3A20695452A4B5C9"
+        ],
+        "closureReportedByOwner": "Target.closeTarget actually closed the SidePanel document",
+        "nativeModelInterruptionProven": false
+      },
+      "readbackDelayAfterBeforeMs": 12003
+    },
+    {
+      "case": "T2-existing",
+      "artifact": "artifacts/bookmark-agent-r211-local/t2-real-ensure-existing.json",
+      "artifactSha256": "dd7783af7f8376ac62a922f8013b71a20c746b3df9b0277dbd17113d112ca949",
+      "request": "把当前页面放入测试收藏夹，如果没有，就创建目录。请使用幂等的目录和收藏操作重新核对后完成。",
+      "sendAtMs": 1792621628865,
+      "sendAtUTC": "2026-10-21T22:27:08.865+00:00",
+      "trustedSendRecorded": true,
+      "observationEndAtMs": 1792621753479,
+      "observationEndUTC": "2026-10-21T22:29:13.479+00:00",
+      "evidenceKind": "REAL_NATIVE_MODEL_TURNS_AND_INSTALLED_CHROME_READBACK",
+      "fixture": false,
+      "modelTurnCount": 2,
+      "planSequence": [
+        {
+          "turnSequence": 1,
+          "turnId": "01a16093-588f-7991-8983-6523aa8da38a",
+          "itemId": "msg_0ce4ed3a55e684ee016ad93cb25328819895ec2c4f7525faa7",
+          "steps": [
+            "folder.ensure",
+            "bookmark.create"
+          ],
+          "plan": {
+            "actions": [
+              {
+                "type": "folder.ensure",
+                "title": "测试收藏夹",
+                "parent": "$currentFolder"
+              },
+              {
+                "type": "bookmark.create",
+                "title": "$pageTitle",
+                "url": "$currentPage",
+                "parent": "$lastFolder"
+              }
+            ]
+          }
+        },
+        {
+          "turnSequence": 2,
+          "turnId": "01a16095-2637-7d51-842d-adcf91e09229",
+          "itemId": "msg_0ce4ed3a55e684ee016ad93cb82168819881cdcfff05673247",
+          "steps": [
+            "complete"
+          ],
+          "plan": {
+            "complete": [
+              {
+                "kind": "folder.exists",
+                "folder": "书签栏 / 测试收藏夹"
+              },
+              {
+                "kind": "bookmark.inFolder",
+                "folder": "书签栏 / 测试收藏夹",
+                "url": "$currentPage"
+              }
+            ]
+          }
+        }
+      ],
+      "turns": [
+        {
+          "sequence": 1,
+          "thread_id": "01a16093-5867-7541-95cb-e8c56b97a660",
+          "turn_id": "01a16093-588f-7991-8983-6523aa8da38a",
+          "status": "completed",
+          "started_at": 1792621631,
+          "completed_at": 1792621747,
+          "duration_ms": 116013,
+          "startedAtUTC": "2026-10-21T22:27:11.000+00:00",
+          "completedAtUTC": "2026-10-21T22:29:07.000+00:00",
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          },
+          "agentMessages": [
+            {
+              "item_id": "msg_0ce4ed3a55e684ee016ad93cb25328819895ec2c4f7525faa7",
+              "created_at_ms": 1792621746387,
+              "started_at_ms": 1792621746387,
+              "completed_at_ms": 1792621747420,
+              "phase": "final_answer",
+              "text": "{\"actions\":[{\"type\":\"folder.ensure\",\"title\":\"测试收藏夹\",\"parent\":\"$currentFolder\"},{\"type\":\"bookmark.create\",\"title\":\"$pageTitle\",\"url\":\"$currentPage\",\"parent\":\"$lastFolder\"}]}",
+              "plan": {
+                "actions": [
+                  {
+                    "type": "folder.ensure",
+                    "title": "测试收藏夹",
+                    "parent": "$currentFolder"
+                  },
+                  {
+                    "type": "bookmark.create",
+                    "title": "$pageTitle",
+                    "url": "$currentPage",
+                    "parent": "$lastFolder"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "sequence": 2,
+          "thread_id": "01a16093-5867-7541-95cb-e8c56b97a660",
+          "turn_id": "01a16095-2637-7d51-842d-adcf91e09229",
+          "status": "completed",
+          "started_at": 1792621749,
+          "completed_at": 1792621752,
+          "duration_ms": 2992,
+          "startedAtUTC": "2026-10-21T22:29:09.000+00:00",
+          "completedAtUTC": "2026-10-21T22:29:12.000+00:00",
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          },
+          "agentMessages": [
+            {
+              "item_id": "msg_0ce4ed3a55e684ee016ad93cb82168819881cdcfff05673247",
+              "created_at_ms": 1792621752256,
+              "started_at_ms": 1792621752256,
+              "completed_at_ms": 1792621752630,
+              "phase": "final_answer",
+              "text": "{\"complete\":[{\"kind\":\"folder.exists\",\"folder\":\"书签栏 / 测试收藏夹\"},{\"kind\":\"bookmark.inFolder\",\"folder\":\"书签栏 / 测试收藏夹\",\"url\":\"$currentPage\"}]}",
+              "plan": {
+                "complete": [
+                  {
+                    "kind": "folder.exists",
+                    "folder": "书签栏 / 测试收藏夹"
+                  },
+                  {
+                    "kind": "bookmark.inFolder",
+                    "folder": "书签栏 / 测试收藏夹",
+                    "url": "$currentPage"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "logModelMetadata": [
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "codex_core::session::turn",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 2,
+          "firstAtSeconds": 1792621747,
+          "lastAtSeconds": 1792621752
+        },
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "feedback_tags",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 16,
+          "firstAtSeconds": 1792621647,
+          "lastAtSeconds": 1792621751
+        },
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "codex_core::client",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 1,
+          "firstAtSeconds": 1792621744,
+          "lastAtSeconds": 1792621744
+        }
+      ],
+      "modelsObservedInLogs": [
+        "gpt-6.1-sol"
+      ],
+      "modelDecisionCount": 2,
+      "plannedActionCount": 2,
+      "chromeWriteCount": 1,
+      "chromeWrites": [
+        {
+          "event": "created",
+          "id": "20",
+          "parentId": "6",
+          "title": "OpenDesk Browser · Browser Test Lab",
+          "url": "http://127.0.0.1:43111/demo-form.html?bookmark-case=r211-existing",
+          "at": 1792621749495
+        }
+      ],
+      "sdkWriteDispatches": [
+        {
+          "method": "create",
+          "at": 1792621749437
+        }
+      ],
+      "sdkWriteDispatchCount": 1,
+      "relevantReadbackNodes": [
+        {
+          "id": "6",
+          "parentId": "1",
+          "title": "测试收藏夹"
+        },
+        {
+          "id": "20",
+          "parentId": "6",
+          "title": "OpenDesk Browser · Browser Test Lab",
+          "url": "http://127.0.0.1:43111/demo-form.html?bookmark-case=r211-existing"
+        }
+      ],
+      "verifiedExecutionActionCount": 2,
+      "verifiedActionOutcomes": [
+        {
+          "action": "folder.ensure",
+          "outcome": "REUSED_EXISTING_FOLDER",
+          "id": "6",
+          "chromeWrites": 0
+        },
+        {
+          "action": "bookmark.create",
+          "outcome": "CREATED_NEW_URL",
+          "id": "20",
+          "parentId": "6",
+          "url": "http://127.0.0.1:43111/demo-form.html?bookmark-case=r211-existing",
+          "chromeWrites": 1
+        }
+      ],
+      "interpretation": "Two real model decisions, two executed actions: reuse original folder 6, create one bookmark for a new URL, then verify complete. Only the bookmark caused a Chrome write."
+    },
+    {
+      "case": "T3-idempotent",
+      "artifact": "artifacts/bookmark-agent-r211-local/t3-real-idempotent-actions.json",
+      "artifactSha256": "7c9872f1302deda5070ab20632934d9c356fb3ea5498b41577f9e658f5e6d204",
+      "request": "把当前页面放入测试收藏夹，如果没有，就创建目录。请先使用幂等操作确保目录，再执行收藏操作，最后核实，避免重复。",
+      "sendAtMs": 1792621775133,
+      "sendAtUTC": "2026-10-21T22:29:35.133+00:00",
+      "trustedSendRecorded": true,
+      "observationEndAtMs": 1792621780450,
+      "observationEndUTC": "2026-10-21T22:29:40.450+00:00",
+      "evidenceKind": "REAL_NATIVE_MODEL_TURNS_AND_INSTALLED_CHROME_READBACK",
+      "fixture": false,
+      "modelTurnCount": 1,
+      "planSequence": [
+        {
+          "turnSequence": 1,
+          "turnId": "01a16095-8e59-7240-bda8-8bdb69f7245d",
+          "itemId": "msg_0ce4ed3a55e684ee016ad93cd3259c8198b278171d377cb2d5",
+          "steps": [
+            "complete"
+          ],
+          "plan": {
+            "complete": [
+              {
+                "kind": "folder.exists",
+                "folder": "书签栏 / 测试收藏夹"
+              },
+              {
+                "kind": "bookmark.inFolder",
+                "folder": "书签栏 / 测试收藏夹",
+                "url": "$currentPage"
+              }
+            ]
+          }
+        }
+      ],
+      "turns": [
+        {
+          "sequence": 1,
+          "thread_id": "01a16093-5867-7541-95cb-e8c56b97a660",
+          "turn_id": "01a16095-8e59-7240-bda8-8bdb69f7245d",
+          "status": "completed",
+          "started_at": 1792621776,
+          "completed_at": 1792621779,
+          "duration_ms": 3420,
+          "startedAtUTC": "2026-10-21T22:29:36.000+00:00",
+          "completedAtUTC": "2026-10-21T22:29:39.000+00:00",
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          },
+          "agentMessages": [
+            {
+              "item_id": "msg_0ce4ed3a55e684ee016ad93cd3259c8198b278171d377cb2d5",
+              "created_at_ms": 1792621779117,
+              "started_at_ms": 1792621779117,
+              "completed_at_ms": 1792621779679,
+              "phase": "final_answer",
+              "text": "{\"complete\":[{\"kind\":\"folder.exists\",\"folder\":\"书签栏 / 测试收藏夹\"},{\"kind\":\"bookmark.inFolder\",\"folder\":\"书签栏 / 测试收藏夹\",\"url\":\"$currentPage\"}]}",
+              "plan": {
+                "complete": [
+                  {
+                    "kind": "folder.exists",
+                    "folder": "书签栏 / 测试收藏夹"
+                  },
+                  {
+                    "kind": "bookmark.inFolder",
+                    "folder": "书签栏 / 测试收藏夹",
+                    "url": "$currentPage"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "logModelMetadata": [
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "codex_core::session::turn",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 1,
+          "firstAtSeconds": 1792621779,
+          "lastAtSeconds": 1792621779
+        },
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "feedback_tags",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 2,
+          "firstAtSeconds": 1792621776,
+          "lastAtSeconds": 1792621778
+        }
+      ],
+      "modelsObservedInLogs": [
+        "gpt-6.1-sol"
+      ],
+      "modelDecisionCount": 1,
+      "plannedActionCount": 0,
+      "chromeWriteCount": 0,
+      "chromeWrites": [],
+      "sdkWriteDispatches": [],
+      "sdkWriteDispatchCount": 0,
+      "relevantReadbackNodes": [
+        {
+          "id": "6",
+          "parentId": "1",
+          "title": "测试收藏夹"
+        },
+        {
+          "id": "20",
+          "parentId": "6",
+          "title": "OpenDesk Browser · Browser Test Lab",
+          "url": "http://127.0.0.1:43111/demo-form.html?bookmark-case=r211-existing"
+        }
+      ],
+      "verifiedExecutionActionCount": 0,
+      "verifiedActionOutcomes": [],
+      "interpretation": "One real model decision returned complete directly; zero executor actions, zero SDK write dispatches, zero Chrome writes. This proves readback-based completion for an already satisfied target, not execution of the bookmark.create reuse branch.",
+      "notEvidenceOf": [
+        "bookmark.create idempotent/reuse branch execution",
+        "folder.ensure execution during this Send"
+      ]
+    },
+    {
+      "case": "FINAL-MERGED-ORIGINAL",
+      "artifact": "artifacts/bookmark-agent-r211-local/final-merged-real-original.json",
+      "artifactSha256": "14c6c6d0a4585c4b2bf0e43c4cff33aefc93ef755456d55fce2fdbc614057fb7",
+      "request": "把当前页面放入测试收藏夹，如果没有，就创建目录",
+      "sendAtMs": 1792622569489,
+      "sendAtUTC": "2026-10-21T22:42:49.489+00:00",
+      "trustedSendRecorded": true,
+      "observationEndAtMs": 1792622695262,
+      "observationEndUTC": "2026-10-21T22:44:55.262+00:00",
+      "fixture": false,
+      "modelTurnCount": 2,
+      "planSequence": [
+        {
+          "turnSequence": 1,
+          "turnId": "01a160a1-bb02-7361-843d-77a8cdc7e16d",
+          "itemId": "msg_0ae2c91f49961b6f016ad94060a11081988f8fd663f8f57001",
+          "steps": [
+            "folder.ensure",
+            "bookmark.create"
+          ],
+          "plan": {
+            "actions": [
+              {
+                "type": "folder.ensure",
+                "title": "测试收藏夹",
+                "parent": "$currentFolder"
+              },
+              {
+                "type": "bookmark.create",
+                "title": "$pageTitle",
+                "url": "$currentPage",
+                "parent": "$lastFolder"
+              }
+            ]
+          }
+        },
+        {
+          "turnSequence": 2,
+          "turnId": "01a160a3-8531-7ff0-bdcb-a13e25276f0c",
+          "itemId": "msg_0ae2c91f49961b6f016ad94065fbc08198a1d22f3614f15c39",
+          "steps": [
+            "complete"
+          ],
+          "plan": {
+            "complete": [
+              {
+                "kind": "bookmark.inFolder",
+                "folder": "书签栏 / 测试收藏夹",
+                "url": "$currentPage"
+              }
+            ]
+          }
+        }
+      ],
+      "turns": [
+        {
+          "thread_id": "01a160a1-bae0-7800-8867-6c5d3f4f8371",
+          "turn_id": "01a160a1-bb02-7361-843d-77a8cdc7e16d",
+          "status": "completed",
+          "started_at": 1792622574,
+          "completed_at": 1792622689,
+          "duration_ms": 114981,
+          "sequence": 1,
+          "startedAtUTC": "2026-10-21T22:42:54.000+00:00",
+          "completedAtUTC": "2026-10-21T22:44:49.000+00:00",
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          },
+          "agentMessages": [
+            {
+              "item_id": "msg_0ae2c91f49961b6f016ad94060a11081988f8fd663f8f57001",
+              "created_at_ms": 1792622688622,
+              "started_at_ms": 1792622688622,
+              "completed_at_ms": 1792622689192,
+              "phase": "final_answer",
+              "text": "{\"actions\":[{\"type\":\"folder.ensure\",\"title\":\"测试收藏夹\",\"parent\":\"$currentFolder\"},{\"type\":\"bookmark.create\",\"title\":\"$pageTitle\",\"url\":\"$currentPage\",\"parent\":\"$lastFolder\"}]}",
+              "plan": {
+                "actions": [
+                  {
+                    "type": "folder.ensure",
+                    "title": "测试收藏夹",
+                    "parent": "$currentFolder"
+                  },
+                  {
+                    "type": "bookmark.create",
+                    "title": "$pageTitle",
+                    "url": "$currentPage",
+                    "parent": "$lastFolder"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "thread_id": "01a160a1-bae0-7800-8867-6c5d3f4f8371",
+          "turn_id": "01a160a3-8531-7ff0-bdcb-a13e25276f0c",
+          "status": "completed",
+          "started_at": 1792622691,
+          "completed_at": 1792622694,
+          "duration_ms": 2948,
+          "sequence": 2,
+          "startedAtUTC": "2026-10-21T22:44:51.000+00:00",
+          "completedAtUTC": "2026-10-21T22:44:54.000+00:00",
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          },
+          "agentMessages": [
+            {
+              "item_id": "msg_0ae2c91f49961b6f016ad94065fbc08198a1d22f3614f15c39",
+              "created_at_ms": 1792622694005,
+              "started_at_ms": 1792622694005,
+              "completed_at_ms": 1792622694461,
+              "phase": "final_answer",
+              "text": "{\"complete\":[{\"kind\":\"bookmark.inFolder\",\"folder\":\"书签栏 / 测试收藏夹\",\"url\":\"$currentPage\"}]}",
+              "plan": {
+                "complete": [
+                  {
+                    "kind": "bookmark.inFolder",
+                    "folder": "书签栏 / 测试收藏夹",
+                    "url": "$currentPage"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "nativeSnapshotAtUTC": "2026-10-21T22:50:35.231540+00:00",
+      "modelDecisionCount": 2,
+      "plannedActionCount": 2,
+      "logModelMetadata": [
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "feedback_tags",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 16,
+          "firstAtSeconds": 1792622590,
+          "lastAtSeconds": 1792622693
+        },
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "codex_core::client",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 1,
+          "firstAtSeconds": 1792622686,
+          "lastAtSeconds": 1792622686
+        },
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "codex_core::session::turn",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 2,
+          "firstAtSeconds": 1792622689,
+          "lastAtSeconds": 1792622694
+        }
+      ],
+      "modelsObservedInLogs": [
+        "gpt-6.1-sol"
+      ],
+      "nativeLifecycleLogMetadata": [],
+      "requestMatches": [
+        {
+          "item_id": "01a160a1-f9b6-7fc3-b730-2a8e3b4d537e",
+          "created_at_ms": 1792622590392,
+          "request_marker_matches": 1,
+          "turnId": "01a160a1-bb02-7361-843d-77a8cdc7e16d"
+        },
+        {
+          "item_id": "01a160a3-8538-7863-b1b3-9e930ee1326e",
+          "created_at_ms": 1792622691641,
+          "request_marker_matches": 1,
+          "turnId": "01a160a3-8531-7ff0-bdcb-a13e25276f0c"
+        }
+      ],
+      "evidenceKind": "REAL_NATIVE_MODEL_TURNS_AND_INSTALLED_CHROME_READBACK",
+      "verifiedExecutionActionCount": 2,
+      "verifiedActionOutcomes": [
+        {
+          "action": "folder.ensure",
+          "outcome": "reused",
+          "folderId": "6",
+          "chromeWrites": 0
+        },
+        {
+          "action": "bookmark.create",
+          "outcome": "created",
+          "bookmarkId": "21",
+          "parentId": "6",
+          "chromeWrites": 1
+        }
+      ],
+      "chromeWriteCount": 1,
+      "chromeWrites": [
+        {
+          "id": "21",
+          "node": {
+            "dateAdded": 1792622691317,
+            "id": "21",
+            "index": 2,
+            "parentId": "6",
+            "syncing": false,
+            "title": "OpenDesk Browser · Browser Test Lab",
+            "url": "http://127.0.0.1:43111/demo-form.html?bookmark-case=r211-final-merged"
+          },
+          "at": 1792622691318
+        }
+      ],
+      "candidateBinding": {
+        "ownerReportedPanelTargetPrefix": "6970EA54",
+        "ownerReportedToolShellHashPrefix": "7634e961",
+        "loadedSourceIndependentlyVerifiedByThisReader": false
+      },
+      "uiFinalVerificationRecorded": true,
+      "interpretation": "Exact original request: two real model decisions; folder.ensure reused existing folder 6, bookmark.create created bookmark 21 for the unique final-merged URL, then complete was verified by real Chrome tree. Two actions, one Chrome write. Candidate source/panel prefixes are owner-provided, not independently browser-verified here."
+    },
+    {
+      "case": "T9-bookmarks-revoke-native",
+      "artifact": "artifacts/bookmark-agent-r211-local/t9-real-bookmarks-evidence.json",
+      "artifactSha256": "baa4535d4c56b324e261fc41240abbc9f5bd67d4c149a2cea145497649f3436f",
+      "request": "把当前页面放入书签撤权验证1792622026294收藏夹，如果没有，就创建目录",
+      "sendAtMs": 1792622026298,
+      "sendAtUTC": "2026-10-21T22:33:46.298+00:00",
+      "trustedSendRecorded": true,
+      "observationEndAtMs": 1792622088501,
+      "observationEndUTC": "2026-10-21T22:34:48.501+00:00",
+      "fixture": false,
+      "modelTurnCount": 1,
+      "planSequence": [],
+      "turns": [
+        {
+          "thread_id": "01a16093-5867-7541-95cb-e8c56b97a660",
+          "turn_id": "01a16099-6338-71f0-9409-bab1ced450f5",
+          "status": "interrupted",
+          "started_at": 1792622027,
+          "completed_at": 1792622030,
+          "duration_ms": 3262,
+          "sequence": 1,
+          "startedAtUTC": "2026-10-21T22:33:47.000+00:00",
+          "completedAtUTC": "2026-10-21T22:33:50.000+00:00",
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          },
+          "agentMessages": []
+        }
+      ],
+      "nativeSnapshotAtUTC": "2026-10-21T22:50:35.231540+00:00",
+      "modelDecisionCount": 0,
+      "plannedActionCount": 0,
+      "logModelMetadata": [
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "feedback_tags",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 2,
+          "firstAtSeconds": 1792622027,
+          "lastAtSeconds": 1792622029
+        }
+      ],
+      "modelsObservedInLogs": [
+        "gpt-6.1-sol"
+      ],
+      "nativeLifecycleLogMetadata": [
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "threadId": "01a16093-5867-7541-95cb-e8c56b97a660",
+          "atMs": 1792622030839.144,
+          "atUTC": "2026-10-21T22:33:50.839+00:00",
+          "target": "codex_core::session::handlers",
+          "level": "DEBUG",
+          "interruptionKeywordPresent": true
+        },
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "threadId": "01a16093-5867-7541-95cb-e8c56b97a660",
+          "atMs": 1792622030839.162,
+          "atUTC": "2026-10-21T22:33:50.839+00:00",
+          "target": "codex_core::session",
+          "level": "INFO",
+          "interruptionKeywordPresent": true
+        },
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "threadId": "01a16093-5867-7541-95cb-e8c56b97a660",
+          "atMs": 1792622030839.171,
+          "atUTC": "2026-10-21T22:33:50.839+00:00",
+          "target": "codex_core::tasks",
+          "level": "TRACE",
+          "interruptionKeywordPresent": true
+        }
+      ],
+      "requestMatches": [
+        {
+          "item_id": "01a16099-6343-73b0-a5a9-1d846f24dd72",
+          "created_at_ms": 1792622027588,
+          "request_marker_matches": 1,
+          "turnId": "01a16099-6338-71f0-9409-bab1ced450f5"
+        }
+      ],
+      "evidenceKind": "REAL_BOOKMARKS_PERMISSION_REMOVAL_MATCHED_NATIVE_INTERRUPTED_TURN",
+      "chromeWriteCount": 0,
+      "chromeWrites": [],
+      "bookmarksPermissionPresent": false,
+      "permissionReadbackAtMs": 1792622088501,
+      "documentClearedRecorded": true,
+      "driverClassificationAsRecorded": "PARTIAL_REAL_EVIDENCE: tool and data cleared, bookmarks permission absent, observed writes empty; model interrupt not independently proven",
+      "driverBoundary": "Post-revocation SDK readback driver failed; independent permission snapshot and captured Chrome write events are available. This file itself originally did not prove Native interruption; the matched SQLite request now adds that evidence.",
+      "revokeTiming": {
+        "ownerReportedDelayAfterSendMs": 4500,
+        "approximateRevokeAtMs": 1792622030798,
+        "exactPermissionRemoveEventTimestampRecorded": false
+      },
+      "interpretation": "Unique request marker matches a real Native turn recorded interrupted, with interruption-related session/task log metadata near the reported removal time. Independent Chrome permission snapshot excludes bookmarks and observed writes are empty. Removal timing is owner-reported/approximate; no claim of provider-side remote computation termination."
+    },
+    {
+      "case": "T9-inflight-stop-native",
+      "artifact": "artifacts/bookmark-agent-r211-local/t9-real-inflight-stop.json",
+      "artifactSha256": "40bde666723adece2e5e644a84a5e869432237920a7864eb51022d72e8158d61",
+      "request": "把当前页面放入停止验证1792622782780收藏夹，如果没有，就创建目录",
+      "sendAtMs": 1792622782784,
+      "sendAtUTC": "2026-10-21T22:46:22.784+00:00",
+      "trustedSendRecorded": true,
+      "observationEndAtMs": 1792622799314,
+      "observationEndUTC": "2026-10-21T22:46:39.314+00:00",
+      "fixture": false,
+      "modelTurnCount": 1,
+      "planSequence": [],
+      "turns": [
+        {
+          "thread_id": "01a160a1-bae0-7800-8867-6c5d3f4f8371",
+          "turn_id": "01a160a4-ef61-7840-a54b-72146ab62525",
+          "status": "interrupted",
+          "started_at": 1792622784,
+          "completed_at": 1792622787,
+          "duration_ms": 2953,
+          "sequence": 1,
+          "startedAtUTC": "2026-10-21T22:46:24.000+00:00",
+          "completedAtUTC": "2026-10-21T22:46:27.000+00:00",
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          },
+          "agentMessages": []
+        }
+      ],
+      "nativeSnapshotAtUTC": "2026-10-21T22:50:35.231540+00:00",
+      "modelDecisionCount": 0,
+      "plannedActionCount": 0,
+      "logModelMetadata": [
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "feedback_tags",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 2,
+          "firstAtSeconds": 1792622784,
+          "lastAtSeconds": 1792622785
+        }
+      ],
+      "modelsObservedInLogs": [
+        "gpt-6.1-sol"
+      ],
+      "nativeLifecycleLogMetadata": [
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "threadId": "01a160a1-bae0-7800-8867-6c5d3f4f8371",
+          "atMs": 1792622787302.028,
+          "atUTC": "2026-10-21T22:46:27.302+00:00",
+          "target": "codex_core::session::handlers",
+          "level": "DEBUG",
+          "interruptionKeywordPresent": true
+        },
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "threadId": "01a160a1-bae0-7800-8867-6c5d3f4f8371",
+          "atMs": 1792622787302.056,
+          "atUTC": "2026-10-21T22:46:27.302+00:00",
+          "target": "codex_core::session",
+          "level": "INFO",
+          "interruptionKeywordPresent": true
+        },
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "threadId": "01a160a1-bae0-7800-8867-6c5d3f4f8371",
+          "atMs": 1792622787302.076,
+          "atUTC": "2026-10-21T22:46:27.302+00:00",
+          "target": "codex_core::tasks",
+          "level": "TRACE",
+          "interruptionKeywordPresent": true
+        }
+      ],
+      "requestMatches": [
+        {
+          "item_id": "01a160a4-ef68-77e2-8da6-b553814ee25a",
+          "created_at_ms": 1792622784362,
+          "request_marker_matches": 1,
+          "turnId": "01a160a4-ef61-7840-a54b-72146ab62525"
+        }
+      ],
+      "evidenceKind": "REAL_TRUSTED_STOP_MATCHED_NATIVE_INTERRUPTED_TURN",
+      "trustedStop": {
+        "event": "stop",
+        "trusted": true,
+        "at": 1792622787298
+      },
+      "beforeStop": {
+        "phase": "正在判断下一步…",
+        "stopVisible": true,
+        "atMs": 1792622787290
+      },
+      "chromeWriteCount": 0,
+      "chromeWrites": [],
+      "postStopObservationMs": 12016,
+      "nativeInterruptionEvidence": "MATCHED_NATIVE_TURN_STATUS_INTERRUPTED_WITH_POST_STOP_SESSION_TASK_LOG_METADATA",
+      "interpretation": "Trusted Send and Stop, unique request marker matched to a real Native turn recorded interrupted. Session/task interruption-related log metadata follows trusted Stop within milliseconds. Zero captured Chrome writes through the 12-second readback. This proves local Native lifecycle interruption; it does not attest remote provider compute termination."
+    },
+    {
+      "case": "T9-inflight-native-permission-revoke",
+      "artifact": "artifacts/bookmark-agent-r211-local/t9-real-inflight-native-revoke.json",
+      "artifactSha256": "57e43c5a6b885f5d2ecb6d83fd73bb05bbe46ce85fe70d5c2392441219ef3b59",
+      "request": "把当前页面放入模型撤权验证1792622835467收藏夹，如果没有，就创建目录",
+      "sendAtMs": 1792622835471,
+      "sendAtUTC": "2026-10-21T22:47:15.471+00:00",
+      "trustedSendRecorded": true,
+      "observationEndAtMs": 1792622851987,
+      "observationEndUTC": "2026-10-21T22:47:31.987+00:00",
+      "fixture": false,
+      "modelTurnCount": 1,
+      "planSequence": [],
+      "turns": [
+        {
+          "thread_id": "01a160a1-bae0-7800-8867-6c5d3f4f8371",
+          "turn_id": "01a160a5-bec5-7412-be61-b075434e97e3",
+          "status": "inProgress",
+          "started_at": 1792622837,
+          "completed_at": null,
+          "duration_ms": null,
+          "sequence": 1,
+          "startedAtUTC": "2026-10-21T22:47:17.000+00:00",
+          "completedAtUTC": null,
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          },
+          "agentMessages": []
+        }
+      ],
+      "nativeSnapshotAtUTC": "2026-10-21T22:50:35.231540+00:00",
+      "modelDecisionCount": 0,
+      "plannedActionCount": 0,
+      "logModelMetadata": [],
+      "modelsObservedInLogs": [],
+      "nativeLifecycleLogMetadata": [],
+      "requestMatches": [
+        {
+          "item_id": "01a160a5-becb-71b0-b224-3c7e751a5407",
+          "created_at_ms": 1792622837452,
+          "request_marker_matches": 1,
+          "turnId": "01a160a5-bec5-7412-be61-b075434e97e3"
+        }
+      ],
+      "evidenceKind": "REAL_NATIVE_PERMISSION_REMOVAL_UI_GUARD_AND_ZERO_OBSERVED_WRITES",
+      "nativeMessagingPermissionPresent": false,
+      "permissionReadbackAtMs": 1792622851987,
+      "chromeWriteCount": 0,
+      "chromeWrites": [],
+      "beforeRevocation": {
+        "phase": "正在判断下一步…",
+        "stopVisible": true,
+        "atMs": 1792622839976
+      },
+      "revokeTiming": {
+        "ownerReportedDelayAfterSendMs": 4500,
+        "approximateRevokeAtMs": 1792622839971,
+        "exactPermissionRemoveEventTimestampRecorded": false
+      },
+      "uiProposalDiscardMessageRecorded": true,
+      "postRevokeObservationMsApprox": 12016,
+      "nativeInterruptionEvidence": "NOT_PROVEN",
+      "providerActualKillOrCancelEvidence": "NOT_PROVEN",
+      "interpretation": "Real nativeMessaging permission is absent; UI reports model permission revoked and late proposals discarded; captured Chrome writes remain empty for approximately 12 seconds after removal. At the Native SQLite snapshot this turn is still inProgress. This is evidence of UI proposal-application/write protection only, not Native interruption or provider-side kill/cancel. No later Chrome observation is inferred from the earlier readback. Independent late Chrome readback is now attached: nativeMessaging is still absent and captured writes remain empty approximately 181 seconds after removal. An unfinished SQLite row does not prove the Native process is alive; cancellation completion remains unproven.",
+      "lateNativeStatusCheck": {
+        "checkedAtUTC": "2026-10-21T22:50:35.231540+00:00",
+        "millisecondsAfterTrustedSend": 199761,
+        "millisecondsAfterApproximateRevocation": 195261,
+        "turnId": "01a160a5-bec5-7412-be61-b075434e97e3",
+        "status": "inProgress",
+        "completed_at": null,
+        "duration_ms": null,
+        "laterThan120Seconds": true,
+        "freshChromeReadbackPerformed": false,
+        "chromeWriteEvidenceEndsAtMs": 1792622851987,
+        "limitation": "Late read-only SQLite status remains inProgress; Chrome evidence ends at the artifact readback (~12 seconds after removal). No assertion about Chrome writes after that window or actual provider kill/cancel.",
+        "separateLateChromeReadbackArtifact": "artifacts/bookmark-agent-r211-local/t9-native-revoke-late-readback.json"
+      },
+      "lateChromeReadbacks": [
+        {
+          "artifact": "artifacts/bookmark-agent-r211-local/t9-native-revoke-late-readback.json",
+          "artifactSha256": "18cb5a3d592c0c3834d032546b2b445ee9812d4ddcc9582e3caee1997d079cec",
+          "readbackAtMs": 1792623021238,
+          "readbackAtUTC": "2026-10-21T22:50:21.238000+00:00",
+          "millisecondsAfterApproximateRevocation": 181267,
+          "nativeMessagingPermissionPresent": false,
+          "chromeWriteCount": 0,
+          "chromeWrites": [],
+          "interpretation": "Independent late Chrome permission/write readback; nativeMessaging remains absent and captured writes remain empty. This does not establish process liveness or provider cancellation."
+        }
+      ]
+    },
+    {
+      "case": "T3-explicit-action-grant-revoked",
+      "artifact": "artifacts/bookmark-agent-r211-local/t3-real-explicit-idempotent-action.json",
+      "artifactSha256": "6162274a3fd8bb16909650b5bbc8c61ec5a4e1430284a0cf0e6feede9ca60d95",
+      "request": "把当前页面放入测试收藏夹，如果没有，就创建目录。请通过实际执行幂等收藏动作确认已有 URL，再读回核实，不要直接结束。",
+      "sendAtMs": 1792623057470,
+      "sendAtUTC": "2026-10-21T22:50:57.470000+00:00",
+      "trustedSendRecorded": true,
+      "observationEndAtMs": 1792623057726,
+      "fixture": false,
+      "evidenceKind": "REAL_UI_EXPECTED_MODEL_GRANT_REVOCATION_GUARD",
+      "classification": "EXPECTED_AUTHORIZATION_PROTECTION_NOT_T3_REUSE_PASS",
+      "modelTurnCount": 0,
+      "modelDecisionCount": 0,
+      "plannedActionCount": 0,
+      "verifiedExecutionActionCount": 0,
+      "planSequence": [],
+      "turns": [],
+      "chromeWriteCount": 0,
+      "chromeWrites": [],
+      "sdkWriteDispatchCount": 0,
+      "sdkWriteDispatches": [],
+      "logModelMetadata": [],
+      "modelsObservedInLogs": [],
+      "ownerReportedErrorCode": "E_MODEL_GRANT_REVOKED",
+      "errorCodeDirectlyPresentInArtifact": false,
+      "uiRevokedMessageRecorded": true,
+      "nativeQueryWindow": {
+        "fromSeconds": 1792623055,
+        "throughSeconds": 1792623057,
+        "matchingTurnCount": 0
+      },
+      "interpretation": "Real Send after Native permission revocation was rejected by the model-grant guard without implicit reauthorization. UI revocation message, zero matching Native turns, empty SDK dispatches and zero captured Chrome writes. Expected authorization protection; no T3 bookmark.create reuse execution or completed model inference is demonstrated."
+    },
+    {
+      "case": "T3-explicit-action-after-reconnect",
+      "artifact": "artifacts/bookmark-agent-r211-local/t3-real-after-explicit-reconnect.json",
+      "artifactSha256": "9cef893af3580b6f06c857fb34bbc3b9342e4ce235c18378a883b0a8e98fefaa",
+      "request": "把当前页面放入测试收藏夹，如果没有，就创建目录。请通过实际执行幂等收藏动作确认已有 URL，再读回核实，不要直接结束。",
+      "sendAtMs": 1792623204562,
+      "sendAtUTC": "2026-10-21T22:53:24.562+00:00",
+      "trustedSendRecorded": true,
+      "observationEndAtMs": 1792623334657,
+      "observationEndUTC": "2026-10-21T22:55:34.657+00:00",
+      "fixture": false,
+      "evidenceKind": "REAL_NATIVE_EXPLICIT_IDEMPOTENT_ACTION_REUSE_AND_CHROME_READBACK",
+      "turns": [
+        {
+          "thread_id": "01a160ab-76c5-7931-ba90-7d2a9d92c92c",
+          "turn_id": "01a160ab-76e6-7343-9725-aac4dafa0949",
+          "status": "completed",
+          "started_at": 1792623212,
+          "completed_at": 1792623328,
+          "duration_ms": 116602,
+          "sequence": 1,
+          "startedAtUTC": "2026-10-21T22:53:32.000+00:00",
+          "completedAtUTC": "2026-10-21T22:55:28.000+00:00",
+          "agentMessages": [
+            {
+              "item_id": "msg_01da95e82bd756ae016ad942df21808198b7fda074fb544082",
+              "created_at_ms": 1792623327055,
+              "started_at_ms": 1792623327055,
+              "completed_at_ms": 1792623328673,
+              "phase": "final_answer",
+              "text": "{\"actions\":[{\"type\":\"folder.ensure\",\"title\":\"测试收藏夹\",\"parent\":\"$currentFolder\"},{\"type\":\"bookmark.create\",\"title\":\"$pageTitle\",\"url\":\"$currentPage\",\"parent\":\"$lastFolder\"}]}",
+              "plan": {
+                "actions": [
+                  {
+                    "type": "folder.ensure",
+                    "title": "测试收藏夹",
+                    "parent": "$currentFolder"
+                  },
+                  {
+                    "type": "bookmark.create",
+                    "title": "$pageTitle",
+                    "url": "$currentPage",
+                    "parent": "$lastFolder"
+                  }
+                ]
+              }
+            }
+          ],
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          }
+        },
+        {
+          "thread_id": "01a160ab-76c5-7931-ba90-7d2a9d92c92c",
+          "turn_id": "01a160ad-4435-71c2-b767-71ef9d23aed6",
+          "status": "completed",
+          "started_at": 1792623330,
+          "completed_at": 1792623334,
+          "duration_ms": 3932,
+          "sequence": 2,
+          "startedAtUTC": "2026-10-21T22:55:30.000+00:00",
+          "completedAtUTC": "2026-10-21T22:55:34.000+00:00",
+          "agentMessages": [
+            {
+              "item_id": "msg_01da95e82bd756ae016ad942e5aa9881988e64e96ebc7ac660",
+              "created_at_ms": 1792623333815,
+              "started_at_ms": 1792623333815,
+              "completed_at_ms": 1792623334275,
+              "phase": "final_answer",
+              "text": "{\"complete\":[{\"kind\":\"folder.exists\",\"folder\":\"书签栏 / 测试收藏夹\"},{\"kind\":\"bookmark.inFolder\",\"folder\":\"书签栏 / 测试收藏夹\",\"url\":\"$currentPage\"}]}",
+              "plan": {
+                "complete": [
+                  {
+                    "kind": "folder.exists",
+                    "folder": "书签栏 / 测试收藏夹"
+                  },
+                  {
+                    "kind": "bookmark.inFolder",
+                    "folder": "书签栏 / 测试收藏夹",
+                    "url": "$currentPage"
+                  }
+                ]
+              }
+            }
+          ],
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          }
+        }
+      ],
+      "planSequence": [
+        {
+          "turnSequence": 1,
+          "turnId": "01a160ab-76e6-7343-9725-aac4dafa0949",
+          "itemId": "msg_01da95e82bd756ae016ad942df21808198b7fda074fb544082",
+          "steps": [
+            "folder.ensure",
+            "bookmark.create"
+          ],
+          "plan": {
+            "actions": [
+              {
+                "type": "folder.ensure",
+                "title": "测试收藏夹",
+                "parent": "$currentFolder"
+              },
+              {
+                "type": "bookmark.create",
+                "title": "$pageTitle",
+                "url": "$currentPage",
+                "parent": "$lastFolder"
+              }
+            ]
+          }
+        },
+        {
+          "turnSequence": 2,
+          "turnId": "01a160ad-4435-71c2-b767-71ef9d23aed6",
+          "itemId": "msg_01da95e82bd756ae016ad942e5aa9881988e64e96ebc7ac660",
+          "steps": [
+            "complete"
+          ],
+          "plan": {
+            "complete": [
+              {
+                "kind": "folder.exists",
+                "folder": "书签栏 / 测试收藏夹"
+              },
+              {
+                "kind": "bookmark.inFolder",
+                "folder": "书签栏 / 测试收藏夹",
+                "url": "$currentPage"
+              }
+            ]
+          }
+        }
+      ],
+      "requestMatches": [
+        {
+          "item_id": "01a160ab-b54d-7631-9574-1c66043f0a40",
+          "created_at_ms": 1792623228238,
+          "exact_request_present": 1,
+          "turnId": "01a160ab-76e6-7343-9725-aac4dafa0949"
+        },
+        {
+          "item_id": "01a160ad-443c-7341-a860-a597bb275fdd",
+          "created_at_ms": 1792623330364,
+          "exact_request_present": 1,
+          "turnId": "01a160ad-4435-71c2-b767-71ef9d23aed6"
+        }
+      ],
+      "logModelMetadata": [
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "feedback_tags",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 16,
+          "firstAtSeconds": 1792623228,
+          "lastAtSeconds": 1792623332
+        },
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "codex_core::client",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 1,
+          "firstAtSeconds": 1792623324,
+          "lastAtSeconds": 1792623324
+        },
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "codex_core::session::turn",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 2,
+          "firstAtSeconds": 1792623328,
+          "lastAtSeconds": 1792623334
+        }
+      ],
+      "modelsObservedInLogs": [
+        "gpt-6.1-sol"
+      ],
+      "nativeSnapshotAtUTC": "2026-10-21T22:57:36.042996+00:00",
+      "modelTurnCount": 2,
+      "modelDecisionCount": 2,
+      "plannedActionCount": 2,
+      "verifiedExecutionActionCount": 2,
+      "verifiedActionOutcomes": [
+        {
+          "action": "folder.ensure",
+          "outcome": "reused",
+          "folderId": "6",
+          "chromeWrites": 0
+        },
+        {
+          "action": "bookmark.create",
+          "outcome": "existing URL reused without SDK create dispatch",
+          "chromeWrites": 0
+        }
+      ],
+      "chromeWriteCount": 0,
+      "chromeWrites": [],
+      "sdkWriteDispatchCount": 0,
+      "sdkWriteDispatches": [],
+      "sdkMethodCounts": {
+        "getTree": 50
+      },
+      "runtimeCompletionMetrics": [
+        {
+          "completed": true,
+          "modelCalls": 2,
+          "actionCount": 2,
+          "at": 1792623334621
+        }
+      ],
+      "uiResultForThisRequest": "\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n目标文件夹已收藏该网址，无需重复添加 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n对话输入",
+      "relevantReadbackNodes": [
+        {
+          "dateAdded": 1792620137066,
+          "dateGroupModified": 1792622691317,
+          "id": "6",
+          "index": 0,
+          "parentId": "1",
+          "syncing": false,
+          "title": "测试收藏夹"
+        },
+        {
+          "dateAdded": 1792620138462,
+          "id": "7",
+          "index": 0,
+          "parentId": "6",
+          "syncing": false,
+          "title": "OpenDesk Browser · Browser Test Lab",
+          "url": "http://127.0.0.1:43111/demo-form.html"
+        },
+        {
+          "dateAdded": 1792621749495,
+          "id": "20",
+          "index": 1,
+          "parentId": "6",
+          "syncing": false,
+          "title": "OpenDesk Browser · Browser Test Lab",
+          "url": "http://127.0.0.1:43111/demo-form.html?bookmark-case=r211-existing"
+        },
+        {
+          "dateAdded": 1792622691317,
+          "id": "21",
+          "index": 2,
+          "parentId": "6",
+          "syncing": false,
+          "title": "OpenDesk Browser · Browser Test Lab",
+          "url": "http://127.0.0.1:43111/demo-form.html?bookmark-case=r211-final-merged"
+        }
+      ],
+      "reconnectEvidence": {
+        "ownerReported": "Actual trusted click on workflow-local-connect explicitly reauthorized Native before this Send.",
+        "independentlyObserved": "Subsequent matching Native turns completed and returned public model plans; no browser interaction was performed by this reader."
+      },
+      "interpretation": "Two real model decisions: folder.ensure plus bookmark.create, then complete. Runtime reports two executed actions; UI records existing-folder reuse and existing-URL reuse. SDK calls are reads only and Chrome records zero writes. This case exercises the bookmark.create idempotent/reuse branch, unlike T3-idempotent (one complete-only model decision with zero actions). Distinct earlier grant-revoked attempt remains a separate expected-protection case."
+    },
+    {
+      "case": "T8-real-write-lost-host-ack",
+      "artifact": "artifacts/bookmark-agent-r211-local/t8-real-lost-ack.json",
+      "artifactSha256": "f9aafb5f7be5c8d4f09a1f7505fcb122e01e2b3d6dd69ee0baeb20e2492eff38",
+      "request": "把当前页面放入测试收藏夹，如果没有，就创建目录",
+      "url": "http://127.0.0.1:43111/demo-form.html?bookmark-case=r211-lost-ack",
+      "sendAtMs": 1792623701857,
+      "sendAtUTC": "2026-10-21T23:01:41.857+00:00",
+      "trustedSendRecorded": true,
+      "driverSentAtMs": 1792623701860,
+      "observationEndAtMs": 1792623729493,
+      "observationEndUTC": "2026-10-21T23:02:09.493+00:00",
+      "fixture": false,
+      "evidenceKind": "REAL_NATIVE_PLAN_REAL_CHROME_WRITE_DEBUGGER_PAUSE_AND_ACTUAL_WORKER_STOP",
+      "turns": [
+        {
+          "thread_id": "01a160ab-76c5-7931-ba90-7d2a9d92c92c",
+          "turn_id": "01a160b2-f5ad-7421-8893-9819434e36c2",
+          "status": "completed",
+          "started_at": 1792623703,
+          "completed_at": 1792623708,
+          "duration_ms": 4912,
+          "sequence": 1,
+          "startedAtUTC": "2026-10-21T23:01:43.000+00:00",
+          "completedAtUTC": "2026-10-21T23:01:48.000+00:00",
+          "agentMessages": [
+            {
+              "item_id": "msg_01da95e82bd756ae016ad9445b8fd08198a19b6c74d9f33031",
+              "created_at_ms": 1792623707531,
+              "started_at_ms": 1792623707531,
+              "completed_at_ms": 1792623708207,
+              "phase": "final_answer",
+              "text": "{\"complete\":[{\"kind\":\"folder.exists\",\"folder\":\"书签栏 / 测试收藏夹\"},{\"kind\":\"bookmark.inFolder\",\"folder\":\"书签栏 / 测试收藏夹\",\"url\":\"$currentPage\"}]}",
+              "plan": {
+                "complete": [
+                  {
+                    "kind": "folder.exists",
+                    "folder": "书签栏 / 测试收藏夹"
+                  },
+                  {
+                    "kind": "bookmark.inFolder",
+                    "folder": "书签栏 / 测试收藏夹",
+                    "url": "$currentPage"
+                  }
+                ]
+              }
+            }
+          ],
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          }
+        },
+        {
+          "thread_id": "01a160ab-76c5-7931-ba90-7d2a9d92c92c",
+          "turn_id": "01a160b3-0ab7-7fc2-8977-5569ef995571",
+          "status": "completed",
+          "started_at": 1792623708,
+          "completed_at": 1792623712,
+          "duration_ms": 3210,
+          "sequence": 2,
+          "startedAtUTC": "2026-10-21T23:01:48.000+00:00",
+          "completedAtUTC": "2026-10-21T23:01:52.000+00:00",
+          "agentMessages": [
+            {
+              "item_id": "msg_01da95e82bd756ae016ad9445f54e48198ae809a57afeb3ad7",
+              "created_at_ms": 1792623711260,
+              "started_at_ms": 1792623711260,
+              "completed_at_ms": 1792623711949,
+              "phase": "final_answer",
+              "text": "{\"actions\":[{\"type\":\"folder.ensure\",\"title\":\"测试收藏夹\",\"parent\":\"$currentFolder\"},{\"type\":\"bookmark.create\",\"title\":\"$pageTitle\",\"url\":\"$currentPage\",\"parent\":\"$lastFolder\"}]}",
+              "plan": {
+                "actions": [
+                  {
+                    "type": "folder.ensure",
+                    "title": "测试收藏夹",
+                    "parent": "$currentFolder"
+                  },
+                  {
+                    "type": "bookmark.create",
+                    "title": "$pageTitle",
+                    "url": "$currentPage",
+                    "parent": "$lastFolder"
+                  }
+                ]
+              }
+            }
+          ],
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          }
+        }
+      ],
+      "planSequence": [
+        {
+          "turnSequence": 1,
+          "turnId": "01a160b2-f5ad-7421-8893-9819434e36c2",
+          "itemId": "msg_01da95e82bd756ae016ad9445b8fd08198a19b6c74d9f33031",
+          "steps": [
+            "complete"
+          ],
+          "plan": {
+            "complete": [
+              {
+                "kind": "folder.exists",
+                "folder": "书签栏 / 测试收藏夹"
+              },
+              {
+                "kind": "bookmark.inFolder",
+                "folder": "书签栏 / 测试收藏夹",
+                "url": "$currentPage"
+              }
+            ]
+          }
+        },
+        {
+          "turnSequence": 2,
+          "turnId": "01a160b3-0ab7-7fc2-8977-5569ef995571",
+          "itemId": "msg_01da95e82bd756ae016ad9445f54e48198ae809a57afeb3ad7",
+          "steps": [
+            "folder.ensure",
+            "bookmark.create"
+          ],
+          "plan": {
+            "actions": [
+              {
+                "type": "folder.ensure",
+                "title": "测试收藏夹",
+                "parent": "$currentFolder"
+              },
+              {
+                "type": "bookmark.create",
+                "title": "$pageTitle",
+                "url": "$currentPage",
+                "parent": "$lastFolder"
+              }
+            ]
+          }
+        }
+      ],
+      "requestMatches": [
+        {
+          "item_id": "01a160b2-f5b4-7830-922a-0f010427d6d2",
+          "created_at_ms": 1792623703477,
+          "exact_request_present": 1,
+          "turnId": "01a160b2-f5ad-7421-8893-9819434e36c2"
+        },
+        {
+          "item_id": "01a160b3-0abe-7700-ad09-52d957d18e50",
+          "created_at_ms": 1792623708862,
+          "exact_request_present": 1,
+          "turnId": "01a160b3-0ab7-7fc2-8977-5569ef995571"
+        }
+      ],
+      "logModelMetadata": [
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "feedback_tags",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 4,
+          "firstAtSeconds": 1792623703,
+          "lastAtSeconds": 1792623710
+        },
+        {
+          "sourceDatabase": "logs_2.sqlite",
+          "target": "codex_core::session::turn",
+          "modelIdentifier": "gpt-6.1-sol",
+          "matchingRows": 1,
+          "firstAtSeconds": 1792623708,
+          "lastAtSeconds": 1792623708
+        }
+      ],
+      "modelsObservedInLogs": [
+        "gpt-6.1-sol"
+      ],
+      "nativeSnapshotAtUTC": "2026-10-21T23:05:24.075858+00:00",
+      "modelTurnCount": 2,
+      "modelDecisionCount": 2,
+      "plannedActionCount": 2,
+      "actionPlanCount": 1,
+      "completeDecisionCountBeforeActionPlan": 1,
+      "completeDecisionsAfterActionPlan": 0,
+      "finalSuccessfulCompleteDecisionObserved": false,
+      "executorAcknowledgedActionCount": 1,
+      "unknownActionCount": 1,
+      "chromeWriteCount": 1,
+      "chromeWrites": [
+        {
+          "id": "22",
+          "node": {
+            "dateAdded": 1792623714481,
+            "id": "22",
+            "index": 3,
+            "parentId": "6",
+            "syncing": false,
+            "title": "OpenDesk Browser · Browser Test Lab",
+            "url": "http://127.0.0.1:43111/demo-form.html?bookmark-case=r211-lost-ack"
+          },
+          "at": 1792623714482
+        }
+      ],
+      "preTerminationChromeWrites": [
+        {
+          "id": "22",
+          "node": {
+            "dateAdded": 1792623714481,
+            "id": "22",
+            "index": 3,
+            "parentId": "6",
+            "syncing": false,
+            "title": "OpenDesk Browser · Browser Test Lab",
+            "url": "http://127.0.0.1:43111/demo-form.html?bookmark-case=r211-lost-ack"
+          },
+          "at": 1792623714482
+        }
+      ],
+      "actualChromeResult": {
+        "id": "22",
+        "parentId": "6",
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "url": "http://127.0.0.1:43111/demo-form.html?bookmark-case=r211-lost-ack"
+      },
+      "matchingURLReadbackNodes": [
+        {
+          "dateAdded": 1792623714481,
+          "id": "22",
+          "index": 3,
+          "parentId": "6",
+          "syncing": false,
+          "title": "OpenDesk Browser · Browser Test Lab",
+          "url": "http://127.0.0.1:43111/demo-form.html?bookmark-case=r211-lost-ack"
+        }
+      ],
+      "sdkWriteDispatchCount": 1,
+      "sdkWriteDispatches": [
+        {
+          "method": "create",
+          "at": 1792623714412
+        }
+      ],
+      "sdkMethodCounts": {
+        "getTree": 13,
+        "create": 1
+      },
+      "uiStatus": "UNKNOWN",
+      "uiResultForThisRequest": "\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已核实 1 步，其余未完成。 写入结果尚未得到完整确认，已停止后续操作；请刷新书签核对。\n\n上次写入结果不确定。请先刷新并核对原工具数据，再继续操作。\n\n对话输入",
+      "runtimeCompletionMetrics": [],
+      "bindingAsRecorded": {
+        "loadedHostSha256": "08ff9cce09b9feadb09dd6f3ceead214016747dd3918deb086cc5cccd8ae4e7f",
+        "workerTarget": "5E8D3243CB9D2CBAA28CA71806534163",
+        "versionId": "6",
+        "breakpoint": {
+          "breakpointId": "1:0:167214:chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/platform/context-menus.js",
+          "locations": [
+            {
+              "scriptId": "10",
+              "lineNumber": 0,
+              "columnNumber": 167214
+            }
+          ]
+        }
+      },
+      "faultInjection": {
+        "mechanism": "Actual Chrome Debugger pause after Chrome write and before Host acknowledgement, followed by ServiceWorker.stopWorker; no mocked SDK/model result.",
+        "pause": {
+          "at": 1792623714486,
+          "reason": "other",
+          "hitBreakpoints": [
+            "1:0:167214:chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/platform/context-menus.js"
+          ]
+        },
+        "preTerminationReadbackAtMs": 1792623714487,
+        "stopRequestedAtMs": 1792623714488,
+        "stopReturnedAtMs": 1792623714491,
+        "workerLifecycleEvents": [
+          {
+            "observedAtMs": 1792623701733,
+            "versionId": "6",
+            "runningStatus": "running"
+          },
+          {
+            "observedAtMs": 1792623714491,
+            "versionId": "6",
+            "runningStatus": "stopping"
+          },
+          {
+            "observedAtMs": 1792623714492,
+            "versionId": "6",
+            "runningStatus": "stopped"
+          },
+          {
+            "observedAtMs": 1792623714747,
+            "versionId": "6",
+            "runningStatus": "starting"
+          },
+          {
+            "observedAtMs": 1792623714747,
+            "versionId": "6",
+            "runningStatus": "starting"
+          },
+          {
+            "observedAtMs": 1792623714748,
+            "versionId": "6",
+            "runningStatus": "starting"
+          },
+          {
+            "observedAtMs": 1792623714883,
+            "versionId": "6",
+            "runningStatus": "running"
+          }
+        ]
+      },
+      "noReplayEvidence": {
+        "singleSDKCreateDispatch": true,
+        "singleCapturedChromeWrite": true,
+        "singleReadbackNodeForURL": true,
+        "observationEndAtMs": 1792623729493,
+        "millisecondsAfterWorkerStopReturned": 15002,
+        "scope": "Captured events and Chrome readback within this observation window only; not an unlimited no-replay guarantee."
+      },
+      "interpretation": "Native SQLite records two real decisions for this same timed request: an initial complete proposal, then exactly one action plan containing folder.ensure and bookmark.create. The initial complete proposal preceded the write and is not final successful completion. Chrome created bookmark 22 once; Debugger paused before Host acknowledgement, then the real worker was stopped and restarted. UI retained UNKNOWN with one acknowledged step and an unconfirmed write; one SDK create dispatch, one Chrome write and one readback node show no replay within the observed window. No model complete decision followed the action plan. The reason for the first complete proposal/replan was not separately investigated."
+    }
+  ],
+  "totals": {
+    "caseArtifacts": 15,
+    "modelTurns": 19,
+    "agentMessages": 16,
+    "uiCasesWithoutMatchingNativeRecords": 3
+  },
+  "updatedAtUTC": "2026-10-21T23:05:24.075858+00:00",
+  "excludedAttempts": [
+    {
+      "artifact": "artifacts/bookmark-agent-r211-local/t9-real-stop-after-long-inference.json",
+      "artifactSha256": "fa1783ac51f5e35dbc3570eea9409f228dd33073a656b0d3d1fd72c83fe0fb3c",
+      "classification": "DRIVER_TIMING_NOT_STOP",
+      "beforeAtMs": 1792621563161,
+      "afterAtMs": 1792621564108,
+      "beforeBusy": false,
+      "stopClicked": false,
+      "nativeInterruptionEvidence": "NOT_APPLICABLE_NO_STOP_ACTION",
+      "reason": "The task had already ended when the driver prepared its listener. The Stop button was absent and no Stop was clicked. This attempt cannot establish Native interruption.",
+      "ownerReportedActualRequest": "键盘与触屏草稿搜索滚动验证，重复16次；UX只读请求。",
+      "requestScopeLimitation": "The intended driver request was not selected. Do not count this wrong-target request as normal search completion or as a valid Stop case.",
+      "includedInCaseOrModelTurnTotals": false,
+      "additionalNativeQueriesPerformed": false
+    }
+  ],
+  "pendingEvidenceArtifacts": [
+    {
+      "artifact": "artifacts/bookmark-agent-r211-local/t9-real-bookmarks.json",
+      "status": "ORIGINAL_FILE_ABSENT_REPLACEMENT_EVIDENCE_ADDED",
+      "checkedAtUTC": "2026-10-21T22:38:54.810839+00:00",
+      "minimumWaitSeconds": 85,
+      "interpretation": "Original missing artifact is preserved as historical context; replacement evidence and matched Native interrupted turn are recorded in T9-bookmarks-revoke-native. Do not treat the old missing file as current absence of all revocation evidence.",
+      "priorInterpretation": "The requested artifact is still absent after bounded waits. Actual bookmarks-permission revocation, timing, Native interruption and post-revocation write protection are not scored or inferred from another case.",
+      "replacementArtifact": "artifacts/bookmark-agent-r211-local/t9-real-bookmarks-evidence.json"
+    }
+  ],
+  "readOnlyNativeInspection": {
+    "codexHome": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/bm-r211-codex-rnbdpxkz",
+    "databases": {
+      "thread_history_1.sqlite": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/bm-r211-codex-rnbdpxkz/thread_history_1.sqlite",
+      "state_5.sqlite": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/bm-r211-codex-rnbdpxkz/state_5.sqlite",
+      "logs_2.sqlite": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/bm-r211-codex-rnbdpxkz/logs_2.sqlite"
+    },
+    "connection": "sqlite3 -readonly <database>; PRAGMA query_only=ON;",
+    "activeTurnSQL": "SELECT thread_id,turn_id,status,started_at,completed_at,duration_ms FROM thread_turns WHERE status='inProgress' AND completed_at IS NULL ORDER BY started_at DESC;",
+    "uniqueRequestMatchSQL": "SELECT t.thread_id,t.turn_id,t.status,t.started_at,t.completed_at,t.duration_ms FROM thread_turns t WHERE EXISTS(SELECT 1 FROM thread_items i WHERE i.thread_id=t.thread_id AND i.turn_id=t.turn_id AND i.item_type='userMessage' AND instr(i.item_json,'<unique-request-marker>')>0) ORDER BY t.started_at DESC;",
+    "capturedTurnStatusSQL": "SELECT thread_id,turn_id,status,started_at,completed_at,duration_ms FROM thread_turns WHERE turn_id='<captured-turn-id>';",
+    "modelMetadataSQL": "SELECT id,model,model_provider,cli_version FROM threads WHERE id='<captured-thread-id>';",
+    "safeLogMetadataSQL": "SELECT ts,ts_nanos,level,target,thread_id FROM logs WHERE thread_id='<captured-thread-id>' AND ts BETWEEN <send-seconds> AND <readback-seconds> ORDER BY ts,ts_nanos;",
+    "limitation": "inProgress proves an unfinished local Native turn, not continuous remote model computation. Bind to the unique request before Stop/revocation, then check the same turn. Read only metadata/public plans; never auth, headers, reasoning or other homes."
+  },
+  "finalAudit": {
+    "finalizedAtUTC": "2026-10-21T23:05:24.075858+00:00",
+    "finalCaseArtifact": "artifacts/bookmark-agent-r211-local/t8-real-lost-ack.json",
+    "finalCaseConclusion": "REAL_CHROME_WRITE_LOST_HOST_ACK_UNKNOWN_NO_REPLAY_IN_OBSERVATION_WINDOW",
+    "nativeSQLiteConnectionsClosed": true,
+    "furtherNativeDatabaseReadsPlanned": false,
+    "codexHomeCanBeReleasedByOwner": true,
+    "codexHomeDeletedOrProcessesTerminatedByThisReader": false,
+    "fixture": false,
+    "evidenceBoundaries": [
+      "Real isolated installed Chrome plus matched local Native SQLite public plans and metadata; no SDK/model fixture.",
+      "Original Stop/close Native coverage gaps remain. Long-stop attempt remains DRIVER_TIMING_NOT_STOP.",
+      "New trusted Stop and bookmarks removal match interrupted local Native turns; no provider-side compute termination attestation.",
+      "nativeMessaging removal has absent permission, UI proposal-discard message and zero captured writes in both initial and ~181-second late Chrome readbacks. SQLite inProgress is not proof of process liveness or cancellation completion.",
+      "No overall production certification or new numeric score is inferred from these cases.",
+      "T8 lost-ack adds one real action plan but two Native model decisions (initial complete, then actions). No complete decision follows the write. UNKNOWN is retained; no replay is established only through the approximately 15-second post-stop observation."
+    ]
+  },
+  "priorFinalizations": [
+    {
+      "finalizedAtUTC": "2026-10-21T22:57:36.042996+00:00",
+      "finalCaseArtifact": "artifacts/bookmark-agent-r211-local/t3-real-after-explicit-reconnect.json",
+      "finalCaseConclusion": "EXPLICIT_BOOKMARK_CREATE_REUSE_EXECUTED_TWO_ACTIONS_ZERO_WRITES",
+      "nativeSQLiteConnectionsClosed": true,
+      "furtherNativeDatabaseReadsPlanned": false,
+      "codexHomeCanBeReleasedByOwner": true,
+      "codexHomeDeletedOrProcessesTerminatedByThisReader": false,
+      "fixture": false,
+      "evidenceBoundaries": [
+        "Real isolated installed Chrome plus matched local Native SQLite public plans and metadata; no SDK/model fixture.",
+        "Original Stop/close Native coverage gaps remain. Long-stop attempt remains DRIVER_TIMING_NOT_STOP.",
+        "New trusted Stop and bookmarks removal match interrupted local Native turns; no provider-side compute termination attestation.",
+        "nativeMessaging removal has absent permission, UI proposal-discard message and zero captured writes in both initial and ~181-second late Chrome readbacks. SQLite inProgress is not proof of process liveness or cancellation completion.",
+        "No overall production certification or new numeric score is inferred from these cases."
+      ]
+    }
+  ]
+}

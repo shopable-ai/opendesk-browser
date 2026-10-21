@@ -1,0 +1,41 @@
+{
+  "kind": "passive DevTools logpoints",
+  "targetId": "6970EA54FD0D1BBF1352E5A87A16307A",
+  "loadedSourceSha256": "7634e961cd8f2327c00b0cc09eeda7b083403b8f6a4c428e1cacb77f87c6ac20",
+  "sourceMatchesCandidate": true,
+  "observations": [
+    {
+      "label": "verified completion",
+      "breakpointId": "br:1:67:474547:chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool-shell.js",
+      "locations": [
+        {
+          "scriptId": "1731",
+          "lineNumber": 67,
+          "columnNumber": 474547
+        }
+      ]
+    },
+    {
+      "label": "fresh tree read",
+      "breakpointId": "br:1:67:435509:chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool-shell.js",
+      "locations": [
+        {
+          "scriptId": "1731",
+          "lineNumber": 67,
+          "columnNumber": 435509
+        }
+      ]
+    },
+    {
+      "label": "SDK write dispatch",
+      "breakpointId": "br:1:67:436845:chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool-shell.js",
+      "locations": [
+        {
+          "scriptId": "1731",
+          "lineNumber": 67,
+          "columnNumber": 436845
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,443 @@
+{
+  "request": "把当前页面放入测试收藏夹，如果没有，就创建目录。请通过实际执行幂等收藏动作确认已有 URL，再读回核实，不要直接结束。",
+  "mode": "real installed Chrome, real Provider, no mocks",
+  "ui": {
+    "body": "我的\n扩展\n工作流\n开发\n云控\n书签管理\n书签管理\n19 项\n搜索名称、URL 或文件夹\n书签栏\n8\n测试收藏夹\n3\nOpenDesk Browser · Browser Test Lab\nOpenDesk Browser · Browser Test Lab\nOpenDesk Browser · Browser Test Lab\n继续收藏夹\n1\n歧义收藏夹\n0\n歧义收藏夹\n0\n停止收藏夹\n1\n实例切换验证收藏夹\n1\n实例切换验证1792620704547收藏夹\n1\n实例切换验证1792620818783收藏夹\n1\n其他书签\n0\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入停止验证1792622782780收藏夹，如果没有，就创建目录\n\n已停止后续操作；此前已核实的写入不会撤销。\n\n把当前页面放入模型撤权验证1792622835467收藏夹，如果没有，就创建目录\n\n本轮模型权限已撤销；迟到提议已丢弃\n\n把当前页面放入测试收藏夹，如果没有，就创建目录。请通过实际执行幂等收藏动作确认已有 URL，再读回核实，不要直接结束。\n\n本轮模型权限已撤销；迟到提议已丢弃\n\n把当前页面放入测试收藏夹，如果没有，就创建目录。请通过实际执行幂等收藏动作确认已有 URL，再读回核实，不要直接结束。\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n目标文件夹已收藏该网址，无需重复添加 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n对话输入",
+    "trace": [
+      {
+        "event": "send",
+        "trusted": true,
+        "at": 1792623204562
+      },
+      {
+        "at": 1792623204564,
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入停止验证1792622782780收藏夹，如果没有，就创建目录\n\n已停止后续操作；此前已核实的写入不会撤销。\n\n把当前页面放入模型撤权验证1792622835467收藏夹，如果没有，就创建目录\n\n本轮模型权限已撤销；迟到提议已丢弃\n\n把当前页面放入测试收藏夹，如果没有，就创建目录。请通过实际执行幂等收藏动作确认已有 URL，再读回核实，不要直接结束。\n\n本轮模型权限已撤销；迟到提议已丢弃\n\n把当前页面放入测试收藏夹，如果没有，就创建目录。请通过实际执行幂等收藏动作确认已有 URL，再读回核实，不要直接结束。\n\n正在判断下一步…\n对话输入"
+      },
+      {
+        "at": 1792623329073,
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入停止验证1792622782780收藏夹，如果没有，就创建目录\n\n已停止后续操作；此前已核实的写入不会撤销。\n\n把当前页面放入模型撤权验证1792622835467收藏夹，如果没有，就创建目录\n\n本轮模型权限已撤销；迟到提议已丢弃\n\n把当前页面放入测试收藏夹，如果没有，就创建目录。请通过实际执行幂等收藏动作确认已有 URL，再读回核实，不要直接结束。\n\n本轮模型权限已撤销；迟到提议已丢弃\n\n把当前页面放入测试收藏夹，如果没有，就创建目录。请通过实际执行幂等收藏动作确认已有 URL，再读回核实，不要直接结束。\n\n正在更新书签并读回确认…\n对话输入"
+      },
+      {
+        "at": 1792623330033,
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入停止验证1792622782780收藏夹，如果没有，就创建目录\n\n已停止后续操作；此前已核实的写入不会撤销。\n\n把当前页面放入模型撤权验证1792622835467收藏夹，如果没有，就创建目录\n\n本轮模型权限已撤销；迟到提议已丢弃\n\n把当前页面放入测试收藏夹，如果没有，就创建目录。请通过实际执行幂等收藏动作确认已有 URL，再读回核实，不要直接结束。\n\n本轮模型权限已撤销；迟到提议已丢弃\n\n把当前页面放入测试收藏夹，如果没有，就创建目录。请通过实际执行幂等收藏动作确认已有 URL，再读回核实，不要直接结束。\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n正在更新书签并读回确认…\n对话输入"
+      },
+      {
+        "at": 1792623330353,
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入停止验证1792622782780收藏夹，如果没有，就创建目录\n\n已停止后续操作；此前已核实的写入不会撤销。\n\n把当前页面放入模型撤权验证1792622835467收藏夹，如果没有，就创建目录\n\n本轮模型权限已撤销；迟到提议已丢弃\n\n把当前页面放入测试收藏夹，如果没有，就创建目录。请通过实际执行幂等收藏动作确认已有 URL，再读回核实，不要直接结束。\n\n本轮模型权限已撤销；迟到提议已丢弃\n\n把当前页面放入测试收藏夹，如果没有，就创建目录。请通过实际执行幂等收藏动作确认已有 URL，再读回核实，不要直接结束。\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n目标文件夹已收藏该网址，无需重复添加 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n正在判断下一步…\n对话输入"
+      },
+      {
+        "at": 1792623334304,
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入停止验证1792622782780收藏夹，如果没有，就创建目录\n\n已停止后续操作；此前已核实的写入不会撤销。\n\n把当前页面放入模型撤权验证1792622835467收藏夹，如果没有，就创建目录\n\n本轮模型权限已撤销；迟到提议已丢弃\n\n把当前页面放入测试收藏夹，如果没有，就创建目录。请通过实际执行幂等收藏动作确认已有 URL，再读回核实，不要直接结束。\n\n本轮模型权限已撤销；迟到提议已丢弃\n\n把当前页面放入测试收藏夹，如果没有，就创建目录。请通过实际执行幂等收藏动作确认已有 URL，再读回核实，不要直接结束。\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n目标文件夹已收藏该网址，无需重复添加 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n正在核实最终结果…\n对话输入"
+      },
+      {
+        "at": 1792623334623,
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n把当前页面放入停止验证1792622782780收藏夹，如果没有，就创建目录\n\n已停止后续操作；此前已核实的写入不会撤销。\n\n把当前页面放入模型撤权验证1792622835467收藏夹，如果没有，就创建目录\n\n本轮模型权限已撤销；迟到提议已丢弃\n\n把当前页面放入测试收藏夹，如果没有，就创建目录。请通过实际执行幂等收藏动作确认已有 URL，再读回核实，不要直接结束。\n\n本轮模型权限已撤销；迟到提议已丢弃\n\n把当前页面放入测试收藏夹，如果没有，就创建目录。请通过实际执行幂等收藏动作确认已有 URL，再读回核实，不要直接结束。\n\n已复用文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n目标文件夹已收藏该网址，无需重复添加 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n对话输入"
+      }
+    ],
+    "sdk": [
+      {
+        "method": "getTree",
+        "at": 1792623208206
+      },
+      {
+        "method": "getTree",
+        "at": 1792623211035
+      },
+      {
+        "method": "getTree",
+        "at": 1792623213852
+      },
+      {
+        "method": "getTree",
+        "at": 1792623216672
+      },
+      {
+        "method": "getTree",
+        "at": 1792623219491
+      },
+      {
+        "method": "getTree",
+        "at": 1792623222311
+      },
+      {
+        "method": "getTree",
+        "at": 1792623225134
+      },
+      {
+        "method": "getTree",
+        "at": 1792623227963
+      },
+      {
+        "method": "getTree",
+        "at": 1792623230821
+      },
+      {
+        "method": "getTree",
+        "at": 1792623233898
+      },
+      {
+        "method": "getTree",
+        "at": 1792623236724
+      },
+      {
+        "method": "getTree",
+        "at": 1792623239561
+      },
+      {
+        "method": "getTree",
+        "at": 1792623242409
+      },
+      {
+        "method": "getTree",
+        "at": 1792623245233
+      },
+      {
+        "method": "getTree",
+        "at": 1792623248059
+      },
+      {
+        "method": "getTree",
+        "at": 1792623250881
+      },
+      {
+        "method": "getTree",
+        "at": 1792623253710
+      },
+      {
+        "method": "getTree",
+        "at": 1792623256578
+      },
+      {
+        "method": "getTree",
+        "at": 1792623259622
+      },
+      {
+        "method": "getTree",
+        "at": 1792623262440
+      },
+      {
+        "method": "getTree",
+        "at": 1792623265266
+      },
+      {
+        "method": "getTree",
+        "at": 1792623268090
+      },
+      {
+        "method": "getTree",
+        "at": 1792623270905
+      },
+      {
+        "method": "getTree",
+        "at": 1792623273735
+      },
+      {
+        "method": "getTree",
+        "at": 1792623276551
+      },
+      {
+        "method": "getTree",
+        "at": 1792623279379
+      },
+      {
+        "method": "getTree",
+        "at": 1792623282207
+      },
+      {
+        "method": "getTree",
+        "at": 1792623285236
+      },
+      {
+        "method": "getTree",
+        "at": 1792623288051
+      },
+      {
+        "method": "getTree",
+        "at": 1792623290885
+      },
+      {
+        "method": "getTree",
+        "at": 1792623293727
+      },
+      {
+        "method": "getTree",
+        "at": 1792623296553
+      },
+      {
+        "method": "getTree",
+        "at": 1792623299386
+      },
+      {
+        "method": "getTree",
+        "at": 1792623302196
+      },
+      {
+        "method": "getTree",
+        "at": 1792623305023
+      },
+      {
+        "method": "getTree",
+        "at": 1792623307839
+      },
+      {
+        "method": "getTree",
+        "at": 1792623310865
+      },
+      {
+        "method": "getTree",
+        "at": 1792623313690
+      },
+      {
+        "method": "getTree",
+        "at": 1792623316510
+      },
+      {
+        "method": "getTree",
+        "at": 1792623319339
+      },
+      {
+        "method": "getTree",
+        "at": 1792623322155
+      },
+      {
+        "method": "getTree",
+        "at": 1792623324962
+      },
+      {
+        "method": "getTree",
+        "at": 1792623327787
+      },
+      {
+        "method": "getTree",
+        "at": 1792623329230
+      },
+      {
+        "method": "getTree",
+        "at": 1792623329541
+      },
+      {
+        "method": "getTree",
+        "at": 1792623329857
+      },
+      {
+        "method": "getTree",
+        "at": 1792623330169
+      },
+      {
+        "method": "getTree",
+        "at": 1792623330603
+      },
+      {
+        "method": "getTree",
+        "at": 1792623333430
+      },
+      {
+        "method": "getTree",
+        "at": 1792623334444
+      }
+    ],
+    "metrics": [
+      {
+        "completed": true,
+        "modelCalls": 2,
+        "actionCount": 2,
+        "at": 1792623334621
+      }
+    ],
+    "at": 1792623334655
+  },
+  "chrome": {
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792620138462,
+                    "id": "7",
+                    "index": 0,
+                    "parentId": "6",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html"
+                  },
+                  {
+                    "dateAdded": 1792621749495,
+                    "id": "20",
+                    "index": 1,
+                    "parentId": "6",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html?bookmark-case=r211-existing"
+                  },
+                  {
+                    "dateAdded": 1792622691317,
+                    "id": "21",
+                    "index": 2,
+                    "parentId": "6",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html?bookmark-case=r211-final-merged"
+                  }
+                ],
+                "dateAdded": 1792620137066,
+                "dateGroupModified": 1792622691317,
+                "id": "6",
+                "index": 0,
+                "parentId": "1",
+                "syncing": false,
+                "title": "测试收藏夹"
+              },
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792620325289,
+                    "id": "9",
+                    "index": 0,
+                    "parentId": "8",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ],
+                "dateAdded": 1792620324103,
+                "dateGroupModified": 1792620325289,
+                "id": "8",
+                "index": 1,
+                "parentId": "1",
+                "syncing": false,
+                "title": "继续收藏夹"
+              },
+              {
+                "children": [],
+                "dateAdded": 1792620404741,
+                "dateGroupModified": 1792620404741,
+                "id": "10",
+                "index": 2,
+                "parentId": "1",
+                "syncing": false,
+                "title": "歧义收藏夹"
+              },
+              {
+                "children": [],
+                "dateAdded": 1792620404744,
+                "dateGroupModified": 1792620404744,
+                "id": "11",
+                "index": 3,
+                "parentId": "1",
+                "syncing": false,
+                "title": "歧义收藏夹"
+              },
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792620477468,
+                    "id": "13",
+                    "index": 0,
+                    "parentId": "12",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ],
+                "dateAdded": 1792620476287,
+                "dateGroupModified": 1792620477468,
+                "id": "12",
+                "index": 4,
+                "parentId": "1",
+                "syncing": false,
+                "title": "停止收藏夹"
+              },
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792620663234,
+                    "id": "15",
+                    "index": 0,
+                    "parentId": "14",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ],
+                "dateAdded": 1792620662152,
+                "dateGroupModified": 1792620663234,
+                "id": "14",
+                "index": 5,
+                "parentId": "1",
+                "syncing": false,
+                "title": "实例切换验证收藏夹"
+              },
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792620713171,
+                    "id": "17",
+                    "index": 0,
+                    "parentId": "16",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ],
+                "dateAdded": 1792620711804,
+                "dateGroupModified": 1792620713171,
+                "id": "16",
+                "index": 6,
+                "parentId": "1",
+                "syncing": false,
+                "title": "实例切换验证1792620704547收藏夹"
+              },
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792620826274,
+                    "id": "19",
+                    "index": 0,
+                    "parentId": "18",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ],
+                "dateAdded": 1792620824998,
+                "dateGroupModified": 1792620826274,
+                "id": "18",
+                "index": 7,
+                "parentId": "1",
+                "syncing": false,
+                "title": "实例切换验证1792620818783收藏夹"
+              }
+            ],
+            "dateAdded": 1792617954199,
+            "dateGroupModified": 1792620824999,
+            "folderType": "bookmarks-bar",
+            "id": "1",
+            "index": 0,
+            "parentId": "0",
+            "syncing": false,
+            "title": "书签栏"
+          },
+          {
+            "children": [],
+            "dateAdded": 1792617954199,
+            "folderType": "other",
+            "id": "2",
+            "index": 1,
+            "parentId": "0",
+            "syncing": false,
+            "title": "其他书签"
+          }
+        ],
+        "dateAdded": 1792617954199,
+        "id": "0",
+        "syncing": false,
+        "title": ""
+      }
+    ],
+    "writes": [],
+    "at": 1792623334657
+  }
+}

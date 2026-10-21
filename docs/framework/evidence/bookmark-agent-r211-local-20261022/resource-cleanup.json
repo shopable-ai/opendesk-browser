@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-21T23:10:45.417146+00:00",
+  "ownAcceptanceBrowser": "closed",
+  "ownPrivateTemporaryDirectoriesRemoved": [
+    "codexHome",
+    "profile"
+  ],
+  "isolatedCopiedAuthentication": "removed with own CODEX_HOME; original authentication/configuration untouched",
+  "productionNativeCleanup": {
+    "cleaned": true,
+    "otherNativeHostsUntouched": true
+  },
+  "otherBrowsersAndNativeHosts": "untouched",
+  "old155NativeCleanup": {
+    "status": "BLOCKED_OFFICIAL_CLI_MISSING_MANIFEST",
+    "instance": "bm-r211-155-01a16018",
+    "residueRoot": "/Users/shopme/.opendesk-browser/native-agent-instances/bm-r211-155-01a16018",
+    "reason": "Original launcher removed its dedicated Profile; official cleanup and same-binding setup both reject missing owned manifest. No Native configuration edited/deleted by hand.",
+    "temporaryEmptyProfileRestoration": "removed after unsuccessful official recovery"
+  },
+  "sharedTestServer": "left untouched"
+}

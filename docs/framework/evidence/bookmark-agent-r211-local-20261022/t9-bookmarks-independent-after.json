@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "origins": [
+      "<all_urls>",
+      "http://*/*",
+      "https://*/*"
+    ],
+    "permissions": [
+      "activeTab",
+      "alarms",
+      "cookies",
+      "downloads",
+      "nativeMessaging",
+      "notifications",
+      "proxy",
+      "storage",
+      "tabs",
+      "unlimitedStorage",
+      "webNavigation",
+      "scripting",
+      "declarativeNetRequestWithHostAccess",
+      "offscreen",
+      "sidePanel",
+      "userScripts"
+    ]
+  },
+  "writes": [],
+  "at": 1792622088501
+}

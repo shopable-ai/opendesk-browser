@@ -1,0 +1,10 @@
+{
+  "tabId": 375360095,
+  "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sidepanel.html?hostInstanceId=a279479c-2ff5-494b-99cd-7267e948125b&toolId=bookmark-manager",
+  "zoom": 2,
+  "settings": {
+    "defaultZoomFactor": 1,
+    "mode": "automatic",
+    "scope": "per-tab"
+  }
+}

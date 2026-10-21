@@ -1,0 +1,611 @@
+{
+  "schemaVersion": 1,
+  "goal": "Bookmark AI Agent Loop R2.1.1-LOCAL-REAL-ACCEPTANCE",
+  "generatedAt": "2026-10-21T23:12:29.639275+00:00",
+  "decision": "CORE_REAL_NATIVE_AND_TARGETED_LIFECYCLE_PASS__FULL_ACCEPTANCE_INCOMPLETE",
+  "git": {
+    "businessCommit": "05218b090d1f47817e308cc66bd41845ffb6986e",
+    "fixtureCommit": "07e61ae702f2c600a92cd94b1d4d74cf451ea47e",
+    "sourceHeadAtEvidenceAssembly": "df5617e68e08b37f9bd38b08280f4747b57a7d44",
+    "branch": "main",
+    "safePushConfirmedThrough": "07e61ae702f2c600a92cd94b1d4d74cf451ea47e",
+    "parallelChanges": "Preserved; generated WXT receipts from concurrent work remain unstaged.",
+    "headBeforeEvidenceCommit": "0216c79c218a62f4463b14a0a672439151c43676"
+  },
+  "runtime": {
+    "mode": "production static acceptance in dedicated headed Mac Chrome for Testing Profile",
+    "chrome": "155.0.8059.39",
+    "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+    "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+    "nativeCodex": "0.159.2, existing audited executable; isolated CODEX_HOME with copied ChatGPT auth; no global config mutation",
+    "model": "gpt-6.1-sol",
+    "realProvider": "Native Codex / OpenAI ChatGPT authentication",
+    "httpsProvider": "NOT_TESTED_UNCONFIGURED",
+    "responsesProvider": "NOT_TESTED_UNCONFIGURED",
+    "dailyChrome": "Not changed or accepted by this evidence"
+  },
+  "candidate": {
+    "productionPackageHash": "15e17f489da8798d8e3dfc603ba866cf88e544990c78fccd39d11a8c6891c19e",
+    "developmentPackageHash": "81edd7e58ba2606081d00784a4a52d6fcb386e873113c792c717fedcdcdf7aef",
+    "sourceDriftDuringBuild": [],
+    "loadedToolShellSha256": "7634e961cd8f2327c00b0cc09eeda7b083403b8f6a4c428e1cacb77f87c6ac20",
+    "relevantSourceInputs": [
+      {
+        "path": "src/platform/chrome/current-page-refs.js",
+        "bytes": 4697,
+        "sha256": "3a83a5f88ea6f836745518466278abc4e703e14f92a51dc5d6b7ed5e5711f397"
+      },
+      {
+        "path": "src/ui/conversation/bookmark-actions.js",
+        "bytes": 19995,
+        "sha256": "eff741f05a18ac0360d15fdf9609b2f968c9bc00951a61c2251b689c435c7212"
+      },
+      {
+        "path": "src/ui/conversation/bookmark-agent-loop.js",
+        "bytes": 11720,
+        "sha256": "35018a7fba90310a90809172f2d85052bc91d6a09728cbee63d29bbe8735c4f9"
+      },
+      {
+        "path": "src/ui/react/components/conversation.tsx",
+        "bytes": 15181,
+        "sha256": "8e21f761f0a9aae8de7c1036bcade40bd112f1484db0eecd93827029864a4873"
+      },
+      {
+        "path": "src/ui/workflow/workflow-view.js",
+        "bytes": 114620,
+        "sha256": "bea10d05bfa94275f4b670254e09233a8c523fb012d69fdadf89a7eef8488dc6"
+      }
+    ],
+    "toolPackageVersion": "0.3.10",
+    "toolPackageSha256": "4157bd984596d54c1a0c8a35ec38332d707d041b4ef038f018e8b452459073a4",
+    "toolPackageChanged": false,
+    "unrelatedInputsChangedAfterAcceptedBuild": [
+      "examples/sidebar-tools/stay-focus/dist/build-ready.json",
+      "examples/sidebar-tools/stay-focus/tool.config.json",
+      "scripts/bundle-provenance.mjs",
+      "src/scripting/user-scripts/preview.js",
+      "src/ui/script-editor.js"
+    ],
+    "boundary": "Recorded production hash is the actual accepted frozen candidate. Later parallel commits do not change the bookmark loop, actions, App, provider/workflow, dock, refs or full-bookmark Host sources; unrelated later inputs are listed and are not promoted to accepted runtime evidence."
+  },
+  "coreOperation": {
+    "request": "把当前页面放入测试收藏夹，如果没有，就创建目录",
+    "sends": 1,
+    "realModelDecisions": 2,
+    "plannedActions": 2,
+    "sdkWriteDispatches": 1,
+    "confirmedChromeCreates": 1,
+    "folder": "existing folder 6 reused",
+    "bookmark": "21; local demo URL r211-final-merged",
+    "verification": "fresh independent chrome.bookmarks.getTree after actual SDK dispatch and UI completion",
+    "artifact": "final-merged-real-original.json"
+  },
+  "cases": [
+    {
+      "id": "T1",
+      "status": "PASS_REAL_NATIVE",
+      "modelCalls": 2,
+      "actions": 2,
+      "confirmedWrites": 2,
+      "evidence": [
+        "t1-real-complete.json",
+        "t1-independent-chrome-readback.json"
+      ]
+    },
+    {
+      "id": "T2",
+      "status": "PASS_REAL_NATIVE",
+      "modelCalls": 2,
+      "actions": 2,
+      "confirmedWrites": 1,
+      "detail": "folder reused, exactly one new URL write",
+      "evidence": [
+        "t2-real-ensure-existing.json",
+        "final-merged-real-original.json"
+      ]
+    },
+    {
+      "id": "T3",
+      "status": "PASS_REAL_MODEL_ACTION_LEVEL_EXECUTOR_REUSE",
+      "modelCalls": 2,
+      "actions": 2,
+      "confirmedWrites": 0,
+      "detail": "Real model proposes ensure/create; executor confirms existing folder and URL, reports reuse and dispatches no SDK writes. Independent Chrome tree unchanged; zero created events. Older direct-complete attempt remains separate.",
+      "evidence": [
+        "t3-real-after-explicit-reconnect.json",
+        "t3-real-idempotent-actions.json"
+      ]
+    },
+    {
+      "id": "T4",
+      "status": "PASS_SAFE_CLARIFICATION",
+      "modelCalls": 1,
+      "sdkWrites": 0,
+      "detail": "actual duplicate-name folders; executor asks user before any SDK write",
+      "evidence": [
+        "t4-real-ambiguity.json",
+        "t4-independent-readback.json"
+      ]
+    },
+    {
+      "id": "T5",
+      "status": "PASS_REAL_NATIVE",
+      "modelCalls": 3,
+      "actions": 3,
+      "confirmedWrites": 2,
+      "detail": "real search NOT_FOUND became next decision input",
+      "evidence": [
+        "t5-t6-real-continue.json",
+        "t5-t6-independent-readback.json"
+      ]
+    },
+    {
+      "id": "T6",
+      "status": "PASS_REAL_NATIVE",
+      "modelCalls": 3,
+      "sends": 1,
+      "detail": "same original trusted request across search, ensure/create, independent verification",
+      "evidence": [
+        "t5-t6-real-continue.json"
+      ]
+    },
+    {
+      "id": "T7",
+      "status": "NOT_TESTED_REAL_TRANSIENT_FAILURE",
+      "detail": "fixture recovery tests pass; no real transient read/network failure recovery injected"
+    },
+    {
+      "id": "T8",
+      "status": "PASS_SPECIFIC_REAL_WRITE_LOST_HOST_ACK_CUT",
+      "request": "把当前页面放入测试收藏夹，如果没有，就创建目录",
+      "modelCalls": 2,
+      "planSequence": [
+        "complete rejected by independent readback",
+        "folder.ensure + bookmark.create"
+      ],
+      "sdkWrites": 1,
+      "confirmedWrites": 1,
+      "detail": "Actual Chrome node22 read independently before terminating bound worker at post-create/pre-ACK Debugger boundary. Worker stopped/restarted, UI UNKNOWN and no success; one surviving-page Chrome event and one SDK create, no replay through 15s. Trusted refresh and later document close/reopen retain the same single node, no new Send or write. This one fault covers the selected T8 and T10 cut, not the complete lifecycle matrix.",
+      "evidence": [
+        "t8-real-lost-ack.json",
+        "t8-real-refreshed-readback.json",
+        "t8-real-reopen-readback.json",
+        "real-native-turns-final.json"
+      ]
+    },
+    {
+      "id": "T9",
+      "status": "PARTIAL_REAL_LIFECYCLE",
+      "detail": "Real in-flight Stop and bookmarks permission removal correlate with interrupted Native turns and zero later Chrome writes. Actual nativeMessaging removal produced zero writes through ~185s; its durable turn remains inProgress and does not establish process liveness or completed cancellation. Provider switch and actual busy tool instance switch remain incomplete.",
+      "evidence": [
+        "t9-real-inflight-stop.json",
+        "t9-real-bookmarks-evidence.json",
+        "t9-real-inflight-native-revoke.json",
+        "t9-native-revoke-late-readback.json",
+        "real-native-turns-final.json"
+      ]
+    },
+    {
+      "id": "T10",
+      "status": "PASS_TARGETED_REAL_WORKER_RESTART_AND_REOPEN__FULL_MATRIX_NOT_TESTED",
+      "detail": "T8 includes in-flight real write followed by physical worker stop/restart, UNKNOWN, trusted readback refresh and actual Side Panel document close/reopen without replay. Production extension was also actually reloaded before final core validation. Other stop/update phases, actual timeout/repeat-plan cases and full restart matrix remain NOT_TESTED_REAL.",
+      "evidence": [
+        "t8-real-lost-ack.json",
+        "t8-real-refreshed-readback.json",
+        "t8-real-reopen-readback.json",
+        "final-merged-real-original.json"
+      ]
+    },
+    {
+      "id": "T11",
+      "status": "PARTIAL_NATIVE_REAL_HTTPS_RESPONSES_NOT_TESTED",
+      "detail": "Native Codex 0.159.2 real model. HTTPS/Responses fixtures only; no configured live endpoint."
+    },
+    {
+      "id": "T12",
+      "status": "PARTIAL_INSTALLED_TAB_UX",
+      "detail": "Actual installed tool tab 320/360/400/440/960 light/dark 10 checks; actual Chrome zoom 2; trusted emulated touch, keyboard Tab, independent wheel scrolling. Actual physical Side Panel only 360; full physical width/zoom matrix and physical touch hardware remain NOT_TESTED. Long scroll request included a draft and prompted clarification; never counted as successful search.",
+      "evidence": [
+        "t12-installed-tab-viewport.json",
+        "t12-chrome-zoom.json",
+        "t12-zoom-layout.json",
+        "t12-real-independent-scroll.json"
+      ]
+    }
+  ],
+  "verification": {
+    "node": "v24.16.0 (project >=22.12); CI Node22",
+    "mergedContract": {
+      "tests": 269,
+      "pass": 269,
+      "fail": 0,
+      "skipped": 0,
+      "log": "merged-contract-final.log"
+    },
+    "bookmarkLifecycle": {
+      "tests": 42,
+      "pass": 42,
+      "log": "sdk-lifecycle.log"
+    },
+    "providerFixtures": {
+      "tests": 92,
+      "pass": 91,
+      "skipped": 1,
+      "realProviderEvidence": false,
+      "log": "provider-fixtures.log"
+    },
+    "commands": [
+      {
+        "command": "node --test tests/environment/opendesk-conversation-r*.test.mjs tests/environment/browser-sdk-r112-full-bookmarks.test.mjs tests/environment/browser-sdk-r124-current-page.test.mjs tests/environment/workflow-ai-observation.test.mjs tests/environment/workflow-direct-execution.test.mjs tests/environment/workflow-execution-feedback.test.mjs",
+        "status": "PASS",
+        "log": "merged-contract-final.log"
+      },
+      {
+        "command": "npm run check",
+        "status": "PASS",
+        "log": "check-merged.log"
+      },
+      {
+        "command": "npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager",
+        "status": "PASS",
+        "log": "bookmark-package.log"
+      },
+      {
+        "command": "node scripts/build-sidebar-tool.mjs --check-project examples/sidebar-tools/bookmark-manager",
+        "status": "PROJECT_PACKAGE_MATCH",
+        "log": "package-source-check.log"
+      },
+      {
+        "command": "npm run build",
+        "status": "PASS",
+        "log": "production-merged-build.log"
+      },
+      {
+        "command": "node scripts/verify-package.mjs dist/production",
+        "status": "PASS",
+        "log": "production-merged-verify.log"
+      },
+      {
+        "command": "npm run build:dev",
+        "status": "PASS",
+        "log": "development-merged-build.log"
+      },
+      {
+        "command": "npm run verify",
+        "status": "PASS",
+        "log": "verify-merged.log"
+      },
+      {
+        "command": "CHROME_BIN=<existing CFT138.0.7204.183> node scripts/tests/bookmark-manager-r26-preview-chrome.mjs <own-artifact-output>",
+        "status": "MOCK_BROWSER_INTERACTION_PASS_NOT_INSTALLED",
+        "log": "source-preview-final.log"
+      }
+    ],
+    "ci": {
+      "run": 39687903895,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/39687903895",
+      "sha": "07e61ae702f2c600a92cd94b1d4d74cf451ea47e",
+      "agent-contract": "success",
+      "agent-build": "success",
+      "evidence": "ci-current-jobs.json"
+    },
+    "historicalFailures": "Old CI had conversation/build failures before these fixes; public logs unavailable (403), exact old stderr unclassified. Merged local Workflow fixture failed because missing-search guard won before unintended-fill guard; changed request to preview only, no production guard relaxed."
+  },
+  "architecture": {
+    "reused": [
+      "existing Provider structured generation",
+      "SDK",
+      "Host",
+      "Authority",
+      "single trusted React root",
+      "Conversation Dock",
+      "WXT and existing tool packager"
+    ],
+    "addedPlatform": false,
+    "changes": [
+      "goal completion independently checked against original request",
+      "bounded schema feedback before execution",
+      "deadline covers pending Provider calls and Stop cancellation",
+      "fixed eight-minute non-sliding Send-document reference, retained identity/revocation checks",
+      "distinct AI-context cancellation vs tool revocation, deduplicated recovery feedback"
+    ],
+    "limitations": [
+      "conservative Chinese goal parsing; unsupported compound intent can clarify rather than claim success",
+      "prompt examples, schema and completion rules require synchronized maintenance"
+    ]
+  },
+  "remaining": [
+    "Configured live HTTPS and Responses Provider acceptance",
+    "Real transient read/network recovery (T7)",
+    "Remaining T10 in-flight interruption/update/timeout/repeat-plan matrix outside the one proven cut",
+    "Actual Provider switch and busy tool instance switch cancellation",
+    "Native permission revocation terminal cancellation or actual late-result discard proof; inProgress is only durable metadata",
+    "Complete T12 physical Side Panel width/zoom and accessibility acceptance beyond installed-tab matrix",
+    "All seven independent dimensions >=95 not achieved",
+    "Old isolated Native instance bm-r211-155-01a16018 cleanup blocked by official CLI missing original manifest; residual owner files preserved"
+  ],
+  "artifacts": [
+    {
+      "file": "bookmark-package.log",
+      "bytes": 467,
+      "sha256": "e33f095f12e661e8899e81dd4c326a674e4dddcc28320d368807ffdd7a62cbad",
+      "format": "captured real stdout/stderr; ANSI control sequences removed and trailing whitespace trimmed; original ignored local log retained"
+    },
+    {
+      "file": "check-merged.log",
+      "bytes": 209,
+      "sha256": "fd4c27490c93f2c0b07bf1a390a30dd144449eab39d33129beffdf3ef18ceb74",
+      "format": "captured real stdout/stderr; ANSI control sequences removed and trailing whitespace trimmed; original ignored local log retained"
+    },
+    {
+      "file": "ci-current-jobs.json",
+      "bytes": 8824,
+      "sha256": "5ad770443a26b870a1964d06a091f11c09409a69d46600ffc74c814e27536b72"
+    },
+    {
+      "file": "development-merged-build.log",
+      "bytes": 27520,
+      "sha256": "ed94b7cb870493c157e4e5582ba5bb738bd3927c9e57b42da8ca563dfa76dcb3",
+      "format": "captured real stdout/stderr; ANSI control sequences removed and trailing whitespace trimmed; original ignored local log retained"
+    },
+    {
+      "file": "final-merged-real-original.json",
+      "bytes": 13716,
+      "sha256": "14c6c6d0a4585c4b2bf0e43c4cff33aefc93ef755456d55fce2fdbc614057fb7"
+    },
+    {
+      "file": "final-success.png",
+      "bytes": 161838,
+      "sha256": "89830a7b6bf47d4e4218d5f68573d4676e8fffc6690e313c7841c37e4da5c901"
+    },
+    {
+      "file": "independent-final-review.md",
+      "bytes": 25436,
+      "sha256": "cd388f75965015b9dd38279de9adb8f280d32c848e9a2744623e46e679ca6e8e"
+    },
+    {
+      "file": "merged-contract-final.log",
+      "bytes": 24832,
+      "sha256": "80e14215d9092dbed6836deeddcb19321e19edbd8d5522c3dbcdfbd3f968a610",
+      "format": "captured real stdout/stderr; ANSI control sequences removed and trailing whitespace trimmed; original ignored local log retained"
+    },
+    {
+      "file": "merged-contract.log",
+      "bytes": 26857,
+      "sha256": "eeeda16a87f791fbf34b4679f20d8f238e19db3bdc54753c114510737d9cb0df",
+      "format": "captured real stdout/stderr; ANSI control sequences removed and trailing whitespace trimmed; original ignored local log retained"
+    },
+    {
+      "file": "package-source-check.log",
+      "bytes": 374,
+      "sha256": "08f0c05aaa45f2eaaa3d38857e810a5b1eee80de61b3cacd2d56f1aef5d3af87",
+      "format": "captured real stdout/stderr; ANSI control sequences removed and trailing whitespace trimmed; original ignored local log retained"
+    },
+    {
+      "file": "production-merged-build.log",
+      "bytes": 22427,
+      "sha256": "b0431a7095d98ce26903061d43de641cd26c3aee97c5c175345e63926545686c",
+      "format": "captured real stdout/stderr; ANSI control sequences removed and trailing whitespace trimmed; original ignored local log retained"
+    },
+    {
+      "file": "production-merged-verify.log",
+      "bytes": 20892,
+      "sha256": "15530145a093079ba66da59940069cbc1206bf05ca9e62681a68d4ff3bf5f4db",
+      "format": "captured real stdout/stderr; ANSI control sequences removed and trailing whitespace trimmed; original ignored local log retained"
+    },
+    {
+      "file": "provider-fixtures.log",
+      "bytes": 17962,
+      "sha256": "eb25af9739564e7f648a1f2fe559fb3fee8eec325441858721aad84a503ca7d9",
+      "format": "captured real stdout/stderr; ANSI control sequences removed and trailing whitespace trimmed; original ignored local log retained"
+    },
+    {
+      "file": "real-logpoint-source.json",
+      "bytes": 1137,
+      "sha256": "751bf0ffdc5c4df5debfcfae4574e445c17c63c072290fe09d019e58e5e508e5"
+    },
+    {
+      "file": "real-native-turns-final.json",
+      "bytes": 93363,
+      "sha256": "7d7b87b88536035200828f558e3102928b54a36429e42d4484b7d7ee9d22cab5"
+    },
+    {
+      "file": "real-partial-controls.json",
+      "bytes": 27799,
+      "sha256": "073b9b026b0003efeed381ad17427e6ce409bc0e5d376e0c99d3c3b85976fefc"
+    },
+    {
+      "file": "real-partial-readback.json",
+      "bytes": 1249,
+      "sha256": "2a6278437fb631d6ddd404ff1a8ef2a65fa05e09aa2daae83e5c80f6dcd0c5bf"
+    },
+    {
+      "file": "real-repaired-first-send.json",
+      "bytes": 1784,
+      "sha256": "82783db1504966e5c78090a3e2c0c2778b62c5c4fb43d6cb39b367dc28cce0d4"
+    },
+    {
+      "file": "resource-cleanup.json",
+      "bytes": 961,
+      "sha256": "8be19dec4a91b1e5a63605bc176040664821afb09fe6104da6496bf7c28293f6"
+    },
+    {
+      "file": "sdk-lifecycle.log",
+      "bytes": 9865,
+      "sha256": "2225b0516613a47334d1bbcd009bd198ec98c69073578a11ebd4d0a7dcab2539",
+      "format": "captured real stdout/stderr; ANSI control sequences removed and trailing whitespace trimmed; original ignored local log retained"
+    },
+    {
+      "file": "source-preview-final.log",
+      "bytes": 56,
+      "sha256": "a5d2a0f4f39ff512e871d117d8f092a7ed52617ff3eb6c9d78ff2f6054d96521",
+      "format": "captured real stdout/stderr; ANSI control sequences removed and trailing whitespace trimmed; original ignored local log retained"
+    },
+    {
+      "file": "t1-independent-chrome-readback.json",
+      "bytes": 1880,
+      "sha256": "9c1a2c519053643920c2e51e4bebc3b97d09f8464d0560d3ae924078200b97c1"
+    },
+    {
+      "file": "t1-real-complete.json",
+      "bytes": 6471,
+      "sha256": "1c82489131993be754dbfed152f87ac900953e39e944b9aa0c5231b497da9a10"
+    },
+    {
+      "file": "t12-chrome-zoom.json",
+      "bytes": 290,
+      "sha256": "d222382662b32f6a23aa2f0d0695442c7c3cf30f250d21a49ecf491a8c8e4f26"
+    },
+    {
+      "file": "t12-installed-tab-viewport.json",
+      "bytes": 13295,
+      "sha256": "154b44f08ca435edc1547ab59c3998d79561a27b0fcbba4b68c245927aef6101"
+    },
+    {
+      "file": "t12-real-independent-scroll.json",
+      "bytes": 3330,
+      "sha256": "db7cec05e718cc4d22a136f1a1409a6d5436d6e91c2a3b6ac9a9f7ed5e747eb7"
+    },
+    {
+      "file": "t12-zoom-layout.json",
+      "bytes": 281,
+      "sha256": "9d8e43b7795675e675ceddb0d6687d439a1f0ed656a2db40b022ec91558a88de"
+    },
+    {
+      "file": "t2-real-ensure-existing.json",
+      "bytes": 14888,
+      "sha256": "dd7783af7f8376ac62a922f8013b71a20c746b3df9b0277dbd17113d112ca949"
+    },
+    {
+      "file": "t3-real-after-explicit-reconnect.json",
+      "bytes": 20346,
+      "sha256": "9cef893af3580b6f06c857fb34bbc3b9342e4ce235c18378a883b0a8e98fefaa"
+    },
+    {
+      "file": "t3-real-explicit-idempotent-action.json",
+      "bytes": 11018,
+      "sha256": "6162274a3fd8bb16909650b5bbc8c61ec5a4e1430284a0cf0e6feede9ca60d95"
+    },
+    {
+      "file": "t3-real-idempotent-actions.json",
+      "bytes": 11276,
+      "sha256": "7c9872f1302deda5070ab20632934d9c356fb3ea5498b41577f9e658f5e6d204"
+    },
+    {
+      "file": "t4-independent-readback.json",
+      "bytes": 2674,
+      "sha256": "a3b0cbfdb625d0af951041b5117f5b265cca92dc452a8fab8d1bc4afda8f5cda"
+    },
+    {
+      "file": "t4-real-ambiguity.json",
+      "bytes": 6170,
+      "sha256": "197126fe2c49cfc1f4331b3b9fc5978a19d820448e15ab51277e077314b06b82"
+    },
+    {
+      "file": "t5-t6-independent-readback.json",
+      "bytes": 2415,
+      "sha256": "05d7984de9bb15ffac0523c03ac6ba98b356522f57523f6fed3ff4c4450a9238"
+    },
+    {
+      "file": "t5-t6-real-continue.json",
+      "bytes": 9856,
+      "sha256": "b970d78775a449dbfcd98fed8544001b6956e7c89386d3c257f82c0b63105899"
+    },
+    {
+      "file": "t8-real-lost-ack.json",
+      "bytes": 43336,
+      "sha256": "f9aafb5f7be5c8d4f09a1f7505fcb122e01e2b3d6dd69ee0baeb20e2492eff38"
+    },
+    {
+      "file": "t8-real-refreshed-readback.json",
+      "bytes": 22821,
+      "sha256": "285e870e75e6feb70cf5024ff3e05d46fe7413117ec2af6ed48c79ecbc90a3f8"
+    },
+    {
+      "file": "t8-real-reopen-readback.json",
+      "bytes": 7176,
+      "sha256": "4a12fae8b781ab5804b62f9cbc124cee7ac00bff0835c9e8615ef6a242d8a57e"
+    },
+    {
+      "file": "t9-bookmarks-document-after.json",
+      "bytes": 2633,
+      "sha256": "7c17099d02374f25bcad1c4144191e41be8bfba47a18cb33abbbb114e2b33781"
+    },
+    {
+      "file": "t9-bookmarks-independent-after.json",
+      "bytes": 513,
+      "sha256": "13b4091899c1bb7fa575e9d5b5350aa0863aae6cbb15680c8b80a2b32aec32c4"
+    },
+    {
+      "file": "t9-native-revoke-late-readback.json",
+      "bytes": 6648,
+      "sha256": "18cb5a3d592c0c3834d032546b2b445ee9812d4ddcc9582e3caee1997d079cec"
+    },
+    {
+      "file": "t9-real-bookmarks-evidence.json",
+      "bytes": 3788,
+      "sha256": "baa4535d4c56b324e261fc41240abbc9f5bd67d4c149a2cea145497649f3436f"
+    },
+    {
+      "file": "t9-real-close.json",
+      "bytes": 12789,
+      "sha256": "179f6fa8710ffbf0a2bb5504e9cae91be74a263392680445e62d42f10b67e94c"
+    },
+    {
+      "file": "t9-real-inflight-native-revoke.json",
+      "bytes": 12266,
+      "sha256": "57e43c5a6b885f5d2ecb6d83fd73bb05bbe46ce85fe70d5c2392441219ef3b59"
+    },
+    {
+      "file": "t9-real-inflight-stop.json",
+      "bytes": 12027,
+      "sha256": "40bde666723adece2e5e644a84a5e869432237920a7864eb51022d72e8158d61"
+    },
+    {
+      "file": "t9-real-stop.json",
+      "bytes": 7438,
+      "sha256": "9286a39e12d3ea32bbfecc16878c7e05c784c0dae6b2ee0b9334bf692de6ad03"
+    },
+    {
+      "file": "t9-reopened-no-replay.json",
+      "bytes": 174,
+      "sha256": "d755197e9238efa62b0a5830f9f8c679669580b4a262daac920b42c88b830bcf"
+    },
+    {
+      "file": "verify-merged.log",
+      "bytes": 47143,
+      "sha256": "1322b53c1ddc0124613317d547ca18fa028ad5e4c3da97db95f700cae13b2350",
+      "format": "captured real stdout/stderr; ANSI control sequences removed and trailing whitespace trimmed; original ignored local log retained"
+    }
+  ],
+  "expertScores": {
+    "reviewer": "independent native code-review subagent Ohm",
+    "scope": "source and real evidence review; not a substituted live test",
+    "functionalCorrectness": 95,
+    "architecturalSimplicity": 90,
+    "agentContinuity": 93,
+    "errorRecovery": 94,
+    "permissionsAndDataSafety": 94,
+    "uxAccessibility": 89,
+    "realEvidence": 94,
+    "targetAtLeast95AllDimensions": false,
+    "report": "independent-final-review.md"
+  },
+  "excludedAttempts": [
+    "t9-real-instance: busy save guard blocked actual switch; not instance-change acceptance",
+    "t9-real-stop-after-long-inference: DRIVER_TIMING_NOT_STOP; busy=false before attempted Stop",
+    "t3-real-explicit-idempotent-action: expected revoked Native grant rejection, no actual model decision",
+    "long scroll request retained a keyboard draft and asked clarification; actual scroll evidence only",
+    "CFT138 initial wrong executable path: environment failure, corrected source preview only"
+  ],
+  "resourceCleanup": "resource-cleanup.json",
+  "nativeEvidence": {
+    "cases": 15,
+    "modelTurns": 19,
+    "completedTurns": 16,
+    "interruptedTurns": 2,
+    "durableInProgressTurns": 1,
+    "artifact": "real-native-turns-final.json",
+    "reasoningOrCredentialsExported": false
+  }
+}

@@ -1,0 +1,16 @@
+
+> opendesk-browser@0.1.0 build:sidebar-tool
+> node scripts/build-sidebar-tool.mjs examples/sidebar-tools/bookmark-manager
+
+{
+  "output": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/sidebar-tools/bookmark-manager/0.3.10/bookmark-manager.opendesk-tool.json",
+  "bytes": 88194,
+  "id": "bookmark-manager",
+  "version": "0.3.10",
+  "capabilities": [
+    "browser.bookmarks.full",
+    "currentPage.read"
+  ],
+  "validated": true,
+  "installed": false
+}

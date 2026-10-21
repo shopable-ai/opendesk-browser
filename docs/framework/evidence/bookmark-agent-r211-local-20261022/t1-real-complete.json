@@ -1,0 +1,280 @@
+{
+  "body": "我的\n扩展\n工作流\n开发\n云控\n书签管理\n书签管理\n5 项\n搜索名称、URL 或文件夹\n书签栏\n1\n测试收藏夹\n1\nOpenDesk Browser · Browser Test Lab\n其他书签\n0\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n对话输入",
+  "trace": [
+    {
+      "at": 1792619982128,
+      "text": "对话输入"
+    },
+    {
+      "event": "send",
+      "trusted": true,
+      "at": 1792620017416
+    },
+    {
+      "at": 1792620017418,
+      "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n正在判断下一步…\n对话输入"
+    },
+    {
+      "at": 1792620135590,
+      "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n正在更新书签并读回确认…\n对话输入"
+    },
+    {
+      "at": 1792620137538,
+      "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n正在更新书签并读回确认…\n对话输入"
+    },
+    {
+      "at": 1792620138795,
+      "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n正在判断下一步…\n对话输入"
+    },
+    {
+      "at": 1792620141991,
+      "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n正在核实最终结果…\n对话输入"
+    },
+    {
+      "at": 1792620142339,
+      "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n对话输入"
+    }
+  ],
+  "sdk": [
+    {
+      "method": "getTree",
+      "at": 1792619928220
+    },
+    {
+      "method": "getTree",
+      "at": 1792619954127
+    },
+    {
+      "method": "getTree",
+      "at": 1792619980019
+    },
+    {
+      "method": "getTree",
+      "at": 1792620005914
+    },
+    {
+      "method": "getTree",
+      "at": 1792620031884
+    },
+    {
+      "method": "getTree",
+      "at": 1792620034688
+    },
+    {
+      "method": "getTree",
+      "at": 1792620037504
+    },
+    {
+      "method": "getTree",
+      "at": 1792620040353
+    },
+    {
+      "method": "getTree",
+      "at": 1792620043188
+    },
+    {
+      "method": "getTree",
+      "at": 1792620046039
+    },
+    {
+      "method": "getTree",
+      "at": 1792620048859
+    },
+    {
+      "method": "getTree",
+      "at": 1792620051687
+    },
+    {
+      "method": "getTree",
+      "at": 1792620054570
+    },
+    {
+      "method": "getTree",
+      "at": 1792620057595
+    },
+    {
+      "method": "getTree",
+      "at": 1792620060423
+    },
+    {
+      "method": "getTree",
+      "at": 1792620063242
+    },
+    {
+      "method": "getTree",
+      "at": 1792620066072
+    },
+    {
+      "method": "getTree",
+      "at": 1792620068889
+    },
+    {
+      "method": "getTree",
+      "at": 1792620071704
+    },
+    {
+      "method": "getTree",
+      "at": 1792620074540
+    },
+    {
+      "method": "getTree",
+      "at": 1792620077352
+    },
+    {
+      "method": "getTree",
+      "at": 1792620080188
+    },
+    {
+      "method": "getTree",
+      "at": 1792620083220
+    },
+    {
+      "method": "getTree",
+      "at": 1792620086031
+    },
+    {
+      "method": "getTree",
+      "at": 1792620088855
+    },
+    {
+      "method": "getTree",
+      "at": 1792620091696
+    },
+    {
+      "method": "getTree",
+      "at": 1792620094530
+    },
+    {
+      "method": "getTree",
+      "at": 1792620097341
+    },
+    {
+      "method": "getTree",
+      "at": 1792620100175
+    },
+    {
+      "method": "getTree",
+      "at": 1792620102997
+    },
+    {
+      "method": "getTree",
+      "at": 1792620105822
+    },
+    {
+      "method": "getTree",
+      "at": 1792620108849
+    },
+    {
+      "method": "getTree",
+      "at": 1792620111684
+    },
+    {
+      "method": "getTree",
+      "at": 1792620114520
+    },
+    {
+      "method": "getTree",
+      "at": 1792620117355
+    },
+    {
+      "method": "getTree",
+      "at": 1792620120177
+    },
+    {
+      "method": "getTree",
+      "at": 1792620123004
+    },
+    {
+      "method": "getTree",
+      "at": 1792620125818
+    },
+    {
+      "method": "getTree",
+      "at": 1792620128660
+    },
+    {
+      "method": "getTree",
+      "at": 1792620131489
+    },
+    {
+      "method": "getTree",
+      "at": 1792620134536
+    },
+    {
+      "method": "getTree",
+      "at": 1792620135740
+    },
+    {
+      "method": "getTree",
+      "at": 1792620136048
+    },
+    {
+      "method": "getTree",
+      "at": 1792620136357
+    },
+    {
+      "method": "getTree",
+      "at": 1792620136820
+    },
+    {
+      "method": "create",
+      "at": 1792620137014
+    },
+    {
+      "method": "getTree",
+      "at": 1792620137219
+    },
+    {
+      "method": "getTree",
+      "at": 1792620137393
+    },
+    {
+      "method": "getTree",
+      "at": 1792620137770
+    },
+    {
+      "method": "getTree",
+      "at": 1792620138221
+    },
+    {
+      "method": "create",
+      "at": 1792620138398
+    },
+    {
+      "method": "getTree",
+      "at": 1792620138606
+    },
+    {
+      "method": "getTree",
+      "at": 1792620140406
+    },
+    {
+      "method": "getTree",
+      "at": 1792620142146
+    },
+    {
+      "method": "getTree",
+      "at": 1792620143226
+    },
+    {
+      "method": "getTree",
+      "at": 1792620143573
+    },
+    {
+      "method": "getTree",
+      "at": 1792620161870
+    },
+    {
+      "method": "getTree",
+      "at": 1792620187829
+    }
+  ],
+  "metrics": [
+    {
+      "completed": true,
+      "modelCalls": 2,
+      "actionCount": 2,
+      "at": 1792620142338
+    }
+  ]
+}
