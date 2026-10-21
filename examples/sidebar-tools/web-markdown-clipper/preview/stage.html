@@ -19,7 +19,7 @@ html[data-demo-theme=light] .clip-preview pre{background:#e9eff8}
 html[data-demo-theme=light] .clip-preview a{color:#3159b9}
 
 
-/* R1.9 preview-only UX layout. Official src/style.css and Host remain unchanged. */
+/* R1.10 preview-only incremental UX layout. Official src/style.css and Host remain unchanged. */
 .clip{padding:11px;border-radius:12px}
 .clip-head,.clip-page-title,.clip-modes{margin-bottom:7px}
 #clip-my-notes{display:none!important}
@@ -34,9 +34,13 @@ html[data-demo-theme=light] .clip-preview a{color:#3159b9}
 #clip-recent{padding-top:10px;border-top:1px solid var(--edge)}
 .clip-recent-head{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:32px}
 .clip-recent-head strong{font-size:13px}
-.clip-recent-actions{display:flex;align-items:center;gap:4px}
-#clip-view-all{white-space:nowrap;font-size:11px}
-#clip-recent-new{min-width:29px;width:29px;height:29px;padding:0;font-size:19px}
+.clip-recent-label{display:inline-flex;align-items:baseline;min-width:0;gap:6px}
+#clip-recent-count{font-size:12px;font-weight:400;color:var(--sub);font-variant-numeric:tabular-nums}
+.clip-recent-actions{display:flex;align-items:center;gap:4px;flex-shrink:0}
+#clip-view-all{min-width:32px;width:32px;height:32px;min-height:32px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:var(--sub)}
+#clip-view-all:hover{color:var(--brand);border-color:#a5b8df}
+#clip-view-all svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+#clip-recent-new{min-width:32px;width:32px;height:32px;padding:0;font-size:19px}
 #clip-recent-slot .clip-note-list{margin-top:7px}
 #clip-recent-slot .clip-note-card:nth-of-type(n+5){display:none}
 #clip-recent-retry{margin-top:6px;font-size:11px}
@@ -61,29 +65,60 @@ html[data-demo-theme=light] .clip-preview a{color:#3159b9}
 .clip-note-buttons button:hover{border-color:#a5b8df;background:var(--paper);color:var(--brand)}
 .clip-note-buttons .preview-remove:hover{border-color:#e5b4bd;background:#fff0f2;color:#a32f44}
 .clip-note-buttons button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.clip-note-buttons .preview-more{display:none}
 .preview-remove-confirm{position:absolute;z-index:5;right:6px;top:36px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;width:187px;max-width:calc(100% - 12px);padding:8px;border:1px solid var(--edge);border-radius:9px;background:var(--paper);box-shadow:0 6px 22px #14294a36}
 .preview-remove-confirm span{width:100%;font-size:11px;color:var(--sub)}
 .preview-remove-confirm button{flex:1;font-size:11px;min-height:29px}
 .preview-remove-confirm .confirm-danger{color:#ae3346;border-color:#e5b4bd}
 #clip-note-reader{position:relative}
-#clip-notes:has(#clip-note-editor:not([hidden])) #clip-note-list[hidden]{display:grid!important;opacity:.48;pointer-events:none}
-#clip-notes:has(#clip-note-editor:not([hidden])) #clip-notes-tools[hidden],#clip-notes:has(#clip-note-editor:not([hidden])) #clip-notes-meta[hidden]{display:flex!important;opacity:.48;pointer-events:none}
-.clip-note-card[hidden]{display:none!important}
-@media(hover:none),(pointer:coarse){
- .clip-note-buttons{opacity:1;pointer-events:auto}
- .clip-note-buttons .preview-more{display:flex}
- .clip-note-buttons .preview-edit,.clip-note-buttons .preview-remove{display:none}
- .clip-note-buttons[data-menu-open=true]{padding:2px;border:1px solid var(--edge);border-radius:8px;background:var(--paper);box-shadow:0 4px 12px #14294a25}
- .clip-note-buttons[data-menu-open=true] .preview-edit,.clip-note-buttons[data-menu-open=true] .preview-remove{display:flex}
- .clip-note-card .clip-note-open{padding-right:36px}
+/* Keep a quiet glimpse of the list during editing, without stealing the editor viewport. */
+#clip-notes:has(#clip-note-editor:not([hidden])) #clip-note-list[hidden]{
+ display:grid!important;flex:0 1 76px;min-height:0;max-height:76px;
+ opacity:.4;pointer-events:none;overflow:hidden
 }
+.clip-note-card[hidden]{display:none!important}
 @media(prefers-reduced-motion:reduce){.clip-note-buttons{transition:none}}
 @media(max-width:360px){.clip{padding:9px}#clip-source,.clip-preview:not(.clip-note-read-body){height:130px}}
 html[data-demo-theme=dark] .clip-note-card{background:var(--layer)}
 html[data-demo-theme=dark] .clip-note-buttons button{background:var(--paper)}
 html[data-demo-theme=dark] .clip-note-buttons .preview-remove:hover{background:#503039;color:#ffc0cc;border-color:#754650}
 html[data-demo-theme=dark] .preview-remove-confirm{background:var(--paper)}
+
+/* The preview iframe represents the Host's available height. The middle only scrolls. */
+.clip[data-preview-view=full]:has(#clip-note-reader:not([hidden])),
+.clip[data-preview-view=full]:has(#clip-note-editor:not([hidden])){
+ height:calc(100dvh / var(--preview-zoom,1));
+ display:flex;flex-direction:column;overflow:hidden;min-height:0
+}
+.clip[data-preview-view=full]:has(#clip-note-reader:not([hidden])) #clip-notes,
+.clip[data-preview-view=full]:has(#clip-note-editor:not([hidden])) #clip-notes{
+ display:flex!important;flex-direction:column;flex:1;min-height:0;overflow:hidden
+}
+#clip-notes .clip-notes-head,#clip-notes-status{flex-shrink:0}
+#clip-notes-status{max-height:4.8em;overflow:auto}
+#clip-note-reader:not([hidden]),#clip-note-editor:not([hidden]){
+ display:flex;flex:0 1 auto;flex-direction:column;min-height:0;max-height:100%;overflow:hidden
+}
+#clip-note-reader .clip-read-head,#clip-note-reader h2,
+#clip-note-read-meta,#clip-note-read-origin,.clip-read-actions,
+#clip-note-editor strong,#clip-note-origin,#clip-note-editor .clip-editor-actions{flex-shrink:0}
+#clip-note-read-origin{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#clip-note-read-body{
+ height:auto!important;min-height:0!important;max-height:none!important;
+ flex:0 1 auto;overflow:auto;overscroll-behavior:contain
+}
+#clip-note-editor #clip-note-body{
+ field-sizing:content;resize:none;min-height:72px;max-height:none;
+ flex:0 1 auto;overflow:auto;overscroll-behavior:contain
+}
+@media(max-height:560px){
+ #clip-notes:has(#clip-note-editor:not([hidden])) #clip-note-list[hidden]{display:none!important}
+}
+@media(max-height:480px){
+ #clip-note-reader h2{margin:5px 0 2px}
+ #clip-note-read-body{margin:6px 0}
+ #clip-note-editor .clip-hint{margin:4px 0}
+}
+html[data-demo-zoom="2"] #clip-notes:has(#clip-note-editor:not([hidden])) #clip-note-list[hidden]{display:none!important}
 
 </style>
 </head>
@@ -124,10 +159,11 @@ html[data-demo-theme=dark] .preview-remove-confirm{background:var(--paper)}
 <p id="clip-save-explain" class="clip-hint">保存留在浏览器；复制进入剪贴板；下载生成文件</p>
 <p id="clip-status" class="clip-status" role="status" aria-live="polite">选择文章提取，或先在网页中选中文字。</p>
 <section id="clip-recent" aria-labelledby="clip-recent-title">
- <div class="clip-recent-head"><strong id="clip-recent-title">最近摘录</strong>
+ <div class="clip-recent-head">
+  <div class="clip-recent-label"><strong id="clip-recent-title">最近摘录</strong><span id="clip-recent-count" aria-label="全部摘录数量">0</span></div>
   <div class="clip-recent-actions">
    <button type="button" id="clip-recent-new" class="clip-outline" aria-label="新建便签" title="新建便签">＋</button>
-   <button type="button" id="clip-view-all" class="clip-link">查看全部（<span id="clip-recent-count">0</span>） →</button>
+   <button type="button" id="clip-view-all" class="clip-outline" aria-label="查看全部摘录" title="查看全部摘录"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button>
   </div>
  </div>
  <div id="clip-recent-slot"></div>
@@ -196,7 +232,7 @@ const pageTitle=()=>source.includes('next-page')?'第二个网页（内容不同
 const send=(name,bytes=0)=>parent.postMessage({kind:'clipper-demo',name,bytes},'*');
 const enc=new TextEncoder(),size=v=>enc.encode(JSON.stringify(v)).byteLength;
 let local={clips:null},caseName='normal',writes=0;
-const key='opendesk.clipper.r18.simulated-session';
+const key='opendesk.clipper.r110.simulated-session';
 try{const saved=sessionStorage.getItem(key);if(saved)local=JSON.parse(saved);}catch{/* Isolated demo fallback only. */}
 const persist=()=>{try{sessionStorage.setItem(key,JSON.stringify(local));}catch{/* Preview-only. */}};
 
@@ -207,7 +243,9 @@ if(!local.clips){
   {id:'sample-01',kind:'clip',title:'为什么优秀的工具需要简单的交互',source:'https://example.com/articles/product-design',createdAt:now,updatedAt:now,body:'# 为什么优秀的工具需要简单的交互\n\n复杂的功能应该被隐藏在清晰的入口之后，而不是让每一个常用动作都增加额外步骤。\n\n## 关键原则\n\n- 保存后立即能看见记录\n- 删除与编辑不占用整行\n- 不同剪藏模式保留独立内容'},
   {id:'sample-02',kind:'clip',title:'Markdown 中的引用与代码示例',source:'https://example.org/markdown/guide',createdAt:older,updatedAt:older,body:'# Markdown 中的引用与代码示例\n\n> 重要的句子应该容易回看。\n\n保存完整内容后可以再次阅读、编辑或下载。'},
   {id:'sample-03',kind:'note',title:'本周阅读整理',source:'',createdAt:older,updatedAt:older,body:'本周阅读整理\n\n查看三篇长文，整理设计笔记，保留原始来源。'},
-  {id:'sample-04',kind:'clip',title:'网页剪藏的产品设计参考',source:'https://example.net/design/patterns',createdAt:older,updatedAt:older,body:'[网页剪藏的产品设计参考](https://example.net/design/patterns)\n\n简洁列表、同屏查看与可恢复的保存反馈。'}
+  {id:'sample-04',kind:'clip',title:'网页剪藏的产品设计参考',source:'https://example.net/design/patterns',createdAt:older,updatedAt:older,body:'[网页剪藏的产品设计参考](https://example.net/design/patterns)\n\n简洁列表、同屏查看与可恢复的保存反馈。'},
+  {id:'sample-05',kind:'clip',title:'长篇 Markdown · 28 节阅读测试',source:'https://example.com/docs/long-guide',createdAt:now,updatedAt:'2026-10-21T09:00:00.000Z',body:'# 长篇 Markdown · 阅读测试\n\n用于查看底部操作是否始终可见。\n\n'+Array.from({length:28},(_,i)=>'## 第 '+(i+1)+' 节\n\n这是第 '+(i+1)+' 节的完整正文，包含 **重点**、列表和可以继续向下滚动的段落。\n\n- 保存后可完整阅读\n- 编辑区自动增长但不推走按钮\n\n> 章节内容不会被截断。').join('\n\n')},
+  {id:'sample-06',kind:'note',title:'阅读待办',source:'',createdAt:older,updatedAt:older,body:'阅读待办\n\n验证最近四条与资料库总数的区别。'}
  ]};
  persist();
 }
@@ -314,7 +352,11 @@ globalThis.OpenDeskSDK={browser:{
 window.addEventListener('message',({data})=>{
  if(data?.kind!=='clipper-demo-control')return;
  if(data.theme==='dark'||data.theme==='light')document.documentElement.dataset.demoTheme=data.theme;
- if(data.zoom===1||data.zoom===2)document.body.style.zoom=String(data.zoom);
+ if(data.zoom===1||data.zoom===2){
+  document.body.style.zoom=String(data.zoom);
+  document.documentElement.style.setProperty('--preview-zoom',String(data.zoom));
+  document.documentElement.dataset.demoZoom=String(data.zoom);
+ }
  if(['normal','quota','failure','unknown'].includes(data.storageCase)){
   caseName=data.storageCase;
   send('模拟存储场景：'+caseName+'（非浏览器真实写入）');
