@@ -182,6 +182,8 @@
 
 下一步：**S0** 只读审计现有 knowledge-inbox、web-markdown-clipper、prompt-shortcuts 与 Workflow 的正式能力，决定能否低成本实现 A 的图片真实附件保存和读回；**S1** A 自主任务验证；**并行** B 的有预算企业买方发现；**条件触发** C 的合法数据样本与买方调查；**后置** 广告官方数据和审批；最后独立 GO/PIVOT/STOP/NOT_DECIDED。执行细节和实测日志只更新 [既有验证文档](distribution-and-validation.zh-CN.md)，不要复制第二套进度或 SDK/Host。
 
+**R1.0 原始资料归档（2026-10-21）**：本专项最初的 24 项机会假设、原 TOP10 汇总分与七维权重、10 个竞品、原始「SKU 图片交付 / 个人知识库 / 团队模板按钮包」三条产品路线，已按历史快照保存于 [AI 工作产物交付 R1 附录 A](ai-artifact-delivery-r1.zh-CN.md)。该历史评分不可独立复算；它与本框架后续 A/B/C 商业投资组合评分不同，不替代唯一 OPP/EXP 账本。
+
 ## R1.2-VALIDATION-FIRST · 2026-10-21 · S0 源码能力审计与有限投资裁决
 
 > GitHub 最新 main 源码审计基线：`a5addc29f8f8e528a582eeae327c42909679612e`（UTC 2026-10-21）；**SOURCE_AUDITED，不是 CHROME_NATIVE_VERIFIED**。R1.0 的 15 场景/30 个 OPP 子集继续有效，原 84 OPP、R5 24 领域与 8 EXP 均保持唯一主账本；无实际用户访谈、Keyword Planner 报价、付费订单。此处更新技术可行性和投资条件，不将 A 写成默认最终商业赢家。
