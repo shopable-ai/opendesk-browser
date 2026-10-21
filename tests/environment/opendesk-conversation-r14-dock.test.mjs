@@ -30,7 +30,8 @@ test('R1.4 one trusted Root and one reusable bottom Dock, no new sandbox escalat
 });
 
 test('R1.4 original bookmark workspace and search never disappear with chat',async()=>{
- const [app,css]=await Promise.all([read(appPath),read('src/ui/react/components/conversation-dock.css')]);
+ const [app,css,component]=await Promise.all([read(appPath),
+  read('src/ui/react/components/conversation-dock.css'),read('src/ui/react/components/conversation.tsx')]);
  assert.match(app,/<div className="bm-tools">/);
  assert.match(app,/<div className="bm-workspace">/);
  assert.doesNotMatch(app,/hidden=\{chatOpen\}|className="bm-conversation"|id="bm-conversation"/);
