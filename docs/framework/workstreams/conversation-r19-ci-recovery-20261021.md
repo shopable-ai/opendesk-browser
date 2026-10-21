@@ -12,4 +12,6 @@
 
 **Remaining live blockers**: standalone formal React candidate was 242,969 B vs 220,000 B on run 39613793551 (BUDGET_BLOCKED). Do not expand allowance. Formal/preview CSS Chromium, current latest-main WXT, source-bound HTML candidate, provider/Chrome two-turn readbacks, Native Host and Mac installation/upgrade require fresh evidence and stay NOT_TESTED/PENDING. R1.7 compact Dock is preserved in source but is not an end-to-end PASS. The R1.6 28-file historical tree must never overwrite current main.
 
+**Two-turn executable contract**: Added a deterministic Node test in `tests/environment/opendesk-conversation-r10.test.mjs` with two independent calls to the existing `executeBookmarkPlan`, two pre-existing identically titled folders, an authoritative folder ID verified in the first Service readback, and a second current-page bookmark that must write to exactly that ID. It asserts URL/title, tab/document binding and final readback, but is explicitly an IN_MEMORY fixture and NOT native Chrome evidence.
+
 **Validation discipline**: remote connector inspection is not equivalent to running Node/WXT/Chromium. For each future CI result record the tested SHA, exact commands, exits, pass/fail/skip and URLs; never claim native PASS from OFFLINE_MOCK. Seven quality dimensions remain NOT_SCORED until real evidence.

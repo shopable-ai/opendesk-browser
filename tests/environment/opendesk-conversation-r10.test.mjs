@@ -48,6 +48,43 @@ test('R1.0 real readback boundary: create folder, bookmark, rename and follow-up
  assert.equal(second.refs.bookmarkId,'4');
  assert.equal(second.messages.length,1);
 });
+test('R1.9 two independent provider turns use verified folderId despite duplicate names',async()=>{
+ // In-memory Service contract, NOT a real Provider / Chrome / Native receipt.
+ const f=fixture();
+ f.nodes.push(
+  {id:'same-name-a',title:'AI 工具',parentId:'1'},
+  {id:'same-name-b',title:'AI 工具',parentId:'1'}
+ );
+ const first=await executeBookmarkPlan({
+  plan:{actions:[{type:'folder.create',title:'AI 工具',parent:'$currentFolder'}]},
+  service:f.service,context,expectedTree:await f.service.load()
+ });
+ const verifiedFolderId=first.refs.folderId;
+ assert.ok(verifiedFolderId&&!['same-name-a','same-name-b'].includes(verifiedFolderId));
+ assert.equal(first.tree.byId.get(verifiedFolderId)?.parentId,'1');
+ const page={status:'available',title:'当前网页',url:'https://example.com/current?one=1',
+  tabRef:'tab-r19-0123456789',documentRef:'document-r19-0123456789'};
+ const original=f.service.createBookmark;
+ let dispatched=null;
+ f.service.createBookmark=async args=>{dispatched={...args};return original(args)};
+ const second=await executeBookmarkPlan({
+  plan:{actions:[{type:'bookmark.create',title:'$pageTitle',url:'$currentPage',
+   parent:'$lastFolder'}]},
+  service:f.service,context:{...context,pageContext:page},refs:first.refs,
+  expectedTree:await f.service.load()
+ });
+ assert.equal(dispatched.parentId,verifiedFolderId,
+  'second turn must use the first readback ID, not ambiguous folder names');
+ assert.equal(dispatched.url,page.url);
+ assert.equal(dispatched.title,page.title);
+ assert.equal(dispatched.sourcePage.tabRef,page.tabRef);
+ assert.equal(dispatched.sourcePage.documentRef,page.documentRef);
+ assert.equal(second.refs.folderId,verifiedFolderId);
+ assert.equal(second.tree.byId.get(second.refs.bookmarkId)?.parentId,verifiedFolderId);
+ assert.equal(second.tree.byId.get(second.refs.bookmarkId)?.url,page.url);
+ assert.equal(f.calls.filter(x=>x==='bookmark.create').length,1);
+});
+
 test('R1.0 search result references resolve into single existing move target',async()=>{
  const f=fixture();
  f.nodes.push({id:'r1',title:'React 资料',url:'https://react.dev',parentId:'1'});
