@@ -1,0 +1,91 @@
+name: Sidebar Navigation R1.4 P0 verified one-time promotion
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sidebar-navigation-r14-once.yml'
+permissions:
+  contents: write
+jobs:
+  verify-and-promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Verify GitHub-reviewed source owner still matches
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object examples/sidebar-tools/web-markdown-clipper/src/notes.js)" = fe82b337d287abe97aeef51849a2ba8581edb26f
+          test "$(git hash-object examples/sidebar-tools/web-markdown-clipper/tool.config.json)" = c75cd2031777fbecffcd7446d47329c5ef76f3be
+          test "$(git hash-object examples/sidebar-tools/web-markdown-clipper/app.ci.json)" = f9e39e357ae116bd4e842e069bf905e1d32cbd79
+          test "$(git hash-object examples/sidebar-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json)" = 8e37fd947d1a881228f3ceea8add32939abf56d8
+          test ! -e examples/sidebar-tools/web-markdown-clipper/tests/navigation-r14.test.mjs
+      - name: Restore pinned Node dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Apply scoped reviewed P0 source and Node regression in runner only
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp .github/sidebar-r14/notes.js examples/sidebar-tools/web-markdown-clipper/src/notes.js
+          cp .github/sidebar-r14/navigation-r14.test.mjs examples/sidebar-tools/web-markdown-clipper/tests/navigation-r14.test.mjs
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const path='examples/sidebar-tools/web-markdown-clipper/';
+          const config=JSON.parse(readFileSync(path+'tool.config.json','utf8'));
+          if(config.version!=='1.2.4'||config.id!=='web-markdown-clipper')throw Error('E_VERSION_DRIFT');
+          config.version='1.2.5';
+          writeFileSync(path+'tool.config.json',JSON.stringify(config,null,2)+'\n');
+          const profile=JSON.parse(readFileSync(path+'app.ci.json','utf8'));
+          const test='examples/sidebar-tools/web-markdown-clipper/tests/navigation-r14.test.mjs';
+          if(profile.node.includes(test))throw Error('E_PROFILE_DRIFT');
+          profile.node.push(test);
+          writeFileSync(path+'app.ci.json',JSON.stringify(profile,null,2)+'\n');
+          JS
+      - name: Regression first before candidate promotion
+        run: node --test examples/sidebar-tools/web-markdown-clipper/tests/navigation-r14.test.mjs
+      - name: Create one canonical candidate with the official builder
+        run: node scripts/build-sidebar-tool.mjs examples/sidebar-tools/web-markdown-clipper --out artifacts/sidebar-tools/web-markdown-clipper/candidate.opendesk-tool.json
+      - name: Verify identity and promote that same candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const p='artifacts/sidebar-tools/web-markdown-clipper/candidate.opendesk-tool.json';
+          const pkg=JSON.parse(readFileSync(p,'utf8'));
+          const notes=readFileSync('examples/sidebar-tools/web-markdown-clipper/src/notes.js','utf8');
+          if(pkg.id!=='web-markdown-clipper'||pkg.version!=='1.2.5'||pkg.scripts?.[0]?.code!==notes||
+             pkg.scripts[0].sha256!==createHash('sha256').update(notes).digest('hex'))throw Error('E_CANDIDATE_IDENTITY');
+          JS
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/web-markdown-clipper --promote-from artifacts/sidebar-tools/web-markdown-clipper/candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/web-markdown-clipper --check-project
+      - name: Run product, UI, hierarchical navigation and package regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test tests/environment/sidebar-tool-hierarchical-back-r12.test.mjs examples/sidebar-tools/web-markdown-clipper/tests/ui.test.mjs examples/sidebar-tools/web-markdown-clipper/tests/notes.test.mjs examples/sidebar-tools/web-markdown-clipper/tests/navigation-r14.test.mjs
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/web-markdown-clipper --check-project
+      - name: Advance main only if no concurrent writer touched the ref
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          if [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
+            echo "CONCURRENT_MAIN_ADVANCE: leave source and package untouched, no rebase or force"
+            exit 1
+          fi
+          git rm .github/sidebar-r14/notes.js .github/sidebar-r14/navigation-r14.test.mjs .github/workflows/sidebar-navigation-r14-once.yml
+          git add examples/sidebar-tools/web-markdown-clipper/src/notes.js examples/sidebar-tools/web-markdown-clipper/tests/navigation-r14.test.mjs examples/sidebar-tools/web-markdown-clipper/tool.config.json examples/sidebar-tools/web-markdown-clipper/app.ci.json examples/sidebar-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "fix(clipper): separate detail and list generations; promote 1.2.5"
+          git push origin HEAD:main
