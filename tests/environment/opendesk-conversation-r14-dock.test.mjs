@@ -44,7 +44,15 @@ test('R1.4 original bookmark workspace and search never disappear with chat',asy
  assert.match(css,/\.od-conversation-log\{min-height:0;flex:1 1 auto;overflow:auto/);
  assert.match(css,/\.od-conversation-composer\{display:grid/);
  assert.match(css,/--od-brand/);
- assert.match(css,/\.od-conversation-action\{position:absolute/,'Send or Stop stays inside the composer');
+ assert.match(css,/\.od-conversation-input\{grid-area:1\/1/,'composer textarea owns the same grid cell');
+ assert.match(css,/\.od-conversation-action\{position:relative;z-index:1;grid-area:1\/1/,
+  'Send and Stop align to the textarea, not to composer padding');
+ assert.match(css,/\.od-conversation-dragbar\{[^\n]*flex:0 0 12px/,'visual splitter is slim');
+ assert.match(css,/\.od-conversation-separator\{[^\n]*touch-action:none/,'slim visual splitter remains draggable');
+ assert.doesNotMatch(css,/\.od-conversation-separator\{[^\n]*border-bottom/,'avoid doubled visual separator lines');
+ assert.match(component,/IconButton as OpenDeskIconButton/,'reuse the canonical React icon button');
+ assert.match(component,/label="发送" onClick=\{send\}/);
+ assert.match(component,/label="停止对话" onClick=\{stop\}/);
  assert.doesNotMatch(css,/\.od-conversation-controls/,'no second action row');
 });
 
