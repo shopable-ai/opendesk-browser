@@ -9,6 +9,7 @@ import {resolveBrowserEdition,compilerResourcesForEdition,BROWSER_EDITION_RECORD
 import {compileWorkspaceStyle} from './build-workspace-style.mjs';
 import {buildOfficialTools} from './build-official-tools.mjs';
 import {resolveMarketChannel,MARKET_CHANNEL_PATH} from './market-channel.mjs';
+import {trustedToolShellStyle} from './bundle-provenance.mjs';
 
 const vendors=Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='vendor');
 const pageFrameworks=Object.values(PAGE_FRAMEWORK_RUNTIMES);
@@ -87,6 +88,9 @@ export async function preparePublic() {
     await mkdir(dirname(target),{recursive:true});
     await cp(src,target);
   }
+  // Keep the unchanged, .bm-* scoped trusted styles in the existing fixed CSS
+  // asset instead of carrying another stylesheet string in the shell's JS.
+  await writeFile(resolve(publicRoot,'ui/tool-shell.css'),trustedToolShellStyle());
   // Generate optional release assets once from trusted source projects.
   await buildOfficialTools(publicRoot);
   // Compile static Workspace CSS after the public directory is cleared.

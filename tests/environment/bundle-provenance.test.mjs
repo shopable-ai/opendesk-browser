@@ -3,9 +3,25 @@ import assert from 'node:assert/strict';
 import {mkdtemp,writeFile,readFile,rm,mkdir,realpath,symlink} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
-import {describeBundle,collectBundleEvidence,assertLibraryModuleBoundary,recordBuildFailure} from '../../scripts/bundle-provenance.mjs';
+import {describeBundle,collectBundleEvidence,assertLibraryModuleBoundary,recordBuildFailure,trustedBookmarkStyle} from '../../scripts/bundle-provenance.mjs';
 import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
 const root='/repo';
+test('fixed Bookmark CSS keeps its exact source pin after leaving the JS bundle',async t=>{
+  const css=trustedBookmarkStyle();
+  assert.match(css,/\.bm-app\{/);
+  assert.doesNotMatch(css,/\/\*|url\s*\(/i);
+  const project=await realpath(await mkdtemp(join(tmpdir(),'bookmark-style-pin-')));
+  t.after(()=>rm(project,{recursive:true,force:true}));
+  const path='examples/sidebar-tools/bookmark-manager/src/react/style.css',file=join(project,path);
+  await mkdir(join(file,'..'),{recursive:true});
+  const bytes=await readFile(resolve(path));
+  await writeFile(file,bytes);
+  assert.equal(trustedBookmarkStyle(project),css);
+  await writeFile(file,Buffer.concat([bytes,Buffer.from('\n.bm-app{display:none}') ]));
+  assert.throws(()=>trustedBookmarkStyle(project),/Trusted Bookmark React source changed/);
+  await rm(file);await symlink(resolve(path),file);
+  assert.throws(()=>trustedBookmarkStyle(project),/must not be a symlink/);
+});
 const chunk={fileName:'sw.js',modules:{
   '/repo/src/sw.js':{renderedLength:10,originalLength:20},
   '/repo/node_modules/@wxt-dev/browser/src/index.mjs':{renderedLength:5,originalLength:50},

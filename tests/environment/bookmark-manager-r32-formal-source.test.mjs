@@ -21,7 +21,8 @@ test('R3.2 formal JSX is the unique UI source and all four compiled modules rema
   read(prefix+'preview/react/src/formal.jsx'),read(appPath),
   read(prefix+'preview/react/build-preview.mjs'),read('scripts/bundle-provenance.mjs')]);
  assert.match(host,/bookmark-manager\/src\/react\/App\.jsx/);
- assert.match(host,/bookmark-manager\/src\/react\/style\.css\?raw/);
+ assert.doesNotMatch(host,/bookmark-manager\/src\/react\/style\.css\?raw/);
+ assert.match(await read('scripts/prepare-public.mjs'),/trustedToolShellStyle\(\)/);
  assert.equal((host.match(/createRoot\(/g)||[]).length,1);
  for(const wrapper of [entry,formal]){
   assert.match(wrapper,/from '\.\.\/\.\.\/\.\.\/src\/react\/App\.jsx'/);

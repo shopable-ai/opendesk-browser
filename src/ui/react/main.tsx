@@ -9,7 +9,6 @@ import '../../../examples/sidebar-tools/bookmark-manager/src/service.js';
 import BookmarkReactApp from '../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx';
 import {TrustedConversationWorkspace} from './components/conversation.tsx';
 import conversationDockCSS from './components/conversation-dock.css?raw';
-import bookmarkScopedCSS from '../../../examples/sidebar-tools/bookmark-manager/src/react/style.css?raw';
 import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 
 // A single trusted root owns every product page. Existing controllers supply
@@ -64,7 +63,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
         developerView={developerView} myView={myView} toolView={toolView} workflowController={workflowController}
         cloudModel={cloudPageModel.overview} cloudRequestsModel={cloudPageModel.requests}
         cloudSetupModel={cloudPageModel.setup} cloudPageModel={cloudPageModel}/>
-      {bookmarkPilot&&createPortal(<><style>{bookmarkScopedCSS}</style>
+      {bookmarkPilot&&createPortal(<>
         <TrustedConversationWorkspace controller={bookmarkPilot.runtime.conversation}
           headerTarget={bookmarkPilot.headerTarget}
          title="AI 对话"

@@ -11,6 +11,7 @@ import {BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS,BUILTIN_RUNTIME_CATALOG} from '..
 import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT,PAGE_BROWSER_PRIVATE_FILES,PAGE_BROWSER_COMPILER,PAGE_BROWSER_COMPILER_RESOURCE_LIMIT} from '../src/libs/page-frameworks/contract.js';
 import {BROWSER_EDITION_RECORD,STANDARD_BROWSER_NAME,DEVELOPER_BROWSER_NAME,BROWSER_MENU_SHORT_NAME,compilerResourcesForEdition,readEditionRecord} from './browser-editions-r245.mjs';
 import {inspectWorkspaceStyle} from './build-workspace-style.mjs';
+import {trustedToolShellStyle} from './bundle-provenance.mjs';
 import {readOfficialSources,createOfficialToolResources} from './build-official-tools.mjs';
 import {OFFICIAL_CATALOG_PATH,officialPackagePath} from '../src/sidebar-tools/official-catalog.js';
 import {resolveMarketChannel,marketExternalConnectable,MARKET_CHANNEL_PATH} from './market-channel.mjs';
@@ -647,6 +648,10 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
     throw Error('Workspace React runtime is stale: packaged settings.js lacks full Workspace components');
   for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/extension-center.css','ui/time-review.css','ui/cloud-hosting.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css','stay-focus/blocked.css']) {
     const css = await readFile(join(root,cssPath),'utf8');
+    if(cssPath==='ui/tool-shell.css') {
+      const expected=trustedToolShellStyle();
+      if(css!==expected)throw Error('Trusted Bookmark stylesheet differs from reviewed source');
+    }
     if(/@(?:import|source|apply|tailwind|config|plugin)\b|url\s*\(|expression\s*\(/i.test(css)) throw new Error('Unsafe CSS resources in '+cssPath);
     if(cssPath==='native-agent/workspace.css')inspectWorkspaceStyle(css);
     if(cssPath==='ui/design-tokens.css' && (!css.includes('--od-brand:#365eda') || /\b(?:html|body)\s*\{|\*\s*\{/.test(css))) throw new Error('R23 tokens must remain page-agnostic');

@@ -2,6 +2,7 @@
 import {readFile,writeFile,readdir,mkdir} from 'node:fs/promises';
 import {readFileSync,realpathSync} from 'node:fs';
 import {createHash,randomUUID} from 'node:crypto';
+import {transformSync} from 'esbuild';
 import {resolve,relative,sep,isAbsolute} from 'node:path';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 import {FIXED_OUTPUTS} from './build-contract.mjs';
@@ -85,6 +86,20 @@ function reviewedCompiledBookmarkReact(target,path,root){
   if(hash!==compiledBookmarkReactInputs[path])
     throw Error('Trusted Bookmark React source changed; review and re-pin before fixed build: '+path);
   return hash;
+}
+
+// The same reviewed CSS source now travels in the existing fixed stylesheet.
+// Compile comments/whitespace only; do not change selectors or scan exceptions.
+export function trustedBookmarkStyle(root=process.cwd()){
+  const path='examples/sidebar-tools/bookmark-manager/src/react/style.css';
+  reviewedCompiledBookmarkReact('ui/tool-shell.js',path,root);
+  return transformSync(readFileSync(resolve(root,path),'utf8'),{
+    loader:'css',minifyWhitespace:true,legalComments:'none'
+  }).code;
+}
+
+export function trustedToolShellStyle(root=process.cwd()){
+  return readFileSync(resolve(root,'src/ui/tool-shell.css'),'utf8')+'\n'+trustedBookmarkStyle(root);
 }
 
 // Prompt Shortcuts is a reviewed fixed, site-specific content adapter.

@@ -1,4 +1,5 @@
 import {cp,readFile,writeFile,rename,mkdir} from 'node:fs/promises';
+import {trustedToolShellStyle} from './bundle-provenance.mjs';
 import {resolve,dirname,relative} from 'node:path';
 import {createHash} from 'node:crypto';
 import {watch} from 'node:fs';
@@ -158,6 +159,16 @@ export function configureDevelopment(wxt,server) {
       if(official){
         if(generation!==officialGeneration)return;
         const changes=[...officialChanges];officialChanges.clear();
+        // This fixed CSS is not a declared tool-package input. Validate and
+        // refresh it before the official branch can skip unrelated changes.
+        if(changes.includes('examples/sidebar-tools/bookmark-manager/src/react/style.css')){
+          failureKey=resolve(wxt.config.root,'src/ui/tool-shell.css');
+          const target=resolve(wxt.config.publicDir,'ui/tool-shell.css');
+          await mkdir(dirname(target),{recursive:true});
+          await writeFile(target,trustedToolShellStyle(wxt.config.root));
+          copyErrors.delete(failureKey);failureKey=errorKey;
+          server.watcher.emit('all','change',target);
+        }
         const adblockSourceChanged=changes.some(path=>
           /^examples\/sidebar-tools\/adblock\/(?:src\/|trusted\/(?:cosmetic-policy|policy)\.js$|vite\.config\.mjs$|tool\.config\.json$|package\.json$)/.test(path));
         if(adblockSourceChanged)await buildAdblockReact({log:false});
@@ -197,7 +208,8 @@ export function configureDevelopment(wxt,server) {
         failureKey=input;
         const target=resolve(wxt.config.publicDir,dest);
         await mkdir(dirname(target),{recursive:true});
-        await cp(file,target);
+        if(dest==='ui/tool-shell.css')await writeFile(target,trustedToolShellStyle(wxt.config.root));
+        else await cp(file,target);
         wxt.logger.info('[OpenDesk dev] Static source changed: '+relative(wxt.config.root,file));
       }
       if(style)server.watcher.emit('all','change',resolve(wxt.config.publicDir,WORKSPACE_STYLE_DEST));

@@ -33,6 +33,7 @@ on:
       - 'tests/environment/bookmark-manager-r34-save-consent.test.mjs'
       - 'tests/environment/opendesk-conversation-r10.test.mjs'
       - 'tests/environment/opendesk-conversation-r16-authorization.test.mjs'
+      - 'tests/environment/conversation-r111-style-watch.test.mjs'
       - 'tests/environment/sidebar-tools-host.test.mjs'
       - 'tests/environment/sidebar-tools-view.test.mjs'
       - 'scripts/bundle-provenance.mjs'
@@ -72,7 +73,8 @@ jobs:
             tests/environment/sidebar-tools-view.test.mjs \
             tests/environment/extension-center-r47-interaction.test.mjs \
             tests/environment/bookmark-manager-r24-lifecycle.test.mjs \
-            tests/environment/bundle-provenance.test.mjs
+            tests/environment/bundle-provenance.test.mjs \
+            tests/environment/conversation-r111-style-watch.test.mjs
       - name: Build the three existing official React tool fixtures before Host integration tests
         run: |
           node scripts/build-adblock-react.mjs

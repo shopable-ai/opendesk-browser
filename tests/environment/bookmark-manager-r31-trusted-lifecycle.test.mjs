@@ -44,9 +44,13 @@ test('R3.1 Chromium assertions use the approved responsive details instead of st
  assert.match(chrome,/noopener/);
 });
 
-test('R3.1 trusted React CSS stays with the fixed JS root, not in an unexpected WXT asset',async()=>{
+test('R3.1 trusted React CSS uses the existing fixed stylesheet and a single root',async()=>{
  const react=await read('src/ui/react/main.tsx');
-  assert.match(react,/bookmarkScopedCSS from '\.\.\/\.\.\/\.\.\/examples\/sidebar-tools\/bookmark-manager\/src\/react\/style\.css\?raw'/);
+ const prepare=await read('scripts/prepare-public.mjs');
+ const verify=await read('scripts/verify-package.mjs');
+ assert.doesNotMatch(react,/bookmarkScopedCSS|bookmark-manager\/src\/react\/style\.css\?raw/);
+ assert.match(prepare,/writeFile\(resolve\(publicRoot,'ui\/tool-shell\.css'\),trustedToolShellStyle\(\)\)/);
+ assert.match(verify,/Trusted Bookmark stylesheet differs from reviewed source/);
  assert.match(react,/bookmarkPilotLayoutCSS from '\.\/tabs\/bookmark-pilot\.css\?raw'/);
  assert.match(react,/<style data-opendesk-trusted-react-css/);
  assert.doesNotMatch(react,/^import '\.\/tabs\/(?:cookie|bookmark)-pilot\.css';/m);
