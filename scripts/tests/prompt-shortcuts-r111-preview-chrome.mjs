@@ -378,7 +378,26 @@ async function run(){
   assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),6,'second save instantly updates the injected rail');
   await poll('document.querySelector("#promptForm").getAttribute("aria-busy")!=="true"',
     'save-and-continue finishes before cancel');
-  await click('#cancelForm');x=await state();assert.equal(x.editing,false);
+  const batchCancelBefore=await evalChrome('('+function(){
+    const snap=typeof draftSnapshot==='function'?draftSnapshot():'no snapshot';
+    return {dirty,saving,imageUploadBusy,baselineForm,now:snap,currentView,
+      cancelDisabled:document.querySelector('#cancelForm').disabled,
+      body:document.querySelector('#promptBody').value,
+      formError:document.querySelector('#formError').textContent,
+      status:document.querySelector('#formSaveStatus').textContent};
+  }.toString()+')()');
+  await click('#cancelForm');x=await state();
+  if(x.editing){
+    report.r41BatchCancelDiagnostic={before:batchCancelBefore,
+      after:await evalChrome('('+function(){
+        return {dirty,saving,imageUploadBusy,currentView,
+          leaveConfirmHidden:document.querySelector('#leaveConfirm').hidden,
+          error:document.querySelector('#formError').textContent,
+          status:document.querySelector('#formSaveStatus').textContent};
+      }.toString()+')()')};
+    await shot('r41-batch-cancel-diagnostic');
+  }
+  assert.equal(x.editing,false,JSON.stringify(report.r41BatchCancelDiagnostic||batchCancelBefore));
   report.batchCreateAndReset=true;
   await click('#resetButton');
   x=await state();assert.equal(x.cards,4);
