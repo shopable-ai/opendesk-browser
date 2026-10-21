@@ -551,6 +551,8 @@ async function run(){
   await call('Page.reload',{ignoreCache:true});
   await poll('document.querySelector("#pageRail .page-shortcut:nth-child(2) img")?.naturalWidth>0',
     'same saved local image after reload');
+  assert.equal(await evalChrome('document.querySelector("#pageRail .page-shortcut:nth-child(2) img")?.dataset.previewFixture??null'),null,
+    'saved local image must really be restored; initial offline sample is NOT reload evidence');
   const insert=await evalChrome('('+async function(){
     const field=document.querySelector('#mockDraft');field.value='原草稿';field.setSelectionRange(field.value.length,field.value.length);
     document.querySelector('#pageRail .page-shortcut:nth-child(2)').click();
