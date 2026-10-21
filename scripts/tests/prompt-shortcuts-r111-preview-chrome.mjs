@@ -454,6 +454,7 @@ async function run(){
     report.r41Dropzone.push(ui);
   }
   await click('#themeButton');
+  await sleep(220); // allow existing 150ms background transition to settle before contrast evidence
   await shot('r41-dropzone-dark-440px');
   await click('#themeButton');
   // Real CDP-intercepted native file chooser: a click must reach input[type=file].
@@ -495,6 +496,7 @@ async function run(){
     await shot('r41-selected-'+width+'px');
   }
   await click('#themeButton');
+  await sleep(220);
   await shot('r41-selected-dark-440px');
   await click('#themeButton');
   // Invalid input must retain the accepted image; the existing decoder is unchanged.
