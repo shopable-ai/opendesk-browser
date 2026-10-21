@@ -242,3 +242,45 @@ Chrome Web Store [统计指南](https://developer.chrome.com/docs/webstore/metri
 - **STOP**：原图真实性/授权不成立、买家无实际替代成本、跨两周期不复用、负贡献、长期维护不可控、竞品免费体验已足够；不得以主观 95 分强行继续。
 - **当前全部为 NOT_DECIDED**：R1.2 只收窄了产品和商业不确定性，没有新订单/DAU/CAC/留存，不能因“完成文档”宣布实验 GO。
 
+## R1.2-RECHECK-2026-10-21 · US/JP 获客计量核查与低成本实验可执行交接
+
+> **执行结论：RESEARCH_ONLY / ZERO_AUTHORIZED_SPEND / NO_NEW_USER_OR_ORDER_DATA**。本节只补齐已有 13 关键词和 EXP-003、EXP-001、EXP-005 的口径、反证优先级及下一操作人。未连接 Google Ads 账户、CWS 发布商后台、真实买方与 Mac Chrome；真实月搜索、竞价 CPC、CAC、支付与留存全部为 MISSING。不新增 EXP、OPP、广告预算或遥测基础设施。
+
+### 1. 官方口径：Google Ads 的“页首出价”不是实际 CPC
+
+- [Google Keyword Planner 官方](https://support.google.com/google-ads/answer/3022575?hl=en)：平均月搜为给定期间、位置、网络范围内**关键词及近似变体**的历史均值，默认约 12 个月；竞争等级是**广告客户竞拍竞争**而非 SEO 难度；页首低/高区间约为历史出价第 20/80 百分位，**不能当实际每次点击单价**。预测点击、消耗、平均 CPC 与历史指标分开记录。
+- 查询历史值按**同一完整月份时间窗**、同币种独立导出美国/en 与日本/ja 的 13 个已登记词。必填：keyword literal、market location、language targeting、network、range、search volume（若仅区间留区间）、competition、top bid low/high、currency、exportedAt、official source、文件摘要/校验 SHA。Planner 的“地区”筛选并不保证搜索者用该语言；要由 SERP 和用户意图复查。
+- [官方商标政策](https://support.google.com/adspolicy/answer/6118?hl=en)：**竞品品牌作为关键词**与把商标写入**广告正文**的审核不同；不得假扮官方、诱导误认关联、用竞争品牌进行误导落地。每个替代词页需具有真实同任务对比、正确品牌标识、价格与功能披露。未具实测不得做“比 X 更好”广告。
+- [官方 CWS 统计](https://developer.chrome.com/docs/webstore/metrics/)允许按地区/语言查询商店曝光、安装等；其“Users”指标基于**安装**，不代表活跃使用。不能把商店搜索/浏览/直接访问汇总指标硬分到搜索广告；不能以安装数量计算自然复用。
+- 第三方 SEO 工具、搜索结果趋势、竞品安装量只能为 HYPOTHESIS 或单独标注 ESTIMATE，不得覆写 Google 官方 Planner 栏位。当前已注册 13 词无一个完成官方数值核验。
+
+### 2. 三类渠道的“低成本”须按订单而非点击独立证伪
+
+| 渠道 | 当前先行判断（HYPOTHESIS） | 可直接实行的无广告费动作 | 真正证伪/准入门 |
+| --- | --- | --- | --- |
+| 工作任务长尾 SEO / 高意图教程（US+JP） | 现金投放开销可能低；但内容工时并非零 | 分别写 1 篇**真实功能**教学/限制说明并人工分发；用自愿同意的入口标记衡量首次成功 | 若无法带来合格安装→真实任务成功→自然复用，不因自然访问上涨就判成功 |
+| CWS 自然搜索 / 行业专业推荐 | 单一用途在商店可发现，获客不依赖竞价；但需发布审核与持续维护 | 先把单任务完成、权限与失败恢复在真实 Chrome 跑通，再注册明确可审查的商品资料/服务说明 | 不能把总安装视为活跃；用真实首次任务读回与 2 周期复用独立验证 |
+| 竞品品牌/替代词 Ads | 有高意图但 CPC、合规、竞争更不确定；应最后验证 | 仅在官方 Planner 取量后做合规 SERP、品牌词/文案分离审查；预算先报批 | 无广告账户、官方价量、落地页、真实合格转化基线及书面预算批准，**不得投放** |
+
+**经济否决公式（模型而非收入实绩）**：由实际点击与付款同一 cohort 得出 paidPerClick = attributedNewPayingCustomers / validAdClicks；由**真实**财务明细计算 monthlyContributionPerPayer（到账价减可变云/支付/退款/支持、维护费用）。允许的最高实际 CPC = paidPerClick × monthlyContributionPerPayer × 允许回本月数；前提是月贡献严格为正、回本月数有经营批准。再用现实 CPC、非广告获客工时和实际订单算渠道 CAC；无分母时全部 NOT_MEASURED，不能代入假定 2%/5% 转化率生成“精确 CAC”。B 的销售拜访、售前测试与实施时间也须计入实际获客/贡献成本。对自然流量同样记录研究/内容/审核/维护工时，不能假定永久免费。
+
+### 3. 不新造账本的最小化实验记录模板
+
+记录位置：**唯一** commercial-experiments.json 的原 EXP 状态/真实指标及本文件下的脱敏聚合证据链接。每次研究日志含 experimentId、UTC 时间/市场语言、FACT/ESTIMATE/HYPOTHESIS/MISSING、实际样本分母、同意状态、工作任务与既有替代、可核回执摘要、成功失败、第二自然周期、支付**确认**状态、可变工时/成本、来源 URL 或非公开证据编号。公开 GitHub 仅存脱敏聚合，**不上传用户对话、图片、订单号原件、客户 CSV、姓名、Cookie、授权 Token**。真实合同/订单在获授权的私有系统保管，仅在公共账本写“原件存在并经授权核验”及不可逆摘要。不要因为缺遥测而建立第二套采集/Storage Host。
+
+**三个原实验可直接交给执行人的任务与止损：**
+
+- **EXP-003 / A，10 位真实合格参与者**：提供同一个获授权 AI 图文任务，分别记录现有做法与 OpenDesk 无指导“选择→Markdown+一张原生图片真实文件→下载 complete→关闭/重开离线打开→来源仍可辨认”。符合画像首次无指导成功目标 ≥7/10，第二自然工作周期主动再次使用目标 ≥5/10；两组数字均为预注册 HYPOTHESIS，不是统计显著性。另问 2 个愿意支付的**具体外部交付工作结果**以及当前付费替代和可被批准的预算，口头愿意≠订单。若免费 Obsidian 已可同样可靠快捷交付，则先 PIVOT 为垂直任务而非继续开发通用剪藏 SaaS。
+- **EXP-001 / B，至少 5 位预算买家发现**：采购/运营/IT 能签字者、合法网站权限、可匿名描述的一个重复流程、月内真实次数、操作失败和人力成本、现有 Axiom/Automa/API-first 替代、审计/撤权与升级 SLA；先谈**范围固定的试点报价/实施费与维护费**，再决定是否演示。至少一条有书面范围+价格+批准人的记录才是合格商机；签署/到账后才可记 PAID_VALIDATED。若客户只求免费的泛用网页录制或风险不可控，STOP/缩窄。
+- **EXP-005 / C，3 份有书面许可的 CSV 输入**：收真实授权的产品 Listing/SKU 标准及人工核实的正确答案，比较字段缺失、重复/变更、误报漏报与每 100 行人工复核时间；报价是持续质量检查、对账与维护而非“解析 CSV”。不合法来源/无业务买家/服务误报过高，维持 BLOCKED；不得代替客户采集第三方受限站点。
+
+### 4. Mac Codex 的 S1 真实产品检验单（网页研究不能代替）
+
+1. 在用户 Mac 原路径打开现有仓库，核实最新 main、AGENTS.md、当前并行改动；不切分支、不重置、不抢占运行中的 watcher。只读核查 Knowledge、Clipper、Prompt Shortcuts 图片 asset-host 和 Browser Downloads Host，确认**单一 Knowledge 业务 Owner** 的最小补丁及授权边界。
+2. 用**测试者自主授权**的无敏感样本，录制保存一段 AI 答案和一张真实原图；报告原始 MIME、尺寸、hash、图片最终文件 hash、Markdown 引用/来源和下载状态转换。started / downloadId 仅是受理，不得当 complete。Chrome Worker 重启、网页关闭重开、断网读回必须逐项复验；不能读取用户任意文件夹，涉及 File System Access 必须真实授权。
+3. 失败注入：过期图片 URL、403、下载 interrupted/unknown、权限撤销、重复点击、关闭期间、下载路径冲突、不同格式 WebP/JPEG、原图与缩略图不一致。发生结果未知时先查实际产物后重试，不创建重复资产、不吞错误。
+4. 执行已有定向 tests/Node 及真实 Mac Chrome production 候选（固定扩展身份/版本）并记录命令、构建 SHA、错误日志、无敏感测试产物 hash。模拟 HTML 可以辅助 UX，但绝不宣称 CHROME_NATIVE_VERIFIED。不能运行则保留 NOT_TESTED；无真实样本/权限不开发更高层 SaaS 或跨工具文件存储。
+
+### 5. 决策含义和完成程度
+
+**本节新增：**官方量价统计解释和无法测量项、广告前法务/落地/预算门、真实 CAC 计算条件、三个旧 EXP 的执行交接与反证。**没有新增：**官方搜索量、实际 CPC、自然流量、Chrome Native PASS、用户、企业合同、合法 CSV、订单及续费。研究质量是继续降低决策的不确定性，不是把缺失指标改为 0 或为 95 分造证据。S0 已形成源码与竞品初审，S1/S2/S3 真实实施仍未开始，S4 仍 NOT_DECIDED。
