@@ -27,6 +27,8 @@
 
 .adblock-manual-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:11px;border-top:1px solid var(--od-line);padding-top:11px}
 .adblock-manual-actions button{min-width:0;max-width:100%}
+.adblock-pick-trigger{flex:1 1 160px;white-space:nowrap}
+.adblock-pick-trigger svg{width:17px;height:17px;flex:none}
 .adblock-selector{font-family:ui-monospace,SFMono-Regular,monospace;overflow-wrap:anywhere;font-size:10px}
 @media(max-width:350px){.adblock-manual-actions button{width:100%}}
 
@@ -40,6 +42,13 @@
 .adblock-rule:last-of-type{border-bottom:0}
 .adblock-rule-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .adblock-rule-actions button{min-width:0;font-size:11px}
+/* A single compact icon row replaces four wrapping translated labels. */
+.adblock-rule-actions--icons{flex-wrap:nowrap;justify-content:flex-end;gap:6px}
+.adblock-rule-actions--icons .adblock-rule-action{--od-icon-size:34px;flex:0 0 34px}
+.adblock-rule-action--danger:not(:disabled):hover,
+.adblock-rule-action--danger:focus-visible{color:var(--od-negative);background:var(--od-negative-bg);border-color:var(--od-negative)}
+@media(min-width:440px){.adblock-rule{grid-template-columns:minmax(0,1fr) auto;align-items:center}}
+
 .adblock-advanced{border:1px solid var(--od-line);background:var(--od-paper);border-radius:12px;overflow:hidden}
 .adblock-advanced summary{padding:12px 14px;cursor:pointer;font-weight:650;font-size:12px}
 .adblock-advanced summary:focus-visible{outline:2px solid var(--od-brand);outline-offset:-3px}
@@ -49,4 +58,4 @@
 .adblock-selector-input:focus-visible{outline:2px solid var(--od-brand);outline-offset:2px}
 .adblock-dynamic{display:flex;align-items:flex-start;gap:8px;font-size:11px!important;line-height:1.5}
 .adblock-dynamic input{margin-top:3px}
-@media(max-width:340px){.adblock-rule-actions button{flex:1 1 auto}}
+@media(max-width:340px){.adblock-rule-actions:not(.adblock-rule-actions--icons) button{flex:1 1 auto}}

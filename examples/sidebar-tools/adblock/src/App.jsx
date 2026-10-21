@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Card,CardContent,Switch,Button} from '@opendesk/ui';
+import {Card,CardContent,Switch,Button,IconButton} from '@opendesk/ui';
 import {valid,verified,confirmed,siteHost} from './model.js';
 import {validCosmeticSelector} from '../trusted/cosmetic-policy.js';
 
@@ -22,6 +22,19 @@ function Status({state,loading}){
   return <span className={'adblock-state '+(active?'is-on':known?'is-off':'is-unknown')} role="status">
     <span className="adblock-dot" aria-hidden="true"/>{label}
   </span>;
+}
+// Fixed first-party SVGs in the existing host-owned IconButton: no new icon library.
+function ActionGlyph({kind}){
+  return <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
+    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+    aria-hidden="true" focusable="false">
+    {kind==='locate'?<><circle cx="12" cy="12" r="6"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></>:null}
+    {kind==='show'||kind==='hide'?<><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/>{kind==='hide'?<path d="M3 3l18 18"/>:null}</>:null}
+    {kind==='edit'?<><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></>:null}
+    {kind==='remove'?<><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6M10 10v6m4-6v6"/></>:null}
+    {kind==='back'?<path d="m15 18-6-6 6-6"/>:null}
+    {kind==='refresh'?<><path d="M20 11a8 8 0 0 0-14-5L4 8"/><path d="M4 3v5h5M4 13a8 8 0 0 0 14 5l2-2M20 21v-5h-5"/></>:null}
+  </svg>;
 }
 function App(){
   const [state,setState]=React.useState(null);
@@ -286,8 +299,8 @@ function App(){
     void operateCosmetic(editingSelector===null?'adblock.cosmetic.add':
       'adblock.cosmetic.replace',payload);
   };
-  const back=<Button variant="secondary" className="adblock-back" onClick={()=>setView('overview')}
-    aria-label="返回广告拦截概览">← 返回</Button>;
+  const back=<IconButton className="adblock-back" label="返回广告拦截概览" title="返回"
+    onClick={()=>setView('overview')}><ActionGlyph kind="back"/></IconButton>;
   return <div className="adblock-app">
     {view==='overview'?<>
       <Card><CardContent className="adblock-card">
@@ -312,9 +325,9 @@ function App(){
           siteOn?'正在过滤本站匹配的第三方广告请求。':'本站已加入例外列表。'):
           siteCopy[state?.currentSite?.status]||'等待 Chrome 读取当前网站身份。'}</p>
         <div className="adblock-manual-actions">
-          <Button variant="secondary" disabled={!siteOn||loading||busy||picking||Boolean(state?.cosmeticError)}
+          <Button variant="primary" className="adblock-pick-trigger" disabled={!siteOn||loading||busy||picking||Boolean(state?.cosmeticError)}
             onClick={()=>void operateCosmetic('adblock.cosmetic.pick')}
-            aria-label="在当前网页中点击选择要隐藏的元素">◎ 选择网页元素</Button>
+            aria-label="在当前网页中点击选择要隐藏的元素"><ActionGlyph kind="locate"/>选择网页元素</Button>
           <Button variant="secondary" disabled={!host||loading||busy}
             onClick={()=>setView('cosmetics')}>已屏蔽 {cosmeticRules.length} 处 →</Button>
         </div>
@@ -356,23 +369,28 @@ function App(){
                   match.matches>0?'当前匹配 '+match.matches+' 处':'当前网页暂无匹配':
                   inspectionBusy?'正在检查网页…':'匹配状态未确认'}</span>
               </div>
-              <div className="adblock-rule-actions">
-                <Button variant="secondary" disabled={!canRestore||!match||match.matches===0}
+              <div className="adblock-rule-actions adblock-rule-actions--icons" aria-label="此规则的操作">
+                <IconButton className="adblock-rule-action" label={'定位网页元素：'+rule.selector}
+                  title="定位" disabled={!canRestore||!match||match.matches===0}
                   onClick={()=>void operateCosmetic('adblock.cosmetic.locate',
-                    {host,selector:rule.selector})}>⌖ 定位</Button>
-                <Button variant="secondary" disabled={!canEdit||!match||match.matches===0}
+                    {host,selector:rule.selector})}><ActionGlyph kind="locate"/></IconButton>
+                <IconButton className="adblock-rule-action"
+                  label={(match?.visible?'重新隐藏：':'临时显示：')+rule.selector}
+                  title={match?.visible?'重新隐藏':'临时显示'}
+                  disabled={!canEdit||!match||match.matches===0}
                   onClick={()=>void operateCosmetic('adblock.cosmetic.display',
                     {host,selector:rule.selector,visible:!match.visible})}>
-                  {match?.visible?'重新隐藏':'临时显示'}</Button>
-                <Button variant="secondary" disabled={!canEdit}
+                  <ActionGlyph kind={match?.visible?'hide':'show'}/></IconButton>
+                <IconButton className="adblock-rule-action" label={'编辑屏蔽规则：'+rule.selector}
+                  title="编辑" disabled={!canEdit}
                   onClick={()=>{
                     setEditingSelector(rule.selector);setDraftSelector(rule.selector);
                     setCheckedMatches(null);setAllowUnmatched(false);
-                  }}>编辑</Button>
-                <Button variant="secondary" disabled={!canRestore}
+                  }}><ActionGlyph kind="edit"/></IconButton>
+                <IconButton className="adblock-rule-action adblock-rule-action--danger"
+                  label={'永久删除屏蔽规则：'+rule.selector} title="删除规则" disabled={!canRestore}
                   onClick={()=>void operateCosmetic('adblock.cosmetic.restore',
-                    {host,selector:rule.selector})}
-                  aria-label={'永久删除规则 '+rule.selector}>删除</Button>
+                    {host,selector:rule.selector})}><ActionGlyph kind="remove"/></IconButton>
               </div>
             </div>;
           })}
@@ -434,8 +452,9 @@ function App(){
         <Button variant="secondary" onClick={()=>setView('exceptions')}>管理网站例外</Button>
       </CardContent></Card>
     </>}
-    <div className="adblock-footer"><Button variant="secondary" disabled={busy}
-      onClick={()=>void refresh()} aria-label="重新读取 Chrome 广告过滤状态">↻ 刷新状态</Button></div>
+    <div className="adblock-footer"><IconButton disabled={busy}
+      onClick={()=>void refresh()} label="重新读取 Chrome 广告过滤状态" title="刷新状态">
+      <ActionGlyph kind="refresh"/></IconButton></div>
     {notice?<p className="adblock-notice" data-error={problem?'true':'false'} role={problem?'alert':'status'}>{notice}</p>:null}
   </div>;
 }
