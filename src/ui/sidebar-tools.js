@@ -41,6 +41,8 @@ import {FOCUS_ID,FOCUS_CAPABILITY} from '../../examples/sidebar-tools/stay-focus
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
 import {AI_ID,AI_CAPABILITY} from '../../examples/sidebar-tools/ai-vip-share/trusted/policy.js';
 import {PROMPT_ID,PROMPT_CAPABILITY,PROMPT_PICKER_PROTOCOL,PROMPT_PAGE_OPERATIONS,CHATGPT_ORIGIN,supportedOrigin} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
+import {PROMPT_ASSET_OPERATIONS} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js';
+import {executePromptAsset} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js';
 import {createTimeReviewPermissionControls} from '../../examples/sidebar-tools/time-review/trusted/host-controls.js';
 import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../../examples/sidebar-tools/time-review/trusted/trusted-admission.js';
 import {admitsTrustedBookmark,TRUSTED_BOOKMARK_ID,TRUSTED_BOOKMARK_VERSION,TRUSTED_BOOKMARK_COMPONENT_VERSION,
@@ -78,6 +80,11 @@ export function checkSidebarToolRequestBudget(message){
       encoder.encode(serialized).byteLength<=1100000;
     return allowed?{ok:true}:{ok:false,code:'E_LIMIT'};
   }
+  // Only the reviewed Prompt Shortcuts image pipeline may send encoded raster
+  // bytes. Never widen the default 1200-character sandbox budget.
+  if(message?.toolId===PROMPT_ID&&PROMPT_ASSET_OPERATIONS.includes(message?.operation))
+    return serialized.length<=(message.operation==='prompt.asset.put'?91000:1200)
+      ?{ok:true}:{ok:false,code:'E_LIMIT'};
   // Keep other non-Browser tool request budgets unchanged.
   return serialized.length<=(
     ['browser.clipboard.writeText','browser.downloads.text','knowledge.update','knowledge.create'].includes(message.operation)
@@ -1785,6 +1792,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       CLIP_NOTES_OPERATIONS.includes(operation)?'storage.local':
       knowledgeOperation(operation)?KNOWLEDGE_CAPABILITY:
       PROMPT_PAGE_OPERATIONS.includes(operation)?PROMPT_CAPABILITY:
+      PROMPT_ASSET_OPERATIONS.includes(operation)?'storage.local':
       TIME_REVIEW_OPERATIONS.includes(operation)?TIME_REVIEW_CAPABILITY:
       focus?.operations?.includes(operation)?focus.capability:
       adblock?.operations?.includes(operation)?adblock.capability:
@@ -1889,6 +1897,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         throw Object.assign(new Error('旧工具实例已撤销；请先保留草稿再重新打开'),{code:'E_TOOL_CHANGED'});
       assertSession(source,token);
 
+      if(PROMPT_ASSET_OPERATIONS.includes(operation)){
+        if(tool.id!==PROMPT_ID)throw Object.assign(new Error('仅提示词工具可访问自身图片资源'),{code:'E_TOOL_CONTEXT'});
+        return executePromptAsset({api,operation,payload,
+          authorize:async()=>{
+            assertSession(source,token);
+            await assertSidebarToolEnabled(api,PROMPT_ID);
+            assertSession(source,token);
+          }});
+      }
       if(CLIP_NOTES_OPERATIONS.includes(operation)){
         if(tool.id!=='web-markdown-clipper')
           throw Object.assign(new Error('只有网页剪藏可以访问摘录数据'),{code:'E_TOOL_CONTEXT'});
