@@ -4,7 +4,8 @@ import App from '../../../src/react/App.jsx';
 import {TrustedConversationWorkspace,TrustedConversationHeaderSlot} from '../../../../../../src/ui/react/components/conversation.tsx';
 import '../../../../../../src/ui/react/components/conversation-dock.css';
 import '../../../src/react/style.css';
-import './preview-shell.css';
+// Offline-only chrome CSS is injected separately by build-preview.mjs;
+// keep the production App/Dock stylesheet byte-identical to formal builds.
 
 // OFFLINE PREVIEW ONLY. Fixed phrases return bounded intents; the actual
 // React App and bookmark adapter execute against the existing isolated SDK mock.
