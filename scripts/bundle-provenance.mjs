@@ -213,7 +213,7 @@ function reviewedCompiledSharedMarkdown(target,path,root){
 // Chrome Host/Relay targets; installed/user sources are not authorized.
 const compiledWebClipperInputs=Object.freeze({
   'examples/sidebar-tools/web-markdown-clipper/trusted/page.js':'2e4f46ee205cd3749841a79d82c74f3c35b84c00',
-  'examples/sidebar-tools/web-markdown-clipper/trusted/policy.js':'6240ef2d75f251c0b4d980690081d3540bba275f'
+  'examples/sidebar-tools/web-markdown-clipper/trusted/policy.js':'35b60045acd85bc021f25e9e97b5de3474e44d08'
 });
 function reviewedCompiledWebClipper(target,path,root){
   if(!Object.hasOwn(compiledWebClipperInputs,path)||

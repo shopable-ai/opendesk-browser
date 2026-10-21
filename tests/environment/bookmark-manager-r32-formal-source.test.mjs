@@ -34,7 +34,12 @@ test('R3.2 formal JSX is the unique UI source and all four compiled modules rema
  assert.match(app,/export default function App\(\{runtime=null,mode='preview'/);
  assert.match(app,/const interactionEpoch=useRef\(0\)/,
   'The selection epoch must exist to guard AI writes from hijacking navigation');
- assert.match(app,/function request\(action\)\{interactionEpoch\.current\+\+;fillEpoch\.current\+\+;if\(busyRef\.current\)return/);
+ assert.match(app,/function request\(action\)\{interactionEpoch\.current\+\+;fillEpoch\.current\+\+;/,
+  'Changing tools preserves the interaction and stale-page epochs');
+ assert.match(app,/if\(busyRef\.current&&!\['select','detail'\]\.includes\(action\.type\)\)return/,
+  'While writing, read-only selection/detail remain available but conflicting operations are blocked');
+ assert.match(app,/if\(uncertain&&\['create','edit','delete','currentPage'\]\.includes\(action\.type\)\)/,
+  'An unknown write blocks subsequent mutations and page capture');
  assert.match(app,/id="bm-edit-name" autoFocus disabled=\{busy\}/);
  assert.match(app,/id="bm-edit-url" type="url" required disabled=\{busy\}/);
  for(const path of files){
