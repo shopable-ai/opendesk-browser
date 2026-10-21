@@ -182,6 +182,32 @@ try{
    return {screenshot:screenshotFile};
   });
  }
+ currentCase='r15-two-turn-verified-folder-and-current-page';
+ await load(preview,360);
+ await check('R1.5 real React click path: create, follow up, search filter, locate virtual node',async()=>{
+  await click('[data-node-id="10"]');
+  await click('.bm-topbar [aria-label="对话"]');
+  await input('#od-conversation-input','创建 AI 工具文件夹');await key('Enter');
+  await until(()=>evaluate('return [...document.querySelectorAll(".bm-node-title")].some(e=>e.textContent==="AI 工具")'),'R15 folder visible');
+  const folderId=await evaluate('return [...document.querySelectorAll(".bm-tree-row")].find(e=>e.querySelector(".bm-node-title")?.textContent==="AI 工具")?.dataset.nodeId');
+  assert.ok(folderId,'actual fixture folder ID must be rendered');
+  await input('#od-conversation-input','把当前网页收藏进去');await key('Enter');
+  await until(()=>evaluate('return [...document.querySelectorAll(".bm-node-title")].some(e=>e.textContent==="模拟当前页")'),'R15 current page readback in tree');
+  assert.match(await evaluate('return document.querySelector(".od-conversation-log").textContent'),/已收藏书签/);
+  await input('#bm-search','不存在的搜索词');
+  await input('#od-conversation-input','创建 R15 测试文件夹');await key('Enter');
+  await until(()=>evaluate('return !!document.querySelector(".bm-ai-reveal")'),'filtered verified result offered');
+  assert.equal(await evaluate('return document.querySelector("#bm-search").value'),'不存在的搜索词');
+  assert.match(await evaluate('return document.querySelector(".bm-ai-reveal").textContent'),/清除搜索并定位/);
+  await click('.bm-ai-reveal button');
+  await until(()=>evaluate('return [...document.querySelectorAll(".bm-node-title")].some(e=>e.textContent==="R15 测试")'),'R15 revealed target');
+  const rect=await evaluate(`const row=[...document.querySelectorAll(".bm-tree-row")].find(e=>e.querySelector(".bm-node-title")?.textContent==="R15 测试");
+   const scroller=document.querySelector(".bm-tree-scroll"),a=row.getBoundingClientRect(),b=scroller.getBoundingClientRect();
+   return {visible:a.top>=b.top-1&&a.bottom<=b.bottom+1,active:row.classList.contains("is-active"),search:document.querySelector("#bm-search").value};`);
+  assert.equal(rect.search,'');
+  assert.ok(rect.visible,'verified node remains visible in virtual viewport '+JSON.stringify(rect));
+  return {folderId,rect,screenshot:await screenshot('r15-two-turn-verified-reveal-360'),mockOnly:true};
+ });
  currentCase='long-unbroken-message-320-dark-200';await load(preview,160,true,2);
  await evaluate('document.getElementById("opendesk-preview-frame").style.height="800px";',outer);
  await check('long message wrapping and multiline keyboard input',async()=>{
