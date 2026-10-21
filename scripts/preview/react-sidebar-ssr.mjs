@@ -1,6 +1,6 @@
 // Render the real trusted React tree in memory. No Vite listener, product build,
 // Chrome permissions, controller actions or sandbox code is started by a fixture.
-import {build} from 'esbuild';
+import {build,stop} from 'esbuild';
 import {createRequire} from 'node:module';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import * as React from 'react';
@@ -11,7 +11,9 @@ const root=fileURLToPath(new URL('../../',import.meta.url));
 let compilation;
 export function loadSidebarReact(){
   return compilation??=(async()=>{
-    const result=await build({stdin:{resolveDir:root,contents:`
+    let result;
+    try {
+      result=await build({stdin:{resolveDir:root,contents:`
       export {SidebarAppShell} from './src/ui/react/app-shell.tsx';
       export {SidebarNavigation} from './src/ui/react/tabs/navigation.tsx';
       export {ToolHost} from './src/ui/react/tabs/tool-host.tsx';
@@ -32,6 +34,11 @@ export function loadSidebarReact(){
         builder.onResolve({filter:/^react(?:$|\/)/},({path,kind})=>({
           path:kind==='require-call'?require.resolve(path):pathToFileURL(require.resolve(path)).href,external:true}));
       }}]});
+    } finally {
+      // SSR fixtures use esbuild only for a one-shot in-memory compile.
+      // Do not keep its helper process/IPC open across Node test files.
+      stop();
+    }
     return import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].text).toString('base64'));
   })();
 }
