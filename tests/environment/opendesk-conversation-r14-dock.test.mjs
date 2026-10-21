@@ -42,6 +42,8 @@ test('R1.4 original bookmark workspace and search never disappear with chat',asy
  assert.match(css,/\.od-conversation-log\{min-height:0;flex:1 1 auto;overflow:auto/);
  assert.match(css,/\.od-conversation-composer\{display:grid/);
  assert.match(css,/--od-brand/);
+ assert.match(css,/\.od-conversation-action\{position:absolute/,'Send or Stop stays inside the composer');
+ assert.doesNotMatch(css,/\.od-conversation-controls/,'no second action row');
 });
 
 test('R1.4 shared separator and edit draft coexistence retain keyboard access and input',async()=>{
@@ -57,6 +59,8 @@ test('R1.4 shared separator and edit draft coexistence retain keyboard access an
  assert.match(component,/e\.nativeEvent\.isComposing/);
  assert.match(component,/e\.key==='Enter'&&!e\.shiftKey&&!e\.nativeEvent\.isComposing/);
  assert.match(component,/aria-label="收起对话"/);
+ assert.match(component,/showSpeaker=\{false\}/,'shared transcript removes redundant visible speaker labels');
+ assert.doesNotMatch(component,/od-conversation-samples|od-conversation-source/);
  assert.match(component,/controller\?\.saveSession/);
  assert.match(app,/hasDock=\{Boolean\(dock\)\}/);
  assert.match(app,/aria-modal=\{!hasDock\}/);

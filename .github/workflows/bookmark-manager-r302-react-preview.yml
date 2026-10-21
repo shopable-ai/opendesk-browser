@@ -65,6 +65,8 @@ jobs:
             tests/environment/bookmark-manager-r34-transport.test.mjs \
             tests/environment/bookmark-manager-r34-save-consent.test.mjs \
             tests/environment/opendesk-conversation-r10.test.mjs \
+            tests/environment/opendesk-conversation-r14-dock.test.mjs \
+            tests/environment/opendesk-conversation-r15-closeout.test.mjs \
             tests/environment/sidebar-tools-view.test.mjs \
             tests/environment/extension-center-r47-interaction.test.mjs \
             tests/environment/bookmark-manager-r24-lifecycle.test.mjs \
