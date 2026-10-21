@@ -103,7 +103,7 @@ export function prepareDirectExecution({request,workflow,target,observation}) {
   // pressing the observed search control. It must not license other fills,
   // extra clicks, ungrounded literals, or an unobserved button.
   const groundedSearch=clicks.length===1&&fills.length===1&&values.length===1&&
-    /(?:搜索|查找|检索|\\bsearch\\b)/i.test(instruction);
+    /(?:搜索|查找|检索|\bsearch\b)/i.test(instruction);
   if(fills.length&&!fillIntent.test(instruction)&&!groundedSearch)
     throw error('E_AI_UNREQUESTED_ACTION','本次未要求填写，模型额外生成填写动作');
   if(clicks.length&&!requestedClick)
