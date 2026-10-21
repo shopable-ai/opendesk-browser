@@ -1,24 +1,56 @@
 // Real macOS Chrome for Testing smoke: reviewed install, native permission,
 // actual HTTP image network, DNR readback, global switch, per-site bypass,
-// Chrome worker recovery, tool disable/revoke, required DNR and uninstall.
+// Chrome worker recovery, tool disable/revoke, required DNR and uninstall;
+// real page.mouse element selection and durable, site-scoped manual cosmetics.
 // No mocked DNR, artificial rule insertion, synthetic click or storage seeding.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {spawn,spawnSync} from 'node:child_process';
 import {createServer} from 'node:http';
 import {mkdtemp,mkdir,readFile,readdir,writeFile,rm} from 'node:fs/promises';
-import {tmpdir} from 'node:os';
+import {tmpdir,homedir} from 'node:os';
 import path from 'node:path';
+import {pathToFileURL} from 'node:url';
 import {randomUUID,createHash} from 'node:crypto';
 import {setTimeout as pause} from 'node:timers/promises';
 import {sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 import {packageFingerprint} from '../../scripts/verify-package.mjs';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
+import {runAdblockLayoutNative} from './helpers/adblock-layout-native.mjs';
 
 const BIN=process.env.CHROME_BIN,ROOT=path.resolve(process.env.OPENDESK_ADBLOCK_NATIVE_ROOT||'dist/production');
 const OUT=path.resolve(process.env.OPENDESK_ADBLOCK_NATIVE_EVIDENCE||'artifacts/adblock-r12-native');
 const ENABLED=process.env.OPENDESK_ADBLOCK_NATIVE==='1';
 const STORE='opendesk.adblock.state.v1',F=741000,L=741199;
+const COSMETIC_STORE='opendesk.adblock.cosmetic.v1';
+const MANUAL_CASES=['mouseSelection','immediateHide','storageReadback','refreshPersistence',
+  'browserRestartPersistence','dynamicDom','spaNavigation','pageUndo','listRestore',
+  'globalPauseResume','sitePauseResume','otherSiteIsolation'];
+// A dedicated HTTP fixture, never an alternative AdBlock implementation. Only
+// genuine button input changes its DOM/history; the extension owns all hiding.
+const MANUAL_FIXTURE=`<!doctype html><meta charset="utf-8"><title>Manual cosmetic fixture</title>
+<style>body{font:16px system-ui;margin:24px}#manual-ad-slot,#manual-undo-slot{box-sizing:border-box;width:280px;height:80px;padding:18px;background:#ffe3bd}#manual-normal{padding:12px}button{margin:8px 8px 8px 0;padding:10px}</style>
+<h1>Manual cosmetic fixture ready</h1>
+<div id="manual-ad-slot">A region selected by the user</div>
+<div id="manual-undo-slot">A second region for page undo</div>
+<p id="manual-normal">Normal content must remain visible</p>
+<button id="manual-dynamic">Replace region dynamically</button>
+<button id="manual-spa">Open SPA route</button>
+<script>
+window.manualFixtureEvents=[];window.manualFixtureGeneration=0;
+window.addEventListener('click',event=>{
+  const record={type:event.type,isTrusted:event.isTrusted,target:event.target.id,
+    tag:event.target.tagName,ariaLabel:event.target.getAttribute('aria-label'),at:Date.now()};
+  window.manualFixtureEvents.push(record);console.debug('ADBLOCK_MANUAL_INPUT '+JSON.stringify(record));
+},true);
+function replaceRegion(){const old=document.getElementById('manual-ad-slot');
+  const next=document.createElement('div');next.id='manual-ad-slot';
+  next.textContent='Replacement region '+(++window.manualFixtureGeneration);old.replaceWith(next);}
+document.getElementById('manual-dynamic').addEventListener('click',event=>{if(event.isTrusted)replaceRegion();});
+document.getElementById('manual-spa').addEventListener('click',event=>{if(!event.isTrusted)return;
+  const next=new URL(location.href);next.searchParams.set('route','next');
+  history.pushState({route:'next'},'',next.href);replaceRegion();});
+</script>`;
 const nativeCallTrace=[];
 const nativeCallTraceIds=new Set();
 function connect(url){
@@ -217,15 +249,18 @@ function observeNativeCalls(){
   for(const [owner,name] of [[chrome.permissions,'contains'],[chrome.permissions,'request'],
     [chrome.permissions,'remove'],[chrome.runtime,'sendMessage'],
     [chrome.declarativeNetRequest,'getDynamicRules'],
-    [chrome.declarativeNetRequest,'updateDynamicRules']]){
+    [chrome.declarativeNetRequest,'updateDynamicRules'],
+    [chrome.storage?.local,'get'],[chrome.storage?.local,'set'],[chrome.tabs,'sendMessage']]){
     if(typeof owner?.[name]!=='function')continue;
     const original=owner[name];
     owner[name]=function(...args){
       const message=args.find(value=>value&&typeof value==='object');
-      const observed=name!=='sendMessage'||message?.operation?.startsWith('adblock.');
+      const observed=name==='sendMessage'?
+        message?.operation?.startsWith('adblock.')||message?.protocol?.startsWith('opendesk.adblock.'):
+        ['get','set'].includes(name)?JSON.stringify(args[0]??'').includes('opendesk.adblock.'):true;
       if(!observed)return Reflect.apply(original,this,args);
       const callId=crypto.randomUUID();
-      record({kind:'call',name,callId,args:message,stack:new Error('native call').stack,
+      record({kind:'call',name,callId,args:message??args[0],stack:new Error('native call').stack,
         userActivation:navigator.userActivation?.isActive});
       let result;
       try{result=Reflect.apply(original,this,args);}
@@ -236,6 +271,12 @@ function observeNativeCalls(){
       return result;
     };
   }
+  chrome.runtime.onMessage.addListener((message,sender)=>{
+    if(message?.protocol?.startsWith('opendesk.adblock.'))record({kind:'message',message,
+      sender:{id:sender.id,url:sender.url,documentId:sender.documentId,frameId:sender.frameId,
+        tabId:sender.tab?.id},stack:new Error('observed native message').stack});
+    return undefined; // Observation only: never answer or retain the channel.
+  });
   if(typeof document!=='undefined')for(const type of ['pointerdown','click'])document.addEventListener(type,event=>{
     const control=event.target.closest?.('#sidebar-tool-action-review button');
     if(control)record({kind:'input',type,isTrusted:event.isTrusted,
@@ -393,7 +434,7 @@ async function clickSandbox(c,side,frame,selector){
     throw error;
   }
 }
-test('macOS Chrome actual AdBlock DNR and network lifecycle',
+test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   {skip:!ENABLED,timeout:680000},async t=>{
   assert.equal(process.platform,'darwin');
   assert.ok(BIN&&spawnSync(BIN,['--version'],{stdio:'ignore'}).status===0,'Chrome for Testing must exist');
@@ -480,6 +521,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   assert.ok(runtimeBytes.length>0,'candidate worker must not be empty');
   const report={candidate:process.env.GITHUB_SHA||spawnSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).stdout.trim(),
     root:ROOT,driverSHA256:createHash('sha256').update(await readFile(new URL(import.meta.url))).digest('hex'),
+    layoutHelperSHA256:createHash('sha256').update(await readFile(new URL('./helpers/adblock-layout-native.mjs',import.meta.url))).digest('hex'),
     artifactPackageHash:(await packageFingerprint(ROOT)).packageHash,
     swSHA256:createHash('sha256').update(runtimeBytes).digest('hex'),
     manifestSHA256:createHash('sha256').update(manifestBytes).digest('hex'),
@@ -491,6 +533,11 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
       receiptSHA256:createHash('sha256').update(receiptBytes).digest('hex'),reactSourceSHA256,trustedSourceSHA256,
       trustedArtifactBindings,
       developmentUpdateRevision:developmentUpdate?.revision??null,sourceUnchanged:'NOT_TESTED'},
+    manualCosmetic:'NOT_TESTED',
+    manualCosmeticCases:MANUAL_CASES.map(id=>({id,status:'NOT_TESTED',evidence:{},error:null})),
+    manualCosmeticTotals:{total:MANUAL_CASES.length,passed:0,failed:0,notTested:MANUAL_CASES.length,running:0},
+    manualCosmeticEvidence:{schemaVersion:1,identity:{},storageKey:COSMETIC_STORE,
+      inputDriver:'playwright.page.mouse',fixtureSHA256:createHash('sha256').update(MANUAL_FIXTURE).digest('hex')},
     status:'NOT_TESTED',nativePermission:'NOT_TESTED',
     network:'NOT_TESTED',globalToggle:'NOT_TESTED',siteException:'NOT_TESTED',
     otherSite:'NOT_TESTED',iframe:'NOT_TESTED',nestedIframe:'NOT_TESTED',
@@ -501,19 +548,143 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
       reason:'This driver has no native Side Panel splitter adapter; viewport emulation does not prove physical width.'},
     revocation:'NOT_TESTED',uninstall:'NOT_TESTED',reinstall:'NOT_TESTED',cleanupErrors:[],checks:[],screenshots:[],evidenceErrors:[]};
   const preserve=async(file,data)=>{
-    try{await writeFile(path.join(OUT,file),data);}
+    try{await writeFile(path.join(OUT,file),data);
+      return {file,bytes:Buffer.byteLength(data),sha256:createHash('sha256').update(data).digest('hex')};}
     catch(error){
       const message=file+': '+String(error.message||error);
       report.evidenceErrors.push(message);console.error('ADBLOCK_EVIDENCE_FAILURE '+message);
     }
   };
   const note=(name,record)=>{report.checks.push({name,...record});console.log('ADBLOCK_NATIVE '+name+' '+JSON.stringify(record));};
+  Object.assign(report.manualCosmeticEvidence.identity,Object.fromEntries([
+    'candidate','driverSHA256','layoutHelperSHA256','artifactPackageHash','packageSHA256','swSHA256','manifestSHA256'
+  ].map(key=>[key,report[key]])),{buildId:buildReady.buildId});
+  const updateManualSummary=()=>{
+    const cases=report.manualCosmeticCases;
+    report.manualCosmeticTotals={total:cases.length,passed:cases.filter(x=>x.status==='PASS').length,
+      failed:cases.filter(x=>x.status==='FAIL').length,notTested:cases.filter(x=>x.status==='NOT_TESTED').length,
+      running:cases.filter(x=>x.status==='RUNNING').length};
+    report.manualCosmetic=cases.some(x=>x.status==='FAIL')?'FAIL':
+      cases.every(x=>x.status==='PASS')?'PASS':'NOT_TESTED';
+  };
+  let manualStorageSession=null,manualSession=null,manualOtherSession=null,manualMousePage=null;
+  let mouseBrowser=null,cdpEndpoint=null;
+  const manualStorage=()=>evaluate(client,manualStorageSession,
+    'chrome.storage.local.get('+JSON.stringify([STORE,COSMETIC_STORE])+')');
+  const manualDom=session=>evaluate(client,session,`(()=>{
+    const region=document.querySelector('#manual-ad-slot'),normal=document.querySelector('#manual-normal');
+    const inspect=node=>{if(!node)return null;const r=node.getBoundingClientRect(),s=getComputedStyle(node);
+      return {connected:node.isConnected,display:s.display,visibility:s.visibility,rect:r.toJSON(),text:node.textContent,
+        visible:r.width>0&&r.height>0&&s.display!=='none'&&s.visibility==='visible'};};
+    return {url:location.href,region:inspect(region),normal:inspect(normal),
+      undoRegion:inspect(document.querySelector('#manual-undo-slot')),
+      css:document.getElementById('opendesk-adblock-cosmetic')?.textContent??null,
+      notice:document.querySelector('[data-opendesk-adblock-picker][role="status"]')?.textContent??null,
+      events:window.manualFixtureEvents,generation:window.manualFixtureGeneration};
+  })()`);
+  const manualVisibility=async(hidden,label,session=manualSession)=>{
+    const state=await until(async()=>{const value=await manualDom(session);
+      return value.region?.connected&&value.normal?.visible&&
+        (hidden?value.region.display==='none':value.region.visible)?value:null;
+    },label);
+    assert.equal(state.region.connected,true,'hiding/restoring must retain the actual DOM element');
+    return state;
+  };
+  const manualSnapshot=async(row,phase='before')=>{
+    if(!manualSession)return;
+    const dom=await manualDom(manualSession),storage=await manualStorage();
+    const identity=await evaluate(client,manualStorageSession,`(async()=>{
+      const tabs=(await chrome.tabs.query({url:${JSON.stringify(dom.url)}})).filter(tab=>tab.url===${JSON.stringify(dom.url)});
+      if(tabs.length!==1)throw Error('manual fixture must identify exactly one native Chrome tab');
+      const frame=await chrome.webNavigation.getFrame({tabId:tabs[0].id,frameId:0});
+      return {tabId:tabs[0].id,documentId:frame?.documentId,url:frame?.url};
+    })()`);
+    assert.equal(identity.url,dom.url,'manual readback belongs to the exact current document');
+    assert.ok(identity.documentId,'Chrome top document ID required for manual evidence');
+    const shot=await screenshot(client,manualSession,'manual-'+row.id+'-'+phase+'-page');report.screenshots.push(shot);
+    return row.evidence[phase]={...identity,dom,storage,screenshot:shot};
+  };
+  const saveManualEvidence=async(row)=>{
+    const file='manual-'+row.id+'-'+row.status.toLowerCase()+'.json',snapshots={};
+    const attempt=async(label,job)=>{try{return await job();}catch(error){return {error:String(error.stack||error),label};}};
+    snapshots.after=manualSession?await attempt('manual after snapshot',()=>manualSnapshot(row,'after')):null;
+    snapshots.storage=await attempt('chrome.storage.local.get',manualStorage);
+    snapshots.page=manualSession?await attempt('manual fixture DOM',()=>manualDom(manualSession)):null;
+    snapshots.otherPage=manualOtherSession?await attempt('other-site DOM',()=>manualDom(manualOtherSession)):null;
+    const shots=[];
+    for(const [label,session] of [['page',manualSession],['other-site',manualOtherSession],['panel',manualPanelSession]]){
+      if(!session)continue;
+      const shot=await attempt(label,()=>screenshot(client,session,'manual-'+row.id+'-'+row.status.toLowerCase()+'-'+label));
+      if(shot.error)report.evidenceErrors.push('manual screenshot '+label+': '+shot.error);
+      else{shots.push(shot);report.screenshots.push(shot);}
+    }
+    const traceFile='manual-'+row.id+'-native-call-trace.json';
+    const trace=await preserve(traceFile,JSON.stringify(nativeCallTrace.slice(row.traceStart),null,2)+'\n');
+    const artifact=await preserve(file,JSON.stringify({identity:report.manualCosmeticEvidence.identity,case:row.id,
+      status:row.status,error:row.error,before:row.evidence.before,...snapshots,screenshots:shots,trace},null,2)+'\n');
+    if(snapshots.storage.error)report.evidenceErrors.push('manual storage evidence: '+snapshots.storage.error);
+    if(snapshots.after?.error)report.evidenceErrors.push('manual after snapshot: '+snapshots.after.error);
+    Object.assign(row.evidence,{...artifact,file,screenshots:shots,traceFile,trace});
+  };
+  let manualPanelSession=null;
+  const manualCase=async(id,job)=>{
+    const row=report.manualCosmeticCases.find(x=>x.id===id);
+    assert.ok(row,'declared manual case '+id);assert.equal(row.status,'NOT_TESTED','manual cases run once');
+    Object.assign(row,{status:'RUNNING',startedAt:new Date().toISOString(),traceStart:nativeCallTrace.length});
+    updateManualSummary();
+    try{await manualSnapshot(row);Object.assign(row.evidence,await job(row));row.status='PASS';}
+    catch(error){row.status='FAIL';row.error=String(error.stack||error);throw error;}
+    finally{row.finishedAt=new Date().toISOString();updateManualSummary();
+      await saveManualEvidence(row);note('manual-cosmetic-'+id,row);}
+    return row;
+  };
+  const connectMouse=async()=>{
+    if(mouseBrowser?.isConnected())return mouseBrowser;
+    const modules=process.env.OPENDESK_PLAYWRIGHT_MODULE?[process.env.OPENDESK_PLAYWRIGHT_MODULE]:
+      ['playwright',pathToFileURL(path.join(homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs')).href];
+    let chromium;
+    for(const module of modules){try{({chromium}=await import(module));break;}catch(error){
+      report.manualCosmeticEvidence.playwrightImportError=String(error.message||error);
+    }}
+    assert.ok(chromium,'page.mouse requires Playwright; set OPENDESK_PLAYWRIGHT_MODULE to the existing runtime module');
+    mouseBrowser=await chromium.connectOverCDP(cdpEndpoint);
+    return mouseBrowser;
+  };
+  const mousePage=async targetId=>{
+    const browser=await connectMouse();
+    return until(async()=>{
+      for(const context of browser.contexts())for(const page of context.pages()){
+        const session=await context.newCDPSession(page);
+        try{const {targetInfo}=await session.send('Target.getTargetInfo');
+          if(targetInfo.targetId===targetId)return page;
+        }finally{await session.detach();}
+      }
+      return null;
+    },'Playwright page bound to exact owned CDP target');
+  };
+  const mouseClick=async(page,selector)=>{
+    const point=await page.locator(selector).boundingBox();
+    assert.ok(point&&point.width>0&&point.height>0,'visible fixture target '+selector);
+    const x=point.x+point.width/2,y=point.y+point.height/2;
+    assert.equal(await page.evaluate(({selector,x,y})=>{
+      const node=document.querySelector(selector);return node?.contains(document.elementFromPoint(x,y));
+    },{selector,x,y}),true,'real page.mouse hit target '+selector);
+    const dispatchedAt=Date.now();
+    await page.mouse.move(x,y);await page.mouse.click(x,y);
+    const event=await page.evaluate(()=>window.manualFixtureEvents.at(-1));
+    assert.ok(event?.isTrusted&&event.type==='click'&&event.at>=dispatchedAt,
+      'page fixture must observe the actual trusted Chrome click');
+    return {selector,x,y,driver:'playwright.page.mouse',event};
+  };
   const counts={ad:0,normal:0,frameAd:0,framePage:0},serverRequests=[];
   let port;
   const server=createServer((req,res)=>{
     const uri=new URL(req.url,'http://placeholder'),hostname=(req.headers.host||'').split(':')[0];
     serverRequests.push({at:new Date().toISOString(),hostname,path:uri.pathname,query:uri.search});
     res.setHeader('cache-control','no-store');res.setHeader('access-control-allow-origin','*');
+    if(uri.pathname==='/manual'){
+      res.setHeader('content-type','text/html;charset=utf-8');res.end(MANUAL_FIXTURE);return;
+    }
     if(uri.pathname==='/page'){
       res.setHeader('content-type','text/html;charset=utf-8');
       res.end('<!doctype html><title>AdBlock controlled page</title><h1>Network fixture ready</h1>');
@@ -539,6 +710,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   port=server.address().port;
   const page='http://127.0.0.1:'+port+'/page';
   const otherPage='http://localhost:'+port+'/page';
+  const manualUrl='http://localhost:'+port+'/manual',manualOtherUrl='http://127.0.0.1:'+port+'/manual';
   const adUrl=()=> 'http://zedo.com:'+port+'/ad-pixel?nonce='+randomUUID();
   const normalUrl=()=> 'http://127.0.0.1:'+port+'/normal-pixel?nonce='+randomUUID();
   const profile=await mkdtemp(path.join(tmpdir(),'opendesk-adblock-r12-'));
@@ -637,7 +809,8 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
       await preserve('native-call-trace.json',JSON.stringify(nativeCallTrace,null,2)+'\n');
       report.chromeErrorTail=errors.slice(-1000);
       await preserve('chrome-stderr.log',errors);
-      report.success=passed&&report.evidenceErrors.length===0&&report.cleanupErrors.length===0;
+      updateManualSummary();
+      report.success=passed&&report.manualCosmetic==='PASS'&&report.evidenceErrors.length===0&&report.cleanupErrors.length===0;
       report.status=report.success?'PASS':'FAIL_OR_BLOCKED_NATIVE';
       await writeFile(path.join(OUT,'native-report.json'),JSON.stringify(report,null,2)+'\n');
       assert.equal(report.cleanupErrors.length,0,'Native cleanup must succeed');
@@ -650,6 +823,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
       const port=Number(source?.split('\n')[0]);return port>0?port:null;
     },'native Chrome CDP port',30000);
     const raw=await(await fetch('http://127.0.0.1:'+debugPort+'/json/version')).json();
+    cdpEndpoint=raw.webSocketDebuggerUrl;
     const socket=connect(raw.webSocketDebuggerUrl);socket.launchId=report.browserSessions.length;await socket.ready;
     return {socket,version:raw.Browser};
   }
@@ -1146,6 +1320,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     {targetId:recoveredWorker.targetId,flatten:true})).sessionId;
   await client.send('Runtime.enable',{},recoveredWorkerSession);
   const recoveredWorkerContext=await workerContext(recoveredWorkerSession);
+  await evaluate(client,recoveredWorkerSession,'('+observeNativeCalls.toString()+')()');
   assert.notEqual(recoveredWorkerContext.uniqueId,beforeWorkerContext.uniqueId,
     'wake must rebuild the real worker Runtime execution context');
   const afterWorker=await getOwned(client,uid);
@@ -1171,6 +1346,75 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   await click(client,sid,'#tab-tools');
   await openInstalled(sid);
   const beforeRestartReact=await attachActualReact(client,sid);
+  manualStorageSession=uid;manualPanelSession=sid;
+  const manualRule={host:'localhost',selector:'#manual-ad-slot'};
+  const expectedManual={version:1,entries:[manualRule]};
+  const pickerSelector='button[aria-label="在当前网页中点击选择要隐藏的元素"]';
+  Object.assign(report.manualCosmeticEvidence.identity,{extensionId:id,installedIdentity:report.installedIdentity});
+  const activateManual=async reactSession=>{
+    await manualMousePage.bringToFront();
+    await until(()=>evaluate(client,reactSession,
+      'document.querySelector(".adblock-host")?.textContent.trim()==="localhost"'),
+      'installed React targets the real manual fixture host');
+    await until(()=>evaluate(client,reactSession,
+      'document.querySelector('+JSON.stringify(pickerSelector)+')?.disabled===false'),
+      'installed React manual picker ready');
+  };
+  const pickManual=async(reactSession,selector='#manual-ad-slot')=>{
+    await activateManual(reactSession);
+    const regionKey=selector==='#manual-ad-slot'?'region':'undoRegion';
+    await until(async()=>{const dom=await manualDom(manualSession);return dom[regionKey]?.visible;},
+      'region visible before actual user selection');
+    await clickSandbox(client,sid,reactSession,pickerSelector);
+    await until(()=>evaluate(client,manualSession,
+      'document.querySelector("[data-opendesk-adblock-picker][role=status]")?.textContent.includes("选择模式：")'),
+      'actual isolated-world page picker entered selection mode');
+    assert.equal(await evaluate(client,sid,
+      'document.getElementById("sidebar-tool-action-review")?.hidden'),true,
+      'manual selection has no secondary approval dialog');
+    const dispatchedAt=Date.now(),input=await mouseClick(manualMousePage,selector);
+    const hidden=await until(async()=>{const value=await manualDom(manualSession);
+      return value[regionKey]?.connected&&value[regionKey].display==='none'&&value.normal?.visible?value:null;
+    },'single real mouse selection immediately hides the element',1500);
+    const hiddenObservedAt=Date.now();
+    assert.ok(hidden.events.some(event=>event.isTrusted&&event.target===selector.slice(1)&&event.at>=dispatchedAt),
+      'fixture must record a genuine trusted Chrome page click');
+    return {input,dispatchedAt,hiddenObservedAt,elapsedMs:hiddenObservedAt-dispatchedAt,hidden};
+  };
+  let firstManualSelection;
+  await manualCase('mouseSelection',async row=>{
+    const target=await client.send('Target.createTarget',{url:manualUrl+'?visit='+randomUUID()});
+    manualSession=await attach(client,target.targetId);manualMousePage=await mousePage(target.targetId);
+    await until(()=>evaluate(client,manualSession,
+      'document.querySelector("h1")?.textContent==="Manual cosmetic fixture ready"'),'manual fixture ready');
+    assert.equal((await manualStorage())[COSMETIC_STORE],undefined,'fresh profile has no seeded manual rules');
+    await manualSnapshot(row);
+    firstManualSelection=await pickManual(beforeRestartReact);
+    return {targetId:target.targetId,url:manualMousePage.url(),...firstManualSelection};
+  });
+  await manualCase('immediateHide',async()=>{
+    assert.ok(firstManualSelection.elapsedMs<=1500,'single click must hide within 1500ms, without reload or confirmation');
+    return {maxElapsedMs:1500,...firstManualSelection};
+  });
+  await manualCase('storageReadback',async()=>{
+    const storage=await until(async()=>{const value=await manualStorage();
+      return value[COSMETIC_STORE]?.entries?.some(entry=>entry.host===manualRule.host&&
+        entry.selector===manualRule.selector)?value:null;
+    },'Chrome local storage contains the actual selected rule');
+    assert.deepEqual(storage[COSMETIC_STORE],expectedManual,'exact hostname and safe selected CSS persisted');
+    return {storage};
+  });
+  await manualCase('refreshPersistence',async()=>{
+    const reload=await reloadFixture(client,manualSession,'saved manual rule refresh');
+    const dom=await manualVisibility(true,'saved manual rule reapplies to a fresh document');
+    assert.deepEqual((await manualStorage())[COSMETIC_STORE],expectedManual);
+    return {reload,dom,profile,browserSession:report.browserSessions.length};
+  });
+  // P0-4 owns the default native splitter/Chrome zoom adapter and its cleanup.
+  // Supply the owned browser PID and existing extension tab session; cells
+  // without proven native geometry/zoom remain NOT_TESTED in the helper.
+  await runAdblockLayoutNative({client,hostSession:sid,reactSession:beforeRestartReact,
+    evaluate,click,clickSandbox,screenshot,until,report,chromePid:chrome.pid,zoomSession:uid});
   await activateFixture();
   await until(()=>evaluate(client,beforeRestartReact,
     'document.querySelector(".adblock-host")?.textContent.trim()==="127.0.0.1"'),'restart exception targets A');
@@ -1184,11 +1428,14 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   },'approved A exception durable before restart');
   report.beforeRestart=beforeRestart;
   note('before-browser-restart',beforeRestart);
+  const manualBeforeRestartRow={id:'browserRestartPersistence',evidence:{}};
+  await manualSnapshot(manualBeforeRestartRow);
   const prior=chrome;
   await client.send('Browser.close').catch(()=>{});
   await until(()=>prior.exitCode!==null||prior.signalCode!==null,'real Chrome browser exited',25000);
   archiveEvents(client);
   client.close();client=null;
+  manualSession=null;manualMousePage=null;
   await rm(path.join(profile,'DevToolsActivePort'),{force:true});
   chrome=launch();capture(chrome);
   first=await connected();client=first.socket;
@@ -1197,6 +1444,12 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     return targets.find(x=>x.type==='service_worker'&&x.url?.endsWith('/sw.js'))?.url?.split('/')[2];
   },'extension after actual full Chrome restart',25000);
   assert.equal(idAgain,id,'extension ID must not change across restart');
+  const restartWorker=(await client.send('Target.getTargets')).targetInfos
+    .find(target=>target.type==='service_worker'&&target.url==='chrome-extension://'+id+'/sw.js');
+  const restartWorkerSession=(await client.send('Target.attachToTarget',
+    {targetId:restartWorker.targetId,flatten:true})).sessionId;
+  await client.send('Runtime.enable',{},restartWorkerSession);
+  await evaluate(client,restartWorkerSession,'('+observeNativeCalls.toString()+')()');
   const uiAgain=await client.send('Target.createTarget',
     {url:'chrome-extension://'+id+'/sidepanel.html?hostInstanceId='+randomUUID()});
   const again=await attach(client,uiAgain.targetId);
@@ -1254,6 +1507,154 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     return current?.on&&!current.disabled;
   },'installed React and DNR ON after actual Chrome restart');
   report.screenshots.push(await screenshot(client,sid,'react-after-real-chrome-restart'));
+
+  manualStorageSession=again;manualPanelSession=sid;
+  await manualCase('browserRestartPersistence',async row=>{
+    row.evidence.before=manualBeforeRestartRow.evidence.before;
+    assert.equal(report.browserSessions.length,2,'manual persistence must use the real full Chrome restart');
+    assert.notEqual(report.browserSessions[0].pid,report.browserSessions[1].pid);
+    assert.ok(report.browserSessions[0].exitedAt,'original Chrome process must have exited');
+    assert.equal(report.browserSessions[0].profile,report.browserSessions[1].profile,'restart uses same durable profile');
+    assert.deepEqual((await manualStorage())[COSMETIC_STORE],expectedManual,'Chrome restart preserves exact manual state');
+    const target=await client.send('Target.createTarget',{url:manualUrl+'?visit='+randomUUID()});
+    manualSession=await attach(client,target.targetId);manualMousePage=await mousePage(target.targetId);
+    const dom=await manualVisibility(true,'new document auto-hides after actual Chrome process restart');
+    assert.equal(dom.events.length,0,'restart recovery must not need another page selection');
+    return {targetId:target.targetId,dom,browserSessions:report.browserSessions.map(x=>({...x})),storage:await manualStorage()};
+  });
+  await manualCase('dynamicDom',async()=>{
+    const before=await manualDom(manualSession);
+    const input=await mouseClick(manualMousePage,'#manual-dynamic');
+    await until(async()=>{const dom=await manualDom(manualSession);
+      return dom.generation===before.generation+1&&dom.region.text!==before.region.text;
+    },'real fixture button replaces matching DOM element');
+    const dom=await manualVisibility(true,'new matching DOM region inherits saved CSS');
+    assert.deepEqual((await manualStorage())[COSMETIC_STORE],expectedManual);
+    return {input,before,dom};
+  });
+  await manualCase('spaNavigation',async()=>{
+    const before=(await client.send('Page.getFrameTree',{},manualSession)).frameTree.frame;
+    const generation=(await manualDom(manualSession)).generation;
+    const input=await mouseClick(manualMousePage,'#manual-spa');
+    const dom=await until(async()=>{const value=await manualDom(manualSession);
+      return new URL(value.url).searchParams.get('route')==='next'&&value.generation===generation+1?value:null;
+    },'real SPA button changes history and route content');
+    const after=(await client.send('Page.getFrameTree',{},manualSession)).frameTree.frame;
+    assert.equal(after.id,before.id);assert.equal(after.loaderId,before.loaderId,'SPA must not reload its document');
+    await manualVisibility(true,'SPA replacement remains hidden with normal content intact');
+    assert.deepEqual((await manualStorage())[COSMETIC_STORE],expectedManual);
+    return {input,dom,beforeLoaderId:before.loaderId,afterLoaderId:after.loaderId};
+  });
+  await manualCase('pageUndo',async()=>{
+    const selection=await pickManual(resumedReact,'#manual-undo-slot');
+    const selected=await until(async()=>{const storage=await manualStorage();
+      return storage[COSMETIC_STORE]?.entries?.length===2?storage:null;
+    },'second genuine selection persisted before page undo');
+    assert.ok(selected[COSMETIC_STORE].entries.some(x=>x.host==='localhost'&&x.selector==='#manual-undo-slot'));
+    const undoSelector='button[aria-label="撤销刚才的隐藏规则"]';
+    await until(()=>evaluate(client,manualSession,
+      '!!document.querySelector('+JSON.stringify(undoSelector)+')'),'page success notice offers undo');
+    const input=await mouseClick(manualMousePage,undoSelector);
+    const dom=await until(async()=>{const value=await manualDom(manualSession);
+      return value.undoRegion?.connected&&value.undoRegion.visible&&value.region?.display==='none'&&value.normal?.visible?value:null;
+    },'page undo restores only the last hidden region');
+    await until(async()=>{const value=await manualStorage();return value[COSMETIC_STORE]?.entries?.length===1;},
+      'page undo permanently deletes only the second rule');
+    assert.deepEqual((await manualStorage())[COSMETIC_STORE],expectedManual);
+    const reload=await reloadFixture(client,manualSession,'page undo durability');
+    const fresh=await until(async()=>{const value=await manualDom(manualSession);
+      return value.undoRegion?.visible&&value.region?.display==='none'&&value.normal?.visible?value:null;
+    },'page undo remains restored across refresh');
+    return {selection,input,dom,reload,fresh};
+  });
+  await manualCase('listRestore',async()=>{
+    await activateManual(resumedReact);
+    await clickSandbox(client,sid,resumedReact,'.adblock-manual-actions button:nth-child(2)');
+    const restore='button[aria-label="撤销屏蔽 #manual-ad-slot"]';
+    await until(()=>evaluate(client,resumedReact,
+      'document.querySelector('+JSON.stringify(restore)+')?.disabled===false'),'installed React lists the exact saved rule');
+    await clickSandbox(client,sid,resumedReact,restore);
+    const dom=await manualVisibility(false,'installed list restore displays existing page region');
+    await until(async()=>{const value=await manualStorage();return value[COSMETIC_STORE]?.entries?.length===0;},
+      'installed list restoration deletes local rule');
+    assert.deepEqual((await manualStorage())[COSMETIC_STORE],{version:1,entries:[]});
+    await until(()=>evaluate(client,resumedReact,
+      'document.querySelector(".adblock-empty")?.textContent.includes("本站尚无手动屏蔽区域")'),
+      'installed list displays persisted empty state');
+    const reload=await reloadFixture(client,manualSession,'installed list restoration durability');
+    const fresh=await manualVisibility(false,'list restoration remains visible after refresh');
+    await clickSandbox(client,sid,resumedReact,'button[aria-label="返回广告拦截概览"]');
+    return {dom,reload,fresh};
+  });
+  await manualCase('globalPauseResume',async()=>{
+    const selection=await pickManual(resumedReact);
+    await until(async()=>{const value=await manualStorage();return value[COSMETIC_STORE]?.entries?.length===1;},
+      'fresh manual selection is durable before global pause');
+    await until(()=>evaluate(client,resumedReact,
+      '!document.querySelector('+JSON.stringify(globalSelector)+')?.hasAttribute("data-disabled")'),
+      'React is ready for global pause');
+    await requestReactReview(client,sid,resumedReact,globalSelector,'关闭全局过滤');
+    await approveReactReview(client,sid);
+    await until(async()=>{const value=await getOwned(client,again);return value.state?.enabled===false&&value.owned.length===0;},
+      'global pause removes network protection');
+    const paused=await manualVisibility(false,'global pause releases manual CSS immediately');
+    assert.deepEqual((await manualStorage())[COSMETIC_STORE],expectedManual,'pause retains saved manual rule');
+    await requestReactReview(client,sid,resumedReact,globalSelector,'开启全局过滤');
+    await approveReactReview(client,sid);
+    await until(async()=>{const value=await getOwned(client,again);return value.state?.enabled===true&&value.owned.length>0;},
+      'global protection resumes');
+    const resumed=await manualVisibility(true,'global resume reapplies saved manual rule');
+    assert.deepEqual((await manualStorage())[COSMETIC_STORE],expectedManual);
+    return {selection,paused,resumed};
+  });
+  await manualCase('sitePauseResume',async()=>{
+    await activateManual(resumedReact);
+    await requestReactReview(client,sid,resumedReact,currentSelector,'关闭 localhost 的广告过滤');
+    await approveReactReview(client,sid);
+    await until(async()=>{const value=await getOwned(client,again);return value.state?.exceptions?.includes('localhost');},
+      'localhost exception persisted');
+    const paused=await manualVisibility(false,'website exception releases manual CSS');
+    assert.deepEqual((await manualStorage())[COSMETIC_STORE],expectedManual,'website pause retains manual rule');
+    await requestReactReview(client,sid,resumedReact,currentSelector,'恢复 localhost 的广告过滤');
+    await approveReactReview(client,sid);
+    await until(async()=>{const value=await getOwned(client,again);return !value.state?.exceptions?.includes('localhost');},
+      'localhost exception removed');
+    const resumed=await manualVisibility(true,'website resume restores saved hiding');
+    assert.deepEqual((await manualStorage())[COSMETIC_STORE],expectedManual);
+    return {paused,resumed};
+  });
+  await manualCase('otherSiteIsolation',async()=>{
+    const target=await client.send('Target.createTarget',{url:manualOtherUrl});
+    manualOtherSession=await attach(client,target.targetId);
+    const otherMouse=await mousePage(target.targetId);await otherMouse.bringToFront();
+    await until(()=>evaluate(client,resumedReact,
+      'document.querySelector(".adblock-host")?.textContent.trim()==="127.0.0.1"'),'installed React follows other site');
+    // Remove A's existing DNR exception while testing isolation. Otherwise a
+    // paused site would hide an accidental cross-host cosmetic rule leak.
+    await until(async()=>{const value=await reactSwitch(client,resumedReact,currentLabel);
+      return value&&!value.disabled&&!value.on;},'other website currently excepted');
+    await requestReactReview(client,sid,resumedReact,currentSelector,'恢复 127.0.0.1 的广告过滤');
+    await approveReactReview(client,sid);
+    const protectedOther=await until(async()=>{const value=await getOwned(client,again);
+      return value.state?.enabled===true&&!value.state.exceptions.includes('127.0.0.1')&&value.owned.length>0?value:null;
+    },'other website protection enabled during isolation check');
+    const otherDom=await manualVisibility(false,'same selector stays visible on protected other hostname',manualOtherSession);
+    assert.equal(otherDom.css,null,'other hostname receives no manual CSS');
+    const protectedScreenshot=await screenshot(client,manualOtherSession,'manual-otherSiteIsolation-protected-other-site');
+    report.screenshots.push(protectedScreenshot);
+    const ownDom=await manualVisibility(true,'saved hostname remains hidden when another site is active');
+    assert.deepEqual((await manualStorage())[COSMETIC_STORE],expectedManual,'other site cannot inherit saved host rule');
+    const reload=await reloadFixture(client,manualOtherSession,'protected other site isolation refresh');
+    await manualVisibility(false,'other hostname remains visible after refresh',manualOtherSession);
+    // Leave the surrounding DNR scenarios in their original A-exception state.
+    await requestReactReview(client,sid,resumedReact,currentSelector,'关闭 127.0.0.1 的广告过滤');
+    await approveReactReview(client,sid);
+    await until(async()=>{const value=await getOwned(client,again);return value.state?.exceptions?.includes('127.0.0.1');},
+      'original DNR exception restored after isolation check');
+    assert.deepEqual(sortedRules((await getOwned(client,again)).owned),sortedRules(persisted.owned),
+      'manual coverage preserves surrounding DNR rule expectations');
+    return {targetId:target.targetId,protectedOther,otherDom,ownDom,reload,protectedScreenshot};
+  });
 
   // The installed row menu calls the unchanged trusted Host using a real
   // React event.nativeEvent. No scripting/storage mutation stands in for this.
@@ -1565,6 +1966,10 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   note('real-stay-focus-priority-isolation',report.coexistenceEvidence);
   assert.equal((await packageFingerprint(ROOT)).packageHash,report.artifactPackageHash,
     'loaded artifact bytes must remain stable through actual Native test');
+  assert.equal(createHash('sha256').update(await readFile(new URL(import.meta.url))).digest('hex'),report.driverSHA256,
+    'native driver must remain the same SHA through actual Native test');
+  assert.equal(createHash('sha256').update(await readFile(new URL('./helpers/adblock-layout-native.mjs',import.meta.url))).digest('hex'),
+    report.layoutHelperSHA256,'installed React matrix helper must remain the same SHA through Native');
   // Product phases ran. The separate common release gate remains fail-closed
   // until it migrates "revocation" away from an OPTIONAL DNR model.
   const finalReactSourceSHA256=await readReactSourceHashes();
@@ -1583,6 +1988,11 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     'receipt-validated AdBlock package must remain identical at completion');
   report.sourceChain.finalReactSourceSHA256=finalReactSourceSHA256;
   report.sourceChain.sourceUnchanged='PASS';
+  updateManualSummary();
+  assert.equal(report.manualCosmetic,'PASS','all declared manual cosmetic cases must complete');
+  assert.deepEqual(report.manualCosmeticTotals,{total:MANUAL_CASES.length,passed:MANUAL_CASES.length,
+    failed:0,notTested:0,running:0},'complete manual cosmetic case accounting');
+  report.manualCosmeticEvidence.candidateUnchanged='PASS';
   const observedInputs=[...allCdpEvents,...client.events].filter(event=>
     event.method==='Runtime.consoleAPICalled'&&event.params.args?.[0]?.value?.startsWith?.('ADBLOCK_REACT_INPUT '))
     .map(event=>JSON.parse(event.params.args[0].value.slice(20)));

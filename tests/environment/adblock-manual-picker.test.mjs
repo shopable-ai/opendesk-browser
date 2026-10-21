@@ -121,14 +121,105 @@ test('picker timeout and tab switch release the capture listeners',async()=>{
   const [deadline]=timers.values();
   assert.equal(deadline.ms,ADBLOCK_COSMETIC_PICK_TTL_MS);
   deadline.fn();
+  await new Promise(resolve=>setImmediate(resolve));
   assert.equal(listeners.size,0);
   assert.equal(timers.size,0);
   assert.equal(sent.at(-1).type,'cancel');
   assert.equal(picker.begin(),true);
   picker.cancel('标签页已切换');
+  await new Promise(resolve=>setImmediate(resolve));
   assert.equal(listeners.size,0);
   assert.equal(timers.size,0);
   assert.equal(sent.at(-1).type,'cancel');
   picker.dispose();
   assert.equal(picker.begin(),false);
+});
+
+function pickerOutcomeFixture(send){
+  const listeners=new Map(),nodes=[],calls=[],saved=[],undone=[];
+  const body={nodeType:1,localName:'body'};
+  const target={nodeType:1,localName:'aside',id:'promo',parentElement:body,
+    getAttribute:()=>null,hasAttribute:()=>false,closest:()=>null,
+    getBoundingClientRect:()=>({width:140,height:60,left:10,top:10})};
+  const element=()=>({isConnected:false,style:{},children:[],setAttribute(){},
+    replaceChildren(...items){this.children=items;},append(child){this.children.push(child);},
+    addEventListener(type,fn){this[type]=fn;},remove(){this.isConnected=false;}});
+  const doc={body,documentElement:{append(node){node.isConnected=true;nodes.push(node);}},
+    createElement:element,createTextNode:textContent=>({textContent}),
+    querySelectorAll:()=>[target],addEventListener:(type,fn)=>listeners.set(type,fn),
+    removeEventListener:type=>listeners.delete(type)};
+  const win={location:new URL('https://news.example.com/story'),innerWidth:800,innerHeight:600,
+    setTimeout,clearTimeout};
+  const picker=createAdblockElementPicker({doc,win,
+    api:{runtime:{sendMessage:async value=>{calls.push(value.type);return send(value);}}},
+    onSaved:selector=>saved.push(selector),onUndone:selector=>undone.push(selector)});
+  const notice=()=>nodes.find(node=>node.children.length);
+  const flush=()=>new Promise(resolve=>setImmediate(resolve));
+  const select=async()=>{picker.begin();listeners.get('click')({type:'click',isTrusted:true,target,
+    preventDefault(){},stopImmediatePropagation(){}});await flush();};
+  return {picker,win,calls,saved,undone,select,flush,
+    text:()=>notice()?.children.map(x=>x.textContent||'').join(''),
+    undo:async()=>{notice().children.find(node=>node.click).click({isTrusted:true});await flush();}};
+}
+
+for(const present of [true,false,null]){
+  test('lost save receipt uses a single read-only lookup: '+present,async()=>{
+    const f=pickerOutcomeFixture(async value=>{
+      if(value.type==='hide')throw Error('reply lost after commit');
+      if(present===null)throw Error('worker unavailable');
+      return {ok:true,data:{version:1,host:'news.example.com',selector:value.selector,present}};
+    });
+    await f.select();
+    assert.deepEqual(f.calls,['hide','lookup'],'never retry the write');
+    assert.equal(f.saved.length,present===true?1:0);
+    assert.equal(f.undone.length,present===false?1:0);
+    assert.match(f.text(),present===true?/已保存/:present===false?/不存在/:/无法确认/);
+    assert.doesNotMatch(f.text(),/未保存，已恢复/);
+    f.picker.dispose();
+  });
+  test('lost undo receipt reports persisted rule truth: '+present,async()=>{
+    const f=pickerOutcomeFixture(async value=>{
+      if(value.type==='undo')throw Error('undo response lost');
+      return {ok:true,data:value.type==='lookup'?
+        {version:1,host:'news.example.com',selector:value.selector,present}:
+        {saved:true,host:'news.example.com',selector:value.selector}};
+    });
+    await f.select();await f.undo();
+    assert.deepEqual(f.calls,['hide','undo','lookup']);
+    assert.equal(f.undone.length,present===false?1:0);
+    assert.match(f.text(),present===true?/仍存在/:present===false?/已删除/:/无法确认/);
+    f.picker.dispose();
+  });
+}
+test('lookup for another host or selector cannot confirm a failed write',async()=>{
+  for(const change of [{host:'other.example.com'},{selector:'#other'},{present:'false'}]){
+    const f=pickerOutcomeFixture(async value=>{
+      if(value.type==='hide')throw Error('lost');
+      return {ok:true,data:{version:1,host:'news.example.com',selector:'#promo',present:true,...change}};
+    });
+    await f.select();assert.match(f.text(),/无法确认/);assert.deepEqual(f.saved,[]);
+    assert.deepEqual(f.calls,['hide','lookup']);f.picker.dispose();
+  }
+});
+test('a malformed successful write acknowledgement still requires read-only confirmation',async()=>{
+  const f=pickerOutcomeFixture(async value=>({ok:true,data:value.type==='lookup'?
+    {version:1,host:'news.example.com',selector:value.selector,present:false}:{saved:true}}));
+  await f.select();assert.deepEqual(f.calls,['hide','lookup']);
+  assert.match(f.text(),/规则不存在/);assert.deepEqual(f.saved,[]);f.picker.dispose();
+});
+test('an unanswered write expires and only reads back; an unanswered lookup stays unknown',async()=>{
+  for(const lookupReplies of [true,false]){
+    const f=pickerOutcomeFixture(async value=>{
+      if(value.type==='hide'||!lookupReplies)return new Promise(()=>{});
+      return {ok:true,data:{version:1,host:'news.example.com',selector:'#promo',present:true}};
+    });
+    const deadlines=[];
+    f.win.setTimeout=(fn,ms)=>{if(ms===3000){deadlines.push(fn);return fn;}return setTimeout(fn,ms);};
+    f.win.clearTimeout=id=>{if(typeof id!=='function')clearTimeout(id);};
+    await f.select();deadlines.shift()();await f.flush();
+    if(!lookupReplies){deadlines.shift()();await f.flush();}
+    assert.deepEqual(f.calls,['hide','lookup']);
+    assert.match(f.text(),lookupReplies?/已保存/:/无法确认/);
+    f.picker.dispose();
+  }
 });

@@ -21,8 +21,8 @@ test('AdBlock status and unrelated tool request timing do not change',()=>{
 });
 test('timeout loss never masquerades as AdBlock cancellation',async()=>{
   const src=await readFile(new URL('../../src/sidebar-tools/bridge.js',import.meta.url),'utf8');
-  assert.match(src,/error\.code=uncertain\?'E_OUTCOME_UNKNOWN':'E_TOOL_TIMEOUT'/);
-  assert.match(src,/waiting\.delete\(requestId\)/);
+  assert.match(src,/reject\(exportError\(uncertain\?'E_OUTCOME_UNKNOWN':'E_TOOL_TIMEOUT'/);
+  assert.match(src,/apply\(mapDelete,waiting,\[requestId\]\)/);
 });
 // Exercise the actual trusted-host review function, not a DOM assignment string.
 function reviewHarness(source){

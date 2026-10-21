@@ -382,13 +382,33 @@ export function createAdblockService({
     const keys=Object.keys(message||{}).sort().join(',');
     const type=keys==='protocol'?'snapshot':
       keys==='protocol,type'&&message.type==='cancel'?'cancel':
-      keys==='protocol,selector,type'&&['hide','undo'].includes(message.type)?
+      keys==='protocol,selector,type'&&['hide','undo','lookup'].includes(message.type)?
         message.type:null;
     if(message?.protocol!==ADBLOCK_PAGE_PROTOCOL||!type||
-       ['hide','undo'].includes(type)&&!validCosmeticSelector(message.selector))
+       ['hide','undo','lookup'].includes(type)&&!validCosmeticSelector(message.selector))
       fail('E_ADBLOCK_REQUEST','网页只能提交安全的用户手动屏蔽规则');
     return lock(async()=>{
       const epoch=generation,host=await pageDocument(sender);
+      if(type==='lookup'){
+        // Read-only reconciliation of an unknown write outcome. Do not call
+        // reconcileLocked: it may persist policy or change native DNR rules.
+        const auth=await authority({dnrReady:false});
+        const hash=auth.tool&&await sidebarToolPackageHash(auth.tool);
+        const state=readAdblockState(auth.raw);
+        if(!hash||!auth.enabled||revoked||!await permission()||
+           hash!==await compiledPackage()||state.approvedHash!==hash||
+           state.approvedEpoch!==auth.epoch)
+          fail('E_TOOL_CHANGED','无法在当前安装授权下核对屏蔽规则');
+        const present=hasCosmeticRule(await readManual(),host,message.selector);
+        const final=await authority({dnrReady:false});
+        const finalHash=final.tool&&await sidebarToolPackageHash(final.tool);
+        const allowed=await permission(),currentHost=await pageDocument(sender);
+        if(currentHost!==host||generation!==epoch||
+           !final.tool||!final.enabled||final.epoch!==auth.epoch||
+           finalHash!==hash||!sameStorageValue(final.raw,auth.raw)||!allowed)
+          fail('E_TOOL_CHANGED','网页或广告授权已改变，无法确认结果');
+        return {version:1,host,selector:message.selector,present};
+      }
       const state=await reconcileLocked();
       const enabled=state.enabled===true&&state.rules.verified===true&&
         !state.exceptions.includes(host);

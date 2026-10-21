@@ -1,7 +1,7 @@
 // Manual element selection is a fixed first-party ISOLATED-world page action.
 // Only a real user click on the actual page can send a selector to the existing
 // trusted AdBlock worker. The worker owns storage and installation authority.
-import {ADBLOCK_PAGE_PROTOCOL} from './policy.js';
+import {ADBLOCK_PAGE_PROTOCOL,adblockHost} from './policy.js';
 import {ADBLOCK_COSMETIC_PICK_TTL_MS,validCosmeticSelector} from './cosmetic-policy.js';
 
 const SAFE_ID=/^[A-Za-z][A-Za-z0-9_-]{0,63}$/;
@@ -41,10 +41,44 @@ export function createAdblockElementPicker({
   const request=async(type,selector)=>{
     const body={protocol:ADBLOCK_PAGE_PROTOCOL,type};
     if(selector)body.selector=selector;
-    const response=await api.runtime.sendMessage(body);
-    if(response?.ok!==true)throw Error(response?.error?.message||'无法保存网页隐藏规则');
-    return response.data;
+    let timer;
+    try{
+      const response=await Promise.race([
+        api.runtime.sendMessage(body),
+        new Promise((_,reject)=>{timer=win.setTimeout(()=>reject(Error('后台回执超时')),3000);})
+      ]);
+      if(response?.ok!==true)throw Error(response?.error?.message||'无法确认网页隐藏规则');
+      if(type==='hide'&&(response.data?.saved!==true||response.data.selector!==selector||
+         response.data.host!==adblockHost(win.location?.href,{asUrl:true}))||
+         type==='undo'&&response.data?.restored!==true)
+        throw Error('后台写入回执不完整');
+      return response.data;
+    }finally{if(timer!==undefined)win.clearTimeout(timer);}
   };
+  // A lost acknowledgement says nothing about the committed storage value.
+  // Ask the same trusted worker once; never replay hide/undo automatically.
+  async function confirm(selector){
+    try{
+      const value=await request('lookup',selector);
+      if(value?.version!==1||value.selector!==selector||
+         value.host!==adblockHost(win.location?.href,{asUrl:true})||
+         typeof value.present!=='boolean')return null;
+      return value.present;
+    }catch{return null;}
+  }
+  async function uncertain(selector,operation){
+    const present=await confirm(selector);
+    if(disposed)return;
+    if(present===true){
+      onSaved(selector);
+      message(operation==='hide'?'已核对：隐藏规则已保存':'已核对：规则仍存在，尚未撤销',()=>undo(selector));
+    }else if(present===false){
+      onUndone(selector);
+      message(operation==='hide'?'已核对：规则不存在，未保存':'已核对：规则已删除，已撤销');
+    }else{
+      message('无法确认'+(operation==='hide'?'保存':'撤销')+'结果，请稍后查看屏蔽列表；未自动重试');
+    }
+  }
   function message(text,undo=null){
     if(!doc.documentElement)return;
     if(!notice||!notice.isConnected){
@@ -118,11 +152,12 @@ export function createAdblockElementPicker({
     pending=true;
     try{
       await request('undo',selector);
+      if(disposed)return;
       onUndone(selector);
       message('已撤销，已删除本地屏蔽规则');
       onRefresh();
-    }catch(error){
-      message('撤销未成功：'+String(error.message||error).slice(0,90));
+    }catch{
+      await uncertain(selector,'undo');
       onRefresh();
     }finally{pending=false;}
   }
@@ -133,11 +168,12 @@ export function createAdblockElementPicker({
     message('正在保存…');
     try{
       await request('hide',selector);
+      if(disposed)return;
       onSaved(selector);
       message('已隐藏并保存，下次访问自动隐藏',()=>undo(selector));
       onRefresh();
-    }catch(error){
-      message('未保存，已恢复：'+String(error.message||error).slice(0,85));
+    }catch{
+      await uncertain(selector,'hide');
       onRefresh();
     }finally{
       onPending(null);pending=false;

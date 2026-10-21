@@ -134,6 +134,52 @@ function pageSender(f){
   f.api.webNavigation={getFrame:async()=>({url,documentId:'page-doc',documentLifecycle:'active'})};
   return {id:senderId,url,frameId:0,documentId:'page-doc',documentLifecycle:'active',tab};
 }
+
+test('lost picker write receipts reconcile read-only across worker restart and duplicate operations',async()=>{
+  const f=await fixture(),page=pageSender(f);
+  f.api.tabs.sendMessage=async(_,message)=>({ok:true,host:message.host});
+  await f.service.dispatch(f.message('adblock.enable'),sender);
+  await f.service.dispatch(f.message('adblock.cosmetic.pick'),sender);
+  const request=type=>({protocol:ADBLOCK_PAGE_PROTOCOL,type,selector:'#promo'});
+  // The transport loses the response after the real owner has committed it.
+  await assert.rejects(async()=>{
+    await f.service.pagePolicy(request('hide'),page);throw Error('lost hide receipt');
+  },/lost hide receipt/);
+  const worker=f.restartService();
+  const lookup=async present=>{
+    const before={changes:f.changes.length,actions:f.actions.length,session:f.sessionChanges.length};
+    assert.deepEqual(await worker.pagePolicy(request('lookup'),page),{
+      version:1,host:'www.javbus.com',selector:'#promo',present});
+    assert.deepEqual({changes:f.changes.length,actions:f.actions.length,session:f.sessionChanges.length},before);
+  };
+  await lookup(true);
+  await assert.rejects(worker.pagePolicy(request('hide'),page),{code:'E_ADBLOCK_COSMETIC_SESSION'});
+  await lookup(true);
+  await assert.rejects(async()=>{
+    await worker.pagePolicy(request('undo'),page);throw Error('lost undo receipt');
+  },/lost undo receipt/);
+  await lookup(false);
+  await assert.rejects(worker.pagePolicy(request('undo'),page),{code:'E_ADBLOCK_COSMETIC_CHANGED'});
+  await lookup(false);
+  assert.equal(f.changes.filter(key=>key==='opendesk.adblock.cosmetic.v1').length,2);
+});
+
+test('picker lookup fails unknown on revoked permissions, corrupt storage or stale document without writes',async()=>{
+  for(const scenario of ['permission','cosmetic','installation','document']){
+    const f=await fixture(),page=pageSender(f);
+    await f.service.dispatch(f.message('adblock.enable'),sender);
+    if(scenario==='permission')f.setPermission(false);
+    if(scenario==='cosmetic')f.stored.set('opendesk.adblock.cosmetic.v1',{version:9,entries:[]});
+    if(scenario==='installation')f.stored.set(SIDEBAR_TOOL_STORE,{broken:true});
+    if(scenario==='document')page.documentId='stale-doc';
+    const stored=structuredClone([...f.stored]),changes=f.changes.length,actions=f.actions.length;
+    await assert.rejects(f.service.pagePolicy({protocol:ADBLOCK_PAGE_PROTOCOL,
+      type:'lookup',selector:'#promo'},page));
+    assert.deepEqual([...f.stored],stored,scenario+' must preserve storage');
+    assert.equal(f.changes.length,changes,scenario+' cannot write');
+    assert.equal(f.actions.length,actions,scenario+' cannot reconcile DNR');
+  }
+});
 test('page cosmetics require the existing enabled authority and respect exact-host exceptions',async()=>{
   const f=await fixture(),page=pageSender(f),request={protocol:ADBLOCK_PAGE_PROTOCOL};
   assert.equal((await f.service.pagePolicy(request,page)).enabled,false);
