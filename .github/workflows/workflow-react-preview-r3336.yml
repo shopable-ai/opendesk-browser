@@ -156,6 +156,7 @@ jobs:
             tests/environment/workflow-provider-facade.test.mjs \
             tests/environment/workflow-direct-execution.test.mjs
       - name: Production WXT
+        if: always()
         run: npm run build
       - name: Development WXT
         if: always()
