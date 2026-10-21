@@ -55,8 +55,6 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
     patchDeveloperField(view,find('manual-source-editor'),{hidden:local});
     patchDeveloperField(view,find('local-project-params-tools'),{hidden:!local||row?.runtimeKind!=='controller'});
     patchDeveloperField(view,find('manual-project-params-tools'),{hidden:local});
-    const intro=find('local-project-intro');
-    if(intro)patchDeveloperField(view,intro,{textContent:'选择已授权项目，可运行或核对安装；复用历史验证必须匹配当前源码、网页与持久回执。'});
     patchDeveloperField(view,select,{disabled:checking||(!connected&&!workspaces.length)});
     patchDeveloperField(view,find('local-project-connect'),{textContent:row?.fileOnly?'打开文件工作区 ↗':'连接本机 OpenDesk ↗'});
     patchDeveloperField(view,find('local-project-connect'),{disabled:row?.fileOnly?!canOpenWorkspace():false});

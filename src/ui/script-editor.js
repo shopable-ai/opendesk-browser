@@ -213,7 +213,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
         componentMode==='vue'?
           '使用官方 Vue script setup、template 与 scoped CSS。系统按需编译并受管挂载；无需 main() 或手动 Vite。仅获授权网页可运行。':
           '直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。运行前仍需网站授权。'});
-      view.patch('page-component-hint',{textContent:componentMode==='javascript'?
+      view.patch('page-component-hint',{hidden:componentMode==='javascript'&&!isPageDraft()&&browserCompilerEnabled,
+         textContent:componentMode==='javascript'?
         (isPageDraft()?'Page JavaScript 使用当前网页 DOM；Controller 使用 page 自动化 API，二者执行环境不同。':browserCompilerEnabled?
           '编辑源码不会自动执行；点击「运行」才执行。':
           '标准版支持 JavaScript；React/Vue 需要 Developer Edition。'):

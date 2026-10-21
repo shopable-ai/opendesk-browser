@@ -63,6 +63,10 @@ test('Advanced tools follow parameters and retain SDK authority actions',()=>{
   assert.equal($('#tool-diagnostics>summary').text(),'高级诊断与网页 SDK');
   for(const id of ['developer-sdk-diagnostics','developer-health-diagnostics'])assert.ok($('#'+id).hasClass('od-disclosure--flat'));
   assert.equal($('#scraping-panel').length,0,'retired hidden module cannot be a production field');
+  assert.equal(view.fields['local-project-intro'],undefined,'static project introduction has no React snapshot');
+  assert.match($('#local-project-intro').text(),/选择已授权项目后运行或安装/);
+  assert.equal($('#script-version-identity > h3').length,0,'no duplicate version heading');
+  assert.equal($('#script-revision').attr('type'),'number','exact Revision remains available');
   assert.ok($('#page-preview-tools').is('[hidden]'),'default Controller has no Page save tools');
   for(const id of ['sdk-title','health-title','sdk-target-help','script-history-hint']){
     assert.equal(view.fields[id],undefined,'static React text needs no business field: '+id);

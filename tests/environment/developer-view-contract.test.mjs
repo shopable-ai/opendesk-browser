@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {createDeveloperView,patchDeveloperField,developerOptions,appendDeveloperOptions,
   developerAttribute,developerAction,focusDeveloperField} from '../../src/ui/develop-view.js';
 import {createScriptEditor} from '../../src/ui/script-editor.js';
+import {createControllerResultsView} from '../../src/ui/controller-results-view.js';
+import {createControllerRevisionView} from '../../src/ui/controller-revision-view.js';
 
 test('developer controllers publish state, options and attributes without DOM fields', async () => {
   const view=createDeveloperView(),field=view.fields['script-list'],snapshots=[];
@@ -81,4 +83,49 @@ test('developer actions keep the native event and release only their own registr
     assert.equal(view.getSnapshot(),snapshot);
     assert.deepEqual(view.resourceSnapshot(),{subscriptions:0,actions:0});
   } finally {view.dispose();}
+});
+
+test('Controller history options publish once and preserve exact run selection',async()=>{
+  const view=createDeveloperView(),patches=[];
+  const projected={...view,patch(key,value){if(key==='script-history-run')patches.push(value);view.patch(key,value);}};
+  let runs=Array.from({length:32},(_,i)=>({runId:'run-'+i,sourceKind:'draft',state:'completed'}));
+  const owner=createControllerResultsView({
+    host:{currentRun:null,controller:{snapshotControllerRun:async()=>({
+      runs,results:[],downloads:[],resultDeliveryDenied:[]})}},
+    view:projected,resultDownloads:{showResults(){}},isDisposed:()=>false,isRunning:()=>false,
+    getOwnedRunId:()=>'',isLocalPageResultCurrent:()=>false,onUpdate(){},onStatus(){},
+    setResultText(){},setResultKind(){},displayCopyResult(){},showRecovery(){},hideRecovery(){}
+  });
+  try{
+    view.patch('script-history-run',{value:'run-17'});
+    await owner.read('');
+    assert.equal(patches.length,1,'history is projected in one snapshot, not per option');
+    assert.equal(view.fields['script-history-run'].value,'run-17');
+    assert.equal(view.fields['script-history-run'].options.length,33);
+    patches.length=0;
+    runs=runs.filter(row=>row.runId!=='run-17');
+    await owner.read('');
+    assert.equal(patches.length,1);
+    assert.equal(view.fields['script-history-run'].value,'','removed run selection must not survive refresh');
+  }finally{view.dispose();}
+});
+
+test('Controller revision catalog does not publish a snapshot for every saved script',async()=>{
+  const view=createDeveloperView(),patches=[],rows=Array.from({length:24},(_,i)=>({
+    scriptId:i===7?'my-script':'saved-'+i,revision:i+1,contentHash:'a'.repeat(64)}));
+  const projected={...view,patch(key,value){if(key==='script-list')patches.push(value);view.patch(key,value);}};
+  const owner=createControllerRevisionView({
+    host:{controller:{listControllerScripts:async()=>rows}},client:{},view:projected,
+    programSource:{source:()=>''},prepareESM(){},getGeneration:()=>0,onLoad(){},onUpdate(){},onStatus(){}
+  });
+  try{
+    await owner.refresh({silent:true});
+    assert.equal(view.fields['script-list'].value,'my-script','existing script ID is selected');
+    assert.equal(view.fields['script-list'].options.length,25);
+    assert.equal(patches.length,2,'initial catalog and ID selection require at most two projections');
+    patches.length=0;
+    await owner.refresh({silent:true});
+    assert.equal(patches.length,1,'subsequent refresh publishes options once');
+    assert.equal(view.fields['script-list'].value,'my-script');
+  }finally{owner.dispose();view.dispose();}
 });

@@ -1,4 +1,4 @@
-import {patchDeveloperField,developerOptions,appendDeveloperOptions} from './develop-view.js';
+import {patchDeveloperField,developerOptions} from './develop-view.js';
 import {createControllerESMSavedSource,readControllerESMAuthorSource,verifiedControllerESMAuthorSource,
   createControllerClassicSavedSource,readControllerClassicAuthorSource,verifiedControllerClassicAuthorSource} from './controller-esm-source.js';
 import {hasUnbuiltESM} from './esm-source-detector.js';
@@ -74,12 +74,12 @@ export function createControllerRevisionView({host,client,view,programSource,pre
   function renderList(rows) {
     const selected = list.value || scriptId();
     heads.clear();
-    developerOptions(view,list,[{label:rows.length ? '选择已保存脚本' : '没有已保存脚本',value:''}]);
-    for (const row of rows) {
-      heads.set(row.scriptId, row.revision);
-      appendDeveloperOptions(view,list,[{label:`${row.scriptId} · r${row.revision} · ${row.contentHash}`,value:row.scriptId}]);
-    }
-    if (rows.some(row => row.scriptId === selected)) patchDeveloperField(view,list,{value:selected});
+    // Avoid one React snapshot per saved version; preserve selection or
+    // initially select the current script ID when it exists in the catalog.
+    for (const row of rows) heads.set(row.scriptId, row.revision);
+    developerOptions(view,list,[{label:rows.length ? '选择已保存脚本' : '没有已保存脚本',value:''},
+      ...rows.map(row=>({label:`${row.scriptId} · r${row.revision} · ${row.contentHash}`,value:row.scriptId}))]);
+    if (!list.value && rows.some(row=>row.scriptId===selected)) patchDeveloperField(view,list,{value:selected});
     onUpdate();
   }
   async function refresh({silent=false}={}){
