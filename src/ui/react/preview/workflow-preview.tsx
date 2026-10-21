@@ -36,6 +36,7 @@ const scenes=Object.freeze({
   failure:[{id:'demo-failure',speaker:'系统',message:'演示：操作失败，未将结果当成成功。'}],
   unknown:[{id:'demo-unknown',speaker:'系统',message:'结果未知：核对目标网页后再操作，不自动重试。'}],
   approval:[{id:'demo-approval',speaker:'AI',message:'网页摘要授权界面预览；未读取或发送页面内容。'}],
+  'run-review':[{id:'demo-run-review',speaker:'系统',message:'手动高影响执行需独立确认，当前为离线预览。'}],
   denied:[{id:'demo-denied',speaker:'系统',message:'演示：授权已拒绝，未执行网页读取。'}],
   disconnected:[{id:'demo-disconnected',speaker:'系统',message:'本机连接不可用，请在正式扩展中检查连接。'}],
   history:[],
@@ -59,6 +60,8 @@ const apply=()=>{
   control('workflow-planning-indicator').hidden=!busy;
   control('workflow-planning-indicator').text=busy?'正在规划步骤…':'';
   control('workflow-ai-approval').hidden=scene!=='approval';
+  control('workflow-run-review').hidden=scene!=='run-review';
+  control('workflow-run-review-scope').text='将对当前网站执行：点击 #submit。可能提交或更改网页数据，请核对影响对象（离线预览）。';
   control('workflow-ai-approval-title').text='允许本轮网页任务？';
   control('workflow-ai-approval-scope').text=scene==='approval'
     ?'当前仅为授权界面预览，不会实际发送网页摘要。':'';
@@ -176,6 +179,12 @@ const actions={
         message:'已结束预览中的规划状态，未发生真实执行。'}];
       showScene('conversation',{keepRows:true});return;
     }
+    if(id==='workflow-run-review-cancel'||id==='workflow-run-review-confirm'){
+      messages=[...messages,{id:'preview-review-'+messages.length,speaker:'系统',
+        message:id==='workflow-run-review-cancel'?'已取消预览操作；没有执行网页动作。'
+          :'预览不具有 RunHost 授权，确认按钮不会执行网页操作。'}];
+      showScene('conversation',{keepRows:true});return;
+    }
     if(id==='workflow-ai-approve'||id==='workflow-ai-deny'){
       messages=[...messages,{id:'preview-grant-'+messages.length,speaker:'系统',
         message:id==='workflow-ai-deny'?'预览中已拒绝授权，未读取网页。'
@@ -211,7 +220,7 @@ for(const button of doc.querySelectorAll('nav.workbench-nav button')){
 selectors.scenario.addEventListener('change',event=>showScene(event.target.value));
 selectors.width.addEventListener('change',event=>{
   const width=Number(event.target.value);
-  if([320,360,400,440,520].includes(width))stage.style.width=width+'px';
+  if([320,360,400,420,440,520].includes(width))stage.style.width=width+'px';
 });
 selectors.theme.addEventListener('change',event=>{
   stage.dataset.previewTheme=event.target.value==='dark'?'dark':'light';

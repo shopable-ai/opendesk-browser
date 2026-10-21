@@ -11,7 +11,7 @@ import {createWorkflowProviderFacade} from './provider.js';
 import {deriveWorkflowViewState} from './view-state.js';
 import {createLocalCodexPlanner,describeLocalCodex} from './local-codex.js';
 import {createWorkflowObservation} from './observation.js';
-import {prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect,verifySavedWorkflowRevision} from './direct-execution.js';
+import {classifyWorkflowRunRisk,prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect,verifySavedWorkflowRevision} from './direct-execution.js';
 import {createTaskReviewHandoff,taskReviewHandoffKey} from './task-review-handoff.js';
 
 const STORAGE_PREFIX = 'opendesk.sidebar.workflow.v1:';
@@ -45,7 +45,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   let lastTrustedRun=null; // UI hint only, original Task Verify must validate the real receipt.
   let touched=false,saveList=[],draftWrites=Promise.resolve();
   let directVerifiedSerial=null; // Verified fill source is the same byte sequence saved later.
-  let phase='idle',lastRun='none',hasError=false,newReviewSignature=null;
+  let phase='idle',lastRun='none',hasError=false,newReviewSignature=null,pendingRunReview=null;
   let historyOpen=false,newReviewReturnFocus=null;
   let planningGeneration=0,planningAbort=null,planningTarget=null,pendingApproval=null,localChecking=false;
   let observationApproval=null,planningObservation=null,approvalWrites=Promise.resolve();
@@ -110,6 +110,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     newReviewSignature=null;
     hidePanel('workflow-new-review','workflow-new');
   }
+  function dismissRunReview() {
+    pendingRunReview=null;
+    hidePanel('workflow-run-review','workflow-run');
+  }
   const currentOrigin=()=>currentPageTarget?.snapshot?.status==='available'
     ? currentPageTarget.snapshot.origin:null;
   const provider=()=>control('workflow-ai-provider').value;
@@ -146,7 +150,6 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   function updatePresentation() {
     if(disposed)return;
     const hasSteps=workflow.steps.length>0;
-    const hasActions=workflow.steps.some(step=>['click','fill'].includes(step.op));
     const hasParams=Object.keys(workflow.paramsSchema.properties).length>0;
     const transcript=control('workflow-ai-transcript');
     const hasMessages=chatRows.length>0;
@@ -158,8 +161,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       saved:Boolean(matchesRevision()),lastRun,error:hasError,providerReady:ready});
     control('workflow-editor').dataset.viewState=mode;
     control('workflow-plan-panel').hidden=!hasSteps;
-    control('workflow-params-panel').hidden=!hasSteps || (!hasParams && !hasActions);
-    control('workflow-run-consent').hidden=!hasActions;
+    control('workflow-params-panel').hidden=!hasSteps || !hasParams;
     control('workflow-result-panel').hidden=!['success','failed'].includes(lastRun);
     control('workflow-chat-intro').hidden=hasMessages || phase==='planning' || (hasSteps && entryMode!=='new-chat');
     control('workflow-ai-title').text=entryMode==='new-chat'?'开始新对话':'创建新工作流';
@@ -235,7 +237,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     updateButtons();
   }
   function edited() {
-    
+    dismissRunReview();
     dismissNewReview();
     touched=true;
     hasError=false;lastRun='none';
@@ -251,7 +253,6 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       ? (currentOrigin()===workflow.siteOrigin?'匹配当前网页。只允许该 origin 的自动化。':
         '当前网页属于 ' + currentOrigin() + '；请打开原网站或新建工作流。')
       : '请打开 HTTP(S) 网页并等待主文档可用；不会使用历史网页作为目标。';
-    control('workflow-confirm-run').checked=false;
   }
   let paramValues={};
   function renderParams() {
@@ -317,6 +318,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       serialBefore!==stable()||requestBefore!==control('workflow-ai-request').value)
       throw err('E_WORKFLOW_STALE','历史版本读取期间工作流已变化，已保留当前编辑内容');
     void stopPlanning({close:true}).catch(()=>{});
+    dismissRunReview();
     verifiedTurnHistory=[];lastProviderTurn=null;
     observationApproval=null;persistObservationApproval();
     historyOpen=false;
@@ -332,6 +334,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   }
   async function save() {
     if(busy||!compiled)return;
+    dismissRunReview();
     const serial=stable(),frozen=snapshot();
     busy=true;updateButtons();
     try {
@@ -391,7 +394,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       return true;
     }catch(error){writeWorkflowOutput('持久结果解码失败：'+format(error));return false;}
   }
-  function run(event,prepared=null) {
+  function run(event,prepared=null,approvedReview=null) {
     if((!prepared&&!event?.isTrusted)||(busy&&!prepared)||host.executionPending||host.currentRun||(!compiled&&!prepared))
       return Promise.resolve({ok:false,skipped:true});
     let captured,params,freeze,permission;
@@ -400,18 +403,39 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       if(captured.origin!==freeze.workflow.siteOrigin)
         throw err('E_WORKFLOW_ORIGIN','当前网页不属于工作流保存的网站');
       params=prepared?prepared.params:readParams();
-      if(!prepared&&freeze.workflow.steps.some(step=>['click','fill'].includes(step.op)) &&
-        !control('workflow-confirm-run').checked)
-        throw err('E_WORKFLOW_CONSENT','请先检查步骤并勾选本次网页操作确认');
+      if(!prepared){
+        const risk=classifyWorkflowRunRisk(freeze.workflow);
+        if(risk.needsReview&&!approvedReview){
+          // Freeze scope before showing the review. No Chrome grant or RunHost
+          // request may occur until the user confirms this exact action.
+          dismissRunReview();
+          pendingRunReview={serial:stable(),sourceHash:freeze.sourceHash,
+            revisionKey:revision?.key||null,revisionHash:revision?.sourceHash||null,
+            captured:structuredClone(captured),paramsSerial:JSON.stringify(params)};
+          control('workflow-run-review-scope').text=
+            '将对 '+captured.origin+' 执行：'+risk.description+
+            '。可能提交、跳转或更改网页数据，请核对影响对象。';
+          control('workflow-run-review').hidden=false;
+          focus('workflow-run-review-cancel');
+          return Promise.resolve({ok:false,reviewRequired:true});
+        }
+        if(approvedReview){
+          const fields=['windowId','tabId','frameId','documentId','url','origin'];
+          const valid=risk.needsReview&&approvedReview===pendingRunReview&&
+            approvedReview.serial===stable()&&approvedReview.sourceHash===freeze.sourceHash&&
+            approvedReview.revisionKey===(revision?.key||null)&&
+            approvedReview.revisionHash===(revision?.sourceHash||null)&&
+            approvedReview.paramsSerial===JSON.stringify(params)&&
+            fields.every(key=>approvedReview.captured[key]===captured[key]);
+          dismissRunReview(); // One-time confirmation is consumed immediately.
+          if(!valid)throw err('E_WORKFLOW_REVIEW_STALE','操作范围、版本、参数或网页已变化，请重新点击运行');
+        }
+      }
+      // This remains the real user gesture for Chrome's separate site grant.
       permission=prepared?.permission||api.permissions.request({origins:[permissionPattern(captured.url)]});
     }catch(error){
-      if(error?.code==='E_WORKFLOW_CONSENT') {
-        control('workflow-params-panel').hidden=false;
-        focus('workflow-confirm-run');
-      }
-      status(format(error),true);return;
+      status(format(error),true);return Promise.resolve({ok:false,error});
     }
-    control('workflow-confirm-run').checked=false;
     lastTrustedRun=null; // Failed or unknown new attempts must not reuse an old success hint.
     onRunOwner('pending');
     busy=true;phase='running';lastRun='running';hasError=false;
@@ -815,6 +839,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   }
   async function plan(event) {
     if(!event.isTrusted||busy||(provider()==='local_codex'&&localChecking))return;
+    dismissRunReview();
     let permission=null,captured=null,frozen;
     try {
       const selected=provider(),request=control('workflow-ai-request').value.trim();
@@ -1003,6 +1028,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   };
   const onHistoryClick=event=>{
     if(!event.isTrusted||busy||host.executionPending||host.currentRun)return;
+    dismissRunReview();
     historyOpen=!historyOpen;
     control('workflow-editor').dataset.historyOpen=String(historyOpen);
     if(historyOpen)control('workflow-manage-panel').hidden=true;
@@ -1048,6 +1074,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   bind('workflow-source-https','click',event=>chooseSource(lastHttpsProvider,event));
   bind('workflow-https-protocol','change',event=>chooseSource(event.target.value,event));
   bind('workflow-ai-provider','change',()=>{
+    dismissRunReview();
     void stopPlanning({close:true}).catch(()=>{});
     observationApproval=null;persistObservationApproval();
     verifiedTurnHistory=[];lastProviderTurn=null;
@@ -1110,7 +1137,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   bind('workflow-ai-deny','click',event=>answerObservation(event,false));
   const onNewSessionClick=event=>{
     if(!event.isTrusted||busy||host.executionPending||host.currentRun)return;
-    closeHistory();
+    dismissRunReview();closeHistory();
     observationApproval=null;persistObservationApproval();
     clearChat();entryMode='new-chat';updatePresentation();
     verifiedTurnHistory=[];lastProviderTurn=null;
@@ -1131,6 +1158,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   };
   const onResumeSessionClick=event=>{
     if(!event.isTrusted||busy||host.executionPending||host.currentRun||provider()!=='local_codex')return;
+    dismissRunReview();
     // This explicit action only resumes the selected local provider, not web observation.
     const consent={model:true,workflow:true,observation:false};
     
@@ -1161,7 +1189,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       .catch(error=>status(format(error),true));
   };
   function commitNewWorkflow(){
-    
+    dismissRunReview();
     dismissNewReview();
     closeHistory();
     void stopPlanning({close:true}).catch(()=>{});
@@ -1182,6 +1210,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   const workflowReviewSignature=()=>JSON.stringify([workflow,phase,control('workflow-ai-request').value]);
   const onNewWorkflowClick=event=>{
     if(!event.isTrusted||busy&&phase!=='planning')return;
+    dismissRunReview();
     if(host.executionPending||host.currentRun){
       status('当前网页任务仍在执行，请先停止或完成，再新建工作流。',true);return;
     }
@@ -1247,6 +1276,14 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   });
   bind('workflow-save','click',()=>{void save();});
   bind('workflow-run','click',run);
+  bind('workflow-run-review-confirm','click',event=>{
+    if(!event.isTrusted||!pendingRunReview)return Promise.resolve({ok:false,skipped:true});
+    return run(event,null,pendingRunReview);
+  });
+  bind('workflow-run-review-cancel','click',event=>{
+    if(!event.isTrusted||!pendingRunReview)return;
+    dismissRunReview();status('本次操作已取消，未执行。');
+  });
   bind('workflow-stop','click',stop);
   bind('workflow-candidate','click',()=>{void candidate().catch(error=>status(format(error),true));});
   bind('workflow-open-code','click',()=>{
@@ -1261,6 +1298,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   bind('workflow-ai-plan','click',plan);
   const unsubscribePage=currentPageTarget?.subscribe(next=>{
     if(disposed)return;
+    if(pendingRunReview&&(next.status!=='available'||
+      ['windowId','tabId','frameId','documentId','url','origin']
+        .some(key=>pendingRunReview.captured[key]!==next[key])))dismissRunReview();
     if(next.status==='available'&&
       (next.origin!==workflow.siteOrigin||verifiedContextTarget&&
         (next.origin!==verifiedContextTarget.origin||
@@ -1282,6 +1322,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   });
   const unsubscribeRun=host.subscribe(()=>{
     if(disposed)return;
+    if(pendingRunReview&&(host.executionPending||host.currentRun))dismissRunReview();
     if(runId && host.currentRun!==runId && !busy){runId=null;onRunOwner(null);}
     updateButtons();
   });
@@ -1291,6 +1332,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     updateLocalStatus();updateButtons();
   });
   const removedPermissions=async grant=>{
+    if(pendingRunReview&&(grant.origins?.length||grant.permissions?.length))dismissRunReview();
     const active=bookmarkConversationActive;
     // Invalidate synchronously only when a removed Chrome match pattern covers
     // this Provider. An unrelated site's grant must not cancel this round.
@@ -1341,8 +1383,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     click:(id,event)=>dispatch(id,'click',event),
     input(id,value,event,eventName='input') {
       if(disposed)return;
-      if(id==='workflow-confirm-run')control(id).checked=Boolean(value);
-      else control(id).value=String(value);
+      control(id).value=String(value);
       return dispatch(id,eventName,event);
     },
     onHistory:onHistoryClick,onNewSession:onNewSessionClick,onNewWorkflow:onNewWorkflowClick,
@@ -1538,7 +1579,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     }
   });
   return {getSnapshot:ui.getSnapshot,subscribe:ui.subscribe,actions,conversation,dispose() {
-    if(disposed)return;disposed=true;compileToken++;planningGeneration++;
+    if(disposed)return;dismissRunReview();disposed=true;compileToken++;planningGeneration++;
     bookmarkConversationActive?.abortController.abort(err('E_TOOL_CHANGED','书签扩展实例已关闭'));
     planningAbort?.abort(err('E_HOST_CLOSED','工作流窗口已关闭'));pendingApproval?.settle({decision:'deny'});
     localPlanner.dispose();conversationPlanner.dispose();void Promise.resolve(observation.dispose()).catch(()=>{});

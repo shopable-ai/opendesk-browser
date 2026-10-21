@@ -627,7 +627,7 @@ if(!vm.SourceTextModule) {
     await f.click(f.get('workflow-load'));await tick();await tick();
     assert.match(f.get('workflow-status').textContent,/冻结版本 r3/);
     for(let n=1;n<=2;n++) {
-      f.get('workflow-confirm-run').checked=true;
+      
       const response=await f.get('workflow-run').fire('click');
       assert.ok(response[0],'run click must return a result: '+f.get('workflow-status').textContent);
       assert.equal(response[0].ok,true);
@@ -641,7 +641,7 @@ if(!vm.SourceTextModule) {
       assert.match(f.get('workflow-status').textContent,/脱离 AI 运行/);
     }
     assert.equal(starts.length,2);
-    changed=true;f.get('workflow-confirm-run').checked=true;
+    changed=true;
     const refused=await f.get('workflow-run').fire('click');
     assert.equal(refused[0].ok,false);
     assert.equal(refused[0].error.code,'E_WORKFLOW_HASH');
@@ -671,7 +671,7 @@ if(!vm.SourceTextModule) {
       fixture=f;f.get('workflow-saved-list').value=f.savedKey;
       await f.click(f.get('workflow-load'));await tick();await tick();
       assert.match(f.get('workflow-status').textContent,/冻结版本 r3/);
-      f.get('workflow-confirm-run').checked=true;
+      
       const response=await f.get('workflow-run').fire('click');
       assert.equal(reads,2);
       assert.equal(response[0]?.ok,false);

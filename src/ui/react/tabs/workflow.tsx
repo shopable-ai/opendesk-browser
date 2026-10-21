@@ -286,6 +286,20 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
               {action('workflow-ai-approve','允许本轮并继续',{primary:true})}{action('workflow-ai-deny','拒绝')}
             </div>
           </section>
+          <section id="workflow-run-review" className="workflow-run-review od-alert od-alert--warning"
+            role="group" aria-label="确认网页操作" hidden={c('workflow-run-review').hidden!==false}
+            onKeyDown={event=>{
+              if(event.key==='Escape'&&event.nativeEvent.isTrusted){
+                event.preventDefault();event.stopPropagation();
+                actions.click?.('workflow-run-review-cancel',event.nativeEvent);
+              }
+            }}>
+            {text('workflow-run-review-scope')}
+            <div className="workflow-actions">
+              {action('workflow-run-review-cancel','取消')}
+              {action('workflow-run-review-confirm','确认执行',{primary:true})}
+            </div>
+          </section>
         </section>
         <section id="workflow-plan-panel" className="workflow-card od-surface--padded workflow-plan od-surface" aria-label="可编辑语义步骤" hidden={c('workflow-plan-panel').hidden!==false}>
           <div className="workflow-section-header od-toolbar"><h3>执行步骤</h3><div className="workflow-step-tools">
@@ -298,7 +312,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
           {text('workflow-target-warning',{className:'workflow-target-warning od-alert od-alert--warning',role:'status'})}
         </section>
         <section id="workflow-params-panel" className="workflow-card od-surface--padded workflow-run-settings od-surface" aria-label="工作流运行参数" hidden={c('workflow-params-panel').hidden!==false}>
-          <div className="workflow-section-header od-toolbar"><h3>运行前确认</h3><span>只影响本次运行</span></div>
+          <div className="workflow-section-header od-toolbar"><h3>运行参数</h3></div>
           <div id="workflow-params">{model.params?.map(({name,rule,required,value})=><div key={name} className="workflow-param-row">
             <label className="workflow-field"><span>{rule.title}{required?' *':''}</span>
               {rule.enum?<select className="od-field" data-workflow-param={name} value={String(value)} onChange={event=>actions.setParam?.(name,event.currentTarget.value)}>
@@ -310,10 +324,6 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
                   onChange={event=>actions.setParam?.(name,rule.type==='boolean'?event.currentTarget.checked:event.currentTarget.value)}/>}
             </label><Button className="od-button--danger" aria-label={'移除参数 '+name} onClick={()=>actions.removeParam?.(name)}>移除</Button>
           </div>)}</div>
-          <label className="workflow-consent" id="workflow-run-consent" hidden={c('workflow-run-consent').hidden}>
-            <input type="checkbox" id="workflow-confirm-run" checked={Boolean(c('workflow-confirm-run').checked)} onChange={event=>field('workflow-confirm-run',event.currentTarget.checked,event)}/>
-            我已检查本次填写和点击操作，允许运行
-          </label>
         </section>
         <section id="workflow-result-panel" className="workflow-card od-surface--padded workflow-result od-surface" aria-label="工作流运行结果" hidden={c('workflow-result-panel').hidden!==false}>
           <div className="workflow-section-header od-toolbar"><h3>运行结果</h3></div>

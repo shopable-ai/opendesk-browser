@@ -9,6 +9,32 @@ const clickIntent=/(?:点击|点开|按下|打开|跳转|搜索(?!关键词|框|
 const negatedClickIntent=new RegExp(String.raw`(?:不要|不得|禁止|别|勿|无需|不允许|do\s+not|don['’]t|never)\s*${clickIntent.source}(?:(?!(?:但|然后|接着|随后|而是|不过|\b(?:but|then|however)\b))[^，。；,;.!！？?\n])*`,'gi');
 const readIntent=/(?:查看(?:页面|网页|内容|结果)?|读取|提取|显示(?:页面|内容|结果)|观察|检查网页|页面内容|\b(?:read|extract|observe|inspect|show)\b)/i;
 
+// Shared risk classification, not a second permission or execution authority.
+// The exact frozen script, site grant and Document are still checked by RunHost.
+const sensitiveFillTarget=/(?:password|passwd|secret|credential|token|otp|2fa|credit.?card|bank|billing|checkout|payment|transfer|money|submit|upload|file|delete|remove|publish|send|密码|验证码|密钥|令牌|付款|支付|银行卡|转账|订单|提交|上传|删除|发送|发布)/i;
+export function classifyWorkflowRunRisk(value) {
+  const workflow=validateWorkflow(value),review=[];
+  let sensitiveFields=0;
+  for(const step of workflow.steps) {
+    const target=[step.selector,step.roleName].filter(Boolean).join(' ');
+    if(step.op==='click')review.push('点击 '+(target||'页面元素'));
+    else if(step.op==='navigate')review.push('打开同站页面 '+new URL(step.url).pathname.slice(0,80));
+    else if(step.op==='fill'&&(
+      sensitiveFillTarget.test(target)||
+      step.locatorKind==='text'||
+      (step.locatorKind==='role'&&!['textbox','searchbox','spinbutton'].includes(step.selector))||
+      (step.locatorKind==='css'&&/(?:\bbutton\b|\bform\b|type\s*=\s*['"]?(?:submit|button|hidden|file))/i.test(step.selector))
+    )) {
+      sensitiveFields++;
+      review.push('填写需审核字段 '+(target||'输入框'));
+    }
+  }
+  const description=review.slice(0,2).map(value=>value.slice(0,100)).join('；')+
+    (review.length>2?'；另有 '+(review.length-2)+' 项操作':'');
+  return Object.freeze({needsReview:review.length>0,sensitiveFields,description,
+    reviewedSteps:review.length});
+}
+
 // Admission for the existing RunHost only. Model output is never executable code,
 // a Chrome origin grant, or authority to exceed the user's requested actions.
 export function prepareDirectExecution({request,workflow,target,observation}) {
@@ -31,6 +57,8 @@ export function prepareDirectExecution({request,workflow,target,observation}) {
   if(clean.steps.some(step=>step.op==='navigate'||step.op==='confirm'))
     throw error('E_AI_REVIEW_REQUIRED','本轮暂不自动执行跳转或交互确认');
   const fills=clean.steps.filter(step=>step.op==='fill');
+  if(fills.length&&classifyWorkflowRunRisk(clean).sensitiveFields)
+    throw error('E_AI_REVIEW_REQUIRED','敏感或无法判断影响的填写目标，不能自动执行');
   if(clean.steps.some(step=>step.op==='assert'&&fills.some(fill=>
     step.locatorKind===fill.locatorKind&&step.selector===fill.selector&&
     (step.locatorKind!=='role'||(step.roleName||'')===(fill.roleName||'')))))
@@ -100,6 +128,10 @@ export function prepareDirectExecution({request,workflow,target,observation}) {
       node.locator.value==='button'&&node.locator.name===step.roleName&&
       !node.locator.parent&&node.locator.index===undefined)===true;
   };
+  // A model click must match a Search control observed in the current Document.
+  // Unknown side effects must be refused rather than inferred safe from text.
+  if(clicks.some(step=>!searchButton(step)))
+    throw error('E_AI_REVIEW_REQUIRED','点击目标未经当前网页验证，未自动执行');
   // Only a one-query, one-click, observed Search button can opt in to a
   // read-only effect check. No model-authored assert is promoted to an oracle.
   const query=fills.length===1?values[0]:null;

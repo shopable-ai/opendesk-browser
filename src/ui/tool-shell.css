@@ -577,8 +577,6 @@
 
 .workflow-provider label{margin:var(--space-2) 0 var(--space-1)}
 .workflow-provider input:not([type=checkbox]){min-height:36px}
-.workflow-consent{display:flex;align-items:flex-start;gap:var(--space-2);font-weight:400;line-height:1.55;font-size:var(--od-note-size)}
-.workflow-consent input{width:auto;flex:none;min-height:0;margin:3px 2px 0 0}
 .workflow-minor-note{font-size:var(--od-note-size);color:var(--od-sub);line-height:1.55;margin:var(--space-2) 0 0}
 .workflow-steps{display:grid;gap:var(--space-2);max-height:min(42vh,430px);min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-right:2px}
 
@@ -662,6 +660,11 @@
 .workflow-ai-approval .workflow-actions{align-items:center}
 .workflow-ai-approval button{flex:0 0 auto;min-height:34px}
 .workflow-ai-approval #workflow-ai-approve{background:var(--od-brand);color:var(--od-on-brand);border-color:var(--od-brand)}
+.workflow-run-review{margin:var(--space-2) 0;padding:var(--space-3);border:1px solid var(--od-warning-border);border-radius:var(--radius-control);background:var(--od-warning-bg);color:var(--od-warning-ink);min-width:0}
+.workflow-run-review[hidden]{display:none!important}
+.workflow-run-review p{margin:0;font-size:var(--od-note-size);line-height:1.55;overflow-wrap:anywhere;white-space:pre-wrap}
+.workflow-run-review .workflow-actions{margin-top:var(--space-2)}
+.workflow-run-review button{min-height:34px}
 @media(max-width:280px){.workflow-provider{max-height:45vh}.workflow-ai-approval button{flex-basis:100%}}
 
 /* Compact optional official catalog entries and trusted site controls. */

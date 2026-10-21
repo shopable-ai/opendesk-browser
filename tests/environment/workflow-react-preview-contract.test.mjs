@@ -62,9 +62,9 @@ test('Preview covers all UI outcomes, five widths, both themes and the HTTPS pro
     read('src/ui/react/tabs/workflow.tsx')
   ]);
   for(const scene of ['empty','conversation','planning','running','success','failure',
-    'unknown','approval','denied','disconnected','history','settings'])
+    'unknown','approval','run-review','denied','disconnected','history','settings'])
     assert.ok(builder.includes('value="'+scene+'"'),'preview selector must include '+scene);
-  for(const width of [320,360,400,440,520])
+  for(const width of [320,360,400,420,440,520])
     assert.ok(builder.includes('value="'+width+'"'),'preview viewport missing '+width);
   for(const theme of ['light','dark'])
     assert.ok(builder.includes('value="'+theme+'"'),'theme selector missing '+theme);

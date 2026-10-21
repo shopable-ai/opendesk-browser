@@ -63,13 +63,55 @@ test('workflow save/reopen restores same source revision and rejects changed jou
   const rejected=await f.click('workflow-run');assert.equal(rejected.ok,false);assert.equal(rejected.error.code,'E_WORKFLOW_HASH');
   assert.equal(f.starts.length,1);
 });
-test('workflow untrusted gestures, action consent and precise origin protect execution',async t=>{
+test('ordinary manual fill is admitted by one trusted Run without a second confirmation',async t=>{
   const f=await workflowFixture({steps:[fill]});t.after(()=>f.view.dispose());
   await f.click('workflow-run',false);assert.equal(f.starts.length,0);assert.equal(f.requests.length,0);
-  await f.click('workflow-run');await tick();assert.match(get(f,'workflow-status').text,/E_WORKFLOW_CONSENT/);
+  assert.equal(get(f,'workflow-run-review').hidden,true);
+  const result=await f.click('workflow-run');assert.equal(result.ok,true);
+  assert.equal(f.starts.length,1);assert.equal(f.requests.length,1);
+  assert.equal(get(f,'workflow-run-review').hidden,true);
+  await f.setPage({origin:'https://other.example'});
+  assert.equal(get(f,'workflow-run').disabled,true);
+  await f.click('workflow-run');assert.equal(f.starts.length,1);
+});
+test('unknown click requires scoped one-shot review, cancellation and untrusted gestures do not dispatch',async t=>{
+  const click={stepId:'danger',op:'click',locatorKind:'css',selector:'#submit'};
+  const f=await workflowFixture({steps:[fill,click]});t.after(()=>f.view.dispose());
+  const first=await f.click('workflow-run');assert.equal(first.reviewRequired,true);
+  assert.equal(get(f,'workflow-run-review').hidden,false);
+  assert.match(get(f,'workflow-run-review-scope').text,/workflow.example.*#submit/);
+  assert.equal(f.starts.length,0);assert.equal(f.requests.length,0);
+  await f.click('workflow-run-review-confirm',false);assert.equal(f.starts.length,0);
+  await f.click('workflow-run-review-cancel');assert.equal(get(f,'workflow-run-review').hidden,true);
+  assert.equal(f.starts.length,0);assert.equal(f.requests.length,0);
+  await f.click('workflow-run');
+  const permitted=await f.click('workflow-run-review-confirm');
+  assert.equal(permitted.ok,true);assert.equal(f.starts.length,1);
+  assert.equal(f.requests.length,1);assert.equal(get(f,'workflow-run-review').hidden,true);
+  await f.click('workflow-run-review-confirm');assert.equal(f.starts.length,1);
+});
+test('review closes on Document, edited step or revoked Chrome permission',async t=>{
+  const click={stepId:'click',op:'click',locatorKind:'css',selector:'#unknown-button'};
+  const f=await workflowFixture({steps:[click]});t.after(()=>f.view.dispose());
+  await f.click('workflow-run');
+  await f.setPage({documentId:'new-document'});
+  assert.equal(get(f,'workflow-run-review').hidden,true);
+  assert.equal(f.starts.length,0);assert.equal(f.requests.length,0);
+  await f.click('workflow-run');
+  f.view.actions.editStep('click','selector','#another-button');await tick();await tick();
+  assert.equal(get(f,'workflow-run-review').hidden,true);
+  await f.click('workflow-run');await f.revoke(['https://workflow.example/*']);
+  assert.equal(get(f,'workflow-run-review').hidden,true);
+  await f.click('workflow-run-review-confirm');assert.equal(f.starts.length,0);
   assert.equal(f.requests.length,0);
-  f.input('workflow-confirm-run',true);await f.setPage({origin:'https://other.example'});
-  assert.equal(get(f,'workflow-run').disabled,true);await f.click('workflow-run');assert.equal(f.starts.length,0);
+});
+test('sensitive form fill requires explicit review even without a click',async t=>{
+  const field={...fill,selector:'#payment-password',text:'删除'};
+  const f=await workflowFixture({steps:[field]});t.after(()=>f.view.dispose());
+  const result=await f.click('workflow-run');
+  assert.equal(result.reviewRequired,true);
+  assert.match(get(f,'workflow-run-review-scope').text,/payment-password/);
+  assert.equal(f.starts.length,0);assert.equal(f.requests.length,0);
 });
 test('workflow cannot admit revoked permission or stale document after asynchronous journal read',async t=>{
   for(const variant of ['permission','document']) {

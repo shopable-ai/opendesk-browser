@@ -2,9 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {emptyWorkflow} from '../../src/framework/workflow/contract.js';
 import {compileWorkflow} from '../../src/framework/workflow/compiler.js';
-import {prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect,verifySavedWorkflowRevision} from '../../src/ui/workflow/direct-execution.js';
+import {classifyWorkflowRunRisk,prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect,verifySavedWorkflowRevision} from '../../src/ui/workflow/direct-execution.js';
 const origin='https://example.test';
 const target={windowId:1,tabId:2,frameId:0,documentId:'doc-1',url:origin+'/form',origin};
+const searchObservation={summary:{origin,documentId:target.documentId,nodes:[
+  {role:'button',name:'搜索',state:{visible:true},locator:{kind:'role',value:'button',name:'搜索'}}
+]}};
 const hash='a'.repeat(64);
 function workflow(steps) {
   const w=emptyWorkflow(origin,'12345678-1234-1234-1234-123456789abc');
@@ -21,6 +24,16 @@ function proof(){
       target:boundTarget,revision:{sourceHash:hash}},results:[receipt]},
     sourceHash:hash,target};
 }
+test('shared risk classifier avoids redundant read and ordinary fill consent but reviews unknown effects',()=>{
+  assert.equal(classifyWorkflowRunRisk(workflow([{stepId:'read',op:'observe'}])).needsReview,false);
+  assert.equal(classifyWorkflowRunRisk(workflow([fill])).needsReview,false);
+  assert.equal(classifyWorkflowRunRisk(workflow([{...fill,selector:'#password'}])).sensitiveFields,1);
+  assert.equal(classifyWorkflowRunRisk(workflow([{stepId:'click',op:'click',locatorKind:'css',selector:'#not-observed'}])).needsReview,true);
+  assert.throws(()=>prepareDirectExecution({request:'点击按钮',workflow:workflow([
+    {stepId:'click',op:'click',locatorKind:'css',selector:'#not-observed'}]),target}),{code:'E_AI_REVIEW_REQUIRED'});
+  assert.throws(()=>prepareDirectExecution({request:'在输入框填写 OpenDesk',
+    workflow:workflow([{...fill,text:'OpenDesk',selector:'#password'}]),target}),{code:'E_AI_REVIEW_REQUIRED'});
+});
 test('explicit fill compiles with opt-in readback and retains old source hash',async()=>{
   const w=workflow([fill]);
   assert.deepEqual(prepareDirectExecution({request:'在输入框里填入 ai自动化第一选择',workflow:w,target}).params,{});
@@ -50,7 +63,8 @@ test('a single send may fill and click search, but literals cannot authorize ext
   const search=workflow([{...fill,text:'OpenDesk'},
     {stepId:'search',op:'click',locatorKind:'role',selector:'button',roleName:'搜索'}]);
   const requested=prepareDirectExecution({
-    request:'在搜索框填入 OpenDesk，然后点击搜索按钮',workflow:search,target
+    request:'在搜索框填入 OpenDesk，然后点击搜索按钮',workflow:search,target,
+    observation:searchObservation
   });
   assert.equal(requested.hasReadback,true);
   assert.equal(requested.hasUnprovenClick,true);
@@ -142,7 +156,8 @@ test('core actions must be complete and search field labels do not authorize cli
   assert.throws(()=>prepareDirectExecution({request:'在搜索关键词输入框填入 OpenDesk，然后点击搜索按钮。',
     workflow:workflow([openDesk]),target}),{code:'E_AI_MISSING_ACTION'});
   assert.equal(prepareDirectExecution({request:'在搜索关键词输入框填入 OpenDesk，然后点击搜索按钮。',
-    workflow:workflow([openDesk,{...click,locatorKind:'role',selector:'button',roleName:'搜索'}]),target}).hasReadback,true);
+    workflow:workflow([openDesk,{...click,locatorKind:'role',selector:'button',roleName:'搜索'}]),target,
+    observation:searchObservation}).hasReadback,true);
 });
 
 for(const [request,value] of [
@@ -191,9 +206,8 @@ test('a final observed search button exposes only a bounded effect expectation',
   const accepted=prepareDirectExecution({request:'在搜索框填入 OpenDesk 并点击搜索',
     workflow:w,target,observation});
   assert.deepEqual(accepted.effectExpectation,{kind:'search-results-v1',query:'OpenDesk'});
-  const unobserved=prepareDirectExecution({request:'在搜索框填入 OpenDesk 并点击搜索',
-    workflow:w,target});
-  assert.equal(unobserved.effectExpectation,null);
+  assert.throws(()=>prepareDirectExecution({request:'在搜索框填入 OpenDesk 并点击搜索',
+    workflow:w,target}),{code:'E_AI_REVIEW_REQUIRED'});
   assert.equal(prepareDirectExecution({request:'在搜索框填入 OpenDesk',
     workflow:workflow([{...fill,text:'OpenDesk'}]),target}).effectExpectation,null);
   assert.throws(()=>prepareDirectExecution({request:'在搜索框填入 OpenDesk 并点击搜索',

@@ -28,6 +28,9 @@ const initialControls={
   "workflow-ai-approval": {
     "hidden": true
   },
+  "workflow-run-review": {
+    "hidden": true
+  },
   "workflow-ai-proposal": {
     "hidden": true
   },

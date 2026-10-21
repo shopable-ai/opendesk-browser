@@ -80,7 +80,8 @@ test('no new privileged workflow executor, no default visible version manager',a
     file('src/ui/workflow/workflow-view.js'),
     file('src/framework/workflow/contract.js')
   ]);
-  assert.match(html,/id="workflow-confirm-run"/);
+  assert.doesNotMatch(html,/id="workflow-confirm-run"/);
+  assert.match(html,/id="workflow-run-review"/);
   assert.match(view,/currentPageTarget\.revalidate\(captured\)/);
   assert.match(view,/host\.start\(\{source,params/);
   assert.match(view,/snapshotControllerRun\(\{runId:claim\.runId\}\)/);
