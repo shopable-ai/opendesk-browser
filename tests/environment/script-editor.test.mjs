@@ -200,6 +200,31 @@ test('R40.9 ordinary Controller and Page edits do not cancel unrelated component
   assert.ok(cancels>baseline,'Controller ESM must invalidate its own compiler work');
 });
 
+test('R40.10.1 Controller ESM Run and Revision are gated during its own advanced inspection',async t=>{
+  const gate=deferred(),started=deferred();let cancels=0;
+  const f=await fixture(undefined,undefined,{componentPreparerFactory:()=>({
+    inspect:async input=>{started.resolve();await gate.promise;return componentInspectResult(input);},
+    prepare:async()=>{throw Error('inspection cannot trigger a Run build');},
+    cancel(){cancels++;},dispose(){}
+  })});
+  t.after(()=>{gate.resolve();f.dispose();});
+  f.find('script-source').value='export default async function main(){return 1;}';
+  f.find('script-source').fire('input',{isTrusted:true});await tick();
+  assert.equal(f.find('script-run').disabled,false,'ESM without remote imports can Run directly');
+  assert.equal(f.find('script-save-version').disabled,false);
+  f.find('page-component-remote-prepare').fire('click',{isTrusted:true});
+  await started.promise;
+  assert.equal(f.find('script-run').disabled,true,'active inspection owns the compiler');
+  assert.equal(f.find('script-save-version').disabled,true,'Revision must not compete with inspection');
+  const before=cancels;
+  await f.click('script-stop');
+  assert.equal(cancels,before+1,'Stop cancels the active owner once');
+  assert.equal(f.find('script-run').disabled,false,'cancelled inspection releases the Run gate');
+  gate.resolve();await tick();
+  assert.equal(f.starts.length,0,'late inspection never admits a Controller Run');
+  assert.equal(f.commits.length,0,'late inspection never persists a Revision');
+});
+
 test('R40.10 steady Run and Result do not re-project unchanged environment copy',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const fixed=['page-preview-mode-title','page-preview-mode-hint','page-component-hint',

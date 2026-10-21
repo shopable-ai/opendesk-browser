@@ -190,7 +190,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     // A target refresh is pending evidence, not a confirmed document change.
     // Keep the original result, but do not expose it as current until resolved.
     if(context==='controller'||context==='controller-esm'||changed)
-      controllerRevisions.update({busy:editingBusy,local,page:pageExecution});
+      controllerRevisions.update({busy:editingBusy||!!componentRemote?.busy,local,page:pageExecution});
     // Static mode presentation is not a Run/Stop side effect. Project it only
     // when the visible execution intent changes; keep live controls below.
     const modeProjection=JSON.stringify([componentMode,javascriptWorld,loadedPageSource,local,pageExecution,!!programSource.snapshot()]);
@@ -224,7 +224,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
       otherTabOwnsBrowserUI()||componentRemote?.busy||dependencyInstaller?.busy||programSource.kind()==='controller'||
       (componentMode==='javascript'?(dependencyResolver?.busy||
         (dependencyResolver?.sourceFormat?!dependencyReview?.readyForRun:!dependencyInstaller?.readyForRun)):!componentRemote?.readyForRun);
-    else runDisabled||=!source.trim()||(browserCompilerEnabled&&hasUnbuiltESM(source)&&!componentRemote?.readyForRun)||!controllerClassic.readyForRun();
+    else runDisabled||=!source.trim()||(browserCompilerEnabled&&context==='controller-esm'&&
+      (componentRemote?.busy||!componentRemote?.readyForRun))||!controllerClassic.readyForRun();
     const preparing=candidatePreparing||pagePreviewFlow?.preparing||controllerRunner?.preparing||controllerRevisions.preparing||componentRemote?.busy;
     const stopDisabled = isStopping() || !preparing&&!canStopManaged()&&
       (!localRunner?.ownedRunId || host.currentRun !== localRunner.ownedRunId)&&
