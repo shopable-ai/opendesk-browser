@@ -62,7 +62,7 @@ test('user-initiated AI sends directly without custom consent UI or ledger',asyn
     'src/ui/workflow/data-sharing.js'].map(path=>readFile(path,'utf8'))
   ]);
   const $=load(html);
-  assert.equal($('#workflow-ai-plan').attr('aria-label'),'发送并执行浏览器任务');
+  assert.equal($('#workflow-ai-plan').attr('aria-label'),'发送任务并生成步骤');
   assert.equal($('#workflow-ai-plan').closest('[data-opendesk-react-owner="workflow-page"]').length,1);
   assert.equal($('[id$="-react-host"]').length,0,'no legacy workflow portals');
   assert.doesNotMatch(html,/id="workflow-ai-disclosure"|id="workflow-ai-review-|id="workflow-ai-revoke"/);

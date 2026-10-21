@@ -95,6 +95,12 @@ export function checkSidebarToolRequestBudget(message){
   )?{ok:true}:{ok:false,code:'E_LIMIT'};
 }
 
+// Only exact official release matches opt in. Same-ID user packages remain
+// opaque-origin, content-height iframes; this cannot grant API privileges.
+const FULL_HEIGHT_OFFICIAL_TOOLS=new Set([
+  'markdown-workbench','knowledge-inbox','web-markdown-clipper','cookie-editor'
+]);
+
 // Trusted Side Panel shell for untrusted, opaque-origin UI documents.
 // No user code, markup, or CSS is ever inserted into this extension document.
 export function createSidebarTools(options={}) {
@@ -239,36 +245,51 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let pendingUninstallId=null,pendingUninstallBaseline=null;
   const listeners=[];
   const listen=(field,type,fn)=>listeners.push(view.bind(field.key,type,fn));
-  // Shared, read-only Side Panel sizing hint; existing iframe content resize stays intact.
+  // Verified workspaces inherit the measured flex frame height. Other
+  // tools continue to grow to intrinsic height and receive a read-only hint.
   let lastHostHeight=null;
   const sendToolAvailableHeight=()=>{
     if(!frame||!instance||!active||frameRoot.hidden||disposed)return;
     const workspace=doc.getElementById('workspace-content');
+    const bounds=frame.getBoundingClientRect?.();
+    if(!bounds)return;
     const bottom=workspace?.getBoundingClientRect?.().bottom??globalThis.innerHeight;
-    const top=frame.getBoundingClientRect().top;
-    if(!Number.isFinite(bottom)||!Number.isFinite(top))return;
-    const availableHeight=Math.max(220,Math.min(1600,Math.floor(bottom-top-12)));
-    if(availableHeight===lastHostHeight)return;
-    lastHostHeight=availableHeight;
+    const mode=frameRoot.dataset?.officialWorkspace==='true'?'workspace':'content';
+    if(!Number.isFinite(bottom)||!Number.isFinite(bounds.top))return;
+    const frameHeight=Number.isFinite(bounds.height)&&bounds.height>0?bounds.height:null;
+    const height=mode==='workspace'&&frameHeight!==null?frameHeight:bottom-bounds.top-12;
+    const availableHeight=Math.max(mode==='workspace'?80:220,
+      Math.min(1600,Math.floor(height)));
+    const cacheKey=mode+':'+availableHeight;
+    if(cacheKey===lastHostHeight)return;
+    lastHostHeight=cacheKey;
     frame.contentWindow?.postMessage({
-      protocol:SIDEBAR_TOOL_PROTOCOL,kind:'layout',instance,toolId:active.id,availableHeight
+      protocol:SIDEBAR_TOOL_PROTOCOL,kind:'layout',instance,toolId:active.id,
+      availableHeight,layoutMode:mode
     },'*');
   };
-  // Only Cookie Editor uses the available Side Panel height. Other tools
-  // preserve their content-based resize policy.
+  // Preserve the prior fallback for unverified/older Cookie installations.
   const fitCookieFrame=()=>{
-    if(!frame||active?.id!=='cookie-editor'||frameRoot.hidden||disposed)return;
+    if(!frame||active?.id!=='cookie-editor'||frameRoot.hidden||disposed||
+       frameRoot.dataset?.officialWorkspace==='true')return;
     const workspace=doc.getElementById('workspace-content');
     const bottom=workspace?.getBoundingClientRect?.().bottom??globalThis.innerHeight;
-    const top=frame.getBoundingClientRect().top;
+    const top=frame.getBoundingClientRect?.()?.top;
     if(!Number.isFinite(bottom)||!Number.isFinite(top))return;
     const height=Math.max(260,Math.min(1600,Math.floor(bottom-top-12)));
     if(frame.style.height!==height+'px')frame.style.height=height+'px';
   };
+  const syncFrameLayout=()=>{fitCookieFrame();sendToolAvailableHeight();};
   if(typeof globalThis.addEventListener==='function'){
-    const fitToolFrames=()=>{fitCookieFrame();sendToolAvailableHeight();};
-    globalThis.addEventListener('resize',fitToolFrames);
-    listeners.push(()=>globalThis.removeEventListener('resize',fitToolFrames));
+    globalThis.addEventListener('resize',syncFrameLayout);
+    listeners.push(()=>globalThis.removeEventListener('resize',syncFrameLayout));
+  }
+  if(typeof ResizeObserver==='function'){
+    const observer=new ResizeObserver(syncFrameLayout);
+    for(const node of [doc.getElementById('workspace-content'),frameRoot]){
+      if(node)observer.observe(node);
+    }
+    listeners.push(()=>observer.disconnect());
   }
   const notice=(message,problem=false)=>{
     if(disposed)return;
@@ -682,7 +703,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(frame){frame.onload=null;frame.remove();frame=null;}
     instance=null;requestCount=0;requestWindow=Date.now();lastHostHeight=null;
     frameRoot.replaceChildren();
-    if(frameRoot.dataset){delete frameRoot.dataset.timeReviewNative;delete frameRoot.dataset.bookmarkTrusted;}
+    if(frameRoot.dataset){delete frameRoot.dataset.timeReviewNative;delete frameRoot.dataset.bookmarkTrusted;delete frameRoot.dataset.officialWorkspace;}
   }
   // The only admission for privileged Time Review rendering. Built-in code
   // never consumes the installed package's html/css/js as executable input.
@@ -1198,6 +1219,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       }
       if(!sameInstance(frame?.contentWindow,token))return;
       navigationAllowed=approvedNavigation;
+      if(approvedNavigation&&FULL_HEIGHT_OFFICIAL_TOOLS.has(tool.id)){
+        frameRoot.dataset.officialWorkspace='true';
+        frame.style.height='';
+        frame.style.maxHeight='';
+      }
       const source=frame.contentWindow;
       let transferred=[];
       if(!readOnly&&typeof MessageChannel==='function'){
@@ -1220,9 +1246,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:token,tool,
         navigationAllowed:approvedNavigation,
         locale:localeController?.getLocale()||'zh-CN'},'*',transferred);
-      sendToolAvailableHeight();
+      syncFrameLayout();
     };
-    frameRoot.append(frame);render();fitCookieFrame();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
+    frameRoot.append(frame);render();syncFrameLayout();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
     notice(readOnly?'正在加载隔离只读预览（不会安装或保存）…':'正在打开「'+tool.title+'」…');
   }
   function openTool(id,{launchGate=null}={}) {
@@ -2280,6 +2306,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     if(message.kind==='resize'){
       // Only live frame, null origin, matching tool ID and session are accepted above.
+      if(frameRoot.dataset?.officialWorkspace==='true'){sendToolAvailableHeight();return;}
       if(active?.id==='cookie-editor'){fitCookieFrame();return;}
       if(Number.isInteger(message.height)&&message.height>=80&&message.height<=4000){
         // The Time Review long-form settings / zoomed Canvas can legitimately

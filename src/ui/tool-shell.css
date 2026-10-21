@@ -451,40 +451,48 @@
 .sidebar-tool-frame{min-width:0;width:calc(100% + var(--od-page-gutter) + var(--od-page-gutter));margin-inline:calc(0px - var(--od-page-gutter))}
 .sidebar-tool-iframe{display:block;width:100%;min-width:0;min-height:0;height:220px;max-height:1600px;border:0;border-radius:0;background:#fff}
 
-/* R1.0 admitted full-height workspaces: size against the real flex parent.
- * Only the verified trusted Bookmark portal opts in. Compact settings and
- * sandboxed user tools keep their existing content-height/scroll policy. */
-#workspace-content:has(> #workbench-tools:not([hidden]) #sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])){
+/* Verified full-height chain: admitted Bookmark React or catalog-verified official
+ * sandbox workspace. Ordinary user tools/settings retain content-height flow. */
+#workspace-content:has(> #workbench-tools:not([hidden]) #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])){
   display:flex;
   flex-direction:column;
   overflow:hidden;
   padding-bottom:0;
 }
-#workspace-content > #workbench-tools:not([hidden]):has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])){
+#workspace-content > #workbench-tools:not([hidden]):has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])){
   display:flex;
   flex:1 1 auto;
   flex-direction:column;
   min-height:0;
   min-width:0;
 }
-#workbench-tools:has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > #sidebar-tools,
-#sidebar-tools:has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > .sidebar-tool-host,
-#sidebar-tools:has(#sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > .sidebar-tool-host > #sidebar-tool-display:not([hidden]){
+#workbench-tools:has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])) > #sidebar-tools,
+#sidebar-tools:has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])) > .sidebar-tool-host,
+#sidebar-tools:has(#sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])) > .sidebar-tool-host > #sidebar-tool-display:not([hidden]){
   display:flex;
   flex:1 1 auto;
   flex-direction:column;
   min-height:0;
   min-width:0;
 }
-#sidebar-tool-display:has(> #sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > .sidebar-tool-view-head{
+#sidebar-tool-display:has(> #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])) > .sidebar-tool-view-head{
   flex:none;
 }
-#sidebar-tool-display:has(> #sidebar-tool-frame[data-bookmark-trusted="true"]:not([hidden])) > #sidebar-tool-settings-view:not([hidden]){
+#sidebar-tool-display:has(> #sidebar-tool-frame:is([data-bookmark-trusted="true"],[data-official-workspace="true"]):not([hidden])) > #sidebar-tool-settings-view:not([hidden]){
   flex:0 1 auto;
   min-height:0;
   max-height:min(38%,280px);
   overflow-y:auto;
   overscroll-behavior:contain;
+}
+
+/* The verified official iframe owns its scroll; the Host never adds a second
+ * scrollbar or guesses fixed viewport offsets for workspace applications. */
+#sidebar-tool-frame[data-official-workspace="true"]{
+  display:flex;flex:1 1 0;flex-direction:column;min-height:0;min-width:0;overflow:hidden;
+}
+#sidebar-tool-frame[data-official-workspace="true"]>.sidebar-tool-iframe{
+  flex:1 1 auto;height:auto;min-height:0;max-height:none;
 }
 
 .task-section-head{margin:0 0 8px}
@@ -1572,3 +1580,16 @@
 #sidebar-tool-settings-view .sidebar-tool-settings-open-tab{display:flex;align-items:center;justify-content:center;gap:8px;min-height:34px;width:100%;margin-bottom:10px;font-size:12px}
 #sidebar-tool-settings-view .sidebar-tool-settings-open-tab svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 #sidebar-tool-primary-action[hidden]{display:none!important}
+
+/* R23.18: review and diagnostics remain compact within the one conversation scroll owner. */
+.workflow-ai-review-steps{display:grid;gap:5px;margin:6px 0 10px;padding:0;list-style:none;min-width:0}
+.workflow-ai-review-steps li{font-size:var(--od-note-size);line-height:1.5;padding:5px 7px;
+  background:color-mix(in srgb,var(--od-paper) 78%,transparent);border-radius:var(--radius-control);
+  overflow-wrap:anywhere}
+.workflow-run-review h3{margin:0 0 6px;font-size:var(--od-body-size);font-weight:650}
+.workflow-result-details{max-width:100%;min-width:0;margin:var(--space-2) 0;
+  font-size:var(--od-note-size);color:var(--od-sub)}
+.workflow-result-details>summary{cursor:pointer;padding:5px 0}
+.workflow-result-details pre{max-height:180px;white-space:pre-wrap;overflow-wrap:anywhere;
+  overflow:auto;padding:var(--space-2);border:1px solid var(--od-line);
+  border-radius:var(--radius-control);background:var(--od-muted);color:var(--od-sub);font-size:11px}

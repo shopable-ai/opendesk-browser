@@ -9,18 +9,17 @@ export function DevelopAdvanced(){
             {"保存与管理"}
           </summary>
           <DevelopField as="section" id="script-version-identity" className="developer-management-section">
-            <h3 className="od-field-label">版本身份</h3>
             <label htmlFor="script-id" className="od-field-label">
-              {"脚本名称 / ID"}
+              {"脚本 ID（用于保存）"}
             </label>
             <DevelopField as="input" id="script-id" autoComplete="off" className="od-field"/>
             <div className="row">
               <label htmlFor="script-revision" className="od-field-label">
-                {"revision"}
+                {"Revision（可选）"}
               </label>
               <DevelopField as="input" id="script-revision" type="number" min="1" placeholder="留空加载最新版本" className="od-field"/>
               <DevelopField as="button" id="script-load" className="od-button od-button--secondary">
-                {"加载版本"}
+                {"按 ID 加载版本"}
               </DevelopField>
             </div>
           </DevelopField>
@@ -49,7 +48,7 @@ export function DevelopAdvanced(){
               </DevelopField>
             </div>
             <p className="hint">
-              {"试运行后可保存固定 Page 版本；普通 JS 默认仅匹配本次预览的协议与主机，同主机其他端口可能匹配；显式 @match 保留原范围。保存的冻结版本仍须单独验证、审阅并安装。脚本 ID 和版本在下方「版本管理」中设置。"}
+              {"保存仅创建固定候选，不会自动安装。普通 JS 默认匹配本次网页的协议与主机（可能包括同主机其他端口）；显式 @match 保留原范围。后续仍须验证并确认权限。脚本 ID 与 Revision 在上方设置。"}
             </p>
             <DevelopField as="p" id="page-candidate-status" role="status" aria-live="polite">
               {"尚未保存网页脚本候选。"}

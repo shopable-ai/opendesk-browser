@@ -156,3 +156,36 @@ test('workflow provider settings retain protocol and credentials remain memory-o
   unsubscribe();const before=updates;f.input('workflow-title','已取消订阅');await tick();assert.equal(updates,before);
   f.view.dispose();assert.ok(Object.values(f.subscriptions).every(set=>set.size===0));
 });
+
+test('fixed fill becomes a Chinese parameter and repeated saved runs do not rewrite source',async t=>{
+  const f=await workflowFixture({steps:[fill]});t.after(()=>f.view.dispose());
+  f.view.actions.parameterizeStep('fill');await tick();await tick();
+  const {name,rule,value}=f.state().params[0];
+  assert.equal(name,'keyword');
+  assert.equal(rule.title,'搜索关键词');
+  assert.equal(value,'OpenDesk');
+  assert.equal(f.state().steps[0].param,name);
+  assert.equal(f.state().steps[0].text,undefined);
+  f.click('workflow-save');await tick();await tick();await tick();
+  assert.equal(f.local.size,1);
+  const record=[...f.local.values()][0];
+  const first=await f.click('workflow-run');assert.equal(first.ok,true);
+  const frozenHash=f.starts[0].source.contentHash;
+  assert.equal(f.starts[0].params[name],'OpenDesk');
+  f.view.actions.setParam(name,'新关键词');await tick();
+  const second=await f.click('workflow-run');assert.equal(second.ok,true);
+  assert.equal(f.starts[1].params[name],'新关键词');
+  assert.equal(f.starts[1].source.kind,'saved');
+  assert.equal(f.starts[1].source.contentHash,frozenHash);
+  assert.equal(record.sourceHash,frozenHash);
+  assert.notEqual(first.runId,second.runId);
+  assert.notEqual(first.resultId,second.resultId);
+});
+test('parameterizing sensitive fields never saves a secret as a default',async t=>{
+  const secret={stepId:'secret',op:'fill',locatorKind:'css',selector:'#password',text:'EXAMPLE_SECRET_VALUE'};
+  const f=await workflowFixture({steps:[secret]});t.after(()=>f.view.dispose());
+  f.view.actions.parameterizeStep('secret');await tick();await tick();
+  assert.equal(f.state().params[0].rule.default,undefined);
+  assert.equal(f.state().params[0].value,'');
+  assert.equal(f.state().steps[0].text,undefined);
+});

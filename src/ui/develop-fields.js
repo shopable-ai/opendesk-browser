@@ -43,9 +43,6 @@ export const DEVELOPER_FIELDS = {
   "local-project-tools": {
     "hidden": true
   },
-  "local-project-intro": {
-    "textContent": "选择已授权项目，可运行或核对安装；复用历史验证必须匹配当前源码、网页与持久回执。"
-  },
   "local-project-select": {
     "options": [
       [

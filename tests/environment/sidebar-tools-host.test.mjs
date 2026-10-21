@@ -90,6 +90,60 @@ test('R1.6 same-ID Clipper package cannot claim shared navigation or hijack back
  assert.equal(f.frame.contentWindow.sent.length,before,'unreviewed tool receives no trusted back action');
  assert.equal(f.runtime.frameRoot.children.length,0,'back returns to the extension list');
 });
+test('R1.7 exact official Prompt Shortcuts forwards Header New/Back without remounting',async t=>{
+  const official=await officialToolFixture('prompt-shortcuts');
+  const f=await hostFixture(t,{tool:official,store:new Map([[SIDEBAR_TOOL_STORE,[official]]])});
+  assert.equal(f.loaded.navigationAllowed,true,'only verified release receives shared business navigation');
+  const send=state=>f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data:{
+    protocol:f.loaded.protocol,toolId:official.id,instance:f.loaded.instance,
+    kind:'navigation-state',state
+  }});
+  const verifyAction=(field,action)=>{
+    const previous=f.frame.contentWindow.sent.length;
+    f.emit(f.elements[field],'click');
+    assert.equal(f.frame.contentWindow.sent.length,previous+1,action+' stays inside the active sandbox');
+    const message=f.frame.contentWindow.sent.at(-1);
+    assert.equal(message.kind,'navigation-action');
+    assert.equal(message.action,action);
+    assert.equal(message.instance,f.loaded.instance);
+    assert.equal(message.toolId,official.id);
+    assert.equal(f.runtime.frameRoot.children[0],f.frame,'Header does not recreate the iframe');
+  };
+  send({page:'index',title:'提示词快捷按钮',canBack:false,primary:'new'});
+  assert.equal(f.elements['sidebar-tool-title'].textContent,'提示词快捷按钮');
+  assert.equal(f.elements['sidebar-tool-primary-action'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-back'].title,'返回扩展列表');
+  verifyAction('sidebar-tool-primary-action','primary');
+  send({page:'create',title:'新建提示词',canBack:true});
+  assert.equal(f.elements['sidebar-tool-title'].textContent,'新建提示词');
+  assert.equal(f.elements['sidebar-tool-back'].title,'返回上一级');
+  assert.equal(f.elements['sidebar-tool-primary-action'].hidden,true);
+  verifyAction('sidebar-tool-back','back');
+  send({page:'edit',title:'编辑提示词',canBack:true});
+  assert.equal(f.elements['sidebar-tool-title'].textContent,'编辑提示词');
+  verifyAction('sidebar-tool-back','back');
+  f.emit(f.elements['sidebar-tool-settings-open'],'click');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,'工具设置');
+  f.emit(f.elements['sidebar-tool-back'],'click');
+  assert.equal(f.runtime.frameRoot.children[0],f.frame);
+  assert.equal(f.elements['sidebar-tool-title'].textContent,'编辑提示词');
+});
+
+test('R1.7 same-ID manually altered Prompt Shortcuts cannot claim official Header actions',async t=>{
+  const official=await officialToolFixture('prompt-shortcuts');
+  const altered={...official,js:official.js+'\nvoid 0;'};
+  const f=await hostFixture(t,{tool:altered,store:new Map([[SIDEBAR_TOOL_STORE,[altered]]])});
+  assert.equal(f.loaded.navigationAllowed,false,'ID alone never elevates a manually changed install');
+  const before=f.frame.contentWindow.sent.length;
+  f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data:{
+    protocol:f.loaded.protocol,toolId:altered.id,instance:f.loaded.instance,
+    kind:'navigation-state',state:{page:'create',title:'伪造标题',canBack:true,primary:'new'}
+  }});
+  assert.equal(f.elements['sidebar-tool-title'].textContent,altered.title);
+  assert.equal(f.elements['sidebar-tool-primary-action'].hidden,true);
+  assert.equal(f.frame.contentWindow.sent.length,before);
+});
+
 test('R1.6 generic tool settings has a single titled return without remounting',async t=>{
  const f=await hostFixture(t),original=f.frame;
  assert.equal(f.elements['sidebar-tool-back'].title,'返回扩展列表');
@@ -933,6 +987,36 @@ test('stopped tool detail opens a fixed full-page route without running sidebar 
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
 });
 
+test('R1.2 verified official Markdown workspace ignores content-resize hints and cleans up layout',async t=>{
+  const official=await officialToolFixture('markdown-workbench');
+  const f=await hostFixture(t,{tool:official,store:new Map([[SIDEBAR_TOOL_STORE,[official]]])});
+  assert.equal(f.runtime.frameRoot.dataset.officialWorkspace,'true',
+    'only exact official released bytes may opt in to the shared workspace height');
+  assert.equal(f.frame.style.height,'');
+  f.win.emit('message',{source:f.frame.contentWindow,origin:'null',data:{
+    protocol:f.loaded.protocol,kind:'resize',instance:f.loaded.instance,
+    toolId:official.id,height:1400
+  }});
+  assert.equal(f.frame.style.height,'','an intrinsic content resize cannot override verified flex sizing');
+  f.host.closeTool();
+  assert.equal(f.runtime.frameRoot.dataset.officialWorkspace,undefined,
+    'closing a tool revokes the layout mode along with its frame session');
+});
+
+test('R1.2 same-ID user-installed Markdown package cannot claim the official full-height layout',async t=>{
+  const official=await officialToolFixture('markdown-workbench');
+  const altered={...official,css:official.css+'\n.mdw{outline:0}'};
+  const f=await hostFixture(t,{tool:altered,store:new Map([[SIDEBAR_TOOL_STORE,[altered]]])});
+  assert.equal(f.runtime.frameRoot.dataset.officialWorkspace,undefined,
+    'official ID or name without a matching release hash never grants layout admission');
+  f.win.emit('message',{source:f.frame.contentWindow,origin:'null',data:{
+    protocol:f.loaded.protocol,kind:'resize',instance:f.loaded.instance,
+    toolId:altered.id,height:240
+  }});
+  assert.equal(f.frame.style.height,'240px',
+    'unverified user package retains the ordinary content-height iframe policy');
+});
+
 test('R18 resize and status messages accept only the live opaque frame and bounded sizes',async t=>{
   const f=await hostFixture(t);
   const loaded=f.frame.contentWindow.sent[0];
@@ -1122,7 +1206,7 @@ test('R4.7 settings live next to retained TOC iframe; appearance remains separat
   assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
   assert.equal(f.elements['sidebar-tool-frame'].hidden,true);
   assert.equal(f.elements['sidebar-tool-frame'].children[0],iframe,'the sandbox is retained, not reloaded');
-  assert.equal(f.elements['sidebar-tool-title'].textContent,toc.title);
+  assert.equal(f.elements['sidebar-tool-title'].textContent,'工具设置');
   const pagePrefs=changeReadingTocVisibility({},toc.id,url,'page',true);
   f.changeStorage({[READING_TOC_VISIBILITY_STORE]:{newValue:pagePrefs}});
   assert.equal(f.elements['sidebar-tool-settings-page-visibility'].textContent,'恢复显示');

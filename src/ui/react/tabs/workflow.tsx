@@ -183,6 +183,8 @@ function WorkflowStep({step,index,count,model,actions}) {
       {step.op==='fill'&&<>
         <StepField step={step} field="param" label="参数名（有值时使用参数）" actions={actions} maxLength={40}/>
         <StepField step={step} field="text" label="固定填写值（参数名留空时生效）" actions={actions}/>
+        {!step.param&&typeof step.text==='string'&&step.text.trim()&&
+          <Button onClick={()=>actions.parameterizeStep?.(step.stepId)}>将填写值设为参数</Button>}
       </>}
       {['assert','confirm'].includes(step.op)&&<StepField step={step} field="text" label={step.op==='assert'?'预期包含文字':'确认事项'} actions={actions}/>}
       {step.op==='wait'&&<StepField step={step} field="timeout" label="最长等待毫秒（100–30000）" type="number" maxLength={5} actions={actions}/>}
@@ -229,7 +231,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
       scroller.current.scrollTop=scroller.current.scrollHeight;
   },[model.messages,model.phase,active]);
   const action=(id,label,{icon=false,primary=false,kind,...props}={})=>icon
-      ?<IconButton id={id} label={label} title={id==='workflow-ai-plan'?'发送并执行':label}
+      ?<IconButton id={id} label={label} title={id==='workflow-ai-plan'?'发送任务并生成步骤':label}
         className={'workflow-icon-button'+(primary?' od-icon-button--primary':'')} hidden={c(id).hidden}
         disabled={Boolean(c(id).disabled)} onClick={event=>click(id,event)} {...props}><Glyph kind={kind}/></IconButton>
     :<Button id={id} variant={primary?'primary':'secondary'} hidden={c(id).hidden}
@@ -294,12 +296,26 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
                 actions.click?.('workflow-run-review-cancel',event.nativeEvent);
               }
             }}>
+            {model.awaitingReview&&<><h3>准备执行 {model.steps?.length||0} 步</h3>
+              <ol className="workflow-ai-review-steps">{model.steps?.map((step,index)=><li key={step.stepId}>
+                {index+1}. {({observe:'观察页面',fill:'填写内容',click:'点击网页元素',wait:'等待元素',extract:'读取文本',assert:'验证内容',navigate:'打开网页'})[step.op]||'执行操作'}
+                {step.param?' · 参数 '+step.param:step.op==='fill'&&step.text?' · 「'+String(step.text).slice(0,64)+'」':step.roleName?' · '+step.roleName:step.selector?' · '+step.selector:''}
+              </li>)}</ol></>}
             {text('workflow-run-review-scope')}
             <div className="workflow-actions">
               {action('workflow-run-review-cancel','取消')}
-              {action('workflow-run-review-confirm','确认执行',{primary:true})}
+              {action('workflow-run-review-confirm','执行',{primary:true})}
             </div>
           </section>
+          <details id="workflow-result-panel" className="workflow-result-details od-disclosure od-disclosure--flat"
+            hidden={c('workflow-result-panel').hidden!==false}>
+            <summary>技术详情</summary>
+            <pre id="workflow-output" aria-label="本次持久运行结果">{c('workflow-output').text||'尚未运行'}</pre>
+            <details id="workflow-result-raw" className="od-disclosure od-disclosure--flat" hidden={c('workflow-result-raw').hidden!==false} key={c('workflow-technical').text}>
+              <summary>查看脱敏说明</summary><pre id="workflow-raw">{c('workflow-raw').text}</pre>
+            </details>
+            <pre id="workflow-technical" aria-label="运行证据身份">{c('workflow-technical').text}</pre>
+          </details>
         </section>
         <section id="workflow-plan-panel" className="workflow-card od-surface--padded workflow-plan od-surface" aria-label="可编辑语义步骤" hidden={c('workflow-plan-panel').hidden!==false}>
           <div className="workflow-section-header od-toolbar"><h3>执行步骤</h3><div className="workflow-step-tools">
@@ -324,14 +340,6 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
                   onChange={event=>actions.setParam?.(name,rule.type==='boolean'?event.currentTarget.checked:event.currentTarget.value)}/>}
             </label><Button className="od-button--danger" aria-label={'移除参数 '+name} onClick={()=>actions.removeParam?.(name)}>移除</Button>
           </div>)}</div>
-        </section>
-        <section id="workflow-result-panel" className="workflow-card od-surface--padded workflow-result od-surface" aria-label="工作流运行结果" hidden={c('workflow-result-panel').hidden!==false}>
-          <div className="workflow-section-header od-toolbar"><h3>运行结果</h3></div>
-          <pre id="workflow-output" aria-label="本次持久运行结果">{c('workflow-output').text||'尚未运行'}</pre>
-          <details id="workflow-result-raw" className="od-disclosure od-disclosure--flat" hidden={c('workflow-result-raw').hidden!==false} key={c('workflow-technical').text}>
-            <summary>查看完整原值（可能包含敏感信息）</summary><pre id="workflow-raw">{c('workflow-raw').text}</pre>
-          </details>
-          <details className="workflow-advanced od-disclosure od-disclosure--flat"><summary>Run / Result / Revision 技术身份</summary><pre id="workflow-technical">{c('workflow-technical').text}</pre></details>
         </section>
         <section id="workflow-manage-panel" className="workflow-management od-surface" aria-label="工作流编辑与高级管理" hidden={c('workflow-manage-panel').hidden!==false}>
           <div className="workflow-section-header od-toolbar"><h3>工作流编辑</h3>{action('workflow-manage-close','收起版本与设置',{icon:true,kind:'close'})}</div>
@@ -379,12 +387,12 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
         <div className="workflow-composer-actions">
           {action('workflow-provider-toggle','AI 设置',{icon:true,kind:'settings','aria-expanded':openSettings,'aria-controls':'workflow-provider-settings'})}
           <WorkflowSourceName value={model.sourceName||'Codex'}/>
-        {action('workflow-ai-plan','发送并执行浏览器任务',{icon:true,primary:true,kind:'send'})}
+        {action('workflow-ai-plan','发送任务并生成步骤',{icon:true,primary:true,kind:'send'})}
           {action('workflow-ai-cancel','停止 AI 规划')}
         </div>
       </div>
-      <div id="workflow-page-actions" className="workflow-actions od-toolbar" hidden={!model.hasSteps&&model.phase!=='running'}>
-        {action('workflow-run','运行工作流',{primary:true})}{action('workflow-save','保存版本')}{action('workflow-stop','停止')}
+      <div id="workflow-page-actions" className="workflow-actions od-toolbar" hidden={Boolean(model.awaitingReview)||(!model.hasSteps&&model.phase!=='running')}>
+        {action('workflow-run','再次运行',{primary:true})}{action('workflow-save','保存工作流')}{action('workflow-stop','停止')}
       </div>
       {text('workflow-status',{className:'workflow-status',role:'status','aria-live':'polite','data-state':c('workflow-status').dataset?.state})}
     </section>

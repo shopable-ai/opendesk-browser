@@ -54,7 +54,7 @@ function buttonByText(root,text){
   const button=allDescendants(root).find(node=>node.tagName==='BUTTON'&&node.textContent===text);
   assert(button,'missing clickable '+text);return button;
 }
-async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=false,siteReadbackFault=false,deferLaunch=false,initial=null,initialStored=initial,initialSites=null,pickRequest=null,menuSelection=null,storageFault=null,pageContext={status:'available',origin:'https://example.org',path:'/compose'},checkRequest=null}={}){
+async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=false,siteReadbackFault=false,deferLaunch=false,sharedNavigation=false,initial=null,initialStored=initial,initialSites=null,pickRequest=null,menuSelection=null,storageFault=null,pageContext={status:'available',origin:'https://example.org',path:'/compose'},checkRequest=null}={}){
   const [html,main,modelSource]=await Promise.all([
     readFile(tool+'/src/index.html','utf8'),readFile(tool+'/src/main.js','utf8'),
     readFile(tool+'/trusted/model.js','utf8')
@@ -68,17 +68,21 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
   nodes['ps-label'].tagName='INPUT';nodes['ps-name'].tagName='INPUT';
   nodes['ps-enabled'].checked=true;nodes['ps-web'].checked=true;
   const copies=[];
+  const page=new FakeNode('main');page.className='ps';
+  const rootEvents=new Map(),navigation=[];
   const root={
     ownerDocument:{createElement:tag=>new FakeNode(tag),createElementNS:(_ns,tag)=>new FakeNode(tag),
       execCommand:cmd=>{assert.equal(cmd,'copy');copies.push(nodes['ps-clipboard-buffer'].value);return true;},
       activeElement:null},
     querySelector(selector){
+      if(selector==='.ps')return page;
       if(selector.startsWith('#'))return nodes[selector.slice(1)]||null;
       if(selector.startsWith('.'))return allDescendants(nodes['ps-list'])
         .find(node=>node.classList.contains(selector.slice(1)))||null;
       return null;
     },
-    addEventListener(){},
+    addEventListener(name,fn){rootEvents.set(name,[...(rootEvents.get(name)||[]),fn]);},
+    emit(name,event={}){for(const fn of rootEvents.get(name)||[])fn(event);},
   };
   let stored=structuredClone(initialStored),version='a'.repeat(64),writes=0,reads=0;
   let siteStored=structuredClone(initialSites),siteVersion='b'.repeat(64),siteWrites=0;
@@ -135,7 +139,8 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
     Intl,TextEncoder,URL,crypto:{getRandomValues:array=>webcrypto.getRandomValues(array)},
     setTimeout:callback=>{const id=++timerId;timers.set(id,callback);return id;},
     clearTimeout:id=>timers.delete(id),
-    OpenDeskTool:{root,request,setState:row=>states.push({...row})},
+    OpenDeskTool:{root,request,setState:row=>states.push({...row}),
+      ...(sharedNavigation?{setNavigation:state=>{navigation.push({...state});return true;}}:{})},
     OpenDeskSDK:{browser:{contextMenu:{
       getStatus:async()=>({enabled:false,approvedOrigins:[],browserPermission:false}),
       register:async()=>({registered:true}),unregister:async()=>({registered:false})
@@ -144,7 +149,7 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
   runInNewContext(modelSource,sandbox,{filename:'trusted/model.js'});
   runInNewContext(main,sandbox,{filename:'src/main.js'});
   await settle();
-  return {nodes,root,requests,states,pending,readbacks,sitePending,launches,downloads,
+  return {nodes,root,page,navigation,requests,states,pending,readbacks,sitePending,launches,downloads,
     copies:()=>copies.slice(),stored:()=>stored,writes:()=>writes,
     externalWrite:value=>{stored=structuredClone(value);version='c'.repeat(64);},
     siteStored:()=>siteStored,siteWrites:()=>siteWrites,timers};
@@ -1081,4 +1086,65 @@ test('R2.8 late auto-locate check cannot overwrite a manually changed input',asy
   assert.doesNotMatch(n['ps-site-verified'].textContent,/本页定位通过/);
   assert.equal(n['ps-site-auto'].disabled,false);
   assert.equal(f.siteWrites(),0);
+});
+
+test('R1.7 official header: create, draft back, ETag save/readback, edit and focus restoration',async()=>{
+  const f=await fixture({sharedNavigation:true}),n=f.nodes;
+  const nav=action=>f.root.emit('opendesk-tool-navigation',{detail:{action}});
+  assert.equal(f.page.classList.contains('ps-host-nav'),true);
+  assert.deepEqual(f.navigation.at(-1),
+    {page:'index',title:'提示词快捷按钮',canBack:false,primary:'new'});
+  nav('primary');
+  assert.deepEqual(f.navigation.at(-1),{page:'create',title:'新建提示词',canBack:true});
+  n['ps-body'].value='第一次草稿';n['ps-form'].emit('input');
+  nav('back');
+  assert.equal(n['ps-leave'].hidden,false,'shared back must use the same draft guard');
+  n['ps-stay'].click();
+  assert.equal(n['ps-body'].value,'第一次草稿');
+  nav('back');n['ps-discard'].click();
+  assert.equal(n['ps-index'].hidden,false);
+  assert.equal(f.navigation.at(-1).page,'index');
+  nav('primary');
+  n['ps-body'].value='你好';n['ps-form'].emit('input');
+  n['ps-save'].click();await settle();
+  assert.equal(f.writes(),1);
+  assert.equal(f.stored().items[0].body,'你好');
+  assert.equal(f.navigation.at(-1).page,'index');
+  buttonByAction(n['ps-list'],'more').click();
+  buttonByAction(n['ps-list'],'edit').click();
+  assert.deepEqual(f.navigation.at(-1),{page:'edit',title:'编辑提示词',canBack:true});
+  nav('back');
+  assert.equal(n['ps-index'].hidden,false);
+  assert.equal(buttonByAction(n['ps-list'],'more').focused,true,'focus returns to the edited item');
+  const reopen=await fixture({initialStored:f.stored(),sharedNavigation:true});
+  assert.equal(reopen.nodes['ps-count'].textContent,'1 个 · 1 个启用');
+  assert.equal(reopen.writes(),0,'return and reopening never duplicate an item');
+});
+
+test('R1.7 third-party and standalone preview keep the local New/title controls',async()=>{
+  const f=await fixture(),n=f.nodes;
+  assert.equal(f.navigation.length,0);
+  assert.equal(f.page.classList.contains('ps-host-nav'),false);
+  n['ps-new'].click();
+  assert.equal(n['ps-form-title'].textContent,'新建提示词');
+  n['ps-body'].value='独立页面草稿';n['ps-form'].emit('input');
+  n['ps-cancel'].click();
+  assert.equal(n['ps-leave'].hidden,false);
+});
+
+test('R1.7 shared back blocks pending and unknown storage results without replay',async()=>{
+  const f=await fixture({sharedNavigation:true,deferWrites:true,deferReadback:true}),n=f.nodes;
+  const back=()=>f.root.emit('opendesk-tool-navigation',{detail:{action:'back'}});
+  n['ps-new'].click();n['ps-body'].value='未确认草稿';n['ps-form'].emit('input');
+  n['ps-save'].click();
+  assert.equal(f.pending.length,1);
+  back();assert.equal(n['ps-edit'].hidden,false);
+  f.pending.shift().resolve({failure:Error('ack lost')});await settle();
+  assert.equal(f.readbacks.length,1);
+  back();assert.equal(n['ps-edit'].hidden,false);
+  f.readbacks.shift().reject(Error('readback unavailable'));await settle();
+  assert.equal(n['ps-body'].value,'未确认草稿');
+  back();assert.equal(n['ps-edit'].hidden,false);
+  assert.equal(n['ps-leave'].hidden,true,'unknown writes cannot be discarded');
+  assert.equal(f.requests.filter(row=>row.op==='storage.set').length,1);
 });

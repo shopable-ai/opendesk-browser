@@ -6,7 +6,6 @@ import {createTaskPackage} from '../../platform/tasks/contract.js';
 import {permissionPattern} from '../../environment.js';
 import {decodeValue} from '../../platform/page-port/codec.js';
 import {presentTaskValue,formatTaskError} from '../task-run-diagnostics.js';
-import {formatRunValue} from '../run-value-format.js';
 import {createWorkflowProviderFacade} from './provider.js';
 import {deriveWorkflowViewState} from './view-state.js';
 import {createLocalCodexPlanner,describeLocalCodex} from './local-codex.js';
@@ -45,7 +44,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   let lastTrustedRun=null; // UI hint only, original Task Verify must validate the real receipt.
   let touched=false,saveList=[],draftWrites=Promise.resolve();
   let directVerifiedSerial=null; // Verified fill source is the same byte sequence saved later.
-  let phase='idle',lastRun='none',hasError=false,newReviewSignature=null,pendingRunReview=null;
+  let phase='idle',lastRun='none',hasError=false,newReviewSignature=null,pendingRunReview=null,pendingAIReview=null;
   let historyOpen=false,newReviewReturnFocus=null;
   let planningGeneration=0,planningAbort=null,planningTarget=null,pendingApproval=null,localChecking=false;
   let observationApproval=null,planningObservation=null,approvalWrites=Promise.resolve();
@@ -110,8 +109,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     hidePanel('workflow-new-review','workflow-new');
   }
   function dismissRunReview() {
-    pendingRunReview=null;
-    hidePanel('workflow-run-review','workflow-run');
+    pendingRunReview=null;pendingAIReview=null;
+    hidePanel('workflow-run-review','workflow-ai-request');
   }
   const currentOrigin=()=>currentPageTarget?.snapshot?.status==='available'
     ? currentPageTarget.snapshot.origin:null;
@@ -156,7 +155,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       ['cloud_responses','custom_https'].includes(provider())&&
         Boolean(control('workflow-ai-key').value.trim() && control('workflow-ai-model').value.trim() &&
           control('workflow-ai-endpoint').value.trim());
-    const mode=deriveWorkflowViewState({phase,proposal:false,hasSteps,
+    const mode=deriveWorkflowViewState({phase,proposal:Boolean(pendingAIReview),hasSteps,
       saved:Boolean(matchesRevision()),lastRun,error:hasError,providerReady:ready});
     control('workflow-editor').dataset.viewState=mode;
     control('workflow-plan-panel').hidden=!hasSteps;
@@ -167,7 +166,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     control('workflow-intro-description').text=entryMode==='new-chat'
       ?'保留当前工作流，可以继续提出下一步需求。'
       :'用一句话描述任务，或选择下方示例开始。';
-    ui.patch({entryMode,hasSteps,phase,lastRun});
+    ui.patch({entryMode,hasSteps,phase,lastRun,awaitingReview:Boolean(pendingAIReview)});
     transcript.hidden=!hasMessages;
     control('workflow-planning-indicator').hidden=phase!=='planning';
     control('workflow-dock').dataset.empty=String(!hasSteps&&!runId);
@@ -190,13 +189,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     // An active RunHost also owns the viewport, even after AI planning settles.
     const operationBusy=busy||Boolean(host.executionPending||host.currentRun);
     const runnable=Boolean(compiled && currentOrigin()===workflow.siteOrigin &&
-      !operationBusy && !historyOpen);
+      !operationBusy && !historyOpen && !pendingAIReview);
     control('workflow-run').disabled=!runnable;
     control('workflow-save').disabled=busy || !compiled;
     control('workflow-candidate').disabled=busy || !matchesRevision();
     control('workflow-stop').disabled=!runId || host.currentRun!==runId;
     control('workflow-open-code').disabled=!compiled;
-    control('workflow-ai-plan').disabled=busy||provider()==='opendesk_cloud'||
+    control('workflow-ai-plan').disabled=busy||Boolean(pendingAIReview)||provider()==='opendesk_cloud'||
       (provider()==='local_codex'&&localChecking);
     control('workflow-ai-plan').hidden=phase==='planning';
     control('workflow-ai-cancel').hidden=phase!=='planning';
@@ -325,7 +324,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     clearChat();
     control('workflow-ai-request').value='';
     runId=null;onRunOwner(null);
-    workflow=clean;lastTrustedRun=null;
+    workflow=clean;paramValues={};lastTrustedRun=null;
     directVerifiedSerial=record.verificationMode==='fill-readback'?stable():null;
     revision=record;touched=true;lastRun='none';hasError=false;
     render();persistDraft();
@@ -388,7 +387,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       const value=decodeValue(result.outcome.valueWire),presented=presentTaskValue(value);
       writeWorkflowOutput(presented.text);
       if(presented.redacted||presented.truncated){
-        raw.text=formatRunValue(value);reveal.hidden=false;
+        // The Controller retains original bytes. Do not expose omitted secrets through a disclosure.
+        raw.text='原始值包含省略或脱敏内容；完整回执保留在现有 Controller 中。';
+        reveal.hidden=false;
       }
       return true;
     }catch(error){writeWorkflowOutput('持久结果解码失败：'+format(error));return false;}
@@ -598,6 +599,85 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       if(!runId || host.currentRun!==runId){runId=null;onRunOwner(null);}
       if(!disposed)updateButtons();
     });
+  }
+
+  // Conversation wording is derived only from verified durable RunHost receipts
+  // and independent DOM readback. A completed worker is not an observed business effect.
+  function describeExecution(reply) {
+    if(reply?.ok) {
+      if(reply.effect?.kind==='search-results')
+        return '搜索操作已执行，并独立读回与关键词关联的搜索结果状态及 '+
+          reply.effect.visibleResultLinks+' 个新出现的可见链接；未验证结果相关性。';
+      if(reply.effect?.kind==='search-empty')
+        return '搜索操作已执行，已独立读回该关键词的无结果状态。';
+      if(reply.effect?.kind==='search-inline')
+        return '搜索操作已执行，已独立读回页面上的搜索完成状态及匹配关键词的结果文字。';
+      if(reply.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'&&reply.readbackVerified)
+        return '已填写网页内容，并核对输入框读回值一致；不代表已提交至服务器。';
+      return '浏览器操作回执已核对，网页最终业务效果仍待验证。';
+    }
+    if(reply?.error?.code==='E_CANCELLED')return '已停止后续操作；先前已经发生的网页变化不会自动回滚。';
+    if(/UNKNOWN|TIMEOUT|SETTLEMENT/.test(reply?.error?.code||'')||!reply?.error)
+      return '无法确认网页操作是否生效。为避免重复修改，本次不会自动重试。';
+    return '本次任务未完成：'+String(reply.error.message||reply.error.code||'运行失败').slice(0,240)+'。没有自动重试。';
+  }
+  function reportExecution(reply,planned=null) {
+    if(reply?.skipped||reply?.reviewRequired)return;
+    const message=describeExecution(reply);
+    if(planned&&reply?.ok&&reply.evidenceLevel==='BUSINESS_EFFECT_VERIFIED') {
+      verifiedTurnHistory=[...verifiedTurnHistory,{
+        request:planned.request.slice(0,4000),outcome:'verified',
+        readbackVerified:reply.readbackVerified===true,
+        stepCount:planned.freeze.workflow.steps.length,
+        effectKind:reply.effect?.kind||'input-readback',
+        ...(Number.isSafeInteger(reply.effect?.visibleResultLinks)
+          ?{visibleResultLinks:reply.effect.visibleResultLinks}:{})
+      }].slice(-4);
+      verifiedContextTarget={windowId:planned.captured.windowId,
+        tabId:planned.captured.tabId,origin:planned.captured.origin};
+    }
+    appendChat('执行结果',message);
+    status(message,!reply?.ok);
+  }
+  // Called synchronously from the one trusted Confirm gesture. A plan has no
+  // execution authority until this exact frozen source, params and target match.
+  function executeAIReview(event) {
+    if(!event?.isTrusted||!pendingAIReview)return Promise.resolve({ok:false,skipped:true});
+    const planned=pendingAIReview;
+    const target=currentPageTarget?.snapshot;
+    const identity=['windowId','tabId','frameId','documentId','url','origin'];
+    if(planned.serial!==stable()||planned.selected!==provider()||
+      planned.epoch!==planningGeneration||
+      !target||target.status!=='available'||
+      identity.some(key=>planned.captured[key]!==target[key])) {
+      dismissRunReview();
+      status('步骤、网页或模型来源已变化；旧确认已失效，请重新生成步骤。',true);
+      return Promise.resolve({ok:false,skipped:true});
+    }
+    // This native click is the only Run gesture. Chrome may still request a
+    // missing origin grant; already-granted origins do not need a product popup.
+    let permission;
+    try {permission=api.permissions.request({origins:[permissionPattern(planned.captured.url)]});}
+    catch(error){dismissRunReview();status(format(error),true);return Promise.resolve({ok:false,error});}
+    dismissRunReview(); // consume before any asynchronous work or second click
+    appendChat('对话状态','正在执行已确认的 '+planned.freeze.workflow.steps.length+' 步…');
+    const approved={
+      freeze:planned.freeze,captured:planned.captured,params:planned.params,
+      permission,signal:planned.signal,hasReadback:planned.hasReadback,
+      hasUnprovenClick:planned.hasUnprovenClick,
+      beforeObservation:planned.beforeObservation,effectExpectation:planned.effectExpectation,
+      assertCurrent:()=>{
+        if(disposed||planned.serial!==stable()||planned.selected!==provider()||
+          planned.epoch!==planningGeneration)
+          throw err('E_WORKFLOW_REVIEW_STALE','步骤、参数或模型来源已变化，未执行');
+      }
+    };
+    return run(event,approved).then(reply=>{if(!disposed)reportExecution(reply,planned);return reply;});
+  }
+  async function runManual(event,review=null) {
+    const reply=await run(event,null,review);
+    if(!disposed)reportExecution(reply);
+    return reply;
   }
   function stop(event) {
     if(!event.isTrusted||!runId||host.currentRun!==runId)return;
@@ -980,45 +1060,29 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       directVerifiedSerial=stable();
       render();persistDraft();
       const executionSerial=stable();
-      // A click is the terminal action in the compiled plan. Its expected
-      // navigation invalidates the prior Document, but only a new authorized
-      // observation may read the destination; no old steps run there.
-      if(prepared.hasUnprovenClick)planningTarget=null;
-      const execution=await run(null,{freeze,captured,params:prepared.params,hasReadback:prepared.hasReadback,
-        permission:Promise.resolve(true),signal:abort.signal,hasUnprovenClick:prepared.hasUnprovenClick,
+      // Planning produces a reviewable, immutable proposal only. No RunHost
+      // operation is admitted until the user confirms these exact steps once.
+      const risk=classifyWorkflowRunRisk(freeze.workflow);
+      pendingAIReview={
+        epoch,selected:frozen.selected,request:frozen.request,serial:executionSerial,
+        freeze,captured:structuredClone(captured),params:structuredClone(prepared.params),
+        hasReadback:prepared.hasReadback,hasUnprovenClick:prepared.hasUnprovenClick,
         beforeObservation:planningObservation,effectExpectation:prepared.effectExpectation,
-        assertCurrent:()=>planningCurrent(epoch,executionSerial,frozen.selected)});
-      planningCurrent(epoch,executionSerial,frozen.selected);
-      if(execution?.ok) {
-        if(execution.evidenceLevel==='BUSINESS_EFFECT_VERIFIED') {
-          verifiedTurnHistory=[...verifiedTurnHistory,{
-            request:frozen.request.slice(0,4000),outcome:'verified',
-            readbackVerified:execution.readbackVerified===true,stepCount:result.steps.length,
-            effectKind:execution.effect?.kind||'input-readback',
-            ...(Number.isSafeInteger(execution.effect?.visibleResultLinks)
-              ?{visibleResultLinks:execution.effect.visibleResultLinks}:{})
-          }].slice(-4);
-          verifiedContextTarget={windowId:captured.windowId,tabId:captured.tabId,origin:captured.origin};
-        }
-        const effectMessage=execution.effect?.kind==='search-results'
-          ?'。已独立观察到与搜索关键词关联的结果状态和至少 '+execution.effect.visibleResultLinks+' 个新出现的可见链接；不代表结果相关性已验证。'
-          :execution.effect?.kind==='search-empty'
-            ?'。已独立观察到与搜索关键词关联的“无结果”页面状态。'
-            :execution.effect?.kind==='search-inline'
-              ?'。已核对“搜索完成”和精确关键词对应的新增页内结果文本；不代表服务器数据已提交。'
-              :execution.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'
-              ?'。页面输入值已在同次运行中核对匹配（不代表服务器已提交）。'
-              :'。网页业务效果仍待核对，不会自动重复搜索或提交。';
-        // Detailed Run/Result identities remain in the technical results panel;
-        // the conversation only needs a concise, evidence-qualified outcome.
-        appendChat('执行结果','运行已结束'+effectMessage);
-        status(execution.effect?'已独立核对搜索页面效果；可以保存工作流。':
-          execution.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'
-            ?'已验证页面输入读回；可以保存工作流。'
-            :'执行回执已验证，业务效果仍待核对；可以保存工作流。');
-      } else {
-        appendChat('执行结果','本次未能确认成功；不会自动重试。请检查真实网页与运行详情。');
-      }
+        signal:abort.signal
+      };
+      // The planning abort signal has completed its job. Execution has its
+      // own RunHost Stop and cannot be cancelled by a completed planning turn.
+      pendingAIReview.signal=new AbortController().signal;
+      lastRun='none';
+      control('workflow-run-review-scope').text=
+        '将在 '+captured.origin+' 执行 '+freeze.workflow.steps.length+' 步。'+
+        (risk.needsReview?'涉及：'+risk.description+'。':'')+
+        '请核对步骤、参数与影响范围，点击一次「执行」开始。';
+      control('workflow-run-review').hidden=false;
+      appendChat('Codex','已生成 '+freeze.workflow.steps.length+' 步，请检查后确认执行。');
+      status('步骤已准备就绪；尚未执行任何网页写入。');
+      updateButtons();
+      focus('workflow-run-review-confirm');
     }catch(error){
       if(!disposed&&epoch===planningGeneration){
         const message=frozen.selected==='local_codex'?localFailure(error):format(error);
@@ -1208,7 +1272,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     observationApproval=null;persistObservationApproval();
     verifiedTurnHistory=[];lastProviderTurn=null;
     lastTrustedRun=null;runId=null;onRunOwner(null);
-    workflow=emptyWorkflow(currentOrigin()||'',crypto.randomUUID());directVerifiedSerial=null;
+    workflow=emptyWorkflow(currentOrigin()||'',crypto.randomUUID());paramValues={};directVerifiedSerial=null;
     revision=null;touched=true;lastRun='none';hasError=false;phase='idle';
     clearChat();entryMode='new-workflow';
     control('workflow-manage-panel').hidden=true;
@@ -1287,14 +1351,18 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     }catch(error){status('参数定义不合法：'+format(error),true);}
   });
   bind('workflow-save','click',()=>{void save();});
-  bind('workflow-run','click',run);
+  bind('workflow-run','click',runManual);
   bind('workflow-run-review-confirm','click',event=>{
-    if(!event.isTrusted||!pendingRunReview)return Promise.resolve({ok:false,skipped:true});
-    return run(event,null,pendingRunReview);
+    if(!event.isTrusted)return Promise.resolve({ok:false,skipped:true});
+    if(pendingAIReview)return executeAIReview(event);
+    if(!pendingRunReview)return Promise.resolve({ok:false,skipped:true});
+    return runManual(event,pendingRunReview);
   });
   bind('workflow-run-review-cancel','click',event=>{
-    if(!event.isTrusted||!pendingRunReview)return;
+    if(!event.isTrusted||(!pendingRunReview&&!pendingAIReview))return;
+    const wasAI=Boolean(pendingAIReview);
     dismissRunReview();status('本次操作已取消，未执行。');
+    if(wasAI)appendChat('对话状态','已取消本次操作，网页未因本次确认发生修改。');
   });
   bind('workflow-stop','click',stop);
   bind('workflow-candidate','click',()=>{void candidate().catch(error=>status(format(error),true));});
@@ -1310,9 +1378,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   bind('workflow-ai-plan','click',plan);
   const unsubscribePage=currentPageTarget?.subscribe(next=>{
     if(disposed)return;
-    if(pendingRunReview&&(next.status!=='available'||
+    const reviewTarget=pendingAIReview?.captured||pendingRunReview?.captured;
+    if(reviewTarget&&(next.status!=='available'||
       ['windowId','tabId','frameId','documentId','url','origin']
-        .some(key=>pendingRunReview.captured[key]!==next[key])))dismissRunReview();
+        .some(key=>reviewTarget[key]!==next[key])))dismissRunReview();
     if(next.status==='available'&&
       (next.origin!==workflow.siteOrigin||verifiedContextTarget&&
         (next.origin!==verifiedContextTarget.origin||
@@ -1334,7 +1403,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   });
   const unsubscribeRun=host.subscribe(()=>{
     if(disposed)return;
-    if(pendingRunReview&&(host.executionPending||host.currentRun))dismissRunReview();
+    if((pendingRunReview||pendingAIReview)&&(host.executionPending||host.currentRun))dismissRunReview();
     if(runId && host.currentRun!==runId && !busy){runId=null;onRunOwner(null);}
     updateButtons();
   });
@@ -1344,7 +1413,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     updateLocalStatus();updateButtons();
   });
   const removedPermissions=async grant=>{
-    if(pendingRunReview&&(grant.origins?.length||grant.permissions?.length))dismissRunReview();
+    if((pendingRunReview||pendingAIReview)&&(grant.origins?.length||grant.permissions?.length))dismissRunReview();
     const active=bookmarkConversationActive;
     // Invalidate synchronously only when a removed Chrome match pattern covers
     // this Provider. An unrelated site's grant must not cancel this round.
@@ -1409,7 +1478,40 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     onHistory:onHistoryClick,onNewSession:onNewSessionClick,onNewWorkflow:onNewWorkflowClick,
     onResumeHistory:(_key,event)=>onResumeSessionClick(event),onOpenSavedHistory,
     closeSettings:closeWorkflowSheet,chooseExample,
-    setParam(name,value) {if(!disposed&&Object.hasOwn(paramValues,name)){paramValues[name]=value;renderParams();}},
+    setParam(name,value) {if(!disposed&&Object.hasOwn(paramValues,name)){
+      if(pendingAIReview){dismissRunReview();status('参数已变化，旧步骤确认已失效；请重新检查后运行。');}
+      paramValues[name]=value;renderParams();
+    }},
+    parameterizeStep(stepId) {
+      if(disposed||busy||host.executionPending||host.currentRun)return;
+      const step=workflow.steps.find(row=>row.stepId===stepId);
+      if(!step||step.op!=='fill'||step.param||typeof step.text!=='string'||!step.text.trim())return;
+      try {
+        const schema=structuredClone(workflow.paramsSchema);
+        const keys=Object.keys(schema.properties);
+        if(keys.length>=16)throw err('E_WORKFLOW_PARAMS','当前已达到最多 16 个参数');
+        const search=/(?:search|query|keyword|搜索|检索|查找)/i.test([step.selector,step.roleName,workflow.title].join(' '));
+        const base=search?'keyword':'value';
+        let name=base,index=2;
+        while(Object.hasOwn(schema.properties,name))name=base+index++;
+        const title=search?'搜索关键词':'填写内容';
+        const secret=/(?:password|passwd|secret|credential|token|cookie|authorization|api.?key|验证码|密码|密钥|令牌|凭证|银行卡|身份证|支付)/i.test(
+          [step.selector,step.roleName,step.text].join(' '));
+        const original=step.text;
+        schema.properties[name]={type:'string',title,maxLength:512,
+          ...(!secret?{default:original}:{})};
+        schema.required.push(name);
+        checkParamsSchema(schema);
+        // A parameter changes the source contract, but values at replay do not.
+        step.param=name;delete step.text;
+        workflow.paramsSchema=schema;
+        paramValues[name]=secret?'':original;
+        control('workflow-schema').value=JSON.stringify(schema,null,2);
+        renderParams();renderSteps(stepId);edited();
+        status('已创建参数「'+title+'」。今后运行只需修改参数，无需编辑 JavaScript。'+
+          (secret?'敏感内容不会作为默认值保存。':''));
+      }catch(error){status(format(error),true);}
+    },
     removeParam(name) {
       if(disposed||!Object.hasOwn(workflow.paramsSchema.properties,name))return;
       const next=structuredClone(workflow.paramsSchema);delete next.properties[name];

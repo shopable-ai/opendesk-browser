@@ -58,6 +58,9 @@ test('R23.17 Native: first disclosure, valid session reuse, revoke then deny wit
   assert.equal(f.starts.length,0);
   await f.click('workflow-ai-approve');await first;await tick();
   assert.equal(n.answers[0]?.decision,'approve');
+  assert.equal(f.starts.length,1,'AI result is only a plan; no RunHost execution before confirmation');
+  assert.equal(state(f,'workflow-run-review').hidden,false);
+  await f.click('workflow-run-review-confirm');await tick();
   assert.equal(f.starts.length,2);
   const key='opendesk.sidebar.workflow-draft.v1:7:observation';
   assert.equal(f.session.get(key)?.provider,'local_codex');
@@ -68,6 +71,8 @@ test('R23.17 Native: first disclosure, valid session reuse, revoke then deny wit
   assert.equal(state(f,'workflow-ai-approval').hidden,true);
   await second;await tick();
   assert.equal(n.answers[1]?.decision,'approve');
+  assert.equal(f.starts.length,3,'Native session reuse does not imply automatic execution');
+  await f.click('workflow-run-review-confirm');await tick();
   assert.equal(f.starts.length,4);
   assert.equal(n.calls.filter(c=>c.method==='ai.session.open').length,1);
 

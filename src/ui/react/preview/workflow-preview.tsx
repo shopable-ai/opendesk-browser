@@ -36,7 +36,7 @@ const scenes=Object.freeze({
   failure:[{id:'demo-failure',speaker:'系统',message:'演示：操作失败，未将结果当成成功。'}],
   unknown:[{id:'demo-unknown',speaker:'系统',message:'结果未知：核对目标网页后再操作，不自动重试。'}],
   approval:[{id:'demo-approval',speaker:'AI',message:'网页摘要授权界面预览；未读取或发送页面内容。'}],
-  'run-review':[{id:'demo-run-review',speaker:'系统',message:'手动高影响执行需独立确认，当前为离线预览。'}],
+  'run-review':[{id:'demo-run-review',speaker:'AI',message:'已生成 2 步。此处仅预览确认界面，未执行网页操作。'}],
   denied:[{id:'demo-denied',speaker:'系统',message:'演示：授权已拒绝，未执行网页读取。'}],
   disconnected:[{id:'demo-disconnected',speaker:'系统',message:'本机连接不可用，请在正式扩展中检查连接。'}],
   history:[],
@@ -61,12 +61,12 @@ const apply=()=>{
   control('workflow-planning-indicator').text=busy?'正在规划步骤…':'';
   control('workflow-ai-approval').hidden=scene!=='approval';
   control('workflow-run-review').hidden=scene!=='run-review';
-  control('workflow-run-review-scope').text='将对当前网站执行：点击 #submit。可能提交或更改网页数据，请核对影响对象（离线预览）。';
+  control('workflow-run-review-scope').text='将在当前网站执行 2 步，点击「执行」启动（离线预览无 RunHost）。';
   control('workflow-ai-approval-title').text='允许共享网页摘要？';
   control('workflow-ai-approval-scope').text=scene==='approval'
     ?'当前仅为授权界面预览，不会实际发送网页摘要。':'';
   control('workflow-ai-plan').hidden=busy;
-  control('workflow-ai-plan').disabled=busy;
+  control('workflow-ai-plan').disabled=busy||scene==='run-review';
   control('workflow-ai-cancel').hidden=!busy;
   control('workflow-new-review').hidden=!review;
   control('workflow-plan-panel').hidden=true;
@@ -105,7 +105,11 @@ const apply=()=>{
     progress:busy?[{state:'pending',text:'等待确认网页范围（预览）'}]:[],
     entryMode:'new-workflow',
     sourceName:local?'Codex':control('workflow-ai-model').value.trim(),
-    hasSteps:false,steps:[],params:[],
+    awaitingReview:scene==='run-review',
+    hasSteps:false,steps:scene==='run-review'?[
+      {stepId:'preview-fill',op:'fill',locatorKind:'css',selector:'#search',text:'OpenDesk'},
+      {stepId:'preview-click',op:'click',locatorKind:'css',selector:'#search-button'}
+    ]:[],params:[],
     history:{open:historyOpen,rows:[],canResume:false,busy},
     header:{saved:false,busy,planning:busy,historyExpanded:historyOpen,
       sessionHint:'保留当前工作流'}

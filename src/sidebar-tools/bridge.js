@@ -273,8 +273,12 @@ export function initSidebarToolSandbox() {
       // not an API for resizing or changing the trusted Side Panel.
       if(message.instance===instance&&message.toolId===toolId&&
          Number.isInteger(message.availableHeight)&&
-         message.availableHeight>=220&&message.availableHeight<=1600){
+         message.availableHeight>=80&&message.availableHeight<=1600){
         const size=message.availableHeight+'px';
+        const previousMode=root.dataset.opendeskHeightMode;
+        if(message.layoutMode==='workspace')root.dataset.opendeskHeightMode='workspace';
+        else delete root.dataset.opendeskHeightMode;
+        if(previousMode!==root.dataset.opendeskHeightMode)scheduleSize();
         if(root.style.getPropertyValue('--opendesk-host-available-height')!==size){
           root.style.setProperty('--opendesk-host-available-height',size);
           scheduleSize();

@@ -1,4 +1,4 @@
-import {patchDeveloperField,developerOptions,appendDeveloperOptions} from './develop-view.js';
+import {patchDeveloperField,developerOptions} from './develop-view.js';
 import {decodeValue} from '../platform/page-port/codec.js';
 import {invariant} from '../platform/protocol.js';
 import {formatControllerRunResult,formatRunValue,runValueKind} from './run-result-presentation.js';
@@ -48,10 +48,10 @@ export function createControllerResultsView({host,view,resultDownloads,isDispose
     else if (!isRunning() && !host.currentRun && snapshot.run) renderTask(snapshot.run);
     else if (!currentTask && !isRunning() && !host.currentRun && snapshot.runs.length) renderTask(snapshot.runs.at(-1));
     if (!snapshot.run) {
-      const history = find('script-history-run'), selected = history.value;
-      developerOptions(view,history,[{label:'选择历史任务',value:''}]);
-      for (const row of snapshot.runs) appendDeveloperOptions(view,history,[{label:`${row.runId} · ${row.sourceKind === 'draft' ? '草稿' : 'r' + (row.revision?.revision ?? '?')} · ${stateLabels[row.state] || row.state}`,value:row.runId}]);
-      if (snapshot.runs.some(row=>row.runId === selected)) patchDeveloperField(view,history,{value:selected});
+      // Publish the complete history once, keeping an existing selection.
+      const history = find('script-history-run');
+      developerOptions(view,history,[{label:'选择历史任务',value:''},
+        ...snapshot.runs.map(row=>({label:`${row.runId} · ${row.sourceKind === 'draft' ? '草稿' : 'r' + (row.revision?.revision ?? '?')} · ${stateLabels[row.state] || row.state}`,value:row.runId}))]);
       patchDeveloperField(view,find('script-history-open'),{disabled:!history.value});
       patchDeveloperField(view,find('script-history'),{textContent:formatRunValue({runs:snapshot.runs,results:values,downloads:snapshot.downloads,resultDeliveryDenied:snapshot.resultDeliveryDenied})});
     }

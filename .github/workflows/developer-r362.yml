@@ -29,6 +29,8 @@ on:
       - 'scripts/check-source.mjs'
       - 'wxt.config.mjs'
       - 'src/ui/controller-revision-view.js'
+      - 'src/ui/controller-results-view.js'
+      - 'src/ui/react/tabs/develop-local.tsx'
       - 'src/ui/react/tabs/develop.tsx'
       - 'src/ui/react/main.tsx'
       - 'src/ui/tool-shell.js'
@@ -40,6 +42,8 @@ on:
       - 'tests/environment/script-editor.test.mjs'
       - 'tests/environment/task-workbench.test.mjs'
       - 'tests/environment/developer-layout.test.mjs'
+      - 'tests/environment/developer-view-contract.test.mjs'
+      - 'tests/environment/local-project-status-ui.test.mjs'
       - '.github/workflows/developer-r362.yml'
   workflow_dispatch:
 permissions:
@@ -76,6 +80,8 @@ jobs:
             tests/environment/script-editor-ui.test.mjs \
             tests/environment/script-editor.test.mjs \
             tests/environment/developer-layout.test.mjs \
+            tests/environment/developer-view-contract.test.mjs \
+            tests/environment/local-project-status-ui.test.mjs \
             tests/environment/develop-host-controls.test.mjs \
             tests/environment/program-source.test.mjs \
             tests/environment/page-program-library.test.mjs \

@@ -340,7 +340,7 @@ if(!vm.SourceTextModule) {
     assert.equal(f.get('workflow-save').listeners.has('click'),true);
     assert.equal(f.get('workflow-ai-plan').disabled,false);
     assert.equal(f.get('workflow-ai-disclosure'),undefined);
-    assert.match(await renderSidebarFixture(),/id="workflow-ai-plan"[^>]*aria-label="发送并执行浏览器任务"/);
+    assert.match(await renderSidebarFixture(),/id="workflow-ai-plan"[^>]*aria-label="发送任务并生成步骤"/);
   });
 
   test('component: three standalone workflow header actions preserve keyboard focus',async t=>{

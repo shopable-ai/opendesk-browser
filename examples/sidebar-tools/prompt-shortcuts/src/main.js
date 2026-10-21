@@ -1,11 +1,11 @@
 (() => {
 'use strict';
-const {root,request,setState}=globalThis.OpenDeskTool;
+const {root,request,setState,setNavigation}=globalThis.OpenDeskTool;
 const model=globalThis.OpenDeskPromptShortcutsModel,el=id=>root.querySelector('#'+id);
 const dom=(tag,cls='',text='')=>{const n=root.ownerDocument.createElement(tag);n.className=cls;n.textContent=text;return n;};
 const KEY='library',MENU_ACTION='add-selection';
 let data=model.defaults(),etag=null,ready=false,busy=false,dirty=false,mode='index',editId=null;
-let baseline='',expanded=null,pendingDelete=null,pendingLeave=null,unconfirmedWrite=false;
+let baseline='',expanded=null,pendingDelete=null,pendingLeave=null,unconfirmedWrite=false,returnFocusId=null;
  const imageAssets=new Map();let draftImageAssetId='',uploadBusy=false;
 let stagedImport=null,stagedEtag=null,replaceArmed=false,transferBusy=false,importTicket=0;
 const SITE_KEY='sites';
@@ -13,6 +13,14 @@ let sites=model.sitesDefaults(),sitesEtag=null,sitesReady=false,siteBusy=false,s
 let siteOrigin=null,siteEditing=null,siteBaseline='',siteVerified=null,siteDelete=null;
 let sitePoll=0,siteSession=null,siteStarting=0,siteEpoch=0,siteDiscardPending=false;
 function report(){setState({dirty:dirty||siteDirty||Boolean(stagedImport),busy:busy||siteBusy||siteDetecting||transferBusy||uploadBusy});}
+// The sandbox owns business navigation; the verified Host owns presentation only.
+function publishNavigation(){
+  if(typeof setNavigation!=='function')return;
+  const page=mode==='index'?'index':editId?'edit':'create';
+  const title={index:'提示词快捷按钮',create:'新建提示词',edit:'编辑提示词'}[page];
+  const state={page,title,canBack:page!=='index',...(page==='index'?{primary:'new'}:{})};
+  if(setNavigation(state)===true)root.querySelector('.ps')?.classList.add('ps-host-nav');
+}
 function status(message='',isError=false){const n=el('ps-status');n.textContent=message;n.hidden=!message;n.dataset.error=String(isError);}
 // Keep the original one-Host lifecycle: remove only unreferenced assets and
 // surface cleanup errors rather than silently leaking local raster storage.
@@ -213,12 +221,18 @@ function index(){
   if(draftImageAssetId&&!data.items.some(item=>item.imageAssetId===draftImageAssetId))
     removeUnreferencedAsset(draftImageAssetId);
   draftImageAssetId='';
+  const focusId=returnFocusId;returnFocusId=null;
   mode='index';editId=null;dirty=false;pendingLeave=null;pendingDelete=null;
   el('ps-index').hidden=false;el('ps-edit').hidden=true;el('ps-leave').hidden=true;
-  error('');bodyError('');render();report();
+  error('');bodyError('');render();
+  if(focusId)focusListAction(focusId,'more');
+  report();publishNavigation();
 }
 function back(callback=index){
-  if(busy||uploadBusy)return;
+  if(busy||uploadBusy||transferBusy||siteBusy||siteUnconfirmedWrite||unconfirmedWrite){
+    if(unconfirmedWrite)error('上次保存结果尚未确认，草稿仍保留；请重新打开核对，不能直接放弃。');
+    return;
+  }
   if(!dirty){callback();return;}
   pendingLeave=callback;el('ps-leave').hidden=false;el('ps-stay').focus();
 }
@@ -226,7 +240,7 @@ function start(id=null,preset=''){
   if(!ready||busy||uploadBusy||transferBusy||unconfirmedWrite||stagedImport)return;
   const row=id?data.items.find(item=>item.id===id):null;
   if(id&&!row){status('原条目已变化，请重新打开工具核对。',true);return;}
-  mode='form';editId=id;expanded=null;pendingDelete=null;
+  mode='form';editId=id;returnFocusId=id;expanded=null;pendingDelete=null;
   el('ps-index').hidden=true;el('ps-edit').hidden=false;
   el('ps-save-next').hidden=Boolean(id);
   el('ps-form-title').textContent=id?'编辑提示词':'新建提示词';
@@ -242,7 +256,7 @@ function start(id=null,preset=''){
   delete el('ps-image-preview').dataset.token;
   el('ps-enabled').checked=row?.enabled!==false;error('');bodyError('');options(true);el('ps-leave').hidden=true;
   // A native-menu selection is an unsaved new draft, never an acknowledged baseline.
-  baseline=JSON.stringify({...form(),body:row?.body??''});changed();el('ps-body').focus();
+  baseline=JSON.stringify({...form(),body:row?.body??''});changed();publishNavigation();el('ps-body').focus();
 }
 function button(parent,text,callback,variant='secondary'){
   const b=dom('button','od-button od-button--'+variant,text);b.type='button';
@@ -943,7 +957,7 @@ async function save(event,continueCreating=false){
       '提示词已保存，旧图片清理未确认；可重新打开核对。':'完整提示词已保存。',
       Boolean(outcome.cleanupFailures));}
     }
-    else{baseline=snapshot;changed();status('先前版本已保存，当前新输入尚未保存。');
+    else{baseline=snapshot;changed();publishNavigation();status('先前版本已保存，当前新输入尚未保存。');
       error('保存期间有新的输入，先前版本已保存；请再次点击保存。');}
   }catch(e){
     dirty=true;lock();status('');error((e.code||'E_SAVE')+'：'+e.message+
@@ -1021,6 +1035,11 @@ root.addEventListener('click',event=>{
   if(!el('ps-transfer-control').contains?.(event.target))closeTransfer();
 });
 el('ps-new').addEventListener('click',()=>start());
+// Back and primary are existing instance-gated bridge gestures, never a second router.
+root.addEventListener('opendesk-tool-navigation',event=>{
+  if(event.detail?.action==='back'&&mode==='form')back();
+  else if(event.detail?.action==='primary'&&mode==='index')start();
+});
 root.addEventListener('keydown',event=>{
   if(event.key!=='Escape')return;
   if(pendingDelete){const id=pendingDelete;pendingDelete=null;render();focusListAction(id,'delete');event.preventDefault();}

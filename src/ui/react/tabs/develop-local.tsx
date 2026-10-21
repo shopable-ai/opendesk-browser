@@ -5,9 +5,7 @@ import {DevelopField} from './develop-controls.tsx';
 export function DevelopLocalProject(){
   return (
         <DevelopField as="section" id="local-project-tools" className="local-project-tools" aria-label="本地项目连接">
-          <DevelopField as="p" id="local-project-intro" className="local-project-intro od-note">
-            {"选择已授权项目，可运行或核对安装；复用历史验证必须匹配当前源码、网页与持久回执。"}
-          </DevelopField>
+          <p id="local-project-intro" className="local-project-intro od-note">选择已授权项目后运行或安装；系统会核对最新源码与授权。</p>
           <div className="local-project-controls od-toolbar">
             <label htmlFor="local-project-select" className="visually-hidden">
               {"已授权本地项目"}
