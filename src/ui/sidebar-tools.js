@@ -986,7 +986,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       patchToolField(view,title,{textContent:navigation?.title||clipNavigationTitles[clipPage]});
     const contextAction=tocSettingsOpen?'':navigation?.primary||
       (clipNavigation?({library:'new',reader:'edit',edit:'save',new:'save'}[clipPage]||''):'');
-    const contextLabel=({new:'新建便签',edit:'编辑摘录',save:'保存摘录'})[contextAction]||'';
+    const contextLabel=(clipNavigation?
+      {new:'新建便签',edit:'编辑摘录',save:'保存摘录'}:
+      {new:'新建',edit:'编辑',save:'保存'})[contextAction]||'';
     patchToolField(view,primaryAction,{hidden:!contextAction,disabled:!contextAction||busy||toolSaving,
       title:contextLabel,data:{action:contextAction}});
     setToolFieldAttribute(view,primaryAction,'aria-label',contextLabel||'当前页面操作');
@@ -1020,13 +1022,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       setToolFieldAttribute(view, menuButton, 'aria-label', menuButton.title);
     }
     renderTocSettings();
-    if(tocSettingsOpen||clipNavigation||navigation){
-      const label=tocSettingsOpen?'返回上一页':navigation?
-        (navigation.canBack?'返回上一级':'返回扩展列表'):
-        clipPage==='home'?'返回扩展列表':'返回上一级';
-      patchToolField(view,backButton,{title:label});
-      setToolFieldAttribute(view,backButton,'aria-label',label);
-    }
+    // The shared back is always about the visible level, even for single-page tools.
+    const backLabel=tocSettingsOpen?'返回上一页':
+      (navigation?.canBack||(clipNavigation&&clipPage!=='home'))?'返回上一级':'返回扩展列表';
+    patchToolField(view,backButton,{title:backLabel});
+    setToolFieldAttribute(view,backButton,'aria-label',backLabel);
     taskWorkbench.setToolActive?.(Boolean(visible && active));
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTool=visible && active?'active':'list';
   }

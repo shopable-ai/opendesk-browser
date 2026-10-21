@@ -53,9 +53,9 @@ export function DevelopExecution(){
                 </summary>
                 <div className="developer-history-content">
                   <div className="developer-history-head">
-                    <DevelopField as="p" id="script-history-hint" className="hint">
+                    <p id="script-history-hint" className="hint">
                       {"仅刷新已有记录，不会重新运行脚本。"}
-                    </DevelopField>
+                    </p>
                     <DevelopField as="button" id="script-read" type="button" className="od-icon-button" title="刷新运行历史" aria-label="刷新运行历史">
                       <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M20 11a8 8 0 1 0-2.4 5.7M20 4v7h-7">

@@ -38,8 +38,9 @@ test('shared header is admitted by exact official release, including Clipper leg
 test('framework settings title and back label apply to tools with no business router',async()=>{
  const host=await src('src/ui/sidebar-tools.js');
  assert.ok(host.includes("if(tocSettingsOpen)patchToolField(view,title,{textContent:'工具设置'})"));
- assert.ok(host.includes('if(tocSettingsOpen||clipNavigation||navigation){'));
- assert.ok(host.includes("const label=tocSettingsOpen?'返回上一页'"));
+ assert.ok(host.includes("const backLabel=tocSettingsOpen?'返回上一页'"));
+ assert.ok(host.includes("?'返回上一级':'返回扩展列表'"));
+ assert.ok(host.includes("{new:'新建',edit:'编辑',save:'保存'}"));
  assert.ok(host.includes('if(tocSettingsOpen){closePromptSettings();'));
 });
 

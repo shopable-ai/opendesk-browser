@@ -9,9 +9,9 @@ export function DevelopDiagnostics(){
             {"高级诊断与网页 SDK"}
           </summary>
           <DevelopField as="details" id="developer-sdk-diagnostics" className="od-disclosure od-disclosure--flat">
-            <DevelopField as="summary" id="sdk-title">
+            <summary id="sdk-title">
               {"网页 SDK 授权管理"}
-            </DevelopField>
+            </summary>
             <section className="developer-diagnostics-body od-stack" aria-labelledby="sdk-title">
               <p>
                 {"SDK 与 axiosx 会自动加载到允许访问的 HTTP(S) 网页。默认同源 HTTP 与固定本地实验测试 Origin 无需逐页审批；本区域只用于"}
@@ -44,9 +44,9 @@ export function DevelopDiagnostics(){
                 {"额外批准的目标 origin（每行一个，最多 8 条）"}
               </label>
               <DevelopField as="textarea" id="sdk-target-origins" rows="3" maxLength="18000" spellCheck={false} placeholder="https://api.example.com\nhttp://127.0.0.1:43111" aria-describedby="sdk-target-help" className="od-field"/>
-              <DevelopField as="p" id="sdk-target-help">
+              <p id="sdk-target-help">
                 {"留空仅允许来源同源；这里是完整的新范围，不与旧授权自动合并。协议、主机和有效端口精确匹配；不能填写账户、路径、查询或通配符。回环与局域网也须明确列出。原生权限可能覆盖更多端口，但不会扩大应用授权；此检查不是 DNS 重绑定防护。"}
-              </DevelopField>
+              </p>
               <details open className="od-disclosure od-disclosure--flat">
                 <summary>
                   <span>
@@ -88,9 +88,9 @@ export function DevelopDiagnostics(){
             </section>
           </DevelopField>
           <DevelopField as="details" id="developer-health-diagnostics" className="od-disclosure od-disclosure--flat">
-            <DevelopField as="summary" id="health-title">
+            <summary id="health-title">
               {"目标健康检查"}
-            </DevelopField>
+            </summary>
             <section className="developer-diagnostics-body od-stack" aria-labelledby="health-title">
               <p>
                 {"检查只确认包内脚本与目标文档通信。不会采集数据或翻动原页面。"}

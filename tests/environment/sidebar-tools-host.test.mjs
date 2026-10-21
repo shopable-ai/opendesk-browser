@@ -77,6 +77,32 @@ test('same-title installed tools keep distinct iframe identities without grantin
   assert.equal(store.has(MARKET_PROVENANCE_STORE),false,'a title collision cannot create official provenance');
 });
 
+test('R1.6 same-ID Clipper package cannot claim shared navigation or hijack back',async t=>{
+ const lookalike={...sample,id:'web-markdown-clipper',title:'用户自定义剪藏'};
+ const f=await hostFixture(t,{tool:lookalike,store:new Map([[SIDEBAR_TOOL_STORE,[lookalike]]])});
+ assert.equal(f.loaded.navigationAllowed,false,'release digest, not tool ID, admits shared header');
+ const before=f.frame.contentWindow.sent.length;
+ f.win.emit('message',{origin:'null',source:f.frame.contentWindow,
+   data:{protocol:f.loaded.protocol,toolId:lookalike.id,instance:f.loaded.instance,
+     kind:'navigation-state',page:'reader'}});
+ assert.equal(f.elements['sidebar-tool-title'].textContent,lookalike.title,'forged business title is ignored');
+ f.emit(f.elements['sidebar-tool-back'],'click');
+ assert.equal(f.frame.contentWindow.sent.length,before,'unreviewed tool receives no trusted back action');
+ assert.equal(f.runtime.frameRoot.children.length,0,'back returns to the extension list');
+});
+test('R1.6 generic tool settings has a single titled return without remounting',async t=>{
+ const f=await hostFixture(t),original=f.frame;
+ assert.equal(f.elements['sidebar-tool-back'].title,'返回扩展列表');
+ f.emit(f.elements['sidebar-tool-settings-open'],'click');
+ assert.equal(f.elements['sidebar-tool-title'].textContent,'工具设置');
+ assert.equal(f.elements['sidebar-tool-back'].title,'返回上一页');
+ assert.equal(f.runtime.frameRoot.children[0],original,'settings retains the same tool instance');
+ f.emit(f.elements['sidebar-tool-back'],'click');
+ assert.equal(f.elements['sidebar-tool-title'].textContent,sample.title);
+ assert.equal(f.elements['sidebar-tool-back'].title,'返回扩展列表');
+ assert.equal(f.runtime.frameRoot.children[0],original,'returning from settings does not recreate iframe');
+});
+
 test('R26 cross-panel disable destroys old frames and resume does not revive them',async t=>{
   const f=await hostFixture(t),old=f.frame;
   f.store.set(SIDEBAR_TOOL_ENABLE_STORE,{[sample.id]:false});

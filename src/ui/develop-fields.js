@@ -239,9 +239,6 @@ export const DEVELOPER_FIELDS = {
   "developer-sdk-diagnostics": {
     "className": "od-disclosure od-disclosure--flat"
   },
-  "sdk-title": {
-    "textContent": "网页 SDK 授权管理"
-  },
   "sdk-tab": {
     "options": [
       [
@@ -268,7 +265,6 @@ export const DEVELOPER_FIELDS = {
   "sdk-target-origins": {
     "value": ""
   },
-  "sdk-target-help": {},
   "sdk-approval-preview": {
     "className": "od-result"
   },
@@ -295,9 +291,6 @@ export const DEVELOPER_FIELDS = {
   },
   "developer-health-diagnostics": {
     "className": "od-disclosure od-disclosure--flat"
-  },
-  "health-title": {
-    "textContent": "目标健康检查"
   },
   "target-url": {
     "className": "od-field"
@@ -361,9 +354,6 @@ export const DEVELOPER_FIELDS = {
   },
   "script-history-panel": {
     "className": "result-history od-disclosure od-disclosure--flat"
-  },
-  "script-history-hint": {
-    "textContent": "仅刷新已有记录，不会重新运行脚本。"
   },
   "script-read": {
     "title": "刷新运行历史"
@@ -438,7 +428,8 @@ export const DEVELOPER_FIELDS = {
     "textContent": "加载版本"
   },
   "page-preview-tools": {
-    "className": "developer-management-section"
+    "className": "developer-management-section",
+    "hidden": true
   },
   "page-preview-mode-title": {
     "textContent": "网页 JavaScript 试运行"
