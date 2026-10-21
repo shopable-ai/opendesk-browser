@@ -100,6 +100,9 @@ function lock(){
     el(id).disabled=!ready||busy||transferBusy||unconfirmedWrite||
       (id==='ps-new'&&Boolean(stagedImport))||(id==='ps-image-size'&&Boolean(stagedImport));
   const blocked=!ready||busy||transferBusy||unconfirmedWrite;
+   el('ps-image-size-setting').querySelectorAll('[data-image-size]').forEach(button=>{
+     button.disabled=blocked||Boolean(stagedImport);
+   });
   el('ps-import').disabled=blocked;
   el('ps-export').disabled=blocked||Boolean(stagedImport);
   const append=stagedImport?importCandidate('append'):null;
@@ -537,6 +540,9 @@ function render(){
   el('ps-empty').hidden=data.items.length>0;
   el('ps-web').checked=data.settings.webButtons;
   el('ps-image-size').value=data.settings.imageSize||'large';
+   el('ps-image-size-setting').querySelectorAll('[data-image-size]').forEach(button=>{
+     button.setAttribute('aria-pressed',String(button.dataset.imageSize===el('ps-image-size').value));
+   });
   // Text-only collections keep their original uncluttered list.
   el('ps-image-size-setting').hidden=!data.items.some(item=>item.appearance==='image');
   for(const [i,item] of data.items.entries()){
@@ -924,7 +930,11 @@ el('ps-stay').addEventListener('click',()=>{el('ps-leave').hidden=true;pendingLe
 el('ps-discard').addEventListener('click',()=>{if(busy)return;const action=pendingLeave;pendingLeave=null;if(action)action();});
 el('ps-toggle-settings').addEventListener('click',()=>options(el('ps-setting-fields').hidden));
 el('ps-web').addEventListener('change',()=>void changeWeb());
-el('ps-image-size').addEventListener('change',()=>void changeImageSize());
+el('ps-image-size-setting').querySelectorAll('[data-image-size]').forEach(button=>
+   button.addEventListener('click',()=>{
+     el('ps-image-size').value=button.dataset.imageSize;
+     void changeImageSize();
+   }));
 el('ps-sites-panel').hidden=true;el('ps-site-form').hidden=true;
 el('ps-sites-open').addEventListener('click',()=>void toggleSites());
 el('ps-site-current').addEventListener('click',()=>void openCurrentSite());
