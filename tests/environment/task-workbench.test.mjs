@@ -532,49 +532,58 @@ test('switching between two installed tasks preserves each independent unsaved p
 
 test('R4 accessible five production tabs support Arrow and Home/End',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
-  assert.equal(f.get('tab-my-tasks').tabIndex,0);
-  assert.equal(f.get('tab-tools').tabIndex,-1);
-  let prevented=false;
-  f.get('tab-my-tasks').fire('keydown',{key:'ArrowRight',preventDefault(){prevented=true;}});
-  assert.equal(prevented,true);
-  assert.equal(f.get('workbench-tools').hidden,false);
-  assert.equal(f.get('tab-tools').tabIndex,0);
-  assert.equal(f.doc.activeElement,f.get('tab-tools'));
-  f.get('tab-tools').fire('keydown',{key:'End',preventDefault(){}});
-  assert.equal(f.get('workbench-cloud').hidden,false,'End selects Cloud, the last production tab');
-  assert.equal(f.get('tab-cloud').attributes['aria-selected'],'true');
-  assert.equal(f.get('tab-cloud').tabIndex,0);
-  f.get('tab-cloud').fire('keydown',{key:'ArrowLeft',preventDefault(){}});
-  assert.equal(f.get('workbench-cloud').hidden,true);
-  assert.equal(f.get('workbench-develop').hidden,false);
-  assert.equal(f.get('tab-develop').tabIndex,0);
-  f.get('tab-develop').fire('keydown',{key:'ArrowLeft',preventDefault(){}});
-  assert.equal(f.get('workbench-workflow').hidden,false);
-  f.get('tab-workflow').fire('keydown',{key:'ArrowLeft',preventDefault(){}});
-  assert.equal(f.get('workbench-tools').hidden,false);
-  assert.equal(f.get('tab-tools').tabIndex,0);
-  f.get('tab-tools').fire('keydown',{key:'Home',preventDefault(){}});
-  assert.equal(f.get('workbench-tasks').hidden,false);
-  assert.equal(f.get('tab-my-tasks').tabIndex,0);
+  const {loadSidebarReact,renderSidebarReact}=await import('../helpers/sidebar-react-fixture.mjs');
+  const {sidebarKeyboardDestination}=await loadSidebarReact();
+  const available=[
+    {key:'tasks',id:'tab-my-tasks'},{key:'tools',id:'tab-tools'},
+    {key:'workflow',id:'tab-workflow'},{key:'develop',id:'tab-develop'},
+    {key:'cloud',id:'tab-cloud'}];
+  assert.equal(sidebarKeyboardDestination('Enter',0,available),null,
+    'Enter/Space keep their native button activation');
+  let index=0;
+  const steps=[
+    ['ArrowRight','tools'],['End','cloud'],['ArrowLeft','develop'],
+    ['ArrowLeft','workflow'],['ArrowLeft','tools'],['Home','tasks'],
+    ['ArrowLeft','cloud'],['ArrowRight','tasks']
+  ];
+  for(const [key,expected] of steps){
+    const target=sidebarKeyboardDestination(key,index,available);
+    assert.equal(target?.key,expected,'production keyboard handler routes '+key);
+    f.ui.navigate(target.key);
+    assert.equal(f.doc.documentElement.dataset.opendeskTab,expected);
+    const html=await renderSidebarReact({myView:f.myView,activeTab:expected,debugEnabled:false});
+    const button=html.match(new RegExp('<button[^>]*id="'+target.id+'"[^>]*>'))?.[0];
+    assert(button,'real React tab renders '+target.id);
+    assert.match(button,/role="tab"/);
+    assert.match(button,/aria-selected="true"/);
+    assert.match(button,/tabindex="0"/i);
+    index=available.findIndex(row=>row.key===expected);
+  }
+  assert.equal(f.starts.length,0,'tab keyboard routes cannot execute code');
+  // Actual event preventDefault(), roving focus and scroll remain Chrome-level checks.
 });
-test('R4 task selection and My search handoff retain focus restore focus',async t=>{
+
+test('R4 task selection and My search handoff retain React row identity; DOM focus needs Chrome',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
-  const before=f.get('task-installed-cards').children[0].children[0];
-  before.focus();await f.ui.refresh();
-  const next=f.get('task-installed-cards').children[0].children[0];
-  assert.notEqual(before,next);assert.equal(f.doc.activeElement,next);
-  const second=f.get('task-installed-cards').children[1].children[0];
-  second.focus();second.fire('click');
-  assert.equal(f.get('task-installed-list').value,'demo.second');
-  assert.equal(f.doc.activeElement,f.get('task-installed-cards').children[1].children[0]);
+  assert.deepEqual(f.myView.data.taskRows.rows.map(row=>row.taskId),
+    ['demo.form','demo.second']);
+  const selected=f.myView.data.taskRows.selectedId;
+  await f.ui.refresh();
+  assert.equal(f.myView.data.taskRows.selectedId,selected,
+    'authoritative refresh cannot discard the expanded Task selection');
+  f.myView.data.taskRows.onSelect('demo.second');
+  assert.equal(f.field('task-installed-list').value,'demo.second');
   await f.click('tab-my-tasks');
   await f.click('task-search-toggle');
-  f.get('local-discover-search').value='表单';
-  f.get('local-discover-search').fire('input');
-  const first=f.get('task-installed-cards').children[0].children[0];
-  first.focus();first.fire('click');
-  assert.equal(f.doc.activeElement,f.get('task-installed-cards').children[0].children[0]);
-  assert.equal(f.starts.length,0);
+  f.field('local-discover-search').value='表单';
+  f.action('localDiscoverSearchInput');
+  assert.deepEqual(f.myView.data.taskRows.rows.map(row=>row.taskId),['demo.form']);
+  f.myView.data.taskRows.onSelect('demo.form');
+  assert.equal(f.field('task-installed-list').value,'demo.form');
+  assert.equal(f.myView.data.taskRows.selectedId,'demo.form');
+  assert.equal(f.starts.length,0,'search selection cannot execute');
+  assert.equal(f.permissions.length,0);
+  // React useLayoutEffect preserves focused card after rerender; verify in Chrome.
 });
 
 test('R32 visible Cloud tab selects its existing panel without execution or permission requests',async t=>{
