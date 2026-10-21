@@ -120,6 +120,10 @@ export function createControllerRevisionView({host,client,view,programSource,pre
           programId:id,sourceUtf8:source,explicitUserAction:true,allowDownload:false});check();
         executable=await createControllerClassicSavedSource({authorSourceUtf8:source,programId:id,prepared});check();
       }
+      // The last cancelable boundary is before the durable Host commit. Once
+      // submitted, Stop cannot claim to undo an in-flight persistence effect.
+      check();
+      if(preparingKind){preparingKind=null;onUpdate();}
       const row=await host.controller.commitControllerScript({scriptId:id,expectedRevision:previous,sourceUtf8:executable});
       if(disposed)return;
       if(scriptId()===id)remember(row,{authorSourceUtf8:row.sourceUtf8===executable?source:null});

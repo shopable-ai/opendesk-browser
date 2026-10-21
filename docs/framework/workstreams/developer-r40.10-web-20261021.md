@@ -10,3 +10,5 @@
 - Security: no changed RunHost/Authority, permission gesture, previewId, sourceHash, documentId, bindingId, Side Panel host, or installation contract. Failed/unknown effects never replayed.
 
 - Stop ownership follow-up: Controller Draft Run and Revision now expose their own ESM-vs-Classic preparing kind (no new global runtime state). Exact ESM preparation triggers one component/compiler cancellation; Classic does not. Added both stale-save and no-cross-environment cancellation regression assertions. Browser execution remains untested.
+
+- R40.10.1 source audit: Revision ESM/Classic previously reported Stop cancellation even after `commitControllerScript` had been submitted. Preserve the existing generation/source check until the final admission boundary, then clear `preparingKind` before the irreversible Host call; no new owner/state/transport. Added two gated-commit regressions (ESM and Classic) asserting no false cancel, no unrelated compiler cancellation, and single durable commit. Node, Chrome and Native execution remain **NOT_TESTED** until a relevant run completes.

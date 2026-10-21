@@ -297,6 +297,49 @@ test('R40.10 Stop during Controller Revision Classic does not cancel JSX compile
   assert.equal(f.commits.length,0,'cancelled Classic preparation cannot write a revision');
 });
 
+for(const format of ['ESM','Classic'])test('R40.10.1 Stop does not claim cancellation after Controller Revision '+format+' commit begins',async t=>{
+  let cancels=0;
+  const compiled='async function main(){return 1;}';
+  const f=await fixture(undefined,undefined,{componentPreparerFactory:()=>({
+    inspect:async input=>componentInspectResult(input),
+    prepare:async input=>({framework:'controller',compilerVersion:'7.29.9',
+      authoringSourceHash:sha256(input.componentSource),sourceUtf8:compiled,sourceHash:sha256(compiled)}),
+    cancel(){cancels++;},dispose(){}
+  })});
+  const gate=deferred(),started=deferred();
+  t.after(()=>{gate.resolve();f.dispose();});
+  const originalCommit=f.client.controller.commitControllerScript.bind(f.client.controller);
+  f.client.controller.commitControllerScript=async request=>{started.resolve();return originalCommit(request);};
+  f.setSaveGate(gate);
+  if(format==='ESM'){
+    f.find('script-source').value='export default async function main(){return 1;}';
+  }else{
+    f.find('script-source').value='// @require https://cdn.example/v1.0.0/library.js\nasync function main(){return 1;}';
+    const original=f.client.request.bind(f.client);
+    f.client.request=(name,args)=>{
+      if(name!=='prepareControllerClassicDependencies')return original(name,args);
+      const authorSourceHash=sha256(args.sourceUtf8),lockId='controller-classic-'+('a'.repeat(64));
+      return Promise.resolve({world:'CONTROLLER',programId:args.programId,authorSourceHash,lockId,
+        sourceUtf8:`/* opendesk.controller-classic-runtime.v1 lock=${lockId} author=${authorSourceHash} */\nasync function main(){return 1;}`,
+        entries:[{url:'https://cdn.example/v1.0.0/library.js',sha256:'b'.repeat(64),world:'CONTROLLER',byteLength:10}]});
+    };
+  }
+  f.find('script-source').fire('input',{isTrusted:true});await tick();
+  f.find('script-save-version').fire('click',{isTrusted:true});
+  await started.promise;
+  assert.equal(f.find('script-stop').disabled,true,
+    'the original Host commit is irreversible by a preparation Stop');
+  const beforeCancel=cancels;
+  await f.click('script-stop');
+  assert.equal(cancels,beforeCancel,'Stop cannot cancel unrelated or already-finished compiler work');
+  assert.doesNotMatch(f.find('script-status').textContent,/已取消本次准备/,
+    'UI must not claim an already-submitted Host commit was cancelled');
+  assert.equal(f.commits.length,0,'the durable commit is still awaiting its original result');
+  gate.resolve();await tick();await tick();
+  assert.equal(f.commits.length,1,'the original in-flight commit settles exactly once');
+  assert.equal(f.starts.length,0,'Revision Save never starts a Run');
+});
+
 test('R40.5 Page to Controller transition fences stale Page inspection and keeps draft Run',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const gate=deferred(),requested=[];
