@@ -22,7 +22,7 @@ const CSS=[
 '.mode{display:grid;place-items:center;flex:none;width:25px;height:27px;border:0;border-radius:5px;background:transparent;color:#858996;padding:0}',
 '.mode svg{width:13px;height:13px}.mode[aria-pressed=true]{background:#fff;box-shadow:0 1px 3px #171d2a15;color:#303342}',
 '.scroll[hidden],.ai-view[hidden]{display:none!important}',
-'.ai-view{min-width:0}',
+'.ai-view{min-width:0;max-height:min(68dvh,calc(100dvh - 150px),var(--toc-scroll-limit,10000px));overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}',
 '.ai-member{padding:10px;background:#f8faff;border:1px solid #e4eaf7;border-radius:9px}',
 '.ai-member-head,.ai-promo-head{display:flex;align-items:baseline;justify-content:space-between;gap:6px}',
 '.ai-member-title{color:#1b2c49;font-size:12px;font-weight:680}',
@@ -56,7 +56,7 @@ const CSS=[
 '.ai-member-tag,.ai-member-disclaimer,.ai-promo-brand,.ai-promo-kind,.ai-promo-copy{color:#9aa8be}',
 '.ai-promo{background:#1b1c24;border-color:#383a48}}',
 '@media(max-width:1100px){:host{right:8px;top:8px;width:220px;opacity:.95}.heading{font-size:11px}}',
-'@media(max-width:720px){:host{top:auto;bottom:var(--toc-bottom,8px);right:8px;width:min(254px,calc(100vw - 16px));opacity:.94}}',
+'@media(max-width:720px){:host{top:clamp(90px,15vh,190px);bottom:auto;right:8px;width:min(254px,calc(100vw - 16px));opacity:.94}}',
 '@media(prefers-reduced-motion:reduce){:host{transition:none!important}*{scroll-behavior:auto!important;transition:none!important}}'
 ].join('');
 const ICONS=[
@@ -151,33 +151,35 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   function place(){
     if(disposed)return;
     host.hidden=false;
-    host.style.removeProperty('--toc-bottom');host.style.removeProperty('--toc-scroll-limit');
     if(!placement)host.style.removeProperty('top');
+    // Mode changes only grow the internal body; the toolbar stays at a fixed Y.
+    const viewport=tocViewport(win),card=host.getBoundingClientRect();
+    let safeBottom=viewport.top+viewport.height-8;
     const input=doc.querySelector?.('#prompt-textarea');
-    if(!input?.getClientRects().length){
-      if(observer&&composerObserved)observer.unobserve(composerObserved);
-      composerObserved=null;return;
-    }
-    const form=input.closest('form'),inputRect=input.getBoundingClientRect();
-    const formRect=form?.getBoundingClientRect();
-    const rect=formRect&&formRect.height>0?formRect:inputRect;
-    const target=form||input;
-    if(observer&&composerObserved!==target){
-      if(composerObserved)observer.unobserve(composerObserved);
-      observer.observe(target);composerObserved=target;
-    }
-    if(rect.bottom<=0||rect.top>=win.innerHeight)return;
-    const card=host.getBoundingClientRect();
-    if(card.right<=rect.left||card.left>=rect.right)return;
-    if(win.innerWidth<=720&&!placement){
-      host.style.setProperty('--toc-bottom',Math.max(8,win.innerHeight-rect.top+8)+'px');
-      if(host.getBoundingClientRect().top<8)host.hidden=true;
+    if(input?.getClientRects().length){
+      const form=input.closest('form'),inputRect=input.getBoundingClientRect();
+      const formRect=form?.getBoundingClientRect();
+      const rect=formRect&&formRect.height>0?formRect:inputRect;
+      const target=form||input;
+      if(observer&&composerObserved!==target){
+        if(composerObserved)observer.unobserve(composerObserved);
+        observer.observe(target);composerObserved=target;
+      }
+      if(rect.bottom>viewport.top&&rect.top<viewport.top+viewport.height&&
+        card.right>rect.left&&card.left<rect.right)
+        safeBottom=Math.min(safeBottom,rect.top-8);
     }else{
-      host.style.setProperty('--toc-scroll-limit',Math.max(0,rect.top-scroll.getBoundingClientRect().top-20)+'px');
-      const adjusted=host.getBoundingClientRect();
-      if(adjusted.height>rect.top-16)host.hidden=true;
-      else if(adjusted.bottom>rect.top-8)host.style.top=Math.max(8,rect.top-adjusted.height-8)+'px';
+      if(observer&&composerObserved)observer.unobserve(composerObserved);
+      composerObserved=null;
     }
+    const content=scroll.hidden?aiView:scroll;
+    const contentTop=content.getBoundingClientRect().top;
+    // Leave room for the bottom padding/border and for the chat composer.
+    // Do not alter host.top when the outline or AI notice changes its height.
+    const limit=Math.max(0,Math.floor(safeBottom-contentTop-13))+'px';
+    if(host.style.getPropertyValue?.('--toc-scroll-limit')!==limit)
+      host.style.setProperty('--toc-scroll-limit',limit);
+    host.hidden=contentTop+13>safeBottom;
   }
   let placement=readTocPlacement(initialPlacement),drag=null,disposed=false;
   function applyPoint(left,top) {
@@ -244,11 +246,16 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     setPlacement(tocPlacementFromPoint(point.left,point.top,rect,viewport),{persist:true});
   });
   grab.addEventListener('dblclick',()=>setPlacement(null,{persist:true}));
-  const onResize=()=>{reposition();place();};
-  win.addEventListener('resize',onResize);
-  win.visualViewport?.addEventListener('resize',onResize);
-  win.visualViewport?.addEventListener('scroll',onResize);
-  const observer=typeof win.ResizeObserver==='function'?new win.ResizeObserver(onResize):null;
+  const onViewportChange=()=>{if(host.hidden)host.hidden=false;reposition();place();};
+  // A panel ResizeObserver callback is not a viewport resize. Recomputing the
+  // stored relative Y here made short/full/AI modes jump vertically.
+  const onMeasuredResize=(entries=[])=>{
+    if(!host.hidden||entries.some(entry=>entry.target===composerObserved))place();
+  };
+  win.addEventListener('resize',onViewportChange);
+  win.visualViewport?.addEventListener('resize',onViewportChange);
+  win.visualViewport?.addEventListener('scroll',onViewportChange);
+  const observer=typeof win.ResizeObserver==='function'?new win.ResizeObserver(onMeasuredResize):null;
   observer?.observe(panel);
   function render(next) {
     if(next)snapshot=next;
@@ -265,7 +272,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     if(mode==='ai'){
       scroll.hidden=true;aiView.hidden=false;
       for(const button of buttons)button.setAttribute('aria-pressed',String(button.dataset.mode==='ai'));
-      reposition();place();return;
+      place();return;
     }
     scroll.hidden=false;aiView.hidden=true;
     // The approved four-icon toolbar is always visible, including compact outlines.
@@ -302,7 +309,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
       else button.removeAttribute('aria-current');
     }
     empty.hidden=show.length>0;
-    reposition();place();
+    place();
     const current=list.querySelector('[aria-current="location"]');
     if(current){
       const outer=scroll.getBoundingClientRect(),inner=current.getBoundingClientRect();
@@ -310,6 +317,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
       else if(inner.bottom>outer.bottom)scroll.scrollTop+=inner.bottom-outer.bottom;
     }
   }
+  if(placement)reposition();
   render();
   return Object.freeze({render,setPlacement,
     setLocale(next){
@@ -319,9 +327,9 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     },
     dispose(){
     if(disposed)return;disposed=true;drag=null;observer?.disconnect();
-    win.removeEventListener('resize',onResize);
-    win.visualViewport?.removeEventListener('resize',onResize);
-    win.visualViewport?.removeEventListener('scroll',onResize);
+    win.removeEventListener('resize',onViewportChange);
+    win.visualViewport?.removeEventListener('resize',onViewportChange);
+    win.visualViewport?.removeEventListener('scroll',onViewportChange);
     host.remove();
   }});
 }

@@ -297,6 +297,29 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
   const starts=(await trusted.send('DOM.querySelectorAll',{nodeId:shadow,selector:'.list li.answer-start'})).nodeIds;
   return rows.length===8&&starts.length===2?{rows:rows.length,separators:starts.length}:null;
  },'Full contents did not physically expand to eight titles and two answer separators');
+ // R1.9.3: genuine Chrome clicks of all four closed-shadow mode icons must
+ // never scroll the article or move the panel's top edge, even as heights vary.
+ const still=()=>evaluate(trusted,`(()=>{
+  const host=document.querySelector('[data-opendesk-toc-root]');
+  return {top:host.getBoundingClientRect().top,scrollY:scrollY,
+   articleTop:document.querySelector('#preview-chat').getBoundingClientRect().top};
+ })()`);
+ const anchor=await still();
+ for(const mode of ['top','focus','full','ai','top','full']){
+  shadow=await tocClosedShadow(trusted);
+  await tocMouseClick(overlay.page,trusted,shadow,'button[data-mode="'+mode+'"]',frameRect);
+  await until(async()=>{
+   const root=await tocClosedShadow(trusted);
+   const node=await tocNode(trusted,root,'button[data-mode="'+mode+'"]');
+   const attrs=(await trusted.send('DOM.getAttributes',{nodeId:node})).attributes;
+   return attrs[attrs.indexOf('aria-pressed')+1]==='true';
+  },'Real Chrome mode did not activate: '+mode);
+  const actual=await still();
+  assert(Math.abs(actual.top-anchor.top)<1,'Mode '+mode+' moves the floating toolbar vertically');
+  assert(Math.abs(actual.scrollY-anchor.scrollY)<1,'Mode '+mode+' scrolls the webpage');
+  assert(Math.abs(actual.articleTop-anchor.articleTop)<1,'Mode '+mode+' shifts the article');
+ }
+ shadow=await tocClosedShadow(trusted);
  const list=await tocNode(trusted,shadow,'.list');
  const markup=(await trusted.send('DOM.getOuterHTML',{nodeId:list})).outerHTML;
  for(const label of ['周末城市公园活动计划','行程时间安排','交通与预算','雨天备选'])

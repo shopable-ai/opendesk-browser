@@ -5,6 +5,8 @@ on:
     paths:
       - '.github/workflows/reading-toc-r183-finalize.yml'
       - 'tests/environment/reading-toc-multi-answer-r183.test.mjs'
+      - 'tests/environment/reading-toc-placement-r42.test.mjs'
+      - 'examples/sidebar-tools/reading-toc/trusted/view.js'
       - 'tests/framework/reading-toc-preview-r14-native.test.mjs'
   workflow_dispatch:
 permissions:
@@ -46,6 +48,7 @@ jobs:
           dir=examples/sidebar-tools/reading-toc/preview
           for row in 'side-panel reading-toc-r12-interactive-preview.html success' \
             'page-overlay reading-toc-r12-overlay-preview.html success' \
+            'page-overlay index.html success' \
             'side-panel reading-toc-r183-source-panel-preview.html chatgpt-multi' \
             'page-overlay reading-toc-r183-source-overlay-preview.html chatgpt-multi'; do
             read -r surface file scenario <<< "$row"
@@ -85,6 +88,7 @@ jobs:
             examples/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json \
             examples/sidebar-tools/reading-toc/preview/reading-toc-r12-interactive-preview.html \
             examples/sidebar-tools/reading-toc/preview/reading-toc-r12-overlay-preview.html \
+            examples/sidebar-tools/reading-toc/preview/index.html \
             examples/sidebar-tools/reading-toc/preview/reading-toc-r183-source-panel-preview.html \
             examples/sidebar-tools/reading-toc/preview/reading-toc-r183-source-overlay-preview.html
           if git diff --cached --quiet; then

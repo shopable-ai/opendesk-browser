@@ -131,7 +131,8 @@ test('expanded composer above the viewport midpoint keeps the compact card outsi
         'the whole expanded form is avoided even when its height exceeds half the viewport');}
       if(width>720)assert(Number.isFinite(parseFloat(f.host().style['--toc-scroll-limit'])));
       f.doc.querySelector=()=>null;f.win.fire('resize');
-      assert.equal(f.host().style['--toc-scroll-limit'],undefined,'normal layout is restored when the composer disappears');
+      assert(Number.parseFloat(f.host().style['--toc-scroll-limit'])>200,
+        'viewport-only height returns when the composer disappears');
       assert.equal(f.host().style.top,undefined);
       assert.equal(f.host().hidden,false,'float returns when composer no longer consumes the viewport');
       view.dispose();
@@ -268,6 +269,73 @@ test('R4.7 webpage TOC follows the active answer without a source selector',()=>
   }finally{globalThis.CSSStyleSheet=original;}
 });
 
+test('R1.9.3 four in-page modes keep the toolbar Y while content height changes',()=>{
+  const oldSheet=globalThis.CSSStyleSheet,oldRect=MockElement.prototype.getBoundingClientRect;
+  globalThis.CSSStyleSheet=class {replaceSync(){}};
+  try{
+    const f=viewFixture(),resizeCallbacks=[],navigations=[];
+    f.win.innerWidth=900;f.win.innerHeight=660;f.win.scrollY=930;
+    f.win.ResizeObserver=class {
+      constructor(callback){resizeCallbacks.push(callback);}
+      observe(){}
+      unobserve(){}
+      disconnect(){}
+    };
+    const form={getBoundingClientRect:()=>({top:550,bottom:660,left:0,right:900,height:110})};
+    const input={getClientRects:()=>[1],closest:()=>form,
+      getBoundingClientRect:()=>({top:575,bottom:620,left:0,right:900,height:45})};
+    f.doc.querySelector=selector=>selector==='#prompt-textarea'?input:null;
+    MockElement.prototype.getBoundingClientRect=function(){
+      const base=oldRect.call(this);
+      if(this.win!==f.win)return base;
+      const panel=f.host()?.shadow?.children?.[0];
+      const count=panel?.children?.[1]?.children?.[0]?.children?.length||0;
+      const wanted=panel?.children?.[2]?.hidden===false?235:count*25;
+      const cap=Number.parseFloat(f.host()?.style?.['--toc-scroll-limit']);
+      const bodyHeight=Math.min(wanted,Number.isFinite(cap)?cap:wanted);
+      if(this.attributes.has('data-opendesk-toc-root')){
+        const height=60+bodyHeight;
+        return {...base,height,bottom:base.top+height};
+      }
+      if(this.className==='scroll'||this.className==='ai-view'){
+        const top=f.host().getBoundingClientRect().top+60;
+        const height=Math.min(this.className==='ai-view'?235:count*25,
+          Number.isFinite(cap)?cap:10000);
+        return {...base,top,height,bottom:top+height};
+      }
+      return base;
+    };
+    const view=createReadingTocView({doc:f.doc,win:f.win,
+      initialPlacement:{v:1,dock:'right',x:1,y:.48},
+      onNavigate:id=>navigations.push(id)});
+    const items=Array.from({length:32},(_,i)=>({
+      id:'h-'+i,sourceId:'s-1',label:'章节 '+i,
+      depth:i%8===0?0:1,topId:'h-'+Math.floor(i/8)*8
+    }));
+    view.render({items,sources:[{id:'s-1',label:'当前网页'}],activeId:'h-4',
+      overview:{'s-1':{ids:['h-0','h-8','h-16','h-24'],representedId:'h-0'}}});
+    const panel=f.host().shadow.children[0],modes=panel.children[0].children[1].children;
+    const baseline=f.host().getBoundingClientRect().top;
+    for(const index of [0,2,3,1,0,3,2,1]){
+      modes[index].fire('click');
+      for(const callback of resizeCallbacks)callback([{target:panel}]);
+      const box=f.host().getBoundingClientRect();
+      assert(Math.abs(box.top-baseline)<.6,'mode '+index+' changed toolbar Y');
+      assert(box.bottom<=542,'mode '+index+' overlaps the visible composer');
+      assert.equal(f.win.scrollY,930,'switching modes must not scroll the webpage');
+      assert.equal(modes[index].attributes.get('aria-pressed'),'true');
+    }
+    assert.deepEqual(navigations,[],'mode switches must never navigate a section');
+    f.doc.querySelector=()=>null;
+    modes[2].fire('click');
+    assert.equal(f.host().getBoundingClientRect().top,baseline,
+      'removing the composer must not re-anchor the floating toolbar');
+    assert(Number.parseFloat(f.host().style['--toc-scroll-limit'])>200,
+      'internal free-space limit should recover after the composer disappears');
+    view.dispose();
+  }finally{globalThis.CSSStyleSheet=oldSheet;MockElement.prototype.getBoundingClientRect=oldRect;}
+});
+
 test('R4.6 narrow viewports keep viewport-adaptive scroll height instead of fixed 160/125px',()=>{
   const oldSheet=globalThis.CSSStyleSheet;
   let css='';
@@ -279,6 +347,10 @@ test('R4.6 narrow viewports keep viewport-adaptive scroll height instead of fixe
     assert.doesNotMatch(css,/\.scroll\{max-height:min\(125px/);
     assert.match(css,/@media\(max-width:1100px\)/);
     assert.match(css,/@media\(max-width:720px\)/);
+    assert.match(css,/\.ai-view\{min-width:0;max-height:min\(68dvh/,
+      'AI notice must scroll internally rather than grow the floating card');
+    assert.match(css,/@media\(max-width:720px\)\{:host\{top:clamp\(90px,15vh,190px\);bottom:auto/,
+      'the narrow-screen toolbar must not jump upward as a bottom-anchored panel expands');
     assert.match(css,/--toc-scroll-limit/,'existing composer collision adjustment remains active');
     view.dispose();
   }finally{globalThis.CSSStyleSheet=oldSheet;}
