@@ -82,13 +82,33 @@ async function fixture({kind='controller',offline=false,withProof=false,installe
           outcome:{ok:true}}]};
     }});
   ui.setOnInstalled(row=>installedNotices.push(row));
-  return {ui,project,source,binding,target,requests,installedNotices,nodes,
+  return {ui,project,client,source,binding,target,requests,installedNotices,nodes,
     get reads(){return seenRuns;},
     setOnline:v=>{online=v;},setBinding:v=>{selectedBinding=v;},
     setTarget:v=>{currentTarget=v;},setSource:v=>{sourceNow=v;},
     setBusy:v=>{localRunBusy=v;},setProof:v=>{rememberedProof=v;},dispose:()=>ui.dispose()};
 }
 async function settle(){for(let i=0;i<8;i++)await tick();}
+test('R40.10.1 Run invalidates a previously in-flight Local installation lookup',async t=>{
+  const f=await fixture({withProof:true,installed:true});
+  let release,entered;
+  const hold=new Promise(resolve=>{release=resolve;});
+  const started=new Promise(resolve=>{entered=resolve;});
+  t.after(()=>{release();f.dispose();});
+  const original=f.client.request.bind(f.client);
+  f.client.request=async(...args)=>{
+    if(args[0]==='listTaskCatalog'){entered();await hold;}
+    return original(...args);
+  };
+  f.ui.update();await started;
+  f.setBusy(true);f.ui.update();
+  release();await settle();
+  assert.equal(f.reads,0,'a late pre-Run lookup cannot borrow old result proof');
+  assert.equal(f.ui.canSave(),false,'pending read is not installation authority');
+  f.setBusy(false);f.ui.update();await settle();
+  assert.equal(f.reads,1,'idle recovers only from the current Provider and durable result');
+});
+
 test('R40.10.1 active Local Run makes no passive Provider/catalog query',async t=>{
   const f=await fixture({withProof:true,installed:true});t.after(f.dispose);
   f.setBusy(true);f.ui.update();await settle();
