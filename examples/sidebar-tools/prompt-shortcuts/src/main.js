@@ -80,13 +80,16 @@ function preview(){
   const glyph=el('ps-preview-glyph');
   glyph.replaceChildren(...model.parts(label||'—').map(char=>dom('span','',char)));
   el('ps-preview-name').textContent=draft.name.trim()||fallback||'待生成';
-  const image=draft.appearance==='image';
+  const image=draft.appearance==='image',local=el('ps-image-source-local').checked;
   el('ps-image-fields').hidden=!image;
+  el('ps-image-upload-controls').hidden=!local;
+  el('ps-image-url-row').hidden=local;
+  el('ps-image-clear').hidden=!draftImageAssetId;
   if(image){
     const holder=el('ps-image-preview'),dims=model.IMAGE_SIZES[data.settings.imageSize]||model.IMAGE_SIZES.large;
     holder.style.width=dims[0]+'px';holder.style.height=dims[1]+'px';
     // Avoid re-requesting the same remote image when the prompt body is edited.
-    const token=JSON.stringify([draft.imageUrl,label,data.settings.imageSize]);
+    const token=JSON.stringify([draft.imageAssetId,draft.imageUrl,label,data.settings.imageSize]);
     if(holder.dataset.token!==token){
       holder.dataset.token=token;
       picture(holder,{...draft,label}, {live:true});
@@ -106,12 +109,13 @@ function changed(){
 }
 function lock(){
   for(const id of ['ps-new','ps-save','ps-save-next','ps-web','ps-transfer','ps-image-size'])
-    el(id).disabled=!ready||busy||transferBusy||unconfirmedWrite||
+    el(id).disabled=!ready||busy||uploadBusy||transferBusy||unconfirmedWrite||
       (id==='ps-new'&&Boolean(stagedImport))||(id==='ps-image-size'&&Boolean(stagedImport));
-  const blocked=!ready||busy||transferBusy||unconfirmedWrite;
+  const blocked=!ready||busy||uploadBusy||transferBusy||unconfirmedWrite;
    el('ps-image-size-setting').querySelectorAll('[data-image-size]').forEach(button=>{
      button.disabled=blocked||Boolean(stagedImport);
    });
+   for(const id of ['ps-image-pick','ps-image-clear'])el(id).disabled=blocked;
   el('ps-import').disabled=blocked;
   el('ps-export').disabled=blocked||Boolean(stagedImport);
   const append=stagedImport?importCandidate('append'):null;
@@ -127,17 +131,20 @@ function lock(){
   report();
 }
 function index(){
+  if(draftImageAssetId&&!data.items.some(item=>item.imageAssetId===draftImageAssetId))
+    void request('prompt.asset.remove',{id:draftImageAssetId}).catch(()=>{});
+  draftImageAssetId='';
   mode='index';editId=null;dirty=false;pendingLeave=null;pendingDelete=null;
   el('ps-index').hidden=false;el('ps-edit').hidden=true;el('ps-leave').hidden=true;
   error('');bodyError('');render();report();
 }
 function back(callback=index){
-  if(busy)return;
+  if(busy||uploadBusy)return;
   if(!dirty){callback();return;}
   pendingLeave=callback;el('ps-leave').hidden=false;el('ps-stay').focus();
 }
 function start(id=null,preset=''){
-  if(!ready||busy||transferBusy||unconfirmedWrite||stagedImport)return;
+  if(!ready||busy||uploadBusy||transferBusy||unconfirmedWrite||stagedImport)return;
   const row=id?data.items.find(item=>item.id===id):null;
   if(id&&!row){status('原条目已变化，请重新打开工具核对。',true);return;}
   mode='form';editId=id;expanded=null;pendingDelete=null;
@@ -149,6 +156,9 @@ function start(id=null,preset=''){
   el('ps-name').value=row&&!row.nameAuto?row.name:'';
   el('ps-appearance-image').checked=row?.appearance==='image';
   el('ps-appearance-text').checked=row?.appearance!=='image';
+  draftImageAssetId=row?.imageAssetId||'';
+  el('ps-image-source-local').checked=Boolean(draftImageAssetId)||!row?.imageUrl;
+  el('ps-image-source-url').checked=!el('ps-image-source-local').checked;
   el('ps-image-url').value=row?.imageUrl||'';
   delete el('ps-image-preview').dataset.token;
   el('ps-enabled').checked=row?.enabled!==false;error('');bodyError('');options(true);el('ps-leave').hidden=true;
