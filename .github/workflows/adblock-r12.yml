@@ -173,6 +173,7 @@ jobs:
       - name: Real macOS Chrome DNR and network requests - no mocks
         env:
           OPENDESK_ADBLOCK_NATIVE: '1'
+          OPENDESK_ADBLOCK_CHROME_DIAGNOSTICS: '1'
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
           OPENDESK_ADBLOCK_NATIVE_EVIDENCE: artifacts/adblock-r12-native
         run: |

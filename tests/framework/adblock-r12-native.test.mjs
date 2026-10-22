@@ -765,7 +765,7 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
     '--user-data-dir='+profile,'--disable-extensions-except='+loadedRoot,
     '--load-extension='+loadedRoot,'about:blank'];
   if(process.env.OPENDESK_ADBLOCK_CHROME_DIAGNOSTICS==='1')argv.unshift(
-    '--enable-logging=stderr','--vmodule=*declarative_net_request*=2,*ruleset*=2,*data_decoder*=2');
+    '--enable-logging=stderr','--vmodule=*service_worker*=2,*devtools*=2,*declarative_net_request*=2,*ruleset*=2,*data_decoder*=2');
   report.browserSessions=[];
   const launch=()=>{
     const child=spawn(BIN,argv,{stdio:['ignore','ignore','pipe']});
@@ -908,11 +908,44 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   await client.send('Runtime.enable',{},workerSession);
   // Separate read-only worker health from the existing observation install.
   // Neither probe authorizes or writes Chrome state; release gates stay intact.
-  const probeWorker=async(stage,expression)=>{
+  // Diagnose an actual Inspector.targetCrashed without reclassifying it as SW sleep.
+  // The about:blank CDP control is diagnostic only, never a substitute for DNR.
+  async function recordWorkerCrash(stage,error){
+    const diagnostic={stage,error:String(error),chromePid:chrome.pid,
+      chromeProcessAlive:chrome.exitCode===null&&chrome.signalCode===null,
+      workerEvents:client.events.filter(event=>event.sessionId===workerSession).slice(-30),
+      browserCrashes:client.events.filter(event=>event.method==='Target.targetCrashed').slice(-10),
+      chromeErrorTail:errors.slice(-12000),
+      crashpadReports:await readdir(path.join(profile,'Crashpad','reports')).catch(()=>[])};
+    try{diagnostic.targets=(await client.send('Target.getTargets')).targetInfos
+      .map(({targetId,type,url,attached})=>({targetId,type,url,attached}));}
+    catch(e){diagnostic.targetsError=String(e);}
+    let controlTargetId=null,controlSession=null;
+    try{
+      controlTargetId=(await client.send('Target.createTarget',{url:'about:blank'})).targetId;
+      controlSession=(await client.send('Target.attachToTarget',{targetId:controlTargetId,flatten:true})).sessionId;
+      await client.send('Runtime.enable',{},controlSession);
+      const response=await client.send('Runtime.evaluate',
+        {expression:'1+1',awaitPromise:false,returnByValue:true},controlSession);
+      diagnostic.controlPage={status:response.result?.value===2?'PASS':'FAIL',result:response.result?.value};
+    }catch(e){diagnostic.controlPage={status:'FAIL',error:String(e)};}
+    finally{
+      if(controlSession)await client.send('Target.detachFromTarget',{sessionId:controlSession}).catch(()=>{});
+      if(controlTargetId)await client.send('Target.closeTarget',{targetId:controlTargetId}).catch(()=>{});
+    }
+    report.workerCrashDiagnostic=diagnostic;
+    await preserve('cdp-worker-crash-diagnostic.json',JSON.stringify(diagnostic,null,2)+'\n');
+    console.error('ADBLOCK_CDP_CRASH_DIAGNOSTIC '+JSON.stringify({
+      stage,chromeProcessAlive:diagnostic.chromeProcessAlive,controlPage:diagnostic.controlPage,
+      crashpadReports:diagnostic.crashpadReports}));
+  }
+  const probeWorker=async(stage,expression,{awaitPromise=true}={})=>{
     const entry={stage,targetId:worker.targetId,sessionId:workerSession};
     report.workerInspectorChecks??=[];
     try{
-      const value=await evaluate(client,workerSession,expression);
+      const reply=await client.send('Runtime.evaluate',{expression,awaitPromise,returnByValue:true},workerSession);
+      if(reply.exceptionDetails)throw Error(JSON.stringify(reply.exceptionDetails).slice(0,500));
+      const value=reply.result.value;
       Object.assign(entry,{status:'PASS',...(stage==='read-only-context'?{result:value}:{})});
       report.workerInspectorChecks.push(entry);
       return value;
@@ -921,9 +954,16 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
         targetCrashed:client.events.some(event=>event.sessionId===workerSession&&
           event.method==='Inspector.targetCrashed')});
       report.workerInspectorChecks.push(entry);
+      await recordWorkerCrash(stage,error).catch(diagnosticError=>{
+        report.workerCrashDiagnosticError=String(diagnosticError);
+      });
       throw error;
     }
   };
+  // A scalar with and without awaitPromise separates target startup from
+  // the inspector's Promise-awaiter and the extension-context identity read.
+  assert.equal(await probeWorker('cdp-scalar-no-await','1+1',{awaitPromise:false}),2);
+  assert.equal(await probeWorker('cdp-scalar-await','1+1'),2);
   const workerIdentity=await probeWorker('read-only-context','({url:location.href,extensionId:chrome.runtime.id})');
   assert.equal(workerIdentity?.extensionId,id,'native worker identity must match the installed extension');
   await probeWorker('native-call-observer','('+observeNativeCalls.toString()+')()');
