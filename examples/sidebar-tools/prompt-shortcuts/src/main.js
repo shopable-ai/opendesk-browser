@@ -5,7 +5,7 @@ const model=globalThis.OpenDeskPromptShortcutsModel,el=id=>root.querySelector('#
 const dom=(tag,cls='',text='')=>{const n=root.ownerDocument.createElement(tag);n.className=cls;n.textContent=text;return n;};
 const KEY='library',MENU_ACTION='add-selection';
 let data=model.defaults(),etag=null,ready=false,busy=false,dirty=false,mode='index',editId=null;
-let baseline='',expanded=null,pendingDelete=null,pendingLeave=null,unconfirmedWrite=false,returnFocusId=null;
+let baseline='',expanded=null,pendingDelete=null,unconfirmedWrite=false,returnFocusId=null;
  const imageAssets=new Map();let draftImageAssetId='',uploadBusy=false;
 let stagedImport=null,stagedEtag=null,replaceArmed=false,transferBusy=false,importTicket=0;
 const SITE_KEY='sites';
@@ -16,7 +16,7 @@ let aiGuardId=null,aiRefreshPending=false,aiFocusId=null;
 function aiEditable(){
   return ready&&mode==='index'&&!dirty&&!siteDirty&&!busy&&!siteBusy&&
     !siteDetecting&&!siteSession&&!siteStarting&&!uploadBusy&&!transferBusy&&
-    !stagedImport&&!pendingDelete&&!pendingLeave&&!unconfirmedWrite&&
+    !stagedImport&&!pendingDelete&&!unconfirmedWrite&&
     !siteUnconfirmedWrite&&el('ps-site-form').hidden;
 }
 root.addEventListener('opendesk-tool-ai-guard',event=>{
@@ -63,7 +63,7 @@ root.addEventListener('opendesk-tool-state-changed',event=>{
   if(typeof event.detail?.targetId==='string')aiFocusId=event.detail.targetId;
   void refreshFromTrustedHost();
 });
-function report(){setState({dirty:dirty||siteDirty||Boolean(stagedImport),busy:busy||siteBusy||siteDetecting||transferBusy||uploadBusy});}
+function report(){setState({dirty:dirty||siteDirty||Boolean(stagedImport),busy:busy||siteBusy||siteDetecting||transferBusy||uploadBusy||unconfirmedWrite||siteUnconfirmedWrite});}
 // The sandbox owns business navigation; the verified Host owns presentation only.
 function publishNavigation(){
   if(typeof setNavigation!=='function')return;
@@ -261,7 +261,7 @@ function lock(){
   el('ps-import-cancel').disabled=busy||transferBusy;
   el('ps-import-append').disabled=blocked||!append||Boolean(append.error||append.overLimit||append.added===0);
   el('ps-import-replace').disabled=blocked||!replace||Boolean(replace.error||replace.overLimit);
-  for(const id of ['ps-cancel','ps-discard'])el(id).disabled=busy;
+  el('ps-cancel').disabled=busy||uploadBusy||unconfirmedWrite||siteUnconfirmedWrite;
   el('ps-form').setAttribute('aria-busy',String(busy));
   el('ps-save').textContent=busy?'保存中…':'保存';
   el('ps-save-next').textContent=busy?'保存中…':'保存并继续';
@@ -273,21 +273,22 @@ function index(){
     removeUnreferencedAsset(draftImageAssetId);
   draftImageAssetId='';
   const focusId=returnFocusId;returnFocusId=null;
-  mode='index';editId=null;dirty=false;pendingLeave=null;pendingDelete=null;
-  el('ps-index').hidden=false;el('ps-edit').hidden=true;el('ps-leave').hidden=true;
+  mode='index';editId=null;dirty=false;pendingDelete=null;
+  el('ps-index').hidden=false;el('ps-edit').hidden=true;
   error('');bodyError('');render();
   if(focusId)focusListAction(focusId,'more');
   report();publishNavigation();
 }
 function back(callback=index){
-  if(busy||uploadBusy||transferBusy||siteBusy||siteUnconfirmedWrite||unconfirmedWrite){
-    if(unconfirmedWrite)error('上次保存结果尚未确认，草稿仍保留；请重新打开核对，不能直接放弃。');
-    return;
-  }
-  if(!dirty){callback();return;}
-  pendingLeave=callback;el('ps-leave').hidden=false;el('ps-stay').focus();
-}
-function start(id=null,preset=''){
+   if(busy||uploadBusy||transferBusy||siteBusy||siteUnconfirmedWrite||unconfirmedWrite){
+     if(unconfirmedWrite||siteUnconfirmedWrite)
+       error('保存结果尚未确认；草稿保留，请重新打开核对，不能直接放弃。');
+     return;
+   }
+   // Cancel/Back discards current draft. index() cleans unreferenced images.
+   callback();
+ }
+ function start(id=null,preset=''){
   if(!ready||busy||uploadBusy||transferBusy||unconfirmedWrite||stagedImport)return;
   const row=id?data.items.find(item=>item.id===id):null;
   if(id&&!row){status('原条目已变化，请重新打开工具核对。',true);return;}
@@ -305,7 +306,7 @@ function start(id=null,preset=''){
   el('ps-image-source-url').checked=!el('ps-image-source-local').checked;
   el('ps-image-url').value=row?.imageUrl||'';
   delete el('ps-image-preview').dataset.token;
-  el('ps-enabled').checked=row?.enabled!==false;error('');bodyError('');options(true);el('ps-leave').hidden=true;
+  el('ps-enabled').checked=row?.enabled!==false;error('');bodyError('');options(true);
   // A native-menu selection is an unsaved new draft, never an acknowledged baseline.
   baseline=JSON.stringify({...form(),body:row?.body??''});changed();publishNavigation();el('ps-body').focus();
 }
@@ -1137,8 +1138,7 @@ el('ps-image-clear').addEventListener('click',()=>{
     removeUnreferencedAsset(previous);
 });
 el('ps-cancel').addEventListener('click',()=>back());
-el('ps-stay').addEventListener('click',()=>{el('ps-leave').hidden=true;pendingLeave=null;el('ps-body').focus();});
-el('ps-discard').addEventListener('click',()=>{if(busy)return;const action=pendingLeave;pendingLeave=null;if(action)action();});
+
 el('ps-toggle-settings').addEventListener('click',()=>options(el('ps-setting-fields').hidden));
 el('ps-web').addEventListener('change',()=>void changeWeb());
 el('ps-image-size-setting').querySelectorAll('[data-image-size]').forEach(button=>
