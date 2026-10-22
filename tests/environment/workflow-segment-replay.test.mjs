@@ -42,6 +42,11 @@ test('bundle rejects changed step order, script hash and parameter schema',async
   const reordered=structuredClone(record);reordered.segments.reverse();
   await assert.rejects(verifyWorkflowBundle(reordered),{code:'E_WORKFLOW_BUNDLE'});
   const edited=structuredClone(record);edited.segments[0].sourceHash='a'.repeat(64);
+  // A mismatched proof is rejected as malformed evidence *before* bundle hash
+  // verification. An internally consistent, changed segment still fails the
+  // immutable manifest hash, independently of the proof/format invariant.
+  await assert.rejects(verifyWorkflowBundle(edited),{code:'E_WORKFLOW_BUNDLE'});
+  edited.segments[0].proof.sourceHash=edited.segments[0].sourceHash;
   await assert.rejects(verifyWorkflowBundle(edited),{code:'E_WORKFLOW_HASH'});
   const param=structuredClone(record);param.paramsSchema.properties.query.default='modified';
   await assert.rejects(verifyWorkflowBundle(param),{code:'E_WORKFLOW_BUNDLE'});
