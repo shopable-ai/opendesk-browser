@@ -384,7 +384,15 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     await browser.send('ServiceWorker.enable',{},uiTarget.sessionId);workerObserverReady=true;
   }
   catch(cause){note('passive-worker-observer-unavailable',{error:String(cause)});}
-  await until(()=>evaluate(browser,uiTarget.sessionId,'Boolean(document.querySelector("#sidebar-tool-official-time-review-install"))'),'official Time Review available');
+  // The full-tab catalog now renders through the existing React root. The
+  // removed legacy Time Review install button is not a valid prerequisite.
+  // Require the visible, actionable catalog launcher; nativeClick below
+  // performs a trusted CDP pointer click to open a real SIDE_PANEL.
+  await until(()=>evaluate(browser,uiTarget.sessionId,
+    '(()=>{const catalog=document.querySelector("#workbench-discover");'+
+    'const launcher=document.querySelector("#catalog-open-dev-sidebar");'+
+    'return !!catalog&&!catalog.hidden&&!!launcher&&!launcher.disabled&&launcher.checkVisibility();})()'),
+    'visible React catalog Side Panel launcher');
   note('trusted-open',await nativeClick(browser,uiTarget.sessionId,'#catalog-open-dev-sidebar'));
   const sideDocument=await until(async()=>{
     const c=await evaluate(browser,uiTarget.sessionId,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})");
