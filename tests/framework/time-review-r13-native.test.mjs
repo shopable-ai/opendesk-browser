@@ -423,10 +423,19 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     'review does not execute uninstalled code');
   await nativeClick(browser,side,'#sidebar-tool-install');
   const installed='[data-extension-key="app:time-review"][data-extension-action="main"]';
-  await until(()=>evaluate(browser,side,'Boolean(document.querySelector('+JSON.stringify(installed)+'))'),'official Time Review installed');
-  const saved=await evaluate(browser,side,
-    'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.find(x=>x.id==="time-review")?.version)');
+  // A catalog candidate uses the same main-row selector before installation.
+  // Wait for the genuine installer's durable storage readback, then for the
+  // React row's installed-only management control. Never seed storage here.
+  const saved=await until(()=>evaluate(browser,side,
+    'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.find(x=>x.id==="time-review")?.version)'),
+    'real Time Review installation persisted by Chrome');
   assert.equal(saved,pkg.version,'real installed package persisted with exact built tool version');
+  const installedMore='[data-extension-key="app:time-review"][data-extension-action="more"]';
+  await until(()=>evaluate(browser,side,
+    '(()=>{const entry=document.querySelector('+JSON.stringify(installed)+');'+
+    'const menu=document.querySelector('+JSON.stringify(installedMore)+');'+
+    'return !!entry&&!entry.disabled&&entry.checkVisibility()&&!!menu;})()'),
+    'installed Time Review React row and management action visible');
   evidence.install='PASS';note('install',{version:saved});
   await nativeExtensionScope(browser,side,'smart');
   await nativeClick(browser,side,installed);
