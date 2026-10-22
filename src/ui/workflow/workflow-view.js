@@ -203,7 +203,16 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     control('workflow-intro-description').text=entryMode==='new-chat'
       ?'保留当前工作流，可以继续提出下一步需求。'
       :'用一句话描述任务，或选择下方示例开始。';
-    ui.patch({entryMode,hasSteps,phase,lastRun,awaitingReview:Boolean(pendingAIReview)});
+    const segmentRows=selectedBundle?.segments||fullAgentDraft?.segments||[];
+    ui.patch({entryMode,hasSteps,phase,lastRun,awaitingReview:Boolean(pendingAIReview),
+      bundleSegments:segmentRows.map((part,index)=>({
+        index:index+1,origin:part.workflow.siteOrigin,
+        evidence:part.evidence.kind,
+        steps:part.workflow.steps.map(step=>({
+          op:OP_LABELS[step.op]||step.op,
+          target:String(step.roleName||step.selector||'').slice(0,72)
+        }))
+      }))});
     transcript.hidden=!hasMessages;
     control('workflow-planning-indicator').hidden=phase!=='planning';
     control('workflow-dock').dataset.empty=String(!hasSteps&&!runId);
