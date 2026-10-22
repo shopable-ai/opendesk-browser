@@ -406,7 +406,7 @@
 .sidebar-tool-view-head .sidebar-tool-icon-action{flex:0 0 var(--od-icon-size);min-width:var(--od-icon-size);width:var(--od-icon-size);padding:0}
 .sidebar-tool-view-head .sidebar-tool-icon-action:disabled{opacity:.45;cursor:not-allowed}
 .sidebar-tool-view-head button:focus-visible,.sidebar-tool-item:focus-visible,#sidebar-tool-enable:focus-visible,#sidebar-tool-launch:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
-@media(max-width:240px){.sidebar-tool-view-head{flex-wrap:wrap}.sidebar-tool-view-head strong{flex-basis:calc(100% - 38px)}.sidebar-tool-item-version{margin-left:29px}}
+@media(max-width:240px){.sidebar-tool-view-head{flex-wrap:wrap}.sidebar-tool-view-head strong{flex-basis:calc(100% - max(44px,var(--od-icon-size)) - var(--space-2))}.sidebar-tool-item-version{margin-left:29px}}
 #sidebar-tool-settings-open{flex:none;border:1px solid transparent;background:transparent;color:#647894}
 #sidebar-tool-settings-open:hover{background:#eef3ff;color:#365dba;border-color:#dce5fa}
 .sidebar-tool-settings-view{padding:14px 15px;border-radius:var(--radius-surface);background:var(--surface,#fff);min-width:0}

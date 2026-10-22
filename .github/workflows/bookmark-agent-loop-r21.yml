@@ -7,9 +7,11 @@ on:
       - 'src/ui/workflow/workflow-view.js'
       - 'src/ui/react/components/conversation.tsx'
       - 'src/ui/react/components/conversation-dock.css'
+      - 'src/ui/tool-shell.css'
       - 'src/platform/chrome/current-page-refs.js'
       - 'examples/sidebar-tools/bookmark-manager/src/react/App.jsx'
       - 'tests/environment/opendesk-conversation-*.test.mjs'
+      - 'tests/environment/conversation-dock-layout-browser.test.mjs'
       - 'tests/environment/browser-sdk-r124-current-page.test.mjs'
       - '.github/workflows/bookmark-agent-loop-r21.yml'
   workflow_dispatch:
@@ -53,6 +55,13 @@ jobs:
       - name: Chromium setup
         uses: browser-actions/setup-chrome@v2
         id: chrome
+      - name: Existing pinned Chromium interaction driver
+        run: npm install --prefix "$RUNNER_TEMP/bookmark-layout" --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.56.1
+      - name: Shared Dock clipping and Stop draft regression (render only, NOT Provider acceptance)
+        env:
+          OPENDESK_PLAYWRIGHT_MODULE: ${{ runner.temp }}/bookmark-layout/node_modules/playwright-core/index.mjs
+          OPENDESK_CHROMIUM_EXECUTABLE: ${{ steps.chrome.outputs.chrome-path }}
+        run: node --test tests/environment/conversation-dock-layout-browser.test.mjs
       - name: Source-bound Chrome interaction (offline fixture, NOT native installed extension)
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}

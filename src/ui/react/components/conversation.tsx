@@ -98,7 +98,6 @@ function ConversationWorkspace({
   const input=inputRef.current;if(!open||!input)return;
   input.style.height='auto';
   input.style.height=clamp(input.scrollHeight,44,112)+'px';
-  input.style.overflowY=input.scrollHeight>112?'auto':'hidden';
  },[draft,open]);
  React.useLayoutEffect(()=>{
   const node=shellRef.current;
@@ -114,7 +113,8 @@ function ConversationWorkspace({
   // At 200% zoom an 800px physical viewport can yield only 400 CSS px.
   // Prefer a scrollable transcript over collapsing the original bookmark tree.
   // Reserve up to 260 CSS px for business toolbar, tree header and visible rows.
-  const min=Math.min(error||needsReview?184:156,Math.max(112,Math.floor(totalHeight*.34)));
+  // Keep the compact composer, phase and coarse-pointer controls inside the Dock.
+  const min=Math.min(error||needsReview?184:156,Math.max(144,Math.floor(totalHeight*.34)));
   const businessMin=Math.min(260,Math.floor(totalHeight*.65));
   return {min,max:Math.max(min,totalHeight-businessMin)};
  },[totalHeight,error,needsReview]);
@@ -140,7 +140,9 @@ function ConversationWorkspace({
   if(step?.message)append('助手',step.message);
   else persist({refs:refsRef.current});
  },[append,persist]);
- function stop(){
+ function stop(event){
+  // Aborting can replace this button with Send before the click default runs.
+  event.preventDefault();
   const signal=abortRef.current?.signal;
   if(!signal)return;
   abortRef.current.abort();

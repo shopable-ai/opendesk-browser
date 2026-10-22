@@ -22,9 +22,10 @@
 .od-conversation-error{margin:0;padding:4px 10px;color:var(--od-negative);font-size:var(--od-meta-size);line-height:1.5}
 .od-conversation-feedback{flex:0 1 auto;min-height:26px;max-height:25%;overflow:auto;overflow-wrap:anywhere;overscroll-behavior:contain}
 .od-conversation-feedback:focus-visible{outline:2px solid var(--od-focus);outline-offset:-2px}
-.od-conversation-composer{display:grid;grid-template-columns:minmax(0,1fr);position:relative;flex:none;min-width:0;padding:6px 10px 8px;border-top:1px solid var(--od-line)}
+/* The autosized draft may shrink before the composer or Stop leaves the Dock. */
+.od-conversation-composer{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);position:relative;flex:0 1 auto;min-width:0;min-height:59px;padding:6px 10px 8px;border-top:1px solid var(--od-line)}
 .od-conversation-sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
-.od-conversation-input{grid-area:1/1;margin:0;box-sizing:border-box;display:block;width:100%;min-width:0;min-height:44px;max-height:112px;resize:none;overflow-y:auto;border:1px solid var(--od-input-border);border-radius:var(--radius-surface);padding:10px 52px 9px 10px;background:var(--od-paper);color:var(--od-ink);font:inherit;font-size:var(--od-note-size);line-height:1.5;scrollbar-width:thin}
+.od-conversation-input{grid-area:1/1;margin:0;box-sizing:border-box;display:block;width:100%;min-width:0;min-height:44px;max-height:min(112px,100%);resize:none;overflow-y:auto;border:1px solid var(--od-input-border);border-radius:var(--radius-surface);padding:10px 52px 9px 10px;background:var(--od-paper);color:var(--od-ink);font:inherit;font-size:var(--od-note-size);line-height:1.5;scrollbar-width:thin}
 .od-conversation-input::placeholder{color:var(--od-sub);opacity:1}
 .od-conversation-input:focus-visible,.od-conversation-close:focus-visible,.od-conversation-action:focus-visible,.od-conversation-frame-trigger:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 /* Input and action occupy one grid cell: no viewport/zoom-dependent bottom offset. */
@@ -32,7 +33,9 @@
 .od-conversation-action svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .od-conversation-action--primary{background:var(--od-brand);color:var(--od-on-brand);border-color:var(--od-brand)}
 .od-conversation-action:disabled{opacity:.45;cursor:not-allowed}
-@media(max-height:520px){.od-conversation-composer{padding:4px 8px 5px}.od-conversation-input{max-height:76px}.od-conversation-log{padding-right:8px;padding-bottom:4px}}
+@media(max-height:520px){.od-conversation-composer{min-height:54px;padding:4px 8px 5px}.od-conversation-input{max-height:min(76px,100%)}.od-conversation-log{padding-right:8px;padding-bottom:4px}}
 @media(pointer:coarse){.od-conversation-dragbar{flex-basis:18px;min-height:18px}.od-conversation-separator{top:-10px;bottom:-10px;right:48px}.od-conversation-separator:before{top:16px}.od-conversation-close{width:44px;min-width:44px;height:44px;top:-4px;right:2px}.od-conversation-log{padding-top:23px}.od-conversation-action{width:44px;min-width:44px;height:44px;min-height:44px;margin:0 5px 5px 0}.od-conversation-input{min-height:54px;padding-right:60px}}
+@media(pointer:coarse){.od-conversation-composer{min-height:69px}}
+@media(pointer:coarse) and (max-height:520px){.od-conversation-composer{min-height:64px}}
 
 .od-conversation-phase{flex:none;padding:4px 10px;color:var(--od-sub);font-size:var(--od-meta-size);line-height:1.45}
