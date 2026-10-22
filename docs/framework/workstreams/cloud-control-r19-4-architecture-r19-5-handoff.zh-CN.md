@@ -305,28 +305,28 @@ Node state.json 现状与生产需求明确分开；正式环境必须核对多�
 
 ## 12. R19.6 实测核查、最小 CI 修复与未关闭产品门槛（2026-10-23）
 
-> 本节是对第 1–11 节的追加，**不替换原始目标、六项关键任务、身份/安全合同和历史证据**。此处 GitHub Action 证据只对各自记录的精确提交生效。并行 Agent 持续在 \`main\` 提交，所以文中 SHA 不是永久 HEAD。不得把 Linux CI 当作 Mac Chrome / 独立业务 BFF / 两设备实际结果。
+> 本节是对第 1–11 节的追加，**不替换原始目标、六项关键任务、身份/安全合同和历史证据**。此处 GitHub Action 证据只对各自记录的精确提交生效。并行 Agent 持续在 `main` 提交，所以文中 SHA 不是永久 HEAD。不得把 Linux CI 当作 Mac Chrome / 独立业务 BFF / 两设备实际结果。
 
 ### 12.1 保留的执行主线和源码事实
 
-- 唯一传输/执行链：业务 Web → 受信业务 BFF（用户会话与授权）→ 既有 Provider \`/v1/submit\` 持久 Job → 认证 Executor 经 HTTPS Pull / WSS 通知 → 同一个 \`/v1/claim\` → Assignment → \`/v1/admission\` Permit → 既有 Offscreen RunHost → Trusted Controller/Authority → 原 Run/Result → 原 Receipt → \`/v1/job-status\` → BFF → Web。
-- \`scripts/cloud-control/provider.mjs\` 提供 Client-scoped HTTPS \`/v1/client-scope\`（可选 \`includeTaskSchemas\`）、\`/v1/submit\`、\`/v1/job-status\`、\`/v1/job-cancel\`，经认证和 Task pin/target/params/requestKey 检查。远端 WSS \`/v1/events\` 只发送特定 Executor 的 Job 引用；\`/v1/pull-open\` 是受绑定的 90 秒短会话，不是执行许可。
-- \`src/cloud-control/connection.js\`（Pull/WSS 复用状态与 ACK）、\`src/cloud-control/service.js\`（原 Task 安装、权限、Claim/Permit、Result/Receipt、UNKNOWN）、\`src/cloud-control/runner-lifecycle.js\`（SW 所属唯一 Offscreen 生命周期）、\`src/cloud-control/runner.js\`（通过既有 \`host.start\` 启动 Controller）保留统一权威和旧 \`@slot\`。**这是源码/组件事实，非 R19.6 真实 Chrome 合格证明。**
-- Node Provider \`state.json\` 单进程串行、\`state.json.tmp\` 写入/同步/rename，已有相同 requestKey 的持久幂等和 Receipt 对账。没有关系数据库事务唯一索引、HA、备份/灾备、负载/真实生产部署证据，**不可标为生产级队列**。
-- \`examples/tasks/form-fill.v1.opendesk-task.json\` 只授权 \`http://127.0.0.1:43111\` 的本地演示表单，\`modern-search\` 是搜索示例。两者不能冒充“真实业务记录 A 创建后由 B 更新 A”；更新能力必须先作为固定版本/Hash 的 Task 正式安装、授权、验证。
+- 唯一传输/执行链：业务 Web → 受信业务 BFF（用户会话与授权）→ 既有 Provider `/v1/submit` 持久 Job → 认证 Executor 经 HTTPS Pull / WSS 通知 → 同一个 `/v1/claim` → Assignment → `/v1/admission` Permit → 既有 Offscreen RunHost → Trusted Controller/Authority → 原 Run/Result → 原 Receipt → `/v1/job-status` → BFF → Web。
+- `scripts/cloud-control/provider.mjs` 提供 Client-scoped HTTPS `/v1/client-scope`（可选 `includeTaskSchemas`）、`/v1/submit`、`/v1/job-status`、`/v1/job-cancel`，经认证和 Task pin/target/params/requestKey 检查。远端 WSS `/v1/events` 只发送特定 Executor 的 Job 引用；`/v1/pull-open` 是受绑定的 90 秒短会话，不是执行许可。
+- `src/cloud-control/connection.js`（Pull/WSS 复用状态与 ACK）、`src/cloud-control/service.js`（原 Task 安装、权限、Claim/Permit、Result/Receipt、UNKNOWN）、`src/cloud-control/runner-lifecycle.js`（SW 所属唯一 Offscreen 生命周期）、`src/cloud-control/runner.js`（通过既有 `host.start` 启动 Controller）保留统一权威和旧 `@slot`。**这是源码/组件事实，非 R19.6 真实 Chrome 合格证明。**
+- Node Provider `state.json` 单进程串行、`state.json.tmp` 写入/同步/rename，已有相同 requestKey 的持久幂等和 Receipt 对账。没有关系数据库事务唯一索引、HA、备份/灾备、负载/真实生产部署证据，**不可标为生产级队列**。
+- `examples/tasks/form-fill.v1.opendesk-task.json` 只授权 `http://127.0.0.1:43111` 的本地演示表单，`modern-search` 是搜索示例。两者不能冒充“真实业务记录 A 创建后由 B 更新 A”；更新能力必须先作为固定版本/Hash 的 Task 正式安装、授权、验证。
 
 ### 12.2 业务 BFF/表单发现结果与真实 P0
 
-- 检查了本仓库 \`examples/cloud-control/\`（只有说明文档）、Provider/CLI/云控源目录，并逐层核对关联仓库 \`shopable-station\` 的 \`apps/web/src/app/api\`、\`apps/api/src/routes\`，以及 \`todo-admin-midway/src/modules/cloud/controller/app/func.ts\`。在可读取的入口中**未确认本协议可用的正式 Web 表单、登录态到 Client 授权映射、BFF API 或实际部署地址**；旧 Midway \`AppCloudFuncController.invoke\` 是空函数，并不是云控 BFF 的实现。代码搜索无匹配不能证明其他外部服务不存在。
+- 检查了本仓库 `examples/cloud-control/`（只有说明文档）、Provider/CLI/云控源目录，并逐层核对关联仓库 `shopable-station` 的 `apps/web/src/app/api`、`apps/api/src/routes`，以及 `todo-admin-midway/src/modules/cloud/controller/app/func.ts`。在可读取的入口中**未确认本协议可用的正式 Web 表单、登录态到 Client 授权映射、BFF API 或实际部署地址**；旧 Midway `AppCloudFuncController.invoke` 是空函数，并不是云控 BFF 的实现。代码搜索无匹配不能证明其他外部服务不存在。
 - **T00/T09 仍 BLOCKED**：需要已有业务 Web 的真实 URL、用户登录/授权和受信 BFF 的源码或服务访问、Provider TLS/有限 Client Credential 在服务端的保管、用户↔Job 归属映射与页面刷新恢复。不使用演示/CLI 代替真实 Web，也不在普通浏览器脚本保存长期 Client Token。
-- 若现有 BFF 在外部，则接入现有登录校验并只代理已批准的 Task Schema / Submit / Status / Cancel；严格保留同次请求 \`requestKey\`、相同正文返回原 \`jobId\`、同键不同正文返回冲突，结果和 Stop 事实分开显示。缺访问权时不新建第二 Provider 或假 BFF。
+- 若现有 BFF 在外部，则接入现有登录校验并只代理已批准的 Task Schema / Submit / Status / Cancel；严格保留同次请求 `requestKey`、相同正文返回原 `jobId`、同键不同正文返回冲突，结果和 Stop 事实分开显示。缺访问权时不新建第二 Provider 或假 BFF。
 
 ### 12.3 本轮真实修复和精确 GitHub Actions
 
-1. [\`45aa7614fe0c44fe1f49e09b3468b33a84d6a2ef\`](https://github.com/shopable-ai/opendesk-browser/commit/45aa7614fe0c44fe1f49e09b3468b33a84d6a2ef)：只更正 \`tests/environment/cloud-program-inbox-react.test.mjs\` 中真正多行差异的新增行正则，由错误字面反斜线匹配改为 \`/^\+ new$/m\`，并把删除行严格锚定为 \`/^- old$/m\`；不改变差异算法、源码安全或授权规则。
-   - [Cloud R5.2 #39810699408](https://github.com/shopable-ai/opendesk-browser/actions/runs/39810699408) 绑定该精确提交：**工作流 SUCCESS**。\`npm run test:cloud\`、Controller Authority/Run/Result、Trusted Side Panel Cloud 均 PASS；只证明 Linux 组件和测试合同。
-2. [\`af8f8f624a0c39fd819b4895b31156deb1c8190f\`](https://github.com/shopable-ai/opendesk-browser/commit/af8f8f624a0c39fd819b4895b31156deb1c8190f)：仅修正 \`tests/environment/bundle-provenance.test.mjs\` 中过期 Time Review Git Blob 期望值 \`1b4dfe90…\` → \`3dfd773f…\`。**当前正式源码 Blob 与已有 \`scripts/bundle-provenance.mjs\` 独立审核过的生产 allowlist 均精确为 \`3dfd773fa8cf38deeb23a5d5f9f56d0b27e11ff6\`**；不调整白名单、不允许未知输入、不扩大固定输出目标。
-   - [Cloud R3 #39811501437](https://github.com/shopable-ai/opendesk-browser/actions/runs/39811501437) 的 component 中“Privileged bundle source pins”已 **PASS**，Sidebar 导航/Task 等此前步骤也 PASS；但 \`tests/environment/sidebar-ui-preview.test.mjs\` **3 项共享 UI 检查 FAIL**（Developer 头部控件位置、Workflow 控件圆角、官方动态行表面样式），故 component 与总体不可宣称 PASS。正式 \`cloud-r3-package\` 在本轮首次读取时尚在运行；须按精确 run 复查结果，不填造包 Hash。
+1. [`45aa7614fe0c44fe1f49e09b3468b33a84d6a2ef`](https://github.com/shopable-ai/opendesk-browser/commit/45aa7614fe0c44fe1f49e09b3468b33a84d6a2ef)：只更正 `tests/environment/cloud-program-inbox-react.test.mjs` 中真正多行差异的新增行正则，由错误字面反斜线匹配改为 `/^\+ new$/m`，并把删除行严格锚定为 `/^- old$/m`；不改变差异算法、源码安全或授权规则。
+   - [Cloud R5.2 #39810699408](https://github.com/shopable-ai/opendesk-browser/actions/runs/39810699408) 绑定该精确提交：**工作流 SUCCESS**。`npm run test:cloud`、Controller Authority/Run/Result、Trusted Side Panel Cloud 均 PASS；只证明 Linux 组件和测试合同。
+2. [`af8f8f624a0c39fd819b4895b31156deb1c8190f`](https://github.com/shopable-ai/opendesk-browser/commit/af8f8f624a0c39fd819b4895b31156deb1c8190f)：仅修正 `tests/environment/bundle-provenance.test.mjs` 中过期 Time Review Git Blob 期望值 `1b4dfe90…` → `3dfd773f…`。**当前正式源码 Blob 与已有 `scripts/bundle-provenance.mjs` 独立审核过的生产 allowlist 均精确为 `3dfd773fa8cf38deeb23a5d5f9f56d0b27e11ff6`**；不调整白名单、不允许未知输入、不扩大固定输出目标。
+   - [Cloud R3 #39811501437](https://github.com/shopable-ai/opendesk-browser/actions/runs/39811501437) 的 component 中“Privileged bundle source pins”已 **PASS**，Sidebar 导航/Task 等此前步骤也 PASS；但 `tests/environment/sidebar-ui-preview.test.mjs` **3 项共享 UI 检查 FAIL**（Developer 头部控件位置、Workflow 控件圆角、官方动态行表面样式），故 component 与总体不可宣称 PASS。正式 `cloud-r3-package` 精确作业已 **SUCCESS**，包含源码检查、Production/Development MV3 构建和严格包/CSP 校验；尚未独立读取最终包 Hash，不能凭作业通过编造哈希。
 - 旧 R19.5 中的 Cloud R5.2 多行样例和 Side Panel 重复 ID 的前序问题已由此轮及 R19.5 连续修复闭环，但 Cloud R3 的共享 UI 红灯和其他不相关 Workflow 的红灯不能被 Cloud R5.2 的 PASS 覆盖。
 - 当前对话无 Mac 主机文件系统、实际运行中的 Chrome/业务 BFF/证书及两台设备控制权；没有执行 T00、T01/T02 Mac 原生、跨设备现场，不制造原生 PASS，也不操作历史未知 Run。
 
