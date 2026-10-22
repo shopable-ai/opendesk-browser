@@ -24,8 +24,10 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - name: Stage generated official tool dependencies for Host source fixtures
-        run: npm run build:dev
+      - name: Stage real official dependencies without bypassing the separate WXT provenance gate
+        run: |
+          node --input-type=module -e "import {buildAdblockReact} from './scripts/build-adblock-react.mjs'; import {buildStayFocusReact} from './scripts/build-stay-focus-react.mjs'; import {buildCookieEditorReactIfOfficial} from './scripts/build-cookie-editor-react.mjs'; import {preparePublic} from './scripts/prepare-public.mjs'; await buildAdblockReact({log:false}); await buildStayFocusReact({log:false}); await buildCookieEditorReactIfOfficial({log:false}); await preparePublic();"
+
       - name: Prompt business Adapter / Host nonce / ETag / readback
         run: node --test tests/environment/opendesk-conversation-r13-prompt-business.test.mjs
       - name: Prompt official admission and iframe/Host regression
