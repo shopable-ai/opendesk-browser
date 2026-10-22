@@ -204,3 +204,16 @@ test('R5.30 export stays in the original React workspace, not a native modal',as
  assert.match(component,/<CookieExportActions /);
  assert.match(css,/\.cookie-editor-react \.cookie-export-workspace/);
 });
+
+test('R5.26 React project version matches the official Cookie release identity',async()=>{
+  const [config,project,installed]=await Promise.all([
+    get('tool.config.json').then(JSON.parse),
+    get('package.json').then(JSON.parse),
+    get('cookie-editor.opendesk-tool.json').then(JSON.parse)
+  ]);
+  assert.equal(config.id,'cookie-editor');
+  assert.equal(project.version,config.version);
+  assert.equal(installed.version,config.version);
+  assert.equal(installed.id,config.id);
+  assert.equal(installed.uiRuntime,'opendesk.react-ui.v1');
+});
