@@ -916,7 +916,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(!/(?:搜索|查找|检索|\bsearch\b)/i.test(goal)||
       !/(?:打开|进入|点开|\bopen\b)/i.test(goal)||
       !/(?:价格|标价|售价|\bprice\b)/i.test(goal)||
-      /(?:付款|支付|下单|结账|删除|清空|提交|转账|发送|退款|checkout|delete|submit|payment)/i.test(goal))
+      /(?:付款|支付|下单|结账|删除|清空|提交|转账|发送|退款|checkout|delete|submit|payment)/i.test(goal)||
+      /(?:不要|不需|无需|不得|禁止|别|勿|never|do\s+not|don't)\s*(?:打开|进入|点击|搜索|查找|检索|核对|观察|读取|open|search|click|read|verify)/i.test(goal))
       return params;
     const props=executable.paramsSchema.properties,required=executable.paramsSchema.required;
     const query=admission.effectExpectation?.query;
