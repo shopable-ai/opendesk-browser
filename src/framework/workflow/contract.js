@@ -84,6 +84,15 @@ export function validateWorkflow(value) {
           ['product','detail','sku','item','id'].includes(key) && /^[\w-]{1,60}$/.test(val)),
         'E_WORKFLOW_SCHEMA','Observed link is not a bounded navigation target');
     }
+    if (step.param !== undefined && !['fill','click'].includes(step.op))
+      check(false,'E_WORKFLOW_SCHEMA','Only fill or a verified product link may reference parameters');
+    if (step.op === 'click' && step.param !== undefined) {
+      const rule=value.paramsSchema.properties[step.param];
+      check(Boolean(step.linkGuard)&&rule?.type==='string'&&
+        typeof rule.default==='string'&&rule.default===step.linkGuard.name&&
+        rule.default.length>=3&&rule.default.length<=120,
+        'E_WORKFLOW_SCHEMA','Dynamic click requires a frozen named link and matching product parameter');
+    }
     if (step.op === 'fill') {
       check(Boolean(step.param) !== (step.text !== undefined), 'E_WORKFLOW_SCHEMA',
         'Fill must use exactly one parameter or literal value');
