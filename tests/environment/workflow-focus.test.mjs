@@ -1,20 +1,23 @@
-import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import vm from 'node:vm';
-import {load} from 'cheerio';
+import {transform} from 'esbuild';
+import {parseHTML} from 'linkedom';
+import * as React from 'react';
+import {flushSync} from 'react-dom';
 import * as contract from '../../src/framework/workflow/contract.js';
 import {deriveWorkflowViewState} from '../../src/ui/workflow/view-state.js';
 import {createWorkflowUIState} from '../../src/ui/workflow/workflow-ui-state.js';
 import * as dataSharing from '../../src/ui/workflow/data-sharing.js';
 import * as taskReviewHandoff from '../../src/ui/workflow/task-review-handoff.js';
 import * as directExecution from '../../src/ui/workflow/direct-execution.js';
-import {workflowObservationGrantMatches,workflowObservationRecipientId} from '../../src/ui/workflow/observation.js';
+import * as promptActions from '../../src/ui/conversation/prompt-actions.js';
+import {workflowObservationForModel,workflowObservationGrantMatches,workflowObservationRecipientId} from '../../src/ui/workflow/observation.js';
 
-// Component grade only: actual view + current HTML hierarchy, lightweight DOM,
+// Component grade only: real VM controller + real mounted WorkflowPage,
 // stubbed compiler/planner/observation. No browser, native input or real AI.
 // The ordinary Node test runner can also execute this file without VM flags.
 if(!vm.SourceTextModule) {
@@ -27,93 +30,78 @@ if(!vm.SourceTextModule) {
   });
 } else {
   const source=await readFile(new URL('../../src/ui/workflow/workflow-view.js',import.meta.url),'utf8');
-  let html;
-  const tick=()=>new Promise(resolve=>setImmediate(resolve));
+  const tick=async()=>{await new Promise(resolve=>setImmediate(resolve));flushSync(()=>{});};
+  const waitFor=async(predicate)=>{
+    const until=Date.now()+1000;
+    while(!predicate()){assert.ok(Date.now()<until,'component state did not settle');await new Promise(resolve=>setTimeout(resolve,5));await tick();}
+  };
   const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
-
-  class Element {
-    constructor(tag,doc) {
-      this.tagName=tag.toUpperCase();this.ownerDocument=doc;this.parentElement=null;
-      this.children=[];this.dataset={};this.attributes={};this.listeners=new Map();
-      this.value='';this.className='';this.textContent='';this.hidden=false;
-      this.open=false;this.checked=false;this._disabled=false;
-    }
-    get firstElementChild(){return this.children[0]||null;}
-    get lastElementChild(){return this.children.at(-1)||null;}
-    get disabled(){return this._disabled;}
-    set disabled(value){this._disabled=value;if(value&&this.ownerDocument?.activeElement===this)this.ownerDocument.activeElement=this.ownerDocument.body;}
-    contains(item){return this===item||this.children.some(child=>child.contains(item));}
-    append(...items){for(const item of items){item.remove();item.parentElement=this;this.children.push(item);}}
-    remove(){
-      if(!this.parentElement)return;
-      if(this.contains(this.ownerDocument.activeElement))this.ownerDocument.activeElement=this.ownerDocument.body;
-      this.parentElement.children.splice(this.parentElement.children.indexOf(this),1);this.parentElement=null;
-    }
-    replaceChildren(...items){for(const child of [...this.children])child.remove();this.append(...items);}
-    setAttribute(key,value){this.attributes[key]=String(value);}
-    getAttribute(key){return this.attributes[key]??null;}
-    matches(selector){
-      if(selector==='[data-workflow-focus]')return Object.hasOwn(this.dataset,'workflowFocus');
-      if(selector==='[data-workflow-param]')return Object.hasOwn(this.dataset,'workflowParam');
-      if(selector==='[data-example-mode]')return Object.hasOwn(this.dataset,'exampleMode');
-      if(selector==='[data-workflow-example]')return Object.hasOwn(this.dataset,'workflowExample');
-      if(selector==='summary')return this.tagName==='SUMMARY';
-      if(selector==='details.workflow-step'||selector==='details.workflow-step[open]')
-        return this.tagName==='DETAILS'&&this.className.split(' ').includes('workflow-step')&&(!selector.endsWith('[open]')||this.open);
-      throw new Error('Unsupported fixture selector '+selector);
-    }
-    closest(selector){for(let item=this;item;item=item.parentElement)if(item.matches(selector))return item;return null;}
-    querySelectorAll(selector){return this.children.flatMap(child=>[...(child.matches(selector)?[child]:[]),...child.querySelectorAll(selector)]);}
-    querySelector(selector){return this.querySelectorAll(selector)[0]||null;}
-    visible(){
-      for(let item=this;item;item=item.parentElement){
-        if(item.hidden)return false;
-        const parent=item.parentElement;
-        if(parent?.tagName==='DETAILS'&&!parent.open&&item.tagName!=='SUMMARY')return false;
-      }
-      return this.ownerDocument.body.contains(this);
-    }
-    focus(){if(!this.disabled&&this.visible())this.ownerDocument.activeElement=this;}
-    addEventListener(name,fn){const group=this.listeners.get(name)||new Set();group.add(fn);this.listeners.set(name,group);}
-    removeEventListener(name,fn){this.listeners.get(name)?.delete(fn);}
-    fire(name,event={}){return Promise.all([...this.listeners.get(name)||[]].map(fn=>fn({target:this,isTrusted:true,...event})));}
-    scrollIntoView(){}
-  }
+  const compile=async(path,replacements={})=>{
+    const result=await transform(await readFile(new URL(path,import.meta.url),'utf8'),
+      {loader:'tsx',format:'esm',jsx:'transform'});
+    let code=result.code;
+    for(const [from,to] of Object.entries(replacements))code=code.replaceAll(JSON.stringify(from),JSON.stringify(to));
+    return 'data:text/javascript;base64,'+Buffer.from(code).toString('base64');
+  };
+  const imports={'react':import.meta.resolve('react'),'react-dom':import.meta.resolve('react-dom')};
+  const button=await compile('../../src/ui/react/components/ui/button.tsx',imports);
+  const conversation=await compile('../../src/ui/react/components/conversation.tsx',
+    {...imports,'./ui/button.tsx':button});
+  const {WorkflowPage}=await import(await compile('../../src/ui/react/tabs/workflow.tsx',
+    {...imports,'../components/ui/button.tsx':button,'../components/conversation.tsx':conversation}));
+  const initial=parseHTML('<html><body></body></html>');
+  const original={window:globalThis.window,document:globalThis.document};
+  globalThis.window=initial.window;globalThis.document=initial.document;
+  initial.document.oninput=null; // React detects input support once, on import.
+  const {createRoot}=await import('react-dom/client');
+  globalThis.window=original.window||initial.window;globalThis.document=original.document;
 
   function documentFixture() {
-    const nodes=new Map(),doc={getElementById:id=>nodes.get(id),createElement:tag=>new Element(tag,doc)};
-    doc.body=doc.createElement('body');doc.activeElement=doc.body;
-    const $=load(html);
-    const copy=(raw,parent)=>{
-      if(raw.type!=='tag')return;
-      const element=doc.createElement(raw.name);
-      for(const [name,value] of Object.entries(raw.attribs)) {
-        if(name==='id'){element.id=value;nodes.set(value,element);}
-        else if(name==='class')element.className=value;
-        else if(name.startsWith('data-'))
-          element.dataset[name.slice(5).replace(/-([a-z])/g,(_,letter)=>letter.toUpperCase())]=value;
-        else if(['hidden','open','checked','disabled'].includes(name))element[name]=true;
-        else if(name==='value'||name==='type')element[name]=value;
-      }
-      parent.append(element);
-      for(const child of raw.children||[])copy(child,element);
+    const {window,document:doc}=parseHTML('<html><body><main id="root"></main></body></html>');
+    const activate=()=>{globalThis.window=window;globalThis.document=doc;};
+    activate();doc.activeElement=doc.body;
+    // Component-only DOM/platform shims. React renders all nodes and consumes
+    // the real controller subscription; no fixture copies state into the DOM.
+    const proto=window.HTMLElement.prototype;
+    proto.visible=function(){
+      if(!this.isConnected||this.closest('[hidden],[inert]'))return false;
+      for(let item=this;item?.parentElement;item=item.parentElement)
+        if(item.parentElement.tagName==='DETAILS'&&!item.parentElement.open&&item.tagName!=='SUMMARY')return false;
+      return true;
     };
-    const current=$('#workbench-workflow')[0];
-    assert.ok(current?.type==='tag','fixture must be based on installed WorkflowPage JSX');
-    copy(current,doc.body);
-    // No retired workflow-dock or hidden provider <select> exists in real React.
-    // Source is kept by the production Controller snapshot and action facade.
-    doc.getElementById('workbench-workflow').hidden=false;
-    return doc;
+    proto.focus=function(){if(!this.disabled&&this.visible()){
+      doc.activeElement=this;this.dispatchEvent(new window.Event('focusin',{bubbles:true}));
+    }};
+    proto.scrollIntoView=function(){};
+    Object.defineProperties(proto,{
+      inert:{configurable:true,get(){return this.hasAttribute('inert');},set(value){this.toggleAttribute('inert',Boolean(value));}},
+      open:{configurable:true,get(){return this.hasAttribute('open');},set(value){this.toggleAttribute('open',Boolean(value));}}
+    });
+    Object.defineProperty(window.HTMLSelectElement.prototype,'value',{configurable:true,
+      get(){return [...this.options].find(option=>option.selected)?.value||'';},
+      set(value){for(const option of this.options)option.toggleAttribute('selected',option.value===String(value));}});
+    const dispatched=new Map();
+    proto.fire=async function(type,extra={}){
+      activate();
+      const event=new window.Event(type,{bubbles:true,cancelable:true});
+      // Explicit component-test injection; never evidence of a Chrome gesture.
+      Object.assign(event,{isTrusted:true,...extra});
+      if(type==='click'&&this.disabled)return [];
+      if(type==='input')this._valueTracker?.setValue('\0');
+      dispatched.delete(this.id);
+      flushSync(()=>this.dispatchEvent(event));
+      const result=dispatched.get(this.id);
+      await tick();
+      return [await result];
+    };
+    return {doc,activate,dispatched};
   }
 
   async function make(t,{steps=[],approval=false,observeGate=null,storedGrant=null,
     sessionId='component-session',initialPermission=true,savedRecord=null,configureHost=null,
     resumable=false,controllerOnly=false,probe=null}={}) {
-    // Controller cases exercise the current React actions/snapshots without SSR
-    // compilation, browser access or the retired imperative DOM event path.
-    if(!controllerOnly)html??=await renderSidebarFixture();
-    const doc=controllerOnly?{getElementById:()=>null}:documentFixture();
+    const dom=controllerOnly?null:documentFixture();
+    const doc=dom?.doc||{getElementById:()=>null};
     const get=id=>doc.getElementById(id),draft=contract.emptyWorkflow('https://a.example',crypto.randomUUID());
     draft.steps=structuredClone(steps);
     const planGate=deferred(),approvalReady=deferred(),answers=[],observations=[];
@@ -143,7 +131,7 @@ if(!vm.SourceTextModule) {
         validateWorkflowParams:(workflow,params)=>contract.validateWorkflowParams(
           workflow,structuredClone(params))},
       '../../platform/tasks/contract.js':{checkParamsSchema:value=>value,createTaskPackage:()=>{throw new Error('No packaging in focus suite');}},
-      '../../framework/workflow/compiler.js':{compileWorkflow:async workflow=>{compiled.push(structuredClone(workflow));return {workflow,sourceUtf8:'component fixture',sourceHash:'a'.repeat(64)};}},
+      '../../framework/workflow/compiler.js':{compileWorkflow:async workflow=>{contract.validateWorkflow(workflow);compiled.push(structuredClone(workflow));return {workflow,sourceUtf8:'component fixture',sourceHash:'a'.repeat(64)};}},
       '../../environment.js':{permissionPattern:()=> 'https://a.example/*'},
       '../../platform/page-port/codec.js':{decodeValue:value=>value},
       '../task-run-diagnostics.js':{presentTaskValue:value=>({text:String(value)}),formatTaskError:String},
@@ -158,12 +146,12 @@ if(!vm.SourceTextModule) {
       './data-sharing.js':dataSharing,
       './task-review-handoff.js':taskReviewHandoff,
       './direct-execution.js':directExecution,
+      '../conversation/prompt-actions.js':promptActions,
       './local-codex.js':{createLocalCodexPlanner:()=>planner,describeLocalCodex:value=>({state:value.state,message:'Component fixture',ready:value.readyForTurn===true})},
       './observation.js':{createWorkflowObservation:()=>observation,
-        workflowObservationGrantMatches,workflowObservationRecipientId}
+        workflowObservationForModel,workflowObservationGrantMatches,workflowObservationRecipientId}
     };
-    const context=vm.createContext({crypto,structuredClone,URL,AbortController,
-      Option:class extends Element{constructor(text,value){super('option',doc);this.textContent=text;this.value=value;}}});
+    const context=vm.createContext({crypto,structuredClone,URL,AbortController});
     const module=new vm.SourceTextModule(source,{context,identifier:'workflow-view.component.js'});
     const modules=new Map();
     await module.link(specifier=>{
@@ -210,7 +198,19 @@ if(!vm.SourceTextModule) {
         if(['windowId','tabId','frameId','documentId','url','origin'].some(key=>captured[key]!==target[key]))
           throw Object.assign(new Error('stale target'),{code:'E_DOCUMENT_STALE'});
       },subscribe:fn=>{pageListeners.add(fn);return ()=>pageListeners.delete(fn);}}});
-    t.after(()=>ui.dispose());await tick();await tick();
+    let root;
+    if(dom){
+      root=createRoot(doc.getElementById('root'));
+      const controller={...ui,actions:{...ui.actions,click(id,...args){
+        const result=ui.actions.click(id,...args);dom.dispatched.set(id,result);return result;
+      }}};
+      flushSync(()=>root.render(React.createElement(WorkflowPage,{controller,document:doc})));
+    }
+    t.after(()=>{
+      if(dom){dom.activate();flushSync(()=>root.unmount());}
+      ui.dispose();
+      if(dom){globalThis.window=original.window||initial.window;globalThis.document=original.document;}
+    });await tick();await tick();
     const setPage=async patch=>{
       target={...target,...patch};
       for(const fn of pageListeners)fn({...target});
@@ -221,18 +221,19 @@ if(!vm.SourceTextModule) {
       for(const fn of permissionListeners)await fn(grant);
       await tick();await tick();
     };
-    const stepsNow=()=>get('workflow-steps').querySelectorAll('details.workflow-step');
+    const stepsNow=()=>[...get('workflow-steps').querySelectorAll('details.workflow-step')];
     const control=(id,field)=>{
       const step=stepsNow().find(item=>item.dataset.stepId===id);
-      assert.ok(step,'step exists '+id);step.open=true;
-      return step.querySelectorAll('[data-workflow-focus]').find(item=>item.dataset.workflowFocus===field);
+      assert.ok(step,'step exists '+id);
+      flushSync(()=>{step.open=true;step.dispatchEvent(new dom.doc.defaultView.Event('toggle'));});
+      return [...step.querySelectorAll('[data-workflow-focus]')].find(item=>item.dataset.workflowFocus===field);
     };
     const click=async element=>{await element.fire('click');await tick();};
     const openCreation=async()=>{get('workflow-ai-new-session').focus();};
     const clickNew=async()=>{await openCreation();await click(get('workflow-new'));};
     const focusNew=async()=>{await openCreation();get('workflow-new').focus();};
     const startPlan=async(request='Observe the page for component focus verification')=>{
-      get('workflow-ai-request').value=request;
+      get('workflow-ai-request').value=request;await get('workflow-ai-request').fire('input');
       const running=get('workflow-ai-plan').fire('click');await tick();
       return {running};
     };
@@ -248,7 +249,7 @@ if(!vm.SourceTextModule) {
     assert.ok(fixture.doc.activeElement===element,
       'focus mismatch: expected '+name(element)+', got '+name(fixture.doc.activeElement));
     assert.ok(element.visible(),'focus destination must be visible');
-    assert.equal(element.disabled,false,'focus destination must be enabled');
+    assert.equal(Boolean(element.disabled),false,'focus destination must be enabled');
   };
   const grant=(overrides={})=>{
     const approvedAt=Date.now()-1000;
@@ -326,6 +327,7 @@ if(!vm.SourceTextModule) {
     assert.equal(control('workflow-ai-plan').disabled,false,'HTTPS Send remains available');
     const running=f.ui.actions.click('workflow-ai-plan',trusted);await tick();await tick();
     assert.equal(f.permissionRequests.length,1,'HTTPS Send still requests its own origin permission');
+    await waitFor(()=>!control('workflow-ai-approval').hidden);
     assert.equal(control('workflow-ai-approval').hidden,false,'HTTPS Send still requires its own observation approval');
     assert.equal(f.probeCalls,1);assert.equal(f.plannerOptions,undefined);
     await f.ui.actions.click('workflow-ai-cancel',trusted);await running;
@@ -335,18 +337,21 @@ if(!vm.SourceTextModule) {
 
   test('component: current AI-only markup initializes Run and Save without a manual-start control',async t=>{
     const f=await make(t);
-    assert.equal(f.get('workflow-manual-start'),undefined);
-    assert.equal(f.get('workflow-run').listeners.has('click'),true);
-    assert.equal(f.get('workflow-save').listeners.has('click'),true);
+    assert.equal(f.get('workflow-manual-start'),null);
+    assert.equal(f.get('workflow-run').disabled,true,'empty steps cannot run');
+    assert.equal(f.get('workflow-save').disabled,true,'empty steps cannot save');
+    assert.equal((await f.get('workflow-run').fire('click')).length,0);
+    assert.equal((await f.get('workflow-save').fire('click')).length,0);
+    assert.equal(f.compiled.length,0,'disabled actions cannot compile an empty workflow');
     assert.equal(f.get('workflow-ai-plan').disabled,false);
-    assert.equal(f.get('workflow-ai-disclosure'),undefined);
-    assert.match(await renderSidebarFixture(),/id="workflow-ai-plan"[^>]*aria-label="发送任务并生成步骤"/);
+    assert.equal(f.get('workflow-ai-disclosure'),null);
+    assert.equal(f.get('workflow-ai-plan').getAttribute('aria-label'),'发送任务并生成步骤');
   });
 
   test('component: three standalone workflow header actions preserve keyboard focus',async t=>{
     const f=await make(t);
-    assert.equal(f.get('workflow-create-menu'),undefined);
-    assert.equal(f.get('workflow-create-toggle'),undefined);
+    assert.equal(f.get('workflow-create-menu'),null);
+    assert.equal(f.get('workflow-create-toggle'),null);
     for(const id of ['workflow-history-toggle','workflow-ai-new-session','workflow-new'])
       assert.ok(f.get(id),'missing standalone workflow action '+id);
     await f.openCreation();
@@ -386,8 +391,10 @@ if(!vm.SourceTextModule) {
   test('component: New conversation clears conversation but keeps current unsaved workflow and draft request',async t=>{
     const f=await make(t,{steps:[observe('one'),observe('two')]});
     const priorIds=f.stepsNow().map(item=>item.dataset.stepId);
-    f.get('workflow-ai-transcript').append(f.doc.createElement('div'));
-    f.get('workflow-ai-request').value='尚未发送的输入';
+    const {running}=await f.startPlan('Component planning request');
+    f.planGate.resolve();await running;
+    assert.ok(f.ui.getSnapshot().messages.length,'planning must create real transcript rows');
+    f.get('workflow-ai-request').value='尚未发送的输入';await f.get('workflow-ai-request').fire('input');
     await f.openCreation();
     await f.click(f.get('workflow-ai-new-session'));
     assert.equal(f.get('workflow-ai-transcript').children.length,0);
@@ -399,10 +406,10 @@ if(!vm.SourceTextModule) {
   test('component: action and locator changes preserve semantic select in the same expanded step',async t=>{
     const f=await make(t,{steps:[observe('one'),fill('two')]});
     let old=f.control('one','op');old.focus();old.value='fill';await old.fire('change');
-    const next=f.control('one','op');assert.notEqual(next,old);assertFocus(f,next);
+    const next=f.control('one','op');assert.equal(next===old,true,'React preserves the keyed select');assertFocus(f,next);
     assert.equal(next.value,'fill');assert.equal(f.stepsNow()[0].open,true);
     old=f.control('one','locatorKind');old.focus();old.value='role';await old.fire('change');
-    assert.notEqual(f.control('one','locatorKind'),old);assertFocus(f,f.control('one','locatorKind'));
+    assert.equal(f.control('one','locatorKind')===old,true,'React preserves the keyed locator select');assertFocus(f,f.control('one','locatorKind'));
     assert.ok(f.control('one','roleName'));
   });
 
@@ -421,7 +428,7 @@ if(!vm.SourceTextModule) {
   test('component: rebuilding preserves another step field or summary, without stealing external focus',async t=>{
     const f=await make(t,{steps:[fill('one'),observe('two'),observe('three')]});
     const field=f.control('one','text');field.focus();await f.click(f.control('three','moveUp'));
-    assert.notEqual(f.control('one','text'),field);assertFocus(f,f.control('one','text'));
+    assert.equal(f.control('one','text')===field,true,'React preserves the keyed text field');assertFocus(f,f.control('one','text'));
     const summary=f.stepsNow()[0].querySelector('summary');summary.focus();await f.click(f.control('two','moveUp'));
     assertFocus(f,f.stepsNow().find(item=>item.dataset.stepId==='one').querySelector('summary'));
     f.get('workflow-ai-request').focus();
@@ -441,22 +448,42 @@ if(!vm.SourceTextModule) {
     assert.equal(f.get('workflow-add-step').visible(),false,'empty workflow has no manual creation entry');
   });
 
+  test('component: a reordered focused step uses its current neighbour after deletion',async t=>{
+    const f=await make(t,{steps:['one','two','three','four'].map(observe)});
+    const remove=f.control('one','remove');remove.focus();
+    f.ui.actions.moveStep('one',1);await tick();
+    assertFocus(f,remove);
+    await f.click(remove);
+    assertFocus(f,f.stepsNow().find(item=>item.dataset.stepId==='three').querySelector('summary'));
+  });
+
+  test('component: a steps update does not reclaim a still usable control after explicit blur',async t=>{
+    const f=await make(t,{steps:['one','two','three'].map(observe)});
+    f.control('one','remove').focus();f.doc.body.focus();
+    f.ui.actions.moveStep('two',1);await tick();
+    assertFocus(f,f.doc.body);
+  });
+
   test('component: model-added read without request intent stays blocked before compilation',async t=>{
     const f=await make(t);const {running}=await f.startPlan('Component planning request');
     f.planGate.resolve();await running;
     assert.equal(f.compiled.some(row=>row.steps.some(step=>step.stepId==='proposed')),false);
     assert.equal(f.stepsNow().length,0);
-    assert.equal(f.get('workflow-ai-proposal').hidden,true);
+    assert.equal(f.get('workflow-ai-proposal'),null);
   });
 
   for(const external of [false,true]) {
-    test('component: direct planning keeps Apply hidden and '+(external?'preserves moved focus':'preserves stable request focus'),async t=>{
-      const f=await make(t);f.get('workflow-ai-request').focus();const {running}=await f.startPlan();
-      if(external)await f.focusNew();
+    test('component: planning requires explicit execution review from '+(external?'a moved focus':'the request field'),async t=>{
+      const f=await make(t);let starts=0;f.host.start=async()=>{starts++;throw new Error('Planning must not start RunHost');};
+      f.get('workflow-ai-request').focus();const {running}=await f.startPlan();
+      if(external){await f.focusNew();assertFocus(f,f.get('workflow-new'));}
       f.planGate.resolve();await running;
-      assert.equal(f.get('workflow-ai-proposal').hidden,true);assert.equal(f.stepsNow()[0].dataset.stepId,'proposed');
+      assert.equal(f.get('workflow-ai-proposal'),null);assert.equal(f.stepsNow()[0].dataset.stepId,'proposed');
       assert(f.compiled.some(row=>row.steps.some(step=>step.stepId==='proposed')));
-      assertFocus(f,f.get(external?'workflow-new':'workflow-ai-request'));
+      assert.equal(f.ui.getSnapshot().awaitingReview,true);
+      assert.equal(f.get('workflow-run-review').hidden,false);
+      assert.equal(starts,0,'planning never admits a RunHost operation');
+      assertFocus(f,f.get('workflow-run-review-confirm'));
     });
     for(const choice of ['cancel','discard'])test('component: new '+choice+' closes review '+(external?'without stealing focus':'with a visible destination'),async t=>{
       const f=await make(t,{steps:[observe('one')]});await f.clickNew();
@@ -543,27 +570,27 @@ if(!vm.SourceTextModule) {
     assert.equal(f.get('workflow-ai-approval').hidden,true);
     f.planGate.resolve();await running;
     assert.equal(f.answers[0].decision,'deny');
-    assert.equal(f.get('workflow-ai-proposal').hidden,true);
+    assert.equal(f.get('workflow-ai-proposal'),null);
   });
 
   test('component: permission removal for the approved site revokes grant and stops pending receipt, unrelated origin keeps it',async t=>{
     const gate=deferred(),f=await make(t,{approval:true,storedGrant:grant(),observeGate:gate});
-    assert.match(f.get('workflow-observation-scope').textContent,/30 分钟有效/);
+    assert.equal(f.get('workflow-observation-scope').textContent,'网页摘要：已授权');
     await f.removePermission({origins:['https://elsewhere.example/*']});
-    assert.match(f.get('workflow-observation-scope').textContent,/30 分钟有效/);
+    assert.equal(f.get('workflow-observation-scope').textContent,'网页摘要：已授权');
     const running=(await f.startPlan('Observe with existing grant before revoke')).running;
     await f.approvalReady.promise;await tick();
     await f.removePermission({origins:['https://a.example/*']});
     gate.resolve();
     f.planGate.resolve();await running;
     assert.equal(f.answers[0].decision,'deny');
-    assert.match(f.get('workflow-observation-scope').textContent,/当前对话未授权/);
+    assert.equal(f.get('workflow-observation-scope').textContent,'网页摘要：使用前检查授权');
   });
 
   test('component: resolving navigation cancels pending observation but same-origin fresh document keeps stored grant',async t=>{
     let gate=deferred();
     const f=await make(t,{approval:true,storedGrant:grant(),observeGate:gate});
-    assert.match(f.get('workflow-observation-scope').textContent,/30 分钟有效/);
+    assert.equal(f.get('workflow-observation-scope').textContent,'网页摘要：已授权');
     let {running}=await f.startPlan('Observe before document navigation');await f.approvalReady.promise;
     await f.setPage({status:'resolving',origin:undefined,documentId:undefined,url:'https://a.example/refreshing'});
     gate.resolve();
@@ -571,7 +598,7 @@ if(!vm.SourceTextModule) {
     assert.equal(f.answers[0].decision,'deny');
     assert.equal(f.sessionStore.get('opendesk.sidebar.workflow-draft.v1:7:observation').origin,'https://a.example');
     await f.setPage({status:'available',origin:'https://a.example',documentId:'doc-10',url:'https://a.example/next'});
-    assert.match(f.get('workflow-observation-scope').textContent,/30 分钟有效/);
+    assert.equal(f.get('workflow-observation-scope').textContent,'网页摘要：已授权');
     running=(await f.startPlan('Observe the fresh same-origin document')).running;await f.approvalReady.promise;
     await tick();await tick();
     assert.equal(f.get('workflow-ai-approval').hidden,true);
@@ -585,7 +612,7 @@ if(!vm.SourceTextModule) {
     if(external)await f.focusNew();await f.click(f.get('workflow-ai-cancel'));
     assert.equal(f.get('workflow-ai-approval').hidden,true);assertFocus(f,f.get(external?'workflow-new':'workflow-ai-request'));
     f.planGate.resolve();await running;assert.equal(f.answers[0].decision,'deny');assert.equal(f.observations.length,0);
-    assert.equal(f.get('workflow-ai-proposal').hidden,true,'cancelled plan cannot publish a proposal');
+    assert.equal(f.get('workflow-ai-proposal'),null,'cancelled plan cannot publish a proposal');
   });
 
   test('component: abort settles approval; untrusted approval clicks have no effect',async t=>{
@@ -625,7 +652,7 @@ if(!vm.SourceTextModule) {
         return {runId,resultId,target:boundTarget,revision};
       };
     }});
-    f.get('workflow-saved-list').value=f.savedKey;
+    f.get('workflow-saved-list').value=f.savedKey;await f.get('workflow-saved-list').fire('change');
     await f.click(f.get('workflow-load'));await tick();await tick();
     assert.match(f.get('workflow-status').textContent,/冻结版本 r3/);
     for(let n=1;n<=2;n++) {
@@ -640,7 +667,9 @@ if(!vm.SourceTextModule) {
       assert.equal(starts.at(-1).source.scriptId,frozen.workflowId);
       assert.equal(starts.at(-1).source.revision,3);
       assert.equal(starts.at(-1).source.contentHash,hash);
-      assert.match(f.get('workflow-status').textContent,/脱离 AI 运行/);
+      assert.equal(f.get('workflow-status').textContent,'浏览器操作回执已核对，网页最终业务效果仍待验证。');
+      assert.equal(f.plannerOptions,undefined,'saved replay must not call AI');
+      assert.equal(f.probeCalls,0,'saved replay must not probe Native AI');
     }
     assert.equal(starts.length,2);
     changed=true;
@@ -670,7 +699,7 @@ if(!vm.SourceTextModule) {
         }};
         host.start=async()=>{starts++;throw new Error('stale run must not be admitted');};
       }});
-      fixture=f;f.get('workflow-saved-list').value=f.savedKey;
+      fixture=f;f.get('workflow-saved-list').value=f.savedKey;await f.get('workflow-saved-list').fire('change');
       await f.click(f.get('workflow-load'));await tick();await tick();
       assert.match(f.get('workflow-status').textContent,/冻结版本 r3/);
       

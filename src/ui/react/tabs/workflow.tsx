@@ -205,6 +205,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
   const model=React.useSyncExternalStore(controller?.subscribe||noSubscribe,controller?.getSnapshot||fallback,controller?.getSnapshot||fallback);
   const actions=controller?.actions||providedActions;
   const page=React.useRef(null),lastFocus=React.useRef(null),scroller=React.useRef(null);
+  const stepFocus=React.useRef(null);
   const nearBottom=React.useRef(true),composing=React.useRef(false);
   const c=id=>model.controls?.[id]||{};
   const click=(id,event)=>actions.click?.(id,event.nativeEvent);
@@ -216,6 +217,19 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
     const node=doc?.getElementById(model.focusRequest?.id);
     if(node&&page.current?.contains(node))node.focus?.({preventScroll:true});
   },[model.focusRequest?.version,active,doc]);
+  React.useLayoutEffect(()=>{
+    const previous=stepFocus.current,current=doc?.activeElement;
+    if(!active||!previous||(current!==previous.node&&current!==doc?.body))return;
+    const index=(model.steps||[]).findIndex(row=>row.stepId===previous.stepId);
+    if(index>=0)previous.index=index;
+    if(previous.node.isConnected&&!previous.node.disabled)return;
+    // A disabled move button or removed step must leave a usable keyboard
+    // destination. Keep another control's focus when the user moved it away.
+    const steps=[...page.current.querySelectorAll('details.workflow-step')];
+    const step=steps.find(node=>node.dataset.stepId===previous.stepId)||
+      steps[Math.min(previous.index,steps.length-1)];
+    (step?.querySelector('summary')||doc?.getElementById('workflow-ai-request'))?.focus({preventScroll:true});
+  },[model.steps,active,doc]);
   React.useLayoutEffect(()=>{
     if(active&&lastFocus.current?.isConnected)lastFocus.current.focus?.({preventScroll:true});
     return ()=>{if(active&&page.current?.contains(doc?.activeElement))lastFocus.current=doc.activeElement;};
@@ -248,7 +262,12 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
   </>;
   const text=(id,props={})=><p id={id} hidden={c(id).hidden} {...props}>{c(id).text||''}</p>;
   return <div id="workbench-workflow" ref={page} role="tabpanel" aria-labelledby="tab-workflow"
-    className="od-page" data-workbench-page="workflow" hidden={!active} data-opendesk-react-owner="workflow-page">
+    className="od-page" data-workbench-page="workflow" hidden={!active} data-opendesk-react-owner="workflow-page"
+    onFocusCapture={event=>{
+      const step=event.target.closest('details.workflow-step');
+      stepFocus.current=step?{node:event.target,stepId:step.dataset.stepId,
+        index:(model.steps||[]).findIndex(row=>row.stepId===step.dataset.stepId)}:null;
+    }}>
     <section id="workflow-editor" className="workflow-editor" aria-label="AI 语义工作流"
       data-view-state={c('workflow-editor').dataset?.viewState||'empty'} data-history-open={Boolean(model.history?.open)}>
       <header className="workflow-head od-toolbar od-page-head">

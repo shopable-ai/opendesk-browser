@@ -193,7 +193,7 @@ test('workflow model selector stays minimal without manual creation or custom ap
   ]);
   const settings=$('#workflow-provider-settings');
   assert.equal(settings.find('#workflow-provider-scope').length,1);
-  assert.equal(settings.find('#workflow-source-local').text(),'Codex');
+  assert.equal(settings.find('#workflow-source-local').text(),'本机 Codex');
   assert.equal(settings.find('#workflow-source-https').text(),'HTTPS');
   assert.deepEqual(settings.find('#workflow-https-protocol option').map((_,node)=>$(node).val()).get(),['custom_https','cloud_responses']);
   assert.equal($('#workflow-manual-start').length,0);
@@ -228,8 +228,10 @@ test('R5.2 unsaved workflow starts a non-modal explicit discard or cancel review
 test('later AI Send retains committed Controller revision for optimistic Save',async()=>{
   const view=await file('src/ui/workflow/workflow-view.js');
   assert.match(view,/const previous=revision\?\.workflow\?\.workflowId===freeze\.workflow\.workflowId\?revision\.revision:0/);
-  assert.match(view,/workflow=structuredClone\(result\);touched=true;lastTrustedRun=null/);
-  assert.doesNotMatch(view,/workflow=structuredClone\(result\);touched=true;revision=null/);
+  assert.match(view,/const executable=structuredClone\(result\)/);
+  assert.match(view,/const freeze=await compileWorkflow\(executable,\{verifyFill:true\}\)/);
+  assert.match(view,/workflow=structuredClone\(executable\);touched=true;lastTrustedRun=null/);
+  assert.doesNotMatch(view,/workflow=structuredClone\(executable\);touched=true;revision=null/);
 });
 
 
