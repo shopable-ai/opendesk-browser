@@ -193,8 +193,10 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
    '持久化结果无法核实，请先在原工具中刷新对账，不要重放写入',
    {writeIssued:attempted,cause:writeFailure||e});
  }
+ const releasedImageAssets=[...new Set(items.map(row=>row.imageAssetId).filter(Boolean))]
+  .filter(id=>!nextItems.some(row=>row.imageAssetId===id));
  const refsNext={matches:affected.slice(0,12).map(v=>v.id),etag:checkedValue.etag};
  const message='已'+verb+' '+affected.length+' 条提示词，真实存储读回已核对';
  onStep({message,refs:refsNext,etag:checkedValue.etag});
- return {messages:[message],refs:refsNext,etag:checkedValue.etag,writeIssued:true};
+ return {messages:[message],refs:refsNext,etag:checkedValue.etag,writeIssued:true,releasedImageAssets};
 }
