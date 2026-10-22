@@ -462,4 +462,21 @@ test('v2 AI-off changes search and explicit product, then runs each saved RunHos
   assert.ok(observations.some(row=>row.url===base+productHref));
   assert.equal(providerCalls.filter(method=>method!=='ai.connection.read').length,0);
   assert.equal(f.state().lastRun,'success');
+
+  // A different explicit target must be found in the CURRENT search results.
+  // No matching role-link means no second saved click and no Provider fallback.
+  await f.setPage({url:base+'/demo',documentId:'fresh-entry'});
+  f.view.actions.setParam('query','other');
+  f.view.actions.setParam('productName','Other Y');
+  const beforeNegative=f.starts.filter(item=>item.source.kind==='saved').length;
+  let negativeTimeout;
+  const negative=await Promise.race([
+    f.click('workflow-run'),
+    new Promise((_,reject)=>{negativeTimeout=setTimeout(()=>
+      reject(Error('Unmatched product replay did not fail closed')),5000);})
+  ]).finally(()=>clearTimeout(negativeTimeout));
+  assert.equal(negative?.ok,false,'unknown product name must not complete');
+  assert.equal(f.starts.filter(item=>item.source.kind==='saved').length,beforeNegative+1,
+    'search is allowed once, but no unverified product click may dispatch');
+  assert.equal(providerCalls.filter(method=>method!=='ai.connection.read').length,0);
 });
