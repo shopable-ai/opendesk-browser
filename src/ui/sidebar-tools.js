@@ -2372,6 +2372,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(event.origin!=='null'||!sameInstance(event.source,event.data?.instance)||
        event.data?.protocol!==SIDEBAR_TOOL_PROTOCOL||event.data?.toolId!==active.id)return;
     const message=event.data;
+    if(message.kind==='ai-guard-response'){
+      if(active?.id===PROMPT_ID&&promptHost)promptHost.onGuardResponse(message,event.source);
+      return;
+    }
     if(message.kind==='draft'){
       if(typeof message.text==='string'&&message.text.length<=150000)
         frameDraft=message.text+(message.truncated===true?'\n（内容过长，仅保留前 150000 字符）':'');
