@@ -90,11 +90,11 @@ test('R1.5.1 sandbox start stays inline until genuine trusted Host confirmation'
   assert.doesNotMatch(index,/<span class="eyebrow">时间回顾<\/span>/);
 });
 
-test('R1.5.1 Time Review consent preserves shared trusted inline card without replacing the iframe',async t=>{
+test('R1.5.1 trusted native Time Review and sandbox fallback retain identity-gated inline controls',async t=>{
   const shell=await readFile('src/ui/sidebar-tools.js','utf8');
   // Keep the original trusted Time Review, Focus and Cookie identities gated.
   // Additional audited tools must not make the prior regression test obsolete.
-  const inlinePredicate=shell.match(/const trustedInline=show&&\(([^;\n]+)\);/);
+  const inlinePredicate=shell.match(/const trustedInline=show&&\(([\s\S]*?)\);/);
   assert(inlinePredicate,'trusted inline controls must remain identity-gated');
   for(const required of ['id===TIME_REVIEW_ID','id===FOCUS_ID','isCookieTool(active)'])
     assert(inlinePredicate[1].includes(required),'trusted-inline identity lost: '+required);
@@ -102,6 +102,8 @@ test('R1.5.1 Time Review consent preserves shared trusted inline card without re
   assert(frameVisibility,'trusted host must control iframe visibility');
   assert.match(frameVisibility[1],/\(show&&!trustedInline\)/);
   assert.match(frameVisibility[1],/!\(frame\|\|nativeUI\)/);
+  assert.match(shell,/admittedNativeTimeReview\(tool,frameRevocationEpoch\)/);
+  assert.match(shell,/mountTool\(tool,\{forceSandbox:true\}\)/);
   assert.match(frameVisibility[1],/\blegacyAdblock\b/,
     'legacy AdBlock suppression remains scoped without hiding trusted tools');
   assert.match(shell,/setToolFieldAttribute\(view,\s*display,\s*'data-trusted-tool-inline'/);
@@ -122,7 +124,7 @@ test('R1.5.1 Time Review consent preserves shared trusted inline card without re
     assert.match(react,new RegExp('id="'+id+'"'));
 });
 
-test('R1.5.1 trusted inline authorization uses React-owned siblings and ordered CSS',async t=>{
+test('R1.5.1 trusted authorization uses React-owned siblings and ordered CSS',async t=>{
   const [shell,jsx,css]=await Promise.all([
     readFile('src/ui/sidebar-tools.js','utf8'),
     readFile('src/ui/react/tabs/tool-host.tsx','utf8'),
@@ -134,8 +136,8 @@ test('R1.5.1 trusted inline authorization uses React-owned siblings and ordered 
   const settings=jsx.indexOf('id="sidebar-tool-settings-view"',display);
   assert(display>=0&&frame>display&&settings>frame,'settings and live frame remain under the same React display');
   assert.match(shell,/const trustedInline=show&&/);
-  assert.match(shell,/patchToolField\(view, settingsView, \{hidden: !show\}\)/);
-  assert.match(shell,/frameRoot\.hidden=\(show&&!trustedInline\)\|\|!\(frame\|\|nativeUI\)/);
+  assert.match(shell,/patchToolField\(view, settingsView, \{hidden: !show\|\|id==='cookie-editor'\}\)/);
+  assert.match(shell,/frameRoot\.hidden=\(show&&!trustedInline\)\|\|!\(frame\|\|nativeUI\)\|\|legacyAdblock\|\|/);
   assert.match(css,/#sidebar-tool-display\[data-trusted-tool-inline="true"\]\{display:flex;flex-direction:column\}/);
   assert.match(css,/#sidebar-tool-display\[data-trusted-tool-inline="true"\]>#sidebar-tool-settings-view\{order:1/);
   assert.match(css,/#sidebar-tool-display\[data-trusted-tool-inline="true"\]>#sidebar-tool-frame\{order:2/);
