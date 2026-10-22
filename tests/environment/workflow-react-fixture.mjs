@@ -85,7 +85,7 @@ export async function workflowFixture(options={}) {
     host.currentRun=null;notify('run');
     if(state==='completed'&&!isObservation&&typeof options.afterAction==='function') {
       options.afterAction({source,params,target,claim});
-      notify('page');
+      for(const listener of subscriptions.page)listener({...target});
     }
     resolve({runId:claim.runId,state,retirement:{state:'released'},result});
   }
