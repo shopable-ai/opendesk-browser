@@ -1,0 +1,23 @@
+{
+  "format": "opendesk.sidebar-tool.v2",
+  "id": "app-words-b72b4bea7cec",
+  "title": "词频计算 · 冻结后应用 B",
+  "version": "1.0.0",
+  "description": "B2 frozen at 2026-10-22T00:20:34.320Z; created 2026-10-22T00:20:34.670Z; word-frequency",
+  "capabilities": [
+    "browser.storage",
+    "browser.scheduler"
+  ],
+  "requires": {
+    "browserSdk": "1.0.0"
+  },
+  "contributes": {
+    "contextMenus": []
+  },
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js",
+    "background": "src/background.js"
+  }
+}

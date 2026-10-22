@@ -1,5 +1,5 @@
 {
-  "status": "NATIVE_CORE_PASS_FORMAL_ACCEPTANCE_NOT_VERIFIED",
+  "status": "HISTORICAL_B1_NATIVE_CORE_PASS_WITH_CONFIRMED_UNINSTALL_CAPACITY_DEFECT",
   "chrome": "156.0.8078.4",
   "extensionId": "nbalfekfkclmpomcldilmboamneidbpo",
   "freeze": {
@@ -1121,7 +1121,8 @@
     "sw-stop-simultaneous": "PASS",
     "browser-restart": "PASS",
     "timeout-queued-other": "PASS",
-    "new-runs-after-unknown": "PASS"
+    "new-runs-after-unknown": "PASS",
+    "uninstall-schedule-capacity": "FAIL"
   },
   "explicitFaults": {
     "fault-b1-ack-lost": {
@@ -1228,6 +1229,122 @@
     "pageUiTechnicalMetadata": {
       "status": "OBSERVED_NON_BLOCKING_LIMITATION",
       "detail": "Page result succeeds; technical target title retains previous Controller metadata. Actual target and result observations are used instead; no claim this was introduced by app-service. Parallel UI files were not modified."
+    },
+    "capabilityRemovalAndRestore": {
+      "status": "PASS",
+      "scenario": "Formal capability-removal upgrade while enabled, then explicitly reviewed restoration; not a separate authorization-toggle UI",
+      "appId": "app-revoke-probe-a1abd0a2e366",
+      "createdAt": "2026-10-21T23:27:19.458Z",
+      "packages": {
+        "1.0.0": {
+          "sha256": "ec34572b3162a14f7fed78671991eb41f1bba0300bef3197c331e471b5731546",
+          "codeHash": "3b370c95909bbff7e74aec18a6da06031a242473598bb287dff559a78fedb9ca",
+          "capabilities": [
+            "browser.storage",
+            "browser.scheduler"
+          ]
+        },
+        "1.1.0": {
+          "sha256": "159260edebf79049d29af752bf92e66d4cb0408362b5e507b882c7a9658c61b3",
+          "codeHash": null,
+          "capabilities": [
+            "browser.scheduler"
+          ]
+        },
+        "1.2.0": {
+          "sha256": "1b8b1044888b1dd6a9e0e115a305683af97ee3b6fe77891ec31efdcd2fd0f5bb",
+          "codeHash": "3b370c95909bbff7e74aec18a6da06031a242473598bb287dff559a78fedb9ca",
+          "capabilities": [
+            "browser.storage",
+            "browser.scheduler"
+          ]
+        }
+      },
+      "generations": [
+        "f8281361-0830-4897-a206-3c6d4be99e1b",
+        "04492213-6f24-4ec5-9c4e-3318d2f5abe0",
+        "a514a86d-819b-46e0-86a1-8277f78528f5"
+      ],
+      "oldRun": {
+        "status": "PASS",
+        "action": "upgrade",
+        "nonce": "upgrade-active-1792625347631",
+        "runId": "5941c9d5-23da-456b-b4cd-2a91ba3e2c4a",
+        "beforeState": "running",
+        "afterState": "stopped",
+        "reason": {
+          "code": "E_TOOL_CHANGED",
+          "name": "FoundationError",
+          "message": "Controller fenced"
+        },
+        "workerRetired": true,
+        "startedAt": "2026-10-21T23:30:11.194Z",
+        "finishedAt": "2026-10-21T23:30:42.779Z",
+        "out": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/dynamic-app-r14-local/lifecycle/upgrade-active-1792625347631"
+      },
+      "newRun": {
+        "runId": "024d4fcd-eca9-496f-ba96-ecd33f0fdb97",
+        "resultId": "dabcbdf2-573c-4a12-86f9-5f8ad622a752",
+        "fireId": "sched:893d264c-f35a-4c6b-a06b-165763fc28dc:1:1792625596080",
+        "generation": "a514a86d-819b-46e0-86a1-8277f78528f5"
+      },
+      "isolation": {
+        "foreignScheduleRef": "5ab02fae-0694-4e96-9b43-846a22be4e07",
+        "listContainsB": false,
+        "cancelCode": "E_OWNER",
+        "bDefinitionsUnchanged": true
+      },
+      "removed": {
+        "enabled": true,
+        "backgroundAbsent": true,
+        "storageGet": "E_TOOL_CAPABILITY_REQUIRED",
+        "createBackgroundSchedule": "E_CAPABILITY",
+        "lateResultAbsent": true
+      },
+      "restored": {
+        "newGeneration": true,
+        "ordinaryClosedUiAlarm": "PASS",
+        "payloadCorrect": true
+      },
+      "paths": {
+        "stopped": "lifecycle/upgrade-active-1792625347631/proof.json",
+        "isolation": "revoke-probe/isolation-proof.json",
+        "capability": "revoke-probe/capability-proof.json",
+        "normal": "revoke-probe/restored-native/all-1792625533971.json"
+      }
+    },
+    "offscreenDocumentFault": {
+      "status": "FAULT_SCENARIO_OBSERVED",
+      "oldRunId": "0fe5777b-9edf-465a-a2be-3e9bc452776e",
+      "oldDocumentId": "BCECC521D4B879A7F196D500239CA53F",
+      "state": "interrupted",
+      "workerRetired": true,
+      "retirementState": "released",
+      "newRun": {
+        "runId": "115b4f6f-d6bf-4f4e-9410-666eb82698ba",
+        "resultId": "3a333713-0d9f-42bb-938a-5814335fb802",
+        "fireId": "sched:0e3fa748-ae45-4934-a1fd-d85fd64e807d:1:1792626034762",
+        "hostDocumentId": "3AE62646783990B6850341D8E00F69D2",
+        "generation": "a514a86d-819b-46e0-86a1-8277f78528f5"
+      },
+      "recoveryStatus": "PASS",
+      "closureMonitoring": "NOT_VERIFIED: driver asserted before asynchronous target teardown; no new schedule or replay",
+      "source": "revoke-probe/offscreen-close-2/proof.json",
+      "recoverySource": "revoke-probe/offscreen-recovery-reconciled/proof.json"
+    },
+    "uninstallCapacityLeak": {
+      "status": "FAIL",
+      "classification": "RUNTIME_DEFECT",
+      "observedAt": "2026-10-21T23:49:24.251Z",
+      "appId": "app-revoke-probe-a1abd0a2e366",
+      "registryRemoved": true,
+      "ownedStorageRemoved": true,
+      "totalLiveDefinitions": 128,
+      "orphanDefinitions": 110,
+      "otherDefinitionsUnchanged": true,
+      "orphanAlarmsRemaining": 0,
+      "impact": "Uninstalled app definitions still consume the existing 128 schedule cap; absence/epoch checks block execution but do not release capacity.",
+      "source": "Original production B1 after actual formal UI uninstall"
     }
   },
   "independentFinalReview": {
@@ -1264,5 +1381,12 @@
     "gDynamic": "CORE_NATIVE_CHAIN_PASS; FULL_GOAL_NOT_VERIFIED",
     "gDecoupling": "NOT_COMPLETE",
     "releasePolicy": "RELEASE_POLICY_NOT_VERIFIED"
+  },
+  "latestCandidate": {
+    "name": "B2",
+    "status": "B2_NATIVE_DYNAMIC_CORE_AND_UNINSTALL_CAPACITY_PASS_FULL_GOAL_PARTIAL",
+    "sourceCommit": "e47829d23d8a18f6a621f67717bd09ed68845341",
+    "summary": "docs/framework/evidence/dynamic-app-r14-local/b2-summary.json",
+    "note": "B1 native uninstall-capacity defect remains a historical FAIL. B2 source repair and native capacity recovery passed; B2 unknown A/B independently passed after new freeze. Full goal remains partial."
   }
 }

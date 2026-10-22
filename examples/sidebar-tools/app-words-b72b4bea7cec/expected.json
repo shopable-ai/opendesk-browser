@@ -1,0 +1,77 @@
+{
+  "algorithm": "word-frequency",
+  "payload": {
+    "words": 144,
+    "unique": 13,
+    "entries": [
+      [
+        "369803016dd365d7",
+        9
+      ],
+      [
+        "apps",
+        18
+      ],
+      [
+        "bright",
+        18
+      ],
+      [
+        "compute",
+        9
+      ],
+      [
+        "grow",
+        9
+      ],
+      [
+        "ideas",
+        9
+      ],
+      [
+        "keeps",
+        9
+      ],
+      [
+        "opendesk",
+        9
+      ],
+      [
+        "persist",
+        9
+      ],
+      [
+        "results",
+        18
+      ],
+      [
+        "separate",
+        9
+      ],
+      [
+        "shine",
+        9
+      ],
+      [
+        "stars",
+        9
+      ]
+    ],
+    "checksum": "1ae57e0d"
+  },
+  "security": {
+    "codeNonce": "c0965aa65381a3e947020762",
+    "readLimitHandled": "E_LIMIT",
+    "foreignWrite": "E_SCHEMA",
+    "foreignStorageKeyRejected": "E_SCHEMA",
+    "bindingForgeries": {
+      "appId": "E_SCHEMA",
+      "namespace": "E_SCHEMA",
+      "runId": "E_SCHEMA",
+      "generation": "E_SCHEMA",
+      "packageHash": "E_SCHEMA",
+      "codeHash": "E_SCHEMA",
+      "origin": "E_SCHEMA"
+    }
+  }
+}
