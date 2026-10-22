@@ -85,11 +85,24 @@ const negativeReplayGoal=/(?:不要|不需|无需|不得|禁止|别|勿|never|do
 const safeSearchQuery=/^[\p{L}\p{N} _.-]{2,120}$/u;
 const safeProductName=/^[\p{L}\p{N}][\p{L}\p{N} _.-]{2,119}$/u;
 
+// Never silently drop other clauses from a saved natural-language goal.
+// A future richer product may explicitly version policy predicates, but v2
+// admits only a single, fully expressed two-operation business intent.
+export function simpleCommerceReplayGoal(goal) {
+  if(typeof goal!=='string')return null;
+  const normalized=goal.trim().replace(/[。.!！]+$/gu,'')
+    .replace(/[,，]\s*/gu,'，').replace(/\s+/gu,' ');
+  const match=normalized.match(/^搜索 ([\p{L}\p{N} _.-]{2,120})，打开 ([\p{L}\p{N} _.-]{3,120}) 商品详情，核对名称和价格$/u);
+  return match&&safeSearchQuery.test(match[1])&&safeProductName.test(match[2])?
+    {query:match[1],productName:match[2]}:null;
+}
+
 // The v2 contract is deliberately narrow: exactly one independently verified
 // search followed by one independently verified named product navigation.
 // Unknown goals, extra actions and extra mutable parameters stay on v1.
 export function inferDynamicReplayPlan({goal,segments}={}) {
-  if(typeof goal!=='string'||unsafeReplayGoal.test(goal)||negativeReplayGoal.test(goal)||
+  const intent=simpleCommerceReplayGoal(goal);
+  if(!intent||unsafeReplayGoal.test(goal)||negativeReplayGoal.test(goal)||
     !/(?:搜索|查找|检索|\bsearch\b)/i.test(goal)||
     !/(?:打开|进入|点开|\bopen\b)/i.test(goal)||
     !/(?:价格|售价|标价|\bprice\b)/i.test(goal)||
@@ -114,8 +127,7 @@ export function inferDynamicReplayPlan({goal,segments}={}) {
     !safeSearchQuery.test(query.default||'')||
     !safeProductName.test(productName.default||'')||
     productName.default!==guard.name||
-    !goal.toLocaleLowerCase().includes(query.default.toLocaleLowerCase())||
-    !goal.toLocaleLowerCase().includes(productName.default.toLocaleLowerCase()))
+    query.default!==intent.query||productName.default!==intent.productName)
     return null;
   return {kind:'search-to-product.v1',queryParam:'query',productParam:'productName',
     searchStepId:fill.stepId,linkStepId:link.stepId,allowedOrigin:guard.origin};
