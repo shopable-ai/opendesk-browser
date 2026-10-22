@@ -82,7 +82,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   let host=null,shadow=null,rail=null,tip=null,tipOwner=null,hideTipTimer=0;
   let feedback=null,announcer=null,feedbackTimer=0,feedbackToken=0;
   let items=[],imageAssets={},imageSize='large',observer=null,observedRoot=null,resizeObserver=null,layoutTimer=0;
-  let compactExpanded=false;
+  let compactExpanded=true;
   const usesCompactMenu=()=>items.length>0;
   const observedRegions=new Set();
   const themeMedia=win.matchMedia?.('(prefers-color-scheme: dark)');
@@ -802,7 +802,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     }
     hideTip();rail.replaceChildren();rail.dataset.imageSize=imageSize;
     // Every saved library, including legacy and fully customized ones, shares a
-    // single resting launcher. Expanded buttons retain their image/label behavior.
+    // One launcher and a visible image/text tray by default; users may collapse it.
     const compact=usesCompactMenu(),builtin=builtInPage(win.location.href);
     if(builtin||compact){
       const brand=doc.createElement('button');brand.type='button';brand.className='brand';
@@ -851,11 +851,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       button.addEventListener('focus',()=>showTip(row,button));
       button.addEventListener('mouseleave',delayHideTip);
       button.addEventListener('blur',delayHideTip);
-      button.addEventListener('click',event=>{
-        void insert(row,event).finally(()=>{
-          if(compact&&compactExpanded&&visible){compactExpanded=false;render();}
-        });
-      });
+      button.addEventListener('click',event=>{void insert(row,event);});
       rail.append(button);
     }
     if(compact&&builtin){
@@ -872,7 +868,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     stopJump();
     const token=++epoch,url=win.location.href;
     if(href!==url){
-      compactExpanded=false;clearFeedback();hideTip();
+      compactExpanded=true;clearFeedback();hideTip();
       // Never show controls for the previous conversation while checking the
       // new route's installation, grant and library state.
       if(host)host.hidden=true;
