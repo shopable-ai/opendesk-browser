@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createWorkflowAgentLoopGuard} from '../../src/ui/workflow/agent-loop.js';
+import {createWorkflowAgentLoopGuard,classifyWorkflowAgentStop} from '../../src/ui/workflow/agent-loop.js';
 const target={origin:'https://example.com',documentId:'doc-1',url:'https://example.com/'};
 const proposal=steps=>({steps});
 const fill={stepId:'fill1',op:'fill',locatorKind:'css',selector:'#q',text:'camera'};
@@ -141,4 +141,13 @@ test('same input field with changed text does not prove two distinct field targe
  const second=guard.claim({workflow:proposal([{...fill,text:'email'}]),target});
  assert.equal(guard.verified({claim:second,reply:{ok:true,evidenceLevel:'BUSINESS_EFFECT_VERIFIED',
    readbackVerified:true}}).state,'CONTINUE');
+});
+
+test('stop before RunHost.start returns runId cannot be classified as stopped',()=>{
+ assert.equal(classifyWorkflowAgentStop({startPending:true,startedCount:0}),'OUTCOME_UNKNOWN');
+ assert.equal(classifyWorkflowAgentStop({executionPending:true,startedCount:0}),'OUTCOME_UNKNOWN');
+ assert.equal(classifyWorkflowAgentStop({runActive:true,startedCount:1}),'OUTCOME_UNKNOWN');
+ assert.equal(classifyWorkflowAgentStop({stopRejected:true,startedCount:1}),'OUTCOME_UNKNOWN');
+ assert.equal(classifyWorkflowAgentStop({startPending:false,startedCount:0}),'STOPPED');
+ assert.equal(classifyWorkflowAgentStop({startPending:false,startedCount:1}),'PARTIAL');
 });

@@ -13,7 +13,7 @@ import {createLocalCodexPlanner,describeLocalCodex} from './local-codex.js';
 import {createWorkflowObservation,workflowObservationForModel,workflowObservationGrantMatches,workflowObservationRecipientId} from './observation.js';
 import {classifyWorkflowRunRisk,prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect,verifyOpenedLinkPage,verifySavedWorkflowRevision} from './direct-execution.js';
 import {createTaskReviewHandoff,taskReviewHandoffKey} from './task-review-handoff.js';
-import {createWorkflowAgentLoopGuard} from './agent-loop.js';
+import {createWorkflowAgentLoopGuard,classifyWorkflowAgentStop} from './agent-loop.js';
 
 const STORAGE_PREFIX = 'opendesk.sidebar.workflow.v1:';
 const SESSION_PREFIX = 'opendesk.sidebar.workflow-draft.v1:';
@@ -512,9 +512,17 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       await currentPageTarget.revalidate(captured);
       prepared?.assertCurrent?.();
       if(disposed||prepared?.signal?.aborted)throw err('E_CANCELLED','本次运行已停止，未启动');
-      const claim=await host.start({source,params,
-        target:{mode:'borrowed',tabId:captured.tabId,frameId:0,documentId:captured.documentId,
-          expectedUrl:captured.url,expectedWindowId:captured.windowId},deadlineAt:Date.now()+30000});
+      // Stop may race with host.start before it returns a runId.
+      // Mark this boundary synchronously; abort prevents all later admissions.
+      if(prepared?.agent)prepared.agent.startPending=true;
+      let claim;
+      try {
+        claim=await host.start({source,params,
+          target:{mode:'borrowed',tabId:captured.tabId,frameId:0,documentId:captured.documentId,
+            expectedUrl:captured.url,expectedWindowId:captured.windowId},deadlineAt:Date.now()+30000});
+      } finally {
+        if(prepared?.agent)prepared.agent.startPending=false;
+      }
       runId=claim.runId;
       if(prepared?.agent)prepared.agent.startedCount++;
       onRunOwner(runId);updateButtons();
@@ -1175,11 +1183,17 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       pending.push(Promise.resolve().then(()=>host.stop({controller:true,runId:activeId,reason})));
     if(observationId)pending.push(Promise.resolve(observation.cancel()));
     agent.stopPromise=Promise.allSettled(pending).then(results=>{
-      const unknown=results.some(result=>result.status==='rejected')||
-        Boolean(activeId&&host.currentRun===activeId)||Boolean(host.executionPending);
-      const state=unknown?'OUTCOME_UNKNOWN':
-        agent.startedCount>0?'PARTIAL':'STOPPED';
-      finishWorkflowAgent(agent,reason==='E_AGENT_LIMIT'?'LIMIT_REACHED':state,unknown
+      const state=classifyWorkflowAgentStop({
+        stopRejected:results.some(result=>result.status==='rejected'),
+        runActive:Boolean(activeId&&host.currentRun===activeId),
+        startPending:Boolean(agent.startPending),
+        executionPending:Boolean(host.executionPending),
+        startedCount:agent.startedCount
+      });
+      const unknown=state==='OUTCOME_UNKNOWN';
+      // Worker retirement uncertainty always outranks a timer classification.
+      finishWorkflowAgent(agent,unknown?'OUTCOME_UNKNOWN':
+        reason==='E_AGENT_LIMIT'?'LIMIT_REACHED':state,unknown
         ?'已禁止新操作，但运行或 Worker 收尾未核实；结果未知，请勿重放。'
         :state==='PARTIAL'?'已停止后续操作；此前已执行的步骤可能保留，请核对网页。'
           :'已停止本次任务，未启动后续网页操作。');

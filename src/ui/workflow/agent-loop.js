@@ -47,6 +47,13 @@ function goalFulfilled(goal,facts){
     required.push(facts.has('read-only'));
   return required.length>0&&required.every(Boolean);
 }
+// Pure projection of one Workflow-owned Stop. An unresolved RunHost.start
+// can still dispatch a write after Stop, even if no runId exists yet.
+export function classifyWorkflowAgentStop({stopRejected=false,runActive=false,
+  startPending=false,executionPending=false,startedCount=0}={}) {
+  if(stopRejected||runActive||startPending||executionPending)return 'OUTCOME_UNKNOWN';
+  return startedCount>0?'PARTIAL':'STOPPED';
+}
 export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits={}}={}) {
   if(typeof goal!=='string'||!goal.trim()||goal.length>4000)
     throw fault('E_AGENT_GOAL','工作流目标不明确，请补充具体操作对象');
