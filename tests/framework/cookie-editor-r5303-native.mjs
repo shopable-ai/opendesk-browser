@@ -25,7 +25,7 @@ assert(['development','production'].includes(mode));
 assert(['baseline','core','upgrade','diagnose','recheck','restart-dev'].includes(stage));
 const targets=process.env.COOKIE_NATIVE_TARGETS?.split(',')||[fixture,'http://localhost:43111/demo-form.html','http://cookie-r5303.localhost:43111/demo-form.html'];
 assert(targets.length===3&&new Set(targets.map(url=>new URL(url).hostname)).size===3,'Three distinct hostnames required');
-const requiredCases=stage==='restart-dev'?['actual-entry','official-installed-open','all-sites-grant','same-profile-restart','fixture-cookie-cleanup','all-sites-revoke']:stage==='recheck'?['actual-entry','same-id-development-update','official-installed-open','all-sites-grant','automatic-site-lists','edit-save-readback','export-inline-workspace','single-click-copy','single-click-download','all-sites-revoke']:stage==='diagnose'?['actual-entry','official-installed-open','all-sites-grant','development-reread-observation']:['actual-entry','official-installed-open','all-sites-grant','edit-save-readback','export-inline-workspace','single-click-copy','single-click-download',
+const requiredCases=stage==='restart-dev'?['actual-entry','official-installed-open','all-sites-grant','independent-values-grant','same-profile-restart','fixture-cookie-cleanup','all-sites-revoke']:stage==='recheck'?['actual-entry','same-id-development-update','official-installed-open','all-sites-grant','independent-values-grant','automatic-site-lists','edit-save-readback','export-inline-workspace','single-click-copy','single-click-download','all-sites-revoke']:stage==='diagnose'?['actual-entry','official-installed-open','all-sites-grant','independent-values-grant','development-reread-observation']:['actual-entry','official-installed-open','all-sites-grant','independent-values-grant','edit-save-readback','export-inline-workspace','single-click-copy','single-click-download',
   ...(stage==='baseline'?[]:['three-site-list-reuse','same-profile-restart','all-sites-revoke']),
   ...(stage==='upgrade'?['same-id-upgrade']:[])];
 const report={startedAt:new Date().toISOString(),mode,stage,extension,directory,targets,cases:[],
@@ -154,7 +154,7 @@ async function readableList(url){
 }
 const installed=()=>read(side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==="cookie-editor")).then(t=>t?{id:t.id,version:t.version}:null)');
 const grantRecord=()=>read(side,'chrome.storage.local.get("opendesk.browser.context-menu-grants.v1").then(v=>{const t=v["opendesk.browser.context-menu-grants.v1"]?.["cookie-editor"];return t?{version:t.version,installEpoch:t.installEpoch,cookieAllSites:t.cookieAllSites,cookieSites:t.cookieSites}:null;})');
-const caps=['read','values','write','observe','clear'];
+const caps=['read','write','observe','clear'];
 const granted=row=>caps.every(cap=>row?.cookieAllSites?.[cap]===true);
 async function openOfficial(){
   const before=await installed();
@@ -186,7 +186,31 @@ async function grantAll(){
   await showSettings();await checkpoint('before-first-grant',{side:await state(side)});
   await click(side,'#sidebar-tool-cookie-site-toggle');
   const row=await until(async()=>{const row=await grantRecord();return granted(row)?row:null;},'Single all-sites consent');
+  // First use grants ordinary Cookie management, never Cookie Values.
+  // Only a second trusted click can mint the separate sensitive Value consent.
+  assert.equal(row.cookieAllSites.values,false,'First-use must not grant Cookie Values');
+  assert.equal(row.cookieAllSites.valueConsent,false,'First-use must not mint Value consent');
   await checkpoint('all-sites-grant',{record:row,permissions:await read(side,'chrome.permissions.getAll()')});
+  await hideSettings();await bindTool();
+  await until(()=>read(tool,'(()=>{const root=document.querySelector(".cookie-react-view"),create=[...document.querySelectorAll("button")].find(n=>n.getAttribute("aria-label")==="新建 Cookie");return Boolean(root&&create&&!create.disabled);})()'),
+    'One trusted first-use click opens a usable React Cookie list');
+}
+async function grantValues(){
+  const before=await grantRecord();
+  assert(granted(before),'Ordinary Cookie consent must precede Values');
+  assert.equal(before.cookieAllSites.values,false,'Sensitive grant must be a second explicit decision');
+  await showSettings();
+  await click(side,'#sidebar-tool-cookie-values-toggle');
+  const after=await until(async()=>{
+    const next=await grantRecord();
+    return granted(next)&&next.cookieAllSites?.values===true&&next.cookieAllSites.valueConsent===true?next:null;
+  },'Separate trusted Cookie Value authorization');
+  assert.notEqual(after.cookieAllSites.grantEpoch,before.cookieAllSites.grantEpoch,
+    'Independent Value consent must invalidate the previous Cookie session');
+  await checkpoint('independent-values-grant',{
+    version:after.version,baseCapabilities:caps,valueConsent:after.cookieAllSites.valueConsent,
+    valuesAuthorized:after.cookieAllSites.values,grantEpochChanged:true
+  });
   await hideSettings();await bindTool();
 }
 async function fill(selector,value){
@@ -438,6 +462,7 @@ try{
   await openOfficial();
   if(stage==='upgrade')await upgradeSameId();
   await grantAll();
+  await grantValues();
   if(stage==='restart-dev')await restartDevelopment();
   else if(stage==='diagnose'){
     const observe=async(label)=>{
