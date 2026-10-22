@@ -200,7 +200,7 @@ test('workflow model selector stays minimal without manual creation or custom ap
   assert.match(settings.text(),/模型推理可能联网/);
   assert.match(settings.text(),/可能保存在 Codex 本机对话中/);
   assert.match(settings.text(),/请勿填写 Codex 登录凭据|API Key（本次使用，不保存）/);
-  assert.equal($('#workflow-ai-plan').attr('aria-label'),'发送任务并生成步骤');
+  assert.equal($('#workflow-ai-plan').attr('aria-label'),'发送任务');
   assert.equal($('#workflow-ai-disclosure,[id^="workflow-ai-review-"],#workflow-ai-revoke').length,0);
   assert.doesNotMatch(settings.text(),/模型的数据发送许可|同意并生成|每次读取仍需确认/);
   assert.ok(settings.hasClass('od-disclosure--flat'));
