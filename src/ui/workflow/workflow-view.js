@@ -554,7 +554,15 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       if(captured.origin!==freeze.workflow.siteOrigin)
         throw err('E_WORKFLOW_ORIGIN','当前网页不属于工作流保存的网站');
       params=prepared?prepared.params:readParams();
-      if(freeze.workflow.steps.some(step=>step.linkGuard&&step.linkGuard.sourceUrl!==captured.url))
+      // A standalone frozen dynamic-link revision may only use its original
+      // checked link; a v2 replay instead supplies fresh Controller DOM proof.
+      if(!prepared){
+        const bound=freeze.workflow.steps.filter(step=>step.op==='click'&&step.linkGuard&&step.param);
+        if(bound.length)params={...params,__odLinks:Object.fromEntries(bound.map(step=>[
+          step.stepId,{href:step.linkGuard.href,name:step.linkGuard.name,
+            origin:step.linkGuard.origin,sourceUrl:step.linkGuard.sourceUrl}]))};
+      }
+      if(freeze.workflow.steps.some(step=>step.linkGuard&&step.linkGuard.sourceUrl!==captured.url)&&!prepared?.dynamicReplay)
         throw err('E_DOCUMENT_STALE','已保存链接的入口网页已变化，不能使用旧链接证明');
       if(!prepared){
         const risk=classifyWorkflowRunRisk(freeze.workflow);
@@ -585,8 +593,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         }
       }
       // This remains the real user gesture for Chrome's separate site grant.
-      const extra=freeze.workflow.steps.filter(step=>step.linkGuard&&step.linkGuard.origin!==captured.origin)
-        .map(step=>permissionPattern(step.linkGuard.url));
+      const extra=(prepared?.linkGuard?[prepared.linkGuard]:
+        freeze.workflow.steps.filter(step=>step.linkGuard).map(step=>step.linkGuard))
+        .filter(link=>link.origin!==captured.origin)
+        .map(link=>permissionPattern(link.url));
       runOrigins=[...new Set([permissionPattern(captured.url),...extra])];
       permission=prepared?.permission||api.permissions.request({origins:runOrigins});
     }catch(error){
@@ -685,7 +695,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
               }catch{readbackVerified=false;}
             }
           }
-          let effect=null;
+          let effect=null,effectTarget=null;
           if(lastRun==='success'&&prepared.effectExpectation&&!prepared.signal?.aborted) {
             try {
               let resultTarget=null;
@@ -711,9 +721,12 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
                 const post=await observation.observe(resultTarget,{signal:prepared.signal,
                   requestId:'search-effect-'+crypto.randomUUID(),
                   request:prepared.effectExpectation.query});
-                if(!disposed&&!prepared.signal?.aborted)effect=verifySearchBusinessEffect({
-                  expectation:prepared.effectExpectation,before:prepared.beforeObservation,
-                  after:post,actionTarget:captured,resultTarget});
+                if(!disposed&&!prepared.signal?.aborted){
+                  effect=verifySearchBusinessEffect({
+                    expectation:prepared.effectExpectation,before:prepared.beforeObservation,
+                    after:post,actionTarget:captured,resultTarget});
+                  if(effect)effectTarget=structuredClone(resultTarget);
+                }
               }
             }catch{ /* Observation is optional; never promote or replay unknown click effects. */ }
           }
@@ -734,9 +747,12 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
                 await api.permissions.contains({origins:[permissionPattern(destination.url)]})) {
                 const post=await observation.observe(destination,{signal:prepared.signal,
                   requestId:'link-effect-'+crypto.randomUUID(),request:prepared.linkGuard.name});
-                if(!disposed&&!prepared.signal?.aborted)effect=verifyOpenedLinkPage({
-                  linkGuard:prepared.linkGuard,after:post,
-                  actionTarget:captured,resultTarget:destination});
+                if(!disposed&&!prepared.signal?.aborted){
+                  effect=verifyOpenedLinkPage({
+                    linkGuard:prepared.linkGuard,after:post,
+                    actionTarget:captured,resultTarget:destination});
+                  if(effect)effectTarget=structuredClone(destination);
+                }
               }
             }catch{ /* Unknown effects never authorize a repeat click or ungranted read. */ }
           }
@@ -754,7 +770,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
             !prepared.hasReadback&&!prepared.hasUnprovenClick&&
             freeze.workflow.steps.every(step=>['observe','extract','assert','wait'].includes(step.op));
           return {ok:lastRun==='success',runId:claim.runId,resultId:proof?.resultId||null,
-            evidenceLevel,readbackVerified,readOnlyVerified,effect,
+            evidenceLevel,readbackVerified,readOnlyVerified,effect,effectTarget,
             readbackValues:readbackVerified?decodeValue(result.outcome.valueWire):null};
         }
         let receiptProof=null;
