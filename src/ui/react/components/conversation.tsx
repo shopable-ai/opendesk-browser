@@ -51,6 +51,7 @@ function ConversationWorkspace({
  const [phase,setPhase]=React.useState('idle');
  const [error,setError]=React.useState('');
  const [needsReview,setNeedsReview]=React.useState(restored.needsReview===true);
+ const [reconciling,setReconciling]=React.useState(false);
  const [height,setHeight]=React.useState(null);
  const [totalHeight,setTotalHeight]=React.useState(600);
  const shellRef=React.useRef(null),inputRef=React.useRef(null),logRef=React.useRef(null);
@@ -134,6 +135,20 @@ function ConversationWorkspace({
   if(alive.current)setRows(next);
   persist({rows:next});
  },[persist]);
+ async function reconcileStorage(){
+  if(reconciling||busy||!needsReview||typeof controller?.reconcile!=='function')return;
+  setReconciling(true);setError('');
+  try{
+   const result=await controller.reconcile();
+   if(result?.verified!==true)throw new Error('真实存储读回尚未确认，不能解除安全锁');
+   append('系统',result.message||'Host 真实存储已重新读取；旧操作没有自动重放。');
+   refsRef.current=newRefs();setNeedsReview(false);
+   persist({refs:refsRef.current,needsReview:false});
+  }catch(error){
+   const message=errorText(error);
+   setError(message);append('系统',message);
+  }finally{setReconciling(false);}
+ }
  const onStep=React.useCallback(step=>{
   if(!alive.current)return;
   if(step?.refs)refsRef.current=step.refs;
@@ -261,9 +276,16 @@ function ConversationWorkspace({
    </div>}
    {(feedbackError||needsReview)&&<div className="od-conversation-feedback" tabIndex={0} aria-label="对话状态详情">
     {feedbackError&&<p className="od-conversation-error" role="alert">{feedbackError}</p>}
-    {needsReview&&<p className="od-conversation-error" role="status">
-     上次写入结果不确定。请先刷新并核对原工具数据，再继续操作。
-    </p>}
+    {needsReview&&<>
+     <p className="od-conversation-error" role="status">
+      上次写入结果不确定，不能直接重放。请先从真实 Host 重新读取并核对列表。
+     </p>
+     {typeof controller?.reconcile==='function'&&<button type="button"
+       className="od-conversation-reconcile" disabled={busy||reconciling}
+       onClick={()=>void reconcileStorage()}>
+       {reconciling?'正在核对真实存储…':'读取 Host 真实存储并核对'}
+     </button>}
+    </>}
    </div>}
    <form className="od-conversation-composer" onSubmit={send}>
     <label className="od-conversation-sr" htmlFor="od-conversation-input">对话输入</label>
