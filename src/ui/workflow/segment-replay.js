@@ -1,10 +1,11 @@
 // Ordered, immutable metadata for replaying independently verified Workflow
 // fragments. It owns no browser authority, execution engine or permissions.
 import {validateWorkflow} from '../../framework/workflow/contract.js';
-import {checkParamsSchema} from '../../platform/tasks/contract.js';
+import {checkParamsSchema,validateTaskParams} from '../../platform/tasks/contract.js';
 import {digestUtf8} from '../../platform/protocol.js';
 
 export const WORKFLOW_BUNDLE_FORMAT = 'opendesk.workflow-segment-bundle.v1';
+export const WORKFLOW_DYNAMIC_BUNDLE_FORMAT = 'opendesk.workflow-segment-bundle.v2';
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};
 const hashPattern=/^[a-f0-9]{64}$/;
 const allowedKinds=new Set(['input-readback','search-results','search-empty',
@@ -78,12 +79,67 @@ function validateSegment(value) {
     verificationMode:value.verificationMode,
     evidence:structuredClone(evidence),proof:structuredClone(proof)};
 }
+
+const unsafeReplayGoal=/(?:付款|支付|结账|下单|购买|订单|删除|清空|提交|发送|转账|退款|登录|登出|注销|upload|submit|pay|checkout|purchase|delete|remove|transfer|send|order)/i;
+const safeSearchQuery=/^[\\p{L}\\p{N} _.-]{2,120}$/u;
+const safeProductName=/^[\\p{L}\\p{N}][\\p{L}\\p{N} _.-]{2,119}$/u;
+
+// The v2 contract is deliberately narrow: exactly one independently verified
+// search followed by one independently verified named product navigation.
+// Unknown goals, extra actions and extra mutable parameters stay on v1.
+export function inferDynamicReplayPlan({goal,segments}={}) {
+  if(typeof goal!=='string'||unsafeReplayGoal.test(goal)||
+    !/(?:搜索|查找|检索|\\bsearch\\b)/i.test(goal)||
+    !/(?:打开|进入|点开|\\bopen\\b)/i.test(goal)||
+    !/(?:价格|售价|标价|\\bprice\\b)/i.test(goal)||
+    !Array.isArray(segments)||segments.length!==2)return null;
+  const [search,product]=segments;
+  if(!['search-results','search-inline'].includes(search?.evidence?.kind)||
+    product?.evidence?.kind!=='product-page')return null;
+  const first=validateWorkflow(search.workflow),second=validateWorkflow(product.workflow);
+  const fills=first.steps.filter(step=>step.op==='fill'),searchClicks=first.steps.filter(step=>step.op==='click');
+  const linkClicks=second.steps.filter(step=>step.op==='click'&&step.linkGuard);
+  if(first.steps.length!==2||fills.length!==1||searchClicks.length!==1||
+    searchClicks[0].linkGuard||second.steps.length!==1||linkClicks.length!==1||
+    first.steps.at(-1)!==searchClicks[0]||first.siteOrigin!==second.siteOrigin)return null;
+  const fill=fills[0],link=linkClicks[0],guard=link.linkGuard;
+  if(fill.param!=='query'||link.param!=='productName'||guard.origin!==first.siteOrigin||
+    guard.sourceUrl!==product.entryUrl||guard.name!==product.evidence.name)return null;
+  const combined=replayParameterSchema(segments);
+  if(Object.keys(combined.properties).sort().join(',')!=='productName,query'||
+    combined.required.slice().sort().join(',')!=='productName,query')return null;
+  const query=combined.properties.query,productName=combined.properties.productName;
+  if(query.type!=='string'||productName.type!=='string'||
+    !safeSearchQuery.test(query.default||'')||
+    !safeProductName.test(productName.default||'')||
+    productName.default!==guard.name||
+    !goal.toLocaleLowerCase().includes(query.default.toLocaleLowerCase())||
+    !goal.toLocaleLowerCase().includes(productName.default.toLocaleLowerCase()))
+    return null;
+  return {kind:'search-to-product.v1',queryParam:'query',productParam:'productName',
+    searchStepId:fill.stepId,linkStepId:link.stepId,allowedOrigin:guard.origin};
+}
+
+// Only the user-entered values in the frozen schema are interpreted as data.
+// Replanning is not delegated to an AI or an untrusted arbitrary URL.
+export function dynamicReplayIntent(bundle,params) {
+  if(bundle?.format!==WORKFLOW_DYNAMIC_BUNDLE_FORMAT)
+    fail('E_WORKFLOW_BUNDLE','历史记录不是可动态绑定的版本');
+  const plan=inferDynamicReplayPlan(bundle);
+  if(!plan||JSON.stringify(plan)!==JSON.stringify(bundle.bindingPlan))
+    fail('E_WORKFLOW_PARAM_BINDING','动态绑定契约已失效');
+  const values=validateTaskParams(bundle.paramsSchema,params);
+  if(!safeSearchQuery.test(values.query||'')||!safeProductName.test(values.productName||''))
+    fail('E_WORKFLOW_PARAM_BINDING','搜索词或商品名称超出允许范围');
+  return {values,goal:'搜索 '+values.query+'，打开 '+values.productName+' 商品详情，核对名称和价格'};
+}
+
 function manifestFields(value) {
   if(!value||typeof value!=='object'||Array.isArray(value)||
     Object.keys(value).some(key=>!['format','bundleId','revision','goal','title',
-      'workflow','segments','paramsSchema','sourceHash','savedAt'].includes(key)))
+      'workflow','segments','paramsSchema','bindingPlan','sourceHash','savedAt'].includes(key)))
     fail('E_WORKFLOW_BUNDLE','工作流包字段不合法');
-  if(value.format!==WORKFLOW_BUNDLE_FORMAT||
+  if(![WORKFLOW_BUNDLE_FORMAT,WORKFLOW_DYNAMIC_BUNDLE_FORMAT].includes(value.format)||
     typeof value.bundleId!=='string'||!/^wf-[a-z0-9-]{8,54}$/.test(value.bundleId)||
     value.revision!==1||typeof value.goal!=='string'||
     !value.goal.trim()||value.goal.length>4000||
@@ -109,11 +165,18 @@ function manifestFields(value) {
     value.workflow.title!==value.title||
     value.workflow.siteOrigin!==segments[0].workflow.siteOrigin)
     fail('E_WORKFLOW_BUNDLE','摘要身份不一致');
-  return {format:WORKFLOW_BUNDLE_FORMAT,bundleId:value.bundleId,
+  const dynamic=value.format===WORKFLOW_DYNAMIC_BUNDLE_FORMAT;
+  if(dynamic){
+    const plan=inferDynamicReplayPlan({goal:value.goal,segments});
+    if(!plan||JSON.stringify(plan)!==JSON.stringify(value.bindingPlan))
+      fail('E_WORKFLOW_PARAM_BINDING','动态绑定计划不符合已核验的原始业务范围');
+  } else if(value.bindingPlan!==undefined)
+    fail('E_WORKFLOW_BUNDLE','旧版历史不允许动态绑定');
+  return {format:value.format,bundleId:value.bundleId,
     revision:1,goal:value.goal,title:value.title,
     workflow:{workflowId:value.bundleId,title:value.title,
       siteOrigin:segments[0].workflow.siteOrigin},
-    segments,paramsSchema:schema};
+    segments,paramsSchema:schema,...(dynamic?{bindingPlan:structuredClone(value.bindingPlan)}:{})};
 }
 export async function sealWorkflowBundle(value) {
   const body=manifestFields(value);
