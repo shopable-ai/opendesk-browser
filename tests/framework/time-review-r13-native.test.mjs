@@ -26,7 +26,7 @@ const REQUIRED_NATIVE=['install','realSidePanel','nativeTrustedUI','minuteConsen
   'swRestart','browserRestart','disableEnable','uninstall','realBrowserZoom',
   'windowFocus','panelClosedCollection','unrelatedToolInstall','unrelatedToolLifecycle',
   'minuteCanvas','canvasKeyboard','classification','populatedExport','reinstall',
-  'realSidePanelReopened','nativePermissionControls','inlineEnrollment','timeReviewIframeRemoved',
+  'realSidePanelReopened','nativePermissionControls','inlineEnrollment','firstInstallAutoStart','timeReviewIframeRemoved',
   'layoutWidths','historyNavigation','longDomainLayout','sameNameSandbox','replacementRetirement','officialUpgrade',
   'unrelatedToolUpgrade','activeSwRecovery','naturalSwSleep'];
 function cdp(url){
@@ -554,7 +554,9 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   // Observe durable state from the manager, which can outlive the Side Panel.
   // It is a storage read, never a Time RPC or a substitute for a real sender.
   const readTime=()=>evaluate(browser,uiTarget.sessionId,'chrome.storage.local.get('+JSON.stringify(KEY)+').then(v=>v['+JSON.stringify(KEY)+'])');
-  let state=await readTime();assert.ok(state&&state.paused,'install/open must not begin recording');
+  let state=await readTime();
+  assert.ok(state&&!state.paused&&state.authorizedHash===null&&state.checkpoint===null,
+    'fresh installation must default to ON intent while both grants are missing');
   assert.equal(state.minuteConsent,false,'minute data opt-in must default false');
   // Native UI hides its duplicate minute-consent control: only the existing
   // trusted Host enrollment/retention buttons may change that permission.
@@ -671,19 +673,24 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   if(issues.length)assert.deepEqual(issues,[],'Actual JSON/CSV export failures');
   assert.equal(spawnSync(zoomInput,[String(proc.pid),'activate'],{encoding:'utf8',timeout:10000}).status,0,'owned standard browser window after actual downloads');
   assert.equal(spawnSync(zoomInput,[String(proc.pid),'key','escape'],{encoding:'utf8',timeout:10000}).status,0,'close actual recent-download popup before further input');
-  state=await readTime();assert.equal(state.paused,true,'no idle prompt or start should be bypassed');
-  // The native Start may REVEAL required permissions, not grant anything.
-  // Missing site scope/idle must never start an unauthorized tracker.
-  await nativeClick(browser,frame,'#start');
+  state=await readTime();
+  assert.ok(state&&!state.paused&&state.authorizedHash===null&&state.checkpoint===null,
+    'default ON preference is not permission to collect without Chrome idle and site grants');
+  // The existing trusted Host settings expose both independent authorizations
+  // without asking the user to press Start merely to find them.
+  await setTimeReviewSettingsVisible(browser,side,true);
   await until(()=>evaluate(browser,side,`(()=>{
     const d=document.querySelector("#sidebar-tool-display");
     const s=document.querySelector("#sidebar-tool-settings-view");
     const f=document.querySelector("#sidebar-tool-frame");
-    return d?.dataset.timeReviewInline==="true"&&!s.hidden&&!f.hidden&&s.nextElementSibling===f;
+    return d?.dataset.trustedToolInline==="true"&&!s.hidden&&!f.hidden&&
+      s.parentElement===d&&f.parentElement===d&&
+      getComputedStyle(s).order==="1"&&getComputedStyle(f).order==="2";
   })()`),'real first-run inline consent with visible statistics and DOM tab order',12000);
   state=await readTime();
-  assert.ok(state.paused&&state.siteGrants?.origins?.length===0&&state.siteGrants?.allSites===false,
-    'native Start without permission must not grant site access or begin recording');
+  assert.ok(!state.paused&&state.authorizedHash===null&&state.checkpoint===null&&
+    state.siteGrants?.origins?.length===0&&state.siteGrants?.allSites===false,
+    'trusted permissions UI must never grant site access or begin collecting by itself');
   evidence.inlineEnrollment='PASS';
   evidence.screenshots.push(await screenshot(browser,side,'first-run-inline-time-review-consent'));
   note('native-inline-enrollment',{trustedExistingControls:true,nativeUIVisible:true,iframeRemoved:true,domFocusOrder:true,siteGrantUntouched:true});
@@ -740,15 +747,18 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
       return s?.siteGrants?.origins?.includes(approvedOrigin)?s:null;
     },'independent Time Review site grant',10000);
     note('site-grant',{origin:approvedOrigin,source:'native trusted click'});
-    // One authentic click in the actual native UI must start without a
-    // second review button after permissions are already effective.
+    // Fresh installs must auto-start after both independently approved grants;
+    // do not click Start or write business storage in this native proof.
     await setTimeReviewSettingsVisible(browser,side,false);
-    await nativeClick(browser,frame,'#start');
-    await until(async()=>{const s=await readTime();return s&&!s.paused&&s.authorizedHash?s:null;},'one-click native start',10000);
+    const automaticallyStarted=await until(async()=>{
+      const s=await readTime();return s&&!s.paused&&s.authorizedHash&&s.checkpoint?.origin===approvedOrigin?s:null;
+    },'automatic start after real Chrome idle and website consent, without Start',10000);
     await until(()=>evaluate(browser,frame,
       'document.querySelector("#start")?.hidden===true&&document.querySelector("#pause")?.hidden===false'),
-      'trusted start updates live Time Review controls without waiting 15 seconds',8000);
-    note('trusted-start-immediate-ui',{pauseVisible:true,noIframe:true,noSecondConfirmation:true});
+      'automatic two-grant start updates live Time Review controls',8000);
+    evidence.firstInstallAutoStart='PASS';
+    note('first-install-two-grant-auto-start',{pauseVisible:true,noIframe:true,
+      noSecondConfirmation:true,noStartClick:true,authorizedHash:automaticallyStarted.authorizedHash});
     await setTimeReviewSettingsVisible(browser,side,true);
     await nativeClick(browser,side,'#time-review-minute-enable');
     await until(async()=>Boolean((await readTime())?.minuteConsent),'real minute opt-in before legitimate activity');
@@ -1381,7 +1391,7 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     await setTimeReviewSettingsVisible(browser,side,false);
     await nativeClick(browser,frame,'#start');
     await until(()=>evaluate(browser,side,
-      'document.querySelector("#sidebar-tool-display")?.dataset.timeReviewInline==="true"'),
+      'document.querySelector("#sidebar-tool-display")?.dataset.trustedToolInline==="true"'),
       'native start reveals required site consent',10000);
     const denied=await readTime();
     assert.equal(denied.paused,true);assert.equal(denied.checkpoint,null);
@@ -1429,7 +1439,7 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     await setTimeReviewSettingsVisible(browser,side,false);
     await nativeClick(browser,frame,'#start');
     await until(()=>evaluate(browser,side,
-      'document.querySelector("#sidebar-tool-display")?.dataset.timeReviewInline==="true"'),
+      'document.querySelector("#sidebar-tool-display")?.dataset.trustedToolInline==="true"'),
       'native start reveals required idle permission',10000);
     await setTimeReviewSettingsVisible(browser,side,false);
     await nativeClick(browser,frame,'#refresh');
