@@ -18,9 +18,13 @@ async function fixture(){
   const b=part(bundleId+'-s2',origin,[{stepId:'read1',op:'observe'}],schema());
   const [one,two]=await Promise.all([compileWorkflow(a,{verifyFill:true}),compileWorkflow(b)]);
   const segments=[{workflow:a,entryUrl:origin+'/search?q=camera',revision:1,
-    sourceHash:one.sourceHash,verificationMode:'fill-readback',evidence:{kind:'input-readback'}},
+    sourceHash:one.sourceHash,verificationMode:'fill-readback',evidence:{kind:'input-readback'},
+    proof:{runId:'run-1',resultId:'result-1',sourceHash:one.sourceHash,
+      origin,documentId:'doc-search'}}, 
   {workflow:b,entryUrl:origin+'/products/1',revision:1,sourceHash:two.sourceHash,
-    verificationMode:'none',evidence:{kind:'read-only'}}];
+    verificationMode:'none',evidence:{kind:'read-only'},
+    proof:{runId:'run-2',resultId:'result-2',sourceHash:two.sourceHash,
+      origin,documentId:'doc-product'}}];
   return {format:WORKFLOW_BUNDLE_FORMAT,bundleId,revision:1,
     goal:'搜索 camera，然后读取商品内容',title:'搜索和商品核验',
     workflow:{workflowId:bundleId,title:'搜索和商品核验',siteOrigin:origin},
@@ -36,7 +40,7 @@ test('independent frozen scripts can be sealed into a complete, ordered bundle',
 test('bundle rejects changed step order, script hash and parameter schema',async()=>{
   const record=await sealWorkflowBundle(await fixture());
   const reordered=structuredClone(record);reordered.segments.reverse();
-  await assert.rejects(verifyWorkflowBundle(reordered),{code:'E_WORKFLOW_HASH'});
+  await assert.rejects(verifyWorkflowBundle(reordered),{code:'E_WORKFLOW_BUNDLE'});
   const edited=structuredClone(record);edited.segments[0].sourceHash='a'.repeat(64);
   await assert.rejects(verifyWorkflowBundle(edited),{code:'E_WORKFLOW_HASH'});
   const param=structuredClone(record);param.paramsSchema.properties.query.default='modified';
@@ -62,4 +66,12 @@ test('AI-off fragment progression requires a matching independently proven effec
     {ok:true,evidenceLevel:'BUSINESS_EFFECT_VERIFIED',readbackVerified:true}),true);
   assert.equal(verifyReplayBusinessEffect({kind:'read-only'},
     {ok:true,readOnlyVerified:false}),false);
+});
+test('forged completion receipt never binds to another source revision',async()=>{
+  const value=await fixture();
+  value.segments[0].proof.resultId='';
+  await assert.rejects(sealWorkflowBundle(value),{code:'E_WORKFLOW_BUNDLE'});
+  value.segments[0].proof.resultId='result-1';
+  value.segments[0].proof.sourceHash='0'.repeat(64);
+  await assert.rejects(sealWorkflowBundle(value),{code:'E_WORKFLOW_BUNDLE'});
 });
