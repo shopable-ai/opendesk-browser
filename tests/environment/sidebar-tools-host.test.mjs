@@ -1879,13 +1879,14 @@ test('Prompt Shortcuts reads real native menu status, not a missing legacy grant
   await pause();
   assert.equal(toggles.length,0,'loading cannot toggle an unknown permission state');
   gate.resolve();
-  await settle(()=>!button.disabled&&button.attributes.get('aria-checked')==='true');
+  // The React presentation view exposes attributes as a plain object, not a DOM Map.
+  await settle(()=>!button.disabled&&button.attributes['aria-checked']==='true');
   assert.equal(button.textContent,'关闭右键快捷添加');
   assert.equal(f.store.has(BROWSER_MENU_GRANTS_STORE),false,
     'a reviewed default is active without a second OpenDesk grant record');
   assert.equal(permissionRequests,0,'reading an existing Chrome permission never requests it again');
   f.view.actions[button.key].click({isTrusted:true});
-  await settle(()=>toggles.length===1&&!button.disabled&&button.attributes.get('aria-checked')==='false');
+  await settle(()=>toggles.length===1&&!button.disabled&&button.attributes['aria-checked']==='false');
   assert.equal(toggles[0].enabled,false,'the first real click closes the already active menu');
   assert.equal(button.textContent,'启用右键快捷添加');
   assert.equal(permissionRequests,0,'stopping a menu requires no Chrome permission prompt');
