@@ -80,7 +80,7 @@ export function createTimeReviewPermissionControls({api,ui,notice,runOperation})
     let request;
     try{request=api.permissions.request({permissions:['idle']});}
     catch(error){say(error.message,true);setBusy(false);return;}
-    Promise.resolve(request).then(ok=>{if(current===epoch)say(ok?'空闲检测已授权，还需主动开始记录。':
+    Promise.resolve(request).then(ok=>{if(current===epoch)say(ok?'空闲检测已授权；网站范围也已批准时会自动开始记录。':
       '未获得 Chrome 空闲检测权限，不能开始记录。',!ok);})
       .catch(error=>{if(current===epoch)say(error.message,true);}).finally(()=>{if(current===epoch){setBusy(false);void refresh();}});
   });
