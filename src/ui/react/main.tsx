@@ -133,7 +133,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
       onExtensionBack=handler;paint();},
     renderView(view){if(disposed||!['list','detail'].includes(view))throw new Error('E_REACT_EXTENSION_VIEW');
       extensionView=view;paint();},
-    mountPromptConversation({container,conversation,onRequest}={}){
+    mountPromptConversation({container,conversation,onRequest,onReconcile,recovery=null}={}){
       if(disposed||promptPilot||!container||container.ownerDocument!==doc||
         container.childNodes.length||container.dataset.opendeskReactOwner||
         !conversation||typeof conversation.request!=='function'||
@@ -144,11 +144,15 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
         throw new Error('E_PROMPT_TRUSTED_CHAT_HEADER');
       // Transcript is display-only. Executable references never survive a
       // tool instance change or cross into the Bookmark or Workflow sessions.
-      let session={open:false,draft:'',rows:[],needsReview:false,refs:{matches:[]}};
+      let session={open:Boolean(recovery),draft:'',rows:recovery?[{
+        id:'prompt-recovery-'+String(recovery.createdAt||0),speaker:'系统',
+        message:'上次 AI 写入尚未核实。请使用下方「核对真实存储」按钮读取当前库；不要重试创建。'
+      }]:[],needsReview:Boolean(recovery),refs:{matches:[]}};
       const controller=Object.freeze({
         source:()=>conversation.source(),
         request:args=>conversation.request({...args,scope:'prompt'}),
         cancel:args=>conversation.cancel(args),
+        reconcile:typeof onReconcile==='function'?()=>onReconcile():null,
         readSession:()=>structuredClone(session),
         saveSession:next=>{
           if(!next||typeof next!=='object')return;
