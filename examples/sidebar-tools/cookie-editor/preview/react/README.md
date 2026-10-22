@@ -1,5 +1,12 @@
 # Cookie Editor R5.20 · shared App offline preview
 
+## 2026-10-22 · 授权页面单按钮预览
+
+R4.3 历史模拟页面移除了「仅查看」授权按钮和重复说明。React 预览复用正式 `app/CookieEditorApp.jsx`，首次授权提示改为「Cookie 访问授权」+ 一句范围说明 +「允许管理所有网站 Cookie」单按钮；对应 JSX、CSS 和独立 `index.html` 已同步为新视觉。**R4.3 是按本站授权的历史模拟；当前正式 Cookie Editor 使用 HTTP/HTTPS 全站授权，不能以历史原型改变可信 Host 的授权范围。**
+
+此改动没有调用或修改真实 Chrome Cookie/Host、没有更新正式安装包。独立 HTML 是对现有固定 React bundle 的定向预览同步，**并非本轮执行 Vite 构建的产物**。必须在本地执行 `npm run build && npm run check && npm test && npm run test:chromium` 重新生成、提交并核对严格同源；完成前将构建一致性、真实 Chromium 及 Mac Chrome 安装升级标记为 **NOT_TESTED**。
+
+
 ## Current dev delivery · 2.0.29 (2026-10-20)
 
 The unique installable package, root config, and development catalog now use the same React App as this offline preview. The website-URL dropdown left of Refresh has been removed. The preview source check passes for `index.html` SHA-256 `2c6b3b5744a9b6dd63ffc33e2767fa1bb98c4f44a1b01c692299cbf33eede624`.
