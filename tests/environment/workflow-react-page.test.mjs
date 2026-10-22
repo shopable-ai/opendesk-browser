@@ -266,7 +266,9 @@ test('changed parameter on a legacy cross-navigation bundle fails before permiss
   f.click('workflow-refresh');await tick();await tick();
   f.input('workflow-saved-list',key,'change');
   f.click('workflow-load');await tick();await tick();await tick();
-  assert.equal(f.state().header.saved,true);
+  assert.equal(f.state().header.saved,true,
+    'bundle load: '+JSON.stringify({status:f.state().controls['workflow-status'],
+      selection:f.state().controls['workflow-saved-list'],history:f.state().history}));
   f.view.actions.setParam('query','lens');await tick();
   const beforeRequests=f.requests.length;
   const result=await f.click('workflow-run');
@@ -330,7 +332,9 @@ test('two-segment saved AI-off bundle reopens and runs all frozen revisions',asy
   f.click('workflow-refresh');await tick();await tick();
   f.input('workflow-saved-list',key,'change');
   f.click('workflow-load');await tick();await tick();await tick();
-  assert.equal(f.state().header.saved,true);
+  assert.equal(f.state().header.saved,true,
+    'bundle load: '+JSON.stringify({status:f.state().controls['workflow-status'],
+      selection:f.state().controls['workflow-saved-list'],history:f.state().history}));
   const outcome=await f.click('workflow-run');
   assert.equal(outcome?.ok,true,'each fragment must verify independently before next starts');
   assert.equal(outcome.segments,2);
