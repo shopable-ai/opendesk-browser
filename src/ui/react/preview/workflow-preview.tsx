@@ -36,7 +36,7 @@ const scenes=Object.freeze({
   failure:[{id:'demo-failure',speaker:'系统',message:'演示：操作失败，未将结果当成成功。'}],
   unknown:[{id:'demo-unknown',speaker:'系统',message:'结果未知：核对目标网页后再操作，不自动重试。'}],
   approval:[{id:'demo-approval',speaker:'AI',message:'网页摘要授权界面预览；未读取或发送页面内容。'}],
-  'run-review':[{id:'demo-run-review',speaker:'AI',message:'已生成 2 步。此处仅预览确认界面，未执行网页操作。'}],
+  'run-review':[{id:'demo-run-review',speaker:'AI',message:'目标网站尚未获得访问权限。此处仅预览授权入口，没有执行网页操作。'}],
   denied:[{id:'demo-denied',speaker:'系统',message:'演示：授权已拒绝，未执行网页读取。'}],
   disconnected:[{id:'demo-disconnected',speaker:'系统',message:'本机连接不可用，请在正式扩展中检查连接。'}],
   history:[],
@@ -61,7 +61,7 @@ const apply=()=>{
   control('workflow-planning-indicator').text=busy?'正在规划步骤…':'';
   control('workflow-ai-approval').hidden=scene!=='approval';
   control('workflow-run-review').hidden=scene!=='run-review';
-  control('workflow-run-review-scope').text='将在当前网站执行 2 步，点击「执行」启动（离线预览无 RunHost）。';
+  control('workflow-run-review-scope').text='当前网站尚未授权。正式产品只在缺少 Chrome 网站权限时显示此入口。';
   control('workflow-ai-approval-title').text='允许共享网页摘要？';
   control('workflow-ai-approval-scope').text=scene==='approval'
     ?'当前仅为授权界面预览，不会实际发送网页摘要。':'';
@@ -186,7 +186,7 @@ const actions={
     if(id==='workflow-run-review-cancel'||id==='workflow-run-review-confirm'){
       messages=[...messages,{id:'preview-review-'+messages.length,speaker:'系统',
         message:id==='workflow-run-review-cancel'?'已取消预览操作；没有执行网页动作。'
-          :'预览不具有 RunHost 授权，确认按钮不会执行网页操作。'}];
+          :'离线预览无法请求 Chrome 权限或执行网页操作。'}];
       showScene('conversation',{keepRows:true});return;
     }
     if(id==='workflow-ai-approve'||id==='workflow-ai-deny'){
