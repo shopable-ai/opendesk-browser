@@ -47,7 +47,7 @@ import {PROMPT_ID,PROMPT_CAPABILITY,PROMPT_PICKER_PROTOCOL,PROMPT_PAGE_OPERATION
 import {PROMPT_ASSET_OPERATIONS} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js';
 import {executePromptAsset} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js';
 import '../../examples/sidebar-tools/prompt-shortcuts/trusted/model.js';
-import {createPromptConversationRequest} from './conversation/prompt-controller.js';
+import {createTrustedPromptHost} from './conversation/prompt-host.js';
 import {admitsTrustedPrompt,TRUSTED_PROMPT_VERSION,
   trustedPromptProvenanceChanged} from './trusted-prompt-admission.js';
 import {createTimeReviewPermissionControls} from '../../examples/sidebar-tools/time-review/trusted/host-controls.js';
@@ -217,7 +217,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let clipGrants={},clipSiteEpoch=0;
   let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, nativeUI=null, nativePending=false, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false;
   let frameExportPort=null;
-  let promptGuardWait=null,promptGuardId=null;
+  let promptHost=null;
   let revocationEpochs={},frameRevocationEpoch=null,revocationReadEpoch=0;
   let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
   function refreshMenuStatus(tool,origin){
@@ -703,6 +703,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     return response.data;
   }
   function destroyFrame() {
+    if(promptHost){const previous=promptHost;promptHost=null;previous.dispose();}
     if(frameExportPort){frameExportPort.onmessage=null;frameExportPort.close();frameExportPort=null;}
     toolDirty=false;toolSaving=false;frameDraft='';clipPage=null;
     toolNavigation=null;navigationAllowed=false;
@@ -711,7 +712,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(frame){frame.onload=null;frame.remove();frame=null;}
     instance=null;requestCount=0;requestWindow=Date.now();lastHostHeight=null;
     frameRoot.replaceChildren();
-    if(frameRoot.dataset){delete frameRoot.dataset.timeReviewNative;delete frameRoot.dataset.bookmarkTrusted;delete frameRoot.dataset.officialWorkspace;}
+    if(frameRoot.dataset){delete frameRoot.dataset.timeReviewNative;delete frameRoot.dataset.bookmarkTrusted;delete frameRoot.dataset.promptAi;delete frameRoot.dataset.officialWorkspace;}
   }
   // The only admission for privileged Time Review rendering. Built-in code
   // never consumes the installed package's html/css/js as executable input.
@@ -790,6 +791,24 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       throw Object.assign(new Error('书签可信准入已失效'),{code:'E_TOOL_CHANGED'});
     }
     return dispatch(operation,payload,tool,trustedBookmarkSource,token,epoch);
+  }
+
+  // A reviewed installed package, provenance and generation are mandatory.
+  async function admittedNativePrompt(tool,expectedEpoch){
+    if(trustedPromptPilot?.enabled!==true||typeof trustedPromptPilot.mount!=='function'||
+       typeof trustedPromptPilot.conversation!=='function')return false;
+    if(!officialLoaded&&!officialError)await officialReady;
+    if(!officialLoaded||officialError)return false;
+    const release=officialReleases.find(row=>row.toolId===PROMPT_ID&&row.version===TRUSTED_PROMPT_VERSION);
+    if(!release)return false;
+    const saved=await api.storage.local.get([
+      SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,MARKET_PROVENANCE_STORE
+    ]);
+    return admitsTrustedPrompt({tool,release,expectedEpoch,
+      installed:requireCompleteInstalledSidebarTools(saved[SIDEBAR_TOOL_STORE]),
+      enableRecords:saved[SIDEBAR_TOOL_ENABLE_STORE],
+      epochs:saved[TOOL_REVOCATION_EPOCHS_STORE],
+      provenance:saved[MARKET_PROVENANCE_STORE]});
   }
   function trustedBookmarkSDK(tool,token,epoch){
     const request=(operation,payload={})=>requestTrustedBookmark(tool,token,epoch,operation,payload);
