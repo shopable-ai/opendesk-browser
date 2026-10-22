@@ -89,7 +89,7 @@
 .cookie-editor-react .cookie-export-panel{display:grid;gap:var(--space-3);min-width:0}
 .cookie-editor-react .cookie-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
 .cookie-editor-react .cookie-export-panel h3{font-size:var(--od-body-size);margin:0}
-.cookie-editor-react .cookie-export-options{display:grid;gap:var(--space-2);min-width:0}
+.cookie-editor-react .export-format.cookie-export-options{display:grid;gap:var(--space-2);min-width:0}
 .cookie-editor-react .cookie-export-tabs{
   display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;
   padding:3px;border:1px solid var(--od-line);
