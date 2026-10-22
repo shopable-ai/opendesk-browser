@@ -204,35 +204,62 @@ try{
   await row('import_file').waitFor();await workspace.waitFor({state:'detached'});
   assert.equal(await page.locator('.cookie-row').count(),9);await reset();
  });
- await test('JSON copy/download complete within workspace and return to list',async()=>{
+ await test('export floats above the list, uses two tabs and closes on outside focus',async()=>{
+  for(const width of [320,360,400,440]){
+   await page.setViewportSize({width,height:760});
+   await button('导出 Cookie').click();
+   const popup=page.getByRole('dialog',{name:'导出 Cookie'});await popup.waitFor();
+   assert.equal(await page.locator('.cookie-row').count(),8,'list remains mounted');
+   assert.equal(await popup.getByRole('tab').count(),2);
+   assert.equal(await popup.getByRole('tab',{name:'Netscape'}).count(),0);
+   assert.equal(await popup.getByRole('tab',{name:'JSON'}).getAttribute('aria-selected'),'true');
+   assert.equal(await page.locator('dialog:modal').count(),0);
+   const box=await popup.boundingBox();
+   assert.ok(box.x>=4&&box.x+box.width<=width-4,'popover within '+width+'px');
+   await page.keyboard.press('Escape');await popup.waitFor({state:'detached'});
+   assert.equal(await button('导出 Cookie').evaluate(el=>el===el.ownerDocument.activeElement),true);
+  }
+  await page.setViewportSize({width:380,height:880});
   await button('导出 Cookie').click();
-  const workspace=page.getByRole('region',{name:'导出 Cookie'});await workspace.waitFor();
-  assert.equal(await button('关闭导出').evaluate(el=>el===el.ownerDocument.activeElement),true);
-  assert.equal(await page.locator('dialog:modal').count(),0);
-  assert.equal(await page.locator('.cookie-row').count(),0);
-  assert.equal(await page.getByRole('checkbox',{name:/包含/}).isChecked(),true);
-  await button('复制').click();await ready();
-  assert.equal(await workspace.count(),0);
+  const popup=page.getByRole('dialog',{name:'导出 Cookie'});await popup.waitFor();
+  await page.keyboard.press('ArrowRight');
+  assert.equal(await popup.getByRole('tab',{name:'Cookie Header'}).getAttribute('aria-selected'),'true');
+  assert.equal(await popup.getByRole('button',{name:'复制'}).isDisabled(),true,'partitioned data cannot export as header');
+  await page.getByRole('searchbox',{name:'搜索 Cookie'}).click();
+  await popup.waitFor({state:'detached'});
+  assert.equal(await page.getByRole('searchbox',{name:'搜索 Cookie'}).evaluate(el=>el===el.ownerDocument.activeElement),true);
+ });
+ await test('JSON copy/download use real Controller without navigation or data preview',async()=>{
+  await button('导出 Cookie').click();
+  const popup=page.getByRole('dialog',{name:'导出 Cookie'});await popup.waitFor();
+  assert.equal(await popup.getByRole('tab',{name:'JSON'}).getAttribute('aria-selected'),'true');
+  assert.equal(await popup.getByRole('checkbox',{name:/包含 Cookie 值/}).isChecked(),true);
+  assert.equal(await page.locator('.cookie-row').count(),8);
+  assert.equal(await popup.locator('[data-cookie-secret-output]').count(),0);
+  await popup.getByRole('button',{name:'复制'}).click();await ready();
+  await popup.waitFor({state:'detached'});
   assert.equal(await button('导出 Cookie').evaluate(el=>el===el.ownerDocument.activeElement),true);
-  await button('导出 Cookie').click();await workspace.waitFor();
-  const downloadEvent=page.waitForEvent('download');await button('下载').click();
+  await button('导出 Cookie').click();await popup.waitFor();
+  const downloadEvent=page.waitForEvent('download');
+  await popup.getByRole('button',{name:'下载'}).click();
   const download=await downloadEvent;await download.saveAs(join(output,'fictional-cookies.json'));
   assert.equal(JSON.parse(await readFile(join(output,'fictional-cookies.json'),'utf8')).length,8);
-  await ready();assert.equal(await workspace.count(),0);
-  await button('导出 Cookie').click();await workspace.waitFor();
-  await page.locator('.cookie-export-panel select').selectOption('header');
-  assert.equal(await button('复制').isDisabled(),true);await page.getByText(/已禁止导出/).waitFor();
-  await page.keyboard.press('Escape');await ready();
-  assert.equal(await button('导出 Cookie').evaluate(el=>el===el.ownerDocument.activeElement),true);
+  await popup.waitFor({state:'detached'});
   await scene('valuesDenied');await ready();
-  await button('导出 Cookie').click();await button('复制').click();
-  await workspace.getByRole('alert').filter({hasText:/E_COOKIE_VALUES/}).waitFor();await reset();
+  await button('导出 Cookie').click();await popup.waitFor();
+  await popup.getByRole('button',{name:'复制'}).click();
+  await popup.getByRole('alert').filter({hasText:/E_COOKIE_VALUES/}).waitFor();await reset();
  });
- await test('one-shot export failure reports error; retry succeeds without remount',async()=>{
-  await page.getByTestId('failure').selectOption('copy');await button('导出 Cookie').click();await button('复制').click();
-  await page.getByRole('region',{name:'导出 Cookie'}).getByRole('alert').filter({hasText:/E_CLIPBOARD/}).waitFor();
-  await button('复制').click();await ready();
-  assert.equal(await page.locator('.cookie-export-workspace').count(),0);assert.equal(await page.getByRole('alert').count(),0);
+ await test('one-shot export failure remains in the popover and manual retry succeeds',async()=>{
+  await page.getByTestId('failure').selectOption('copy');
+  await button('导出 Cookie').click();
+  const popup=page.getByRole('dialog',{name:'导出 Cookie'});await popup.waitFor();
+  await popup.getByRole('button',{name:'复制'}).click();
+  await popup.getByRole('alert').filter({hasText:/E_CLIPBOARD/}).waitFor();
+  assert.equal(await page.locator('.cookie-row').count(),8);
+  await popup.getByRole('button',{name:'复制'}).click();await ready();
+  await popup.waitFor({state:'detached'});
+  assert.equal(await page.getByRole('alert').count(),0);
  });
  await test('grant event synchronously scrubs the secret DOM and discards the invalidated editor',async()=>{
   await row('session_id').click();
