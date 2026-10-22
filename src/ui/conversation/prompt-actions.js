@@ -86,9 +86,12 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
  if(!/^[a-f0-9]{64}$/.test(etag||''))throw error('E_PROMPT_HOST','Host 缺少有效数据版本');
  stop(signal);
  const a=checked.action,items=library.items;
+ if(['edit','set_enabled','move'].includes(a.type)&&/^\$search:(?:[1-9]|1[0-2])$/.test(a.target||'')&&
+    refs.etag!==etag)
+  throw error('E_PROMPT_REFERENCE_STALE','上次搜索对应的库版本已变化，请重新搜索定位');
  if(a.type==='search'){
   const found=matching(items,a.query),shown=found.slice(0,12);
-  const refsNext={matches:shown.map(row=>row.id)};
+  const refsNext={matches:shown.map(row=>row.id),etag};
   const message='搜索「'+a.query+'」：共 '+found.length+' 条，显示 '+shown.length+' 条'+
    (shown.length?'\n'+shown.map((row,i)=>String(i+1)+'. '+
     (row.nameAuto?row.label:row.name)+' · '+(row.enabled?'启用':'停用')).join('\n'):'；没有找到记录');
@@ -190,7 +193,7 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
    '持久化结果无法核实，请先在原工具中刷新对账，不要重放写入',
    {writeIssued:attempted,cause:writeFailure||e});
  }
- const refsNext={matches:affected.slice(0,12).map(v=>v.id)};
+ const refsNext={matches:affected.slice(0,12).map(v=>v.id),etag:checkedValue.etag};
  const message='已'+verb+' '+affected.length+' 条提示词，真实存储读回已核对';
  onStep({message,refs:refsNext,etag:checkedValue.etag});
  return {messages:[message],refs:refsNext,etag:checkedValue.etag,writeIssued:true};
