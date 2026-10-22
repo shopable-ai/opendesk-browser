@@ -421,3 +421,35 @@ test('only independently observed new Document title and product price prove nav
   ])assert.equal(verifyOpenedLinkPage({linkGuard,after,actionTarget:target,
     resultTarget,...changed}),null);
 });
+
+test('Agent continuation admits only remaining actions, not first-round fill/search replay',()=>{
+  const goal='填写 camera，搜索 camera，打开 Camera X 商品详情并核对价格';
+  const first=workflow([{...fill,text:'camera'},
+    {stepId:'search',op:'click',locatorKind:'role',selector:'button',roleName:'搜索'}]);
+  assert.equal(prepareDirectExecution({request:goal,workflow:first,target,
+    observation:searchObservation}).effectExpectation.query,'camera');
+  const link={stepId:'open-camera',op:'click',locatorKind:'role',selector:'link',roleName:'Camera X'};
+  const href='/product/camera-x',destination=new URL(href,target.url).href;
+  const observation={summary:{origin,documentId:target.documentId,nodes:[{
+    role:'link',name:'Camera X',state:{visible:true,disabled:false},
+    locator:{kind:'role',value:'link',name:'Camera X',exact:true},
+    navigation:{href,url:destination,origin}}]}};
+  assert.throws(()=>prepareDirectExecution({request:goal,workflow:workflow([link]),
+    target,observation}),{code:'E_AI_MISSING_ACTION'});
+  const admitted=prepareDirectExecution({request:goal,workflow:workflow([link]),
+    target,observation,verifiedFacts:['input-readback','search-results']});
+  assert.equal(admitted.linkGuard.name,'Camera X');
+  assert.equal(admitted.linkGuard.url,destination);
+  assert.throws(()=>prepareDirectExecution({request:'搜索 Camera X',
+    workflow:workflow([link]),target,observation,
+    verifiedFacts:['search-results']}),{code:'E_AI_UNREQUESTED_ACTION'});
+  assert.throws(()=>prepareDirectExecution({request:'搜索 Camera X，不要打开 Camera X',
+    workflow:workflow([link]),target,observation,
+    verifiedFacts:['search-results']}),{code:'E_AI_UNREQUESTED_ACTION'});
+  assert.throws(()=>prepareDirectExecution({request:goal,workflow:first,
+    target,observation:searchObservation,
+    verifiedFacts:['input-readback','search-results']}),{code:'E_AGENT_NO_PROGRESS'});
+  assert.equal(prepareDirectExecution({request:'核对当前页面价格',
+    workflow:workflow([{stepId:'extract-price',op:'extract',locatorKind:'css',selector:'.price'}]),
+    target}).hasUnprovenClick,false);
+});

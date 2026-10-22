@@ -33,7 +33,7 @@ export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits=
   const cap={rounds:Math.min(8,Math.max(1,limits.rounds||8)),
     actions:Math.min(24,Math.max(1,limits.actions||24)),
     durationMs:Math.min(480000,Math.max(1,limits.durationMs||480000))};
-  const start=clock(),issued=new Set(),facts=new Set(),states=[];
+  const start=clock(),issued=new Set(),confirmed=new Set(),facts=new Set(),states=[];
   let rounds=0,actionCount=0,lastError=null;
   function check(){
     if(signal?.aborted)throw signal.reason?.code?signal.reason:
@@ -41,13 +41,33 @@ export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits=
     if(clock()-start>=cap.durationMs)
       throw fault('E_AGENT_LIMIT','任务已到达八分钟上限，已完成的网页变化不会自动回滚');
   }
-  function claim({workflow,target}={}){
+  // Prevent verified effects being replayed under a new step ID, Document
+  // or group. Only the original Controller marks an effect verified.
+  const identity=(origin,step)=>JSON.stringify([origin,actions(step)]);
+  const isObservedSearch=(step,observation,target)=>
+    step.op==='click'&&(
+      step.locatorKind==='role'&&step.selector==='button'&&
+        /^(?:搜索|search)$/i.test(step.roleName||'')||
+      observation?.summary?.origin===target?.origin&&
+      observation?.summary?.documentId===target?.documentId&&
+      observation.summary.nodes?.some(node=>node.role==='button'&&
+        /^(?:搜索|search)$/i.test(node.name||'')&&node.state?.visible===true&&
+        node.locator?.kind===step.locatorKind&&node.locator?.value===step.selector&&
+        (step.locatorKind!=='role'||node.locator.name===step.roleName))
+    );
+  function claim({workflow,target,observation}={}){
     check();
     if(!workflow||!Array.isArray(workflow.steps)||!workflow.steps.length||
       workflow.steps.length>4)
       throw fault('E_AGENT_SCHEMA','每轮只允许一至四个受限步骤');
     if(rounds>=cap.rounds||actionCount+workflow.steps.length>cap.actions)
       throw fault('E_AGENT_LIMIT','已达连续决策或操作数量上限，不再继续执行');
+    if(workflow.steps.some(step=>['fill','click'].includes(step.op)&&
+      confirmed.has(identity(target?.origin,step))))
+      throw fault('E_AGENT_NO_PROGRESS','该填写或点击已独立核验，不得拆分后重复执行');
+    if([...facts].some(value=>value.startsWith('search-'))&&
+      workflow.steps.some(step=>isObservedSearch(step,observation,target)))
+      throw fault('E_AGENT_NO_PROGRESS','搜索结果已核验，不再重复点击搜索按钮');
     // Do not include model-generated step IDs or Document IDs: renamed
     // locators and navigation must not allow a repeated write on another page.
     const signature=JSON.stringify([target?.origin,workflow.steps.map(actions)]);
@@ -55,6 +75,7 @@ export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits=
       throw fault('E_AGENT_NO_PROGRESS','相同网页操作已经尝试；已停止，避免重复写入或点击');
     issued.add(signature);rounds++;actionCount+=workflow.steps.length;
     return Object.freeze({signature,round:rounds,actions:workflow.steps.length,
+      origin:target?.origin,steps:workflow.steps.map(actions),
       readOnly:workflow.steps.every(step=>['observe','extract','assert','wait'].includes(step.op))});
   }
   function verified({claim:ticket,reply}={}){
@@ -68,8 +89,20 @@ export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits=
         :'已有步骤可能生效，当前执行失败，不再重放'};
     }
     if(reply.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'){
+      if(reply.effect?.kind==='product-page'&&(
+        typeof reply.effect.name!=='string'||!reply.effect.name.trim()||
+        !goal.toLocaleLowerCase().includes(reply.effect.name.toLocaleLowerCase())||
+        !/^(?:¥|￥|\$|€)\s?\d{1,9}(?:\.\d{1,2})?$/.test(reply.effect.price||'')))
+        return {state:'PARTIAL',completed:false,
+          reason:'商品名称或价格不能与原始目标及读回结果共同核对，停止继续'};
       if(reply.readbackVerified===true)facts.add('input-readback');
       if(typeof reply.effect?.kind==='string')facts.add(reply.effect.kind);
+      const clickVerified=['search-results','search-empty','search-inline',
+        'link-page','product-page'].includes(reply.effect?.kind);
+      for(const step of ticket.steps||[])if(
+        step.op==='fill'&&reply.readbackVerified===true||
+        step.op==='click'&&clickVerified)
+        confirmed.add(identity(ticket.origin,step));
     } else if(ticket.readOnly&&reply.evidenceLevel==='EXECUTION_RECEIPT_VERIFIED'&&
       reply.readOnlyVerified===true)facts.add('read-only');
     else return {state:'PARTIAL',completed:false,reason:'执行回执已核对，但网页效果尚未独立确认，不继续写入'};

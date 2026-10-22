@@ -7,7 +7,7 @@ const riskyClickTarget=/(?:付款|支付|购买|下单|结账|转账|删除|清�
 const fillIntent=/(?:填入|填写|输入|填上|填到|写入|写在|设为|改成|改为|放入|设置输入框|\b(?:fill|type|enter)\b)/i;
 const clickIntent=/(?:点击|点开|按下|打开|跳转|搜索(?!关键词|框|栏|输入框|结果|页面|记录|历史|列表)|提交|下一步|选择(?:按钮|菜单|选项|标签|条目|项目)|\bsearch\b(?!\s+(?:keyword|input|field|box)\b)|\b(?:click|open|navigate|submit|select|press)\b)/i;
 const negatedClickIntent=new RegExp(String.raw`(?:不要|不得|禁止|别|勿|无需|不允许|do\s+not|don['’]t|never)\s*${clickIntent.source}(?:(?!(?:但|然后|接着|随后|而是|不过|\b(?:but|then|however)\b))[^，。；,;.!！？?\n])*`,'gi');
-const readIntent=/(?:查看(?:页面|网页|内容|结果)?|读取|提取|显示(?:页面|内容|结果)|观察|检查网页|页面内容|\b(?:read|extract|observe|inspect|show)\b)/i;
+const readIntent=/(?:查看(?:页面|网页|内容|结果)?|读取|提取|核对|验证|比对|检查|显示(?:页面|内容|结果)|观察|页面内容|\b(?:read|extract|observe|inspect|show|verify|check)\b)/i;
 
 // Shared risk classification, not a second permission or execution authority.
 // The exact frozen script, site grant and Document are still checked by RunHost.
@@ -37,12 +37,19 @@ export function classifyWorkflowRunRisk(value) {
 
 // Admission for the existing RunHost only. Model output is never executable code,
 // a Chrome origin grant, or authority to exceed the user's requested actions.
-export function prepareDirectExecution({request,workflow,target,observation}) {
+export function prepareDirectExecution({request,workflow,target,observation,verifiedFacts=[]}) {
   const clean=validateWorkflow(workflow);
   if(clean.steps.some(step=>step.linkGuard!==undefined))
     throw error('E_AI_REVIEW_REQUIRED','模型不得携带旧的链接执行证明');
   if(typeof request!=='string'||!request.trim()||request.length>4000)
     throw error('E_AI_REQUEST','任务描述无效');
+  // Facts come from independently verified RunHost readback, never from
+  // model assertions. Keep the original request immutable for authorization.
+  const verified=new Set(Array.isArray(verifiedFacts)?verifiedFacts:[]);
+  const inputDone=verified.has('input-readback');
+  const searchDone=['search-results','search-empty','search-inline']
+    .some(kind=>verified.has(kind));
+  const linkDone=verified.has('link-page')||verified.has('product-page');
   if(!target||!targetFields.every(key=>Object.hasOwn(target,key))||
     !Number.isSafeInteger(target.windowId)||!Number.isSafeInteger(target.tabId)||
     typeof target.documentId!=='string'||!target.documentId||
@@ -98,8 +105,9 @@ export function prepareDirectExecution({request,workflow,target,observation}) {
   const instruction=values.reduce((text,value)=>text.replace(value,''),request);
   // Prohibiting submission/navigation grants no click authority. Strip only
   // those negative clauses; affirmative actions in later clauses still count.
-  const requestedClick=clickIntent.test(instruction.replace(negatedClickIntent,''));
-  if(fillIntent.test(instruction)&&!fills.length)
+  const affirmative=instruction.replace(negatedClickIntent,'');
+  const requestedClick=clickIntent.test(affirmative);
+  if(fillIntent.test(instruction)&&!fills.length&&!inputDone)
     throw error('E_AI_MISSING_ACTION','用户要求填写，模型没有返回填写步骤');
   // "搜索 OpenDesk" is ordinary user intent for filling one query and
   // pressing the observed search control. It must not license other fills,
@@ -110,13 +118,13 @@ export function prepareDirectExecution({request,workflow,target,observation}) {
   // Do not misclassify an omitted search click as an unsolicited fill. By
   // contrast, "在搜索框填入…" explicitly requests only the input value.
   if(fills.length===1&&!clicks.length&&!fillIntent.test(instruction)&&
-    /(?:搜索(?!框|栏|关键词|词|结果|页面|历史|记录|输入框)|查找|检索(?!词|结果)|\bsearch\b(?!\s+(?:keyword|input|field|box|term)\b))/i.test(instruction))
+    /(?:搜索(?!框|栏|关键词|词|结果|页面|历史|记录|输入框)|查找|检索(?!词|结果)|\bsearch\b(?!\s+(?:keyword|input|field|box|term)\b))/i.test(instruction)&&!searchDone)
     throw error('E_AI_MISSING_ACTION','用户要求执行搜索，但模型遗漏了搜索点击');
   if(fills.length&&!fillIntent.test(instruction)&&!groundedSearch)
     throw error('E_AI_UNREQUESTED_ACTION','本次未要求填写，模型额外生成填写动作');
   if(clicks.length&&!requestedClick)
     throw error('E_AI_UNREQUESTED_ACTION','本次未要求点击，模型额外生成点击动作');
-  if(requestedClick&&!clicks.length)
+  if(requestedClick&&!clicks.length&&!searchDone&&!linkDone)
     throw error('E_AI_MISSING_ACTION','用户要求点击，模型没有返回点击步骤');
   const summary=observation?.summary;
   const observedSearch=step=>step.locatorKind==='css'&&
@@ -137,7 +145,7 @@ export function prepareDirectExecution({request,workflow,target,observation}) {
         node.name===step.roleName))||[];
     if(nodes.length!==1)return null;
     const node=nodes[0],name=String(node.name||'').trim(),
-      intent=instruction.toLocaleLowerCase().replace(/\s+/g,' ');
+      intent=affirmative.toLocaleLowerCase().replace(/\s+/g,' ');
     if(name.length<3||name.length>120||
       !intent.includes(name.toLocaleLowerCase().replace(/\s+/g,' ')))return null;
     const nav=node.navigation;
@@ -159,6 +167,8 @@ export function prepareDirectExecution({request,workflow,target,observation}) {
       locatorKind:step.locatorKind,selector:step.selector,roleName:step.roleName||''};
   };
   const linkGuard=clicks.length===1?observedLink(clicks[0]):null;
+  if(linkGuard&&!/(?:打开|进入|点开|跳转|访问|(?:点击|选择)[^，。；,;.!！？?\n]{0,80}(?:结果|链接|商品|详情)|\b(?:open|navigate|visit|follow)\b)/i.test(affirmative))
+    throw error('E_AI_UNREQUESTED_ACTION','原始任务未要求打开该结果链接');
   if(clicks.some(step=>riskyClickTarget.test([step.selector,step.roleName].filter(Boolean).join(' '))&&
     (!observedSearch(step)||riskyClickTarget.test(step.roleName||''))))
     throw error('E_AI_REVIEW_REQUIRED','模型选择了潜在不可撤销的点击，未执行');
@@ -175,6 +185,10 @@ export function prepareDirectExecution({request,workflow,target,observation}) {
       node.locator.value==='button'&&node.locator.name===step.roleName&&
       !node.locator.parent&&node.locator.index===undefined)===true;
   };
+  if(searchDone&&clicks.some(searchButton))
+    throw error('E_AGENT_NO_PROGRESS','搜索已独立核验，不能重复点击搜索按钮');
+  if(linkDone&&linkGuard)
+    throw error('E_AGENT_NO_PROGRESS','目标页面已独立核验，不得重复打开链接');
   // A model click must match a Search control observed in the current Document.
   // Unknown side effects must be refused rather than inferred safe from text.
   if(clicks.some(step=>!searchButton(step)&&!linkGuard))

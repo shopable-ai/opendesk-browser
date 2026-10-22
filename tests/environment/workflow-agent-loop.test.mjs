@@ -72,3 +72,30 @@ test('stop and deadline halt without new claims',()=>{
  abort.abort(Object.assign(new Error('stop'),{code:'E_CANCELLED'}));
  assert.throws(()=>another.claim({workflow:proposal([fill]),target}),{code:'E_CANCELLED'});
 });
+
+test('verified writes are not replayed in another fragment or Document',()=>{
+ const guard=createWorkflowAgentLoopGuard({goal:'填写 camera，搜索 camera，打开 Camera X 详情并核对价格'});
+ const first=guard.claim({workflow:proposal([fill,search]),target,observation:read()});
+ assert.equal(guard.verified({claim:first,reply:successful}).state,'CONTINUE');
+ assert.throws(()=>guard.claim({workflow:proposal([{...fill,stepId:'different'}]),
+   target:{...target,documentId:'doc-2'}}),{code:'E_AGENT_NO_PROGRESS'});
+ assert.throws(()=>guard.claim({workflow:proposal([{...search,stepId:'again'}]),
+   target:{...target,documentId:'doc-2'}}),{code:'E_AGENT_NO_PROGRESS'});
+ const css={stepId:'css-search',op:'click',locatorKind:'css',selector:'#search'};
+ const observation={summary:{origin:target.origin,documentId:'doc-2',nodes:[{
+   role:'button',name:'搜索',state:{visible:true},locator:{kind:'css',value:'#search'}}]}};
+ assert.throws(()=>guard.claim({workflow:proposal([css]),
+   target:{...target,documentId:'doc-2'},observation}),{code:'E_AGENT_NO_PROGRESS'});
+});
+test('a different product or missing verified price cannot satisfy original goal',()=>{
+ const guard=createWorkflowAgentLoopGuard({goal:'打开 Camera X 商品详情并核对价格'});
+ const ticket=guard.claim({workflow:proposal([link]),target});
+ assert.equal(guard.verified({claim:ticket,reply:{ok:true,
+   evidenceLevel:'BUSINESS_EFFECT_VERIFIED',
+   effect:{kind:'product-page',name:'Camera Y',price:'$99'}}}).state,'PARTIAL');
+ const second=createWorkflowAgentLoopGuard({goal:'打开 Camera X 商品详情并核对价格'});
+ const other=second.claim({workflow:proposal([link]),target});
+ assert.equal(second.verified({claim:other,reply:{ok:true,
+   evidenceLevel:'BUSINESS_EFFECT_VERIFIED',
+   effect:{kind:'product-page',name:'Camera X',price:'unverified'}}}).state,'PARTIAL');
+});

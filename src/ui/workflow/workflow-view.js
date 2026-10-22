@@ -515,7 +515,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       const claim=await host.start({source,params,
         target:{mode:'borrowed',tabId:captured.tabId,frameId:0,documentId:captured.documentId,
           expectedUrl:captured.url,expectedWindowId:captured.windowId},deadlineAt:Date.now()+30000});
-      runId=claim.runId;onRunOwner(runId);updateButtons();
+      runId=claim.runId;
+      if(prepared?.agent)prepared.agent.startedCount++;
+      onRunOwner(runId);updateButtons();
       if(prepared?.signal?.aborted){
         await host.stop({controller:true,runId:claim.runId,reason:'E_CANCELLED'});
         throw err('E_CANCELLED','已停止，不重放');
@@ -780,7 +782,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         if(target?.status!=='available'||target.frameId!==0||
           target.windowId!==agent.initialTarget.windowId||
           target.tabId!==agent.initialTarget.tabId||
-          target.origin!==agent.initialTarget.origin)
+          (target.origin!==agent.initialTarget.origin&&
+           (target.origin!==agent.expectedNavigation?.origin||
+            target.url!==agent.expectedNavigation?.url)))
           throw err('E_DOCUMENT_STALE','网页已切换到其他授权范围；不会自行扩大权限或重复点击');
         planningTarget=target;
         if(!await api.permissions.contains({origins:[permissionPattern(target.url)]}))
@@ -834,16 +838,21 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         for(let attempt=0;attempt<2;attempt++){
           agent.guard.check();
           planningCurrent(agent.epoch,serial,source);
-          const prompt=attempt===0?agent.goal:
-            agent.goal.slice(0,3600)+'\n上一次方案未通过执行前校验（'+
-            lastPreflight.code+'）；只纠正该错误，不能增加未经要求的操作。';
+          const facts=agent.guard.snapshot().facts;
+          const progress='\n已由独立 RunHost 读回核验：'+facts.join('、')+
+            '。只规划尚未完成的下一段；不得重放这些步骤，也不能改变原始目标、对象或禁止项。';
+          const correction=attempt>0?'\n前一方案在执行前失败（'+
+            lastPreflight.code+'）；仅纠正该错误，不增加动作。':'';
+          const prompt=agent.goal.slice(0,Math.max(100,3990-progress.length-correction.length))+
+            progress+correction;
           let proposed;
           try{
             if(++agent.modelDecisions>8)throw err('E_AGENT_LIMIT','已达到八次 AI 决策上限，停止重新规划');
             proposed=(await workflowProviders.generateWorkflow({...planArgs,request:prompt})).proposal;
             planningCurrent(agent.epoch,serial,source);
             const admission=prepareDirectExecution({
-              request:agent.goal,workflow:proposed,target,observation:receipt});
+              request:agent.goal,workflow:proposed,target,observation:receipt,
+              verifiedFacts:agent.guard.snapshot().facts});
             const executable=structuredClone(proposed);
             if(admission.linkGuard){
               const click=executable.steps.find(step=>step.op==='click');
@@ -869,7 +878,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         await currentPageTarget.revalidate(target);
         agent.guard.check();
         const {executable,admission,freeze}=checked;
-        const ticket=agent.guard.claim({workflow:executable,target});
+        const ticket=agent.guard.claim({workflow:executable,target,observation:receipt});
         // Only the current round is shown/editable/savable as a JavaScript
         // artifact. A multi-Document agent journal is not misrepresented as a
         // portable one-script replay.
@@ -1165,7 +1174,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       const unknown=results.some(result=>result.status==='rejected')||
         Boolean(activeId&&host.currentRun===activeId)||Boolean(host.executionPending);
       const state=unknown?'OUTCOME_UNKNOWN':
-        agent.guard.snapshot().actionCount>0?'PARTIAL':'STOPPED';
+        agent.startedCount>0?'PARTIAL':'STOPPED';
       finishWorkflowAgent(agent,reason==='E_AGENT_LIMIT'?'LIMIT_REACHED':state,unknown
         ?'已禁止新操作，但运行或 Worker 收尾未核实；结果未知，请勿重放。'
         :state==='PARTIAL'?'已停止后续操作；此前已执行的步骤可能保留，请核对网页。'
@@ -1336,7 +1345,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     }
     
     const epoch=++planningGeneration,abort=new AbortController();planningAbort=abort;planningTarget=captured;planningObservation=null;
-    const agent={epoch,controller:abort,selected:frozen.selected,goal:frozen.request,initialTarget:structuredClone(captured),
+    const agent={epoch,controller:abort,selected:frozen.selected,goal:frozen.request,initialTarget:structuredClone(captured),startedCount:0,
       settings:{endpoint:frozen.endpoint,apiKey:frozen.apiKey,model:frozen.model},modelDecisions:0,
       guard:createWorkflowAgentLoopGuard({goal:frozen.request,signal:abort.signal}),
       expectedNavigation:null,stopping:false};
@@ -1457,7 +1466,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }
       if(planningObservation)
         agent.guard.observed({target:captured,receipt:planningObservation,remaining:frozen.request});
-      const ticket=agent.guard.claim({workflow:executable,target:captured});
+      const ticket=agent.guard.claim({workflow:executable,target:captured,observation:planningObservation});
       agent.expectedNavigation=prepared.linkGuard||null;
       if(!await permission)throw err('E_PERMISSION','网站权限未授权，未执行浏览器操作');
       await currentPageTarget.revalidate(captured);
