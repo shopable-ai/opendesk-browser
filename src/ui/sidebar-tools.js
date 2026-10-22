@@ -1168,6 +1168,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   function canLeave(onApproved) {
     if(toolSaving){notice('当前工具正在保存，请完成后再切换。',true);return false;}
+    // Prompt Shortcuts returns directly; pending and unknown writes report busy.
+    if(active?.id===PROMPT_ID)return true;
     if(toolDirty||isDirty()){
       const session=instance,toolId=active?.id;
       requestActionReview({
