@@ -403,7 +403,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
           {action('workflow-provider-toggle','AI 设置',{icon:true,kind:'settings','aria-expanded':openSettings,'aria-controls':'workflow-provider-settings'})}
           <WorkflowSourceName value={model.sourceName||'本机 Codex'}/>
         {action('workflow-ai-plan','发送任务',{icon:true,primary:true,kind:'send'})}
-          {action('workflow-ai-cancel','停止 AI 规划')}
+          {action('workflow-ai-cancel','停止')}
         </div>
       </div>
       <div id="workflow-page-actions" className="workflow-actions od-toolbar" hidden={Boolean(model.awaitingReview)||(!model.hasSteps&&model.phase!=='running')}>
