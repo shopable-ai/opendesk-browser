@@ -49,6 +49,19 @@ function makeNative(){
   return {client,calls,answers};
 }
 const state=(f,id)=>f.state().controls[id]||{};
+// Provider approval can finish before the subsequent Worker journal/Agent
+// terminal state. A separate Send must start after the previous task settles.
+async function waitForNextSend(f,where){
+  for(let attempt=0;attempt<80;attempt++){
+    if(state(f,'workflow-ai-plan').disabled===false &&
+      !f.host.executionPending && !f.host.currentRun)return;
+    await tick();
+  }
+  assert.fail(where+': previous Send did not settle: '+JSON.stringify({
+    plan:state(f,'workflow-ai-plan'),agent:state(f,'workflow-editor').dataset,
+    runs:f.starts.length,runId:f.host.currentRun
+  }));
+}
 test('R23.17 Native: first disclosure, valid session reuse, revoke then deny without new RunHost',async t=>{
   const n=makeNative(),f=await workflowFixture({client:n.client});
   t.after(()=>f.view.dispose());
@@ -65,6 +78,7 @@ test('R23.17 Native: first disclosure, valid session reuse, revoke then deny wit
   const key='opendesk.sidebar.workflow-draft.v1:7:observation';
   assert.equal(f.session.get(key)?.provider,'local_codex');
   assert.equal(n.calls.filter(c=>c.method==='ai.session.open').length,1);
+  await waitForNextSend(f,'第一次 Native Send');
 
   f.input('workflow-ai-request','再次读取当前网页，检查值但不要提交。');
   const second=f.click('workflow-ai-plan');await tick();await tick();
