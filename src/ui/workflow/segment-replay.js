@@ -119,10 +119,12 @@ export function verifyReplayBusinessEffect(expected,reply) {
     return reply.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'&&reply.readbackVerified===true;
   if(reply.evidenceLevel!=='BUSINESS_EFFECT_VERIFIED'||reply.effect?.kind!==expected.kind)
     return false;
-  if(['product-page','link-page'].includes(expected.kind))
+  if(expected.kind==='link-page')
+    return typeof reply.effect.title==='string'&&
+      reply.effect.title.toLocaleLowerCase()===String(expected.name||'').toLocaleLowerCase();
+  if(expected.kind==='product-page')
     return typeof reply.effect?.name==='string'&&
       reply.effect.name.toLocaleLowerCase()===String(expected.name||'').toLocaleLowerCase()&&
-      (expected.kind!=='product-page'||
-        /^(?:¥|￥|\$|€)\s?\d{1,9}(?:\.\d{1,2})?$/.test(reply.effect.price||''));
+      /^(?:¥|￥|\$|€)\s?\d{1,9}(?:\.\d{1,2})?$/.test(reply.effect.price||'');
   return true;
 }
