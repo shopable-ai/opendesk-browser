@@ -415,7 +415,7 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   // Product discovery is now React-owned; the hidden legacy tools header is
   // not an acceptable native installation path.
   assert.equal(await evaluate(browser,side,
-    'document.querySelector("#sidebar-tool-discover-toggle")?.checkVisibility()'),false,
+    'document.querySelector("#sidebar-tool-discover-toggle")?.checkVisibility()===true'),false,
     'legacy discovery is intentionally hidden in the production extension center');
   await nativeOfficialReview(browser,side,'time-review');
   await until(()=>evaluate(browser,side,'!document.querySelector("#sidebar-tool-preview")?.hidden'),'review package');
