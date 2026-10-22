@@ -259,6 +259,7 @@ Node state.json 现状与生产需求明确分开；正式环境必须核对多�
 
 - [9d95de52d868bd5915aaf6ab44db9a83fcd8ece8](https://github.com/shopable-ai/opendesk-browser/commit/9d95de52d868bd5915aaf6ab44db9a83fcd8ece8)：仅修改 `src/cloud-control/connection.js` 与 `tests/cloud-control/connection.test.mjs`。HTTPS Pull session 仍有效时，WSS 重探测和短暂续期故障不主动摧毁原 Pull-ready；切换到 WSS 的 authenticated-ready 之前必须通过 capabilities ACK 和 reconcile。新增两个独立回归。
 - [e800ea2ff3d06873f38338f498ad0418879e26ba](https://github.com/shopable-ai/opendesk-browser/commit/e800ea2ff3d06873f38338f498ad0418879e26ba)：仅修改 `scripts/cloud-control/provider.mjs` 与 `tests/cloud-control/remote-https-r52.test.mjs`。已有 Client-scoped HTTPS `/v1/client-scope` 可选择读取批准 Task 的安全表单元数据；`/v1/submit` 拒绝空白/超长 requestKey。保留原 Client Token、Job、Claim、Permit、Run/Result、Receipt 边界，不新增 Provider。
+- [d5026e2f73b7c795a5796bd25a60b2df8e098eaa](https://github.com/shopable-ai/opendesk-browser/commit/d5026e2f73b7c795a5796bd25a60b2df8e098eaa)：把仅产生临时 WSS Ticket 的 `/v1/auth` 纳入不触碰 durable state.json 的读路径，并在认证时清除过期、失效 Pairing 的内存 Ticket；增加 `state.json.tmp` 被占用仍可完成受信 HTTPS 认证的回归。该提交对应的 CI [#39804576987](https://github.com/shopable-ai/opendesk-browser/actions/runs/39804576987) 本次写入时仍未取得最终结果，不能继承之前提交的 PASS。
 - 并行 Agent 仍可能更新 main；提交 SHA 是证据定位，不代表永远是 HEAD。
 
 ### 11.2 Web 表单与现有业务 BFF 的**接口约定，不是已实现的 Web 页面**
@@ -285,7 +286,7 @@ Node state.json 现状与生产需求明确分开；正式环境必须核对多�
 ### 11.3 R19.5 精确 CI 证据与限制
 
 - [Cloud Control R5.2 · e800ea2 测试运行 #39803624112](https://github.com/shopable-ai/opendesk-browser/actions/runs/39803624112)：`npm run test:cloud`（含新增 Pull 及 Client Schema 合同）**PASS**，Controller Authority 组件步骤 **PASS**；Trusted Side Panel 组件步骤 **FAIL**，故**整体 CI FAIL**。此前精确日志显示旧 R28 侧边栏断言的行位置偏差 `609 !== 611`，不能因局部协议通过而填总体 PASS。
-- [Cloud Control R3 · e800ea2 测试运行 #39803624095](https://github.com/shopable-ai/opendesk-browser/actions/runs/39803624095)：component 作业因共享源码 Pin 验证 **FAIL**，后续组件被跳过；本节写入时 package 作业仍未取得最终结论。不能用修改安全 Pin 的断言来假造通过。
+- [Cloud Control R3 · e800ea2 测试运行 #39803624095](https://github.com/shopable-ai/opendesk-browser/actions/runs/39803624095)：component 作业因共享源码 Pin 验证 **FAIL**，后续组件被跳过；package 作业现已 **PASS**（源码安全检查、production/development 构建、严格包与 CSP 验证均 PASS）。整体工作流仍 FAIL，不能用修改安全 Pin 的断言来假造通过。
 - 以上均为 GitHub Linux Node/构建证据；**不是 Mac 物理 Chrome、真实 BFF、真正的网页数据写入或两设备实测**。
 - 只根据最新 HEAD 精确 Run ID 和步骤结论更新证据；其他 Agent 改动导致的共享 UI/Pin 失败应先定责，不得为过绿削弱 Authority。
 
