@@ -186,3 +186,65 @@ test('R1.3 an unresolved receipt from a retired instance blocks new write intent
   assert.deepEqual(f.chromeStore.get(PROMPT_AI_RECOVERY_KEY),record);
   f.host.dispose();
 });
+
+test('R1.4 unique natural-language shorthand resolves a saved prompt but ambiguity never writes',async()=>{
+  const f=libraryFixture();
+  await f.run({type:'create',body:'请把中文翻译成日语',name:'中日互译'});
+  await f.run({type:'set_enabled',target:'翻译提示词',enabled:false});
+  assert.equal(f.value.items[0].enabled,false);
+  await f.run({type:'create',body:'请把英文翻译成法语',name:'英法互译'});
+  const before=f.writes;
+  await assert.rejects(f.run({type:'set_enabled',target:'翻译提示词',enabled:true}),
+    {code:'E_PROMPT_AMBIGUOUS'});
+  assert.equal(f.writes,before);
+});
+
+test('R1.4 exact before-version proves no retained write and unlocks without replay',async()=>{
+  const f=hostFixture();
+  const record={toolId:'prompt-shortcuts',version:'1.1.12',
+    instance:'prior',installEpoch:'prior',
+    beforeEtag:hash(f.library.value),expectedEtag:'f'.repeat(64),createdAt:Date.now()};
+  await f.api.storage.local.set({[PROMPT_AI_RECOVERY_KEY]:record});
+  const result=await f.host.reconcile();
+  assert.equal(result.verified,true);
+  assert.equal(result.status,'not_applied');
+  assert.equal(f.commits,0);
+  assert.equal(f.chromeStore.has(PROMPT_AI_RECOVERY_KEY),false);
+  f.host.dispose();
+});
+
+test('R1.4 mismatched recovery stays UNKNOWN until an explicit review acknowledgement',async()=>{
+  const f=hostFixture();
+  const record={toolId:'prompt-shortcuts',version:'1.1.12',
+    instance:'prior',installEpoch:'prior',beforeEtag:'a'.repeat(64),
+    expectedEtag:'b'.repeat(64),createdAt:Date.now()};
+  await f.api.storage.local.set({[PROMPT_AI_RECOVERY_KEY]:record});
+  const first=await f.host.reconcile();
+  assert.equal(first.verified,false);assert.equal(first.status,'uncertain');
+  assert.equal(first.currentEtag,hash(f.library.value));
+  assert.deepEqual(f.chromeStore.get(PROMPT_AI_RECOVERY_KEY),record);
+  await assert.rejects(f.host.request({request:'创建一个新提示词',event:{isTrusted:true}}),
+    {code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(f.commits,0);
+  const checked=await f.host.reconcile({acknowledgeEtag:first.currentEtag});
+  assert.equal(checked.verified,true);assert.equal(checked.status,'acknowledged');
+  assert.equal(f.chromeStore.has(PROMPT_AI_RECOVERY_KEY),false);
+  assert.equal(f.commits,0,'reconciliation never performs storage.set');
+  f.host.dispose();
+});
+
+test('R1.4 stale review acknowledgement cannot erase newer unknown outcome',async()=>{
+  const f=hostFixture();
+  const record={toolId:'prompt-shortcuts',version:'1.1.12',
+    instance:'prior',installEpoch:'prior',beforeEtag:'a'.repeat(64),
+    expectedEtag:'b'.repeat(64),createdAt:Date.now()};
+  await f.api.storage.local.set({[PROMPT_AI_RECOVERY_KEY]:record});
+  const initial=await f.host.reconcile();
+  const current=await f.library.read();
+  await f.library.write({value:model.load({...current.value,items:[
+    model.draft({body:'另一个窗口的合法修改'})]}),ifMatch:current.etag});
+  const next=await f.host.reconcile({acknowledgeEtag:initial.currentEtag});
+  assert.equal(next.verified,false);assert.equal(next.status,'uncertain');
+  assert.deepEqual(f.chromeStore.get(PROMPT_AI_RECOVERY_KEY),record);
+  f.host.dispose();
+});

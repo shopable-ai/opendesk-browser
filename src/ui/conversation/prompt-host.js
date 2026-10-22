@@ -81,11 +81,22 @@ export function createTrustedPromptHost({
         throw failure('E_OUTCOME_UNKNOWN','存在尚未完成的 AI 写入核对；先读取真实 Host 存储，禁止覆盖恢复记录');
       await api.storage.local.set({[PROMPT_AI_RECOVERY_KEY]:{
         toolId:tool.id,version:tool.version,instance:token,installEpoch:epoch,
-        expectedEtag:lastExpected,createdAt:Date.now()
+        beforeEtag:payload.ifMatch,expectedEtag:lastExpected,createdAt:Date.now()
       }});
       await live();
     }
-    return dispatch(operation,payload);
+    try{return await dispatch(operation,payload);}
+    catch(error){
+      // A rejected conditional write did not commit; don't leave a false
+      // unknown-outcome receipt that blocks the user's next request.
+      if(operation==='storage.set'&&error?.code==='E_STORAGE_CONFLICT'){
+        const current=(await api.storage.local.get(PROMPT_AI_RECOVERY_KEY))[PROMPT_AI_RECOVERY_KEY];
+        if(current?.instance===token&&current?.expectedEtag===lastExpected&&
+           current?.beforeEtag===payload.ifMatch)
+          await api.storage.local.remove(PROMPT_AI_RECOVERY_KEY);
+      }
+      throw error;
+    }
   };
   const summaryRow=row=>(row.name||row.label||row.id)+' ['+row.id+']';
   const review=proposal=>confirm({
@@ -142,25 +153,37 @@ export function createTrustedPromptHost({
     const saved=(await api.storage.local.get(PROMPT_AI_RECOVERY_KEY))[PROMPT_AI_RECOVERY_KEY];
     return saved?.toolId===tool.id&&hashValid(saved.expectedEtag)?saved:null;
   }
-  async function reconcile(){
+  async function reconcile({acknowledgeEtag=null}={}){
     await live();
     const record=await recovery();
-    // Exact same Host Dispatcher, same tool's library, fresh independent ETag.
+    // Read through the SAME dispatcher. A successful read alone cannot
+    // prove whether a previous write was applied.
     const current=await storage('storage.get',{key:'library',withEtag:true});
-    if(!hashValid(current?.etag))throw failure('E_OUTCOME_UNKNOWN','独立读回失败，不能解除核对状态');
+    if(!hashValid(current?.etag))
+      throw failure('E_OUTCOME_UNKNOWN','独立读回失败，请保留待核对状态');
     model.load(current.value);
     await live();
-    const matched=record&&record.expectedEtag===current.etag;
-    if(record){
-      const latest=await recovery();
-      if(latest?.instance!==record.instance||latest?.expectedEtag!==record.expectedEtag)
-        throw failure('E_STORAGE_CONFLICT','新的写入核对记录已经出现，请重新核对');
-      await api.storage.local.remove(PROMPT_AI_RECOVERY_KEY);
+    if(!record){
+      send('state-changed');
+      return {verified:true,status:'no_pending',message:'已读取当前提示词库，没有待核对的 AI 写入。'};
     }
+    const applied=record.expectedEtag===current.etag;
+    const notApplied=hashValid(record.beforeEtag)&&record.beforeEtag===current.etag;
+    if(!applied&&!notApplied&&acknowledgeEtag!==current.etag){
+      send('state-changed');
+      return {verified:false,status:'uncertain',currentEtag:current.etag,
+        message:'已读取当前列表，但它与上次写入前后两个版本都不同，不能证明旧操作成功或失败。请查看原工具中的记录，确认没有重复后再选择解除待核对；不会自动重放。'};
+    }
+    // Before dropping the recovery marker, rule out a newer operation.
+    const latest=await recovery();
+    if(latest?.instance!==record.instance||latest?.expectedEtag!==record.expectedEtag)
+      throw failure('E_STORAGE_CONFLICT','新的待核对写入已出现，请重新读取');
+    await api.storage.local.remove(PROMPT_AI_RECOVERY_KEY);
     send('state-changed');
-    return {verified:true,message:matched?
-      '独立读回与上次预期库版本完全匹配，写入已确认；没有再次写入。':
-      '已独立读取最新真实库，但无法证明旧写入成功。请人工检查列表；旧指令不会自动重放，新请求将重新检查 ETag。'};
+    if(applied)return {verified:true,status:'applied',message:'上次写入与当前完整库版本一致，写入已确认；没有再次写入。'};
+    if(notApplied)return {verified:true,status:'not_applied',message:'当前数据仍与写入前一致，已确认这次变更未保留；没有自动重试。'};
+    return {verified:true,status:'acknowledged',
+      message:'你已核对当前列表并解除旧的待核对状态。旧操作仍无法证明成功或失败，且不会自动重放。'};
   }
   return Object.freeze({request,onGuardResponse,recovery,reconcile,dispose(){
     if(disposed)return;

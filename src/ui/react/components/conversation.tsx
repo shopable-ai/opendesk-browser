@@ -51,6 +51,7 @@ function ConversationWorkspace({
  const [phase,setPhase]=React.useState('idle');
  const [error,setError]=React.useState('');
  const [needsReview,setNeedsReview]=React.useState(restored.needsReview===true);
+ const [unverifiedEtag,setUnverifiedEtag]=React.useState(null);
  const [reconciling,setReconciling]=React.useState(false);
  const [height,setHeight]=React.useState(null);
  const [totalHeight,setTotalHeight]=React.useState(600);
@@ -139,8 +140,14 @@ function ConversationWorkspace({
   if(reconciling||busy||!needsReview||typeof controller?.reconcile!=='function')return;
   setReconciling(true);setError('');
   try{
-   const result=await controller.reconcile();
-   if(result?.verified!==true)throw new Error('真实存储读回尚未确认，不能解除安全锁');
+   const result=await controller.reconcile(unverifiedEtag?{acknowledgeEtag:unverifiedEtag}:{});
+   if(result?.verified!==true){
+    if(result?.status==='uncertain'&&/^[a-f0-9]{64}$/.test(result.currentEtag||''))
+      setUnverifiedEtag(result.currentEtag);
+    append('系统',result.message||'当前数据尚不能核实旧操作，请在原列表检查。');
+    return;
+   }
+   setUnverifiedEtag(null);
    append('系统',result.message||'Host 真实存储已重新读取；旧操作没有自动重放。');
    refsRef.current=newRefs();setNeedsReview(false);
    persist({refs:refsRef.current,needsReview:false});
@@ -283,7 +290,7 @@ function ConversationWorkspace({
      {typeof controller?.reconcile==='function'&&<button type="button"
        className="od-conversation-reconcile" disabled={busy||reconciling}
        onClick={()=>void reconcileStorage()}>
-       {reconciling?'正在核对真实存储…':'读取 Host 真实存储并核对'}
+       {reconciling?'正在核对真实存储…':unverifiedEtag?'我已检查当前列表，解除阻止':'读取 Host 真实存储并核对'}
      </button>}
     </>}
    </div>}

@@ -1271,8 +1271,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
                nativeUI?.kind!=='prompt'||!frame?.contentWindow||
                !sameInstance(frame.contentWindow,token))
               throw Object.assign(new Error('提示词实例已经关闭'),{code:'E_TOOL_CHANGED'});
-            if(!await admittedNativePrompt(tool,epoch)||active!==tool||instance!==token)
-              throw Object.assign(new Error('官方身份或安装代际已失效'),{code:'E_TOOL_CHANGED'});
+            // Full official provenance and package digest were already checked
+            // at admission. Reuse the mounted instance; storage change listeners
+            // revoke it on update/disable/uninstall, and dispatch checks live RPCs.
+            if(enableReadError||!sidebarToolEnabled(enableRecords,tool.id)||
+               (revocationEpochs?.[tool.id]??null)!==epoch||
+               !installed.some(row=>row.id===tool.id&&samePackage(row,tool)))
+              throw Object.assign(new Error('官方安装状态已变化，请重新打开工具'),{code:'E_TOOL_CHANGED'});
           };
           const host=createTrustedPromptHost({
             api,tool,token,epoch,model:globalThis.OpenDeskPromptShortcutsModel,

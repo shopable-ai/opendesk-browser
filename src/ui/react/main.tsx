@@ -152,7 +152,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
         source:()=>conversation.source(),
         request:args=>conversation.request({...args,scope:'prompt'}),
         cancel:args=>conversation.cancel(args),
-        reconcile:typeof onReconcile==='function'?()=>onReconcile():null,
+        reconcile:typeof onReconcile==='function'?args=>onReconcile(args):null,
         readSession:()=>structuredClone(session),
         saveSession:next=>{
           if(!next||typeof next!=='object')return;

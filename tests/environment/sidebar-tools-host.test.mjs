@@ -284,7 +284,7 @@ test('Final R2 request throttling returns an error and recovers after its time w
 });
 
 class Node {
-  constructor(tag='div'){this.tag=tag;this.children=[];this.listeners=new Map();this.hidden=false;
+  constructor(tag='div'){this.tag=tag;this.tagName=tag.toUpperCase();this.children=[];this.listeners=new Map();this.hidden=false;
     this.dataset={};this.attributes=new Map();this.className='';
     // Mirror native classList.toggle for trusted host settings in this DOM double.
     this.classList={

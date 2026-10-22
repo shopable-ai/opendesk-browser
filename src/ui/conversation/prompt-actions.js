@@ -20,8 +20,14 @@ const matching=(items,query)=>items.filter(item=>
 const target=(items,name,refs)=>{
  if(!valid(name,160))throw error('E_PROMPT_TARGET','缺少提示词目标');
  const n=/^\$search:([1-9]|1[0-2])$/.exec(name);
- const rows=n?items.filter(item=>item.id===refs.matches?.[Number(n[1])-1]):
+ let rows=n?items.filter(item=>item.id===refs.matches?.[Number(n[1])-1]):
   items.filter(item=>item.id===name||clean(item.name)===clean(name));
+ // Natural-language shorthand is resolved ONLY if it selects exactly one
+ // real record. Multiple matches still require a search + ordinal reference.
+ if(!rows.length&&!n){
+  const keyword=clean(name).replace(/(?:提示词|快捷按钮)$/u,'').trim();
+  if(keyword.length>=2)rows=matching(items,keyword);
+ }
  if(rows.length!==1)throw error(rows.length?'E_PROMPT_AMBIGUOUS':'E_PROMPT_NOT_FOUND',
   rows.length?'存在多个同名提示词，请先搜索并指定序号':'未找到指定提示词，请先搜索');
  return rows[0];
