@@ -430,6 +430,9 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.find(x=>x.id==="time-review")?.version)'),
     'real Time Review installation persisted by Chrome');
   assert.equal(saved,pkg.version,'real installed package persisted with exact built tool version');
+  // The candidate belongs to the "available" scope only before installation.
+  // Switch to the real "installed" scope before looking for its React row.
+  await nativeExtensionScope(browser,side,'smart');
   const installedMore='[data-extension-key="app:time-review"][data-extension-action="more"]';
   await until(()=>evaluate(browser,side,
     '(()=>{const entry=document.querySelector('+JSON.stringify(installed)+');'+
@@ -437,7 +440,6 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     'return !!entry&&!entry.disabled&&entry.checkVisibility()&&!!menu;})()'),
     'installed Time Review React row and management action visible');
   evidence.install='PASS';note('install',{version:saved});
-  await nativeExtensionScope(browser,side,'smart');
   await nativeClick(browser,side,installed);
   await until(()=>evaluate(browser,side,'!document.querySelector("#sidebar-tool-display").hidden'),'tool opened');
   await until(()=>evaluate(browser,side,`(()=>{
