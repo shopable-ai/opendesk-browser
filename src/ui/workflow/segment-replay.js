@@ -81,17 +81,17 @@ function validateSegment(value) {
 }
 
 const unsafeReplayGoal=/(?:付款|支付|结账|下单|购买|订单|删除|清空|提交|发送|转账|退款|登录|登出|注销|upload|submit|pay|checkout|purchase|delete|remove|transfer|send|order)/i;
-const safeSearchQuery=/^[\\p{L}\\p{N} _.-]{2,120}$/u;
-const safeProductName=/^[\\p{L}\\p{N}][\\p{L}\\p{N} _.-]{2,119}$/u;
+const safeSearchQuery=/^[\p{L}\p{N} _.-]{2,120}$/u;
+const safeProductName=/^[\p{L}\p{N}][\p{L}\p{N} _.-]{2,119}$/u;
 
 // The v2 contract is deliberately narrow: exactly one independently verified
 // search followed by one independently verified named product navigation.
 // Unknown goals, extra actions and extra mutable parameters stay on v1.
 export function inferDynamicReplayPlan({goal,segments}={}) {
   if(typeof goal!=='string'||unsafeReplayGoal.test(goal)||
-    !/(?:搜索|查找|检索|\\bsearch\\b)/i.test(goal)||
-    !/(?:打开|进入|点开|\\bopen\\b)/i.test(goal)||
-    !/(?:价格|售价|标价|\\bprice\\b)/i.test(goal)||
+    !/(?:搜索|查找|检索|\bsearch\b)/i.test(goal)||
+    !/(?:打开|进入|点开|\bopen\b)/i.test(goal)||
+    !/(?:价格|售价|标价|\bprice\b)/i.test(goal)||
     !Array.isArray(segments)||segments.length!==2)return null;
   const [search,product]=segments;
   if(!['search-results','search-inline'].includes(search?.evidence?.kind)||
