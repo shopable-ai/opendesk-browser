@@ -15,7 +15,7 @@ import {classifyWorkflowRunRisk,prepareDirectExecution,verifyDirectExecutionRece
 import {createTaskReviewHandoff,taskReviewHandoffKey} from './task-review-handoff.js';
 import {createWorkflowAgentLoopGuard,classifyWorkflowAgentStop} from './agent-loop.js';
 import {WORKFLOW_BUNDLE_FORMAT,replayParameterSchema,sealWorkflowBundle,
-  verifyWorkflowBundle,verifyReplayBusinessEffect} from './segment-replay.js';
+  verifyWorkflowBundle,verifyReplayBusinessEffect,assertLegacyReplayParameterScope} from './segment-replay.js';
 
 const STORAGE_PREFIX = 'opendesk.sidebar.workflow.v1:';
 const SESSION_PREFIX = 'opendesk.sidebar.workflow-draft.v1:';
@@ -1180,6 +1180,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     let params,initial,permission;
     try {
       params=readParams();
+      assertLegacyReplayParameterScope(bundle,params);
       initial=currentPageTarget.capture();
       if(initial.origin!==bundle.segments[0].workflow.siteOrigin||
         initial.url!==bundle.segments[0].entryUrl)

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {compileWorkflow} from '../../src/framework/workflow/compiler.js';
 import {sealWorkflowBundle,verifyWorkflowBundle,replayParameterSchema,
-  verifyReplayBusinessEffect,WORKFLOW_BUNDLE_FORMAT} from '../../src/ui/workflow/segment-replay.js';
+  verifyReplayBusinessEffect,assertLegacyReplayParameterScope,WORKFLOW_BUNDLE_FORMAT} from '../../src/ui/workflow/segment-replay.js';
 
 const schema=(name)=>({type:'object',properties:name?{[name]:{
   type:'string',title:name,maxLength:120,default:'camera'}}:{},
@@ -79,4 +79,13 @@ test('forged completion receipt never binds to another source revision',async()=
   value.segments[0].proof.resultId='result-1';
   value.segments[0].proof.sourceHash='0'.repeat(64);
   await assert.rejects(sealWorkflowBundle(value),{code:'E_WORKFLOW_BUNDLE'});
+});
+
+test('legacy bundle blocks changed parameters before any side effect can be replayed',async()=>{
+  const record=await sealWorkflowBundle(await fixture());
+  assert.doesNotThrow(()=>assertLegacyReplayParameterScope(record,{query:'camera'}));
+  assert.throws(()=>assertLegacyReplayParameterScope(record,{query:'lens'}),
+    {code:'E_WORKFLOW_PARAM_BINDING'});
+  assert.throws(()=>assertLegacyReplayParameterScope(record,{}),
+    {code:'E_WORKFLOW_PARAM_BINDING'});
 });

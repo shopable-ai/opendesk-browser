@@ -129,6 +129,27 @@ export async function verifyWorkflowBundle(value) {
     fail('E_WORKFLOW_HASH','完整工作流分段、顺序或参数已变化');
   return structuredClone(value);
 }
+// Legacy v1 bundles froze URLs, link guards and the original natural-language
+// goal. Unlike a standalone parameterized script, an entire v1 multi-Document
+// sequence cannot safely reinterpret those frozen business targets at runtime.
+// Refuse changed/unknown baseline parameters BEFORE dispatching even segment 1;
+// a future explicitly versioned dynamic-binding contract must authorize them.
+export function assertLegacyReplayParameterScope(bundle,params) {
+  if(bundle?.format!==WORKFLOW_BUNDLE_FORMAT||
+    !Array.isArray(bundle.segments)||bundle.segments.length<2)
+    fail('E_WORKFLOW_BUNDLE','完整工作流的保存格式不合法');
+  if(!params||typeof params!=='object'||Array.isArray(params))
+    fail('E_WORKFLOW_PARAMS','运行参数不合法');
+  const schema=bundle.paramsSchema;
+  if(!schema||!schema.properties)fail('E_WORKFLOW_PARAMS','缺少共享参数定义');
+  const changed=Object.entries(schema.properties).some(([name,rule])=>
+    !Object.hasOwn(rule,'default')||!Object.hasOwn(params,name)||
+    params[name]!==rule.default);
+  if(changed)
+    fail('E_WORKFLOW_PARAM_BINDING',
+      '此历史版本冻结了原始网页和业务目标；修改共享参数需要经独立核验的动态绑定新版本。为避免部分执行，当前未操作网页');
+}
+
 export function verifyReplayBusinessEffect(expected,reply) {
   if(!reply?.ok)return false;
   if(expected.kind==='read-only')return reply.readOnlyVerified===true;
