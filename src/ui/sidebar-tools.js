@@ -2556,7 +2556,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
          ?trustedTimeReviewProvenanceChanged(changes[MARKET_PROVENANCE_STORE])
          :active?.id===TRUSTED_BOOKMARK_ID
            ?trustedBookmarkProvenanceChanged(changes[MARKET_PROVENANCE_STORE])
-           :false)){
+           :active?.id===PROMPT_ID
+             ?trustedPromptProvenanceChanged(changes[MARKET_PROVENANCE_STORE])
+             :false)){
       // Only this admitted tool's own provenance revokes its React/native UI.
       destroyFrame();tocSettingsOpen=true;render();
       notice('官方来源身份发生变化；可信 UI 已关闭。',true);
