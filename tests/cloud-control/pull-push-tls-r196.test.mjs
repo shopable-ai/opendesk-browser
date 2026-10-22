@@ -89,7 +89,7 @@ test('R19.6: HTTPS Client → WSS-free Pull → WSS Push share one durable Claim
     const executorId=randomUUID(),grantId=randomUUID();
     const executor=await p('/v1/pair',
       {executorId,pairingCode:admin.pairingCode});
-    await p('/v1/capabilities',{grantId,tasks:advertised},executor.credential);
+    await p('/v1/capabilities',{grantId,tasks:[pin]},executor.credential);
     const client=await local('/admin/client-grant',
       {executorId,tasks:[pin],allowResult:false});
     const form=await p('/v1/client-scope',
@@ -109,7 +109,7 @@ test('R19.6: HTTPS Client → WSS-free Pull → WSS Push share one durable Claim
     await assert.rejects(p('/v1/claim',claimA,executor.credential),
       {code:'E_CONNECTION'});
     assert.equal((await local('/admin/state',{})).executors[executorId].connected,false);
-    const pull=await p('/v1/pull-open',{grantId,tasks:advertised},executor.credential);
+    const pull=await p('/v1/pull-open',{grantId,tasks:[pin]},executor.credential);
     assert.equal(pull.executorId,executorId);
     assert.equal(pull.grantId,grantId);
     assert.equal(pull.expiresAt>0,true);
@@ -175,7 +175,7 @@ test('R19.6: HTTPS Client → WSS-free Pull → WSS Push share one durable Claim
       {...claimA,pullSessionId:pull.sessionId},executor.credential),
     {code:'E_PULL_SESSION'},'restarted Provider cannot reuse an old Pull session');
     const renewed=await retry('/v1/pull-open',
-      {grantId,tasks:advertised},executor.credential);
+      {grantId,tasks:[pin]},executor.credential);
     assert.deepEqual((await retry('/v1/claim',
       {...claimA,pullSessionId:renewed.sessionId},executor.credential)).assignment,
     aAssignment,'new transport proof returns the ORIGINAL durable Claim');
