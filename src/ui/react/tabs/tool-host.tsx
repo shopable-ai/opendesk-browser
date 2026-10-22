@@ -13,6 +13,10 @@ export function ToolHost({view}) {
   const snapshot = React.useSyncExternalStore(view.subscribe, view.getSnapshot, view.getSnapshot);
   const importOpen = snapshot.fields['sidebar-tool-import']?.hidden === false;
   const topAction = snapshot.fields['sidebar-tool-primary-action']?.data?.action || '';
+  // Cookie Editor has its own trusted settings card. Move the existing enable
+  // action there instead of leaving it in the hidden generic Settings section.
+  const cookieManagementVisible=snapshot.fields['sidebar-tool-cookie-permissions']?.hidden===false&&
+    snapshot.fields['sidebar-tool-cookie-permissions']?.data?.mode==='settings';
   // These are the only editable inputs in this host. Business decisions remain
   // synchronous controller actions, with the original trusted browser event.
   const actions = React.useMemo(() => ({
@@ -309,6 +313,7 @@ export function ToolHost({view}) {
 </select>
 
 </ToolField>
+{!cookieManagementVisible&&<>
 <div className="sidebar-toc-settings-row">
 <span className="sidebar-tool-prompt-enable-info">
 <ToolField as="strong" id="sidebar-tool-prompt-enable-label">
@@ -327,6 +332,7 @@ export function ToolHost({view}) {
 <ToolField as="p" id="sidebar-tool-enable-hint" className="sidebar-toc-settings-hint" role="status">
 
 </ToolField>
+</>}
 <ToolField as="div" id="sidebar-tool-prompt-web-row" className="sidebar-toc-settings-row sidebar-tool-prompt-native" hidden={true}>
 <span className="sidebar-tool-prompt-native-info">
 <strong>
@@ -511,6 +517,11 @@ function CookieSettings({onRevoke}) {
     <ToolField id="sidebar-tool-cookie-first-use"><ToolField as="button"
       id="sidebar-tool-cookie-site-toggle" className="od-button"/></ToolField>
     {!firstUse&&<>
+      <div className="sidebar-toc-settings-row">
+        <strong>使用状态</strong>
+        <ToolField as="button" type="button" id="sidebar-tool-enable" className="od-button od-button--secondary"/>
+      </div>
+      <ToolField as="p" id="sidebar-tool-enable-hint" className="sidebar-toc-settings-hint" role="status"/>
       <ToolField as="button" type="button" id="sidebar-tool-cookie-values-toggle" className="od-button od-button--secondary"/>
       <ToolGrantRows id="sidebar-tool-cookie-other-sites" rows={rows} emptyLabel={emptyLabel}
         disabled={disabled} rowClassName="sidebar-toc-settings-row" onRevoke={onRevoke}/>
