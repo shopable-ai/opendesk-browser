@@ -375,8 +375,58 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     render();persistDraft();
     status('已打开冻结版本 r'+record.revision+'；运行不会调用 AI');
   }
+  async function saveAgentBundle() {
+    const draft=fullAgentDraft;
+    if(!draft||draft.tailSerial!==stable())
+      throw err('E_WORKFLOW_STALE','完整任务完成后草稿已修改，不能保存旧证据');
+    busy=true;updateButtons();
+    try {
+      const segments=[];
+      for(let i=0;i<draft.segments.length;i++){
+        if(draft!==fullAgentDraft||draft.tailSerial!==stable())
+          throw err('E_WORKFLOW_STALE','分段保存期间草稿发生变化');
+        const old=draft.segments[i],withId={...old.workflow,
+          workflowId:draft.bundleId+'-s'+(i+1)};
+        const freeze=await compileWorkflow(withId,{
+          verifyFill:old.verificationMode==='fill-readback'});
+        let head=null;
+        try{head=await host.controller.getControllerScript({scriptId:withId.workflowId});}
+        catch(error){if(error?.code!=='E_TOMBSTONE')throw error;}
+        let saved;
+        if(head?.contentHash===freeze.sourceHash&&head.sourceUtf8===freeze.sourceUtf8)
+          saved={revision:head.revision,contentHash:head.contentHash};
+        else if(!head)
+          saved=await host.controller.commitControllerScript({
+            scriptId:withId.workflowId,expectedRevision:0,sourceUtf8:freeze.sourceUtf8});
+        else throw err('E_WORKFLOW_REVISION','分段脚本版本与本次成功任务不一致，拒绝覆盖');
+        if(saved.contentHash!==freeze.sourceHash)
+          throw err('E_WORKFLOW_HASH','Controller 返回的分段哈希不一致');
+        segments.push({workflow:freeze.workflow,entryUrl:old.entryUrl,
+          revision:saved.revision,sourceHash:freeze.sourceHash,
+          verificationMode:old.verificationMode,evidence:old.evidence});
+      }
+      const record=await sealWorkflowBundle({
+        format:WORKFLOW_BUNDLE_FORMAT,bundleId:draft.bundleId,revision:1,
+        goal:draft.goal,title:draft.title,
+        workflow:{workflowId:draft.bundleId,title:draft.title,
+          siteOrigin:segments[0].workflow.siteOrigin},
+        segments,paramsSchema:replayParameterSchema(segments)});
+      if(draft!==fullAgentDraft||draft.tailSerial!==stable())
+        throw err('E_WORKFLOW_STALE','保存结束前草稿已更改');
+      const key=STORAGE_PREFIX+draft.bundleId+':1';
+      await api.storage.local.set({[key]:record});
+      selectedBundle=record;revision=null;fullAgentDraft=null;
+      workflow=structuredClone(segments.at(-1).workflow);
+      directVerifiedSerial=segments.at(-1).verificationMode==='fill-readback'?stable():null;
+      render();persistDraft();await refreshSaved();
+      control('workflow-saved-list').value=key;
+      status('完整 '+segments.length+' 段 JavaScript 工作流已保存；每段有独立 Revision 和 sourceHash。');
+    }catch(error){status(format(error),true);}
+    finally{busy=false;updateButtons();}
+  }
   async function save() {
-    if(busy||autoExecutionPending||!compiled)return;
+    if(busy||autoExecutionPending||!compiled||selectedBundle)return;
+    if(fullAgentDraft&&fullAgentDraft.tailSerial===stable())return saveAgentBundle();
     dismissRunReview();
     const serial=stable(),frozen=snapshot();
     busy=true;updateButtons();
