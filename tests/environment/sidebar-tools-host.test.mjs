@@ -574,7 +574,8 @@ test('R1.3 exact official Prompt admits one trusted React Dock and one sandbox i
   const frame=target.children[0];assert.equal(frame.tagName?.toLowerCase(),'iframe');
   await frame.onload();
   assert.equal(frame.contentWindow.sent[0].kind,'load');
-  assert.equal(frame.contentWindow.sent[0].toolId,tool.id);
+  assert.equal(frame.contentWindow.sent[0].tool.id,tool.id);
+  assert.equal(typeof frame.contentWindow.sent[0].instance,'string');
   assert.equal(mounts.length,1,'no second React root or iframe instance');
   assert.equal(target.children[0],frame,'iframe is not re-parented after load');
   assert.equal(typeof mounts[0].onRequest,'function');
