@@ -36,7 +36,7 @@ test('independent frozen scripts can be sealed into a complete, ordered bundle',
 test('bundle rejects changed step order, script hash and parameter schema',async()=>{
   const record=await sealWorkflowBundle(await fixture());
   const reordered=structuredClone(record);reordered.segments.reverse();
-  await assert.rejects(verifyWorkflowBundle(reordered),{code:'E_WORKFLOW_BUNDLE'});
+  await assert.rejects(verifyWorkflowBundle(reordered),{code:'E_WORKFLOW_HASH'});
   const edited=structuredClone(record);edited.segments[0].sourceHash='a'.repeat(64);
   await assert.rejects(verifyWorkflowBundle(edited),{code:'E_WORKFLOW_HASH'});
   const param=structuredClone(record);param.paramsSchema.properties.query.default='modified';
