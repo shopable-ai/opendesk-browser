@@ -22,7 +22,11 @@ async function fixture(){
   const area=data=>({async get(keys){return structuredClone(keys===null?data:Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(key=>[key,data[key]])));},async set(rows){Object.assign(data,structuredClone(rows));},async remove(keys){for(const key of Array.isArray(keys)?keys:[keys])delete data[key];}});
   const sender={id:'abcdefghijklmnopabcdefghijklmnop',url:'chrome-extension://abcdefghijklmnopabcdefghijklmnop/sidepanel.html?hostInstanceId=11111111-1111-4111-8111-111111111111&toolId=time-review',documentId:'doc-1',frameId:0,documentLifecycle:'active',tab:{id:99,incognito:false}};
   let contexts=[{contextType:'TAB',documentUrl:sender.url,documentId:sender.documentId,tabId:99,frameId:0,incognito:false}];
-  const api={runtime:{id:sender.id,getURL:path=>'chrome-extension://'+sender.id+'/'+path,onMessage:event(),onStartup:event(),async getContexts(){return contexts;}},storage:{local:area(local),session:area(session),onChanged:event()},
+  const api={runtime:{id:sender.id,getURL:path=>'chrome-extension://'+sender.id+'/'+path,onMessage:event(),onStartup:event(),async getContexts(){return contexts;},
+    async sendMessage(message){
+      if(message?.protocol==='opendesk.foundation.v1'&&message.type==='cleanupUninstalledToolSchedules')
+        return {ok:true,data:{toolId:message.payload.toolId,schedulesRetired:true,alarmsCleared:true}};
+    }},storage:{local:area(local),session:area(session),onChanged:event()},
     idle:{queryState:async()=>idle,setDetectionInterval:()=>{},onStateChanged:event()},
     permissions:{contains:async query=>query.permissions?permission:origin,onRemoved:event(),onAdded:event()},
     windows:{getLastFocused:async()=>({id:2,type:'normal',focused,incognito}),onFocusChanged:event()},

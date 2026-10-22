@@ -35,7 +35,16 @@ function browser(){
     }
   };
   const locks={request:async (_name,fn)=>fn()};
-  return {api:{storage:{local}},locks,values,operations};
+  const runtime={async sendMessage(message){
+    assert.equal(message.protocol,'opendesk.foundation.v1');
+    assert.equal(message.type,'cleanupUninstalledToolSchedules');
+    const id=message.payload.toolId;
+    assert.ok(values[TOOL_CLEANUP_STORE]?.[id]);
+    assert.ok(!values[SIDEBAR_TOOL_STORE].some(tool=>tool.id===id));
+    operations.push({method:'retireSchedules',toolId:id});
+    return {ok:true,data:{toolId:id,schedulesRetired:true,alarmsCleared:true}};
+  }};
+  return {api:{storage:{local},runtime},locks,values,operations};
 }
 const identity=(id=MARKET_TEST_ID)=>({marketId:'opendesk/'+id,
   sha256:createHash('sha256').update(serializeSidebarToolPackage(tool(id))).digest('hex'),
@@ -332,6 +341,43 @@ test('uninstall recovery accepts a real package version and never deletes a newl
   values[SIDEBAR_TOOL_STORE]=[];
   assert.equal((await run()).state,'cleaned');assert.equal(values[key],undefined);
   assert.deepEqual(values[TOOL_CLEANUP_STORE],{});
+});
+
+test('uninstall keeps its durable barrier until original Scheduler retirement is verified',async()=>{
+  for(const response of [undefined,{ok:false,error:{code:'E_OUTCOME_UNKNOWN',message:'Alarm reply lost'}},
+    {ok:true,data:{toolId:'another-tool',schedulesRetired:true,alarmsCleared:true}},
+    {ok:true,data:{toolId:MARKET_TEST_ID,schedulesRetired:true,alarmsCleared:false}}]){
+    const {api,locks,values}=browser(),candidate=tool(),key=sidebarToolStorageKey(candidate.id);
+    values[SIDEBAR_TOOL_STORE]=[candidate];values[key]={note:'not yet cleaned'};
+    await recordToolUninstall(api,candidate);values[SIDEBAR_TOOL_STORE]=[];
+    api.runtime.sendMessage=async()=>response;
+    await assert.rejects(retryUninstalledToolCleanup({api,lockManager:locks,id:candidate.id}),{code:'E_TOOL_UNINSTALL_CLEANUP'});
+    assert.ok(values[TOOL_CLEANUP_STORE][candidate.id]);assert.deepEqual(values[key],{note:'not yet cleaned'});
+    await assert.rejects(installReviewedSidebarTool({api,lockManager:locks,candidate,reviewApproved:true}),
+      failure=>failure.code==='E_TOOL_UNINSTALL_CLEANUP');
+  }
+});
+
+test('rapid same-ID reinstall waits behind uninstall retirement using the existing tool and catalog locks',async()=>{
+  const {api,values}=browser(),tails=new Map(),candidate=tool();
+  const locks={request(name,work){
+    const next=(tails.get(name)||Promise.resolve()).catch(()=>{}).then(work);
+    tails.set(name,next);return next;
+  }};
+  values[SIDEBAR_TOOL_STORE]=[candidate];await recordToolUninstall(api,candidate);values[SIDEBAR_TOOL_STORE]=[];
+  let admit,entered;
+  const waiting=new Promise(resolve=>{entered=resolve;});
+  api.runtime.sendMessage=()=>{entered();return new Promise(resolve=>{admit=resolve;});};
+  const cleanup=retryUninstalledToolCleanup({api,lockManager:locks,id:candidate.id});
+  await waiting;
+  let installed=false;
+  const reinstall=installReviewedSidebarTool({api,lockManager:locks,candidate,reviewApproved:true}).then(result=>{installed=true;return result;});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(installed,false);assert.ok(values[TOOL_CLEANUP_STORE][candidate.id]);
+  admit({ok:true,data:{toolId:candidate.id,schedulesRetired:true,alarmsCleared:true}});
+  assert.equal((await cleanup).state,'cleaned');
+  assert.equal((await reinstall).state,'installed');assert.equal(installed,true);
+  assert.deepEqual(values[SIDEBAR_TOOL_STORE],[candidate]);assert.deepEqual(values[TOOL_CLEANUP_STORE],{});
 });
 
 test('host quota refusal before registry commit retains the previous package and its private data',async()=>{

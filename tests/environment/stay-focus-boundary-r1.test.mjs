@@ -147,7 +147,10 @@ function fixture(){
   // Chrome session storage is independent of local; peers must survive retry.
   const session=new Map([[FOCUS_SESSION,'focus-old-session'],['peer.session','peer-kept']]);
   const writes=[],lockNames=[];
-  const api={permissions:{async contains(){return true;}},storage:{local:{
+  const api={runtime:{async sendMessage(message){
+    if(message?.protocol==='opendesk.foundation.v1'&&message.type==='cleanupUninstalledToolSchedules')
+      return {ok:true,data:{toolId:message.payload.toolId,schedulesRetired:true,alarmsCleared:true}};
+  }},permissions:{async contains(){return true;}},storage:{local:{
     async get(keys){return Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(key=>[key,structuredClone(data.get(key))]));},
     async set(rows){for(const [key,value] of Object.entries(rows)){writes.push(key);data.set(key,structuredClone(value));}},
     async remove(key){data.delete(key);}

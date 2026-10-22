@@ -33,8 +33,8 @@ export function createScheduleRepository({storage,clock,namespace,session}){
     }
     return rows;
   }
-  const definitions=async tx=>(await keyedRows(tx,'frameworkKV',SCHEDULE_DEFINITION_PREFIX))
-    .filter(row=>row?.tag==='schedule-definition-v1'&&row.namespace===namespace&&!row.deleted);
+  const definitions=async(tx,{includeDeleted=false}={})=>(await keyedRows(tx,'frameworkKV',SCHEDULE_DEFINITION_PREFIX))
+    .filter(row=>row?.tag==='schedule-definition-v1'&&row.namespace===namespace&&(includeDeleted||!row.deleted));
   const fires=async tx=>(await keyedRows(tx,'frameworkKV',SCHEDULE_FIRE_PREFIX))
     .filter(row=>row?.tag==='schedule-fire-v1'&&row.namespace===namespace);
   const pendingRefs=async tx=>(await keyedRows(tx,'frameworkKV',pendingPrefix))
@@ -224,11 +224,12 @@ export function createScheduleRepository({storage,clock,namespace,session}){
       return structuredClone(row);
     });
   }
-  async function reconcile({activeDocumentIds,activeAppServiceDocumentIds,ownerValidity}={}){
+  async function reconcile({activeDocumentIds,activeAppServiceDocumentIds,ownerValidity,uninstalledOwners}={}){
     invariant(activeDocumentIds===undefined||activeDocumentIds===null||activeDocumentIds instanceof Set,'E_SCHEMA','Live host document set required');
     invariant(activeAppServiceDocumentIds===undefined||activeAppServiceDocumentIds===null||
       activeAppServiceDocumentIds instanceof Set,'E_SCHEMA','Live app service document set required');
     invariant(ownerValidity===undefined||ownerValidity instanceof Map,'E_SCHEMA','Owner validity snapshot required');
+    invariant(uninstalledOwners===undefined||uninstalledOwners instanceof Set,'E_SCHEMA','Uninstalled owner snapshot required');
     const time=now();
     return storage.transaction(['frameworkKV','commandJournal'],'readwrite',async tx=>{
       await ensurePendingIndex(tx);
@@ -238,6 +239,13 @@ export function createScheduleRepository({storage,clock,namespace,session}){
       const activeHost=ids=>hosts.some(row=>ids==null||ids.has(row.hostDocumentId));
       const changed=[];
       for(const def of await definitions(tx)){
+        if(def.owner&&uninstalledOwners?.has(ownerKey(def.owner))){
+          // Release capacity and pending work; retain historical Fire/Run/
+          // Result identity. Disable/upgrade is not an uninstall signal.
+          await tx.put('frameworkKV',{...def,generation:def.generation+1,paused:true,
+            deleted:true,nextDueAt:null,updatedAt:time},scheduleKey(def.scheduleId));
+          continue;
+        }
         if(def.paused||def.nextDueAt===null||def.nextDueAt>time)continue;
         let due=def.nextDueAt;
         if(def.misfirePolicy==='latest-within-hour'){
@@ -461,5 +469,5 @@ export function createScheduleRepository({storage,clock,namespace,session}){
   }
   return {save,changeState,reconcile,list,history,ready,recordWait,admit,bind,
     saveOwned,listOwn,cancelOwn,admissionDefinition,
-    definitions:()=>storage.transaction(['frameworkKV'],'readonly',definitions)};
+    definitions:options=>storage.transaction(['frameworkKV'],'readonly',tx=>definitions(tx,options))};
 }

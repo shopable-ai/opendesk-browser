@@ -25,6 +25,10 @@ function fixture(tool=focusTool){
   const writes=[];
   let failures=0;
   const api={
+    runtime:{async sendMessage(message){
+      if(message?.protocol==='opendesk.foundation.v1'&&message.type==='cleanupUninstalledToolSchedules')
+        return {ok:true,data:{toolId:message.payload.toolId,schedulesRetired:true,alarmsCleared:true}};
+    }},
     storage:{local:{
       async get(input){
         const keys=typeof input==='string'?[input]:Array.isArray(input)?input:[...state.keys()];

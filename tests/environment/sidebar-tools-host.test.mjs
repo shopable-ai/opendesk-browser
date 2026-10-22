@@ -331,7 +331,10 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
   const {doc,view,elements,emit,selectFile}=toolRuntimeFixture();
   const store=new Map();
   const changed=new Node();
-  const api={runtime:{getURL:path=>'chrome-extension://test/'+path},
+  const api={runtime:{getURL:path=>'chrome-extension://test/'+path,async sendMessage(message){
+    if(message?.protocol==='opendesk.foundation.v1'&&message.type==='cleanupUninstalledToolSchedules')
+      return {ok:true,data:{toolId:message.payload.toolId,schedulesRetired:true,alarmsCleared:true}};
+  }},
     storage:{onChanged:{
       addListener:fn=>changed.addEventListener('change',fn),removeListener:fn=>changed.removeEventListener('change',fn)
     },local:{
@@ -514,7 +517,10 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
   const {doc,view,runtime,elements,emit,selectFile}=toolRuntimeFixture();
   let focused=0;
   const changed=new Node();
-  const api={runtime:{getURL:p=>'chrome-extension://test/'+p},storage:{session:{async get(){return {};},async remove(){}},onChanged:{
+  const api={runtime:{getURL:p=>'chrome-extension://test/'+p,async sendMessage(message){
+    if(message?.protocol==='opendesk.foundation.v1'&&message.type==='cleanupUninstalledToolSchedules')
+      return {ok:true,data:{toolId:message.payload.toolId,schedulesRetired:true,alarmsCleared:true}};
+  }},storage:{session:{async get(){return {};},async remove(){}},onChanged:{
     addListener:fn=>changed.addEventListener('change',fn),removeListener:fn=>changed.removeEventListener('change',fn)
   },local:{
     async get(key){const snapshot=snapshotBeforeGet?structuredClone(store.get(key)):undefined;

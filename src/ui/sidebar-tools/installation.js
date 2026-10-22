@@ -8,7 +8,8 @@ import {READING_TOC_SITE_STORE, READING_TOC_VISIBILITY_STORE, READING_TOC_PAGE_R
 import {CLIP_SITE_STORE} from '../../../examples/sidebar-tools/web-markdown-clipper/trusted/policy.js';
 import {CAPTURE_SITE_STORE, KNOWLEDGE_TOOL_ID, KNOWLEDGE_WORKSPACE_PREFIX} from '../../knowledge/policy.js';
 import {writeVerifiedLocalValue,classifyStorageWriteError,unknownStorageOutcome,sameStorageValue} from './storage-state.js';
-import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,requireToolRevocationEpochs,TOOL_REVOCATION_EPOCHS_STORE} from './lifecycle.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,requireToolRevocationEpochs,TOOL_REVOCATION_EPOCHS_STORE,TOOL_CLEANUP_STORE,requirePendingToolCleanups} from './lifecycle.js';
+import {PROTOCOL as FOUNDATION_PROTOCOL} from '../../platform/protocol.js';
 import {TIME_REVIEW_KEY} from '../../../examples/sidebar-tools/time-review/trusted/model.js';
 import {PROMPT_ASSET_STORE} from '../../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js';
 import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../../examples/sidebar-tools/stay-focus/trusted/lifecycle.js';
@@ -20,7 +21,7 @@ import {MANAGED_SITE_BUDGET_CAPABILITY,MANAGED_SITE_BUDGET_PROTOCOL} from '../..
 import {assertManagedSitePolicySupported} from '../../platform/host/managed-site-runtime-contract.js';
 
 export const MARKET_OPERATIONS_STORE='opendesk.market.operations.v1';
-export const TOOL_CLEANUP_STORE='opendesk.sidebar-tools.uninstall-cleanup.v1';
+export {TOOL_CLEANUP_STORE,requirePendingToolCleanups} from './lifecycle.js';
 // Fixed official site-grant store name. Test equality against the independent
 // Prompt Shortcuts policy; do not import packaged tool code into generic installer.
 export const PROMPT_SHORTCUTS_SITE_CLEANUP_STORE='opendesk.sidebar-tools.prompt-sites.v1';
@@ -157,16 +158,6 @@ const toolIdPattern=/^[a-z][a-z0-9-]{1,39}$/;
 // An unreadable or malformed cleanup journal must never become "no pending cleanup".
 // Filtering invalid entries would let a subsequent install bypass the previous owner's
 // unfinished removal and would hide the recovery problem from Extension Center.
-export function requirePendingToolCleanups(value){
-  if(value===undefined)return {};
-  if(!value||typeof value!=='object'||Array.isArray(value)||
-    Object.entries(value).some(([id,row])=>
-      !toolIdPattern.test(id)||!row||typeof row!=='object'||Array.isArray(row)||
-      typeof row.version!=='string'||!/^\d+\.\d+\.\d+$/.test(row.version)||
-      (Object.hasOwn(row,'createdAt')&&(!Number.isSafeInteger(row.createdAt)||row.createdAt<0))))
-    throw error('工具卸载恢复记录损坏；已停止安装与卸载清理以保护原始数据','E_STORAGE_CORRUPT');
-  return value;
-}
 export async function getPendingToolCleanups(api){
   return requirePendingToolCleanups((await api.storage.local.get(TOOL_CLEANUP_STORE))[TOOL_CLEANUP_STORE]);
 }
@@ -195,6 +186,19 @@ async function removeVerifiedStorageKey(storage,key,scope='卸载后的数据清
 async function removeVerifiedKey(api,key){
   return removeVerifiedStorageKey(api.storage.local,key);
 }
+async function retireUninstalledToolSchedules(api,id){
+  if(typeof api.runtime?.sendMessage!=='function')throw error('调度服务不可用','E_SERVICE_UNSUPPORTED');
+  let timer;
+  try{
+    const response=await Promise.race([
+      api.runtime.sendMessage({protocol:FOUNDATION_PROTOCOL,type:'cleanupUninstalledToolSchedules',payload:{toolId:id}}),
+      new Promise((_,reject)=>{timer=setTimeout(()=>reject(unknownStorageOutcome(null,'卸载计划清理回执')),10000);})
+    ]);
+    if(response?.ok!==true)throw error(response?.error?.message||'未取得计划清理回执',response?.error?.code||'E_OUTCOME_UNKNOWN');
+    if(response.data?.toolId!==id||response.data.schedulesRetired!==true||response.data.alarmsCleared!==true)
+      throw unknownStorageOutcome(null,'卸载计划清理回执');
+  }finally{clearTimeout(timer);}
+}
 // Must be called while BOTH opendesk.sidebar-tools:tool:<id> and :catalog
 // locks are held, in that order. Never delete by an old instance's ID alone.
 export async function cleanupUninstalledToolLocked(api,id){
@@ -205,6 +209,9 @@ export async function cleanupUninstalledToolLocked(api,id){
   if(installed.some(row=>row.id===id))
     return {state:'still-installed',toolId:id};
   try{
+    // Keep the existing durable journal and install locks until the original
+    // Scheduler confirms retirement. A same-ID reinstall cannot hide this intent.
+    await retireUninstalledToolSchedules(api,id);
     await removeVerifiedKey(api,sidebarToolStorageKey(id));
     if(id==='prompt-shortcuts')await removeVerifiedKey(api,PROMPT_ASSET_STORE);
     // Delete private bookmark ownership IDs but do not silently remove user bookmarks.

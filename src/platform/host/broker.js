@@ -216,6 +216,8 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
       invariant(authority.cloud,'E_CAPABILITY','Cloud service is not installed');
       return authority.cloud.cloudObserve(message.payload ?? {});
     }
+    if(message.type==='cleanupUninstalledToolSchedules')
+      return authority.schedules.cleanupUninstalledToolSchedules(message.payload??{},sender);
     sender = await resolveToolSender(api, sender);
     invariant(isToolSender(api,sender),'E_OWNER','Only actual packaged tool documents may invoke foundation services');
     const runnerSender=sender.url===api.runtime.getURL(CLOUD_RUNNER_DOCUMENT_PATH);

@@ -33,7 +33,10 @@ test('R26 lifecycle observations revoke only the affected tool and reject corrup
 });
 function fixture(candidate=tool){
   const values={[SIDEBAR_TOOL_STORE]:[candidate]},writes=[],locks=[];
-  const api={storage:{local:{
+  const api={runtime:{async sendMessage(message){
+    if(message?.protocol==='opendesk.foundation.v1'&&message.type==='cleanupUninstalledToolSchedules')
+      return {ok:true,data:{toolId:message.payload.toolId,schedulesRetired:true,alarmsCleared:true}};
+  }},storage:{local:{
     async get(keys){return Object.fromEntries((typeof keys==='string'?[keys]:Array.isArray(keys)?keys:Object.keys(values)).map(key=>[key,structuredClone(values[key])]));},
     async set(rows){writes.push(structuredClone(rows));Object.assign(values,structuredClone(rows));},
     async remove(key){delete values[key];}

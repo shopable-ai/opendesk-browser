@@ -227,7 +227,10 @@ test('R1.4 shared uninstall cleanup removes only this tool grant and data, not a
     async set(value){for(const [key,data] of Object.entries(value))stored.set(key,structuredClone(data));},
     async remove(keys){for(const key of Array.isArray(keys)?keys:[keys])stored.delete(key);}
   };
-  const api={storage:{local,session:{async get(){return {}},async remove(){}}}};
+  const api={runtime:{async sendMessage(message){
+    if(message?.protocol==='opendesk.foundation.v1'&&message.type==='cleanupUninstalledToolSchedules')
+      return {ok:true,data:{toolId:message.payload.toolId,schedulesRetired:true,alarmsCleared:true}};
+  }},storage:{local,session:{async get(){return {}},async remove(){}}}};
   const result=await cleanupUninstalledToolLocked(api,PROMPT_ID);
   assert.equal(result.state,'cleaned');
   assert.equal(stored.has(sidebarToolStorageKey(PROMPT_ID)),false);

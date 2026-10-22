@@ -79,6 +79,10 @@ async function fixture({permission:initialPermission=true,sessionFailure=null}={
   let nativeDelay=0;
   const api={
     runtime:{id:senderId,getURL:path=>'chrome-extension://'+senderId+'/'+path,
+      async sendMessage(message){
+        if(message?.protocol==='opendesk.foundation.v1'&&message.type==='cleanupUninstalledToolSchedules')
+          return {ok:true,data:{toolId:message.payload.toolId,schedulesRetired:true,alarmsCleared:true}};
+      },
       getContexts:async()=>[{contextType:'SIDE_PANEL',documentUrl:hostUrl,
         documentId:'live-doc',frameId:0,windowId:10,incognito:false}]},
     storage:{local:storage,session:sessionFailure==='missing'?undefined:sessionStorage,

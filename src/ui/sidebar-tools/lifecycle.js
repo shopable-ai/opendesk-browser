@@ -1,7 +1,19 @@
 // Runtime preference only: installation and site grants retain their existing stores.
 export const SIDEBAR_TOOL_ENABLE_STORE='opendesk.sidebar-tools.enabled.v1';
 export const TOOL_REVOCATION_EPOCHS_STORE='opendesk.sidebar-tools.revocation-epochs.v1';
+export const TOOL_CLEANUP_STORE='opendesk.sidebar-tools.uninstall-cleanup.v1';
 const toolIdPattern=/^[a-z][a-z0-9-]{1,39}$/;
+// Shared by the original Installer and Scheduler; corruption never authorizes cleanup.
+export function requirePendingToolCleanups(value){
+  if(value===undefined)return {};
+  if(!value||typeof value!=='object'||Array.isArray(value)||
+    Object.entries(value).some(([id,row])=>
+      !toolIdPattern.test(id)||!row||typeof row!=='object'||Array.isArray(row)||
+      typeof row.version!=='string'||!/^\d+\.\d+\.\d+$/.test(row.version)||
+      (Object.hasOwn(row,'createdAt')&&(!Number.isSafeInteger(row.createdAt)||row.createdAt<0))))
+    throw Object.assign(new Error('工具卸载恢复记录损坏；已停止安装与卸载清理以保护原始数据'),{code:'E_STORAGE_CORRUPT'});
+  return value;
+}
 // Uninstall must protect the SAME instance revocation authority as enable/disable.
 // A corrupt epoch map cannot be repaired by spreading it into a new object.
 export function requireToolRevocationEpochs(value){

@@ -1,8 +1,8 @@
 import {canonical,invariant} from '../protocol.js';
-import {permissionPattern} from '../../environment.js';
+import {permissionPattern,isToolSender,resolveToolSender} from '../../environment.js';
 import {BROWSER_OPERATIONS} from '../../framework/sdk/browser-contract.js';
-import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,validateSidebarToolPackage} from '../../ui/sidebar-tools/package.js';
-import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,requireToolEnableRecords} from '../../ui/sidebar-tools/lifecycle.js';
+import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,validateSidebarToolPackage,MAX_INSTALLED_TOOLS} from '../../ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,requireToolEnableRecords,TOOL_CLEANUP_STORE,requirePendingToolCleanups} from '../../ui/sidebar-tools/lifecycle.js';
 import {createScheduleRepository} from './schedule-repository.js';
 import {toolDocumentIdentity,SIDEPANEL_DOCUMENT_PATH,CLOUD_RUNNER_DOCUMENT_PATH} from '../../tool-document-url.js';
 import {SCHEDULE_ALARM_PREFIX,scheduleKey,scheduleIdFromRef,validateInstalledToolScheduleRequest,validateScheduleOwner,validateTrustedScheduleIntent,validateTrustedAppServiceScheduleIntent} from './schedule-contract.js';
@@ -67,6 +67,23 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
     return normalized;
   }
   const ownerKey=owner=>canonical(validateScheduleOwner(owner));
+  async function uninstalledScheduleOwners(){
+    // Capture exact old owners BEFORE reading the installation registry. A
+    // concurrent reinstall gets a new epoch and must not be swept by ID alone.
+    const definitions=await repo.definitions();
+    if(!definitions.some(def=>def.owner)||!api.storage?.local?.get)return new Set();
+    const raw=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
+    // Missing/unreadable state is not proof of an uninstall.
+    if(raw===undefined)return new Set();
+    invariant(Array.isArray(raw)&&raw.length<=MAX_INSTALLED_TOOLS,'E_STORAGE_CORRUPT','Installed scheduler tool registry is corrupt');
+    let ids;
+    try{ids=raw.map(tool=>validateSidebarToolPackage(tool).id);}
+    catch{invariant(false,'E_STORAGE_CORRUPT','Installed scheduler tool registry is corrupt');}
+    const installed=new Set(ids);
+    invariant(installed.size===ids.length,'E_STORAGE_CORRUPT','Duplicate installed scheduler tool');
+    return new Set(definitions.filter(def=>def.owner&&!installed.has(def.owner.toolId))
+      .map(def=>ownerKey(def.owner)));
+  }
   async function currentOwnerValidity(){
     const definitions=await repo.definitions(),owners=[];
     for(const def of definitions)
@@ -101,7 +118,19 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
         (session===undefined||row.browserSessionIncarnation===session)));
     await Promise.allSettled(rows.map(row=>emitToHost(row.registrationId,{type:'scheduled-fire-ready'})));
   }
-  async function syncAlarms(ownerValidity){
+  let alarmSync=Promise.resolve();
+  function syncAlarms({removedNames}={}){
+    // A stale native create must finish before uninstall's clear/readback.
+    // Queued synchronizations read definitions only when their turn begins.
+    const next=alarmSync.then(async()=>{
+      await syncAlarmsNow(await currentOwnerValidity());
+      if(removedNames)invariant(!(await api.alarms.getAll()).some(alarm=>removedNames.has(alarm.name)),
+        'E_OUTCOME_UNKNOWN','Uninstalled schedule alarm cleanup is not confirmed');
+    });
+    alarmSync=next.catch(()=>{});
+    return next;
+  }
+  async function syncAlarmsNow(ownerValidity){
     // Test-only broker shims may omit alarms; production MV3 declares the API.
     if(!api.alarms?.getAll||!api.alarms?.create||!api.alarms?.clear)return;
     const definitions=await repo.definitions();
@@ -120,13 +149,62 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
       if(!actual.some(a=>a.name===name))await api.alarms.create(name,{when});
   }
   async function reconcile(){
+    const uninstalledOwners=await uninstalledScheduleOwners();
     const activeDocumentIds=await scheduledHostDocumentIds(api);
     const activeAppServiceDocumentIds=await scheduledHostDocumentIds(api,{profile:'app-service'});
     const ownerValidity=await currentOwnerValidity();
-    const changed=await repo.reconcile({activeDocumentIds,activeAppServiceDocumentIds,ownerValidity});
-    await syncAlarms(ownerValidity);
+    const changed=await repo.reconcile({activeDocumentIds,activeAppServiceDocumentIds,ownerValidity,uninstalledOwners});
+    await syncAlarms();
     if(changed.length)await signal();
     return changed;
+  }
+  async function cleanupUninstalledToolSchedules(request,sender){
+    invariant(request&&Object.keys(request).length===1&&/^[a-z][a-z0-9-]{1,39}$/.test(request.toolId),
+      'E_SCHEMA','Only an uninstalled tool ID is accepted');
+    // This one internal Installer operation also serves Marketplace recovery.
+    // Neither Marketplace nor Offscreen gains a general Host registration.
+    let source;
+    try{source=new URL(sender?.url);}catch{invariant(false,'E_OWNER','Installer URL is invalid');}
+    const market=new URL(api.runtime.getURL('ui/marketplace.html'));
+    const marketplace=source?.protocol===market.protocol&&source.host===market.host&&source.pathname===market.pathname;
+    if(!marketplace){
+      sender=await resolveToolSender(api,sender);
+      invariant(isToolSender(api,sender)&&sender.url!==api.runtime.getURL(CLOUD_RUNNER_DOCUMENT_PATH),
+        'E_OWNER','Schedule cleanup requires an actual Installer document');
+    }
+    invariant(sender?.id===api.runtime.id&&typeof sender.documentId==='string'&&sender.documentId.length>0&&
+      (sender.frameId===undefined||sender.frameId===0)&&!sender.tab?.incognito&&
+      (!sender.documentLifecycle||sender.documentLifecycle==='active'),
+      'E_OWNER','Schedule cleanup requires an active Installer document');
+    const contexts=await api.runtime.getContexts({documentUrls:[sender.url],documentIds:[sender.documentId]});
+    invariant(Array.isArray(contexts)&&contexts.length===1&&contexts[0].documentId===sender.documentId&&
+      contexts[0].documentUrl===sender.url&&contexts[0].frameId===0&&!contexts[0].incognito&&
+      (sender.tab?contexts[0].contextType==='TAB'&&sender.frameId===0&&
+        Number.isSafeInteger(sender.tab.id)&&sender.tab.id>=0&&contexts[0].tabId===sender.tab.id:
+        !marketplace&&contexts[0].contextType==='SIDE_PANEL'),
+      'E_OWNER','Installer native document is missing or changed');
+    invariant(api.alarms?.getAll&&api.alarms?.clear&&api.alarms?.create,
+      'E_SERVICE_UNSUPPORTED','Native scheduler cleanup is unavailable');
+    // Snapshot exact old owners before checking the registry. The caller holds
+    // the existing tool/catalog locks, and its journal blocks reinstalls.
+    const definitions=await repo.definitions({includeDeleted:true});
+    const local=await api.storage.local.get([SIDEBAR_TOOL_STORE,TOOL_CLEANUP_STORE]);
+    const pending=requirePendingToolCleanups(local[TOOL_CLEANUP_STORE]);
+    invariant(Object.hasOwn(pending,request.toolId),'E_OWNER','No pending uninstall authorizes schedule cleanup');
+    const raw=local[SIDEBAR_TOOL_STORE];
+    invariant(Array.isArray(raw)&&raw.length<=MAX_INSTALLED_TOOLS,'E_STORAGE_CORRUPT','Installed tool registry is unavailable');
+    let ids;
+    try{ids=raw.map(tool=>validateSidebarToolPackage(tool).id);}
+    catch{invariant(false,'E_STORAGE_CORRUPT','Installed tool registry is corrupt');}
+    invariant(new Set(ids).size===ids.length,'E_STORAGE_CORRUPT','Duplicate installed tool identity');
+    invariant(!ids.includes(request.toolId),'E_OWNER','Installed tool cannot be cleaned');
+    const owned=definitions.filter(def=>def.owner?.toolId===request.toolId);
+    await repo.reconcile({uninstalledOwners:new Set(owned.map(def=>ownerKey(def.owner))),
+      ownerValidity:await currentOwnerValidity(),activeDocumentIds:await scheduledHostDocumentIds(api),
+      activeAppServiceDocumentIds:await scheduledHostDocumentIds(api,{profile:'app-service'})});
+    const names=new Set(owned.map(def=>SCHEDULE_ALARM_PREFIX+def.scheduleId));
+    await syncAlarms({removedNames:names});
+    return {toolId:request.toolId,schedulesRetired:true,alarmsCleared:true};
   }
   async function saveSchedule(request,sender){
     await checkSender(sender);
@@ -205,6 +283,7 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
       const timezone='UTC',trigger=scheduleSpecFromExpression(publicRequest.schedule,timezone);
       if(trigger.triggerKind==='once')invariant(trigger.triggerSpec.at>clock.now(),
         'E_SCHEMA','One-time execution must be in the future');
+      await reconcile();
       const row=await repo.saveOwned({profile:'app-service',appId:binding.appId,appBinding:binding,
         owner:checkedOwner,title:tool.title,params:{},targetUrl:null,openIfMissing:false,
         timezone,...trigger,misfirePolicy:'skip',startDeadlineMs:300000,paused:false},checkedOwner);
@@ -216,6 +295,7 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
     invariant(await api.permissions.contains({origins:[permissionPattern(new URL(input.targetUrl).origin)]}),
       'E_PERMISSION','Grant website access before scheduling');
     if(input.triggerKind==='once')invariant(input.triggerSpec.at>clock.now(),'E_SCHEMA','One-time execution must be in the future');
+    await reconcile();
     const row=await repo.saveOwned(input,checkedOwner);
     await reconcile();
     return {scheduleRef:row.scheduleId,status:row.paused?'pending':'active'};
@@ -262,7 +342,7 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
       'E_PERMISSION','Scheduled target origin permission was revoked');
     return checkedOwner;
   }
-  return {saveSchedule,changeSchedule,listSchedules,listScheduleHistory,listDueSchedules,setScheduleFireState,onAlarm,reconcile,
+  return {saveSchedule,changeSchedule,listSchedules,listScheduleHistory,listDueSchedules,setScheduleFireState,onAlarm,reconcile,cleanupUninstalledToolSchedules,
     create,listOwn,cancelOwn,prepareAdmission,hasPendingAppServices,
     admit:repo.admit,bind:repo.bind};
 }

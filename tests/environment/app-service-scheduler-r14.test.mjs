@@ -3,15 +3,15 @@ import assert from 'node:assert/strict';
 import {createScheduleService,scheduledHostDocumentIds} from '../../src/platform/tasks/schedule-service.js';
 import {createScheduleRepository} from '../../src/platform/tasks/schedule-repository.js';
 import {scheduleKey,fireKey,validateScheduleInput,validateInstalledToolScheduleRequest,
-  validateTrustedAppServiceScheduleIntent} from '../../src/platform/tasks/schedule-contract.js';
+  validateTrustedAppServiceScheduleIntent,validateScheduleOwner} from '../../src/platform/tasks/schedule-contract.js';
 import {readAppServiceInstallation,APP_SERVICE_OPERATIONS} from '../../src/platform/tasks/app-service-installation.js';
 import {BROWSER_OPERATIONS,normalizeBrowserOperation} from '../../src/framework/sdk/browser-contract.js';
 import {operationSchemas,validateDirectBrowserValue} from '../../src/framework/sdk/browser-schemas.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
-import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {MARKET_PROVENANCE_STORE} from '../../src/sidebar-tools/official-reading-toc.js';
-import {digestUtf8} from '../../src/platform/protocol.js';
+import {digestUtf8,canonical} from '../../src/platform/protocol.js';
 import {createTaskPackage,taskKey,installedKey,taskScriptId} from '../../src/platform/tasks/contract.js';
 import {SIDEPANEL_DOCUMENT_PATH,CLOUD_RUNNER_DOCUMENT_PATH} from '../../src/tool-document-url.js';
 
@@ -42,6 +42,122 @@ function memoryStorage(){
     }
   };
 }
+function installerSender(f,{market=false}={}){
+  const url=f.api.runtime.getURL(market?'ui/marketplace.html?intent=review#apps':SIDEPANEL_DOCUMENT_PATH+'?hostInstanceId=12345678-1234-4123-8123-123456789abc');
+  const sender={id:f.api.runtime.id,url,documentId:'installer-document',frameId:0,documentLifecycle:'active',
+    ...(market?{tab:{id:7,incognito:false}}:{})};
+  f.contexts.splice(0,f.contexts.length,{documentId:sender.documentId,documentUrl:url,frameId:0,
+    incognito:false,contextType:market?'TAB':'SIDE_PANEL',...(market?{tabId:7}:{})});
+  return sender;
+}
+async function pendingUninstall(f){
+  f.local[SIDEBAR_TOOL_STORE]=[];
+  f.local[TOOL_CLEANUP_STORE]={[f.tool.id]:{version:f.tool.version,createdAt:f.now()}};
+}
+
+test('uninstall retirement is confirmed before same-ID reinstall and is idempotent after lost reply',async()=>{
+  const f=await fixture();await f.start();const before=await f.repo.definitions();
+  await pendingUninstall(f);
+  const sender=installerSender(f),request={toolId:f.tool.id};
+  const receipt=await f.service.cleanupUninstalledToolSchedules(request,sender);
+  assert.deepEqual(receipt,{toolId:f.tool.id,schedulesRetired:true,alarmsCleared:true});
+  assert.equal((await f.repo.definitions()).length,0);assert.equal(f.alarms.size,0);
+  // Simulate the committed reply being lost: the existing durable intent remains.
+  assert.ok(f.local[TOOL_CLEANUP_STORE][f.tool.id]);
+  assert.deepEqual(await f.service.cleanupUninstalledToolSchedules(request,sender),receipt);
+  const deleted=await f.storage.transaction(['frameworkKV'],'readonly',tx=>tx.get('frameworkKV',scheduleKey(before[0].scheduleId)));
+  assert.equal(deleted.generation,before[0].generation+1);
+  f.local[SIDEBAR_TOOL_STORE]=[f.tool];
+  await assert.rejects(f.service.cleanupUninstalledToolSchedules(request,sender),error('E_OWNER'));
+  assert.equal((await f.start()).status,'active');
+  assert.equal((await f.repo.definitions()).length,1);
+});
+
+test('Marketplace recovery rejects missing intent, corrupt state and stale or forged native senders',async()=>{
+  const f=await fixture();await f.start();await pendingUninstall(f);
+  const sender=installerSender(f,{market:true}),request={toolId:f.tool.id},before=await f.repo.definitions();
+  for(const forged of [
+    {...sender,id:'another-extension'},{...sender,frameId:1},{...sender,documentId:'stale-document'},
+    {...sender,tab:{id:8}},{...sender,tab:{id:7,incognito:true}},
+    {...sender,url:f.api.runtime.getURL(CLOUD_RUNNER_DOCUMENT_PATH),tab:undefined},
+    {...sender,url:f.api.runtime.getURL('ui/marketplace.html.evil')},
+    {...sender,documentLifecycle:'cached'}
+  ])await assert.rejects(f.service.cleanupUninstalledToolSchedules(request,forged),error('E_OWNER'));
+  await assert.rejects(f.service.cleanupUninstalledToolSchedules({...request,owner:f.owner},sender),error('E_SCHEMA'));
+  for(const raw of [undefined,{},null,{[f.tool.id]:{version:'broken'}}]){
+    f.local[TOOL_CLEANUP_STORE]=raw;
+    await assert.rejects(f.service.cleanupUninstalledToolSchedules(request,sender),
+      failure=>['E_OWNER','E_STORAGE_CORRUPT'].includes(failure.code));
+  }
+  await pendingUninstall(f);
+  for(const raw of [undefined,null,[f.tool,f.tool],[{}]]){
+    f.local[SIDEBAR_TOOL_STORE]=raw;
+    await assert.rejects(f.service.cleanupUninstalledToolSchedules(request,sender),error('E_STORAGE_CORRUPT'));
+  }
+  assert.deepEqual(await f.repo.definitions(),before);
+  await pendingUninstall(f);
+  assert.equal((await f.service.cleanupUninstalledToolSchedules(request,sender)).alarmsCleared,true);
+});
+
+test('failed native alarm removal retains an unknown cleanup outcome and retry verifies old tombstones',async()=>{
+  const f=await fixture();await f.start();await pendingUninstall(f);
+  const sender=installerSender(f),request={toolId:f.tool.id},clear=f.api.alarms.clear;
+  f.api.alarms.clear=async()=>false;
+  await assert.rejects(f.service.cleanupUninstalledToolSchedules(request,sender),error('E_OUTCOME_UNKNOWN'));
+  assert.equal((await f.repo.definitions()).length,0);assert.equal(f.alarms.size,1);
+  assert.ok(f.local[TOOL_CLEANUP_STORE][f.tool.id]);
+  f.api.alarms.clear=clear;
+  assert.equal((await f.service.cleanupUninstalledToolSchedules(request,sender)).alarmsCleared,true);
+  assert.equal(f.alarms.size,0);
+});
+
+test('uninstall waits for an earlier in-flight native alarm create before confirming removal',async()=>{
+  const f=await fixture(),create=f.api.alarms.create;
+  let entered,release;
+  const started=new Promise(resolve=>{entered=resolve;});
+  const waiting=new Promise(resolve=>{release=resolve;});
+  f.api.alarms.create=async(...args)=>{entered();await waiting;return create(...args);};
+  const creation=f.start();await started;
+  await pendingUninstall(f);const sender=installerSender(f);
+  let confirmed=false;
+  const cleanup=f.service.cleanupUninstalledToolSchedules({toolId:f.tool.id},sender).then(result=>{confirmed=true;return result;});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(confirmed,false,'cleanup cannot pass a pending stale native create');
+  release();await creation;
+  assert.equal((await cleanup).alarmsCleared,true);assert.equal(f.alarms.size,0);
+  assert.equal((await f.repo.definitions()).length,0);
+});
+
+test('an older invalid owner snapshot cannot clear an alarm after a newer valid synchronization',async()=>{
+  const f=await fixture();await f.start();
+  const get=f.api.storage.local.get;let entered,release,delay=true;
+  const started=new Promise(resolve=>{entered=resolve;});
+  const waiting=new Promise(resolve=>{release=resolve;});
+  f.api.storage.local.get=async keys=>{
+    const value=await get(keys);
+    if(delay&&Array.isArray(keys)&&keys.includes(SIDEBAR_TOOL_ENABLE_STORE)){
+      delay=false;entered();await waiting;
+    }
+    return value;
+  };
+  f.local[SIDEBAR_TOOL_ENABLE_STORE][f.tool.id]=false;
+  const stale=f.service.reconcile();await started;
+  f.local[SIDEBAR_TOOL_ENABLE_STORE][f.tool.id]=true;
+  await f.service.reconcile();assert.equal(f.alarms.size,1);
+  release();await stale;assert.equal(f.alarms.size,1);
+});
+
+test('native alarm synchronization retries after one failure without duplicating definitions',async()=>{
+  const f=await fixture(),get=f.api.alarms.getAll;let fail=true;
+  f.api.alarms.getAll=async()=>{
+    if(fail){fail=false;throw Object.assign(Error('Temporary Chrome API failure'),{code:'E_ALARM_TEST'});}
+    return get();
+  };
+  await assert.rejects(f.start(),error('E_ALARM_TEST'));
+  await f.service.reconcile();
+  // Failure was before allocation; explicit retry creates only one definition.
+  await f.start();assert.equal((await f.repo.definitions()).length,1);assert.equal(f.alarms.size,1);
+});
 async function fixture(){
   const js='async function main(){return await browser.storage.local.getQuota();}',
     tool={format:'opendesk.sidebar-tool.v2',id:'service-scheduler',version:'1.0.0',
@@ -352,4 +468,78 @@ test('R1.4 a Task occurrence cannot be admitted as an app service',async()=>{
     source:{contentHash:task.sourceHash,scriptId:taskScriptId(task.taskId,task.version)},paramsDecoded:{},
     target:{mode:'borrowed',expectedUrl:task.targetUrl}},'https://example.com',f.now()));
   assert.equal((await f.repo.definitions()).find(row=>row.scheduleId===definition.scheduleId).profile,undefined);
+});
+
+function uninstallScheduleInput(f,{owner=f.owner,binding=f.binding}={}){
+  return {profile:'app-service',appId:binding.appId,appBinding:binding,owner,
+    title:'Uninstall capacity regression',params:{},targetUrl:null,openIfMissing:false,timezone:'UTC',
+    triggerKind:'interval',triggerSpec:{anchorAt:0,everyMinutes:1},misfirePolicy:'skip',startDeadlineMs:300000,paused:false};
+}
+const uninstallOwnerKey=owner=>canonical(validateScheduleOwner(owner));
+
+test('R1.4 uninstall reclaims the 128 schedule capacity without touching another app or unowned Task',async()=>{
+  const f=await fixture();await f.start();
+  const task=await f.repo.save(await installTask(f));
+  while((await f.repo.definitions()).length<128)await f.repo.saveOwned(uninstallScheduleInput(f),f.owner);
+  const before=await f.repo.definitions(),other={...f.tool,id:'service-other'};
+  f.local[SIDEBAR_TOOL_STORE]=[other];
+  f.local[TOOL_REVOCATION_EPOCHS_STORE][other.id]='22345678-1234-4123-8123-123456789abc';
+  const {binding}=await readAppServiceInstallation(f.api,other.id),owner={...f.owner,toolId:other.id,
+    packageHash:binding.packageHash,epoch:binding.generation,installEpoch:binding.generation};
+  const created=await f.service.create(serviceRequest,owner,approved(serviceRequest));
+  const after=await f.repo.definitions();assert.equal(after.length,2);
+  assert.deepEqual(after.find(x=>x.scheduleId===task.scheduleId),task);
+  assert.equal(after.find(x=>x.scheduleId===created.scheduleRef).owner.toolId,other.id);
+  const original=before.find(x=>x.owner?.toolId===f.tool.id);
+  const retired=await f.storage.transaction(['frameworkKV'],'readonly',tx=>tx.get('frameworkKV',scheduleKey(original.scheduleId)));
+  assert.equal(retired.deleted,true);assert.equal(retired.paused,true);assert.equal(retired.nextDueAt,null);
+  assert.equal(retired.generation,original.generation+1);
+});
+
+test('R1.4 uninstall cleanup preserves installed apps during disable, generation change and capability removal',async()=>{
+  const f=await fixture(),created=await f.start(),before=await f.repo.definitions();
+  f.local[SIDEBAR_TOOL_ENABLE_STORE][f.tool.id]=false;await f.service.reconcile();
+  assert.deepEqual(await f.repo.definitions(),before);
+  f.local[TOOL_REVOCATION_EPOCHS_STORE][f.tool.id]='22345678-1234-4123-8123-123456789abc';
+  await f.service.reconcile();assert.deepEqual(await f.repo.definitions(),before);
+  const tool={...f.tool,version:'1.1.0',capabilities:['browser.scheduler']};delete tool.background;
+  f.local[SIDEBAR_TOOL_STORE]=[tool];await f.service.reconcile();
+  assert.equal((await f.repo.definitions())[0].scheduleId,created.scheduleRef);
+  assert.deepEqual(await f.repo.definitions(),before);
+});
+
+test('R1.4 uninstall cleanup never infers removal from missing, corrupt or unreadable registry data',async()=>{
+  for(const kind of ['missing','null','object','duplicate','invalid','unreadable']){
+    const f=await fixture();await f.start();const before=await f.repo.definitions();
+    if(kind==='missing'){delete f.local[SIDEBAR_TOOL_STORE];await f.service.reconcile();}
+    else if(kind==='unreadable'){
+      f.api.storage.local.get=async()=>{throw Object.assign(Error('Unreadable registry'),{code:'E_STORAGE_TEST'});};
+      await assert.rejects(f.service.reconcile(),error('E_STORAGE_TEST'));
+    }else{
+      f.local[SIDEBAR_TOOL_STORE]=kind==='null'?null:kind==='object'?{}:kind==='duplicate'?[f.tool,f.tool]:[{}];
+      await assert.rejects(f.service.reconcile(),error('E_STORAGE_CORRUPT'));
+    }
+    assert.deepEqual(await f.repo.definitions(),before,kind);
+  }
+});
+
+test('R1.4 uninstall snapshots cancel only old pending fires and retain new generations and admitted audit',async()=>{
+  const f=await fixture();await f.start();await f.start();f.advance(30000);
+  const {fires}=await f.due();assert.equal(fires.length,2);
+  const auditRun={runId:'uninstall-audit-run',resultId:'uninstall-audit-result',state:'running'};
+  await f.put('runs',auditRun.runId,auditRun);
+  await f.storage.transaction(['frameworkKV'],'readwrite',tx=>f.repo.bind(tx,fires[1],auditRun));
+  const admittedBefore=await f.storage.transaction(['frameworkKV'],'readonly',tx=>tx.get('frameworkKV',fireKey(fires[1].fireId)));
+  const nextGeneration='22345678-1234-4123-8123-123456789abc',binding={...f.binding,generation:nextGeneration},
+    owner={...f.owner,epoch:nextGeneration,installEpoch:nextGeneration};
+  const input=uninstallScheduleInput(f,{owner,binding});input.triggerSpec.anchorAt=f.now()+60000;
+  const current=await f.repo.saveOwned(input,owner);
+  await f.repo.reconcile({uninstalledOwners:new Set([uninstallOwnerKey(f.owner)])});
+  assert.deepEqual(await f.repo.definitions(),[current]);
+  const state=await f.storage.transaction(['frameworkKV','runs'],'readonly',async tx=>({
+    pending:await tx.get('frameworkKV',fireKey(fires[0].fireId)),
+    admitted:await tx.get('frameworkKV',fireKey(fires[1].fireId)),run:await tx.get('runs',auditRun.runId)}));
+  assert.equal(state.pending.status,'CANCELLED');assert.equal(state.pending.runId,null);
+  assert.deepEqual(state.admitted,admittedBefore);assert.deepEqual(state.run,auditRun);
+  await assert.rejects(f.repo.reconcile({uninstalledOwners:[]}),error('E_SCHEMA'));
 });
