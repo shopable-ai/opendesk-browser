@@ -1,6 +1,6 @@
 {
-  "status": "B2_NATIVE_DYNAMIC_CORE_AND_UNINSTALL_CAPACITY_PASS_FULL_GOAL_PARTIAL",
-  "recordedAt": "2026-10-22T01:07:17.205Z",
+  "status": "G_DYNAMIC_LOCAL_15_CONDITIONS_PASS_DECOUPLING_AND_RELEASE_NOT_COMPLETE",
+  "recordedAt": "2026-10-22T02:21:12.224Z",
   "chrome": "Chrome/156.0.8078.4",
   "extensionId": "llgenebfpfbpmkeknbnpimjjjoihnofi",
   "environment": {
@@ -912,22 +912,23 @@
     "gate1": "PASS",
     "gate2": "PASS",
     "gate3": "PASS",
-    "gate4": "NOT_VERIFIED_FULL_MATRIX",
-    "gate5": "NOT_VERIFIED"
+    "gate4": "PASS_REQUIRED_LOCAL_LIFECYCLE_FULL_EXTENDED_MATRIX_NOT_VERIFIED",
+    "gate5": "PARTIAL_DELIVERED_RELEASE_POLICY_AND_DECOUPLING_NOT_COMPLETE"
   },
   "goals": {
-    "G_DYNAMIC": "PARTIAL_CORE_PASS_FINAL_CONDITIONS_PENDING",
+    "G_DYNAMIC": "PASS_ORIGINAL_15_LOCAL_CONDITIONS",
     "G_DECOUPLING": "NOT_COMPLETED",
-    "chromeNative": "CORE_PASS_LIFECYCLE_PARTIAL",
+    "chromeNative": "PASS_LOCAL_B2_WITH_RECORDED_LIMITS",
     "chromeWebStore": "RELEASE_POLICY_NOT_VERIFIED"
   },
   "remaining": [
-    "B2 restart/result recovery passed with an explicit restart-to-observer monitoring gap; complete queue/fault and affected Cloud/official-app native regressions are not all executed.",
-    "Cloud enabled consumer shutdown requires a legitimate paired consumer; unavailable, never replaced with internal config injection.",
-    "Private Port extraction/old document epoch and different marketplace publisher native matrix remain NOT_TESTED.",
-    "Six independent dimensions have not all reached 95.",
-    "Stay Focus/AdBlock/AI VIP Share business coupling remains; no migration claimed.",
-    "Store policy review is separate; no submission, approval or publication."
+    "Full Browser restart recovery passed, with its explicitly recorded restart-to-first-observer gap; strict closed-UI ordinary chain separately passed.",
+    "Legitimate Cloud online consumer stop while App active passed. Actual Cloud Job-in-flight stop, public remote execution and full official-app native regression matrix are not claimed.",
+    "Old document Host ownership negative passed; private Port extraction and different marketplace publisher complete native matrices remain NOT_TESTED.",
+    "Finite batch13/FIFO and bounded schedule-definition capacity passed. No promise of infinite fairness or arbitrary side effects exactly-once; full ACK-loss fault matrix not repeated on B2.",
+    "First five independent dimensions reached 95 or above; MV3/release compliance remains 78 and RELEASE_POLICY_NOT_VERIFIED. Six-dimension 95 goal is not complete.",
+    "Stay Focus/AdBlock/AI VIP Share private business coupling remains; no migration claimed.",
+    "No CWS submission, approval, store release, deployment or additional Native installation."
   ],
   "browserRestart": {
     "status": "PASS_BROWSER_RESTART_AND_UPGRADED_APP_RESULT",
@@ -961,6 +962,902 @@
     }
   ],
   "independentScores": {
+    "assessor": {
+      "nickname": "Ampere",
+      "role": "Independent read-only verifier",
+      "agentId": "01a1615a-2d0c-7e93-baf9-84bf1994977c"
+    },
+    "scope": "R1.4-LOCAL frozen B2 and reviewed A/B; no CWS approval or official business migration claimed",
+    "gDynamicOriginal15Pass": true,
+    "currentProductBlock": false,
+    "chromeFeasibility": 95,
+    "runtimeUniquenessAndSimplicity": 95,
+    "sdkIdentityPermissionsIsolation": 95,
+    "lifecycleReliability": 95,
+    "postBuildAppIndependence": 96,
+    "mv3ReleaseCompliance": 78,
+    "allAtLeast95": false,
+    "evidence": "artifacts/dynamic-app-r14-local/b2-final-independent-review.md",
+    "reviewEvidence": {
+      "path": "artifacts/dynamic-app-r14-local/b2-final-independent-review.md",
+      "sha256": "fda7304bd07e6b35be703915aca1267e41b404315ca4dc77a1045f2724fe1c45"
+    },
+    "scoreEvidence": {
+      "path": "artifacts/dynamic-app-r14-local/b2-final-independent-scores.json",
+      "sha256": "e29be20fcbd3496ae26e432de00a3599e13a2854a5e2dd0c75438ce62d734ea4"
+    }
+  },
+  "nativeFollowup": {
+    "recordedAt": "2026-10-22T02:21:12.191Z",
+    "scope": "Same frozen B2, unchanged product and app code. Ordinary chains use real UI; explicit security probes are separate.",
+    "sameDueAndSwRestart": {
+      "status": "PASS",
+      "due": "2026-10-22T01:18:58.583Z",
+      "stoppedAt": "2026-10-22T01:17:33.142Z",
+      "detachedAt": "2026-10-22T01:17:33.144Z",
+      "sidePanelClosed": true,
+      "cloudDisabled": true,
+      "noHttpOrRunnerTab": true,
+      "runs": [
+        {
+          "runId": "5b24ab9d-584e-4809-a1b8-8fa3650d2baf",
+          "resultId": "6e5236ba-a015-4a78-b92f-2c1205d01a73",
+          "fireId": "sched:f1bbf610-33f9-443d-af0b-4adecef0196e:1:1792631938583",
+          "binding": {
+            "appId": "app-words-b72b4bea7cec",
+            "packageHash": "82a350ca8bff1919a604f9403f802aa209ce17249118886e2d604e2725a42e28",
+            "codeHash": "4a0a1fb8ac2a3defe9cb2f6c1eb9ec27e9e8ca4a5e492c5c6e0c8a0978e620b4",
+            "generation": "1c640454-a008-4153-b2b1-55c17171fe56",
+            "sourceIdentity": {
+              "kind": "local-reviewed"
+            }
+          },
+          "createdAt": 1792631947363,
+          "state": "completed",
+          "workerRetired": true
+        },
+        {
+          "runId": "d3ec3a25-8194-474f-b15b-813ce116f576",
+          "resultId": "3ca1cf76-c6a0-4ec5-8c17-735d8ddfd71b",
+          "fireId": "sched:340d1602-f54c-4379-8b33-dd5c23c3276c:1:1792631938583",
+          "binding": {
+            "appId": "app-primes-423c62d375df",
+            "packageHash": "21f5a6508d0c7e2877f8b3a5c3baf39021da52995b66960a38598c734034ea75",
+            "codeHash": "e33ef4113d42f637f2f0b2e54f7ddd400279b6328b1c2934ea9e8a5975576259",
+            "generation": "676b1219-5adf-4426-bae2-cef9bfa9b794",
+            "sourceIdentity": {
+              "kind": "local-reviewed"
+            }
+          },
+          "createdAt": 1792631938916,
+          "state": "completed",
+          "workerRetired": true
+        }
+      ],
+      "serialization": {
+        "status": "PASS",
+        "timings": [
+          {
+            "appId": "app-primes-423c62d375df",
+            "runId": "d3ec3a25-8194-474f-b15b-813ce116f576",
+            "createdAt": 1792631938916,
+            "resultCommittedAt": 1792631945219,
+            "retirementId": "196bdaec-8681-4cac-9b5e-80b23adf33a8",
+            "workerReleasedAt": 1792631945227
+          },
+          {
+            "appId": "app-words-b72b4bea7cec",
+            "runId": "5b24ab9d-584e-4809-a1b8-8fa3650d2baf",
+            "createdAt": 1792631947363,
+            "resultCommittedAt": 1792631953694,
+            "retirementId": "f3e0fe4f-c707-40ce-b75d-3618f62ee7bf",
+            "workerReleasedAt": 1792631953704
+          }
+        ],
+        "firstReleasedBeforeSecondAdmissionMs": 2136,
+        "scope": "Two real same-due apps serialized by the original slot after actual SW stop. This is not a long-run starvation or queue-overflow proof.",
+        "assertions": [
+          "same once due in both Definitions and Fires",
+          "one linked Run, controller-start, terminal controller-result per Fire",
+          "controller-service-result rows not counted as terminal Runs",
+          "retirementId matches Run, releaseCount=1, absence=app-worker-retired",
+          "B admitted strictly after A original Worker retirement and durable slot release"
+        ]
+      },
+      "evidence": {
+        "path": "artifacts/dynamic-app-r14-local/lifecycle/b2-simultaneous-sw-1792631848557/proof.json",
+        "sha256": "d3fe8aee15d1992d7789fd8ac224b84d45d0371c2e2541c392b0abd7c391cdb9"
+      },
+      "ledger": {
+        "path": "artifacts/dynamic-app-r14-local/lifecycle/b2-simultaneous-sw-1792631848557/ledger.json",
+        "sha256": "bb31579dbf4a2559f23e2df63cdaa612b3f308c171755ff4aca33505e921f97f"
+      },
+      "independentReview": {
+        "path": "artifacts/dynamic-app-r14-local/b2-same-due-independent-review.md",
+        "sha256": "4ddbd86d96ffa068a7e46832504f7bbe5ed7510df373bcaa05fa007c11b44549"
+      }
+    },
+    "crossAppPlanAndStorage": {
+      "status": "PASS",
+      "kind": "NEGATIVE_PUBLIC_SDK_PROBE_IN_REAL_INSTALLED_A_UI",
+      "a": "app-primes-423c62d375df",
+      "b": "app-words-b72b4bea7cec",
+      "bScheduleRef": "f1bbf610-33f9-443d-af0b-4adecef0196e",
+      "probes": [
+        {
+          "method": "browser.scheduler.cancelOwn",
+          "scope": "Foreign B schedule through actual A bound SDK",
+          "response": {
+            "accepted": false,
+            "code": "E_OWNER",
+            "name": "Error",
+            "message": "Schedule is owned by another installed tool"
+          }
+        },
+        {
+          "method": "browser.scheduler.listOwn",
+          "scope": "Cannot select B owner",
+          "response": {
+            "accepted": false,
+            "code": "E_SCHEMA",
+            "name": "Error",
+            "message": "Unknown or missing argument"
+          }
+        },
+        {
+          "method": "browser.storage.local.get",
+          "scope": "Cannot select B storage",
+          "response": {
+            "accepted": false,
+            "code": "E_SCHEMA",
+            "name": "Error",
+            "message": "Unknown or missing argument"
+          }
+        }
+      ],
+      "bStateUnchanged": true,
+      "evidence": {
+        "path": "artifacts/dynamic-app-r14-local/b2-owned-plan-negatives.json",
+        "sha256": "0a63dc5709270374ed910c29e4f575664a983dce5a49aabc9e75c19963ae8fb3"
+      }
+    },
+    "actualOffscreenSender": {
+      "status": "PASS",
+      "normalChain": false,
+      "nativeOffscreen": {
+        "id": "llgenebfpfbpmkeknbnpimjjjoihnofi",
+        "href": "chrome-extension://llgenebfpfbpmkeknbnpimjjjoihnofi/cloud-control/runner.html"
+      },
+      "probes": [
+        {
+          "source": "actual OFFSCREEN_DOCUMENT, Chrome supplies Sender",
+          "request": {
+            "protocol": "opendesk.foundation.v1",
+            "type": "cleanupUninstalledToolSchedules",
+            "payload": {
+              "toolId": "app-words-b72b4bea7cec"
+            }
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "E_OWNER",
+              "message": "Schedule cleanup requires an actual Installer document"
+            }
+          }
+        }
+      ],
+      "bStateUnchanged": true,
+      "aRemainedRunning": true,
+      "settlement": {
+        "status": "PASS_EXISTING_ALARM_RUN_COMPLETED_AFTER_OFFSCREEN_SENDER_REJECTION",
+        "at": "2026-10-22T01:32:08.332Z",
+        "nonce": "b2-offscreen-sender-1792632304008",
+        "runId": "8424dc8d-f7e1-4d27-bb20-c0fddf4f9b0a",
+        "resultId": "2b0a3d93-f906-41b8-b62c-51de4cf2b4b8",
+        "payload": {
+          "count": 1229,
+          "last": 9973,
+          "limit": 10000,
+          "sum": 5736396
+        },
+        "retirement": {
+          "tag": "controller-retirement",
+          "runId": "8424dc8d-f7e1-4d27-bb20-c0fddf4f9b0a",
+          "retirementId": "777be995-eef7-45f3-9c59-c8aac8774656",
+          "releaseCount": 1,
+          "absence": "app-worker-retired",
+          "releasedAt": 1792632390778
+        },
+        "scope": "Reconciliation of the original Run and native UI read; no replay. Cloud running/stop not covered."
+      },
+      "offscreenReleasedWhenIdle": true,
+      "evidence": {
+        "path": "artifacts/dynamic-app-r14-local/lifecycle/b2-offscreen-negative-1792632304007/proof.json",
+        "sha256": "145fa1c455c1e63247f77fb84c819c0398d6fdc6bffc765baf8ca92627c72e38"
+      },
+      "settlementEvidence": {
+        "path": "artifacts/dynamic-app-r14-local/lifecycle/b2-offscreen-negative-1792632304007/settlement-proof.json",
+        "sha256": "2b0d7a4cc9fa757dea5d0ce49697471d8972ca3a455c6e1202228f26675212d9"
+      }
+    },
+    "bundleVerification": {
+      "path": "artifacts/dynamic-app-r14-local/b2-final-followup-hash-verification.json",
+      "sha256": "8049d1d76fd341ecb8e82e1e2a4a57ff9b14aa694407939680644429b8a8e4cb"
+    },
+    "batch13": {
+      "status": "PASS",
+      "due": "2026-10-22T01:37:01.185Z",
+      "closedAt": "2026-10-22T01:35:12.282Z",
+      "closedIntervalEndedAt": "2026-10-22T01:38:06.773Z",
+      "closureMonitoring": "PASS_CONTINUOUS_TARGET_DISCOVERY_AND_SAMPLES",
+      "plans": [
+        {
+          "index": 0,
+          "appId": "app-primes-423c62d375df",
+          "ref": "37decba9-817f-4e6f-a00a-dc07df369e3c",
+          "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/dynamic-app-r14-local/lifecycle/b2-batch13-1792632898346/actions-app-primes-423c62d375df-schedule-0/schedule-1792632902392.json"
+        },
+        {
+          "index": 1,
+          "appId": "app-words-b72b4bea7cec",
+          "ref": "8013ea2d-1e5a-40fe-9669-4b94728f59b8",
+          "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/dynamic-app-r14-local/lifecycle/b2-batch13-1792632898346/actions-app-words-b72b4bea7cec-schedule-1/schedule-1792632903165.json"
+        },
+        {
+          "index": 2,
+          "appId": "app-primes-423c62d375df",
+          "ref": "56309197-d3f8-4023-8fa1-0d4b6e8f7f8e",
+          "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/dynamic-app-r14-local/lifecycle/b2-batch13-1792632898346/actions-app-primes-423c62d375df-schedule-2/schedule-1792632903964.json"
+        },
+        {
+          "index": 3,
+          "appId": "app-words-b72b4bea7cec",
+          "ref": "2b3dd695-3868-4bc6-a2cb-b5c2d0b6867d",
+          "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/dynamic-app-r14-local/lifecycle/b2-batch13-1792632898346/actions-app-words-b72b4bea7cec-schedule-3/schedule-1792632904746.json"
+        },
+        {
+          "index": 4,
+          "appId": "app-primes-423c62d375df",
+          "ref": "8023d74f-ab9e-41c0-8632-62394e270820",
+          "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/dynamic-app-r14-local/lifecycle/b2-batch13-1792632898346/actions-app-primes-423c62d375df-schedule-4/schedule-1792632905539.json"
+        },
+        {
+          "index": 5,
+          "appId": "app-words-b72b4bea7cec",
+          "ref": "236d2e99-2cd2-4189-b5f1-0e24b1fa04aa",
+          "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/dynamic-app-r14-local/lifecycle/b2-batch13-1792632898346/actions-app-words-b72b4bea7cec-schedule-5/schedule-1792632906317.json"
+        },
+        {
+          "index": 6,
+          "appId": "app-primes-423c62d375df",
+          "ref": "397170aa-49d9-4e76-9cc4-d780387f29aa",
+          "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/dynamic-app-r14-local/lifecycle/b2-batch13-1792632898346/actions-app-primes-423c62d375df-schedule-6/schedule-1792632907098.json"
+        },
+        {
+          "index": 7,
+          "appId": "app-words-b72b4bea7cec",
+          "ref": "10108dd3-5ae7-4fe9-9a20-1c48d2f9a2bf",
+          "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/dynamic-app-r14-local/lifecycle/b2-batch13-1792632898346/actions-app-words-b72b4bea7cec-schedule-7/schedule-1792632907897.json"
+        },
+        {
+          "index": 8,
+          "appId": "app-primes-423c62d375df",
+          "ref": "8786fbe1-6064-4487-9a0e-2e8616de499e",
+          "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/dynamic-app-r14-local/lifecycle/b2-batch13-1792632898346/actions-app-primes-423c62d375df-schedule-8/schedule-1792632908673.json"
+        },
+        {
+          "index": 9,
+          "appId": "app-words-b72b4bea7cec",
+          "ref": "7ec2bd98-d1fb-429a-8e9a-37ccd62ef6e1",
+          "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/dynamic-app-r14-local/lifecycle/b2-batch13-1792632898346/actions-app-words-b72b4bea7cec-schedule-9/schedule-1792632909446.json"
+        },
+        {
+          "index": 10,
+          "appId": "app-primes-423c62d375df",
+          "ref": "10a59542-aa7d-4e12-ab1d-e9898e3e86be",
+          "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/dynamic-app-r14-local/lifecycle/b2-batch13-1792632898346/actions-app-primes-423c62d375df-schedule-10/schedule-1792632910240.json"
+        },
+        {
+          "index": 11,
+          "appId": "app-words-b72b4bea7cec",
+          "ref": "01f4136e-ca76-4b11-a823-4ae2b7b0822b",
+          "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/dynamic-app-r14-local/lifecycle/b2-batch13-1792632898346/actions-app-words-b72b4bea7cec-schedule-11/schedule-1792632911021.json"
+        },
+        {
+          "index": 12,
+          "appId": "app-primes-423c62d375df",
+          "ref": "27a74614-76e4-4170-a64f-4f6846fd23a1",
+          "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/dynamic-app-r14-local/lifecycle/b2-batch13-1792632898346/actions-app-primes-423c62d375df-schedule-12/schedule-1792632911799.json"
+        }
+      ],
+      "executions": [
+        {
+          "appId": "app-primes-423c62d375df",
+          "scheduleRef": "37decba9-817f-4e6f-a00a-dc07df369e3c",
+          "fireId": "sched:37decba9-817f-4e6f-a00a-dc07df369e3c:1:1792633021185",
+          "runId": "1ec8cc4e-a839-4b54-8542-a8294ee91dec",
+          "resultId": "d915e3a9-cbdb-44d5-b1ab-8bffaf73bdd6",
+          "admittedAt": 1792633037682,
+          "createdAt": 1792633037682,
+          "committedAt": 1792633037997,
+          "releasedAt": 1792633038013
+        },
+        {
+          "appId": "app-words-b72b4bea7cec",
+          "scheduleRef": "8013ea2d-1e5a-40fe-9669-4b94728f59b8",
+          "fireId": "sched:8013ea2d-1e5a-40fe-9669-4b94728f59b8:1:1792633021185",
+          "runId": "80f64239-ca77-47d8-b068-8e0e967831ea",
+          "resultId": "abf990b3-ac1a-4716-9d96-77a906f8d9e2",
+          "admittedAt": 1792633047638,
+          "createdAt": 1792633047638,
+          "committedAt": 1792633047977,
+          "releasedAt": 1792633047997
+        },
+        {
+          "appId": "app-primes-423c62d375df",
+          "scheduleRef": "56309197-d3f8-4023-8fa1-0d4b6e8f7f8e",
+          "fireId": "sched:56309197-d3f8-4023-8fa1-0d4b6e8f7f8e:1:1792633021185",
+          "runId": "acadda0d-d778-4c9d-b3a6-553f5dee1638",
+          "resultId": "0fea52d9-cd46-4b83-8ded-d9253b651b7f",
+          "admittedAt": 1792633042635,
+          "createdAt": 1792633042634,
+          "committedAt": 1792633042965,
+          "releasedAt": 1792633042983
+        },
+        {
+          "appId": "app-words-b72b4bea7cec",
+          "scheduleRef": "2b3dd695-3868-4bc6-a2cb-b5c2d0b6867d",
+          "fireId": "sched:2b3dd695-3868-4bc6-a2cb-b5c2d0b6867d:1:1792633021185",
+          "runId": "951d5483-acf7-4ec3-91da-dcabb08d1a57",
+          "resultId": "aec080f4-0fc4-4e30-a1a6-1e0a68d9510b",
+          "admittedAt": 1792633035199,
+          "createdAt": 1792633035199,
+          "committedAt": 1792633035518,
+          "releasedAt": 1792633035535
+        },
+        {
+          "appId": "app-primes-423c62d375df",
+          "scheduleRef": "8023d74f-ab9e-41c0-8632-62394e270820",
+          "fireId": "sched:8023d74f-ab9e-41c0-8632-62394e270820:1:1792633021185",
+          "runId": "155a1f0a-6959-49a7-b435-1fb4a1811615",
+          "resultId": "e9bb3803-bf22-44aa-bdd3-92057e532274",
+          "admittedAt": 1792633050162,
+          "createdAt": 1792633050162,
+          "committedAt": 1792633050488,
+          "releasedAt": 1792633050509
+        },
+        {
+          "appId": "app-words-b72b4bea7cec",
+          "scheduleRef": "236d2e99-2cd2-4189-b5f1-0e24b1fa04aa",
+          "fireId": "sched:236d2e99-2cd2-4189-b5f1-0e24b1fa04aa:1:1792633021185",
+          "runId": "d7fad6d6-e456-49fa-8aae-b38026c6fa99",
+          "resultId": "14b40352-f785-41b3-a851-8d2756291d00",
+          "admittedAt": 1792633030255,
+          "createdAt": 1792633030255,
+          "committedAt": 1792633030553,
+          "releasedAt": 1792633030568
+        },
+        {
+          "appId": "app-primes-423c62d375df",
+          "scheduleRef": "397170aa-49d9-4e76-9cc4-d780387f29aa",
+          "fireId": "sched:397170aa-49d9-4e76-9cc4-d780387f29aa:1:1792633021185",
+          "runId": "6bac1542-d301-4e5d-92cd-838d4562a974",
+          "resultId": "23d58431-aeb0-47e1-8a85-2cf03d370980",
+          "admittedAt": 1792633040165,
+          "createdAt": 1792633040164,
+          "committedAt": 1792633040470,
+          "releasedAt": 1792633040492
+        },
+        {
+          "appId": "app-words-b72b4bea7cec",
+          "scheduleRef": "10108dd3-5ae7-4fe9-9a20-1c48d2f9a2bf",
+          "fireId": "sched:10108dd3-5ae7-4fe9-9a20-1c48d2f9a2bf:1:1792633021185",
+          "runId": "3ef0d9fb-bd2f-49f0-8aa9-75594e463e31",
+          "resultId": "69d0e6a8-07e0-4d27-8dcb-762f2d92ba3b",
+          "admittedAt": 1792633025293,
+          "createdAt": 1792633025293,
+          "committedAt": 1792633025589,
+          "releasedAt": 1792633025601
+        },
+        {
+          "appId": "app-primes-423c62d375df",
+          "scheduleRef": "8786fbe1-6064-4487-9a0e-2e8616de499e",
+          "fireId": "sched:8786fbe1-6064-4487-9a0e-2e8616de499e:1:1792633021185",
+          "runId": "bfa00e5c-6a51-4ecf-8905-bc4c8eb7cfe4",
+          "resultId": "b7ac18b0-c29b-4e0a-9f67-2015896bd658",
+          "admittedAt": 1792633052651,
+          "createdAt": 1792633052651,
+          "committedAt": 1792633052995,
+          "releasedAt": 1792633053017
+        },
+        {
+          "appId": "app-words-b72b4bea7cec",
+          "scheduleRef": "7ec2bd98-d1fb-429a-8e9a-37ccd62ef6e1",
+          "fireId": "sched:7ec2bd98-d1fb-429a-8e9a-37ccd62ef6e1:1:1792633021185",
+          "runId": "580e6ead-177b-44dc-827e-e9d8e361431f",
+          "resultId": "2bce98fe-30bc-4e47-bb18-372109dd3ee9",
+          "admittedAt": 1792633045139,
+          "createdAt": 1792633045138,
+          "committedAt": 1792633045456,
+          "releasedAt": 1792633045475
+        },
+        {
+          "appId": "app-primes-423c62d375df",
+          "scheduleRef": "10a59542-aa7d-4e12-ab1d-e9898e3e86be",
+          "fireId": "sched:10a59542-aa7d-4e12-ab1d-e9898e3e86be:1:1792633021185",
+          "runId": "a32c4fac-b725-44b6-8938-fd7c055c3b2f",
+          "resultId": "62552a90-061f-4e04-aedd-231d66b8033b",
+          "admittedAt": 1792633027761,
+          "createdAt": 1792633027760,
+          "committedAt": 1792633028086,
+          "releasedAt": 1792633028101
+        },
+        {
+          "appId": "app-words-b72b4bea7cec",
+          "scheduleRef": "01f4136e-ca76-4b11-a823-4ae2b7b0822b",
+          "fireId": "sched:01f4136e-ca76-4b11-a823-4ae2b7b0822b:1:1792633021185",
+          "runId": "00f5feb7-8e93-4555-b8af-b14b67202d89",
+          "resultId": "d657ea56-2213-4ae2-8446-b915a85a3ba3",
+          "admittedAt": 1792633022481,
+          "createdAt": 1792633022479,
+          "committedAt": 1792633023108,
+          "releasedAt": 1792633023151
+        },
+        {
+          "appId": "app-primes-423c62d375df",
+          "scheduleRef": "27a74614-76e4-4170-a64f-4f6846fd23a1",
+          "fireId": "sched:27a74614-76e4-4170-a64f-4f6846fd23a1:1:1792633021185",
+          "runId": "75785190-714c-49b5-ab06-03fdb165a114",
+          "resultId": "b5c0407a-b8bf-4c6a-b18d-c5371e94ed11",
+          "admittedAt": 1792633032724,
+          "createdAt": 1792633032723,
+          "committedAt": 1792633033034,
+          "releasedAt": 1792633033049
+        }
+      ],
+      "executionOrder": [
+        "app-words-b72b4bea7cec",
+        "app-words-b72b4bea7cec",
+        "app-primes-423c62d375df",
+        "app-words-b72b4bea7cec",
+        "app-primes-423c62d375df",
+        "app-words-b72b4bea7cec",
+        "app-primes-423c62d375df",
+        "app-primes-423c62d375df",
+        "app-primes-423c62d375df",
+        "app-words-b72b4bea7cec",
+        "app-words-b72b4bea7cec",
+        "app-primes-423c62d375df",
+        "app-primes-423c62d375df"
+      ],
+      "ui": [
+        {
+          "appId": "app-primes-423c62d375df",
+          "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/dynamic-app-r14-local/lifecycle/b2-batch13-1792632898346/read-app-primes-423c62d375df/read-1792633088427.json",
+          "nonce": "b2-batch13-9000695c-f0dc-47c8-a767-73b3efa99d9d",
+          "payload": {
+            "count": 1229,
+            "last": 9973,
+            "limit": 10000,
+            "sum": 5736396
+          }
+        },
+        {
+          "appId": "app-words-b72b4bea7cec",
+          "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/dynamic-app-r14-local/lifecycle/b2-batch13-1792632898346/read-app-words-b72b4bea7cec/read-1792633088968.json",
+          "nonce": "b2-batch13-2a87fac5-f369-48c0-8a4e-f1980af9ddfc",
+          "payload": {
+            "checksum": "1ae57e0d",
+            "entries": [
+              [
+                "369803016dd365d7",
+                9
+              ],
+              [
+                "apps",
+                18
+              ],
+              [
+                "bright",
+                18
+              ],
+              [
+                "compute",
+                9
+              ],
+              [
+                "grow",
+                9
+              ],
+              [
+                "ideas",
+                9
+              ],
+              [
+                "keeps",
+                9
+              ],
+              [
+                "opendesk",
+                9
+              ],
+              [
+                "persist",
+                9
+              ],
+              [
+                "results",
+                18
+              ],
+              [
+                "separate",
+                9
+              ],
+              [
+                "shine",
+                9
+              ],
+              [
+                "stars",
+                9
+              ]
+            ],
+            "unique": 13,
+            "words": 144
+          }
+        }
+      ],
+      "scope": "One finite 13-Fire batch across two apps, no overlap or loss. Does not prove SDK burst overflow or indefinite starvation freedom.",
+      "noReplay": true,
+      "driverCorrection": "Run.createdAt and Fire.admittedAt are separate now() calls in the same admission transaction. Validate original IDs/one-to-one binding and timestamp order, not millisecond equality.",
+      "evidence": {
+        "path": "artifacts/dynamic-app-r14-local/lifecycle/b2-batch13-1792632898346/reconciled-proof.json",
+        "sha256": "4cd329c35277b8f076b698717ddc2ae495e5eb79601bc3ea73eb2f460fdb9e26"
+      },
+      "ledger": {
+        "path": "artifacts/dynamic-app-r14-local/lifecycle/b2-batch13-1792632898346/ledger.json",
+        "sha256": "390e414b9e720c0e123722f45e23eee881aa24e08c9a4ab185635a42f54d699d"
+      }
+    },
+    "fifo": {
+      "status": "PASS",
+      "due": "2026-10-22T01:41:30.393Z",
+      "closedAt": "2026-10-22T01:40:23.632Z",
+      "closedIntervalEndedAt": "2026-10-22T01:42:36.001Z",
+      "closureMonitoring": "PASS_CONTINUOUS_TARGET_DISCOVERY_AND_SAMPLES",
+      "plans": [
+        {
+          "index": 0,
+          "appId": "app-primes-423c62d375df",
+          "due": "2026-10-22T01:41:30.393Z",
+          "ref": "3d58fbd8-ac05-4d57-81d1-39dc3d64634c",
+          "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/dynamic-app-r14-local/lifecycle/b2-fifo-1792633217581/actions-app-primes-423c62d375df-schedule-0/schedule-1792633221579.json"
+        },
+        {
+          "index": 1,
+          "appId": "app-words-b72b4bea7cec",
+          "due": "2026-10-22T01:41:35.393Z",
+          "ref": "6f6d8a58-932b-4aab-b5a9-7705023b2ad7",
+          "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/dynamic-app-r14-local/lifecycle/b2-fifo-1792633217581/actions-app-words-b72b4bea7cec-schedule-1/schedule-1792633222355.json"
+        },
+        {
+          "index": 2,
+          "appId": "app-primes-423c62d375df",
+          "due": "2026-10-22T01:41:40.393Z",
+          "ref": "bc0a4a66-d5e4-4693-9266-fa359644e35d",
+          "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/dynamic-app-r14-local/lifecycle/b2-fifo-1792633217581/actions-app-primes-423c62d375df-schedule-2/schedule-1792633223155.json"
+        }
+      ],
+      "executions": [
+        {
+          "appId": "app-primes-423c62d375df",
+          "scheduleRef": "3d58fbd8-ac05-4d57-81d1-39dc3d64634c",
+          "fireId": "sched:3d58fbd8-ac05-4d57-81d1-39dc3d64634c:1:1792633290393",
+          "runId": "75b1c0b2-e898-47a8-9b1d-b9fcc359ccde",
+          "resultId": "ccf85fc5-62c1-4e49-96f8-042be0586b28",
+          "admittedAt": 1792633290802,
+          "committedAt": 1792633311147,
+          "releasedAt": 1792633311173
+        },
+        {
+          "appId": "app-words-b72b4bea7cec",
+          "scheduleRef": "6f6d8a58-932b-4aab-b5a9-7705023b2ad7",
+          "fireId": "sched:6f6d8a58-932b-4aab-b5a9-7705023b2ad7:1:1792633295393",
+          "runId": "8a4e2735-3ea3-4abe-a62e-1eabdead13d4",
+          "resultId": "984acd64-965f-4a67-931b-eaeb948c6996",
+          "admittedAt": 1792633313311,
+          "committedAt": 1792633313639,
+          "releasedAt": 1792633313662
+        },
+        {
+          "appId": "app-primes-423c62d375df",
+          "scheduleRef": "bc0a4a66-d5e4-4693-9266-fa359644e35d",
+          "fireId": "sched:bc0a4a66-d5e4-4693-9266-fa359644e35d:1:1792633300393",
+          "runId": "befdbade-9ea7-45a6-993b-18548478b808",
+          "resultId": "7b425638-ea87-4f88-88ab-d253161e4e47",
+          "admittedAt": 1792633315824,
+          "committedAt": 1792633336177,
+          "releasedAt": 1792633336203
+        }
+      ],
+      "executionOrder": [
+        "app-primes-423c62d375df",
+        "app-words-b72b4bea7cec",
+        "app-primes-423c62d375df"
+      ],
+      "scope": "Three finite due times, A1 holds the slot while B1 and then A2 become due. Existing slot and earlier-due sorting, not indefinite starvation freedom.",
+      "evidence": {
+        "path": "artifacts/dynamic-app-r14-local/lifecycle/b2-fifo-1792633217581/proof.json",
+        "sha256": "0996e305172055641a7c754be72ce8a862a3b347b69f387451788798641dad1e"
+      },
+      "ledger": {
+        "path": "artifacts/dynamic-app-r14-local/lifecycle/b2-fifo-1792633217581/ledger.json",
+        "sha256": "5682400f5e0c749d4665ce5dd181dc5724877c2f37746652c601ac96f521eda2"
+      },
+      "queueBoundaryReview": {
+        "path": "artifacts/dynamic-app-r14-local/b2-queue-bound-review.md",
+        "sha256": "de5ee95f1fa2686a8f5603c48e510840253e33d6f26b07f2f0ac78078adedd77"
+      }
+    },
+    "offscreenFault": {
+      "status": "PASS",
+      "startedAt": "2026-10-22T01:54:49.115Z",
+      "finishedAt": "2026-10-22T01:57:18.217Z",
+      "oldDocumentId": "6C855CEC5DE9248549A65D5463715123",
+      "interruptedRunId": "a4661216-243e-431d-8270-47617ec4687b",
+      "closeAt": "2026-10-22T01:55:52.685Z",
+      "destroyedAt": "2026-10-22T01:55:52.888Z",
+      "newRun": {
+        "runId": "c722e867-4442-409e-a994-3864381e14fb",
+        "resultId": "cb1a136d-8bf3-4910-87bd-4f8619dfe1c8",
+        "hostDocumentId": "8E4EFF4C68690A2222E30ECBA1584E58"
+      },
+      "hostProbe": {
+        "kind": "EXPLICIT_READONLY_HOST_PROTOCOL_CONTROL_AND_NEGATIVE",
+        "current": {
+          "requestId": "2d49f120-85b1-4cf0-a76b-93bec7704a1c",
+          "registrationId": "0f21ff72-6759-47cb-9b4c-c66041c277ab",
+          "targetRunId": "a4661216-243e-431d-8270-47617ec4687b",
+          "response": {
+            "ok": true,
+            "data": {
+              "requestId": "2d49f120-85b1-4cf0-a76b-93bec7704a1c",
+              "value": {
+                "t": "object",
+                "v": [
+                  [
+                    "usedBytes",
+                    {
+                      "t": "number",
+                      "v": 2030
+                    }
+                  ],
+                  [
+                    "maxBytes",
+                    {
+                      "t": "number",
+                      "v": 32768
+                    }
+                  ],
+                  [
+                    "keyCount",
+                    {
+                      "t": "number",
+                      "v": 6
+                    }
+                  ],
+                  [
+                    "maxKeys",
+                    {
+                      "t": "number",
+                      "v": 32
+                    }
+                  ],
+                  [
+                    "maxItemBytes",
+                    {
+                      "t": "number",
+                      "v": 8192
+                    }
+                  ]
+                ]
+              }
+            }
+          }
+        },
+        "oldDocument": {
+          "requestId": "c0b6c745-2097-479d-be28-56f6f303f8e9",
+          "registrationId": "0f21ff72-6759-47cb-9b4c-c66041c277ab",
+          "targetRunId": "8424dc8d-f7e1-4d27-bb20-c0fddf4f9b0a",
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "E_OWNER",
+              "message": "Controller host mismatch"
+            }
+          }
+        },
+        "noOldOperationJournal": true
+      },
+      "noReplay": true,
+      "noLateAWrite": true,
+      "closureMonitoring": "PASS_CONTINUOUS_TARGET_DISCOVERY_AND_SAMPLES",
+      "evidence": {
+        "path": "artifacts/dynamic-app-r14-local/lifecycle/b2-offscreen-fault-1792634089115/proof.json",
+        "sha256": "f681a1805e0153dd368a017263eac53bd322944a28482e352a03987fa16f3df4"
+      },
+      "scope": "Actual Offscreen target closed during A after durable started SDK write; original A interrupted and retired once, independent B recovered through a new document. Read-only Host protocol control/old-document negative separately identified; not extraction of an old private Port."
+    },
+    "cloudSharedStop": {
+      "status": "PASS",
+      "startedAt": "2026-10-22T02:10:22.898Z",
+      "finishedAt": "2026-10-22T02:11:56.695Z",
+      "scope": "Original local Provider/UI, no Cloud Job submitted; shared consumer stop during native Alarm App execution. Strict closed-UI ordinary chains separately proven.",
+      "provider": {
+        "providerId": "c63e2bbf-efe5-4035-b439-f4dada1acebc",
+        "executorCount": 1,
+        "jobCount": 0
+      },
+      "cloud": {
+        "present": true,
+        "enabled": true,
+        "providerId": "c63e2bbf-efe5-4035-b439-f4dada1acebc",
+        "executorId": "21681dcb-f93e-4ab1-925e-9653be60eaaa",
+        "grantId": "dda97ec3-145c-44be-9301-e45ef7e47f13",
+        "tasks": [
+          {
+            "taskId": "sample.form-fill",
+            "version": "1.0.0",
+            "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+            "resultAllowed": false,
+            "installationId": "01ffbf8f-7424-4cf3-8782-9df772bc612b",
+            "generation": 1
+          }
+        ]
+      },
+      "connection": "已连接",
+      "hostUi": "已就绪",
+      "taskVerificationRunId": "e8543cb3-cabf-4dcb-9c90-e301ac16a6e5",
+      "nonce": "b2-cloud-stop-1792635022898",
+      "scheduleRef": "a213e58c-3df4-41cc-822c-e45e24f55a9a",
+      "due": "2026-10-22T02:11:24.083Z",
+      "execution": {
+        "runId": "9096e713-f9d1-467f-8183-8cd9abf74637",
+        "resultId": "f8711bc8-2a7e-494f-ad76-be6e7224426d",
+        "documentId": "DFA4D45EDC0627B6D6D45D09E15D783B",
+        "retirementId": "44cf0f40-9702-492e-87f6-f6254ea03ada"
+      },
+      "cloudDisabledAfterStop": true,
+      "appStillRunningAfterStop": true,
+      "sameOffscreenDocument": true,
+      "finalOffscreenCount": 0,
+      "bStorageUnchanged": true,
+      "noCloudJobSubmitted": true,
+      "ui": {
+        "algorithm": "prime-sieve",
+        "nonce": "b2-cloud-stop-1792635022898",
+        "payload": {
+          "count": 1229,
+          "last": 9973,
+          "limit": 10000,
+          "sum": 5736396
+        },
+        "security": {
+          "bindingForgeries": {
+            "appId": "E_SCHEMA",
+            "codeHash": "E_SCHEMA",
+            "generation": "E_SCHEMA",
+            "namespace": "E_SCHEMA",
+            "origin": "E_SCHEMA",
+            "packageHash": "E_SCHEMA",
+            "runId": "E_SCHEMA"
+          },
+          "chromePrivilege": false,
+          "codeNonce": "c0965aa65381a3e947020762",
+          "cspViolations": [
+            {
+              "blocked": "https://example.invalid/opendesk-r14-fetch",
+              "directive": "connect-src"
+            },
+            {
+              "blocked": "https://example.invalid/opendesk-r14-fetch",
+              "directive": "connect-src"
+            },
+            {
+              "blocked": "https://example.invalid/opendesk-r14-fetch",
+              "directive": "connect-src"
+            },
+            {
+              "blocked": "https://example.invalid/opendesk-r14-script.js",
+              "directive": "script-src-elem"
+            },
+            {
+              "blocked": "https://example.invalid/opendesk-r14-script.js",
+              "directive": "script-src-elem"
+            },
+            {
+              "blocked": "https://example.invalid/opendesk-r14-script.js",
+              "directive": "script-src-elem"
+            },
+            {
+              "blocked": "https://example.invalid/opendesk-r14-module.js",
+              "directive": "script-src-elem"
+            },
+            {
+              "blocked": "https://example.invalid/opendesk-r14-module.js",
+              "directive": "script-src-elem"
+            },
+            {
+              "blocked": "https://example.invalid/opendesk-r14-module.js",
+              "directive": "script-src-elem"
+            },
+            {
+              "blocked": "wss://example.invalid/opendesk-r14",
+              "directive": "connect-src"
+            },
+            {
+              "blocked": "wss://example.invalid/opendesk-r14",
+              "directive": "connect-src"
+            },
+            {
+              "blocked": "wss://example.invalid/opendesk-r14",
+              "directive": "connect-src"
+            }
+          ],
+          "dynamicImport": "TypeError",
+          "fetch": "TypeError",
+          "foreignOwner": "E_SCHEMA",
+          "foreignStorageKeyRejected": "E_SCHEMA",
+          "foreignWrite": "E_SCHEMA",
+          "importScripts": "NetworkError",
+          "opaqueOrigin": "null",
+          "otherApp": "app-words-b72b4bea7cec",
+          "readLimitHandled": "E_LIMIT",
+          "tabs": false,
+          "webSocket": "error"
+        }
+      },
+      "evidence": {
+        "path": "artifacts/dynamic-app-r14-local/cloud-shared/shared-stop-1792635022898/proof.json",
+        "sha256": "1ec11781ec94fa8669c0d0a2f88a356447c5554fff8f105145d18b387b554bb1"
+      },
+      "nativeUi": {
+        "path": "artifacts/dynamic-app-r14-local/cloud-shared/native-ui-c58679b578cd2257.json",
+        "sha256": "3d9bd8b1d22605fa7a2a44ab297054bc3dd8f66f646051426d154cba46db42ed"
+      },
+      "cleanup": {
+        "status": "PASS_ORIGINAL_UI_UNPAIR_CONFIRMED_BY_PROVIDER",
+        "at": "2026-10-22T02:14:12.725Z",
+        "providerId": "c63e2bbf-efe5-4035-b439-f4dada1acebc",
+        "executorId": "21681dcb-f93e-4ab1-925e-9653be60eaaa",
+        "providerRevocation": {
+          "providerId": "c63e2bbf-efe5-4035-b439-f4dada1acebc",
+          "pairingId": "51a7c397-5391-43de-afb2-6165b5ffee3d",
+          "pairingGeneration": 1,
+          "revocationId": "8df5c4bb-4cac-4921-bbf9-5ed4bab7c974",
+          "revoked": true
+        },
+        "jobCount": 0,
+        "live": {
+          "cloudConfigAbsent": true,
+          "offscreen": [],
+          "brief": "撤销已确认"
+        },
+        "ownProviderStopped": {
+          "pid": 29987,
+          "port": 43112,
+          "state": "STOPPED",
+          "scope": "Only this turn original CLI provider; other servers/watchers/browser preserved"
+        },
+        "evidence": {
+          "path": "artifacts/dynamic-app-r14-local/cloud-shared/cleanup-proof.json",
+          "sha256": "41068aab6d7e00e47dabeedce774291608b73dc31f9a4db187096a24ae7e8faa"
+        }
+      }
+    }
+  },
+  "previousIndependentScores": {
     "chromeFeasibility": 95,
     "runtimeUniquenessAndSimplicity": 90,
     "sdkIdentityPermissionsIsolation": 94,
@@ -968,6 +1865,29 @@
     "postBuildAppIndependence": 94,
     "mv3ReleaseCompliance": 78,
     "evidence": "artifacts/dynamic-app-r14-local/b2-independent-followup.md",
-    "allAtLeast95": false
+    "allAtLeast95": false,
+    "note": "Prior independent scores retained; added same-due, cross-app schedule and actual Offscreen sender evidence does not automatically alter scores."
+  },
+  "completionConditions": {
+    "pass": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "partial": [],
+    "notVerified": [],
+    "scope": "Independent verifier confirms all original 15 G-DYNAMIC conditions for frozen B2/local-reviewed A/B. Full security/fault/publisher matrices, CWS approval and G-DECOUPLING remain separately limited; no blanket universal runtime claim."
   }
 }

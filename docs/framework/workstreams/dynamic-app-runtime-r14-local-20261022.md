@@ -2,9 +2,9 @@
 
 2026-10-22，Asia/Shanghai；证据中的 ISO 时间使用 UTC。
 
-**当前可用：** 开发者通过原扩展中心导入含可选后台入口的 Sidebar Tool v2，审阅后打开 UI、调用 SDK、创建计划，关闭侧栏后执行隔离计算，再打开 UI 读取自己的结果。B2 上两个冻结后新应用已经完成这条真实 Mac Chrome 链路。本轮额外修复并原生验证了卸载不释放计划容量的缺陷。
+**当前可用：** 开发者通过原扩展中心导入含可选后台入口的 Sidebar Tool v2，审阅后打开 UI、调用 SDK、创建计划，关闭侧栏后执行隔离计算，再打开 UI 读取自己的结果。B2 上两个冻结后新应用已经完成这条真实 Mac Chrome 链路。本轮额外修复并原生验证了卸载不释放计划容量的缺陷，并补齐 Offscreen 故障恢复及合法 Cloud 共享停止交错。
 
-**完成边界：** G-DYNAMIC 核心链和本次卸载修复 PASS；全部 15 条最终条件仍为 PARTIAL，不能标记完整验收完成。G-DECOUPLING 未完成；六维没有全部达到 95；商店合规为 RELEASE_POLICY_NOT_VERIFIED。B1 是历史候选，不能覆盖 B2 未测项。
+**完成边界：** 独立复核确认 G-DYNAMIC 原始 15 条条件在冻结 B2／本地审阅 A/B 范围内 PASS。G-DECOUPLING 未完成；独立评分前五维达到 95，第六维发布合规 78，六维全部 ≥95 的总目标未完成。商店合规为 RELEASE_POLICY_NOT_VERIFIED。此结论不外推完整发布者、故障与官方业务原生矩阵；B1 是历史候选，不能覆盖 B2 未测项。
 
 ## 本轮修复与实际用户操作
 
@@ -13,8 +13,15 @@
 3. B2 原生复验：初始 A/B 两条定义；通过 A UI 逐条创建 126 个远期计划并完成审阅，总数 128，第 129 个被拒绝 E_LIMIT。正式卸载 A 后，其 127 条定义逐一 deleted/paused、generation+1、nextDueAt=null；活动定义 128→1，A Alarm 全清。B 的定义、完整结果不变，A completed Run 与 Journal 保留，清理日志在成功回执后移除。
 4. B 正式创建新计划并在侧栏关闭后执行，UI 读回新 nonce `b2-released-capacity`，Run `adb688b0-fb8a-43bc-a8cb-c850d55c9166` completed/Worker retired，原 SDK Journal durable。A 同包重新安装获得新 generation，严格普通链再次通过。
 5. B2 运行中停用、恢复、升级 1.0.0→1.1.0 已实测。停用 Run `e13bc73d-b8f6-48d2-84ca-673a29b4743d`、升级 Run `6dd4c440-310c-4024-b975-c948482ce4bc` 均 stopped/E_TOOL_CHANGED、Worker retired；分别等待 31 秒，未见旧 nonce 迟到写入。
-6. 新清理入口真实 SIDE_PANEL 负向请求：仍安装的 B 无 pending uninstall 返回 E_OWNER；额外 generation、runId、owner 返回 E_SCHEMA。B 的 registry、owned data、计划、Run、Journal 前后相同。这是明确的协议负面探针，不属于普通 UI 执行链。没有活跃 Offscreen，不能宣称真实 Offscreen sender 拒绝已测。
+6. 新清理入口真实 SIDE_PANEL 负向请求：仍安装的 B 无 pending uninstall 返回 E_OWNER；额外 generation、runId、owner 返回 E_SCHEMA。随后在 A 真实 Alarm 启动、Worker 正运行时，由实际 `cloud-control/runner.html` Offscreen 文档发送清理 B 的请求，同样返回 E_OWNER（要求真实 Installer document），B 前后未变，A 仍运行并最终完成。这些是明确的协议负面探针，不属于普通 UI 执行链。最终 A Run `8424dc8d-f7e1-4d27-bb20-c0fddf4f9b0a`、Result `2b0a3d93-f906-41b8-b62c-51de4cf2b4b8` 与 UI 读回一致；原退休记录 releaseCount=1，全部消费者空闲后 Offscreen contexts=0。
 7. 同 Profile 完整 Browser 重启 PID 6354→15311，Extension ID 不变。升级 A 1.1.0 的预建计划恢复，UI 正确读回，Run `1388b561-5681-4264-bfbf-9fbc5bb03e32` completed，Result `8276a54f-2457-41a2-8da4-b54019355ab2` 成功，旧 127 条计划仍退役。**重启至首个观察样本存在空档，首样本晚于到期约 7 秒**；此证据证明重启恢复与结果，不替代严格普通链的全区间无瞬时 UI 监测。
+8. B2 A/B 在 `2026-10-22T01:18:58.583Z` 同时到期。关闭真实侧栏和管理页、停止真实 SW 并脱离所有调试 session 后，连续 target 发现与采样确认无 UI、HTTP(S) 或专用执行 TAB，Cloud disabled。两个原 Run 均成功：A `d3ec3a25-8194-474f-b15b-813ce116f576`，B `5b24ab9d-584e-4809-a1b8-8fa3650d2baf`。A Worker 退休并在原事务释放单槽后 **2136ms**，B 才准入。每个 Fire 仅一条 linked Run、start Journal 和终态 Result；service-result 不计成重复 Run。UI 分别读回不同 nonce 与正确算法结果。只读独立审查确认该关联；证据 `lifecycle/b2-simultaneous-sw-1792631848557/`。
+9. 在实际安装的 A 非可信 UI 中，公开 SDK 取消 B 的真实计划返回 E_OWNER；选择 B owner 的 listOwn/storage.get 返回 E_SCHEMA，B 的安装、数据、计划及完整 Run/Journal 未变。这是负面 SDK 探针，证据 `b2-owned-plan-negatives.json`。
+10. 通过原 A/B UI 审阅创建 13 条同到期计划，超过每批 12 条的读取批次。全区间侧栏关闭、无 HTTP(S)/专用 TAB、Cloud disabled；13 个 Fire 均各对应一个 completed Run 与终态 Result，全部算法结果正确，每次下一准入均晚于上一 Worker 退休与单槽释放，A/B UI 分别读回自己的结果。原驱动错误地要求两个分别 `now()` 的事务时间戳毫秒相等；保留原 FAIL，依据原始 13 条账本修正顺序断言后完成对账，未新增计划或重放。证据 `lifecycle/b2-batch13-1792632898346/reconciled-proof.json`。此结论限定有限批次无丢失和串行性，不称 SDK 并发超额或无限期无饥饿。
+11. 有限先后排序：A₁ 先到期并占槽约 20 秒，B₁ 在其后 5 秒到期，A₂ 在其后 10 秒到期。真实准入顺序为 A₁ `75b1c0b2-e898-47a8-9b1d-b9fcc359ccde` → B₁ `8a4e2735-3ea3-4abe-a62e-1eabdead13d4` → A₂ `befdbade-9ea7-45a6-993b-18548478b808`，每次前一个 Worker 退休并释放原槽后才准入下一条，较早到期的 B 没有被后来的 A 插队。关闭侧栏全区间及两个 UI 的正常读回均已核对，证据 `lifecycle/b2-fifo-1792633217581/proof.json`。
+12. 实际 Offscreen 故障：A 的真实 Alarm Run `a4661216-243e-431d-8270-47617ec4687b` 已通过原 SDK 写入 started 后，在其 25 秒计算等待中关闭实际 Offscreen target。原 A 变为 interrupted/retired、仅一次释放单槽，未重放且 UI 未出现该 nonce 的迟到结果。后续独立 B Alarm 在新文档 `8E4EFF4C68690A2222E30ECBA1584E58` 完成，Run `c722e867-4442-409e-a994-3864381e14fb`、Result `cb1a136d-8bf3-4910-87bd-4f8619dfe1c8` 与 UI 一致。故障前另做明确只读协议对照：当前文档的有效 Run 可查询 quota，同一 registration 采用旧文档 Run 返回 E_OWNER，未产生旧操作 Journal；这不等于提取并伪造旧私有 Port。关闭侧栏全区间监测通过，证据 `lifecycle/b2-offscreen-fault-1792634089115/proof.json`。两次诊断准备失败均在实际故障前，已对账各自原计划正常结果，未重放。
+
+13. 合法共享 Cloud 停止：通过原「开发」在真实 demo-form.html 执行固定表单源码，Run `e8543cb3-cabf-4dcb-9c90-e301ac16a6e5`，再原 UI 核对原生回执、设为本地可用、安装 sample.form-fill 1.0.0。使用原 CLI Provider 固定 loopback 43112，真实 UI 配对及批准一个任务且不回传正文；UI「已连接」、Host「已就绪」，服务端 executor=1、Job=0。A 真实 Alarm Run `9096e713-f9d1-467f-8183-8cd9abf74637` 活动时，从 Cloud UI 点击停止。Cloud 已 disabled，但 A 仍在同一 Offscreen `DFA4D45EDC0627B6D6D45D09E15D783B` running，随后原 SDK 结果、Result `f8711bc8-2a7e-494f-ad76-be6e7224426d` 与 UI 对应；退休 releaseCount=1，B 全部 owned storage 未变，空闲后 Offscreen=0。最终经原 UI 解除配对，Provider 返回 revoked=true、UI「撤销已确认」、本地 Cloud 配置清除；仅停止本轮自有 Provider，保留其他服务。证据 `cloud-shared/shared-stop-1792635022898/proof.json`、`cloud-shared/cleanup-proof.json`。此用例验证共享消费者交错，关闭侧栏的普通链由此前独立严格用例证明；未提交远程 Job，不冒充公网远程执行或商店验收。
 
 上述原始记录集中在 `artifacts/dynamic-app-r14-local/b2-capacity/`、`b2-native/` 和 `lifecycle/b2-*`；长期精简摘要及全部 106 个构建文件 SHA-256 见 [b2-summary.json](../evidence/dynamic-app-r14-local/b2-summary.json)。
 
@@ -61,12 +68,14 @@ A/B 正常链均使用正式文件选择、安装和计划审阅、原生按钮�
 | 1 真实机制 | PASS | 原 RunHost/Sandbox/SDK Host，真实 Chrome 原生调度 |
 | 2 单应用闭环 | PASS | 安装→UI→调度→关闭→存储→重开 |
 | 3 冻结后双新应用 | PASS | B2 后新 A/B、不同算法、106 文件字节不变 |
-| 4 生命周期与安全 | NOT_VERIFIED（完整矩阵） | B2 卸载容量/续用/重装、运行中停用/升级、重启恢复及四项新入口拒绝通过；其余仍分项未测 |
-| 5 收尾、解耦、政策 | NOT_VERIFIED | 可交付源码与正式包；未获全面95+或商店认可 |
+| 4 生命周期与安全 | PASS（本轮必要闭环）；扩展矩阵 NOT_VERIFIED | B2 停用/升级/卸载/重装、Browser/SW 恢复、批次及 FIFO、跨 owner、旧文档 Host、实际 Offscreen 故障、合法 Cloud 共享停止均有证据；未测范围保留如下 |
+| 5 收尾、解耦、政策 | PARTIAL | 源码、正式包、解耦剩余清单和本地证据已交付；G-DECOUPLING、六维全95+和商店认可未完成 |
 
 B1 的 SW 停止与双应用同到期、Browser 重启、timeout→queued B、能力移除/恢复、Offscreen 故障恢复、ACK 丢失对账/OUTCOME_UNKNOWN、Controller/Page 原生结果保留在 [b1-summary.json](../evidence/dynamic-app-r14-local/b1-summary.json)。相关未改 RunHost/Sandbox/SDK 路径提供有限回归支持；共享 Scheduler/Installer 已变，不将旧候选证据整批记成 B2 原生 PASS。Offscreen 恢复旧记录自身的 closureMonitoring=NOT_VERIFIED 保持不变。
 
-尚缺：B2 同到期竞争及队列超额/长期公平性、完整回执故障与快速重装原生矩阵、私有 Port/旧 document epoch/不同市场发布者身份矩阵、受影响 Cloud/官方应用原生回归。Cloud 正运行中关闭共享消费者需合法配对，当前没有该凭据；不用改内部状态伪造消费者。因此原始最终条件 11、12、15 的完整边界仍未闭合，不标记 G-DYNAMIC 完成。
+独立复评将本轮剩余操作收敛为：B2 真实 Offscreen 关闭故障及旧 Host 文档所有权负例、App 活动时停止已配对 Cloud 的共享资源交错。前者现已通过；后者现已用仓库原本机 Provider CLI 与真实 UI loopback 配对通过，不需公网部署。独立只读复核确认原始条件 1–15 对本轮 local-reviewed A/B 均有足够证据判定 PASS，未发现当前具体产品 BLOCK；G-DYNAMIC 达成本轮 LOCAL 完成条件。实际 Cloud Job 执行中的停止交错与公网远程执行未纳入本用例，不冒称通过。
+
+有限 13 条同到期及 A₁→B₁→A₂ 批次已通过；128 条计划定义容量不等同于 SDK 并发队列超额，`ready().slice(0,12)` 仅为分批。独立源码核对确认原 Scheduler 按到期时间排序，128 定义、周期最短 1 分钟与 App 固定 5 分钟启动期限共同界定可执行积压；不是新增 Fire 数量上限。过期可转 MISSED，不承诺过载全部必达。SDK 在途 RPC 没有独立计数上限，不将其与单槽执行等待队列混为一谈。私有 Port 提取、不同市场发布者及完整回执故障矩阵仍未全面原生验证，保留限制；不据此追加无限测试或三官方业务迁移为 LOCAL 双应用完成条件。
 
 ## G-DECOUPLING：独立未完成
 
@@ -85,10 +94,10 @@ B1 的 SW 停止与双应用同到期、Browser 重启、timeout→queued B、�
 | 维度 | 独立分数 | ≥95 | 证据、剩余风险与最小下一步 |
 | --- | ---: | --- | --- |
 | 真实 Chrome 可行性 | 95 | 是 | B2 双应用、卸载续用与重装；原生主链已有证据，不扩成无关版本矩阵 |
-| Runtime 唯一性与精简性 | 90 | 否 | 仍复用原系统；官方工具私有清理耦合尚存，按独立解耦任务逐项处理 |
-| SDK 身份、权限与隔离 | 94 | 否 | 实际 CSP/跨 owner/绑定字段及新增清理拒绝；补真实 Offscreen、旧 epoch、发布者负例 |
-| 生命周期与可靠性 | 94 | 否 | 卸载、重装、停用/升级栅栏已验证；重启恢复附监测边界，补必要队列/清理故障原生用例 |
-| 编译后双应用独立性 | 94 | 否 | 冻结后新 A/B 与完整哈希证据；B2 同到期竞争尚未执行 |
-| MV3 与发布合规 | 78 | 否 | 实际隔离位置和 CSP、官方政策；缺商店对本候选的审核结论，不自动发布 |
+| Runtime 唯一性与精简性 | 95 | 是 | 仍复用原系统；合法 Cloud 在线消费者停止时保留活动 App、空闲才关闭。未测 Cloud Job 执行中停止；无当前修复项，归档证据即可 |
+| SDK 身份、权限与隔离 | 95 | 是 | 实际 CSP/跨 owner/绑定覆盖及旧文档 Host E_OWNER；B 数据不变。私有 Port 提取及发布者矩阵未测，保留限制，无当前修复项 |
+| 生命周期与可靠性 | 95 | 是 | 卸载、重装、停用/升级、真实 Offscreen 故障、新文档恢复、13 批次/FIFO/Cloud 交错通过。重启附观察空窗，完整回执故障矩阵未重做；不承诺无限公平或任意 exactly-once |
+| 编译后双应用独立性 | 96 | 是 | 冻结后新 A/B 与完整哈希证据；B2 同到期、13 批与先后排序、卸载 A 后 B 续用均已实测 |
+| MV3 与发布合规 | 78 | 否 | 实际隔离位置和 CSP、官方政策；缺商店对本候选的审核结论。下一步留到正式发布阶段核对候选并完成审核；不自动发布 |
 
-只读独立审查未发现 e478 清理协议的剩余 BLOCK，架构 CLEAR。评分是阶段判断，不因新增恢复记录自动上调；证据见本机 `b2-independent-followup.md`。本轮产品修复已推送；A/B 源码、唯一正式包与本记录一并安全提交，最终 SHA 与推送状态以交付 Git 核对为准。
+只读独立审查未发现 e478 清理协议的剩余 BLOCK，架构 CLEAR。最终独立复核及评分见本机 `b2-final-independent-review.md`、`b2-final-independent-scores.json`，摘要保存 SHA。旧评分与原始限制保留，不以未执行检查提高分数。本轮产品修复、A/B 源码与唯一正式包已推送；后续原生证据增补不改 Browser 或应用字节，最终 SHA 与推送状态以交付 Git 核对为准。
