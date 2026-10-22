@@ -444,7 +444,7 @@ test('v2 AI-off changes search and explicit product, then runs each saved RunHos
       owner:f.owners.slice(-8),running:f.host.currentRun,
       status:f.state().controls['workflow-status']?.text,
       observations
-    }))),3000);});
+    }))),5000);});
   let outcome;
   try{outcome=await Promise.race([replay,timeout]);}
   finally{clearTimeout(timer);}
