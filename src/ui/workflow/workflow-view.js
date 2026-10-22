@@ -795,9 +795,25 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           observationReceipt:workflowObservationForModel(receipt),signal:agent.controller.signal,
           settings,history:verifiedTurnHistory,
           consent:{model:true,workflow:true,observation:true},
-          onApproval:(event,context)=>offerObservation(event,context,{
-            epoch:agent.epoch,serial,selected:source,captured:target,
-            request:agent.goal,recipientId,receiverPattern})};
+          onApproval:async(event,context)=>{
+            // Native may ask for browser.observe after we already obtained
+            // this round's independently verified, authorized RunHost receipt.
+            // Reuse only the exact current Document; never issue a redundant
+            // second RunHost observation or grant on a Provider callback.
+            const same=event?.target&&
+              ['windowId','tabId','frameId','documentId','url','origin']
+                .every(key=>event.target[key]===target[key]);
+            if(event?.tool!=='browser.observe'||event?.canApprove!==true||!same||
+              context?.signal?.aborted||agent.controller.signal.aborted)
+              return {decision:'deny'};
+            agent.guard.check();
+            await currentPageTarget.revalidate(target);
+            agent.guard.check();
+            if(!await api.permissions.contains({origins:[permissionPattern(target.url)]})||
+              !validObservationApproval(approval))
+              return {decision:'deny'};
+            return {decision:'approve',result:workflowObservationForModel(receipt)};
+          }};
         // Schema and incomplete-step failures precede any issued RunHost effect.
         // One bounded corrective model decision is permitted, not blind retries.
         let checked=null,lastPreflight=null;
