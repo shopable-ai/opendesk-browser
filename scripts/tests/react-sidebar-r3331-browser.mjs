@@ -371,8 +371,7 @@ try{
   await click('#script-run');
   await click('#developer-program-management > summary');
   await checkEventually('document.getElementById("developer-program-management").open');
-  await click('#script-library-tools > summary');
-  await checkEventually('document.getElementById("script-library-tools").open');
+  await checkEventually('document.getElementById("script-library-tools").checkVisibility()');
   await click('#script-save-version');
   await click('#script-stop');
   await checkEventually('window.__reactTest.calls.includes("stop:true")');
