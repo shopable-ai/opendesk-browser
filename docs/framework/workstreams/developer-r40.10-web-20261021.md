@@ -716,6 +716,8 @@ Chrome 官方说明：开关关闭后，既有 context 中 userScripts 对象可
 
 ## R40.10.12-LOCAL-FINAL-ACCEPTANCE · 续测 M · 2026-10-22
 
+**后续更正：本节旧 M 后台加载字段继承自 L，后台相关包归属不足；以下「P0 续测与 M 后台来源纠正」保留旧观察、降级来源结论并给出真实重载后的新证据。M UI 原生编辑指纹仍有效。**
+
 **当前结论仍为 ACCEPTANCE_PARTIAL，不能结束 Developer R40.10.x。** 本次续测补齐原生编辑、200% 键盘与 Page 安装升级证据，修复一个真实编辑故障；没有重开架构或代码减行工程。原 L 的事实、失败和未测范围保留，以下内容更新当前交付身份及新增结果。
 
 ### 当前正式包与主线
@@ -787,3 +789,55 @@ Russell（`01a1613f-57c7-7660-a8a8-21dc1718cdc8`）只读复核前四维，Lovel
 所属 M CFT 与两个官方 CLI Provider 已正常收尾，复核无剩余所属 PID；持久槽 available、无活动 run，userScripts 可用、受管 DOM 为零，隔离 Profile 保留 r2 安装及测试计数。其他 owner 的服务、共享43111页、日常 Native 配对没有收到本轮信号。[M 收尾](../../../artifacts/developer-r401012-local-final-20261022/M-closeout-runtime.json)。
 
 **最小剩余范围**：先明确并实现普通 Page 长任务取消/实际终止的可行合同，解决 USER_SCRIPT 撤权 ABA 的可证明身份边界；再针对尚缺的 CAS 取消、运行/Stop 迟到回执、完整 Native 会话及 UNKNOWN 恢复补证。不能用假 Stop、轮询保证、自动重放、新 Runtime 或额外架构项目补评分。当前 native goal 仍 active；本次有实际进展，未伪报 complete、paused 或达到阻塞轮数。正式项目仍不能结束。
+
+## R40.10.12 · P0 续测与 M 后台来源纠正 · 2026-10-22
+
+**当前结论仍为 `ACCEPTANCE_PARTIAL`。本节替代上一 M 节对后台候选身份的归属结论；不能正式结束项目。** 本轮补齐了真实 Revision 取消/提交边界、完整所属 Native 会话失效与恢复，并重新取得同包五类核心执行及 Page 安装升级证据；未修改正式产品源码。
+
+### 先纠正来源，再补同包实测
+
+上一轮 `bootstrap-M.mjs`/`finalize-bootstrap-M.mjs` 复制旧 browser 对象，只更新包、回执和 UI，没有重新证明后台。M receipt 要求 SW `7411d4babecb1395bb1cb0abb01b1c29649aaa55bf0c2bf3f828526050344d98`，本轮在相同 Profile 新开 Chrome 后实际读到的 SW 却是 `039b18b161b5c740885818c35bfc79c4bcd2c2fdd90b85b0c8bbddcc05103316`，与 L 归档一致；旧 M browser 中的 `reloadedBy/loadedWorkerSha256/installedBundleSha256` 是继承字段，不能证明 M 后台加载。这是核验错误，不是新的产品故障。[实际内存](../../../artifacts/developer-r401012-local-final-20261022/M-p0-worker-parse.json)、[M 回执](../../../artifacts/developer-r401012-local-final-20261022/candidate-M-build-receipts/build-production-developer.json)。旧 M 场景的实际操作与已核实 UI 结果保留，但同期后台来源不足，**不能作为完整 M PASS，也不能推测每个旧场景都运行同一个后台**。
+
+M 原生编辑/200% 输入证据的 UI 指纹 `9163d6f3d715f6b6502e59c24a743731cec496fc3c183c8cb605d454a241e0fb` 已实读，仍有效。本轮通过所属 Chrome `chrome://extensions` 详情中的真实 Reload 操作，取得新 SW 和真实 SIDE_PANEL：**SW `7411d4ba…`、UI `9163d6f3…` 均与 M 磁盘和回执相同**。其后的 `M-p0-*` 场景使用这一上下文；不能追溯补齐旧记录。[真实重载及字节核对](../../../artifacts/developer-r401012-local-final-20261022/M-p0-reload.json)。初次 generic shadow selector 命中不可用 Reload、初次断点无法绑定及 Page radio 驱动失败均保留为驱动/来源诊断，没有放松产品检查。
+
+正式包仍为 main 冻结提交 **`3340ee7beac6430cad42b3ac9170c5aa28fb8c93`**，Package Hash **`c4178c7ed2c940a6b03b4330c882c8f583a537ec375954a432b501b2f54df95b`**，原 Build Receipt `c5b380d5-ac5a-407f-867f-a605c535f21e`；Chrome **156.0.8078.4**，扩展 ID `fiojgodnbinnlnkbmeamlpjemagblaga`，仅复用所属 `…YAWLuZ` Profile 和 `/private/tmp/opendesk-r401012-inputs-fi9sleqi/dist/production-developer`。末尾再次核对全部 116 文件，包指纹不变。[末次指纹](../../../artifacts/developer-r401012-local-final-20261022/M-p0-package-final.json)。没有因来源记录错误重建无变化输入、替换日常扩展或修改配对。
+
+### 当前分层结果
+
+| 验收层 | 结果及精确范围 |
+|---|---|
+| Node / Source Check / Developer Build / Package Verify | **PASS（M 源码/包）**：复用同输入的独立 Task Workbench 52/52、Developer 473/473、check/build/verify 正常退出；本轮无源码变化，未重复执行 |
+| Mac Controller | **PASS（M-p0 八场景）**：JS、ESM、Classic、字符串、undefined、异常、重复 Run、真实 Stop；[结果](../../../artifacts/developer-r401012-local-final-20261022/M-p0-controller-result.json) |
+| Mac Page | 普通 JS DOM 和固定依赖 ESM **PASS（M-p0）**；完整类别因长任务 Stop、ABA 等仍 **PARTIAL**；[JS](../../../artifacts/developer-r401012-local-final-20261022/M-p0-P1.json)、[ESM](../../../artifacts/developer-r401012-local-final-20261022/M-p0-P2.json) |
+| Mac React / Vue | **PASS（M-p0 六条挂载、交互、重复 Run、受管 Stop/清理记录）**；未把 L 的六个错误场景升级为同 M 重测；[结果](../../../artifacts/developer-r401012-local-final-20261022/M-p0-component-acceptance-result.json) |
+| Mac Local / Native Provider | 原官方 CLI 的 Controller、Page、实际交互及受管 Stop **PASS**；完整会话关闭后重新接入和明确 Run 也 **PASS**；[首次](../../../artifacts/developer-r401012-local-final-20261022/M-p0-local-result.json)、[恢复后](../../../artifacts/developer-r401012-local-final-20261022/M-p0-recovered-local-result.json) |
+| Linux Installed Chrome | 原 CI `39706653895 / 4d891b2d`、Linux 包 `2a3ec4e9…` PASS 仍仅归该包；**同 M 包 Linux NOT_TESTED** |
+| React UX | M UI 原生编辑和 200% 指纹有效；本轮三条 Page/React/Vue 技术投影均归当前 document/preview，不含旧 Controller error/Stop runId，**该已执行转换 PASS**；全部 UX/ARIA/宽度组合仍 PARTIAL；[身份核对](../../../artifacts/developer-r401012-local-final-20261022/M-p0-current-result-identity.json) |
+
+### 新增 P0 实证及尚未关闭项
+
+- **准备阶段取消 PASS**：真实 ESM 依赖检查尚未返回时，原生点击「取消准备」；恢复原响应后过期检查拒绝继续保存，同一受控新 ID 的 head/revision 集合均为空。[记录](../../../artifacts/developer-r401012-local-final-20261022/M-p0-cas-cancel.json)。依赖缓存无需回滚；没有伪造准备响应。
+- **提交边界、UNKNOWN 与单次恢复 PASS（本例）**：在真实 `broker.handle` 前观察原 Save 请求、`expectedRevision=0`、固定源码；Stop hidden 且 disabled，没有可用取消入口，**本次未实际点击禁用 Stop**。恢复后真实落 r1，再延迟原 ACK 至原 35 秒超时；UI 保持 UNKNOWN，迟到 ACK 不清除，精确只读加载 r1；观察到 `dispatchCount=1`、唯一 r1/head 和匹配 Source Hash。[记录](../../../artifacts/developer-r401012-local-final-20261022/M-p0-commit-entry.json)。这不是物理永久丢包、并发 CAS 全覆盖或全部重开恢复证明。
+- **完整所属 Native 会话运行中失效 PASS（本例）**：真实 Local main 先用受控 Locator 将安全测试页 `#name` 写为进入标记，再从 fioj 设置真实点击「关闭本机连接」。这关闭整个所属 connectNative Host，区别于退出单 CLI。原 run `6c7640a3-bd18-41cc-a427-65a2856e6474` 从 running 变为 stopped，`workerRetired=true`、`cancelSeq=2`；等待 13 秒，超过源码的 12 秒等待，UI 未交付旧成功。[会话记录](../../../artifacts/developer-r401012-local-final-20261022/M-p0-native-session.json)。恢复连接、原命令重新接入两项目后，binding 不变，Provider epoch `028d14b1-57af-4393-9792-50f933c93100` → `7754d136-8371-4070-9e1f-9e5507fd48da`；新的明确 Run 为 `12bcceec-6609-47a0-8990-e19f817e05a2`。[恢复身份](../../../artifacts/developer-r401012-local-final-20261022/M-p0-native-recovery.json)。晚窗和恢复后另作只读检查：原 run 仍 stopped、仅一条非成功 result；旧 CLI PID 实读不存在，实际退出码未捕获。[持久复查](../../../artifacts/developer-r401012-local-final-20261022/M-p0-native-post-window.json)。三份指定 `install.json` 哈希前后一致，不扩大为所有配对文件或其他 owner 健康均已实测。
+- **Page 安装、升级与数据 PASS（M-p0 十二阶段）**：使用新的唯一受控 identity `r401012-page-installed-confirmed`，Candidate/Verified 不改变已装 r1，明确安装 r2 才升级，停用后导航不执行，恢复后执行 r2；只证明该测试页 localStorage 计数样本保留。[记录](../../../artifacts/developer-r401012-local-final-20261022/M-p0-page-install.json)。旧 M 安装记录保留为历史，不借新结果追溯补来源。
+- **USER_SCRIPT off→on ABA：FAIL（当前 M 同包）**：实际进入 8 秒 Page 任务，真实开关 off，600ms 后 on，旧回执仍被接受；开关已恢复。该脚本写了测试页 dataset 诊断标记，原 scenario 的“no DOM write”描述不准确；未改真实业务数据。[失败证据](../../../artifacts/developer-r401012-local-final-20261022/M-p0-userscript-revocation-ABA.json)。当前 availability 不能证明授权连续；既有 138/154 Port 探针亦有 off 时原 Port 仍通信反例，不能用轮询、对象引用或 Port 存活补成严格 ABA 保证。[官方 API 语义](https://developer.chrome.com/docs/extensions/reference/api/userScripts)。本轮未新增 Port/轮询/第二 Runtime。
+- **仍未关闭**：普通 Page 任意长任务的实际终止合同、其余运行/Stop 迟到回执组合、全部 UNKNOWN 重开/安装恢复和完整 React UX/95 门禁。上述新增 PASS 只关闭其明确场景，不能把整组安全竞态升为 PASS；旧 L 并发 CAS、权限撤销等保留原候选及范围。
+
+### 独立复核与收尾
+
+本轮两名只读反方分别复核来源/安全及报告准确性，没有代替真实浏览器执行。最新六维按完整 R40.10.12 目标给分：
+
+| 维度 | 本轮独立分数 | 主要未达标依据 |
+|---|---:|---|
+| 普通开发流程简洁性 | **90** | 直接 Run 和原生输入有证据；普通 Page Stop 与恢复复杂度未关闭 |
+| 信息架构与 UX | **91** | 已测输入/交互/清理有效；完整焦点、ARIA、异常与 UNKNOWN 组合未证明 |
+| Script Editor 职责精简 | **87** | 沿用原 owner；跨环境协调的完整必要性与简化程度仍缺证明 |
+| 完整生产维护性 | **82** | 原设施复用成立；完整调用链及异常恢复成本未关闭，不据评分再拆架构 |
+| 执行安全合同 | **81** | 新增关键实证成立，但同 M ABA 是真实 FAIL，其他迟到/Stop 组合尚缺 |
+| 构建及真实证据 | **90** | 同包绑定已纠正并重测；仍有明确未测范围和来源历史限制 |
+
+**六维均未达到 95，不取平均。** 这是有界记录/源码审阅，置信度从中到高，未冒称独立重跑或全面正式验收。[六维原文](../../../artifacts/developer-r401012-local-final-20261022/M-p0-independent-six-dimensions.md)、[准确性补核](../../../artifacts/developer-r401012-local-final-20261022/M-p0-independent-accuracy.md)。另一位专家先前给出的安全82/证据90仅为其场景评分；本表为最新按完整目标尺度的六维复核，不拼接为同一套评分。边界说明另见[措辞纠正](../../../artifacts/developer-r401012-local-final-20261022/M-p0-scope-corrections.json)。
+
+本轮正式产品代码净变化 **0**；本 GOAL 原有 9 个源码/驱动提交、14 个生产/构建文件净 +115 行保持原账，不为制造提交修改源码。新的驱动、截图、运行回执在忽略的 artifacts，报告按具体文件安全提交 main。所属 Chrome 和恢复后的两个 CLI 已收尾，复核剩余所属 PID 为零，持久槽 available、无活动 run、受管 DOM 为零；原测试安装保留在隔离 Profile。[收尾](../../../artifacts/developer-r401012-local-final-20261022/M-p0-closeout-runtime.json)、[逐 PID 与 socket 复查](../../../artifacts/developer-r401012-local-final-20261022/M-p0-closeout-observations.json)。没有向其他 owner 服务发信号，未建分支/worktree/PR、未覆盖共享 dist 或安装额外 Native。
+
+当前目标仍 active；本轮有实质证据进展，未伪报 complete/paused/blocked。下一步限剩余 P0 的有界验证和已证缺陷；不能以改小 Stop 语义、重放未知操作或再造架构换取 `FINAL_ACCEPTED`。
