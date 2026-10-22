@@ -128,6 +128,9 @@ export function dynamicReplayIntent(bundle,params) {
   const plan=inferDynamicReplayPlan(bundle);
   if(!plan||JSON.stringify(plan)!==JSON.stringify(bundle.bindingPlan))
     fail('E_WORKFLOW_PARAM_BINDING','动态绑定契约已失效');
+  if(!params||typeof params!=='object'||Array.isArray(params)||
+    !Object.hasOwn(params,'query')||!Object.hasOwn(params,'productName'))
+    fail('E_WORKFLOW_PARAM_BINDING','动态搜索及目标商品必须由用户明确提供');
   const values=validateTaskParams(bundle.paramsSchema,params);
   if(!safeSearchQuery.test(values.query||'')||!safeProductName.test(values.productName||''))
     fail('E_WORKFLOW_PARAM_BINDING','搜索词或商品名称超出允许范围');
