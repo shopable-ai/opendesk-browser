@@ -13,6 +13,7 @@ on:
       - 'scripts/tests/react-sidebar-r352-browser.mjs'
       - 'scripts/tests/react-sidebar-r352-installed-chrome.mjs'
       - 'tests/environment/react-sidebar-app-shell-r351.test.mjs'
+      - 'tests/environment/react-sidebar-schedule-r341.test.mjs'
       - 'tests/environment/sidebar-quick-notes-react-r21.test.mjs'
       - 'scripts/check-source.mjs'
       - '.github/workflows/react-sidebar-r352.yml'
