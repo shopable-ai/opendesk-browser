@@ -4,7 +4,8 @@ import {readFile} from 'node:fs/promises';
 import {transform} from 'esbuild';
 import {workflowFixture,tick} from './workflow-react-fixture.mjs';
 import {compileWorkflow} from '../../src/framework/workflow/compiler.js';
-import {sealWorkflowBundle,replayParameterSchema,WORKFLOW_BUNDLE_FORMAT} from '../../src/ui/workflow/segment-replay.js';
+import {sealWorkflowBundle,replayParameterSchema,WORKFLOW_BUNDLE_FORMAT,
+  WORKFLOW_DYNAMIC_BUNDLE_FORMAT,inferDynamicReplayPlan} from '../../src/ui/workflow/segment-replay.js';
 const fill={stepId:'fill',op:'fill',locatorKind:'css',selector:'#keyword',text:'OpenDesk'};
 const get=(f,id)=>f.state().controls[id]||{};
 test('workflow whole page declares DOM in TSX and adapter has no legacy renderer/listeners',async()=>{
@@ -346,4 +347,106 @@ test('two-segment saved AI-off bundle reopens and runs all frozen revisions',asy
   assert.deepEqual(dispatches.map(row=>row.source.contentHash),segments.map(s=>s.sourceHash));
   assert.equal(dispatches[0].params.query,'camera');
   assert.deepEqual(dispatches[1].params,{});
+});
+
+
+test('v2 AI-off changes search and explicit product, then runs each saved RunHost source across fresh documents',async t=>{
+  const base='https://workflow.example',productHref='/product/lens-y';
+  const providerCalls=[];
+  const client={ready:Promise.resolve(),subscribeWorkflowAI:()=>()=>{},
+    requestWorkflowAI:async method=>{providerCalls.push(method);return {state:'DISCONNECTED',readyForTurn:false};}};
+  const observations=[];
+  const f=await workflowFixture({client,
+    observationResult:({claim,target})=>{
+      const url=claim.target.url,doc=claim.target.documentId;
+      const node=(role,name,locator,extra={})=>({
+        role,name,text:'',state:{visible:true},locator,...extra});
+      const nodes=url.endsWith('/demo')?[
+        node('textbox','Search',{kind:'css',value:'#keyword'}),
+        node('button','Search',{kind:'role',value:'button',name:'Search',exact:true})
+      ]:url.includes('/search?q=')?[
+        node('heading','Search results for lens',{kind:'role',value:'heading',name:'Search results for lens'}),
+        node('link','Lens Y',{kind:'role',value:'link',name:'Lens Y',exact:true},
+          {navigation:{href:productHref,url:base+productHref,origin:base}})
+      ]:[
+        node('heading','Lens Y',{kind:'role',value:'heading',name:'Lens Y'}),
+        node('text','$129',{kind:'css',value:'#price'})
+      ];
+      observations.push({url,documentId:doc});
+      return {kind:'semantic-dom-summary',document:{documentId:doc,url},
+        title:url.includes('/product/')?'Lens Y product':'Search',nodes,truncated:false};
+    },
+    actionResult:({source,params})=>source.scriptId?.endsWith('-s1')
+      ?{fill:{kind:'input-readback',matched:true,value:params.query}}:{},
+    afterAction:({source,params,target})=>{
+      if(source.scriptId?.endsWith('-s1')){
+        target.url=base+'/search?q='+params.query;
+        target.documentId='search-result-'+params.query;
+      }else if(source.scriptId?.endsWith('-s2')){
+        target.url=base+productHref;
+        target.documentId='product-result-'+params.productName;
+      }
+    }});
+  t.after(()=>f.view.dispose());
+  await f.click('workflow-save');
+  assert.equal(f.state().header.saved,true);
+  const id='wf-88888888-3333-2222-1111-111111111111';
+  const schema=(name,defaultValue,title)=>({type:'object',properties:{
+    [name]:{type:'string',title,maxLength:120,default:defaultValue}},
+    required:[name],additionalProperties:false});
+  const first={format:'opendesk.workflow.v1',workflowId:id+'-s1',
+    title:'搜索并核对商品',description:'',siteOrigin:base,
+    paramsSchema:schema('query','camera','搜索关键词'),steps:[
+      {stepId:'fill',op:'fill',locatorKind:'css',selector:'#keyword',param:'query'},
+      {stepId:'search',op:'click',locatorKind:'role',selector:'button',roleName:'Search'}]};
+  const oldGuard={href:'/product/camera-x',url:base+'/product/camera-x',origin:base,
+    name:'Camera X',sourceUrl:base+'/search?q=camera',locatorKind:'role',
+    selector:'link',roleName:'Camera X'};
+  const second={format:'opendesk.workflow.v1',workflowId:id+'-s2',
+    title:'搜索并核对商品',description:'',siteOrigin:base,
+    paramsSchema:schema('productName','Camera X','目标商品名称'),
+    steps:[{stepId:'product',op:'click',locatorKind:'role',selector:'link',
+      roleName:'Camera X',param:'productName',linkGuard:oldGuard}]};
+  const segments=[];
+  for(const [index,workflow] of [first,second].entries()){
+    const frozen=await compileWorkflow(workflow,{verifyFill:index===0});
+    const saved=await f.host.controller.commitControllerScript({
+      scriptId:workflow.workflowId,expectedRevision:0,sourceUtf8:frozen.sourceUtf8});
+    segments.push({workflow,entryUrl:index===0?base+'/demo':base+'/search?q=camera',
+      revision:saved.revision,sourceHash:frozen.sourceHash,
+      verificationMode:index===0?'fill-readback':'none',
+      evidence:index===0?{kind:'search-results'}:{kind:'product-page',name:'Camera X'},
+      proof:{runId:'original-'+index,resultId:'receipt-'+index,
+        sourceHash:frozen.sourceHash,origin:base,documentId:'original-'+index}});
+  }
+  const goal='搜索 camera，打开 Camera X 商品详情，核对名称和价格';
+  const bindingPlan=inferDynamicReplayPlan({goal,segments});
+  assert.ok(bindingPlan);
+  const record=await sealWorkflowBundle({
+    format:WORKFLOW_DYNAMIC_BUNDLE_FORMAT,bundleId:id,revision:1,goal,title:'搜索并核对商品',
+    workflow:{workflowId:id,title:'搜索并核对商品',siteOrigin:base},
+    segments,paramsSchema:replayParameterSchema(segments),bindingPlan});
+  const key='opendesk.sidebar.workflow.v1:'+id+':1';
+  f.local.set(key,record);
+  await f.click('workflow-refresh');
+  f.input('workflow-saved-list',key,'change');
+  await f.click('workflow-load');
+  assert.equal(f.state().header.saved,true);
+  f.view.actions.setParam('query','lens');
+  f.view.actions.setParam('productName','Lens Y');
+  const outcome=await f.click('workflow-run');
+  assert.equal(outcome?.ok,true,JSON.stringify({outcome,
+    status:f.state().controls['workflow-status']?.text}));
+  assert.equal(outcome.segments,2);
+  const dispatched=f.starts.filter(item=>item.source.kind==='saved');
+  assert.equal(dispatched.length,2);
+  assert.deepEqual(dispatched.map(item=>item.source.contentHash),segments.map(item=>item.sourceHash));
+  assert.equal(dispatched[0].params.query,'lens');
+  assert.equal(dispatched[1].params.productName,'Lens Y');
+  assert.deepEqual(dispatched[1].params.__odLinks.product,{
+    href:productHref,name:'Lens Y',origin:base,sourceUrl:base+'/search?q=lens'});
+  assert.ok(observations.some(row=>row.url===base+'/search?q=lens'));
+  assert.ok(observations.some(row=>row.url===base+productHref));
+  assert.equal(providerCalls.filter(method=>method!=='ai.connection.read').length,0);
+  assert.equal(f.state().lastRun,'success');
 });
