@@ -511,7 +511,7 @@ function sharedLocks(){
     next.finally(()=>{if(queues.get(name)===next)queues.delete(name);}).catch(()=>{});
     return next;}};
 }
-async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch,trustedBookmarkPilot=null}={}){
+async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch,trustedBookmarkPilot=null,trustedPromptPilot=null}={}){
   const oldWindow=globalThis.window,oldConfirm=globalThis.confirm;
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
   const {doc,view,runtime,elements,emit,selectFile}=toolRuntimeFixture();
@@ -530,7 +530,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     async set(value){await setHook?.(value);for(const [key,row] of Object.entries(value))store.set(key,structuredClone(row));},
     async remove(key){store.delete(key);}
   }}};
-  const host=createSidebarTools({api,doc,view,currentPageTarget:target,lockManager:locks,fetcher,trustedBookmarkPilot,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
+  const host=createSidebarTools({api,doc,view,currentPageTarget:target,lockManager:locks,fetcher,trustedBookmarkPilot,trustedPromptPilot,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
   t.after(()=>{host.dispose();view.dispose();globalThis.window=oldWindow;globalThis.confirm=oldConfirm;});
   if(awaitReady)await host.ready;else await pause();host.setVisible(true);
   assert.equal(elements['sidebar-tool-frame'].children.length,0,'opening Tools never starts saved packages');
@@ -549,6 +549,52 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     for(const fn of changed.listeners.get('change')||[])fn(changes,'local');
   },get focused(){return focused;}};
 }
+test('R1.3 exact official Prompt admits one trusted React Dock and one sandbox iframe without remount',async t=>{
+  const tool=await officialToolFixture('prompt-shortcuts');
+  const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
+  const epoch='prompt-generation-r13',store=new Map([
+    [SIDEBAR_TOOL_STORE,[tool]],[SIDEBAR_TOOL_ENABLE_STORE,{[tool.id]:true}],
+    [TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:epoch}],
+    [MARKET_PROVENANCE_STORE,{[tool.id]:{marketId:release.id,version:release.version,sha256:release.sha256}}]
+  ]);
+  const mounts=[];
+  const pilot={enabled:true,
+    conversation:()=>({request:async()=>{},cancel:async()=>{},source:()=>({provider:'fixture'})}),
+    mount({container,onRequest,onReconcile}){
+      const frameTarget=new Node('div');container.append(frameTarget);
+      mounts.push({frameTarget,onRequest,onReconcile});
+      return {frameTarget,dispose(){}};
+    }
+  };
+  const f=await hostFixture(t,{tool,store,startTool:false,trustedPromptPilot:pilot});
+  f.host.openTool(tool.id);await settle(()=>mounts.length===1);
+  assert.equal(f.runtime.frameRoot.dataset.promptAi,'true');
+  const target=mounts[0].frameTarget;
+  assert.equal(target.children.length,1);
+  const frame=target.children[0];assert.equal(frame.tag,'iframe');
+  await frame.onload();
+  assert.equal(frame.contentWindow.sent[0].kind,'load');
+  assert.equal(frame.contentWindow.sent[0].toolId,tool.id);
+  assert.equal(mounts.length,1,'no second React root or iframe instance');
+  assert.equal(target.children[0],frame,'iframe is not re-parented after load');
+  assert.equal(typeof mounts[0].onRequest,'function');
+  assert.equal(typeof mounts[0].onReconcile,'function');
+});
+test('R1.3 same-ID modified Prompt is never admitted to trusted Dock',async t=>{
+  const official=await officialToolFixture('prompt-shortcuts');
+  const altered={...official,js:official.js+'\\nvoid 0;'};
+  const mounts=[];
+  const pilot={enabled:true,
+    conversation:()=>({request:async()=>{},cancel:async()=>{}}),
+    mount(args){mounts.push(args);return {frameTarget:new Node('div'),dispose(){}};}};
+  const f=await hostFixture(t,{tool:altered,store:new Map([
+    [SIDEBAR_TOOL_STORE,[altered]]]),startTool:false,trustedPromptPilot:pilot});
+  f.host.openTool(altered.id);
+  await settle(()=>f.runtime.frameRoot.children.length===1&&
+    f.runtime.frameRoot.children[0].tag==='iframe');
+  assert.equal(mounts.length,0);
+  assert.equal(f.runtime.frameRoot.dataset.promptAi,undefined);
+});
 test('queued task navigation loses authority when its tool is closed',async t=>{
   const gate=deferred(),entered=deferred();
   const f=await hostFixture(t,{getHook:async key=>{if(key===sidebarToolStorageKey(sample.id)){entered.resolve();await gate.promise;}}});
