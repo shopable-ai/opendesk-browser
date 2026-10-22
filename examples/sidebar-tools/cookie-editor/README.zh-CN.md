@@ -1,8 +1,14 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
-## 当前 dev 交付（2026-10-20，R5.30.3）
+## 当前安装包 2.0.31（2026-10-22）
 
-当前唯一安装包为 **2.0.30 / opendesk.sidebar-tool.v2**，使用 `opendesk.react-ui.v1`。正式入口 `app/entries/official.jsx` 与离线预览共用 `app/CookieEditorApp.jsx`，完整保留现有列表、原位编辑、导入导出与离线工作区；本轮没有重建预览或重设计界面。
+唯一正式 JSON 已同步当前共享设计 CSS，版本为 **2.0.31**，SHA-256 `899046b569b5f6d9f3b2f84d99e78c880d316fcececb1488452fc24902199cfb`。本次保持工具 ID、能力、HTML 和业务 JS 不变；旧 2.0.30 JSON 的 CSS 与当前源码存在漂移，现由原编译器和打包器重新构建，经定向包/设计测试后晋升，`--check-project` 同源检查通过。
+
+请通过原可信安装器审阅同 ID 更新，保留数据；不要先卸载。以下 2.0.30 原生记录仅证明旧候选，本次包的安装升级和原生行为需分别记录，不能沿用为新包 PASS。
+
+## 2.0.30 dev 交付记录（2026-10-20，R5.30.3）
+
+当时唯一安装包为 **2.0.30 / opendesk.sidebar-tool.v2**，使用 `opendesk.react-ui.v1`。正式入口 `app/entries/official.jsx` 与离线预览共用 `app/CookieEditorApp.jsx`，完整保留现有列表、原位编辑、导入导出与离线工作区；该轮没有重建预览或重设计界面。
 
 首次在可信设置点击「允许管理所有网站 Cookie」，明确批准 HTTP/HTTPS 范围，之后切站复用授权。该范围仅授予精确匹配官方目录及来源记录的安装包，绑定版本、包摘要、安装代际和 Store；旧单站授权不会自动升级，其他工具不能继承，也不会自动枚举全部网站 Cookie。撤权同时清除本工具旧单站授权。
 

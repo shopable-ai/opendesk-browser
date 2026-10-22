@@ -1,6 +1,10 @@
 # AI VIP Share · 独立 Sidebar Tool
 
-## 当前核心交付 · 1.4.0（2026-10-20）
+## 当前包同步 · 1.4.1
+
+本次用原打包器同步当前共享设计 CSS，并将持久回执版本更新为 1.4.1、追加恢复兼容版本，保留全部旧版本记录。工具身份、6 项能力和业务流程保持不变；JS 仅更新上述两处发布元数据。本版本真实 Chrome 安装、升级及视觉验收为 `NOT_TESTED`，下方 1.4.0 测试与原生记录仅属旧版本。
+
+## 1.4.0 历史核心交付（2026-10-20）
 
 本轮小目标：手动激活码和允许网站 URL 两个入口，均由服务器分配账号，经现有 Cookie Host 审阅与逐项写入后，在真实目标网页核对相同身份。不再提供账号选择器，会员权益、兑换回执、代理状态分别展示，均不等于网站登录。
 
@@ -15,7 +19,7 @@ URL 检测只在已打开的安装工具中运行，不启动后台沙箱。关�
 
 关键验证限于两个入口、URL 边界、分配/范围绑定、晚响应和恢复，以及受影响的定向测试、包同源检查与开发版真实扩展链路。商业后台、日常用户 Chrome、production 安装验收与独立评分均 `NOT_TESTED`。下文旧版本记录仅为历史。
 
-本轮验证结果：
+1.4.0 当时验证结果（历史）：
 
 - 手动码 → 服务器分配 A → 原 Host 两项 Cookie 逐项写入/核验 → SDK 自动打开网页显示 A：真实 CfT PASS。
 - 允许 URL → 自动激活并分配 B → 同一 Host 链写入 → 工具自动打开网页显示 B，旧 A 页面刷新显示 B：真实 CfT PASS。
@@ -23,7 +27,7 @@ URL 检测只在已打开的安装工具中运行，不启动后台沙箱。关�
 - 五类无效 URL 的原生边界步骤 PASS，绑定同一包、SW 和开发 revision。该次整轮因共享「返回」按钮没有离开工具而 `NATIVE_UI_BLOCKED`；最终核心整轮改用正常 Tab 往返重开并通过。共享返回按钮问题保留证据，未扩大平台源码修改。
 - 工具定向测试 80/80、development 来源 pin 5/5、fixture HTTP 31/31；HTTP 仅保留实际执行摘要，其余原始日志在证据目录。
 
-唯一正式包版本 **1.4.0**，SHA256 `043e97c5b92685d4865b03b36d45896777153709e8b32f7fca9530828c40ddfe`。`--promote-from` 与 `--check-project` 同源检查通过。实际测试加载 `dist/development`、扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，开发服务已连接；revision `fe05bfd9e2e5077259298858b1603e96d1f89ea38e218549770af8c4f7dbdecb`，SW SHA256 `08c997ef580809610ebb6444c2db90082ebdbf8b51dedaec4e19bbf5da41630d`。
+当时正式包版本 **1.4.0**，SHA256 `043e97c5b92685d4865b03b36d45896777153709e8b32f7fca9530828c40ddfe`。当时 `--promote-from` 与 `--check-project` 同源检查通过。实际测试加载 `dist/development`、扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，开发服务已连接；revision `fe05bfd9e2e5077259298858b1603e96d1f89ea38e218549770af8c4f7dbdecb`，SW SHA256 `08c997ef580809610ebb6444c2db90082ebdbf8b51dedaec4e19bbf5da41630d`。
 
 证据索引：仓库本机 `artifacts/ai-vip-activation/result.json`；最终整轮 `native-core-8-receipt.json` / `native-core-8.log`，同候选 URL 边界步骤 `native-core-6-receipt.json`，定向测试 `targeted-node.log` / `pin-node.log`，fixture 执行摘要 `fixture-result.json`。所有诊断删去原始激活码、URL 参数值与 Cookie 值。运行所用 IPv6 fixture / CfT profile 已清理，既有 watcher 和代理服务保留。
 

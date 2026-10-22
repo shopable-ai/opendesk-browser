@@ -71,7 +71,8 @@ test('R4.8 only trusted source and exact release policy can authorize preinstall
 test('managed proxy release metadata uses v2 while unknown capabilities remain denied',async()=>{
   const catalog=structuredClone((await officialFixtures()).catalog);
   const release=catalog.apps.find(row=>row.toolId==='ai-vip-share');
-  assert.deepEqual(release.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed']);
+  assert.deepEqual(release.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed',
+    'browser.cookies.write','currentPage.read']);
   assert.deepEqual(validateOfficialReleaseCatalog(catalog),catalog);
   release.capabilities.push('browser.proxy.unapproved');
   assert.throws(()=>validateOfficialReleaseCatalog(catalog),error=>error.code==='E_TOOL_SCHEMA');
