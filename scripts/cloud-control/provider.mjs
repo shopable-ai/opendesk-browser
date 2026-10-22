@@ -67,7 +67,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
   await save();
   // State snapshots and fsync are only required for real mutations. Pure
   // observations remain serialized with writes but never touch the .tmp file.
-  const readonlyRoutes=new Set(['/v1/job-status','/v1/client-scope','/v1/reconcile','/v1/cancellation','/v1/client-list',
+  const readonlyRoutes=new Set(['/v1/auth','/v1/job-status','/v1/client-scope','/v1/reconcile','/v1/cancellation','/v1/client-list',
     '/v1/program-inbox','/v1/program-fetch','/v1/pull-open',
     '/admin/state','/admin/tasks','/admin/executors','/admin/clients']);
   const serial=(fn,readOnly=false)=>{const next=tail.then(async()=>{
@@ -195,7 +195,15 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
               if(grant.executorId===executorId&&grant.pairingId===row.pairingId)grant.revokedAt=clock()||1;
             out={revoked:true};break;}
           case '/v1/auth':{
-            exact(b,[]);const t=token();{const pair=pairing(executorId),expiresAt=clock()+30000;tickets.set(t,{...pair,until:expiresAt});out={ticket:t,expiresAt,...pair};}break;}
+            // WSS tickets are ephemeral and never change durable Job state.
+            // HTTPS Pull may authenticate every recovery cycle without WSS;
+            // avoid fsync/rename and prune expired unused tickets on each auth.
+            exact(b,[]);
+            const now=clock();
+            for(const [key,old] of tickets)if(old.until<=now||!activePairing(old))tickets.delete(key);
+            const t=token(),pair=pairing(executorId),expiresAt=now+30000;
+            tickets.set(t,{...pair,until:expiresAt});
+            out={ticket:t,expiresAt,...pair};break;}
           case '/v1/capabilities':{
             exact(b,['tasks','grantId']);
             if(!Array.isArray(b.tasks)||b.tasks.length>32||

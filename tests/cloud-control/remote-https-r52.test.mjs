@@ -307,6 +307,10 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
     const blockedTmp=join(directory,'state.json.tmp');
     await (await import('node:fs/promises')).mkdir(blockedTmp);
     try{
+      const readOnlyAuth=await retry('/v1/auth',{},executor.credential);
+      assert.equal(readOnlyAuth.executorId,executorId,
+        'Ephemeral WSS ticket issuance cannot depend on writable durable state files');
+      assert.ok(readOnlyAuth.expiresAt>0);
       assert.equal((await retry('/v1/job-status',{jobId:created.jobId},
         grant.credential)).receiptConfirmed,true);
     }finally{
