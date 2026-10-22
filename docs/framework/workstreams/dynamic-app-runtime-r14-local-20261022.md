@@ -23,7 +23,9 @@
 
 13. 合法共享 Cloud 停止：通过原「开发」在真实 demo-form.html 执行固定表单源码，Run `e8543cb3-cabf-4dcb-9c90-e301ac16a6e5`，再原 UI 核对原生回执、设为本地可用、安装 sample.form-fill 1.0.0。使用原 CLI Provider 固定 loopback 43112，真实 UI 配对及批准一个任务且不回传正文；UI「已连接」、Host「已就绪」，服务端 executor=1、Job=0。A 真实 Alarm Run `9096e713-f9d1-467f-8183-8cd9abf74637` 活动时，从 Cloud UI 点击停止。Cloud 已 disabled，但 A 仍在同一 Offscreen `DFA4D45EDC0627B6D6D45D09E15D783B` running，随后原 SDK 结果、Result `f8711bc8-2a7e-494f-ad76-be6e7224426d` 与 UI 对应；退休 releaseCount=1，B 全部 owned storage 未变，空闲后 Offscreen=0。最终经原 UI 解除配对，Provider 返回 revoked=true、UI「撤销已确认」、本地 Cloud 配置清除；仅停止本轮自有 Provider，保留其他服务。证据 `cloud-shared/shared-stop-1792635022898/proof.json`、`cloud-shared/cleanup-proof.json`。此用例验证共享消费者交错，关闭侧栏的普通链由此前独立严格用例证明；未提交远程 Job，不冒充公网远程执行或商店验收。
 
-上述原始记录集中在 `artifacts/dynamic-app-r14-local/b2-capacity/`、`b2-native/` 和 `lifecycle/b2-*`；长期精简摘要及全部 106 个构建文件 SHA-256 见 [b2-summary.json](../evidence/dynamic-app-r14-local/b2-summary.json)。
+14. 同 ID、不同合法来源：复用 B2 Profile 中已有的官方 `quick-notes` 1.1.9，实际安装包规范 SHA `7e49b4dfdf6f9d8bb2abb337321ff8a7986944e7b386e45b2bf95bc23d103494` 同时匹配冻结包、目录和实际 provenance。使用原 packer 生成同 ID 的有效本地 v2／后台入口 9.0.0 候选，规范 SHA `3e7ed692b01033e5ca4175b16eb0c6eeb545099e900935de53f70e1d049a9d57`；从正式 UI 文件选择、权限预览并点击确认更新。只读 Debugger 精确观察原 Installer 的来源回调拒绝后 `return {state:'cancelled'}` 分支（market=null，已有官方 provenance），随后解除调试；不是 Schema 拒绝或未触发按钮。原 generation `a6e8d484-ba84-46ec-879c-7fe82166c1f0`、来源、授权、owned data 和 Alarm 未变；A/B 的相同状态也逐项未变，没有候选 Run。证据 `source-conflict/proof.json`、`source-gate-pause.json` 和 before/after。该用例仅覆盖一个官方来源与同 ID 本地后台包，不冒充完整发布者矩阵；Debugger 只用于此负例分支观察，不参与普通 Alarm 成功链。最初脚本误读 catalog.release.sha256 的预检失败发生在导入前，保留 failure.json；修正实际字段后正式命令 exit=0，无产品修改。
+
+上述原始记录集中在 `artifacts/dynamic-app-r14-local/b2-capacity/`、`b2-native/`、`lifecycle/b2-*` 和 `source-conflict/`；长期精简摘要及全部 106 个构建文件 SHA-256 见 [b2-summary.json](../evidence/dynamic-app-r14-local/b2-summary.json)。
 
 ## B2 冻结与两个新应用
 
@@ -68,10 +70,12 @@ A/B 正常链均使用正式文件选择、安装和计划审阅、原生按钮�
 | 1 真实机制 | PASS | 原 RunHost/Sandbox/SDK Host，真实 Chrome 原生调度 |
 | 2 单应用闭环 | PASS | 安装→UI→调度→关闭→存储→重开 |
 | 3 冻结后双新应用 | PASS | B2 后新 A/B、不同算法、106 文件字节不变 |
-| 4 生命周期与安全 | PASS（本轮必要闭环）；扩展矩阵 NOT_VERIFIED | B2 停用/升级/卸载/重装、Browser/SW 恢复、批次及 FIFO、跨 owner、旧文档 Host、实际 Offscreen 故障、合法 Cloud 共享停止均有证据；未测范围保留如下 |
+| 4 生命周期与安全 | PASS（本轮必要闭环）；扩展矩阵 NOT_VERIFIED | B2 停用/升级/卸载/重装、Browser/SW 恢复、批次及 FIFO、跨 owner、旧文档 Host、实际 Offscreen 故障、合法 Cloud 共享停止、同 ID 官方来源与本地后台包隔离均有证据；未测范围保留如下 |
 | 5 收尾、解耦、政策 | PARTIAL | 源码、正式包、解耦剩余清单和本地证据已交付；G-DECOUPLING、六维全95+和商店认可未完成 |
 
 B1 的 SW 停止与双应用同到期、Browser 重启、timeout→queued B、能力移除/恢复、Offscreen 故障恢复、ACK 丢失对账/OUTCOME_UNKNOWN、Controller/Page 原生结果保留在 [b1-summary.json](../evidence/dynamic-app-r14-local/b1-summary.json)。相关未改 RunHost/Sandbox/SDK 路径提供有限回归支持；共享 Scheduler/Installer 已变，不将旧候选证据整批记成 B2 原生 PASS。Offscreen 恢复旧记录自身的 closureMonitoring=NOT_VERIFIED 保持不变。
+
+本次按实际输入补核 B1/B2 的 23 个相关源码文件：19 个逐字节相同，4 个差异为 e478 的 Host 卸载清理入口、Scheduler service/repository、Installer。证据 `b1-b2-evidence-reuse-boundaries.json` 保留各自 SHA；旧 ACK/unknown/timeout 及 Controller/Page 记录仍绑定 B1，只在相同路径提供有限支持，不升级为 B2 实测。当前 main 在本次结束前的相关 Runtime 输入与 e478 无差异；无关 main 更新不触发重建或重复普通链。
 
 独立复评将本轮剩余操作收敛为：B2 真实 Offscreen 关闭故障及旧 Host 文档所有权负例、App 活动时停止已配对 Cloud 的共享资源交错。前者现已通过；后者现已用仓库原本机 Provider CLI 与真实 UI loopback 配对通过，不需公网部署。独立只读复核确认原始条件 1–15 对本轮 local-reviewed A/B 均有足够证据判定 PASS，未发现当前具体产品 BLOCK；G-DYNAMIC 达成本轮 LOCAL 完成条件。实际 Cloud Job 执行中的停止交错与公网远程执行未纳入本用例，不冒称通过。
 
@@ -91,13 +95,15 @@ B1 的 SW 停止与双应用同到期、Browser 重启、timeout→queued B、�
 
 已核对官方 [Offscreen](https://developer.chrome.com/docs/extensions/reference/api/offscreen)、[Alarms](https://developer.chrome.com/docs/extensions/reference/api/alarms)、[CSP](https://developer.chrome.com/docs/extensions/reference/manifest/content-security-policy)、[商店政策](https://developer.chrome.com/docs/webstore/program-policies/policies) 与 [MV3 附加要求](https://developer.chrome.com/docs/webstore/program-policies/mv3-requirements)。浏览器机制支持不等于动态代码及 SDK 桥接获商店批准；没有自动提交或发布，RELEASE_POLICY_NOT_VERIFIED。
 
+2026-10-22 再核官方现行文本：Alarms 的 `persistAcrossSessions` 为 Chrome 150+，更早版本仍应在 SW 启动时核查并重建重要 Alarm；本候选最低版本 138，实测版本 156，不能把新版本持久化保证外推给所有支持版本。Sandbox 的独立 origin、无直接 Extension API 与单独 CSP 是机制边界。MV3 政策对无 Extension API 的隔离上下文列有远程代码例外，但仍要求功能可审查和用户数据合规；推论仅为“本架构具备隔离证据”，不是“自定义 SDK 桥接已获商店认可”。[Sandbox 官方合同](https://developer.chrome.com/docs/extensions/reference/manifest/sandbox)及上述政策仍适用，发布评分不提高。
+
 | 维度 | 独立分数 | ≥95 | 证据、剩余风险与最小下一步 |
 | --- | ---: | --- | --- |
 | 真实 Chrome 可行性 | 95 | 是 | B2 双应用、卸载续用与重装；原生主链已有证据，不扩成无关版本矩阵 |
 | Runtime 唯一性与精简性 | 95 | 是 | 仍复用原系统；合法 Cloud 在线消费者停止时保留活动 App、空闲才关闭。未测 Cloud Job 执行中停止；无当前修复项，归档证据即可 |
-| SDK 身份、权限与隔离 | 95 | 是 | 实际 CSP/跨 owner/绑定覆盖及旧文档 Host E_OWNER；B 数据不变。私有 Port 提取及发布者矩阵未测，保留限制，无当前修复项 |
+| SDK 身份、权限与隔离 | 95 | 是 | 实际 CSP/跨 owner/绑定覆盖、旧文档 Host E_OWNER、同 ID 官方来源对本地后台包取消替换；原身份与 A/B 不变。私有 Port 提取及完整发布者矩阵未测，保留限制，无当前修复项 |
 | 生命周期与可靠性 | 95 | 是 | 卸载、重装、停用/升级、真实 Offscreen 故障、新文档恢复、13 批次/FIFO/Cloud 交错通过。重启附观察空窗，完整回执故障矩阵未重做；不承诺无限公平或任意 exactly-once |
 | 编译后双应用独立性 | 96 | 是 | 冻结后新 A/B 与完整哈希证据；B2 同到期、13 批与先后排序、卸载 A 后 B 续用均已实测 |
 | MV3 与发布合规 | 78 | 否 | 实际隔离位置和 CSP、官方政策；缺商店对本候选的审核结论。下一步留到正式发布阶段核对候选并完成审核；不自动发布 |
 
-只读独立审查未发现 e478 清理协议的剩余 BLOCK，架构 CLEAR。最终独立复核及评分见本机 `b2-final-independent-review.md`、`b2-final-independent-scores.json`，摘要保存 SHA。旧评分与原始限制保留，不以未执行检查提高分数。本轮产品修复、A/B 源码与唯一正式包已推送；后续原生证据增补不改 Browser 或应用字节，最终 SHA 与推送状态以交付 Git 核对为准。
+只读独立审查未发现 e478 清理协议的剩余 BLOCK，架构 CLEAR。最终独立复核及评分见本机 `b2-final-independent-review.md`、`b2-final-independent-scores.json`；来源负例的第二次独立完成审查见 `b2-source-final-independent-review.md`，确认最小来源缺口已补齐，维持 95/95/95/95/96/78，当前 LOCAL 可收尾。摘要保存这些证据的 SHA。旧评分与原始限制保留，不以未执行检查提高分数。最终复核 106 个构建文件路径、字节数和 SHA 全部相同，见 `b2-source-final-hash-verification.json`。本轮产品修复、A/B 源码与唯一正式包已推送；后续原生证据增补不改 Browser 或应用字节，最终 SHA 与推送状态以交付 Git 核对为准。
