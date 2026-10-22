@@ -56,12 +56,12 @@ test('R23.17 Native: first disclosure, valid session reuse, revoke then deny wit
   const first=f.click('workflow-ai-plan');await tick();await tick();
   assert.equal(state(f,'workflow-ai-approval').hidden,false);
   assert.equal(f.starts.length,0);
-  await f.click('workflow-ai-approve');await first;await tick();
+  await f.click('workflow-ai-approve');await first;await tick();await tick();
   assert.equal(n.answers[0]?.decision,'approve');
-  assert.equal(f.starts.length,1,'AI result is only a plan; no RunHost execution before confirmation');
-  assert.equal(state(f,'workflow-run-review').hidden,false);
-  await f.click('workflow-run-review-confirm');await tick();
-  assert.equal(f.starts.length,2);
+  assert.equal(f.starts.length,2,'Native read-only observation is followed by a single safe auto-run');
+  assert.equal(state(f,'workflow-run-review').hidden,true,'no second product confirmation for approved low-risk steps');
+  await f.click('workflow-run-review-confirm');
+  assert.equal(f.starts.length,2,'no hidden confirmation may dispatch a second Run');
   const key='opendesk.sidebar.workflow-draft.v1:7:observation';
   assert.equal(f.session.get(key)?.provider,'local_codex');
   assert.equal(n.calls.filter(c=>c.method==='ai.session.open').length,1);
@@ -69,11 +69,10 @@ test('R23.17 Native: first disclosure, valid session reuse, revoke then deny wit
   f.input('workflow-ai-request','再次读取当前网页，检查值但不要提交。');
   const second=f.click('workflow-ai-plan');await tick();await tick();
   assert.equal(state(f,'workflow-ai-approval').hidden,true);
-  await second;await tick();
+  await second;await tick();await tick();
   assert.equal(n.answers[1]?.decision,'approve');
-  assert.equal(f.starts.length,3,'Native session reuse does not imply automatic execution');
-  await f.click('workflow-run-review-confirm');await tick();
-  assert.equal(f.starts.length,4);
+  assert.equal(f.starts.length,4,'each new user Send independently authorizes one bounded low-risk execution');
+  assert.equal(state(f,'workflow-run-review').hidden,true);
   assert.equal(n.calls.filter(c=>c.method==='ai.session.open').length,1);
 
   await f.click('workflow-observation-revoke');await tick();
