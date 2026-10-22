@@ -1,5 +1,7 @@
 # 本地云控表单示例（历史兼容入口）
 
+> **当前产品级架构与下一轮真实验收入口（R19.4 → R19.5，2026-10-22）**：请先阅读 [统一架构、六项原始关键任务、Pull/Push、身份/状态、CI 事实及 T00–T10](../../docs/framework/workstreams/cloud-control-r19-4-architecture-r19-5-handoff.zh-CN.md)。本页是历史开发 CLI/演示说明，不代表独立业务网页表单、生产队列或跨设备已完成验收。
+
 > **最新 R5.2 导航（2026-10-13）**：本文前半段包含 R1–R5.1 历史示例，旧命令不一定适用于当前授权协议。整个 Cloud Control 应从 [完整产品功能树（110 项）](../../docs/architecture/browser-framework/cloud-control-r5.2-complete-function-tree.zh-CN.md)、[唯一接口与权限合同（Provider 27 HTTP / Host 10 RPC）](../../docs/architecture/browser-framework/cloud-control-r5.2-interface-security-contract.zh-CN.md)、[唯一执行手册（7 Gate / 30 任务包）](../../docs/framework/cloud-control-r5.2-execution-manual.zh-CN.md)、[独立专家评分](../../docs/framework/workstreams/cloud-control-r5-02-expert-scorecard.json) 和 [真实工作流证据](../../docs/framework/workstreams/cloud-control-r5-02-product-closure.md) 查阅。Side Panel 的 39 项 UI 另见 [专门设计合同](../../docs/architecture/browser-framework/cloud-control-r5.2-ui-preview-contract.zh-CN.md)，与 110 项产品矩阵有重叠、不额外相加。用户的正常浏览器操作请看本文 R5.2 / R5.2.4 小节；所有当前原生待验收保持待验收。
 
 这是 Browser 独立 Executor 的受控开发演示：固定任务 `sample.form-fill@1.0.0`，目标只有 `http://127.0.0.1:43111/demo-form.html`。原 Task 安装/授权、Authority、RunHost/Worker、Run/Result/退休保持原职责；不是导入工具、草稿或远端脚本。**Browser 本地任务不依赖 Desktop App、Native Agent 或 Node Provider**；下面 Node 服务仅用于云端演示。
