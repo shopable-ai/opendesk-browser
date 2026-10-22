@@ -1200,7 +1200,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       if(prepared.linkGuard&&prepared.linkGuard.origin!==captured.origin)
         origins.push(permissionPattern(prepared.linkGuard.url));
       const pregranted=await api.permissions.contains({origins:[...new Set(origins)]});
-      planningCurrent(epoch,frozen.serial,frozen.selected);
+      // The approved proposal is now the live draft: the old pre-planning
+      // serial is intentionally obsolete, but the newly frozen serial must
+      // still match across this asynchronous permission read.
+      if(disposed||epoch!==planningGeneration||provider()!==frozen.selected||
+        stable()!==executionSerial)throw err('E_WORKFLOW_REVIEW_STALE','规划结果已变化，未自动执行');
       lastRun='none';
       if(pregranted){
         // Complete planning before launching the existing RunHost. The Send
