@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {compileWorkflow} from '../../src/framework/workflow/compiler.js';
 import {sealWorkflowBundle,verifyWorkflowBundle,replayParameterSchema,
-  verifyReplayBusinessEffect,assertLegacyReplayParameterScope,WORKFLOW_BUNDLE_FORMAT} from '../../src/ui/workflow/segment-replay.js';
+  verifyReplayBusinessEffect,assertLegacyReplayParameterScope,WORKFLOW_BUNDLE_FORMAT,
+  WORKFLOW_DYNAMIC_BUNDLE_FORMAT,inferDynamicReplayPlan,dynamicReplayIntent} from '../../src/ui/workflow/segment-replay.js';
 
 const schema=(name)=>({type:'object',properties:name?{[name]:{
   type:'string',title:name,maxLength:120,default:'camera'}}:{},
@@ -88,4 +89,89 @@ test('legacy bundle blocks changed parameters before any side effect can be repl
     {code:'E_WORKFLOW_PARAM_BINDING'});
   assert.throws(()=>assertLegacyReplayParameterScope(record,{}),
     {code:'E_WORKFLOW_PARAM_BINDING'});
+});
+
+
+async function dynamicCommerceFixture() {
+  const querySchema={type:'object',properties:{query:{
+    type:'string',title:'搜索关键词',maxLength:120,default:'camera'}},
+    required:['query'],additionalProperties:false};
+  const productSchema={type:'object',properties:{productName:{
+    type:'string',title:'目标商品名称',maxLength:120,default:'Camera X'}},
+    required:['productName'],additionalProperties:false};
+  const first=part(bundleId+'-s1',origin,[
+    {stepId:'fill',op:'fill',locatorKind:'css',selector:'#keyword',param:'query'},
+    {stepId:'search',op:'click',locatorKind:'role',selector:'button',roleName:'Search'}
+  ],querySchema);
+  const guard={href:'/product/23',url:origin+'/product/23',origin,
+    name:'Camera X',sourceUrl:origin+'/search?q=camera',
+    locatorKind:'role',selector:'link',roleName:'Camera X'};
+  const second=part(bundleId+'-s2',origin,[
+    {stepId:'product',op:'click',locatorKind:'role',selector:'link',
+      roleName:'Camera X',param:'productName',linkGuard:guard}
+  ],productSchema);
+  const frozenSearch=await compileWorkflow(first,{verifyFill:true});
+  const frozenProduct=await compileWorkflow(second);
+  const segments=[
+    {workflow:first,entryUrl:origin+'/demo',revision:1,sourceHash:frozenSearch.sourceHash,
+      verificationMode:'fill-readback',evidence:{kind:'search-results'},
+      proof:{runId:'original-search',resultId:'receipt-search',
+        sourceHash:frozenSearch.sourceHash,origin,documentId:'search-document'}},
+    {workflow:second,entryUrl:origin+'/search?q=camera',revision:2,
+      sourceHash:frozenProduct.sourceHash,verificationMode:'none',
+      evidence:{kind:'product-page',name:'Camera X'},
+      proof:{runId:'original-product',resultId:'receipt-product',
+        sourceHash:frozenProduct.sourceHash,origin,documentId:'results-document'}}
+  ];
+  const goal='搜索 camera，打开 Camera X 商品详情，核对名称和价格';
+  const bindingPlan=inferDynamicReplayPlan({goal,segments});
+  return {format:WORKFLOW_DYNAMIC_BUNDLE_FORMAT,bundleId,revision:1,goal,
+    title:'商品动态复跑',workflow:{workflowId:bundleId,title:'商品动态复跑',siteOrigin:origin},
+    segments,paramsSchema:replayParameterSchema(segments),bindingPlan};
+}
+test('v2 seals only verified search-to-product source and rebinds explicit values without source changes',async()=>{
+  const manifest=await dynamicCommerceFixture();
+  assert.deepEqual(manifest.bindingPlan,{kind:'search-to-product.v1',
+    queryParam:'query',productParam:'productName',searchStepId:'fill',
+    linkStepId:'product',allowedOrigin:origin});
+  const saved=await sealWorkflowBundle(manifest);
+  assert.deepEqual(await verifyWorkflowBundle(saved),saved);
+  assert.match(saved.sourceHash,/^[a-f0-9]{64}$/);
+  const original=dynamicReplayIntent(saved,{query:'camera',productName:'Camera X'});
+  const changed=dynamicReplayIntent(saved,{query:'lens',productName:'Lens Y'});
+  assert.match(original.goal,/camera.*Camera X/);
+  assert.match(changed.goal,/lens.*Lens Y/);
+  assert.deepEqual(changed.values,{query:'lens',productName:'Lens Y'});
+  assert.equal(saved.segments[0].sourceHash,manifest.segments[0].sourceHash);
+  assert.equal(saved.segments[1].sourceHash,manifest.segments[1].sourceHash);
+  const source=(await compileWorkflow(manifest.segments[1].workflow)).sourceUtf8;
+  assert.match(source,/__odLinks/);
+  assert.match(source,/__named\.count/);
+  assert.doesNotMatch(source,/\/product\/23/,'frozen source must not embed old product href');
+});
+test('v2 refuses guessed targets, changed authority, forged binding plan and v1 implicit migration',async()=>{
+  const original=await dynamicCommerceFixture(),saved=await sealWorkflowBundle(original);
+  assert.throws(()=>dynamicReplayIntent(saved,{query:'lens'}),{code:'E_WORKFLOW_PARAMS'});
+  assert.throws(()=>dynamicReplayIntent(saved,{query:'lens',productName:'<script>'}),
+    {code:'E_WORKFLOW_PARAM_BINDING'});
+  assert.throws(()=>dynamicReplayIntent(saved,{query:'lens',productName:'Camera X',extra:'bad'}),
+    {code:'E_WORKFLOW_PARAMS'});
+  const forged=structuredClone(saved);
+  forged.bindingPlan.allowedOrigin='https://evil.example';
+  await assert.rejects(verifyWorkflowBundle(forged),{code:'E_WORKFLOW_PARAM_BINDING'});
+  const changed=structuredClone(saved);
+  changed.segments[1].workflow.steps[0].linkGuard.url='https://evil.example/other';
+  await assert.rejects(verifyWorkflowBundle(changed),{code:'E_WORKFLOW_SCHEMA'});
+  const unsafe=await dynamicCommerceFixture();
+  unsafe.goal+='，付款并提交订单';
+  assert.equal(inferDynamicReplayPlan(unsafe),null);
+  await assert.rejects(sealWorkflowBundle(unsafe),{code:'E_WORKFLOW_PARAM_BINDING'});
+  const v1={...original,format:WORKFLOW_BUNDLE_FORMAT};
+  delete v1.bindingPlan;
+  const legacy=await sealWorkflowBundle(v1);
+  assert.throws(()=>assertLegacyReplayParameterScope(legacy,{query:'lens',productName:'Lens Y'}),
+    {code:'E_WORKFLOW_PARAM_BINDING'});
+  const unapproved=await dynamicCommerceFixture();
+  unapproved.segments[1].workflow.siteOrigin='https://second.example';
+  assert.equal(inferDynamicReplayPlan(unapproved),null);
 });
