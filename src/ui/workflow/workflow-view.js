@@ -1371,29 +1371,48 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           recipientId,receiverPattern})||
          !await api.permissions.contains({origins:[receiverPattern]})))
         throw err('E_AI_PERMISSION','网页摘要或模型接收方授权已撤销，未发送');
-      planned=await workflowProviders.generateWorkflow({
-        source:frozen.selected,request:frozen.request,workflow:frozen.workflow,
-        target:exactTarget,observationReceipt:workflowObservationForModel(planningObservation),signal:abort.signal,
-        settings:{endpoint:frozen.endpoint,apiKey:frozen.apiKey,model:frozen.model},
-        history:verifiedTurnHistory,consent:frozen.consent,onEvent:progress,
-        onApproval:(event,context)=>offerObservation(event,context,
-          {epoch,serial:frozen.serial,selected:frozen.selected,captured,request:frozen.request,
-            recipientId,receiverPattern})});
-      planningCurrent(epoch,frozen.serial,frozen.selected);
-      const result=planned.proposal;
-      lastProviderTurn={businessWorkflowId:frozen.workflow.workflowId,
-        source:frozen.selected,metadata:structuredClone(planned.metadata)};
-      planningCurrent(epoch,frozen.serial,frozen.selected);
-      if(control('workflow-provider-settings').open)closeAISettings();
-      const prepared=prepareDirectExecution({request:frozen.request,workflow:result,target:captured,observation:planningObservation});
-      const executable=structuredClone(result);
-      if(prepared.linkGuard){
-        const click=executable.steps.find(step=>step.op==='click');
-        if(!click)throw err('E_AI_REVIEW_REQUIRED','链接确认缺少点击步骤');
-        click.linkGuard=structuredClone(prepared.linkGuard);
+      let prepared,executable,freeze,preflightError=null;
+      for(let correction=0;correction<2;correction++){
+        // The first failed proposal has issued no Chrome operation. Only a
+        // Schema/missing-action mistake may be corrected, at most once.
+        planningCurrent(epoch,frozen.serial,frozen.selected);
+        const nextRequest=correction===0?frozen.request:
+          frozen.request.slice(0,3600)+'\n上一提议没有通过执行前检查（'+preflightError.code+
+          '）。只修正步骤或定位，不得增加动作或扩大目标。';
+        try{
+          planned=await workflowProviders.generateWorkflow({
+            source:frozen.selected,request:nextRequest,workflow:frozen.workflow,
+            target:exactTarget,observationReceipt:workflowObservationForModel(planningObservation),signal:abort.signal,
+            settings:{endpoint:frozen.endpoint,apiKey:frozen.apiKey,model:frozen.model},
+            history:verifiedTurnHistory,consent:frozen.consent,onEvent:progress,
+            onApproval:(event,context)=>offerObservation(event,context,
+              {epoch,serial:frozen.serial,selected:frozen.selected,captured,request:frozen.request,
+                recipientId,receiverPattern})});
+          planningCurrent(epoch,frozen.serial,frozen.selected);
+          const result=planned.proposal;
+          prepared=prepareDirectExecution({request:frozen.request,workflow:result,
+            target:captured,observation:planningObservation});
+          executable=structuredClone(result);
+          if(prepared.linkGuard){
+            const click=executable.steps.find(step=>step.op==='click');
+            if(!click)throw err('E_AI_REVIEW_REQUIRED','链接确认缺少点击步骤');
+            click.linkGuard=structuredClone(prepared.linkGuard);
+          }
+          freeze=await compileWorkflow(executable,{verifyFill:true});
+          planningCurrent(epoch,frozen.serial,frozen.selected);
+          lastProviderTurn={businessWorkflowId:frozen.workflow.workflowId,
+            source:frozen.selected,metadata:structuredClone(planned.metadata)};
+          if(control('workflow-provider-settings').open)closeAISettings();
+          break;
+        }catch(error){
+          if(correction>0||!['E_WORKFLOW_SCHEMA','E_WORKFLOW_AI',
+            'E_AI_MISSING_ACTION','E_AI_ASSERT_TARGET','E_AI_VALUE_NOT_GROUNDED',
+            'E_AI_RESPONSE'].includes(error?.code))throw error;
+          preflightError=error;
+          control('workflow-planning-indicator').text=
+            '计划格式有误，正在进行唯一一次安全纠正…';
+        }
       }
-      const freeze=await compileWorkflow(executable,{verifyFill:true});
-      planningCurrent(epoch,frozen.serial,frozen.selected);
       if(planningObservation)
         agent.guard.observed({target:captured,receipt:planningObservation,remaining:frozen.request});
       const ticket=agent.guard.claim({workflow:executable,target:captured});
