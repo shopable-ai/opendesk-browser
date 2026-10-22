@@ -210,11 +210,12 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     control('workflow-display-title').text=historyOpen?'历史':
        hasSteps && workflow.title!=='新工作流'?workflow.title:'新工作流';
     const origin=currentOrigin(),warning=control('workflow-target-warning');
-    const mismatch=hasSteps && (!origin || origin!==workflow.siteOrigin);
+    const requiredOrigin=selectedBundle?.segments[0].workflow.siteOrigin||workflow.siteOrigin;
+    const mismatch=hasSteps && (!origin || origin!==requiredOrigin);
     warning.hidden=!mismatch;
     if(mismatch){
       let site='目标网站';
-      try{site=new URL(workflow.siteOrigin).host;}catch{}
+      try{site=new URL(requiredOrigin).host;}catch{}
       warning.text=origin
         ?'当前网站不匹配，请打开 '+site+' 后运行。'
         :'请打开 '+site+' 后运行。';
@@ -225,7 +226,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(disposed)return;
     // An active RunHost also owns the viewport, even after AI planning settles.
     const operationBusy=busy||autoExecutionPending||Boolean(workflowAgent)||Boolean(host.executionPending||host.currentRun);
-    const runnable=Boolean(compiled && currentOrigin()===workflow.siteOrigin &&
+    const runnable=Boolean(compiled && currentOrigin()===(selectedBundle?.segments[0].workflow.siteOrigin||workflow.siteOrigin) &&
       !operationBusy && !historyOpen && !pendingAIReview);
     control('workflow-run').disabled=!runnable;
     control('workflow-save').disabled=busy || autoExecutionPending || !compiled || Boolean(selectedBundle);
@@ -1145,7 +1146,134 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       return reply;
     });
   }
+  // AI-off orchestration ONLY: existing Controller/Compiler/RunHost remain
+  // the sole execution and permission authorities. Each saved fragment gets
+  // a fresh Document observation and exact frozen-revision check.
+  async function runSavedBundle(event) {
+    if(!event?.isTrusted||!selectedBundle||workflowAgent||
+      busy||autoExecutionPending||host.executionPending||host.currentRun)
+      return {ok:false,skipped:true};
+    const bundle=selectedBundle;
+    let params,initial,permission;
+    try {
+      params=readParams();
+      initial=currentPageTarget.capture();
+      if(initial.origin!==bundle.segments[0].workflow.siteOrigin||
+        initial.url!==bundle.segments[0].entryUrl)
+        throw err('E_DOCUMENT_STALE','请先打开完整工作流原始入口网页；不会从任意页面盲目复跑');
+      // Chrome's grant request is started synchronously in this trusted click.
+      // A later segment never requests a new origin outside a user gesture.
+      const scopes=[...new Set(bundle.segments.map(part=>permissionPattern(part.entryUrl)))];
+      permission=api.permissions.request({origins:scopes});
+    }catch(error){status(format(error),true);return {ok:false,error};}
+    const epoch=++planningGeneration,abort=new AbortController();
+    const agent={epoch,controller:abort,selected:'replay',goal:bundle.goal,
+      initialTarget:structuredClone(initial),startedCount:0,
+      guard:createWorkflowAgentLoopGuard({goal:bundle.goal,signal:abort.signal}),
+      expectedNavigation:null,stopping:false};
+    workflowAgent=agent;
+    agent.deadline=setTimeout(()=>void stopWorkflowAgent('E_AGENT_LIMIT').catch(()=>{}),480000);
+    control('workflow-editor').dataset.agentState='RUNNING';
+    updateButtons();
+    try {
+      if(!await permission)throw err('E_PERMISSION','完整工作流所需网站权限未批准，尚未执行');
+      agent.guard.check();
+      await verifyWorkflowBundle(bundle);
+      let previousNavigationDocument=null;
+      for(let i=0;i<bundle.segments.length;i++){
+        if(workflowAgent!==agent||agent.stopping||selectedBundle!==bundle)
+          throw err('E_CANCELLED','复跑已经停止或历史版本已改变');
+        const segment=bundle.segments[i];
+        const target=await currentPageTarget.refresh();
+        agent.guard.check();
+        if(target.status!=='available'||target.frameId!==0||
+          target.windowId!==initial.windowId||target.tabId!==initial.tabId||
+          target.origin!==segment.workflow.siteOrigin||target.url!==segment.entryUrl||
+          previousNavigationDocument===target.documentId)
+          throw err('E_DOCUMENT_STALE','第 '+(i+1)+' 段入口或导航 Document 不符，已停止');
+        const scope=permissionPattern(target.url);
+        if(!await api.permissions.contains({origins:[scope]}))
+          throw err('E_PERMISSION','第 '+(i+1)+' 段网站权限已撤销，未执行');
+        await currentPageTarget.revalidate(target);
+        agent.guard.check();
+        phase='planning';busy=true;updateButtons();
+        const before=await observation.observe(target,{signal:abort.signal,
+          requestId:'replay-observe-'+crypto.randomUUID(),request:bundle.goal});
+        await currentPageTarget.revalidate(target);
+        agent.guard.check();
+        agent.guard.observed({target,receipt:before,remaining:bundle.goal});
+        const stripped={...segment.workflow,steps:segment.workflow.steps.map(step=>{
+          const clean={...step};delete clean.linkGuard;return clean;
+        })};
+        const segmentParams=Object.fromEntries(
+          Object.keys(segment.workflow.paramsSchema.properties).filter(key=>
+            Object.hasOwn(params,key)).map(key=>[key,params[key]]));
+        const admitted=prepareDirectExecution({
+          request:bundle.goal,workflow:stripped,target,observation:before,
+          verifiedFacts:agent.guard.snapshot().facts,paramsOverride:segmentParams,
+          allowBoundParameters:true});
+        const frozenLink=segment.workflow.steps.find(step=>step.linkGuard)?.linkGuard||null;
+        if(JSON.stringify(frozenLink)!==JSON.stringify(admitted.linkGuard||null))
+          throw err('E_WORKFLOW_LINK','目标链接与冻结时不一致，AI 关闭时不能自行选择新链接');
+        const freeze=await compileWorkflow(segment.workflow,{
+          verifyFill:segment.verificationMode==='fill-readback'});
+        if(freeze.sourceHash!==segment.sourceHash)
+          throw err('E_WORKFLOW_HASH','第 '+(i+1)+' 段 JavaScript 内容已变化');
+        const ticket=agent.guard.claim({workflow:segment.workflow,target,
+          observation:before,linkGuard:admitted.linkGuard});
+        if(admitted.linkGuard){
+          agent.expectedNavigation=admitted.linkGuard;
+          previousNavigationDocument=target.documentId;
+        }else previousNavigationDocument=null;
+        phase='running';busy=false;
+        status('AI 已关闭：正在执行完整工作流第 '+(i+1)+' / '+bundle.segments.length+' 段…');
+        updateButtons();
+        const reply=await run(null,{
+          freeze,captured:structuredClone(target),params:segmentParams,
+          permission:Promise.resolve(true),signal:abort.signal,
+          hasReadback:admitted.hasReadback,
+          hasUnprovenClick:admitted.hasUnprovenClick,
+          beforeObservation:before,effectExpectation:admitted.effectExpectation,
+          linkGuard:admitted.linkGuard,
+          savedSource:{kind:'saved',scriptId:segment.workflow.workflowId,
+            revision:segment.revision,contentHash:segment.sourceHash},
+          agent,assertCurrent:()=>{
+            if(workflowAgent!==agent||agent.stopping||abort.signal.aborted||
+              selectedBundle!==bundle)
+              throw err('E_CANCELLED','完整复跑已停止或版本已更改');
+          }
+        });
+        if(workflowAgent!==agent||agent.stopping)return {ok:false,stopped:true};
+        if(!verifyReplayBusinessEffect(segment.evidence,reply))
+          throw err('E_WORKFLOW_EVIDENCE','第 '+(i+1)+' 段业务效果未独立核验，停止且绝不重复操作');
+        const verdict=agent.guard.verified({claim:ticket,reply});
+        if(!['CONTINUE','COMPLETED'].includes(verdict.state))
+          throw err('E_WORKFLOW_EVIDENCE',verdict.reason);
+        if(verdict.state==='COMPLETED'&&i!==bundle.segments.length-1)
+          throw err('E_WORKFLOW_NO_PROGRESS','原始目标已满足，拒绝执行多余分段');
+        if(i===bundle.segments.length-1&&verdict.state!=='COMPLETED')
+          throw err('E_WORKFLOW_EVIDENCE','完整复跑仍未满足原始任务全部目标');
+      }
+      finishWorkflowAgent(agent,'COMPLETED','AI-off 完整 '+bundle.segments.length+
+        ' 段复跑结束；每段 RunHost 回执和独立网页效果均已核对。');
+      return {ok:true,segments:bundle.segments.length};
+    }catch(error){
+      if(workflowAgent===agent&&!agent.stopping){
+        const code=error?.code||'E_WORKFLOW_REPLAY';
+        const unknown=/(?:UNKNOWN|TIMEOUT|SETTLEMENT|DISCONNECT)/.test(code)||
+          host.executionPending||Boolean(host.currentRun);
+        finishWorkflowAgent(agent,unknown?'OUTCOME_UNKNOWN':'BLOCKED',
+          format(error)+(unknown?'；网页操作结果未知，不得自动重放。':
+            '；已完成的网页操作不会自动回滚，禁止盲目重试。'));
+      }
+      return {ok:false,error};
+    }finally{
+      if(workflowAgent===agent&&!agent.stopping)
+        finishWorkflowAgent(agent,'BLOCKED','完整工作流未达到完成条件，已停止。');
+    }
+  }
   async function runManual(event,review=null) {
+    if(selectedBundle&&!review)return runSavedBundle(event);
     const reply=await run(event,null,review);
     if(!disposed)reportExecution(reply);
     return reply;
