@@ -434,7 +434,20 @@ test('v2 AI-off changes search and explicit product, then runs each saved RunHos
   assert.equal(f.state().header.saved,true);
   f.view.actions.setParam('query','lens');
   f.view.actions.setParam('productName','Lens Y');
-  const outcome=await f.click('workflow-run');
+  const replay=f.click('workflow-run');
+  let timer;
+  const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(
+    'Dynamic replay fixture did not settle: '+JSON.stringify({
+      target:f.target,starts:f.starts.map(item=>({
+        source:item.source?.kind,scriptId:item.source?.scriptId,
+        expectedUrl:item.target?.expectedUrl,params:item.params})),
+      owner:f.owners.slice(-8),running:f.host.currentRun,
+      status:f.state().controls['workflow-status']?.text,
+      observations
+    }))),3000);});
+  let outcome;
+  try{outcome=await Promise.race([replay,timeout]);}
+  finally{clearTimeout(timer);}
   assert.equal(outcome?.ok,true,JSON.stringify({outcome,
     status:f.state().controls['workflow-status']?.text}));
   assert.equal(outcome.segments,2);
