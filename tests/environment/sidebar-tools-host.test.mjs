@@ -2603,7 +2603,8 @@ test('R5.26 disabled Cookie Editor direct settings can re-enable without auto-mo
   const store=new Map([
     [SIDEBAR_TOOL_STORE,[tool]],
     [SIDEBAR_TOOL_ENABLE_STORE,{[tool.id]:false}],
-    [BROWSER_MENU_GRANTS_STORE,{[tool.id]:{version:tool.version,installEpoch:null,cookieAllSites:baseGrant}}],
+    [BROWSER_MENU_GRANTS_STORE,{[tool.id]:{version:tool.version,installEpoch:null,
+      packageHash:await sidebarToolPackageHash(tool),cookieAllSites:baseGrant}}],
     [key,userData]
   ]);
   const f=await hostFixture(t,{tool,store,startTool:false});
