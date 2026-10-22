@@ -192,6 +192,10 @@ async function clickJS(expression,clickCount=1){
     await rpc('Input.dispatchMouseEvent',{type,x:rect.x,y:rect.y,...extra});
 }
 async function expandPromptRail(){
+  // Connected buttons precede the first scheduled layout; wait for its coordinates.
+  await poll('window.__railRoot?.host?.isConnected&&!window.__railRoot.host.hidden&&'+
+    'window.__railRoot.host.style.left!==""&&window.__railRoot.host.style.top!==""&&'+
+    'window.__railRoot.querySelector(".brand")?.isConnected','positioned prompt rail launcher');
   const collapsed=await evaluate('window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")==="false"');
   if(collapsed)await clickJS('window.__railRoot.querySelector(".brand")');
   await poll('window.__railRoot?.querySelector(".item")?.isConnected','real Chromium expanded prompt choices');
@@ -395,6 +399,7 @@ try{
   const measured=[];
   for(const [size,w,h] of [['large',68,48],['compact',48,40],['standard',56,44]]){
     await evaluate('window.__setImage("https://fixture.opendesk.invalid/ok.png",'+JSON.stringify(size)+')');
+    await expandPromptRail();
     await poll('window.__railRoot?.querySelector(".item.image img")?.naturalWidth>0 && '+
       'window.__railRoot?.querySelector(".rail")?.dataset.imageSize==='+JSON.stringify(size),
       'trusted decoded HTTPS picture: '+size);
@@ -410,11 +415,13 @@ try{
     measured.push({size,...actual});await shot('r35-trusted-image-'+size);
   }
   await evaluate('window.__setImage("https://fixture.opendesk.invalid/bad.png","large")');
+  await expandPromptRail();
   await poll('window.__railRoot?.querySelectorAll(".item").length===3 && '+
     '!window.__railRoot?.querySelector(".item.image")',
     'corrupt HTTPS response must fall back to short label');
   assert.equal(await evaluate('window.__railRoot.querySelectorAll(".item")[1].textContent'),'山景');
   await evaluate('window.__setImage("https://fixture.opendesk.invalid/ok.png","standard")');
+  await expandPromptRail();
   await poll('window.__railRoot?.querySelector(".item.image img")?.naturalWidth>0',
     'corrected image URL recovers the decoded picture');
   await sleep(825);
@@ -448,7 +455,7 @@ try{
     await poll('window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")==="false" && '+
       'window.__railRoot?.querySelectorAll(".item").length===0',
       'single resting launcher: '+name);
-    await clickJS('window.__railRoot.querySelector(".brand")');
+    await expandPromptRail();
     await poll('window.__railRoot?.querySelectorAll(".item").length==='+String(rows.length+1)+' && '+
       'Array.from(window.__railRoot.querySelectorAll(".item")).slice(0,'+rows.length+')'+
       '.map(button=>button.getAttribute("aria-label")).join("|")==='+
