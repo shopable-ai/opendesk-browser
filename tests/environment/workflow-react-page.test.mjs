@@ -232,6 +232,8 @@ test('full saved bundle loads from real Controller revisions and blocks stale en
 
 test('changed parameter on a legacy cross-navigation bundle fails before permission or RunHost dispatch',async t=>{
   const f=await workflowFixture();t.after(()=>f.view.dispose());
+  // A dirty user draft correctly blocks history replacement: save it first.
+  f.click('workflow-save');await tick();await tick();await tick();
   const id='wf-55555555-3333-2222-1111-111111111111';
   const shared={type:'object',properties:{query:{type:'string',title:'搜索关键词',
     maxLength:120,default:'camera'}},required:['query'],additionalProperties:false};
@@ -297,6 +299,7 @@ test('two-segment saved AI-off bundle reopens and runs all frozen revisions',asy
   const f=await workflowFixture({actionResult:({params})=>({
     fill:{kind:'input-readback',matched:true,value:params.query}})});
   t.after(()=>f.view.dispose());
+  f.click('workflow-save');await tick();await tick();await tick();
   const id='wf-77777777-3333-2222-1111-111111111111';
   const shared={type:'object',properties:{query:{type:'string',title:'搜索关键词',
     maxLength:120,default:'camera'}},required:['query'],additionalProperties:false};
