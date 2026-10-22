@@ -1,0 +1,61 @@
+{
+  "grade": "REAL_CHROMIUM_DOM_WITH_FIXTURE_SERVICES_NOT_INSTALLED_EXTENSION",
+  "nativeProvider": false,
+  "realBookmarkSdk": false,
+  "modelCalls": 0,
+  "checks": [
+    {
+      "label": "reorder retains the enabled button",
+      "focused": "[data-step-id=\"one\"] [data-workflow-focus=\"moveDown\"]",
+      "status": "PASS"
+    },
+    {
+      "label": "move to final boundary falls back to its summary",
+      "focused": "#workflow-step-one-summary",
+      "status": "PASS"
+    },
+    {
+      "label": "delete middle step chooses next summary",
+      "focused": "#workflow-step-one-summary",
+      "status": "PASS"
+    },
+    {
+      "label": "delete last step chooses previous summary",
+      "focused": "#workflow-step-two-summary",
+      "status": "PASS"
+    },
+    {
+      "label": "delete final step returns to bottom composer",
+      "focused": "#workflow-ai-request",
+      "status": "PASS"
+    }
+  ],
+  "status": "PASS",
+  "workflowSourceSha256": "330ee20b25718b5629bf8b35a2775e006239f77d1f3fc00f47029e29b9a9833d",
+  "browser": "155.0.8059.39",
+  "isolatedProfile": "Playwright-managed temporary profile",
+  "keys": [
+    {
+      "key": "Enter",
+      "isTrusted": true
+    },
+    {
+      "key": "Enter",
+      "isTrusted": true
+    },
+    {
+      "key": "Enter",
+      "isTrusted": true
+    },
+    {
+      "key": "Enter",
+      "isTrusted": true
+    },
+    {
+      "key": "Enter",
+      "isTrusted": true
+    }
+  ],
+  "pageErrors": [],
+  "ownedBrowserClosed": true
+}

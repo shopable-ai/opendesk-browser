@@ -1,0 +1,83 @@
+{
+  "generatedAt": "2026-10-22T01:41:32.939913+00:00",
+  "branch": "main",
+  "head": "4d891b2d784e6113bbdf7acae57ee9bcf2eba86c",
+  "coreBaseline": "a36689ac0ecad72ad378144ad39812a72d31ef62",
+  "coreDiff": [],
+  "coreFiles": [
+    {
+      "path": "src/ui/conversation/bookmark-agent-loop.js",
+      "sha256": "86e46fcee67fc1dc5b320aadf0c1067b3706de5d09f37fabfc621a097f3d8a30"
+    },
+    {
+      "path": "src/ui/conversation/bookmark-actions.js",
+      "sha256": "eff741f05a18ac0360d15fdf9609b2f968c9bc00951a61c2251b689c435c7212"
+    },
+    {
+      "path": "src/ui/workflow/workflow-view.js",
+      "sha256": "bea10d05bfa94275f4b670254e09233a8c523fb012d69fdadf89a7eef8488dc6"
+    },
+    {
+      "path": "src/ui/workflow/provider.js",
+      "sha256": "c9f76bd578ab316fe8bfa19d80e6c1e25bfdd6f17e8ac032b1e1872da64d37d3"
+    },
+    {
+      "path": "src/ui/workflow/ai-plan.js",
+      "sha256": "25a9bdcfaaff2e302caec1934e15e8a9ebe31e420e0129bda81be6866be058b2"
+    },
+    {
+      "path": "examples/sidebar-tools/bookmark-manager/src/react/App.jsx",
+      "sha256": "8c607b6ba3f1bc81581daa8f58d16a0b92f9aa82ad9ccfe0a3b9d7b7f2d785de"
+    },
+    {
+      "path": "examples/sidebar-tools/bookmark-manager/src/service.js",
+      "sha256": "641db4700757110cca0a4fce607f2e68df4cb1c1d8fb975197b8100b90189dc4"
+    },
+    {
+      "path": "src/ui/react/components/conversation.tsx",
+      "sha256": "8e21f761f0a9aae8de7c1036bcade40bd112f1484db0eecd93827029864a4873"
+    },
+    {
+      "path": "src/ui/react/components/conversation-dock.css",
+      "sha256": "36b3efd013cf692240eb0a1d2a8bad5ca759f6a2fea82410af16b67420d95fde"
+    }
+  ],
+  "thisTurnFiles": [
+    {
+      "path": "src/ui/react/tabs/workflow.tsx",
+      "sha256": "330ee20b25718b5629bf8b35a2775e006239f77d1f3fc00f47029e29b9a9833d"
+    },
+    {
+      "path": "tests/environment/workflow-focus.test.mjs",
+      "sha256": "c810b86461611468de3909f8e7a01d969d446acc93ff7fcd48fb2325b3fcf84c"
+    },
+    {
+      "path": "tests/environment/workflow-ui-states.test.mjs",
+      "sha256": "c71ea5d2a4f30f2a564dc102fa485e5dc141309c90fb08d2757a0cdc81355088"
+    },
+    {
+      "path": "scripts/tests/workflow-fixtures-browser.mjs",
+      "sha256": "877a98ca1e39e6d8abcd3150266d87b1a8bf45239dff9cf3a86ea7b062d68feb"
+    },
+    {
+      "path": "scripts/tests/react-sidebar-r3331-browser.mjs",
+      "sha256": "500a23b1ab2b0aa72f5aa80b62ed446e9dff7283a97e5a90d70baa68ad57b2cb"
+    }
+  ],
+  "sourceFixCommits": [
+    "8875350d1b13e1dceab196301be2886d37091699",
+    "4d1f4e35d325fd83de676cd87ca3122955ef8d35",
+    "f592cad4166bff8ef0466bb3a7030144fe9b1c3d"
+  ],
+  "candidateBoundary": "Core bytes unchanged; the complete current React build has not been installed and reaccepted with a live Provider on Mac in this follow-up.",
+  "latestMainObservedAtDelivery": "4d891b2d784e6113bbdf7acae57ee9bcf2eba86c",
+  "parallelCommitsAfterSourceFix": [
+    "4d891b2d7 Keep native editing evidence separate from the catalog shell"
+  ],
+  "parallelFilesAfterSourceFix": [
+    ".github/workflows/developer-r362.yml",
+    "scripts/tests/react-sidebar-r352-installed-chrome.mjs"
+  ],
+  "coreDiffAtDelivery": [],
+  "fiveTestedFixFilesStillMatch": true
+}

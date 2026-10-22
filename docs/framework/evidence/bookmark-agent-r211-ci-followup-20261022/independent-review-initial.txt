@@ -1,0 +1,37 @@
+**结论：真实 Native 核心闭环通过；正式验收仍不能最终 PASS，七项未全部达到 95。**
+
+1. **三次改动复核：未发现确凿新增缺陷、越界或实质削弱断言。**
+
+   - `8875350d1`：焦点修复限定于原 React 页面；测试改为真实挂载组件及 VM Controller。新增“规划不得启动 RunHost”等断言；焦点转向执行确认符合现有审阅流程。组件注入的 `isTrusted` 不是真实 Chrome 手势证据。
+   - `4d1f4e35d`：等待所属 Chrome 子进程关闭后清理临时 Profile，超时仅处理该 PID；没有扩大清理范围。
+   - `f592cad41`：当前版本区确为 `section`，修正过时的 `summary/open` 操作合理；仍实际点击 Save，并断言 Run/Save/Stop 各调用一次。
+
+2. **证据分层**
+
+   - 原句真实操作：一次 Send、两次模型决策、两次创建；Chrome 树确认目录 `46`、书签 `47`。
+   - 新复用案例：一次决策、零动作、零创建，前后树一致；证明直接完成分支，不能替代动作级幂等复验。
+   - 日志显示定向检查 **147/147**、VM **56/56**；overlay 三个源码哈希一致。
+   - CFT155 **23 checks PASS** 属于 `SOURCE_UI_SIMULATION_CHROMIUM`；焦点浏览器记录也是 Fixture 服务，不能算真实安装或 Provider PASS。
+   - 新 prod/verify-package 按提供状态通过；旧 R32 cap 失败仍保留，未放宽；最新共享源码 CI 尚待结果。
+
+3. **独立专家评分（判断分，非机器保证）**
+
+| 维度 | 分数 | 证据与扣分原因 |
+|---|---:|---|
+| 功能 | 95 | 真实创建与独立树读回成立；复杂意图及完整场景覆盖有限。 |
+| 架构简洁 | 90 | 沿用现有 SDK/Host/Authority；恢复策略仍跨调用方与 Loop。 |
+| Agent 连续 | 93 | 真实多轮及历史 NOT_FOUND 续轮成立；新候选未完整重验动作复用分支。 |
+| 恢复 | 91 | 旧 T8 丢确认后 UNKNOWN、不重放成立；T7 真实瞬断及完整 T10 未证。 |
+| 安全 | 93 | 有真实 Stop、撤权证据；T9 实际切换、Native 取消终态与晚到丢弃未证。 |
+| UX／可访问 | 93 | 草稿、键盘、滚动及 AX 证据成立；侧栏最窄实际 360，320 与 200% 的工具 Tab 证据不能替代侧栏。 |
+| 真实证据 | 90 | 核心 Native/Chrome 证据扎实；live HTTPS/Responses、同候选完整矩阵和最新共享 CI 未闭合。 |
+
+不因实体触屏、朗读专项未测扣分；CDP 触屏仅记模拟。
+
+4. **最多三项下一步**
+
+   1. 配置 live HTTPS/Responses，补真实调用与 T7 瞬断恢复。
+   2. 补 T9 实际 Provider／实例切换终止、取消终态和晚到结果，以及 T10 剩余生命周期。
+   3. 收齐共享源码 CI，更新[唯一验收记录](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-agent-r211-followup-20261022/acceptance.json)，保留 T12 场景边界及旧 cap 失败归属。
+
+本次仅独立单人只读复核；双子审查通道不可用，不宣称双通道批准。未编辑、提交、运行测试／构建／浏览器／网络或操作服务。

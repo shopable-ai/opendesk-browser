@@ -1,0 +1,14 @@
+[
+  {
+    "path": "src/ui/react/tabs/workflow.tsx",
+    "sha256": "330ee20b25718b5629bf8b35a2775e006239f77d1f3fc00f47029e29b9a9833d"
+  },
+  {
+    "path": "tests/environment/workflow-focus.test.mjs",
+    "sha256": "c810b86461611468de3909f8e7a01d969d446acc93ff7fcd48fb2325b3fcf84c"
+  },
+  {
+    "path": "tests/environment/workflow-ui-states.test.mjs",
+    "sha256": "c71ea5d2a4f30f2a564dc102fa485e5dc141309c90fb08d2757a0cdc81355088"
+  }
+]

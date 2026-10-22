@@ -1,0 +1,40 @@
+{
+  "rule": "Only trailing whitespace and excess final blank lines normalized for git diff --check. Content, timestamps, assertions and outcomes retained. API logs remain retrievable by saved job IDs.",
+  "files": [
+    {
+      "path": "ci-bookmark-r32-build.log",
+      "originalBytes": 256484,
+      "originalSha256": "305429f98700bc0bad81212efd845326e15288918f8c242ef2b8c6ac6f7b64cc",
+      "normalizedBytes": 256216,
+      "normalizedSha256": "fa5d02c2dc94506645b70ac624ce51b246f51062a8cf6ae11e186af7510778d3"
+    },
+    {
+      "path": "ci-current-source-preview.log",
+      "originalBytes": 90333,
+      "originalSha256": "818c81aacd5bf0eb2ee499f6be5d07012bb39bd19046a683b15f9663bb11dd15",
+      "normalizedBytes": 90309,
+      "normalizedSha256": "b543a02406f9e95155f9bf4e2816325b240a1109f9adfb7861706d42ca27f8d5"
+    },
+    {
+      "path": "ci-profile-cleanup-red.log",
+      "originalBytes": 50007,
+      "originalSha256": "ba5bbf3a834e74a0c9215805e402bc0c1ac18d13237359f93e168a6596740d6e",
+      "normalizedBytes": 50003,
+      "normalizedSha256": "d92e681e5e8d434665528e43bc6eb63703711102f05eaf96b0b59ed612f23549"
+    },
+    {
+      "path": "ci-selector-red.log",
+      "originalBytes": 92559,
+      "originalSha256": "7784de54e9e8587d6ff0e82cb615a4609e37cd684927f9bb4d14c80e566daae9",
+      "normalizedBytes": 92533,
+      "normalizedSha256": "38c5bcf824db439419a28ac5aeb1e39c932639a2a7d69ca39f1db59f7b928cd0"
+    },
+    {
+      "path": "ci-workflow-direct.log",
+      "originalBytes": 142310,
+      "originalSha256": "d473be394c0ba10aea3489b8e5ff83bcf5889644fc3b3a53317cbfdc3af65a83",
+      "normalizedBytes": 142020,
+      "normalizedSha256": "7b9c318899bf9da257531f8e31e7fd320eb2989b156c8f20d6066cc85274fe35"
+    }
+  ]
+}

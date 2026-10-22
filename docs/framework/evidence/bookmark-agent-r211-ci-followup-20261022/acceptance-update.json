@@ -1,0 +1,340 @@
+{
+  "schemaVersion": 1,
+  "goal": "Bookmark AI Agent Loop R2.1.1-LOCAL-REAL-ACCEPTANCE",
+  "generatedAt": "2026-10-22T01:41:32.939913+00:00",
+  "decision": "CORE_REAL_NATIVE_PASS__WORKFLOW_UI_CI_REPAIRED__FORMAL_ACCEPTANCE_INCOMPLETE__NO_FINAL_PASS",
+  "goalStatus": "active; not complete, paused or blocked",
+  "priorEvidence": "../bookmark-agent-r211-followup-20261022/acceptance.json",
+  "result": "原始一次可信 Send → 两次真实模型决策 → 两次 SDK/Chrome 确认创建 → 独立读回已通过。再次发送同一指令复用目录与URL，零新增写入。本轮九个核心业务文件未变；修复工作流UI焦点及CI驱动问题，完整正式验收仍未通过。",
+  "originalFiveTasks": {
+    "P0.1": "真实 NOT_FOUND 后在同一可信 Send 下跨三次模型决策继续，非 executeBookmarkPlan 返回即结束；保留先前真实证据。",
+    "P0.2": "真实目录/URL复用、歧义询问、UNKNOWN停止已有定向证据。新候选并非所有分支都重新实测。",
+    "P0.3": "原始目标验证、独立Chrome读回、拒绝弱化完成条件已实现并测试。",
+    "P0.4": "PARTIAL：Stop、书签撤权、特定写入/ACK中断有真实证据；实际Provider/实例切换终止、Native终态取消及完整超时/更新矩阵未验证。",
+    "P0.5": "PARTIAL：Native真实单请求闭环已证实；live HTTPS/Responses及全部最终候选验收未完成。"
+  },
+  "fixes": [
+    {
+      "commit": "8875350d1b13e1dceab196301be2886d37091699",
+      "files": [
+        "src/ui/react/tabs/workflow.tsx",
+        "tests/environment/workflow-focus.test.mjs",
+        "tests/environment/workflow-ui-states.test.mjs"
+      ],
+      "rootCause": "React重排或删除后聚焦按钮变成disabled/脱离DOM；旧VM夹具仍依赖退休静态UI。",
+      "behavior": "按当前步骤身份和索引恢复到可用控件/摘要/输入；避免抢回主动blur的焦点；测试改为既有linkedom中挂载真实React与Controller，保留安全及编译执行断言。"
+    },
+    {
+      "commit": "4d1f4e35d325fd83de676cd87ca3122955ef8d35",
+      "files": [
+        "scripts/tests/workflow-fixtures-browser.mjs"
+      ],
+      "rootCause": "SIGTERM后Chrome仍写临时Profile，rm发生ENOTEMPTY。",
+      "behavior": "等待本测试子进程退出；5秒后仅对仍存活的同一子进程升级退出；有界删除重试。未删除产品场景。"
+    },
+    {
+      "commit": "f592cad4166bff8ef0466bb3a7030144fe9b1c3d",
+      "files": [
+        "scripts/tests/react-sidebar-r3331-browser.mjs"
+      ],
+      "rootCause": "Controller版本区已为section，驱动仍点击不存在的内层summary。",
+      "behavior": "等待当前分区可见，保留真实Run/Save/Stop点击与各一次可信回执。产品源码不为旧驱动改回折叠。"
+    }
+  ],
+  "verification": {
+    "node": "24.16.0, pinned /Users/shopme/.nvm/versions/node/v24.16.0/bin/node",
+    "priorBusiness": {
+      "result": "326/326 PASS reused with unchanged business source, R21 subset57",
+      "log": "../bookmark-agent-r211-followup-20261022/followup-regression.log"
+    },
+    "workflowCi": {
+      "command": "node --test tests/environment/workflow-direct-execution.test.mjs tests/environment/workflow-local-codex.test.mjs tests/environment/workflow-r15.test.mjs tests/environment/workflow-ai-observation.test.mjs tests/environment/workflow-ai-data-sharing.test.mjs tests/environment/workflow-ai-transport.test.mjs tests/environment/workflow-ui-states.test.mjs tests/environment/workflow-focus.test.mjs tests/environment/workflow-provider-facade.test.mjs",
+      "tests": 147,
+      "pass": 147,
+      "fail": 0,
+      "skip": 0,
+      "log": "workflow-final-ci.log",
+      "countBoundary": "Focus child is one parent case; overlapping VM runs must not be added to inflate total."
+    },
+    "reactVm": {
+      "command": "node --experimental-vm-modules --test tests/environment/workflow-focus.test.mjs tests/environment/workflow-ui-states.test.mjs",
+      "tests": 56,
+      "pass": 56,
+      "fail": 0,
+      "skip": 0,
+      "focus": 42,
+      "ui": 14,
+      "log": "workflow-final-vm.log"
+    },
+    "check": {
+      "command": "npm run check",
+      "result": "PASS 1005 files local / 1003 CI",
+      "reasonForCountDifference": "Temporary task .mjs files included locally; no guard relaxed.",
+      "log": "source-check.log"
+    },
+    "focusChromium": {
+      "command": "node artifacts/bookmark-agent-r211-next/workflow-focus-browser.mjs",
+      "checks": 5,
+      "pass": 5,
+      "browser": "Mac CFT155.0.8059.39 headless, real mounted React DOM",
+      "events": "5 browser-trusted Enter events",
+      "providerCalls": 0,
+      "nativeVerified": false,
+      "evidence": [
+        "workflow-focus-browser.json",
+        "workflow-focus-browser.mjs",
+        "workflow-focus-browser.png"
+      ],
+      "boundary": "SOURCE_UI_SIMULATION_CHROMIUM, not installed extension, real SDK or live model."
+    },
+    "sharedChromium": {
+      "command": "node scripts/tests/react-sidebar-r3331-browser.mjs",
+      "result": "23 checks PASS",
+      "browser": "Mac CFT155.0.8059.39 headless source UI fixture",
+      "receipts": [
+        "run:true",
+        "save:true",
+        "stop:true"
+      ],
+      "nativeVerified": false,
+      "log": "shared-source-chromium-selector.log"
+    },
+    "priorIntegrity": {
+      "result": "83/83 files hash+size PASS",
+      "boundary": "Integrity proof, not product rerun.",
+      "log": "prior-evidence-integrity.json"
+    },
+    "sourceSnapshot": {
+      "base": "3340ee7beac6430cad42b3ac9170c5aa28fb8c93",
+      "size": "about19MB, bounded source copy, existing node_modules symlink",
+      "evidence": [
+        "verification-snapshot.json",
+        "verification-overlay.json"
+      ],
+      "boundary": "No branch/worktree or daily development output change."
+    }
+  },
+  "buildAndCi": {
+    "r21": {
+      "run": 39698306861,
+      "source": "a36689ac0ecad72ad378144ad39812a72d31ef62",
+      "agent-contract": "success",
+      "agent-build": "success",
+      "boundary": "Existing business-slice result; UI/test-only commits do not trigger this path filter."
+    },
+    "workflowDirect": {
+      "run": 39705407561,
+      "source": "8875350d1b13e1dceab196301be2886d37091699",
+      "job": 119584160054,
+      "result": "success",
+      "tests": 147,
+      "check": "PASS",
+      "buildDev": "PASS",
+      "developmentPackageHash": "e78515a0b5ee6de31212f5ea4d7f5d2243e6f09487ad2f467d2559431ebd6c4f",
+      "assets": 146,
+      "log": "ci-workflow-direct.log"
+    },
+    "bookmarkR32": {
+      "run": 39705407655,
+      "source": "8875350d1b13e1dceab196301be2886d37091699",
+      "reactChromium": "success",
+      "standaloneReactPackageBudget": "success",
+      "trustedSourceBuild": "FAIL independent existing tool-shell cap, after production build and package verification PASS",
+      "productionPackageHash": "691aa05dc5d894908c98702951f1a5da2274a3da412bb1c64f1ec94fae3b806a",
+      "assets": 106,
+      "toolShellBytes": 1191465,
+      "hardCapBytes": 1081344,
+      "toolShellSha256": "7682e5d0737af6f686e211f00b657ddbeebce60ef6421cef6afca7cf889883f9",
+      "boundary": "Prior candidate already exceeded old1056KiB engineering cap; current excess remains FAIL. Cap not relaxed. This does not prove duplicateReact or a Chrome MV3 hard limit.",
+      "log": "ci-bookmark-r32-build.log"
+    },
+    "cleanupCi": {
+      "run": 39705826681,
+      "source": "4d1f4e35d325fd83de676cd87ca3122955ef8d35",
+      "result": "5 Workflow DOM scenarios and cleanup succeeded, later obsolete Developer selector failed; package regression success",
+      "evidence": [
+        "ci-profile-cleanup-red.log",
+        "ci-selector-red.log",
+        "ci-profile-cleanup-jobs.json"
+      ]
+    },
+    "currentWorkflowCi": {
+      "run": 39706472804,
+      "source": "f592cad4166bff8ef0466bb3a7030144fe9b1c3d",
+      "preview": "success",
+      "focusedController": "success",
+      "packageRegression": "success",
+      "log": "ci-current-source-preview.log",
+      "allThreeJobs": "success"
+    },
+    "formalTool": {
+      "version": "0.3.10",
+      "bytes": 88194,
+      "sha256": "4157bd984596d54c1a0c8a35ec38332d707d041b4ef038f018e8b452459073a4",
+      "result": "Unchanged SOURCE_MATCH; existing formal package retained."
+    },
+    "historicalCommandLedger": "Prior acceptance.json verification has actual npm run build:sidebar-tool / build / verify-package / build:dev / npm run verify command outputs and identities. These are not relabeled current installed-candidate acceptance."
+  },
+  "cases": [
+    {
+      "id": "T1",
+      "status": "PASS_REAL_NEW_CANDIDATE",
+      "currentEvidenceBoundary": "Detailed requests/model+SDK counts/readbacks/UI evidence in prior acceptance.json; no new installed-bookmark/Provider run in this UI follow-up."
+    },
+    {
+      "id": "T2",
+      "status": "PASS_NEW_NATIVE_DIRECT_COMPLETE_AND_PRIOR_ACTION_BRANCH",
+      "currentEvidenceBoundary": "Detailed requests/model+SDK counts/readbacks/UI evidence in prior acceptance.json; no new installed-bookmark/Provider run in this UI follow-up."
+    },
+    {
+      "id": "T3",
+      "status": "PASS_NEW_NATIVE_DIRECT_COMPLETE_AND_PRIOR_ACTION_BRANCH",
+      "currentEvidenceBoundary": "Detailed requests/model+SDK counts/readbacks/UI evidence in prior acceptance.json; no new installed-bookmark/Provider run in this UI follow-up."
+    },
+    {
+      "id": "T4",
+      "status": "PRIOR_REAL_EVIDENCE_CARRIED_FORWARD_NOT_NEW_FULL_RETEST",
+      "currentEvidenceBoundary": "Detailed requests/model+SDK counts/readbacks/UI evidence in prior acceptance.json; no new installed-bookmark/Provider run in this UI follow-up."
+    },
+    {
+      "id": "T5",
+      "status": "PRIOR_REAL_EVIDENCE_CARRIED_FORWARD_NOT_NEW_FULL_RETEST",
+      "currentEvidenceBoundary": "Detailed requests/model+SDK counts/readbacks/UI evidence in prior acceptance.json; no new installed-bookmark/Provider run in this UI follow-up."
+    },
+    {
+      "id": "T6",
+      "status": "PRIOR_REAL_EVIDENCE_CARRIED_FORWARD_NOT_NEW_FULL_RETEST",
+      "currentEvidenceBoundary": "Detailed requests/model+SDK counts/readbacks/UI evidence in prior acceptance.json; no new installed-bookmark/Provider run in this UI follow-up."
+    },
+    {
+      "id": "T7",
+      "status": "FIXTURE_PASS_REAL_TRANSIENT_NOT_TESTED",
+      "currentEvidenceBoundary": "Detailed requests/model+SDK counts/readbacks/UI evidence in prior acceptance.json; no new installed-bookmark/Provider run in this UI follow-up."
+    },
+    {
+      "id": "T8",
+      "status": "PRIOR_REAL_EVIDENCE_CARRIED_FORWARD_NOT_NEW_FULL_RETEST",
+      "currentEvidenceBoundary": "Detailed requests/model+SDK counts/readbacks/UI evidence in prior acceptance.json; no new installed-bookmark/Provider run in this UI follow-up."
+    },
+    {
+      "id": "T9",
+      "status": "PARTIAL_REAL_LIFECYCLE_NO_FULL_PASS",
+      "currentEvidenceBoundary": "Detailed requests/model+SDK counts/readbacks/UI evidence in prior acceptance.json; no new installed-bookmark/Provider run in this UI follow-up."
+    },
+    {
+      "id": "T10",
+      "status": "PARTIAL_OLD_CANDIDATE_WORKER_CLOSE_REOPEN_AND_NO_PROGRESS",
+      "currentEvidenceBoundary": "Detailed requests/model+SDK counts/readbacks/UI evidence in prior acceptance.json; no new installed-bookmark/Provider run in this UI follow-up."
+    },
+    {
+      "id": "T11",
+      "status": "NATIVE_REAL_PASS_HTTPS_RESPONSES_NOT_TESTED",
+      "currentEvidenceBoundary": "Detailed requests/model+SDK counts/readbacks/UI evidence in prior acceptance.json; no new installed-bookmark/Provider run in this UI follow-up."
+    },
+    {
+      "id": "T12",
+      "status": "PARTIAL_REAL_PHYSICAL_SIDE_PANEL",
+      "currentEvidenceBoundary": "Detailed requests/model+SDK counts/readbacks/UI evidence in prior acceptance.json; no new installed-bookmark/Provider run in this UI follow-up."
+    }
+  ],
+  "t12ScopeCorrection": "User requested widths/themes/200% zoom/keyboard/touch/Stop/scroll. Physical touch hardware and audible screen-reader listening are not added mandatory tests. CDP touch remains labeled emulated. Actual SidePanel minimum observed360 and unavailable zoom menu mean tab320/200% proof cannot assert exact SidePanel conditions.",
+  "remaining": [
+    {
+      "status": "NOT_TESTED_REAL_PROVIDER",
+      "item": "Live HTTPS and Responses, including supported transient recovery; no configured live endpoint, fixtures only. No OAuth credentials forwarded to third parties."
+    },
+    {
+      "status": "PARTIAL_REAL_LIFECYCLE",
+      "item": "Actual Provider/instance switch and Native terminal cancellation/late results; full deadline/repeated-plan/update matrix."
+    },
+    {
+      "status": "PARTIAL_UX_CANDIDATE",
+      "item": "Complete current production candidate not installed and reaccepted with live model; SidePanel320/200% not established. Prior installedtab and360/400/440/960SidePanel evidence retained."
+    },
+    {
+      "status": "FAIL_ENGINEERING_BUDGET",
+      "item": "Shared tool-shell old1056KiB cap. Failing guard preserved; no unrelated broad five-tab refactor merely for CI green."
+    },
+    {
+      "status": "NOT_ALL_95",
+      "item": "Independent seven-dimensional assessment must use actual evidence; see independent-review.json."
+    },
+    {
+      "status": "OLD_OWNER_CLEANUP_BLOCKED",
+      "item": "Old bm-r211-155-01a16018 owner missing originalprofile. Official cleanup controls preserved; no direct Native manifest edits."
+    }
+  ],
+  "architecture": {
+    "existing": [
+      "One Provider facade",
+      "SDK/service",
+      "Host",
+      "Authority",
+      "Request-scoped trusted grant",
+      "One src/ui/react root",
+      "Shared Conversation Dock"
+    ],
+    "new": "One focused React ref/effect, tests of actual React, owned process cleanup and current-selector repair. No dependencies, extra platform, API, permissions, registry or permanentSW keepalive."
+  },
+  "parallelWork": {
+    "branch": "main only, ordinary fast-forward push",
+    "preservedCommits": [
+      "3340ee7beac6430cad42b3ac9170c5aa28fb8c93",
+      "4a989482c410a339b6d9628de03df7b51bb834f9"
+    ],
+    "preservedDirty": "Other-owner WXT build receipts and dynamic-app R14 evidence/workstream edits left untouched; recheck status before commit.",
+    "services": "No daily extension reload/replacement, watcher stop, development-output overwrite or Native rebind in this follow-up."
+  },
+  "environmentCorrection": {
+    "incident": "Whole git archive into a newly created task verification-snapshot copied large historical evidence and exhausted disk space.",
+    "recovery": "Only that exact newly created failed snapshot was removed; replaced by bounded19MB source copy. Other source/evidence retained.",
+    "other": "Initial finite snapshot lacked Native contracts; copied18 exact source contracts, then final147-test run passed. These were copy-environment failures, not product failures."
+  },
+  "expertReview": "independent-review.json; independent reviewer reads current commits and prior native artifacts. Earlier scores are historical, not silently upgraded.",
+  "expertScores": [
+    {
+      "dimension": "功能正确性",
+      "score": 95,
+      "evidence": "真实单Send创建及独立Chrome树读回成立",
+      "deduction": "复杂意图及完整场景覆盖有限"
+    },
+    {
+      "dimension": "架构简洁性",
+      "score": 90,
+      "evidence": "沿用单一SDK/Host/Authority",
+      "deduction": "恢复策略仍跨调用方与Loop"
+    },
+    {
+      "dimension": "Agent连续性",
+      "score": 93,
+      "evidence": "真实多轮及NOT_FOUND续轮成立",
+      "deduction": "新候选未完整重验动作复用分支"
+    },
+    {
+      "dimension": "异常恢复",
+      "score": 91,
+      "evidence": "特定真实写入丢确认后UNKNOWN且不重放",
+      "deduction": "T7真实瞬断及完整T10未证"
+    },
+    {
+      "dimension": "权限与数据安全",
+      "score": 93,
+      "evidence": "真实Stop及书签撤权证据",
+      "deduction": "T9实际切换、Native取消终态与晚到丢弃未证"
+    },
+    {
+      "dimension": "UX与可访问性",
+      "score": 93,
+      "evidence": "草稿、键盘焦点、滚动及AX证据",
+      "deduction": "侧栏实际最窄360；工具Tab320/200%不能代替侧栏"
+    },
+    {
+      "dimension": "真实测试证据",
+      "score": 90,
+      "evidence": "核心Native/Chrome及最新共享UI CI三Job成功",
+      "deduction": "live HTTPS/Responses、同候选完整真实安装与生命周期矩阵尚未闭合"
+    }
+  ],
+  "allExpertScoresAtLeast95": false,
+  "latestMainObservedAtDelivery": "4d891b2d784e6113bbdf7acae57ee9bcf2eba86c"
+}

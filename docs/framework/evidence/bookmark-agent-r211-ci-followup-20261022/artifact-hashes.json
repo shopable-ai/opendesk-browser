@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "scope": "All files except this manifest; normalized log format documented in log-normalization.json",
+  "files": [
+    {
+      "path": "acceptance-update.json",
+      "bytes": 16715,
+      "sha256": "70a0cb0656e33137bc404c583f207c64bf48823cb3bdb8dd135b538b40d7a4fe"
+    },
+    {
+      "path": "baseline.json",
+      "bytes": 2073,
+      "sha256": "a11dd3e0f5804310a8ba62dbf81701ff3155190931f8c2c503a1aba6bd0b112c"
+    },
+    {
+      "path": "ci-bookmark-r32-build.log",
+      "bytes": 256216,
+      "sha256": "fa5d02c2dc94506645b70ac624ce51b246f51062a8cf6ae11e186af7510778d3"
+    },
+    {
+      "path": "ci-bookmark-r32-jobs.json",
+      "bytes": 7239,
+      "sha256": "6ce8b398e3d3f8d29127b1daef832728b2b6dae8aefcc5acff1e6acf94982bfa"
+    },
+    {
+      "path": "ci-current-source-jobs.json",
+      "bytes": 7324,
+      "sha256": "b802e60ba474b3cbc06e89e2640039a02e9ae68ca0930dfbb2268e84bb086427"
+    },
+    {
+      "path": "ci-current-source-preview.log",
+      "bytes": 90309,
+      "sha256": "b543a02406f9e95155f9bf4e2816325b240a1109f9adfb7861706d42ca27f8d5"
+    },
+    {
+      "path": "ci-profile-cleanup-jobs.json",
+      "bytes": 5856,
+      "sha256": "e886d3073319dc175a443b350b0985bef7f9ea0cdc742d51fa882aeb976122d5"
+    },
+    {
+      "path": "ci-profile-cleanup-red.log",
+      "bytes": 50003,
+      "sha256": "d92e681e5e8d434665528e43bc6eb63703711102f05eaf96b0b59ed612f23549"
+    },
+    {
+      "path": "ci-selector-red.log",
+      "bytes": 92533,
+      "sha256": "38c5bcf824db439419a28ac5aeb1e39c932639a2a7d69ca39f1db59f7b928cd0"
+    },
+    {
+      "path": "ci-workflow-direct-jobs.json",
+      "bytes": 2583,
+      "sha256": "6f12e0a1e7f51b2dbc2f30beb014888250a0f805f15f3b1294657ed5231c88fc"
+    },
+    {
+      "path": "ci-workflow-direct.log",
+      "bytes": 142020,
+      "sha256": "7b9c318899bf9da257531f8e31e7fd320eb2989b156c8f20d6066cc85274fe35"
+    },
+    {
+      "path": "git-pre-evidence-commit.json",
+      "bytes": 920,
+      "sha256": "1a3160e98a4d86b3baf30ffb86f700541b5e8e552c6a80e0ce45419d2f0abee0"
+    },
+    {
+      "path": "independent-review-initial.txt",
+      "bytes": 3097,
+      "sha256": "f232f94dfd8e5e30d7575d4b3001accb09f158dff4dfb8014344054c19a41a2e"
+    },
+    {
+      "path": "independent-review.json",
+      "bytes": 3396,
+      "sha256": "573b023adb7993e23ec7572ff185f2ccb0c6d3e1842702d34f0a13da2bbba710"
+    },
+    {
+      "path": "log-normalization.json",
+      "bytes": 1736,
+      "sha256": "d8cfbc68078359bf981d0811a422f361237210c253d910eb38dbec954a377a8b"
+    },
+    {
+      "path": "prior-evidence-integrity.json",
+      "bytes": 299,
+      "sha256": "e06826ff21749130ced83d0238fa552fc3813df7d48127b4efa9b839d0a6e32c"
+    },
+    {
+      "path": "shared-source-chromium-selector.log",
+      "bytes": 1643,
+      "sha256": "66d71cb8d4898f66f42eaca22bc0288760226c2cfe73619640dea5320a86c44e"
+    },
+    {
+      "path": "source-check.log",
+      "bytes": 209,
+      "sha256": "697e58a5407bbd77c9520a2e68cd176945fb61e67e18a901c7eb4e9c06c005d0"
+    },
+    {
+      "path": "source-fixes.json",
+      "bytes": 39439,
+      "sha256": "ee4a597199388db61bda900c250aee11ef21302ec67cd438b579f4eaab4d3dc1"
+    },
+    {
+      "path": "source-state.json",
+      "bytes": 3165,
+      "sha256": "710b09ef5fde2db7c45be5f934be590e416717d35c2ce6524d7b083bc326d87b"
+    },
+    {
+      "path": "verification-overlay.json",
+      "bytes": 437,
+      "sha256": "609873993f643b79e827abdf002b8989a9ab3b620b4b32fe270a9a59f8f4d86e"
+    },
+    {
+      "path": "verification-snapshot.json",
+      "bytes": 1615,
+      "sha256": "4746f992b9c017f752356aade747b415e13574b2ba705cc69fbc404cac3884a8"
+    },
+    {
+      "path": "workflow-final-ci.log",
+      "bytes": 13936,
+      "sha256": "990c7f051ea087293f2875192b02e4d8926d75a22b2177d31e838bb94415e642"
+    },
+    {
+      "path": "workflow-final-vm.log",
+      "bytes": 5719,
+      "sha256": "8e4253e64c80091be414b4517febc03de2968baab46b36df89837838f78e2dbe"
+    },
+    {
+      "path": "workflow-focus-browser.json",
+      "bytes": 1480,
+      "sha256": "5d3dfb7cd55df1328b628ce25df2ec13391e9186e2070a333e05173e1d3813c5"
+    },
+    {
+      "path": "workflow-focus-browser.log",
+      "bytes": 4868,
+      "sha256": "ab76368ff9166cb66a98980acd3f6fdf161743627f3458e02c707b553ffb383a"
+    },
+    {
+      "path": "workflow-focus-browser.mjs",
+      "bytes": 5732,
+      "sha256": "80a6f6535e7aea1943fdb529b7905439cdde80cd1e1c045e8fa0abf86a71df28"
+    },
+    {
+      "path": "workflow-focus-browser.png",
+      "bytes": 45023,
+      "sha256": "4de64fd1e763c38e0366f303e616ab86c440391fa2fea5810c50a6f15ecd45b3"
+    }
+  ]
+}

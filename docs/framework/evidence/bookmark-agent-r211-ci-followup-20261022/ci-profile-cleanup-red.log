@@ -1,0 +1,700 @@
+﻿2026-10-22T01:23:37.0066647Z Current runner version: '2.338.0'
+2026-10-22T01:23:37.0085190Z ##[group]Runner Image Provisioner
+2026-10-22T01:23:37.0085865Z Hosted Compute Agent
+2026-10-22T01:23:37.0086204Z Version: 20261012.601
+2026-10-22T01:23:37.0086590Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+2026-10-22T01:23:37.0087052Z Build Date: 2026-10-12T17:48:21Z
+2026-10-22T01:23:37.0087470Z Worker ID: {f032c2aa-467a-4964-a182-3446a56f018d}
+2026-10-22T01:23:37.0088311Z Region: southcentralus
+2026-10-22T01:23:37.0088645Z Cloud: Azure
+2026-10-22T01:23:37.0088977Z ##[endgroup]
+2026-10-22T01:23:37.0089974Z ##[group]Operating System
+2026-10-22T01:23:37.0090325Z Ubuntu
+2026-10-22T01:23:37.0090650Z 26.04.1
+2026-10-22T01:23:37.0090959Z LTS
+2026-10-22T01:23:37.0091301Z ##[endgroup]
+2026-10-22T01:23:37.0091649Z ##[group]Runner Image
+2026-10-22T01:23:37.0092010Z Image: ubuntu-26.04
+2026-10-22T01:23:37.0092433Z Version: 20261012.163.1
+2026-10-22T01:23:37.0093218Z Included Software: https://github.com/actions/runner-images/blob/ubuntu26/20261012.163/images/ubuntu/Ubuntu2604-Readme.md
+2026-10-22T01:23:37.0094108Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu26%2F20261012.163
+2026-10-22T01:23:37.0094638Z ##[endgroup]
+2026-10-22T01:23:37.0095286Z ##[group]GITHUB_TOKEN Permissions
+2026-10-22T01:23:37.0096644Z Contents: write
+2026-10-22T01:23:37.0097011Z Metadata: read
+2026-10-22T01:23:37.0097346Z ##[endgroup]
+2026-10-22T01:23:37.0098927Z Secret source: Actions
+2026-10-22T01:23:37.0099556Z Cache mode: write
+2026-10-22T01:23:37.0099983Z Prepare workflow directory
+2026-10-22T01:23:37.0298122Z Prepare all required actions
+2026-10-22T01:23:37.0328531Z Getting action download info
+2026-10-22T01:23:37.2536295Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-10-22T01:23:37.3245672Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-10-22T01:23:37.4044436Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-10-22T01:23:37.5682567Z Complete job name: workflow-react-preview
+2026-10-22T01:23:37.6207007Z ##[group]Run actions/checkout@v4
+2026-10-22T01:23:37.6207414Z with:
+2026-10-22T01:23:37.6207858Z   repository: shopable-ai/opendesk-browser
+2026-10-22T01:23:37.6209861Z   token: ***
+2026-10-22T01:23:37.6210084Z   ssh-strict: true
+2026-10-22T01:23:37.6210319Z   ssh-user: git
+2026-10-22T01:23:37.6210558Z   persist-credentials: true
+2026-10-22T01:23:37.6210817Z   clean: true
+2026-10-22T01:23:37.6211056Z   sparse-checkout-cone-mode: true
+2026-10-22T01:23:37.6211332Z   fetch-depth: 1
+2026-10-22T01:23:37.6211562Z   fetch-tags: false
+2026-10-22T01:23:37.6211800Z   show-progress: true
+2026-10-22T01:23:37.6212038Z   lfs: false
+2026-10-22T01:23:37.6212262Z   submodules: false
+2026-10-22T01:23:37.6212500Z   set-safe-directory: true
+2026-10-22T01:23:37.6212768Z   allow-unsafe-pr-checkout: false
+2026-10-22T01:23:37.6213116Z ##[endgroup]
+2026-10-22T01:23:37.6885158Z Syncing repository: shopable-ai/opendesk-browser
+2026-10-22T01:23:37.6886617Z ##[group]Getting Git version info
+2026-10-22T01:23:37.6887310Z Working directory is '/home/runner/work/opendesk-browser/opendesk-browser'
+2026-10-22T01:23:37.6888345Z [command]/usr/bin/git version
+2026-10-22T01:23:37.6890596Z git version 2.55.0
+2026-10-22T01:23:37.6902702Z ##[endgroup]
+2026-10-22T01:23:37.6913541Z Temporarily overriding HOME='/home/runner/work/_temp/24c0a6df-8cfa-41a8-9df5-174293fe4ec0' before making global git config changes
+2026-10-22T01:23:37.6914719Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-22T01:23:37.6916703Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/opendesk-browser/opendesk-browser
+2026-10-22T01:23:37.6962121Z Deleting the contents of '/home/runner/work/opendesk-browser/opendesk-browser'
+2026-10-22T01:23:37.6964426Z ##[group]Initializing the repository
+2026-10-22T01:23:37.6967291Z [command]/usr/bin/git init /home/runner/work/opendesk-browser/opendesk-browser
+2026-10-22T01:23:37.7045439Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-22T01:23:37.7046499Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-22T01:23:37.7047447Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-22T01:23:37.7048911Z hint: call:
+2026-10-22T01:23:37.7049471Z hint:
+2026-10-22T01:23:37.7050064Z hint: 	git config --global init.defaultBranch <name>
+2026-10-22T01:23:37.7050711Z hint:
+2026-10-22T01:23:37.7051321Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-22T01:23:37.7052218Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-22T01:23:37.7053006Z hint:
+2026-10-22T01:23:37.7053499Z hint: 	git branch -m <name>
+2026-10-22T01:23:37.7054038Z hint:
+2026-10-22T01:23:37.7054693Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-22T01:23:37.7055896Z Initialized empty Git repository in /home/runner/work/opendesk-browser/opendesk-browser/.git/
+2026-10-22T01:23:37.7058001Z [command]/usr/bin/git remote add origin https://github.com/shopable-ai/opendesk-browser
+2026-10-22T01:23:37.7098118Z ##[endgroup]
+2026-10-22T01:23:37.7098793Z ##[group]Disabling automatic garbage collection
+2026-10-22T01:23:37.7101881Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-22T01:23:37.7135219Z ##[endgroup]
+2026-10-22T01:23:37.7136026Z ##[group]Setting up auth
+2026-10-22T01:23:37.7142166Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-22T01:23:37.7174233Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-22T01:23:37.7510661Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-22T01:23:37.7538589Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-22T01:23:37.7747873Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-22T01:23:37.7773978Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-22T01:23:37.7982967Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-22T01:23:37.8014436Z ##[endgroup]
+2026-10-22T01:23:37.8015011Z ##[group]Fetching the repository
+2026-10-22T01:23:37.8020504Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +8875350d1b13e1dceab196301be2886d37091699:refs/remotes/origin/main
+2026-10-22T01:23:43.1205870Z From https://github.com/shopable-ai/opendesk-browser
+2026-10-22T01:23:43.1207388Z  * [new ref]           8875350d1b13e1dceab196301be2886d37091699 -> origin/main
+2026-10-22T01:23:43.1210860Z ##[endgroup]
+2026-10-22T01:23:43.1211726Z ##[group]Determining the checkout info
+2026-10-22T01:23:43.1212686Z ##[endgroup]
+2026-10-22T01:23:43.1214340Z [command]/usr/bin/git sparse-checkout disable
+2026-10-22T01:23:43.1258231Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-22T01:23:43.1282884Z ##[group]Checking out the ref
+2026-10-22T01:23:43.1285572Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-10-22T01:23:44.1474183Z Updating files:  50% (12630/24949)
+2026-10-22T01:23:44.1618540Z Updating files:  51% (12724/24949)
+2026-10-22T01:23:44.1690643Z Updating files:  52% (12974/24949)
+2026-10-22T01:23:44.1843643Z Updating files:  53% (13223/24949)
+2026-10-22T01:23:44.1961895Z Updating files:  54% (13473/24949)
+2026-10-22T01:23:44.2058941Z Updating files:  55% (13722/24949)
+2026-10-22T01:23:44.2197363Z Updating files:  56% (13972/24949)
+2026-10-22T01:23:44.2281371Z Updating files:  57% (14221/24949)
+2026-10-22T01:23:44.2425160Z Updating files:  58% (14471/24949)
+2026-10-22T01:23:44.2505443Z Updating files:  59% (14720/24949)
+2026-10-22T01:23:44.2649726Z Updating files:  60% (14970/24949)
+2026-10-22T01:23:44.2889901Z Updating files:  61% (15219/24949)
+2026-10-22T01:23:44.3288135Z Updating files:  62% (15469/24949)
+2026-10-22T01:23:44.3693758Z Updating files:  63% (15718/24949)
+2026-10-22T01:23:44.4167836Z Updating files:  64% (15968/24949)
+2026-10-22T01:23:44.4352714Z Updating files:  65% (16217/24949)
+2026-10-22T01:23:44.4728000Z Updating files:  66% (16467/24949)
+2026-10-22T01:23:44.5255399Z Updating files:  67% (16716/24949)
+2026-10-22T01:23:44.5532038Z Updating files:  68% (16966/24949)
+2026-10-22T01:23:44.5727941Z Updating files:  69% (17215/24949)
+2026-10-22T01:23:44.6008115Z Updating files:  70% (17465/24949)
+2026-10-22T01:23:44.6290100Z Updating files:  71% (17714/24949)
+2026-10-22T01:23:44.6653099Z Updating files:  72% (17964/24949)
+2026-10-22T01:23:44.6888163Z Updating files:  73% (18213/24949)
+2026-10-22T01:23:44.7240788Z Updating files:  74% (18463/24949)
+2026-10-22T01:23:44.7376877Z Updating files:  75% (18712/24949)
+2026-10-22T01:23:44.7595334Z Updating files:  76% (18962/24949)
+2026-10-22T01:23:44.7936192Z Updating files:  77% (19211/24949)
+2026-10-22T01:23:44.8391779Z Updating files:  78% (19461/24949)
+2026-10-22T01:23:44.8640259Z Updating files:  79% (19710/24949)
+2026-10-22T01:23:44.8807119Z Updating files:  80% (19960/24949)
+2026-10-22T01:23:44.8955233Z Updating files:  81% (20209/24949)
+2026-10-22T01:23:44.9343894Z Updating files:  82% (20459/24949)
+2026-10-22T01:23:44.9723915Z Updating files:  83% (20708/24949)
+2026-10-22T01:23:45.0150856Z Updating files:  84% (20958/24949)
+2026-10-22T01:23:45.0443049Z Updating files:  85% (21207/24949)
+2026-10-22T01:23:45.1055292Z Updating files:  86% (21457/24949)
+2026-10-22T01:23:45.1168764Z Updating files:  87% (21706/24949)
+2026-10-22T01:23:45.1295050Z Updating files:  88% (21956/24949)
+2026-10-22T01:23:45.1451638Z Updating files:  89% (22205/24949)
+2026-10-22T01:23:45.1502776Z Updating files:  89% (22384/24949)
+2026-10-22T01:23:45.1784214Z Updating files:  90% (22455/24949)
+2026-10-22T01:23:45.1911775Z Updating files:  91% (22704/24949)
+2026-10-22T01:23:45.2203916Z Updating files:  92% (22954/24949)
+2026-10-22T01:23:45.2335966Z Updating files:  93% (23203/24949)
+2026-10-22T01:23:45.2478040Z Updating files:  94% (23453/24949)
+2026-10-22T01:23:45.2650055Z Updating files:  95% (23702/24949)
+2026-10-22T01:23:45.3014174Z Updating files:  96% (23952/24949)
+2026-10-22T01:23:45.3882094Z Updating files:  97% (24201/24949)
+2026-10-22T01:23:45.4792800Z Updating files:  98% (24451/24949)
+2026-10-22T01:23:45.5570321Z Updating files:  99% (24700/24949)
+2026-10-22T01:23:45.5570697Z Updating files: 100% (24949/24949)
+2026-10-22T01:23:45.5570941Z Updating files: 100% (24949/24949), done.
+2026-10-22T01:23:45.5742643Z Switched to a new branch 'main'
+2026-10-22T01:23:45.5749333Z branch 'main' set up to track 'origin/main'.
+2026-10-22T01:23:45.5882857Z ##[endgroup]
+2026-10-22T01:23:45.5925266Z [command]/usr/bin/git log -1 --format=%H
+2026-10-22T01:23:45.5945554Z 8875350d1b13e1dceab196301be2886d37091699
+2026-10-22T01:23:45.6152162Z ##[group]Run actions/setup-node@v4
+2026-10-22T01:23:45.6152327Z with:
+2026-10-22T01:23:45.6152450Z   node-version: 22
+2026-10-22T01:23:45.6152564Z   cache: npm
+2026-10-22T01:23:45.6152674Z   always-auth: false
+2026-10-22T01:23:45.6152797Z   check-latest: false
+2026-10-22T01:23:45.6154000Z   token: ***
+2026-10-22T01:23:45.6154109Z ##[endgroup]
+2026-10-22T01:23:45.7025583Z Found in cache @ /opt/hostedtoolcache/node/22.23.3/x64
+2026-10-22T01:23:45.7029242Z (node:2184) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-22T01:23:45.7029837Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-22T01:23:45.7031151Z ##[group]Environment details
+2026-10-22T01:23:45.9690321Z node: v22.23.3
+2026-10-22T01:23:45.9690600Z npm: 10.9.9
+2026-10-22T01:23:45.9691067Z yarn: 1.22.22
+2026-10-22T01:23:45.9691860Z ##[endgroup]
+2026-10-22T01:23:45.9750845Z [command]/opt/hostedtoolcache/node/22.23.3/x64/bin/npm config get cache
+2026-10-22T01:23:46.0475614Z /home/runner/.npm
+2026-10-22T01:23:46.2011207Z Cache hit for: node-cache-Linux-x64-npm-466b883e2ea52822b8a2aa794d718ea201773b54608bc045eef49f4c17620257
+2026-10-22T01:23:46.2070974Z (node:2184) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-22T01:23:46.9270010Z Received 37938582 of 37938582 (100.0%), 63.0 MBs/sec
+2026-10-22T01:23:46.9270364Z Cache Size: ~36 MB (37938582 B)
+2026-10-22T01:23:46.9286775Z [command]/usr/bin/tar -xf /home/runner/work/_temp/1df09d39-f5ea-4d96-a183-9426ccbc2e48/cache.tzst -P -C /home/runner/work/opendesk-browser/opendesk-browser --use-compress-program unzstd
+2026-10-22T01:23:47.0929836Z Cache restored successfully
+2026-10-22T01:23:47.0951087Z Cache restored from key: node-cache-Linux-x64-npm-466b883e2ea52822b8a2aa794d718ea201773b54608bc045eef49f4c17620257
+2026-10-22T01:23:47.1116592Z ##[group]Run npm ci --no-audit --no-fund
+2026-10-22T01:23:47.1116818Z [36;1mnpm ci --no-audit --no-fund[0m
+2026-10-22T01:23:47.1250183Z shell: /usr/bin/bash -e {0}
+2026-10-22T01:23:47.1250357Z ##[endgroup]
+2026-10-22T01:23:50.5255360Z
+2026-10-22T01:23:50.5262169Z added 329 packages in 3s
+2026-10-22T01:23:50.5647183Z ##[group]Run node scripts/preview/build-workflow-react-preview.mjs
+2026-10-22T01:23:50.5647499Z [36;1mnode scripts/preview/build-workflow-react-preview.mjs[0m
+2026-10-22T01:23:50.5699945Z shell: /usr/bin/bash -e {0}
+2026-10-22T01:23:50.5700100Z ##[endgroup]
+2026-10-22T01:23:52.6243708Z {"path":"/home/runner/work/opendesk-browser/opendesk-browser/prototypes/sidebar/workflow/react-preview/index.html","inputSha256":"1776c439ac3f5766bb2915bfbdb9a3282d754d36205cc6b1292ee8b2b95db050","bytes":913837,"bundleBytes":565513,"check":false}
+2026-10-22T01:23:52.6843785Z ##[group]Run node scripts/preview/build-workflow-react-preview.mjs --check
+2026-10-22T01:23:52.6844126Z [36;1mnode scripts/preview/build-workflow-react-preview.mjs --check[0m
+2026-10-22T01:23:52.6844446Z [36;1m# Workflow-specific regression; generic React contracts also run in the package job.[0m
+2026-10-22T01:23:52.6844854Z [36;1mnode --test tests/environment/workflow-react-preview-contract.test.mjs tests/environment/workflow-ui-states.test.mjs[0m
+2026-10-22T01:23:52.6894021Z shell: /usr/bin/bash -e {0}
+2026-10-22T01:23:52.6894176Z ##[endgroup]
+2026-10-22T01:23:54.5676877Z {"path":"/home/runner/work/opendesk-browser/opendesk-browser/prototypes/sidebar/workflow/react-preview/index.html","inputSha256":"1776c439ac3f5766bb2915bfbdb9a3282d754d36205cc6b1292ee8b2b95db050","bytes":913837,"bundleBytes":565513,"check":true}
+2026-10-22T01:23:54.6299466Z TAP version 13
+2026-10-22T01:23:54.8030733Z # Subtest: Workflow preview mounts the installed SidebarAppShell and exactly one React root
+2026-10-22T01:23:54.8033164Z ok 1 - Workflow preview mounts the installed SidebarAppShell and exactly one React root
+2026-10-22T01:23:54.8033850Z   ---
+2026-10-22T01:23:54.8034317Z   duration_ms: 22.890084
+2026-10-22T01:23:54.8034923Z   type: 'test'
+2026-10-22T01:23:54.8035389Z   ...
+2026-10-22T01:23:54.8083978Z # Subtest: Generated offline HTML uses an empty installed React root and exact source identity
+2026-10-22T01:23:54.8100499Z ok 2 - Generated offline HTML uses an empty installed React root and exact source identity
+2026-10-22T01:23:54.8102868Z   ---
+2026-10-22T01:23:54.8103371Z   duration_ms: 6.115903
+2026-10-22T01:23:54.8103789Z   type: 'test'
+2026-10-22T01:23:54.8104146Z   ...
+2026-10-22T01:23:54.8120056Z # Subtest: Preview covers all UI outcomes, five widths, both themes and the HTTPS protocol choice
+2026-10-22T01:23:54.8134272Z ok 3 - Preview covers all UI outcomes, five widths, both themes and the HTTPS protocol choice
+2026-10-22T01:23:54.8134909Z   ---
+2026-10-22T01:23:54.8135455Z   duration_ms: 2.188984
+2026-10-22T01:23:54.8146872Z   type: 'test'
+2026-10-22T01:23:54.8147181Z   ...
+2026-10-22T01:23:54.9759782Z # Subtest: Preview does not forge saved workflow history or native/Provider authority
+2026-10-22T01:23:54.9760540Z ok 4 - Preview does not forge saved workflow history or native/Provider authority
+2026-10-22T01:23:54.9765874Z   ---
+2026-10-22T01:23:54.9766058Z   duration_ms: 133.877364
+2026-10-22T01:23:54.9766358Z   type: 'test'
+2026-10-22T01:23:54.9767024Z   ...
+2026-10-22T01:23:55.0049981Z # Subtest: Disconnected UI is honest and cannot connect or grant observation permission
+2026-10-22T01:23:55.0051010Z ok 5 - Disconnected UI is honest and cannot connect or grant observation permission
+2026-10-22T01:23:55.0051784Z   ---
+2026-10-22T01:23:55.0052213Z   duration_ms: 35.343313
+2026-10-22T01:23:55.0052548Z   type: 'test'
+2026-10-22T01:23:55.0052869Z   ...
+2026-10-22T01:23:55.0851870Z # Subtest: Workflow chat keeps speaker semantics without labels, compact green user bubbles and one scroll owner
+2026-10-22T01:23:55.0853180Z ok 6 - Workflow chat keeps speaker semantics without labels, compact green user bubbles and one scroll owner
+2026-10-22T01:23:55.0853817Z   ---
+2026-10-22T01:23:55.0854160Z   duration_ms: 72.983213
+2026-10-22T01:23:55.0854508Z   type: 'test'
+2026-10-22T01:23:55.0854838Z   ...
+2026-10-22T01:23:55.1085128Z # Subtest: Workflow diagnostics disclose source and execution identities only on demand
+2026-10-22T01:23:55.1107261Z ok 7 - Workflow diagnostics disclose source and execution identities only on demand
+2026-10-22T01:23:55.1108052Z   ---
+2026-10-22T01:23:55.1108493Z   duration_ms: 54.967633
+2026-10-22T01:23:55.1108907Z   type: 'test'
+2026-10-22T01:23:55.1109250Z   ...
+2026-10-22T01:23:55.3327496Z # Subtest: workflow UI phases are independently derived, not stored as execution authority
+2026-10-22T01:23:55.3328684Z ok 8 - workflow UI phases are independently derived, not stored as execution authority
+2026-10-22T01:23:55.3329362Z   ---
+2026-10-22T01:23:55.3330353Z   duration_ms: 1.46195
+2026-10-22T01:23:55.3330823Z   type: 'test'
+2026-10-22T01:23:55.3338032Z   ...
+2026-10-22T01:23:55.3338602Z # Subtest: workflow default structure prioritizes AI conversation and hides advanced sections
+2026-10-22T01:23:55.3339294Z ok 9 - workflow default structure prioritizes AI conversation and hides advanced sections
+2026-10-22T01:23:55.3339714Z   ---
+2026-10-22T01:23:55.3340294Z   duration_ms: 291.563518
+2026-10-22T01:23:55.3340580Z   type: 'test'
+2026-10-22T01:23:55.3340993Z   ...
+2026-10-22T01:23:55.3346469Z # Subtest: no new privileged workflow executor, no default visible version manager
+2026-10-22T01:23:55.3347115Z ok 10 - no new privileged workflow executor, no default visible version manager
+2026-10-22T01:23:55.3347498Z   ---
+2026-10-22T01:23:55.3347842Z   duration_ms: 36.706845
+2026-10-22T01:23:55.3348061Z   type: 'test'
+2026-10-22T01:23:55.3348381Z   ...
+2026-10-22T01:23:55.3576613Z # Subtest: updated offline prototype covers ten user-visible states without claiming execution
+2026-10-22T01:23:55.3577388Z ok 11 - updated offline prototype covers ten user-visible states without claiming execution
+2026-10-22T01:23:55.3577932Z   ---
+2026-10-22T01:23:55.3578140Z   duration_ms: 3.419325
+2026-10-22T01:23:55.3578351Z   type: 'test'
+2026-10-22T01:23:55.3578540Z   ...
+2026-10-22T01:23:55.3596853Z # Subtest: R15.3 compact workflow header and composer use meaningful icons without redundant metadata
+2026-10-22T01:23:55.3597530Z ok 12 - R15.3 compact workflow header and composer use meaningful icons without redundant metadata
+2026-10-22T01:23:55.3598039Z   ---
+2026-10-22T01:23:55.3598232Z   duration_ms: 21.694365
+2026-10-22T01:23:55.3598444Z   type: 'test'
+2026-10-22T01:23:55.3598630Z   ...
+2026-10-22T01:23:55.3608755Z # Subtest: R15.3 standalone compact preview preserves all ten scenarios with icon keyboard labels
+2026-10-22T01:23:55.3609383Z ok 13 - R15.3 standalone compact preview preserves all ten scenarios with icon keyboard labels
+2026-10-22T01:23:55.3609756Z   ---
+2026-10-22T01:23:55.3609963Z   duration_ms: 1.10348
+2026-10-22T01:23:55.3610514Z   type: 'test'
+2026-10-22T01:23:55.3610699Z   ...
+2026-10-22T01:23:55.3627311Z # Subtest: compact workflow keeps header actions accessible under 200 percent zoom
+2026-10-22T01:23:55.3628137Z ok 14 - compact workflow keeps header actions accessible under 200 percent zoom
+2026-10-22T01:23:55.3628419Z   ---
+2026-10-22T01:23:55.3628603Z   duration_ms: 0.897691
+2026-10-22T01:23:55.3628830Z   type: 'test'
+2026-10-22T01:23:55.3629016Z   ...
+2026-10-22T01:23:55.3883743Z # Subtest: workflow R23.10 has three independent header actions and one React modal owner
+2026-10-22T01:23:55.3884450Z ok 15 - workflow R23.10 has three independent header actions and one React modal owner
+2026-10-22T01:23:55.3884871Z   ---
+2026-10-22T01:23:55.3885260Z   duration_ms: 24.975807
+2026-10-22T01:23:55.3885440Z   type: 'test'
+2026-10-22T01:23:55.3885562Z   ...
+2026-10-22T01:23:55.4147421Z # Subtest: workflow model selector stays minimal without manual creation or custom approval
+2026-10-22T01:23:55.4148525Z ok 16 - workflow model selector stays minimal without manual creation or custom approval
+2026-10-22T01:23:55.4149026Z   ---
+2026-10-22T01:23:55.4149431Z   duration_ms: 17.613594
+2026-10-22T01:23:55.4149940Z   type: 'test'
+2026-10-22T01:23:55.4150145Z   ...
+2026-10-22T01:23:55.4164542Z # Subtest: R5.2 unsaved workflow starts a non-modal explicit discard or cancel review
+2026-10-22T01:23:55.4165290Z ok 17 - R5.2 unsaved workflow starts a non-modal explicit discard or cancel review
+2026-10-22T01:23:55.4165729Z   ---
+2026-10-22T01:23:55.4165915Z   duration_ms: 11.878274
+2026-10-22T01:23:55.4166124Z   type: 'test'
+2026-10-22T01:23:55.4166325Z   ...
+2026-10-22T01:23:55.4190398Z # Subtest: later AI Send retains committed Controller revision for optimistic Save
+2026-10-22T01:23:55.4191208Z ok 18 - later AI Send retains committed Controller revision for optimistic Save
+2026-10-22T01:23:55.4191577Z   ---
+2026-10-22T01:23:55.4191774Z   duration_ms: 0.974436
+2026-10-22T01:23:55.4191993Z   type: 'test'
+2026-10-22T01:23:55.4192699Z   ...
+2026-10-22T01:23:55.4417839Z # Subtest: R23.11 installed Workflow preserves real host while React owns concise history and model label
+2026-10-22T01:23:55.4418842Z ok 19 - R23.11 installed Workflow preserves real host while React owns concise history and model label
+2026-10-22T01:23:55.4419304Z   ---
+2026-10-22T01:23:55.4419543Z   duration_ms: 20.495531
+2026-10-22T01:23:55.4419802Z   type: 'test'
+2026-10-22T01:23:55.4420022Z   ...
+2026-10-22T01:23:55.4591179Z # Subtest: R23.14 Codex connection is one-row action with full diagnostics, not a fake switch
+2026-10-22T01:23:55.4591992Z ok 20 - R23.14 Codex connection is one-row action with full diagnostics, not a fake switch
+2026-10-22T01:23:55.4592405Z   ---
+2026-10-22T01:23:55.4592694Z   duration_ms: 19.190787
+2026-10-22T01:23:55.4592957Z   type: 'test'
+2026-10-22T01:23:55.4593173Z   ...
+2026-10-22T01:23:55.5392571Z # Subtest: R37 Workflow renders controller actions and releases subscriptions/modal effects on unmount
+2026-10-22T01:23:55.5393377Z ok 21 - R37 Workflow renders controller actions and releases subscriptions/modal effects on unmount
+2026-10-22T01:23:55.5393791Z   ---
+2026-10-22T01:23:55.5393936Z   duration_ms: 81.833825
+2026-10-22T01:23:55.5394082Z   type: 'test'
+2026-10-22T01:23:55.5394203Z   ...
+2026-10-22T01:23:55.5548754Z 1..21
+2026-10-22T01:23:55.5548975Z # tests 21
+2026-10-22T01:23:55.5549171Z # suites 0
+2026-10-22T01:23:55.5549341Z # pass 21
+2026-10-22T01:23:55.5549510Z # fail 0
+2026-10-22T01:23:55.5549683Z # cancelled 0
+2026-10-22T01:23:55.5549871Z # skipped 0
+2026-10-22T01:23:55.5550040Z # todo 0
+2026-10-22T01:23:55.5550245Z # duration_ms 934.872428
+2026-10-22T01:23:55.5753674Z ##[group]Run node --test tests/environment/workflow-react-page.test.mjs tests/environment/workflow-direct-execution.test.mjs
+2026-10-22T01:23:55.5754437Z [36;1mnode --test tests/environment/workflow-react-page.test.mjs tests/environment/workflow-direct-execution.test.mjs[0m
+2026-10-22T01:23:55.5806802Z shell: /usr/bin/bash -e {0}
+2026-10-22T01:23:55.5807100Z ##[endgroup]
+2026-10-22T01:23:55.6277881Z TAP version 13
+2026-10-22T01:23:55.6680728Z # Subtest: shared risk classifier avoids redundant read and ordinary fill consent but reviews unknown effects
+2026-10-22T01:23:55.6681914Z ok 1 - shared risk classifier avoids redundant read and ordinary fill consent but reviews unknown effects
+2026-10-22T01:23:55.6682516Z   ---
+2026-10-22T01:23:55.6682749Z   duration_ms: 3.999468
+2026-10-22T01:23:55.6682991Z   type: 'test'
+2026-10-22T01:23:55.6683180Z   ...
+2026-10-22T01:23:55.6796670Z # Subtest: explicit fill compiles with opt-in readback and retains old source hash
+2026-10-22T01:23:55.6797902Z ok 2 - explicit fill compiles with opt-in readback and retains old source hash
+2026-10-22T01:23:55.6798467Z   ---
+2026-10-22T01:23:55.6798798Z   duration_ms: 8.775186
+2026-10-22T01:23:55.6799130Z   type: 'test'
+2026-10-22T01:23:55.6799443Z   ...
+2026-10-22T01:23:55.6799970Z # Subtest: unrequested clicks, irreversible actions, and changed sites fail closed
+2026-10-22T01:23:55.6801131Z ok 3 - unrequested clicks, irreversible actions, and changed sites fail closed
+2026-10-22T01:23:55.6888620Z   ---
+2026-10-22T01:23:55.6898373Z   duration_ms: 0.601184
+2026-10-22T01:23:55.6908503Z   type: 'test'
+2026-10-22T01:23:55.6908927Z   ...
+2026-10-22T01:23:55.6909494Z # Subtest: unprovided values, missing params, and navigation do not dispatch
+2026-10-22T01:23:55.6910255Z ok 4 - unprovided values, missing params, and navigation do not dispatch
+2026-10-22T01:23:55.6910749Z   ---
+2026-10-22T01:23:55.6911074Z   duration_ms: 0.514714
+2026-10-22T01:23:55.6911696Z   type: 'test'
+2026-10-22T01:23:55.6912022Z   ...
+2026-10-22T01:23:55.6912624Z # Subtest: a single send may fill and click search, but literals cannot authorize extra actions
+2026-10-22T01:23:55.6913385Z ok 5 - a single send may fill and click search, but literals cannot authorize extra actions
+2026-10-22T01:23:55.6913896Z   ---
+2026-10-22T01:23:55.6914212Z   duration_ms: 2.158388
+2026-10-22T01:23:55.6914536Z   type: 'test'
+2026-10-22T01:23:55.6914857Z   ...
+2026-10-22T01:23:55.6915384Z # Subtest: a harmless fill can contain a sensitive-sounding literal without granting effects
+2026-10-22T01:23:55.6916154Z ok 6 - a harmless fill can contain a sensitive-sounding literal without granting effects
+2026-10-22T01:23:55.6916675Z   ---
+2026-10-22T01:23:55.6916981Z   duration_ms: 0.220341
+2026-10-22T01:23:55.6917305Z   type: 'test'
+2026-10-22T01:23:55.6917717Z   ...
+2026-10-22T01:23:55.6918177Z # Subtest: sensitive click targets and unintended fills are rejected
+2026-10-22T01:23:55.6918761Z ok 7 - sensitive click targets and unintended fills are rejected
+2026-10-22T01:23:55.6919750Z   ---
+2026-10-22T01:23:55.6951135Z   duration_ms: 0.620454
+2026-10-22T01:23:55.6958283Z   type: 'test'
+2026-10-22T01:23:55.6958774Z   ...
+2026-10-22T01:23:55.6959235Z # Subtest: submit in a CSS id needs fresh observed search semantics, not blanket submission authority
+2026-10-22T01:23:55.6959930Z ok 8 - submit in a CSS id needs fresh observed search semantics, not blanket submission authority
+2026-10-22T01:23:55.6960355Z   ---
+2026-10-22T01:23:55.6960548Z   duration_ms: 0.768446
+2026-10-22T01:23:55.6960795Z   type: 'test'
+2026-10-22T01:23:55.6960987Z   ...
+2026-10-22T01:23:55.6961344Z # Subtest: durable proof binds matching run/document/source/worker retirement
+2026-10-22T01:23:55.6961884Z ok 9 - durable proof binds matching run/document/source/worker retirement
+2026-10-22T01:23:55.6962238Z   ---
+2026-10-22T01:23:55.6962426Z   duration_ms: 0.479001
+2026-10-22T01:23:55.6962675Z   type: 'test'
+2026-10-22T01:23:55.6962862Z   ...
+2026-10-22T01:23:55.6963732Z # Subtest: instruction sentence punctuation is not a terminal fill literal unless explicitly quoted
+2026-10-22T01:23:55.6964468Z ok 10 - instruction sentence punctuation is not a terminal fill literal unless explicitly quoted
+2026-10-22T01:23:55.6964896Z   ---
+2026-10-22T01:23:55.6965088Z   duration_ms: 0.550558
+2026-10-22T01:23:55.6965288Z   type: 'test'
+2026-10-22T01:23:55.6965514Z   ...
+2026-10-22T01:23:55.6965954Z # Subtest: input textContent assertions are refused before the fill dispatch; host readback verifies values
+2026-10-22T01:23:55.6966930Z ok 11 - input textContent assertions are refused before the fill dispatch; host readback verifies values
+2026-10-22T01:23:55.6967580Z   ---
+2026-10-22T01:23:55.6967910Z   duration_ms: 0.423958
+2026-10-22T01:23:55.6968127Z   type: 'test'
+2026-10-22T01:23:55.6968314Z   ...
+2026-10-22T01:23:55.6968693Z # Subtest: core actions must be complete and search field labels do not authorize clicks
+2026-10-22T01:23:55.6969300Z ok 12 - core actions must be complete and search field labels do not authorize clicks
+2026-10-22T01:23:55.6969700Z   ---
+2026-10-22T01:23:55.6969886Z   duration_ms: 0.610739
+2026-10-22T01:23:55.6970115Z   type: 'test'
+2026-10-22T01:23:55.6970296Z   ...
+2026-10-22T01:23:55.6971004Z # Subtest: negated clicks do not block the requested fill and read: 测试甲
+2026-10-22T01:23:55.6971579Z ok 13 - negated clicks do not block the requested fill and read: 测试甲
+2026-10-22T01:23:55.6971948Z   ---
+2026-10-22T01:23:55.6972143Z   duration_ms: 0.348885
+2026-10-22T01:23:55.6972379Z   type: 'test'
+2026-10-22T01:23:55.6972556Z   ...
+2026-10-22T01:23:55.6972992Z # Subtest: negated clicks do not block the requested fill and read: 测试乙
+2026-10-22T01:23:55.6973538Z ok 14 - negated clicks do not block the requested fill and read: 测试乙
+2026-10-22T01:23:55.6973890Z   ---
+2026-10-22T01:23:55.6974074Z   duration_ms: 0.167422
+2026-10-22T01:23:55.6974318Z   type: 'test'
+2026-10-22T01:23:55.6974502Z   ...
+2026-10-22T01:23:55.6974831Z # Subtest: negated clicks do not block the requested fill and read: Test A
+2026-10-22T01:23:55.6975358Z ok 15 - negated clicks do not block the requested fill and read: Test A
+2026-10-22T01:23:55.6975704Z   ---
+2026-10-22T01:23:55.6975892Z   duration_ms: 0.459792
+2026-10-22T01:23:55.6976137Z   type: 'test'
+2026-10-22T01:23:55.6976324Z   ...
+2026-10-22T01:23:55.6976709Z # Subtest: a negated submit does not hide an affirmative click in another clause
+2026-10-22T01:23:55.6977272Z ok 16 - a negated submit does not hide an affirmative click in another clause
+2026-10-22T01:23:55.6977797Z   ---
+2026-10-22T01:23:55.6978013Z   duration_ms: 0.175605
+2026-10-22T01:23:55.6978259Z   type: 'test'
+2026-10-22T01:23:55.6978475Z   ...
+2026-10-22T01:23:55.6979209Z # Subtest: an affirmative click after an unpunctuated transition remains required: 填写 OpenDesk，不要提交但点击预览按钮。
+2026-10-22T01:23:55.6980078Z ok 17 - an affirmative click after an unpunctuated transition remains required: 填写 OpenDesk，不要提交但点击预览按钮。
+2026-10-22T01:23:55.6980514Z   ---
+2026-10-22T01:23:55.6980697Z   duration_ms: 0.128073
+2026-10-22T01:23:55.6980923Z   type: 'test'
+2026-10-22T01:23:55.6981106Z   ...
+2026-10-22T01:23:55.6981655Z # Subtest: an affirmative click after an unpunctuated transition remains required: 填写 OpenDesk，不要提交然后点击预览按钮。
+2026-10-22T01:23:55.6982402Z ok 18 - an affirmative click after an unpunctuated transition remains required: 填写 OpenDesk，不要提交然后点击预览按钮。
+2026-10-22T01:23:55.6982783Z   ---
+2026-10-22T01:23:55.6982960Z   duration_ms: 0.092109
+2026-10-22T01:23:55.6983169Z   type: 'test'
+2026-10-22T01:23:55.6983340Z   ...
+2026-10-22T01:23:55.6983878Z # Subtest: an affirmative click after an unpunctuated transition remains required: Fill OpenDesk. Do not submit but click Preview.
+2026-10-22T01:23:55.6984789Z ok 19 - an affirmative click after an unpunctuated transition remains required: Fill OpenDesk. Do not submit but click Preview.
+2026-10-22T01:23:55.6985272Z   ---
+2026-10-22T01:23:55.6985474Z   duration_ms: 0.082645
+2026-10-22T01:23:55.6985672Z   type: 'test'
+2026-10-22T01:23:55.6985856Z   ...
+2026-10-22T01:23:55.6986556Z # Subtest: proposal, durable receipt, and observed input effect remain different evidence levels
+2026-10-22T01:23:55.6987176Z ok 20 - proposal, durable receipt, and observed input effect remain different evidence levels
+2026-10-22T01:23:55.6987556Z   ---
+2026-10-22T01:23:55.6988801Z   duration_ms: 0.100101
+2026-10-22T01:23:55.6989035Z   type: 'test'
+2026-10-22T01:23:55.6989258Z   ...
+2026-10-22T01:23:55.6989871Z # Subtest: a final observed search button exposes only a bounded effect expectation
+2026-10-22T01:23:55.6990564Z ok 21 - a final observed search button exposes only a bounded effect expectation
+2026-10-22T01:23:55.6990967Z   ---
+2026-10-22T01:23:55.6991146Z   duration_ms: 0.348915
+2026-10-22T01:23:55.6991420Z   type: 'test'
+2026-10-22T01:23:55.6998582Z   ...
+2026-10-22T01:23:55.6998967Z # Subtest: direct fill proof checks decoded readback values for every step
+2026-10-22T01:23:55.6999473Z ok 22 - direct fill proof checks decoded readback values for every step
+2026-10-22T01:23:55.6999787Z   ---
+2026-10-22T01:23:55.6999977Z   duration_ms: 0.163506
+2026-10-22T01:23:55.7000191Z   type: 'test'
+2026-10-22T01:23:55.7000372Z   ...
+2026-10-22T01:23:55.7000793Z # Subtest: search oracle requires a new visible result state and a verified post-click observation
+2026-10-22T01:23:55.7001453Z ok 23 - search oracle requires a new visible result state and a verified post-click observation
+2026-10-22T01:23:55.7001833Z   ---
+2026-10-22T01:23:55.7002024Z   duration_ms: 0.878231
+2026-10-22T01:23:55.7002223Z   type: 'test'
+2026-10-22T01:23:55.7002408Z   ...
+2026-10-22T01:23:55.7002764Z # Subtest: search evidence does not promote an unverified run or unrelated click
+2026-10-22T01:23:55.7003295Z ok 24 - search evidence does not promote an unverified run or unrelated click
+2026-10-22T01:23:55.7003639Z   ---
+2026-10-22T01:23:55.7003813Z   duration_ms: 0.054572
+2026-10-22T01:23:55.7004018Z   type: 'test'
+2026-10-22T01:23:55.7004206Z   ...
+2026-10-22T01:23:55.7004635Z # Subtest: AI-off runs prove the same frozen revision across claim, completion and durable records
+2026-10-22T01:23:55.7005271Z ok 25 - AI-off runs prove the same frozen revision across claim, completion and durable records
+2026-10-22T01:23:55.7005654Z   ---
+2026-10-22T01:23:55.7005836Z   duration_ms: 0.147451
+2026-10-22T01:23:55.7006035Z   type: 'test'
+2026-10-22T01:23:55.7006210Z   ...
+2026-10-22T01:23:55.7006766Z # Subtest: continuation: view search results reads the page without replaying search
+2026-10-22T01:23:55.7007378Z ok 26 - continuation: view search results reads the page without replaying search
+2026-10-22T01:23:55.7007907Z   ---
+2026-10-22T01:23:55.7008095Z   duration_ms: 0.17255
+2026-10-22T01:23:55.7008334Z   type: 'test'
+2026-10-22T01:23:55.7008519Z   ...
+2026-10-22T01:23:55.7008968Z # Subtest: trusted same-document search proves demo-form inline result without fabricating links
+2026-10-22T01:23:55.7009645Z ok 27 - trusted same-document search proves demo-form inline result without fabricating links
+2026-10-22T01:23:55.7010063Z   ---
+2026-10-22T01:23:55.7010246Z   duration_ms: 0.556788
+2026-10-22T01:23:55.7010497Z   type: 'test'
+2026-10-22T01:23:55.7010682Z   ...
+2026-10-22T01:23:55.7011106Z # Subtest: current observed named link admits one frozen href-guarded RunHost click only
+2026-10-22T01:23:55.7011668Z ok 28 - current observed named link admits one frozen href-guarded RunHost click only
+2026-10-22T01:23:55.7012064Z   ---
+2026-10-22T01:23:55.7012235Z   duration_ms: 6.97106
+2026-10-22T01:23:55.7012478Z   type: 'test'
+2026-10-22T01:23:55.7012676Z   ...
+2026-10-22T01:23:55.7013122Z # Subtest: only independently observed new Document title and product price prove navigation
+2026-10-22T01:23:55.7013774Z ok 29 - only independently observed new Document title and product price prove navigation
+2026-10-22T01:23:55.7014185Z   ---
+2026-10-22T01:23:55.7014373Z   duration_ms: 0.738812
+2026-10-22T01:23:55.7014616Z   type: 'test'
+2026-10-22T01:23:55.7014793Z   ...
+2026-10-22T01:23:55.7052259Z # Subtest: workflow whole page declares DOM in TSX and adapter has no legacy renderer/listeners
+2026-10-22T01:23:55.7053039Z ok 30 - workflow whole page declares DOM in TSX and adapter has no legacy renderer/listeners
+2026-10-22T01:23:55.7053313Z   ---
+2026-10-22T01:23:55.7053448Z   duration_ms: 17.237468
+2026-10-22T01:23:55.7053607Z   type: 'test'
+2026-10-22T01:23:55.7053731Z   ...
+2026-10-22T01:23:55.7136104Z # Subtest: workflow normal execution preserves durable run, result, document and source identities
+2026-10-22T01:23:55.7137088Z ok 31 - workflow normal execution preserves durable run, result, document and source identities
+2026-10-22T01:23:55.7137476Z   ---
+2026-10-22T01:23:55.7140034Z   duration_ms: 14.711377
+2026-10-22T01:23:55.7140249Z   type: 'test'
+2026-10-22T01:23:55.7140419Z   ...
+2026-10-22T01:23:55.7230493Z # Subtest: workflow compiler failure clears old artifact and cannot execute it
+2026-10-22T01:23:55.7231077Z ok 32 - workflow compiler failure clears old artifact and cannot execute it
+2026-10-22T01:23:55.7231405Z   ---
+2026-10-22T01:23:55.7231594Z   duration_ms: 9.374537
+2026-10-22T01:23:55.7231824Z   type: 'test'
+2026-10-22T01:23:55.7232002Z   ...
+2026-10-22T01:23:55.7358823Z # Subtest: workflow runtime error and Stop release controls and allow edit/run again
+2026-10-22T01:23:55.7359680Z ok 33 - workflow runtime error and Stop release controls and allow edit/run again
+2026-10-22T01:23:55.7360187Z   ---
+2026-10-22T01:23:55.7360326Z   duration_ms: 12.678328
+2026-10-22T01:23:55.7360515Z   type: 'test'
+2026-10-22T01:23:55.7360635Z   ...
+2026-10-22T01:23:55.7602016Z # Subtest: workflow save/reopen restores same source revision and rejects changed journal bytes
+2026-10-22T01:23:55.7602456Z ok 34 - workflow save/reopen restores same source revision and rejects changed journal bytes
+2026-10-22T01:23:55.7602683Z   ---
+2026-10-22T01:23:55.7602808Z   duration_ms: 24.371082
+2026-10-22T01:23:55.7602948Z   type: 'test'
+2026-10-22T01:23:55.7603060Z   ...
+2026-10-22T01:23:55.7658441Z # Subtest: ordinary manual fill is admitted by one trusted Run without a second confirmation
+2026-10-22T01:23:55.7659271Z ok 35 - ordinary manual fill is admitted by one trusted Run without a second confirmation
+2026-10-22T01:23:55.7659626Z   ---
+2026-10-22T01:23:55.7659810Z   duration_ms: 5.579466
+2026-10-22T01:23:55.7660020Z   type: 'test'
+2026-10-22T01:23:55.7660194Z   ...
+2026-10-22T01:23:55.7711010Z # Subtest: unknown click requires scoped one-shot review, cancellation and untrusted gestures do not dispatch
+2026-10-22T01:23:55.7711906Z ok 36 - unknown click requires scoped one-shot review, cancellation and untrusted gestures do not dispatch
+2026-10-22T01:23:55.7712367Z   ---
+2026-10-22T01:23:55.7712569Z   duration_ms: 5.324923
+2026-10-22T01:23:55.7712823Z   type: 'test'
+2026-10-22T01:23:55.7713009Z   ...
+2026-10-22T01:23:55.7795834Z # Subtest: review closes on Document, edited step or revoked Chrome permission
+2026-10-22T01:23:55.7796334Z ok 37 - review closes on Document, edited step or revoked Chrome permission
+2026-10-22T01:23:55.7796627Z   ---
+2026-10-22T01:23:55.7796801Z   duration_ms: 8.288011
+2026-10-22T01:23:55.7797047Z   type: 'test'
+2026-10-22T01:23:55.7797249Z   ...
+2026-10-22T01:23:55.7823702Z # Subtest: sensitive form fill requires explicit review even without a click
+2026-10-22T01:23:55.7824179Z ok 38 - sensitive form fill requires explicit review even without a click
+2026-10-22T01:23:55.7824509Z   ---
+2026-10-22T01:23:55.7824699Z   duration_ms: 2.887986
+2026-10-22T01:23:55.7824901Z   type: 'test'
+2026-10-22T01:23:55.7825089Z   ...
+2026-10-22T01:23:55.7954357Z # Subtest: workflow cannot admit revoked permission or stale document after asynchronous journal read
+2026-10-22T01:23:55.7955348Z ok 39 - workflow cannot admit revoked permission or stale document after asynchronous journal read
+2026-10-22T01:23:55.7955952Z   ---
+2026-10-22T01:23:55.7956300Z   duration_ms: 12.030373
+2026-10-22T01:23:55.7956730Z   type: 'test'
+2026-10-22T01:23:55.7957050Z   ...
+2026-10-22T01:23:55.7993897Z # Subtest: workflow inconsistent result identity fails closed without replay
+2026-10-22T01:23:55.7996633Z ok 40 - workflow inconsistent result identity fails closed without replay
+2026-10-22T01:23:55.7997233Z   ---
+2026-10-22T01:23:55.7997574Z   duration_ms: 5.207906
+2026-10-22T01:23:55.7998086Z   type: 'test'
+2026-10-22T01:23:55.7998414Z   ...
+2026-10-22T01:23:55.8105242Z # Subtest: workflow dirty new/reopen protection retains draft until reviewed and resets review after edits
+2026-10-22T01:23:55.8105995Z ok 41 - workflow dirty new/reopen protection retains draft until reviewed and resets review after edits
+2026-10-22T01:23:55.8106874Z   ---
+2026-10-22T01:23:55.8107075Z   duration_ms: 10.897348
+2026-10-22T01:23:55.8107299Z   type: 'test'
+2026-10-22T01:23:55.8107480Z   ...
+2026-10-22T01:23:55.8185534Z # Subtest: workflow provider settings retain protocol and credentials remain memory-only; disposal unsubscribes
+2026-10-22T01:23:55.8186290Z ok 42 - workflow provider settings retain protocol and credentials remain memory-only; disposal unsubscribes
+2026-10-22T01:23:55.8186685Z   ---
+2026-10-22T01:23:55.8186809Z   duration_ms: 8.197185
+2026-10-22T01:23:55.8186965Z   type: 'test'
+2026-10-22T01:23:55.8187080Z   ...
+2026-10-22T01:23:55.8305464Z # Subtest: fixed fill becomes a Chinese parameter and repeated saved runs do not rewrite source
+2026-10-22T01:23:55.8306102Z ok 43 - fixed fill becomes a Chinese parameter and repeated saved runs do not rewrite source
+2026-10-22T01:23:55.8306466Z   ---
+2026-10-22T01:23:55.8306649Z   duration_ms: 11.854708
+2026-10-22T01:23:55.8306888Z   type: 'test'
+2026-10-22T01:23:55.8307065Z   ...
+2026-10-22T01:23:55.8364884Z # Subtest: parameterizing sensitive fields never saves a secret as a default
+2026-10-22T01:23:55.8365772Z ok 44 - parameterizing sensitive fields never saves a secret as a default
+2026-10-22T01:23:55.8366299Z   ---
+2026-10-22T01:23:55.8366524Z   duration_ms: 4.988877
+2026-10-22T01:23:55.8366754Z   type: 'test'
+2026-10-22T01:23:55.8366939Z   ...
+2026-10-22T01:23:55.8479637Z 1..44
+2026-10-22T01:23:55.8479886Z # tests 44
+2026-10-22T01:23:55.8480073Z # suites 0
+2026-10-22T01:23:55.8480256Z # pass 44
+2026-10-22T01:23:55.8480474Z # fail 0
+2026-10-22T01:23:55.8480668Z # cancelled 0
+2026-10-22T01:23:55.8480857Z # skipped 0
+2026-10-22T01:23:55.8481031Z # todo 0
+2026-10-22T01:23:55.8481232Z # duration_ms 229.747816
+2026-10-22T01:23:55.8746074Z ##[group]Run node --test tests/environment/workflow-fixtures.test.mjs
+2026-10-22T01:23:55.8746371Z [36;1mnode --test tests/environment/workflow-fixtures.test.mjs[0m
+2026-10-22T01:23:55.8795454Z shell: /usr/bin/bash -e {0}
+2026-10-22T01:23:55.8795604Z ##[endgroup]
+2026-10-22T01:23:55.9150794Z TAP version 13
+2026-10-22T01:23:55.9408769Z # Subtest: specialized Workflow fixtures stay linked from the existing Browser Test Lab
+2026-10-22T01:23:55.9413142Z ok 1 - specialized Workflow fixtures stay linked from the existing Browser Test Lab
+2026-10-22T01:23:55.9413529Z   ---
+2026-10-22T01:23:55.9413737Z   duration_ms: 3.32284
+2026-10-22T01:23:55.9413944Z   type: 'test'
+2026-10-22T01:23:55.9414129Z   ...
+2026-10-22T01:23:55.9477914Z 1..1
+2026-10-22T01:23:55.9479234Z # tests 1
+2026-10-22T01:23:55.9479482Z # suites 0
+2026-10-22T01:23:55.9479945Z # pass 1
+2026-10-22T01:23:55.9480617Z # fail 0
+2026-10-22T01:23:55.9480975Z # cancelled 0
+2026-10-22T01:23:55.9481272Z # skipped 0
+2026-10-22T01:23:55.9481936Z # todo 0
+2026-10-22T01:23:55.9482165Z # duration_ms 39.891031
+2026-10-22T01:23:55.9553589Z ##[group]Run node scripts/tests/workflow-fixtures-browser.mjs
+2026-10-22T01:23:55.9553876Z [36;1mnode scripts/tests/workflow-fixtures-browser.mjs[0m
+2026-10-22T01:23:55.9603193Z shell: /usr/bin/bash -e {0}
+2026-10-22T01:23:55.9603341Z ##[endgroup]
+2026-10-22T01:23:59.0527308Z WORKFLOW_FIXTURES_CHROMIUM_DOM_PASS=search+navigation+empty+commerce+price; RUNHOST=NOT_TESTED
+2026-10-22T01:23:59.0839759Z node:internal/modules/run_main:123
+2026-10-22T01:23:59.0840157Z     triggerUncaughtException(
+2026-10-22T01:23:59.0840445Z     ^
+2026-10-22T01:23:59.0840559Z
+2026-10-22T01:23:59.0841099Z [Error: ENOTEMPTY: directory not empty, rmdir '/tmp/opendesk-workflow-e2e-Xxt7bW/Default/Storage/ext/nmmhkkegccagdldgiimedpiccmgmieda/def'] {
+2026-10-22T01:23:59.0841679Z   errno: -39,
+2026-10-22T01:23:59.0841868Z   code: 'ENOTEMPTY',
+2026-10-22T01:23:59.0842091Z   syscall: 'rmdir',
+2026-10-22T01:23:59.0842618Z   path: '/tmp/opendesk-workflow-e2e-Xxt7bW/Default/Storage/ext/nmmhkkegccagdldgiimedpiccmgmieda/def'
+2026-10-22T01:23:59.0843073Z }
+2026-10-22T01:23:59.0908632Z
+2026-10-22T01:23:59.0909362Z Node.js v22.23.3
+2026-10-22T01:23:59.0950798Z ##[error]Process completed with exit code 1.
+2026-10-22T01:23:59.1164443Z ##[group]Run actions/upload-artifact@v4
+2026-10-22T01:23:59.1164698Z with:
+2026-10-22T01:23:59.1165001Z   name: workflow-react-r3336-offline-8875350d1b13e1dceab196301be2886d37091699
+2026-10-22T01:23:59.1165640Z   path: prototypes/sidebar/workflow/react-preview/index.html
+artifacts/workflow-react-preview/360.png
+artifacts/workflow-react-preview/dom.txt
+
+2026-10-22T01:23:59.1166143Z   retention-days: 14
+2026-10-22T01:23:59.1166343Z   if-no-files-found: warn
+2026-10-22T01:23:59.1166556Z   compression-level: 6
+2026-10-22T01:23:59.1166742Z   overwrite: false
+2026-10-22T01:23:59.1166926Z   include-hidden-files: false
+2026-10-22T01:23:59.1167138Z ##[endgroup]
+2026-10-22T01:23:59.2331364Z (node:2670) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-22T01:23:59.2331827Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-22T01:23:59.2374832Z Multiple search paths detected. Calculating the least common ancestor of all paths
+2026-10-22T01:23:59.2376635Z The least common ancestor is /home/runner/work/opendesk-browser/opendesk-browser. This will be the root directory of the artifact
+2026-10-22T01:23:59.2377381Z With the provided path, there will be 1 file uploaded
+2026-10-22T01:23:59.2380048Z Artifact name is valid!
+2026-10-22T01:23:59.2380654Z Root directory input is valid!
+2026-10-22T01:23:59.5472341Z Beginning upload of artifact content to blob storage
+2026-10-22T01:23:59.5725100Z (node:2670) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-22T01:23:59.8216974Z Uploaded bytes 277212
+2026-10-22T01:23:59.8671231Z Finished uploading artifact content to blob storage!
+2026-10-22T01:23:59.8671872Z SHA256 digest of uploaded artifact zip is 840a761883ff08a4efb5bfe99ca91258a0985704863b27c275970fe3a1c8e037
+2026-10-22T01:23:59.8672493Z Finalizing artifact upload
+2026-10-22T01:24:00.4261155Z Artifact workflow-react-r3336-offline-8875350d1b13e1dceab196301be2886d37091699.zip successfully finalized. Artifact ID 12394661451
+2026-10-22T01:24:00.4262265Z Artifact workflow-react-r3336-offline-8875350d1b13e1dceab196301be2886d37091699 has been successfully uploaded! Final size is 277212 bytes. Artifact ID is 12394661451
+2026-10-22T01:24:00.4266462Z Artifact download URL: https://github.com/shopable-ai/opendesk-browser/actions/runs/39705407608/artifacts/12394661451
+2026-10-22T01:24:00.4433304Z Post job cleanup.
+2026-10-22T01:24:00.4970163Z [command]/usr/bin/git version
+2026-10-22T01:24:00.5003674Z git version 2.55.0
+2026-10-22T01:24:00.5027108Z Temporarily overriding HOME='/home/runner/work/_temp/2c8cf5b6-a10f-4d7d-8291-080d2e88d378' before making global git config changes
+2026-10-22T01:24:00.5028003Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-22T01:24:00.5030628Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/opendesk-browser/opendesk-browser
+2026-10-22T01:24:00.5067345Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-22T01:24:00.5095826Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-22T01:24:00.5388693Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-22T01:24:00.5429114Z http.https://github.com/.extraheader
+2026-10-22T01:24:00.5430022Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-10-22T01:24:00.5458608Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-22T01:24:00.5719479Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-22T01:24:00.5748322Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-22T01:24:00.6142145Z Cleaning up orphan processes
+2026-10-22T01:24:00.6387375Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

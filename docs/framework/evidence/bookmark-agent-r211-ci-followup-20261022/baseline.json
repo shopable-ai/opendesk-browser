@@ -1,0 +1,55 @@
+{
+  "generatedAt": "2026-10-22T01:01:42.651484+00:00",
+  "branch": "main",
+  "head": "684d736ed770671bd9df303247f79bf008aa139b",
+  "businessReference": "a36689ac0ecad72ad378144ad39812a72d31ef62",
+  "businessFiles": [
+    "src/ui/conversation/bookmark-agent-loop.js",
+    "src/ui/conversation/bookmark-actions.js",
+    "src/ui/workflow/workflow-view.js",
+    "src/ui/workflow/provider.js",
+    "src/ui/workflow/ai-plan.js",
+    "examples/sidebar-tools/bookmark-manager/src/react/App.jsx",
+    "examples/sidebar-tools/bookmark-manager/src/service.js",
+    "src/ui/react/components/conversation.tsx",
+    "src/ui/react/components/conversation-dock.css"
+  ],
+  "changedBusinessFilesSinceReference": [],
+  "node": "v24.16.0",
+  "providerInspection": {
+    "publicConfigOnly": true,
+    "credentialFilesRead": false,
+    "activeConfiguredProvider": null,
+    "model": "openai/gpt-6.1-sol",
+    "configuredProviderNames": [
+      "sakura",
+      "fhl",
+      "DeepSeek",
+      "cloudlian",
+      "qch1",
+      "tabcode",
+      "tmpmail",
+      "OpenAI",
+      "jnm",
+      "codex",
+      "vps"
+    ],
+    "apiKeyEnvPresent": {
+      "OPENAI_API_KEY": false,
+      "AZURE_OPENAI_API_KEY": false,
+      "ANTHROPIC_API_KEY": false,
+      "OPENROUTER_API_KEY": false
+    },
+    "usableProductHttpsEndpointProven": false,
+    "boundary": "Inactive configuration is not proof of a working credential route. No ChatGPT OAuth token forwarded to third-party endpoints."
+  },
+  "t12ScopeClarification": {
+    "required": "User requested listed widths, light/dark, 200% zoom, keyboard, touch, Stop, log and bookmark scrolling.",
+    "notAdditionalMandatoryCriteria": [
+      "Physical touch hardware",
+      "Audible screen reader output",
+      "Every width multiplied by every input mode"
+    ],
+    "existingEvidenceBoundary": "Trusted emulated touch is identified as emulated. Installed-tab 200% and 320px evidence does not prove the SIDE_PANEL itself at those settings. Previous actual panel minimum 360 is an observation of the tested browser, not a universal Chrome API claim."
+  }
+}

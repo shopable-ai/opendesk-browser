@@ -1,0 +1,23 @@
+{
+  "generatedAt": "2026-10-22T01:45:22.357912+00:00",
+  "head": "4d891b2d784e6113bbdf7acae57ee9bcf2eba86c",
+  "originMain": "4d891b2d784e6113bbdf7acae57ee9bcf2eba86c",
+  "status": [
+    "M docs/framework/evidence/dynamic-app-r14-local/b2-summary.json",
+    " M docs/framework/evidence/wxt/builds/build-development.json",
+    " M docs/framework/evidence/wxt/builds/build-production.json",
+    " M docs/framework/workstreams/developer-r40.10-web-20261021.md",
+    " M docs/framework/workstreams/dynamic-app-runtime-r14-local-20261022.md"
+  ],
+  "globalDiffCheck": {
+    "exitCode": 2,
+    "output": "docs/framework/workstreams/developer-r40.10-web-20261021.md:790: new blank line at EOF.\n",
+    "classification": "Other-owner developer workstream EOF blank line, retained unchanged."
+  },
+  "ownedScopeDiffCheck": {
+    "exitCode": 0,
+    "output": ""
+  },
+  "parallelSourceOverlap": false,
+  "noHistoryRewrite": true
+}

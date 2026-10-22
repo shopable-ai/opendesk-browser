@@ -1,0 +1,42 @@
+{
+  "createdAt": "2026-10-22T01:10:33.229459+00:00",
+  "base": "3340ee7beac6430cad42b3ac9170c5aa28fb8c93",
+  "paths": [
+    "src",
+    "tests/helpers",
+    "tests/environment",
+    "scripts/preview",
+    "prototypes/sidebar",
+    "package.json",
+    "package-lock.json"
+  ],
+  "uncompressedBytes": 18977814,
+  "gitWorktree": false,
+  "dependencies": "Existing shared node_modules; no installation",
+  "purpose": "CI-equivalent tests isolated from parallel uncommitted product edits; only two reviewed test files will be overlaid",
+  "priorAttempt": "Whole-repository archive hit ENOSPC because of historical evidence snapshots. Only that newly-created failed copy was removed. This finite copy excludes docs/evidence.",
+  "freeBytesAfter": 604090368,
+  "additionalExactFiles": [
+    "examples/tasks/demo-form.html"
+  ],
+  "additionalNativeSourceFiles": [
+    "native-agent/cli.mjs",
+    "native-agent/install.mjs",
+    "native-agent/installation-root.mjs",
+    "native-agent/local-dev/cli-identity.mjs",
+    "native-agent/local-dev/dev-cli.mjs",
+    "native-agent/local-dev/error-location.mjs",
+    "native-agent/local-dev/frozen-source.mjs",
+    "native-agent/local-dev/installation-diagnostics.mjs",
+    "native-agent/local-dev/mcp.mjs",
+    "native-agent/local-dev/preparation.mjs",
+    "native-agent/local-dev/provider.mjs",
+    "native-agent/local-dev/resolver.mjs",
+    "native-agent/local-dev/session.mjs",
+    "native-agent/local-dev/snapshot.mjs",
+    "native-agent/local-project-source-contract.mjs",
+    "native-agent/locations.mjs",
+    "native-agent/native-host.mjs",
+    "native-agent/wire.mjs"
+  ]
+}

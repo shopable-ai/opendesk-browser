@@ -1,0 +1,851 @@
+﻿2026-10-22T01:34:35.0349044Z Current runner version: '2.338.0'
+2026-10-22T01:34:35.0377429Z ##[group]Runner Image Provisioner
+2026-10-22T01:34:35.0378459Z Hosted Compute Agent
+2026-10-22T01:34:35.0379461Z Version: 20261012.601
+2026-10-22T01:34:35.0380530Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+2026-10-22T01:34:35.0381350Z Build Date: 2026-10-12T17:48:21Z
+2026-10-22T01:34:35.0382146Z Worker ID: {104f9f34-0c50-439c-a574-c757fc90f5c0}
+2026-10-22T01:34:35.0382992Z Region: eastus
+2026-10-22T01:34:35.0383644Z Cloud: Azure
+2026-10-22T01:34:35.0384285Z ##[endgroup]
+2026-10-22T01:34:35.0386130Z ##[group]Operating System
+2026-10-22T01:34:35.0386942Z Ubuntu
+2026-10-22T01:34:35.0387515Z 26.04.1
+2026-10-22T01:34:35.0388118Z LTS
+2026-10-22T01:34:35.0388734Z ##[endgroup]
+2026-10-22T01:34:35.0389335Z ##[group]Runner Image
+2026-10-22T01:34:35.0390029Z Image: ubuntu-26.04
+2026-10-22T01:34:35.0390683Z Version: 20261012.163.1
+2026-10-22T01:34:35.0392189Z Included Software: https://github.com/actions/runner-images/blob/ubuntu26/20261012.163/images/ubuntu/Ubuntu2604-Readme.md
+2026-10-22T01:34:35.0394019Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu26%2F20261012.163
+2026-10-22T01:34:35.0395458Z ##[endgroup]
+2026-10-22T01:34:35.0397131Z ##[group]GITHUB_TOKEN Permissions
+2026-10-22T01:34:35.0399782Z Contents: write
+2026-10-22T01:34:35.0400410Z Metadata: read
+2026-10-22T01:34:35.0401109Z ##[endgroup]
+2026-10-22T01:34:35.0403469Z Secret source: Actions
+2026-10-22T01:34:35.0404601Z Cache mode: write
+2026-10-22T01:34:35.0405587Z Prepare workflow directory
+2026-10-22T01:34:35.0767827Z Prepare all required actions
+2026-10-22T01:34:35.0820402Z Getting action download info
+2026-10-22T01:34:35.2352971Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-10-22T01:34:35.3466276Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-10-22T01:34:35.4207430Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-10-22T01:34:35.6273083Z Complete job name: workflow-react-preview
+2026-10-22T01:34:35.7259874Z ##[group]Run actions/checkout@v4
+2026-10-22T01:34:35.7260916Z with:
+2026-10-22T01:34:35.7261422Z   repository: shopable-ai/opendesk-browser
+2026-10-22T01:34:35.7266142Z   token: ***
+2026-10-22T01:34:35.7266613Z   ssh-strict: true
+2026-10-22T01:34:35.7267089Z   ssh-user: git
+2026-10-22T01:34:35.7267563Z   persist-credentials: true
+2026-10-22T01:34:35.7268098Z   clean: true
+2026-10-22T01:34:35.7268580Z   sparse-checkout-cone-mode: true
+2026-10-22T01:34:35.7269147Z   fetch-depth: 1
+2026-10-22T01:34:35.7269665Z   fetch-tags: false
+2026-10-22T01:34:35.7270146Z   show-progress: true
+2026-10-22T01:34:35.7270626Z   lfs: false
+2026-10-22T01:34:35.7271067Z   submodules: false
+2026-10-22T01:34:35.7271551Z   set-safe-directory: true
+2026-10-22T01:34:35.7272099Z   allow-unsafe-pr-checkout: false
+2026-10-22T01:34:35.7272976Z ##[endgroup]
+2026-10-22T01:34:35.8379223Z Syncing repository: shopable-ai/opendesk-browser
+2026-10-22T01:34:35.8382623Z ##[group]Getting Git version info
+2026-10-22T01:34:35.8384041Z Working directory is '/home/runner/work/opendesk-browser/opendesk-browser'
+2026-10-22T01:34:35.8386276Z [command]/usr/bin/git version
+2026-10-22T01:34:35.8398979Z git version 2.55.0
+2026-10-22T01:34:35.8423052Z ##[endgroup]
+2026-10-22T01:34:35.8442869Z Temporarily overriding HOME='/home/runner/work/_temp/533b1e1e-0fce-4069-af86-d51c69c3ebc4' before making global git config changes
+2026-10-22T01:34:35.8446017Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-22T01:34:35.8449515Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/opendesk-browser/opendesk-browser
+2026-10-22T01:34:35.8532543Z Deleting the contents of '/home/runner/work/opendesk-browser/opendesk-browser'
+2026-10-22T01:34:35.8537197Z ##[group]Initializing the repository
+2026-10-22T01:34:35.8544228Z [command]/usr/bin/git init /home/runner/work/opendesk-browser/opendesk-browser
+2026-10-22T01:34:35.8683565Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-22T01:34:35.8686871Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-22T01:34:35.8689010Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-22T01:34:35.8691647Z hint: call:
+2026-10-22T01:34:35.8692920Z hint:
+2026-10-22T01:34:35.8694131Z hint: 	git config --global init.defaultBranch <name>
+2026-10-22T01:34:35.8695439Z hint:
+2026-10-22T01:34:35.8697002Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-22T01:34:35.8699242Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-22T01:34:35.8700859Z hint:
+2026-10-22T01:34:35.8701593Z hint: 	git branch -m <name>
+2026-10-22T01:34:35.8702380Z hint:
+2026-10-22T01:34:35.8703357Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-22T01:34:35.8705086Z Initialized empty Git repository in /home/runner/work/opendesk-browser/opendesk-browser/.git/
+2026-10-22T01:34:35.8708721Z [command]/usr/bin/git remote add origin https://github.com/shopable-ai/opendesk-browser
+2026-10-22T01:34:35.8755460Z ##[endgroup]
+2026-10-22T01:34:35.8756927Z ##[group]Disabling automatic garbage collection
+2026-10-22T01:34:35.8760609Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-22T01:34:35.8807602Z ##[endgroup]
+2026-10-22T01:34:35.8808960Z ##[group]Setting up auth
+2026-10-22T01:34:35.8826143Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-22T01:34:35.8869275Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-22T01:34:35.9391394Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-22T01:34:35.9432622Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-22T01:34:35.9724198Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-22T01:34:35.9763512Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-22T01:34:36.0069707Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-22T01:34:36.0113977Z ##[endgroup]
+2026-10-22T01:34:36.0116070Z ##[group]Fetching the repository
+2026-10-22T01:34:36.0127616Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +f592cad4166bff8ef0466bb3a7030144fe9b1c3d:refs/remotes/origin/main
+2026-10-22T01:34:41.9958969Z From https://github.com/shopable-ai/opendesk-browser
+2026-10-22T01:34:41.9960816Z  * [new ref]           f592cad4166bff8ef0466bb3a7030144fe9b1c3d -> origin/main
+2026-10-22T01:34:41.9965732Z ##[endgroup]
+2026-10-22T01:34:41.9968383Z ##[group]Determining the checkout info
+2026-10-22T01:34:41.9976915Z ##[endgroup]
+2026-10-22T01:34:41.9978040Z [command]/usr/bin/git sparse-checkout disable
+2026-10-22T01:34:42.0343945Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-22T01:34:42.0387097Z ##[group]Checking out the ref
+2026-10-22T01:34:42.0392028Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-10-22T01:34:43.0870111Z Updating files:  26% (6604/24949)
+2026-10-22T01:34:43.1130538Z Updating files:  27% (6737/24949)
+2026-10-22T01:34:43.1386496Z Updating files:  28% (6986/24949)
+2026-10-22T01:34:43.1663272Z Updating files:  29% (7236/24949)
+2026-10-22T01:34:43.2083628Z Updating files:  30% (7485/24949)
+2026-10-22T01:34:43.2305378Z Updating files:  31% (7735/24949)
+2026-10-22T01:34:43.2528925Z Updating files:  32% (7984/24949)
+2026-10-22T01:34:43.2652965Z Updating files:  33% (8234/24949)
+2026-10-22T01:34:43.2880799Z Updating files:  34% (8483/24949)
+2026-10-22T01:34:43.3083743Z Updating files:  35% (8733/24949)
+2026-10-22T01:34:43.3242961Z Updating files:  36% (8982/24949)
+2026-10-22T01:34:43.3467858Z Updating files:  37% (9232/24949)
+2026-10-22T01:34:43.3593597Z Updating files:  38% (9481/24949)
+2026-10-22T01:34:43.3828125Z Updating files:  39% (9731/24949)
+2026-10-22T01:34:43.3945122Z Updating files:  40% (9980/24949)
+2026-10-22T01:34:43.4167350Z Updating files:  41% (10230/24949)
+2026-10-22T01:34:43.4367958Z Updating files:  42% (10479/24949)
+2026-10-22T01:34:43.4496326Z Updating files:  43% (10729/24949)
+2026-10-22T01:34:43.4723121Z Updating files:  44% (10978/24949)
+2026-10-22T01:34:43.4837098Z Updating files:  45% (11228/24949)
+2026-10-22T01:34:43.5062324Z Updating files:  46% (11477/24949)
+2026-10-22T01:34:43.5217239Z Updating files:  47% (11727/24949)
+2026-10-22T01:34:43.5402119Z Updating files:  48% (11976/24949)
+2026-10-22T01:34:43.5604924Z Updating files:  49% (12226/24949)
+2026-10-22T01:34:43.5732318Z Updating files:  50% (12475/24949)
+2026-10-22T01:34:43.5953453Z Updating files:  51% (12724/24949)
+2026-10-22T01:34:43.6069686Z Updating files:  52% (12974/24949)
+2026-10-22T01:34:43.6302443Z Updating files:  53% (13223/24949)
+2026-10-22T01:34:43.6482672Z Updating files:  54% (13473/24949)
+2026-10-22T01:34:43.6652352Z Updating files:  55% (13722/24949)
+2026-10-22T01:34:43.6898814Z Updating files:  56% (13972/24949)
+2026-10-22T01:34:43.7036331Z Updating files:  57% (14221/24949)
+2026-10-22T01:34:43.7258461Z Updating files:  58% (14471/24949)
+2026-10-22T01:34:43.7375286Z Updating files:  59% (14720/24949)
+2026-10-22T01:34:43.7609375Z Updating files:  60% (14970/24949)
+2026-10-22T01:34:43.7972763Z Updating files:  61% (15219/24949)
+2026-10-22T01:34:43.8577110Z Updating files:  62% (15469/24949)
+2026-10-22T01:34:43.9169651Z Updating files:  63% (15718/24949)
+2026-10-22T01:34:43.9853736Z Updating files:  64% (15968/24949)
+2026-10-22T01:34:44.0138269Z Updating files:  65% (16217/24949)
+2026-10-22T01:34:44.0671723Z Updating files:  66% (16467/24949)
+2026-10-22T01:34:44.0702684Z Updating files:  66% (16699/24949)
+2026-10-22T01:34:44.1497695Z Updating files:  67% (16716/24949)
+2026-10-22T01:34:44.1923384Z Updating files:  68% (16966/24949)
+2026-10-22T01:34:44.2219387Z Updating files:  69% (17215/24949)
+2026-10-22T01:34:44.2652600Z Updating files:  70% (17465/24949)
+2026-10-22T01:34:44.3085738Z Updating files:  71% (17714/24949)
+2026-10-22T01:34:44.3642633Z Updating files:  72% (17964/24949)
+2026-10-22T01:34:44.3998050Z Updating files:  73% (18213/24949)
+2026-10-22T01:34:44.4435106Z Updating files:  74% (18463/24949)
+2026-10-22T01:34:44.4727912Z Updating files:  75% (18712/24949)
+2026-10-22T01:34:44.5051300Z Updating files:  76% (18962/24949)
+2026-10-22T01:34:44.5574673Z Updating files:  77% (19211/24949)
+2026-10-22T01:34:44.6241750Z Updating files:  78% (19461/24949)
+2026-10-22T01:34:44.6610627Z Updating files:  79% (19710/24949)
+2026-10-22T01:34:44.6862055Z Updating files:  80% (19960/24949)
+2026-10-22T01:34:44.7088872Z Updating files:  81% (20209/24949)
+2026-10-22T01:34:44.7678310Z Updating files:  82% (20459/24949)
+2026-10-22T01:34:44.8257787Z Updating files:  83% (20708/24949)
+2026-10-22T01:34:44.8914962Z Updating files:  84% (20958/24949)
+2026-10-22T01:34:44.9364406Z Updating files:  85% (21207/24949)
+2026-10-22T01:34:45.0260407Z Updating files:  86% (21457/24949)
+2026-10-22T01:34:45.0433183Z Updating files:  87% (21706/24949)
+2026-10-22T01:34:45.0622655Z Updating files:  88% (21956/24949)
+2026-10-22T01:34:45.0669656Z Updating files:  89% (22205/24949)
+2026-10-22T01:34:45.0926500Z Updating files:  89% (22241/24949)
+2026-10-22T01:34:45.1325176Z Updating files:  90% (22455/24949)
+2026-10-22T01:34:45.1518691Z Updating files:  91% (22704/24949)
+2026-10-22T01:34:45.1937158Z Updating files:  92% (22954/24949)
+2026-10-22T01:34:45.2140445Z Updating files:  93% (23203/24949)
+2026-10-22T01:34:45.2354369Z Updating files:  94% (23453/24949)
+2026-10-22T01:34:45.2615068Z Updating files:  95% (23702/24949)
+2026-10-22T01:34:45.3097158Z Updating files:  96% (23952/24949)
+2026-10-22T01:34:45.4370322Z Updating files:  97% (24201/24949)
+2026-10-22T01:34:45.5731174Z Updating files:  98% (24451/24949)
+2026-10-22T01:34:45.6897307Z Updating files:  99% (24700/24949)
+2026-10-22T01:34:45.6897906Z Updating files: 100% (24949/24949)
+2026-10-22T01:34:45.6898534Z Updating files: 100% (24949/24949), done.
+2026-10-22T01:34:45.7194096Z Switched to a new branch 'main'
+2026-10-22T01:34:45.7194744Z branch 'main' set up to track 'origin/main'.
+2026-10-22T01:34:45.7354432Z ##[endgroup]
+2026-10-22T01:34:45.7414665Z [command]/usr/bin/git log -1 --format=%H
+2026-10-22T01:34:45.7451558Z f592cad4166bff8ef0466bb3a7030144fe9b1c3d
+2026-10-22T01:34:45.7755499Z ##[group]Run actions/setup-node@v4
+2026-10-22T01:34:45.7756030Z with:
+2026-10-22T01:34:45.7756302Z   node-version: 22
+2026-10-22T01:34:45.7756536Z   cache: npm
+2026-10-22T01:34:45.7756750Z   always-auth: false
+2026-10-22T01:34:45.7757003Z   check-latest: false
+2026-10-22T01:34:45.7759816Z   token: ***
+2026-10-22T01:34:45.7760074Z ##[endgroup]
+2026-10-22T01:34:45.9322980Z Found in cache @ /opt/hostedtoolcache/node/22.23.3/x64
+2026-10-22T01:34:45.9327188Z (node:2399) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-22T01:34:45.9328571Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-22T01:34:45.9330871Z ##[group]Environment details
+2026-10-22T01:34:46.4299808Z node: v22.23.3
+2026-10-22T01:34:46.4300499Z npm: 10.9.9
+2026-10-22T01:34:46.4301035Z yarn: 1.22.22
+2026-10-22T01:34:46.4304167Z ##[endgroup]
+2026-10-22T01:34:46.4353960Z [command]/opt/hostedtoolcache/node/22.23.3/x64/bin/npm config get cache
+2026-10-22T01:34:46.5662319Z /home/runner/.npm
+2026-10-22T01:34:46.6433232Z Cache hit for: node-cache-Linux-x64-npm-466b883e2ea52822b8a2aa794d718ea201773b54608bc045eef49f4c17620257
+2026-10-22T01:34:46.6550074Z (node:2399) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-22T01:34:46.9930944Z Received 37938582 of 37938582 (100.0%), 128.3 MBs/sec
+2026-10-22T01:34:46.9931819Z Cache Size: ~36 MB (37938582 B)
+2026-10-22T01:34:46.9961282Z [command]/usr/bin/tar -xf /home/runner/work/_temp/4bb2da0f-35e0-4e38-a107-cb786dbad254/cache.tzst -P -C /home/runner/work/opendesk-browser/opendesk-browser --use-compress-program unzstd
+2026-10-22T01:34:47.1232987Z Cache restored successfully
+2026-10-22T01:34:47.1256029Z Cache restored from key: node-cache-Linux-x64-npm-466b883e2ea52822b8a2aa794d718ea201773b54608bc045eef49f4c17620257
+2026-10-22T01:34:47.1496424Z ##[group]Run npm ci --no-audit --no-fund
+2026-10-22T01:34:47.1496914Z [36;1mnpm ci --no-audit --no-fund[0m
+2026-10-22T01:34:47.1706772Z shell: /usr/bin/bash -e {0}
+2026-10-22T01:34:47.1707329Z ##[endgroup]
+2026-10-22T01:34:54.1538825Z
+2026-10-22T01:34:54.1548099Z added 329 packages in 7s
+2026-10-22T01:34:54.2086739Z ##[group]Run node scripts/preview/build-workflow-react-preview.mjs
+2026-10-22T01:34:54.2087507Z [36;1mnode scripts/preview/build-workflow-react-preview.mjs[0m
+2026-10-22T01:34:54.2158531Z shell: /usr/bin/bash -e {0}
+2026-10-22T01:34:54.2158962Z ##[endgroup]
+2026-10-22T01:34:57.6980331Z {"path":"/home/runner/work/opendesk-browser/opendesk-browser/prototypes/sidebar/workflow/react-preview/index.html","inputSha256":"1776c439ac3f5766bb2915bfbdb9a3282d754d36205cc6b1292ee8b2b95db050","bytes":913837,"bundleBytes":565513,"check":false}
+2026-10-22T01:34:57.7616907Z ##[group]Run node scripts/preview/build-workflow-react-preview.mjs --check
+2026-10-22T01:34:57.7617984Z [36;1mnode scripts/preview/build-workflow-react-preview.mjs --check[0m
+2026-10-22T01:34:57.7619058Z [36;1m# Workflow-specific regression; generic React contracts also run in the package job.[0m
+2026-10-22T01:34:57.7620520Z [36;1mnode --test tests/environment/workflow-react-preview-contract.test.mjs tests/environment/workflow-ui-states.test.mjs[0m
+2026-10-22T01:34:57.7692237Z shell: /usr/bin/bash -e {0}
+2026-10-22T01:34:57.7692606Z ##[endgroup]
+2026-10-22T01:35:01.3145218Z {"path":"/home/runner/work/opendesk-browser/opendesk-browser/prototypes/sidebar/workflow/react-preview/index.html","inputSha256":"1776c439ac3f5766bb2915bfbdb9a3282d754d36205cc6b1292ee8b2b95db050","bytes":913837,"bundleBytes":565513,"check":true}
+2026-10-22T01:35:01.4187491Z TAP version 13
+2026-10-22T01:35:01.8128015Z # Subtest: Workflow preview mounts the installed SidebarAppShell and exactly one React root
+2026-10-22T01:35:01.8157344Z ok 1 - Workflow preview mounts the installed SidebarAppShell and exactly one React root
+2026-10-22T01:35:01.8176755Z   ---
+2026-10-22T01:35:01.8206596Z   duration_ms: 65.074307
+2026-10-22T01:35:01.8217121Z   type: 'test'
+2026-10-22T01:35:01.8217909Z   ...
+2026-10-22T01:35:01.8219335Z # Subtest: Generated offline HTML uses an empty installed React root and exact source identity
+2026-10-22T01:35:01.8221058Z ok 2 - Generated offline HTML uses an empty installed React root and exact source identity
+2026-10-22T01:35:01.8232880Z   ---
+2026-10-22T01:35:01.8233583Z   duration_ms: 8.183032
+2026-10-22T01:35:01.8234309Z   type: 'test'
+2026-10-22T01:35:01.8234988Z   ...
+2026-10-22T01:35:01.8260722Z # Subtest: Preview covers all UI outcomes, five widths, both themes and the HTTPS protocol choice
+2026-10-22T01:35:01.8300841Z ok 3 - Preview covers all UI outcomes, five widths, both themes and the HTTPS protocol choice
+2026-10-22T01:35:01.8304665Z   ---
+2026-10-22T01:35:01.8305291Z   duration_ms: 2.429423
+2026-10-22T01:35:01.8306288Z   type: 'test'
+2026-10-22T01:35:01.8306953Z   ...
+2026-10-22T01:35:02.1803937Z # Subtest: Preview does not forge saved workflow history or native/Provider authority
+2026-10-22T01:35:02.1810480Z ok 4 - Preview does not forge saved workflow history or native/Provider authority
+2026-10-22T01:35:02.1816238Z   ---
+2026-10-22T01:35:02.1837897Z   duration_ms: 252.934693
+2026-10-22T01:35:02.1838696Z   type: 'test'
+2026-10-22T01:35:02.1839122Z   ...
+2026-10-22T01:35:02.2619342Z # Subtest: Disconnected UI is honest and cannot connect or grant observation permission
+2026-10-22T01:35:02.2638680Z ok 5 - Disconnected UI is honest and cannot connect or grant observation permission
+2026-10-22T01:35:02.2649747Z   ---
+2026-10-22T01:35:02.2651259Z   duration_ms: 117.828415
+2026-10-22T01:35:02.2717520Z   type: 'test'
+2026-10-22T01:35:02.2720231Z   ...
+2026-10-22T01:35:02.4045230Z # Subtest: Workflow chat keeps speaker semantics without labels, compact green user bubbles and one scroll owner
+2026-10-22T01:35:02.4048004Z ok 6 - Workflow chat keeps speaker semantics without labels, compact green user bubbles and one scroll owner
+2026-10-22T01:35:02.4049457Z   ---
+2026-10-22T01:35:02.4049932Z   duration_ms: 161.503245
+2026-10-22T01:35:02.4050456Z   type: 'test'
+2026-10-22T01:35:02.4050891Z   ...
+2026-10-22T01:35:02.4501291Z # Subtest: Workflow diagnostics disclose source and execution identities only on demand
+2026-10-22T01:35:02.4503661Z ok 7 - Workflow diagnostics disclose source and execution identities only on demand
+2026-10-22T01:35:02.4524738Z   ---
+2026-10-22T01:35:02.4525556Z   duration_ms: 97.30209
+2026-10-22T01:35:02.4526500Z   type: 'test'
+2026-10-22T01:35:02.4527075Z   ...
+2026-10-22T01:35:02.6828878Z # Subtest: workflow UI phases are independently derived, not stored as execution authority
+2026-10-22T01:35:02.6841928Z ok 8 - workflow UI phases are independently derived, not stored as execution authority
+2026-10-22T01:35:02.6843022Z   ---
+2026-10-22T01:35:02.6844203Z   duration_ms: 2.929589
+2026-10-22T01:35:02.6844725Z   type: 'test'
+2026-10-22T01:35:02.6845151Z   ...
+2026-10-22T01:35:02.6846395Z # Subtest: workflow default structure prioritizes AI conversation and hides advanced sections
+2026-10-22T01:35:02.6847912Z ok 9 - workflow default structure prioritizes AI conversation and hides advanced sections
+2026-10-22T01:35:02.6848814Z   ---
+2026-10-22T01:35:02.6849227Z   duration_ms: 576.779986
+2026-10-22T01:35:02.6849729Z   type: 'test'
+2026-10-22T01:35:02.6850596Z   ...
+2026-10-22T01:35:02.6851533Z # Subtest: no new privileged workflow executor, no default visible version manager
+2026-10-22T01:35:02.6854147Z ok 10 - no new privileged workflow executor, no default visible version manager
+2026-10-22T01:35:02.6854813Z   ---
+2026-10-22T01:35:02.6855184Z   duration_ms: 70.056236
+2026-10-22T01:35:02.6855470Z   type: 'test'
+2026-10-22T01:35:02.6855714Z   ...
+2026-10-22T01:35:02.7267171Z # Subtest: updated offline prototype covers ten user-visible states without claiming execution
+2026-10-22T01:35:02.7269871Z ok 11 - updated offline prototype covers ten user-visible states without claiming execution
+2026-10-22T01:35:02.7271217Z   ---
+2026-10-22T01:35:02.7271986Z   duration_ms: 2.478661
+2026-10-22T01:35:02.7272557Z   type: 'test'
+2026-10-22T01:35:02.7273031Z   ...
+2026-10-22T01:35:02.7299897Z # Subtest: R15.3 compact workflow header and composer use meaningful icons without redundant metadata
+2026-10-22T01:35:02.7302363Z ok 12 - R15.3 compact workflow header and composer use meaningful icons without redundant metadata
+2026-10-22T01:35:02.7303406Z   ---
+2026-10-22T01:35:02.7303672Z   duration_ms: 42.334723
+2026-10-22T01:35:02.7303972Z   type: 'test'
+2026-10-22T01:35:02.7304215Z   ...
+2026-10-22T01:35:02.7318541Z # Subtest: R15.3 standalone compact preview preserves all ten scenarios with icon keyboard labels
+2026-10-22T01:35:02.7320312Z ok 13 - R15.3 standalone compact preview preserves all ten scenarios with icon keyboard labels
+2026-10-22T01:35:02.7321181Z   ---
+2026-10-22T01:35:02.7321627Z   duration_ms: 1.930941
+2026-10-22T01:35:02.7322102Z   type: 'test'
+2026-10-22T01:35:02.7322523Z   ...
+2026-10-22T01:35:02.7359173Z # Subtest: compact workflow keeps header actions accessible under 200 percent zoom
+2026-10-22T01:35:02.7370718Z ok 14 - compact workflow keeps header actions accessible under 200 percent zoom
+2026-10-22T01:35:02.7371928Z   ---
+2026-10-22T01:35:02.7372743Z   duration_ms: 1.746523
+2026-10-22T01:35:02.7373375Z   type: 'test'
+2026-10-22T01:35:02.7373964Z   ...
+2026-10-22T01:35:02.8032076Z # Subtest: workflow R23.10 has three independent header actions and one React modal owner
+2026-10-22T01:35:02.8035038Z ok 15 - workflow R23.10 has three independent header actions and one React modal owner
+2026-10-22T01:35:02.8036387Z   ---
+2026-10-22T01:35:02.8036838Z   duration_ms: 66.181279
+2026-10-22T01:35:02.8037345Z   type: 'test'
+2026-10-22T01:35:02.8037774Z   ...
+2026-10-22T01:35:02.8591310Z # Subtest: workflow model selector stays minimal without manual creation or custom approval
+2026-10-22T01:35:02.8593792Z ok 16 - workflow model selector stays minimal without manual creation or custom approval
+2026-10-22T01:35:02.8595035Z   ---
+2026-10-22T01:35:02.8595619Z   duration_ms: 40.895751
+2026-10-22T01:35:02.8596813Z   type: 'test'
+2026-10-22T01:35:02.8597557Z   ...
+2026-10-22T01:35:02.8625627Z # Subtest: R5.2 unsaved workflow starts a non-modal explicit discard or cancel review
+2026-10-22T01:35:02.8628248Z ok 17 - R5.2 unsaved workflow starts a non-modal explicit discard or cancel review
+2026-10-22T01:35:02.8637048Z   ---
+2026-10-22T01:35:02.8637685Z   duration_ms: 21.421351
+2026-10-22T01:35:02.8638391Z   type: 'test'
+2026-10-22T01:35:02.8638770Z   ...
+2026-10-22T01:35:02.8675771Z # Subtest: later AI Send retains committed Controller revision for optimistic Save
+2026-10-22T01:35:02.8677657Z ok 18 - later AI Send retains committed Controller revision for optimistic Save
+2026-10-22T01:35:02.8678838Z   ---
+2026-10-22T01:35:02.8679610Z   duration_ms: 1.653326
+2026-10-22T01:35:02.8680182Z   type: 'test'
+2026-10-22T01:35:02.8681159Z   ...
+2026-10-22T01:35:02.9096799Z # Subtest: R23.11 installed Workflow preserves real host while React owns concise history and model label
+2026-10-22T01:35:02.9099230Z ok 19 - R23.11 installed Workflow preserves real host while React owns concise history and model label
+2026-10-22T01:35:02.9100381Z   ---
+2026-10-22T01:35:02.9135510Z   duration_ms: 42.736462
+2026-10-22T01:35:02.9136453Z   type: 'test'
+2026-10-22T01:35:02.9136897Z   ...
+2026-10-22T01:35:02.9397706Z # Subtest: R23.14 Codex connection is one-row action with full diagnostics, not a fake switch
+2026-10-22T01:35:02.9399179Z ok 20 - R23.14 Codex connection is one-row action with full diagnostics, not a fake switch
+2026-10-22T01:35:02.9400052Z   ---
+2026-10-22T01:35:02.9400430Z   duration_ms: 29.053842
+2026-10-22T01:35:02.9400875Z   type: 'test'
+2026-10-22T01:35:02.9401258Z   ...
+2026-10-22T01:35:03.1474827Z # Subtest: R37 Workflow renders controller actions and releases subscriptions/modal effects on unmount
+2026-10-22T01:35:03.1477659Z ok 21 - R37 Workflow renders controller actions and releases subscriptions/modal effects on unmount
+2026-10-22T01:35:03.1478879Z   ---
+2026-10-22T01:35:03.1479418Z   duration_ms: 210.937018
+2026-10-22T01:35:03.1480013Z   type: 'test'
+2026-10-22T01:35:03.1480543Z   ...
+2026-10-22T01:35:03.1725690Z 1..21
+2026-10-22T01:35:03.1726359Z # tests 21
+2026-10-22T01:35:03.1726717Z # suites 0
+2026-10-22T01:35:03.1727065Z # pass 21
+2026-10-22T01:35:03.1729695Z # fail 0
+2026-10-22T01:35:03.1736965Z # cancelled 0
+2026-10-22T01:35:03.1737446Z # skipped 0
+2026-10-22T01:35:03.1737875Z # todo 0
+2026-10-22T01:35:03.1738359Z # duration_ms 1772.745289
+2026-10-22T01:35:03.1838166Z ##[group]Run node --test tests/environment/workflow-react-page.test.mjs tests/environment/workflow-direct-execution.test.mjs
+2026-10-22T01:35:03.1839437Z [36;1mnode --test tests/environment/workflow-react-page.test.mjs tests/environment/workflow-direct-execution.test.mjs[0m
+2026-10-22T01:35:03.1905506Z shell: /usr/bin/bash -e {0}
+2026-10-22T01:35:03.1906284Z ##[endgroup]
+2026-10-22T01:35:03.2487837Z TAP version 13
+2026-10-22T01:35:03.3168433Z # Subtest: shared risk classifier avoids redundant read and ordinary fill consent but reviews unknown effects
+2026-10-22T01:35:03.3170769Z ok 1 - shared risk classifier avoids redundant read and ordinary fill consent but reviews unknown effects
+2026-10-22T01:35:03.3172163Z   ---
+2026-10-22T01:35:03.3172846Z   duration_ms: 8.140923
+2026-10-22T01:35:03.3173625Z   type: 'test'
+2026-10-22T01:35:03.3174389Z   ...
+2026-10-22T01:35:03.3414053Z # Subtest: explicit fill compiles with opt-in readback and retains old source hash
+2026-10-22T01:35:03.3437229Z ok 2 - explicit fill compiles with opt-in readback and retains old source hash
+2026-10-22T01:35:03.3466635Z   ---
+2026-10-22T01:35:03.3485038Z   duration_ms: 14.990581
+2026-10-22T01:35:03.3486714Z   type: 'test'
+2026-10-22T01:35:03.3487378Z   ...
+2026-10-22T01:35:03.3488419Z # Subtest: unrequested clicks, irreversible actions, and changed sites fail closed
+2026-10-22T01:35:03.3521195Z ok 3 - unrequested clicks, irreversible actions, and changed sites fail closed
+2026-10-22T01:35:03.3522312Z   ---
+2026-10-22T01:35:03.3522956Z   duration_ms: 1.390359
+2026-10-22T01:35:03.3523657Z   type: 'test'
+2026-10-22T01:35:03.3524370Z   ...
+2026-10-22T01:35:03.3525480Z # Subtest: unprovided values, missing params, and navigation do not dispatch
+2026-10-22T01:35:03.3527122Z ok 4 - unprovided values, missing params, and navigation do not dispatch
+2026-10-22T01:35:03.3528186Z   ---
+2026-10-22T01:35:03.3528769Z   duration_ms: 1.309807
+2026-10-22T01:35:03.3529380Z   type: 'test'
+2026-10-22T01:35:03.3529913Z   ...
+2026-10-22T01:35:03.3531014Z # Subtest: a single send may fill and click search, but literals cannot authorize extra actions
+2026-10-22T01:35:03.3532584Z ok 5 - a single send may fill and click search, but literals cannot authorize extra actions
+2026-10-22T01:35:03.3533599Z   ---
+2026-10-22T01:35:03.3534273Z   duration_ms: 3.570491
+2026-10-22T01:35:03.3534964Z   type: 'test'
+2026-10-22T01:35:03.3535583Z   ...
+2026-10-22T01:35:03.3537028Z # Subtest: a harmless fill can contain a sensitive-sounding literal without granting effects
+2026-10-22T01:35:03.3538655Z ok 6 - a harmless fill can contain a sensitive-sounding literal without granting effects
+2026-10-22T01:35:03.3539794Z   ---
+2026-10-22T01:35:03.3542282Z   duration_ms: 0.421897
+2026-10-22T01:35:03.3543071Z   type: 'test'
+2026-10-22T01:35:03.3543790Z   ...
+2026-10-22T01:35:03.3544844Z # Subtest: sensitive click targets and unintended fills are rejected
+2026-10-22T01:35:03.3547572Z ok 7 - sensitive click targets and unintended fills are rejected
+2026-10-22T01:35:03.3548879Z   ---
+2026-10-22T01:35:03.3549523Z   duration_ms: 1.135336
+2026-10-22T01:35:03.3550420Z   type: 'test'
+2026-10-22T01:35:03.3551261Z   ...
+2026-10-22T01:35:03.3552938Z # Subtest: submit in a CSS id needs fresh observed search semantics, not blanket submission authority
+2026-10-22T01:35:03.3554906Z ok 8 - submit in a CSS id needs fresh observed search semantics, not blanket submission authority
+2026-10-22T01:35:03.3559733Z   ---
+2026-10-22T01:35:03.3560358Z   duration_ms: 1.637206
+2026-10-22T01:35:03.3561055Z   type: 'test'
+2026-10-22T01:35:03.3561705Z   ...
+2026-10-22T01:35:03.3562882Z # Subtest: durable proof binds matching run/document/source/worker retirement
+2026-10-22T01:35:03.3564527Z ok 9 - durable proof binds matching run/document/source/worker retirement
+2026-10-22T01:35:03.3565688Z   ---
+2026-10-22T01:35:03.3566664Z   duration_ms: 0.792488
+2026-10-22T01:35:03.3568846Z   type: 'test'
+2026-10-22T01:35:03.3569657Z   ...
+2026-10-22T01:35:03.3571309Z # Subtest: instruction sentence punctuation is not a terminal fill literal unless explicitly quoted
+2026-10-22T01:35:03.3573114Z ok 10 - instruction sentence punctuation is not a terminal fill literal unless explicitly quoted
+2026-10-22T01:35:03.3574243Z   ---
+2026-10-22T01:35:03.3574852Z   duration_ms: 1.125097
+2026-10-22T01:35:03.3575508Z   type: 'test'
+2026-10-22T01:35:03.3576375Z   ...
+2026-10-22T01:35:03.3577653Z # Subtest: input textContent assertions are refused before the fill dispatch; host readback verifies values
+2026-10-22T01:35:03.3579595Z ok 11 - input textContent assertions are refused before the fill dispatch; host readback verifies values
+2026-10-22T01:35:03.3580784Z   ---
+2026-10-22T01:35:03.3581389Z   duration_ms: 0.70916
+2026-10-22T01:35:03.3582035Z   type: 'test'
+2026-10-22T01:35:03.3582714Z   ...
+2026-10-22T01:35:03.3583992Z # Subtest: core actions must be complete and search field labels do not authorize clicks
+2026-10-22T01:35:03.3585554Z ok 12 - core actions must be complete and search field labels do not authorize clicks
+2026-10-22T01:35:03.3586865Z   ---
+2026-10-22T01:35:03.3587482Z   duration_ms: 1.224004
+2026-10-22T01:35:03.3588135Z   type: 'test'
+2026-10-22T01:35:03.3588671Z   ...
+2026-10-22T01:35:03.3589896Z # Subtest: negated clicks do not block the requested fill and read: 测试甲
+2026-10-22T01:35:03.3591256Z ok 13 - negated clicks do not block the requested fill and read: 测试甲
+2026-10-22T01:35:03.3592129Z   ---
+2026-10-22T01:35:03.3592710Z   duration_ms: 0.660288
+2026-10-22T01:35:03.3593323Z   type: 'test'
+2026-10-22T01:35:03.3593832Z   ...
+2026-10-22T01:35:03.3594838Z # Subtest: negated clicks do not block the requested fill and read: 测试乙
+2026-10-22T01:35:03.3596530Z ok 14 - negated clicks do not block the requested fill and read: 测试乙
+2026-10-22T01:35:03.3598711Z   ---
+2026-10-22T01:35:03.3599378Z   duration_ms: 0.464819
+2026-10-22T01:35:03.3599942Z   type: 'test'
+2026-10-22T01:35:03.3600475Z   ...
+2026-10-22T01:35:03.3601340Z # Subtest: negated clicks do not block the requested fill and read: Test A
+2026-10-22T01:35:03.3602604Z ok 15 - negated clicks do not block the requested fill and read: Test A
+2026-10-22T01:35:03.3603468Z   ---
+2026-10-22T01:35:03.3603984Z   duration_ms: 0.886756
+2026-10-22T01:35:03.3604549Z   type: 'test'
+2026-10-22T01:35:03.3605081Z   ...
+2026-10-22T01:35:03.3606344Z # Subtest: a negated submit does not hide an affirmative click in another clause
+2026-10-22T01:35:03.3607648Z ok 16 - a negated submit does not hide an affirmative click in another clause
+2026-10-22T01:35:03.3608546Z   ---
+2026-10-22T01:35:03.3609117Z   duration_ms: 0.321759
+2026-10-22T01:35:03.3609715Z   type: 'test'
+2026-10-22T01:35:03.3610284Z   ...
+2026-10-22T01:35:03.3611921Z # Subtest: an affirmative click after an unpunctuated transition remains required: 填写 OpenDesk，不要提交但点击预览按钮。
+2026-10-22T01:35:03.3613923Z ok 17 - an affirmative click after an unpunctuated transition remains required: 填写 OpenDesk，不要提交但点击预览按钮。
+2026-10-22T01:35:03.3615529Z   ---
+2026-10-22T01:35:03.3616371Z   duration_ms: 0.334192
+2026-10-22T01:35:03.3617090Z   type: 'test'
+2026-10-22T01:35:03.3617724Z   ...
+2026-10-22T01:35:03.3619257Z # Subtest: an affirmative click after an unpunctuated transition remains required: 填写 OpenDesk，不要提交然后点击预览按钮。
+2026-10-22T01:35:03.3621276Z ok 18 - an affirmative click after an unpunctuated transition remains required: 填写 OpenDesk，不要提交然后点击预览按钮。
+2026-10-22T01:35:03.3625204Z   ---
+2026-10-22T01:35:03.3625724Z   duration_ms: 0.296069
+2026-10-22T01:35:03.3626563Z   type: 'test'
+2026-10-22T01:35:03.3627112Z   ...
+2026-10-22T01:35:03.3628476Z # Subtest: an affirmative click after an unpunctuated transition remains required: Fill OpenDesk. Do not submit but click Preview.
+2026-10-22T01:35:03.3630722Z ok 19 - an affirmative click after an unpunctuated transition remains required: Fill OpenDesk. Do not submit but click Preview.
+2026-10-22T01:35:03.3632068Z   ---
+2026-10-22T01:35:03.3632632Z   duration_ms: 0.247678
+2026-10-22T01:35:03.3633248Z   type: 'test'
+2026-10-22T01:35:03.3633810Z   ...
+2026-10-22T01:35:03.3635265Z # Subtest: proposal, durable receipt, and observed input effect remain different evidence levels
+2026-10-22T01:35:03.3637195Z ok 20 - proposal, durable receipt, and observed input effect remain different evidence levels
+2026-10-22T01:35:03.3638335Z   ---
+2026-10-22T01:35:03.3638873Z   duration_ms: 0.148842
+2026-10-22T01:35:03.3639463Z   type: 'test'
+2026-10-22T01:35:03.3640017Z   ...
+2026-10-22T01:35:03.3640999Z # Subtest: a final observed search button exposes only a bounded effect expectation
+2026-10-22T01:35:03.3642332Z ok 21 - a final observed search button exposes only a bounded effect expectation
+2026-10-22T01:35:03.3643240Z   ---
+2026-10-22T01:35:03.3643789Z   duration_ms: 1.60755
+2026-10-22T01:35:03.3644409Z   type: 'test'
+2026-10-22T01:35:03.3644970Z   ...
+2026-10-22T01:35:03.3646140Z # Subtest: direct fill proof checks decoded readback values for every step
+2026-10-22T01:35:03.3647467Z ok 22 - direct fill proof checks decoded readback values for every step
+2026-10-22T01:35:03.3648324Z   ---
+2026-10-22T01:35:03.3648872Z   duration_ms: 0.286862
+2026-10-22T01:35:03.3649467Z   type: 'test'
+2026-10-22T01:35:03.3649988Z   ...
+2026-10-22T01:35:03.3651080Z # Subtest: search oracle requires a new visible result state and a verified post-click observation
+2026-10-22T01:35:03.3652731Z ok 23 - search oracle requires a new visible result state and a verified post-click observation
+2026-10-22T01:35:03.3653737Z   ---
+2026-10-22T01:35:03.3654287Z   duration_ms: 1.785506
+2026-10-22T01:35:03.3654906Z   type: 'test'
+2026-10-22T01:35:03.3655438Z   ...
+2026-10-22T01:35:03.3656944Z # Subtest: search evidence does not promote an unverified run or unrelated click
+2026-10-22T01:35:03.3658368Z ok 24 - search evidence does not promote an unverified run or unrelated click
+2026-10-22T01:35:03.3659304Z   ---
+2026-10-22T01:35:03.3659863Z   duration_ms: 0.195349
+2026-10-22T01:35:03.3660448Z   type: 'test'
+2026-10-22T01:35:03.3661075Z   ...
+2026-10-22T01:35:03.3662210Z # Subtest: AI-off runs prove the same frozen revision across claim, completion and durable records
+2026-10-22T01:35:03.3663770Z ok 25 - AI-off runs prove the same frozen revision across claim, completion and durable records
+2026-10-22T01:35:03.3664797Z   ---
+2026-10-22T01:35:03.3665348Z   duration_ms: 0.443158
+2026-10-22T01:35:03.3666290Z   type: 'test'
+2026-10-22T01:35:03.3666882Z   ...
+2026-10-22T01:35:03.3667925Z # Subtest: continuation: view search results reads the page without replaying search
+2026-10-22T01:35:03.3669474Z ok 26 - continuation: view search results reads the page without replaying search
+2026-10-22T01:35:03.3670539Z   ---
+2026-10-22T01:35:03.3671166Z   duration_ms: 0.567804
+2026-10-22T01:35:03.3671834Z   type: 'test'
+2026-10-22T01:35:03.3672454Z   ...
+2026-10-22T01:35:03.3673616Z # Subtest: trusted same-document search proves demo-form inline result without fabricating links
+2026-10-22T01:35:03.3675373Z ok 27 - trusted same-document search proves demo-form inline result without fabricating links
+2026-10-22T01:35:03.3677217Z   ---
+2026-10-22T01:35:03.3678081Z   duration_ms: 1.066466
+2026-10-22T01:35:03.3678800Z   type: 'test'
+2026-10-22T01:35:03.3679388Z   ...
+2026-10-22T01:35:03.3698447Z # Subtest: current observed named link admits one frozen href-guarded RunHost click only
+2026-10-22T01:35:03.3714102Z ok 28 - current observed named link admits one frozen href-guarded RunHost click only
+2026-10-22T01:35:03.3717088Z   ---
+2026-10-22T01:35:03.3717642Z   duration_ms: 28.42878
+2026-10-22T01:35:03.3718225Z   type: 'test'
+2026-10-22T01:35:03.3718731Z   ...
+2026-10-22T01:35:03.3719803Z # Subtest: only independently observed new Document title and product price prove navigation
+2026-10-22T01:35:03.3721480Z ok 29 - only independently observed new Document title and product price prove navigation
+2026-10-22T01:35:03.3722523Z   ---
+2026-10-22T01:35:03.3723052Z   duration_ms: 0.972379
+2026-10-22T01:35:03.3723684Z   type: 'test'
+2026-10-22T01:35:03.3724196Z   ...
+2026-10-22T01:35:03.3954065Z # Subtest: workflow whole page declares DOM in TSX and adapter has no legacy renderer/listeners
+2026-10-22T01:35:03.3958658Z ok 30 - workflow whole page declares DOM in TSX and adapter has no legacy renderer/listeners
+2026-10-22T01:35:03.3961113Z   ---
+2026-10-22T01:35:03.3961793Z   duration_ms: 24.472761
+2026-10-22T01:35:03.3962386Z   type: 'test'
+2026-10-22T01:35:03.3962901Z   ...
+2026-10-22T01:35:03.3964132Z # Subtest: workflow normal execution preserves durable run, result, document and source identities
+2026-10-22T01:35:03.3966271Z ok 31 - workflow normal execution preserves durable run, result, document and source identities
+2026-10-22T01:35:03.3967505Z   ---
+2026-10-22T01:35:03.3968133Z   duration_ms: 31.543198
+2026-10-22T01:35:03.3968823Z   type: 'test'
+2026-10-22T01:35:03.3969365Z   ...
+2026-10-22T01:35:03.4112876Z # Subtest: workflow compiler failure clears old artifact and cannot execute it
+2026-10-22T01:35:03.4114734Z ok 32 - workflow compiler failure clears old artifact and cannot execute it
+2026-10-22T01:35:03.4116300Z   ---
+2026-10-22T01:35:03.4117036Z   duration_ms: 17.32696
+2026-10-22T01:35:03.4117669Z   type: 'test'
+2026-10-22T01:35:03.4118057Z   ...
+2026-10-22T01:35:03.4299569Z # Subtest: workflow runtime error and Stop release controls and allow edit/run again
+2026-10-22T01:35:03.4301576Z ok 33 - workflow runtime error and Stop release controls and allow edit/run again
+2026-10-22T01:35:03.4302970Z   ---
+2026-10-22T01:35:03.4303452Z   duration_ms: 19.177306
+2026-10-22T01:35:03.4303993Z   type: 'test'
+2026-10-22T01:35:03.4304454Z   ...
+2026-10-22T01:35:03.4643132Z # Subtest: workflow save/reopen restores same source revision and rejects changed journal bytes
+2026-10-22T01:35:03.4645558Z ok 34 - workflow save/reopen restores same source revision and rejects changed journal bytes
+2026-10-22T01:35:03.4646991Z   ---
+2026-10-22T01:35:03.4647438Z   duration_ms: 34.614566
+2026-10-22T01:35:03.4647946Z   type: 'test'
+2026-10-22T01:35:03.4648407Z   ...
+2026-10-22T01:35:03.4718070Z # Subtest: ordinary manual fill is admitted by one trusted Run without a second confirmation
+2026-10-22T01:35:03.4721197Z ok 35 - ordinary manual fill is admitted by one trusted Run without a second confirmation
+2026-10-22T01:35:03.4722549Z   ---
+2026-10-22T01:35:03.4723032Z   duration_ms: 7.617382
+2026-10-22T01:35:03.4723589Z   type: 'test'
+2026-10-22T01:35:03.4724066Z   ...
+2026-10-22T01:35:03.4805307Z # Subtest: unknown click requires scoped one-shot review, cancellation and untrusted gestures do not dispatch
+2026-10-22T01:35:03.4808597Z ok 36 - unknown click requires scoped one-shot review, cancellation and untrusted gestures do not dispatch
+2026-10-22T01:35:03.4809782Z   ---
+2026-10-22T01:35:03.4810291Z   duration_ms: 8.907842
+2026-10-22T01:35:03.4810866Z   type: 'test'
+2026-10-22T01:35:03.4811380Z   ...
+2026-10-22T01:35:03.4889671Z # Subtest: review closes on Document, edited step or revoked Chrome permission
+2026-10-22T01:35:03.4891105Z ok 37 - review closes on Document, edited step or revoked Chrome permission
+2026-10-22T01:35:03.4892056Z   ---
+2026-10-22T01:35:03.4892316Z   duration_ms: 8.256361
+2026-10-22T01:35:03.4892623Z   type: 'test'
+2026-10-22T01:35:03.4892865Z   ...
+2026-10-22T01:35:03.4933980Z # Subtest: sensitive form fill requires explicit review even without a click
+2026-10-22T01:35:03.4936332Z ok 38 - sensitive form fill requires explicit review even without a click
+2026-10-22T01:35:03.4937116Z   ---
+2026-10-22T01:35:03.4937377Z   duration_ms: 4.431238
+2026-10-22T01:35:03.4937675Z   type: 'test'
+2026-10-22T01:35:03.4937920Z   ...
+2026-10-22T01:35:03.5106581Z # Subtest: workflow cannot admit revoked permission or stale document after asynchronous journal read
+2026-10-22T01:35:03.5108354Z ok 39 - workflow cannot admit revoked permission or stale document after asynchronous journal read
+2026-10-22T01:35:03.5109130Z   ---
+2026-10-22T01:35:03.5109564Z   duration_ms: 17.157039
+2026-10-22T01:35:03.5110100Z   type: 'test'
+2026-10-22T01:35:03.5110679Z   ...
+2026-10-22T01:35:03.5158740Z # Subtest: workflow inconsistent result identity fails closed without replay
+2026-10-22T01:35:03.5163400Z ok 40 - workflow inconsistent result identity fails closed without replay
+2026-10-22T01:35:03.5164091Z   ---
+2026-10-22T01:35:03.5164438Z   duration_ms: 5.515588
+2026-10-22T01:35:03.5164822Z   type: 'test'
+2026-10-22T01:35:03.5165146Z   ...
+2026-10-22T01:35:03.5298687Z # Subtest: workflow dirty new/reopen protection retains draft until reviewed and resets review after edits
+2026-10-22T01:35:03.5301362Z ok 41 - workflow dirty new/reopen protection retains draft until reviewed and resets review after edits
+2026-10-22T01:35:03.5302483Z   ---
+2026-10-22T01:35:03.5302922Z   duration_ms: 13.407309
+2026-10-22T01:35:03.5303439Z   type: 'test'
+2026-10-22T01:35:03.5303843Z   ...
+2026-10-22T01:35:03.5405423Z # Subtest: workflow provider settings retain protocol and credentials remain memory-only; disposal unsubscribes
+2026-10-22T01:35:03.5407089Z ok 42 - workflow provider settings retain protocol and credentials remain memory-only; disposal unsubscribes
+2026-10-22T01:35:03.5407894Z   ---
+2026-10-22T01:35:03.5408283Z   duration_ms: 10.64162
+2026-10-22T01:35:03.5408716Z   type: 'test'
+2026-10-22T01:35:03.5409038Z   ...
+2026-10-22T01:35:03.5578292Z # Subtest: fixed fill becomes a Chinese parameter and repeated saved runs do not rewrite source
+2026-10-22T01:35:03.5579878Z ok 43 - fixed fill becomes a Chinese parameter and repeated saved runs do not rewrite source
+2026-10-22T01:35:03.5580575Z   ---
+2026-10-22T01:35:03.5580822Z   duration_ms: 16.902358
+2026-10-22T01:35:03.5581098Z   type: 'test'
+2026-10-22T01:35:03.5581335Z   ...
+2026-10-22T01:35:03.5633788Z # Subtest: parameterizing sensitive fields never saves a secret as a default
+2026-10-22T01:35:03.5635454Z ok 44 - parameterizing sensitive fields never saves a secret as a default
+2026-10-22T01:35:03.5636714Z   ---
+2026-10-22T01:35:03.5637260Z   duration_ms: 6.937637
+2026-10-22T01:35:03.5637838Z   type: 'test'
+2026-10-22T01:35:03.5638342Z   ...
+2026-10-22T01:35:03.5851879Z 1..44
+2026-10-22T01:35:03.5852415Z # tests 44
+2026-10-22T01:35:03.5852799Z # suites 0
+2026-10-22T01:35:03.5853664Z # pass 44
+2026-10-22T01:35:03.5854389Z # fail 0
+2026-10-22T01:35:03.5855380Z # cancelled 0
+2026-10-22T01:35:03.5867060Z # skipped 0
+2026-10-22T01:35:03.5867495Z # todo 0
+2026-10-22T01:35:03.5867969Z # duration_ms 354.277976
+2026-10-22T01:35:03.5968378Z ##[group]Run node --test tests/environment/workflow-fixtures.test.mjs
+2026-10-22T01:35:03.5969137Z [36;1mnode --test tests/environment/workflow-fixtures.test.mjs[0m
+2026-10-22T01:35:03.6031959Z shell: /usr/bin/bash -e {0}
+2026-10-22T01:35:03.6032380Z ##[endgroup]
+2026-10-22T01:35:03.6570065Z TAP version 13
+2026-10-22T01:35:03.7044884Z # Subtest: specialized Workflow fixtures stay linked from the existing Browser Test Lab
+2026-10-22T01:35:03.7063530Z ok 1 - specialized Workflow fixtures stay linked from the existing Browser Test Lab
+2026-10-22T01:35:03.7064500Z   ---
+2026-10-22T01:35:03.7064916Z   duration_ms: 8.03978
+2026-10-22T01:35:03.7066059Z   type: 'test'
+2026-10-22T01:35:03.7066479Z   ...
+2026-10-22T01:35:03.7181811Z 1..1
+2026-10-22T01:35:03.7182957Z # tests 1
+2026-10-22T01:35:03.7183844Z # suites 0
+2026-10-22T01:35:03.7184542Z # pass 1
+2026-10-22T01:35:03.7186394Z # fail 0
+2026-10-22T01:35:03.7187497Z # cancelled 0
+2026-10-22T01:35:03.7188310Z # skipped 0
+2026-10-22T01:35:03.7189674Z # todo 0
+2026-10-22T01:35:03.7190469Z # duration_ms 73.749419
+2026-10-22T01:35:03.7289059Z ##[group]Run node scripts/tests/workflow-fixtures-browser.mjs
+2026-10-22T01:35:03.7289720Z [36;1mnode scripts/tests/workflow-fixtures-browser.mjs[0m
+2026-10-22T01:35:03.7354058Z shell: /usr/bin/bash -e {0}
+2026-10-22T01:35:03.7354473Z ##[endgroup]
+2026-10-22T01:35:13.9090565Z WORKFLOW_FIXTURES_CHROMIUM_DOM_PASS=search+navigation+empty+commerce+price; RUNHOST=NOT_TESTED
+2026-10-22T01:35:14.0265326Z ##[group]Run node scripts/preview/build-sidebar-six-react-preview.mjs
+2026-10-22T01:35:14.0267172Z [36;1mnode scripts/preview/build-sidebar-six-react-preview.mjs[0m
+2026-10-22T01:35:14.0268161Z [36;1mnode scripts/preview/build-sidebar-six-react-preview.mjs --check[0m
+2026-10-22T01:35:14.0338644Z shell: /usr/bin/bash -e {0}
+2026-10-22T01:35:14.0338965Z ##[endgroup]
+2026-10-22T01:35:17.2542372Z {"path":"/home/runner/work/opendesk-browser/opendesk-browser/prototypes/sidebar/react-preview/index.html","bytes":1071291,"bundleBytes":674053,"inputSha256":"31242eb0f6d71178b2bf9f1b513b9117c6bac382b0c0904edb01bbfe8647daf5","bundleInputSha256":"341e17074933154fa34b2bbf2dd2a4ee54f3ea320719f5439cd7a34c1dbc2558","sourceInputs":[{"path":"examples/sidebar-tools/bookmark-manager/src/model.js","sha256":"875cf0d61fb95f6c70901337118dd7382f33a2ff0ef45ac308a2a5e807aeee9c"},{"path":"examples/sidebar-tools/bookmark-manager/src/react/App.jsx","sha256":"8c607b6ba3f1bc81581daa8f58d16a0b92f9aa82ad9ccfe0a3b9d7b7f2d785de"},{"path":"examples/sidebar-tools/bookmark-manager/src/service.js","sha256":"641db4700757110cca0a4fce607f2e68df4cb1c1d8fb975197b8100b90189dc4"},{"path":"examples/sidebar-tools/web-markdown-clipper/preview/mock-host.js","sha256":"fab133cc9ce9a8d63b02e5c600877e9ab1d2c16e05985db6518fd78d5e23310b"},{"path":"examples/sidebar-tools/web-markdown-clipper/src/index.html","sha256":"68d30ae5c3e018966d2ea2db38de6772a47fe31d20cac576222741f79a4f40dc"},{"path":"examples/sidebar-tools/web-markdown-clipper/src/main.js","sha256":"8ab3952c224b88cd5f13a0116efe42ae38bc0d91fa4f8e185b96b1bf344d95c2"},{"path":"examples/sidebar-tools/web-markdown-clipper/src/notes.js","sha256":"6891af260c1b8ae3252c79b27338d7e4125902977d9c95716919aac7b46ada2d"},{"path":"examples/sidebar-tools/web-markdown-clipper/src/style.css","sha256":"d90c6957c8edaaed49325719ab5723255a73d26b65e541430e43c90ca1b42092"},{"path":"examples/sidebar-tools/web-markdown-clipper/tool.config.json","sha256":"00cd23e08e4b49af9e558aacc3cef54e37e1a0b11531f1cdccfa4bc9aa21410d"},{"path":"package-lock.json","sha256":"46dea0ff8bfd8a075eb190f3bf51ee9894051dd7e25079d5a9cb0190ef615561"},{"path":"package.json","sha256":"698b9e621e2d84480c51622d9d4dd67baecfdef8e3e7ceb51e274c593e2adc17"},{"path":"scripts/preview/build-sidebar-six-react-preview.mjs","sha256":"fbad0e5476255cf7753684561fafc3a3eff183726fcf994b82330f16f168f311"},{"path":"scripts/preview/clipper-stage.mjs","sha256":"7aeb1135ca1632d455320c9fe1000ff451882b983b563f1e529648dbbfaa1e07"},{"path":"scripts/preview/shared-tool-design.mjs","sha256":"1296bd766d8171ae9c7c5db7c0d8669f699a9f238bfb3b6f4ccea9400a0348a6"},{"path":"src/environment.js","sha256":"004d4a0b69670670d3510efbc9cc7b234eba9955a1d62ff9d816015d8519c3d2"},{"path":"src/framework/sdk/browser-direct.generated.js","sha256":"fe79bf56a74a324d00593f497824501e69eeabf3eb622362362373b4a8f449b5"},{"path":"src/platform/chrome/permission-gate.js","sha256":"a805f18cb6b1baaf3f5bd4f595297b9e28503d3376f45849a97c13225f3eca4b"},{"path":"src/platform/host/managed-site-runtime-contract.js","sha256":"67cfa4a84e465051bed27ad222e084d1ab863619140e512dcfcfd1c0953ea209"},{"path":"src/platform/protocol.js","sha256":"be91db624627180e21e2a8b4d2ebe9f7ec3f1da8048d4aa236a23f56b552ad94"},{"path":"src/platform/schema.js","sha256":"4c7583a0aa1f5f519bff274ee1c9d550b223885eb2212e136b14d3365043b356"},{"path":"src/platform/tasks/schedule-time.js","sha256":"e34644f793107218a7290ec679e41bd67b4f997b3995c9d7d9827e375a7fd2e2"},{"path":"src/tool-document-url.js","sha256":"581b7090b0c7f202c3c7d15ae7685b51b3f5033fc4df76b94cdd8460e66b0b5c"},{"path":"src/ui/cloud-hosting.css","sha256":"9eeb6ff44477bade32fd49514f4f4778e6f1d2fe409835dc772fa95e2368debb"},{"path":"src/ui/cloud-status-presentation.js","sha256":"6ab66b1ab50a14d3cc1cb9653f3f765bf1d53e6660fd0daf0c6463b3a6abc4a2"},{"path":"src/ui/conversation/bookmark-actions.js","sha256":"eff741f05a18ac0360d15fdf9609b2f968c9bc00951a61c2251b689c435c7212"},{"path":"src/ui/conversation/bookmark-agent-loop.js","sha256":"86e46fcee67fc1dc5b320aadf0c1067b3706de5d09f37fabfc621a097f3d8a30"},{"path":"src/ui/debug-workbench.js","sha256":"2c9ea17c92735637d91135b38552a666b9db485fbf867ec2b6ee4dfbd9b16583"},{"path":"src/ui/design-system.css","sha256":"8bae0d6e66d433dc7d4ff42697698aece1bf2849dcfc1a71cf43daa541b159ca"},{"path":"src/ui/design-tokens.css","sha256":"dc9715b3c09fc168d751987e227082a44160551508414017ac3b79aba38e7962"},{"path":"src/ui/develop-fields.js","sha256":"6e2881b2b68371e0eaea93d01228941ded2b51eec41c876ac82f05d4119d53a9"},{"path":"src/ui/develop-view.js","sha256":"3b8f51778151c3b0b827101989ac4aaac8450674a50e5e413c1b7eea80dc7220"},{"path":"src/ui/extension-center.css","sha256":"eb98698739a387163b7a7afb5aa2784a4ec9cae4fc83194670f052e47ed23ee2"},{"path":"src/ui/my-workbench-defaults.js","sha256":"cec8c6bfdb67a7571501f55089f283b6392256fa6ba3e9d6476397afed0a64d1"},{"path":"src/ui/my-workbench-view.js","sha256":"e218b18d6158bba57d58282e1358d0b9107989190502182b7904a37ea60add77"},{"path":"src/ui/react/app-shell.tsx","sha256":"8b1b6a73aa69c599636b5d61123c0e699d388c0d05dd98d45c0ba10b854bbb30"},{"path":"src/ui/react/components/conversation-dock.css","sha256":"36b3efd013cf692240eb0a1d2a8bad5ca759f6a2fea82410af16b67420d95fde"},{"path":"src/ui/react/components/conversation.tsx","sha256":"8e21f761f0a9aae8de7c1036bcade40bd112f1484db0eecd93827029864a4873"},{"path":"src/ui/react/components/ui/button.tsx","sha256":"c0ec4806a2bf6931f72ed6965fce9f0cd4b631f391ef6e34d986d0bc58a4bd47"},{"path":"src/ui/react/main.tsx","sha256":"9c97ad9590f63f24a2bb728e4dbceeb7a781de626e51883e94c05bf197aa62fc"},{"path":"src/ui/react/preview/clipper-preview.js","sha256":"4cb5f0f953ddf4de0feddfc95f4f25f81ec92a6b47e1f23eb688a23d8a9a2fdd"},{"path":"src/ui/react/preview/developer-preview.js","sha256":"285469a0d281e48e2d1b9baa3e6516b3513a106817a641ccc37a5b716bbfab4d"},{"path":"src/ui/react/tabs/bookmark-pilot.css","sha256":"3952697ddb71b49000ed4df0dc76f7233440cf4d2270857fd187f921dfacc805"},{"path":"src/ui/react/tabs/browser-history.tsx","sha256":"dc19b8eb4643774ca4b54696b5018bc61cba713b26513621117e82bcab462d84"},{"path":"src/ui/react/tabs/cloud-authorization.tsx","sha256":"0d5d650dde0ecde75a3e1fbc01f5391f5959313a3fe9205f31508aca0c3b792f"},{"path":"src/ui/react/tabs/cloud-settings.tsx","sha256":"fb2ca116ea4cf4e4c98bc85238df4579405c810e754fc624280c35230a5e2464"},{"path":"src/ui/react/tabs/cloud.tsx","sha256":"1e3d088860da73f7469a5e4a993fa43525106e070dd53bcf456ac1f40e36bacd"},{"path":"src/ui/react/tabs/debug.tsx","sha256":"61a89ec2e860d1b03098da618dc4647cf5a79107e525e0abebb82431889417dd"},{"path":"src/ui/react/tabs/develop-advanced.tsx","sha256":"9cb200523acfa81973f3c107f31425b2d4b58542cce693b152737501b5abd5da"},{"path":"src/ui/react/tabs/develop-controls.tsx","sha256":"16a23b70b5fd81728fdf03f9ef64b251ae17b3ee6caedc31c2b58472aedee5d0"},{"path":"src/ui/react/tabs/develop-dependencies.tsx","sha256":"d4a6732908b804fe9b061b65cf6bd4516f4d4cf0f8196601931a0bfabadd102c"},{"path":"src/ui/react/tabs/develop-diagnostics.tsx","sha256":"0befa725ff5cf2fc34e4cd529ff927350f8b8a0c63eb37d68602aaae406db724"},{"path":"src/ui/react/tabs/develop-editor.tsx","sha256":"a042262fed3d7e31387447ba8941a5c209d4b1e524a4d75c92d5656735aaa9bf"},{"path":"src/ui/react/tabs/develop-execution.tsx","sha256":"f01f263544b3d264ef451a24fa0a404870c14127ffe6659eb8ca87a877a95760"},{"path":"src/ui/react/tabs/develop-local.tsx","sha256":"4455890e6e8068d55821ccb8511c11ec8d7c55811f9056581e80cc0d6669299f"},{"path":"src/ui/react/tabs/develop.tsx","sha256":"298e3628285f2a89c07b715da4611d331ebb4c764b729a122cd689c2d5455e28"},{"path":"src/ui/react/tabs/my-agent.css","sha256":"c6c8fbef614f2d65c6b11428265ad6760b4800c65c1562b2b1edbb026a5f83fc"},{"path":"src/ui/react/tabs/my-agent.tsx","sha256":"f0da8889a18b20cb00ca8f2dc5af203fceaa12b7cde54864af87e0f41ba286f9"},{"path":"src/ui/react/tabs/my-controls.tsx","sha256":"f5a445b4508ddf2680b07604dec58c9729551d3d847760bb60283f07585459d5"},{"path":"src/ui/react/tabs/my-page.tsx","sha256":"8348651ba49d66d1598bd072ff2ca178fe54a6ce364a6bd46ed9a32723a66ae1"},{"path":"src/ui/react/tabs/my-sections.tsx","sha256":"5418bac5bffe0eecb9e30a267df9cfedb8c0024fcec81f3526d9046172682710"},{"path":"src/ui/react/tabs/navigation.tsx","sha256":"b2155ccabb12f78c075b99a8b4afeea6f4a2113602ef1e8772f52795ed1d855c"},{"path":"src/ui/react/tabs/schedule.tsx","sha256":"4800cbd3bcbba57a9ceba4ba93ae46af4e341e1e7e4b3652a1453b3bc40bd45d"},{"path":"src/ui/react/tabs/task-catalog.tsx","sha256":"a81de492b355cf0eeccfadf5435ef4b0d4ac9bc6b1a04a385fc554dd4203e6d2"},{"path":"src/ui/react/tabs/tasks.tsx","sha256":"8804264301f32a9e0b7b08846d0393be1ad9e2b6d9c16a6a764884250d8bf4e2"},{"path":"src/ui/react/tabs/tool-host.tsx","sha256":"8d05055b85b2670a931e73f42e0b50ce20ea31e54ff79110254afd56d425cb97"},{"path":"src/ui/react/tabs/tools.tsx","sha256":"9b6e2a5a6ec101d4db6bc0c33643982cde480d065e511559c36e4fea1d1c59da"},{"path":"src/ui/react/tabs/trusted-settings.tsx","sha256":"757767382026652be2ab57338468636ecbf57f5a0917c838328fed5305a69ad5"},{"path":"src/ui/react/tabs/workflow.tsx","sha256":"330ee20b25718b5629bf8b35a2775e006239f77d1f3fc00f47029e29b9a9833d"},{"path":"src/ui/schedule-plan-presentation.js","sha256":"e58927ed52907587afc220bb8216ff4812df7b5700339526cf4cbb4ad0b060a0"},{"path":"src/ui/scheduled-task-workbench.js","sha256":"4096e60d3bce0bf0b90b83593adb30bc6cd2b4cb26f3c49dfe129cd4642b7966"},{"path":"src/ui/sidebar-tools-fields.js","sha256":"18a57891bb58586733dc8921fb45178d95dcd2df29f8c55cc6bdf866c062f7ba"},{"path":"src/ui/sidebar-tools-view.js","sha256":"1e91ec1a629cb90c04792bd8a0647dc0dff3b4b5b7845ee8cffac2e478549d98"},{"path":"src/ui/sidebar-tools/background-policy.js","sha256":"b051b3e177c4f448cacf8da3a0c27453ef11ec5c663d438a98f3c27674cc0cad"},{"path":"src/ui/sidebar-tools/lifecycle.js","sha256":"21315a62ec16f58bcb9e5c8d67920e8b44ef32574cc0ed1f0f794385d9cbabe0"},{"path":"src/ui/sidebar-tools/package.js","sha256":"6c5435adf2bec97367e25d9680cbe6a2e5bdff8bf2f65878117f8a41a8c58153"},{"path":"src/ui/sidepanel.html","sha256":"2a58c144f4878627feb699ccba7fc4500e55eaa20b859f86b8fb85b232732eb2"},{"path":"src/ui/tool-shell.css","sha256":"9a3e7aef08e71d99ebfb18b589bfb8800fe719b2c76e11850e4b30614742fc13"},{"path":"src/ui/workflow/workflow-ui-state.js","sha256":"17b42fb711dee4a4d09447498a6f82147824cc342266d662f3d47111a1a6b5ab"}],"check":false}
+2026-10-22T01:35:20.4033211Z {"path":"/home/runner/work/opendesk-browser/opendesk-browser/prototypes/sidebar/react-preview/index.html","bytes":1071291,"bundleBytes":674053,"inputSha256":"31242eb0f6d71178b2bf9f1b513b9117c6bac382b0c0904edb01bbfe8647daf5","bundleInputSha256":"341e17074933154fa34b2bbf2dd2a4ee54f3ea320719f5439cd7a34c1dbc2558","sourceInputs":[{"path":"examples/sidebar-tools/bookmark-manager/src/model.js","sha256":"875cf0d61fb95f6c70901337118dd7382f33a2ff0ef45ac308a2a5e807aeee9c"},{"path":"examples/sidebar-tools/bookmark-manager/src/react/App.jsx","sha256":"8c607b6ba3f1bc81581daa8f58d16a0b92f9aa82ad9ccfe0a3b9d7b7f2d785de"},{"path":"examples/sidebar-tools/bookmark-manager/src/service.js","sha256":"641db4700757110cca0a4fce607f2e68df4cb1c1d8fb975197b8100b90189dc4"},{"path":"examples/sidebar-tools/web-markdown-clipper/preview/mock-host.js","sha256":"fab133cc9ce9a8d63b02e5c600877e9ab1d2c16e05985db6518fd78d5e23310b"},{"path":"examples/sidebar-tools/web-markdown-clipper/src/index.html","sha256":"68d30ae5c3e018966d2ea2db38de6772a47fe31d20cac576222741f79a4f40dc"},{"path":"examples/sidebar-tools/web-markdown-clipper/src/main.js","sha256":"8ab3952c224b88cd5f13a0116efe42ae38bc0d91fa4f8e185b96b1bf344d95c2"},{"path":"examples/sidebar-tools/web-markdown-clipper/src/notes.js","sha256":"6891af260c1b8ae3252c79b27338d7e4125902977d9c95716919aac7b46ada2d"},{"path":"examples/sidebar-tools/web-markdown-clipper/src/style.css","sha256":"d90c6957c8edaaed49325719ab5723255a73d26b65e541430e43c90ca1b42092"},{"path":"examples/sidebar-tools/web-markdown-clipper/tool.config.json","sha256":"00cd23e08e4b49af9e558aacc3cef54e37e1a0b11531f1cdccfa4bc9aa21410d"},{"path":"package-lock.json","sha256":"46dea0ff8bfd8a075eb190f3bf51ee9894051dd7e25079d5a9cb0190ef615561"},{"path":"package.json","sha256":"698b9e621e2d84480c51622d9d4dd67baecfdef8e3e7ceb51e274c593e2adc17"},{"path":"scripts/preview/build-sidebar-six-react-preview.mjs","sha256":"fbad0e5476255cf7753684561fafc3a3eff183726fcf994b82330f16f168f311"},{"path":"scripts/preview/clipper-stage.mjs","sha256":"7aeb1135ca1632d455320c9fe1000ff451882b983b563f1e529648dbbfaa1e07"},{"path":"scripts/preview/shared-tool-design.mjs","sha256":"1296bd766d8171ae9c7c5db7c0d8669f699a9f238bfb3b6f4ccea9400a0348a6"},{"path":"src/environment.js","sha256":"004d4a0b69670670d3510efbc9cc7b234eba9955a1d62ff9d816015d8519c3d2"},{"path":"src/framework/sdk/browser-direct.generated.js","sha256":"fe79bf56a74a324d00593f497824501e69eeabf3eb622362362373b4a8f449b5"},{"path":"src/platform/chrome/permission-gate.js","sha256":"a805f18cb6b1baaf3f5bd4f595297b9e28503d3376f45849a97c13225f3eca4b"},{"path":"src/platform/host/managed-site-runtime-contract.js","sha256":"67cfa4a84e465051bed27ad222e084d1ab863619140e512dcfcfd1c0953ea209"},{"path":"src/platform/protocol.js","sha256":"be91db624627180e21e2a8b4d2ebe9f7ec3f1da8048d4aa236a23f56b552ad94"},{"path":"src/platform/schema.js","sha256":"4c7583a0aa1f5f519bff274ee1c9d550b223885eb2212e136b14d3365043b356"},{"path":"src/platform/tasks/schedule-time.js","sha256":"e34644f793107218a7290ec679e41bd67b4f997b3995c9d7d9827e375a7fd2e2"},{"path":"src/tool-document-url.js","sha256":"581b7090b0c7f202c3c7d15ae7685b51b3f5033fc4df76b94cdd8460e66b0b5c"},{"path":"src/ui/cloud-hosting.css","sha256":"9eeb6ff44477bade32fd49514f4f4778e6f1d2fe409835dc772fa95e2368debb"},{"path":"src/ui/cloud-status-presentation.js","sha256":"6ab66b1ab50a14d3cc1cb9653f3f765bf1d53e6660fd0daf0c6463b3a6abc4a2"},{"path":"src/ui/conversation/bookmark-actions.js","sha256":"eff741f05a18ac0360d15fdf9609b2f968c9bc00951a61c2251b689c435c7212"},{"path":"src/ui/conversation/bookmark-agent-loop.js","sha256":"86e46fcee67fc1dc5b320aadf0c1067b3706de5d09f37fabfc621a097f3d8a30"},{"path":"src/ui/debug-workbench.js","sha256":"2c9ea17c92735637d91135b38552a666b9db485fbf867ec2b6ee4dfbd9b16583"},{"path":"src/ui/design-system.css","sha256":"8bae0d6e66d433dc7d4ff42697698aece1bf2849dcfc1a71cf43daa541b159ca"},{"path":"src/ui/design-tokens.css","sha256":"dc9715b3c09fc168d751987e227082a44160551508414017ac3b79aba38e7962"},{"path":"src/ui/develop-fields.js","sha256":"6e2881b2b68371e0eaea93d01228941ded2b51eec41c876ac82f05d4119d53a9"},{"path":"src/ui/develop-view.js","sha256":"3b8f51778151c3b0b827101989ac4aaac8450674a50e5e413c1b7eea80dc7220"},{"path":"src/ui/extension-center.css","sha256":"eb98698739a387163b7a7afb5aa2784a4ec9cae4fc83194670f052e47ed23ee2"},{"path":"src/ui/my-workbench-defaults.js","sha256":"cec8c6bfdb67a7571501f55089f283b6392256fa6ba3e9d6476397afed0a64d1"},{"path":"src/ui/my-workbench-view.js","sha256":"e218b18d6158bba57d58282e1358d0b9107989190502182b7904a37ea60add77"},{"path":"src/ui/react/app-shell.tsx","sha256":"8b1b6a73aa69c599636b5d61123c0e699d388c0d05dd98d45c0ba10b854bbb30"},{"path":"src/ui/react/components/conversation-dock.css","sha256":"36b3efd013cf692240eb0a1d2a8bad5ca759f6a2fea82410af16b67420d95fde"},{"path":"src/ui/react/components/conversation.tsx","sha256":"8e21f761f0a9aae8de7c1036bcade40bd112f1484db0eecd93827029864a4873"},{"path":"src/ui/react/components/ui/button.tsx","sha256":"c0ec4806a2bf6931f72ed6965fce9f0cd4b631f391ef6e34d986d0bc58a4bd47"},{"path":"src/ui/react/main.tsx","sha256":"9c97ad9590f63f24a2bb728e4dbceeb7a781de626e51883e94c05bf197aa62fc"},{"path":"src/ui/react/preview/clipper-preview.js","sha256":"4cb5f0f953ddf4de0feddfc95f4f25f81ec92a6b47e1f23eb688a23d8a9a2fdd"},{"path":"src/ui/react/preview/developer-preview.js","sha256":"285469a0d281e48e2d1b9baa3e6516b3513a106817a641ccc37a5b716bbfab4d"},{"path":"src/ui/react/tabs/bookmark-pilot.css","sha256":"3952697ddb71b49000ed4df0dc76f7233440cf4d2270857fd187f921dfacc805"},{"path":"src/ui/react/tabs/browser-history.tsx","sha256":"dc19b8eb4643774ca4b54696b5018bc61cba713b26513621117e82bcab462d84"},{"path":"src/ui/react/tabs/cloud-authorization.tsx","sha256":"0d5d650dde0ecde75a3e1fbc01f5391f5959313a3fe9205f31508aca0c3b792f"},{"path":"src/ui/react/tabs/cloud-settings.tsx","sha256":"fb2ca116ea4cf4e4c98bc85238df4579405c810e754fc624280c35230a5e2464"},{"path":"src/ui/react/tabs/cloud.tsx","sha256":"1e3d088860da73f7469a5e4a993fa43525106e070dd53bcf456ac1f40e36bacd"},{"path":"src/ui/react/tabs/debug.tsx","sha256":"61a89ec2e860d1b03098da618dc4647cf5a79107e525e0abebb82431889417dd"},{"path":"src/ui/react/tabs/develop-advanced.tsx","sha256":"9cb200523acfa81973f3c107f31425b2d4b58542cce693b152737501b5abd5da"},{"path":"src/ui/react/tabs/develop-controls.tsx","sha256":"16a23b70b5fd81728fdf03f9ef64b251ae17b3ee6caedc31c2b58472aedee5d0"},{"path":"src/ui/react/tabs/develop-dependencies.tsx","sha256":"d4a6732908b804fe9b061b65cf6bd4516f4d4cf0f8196601931a0bfabadd102c"},{"path":"src/ui/react/tabs/develop-diagnostics.tsx","sha256":"0befa725ff5cf2fc34e4cd529ff927350f8b8a0c63eb37d68602aaae406db724"},{"path":"src/ui/react/tabs/develop-editor.tsx","sha256":"a042262fed3d7e31387447ba8941a5c209d4b1e524a4d75c92d5656735aaa9bf"},{"path":"src/ui/react/tabs/develop-execution.tsx","sha256":"f01f263544b3d264ef451a24fa0a404870c14127ffe6659eb8ca87a877a95760"},{"path":"src/ui/react/tabs/develop-local.tsx","sha256":"4455890e6e8068d55821ccb8511c11ec8d7c55811f9056581e80cc0d6669299f"},{"path":"src/ui/react/tabs/develop.tsx","sha256":"298e3628285f2a89c07b715da4611d331ebb4c764b729a122cd689c2d5455e28"},{"path":"src/ui/react/tabs/my-agent.css","sha256":"c6c8fbef614f2d65c6b11428265ad6760b4800c65c1562b2b1edbb026a5f83fc"},{"path":"src/ui/react/tabs/my-agent.tsx","sha256":"f0da8889a18b20cb00ca8f2dc5af203fceaa12b7cde54864af87e0f41ba286f9"},{"path":"src/ui/react/tabs/my-controls.tsx","sha256":"f5a445b4508ddf2680b07604dec58c9729551d3d847760bb60283f07585459d5"},{"path":"src/ui/react/tabs/my-page.tsx","sha256":"8348651ba49d66d1598bd072ff2ca178fe54a6ce364a6bd46ed9a32723a66ae1"},{"path":"src/ui/react/tabs/my-sections.tsx","sha256":"5418bac5bffe0eecb9e30a267df9cfedb8c0024fcec81f3526d9046172682710"},{"path":"src/ui/react/tabs/navigation.tsx","sha256":"b2155ccabb12f78c075b99a8b4afeea6f4a2113602ef1e8772f52795ed1d855c"},{"path":"src/ui/react/tabs/schedule.tsx","sha256":"4800cbd3bcbba57a9ceba4ba93ae46af4e341e1e7e4b3652a1453b3bc40bd45d"},{"path":"src/ui/react/tabs/task-catalog.tsx","sha256":"a81de492b355cf0eeccfadf5435ef4b0d4ac9bc6b1a04a385fc554dd4203e6d2"},{"path":"src/ui/react/tabs/tasks.tsx","sha256":"8804264301f32a9e0b7b08846d0393be1ad9e2b6d9c16a6a764884250d8bf4e2"},{"path":"src/ui/react/tabs/tool-host.tsx","sha256":"8d05055b85b2670a931e73f42e0b50ce20ea31e54ff79110254afd56d425cb97"},{"path":"src/ui/react/tabs/tools.tsx","sha256":"9b6e2a5a6ec101d4db6bc0c33643982cde480d065e511559c36e4fea1d1c59da"},{"path":"src/ui/react/tabs/trusted-settings.tsx","sha256":"757767382026652be2ab57338468636ecbf57f5a0917c838328fed5305a69ad5"},{"path":"src/ui/react/tabs/workflow.tsx","sha256":"330ee20b25718b5629bf8b35a2775e006239f77d1f3fc00f47029e29b9a9833d"},{"path":"src/ui/schedule-plan-presentation.js","sha256":"e58927ed52907587afc220bb8216ff4812df7b5700339526cf4cbb4ad0b060a0"},{"path":"src/ui/scheduled-task-workbench.js","sha256":"4096e60d3bce0bf0b90b83593adb30bc6cd2b4cb26f3c49dfe129cd4642b7966"},{"path":"src/ui/sidebar-tools-fields.js","sha256":"18a57891bb58586733dc8921fb45178d95dcd2df29f8c55cc6bdf866c062f7ba"},{"path":"src/ui/sidebar-tools-view.js","sha256":"1e91ec1a629cb90c04792bd8a0647dc0dff3b4b5b7845ee8cffac2e478549d98"},{"path":"src/ui/sidebar-tools/background-policy.js","sha256":"b051b3e177c4f448cacf8da3a0c27453ef11ec5c663d438a98f3c27674cc0cad"},{"path":"src/ui/sidebar-tools/lifecycle.js","sha256":"21315a62ec16f58bcb9e5c8d67920e8b44ef32574cc0ed1f0f794385d9cbabe0"},{"path":"src/ui/sidebar-tools/package.js","sha256":"6c5435adf2bec97367e25d9680cbe6a2e5bdff8bf2f65878117f8a41a8c58153"},{"path":"src/ui/sidepanel.html","sha256":"2a58c144f4878627feb699ccba7fc4500e55eaa20b859f86b8fb85b232732eb2"},{"path":"src/ui/tool-shell.css","sha256":"9a3e7aef08e71d99ebfb18b589bfb8800fe719b2c76e11850e4b30614742fc13"},{"path":"src/ui/workflow/workflow-ui-state.js","sha256":"17b42fb711dee4a4d09447498a6f82147824cc342266d662f3d47111a1a6b5ab"}],"check":true}
+2026-10-22T01:35:20.4387518Z ##[group]Run node scripts/tests/workflow-source-preview-browser.mjs
+2026-10-22T01:35:20.4388597Z [36;1mnode scripts/tests/workflow-source-preview-browser.mjs[0m
+2026-10-22T01:35:20.4452114Z shell: /usr/bin/bash -e {0}
+2026-10-22T01:35:20.4452543Z ##[endgroup]
+2026-10-22T01:35:21.6545029Z {"kind":"SOURCE_BOUND_WORKFLOW_PREVIEW_CHROMIUM","status":"PASS","browser":"Chrome/155.0.8059.39","scenarios":["empty","conversation","planning","running","success","failure","unknown","approval","run-review","denied","disconnected","history","settings"],"viewportWidths":[320,360,400,420,440,520],"themes":["dark","light"],"checks":["single production React root","no retired Portal","input and Enter","Shift+Enter","offline result guard","run review Cancel/Confirm offline","settings Escape and inert"],"native":false}
+2026-10-22T01:35:21.7947001Z ##[group]Run set -euo pipefail
+2026-10-22T01:35:21.7947506Z [36;1mset -euo pipefail[0m
+2026-10-22T01:35:21.7948158Z [36;1mCHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"[0m
+2026-10-22T01:35:21.7948858Z [36;1mtest -n "$CHROME"[0m
+2026-10-22T01:35:21.7949275Z [36;1mmkdir -p artifacts/workflow-react-preview[0m
+2026-10-22T01:35:21.7949924Z [36;1m"$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \[0m
+2026-10-22T01:35:21.7950583Z [36;1m  --no-first-run --virtual-time-budget=3500 \[0m
+2026-10-22T01:35:21.7951231Z [36;1m  --dump-dom "file://$PWD/prototypes/sidebar/workflow/react-preview/index.html" \[0m
+2026-10-22T01:35:21.7951896Z [36;1m  > artifacts/workflow-react-preview/dom.txt[0m
+2026-10-22T01:35:21.7952332Z [36;1mnode --input-type=module <<'JS'[0m
+2026-10-22T01:35:21.7952740Z [36;1mimport {readFileSync} from 'node:fs';[0m
+2026-10-22T01:35:21.7953367Z [36;1mconst dom=readFileSync('artifacts/workflow-react-preview/dom.txt','utf8');[0m
+2026-10-22T01:35:21.7954125Z [36;1mconst checks=['data-workflow-preview-ready="true"','data-preview-scenario',[0m
+2026-10-22T01:35:21.7954864Z [36;1m  'id="od-workflow-preview-stage"','id="od-workflow-preview-controls"',[0m
+2026-10-22T01:35:21.7955503Z [36;1m  'workflow-sheet-overlay','SOURCE_BOUND_UI_PREVIEW'];[0m
+2026-10-22T01:35:21.7956441Z [36;1mconsole.log('OFFLINE_CHROME_DOM_BYTES='+Buffer.byteLength(dom));[0m
+2026-10-22T01:35:21.7956972Z [36;1mfor(const match of checks)[0m
+2026-10-22T01:35:21.7957441Z [36;1m  console.log('OFFLINE_DOM_'+match+'='+dom.includes(match));[0m
+2026-10-22T01:35:21.7958004Z [36;1mconsole.log('OFFLINE_DOM_ROOT='+dom.slice(0,280));[0m
+2026-10-22T01:35:21.7958508Z [36;1mconsole.log('OFFLINE_DOM_END='+dom.slice(-280));[0m
+2026-10-22T01:35:21.7958921Z [36;1mJS[0m
+2026-10-22T01:35:21.7959449Z [36;1mgrep -q 'data-workflow-preview-ready="true"' artifacts/workflow-react-preview/dom.txt[0m
+2026-10-22T01:35:21.7960250Z [36;1mgrep -q 'data-preview-scenario' artifacts/workflow-react-preview/dom.txt[0m
+2026-10-22T01:35:21.7960946Z [36;1m"$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \[0m
+2026-10-22T01:35:21.7961597Z [36;1m  --no-first-run --virtual-time-budget=3500 --window-size=520,950 \[0m
+2026-10-22T01:35:21.7962215Z [36;1m  --screenshot="$PWD/artifacts/workflow-react-preview/360.png" \[0m
+2026-10-22T01:35:21.7962829Z [36;1m  "file://$PWD/prototypes/sidebar/workflow/react-preview/index.html"[0m
+2026-10-22T01:35:21.7963615Z [36;1mtest -s artifacts/workflow-react-preview/360.png[0m
+2026-10-22T01:35:21.8034652Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-22T01:35:21.8035200Z ##[endgroup]
+2026-10-22T01:35:21.8857885Z [3062:3083:1022/013521.883226:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:21.8860795Z [3062:3083:1022/013521.884313:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:21.8866641Z [3062:3083:1022/013521.884329:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:21.8880655Z [3062:3083:1022/013521.887690:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:21.9242501Z [3062:3083:1022/013521.922627:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:22.0181253Z [3062:3062:1022/013522.016007:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+2026-10-22T01:35:22.0199719Z [3062:3083:1022/013522.016235:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:22.0202982Z [3062:3062:1022/013522.016353:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+2026-10-22T01:35:22.0289159Z [3062:3062:1022/013522.016511:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+2026-10-22T01:35:22.0316097Z [3062:3083:1022/013522.017681:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:22.0373826Z [3062:3062:1022/013522.018982:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+2026-10-22T01:35:22.0408968Z [3062:3083:1022/013522.020787:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:22.0548271Z [3062:3062:1022/013522.054334:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+2026-10-22T01:35:22.0638608Z [3062:3062:1022/013522.060792:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+2026-10-22T01:35:22.0656666Z [3062:3062:1022/013522.061624:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+2026-10-22T01:35:22.0690599Z [3062:3083:1022/013522.061847:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:22.1133611Z [3062:3062:1022/013522.107949:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.UPower was not provided by any .service files
+2026-10-22T01:35:22.1176797Z [3062:3062:1022/013522.112141:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+2026-10-22T01:35:22.1218978Z [3062:3083:1022/013522.112644:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:22.1434147Z [3062:3062:1022/013522.141194:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+2026-10-22T01:35:22.1476840Z [3062:3083:1022/013522.142193:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:22.1871118Z [3062:3062:1022/013522.185622:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+2026-10-22T01:35:23.1506199Z OFFLINE_CHROME_DOM_BYTES=1025922
+2026-10-22T01:35:23.1508793Z OFFLINE_DOM_data-workflow-preview-ready="true"=true
+2026-10-22T01:35:23.1510102Z OFFLINE_DOM_data-preview-scenario=true
+2026-10-22T01:35:23.1517418Z OFFLINE_DOM_id="od-workflow-preview-stage"=true
+2026-10-22T01:35:23.1518881Z OFFLINE_DOM_id="od-workflow-preview-controls"=true
+2026-10-22T01:35:23.1520532Z OFFLINE_DOM_workflow-sheet-overlay=true
+2026-10-22T01:35:23.1522010Z OFFLINE_DOM_SOURCE_BOUND_UI_PREVIEW=true
+2026-10-22T01:35:23.1523332Z OFFLINE_DOM_ROOT=<!DOCTYPE html>
+2026-10-22T01:35:23.1526733Z <html lang="zh-CN" data-opendesk-tab="workflow" data-workflow-preview-ready="true"><head><meta charset="utf-8">
+2026-10-22T01:35:23.1528271Z <meta name="viewport" content="width=device-width,initial-scale=1">
+2026-10-22T01:35:23.1529521Z <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src d
+2026-10-22T01:35:23.1534145Z OFFLINE_DOM_END=all-import-receipt"><summary>安装回执</summary><p id="page-install-import-receipt-text"></p></details></div><div class="od-import-sheet-footer" hidden=""><button type="button" class="od-button" disabled="" id="sidebar-tool-install">确认安装</button></div></section></div>
+2026-10-22T01:35:23.1536301Z
+2026-10-22T01:35:23.1536448Z </body></html>
+2026-10-22T01:35:23.1536640Z
+2026-10-22T01:35:23.2249025Z [3255:3276:1022/013523.223622:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:23.2283939Z [3255:3276:1022/013523.224378:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:23.2297804Z [3255:3276:1022/013523.224396:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:23.2328245Z [3255:3276:1022/013523.230100:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:23.2677424Z [3255:3276:1022/013523.264969:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:23.3563537Z [3255:3255:1022/013523.352401:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+2026-10-22T01:35:23.3611140Z [3255:3276:1022/013523.352479:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:23.3637585Z [3255:3255:1022/013523.352500:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+2026-10-22T01:35:23.3640817Z [3255:3276:1022/013523.352692:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:23.3675538Z [3255:3255:1022/013523.353296:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+2026-10-22T01:35:23.3693359Z [3255:3255:1022/013523.357717:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+2026-10-22T01:35:23.3734922Z [3255:3276:1022/013523.357855:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:23.3899103Z [3255:3255:1022/013523.385503:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+2026-10-22T01:35:23.3947655Z [3255:3255:1022/013523.386077:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+2026-10-22T01:35:23.3950705Z [3255:3276:1022/013523.386273:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:23.4048240Z [3255:3255:1022/013523.391606:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+2026-10-22T01:35:23.4264849Z [3255:3255:1022/013523.425840:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+2026-10-22T01:35:23.4309101Z [3255:3255:1022/013523.425906:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.UPower was not provided by any .service files
+2026-10-22T01:35:23.4362176Z [3255:3276:1022/013523.425933:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:23.4539323Z [3255:3255:1022/013523.452675:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+2026-10-22T01:35:23.4569334Z [3255:3276:1022/013523.452790:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+2026-10-22T01:35:23.4899356Z [3255:3255:1022/013523.489214:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+2026-10-22T01:35:24.1763968Z 18320 bytes written to file /home/runner/work/opendesk-browser/opendesk-browser/artifacts/workflow-react-preview/360.png
+2026-10-22T01:35:24.3195131Z ##[group]Run actions/upload-artifact@v4
+2026-10-22T01:35:24.3195506Z with:
+2026-10-22T01:35:24.3196222Z   name: workflow-react-r3336-offline-f592cad4166bff8ef0466bb3a7030144fe9b1c3d
+2026-10-22T01:35:24.3197234Z   path: prototypes/sidebar/workflow/react-preview/index.html
+artifacts/workflow-react-preview/360.png
+artifacts/workflow-react-preview/dom.txt
+
+2026-10-22T01:35:24.3197999Z   retention-days: 14
+2026-10-22T01:35:24.3198253Z   if-no-files-found: warn
+2026-10-22T01:35:24.3198517Z   compression-level: 6
+2026-10-22T01:35:24.3198761Z   overwrite: false
+2026-10-22T01:35:24.3199004Z   include-hidden-files: false
+2026-10-22T01:35:24.3199290Z ##[endgroup]
+2026-10-22T01:35:24.5091948Z (node:3444) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-22T01:35:24.5093604Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-22T01:35:24.5198732Z Multiple search paths detected. Calculating the least common ancestor of all paths
+2026-10-22T01:35:24.5221379Z The least common ancestor is /home/runner/work/opendesk-browser/opendesk-browser. This will be the root directory of the artifact
+2026-10-22T01:35:24.5223238Z With the provided path, there will be 3 files uploaded
+2026-10-22T01:35:24.5225143Z Artifact name is valid!
+2026-10-22T01:35:24.5226550Z Root directory input is valid!
+2026-10-22T01:35:24.7156867Z Beginning upload of artifact content to blob storage
+2026-10-22T01:35:24.7940251Z (node:3444) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-22T01:35:24.8422257Z Uploaded bytes 595726
+2026-10-22T01:35:24.8602344Z Finished uploading artifact content to blob storage!
+2026-10-22T01:35:24.8604328Z SHA256 digest of uploaded artifact zip is a1eccbbb2495ce7bb5d6253b3c9a5efe9ffab7a90f7ade4a332a4ecece2f2945
+2026-10-22T01:35:24.8606160Z Finalizing artifact upload
+2026-10-22T01:35:25.3234709Z Artifact workflow-react-r3336-offline-f592cad4166bff8ef0466bb3a7030144fe9b1c3d.zip successfully finalized. Artifact ID 12394822412
+2026-10-22T01:35:25.3239861Z Artifact workflow-react-r3336-offline-f592cad4166bff8ef0466bb3a7030144fe9b1c3d has been successfully uploaded! Final size is 595726 bytes. Artifact ID is 12394822412
+2026-10-22T01:35:25.3245317Z Artifact download URL: https://github.com/shopable-ai/opendesk-browser/actions/runs/39706472804/artifacts/12394822412
+2026-10-22T01:35:25.3433269Z ##[group]Run node --input-type=module <<'JS'
+2026-10-22T01:35:25.3433851Z [36;1mnode --input-type=module <<'JS'[0m
+2026-10-22T01:35:25.3434335Z [36;1mimport {readFile} from 'node:fs/promises';[0m
+2026-10-22T01:35:25.3435060Z [36;1mconst file=await readFile('prototypes/sidebar/workflow/react-preview/index.html');[0m
+2026-10-22T01:35:25.3435747Z [36;1mconst response=await fetch([0m
+2026-10-22T01:35:25.3436703Z [36;1m  'https://api.github.com/repos/'+process.env.GITHUB_REPOSITORY+'/git/blobs',{[0m
+2026-10-22T01:35:25.3437292Z [36;1m    method:'POST',[0m
+2026-10-22T01:35:25.3437624Z [36;1m    headers:{[0m
+2026-10-22T01:35:25.3438035Z [36;1m      Authorization:'Bearer '+process.env.GITHUB_TOKEN,[0m
+2026-10-22T01:35:25.3438549Z [36;1m      Accept:'application/vnd.github+json',[0m
+2026-10-22T01:35:25.3439000Z [36;1m      'X-GitHub-Api-Version':'2022-11-28',[0m
+2026-10-22T01:35:25.3439424Z [36;1m      'Content-Type':'application/json'[0m
+2026-10-22T01:35:25.3439843Z [36;1m    },[0m
+2026-10-22T01:35:25.3440298Z [36;1m    body:JSON.stringify({content:file.toString('base64'),encoding:'base64'})[0m
+2026-10-22T01:35:25.3440837Z [36;1m  });[0m
+2026-10-22T01:35:25.3441146Z [36;1mconst result=await response.json();[0m
+2026-10-22T01:35:25.3441638Z [36;1mif(!response.ok||!(/^[0-9a-f]{40}$/.test(result.sha||'')))[0m
+2026-10-22T01:35:25.3442322Z [36;1m  throw Error('E_PREVIEW_BLOB_UPLOAD: '+response.status+' '+JSON.stringify(result));[0m
+2026-10-22T01:35:25.3443045Z [36;1mconsole.log('R3336_VERIFIED_PREVIEW_BLOB_SHA='+result.sha);[0m
+2026-10-22T01:35:25.3443636Z [36;1mconsole.log('R3336_VERIFIED_PREVIEW_BYTES='+file.length);[0m
+2026-10-22T01:35:25.3444229Z [36;1mJS[0m
+2026-10-22T01:35:25.3508208Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-22T01:35:25.3508782Z env:
+2026-10-22T01:35:25.3513433Z   GITHUB_TOKEN: ***
+2026-10-22T01:35:25.3513900Z   GITHUB_REPOSITORY: shopable-ai/opendesk-browser
+2026-10-22T01:35:25.3514416Z ##[endgroup]
+2026-10-22T01:35:26.2628317Z R3336_VERIFIED_PREVIEW_BLOB_SHA=7dfe138f512b3266a3b0e64a10f5c5e249cd2ba6
+2026-10-22T01:35:26.2630041Z R3336_VERIFIED_PREVIEW_BYTES=913837
+2026-10-22T01:35:26.3282895Z ##[group]Run node scripts/tests/react-sidebar-r3331-browser.mjs
+2026-10-22T01:35:26.3283791Z [36;1mnode scripts/tests/react-sidebar-r3331-browser.mjs[0m
+2026-10-22T01:35:26.3356712Z shell: /usr/bin/bash -e {0}
+2026-10-22T01:35:26.3357035Z ##[endgroup]
+2026-10-22T01:35:29.6395168Z {"kind":"SOURCE_UI_SIMULATION_CHROMIUM","status":"PASS","browser":"Chrome/155.0.8059.39","binary":"/usr/bin/google-chrome","fixture":"src/ui/sidepanel.html","mode":"mountSidebarApp","checks":["single root","real typing","React tab navigation","veto and arrow focus","filter selection","menu click","row menu trusted click","row click","React detail subtree","empty state","trusted cleanup callback","live status","developer target indicator","developer run status","developer Run Save Stop trusted clicks","disabled Run state","code-type trusted radio","developer result text escape","workflow history and sheet focus","controlled draft and key input","retained task parameters","unmount subscriptions and inert cleanup","detached actions and late updates"],"operations":["nav:tools","nav:cloud","nav:workflow","nav:develop","framework:react:true","framework:vue:true","run:true","save:true","stop:true","nav:tools","cleanup:cleanup-test:true","search:React UI","menu:true","scope:available","kind:page","menu:false","more:app:sample","toggle:true","open:app:sample","back","nav:workflow","workflow-open:saved-revision-fixture:true","workflow-history:true","workflow-session:true","workflow-new:true","input:workflow-ai-request:true","workflow-click:workflow-provider-toggle:true","input:workflow-ai-key:true","workflow-close","workflow-click:workflow-provider-toggle:true","workflow-close","nav:tasks","task-select:demo-b","nav:workflow","workflow-click:workflow-provider-toggle:true"]}
+2026-10-22T01:35:29.8295576Z Post job cleanup.
+2026-10-22T01:35:29.9705131Z (node:3639) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-22T01:35:29.9708404Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-22T01:35:29.9712231Z Cache hit occurred on the primary key node-cache-Linux-x64-npm-466b883e2ea52822b8a2aa794d718ea201773b54608bc045eef49f4c17620257, not saving cache.
+2026-10-22T01:35:29.9875374Z Post job cleanup.
+2026-10-22T01:35:30.0998684Z [command]/usr/bin/git version
+2026-10-22T01:35:30.1056781Z git version 2.55.0
+2026-10-22T01:35:30.1109349Z Temporarily overriding HOME='/home/runner/work/_temp/558e3b5e-1207-47d4-9db4-43910a64f064' before making global git config changes
+2026-10-22T01:35:30.1111584Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-22T01:35:30.1117287Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/opendesk-browser/opendesk-browser
+2026-10-22T01:35:30.1189215Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-22T01:35:30.1244271Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-22T01:35:30.1671711Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-22T01:35:30.1707436Z http.https://github.com/.extraheader
+2026-10-22T01:35:30.1720343Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-10-22T01:35:30.1766559Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-22T01:35:30.2164613Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-22T01:35:30.2224589Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-22T01:35:30.2833268Z Cleaning up orphan processes
+2026-10-22T01:35:30.3250329Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
