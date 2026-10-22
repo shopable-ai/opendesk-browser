@@ -67,7 +67,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .message-inner h2{font-size:24px;margin:0 0 18px;font-weight:650;letter-spacing:-.03em}
 .message-inner p{font-size:14px;line-height:1.85;margin:0 0 17px}.message-inner .user{margin-left:auto;margin-bottom:25px;width:max-content;max-width:80%;padding:11px 16px;border-radius:20px;background:var(--stage-bubble)}
 /* Mirrors approved R1.2 decision: 12 px from content area's LEFT EDGE, not the centered text column or composer. */
-.page-rail{position:absolute;left:12px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:8px;max-height:248px;overflow:auto;padding:4px;width:46px;border-radius:12px;scrollbar-width:thin}
+.page-rail{position:absolute;left:12px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:8px;max-height:248px;overflow:auto;padding:6px;width:46px;border:1px solid var(--stage-line);background:var(--stage-bubble);box-shadow:0 6px 24px #18243b15;border-radius:17px;box-sizing:border-box;scrollbar-width:thin}
 .page-shortcut{flex:none;width:38px;height:38px;display:grid;place-items:center;border:1px solid var(--stage-line);background:var(--stage-bubble);color:var(--stage-ink);border-radius:10px;font-size:11px;line-height:1.07;font-weight:700;box-shadow:0 1px 7px #00000010}
 .page-shortcut.round{border-radius:50%}.page-shortcut:hover{border-color:var(--od-focus);background:var(--stage)}
 .page-shortcut .stack{display:flex;flex-direction:column;align-items:center;gap:2px}
@@ -636,7 +636,6 @@ border:0;background:transparent;color:var(--od-sub)}
        </div>
       </details>
      </div>
-     <div id="leaveConfirm" class="warning-box" hidden aria-labelledby="leaveHeading"><strong id="leaveHeading">存在未保存的提示词草稿</strong><p>可以继续编辑，也可以主动放弃更改。取消仅返回列表，宿主返回则退出工具。</p><div class="row"><button id="stayEditing" type="button" class="od-button od-button--small">继续编辑</button><button id="discardEditing" type="button" class="od-button od-button--danger od-button--small">放弃更改</button></div></div>
      <div class="form-feedback" id="formFeedback"><div id="formError" class="inline-error" role="alert" tabindex="-1" hidden></div>
       <div id="verificationPanel" class="save-verification" hidden aria-label="已保存内容核对"><strong>当前模拟保存列表</strong><div id="verificationRows"></div><p>仅展示目前可确认的模拟内存数据，不代表真实 Host 存储。</p><button id="closeVerification" type="button" class="od-button od-button--small">继续编辑当前草稿</button></div>
       <button id="verifySaved" type="button" class="od-button od-button--small" hidden>核对当前列表（保留草稿）</button>
@@ -757,8 +756,8 @@ border:0;background:transparent;color:var(--od-sub)}
  function persistDemoItems(items=state.items){try{localStorage.setItem(DEMO_ITEM_KEY,JSON.stringify(items));return true;}catch{return false;}}
  function persistDemoSettings(settings=state.settings){try{localStorage.setItem(DEMO_SETTINGS_KEY,JSON.stringify(settings));return true;}catch{return false;}}
  let state={version:1,revision:1,settings:restoreDemoSettings(),items:restoreDemoItems(),toolEnabled:true};
- let previewCompactExpanded=false;
- let currentView='index', editId=null,baselineForm='',revisionAtEdit=1,dirty=false,saving=false,pendingDestination='index',expandedId=null,deleteId=null,copyId=null,tipButton=null,noticeKind='info',nextSaveFailure=null;
+ let previewCompactExpanded=true;
+ let currentView='index', editId=null,baselineForm='',revisionAtEdit=1,dirty=false,saving=false,expandedId=null,deleteId=null,copyId=null,tipButton=null,noticeKind='info',nextSaveFailure=null;
  let stagedImport=null,importRevision=0,replaceArmed=false,installed=true;
  const create=(tag,classes,text)=>{const n=document.createElement(tag);if(classes)n.className=classes;if(text!==undefined)n.textContent=text;return n;};
  function icon(name){
@@ -996,7 +995,7 @@ border:0;background:transparent;color:var(--od-sub)}
   if(!installed||!state.settings.showBar||!state.toolEnabled){rail.hidden=true;return;}rail.hidden=false;
   const active=state.items.filter(item=>item.enabled);
   if(!active.length){
-   previewCompactExpanded=false;
+   previewCompactExpanded=true;
    const manage=create('button','page-shortcut','OD');manage.type='button';
    manage.title='打开模拟侧边栏管理提示词';manage.setAttribute('aria-label',manage.title);
    manage.addEventListener('click',()=>{setView('index');el('sidepanel').scrollIntoView({block:'nearest'});});
@@ -1013,14 +1012,14 @@ border:0;background:transparent;color:var(--od-sub)}
    if(!previewCompactExpanded)return;
   }else previewCompactExpanded=false;
   for(const item of active){const b=create('button','page-shortcut');b.type='button';b.title=itemIdentity(item);b.setAttribute('aria-label','插入提示词：'+itemIdentity(item));paintPicture(b,item);
-   b.addEventListener('click',()=>{void usePrompt(item).finally(()=>{if(compact){previewCompactExpanded=false;renderRail();}});});
+   b.addEventListener('click',()=>{void usePrompt(item);});
    b.addEventListener('mouseenter',()=>showTip(item,b));b.addEventListener('focus',()=>showTip(item,b));b.addEventListener('mouseleave',()=>hideTip(b));b.addEventListener('blur',()=>hideTip(b));rail.append(b);
   }
   if(compact){
    const manage=create('button','page-shortcut','管理');manage.type='button';
    manage.title='打开模拟侧边栏管理提示词';manage.setAttribute('aria-label',manage.title);
    manage.addEventListener('click',()=>{
-    previewCompactExpanded=false;renderRail();setView('index');
+    renderRail();setView('index');
     el('sidepanel').scrollIntoView({block:'nearest'});notice('已打开模拟管理页面，不会切换真实扩展。');
    });
    rail.append(manage);
@@ -1273,7 +1272,7 @@ border:0;background:transparent;color:var(--od-sub)}
   }
   if(!local)el('imageDropzone').classList.remove('is-dragover');
   syncImageControls();
-  el('leaveConfirm').hidden=true;el('bodyError').hidden=true;
+  el('bodyError').hidden=true;
   // Unknown write outcomes remain visible while the user edits; only explicit reconciliation or a new save clears them.
   if(!el('formError').textContent.startsWith('E_OUTCOME_UNKNOWN'))el('formError').hidden=true;
   for(const id of ['promptBody','shortLabel','fullName'])el(id).removeAttribute('aria-invalid');
@@ -1303,7 +1302,7 @@ border:0;background:transparent;color:var(--od-sub)}
   el('itemEnabled').checked=value?.enabled??true;
   // Every new/edit entry begins expanded. Native <details> remains user-collapsible.
   el('advancedOptions').open=true;
-  el('bodyError').hidden=true;el('formError').hidden=true;el('formSaveStatus').hidden=true;el('leaveConfirm').hidden=true;
+  el('bodyError').hidden=true;el('formError').hidden=true;el('formSaveStatus').hidden=true;
   el('verifySaved').hidden=true;el('verificationPanel').hidden=true;
   el('saveButton').disabled=false;el('saveButton').textContent='保存';el('saveContinue').disabled=false;el('saveContinue').hidden=Boolean(id);
   revisionAtEdit=state.revision;baselineForm=draftSnapshot();dirty=false;
@@ -1320,11 +1319,13 @@ border:0;background:transparent;color:var(--od-sub)}
  }
  function exitTool(){releaseDraftImage();editId=null;dirty=false;notice('');setView('toolList');el('reopenTool').focus({preventScroll:true});}
  function requestBack(destination='index'){
-  if(saving||imageUploadBusy){showFormError('图片上传或保存中…请先确认当前操作的结果，草稿不会丢失。');return;}
-  if(currentView!=='form'){if(destination==='host')exitTool();else returnIndex();return;}
-  if(!dirty){if(destination==='host')exitTool();else returnIndex();return;}
-  pendingDestination=destination;el('leaveConfirm').hidden=false;
-  el('stayEditing').focus({preventScroll:true});el('leaveConfirm').scrollIntoView({block:'nearest'});
+  if(saving||imageUploadBusy){showFormError('图片上传或保存中，请先核对操作结果；草稿不会丢失。');return;}
+  if(currentView==='form'&&!el('formError').hidden&&
+     el('formError').textContent.startsWith('E_OUTCOME_UNKNOWN')){
+    showFormError('E_OUTCOME_UNKNOWN：保存结果尚未确认，请先核对当前列表；草稿保留。');return;
+  }
+  // Back and Cancel discard draft edits; persisted images retain their references.
+  if(destination==='host')exitTool();else returnIndex();
  }
  function returnIndex(){
   releaseDraftImage();editId=null;dirty=false;setView('index');renderIndex();renderRail();
@@ -1398,7 +1399,7 @@ border:0;background:transparent;color:var(--od-sub)}
   el('verificationPanel').hidden=false;el('closeVerification').focus({preventScroll:true});
  });
  el('closeVerification').addEventListener('click',()=>{el('verificationPanel').hidden=true;el('promptBody').focus({preventScroll:true});});
- el('stayEditing').addEventListener('click',()=>{el('leaveConfirm').hidden=true;el('promptBody').focus();});el('discardEditing').addEventListener('click',()=>{const destination=pendingDestination;pendingDestination='index';if(destination==='host')exitTool();else returnIndex();notice('已主动放弃未保存更改。');});
+ 
  el('promptForm').addEventListener('submit',event=>void saveForm(event));el('saveContinue').addEventListener('click',event=>void saveForm(event,true));el('promptForm').addEventListener('input',updateMeter);el('promptForm').addEventListener('change',updateMeter);
  function openImagePicker(){
   if(currentView==='form'&&!saving&&!imageUploadBusy&&el('imageSourceLocal').checked){
