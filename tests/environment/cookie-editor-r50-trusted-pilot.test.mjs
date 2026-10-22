@@ -3,15 +3,18 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const base='examples/sidebar-tools/cookie-editor';
-test('R5 legacy Cookie release remains installed through the ordinary isolated sandbox',async()=>{
-  const [cfg,html,js,css,pkg,host]=await Promise.all([
-    'tool.config.json','src/index.html','src/main.js','src/style.css',
-    'cookie-editor.opendesk-tool.json','../../src/ui/sidebar-tools.js'
+test('R5.25 official Cookie release uses one source-bound React sandbox and exact current version',async()=>{
+  const [cfg,html,pkg,host]=await Promise.all([
+    'tool.config.json','src/root.html','cookie-editor.opendesk-tool.json',
+    '../../src/ui/sidebar-tools.js'
   ].map(path=>readFile(path.startsWith('..')?'src/ui/sidebar-tools.js':base+'/'+path,'utf8')));
-  const tool=JSON.parse(pkg);
-  assert.equal(JSON.parse(cfg).version,'2.0.23');
-  assert.equal(tool.version,'2.0.23');
-  assert.equal(tool.html,html);assert.equal(tool.js,js);assert.equal(tool.css,css);
+  const config=JSON.parse(cfg),tool=JSON.parse(pkg);
+  assert.equal(tool.version,config.version);
+  assert.equal(tool.id,'cookie-editor');
+  assert.equal(tool.uiRuntime,'opendesk.react-ui.v1');
+  assert.equal(tool.html,html);
+  assert.match(tool.js,/OpenDeskPageReact/);
+  assert.match(tool.js,/OpenDeskSidebarUI/);
   assert.match(host,/createElement\('iframe'\)/);
   assert.match(host,/sidebar-tools\/sandbox\.html/);
 });
@@ -28,7 +31,7 @@ test('R5.12 removes obsolete privileged Cookie pilot, preserving the independent
   assert.doesNotMatch(main,/CookieTrustedPilot|cookiePilotHost|cookiePilotScopedCSS|mountCookieEditorPilot/);
   assert.doesNotMatch(shell,/cookieReactPilot|admitsTrustedCookieEditor|TRUSTED_COOKIE_EDITOR_VERSION/);
   assert.match(independent,/export function CookieEditorView/);
-  assert.match(app,/import \{CookieEditorView\} from '\.\/components\/CookieEditorView\.jsx'/);
+  assert.match(app,/import \{CookieEditorView,CookieIconButton\} from '\.\/components\/CookieEditorView\.jsx'/);
   assert.match(app,/createCookieController/);
   assert.match(preview,/import CookieEditorApp from '\.\.\/\.\.\/\.\.\/app\/CookieEditorApp\.jsx'/);
   assert.match(preview,/<CookieEditorApp\b/);

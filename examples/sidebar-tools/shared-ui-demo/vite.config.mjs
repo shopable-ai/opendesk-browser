@@ -44,6 +44,18 @@ function stageBrowserPreview(){
         await mkdir(dirname(path),{recursive:true});
         await writeFile(path,assets[i]);
       }
+      // The canonical packer requires a source-bound receipt for *every*
+      // compiled React tool, including this Shared UI demonstration. One
+      // build generates both the real bytes and their exact fingerprints.
+      const readySources=Object.fromEntries(sources.map(({path,bytes,sha256})=>
+        [path,{bytes,sha256}]));
+      const readyFiles=Object.fromEntries(toolAssets.map(({path,bytes,sha256})=>
+        [path,{bytes,sha256}]));
+      await writeFile(resolve(root,'dist/build-ready.json'),JSON.stringify({
+        format:'opendesk.ui-build-ready.v1',
+        buildId:digest(Buffer.from(JSON.stringify({sources:readySources,files:readyFiles}))),
+        files:readyFiles,sources:readySources
+      },null,2)+'\n');
       // Written last: incomplete/failed staging cannot announce a valid preview.
       await writeFile(resolve(destination,'receipt.json'),JSON.stringify({
         format:'opendesk.shared-ui-preview.v1',extensionDir:relative(repoRoot,extensionDir),
