@@ -337,7 +337,7 @@ test('R1.9.5 pending save blocks Cancel without opening the deleted discard laye
   assert.equal(n['ps-status'].hidden,false);assert.match(n['ps-status'].textContent,/保存中/);
   for(const id of ['ps-cancel','ps-save']){
     assert.equal(n[id].disabled,true,id+' must be disabled while saving');
-    n[id].emit('click'); // Exercise the JS guard too, even if an event was already queued.
+    n[id].emit('click',{preventDefault(){}}); // Exercise guards without a second write.
     assert.equal(n['ps-edit'].hidden,false);assert.equal(n['ps-body'].value,'等待确认的正文');
   }
   f.pending.shift().resolve();await settle();
@@ -358,7 +358,9 @@ for(const [label,failure] of [
   f.pending.shift().reject(failure);await settle();
   assert.equal(n['ps-body'].value,'不能丢失的新草稿');assert.equal(n['ps-edit'].hidden,false);
   assert.equal(n['ps-error'].hidden,false);assert.match(n['ps-error'].textContent,/草稿保留/);
-  assert.equal(f.states.at(-1).dirty,true);assert.equal(f.states.at(-1).busy,false);
+  assert.equal(f.states.at(-1).dirty,true);
+  assert.equal(f.states.at(-1).busy,label!=='conflict',
+    'unknown-result protection remains busy until authoritative readback');
   assert.equal(f.stored(),null);assert.equal(f.requests.filter(row=>row.op==='storage.set').length,1);
   if(label!=='conflict'){
     assert.equal(n['ps-save'].disabled,true,'unconfirmed result requires checking saved state before writing again');
@@ -421,7 +423,7 @@ test('R1.8 unreadable or inconclusive '+readback+' keeps every library write blo
   else f.readbacks.shift().resolve({value:readback==='invalid data'?{schema:99}:
     readback==='different value'?initialLibrary:f.stored(),etag:readback==='invalid ETag'?'bad':'b'.repeat(64)});
   await settle();
-  assert.equal(f.states.at(-1).busy,false);
+  assert.equal(f.states.at(-1).busy,true,'unconfirmed write is intentionally busy and blocks navigation');
   assert.equal(n['ps-new'].disabled,true);assert.equal(n['ps-save'].disabled,true);
   assert.equal(n['ps-web'].disabled,true);
   assert.match(n['ps-status'].textContent,/未确认/);assert.doesNotMatch(n['ps-status'].textContent,/没有更新原数据/);
