@@ -349,6 +349,35 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if((Boolean(workflow.steps.length||workflow.title!=='新工作流'||workflow.description)
       && !matchesRevision())||requestBefore.trim())
       throw err('E_WORKFLOW_DIRTY','请先保存当前工作流，或确认新建后再打开历史版本');
+    if(record.format===WORKFLOW_BUNDLE_FORMAT) {
+      const bundle=await verifyWorkflowBundle(record);
+      for(const segment of bundle.segments) {
+        const freeze=await compileWorkflow(segment.workflow,{
+          verifyFill:segment.verificationMode==='fill-readback'});
+        const saved=await host.controller.getControllerScript({
+          scriptId:segment.workflow.workflowId,revision:segment.revision});
+        if(freeze.sourceHash!==segment.sourceHash||
+          saved?.contentHash!==freeze.sourceHash||saved.sourceUtf8!==freeze.sourceUtf8)
+          throw err('E_WORKFLOW_HASH','完整工作流存在源码不匹配的分段，拒绝打开');
+      }
+      if(disposed||busy||autoExecutionPending||host.executionPending||host.currentRun||
+        serialBefore!==stable()||requestBefore!==control('workflow-ai-request').value)
+        throw err('E_WORKFLOW_STALE','打开完整工作流期间页面或草稿已更改');
+      void stopPlanning({close:true}).catch(()=>{});
+      dismissRunReview();historyOpen=false;clearChat();
+      verifiedTurnHistory=[];lastProviderTurn=null;observationApproval=null;
+      persistObservationApproval();
+      control('workflow-editor').dataset.historyOpen='false';
+      control('workflow-ai-request').value='';
+      runId=null;onRunOwner(null);
+      selectedBundle=bundle;fullAgentDraft=null;revision=null;
+      workflow=structuredClone(bundle.segments.at(-1).workflow);paramValues={};
+      directVerifiedSerial=bundle.segments.at(-1).verificationMode==='fill-readback'?stable():null;
+      touched=true;lastRun='none';hasError=false;
+      render();persistDraft();
+      status('已打开完整 '+bundle.segments.length+' 段工作流 r1；运行不调用 AI，并重新验证每段权限和网页。');
+      return;
+    }
     const clean=validateWorkflow(record.workflow);
     if(record.verificationMode&&record.verificationMode!=='fill-readback')
       throw err('E_WORKFLOW_SCHEMA','保存版本使用了未知验证模式');
@@ -371,6 +400,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     runId=null;onRunOwner(null);
     workflow=clean;paramValues={};lastTrustedRun=null;
     directVerifiedSerial=record.verificationMode==='fill-readback'?stable():null;
+    selectedBundle=null;fullAgentDraft=null;
     revision=record;touched=true;lastRun='none';hasError=false;
     render();persistDraft();
     status('已打开冻结版本 r'+record.revision+'；运行不会调用 AI');
