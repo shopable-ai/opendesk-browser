@@ -57,6 +57,12 @@ jobs:
         run: |
           node --test tests/environment/cookie-editor-r524-grant.test.mjs
           node --test tests/environment/browser-sdk-r9-installed-host.test.mjs
+      - name: Build independent React 19 tool using pinned externals
+        run: npm run build --prefix examples/sidebar-tools/cookie-editor
+      - name: Stage React candidate via canonical installed-package packer
+        run: npm run stage:candidate --prefix examples/sidebar-tools/cookie-editor
+      - name: Verify real Vite bytes and staged official packer artifact
+        run: node --test tests/environment/cookie-editor-react-build.test.mjs
       - name: Build real WXT and Shared UI Demo prerequisites for build-bound tests
         run: |
           npm run build:dev
@@ -88,18 +94,12 @@ jobs:
             tests/environment/cookie-editor-native-selection.test.mjs \
             tests/environment/cookie-editor-r50-trusted-pilot.test.mjs \
             tests/environment/sidebar-tools.test.mjs
-      - name: Build independent React 19 tool using pinned externals
-        run: npm run build --prefix examples/sidebar-tools/cookie-editor
-      - name: Stage React candidate via canonical installed-package packer
-        run: npm run stage:candidate --prefix examples/sidebar-tools/cookie-editor
       - name: Test real preview adapter and build source-coupled HTML artifact
         run: |
           node --test examples/sidebar-tools/cookie-editor/preview/react/preview.test.mjs
           npm ci --prefix examples/sidebar-tools/cookie-editor/preview/react --ignore-scripts --no-audit --no-fund
           npm run build --prefix examples/sidebar-tools/cookie-editor/preview/react
           npm run check --prefix examples/sidebar-tools/cookie-editor/preview/react
-      - name: Verify real Vite bytes and staged official packer artifact
-        run: node --test tests/environment/cookie-editor-react-build.test.mjs
       - name: Assert no mutations to official release sources
         run: |
           git diff --exit-code -- \
