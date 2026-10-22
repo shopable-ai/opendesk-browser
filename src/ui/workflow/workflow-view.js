@@ -434,9 +434,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         else throw err('E_WORKFLOW_REVISION','分段脚本版本与本次成功任务不一致，拒绝覆盖');
         if(saved.contentHash!==freeze.sourceHash)
           throw err('E_WORKFLOW_HASH','Controller 返回的分段哈希不一致');
+        if(freeze.sourceHash!==old.proof?.sourceHash)
+          throw err('E_WORKFLOW_HASH','冻结 JavaScript 与真实已核验运行源码不一致');
         segments.push({workflow:freeze.workflow,entryUrl:old.entryUrl,
           revision:saved.revision,sourceHash:freeze.sourceHash,
-          verificationMode:old.verificationMode,evidence:old.evidence});
+          verificationMode:old.verificationMode,evidence:old.evidence,proof:old.proof});
       }
       const record=await sealWorkflowBundle({
         format:WORKFLOW_BUNDLE_FORMAT,bundleId:draft.bundleId,revision:1,
@@ -889,12 +891,18 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           if(!kind)throw err('E_WORKFLOW_EVIDENCE','缺少分段业务核验证据');
           const name=kind==='product-page'?reply.effect.name:
             kind==='link-page'?reply.effect.title:null;
+          if(typeof reply.runId!=='string'||!reply.runId||
+            typeof reply.resultId!=='string'||!reply.resultId)
+            throw err('E_WORKFLOW_EVIDENCE','当前段未获得独立 RunHost 结果身份，不能纳入完整复跑');
           agent.segments.push({signature:previous.ticket.signature,
             workflow:structuredClone(previous.freeze.workflow),
             entryUrl:previous.captured.url,
             verificationMode:previous.freeze.workflow.steps.some(step=>step.op==='fill')
               ?'fill-readback':'none',
-            evidence:{kind,...(name?{name}: {})}});
+            evidence:{kind,...(name?{name}: {})},
+            proof:{runId:reply.runId,resultId:reply.resultId,
+              sourceHash:previous.freeze.sourceHash,
+              origin:previous.captured.origin,documentId:previous.captured.documentId}});
         }
         if(verdict.state==='COMPLETED') {
           if(agent.segments.length>1)
