@@ -345,7 +345,7 @@ if(!vm.SourceTextModule) {
     assert.equal(f.compiled.length,0,'disabled actions cannot compile an empty workflow');
     assert.equal(f.get('workflow-ai-plan').disabled,false);
     assert.equal(f.get('workflow-ai-disclosure'),null);
-    assert.equal(f.get('workflow-ai-plan').getAttribute('aria-label'),'发送任务并生成步骤');
+    assert.equal(f.get('workflow-ai-plan').getAttribute('aria-label'),'发送任务');
   });
 
   test('component: three standalone workflow header actions preserve keyboard focus',async t=>{
@@ -473,17 +473,20 @@ if(!vm.SourceTextModule) {
   });
 
   for(const external of [false,true]) {
-    test('component: planning requires explicit execution review from '+(external?'a moved focus':'the request field'),async t=>{
-      const f=await make(t);let starts=0;f.host.start=async()=>{starts++;throw new Error('Planning must not start RunHost');};
+    test('component: safe observed task starts original RunHost without second review '+(external?'after external focus':'from composer'),async t=>{
+      const f=await make(t);let starts=0;
+      f.host.start=async()=>{starts++;throw new Error('Component RunHost fixture has no durable result');};
       f.get('workflow-ai-request').focus();const {running}=await f.startPlan();
       if(external){await f.focusNew();assertFocus(f,f.get('workflow-new'));}
       f.planGate.resolve();await running;
-      assert.equal(f.get('workflow-ai-proposal'),null);assert.equal(f.stepsNow()[0].dataset.stepId,'proposed');
+      await waitFor(()=>starts===1);
+      assert.equal(f.get('workflow-ai-proposal'),null);
+      assert.equal(f.stepsNow()[0].dataset.stepId,'proposed');
       assert(f.compiled.some(row=>row.steps.some(step=>step.stepId==='proposed')));
-      assert.equal(f.ui.getSnapshot().awaitingReview,true);
-      assert.equal(f.get('workflow-run-review').hidden,false);
-      assert.equal(starts,0,'planning never admits a RunHost operation');
-      assertFocus(f,f.get('workflow-run-review-confirm'));
+      assert.equal(f.ui.getSnapshot().awaitingReview,false);
+      assert.equal(f.get('workflow-run-review').hidden,true);
+      assert.equal(starts,1,'Send should admit precisely one real RunHost path for safe steps');
+      assertFocus(f,f.get(external?'workflow-new':'workflow-ai-request'));
     });
     for(const choice of ['cancel','discard'])test('component: new '+choice+' closes review '+(external?'without stealing focus':'with a visible destination'),async t=>{
       const f=await make(t,{steps:[observe('one')]});await f.clickNew();
