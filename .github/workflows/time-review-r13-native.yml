@@ -10,6 +10,7 @@ on:
       - 'tests/framework/time-review-r13-visual.mjs'
       - 'examples/sidebar-tools/time-review/**'
       - 'tests/environment/time-review-*.test.mjs'
+      - 'tests/environment/sidebar-tools-host.test.mjs'
       - '.github/workflows/time-review-r13-native.yml'
   pull_request:
     branches: [main]
