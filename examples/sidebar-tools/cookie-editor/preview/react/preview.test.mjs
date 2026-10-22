@@ -39,16 +39,16 @@ test('authorization preview presents one clearly scoped grant action',async()=>{
 
 test('committed standalone React preview reflects the one-action consent UI',async()=>{
   const html=await read('./index.html');
-  const scripts=[...html.matchAll(/<script src="data:text\\/javascript;base64,([^"]+)"><\\/script>/g)];
-  const css=html.match(/href="data:text\\/css;base64,([^"]+)"/);
+  const scripts=[...html.matchAll(/<script src="data:text\/javascript;base64,([^"]+)"><\/script>/g)];
+  const css=html.match(/href="data:text\/css;base64,([^"]+)"/);
   assert.equal(scripts.length,3);
   assert.ok(css);
   const js=Buffer.from(scripts[2][1],'base64').toString('utf8');
   const styles=Buffer.from(css[1],'base64').toString('utf8');
   assert.match(js,/Cookie 访问授权/);
-  assert.match(js,/允许管理普通 HTTP\\/HTTPS 网站的 Cookie/);
+  assert.match(js,/允许管理普通 HTTP\/HTTPS 网站的 Cookie/);
   assert.doesNotMatch(js,/首次允许一次|preview-grant-icon|这是交互演示/);
-  assert.match(styles,/\\.preview-global-grant\\{min-height:236px/);
+  assert.match(styles,/\.preview-global-grant\{min-height:236px/);
   assert.doesNotMatch(styles,/preview-grant-icon|preview-global-grant small/);
 });
 
