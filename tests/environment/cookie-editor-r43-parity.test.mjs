@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
+import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 
 const root='examples/sidebar-tools/cookie-editor';
 const read=name=>readFile(root+'/'+name,'utf8');
@@ -33,7 +34,7 @@ test('Preview new form stays clean until edited and becomes clean again on undo'
   S.expanded=null;assert.equal(changed(S),false);
 });
 
-test('R4.3 installed HTML presents visible import/export/new actions without entering advanced settings',async()=>{
+test('R4.3 legacy HTML retains visible actions and the current formal package is source-identical',async()=>{
   const [html,js,css,json]=await Promise.all([
     read('src/index.html'),read('src/main.js'),read('src/style.css'),
     readFile(process.env.COOKIE_EDITOR_TEST_PACKAGE||root+'/cookie-editor.opendesk-tool.json','utf8')]);
@@ -54,10 +55,8 @@ test('R4.3 installed HTML presents visible import/export/new actions without ent
   assert.match(js,/originalExpiryInput/);
   assert.match(css,/#live-cookie-list \.cookie-row\{/);
   assert.match(html,/<option value="backup" selected>/);
-  assert.equal(pkg.version,'2.0.23');
-  assert.equal(pkg.html,html);
-  assert.equal(pkg.js,js);
-  assert.equal(pkg.css,css);
+  assert.equal(pkg.version,'2.0.31');
+  assert.deepEqual(pkg,await createSidebarToolPackage(root));
 });
 
 
