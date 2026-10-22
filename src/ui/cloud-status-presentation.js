@@ -1,6 +1,6 @@
 // Strict projection of the existing authenticated cloudStatus() response.
 // Never export credentials, server URL, executorId, target URL, task IDs, request IDs or run IDs.
-const CONNECTION = new Set(['offline','connecting','authenticated','backoff']);
+const CONNECTION = new Set(['offline','connecting','authenticated','backoff','pull-ready']);
 const REQUEST = new Set(['waiting','prepared','permitted','finished','cancelled','cancellation-pending','OUTCOME_UNKNOWN']);
 const REVOCATION = new Set(['pending','confirmed']);
 const revocationState = value => value==null?null:REVOCATION.has(value?.state)?value.state:'unknown';
@@ -71,7 +71,7 @@ function hostingAvailabilitySummary(status){
   if(status.siteAuthorization!=='granted')return '目标网站授权待核对；尚不能确认可执行。';
   if(!status.slotAvailable||status.slotState!=='available')return '连接与对账已完成；'+SLOT_WAITING[SLOT.has(status.slotState)?status.slotState:'unknown']+'。';
   if(status.pendingResources!==false)return '执行资源状态待核对；尚不能确认可执行。';
-  return '托管已启用，连接和对账已完成；可等待已批准任务。';
+  return status.connection==='pull-ready'?'托管已启用，HTTPS 已认证并对账，可主动领取任务；WSS 实时通知暂不可用。':'托管已启用，连接和对账已完成；可等待已批准任务。';
 }
 
 const REQUEST_STATE_LABELS=Object.freeze({waiting:'等待执行',prepared:'已绑定任务',permitted:'已取得许可',finished:'已完成',cancelled:'已取消','cancellation-pending':'取消处理中',OUTCOME_UNKNOWN:'结果待核对'});

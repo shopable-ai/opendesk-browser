@@ -34,10 +34,11 @@ export function providerUrl(value,allowLoopback=false){
     (u.protocol==='https:'||allowLoopback&&u.origin==='http://127.0.0.1:43112'),'E_PROVIDER','HTTPS provider or explicitly approved fixed loopback required');return u.origin;
 }
 export function createCloudService({storage,api,clock={now:()=>Date.now()},assertHost,currentHost,resolveTask,emitToHost,fetcher=(...args)=>globalThis.fetch(...args)}){
-  let online=false,reconciled=false,connectionState='offline',wake=()=>{},close=()=>{},revocationEpoch=0,connectionEpoch=0;
+  let online=false,reconciled=false,connectionState='offline',pullSession=null,wake=()=>{},close=()=>{},revocationEpoch=0,connectionEpoch=0;
   const deliveries=new Map();let knownRemoteRuns=new Map();
   function abortDeliveries(requestIds){for(const [abort,requestId]of deliveries)if(!requestIds||requestIds.has(requestId))abort.abort();}
-  function invalidate(){revocationEpoch++;connectionEpoch++;knownRemoteRuns=new Map();abortDeliveries();}
+  function invalidate(){revocationEpoch++;connectionEpoch++;pullSession=null;knownRemoteRuns=new Map();abortDeliveries();}
+  const transportReady=()=>online&&(connectionState!=='pull-ready'||pullSession?.expiresAt>clock.now());
   const transaction=(mode,fn,names=[KV,'runs','commandJournal','results'])=>storage.transaction(names,mode,fn);
   const read=()=>transaction('readonly',tx=>tx.get(KV,CONFIG),[KV]);
   const history=createCloudHistoryIndex({storage,namespace:'tool:'+api.runtime.id});
@@ -190,7 +191,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       }
       return {executorId:await tx.get(KV,IDENTITY),provider:c&&!c.unpairing?{url:c.url,providerId:c.providerId}:null,
         revocation:c?.unpairing?{state:'pending'}:revocation?{state:'confirmed'}:null,
-        enabled:!!c?.enabled,remoteSuspension:c?.remoteSuspension??null,connection:connectionState,online,reconciled,hostReady:true,
+        enabled:!!c?.enabled,remoteSuspension:c?.remoteSuspension??null,connection:connectionState,online:transportReady(),reconciled,hostReady:true,
         slotAvailable:nativeSlot.slotState==='available',...nativeSlot,
         siteAuthorization:canonical(c??null)===canonical(permissionConfig??null)?sites:'unknown',
         tasks:c?.tasks?.map(t=>({taskId:t.taskId,version:t.version,manifestHash:t.manifestHash,
@@ -610,14 +611,16 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     },'readwrite');
   }
   async function next(sender){
-    const host=await assertHost(sender),c=await read();if(!c?.enabled||!online||!reconciled||c.namespace!==host.namespace)return null;
+    const host=await assertHost(sender),c=await read();if(!c?.enabled||!transportReady()||!reconciled||c.namespace!==host.namespace)return null;
     const epoch=connectionEpoch,current=()=>epoch===connectionEpoch;
     const pending=await pendingRequest(sender,host,c,{isCurrent:current});
     invariant(current(),'E_CLOUD_FENCED');if(pending)return pending;
     const claim=await scoped(sender,async tx=>{const slot=await tx.get('runs','@slot');if(slot?.currentRunId||slot?.preview)return null;const config=await tx.get(KV,CONFIG);if(!current()||!config?.enabled||config.unpairing||config.grantId!==c.grantId||config.pendingRequestId||canonical(pairingIdentity(config))!==canonical(pairingIdentity(c)))return null;
       config.claimId??=newId();await tx.put(KV,config,CONFIG);return {claimId:config.claimId,grantId:config.grantId,
         tasks:c.tasks.map(t=>({taskId:t.taskId,manifestHash:t.manifestHash,sourceHash:t.contentHash}))};},'readwrite');if(!claim)return null;
-    const answer=await post(c,'claim',claim,{isCurrent:current});
+    const proof=connectionState==='pull-ready'?pullSession:null;
+    invariant(connectionState!=='pull-ready'||proof?.expiresAt>clock.now(),'E_CONNECTION');
+    const answer=await post(c,'claim',{...claim,...(proof?{pullSessionId:proof.sessionId}:{})},{isCurrent:current});
     return scoped(sender,async tx=>{const config=await tx.get(KV,CONFIG);invariant(current(),'E_CLOUD_FENCED');invariant(config?.enabled&&!config.unpairing&&config.grantId===c.grantId&&canonical(pairingIdentity(config))===canonical(pairingIdentity(c))&&config.claimId===claim.claimId,'E_CLOUD_REVOKED');
       if(answer.assignment){const a=answer.assignment,identity=assignmentIdentity(c,a);invariant(!knownRemoteRuns.has(a.assignmentId),'E_RUN_REF','Query the original remote Run instead of creating another');invariant(a.executorId===c.executorId&&a.claimId===claim.claimId&&a.leaseUntil>clock.now(),'E_ASSIGNMENT');const t=config.tasks.find(t=>t.taskId===a.task.taskId&&t.version===a.task.version&&t.manifestHash===a.task.manifestHash&&t.contentHash===a.task.sourceHash);invariant(t&&acceptedCloudTarget(a.target,t.manifest.siteOrigins),'E_TASK');
         const params=validateTaskParams(t.manifest.paramsSchema,a.params),requestId='cloud:'+a.assignmentId;const digestValue=await digest({identity,task:a.task,params,target:a.target});const storageKey=PREFIX+await digest({pairing:identity.pairing,requestId});const prior=await findRequest(tx,requestId,c);invariant(!prior||prior.digest===digestValue,'E_REQUEST_CONFLICT');invariant(!prior||prior.grantId===c.grantId&&prior.state==='waiting'&&!prior.runId,'E_CLOUD_FENCED');
@@ -753,5 +756,17 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
   }
   return {cloudStatus,cloudObserve,cloudPair,cloudApprove,cloudRevokeResults,cloudCancelRequest,cloudStop,cloudUnpair,cloudClients,cloudClientGrant,cloudClientRevoke,cloudProgramInbox,cloudProgramFetch,cloudProgramReceived,cloudNext,cloudResolve,bind,permit,assertActive,read,post,reconcile,invalidate,retryRevocation,adoptPairing,
     captureAuthentication(){const epoch=connectionEpoch;return ()=>epoch===connectionEpoch;},
-    attachConnection({start,stop}){wake=start;close=stop;},connection(state){if(state!=='authenticated')connectionEpoch++;connectionState=state;online=state==='authenticated';if(!online)reconciled=false;},setReconciled(value){reconciled=value;}};
+    setPullSession(reply){
+      invariant(nonempty(reply?.sessionId)&&finiteLease(reply.expiresAt)&&reply.expiresAt>clock.now(),'E_PULL_SESSION');
+      pullSession={sessionId:reply.sessionId,expiresAt:reply.expiresAt};
+    },
+    attachConnection({start,stop}){wake=start;close=stop;},
+    connection(state){
+      if(state!=='authenticated')connectionEpoch++;
+      if(state!=='pull-ready')pullSession=null;
+      connectionState=state;
+      online=state==='authenticated'||state==='pull-ready'&&pullSession?.expiresAt>clock.now();
+      if(!online)reconciled=false;
+    },
+    setReconciled(value){reconciled=value;}};
 }

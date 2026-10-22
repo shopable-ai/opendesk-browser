@@ -277,7 +277,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       statusText=cloudHostingSummary(projected)+`\n已批准任务 ${projected.approvedTasks} 项 · 历史云请求 ${projected.requests.total} 条 · 已确认回执 ${projected.requests.receivedReceipts} 条（最近 ${projected.requests.sampled} 条统计）`;
       overview={myState:brief+' · 已批准 '+projected.approvedTasks+' 项任务',summary:cloudHostingSummary(projected),
         provider:s.provider?`${s.provider.url} · ${s.provider.providerId}`:'未配对',executor:typeof s.executorId==='string'?s.executorId:'未配对',
-        connection:projected.online?'已连接':projected.connection==='backoff'?'重连中':'未连接',
+        connection:projected.connection==='pull-ready'&&projected.online?'HTTPS 主动领取':projected.online?'已连接':projected.connection==='backoff'?'重连中':'未连接',
         host:projected.hostReady?'已就绪':'不可用',slot:cloudSlotStateLabel(projected.slotState),tasks:String(projected.approvedTasks),requests:String(projected.requests.total)};
       requestRows=samples;requestRaw=samples.length?s.requests.slice(-samples.length).reverse():[];requestError='';
       nextOffset=Number.isSafeInteger(s.requestPage?.nextOffset)?s.requestPage.nextOffset:null;

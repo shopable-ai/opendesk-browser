@@ -3,7 +3,46 @@ export function createCloudConnection({service,api,Socket=globalThis.WebSocket,c
   let socket,timer,heartbeat,generation=0,attempt=0,lastPong=0,connecting=false,ticking;
   const alarm='opendesk.cloud.recover.v1';
   function stop(){generation++;clearTimeout(timer);clearInterval(heartbeat);socket?.close();socket=null;connecting=false;ticking=null;service.connection('offline');}
-  function retry(epoch){if(epoch!==generation)return;generation++;clearInterval(heartbeat);socket=null;connecting=false;ticking=null;service.connection('backoff');timer=setTimeout(()=>start(),Math.min(60000,1000*2**Math.min(attempt++,6))*(0.8+random()*0.4));}
+  // Reuse the SW's WSS recovery owner; HTTPS Pull is only another delivery transport.
+  async function fallback(epoch){
+    const current=()=>epoch===generation;
+    try{
+      let c=await service.read();
+      if(!current()||!c?.enabled)return false;
+      const fresh=service.captureAuthentication?.()??(()=>true);
+      const isCurrent=()=>current()&&fresh();
+      const auth=await service.post(c,'auth',{}, {isCurrent});
+      if(!isCurrent())return false;
+      if(auth.providerId!==c.providerId||auth.expiresAt<=clock.now()||
+        c.pairingId&&(auth.executorId!==c.executorId||auth.pairingId!==c.pairingId||
+        auth.pairingGeneration!==c.pairingGeneration))throw Error('Provider Pull identity differs');
+      if(service.adoptPairing)c=await service.adoptPairing(c,auth,{isCurrent});
+      if(!isCurrent())return false;
+      const tasks=c.tasks.map(t=>({taskId:t.taskId,version:t.version,
+        manifestHash:t.manifestHash,sourceHash:t.contentHash}));
+      await service.post(c,'capabilities',{grantId:c.grantId,tasks},{isCurrent});
+      if(!isCurrent())return false;
+      const ready=await service.post(c,'pull-open',{grantId:c.grantId,tasks},{isCurrent});
+      if(!isCurrent())return false;
+      if(ready.providerId!==c.providerId||ready.executorId!==c.executorId||
+        ready.pairingId!==c.pairingId||ready.pairingGeneration!==c.pairingGeneration||
+        ready.grantId!==c.grantId||ready.expiresAt<=clock.now())throw Error('Provider Pull lease differs');
+      await service.reconcile({isCurrent});
+      if(!isCurrent())return false;
+      service.setPullSession(ready);service.connection('pull-ready');service.setReconciled(true);
+      return true;
+    }catch{if(current())service.connection('backoff');return false;}
+  }
+  function retry(epoch){
+    if(epoch!==generation)return;
+    const nextEpoch=++generation;
+    clearInterval(heartbeat);socket=null;connecting=false;ticking=null;
+    service.connection('backoff');
+    const delay=Math.min(60000,1000*2**Math.min(attempt++,6))*(0.8+random()*0.4);
+    void fallback(nextEpoch).then(ready=>{
+      if(nextEpoch===generation)timer=setTimeout(()=>start(),ready?Math.max(30000,delay):delay);
+    });
+  }
   // A notification during reconciliation must not disappear behind an in-flight read.
   // Coalesce bursts into one follow-up pass; never overlap claims or replay work.
   async function tick(epoch,ws,{notified=false}={}){

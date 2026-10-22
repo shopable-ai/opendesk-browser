@@ -68,7 +68,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
   // State snapshots and fsync are only required for real mutations. Pure
   // observations remain serialized with writes but never touch the .tmp file.
   const readonlyRoutes=new Set(['/v1/job-status','/v1/client-scope','/v1/reconcile','/v1/cancellation','/v1/client-list',
-    '/v1/program-inbox','/v1/program-fetch',
+    '/v1/program-inbox','/v1/program-fetch','/v1/pull-open',
     '/admin/state','/admin/tasks','/admin/executors','/admin/clients']);
   const serial=(fn,readOnly=false)=>{const next=tail.then(async()=>{
     const before=readOnly?null:structuredClone(state);
@@ -107,11 +107,17 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
     }
     return pinned;
   }
-const sockets=new Map(),tickets=new Map();
+const sockets=new Map(),tickets=new Map(),pullSessions=new Map();
 const pairing=id=>{const e=state.executors[id];if(!nonempty(e?.pairingId)||!Number.isSafeInteger(e.pairingGeneration)||e.pairingGeneration<1)fail('E_PAIRING');return {providerId:state.providerId,executorId:id,pairingId:e.pairingId,pairingGeneration:e.pairingGeneration};};
 const activePairing=p=>{const e=state.executors[p.executorId];return e&&!e.revocation&&!e.revokedAt&&nonempty(e.pairingId)&&Number.isSafeInteger(e.pairingGeneration)&&e.pairingGeneration>0&&p.providerId===state.providerId&&p.pairingId===e.pairingId&&p.pairingGeneration===e.pairingGeneration;};
-const retire=executorId=>{for(const [ticket,p]of tickets)if(p.executorId===executorId)tickets.delete(ticket);for(const [ws,p]of sockets)if((p.executorId??p)===executorId){sockets.delete(ws);if(ws.readyState===0||ws.readyState===1)ws.close(1008,'Pairing retired');}};
-const notify=executorId=>{for(const [ws,p]of sockets)if((!executorId||(p.executorId??p)===executorId)&&activePairing(p)&&ws.readyState===1)ws.send(JSON.stringify({type:'notify'}));};
+const retire=executorId=>{pullSessions.delete(executorId);for(const [ticket,p]of tickets)if(p.executorId===executorId)tickets.delete(ticket);for(const [ws,p]of sockets)if((p.executorId??p)===executorId){sockets.delete(ws);if(ws.readyState===0||ws.readyState===1)ws.close(1008,'Pairing retired');}};
+// Offer is a scoped wake hint, never an executable task or execution permission.
+const notify=(executorId,jobId)=>{for(const [ws,p]of sockets)if((!executorId||(p.executorId??p)===executorId)&&activePairing(p)&&ws.readyState===1){
+  const j=jobId&&state.jobs[jobId],e=state.executors[p.executorId??p];
+  const offer=j?.state==='queued'&&!j.cancelled&&j.targetExecutorId===(p.executorId??p)&&
+    j.targetPairingId===p.pairingId&&j.targetGrantId===e?.grantId?{jobId:j.jobId}:null;
+  ws.send(JSON.stringify({type:'notify',...(offer?{offer}:{})}));
+}};
 function identity(j){const a=j.assignment,e=state.executors[a.executorId],legacy=!Object.hasOwn(a,'pairingId')&&!Object.hasOwn(a,'pairingGeneration');if(!nonempty(a.assignmentId)||!nonempty(a.claimId)||!nonempty(j.jobId)||(!legacy&&bindingKeys.some(k=>!Object.hasOwn(a,k)))||(Object.hasOwn(a,'jobId')&&a.jobId!==j.jobId))fail('E_BINDING');return {providerId:legacy&&!Object.hasOwn(a,'providerId')?state.providerId:a.providerId,executorId:a.executorId,pairingId:legacy?e?.legacyPairingId:a.pairingId,pairingGeneration:legacy?e?.legacyPairingGeneration:a.pairingGeneration,attemptEpoch:Object.hasOwn(a,'attemptEpoch')?a.attemptEpoch:1,claimId:a.claimId,jobId:j.jobId,assignmentId:a.assignmentId};}
 const bindingFor=identity;
 function owned(b,id){if(!nonempty(b.assignmentId))fail('E_SCHEMA');const j=Object.values(state.jobs).find(j=>j.assignment?.assignmentId===b.assignmentId&&j.assignment.executorId===id);if(!j)fail('E_ASSIGNMENT');const bound=identity(j);if(!activePairing(bound))fail('E_PAIRING');if(bound.attemptEpoch!==1||(Object.hasOwn(j,'attemptEpoch')?j.attemptEpoch:1)!==bound.attemptEpoch)fail('E_ATTEMPT');if(!Number.isFinite(j.assignment.leaseUntil))fail('E_LEASE');if(b.binding){exact(b.binding,bindingKeys);for(const k of bindingKeys)if(b.binding[k]!==bound[k])fail(k==='attemptEpoch'?'E_ATTEMPT':'E_BINDING');}else if(Object.hasOwn(b,'binding'))fail('E_SCHEMA');for(const k of bindingKeys)if(Object.hasOwn(b,k)&&b[k]!==bound[k])fail(k==='attemptEpoch'?'E_ATTEMPT':'E_BINDING');return j;}
@@ -217,6 +223,7 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
                   job.targetPairingId===owner.pairingId&&job.targetGrantId!==b.grantId)
                   job.cancelled=true;
             }
+            if(owner.grantId!==b.grantId||canonical(owner.capabilities)!==canonical(b.tasks))pullSessions.delete(executorId);
             if(owner.grantId!==b.grantId)owner.suspendedAt=null;
             owner.grantId=b.grantId;owner.capabilities=b.tasks;
             out={accepted:true};break;
@@ -230,11 +237,34 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
               if(j.state==='queued'&&j.targetExecutorId===executorId&&
                 j.targetPairingId===owner.pairingId&&j.targetGrantId===b.grantId)
                 j.cancelled=true;
-            out={suspended:true,grantId:b.grantId};break;
+            pullSessions.delete(executorId);out={suspended:true,grantId:b.grantId};break;
+          }
+          case '/v1/pull-open':{
+            // HTTPS bearer identity, current pairing, grant and exact capabilities.
+            // The ephemeral session never grants execution without Claim + Permit.
+            exact(b,['grantId','tasks']);const e=state.executors[executorId];
+            if(e.suspendedAt)fail('E_CLOUD_STOPPED');
+            if(!e.grantId||e.grantId!==b.grantId||!Array.isArray(b.tasks)||
+              b.tasks.length>32||canonical(e.capabilities)!==canonical(b.tasks))fail('E_GRANT');
+            const session={sessionId:randomUUID(),expiresAt:clock()+90000,
+              grantId:b.grantId,pairingId:e.pairingId,pairingGeneration:e.pairingGeneration,
+              tasksDigest:hash(b.tasks.map(t=>({taskId:t.taskId,manifestHash:t.manifestHash,sourceHash:t.sourceHash})))};
+            pullSessions.set(executorId,session);
+            out={...pairing(executorId),sessionId:session.sessionId,
+              expiresAt:session.expiresAt,grantId:session.grantId};break;
           }
           case '/v1/claim':{
-            exact(b,['claimId','tasks'],['grantId']);if(!Array.isArray(b.tasks)||b.tasks.length>32)fail('E_SCHEMA');for(const t of b.tasks){exact(t,['taskId','manifestHash','sourceHash'],['version']);if(Object.values(t).some(v=>!nonempty(v)))fail('E_SCHEMA');}
+            exact(b,['claimId','tasks'],['grantId','pullSessionId']);if(!Array.isArray(b.tasks)||b.tasks.length>32)fail('E_SCHEMA');for(const t of b.tasks){exact(t,['taskId','manifestHash','sourceHash'],['version']);if(Object.values(t).some(v=>!nonempty(v)))fail('E_SCHEMA');}
             const e=state.executors[executorId];if(Object.hasOwn(b,'grantId')&&(!e.grantId||b.grantId!==e.grantId))fail('E_GRANT');if(e.suspendedAt)fail('E_CLOUD_STOPPED');
+            const s=pullSessions.get(executorId);
+            const pullValid=nonempty(b.pullSessionId)&&s?.sessionId===b.pullSessionId&&
+              s.expiresAt>clock()&&s.grantId===e.grantId&&s.pairingId===e.pairingId&&
+              s.pairingGeneration===e.pairingGeneration&&
+              s.tasksDigest===hash(b.tasks.map(t=>({taskId:t.taskId,manifestHash:t.manifestHash,sourceHash:t.sourceHash})));
+            if(Object.hasOwn(b,'pullSessionId')&&!pullValid)fail('E_PULL_SESSION');
+            // Transport proof is excluded from durable Claim idempotency.
+            const claimBody={claimId:b.claimId,tasks:b.tasks,
+              ...(Object.hasOwn(b,'grantId')?{grantId:b.grantId}:{})};
             const legacy=e.pairingId===e.legacyPairingId&&e.pairingGeneration===e.legacyPairingGeneration;
             const scope=legacy&&state.requests[executorId+':claim:'+b.claimId]?executorId+':claim':executorId+':'+e.pairingId+':'+e.pairingGeneration+':claim';
             // A legacy persisted claim answer may predate the explicit grantId field.
@@ -247,8 +277,8 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
                 if(priorJob.targetGrantId!==b.grantId)fail('E_GRANT');
               }
               out=structuredClone(cached.answer);
-            }else out=once(scope,b.claimId,b,()=>{
-              if(![...sockets.values()].some(p=>(p.executorId??p)===executorId&&activePairing(p)))fail('E_CONNECTION');
+            }else out=once(scope,b.claimId,claimBody,()=>{
+              if(![...sockets.values()].some(p=>(p.executorId??p)===executorId&&activePairing(p))&&!pullValid)fail('E_CONNECTION');
               const j=Object.values(state.jobs).find(j=>j.state==='queued'&&!j.assignment&&!Object.hasOwn(j,'attemptEpoch')&&!j.cancelled&&
                 j.targetExecutorId===executorId&&(!j.targetPairingId||j.targetPairingId===e.pairingId)&&
                 (!j.targetGrantId||(Object.hasOwn(b,'grantId')&&j.targetGrantId===b.grantId&&j.targetGrantId===e.grantId))&&
@@ -530,8 +560,9 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
         return {out,drop};
       },readOnly);
       if(afterCommit)afterCommit();
-      if(path==='/admin/seed')notify(b.targetExecutorId);
-      if(path==='/v1/submit'||path==='/v1/job-cancel')notify(client.executorId);
+      if(path==='/admin/seed')notify(b.targetExecutorId,answer.out?.jobId);
+      if(path==='/v1/submit')notify(client.executorId,answer.out?.jobId);
+      if(path==='/v1/job-cancel')notify(client.executorId);
       if(path==='/admin/cancel')notify(state.jobs[b.jobId]?.targetExecutorId);
       if(path==='/v1/unpair')retire(executorId);if(answer.drop){req.socket.destroy();return;}res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(answer.out));
     }catch(e){res.writeHead(e.code==='E_AUTH'?401:e.code==='E_REQUEST_CONFLICT'?409:400,{'Content-Type':'application/json'});res.end(JSON.stringify({error:{code:e.code||'E_SCHEMA',message:e.message}}));}
