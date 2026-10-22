@@ -25,3 +25,8 @@
 
 - Additional owned path: `.github/workflows/time-review-r13-native.yml` only, narrowly to stage all three existing React official tool assets **before** the broad `sidebar-tools-host.test.mjs` regression. The prior Linux run https://github.com/shopable-ai/opendesk-browser/actions/runs/39742823728 failed `E_TOOL_STAGE: required project file missing: dist/tool.css` repeatedly and cancelled dependent tests; its later normal production and development builds **passed**, proving the deterministic build pipeline is available.
 - Existing builder already invokes `buildAdblockReact`, `buildStayFocusReact`, `buildCookieEditorReactIfOfficial` prior to fingerprinting. Use their existing CLI counterparts as test prerequisites. Do not edit or regenerate any committed official package, pin, Host, or installer. CI-runner dist outputs are ephemeral.
+
+## Scoped Prompt Host fixture regression following stage correction
+
+- Expanded owned path for the same Time Review R1.2 regression closure: `tests/environment/sidebar-tools-host.test.mjs`, **only** the two Prompt Shortcuts R1.3 tests at lines ~574/~593 (real DOM tagName versus retired fixture Node.tag). No changes to trusted business admission, SDK, install IDs, or unsafe permissions.
+- Post-prebuild Linux run https://github.com/shopable-ai/opendesk-browser/actions/runs/39743865843: 210 tests, 208 PASS, 2 FAIL, 0 cancelled. Both remaining cases are Prompt AI Host fixture assertions: exact official obtains an iframe with real DOM `tagName` but test expects `tag='iframe'`; altered same-ID test times out looking for the same nonexistent synthetic property. Preserve their official/provenance and tampering assertions unchanged.
