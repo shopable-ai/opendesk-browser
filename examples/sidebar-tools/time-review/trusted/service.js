@@ -87,8 +87,11 @@ export function createTimeReviewService({api=globalThis.chrome,lockManager=globa
     // Without a current legal sample, the old interval has no proven end;
     // discard it rather than charging inactive time to the previous website.
     state=settleReview(state,at,{session:sessionId,recover:!authorized||Boolean(recover)||!current});
-    if(!auth.enabled||!observation.permitted||!hasSiteConsent||
-      state.authorizedHash&&(state.authorizedHash!==hash||state.authorizedEpoch!==auth.epoch)){
+    // New installs default ON, but require independently approved website and
+    // Chrome idle grants. Preserve explicit user pauses and revoked sessions.
+    if(!auth.enabled||state.authorizedHash&&(
+      !observation.permitted||!hasSiteConsent||
+      state.authorizedHash!==hash||state.authorizedEpoch!==auth.epoch)){
       state.paused=true;state.authorizedHash=null;state.authorizedEpoch=null;
     }
     if(operation==='time.start'){
@@ -118,23 +121,36 @@ export function createTimeReviewService({api=globalThis.chrome,lockManager=globa
       state.days={};state.discardedMs=0;state.minuteDays={};state.categories={};
       delete state.sync; // local clear cannot imply remote deletion
     }
-    const checkpointAt=Math.max(at,now());
-    if(!state.paused&&state.authorizedHash===hash&&auth.enabled&&observation.current&&checkpointAt>=state.highWater){
-      state.checkpoint={...observation.current,at:checkpointAt,session:sessionId,offset:new Date(checkpointAt).getTimezoneOffset()};
-    }
     const final=await authority();
     if(!final.tool||!final.enabled||await timeReviewPackageHash(final.tool)!==hash||final.epoch!==auth.epoch){
       state.paused=true;state.authorizedHash=null;state.authorizedEpoch=null;state.checkpoint=null;
       if(!final.tool)return null;
     }
     if(validateHost)await validateHost();
-    if(!await api.permissions.contains({permissions:['idle']})||pendingRevocation||observedRevocation!==revocationGeneration){
-      state.paused=true;state.authorizedHash=null;state.authorizedEpoch=null;state.checkpoint=null;observation.permitted=false;
+    const idleStillGranted=await api.permissions.contains({permissions:['idle']});
+    if(!idleStillGranted||pendingRevocation||observedRevocation!==revocationGeneration){
+      // A missing idle grant on a never-authorized installation must not
+      // overwrite the ON preference; an actual revocation still pauses.
+      if(state.authorizedHash||pendingRevocation||observedRevocation!==revocationGeneration)state.paused=true;
+      state.authorizedHash=null;state.authorizedEpoch=null;state.checkpoint=null;observation.permitted=false;
       if(operation==='time.start')throw error('观察期间空闲检测权限已撤销，请重新授权和开始','E_TIME_PERMISSION');
     }
     if(observedGeneration!==activityGeneration){
       state.checkpoint=null;
       if(operation==='time.start')throw error('浏览器活动状态已变化，请重新开始','E_TIME_OBSERVATION');
+    }
+    const currentScope=state.siteGrants.allSites||state.siteGrants.origins.length>0;
+    if(!state.paused&&state.authorizedHash===null&&auth.enabled&&currentScope&&
+      observation.permitted&&idleStillGranted&&!pendingRevocation&&
+      observedRevocation===revocationGeneration&&observedGeneration===activityGeneration){
+      // Both user-approved grants are present: bind the current installed
+      // identity without asking for a second Start click.
+      state.authorizedHash=hash;state.authorizedEpoch=auth.epoch;
+    }
+    const checkpointAt=Math.max(at,now());
+    if(!state.paused&&state.authorizedHash===hash&&auth.enabled&&observation.current&&
+      checkpointAt>=state.highWater&&observedGeneration===activityGeneration){
+      state.checkpoint={...observation.current,at:checkpointAt,session:sessionId,offset:new Date(checkpointAt).getTimezoneOffset()};
     }
     if(raw!==undefined||operation||state.authorizedHash){
       // Local activity MUST survive any malformed/blocked optional sync state.

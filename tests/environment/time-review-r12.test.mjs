@@ -66,8 +66,37 @@ test('retention, corrupt records and unknown export format fail safely',()=>{
   assert.deepEqual(settleReview(state,Date.now(),{session:'s'}).days,{});
   assert.throws(()=>readReview({...state,discardedMs:-1}));assert.throws(()=>reviewExport(state,'html'));
 });
-test('install and status do not authorize or run background tracking',async()=>{
-  const f=await fixture(),result=await f.call('time.status');assert.equal(result.paused,true);assert.equal(result.authorized,false);assert.equal(f.alarms.size,0);assert.equal(f.local[TIME_REVIEW_KEY].checkpoint,null);
+test('an existing explicit pause stays paused on subsequent status reads',async()=>{
+  const f=await fixture();f.local[TIME_REVIEW_KEY].paused=true;
+  const result=await f.call('time.status');
+  assert.equal(result.paused,true);assert.equal(result.authorized,false);
+  assert.equal(f.alarms.size,0);assert.equal(f.local[TIME_REVIEW_KEY].checkpoint,null);
+});
+test('first install defaults ON but collects nothing without reviewed website scope',async()=>{
+  const f=await fixture();delete f.local[TIME_REVIEW_KEY];
+  const result=await f.call('time.status');
+  assert.equal(result.paused,false);assert.equal(result.authorized,false);
+  assert.deepEqual(result.siteGrants,{allSites:false,origins:[]});
+  assert.equal(f.alarms.size,0);assert.equal(f.local[TIME_REVIEW_KEY].checkpoint,null);
+  f.advance(4000);await f.tick();
+  assert.equal((await f.call('time.status')).todayMs,0);
+});
+test('new install auto-starts after site and idle approval; manual pause survives restart',async()=>{
+  const f=await fixture();delete f.local[TIME_REVIEW_KEY];f.set({permission:false});
+  assert.equal((await f.call('time.status')).paused,false);
+  await f.call('time.siteGrant',{mode:'site',origin:'https://example.com',allow:true});
+  assert.equal(f.local[TIME_REVIEW_KEY].authorizedHash,null);
+  assert.equal(f.alarms.size,0,'website consent alone cannot grant Chrome idle');
+  f.set({permission:true});await f.tick();
+  const running=await f.call('time.status');
+  assert.equal(running.paused,false);assert.equal(running.authorized,true);
+  assert.equal(running.trackingHost,'example.com');
+  assert.equal(f.alarms.get(TIME_REVIEW_ALARM).periodInMinutes,0.5);
+  f.advance(2000);assert.equal((await f.call('time.status')).todayMs,2000);
+  await f.call('time.pause');f.advance(3000);f.restart();await f.tick({boot:true});
+  const stopped=await f.call('time.status');
+  assert.equal(stopped.paused,true);assert.equal(stopped.todayMs,2000);
+  assert.equal(f.alarms.size,0);
 });
 test('30 second checkpoints track the selected website without storing URLs',async()=>{
   const f=await fixture();await f.call('time.start');f.advance(30000);await f.tick();f.advance(1234);

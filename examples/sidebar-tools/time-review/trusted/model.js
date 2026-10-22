@@ -21,7 +21,7 @@ export function reviewSettings(value){
     fail('设置无效：空闲阈值 15–3600 秒，保留 7–365 天，最多排除 100 个域名');
   return {...value,excludedHosts:[...new Set(value.excludedHosts)].sort()};
 }
-export function emptyReview(){return {version:1,authorizedHash:null,authorizedEpoch:null,highWater:0,paused:true,settings:{...DEFAULT_SETTINGS,excludedHosts:[]},days:{},checkpoint:null,discardedMs:0,categories:{},minuteConsent:false,minuteDays:{},siteGrants:{allSites:false,origins:[]}};}
+export function emptyReview(){return {version:1,authorizedHash:null,authorizedEpoch:null,highWater:0,paused:false,settings:{...DEFAULT_SETTINGS,excludedHosts:[]},days:{},checkpoint:null,discardedMs:0,categories:{},minuteConsent:false,minuteDays:{},siteGrants:{allSites:false,origins:[]}};}
 export function readReview(raw){
   if(raw===undefined)return emptyReview();
   if(!raw||raw.version!==1||typeof raw.paused!=='boolean'||
