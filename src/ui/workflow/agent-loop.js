@@ -8,17 +8,21 @@ function goalFulfilled(goal,facts){
   const price=/(?:价格|标价|售价|价钱|\bprice\b)/i.test(goal);
   const details=/(?:商品详情|商品页面|详情页|\bproduct\s*(?:page|detail)\b)/i.test(goal);
   const open=/(?:打开|进入|点开|跳转|点击(?:.*?)(?:链接|结果)|\b(?:open|navigate)\b)/i.test(goal);
-  const search=/(?:搜索|查找|检索|\bsearch\b)/i.test(goal);
+  const search=/(?:搜索(?!框|栏|关键词|输入框|词)|查找(?!输入框|框)|检索(?!词|框)|\bsearch\b(?!\s+(?:keyword|input|field|box|term)\b))/i.test(goal);
   const fill=/(?:填写|填入|输入|\bfill\b|\btype\b)/i.test(goal);
   const read=/(?:查看|读取|提取|读回|核对|观察|检查|\b(?:read|extract|verify|observe|inspect|check)\b)/i.test(goal);
   const product=facts.has('product-page'),link=product||facts.has('link-page');
-  if(price||details)return product;
-  if(open)return link;
-  if(search)return [...facts].some(value=>value.startsWith('search-'));
-  if(fill)return facts.has('input-readback');
-  if(read)return facts.has('read-only');
-  // An unrecognized intent cannot become completed merely because a script ran.
-  return false;
+  // A combined user goal is a conjunction, not "whichever fact happens first".
+  // Search and fill are independently required when the user named both;
+  // a product detail can satisfy a requested read of that detail.
+  const required=[];
+  if(price||details)required.push(product);
+  else if(open)required.push(link);
+  if(search)required.push([...facts].some(value=>value.startsWith('search-')));
+  if(fill)required.push(facts.has('input-readback'));
+  if(read&&!open&&!price&&!details&&!search&&!fill)
+    required.push(facts.has('read-only'));
+  return required.length>0&&required.every(Boolean);
 }
 export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits={}}={}) {
   if(typeof goal!=='string'||!goal.trim()||goal.length>4000)
@@ -61,7 +65,7 @@ export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits=
         :'已有步骤可能生效，当前执行失败，不再重放'};
     }
     if(reply.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'){
-      if(reply.readbackVerified===true&&!reply.effect)facts.add('input-readback');
+      if(reply.readbackVerified===true)facts.add('input-readback');
       if(typeof reply.effect?.kind==='string')facts.add(reply.effect.kind);
     } else if(ticket.readOnly&&reply.evidenceLevel==='EXECUTION_RECEIPT_VERIFIED'&&
       reply.readOnlyVerified===true)facts.add('read-only');
