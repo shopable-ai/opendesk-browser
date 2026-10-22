@@ -15,7 +15,8 @@ import {classifyWorkflowRunRisk,prepareDirectExecution,verifyDirectExecutionRece
 import {createTaskReviewHandoff,taskReviewHandoffKey} from './task-review-handoff.js';
 import {createWorkflowAgentLoopGuard,classifyWorkflowAgentStop} from './agent-loop.js';
 import {WORKFLOW_BUNDLE_FORMAT,replayParameterSchema,sealWorkflowBundle,
-  verifyWorkflowBundle,verifyReplayBusinessEffect,assertLegacyReplayParameterScope} from './segment-replay.js';
+  verifyWorkflowBundle,verifyReplayBusinessEffect,assertLegacyReplayParameterScope,
+  WORKFLOW_DYNAMIC_BUNDLE_FORMAT,inferDynamicReplayPlan,dynamicReplayIntent} from './segment-replay.js';
 
 const STORAGE_PREFIX = 'opendesk.sidebar.workflow.v1:';
 const SESSION_PREFIX = 'opendesk.sidebar.workflow-draft.v1:';
@@ -266,7 +267,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       history:{open:historyOpen,busy:operationBusy,
         canResume:selected==='local_codex'&&Boolean(sessionState.resumable),
         rows:saveList.map(item=>({key:item.key,title:String(item.workflow.title||'未命名工作流'),
-          fullTitle:String(item.workflow.title||'未命名工作流')+(item.format===WORKFLOW_BUNDLE_FORMAT?' · 完整 '+item.segments.length+' 段':' · r'+item.revision),
+          fullTitle:String(item.workflow.title||'未命名工作流')+([WORKFLOW_BUNDLE_FORMAT,WORKFLOW_DYNAMIC_BUNDLE_FORMAT].includes(item.format)?' · 完整 '+item.segments.length+' 段':' · r'+item.revision),
           savedText:'r'+item.revision+' · '+(Number.isFinite(item.savedAt)?new Date(item.savedAt).toLocaleString('zh-CN'):'保存时间未知')}))},
       header:{saved:Boolean(revision||selectedBundle),
         savedText:selectedBundle?'完整 '+selectedBundle.segments.length+' 段已保存':
@@ -349,7 +350,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     const all=await api.storage.local.get(null);
     if(disposed)return;
     saveList=Object.entries(all).filter(([key,value])=>key.startsWith(STORAGE_PREFIX) &&
-      ['opendesk.workflow-revision.v1',WORKFLOW_BUNDLE_FORMAT].includes(value?.format) &&
+      ['opendesk.workflow-revision.v1',WORKFLOW_BUNDLE_FORMAT,WORKFLOW_DYNAMIC_BUNDLE_FORMAT].includes(value?.format) &&
       Number.isSafeInteger(value.revision)&&value.revision>0&&value.workflow?.workflowId)
       .map(([key,value])=>({key,...value})).sort((a,b)=>b.savedAt-a.savedAt || b.revision-a.revision);
     const prior=control('workflow-saved-list').value;
@@ -366,7 +367,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if((Boolean(workflow.steps.length||workflow.title!=='新工作流'||workflow.description)
       && !matchesSavedDefinition())||requestBefore.trim())
       throw err('E_WORKFLOW_DIRTY','请先保存当前工作流，或确认新建后再打开历史版本');
-    if(record.format===WORKFLOW_BUNDLE_FORMAT) {
+    if([WORKFLOW_BUNDLE_FORMAT,WORKFLOW_DYNAMIC_BUNDLE_FORMAT].includes(record.format)) {
       // History list adds a presentation-only key; do not hash that field.
       const {key:historyKey,...frozenRecord}=record;
       const bundle=await verifyWorkflowBundle(frozenRecord);
@@ -456,8 +457,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           revision:saved.revision,sourceHash:freeze.sourceHash,
           verificationMode:old.verificationMode,evidence:old.evidence,proof:old.proof});
       }
+      const bindingPlan=inferDynamicReplayPlan({goal:draft.goal,segments});
       const record=await sealWorkflowBundle({
-        format:WORKFLOW_BUNDLE_FORMAT,bundleId:draft.bundleId,revision:1,
+        format:bindingPlan?WORKFLOW_DYNAMIC_BUNDLE_FORMAT:WORKFLOW_BUNDLE_FORMAT,
+        ...(bindingPlan?{bindingPlan}:{}),bundleId:draft.bundleId,revision:1,
         goal:draft.goal,title:draft.title,
         workflow:{workflowId:draft.bundleId,title:draft.title,
           siteOrigin:segments[0].workflow.siteOrigin},
