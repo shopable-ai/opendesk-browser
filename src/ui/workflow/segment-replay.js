@@ -45,7 +45,7 @@ export function replayParameterSchema(segments) {
 function validateSegment(value) {
   if(!value||typeof value!=='object'||Array.isArray(value)||
     Object.keys(value).some(key=>!['workflow','entryUrl','revision',
-      'sourceHash','verificationMode','evidence'].includes(key)))
+      'sourceHash','verificationMode','evidence','proof'].includes(key)))
     fail('E_WORKFLOW_BUNDLE','分段记录字段不合法');
   const workflow=validateWorkflow(value.workflow);
   if(!Number.isSafeInteger(value.revision)||value.revision<1||
@@ -62,10 +62,21 @@ function validateSegment(value) {
     fail('E_WORKFLOW_BUNDLE','分段核验对象不合法');
   if(evidence.kind==='product-page'&&!evidence.name)
     fail('E_WORKFLOW_BUNDLE','商品详情缺少已核验名称');
+  const proof=value.proof;
+  if(!proof||typeof proof!=='object'||Array.isArray(proof)||
+    Object.keys(proof).length!==5||
+    Object.keys(proof).some(key=>
+      !['runId','resultId','sourceHash','origin','documentId'].includes(key))||
+    typeof proof.runId!=='string'||!proof.runId||proof.runId.length>128||
+    typeof proof.resultId!=='string'||!proof.resultId||proof.resultId.length>128||
+    proof.sourceHash!==value.sourceHash||proof.origin!==workflow.siteOrigin||
+    typeof proof.documentId!=='string'||!proof.documentId||
+    proof.documentId.length>128)
+    fail('E_WORKFLOW_BUNDLE','分段缺少与源码一致的独立 RunHost 执行证明');
   return {workflow,entryUrl:entryUrl(value.entryUrl,workflow.siteOrigin),
     revision:value.revision,sourceHash:value.sourceHash,
     verificationMode:value.verificationMode,
-    evidence:structuredClone(evidence)};
+    evidence:structuredClone(evidence),proof:structuredClone(proof)};
 }
 function manifestFields(value) {
   if(!value||typeof value!=='object'||Array.isArray(value)||
@@ -83,7 +94,8 @@ function manifestFields(value) {
   if(segments.reduce((n,part)=>n+part.workflow.steps.length,0)>24)
     fail('E_WORKFLOW_BUNDLE','工作流包超过 24 个操作');
   const ids=new Set(segments.map(part=>part.workflow.workflowId));
-  if(ids.size!==segments.length||[...ids].some(id=>!id.startsWith(value.bundleId+'-s')))
+  if(ids.size!==segments.length||segments.some((part,index)=>
+    part.workflow.workflowId!==value.bundleId+'-s'+(index+1)))
     fail('E_WORKFLOW_BUNDLE','分段必须使用独立的 Controller 身份');
   const schema=replayParameterSchema(segments);
   if(JSON.stringify(schema)!==JSON.stringify(value.paramsSchema))
