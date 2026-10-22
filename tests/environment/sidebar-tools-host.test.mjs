@@ -2596,6 +2596,34 @@ test('R5.25 Extension Center direct settings returns to an available Cookie Edit
   assert.equal(f.runtime.frameRoot.children.length,0);
 });
 
+test('R5.26 disabled Cookie Editor direct settings can re-enable without auto-mount or data loss',async t=>{
+  const tool=await officialToolFixture('cookie-editor');
+  const baseGrant={storeId:'0',grantEpoch:'r526-fixture',read:true,write:true,observe:true,clear:true};
+  const key=sidebarToolStorageKey(tool.id),userData={draft:'retain-on-enable'};
+  const store=new Map([
+    [SIDEBAR_TOOL_STORE,[tool]],
+    [SIDEBAR_TOOL_ENABLE_STORE,{[tool.id]:false}],
+    [BROWSER_MENU_GRANTS_STORE,{[tool.id]:{version:tool.version,installEpoch:null,cookieAllSites:baseGrant}}],
+    [key,userData]
+  ]);
+  const f=await hostFixture(t,{tool,store,startTool:false});
+  assert.equal(f.host.openSettings(tool.id),true);
+  assert.equal(f.runtime.frameRoot.children.length,0,'settings cannot silently start a stopped sandbox');
+  assert.equal(f.elements['sidebar-tool-cookie-permissions'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,true);
+  assert.equal(f.elements['sidebar-tool-enable'].disabled,false);
+  assert.equal(f.elements['sidebar-tool-enable'].textContent,'启用工具');
+  assert.equal(f.elements['sidebar-tool-cookie-site-toggle'].disabled,true,
+    'stopped tools must not request more Cookie privileges');
+  f.emit(f.elements['sidebar-tool-enable'],'click',{isTrusted:true});
+  await settle(()=>store.get(SIDEBAR_TOOL_ENABLE_STORE)?.[tool.id]===true&&!f.elements['sidebar-tool-enable'].disabled);
+  assert.equal(f.runtime.frameRoot.children.length,0,'enablement must not auto-execute the app');
+  assert.deepEqual(store.get(key),userData,'existing persisted data must survive re-enable');
+  f.emit(f.elements['sidebar-tool-back'],'click');
+  assert.equal(f.runtime.frameRoot.children.length,1,'return mounts the existing React application');
+  assert.equal(f.elements['sidebar-tool-frame'].hidden,false);
+});
+
 test('R5.25 Cookie grant revocation hides the prior iframe instead of exposing stale metadata',async t=>{
   const tool=await officialToolFixture('cookie-editor');
   const saved={version:tool.version,installEpoch:null,
