@@ -27,3 +27,15 @@ test('cookie Values are not a side effect of ordinary global consent or legacy v
   assert.match(host,/enabled&&cap!=='values'&&tool.capabilities.includes/);
   assert.match(host,/confirmedWrite\(api.storage.local,BROWSER_MENU_GRANTS_STORE/);
 });
+
+test('R5.26 stopped Cookie Editor exposes trusted re-enable without duplicate first-use consent',async()=>{
+  const [host,view]=await Promise.all([
+    source('src/ui/sidebar-tools.js'),source('src/ui/react/tabs/tool-host.tsx')]);
+  assert.match(view,/const cookieManagementVisible=/);
+  assert.match(view,/\{!cookieManagementVisible&&<>/);
+  const cookie=view.slice(view.indexOf('function CookieSettings('),view.indexOf('function BookmarkSettings('));
+  assert.match(cookie,/\{!firstUse&&<>[\s\S]*id="sidebar-tool-enable"/);
+  assert.match(cookie,/id="sidebar-tool-enable-hint"/);
+  assert.equal((cookie.match(/id="sidebar-tool-cookie-site-toggle"/g)||[]).length,1);
+  assert.match(host,/cookieGrantPending\|\|enableReadError\|\|!sidebarToolEnabled\(enableRecords,tool.id\)/);
+});
