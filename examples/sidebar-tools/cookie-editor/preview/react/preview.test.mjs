@@ -251,3 +251,23 @@ test('global Cookie grant is one simulated decision across site changes and revo
   assert.equal(f.mock.hasGlobalCookieGrant(),false);
  }finally{f.close();}
 });
+
+
+test('R5.25 preview covers real Controller status categories from fictional SDK',async()=>{
+ for(const [scenario,phase,problem] of [
+   ['noPage','blocked','E_NO_ACTIVE_TAB'],
+   ['restricted','blocked','E_UNSUPPORTED_SCHEME'],
+   ['switching','blocked','E_DOCUMENT_UNRESOLVED'],
+   ['chromeDenied','blocked','E_CHROME_PERMISSION_REQUIRED'],
+   ['hostClosed','error','E_HOST_CLOSED']
+ ]){
+   const f=fixture(scenario);
+   try{
+     await f.controller.load();
+     assert.equal(f.controller.snapshot().phase,phase);
+     assert.equal(f.controller.snapshot().problem,problem);
+     assert.equal(f.mock.inspect().calls.some(row=>row.op==='getAll'),false,
+       'an unavailable website or revoked Host must never issue Cookie reads');
+   }finally{f.close();}
+ }
+});

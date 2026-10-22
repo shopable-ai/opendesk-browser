@@ -63,6 +63,20 @@ jobs:
         run: npm run build --prefix examples/sidebar-tools/cookie-editor
       - name: Stage React candidate via canonical installed-package packer
         run: npm run stage:candidate --prefix examples/sidebar-tools/cookie-editor
+      # Temporary immutable candidate handoff for R5.25 source-bound release.
+      # The emitted bytes are executable *public source*, never actual Cookies,
+      # user storage or browser data. Remove this diagnostic after promotion.
+      - name: R5.25 release candidate handoff (public package only)
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          const bytes=readFileSync('artifacts/sidebar-tools/cookie-editor/candidate.opendesk-tool.json');
+          const value=bytes.toString('base64');
+          console.log('R525_RELEASE_BEGIN');
+          for(let i=0;i<value.length;i+=4096)
+            console.log('R525_CHUNK:'+value.slice(i,i+4096));
+          console.log('R525_RELEASE_END');
+          NODE
       - name: Verify real Vite bytes and staged official packer artifact
         run: node --test tests/environment/cookie-editor-react-build.test.mjs
       - name: Build real WXT and Shared UI Demo prerequisites for build-bound tests

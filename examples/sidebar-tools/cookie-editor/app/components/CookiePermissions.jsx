@@ -13,6 +13,7 @@ function content(phase,reason){
   if(phase==='idle')return ['需要重新检查','当前列表已失效，请手动检查当前网页。',true];
   if(noPage.has(reason))return ['没有可用的网站','请先打开普通 HTTP/HTTPS 网站；不需要反复重试。',false];
   if(restricted.has(reason))return ['当前页面不可管理 Cookie','Chrome 内部页、扩展页或隐身窗口不支持 Cookie 管理。请切换到普通网站。',false];
+  if(reason==='E_DOCUMENT_CHANGED')return ['网页已发生变化','请重新确认活动网页后，再手动检查 Cookie。',true];
   if(reason==='E_DOCUMENT_UNRESOLVED')return ['网页正在切换','等待页面加载完成；如未自动恢复，可重新检查。',true];
   if(granting.has(reason))return ['Cookie 授权未生效','请通过顶部设置检查 Cookie 授权，然后重新检查。',true];
   if(chromeDenied.has(reason))return ['Chrome Cookie 权限不足','请在 Chrome 扩展权限中恢复 Cookie 或网站访问，再重新检查。',true];

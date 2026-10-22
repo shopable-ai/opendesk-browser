@@ -98,7 +98,8 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
   observe:{start:async()=>{observations.add('preview-observation');return {sessionRef:'preview-observation'};},read:async()=>({events:[],nextCursor:'0'}),stop:async({sessionRef})=>{observations.delete(sessionRef);return {stopped:true};}}
  };
  return {
-  browser:{cookies,capabilities:{getStatus:async()=>({callableNow:globalGrant,reasonCode:'E_SITE_GRANT_REQUIRED'})},
+  browser:{cookies,capabilities:{getStatus:async()=>({callableNow:globalGrant&&scenario!=='chromeDenied',
+     reasonCode:scenario==='chromeDenied'?'E_CHROME_PERMISSION_REQUIRED':'E_SITE_GRANT_REQUIRED'})},
    clipboard:{writeText:async text=>{record('copy',{});fail('copy');deliveries.push({method:'copy',text});return {copied:true};}},
    downloads:{text:async args=>{
     record('download',{});fail('download');deliveries.push({method:'download',...args});
@@ -109,7 +110,13 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
     return {started:true};
    }}},
   request:async(operation,payload)=>{
-   if(operation==='currentPage.info')return {status:'available',url:'https://'+currentSite+'/'};
+   if(operation==='currentPage.info'){
+    if(scenario==='noPage'||scenario==='restricted'||scenario==='switching')
+      return {status:'unavailable',reasonCode:scenario==='noPage'?'E_NO_ACTIVE_TAB':
+        scenario==='restricted'?'E_UNSUPPORTED_SCHEME':'E_DOCUMENT_UNRESOLVED'};
+    if(scenario==='hostClosed')throw error('E_HOST_CLOSED');
+    return {status:'available',url:'https://'+currentSite+'/'};
+   }
    if(operation==='cookieEditor.export.begin'){
     if(!globalGrant)throw error('E_SITE_GRANT_REQUIRED');
     if(payload?.url!=='https://'+currentSite+'/'||!['copy','download'].includes(payload.method))throw error('E_COOKIE_SCOPE');

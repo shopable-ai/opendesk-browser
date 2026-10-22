@@ -808,7 +808,9 @@ test('R5.25 Host closure is distinct from a missing Cookie grant',async()=>{
   controller.dispose();
 });
 test('R5.25 Chrome permission rejection retains its diagnostic reason',async()=>{
-  const adapter=createCookieSdkAdapter({getBrowser:()=>({capabilities:{
+  const adapter=createCookieSdkAdapter({getBrowser:()=>({cookies:{
+    getAll:async()=>[],getPartitionKey:async()=>({partitionKey:{topLevelSite:'https://shop.example.com'}})
+  },capabilities:{
     getStatus:async()=>({callableNow:false,reasonCode:'E_CHROME_PERMISSION_REQUIRED'})
   }}),request:async()=>({status:'available',url:'https://shop.example.com/account'})});
   const controller=createCookieController({adapter});

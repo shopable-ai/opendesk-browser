@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "cookie-editor",
-  "version": "2.0.31",
+  "version": "2.0.32",
   "title": "Cookie Editor · Cookie 管理",
   "description": "Cookie Editor：管理已授权网站的 Cookie，支持原位编辑、导入导出与安全清理。",
   "capabilities": [

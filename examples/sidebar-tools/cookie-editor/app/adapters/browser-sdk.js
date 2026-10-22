@@ -38,7 +38,8 @@ export function createCookieSdkAdapter({getBrowser,request}){
   const browser=()=>{
     const value=getBrowser();
     if(!value?.cookies?.getAll||!value?.cookies?.getPartitionKey||
-      !value?.capabilities?.getStatus)throw Error('E_COOKIE_SDK_NOT_READY');
+      !value?.capabilities?.getStatus)
+      throw Object.assign(Error('E_COOKIE_SDK_NOT_READY'),{code:'E_COOKIE_SDK_NOT_READY'});
     return value;
   };
   let lastPageReason='E_NO_ACTIVE_TAB';

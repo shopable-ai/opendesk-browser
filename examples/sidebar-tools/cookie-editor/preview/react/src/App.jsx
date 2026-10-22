@@ -34,10 +34,14 @@ export default function App(){
  };
  return <div className="r49-page">
   <details className="demo-lab" aria-label="预览场景切换器">
-   <summary className="lab-title"><span>Cookie Editor R5.20</span><span>预览控制 · 虚构数据</span></summary>
+   <summary className="lab-title"><span>Cookie Editor R5.25</span><span>预览控制 · 虚构数据</span></summary>
    <div className="lab-controllers">
     <label>场景 <select data-testid="scenario" value={scene} onChange={e=>useScene(e.target.value)}>
-     <option value="ready">已授权</option><option value="first">首次全站授权</option><option value="readonly">仅查看</option><option value="empty">空列表</option><option value="loading">正在读取</option><option value="valuesDenied">值未授权</option><option value="saveError">保存失败</option><option value="copyError">复制失败</option><option value="downloadError">下载失败</option><option value="unknown">写入结果未知</option>
+     <option value="ready">已授权</option><option value="first">首次全站授权</option>
+     <option value="noPage">无活动网页</option><option value="restricted">受限网页</option>
+     <option value="switching">正在切站</option><option value="chromeDenied">Chrome 权限缺失</option>
+     <option value="hostClosed">宿主不可用</option><option value="readonly">写入被拒</option>
+     <option value="empty">空列表</option><option value="loading">正在读取</option><option value="valuesDenied">值未授权</option><option value="saveError">保存失败</option><option value="copyError">复制失败</option><option value="downloadError">下载失败</option><option value="unknown">写入结果未知</option>
     </select></label>
     <label>模拟网站 <select data-testid="site" value={site} onChange={e=>switchSite(e.target.value)}>
      {demoSites.map(hostname=><option key={hostname} value={hostname}>{hostname}</option>)}
@@ -52,7 +56,8 @@ export default function App(){
   <div className="preview-host-controls">
    <span>模拟环境 · 不读取真实 Cookie</span>
    <button className="lab-button" type="button" aria-label="预览授权设置"
-     aria-expanded={settingsOpen} onClick={()=>setSettingsOpen(value=>!value)}>⚙ 设置</button>
+     aria-expanded={settingsOpen} onClick={()=>setSettingsOpen(value=>!value)}>
+      {settingsOpen?'← 返回 Cookie Editor':'⚙ 设置'}</button>
   </div>
   {settingsOpen&&<section className="preview-settings-panel" aria-label="Cookie 全站授权设置">
    <strong>管理所有网站 Cookie</strong>
@@ -61,7 +66,7 @@ export default function App(){
     {granted?'撤销全站授权':'允许管理所有网站 Cookie'}
    </button>
   </section>}
-  <section className="cookie-app" aria-label="Cookie Editor 虚构数据预览" ref={setHostRoot}>
+  <section className="cookie-app" aria-label="Cookie Editor 虚构数据预览" hidden={settingsOpen} ref={setHostRoot}>
    {hostRoot&&(granted
     ?<CookieEditorApp key={scene+':'+revision} request={mock.request} hostRoot={hostRoot}/>
     :<section className="preview-global-grant" aria-labelledby="preview-grant-title">
