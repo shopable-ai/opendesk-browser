@@ -75,7 +75,7 @@ const initialControls={
   },
   "workflow-ai-cancel": {
     "hidden": true,
-    "title": "停止 AI 规划"
+    "title": "停止"
   },
   "workflow-ai-provider": {
     "value": "local_codex"
