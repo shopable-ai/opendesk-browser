@@ -174,3 +174,15 @@ test('R1.3 pending receipt is independently reconciled, never replayed',async()=
   assert.equal(f.commits,before);assert.equal(f.chromeStore.has(PROMPT_AI_RECOVERY_KEY),false);
   f.host.dispose();
 });
+
+test('R1.3 an unresolved receipt from a retired instance blocks new write intent until readback',async()=>{
+  const f=hostFixture();
+  const record={toolId:'prompt-shortcuts',version:'1.1.12',
+    instance:'retired',installEpoch:'prior',expectedEtag:'a'.repeat(64),createdAt:Date.now()};
+  await f.api.storage.local.set({[PROMPT_AI_RECOVERY_KEY]:record});
+  await assert.rejects(f.host.request({request:'再新建一条',
+    event:{isTrusted:true}}),{code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(f.commits,0);
+  assert.deepEqual(f.chromeStore.get(PROMPT_AI_RECOVERY_KEY),record);
+  f.host.dispose();
+});
