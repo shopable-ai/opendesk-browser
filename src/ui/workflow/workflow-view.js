@@ -71,6 +71,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   let touched=false,saveList=[],draftWrites=Promise.resolve();
   let directVerifiedSerial=null; // Verified fill source is the same byte sequence saved later.
   let phase='idle',lastRun='none',hasError=false,newReviewSignature=null,pendingRunReview=null,pendingAIReview=null;
+  let autoExecutionPending=false; // No second Send while a pre-granted, safe AI run is being admitted.
   let historyOpen=false,newReviewReturnFocus=null;
   let planningGeneration=0,planningAbort=null,planningTarget=null,pendingApproval=null,localChecking=false;
   let observationApproval=null,planningObservation=null,approvalWrites=Promise.resolve();
@@ -214,7 +215,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   function updateButtons() {
     if(disposed)return;
     // An active RunHost also owns the viewport, even after AI planning settles.
-    const operationBusy=busy||Boolean(host.executionPending||host.currentRun);
+    const operationBusy=busy||autoExecutionPending||Boolean(host.executionPending||host.currentRun);
     const runnable=Boolean(compiled && currentOrigin()===workflow.siteOrigin &&
       !operationBusy && !historyOpen && !pendingAIReview);
     control('workflow-run').disabled=!runnable;
@@ -222,7 +223,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     control('workflow-candidate').disabled=busy || !matchesRevision();
     control('workflow-stop').disabled=!runId || host.currentRun!==runId;
     control('workflow-open-code').disabled=!compiled;
-    control('workflow-ai-plan').disabled=busy||Boolean(pendingAIReview)||provider()==='opendesk_cloud'||
+    control('workflow-ai-plan').disabled=busy||autoExecutionPending||Boolean(pendingAIReview)||provider()==='opendesk_cloud'||
       (provider()==='local_codex'&&localChecking);
     control('workflow-ai-plan').hidden=phase==='planning';
     control('workflow-ai-cancel').hidden=phase!=='planning';
@@ -426,7 +427,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   function run(event,prepared=null,approvedReview=null) {
     if((!prepared&&!event?.isTrusted)||(busy&&!prepared)||host.executionPending||host.currentRun||(!compiled&&!prepared))
       return Promise.resolve({ok:false,skipped:true});
-    let captured,params,freeze,permission;
+    let captured,params,freeze,permission,runOrigins;
     try {
       freeze=prepared?.freeze||compiled;captured=prepared?.captured||currentPageTarget.capture();
       if(captured.origin!==freeze.workflow.siteOrigin)
@@ -465,7 +466,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       // This remains the real user gesture for Chrome's separate site grant.
       const extra=freeze.workflow.steps.filter(step=>step.linkGuard&&step.linkGuard.origin!==captured.origin)
         .map(step=>permissionPattern(step.linkGuard.url));
-      permission=prepared?.permission||api.permissions.request({origins:[...new Set([permissionPattern(captured.url),...extra])]});
+      runOrigins=[...new Set([permissionPattern(captured.url),...extra])];
+      permission=prepared?.permission||api.permissions.request({origins:runOrigins});
     }catch(error){
       status(format(error),true);return Promise.resolve({ok:false,error});
     }
@@ -480,7 +482,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       if(!await permission)throw err('E_PERMISSION','网站授权被拒绝；未运行');
       if(disposed)throw err('E_HOST_CLOSED','Sidebar 已关闭');
       await currentPageTarget.revalidate(captured);
-      if(prepared&&!await api.permissions.contains({origins:[permissionPattern(captured.url)]}))
+      if(prepared&&!await api.permissions.contains({origins:runOrigins}))
         throw err('E_PERMISSION','运行前网站权限已撤销；未执行');
       prepared?.assertCurrent?.();
       const saved=revision && revision.workflow.workflowId===freeze.workflow.workflowId &&
@@ -501,8 +503,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       // Document and even this AI turn can change after the first gate.
       // Do not submit a stale run to RunHost (which still owns admission).
       if(disposed||prepared?.signal?.aborted)throw err('E_CANCELLED','本次运行已停止，未启动');
-      if(!await api.permissions.contains({origins:[permissionPattern(captured.url)]}))
-        throw err('E_PERMISSION','启动前网站权限已撤销；未执行');
+      if(!await api.permissions.contains({origins:runOrigins}))
+        throw err('E_PERMISSION','启动前网站或目标链接权限已撤销；未执行');
       await currentPageTarget.revalidate(captured);
       prepared?.assertCurrent?.();
       if(disposed||prepared?.signal?.aborted)throw err('E_CANCELLED','本次运行已停止，未启动');
@@ -707,8 +709,59 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(planned){writeWorkflowOutput(message);status(reply?.ok?'':message,!reply?.ok);}
     else status(message,!reply?.ok);
   }
-  // Called synchronously from the one trusted Confirm gesture. A plan has no
-  // execution authority until this exact frozen source, params and target match.
+  // The model never grants authority. Reuse the same frozen Controller and
+  // RunHost call whether execution follows a safe Send or a Chrome grant gesture.
+  function preparedAIExecution(planned,permission) {
+    return {
+      freeze:planned.freeze,captured:planned.captured,params:planned.params,
+      permission,signal:planned.signal,hasReadback:planned.hasReadback,
+      hasUnprovenClick:planned.hasUnprovenClick,
+      beforeObservation:planned.beforeObservation,effectExpectation:planned.effectExpectation,
+      linkGuard:planned.linkGuard,
+      assertCurrent:()=>{
+        if(disposed||planned.serial!==stable()||planned.selected!==provider()||
+          planned.epoch!==planningGeneration)
+          throw err('E_WORKFLOW_REVIEW_STALE','步骤、参数或模型来源已变化，未执行');
+      }
+    };
+  }
+  // Send is the user's task intent, not a Chrome permission gesture after an
+  // asynchronous Provider turn. Auto-run ONLY when every required site grant
+  // already exists. RunHost is still the sole execution and write authority.
+  async function executeAIAuto(planned) {
+    try {
+      const current=currentPageTarget?.snapshot;
+      const fields=['windowId','tabId','frameId','documentId','url','origin'];
+      if(disposed||planned.epoch!==planningGeneration||planned.serial!==stable()||
+        planned.selected!==provider()||!current||current.status!=='available'||
+        fields.some(key=>current[key]!==planned.captured[key]))
+        throw err('E_WORKFLOW_REVIEW_STALE','当前步骤、参数或网页已变化；未自动执行');
+      const origins=[permissionPattern(planned.captured.url)];
+      if(planned.linkGuard&&planned.linkGuard.origin!==planned.captured.origin)
+        origins.push(permissionPattern(planned.linkGuard.url));
+      if(!await api.permissions.contains({origins:[...new Set(origins)]}))
+        throw err('E_PERMISSION','网站权限已撤销；不会自动申请或执行');
+      if(disposed||planned.epoch!==planningGeneration||planned.serial!==stable()||
+        planned.selected!==provider())
+        throw err('E_WORKFLOW_REVIEW_STALE','任务已变化；未自动执行');
+      autoExecutionPending=false;
+      appendChat('对话状态','安全检查通过，正在执行 '+planned.freeze.workflow.steps.length+' 步…');
+      const reply=await run(null,preparedAIExecution(planned,Promise.resolve(true)));
+      if(!disposed)reportExecution(reply,planned);
+      return reply;
+    }catch(error){
+      if(!disposed){
+        status(format(error)+'；不会自动重试',true);
+        appendChat('执行结果','网页或权限已变化，本次未自动执行；请检查后重新发送。');
+      }
+      return {ok:false,error};
+    }finally{
+      autoExecutionPending=false;
+      if(!disposed)updateButtons();
+    }
+  }
+  // The explicit button remains only when an actual browser grant is missing.
+  // The Chrome permissions.request call must occur synchronously in its gesture.
   function executeAIReview(event) {
     if(!event?.isTrusted||!pendingAIReview)return Promise.resolve({ok:false,skipped:true});
     const planned=pendingAIReview;
@@ -734,19 +787,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     catch(error){dismissRunReview();status(format(error),true);return Promise.resolve({ok:false,error});}
     dismissRunReview(); // consume before any asynchronous work or second click
     appendChat('对话状态','正在执行已确认的 '+planned.freeze.workflow.steps.length+' 步…');
-    const approved={
-      freeze:planned.freeze,captured:planned.captured,params:planned.params,
-      permission,signal:planned.signal,hasReadback:planned.hasReadback,
-      hasUnprovenClick:planned.hasUnprovenClick,
-      beforeObservation:planned.beforeObservation,effectExpectation:planned.effectExpectation,
-      linkGuard:planned.linkGuard,
-      assertCurrent:()=>{
-        if(disposed||planned.serial!==stable()||planned.selected!==provider()||
-          planned.epoch!==planningGeneration)
-          throw err('E_WORKFLOW_REVIEW_STALE','步骤、参数或模型来源已变化，未执行');
-      }
-    };
-    return run(event,approved).then(reply=>{if(!disposed)reportExecution(reply,planned);return reply;});
+    return run(event,preparedAIExecution(planned,permission)).then(reply=>{
+      if(!disposed)reportExecution(reply,planned);return reply;
+    });
   }
   async function runManual(event,review=null) {
     const reply=await run(event,null,review);
@@ -994,9 +1037,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     }
   }
   async function plan(event) {
-    if(!event.isTrusted||busy||(provider()==='local_codex'&&localChecking))return;
+    if(!event.isTrusted||busy||autoExecutionPending||host.executionPending||host.currentRun||
+      pendingAIReview||(provider()==='local_codex'&&localChecking))return;
     dismissRunReview();
-    let permission=null,captured=null,frozen;
+    let permission=null,captured=null,frozen,autoStart=null;
     try {
       const selected=provider(),request=control('workflow-ai-request').value.trim();
       if(!request)throw err('E_AI_REQUEST','先描述希望自动完成的任务');
@@ -1140,31 +1184,43 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       directVerifiedSerial=stable();
       render();persistDraft();
       const executionSerial=stable();
-      // Planning produces a reviewable, immutable proposal only. No RunHost
-      // operation is admitted until the user confirms these exact steps once.
-      const risk=classifyWorkflowRunRisk(freeze.workflow);
-      pendingAIReview={
+      // The strict prepareDirectExecution() admission has already denied
+      // unobserved, invented, sensitive and high-impact AI actions. Its allowed
+      // search/link clicks do not inherit the generic manual-click review.
+      // Never treat model output as a Chrome permission or User Activation.
+      const plannedExecution={
         epoch,selected:frozen.selected,request:frozen.request,serial:executionSerial,
         freeze,captured:structuredClone(captured),params:structuredClone(prepared.params),
         hasReadback:prepared.hasReadback,hasUnprovenClick:prepared.hasUnprovenClick,
         beforeObservation:planningObservation,effectExpectation:prepared.effectExpectation,
         linkGuard:prepared.linkGuard,
-        signal:abort.signal
+        signal:new AbortController().signal
       };
-      // The planning abort signal has completed its job. Execution has its
-      // own RunHost Stop and cannot be cancelled by a completed planning turn.
-      pendingAIReview.signal=new AbortController().signal;
+      const origins=[permissionPattern(captured.url)];
+      if(prepared.linkGuard&&prepared.linkGuard.origin!==captured.origin)
+        origins.push(permissionPattern(prepared.linkGuard.url));
+      const pregranted=await api.permissions.contains({origins:[...new Set(origins)]});
+      planningCurrent(epoch,frozen.serial,frozen.selected);
       lastRun='none';
-      control('workflow-run-review-scope').text=
-        '将在 '+captured.origin+' 执行 '+freeze.workflow.steps.length+' 步。'+
-        (risk.needsReview?'涉及：'+risk.description+'。':'')+
-        (prepared.linkGuard?'链接目标：'+prepared.linkGuard.name+'（'+prepared.linkGuard.origin+'）；导航后重新验证。':'')+
-        '请核对步骤、参数与影响范围，点击一次「执行」开始。';
-      control('workflow-run-review').hidden=false;
-      appendChat('Codex','已生成 '+freeze.workflow.steps.length+' 步，请检查后确认执行。');
-      status('步骤已准备就绪；尚未执行任何网页写入。');
+      if(pregranted){
+        // Complete planning before launching the existing RunHost. The Send
+        // gesture is sufficient task intent, but cannot grant fresh origins.
+        autoExecutionPending=true;autoStart=plannedExecution;
+        appendChat('Codex','已完成步骤和安全检查，将直接执行。');
+        status('正在执行安全检查已通过的网页任务…');
+      }else{
+        // This is a *Chrome grant* gateway, not an unnecessary extra plan
+        // approval. The next trusted button click requests only missing grants.
+        pendingAIReview=plannedExecution;
+        control('workflow-run-review-scope').text=
+          '执行需要新增网站访问权限。点击「执行」将请求 Chrome 原生授权；'+
+          '未授权不会操作网页。';
+        control('workflow-run-review').hidden=false;
+        appendChat('对话状态','步骤已准备好，需要授权网站后才能执行。');
+        status('等待 Chrome 网站权限；尚未执行任何网页操作。');
+        focus('workflow-run-review-confirm');
+      }
       updateButtons();
-      focus('workflow-run-review-confirm');
     }catch(error){
       if(!disposed&&epoch===planningGeneration){
         const message=frozen.selected==='local_codex'?localFailure(error):format(error);
@@ -1174,7 +1230,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     }
     finally{
       if(epoch===planningGeneration){busy=false;phase='idle';planningAbort=null;planningTarget=null;pendingApproval?.settle({decision:'deny'});
-        control('workflow-ai-progress').hidden=true;if(!disposed){updateLocalStatus();updateButtons();}}
+        control('workflow-ai-progress').hidden=true;if(!disposed){updateLocalStatus();updateButtons();}
+        if(autoStart&&!disposed)void executeAIAuto(autoStart);}
     }
   }
   const observation=createWorkflowObservation({api,host,currentPageTarget,onRunOwner,
