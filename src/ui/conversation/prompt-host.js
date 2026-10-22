@@ -104,7 +104,7 @@ export function createTrustedPromptHost({
       '\n确认前不会向模型发送这段私人正文。',
     run:async()=>{await live();return true;}
   });
-  const notify=async({changed=false,unknown=false,targetId=null}={})=>{
+  const notify=async({changed=false,unknown=false,targetId=null,releasedImageAssets=[]}={})=>{
     if(disposed)return;
     if(changed||unknown)try{send('state-changed',{targetId});}catch{}
     if(changed&&lastExpected){
@@ -114,6 +114,19 @@ export function createTrustedPromptHost({
         if(current?.instance===token&&current?.expectedEtag===lastExpected)
           await api.storage.local.remove(PROMPT_AI_RECOVERY_KEY);
       }catch{/* Keep recovery receipt rather than claiming durable cleanup. */}
+    }
+    if(changed&&Array.isArray(releasedImageAssets)){
+      let failed=0;
+      for(const id of releasedImageAssets){
+        if(typeof id!=='string'||!/^psa_[a-f0-9]{32}$/.test(id)){failed++;continue;}
+        try{
+          await live();
+          // Existing asset Host takes the same tool lock, independently checks
+          // the now-persisted library for references and verifies the removal.
+          await dispatch('prompt.asset.remove',{id});
+        }catch{failed++;}
+      }
+      if(failed)notice('提示词已保存并读回，但 '+failed+' 个不用的图片资源清理未确认，请在原工具核对。',true);
     }
     if(unknown)notice('AI 写入结果未知：已保留只含摘要的核对记录，请勿重试创建。',true);
   };
