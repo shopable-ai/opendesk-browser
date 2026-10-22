@@ -95,3 +95,48 @@ test('R23.17 fixture: ordinary manually authored observe is not the privileged i
   assert.match(state(f,'workflow-output').text,/执行结果/);
   assert.doesNotMatch(state(f,'workflow-output').text,/semantic-dom-summary/);
 });
+
+test('R23.26 Stop races a submitted RunHost.start before runId and cancels the late run',async t=>{
+  const priorFetch=globalThis.fetch;
+  let modelCalls=0;
+  globalThis.fetch=async()=>{
+    modelCalls++;
+    const proposal={title:'只读网页',description:'',
+      paramsSchema:{type:'object',properties:{},required:[],additionalProperties:false},
+      steps:[{stepId:'read-1',op:'observe'}]};
+    return {ok:true,text:async()=>JSON.stringify({choices:[{
+      message:{content:JSON.stringify(proposal)}
+    }]})};
+  };
+  t.after(()=>{globalThis.fetch=priorFetch;});
+  const f=await workflowFixture();t.after(()=>f.view.dispose());
+  await ready(f);
+  f.service.holdActionStart=true;
+  f.input('workflow-ai-request','读取当前网页内容，不修改。');
+  const send=f.click('workflow-ai-plan');
+  await tick();await tick();
+  assert.equal(state(f,'workflow-ai-approval').hidden,false);
+  await f.click('workflow-ai-approve');await send;
+  // The first RunHost observation finishes. The actual action has been sent,
+  // but its start response (and runId) are deliberately held by the fixture.
+  for(let attempt=0;attempt<80&&!f.service.releaseActionStart;attempt++)await tick();
+  assert.equal(typeof f.service.releaseActionStart,'function',
+    'action start should have been submitted without a runId response');
+  assert.equal(f.starts.length,2,'one observer and one bounded action, no duplicate start');
+  assert.equal(f.stops.length,0);
+  assert.equal(state(f,'workflow-ai-cancel').hidden,false);
+  await f.click('workflow-ai-cancel');await tick();await tick();
+  assert.equal(state(f,'workflow-editor').dataset.agentState,'OUTCOME_UNKNOWN',
+    'pending start must not be called a confirmed stop before host settlement');
+  f.service.releaseActionStart();
+  for(let attempt=0;attempt<80&&f.stops.length===0;attempt++)await tick();
+  assert.equal(f.stops.length,1,'late run must be stopped exactly once');
+  assert.equal(f.stops[0].runId,'workflow-run-2');
+  assert.equal(f.stops[0].reason,'E_CANCELLED');
+  await tick();
+  assert.equal(f.host.currentRun,null);
+  assert.equal(f.starts.length,2,'late completion cannot dispatch another action');
+  assert.equal(modelCalls,1,'stop never asks Provider to redo the task');
+  assert.equal(state(f,'workflow-editor').dataset.agentState,'OUTCOME_UNKNOWN',
+    'late cancellation never retroactively claims no side effects');
+});
