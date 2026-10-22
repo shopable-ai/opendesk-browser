@@ -22,7 +22,7 @@ const server=createServer(async(req,res)=>{
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const origin='http://127.0.0.1:'+server.address().port;
 const profile=await mkdtemp(join(tmpdir(),'opendesk-workflow-e2e-'));
-let proc,socket,port=0,n=0;
+let proc,socket,port=0,n=0,procClosed=Promise.resolve();
 const pending=new Map(),errors=[];
 const sleep=ms=>new Promise(done=>setTimeout(done,ms));
 function cdp(method,params={}){
@@ -67,6 +67,7 @@ try{
  proc=spawn(chromeBin,['--headless=new','--no-sandbox','--disable-gpu',
   '--disable-dev-shm-usage','--no-first-run','--no-default-browser-check','--window-size=880,900',
   '--user-data-dir='+profile,'--remote-debugging-port=0','about:blank'],{stdio:['ignore','ignore','pipe']});
+ procClosed=new Promise(resolve=>proc.once('close',resolve));
  let stderr='',boot;
  proc.once('error',error=>{boot=error;});
  proc.stderr.on('data',bytes=>{stderr=(stderr+bytes.toString()).slice(-6000);});
@@ -125,7 +126,16 @@ try{
 }finally{
  for(const item of pending.values())item.reject(Error('Browser fixture closed'));
  try{socket?.close();}catch{}
- if(proc&&!proc.killed)proc.kill('SIGTERM');
+ // A signal being sent does not mean Chrome has stopped writing its profile.
+ // Wait for this child only; escalate only this owned PID if shutdown stalls.
+ const forceStop=setTimeout(()=>{
+  if(proc?.pid&&proc.exitCode===null&&proc.signalCode===null)proc.kill('SIGKILL');
+ },5000);
+ forceStop.unref();
+ try{
+  if(proc?.pid&&proc.exitCode===null&&proc.signalCode===null)proc.kill('SIGTERM');
+  await procClosed;
+ }finally{clearTimeout(forceStop);}
  await new Promise(resolve=>server.close(resolve));
- await rm(profile,{recursive:true,force:true});
+ await rm(profile,{recursive:true,force:true,maxRetries:6,retryDelay:80});
 }
