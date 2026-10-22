@@ -512,7 +512,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         if(cookieSiteRecord(tool,origin)?.[capability]!==true)await changeCookieSite({capability});
       }
       if(active===tool&&instance===token){
-        tocSettingsOpen=revoke;render();
+        // An Extension Center -> Settings entry did not start the sandbox.
+        // Once the one-click grant is independently read back, open the real UI.
+        if(!revoke&&tool.id==='cookie-editor'&&!frame&&!nativeUI&&!nativePending)
+          mountTool(tool);
+        else {tocSettingsOpen=revoke;render();}
         // Cookie Editor already reflects grant state in its controls. Avoid
         // a second persistent success banner in the Tool shell.
         notice(tool.id==='cookie-editor'?'':revoke?'已撤销本站 Cookie 授权':
@@ -962,10 +966,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     setToolFieldAttribute(view, settingsButton, 'aria-expanded', String(show));
     // Time Review uses the same trusted static settings DOM as an inline
     // enrollment card. Do not replace/hide its live stats iframe.
-    const trustedInline=show&&(id===TIME_REVIEW_ID||id===FOCUS_ID||id===AI_ID||isCookieTool(active)||isFullBookmarkTool(active));
+    const trustedInline=show&&(id===TIME_REVIEW_ID||id===FOCUS_ID||id===AI_ID||
+      (isCookieTool(active)&&id!=='cookie-editor')||isFullBookmarkTool(active));
     // Native approval/stop remains visible above a live sandbox, never inside it.
     setToolFieldAttribute(view, display, 'data-trusted-tool-inline', String(trustedInline));
-    patchToolField(view, settingsView, {hidden: !show});
+    // Cookie approval is in the dedicated trusted card above the frame.
+    // The generic Settings page duplicates the management UI and must stay hidden.
+    patchToolField(view, settingsView, {hidden: !show||id==='cookie-editor'});
     if(promptNativeRow)patchToolField(view, promptNativeRow, {hidden: !(show&&promptSettings)});
     if(promptWebRow)patchToolField(view, promptWebRow, {hidden: !(show&&promptSettings)});
     if(promptWebAction){setToolFieldAttribute(view, promptWebAction, 'aria-checked', String(promptWebButtons===true));
@@ -1432,13 +1439,20 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(disposed||busy||!visible||installedReadError)return false;
     const tool=toolById(id);
     if(!tool){notice('找不到已安装的工具',true);return false;}
+    // Opening permissions for the already-running Cookie Editor is a view
+    // transition, not a navigation away from its draft or pending write.
+    // Entering from the Extension Center still mounts no sandbox in Settings.
+    const sameLiveCookie=tool.id==='cookie-editor'&&!readOnlyPreview&&
+      active?.id===id&&samePackage(active,tool);
     const show=()=>{
       if(disposed||!visible||busy)return;
       cancelRemovalReview();setImportOpen(false);
-      destroyFrame();active=tool;readOnlyPreview=false;previewDirty=false;
-      tocSettingsOpen=true;tocScope='site';render();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
+      if(!sameLiveCookie)destroyFrame();
+      active=tool;readOnlyPreview=false;previewDirty=false;
+      tocSettingsOpen=true;tocScope='site';render();
+      requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
     };
-    if(active&&!canLeave(show))return false;
+    if(active&&!sameLiveCookie&&!canLeave(show))return false;
     show();return true;
   }
   function openOfficialReview(id){
@@ -2285,7 +2299,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         const target=currentPageTarget?.snapshot;
         return target?.status==='available'
           ?{status:'available',title:String(target.title||'').slice(0,512),url:String(target.url||'').slice(0,4096)}
-          :{status:'unavailable',message:String(target?.message||'当前没有可用的普通网页').slice(0,250)};
+          :{status:'unavailable',reasonCode:String(target?.reason||'E_NO_ACTIVE_TAB').slice(0,64),
+            message:String(target?.message||'当前没有可用的普通网页').slice(0,250)};
       }
       if(operation==='toc.snapshot'||operation==='toc.navigate'){
         if(!currentPageTarget?.capture||!currentPageTarget?.revalidate||!api.tabs?.sendMessage)
@@ -3470,7 +3485,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   function closePromptSettings(){
     const tool=active,remount=tool?.id===PROMPT_ID&&promptWebChanged;
     tocSettingsOpen=false;promptWebChanged=false;
-    if(remount&&!toolDirty&&!toolSaving)mountTool(tool);
+    // The Extension Center's direct Settings action intentionally has no
+    // running iframe. Returning to the product must create one, while an
+    // already-mounted editor is kept intact (including unsaved input).
+    const launchFromManagement=tool&&!readOnlyPreview&&!frame&&!nativeUI&&!nativePending&&
+      !enableReadError&&sidebarToolEnabled(enableRecords,tool.id);
+    if(launchFromManagement||(remount&&!toolDirty&&!toolSaving))mountTool(tool);
     else render();
   }
   listen(settingsButton,'click',()=>{
