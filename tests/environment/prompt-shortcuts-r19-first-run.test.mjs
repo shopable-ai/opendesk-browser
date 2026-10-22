@@ -59,7 +59,7 @@ function fixture(initial=[]){
 
 test('R1.9 package and shared model accept exact bounded editable first-run examples',async()=>{
   const tool=await pack();
-  assert.equal(tool.version,'1.1.12');
+  assert.equal(tool.version,JSON.parse(await readFile(ROOT+'/tool.config.json','utf8')).version);
   assert.deepEqual(validateSidebarToolPackage(tool),tool);
   assert.deepEqual(Object.keys(tool.initialData),['library']);
   const library=tool.initialData.library;
