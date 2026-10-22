@@ -375,7 +375,7 @@ try{
   })()`);
   await poll('document.querySelector("[data-opendesk-prompts]")===window.__historyHost && '+
     '!window.__historyHost.hidden && window.__historyHost.style.left!=='+JSON.stringify(beforeHistoryLeft)+
-    ' && window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")==="false"',
+    ' && window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")==="true"',
     'history SPA remount reuses dock and repositions');
   await expandPromptRail();
   await clickJS('window.__railRoot.querySelector(".item")');
@@ -388,9 +388,9 @@ try{
     actualChromiumDOM:true,oldHostReused:true,newRegionAnchored:true,
     nativeDraftConfirmed:true,installedExtension:false});
   await shot('chatgpt-spa-history-recovery');
-  await poll('window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")==="false"',
-    'native insert ends with exactly one resting launcher');
-  await shot('r191-single-resting-entry');
+  await poll('window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")==="true"',
+    'native insert keeps manually expanded choices');
+  await shot('r196-expanded-rail-after-insert');
   await expandPromptRail();
   // R3.5: Actual decoded HTTPS response in the trusted Shadow DOM with 3 sizes.
   await rpc('Fetch.enable',{patterns:[{
@@ -452,9 +452,15 @@ try{
   ];
   for(const [name,rows] of compactCases){
     await evaluate('window.__setPrompts('+JSON.stringify(rows)+')');
-    await poll('window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")==="false" && '+
-      'window.__railRoot?.querySelectorAll(".item").length===0',
-      'single resting launcher: '+name);
+    await poll('window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")==="true" && '+
+      'window.__railRoot?.querySelectorAll(".item").length==='+String(rows.length+1),
+      'current library is expanded by default: '+name);
+    if(name==='three seeds'){
+      await clickJS('window.__railRoot.querySelector(".brand")');
+      await poll('window.__railRoot.querySelectorAll(".item").length===0','manual user collapse');
+      await clickJS('window.__railRoot.querySelector(".brand")');
+      await poll('window.__railRoot.querySelectorAll(".item").length==='+String(rows.length+1),'manual user expand');
+    }
     await expandPromptRail();
     await poll('window.__railRoot?.querySelectorAll(".item").length==='+String(rows.length+1)+' && '+
       'Array.from(window.__railRoot.querySelectorAll(".item")).slice(0,'+rows.length+')'+
@@ -469,10 +475,11 @@ try{
     await clickJS('window.__railRoot.querySelectorAll(".item")['+(rows.length-1)+']');
     await poll('document.querySelector("main#main textarea#prompt-textarea").value==='+
       JSON.stringify(before+'\n'+target.body),'full-body insertion: '+name);
-    assert.equal(await evaluate('window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")'),'false');
+    assert.equal(await evaluate('window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")'),'true',
+      'insertion preserves expanded state');
     assert.equal(await evaluate('document.querySelectorAll("[data-opendesk-prompts]").length'),1);
   }
-  scenes.push({step:'R1.9.1 source-bound one launcher for default, edited, deleted, mixed and legacy libraries',
+  scenes.push({step:'R1.9.6 default-expanded source-bound rail for current default, edited, deleted and legacy libraries',
     cases:compactCases.map(([name,rows])=>({name,count:rows.length})),
     actualChromiumDOM:true,genuineCDPClicks:true,installedExtension:false});
   assert.equal(jsErrors.length,0,JSON.stringify(jsErrors));
