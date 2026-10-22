@@ -17,12 +17,17 @@ test('R1.9.5 webpage rail defaults expanded, keeps its background and remains ma
   const page=await file('trusted/page.js');
   const preview=await file('preview/index.html');
   assert.match(page,/let compactExpanded=true;/);
-  assert.match(page,/compactExpanded=true;clearFeedback\(\);hideTip\(\);/);
+  assert.match(page,/visible=false;items=\[\];activeRule=null;closePicker\(\);/);
+  assert.doesNotMatch(page,/compactExpanded=false;activeRule=null;/,'stop may not erase an explicit manual collapse');
+  assert.match(page,/if\(href!==url\)\{\s*clearFeedback\(\);hideTip\(\);/);
   assert.match(page,/if\(compact&&!compactExpanded\)\{schedule\(\);return;\}/);
   assert.match(page,/background:var\(--od-rail-bg\);border:1px solid var\(--od-rail-border\);/);
   assert.doesNotMatch(page,/insert\(row,event\)\.finally/);
   assert.match(preview,/let previewCompactExpanded=true;/);
-  assert.match(preview,/background:var\(--stage-bubble\);box-shadow:0 6px/);
+  assert.match(preview,/\.page-rail\{[^}]*width:max-content;/);
+  assert.match(preview,/background:var\(--ps-rail-bg\);box-shadow:var\(--ps-rail-shadow\);/);
+  assert.doesNotMatch(preview,/\.page-rail(?:\[data-image-size[^\]]+\])?\{[^}]*width:(?:62|70|82)px/);
+  assert.match(preview,/function positionWebTip\(\)/);
   assert.doesNotMatch(preview,/usePrompt\(item\)\.finally/);
 });
 
@@ -91,4 +96,17 @@ test('R1.9.5 distributable remains source-bound and seeds exactly three editable
   assert(admission.includes("TRUSTED_PROMPT_VERSION='"+released.version+"'"));
   assert.equal(released.initialData.library.items.length,3);
   assert.deepEqual(released.initialData.library.items.map(row=>row.label),['插件','外包','提示']);
+});
+
+test('R1.9.6 formal R4 image drop remains a single Trusted Host upload path',async()=>{
+ const [js,html,css]=await Promise.all([file('src/main.js'),file('src/index.html'),file('src/style.css')]);
+ assert.match(js,/async function uploadImage\(droppedFile=null\)/);
+ assert.match(js,/const dropZones=\['ps-image-upload-controls','ps-image-live'\]/);
+ assert.match(js,/void uploadImage\(files\[0\]\);/);
+ assert.match(js,/request\('prompt.asset.put'/);
+ assert.match(js,/!unconfirmedWrite&&!siteUnconfirmedWrite/);
+ assert.match(html,/id="ps-image-drop-hint"/);
+ assert.match(html,/id="ps-image-live"/);
+ assert.match(css,/\.ps-image-upload-controls\.is-dragover/);
+ assert.doesNotMatch(js,/new (?:TrustedHost|OpenDeskSDK|AssetHost)/);
 });
