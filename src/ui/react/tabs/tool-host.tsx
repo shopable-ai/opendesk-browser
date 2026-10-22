@@ -509,6 +509,7 @@ function CookieSettings({onRevoke}) {
   const {snapshot} = React.useContext(ToolContext);
   const {rows,emptyLabel,disabled} = snapshot.fields['sidebar-tool-cookie-other-sites'];
   const firstUse=snapshot.fields['sidebar-tool-cookie-permissions'].data?.mode==='first-use';
+  const showEnable=snapshot.fields['sidebar-tool-cookie-permissions'].hidden===false&&!firstUse;
   return <ToolField as="section" id="sidebar-tool-cookie-permissions"
     className="sidebar-tool-cookie-permissions od-surface" aria-label="Cookie 访问授权">
     <ToolField as="strong" id="sidebar-tool-cookie-heading"/>
@@ -517,11 +518,13 @@ function CookieSettings({onRevoke}) {
     <ToolField id="sidebar-tool-cookie-first-use"><ToolField as="button"
       id="sidebar-tool-cookie-site-toggle" className="od-button"/></ToolField>
     {!firstUse&&<>
-      <div className="sidebar-toc-settings-row">
-        <strong>使用状态</strong>
+      {showEnable&&<>
+        <div className="sidebar-toc-settings-row">
+          <strong>使用状态</strong>
         <ToolField as="button" type="button" id="sidebar-tool-enable" className="od-button od-button--secondary"/>
       </div>
-      <ToolField as="p" id="sidebar-tool-enable-hint" className="sidebar-toc-settings-hint" role="status"/>
+        <ToolField as="p" id="sidebar-tool-enable-hint" className="sidebar-toc-settings-hint" role="status"/>
+      </>}
       <ToolField as="button" type="button" id="sidebar-tool-cookie-values-toggle" className="od-button od-button--secondary"/>
       <ToolGrantRows id="sidebar-tool-cookie-other-sites" rows={rows} emptyLabel={emptyLabel}
         disabled={disabled} rowClassName="sidebar-toc-settings-row" onRevoke={onRevoke}/>
