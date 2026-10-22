@@ -13,7 +13,15 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
   setResultText,setResultKind}){
   const find=id=>view.fields[id],copyResult=find('script-copy-result');
   const pageTechnicalPanel=find('page-preview-technical-panel'),pageTechnical=find('page-preview-technical');
-  let ownedRunId=null,ownedRunBinding=null,ownedManagedPreview=null,localPageResult=null,localPollTimer=null,finishLocalPoll=null,running=false,stopping=false;
+  let ownedRunId=null,ownedRunBinding=null,ownedManagedPreview=null,localPageResult=null,localPollTimer=null,finishLocalPoll=null,running=false,stopping=false,pageWait=null;
+  function canStopWaiting(){return !!pageWait&&!pageWait.detached&&!isDisposed();}
+  function stopWaiting(){
+    if(!canStopWaiting())return;
+    pageWait.detached=true;localPageResult=null;localInstaller.reset();
+    const message='已停止等待。网页中的代码可能仍在执行，已产生的效果不会撤销。请等待原执行结束，或重新加载网页。';
+    setResultText(message);setResultKind('本地 Page · 已停止等待');display('unknown',message);
+    patchDeveloperField(view,copyResult,{disabled:true});update();
+  }
   async function retireLocalPreviewForInstall({source,binding,target,previewId}) {
     const owned=ownedManagedPreview;
     if(!owned||owned.previewId!==previewId||owned.sourceHash!==source.sourceHash||
@@ -52,6 +60,11 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
   }
 
   function refreshResultValidity(){
+    if(pageWait&&(!localProject.active()||localProject.selectedBindingId()!==pageWait.binding.bindingId||
+      localProject.providerEpoch()!==pageWait.binding.providerEpoch||
+      getCurrentPageState()?.status==='available'&&
+      (getCurrentPageState().tabId!==pageWait.target.tabId||getCurrentPageState().documentId!==pageWait.target.documentId)))
+      pageWait.detached=true;
     if(ownedRunBinding&&host.currentRun===ownedRunId&&!stopping&&
       (!localProject.active()||localProject.selectedBindingId()!==ownedRunBinding.bindingId||
        localProject.providerEpoch()!==ownedRunBinding.providerEpoch)){
@@ -76,7 +89,7 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
       permission=requireChromePermissions({api,request:{origins:[permissionPattern(captured.url)],...(find('script-allow-cookies').checked?{permissions:['cookies']}:{})}});
     }catch(error){fail(error);return;}
     hideUserScriptsRecovery();
-    let admittedRunId,page=false,startError;
+    let admittedRunId,page=false,startError,attempt;
     ownedRunId=null;ownedRunBinding=null;localPageResult=null;localInstaller.reset();running=true;controllerResults.renderTask(null);update();beginResult();
     patchDeveloperField(view,find('developer-results-panel'),{open:true});display('resolving','正在读取本地项目的当前源码…');
     (async()=>{
@@ -101,6 +114,7 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
             throw {code:'E_DEV_CONFLICT',message:'准备版本在运行前发生变化；本次未运行，请重新运行最新源码'};
           if(stopping||isBlocked()||!controllerResults.projection?.slotAvailable||host.currentRun)
             throw {code:'E_RUN_ACTIVE',message:'运行状态已变化；请等待当前任务释放后重新运行'};
+          if(page&&!source.managedUI){pageWait=attempt={binding,target:captured,detached:false};update();}
         }});
       if(page){
         patchDeveloperField(view,find('script-task-id'),{textContent:'previewId：'+claim.previewId});
@@ -113,6 +127,7 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
           await new Promise(resolve=>{finishLocalPoll=resolve;localPollTimer=setTimeout(resolve,200);});localPollTimer=null;finishLocalPoll=null;
           if(isDisposed())return;result=await localAdapter.handle({method:'page.get',params:{previewId:claim.previewId}});
         }
+        if(attempt?.detached||isDisposed())return;
         if(source.managedUI&&(!result.error||result.error.code==='E_PAGE_SCRIPT_EXECUTION'&&result.error.outcome==='FAILED_CONFIRMED'))ownedManagedPreview={previewId:claim.previewId,bindingId:source.bindingId,target,sourceHash:source.sourceHash};
         else if(!source.managedUI||result.error?.outcome==='OUTCOME_UNKNOWN')ownedManagedPreview=null;
         if(result.error)throw result.error;
@@ -120,7 +135,9 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
           result.target?.documentId!==captured.documentId||result.target?.tabId!==captured.tabId||
           result.target?.url!==captured.url)
           throw {code:'E_DEV_HASH',message:'Page 预览回执与冻结源码或目标网页身份不符'};
-        await currentPageTarget.revalidate(captured);localProject.assertCaptured(binding);
+        await currentPageTarget.revalidate(captured);
+        if(attempt?.detached||isDisposed())return;
+        localProject.assertCaptured(binding);
         localPageResult={bindingId:binding.bindingId,providerEpoch:binding.providerEpoch,
           tabId:captured.tabId,documentId:captured.documentId,url:captured.url,sourceHash:source.sourceHash};
         localInstaller.succeeded({source,binding,target:captured,previewId:claim.previewId});
@@ -150,6 +167,7 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
           localInstaller.succeeded({source,binding,target:captured,runId:claim.runId,resultId:returned.resultId});
       }
     })().catch(error=>{
+      if(attempt?.detached||isDisposed())return;
       startError=error;admittedRunId||=error.runId;localPageResult=null;localInstaller.reset();fail(error);
       if(page||!admittedRunId){
         setResultText(formatTaskError(error));
@@ -157,6 +175,7 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
         patchDeveloperField(view,copyResult,{disabled:true});patchDeveloperField(view,find('developer-results-panel'),{open:true});
       }
     }).finally(async()=>{
+      if(pageWait===attempt)pageWait=null;
       running=false;if(isDisposed())return;
       if(admittedRunId)patchDeveloperField(view,find('script-run-id'),{value:admittedRunId});
       try{if(page||!admittedRunId)controllerResults.setProjection(await host.controller.snapshotControllerRun({}));else await controllerResults.read('');}catch{controllerResults.clearProjection();}
@@ -194,7 +213,7 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
     finally{stopping=false;update();}
   }
   return Object.freeze({run,stopManaged,stopController,retireManagedPreviewForInstall:retireLocalPreviewForInstall,
-    canStopManaged,pageResultIsCurrent,refreshResultValidity,
+    canStopManaged,canStopWaiting,stopWaiting,pageResultIsCurrent,refreshResultValidity,
     get ownedRunId(){return ownedRunId;},get managed(){return ownedManagedPreview;},
     get running(){return running;},get stopping(){return stopping;},
     resourceSnapshot:()=>({timers:Number(localPollTimer!=null)}),

@@ -174,6 +174,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       (managed.target.tabId!==currentPageState.tabId||managed.target.documentId!==currentPageState.documentId);
   }
   const canStopManaged=()=>!!pagePreviewFlow?.canStop()||!!localRunner?.canStopManaged();
+  const canStopWaiting=()=>!!pagePreviewFlow?.canStopWaiting()||!!localRunner?.canStopWaiting();
   let updatedContext=null,projectedMode=null;
   function update() {
     if (disposed) return;
@@ -232,10 +233,10 @@ export function createScriptEditor({client, currentPageTarget, development=false
     else runDisabled||=!source.trim()||(browserCompilerEnabled&&context==='controller-esm'&&
       (componentRemote?.busy||!componentRemote?.readyForRun))||!controllerClassic.readyForRun();
     const preparing=candidatePreparing||pagePreviewFlow?.preparing||controllerRunner?.preparing||controllerRevisions.preparing||componentRemote?.busy;
-    const stopDisabled = isStopping() || !preparing&&!canStopManaged()&&
+    const stopDisabled = isStopping() || !preparing&&!canStopManaged()&&!canStopWaiting()&&
       (!localRunner?.ownedRunId || host.currentRun !== localRunner.ownedRunId)&&
       (!controllerRunner?.ownedRunId || host.currentRun !== controllerRunner.ownedRunId);
-    const stopLabel=preparing?'取消准备':canStopManaged()?'停止受管 UI':'停止';
+    const stopLabel=preparing?'取消准备':canStopWaiting()?'停止等待':canStopManaged()?'停止受管 UI':'停止';
     if(componentSelector)patchDeveloperField(view,componentSelector,{disabled:frameworkBusy()});
     const pageCandidateButton=find('page-candidate-save');
     if(pageCandidateButton)patchDeveloperField(view,pageCandidateButton,{disabled:!canSavePagePreview()&&!canPrepareComponentCandidate(),title:''});
@@ -563,6 +564,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if(componentPreparing)componentRemote.cancel();
       componentMessage('completed','已取消本次准备；迟到结果不会运行。');update();return;
     }
+    if(pagePreviewFlow?.canStopWaiting())return pagePreviewFlow.stopWaiting();
+    if(localRunner?.canStopWaiting())return localRunner.stopWaiting();
     if(pagePreviewFlow?.canStop())return pagePreviewFlow.stop();
     if(localRunner?.canStopManaged()&&!isStopping())return localRunner.stopManaged();
     if(controllerRunner?.ownedRunId&&host.currentRun===controllerRunner.ownedRunId)return controllerRunner.stop();

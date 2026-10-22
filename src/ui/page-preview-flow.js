@@ -12,7 +12,7 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
   const pagePreviewStatus=find('page-preview-status');
   const pageTechnicalPanel=find('page-preview-technical-panel'),pageTechnical=find('page-preview-technical');
   const copyResult=find('script-copy-result');
-  let busy=false,preparing=false,managed=null,unknown=null,stopping=false,last=null;
+  let busy=false,preparing=false,managed=null,unknown=null,stopping=false,last=null,draftWait=null;
   // Unknown dispatch/Stop belongs to the original document; never replay.
   function quarantine(target){unknown={tabId:target.tabId,documentId:target.documentId};}
   function canStop(){
@@ -21,9 +21,22 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
       current?.status==='available'&&current.documentId===managed.target.documentId&&
       current.tabId===managed.target.tabId;
   }
+  function canStopWaiting(){return !!draftWait?.dispatched&&!draftWait.detached&&!state.disposed;}
+  function stopWaiting(){
+    if(!canStopWaiting())return;
+    draftWait.detached=true;last=null;
+    // This detaches presentation, not the native execution or its unique slot.
+    const message='已停止等待。网页中的代码可能仍在执行，已产生的效果不会撤销。请等待原执行结束，或重新加载网页。';
+    patchDeveloperField(view,pagePreviewStatus,{data:{...pagePreviewStatus.data,state:'unknown'},textContent:message});
+    ui.display('unknown',message);ui.setResultText(message);ui.setResultKind('已停止等待网页返回值');
+    patchDeveloperField(view,copyResult,{disabled:true});ui.update();
+  }
   function onTarget(next){
     if(next?.status==='available'&&Number.isSafeInteger(next.tabId)&&
        typeof next.documentId==='string'&&next.documentId){
+      if(draftWait?.target.tabId===next.tabId&&draftWait.target.documentId!==next.documentId)draftWait.documentGone=true;
+      if(draftWait?.dispatched&&(draftWait.target.tabId!==next.tabId||draftWait.target.documentId!==next.documentId))
+        draftWait.detached=true;
       if(last?.tabId===next.tabId&&last.documentId!==next.documentId)last=null;
       if(managed&&managed.target.tabId===next.tabId&&
          managed.target.documentId!==next.documentId)
@@ -40,6 +53,7 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
 
   }
   function onTabRemoved(tabId){
+    if(draftWait?.target.tabId===tabId){draftWait.documentGone=true;if(draftWait.dispatched)draftWait.detached=true;}
     if(last?.tabId===tabId)last=null;
     // Closing the exact owning tab proves its document is gone. Merely
     // selecting a different tab is never evidence of successful Stop.
@@ -59,7 +73,7 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
       (state.mode==='javascript'&&(!dependencyResolver?.sourceFormat&&!dependencyInstaller?.readyForRun)) ||
       state.editingBusy || state.running || host.currentRun) return;
     if(state.localActive)return;
-    let captured, permission, pageSource,componentSnapshot,frozenComponent,fixedFrameSource,prepareTicket;
+    let captured, permission, pageSource,componentSnapshot,frozenComponent,fixedFrameSource,prepareTicket,attempt;
     const runKind=programSource.kind();
     const displayPreview=(stage,message,result)=>{
       if(state.disposed)return;
@@ -122,7 +136,8 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
     } catch(error) {displayPreview('error',(error.code||'E_SOURCE')+'：'+(error.message||error));return;}
     const managedInput=componentSnapshot||frozenComponent||fixedFrameSource;
     prepareTicket=state.nextTicket();
-    if(managedInput)preparing=true;
+    preparing=true;
+    if(!managedInput)draftWait=attempt={target:captured,dispatched:false,detached:false};
     const assertPreparation=()=>{
       if(state.disposed||prepareTicket!==state.ticket)
         throw {code:'E_PAGE_COMPILER_STALE',message:'组件准备已取消；迟到结果不会运行'};
@@ -172,9 +187,11 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
         throw {code:'E_DEPENDENCY_STALE',message:'网页草稿已变化或准备取消；不会执行旧代码'};};
       const {result,pageSource:readySource,previous}=await dispatchPageDraftPreview({
         client,currentPageTarget,dependencyResolver,captured,pageSource,check:checkPage,
+        onDispatched:()=>{attempt.dispatched=true;preparing=false;ui.update();},
         isCompiledCurrent:()=>!state.disposed&&programSource.source()===pageSource.sourceUtf8&&
           programSource.kind()===runKind&&state.mode==='javascript'&&!state.localActive
       });
+      if(attempt.detached||state.disposed)return;
       last=previous;
       displayPreview('completed',readySource.sourceFormat?
         '当前精确文档试运行完成；可保存作者 import 源码、批准依赖锁与固定编译产物。保存不会自动安装。':
@@ -184,13 +201,15 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
       patchDeveloperField(view,pageTechnicalPanel,{open:false});
       patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify(result,null,2)});
     })().catch(error=>{
+      if(attempt?.dispatched&&!attempt.documentGone&&(error.code==='E_EFFECT_UNKNOWN'||error.code==='E_STATIC_ESM_OUTPUT'))quarantine(captured);
+      if(attempt?.detached||state.disposed)return;
       const recovered=error.previewRecovered?'；已读取原完成回执，可以停止原组件。未重放运行。':'';
       displayPreview('error',(error.code||'E_PAGE_SCRIPT_EXECUTION')+'：'+(error.message||error)+recovered,'');
       if(componentSnapshot||frozenComponent)ui.componentMessage('error',(error.code||'E_PAGE_COMPILER')+'：'+(error.message||error)+recovered);
       if(error.response?.state==='preview-failed'){
         patchDeveloperField(view,pageTechnicalPanel,{hidden:false});patchDeveloperField(view,pageTechnicalPanel,{open:false});patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify(error.response,null,2)});
       }
-    }).finally(()=>{preparing=false;busy=false;ui.update();});
+    }).finally(()=>{if(draftWait===attempt)draftWait=null;preparing=false;busy=false;ui.update();});
   }
   async function stop(){
     if(!canStop()||state.stopping)return;
@@ -225,8 +244,17 @@ export function createPagePreviewFlow({client,api,host,view,currentPageTarget,pr
       finally{stopping=false;ui.update();}
       return;
   }
-  return Object.freeze({run,stop,canStop,onTarget,onTabRemoved,
-    cancelPreparation(){preparing=false;},
+  return Object.freeze({run,stop,canStop,canStopWaiting,stopWaiting,onTarget,onTabRemoved,
+    cancelPreparation(){
+      preparing=false;
+      if(draftWait&&!draftWait.dispatched){
+        draftWait.detached=true;
+        const message='已取消准备；本次代码未发送到网页。';
+        patchDeveloperField(view,pagePreviewStatus,{data:{...pagePreviewStatus.data,state:'cancelled'},textContent:message});
+        ui.display('cancelled',message);ui.setResultText(message);ui.setResultKind('网页运行准备已取消');
+        patchDeveloperField(view,copyResult,{disabled:true});
+      }
+    },
     get busy(){return busy;},get preparing(){return preparing;},
     get managed(){return managed;},get unknown(){return unknown;},get stopping(){return stopping;},
     get last(){return last;},clearLast(){last=null;}});

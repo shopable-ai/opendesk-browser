@@ -77,8 +77,8 @@ for(const kind of ['controller','page-userscript']){
   }
 }
 const fileCatalog=workspaces=>({workspaces,sessionId:'files-session-'+'a'.repeat(24)});
-for(const previousController of [false,true]){
-test(`LocalPage claim displays its captured target through completion: previousController=${previousController}`,async t=>{
+for(const previousController of [false,true])for(const detach of [false,'pending','validation']){
+test(`LocalPage claim displays its captured target through completion: previousController=${previousController}, stoppedWaiting=${detach}`,async t=>{
   const bindingId='local-'+'a'.repeat(20),sourceUtf8='async function main(){return document.title;}';
   const source={bindingId,providerEpoch:'epoch-a',projectId:'project-a',runtimeKind:'page-userscript',
     entryFormat:'async-main',sourceUtf8,sourceHash:await sha256Utf8(sourceUtf8),
@@ -89,8 +89,9 @@ test(`LocalPage claim displays its captured target through completion: previousC
   f.client.requestLocalProject=(method,args)=>method==='project.resolve'?Promise.resolve(structuredClone(source)):resolve(method,args);
   const captured={status:'available',tabId:11,windowId:3,frameId:0,documentId:'doc-local-page',
     url:'https://example.com/local-page',origin:'https://example.com'};
-  const entered=deferred(),receipt=deferred(),errors=[],succeeded=[];
-  const currentPageTarget={ready:Promise.resolve(),capture:()=>({...captured}),refresh:async()=>{},revalidate:async()=>{}};
+  const entered=deferred(),receipt=deferred(),validating=deferred(),validated=deferred(),errors=[],succeeded=[];let resultText='',checks=0;
+  const currentPageTarget={ready:Promise.resolve(),capture:()=>({...captured}),refresh:async()=>{},
+    revalidate:async()=>{if(++checks===3&&detach==='validation'){validating.resolve();await validated.promise;}}};
   const client={ready:Promise.resolve(),registration:{registrationId:'registration-a'},subscribeNativeAgent:()=>()=>{},
     request:async(method,args)=>{
       assert.equal(method,'previewPageScript');assert.equal(args.target.documentId,captured.documentId);
@@ -106,8 +107,8 @@ test(`LocalPage claim displays its captured target through completion: previousC
   const owner=createLocalProjectRun({api,host,view:f.developerView,currentPageTarget,localProject:f.view,localAdapter:adapter,
     localInstaller:{reset(){},succeeded:value=>succeeded.push(value)},controllerResults,
     getCurrentPageState:()=>captured,isDisposed:()=>false,isBlocked:()=>false,display(){},fail:error=>errors.push(error),
-    hideUserScriptsRecovery(){},beginResult(){},update(){},setResultText(){},setResultKind(){}});
-  t.after(()=>{receipt.resolve();owner.dispose();adapter.dispose();});
+    hideUserScriptsRecovery(){},beginResult(){},update(){},setResultText:value=>{resultText=value;},setResultKind(){}});
+  t.after(()=>{receipt.resolve();validated.resolve();owner.dispose();adapter.dispose();});
   owner.run({isTrusted:true});await entered.promise;await tick();
   assert.match(f.find('script-task-id').textContent,/^previewId：/);
   const assertTarget=()=>{
@@ -116,10 +117,21 @@ test(`LocalPage claim displays its captured target through completion: previousC
       tabId:captured.tabId,frameId:0,documentId:captured.documentId,url:captured.url});
   };
   assertTarget();assert.equal(owner.running,true,'target is visible while the admitted Page receipt is pending');
+  assert.equal(owner.canStopWaiting(),true);
+  if(detach==='pending'){
+    owner.stopWaiting();assert.equal(owner.canStopWaiting(),false);
+    assert.match(resultText,/已停止等待.*可能仍在执行.*不会撤销/);
+    assert.equal(owner.running,true,'Stop waiting retains the original execution until its receipt settles');
+  }
   receipt.resolve({state:'preview-evaluated',sourceHash:source.sourceHash,world:'USER_SCRIPT',
     documentId:captured.documentId,tabId:captured.tabId,resultText:'LocalPage success'});
+  if(detach==='validation'){
+    await validating.promise;owner.stopWaiting();
+    assert.match(resultText,/已停止等待/);validated.resolve();
+  }
   for(let i=0;i<250&&owner.running;i++)await new Promise(resolve=>setTimeout(resolve,2));
-  assert.equal(owner.running,false);assert.deepEqual(errors,[]);assert.equal(succeeded.length,1);assertTarget();
+  assert.equal(owner.running,false);assert.deepEqual(errors,[]);assert.equal(succeeded.length,detach?0:1);assertTarget();
+  if(detach){assert.match(resultText,/已停止等待/);assert.equal(f.find('script-copy-result').disabled,true);}
 });
 }
 for(const change of ['epoch','selection','mode','preparation','new-owner']){

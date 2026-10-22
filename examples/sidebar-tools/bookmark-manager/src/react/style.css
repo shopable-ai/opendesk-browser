@@ -161,3 +161,12 @@
  .bm-popover button,.bm-button,.bm-picker-item,.bm-text-button{min-height:44px}
  .bm-sheet .bm-editor-actions .bm-button{height:44px}
 }
+
+/* At native 200% zoom, keep the toolbar from consuming the Tree's height.
+   The four 44px actions remain reachable by touch scrolling and Tab focus. */
+@media(pointer:coarse) and (max-width:240px){
+ .bm-topbar{flex-wrap:nowrap;flex-shrink:0;gap:var(--space-2)}
+ .bm-topbar .bm-heading{flex:none}
+ .bm-top-actions{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;padding:2px}
+ .bm-top-actions>*{flex:none}
+}

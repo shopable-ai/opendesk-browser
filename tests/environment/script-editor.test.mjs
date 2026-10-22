@@ -1345,6 +1345,50 @@ test('R24.3 final asynchronous document check refuses a React component edited b
   assert.equal(f.find('script-run').disabled,false,'new source can be explicitly run after stale admission rejected');
 });
 
+for(const outcome of ['success','error','unknown','navigation'])test(`ordinary Page stops waiting without claiming termination: ${outcome}`,async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const pending=deferred(),requests=[];
+  f.find('script-javascript-world').value='page';f.find('script-javascript-world').fire('change',{isTrusted:true});
+  f.find('script-source').value='async function main(){return "late result";}';f.find('script-source').fire('input');
+  const original=f.client.request.bind(f.client);
+  f.client.request=async(method,payload)=>{
+    if(method!=='previewPageScript')return original(method,payload);
+    requests.push(payload);await pending.promise;
+    if(outcome==='unknown')throw {code:'E_EFFECT_UNKNOWN',message:'completion missing'};
+    if(outcome==='error')throw {code:'E_PAGE_SCRIPT_EXECUTION',message:'late error'};
+    return {state:'preview-evaluated',sourceHash:sha256(payload.sourceUtf8),resultText:'late result'};
+  };
+  await f.click('script-run');await waitForComponentUI(()=>requests.length===1,'ordinary Page must dispatch');
+  assert.equal(f.find('script-stop').disabled,false);assert.equal(f.find('script-stop').textContent,'停止等待');
+  await f.click('script-stop');
+  const stopped=f.find('script-result').textContent;
+  assert.match(stopped,/已停止等待.*可能仍在执行.*不会撤销/);
+  assert.equal(f.find('script-stop').disabled,true);assert.equal(f.find('script-copy-result').disabled,true);
+  assert.equal(f.find('script-run').disabled,true,'detaching must not release the pending native execution');
+  await f.click('script-run');assert.equal(requests.length,1,'Stop must not permit overlapping or replayed execution');
+  if(outcome==='navigation')await f.navigateTab();
+  pending.resolve();await tick();await tick();await tick();
+  assert.equal(f.find('script-result').textContent,stopped,'late success/error cannot replace detached presentation');
+  assert.equal(f.find('script-copy-result').disabled,true);
+  assert.equal(f.find('script-run').disabled,outcome==='unknown','UNKNOWN keeps the original document quarantined');
+  if(outcome==='unknown'){
+    await f.switchTab();assert.equal(f.find('script-run').disabled,true);
+    await f.activateTab(11);assert.equal(f.find('script-run').disabled,true);
+    await f.navigateTab();assert.equal(f.find('script-run').disabled,false);
+  }
+  assert.equal(requests.length,1);assert.equal(f.starts.length,0);assert.equal(f.commits.length,0);
+});
+
+test('ordinary Page preparation can be cancelled before native dispatch',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());const permission=deferred();f.setPermission(permission.promise);
+  f.find('script-javascript-world').value='page';f.find('script-javascript-world').fire('change',{isTrusted:true});
+  f.find('script-source').value='async function main(){return "never";}';f.find('script-source').fire('input');
+  await f.click('script-run');assert.equal(f.find('script-stop').textContent,'取消准备');
+  assert.equal(f.find('script-stop').disabled,false);await f.click('script-stop');permission.resolve(true);
+  await tick();await tick();await tick();assert.equal(f.previews.length,0);assert.equal(f.starts.length,0);
+  assert.equal(f.find('script-run').disabled,false);
+});
+
 test('DOM preview binds frozen plain JavaScript and exact current document from trusted click',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const pending=deferred();f.setPermission(pending.promise);

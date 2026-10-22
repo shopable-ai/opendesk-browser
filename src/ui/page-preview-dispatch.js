@@ -65,7 +65,7 @@ export async function dispatchManagedPagePreview({
 }
 
 export async function dispatchPageDraftPreview({
-  client,currentPageTarget,dependencyResolver,captured,pageSource,check,isCompiledCurrent
+  client,currentPageTarget,dependencyResolver,captured,pageSource,check,isCompiledCurrent,onDispatched
 }){
   pageSource=await dependencyResolver.resolveForRun(pageSource,check);
   await currentPageTarget.revalidate(captured);check();
@@ -81,7 +81,9 @@ export async function dispatchPageDraftPreview({
     executable={sourceUtf8:built.sourceUtf8,entryFormat:'async-main',lockId:null,sourceHash:built.sourceHash};
     pageSource={...pageSource,compiledSourceUtf8:built.sourceUtf8,compilerVersion:built.compilerVersion};
   }
+  check();
   const {sourceHash:compiledHash,...previewSource}=executable;
+  onDispatched?.(); // Cancel preparation only before this native dispatch boundary.
   const result=await client.request('previewPageScript',{
     ...previewSource,
     ...(pageSource.programId!==undefined?{programId:pageSource.programId}:{}),
