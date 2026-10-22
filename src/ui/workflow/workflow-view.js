@@ -593,9 +593,19 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         if(current?.contentHash!==freeze.sourceHash||current.sourceUtf8!==freeze.sourceUtf8)
           throw err('E_WORKFLOW_HASH','保存版本源码已变化或不可读取，已在启动前拒绝复跑');
       }
-      const source=saved?
+      const replaySource=prepared?.savedSource||null;
+      if(replaySource){
+        if(replaySource.kind!=='saved'||replaySource.scriptId!==freeze.workflow.workflowId||
+          replaySource.contentHash!==freeze.sourceHash)
+          throw err('E_WORKFLOW_HASH','完整工作流运行源与当前分段不一致');
+        const stored=await host.controller.getControllerScript({
+          scriptId:replaySource.scriptId,revision:replaySource.revision});
+        if(stored?.contentHash!==freeze.sourceHash||stored.sourceUtf8!==freeze.sourceUtf8)
+          throw err('E_WORKFLOW_HASH','AI-off 分段源码与冻结 Revision 不一致');
+      }
+      const source=replaySource||(saved?
         {kind:'saved',scriptId:freeze.workflow.workflowId,revision:revision.revision,contentHash:revision.sourceHash}:
-        {kind:'draft',sourceUtf8:freeze.sourceUtf8};
+        {kind:'draft',sourceUtf8:freeze.sourceUtf8});
       // Reading the frozen Controller is asynchronous: website permission,
       // Document and even this AI turn can change after the first gate.
       // Do not submit a stale run to RunHost (which still owns admission).
