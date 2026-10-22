@@ -57,7 +57,7 @@ export async function workflowFixture(options={}) {
       const revision={sourceHash,...(source.kind==='saved'?{scriptId:source.scriptId,revision:source.revision}:{})};
       const bound={windowId:7,tabId:9,frameId:0,documentId:options.target.documentId,url:options.target.expectedUrl,allowedOrigin:target.origin};
       const claim={runId,resultId,revision,target:bound};
-      host.completion=new Promise(resolve=>{pending={resolve,claim,isObservation};});
+      host.completion=new Promise(resolve=>{pending={resolve,claim,isObservation,source,params:options.params};});
       notify('run');if(!service.hold&&!heldAction)queueMicrotask(()=>finish(service.fail?'failed':'completed'));
       return claim;
     },
@@ -68,14 +68,15 @@ export async function workflowFixture(options={}) {
   };
   function finish(state='completed') {
     if(!pending)return;
-    const {claim,resolve,isObservation}=pending;pending=null;
+    const {claim,resolve,isObservation,source,params}=pending;pending=null;
     const observed={kind:'semantic-dom-summary',document:{
       documentId:claim.target.documentId,url:claim.target.url
     },nodes:[{role:'textbox',name:'姓名',text:'',state:{visible:true},
       locator:{kind:'role',value:'textbox',name:'姓名',exact:true}}],truncated:false};
     const result={runId:claim.runId,resultId:claim.resultId,state,revision:claim.revision,
       outcome:state==='completed'?{ok:true,valueWire:encodeValue(isObservation?observed:
-        {message:'执行结果',count:1})}:
+        (typeof options.actionResult==='function'
+          ?options.actionResult({source,params}):{message:'执行结果',count:1}))}:
         {ok:false,error:{code:state==='stopped'?'E_CANCELLED':'E_FIXTURE',message:'可控错误'}}};
     snapshot={run:{...claim,state,workerRetired:true,retirementState:'released'},results:[result]};
     if(service.corruptResult)snapshot.results[0].resultId='different-result';

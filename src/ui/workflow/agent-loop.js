@@ -43,8 +43,11 @@ function goalFulfilled(goal,facts){
   if(multiFill)required.push([...facts].filter(value=>value.startsWith('fill-target:')).length>=2);
   if(explicitSearchCount>=2)
     required.push([...facts].filter(value=>value.startsWith('search-target:')).length>=2);
-  if(read&&!open&&!price&&!details&&!search&&!fill)
-    required.push(facts.has('read-only'));
+  // A separately requested page inspection is not satisfied by an input
+  // readback. Search/product reads already have independent effect oracles.
+  const standalonePageRead=/(?:查看|读取|观察|检查)(?:当前|新的|目标)?(?:页面|网页|页面内容|网页内容)|\b(?:observe|inspect)\s+(?:the\s+)?(?:page|document)\b/i.test(affirmed);
+  if(read&&!open&&!price&&!details&&!search&&
+    (standalonePageRead||!fill))required.push(facts.has('read-only'));
   return required.length>0&&required.every(Boolean);
 }
 // Pure projection of one Workflow-owned Stop. An unresolved RunHost.start

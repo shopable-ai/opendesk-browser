@@ -291,3 +291,49 @@ test('running saved script freezes visible parameters and edit operations until 
   f.finish();await running;await tick();
   assert.equal(f.state().busy,false,'params can be edited only after settlement');
 });
+
+
+test('two-segment saved AI-off bundle reopens and runs all frozen revisions',async t=>{
+  const f=await workflowFixture({actionResult:({params})=>({
+    fill:{kind:'input-readback',matched:true,value:params.query}})});
+  t.after(()=>f.view.dispose());
+  const id='wf-77777777-3333-2222-1111-111111111111';
+  const shared={type:'object',properties:{query:{type:'string',title:'搜索关键词',
+    maxLength:120,default:'camera'}},required:['query'],additionalProperties:false};
+  const first={format:'opendesk.workflow.v1',workflowId:id+'-s1',
+    title:'填写并查看页面',description:'',siteOrigin:f.target.origin,paramsSchema:shared,
+    steps:[{stepId:'fill',op:'fill',locatorKind:'css',selector:'#keyword',param:'query'}]};
+  const second={format:'opendesk.workflow.v1',workflowId:id+'-s2',
+    title:'填写并查看页面',description:'',siteOrigin:f.target.origin,
+    paramsSchema:{type:'object',properties:{},required:[],additionalProperties:false},
+    steps:[{stepId:'read',op:'observe'}]};
+  const segments=[];
+  for(const [index,workflow] of [first,second].entries()){
+    const freeze=await compileWorkflow(workflow,{verifyFill:index===0});
+    const saved=await f.host.controller.commitControllerScript({
+      scriptId:workflow.workflowId,expectedRevision:0,sourceUtf8:freeze.sourceUtf8});
+    segments.push({workflow,entryUrl:f.target.url,revision:saved.revision,
+      sourceHash:freeze.sourceHash,verificationMode:index===0?'fill-readback':'none',
+      evidence:{kind:index===0?'input-readback':'read-only'},
+      proof:{runId:'original-'+index,resultId:'receipt-'+index,sourceHash:freeze.sourceHash,
+        origin:f.target.origin,documentId:'document-'+index}});
+  }
+  const bundle=await sealWorkflowBundle({format:WORKFLOW_BUNDLE_FORMAT,bundleId:id,
+    revision:1,goal:'填写 camera，然后查看页面',title:'填写并查看页面',
+    workflow:{workflowId:id,title:'填写并查看页面',siteOrigin:f.target.origin},
+    segments,paramsSchema:replayParameterSchema(segments)});
+  const key='opendesk.sidebar.workflow.v1:'+id+':1';
+  f.local.set(key,bundle);
+  f.click('workflow-refresh');await tick();await tick();
+  f.input('workflow-saved-list',key,'change');
+  f.click('workflow-load');await tick();await tick();await tick();
+  assert.equal(f.state().header.saved,true);
+  const outcome=await f.click('workflow-run');
+  assert.equal(outcome?.ok,true,'each fragment must verify independently before next starts');
+  assert.equal(outcome.segments,2);
+  const dispatches=f.starts.filter(row=>row.source.kind==='saved');
+  assert.equal(dispatches.length,2);
+  assert.deepEqual(dispatches.map(row=>row.source.contentHash),segments.map(s=>s.sourceHash));
+  assert.equal(dispatches[0].params.query,'camera');
+  assert.deepEqual(dispatches[1].params,{});
+});

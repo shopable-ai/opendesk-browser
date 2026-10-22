@@ -165,3 +165,13 @@ test('two saved replay search parameters resolve to distinct verified queries',(
  assert.throws(()=>guard.claim({workflow:proposal([parameterFill,search]),
    target,params:{term:'lens'}}),{code:'E_AGENT_NO_PROGRESS'});
 });
+
+test('page inspection requested after fill requires separate read-only receipt',()=>{
+ const guard=createWorkflowAgentLoopGuard({goal:'填写 camera，然后查看页面'});
+ const one=guard.claim({workflow:proposal([fill]),target});
+ assert.equal(guard.verified({claim:one,reply:{ok:true,
+   evidenceLevel:'BUSINESS_EFFECT_VERIFIED',readbackVerified:true}}).state,'CONTINUE');
+ const two=guard.claim({workflow:proposal([{stepId:'inspect',op:'observe'}]),target});
+ assert.equal(guard.verified({claim:two,reply:{ok:true,
+   evidenceLevel:'EXECUTION_RECEIPT_VERIFIED',readOnlyVerified:true}}).state,'COMPLETED');
+});
