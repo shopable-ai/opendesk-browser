@@ -57,6 +57,8 @@ jobs:
         run: |
           node --test tests/environment/cookie-editor-r524-grant.test.mjs
           node --test tests/environment/browser-sdk-r9-installed-host.test.mjs
+      - name: R5.24 preview and controller source-bound scenarios
+        run: node --test examples/sidebar-tools/cookie-editor/preview/react/preview.test.mjs
       - name: Build independent React 19 tool using pinned externals
         run: npm run build --prefix examples/sidebar-tools/cookie-editor
       - name: Stage React candidate via canonical installed-package packer
