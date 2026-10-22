@@ -571,7 +571,7 @@ test('R1.3 exact official Prompt admits one trusted React Dock and one sandbox i
   assert.equal(f.runtime.frameRoot.dataset.promptAi,'true');
   const target=mounts[0].frameTarget;
   assert.equal(target.children.length,1);
-  const frame=target.children[0];assert.equal(frame.tag,'iframe');
+  const frame=target.children[0];assert.equal(frame.tagName?.toLowerCase(),'iframe');
   await frame.onload();
   assert.equal(frame.contentWindow.sent[0].kind,'load');
   assert.equal(frame.contentWindow.sent[0].toolId,tool.id);
@@ -591,7 +591,7 @@ test('R1.3 same-ID modified Prompt is never admitted to trusted Dock',async t=>{
     [SIDEBAR_TOOL_STORE,[altered]]]),startTool:false,trustedPromptPilot:pilot});
   f.host.openTool(altered.id);
   await settle(()=>f.runtime.frameRoot.children.length===1&&
-    f.runtime.frameRoot.children[0].tag==='iframe');
+    f.runtime.frameRoot.children[0].tagName?.toLowerCase()==='iframe');
   assert.equal(mounts.length,0);
   assert.equal(f.runtime.frameRoot.dataset.promptAi,undefined);
 });
