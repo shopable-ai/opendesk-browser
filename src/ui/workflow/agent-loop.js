@@ -84,36 +84,41 @@ export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits=
         node.locator?.kind===step.locatorKind&&node.locator?.value===step.selector&&
         (step.locatorKind!=='role'||node.locator.name===step.roleName))
     );
-  function claim({workflow,target,observation,linkGuard}={}){
+  function claim({workflow,target,observation,linkGuard,params={}}={}){
     check();
     if(!workflow||!Array.isArray(workflow.steps)||!workflow.steps.length||
       workflow.steps.length>4)
       throw fault('E_AGENT_SCHEMA','每轮只允许一至四个受限步骤');
     if(rounds>=cap.rounds||actionCount+workflow.steps.length>cap.actions)
       throw fault('E_AGENT_LIMIT','已达连续决策或操作数量上限，不再继续执行');
+    // Replay parameter values are validated by the existing Workflow
+    // admission. Resolve only for effect identity, never mutate frozen code.
+    const steps=workflow.steps.map(step=>step.op==='fill'&&step.param&&
+      params&&Object.hasOwn(params,step.param)?
+      {...step,text:String(params[step.param])}:step);
     const requested=goal.toLocaleLowerCase().replace(/\s+/g,' ');
-    const freshSearch=workflow.steps.some(step=>{
+    const freshSearch=steps.some(step=>{
       if(step.op!=='fill'||typeof step.text!=='string'||!step.text.trim())return false;
       const value=step.text.trim().toLocaleLowerCase();
       return !facts.has('search-target:'+value)&&
         ['搜索','查找','检索','search'].some(verb=>
           requested.includes(verb+' '+value)||requested.includes(verb+value));
     });
-    if(workflow.steps.some(step=>['fill','click'].includes(step.op)&&
+    if(steps.some(step=>['fill','click'].includes(step.op)&&
       confirmed.has(identity(target?.origin,step))&&
       !(freshSearch&&isObservedSearch(step,observation,target))))
       throw fault('E_AGENT_NO_PROGRESS','该填写或点击已独立核验，不得拆分后重复执行');
     if([...facts].some(value=>value.startsWith('search-'))&&!freshSearch&&
-      workflow.steps.some(step=>isObservedSearch(step,observation,target)))
+      steps.some(step=>isObservedSearch(step,observation,target)))
       throw fault('E_AGENT_NO_PROGRESS','搜索结果已核验，不再重复点击搜索按钮');
     // Do not include model-generated step IDs or Document IDs: renamed
     // locators and navigation must not allow a repeated write on another page.
-    const signature=JSON.stringify([target?.origin,workflow.steps.map(actions)]);
+    const signature=JSON.stringify([target?.origin,steps.map(actions)]);
     if(issued.has(signature))
       throw fault('E_AGENT_NO_PROGRESS','相同网页操作已经尝试；已停止，避免重复写入或点击');
     issued.add(signature);rounds++;actionCount+=workflow.steps.length;
     return Object.freeze({signature,round:rounds,actions:workflow.steps.length,
-      origin:target?.origin,steps:workflow.steps.map(actions),linkName:linkGuard?.name||null,
+      origin:target?.origin,steps:steps.map(actions),linkName:linkGuard?.name||null,
       readOnly:workflow.steps.every(step=>['observe','extract','assert','wait'].includes(step.op))});
   }
   function verified({claim:ticket,reply}={}){
