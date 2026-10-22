@@ -77,3 +77,100 @@ test('stop discards a pending notify and fences late reconciliation completion',
   assert.equal(f.pending.length,1,'Stop must not launch a queued follow-up');
   assert.deepEqual(f.sync,[]);assert.equal(f.state(),'offline');
 });
+
+
+test('R19.5 keeps an authorized HTTPS Pull lease while re-probing WSS, then switches only after sync',async()=>{
+  let state='offline',session=null,now=10000;
+  const sockets=[],states=[],synchronized=[],capabilityGate=deferred(),reconcileGate=deferred();
+  const config={enabled:true,url:'https://provider.example',providerId:'p',executorId:'e',
+    pairingId:'pair',pairingGeneration:1,grantId:'g',tasks:[]};
+  class Socket{
+    constructor(url){this.url=url;sockets.push(this);}
+    close(){this.onclose?.();}
+    send(){}
+  }
+  const service={
+    read:async()=>config,
+    captureAuthentication:()=>()=>true,
+    retryRevocation:async()=>{},
+    post:async(_c,path)=>{
+      if(path==='auth')return {providerId:'p',executorId:'e',pairingId:'pair',
+        pairingGeneration:1,ticket:'ticket',expiresAt:now+30000};
+      if(path==='capabilities'&&sockets.length===2)await capabilityGate.promise;
+      if(path==='pull-open')return {providerId:'p',executorId:'e',pairingId:'pair',
+        pairingGeneration:1,grantId:'g',sessionId:'pull-session',expiresAt:now+90000};
+      return {accepted:true};
+    },
+    reconcile:async()=>{if(sockets.length===2)await reconcileGate.promise;},
+    setPullSession:reply=>{session=reply;},
+    setReconciled:value=>synchronized.push(value),
+    connection:value=>{state=value;states.push(value);},
+    attachConnection:()=>{}
+  };
+  const connection=createCloudConnection({service,Socket,api:{},clock:{now:()=>now},
+    random:()=>0.5});
+  try{
+    await flush();
+    assert.equal(sockets.length,1);
+    sockets[0].close();
+    for(let i=0;i<30&&state!=='pull-ready';i++)await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(state,'pull-ready');
+    assert.equal(session.sessionId,'pull-session');
+    await connection.start();
+    assert.equal(sockets.length,2);
+    assert.equal(state,'pull-ready','WSS re-probe must not interrupt valid HTTPS Pull');
+    const handshake=sockets[1].onmessage({data:JSON.stringify({type:'authenticated',
+      providerId:'p',executorId:'e',pairingId:'pair',pairingGeneration:1})});
+    await flush();
+    assert.equal(state,'pull-ready','WSS authentication alone cannot grant claim readiness');
+    capabilityGate.resolve();
+    await flush();
+    assert.equal(state,'pull-ready','WSS must reconcile before replacing Pull');
+    reconcileGate.resolve();
+    await handshake;
+    assert.equal(state,'authenticated');
+    assert.deepEqual(states.filter(s=>s==='authenticated'),['authenticated']);
+    assert.ok(synchronized.length>=2,'both Pull and WSS paths reconcile');
+  }finally{connection.stop();}
+});
+
+test('R19.5 failed HTTPS renewal cannot tear down a still-live Pull lease during WSS outage',async()=>{
+  let state='offline',now=10000,authCount=0;
+  const sockets=[];
+  const config={enabled:true,url:'https://provider.example',providerId:'p',executorId:'e',
+    pairingId:'pair',pairingGeneration:1,grantId:'g',tasks:[]};
+  class Socket{constructor(){sockets.push(this);}close(){this.onclose?.();}send(){}}
+  const service={
+    read:async()=>config,
+    captureAuthentication:()=>()=>true,
+    retryRevocation:async()=>{},
+    post:async(_c,path)=>{
+      if(path==='auth'){
+        authCount++;
+        if(authCount===4)throw Error('temporary HTTPS outage');
+        return {providerId:'p',executorId:'e',pairingId:'pair',
+          pairingGeneration:1,ticket:'ticket',expiresAt:now+30000};
+      }
+      if(path==='pull-open')return {providerId:'p',executorId:'e',pairingId:'pair',
+        pairingGeneration:1,grantId:'g',sessionId:'pull-session',expiresAt:now+90000};
+      return {accepted:true};
+    },
+    reconcile:async()=>{},
+    setPullSession:()=>{},
+    setReconciled:()=>{},
+    connection:value=>{state=value;},
+    attachConnection:()=>{}
+  };
+  const connection=createCloudConnection({service,Socket,api:{},clock:{now:()=>now},
+    random:()=>0.5});
+  try{
+    await flush();sockets[0].close();
+    for(let i=0;i<30&&state!=='pull-ready';i++)await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(state,'pull-ready');
+    await connection.start();assert.equal(sockets.length,2);
+    sockets[1].close();
+    for(let i=0;i<30&&authCount<4;i++)await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(authCount,4);
+    assert.equal(state,'pull-ready','temporary renewal error must not erase valid local Pull proof');
+  }finally{connection.stop();}
+});
