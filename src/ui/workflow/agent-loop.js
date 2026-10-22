@@ -23,7 +23,7 @@ function goalFulfilled(goal,facts){
     /(?:打开|进入|点开|点击|访问|\b(?:open|visit|click)\b)[^，,。；;]{1,100}(?:和|与|以及|\band\b)[^，,。；;]{1,100}/i.test(part)&&
     !/(?:和|与|以及|\band\b)\s*(?:检查|核对|查看|读取|搜索|验证|\b(?:read|check|verify|search)\b)/i.test(part));
   const multiFill=fragments.some(part=>
-    /(?:填写|填入|输入|\b(?:fill|type)\b)[^，,。；;]{1,100}(?:和|与|以及|\band\b)[^，,。；;]{1,100}/i.test(part)&&
+    (/(?:填写|填入|输入|\b(?:fill|type)\b)[^，,。；;]{1,100}(?:和|与|以及|\band\b)[^，,。；;]{1,100}/i.test(part)&&
     !/(?:和|与|以及|\band\b)\s*(?:检查|核对|查看|读取|搜索|打开|点击|\b(?:read|check|verify|search|open|click)\b)/i.test(part))||
     /(?:填写|填入|输入)[^，,。；;]{1,100}(?:并且|然后|再)(?:填写|填入|输入)/i.test(part));
   // A combined user goal is a conjunction, not "whichever fact happens first".
