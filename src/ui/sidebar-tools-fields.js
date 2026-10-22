@@ -390,6 +390,7 @@ export const SIDEBAR_TOOL_FIELDS = {
   "sidebar-tool-cookie-help": {},
   "sidebar-tool-cookie-first-use": {},
   "sidebar-tool-cookie-site-toggle": {},
+  "sidebar-tool-cookie-values-toggle": { "hidden": true },
   "sidebar-tool-cookie-other-sites": {},
   "sidebar-tool-bookmark-permissions": {},
   "sidebar-tool-bookmark-heading": {},

@@ -273,7 +273,7 @@ export function ToolHost({view}) {
 <ToolField as="p" id="sidebar-tool-readonly-banner" className="sidebar-tool-status" data-state="readonly" role="note" hidden={true}>
 {"开发只读预览 · 未安装。模拟读取仅返回空值；禁止写入、发送消息、控制网页或运行任务。需要正式使用时，请另行审阅并安装工具包。"}
 </ToolField>
-<section id="sidebar-tool-adblock-native" hidden={!snapshot.legacyAdblockVisible}>此版本 AdBlock 的旧控制界面已退役。请在扩展中心更新至正式 React 版本；你仍可停用或卸载，可信服务负责清理该工具自有规则。</section><StayFocusQuickAdd model={snapshot.trustedSettings.stayFocus} actions={view.trustedSettingsActions.stayFocus}/><div id="sidebar-tool-frame" className="sidebar-tool-frame" ref={runtimeRefs.frameRoot}/><section id="sidebar-tool-ai-proxy-native" className="sidebar-tool-ai-proxy-native" aria-label="AI 智能访问可信设置" hidden={!snapshot.trustedSettings.aiAccess?.visible}><AiAccessSettings model={snapshot.trustedSettings.aiAccess} actions={view.trustedSettingsActions.aiAccess}/></section><ToolField as="button" type="button" id="sidebar-tool-launch" className="od-button" hidden={true}>
+<section id="sidebar-tool-adblock-native" hidden={!snapshot.legacyAdblockVisible}>此版本 AdBlock 的旧控制界面已退役。请在扩展中心更新至正式 React 版本；你仍可停用或卸载，可信服务负责清理该工具自有规则。</section><StayFocusQuickAdd model={snapshot.trustedSettings.stayFocus} actions={view.trustedSettingsActions.stayFocus}/><CookieSettings onRevoke={actions.revoke}/><div id="sidebar-tool-frame" className="sidebar-tool-frame" ref={runtimeRefs.frameRoot}/><section id="sidebar-tool-ai-proxy-native" className="sidebar-tool-ai-proxy-native" aria-label="AI 智能访问可信设置" hidden={!snapshot.trustedSettings.aiAccess?.visible}><AiAccessSettings model={snapshot.trustedSettings.aiAccess} actions={view.trustedSettingsActions.aiAccess}/></section><ToolField as="button" type="button" id="sidebar-tool-launch" className="od-button" hidden={true}>
 {"打开工具"}
 </ToolField>
 <ToolField as="section" id="sidebar-tool-retired-draft" className="sidebar-tool-settings-view od-surface" aria-label="停用前的草稿" hidden={true}>
@@ -292,7 +292,7 @@ export function ToolHost({view}) {
 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"/></svg>
 {"在新标签页打开"}
 </ToolField>
-<CookieSettings onRevoke={actions.revoke}/><BookmarkSettings/><ToolField as="div" id="sidebar-tool-toc-language" className="sidebar-toc-settings-row" hidden={true}>
+<BookmarkSettings/><ToolField as="div" id="sidebar-tool-toc-language" className="sidebar-toc-settings-row" hidden={true}>
 <label htmlFor="sidebar-tool-toc-language-select">
 <ToolLabel name="languageLabel"/>
 </label>
@@ -501,14 +501,20 @@ function ToolLabel({name}) {return React.useContext(ToolContext).snapshot.labels
 
 function CookieSettings({onRevoke}) {
   const {snapshot} = React.useContext(ToolContext);
-  const {rows, emptyLabel, disabled} = snapshot.fields['sidebar-tool-cookie-other-sites'];
-  return <ToolField as="section" id="sidebar-tool-cookie-permissions" className="sidebar-tool-cookie-permissions od-surface">
+  const {rows,emptyLabel,disabled} = snapshot.fields['sidebar-tool-cookie-other-sites'];
+  const firstUse=snapshot.fields['sidebar-tool-cookie-permissions'].data?.mode==='first-use';
+  return <ToolField as="section" id="sidebar-tool-cookie-permissions"
+    className="sidebar-tool-cookie-permissions od-surface" aria-label="Cookie 访问授权">
     <ToolField as="strong" id="sidebar-tool-cookie-heading"/>
-    <ToolField as="p" id="sidebar-tool-cookie-target"/>
+    {!firstUse&&<ToolField as="p" id="sidebar-tool-cookie-target"/>}
     <ToolField as="p" id="sidebar-tool-cookie-help"/>
-    <ToolField id="sidebar-tool-cookie-first-use"><ToolField as="button" id="sidebar-tool-cookie-site-toggle" className="od-button"/></ToolField>
-    <ToolGrantRows id="sidebar-tool-cookie-other-sites" rows={rows} emptyLabel={emptyLabel} disabled={disabled}
-      rowClassName="sidebar-toc-settings-row" onRevoke={onRevoke}/>
+    <ToolField id="sidebar-tool-cookie-first-use"><ToolField as="button"
+      id="sidebar-tool-cookie-site-toggle" className="od-button"/></ToolField>
+    {!firstUse&&<>
+      <ToolField as="button" type="button" id="sidebar-tool-cookie-values-toggle" className="od-button od-button--secondary"/>
+      <ToolGrantRows id="sidebar-tool-cookie-other-sites" rows={rows} emptyLabel={emptyLabel}
+        disabled={disabled} rowClassName="sidebar-toc-settings-row" onRevoke={onRevoke}/>
+    </>}
   </ToolField>;
 }
 function BookmarkSettings() {

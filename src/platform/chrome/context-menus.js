@@ -327,7 +327,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     if(!cap||grant?.[cap]!==true||!grant.storeId||!grant.grantEpoch)
       throw failure('E_SITE_GRANT_REQUIRED','Approve this Cookie capability in the installed tool settings');
     if(options.includeValues===true&&
-       (!tool.capabilities.includes('browser.cookies.values')||grant.values!==true))
+       (!tool.capabilities.includes('browser.cookies.values')||grant.values!==true||
+          allSites&&grant.valueConsent!==true))
       throw failure('E_COOKIE_VALUES_REQUIRED','Cookie values require independent website authorization');
     if(options.storeId!==undefined&&options.storeId!==grant.storeId)
       throw failure('E_COOKIE_STORE');
@@ -1119,7 +1120,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const allSites=scope==='all-http-sites';
         if(!['read','values','write','observe','clear','all'].includes(siteCapability)||
            typeof enabled!=='boolean'||(scope!==undefined&&!allSites)||
-           (allSites?siteCapability!=='all':siteCapability==='all'&&enabled))
+           (allSites?!['all','values'].includes(siteCapability):siteCapability==='all'&&enabled))
           throw failure('E_SCHEMA','Unsupported Cookie capability decision');
         const source=await readSources(api),tool=admittedTool(source.tools,toolId);
         if(!sidebarToolEnabled(source.enabled,toolId)||tool.version!==toolVersion||
@@ -1171,10 +1172,24 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const row=same?previous:{version:tool.version,packageHash:hash,
           installEpoch:source.epochs[toolId]??null,origins:[],activeActions:[]};
         if(allSites){
+          // A dedicated Host click is required for sensitive Values. Old
+          // values=true records without a valueConsent receipt stay denied.
+          if(siteCapability==='values'){
+            const prior=row.cookieAllSites;
+            if(!prior?.read||!prior?.storeId||!prior?.grantEpoch)
+              throw failure('E_SITE_GRANT_REQUIRED','Authorize ordinary Cookie management first');
+            if(enabled&&prior.storeId!==storeId)throw failure('E_COOKIE_STORE');
+            const cookieAllSites={...prior,values:enabled,valueConsent:enabled,
+              grantEpoch:crypto.randomUUID()};
+            await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,{
+              ...source.grants,[toolId]:{...row,cookieAllSites}});
+            trustedCookies.revoke();
+            return {scope,capability:siteCapability,enabled,storeId:cookieAllSites.storeId};
+          }
           const cookieAllSites={storeId:enabled?storeId:row.cookieAllSites?.storeId??null,
-            grantEpoch:crypto.randomUUID(),...Object.fromEntries(
-              ['read','values','write','observe','clear'].map(cap=>[cap,
-                enabled&&tool.capabilities.includes('browser.cookies.'+cap)]))};
+            grantEpoch:crypto.randomUUID(),valueConsent:false,
+            ...Object.fromEntries(['read','values','write','observe','clear'].map(cap=>[cap,
+              enabled&&cap!=='values'&&tool.capabilities.includes('browser.cookies.'+cap)]))};
           await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,{
             ...source.grants,[toolId]:{...row,cookieAllSites,...(!enabled?{cookieSites:{}}:{})}});
           trustedCookies.revoke();
