@@ -486,6 +486,7 @@ if(!vm.SourceTextModule) {
       assert.equal(f.ui.getSnapshot().awaitingReview,false);
       assert.equal(f.get('workflow-run-review').hidden,true);
       assert.equal(starts,1,'Send should admit precisely one real RunHost path for safe steps');
+      assert.equal(f.permissionRequests.length,0,'pre-granted safe execution must not request Chrome permission again');
       assertFocus(f,f.get(external?'workflow-new':'workflow-ai-request'));
     });
     for(const choice of ['cancel','discard'])test('component: new '+choice+' closes review '+(external?'without stealing focus':'with a visible destination'),async t=>{
