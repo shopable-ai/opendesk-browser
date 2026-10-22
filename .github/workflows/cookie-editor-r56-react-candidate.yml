@@ -65,12 +65,12 @@ jobs:
         run: npm run stage:candidate --prefix examples/sidebar-tools/cookie-editor
       - name: Verify real Vite bytes and staged official packer artifact
         run: node --test tests/environment/cookie-editor-react-build.test.mjs
-      - name: R5.25 actual Host navigation, Cookie controller and failure recovery regressions
-        run: node --test tests/environment/sidebar-tools-host.test.mjs tests/environment/cookie-editor-react-controller.test.mjs
       - name: Build real WXT and Shared UI Demo prerequisites for build-bound tests
         run: |
           npm run build:dev
           npm run build --prefix examples/sidebar-tools/shared-ui-demo
+      - name: R5.25 actual Host navigation, Cookie controller and failure recovery regressions
+        run: node --test tests/environment/sidebar-tools-host.test.mjs tests/environment/cookie-editor-react-controller.test.mjs
       - name: Domain, controller, SDK and exact legacy release regressions
         run: |
           node --check examples/sidebar-tools/cookie-editor/app/domain/cookie-model.js
