@@ -10,7 +10,7 @@ function goalFulfilled(goal,facts){
   const open=/(?:打开|进入|点开|跳转|点击(?:.*?)(?:链接|结果)|\b(?:open|navigate)\b)/i.test(goal);
   const search=/(?:搜索|查找|检索|\bsearch\b)/i.test(goal);
   const fill=/(?:填写|填入|输入|\bfill\b|\btype\b)/i.test(goal);
-  const read=/(?:查看|读取|提取|读回|核对|\b(?:read|extract|verify)\b)/i.test(goal);
+  const read=/(?:查看|读取|提取|读回|核对|观察|检查|\b(?:read|extract|verify|observe|inspect|check)\b)/i.test(goal);
   const product=facts.has('product-page'),link=product||facts.has('link-page');
   if(price||details)return product;
   if(open)return link;
