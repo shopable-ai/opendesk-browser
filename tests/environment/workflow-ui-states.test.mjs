@@ -128,7 +128,7 @@ test('R15.3 compact workflow header and composer use meaningful icons without re
   assert.match(css,/#workflow-provider-settings:not\(\[open\]\)\{display:none\}/);
   assert.doesNotMatch(view,/workflow-head-site|workflow-provider-summary/);
   assert.match(view,/warning.hidden=!mismatch/);
-  assert.match(view,/saved:Boolean\(revision\)/);
+  assert.match(view,/saved:Boolean\(revision\|\|selectedBundle\)/);
   assert.match(view,/workflow-plan-panel'\)\.hidden=!hasSteps/);
   assert.match(view,/workflow-result-panel'\)\.hidden=!\['success','failed'\]\.includes\(lastRun\)/);
 });
@@ -228,7 +228,7 @@ test('R5.2 unsaved workflow starts a non-modal explicit discard or cancel review
 test('later AI Send retains committed Controller revision for optimistic Save',async()=>{
   const view=await file('src/ui/workflow/workflow-view.js');
   assert.match(view,/const previous=revision\?\.workflow\?\.workflowId===freeze\.workflow\.workflowId\?revision\.revision:0/);
-  assert.match(view,/const executable=structuredClone\(result\)/);
+  assert.match(view,/\bexecutable=structuredClone\(result\)/);
   assert.match(view,/const freeze=await compileWorkflow\(executable,\{verifyFill:true\}\)/);
   assert.match(view,/workflow=structuredClone\(executable\);touched=true;lastTrustedRun=null/);
   assert.doesNotMatch(view,/workflow=structuredClone\(executable\);touched=true;revision=null/);
