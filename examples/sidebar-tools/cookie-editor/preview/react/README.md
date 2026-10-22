@@ -1,5 +1,27 @@
 # Cookie Editor R5.20 · shared App offline preview
 
+## 2026-10-23 · 导出浮层交互（React 原型源码）
+
+导出不再进入独立的 `panel='export'` 页面。正式 React 与此预览共用
+`app/CookieEditorApp.jsx`、`app/components/CookieExport.jsx`、
+`app/components/CookieEditorView.jsx`、`src/react.css`。
+点击列表工具栏导出图标，打开靠右对齐的非模态 Popover；原 Cookie 列表保持挂载，
+已有未保存的编辑草稿不被清空。面板仅显示 JSON 与 Cookie Header 两个格式选项卡，
+默认 JSON，可选“包含 Cookie 值”，直接复制或下载。Netscape 从界面移除，
+底层旧数据解析兼容不变。失焦、点击外部、Escape 关闭；Host 执行期间保护进行中的
+操作，失败保留弹层供用户手动重试。存在分区 Cookie 时禁止有损 Header 导出。
+
+测试入口：`npm test` 和 `npm run test:chromium`，其中 Chromium 检查
+320/360/400/440px、选项卡键盘操作、失焦关闭、真实 Controller 的虚构 SDK
+复制/下载、导出失败重试。
+
+**交付状态：**本次已提交共享 React 源码、样式和测试，但网页侧无法运行
+Node/Vite/Chromium 构建；仓库现有 `preview/react/index.html` 仍为上一版已
+生成快照，正式可安装 JSON 也未更新。须在 Mac 工作区执行 `npm run build`
+（此处指 `preview/react`）、`npm run check`、`npm test`、
+`npm run test:chromium`，重建独立预览并提交同源产物；随后由正式发行构建
+路径生成安装包。未经过的构建/原生验收均为 **NOT_TESTED**。
+
 ## 2026-10-22 · 授权页面单按钮预览
 
 R4.3 历史模拟页面移除了「仅查看」授权按钮和重复说明。React 预览复用正式 `app/CookieEditorApp.jsx`，首次授权提示改为「Cookie 访问授权」+ 一句范围说明 +「允许管理所有网站 Cookie」单按钮；对应 JSX、CSS 和独立 `index.html` 已同步为新视觉。**R4.3 是按本站授权的历史模拟；当前正式 Cookie Editor 使用 HTTP/HTTPS 全站授权，不能以历史原型改变可信 Host 的授权范围。**
