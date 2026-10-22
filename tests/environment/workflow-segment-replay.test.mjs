@@ -151,11 +151,11 @@ test('v2 seals only verified search-to-product source and rebinds explicit value
 });
 test('v2 refuses guessed targets, changed authority, forged binding plan and v1 implicit migration',async()=>{
   const original=await dynamicCommerceFixture(),saved=await sealWorkflowBundle(original);
-  assert.throws(()=>dynamicReplayIntent(saved,{query:'lens'}),{code:'E_WORKFLOW_PARAMS'});
+  assert.throws(()=>dynamicReplayIntent(saved,{query:'lens'}),{code:'E_WORKFLOW_PARAM_BINDING'});
   assert.throws(()=>dynamicReplayIntent(saved,{query:'lens',productName:'<script>'}),
     {code:'E_WORKFLOW_PARAM_BINDING'});
   assert.throws(()=>dynamicReplayIntent(saved,{query:'lens',productName:'Camera X',extra:'bad'}),
-    {code:'E_WORKFLOW_PARAMS'});
+    {code:'E_SCHEMA'});
   const forged=structuredClone(saved);
   forged.bindingPlan.allowedOrigin='https://evil.example';
   await assert.rejects(verifyWorkflowBundle(forged),{code:'E_WORKFLOW_PARAM_BINDING'});
@@ -173,5 +173,5 @@ test('v2 refuses guessed targets, changed authority, forged binding plan and v1 
     {code:'E_WORKFLOW_PARAM_BINDING'});
   const unapproved=await dynamicCommerceFixture();
   unapproved.segments[1].workflow.siteOrigin='https://second.example';
-  assert.equal(inferDynamicReplayPlan(unapproved),null);
+  assert.throws(()=>inferDynamicReplayPlan(unapproved),{code:'E_WORKFLOW_SCHEMA'});
 });
