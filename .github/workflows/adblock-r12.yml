@@ -123,6 +123,7 @@ jobs:
             dist/production/
             artifacts/sidebar-tools/adblock/
             artifacts/adblock-r24-react/
+            examples/sidebar-tools/adblock/dist/
             examples/sidebar-tools/adblock/adblock.opendesk-tool.json
             artifacts/previews/adblock/
             docs/framework/evidence/wxt/builds/build-production.json
@@ -156,6 +157,13 @@ jobs:
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
           test -s dist/production/manifest.json
+          # Download the exact source-job compiled files and its source-bound receipt.
+          test -s examples/sidebar-tools/adblock/dist/tool.js
+          test -s examples/sidebar-tools/adblock/dist/tool.css
+          test -s examples/sidebar-tools/adblock/dist/build-ready.json
+          cmp examples/sidebar-tools/adblock/dist/tool.js artifacts/adblock-r24-react/tool.js
+          cmp examples/sidebar-tools/adblock/dist/tool.css artifacts/adblock-r24-react/tool.css
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --check-project
           shasum -a 256 dist/production/sw.js
           shasum -a 256 dist/production/official-tools/adblock/adblock.opendesk-tool.json
       - uses: browser-actions/setup-chrome@v2
