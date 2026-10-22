@@ -197,7 +197,7 @@ const compiledAppOwnedBackgroundInputs=Object.freeze({
   'examples/sidebar-tools/ai-vip-share/trusted/service.js':'861861cfea1a02ccf4e7c3535372c4aba389a30c',
   'examples/sidebar-tools/ai-vip-share/trusted/tool-host.js':'5fe63cd1351f29e59c77da914e9cd5ef87a2ae4e',
   'examples/sidebar-tools/time-review/trusted/host-controls.js':'6cb8a7e357a5a9f8011ae755dcbbbde6cde8578b',
-  'examples/sidebar-tools/time-review/trusted/model.js':'eeac13501cad3717a53f8ad9a2b90a70d97e6e19',
+  'examples/sidebar-tools/time-review/trusted/model.js':'ef7cb2281334b7161c39f68a768992e3527b9d5c',
   'examples/sidebar-tools/time-review/trusted/policy.js':'d5127624c129bd29533f37e24eedab3216f396db',
   'examples/sidebar-tools/time-review/trusted/service.js':'1b4dfe90936c70ef89e90dd87307b308ef30be68',
   'examples/sidebar-tools/time-review/trusted/sync-outbox.js':'d00c7d7c4d3507b6fda21347a4c87d900979e3a2',
