@@ -2,6 +2,38 @@
 
 > 本文件仅记录 Global First R6 对首次用户成功的源代码修复及证据等级；不取代 R5 原始日志、GF/OPP/EXP 唯一账本。
 
+
+## 2026-10-22 跨工作流进度核验（当前优先阅读）
+
+> **本节补充了 2026-10-13 原快照以后可追溯的事实；不改写下方历史证据和当时状态。** 仅通过 GitHub `main` 及原工作流记录、Actions 日志核查；本次未进入用户 Mac 工作区、未控制真实 Chrome/Native、未向模型发请求。旧记录中的扩展 ID、Profile、进程/端口、包指纹与源码 SHA 都是当时的身份，不能借作今天的运行环境。
+
+### 对用户已经有什么、仍缺什么
+
+| 用户实际能力 | 目前有证据的层级 | 不能升级成的结论 |
+| --- | --- | --- |
+| AI 根据一句需求生成/执行语义工作流，并真实修改合法 demo-form 页面 | [2026-10-15 本机工作流记录](workflow-local-e2e-01a13fcb-20261015.md)及[续接](workflow-local-e2e-01a13fcb-handoff-20261015.md)记录真实 Codex Send、填写、单次搜索、只读续聊和持久 Run/Result；限定当时 **development** 候选 | 不是最新 `main` 的 production 同包验收，也不代表整个浏览器工具正式安装 |
+| 已保存的固定 Workflow 修订离开 AI 后运行两次 | 上述记录：`workflowId=wf-76cc8e59-2104-405e-8e7d-91f2add7e84f`、**r1**、`sourceHash=698ed06ad8270ea300f4b0b6b03bb78aabf5fbe13be6eb8e47fe0132d78e7487`；两次独立 RunId/ResultId、相同哈希、网页效果和 Worker released，开发阶段 `REUSED_PASS` | 这是 **Saved Workflow r1 → AI-Off Run×2**，尚未证明同一 AI 生成任务经过 `Candidate → Verified → Available → Installed` 后由「我的任务」运行两次；Native Codex 会话计数未增加不等于获得独立网络/计费侧模型调用为零的证明 |
+| 安装前审核源码、参数、站点及版本 | 当前 `src/ui/task-workbench.js` 的 React catalog 仍包含 `taskReviewHandoff` 同窗口精确预选、旧 RunId 清空及 `getTaskCandidate` 固定包/哈希核对后只读源码；原 Task Service 仍拥有正式 Verify/Available/Install | `SOURCE_PRESENT`，尚缺同一当前包用户实际浏览/授权/安装的完整原生回执，不把源码展示或 handoff 当作安装凭据 |
+| 对话中自然语言连续填写两次 | [现有两轮复测手册](../guides/workflow-core-smoke.zh-CN.md)记载 2026-10-21「测试甲→测试乙」候选级通过及独立 DOM、Run/Result 判定条件 | 该手册指向的 `workstreams/workflow-core-20261021.md` 当前在 GitHub `main` 不可读取，原始本机证据未由本次核实；**不能拼接为 R6 Installed Task E2E** |
+| Stop、撤权、异常与失败恢复 | 2026-10-15 记录了开发候选 Stop、换文档停止、撤权拒绝与 unknown 不盲重放；授权失败不残留旧运行身份曾定向复测 | 执行中 Native 断线、迟到回执、版本升级与失败恢复完整矩阵，以及当前 production 同版证据仍 `NOT_TESTED` |
+
+### 补正 2026-10-13 CI 终态（不要保留“仍在排队”的误解）
+
+- [R6 组件 CI #38398698063](https://github.com/shopable-ai/opendesk-browser/actions/runs/38398698063)，绑定 `ec42e068c749285e39e0f5690e970295bdd3927b`：**FAIL（2026-10-13）**，第一组 Node **15/16 PASS、1 FAIL**。原始 Job 日志显示 `global-first-r5-native-baseline-audit.test.mjs` 的拒绝性用例仍期待 `/macOS baseline/`，但审计器已报更具体的 `Native report platform mismatch; Linux Chrome must never become a macOS receipt`；**这次失败发生在 Node 断言文案层，并非真实 Chrome 执行失败**。该 Job 的后续 R6 Task Catalog/handoff 测试步骤因此为 `SKIPPED`，不能记作通过。
+- 当前 `main` 的审计拒绝性用例已使用新的精确 platform-mismatch 预期（旧 CI 测试文件 blob `50543070...` 与当前 blob `095fe579...` 不同）；**源码已调整不等于本次已看到新 CI PASS**。后续只有找到新源码 SHA 绑定的完整 Job/TAP 才更新结论；无需为了保存文档重跑 Node/Chrome。
+- [竞品/声明 CI #38399659541](https://github.com/shopable-ai/opendesk-browser/actions/runs/38399659541)，绑定 `23f704da2b73206e9b833c0c3de2a647fc9052e1`：**SUCCESS（2026-10-13）**，范围是竞争声明、研究与 Node 组件，不包含真实 AI、用户 Mac 或 Chrome 的完整闭环。
+- 现有唯一 `first-claims-ledger.json` 在本次读取时 `approvedClaimIds=[]`，原 GF-013/GF-014 仍不得作为首创宣传；GitHub Releases 当前未发现公开 Release。SEO/GEO 部署与用户流量、收费和竞品同机成本保持 `NOT_TESTED / NOT_SCORED`。
+
+### 下一项真正应实施/核查的差距（继承原产品目标，不另建 GOAL）
+
+**只缺的关键连接**是同一真实 AI 新生的冻结源码、真实网页结果，进入**原 Task Service** 的完整 Candidate → Verified → Available → Installed，并从原「我的任务」在模型不可用状态下独立 Run×2。把两次 Run/Result、实际网页效果、已安装 taskId/version、sourceHash/manifestHash、installationId/generation、Extension ID/PackageHash、Origin/Document、Worker released 和模型侧可核实的调用依据关联为一份**同候选原始证据**。未采集模型调用账单/网络回执时，写「未观测新增 Codex 会话」或 `UNKNOWN`，不得猜测 Token=0。
+
+**普通用户体验约束**：运行前首次审阅固定代码/站点/权限；后续不改变版本和授权范围的普通运行，不要求重新生成 AI 代码、重新安装、重复授权或逐步批准。用户主动发出明确、已授权的低风险操作意图后，应避免额外的形式性规划确认；涉及新增站点/数据发送、不可逆外部写入、缺失权限、歧义或风险升级时，仍遵守现有 Authority/Chrome 真手势与必要审阅。以上是需保留的设计原则，**不是本次真实 Chrome UX PASS**。Agent 连续执行必须设定有界步骤/重试与可取消性；语义不明、页面状态不匹配、连续无进展或副作用未知时停止并反馈，禁止无限循环与盲目重放。
+
+**执行阶段**依当前 [AGENTS.md](../../../AGENTS.md) 与 [testing-guide.md](../testing-guide.md) 的 2026-10-17 开发阶段决策：先跑通当前核心用户操作并做最小受影响验证；当用户明确进入正式安装/发布验收阶段，再冻结包与完成该阶段的独立验证。旧 R6 所列完整验收是 **最终产品目标**，不是每次文档更新、日常小修都必须重新运行的测试矩阵。优先复用已有工作流及现成证据；不修改第二套 SDK/Host/Registry，不伪造实际市场排名。TOP20 NOW/NEXT/RESEARCH/STOP 仍是 2026-10-13 的投资假设，未有新用户实证前不得自动宣称最新商业优先级或客户成熟度。
+
+---
+
 ## 起点、所有权与资源
 - GitHub 远端 `main` 起点为 `245aa96dc58957e84e69030e8443a1a077c6b943`，任务书的 `35840e58` 是之前的远端快照。
 - 本次执行通过已授权 GitHub Connector 对 `main` 提交；精确写入 `src/ui/task-workbench.js`、`src/ui/tool-shell.css`、`tests/environment/task-workbench.test.mjs`、`.github/workflows/global-first-r5-fixed-task-integration.yml` 及本工作流文档。保持其它 Agent 负责的 SDK/Controller/Task Service/Native/Cloud/依赖代码与公开契约不变。
