@@ -392,6 +392,12 @@ try{
     'native insert keeps manually expanded choices');
   await shot('r196-expanded-rail-after-insert');
   await expandPromptRail();
+  // The actual trusted rail must shrink to its content: 38 + 6*2 + 1*2.
+  // Measure inside the real injected ShadowRoot, never infer from CSS strings.
+  const textRailWidth=await evaluate('window.__railRoot.querySelector(".rail").getBoundingClientRect().width');
+  assert(Math.abs(textRailWidth-52)<1,'trusted text-only rail should be 52px: '+textRailWidth);
+  scenes.push({step:'R1.9.6 trusted Shadow DOM text rail physical width',railWidth:textRailWidth,buttonWidth:38});
+
   // R3.5: Actual decoded HTTPS response in the trusted Shadow DOM with 3 sizes.
   await rpc('Fetch.enable',{patterns:[{
     urlPattern:'https://fixture.opendesk.invalid/*',resourceType:'Image',requestStage:'Request'
@@ -406,12 +412,15 @@ try{
     const actual=await evaluate('(()=>{const img=window.__railRoot.querySelector(".item.image img");'+
       'const b=img.closest("button"),r=b.getBoundingClientRect();return {loaded:img.complete,'+
       'naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight,width:r.width,height:r.height,'+
+      'railWidth:window.__railRoot.querySelector(".rail").getBoundingClientRect().width,'+
       'visible:r.width>0&&r.height>0&&r.left>=0&&r.top>=0&&r.right<=innerWidth&&r.bottom<=innerHeight,'+
       'objectFit:getComputedStyle(img).objectFit};})()');
     assert(actual.loaded&&actual.naturalWidth>0&&actual.naturalHeight>0&&actual.visible);
     assert.equal(actual.objectFit,'contain');
     assert(Math.abs(actual.width-w)<.6&&Math.abs(actual.height-h)<.6,
       size+' trusted image bounds: '+JSON.stringify(actual));
+    assert(Math.abs(actual.railWidth-(w+14))<1,
+      size+' trusted rail must size to actual image, not global max: '+JSON.stringify(actual));
     measured.push({size,...actual});await shot('r35-trusted-image-'+size);
   }
   await evaluate('window.__setImage("https://fixture.opendesk.invalid/bad.png","large")');
@@ -420,6 +429,9 @@ try{
     '!window.__railRoot?.querySelector(".item.image")',
     'corrupt HTTPS response must fall back to short label');
   assert.equal(await evaluate('window.__railRoot.querySelectorAll(".item")[1].textContent'),'山景');
+  const fallbackRailWidth=await evaluate('window.__railRoot.querySelector(".rail").getBoundingClientRect().width');
+  assert(Math.abs(fallbackRailWidth-52)<1,
+    'trusted corrupt image must shrink rail to 52px fallback: '+fallbackRailWidth);
   await evaluate('window.__setImage("https://fixture.opendesk.invalid/ok.png","standard")');
   await expandPromptRail();
   await poll('window.__railRoot?.querySelector(".item.image img")?.naturalWidth>0',
