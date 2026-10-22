@@ -353,6 +353,10 @@ try{
     main.style.width='680px';main.style.height='600px';
     const area=document.createElement('textarea');
     area.id='prompt-textarea';area.value='旧历史会话草稿';
+    // Model a real conversation composer with a safe left gutter. Without
+    // this inset the real adaptive rail correctly switches to 138px horizontal
+    // mode, so asserting the vertical 52px geometry would test the wrong case.
+    area.style.marginLeft='96px';
     main.append(area);document.body.append(main);
     window.__controller=window.__initPromptShortcuts({
       api:window.__trustedApi,doc:document,win:proxy
@@ -394,9 +398,13 @@ try{
   await expandPromptRail();
   // The actual trusted rail must shrink to its content: 38 + 6*2 + 1*2.
   // Measure inside the real injected ShadowRoot, never infer from CSS strings.
-  const textRailWidth=await evaluate('window.__railRoot.querySelector(".rail").getBoundingClientRect().width');
-  assert(Math.abs(textRailWidth-52)<1,'trusted text-only rail should be 52px: '+textRailWidth);
-  scenes.push({step:'R1.9.6 trusted Shadow DOM text rail physical width',railWidth:textRailWidth,buttonWidth:38});
+  const textRail=await evaluate('(()=>{const rail=window.__railRoot.querySelector(".rail");'+
+    'const editor=document.querySelector("main#main textarea#prompt-textarea");'+
+    'return {width:rail.getBoundingClientRect().width,horizontal:rail.classList.contains("horizontal"),'+
+    'editorLeft:editor.getBoundingClientRect().left};})()');
+  assert.equal(textRail.horizontal,false,'a real safe composer gutter must produce a vertical rail');
+  assert(Math.abs(textRail.width-52)<1,'trusted vertical text rail should be 52px: '+JSON.stringify(textRail));
+  scenes.push({step:'R1.9.6 trusted Shadow DOM vertical rail physical width',railWidth:textRail.width,buttonWidth:38});
 
   // R3.5: Actual decoded HTTPS response in the trusted Shadow DOM with 3 sizes.
   await rpc('Fetch.enable',{patterns:[{
