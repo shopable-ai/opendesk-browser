@@ -182,7 +182,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   };
   const stop=()=>{
     stopJump();
-    visible=false;items=[];compactExpanded=false;activeRule=null;closePicker();clearFeedback();
+    visible=false;items=[];activeRule=null;closePicker();clearFeedback();
     observer?.disconnect();observer=null;observedRoot=null;
     resizeObserver?.disconnect();resizeObserver=null;observedRegions.clear();
     win.clearTimeout(layoutTimer);layoutTimer=0;win.clearTimeout(hideTipTimer);hideTipTimer=0;
@@ -583,10 +583,15 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     const maxTop=win.innerHeight-hostRect.top-tipHeight-12;
     const minTop=12-hostRect.top;
     tip.style.top=Math.round(Math.max(minTop,Math.min(buttonRect.top-hostRect.top-12,maxTop)))+'px';
-    const offset=Math.max(64,(rail.offsetWidth||52)+12);
-    const freeRight=win.innerWidth-hostRect.left-offset;
-    tip.style.left=freeRight<260?'auto':offset+'px';
-    tip.style.right=freeRight<260?offset+'px':'auto';
+    // Clamp to the viewport rather than using 'right:offset' on a left-docked host.
+    const railWidth=rail.getBoundingClientRect().width||52,gap=10;
+    const tipWidth=tipRect.width||248;
+    const freeRight=win.innerWidth-(hostRect.left+railWidth+gap);
+    const toRight=freeRight>=tipWidth+8||freeRight>=hostRect.left-gap-8;
+    const desired=toRight?hostRect.left+railWidth+gap:hostRect.left-tipWidth-gap;
+    const viewportLeft=Math.max(8,Math.min(desired,win.innerWidth-tipWidth-8));
+    tip.style.left=Math.round(viewportLeft-hostRect.left)+'px';
+    tip.style.right='auto';
   };
   const showTip=(row,button)=>{
     if(!tip||!host||!host.isConnected)return;
@@ -807,7 +812,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     if(builtin||compact){
       const brand=doc.createElement('button');brand.type='button';brand.className='brand';
       if(compact){
-        brand.textContent='快捷';brand.title=compactExpanded?'收起提示词':'展开提示词';
+        brand.textContent='OD';brand.title=compactExpanded?'收起提示词':'展开提示词';
         brand.setAttribute('aria-label',(compactExpanded?'收起':'展开')+items.length+' 个提示词快捷按钮');
         brand.setAttribute('aria-expanded',String(compactExpanded));
         brand.addEventListener('click',event=>{
@@ -828,10 +833,12 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       button.setAttribute('aria-label','插入提示词：'+row.name);
       button.title=row.name; // Full multiline details appear on focus/hover.
       const fallbackLabel=()=>{
+        const wasImage=button.classList.contains('image');
         button.classList.remove('image');button.replaceChildren();
         for(const part of model.parts(row.label)){
           const span=doc.createElement('span');span.textContent=part;button.append(span);
         }
+        if(wasImage)schedule(); // Reflow when a failed image returns to its 38px label.
       };
       if(row.appearance==='image'){
         try{
@@ -868,7 +875,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     stopJump();
     const token=++epoch,url=win.location.href;
     if(href!==url){
-      compactExpanded=true;clearFeedback();hideTip();
+      clearFeedback();hideTip();
       // Never show controls for the previous conversation while checking the
       // new route's installation, grant and library state.
       if(host)host.hidden=true;
