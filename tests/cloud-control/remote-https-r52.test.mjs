@@ -87,6 +87,20 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
       providerId:executor.providerId,executorId,grantId,
       tasks:[pin],allowResult:true});
     assert.equal(JSON.stringify(fullScope).includes(permittedResultClient.credential),false);
+    const formScope=await p('/v1/client-scope',{includeTaskSchemas:true},grant.credential);
+    assert.deepEqual(formScope.taskCatalog,[{...pin,title:pkg.manifest.title,
+      siteOrigins:pkg.manifest.siteOrigins,paramsSchema:pkg.manifest.paramsSchema}],
+      'An authenticated BFF sees form metadata for its approved pin only');
+    assert.deepEqual(formScope.tasks,[pin]);
+    assert.equal(JSON.stringify(formScope).includes('sourceUtf8'),false);
+    assert.equal(JSON.stringify(formScope).includes('credential'),false);
+    assert.equal(JSON.stringify(formScope).includes('program'),false);
+    await assert.rejects(p('/v1/client-scope',{includeTaskSchemas:'yes'},grant.credential),
+      {code:'E_SCHEMA'});
+    await assert.rejects(p('/v1/client-scope',{includeTaskSchemas:true},
+      executor.credential),{code:'E_AUTH'});
+    await assert.rejects(p('/v1/client-scope',{includeTaskSchemas:true},
+      admin.adminToken),{code:'E_AUTH'});
     assert.deepEqual(await p('/v1/client-scope',{},grant.credential),
       {...fullScope,clientId:grant.clientId,allowResult:false});
     await assert.rejects(p('/v1/client-scope',{},executor.credential),{code:'E_AUTH'});
@@ -144,6 +158,12 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
       target:{mode:'owned',url:'https://other.invalid'}},grant.credential),{code:'E_TARGET'});
     await assert.rejects(p('/v1/submit',{...seed,requestKey:'wrong-param',
       params:{name:123}},grant.credential),{code:'E_PARAMS'});
+    await assert.rejects(p('/v1/submit',{...seed,requestKey:''},grant.credential),
+      {code:'E_SCHEMA'},'Empty request keys must not merge different Web form submissions');
+    await assert.rejects(p('/v1/submit',{...seed,requestKey:'   '},grant.credential),
+      {code:'E_SCHEMA'},'Whitespace is not a durable idempotency identity');
+    await assert.rejects(p('/v1/submit',{...seed,requestKey:'x'.repeat(151)},
+      grant.credential),{code:'E_SCHEMA'});
     const created=await p('/v1/submit',seed,grant.credential);
     assert.deepEqual(await p('/v1/submit',seed,grant.credential),created);
     assert.deepEqual(await p('/v1/job-status',{jobId:created.jobId},grant.credential),

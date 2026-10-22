@@ -475,6 +475,7 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
             // HTTPS caller is bound to one active paired Executor, not arbitrary
             // installed Tasks or browsers. Reuse the immutable Task registry.
             exact(b,['requestKey','taskId','version','manifestHash','sourceHash','params','target']);
+            if(!nonempty(b.requestKey)||b.requestKey.length>150)fail('E_SCHEMA');
             const task=state.taskRegistry[String(b.taskId)+'@'+String(b.version)];
             if(!task||canonical(taskPin(task))!==canonical({
               taskId:b.taskId,version:b.version,manifestHash:b.manifestHash,
@@ -510,10 +511,22 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
             // An authenticated external client may read only its OWN immutable
             // task pins and result-consent scope. No admin or executor token,
             // internal credentials, or executable source is exposed.
-            exact(b,[]);
+            exact(b,[],['includeTaskSchemas']);
+            if(Object.hasOwn(b,'includeTaskSchemas')&&typeof b.includeTaskSchemas!=='boolean')fail('E_SCHEMA');
             out={clientId:client.clientId,providerId:state.providerId,
               executorId:client.executorId,grantId:client.grantId,
               tasks:structuredClone(client.tasks),allowResult:client.allowResult===true};
+            if(b.includeTaskSchemas===true){
+              // A trusted BFF can render a form for ONLY this Client's approved
+              // registry pins. Never return manifests, program bytes or credentials.
+              out.taskCatalog=client.tasks.map(pin=>{
+                const task=state.taskRegistry[taskRegistryKey(pin)];
+                if(!task||canonical(taskPin(task))!==canonical(pin))fail('E_CLIENT_SCOPE');
+                return {...taskPin(task),title:task.manifest.title,
+                  siteOrigins:structuredClone(task.manifest.siteOrigins),
+                  paramsSchema:structuredClone(task.manifest.paramsSchema)};
+              });
+            }
             break;
           }
           case '/v1/job-cancel':{
