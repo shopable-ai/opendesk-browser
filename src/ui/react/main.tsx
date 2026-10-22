@@ -147,7 +147,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
       let session={open:Boolean(recovery),draft:'',rows:recovery?[{
         id:'prompt-recovery-'+String(recovery.createdAt||0),speaker:'系统',
         message:'上次 AI 写入尚未核实。请使用下方「核对真实存储」按钮读取当前库；不要重试创建。'
-      }]:[],needsReview:Boolean(recovery),refs:{matches:[]}};
+      }]:[],needsReview:Boolean(recovery),refs:{matches:[],etag:null}};
       const controller=Object.freeze({
         source:()=>conversation.source(),
         request:args=>conversation.request({...args,scope:'prompt'}),
@@ -164,7 +164,9 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
               ['你','助手','系统'].includes(row.speaker)).map(row=>({
                 id:row.id.slice(0,100),speaker:row.speaker,message:row.message.slice(0,3500)})):[],
             refs:{matches:Array.isArray(next.refs?.matches)?
-              next.refs.matches.slice(0,12).filter(id=>typeof id==='string'&&id.length<=160):[]}};
+              next.refs.matches.slice(0,12).filter(id=>typeof id==='string'&&id.length<=160):[],
+              etag:typeof next.refs?.etag==='string'&&/^[a-f0-9]{64}$/.test(next.refs.etag)?
+                next.refs.etag:null}};
         }
       });
       promptPilot={container,headerTarget,controller,onRequest};
