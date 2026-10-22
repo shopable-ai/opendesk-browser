@@ -6,6 +6,22 @@
 
 **完成边界：** 独立复核确认 G-DYNAMIC 原始 15 条条件在冻结 B2／本地审阅 A/B 范围内 PASS。G-DECOUPLING 未完成；独立评分前五维达到 95，第六维发布合规 78，六维全部 ≥95 的总目标未完成。商店合规为 RELEASE_POLICY_NOT_VERIFIED。此结论不外推完整发布者、故障与官方业务原生矩阵；B1 是历史候选，不能覆盖 B2 未测项。
 
+## 续接：私有可信 UI 归还应用项目（2026-10-22）
+
+本次交付一条源码归属纵切片：Stay Focus 的当前网站加入/暂停、启停、状态、清空确认，以及旧 AI VIP Share `aiAccess.control` 可信状态区，从通用 `trusted-settings.tsx` 移入各自 `trusted/react-controls.tsx`。通用工作台只保留静态导出；两个消费者共用原 focus/scroll effect。三个组件函数体未变，经独立只读复核无新增缺陷。它们仍为精确 Blob 锁定的固定可信源码，且新增路径仅准入 `ui/tool-shell.js`，不从安装 JSON 执行可信代码。
+
+先在已有 B2 完成正式安装 → 开启 → 保存网站与一分钟共享额度 → 关闭全部实际 Side Panel → 自然 Alarm 结算 → Chrome DNR 跳转额度说明页 → 原产品按钮重开读回 → 停用清理。停用只清除本工具规则/Alarm，保留设置、使用记录，其他规则未变。源码没有复现产品缺陷，本次修改由明确的业务解耦任务驱动。
+
+新静态候选以 `ddec717f` 加本任务五个构建输入生成，排除并行编辑器、书签样式与构建收据改动，独立输出而未触碰日常 `dist/development`。候选指纹 `ae70e497ca2538ee6f20b40880ae4c5a1658e6dc119e5265b8e48af6e54d7224`，Chrome 156.0.8078.4、扩展 ID `hnbkmnjiooaelbidjngcmeljmkhjfgpa`。新候选已通过真实界面验证加入/暂停/恢复、沙箱保存额度、关闭侧栏自然耗尽并跳转、重开读回、清空取消、停止/恢复和工具停用。停止清除自有规则/Alarm，保留网站、使用量和 Chrome idle 权限；恢复后原耗尽额度规则重新生效。当前 AI VIP Share 1.4.1 已使用原沙箱 SDK UI，显示“正式服务未配置”，旧可信区正确保持隐藏；未执行生产代理 lease/启用。
+
+保留失败原文：新候选第一次 150 秒观察含 11 个真实 idle 样本，因此计量暂停并超出驱动窗口。真实系统键盘活动恢复后，只续读同一持久额度，自然累计 70786ms 并生成 DNR 重定向；没有重放策略写入或修改 usage。原 FAIL 与续读成功分开记录。其他驱动修正为实际 `/sw.js` ID 选择、等待异步 iframe，以及设置返回后再返回列表，均未改产品来迎合断言。
+
+定向交互/宿主 15 项和现有授权/STOP 13 项通过（子代理工具输出，未另存原始日志）；来源锁 4 项通过并留原日志。完整旧 R37 文件仍有两项迁移前失败：正则将 focus/visibilitychange 监听误判为旧 DOM renderer；另一个 fixture 缺少 readStatus 导致 grant 前进入 error。断言未放宽，失败未伪报 PASS。一次隔离 production 编译与产物验证通过；两个新源码仅出现在既有工作台 bundle。Stay Focus 1.0.10 和 AI VIP Share 1.4.1 正式 JSON 与候选官方副本逐字节相同，无可打包输入变更，不升版或重新晋升同一字节。
+
+**状态仍分开判断：** G-DECOUPLING 为 PARTIAL，本次解除私有 UI 实现嵌入通用核心的耦合；高级 Focus 策略/提醒/限制页、AdBlock 订阅/cosmetic/picker、AI 旧 lease/STOP 和清理仍需继续迁移。公开 siteBudget 的单共享池/基础网站/时段合同不能替代 Focus 高级语义；本次未扩大后台应用权限或新增 SDK。G-DYNAMIC 保留 B2 LOCAL 结论，不宣称此 UI 候选已重验冻结后未知 A/B；完整发布矩阵、六维重评分和商店审批延期。临时 CFT 与输入循环已正常关闭，原 B2 和既有测试页服务保留。
+
+候选路径、精确输入与正式包摘要、命令、原生结果和原始证据 SHA 收据见 [`ui-controls-summary.json`](../evidence/dynamic-app-r14-local/ui-controls-summary.json)；本机原始证据在 `artifacts/dynamic-app-r14-local/ui-controls-*`。
+
 ## 本轮修复与实际用户操作
 
 1. B1 真实 UI 创建计划达到原有 128 上限后，超额正确返回 E_LIMIT；但正式卸载临时应用后，110 条非 deleted 定义仍占名额，尽管 registry、owned storage 和 Alarm 已清除。原始失败：`artifacts/dynamic-app-r14-local/revoke-probe/uninstall-capacity-leak.json`。

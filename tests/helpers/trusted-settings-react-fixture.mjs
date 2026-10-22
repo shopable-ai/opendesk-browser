@@ -1,13 +1,14 @@
-import {readFile} from 'node:fs/promises';
-import {transform} from 'esbuild';
+import {fileURLToPath} from 'node:url';
+import {build} from 'esbuild';
 import {parseHTML} from 'linkedom';
 import * as React from 'react';
 import {flushSync} from 'react-dom';
 import {createRoot} from 'react-dom/client';
 
-const result=await transform(await readFile(new URL('../../src/ui/react/tabs/trusted-settings.tsx',import.meta.url),'utf8'),
-  {loader:'tsx',format:'esm',jsx:'transform'});
-export const settingsModuleURL='data:text/javascript;base64,'+Buffer.from(result.code.replace('"react"',JSON.stringify(import.meta.resolve('react')))).toString('base64');
+// Compile the real static component graph in memory, sharing the fixture's React.
+const result=await build({entryPoints:[fileURLToPath(new URL('../../src/ui/react/tabs/trusted-settings.tsx',import.meta.url))],
+  bundle:true,write:false,packages:'external',format:'esm',jsx:'transform'});
+export const settingsModuleURL='data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].text.replaceAll('"react"',JSON.stringify(import.meta.resolve('react')))).toString('base64');
 const components=await import(settingsModuleURL);
 const names={timeReview:'TimeReviewSettings',stayFocus:'StayFocusSettings',aiAccess:'AiAccessSettings'};
 const actionNames={'stay-focus-enable-native':'grant','stay-focus-disable':'stop','stay-focus-clear-open':'openClear',

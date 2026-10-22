@@ -1,0 +1,165 @@
+{
+  "recordedAt": "2026-10-22T05:40:43.443021+00:00",
+  "phase": "one bounded source-ownership migration, core operations first",
+  "typeOwnershipGate": {
+    "kind": "audited first-party trusted feature",
+    "businessOwners": [
+      "examples/sidebar-tools/stay-focus/trusted",
+      "examples/sidebar-tools/ai-vip-share/trusted"
+    ],
+    "execution": "fixed extension-owned React; exact reviewed blob only in existing ui/tool-shell.js",
+    "dynamicPackagePrivilege": "UNCHANGED_OPAQUE_SANDBOX",
+    "sharedInfrastructure": "existing SW/RunHost/SDK/Host/Authority/Installer/Scheduler unchanged"
+  },
+  "sourceBase": "ddec717f2da65af0858b6a0408d21762077a7ce9",
+  "sourceOverlaySha256": {
+    "src/ui/react/tabs/trusted-settings.tsx": "2e42867b21d2e2b9b20254f4ffac6d524be6a77057f629c36ff543b8c88bcace",
+    "src/ui/react/use-settings-effect.ts": "c767e51ffe89d3b61d049fa284bec3981753459beac58d86e46f8cc8577070e6",
+    "examples/sidebar-tools/stay-focus/trusted/react-controls.tsx": "f2b0d37691e75845398684af4530a331bf84b599b7f3f9888eb65458e2863852",
+    "examples/sidebar-tools/ai-vip-share/trusted/react-controls.tsx": "53b3dcc00aa896cc55dd8354b0824e9d8548add4a62a4d766f03afbec03106b9",
+    "scripts/bundle-provenance.mjs": "4cf4bf91e06de078eae25e956828341ddf3bbb6a8e16b6ccf9e9352d714b505f"
+  },
+  "candidate": {
+    "mode": "isolated static production, no watcher",
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/dynamic-app-r14-local/ui-controls-review-source/dist/production",
+    "attemptId": "cad395ca-ace2-4863-b037-dedbb6b19e19",
+    "packageHash": "ae70e497ca2538ee6f20b40880ae4c5a1658e6dc119e5265b8e48af6e54d7224",
+    "fileCount": 106,
+    "browser": "Chrome/156.0.8078.4",
+    "extensionId": "hnbkmnjiooaelbidjngcmeljmkhjfgpa",
+    "temporaryBrowserClosed": true
+  },
+  "packages": {
+    "stay-focus": {
+      "version": "1.0.10",
+      "fileSha256": "be06660714b761e484d6e9c8bf195c0bbd8232804c016b6febca4f5b90c27ac0",
+      "sameBytesAsOfficialCandidate": true,
+      "promotion": "NOT_REQUIRED_NO_PACKAGED_INPUT_CHANGED"
+    },
+    "ai-vip-share": {
+      "version": "1.4.1",
+      "fileSha256": "70cd5025eb63940cb678ffe47f4d2c580aeff6e2807e8dddfebef8544b3c2827",
+      "sameBytesAsOfficialCandidate": true,
+      "promotion": "NOT_REQUIRED_NO_PACKAGED_INPUT_CHANGED"
+    }
+  },
+  "checks": [
+    {
+      "command": "node --test tests/environment/trusted-settings-react-ownership.test.mjs tests/environment/sidebar-tools-view.test.mjs",
+      "passed": 15,
+      "evidence": "executor native subagent tool output; no standalone log saved"
+    },
+    {
+      "command": "node --test --test-name-pattern='R5\\.9 first start|R5\\.9 existing Chrome|R5\\.9 a disabled|R5\\.7 native React|R5\\.7 trusted quick-add|pending Focus permission|R5 trusted card|R5 conflict|R5\\.1 STOP|R37 trusted settings use projections|R37 React settings forwards|R37 Time permission reply|R37 AI STOP' tests/environment/stay-focus-r1.test.mjs tests/environment/stay-focus-boundary-r1.test.mjs tests/environment/ai-vip-share-r5-ui.test.mjs tests/environment/trusted-settings-react-r37.test.mjs",
+      "passed": 13,
+      "evidence": "executor native subagent tool output; no standalone log saved"
+    },
+    {
+      "command": "node --test tests/environment/trusted-app-controls-provenance.test.mjs",
+      "passed": 4,
+      "evidence": "artifacts/dynamic-app-r14-local/ui-controls-provenance.log"
+    }
+  ],
+  "baselineFailures": [
+    {
+      "name": "R37 trusted settings controllers have no legacy DOM renderer",
+      "classification": "pre-existing assertion overreach: addEventListener regex matches focus/visibilitychange refresh listeners",
+      "changed": false
+    },
+    {
+      "name": "R37 Focus permission starts synchronously, denial and disposal cannot enable",
+      "classification": "pre-existing fixture missing readStatus causes error phase before grant; expects one request but gets zero",
+      "changed": false
+    }
+  ],
+  "native": {
+    "status": "PASS_RECONCILED_DRIVER_IDLE_TIMEOUT",
+    "focus": [
+      "formal UI install",
+      "enable via genuine trusted click",
+      "current-site add/pause/resume",
+      "ordinary sandbox budget save",
+      "all Side Panels closed, natural Alarm and quota DNR redirect",
+      "UI reopened reads 0 minutes remaining and spent 1 minute",
+      "clear review cancellation preserves exact data",
+      "STOP clears owned DNR and Alarm, preserves sites/usage/idle permission",
+      "restore reuses permission and reapplies quota rule",
+      "tool disable clears owned DNR and Alarm"
+    ],
+    "quotaObservationTimeout": {
+      "rawStatus": "FAIL",
+      "nativeIdleSamples": 11,
+      "classification": "bounded driver observation expired while native idle paused accounting",
+      "reconciliation": "real system keyboard interaction resumed activity; read same persisted quota and natural DNR/navigation without replay or usage mutation",
+      "finalUsedMs": 70786
+    },
+    "aiVipShare": "current 1.4.1 sandbox SDK UI opens and explicitly reports service unconfigured; legacy aiAccess.control UI remains hidden",
+    "aiNativeProxyLeaseEnable": "NOT_TESTED_NO_REVIEWED_PRODUCTION_CONFIG",
+    "driverIssues": [
+      "initial service-worker lookup selected Chrome internal thunk.js; corrected to actual /sw.js before any install",
+      "first quota observation had 11 native idle samples and hit 150s observation deadline; same persisted usage naturally reached quota after real OS key input; no replay",
+      "reopened iframe required waiting for target creation; no state mutation retried",
+      "settings Back returns app before extension list; second Back used"
+    ]
+  },
+  "independentReview": {
+    "findings": [],
+    "scope": "three component bodies byte-identical; shared effect unchanged except export; no circular imports; nativeEvent forwarding and exact blob/output admission intact",
+    "source": "independent native subagent static review, no additional scoring"
+  },
+  "remaining": {
+    "G_DYNAMIC": "B2 LOCAL result retained; no new post-build-unknown-app claim for this UI candidate",
+    "G_DECOUPLING": "PARTIAL: private UI source moved; Focus advanced policies/reminders/block pages, AdBlock subscription/cosmetic/picker, AI legacy lease/STOP and cleanup still fixed trusted code",
+    "publicSiteBudgetEquivalence": "NOT_ESTABLISHED: schema covers one pool/basic sites/schedule, not Focus advanced semantics; no public API expansion in this slice",
+    "sixDimension95": "NOT_SCORED_FOR_NEW_CANDIDATE",
+    "CWS": "RELEASE_POLICY_NOT_VERIFIED",
+    "fullReleaseMatrix": "DEFERRED"
+  },
+  "rawReceipts": [
+    {
+      "path": "artifacts/dynamic-app-r14-local/ui-controls-review-inputs.json",
+      "sha256": "2b5323a86a3a96979c471411cef7199dcde8f97793e27342dfe7f6d9f36e3872"
+    },
+    {
+      "path": "artifacts/dynamic-app-r14-local/ui-controls-build/build-production.json",
+      "sha256": "ab1564f0375809d7b0b4e868f1c083c4f8988f4900de7ab866363246b54b5711"
+    },
+    {
+      "path": "artifacts/dynamic-app-r14-local/ui-controls-build.log",
+      "sha256": "fba9ac66478548f016a6027a1114738ef89263ae2ce49f70f82154361ac0b8ea"
+    },
+    {
+      "path": "artifacts/dynamic-app-r14-local/ui-controls-provenance.log",
+      "sha256": "ca0cc2ad1fb5e5b855583297ff0e1fdd9898560dc76865ef9d029deb725fa39f"
+    },
+    {
+      "path": "artifacts/dynamic-app-r14-local/ui-controls-native.json",
+      "sha256": "c26be03a3e876958d79138b9286e99696a0c69615311917006f31bd5553f0c9f"
+    },
+    {
+      "path": "artifacts/dynamic-app-r14-local/ui-controls-quota.json",
+      "sha256": "d07de278ca620a0f9dec493ac6e4970229fbd1ce0e62ac0d77e69cbfbc023e7c"
+    },
+    {
+      "path": "artifacts/dynamic-app-r14-local/ui-controls-quota.log",
+      "sha256": "173724ba901f15e2b30a334ea6f4db0a50f50a7d331452dbed154b914e18997b"
+    },
+    {
+      "path": "artifacts/dynamic-app-r14-local/ui-controls-active.png",
+      "sha256": "fae6f713e31c5eb43d1f99364dd35e4d2122b475f8a0e6d21e72adee9aead8af"
+    },
+    {
+      "path": "artifacts/dynamic-app-r14-local/ui-controls-ai.png",
+      "sha256": "228ecd765d0cd1ce6c64a5205ec00d1c26165ef0e80eda90e4fbeab114b2d1a2"
+    },
+    {
+      "path": "artifacts/dynamic-app-r14-local/focus-baseline-before.json",
+      "sha256": "22cd891b8a86aa3ff9324b22b8e79064875f120c1f46732df54e68320c2d6699"
+    },
+    {
+      "path": "artifacts/dynamic-app-r14-local/focus-baseline-quota.json",
+      "sha256": "6f198dd833941a187616fe329f1c2feba4487ed9303c3a5ecdbcdfd821f74b19"
+    }
+  ],
+  "resourceBoundary": "daily dist/development and other writers unchanged; B2 PID15311 and existing HTTP43111 preserved; temporary C1 CFT and its input loop closed normally"
+}

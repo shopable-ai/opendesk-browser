@@ -8,6 +8,8 @@
 
 > 2026-10-13。工具 ID `stay-focus`。本项目是 OpenDesk 原有 Side Panel「工具」选项卡中的**可选独立工具**，不是另一款 Chrome 扩展，也不是 Time Review 子模块。
 
+**2026-10-22 · 可信界面归属收敛：** 原 `src/ui/react/tabs/trusted-settings.tsx` 内的当前网站加入/暂停、运行状态、启动/停止与清空确认界面，已归还本项目 [`trusted/react-controls.tsx`](trusted/react-controls.tsx)。通用工作台只保留固定组件导出，共享 focus/scroll effect 仍由工作台提供。组件仍经精确源码锁静态编译，不从安装 JSON 执行可信代码；修改这份可信界面需要更新 Browser。本次没有改变 `src/` 沙箱界面或正式工具包字节，也不代表共享组、白名单、提醒与会话已迁至普通动态后台应用。当前候选与原生证据见 [R1.4 运行记录](../../../docs/framework/workstreams/dynamic-app-runtime-r14-local-20261022.md)。
+
 **源码身份（2026-10-14）：此目录是正式官方发行工具的 UI 源码，不是仅供演示的副本。** `official-tools/catalog.json` 精确登记本 project，统一 packer 将 `tool.config.json` 声明的 `src/index.html`、`src/style.css`、`src/main.js` 编入可安装 JSON；README 与后台代码不在工具包中。计时、限制、可信审批和生命周期适配的唯一业务源码位于本应用的 [`trusted/`](trusted/)；旧 `src/stay-focus/*.js` 已删除，测试与生产入口直接引用本目录业务源码。详见 [R2 源码提取记录](../../../docs/framework/workstreams/stay-focus-extraction-r2-20261018.md)。
 
 **R4.1 有界规则包源码已接线（原生验收未完成）**：从 1.0.2 起，工具 JSON 包允许携带经校验的 `backgroundPolicy: {kind:'site-budget.v1',suggestions:[...]}`。可信后台从已安装包解析网站建议；用户在 UI 点击加入、经可信 Host 确认并重新启用后，才能通过既有 `focus.site.put` / DNR 规则实现新站点额度。同一 OpenDesk Browser 构建可以安装 1.0.1 与 1.0.2 两个版本的工具 JSON 完成对照。版本更换使旧 `authorizedHash` 失效，旧 DNR 先清理，不自动拦截新增网站；原网站额度与使用记录保留。该字段**不是可执行后台 JS**。目前仍有初始默认清单/额度、时段等旧固定模型；将所有业务策略变成应用包可独立升级属于后续 R4.2/R4.3，不可宣称 R4 整体完成。完整需求见 [Stay Focus R4](REQUIREMENTS.zh-CN.md)。
@@ -16,7 +18,7 @@
 
 - **正式源码已改为 React**：`src/main.js` 当前使用固定 `OpenDeskPageReact` 的单 Root，复用 `OpenDeskSidebarUI` 公开的 Button/IconButton/Card/CardContent/Switch；`tool.config.json` 版本 1.0.6，显式 `uiRuntime: "opendesk.react-ui.v1"`。此阶段使用直接可打包的 Classic IIFE React 源码，而**非已经验证过的 Vite/JSX dist 输出**。不应伪称已完成 Vite 编译或已有 Build Ready 回执。
 - **用户界面**：每日额度只保留输入与修改后的保存；当前网页点击加入前核对两次真实 URL，并只从可信目录归一化已知子域名；网站管理采用编辑和更多 IconButton，更多菜单提供暂停/恢复/移除；工作时段、白名单、共享组放入默认折叠的「更多设置」；后台仍为唯一计时与 DNR 真相来源。
-- **安全边界**：原 `trusted/tool-host.js` 对 `focus.site.put` 仍要求可信 Side Panel 中再点击一次确认，因此当前是“**工具内一个加入按钮 + Host 受信确认**”，不是完全单次点击写入。不能让沙箱按钮伪装成受信真实点击。用户未原生授权时保存配置不等于真正生效。
+- **安全边界（现行）**：安装批准的 `focus.control` 允许普通网站、额度与时段编辑直接提交，Host 仍逐次核对安装包摘要与 epoch，不重复弹确认。Chrome 原生权限、启动/停止和清空继续由可信 Side Panel 真实点击发起；沙箱不能伪造可信事件。保存配置不等于原生限制已经开启。
 - **可交互离线预览**：`preview/index.html` 使用同源 `src/` HTML/CSS/JS 和仓库锁定的 React 19.2.0；`preview/ui-adapter.js` 是只在预览里使用的 Shared UI 兼容层（Switch 不是正式 React Aria）。预览支持业务请求 Mock，不能据此声称正式共享组件/Chrome/计时已经通过。重新生成/同源核对使用现有 `preview/build.mjs`；不添加第二个正式工具 Runtime。
 - **证据**：模拟 React 组件操作可通过 `tests/helpers/stay-focus-react-fixture.mjs` 和 `stay-focus-r1.test.mjs` 测试，运行结果必须附原始输出。此 GitHub 环境未取得最新提交绑定的 Node CI、正式包晋升、Mac Chrome 安装和原生 DNR 实测记录，以上阶段均为 `NOT_TESTED`，不宣称 UX 95 分通过。
 
@@ -34,7 +36,7 @@
 
 
 1. 构建或使用包含此发行条目的 OpenDesk Chrome 扩展。在 Side Panel →「扩展」→「发现 / 官方工具」，选择 **Stay Focus · 保持专注**，审阅能力和安装来源，安装后点击「打开」。
-2. React 首屏显示共享每日额度、当前网页和网站列表。切换到普通 HTTP(S) 网页后，在「当前网页」旁点击「加入」；仅使用 Host 返回的 URL 与可信目录识别域名，之后由可信 Host 进行本次规则修改确认。编辑及更多操作为 IconButton；工作时段、白名单和其他共享组默认收起。
+2. React 首屏显示共享每日额度、当前网页和网站列表。切换到普通 HTTP(S) 网页后，在「当前网页」旁点击「加入」；仅使用 Host 返回的 URL 与可信目录识别域名，后台按原安装授权校验并保存，不重复弹确认。编辑及更多操作为 IconButton；工作时段、白名单和其他共享组默认收起。
 3. 点击外层工具详情「设置」→ **授权并开启网站限制**。浏览器必须对可选 `idle` 权限作出明确授权；`declarativeNetRequestWithHostAccess` 是扩展 Manifest 的必需权限；之前安装的 Time Review 授权不能代替这里的申请。安装本身**不自动启动限制**。
 4. 在真实浏览器的前台正常使用被限制的网站。只有聚焦 Chrome 的有效标签页且用户不是 idle/locked 时才按检查点结算，多个标签页同一刻只用一份额度。退出 Side Panel 不影响 SW + Alarm 的后台策略。
 5. 当当天限额耗尽，Chrome 的 DNR 动态规则将符合精确域名的主框架导航重定向到扩展内部说明页。已经打开的相关标签页由可信 Host 尽力迁移到说明页；主页不读取或回显原 URL 查询参数。工作时段、专注模式高于额度规则。
@@ -48,7 +50,7 @@
 
 | 层 | 入口 | 作用 |
 |---|---|---|
-| 安装包 | `tool.config.json`, `src/index.html`, `src/style.css`, `src/main.js` | 用户可见的工具沙箱 UI。所有策略变更通过可信 Side Panel 二次确认 |
+| 安装包 | `tool.config.json`, `src/index.html`, `src/style.css`, `src/main.js` | 用户可见的工具沙箱 UI。普通策略编辑走安装授权；原生启停/清空走可信点击 |
 | Side Panel | `src/ui/sidebar-tools.js`, `examples/sidebar-tools/stay-focus/trusted/host-controls.js` | 原生权限申请、确认、工具身份和撤权 epoch |
 | Worker | `examples/sidebar-tools/stay-focus/trusted/service.js` | 活动观察、持久策略、Chrome alarms、真正的 DNR 写入与打开标签页处理 |
 | 规则 | `examples/sidebar-tools/stay-focus/trusted/model.js`, `examples/sidebar-tools/stay-focus/trusted/policy.js`, `examples/sidebar-tools/stay-focus/trusted/rule-host.js` | 安全域名、每日额度、优先级、DNR ID 730000–730199 |

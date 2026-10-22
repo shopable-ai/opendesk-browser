@@ -1,5 +1,7 @@
 # AI VIP Share · 独立 Sidebar Tool
 
+**2026-10-22 · 可信界面归属：** 旧 `aiAccess.control` 可信适配区的状态、代理操作按钮、错误与本地测试说明已从通用 React 设置页归还 [`trusted/react-controls.tsx`](trusted/react-controls.tsx)。原固定 Host、lease/STOP、`browser.proxy.managed.*` 与敏感数据审批保持原合同；此文件仍经精确来源锁编入 Browser，不能由安装 JSON 替换。当前 1.4.1 包已使用沙箱 SDK 界面，旧可信区保持隐藏。本次没有修改正式工具包字节，也没有补齐生产服务配置或完成动态后台迁移。候选及验证边界见 [R1.4 记录](../../../docs/framework/workstreams/dynamic-app-runtime-r14-local-20261022.md)。
+
 ## 当前包同步 · 1.4.1
 
 本次用原打包器同步当前共享设计 CSS，并将持久回执版本更新为 1.4.1、追加恢复兼容版本，保留全部旧版本记录。工具身份、6 项能力和业务流程保持不变；JS 仅更新上述两处发布元数据。

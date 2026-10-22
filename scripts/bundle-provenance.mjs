@@ -151,6 +151,7 @@ function reviewedCompiledPromptShortcuts(target,path,root){
 // of src/ must not turn examples/ into an executable-code wildcard.
 // These blob pins intentionally require review when privileged code changes.
 const compiledStayFocusInputs=Object.freeze({
+  'examples/sidebar-tools/stay-focus/trusted/react-controls.tsx':'2c304e19e6a8f9b74d5fc2de19554c21b8ab3932',
   'examples/sidebar-tools/stay-focus/trusted/blocked.js':'2c2147226ccd3d31eaa0b605a15ec6846ce0f451',
   'examples/sidebar-tools/stay-focus/trusted/catalog.js':'0b46b62e097cc84fa29fd942c7d1480a9f44d0f8',
   'examples/sidebar-tools/stay-focus/trusted/host-controls.js':'65346648494b88fbf434a5a951769edba445c32e',
@@ -169,6 +170,8 @@ const compiledStayFocusInputs=Object.freeze({
 const stayFocusFixedTargets=preapprovedFixedTargets;
 function reviewedCompiledStayFocus(target,path,root){
   if(!stayFocusFixedTargets.has(target)||!Object.hasOwn(compiledStayFocusInputs,path))return null;
+  // App-owned presentation is fixed Side Panel code, never a SW or sandbox input.
+  if(path.endsWith('/react-controls.tsx')&&target!=='ui/tool-shell.js')return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)
     throw Error('Trusted Stay Focus source must not be a symlink: '+path);
@@ -186,6 +189,7 @@ function reviewedCompiledStayFocus(target,path,root){
 // symlinks and arbitrary examples/ files remain explicitly prohibited.
 // Updating application source requires a new source review and pin revision.
 const compiledAppOwnedBackgroundInputs=Object.freeze({
+  'examples/sidebar-tools/ai-vip-share/trusted/react-controls.tsx':'7f951bcaf8bc18450d03e450258a8024c3e71906',
   'examples/sidebar-tools/ai-vip-share/trusted/host-controls.js':'d00a67b654d109ac854fbd0691f263daabf6f607',
   'examples/sidebar-tools/ai-vip-share/trusted/lifecycle.js':'340de54ab4aabec78b3e0c05145a7a752b74e506',
   'examples/sidebar-tools/ai-vip-share/trusted/policy.js':'949ae514645f5691244f185b07e835e7e132cb5d',
@@ -209,6 +213,7 @@ function reviewedCompiledAppOwnedBackground(target,path,root){
   if(!preapprovedFixedTargets.has(target)||
      target.startsWith('scripting/')||target.startsWith('libs/')||
      !Object.hasOwn(compiledAppOwnedBackgroundInputs,path))return null;
+  if(path.endsWith('/react-controls.tsx')&&target!=='ui/tool-shell.js')return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)throw Error('Trusted app-owned source must not be a symlink: '+path);
   const bytes=readFileSync(file);

@@ -1,17 +1,9 @@
 import * as React from 'react';
 
-// Only focus/scroll effects touch real nodes. All visible state is rendered here.
-function useSettingsEffect(model){
-  const ref=React.useRef(null);
-  React.useLayoutEffect(()=>{
-    if(!model?.visible||!model.effect)return;
-    const {target,kind}=model.effect;
-    const node=ref.current?.querySelector('[id="'+target+'"]');
-    if(kind==='focus')node?.focus({preventScroll:true});
-    else node?.scrollIntoView?.({block:'nearest'});
-  },[model?.effect]);
-  return ref;
-}
+import {useSettingsEffect} from '../use-settings-effect.ts';
+
+export {StayFocusQuickAdd,StayFocusSettings} from '../../../../examples/sidebar-tools/stay-focus/trusted/react-controls.tsx';
+export {AiAccessSettings} from '../../../../examples/sidebar-tools/ai-vip-share/trusted/react-controls.tsx';
 
 export function TimeReviewSettings({model,actions}){
   const ref=useSettingsEffect(model);
@@ -107,89 +99,4 @@ export function TimeReviewSettings({model,actions}){
 </section>
 
 </section>;
-}
-
-// This button is in the fixed extension-owned React tree above the sandbox.
-// It is intentionally not an iframe approval or a second confirmation dialog.
-export function StayFocusQuickAdd({model,actions}){
-  if(!model?.visible||!model.canGrant||
-    !['active','unverified','stopped'].includes(model.phase))return null;
-  const action=model.currentAction;
-  const canChange=action==='add'||action==='paused';
-  return <section id="stay-focus-current-trusted" className="od-surface od-surface--padded"
-    aria-label="当前网站一键管理"
-    style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,flexWrap:'wrap'}}>
-    <span className="od-note" style={{minWidth:0,overflowWrap:'anywhere'}}>
-      当前网页 <strong>{model.currentPageHost||'当前网页不可管理'}</strong>
-    </span>
-    {action==='managed'
-      ?<span style={{display:'flex',alignItems:'center',gap:8}}>
-        <span className="od-note" role="status">✓ 已管理</span>
-        <button type="button" id="stay-focus-current-pause" className="od-button od-button--secondary"
-          disabled={model.busy} onClick={event=>actions?.quickAdd(event.nativeEvent)}>暂停</button>
-      </span>
-      :action==='error'
-      ?<button type="button" id="stay-focus-current-retry" className="od-button od-button--secondary"
-        disabled={model.busy} onClick={()=>actions?.refreshQuick()}>重试读取</button>
-      :<button type="button" id="stay-focus-current-add" className="od-button"
-        disabled={model.busy||!canChange}
-        onClick={event=>actions?.quickAdd(event.nativeEvent)}>
-        {action==='paused'?'恢复':action==='loading'?'正在核对':'加入'}
-      </button>}
-  </section>;
-}
-
-export function StayFocusSettings({model,actions}){
-  const ref=useSettingsEffect(model);
-  if(!model)return null;
-  const phase=model.phase||'checking';
-  const needsStart=['first','reauthorize','needs-permission','stopped'].includes(phase);
-  const running=phase==='active'||phase==='unverified';
-  return <section id="stay-focus-trusted-settings" className="time-review-trusted-actions"
-    hidden={!model.visible} ref={ref} aria-label="Stay Focus 可信运行状态">
-    <p id="stay-focus-native-status" role="status" aria-live="polite">{model.statusText||'正在核对 Chrome 状态…'}</p>
-    {needsStart&&<p className="od-note">{model.intro}</p>}
-    {needsStart&&<button type="button" id="stay-focus-enable-native" className="od-button"
-      disabled={model.busy||!model.canGrant} aria-busy={model.busy}
-      onClick={event=>actions?.grant(event.nativeEvent)}>
-      {model.busy?'正在开启…':phase==='stopped'?'重新开启 Stay Focus':
-        phase==='reauthorize'?'重新开启 Stay Focus':'开启 Stay Focus'}
-    </button>}
-    {(phase==='error'||phase==='unverified')&&<button type="button"
-      id="stay-focus-status-retry" className="od-button od-button--secondary"
-      disabled={model.busy} onClick={()=>actions?.refreshQuick()}>重新核对状态</button>}
-    {model.canGrant&&<details id="stay-focus-more-actions">
-      <summary>更多操作</summary>
-      {running&&<button type="button" id="stay-focus-disable"
-        className="od-button od-button--secondary" disabled={model.busy}
-        onClick={event=>actions?.stop(event.nativeEvent)}>停止限制</button>}
-      <p className="od-note">停止后保留网站、额度与 Chrome 权限；重新开启不需要重复授权。</p>
-      <button type="button" id="stay-focus-clear-open" className="od-button od-button--secondary"
-        disabled={model.busy} onClick={event=>actions?.openClear(event.nativeEvent)}>
-        清空所有设置与记录…
-      </button>
-      <section id="stay-focus-clear-confirm" className="time-review-inline-clear-review"
-        hidden={!model.clearReview}>
-        <p>确认删除 Stay Focus 网站清单、额度与使用记录？此操作不影响 Time Review。</p>
-        <button type="button" id="stay-focus-clear-approve"
-          className="od-button od-button--secondary" disabled={model.busy}
-          onClick={event=>actions?.approveClear(event.nativeEvent)}>确认清空</button>
-        <button type="button" id="stay-focus-clear-cancel"
-          className="od-button od-button--secondary" disabled={model.busy}
-          onClick={event=>actions?.cancelClear(event.nativeEvent)}>取消</button>
-      </section>
-    </details>}
-  </section>;
-}
-
-export function AiAccessSettings({model,actions}){
-  if(!model)return null;
-  return <section id="ai-access-trusted-controls" className="od-surface od-surface--padded" aria-label="AI 网站访问" hidden={!model.visible}>
-    <div className="ai-access-proxy-head"><h2 className="od-title">AI 网站访问</h2><span className="od-note" role="status" aria-live="polite">{model.badge}</span></div>
-    <p id="ai-access-status" className="od-note">{model.status}</p>
-    <button type="button" id="ai-access-toggle" className="od-button" disabled={model.actionDisabled} aria-busy={model.busy} aria-pressed={model.pressed} onClick={event=>actions?.toggle(event.nativeEvent)}>{model.actionLabel}</button>
-    <p id="ai-access-error" className="od-field-error" role="alert" hidden={!model.error}>{model.error}</p>
-    <p className="od-note">仅控制本工具的 AI 网站代理，不修改系统 VPN 或其他扩展；会员有效期与代理启停互不影响。</p>
-    {model.localTestEnabled&&<><p className="od-note">本地开发测试 · 模拟租约 127.0.0.1:7898 / HTTP 代理 127.0.0.1:7897；不代表生产会员授权。</p><button type="button" id="ai-access-local-activate" className="od-button" disabled={model.activateDisabled} onClick={event=>actions?.activate(event.nativeEvent)}>激活本地测试服务</button></>}
-  </section>;
 }
