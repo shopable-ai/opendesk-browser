@@ -1235,11 +1235,17 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(!event?.isTrusted||!selectedBundle||workflowAgent||
       busy||autoExecutionPending||host.executionPending||host.currentRun)
       return {ok:false,skipped:true};
-    const bundle=selectedBundle;
-    let params,initial,permission;
+    const bundle=selectedBundle,dynamic=bundle.format===WORKFLOW_DYNAMIC_BUNDLE_FORMAT;
+    let params,initial,permission,runtimeGoal;
     try {
       params=readParams();
-      assertLegacyReplayParameterScope(bundle,params);
+      if(dynamic){
+        const intent=dynamicReplayIntent(bundle,params);
+        params=intent.values;runtimeGoal=intent.goal;
+      }else{
+        assertLegacyReplayParameterScope(bundle,params);
+        runtimeGoal=bundle.goal;
+      }
       initial=currentPageTarget.capture();
       if(initial.origin!==bundle.segments[0].workflow.siteOrigin||
         initial.url!==bundle.segments[0].entryUrl)
@@ -1250,9 +1256,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       permission=api.permissions.request({origins:scopes});
     }catch(error){status(format(error),true);return {ok:false,error};}
     const epoch=++planningGeneration,abort=new AbortController();
-    const agent={epoch,controller:abort,selected:'replay',goal:bundle.goal,
+    const agent={epoch,controller:abort,selected:'replay',goal:runtimeGoal,
       initialTarget:structuredClone(initial),startedCount:0,
-      guard:createWorkflowAgentLoopGuard({goal:bundle.goal,signal:abort.signal}),
+      guard:createWorkflowAgentLoopGuard({goal:runtimeGoal,signal:abort.signal}),
       expectedNavigation:null,stopping:false};
     workflowAgent=agent;
     agent.deadline=setTimeout(()=>void stopWorkflowAgent('E_AGENT_LIMIT').catch(()=>{}),480000);
@@ -1262,18 +1268,23 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       if(!await permission)throw err('E_PERMISSION','完整工作流所需网站权限未批准，尚未执行');
       agent.guard.check();
       await verifyWorkflowBundle(bundle);
-      let previousNavigationDocument=null;
+      let previousNavigationDocument=null,verifiedEntry=null;
       for(let i=0;i<bundle.segments.length;i++){
         if(workflowAgent!==agent||agent.stopping||selectedBundle!==bundle)
           throw err('E_CANCELLED','复跑已经停止或历史版本已改变');
         const segment=bundle.segments[i];
         const target=await currentPageTarget.refresh();
         agent.guard.check();
+        const fromPrevious=dynamic&&i>0;
+        const expected=fromPrevious?verifiedEntry:null;
+        const targetFields=['windowId','tabId','frameId','documentId','url','origin'];
         if(target.status!=='available'||target.frameId!==0||
           target.windowId!==initial.windowId||target.tabId!==initial.tabId||
-          target.origin!==segment.workflow.siteOrigin||target.url!==segment.entryUrl||
+          target.origin!==segment.workflow.siteOrigin||
+          (fromPrevious?(!expected||targetFields.some(key=>target[key]!==expected[key])):
+            target.url!==segment.entryUrl)||
           previousNavigationDocument===target.documentId)
-          throw err('E_DOCUMENT_STALE','第 '+(i+1)+' 段入口或导航 Document 不符，已停止');
+          throw err('E_DOCUMENT_STALE','第 '+(i+1)+' 段入口不是上一段独立核验的真实 Document，已停止');
         const scope=permissionPattern(target.url);
         if(!await api.permissions.contains({origins:[scope]}))
           throw err('E_PERMISSION','第 '+(i+1)+' 段网站权限已撤销，未执行');
@@ -1281,22 +1292,35 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         agent.guard.check();
         phase='planning';busy=true;updateButtons();
         const before=await observation.observe(target,{signal:abort.signal,
-          requestId:'replay-observe-'+crypto.randomUUID(),request:bundle.goal});
+          requestId:'replay-observe-'+crypto.randomUUID(),request:runtimeGoal});
         await currentPageTarget.revalidate(target);
         agent.guard.check();
-        agent.guard.observed({target,receipt:before,remaining:bundle.goal});
+        agent.guard.observed({target,receipt:before,remaining:runtimeGoal});
         const stripped={...segment.workflow,steps:segment.workflow.steps.map(step=>{
-          const clean={...step};delete clean.linkGuard;return clean;
+          const clean={...step};delete clean.linkGuard;
+          // Admission alone receives the newly requested product label, never
+          // the persisted source. The frozen script uses param + DOM binding.
+          if(clean.op==='click'&&clean.param){
+            clean.roleName=String(params[clean.param]||'');delete clean.param;
+          }
+          return clean;
         })};
         const segmentParams=Object.fromEntries(
           Object.keys(segment.workflow.paramsSchema.properties).filter(key=>
             Object.hasOwn(params,key)).map(key=>[key,params[key]]));
         const admitted=prepareDirectExecution({
-          request:bundle.goal,workflow:stripped,target,observation:before,
+          request:runtimeGoal,workflow:stripped,target,observation:before,
           verifiedFacts:agent.guard.snapshot().facts,paramsOverride:segmentParams,
           allowBoundParameters:true});
-        const frozenLink=segment.workflow.steps.find(step=>step.linkGuard)?.linkGuard||null;
-        if(JSON.stringify(frozenLink)!==JSON.stringify(admitted.linkGuard||null))
+        const clickStep=segment.workflow.steps.find(step=>step.linkGuard)||null;
+        const frozenLink=clickStep?.linkGuard||null;
+        if(dynamic&&frozenLink){
+          const next=admitted.linkGuard,productName=params[bundle.bindingPlan.productParam];
+          if(!next||next.name!==productName||next.origin!==bundle.bindingPlan.allowedOrigin||
+            next.origin!==frozenLink.origin||next.sourceUrl!==target.url||
+            !await api.permissions.contains({origins:[permissionPattern(next.url)]}))
+            throw err('E_WORKFLOW_LINK','新商品链接未被当前 DOM 唯一验证或目标授权不一致');
+        }else if(JSON.stringify(frozenLink)!==JSON.stringify(admitted.linkGuard||null))
           throw err('E_WORKFLOW_LINK','目标链接与冻结时不一致，AI 关闭时不能自行选择新链接');
         const freeze=await compileWorkflow(segment.workflow,{
           verifyFill:segment.verificationMode==='fill-readback'});
@@ -1304,6 +1328,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           throw err('E_WORKFLOW_HASH','第 '+(i+1)+' 段 JavaScript 内容已变化');
         const ticket=agent.guard.claim({workflow:segment.workflow,target,
           observation:before,linkGuard:admitted.linkGuard,params:segmentParams});
+        // Private, ephemeral values come ONLY from this fresh RunHost DOM
+        // receipt. They are not saved, exposed as editable parameters or AI.
+        const boundParams=clickStep?.param&&admitted.linkGuard?
+          {...segmentParams,__odLinks:{[clickStep.stepId]:{
+            href:admitted.linkGuard.href,name:admitted.linkGuard.name,
+            origin:admitted.linkGuard.origin,sourceUrl:admitted.linkGuard.sourceUrl}}}:
+          segmentParams;
         if(admitted.linkGuard){
           agent.expectedNavigation=admitted.linkGuard;
           previousNavigationDocument=target.documentId;
@@ -1312,8 +1343,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         status('AI 已关闭：正在执行完整工作流第 '+(i+1)+' / '+bundle.segments.length+' 段…');
         updateButtons();
         const reply=await run(null,{
-          freeze,captured:structuredClone(target),params:segmentParams,
-          permission:Promise.resolve(true),signal:abort.signal,
+          freeze,captured:structuredClone(target),params:boundParams,
+          permission:Promise.resolve(true),signal:abort.signal,dynamicReplay:dynamic,
           hasReadback:admitted.hasReadback,
           hasUnprovenClick:admitted.hasUnprovenClick,
           beforeObservation:before,effectExpectation:admitted.effectExpectation,
@@ -1327,8 +1358,16 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           }
         });
         if(workflowAgent!==agent||agent.stopping)return {ok:false,stopped:true};
-        if(!verifyReplayBusinessEffect(segment.evidence,reply))
+        const expectedEvidence=dynamic&&segment.evidence.kind==='product-page'?
+          {...segment.evidence,name:params[bundle.bindingPlan.productParam]}:
+          segment.evidence;
+        if(!verifyReplayBusinessEffect(expectedEvidence,reply))
           throw err('E_WORKFLOW_EVIDENCE','第 '+(i+1)+' 段业务效果未独立核验，停止且绝不重复操作');
+        if(dynamic&&i<bundle.segments.length-1){
+          if(!reply.effectTarget||!['search-results','search-inline'].includes(reply.effect?.kind))
+            throw err('E_WORKFLOW_EVIDENCE','未获得搜索后独立核验的网页入口，拒绝猜测导航');
+          verifiedEntry=structuredClone(reply.effectTarget);
+        }
         const verdict=agent.guard.verified({claim:ticket,reply});
         if(!['CONTINUE','COMPLETED'].includes(verdict.state))
           throw err('E_WORKFLOW_EVIDENCE',verdict.reason);
