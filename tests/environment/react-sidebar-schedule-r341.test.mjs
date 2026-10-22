@@ -15,8 +15,10 @@ const read=path=>readFile(path,'utf8');
 const require=createRequire(import.meta.url);
 const compiled=await build({stdin:{contents:"export {MyTasksPage} from './src/ui/react/tabs/my-page.tsx'; export {SchedulePlanRows} from './src/ui/react/tabs/schedule.tsx';",resolveDir:process.cwd()},
   bundle:true,write:false,format:'esm',platform:'node',jsx:'transform',
+  banner:{js:'import {createRequire as fixtureRequire} from "node:module"; const require=fixtureRequire('+JSON.stringify(import.meta.url)+');'},
   plugins:[{name:'test-react-instance',setup(builder){
-    builder.onResolve({filter:/^react(?:$|\/)/},({path})=>({path:pathToFileURL(require.resolve(path)).href,external:true}));
+    builder.onResolve({filter:/^react(?:$|\/)/},({path,kind})=>({
+      path:kind==='require-call'?require.resolve(path):pathToFileURL(require.resolve(path)).href,external:true}));
   }}]});
 const {MyTasksPage,SchedulePlanRows}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
 const plan={scheduleId:'plan-1',title:'<img src=x onerror=alert(1)>',triggerKind:'daily',

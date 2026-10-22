@@ -34,6 +34,9 @@ function mockElement(tag='div'){
       parent.children=parent.children.filter(child=>child!==node);},
     focus(){
       node.focused=true;
+      let root=node;
+      while(root.parentNode||root.host)root=root.parentNode||root.host;
+      if(root.ownerDocument){root.ownerDocument.activeElement=node;return;}
       for(let parent=node.parentNode;parent;parent=parent.parentNode){
         if(parent.tagName==='shadow'){parent.activeElement=node;break;}
       }
@@ -43,7 +46,8 @@ function mockElement(tag='div'){
     closest(){return null;},
     querySelectorAll(){return [];},
     contains(other){return node===other||node.children.some(child=>child.contains?.(other));},
-    attachShadow(){node.shadow=mockElement('shadow');return node.shadow;},
+    attachShadow(){node.shadow=mockElement('shadow');node.shadow.host=node;
+      node.shadow.activeElement=null;return node.shadow;},
     getBoundingClientRect(){return {left:260,top:80,width:900,height:640};}
   };
   return node;
@@ -120,9 +124,17 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
   doc.querySelectorAll=selector=>{
     const node=doc.querySelector(selector);return node?[node]:[];
   };
-  // The fixture's focus must have the same activeElement contract as DOM focus.
-  const nativeEditorFocus=editor.focus.bind(editor);
-  editor.focus=()=>{nativeEditorFocus();doc.activeElement=editor;};
+  // Document focus retargets shadow descendants to their host. Moving to another
+  // root clears the old ShadowRoot.activeElement, including explicit focus mocks.
+  let activeElement;
+  Object.defineProperty(doc,'activeElement',{get:()=>activeElement,set(target){
+    if(activeElement?.shadow)activeElement.shadow.activeElement=null;
+    activeElement=target;
+    for(let parent=target?.parentNode;parent;parent=parent.parentNode){
+      if(parent.tagName==='shadow'){parent.activeElement=target;activeElement=parent.host;}
+    }
+  }});
+  for(const node of [root,body,main,editor])node.ownerDocument=doc;
   const api={runtime:{id:'test-extension',getURL:(path='')=> 'chrome-extension://test-extension/'+path,
     getManifest:()=>({background:{service_worker:'background.js'}}),
     onMessage:{addListener:fn=>runtimeMessages.add(fn),removeListener:fn=>runtimeMessages.delete(fn)}},storage:{
@@ -1048,7 +1060,10 @@ test('R1.8 current insertion failure copies the complete prompt without focusing
   const f=await readyPage();
   try{
     f.doc.execCommand=()=>false;
-    f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
+    const button=f.openPrompts()[0],shadow=f.host().shadow;
+    assert.equal(shadow.activeElement,f.rail().children[0],'opening the launcher focuses its expanded entry');
+    assert.equal(f.doc.activeElement,f.host(),'document focus retargets to the shadow host');
+    button.emit('click',{isTrusted:true});await settle();
     const feedback=f.panel('feedback');
     assert.deepEqual(f.copied,[f.row.body]);
     assert.equal(feedback.hidden,false);
@@ -1058,7 +1073,8 @@ test('R1.8 current insertion failure copies the complete prompt without focusing
     assert.equal(f.panel('announcer').getAttribute('role'),'status');
     assert.equal(f.panel('announcer').getAttribute('aria-live'),'polite');
     assert.equal(feedback.focused,undefined);
-    assert.equal(f.host().shadow.activeElement,undefined,'copy feedback must not steal editor focus');
+    assert.equal(f.doc.activeElement,f.editor,'copy feedback leaves the editor focused');
+    assert.equal(shadow.activeElement,null,'neither feedback nor its dismiss button takes shadow focus');
   }finally{f.controller.dispose();}
 });
 
