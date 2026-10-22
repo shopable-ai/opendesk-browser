@@ -809,6 +809,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
             lastPreflight.code+'）；只纠正该错误，不能增加未经要求的操作。';
           let proposed;
           try{
+            if(++agent.modelDecisions>8)throw err('E_AGENT_LIMIT','已达到八次 AI 决策上限，停止重新规划');
             proposed=(await workflowProviders.generateWorkflow({...planArgs,request:prompt})).proposal;
             planningCurrent(agent.epoch,serial,source);
             const admission=prepareDirectExecution({
@@ -1306,7 +1307,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     
     const epoch=++planningGeneration,abort=new AbortController();planningAbort=abort;planningTarget=captured;planningObservation=null;
     const agent={epoch,controller:abort,selected:frozen.selected,goal:frozen.request,initialTarget:structuredClone(captured),
-      settings:{endpoint:frozen.endpoint,apiKey:frozen.apiKey,model:frozen.model},
+      settings:{endpoint:frozen.endpoint,apiKey:frozen.apiKey,model:frozen.model},modelDecisions:0,
       guard:createWorkflowAgentLoopGuard({goal:frozen.request,signal:abort.signal}),
       expectedNavigation:null,stopping:false};
     workflowAgent=agent;
@@ -1389,6 +1390,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           frozen.request.slice(0,3600)+'\n上一提议没有通过执行前检查（'+preflightError.code+
           '）。只修正步骤或定位，不得增加动作或扩大目标。';
         try{
+          if(++agent.modelDecisions>8)throw err('E_AGENT_LIMIT','已达到八次 AI 决策上限，停止重新规划');
           planned=await workflowProviders.generateWorkflow({
             source:frozen.selected,request:nextRequest,workflow:frozen.workflow,
             target:exactTarget,observationReceipt:workflowObservationForModel(planningObservation),signal:abort.signal,
