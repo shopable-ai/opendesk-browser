@@ -70,3 +70,12 @@ test('canonical packer emits the configured React release from current source',a
   assert.doesNotMatch(output.js,/secret_preview_never_real|sess_demo_only_C18/);
   assert.ok(bytes.length>1000);
 });
+
+test('checked-in official React package matches the canonical source-built candidate',async()=>{
+  const official=JSON.parse((await get('cookie-editor.opendesk-tool.json')).toString('utf8'));
+  const candidatePkg=JSON.parse((await readFile(candidate)).toString('utf8'));
+  for(const key of ['id','version','uiRuntime','html','css','js']){
+    assert.equal(candidatePkg[key],official[key],
+      'Official Cookie Editor release differs from source-built candidate: '+key);
+  }
+});
