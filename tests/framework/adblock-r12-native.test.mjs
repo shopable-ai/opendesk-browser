@@ -1201,13 +1201,27 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   // The host toolbar Settings message navigates the installed React product,
   // not a detached, retired native AdBlock screen.
   await click(client,sid,'#sidebar-tool-settings-open');
-  await until(()=>evaluate(client,react,
-    'document.querySelector(".adblock-app")?.textContent.includes("设置说明")'),
-    'trusted toolbar opens installed React settings');
-  await clickSandbox(client,sid,react,'button[aria-label="返回广告拦截概览"]');
-  await until(()=>evaluate(client,react,
-    'document.querySelector(".adblock-app")?.textContent.includes("全局保护")'),
-    'React settings return to real overview');
+  // In shared-navigation mode React does not render its retired inner
+  // “设置说明” header or inner Back button. Verify the actual settings
+  // content AND Host-owned title after the trusted toolbar gesture.
+  await until(async()=>{
+    const [title,settings]=await Promise.all([
+      evaluate(client,sid,'document.getElementById("sidebar-tool-title")?.textContent.trim()'),
+      evaluate(client,react,'(()=>{const app=document.querySelector(".adblock-app");'+
+        'return !!app&&app.textContent.includes("过滤范围")&&'+
+        '[...app.querySelectorAll("button")].some(b=>b.textContent.trim()==="管理网站例外");})()')
+    ]);
+    return title==='广告拦截设置'&&settings;
+  },'trusted toolbar opens installed React settings');
+  // Exercise the only user-visible Back arrow in the real Side Panel.
+  await click(client,sid,'#sidebar-tool-back');
+  await until(async()=>{
+    const [title,overview]=await Promise.all([
+      evaluate(client,sid,'document.getElementById("sidebar-tool-title")?.textContent.trim()'),
+      evaluate(client,react,'document.querySelector(".adblock-app")?.textContent.includes("全局保护")')
+    ]);
+    return title==='广告拦截'&&overview;
+  },'trusted Host Back returns installed React overview');
   note('react-installed-settings-navigation',{opened:true,returned:true});
 
   const globalLabel='全局广告拦截';
