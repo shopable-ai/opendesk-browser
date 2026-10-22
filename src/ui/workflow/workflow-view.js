@@ -551,12 +551,26 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           let effect=null;
           if(lastRun==='success'&&prepared.effectExpectation&&!prepared.signal?.aborted) {
             try {
-              const resultTarget=currentPageTarget.capture();
-              if(resultTarget.origin===captured.origin&&resultTarget.windowId===captured.windowId&&
-                resultTarget.tabId===captured.tabId&&resultTarget.frameId===0) {
-                // A new read-only RunHost execution, bound to a fresh Document
-                // and checked by observation's own durable receipt verifier.
-                // No provider, click retry, JS injection or cross-origin read.
+              let resultTarget=null;
+              // Search may navigate asynchronously or update the current DOM.
+              // Stabilize only by bounded, read-only target discovery: never
+              // repeat the click or borrow permission from the old Document.
+              for(let attempt=0;attempt<7;attempt++){
+                if(prepared.signal?.aborted)break;
+                const next=await currentPageTarget.refresh();
+                if(next.status==='available'&&next.origin===captured.origin&&
+                  next.windowId===captured.windowId&&next.tabId===captured.tabId&&
+                  next.frameId===0){
+                  resultTarget=next;
+                  if(next.documentId!==captured.documentId||next.url!==captured.url||
+                    attempt>=1)break;
+                }
+                if(attempt!==6)await new Promise(resolve=>setTimeout(resolve,220));
+              }
+              if(resultTarget&&!prepared.signal?.aborted&&
+                await api.permissions.contains({origins:[permissionPattern(resultTarget.url)]})) {
+                // One new RunHost read, bound to the current authorized
+                // Document. The prior click is NEVER dispatched again.
                 const post=await observation.observe(resultTarget,{signal:prepared.signal,
                   requestId:'search-effect-'+crypto.randomUUID(),
                   request:prepared.effectExpectation.query});
