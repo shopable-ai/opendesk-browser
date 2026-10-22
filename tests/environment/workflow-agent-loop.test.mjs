@@ -151,3 +151,17 @@ test('stop before RunHost.start returns runId cannot be classified as stopped',(
  assert.equal(classifyWorkflowAgentStop({startPending:false,startedCount:0}),'STOPPED');
  assert.equal(classifyWorkflowAgentStop({startPending:false,startedCount:1}),'PARTIAL');
 });
+
+test('two saved replay search parameters resolve to distinct verified queries',()=>{
+ const guard=createWorkflowAgentLoopGuard({goal:'搜索 camera，搜索 lens'});
+ const parameterFill={stepId:'query',op:'fill',locatorKind:'css',selector:'#q',param:'term'};
+ const first=guard.claim({workflow:proposal([parameterFill,search]),target,params:{term:'camera'}});
+ assert.equal(guard.verified({claim:first,reply:successful}).state,'CONTINUE');
+ assert.ok(guard.snapshot().facts.includes('search-target:camera'));
+ const second=guard.claim({workflow:proposal([parameterFill,{...search,stepId:'two'}]),
+   target,params:{term:'lens'}});
+ assert.equal(guard.verified({claim:second,reply:successful}).state,'COMPLETED');
+ assert.ok(guard.snapshot().facts.includes('search-target:lens'));
+ assert.throws(()=>guard.claim({workflow:proposal([parameterFill,search]),
+   target,params:{term:'lens'}}),{code:'E_AGENT_NO_PROGRESS'});
+});
