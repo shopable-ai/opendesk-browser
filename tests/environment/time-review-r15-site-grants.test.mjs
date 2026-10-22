@@ -83,7 +83,7 @@ test('R1.8 fresh installation auto-records only after independent website consen
   assert.equal(granted.paused,false,'explicit site authorization must not require a third Start');
   assert.equal(granted.authorized,true,'real Host must bind authority on the two-grant transition');
   assert.equal(granted.trackingHost,'alpha.example');
-  assert.equal(f.alarms.has(TIME_REVIEW_ALARM),true,'authorized collection must arm native heartbeat');
+  assert.equal(f.alarms.size,1,'authorized collection must arm native heartbeat');
   f.advance(2500);await f.service.tick();
   assert.equal((await f.call('time.status')).todayMs,2500,'only post-approval real foreground time accrues');
   const paused=await f.call('time.pause');
