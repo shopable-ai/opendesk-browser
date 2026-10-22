@@ -891,6 +891,38 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }
     };
   }
+
+  // Promote only clearly bounded, independently admitted e-commerce steps.
+  // The first AI-on run executes this SAME parameterized source, so saving it
+  // never substitutes unexecuted replay JavaScript for an original proof.
+  function promoteVerifiedReplayParameters(executable,admission,goal) {
+    const params=structuredClone(admission.params);
+    if(!/(?:搜索|查找|检索|\bsearch\b)/i.test(goal)||
+      !/(?:打开|进入|点开|\bopen\b)/i.test(goal)||
+      !/(?:价格|标价|售价|\bprice\b)/i.test(goal)||
+      /(?:付款|支付|下单|结账|删除|清空|提交|转账|发送|退款|checkout|delete|submit|payment)/i.test(goal))
+      return params;
+    const props=executable.paramsSchema.properties,required=executable.paramsSchema.required;
+    const query=admission.effectExpectation?.query;
+    const fill=executable.steps.find(step=>step.op==='fill');
+    if(typeof query==='string'&&/^[\p{L}\p{N} _.-]{2,120}$/u.test(query)&&
+      fill&&!fill.param&&fill.text===query&&
+      executable.steps.length===2&&!Object.hasOwn(props,'query')){
+      props.query={type:'string',title:'搜索关键词',maxLength:120,default:query};
+      required.push('query');fill.param='query';delete fill.text;params.query=query;
+    }
+    const guard=admission.linkGuard,click=executable.steps.find(step=>step.op==='click');
+    if(guard&&click&&executable.steps.length===1&&!click.param&&
+      !Object.hasOwn(props,'productName')&&
+      /^[\p{L}\p{N}][\p{L}\p{N} _.-]{2,119}$/u.test(guard.name)){
+      props.productName={type:'string',title:'目标商品名称',maxLength:120,default:guard.name};
+      required.push('productName');click.param='productName';params.productName=guard.name;
+      params.__odLinks={[click.stepId]:{
+        href:guard.href,name:guard.name,origin:guard.origin,sourceUrl:guard.sourceUrl}};
+    }
+    checkParamsSchema(executable.paramsSchema);
+    return params;
+  }
   // One user's Send owns every round. A round is only an admitted fragment;
   // neither a model completion claim nor a successful Worker receipt can
   // bypass verification of the original goal.
@@ -1032,9 +1064,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
               if(!click)throw err('E_AI_REVIEW_REQUIRED','缺少已核验链接点击');
               click.linkGuard=structuredClone(admission.linkGuard);
             }
+            const runParams=promoteVerifiedReplayParameters(executable,admission,agent.goal);
             const freeze=await compileWorkflow(executable,{verifyFill:true});
             if(executable.steps.length>4)throw err('E_AGENT_SCHEMA','AI 每轮最多四步，请只提出接下来的必要动作');
-            checked={executable,admission,freeze};break;
+            checked={executable,admission,freeze,runParams};break;
           }catch(error){
             const code=error?.code||'';
             if(attempt>0||!['E_WORKFLOW_SCHEMA','E_WORKFLOW_AI',
@@ -1050,8 +1083,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           throw err('E_PERMISSION','步骤生成后网站权限已撤销');
         await currentPageTarget.revalidate(target);
         agent.guard.check();
-        const {executable,admission,freeze}=checked;
-        const ticket=agent.guard.claim({workflow:executable,target,observation:receipt,linkGuard:admission.linkGuard,params:admission.params});
+        const {executable,admission,freeze,runParams}=checked;
+        const ticket=agent.guard.claim({workflow:executable,target,observation:receipt,linkGuard:admission.linkGuard,params:runParams});
         // Only the current round is shown/editable/savable as a JavaScript
         // artifact. A multi-Document agent journal is not misrepresented as a
         // portable one-script replay.
@@ -1060,7 +1093,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         render();persistDraft();
         const next={
           epoch:agent.epoch,selected:source,request:agent.goal,serial:stable(),
-          freeze,captured:structuredClone(target),params:structuredClone(admission.params),
+          freeze,captured:structuredClone(target),params:structuredClone(runParams),
           hasReadback:admission.hasReadback,hasUnprovenClick:admission.hasUnprovenClick,
           beforeObservation:receipt,effectExpectation:admission.effectExpectation,
           linkGuard:admission.linkGuard,signal:agent.controller.signal,
