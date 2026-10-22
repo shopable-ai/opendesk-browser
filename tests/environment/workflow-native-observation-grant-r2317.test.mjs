@@ -84,7 +84,12 @@ test('R23.17 Native: first disclosure, valid session reuse, revoke then deny wit
   const second=f.click('workflow-ai-plan');await tick();await tick();
   assert.equal(state(f,'workflow-ai-approval').hidden,true);
   await second;await tick();await tick();
-  assert.equal(n.answers[1]?.decision,'approve');
+  assert.equal(n.answers[1]?.decision,'approve',JSON.stringify({
+    nativeCalls:n.calls.slice(-12),answers:n.answers,starts:f.starts.length,
+    plan:state(f,'workflow-ai-plan'),agent:state(f,'workflow-editor').dataset,
+    status:state(f,'workflow-status').text,
+    recentMessages:f.state().messages.slice(-3)
+  }));
   assert.equal(f.starts.length,4,'each new user Send independently authorizes one bounded low-risk execution');
   assert.equal(state(f,'workflow-run-review').hidden,true);
   assert.equal(n.calls.filter(c=>c.method==='ai.session.open').length,1);
