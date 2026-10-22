@@ -351,7 +351,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       && !matchesRevision())||requestBefore.trim())
       throw err('E_WORKFLOW_DIRTY','请先保存当前工作流，或确认新建后再打开历史版本');
     if(record.format===WORKFLOW_BUNDLE_FORMAT) {
-      const bundle=await verifyWorkflowBundle(record);
+      // History list adds a presentation-only key; do not hash that field.
+      const {key:historyKey,...frozenRecord}=record;
+      const bundle=await verifyWorkflowBundle(frozenRecord);
       for(const segment of bundle.segments) {
         const freeze=await compileWorkflow(segment.workflow,{
           verifyFill:segment.verificationMode==='fill-readback'});
