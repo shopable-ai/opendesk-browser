@@ -430,12 +430,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       globalAllowed?'撤销所有网站 Cookie 授权':'允许管理所有网站 Cookie':
       allowed?'撤销本站授权':'允许管理本站 Cookie',
       className:firstUse?'od-button od-button--primary':'od-button',
-      disabled:busy||cookieGrantPending||(!origin&&!(allSites&&globalAllowed))||requested.length===0});
+      disabled:busy||cookieGrantPending||enableReadError||!sidebarToolEnabled(enableRecords,tool.id)||
+        (!origin&&!(allSites&&globalAllowed))||requested.length===0});
     setToolFieldAttribute(view,cookieSiteToggle,'data-enabled',String(allSites?globalAllowed:allowed));
     const valueAllowed=allSites&&cookieValuesGranted(tool);
     patchToolField(view,cookieValuesToggle,{hidden:!allSites||!globalAllowed||firstUse,
       textContent:valueAllowed?'撤销敏感值读取授权':'单独授权读取敏感值',
-      disabled:busy||cookieGrantPending||(!origin&&!valueAllowed)});
+      disabled:busy||cookieGrantPending||enableReadError||!sidebarToolEnabled(enableRecords,tool.id)||
+        (!origin&&!valueAllowed)});
     setToolFieldAttribute(view,cookieValuesToggle,'aria-pressed',String(valueAllowed));
     const rows=(firstUse||globalAllowed?[]:Object.entries(menuGrants?.[tool.id]?.cookieSites||{}))
       .filter(([site,row])=>!(site===origin&&allowed)&&Object.values(row||{}).some(v=>v===true))
