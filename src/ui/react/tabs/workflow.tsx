@@ -355,14 +355,15 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
           <div className="workflow-section-header od-toolbar"><h3>运行参数</h3></div>
           <div id="workflow-params">{model.params?.map(({name,rule,required,value})=><div key={name} className="workflow-param-row">
             <label className="workflow-field"><span>{rule.title}{required?' *':''}</span>
-              {rule.enum?<select className="od-field" data-workflow-param={name} value={String(value)} onChange={event=>actions.setParam?.(name,event.currentTarget.value)}>
+              {rule.enum?<select className="od-field" data-workflow-param={name} disabled={Boolean(model.busy)} value={String(value)} onChange={event=>actions.setParam?.(name,event.currentTarget.value)}>
                 {rule.enum.map(choice=><option key={String(choice)} value={String(choice)}>{String(choice)}</option>)}</select>:
                 <input className={rule.type==='boolean'?undefined:'od-field'} data-workflow-param={name}
+                  disabled={Boolean(model.busy)}
                   type={rule.type==='boolean'?'checkbox':['number','integer'].includes(rule.type)?'number':'text'}
                   step={rule.type==='integer'?'1':rule.type==='number'?'any':undefined}
                   {...(rule.type==='boolean'?{checked:Boolean(value)}:{value:String(value)})}
                   onChange={event=>actions.setParam?.(name,rule.type==='boolean'?event.currentTarget.checked:event.currentTarget.value)}/>}
-            </label><Button className="od-button--danger" aria-label={'移除参数 '+name} onClick={()=>actions.removeParam?.(name)}>移除</Button>
+            </label><Button className="od-button--danger" disabled={Boolean(model.busy)} aria-label={'移除参数 '+name} onClick={()=>actions.removeParam?.(name)}>移除</Button>
           </div>)}</div>
         </section>
         <section id="workflow-manage-panel" className="workflow-management od-surface" aria-label="工作流编辑与高级管理" hidden={c('workflow-manage-panel').hidden!==false}>

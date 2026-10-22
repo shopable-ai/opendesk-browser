@@ -273,3 +273,21 @@ test('changed parameter on a legacy cross-navigation bundle fails before permiss
   assert.equal(f.requests.length,beforeRequests,'no new Chrome permission requested');
   assert.equal(f.starts.length,0,'no first segment or browser side effect dispatched');
 });
+
+test('running saved script freezes visible parameters and edit operations until settlement',async t=>{
+  const f=await workflowFixture({steps:[fill],hold:true});t.after(()=>f.view.dispose());
+  f.view.actions.parameterizeStep('fill');await tick();await tick();
+  f.click('workflow-save');await tick();await tick();await tick();
+  const running=f.click('workflow-run');await tick();await tick();
+  assert.equal(f.host.currentRun,'workflow-run-1','the RunHost still owns an active run');
+  assert.equal(f.state().busy,true,'React receives a disabled-parameter state');
+  const original=f.state().params[0].value,originalStep=structuredClone(f.state().steps[0]);
+  f.view.actions.setParam('keyword','unapproved change');
+  f.view.actions.removeParam('keyword');
+  f.view.actions.editStep('fill','selector','#wrong');
+  assert.equal(f.state().params[0].value,original);
+  assert.deepEqual(f.state().steps[0],originalStep);
+  assert.equal(f.starts[0].params.keyword,original,'running source retains its frozen params');
+  f.finish();await running;await tick();
+  assert.equal(f.state().busy,false,'params can be edited only after settlement');
+});

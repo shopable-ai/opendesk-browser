@@ -254,6 +254,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     control('workflow-ai-resume').disabled=operationBusy;
     const selected=provider();
     ui.patch({
+      busy:operationBusy,
       sourceName:selected==='local_codex'?'本机 Codex':
         ['cloud_responses','custom_https'].includes(selected)?control('workflow-ai-model').value.trim():'',
       history:{open:historyOpen,busy:operationBusy,
@@ -2233,12 +2234,17 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     onHistory:onHistoryClick,onNewSession:onNewSessionClick,onNewWorkflow:onNewWorkflowClick,
     onResumeHistory:(_key,event)=>onResumeSessionClick(event),onOpenSavedHistory,
     closeSettings:closeWorkflowSheet,chooseExample,
-    setParam(name,value) {if(!disposed&&!autoExecutionPending&&Object.hasOwn(paramValues,name)){
-      if(pendingAIReview){dismissRunReview();status('参数已变化，旧步骤确认已失效；请重新检查后运行。');}
+    setParam(name,value) {
+      if(disposed||busy||autoExecutionPending||workflowAgent||
+        host.executionPending||host.currentRun||!Object.hasOwn(paramValues,name))return;
+      if(pendingAIReview||pendingRunReview){
+        dismissRunReview();status('参数已变化，旧步骤确认已失效；请重新检查后运行。');
+      }
       paramValues[name]=value;renderParams();
-    }},
+    },
     parameterizeStep(stepId) {
-      if(disposed||busy||autoExecutionPending||host.executionPending||host.currentRun)return;
+      if(disposed||busy||autoExecutionPending||workflowAgent||
+        host.executionPending||host.currentRun)return;
       const step=workflow.steps.find(row=>row.stepId===stepId);
       if(!step||step.op!=='fill'||step.param||typeof step.text!=='string'||!step.text.trim())return;
       try {
@@ -2268,14 +2274,17 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }catch(error){status(format(error),true);}
     },
     removeParam(name) {
-      if(disposed||!Object.hasOwn(workflow.paramsSchema.properties,name))return;
+      if(disposed||busy||autoExecutionPending||workflowAgent||
+        host.executionPending||host.currentRun||
+        !Object.hasOwn(workflow.paramsSchema.properties,name))return;
       const next=structuredClone(workflow.paramsSchema);delete next.properties[name];
       next.required=next.required.filter(value=>value!==name);
       workflow.paramsSchema=checkParamsSchema(next);control('workflow-schema').value=JSON.stringify(next,null,2);
       renderParams();edited();status('参数 '+name+' 已从草稿移除；如有步骤引用该参数，需要重新编辑才能编译');
     },
     editStep(stepId,field,value) {
-      if(disposed)return;
+      if(disposed||busy||autoExecutionPending||workflowAgent||
+        host.executionPending||host.currentRun)return;
       const index=workflow.steps.findIndex(step=>step.stepId===stepId);if(index<0)return;
       const step=workflow.steps[index];
       if(field==='op') {
