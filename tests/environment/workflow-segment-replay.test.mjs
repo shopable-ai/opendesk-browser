@@ -165,6 +165,13 @@ test('v2 refuses guessed targets, changed authority, forged binding plan and v1 
   const unsafe=await dynamicCommerceFixture();
   unsafe.goal+='，付款并提交订单';
   assert.equal(inferDynamicReplayPlan(unsafe),null);
+  const conditional=await dynamicCommerceFixture();
+  conditional.goal+='，且价格必须低于 100 元';
+  assert.equal(inferDynamicReplayPlan(conditional),null,
+    'v2 must not drop extra original price conditions');
+  const negated=await dynamicCommerceFixture();
+  negated.goal='搜索 camera，但不要打开 Camera X 商品详情，核对名称和价格';
+  assert.equal(inferDynamicReplayPlan(negated),null);
   await assert.rejects(sealWorkflowBundle(unsafe),{code:'E_WORKFLOW_PARAM_BINDING'});
   const v1={...original,format:WORKFLOW_BUNDLE_FORMAT};
   delete v1.bindingPlan;
