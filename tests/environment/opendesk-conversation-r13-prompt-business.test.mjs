@@ -119,7 +119,7 @@ function hostFixture({proposal={action:{type:'create',body:'给我一份准确�
     throw failure('E_SCOPE');
   };
   host=createTrustedPromptHost({
-    api,tool:{id:'prompt-shortcuts',version:'1.1.12'},token,epoch,model,
+    api,tool:{id:'prompt-shortcuts',version:'1.1.13'},token,epoch,model,
     conversation,assertIdentity:async()=>{if(revoked)throw failure('E_TOOL_CHANGED');},
     frameSource:()=>source,guardBlocked:()=>false,dispatch,etagFor:async value=>hash(value),
     confirm:async args=>{confirms.push(args.message);return allowReview;},
@@ -169,7 +169,7 @@ test('R1.3 pending receipt is independently reconciled, never replayed',async()=
   const f=hostFixture();await f.host.request({request:'创建英文翻译提示词',event:{isTrusted:true}});
   const expected=hash(f.library.value);
   await f.api.storage.local.set({[PROMPT_AI_RECOVERY_KEY]:{
-    toolId:'prompt-shortcuts',version:'1.1.12',instance:'older-instance',
+    toolId:'prompt-shortcuts',version:'1.1.13',instance:'older-instance',
     installEpoch:'older-epoch',expectedEtag:expected,createdAt:Date.now()}});
   assert.equal((await f.host.recovery()).expectedEtag,expected);
   const before=f.commits;
@@ -181,7 +181,7 @@ test('R1.3 pending receipt is independently reconciled, never replayed',async()=
 
 test('R1.3 an unresolved receipt from a retired instance blocks new write intent until readback',async()=>{
   const f=hostFixture();
-  const record={toolId:'prompt-shortcuts',version:'1.1.12',
+  const record={toolId:'prompt-shortcuts',version:'1.1.13',
     instance:'retired',installEpoch:'prior',expectedEtag:'a'.repeat(64),createdAt:Date.now()};
   await f.api.storage.local.set({[PROMPT_AI_RECOVERY_KEY]:record});
   await assert.rejects(f.host.request({request:'再新建一条',
@@ -205,7 +205,7 @@ test('R1.4 unique natural-language shorthand resolves a saved prompt but ambigui
 
 test('R1.4 exact before-version proves no retained write and unlocks without replay',async()=>{
   const f=hostFixture();
-  const record={toolId:'prompt-shortcuts',version:'1.1.12',
+  const record={toolId:'prompt-shortcuts',version:'1.1.13',
     instance:'prior',installEpoch:'prior',
     beforeEtag:hash(f.library.value),expectedEtag:'f'.repeat(64),createdAt:Date.now()};
   await f.api.storage.local.set({[PROMPT_AI_RECOVERY_KEY]:record});
@@ -219,7 +219,7 @@ test('R1.4 exact before-version proves no retained write and unlocks without rep
 
 test('R1.4 mismatched recovery stays UNKNOWN until an explicit review acknowledgement',async()=>{
   const f=hostFixture();
-  const record={toolId:'prompt-shortcuts',version:'1.1.12',
+  const record={toolId:'prompt-shortcuts',version:'1.1.13',
     instance:'prior',installEpoch:'prior',beforeEtag:'a'.repeat(64),
     expectedEtag:'b'.repeat(64),createdAt:Date.now()};
   await f.api.storage.local.set({[PROMPT_AI_RECOVERY_KEY]:record});
@@ -239,7 +239,7 @@ test('R1.4 mismatched recovery stays UNKNOWN until an explicit review acknowledg
 
 test('R1.4 stale review acknowledgement cannot erase newer unknown outcome',async()=>{
   const f=hostFixture();
-  const record={toolId:'prompt-shortcuts',version:'1.1.12',
+  const record={toolId:'prompt-shortcuts',version:'1.1.13',
     instance:'prior',installEpoch:'prior',beforeEtag:'a'.repeat(64),
     expectedEtag:'b'.repeat(64),createdAt:Date.now()};
   await f.api.storage.local.set({[PROMPT_AI_RECOVERY_KEY]:record});
