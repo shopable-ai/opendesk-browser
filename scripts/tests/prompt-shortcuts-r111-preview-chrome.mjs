@@ -67,7 +67,16 @@ async function click(selector){
     ['mouseReleased',{button:'left',clickCount:1}]])
     await call('Input.dispatchMouseEvent',{type,x:rect.x,y:rect.y,...extra});
 }
+async function reloadPreview(){
+  const previousTimeOrigin=await evalChrome('performance.timeOrigin');
+  await call('Page.reload',{ignoreCache:true});
+  // A complete launcher in the old document is not evidence that reload finished.
+  await poll('performance.timeOrigin!=='+JSON.stringify(previousTimeOrigin)+
+    '&&document.readyState==="complete"','reloaded offline HTML document');
+}
 async function expandPreviewRail(){
+  await poll('["true","false"].includes(document.querySelector("#pageRail .starter-toggle")?.getAttribute("aria-expanded"))',
+    'initialized offline HTML launcher');
   const collapsed=await evalChrome('document.querySelector("#pageRail .starter-toggle")?.getAttribute("aria-expanded")==="false"');
   if(collapsed)await click('#pageRail .starter-toggle');
   await poll('document.querySelector("#pageRail .starter-toggle")?.getAttribute("aria-expanded")==="true"',
@@ -209,7 +218,7 @@ async function run(){
   assert(!imageInsert.includes('images.unsplash.com'),'only prompt text is inserted');
   report.r35PromptInsert=true;
   await r35ChooseSize('standard');
-  await call('Page.reload',{ignoreCache:true});
+  await reloadPreview();
   await expandPreviewRail();
   await poll('document.querySelector("#pageRail img[data-preview-fixture]")?.naturalWidth>0',
     'offline image must recover after reload');
@@ -604,7 +613,7 @@ async function run(){
   assert(uploadEvidence.stored&&!uploadEvidence.bytesInLibrary&&uploadEvidence.pixels>0&&uploadEvidence.colors>10);
   assert(Math.abs(uploadEvidence.width-68)<.6&&Math.abs(uploadEvidence.height-48)<.6);
   await shot('r37-original-local-image-saved');
-  await call('Page.reload',{ignoreCache:true});
+  await reloadPreview();
   await expandPreviewRail();
   await poll('document.querySelector("#pageRail .page-shortcut:nth-child(3) img")?.naturalWidth>0',
     'same saved local image after reload');
