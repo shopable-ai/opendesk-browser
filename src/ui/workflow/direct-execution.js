@@ -37,7 +37,8 @@ export function classifyWorkflowRunRisk(value) {
 
 // Admission for the existing RunHost only. Model output is never executable code,
 // a Chrome origin grant, or authority to exceed the user's requested actions.
-export function prepareDirectExecution({request,workflow,target,observation,verifiedFacts=[]}) {
+export function prepareDirectExecution({request,workflow,target,observation,verifiedFacts=[],
+  paramsOverride=undefined,allowBoundParameters=false}) {
   const clean=validateWorkflow(workflow);
   if(clean.steps.some(step=>step.linkGuard!==undefined))
     throw error('E_AI_REVIEW_REQUIRED','模型不得携带旧的链接执行证明');
@@ -88,11 +89,13 @@ export function prepareDirectExecution({request,workflow,target,observation,veri
   // Document must never license a second action after navigation.
   if(clicks.length&&clean.steps.at(-1)!==clicks[0])
     throw error('E_AI_REVIEW_REQUIRED','点击后的读取需重新绑定网页；请先完成本次点击');
-  const params=validateWorkflowParams(clean,{});
+  const params=validateWorkflowParams(clean,paramsOverride===undefined?{}:paramsOverride);
   const values=[];
   for(const step of fills) {
     const value=step.param?params[step.param]:step.text;
-    if(typeof value!=='string'||!value.length||!request.includes(value))
+    if(typeof value!=='string'||!value.length||
+      (!request.includes(value)&&!(allowBoundParameters===true&&step.param&&
+        paramsOverride!==undefined&&Object.hasOwn(paramsOverride,step.param))))
       throw error('E_AI_VALUE_NOT_GROUNDED','填写内容不在本次用户请求中，拒绝自行猜测');
     const quoted=[['"','"'],["'","'"],['“','”'],['‘','’'],['「','」'],['『','』']]
       .some(([open,close])=>request.includes(open+value+close));
