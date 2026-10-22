@@ -249,3 +249,53 @@ Node state.json 现状与生产需求明确分开；正式环境必须核对多�
 - 优先真正业务任务表单和 Chrome 可验证副作用，不把示例数据、单元测试或 Mock 冒充真实执行。
 - 中文回答应固定顺序：产品结论 → 统一架构 → Pull/Push 对照 → 最新源码/提交/测试 → 数据状态 → 时序与恢复 → T00–T10 → G0–G5 → 剩余 P0 → 十维证据评分。
 - 明确保留 **T00（真实表单）、T01（Pull A）、T02（关 Panel 后 Push B）** 作为下一轮优先顺序；外部资源无法访问时说明阻断，继续做当前可验证的代码修复与测试，不反复询问已给出的仓库/分支/用户目标。
+
+
+## 11. R19.5 最新实现与集成边界（2026-10-22 增量）
+
+> 本段是在原始目标、K1–K6、T00–T10 与 G0–G5 基准之上的**已提交增量**；不把协议/组件测试冒充真实业务验收。本节需要随最新 main 和真实 CI 重新核对。
+
+### 11.1 已提交源码
+
+- [9d95de52d868bd5915aaf6ab44db9a83fcd8ece8](https://github.com/shopable-ai/opendesk-browser/commit/9d95de52d868bd5915aaf6ab44db9a83fcd8ece8)：仅修改 `src/cloud-control/connection.js` 与 `tests/cloud-control/connection.test.mjs`。HTTPS Pull session 仍有效时，WSS 重探测和短暂续期故障不主动摧毁原 Pull-ready；切换到 WSS 的 authenticated-ready 之前必须通过 capabilities ACK 和 reconcile。新增两个独立回归。
+- [e800ea2ff3d06873f38338f498ad0418879e26ba](https://github.com/shopable-ai/opendesk-browser/commit/e800ea2ff3d06873f38338f498ad0418879e26ba)：仅修改 `scripts/cloud-control/provider.mjs` 与 `tests/cloud-control/remote-https-r52.test.mjs`。已有 Client-scoped HTTPS `/v1/client-scope` 可选择读取批准 Task 的安全表单元数据；`/v1/submit` 拒绝空白/超长 requestKey。保留原 Client Token、Job、Claim、Permit、Run/Result、Receipt 边界，不新增 Provider。
+- 并行 Agent 仍可能更新 main；提交 SHA 是证据定位，不代表永远是 HEAD。
+
+### 11.2 Web 表单与现有业务 BFF 的**接口约定，不是已实现的 Web 页面**
+
+已有 Provider 接口 `POST /v1/client-scope` 的可选请求体为：
+
+~~~json
+{"includeTaskSchemas": true}
+~~~
+
+必须在**持有受限 Client Credential 的受信 BFF**发起 HTTPS 请求；普通用户页面不得持有该 Credential。原先空请求体 `{}` 的完整响应形状保持向后兼容。可选返回 `taskCatalog` 只包括该 Client **已获批准的 Task pin**、`title`、`paramsSchema`、`siteOrigins`；不包含 `sourceUtf8`、manifest/program 执行体、Provider Admin 或 Executor 凭据。
+
+计划接线方式（**尚未发现真实 BFF/业务页面部署证据，以下路径仅示意，不是新增 Provider 路由**）：
+
+1. 用户登录现有业务网站 → BFF 校验会话、用户权限和任务归属。
+2. 业务前端向**本业务 BFF**读取安全 Task 选项和参数 Schema；BFF 调用现有 `/v1/client-scope` 且只向用户暴露必要展示字段。
+3. 用户填写已批准类型、目标与参数；Web/BFF 持有稳定 requestKey（页面重试不得换键）；BFF 二次校验 Task、站点、用户-Client 授权后，把批准的 pin 和经校验的参数传给现有 HTTPS `/v1/submit`。
+4. Provider **先写入现有持久 Job**再返回稳定 jobId。同键同内容仅返回原 jobId、同键不同内容应 `E_REQUEST_CONFLICT`。
+5. BFF 对原用户拥有的 jobId 转发 `/v1/job-status`；Stop 只调用 `/v1/job-cancel` 并区分“取消请求已受理”与“Controller 已真实停止”。
+6. Pull/Push 后续共享 Claim → Assignment → Permit → 原 Offscreen/Controller → Run/Result → Receipt；不允许业务表单上传 JS/Shell/CDP。
+
+接口元数据已完成源码/组件级补强；**业务 Web 表单、真实用户登录系统、BFF 部署、页面刷新后查看状态/Stop 均仍 BLOCKED/NOT_TESTED**，不可称 T00/T09 完成。
+
+### 11.3 R19.5 精确 CI 证据与限制
+
+- [Cloud Control R5.2 · e800ea2 测试运行 #39803624112](https://github.com/shopable-ai/opendesk-browser/actions/runs/39803624112)：`npm run test:cloud`（含新增 Pull 及 Client Schema 合同）**PASS**，Controller Authority 组件步骤 **PASS**；Trusted Side Panel 组件步骤 **FAIL**，故**整体 CI FAIL**。此前精确日志显示旧 R28 侧边栏断言的行位置偏差 `609 !== 611`，不能因局部协议通过而填总体 PASS。
+- [Cloud Control R3 · e800ea2 测试运行 #39803624095](https://github.com/shopable-ai/opendesk-browser/actions/runs/39803624095)：component 作业因共享源码 Pin 验证 **FAIL**，后续组件被跳过；本节写入时 package 作业仍未取得最终结论。不能用修改安全 Pin 的断言来假造通过。
+- 以上均为 GitHub Linux Node/构建证据；**不是 Mac 物理 Chrome、真实 BFF、真正的网页数据写入或两设备实测**。
+- 只根据最新 HEAD 精确 Run ID 和步骤结论更新证据；其他 Agent 改动导致的共享 UI/Pin 失败应先定责，不得为过绿削弱 Authority。
+
+### 11.4 仍需要实际完成的交付
+
+- **T00/T09：BLOCKED** — 定位现有独立业务页面/BFF、登录系统以及其真实生产地址；不新建第二个 Provider，不将受限 Client Token 放入页面，不把 CLI 或表单演示当作真实用户入口。
+- **T01：COMPONENT_TESTED，NATIVE_NOT_TESTED** — HTTPS Pull 稳定性回归已绿；仍要在无 WSS 但 HTTPS 正常的 Mac Chrome 上由真实固定 Task 创建 A，并读回网页记录、Result、Receipt。
+- **T02：SOURCE_IMPLEMENTED，NATIVE_NOT_TESTED** — 先关闭 Side Panel 再提交 B，通过授权 WSS 向目标 Executor 通知，必须修改 A 并读回，不得提前排队。
+- **T03–T08：PARTIAL/NOT_TESTED** — Pull/Push 竞争、重复通知、错误 Executor、Receipt ACK 丢失、原生 UNKNOWN、重启、Stop/本地 Fence 与撤权。
+- **T10：NOT_TESTED** — 两台物理设备及跨设备证据。
+- **G0/G4 BLOCKED；G1/G2/G3 部分组件；G5 NOT_TESTED**。Node state.json 仍不能称数据库事务/HA 生产队列；需另行验证正式部署、故障恢复、运维与灾备。
+
+**R19.5 下一执行顺序不变：先确认真实 BFF 并完成 T00，然后无 WSS 的真实 T01，随后关 Side Panel 的真实 T02，再以 T03–T10 和 G0–G5 收尾。**
