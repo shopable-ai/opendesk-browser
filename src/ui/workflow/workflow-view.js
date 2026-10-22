@@ -33,6 +33,7 @@ function defaultStep(op = 'observe') {
 // Presentation only: describe effects only after RunHost and readback verification.
 export function workflowExecutionFeedback({execution,workflow,params={},values}={}) {
   if(!execution?.ok)return '本次未能确认成功；不会自动重试。请检查真实网页与运行详情。';
+  if(execution.readOnlyVerified===true)return '只读步骤已完成，已核对真实 RunHost 回执；没有修改网页。';
   if(execution.evidenceLevel!=='BUSINESS_EFFECT_VERIFIED')
     return '运行已结束。网页效果尚未确认，请检查当前网页；不会自动重复执行。';
   const effect=execution.effect;
@@ -598,8 +599,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
             lastTrustedRun={runId:claim.runId,sourceHash:freeze.sourceHash,siteOrigin:captured.origin};
           if(lastRun==='failed' && !hasError)
             status('运行未成功或结果无法确认，请检查真实结果及页面效果；不会自动重试。',true);
+          const readOnlyVerified=lastRun==='success'&&decoded&&
+            !prepared.hasReadback&&!prepared.hasUnprovenClick&&
+            freeze.workflow.steps.every(step=>['observe','extract','assert','wait'].includes(step.op));
           return {ok:lastRun==='success',runId:claim.runId,resultId:proof?.resultId||null,
-            evidenceLevel,readbackVerified,effect,
+            evidenceLevel,readbackVerified,readOnlyVerified,effect,
             readbackValues:readbackVerified?decodeValue(result.outcome.valueWire):null};
         }
         let receiptProof=null;
@@ -669,6 +673,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   // and independent DOM readback. A completed worker is not an observed business effect.
   function describeExecution(reply) {
     if(reply?.ok) {
+      if(reply.readOnlyVerified)return '只读网页步骤和持久运行回执已完成验证。';
       if(reply.effect?.kind==='product-page')
         return '已在新 Document 独立核对商品名称与页面价格。';
       if(reply.effect?.kind==='link-page')
@@ -695,12 +700,12 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       ?workflowExecutionFeedback({execution:reply,workflow:planned.freeze.workflow,
         params:planned.params,values:reply.readbackValues})
       :describeExecution(reply);
-    if(planned&&reply?.ok&&reply.evidenceLevel==='BUSINESS_EFFECT_VERIFIED') {
+    if(planned&&reply?.ok&&(reply.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'||reply.readOnlyVerified)) {
       verifiedTurnHistory=[...verifiedTurnHistory,{
         request:planned.request.slice(0,4000),outcome:'verified',
         readbackVerified:reply.readbackVerified===true,
         stepCount:planned.freeze.workflow.steps.length,
-        effectKind:reply.effect?.kind||'input-readback',
+        effectKind:reply.effect?.kind||(reply.readOnlyVerified?'read-only':'input-readback'),
         ...(Number.isSafeInteger(reply.effect?.visibleResultLinks)
           ?{visibleResultLinks:reply.effect.visibleResultLinks}:{})
       }].slice(-4);
@@ -750,13 +755,17 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       autoExecutionPending=false;
       appendChat('对话状态','安全检查通过，正在执行 '+planned.freeze.workflow.steps.length+' 步…');
       const reply=await run(null,preparedAIExecution(planned,Promise.resolve(true)));
-      if(!disposed)reportExecution(reply,planned);
+      if(!disposed&&!planned.signal?.aborted)reportExecution(reply,planned);
+      if(!planned.continuation&&planned.agent===workflowAgent&&!planned.signal?.aborted)
+        void advanceWorkflowAgent(planned.agent,planned,reply);
       return reply;
     }catch(error){
       if(!disposed){
         status(format(error)+'；不会自动重试',true);
         appendChat('执行结果','网页或权限已变化，本次未自动执行；请检查后重新发送。');
       }
+      if(!planned.continuation&&planned.agent===workflowAgent)
+        finishWorkflowAgent(planned.agent,'PARTIAL','执行未开始或已停止，未自动重试。');
       return {ok:false,error};
     }finally{
       autoExecutionPending=false;
@@ -791,7 +800,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     dismissRunReview(); // consume before any asynchronous work or second click
     appendChat('对话状态','正在执行已确认的 '+planned.freeze.workflow.steps.length+' 步…');
     return run(event,preparedAIExecution(planned,permission)).then(reply=>{
-      if(!disposed)reportExecution(reply,planned);return reply;
+      if(!disposed&&!planned.signal?.aborted)reportExecution(reply,planned);
+      if(planned.agent===workflowAgent&&!planned.signal?.aborted)
+        void advanceWorkflowAgent(planned.agent,planned,reply);
+      return reply;
     });
   }
   async function runManual(event,review=null) {
@@ -927,6 +939,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   function finishWorkflowAgent(agent,state,message) {
     if(workflowAgent!==agent)return;
     workflowAgent=null;
+    clearTimeout(agent.deadline);
     if(disposed)return;
     control('workflow-editor').dataset.agentState=state;
     phase='idle';busy=false;
@@ -953,7 +966,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         Boolean(activeId&&host.currentRun===activeId)||Boolean(host.executionPending);
       const state=unknown?'OUTCOME_UNKNOWN':
         agent.guard.snapshot().actionCount>0?'PARTIAL':'STOPPED';
-      finishWorkflowAgent(agent,state,unknown
+      finishWorkflowAgent(agent,reason==='E_AGENT_LIMIT'?'LIMIT_REACHED':state,unknown
         ?'已禁止新操作，但运行或 Worker 收尾未核实；结果未知，请勿重放。'
         :state==='PARTIAL'?'已停止后续操作；此前已执行的步骤可能保留，请核对网页。'
           :'已停止本次任务，未启动后续网页操作。');
@@ -1123,6 +1136,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     }
     
     const epoch=++planningGeneration,abort=new AbortController();planningAbort=abort;planningTarget=captured;planningObservation=null;
+    const agent={epoch,controller:abort,selected:frozen.selected,goal:frozen.request,initialTarget:structuredClone(captured),
+      settings:{endpoint:frozen.endpoint,apiKey:frozen.apiKey,model:frozen.model},
+      guard:createWorkflowAgentLoopGuard({goal:frozen.request,signal:abort.signal}),
+      expectedNavigation:null,stopping:false};
+    workflowAgent=agent;
+    agent.deadline=setTimeout(()=>void stopWorkflowAgent('E_AGENT_LIMIT').catch(()=>{}),480000);
+    control('workflow-editor').dataset.agentState='PLANNING';
     busy=true;phase='planning';hasError=false;
     control('workflow-ai-progress').hidden=true;
     ui.patch({progress:[]});
@@ -1168,6 +1188,16 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         planningCurrent(epoch,frozen.serial,frozen.selected);
         const readiness=describeLocalCodex(localCapability);
         if(!readiness.ready){openAISettings('workflow-local-refresh');throw err(readiness.state,readiness.message);}
+        // All continuous rounds require the same independently verified DOM
+        // observation, even when the Native model can request its own tools.
+        const decision=await offerObservation(
+          {type:'tool.request',tool:'browser.observe',canApprove:true},
+          {signal:abort.signal,requestId:'native-agent-'+crypto.randomUUID()},
+          {epoch,serial:frozen.serial,selected:frozen.selected,captured,request:frozen.request,
+            recipientId,receiverPattern});
+        planningCurrent(epoch,frozen.serial,frozen.selected);
+        if(decision?.decision!=='approve'||!decision.result)
+          throw err('E_AI_APPROVAL','本次网页观察未经授权，不得连续执行');
       } else {
         if(!await permission)throw err('E_AI_PERMISSION','未授权访问模型网站');
         planningCurrent(epoch,frozen.serial,frozen.selected);
@@ -1212,6 +1242,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }
       const freeze=await compileWorkflow(executable,{verifyFill:true});
       planningCurrent(epoch,frozen.serial,frozen.selected);
+      agent.guard.observed({target:captured,receipt:planningObservation,remaining:frozen.request});
+      const ticket=agent.guard.claim({workflow:executable,target:captured});
+      agent.expectedNavigation=prepared.linkGuard||null;
       if(!await permission)throw err('E_PERMISSION','网站权限未授权，未执行浏览器操作');
       await currentPageTarget.revalidate(captured);
       if(!await api.permissions.contains({origins:[permissionPattern(captured.url)]}))
@@ -1233,7 +1266,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         hasReadback:prepared.hasReadback,hasUnprovenClick:prepared.hasUnprovenClick,
         beforeObservation:planningObservation,effectExpectation:prepared.effectExpectation,
         linkGuard:prepared.linkGuard,
-        signal:new AbortController().signal
+        signal:abort.signal,agent,ticket,continuation:false
       };
       const origins=[permissionPattern(captured.url)];
       if(prepared.linkGuard&&prepared.linkGuard.origin!==captured.origin)
@@ -1269,6 +1302,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         const message=frozen.selected==='local_codex'?localFailure(error):format(error);
         appendChat('执行结果','本次任务未完成：'+message+'。不会自动重放。');
         status(message,true);
+        finishWorkflowAgent(agent,'BLOCKED','');
       }
     }
     finally{
