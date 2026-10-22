@@ -841,3 +841,38 @@ M 原生编辑/200% 输入证据的 UI 指纹 `9163d6f3d715f6b6502e59c24a743731c
 本轮正式产品代码净变化 **0**；本 GOAL 原有 9 个源码/驱动提交、14 个生产/构建文件净 +115 行保持原账，不为制造提交修改源码。新的驱动、截图、运行回执在忽略的 artifacts，报告按具体文件安全提交 main。所属 Chrome 和恢复后的两个 CLI 已收尾，复核剩余所属 PID 为零，持久槽 available、无活动 run、受管 DOM 为零；原测试安装保留在隔离 Profile。[收尾](../../../artifacts/developer-r401012-local-final-20261022/M-p0-closeout-runtime.json)、[逐 PID 与 socket 复查](../../../artifacts/developer-r401012-local-final-20261022/M-p0-closeout-observations.json)。没有向其他 owner 服务发信号，未建分支/worktree/PR、未覆盖共享 dist 或安装额外 Native。
 
 当前目标仍 active；本轮有实质证据进展，未伪报 complete/paused/blocked。下一步限剩余 P0 的有界验证和已证缺陷；不能以改小 Stop 语义、重放未知操作或再造架构换取 `FINAL_ACCEPTED`。
+
+## R40.10.12 · Chrome 156 撤权信号及运行恢复补证 · 2026-10-22
+
+**正式结果仍为 `ACCEPTANCE_PARTIAL`，P0 有阻塞，不能宣告 `FINAL_ACCEPTED`。** 本轮只补三项有界验证，正式产品源码净变化 0，没有重建相同输入或再开架构/LOC 工程。上一节的来源纠正和六维评分继续有效。
+
+### 同包身份与 Chrome 156 反例
+
+继续使用冻结 main `3340ee7beac6430cad42b3ac9170c5aa28fb8c93`、M 包 `c4178c7ed2c940a6b03b4330c882c8f583a537ec375954a432b501b2f54df95b`、原 Receipt `c5b380d5-ac5a-407f-867f-a605c535f21e`。实际路径仍为 `/private/tmp/opendesk-r401012-inputs-fi9sleqi/dist/production-developer`，Chrome 156.0.8078.4、fioj 扩展和所属 YAWLuZ Profile 未变。[新实例实读](../../../artifacts/developer-r401012-local-final-20261022/M-late-browser.json) 独立取得 SW `7411d4ba…`、UI `9163d6f3…`，均与磁盘逐字节一致；不是继承旧 loaded 字段。[末次整包核对](../../../artifacts/developer-r401012-local-final-20261022/M-late-package-final.json) 116 文件、Hash 不变。后继 main 的文档/其他 owner 提交仍不冒充 M 构建输入。
+
+[Chrome 156 原生 Port 诊断](../../../artifacts/developer-r401012-local-final-20261022/M-signal156-port-history.json) 使用公开 userScripts API、唯一无业务效果 world/registration 和真实 Chrome 详情开关：OFF 时 API 拒绝，但原 USER_SCRIPT Port 仍实际 echo；未观察到 Port 断开或 permissions/runtime 生命周期事件，ON 后 namespace、方法引用和 world marker 保留。只观察一个有限 off/on 区间，**支持“Port 存活不能作为授权连续性的保证”，不证明所有可能信号永远不存在，也不是产品 PASS**。[官方 world/execute 语义](https://developer.chrome.com/docs/extensions/reference/api/userScripts) 没有给出这种 Port 撤权保证。
+
+探针未更改产品 Authority/epoch 或页面业务 DOM；finally 恢复开关、移除所属监听/Port、注销唯一探针并重置 world 配置，注册数 2 → 2，无所属 registration 残留。当前 M 的真实 8 秒 Page ABA FAIL 仍由上一节 `M-p0-userscript-revocation-ABA.json` 证明；本诊断没有修复它。
+
+### 新增真实操作结果
+
+| 操作 | 本轮结果与严格边界 |
+|---|---|
+| 本地 Controller A 进入后切 B | **PASS（本场景）**。实际 Locator 进入标记后原生选择 B，A run `9d38af72-c538-4ee1-ad6d-08602bba4d58` 持久 stopped、workerRetired；B 新 preview `223b64ab-e384-4887-842c-e3f5d329b96f` 在超过 A 原完成时间后仍为当前结果，A 仅一条非成功 result。[记录](../../../artifacts/developer-r401012-local-final-20261022/M-late-binding-switch.json) |
+| 保存 UNKNOWN 后关闭/重开侧栏 | **PASS（本场景）**。唯一 programId `r401012-reopen-m-1792636887066` 的真实 r1 已落盘，原 ACK 被断点延迟至原 35 秒超时；UNKNOWN 时通过公开 sidePanel.close 关闭实际 context，恢复原 ACK 后由原入口重开新的 SIDE_PANEL。用户显式指向同 ID/r1，只读加载匹配源码 SHA；真实 Save dispatch=1、仅一条 Revision、head r1，持久 runId 集合不变。[记录](../../../artifacts/developer-r401012-local-final-20261022/M-late-unknown-reopen.json) |
+
+A 的 Worker 被真正停止，此例不是人为递送“旧成功 ACK”的证明，也不覆盖全部运行/Stop 迟到组合。UNKNOWN 例只证明 Controller Revision 的显式只读恢复，没有证明 UNKNOWN banner 自动重建、所有安装/Provider UNKNOWN 或永久丢包；持久 Controller runId 集合不变也不代表所有 Page/Preview 尝试均被观测。恢复界面保留旧 A 的停止结果/精确 runId，该历史不是新 r1 的运行证据。两例不能把整组安全竞态升级为 PASS。
+
+首次项目切换驱动没有按到原生菜单，尚未启动 A；保留 [原尝试](../../../artifacts/developer-r401012-local-final-20261022/M-late-binding-switch-driver-attempt.json)。原 AX 遍历被无关菜单树消耗，随后仅调整忽略目录中的驱动，限定所属 PID/前台并跳过系统菜单栏，再通过真实 AXPress 选择；没有改 DOM value、伪造事件或修改产品来迎合断言。Controller 临时测试源码在所有分支 finally 恢复为原 SHA `22db5491ac3d87d655997b97614a281ac3cde5080d22847d12a716335a30fc23`。
+
+### 当前完成边界
+
+- Node 52/52 + 473/473、Source Check、Developer Build、Package Verify 仍按同 M 输入复用 PASS；本轮无产品修改，未重复这些验证。同 M Linux 仍 NOT_TESTED，CI 39706653895 的不同 Linux 包独立保留。
+- Controller、Page 正常执行、React、Vue、Local/真实 Native 的上一节同包结果保留；Page 完整类别仍 PARTIAL。七目标仍为：1 职责精简 PARTIAL；2 原 owner PASS（核查范围）；3 直接 Run/Stop PARTIAL；4 无效协调 PARTIAL；5 唯一设施 PASS（核查范围）；6 完整维护成本 PARTIAL；7 业务安全零退化 PARTIAL。
+- 最新独立六维 **90 / 91 / 87 / 82 / 81 / 90** 原分数保留，分别为流程、UX、Editor、完整维护、安全、证据；未因补两例自行提分。完整宽度/200% 异常、焦点/ARIA、多击矩阵仍未完全关闭。
+- **剩余硬阻塞**：USER_SCRIPT off→on 的可证明撤权历史，以及普通 Page 任意长任务的实际终止。现有公开链及本轮 Port 诊断未给出符合原严格合同的补丁；不以轮询、缩小 Stop 语义、自动重放或第二 Runtime 制造达标。其余人为迟到成功 ACK、安装/Provider UNKNOWN 和完整 UX 仍按未覆盖范围保留。继续重复普通 Run/构建无法解除这两个阻塞；需要可证明的执行/撤权原语，或用户明确调整相应产品合同。
+- 本轮两个所属 Chrome（诊断与运行）及两个 CLI 已收尾，活动 run=0、槽 available、受管 DOM=0、userScripts 可用。[关闭前状态](../../../artifacts/developer-r401012-local-final-20261022/M-late-closeout-runtime.json)、[逐 PID/socket 的实际观察](../../../artifacts/developer-r401012-local-final-20261022/M-late-closeout-observations.json) 证明所属进程/socket 未观察到残留；查询退出状态不是进程实际退出码。原安装和计数仍保留在隔离 Profile。未向其他 owner 服务发信号、改配对或覆盖共享 dist。
+
+Ramanujan 独立只读复核了三份原始场景、驱动及后续来源/收尾链，未重跑浏览器或重新给六维评分。[初审](../../../artifacts/developer-r401012-local-final-20261022/M-late-independent-accuracy.md)、[交叉来源补核](../../../artifacts/developer-r401012-local-final-20261022/M-late-independent-chain-review.md) 确认两个业务测试可绑定 M，但重开后的新 UI context 没有再单独取 loaded 指纹，signal 诊断也不借此追溯补 UI 证明。UNKNOWN 驱动只在成功末尾更新 targets，中途失败可能留旧 target，这是后续驱动风险，不影响本次成功记录。marker 删除未读回，进程后续未观察到残留也不等于 socket 路径已删除。
+
+本轮仅追加本报告；累计本 GOAL 生产/构建净 +115 行的原账不变。原生目标生命周期以最终工具回执为准，未声称项目完成或用户要求暂停。
