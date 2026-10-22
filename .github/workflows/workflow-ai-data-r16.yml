@@ -31,6 +31,7 @@ jobs:
           node --check src/ui/workflow/responses.js
           node --check src/ui/workflow/direct-execution.js
           node --check src/ui/workflow/agent-loop.js
+          node --check src/ui/workflow/segment-replay.js
       - name: Install locked dependencies for real build and tests
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: R23.17 exact-recipient observation grant regressions
@@ -42,8 +43,8 @@ jobs:
       - name: Direct-send provider, payload minimization and workflow regressions
         run: |
           node --test tests/environment/workflow-direct-execution.test.mjs tests/environment/workflow-local-codex.test.mjs tests/environment/workflow-r15.test.mjs tests/environment/workflow-ai-observation.test.mjs tests/environment/workflow-ai-data-sharing.test.mjs tests/environment/workflow-ai-transport.test.mjs tests/environment/workflow-ui-states.test.mjs tests/environment/workflow-focus.test.mjs tests/environment/workflow-provider-facade.test.mjs
-      - name: Bounded agent loop progress and duplicate-effect regression
-        run: node --test tests/environment/workflow-agent-loop.test.mjs
+      - name: Bounded agent loop, parameter identity and frozen multi-segment replay
+        run: node --test tests/environment/workflow-agent-loop.test.mjs tests/environment/workflow-segment-replay.test.mjs
       - name: Real source verification
         run: npm run check
       - name: Real development build
