@@ -149,7 +149,7 @@ test('Conversation Dock Chromium RENDER_ONLY: draft, busy Stop, clipping and ind
     const path=new URL(request.url,'http://localhost').pathname;
     response.setHeader('Content-Type',path==='/app.js'?'text/javascript':path==='/style.css'?'text/css':'text/html');
     response.end(path==='/app.js'?bundled.outputFiles[0].text:path==='/style.css'?styles+'\n'+frameCSS:
-      path==='/header.html'?'<link rel="stylesheet" href="/style.css"><div id="header-case">'+headerMarkup+'</div>':
+      path==='/header.html'?'<link rel="stylesheet" href="/style.css"><main id="workspace-content"><div id="header-case">'+headerMarkup+'</div></main>':
       '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+
       '<link rel="stylesheet" href="/style.css"></head><body><div class="fixture-label">RENDER_ONLY · no model / SDK</div>'+
       '<div id="root"></div><script type="module" src="/app.js"></script></body></html>');
@@ -252,19 +252,24 @@ test('Conversation Dock Chromium RENDER_ONLY: draft, busy Stop, clipping and ind
       t.after(()=>context.close());const page=await context.newPage();
       await page.goto(`http://127.0.0.1:${server.address().port}/header.html`);
       const rects=await page.evaluate(()=>{
-        const frame=document.querySelector('#header-case');frame.style.width='calc(100% - 18px)';
+        const frame=document.querySelector('#header-case');frame.style.width='100%';
         const head=frame.querySelector('.sidebar-tool-view-head');
         for(const button of head.querySelectorAll('button'))button.hidden=!['sidebar-tool-back',
           'sidebar-tool-primary-action','sidebar-tool-settings-open','sidebar-tool-remove'].includes(button.id);
         const title=head.querySelector('#sidebar-tool-title');title.textContent='书签管理';
         const back=head.querySelector('#sidebar-tool-back');
-        return {head:head.getBoundingClientRect().toJSON(),title:title.getBoundingClientRect().toJSON(),
+        return {coarse:matchMedia('(pointer:coarse)').matches,
+          head:head.getBoundingClientRect().toJSON(),title:title.getBoundingClientRect().toJSON(),
           back:back.getBoundingClientRect().toJSON()};
       });
+      t.diagnostic(JSON.stringify({scope:'RENDER_ONLY',width,coarse,rects}));
+      assert.ok(rects.head.width>=width-20&&rects.head.width<=width,'use one production viewport gutter');
+      assert.equal(rects.coarse,coarse,'the expected pointer media must be active');
+      assert.ok(rects.back.width>=(coarse?44:34),'use the production pointer button width');
+      assert.ok(rects.back.height>=(coarse?44:34),'use the production pointer button height');
       assert.ok(rects.title.top<rects.back.bottom,'title must share the back-button row');
       assert.ok(rects.head.height<=rects.back.height*2+10,'compact header must fit two rows');
       assert.ok(rects.title.right<=rects.head.right+.6,'title stays inside the header');
-      t.diagnostic(JSON.stringify({scope:'RENDER_ONLY',width,coarse,rects}));
     });
   }
   // Shared-main edits invalidate this run rather than silently claiming to have
