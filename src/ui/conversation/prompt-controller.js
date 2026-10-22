@@ -24,7 +24,7 @@ export function createPromptConversationRequest({
   // original trusted Send gesture, exactly like Bookmark Manager's controller.
   const first=conversation.request({request,context:{previousSearch:refsOnly(refs)},
    scope:'prompt',event,signal});
-  let authority=null,releaseGuard=null,outcome=null,unknown=false;
+  let authority=null,releaseGuard=null,outcome=null,unknown=false,sharedEditReview=false;
   const live=async()=>{
    if(signal?.aborted)throw fail('E_CANCELLED','已停止后续操作');
    if(changedProvider(conversation.source(),initialSource))
@@ -62,14 +62,17 @@ export function createPromptConversationRequest({
      await live();
      return review({...proposal,provider:initialSource});
     },
-    providerEdit:async({item,instruction})=>{
+    providerEdit:async({item,instruction,batchItems})=>{
      authority?.release?.();authority=null;
      await live();
      // Explicit, provider-named private-body consent BEFORE any model receives
      // even one user-authored prompt. The first classifier saw no private body.
-     const agreed=await reviewShare({id:item.id,name:item.name,
-      body:item.body,provider:initialSource});
-     if(agreed!==true)throw fail('E_CANCELLED','已取消发送私人提示词，未修改数据');
+     if(!sharedEditReview){
+      const agreed=await reviewShare({items:batchItems?.length?batchItems:[item],
+       provider:initialSource});
+      if(agreed!==true)throw fail('E_CANCELLED','已取消发送私人提示词，未修改数据');
+      sharedEditReview=true;
+     }
      await live();
      const latest=await read();
      if(!latest.value?.items?.some(row=>row.id===item.id&&row.body===item.body))

@@ -11,6 +11,9 @@ on:
       - 'src/ui/react/components/conversation.tsx'
       - 'examples/sidebar-tools/prompt-shortcuts/**'
       - 'tests/environment/opendesk-conversation-r13-prompt-business.test.mjs'
+      - 'tests/environment/sidebar-tools-host.test.mjs'
+      - 'tests/environment/opendesk-conversation-r14-dock.test.mjs'
+      - 'scripts/bundle-provenance.mjs'
       - '.github/workflows/official-tools-ai-r13.yml'
   workflow_dispatch:
 jobs:
@@ -24,17 +27,23 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - name: Stage real official dependencies without bypassing the separate WXT provenance gate
+      - name: Stage existing React dependencies for source-level Host tests
         run: |
-          node --input-type=module -e "import {buildAdblockReact} from './scripts/build-adblock-react.mjs'; import {buildStayFocusReact} from './scripts/build-stay-focus-react.mjs'; import {buildCookieEditorReactIfOfficial} from './scripts/build-cookie-editor-react.mjs'; import {preparePublic} from './scripts/prepare-public.mjs'; await buildAdblockReact({log:false}); await buildStayFocusReact({log:false}); await buildCookieEditorReactIfOfficial({log:false}); await preparePublic();"
+          node --input-type=module -e "import {buildAdblockReact} from './scripts/build-adblock-react.mjs'; import {buildStayFocusReact} from './scripts/build-stay-focus-react.mjs'; import {buildCookieEditorReactIfOfficial} from './scripts/build-cookie-editor-react.mjs'; await buildAdblockReact({log:false}); await buildStayFocusReact({log:false}); await buildCookieEditorReactIfOfficial({log:false});"
 
       - name: Prompt business Adapter / Host nonce / ETag / readback
         run: node --test tests/environment/opendesk-conversation-r13-prompt-business.test.mjs
       - name: Prompt official admission and iframe/Host regression
         run: node --test tests/environment/sidebar-tools-host.test.mjs tests/environment/prompt-shortcuts-r19-first-run.test.mjs
+      - name: Stage real official sources with immutable provenance gate
+        run: node --input-type=module -e "import {preparePublic} from './scripts/prepare-public.mjs'; await preparePublic();"
       - name: Official release source integrity
         run: node --test tests/environment/official-tools-catalog-r45.test.mjs
       - name: Production package and type checks
         run: npm run check
+      - name: Development build
+        run: npm run build:dev
       - name: Production build
         run: npm run build
+      - name: Verify installed development and production packages
+        run: npm run verify

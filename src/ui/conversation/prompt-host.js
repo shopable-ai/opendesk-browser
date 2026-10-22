@@ -111,12 +111,12 @@ export function createTrustedPromptHost({
       '\n确认后仍会核对官方安装身份、草稿和 ETag。',
     run:async()=>{await live();return true;}
   });
-  const reviewShare=({id,name,body,provider})=>confirm({
-    button:'允许本次发送正文',
-    message:'将把以下私人提示词正文发送给当前模型 Provider（'+provider+
-      '），仅用于这一次明确要求的正文修改。\n记录：'+
-      (name||id)+' ['+id+']\n即将发送的完整正文：\n'+body+
-      '\n确认前不会向模型发送这段私人正文。',
+  const reviewShare=({items,provider})=>confirm({
+    button:'允许发送 '+items.length+' 条正文',
+    message:'将向当前模型 Provider（'+provider+'）发送以下 '+items.length+
+      ' 条私人提示词正文，仅用于本次要求的正文修改：\n'+
+      items.map((row,i)=>(i+1)+'. '+(row.name||row.id)+' ['+row.id+']\n'+row.body).join('\n\n')+
+      '\n确认前不会发送这些私人正文。批量修改的具体结果将在保存前另行审阅一次。',
     run:async()=>{await live();return true;}
   });
   const notify=async({changed=false,unknown=false,targetId=null,releasedImageAssets=[]}={})=>{

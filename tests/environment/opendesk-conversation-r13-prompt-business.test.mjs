@@ -97,7 +97,7 @@ test('R1.3 image references are retained during edits and orphan candidates are 
   assert.equal(f.value.items.length,0);
 });
 function hostFixture({proposal={action:{type:'create',body:'给我一份准确的英文翻译提示词'}},
-  granted=true,initial=model.defaults(),allowReview=true}={}){
+  granted=true,initial=model.defaults(),allowReview=true,editResult='改进后的专业提示词'}={}){
   const chromeStore=new Map(),library=libraryFixture(initial),messages=[],confirms=[];
   const source={},token='prompt-fixture-'+crypto.randomUUID(),epoch='fixture-epoch';
   const api={storage:{local:{
@@ -106,8 +106,10 @@ function hostFixture({proposal={action:{type:'create',body:'给我一份准确�
     async set(rows){for(const [k,v] of Object.entries(rows))chromeStore.set(k,structuredClone(v));},
     async remove(key){chromeStore.delete(key);}
   }}};
+  let currentProposal=proposal,currentEditResult=editResult;
   const conversation={source:()=>({provider:'fixture-provider'}),
-    request:async()=>({proposal,authorization:{assertWrite:async()=>{},release:()=>{}}}),
+    request:async({scope})=>({proposal:scope==='prompt-edit'?{body:currentEditResult}:currentProposal,
+      authorization:{assertWrite:async()=>{},release:()=>{}}}),
     cancel:async()=>{}};
   let host,changed=false,guardReplies=0,commits=0,revoked=false;
   const dispatch=async(op,payload)=>{
@@ -132,7 +134,9 @@ function hostFixture({proposal={action:{type:'create',body:'给我一份准确�
   });
   return {host,api,library,chromeStore,messages,confirms,
     get changed(){return changed;},get guardReplies(){return guardReplies;},
-    get commits(){return commits;},revoke:()=>{revoked=true;}};
+    get commits(){return commits;},revoke:()=>{revoked=true;},
+    setProposal:next=>{currentProposal=next;},
+    setEditResult:next=>{currentEditResult=next;}};
 }
 test('R1.3 trusted Host guard nonce -> conditional dispatcher -> readback -> iframe notice',async()=>{
   const f=hostFixture();
@@ -247,4 +251,75 @@ test('R1.4 stale review acknowledgement cannot erase newer unknown outcome',asyn
   assert.equal(next.verified,false);assert.equal(next.status,'uncertain');
   assert.deepEqual(f.chromeStore.get(PROMPT_AI_RECOVERY_KEY),record);
   f.host.dispose();
+});
+
+
+test('R1.4 Host verifies all seven Prompt business categories with readback and one iframe',async()=>{
+  const base=model.defaults(),initial={...base,items:[
+    model.draft({body:'翻译中文为日语',name:'测试翻译甲'}),
+    model.draft({body:'翻译英文为中文',name:'测试翻译乙'}),
+    model.draft({body:'翻译法文为中文',name:'测试翻译丙'})
+  ].map((item,order)=>({...item,order}))};
+  const f=hostFixture({initial});
+  const run=async(action,request='用户明确要求操作',refs={})=>{
+    f.setProposal({action});
+    const value=await f.host.request({request,refs,event:{isTrusted:true}});
+    assert.equal(hash(f.library.value),(await f.library.read()).etag);
+    return value;
+  };
+  const created=await run({type:'create',body:'将中文翻译成日语，保留 Markdown 格式',name:'新增日语'});
+  assert.equal(created.writeIssued,true);
+  assert.equal(f.library.value.items.length,4);
+  const beforeSearch=f.commits,guards=f.guardReplies;
+  const found=await run({type:'search',query:'测试翻译'});
+  assert.equal(found.total,3);
+  assert.equal(f.commits,beforeSearch,'search is read-only');
+  assert.equal(f.guardReplies,guards,'search does not acquire a draft guard');
+  const thirdId=found.refs.matches[2];
+  await run({type:'set_enabled',target:'$search:3',enabled:false},'把第三条停用',found.refs);
+  assert.equal(f.library.value.items.find(row=>row.id===thirdId).enabled,false);
+  await run({type:'move',target:thirdId,direction:'up'},'把第三条上移');
+  assert.equal(f.library.value.items[1].id,thirdId);
+  const oldName=f.library.value.items[1].name;
+  const reviewsBeforeUpdate=f.confirms.length;
+  await run({type:'update',target:thirdId,name:'专业翻译',label:'译'});
+  assert.equal(f.library.value.items[1].name,'专业翻译');
+  assert.equal(f.library.value.items[1].label,'译');
+  assert.notEqual(oldName,f.library.value.items[1].name);
+  assert.equal(f.confirms.length,reviewsBeforeUpdate,'attribute update never exports the private body');
+  f.setEditResult('请专业翻译：保留所有 Markdown 标题和表格。');
+  await run({type:'edit',target:thirdId,instruction:'更专业，保留格式'});
+  assert.match(f.library.value.items[1].body,/Markdown/);
+  const oldOthers=f.library.value.items.filter(row=>row.name.startsWith('测试翻译')).length;
+  const beforeBatch=f.confirms.length;
+  f.setEditResult('简洁版专业说明：保留 Markdown');
+  await run({type:'batch_edit',query:'测试翻译',instruction:'缩短为简洁版本'});
+  assert.equal(f.confirms.length-beforeBatch,2,'one grouped privacy review and one batch change review');
+  assert.equal(f.library.value.items.filter(row=>row.name.startsWith('测试翻译')).length,oldOthers);
+  const beforeDelete=f.confirms.length;
+  await run({type:'delete',query:'新增日语'},'删除指定旧提示词');
+  assert.equal(f.confirms.length-beforeDelete,1,'delete requires only one target review');
+  assert.equal(f.library.value.items.some(row=>row.name==='新增日语'),false);
+  assert.equal(f.messages.filter(m=>m.kind==='state-changed').length,7,
+    'every durable Host write notifies the existing iframe; search does not');
+  assert.equal(f.commits,7,'one storage.set per successful mutation, zero replays');
+  assert.equal(f.chromeStore.has(PROMPT_AI_RECOVERY_KEY),false);
+  f.host.dispose();
+});
+
+test('R1.4 update only changes the user-specified attributes and preserves opaque assets',async()=>{
+  const id='psa_'+'a'.repeat(32),row=model.draft({
+    body:'不得外传的原始正文',name:'手动名称',label:'保',appearance:'image',imageAssetId:id
+  });
+  const f=libraryFixture({schema:1,items:[row],settings:model.defaults().settings});
+  const result=await f.run({type:'update',target:row.id,name:'新名称',enabled:false});
+  const saved=f.value.items[0];
+  assert.equal(result.writeIssued,true);assert.equal(saved.body,row.body);
+  assert.equal(saved.imageAssetId,id);assert.equal(saved.appearance,'image');
+  assert.equal(saved.label,'保');assert.equal(saved.name,'新名称');
+  assert.equal(saved.enabled,false);assert.equal(f.writes,1);
+  await f.run({type:'update',target:row.id,name:'',label:''});
+  assert.equal(f.value.items[0].nameAuto,true);assert.equal(f.value.items[0].labelAuto,true);
+  assert.throws(()=>validatePromptPlan({action:{type:'update',target:row.id,body:'越界'}}),
+    {code:'E_PROMPT_SCHEMA'});
 });

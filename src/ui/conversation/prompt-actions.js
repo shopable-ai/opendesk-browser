@@ -9,7 +9,8 @@ const canonical=value=>JSON.stringify(value,(_key,row)=>plain(row)
 const stop=signal=>{if(signal?.aborted)throw error('E_CANCELLED','已停止后续操作，尚未发出新的写入');};
 const schema={
  search:['type','query'],create:['type','body','name','label','enabled'],
- edit:['type','target','instruction'],set_enabled:['type','target','enabled'],
+ edit:['type','target','instruction'],update:['type','target','name','label','enabled'],
+ set_enabled:['type','target','enabled'],
  move:['type','target','direction'],delete:['type','query'],
  batch_enabled:['type','query','enabled'],batch_edit:['type','query','instruction']
 };
@@ -41,12 +42,15 @@ export function validatePromptPlan(plan){
  if(!plain(a)||!Object.hasOwn(schema,a.type)||Object.hasOwn(plan,'question')||
   Object.keys(a).some(k=>!schema[a.type].includes(k))||
   ['search','delete','batch_enabled','batch_edit'].includes(a.type)&&!valid(a.query,160)||
-  ['edit','set_enabled','move'].includes(a.type)&&!valid(a.target,160)||
+  ['edit','update','set_enabled','move'].includes(a.type)&&!valid(a.target,160)||
   ['edit','batch_edit'].includes(a.type)&&!valid(a.instruction,1200)||
   a.type==='create'&&!valid(a.body)||
-  a.name!==undefined&&!valid(a.name,60)||
-  a.label!==undefined&&!valid(a.label,4)||
+  a.name!==undefined&&(typeof a.name!=='string'||a.name.length>60||
+    a.type!=='update'&&!a.name.trim())||
+  a.label!==undefined&&(typeof a.label!=='string'||a.label.length>32||
+    a.type!=='update'&&!a.label.trim()||a.type!=='update'&&!valid(a.label,4))||
   a.enabled!==undefined&&typeof a.enabled!=='boolean'||
+  a.type==='update'&&a.name===undefined&&a.label===undefined&&a.enabled===undefined||
   a.type==='move'&&!['up','down'].includes(a.direction)||
   ['set_enabled','batch_enabled'].includes(a.type)&&typeof a.enabled!=='boolean')
   throw error('E_PROMPT_SCHEMA','AI 提示词操作不符合受限协议');
@@ -63,10 +67,13 @@ export function promptConversationContext(library,refs={}){
 export const promptInstructions=[
  'Output ONLY JSON: {"question":"clarification"} or {"action":{"type":"...",...}}.',
  'One action per proposal. Types: search(query), create(body,name?,label?,enabled?),',
- 'edit(target,instruction), set_enabled(target,enabled), move(target,direction:up/down),',
+ 'edit(target,instruction), update(target,name?,label?,enabled?),',
+ 'set_enabled(target,enabled), move(target,direction:up/down),',
  'delete(query), batch_enabled(query,enabled), batch_edit(query,instruction).',
  'For create, compose a useful complete prompt from the user request.',
  'For edit, return an edit instruction, NEVER invent an unseen previous body.',
+ 'For name, short-label or enabled-only changes use update; do not send private body to the model.',
+ 'In update, empty name or label restores the auto-generated value.',
  'Targets are unique name, verified record ID, or $search:1..$search:12 from context.',
  'For destructive and batch operations, query precisely selects the actual target records.',
  'Search runs locally. Do not request the full private library, guess record IDs,',
@@ -92,7 +99,7 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
  if(!/^[a-f0-9]{64}$/.test(etag||''))throw error('E_PROMPT_HOST','Host 缺少有效数据版本');
  stop(signal);
  const a=checked.action,items=library.items;
- if(['edit','set_enabled','move'].includes(a.type)&&/^\$search:(?:[1-9]|1[0-2])$/.test(a.target||'')&&
+ if(['edit','update','set_enabled','move'].includes(a.type)&&/^\$search:(?:[1-9]|1[0-2])$/.test(a.target||'')&&
     refs.etag!==etag)
   throw error('E_PROMPT_REFERENCE_STALE','上次搜索对应的库版本已变化，请重新搜索定位');
  if(a.type==='search'){
@@ -105,9 +112,10 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
   return {messages:[message],refs:refsNext,total:found.length};
  }
  let affected=[],nextItems=items.slice(),reviewRequired=false,verb='';
- const edit=async row=>{
+ const edit=async(row,batchItems=null)=>{
   if(typeof providerEdit!=='function')throw error('E_PROMPT_EDIT','缺少受控的正文编辑能力');
-  const body=await providerEdit({item:structuredClone(row),instruction:a.instruction,signal});
+  const body=await providerEdit({item:structuredClone(row),instruction:a.instruction,
+   batchItems:batchItems?.map(item=>structuredClone(item))||null,signal});
   stop(signal);
   if(!valid(body))throw error('E_PROMPT_EDIT','AI 未返回有效的完整正文');
   const revised=model.draft({body,name:row.nameAuto?'':row.name,
@@ -121,11 +129,18 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
    enabled:a.enabled!==false});
   if(items.some(item=>item.id===row.id))throw error('E_PROMPT_ID','随机 ID 冲突');
   nextItems.push({...row,order:items.length});affected=[row];verb='创建';
- }else if(['edit','set_enabled','move'].includes(a.type)){
+ }else if(['edit','update','set_enabled','move'].includes(a.type)){
   const row=target(items,a.target,refs),i=items.findIndex(v=>v.id===row.id);
   affected=[row];
   if(a.type==='edit'){nextItems[i]=await edit(row);verb='修改';}
-  else if(a.type==='set_enabled'){nextItems[i]={...row,enabled:a.enabled};verb=a.enabled?'启用':'停用';}
+  else if(a.type==='update'){
+   const changed=model.draft({body:row.body,
+    name:a.name===undefined?(row.nameAuto?'':row.name):a.name,
+    label:a.label===undefined?(row.labelAuto?'':row.label):a.label,
+    enabled:a.enabled===undefined?row.enabled:a.enabled,shape:row.shape,
+    appearance:row.appearance,imageUrl:row.imageUrl,imageAssetId:row.imageAssetId},row);
+   nextItems[i]={...row,...changed};verb='更新属性';
+  }else if(a.type==='set_enabled'){nextItems[i]={...row,enabled:a.enabled};verb=a.enabled?'启用':'停用';}
   else{
    const j=i+(a.direction==='up'?-1:1);
    if(j<0||j>=items.length)throw error('E_PROMPT_BOUNDARY','已在排序边界，没有移动');
@@ -150,7 +165,7 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
  if(!affected.length)throw error('E_PROMPT_NOT_FOUND','目标提示词不存在');
  if(a.type==='batch_edit'){
   const revisions=new Map();
-  for(const row of affected){stop(signal);revisions.set(row.id,await edit(row));}
+  for(const row of affected){stop(signal);revisions.set(row.id,await edit(row,affected));}
   nextItems=items.map(row=>revisions.get(row.id)||row);
  }
  if(reviewRequired){

@@ -64,6 +64,8 @@ function reviewedCompiledAdblock(target,path,root){
 // prevents async AI reveals from hijacking newer user navigation, and shows a
 // readback-only locate action. CSS adds only that locate notice. Exact Git
 // blob locks stay fail-closed; any subsequent change requires re-review.
+// R3.2 follow-up: reviewed style.css f7be8f4 adds only narrow coarse-pointer
+// (<=240px / 200% zoom) horizontal toolbar scrolling; no new business JS.
 // R3.2: The Bookmark Manager trusted React pilot compiles exactly four
 // reviewed first-party files into the EXISTING ui/tool-shell.js. They are
 // author-controlled static imports, not installed or user-supplied package
@@ -74,7 +76,7 @@ const compiledBookmarkReactInputs=Object.freeze({
   'examples/sidebar-tools/bookmark-manager/src/model.js':'34cc7a737869ca502b4bcbbb47d2437d1b6b2bd5',
   'examples/sidebar-tools/bookmark-manager/src/service.js':'d072ace5379d0d4c8f8cda8d8d172cb60122576e',
   'examples/sidebar-tools/bookmark-manager/src/react/App.jsx':'5df3df059e601bf343b698a0300cccbfdd58ad8a',
-  'examples/sidebar-tools/bookmark-manager/src/react/style.css':'45df50633c993c32a5ba60d6889ab769a8e77ca6'
+  'examples/sidebar-tools/bookmark-manager/src/react/style.css':'f7be8f43c22dab3dccdbb85585aa03f31ca6d941'
 });
 function reviewedCompiledBookmarkReact(target,path,root){
   if(target!=='ui/tool-shell.js'||!Object.hasOwn(compiledBookmarkReactInputs,path))return null;

@@ -285,7 +285,7 @@ function ConversationWorkspace({
     {feedbackError&&<p className="od-conversation-error" role="alert">{feedbackError}</p>}
     {needsReview&&<>
      <p className="od-conversation-error" role="status">
-      上次写入结果不确定，不能直接重放。请先从真实 Host 重新读取并核对列表。
+      上次写入结果不确定，不能直接重放。请先刷新并核对真实 Host 中的列表。
      </p>
      {typeof controller?.reconcile==='function'&&<button type="button"
        className="od-conversation-reconcile" disabled={busy||reconciling}
