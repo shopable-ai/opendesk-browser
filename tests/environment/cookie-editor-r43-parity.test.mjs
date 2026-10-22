@@ -55,7 +55,8 @@ test('R4.3 legacy HTML retains visible actions and the current formal package is
   assert.match(js,/originalExpiryInput/);
   assert.match(css,/#live-cookie-list \.cookie-row\{/);
   assert.match(html,/<option value="backup" selected>/);
-  assert.equal(pkg.version,'2.0.31');
+  assert.equal(pkg.version,JSON.parse(await read('tool.config.json')).version,
+    'archived R4.3 preview must not pin the current official React release version');
   assert.deepEqual(pkg,await createSidebarToolPackage(root));
 });
 
