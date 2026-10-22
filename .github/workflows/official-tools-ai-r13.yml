@@ -1,0 +1,36 @@
+name: Official Tools AI R1.3 - real source gates
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/ui/conversation/prompt-*.js'
+      - 'src/ui/trusted-prompt-admission.js'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/ui/tool-shell.js'
+      - 'src/ui/react/main.tsx'
+      - 'src/ui/react/components/conversation.tsx'
+      - 'examples/sidebar-tools/prompt-shortcuts/**'
+      - 'tests/environment/opendesk-conversation-r13-prompt-business.test.mjs'
+      - '.github/workflows/official-tools-ai-r13.yml'
+  workflow_dispatch:
+jobs:
+  prompt-ai-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Prompt business Adapter / Host nonce / ETag / readback
+        run: node --test tests/environment/opendesk-conversation-r13-prompt-business.test.mjs
+      - name: Prompt official admission and iframe/Host regression
+        run: node --test tests/environment/sidebar-tools-host.test.mjs tests/environment/prompt-shortcuts-r19-first-run.test.mjs
+      - name: Official release source integrity
+        run: node --test tests/environment/official-tools-catalog-r45.test.mjs
+      - name: Production package and type checks
+        run: npm run check
+      - name: Production build
+        run: npm run build
