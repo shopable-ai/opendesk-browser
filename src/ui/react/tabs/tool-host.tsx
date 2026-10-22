@@ -15,8 +15,11 @@ export function ToolHost({view}) {
   const topAction = snapshot.fields['sidebar-tool-primary-action']?.data?.action || '';
   // Cookie Editor has its own trusted settings card. Move the existing enable
   // action there instead of leaving it in the hidden generic Settings section.
+  // Render exactly one enable switch and hint: the Cookie card owns both
+  // whenever it is visible outside first-use review; otherwise generic
+  // settings own them. This mirrors CookieSettings.showEnable below.
   const cookieManagementVisible=snapshot.fields['sidebar-tool-cookie-permissions']?.hidden===false&&
-    snapshot.fields['sidebar-tool-cookie-permissions']?.data?.mode==='settings';
+    snapshot.fields['sidebar-tool-cookie-permissions']?.data?.mode!=='first-use';
   // These are the only editable inputs in this host. Business decisions remain
   // synchronous controller actions, with the original trusted browser event.
   const actions = React.useMemo(() => ({

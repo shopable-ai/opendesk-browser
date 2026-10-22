@@ -19,6 +19,9 @@ test('Side Panel keeps Cloud as a dedicated product tab and development-only Deb
   assert.doesNotMatch(await read('src/ui/tool-shell.js'),/setCloudAvailable/);
   const ids=[...html.matchAll(/id="([^"]+)"/g)].map(m=>m[1]);
   assert.equal(new Set(ids).size,ids.length);
+  // Cookie and generic tool settings must never mount duplicate switch owners.
+  for(const id of ['sidebar-tool-enable','sidebar-tool-enable-hint'])
+    assert.equal(ids.filter(value=>value===id).length,1,id);
 });
 
 test('only tab navigation scrolls horizontally and Cloud cards wrap on narrow panels',async()=>{
