@@ -1,0 +1,18 @@
+{
+  "at": 1792639933.551548,
+  "instance": "bm-r211-update-01a16018",
+  "ownedBrowserPid": 43979,
+  "launcherPid": 43978,
+  "otherProcessesSignalled": false,
+  "globalNativeConfigEdited": false,
+  "launcherSuspendedForOfficialCleanup": true,
+  "browserCloseExit": 0,
+  "chromeTerminalBeforeCleanup": true,
+  "profilePresentForOfficialCleanup": true,
+  "officialCleanupExit": 0,
+  "officialCleanup": {
+    "cleaned": true,
+    "otherNativeHostsUntouched": true
+  },
+  "launcherResumed": true
+}

@@ -1,0 +1,192 @@
+{
+  "goal": "R2.1.1-LOCAL-REAL-ACCEPTANCE",
+  "overall": "NOT_FINAL_PASS",
+  "originalFiveTasksRetained": true,
+  "newProductionOriginalGoal": "PASS_SPECIFIC_ORIGINAL_GOAL_NEW_PRODUCTION",
+  "source": {
+    "extensionId": "mcmnmlehmidheiacdiocikjkbdakdjoh",
+    "instance": "bm-r211-update-01a16018",
+    "pid": 43979,
+    "launcherPid": 43978,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-j6ucgymh",
+    "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "baselineSource": "a36689ac0ecad72ad378144ad39812a72d31ef62",
+    "baselineToolShellSha256": "f0432a8440223b0e9fd2a5718d4c87f5a59a7a961e3839fc1af282a402f7f39d",
+    "updateSource": "2181b53a546d99c46ecf3418471a7eb95b6db5ca",
+    "updateToolShellSha256": "7682e5d0737af6f686e211f00b657ddbeebce60ef6421cef6afca7cf889883f9",
+    "actualChromeVersion": "155.0.8059.39",
+    "actualCodexVersion": "0.159.2",
+    "provider": "local_codex official OpenAI / gpt-6.1-sol",
+    "nodeVersion": "24.16.0",
+    "checkedHead": "9c447f85ad68441cb2ec6bc21c81208378a84a1e",
+    "changesAfterSnapshot": [
+      "docs/framework/evidence/dynamic-app-r14-local/b2-summary.json",
+      "docs/framework/workstreams/dynamic-app-runtime-r14-local-20261022.md"
+    ],
+    "changesAfterSnapshotAffectBuildInputs": false,
+    "productionPackageHash": "691aa05dc5d894908c98702951f1a5da2274a3da412bb1c64f1ec94fae3b806a",
+    "scope": "Owned headed Mac CFT/profile/Native instance only; normal dist/development and shared watcher untouched; content reload version0.1.0, not a version-number upgrade",
+    "temporaryAuthCopy": "byte copy from existing auth for official Native runtime only; never read/printed/token-forwarded; removed with owned temporary CODEX_HOME after official cleanup"
+  },
+  "freshChecks": {
+    "nodeTargeted": {
+      "pass": 326,
+      "fail": 0,
+      "log": "node-targeted.log"
+    },
+    "sourceCheck": {
+      "checkedFiles": 1005,
+      "exit": 0,
+      "log": "check.log"
+    },
+    "productionBuild": {
+      "exit": 0,
+      "assets": 106,
+      "receipt": "build-production.json"
+    },
+    "packageVerify": {
+      "exit": 0,
+      "log": "production-verify.log"
+    }
+  },
+  "realNewCases": {
+    "nativePlannerTimeout": {
+      "status": "PASS_SPECIFIC_REAL_NATIVE_WAIT_TIMEOUT_NO_REPLAY",
+      "boundary": "Actual 180-second Native planner wait, UI released at about185seconds, 0 writes/tree unchanged; not480-second global budget, no confirmed late successful response or Native terminal. Post-SIGSTOP T-state was not captured; signal/check and state observation are separate. See case-corrections.json."
+    },
+    "contentReload": {
+      "status": "PASS_SPECIFIC_CONTENT_RELOAD_NO_AUTO_REPLAY",
+      "boundary": "Actual chrome.runtime.reload on same unpacked path/ID after content replacement, version remains0.1.0. Chrome developer mode was off and required actual UI recovery. Not version-number/Store upgrade, not seamless recovery."
+    },
+    "bookmarkPermissionRevocation": {
+      "status": "PASS_SPECIFIC_BOOKMARK_PERMISSION_REVOKE",
+      "boundary": "Actual permissions.remove(bookmarks) fault injection, matched Native ACK and CANCELLED/interrupted terminal, private tree erased, 0 SDK write/Chrome change."
+    },
+    "nativeProviderPermissionRevocation": {
+      "status": "PASS_SPECIFIC_NATIVE_PROVIDER_PERMISSION_REVOKE",
+      "boundary": "Actual permissions.remove(nativeMessaging) fault injection; UI displays late proposal discarded, but no real late successful model response was captured. 0 SDK write/Chrome change and Native descendants exited. SQLite remainsinProgress; no confirmed Native terminal."
+    },
+    "otherToolReadiness": {
+      "status": "PASS_SPECIFIC_ACTUAL_TOOL_READINESS_SWITCH",
+      "boundary": "Same actual switch resumed after correcting driver world assumption. Notes OOP iframe editor actually focused and Save enabled; ready bookmark tree restored. Does not claim in-flight instance switching is permitted."
+    },
+    "grantRestoration": {
+      "status": "PASS_SPECIFIC_PERMISSION_RESTORE_NO_AUTO_REPLAY",
+      "nativeReady": true,
+      "boundary": "Actual Connect restored permission; later UI Codex已就绪. No modelSend/newturn after restoration; no automatic replay."
+    }
+  },
+  "caseMatrix": {
+    "T1": "PASS_SPECIFIC_NEW_CANDIDATE: onceSend,2Native decisions,folder+URL create,independent readback",
+    "T2": "PRIOR_REAL_SPECIFIC_PASS: unique folder reuse; core implementation unchanged, not rerun on this content candidate",
+    "T3": "PRIOR_REAL_SPECIFIC_PASS: URL reuse; core implementation unchanged, not rerun on this content candidate",
+    "T4": "PRIOR_REAL_SPECIFIC_PASS: ambiguity stops with0writes; not rerun on this content candidate",
+    "T5": "PRIOR_REAL_SPECIFIC_PASS: actualNOT_FOUND thencontinue; neworiginal case does not separately prove NOT_FOUND",
+    "T6": "PASS_SPECIFIC_NEW_CANDIDATE:2completed realNative turns,2SDKcreates,one trustedSend",
+    "T7": "PARTIAL_NODE_PASS_REAL_TRANSIENT_RECOVERY_NOT_TESTED: configuredNative is not an eligible HTTPS continuation retry path; no real transient read recovery proof",
+    "T8": "PRIOR_REAL_SPECIFIC_UNKNOWN_CUT_PASS: worker terminated after actualwrite beforeACK; not exhaustive UNKNOWN matrix",
+    "T9": "PARTIAL_REAL: priorStop terminal plus newbook/native permissionrevoke and fullyready switch after cancellation. Inflight instance/provider selector navigation is guarded; forced inflightswitch not proved",
+    "T10": "PARTIAL_REAL: real180sNative timeout and newcontentruntime.reload noautoReplay. Global480s/8rounds/24actions/repeatedplan are Node-only; version-numberupgrade not tested",
+    "T11": "Native officialgpt-6.1-sol REAL_PASS; HTTPS and Responses NOT_TESTED_NO_CONFIG; fixturetests are distinct",
+    "T12": "PARTIAL_PRIOR_REAL: SidePanel360/400/440/960 darklight/keyboard/scroll. ActualSidePanel320 clamps360; SidePanel200percent notproved. InstalledtoolTab320/zoom2 are not SidePanel proofs."
+  },
+  "ci": {
+    "r21": {
+      "run": 39698306861,
+      "source": "a36689ac0ecad72ad378144ad39812a72d31ef62",
+      "agent-contract": "SUCCESS job119561031784",
+      "agent-build": "SUCCESS job119561031544",
+      "boundary": "Previously fetched CI evidence reused; not a new run on latest evidence-only HEAD."
+    },
+    "sharedWorkflow": {
+      "run": 39706472804,
+      "source": "f592cad4166bff8ef0466bb3a7030144fe9b1c3d",
+      "jobs": "all threeSUCCESS,23sourceUIchecks"
+    },
+    "r32ExistingFailure": {
+      "run": 39705407655,
+      "job": 119584160351,
+      "status": "FAIL_EXISTING_MAIN_FIXED_CAP",
+      "actualToolShellBytes": 1191465,
+      "fixedCapBytes": 1081344,
+      "boundary": "Production build+verify pass; old candidate1190116 already above cap. No cap relaxed and no unrelated platform rewrite."
+    }
+  },
+  "reusedEvidence": [
+    "../bookmark-agent-r211-local-20261022/",
+    "../bookmark-agent-r211-followup-20261022/",
+    "../bookmark-agent-r211-ci-followup-20261022/",
+    "../bookmark-agent-r211-native-terminal-20261022/"
+  ],
+  "resourceCleanup": {
+    "at": 1792639979067,
+    "officialCleanup": 0,
+    "temporaryCodexHomeRemoved": true,
+    "baselineEvidencePathRestored": true,
+    "testedNewProductionPreservedAt": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-update/loaded-production-accepted",
+    "testedNewToolShellSha256": "7682e5d0737af6f686e211f00b657ddbeebce60ef6421cef6afca7cf889883f9",
+    "profileRemoved": true,
+    "noSharedWatcherTouched": true
+  },
+  "productSourceChangedThisPass": false,
+  "reviewerScores": {
+    "reviewer": "Ramanujan",
+    "agentId": "01a161a8-f05e-7bf2-857a-a2b5ada8289e",
+    "scores": [
+      {
+        "dimension": "功能正确性",
+        "score": 93,
+        "evidenceAndDeductions": "核心收藏及旧复用/澄清证据有效；复杂意图、跨Provider完整覆盖不足"
+      },
+      {
+        "dimension": "架构简洁性",
+        "score": 90,
+        "evidenceAndDeductions": "复用既有SDK/Host/Authority/React根；恢复策略仍跨调用方与loop"
+      },
+      {
+        "dimension": "Agent连续性",
+        "score": 92,
+        "evidenceAndDeductions": "真实多轮、旧NOT_FOUND续轮成立；当前候选动作级复用未完整复验"
+      },
+      {
+        "dimension": "异常恢复",
+        "score": 89,
+        "evidenceAndDeductions": "Stop/特定UNKNOWN/超时与reload不重放有效；T7、持久终态和完整T10未闭合"
+      },
+      {
+        "dimension": "权限与数据安全",
+        "score": 93,
+        "evidenceAndDeductions": "bookmarks撤权终态及0写入证据强；Provider撤权终态、真实晚到丢弃仍缺"
+      },
+      {
+        "dimension": "UX与可访问性",
+        "score": 91,
+        "evidenceAndDeductions": "旧焦点/滚动/草稿证据加Notes真实聚焦；完整T12与当前候选覆盖不足"
+      },
+      {
+        "dimension": "真实测试证据",
+        "score": 90,
+        "evidenceAndDeductions": "Native/Chrome/独立树/SQLite交叉支持；HTTPS/Responses缺配置、候选与Fixture需分列"
+      }
+    ],
+    "allAtLeast95": false,
+    "wholeGoalVerdict": "NO_FINAL_PASS",
+    "fullReview": "independent-review.json",
+    "correctionsReview": "independent-review-corrections.json; final UI-text-versus-actual-late-response wording synchronized"
+  },
+  "gitDelivery": {
+    "branch": "main",
+    "scope": "this evidence directory only",
+    "commit": "enclosing Git commit, SHA reported in final response",
+    "push": "ordinary safe main push, actual result reported in final response"
+  },
+  "nativePersistentStates": {
+    "counts": {
+      "inProgress": 3,
+      "completed": 2,
+      "interrupted": 1
+    },
+    "boundary": "Timeout, contentreload and Native-provider-revoked turns remaininProgress in SQLite; process exit is independently different from persistent terminal state."
+  },
+  "cleanupReadback": "cleanup-process-readback.json"
+}

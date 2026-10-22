@@ -1,0 +1,193 @@
+{
+  "kind": "Read-only wait for Native restoration readiness, no additional Connect or Send",
+  "states": [
+    {
+      "body": "我的\n扩展\n工作流\n开发\n云控\n新工作流\n✦\n创建新工作流\n\n用一句话描述任务，或选择下方示例开始。\n\n填写表单并读回\n只读提取网页信息\n描述任务，或告诉 AI 怎样修改步骤\n本机 Codex\nAI 设置\n本机 Codex\nHTTPS\nOpenDesk\n\nCodex 已就绪\n\n连接诊断\n数据与隐私",
+      "at": 1792639882725
+    }
+  ],
+  "at": 1792639882722,
+  "ready": true,
+  "ui": {
+    "url": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sidepanel.html?hostInstanceId=91e0705c-a95a-4ffd-8ef5-500768222e92",
+    "body": "我的\n扩展\n工作流\n开发\n云控\n新工作流\n✦\n创建新工作流\n\n用一句话描述任务，或选择下方示例开始。\n\n填写表单并读回\n只读提取网页信息\n描述任务，或告诉 AI 怎样修改步骤\n本机 Codex\nAI 设置\n本机 Codex\nHTTPS\nOpenDesk\n\nCodex 已就绪\n\n连接诊断\n数据与隐私",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": null,
+        "text": "我的",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "tab-tools",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": null,
+        "text": "扩展",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "tab-workflow",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": null,
+        "text": "工作流",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "tab-develop",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": null,
+        "text": "开发",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "tab-cloud",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": null,
+        "text": "云控",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "workflow-history-toggle",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": "历史",
+        "text": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "workflow-ai-new-session",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": "新对话，保留当前工作流",
+        "text": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "workflow-new",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": "新建工作流",
+        "text": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": null,
+        "text": "填写表单并读回",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": null,
+        "text": "只读提取网页信息",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "workflow-provider-toggle",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": "AI 设置",
+        "text": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "workflow-ai-plan",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": "发送任务并生成步骤",
+        "text": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": "关闭 AI 设置",
+        "text": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "workflow-source-local",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": null,
+        "text": "本机 Codex",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "workflow-source-https",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": null,
+        "text": "HTTPS",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "",
+        "tag": "SUMMARY",
+        "label": null,
+        "text": "连接诊断",
+        "visible": true
+      },
+      {
+        "id": "workflow-local-refresh",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": null,
+        "text": "重新检查",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "workflow-local-help",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": null,
+        "text": "连接设置 ↗",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "",
+        "tag": "SUMMARY",
+        "label": null,
+        "text": "数据与隐私",
+        "visible": true
+      },
+      {
+        "id": "workflow-observation-revoke",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": null,
+        "text": "撤销网页摘要授权",
+        "visible": true,
+        "disabled": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "timeoutHeader": {
+    "pauseStateAfterSignal": "NOT_CAPTURED: pausedProcess.state=S was captured before signal, not a post-signal T-state proof. actualOwnedPause=true is the original driver signal/check result, not independent T-state observation.",
+    "nativeAfterResumeField": "Original driver field name retained. It is post-attempt observation; appServerExitedBeforeResume=true means no SIGCONT was actually sent.",
+    "nativeTerminal": "NOT_CONFIRMED; SQLite inProgress is not terminal success or cancellation.",
+    "globalDeadline": "480000 total deadline/8rounds/24actions not proved by this case."
+  },
+  "providerRevoke": "UI says late proposal discarded, but no actual late successful model response was captured; Native process exit does not prove SQLite terminal.",
+  "notes": "Focused editor and enabled Save proved; Save was not clicked, no Notes save feature acceptance claimed.",
+  "cleanup": "Separate exact-PID readback now records launcher and Chrome absent; launcherResumed alone was not treated as exit.",
+  "buildCaps": "Canonical package verifier PASS and old R32 1081344B fixed-cap FAIL are distinct. 1191465-1081344=110121B over old cap.",
+  "driverFailureClassification": "Old ordinary-tab locator, wrong sandbox DOM world, pre-SIGSTOP wrapper+leaf ambiguity, shadow hit-test all are documented driver assumptions; no product/source security relaxed."
+}

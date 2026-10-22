@@ -1,0 +1,78 @@
+{
+  "target": {
+    "targetId": "85172902DA5F9A7D08C0D43D2E5E5B67",
+    "type": "iframe",
+    "title": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sidebar-tools/sandbox.html",
+    "url": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sidebar-tools/sandbox.html",
+    "attached": false,
+    "parentId": "C7288669BB7C494436E6005D45704E4A",
+    "canAccessOpener": false,
+    "parentFrameId": "C7288669BB7C494436E6005D45704E4A",
+    "browserContextId": "848097F5936BE0C763E0E5AD314BB2CA"
+  },
+  "ui": {
+    "body": "OpenDesk Browser · Browser Test Lab\n\nhttp://127.0.0.1:43111/demo-form.html\n\n我的笔记\n0 条\n关联当前网页\n打开已安装的自动化任务",
+    "fields": [
+      {
+        "id": "refresh-page",
+        "label": "更新网页信息",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "add-note",
+        "label": "新建笔记",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "note-text",
+        "label": "笔记内容",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "attach-page",
+        "label": null,
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "delete-note",
+        "label": "删除当前笔记",
+        "visible": true,
+        "disabled": true
+      },
+      {
+        "id": "save-note",
+        "label": "保存笔记",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "note-confirm-cancel",
+        "label": null,
+        "visible": false,
+        "disabled": false
+      },
+      {
+        "id": "note-confirm-accept",
+        "label": null,
+        "visible": false,
+        "disabled": false
+      },
+      {
+        "id": "task-name",
+        "label": "已安装的任务 ID",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "open-task",
+        "label": "打开任务（不会自动运行）",
+        "visible": true,
+        "disabled": false
+      }
+    ]
+  }
+}

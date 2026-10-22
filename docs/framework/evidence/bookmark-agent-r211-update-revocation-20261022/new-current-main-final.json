@@ -1,0 +1,449 @@
+{
+  "kind": "Updated main production after actual content reload: original request, actual installed SIDE_PANEL and Native model",
+  "request": "把当前页面放入测试收藏夹，如果没有，就创建目录",
+  "at": 1792638979072,
+  "launch": {
+    "pid": 43979,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-j6ucgymh"
+  },
+  "target": {
+    "targetId": "C7288669BB7C494436E6005D45704E4A",
+    "type": "page",
+    "title": "OpenDesk Browser",
+    "url": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sidepanel.html?hostInstanceId=91e0705c-a95a-4ffd-8ef5-500768222e92",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "848097F5936BE0C763E0E5AD314BB2CA"
+  },
+  "inputDispatch": {
+    "sendClickPairs": 1,
+    "method": "Input.dispatchMouseEvent mousePressed/mouseReleased"
+  },
+  "sourceSha256": "7682e5d0737af6f686e211f00b657ddbeebce60ef6421cef6afca7cf889883f9",
+  "before": {
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [],
+            "dateAdded": 1792637581041,
+            "folderType": "bookmarks-bar",
+            "id": "1",
+            "index": 0,
+            "parentId": "0",
+            "syncing": false,
+            "title": "书签栏"
+          },
+          {
+            "children": [],
+            "dateAdded": 1792637581041,
+            "folderType": "other",
+            "id": "2",
+            "index": 1,
+            "parentId": "0",
+            "syncing": false,
+            "title": "其他书签"
+          }
+        ],
+        "dateAdded": 1792637581041,
+        "id": "0",
+        "syncing": false,
+        "title": ""
+      }
+    ],
+    "contexts": [
+      {
+        "contextId": "64e0c1a6-9a19-45be-913f-72c37cc4a835",
+        "contextType": "SIDE_PANEL",
+        "documentId": "B44B7CCEAC42F108FB0DA584D71B5252",
+        "documentOrigin": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh",
+        "documentUrl": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sidepanel.html?hostInstanceId=91e0705c-a95a-4ffd-8ef5-500768222e92",
+        "frameId": 0,
+        "incognito": false,
+        "tabId": -1,
+        "windowId": -1
+      }
+    ],
+    "at": 1792638979153
+  },
+  "sentAt": 1792638979164,
+  "after": {
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792639114614,
+                    "id": "6",
+                    "index": 0,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ],
+                "dateAdded": 1792639113333,
+                "dateGroupModified": 1792639114614,
+                "id": "5",
+                "index": 0,
+                "parentId": "1",
+                "syncing": false,
+                "title": "测试收藏夹"
+              }
+            ],
+            "dateAdded": 1792637581041,
+            "dateGroupModified": 1792639113333,
+            "folderType": "bookmarks-bar",
+            "id": "1",
+            "index": 0,
+            "parentId": "0",
+            "syncing": false,
+            "title": "书签栏"
+          },
+          {
+            "children": [],
+            "dateAdded": 1792637581041,
+            "folderType": "other",
+            "id": "2",
+            "index": 1,
+            "parentId": "0",
+            "syncing": false,
+            "title": "其他书签"
+          }
+        ],
+        "dateAdded": 1792637581041,
+        "id": "0",
+        "syncing": false,
+        "title": ""
+      }
+    ],
+    "body": "我的\n扩展\n工作流\n开发\n云控\n书签管理\n书签管理\n5 项\n搜索名称、URL 或文件夹\n书签栏\n1\n测试收藏夹\n1\nOpenDesk Browser · Browser Test Lab\n其他书签\n0\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n对话输入",
+    "trace": [
+      {
+        "text": "对话输入",
+        "at": 1792638979157
+      },
+      {
+        "event": "send",
+        "trusted": true,
+        "at": 1792638979161
+      },
+      {
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n正在判断下一步…\n对话输入",
+        "at": 1792638979163
+      },
+      {
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n正在更新书签并读回确认…\n对话输入",
+        "at": 1792639111935
+      },
+      {
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n正在更新书签并读回确认…\n对话输入",
+        "at": 1792639113634
+      },
+      {
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n正在判断下一步…\n对话输入",
+        "at": 1792639114916
+      },
+      {
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n正在核实最终结果…\n对话输入",
+        "at": 1792639121733
+      },
+      {
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n对话输入",
+        "at": 1792639122071
+      }
+    ],
+    "sdk": [
+      {
+        "method": "getTree",
+        "at": 1792638979989
+      },
+      {
+        "method": "getTree",
+        "at": 1792638982826
+      },
+      {
+        "method": "getTree",
+        "at": 1792638985657
+      },
+      {
+        "method": "getTree",
+        "at": 1792638988488
+      },
+      {
+        "method": "getTree",
+        "at": 1792638991322
+      },
+      {
+        "method": "getTree",
+        "at": 1792638994154
+      },
+      {
+        "method": "getTree",
+        "at": 1792638996986
+      },
+      {
+        "method": "getTree",
+        "at": 1792638999817
+      },
+      {
+        "method": "getTree",
+        "at": 1792639002641
+      },
+      {
+        "method": "getTree",
+        "at": 1792639005637
+      },
+      {
+        "method": "getTree",
+        "at": 1792639008452
+      },
+      {
+        "method": "getTree",
+        "at": 1792639011281
+      },
+      {
+        "method": "getTree",
+        "at": 1792639014119
+      },
+      {
+        "method": "getTree",
+        "at": 1792639016945
+      },
+      {
+        "method": "getTree",
+        "at": 1792639019782
+      },
+      {
+        "method": "getTree",
+        "at": 1792639022618
+      },
+      {
+        "method": "getTree",
+        "at": 1792639025439
+      },
+      {
+        "method": "getTree",
+        "at": 1792639028244
+      },
+      {
+        "method": "getTree",
+        "at": 1792639031254
+      },
+      {
+        "method": "getTree",
+        "at": 1792639034071
+      },
+      {
+        "method": "getTree",
+        "at": 1792639036889
+      },
+      {
+        "method": "getTree",
+        "at": 1792639039721
+      },
+      {
+        "method": "getTree",
+        "at": 1792639042535
+      },
+      {
+        "method": "getTree",
+        "at": 1792639045377
+      },
+      {
+        "method": "getTree",
+        "at": 1792639048202
+      },
+      {
+        "method": "getTree",
+        "at": 1792639051030
+      },
+      {
+        "method": "getTree",
+        "at": 1792639053863
+      },
+      {
+        "method": "getTree",
+        "at": 1792639056867
+      },
+      {
+        "method": "getTree",
+        "at": 1792639059692
+      },
+      {
+        "method": "getTree",
+        "at": 1792639062530
+      },
+      {
+        "method": "getTree",
+        "at": 1792639065349
+      },
+      {
+        "method": "getTree",
+        "at": 1792639068170
+      },
+      {
+        "method": "getTree",
+        "at": 1792639071000
+      },
+      {
+        "method": "getTree",
+        "at": 1792639073830
+      },
+      {
+        "method": "getTree",
+        "at": 1792639076662
+      },
+      {
+        "method": "getTree",
+        "at": 1792639079492
+      },
+      {
+        "method": "getTree",
+        "at": 1792639082506
+      },
+      {
+        "method": "getTree",
+        "at": 1792639085321
+      },
+      {
+        "method": "getTree",
+        "at": 1792639088153
+      },
+      {
+        "method": "getTree",
+        "at": 1792639090985
+      },
+      {
+        "method": "getTree",
+        "at": 1792639093811
+      },
+      {
+        "method": "getTree",
+        "at": 1792639096638
+      },
+      {
+        "method": "getTree",
+        "at": 1792639099475
+      },
+      {
+        "method": "getTree",
+        "at": 1792639102351
+      },
+      {
+        "method": "getTree",
+        "at": 1792639105151
+      },
+      {
+        "method": "getTree",
+        "at": 1792639108188
+      },
+      {
+        "method": "getTree",
+        "at": 1792639110985
+      },
+      {
+        "method": "getTree",
+        "at": 1792639112068
+      },
+      {
+        "method": "getTree",
+        "at": 1792639112366
+      },
+      {
+        "method": "getTree",
+        "at": 1792639112669
+      },
+      {
+        "method": "getTree",
+        "at": 1792639113099
+      },
+      {
+        "method": "create",
+        "at": 1792639113286
+      },
+      {
+        "method": "getTree",
+        "at": 1792639113470
+      },
+      {
+        "method": "getTree",
+        "at": 1792639113856
+      },
+      {
+        "method": "getTree",
+        "at": 1792639113875
+      },
+      {
+        "method": "getTree",
+        "at": 1792639114391
+      },
+      {
+        "method": "create",
+        "at": 1792639114556
+      },
+      {
+        "method": "getTree",
+        "at": 1792639114748
+      },
+      {
+        "method": "getTree",
+        "at": 1792639116786
+      },
+      {
+        "method": "getTree",
+        "at": 1792639119620
+      },
+      {
+        "method": "getTree",
+        "at": 1792639121890
+      },
+      {
+        "method": "getTree",
+        "at": 1792639122445
+      }
+    ],
+    "metrics": [
+      {
+        "completed": true,
+        "modelCalls": 2,
+        "actionCount": 2,
+        "at": 1792639122069
+      }
+    ],
+    "creates": [
+      {
+        "id": "5",
+        "node": {
+          "dateAdded": 1792639113333,
+          "dateGroupModified": 1792639113333,
+          "id": "5",
+          "index": 0,
+          "parentId": "1",
+          "syncing": false,
+          "title": "测试收藏夹"
+        },
+        "at": 1792639113333
+      },
+      {
+        "id": "6",
+        "node": {
+          "dateAdded": 1792639114614,
+          "id": "6",
+          "index": 0,
+          "parentId": "5",
+          "syncing": false,
+          "title": "OpenDesk Browser · Browser Test Lab",
+          "url": "http://127.0.0.1:43111/demo-form.html"
+        },
+        "at": 1792639114614
+      }
+    ],
+    "stillBusy": false,
+    "at": 1792639122661
+  },
+  "status": "VERIFIED_COMPLETION_REVIEW_NATIVE_AND_TREE"
+}

@@ -1,0 +1,85 @@
+{
+  "head": "2181b53a546d99c46ecf3418471a7eb95b6db5ca",
+  "canonicalInputCount": 667,
+  "trackedInputsCompared": 648,
+  "trackedMismatches": [],
+  "untrackedGeneratedOrInstalledInputs": [
+    {
+      "path": "examples/sidebar-tools/adblock/dist/build-ready.json",
+      "sha256": "3adc4a56527d4250a1a80740ee23e99a36ba56fbaa1277ee759ddafb8fc5389c"
+    },
+    {
+      "path": "examples/sidebar-tools/adblock/dist/tool.css",
+      "sha256": "118489cd3593c9cb84e2309322577df77d903c35f60f26da170a69a7f17a089d"
+    },
+    {
+      "path": "examples/sidebar-tools/adblock/dist/tool.js",
+      "sha256": "594a25863eac77f62360c8858c5bb500022c099feb54d13e903690cc084b0ed7"
+    },
+    {
+      "path": "examples/sidebar-tools/cookie-editor/dist/build-ready.json",
+      "sha256": "e443b041a52c97c327773e9bc0a476edb813dca930db3b41488fa59c38b4f3b6"
+    },
+    {
+      "path": "examples/sidebar-tools/cookie-editor/dist/tool.css",
+      "sha256": "e0ad47bf2569dd0c4c02175e19cba09a7cf52a8455195f75a0132cd33981a501"
+    },
+    {
+      "path": "examples/sidebar-tools/cookie-editor/dist/tool.js",
+      "sha256": "726acd718610f331218873b81055a6e0be75ee9707bf879bbd1eae54a2232ea2"
+    },
+    {
+      "path": "examples/sidebar-tools/stay-focus/dist/build-ready.json",
+      "sha256": "e9dccd66fc658bd5f15d8fed42fa38af249dc8dcb02aaafbf421bad345cc57e8"
+    },
+    {
+      "path": "examples/sidebar-tools/stay-focus/dist/tool.css",
+      "sha256": "92ada98cf251aa1940eb01c14a6e883caa2b5ec79ee220bf156c62d6b1e450e2"
+    },
+    {
+      "path": "examples/sidebar-tools/stay-focus/dist/tool.js",
+      "sha256": "ea72a551dbbf39725a495efc0f48fe3a314430d9f69669b91f06d236d6dde3ee"
+    },
+    {
+      "path": "scripts/page-browser-babel/node_modules/.package-lock.json",
+      "sha256": "bf0e3bb932a2a8c1e2e0935118e6c746696e41c8ba8b86cd41a1002797473307"
+    },
+    {
+      "path": "scripts/page-browser-babel/node_modules/@babel/standalone/LICENSE",
+      "sha256": "117da2af0d4ce0fe1c8e19b5cff9dcd806adf973d328d27b11d4448c4ff24f76"
+    },
+    {
+      "path": "scripts/page-browser-babel/node_modules/@babel/standalone/README.md",
+      "sha256": "eb4f42e12c152ff9b93a46295c5994e8eed78047d44f6cfb746d61f2fc030239"
+    },
+    {
+      "path": "scripts/page-browser-babel/node_modules/@babel/standalone/babel.js",
+      "sha256": "02f58b3698463c2a08238115272b2c231eb31d81dc28a6cf6740e1bb666d6595"
+    },
+    {
+      "path": "scripts/page-browser-babel/node_modules/@babel/standalone/babel.js.map",
+      "sha256": "cb3c02e3d1fe40e4102b872a0c92cf9cda082ef7dead3af1058ac54919288360"
+    },
+    {
+      "path": "scripts/page-browser-babel/node_modules/@babel/standalone/babel.min.js",
+      "sha256": "5f8ffa174aa2465f074c85b92421662168cd356eedebaedc3d16fd9d61fadb7c"
+    },
+    {
+      "path": "scripts/page-browser-babel/node_modules/@babel/standalone/babel.min.js.map",
+      "sha256": "c1964a981dd9ba81f9bc990bfe46950cca999c4d31992f053a38f65a415b1fca"
+    },
+    {
+      "path": "scripts/page-browser-babel/node_modules/@babel/standalone/package.json",
+      "sha256": "4d0e80076585a15a776fe7c0910225e2cbb23b21bd5ecd27af9d961c3a2e63e1"
+    },
+    {
+      "path": "src/.DS_Store",
+      "sha256": "ba34bc9068c9f94fb7a48587e390cfc1170039451a9e1b2521b877ef66ff1294"
+    },
+    {
+      "path": "src/libs/.DS_Store",
+      "sha256": "47187d49b8dc043cf4bff901f21f8e06cfffeccdf944fff3cc40a1b8c5cb713b"
+    }
+  ],
+  "boundary": "Canonical build sourceInputs includes compiled React tool outputs, nested installed Babel dependency and Finder metadata; SHA inventory preserves them, without claiming they are Git blobs."
+}

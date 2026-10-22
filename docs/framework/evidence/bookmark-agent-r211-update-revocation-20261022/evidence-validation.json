@@ -1,0 +1,20 @@
+{
+  "status": "PASS_EVIDENCE_INTEGRITY_ONLY_NOT_PRODUCT_ACCEPTANCE",
+  "extractionSourceAndDestinationHashesMatched": 34,
+  "losslessNativeSDKTreeTimingPayloadsCompared": 34,
+  "jsonFilesParsed": 45,
+  "originalGoalCorrelationChecks": 9,
+  "artifactHashesMatched": 68,
+  "artifactLedgerSha256": "767c109949d635b9eda70563d867930233883d77ba1c64ef276ea14bb9dc521f",
+  "wholeGoalStillNotFinalPass": true,
+  "independentScores": [
+    93,
+    90,
+    92,
+    89,
+    93,
+    91,
+    90
+  ],
+  "allOwnedResourcesAbsent": true
+}

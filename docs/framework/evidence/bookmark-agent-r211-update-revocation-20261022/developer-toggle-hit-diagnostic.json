@@ -1,0 +1,28 @@
+{
+  "point": {
+    "x": 1175,
+    "y": 27.9921875
+  },
+  "a": [
+    {
+      "tag": "EXTENSIONS-MANAGER",
+      "id": "",
+      "txt": ""
+    },
+    {
+      "tag": "EXTENSIONS-TOOLBAR",
+      "id": "toolbar",
+      "txt": ""
+    },
+    {
+      "tag": "CR-TOGGLE",
+      "id": "devMode",
+      "txt": ""
+    },
+    {
+      "tag": "SPAN",
+      "id": "bar",
+      "txt": ""
+    }
+  ]
+}

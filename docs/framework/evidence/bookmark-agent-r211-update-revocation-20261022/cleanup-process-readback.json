@@ -1,0 +1,22 @@
+{
+  "at": 1792640575252,
+  "method": "read-only ps exact PID, filesystem exists; no signals",
+  "processes": [
+    {
+      "role": "ownedChrome",
+      "expectedPid": 43979,
+      "present": false,
+      "readback": ""
+    },
+    {
+      "role": "ownedLauncher",
+      "expectedPid": 43978,
+      "present": false,
+      "readback": ""
+    }
+  ],
+  "allExpectedPidsAbsent": true,
+  "profileAbsent": true,
+  "temporaryCodexHomeAuthAbsent": true,
+  "officialCleanupExit": 0
+}

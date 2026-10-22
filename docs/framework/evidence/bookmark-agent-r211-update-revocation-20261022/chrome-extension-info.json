@@ -1,0 +1,105 @@
+[
+  {
+    "canUploadAsAccountExtension": false,
+    "commands": [],
+    "dependentExtensions": [],
+    "description": "OpenDesk Browser 浏览器自动化框架。",
+    "disableReasons": {
+      "blockedByPolicy": false,
+      "corruptInstall": false,
+      "custodianApprovalRequired": false,
+      "disabledByAnotherExtension": false,
+      "parentDisabledPermissions": false,
+      "publishedInStoreRequired": false,
+      "reloading": false,
+      "suspiciousInstall": false,
+      "unsupportedDeveloperExtension": true,
+      "unsupportedManifestVersion": false,
+      "updateRequired": false
+    },
+    "errorCollection": {
+      "isActive": false,
+      "isEnabled": false
+    },
+    "fileAccess": {
+      "isActive": true,
+      "isEnabled": true
+    },
+    "fileAccessPendingChange": false,
+    "homePage": {
+      "specified": false,
+      "url": ""
+    },
+    "iconUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAACoklEQVR4nOyaPWtiQRSGXz8SQmCLRAhBE5JASJWwkPwBU/gLBHsrBRE7f8SivTZarZ2VFhaCVtqouGAnooUfVbQQRfzcOZNcd7NgXDZHrne5DwwzV6c478yZOedcrhkCr9drM5lM38TQLpoV+01XtPxisQhGIpGO4c34H+JHC7TFixDx1fy28loznrCQ7Wa8uo1WsZOAfff5j7AaoXF0AWqjC1AbXYDa6ALURvMCzNgBR0dHuL29hc1mg8gY0el0UK/XMZ/PwQ2rAKPRCJ/Ph7u7OxgMhnf/LZdLVKtVxGIxcMIqIBgM4uLiYv08Go0gUl65IyTu8fERh4eHEIUIuGAT4PF41sYXCgWkUikMh0P5fHp6CpfLhfv7e9mcTieSySQ4YDnET09PeHh4kONarYZEIrE2nuj3+3LV6SwQz8/P73bqM7AIsNvtsp9MJohGoxvnhUIheagJh8MBDlgE0G1DtNttrFarjfNmsxkGg4Ec39zcgAMWAQcHB7JvNptb5ypudHx8DA5YBChXJu3ANnq9nuzNZp77g0UA3fHE5eXl1rmKu3EFNRYB5NvE3/i11fr6DmE8HoMDFgGK69Dq/hmBf4cC2snJiRxTasEBi4BcLid7MtDv92+cR5GaIjKRzWbBAYsAynHK5bIcUx7kdrthsfx62Uc7EwgEcHZ2Jp8zmcz6MH8WtlQiHo9Lo6+vr2VkpjadTqVLKdcsUalUkE6nwQVrPRAOh2UqoQQzStwU4+nWKRaL+52NkuGU89Adf3V1hfPzc/l7t9tFq9X6MEr/KzspaGi1G42GbLtGr4nVRhegNroAtdEFqI0uQG3+CwFdaJcuCchDu+SN9NWHGLxAe9DHHkFTqVQaiurpu6hVKXmnOvAL9hty+ZQw3kmf2/wEAAD///LZsk0AAAAGSURBVAMAGMvfDygqqf4AAAAASUVORK5CYII=",
+    "id": "mcmnmlehmidheiacdiocikjkbdakdjoh",
+    "incognitoAccess": {
+      "isActive": false,
+      "isEnabled": false
+    },
+    "incognitoAccessPendingChange": false,
+    "installWarnings": [],
+    "isAffectedByMV2Deprecation": false,
+    "isCommandRegistrationHandledExternally": false,
+    "location": "UNPACKED",
+    "manifestErrors": [],
+    "manifestHomePageUrl": "",
+    "mustRemainInstalled": false,
+    "name": "OpenDesk Browser",
+    "offlineEnabled": false,
+    "optionsPage": {
+      "openInTab": true,
+      "url": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/native-agent/settings.html"
+    },
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/production",
+    "permissions": {
+      "runtimeHostPermissions": {
+        "hasAllHosts": true,
+        "hostAccess": "ON_ALL_SITES",
+        "hosts": [
+          {
+            "granted": true,
+            "host": "<all_urls>"
+          }
+        ]
+      },
+      "simplePermissions": [
+        {
+          "message": "读取和更改您在所有网站上的所有数据",
+          "submessages": []
+        },
+        {
+          "message": "显示通知",
+          "submessages": []
+        },
+        {
+          "message": "读取和更改您的书签",
+          "submessages": []
+        },
+        {
+          "message": "管理您的下载内容",
+          "submessages": []
+        },
+        {
+          "message": "与协作的本机应用通信",
+          "submessages": []
+        }
+      ]
+    },
+    "prettifiedPath": "~/文稿/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/production",
+    "runtimeErrors": [],
+    "runtimeWarnings": [],
+    "showAccessRequestsInToolbar": true,
+    "showSafeBrowsingAllowlistWarning": false,
+    "state": "DISABLED",
+    "type": "EXTENSION",
+    "updateUrl": "",
+    "userMayModify": true,
+    "userScriptsAccess": {
+      "isActive": false,
+      "isEnabled": true
+    },
+    "version": "0.1.0",
+    "views": [],
+    "webStoreUrl": ""
+  }
+]

@@ -1,0 +1,1 @@
+import{client,cfg}from'./control.mjs';const c=await client();try{const p=await c.send('SystemInfo.getProcessInfo');if(!p.processInfo.some(x=>x.type==='browser'&&x.id===cfg.pid))throw Error('Owned browser PID mismatch');await c.send('Browser.close').catch(()=>{});}finally{c.close()}

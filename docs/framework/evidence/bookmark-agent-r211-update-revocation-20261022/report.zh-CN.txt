@@ -1,0 +1,50 @@
+当前完成了什么：
+新 production 候选已在本机有界隔离的 Mac Chrome for Testing 155.0.8059.39 中完成原始业务。用户指令“把当前页面放入测试收藏夹，如果没有，就创建目录”仅发送一次；实际浏览器记录 event.isTrusted=true；真实 Native Codex / OpenAI gpt-6.1-sol 产生两次 completed turn，既有 Agent Loop 记录两次决策、两个动作。真实 SDK create 两次与 Chrome onCreated 两次对应，独立 Chrome getTree 确认书签栏下仅一个“测试收藏夹”（folder5）及其中唯一当前页面 URL（bookmark6）。143.5 秒后 UI 显示“已核实：当前网页已在「测试收藏夹」中。”不以模型成功文本作为证据。
+
+本轮新增真实异常证据：
+1. 将已确认归属本实例的实际 app-server 进程 SIGSTOP，已成功发送SIGSTOP（未另收集信号后T态；记录的S态在信号前），经过约185秒，产品180秒 Native planner 超时释放界面，0写入、树不变。进程在恢复前已退出，SQLite仍inProgress；未确认Native终态/迟到成功响应，不能等同480秒总任务限额。
+2. 一次真实 Native 请求执行中，将同一路径的旧静态 production 文件替换为新构建并实际 chrome.runtime.reload。旧 SIDE_PANEL target 与 Native 进程退出。Chrome因开发者模式未打开将解压扩展DISABLED/unsupportedDeveloperExtension；实际点击 Chrome 开发者模式开关后恢复，重开无自动turn/书签变化，再执行上述一次Send新任务成功。版本仍0.1.0，只证明内容更新/重载，未做版本号升级或商店更新，也不声称无感恢复。
+3. 一次真实请求进入Native后，用真实Chrome permissions.remove(bookmarks)故障注入撤销权限。既有产品清空私有树；同一session/thread/turn的ACK与CANCELLED/interrupted匹配；0 SDK写入、0 Chrome变化，独立Chrome书签页API读回树不变。
+4. 另一真实请求执行中，用真实Chrome permissions.remove(nativeMessaging)撤销Native Provider权限。界面明确“本轮模型权限已撤销；迟到提议已丢弃”，0 SDK写入/Chrome变化，所属Native进程退出。SQLite仍inProgress，未确认Native终态。真实连接操作恢复权限后，界面最终“Codex 已就绪”，没有自动Send或新turn。
+5. 撤权任务已取消后切到网页笔记。其真实受限OOP iframe编辑器可聚焦、保存按钮可用；返回后书签树完整可操作且未变。不是仅凭“正在打开”认定完成，也不证明忙碌时允许强制切换实例。
+
+当前仍有什么缺口：
+整体状态 NOT_FINAL_PASS。既有核心链新候选真实通过，不等于T1–T12及七项95+全部通过。
+HTTPS与Responses没有可用真实Provider配置，仅有既有Fixture/Node证据；不得转用Native OAuth令牌作HTTPS测试。T7允许的真实临时只读失败/HTTP续轮502、503恢复尚未完成。T10总480秒/8轮/24动作/重复计划当前仍主要为Node证据，版本号升级未测。T9忙碌时切换Provider/实例受现行UI保护，未强制绕过。T12真实SidePanel320px受Chrome最小宽度360px限制；实际SidePanel200%未证明，独立工具标签页320px与zoom2不能替代。既有R32可信工具壳1056KiB门禁仍FAIL：1191465B >1081344B，旧候选1190116B已超限；本轮没有放宽阈值或改无关共享平台换绿灯。
+
+实际修复了什么：
+本次没有制造产品缺陷，也没有再次重写已合入的Agent/Provider/SDK/Host/Authority。修正了本轮验收驱动的两个错误假设：真实SIDE_PANEL必须由chrome.runtime.getContexts定位，普通扩展标签页不是SidePanel；网页笔记业务DOM位于独立受限iframe，不能从可信父页面查找。恢复隔离Chrome开发者模式后，原产品正常工作。此前已进入main的原始目标独立核验、首轮Provider纳入任务时限、授权边界、只读/已知502、503续轮有界重试修复继续沿用；不新增第二套平台或修改并行React根。
+
+用户现在能做什么：
+配置就绪的Native Provider与已审阅书签权限下，在书签管理的共享AI对话中只发送一次“把当前页面放入测试收藏夹，如果没有，就创建目录”。本次真实证据确认自动建目录、收藏发送时绑定的当前页、读回后反馈。目录/URL复用、歧义与NOT_FOUND继续执行已有先前真实证据，按各自候选归属保留；本次新任务没有把这些分支都重测。
+
+测试证据：
+- Node24.16.0：node --test tests/environment/opendesk-conversation-r*.test.mjs tests/environment/browser-sdk-r112-full-bookmarks.test.mjs tests/environment/browser-sdk-r124-current-page.test.mjs tests/environment/bookmark-manager-r31-trusted-lifecycle.test.mjs tests/environment/bookmark-manager-r33-default-react.test.mjs tests/environment/workflow-responses.test.mjs tests/environment/workflow-local-http.test.mjs，326/326，0FAIL。node-targeted.log。
+- npm run check：1005个源码/测试/构建文件语法与合同检查PASS，不称1005项测试。check.log。
+- 在既有本任务隔离快照执行npm run build，WXT0.21.4/Vite7.3.6，106资源PASS，无sourceDrift；node scripts/verify-package.mjs artifacts/bookmark-agent-r211-followup/candidate/dist/production PASS。production-build.log、production-verify.log、build-production.json；production-build.raw.log.gz保留原始构建输出逐字节内容，可读log只裁行末空白，原始/可读SHA见extraction-ledger.json。
+- 生产输入667项，其中648个Git跟踪输入与2181b53a546d99c46ecf3418471a7eb95b6db5ca blob匹配；19个生成/已安装依赖文件另列SHA，不能声称其为Git blob。检查时9c447f85ad68441cb2ec6bc21c81208378a84a1e只多两份文档/证据，不影响构建输入。snapshot-source.json、snapshot-git-verification.json、candidate-binding.json。
+- packageHash 691aa05dc5d894908c98702951f1a5da2274a3da412bb1c64f1ec94fae3b806a；实际加载tool-shell SHA7682e5d0737af6f686e211f00b657ddbeebce60ef6421cef6afca7cf889883f9，与候选源码相符。
+- 原始场景9项关联检查PASS；2真实模型决策、2SDK create、2Chrome写入事件、独立树读回。观察到的60次getTree包含UI轮询，不是60次决策/进展。original-goal-correlation.json、new-current-main-final.json、native-turns-final.json。
+- 超时/内容重载/书签撤权/Native撤权/授权恢复/真实工具就绪见同名JSON与截图。所有原始输入、SDK方法、Chrome写入、读回和UI反馈在具体案例中保留；实际Chrome权限API故障注入不冒称用户点击撤权按钮，也不伪造SDK回执。随附mjs/py为当时原artifacts路径的驱动存档，供审查，并非可直接在证据目录运行的新平台/安装器。
+- R2.1 CI39698306861（source a36689ac…）：agent-contract119561031784、agent-build119561031544均SUCCESS。共享Workflow39706472804（source f592cad…）三Job SUCCESS，23项源码UI检查。复用此前已抓取的真实CI证据，不宣称最新证据提交新跑了这些Job。
+- npm run build:sidebar-tool、npm run build:dev、npm run verify及相关Chromium源码同源检查沿用前次有明确候选归属的结果，详见相邻local/followup/ci-followup/native-terminal证据目录。没有因本次证据整理重复所有构建；本次新production本身单独构建与验包。
+
+架构复杂度：
+本轮产品源码新增0，权限校验放宽0，新平台0。继续使用既有Agent Loop、书签Service、SDK、Provider、Host、Authority、唯一可信React根及共享Conversation Dock。独立Chrome书签页只作只读验收观察，不向产品增加权限，也不进入业务实现。归属本轮的Chrome/Native实例已官方cleanup成功；独立exact-PID读回确认本轮Chrome与launcher均不存在，Profile与临时CODEX_HOME/auth副本已删除，未停止共享watcher/演示服务、未改个人Profile。旧证据的baseline产物路径恢复，新测production保留在本任务artifacts目录。
+
+专家评分：
+独立审查者Ramanujan（只读，未操作浏览器或运行测试）给出以下覆盖整个Goal的评分；全部依据与扣分详见independent-review.json。
+功能正确性：93/100。核心收藏及旧复用/澄清证据有效；复杂意图、跨Provider完整覆盖不足。
+架构简洁性：90/100。复用既有SDK/Host/Authority/React根；恢复策略仍跨调用方与loop。
+Agent连续性：92/100。真实多轮、旧NOT_FOUND续轮成立；当前候选动作级复用未完整复验。
+异常恢复：89/100。Stop/特定UNKNOWN/超时与reload不重放有效；T7、持久终态和完整T10未闭合。
+权限与数据安全：93/100。bookmarks撤权终态及0写入证据强；Provider撤权终态、真实晚到丢弃仍缺。
+UX与可访问性：91/100。旧焦点/滚动/草稿证据加Notes真实聚焦；完整T12与当前候选覆盖不足。
+真实测试证据：90/100。Native/Chrome/独立树/SQLite交叉支持；HTTPS/Responses缺配置、候选与Fixture需分列。
+七项未全部达到95，整体NO_FINAL_PASS。
+
+Git交付：
+仅提交本目录必要证据，main；不提交并行owner的docs/framework/evidence/wxt/builds/build-development.json或build-production.json。提交SHA与普通推送状态以本次最终消息/提交记录为准，不在提交中循环记录自身SHA。
+
+剩余工作：
+仅关闭上述真实Provider/T7、T9受保护切换边界、T10剩余原生生命周期/预算与T12真实SidePanel证据缺口，交由共享平台owner处理既有R32体积门禁，并依据完整证据重新独立评分。已有真实有效核心链、Node和构建不因后续文档提交反复重跑；不恢复采集/语音/新Agent平台等无关目标。

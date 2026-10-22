@@ -1,0 +1,110 @@
+{
+  "kind": "Independent original-goal/Native turn/real Chrome readback correlation, not model self-declared success",
+  "request": "把当前页面放入测试收藏夹，如果没有，就创建目录",
+  "elapsedSeconds": 143.497,
+  "trustedSendCount": 1,
+  "loopMetrics": [
+    {
+      "completed": true,
+      "modelCalls": 2,
+      "actionCount": 2,
+      "at": 1792639122069
+    }
+  ],
+  "actualNativeTurns": [
+    {
+      "thread_id": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+      "turn_id": "01a1619c-401e-7a62-9c32-e57dbbb144f6",
+      "status": "completed",
+      "started_at": 1792638992,
+      "completed_at": 1792639111
+    },
+    {
+      "thread_id": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+      "turn_id": "01a1619e-1ea7-7072-9caa-fb06872fe9d3",
+      "status": "completed",
+      "started_at": 1792639114,
+      "completed_at": 1792639121
+    }
+  ],
+  "observedSDKCalls": {
+    "getTree": 60,
+    "create": 2
+  },
+  "readCallBoundary": "60 getTree calls are the observed service read entry including UI polling, not 60 decisions or proof of loop progress.",
+  "actualChromeCreatedEvents": [
+    {
+      "id": "5",
+      "node": {
+        "dateAdded": 1792639113333,
+        "dateGroupModified": 1792639113333,
+        "id": "5",
+        "index": 0,
+        "parentId": "1",
+        "syncing": false,
+        "title": "测试收藏夹"
+      },
+      "at": 1792639113333
+    },
+    {
+      "id": "6",
+      "node": {
+        "dateAdded": 1792639114614,
+        "id": "6",
+        "index": 0,
+        "parentId": "5",
+        "syncing": false,
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "url": "http://127.0.0.1:43111/demo-form.html"
+      },
+      "at": 1792639114614
+    }
+  ],
+  "independentReadback": {
+    "folders": [
+      {
+        "children": [
+          {
+            "dateAdded": 1792639114614,
+            "id": "6",
+            "index": 0,
+            "parentId": "5",
+            "syncing": false,
+            "title": "OpenDesk Browser · Browser Test Lab",
+            "url": "http://127.0.0.1:43111/demo-form.html"
+          }
+        ],
+        "dateAdded": 1792639113333,
+        "dateGroupModified": 1792639114614,
+        "id": "5",
+        "index": 0,
+        "parentId": "1",
+        "syncing": false,
+        "title": "测试收藏夹"
+      }
+    ],
+    "bookmarks": [
+      {
+        "dateAdded": 1792639114614,
+        "id": "6",
+        "index": 0,
+        "parentId": "5",
+        "syncing": false,
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "url": "http://127.0.0.1:43111/demo-form.html"
+      }
+    ]
+  },
+  "checks": {
+    "oneTrustedSend": true,
+    "twoLoopModelCalls": true,
+    "twoIndependentNativeCompletedTurns": true,
+    "folderAbsentBefore": true,
+    "uniqueRealFolderAfter": true,
+    "oneRealBookmarkInThatFolder": true,
+    "twoSDKCreatesAndChromeCreates": true,
+    "uiVerifiedMessage": true,
+    "loadedCandidateBound": true
+  },
+  "status": "PASS_SPECIFIC_ORIGINAL_GOAL_NEW_PRODUCTION"
+}

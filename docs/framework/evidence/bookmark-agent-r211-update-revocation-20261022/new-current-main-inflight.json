@@ -1,0 +1,70 @@
+{
+  "kind": "Updated main production after actual content reload: original request, actual installed SIDE_PANEL and Native model",
+  "request": "把当前页面放入测试收藏夹，如果没有，就创建目录",
+  "at": 1792638979072,
+  "launch": {
+    "pid": 43979,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-j6ucgymh"
+  },
+  "target": {
+    "targetId": "C7288669BB7C494436E6005D45704E4A",
+    "type": "page",
+    "title": "OpenDesk Browser",
+    "url": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sidepanel.html?hostInstanceId=91e0705c-a95a-4ffd-8ef5-500768222e92",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "848097F5936BE0C763E0E5AD314BB2CA"
+  },
+  "inputDispatch": {
+    "sendClickPairs": 1,
+    "method": "Input.dispatchMouseEvent mousePressed/mouseReleased"
+  },
+  "sourceSha256": "7682e5d0737af6f686e211f00b657ddbeebce60ef6421cef6afca7cf889883f9",
+  "before": {
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [],
+            "dateAdded": 1792637581041,
+            "folderType": "bookmarks-bar",
+            "id": "1",
+            "index": 0,
+            "parentId": "0",
+            "syncing": false,
+            "title": "书签栏"
+          },
+          {
+            "children": [],
+            "dateAdded": 1792637581041,
+            "folderType": "other",
+            "id": "2",
+            "index": 1,
+            "parentId": "0",
+            "syncing": false,
+            "title": "其他书签"
+          }
+        ],
+        "dateAdded": 1792637581041,
+        "id": "0",
+        "syncing": false,
+        "title": ""
+      }
+    ],
+    "contexts": [
+      {
+        "contextId": "64e0c1a6-9a19-45be-913f-72c37cc4a835",
+        "contextType": "SIDE_PANEL",
+        "documentId": "B44B7CCEAC42F108FB0DA584D71B5252",
+        "documentOrigin": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh",
+        "documentUrl": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sidepanel.html?hostInstanceId=91e0705c-a95a-4ffd-8ef5-500768222e92",
+        "frameId": 0,
+        "incognito": false,
+        "tabId": -1,
+        "windowId": -1
+      }
+    ],
+    "at": 1792638979153
+  },
+  "sentAt": 1792638979164
+}

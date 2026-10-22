@@ -1,0 +1,326 @@
+{
+  "kind": "Restore actual Native permission through real Connect control, return to bookmark tool, no model Send and no replay",
+  "at": 1792639770091,
+  "connection": {
+    "body": "我的\n扩展\n工作流\n开发\n云控\n新工作流\n✦\n创建新工作流\n\n用一句话描述任务，或选择下方示例开始。\n\n填写表单并读回\n只读提取网页信息\n描述任务，或告诉 AI 怎样修改步骤\n本机 Codex\nAI 设置\n本机 Codex\nHTTPS\nOpenDesk\n\n连接中…\n\n连接\n连接诊断\n数据与隐私",
+    "checking": false
+  },
+  "after": {
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792639114614,
+                    "id": "6",
+                    "index": 0,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ],
+                "dateAdded": 1792639113333,
+                "dateGroupModified": 1792639114614,
+                "id": "5",
+                "index": 0,
+                "parentId": "1",
+                "syncing": false,
+                "title": "测试收藏夹"
+              }
+            ],
+            "dateAdded": 1792637581041,
+            "dateGroupModified": 1792639113333,
+            "folderType": "bookmarks-bar",
+            "id": "1",
+            "index": 0,
+            "parentId": "0",
+            "syncing": false,
+            "title": "书签栏"
+          },
+          {
+            "children": [],
+            "dateAdded": 1792637581041,
+            "folderType": "other",
+            "id": "2",
+            "index": 1,
+            "parentId": "0",
+            "syncing": false,
+            "title": "其他书签"
+          }
+        ],
+        "dateAdded": 1792637581041,
+        "id": "0",
+        "syncing": false,
+        "title": ""
+      }
+    ],
+    "ui": {
+      "url": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sidepanel.html?hostInstanceId=91e0705c-a95a-4ffd-8ef5-500768222e92",
+      "body": "我的\n扩展\n工作流\n开发\n云控\n书签管理\n书签管理\n5 项\n搜索名称、URL 或文件夹\n书签栏\n1\n测试收藏夹\n1\n其他书签\n0",
+      "controls": [
+        {
+          "id": "tab-my-tasks",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "我的",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "tab-tools",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "扩展",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "tab-workflow",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "工作流",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "tab-develop",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "开发",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "tab-cloud",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "云控",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "sidebar-tool-back",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "返回扩展列表",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "sidebar-tool-settings-open",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "工具设置",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "AI 对话",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "sidebar-tool-remove",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "卸载「书签管理」及其本地数据",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "新建书签",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "新建文件夹",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "收藏当前页",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "刷新书签",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "bm-search",
+          "tag": "INPUT",
+          "type": "text",
+          "label": null,
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "折叠 书签栏",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "操作 书签栏",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "展开 测试收藏夹",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "操作 测试收藏夹",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "折叠 其他书签",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "操作 其他书签",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        }
+      ]
+    },
+    "permissions": {
+      "origins": [
+        "<all_urls>",
+        "http://*/*",
+        "https://*/*"
+      ],
+      "permissions": [
+        "activeTab",
+        "alarms",
+        "bookmarks",
+        "cookies",
+        "downloads",
+        "nativeMessaging",
+        "notifications",
+        "proxy",
+        "storage",
+        "tabs",
+        "unlimitedStorage",
+        "webNavigation",
+        "scripting",
+        "declarativeNetRequestWithHostAccess",
+        "offscreen",
+        "sidePanel",
+        "userScripts"
+      ]
+    },
+    "native": [
+      {
+        "thread_id": "01a1618c-d0f9-7492-bf1a-a52e30b9c5e2",
+        "turn_id": "01a1618c-d106-7650-9e6b-bee19c7d25af",
+        "status": "inProgress",
+        "started_at": 1792637980,
+        "completed_at": null
+      },
+      {
+        "thread_id": "01a16192-cdcc-7f93-ba92-811153ee5b32",
+        "turn_id": "01a16192-e183-7be2-b707-597164ee7aa6",
+        "status": "inProgress",
+        "started_at": 1792638378,
+        "completed_at": null
+      },
+      {
+        "thread_id": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+        "turn_id": "01a1619c-401e-7a62-9c32-e57dbbb144f6",
+        "status": "completed",
+        "started_at": 1792638992,
+        "completed_at": 1792639111
+      },
+      {
+        "thread_id": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+        "turn_id": "01a1619e-1ea7-7072-9caa-fb06872fe9d3",
+        "status": "completed",
+        "started_at": 1792639114,
+        "completed_at": 1792639121
+      },
+      {
+        "thread_id": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+        "turn_id": "01a161a0-ffcf-77f0-aeda-0f01d206ae4e",
+        "status": "interrupted",
+        "started_at": 1792639303,
+        "completed_at": 1792639303
+      },
+      {
+        "thread_id": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+        "turn_id": "01a161a5-22d9-7390-bf48-706b1d97ea9b",
+        "status": "inProgress",
+        "started_at": 1792639574,
+        "completed_at": null
+      }
+    ],
+    "at": 1792639780721
+  },
+  "checks": {
+    "permissionsRestored": true,
+    "noNewModelTurn": true,
+    "treeUnchanged": true,
+    "readyTree": true
+  },
+  "status": "PASS_SPECIFIC_PERMISSION_RESTORE_NO_AUTO_REPLAY"
+}

@@ -1,0 +1,17 @@
+{
+  "panelTargetId": "C7288669BB7C494436E6005D45704E4A",
+  "demoTargetId": "ECD814357768D45433B4A470C373433B",
+  "swTargetId": "E5CE7E6520BC1837A544EAE388824B90",
+  "sidePanelUrl": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sidepanel.html?hostInstanceId=91e0705c-a95a-4ffd-8ef5-500768222e92",
+  "actualSidePanelContext": {
+    "contextId": "64e0c1a6-9a19-45be-913f-72c37cc4a835",
+    "contextType": "SIDE_PANEL",
+    "documentId": "B44B7CCEAC42F108FB0DA584D71B5252",
+    "documentOrigin": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh",
+    "documentUrl": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sidepanel.html?hostInstanceId=91e0705c-a95a-4ffd-8ef5-500768222e92",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": -1,
+    "windowId": -1
+  }
+}

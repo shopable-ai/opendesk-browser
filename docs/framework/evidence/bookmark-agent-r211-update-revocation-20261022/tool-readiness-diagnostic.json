@@ -1,0 +1,52 @@
+{
+  "body": "我的\n扩展\n工作流\n开发\n云控\n网页笔记",
+  "frames": [
+    {
+      "src": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sidebar-tools/sandbox.html",
+      "id": "",
+      "title": "网页笔记（独立受限界面）"
+    }
+  ],
+  "visible": [
+    {
+      "id": "tab-my-tasks",
+      "label": null,
+      "text": "我的"
+    },
+    {
+      "id": "tab-tools",
+      "label": null,
+      "text": "扩展"
+    },
+    {
+      "id": "tab-workflow",
+      "label": null,
+      "text": "工作流"
+    },
+    {
+      "id": "tab-develop",
+      "label": null,
+      "text": "开发"
+    },
+    {
+      "id": "tab-cloud",
+      "label": null,
+      "text": "云控"
+    },
+    {
+      "id": "sidebar-tool-back",
+      "label": "返回扩展列表",
+      "text": ""
+    },
+    {
+      "id": "sidebar-tool-settings-open",
+      "label": "工具设置",
+      "text": ""
+    },
+    {
+      "id": "sidebar-tool-remove",
+      "label": "卸载「网页笔记」及其本地数据",
+      "text": ""
+    }
+  ]
+}

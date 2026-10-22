@@ -1,0 +1,391 @@
+{
+  "policy": "Hidden-control extraction plus the explicitly documented timeout header correction; original timeout kind retained. No Native event, SDK trace, bookmark tree, SQL status or timing was changed. Production build raw bytes are retained losslessly in gzip; readable copy trims only trailing spaces/tabs/CR to satisfy diff whitespace check.",
+  "files": [
+    {
+      "source": "artifacts/bookmark-agent-r211-update/timeout-real.json",
+      "destination": "timeout-real.json",
+      "sourceSha256": "62190dc3d504704ca6c5ac7ec09d09fb9e6712ef5da8c6a89ca8c39c3a00607e",
+      "destinationSha256": "0afcfcbe56f044ba2c84dbb0d429ddc297ca6be276af59c76be51c76f3bf8e14",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged; kind corrected with originalKindFromDriver and editorialClarifications; no experiment payload fields changed",
+      "hiddenControlExtractions": [
+        {
+          "jsonPath": "$.beforeResume.ui.controls",
+          "originalCount": 375,
+          "retainedVisibleCount": 20,
+          "removedHiddenCount": 355
+        },
+        {
+          "jsonPath": "$.after.ui.controls",
+          "originalCount": 375,
+          "retainedVisibleCount": 20,
+          "removedHiddenCount": 355
+        }
+      ],
+      "editorialCorrections": [
+        {
+          "jsonPath": "$.kind",
+          "originalValue": "Real Native provider wait timeout, own descendant SIGSTOP then SIGCONT",
+          "currentValue": "Actual owned app-server SIGSTOP request during real Native planner wait; app-server exited before SIGCONT; UI timeout and zero-write verification"
+        },
+        {
+          "jsonPath": "$.editorialClarifications",
+          "purpose": "Distinguish signal delivery from pause-state observation and pre-SIGCONT process exit from resume"
+        }
+      ]
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/reload-real.json",
+      "destination": "reload-real.json",
+      "sourceSha256": "0dd896f7c477ea61bfcdff7469b2283b31dec578a33c6e97a4762416f4553e3f",
+      "destinationSha256": "0dd896f7c477ea61bfcdff7469b2283b31dec578a33c6e97a4762416f4553e3f",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/reload-reopen-readback.json",
+      "destination": "reload-reopen-readback.json",
+      "sourceSha256": "148e4e50487805d8e442b820eef22380d207cb371637917630004e506b4e0dc5",
+      "destinationSha256": "e84926b567fe84f290a50dd243b395a573b3028b1e7b999beed0188883a4cc61",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": [
+        {
+          "jsonPath": "$.ui.controls",
+          "originalCount": 375,
+          "retainedVisibleCount": 20,
+          "removedHiddenCount": 355
+        }
+      ]
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/reopen-tab-diagnosis.json",
+      "destination": "reopen-tab-diagnosis.json",
+      "sourceSha256": "503eb533d44ea58868b72d4933f7ee4b2c77dce4269a4f79dbdf53dd9a2a9a12",
+      "destinationSha256": "503eb533d44ea58868b72d4933f7ee4b2c77dce4269a4f79dbdf53dd9a2a9a12",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/chrome-extension-info.json",
+      "destination": "chrome-extension-info.json",
+      "sourceSha256": "99916f51c4cb017138183a1cff2a34ee7cb2c15aef5360b2b0e3c900ac9b33ba",
+      "destinationSha256": "99916f51c4cb017138183a1cff2a34ee7cb2c15aef5360b2b0e3c900ac9b33ba",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/developer-mode-recovery.json",
+      "destination": "developer-mode-recovery.json",
+      "sourceSha256": "ba7b93326330451ad01b13fa1cf8f8ddc1ae97a1fadb0f0721b5215c0c549caf",
+      "destinationSha256": "ba7b93326330451ad01b13fa1cf8f8ddc1ae97a1fadb0f0721b5215c0c549caf",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/developer-toggle-hit-diagnostic.json",
+      "destination": "developer-toggle-hit-diagnostic.json",
+      "sourceSha256": "c58757b5a400960fa852a7c7e60bea6c041ed1424027526ae18fae50fa0c89f7",
+      "destinationSha256": "c58757b5a400960fa852a7c7e60bea6c041ed1424027526ae18fae50fa0c89f7",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/update-files.json",
+      "destination": "update-files.json",
+      "sourceSha256": "bfdd3cd9d093560139f5cc5b8726cf11cc010ede9cbcff757136c49b1fedd9dc",
+      "destinationSha256": "bfdd3cd9d093560139f5cc5b8726cf11cc010ede9cbcff757136c49b1fedd9dc",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/new-current-main-final.json",
+      "destination": "new-current-main-final.json",
+      "sourceSha256": "312bb725a87255f0a3f115b6b6e4448e87c92b2ffde44f48d61a054c7ac980dc",
+      "destinationSha256": "312bb725a87255f0a3f115b6b6e4448e87c92b2ffde44f48d61a054c7ac980dc",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/new-current-main-inflight.json",
+      "destination": "new-current-main-inflight.json",
+      "sourceSha256": "0efb1a95fb1072067921f7514aa8fc555a5f25740ba6a2dd00e2b21552b872ef",
+      "destinationSha256": "0efb1a95fb1072067921f7514aa8fc555a5f25740ba6a2dd00e2b21552b872ef",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/new-main-native-after.json",
+      "destination": "new-main-native-after.json",
+      "sourceSha256": "7226e64c1f7f8cb0a8a786068c30ad20ead1ec6bd4eeab56c190be34dd57fc8a",
+      "destinationSha256": "7226e64c1f7f8cb0a8a786068c30ad20ead1ec6bd4eeab56c190be34dd57fc8a",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/new-main-native-live.json",
+      "destination": "new-main-native-live.json",
+      "sourceSha256": "65059e04b88483ec46c98b89ddc1b4ab21ea69a75b27d94046a8faa13112ee38",
+      "destinationSha256": "65059e04b88483ec46c98b89ddc1b4ab21ea69a75b27d94046a8faa13112ee38",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/bookmark-revoke-real.json",
+      "destination": "bookmark-revoke-real.json",
+      "sourceSha256": "c36aa6b587b4fc7a05eb5d1f0ab83ad7aec1161f79175fdb93ba5ff42ec6c6a5",
+      "destinationSha256": "10120d3482c7cf7ac8d2817f21a232d7f36c3d9939c779ba23dbf10b8eb2ef47",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": [
+        {
+          "jsonPath": "$.latest.ui.controls",
+          "originalCount": 363,
+          "retainedVisibleCount": 12,
+          "removedHiddenCount": 351
+        },
+        {
+          "jsonPath": "$.after.ui.controls",
+          "originalCount": 363,
+          "retainedVisibleCount": 12,
+          "removedHiddenCount": 351
+        }
+      ]
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/provider-revoke-real.json",
+      "destination": "provider-revoke-real.json",
+      "sourceSha256": "f6bcf45baea26ccf933060595571824380095002c09295bf9fecf387597981c0",
+      "destinationSha256": "9250670d923517c7c42423835632e1c83d0a8567c3d04a18833f60a58d7a518e",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": [
+        {
+          "jsonPath": "$.latest.ui.controls",
+          "originalCount": 377,
+          "retainedVisibleCount": 22,
+          "removedHiddenCount": 355
+        },
+        {
+          "jsonPath": "$.after.ui.controls",
+          "originalCount": 377,
+          "retainedVisibleCount": 22,
+          "removedHiddenCount": 355
+        }
+      ]
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/provider-revoke-processes.json",
+      "destination": "provider-revoke-processes.json",
+      "sourceSha256": "0d1e2bc635ae2576b3a070a6361bef2d8175681e72b545e2262bf395f7b13185",
+      "destinationSha256": "0d1e2bc635ae2576b3a070a6361bef2d8175681e72b545e2262bf395f7b13185",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/bookmarks-restored.json",
+      "destination": "bookmarks-restored.json",
+      "sourceSha256": "19d8f337b602b35bc5c10c316587b069392da6e74edc3d40253cbe2881fad11f",
+      "destinationSha256": "19d8f337b602b35bc5c10c316587b069392da6e74edc3d40253cbe2881fad11f",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/tool-readiness-real.json",
+      "destination": "tool-readiness-real.json",
+      "sourceSha256": "407b1233e0663e7d48d572d7a29a11c74e19bfda070d3376dbdbe8a8c5e8a972",
+      "destinationSha256": "ebe9450edba30b326921a916f7f5e8ee73ba73f0a066cc49c3317db7dc8e2ac8",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": [
+        {
+          "jsonPath": "$.before.controls",
+          "originalCount": 377,
+          "retainedVisibleCount": 20,
+          "removedHiddenCount": 357
+        }
+      ]
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/tool-readiness-diagnostic.json",
+      "destination": "tool-readiness-diagnostic.json",
+      "sourceSha256": "f248c764006f9f5283c42395ae7468c4429fe96fb36f8ff1c72f0c9a3580247b",
+      "destinationSha256": "f248c764006f9f5283c42395ae7468c4429fe96fb36f8ff1c72f0c9a3580247b",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/notes-frame-ready-diagnostic.json",
+      "destination": "notes-frame-ready-diagnostic.json",
+      "sourceSha256": "305a27b08b8ce41104fc9ac71b1f4d5cf76bb0d011f6a45e23ee7b0b4f670ef7",
+      "destinationSha256": "305a27b08b8ce41104fc9ac71b1f4d5cf76bb0d011f6a45e23ee7b0b4f670ef7",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/tool-readiness-resumed.json",
+      "destination": "tool-readiness-resumed.json",
+      "sourceSha256": "029a6c4f83629236ee8bc230d11151c2dad3727a8de5e83a097bcf8a0fce8342",
+      "destinationSha256": "8571affca417fbbfeaa4368862cf0afad0abf3f9ae92176f296df3139676ace2",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": [
+        {
+          "jsonPath": "$.before.controls",
+          "originalCount": 377,
+          "retainedVisibleCount": 20,
+          "removedHiddenCount": 357
+        },
+        {
+          "jsonPath": "$.after.ui.controls",
+          "originalCount": 377,
+          "retainedVisibleCount": 20,
+          "removedHiddenCount": 357
+        }
+      ]
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/provider-restored-readback.json",
+      "destination": "provider-restored-readback.json",
+      "sourceSha256": "972c6ae8c0912df8b3c479b7b7ec64389e3bdff8439ef5ea01645a1a1136fc0e",
+      "destinationSha256": "9628f24cebf29bd7743338374413b8b344657887b3765acfba115365a264f943",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": [
+        {
+          "jsonPath": "$.after.ui.controls",
+          "originalCount": 377,
+          "retainedVisibleCount": 20,
+          "removedHiddenCount": 357
+        }
+      ]
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/provider-restore-readiness-wait.json",
+      "destination": "provider-restore-readiness-wait.json",
+      "sourceSha256": "d533f669c95f23ca773159a0bbe1d7c261d479f69f6f6f92ee385208f7e1f505",
+      "destinationSha256": "7a7475ff91ca6d94e2664d04eafce6ed47fb0fcfc79da04aa74ba9be77a2bd18",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": [
+        {
+          "jsonPath": "$.ui.controls",
+          "originalCount": 363,
+          "retainedVisibleCount": 20,
+          "removedHiddenCount": 343
+        }
+      ]
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/native-turns-final.json",
+      "destination": "native-turns-final.json",
+      "sourceSha256": "108c49754ea675a5040e058463969d468e6a4bcaa606a306bfa397d8bdfe82b2",
+      "destinationSha256": "108c49754ea675a5040e058463969d468e6a4bcaa606a306bfa397d8bdfe82b2",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/resource-cleanup.json",
+      "destination": "resource-cleanup.json",
+      "sourceSha256": "9f4a808e647906928a261622b3f91348fa29ab777770741c7da687d1404f566e",
+      "destinationSha256": "9f4a808e647906928a261622b3f91348fa29ab777770741c7da687d1404f566e",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/native-cleanup-final.json",
+      "destination": "native-cleanup-final.json",
+      "sourceSha256": "6a4f164c38887d9802bce5fe120d7d67492cb70934baceb71a08b1e056e8d72a",
+      "destinationSha256": "6a4f164c38887d9802bce5fe120d7d67492cb70934baceb71a08b1e056e8d72a",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/final-resource-cleanup.json",
+      "destination": "final-resource-cleanup.json",
+      "sourceSha256": "aa25acc23968b8b4db1cadf9238d52ac3beff0ddc1ecd81775dcb3a78c710a4f",
+      "destinationSha256": "aa25acc23968b8b4db1cadf9238d52ac3beff0ddc1ecd81775dcb3a78c710a4f",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/snapshot-source.json",
+      "destination": "snapshot-source.json",
+      "sourceSha256": "b170b48c1d0710a4bcbb735290353aa8570733e19314ac3fa7d4f1b58b398b80",
+      "destinationSha256": "b170b48c1d0710a4bcbb735290353aa8570733e19314ac3fa7d4f1b58b398b80",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/snapshot-git-verification.json",
+      "destination": "snapshot-git-verification.json",
+      "sourceSha256": "f7833d11130c6c8feef5836842c1af1cecebb4fdc7bf75956993be489882fa20",
+      "destinationSha256": "f7833d11130c6c8feef5836842c1af1cecebb4fdc7bf75956993be489882fa20",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/native-setup.json",
+      "destination": "native-setup.json",
+      "sourceSha256": "20fbfd64789b5e5a30ff6cc5bbfa4e503be6163a83f374ccbb35eb857728b2d7",
+      "destinationSha256": "20fbfd64789b5e5a30ff6cc5bbfa4e503be6163a83f374ccbb35eb857728b2d7",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/native-worker-restart.json",
+      "destination": "native-worker-restart.json",
+      "sourceSha256": "3fabe3489d7a33982bcd944ef57f0ccf130beaff0d4d1a1193977a0cc1529aa2",
+      "destinationSha256": "3fabe3489d7a33982bcd944ef57f0ccf130beaff0d4d1a1193977a0cc1529aa2",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/native-ready.json",
+      "destination": "native-ready.json",
+      "sourceSha256": "c35133b63d2e0d17624dd2455f02a68faf60a9d73721fbbed772da71d729a0c6",
+      "destinationSha256": "9408604e8316daa11afc29381bf042381a20082bcdd899d73ebf5b54616b213e",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": [
+        {
+          "jsonPath": "$.controls",
+          "originalCount": 363,
+          "retainedVisibleCount": 20,
+          "removedHiddenCount": 343
+        }
+      ]
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/book-permission-after.json",
+      "destination": "book-permission-after.json",
+      "sourceSha256": "476943ce072142c9ab07978eb8d7918d6ae3450948c4fd7b3c9f452d548cf1ed",
+      "destinationSha256": "e7f6ddb6de2df9cfa8afae63aed44211ccc6d38b0250914c41771f80bb16a0d1",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": [
+        {
+          "jsonPath": "$.ui.controls",
+          "originalCount": 373,
+          "retainedVisibleCount": 18,
+          "removedHiddenCount": 355
+        }
+      ]
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/session.json",
+      "destination": "session.json",
+      "sourceSha256": "835d2221e9eb1639cccbbb65f0cc800df921d9c20f91de5e557bc9e9f59425ba",
+      "destinationSha256": "835d2221e9eb1639cccbbb65f0cc800df921d9c20f91de5e557bc9e9f59425ba",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    },
+    {
+      "source": "artifacts/bookmark-agent-r211-update/launch.json",
+      "destination": "launch.json",
+      "sourceSha256": "7cc7005092962033749858623b18418e85fbd2f697158b80ddad7dbcd6d38b31",
+      "destinationSha256": "7cc7005092962033749858623b18418e85fbd2f697158b80ddad7dbcd6d38b31",
+      "method": "JSON formatting plus explicitly listed hidden-control extraction; native events, turns, SDK trace, timestamps, permissions and bookmark trees unchanged",
+      "hiddenControlExtractions": []
+    }
+  ],
+  "buildLog": {
+    "source": "artifacts/bookmark-agent-r211-update/production-build.log",
+    "sourceSha256": "f465352f29139f00fcbc63533727aaaa05e0408c82ce6daa8426524c84dfc1c6",
+    "losslessGzip": "production-build.raw.log.gz",
+    "gzipSha256": "5a8a381bede23f39e10cf11b42ae8e84bcf5e03bed26d3e132d830df92cbef8c",
+    "readable": "production-build.log",
+    "readableSha256": "4de2d031751b93e2d97528988e622cff6f3f4dc394ab983fbd8020ff474ba1f6",
+    "method": "gzip preserves exact original bytes; readable copy trims trailing ASCII spaces/tabs/CR per line only, no test/build text removed"
+  }
+}

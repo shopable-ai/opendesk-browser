@@ -1,0 +1,609 @@
+{
+  "kind": "Real Chrome bookmark permission removal during actual Native request; real API fault injection, no fake SDK response",
+  "request": "把当前页面放入R211撤权隔离收藏夹，如果没有，就创建目录",
+  "at": 1792639296786,
+  "loadedSourceSha256": "7682e5d0737af6f686e211f00b657ddbeebce60ef6421cef6afca7cf889883f9",
+  "before": {
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792639114614,
+                    "id": "6",
+                    "index": 0,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ],
+                "dateAdded": 1792639113333,
+                "dateGroupModified": 1792639114614,
+                "id": "5",
+                "index": 0,
+                "parentId": "1",
+                "syncing": false,
+                "title": "测试收藏夹"
+              }
+            ],
+            "dateAdded": 1792637581041,
+            "dateGroupModified": 1792639113333,
+            "folderType": "bookmarks-bar",
+            "id": "1",
+            "index": 0,
+            "parentId": "0",
+            "syncing": false,
+            "title": "书签栏"
+          },
+          {
+            "children": [],
+            "dateAdded": 1792637581041,
+            "folderType": "other",
+            "id": "2",
+            "index": 1,
+            "parentId": "0",
+            "syncing": false,
+            "title": "其他书签"
+          }
+        ],
+        "dateAdded": 1792637581041,
+        "id": "0",
+        "syncing": false,
+        "title": ""
+      }
+    ],
+    "native": [
+      {
+        "thread_id": "01a1618c-d0f9-7492-bf1a-a52e30b9c5e2",
+        "turn_id": "01a1618c-d106-7650-9e6b-bee19c7d25af",
+        "status": "inProgress",
+        "started_at": 1792637980,
+        "completed_at": null
+      },
+      {
+        "thread_id": "01a16192-cdcc-7f93-ba92-811153ee5b32",
+        "turn_id": "01a16192-e183-7be2-b707-597164ee7aa6",
+        "status": "inProgress",
+        "started_at": 1792638378,
+        "completed_at": null
+      },
+      {
+        "thread_id": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+        "turn_id": "01a1619c-401e-7a62-9c32-e57dbbb144f6",
+        "status": "completed",
+        "started_at": 1792638992,
+        "completed_at": 1792639111
+      },
+      {
+        "thread_id": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+        "turn_id": "01a1619e-1ea7-7072-9caa-fb06872fe9d3",
+        "status": "completed",
+        "started_at": 1792639114,
+        "completed_at": 1792639121
+      }
+    ],
+    "permission": true
+  },
+  "sentAt": 1792639296932,
+  "inFlight": {
+    "rows": [
+      {
+        "thread_id": "01a1618c-d0f9-7492-bf1a-a52e30b9c5e2",
+        "turn_id": "01a1618c-d106-7650-9e6b-bee19c7d25af",
+        "status": "inProgress",
+        "started_at": 1792637980,
+        "completed_at": null
+      },
+      {
+        "thread_id": "01a16192-cdcc-7f93-ba92-811153ee5b32",
+        "turn_id": "01a16192-e183-7be2-b707-597164ee7aa6",
+        "status": "inProgress",
+        "started_at": 1792638378,
+        "completed_at": null
+      },
+      {
+        "thread_id": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+        "turn_id": "01a1619c-401e-7a62-9c32-e57dbbb144f6",
+        "status": "completed",
+        "started_at": 1792638992,
+        "completed_at": 1792639111
+      },
+      {
+        "thread_id": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+        "turn_id": "01a1619e-1ea7-7072-9caa-fb06872fe9d3",
+        "status": "completed",
+        "started_at": 1792639114,
+        "completed_at": 1792639121
+      },
+      {
+        "thread_id": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+        "turn_id": "01a161a0-ffcf-77f0-aeda-0f01d206ae4e",
+        "status": "inProgress",
+        "started_at": 1792639303,
+        "completed_at": null
+      }
+    ],
+    "trace": {
+      "sdk": [],
+      "inputs": [
+        {
+          "id": "",
+          "label": "发送",
+          "trusted": true,
+          "at": 1792639296930
+        }
+      ],
+      "native": [
+        {
+          "kind": "ack",
+          "sessionId": "e160c0a2f205190e153b7b22635d18ea",
+          "threadId": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+          "turnId": "01a161a0-ffcf-77f0-aeda-0f01d206ae4e",
+          "at": 1792639303650
+        }
+      ],
+      "permissionEvents": []
+    },
+    "at": 1792639303925
+  },
+  "revokeRequestedAt": 1792639303925,
+  "removed": true,
+  "revokeReadback": false,
+  "latest": {
+    "trace": {
+      "sdk": [],
+      "inputs": [
+        {
+          "id": "",
+          "label": "发送",
+          "trusted": true,
+          "at": 1792639296930
+        }
+      ],
+      "native": [
+        {
+          "kind": "ack",
+          "sessionId": "e160c0a2f205190e153b7b22635d18ea",
+          "threadId": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+          "turnId": "01a161a0-ffcf-77f0-aeda-0f01d206ae4e",
+          "at": 1792639303650
+        },
+        {
+          "kind": "cancel-terminal",
+          "state": "CANCELLED",
+          "terminalStatus": "interrupted",
+          "sessionId": "e160c0a2f205190e153b7b22635d18ea",
+          "threadId": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+          "turnId": "01a161a0-ffcf-77f0-aeda-0f01d206ae4e",
+          "cursor": 86,
+          "at": 1792639303973
+        }
+      ],
+      "permissionEvents": [
+        {
+          "grant": {
+            "origins": [],
+            "permissions": [
+              "bookmarks"
+            ]
+          },
+          "at": 1792639303940
+        }
+      ]
+    },
+    "native": [
+      {
+        "thread_id": "01a1618c-d0f9-7492-bf1a-a52e30b9c5e2",
+        "turn_id": "01a1618c-d106-7650-9e6b-bee19c7d25af",
+        "status": "inProgress",
+        "started_at": 1792637980,
+        "completed_at": null
+      },
+      {
+        "thread_id": "01a16192-cdcc-7f93-ba92-811153ee5b32",
+        "turn_id": "01a16192-e183-7be2-b707-597164ee7aa6",
+        "status": "inProgress",
+        "started_at": 1792638378,
+        "completed_at": null
+      },
+      {
+        "thread_id": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+        "turn_id": "01a1619c-401e-7a62-9c32-e57dbbb144f6",
+        "status": "completed",
+        "started_at": 1792638992,
+        "completed_at": 1792639111
+      },
+      {
+        "thread_id": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+        "turn_id": "01a1619e-1ea7-7072-9caa-fb06872fe9d3",
+        "status": "completed",
+        "started_at": 1792639114,
+        "completed_at": 1792639121
+      },
+      {
+        "thread_id": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+        "turn_id": "01a161a0-ffcf-77f0-aeda-0f01d206ae4e",
+        "status": "interrupted",
+        "started_at": 1792639303,
+        "completed_at": 1792639303
+      }
+    ],
+    "ui": {
+      "url": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sidepanel.html?hostInstanceId=91e0705c-a95a-4ffd-8ef5-500768222e92",
+      "body": "我的\n扩展\n工作流\n开发\n云控\n工具设置\n打开工具\n在新标签页打开\n完整 Chrome 书签访问\n\n可读取、编辑、移动及删除所有 Chrome 书签和文件夹（包括其他工具创建的）。仅此工具安装版本可用，递归删除仍需逐次确认。\n\n撤销此工具的完整书签访问\n使用状态\n停用工具\n\n工具已启用。启用不会自动运行代码。\n\nChrome 完整书签权限已撤销；可信界面及书签数据已清空。",
+      "controls": [
+        {
+          "id": "tab-my-tasks",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "我的",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "tab-tools",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "扩展",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "tab-workflow",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "工作流",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "tab-develop",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "开发",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "tab-cloud",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "云控",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "sidebar-tool-back",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "返回上一页",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "sidebar-tool-settings-open",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "工具设置",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "sidebar-tool-remove",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "卸载「书签管理」及其本地数据",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "sidebar-tool-launch",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "打开工具",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "sidebar-tool-open-tab",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "在新标签页打开当前工具",
+          "text": "在新标签页打开",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "sidebar-tool-bookmark-grant",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "撤销此工具的完整书签访问",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "sidebar-tool-enable",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "停用工具",
+          "text": "停用工具",
+          "visible": true,
+          "disabled": false
+        }
+      ]
+    },
+    "at": 1792639304015
+  },
+  "after": {
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792639114614,
+                    "id": "6",
+                    "index": 0,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ],
+                "dateAdded": 1792639113333,
+                "dateGroupModified": 1792639114614,
+                "id": "5",
+                "index": 0,
+                "parentId": "1",
+                "syncing": false,
+                "title": "测试收藏夹"
+              }
+            ],
+            "dateAdded": 1792637581041,
+            "dateGroupModified": 1792639113333,
+            "folderType": "bookmarks-bar",
+            "id": "1",
+            "index": 0,
+            "parentId": "0",
+            "syncing": false,
+            "title": "书签栏"
+          },
+          {
+            "children": [],
+            "dateAdded": 1792637581041,
+            "folderType": "other",
+            "id": "2",
+            "index": 1,
+            "parentId": "0",
+            "syncing": false,
+            "title": "其他书签"
+          }
+        ],
+        "dateAdded": 1792637581041,
+        "id": "0",
+        "syncing": false,
+        "title": ""
+      }
+    ],
+    "events": [],
+    "ui": {
+      "url": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sidepanel.html?hostInstanceId=91e0705c-a95a-4ffd-8ef5-500768222e92",
+      "body": "我的\n扩展\n工作流\n开发\n云控\n工具设置\n打开工具\n在新标签页打开\n完整 Chrome 书签访问\n\n可读取、编辑、移动及删除所有 Chrome 书签和文件夹（包括其他工具创建的）。仅此工具安装版本可用，递归删除仍需逐次确认。\n\n撤销此工具的完整书签访问\n使用状态\n停用工具\n\n工具已启用。启用不会自动运行代码。\n\nChrome 完整书签权限已撤销；可信界面及书签数据已清空。",
+      "controls": [
+        {
+          "id": "tab-my-tasks",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "我的",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "tab-tools",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "扩展",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "tab-workflow",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "工作流",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "tab-develop",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "开发",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "tab-cloud",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "云控",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "sidebar-tool-back",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "返回上一页",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "sidebar-tool-settings-open",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "工具设置",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "sidebar-tool-remove",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "卸载「书签管理」及其本地数据",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "sidebar-tool-launch",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "打开工具",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "sidebar-tool-open-tab",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "在新标签页打开当前工具",
+          "text": "在新标签页打开",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "sidebar-tool-bookmark-grant",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "撤销此工具的完整书签访问",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "sidebar-tool-enable",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "停用工具",
+          "text": "停用工具",
+          "visible": true,
+          "disabled": false
+        }
+      ]
+    },
+    "trace": {
+      "sdk": [],
+      "inputs": [
+        {
+          "id": "",
+          "label": "发送",
+          "trusted": true,
+          "at": 1792639296930
+        }
+      ],
+      "native": [
+        {
+          "kind": "ack",
+          "sessionId": "e160c0a2f205190e153b7b22635d18ea",
+          "threadId": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+          "turnId": "01a161a0-ffcf-77f0-aeda-0f01d206ae4e",
+          "at": 1792639303650
+        },
+        {
+          "kind": "cancel-terminal",
+          "state": "CANCELLED",
+          "terminalStatus": "interrupted",
+          "sessionId": "e160c0a2f205190e153b7b22635d18ea",
+          "threadId": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+          "turnId": "01a161a0-ffcf-77f0-aeda-0f01d206ae4e",
+          "cursor": 86,
+          "at": 1792639303973
+        }
+      ],
+      "permissionEvents": [
+        {
+          "grant": {
+            "origins": [],
+            "permissions": [
+              "bookmarks"
+            ]
+          },
+          "at": 1792639303940
+        }
+      ]
+    },
+    "native": [
+      {
+        "thread_id": "01a1618c-d0f9-7492-bf1a-a52e30b9c5e2",
+        "turn_id": "01a1618c-d106-7650-9e6b-bee19c7d25af",
+        "status": "inProgress",
+        "started_at": 1792637980,
+        "completed_at": null
+      },
+      {
+        "thread_id": "01a16192-cdcc-7f93-ba92-811153ee5b32",
+        "turn_id": "01a16192-e183-7be2-b707-597164ee7aa6",
+        "status": "inProgress",
+        "started_at": 1792638378,
+        "completed_at": null
+      },
+      {
+        "thread_id": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+        "turn_id": "01a1619c-401e-7a62-9c32-e57dbbb144f6",
+        "status": "completed",
+        "started_at": 1792638992,
+        "completed_at": 1792639111
+      },
+      {
+        "thread_id": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+        "turn_id": "01a1619e-1ea7-7072-9caa-fb06872fe9d3",
+        "status": "completed",
+        "started_at": 1792639114,
+        "completed_at": 1792639121
+      },
+      {
+        "thread_id": "01a1619c-2c61-74d1-b6e3-3715c3d73cbd",
+        "turn_id": "01a161a0-ffcf-77f0-aeda-0f01d206ae4e",
+        "status": "interrupted",
+        "started_at": 1792639303,
+        "completed_at": 1792639303
+      }
+    ],
+    "at": 1792639304057
+  },
+  "checks": {
+    "oneTrustedSend": true,
+    "actualPermissionRemoved": true,
+    "noSDKWrite": true,
+    "noChromeChanges": true,
+    "independentTreeUnchanged": true,
+    "privateTreeErased": true,
+    "nativeInterrupted": true
+  },
+  "status": "PASS_SPECIFIC_BOOKMARK_PERMISSION_REVOKE"
+}

@@ -1,0 +1,12 @@
+{
+  "sourceHead": "2181b53a546d99c46ecf3418471a7eb95b6db5ca",
+  "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/production",
+  "previousPreserved": "artifacts/bookmark-agent-r211-update/previous-production",
+  "beforeToolShellSha256": "f0432a8440223b0e9fd2a5718d4c87f5a59a7a961e3839fc1af282a402f7f39d",
+  "afterToolShellSha256": "7682e5d0737af6f686e211f00b657ddbeebce60ef6421cef6afca7cf889883f9",
+  "manifestVersionBefore": "0.1.0",
+  "manifestVersionAfter": "0.1.0",
+  "versionUpgrade": false,
+  "scope": "New production build installed at SAME unpacked path; actual Chrome runtime reload follows. Content update/reload, not version-number or Store upgrade.",
+  "personalExtensionOrWatcherTouched": false
+}

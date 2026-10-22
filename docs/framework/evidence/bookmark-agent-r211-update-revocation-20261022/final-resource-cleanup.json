@@ -1,0 +1,10 @@
+{
+  "at": 1792639979067,
+  "officialCleanup": 0,
+  "temporaryCodexHomeRemoved": true,
+  "baselineEvidencePathRestored": true,
+  "testedNewProductionPreservedAt": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-update/loaded-production-accepted",
+  "testedNewToolShellSha256": "7682e5d0737af6f686e211f00b657ddbeebce60ef6421cef6afca7cf889883f9",
+  "profileRemoved": true,
+  "noSharedWatcherTouched": true
+}
