@@ -1,0 +1,98 @@
+{
+  "kind": "Actual keyboard focus traversal and native scroll; no injected focus/scroll or transcript",
+  "tabBackOne": {
+    "at": 1792625758910,
+    "width": 360,
+    "height": 765,
+    "active": "对话及已核实操作结果",
+    "separator": "255",
+    "input": {
+      "x": 10,
+      "y": 713,
+      "width": 340,
+      "height": 44,
+      "top": 713,
+      "right": 350,
+      "bottom": 757,
+      "left": 10,
+      "topScroll": 0,
+      "clientHeight": 42,
+      "scrollHeight": 42
+    },
+    "log": {
+      "x": 0,
+      "y": 523,
+      "width": 360,
+      "height": 183,
+      "top": 523,
+      "right": 360,
+      "bottom": 706,
+      "left": 0,
+      "topScroll": 0,
+      "clientHeight": 183,
+      "scrollHeight": 484
+    },
+    "tree": {
+      "x": 0,
+      "y": 188,
+      "width": 360,
+      "height": 322,
+      "top": 188,
+      "right": 360,
+      "bottom": 510,
+      "left": 0,
+      "topScroll": 1576,
+      "clientHeight": 322,
+      "scrollHeight": 1898
+    },
+    "draft": "键盘侧栏验收草稿"
+  },
+  "separatorFocused": {
+    "at": 1792625758995,
+    "width": 360,
+    "height": 765,
+    "active": "收起对话",
+    "separator": "255",
+    "input": {
+      "x": 10,
+      "y": 713,
+      "width": 340,
+      "height": 44,
+      "top": 713,
+      "right": 350,
+      "bottom": 757,
+      "left": 10,
+      "topScroll": 0,
+      "clientHeight": 42,
+      "scrollHeight": 42
+    },
+    "log": {
+      "x": 0,
+      "y": 523,
+      "width": 360,
+      "height": 183,
+      "top": 523,
+      "right": 360,
+      "bottom": 706,
+      "left": 0,
+      "topScroll": 0,
+      "clientHeight": 183,
+      "scrollHeight": 484
+    },
+    "tree": {
+      "x": 0,
+      "y": 188,
+      "width": 360,
+      "height": 322,
+      "top": 188,
+      "right": 360,
+      "bottom": 510,
+      "left": 0,
+      "topScroll": 1576,
+      "clientHeight": 322,
+      "scrollHeight": 1898
+    },
+    "draft": "键盘侧栏验收草稿"
+  },
+  "error": "Error: Actual Shift+Tab did not reach separator"
+}

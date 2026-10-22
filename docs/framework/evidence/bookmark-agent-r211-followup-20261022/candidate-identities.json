@@ -1,0 +1,40 @@
+{
+  "extensionId": "mcmnmlehmidheiacdiocikjkbdakdjoh",
+  "priorReference": "same tool-shell SHA as prior committed acceptance; T12 snapshot files did not each embed a hash, identity associated from preserved frozen package and subsequent loaded-script proof",
+  "newLoadedProof": "new-original-final.json.sourceSha256",
+  "files": [
+    {
+      "path": "ui/tool-shell.js",
+      "prior": {
+        "bytes": 1190116,
+        "sha256": "7634e961cd8f2327c00b0cc09eeda7b083403b8f6a4c428e1cacb77f87c6ac20"
+      },
+      "new": {
+        "bytes": 1190590,
+        "sha256": "f0432a8440223b0e9fd2a5718d4c87f5a59a7a961e3839fc1af282a402f7f39d"
+      }
+    },
+    {
+      "path": "platform/context-menus.js",
+      "prior": {
+        "bytes": 262496,
+        "sha256": "08ff9cce09b9feadb09dd6f3ceead214016747dd3918deb086cc5cccd8ae4e7f"
+      },
+      "new": {
+        "bytes": 262496,
+        "sha256": "08ff9cce09b9feadb09dd6f3ceead214016747dd3918deb086cc5cccd8ae4e7f"
+      }
+    },
+    {
+      "path": "official-tools/bookmark-manager/bookmark-manager.opendesk-tool.json",
+      "prior": {
+        "bytes": 88194,
+        "sha256": "4157bd984596d54c1a0c8a35ec38332d707d041b4ef038f018e8b452459073a4"
+      },
+      "new": {
+        "bytes": 88194,
+        "sha256": "4157bd984596d54c1a0c8a35ec38332d707d041b4ef038f018e8b452459073a4"
+      }
+    }
+  ]
+}

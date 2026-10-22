@@ -1,0 +1,9 @@
+{
+  "error": "Build shell workdir was root instead of isolated snapshot",
+  "ownBuildPid": 97253,
+  "status": "Already exited 1 before attempted stop: input drift guard rejected candidate",
+  "noOtherProcessSignalled": true,
+  "rootDistDevelopmentNotBuildTarget": true,
+  "rootProduction": "Rejected build; not used as acceptance or loaded in any Chrome",
+  "next": "All subsequent npm scripts execute in isolated candidate directory with Node24.16 explicit PATH"
+}

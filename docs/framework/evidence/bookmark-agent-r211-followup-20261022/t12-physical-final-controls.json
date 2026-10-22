@@ -1,0 +1,1085 @@
+{
+  "kind": "Actual keyboard focus traversal and native scroll; no injected focus/scroll or transcript",
+  "tabTraversal": [
+    "对话及已核实操作结果",
+    "收起对话",
+    "调整对话与原扩展的高度"
+  ],
+  "separatorFocused": {
+    "at": 1792625790351,
+    "width": 360,
+    "height": 765,
+    "active": "调整对话与原扩展的高度",
+    "separator": "255",
+    "input": {
+      "x": 10,
+      "y": 713,
+      "width": 340,
+      "height": 44,
+      "top": 713,
+      "right": 350,
+      "bottom": 757,
+      "left": 10,
+      "topScroll": 0,
+      "clientHeight": 42,
+      "scrollHeight": 42
+    },
+    "log": {
+      "x": 0,
+      "y": 523,
+      "width": 360,
+      "height": 183,
+      "top": 523,
+      "right": 360,
+      "bottom": 706,
+      "left": 0,
+      "topScroll": 0,
+      "clientHeight": 183,
+      "scrollHeight": 484
+    },
+    "tree": {
+      "x": 0,
+      "y": 188,
+      "width": 360,
+      "height": 322,
+      "top": 188,
+      "right": 360,
+      "bottom": 510,
+      "left": 0,
+      "topScroll": 1576,
+      "clientHeight": 322,
+      "scrollHeight": 1898
+    },
+    "draft": "键盘侧栏验收草稿"
+  },
+  "min": {
+    "at": 1792625790436,
+    "width": 360,
+    "height": 765,
+    "active": "调整对话与原扩展的高度",
+    "separator": "184",
+    "input": {
+      "x": 10,
+      "y": 713,
+      "width": 340,
+      "height": 44,
+      "top": 713,
+      "right": 350,
+      "bottom": 757,
+      "left": 10,
+      "topScroll": 0,
+      "clientHeight": 42,
+      "scrollHeight": 42
+    },
+    "log": {
+      "x": 0,
+      "y": 594,
+      "width": 360,
+      "height": 112,
+      "top": 594,
+      "right": 360,
+      "bottom": 706,
+      "left": 0,
+      "topScroll": 0,
+      "clientHeight": 112,
+      "scrollHeight": 484
+    },
+    "tree": {
+      "x": 0,
+      "y": 188,
+      "width": 360,
+      "height": 393,
+      "top": 188,
+      "right": 360,
+      "bottom": 581,
+      "left": 0,
+      "topScroll": 1505,
+      "clientHeight": 393,
+      "scrollHeight": 1898
+    },
+    "draft": "键盘侧栏验收草稿"
+  },
+  "max": {
+    "at": 1792625790528,
+    "width": 360,
+    "height": 765,
+    "active": "调整对话与原扩展的高度",
+    "separator": "412",
+    "input": {
+      "x": 10,
+      "y": 713,
+      "width": 340,
+      "height": 44,
+      "top": 713,
+      "right": 350,
+      "bottom": 757,
+      "left": 10,
+      "topScroll": 0,
+      "clientHeight": 42,
+      "scrollHeight": 42
+    },
+    "log": {
+      "x": 0,
+      "y": 366,
+      "width": 360,
+      "height": 340,
+      "top": 366,
+      "right": 360,
+      "bottom": 706,
+      "left": 0,
+      "topScroll": 0,
+      "clientHeight": 340,
+      "scrollHeight": 484
+    },
+    "tree": {
+      "x": 0,
+      "y": 188,
+      "width": 360,
+      "height": 165,
+      "top": 188,
+      "right": 360,
+      "bottom": 353,
+      "left": 0,
+      "topScroll": 1576,
+      "clientHeight": 165,
+      "scrollHeight": 1898
+    },
+    "draft": "键盘侧栏验收草稿"
+  },
+  "down": {
+    "at": 1792625790618,
+    "width": 360,
+    "height": 765,
+    "active": "调整对话与原扩展的高度",
+    "separator": "396",
+    "input": {
+      "x": 10,
+      "y": 713,
+      "width": 340,
+      "height": 44,
+      "top": 713,
+      "right": 350,
+      "bottom": 757,
+      "left": 10,
+      "topScroll": 0,
+      "clientHeight": 42,
+      "scrollHeight": 42
+    },
+    "log": {
+      "x": 0,
+      "y": 382,
+      "width": 360,
+      "height": 324,
+      "top": 382,
+      "right": 360,
+      "bottom": 706,
+      "left": 0,
+      "topScroll": 0,
+      "clientHeight": 324,
+      "scrollHeight": 484
+    },
+    "tree": {
+      "x": 0,
+      "y": 188,
+      "width": 360,
+      "height": 181,
+      "top": 188,
+      "right": 360,
+      "bottom": 369,
+      "left": 0,
+      "topScroll": 1576,
+      "clientHeight": 181,
+      "scrollHeight": 1898
+    },
+    "draft": "键盘侧栏验收草稿"
+  },
+  "closed": {
+    "at": 1792625790642,
+    "width": 360,
+    "height": 765,
+    "active": "AI 对话",
+    "separator": "396",
+    "input": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0,
+      "topScroll": 0,
+      "clientHeight": 0,
+      "scrollHeight": 0
+    },
+    "log": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0,
+      "topScroll": 0,
+      "clientHeight": 0,
+      "scrollHeight": 0
+    },
+    "tree": {
+      "x": 0,
+      "y": 188,
+      "width": 360,
+      "height": 577,
+      "top": 188,
+      "right": 360,
+      "bottom": 765,
+      "left": 0,
+      "topScroll": 1321,
+      "clientHeight": 577,
+      "scrollHeight": 1898
+    },
+    "draft": "键盘侧栏验收草稿"
+  },
+  "reopened": {
+    "at": 1792625790731,
+    "width": 360,
+    "height": 765,
+    "active": "od-conversation-input",
+    "separator": "396",
+    "input": {
+      "x": 10,
+      "y": 713,
+      "width": 340,
+      "height": 44,
+      "top": 713,
+      "right": 350,
+      "bottom": 757,
+      "left": 10,
+      "topScroll": 0,
+      "clientHeight": 42,
+      "scrollHeight": 42
+    },
+    "log": {
+      "x": 0,
+      "y": 382,
+      "width": 360,
+      "height": 324,
+      "top": 382,
+      "right": 360,
+      "bottom": 706,
+      "left": 0,
+      "topScroll": 0,
+      "clientHeight": 324,
+      "scrollHeight": 484
+    },
+    "tree": {
+      "x": 0,
+      "y": 188,
+      "width": 360,
+      "height": 181,
+      "top": 188,
+      "right": 360,
+      "bottom": 369,
+      "left": 0,
+      "topScroll": 1576,
+      "clientHeight": 181,
+      "scrollHeight": 1898
+    },
+    "draft": "键盘侧栏验收草稿"
+  },
+  "scrollBefore": {
+    "at": 1792625790733,
+    "width": 360,
+    "height": 765,
+    "active": "od-conversation-input",
+    "separator": "396",
+    "input": {
+      "x": 10,
+      "y": 713,
+      "width": 340,
+      "height": 44,
+      "top": 713,
+      "right": 350,
+      "bottom": 757,
+      "left": 10,
+      "topScroll": 0,
+      "clientHeight": 42,
+      "scrollHeight": 42
+    },
+    "log": {
+      "x": 0,
+      "y": 382,
+      "width": 360,
+      "height": 324,
+      "top": 382,
+      "right": 360,
+      "bottom": 706,
+      "left": 0,
+      "topScroll": 0,
+      "clientHeight": 324,
+      "scrollHeight": 484
+    },
+    "tree": {
+      "x": 0,
+      "y": 188,
+      "width": 360,
+      "height": 181,
+      "top": 188,
+      "right": 360,
+      "bottom": 369,
+      "left": 0,
+      "topScroll": 1576,
+      "clientHeight": 181,
+      "scrollHeight": 1898
+    },
+    "draft": "键盘侧栏验收草稿"
+  },
+  "afterLog": {
+    "at": 1792625790987,
+    "width": 360,
+    "height": 765,
+    "active": "od-conversation-input",
+    "separator": "396",
+    "input": {
+      "x": 10,
+      "y": 713,
+      "width": 340,
+      "height": 44,
+      "top": 713,
+      "right": 350,
+      "bottom": 757,
+      "left": 10,
+      "topScroll": 0,
+      "clientHeight": 42,
+      "scrollHeight": 42
+    },
+    "log": {
+      "x": 0,
+      "y": 382,
+      "width": 360,
+      "height": 324,
+      "top": 382,
+      "right": 360,
+      "bottom": 706,
+      "left": 0,
+      "topScroll": 160,
+      "clientHeight": 324,
+      "scrollHeight": 484
+    },
+    "tree": {
+      "x": 0,
+      "y": 188,
+      "width": 360,
+      "height": 181,
+      "top": 188,
+      "right": 360,
+      "bottom": 369,
+      "left": 0,
+      "topScroll": 1576,
+      "clientHeight": 181,
+      "scrollHeight": 1898
+    },
+    "draft": "键盘侧栏验收草稿"
+  },
+  "afterTree": {
+    "at": 1792625791241,
+    "width": 360,
+    "height": 765,
+    "active": "od-conversation-input",
+    "separator": "396",
+    "input": {
+      "x": 10,
+      "y": 713,
+      "width": 340,
+      "height": 44,
+      "top": 713,
+      "right": 350,
+      "bottom": 757,
+      "left": 10,
+      "topScroll": 0,
+      "clientHeight": 42,
+      "scrollHeight": 42
+    },
+    "log": {
+      "x": 0,
+      "y": 382,
+      "width": 360,
+      "height": 324,
+      "top": 382,
+      "right": 360,
+      "bottom": 706,
+      "left": 0,
+      "topScroll": 160,
+      "clientHeight": 324,
+      "scrollHeight": 484
+    },
+    "tree": {
+      "x": 0,
+      "y": 188,
+      "width": 360,
+      "height": 181,
+      "top": 188,
+      "right": 360,
+      "bottom": 369,
+      "left": 0,
+      "topScroll": 876,
+      "clientHeight": 181,
+      "scrollHeight": 1898
+    },
+    "draft": "键盘侧栏验收草稿"
+  },
+  "checks": {
+    "keyboardResize": true,
+    "closeFocus": true,
+    "spaceReopenDraft": true,
+    "inputVisible": true,
+    "logChanged": true,
+    "treeUnaffectedByLog": true,
+    "treeChanged": true,
+    "logUnaffectedByTree": true
+  },
+  "ax": [
+    {
+      "role": "textbox",
+      "name": "搜索名称、URL 或文件夹",
+      "properties": [
+        {
+          "name": "invalid",
+          "value": {
+            "type": "token",
+            "value": "false"
+          }
+        },
+        {
+          "name": "focusable",
+          "value": {
+            "type": "booleanOrUndefined",
+            "value": true
+          }
+        },
+        {
+          "name": "editable",
+          "value": {
+            "type": "token",
+            "value": "plaintext"
+          }
+        },
+        {
+          "name": "settable",
+          "value": {
+            "type": "booleanOrUndefined",
+            "value": true
+          }
+        },
+        {
+          "name": "multiline",
+          "value": {
+            "type": "boolean",
+            "value": false
+          }
+        },
+        {
+          "name": "readonly",
+          "value": {
+            "type": "boolean",
+            "value": false
+          }
+        },
+        {
+          "name": "required",
+          "value": {
+            "type": "boolean",
+            "value": false
+          }
+        },
+        {
+          "name": "labelledby",
+          "value": {
+            "type": "nodeList",
+            "relatedNodes": [
+              {
+                "backendDOMNodeId": 2875,
+                "text": "搜索名称、URL 或文件夹"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "role": "log",
+      "name": "对话及已核实操作结果",
+      "properties": [
+        {
+          "name": "live",
+          "value": {
+            "type": "token",
+            "value": "polite"
+          }
+        },
+        {
+          "name": "atomic",
+          "value": {
+            "type": "boolean",
+            "value": false
+          }
+        },
+        {
+          "name": "relevant",
+          "value": {
+            "type": "tokenList",
+            "value": "additions text"
+          }
+        }
+      ]
+    },
+    {
+      "role": "separator",
+      "name": "调整对话与原扩展的高度",
+      "properties": [
+        {
+          "name": "focusable",
+          "value": {
+            "type": "booleanOrUndefined",
+            "value": true
+          }
+        },
+        {
+          "name": "settable",
+          "value": {
+            "type": "booleanOrUndefined",
+            "value": true
+          }
+        },
+        {
+          "name": "orientation",
+          "value": {
+            "type": "token",
+            "value": "horizontal"
+          }
+        },
+        {
+          "name": "valuemin",
+          "value": {
+            "type": "number",
+            "value": 184
+          }
+        },
+        {
+          "name": "valuemax",
+          "value": {
+            "type": "number",
+            "value": 412
+          }
+        },
+        {
+          "name": "valuetext",
+          "value": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "value": {
+        "type": "number",
+        "value": 396
+      }
+    },
+    {
+      "role": "textbox",
+      "name": "对话输入",
+      "properties": [
+        {
+          "name": "invalid",
+          "value": {
+            "type": "token",
+            "value": "false"
+          }
+        },
+        {
+          "name": "focusable",
+          "value": {
+            "type": "booleanOrUndefined",
+            "value": true
+          }
+        },
+        {
+          "name": "focused",
+          "value": {
+            "type": "booleanOrUndefined",
+            "value": true
+          }
+        },
+        {
+          "name": "editable",
+          "value": {
+            "type": "token",
+            "value": "plaintext"
+          }
+        },
+        {
+          "name": "settable",
+          "value": {
+            "type": "booleanOrUndefined",
+            "value": true
+          }
+        },
+        {
+          "name": "multiline",
+          "value": {
+            "type": "boolean",
+            "value": true
+          }
+        },
+        {
+          "name": "readonly",
+          "value": {
+            "type": "boolean",
+            "value": false
+          }
+        },
+        {
+          "name": "required",
+          "value": {
+            "type": "boolean",
+            "value": false
+          }
+        },
+        {
+          "name": "labelledby",
+          "value": {
+            "type": "nodeList",
+            "relatedNodes": [
+              {
+                "backendDOMNodeId": 2893,
+                "text": "对话输入"
+              }
+            ]
+          }
+        }
+      ],
+      "value": {
+        "type": "string",
+        "value": "键盘侧栏验收草稿"
+      }
+    },
+    {
+      "role": "tree",
+      "name": "书签目录与书签",
+      "properties": [
+        {
+          "name": "focusable",
+          "value": {
+            "type": "booleanOrUndefined",
+            "value": true
+          }
+        },
+        {
+          "name": "multiselectable",
+          "value": {
+            "type": "boolean",
+            "value": false
+          }
+        },
+        {
+          "name": "orientation",
+          "value": {
+            "type": "token",
+            "value": "vertical"
+          }
+        },
+        {
+          "name": "required",
+          "value": {
+            "type": "boolean",
+            "value": false
+          }
+        },
+        {
+          "name": "activedescendant",
+          "value": {
+            "type": "idref",
+            "relatedNodes": [
+              {
+                "backendDOMNodeId": 2938,
+                "idref": "bm-treeitem-1"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "at": 1792625345566,
+      "type": "click",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625345566,
+      "type": "click",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625345567,
+      "type": "input",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625345567,
+      "type": "input",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625352244,
+      "type": "click",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625352244,
+      "type": "click",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625352245,
+      "type": "keydown",
+      "trusted": true,
+      "key": "Tab",
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625352245,
+      "type": "keydown",
+      "trusted": true,
+      "key": "Tab",
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625352264,
+      "type": "touchstart",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625352264,
+      "type": "touchstart",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625352273,
+      "type": "click",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625352273,
+      "type": "click",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625431598,
+      "type": "click",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625431598,
+      "type": "click",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625666709,
+      "type": "click",
+      "trusted": true,
+      "id": "",
+      "aria": "调整对话与原扩展的高度"
+    },
+    {
+      "at": 1792625666709,
+      "type": "click",
+      "trusted": true,
+      "id": "",
+      "aria": "调整对话与原扩展的高度"
+    },
+    {
+      "at": 1792625666960,
+      "type": "click",
+      "trusted": true,
+      "id": "",
+      "aria": null
+    },
+    {
+      "at": 1792625666960,
+      "type": "click",
+      "trusted": true,
+      "id": "",
+      "aria": null
+    },
+    {
+      "at": 1792625667050,
+      "type": "click",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625667050,
+      "type": "click",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625667051,
+      "type": "input",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625667051,
+      "type": "input",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625667054,
+      "type": "keydown",
+      "trusted": true,
+      "key": "Enter",
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625667054,
+      "type": "keydown",
+      "trusted": true,
+      "key": "Enter",
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625758824,
+      "type": "click",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625758824,
+      "type": "click",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625758826,
+      "type": "input",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625758826,
+      "type": "input",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625758828,
+      "type": "keydown",
+      "trusted": true,
+      "key": "Tab",
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625758828,
+      "type": "keydown",
+      "trusted": true,
+      "key": "Tab",
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625758911,
+      "type": "keydown",
+      "trusted": true,
+      "key": "Tab",
+      "id": "",
+      "aria": "对话及已核实操作结果"
+    },
+    {
+      "at": 1792625758911,
+      "type": "keydown",
+      "trusted": true,
+      "key": "Tab",
+      "id": "",
+      "aria": "对话及已核实操作结果"
+    },
+    {
+      "at": 1792625790099,
+      "type": "click",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625790099,
+      "type": "click",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625790100,
+      "type": "input",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625790100,
+      "type": "input",
+      "trusted": true,
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625790101,
+      "type": "keydown",
+      "trusted": true,
+      "key": "Tab",
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625790101,
+      "type": "keydown",
+      "trusted": true,
+      "key": "Tab",
+      "id": "od-conversation-input",
+      "aria": null
+    },
+    {
+      "at": 1792625790184,
+      "type": "keydown",
+      "trusted": true,
+      "key": "Tab",
+      "id": "",
+      "aria": "对话及已核实操作结果"
+    },
+    {
+      "at": 1792625790184,
+      "type": "keydown",
+      "trusted": true,
+      "key": "Tab",
+      "id": "",
+      "aria": "对话及已核实操作结果"
+    },
+    {
+      "at": 1792625790268,
+      "type": "keydown",
+      "trusted": true,
+      "key": "Tab",
+      "id": "",
+      "aria": "收起对话"
+    },
+    {
+      "at": 1792625790268,
+      "type": "keydown",
+      "trusted": true,
+      "key": "Tab",
+      "id": "",
+      "aria": "收起对话"
+    },
+    {
+      "at": 1792625790352,
+      "type": "keydown",
+      "trusted": true,
+      "key": "Home",
+      "id": "",
+      "aria": "调整对话与原扩展的高度"
+    },
+    {
+      "at": 1792625790352,
+      "type": "keydown",
+      "trusted": true,
+      "key": "Home",
+      "id": "",
+      "aria": "调整对话与原扩展的高度"
+    },
+    {
+      "at": 1792625790438,
+      "type": "keydown",
+      "trusted": true,
+      "key": "End",
+      "id": "",
+      "aria": "调整对话与原扩展的高度"
+    },
+    {
+      "at": 1792625790438,
+      "type": "keydown",
+      "trusted": true,
+      "key": "End",
+      "id": "",
+      "aria": "调整对话与原扩展的高度"
+    },
+    {
+      "at": 1792625790529,
+      "type": "keydown",
+      "trusted": true,
+      "key": "ArrowDown",
+      "id": "",
+      "aria": "调整对话与原扩展的高度"
+    },
+    {
+      "at": 1792625790529,
+      "type": "keydown",
+      "trusted": true,
+      "key": "ArrowDown",
+      "id": "",
+      "aria": "调整对话与原扩展的高度"
+    },
+    {
+      "at": 1792625790626,
+      "type": "click",
+      "trusted": true,
+      "id": "",
+      "aria": null
+    },
+    {
+      "at": 1792625790626,
+      "type": "click",
+      "trusted": true,
+      "id": "",
+      "aria": null
+    }
+  ]
+}

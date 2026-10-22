@@ -1,0 +1,1 @@
+{"classification":"driver readiness assumption","failure":"selector checked before asynchronous refresh rendered seeded folder","correction":"wait for actual disclosure selector, bounded 3 seconds; reuse existing owned seed folder","productChanged":false}

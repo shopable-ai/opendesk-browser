@@ -1,0 +1,10 @@
+{
+  "at": 1792627869.851365,
+  "priorPid": 85670,
+  "browserExited": true,
+  "profilePreserved": true,
+  "sameExtensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/production",
+  "oldPackagePreserved": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/production-before-t7",
+  "sourceReceipt": "candidate-source.json",
+  "newBuildReceipt": "build-evidence/build-production.json"
+}

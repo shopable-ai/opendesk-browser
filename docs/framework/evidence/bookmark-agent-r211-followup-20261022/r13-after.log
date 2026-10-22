@@ -1,0 +1,24 @@
+
+> opendesk-bookmark-preview-react-r303@1.1.0 preview:chrome
+> node run-chrome.mjs --conversation-r13
+
+{
+  "status": "FAIL",
+  "pass": 9,
+  "fail": 1,
+  "failures": [
+    {
+      "case": {
+        "physicalWidth": 320,
+        "layoutWidth": 160,
+        "theme": "light",
+        "zoom": 2,
+        "fixedPhysicalHeight": 800
+      },
+      "name": "200% CSS zoom reflow at fixed physical width/height",
+      "error": "AssertionError [ERR_ASSERTION]: Icon bounds/hit {\"label\":\"刷新书签\",\"type\":\"button\",\"width\":68,\"height\":68,\"dx\":0,\"dy\":0,\"inside\":true,\"hittable\":false,\"hitTag\":\"DIV\",\"hitClass\":\"od-conversation-separator\",\"padding\":\"0px\"}\n    at assertGeometry (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:101:108)\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:252:4\n    at async check (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:75:48)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:251:3"
+    }
+  ],
+  "matrix": 5,
+  "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/r13-after/report.json"
+}

@@ -1,0 +1,13 @@
+
+> opendesk-bookmark-preview-react-r303@1.1.0 preview:build
+> node build-preview.mjs
+
+{
+  "status": "PREVIEW_CANDIDATE_BUILT",
+  "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/dev.html",
+  "sha256": "105b79bfa517cfad721fd18cfd39b4064ce3c77bf01729d8972ff74024102a48",
+  "htmlBytes": 616377,
+  "reactBundleBytes": 258849,
+  "cssBytes": 22210,
+  "approvedHtmlUnchanged": true
+}

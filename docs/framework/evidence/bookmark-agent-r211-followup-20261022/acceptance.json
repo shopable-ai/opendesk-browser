@@ -1,0 +1,498 @@
+{
+  "schemaVersion": 1,
+  "goal": "OpenDesk Browser Bookmark AI Agent Loop R2.1.1-LOCAL-REAL-ACCEPTANCE",
+  "generatedAt": "2026-10-22T00:33:38.267951+00:00",
+  "decision": "CORE_REAL_NATIVE_PASS__FORMAL_ACCEPTANCE_INCOMPLETE__NO_FINAL_PASS",
+  "goalStatus": "active; not completed by evidence delivery",
+  "git": {
+    "branch": "main",
+    "businessFixCommit": "a36689ac0ecad72ad378144ad39812a72d31ef62",
+    "buildSnapshotBase": "f482c7cf2e1f2441f9e2e5fac7311942d62f95f7",
+    "snapshotOverlay": "only the three business-fix files listed in candidate-source.json",
+    "observedHeadAtReportGeneration": "ed2126103a4636a687c48b4290a9a84f97df5098",
+    "otherWorkPreserved": true,
+    "noBranchWorktreePrForceResetCleanStash": true,
+    "evidenceCommit": "read Git history for this directory; no self-referential commit hash claimed",
+    "fixtureFixCommit": "6e4e930772820c029163d492a12786e1c6456284",
+    "cumulativeBusinessCommit": "05218b090d1f47817e308cc66bd41845ffb6986e"
+  },
+  "runtime": {
+    "os": "Mac",
+    "browser": "Chrome for Testing 155.0.8059.39 headed",
+    "extensionId": "mcmnmlehmidheiacdiocikjkbdakdjoh",
+    "context": "SIDE_PANEL",
+    "mode": "production static formal candidate; no dev serve/HMR claim",
+    "native": "Codex 0.159.2",
+    "provider": "local_codex, real OpenAI model",
+    "toolShellSha256": "f0432a8440223b0e9fd2a5718d4c87f5a59a7a961e3839fc1af282a402f7f39d",
+    "identities": "candidate-identities.json",
+    "dailyExtensionReplaced": false,
+    "resourceCleanup": "resource-cleanup.json"
+  },
+  "originalFiveTasks": {
+    "P0.1": "Real multi-round on old/new candidate proved",
+    "P0.2": "Real NOT_FOUND continuation and action reuse on old candidate; direct-complete reuse on new candidate",
+    "P0.3": "New original goal independently read back, two real decisions",
+    "P0.4": "Partial real evidence and targeted safety fixtures, full lifecycle not complete",
+    "P0.5": "Real Native key path proved; full formal Chrome/Provider matrix incomplete"
+  },
+  "cases": [
+    {
+      "id": "T1",
+      "priorCandidateStatus": "PASS_REAL_NATIVE",
+      "priorEvidence": [
+        "../bookmark-agent-r211-local-20261022/t1-real-complete.json",
+        "../bookmark-agent-r211-local-20261022/t1-independent-chrome-readback.json"
+      ],
+      "priorDetails": null,
+      "newCandidateFullScenarioRetest": true,
+      "status": "PASS_REAL_NEW_CANDIDATE",
+      "request": "把当前页面放入测试收藏夹，如果没有，就创建目录",
+      "trustedSends": 1,
+      "modelCalls": 2,
+      "actions": 2,
+      "sdkWrites": 2,
+      "chromeCreates": 2,
+      "readback": {
+        "folderId": "46",
+        "bookmarkId": "47",
+        "url": "http://127.0.0.1:43111/demo-form.html"
+      },
+      "finalUi": "已核实：当前网页已在「测试收藏夹」中。",
+      "durationSeconds": 134.441,
+      "evidence": [
+        "new-original-final.json",
+        "new-original-final.png",
+        "new-native-metadata-review.json"
+      ]
+    },
+    {
+      "id": "T2",
+      "priorCandidateStatus": "PASS_REAL_NATIVE",
+      "priorEvidence": [
+        "../bookmark-agent-r211-local-20261022/t2-real-ensure-existing.json",
+        "../bookmark-agent-r211-local-20261022/final-merged-real-original.json"
+      ],
+      "priorDetails": "folder reused, exactly one new URL write",
+      "newCandidateFullScenarioRetest": false,
+      "status": "PASS_NEW_NATIVE_DIRECT_COMPLETE_AND_PRIOR_ACTION_BRANCH",
+      "request": "把当前页面放入测试收藏夹，如果没有，就创建目录",
+      "trustedSends": 1,
+      "modelCalls": 1,
+      "actions": 0,
+      "sdkWrites": 0,
+      "chromeCreates": 0,
+      "treeUnchanged": true,
+      "evidence": [
+        "new-existing-reuse-final.json",
+        "new-existing-reuse-final.png",
+        "new-native-metadata-review.json"
+      ],
+      "boundary": "New model proposed direct completion and independent readback verified; no new ensure/create action-level idempotency execution. Prior real action branch evidence remains separately attributed."
+    },
+    {
+      "id": "T3",
+      "priorCandidateStatus": "PASS_REAL_MODEL_ACTION_LEVEL_EXECUTOR_REUSE",
+      "priorEvidence": [
+        "../bookmark-agent-r211-local-20261022/t3-real-after-explicit-reconnect.json",
+        "../bookmark-agent-r211-local-20261022/t3-real-idempotent-actions.json"
+      ],
+      "priorDetails": "Real model proposes ensure/create; executor confirms existing folder and URL, reports reuse and dispatches no SDK writes. Independent Chrome tree unchanged; zero created events. Older direct-complete attempt remains separate.",
+      "newCandidateFullScenarioRetest": false,
+      "status": "PASS_NEW_NATIVE_DIRECT_COMPLETE_AND_PRIOR_ACTION_BRANCH",
+      "request": "把当前页面放入测试收藏夹，如果没有，就创建目录",
+      "trustedSends": 1,
+      "modelCalls": 1,
+      "actions": 0,
+      "sdkWrites": 0,
+      "chromeCreates": 0,
+      "treeUnchanged": true,
+      "evidence": [
+        "new-existing-reuse-final.json",
+        "new-existing-reuse-final.png",
+        "new-native-metadata-review.json"
+      ],
+      "boundary": "New model proposed direct completion and independent readback verified; no new ensure/create action-level idempotency execution. Prior real action branch evidence remains separately attributed."
+    },
+    {
+      "id": "T4",
+      "priorCandidateStatus": "PASS_SAFE_CLARIFICATION",
+      "priorEvidence": [
+        "../bookmark-agent-r211-local-20261022/t4-real-ambiguity.json",
+        "../bookmark-agent-r211-local-20261022/t4-independent-readback.json"
+      ],
+      "priorDetails": "actual duplicate-name folders; executor asks user before any SDK write",
+      "newCandidateFullScenarioRetest": false,
+      "status": "PRIOR_REAL_EVIDENCE_CARRIED_FORWARD_NOT_NEW_FULL_RETEST",
+      "boundary": "No change to these executor branches in a36689ac; historical real evidence is reusable but is not a same-new-candidate formal matrix PASS."
+    },
+    {
+      "id": "T5",
+      "priorCandidateStatus": "PASS_REAL_NATIVE",
+      "priorEvidence": [
+        "../bookmark-agent-r211-local-20261022/t5-t6-real-continue.json",
+        "../bookmark-agent-r211-local-20261022/t5-t6-independent-readback.json"
+      ],
+      "priorDetails": "real search NOT_FOUND became next decision input",
+      "newCandidateFullScenarioRetest": false,
+      "status": "PRIOR_REAL_EVIDENCE_CARRIED_FORWARD_NOT_NEW_FULL_RETEST",
+      "boundary": "No change to these executor branches in a36689ac; historical real evidence is reusable but is not a same-new-candidate formal matrix PASS."
+    },
+    {
+      "id": "T6",
+      "priorCandidateStatus": "PASS_REAL_NATIVE",
+      "priorEvidence": [
+        "../bookmark-agent-r211-local-20261022/t5-t6-real-continue.json"
+      ],
+      "priorDetails": "same original trusted request across search, ensure/create, independent verification",
+      "newCandidateFullScenarioRetest": false,
+      "status": "PRIOR_REAL_EVIDENCE_CARRIED_FORWARD_NOT_NEW_FULL_RETEST",
+      "boundary": "No change to these executor branches in a36689ac; historical real evidence is reusable but is not a same-new-candidate formal matrix PASS."
+    },
+    {
+      "id": "T7",
+      "priorCandidateStatus": "NOT_TESTED_REAL_TRANSIENT_FAILURE",
+      "priorEvidence": [],
+      "priorDetails": "fixture recovery tests pass; no real transient read/network failure recovery injected",
+      "newCandidateFullScenarioRetest": false,
+      "status": "FIXTURE_PASS_REAL_TRANSIENT_NOT_TESTED",
+      "evidence": [
+        "followup-regression.log"
+      ],
+      "fixCommit": "a36689ac0ecad72ad378144ad39812a72d31ef62",
+      "boundary": "Actual E_CHROME and structured numeric HTTP 502/503 paths exercised by fixtures. No live endpoint failure recovery proved; initial conversation.request HTTP failure is outside the new retry."
+    },
+    {
+      "id": "T8",
+      "priorCandidateStatus": "PASS_SPECIFIC_REAL_WRITE_LOST_HOST_ACK_CUT",
+      "priorEvidence": [
+        "../bookmark-agent-r211-local-20261022/t8-real-lost-ack.json",
+        "../bookmark-agent-r211-local-20261022/t8-real-refreshed-readback.json",
+        "../bookmark-agent-r211-local-20261022/t8-real-reopen-readback.json",
+        "../bookmark-agent-r211-local-20261022/real-native-turns-final.json"
+      ],
+      "priorDetails": "Actual Chrome node22 read independently before terminating bound worker at post-create/pre-ACK Debugger boundary. Worker stopped/restarted, UI UNKNOWN and no success; one surviving-page Chrome event and one SDK create, no replay through 15s. Trusted refresh and later document close/reopen retain the same single node, no new Send or write. This one fault covers the selected T8 and T10 cut, not the complete lifecycle matrix.",
+      "newCandidateFullScenarioRetest": false,
+      "status": "PRIOR_REAL_EVIDENCE_CARRIED_FORWARD_NOT_NEW_FULL_RETEST",
+      "boundary": "No change to these executor branches in a36689ac; historical real evidence is reusable but is not a same-new-candidate formal matrix PASS."
+    },
+    {
+      "id": "T9",
+      "priorCandidateStatus": "PARTIAL_REAL_LIFECYCLE",
+      "priorEvidence": [
+        "../bookmark-agent-r211-local-20261022/t9-real-inflight-stop.json",
+        "../bookmark-agent-r211-local-20261022/t9-real-bookmarks-evidence.json",
+        "../bookmark-agent-r211-local-20261022/t9-real-inflight-native-revoke.json",
+        "../bookmark-agent-r211-local-20261022/t9-native-revoke-late-readback.json",
+        "../bookmark-agent-r211-local-20261022/real-native-turns-final.json"
+      ],
+      "priorDetails": "Real in-flight Stop and bookmarks permission removal correlate with interrupted Native turns and zero later Chrome writes. Actual nativeMessaging removal produced zero writes through ~185s; its durable turn remains inProgress and does not establish process liveness or completed cancellation. Provider switch and actual busy tool instance switch remain incomplete.",
+      "newCandidateFullScenarioRetest": false,
+      "status": "PARTIAL_REAL_LIFECYCLE_NO_FULL_PASS",
+      "evidence": [
+        "t9-instance-switch-real.json",
+        "t9-instance-extended-observation.json",
+        "t9-close-inflight-real.json",
+        "t9-close-reopen-readback.json",
+        "t9-close-late-readback.json",
+        "t9-native-metadata-review.json"
+      ],
+      "attemptCorrection": "First exit was refused by busy guard, so no actual instance switch. Two later Chrome writes invalidate the premature 15-second zero-write PASS; case now NOT_TESTED_ACTUAL_SWITCH_GUARDED.",
+      "documentClose": {
+        "actualTargetGone": true,
+        "reopenDidNotSend": true,
+        "noSemanticBookmarkChangeThroughSecondsSinceSend": 425.409,
+        "nativeDurableStatus": "inProgress",
+        "nativeTerminationProven": false
+      },
+      "remaining": [
+        "Actual Provider switch",
+        "Actual busy instance switch",
+        "Native cancellation terminal and truly late result discard"
+      ]
+    },
+    {
+      "id": "T10",
+      "priorCandidateStatus": "PASS_TARGETED_REAL_WORKER_RESTART_AND_REOPEN__FULL_MATRIX_NOT_TESTED",
+      "priorEvidence": [
+        "../bookmark-agent-r211-local-20261022/t8-real-lost-ack.json",
+        "../bookmark-agent-r211-local-20261022/t8-real-refreshed-readback.json",
+        "../bookmark-agent-r211-local-20261022/t8-real-reopen-readback.json",
+        "../bookmark-agent-r211-local-20261022/final-merged-real-original.json"
+      ],
+      "priorDetails": "T8 includes in-flight real write followed by physical worker stop/restart, UNKNOWN, trusted readback refresh and actual Side Panel document close/reopen without replay. Production extension was also actually reloaded before final core validation. Other stop/update phases, actual timeout/repeat-plan cases and full restart matrix remain NOT_TESTED_REAL.",
+      "newCandidateFullScenarioRetest": false,
+      "status": "PARTIAL_OLD_CANDIDATE_WORKER_CLOSE_REOPEN_AND_NO_PROGRESS",
+      "evidence": [
+        "t9-instance-extended-observation.json",
+        "t9-native-metadata-review.json",
+        "t9-close-late-readback.json"
+      ],
+      "boundary": "Guarded-exit original model chain created a weaker folder name; independent goal check did not accept weak success and no-progress stopped. Old T8 real worker cut and reopen remain specific-cut evidence. New original is a 134-second task; it does not prove the eight-minute deadline or full update/replay matrix."
+    },
+    {
+      "id": "T11",
+      "priorCandidateStatus": "PARTIAL_NATIVE_REAL_HTTPS_RESPONSES_NOT_TESTED",
+      "priorEvidence": [],
+      "priorDetails": "Native Codex 0.159.2 real model. HTTPS/Responses fixtures only; no configured live endpoint.",
+      "newCandidateFullScenarioRetest": false,
+      "status": "NATIVE_REAL_PASS_HTTPS_RESPONSES_NOT_TESTED",
+      "provider": {
+        "transport": "local_codex",
+        "cli": "0.159.2",
+        "modelMetadata": "gpt-6.1-sol",
+        "modelProviderMetadata": "openai",
+        "liveNewDecisions": 3,
+        "providerSidePerTurnModelAttestation": false
+      },
+      "unconfigured": [
+        "Live HTTPS chat-completions endpoint",
+        "Live Responses endpoint"
+      ],
+      "fixturesOnly": [
+        "workflow-responses",
+        "workflow-local-http"
+      ],
+      "evidence": [
+        "new-native-metadata-review.json"
+      ]
+    },
+    {
+      "id": "T12",
+      "priorCandidateStatus": "PARTIAL_INSTALLED_TAB_UX",
+      "priorEvidence": [
+        "../bookmark-agent-r211-local-20261022/t12-installed-tab-viewport.json",
+        "../bookmark-agent-r211-local-20261022/t12-chrome-zoom.json",
+        "../bookmark-agent-r211-local-20261022/t12-zoom-layout.json",
+        "../bookmark-agent-r211-local-20261022/t12-real-independent-scroll.json"
+      ],
+      "priorDetails": "Actual installed tool tab 320/360/400/440/960 light/dark 10 checks; actual Chrome zoom 2; trusted emulated touch, keyboard Tab, independent wheel scrolling. Actual physical Side Panel only 360; full physical width/zoom matrix and physical touch hardware remain NOT_TESTED. Long scroll request included a draft and prompted clarification; never counted as successful search.",
+      "newCandidateFullScenarioRetest": false,
+      "status": "PARTIAL_REAL_PHYSICAL_SIDE_PANEL",
+      "evidence": [
+        "t12-physical-side-panel-final.json",
+        "t12-physical-final-controls.json",
+        "t12-real-unsaved-drafts.json",
+        "t12-physical-keyboard-scroll.json"
+      ],
+      "physicalWidthsPassed": [
+        360,
+        400,
+        440,
+        960
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "physicalCombinationsPassed": 8,
+      "requested320Actual360": true,
+      "keyboardAndIndependentScrollChecksPassed": 8,
+      "bothDraftsPreserved": true,
+      "axSemanticsChecked": true,
+      "notTested": [
+        "Physical Side Panel 320 (Chrome clamps 360)",
+        "Side Panel itself at 200% zoom",
+        "Hardware touch",
+        "Audible screen reader output"
+      ],
+      "boundary": "CDP touch is emulated trusted input; webpage zoom2 is not Side Panel zoom2. New browser layout evidence is for prior frozen tool shell, not a complete new-package T12 retest."
+    }
+  ],
+  "verification": {
+    "jointCommand": "node --test tests/environment/opendesk-conversation-r*.test.mjs tests/environment/browser-sdk-r112-full-bookmarks.test.mjs tests/environment/browser-sdk-r124-current-page.test.mjs tests/environment/bookmark-manager-r31-trusted-lifecycle.test.mjs tests/environment/bookmark-manager-r33-default-react.test.mjs tests/environment/workflow-responses.test.mjs tests/environment/workflow-local-http.test.mjs",
+    "joint": {
+      "pass": 326,
+      "fail": 0,
+      "skipped": 0,
+      "log": "followup-regression.log"
+    },
+    "r21Subset": {
+      "pass": 57,
+      "includedInJoint": true
+    },
+    "nodeVersionBoundary": "Early joint/check commands used Node26.3.1. Corrected production/development commands used explicit Node24.16 PATH. CI uses Node22. All satisfy >=22.12.",
+    "commands": [
+      {
+        "command": "npm run check",
+        "status": "PASS",
+        "log": "check.log"
+      },
+      {
+        "command": "npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager",
+        "status": "PASS",
+        "log": "tool-build.log"
+      },
+      {
+        "command": "node scripts/build-sidebar-tool.mjs --check-project examples/sidebar-tools/bookmark-manager",
+        "status": "PASS",
+        "log": "project-source-check.log"
+      },
+      {
+        "command": "npm run build",
+        "status": "PASS",
+        "log": "production-build-fixed-snapshot.log"
+      },
+      {
+        "command": "node scripts/verify-package.mjs dist/production",
+        "status": "PASS",
+        "log": "production-verify.log"
+      },
+      {
+        "command": "npm run build:dev",
+        "status": "PASS",
+        "log": "development-build.log"
+      },
+      {
+        "command": "npm run verify",
+        "status": "PASS",
+        "log": "verify.log"
+      }
+    ],
+    "sourceCheckFiles": 1002,
+    "package": {
+      "id": "bookmark-manager",
+      "version": "0.3.10",
+      "bytes": 88194,
+      "sha256": "4157bd984596d54c1a0c8a35ec38332d707d041b4ef038f018e8b452459073a4",
+      "changed": false,
+      "projectSourceMatches": true
+    },
+    "builds": {
+      "production": "a220e15f05820c6cffa0f776bc383c0836a822faf889d4360a4e089d4078278e",
+      "development": "fa1c9a5e4de54eb0d782c6a536d9cde36de8ed81b3a6713250d20eb0c0dd063a",
+      "freshWholeLatestMainBinaryClaim": false
+    },
+    "chromiumSourceFixture": {
+      "status": "MOCK_BROWSER_INTERACTION_PASS_NOT_INSTALLED",
+      "viewports": 2,
+      "log": "source-preview.log"
+    },
+    "fixtureFollowup": {
+      "changedFiles": [
+        "examples/sidebar-tools/bookmark-manager/preview/react/src/main.jsx",
+        "examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs"
+      ],
+      "checks": [
+        "driver node --check",
+        "JSX parsed by isolated preview:build",
+        "formal React boundary 4/4",
+        "complete mock Chromium 40/40",
+        "git diff --check"
+      ],
+      "businessAndLoadedProductionBytesUnchanged": true,
+      "command": "CHROME_BIN=<CFT155> BOOKMARK_REACT_EVIDENCE_DIR=<own-r13-full> npm run preview:chrome -- --conversation-r13",
+      "boundaryNodeLog": "r13-formal-boundary.log",
+      "fullBrowser": "Headless CFT155.0.8059.39, in-memory mock only",
+      "noUncaughtExceptionsOrNetwork": true
+    }
+  },
+  "ci": {
+    "r21": {
+      "sourceCommit": "a36689ac0ecad72ad378144ad39812a72d31ef62",
+      "runId": 39698306861,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/39698306861",
+      "agent-contract": "success",
+      "agent-build": "success",
+      "evidence": "ci-agent-jobs.json"
+    },
+    "allRelatedCiGreen": false,
+    "relatedFailures": [
+      {
+        "runId": 39698306887,
+        "name": "Workflow AI direct send",
+        "classification": "Inherited source/fixture mismatch inferred from unchanged source; baseline workflow was not rerun here",
+        "detail": "VM missing prompt-actions.js; label expected Codex vs 本机 Codex; outdated source regex",
+        "log": "ci-workflow-failure-excerpts.log"
+      },
+      {
+        "runId": 39698306875,
+        "job": "trusted-source-build",
+        "classification": "Pre-existing independent 1056 KiB cap already exceeded before this patch; no cap relaxed",
+        "oldBytes": 1190116,
+        "newBytes": 1190590,
+        "capBytes": 1081344,
+        "log": "ci-r32-budget-failure-excerpts.log"
+      },
+      {
+        "runId": 39698306875,
+        "job": "react-chromium",
+        "classification": "R21 guard / offline fixture mismatch introduced in 05218b090; corrected in 6e4e93077 without changing production guards",
+        "pass": 15,
+        "fail": 25,
+        "log": "ci-r32-react-failure-excerpts.log",
+        "diagnosis": "ci-r13-diagnosis.md",
+        "localBefore": {
+          "pass": 4,
+          "fail": 6,
+          "evidence": "r13-before/report.json",
+          "additionalGeometryFailure": "One Mac155 light 200% fixed-width hit-test failure; product versus driver not yet classified"
+        },
+        "localAfter": {
+          "smoke": {
+            "pass": 10,
+            "fail": 0
+          },
+          "full": {
+            "pass": 40,
+            "fail": 0
+          },
+          "source": "same formal React UI as production snapshot plus fixture-only overlay",
+          "evidence": "r13-full/report.json",
+          "nativeVerified": false,
+          "network": [],
+          "independentReview": "ci-r13-independent-review.md",
+          "ciAfterFix": "react-chromium SUCCESS on same fixture-fix commit (39701416861)"
+        }
+      }
+    ],
+    "fixtureFix": {
+      "sourceCommit": "6e4e930772820c029163d492a12786e1c6456284",
+      "runId": 39701416861,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/39701416861",
+      "react-chromium": "success",
+      "standalone-react-package-budget": "success",
+      "trusted-source-build": "failure: existing tool-shell production hard budget",
+      "evidence": "ci-fixture-final-jobs.json",
+      "failureExcerpt": "ci-final-budget-failure-excerpts.log"
+    }
+  },
+  "expertScores": {
+    "reviewer": "Independent native subagent Ohm",
+    "report": "independent-final-review.md",
+    "functionalCorrectness": 95,
+    "architecturalSimplicity": 90,
+    "agentContinuity": 93,
+    "errorRecovery": 94,
+    "permissionsAndDataSafety": 94,
+    "uxAccessibility": 93,
+    "realEvidence": 94,
+    "allAtLeast95": false
+  },
+  "architecture": {
+    "existingSingleProviderSdkHostAuthorityReactRoot": true,
+    "newPlatform": false,
+    "businessDiff": "15-line loop gate change plus one HTTP numeric status metadata field; 181 test lines",
+    "toolShellAddedBytes": 474
+  },
+  "exclusionsAndCorrections": [
+    "Do not count first busy-guard exit as actual instance cancellation; late writes were observed.",
+    "Do not count duplicate passive click rows as two Sends.",
+    "Do not count raw inProgress metadata as Native process liveness or terminal cancellation.",
+    "Do not count 320 request clamped to360, web-page zoom, CDP touch or offline fixtures as corresponding physical/native passes.",
+    "One wrong-workdir root production build rejected by source-drift guard. Root dist/production was targeted; rejected package never loaded or accepted. Later success only in own snapshot.",
+    "Candidate-source original note of daily outputs untouched predates the rejected root command; root-command-correction.json supersedes that broad wording.",
+    "R13 report knownActionGaps is a hardcoded historical note, not exercised by this run; only checks/matrix carry observed results. It does not supersede newer real or executor evidence."
+  ],
+  "remaining": [
+    "Configured live HTTPS and Responses acceptance, including transient recovery",
+    "Actual Provider/instance switch and Native cancellation/late result terminal evidence",
+    "Remaining T10 deadline/update/repeat-plan matrix",
+    "T12 physical320, SidePanel200%, hardware touch and audible screen reader",
+    "Seven independent scores >=95",
+    "Related CI: R13 Chromium now success on fixture-fix commit; independent existing budget and Workflow fixture failures remain",
+    "Older bm-r211-155-01a16018 owner cleanup blocked by missing original profile; official controls preserved"
+  ],
+  "priorEvidence": "../bookmark-agent-r211-local-20261022/acceptance.json",
+  "artifactHashes": "artifact-hashes.json"
+}

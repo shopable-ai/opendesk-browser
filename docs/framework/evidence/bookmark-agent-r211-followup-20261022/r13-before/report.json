@@ -1,0 +1,168 @@
+{
+  "kind": "CONVERSATION_R13_CHROMIUM_MOCK_PREVIEW_NOT_NATIVE",
+  "status": "FAIL",
+  "nativeVerified": false,
+  "installed": false,
+  "zoomMethod": "DOCUMENT_CSS_ZOOM_WITH_MEASURED_LAYOUT_AND_PHYSICAL_VIEWPORT; NOT_NATIVE_BROWSER_MENU_ZOOM",
+  "browser": "Chrome/155.0.8059.39",
+  "sourceHashes": {
+    "../../src/react/App.jsx": "8c607b6ba3f1bc81581daa8f58d16a0b92f9aa82ad9ccfe0a3b9d7b7f2d785de",
+    "../../src/react/style.css": "3dc4119664b84c6b536e69d0b2d77079543f5ccab54cfcab735972aa187f2fb3",
+    "src/main.jsx": "ae09e7e60b683df0e1d560bfed489c368462ddb30b4b5d2838e46f3b09fd2799",
+    "src/preview-shell.css": "00fa7064283774cb6a21b3858253004103223689024e42e4ec8bb60c541d95aa",
+    "src/formal.jsx": "826a75c0ef9dcf5357e6394eec0bc7a8df44dfa2961ee0b77624559b59cb1b60",
+    "../../src/model.js": "875cf0d61fb95f6c70901337118dd7382f33a2ff0ef45ac308a2a5e807aeee9c",
+    "../../src/service.js": "641db4700757110cca0a4fce607f2e68df4cb1c1d8fb975197b8100b90189dc4",
+    "vite.config.mjs": "c3e49811a4c14d143db007dbba5823eabcf3cddefca0bf2a39b55935a5119c8d",
+    "package-lock.json": "1d0e00ce866fc41e16947f661f1d151e1d8e2885afaa4b2e018b23bfc1c8ded8",
+    "../../../../../src/ui/design-tokens.css": "dc9715b3c09fc168d751987e227082a44160551508414017ac3b79aba38e7962",
+    "../../../../../src/ui/design-system.css": "8bae0d6e66d433dc7d4ff42697698aece1bf2849dcfc1a71cf43daa541b159ca",
+    "../../../../../src/ui/react/components/ui/button.tsx": "c0ec4806a2bf6931f72ed6965fce9f0cd4b631f391ef6e34d986d0bc58a4bd47",
+    "../../../../../src/ui/react/components/conversation.tsx": "8e21f761f0a9aae8de7c1036bcade40bd112f1484db0eecd93827029864a4873",
+    "../../../../../src/ui/react/components/conversation-dock.css": "36b3efd013cf692240eb0a1d2a8bad5ca759f6a2fea82410af16b67420d95fde",
+    "../../../../../src/ui/react/tabs/tool-host.tsx": "8d05055b85b2670a931e73f42e0b50ce20ea31e54ff79110254afd56d425cb97",
+    "../../../../../src/ui/react/main.tsx": "9c97ad9590f63f24a2bb728e4dbceeb7a781de626e51883e94c05bf197aa62fc",
+    "../../../../../src/ui/conversation/bookmark-actions.js": "eff741f05a18ac0360d15fdf9609b2f968c9bc00951a61c2251b689c435c7212",
+    "../../../../../scripts/preview/bookmark-manager-mock.js": "2b683e6bbfe360015648f2c72d34c54b1e926f4ce2be6efde0fb6d01739a427b"
+  },
+  "commands": {
+    "runner": "CHROME_BIN=\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" BOOKMARK_REACT_EVIDENCE_DIR=artifacts/conversation-r13-local/ui node examples/sidebar-tools/bookmark-manager/preview/react/run-chrome.mjs --conversation-r13"
+  },
+  "knownActionGaps": [
+    {
+      "status": "FAIL_OUTSIDE_UI_WRITE_SCOPE",
+      "operation": "Send default sample without selecting an editable folder",
+      "observed": "bookmark-actions rejects protected default root as target"
+    },
+    {
+      "status": "FAIL_OUTSIDE_UI_WRITE_SCOPE",
+      "operation": "Send sample with non-canonical https://example.com after selecting editable folder",
+      "observed": "Folder verified; bookmark URL normalized to trailing slash by Service, action readback rejects expected non-canonical URL; E_OUTCOME_UNKNOWN blocks replay"
+    }
+  ],
+  "checks": [
+    {
+      "case": "formal-shortest-core",
+      "name": "business icons, sheets and trusted Chat denial outside admitted Host",
+      "status": "PASS",
+      "detail": {
+        "screenshot": "formal-320-offline-send.png",
+        "mockOnly": true
+      }
+    },
+    {
+      "case": {
+        "width": 320,
+        "theme": "light",
+        "zoom": 1,
+        "entry": "App.jsx + offline fixed-phrase adapter"
+      },
+      "name": "conversation geometry, icon hit targets, contrast, focus and keyboard",
+      "status": "FAIL",
+      "error": "Error: Timeout mock create + bookmark verified\n    at until (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:25:120)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:193:4\n    at async check (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:62:48)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:156:3"
+    },
+    {
+      "case": {
+        "width": 320,
+        "theme": "light",
+        "zoom": 2,
+        "entry": "App.jsx + offline fixed-phrase adapter"
+      },
+      "name": "conversation geometry, icon hit targets, contrast, focus and keyboard",
+      "status": "FAIL",
+      "error": "Error: Timeout mock create + bookmark verified\n    at until (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:25:120)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:193:4\n    at async check (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:62:48)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:156:3"
+    },
+    {
+      "case": {
+        "width": 320,
+        "theme": "dark",
+        "zoom": 1,
+        "entry": "App.jsx + offline fixed-phrase adapter"
+      },
+      "name": "conversation geometry, icon hit targets, contrast, focus and keyboard",
+      "status": "FAIL",
+      "error": "Error: Timeout mock create + bookmark verified\n    at until (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:25:120)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:193:4\n    at async check (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:62:48)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:156:3"
+    },
+    {
+      "case": {
+        "width": 320,
+        "theme": "dark",
+        "zoom": 2,
+        "entry": "App.jsx + offline fixed-phrase adapter"
+      },
+      "name": "conversation geometry, icon hit targets, contrast, focus and keyboard",
+      "status": "FAIL",
+      "error": "Error: Timeout mock create + bookmark verified\n    at until (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:25:120)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:193:4\n    at async check (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:62:48)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:156:3"
+    },
+    {
+      "case": {
+        "physicalWidth": 320,
+        "layoutWidth": 160,
+        "theme": "light",
+        "zoom": 2,
+        "fixedPhysicalHeight": 800
+      },
+      "name": "200% CSS zoom reflow at fixed physical width/height",
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Icon bounds/hit {\"label\":\"刷新书签\",\"type\":\"button\",\"width\":68,\"height\":68,\"dx\":0,\"dy\":0,\"inside\":true,\"hittable\":false,\"padding\":\"0px\"}\n    at assertGeometry (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:88:108)\n    at file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:233:4\n    at async check (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:62:48)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:232:3"
+    },
+    {
+      "case": {
+        "physicalWidth": 320,
+        "layoutWidth": 160,
+        "theme": "dark",
+        "zoom": 2,
+        "fixedPhysicalHeight": 800
+      },
+      "name": "200% CSS zoom reflow at fixed physical width/height",
+      "status": "PASS",
+      "detail": {
+        "screenshot": "reflow-physical-320-dark-200.png"
+      }
+    },
+    {
+      "case": "r15-two-turn-verified-folder-and-current-page",
+      "name": "R1.5 real React click path: create, follow up, search filter, locate virtual node",
+      "status": "FAIL",
+      "error": "Error: Timeout R15 folder visible\n    at until (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:25:120)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:249:3\n    at async check (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:62:48)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/candidate/examples/sidebar-tools/bookmark-manager/preview/react/conversation-r13-chrome.mjs:245:2"
+    },
+    {
+      "case": "long-unbroken-message-320-dark-200",
+      "name": "long message wrapping and multiline keyboard input",
+      "status": "PASS",
+      "detail": {
+        "screenshot": "long-message-physical-320-dark-200.png"
+      }
+    },
+    {
+      "case": "transcript-scroll-320",
+      "name": "new conversation replies remain visible after log fills",
+      "status": "PASS",
+      "detail": {
+        "scrollTop": 636,
+        "clientHeight": 216,
+        "scrollHeight": 852,
+        "bottom": 0
+      }
+    }
+  ],
+  "matrix": [
+    {
+      "physicalWidth": 320,
+      "layoutWidth": 160,
+      "theme": "dark",
+      "zoom": 2,
+      "fixedPhysicalHeight": 800,
+      "status": "PASS",
+      "viewport": {
+        "viewport": 320,
+        "layout": 160,
+        "zoom": 2,
+        "dark": true
+      },
+      "screenshot": "reflow-physical-320-dark-200.png"
+    }
+  ],
+  "exceptions": [],
+  "network": []
+}

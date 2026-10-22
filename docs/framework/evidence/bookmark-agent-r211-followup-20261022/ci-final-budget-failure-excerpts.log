@@ -1,0 +1,32 @@
+2026-10-22T00:44:51.5308376Z # Subtest: R1.1 a verified folder is retained when a subsequent write is unknown
+2026-10-22T00:44:51.5309844Z ok 138 - R1.1 a verified folder is retained when a subsequent write is unknown
+2026-10-22T00:44:51.5310569Z   ---
+2026-10-22T00:44:51.5310918Z   duration_ms: 0.980095
+2026-10-22T00:44:51.5311317Z   type: 'test'
+2026-10-22T00:44:51.5311659Z   ...
+2026-10-22T00:46:45.2471979Z [36;1massert.match(csp,/script-src 'self'/);[0m
+2026-10-22T00:46:45.2472358Z [36;1massert.doesNotMatch(csp,/unsafe-eval|https?:\/\//);[0m
+2026-10-22T00:46:45.2472803Z [36;1m// R1.11 keeps its initial reviewed 1056 KiB ceiling even if another[0m
+2026-10-22T00:46:45.2473264Z [36;1m// workstream later changes the global framework budget.[0m
+2026-10-22T00:46:45.2473799Z [36;1mconst budgetBytes=Math.min(entryByteBudget('ui/tool-shell.js','production'),1056*1024);[0m
+2026-10-22T00:46:45.2474465Z [36;1massert.ok(content.byteLength<=budgetBytes,'existing tool-shell production hard budget');[0m
+2026-10-22T00:46:45.2475252Z [36;1mconst report={entry,bytes:content.byteLength,budgetBytes,sha256:createHash('sha256').update(content).digest('hex'),csp,[0m
+2026-10-22T00:46:45.2476347Z [36;1m  installedBookmarkPackagePromoted:false,reactRuntime:'host-shared'};[0m
+2026-10-22T00:46:48.6660586Z     ^
+2026-10-22T00:46:48.6660871Z 
+2026-10-22T00:46:48.6661268Z AssertionError [ERR_ASSERTION]: existing tool-shell production hard budget
+2026-10-22T00:46:48.6661953Z     at file:///home/runner/work/opendesk-browser/opendesk-browser/[eval1]:14:8 {
+2026-10-22T00:46:48.6662422Z   generatedMessage: false,
+2026-10-22T00:46:48.6662708Z   code: 'ERR_ASSERTION',
+2026-10-22T00:46:48.6662969Z   actual: false,
+2026-10-22T00:46:48.6663208Z   expected: true,
+2026-10-22T00:46:48.6663449Z   operator: '==',
+2026-10-22T00:46:48.6663678Z   diff: 'simple'
+2026-10-22T00:46:48.6663898Z }
+2026-10-22T00:46:48.6664025Z 
+2026-10-22T00:46:48.6664125Z Node.js v22.23.3
+2026-10-22T00:46:48.6705446Z ##[error]Process completed with exit code 1.
+2026-10-22T00:46:48.6808269Z ##[group]Run actions/upload-artifact@v4
+2026-10-22T00:46:48.6808574Z with:
+2026-10-22T00:46:48.6808931Z   name: bookmark-r32-trusted-source-6e4e930772820c029163d492a12786e1c6456284
+

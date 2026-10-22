@@ -1,0 +1,12 @@
+✔ R3.3 normal open tries the single compiled React root without developer parameters (2.837083ms)
+✔ R3.3 default route keeps official package identity and original Host dispatcher (0.754791ms)
+✔ R3.3 first Full Bookmarks approval visibly leads into a fresh observer (1.476875ms)
+✔ R3.3 React does not duplicate the trusted Host deletion review (0.822416ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 51.7265

@@ -1,0 +1,19 @@
+{
+  "at": "2026-10-22T00:04:57.051Z",
+  "head": "f482c7cf2e1f2441f9e2e5fac7311942d62f95f7",
+  "inputs": [
+    {
+      "path": "src/ui/conversation/bookmark-agent-loop.js",
+      "sha256": "86e46fcee67fc1dc5b320aadf0c1067b3706de5d09f37fabfc621a097f3d8a30"
+    },
+    {
+      "path": "src/ui/workflow/ai-plan.js",
+      "sha256": "25a9bdcfaaff2e302caec1934e15e8a9ebe31e420e0129bda81be6866be058b2"
+    },
+    {
+      "path": "tests/environment/opendesk-conversation-r21-agent-loop.test.mjs",
+      "sha256": "194f26ceecd5262232e0076bfd88afb804597cc7a010aa320ade5038391ebf7b"
+    }
+  ],
+  "note": "Non-Git isolated formal build snapshot: committed main plus only this task’s three files. Unrelated uncommitted edits excluded; daily dist/watcher untouched."
+}

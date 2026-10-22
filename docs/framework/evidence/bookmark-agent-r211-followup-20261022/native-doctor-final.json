@@ -1,0 +1,26 @@
+{
+  "connected": true,
+  "local": {
+    "browser": "cft",
+    "extensionId": "mcmnmlehmidheiacdiocikjkbdakdjoh",
+    "installed": true,
+    "manifest": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-r211-native-2lzNhN/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+    "note": "Socket presence does not prove an authenticated Chrome connection",
+    "provider": "opendesk",
+    "socketExists": true
+  },
+  "response": {
+    "v": 1,
+    "kind": "response",
+    "requestId": "4a967fa2-337a-4e55-b0ab-e5d4f4c9f203",
+    "result": {
+      "extensionId": "mcmnmlehmidheiacdiocikjkbdakdjoh",
+      "bridgeVersion": 1,
+      "nativeConnected": true,
+      "enabled": true,
+      "hostRegistrations": [
+        "4803f310-8aaa-4604-adca-8fc523657caa"
+      ]
+    }
+  }
+}

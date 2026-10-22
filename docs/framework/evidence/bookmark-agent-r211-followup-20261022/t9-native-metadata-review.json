@@ -1,0 +1,926 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUTC": "2026-10-22T00:03:59.574979+00:00",
+  "classification": "MULTI_CANDIDATE_REVIEW_OLD_T9_T10_BOUNDARIES_PRESERVED_NEW_ORIGINAL_COMPLETION_SUPPORTED",
+  "fixture": false,
+  "scope": {
+    "onlyWrittenArtifact": "artifacts/bookmark-agent-r211-followup/t9-native-metadata-review.json",
+    "codexHome": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/bm-r211-followup-codex-0gt77d",
+    "codexHomeSelector": "artifacts/bookmark-agent-r211-followup/native-runtime.json.codexHome",
+    "databasesRead": [
+      "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/bm-r211-followup-codex-0gt77d/thread_history_1.sqlite",
+      "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/bm-r211-followup-codex-0gt77d/state_5.sqlite"
+    ],
+    "sqliteConnectionMode": "mode=ro",
+    "pragmaQueryOnly": true,
+    "defaultCodexHomeRead": false,
+    "credentialsRead": false,
+    "reasoningExported": false,
+    "unrelatedUserTextExported": false,
+    "logsDatabaseRead": false,
+    "browserOrModelProcessOperated": false
+  },
+  "artifacts": [
+    {
+      "path": "artifacts/bookmark-agent-r211-followup/t9-instance-switch-real.json",
+      "sha256": "91a08b88be263be31b940360f74c015059022592a46891490e3b30f29a4c0eb1"
+    },
+    {
+      "path": "artifacts/bookmark-agent-r211-followup/t9-instance-extended-observation.json",
+      "sha256": "755c2b719fd7dc60d18830aded064c46427eb6a3c51fc03ca678dfccb145839b"
+    },
+    {
+      "path": "artifacts/bookmark-agent-r211-followup/t9-close-inflight-real.json",
+      "sha256": "52f4d5fb9711c7c5a892204437bd4677c1ac58741c6ce7da69f11746c0af3092"
+    },
+    {
+      "path": "artifacts/bookmark-agent-r211-followup/new-original-final.json",
+      "sha256": "ab6e8b3161df9321e89ef1fb820b6ca8246a5b63574f624c2b41eab6bdd66b3b"
+    }
+  ],
+  "candidateSourceSha256AsRecorded": "7634e961cd8f2327c00b0cc09eeda7b083403b8f6a4c428e1cacb77f87c6ac20",
+  "request": "把当前页面放入实例切换验证1792627021211收藏夹，如果没有，就创建目录",
+  "correlation": {
+    "threadId": "01a160e5-a211-7f30-b3cf-62ba543d98b1",
+    "uniquePublicRequestMarker": "1792627021211",
+    "matchingSQL": "SELECT thread_id,turn_id,status,started_at,completed_at,duration_ms FROM thread_turns WHERE thread_id=? AND started_at BETWEEN ? AND ? ORDER BY started_at",
+    "matchingTurnCount": 3,
+    "requestMatches": [
+      {
+        "item_id": "01a160e5-e10d-7f10-8bcf-bd035a1927cc",
+        "created_at_ms": 1792627040526,
+        "started_at_ms": 1792627040526,
+        "completed_at_ms": 1792627040526,
+        "exact_request_present": 1,
+        "unique_request_marker_present": 1,
+        "turnId": "01a160e5-a220-7410-9c6c-bce1c53ae0de"
+      },
+      {
+        "item_id": "01a160e7-6f80-7b30-87b8-7f484d7099b7",
+        "created_at_ms": 1792627142529,
+        "started_at_ms": 1792627142529,
+        "completed_at_ms": 1792627142529,
+        "exact_request_present": 1,
+        "unique_request_marker_present": 1,
+        "turnId": "01a160e7-6f79-71f3-ad68-c2e8681e15a5"
+      },
+      {
+        "item_id": "01a160e7-7c03-7680-b120-552f1243997b",
+        "created_at_ms": 1792627145733,
+        "started_at_ms": 1792627145733,
+        "completed_at_ms": 1792627145733,
+        "exact_request_present": 1,
+        "unique_request_marker_present": 1,
+        "turnId": "01a160e7-7bfd-7403-86bf-2615ca545f0a"
+      }
+    ],
+    "recordedTrustedSendCount": 1,
+    "trustedSend": {
+      "label": "发送",
+      "trusted": true,
+      "at": 1792627021436
+    },
+    "driverSentAtMs": 1792627021439,
+    "trustedBackAttempt": {
+      "label": "返回扩展列表",
+      "trusted": true,
+      "at": 1792627122733
+    },
+    "driverSwitchedAtFieldAsRecordedMs": 1792627122737,
+    "driverSwitchedAtFieldIsNotProofOfExit": true,
+    "driverCorrectionAsRecorded": "Initial driver queried nonexistent turns table and matched hidden extension-detail back control; corrected to actual thread_turns and #sidebar-tool-back; resume SAME real request, no new Send.",
+    "actualExitCorrectionAsRecorded": "Trusted Back attempt was refused by the existing busy/unsaved guard. The tool instance never exited. Later writes belong to the still-active original request. Fifteen seconds of no writes did not prove a completed switch or terminal cancellation.",
+    "interpretation": "One recorded trusted Send, followed by recovery of the same request after driver table/selector assumptions failed. Three Native turn decisions belong to this request; they are not three Sends. A trusted Back click is an attempt, not proof that navigation occurred."
+  },
+  "T9": {
+    "status": "NOT_TESTED",
+    "reason": "Back click was rejected by the existing busy guard; actual tool instance exit/switch did not occur.",
+    "actualInstanceExited": false,
+    "guardToastRecorded": "当前工具正在保存，请完成后再切换。",
+    "toolStillVisible": true,
+    "extensionListVisible": false,
+    "nativeInterruptedTerminalObserved": false,
+    "nativeCancellationAssessment": "NOT_APPLICABLE_NO_ACTUAL_INSTANCE_EXIT; no interruption or cancellation-completion claim is supported.",
+    "initialShortWindowStatusAsRecorded": "PASS_SDK_FENCE_NATIVE_TERMINAL_REVIEW_SEPARATELY",
+    "initialShortWindowStatusSuperseded": true,
+    "initialDriverChecksAsRecorded": {
+      "oneTrustedSend": true,
+      "trustedExit": true,
+      "realModelInFlight": true,
+      "stopVisible": true,
+      "noSDKWrites": true,
+      "noChromeCreates": true,
+      "sameChromeTree": true,
+      "actualInstanceExited": false,
+      "noLaterChromeCreates": false
+    },
+    "shortReadback": {
+      "atMs": 1792627137738,
+      "millisecondsAfterBackAttempt": 15005,
+      "chromeCreates": [],
+      "sdkCalls": [],
+      "chromeTreeUnchanged": true,
+      "limitation": "Only a short observation while the original instance/request remained active. Later real writes supersede any zero-write or successful-switch conclusion."
+    }
+  },
+  "native": {
+    "snapshotAtUTC": "2026-10-22T00:03:59.572148+00:00",
+    "turns": [
+      {
+        "thread_id": "01a160e5-a211-7f30-b3cf-62ba543d98b1",
+        "turn_id": "01a160e5-a220-7410-9c6c-bce1c53ae0de",
+        "status": "completed",
+        "started_at": 1792627024,
+        "completed_at": 1792627139,
+        "duration_ms": 115005,
+        "sequence": 1,
+        "startedAtUTC": "2026-10-21T23:57:04.000+00:00",
+        "completedAtUTC": "2026-10-21T23:58:59.000+00:00",
+        "agentMessages": [
+          {
+            "item_id": "msg_0232af57af3ec2ce016ad951c29d848198bb2a1416599adb12",
+            "created_at_ms": 1792627138537,
+            "started_at_ms": 1792627138537,
+            "completed_at_ms": 1792627139315,
+            "phase": "final_answer",
+            "text": "{\"actions\":[{\"type\":\"folder.ensure\",\"title\":\"实例切换验证1792627021211\",\"parent\":\"$currentFolder\"},{\"type\":\"bookmark.create\",\"title\":\"$pageTitle\",\"url\":\"$currentPage\",\"parent\":\"$lastFolder\"}]}",
+            "plan": {
+              "actions": [
+                {
+                  "type": "folder.ensure",
+                  "title": "实例切换验证1792627021211",
+                  "parent": "$currentFolder"
+                },
+                {
+                  "type": "bookmark.create",
+                  "title": "$pageTitle",
+                  "url": "$currentPage",
+                  "parent": "$lastFolder"
+                }
+              ]
+            }
+          }
+        ],
+        "threadMetadata": {
+          "model": "gpt-6.1-sol",
+          "model_provider": "openai",
+          "cli_version": "0.159.2"
+        }
+      },
+      {
+        "thread_id": "01a160e5-a211-7f30-b3cf-62ba543d98b1",
+        "turn_id": "01a160e7-6f79-71f3-ad68-c2e8681e15a5",
+        "status": "completed",
+        "started_at": 1792627142,
+        "completed_at": 1792627145,
+        "duration_ms": 2836,
+        "sequence": 2,
+        "startedAtUTC": "2026-10-21T23:59:02.000+00:00",
+        "completedAtUTC": "2026-10-21T23:59:05.000+00:00",
+        "agentMessages": [
+          {
+            "item_id": "msg_0232af57af3ec2ce016ad951c8dd008198aff3fcdca895ff99",
+            "created_at_ms": 1792627144779,
+            "started_at_ms": 1792627144779,
+            "completed_at_ms": 1792627145327,
+            "phase": "final_answer",
+            "text": "{\"complete\":[{\"kind\":\"bookmark.inFolder\",\"folder\":\"书签栏 / 实例切换验证1792627021211\",\"url\":\"$currentPage\"}]}",
+            "plan": {
+              "complete": [
+                {
+                  "kind": "bookmark.inFolder",
+                  "folder": "书签栏 / 实例切换验证1792627021211",
+                  "url": "$currentPage"
+                }
+              ]
+            }
+          }
+        ],
+        "threadMetadata": {
+          "model": "gpt-6.1-sol",
+          "model_provider": "openai",
+          "cli_version": "0.159.2"
+        }
+      },
+      {
+        "thread_id": "01a160e5-a211-7f30-b3cf-62ba543d98b1",
+        "turn_id": "01a160e7-7bfd-7403-86bf-2615ca545f0a",
+        "status": "completed",
+        "started_at": 1792627145,
+        "completed_at": 1792627148,
+        "duration_ms": 3151,
+        "sequence": 3,
+        "startedAtUTC": "2026-10-21T23:59:05.000+00:00",
+        "completedAtUTC": "2026-10-21T23:59:08.000+00:00",
+        "agentMessages": [
+          {
+            "item_id": "msg_0232af57af3ec2ce016ad951cc7e7081988ca94df4b1dd53ab",
+            "created_at_ms": 1792627148404,
+            "started_at_ms": 1792627148404,
+            "completed_at_ms": 1792627148756,
+            "phase": "final_answer",
+            "text": "{\"complete\":[{\"kind\":\"bookmark.inFolder\",\"folder\":\"$lastFolder\",\"url\":\"$currentPage\"}]}",
+            "plan": {
+              "complete": [
+                {
+                  "kind": "bookmark.inFolder",
+                  "folder": "$lastFolder",
+                  "url": "$currentPage"
+                }
+              ]
+            }
+          }
+        ],
+        "threadMetadata": {
+          "model": "gpt-6.1-sol",
+          "model_provider": "openai",
+          "cli_version": "0.159.2"
+        }
+      }
+    ],
+    "modelTurnCount": 3,
+    "modelDecisionCount": 3,
+    "planSequence": [
+      {
+        "sequence": 1,
+        "turnId": "01a160e5-a220-7410-9c6c-bce1c53ae0de",
+        "itemId": "msg_0232af57af3ec2ce016ad951c29d848198bb2a1416599adb12",
+        "createdAtMs": 1792627138537,
+        "completedAtMs": 1792627139315,
+        "steps": [
+          "folder.ensure",
+          "bookmark.create"
+        ],
+        "plan": {
+          "actions": [
+            {
+              "type": "folder.ensure",
+              "title": "实例切换验证1792627021211",
+              "parent": "$currentFolder"
+            },
+            {
+              "type": "bookmark.create",
+              "title": "$pageTitle",
+              "url": "$currentPage",
+              "parent": "$lastFolder"
+            }
+          ]
+        }
+      },
+      {
+        "sequence": 2,
+        "turnId": "01a160e7-6f79-71f3-ad68-c2e8681e15a5",
+        "itemId": "msg_0232af57af3ec2ce016ad951c8dd008198aff3fcdca895ff99",
+        "createdAtMs": 1792627144779,
+        "completedAtMs": 1792627145327,
+        "steps": [
+          "complete"
+        ],
+        "plan": {
+          "complete": [
+            {
+              "kind": "bookmark.inFolder",
+              "folder": "书签栏 / 实例切换验证1792627021211",
+              "url": "$currentPage"
+            }
+          ]
+        }
+      },
+      {
+        "sequence": 3,
+        "turnId": "01a160e7-7bfd-7403-86bf-2615ca545f0a",
+        "itemId": "msg_0232af57af3ec2ce016ad951cc7e7081988ca94df4b1dd53ab",
+        "createdAtMs": 1792627148404,
+        "completedAtMs": 1792627148756,
+        "steps": [
+          "complete"
+        ],
+        "plan": {
+          "complete": [
+            {
+              "kind": "bookmark.inFolder",
+              "folder": "$lastFolder",
+              "url": "$currentPage"
+            }
+          ]
+        }
+      }
+    ],
+    "modelMetadataSource": "state_5.sqlite.threads for the matched thread; not independent provider-side attestation.",
+    "modelsObservedInThreadMetadata": [
+      "gpt-6.1-sol"
+    ],
+    "recordedInitialInFlightState": [
+      {
+        "thread_id": "01a160e5-a211-7f30-b3cf-62ba543d98b1",
+        "turn_id": "01a160e5-a220-7410-9c6c-bce1c53ae0de",
+        "status": "inProgress",
+        "started_at": 1792627024,
+        "completed_at": null
+      }
+    ],
+    "recordedInitialPostAttemptState": [
+      {
+        "thread_id": "01a160e5-a211-7f30-b3cf-62ba543d98b1",
+        "turn_id": "01a160e5-a220-7410-9c6c-bce1c53ae0de",
+        "status": "inProgress",
+        "started_at": 1792627024,
+        "completed_at": null
+      }
+    ],
+    "currentTerminalStatuses": [
+      "completed",
+      "completed",
+      "completed"
+    ],
+    "interruptedTerminalObserved": false,
+    "interpretation": "The first real Native turn completed after the guarded Back attempt and returned two actions. Two subsequent real Native decisions returned complete proposals. All three turns are recorded completed. Native turn completion is distinct from application task success. Earlier inProgress rows prove neither process liveness nor cancellation terminal."
+  },
+  "T10": {
+    "evidenceStatus": "SUPPORTED_REAL_NO_PROGRESS_STOP_AND_NO_FALSE_SUCCESS_IN_THIS_REQUEST",
+    "entireT10MatrixPassed": false,
+    "firstActionPlanCount": 1,
+    "plannedActionCount": 2,
+    "runtimeAcknowledgedStepsAsRecorded": 2,
+    "weakCompletionProposals": [
+      {
+        "turnId": "01a160e7-6f79-71f3-ad68-c2e8681e15a5",
+        "conditions": [
+          {
+            "kind": "bookmark.inFolder",
+            "folder": "书签栏 / 实例切换验证1792627021211",
+            "url": "$currentPage"
+          }
+        ],
+        "conditionKinds": [
+          "bookmark.inFolder"
+        ],
+        "includesFolderExistsCondition": false
+      },
+      {
+        "turnId": "01a160e7-7bfd-7403-86bf-2615ca545f0a",
+        "conditions": [
+          {
+            "kind": "bookmark.inFolder",
+            "folder": "$lastFolder",
+            "url": "$currentPage"
+          }
+        ],
+        "conditionKinds": [
+          "bookmark.inFolder"
+        ],
+        "includesFolderExistsCondition": false
+      }
+    ],
+    "weakCompletionObservation": "Both later model proposals contain only bookmark.inFolder, without folder.exists. The UI did not declare full success; it retained partial completion and reported two no-progress rounds. This review did not inspect the internal validation/counter implementation to independently assign its precise rejection reason.",
+    "finalUIForThisRequest": "\n\n已创建文件夹「实例切换验证1792627021211」 · 书签栏 / 实例切换验证1792627021211\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 实例切换验证1792627021211 / OpenDesk Browser · Browser Test Lab\n\n已核实 2 步，其余未完成。 连续两轮没有进展，已停止以避免重复操作。请核对书签后补充目标位置。\n\n对话输入\n\n当前工具正在保存，请完成后再切换。",
+    "finalUIReportedPartialCompletion": true,
+    "finalUIReportedNoProgressStop": true,
+    "finalUIReportedFullSuccess": false,
+    "realChromeCreateCount": 2,
+    "realChromeCreates": [
+      {
+        "id": "43",
+        "node": {
+          "dateAdded": 1792627141117,
+          "dateGroupModified": 1792627141117,
+          "id": "43",
+          "index": 0,
+          "parentId": "1",
+          "syncing": false,
+          "title": "实例切换验证1792627021211"
+        },
+        "at": 1792627141118
+      },
+      {
+        "id": "44",
+        "node": {
+          "dateAdded": 1792627142203,
+          "id": "44",
+          "index": 0,
+          "parentId": "43",
+          "syncing": false,
+          "title": "OpenDesk Browser · Browser Test Lab",
+          "url": "http://127.0.0.1:43111/demo-form.html"
+        },
+        "at": 1792627142203
+      }
+    ],
+    "matchingReadbackNodes": [
+      {
+        "dateAdded": 1792627141117,
+        "dateGroupModified": 1792627142203,
+        "id": "43",
+        "index": 0,
+        "parentId": "1",
+        "syncing": false,
+        "title": "实例切换验证1792627021211"
+      },
+      {
+        "dateAdded": 1792627142203,
+        "id": "44",
+        "index": 0,
+        "parentId": "43",
+        "syncing": false,
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "url": "http://127.0.0.1:43111/demo-form.html"
+      }
+    ],
+    "writesOccurredInStillActiveOriginalInstance": true,
+    "notPostExitStaleWrites": true,
+    "extendedReadbackAtMs": 1792627304109,
+    "extendedReadbackAtUTC": "2026-10-22T00:01:44.109+00:00",
+    "extendedReadbackAfterLastModelMessageMs": 155353,
+    "interpretation": "Real model actions created folder 43 and bookmark 44 once each while the original tool instance remained active. The same Send continued into two complete proposals; final UI stopped for consecutive no-progress and did not claim the overall task succeeded. This supports the specific real no-progress/weak-completion safety observation, not successful instance-switch cancellation."
+  },
+  "timeline": {
+    "trustedSendAtMs": 1792627021436,
+    "trustedBackAttemptAtMs": 1792627122733,
+    "initialReadbackAtMs": 1792627137738,
+    "firstPlanCreatedAtMs": 1792627138537,
+    "firstPlanCompletedAtMs": 1792627139315,
+    "folderCreateAtMs": 1792627141118,
+    "bookmarkCreateAtMs": 1792627142203,
+    "lastModelMessageCompletedAtMs": 1792627148756,
+    "extendedReadbackAtMs": 1792627304109
+  },
+  "remainingEvidenceGaps": [
+    "A real instance switch/exit during Native inference has not occurred in this request; T9 remains NOT_TESTED.",
+    "No Native/provider interrupt terminal or actual cancellation-completion evidence follows from the guarded Back attempt.",
+    "This case does not establish every T10 budget/timeout/failure behavior or an overall production score."
+  ],
+  "closure": {
+    "sqliteConnectionsClosed": true,
+    "closedAtUTC": "2026-10-22T00:17:54.193147+00:00",
+    "furtherDatabaseReadsPlanned": false,
+    "codexHomeCanBeClosedByOwner": true,
+    "processTerminatedByReviewer": false
+  },
+  "additionalT9Cases": [
+    {
+      "case": "T9-actual-side-panel-document-close",
+      "artifact": "artifacts/bookmark-agent-r211-followup/t9-close-inflight-real.json",
+      "artifactSha256": "52f4d5fb9711c7c5a892204437bd4677c1ac58741c6ce7da69f11746c0af3092",
+      "classification": "ACTUAL_DOCUMENT_CLOSE_OBSERVED_ZERO_WRITES_IN_READBACK_WINDOW_NATIVE_CANCEL_TERMINAL_NOT_PROVEN",
+      "fixture": false,
+      "request": "把当前页面放入关闭验证1792627367867收藏夹，如果没有，就创建目录",
+      "correlation": {
+        "turnId": "01a160ea-e5db-7a41-8c34-ab64c7657503",
+        "threadId": "01a160e5-a211-7f30-b3cf-62ba543d98b1",
+        "requestMatches": [
+          {
+            "item_id": "01a160ea-e5e0-7441-802c-8f7038cb9aa3",
+            "created_at_ms": 1792627369440,
+            "started_at_ms": 1792627369440,
+            "completed_at_ms": 1792627369440,
+            "exact_request_present": 1,
+            "unique_request_marker_present": 1
+          }
+        ],
+        "recordedTrustedSendCount": 1,
+        "trustedSend": {
+          "trusted": true,
+          "at": 1792627367921
+        },
+        "driverSentAtMs": 1792627367923,
+        "scope": "Exact turn ID plus exact public request and unique marker; no unrelated turn/user context exported."
+      },
+      "documentClosure": {
+        "mechanism": "Actual CDP Target.closeTarget on the SIDE_PANEL document, not a busy-guarded Back button attempt.",
+        "targetId": "1D25E8B79C9E6C0E8C749B7790557966",
+        "sidePanelContextAsRecorded": [
+          {
+            "contextId": "78822fd6-f345-4d09-8582-74f0317afa06",
+            "contextType": "SIDE_PANEL",
+            "documentId": "97F1AEC474204F054BDB42D0EEEFD657",
+            "documentOrigin": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh",
+            "documentUrl": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sidepanel.html?hostInstanceId=91c8d564-3014-4cf3-bb1a-720f71c3a50f",
+            "frameId": 0,
+            "incognito": false,
+            "tabId": -1,
+            "windowId": -1
+          }
+        ],
+        "closeResult": {
+          "success": true
+        },
+        "closedAtMs": 1792627370097,
+        "closedAtUTC": "2026-10-22T00:02:50.097+00:00",
+        "oldTargetAbsentInAfterTargets": true,
+        "sidePanelContextsEmptyAtReadback": true,
+        "stopVisibleBeforeClose": true
+      },
+      "native": {
+        "snapshotAtUTC": "2026-10-22T00:05:37.052061+00:00",
+        "turns": [
+          {
+            "thread_id": "01a160e5-a211-7f30-b3cf-62ba543d98b1",
+            "turn_id": "01a160ea-e5db-7a41-8c34-ab64c7657503",
+            "status": "inProgress",
+            "started_at": 1792627369,
+            "completed_at": null,
+            "duration_ms": null,
+            "startedAtUTC": "2026-10-22T00:02:49.000+00:00",
+            "completedAtUTC": null,
+            "agentMessages": [],
+            "threadMetadata": {
+              "model": "gpt-6.1-sol",
+              "model_provider": "openai",
+              "cli_version": "0.159.2"
+            }
+          }
+        ],
+        "modelTurnCount": 1,
+        "modelDecisionCount": 0,
+        "planSequence": [],
+        "modelMetadataSource": "state_5.sqlite.threads for the matched thread; not a provider-side attestation.",
+        "recordedPreCloseTurnState": [
+          {
+            "thread_id": "01a160e5-a211-7f30-b3cf-62ba543d98b1",
+            "turn_id": "01a160ea-e5db-7a41-8c34-ab64c7657503",
+            "status": "inProgress",
+            "started_at": 1792627369,
+            "completed_at": null
+          }
+        ],
+        "recordedShortReadbackTurnState": [
+          {
+            "thread_id": "01a160e5-a211-7f30-b3cf-62ba543d98b1",
+            "turn_id": "01a160ea-e5db-7a41-8c34-ab64c7657503",
+            "status": "inProgress",
+            "started_at": 1792627369,
+            "completed_at": null
+          }
+        ],
+        "currentTurnStatus": "inProgress",
+        "interruptedTerminalObserved": false,
+        "completedTerminalObserved": false,
+        "latePublicAgentMessageObserved": false,
+        "providerActualKillOrCancellationCompleted": "NOT_PROVEN",
+        "limitation": "inProgress does not prove the process is alive or that remote computation continues. No interrupted/cancel terminal can be inferred from document closure or a missing response. Public response execution must be checked against an appropriately late Chrome readback.",
+        "laterStatusSnapshots": [
+          {
+            "snapshotAtUTC": "2026-10-22T00:17:54.191985+00:00",
+            "turn": {
+              "thread_id": "01a160e5-a211-7f30-b3cf-62ba543d98b1",
+              "turn_id": "01a160ea-e5db-7a41-8c34-ab64c7657503",
+              "status": "inProgress",
+              "started_at": 1792627369,
+              "completed_at": null,
+              "duration_ms": null,
+              "startedAtUTC": "2026-10-22T00:02:49.000+00:00",
+              "completedAtUTC": null,
+              "agentMessages": [],
+              "threadMetadata": {
+                "model": "gpt-6.1-sol",
+                "model_provider": "openai",
+                "cli_version": "0.159.2"
+              }
+            },
+            "requestMatches": [
+              {
+                "item_id": "01a160ea-e5e0-7441-802c-8f7038cb9aa3",
+                "created_at_ms": 1792627369440,
+                "started_at_ms": 1792627369440,
+                "completed_at_ms": 1792627369440,
+                "exact_request_present": 1,
+                "turnId": "01a160ea-e5db-7a41-8c34-ab64c7657503"
+              }
+            ],
+            "publicPlanSequence": [],
+            "interruptedTerminalObserved": false,
+            "completedTerminalObserved": false,
+            "newCandidateTurn": false,
+            "latestChromeReadbackUnchangedAtMs": 1792627385177,
+            "limitation": "Only Native SQLite status was refreshed. No new close-case Chrome readback or browser operation was performed. inProgress does not establish process liveness or completed cancellation."
+          }
+        ],
+        "latestObservedTurnStatus": "inProgress",
+        "latestObservedAtUTC": "2026-10-22T00:17:54.191985+00:00",
+        "latestInterruptedTerminalObserved": false,
+        "latestPublicAgentMessageCount": 0
+      },
+      "chromeReadback": {
+        "atMs": 1792627385177,
+        "atUTC": "2026-10-22T00:03:05.177+00:00",
+        "millisecondsAfterDocumentClose": 15080,
+        "capturedWrites": [],
+        "capturedWriteCount": 0,
+        "treeUnchanged": true,
+        "contextsEmpty": true,
+        "interpretation": "Independent Chrome readback supports zero captured writes and unchanged tree through this ~15-second window. It does not prove zero writes after any later Native response."
+      },
+      "coverage": {
+        "readbackCoversAllObservedLateModelResponses": null,
+        "lateModelResponseExecutionAssessment": "NO_PUBLIC_AGENT_RESPONSE_OBSERVED_AT_NATIVE_SNAPSHOT",
+        "furtherReopenReadbackProvided": false,
+        "pending": "Owner plans a future reopen/readback. No future result or cancellation terminal is assumed."
+      },
+      "distinctionFromGuardedCase": "Separate real document-close chain. The earlier trusted Back attempt remains NOT_TESTED for actual instance switch because the busy guard rejected it. Its later folder43/bookmark44 writes and T10 no-progress evidence are preserved."
+    }
+  ],
+  "updatedAtUTC": "2026-10-22T00:17:54.193147+00:00",
+  "totals": {
+    "evidenceChains": 3,
+    "recordedTrustedSends": 3,
+    "matchedDistinctNativeTurns": 6,
+    "newCandidateNativeTurns": 2,
+    "newCandidateChromeCreates": 2,
+    "guardedOldCandidateChromeCreates": 2,
+    "actualCloseChainChromeWritesWithinOriginalWindow": 0
+  },
+  "newCandidateOriginal": {
+    "case": "NEW-CANDIDATE-ORIGINAL-REAL",
+    "artifact": "artifacts/bookmark-agent-r211-followup/new-original-final.json",
+    "artifactSha256": "ab6e8b3161df9321e89ef1fb820b6ca8246a5b63574f624c2b41eab6bdd66b3b",
+    "classification": "SUPPORTED_ORIGINAL_REQUEST_COMPLETION_ON_NEW_CANDIDATE_NATIVE_PLANS_MATCH_REAL_CHROME_EFFECTS",
+    "fixture": false,
+    "request": "把当前页面放入测试收藏夹，如果没有，就创建目录",
+    "candidate": {
+      "toolShellSha256AsRecorded": "f0432a8440223b0e9fd2a5718d4c87f5a59a7a961e3839fc1af282a402f7f39d",
+      "sourceBindingEvidence": "Hash recorded by the real installed-panel driver; this reader did not operate the browser or independently fetch loaded source.",
+      "launchAsRecorded": {
+        "pid": 98323,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-r211-native-2lzNhN"
+      },
+      "targetIdAsRecorded": "F76330039B6D5632D059737F7D9466F8",
+      "isSameCandidateAsPriorGuardedCase": false
+    },
+    "correlation": {
+      "trustedSend": {
+        "event": "send",
+        "trusted": true,
+        "at": 1792628000667
+      },
+      "recordedTrustedSendCount": 1,
+      "driverSentAtMs": 1792628000669,
+      "sendAtUTC": "2026-10-22T00:13:20.667+00:00",
+      "observationEndAtMs": 1792628135110,
+      "requestMatches": [
+        {
+          "item_id": "01a160f4-eff6-7b53-a8b6-5213b8c44644",
+          "created_at_ms": 1792628027383,
+          "started_at_ms": 1792628027383,
+          "completed_at_ms": 1792628027383,
+          "exact_request_present": 1,
+          "turnId": "01a160f4-b15c-7550-a3fc-f9e28d034fed"
+        },
+        {
+          "item_id": "01a160f6-8142-71f2-bffc-0980c99fca4a",
+          "created_at_ms": 1792628130115,
+          "started_at_ms": 1792628130115,
+          "completed_at_ms": 1792628130115,
+          "exact_request_present": 1,
+          "turnId": "01a160f6-8139-74e3-850e-77cf927af82e"
+        }
+      ],
+      "method": "Read-only Native history selected within this trusted Send/readback window, with exact public request matches on both turn userMessage items. Old close turn is queried separately by exact ID and excluded from these counts."
+    },
+    "native": {
+      "snapshotAtUTC": "2026-10-22T00:17:54.191985+00:00",
+      "turns": [
+        {
+          "thread_id": "01a160f4-a86c-7462-a3eb-8e2e0228c934",
+          "turn_id": "01a160f4-b15c-7550-a3fc-f9e28d034fed",
+          "status": "completed",
+          "started_at": 1792628011,
+          "completed_at": 1792628126,
+          "duration_ms": 115312,
+          "startedAtUTC": "2026-10-22T00:13:31.000+00:00",
+          "completedAtUTC": "2026-10-22T00:15:26.000+00:00",
+          "agentMessages": [
+            {
+              "item_id": "msg_03d091bd1242087e016ad9559def988199890cf69995ba9af6",
+              "created_at_ms": 1792628125923,
+              "started_at_ms": 1792628125923,
+              "completed_at_ms": 1792628126575,
+              "phase": "final_answer",
+              "text": "{\"actions\":[{\"type\":\"folder.ensure\",\"title\":\"测试收藏夹\",\"parent\":\"$currentFolder\"},{\"type\":\"bookmark.create\",\"title\":\"$pageTitle\",\"url\":\"$currentPage\",\"parent\":\"$lastFolder\"}]}",
+              "plan": {
+                "actions": [
+                  {
+                    "type": "folder.ensure",
+                    "title": "测试收藏夹",
+                    "parent": "$currentFolder"
+                  },
+                  {
+                    "type": "bookmark.create",
+                    "title": "$pageTitle",
+                    "url": "$currentPage",
+                    "parent": "$lastFolder"
+                  }
+                ]
+              }
+            }
+          ],
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          }
+        },
+        {
+          "thread_id": "01a160f4-a86c-7462-a3eb-8e2e0228c934",
+          "turn_id": "01a160f6-8139-74e3-850e-77cf927af82e",
+          "status": "completed",
+          "started_at": 1792628130,
+          "completed_at": 1792628134,
+          "duration_ms": 4310,
+          "startedAtUTC": "2026-10-22T00:15:30.000+00:00",
+          "completedAtUTC": "2026-10-22T00:15:34.000+00:00",
+          "agentMessages": [
+            {
+              "item_id": "msg_03d091bd1242087e016ad955a5c60c8199b0f859c6a7214677",
+              "created_at_ms": 1792628134182,
+              "started_at_ms": 1792628134182,
+              "completed_at_ms": 1792628134407,
+              "phase": "final_answer",
+              "text": "{\"complete\":[{\"kind\":\"bookmark.inFolder\",\"folder\":\"书签栏 / 测试收藏夹\",\"url\":\"$currentPage\"}]}",
+              "plan": {
+                "complete": [
+                  {
+                    "kind": "bookmark.inFolder",
+                    "folder": "书签栏 / 测试收藏夹",
+                    "url": "$currentPage"
+                  }
+                ]
+              }
+            }
+          ],
+          "threadMetadata": {
+            "model": "gpt-6.1-sol",
+            "model_provider": "openai",
+            "cli_version": "0.159.2"
+          }
+        }
+      ],
+      "modelTurnCount": 2,
+      "modelDecisionCount": 2,
+      "planSequence": [
+        {
+          "turnId": "01a160f4-b15c-7550-a3fc-f9e28d034fed",
+          "itemId": "msg_03d091bd1242087e016ad9559def988199890cf69995ba9af6",
+          "createdAtMs": 1792628125923,
+          "completedAtMs": 1792628126575,
+          "steps": [
+            "folder.ensure",
+            "bookmark.create"
+          ],
+          "plan": {
+            "actions": [
+              {
+                "type": "folder.ensure",
+                "title": "测试收藏夹",
+                "parent": "$currentFolder"
+              },
+              {
+                "type": "bookmark.create",
+                "title": "$pageTitle",
+                "url": "$currentPage",
+                "parent": "$lastFolder"
+              }
+            ]
+          }
+        },
+        {
+          "turnId": "01a160f6-8139-74e3-850e-77cf927af82e",
+          "itemId": "msg_03d091bd1242087e016ad955a5c60c8199b0f859c6a7214677",
+          "createdAtMs": 1792628134182,
+          "completedAtMs": 1792628134407,
+          "steps": [
+            "complete"
+          ],
+          "plan": {
+            "complete": [
+              {
+                "kind": "bookmark.inFolder",
+                "folder": "书签栏 / 测试收藏夹",
+                "url": "$currentPage"
+              }
+            ]
+          }
+        }
+      ],
+      "threadMetadataEvidence": "state_5.sqlite.threads for each matched thread; no independent provider-side attestation.",
+      "modelsObservedInThreadMetadata": [
+        "gpt-6.1-sol"
+      ]
+    },
+    "realExecution": {
+      "runtimeMetrics": [
+        {
+          "completed": true,
+          "modelCalls": 2,
+          "actionCount": 2,
+          "at": 1792628134841
+        }
+      ],
+      "plannedActionCount": 2,
+      "runtimeExecutedActionCount": 2,
+      "sdkMethodCounts": {
+        "getTree": 48,
+        "create": 2
+      },
+      "actualSDKCreateCount": 2,
+      "actualSDKCreateDispatches": [
+        {
+          "method": "create",
+          "at": 1792628128605
+        },
+        {
+          "method": "create",
+          "at": 1792628129710
+        }
+      ],
+      "chromeCreateCount": 2,
+      "chromeCreateEvents": [
+        {
+          "id": "46",
+          "node": {
+            "dateAdded": 1792628128654,
+            "dateGroupModified": 1792628128654,
+            "id": "46",
+            "index": 1,
+            "parentId": "1",
+            "syncing": false,
+            "title": "测试收藏夹"
+          },
+          "at": 1792628128654
+        },
+        {
+          "id": "47",
+          "node": {
+            "dateAdded": 1792628129771,
+            "id": "47",
+            "index": 0,
+            "parentId": "46",
+            "syncing": false,
+            "title": "OpenDesk Browser · Browser Test Lab",
+            "url": "http://127.0.0.1:43111/demo-form.html"
+          },
+          "at": 1792628129771
+        }
+      ],
+      "independentTreeReadbackAtMs": 1792628135110,
+      "createdNodesAbsentInBeforeTree": true,
+      "confirmedReadbackNodes": [
+        {
+          "dateAdded": 1792628128654,
+          "dateGroupModified": 1792628129771,
+          "id": "46",
+          "index": 1,
+          "parentId": "1",
+          "syncing": false,
+          "title": "测试收藏夹"
+        },
+        {
+          "dateAdded": 1792628129771,
+          "id": "47",
+          "index": 0,
+          "parentId": "46",
+          "syncing": false,
+          "title": "OpenDesk Browser · Browser Test Lab",
+          "url": "http://127.0.0.1:43111/demo-form.html"
+        }
+      ],
+      "finalUIForThisRequest": "\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n对话输入",
+      "finalUIReportedVerifiedCompletion": true,
+      "stillBusy": false,
+      "agreement": {
+        "folderEnsureCreatedFolder46": true,
+        "bookmarkCreateCreatedBookmark47UnderFolder46": true,
+        "returnedBookmarkInFolderConditionMatchesChromeTree": true,
+        "twoModelCallsAndTwoActionsMatchRuntimeMetrics": true,
+        "twoSDKCreateDispatchesMatchTwoChromeCreateEvents": true
+      },
+      "interpretation": "First real Native decision proposed folder.ensure and bookmark.create. Both executed as real SDK create operations and produced Chrome nodes 46/47. Second real Native decision returned bookmark.inFolder completion. The independent Chrome tree and final verified UI agree with these effects. This is new-candidate original-request evidence, not idempotent reuse or a retest of old-candidate T9/T10."
+    },
+    "limitations": [
+      "Candidate hash is taken from the captured artifact; no live browser/source fetch was performed by this reviewer.",
+      "Model metadata and completed Native turns do not constitute independent provider-side attestation.",
+      "This successful original request does not establish Native cancellation, a real instance-switch test, or new-candidate T10 no-progress behavior."
+    ]
+  },
+  "candidateAttribution": {
+    "oldGuardedT9AndT10": {
+      "toolShellSha256AsRecorded": "7634e961cd8f2327c00b0cc09eeda7b083403b8f6a4c428e1cacb77f87c6ac20",
+      "artifacts": [
+        "artifacts/bookmark-agent-r211-followup/t9-instance-switch-real.json",
+        "artifacts/bookmark-agent-r211-followup/t9-instance-extended-observation.json"
+      ],
+      "assessment": "Actual switch remains NOT_TESTED because the busy guard refused Back; the same old-candidate request supplies T10 no-progress/no-false-success evidence."
+    },
+    "oldActualCloseChain": {
+      "artifact": "artifacts/bookmark-agent-r211-followup/t9-close-inflight-real.json",
+      "turnId": "01a160ea-e5db-7a41-8c34-ab64c7657503",
+      "assessment": "Separate earlier actual-document-close chain; its Native state is refreshed by exact turn ID, never counted as a new-candidate original-request turn.",
+      "independentToolShellHashRecordedInCloseArtifact": false
+    },
+    "newOriginal": {
+      "artifact": "artifacts/bookmark-agent-r211-followup/new-original-final.json",
+      "toolShellSha256AsRecorded": "f0432a8440223b0e9fd2a5718d4c87f5a59a7a961e3839fc1af282a402f7f39d",
+      "assessment": "Two completed real Native calls and two real Chrome creates support original-request completion only on this captured new candidate."
+    },
+    "crossCandidateRegressionPassInferred": false
+  }
+}

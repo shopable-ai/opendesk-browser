@@ -1,0 +1,64 @@
+{
+  "kind": "Unsaved real bookmark editor and Conversation drafts through actual close/reopen and physical resize; no Save",
+  "before": {
+    "at": 1792625959495,
+    "width": 360,
+    "name": "尚未保存的真实书签编辑草稿",
+    "url": "https://example.com/r211-unsaved-draft",
+    "chatDraft": "键盘侧栏验收草稿",
+    "chatOpen": true,
+    "editor": true
+  },
+  "closed": {
+    "at": 1792625959502,
+    "width": 360,
+    "name": "尚未保存的真实书签编辑草稿",
+    "url": "https://example.com/r211-unsaved-draft",
+    "chatDraft": "键盘侧栏验收草稿",
+    "chatOpen": false,
+    "editor": true
+  },
+  "reopened": {
+    "at": 1792625959511,
+    "width": 360,
+    "name": "尚未保存的真实书签编辑草稿",
+    "url": "https://example.com/r211-unsaved-draft",
+    "chatDraft": "键盘侧栏验收草稿",
+    "chatOpen": true,
+    "editor": true
+  },
+  "dragOut": "OWN_PID_DRAG 78693 from (1354.5, 548.0) to (1314.5, 548.0)",
+  "resized": {
+    "at": 1792625960430,
+    "width": 400,
+    "name": "尚未保存的真实书签编辑草稿",
+    "url": "https://example.com/r211-unsaved-draft",
+    "chatDraft": "键盘侧栏验收草稿",
+    "chatOpen": true,
+    "editor": true
+  },
+  "dragBack": "OWN_PID_DRAG 78693 from (1314.5, 548.0) to (1354.5, 548.0)",
+  "restored": {
+    "at": 1792625961336,
+    "width": 360,
+    "name": "尚未保存的真实书签编辑草稿",
+    "url": "https://example.com/r211-unsaved-draft",
+    "chatDraft": "键盘侧栏验收草稿",
+    "chatOpen": true,
+    "editor": true
+  },
+  "checks": {
+    "editorDraftPreserved": true,
+    "chatDraftPreserved": true,
+    "actualCloseReopen": true,
+    "actualPhysicalResize": true
+  },
+  "cancelled": {
+    "at": 1792625961427,
+    "width": 360,
+    "chatDraft": "键盘侧栏验收草稿",
+    "chatOpen": true,
+    "editor": false
+  },
+  "writesAfterSetup": []
+}

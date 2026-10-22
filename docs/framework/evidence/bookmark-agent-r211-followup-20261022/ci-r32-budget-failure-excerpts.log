@@ -1,0 +1,235 @@
+GitHub Actions selected failure context; full logs retained by source run.
+2026-10-22T00:13:35.4283405Z   type: 'test'
+2026-10-22T00:13:35.4302271Z   ...
+2026-10-22T00:13:35.4326565Z # Subtest: R2.4 failed snapshot closes its preceding observer and hides the stale tree
+2026-10-22T00:13:35.4349391Z ok 3 - R2.4 failed snapshot closes its preceding observer and hides the stale tree
+2026-10-22T00:13:35.4375043Z   ---
+2026-10-22T00:13:35.4405131Z   duration_ms: 12.168406
+2026-10-22T00:13:35.4409119Z   type: 'test'
+2026-10-22T00:13:35.5476469Z   type: 'test'
+2026-10-22T00:13:35.5476946Z   ...
+2026-10-22T00:13:35.5478407Z # Subtest: R3.1 event gap fails closed; background resync cannot silently clear unknown write
+2026-10-22T00:13:35.5479870Z ok 16 - R3.1 event gap fails closed; background resync cannot silently clear unknown write
+2026-10-22T00:13:35.5480840Z   ---
+2026-10-22T00:13:35.5481315Z   duration_ms: 2.788666
+2026-10-22T00:13:35.5481868Z   type: 'test'
+2026-10-22T00:13:35.7945076Z   type: 'test'
+2026-10-22T00:13:35.7945617Z   ...
+2026-10-22T00:13:35.7946543Z # Subtest: R3.4 lost mutation replies fail unknown without dispatching twice
+2026-10-22T00:13:35.7947818Z ok 31 - R3.4 lost mutation replies fail unknown without dispatching twice
+2026-10-22T00:13:35.7948612Z   ---
+2026-10-22T00:13:35.7949172Z   duration_ms: 2.275071
+2026-10-22T00:13:35.7949808Z   type: 'test'
+2026-10-22T00:13:35.8233915Z   type: 'test'
+2026-10-22T00:13:35.8234652Z   ...
+2026-10-22T00:13:35.8235747Z # Subtest: R3.4 failed event snapshot retries before the next empty poll without unlocking writes
+2026-10-22T00:13:35.8237343Z ok 50 - R3.4 failed event snapshot retries before the next empty poll without unlocking writes
+2026-10-22T00:13:35.8238406Z   ---
+2026-10-22T00:13:35.8238917Z   duration_ms: 2.956631
+2026-10-22T00:13:35.8239485Z   type: 'test'
+2026-10-22T00:13:36.0655264Z   type: 'test'
+2026-10-22T00:13:36.0655971Z   ...
+2026-10-22T00:13:36.0686203Z # Subtest: a failed oversized build preserves the offending graph separately from the last success
+2026-10-22T00:13:36.0715643Z ok 70 - a failed oversized build preserves the offending graph separately from the last success
+2026-10-22T00:13:36.0744964Z   ---
+2026-10-22T00:13:36.0745697Z   duration_ms: 15.258777
+2026-10-22T00:13:36.0775183Z   type: 'test'
+2026-10-22T00:13:36.1345301Z   type: 'test'
+2026-10-22T00:13:36.1345847Z   ...
+2026-10-22T00:13:36.1346949Z # Subtest: R3.1 modified trusted Bookmark App fails at build rather than silently executing new JSX
+2026-10-22T00:13:36.1348509Z ok 78 - R3.1 modified trusted Bookmark App fails at build rather than silently executing new JSX
+2026-10-22T00:13:36.1349501Z   ---
+2026-10-22T00:13:36.1350382Z   duration_ms: 6.413461
+2026-10-22T00:13:36.1351001Z   type: 'test'
+2026-10-22T00:13:37.3499404Z   type: 'test'
+2026-10-22T00:13:37.3499968Z   ...
+2026-10-22T00:13:38.1186552Z # Subtest: R111 bookmark source drift fails closed before the official branch skips undeclared inputs and recovers after restore
+2026-10-22T00:13:38.1225921Z ok 91 - R111 bookmark source drift fails closed before the official branch skips undeclared inputs and recovers after restore
+2026-10-22T00:13:38.1237618Z   ---
+2026-10-22T00:13:38.1265651Z   duration_ms: 775.056169
+2026-10-22T00:13:38.1324246Z   type: 'test'
+2026-10-22T00:13:38.1949079Z   type: 'test'
+2026-10-22T00:13:38.1949431Z   ...
+2026-10-22T00:13:38.1950496Z # Subtest: R5.4.1 pending list uninstall dispatches once and a failed Host action permits a newly reviewed retry
+2026-10-22T00:13:38.1952148Z ok 97 - R5.4.1 pending list uninstall dispatches once and a failed Host action permits a newly reviewed retry
+2026-10-22T00:13:38.1953048Z   ---
+2026-10-22T00:13:38.1953399Z   duration_ms: 120.224047
+2026-10-22T00:13:38.1953813Z   type: 'test'
+2026-10-22T00:13:38.1958815Z   type: 'test'
+2026-10-22T00:13:38.1959178Z   ...
+2026-10-22T00:13:38.1960072Z # Subtest: R5.5 Page uninstall native-fail never fabricates success or automatically retries
+2026-10-22T00:13:38.1961451Z ok 99 - R5.5 Page uninstall native-fail never fabricates success or automatically retries
+2026-10-22T00:13:38.1962257Z   ---
+2026-10-22T00:13:38.1962625Z   duration_ms: 61.12012
+2026-10-22T00:13:38.1963037Z   type: 'test'
+2026-10-22T00:13:39.5104387Z   ---
+2026-10-22T00:13:39.5105010Z   duration_ms: 42.449226
+2026-10-22T00:13:39.5105607Z   type: 'test'
+2026-10-22T00:13:39.5106125Z   ...
+2026-10-22T00:13:39.5661421Z # Subtest: R4.8 removed Page during detail falls back to search, not hidden Back
+2026-10-22T00:13:39.5675970Z ok 118 - R4.8 removed Page during detail falls back to search, not hidden Back
+2026-10-22T00:13:40.1235714Z   type: 'test'
+2026-10-22T00:13:40.1236075Z   ...
+2026-10-22T00:13:40.2326307Z # Subtest: R5.0 failed background storage read does not replace the original Host action error
+2026-10-22T00:13:40.2328251Z ok 125 - R5.0 failed background storage read does not replace the original Host action error
+2026-10-22T00:13:40.2338884Z   ---
+2026-10-22T00:13:40.2339578Z   duration_ms: 124.254879
+2026-10-22T00:13:40.2340148Z   type: 'test'
+2026-10-22T00:13:40.5271454Z   type: 'test'
+2026-10-22T00:13:40.5272030Z   ...
+2026-10-22T00:13:40.5283273Z # Subtest: R5.0 official catalog stale responses and failures must be rejected by source guards
+2026-10-22T00:13:40.5285128Z ok 132 - R5.0 official catalog stale responses and failures must be rejected by source guards
+2026-10-22T00:13:40.5286074Z   ---
+2026-10-22T00:13:40.5298816Z   duration_ms: 1.99191
+2026-10-22T00:13:40.5299251Z   type: 'test'
+2026-10-22T00:13:40.5554051Z   type: 'test'
+2026-10-22T00:13:40.5554715Z   ...
+2026-10-22T00:13:40.5555625Z # Subtest: R1.0 fail closed for hallucinated operations, ambiguous parents and unknown writes
+2026-10-22T00:13:40.5557020Z ok 136 - R1.0 fail closed for hallucinated operations, ambiguous parents and unknown writes
+2026-10-22T00:13:40.5557943Z   ---
+2026-10-22T00:13:40.5565405Z   duration_ms: 1.58787
+2026-10-22T00:13:40.5565869Z   type: 'test'
+2026-10-22T00:13:40.5613054Z   type: 'test'
+2026-10-22T00:13:40.5613410Z   ...
+2026-10-22T00:13:40.5614546Z # Subtest: R2.1.1 Provider beforeWrite failure stops the round without revoking bookmarks
+2026-10-22T00:13:40.5615909Z ok 150 - R2.1.1 Provider beforeWrite failure stops the round without revoking bookmarks
+2026-10-22T00:13:40.5616685Z   ---
+2026-10-22T00:13:40.5617056Z   duration_ms: 2.943476
+2026-10-22T00:13:40.5617470Z   type: 'test'
+2026-10-22T00:13:40.5617838Z   ...
+2026-10-22T00:13:40.5619101Z # Subtest: R2.1.1 Provider nextAuthorization failure stops the round without revoking bookmarks
+2026-10-22T00:13:40.5620402Z ok 151 - R2.1.1 Provider nextAuthorization failure stops the round without revoking bookmarks
+2026-10-22T00:13:40.5621168Z   ---
+2026-10-22T00:13:40.5621520Z   duration_ms: 2.343029
+2026-10-22T00:13:40.5621937Z   type: 'test'
+2026-10-22T00:13:40.5622295Z   ...
+2026-10-22T00:13:40.5623162Z # Subtest: R2.1.1 Provider continueWith failure stops the round without revoking bookmarks
+2026-10-22T00:13:40.5624967Z ok 152 - R2.1.1 Provider continueWith failure stops the round without revoking bookmarks
+2026-10-22T00:13:40.5625796Z   ---
+2026-10-22T00:13:40.5626152Z   duration_ms: 4.433153
+2026-10-22T00:13:40.5626573Z   type: 'test'
+2026-10-22T00:13:40.5653873Z   type: 'test'
+2026-10-22T00:13:40.5654434Z   ...
+2026-10-22T00:13:40.5655418Z # Subtest: R2.1.1 failed Send has one live error, preserves history and restores the unsent draft
+2026-10-22T00:13:40.5656801Z ok 162 - R2.1.1 failed Send has one live error, preserves history and restores the unsent draft
+2026-10-22T00:13:40.5657458Z   ---
+2026-10-22T00:13:40.5657686Z   duration_ms: 564.340139
+2026-10-22T00:13:40.5657942Z   type: 'test'
+2026-10-22T00:13:40.5785617Z   type: 'test'
+2026-10-22T00:13:40.5785811Z   ...
+2026-10-22T00:13:40.5786353Z # Subtest: failed runtime initialization releases attachment for retry without deleting caller-owned DOM
+2026-10-22T00:13:40.5787172Z ok 208 - failed runtime initialization releases attachment for retry without deleting caller-owned DOM
+2026-10-22T00:13:40.5787638Z   ---
+2026-10-22T00:13:40.5787836Z   duration_ms: 1.318996
+2026-10-22T00:13:40.5788055Z   type: 'test'
+2026-10-22T00:13:40.5788259Z   ...
+2026-10-22T00:13:40.5788732Z # Subtest: initialization failure survives throwing controller cleanup and releases runtime
+2026-10-22T00:13:40.5789467Z ok 209 - initialization failure survives throwing controller cleanup and releases runtime
+2026-10-22T00:13:40.5790060Z   ---
+2026-10-22T00:13:40.5790259Z   duration_ms: 0.988306
+2026-10-22T00:13:40.5790487Z   type: 'test'
+2026-10-22T00:13:40.5796468Z # suites 0
+2026-10-22T00:13:40.5796653Z # pass 213
+2026-10-22T00:13:40.5796840Z # fail 0
+2026-10-22T00:13:40.5797028Z # cancelled 0
+2026-10-22T00:13:40.5797230Z # skipped 0
+2026-10-22T00:13:40.5797416Z # todo 0
+2026-10-22T00:13:43.5554497Z # suites 0
+2026-10-22T00:13:43.5565265Z # pass 10
+2026-10-22T00:13:43.5565647Z # fail 0
+2026-10-22T00:13:43.5566001Z # cancelled 0
+2026-10-22T00:13:43.5566319Z # skipped 0
+2026-10-22T00:13:43.5566551Z # todo 0
+2026-10-22T00:13:43.7887068Z   type: 'test'
+2026-10-22T00:13:43.7887261Z   ...
+2026-10-22T00:13:43.7887795Z # Subtest: a paginated terminal state still delivers its final provider failure after every earlier event
+2026-10-22T00:13:43.7888595Z ok 17 - a paginated terminal state still delivers its final provider failure after every earlier event
+2026-10-22T00:13:43.7890157Z   ---
+2026-10-22T00:13:43.7890381Z   duration_ms: 1.497121
+2026-10-22T00:13:43.7890618Z   type: 'test'
+2026-10-22T00:13:43.8516358Z   type: 'test'
+2026-10-22T00:13:43.8516673Z   ...
+2026-10-22T00:13:43.8790722Z # Subtest: internal timeout failure waits for the shared close fence and preserves its original error
+2026-10-22T00:13:43.8793009Z ok 25 - internal timeout failure waits for the shared close fence and preserves its original error
+2026-10-22T00:13:43.8793502Z   ---
+2026-10-22T00:13:43.8793721Z   duration_ms: 27.770106
+2026-10-22T00:13:43.8793970Z   type: 'test'
+2026-10-22T00:13:43.8794500Z   ...
+2026-10-22T00:13:43.8945657Z # Subtest: internal cursor failure waits for the shared close fence and preserves its original error
+2026-10-22T00:13:43.8955356Z ok 26 - internal cursor failure waits for the shared close fence and preserves its original error
+2026-10-22T00:13:43.8956609Z   ---
+2026-10-22T00:13:43.8957520Z   duration_ms: 2.572571
+2026-10-22T00:13:43.8958258Z   type: 'test'
+2026-10-22T00:13:43.8993091Z   type: 'test'
+2026-10-22T00:13:43.8993284Z   ...
+2026-10-22T00:13:43.8993727Z # Subtest: local provider failure without App Server terminal remains unknown after Stop
+2026-10-22T00:13:43.8994906Z ok 35 - local provider failure without App Server terminal remains unknown after Stop
+2026-10-22T00:13:43.8995593Z   ---
+2026-10-22T00:13:43.8995921Z   duration_ms: 0.761429
+2026-10-22T00:13:43.8996288Z   type: 'test'
+2026-10-22T00:13:43.9159616Z   type: 'test'
+2026-10-22T00:13:43.9159806Z   ...
+2026-10-22T00:13:43.9160115Z # Subtest: never admits noncompleted response failed
+2026-10-22T00:13:43.9160533Z ok 63 - never admits noncompleted response failed
+2026-10-22T00:13:43.9160826Z   ---
+2026-10-22T00:13:43.9161012Z   duration_ms: 0.326192
+2026-10-22T00:13:43.9161229Z   type: 'test'
+2026-10-22T00:13:43.9191956Z   type: 'test'
+2026-10-22T00:13:43.9192314Z   ...
+2026-10-22T00:13:43.9192930Z # Subtest: completed response with an error still fails
+2026-10-22T00:13:43.9193761Z ok 69 - completed response with an error still fails
+2026-10-22T00:13:43.9194644Z   ---
+2026-10-22T00:13:43.9195007Z   duration_ms: 0.274696
+2026-10-22T00:13:43.9195435Z   type: 'test'
+2026-10-22T00:13:43.9195816Z   ...
+2026-10-22T00:13:43.9196515Z # Subtest: completed response with incomplete details still fails
+2026-10-22T00:13:43.9197526Z ok 70 - completed response with incomplete details still fails
+2026-10-22T00:13:43.9198153Z   ---
+2026-10-22T00:13:43.9198506Z   duration_ms: 0.265739
+2026-10-22T00:13:43.9198921Z   type: 'test'
+2026-10-22T00:13:43.9275706Z   type: 'test'
+2026-10-22T00:13:43.9276060Z   ...
+2026-10-22T00:13:43.9276808Z # Subtest: HTTP failure exposes status but not upstream secrets and never retries
+2026-10-22T00:13:43.9277939Z ok 92 - HTTP failure exposes status but not upstream secrets and never retries
+2026-10-22T00:13:43.9278627Z   ---
+2026-10-22T00:13:43.9278952Z   duration_ms: 0.579387
+2026-10-22T00:13:43.9279335Z   type: 'test'
+2026-10-22T00:13:43.9299673Z   type: 'test'
+2026-10-22T00:13:43.9299869Z   ...
+2026-10-22T00:13:43.9300283Z # Subtest: timeout with uncooperative fetch returns unknown outcome without retry
+2026-10-22T00:13:43.9300903Z ok 103 - timeout with uncooperative fetch returns unknown outcome without retry
+2026-10-22T00:13:43.9301289Z   ---
+2026-10-22T00:13:43.9301477Z   duration_ms: 9.125693
+2026-10-22T00:13:43.9301694Z   type: 'test'
+2026-10-22T00:13:43.9348486Z # suites 0
+2026-10-22T00:13:43.9348719Z # pass 126
+2026-10-22T00:13:43.9348928Z # fail 0
+2026-10-22T00:13:43.9349150Z # cancelled 0
+2026-10-22T00:13:43.9349388Z # skipped 0
+2026-10-22T00:13:43.9349612Z # todo 0
+2026-10-22T00:15:40.0179942Z [36;1massert.match(csp,/script-src 'self'/);[0m
+2026-10-22T00:15:40.0180306Z [36;1massert.doesNotMatch(csp,/unsafe-eval|https?:\/\//);[0m
+2026-10-22T00:15:40.0180741Z [36;1m// R1.11 keeps its initial reviewed 1056 KiB ceiling even if another[0m
+2026-10-22T00:15:40.0181190Z [36;1m// workstream later changes the global framework budget.[0m
+2026-10-22T00:15:40.0181719Z [36;1mconst budgetBytes=Math.min(entryByteBudget('ui/tool-shell.js','production'),1056*1024);[0m
+2026-10-22T00:15:40.0182367Z [36;1massert.ok(content.byteLength<=budgetBytes,'existing tool-shell production hard budget');[0m
+2026-10-22T00:15:40.0183154Z [36;1mconst report={entry,bytes:content.byteLength,budgetBytes,sha256:createHash('sha256').update(content).digest('hex'),csp,[0m
+2026-10-22T00:15:40.0183875Z [36;1m  installedBookmarkPackagePromoted:false,reactRuntime:'host-shared'};[0m
+2026-10-22T00:15:43.5714918Z     ^
+2026-10-22T00:15:43.5715052Z 
+2026-10-22T00:15:43.5715484Z AssertionError [ERR_ASSERTION]: existing tool-shell production hard budget
+2026-10-22T00:15:43.5716193Z     at file:///home/runner/work/opendesk-browser/opendesk-browser/[eval1]:14:8 {
+2026-10-22T00:15:43.5716775Z   generatedMessage: false,
+2026-10-22T00:15:43.5717046Z   code: 'ERR_ASSERTION',
+2026-10-22T00:15:43.5717294Z   actual: false,
+2026-10-22T00:15:43.5717515Z   expected: true,
+2026-10-22T00:15:43.5717732Z   operator: '==',
+2026-10-22T00:15:43.5717934Z   diff: 'simple'
+2026-10-22T00:15:43.5718135Z }
+2026-10-22T00:15:43.5718240Z 
+2026-10-22T00:15:43.5718330Z Node.js v22.23.3
+2026-10-22T00:15:43.5765051Z ##[error]Process completed with exit code 1.
+2026-10-22T00:15:43.5871321Z ##[group]Run actions/upload-artifact@v4
+2026-10-22T00:15:43.5871628Z with:
+2026-10-22T00:15:43.5871994Z   name: bookmark-r32-trusted-source-a36689ac0ecad72ad378144ad39812a72d31ef62
+

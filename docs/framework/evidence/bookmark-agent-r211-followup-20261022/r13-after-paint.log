@@ -1,0 +1,12 @@
+
+> opendesk-bookmark-preview-react-r303@1.1.0 preview:chrome
+> node run-chrome.mjs --conversation-r13
+
+{
+  "status": "PASS",
+  "pass": 10,
+  "fail": 0,
+  "failures": [],
+  "matrix": 6,
+  "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/r13-after-paint/report.json"
+}

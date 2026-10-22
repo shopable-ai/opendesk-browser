@@ -1,0 +1,357 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUTC": "2026-10-22T00:22:23.449056+00:00",
+  "fixture": false,
+  "classification": "Independent read-only Native SQLite and recorded Chrome artifact correlation",
+  "scope": {
+    "writtenArtifact": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/new-native-metadata-review.json",
+    "codexHomeSelector": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/native-runtime.json.codexHome",
+    "codexHome": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/bm-r211-followup-codex-0gt77d",
+    "sqlitePaths": [
+      "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/bm-r211-followup-codex-0gt77d/thread_history_1.sqlite",
+      "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/bm-r211-followup-codex-0gt77d/state_5.sqlite"
+    ],
+    "sqliteAccess": "URI mode=ro; PRAGMA query_only=ON; read transactions; connections closed before report write",
+    "readContent": "Matched thread_turns timing/status, matched userMessage IDs/timestamps/request-presence boolean, public agentMessage JSON proposals, thread model/provider/CLI metadata. No credentials, headers, reasoning or unrelated user text exported. Default Codex home not read.",
+    "browserBuildTestModelOperations": false
+  },
+  "candidate": {
+    "toolShellSourceSha256AsRecorded": "f0432a8440223b0e9fd2a5718d4c87f5a59a7a961e3839fc1af282a402f7f39d",
+    "bothCaseArtifactsAgree": true,
+    "bindingBoundary": "Hash is recorded by each real browser driver artifact; this reviewer did not fetch live browser sources or equate it to current repository source.",
+    "attribution": "These two new candidate cases are separate from the older 7634e961 candidate guard/no-progress and close evidence in t9-native-metadata-review.json."
+  },
+  "cases": [
+    {
+      "case": "original",
+      "artifact": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/new-original-final.json",
+      "artifactSha256": "ab6e8b3161df9321e89ef1fb820b6ca8246a5b63574f624c2b41eab6bdd66b3b",
+      "sourceSha256AsRecorded": "f0432a8440223b0e9fd2a5718d4c87f5a59a7a961e3839fc1af282a402f7f39d",
+      "exactPublicRequest": "把当前页面放入测试收藏夹，如果没有，就创建目录",
+      "driverSentAtMs": 1792628000669,
+      "observationEndAtMs": 1792628135110,
+      "sendEvidence": {
+        "rawTrustedSendObservationCount": 1,
+        "uniqueTrustedSendTimestampsMs": [
+          1792628000667
+        ],
+        "logicalSendCountSupported": 1,
+        "driverObservationNote": null,
+        "recordedUniqueTimestamps": null,
+        "nativeMatchedTurnCount": 2,
+        "nativeMatchedUserMessageCount": 2,
+        "interpretation": "Original has one trusted Send followed by two Native decisions."
+      },
+      "native": {
+        "turnCount": 2,
+        "publicDecisionCount": 2,
+        "turns": [
+          {
+            "thread_id": "01a160f4-a86c-7462-a3eb-8e2e0228c934",
+            "turn_id": "01a160f4-b15c-7550-a3fc-f9e28d034fed",
+            "status": "completed",
+            "started_at": 1792628011,
+            "completed_at": 1792628126,
+            "duration_ms": 115312,
+            "userMessages": [
+              {
+                "item_id": "01a160f4-eff6-7b53-a8b6-5213b8c44644",
+                "created_at_ms": 1792628027383,
+                "completed_at_ms": 1792628027383,
+                "exact_request_present": 1
+              }
+            ],
+            "threadModelMetadata": {
+              "model": "gpt-6.1-sol",
+              "model_provider": "openai",
+              "cli_version": "0.159.2"
+            },
+            "publicAgentMessages": [
+              {
+                "item_id": "msg_03d091bd1242087e016ad9559def988199890cf69995ba9af6",
+                "created_at_ms": 1792628125923,
+                "completed_at_ms": 1792628126575,
+                "text": "{\"actions\":[{\"type\":\"folder.ensure\",\"title\":\"测试收藏夹\",\"parent\":\"$currentFolder\"},{\"type\":\"bookmark.create\",\"title\":\"$pageTitle\",\"url\":\"$currentPage\",\"parent\":\"$lastFolder\"}]}",
+                "phase": "final_answer",
+                "parsedPlan": {
+                  "actions": [
+                    {
+                      "type": "folder.ensure",
+                      "title": "测试收藏夹",
+                      "parent": "$currentFolder"
+                    },
+                    {
+                      "type": "bookmark.create",
+                      "title": "$pageTitle",
+                      "url": "$currentPage",
+                      "parent": "$lastFolder"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "thread_id": "01a160f4-a86c-7462-a3eb-8e2e0228c934",
+            "turn_id": "01a160f6-8139-74e3-850e-77cf927af82e",
+            "status": "completed",
+            "started_at": 1792628130,
+            "completed_at": 1792628134,
+            "duration_ms": 4310,
+            "userMessages": [
+              {
+                "item_id": "01a160f6-8142-71f2-bffc-0980c99fca4a",
+                "created_at_ms": 1792628130115,
+                "completed_at_ms": 1792628130115,
+                "exact_request_present": 1
+              }
+            ],
+            "threadModelMetadata": {
+              "model": "gpt-6.1-sol",
+              "model_provider": "openai",
+              "cli_version": "0.159.2"
+            },
+            "publicAgentMessages": [
+              {
+                "item_id": "msg_03d091bd1242087e016ad955a5c60c8199b0f859c6a7214677",
+                "created_at_ms": 1792628134182,
+                "completed_at_ms": 1792628134407,
+                "text": "{\"complete\":[{\"kind\":\"bookmark.inFolder\",\"folder\":\"书签栏 / 测试收藏夹\",\"url\":\"$currentPage\"}]}",
+                "phase": "final_answer",
+                "parsedPlan": {
+                  "complete": [
+                    {
+                      "kind": "bookmark.inFolder",
+                      "folder": "书签栏 / 测试收藏夹",
+                      "url": "$currentPage"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "correlation": "Time bounded to this artifact Send/readback window, with exact public request present in each matched userMessage; continuation context can repeat the original request. No reasoning or raw userMessage context exported."
+      },
+      "execution": {
+        "uiLoopMetrics": [
+          {
+            "completed": true,
+            "modelCalls": 2,
+            "actionCount": 2,
+            "at": 1792628134841
+          }
+        ],
+        "publicPlanActionCount": 2,
+        "sdkMethodCounts": {
+          "getTree": 48,
+          "create": 2
+        },
+        "sdkMutationDispatches": [
+          {
+            "method": "create",
+            "at": 1792628128605
+          },
+          {
+            "method": "create",
+            "at": 1792628129710
+          }
+        ],
+        "chromeOnCreated": [
+          {
+            "id": "46",
+            "node": {
+              "dateAdded": 1792628128654,
+              "dateGroupModified": 1792628128654,
+              "id": "46",
+              "index": 1,
+              "parentId": "1",
+              "syncing": false,
+              "title": "测试收藏夹"
+            },
+            "at": 1792628128654
+          },
+          {
+            "id": "47",
+            "node": {
+              "dateAdded": 1792628129771,
+              "id": "47",
+              "index": 0,
+              "parentId": "46",
+              "syncing": false,
+              "title": "OpenDesk Browser · Browser Test Lab",
+              "url": "http://127.0.0.1:43111/demo-form.html"
+            },
+            "at": 1792628129771
+          }
+        ],
+        "relevantIndependentGetTreeNodes": {
+          "46": {
+            "dateAdded": 1792628128654,
+            "dateGroupModified": 1792628129771,
+            "id": "46",
+            "index": 1,
+            "parentId": "1",
+            "syncing": false,
+            "title": "测试收藏夹"
+          },
+          "47": {
+            "dateAdded": 1792628129771,
+            "id": "47",
+            "index": 0,
+            "parentId": "46",
+            "syncing": false,
+            "title": "OpenDesk Browser · Browser Test Lab",
+            "url": "http://127.0.0.1:43111/demo-form.html"
+          }
+        },
+        "relevantNodesExistedBefore": {
+          "46": false,
+          "47": false
+        },
+        "beforeAfterTreesEqual": false,
+        "stillBusy": false,
+        "currentRequestUiSuffix": "已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n对话输入"
+      },
+      "verdict": "REAL_NATIVE_COMPLETED_ACTIONS_AND_INDEPENDENT_TREE_CONFIRMATION",
+      "coverageBoundary": "folder.ensure and bookmark.create proposed and executed; a second real model decision proposed completion."
+    },
+    {
+      "case": "existingReuse",
+      "artifact": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/new-existing-reuse-final.json",
+      "artifactSha256": "574e51311dd3d565a28823e2f1289db8c2be0ac494ccfa8ba72be3f866c3d40e",
+      "sourceSha256AsRecorded": "f0432a8440223b0e9fd2a5718d4c87f5a59a7a961e3839fc1af282a402f7f39d",
+      "exactPublicRequest": "把当前页面放入测试收藏夹，如果没有，就创建目录",
+      "driverSentAtMs": 1792628320027,
+      "observationEndAtMs": 1792628326047,
+      "sendEvidence": {
+        "rawTrustedSendObservationCount": 2,
+        "uniqueTrustedSendTimestampsMs": [
+          1792628320024
+        ],
+        "logicalSendCountSupported": 1,
+        "driverObservationNote": "Second case reused the document and prior passive click listener. Identical trusted send rows at the same timestamp are duplicate observation of one dispatch, not multiple Sends; exactly one mousePressed/mouseReleased pair was dispatched by the recorded driver. Native matching is independent.",
+        "recordedUniqueTimestamps": [
+          1792628320024
+        ],
+        "nativeMatchedTurnCount": 1,
+        "nativeMatchedUserMessageCount": 1,
+        "interpretation": "Two identical trace rows at one timestamp are duplicate click observations. One time-bounded Native turn and one userMessage independently support one request, not two Sends. Mouse dispatch count is the recorded driver claim, not a new browser observation."
+      },
+      "native": {
+        "turnCount": 1,
+        "publicDecisionCount": 1,
+        "turns": [
+          {
+            "thread_id": "01a160f4-a86c-7462-a3eb-8e2e0228c934",
+            "turn_id": "01a160f9-6d62-72b0-8083-7dddf3eb3854",
+            "status": "completed",
+            "started_at": 1792628321,
+            "completed_at": 1792628324,
+            "duration_ms": 3222,
+            "userMessages": [
+              {
+                "item_id": "01a160f9-6d6b-7311-8084-28f831c10feb",
+                "created_at_ms": 1792628321644,
+                "completed_at_ms": 1792628321644,
+                "exact_request_present": 1
+              }
+            ],
+            "threadModelMetadata": {
+              "model": "gpt-6.1-sol",
+              "model_provider": "openai",
+              "cli_version": "0.159.2"
+            },
+            "publicAgentMessages": [
+              {
+                "item_id": "msg_03d091bd1242087e016ad956645a088199ace1d0a081343d96",
+                "created_at_ms": 1792628324643,
+                "completed_at_ms": 1792628324826,
+                "text": "{\"complete\":[{\"kind\":\"bookmark.inFolder\",\"folder\":\"$lastFolder\",\"url\":\"$currentPage\"}]}",
+                "phase": "final_answer",
+                "parsedPlan": {
+                  "complete": [
+                    {
+                      "kind": "bookmark.inFolder",
+                      "folder": "$lastFolder",
+                      "url": "$currentPage"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "correlation": "Time bounded to this artifact Send/readback window, with exact public request present in each matched userMessage; continuation context can repeat the original request. No reasoning or raw userMessage context exported."
+      },
+      "execution": {
+        "uiLoopMetrics": [
+          {
+            "completed": true,
+            "modelCalls": 1,
+            "actionCount": 0,
+            "at": 1792628325495
+          }
+        ],
+        "publicPlanActionCount": 0,
+        "sdkMethodCounts": {
+          "getTree": 1
+        },
+        "sdkMutationDispatches": [],
+        "chromeOnCreated": [],
+        "relevantIndependentGetTreeNodes": {
+          "46": {
+            "dateAdded": 1792628128654,
+            "dateGroupModified": 1792628129771,
+            "id": "46",
+            "index": 1,
+            "parentId": "1",
+            "syncing": false,
+            "title": "测试收藏夹"
+          },
+          "47": {
+            "dateAdded": 1792628129771,
+            "id": "47",
+            "index": 0,
+            "parentId": "46",
+            "syncing": false,
+            "title": "OpenDesk Browser · Browser Test Lab",
+            "url": "http://127.0.0.1:43111/demo-form.html"
+          }
+        },
+        "relevantNodesExistedBefore": {
+          "46": true,
+          "47": true
+        },
+        "beforeAfterTreesEqual": true,
+        "stillBusy": false,
+        "currentRequestUiSuffix": "已核实：当前网页已在「测试收藏夹」中。\n\n对话输入"
+      },
+      "verdict": "REAL_NATIVE_DIRECT_COMPLETE_ZERO_ACTION_ZERO_WRITE_EXISTING_BOOKMARK_CONFIRMED",
+      "coverageBoundary": "Model directly proposed complete; no create action executed. Does not cover the bookmark.create idempotent execution branch."
+    }
+  ],
+  "totals": {
+    "logicalTrustedSends": 2,
+    "nativeTurns": 3,
+    "publicModelDecisions": 3,
+    "businessActions": 2,
+    "sdkMutationDispatches": 2,
+    "chromeCreates": 2
+  },
+  "evidenceBoundaries": [
+    "Actual Native SQLite records and actual Chrome driver artifacts, not SDK/Provider fixtures.",
+    "gpt-6.1-sol/openai/0.159.2 are SQLite thread metadata shared by matched turns, not independent provider-side per-turn model attestation.",
+    "This report makes no new T9 instance-switch/cancellation claim and does not transfer old-candidate T10 evidence to this candidate."
+  ],
+  "priorT9Review": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/t9-native-metadata-review.json",
+    "sha256Unchanged": "4257ef0d44b9f829ec49ae8ba4e4296626fcade6fecd8381dd244947ab26c3fa",
+    "modified": false
+  },
+  "closure": {
+    "allSqliteConnectionsClosed": true,
+    "furtherDbReadsPlanned": false,
+    "mayCloseTaskOwnedCodexHome": true
+  }
+}

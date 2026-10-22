@@ -1,0 +1,1113 @@
+{
+  "kind": "New T7-fixed production candidate: original request, actual installed SIDE_PANEL and Native model",
+  "request": "把当前页面放入测试收藏夹，如果没有，就创建目录",
+  "at": 1792628000473,
+  "launch": {
+    "pid": 98323,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-r211-native-2lzNhN"
+  },
+  "target": {
+    "targetId": "F76330039B6D5632D059737F7D9466F8",
+    "type": "page",
+    "title": "OpenDesk Browser",
+    "url": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sidepanel.html?hostInstanceId=93b59ef9-ddd8-4d91-ba34-45a96ba6c8a6",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "455D026100475BEFE6590770C8303CCD"
+  },
+  "sourceSha256": "f0432a8440223b0e9fd2a5718d4c87f5a59a7a961e3839fc1af282a402f7f39d",
+  "before": {
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792627142203,
+                    "id": "44",
+                    "index": 0,
+                    "parentId": "43",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ],
+                "dateAdded": 1792627141117,
+                "dateGroupModified": 1792627142203,
+                "id": "43",
+                "index": 0,
+                "parentId": "1",
+                "syncing": false,
+                "title": "实例切换验证1792627021211"
+              }
+            ],
+            "dateAdded": 1792624716142,
+            "dateGroupModified": 1792627141118,
+            "folderType": "bookmarks-bar",
+            "id": "1",
+            "index": 0,
+            "parentId": "0",
+            "syncing": false,
+            "title": "书签栏"
+          },
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792625605607,
+                    "id": "6",
+                    "index": 0,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 01",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=0"
+                  },
+                  {
+                    "dateAdded": 1792625605607,
+                    "id": "7",
+                    "index": 1,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 02",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=1"
+                  },
+                  {
+                    "dateAdded": 1792625605608,
+                    "id": "8",
+                    "index": 2,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 03",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=2"
+                  },
+                  {
+                    "dateAdded": 1792625605608,
+                    "id": "9",
+                    "index": 3,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 04",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=3"
+                  },
+                  {
+                    "dateAdded": 1792625605608,
+                    "id": "10",
+                    "index": 4,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 05",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=4"
+                  },
+                  {
+                    "dateAdded": 1792625605608,
+                    "id": "11",
+                    "index": 5,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 06",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=5"
+                  },
+                  {
+                    "dateAdded": 1792625605608,
+                    "id": "12",
+                    "index": 6,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 07",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=6"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "13",
+                    "index": 7,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 08",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=7"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "14",
+                    "index": 8,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 09",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=8"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "15",
+                    "index": 9,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 10",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=9"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "16",
+                    "index": 10,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 11",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=10"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "17",
+                    "index": 11,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 12",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=11"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "18",
+                    "index": 12,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 13",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=12"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "19",
+                    "index": 13,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 14",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=13"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "20",
+                    "index": 14,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 15",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=14"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "21",
+                    "index": 15,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 16",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=15"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "22",
+                    "index": 16,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 17",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=16"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "23",
+                    "index": 17,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 18",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=17"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "24",
+                    "index": 18,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 19",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=18"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "25",
+                    "index": 19,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 20",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=19"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "26",
+                    "index": 20,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 21",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=20"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "27",
+                    "index": 21,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 22",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=21"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "28",
+                    "index": 22,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 23",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=22"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "29",
+                    "index": 23,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 24",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=23"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "30",
+                    "index": 24,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 25",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=24"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "31",
+                    "index": 25,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 26",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=25"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "32",
+                    "index": 26,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 27",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=26"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "33",
+                    "index": 27,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 28",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=27"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "34",
+                    "index": 28,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 29",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=28"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "35",
+                    "index": 29,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 30",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=29"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "36",
+                    "index": 30,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 31",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=30"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "37",
+                    "index": 31,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 32",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=31"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "38",
+                    "index": 32,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 33",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=32"
+                  },
+                  {
+                    "dateAdded": 1792625605611,
+                    "id": "39",
+                    "index": 33,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 34",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=33"
+                  },
+                  {
+                    "dateAdded": 1792625605611,
+                    "id": "40",
+                    "index": 34,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 35",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=34"
+                  },
+                  {
+                    "dateAdded": 1792625605611,
+                    "id": "41",
+                    "index": 35,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 36",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=35"
+                  }
+                ],
+                "dateAdded": 1792625605606,
+                "dateGroupModified": 1792625605611,
+                "id": "5",
+                "index": 0,
+                "parentId": "2",
+                "syncing": false,
+                "title": "OpenDesk R211 UX acceptance only"
+              }
+            ],
+            "dateAdded": 1792624716142,
+            "dateGroupModified": 1792625605606,
+            "folderType": "other",
+            "id": "2",
+            "index": 1,
+            "parentId": "0",
+            "syncing": false,
+            "title": "其他书签"
+          }
+        ],
+        "dateAdded": 1792627870412,
+        "id": "0",
+        "syncing": false,
+        "title": ""
+      }
+    ],
+    "contexts": [
+      {
+        "contextId": "19921eef-f14f-4362-a7d3-a5c27bdd74c5",
+        "contextType": "SIDE_PANEL",
+        "documentId": "DE5C992F0DCE0AB19F68AEA3DBCE9170",
+        "documentOrigin": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh",
+        "documentUrl": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sidepanel.html?hostInstanceId=93b59ef9-ddd8-4d91-ba34-45a96ba6c8a6",
+        "frameId": 0,
+        "incognito": false,
+        "tabId": -1,
+        "windowId": -1
+      }
+    ],
+    "at": 1792628000660
+  },
+  "sentAt": 1792628000669,
+  "after": {
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792627142203,
+                    "id": "44",
+                    "index": 0,
+                    "parentId": "43",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ],
+                "dateAdded": 1792627141117,
+                "dateGroupModified": 1792627142203,
+                "id": "43",
+                "index": 0,
+                "parentId": "1",
+                "syncing": false,
+                "title": "实例切换验证1792627021211"
+              },
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792628129771,
+                    "id": "47",
+                    "index": 0,
+                    "parentId": "46",
+                    "syncing": false,
+                    "title": "OpenDesk Browser · Browser Test Lab",
+                    "url": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ],
+                "dateAdded": 1792628128654,
+                "dateGroupModified": 1792628129771,
+                "id": "46",
+                "index": 1,
+                "parentId": "1",
+                "syncing": false,
+                "title": "测试收藏夹"
+              }
+            ],
+            "dateAdded": 1792624716142,
+            "dateGroupModified": 1792628128654,
+            "folderType": "bookmarks-bar",
+            "id": "1",
+            "index": 0,
+            "parentId": "0",
+            "syncing": false,
+            "title": "书签栏"
+          },
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "dateAdded": 1792625605607,
+                    "id": "6",
+                    "index": 0,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 01",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=0"
+                  },
+                  {
+                    "dateAdded": 1792625605607,
+                    "id": "7",
+                    "index": 1,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 02",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=1"
+                  },
+                  {
+                    "dateAdded": 1792625605608,
+                    "id": "8",
+                    "index": 2,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 03",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=2"
+                  },
+                  {
+                    "dateAdded": 1792625605608,
+                    "id": "9",
+                    "index": 3,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 04",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=3"
+                  },
+                  {
+                    "dateAdded": 1792625605608,
+                    "id": "10",
+                    "index": 4,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 05",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=4"
+                  },
+                  {
+                    "dateAdded": 1792625605608,
+                    "id": "11",
+                    "index": 5,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 06",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=5"
+                  },
+                  {
+                    "dateAdded": 1792625605608,
+                    "id": "12",
+                    "index": 6,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 07",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=6"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "13",
+                    "index": 7,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 08",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=7"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "14",
+                    "index": 8,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 09",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=8"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "15",
+                    "index": 9,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 10",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=9"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "16",
+                    "index": 10,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 11",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=10"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "17",
+                    "index": 11,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 12",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=11"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "18",
+                    "index": 12,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 13",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=12"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "19",
+                    "index": 13,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 14",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=13"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "20",
+                    "index": 14,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 15",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=14"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "21",
+                    "index": 15,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 16",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=15"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "22",
+                    "index": 16,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 17",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=16"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "23",
+                    "index": 17,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 18",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=17"
+                  },
+                  {
+                    "dateAdded": 1792625605609,
+                    "id": "24",
+                    "index": 18,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 19",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=18"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "25",
+                    "index": 19,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 20",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=19"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "26",
+                    "index": 20,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 21",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=20"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "27",
+                    "index": 21,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 22",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=21"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "28",
+                    "index": 22,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 23",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=22"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "29",
+                    "index": 23,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 24",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=23"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "30",
+                    "index": 24,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 25",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=24"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "31",
+                    "index": 25,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 26",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=25"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "32",
+                    "index": 26,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 27",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=26"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "33",
+                    "index": 27,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 28",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=27"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "34",
+                    "index": 28,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 29",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=28"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "35",
+                    "index": 29,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 30",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=29"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "36",
+                    "index": 30,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 31",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=30"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "37",
+                    "index": 31,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 32",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=31"
+                  },
+                  {
+                    "dateAdded": 1792625605610,
+                    "id": "38",
+                    "index": 32,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 33",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=32"
+                  },
+                  {
+                    "dateAdded": 1792625605611,
+                    "id": "39",
+                    "index": 33,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 34",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=33"
+                  },
+                  {
+                    "dateAdded": 1792625605611,
+                    "id": "40",
+                    "index": 34,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 35",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=34"
+                  },
+                  {
+                    "dateAdded": 1792625605611,
+                    "id": "41",
+                    "index": 35,
+                    "parentId": "5",
+                    "syncing": false,
+                    "title": "UX real bookmark 36",
+                    "url": "http://127.0.0.1:43111/demo-form.html?ux-real=35"
+                  }
+                ],
+                "dateAdded": 1792625605606,
+                "dateGroupModified": 1792625605611,
+                "id": "5",
+                "index": 0,
+                "parentId": "2",
+                "syncing": false,
+                "title": "OpenDesk R211 UX acceptance only"
+              }
+            ],
+            "dateAdded": 1792624716142,
+            "dateGroupModified": 1792625605606,
+            "folderType": "other",
+            "id": "2",
+            "index": 1,
+            "parentId": "0",
+            "syncing": false,
+            "title": "其他书签"
+          }
+        ],
+        "dateAdded": 1792627870412,
+        "id": "0",
+        "syncing": false,
+        "title": ""
+      }
+    ],
+    "body": "我的\n扩展\n工作流\n开发\n云控\n书签管理\n书签管理\n44 项\n搜索名称、URL 或文件夹\n书签栏\n2\n实例切换验证1792627021211\n1\n测试收藏夹\n1\nOpenDesk Browser · Browser Test Lab\n其他书签\n1\nOpenDesk R211 UX acceptance only\n36\n\n把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n对话输入",
+    "trace": [
+      {
+        "text": "对话输入",
+        "at": 1792628000665
+      },
+      {
+        "event": "send",
+        "trusted": true,
+        "at": 1792628000667
+      },
+      {
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n正在判断下一步…\n对话输入",
+        "at": 1792628000669
+      },
+      {
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n正在更新书签并读回确认…\n对话输入",
+        "at": 1792628126822
+      },
+      {
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n正在更新书签并读回确认…\n对话输入",
+        "at": 1792628128969
+      },
+      {
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n正在判断下一步…\n对话输入",
+        "at": 1792628130101
+      },
+      {
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n正在核实最终结果…\n对话输入",
+        "at": 1792628134492
+      },
+      {
+        "text": "把当前页面放入测试收藏夹，如果没有，就创建目录\n\n已创建文件夹「测试收藏夹」 · 书签栏 / 测试收藏夹\n\n已收藏书签「OpenDesk Browser · Browser Test Lab」 · 书签栏 / 测试收藏夹 / OpenDesk Browser · Browser Test Lab\n\n已核实：当前网页已在「测试收藏夹」中。\n\n对话输入",
+        "at": 1792628134843
+      }
+    ],
+    "sdk": [
+      {
+        "method": "getTree",
+        "at": 1792628024790
+      },
+      {
+        "method": "getTree",
+        "at": 1792628027597
+      },
+      {
+        "method": "getTree",
+        "at": 1792628030406
+      },
+      {
+        "method": "getTree",
+        "at": 1792628033240
+      },
+      {
+        "method": "getTree",
+        "at": 1792628036071
+      },
+      {
+        "method": "getTree",
+        "at": 1792628038898
+      },
+      {
+        "method": "getTree",
+        "at": 1792628041705
+      },
+      {
+        "method": "getTree",
+        "at": 1792628044556
+      },
+      {
+        "method": "getTree",
+        "at": 1792628047428
+      },
+      {
+        "method": "getTree",
+        "at": 1792628050459
+      },
+      {
+        "method": "getTree",
+        "at": 1792628053271
+      },
+      {
+        "method": "getTree",
+        "at": 1792628056108
+      },
+      {
+        "method": "getTree",
+        "at": 1792628058916
+      },
+      {
+        "method": "getTree",
+        "at": 1792628061764
+      },
+      {
+        "method": "getTree",
+        "at": 1792628064601
+      },
+      {
+        "method": "getTree",
+        "at": 1792628067416
+      },
+      {
+        "method": "getTree",
+        "at": 1792628070265
+      },
+      {
+        "method": "getTree",
+        "at": 1792628073096
+      },
+      {
+        "method": "getTree",
+        "at": 1792628076100
+      },
+      {
+        "method": "getTree",
+        "at": 1792628078919
+      },
+      {
+        "method": "getTree",
+        "at": 1792628081733
+      },
+      {
+        "method": "getTree",
+        "at": 1792628084570
+      },
+      {
+        "method": "getTree",
+        "at": 1792628087403
+      },
+      {
+        "method": "getTree",
+        "at": 1792628090240
+      },
+      {
+        "method": "getTree",
+        "at": 1792628093079
+      },
+      {
+        "method": "getTree",
+        "at": 1792628095899
+      },
+      {
+        "method": "getTree",
+        "at": 1792628098737
+      },
+      {
+        "method": "getTree",
+        "at": 1792628101762
+      },
+      {
+        "method": "getTree",
+        "at": 1792628104577
+      },
+      {
+        "method": "getTree",
+        "at": 1792628107414
+      },
+      {
+        "method": "getTree",
+        "at": 1792628110248
+      },
+      {
+        "method": "getTree",
+        "at": 1792628113065
+      },
+      {
+        "method": "getTree",
+        "at": 1792628115914
+      },
+      {
+        "method": "getTree",
+        "at": 1792628118728
+      },
+      {
+        "method": "getTree",
+        "at": 1792628121529
+      },
+      {
+        "method": "getTree",
+        "at": 1792628124353
+      },
+      {
+        "method": "getTree",
+        "at": 1792628126984
+      },
+      {
+        "method": "getTree",
+        "at": 1792628127411
+      },
+      {
+        "method": "getTree",
+        "at": 1792628127663
+      },
+      {
+        "method": "getTree",
+        "at": 1792628127905
+      },
+      {
+        "method": "getTree",
+        "at": 1792628128400
+      },
+      {
+        "method": "create",
+        "at": 1792628128605
+      },
+      {
+        "method": "getTree",
+        "at": 1792628128793
+      },
+      {
+        "method": "getTree",
+        "at": 1792628129103
+      },
+      {
+        "method": "getTree",
+        "at": 1792628129543
+      },
+      {
+        "method": "create",
+        "at": 1792628129710
+      },
+      {
+        "method": "getTree",
+        "at": 1792628129915
+      },
+      {
+        "method": "getTree",
+        "at": 1792628130596
+      },
+      {
+        "method": "getTree",
+        "at": 1792628133454
+      },
+      {
+        "method": "getTree",
+        "at": 1792628134642
+      }
+    ],
+    "metrics": [
+      {
+        "completed": true,
+        "modelCalls": 2,
+        "actionCount": 2,
+        "at": 1792628134841
+      }
+    ],
+    "creates": [
+      {
+        "id": "46",
+        "node": {
+          "dateAdded": 1792628128654,
+          "dateGroupModified": 1792628128654,
+          "id": "46",
+          "index": 1,
+          "parentId": "1",
+          "syncing": false,
+          "title": "测试收藏夹"
+        },
+        "at": 1792628128654
+      },
+      {
+        "id": "47",
+        "node": {
+          "dateAdded": 1792628129771,
+          "id": "47",
+          "index": 0,
+          "parentId": "46",
+          "syncing": false,
+          "title": "OpenDesk Browser · Browser Test Lab",
+          "url": "http://127.0.0.1:43111/demo-form.html"
+        },
+        "at": 1792628129771
+      }
+    ],
+    "stillBusy": false,
+    "at": 1792628135110
+  },
+  "status": "VERIFIED_COMPLETION_REVIEW_NATIVE_AND_TREE"
+}
