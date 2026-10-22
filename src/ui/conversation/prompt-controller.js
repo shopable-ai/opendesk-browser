@@ -39,6 +39,8 @@ export function createPromptConversationRequest({
   try{
    const answer=await first;
    authority=answer.authorization;
+   if(typeof authority?.assertWrite!=='function'||typeof authority?.release!=='function')
+    throw fail('E_PROMPT_AUTH','未取得可核实的模型授权，未执行存储操作');
    await live();
    const plan=validatePromptPlan(answer.proposal);
    const onVerifiedStep=step=>onStep(step);
@@ -92,7 +94,7 @@ export function createPromptConversationRequest({
    try{releaseGuard?.();}catch{/* Closing the iframe always invalidates its guard. */}
    if(outcome?.writeIssued===true||outcome?.total!==undefined){
     try{await notify({targetId:outcome.refs?.matches?.[0]||null,
-     changed:outcome.writeIssued===true});}catch{/* UI refresh does not change saved truth. */}
+     changed:outcome.writeIssued===true,releasedImageAssets:outcome.releasedImageAssets||[]});}catch{/* UI refresh does not change saved truth. */}
    }
    if(unknown)try{await notify({unknown:true});}catch{}
   }
