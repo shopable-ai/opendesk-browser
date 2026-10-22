@@ -820,12 +820,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
               click.linkGuard=structuredClone(admission.linkGuard);
             }
             const freeze=await compileWorkflow(executable,{verifyFill:true});
+            if(executable.steps.length>4)throw err('E_AGENT_SCHEMA','AI 每轮最多四步，请只提出接下来的必要动作');
             checked={executable,admission,freeze};break;
           }catch(error){
             const code=error?.code||'';
             if(attempt>0||!['E_WORKFLOW_SCHEMA','E_WORKFLOW_AI',
               'E_AI_MISSING_ACTION','E_AI_ASSERT_TARGET','E_AI_VALUE_NOT_GROUNDED',
-              'E_AI_RESPONSE','E_AI_SCHEMA'].includes(code))throw error;
+              'E_AI_RESPONSE','E_AI_SCHEMA','E_AGENT_SCHEMA'].includes(code))throw error;
             lastPreflight=error;
             control('workflow-planning-indicator').text='步骤校验失败，正在进行唯一一次安全纠正…';
           }
@@ -1399,6 +1400,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
             click.linkGuard=structuredClone(prepared.linkGuard);
           }
           freeze=await compileWorkflow(executable,{verifyFill:true});
+          if(executable.steps.length>4)throw err('E_AGENT_SCHEMA','AI 每轮最多四步，请提出下一组必要动作');
           planningCurrent(epoch,frozen.serial,frozen.selected);
           lastProviderTurn={businessWorkflowId:frozen.workflow.workflowId,
             source:frozen.selected,metadata:structuredClone(planned.metadata)};
@@ -1407,7 +1409,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         }catch(error){
           if(correction>0||!['E_WORKFLOW_SCHEMA','E_WORKFLOW_AI',
             'E_AI_MISSING_ACTION','E_AI_ASSERT_TARGET','E_AI_VALUE_NOT_GROUNDED',
-            'E_AI_RESPONSE'].includes(error?.code))throw error;
+            'E_AI_RESPONSE','E_AGENT_SCHEMA'].includes(error?.code))throw error;
           preflightError=error;
           control('workflow-planning-indicator').text=
             '计划格式有误，正在进行唯一一次安全纠正…';
