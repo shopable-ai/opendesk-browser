@@ -436,6 +436,122 @@ async function screenshot(page, name, region) {
   return {file: name, clip, bytes: bytes.length, sha256: hash(bytes), width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20)};
 }
 
+
+async function captureRealRailGeometry(page, scene) {
+  // Real getBoundingClientRect measurements from the ORIGINAL full HTML.
+  // The inspected rail is not a recreated design sample or a CSS text assertion.
+  const read = () => page.evaluate(() => {
+    const rail = document.querySelector('#pageRail');
+    const rect = node => {
+      if (!node) return null;
+      const r = node.getBoundingClientRect();
+      return {x: r.x, y: r.y, width: r.width, height: r.height, right: r.right, bottom: r.bottom};
+    };
+    const text = rail.querySelector(':scope > .page-shortcut:not(.starter-toggle):not(.has-image)');
+    const image = rail.querySelector(':scope > .page-shortcut.has-image');
+    const tip = document.querySelector('#webTooltip');
+    const style = getComputedStyle(rail);
+    const buttonStyle = getComputedStyle(rail.querySelector('.starter-toggle'));
+    return {
+      rail: rect(rail), text: rect(text), image: rect(image), brand: rect(rail.querySelector('.starter-toggle')),
+      tip: tip.hidden ? null : rect(tip), area: rect(document.querySelector('#messageArea')),
+      buttons: rail.querySelectorAll(':scope > button').length,
+      expanded: rail.querySelector('.starter-toggle')?.getAttribute('aria-expanded') ?? null,
+      imageSize: rail.dataset.imageSize,
+      background: style.backgroundColor, border: style.borderTopWidth, borderColor: style.borderTopColor,
+      radius: style.borderTopLeftRadius, gap: style.rowGap, padding: style.paddingLeft, shadow: style.boxShadow,
+      buttonBackground: buttonStyle.backgroundColor, visible: !rail.hidden,
+    };
+  });
+  const close = (actual, expected) => actual != null && Math.abs(actual - expected) <= 1;
+  const initial = await read();
+  scene.railGeometry = {initial};
+  check(scene, 'real DOM: 3 text buttons + OD + manage, default expanded',
+    initial.visible && initial.expanded === 'true' && initial.buttons === 5, initial);
+  check(scene, 'real DOM: text 38px, intrinsic rail 52px, 6px padding, 5px gap',
+    close(initial.text?.width, 38) && close(initial.text?.height, 38) &&
+    close(initial.brand?.width, 38) && close(initial.rail?.width, 52) &&
+    initial.padding === '6px' && initial.gap === '5px' &&
+    initial.border === '1px' && initial.radius === '17px', initial);
+  const expectedTheme = scene.theme === 'light'
+    ? {rail: 'rgb(255, 255, 255)', border: 'rgb(233, 233, 235)', button: 'rgb(51, 107, 244)'}
+    : {rail: 'rgb(48, 50, 57)', border: 'rgb(56, 56, 56)', button: 'rgb(51, 107, 244)'};
+  check(scene, 'real DOM: R2.14 B rail/background/OD palette and shadow',
+    initial.background === expectedTheme.rail && initial.borderColor === expectedTheme.border &&
+    initial.buttonBackground === expectedTheme.button && initial.shadow !== 'none', initial);
+
+  const textSizeWidths = {};
+  for (const size of ['compact', 'standard', 'large']) {
+    await page.evaluate(value => { document.querySelector('#pageRail').dataset.imageSize = value; }, size);
+    const snapshot = await read();
+    textSizeWidths[size] = snapshot.rail?.width;
+    check(scene, 'real DOM: text-only rail ignores ' + size + ' image size',
+      close(snapshot.rail?.width, 52) && close(snapshot.text?.width, 38), snapshot);
+  }
+  scene.railGeometry.textSizeWidths = textSizeWidths;
+  await page.evaluate(() => { document.querySelector('#pageRail').dataset.imageSize = 'large'; });
+
+  // A physical pointer move (CDP Input) exercises the original hover and tooltip.
+  const hover = await page.point('#pageRail .page-shortcut:nth-child(2)');
+  await page.call('Input.dispatchMouseEvent', {type: 'mouseMoved', ...hover});
+  await page.settle();
+  const tooltip = await read();
+  scene.railGeometry.tooltip = tooltip.tip;
+  const tipGap = tooltip.tip && tooltip.rail ? tooltip.tip.x - tooltip.rail.right : null;
+  check(scene, 'real DOM: tooltip follows rail within 10px and viewport bounds',
+    tooltip.tip && tipGap >= 8 && tipGap <= 12 &&
+    tooltip.tip.x >= tooltip.area.x && tooltip.tip.right <= tooltip.area.right + 1, {tipGap, ...tooltip});
+
+  await page.click('#pageRail .starter-toggle');
+  const collapsed = await read();
+  scene.railGeometry.collapsed = collapsed;
+  check(scene, 'real DOM: manual collapse keeps one 52px OD launcher',
+    collapsed.expanded === 'false' && collapsed.buttons === 1 && close(collapsed.rail?.width, 52), collapsed);
+  await page.click('#previewReopen');
+  const reopened = await read();
+  scene.railGeometry.reopened = reopened;
+  check(scene, 'real DOM: reopened preview honors current manual collapse',
+    reopened.expanded === 'false' && reopened.buttons === 1 && close(reopened.rail?.width, 52), reopened);
+  await page.click('#pageRail .starter-toggle');
+  check(scene, 'real DOM: manual expand restores 3 full shortcut buttons',
+    (await read()).buttons === 5);
+
+  if (scene.state !== 'empty-local') return;
+  const switchScenario = value => page.evaluate(v => {
+    const select = document.querySelector('#previewDataScenario');
+    select.value = v; select.dispatchEvent(new Event('change', {bubbles: true}));
+  }, value);
+  await switchScenario('legacy');
+  await page.poll(() => {
+    const picture = document.querySelector('#pageRail .has-image img');
+    return picture?.complete && picture.naturalWidth > 0;
+  }, 'original legacy image decoded');
+  const imageSizeWidths = {};
+  for (const [size, imageWidth, imageHeight, railWidth] of [
+    ['compact', 48, 40, 62], ['standard', 56, 44, 70], ['large', 68, 48, 82],
+  ]) {
+    await page.click('#imageSizeGroup [data-image-size="' + size + '"]');
+    await page.settle();
+    const snapshot = await read();
+    imageSizeWidths[size] = snapshot;
+    check(scene, 'real DOM: ' + size + ' image grows rail only to displayed content',
+      snapshot.image && close(snapshot.image.width, imageWidth) &&
+      close(snapshot.image.height, imageHeight) && close(snapshot.rail?.width, railWidth), snapshot);
+  }
+  scene.railGeometry.imageSizeWidths = imageSizeWidths;
+  await switchScenario('empty');
+  const empty = await read();
+  check(scene, 'real DOM: intentionally empty library retains one 52px OD entry',
+    empty.buttons === 1 && close(empty.rail?.width, 52), empty);
+  await switchScenario('fresh');
+  const restored = await read();
+  check(scene, 'real DOM: scenario reset returns to default-expanded 3 prompts',
+    restored.buttons === 5 && restored.expanded === 'true' && close(restored.rail?.width, 52), restored);
+  scene.railGeometry.reset = restored;
+  scene.screenshots ??= {};
+  scene.screenshots.rail = await screenshot(page, scene.id + '-rail-full.png', false);
+}
+
 async function captureScene(page, scene) {
   await page.evaluate(() => document.querySelector('#imageFields').scrollIntoView({block: 'nearest'}));
   await page.settle();
@@ -532,6 +648,7 @@ async function runScene(width, theme, state) {
     await page.call('Page.bringToFront');
     await page.click(`#size${width}`);
     if (theme === 'dark') await page.click('#themeButton');
+    await captureRealRailGeometry(page, scene);
     if (state === 'empty-local') {
       await page.tabTo('#transferButton'); await page.keyboard('Enter');
       check(scene, 'Enter opens original transfer menu', await page.evaluate(() => !document.querySelector('#transferMenu').hidden));
@@ -627,6 +744,7 @@ async function runScene(width, theme, state) {
       scene: {id: scene.id, width, theme, state}, chrome: report.chrome,
       sourceBefore: scene.sourceBefore, sourceAfter: scene.sourceAfter, viewport,
       baseline: scene.measurements && {...scene.measurements, samples: undefined},
+       railGeometry: scene.railGeometry,
       touchAndMotion: scene.touchAndMotion, retainedImage: scene.retainedImage,
       checks: scene.checks, error: scene.error, captureError: scene.captureError,
     }, null, 2));
