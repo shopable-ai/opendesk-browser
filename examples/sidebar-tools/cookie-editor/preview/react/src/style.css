@@ -18,9 +18,7 @@ body{margin:0;background:var(--od-bg);color:var(--od-ink);font-family:-apple-sys
 .preview-settings-panel{max-width:496px;margin:0 auto 10px;padding:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);font-size:12px}
 .preview-settings-panel strong{flex:1 1 130px}
 .preview-settings-panel span{color:var(--od-sub)}
-.preview-global-grant{min-height:min(460px,75dvh);padding:24px clamp(16px,6vw,28px);display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:12px}
-.preview-global-grant h2{font-size:17px;line-height:1.4;margin:0}
-.preview-global-grant p{font-size:13px;color:var(--od-sub);margin:0;max-width:36ch}
-.preview-global-grant small{font-size:11px;color:var(--od-sub)}
-.preview-global-grant button{min-height:36px}
-.preview-grant-icon{font-size:22px;display:grid;place-items:center;width:42px;height:42px;border-radius:var(--radius-control);background:var(--od-bg)}
+.preview-global-grant{min-height:236px;padding:36px clamp(16px,6vw,28px);display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:9px}
+.preview-global-grant h2{font-size:16px;line-height:1.4;margin:0}
+.preview-global-grant p{font-size:12px;line-height:1.65;color:var(--od-sub);margin:0 0 8px;max-width:40ch}
+.preview-global-grant button{min-height:40px;width:100%;max-width:360px}
