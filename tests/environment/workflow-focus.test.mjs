@@ -153,7 +153,7 @@ if(!vm.SourceTextModule) {
       './observation.js':{createWorkflowObservation:()=>observation,
         workflowObservationForModel,workflowObservationGrantMatches,workflowObservationRecipientId}
     };
-    const context=vm.createContext({crypto,structuredClone,URL,AbortController});
+    const context=vm.createContext({crypto,structuredClone,URL,AbortController,setTimeout,clearTimeout});
     const module=new vm.SourceTextModule(source,{context,identifier:'workflow-view.component.js'});
     const modules=new Map();
     await module.link(specifier=>{
