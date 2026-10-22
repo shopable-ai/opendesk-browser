@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {transform} from 'esbuild';
 import {workflowFixture,tick} from './workflow-react-fixture.mjs';
+import {compileWorkflow} from '../../src/framework/workflow/compiler.js';
+import {sealWorkflowBundle,replayParameterSchema,WORKFLOW_BUNDLE_FORMAT} from '../../src/ui/workflow/segment-replay.js';
 const fill={stepId:'fill',op:'fill',locatorKind:'css',selector:'#keyword',text:'OpenDesk'};
 const get=(f,id)=>f.state().controls[id]||{};
 test('workflow whole page declares DOM in TSX and adapter has no legacy renderer/listeners',async()=>{
@@ -188,4 +190,41 @@ test('parameterizing sensitive fields never saves a secret as a default',async t
   assert.equal(f.state().params[0].rule.default,undefined);
   assert.equal(f.state().params[0].value,'');
   assert.equal(f.state().steps[0].text,undefined);
+});
+
+test('full saved bundle loads from real Controller revisions and blocks stale entry without dispatch',async t=>{
+  const f=await workflowFixture();t.after(()=>f.view.dispose());
+  f.click('workflow-save');await tick();await tick();await tick();
+  const id='wf-44444444-3333-2222-1111-111111111111';
+  const segments=[];
+  for(let index=1;index<=2;index++){
+    const workflow={format:'opendesk.workflow.v1',workflowId:id+'-s'+index,
+      title:'完整只读示例',description:'',siteOrigin:f.target.origin,
+      paramsSchema:{type:'object',properties:{},required:[],additionalProperties:false},
+      steps:[{stepId:'observe-'+index,op:'observe'}]};
+    const freeze=await compileWorkflow(workflow);
+    const rev=await f.host.controller.commitControllerScript({
+      scriptId:workflow.workflowId,expectedRevision:0,sourceUtf8:freeze.sourceUtf8});
+    assert.equal(rev.contentHash,freeze.sourceHash);
+    segments.push({workflow,entryUrl:f.target.url,revision:rev.revision,
+      sourceHash:freeze.sourceHash,verificationMode:'none',evidence:{kind:'read-only'},
+      proof:{runId:'original-'+index,resultId:'receipt-'+index,
+        sourceHash:freeze.sourceHash,origin:f.target.origin,documentId:'document-'+index}});
+  }
+  const record=await sealWorkflowBundle({format:WORKFLOW_BUNDLE_FORMAT,bundleId:id,
+    revision:1,goal:'查看页面',title:'完整只读示例',
+    workflow:{workflowId:id,title:'完整只读示例',siteOrigin:f.target.origin},
+    segments,paramsSchema:replayParameterSchema(segments)});
+  const key='opendesk.sidebar.workflow.v1:'+id+':1';
+  f.local.set(key,record);f.click('workflow-refresh');await tick();await tick();
+  f.input('workflow-saved-list',key,'change');
+  f.click('workflow-load');await tick();await tick();await tick();
+  assert.match(get(f,'workflow-status').text,/完整 2 段工作流/);
+  assert.equal(f.state().header.saved,true);
+  assert.match(f.state().header.savedTitle,/完整工作流/);
+  await f.setPage({url:f.target.origin+'/unrelated'});
+  const result=await f.click('workflow-run');
+  assert.equal(result.ok,false);
+  assert.equal(result.error.code,'E_DOCUMENT_STALE');
+  assert.equal(f.starts.length,0);
 });
