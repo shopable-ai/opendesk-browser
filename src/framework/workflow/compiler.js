@@ -37,7 +37,23 @@ export async function compileWorkflow(value,{verifyFill=false}={}) {
       }
     }
     if (step.op === 'click') {
-      if (step.linkGuard) {
+      if (step.linkGuard && step.param) {
+        // This v2 source is frozen ONCE, including during the original AI-on
+        // verified execution. Only the trusted Controller supplies __odLinks
+        // from a freshly verified DOM observation on each later replay.
+        const g=step.linkGuard,key=JSON.stringify(step.stepId),
+          param=JSON.stringify(step.param),origin=JSON.stringify(g.origin);
+        lines.push('  { const __bound=params.__odLinks?.['+key+'];');
+        lines.push('    const __name=String(params['+param+']??"");');
+        lines.push('    if(!__bound || typeof __bound.href!=="string" || __bound.name!==__name || '+
+          '__bound.origin!=='+origin+' || typeof __bound.sourceUrl!=="string" || '+
+          '__name.length<3 || __name.length>120) throw new Error("Workflow link binding missing");');
+        lines.push('    if (await page.url() !== __bound.sourceUrl) throw new Error("Workflow link source changed");');
+        lines.push('    const __named=page.getByRole("link",{name:__name,exact:true});');
+        lines.push('    if((await __named.count())!==1 || (await __named.getAttribute("href"))!==__bound.href) '+
+          'throw new Error("Workflow bound link changed");');
+        lines.push('    await __named.click(); }');
+      } else if (step.linkGuard) {
         // Frozen, trusted link identity is re-checked by the normal RunHost.
         // CSS href equality is checked again during the native Locator commit.
         const g=step.linkGuard,css='a[href='+JSON.stringify(g.href)+']';
