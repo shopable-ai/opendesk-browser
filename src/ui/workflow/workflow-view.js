@@ -750,6 +750,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       hasUnprovenClick:planned.hasUnprovenClick,
       beforeObservation:planned.beforeObservation,effectExpectation:planned.effectExpectation,
       linkGuard:planned.linkGuard,
+      // Keep task ownership through the shared RunHost adapter, including
+      // the asynchronous interval before host.start returns its runId.
+      agent:planned.agent,
       assertCurrent:()=>{
         if(disposed||planned.serial!==stable()||planned.selected!==provider()||
           planned.epoch!==planningGeneration)
