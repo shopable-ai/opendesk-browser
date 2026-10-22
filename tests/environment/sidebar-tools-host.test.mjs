@@ -2620,6 +2620,13 @@ test('R5.26 disabled Cookie Editor direct settings can re-enable without auto-mo
   await settle(()=>store.get(SIDEBAR_TOOL_ENABLE_STORE)?.[tool.id]===true&&!f.elements['sidebar-tool-enable'].disabled);
   assert.equal(f.runtime.frameRoot.children.length,0,'enablement must not auto-execute the app');
   assert.deepEqual(store.get(key),userData,'existing persisted data must survive re-enable');
+  const newEpoch=store.get(TOOL_REVOCATION_EPOCHS_STORE)?.[tool.id];
+  assert.ok(typeof newEpoch==='string'&&newEpoch.length>0,'resume revokes the previous instance');
+  assert.equal(store.get(BROWSER_MENU_GRANTS_STORE)?.[tool.id]?.installEpoch,newEpoch,
+    'only a package-verified Cookie grant may follow the new instance');
+  // Real Chrome emits storage.onChanged after the installer carries the grant.
+  // This storage Map fixture does not emit events on set() automatically.
+  f.changeStorage({[BROWSER_MENU_GRANTS_STORE]:{newValue:store.get(BROWSER_MENU_GRANTS_STORE)}});
   f.emit(f.elements['sidebar-tool-back'],'click');
   assert.equal(f.runtime.frameRoot.children.length,1,'return mounts the existing React application');
   assert.equal(f.elements['sidebar-tool-frame'].hidden,false);
