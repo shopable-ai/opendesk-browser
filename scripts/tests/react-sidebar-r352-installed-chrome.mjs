@@ -202,9 +202,12 @@ try{
   extensionId=new URL(worker.url).host;
   report.extensionId=extensionId;
   await openInstalledPage();
-  report.steps.push({name:'native-developer-source-editing',...await verifyDeveloperSourceInput({
+  const nativePanel=await evaluate(`chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})
+    .then(contexts=>contexts.some(context=>context.documentUrl===location.href))`);
+  report.steps.push(nativePanel?{name:'native-developer-source-editing',...await verifyDeveloperSourceInput({
     call:(method,params)=>call(method,params,host),evaluate,until
-  })});
+  })}:{name:'native-developer-source-editing',status:'NOT_TESTED',
+    reason:'Catalog route hides Developer controls; this check requires a real SIDE_PANEL context.'});
   await call('Target.closeTarget',{targetId});
   host=null;targetId=null;
   await openInstalledPage();

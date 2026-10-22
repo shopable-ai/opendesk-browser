@@ -27,6 +27,8 @@ on:
       - 'scripts/bundle-provenance.mjs'
       - 'scripts/verify-package.mjs'
       - 'scripts/check-source.mjs'
+      - 'scripts/tests/developer-source-input.mjs'
+      - 'scripts/tests/react-sidebar-r352-installed-chrome.mjs'
       - 'wxt.config.mjs'
       - 'src/ui/controller-revision-view.js'
       - 'src/ui/controller-results-view.js'
