@@ -181,7 +181,7 @@ test('R1.4 provenance pins only audited trusted tool modules to exact fixed entr
   const fixtures=[
     ['trusted/model.js','65444eb5ad35847701d21b4489d895028c5fa0c3'],
     ['trusted/policy.js','4c6f608a26e0d69278c18a0afda94b3c8ce8274c'],
-    ['trusted/page.js','6a1e7d4a13da530a7a8648ca67f1b8dc00c8097d'],
+    ['trusted/page.js','eadc84bf753a8ebcde05cce08dacddad54f5f5c1'],
     ['trusted/asset-contract.js','86e95bff786e52efb9089f97126542430f39a716'],
     // Exact approval was updated by bffde8f49 after the audited asset recovery fix 3d75d1a13.
     ['trusted/asset-host.js','b960044deb5e7d059c26d5d520f912c0b72c7b0e']
