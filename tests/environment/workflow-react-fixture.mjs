@@ -80,6 +80,7 @@ export async function workflowFixture(options={}) {
     requestWorkflowAI:async method=>method==='ai.connection.read'?{nativeConnected:false,protocolAvailable:false,state:'NATIVE_PERMISSION_REQUIRED'}:
       {state:'DISCONNECTED',readyForTurn:false}};
   const currentPageTarget={windowId:7,snapshot:target,ready:Promise.resolve(),capture:()=>({...target}),
+    refresh:async()=>({...target}),
     revalidate:async captured=>{if(['windowId','tabId','frameId','documentId','url','origin'].some(key=>captured[key]!==target[key]))throw fail('E_DOCUMENT_STALE','网页已变化');},
     subscribe:fn=>{subscriptions.page.add(fn);return ()=>subscriptions.page.delete(fn);}};
   const view=createWorkflowView({api,client,host,currentPageTarget,onRunOwner:id=>owners.push(id)});
