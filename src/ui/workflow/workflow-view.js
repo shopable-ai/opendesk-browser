@@ -1032,7 +1032,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         await currentPageTarget.revalidate(target);
         agent.guard.check();
         const {executable,admission,freeze}=checked;
-        const ticket=agent.guard.claim({workflow:executable,target,observation:receipt,linkGuard:admission.linkGuard});
+        const ticket=agent.guard.claim({workflow:executable,target,observation:receipt,linkGuard:admission.linkGuard,params:admission.params});
         // Only the current round is shown/editable/savable as a JavaScript
         // artifact. A multi-Document agent journal is not misrepresented as a
         // portable one-script replay.
@@ -1234,7 +1234,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         if(freeze.sourceHash!==segment.sourceHash)
           throw err('E_WORKFLOW_HASH','第 '+(i+1)+' 段 JavaScript 内容已变化');
         const ticket=agent.guard.claim({workflow:segment.workflow,target,
-          observation:before,linkGuard:admitted.linkGuard});
+          observation:before,linkGuard:admitted.linkGuard,params:segmentParams});
         if(admitted.linkGuard){
           agent.expectedNavigation=admitted.linkGuard;
           previousNavigationDocument=target.documentId;
@@ -1754,7 +1754,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }
       if(planningObservation)
         agent.guard.observed({target:captured,receipt:planningObservation,remaining:frozen.request});
-      const ticket=agent.guard.claim({workflow:executable,target:captured,observation:planningObservation,linkGuard:prepared.linkGuard});
+      const ticket=agent.guard.claim({workflow:executable,target:captured,observation:planningObservation,linkGuard:prepared.linkGuard,params:prepared.params});
       agent.expectedNavigation=prepared.linkGuard||null;
       if(!await permission)throw err('E_PERMISSION','网站权限未授权，未执行浏览器操作');
       await currentPageTarget.revalidate(captured);
