@@ -34,7 +34,7 @@ export default function App(){
  };
  return <div className="r49-page">
   <details className="demo-lab" aria-label="预览场景切换器">
-   <summary className="lab-title"><span>Cookie Editor R5.25</span><span>预览控制 · 虚构数据</span></summary>
+   <summary className="lab-title"><span>Cookie Editor · 导出浮层</span><span>交互预览 · 虚构数据</span></summary>
    <div className="lab-controllers">
     <label>场景 <select data-testid="scenario" value={scene} onChange={e=>useScene(e.target.value)}>
      <option value="ready">已授权</option><option value="first">首次全站授权</option>
