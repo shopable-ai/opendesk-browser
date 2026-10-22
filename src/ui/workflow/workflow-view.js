@@ -239,7 +239,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(disposed)return;
     // An active RunHost also owns the viewport, even after AI planning settles.
     const operationBusy=busy||autoExecutionPending||Boolean(workflowAgent)||Boolean(host.executionPending||host.currentRun);
-    const runnable=Boolean(compiled && currentOrigin()===(selectedBundle?.segments[0].workflow.siteOrigin||workflow.siteOrigin) &&
+    // Bundle replay recompiles and verifies every frozen revision at admission.
+    // Do not disable Run while the last fragment's UI preview is compiling.
+    const runnable=Boolean((compiled||selectedBundle) && currentOrigin()===(selectedBundle?.segments[0].workflow.siteOrigin||workflow.siteOrigin) &&
       !operationBusy && !historyOpen && !pendingAIReview);
     control('workflow-run').disabled=!runnable;
     control('workflow-save').disabled=busy || autoExecutionPending || !compiled || Boolean(selectedBundle);
