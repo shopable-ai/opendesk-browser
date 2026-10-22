@@ -81,6 +81,7 @@ function validateSegment(value) {
 }
 
 const unsafeReplayGoal=/(?:付款|支付|结账|下单|购买|订单|删除|清空|提交|发送|转账|退款|登录|登出|注销|upload|submit|pay|checkout|purchase|delete|remove|transfer|send|order)/i;
+const negativeReplayGoal=/(?:不要|不需|无需|不得|禁止|别|勿|never|do\s+not|don't)\s*(?:打开|进入|点击|搜索|查找|检索|核对|观察|读取|open|search|click|read|verify)/i;
 const safeSearchQuery=/^[\p{L}\p{N} _.-]{2,120}$/u;
 const safeProductName=/^[\p{L}\p{N}][\p{L}\p{N} _.-]{2,119}$/u;
 
@@ -88,7 +89,7 @@ const safeProductName=/^[\p{L}\p{N}][\p{L}\p{N} _.-]{2,119}$/u;
 // search followed by one independently verified named product navigation.
 // Unknown goals, extra actions and extra mutable parameters stay on v1.
 export function inferDynamicReplayPlan({goal,segments}={}) {
-  if(typeof goal!=='string'||unsafeReplayGoal.test(goal)||
+  if(typeof goal!=='string'||unsafeReplayGoal.test(goal)||negativeReplayGoal.test(goal)||
     !/(?:搜索|查找|检索|\bsearch\b)/i.test(goal)||
     !/(?:打开|进入|点开|\bopen\b)/i.test(goal)||
     !/(?:价格|售价|标价|\bprice\b)/i.test(goal)||
