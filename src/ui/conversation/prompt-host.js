@@ -75,6 +75,10 @@ export function createTrustedPromptHost({
       if(!hashValid(lastExpected))throw failure('E_PROMPT_HOST','写入预期版本计算失败');
       // Persist only non-sensitive intent metadata *before* issuing a write.
       // The actual library stays exclusively in the tool's storage namespace.
+      const unresolved=(await api.storage.local.get(PROMPT_AI_RECOVERY_KEY))[PROMPT_AI_RECOVERY_KEY];
+      if(unresolved?.toolId===tool.id&&!(
+        unresolved.instance===token&&unresolved.expectedEtag===lastExpected))
+        throw failure('E_OUTCOME_UNKNOWN','存在尚未完成的 AI 写入核对；先读取真实 Host 存储，禁止覆盖恢复记录');
       await api.storage.local.set({[PROMPT_AI_RECOVERY_KEY]:{
         toolId:tool.id,version:tool.version,instance:token,installEpoch:epoch,
         expectedEtag:lastExpected,createdAt:Date.now()
