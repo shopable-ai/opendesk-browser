@@ -28,8 +28,10 @@ export function CookieIcon({name}){
     fill="none" stroke="currentColor" strokeWidth="1.7"
     strokeLinecap="round" strokeLinejoin="round">{shapes[name]||null}</svg>;
 }
-function Action({name,label,disabled=false,onClick,pressed,tone='normal',className=''}){
-  return <button type="button" title={label} aria-label={label}
+function Action({name,label,disabled=false,onClick,pressed,tone='normal',className='',
+  expanded,controls,haspopup,buttonRef}){
+  return <button ref={buttonRef} type="button" title={label} aria-label={label}
+    aria-expanded={expanded} aria-controls={controls} aria-haspopup={haspopup}
     className={'cookie-react-icon icon-btn od-icon-button'+(tone==='danger'?' cookie-clear-action od-icon-button--danger':'')+(className?' '+className:'')}
     disabled={disabled} aria-pressed={pressed===undefined?undefined:pressed}
     onClick={onClick}><CookieIcon name={name}/></button>;
@@ -81,20 +83,32 @@ export function CookieImportDropzone({dragging=false,fileName='',maxSize='150 KB
     </span>
   </button>;
 }
+// Two directly visible formats, with native buttons and keyboard-accessible tabs.
+// Netscape remains a legacy domain format, but is not offered in the UI.
 export function CookieExportFormatRow({format='json',onFormat,includeValues=true,
-  onIncludeValues,disabled=false}){
+  onIncludeValues,disabled=false,panelId}){
+  const tabs=React.useRef(null);
+  const jsonId=React.useId();
+  const headerId=React.useId();
+  const changeFromKeys=event=>{
+    if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)||disabled)return;
+    event.preventDefault();
+    const next=event.key==='Home'?'json':event.key==='End'?'header':
+      format==='json'?'header':'json';
+    onFormat?.(next);
+    tabs.current?.querySelector('[data-export-format="'+next+'"]')?.focus();
+  };
   return <div className="export-format cookie-export-options">
-    <CookieFormField label="格式" className="cookie-export-format">
-      <select className="od-field" aria-label="导出格式" value={format}
-        disabled={disabled} onChange={e=>onFormat?.(e.target.value)}>
-        <option value="json">JSON · 推荐</option>
-        <option value="header">Cookie Header</option>
-        <option value="netscape">Netscape</option>
-      </select>
-    </CookieFormField>
+    <div className="cookie-export-tabs" ref={tabs} role="tablist"
+      aria-label="导出格式" onKeyDown={changeFromKeys}>
+      {[['json','JSON',jsonId],['header','Cookie Header',headerId]].map(([key,label,id])=>
+        <button key={key} id={id} data-export-format={key} type="button" role="tab"
+          aria-selected={format===key} aria-controls={panelId} tabIndex={format===key?0:-1}
+          disabled={disabled} onClick={()=>onFormat?.(key)}>{label}</button>)}
+    </div>
     {format==='json'&&<label className="export-inline-values cookie-export-values">
       <input type="checkbox" checked={includeValues} disabled={disabled}
-        onChange={e=>onIncludeValues?.(e.target.checked)}/>包含值
+        onChange={e=>onIncludeValues?.(e.target.checked)}/>包含 Cookie 值
     </label>}
   </div>;
 }
@@ -177,19 +191,52 @@ export function CookieSiteBar({site,loading=false,readonly=false,busy=false,gran
   </header>;
 }
 export function CookieToolbar({count=0,onImport,onExport,onNew,onClear,
-  busy=false,readonly=false,clearDisabled=false}){
+  busy=false,readonly=false,clearDisabled=false,exportOpen=false,
+  exportContent=null,onCloseExport}){
+  const exportButton=React.useRef(null);
+  const exportPopup=React.useRef(null);
+  const exportPopupId=React.useId();
+  React.useEffect(()=>{
+    if(!exportOpen)return;
+    const inside=target=>exportButton.current?.contains(target)||
+      exportPopup.current?.contains(target);
+    const dismiss=event=>{
+      if(!busy&&!inside(event.target))onCloseExport?.(false);
+    };
+    const escape=event=>{
+      if(event.key!=='Escape'||busy)return;
+      event.preventDefault();event.stopPropagation();
+      onCloseExport?.(true);
+    };
+    const blurred=()=>{if(!busy)onCloseExport?.(false);};
+    document.addEventListener('pointerdown',dismiss,true);
+    document.addEventListener('focusin',dismiss,true);
+    document.addEventListener('keydown',escape,true);
+    window.addEventListener('blur',blurred);
+    return ()=>{
+      document.removeEventListener('pointerdown',dismiss,true);
+      document.removeEventListener('focusin',dismiss,true);
+      document.removeEventListener('keydown',escape,true);
+      window.removeEventListener('blur',blurred);
+    };
+  },[exportOpen,busy,onCloseExport]);
   return <div className="list-toolbar">
     <strong>Cookie <span>{count}</span></strong>
     <div className="toolbar-actions">
       <Action name="upload" label="导入 Cookie" onClick={onImport}
         disabled={busy||readonly||typeof onImport!=='function'}/>
       <Action name="download" label="导出 Cookie" onClick={onExport}
+        buttonRef={exportButton} haspopup="dialog" expanded={exportOpen}
+        controls={exportOpen?exportPopupId:undefined}
         disabled={busy||typeof onExport!=='function'}/>
       <span data-action="new"><Action name="plus" label="新建 Cookie"
         onClick={onNew} disabled={busy||readonly||typeof onNew!=='function'}/></span>
       <span className="action-separator" aria-hidden="true"/>
       <Action name="trash" label="安全清理本站 Cookie" tone="danger"
         onClick={onClear} disabled={busy||readonly||clearDisabled||typeof onClear!=='function'}/>
+      {exportOpen&&<div className="cookie-export-popover" id={exportPopupId} ref={exportPopup}>
+        {exportContent}
+      </div>}
     </div>
   </div>;
 }
@@ -261,7 +308,8 @@ export function CookieEditorView({
   site,rows=[],selected=null,onSelect=()=>{},onRefresh,syncStale=false,
   query='',onQuery=()=>{},filter='all',onFilter=()=>{},sort='name',
   onSort=()=>{},expandedFilters=false,onToggleFilters=()=>{},
-  onImport,onExport,onNew,onClear,clearDisabled=false,
+  onImport,onExport,onNew,onClear,clearDisabled=false,exportOpen=false,
+  exportContent=null,onCloseExport,
   editor=null,newEditor=null,busy=false,readonly=false,page=1,pageSize=40,onPage=()=>{}
 }){
   const matching=row=>[row.name,row.domain,row.path].some(value=>
@@ -284,6 +332,7 @@ export function CookieEditorView({
       syncStale={syncStale} onRefresh={onRefresh}/>
     <CookieToolbar count={rows.length} onImport={onImport} onExport={onExport}
       onNew={onNew} onClear={onClear} clearDisabled={clearDisabled}
+      exportOpen={exportOpen} exportContent={exportContent} onCloseExport={onCloseExport}
       busy={busy} readonly={readonly}/>
     <CookieSearch query={query} onQuery={onQuery}
       expandedFilters={expandedFilters} onToggleFilters={onToggleFilters}
