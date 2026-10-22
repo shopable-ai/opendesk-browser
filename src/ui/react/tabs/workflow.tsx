@@ -336,6 +336,15 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
           <div className="workflow-section-header od-toolbar"><h3>执行步骤</h3><div className="workflow-step-tools">
             <span id="workflow-step-count">{model.steps?.length||0} 步</span>{action('workflow-edit-details','编辑工作流详情及高级设置',{icon:true})}
           </div></div>
+          {Boolean(model.bundleSegments?.length)&&<div className="workflow-bundle-summary">
+            <p>完整工作流共 {model.bundleSegments.length} 段。下方编辑器显示最后一段；修改参数将用于所有绑定分段。</p>
+            <ol className="workflow-bundle-segments" aria-label="完整工作流已核验步骤">
+              {model.bundleSegments.map(part=><li key={part.index}>
+                <strong>第 {part.index} 段 · {part.origin}</strong>
+                <ol>{part.steps.map((step,index)=><li key={index}>{step.op}{step.target?' · '+step.target:''}</li>)}</ol>
+              </li>)}
+            </ol>
+          </div>}
           <div id="workflow-steps" className="workflow-steps" aria-label="工作流步骤列表">
             {model.steps?.map((step,index)=><WorkflowStep key={step.stepId} step={step} index={index} count={model.steps.length} model={model} actions={actions}/>)}
           </div>
