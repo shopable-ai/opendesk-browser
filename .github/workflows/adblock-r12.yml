@@ -41,6 +41,7 @@ on:
       - 'tests/environment/adblock-r12.test.mjs'
       - 'tests/environment/adblock-host-controls-r13.test.mjs'
       - 'tests/framework/adblock-r12-native.test.mjs'
+      - 'tests/framework/helpers/adblock-layout-native.mjs'
       - '.github/workflows/adblock-r12.yml'
   workflow_dispatch:
 

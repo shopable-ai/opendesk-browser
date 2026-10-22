@@ -211,8 +211,14 @@ export async function runAdblockCloseoutNative(ctx) {
     assert.ok(buttons[index]);return ui(selector);
   };
   const overview=async()=>{
-    if(await ev(react,'!!document.querySelector("button[aria-label=返回广告拦截概览]")'))
-      await ui(label('返回广告拦截概览'));
+    const onOverview=()=>ev(react,
+      'document.querySelector(".adblock-control-row strong")?.textContent==="全局保护"');
+    if(await onOverview())return;
+    await until(()=>ev(sid,
+      'document.querySelector("#sidebar-tool-back")?.getAttribute("aria-label")==="返回上一级"'),
+      'trusted Host exposes nested AdBlock Back');
+    await click(c,sid,'#sidebar-tool-back');
+    await until(onOverview,'installed AdBlock returns to overview');
   };
   const rules=async()=>{
     await overview();
@@ -534,7 +540,7 @@ export function contrastRatio(foreground, background) {
   return (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
 }
 
-const backSelector = 'button[aria-label="返回广告拦截概览"]';
+const backSelector = '#sidebar-tool-back';
 const settingsSelector = '#sidebar-tool-settings-open';
 const summarize = values => values.includes('FAIL') ? 'FAIL' :
   values.length && values.every(x => x === 'PASS') ? 'PASS' : 'NOT_TESTED';
@@ -788,6 +794,12 @@ function inspectUI(ratio) {
       status:disabled ? 'EXEMPT_DISABLED' : result === null ? 'NOT_TESTED' :
         result + 1e-7 >= threshold ? 'PASS' : 'FAIL'});
   }
+  const count=app.querySelector('.adblock-page-count')?.textContent.trim()||'';
+  const view=app.querySelector('.adblock-control-row strong')?.textContent.trim()==='全局保护'
+    ?'overview':count.includes('处手动屏蔽规则')?'手动屏蔽规则'
+    :count.includes('个网站例外')?'已停用的网站'
+    :app.querySelector('.adblock-card strong')?.textContent.trim()==='过滤范围'?'设置说明'
+    :app.querySelector('.adblock-page-head strong')?.textContent.trim()||'unknown';
   return {mounted:true, url:location.href, timeOrigin:performance.timeOrigin,
     viewport:{width:innerWidth, height:innerHeight, dpr:devicePixelRatio,
       visualScale:visualViewport?.scale ?? null},
@@ -797,7 +809,7 @@ function inspectUI(ratio) {
       .map(token => [token,getComputedStyle(document.documentElement).getPropertyValue(token).trim()])),
     runtime:{sdk:typeof globalThis.OpenDeskTool?.request === 'function',
       react:globalThis.OpenDeskPageReact?.version || null,sharedUI:!!globalThis.OpenDeskSidebarUI},
-    view:app.querySelector('.adblock-page-head strong')?.textContent.trim() || 'overview',
+    view,
     statusText:app.querySelector('.adblock-state')?.textContent.trim() || '',
     overflow:{document:document.documentElement.scrollWidth > innerWidth + 1,
       app:app.scrollWidth > app.clientWidth + 1,
@@ -864,7 +876,8 @@ export async function runAdblockLayoutNative(ctx) {
     if (!ui.mounted || !ui.runtime.sdk || !ui.runtime.react || !ui.runtime.sharedUI ||
         !panel.frame?.visible || panel.frame.src !== ui.url ||
         panel.contexts.length !== 1 || panel.contexts[0].documentUrl !== panel.url ||
-        !panel.url.startsWith('chrome-extension://') || panel.title !== '广告拦截')
+        !panel.url.startsWith('chrome-extension://') ||
+        !['广告拦截','手动屏蔽规则','已停用的网站','广告拦截设置'].includes(panel.title))
       throw issue('Not the visible installed AdBlock iframe in a self-reported SIDE_PANEL');
     const tree = await client.send('Page.getFrameTree',{},reactSession);
     const owner = await client.send('DOM.getFrameOwner',{frameId:tree.frameTree.frame.id},hostSession);
@@ -963,7 +976,7 @@ export async function runAdblockLayoutNative(ctx) {
   };
   const overview = async trace => {
     if ((await read()).view !== 'overview')
-      await keyboardNavigate('react',backSelector,'overview',trace);
+      await keyboardNavigate('host',backSelector,'overview',trace);
   };
   const capture = async row => {
     row.views=[];row.navigation=[];row.returns=[];
@@ -983,7 +996,7 @@ export async function runAdblockLayoutNative(ctx) {
       if(disabled){row.navigation.push({...route,status:'NOT_TESTED',reason:'Real navigation control is absent/disabled'});continue;}
       await keyboardNavigate(route.scope,route.selector,route.view,row.navigation);
       await auditView(name+'-'+route.name,row);
-      await keyboardNavigate('react',backSelector,'overview',row.navigation);
+      await keyboardNavigate('host',backSelector,'overview',row.navigation);
       const restored=await activeMatches(route.scope,route.selector);
       row.returns.push({from:route.name,status:restored?'PASS':'FAIL',expected:route.selector,
         actual:(await read()).focus,hostActive:(await host()).active,
