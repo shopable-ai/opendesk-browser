@@ -75,17 +75,49 @@
 .cookie-editor-react .empty-list strong{color:var(--od-ink)}
 @media(max-width:400px){.cookie-editor-react .cookie-editor-grid{grid-template-columns:minmax(0,1fr)}.cookie-editor-react .cookie-mode-tabs{width:100%}.cookie-editor-react .cookie-mode-tabs>button{flex:1}.cookie-editor-react .cookie-site-select{gap:var(--space-1)}.cookie-editor-react .cookie-editor-actions button{flex:1 1 auto}.cookie-editor-react .cookie-spacer{display:none}}
 
-/* Approved Preview's inline export geometry; shared Host design owns colors and controls. */
+/* Anchored export menu: no route change, modal overlay, or redundant format select. */
+.cookie-editor-react .list-toolbar{position:relative;z-index:3}
+.cookie-editor-react .toolbar-actions{position:relative}
+.cookie-editor-react .cookie-export-popover{
+  position:absolute;right:0;top:calc(100% + 8px);z-index:8;
+  width:min(288px,calc(100vw - 24px));max-height:calc(100dvh - 132px);
+  min-width:0;overflow:auto;overscroll-behavior:contain;
+  padding:var(--space-3);border:1px solid var(--od-line);
+  border-radius:var(--radius-surface);background:var(--od-paper);color:var(--od-ink);
+  box-shadow:0 12px 32px rgba(0,0,0,.14);
+}
+.cookie-editor-react .cookie-export-panel{display:grid;gap:var(--space-3);min-width:0}
 .cookie-editor-react .cookie-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
-.cookie-editor-react .cookie-export-options{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;min-width:0}
-.cookie-editor-react .cookie-export-format{display:flex;align-items:center;gap:var(--space-2);flex:1 1 145px;min-width:0}
-.cookie-editor-react .cookie-export-format select{flex:1;min-width:0}
-.cookie-editor-react .cookie-export-values{display:flex;gap:var(--space-1);align-items:center;flex:none}
-.cookie-editor-react .cookie-export-confirm{display:grid;gap:var(--space-2)}
-.cookie-editor-react .cookie-export-confirm p{margin:0}
-.cookie-editor-react .cookie-export-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-2)}
+.cookie-editor-react .cookie-export-panel h3{font-size:var(--od-body-size);margin:0}
+.cookie-editor-react .cookie-export-options{display:grid;gap:var(--space-2);min-width:0}
+.cookie-editor-react .cookie-export-tabs{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;
+  padding:3px;border:1px solid var(--od-line);
+  border-radius:var(--radius-control);background:var(--od-bg);
+}
+.cookie-editor-react .cookie-export-tabs>button{
+  min-width:0;min-height:32px;padding:5px 3px;border:0;
+  border-radius:var(--radius-control);background:transparent;
+  color:var(--od-sub);font:inherit;font-size:var(--od-note-size);
+}
+.cookie-editor-react .cookie-export-tabs>button[aria-selected="true"]{
+  background:var(--od-paper);box-shadow:0 1px 4px rgba(0,0,0,.12);
+  color:var(--od-ink);font-weight:600;
+}
+.cookie-editor-react .cookie-export-values{
+  display:flex;align-items:center;gap:var(--space-2);
+  font-size:var(--od-meta-size);color:var(--od-sub);
+}
+.cookie-editor-react .cookie-export-hint{
+  font-size:var(--od-meta-size);color:var(--od-sub);
+  line-height:1.5;margin:0;
+}
+.cookie-editor-react .cookie-export-panel .cookie-message{margin:0}
+.cookie-editor-react .cookie-export-actions{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2);
+}
 .cookie-editor-react .cookie-export-actions button{min-width:0}
-@media(max-width:350px){.cookie-editor-react .cookie-export-format{flex-basis:100%}}
+
 
 /* Preview-aligned one-column form and inline Value eye; only layout, no new skins. */
 .cookie-editor-react .cookie-editor-heading{display:flex;justify-content:space-between;align-items:center;gap:var(--space-2)}
@@ -224,13 +256,6 @@
   .cookie-editor-react .cookie-import-body{padding:var(--space-2)}
   .cookie-editor-react .cookie-import-actions button{flex:1 1 0;min-width:0}
 }
-
-/* Export stays inside the existing side-panel workspace, never a top-layer dialog. */
-.cookie-editor-react .cookie-export-workspace{
-  display:flex;flex:1 1 auto;flex-direction:column;min-height:0;min-width:0;
-  padding:var(--space-3);overflow-y:auto;
-}
-.cookie-editor-react .cookie-export-workspace .cookie-panel{margin:0;min-width:0}
 
 /* R5.23: the trusted Side Panel sizes the iframe; this app fills that viewport
    and scrolls the list, rather than stretching a small centered popup. */
