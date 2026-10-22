@@ -219,8 +219,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     const runnable=Boolean(compiled && currentOrigin()===workflow.siteOrigin &&
       !operationBusy && !historyOpen && !pendingAIReview);
     control('workflow-run').disabled=!runnable;
-    control('workflow-save').disabled=busy || !compiled;
-    control('workflow-candidate').disabled=busy || !matchesRevision();
+    control('workflow-save').disabled=busy || autoExecutionPending || !compiled;
+    control('workflow-candidate').disabled=busy || autoExecutionPending || !matchesRevision();
     control('workflow-stop').disabled=!runId || host.currentRun!==runId;
     control('workflow-open-code').disabled=!compiled;
     control('workflow-ai-plan').disabled=busy||autoExecutionPending||Boolean(pendingAIReview)||provider()==='opendesk_cloud'||
@@ -326,7 +326,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   async function loadSaved() {
     const record=saveList.find(item=>item.key===control('workflow-saved-list').value);
     if(!record)throw err('E_WORKFLOW_REVISION','请选择已保存版本');
-    if(busy||host.executionPending||host.currentRun)
+    if(busy||autoExecutionPending||host.executionPending||host.currentRun)
       throw err('E_WORKFLOW_BUSY','当前操作尚未完成，不能切换历史版本');
     const serialBefore=stable(),requestBefore=control('workflow-ai-request').value;
     if((Boolean(workflow.steps.length||workflow.title!=='新工作流'||workflow.description)
@@ -340,7 +340,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(saved?.contentHash!==compile.sourceHash || saved.sourceUtf8!==compile.sourceUtf8 ||
       record.sourceHash!==compile.sourceHash)
       throw err('E_WORKFLOW_HASH','语义定义与持久 JavaScript 版本不一致，拒绝运行');
-    if(disposed||busy||host.executionPending||host.currentRun||
+    if(disposed||busy||autoExecutionPending||host.executionPending||host.currentRun||
       serialBefore!==stable()||requestBefore!==control('workflow-ai-request').value)
       throw err('E_WORKFLOW_STALE','历史版本读取期间工作流已变化，已保留当前编辑内容');
     void stopPlanning({close:true}).catch(()=>{});
@@ -359,7 +359,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     status('已打开冻结版本 r'+record.revision+'；运行不会调用 AI');
   }
   async function save() {
-    if(busy||!compiled)return;
+    if(busy||autoExecutionPending||!compiled)return;
     dismissRunReview();
     const serial=stable(),frozen=snapshot();
     busy=true;updateButtons();
@@ -425,7 +425,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     }catch(error){writeWorkflowOutput('持久结果解码失败：'+format(error));return false;}
   }
   function run(event,prepared=null,approvedReview=null) {
-    if((!prepared&&!event?.isTrusted)||(busy&&!prepared)||host.executionPending||host.currentRun||(!compiled&&!prepared))
+    if((!prepared&&!event?.isTrusted)||((busy||autoExecutionPending)&&!prepared)||host.executionPending||host.currentRun||(!compiled&&!prepared))
       return Promise.resolve({ok:false,skipped:true});
     let captured,params,freeze,permission,runOrigins;
     try {
@@ -804,7 +804,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       .catch(error=>status(format(error)+'；停止结果待核对',true));
   }
   async function candidate() {
-    if(busy||!revision||!matchesRevision())throw err('E_WORKFLOW_REVISION','先保存未修改的工作流版本');
+    if(busy||autoExecutionPending||!revision||!matchesRevision())throw err('E_WORKFLOW_REVISION','先保存未修改的工作流版本');
     const frozen=revision;
     const manifest={format:'opendesk.task.v1',taskId:workflow.workflowId,
       version:'1.0.'+frozen.revision,title:workflow.title,
@@ -1242,7 +1242,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     updateButtons();
   };
   const onHistoryClick=event=>{
-    if(!event.isTrusted||busy||host.executionPending||host.currentRun)return;
+    if(!event.isTrusted||busy||autoExecutionPending||host.executionPending||host.currentRun)return;
     dismissRunReview();
     historyOpen=!historyOpen;
     control('workflow-editor').dataset.historyOpen=String(historyOpen);
@@ -1351,7 +1351,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   bind('workflow-ai-approve','click',event=>answerObservation(event,true));
   bind('workflow-ai-deny','click',event=>answerObservation(event,false));
   const onNewSessionClick=event=>{
-    if(!event.isTrusted||busy||host.executionPending||host.currentRun)return;
+    if(!event.isTrusted||busy||autoExecutionPending||host.executionPending||host.currentRun)return;
     dismissRunReview();closeHistory();
     observationApproval=null;persistObservationApproval();
     clearChat();entryMode='new-chat';updatePresentation();
@@ -1366,13 +1366,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   // Only fill the trusted composer; examples never submit, request permissions,
   // start AI planning, or mutate any current page.
   const chooseExample=(key,event)=>{
-    if(!event.isTrusted||busy||host.executionPending||host.currentRun)return;
+    if(!event.isTrusted||busy||autoExecutionPending||host.executionPending||host.currentRun)return;
     if(!Object.hasOwn(exampleRequests,key))return;
     control('workflow-ai-request').value=exampleRequests[key];focus('workflow-ai-request');
     status('示例已填入输入框；不会自动发送或运行。');
   };
   const onResumeSessionClick=event=>{
-    if(!event.isTrusted||busy||host.executionPending||host.currentRun||provider()!=='local_codex')return;
+    if(!event.isTrusted||busy||autoExecutionPending||host.executionPending||host.currentRun||provider()!=='local_codex')return;
     dismissRunReview();
     // This explicit action only resumes the selected local provider, not web observation.
     const consent={model:true,workflow:true,observation:false};
@@ -1391,7 +1391,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   };
   bind('workflow-ai-resume','click',onResumeSessionClick);
   const onOpenSavedHistory=(key,event)=>{
-    if(!event.isTrusted||busy||host.executionPending||host.currentRun)return;
+    if(!event.isTrusted||busy||autoExecutionPending||host.executionPending||host.currentRun)return;
     const unsaved=(Boolean(workflow.steps.length||
       workflow.title!=='新工作流'||workflow.description)&&!matchesRevision())
       ||Boolean(control('workflow-ai-request').value.trim());
@@ -1424,7 +1424,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   }
   const workflowReviewSignature=()=>JSON.stringify([workflow,phase,control('workflow-ai-request').value]);
   const onNewWorkflowClick=event=>{
-    if(!event.isTrusted||busy&&phase!=='planning')return;
+    if(!event.isTrusted||autoExecutionPending||busy&&phase!=='planning')return;
     dismissRunReview();
     if(host.executionPending||host.currentRun){
       status('当前网页任务仍在执行，请先停止或完成，再新建工作流。',true);return;
@@ -1617,12 +1617,12 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     onHistory:onHistoryClick,onNewSession:onNewSessionClick,onNewWorkflow:onNewWorkflowClick,
     onResumeHistory:(_key,event)=>onResumeSessionClick(event),onOpenSavedHistory,
     closeSettings:closeWorkflowSheet,chooseExample,
-    setParam(name,value) {if(!disposed&&Object.hasOwn(paramValues,name)){
+    setParam(name,value) {if(!disposed&&!autoExecutionPending&&Object.hasOwn(paramValues,name)){
       if(pendingAIReview){dismissRunReview();status('参数已变化，旧步骤确认已失效；请重新检查后运行。');}
       paramValues[name]=value;renderParams();
     }},
     parameterizeStep(stepId) {
-      if(disposed||busy||host.executionPending||host.currentRun)return;
+      if(disposed||busy||autoExecutionPending||host.executionPending||host.currentRun)return;
       const step=workflow.steps.find(row=>row.stepId===stepId);
       if(!step||step.op!=='fill'||step.param||typeof step.text!=='string'||!step.text.trim())return;
       try {
