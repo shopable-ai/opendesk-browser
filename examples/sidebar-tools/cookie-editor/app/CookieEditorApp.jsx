@@ -364,8 +364,9 @@ export default function CookieEditorApp({request,hostRoot,setState}){
         adapter={adapter} onDirty={setDirty}/>
     </>:
     <>
-      <CookiePermissions phase={snapshot.phase} target={target}
-        disabled={busy} onRetry={()=>guarded(refresh)}/>
+      <CookiePermissions phase={snapshot.phase} reason={snapshot.problem} target={target}
+        disabled={busy} onRetry={()=>guarded(refresh)}
+        onOffline={()=>switchMode('offline')}/>
       {snapshot.phase==='ready'&&<div className="od-surface cookie-editor-workspace">
         {panel===null&&<CookieEditorView site={target?.hostname||''} syncStale={snapshot.syncStale}
           rows={snapshot.rows} selected={selected} onSelect={select}
@@ -394,7 +395,8 @@ export default function CookieEditorApp({request,hostRoot,setState}){
           onClose={()=>{restoreExportFocus.current=true;setPanel(null);}}/>}
       </div>}
     </>}
-    {mode==='browser'&&snapshot.message&&['error','warning'].includes(snapshot.messageType)&&
+    {mode==='browser'&&snapshot.phase==='ready'&&snapshot.message&&
+      ['error','warning'].includes(snapshot.messageType)&&
       <p role={snapshot.messageType==='error'?'alert':'status'}
         className={'cookie-message od-alert '+(snapshot.messageType==='error'?'od-alert--error':'od-alert--warning')}>
       {snapshot.message}</p>}

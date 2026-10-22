@@ -10,7 +10,8 @@ const safeCodes=new Set([
   'E_DOWNLOAD','E_COOKIE_WRITE','E_SCHEMA','E_PERMISSION','E_COOKIE_SCOPE',
   'E_COOKIE_STORE','E_COOKIE_PARTITION','E_CHROME',
   'E_CHROME_UNSUPPORTED','E_CHROME_PERMISSION_REQUIRED','E_LIMIT',
-  'E_TOOL_CHANGED','E_TOOL_DISABLED','E_OWNER','E_CONTEXT','E_DOCUMENT_CHANGED'
+  'E_TOOL_CHANGED','E_TOOL_DISABLED','E_OWNER','E_CONTEXT','E_DOCUMENT_CHANGED',
+  'E_HOST_CLOSED','E_COOKIE_SDK_NOT_READY'
 ]);
 export const safeCode=(error,fallback='E_COOKIE_READ')=>
   safeCodes.has(error?.code)?error.code:fallback;
@@ -40,11 +41,23 @@ export function createCookieSdkAdapter({getBrowser,request}){
       !value?.capabilities?.getStatus)throw Error('E_COOKIE_SDK_NOT_READY');
     return value;
   };
+  let lastPageReason='E_NO_ACTIVE_TAB';
   async function targetFor(input=''){
-    if(input)return parseTarget(input);
+    if(input){lastPageReason=null;return parseTarget(input);}
     const page=await request('currentPage.info');
-    if(page?.status!=='available'||typeof page.url!=='string')return null;
-    return parseTarget(page.url);
+    if(page?.status!=='available'||typeof page.url!=='string'){
+      lastPageReason=typeof page?.reasonCode==='string'?page.reasonCode:'E_NO_ACTIVE_TAB';
+      return null;
+    }
+    try{
+      const target=parseTarget(page.url);
+      lastPageReason=null;
+      return target;
+    }catch{
+      // Restricted/invalid tab URLs are not granted a substitute Origin.
+      lastPageReason='E_UNSUPPORTED_SCHEME';
+      return null;
+    }
   }
   async function checkRead(target){
     const status=await browser().capabilities.getStatus({
@@ -80,7 +93,7 @@ export function createCookieSdkAdapter({getBrowser,request}){
     return receipt.cookie.value;
   }
   return {
-    targetFor,checkRead,list,exactList,readValue,
+    targetFor,getTargetReason:()=>lastPageReason,checkRead,list,exactList,readValue,
     beginExportIntent:(target,method)=>request('cookieEditor.export.begin',{url:target.url,method}),
     finishExportIntent:ref=>request('cookieEditor.export.finish',{ref}),
     beginImportIntent:target=>request('cookieEditor.import.begin',{url:target.url}),

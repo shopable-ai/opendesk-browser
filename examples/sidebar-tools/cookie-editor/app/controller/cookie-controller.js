@@ -24,13 +24,13 @@ const accessLossCodes=new Set(['E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED',
 // batches, value-preservation reads and previewRefs never enter React state.
 export function createCookieController({adapter,onChange=()=>{}}){
   if(!adapter||typeof adapter.list!=='function')throw Error('E_COOKIE_CONTROLLER_ADAPTER');
-  let epoch=0,closed=false,busy=false,target=null,rows=[],phase='idle',
+  let epoch=0,closed=false,busy=false,target=null,rows=[],phase='idle',problem=null,
     message='',messageType='info',importPlan=null,clearPlan=null;
   let importRevision=0,clearRevision=0,valueRevision=0,importOutcome=null;
   let syncStale=false,syncPending=null,syncGeneration=0,effectPending=false;
   const current=(ticket,at)=>!closed&&epoch===ticket&&target?.url===at.url;
   const snapshot=()=>({epoch,busy,target:target?{...target}:null,rows:structuredClone(rows),
-    phase,message,messageType,syncStale,importOutcome});
+    phase,problem,message,messageType,syncStale,importOutcome});
   const notify=()=>{if(!closed)onChange(snapshot());};
   function report(text='',type='info'){message=text;messageType=type;notify();}
   function invalidate(text='网站或权限已改变，先刷新并核对 Cookie。'){
@@ -38,7 +38,8 @@ export function createCookieController({adapter,onChange=()=>{}}){
     // write or export can have an unknown side effect after invalidation.
     const uncertain=effectPending;
     retireSync();syncStale=false;
-    epoch++;valueRevision++;busy=false;target=null;rows=[];phase='idle';importPlan=null;importOutcome=null;
+    epoch++;valueRevision++;busy=false;target=null;rows=[];phase='idle';problem=null;
+    importPlan=null;importOutcome=null;
     clearPlan=null;
     report(uncertain?'网站或授权在操作中变化，结果可能未知；请手动核对，不要自动重试。':text,
       uncertain?'error':'info');
@@ -47,7 +48,8 @@ export function createCookieController({adapter,onChange=()=>{}}){
   // SDK revocation is authoritative even before the bridge/UI event arrives.
   function rejectLostAccess(error){
     if(!accessLossCodes.has(error?.code))return false;
-    invalidate('网站授权或安装身份已失效，请刷新后重新预检。');
+    invalidate('网站授权或安装身份已失效，请手动重新检查。');
+    phase='blocked';problem=error.code;notify();
     return true;
   }
   const lock=()=>{if(closed||busy||!target||phase!=='ready')return null;
@@ -60,7 +62,8 @@ export function createCookieController({adapter,onChange=()=>{}}){
     // events alone must not erase an unconfirmed write/export outcome.
     effectPending=false;
     retireSync();syncStale=false;
-    const ticket=++epoch;valueRevision++;rows=[];target=null;phase='loading';importPlan=null;importOutcome=null;
+    const ticket=++epoch;valueRevision++;rows=[];target=null;phase='loading';problem=null;
+    importPlan=null;importOutcome=null;
     clearPlan=null;busy=true;
     if(!preserveMessage){message='';messageType='info';}
     notify();
@@ -69,11 +72,15 @@ export function createCookieController({adapter,onChange=()=>{}}){
       at=await adapter.targetFor(input);
       if(ticket!==epoch||closed)return;
       target=at;
-      if(!at){phase='blocked';report('请先在浏览器打开 HTTP(S) 网站，或手动选择网站。');return;}
+      if(!at){
+        phase='blocked';problem=adapter.getTargetReason?.()||'E_NO_ACTIVE_TAB';
+        report('当前没有可读取的普通 HTTP(S) 网页。');return;
+      }
       const permission=await adapter.checkRead(at);
       if(!current(ticket,at))return;
       if(!permission.callableNow){
-        phase='blocked';report('本站尚无读取授权（'+permission.reasonCode+'）。请在扩展设置中审阅授权。');
+        phase='blocked';problem=permission.reasonCode||'E_PERMISSION_REQUIRED';
+        report('当前网站的 Cookie 读取权限未就绪。');
         return;
       }
       const found=await adapter.list(at,{isCurrent:()=>current(ticket,at)});
@@ -81,12 +88,13 @@ export function createCookieController({adapter,onChange=()=>{}}){
       // SDK Adapter already strips values. Never copy the returned raw payload
       // into a log, diagnostic store or React component state.
       rows=found.map(row=>({...row,id:key(row)}));
-      phase='ready';if(!preserveMessage)message='';
+      phase='ready';problem=null;if(!preserveMessage)message='';
       notify();
     }catch(error){
       if(ticket===epoch&&!closed){
         if(rejectLostAccess(error))return;
-        phase='error';rows=[];report('读取未确认'+formatCode(error,'E_COOKIE_READ')+
+        phase='error';problem=safeCode(error,'E_COOKIE_READ');rows=[];
+        report('读取未确认'+formatCode(error,'E_COOKIE_READ')+
           '；检查权限与 Store/Partition 后手动刷新。','error');
       }
     }finally{if(ticket===epoch&&!closed){busy=false;notify();}}
