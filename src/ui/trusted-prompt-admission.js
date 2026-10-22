@@ -5,7 +5,7 @@ import {sameSidebarToolPackage} from './sidebar-tools/installation.js';
 import {requireToolEnableRecords} from './sidebar-tools/lifecycle.js';
 
 export const TRUSTED_PROMPT_ID='prompt-shortcuts';
-export const TRUSTED_PROMPT_VERSION='1.1.13';
+export const TRUSTED_PROMPT_VERSION='1.1.14';
 const validHash=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 const own=value=>value&&typeof value==='object'&&!Array.isArray(value)
  ?value[TRUSTED_PROMPT_ID]:null;

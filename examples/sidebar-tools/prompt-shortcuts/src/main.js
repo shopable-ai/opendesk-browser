@@ -139,9 +139,9 @@ function form(){
      throw Error('无法将此图片压缩到 64 KiB');
    }finally{bitmap.close?.();}
  }
- async function uploadImage(){
-   const input=el('ps-image-file'),file=input.files?.[0];input.value='';
-   if(!file||mode!=='form'||uploadBusy||busy||unconfirmedWrite)return;
+ async function uploadImage(droppedFile=null){
+   const input=el('ps-image-file'),file=droppedFile||input.files?.[0];input.value='';
+   if(!file||!canAcceptImageDrop())return;
    uploadBusy=true;lock();el('ps-image-help').textContent='正在处理并保存图片…';
    try{
      const image=await encodeLocalImage(file);
@@ -1130,6 +1130,41 @@ el('ps-image-pick').addEventListener('click',()=>{
   if(mode==='form'&&!uploadBusy&&!busy)el('ps-image-file').click();
 });
 el('ps-image-file').addEventListener('change',()=>void uploadImage());
+// R4 drag/drop UX reuses uploadImage(), bounded decoding and trusted storage.
+function canAcceptImageDrop(){
+ return mode==='form'&&el('ps-appearance-image').checked&&el('ps-image-source-local').checked&&
+   !busy&&!uploadBusy&&!transferBusy&&!unconfirmedWrite&&!siteUnconfirmedWrite;
+}
+const dropZones=['ps-image-upload-controls','ps-image-live'];
+const clearDropHighlight=()=>dropZones.forEach(id=>el(id).classList.remove('is-dragover'));
+el('ps-image-upload-controls').addEventListener('click',event=>{
+ if(event.target.closest?.('button'))return;
+ if(canAcceptImageDrop())el('ps-image-file').click();
+});
+for(const id of dropZones){
+ const zone=el(id);
+ zone.addEventListener('dragenter',event=>{
+   if(!canAcceptImageDrop()||!event.dataTransfer?.types?.includes('Files'))return;
+   event.preventDefault();zone.classList.add('is-dragover');
+ });
+ zone.addEventListener('dragover',event=>{
+   if(!canAcceptImageDrop()||!event.dataTransfer?.types?.includes('Files'))return;
+   event.preventDefault();event.dataTransfer.dropEffect='copy';
+   zone.classList.add('is-dragover');
+ });
+ zone.addEventListener('dragleave',event=>{
+   if(!zone.contains(event.relatedTarget))zone.classList.remove('is-dragover');
+ });
+ zone.addEventListener('drop',event=>{
+   if(!canAcceptImageDrop()||!event.dataTransfer?.types?.includes('Files'))return;
+   event.preventDefault();clearDropHighlight();
+   const files=event.dataTransfer?.files;
+   if(files?.length!==1){error('请一次拖入一张 PNG、JPEG 或 WebP 图片。');return;}
+   void uploadImage(files[0]);
+ });
+}
+for(const id of ['ps-appearance-image','ps-appearance-text','ps-image-source-local','ps-image-source-url'])
+ el(id).addEventListener('change',clearDropHighlight);
 el('ps-image-clear').addEventListener('click',()=>{
   if(mode!=='form'||uploadBusy||busy)return;
   const previous=draftImageAssetId;draftImageAssetId='';changed();
