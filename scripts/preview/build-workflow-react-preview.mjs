@@ -136,7 +136,7 @@ export async function generateWorkflowReactPreview(){
       '<option value="planning">规划中</option><option value="running">执行中</option>',
       '<option value="success">成功</option><option value="failure">失败</option>',
       '<option value="unknown">结果未知</option><option value="approval">摘要授权</option>',
-      '<option value="run-review">执行确认</option>',
+      '<option value="run-review">网站权限</option>',
       '<option value="denied">授权拒绝</option><option value="disconnected">连接中断</option>',
       '<option value="history">历史</option><option value="settings">设置</option>',
       '</select></label>',
