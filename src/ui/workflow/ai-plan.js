@@ -112,7 +112,7 @@ export async function requestChatCompletionJSON({endpoint,apiKey,model,instructi
    body:JSON.stringify({model,messages:[{role:'system',content:instructions},
     {role:'user',content:input}],temperature:0})});
   if(response.redirected)throw Object.assign(Error('不允许模型接口重定向'),{code:'E_AI_PROTOCOL'});
-  if(!response.ok)throw Object.assign(Error('AI 服务请求失败（HTTP '+response.status+'）'),{code:'E_AI_PROVIDER'});
+  if(!response.ok)throw Object.assign(Error('AI 服务请求失败（HTTP '+response.status+'）'),{code:'E_AI_PROVIDER',httpStatus:response.status});
   const text=await response.text();
   if(text.length>500000)throw Object.assign(Error('模型返回内容过长'),{code:'E_AI_RESPONSE'});
   cancelled(signal);

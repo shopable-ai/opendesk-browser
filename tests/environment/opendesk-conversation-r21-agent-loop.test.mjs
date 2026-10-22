@@ -4,6 +4,8 @@ import '../../examples/sidebar-tools/bookmark-manager/src/model.js';
 import '../../examples/sidebar-tools/bookmark-manager/src/service.js';
 import {runBookmarkAgentLoop} from '../../src/ui/conversation/bookmark-agent-loop.js';
 import {verifyBookmarkCompletion,validateBookmarkPlan} from '../../src/ui/conversation/bookmark-actions.js';
+import {requestWorkflowResponse} from '../../src/ui/workflow/responses.js';
+import {requestChatCompletionJSON} from '../../src/ui/workflow/ai-plan.js';
 
 // R2.1: production Agent / Service / Model logic with deterministic SDK
 // receipts. These tests are NOT live Provider, installed Chrome or Native proof.
@@ -276,6 +278,185 @@ test('R2.1 T7: stateless HTTPS transient inference may retry only that decision'
  assert.equal(result.completed,true);
  assert.equal(calls,3);
  assert.equal(created(f).length,1);
+});
+
+test('R2.1 T7: production E_CHROME read encoding retries only the read-only plan',async()=>{
+ const f=fixture(),getTree=f.sdk.bookmarks.getTree;let reads=0;
+ f.sdk.bookmarks.getTree=async(...args)=>{
+  if(++reads===1)throw err('E_CHROME','Chrome bookmarks read failed');
+  return getTree(...args);
+ };
+ const p=proposals([{complete:[{kind:'search.observed',query:'React'}]}]);
+ const result=await run(f,{goal:'搜索 React 相关书签',
+  initialProposal:{actions:[{type:'bookmark.search',query:'React'}]},nextProposal:p.nextProposal});
+ assert.equal(result.completed,true);
+ assert.equal(reads,3);assert.equal(p.contexts.length,1);
+ assert.equal(f.writes.length,0);
+});
+
+test('R2.1 T7: persistent E_CHROME read failure stops after one retry',async()=>{
+ const f=fixture();let reads=0,decisions=0;
+ f.sdk.bookmarks.getTree=async()=>{reads++;throw err('E_CHROME');};
+ await assert.rejects(run(f,{nextProposal:()=>{decisions++;return done;}}),{code:'E_CHROME'});
+ assert.equal(reads,2);assert.equal(decisions,0);assert.equal(f.writes.length,0);
+});
+
+test('R2.1 T7: a write plan is never replayed after a preflight read failure',async()=>{
+ for(const code of ['E_CHROME','E_NETWORK','E_BOOKMARK_READ_RETRYABLE','E_TIMEOUT']){
+  const f=fixture();let reads=0,grants=0;
+  f.sdk.bookmarks.getTree=async()=>{reads++;throw err(code);};
+  await assert.rejects(run(f,{initialProposal:{actions:[ensure]},
+   beforeWrite:()=>{grants++;},nextProposal:()=>done}),{code});
+  assert.equal(reads,1,code);assert.equal(grants,0);assert.equal(f.writes.length,0);
+ }
+});
+
+test('R2.1 T7: a confirmed read step prevents replay of its plan',async()=>{
+ const f=fixture();let steps=0;
+ await assert.rejects(run(f,{onStep:()=>{steps++;throw err('E_CHROME');},
+  nextProposal:()=>done}),error=>error.code==='E_CHROME'&&error.partial.length===1);
+ assert.equal(steps,1);assert.equal(f.reads.length,1);assert.equal(f.writes.length,0);
+});
+
+test('R2.1 T7: unknown and authorization read errors never become retryable',async()=>{
+ for(const code of ['E_OUTCOME_UNKNOWN','E_AI_OUTCOME_UNKNOWN','E_GRANT_REVOKED',
+  'E_MODEL_GRANT_REVOKED','E_BOOKMARK_PERMISSION','E_BOOKMARK_STALE','E_TOOL_CHANGED']){
+  const f=fixture();let reads=0;
+  f.sdk.bookmarks.getTree=async()=>{reads++;throw err(code);};
+  await assert.rejects(run(f,{nextProposal:()=>done}),{code});
+  assert.equal(reads,1,code);assert.equal(f.writes.length,0);
+ }
+});
+
+for(const metadata of [{outcome:'OUTCOME_UNKNOWN'},{upstreamTermination:'NOT_CONFIRMED'}]){
+ const key=Object.keys(metadata)[0];
+ test('R2.1 T7: read retry rejects '+key+' UNKNOWN metadata even with a retryable code',async()=>{
+  for(const code of ['E_CHROME','E_NETWORK','E_BOOKMARK_READ_RETRYABLE','E_TIMEOUT']){
+   const f=fixture();let reads=0;
+   f.sdk.bookmarks.getTree=async()=>{reads++;throw Object.assign(err(code),metadata);};
+   await assert.rejects(run(f,{nextProposal:()=>done}),error=>
+    error.code===code&&error[key]===metadata[key]);
+   assert.equal(reads,1,code);assert.equal(f.writes.length,0);
+  }
+ });
+ test('R2.1 T7: model retry rejects '+key+' UNKNOWN metadata even with a retryable code',async()=>{
+  for(const code of ['E_AI_PROVIDER','E_AI_NETWORK','E_NETWORK','E_AI_HTTP_502']){
+   const f=fixture();let calls=0;
+   await assert.rejects(run(f,{retryModel:true,nextProposal:async()=>{
+    calls++;throw Object.assign(err(code),{httpStatus:503},metadata);
+   }}),error=>error.code===code&&error[key]===metadata[key]);
+   assert.equal(calls,1,code);assert.equal(f.writes.length,0);
+  }
+ });
+}
+
+for(const status of [502,503])test('R2.1 T7: Responses HTTP '+status+' retries one stateless decision with original context',async()=>{
+ const f=fixture(),inputs=[],signals=[];let requests=0,grants=0;
+ const result=await run(f,{goal:'确保测试收藏夹文件夹存在',retryModel:true,
+  beforeWrite:()=>{grants++;},nextProposal:async(input,{signal})=>{
+   inputs.push(input);signals.push(signal);
+   return requestWorkflowResponse({endpoint:'https://fixture.invalid/v1/responses',
+    apiKey:'unit-test-only-key',model:'fixture-model',instructions:'Return a JSON bookmark plan.',
+    input:JSON.stringify(input),signal,fetchImpl:async()=>{
+     requests++;
+     if(requests<=2){assert.equal(f.writes.length,0);assert.equal(grants,0);}
+     if(requests===1)return new Response('',{status});
+     const proposal=requests===2?{actions:[ensure]}:
+      {complete:[{kind:'folder.exists',folder:'测试收藏夹'}]};
+     return Response.json({id:'resp_fixture_'+requests,object:'response',status:'completed',
+      output:[{type:'message',role:'assistant',status:'completed',
+       content:[{type:'output_text',text:JSON.stringify(proposal)}]}]});
+    }});
+  }});
+ assert.equal(result.completed,true);assert.equal(requests,3);
+ assert.deepEqual(inputs[0],inputs[1]);assert.equal(signals[0],signals[1]);
+ assert.equal(inputs[1].goal,'确保测试收藏夹文件夹存在');
+ assert.equal(signals[1].aborted,false);assert.equal(grants>0,true);assert.equal(created(f).length,1);
+});
+
+test('R2.1 T7: persistent known HTTP failure stops after one decision retry',async()=>{
+ const f=fixture();let calls=0;
+ await assert.rejects(run(f,{retryModel:true,nextProposal:async()=>{
+  calls++;throw Object.assign(err('E_AI_PROVIDER'),{httpStatus:503});
+ }}),error=>error.code==='E_AI_PROVIDER'&&error.httpStatus===503);
+ assert.equal(calls,2);assert.equal(f.writes.length,0);
+});
+
+for(const status of [502,503])test('R2.1 T7: ChatCompletion HTTP '+status+' retries one stateless decision with original context',async()=>{
+ const f=fixture(),inputs=[],signals=[],errors=[];let requests=0;
+ const result=await run(f,{goal:'确保测试收藏夹文件夹存在',retryModel:true,
+  nextProposal:async(input,{signal})=>{
+   inputs.push(input);signals.push(signal);
+   try{return await requestChatCompletionJSON({endpoint:'https://fixture.invalid/v1/chat/completions',
+    apiKey:'unit-test-only-key',model:'fixture-model',instructions:'Return a JSON bookmark plan.',
+    input:JSON.stringify(input),signal,fetchImpl:async()=>{
+     requests++;
+     if(requests<=2)assert.equal(f.writes.length,0);
+     if(requests===1)return new Response('',{status});
+     const proposal=requests===2?{actions:[ensure]}:
+      {complete:[{kind:'folder.exists',folder:'测试收藏夹'}]};
+     return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(proposal)}}]});
+    }});
+   }catch(error){errors.push({code:error.code,message:error.message,httpStatus:error.httpStatus});throw error;}
+  }});
+ assert.equal(result.completed,true);assert.equal(requests,3);assert.equal(created(f).length,1);
+ assert.deepEqual(inputs[0],inputs[1]);assert.equal(signals[0],signals[1]);
+ assert.equal(inputs[1].goal,'确保测试收藏夹文件夹存在');assert.equal(signals[1].aborted,false);
+ assert.deepEqual(errors,[{code:'E_AI_PROVIDER',message:'AI 服务请求失败（HTTP '+status+'）',httpStatus:status}]);
+});
+
+test('R2.1 T7: ChatCompletion retains other HTTP statuses without retrying',async()=>{
+ for(const status of [401,403,429,500]){
+  const f=fixture();let requests=0;
+  await assert.rejects(run(f,{retryModel:true,nextProposal:(_input,{signal})=>
+   requestChatCompletionJSON({endpoint:'https://fixture.invalid/v1/chat/completions',
+    apiKey:'unit-test-only-key',model:'fixture-model',instructions:'Return JSON.',input:'{}',signal,
+    fetchImpl:async()=>{requests++;return new Response('',{status});}})
+  }),error=>error.code==='E_AI_PROVIDER'&&error.httpStatus===status&&
+   error.message==='AI 服务请求失败（HTTP '+status+'）');
+  assert.equal(requests,1);assert.equal(f.writes.length,0);
+ }
+});
+
+test('R2.1 T7: ChatCompletion transport failure remains UNKNOWN without retry',async()=>{
+ const f=fixture();let requests=0;
+ await assert.rejects(run(f,{retryModel:true,nextProposal:(_input,{signal})=>
+  requestChatCompletionJSON({endpoint:'https://fixture.invalid/v1/chat/completions',
+   apiKey:'unit-test-only-key',model:'fixture-model',instructions:'Return JSON.',input:'{}',signal,
+   fetchImpl:async()=>{requests++;throw new TypeError('Failed to fetch');}})
+ }),error=>error.code==='E_AI_OUTCOME_UNKNOWN'&&error.httpStatus===undefined);
+ assert.equal(requests,1);assert.equal(f.writes.length,0);
+});
+
+test('R2.1 T7: HTTP retry rejects unknown status, authorization, issued work and Native mode',async()=>{
+ const cases=[
+  ...[undefined,'503',401,403,429,500,504].map(httpStatus=>({retryModel:true,
+   error:Object.assign(err('E_AI_PROVIDER'),{httpStatus})})),
+  ...['E_AI_OUTCOME_UNKNOWN','E_OUTCOME_UNKNOWN','E_MODEL_GRANT_REVOKED',
+   'E_AI_PERMISSION','E_AI_DISCONNECTED'].map(code=>({retryModel:true,
+   error:Object.assign(err(code),{httpStatus:503})})),
+  {retryModel:false,error:Object.assign(err('E_AI_PROVIDER'),{httpStatus:503})},
+  {retryModel:false,error:err('E_AI_NETWORK')},
+  {retryModel:true,error:Object.assign(err('E_AI_PROVIDER'),{httpStatus:503,writeIssued:true})},
+  {retryModel:true,error:Object.assign(err('E_AI_PROVIDER'),{httpStatus:503,partial:['已确认一步']})}
+ ];
+ for(const row of cases){
+  const f=fixture();let calls=0;
+  await assert.rejects(run(f,{retryModel:row.retryModel,nextProposal:async()=>{
+   calls++;throw row.error;
+  }}),error=>error===row.error);
+  assert.equal(calls,1,row.error.code);assert.equal(f.writes.length,0);
+ }
+});
+
+test('R2.1 T7: actual Responses transport error remains UNKNOWN without retry',async()=>{
+ const f=fixture();let requests=0;
+ await assert.rejects(run(f,{retryModel:true,nextProposal:(_input,{signal})=>
+  requestWorkflowResponse({endpoint:'https://fixture.invalid/v1/responses',
+   apiKey:'unit-test-only-key',model:'fixture-model',instructions:'Return JSON.',input:'{}',signal,
+   fetchImpl:async()=>{requests++;throw new TypeError('Failed to fetch');}})
+ }),error=>error.code==='E_AI_OUTCOME_UNKNOWN'&&error.upstreamTermination==='NOT_CONFIRMED');
+ assert.equal(requests,1);assert.equal(f.writes.length,0);
 });
 
 test('R2.1 T8: lost acknowledgement after SDK dispatch halts, never retries write',async()=>{

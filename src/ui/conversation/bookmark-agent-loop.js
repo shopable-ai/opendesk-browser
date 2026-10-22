@@ -131,10 +131,11 @@ export async function runBookmarkAgentLoop({goal,initialProposal,nextProposal,se
      let executed;
      try{executed=await execute();}
      catch(error){
-      // Only a failed read with zero confirmed steps and zero issued writes
-      // may be retried. Never retry a partially executed model plan.
-      if(signal?.aborted||error?.writeIssued===true||error?.partial?.length||
-        !['E_BOOKMARK_READ_RETRYABLE','E_NETWORK','E_FETCH_FAILED','E_TIMEOUT'].includes(error?.code))
+      // Retry only a read-only plan with no confirmed steps or issued writes.
+      // E_CHROME is the full Bookmarks Host's native read-failure encoding.
+      if(writing||signal?.aborted||error?.writeIssued===true||error?.partial?.length||
+        error?.outcome==='OUTCOME_UNKNOWN'||error?.upstreamTermination==='NOT_CONFIRMED'||
+        !['E_CHROME','E_BOOKMARK_READ_RETRYABLE','E_NETWORK','E_FETCH_FAILED','E_TIMEOUT'].includes(error?.code))
        throw error;
       bound();executed=await execute();
      }
@@ -197,8 +198,10 @@ export async function runBookmarkAgentLoop({goal,initialProposal,nextProposal,se
    catch(error){
     // Structured inference has no write authority. Only stateless HTTPS
     // transient transport failures are eligible for one same-run retry.
-    if(!retryModel||signal?.aborted||
-      !['E_AI_NETWORK','E_NETWORK','E_FETCH_FAILED','E_AI_HTTP_502','E_AI_HTTP_503'].includes(error?.code))
+    const knownHTTP=error?.code==='E_AI_PROVIDER'&&[502,503].includes(error.httpStatus);
+    if(!retryModel||signal?.aborted||error?.writeIssued===true||error?.partial?.length||
+      error?.outcome==='OUTCOME_UNKNOWN'||error?.upstreamTermination==='NOT_CONFIRMED'||
+      (!knownHTTP&&!['E_AI_NETWORK','E_NETWORK','E_FETCH_FAILED','E_AI_HTTP_502','E_AI_HTTP_503'].includes(error?.code)))
      throw error;
     bound();next=await ask();
    }
