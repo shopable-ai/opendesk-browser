@@ -8,3 +8,15 @@
 - Live-product priority: keep Time Review default-on+two grants, AdBlock DNR verified write/readback, Prompt Shortcuts first-run three examples, user off/revocation states and original SDK/Host semantics; only touch clearly proven defects.
 - Resources: no local Mac workspace or Chrome profile access; no occupation of `dist/development`, production build, CFT/profile, npm watcher or other Agent's outputs.
 - Evidence classification: static GitHub source/Actions only until new candidate tests/build/install are actually executed; all same-candidate real Mac Chrome checks remain NOT_TESTED. Release package promotion requires real builder candidate+verified `--promote-from`; do not fabricate packages or upgrade versions manually.
+
+## Executed commits, source-bound release gate and handoff
+
+- `7512e36fadcf4035b9b05141adcb3116576f255d` — registered scoped owner.
+- `18ca2ee2c197e87a802a72b95ab556eb8be18d3b` — candidate React AdBlock routine-progress copy fixed (source only).
+- `9fd4346598a4e832e2cdc34e9fdc877dd8ff189b` — replaced three proven stale Time Review assertions with current React presentation layout and identity-bound CustomEvent source contracts. This test-only modification remains on main.
+- `a22c35fdc9a54771382f7a1f5506df0b8aa99da9` — added a corresponding AdBlock JSX source assertion.
+- CI for the AdBlock source-only commit: https://github.com/shopable-ai/opendesk-browser/actions/runs/39742698863: two failures show deterministic 1.2.3 project package differs from changed JSX; installation/package contract correctly fails closed, later Mac step skipped. No evidence of a DNR logic regression.
+- `99ae9301664c48316656d65352f7bde7d498e979` and `0f8bc77a4b844f1084a5d08ea8f71eb9d93c6a52` — safe forward commits to restore exact original `adblock-navigation-r15.test.mjs` and `adblock/src/App.jsx` blobs, preserving the existing verified official package. No reset, no branch, no manually fabricated dist/package.
+- **Open product gap**: AdBlock React progress text still misleading in actual released 1.2.3 UI. Next authorized owner with a build-capable workspace must apply the same single-string replacement, build React with existing toolchain, generate verified candidate through `scripts/build-sidebar-tool.mjs --out`, run focused DNR + package tests, promote via `--promote-from` and check-package. Do not update JSX on main again without the corresponding verified same-candidate package.
+- **Open verification**: Time Review latest source/pinned model and upgraded config description need true same-candidate build, stage prerequisites (`dist/tool.css`), targeted CI and real Mac Chrome permissions/site grant/pause/uninstall tests. Test-only assertions on main are not proof of Node passing until CI finishes.
+- **Explicitly unavailable in this execution**: user Mac workspace, local watcher, Node tool builds and actual Chrome. No claim of `npm run check`, production build, promoted package, or real Chrome PASS.
