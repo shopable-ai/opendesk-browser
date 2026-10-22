@@ -106,8 +106,9 @@ test('R1.5.1 Time Review consent preserves shared trusted inline card without re
     'legacy AdBlock suppression remains scoped without hiding trusted tools');
   assert.match(shell,/setToolFieldAttribute\(view,\s*display,\s*'data-trusted-tool-inline'/);
   const adapter=await readFile('src/ui/sidebar-tools-view.js','utf8');
-  assert.match(adapter,/if \(view\) return view\.patch\(field\.key, \{attributes:/);
-  assert.match(adapter,/else field\.setAttribute\(name, String\(value\)\)/);
+  assert.match(adapter,/export function setToolFieldAttribute\(view, field, name, value\)/);
+  assert.match(adapter,/return view\.patch\(field\.key, \{attributes: \{\[name\]: value\}\}\)/);
+  assert.doesNotMatch(adapter,/field\.setAttribute\(/,'React view must own DOM mutations');
   assert.match(shell,/api\.permissions\.contains\(\{permissions:\['idle'\]\}\)/);
   assert.match(shell,/api\.storage\.local\.get\(TIME_REVIEW_KEY\)/);
   assert.match(shell,/E_TIME_PERMISSION_SETUP/);
@@ -121,12 +122,23 @@ test('R1.5.1 Time Review consent preserves shared trusted inline card without re
     assert.match(react,new RegExp('id="'+id+'"'));
 });
 
-test('R1.5.1 trusted inline authorization keeps DOM and visual tab order identical',async t=>{
-  const shell=await readFile('src/ui/sidebar-tools.js','utf8');
-  assert.match(shell,/frameRoot\.before\?\.\(settingsView\)/);
-  assert.match(shell,/retiredDraft\.after\?\.\(settingsView\)/);
-  assert.match(shell,/settingsView\.nextElementSibling!==frameRoot/);
-  assert.match(shell,/settingsView\.previousElementSibling!==retiredDraft/);
+test('R1.5.1 trusted inline authorization uses React-owned siblings and ordered CSS',async t=>{
+  const [shell,jsx,css]=await Promise.all([
+    readFile('src/ui/sidebar-tools.js','utf8'),
+    readFile('src/ui/react/tabs/tool-host.tsx','utf8'),
+    readFile('src/ui/tool-shell.css','utf8')
+  ]);
+  // React owns the DOM; the controller may only update presentation state.
+  const display=jsx.indexOf('id="sidebar-tool-display"');
+  const frame=jsx.indexOf('id="sidebar-tool-frame"',display);
+  const settings=jsx.indexOf('id="sidebar-tool-settings-view"',display);
+  assert(display>=0&&frame>display&&settings>frame,'settings and live frame remain under the same React display');
+  assert.match(shell,/const trustedInline=show&&/);
+  assert.match(shell,/patchToolField\(view, settingsView, \{hidden: !show\}\)/);
+  assert.match(shell,/frameRoot\.hidden=\(show&&!trustedInline\)\|\|!\(frame\|\|nativeUI\)/);
+  assert.match(css,/#sidebar-tool-display\[data-trusted-tool-inline="true"\]\{display:flex;flex-direction:column\}/);
+  assert.match(css,/#sidebar-tool-display\[data-trusted-tool-inline="true"\]>#sidebar-tool-settings-view\{order:1/);
+  assert.match(css,/#sidebar-tool-display\[data-trusted-tool-inline="true"\]>#sidebar-tool-frame\{order:2/);
 });
 
 test('trusted Time Review updates refresh only the identity-bound sandbox UI',async t=>{
@@ -138,7 +150,8 @@ test('trusted Time Review updates refresh only the identity-bound sandbox UI',as
   assert.match(bridge,/event\.source!==parent/);
   assert.match(bridge,/message\.kind==='state-changed'/);
   assert.match(bridge,/message\.instance===instance&&message\.toolId===toolId/);
-  assert.match(bridge,/new Event\('opendesk-tool-state-changed'\)/);
+  assert.match(bridge,/new CustomEvent\('opendesk-tool-state-changed',\{/);
+  assert.match(bridge,/detail:\{targetId:typeof message\.targetId/);
   assert.match(script,/root\.addEventListener\('opendesk-tool-state-changed',onTrustedStateChanged\)/);
   assert.match(script,/void act\('time.status'\)/);
   assert.match(script,/E_TIME_PERMISSION_SETUP/);
