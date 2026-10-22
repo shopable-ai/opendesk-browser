@@ -70,6 +70,28 @@ test('R1.5 old v1 data stays intact and defaults to ZERO site collection authori
   assert.equal(f.local[TIME_REVIEW_KEY].checkpoint,null);
   assert.equal(f.alarms.size,0);
 });
+test('R1.8 fresh installation auto-records only after independent website consent, without Start',async()=>{
+  const f=await fixture();
+  const fresh=await f.call('time.status');
+  assert.equal(fresh.paused,false,'new installs default to ON intent, not paused');
+  assert.equal(fresh.authorized,false,'Chrome idle grant alone never authorizes a site');
+  assert.equal(f.local[TIME_REVIEW_KEY].authorizedHash,null);
+  assert.equal(f.local[TIME_REVIEW_KEY].checkpoint,null);
+  assert.equal(f.alarms.size,0,'no heartbeat before website consent');
+  f.advance(3000);
+  const granted=await f.call('time.siteGrant',{mode:'site',origin:'https://alpha.example',allow:true});
+  assert.equal(granted.paused,false,'explicit site authorization must not require a third Start');
+  assert.equal(granted.authorized,true,'real Host must bind authority on the two-grant transition');
+  assert.equal(granted.trackingHost,'alpha.example');
+  assert.equal(f.alarms.has(TIME_REVIEW_ALARM),true,'authorized collection must arm native heartbeat');
+  f.advance(2500);await f.service.tick();
+  assert.equal((await f.call('time.status')).todayMs,2500,'only post-approval real foreground time accrues');
+  const paused=await f.call('time.pause');
+  assert.equal(paused.paused,true,'an explicit user pause overrides the default ON intent');
+  assert.equal(f.alarms.size,0,'pause must disarm collection');
+  await f.call('time.siteGrant',{mode:'site',origin:'https://beta.example',allow:true});
+  assert.equal((await f.call('time.status')).paused,true,'a later grant cannot silently undo a user pause');
+});
 test('R1.5 even with manifest all_urls only a separately granted precise origin accrues time',async t=>{
   const f=await fixture();
   const first=await f.call('time.siteGrant',{mode:'site',origin:'https://alpha.example',allow:true});
