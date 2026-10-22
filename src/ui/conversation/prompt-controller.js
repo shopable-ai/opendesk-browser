@@ -5,7 +5,8 @@ import {executePromptPlan,validatePromptPlan} from './prompt-actions.js';
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const obj=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
 const refsOnly=refs=>({matches:Array.isArray(refs?.matches)?
- refs.matches.slice(0,12).filter(id=>typeof id==='string'&&id.length<=160):[]});
+ refs.matches.slice(0,12).filter(id=>typeof id==='string'&&id.length<=160):[],
+ etag:typeof refs?.etag==='string'&&/^[a-f0-9]{64}$/.test(refs.etag)?refs.etag:null});
 const changedProvider=(source,initial)=>source?.provider!==initial;
 export function createPromptConversationRequest({
  conversation,model,storage,assertIdentity,acquireGuard,review,reviewShare,notify
@@ -90,10 +91,10 @@ export function createPromptConversationRequest({
    authority?.release?.();
    try{releaseGuard?.();}catch{/* Closing the iframe always invalidates its guard. */}
    if(outcome?.writeIssued===true||outcome?.total!==undefined){
-    try{notify({targetId:outcome.refs?.matches?.[0]||null,
+    try{await notify({targetId:outcome.refs?.matches?.[0]||null,
      changed:outcome.writeIssued===true});}catch{/* UI refresh does not change saved truth. */}
    }
-   if(unknown)try{notify({unknown:true});}catch{}
+   if(unknown)try{await notify({unknown:true});}catch{}
   }
  };
 }
