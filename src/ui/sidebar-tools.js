@@ -923,15 +923,23 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       patchToolField(view, promptWebAction, {title: promptWebButtons===null?'读取网页按钮设置中':'在已支持的网站显示快捷按钮'});}
     if(promptSettings&&promptNativeAction){
       const targetOrigin=supportedOrigin(currentPageTarget?.snapshot?.url);
-      const record=menuGrants?.[PROMPT_ID],contextActive=Boolean(record?.version===active.version&&
-        record?.origins?.includes(CHATGPT_ORIGIN)&&record?.activeActions?.length);
+      // The Browser Host already projects installation-approved default menus,
+      // Chrome permission, user site stops and the exact current Origin. A raw
+      // grant record cannot describe that effective state (and may be absent).
+      const statusReady=Boolean(targetOrigin&&!menuStatusPending&&menuStatus);
+      const contextActive=Boolean(statusReady&&menuStatus.siteEnabled===true);
       patchToolField(view, promptNativeAction, {textContent: contextActive?'关闭右键快捷添加':'启用右键快捷添加'});
       setToolFieldAttribute(view, promptNativeAction, 'aria-pressed', String(contextActive));
       setToolFieldAttribute(view, promptNativeAction, 'role', 'switch');
       setToolFieldAttribute(view, promptNativeAction, 'aria-label', '选中文字快速添加');
       setToolFieldAttribute(view, promptNativeAction, 'aria-checked', String(contextActive));
-      patchToolField(view, promptNativeAction, {disabled: busy||sitePending||!enabled||!targetOrigin});
-      patchToolField(view, promptNativeAction, {title: !targetOrigin?'请先打开 chatgpt.com 网页':'仅影响 Chrome 原生右键快捷添加'});
+      setToolFieldAttribute(view, promptNativeAction, 'aria-busy', String(menuStatusPending));
+      patchToolField(view, promptNativeAction, {disabled: busy||sitePending||!enabled||!statusReady});
+      patchToolField(view, promptNativeAction, {title: !targetOrigin?'请先打开 chatgpt.com 网页':
+        menuStatusPending?'正在读取右键菜单状态':
+          !menuStatus?'右键菜单状态未确认，请重新打开设置':
+            !menuStatus.browserPermission?'首次使用右键快捷添加需要 Chrome 菜单权限':
+              '仅影响 Chrome 原生右键快捷添加'});
     }
     // Visibility-only: retain the existing opaque iframe and its installation identity.
     frameRoot.hidden=(show&&!trustedInline)||!(frame||nativeUI)||

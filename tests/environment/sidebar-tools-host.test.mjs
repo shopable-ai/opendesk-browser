@@ -1846,6 +1846,51 @@ test('installed menu UI uses Host default status and stop/restore reuses existin
 });
 
 
+test('Prompt Shortcuts reads real native menu status, not a missing legacy grant',async t=>{
+  const tool=await officialToolFixture('prompt-shortcuts');
+  const oldLocation=globalThis.location;
+  globalThis.location={href:'chrome-extension://test/sidepanel.html?hostInstanceId=12345678-1234-4234-8234-123456789abc'};
+  t.after(()=>{globalThis.location=oldLocation;});
+  const target={snapshot:{status:'available',url:'https://chatgpt.com/c/ready'},
+    capture:()=>({url:'https://chatgpt.com/c/ready',tabId:7,documentId:'doc-prompt'}),
+    async revalidate(){return true;}};
+  const f=await hostFixture(t,{store:new Map([[SIDEBAR_TOOL_STORE,[tool]]]),tool,target,startTool:false});
+  const gate=deferred();
+  t.after(()=>gate.resolve());
+  let enabled=true,permissionRequests=0,statusReads=0;
+  const toggles=[];
+  f.api.permissions={request(){permissionRequests++;return Promise.resolve(true);}};
+  f.api.runtime.sendMessage=async message=>{
+    if(message.operation==='browser.contextMenu.getStatus'){
+      if(++statusReads===1)await gate.promise;
+      return {ok:true,data:{siteEnabled:enabled,browserPermission:true}};
+    }
+    if(message.operation==='browser.contextMenu.userToggle'){
+      toggles.push(message);enabled=message.enabled;
+      return {ok:true,data:{enabled}};
+    }
+    return {ok:true};
+  };
+  f.host.openTool(tool.id);
+  f.emit(f.elements['sidebar-tool-settings-open'],'click',{isTrusted:true});
+  const button=f.elements['sidebar-tool-prompt-native-action'];
+  assert.equal(button.disabled,true,'unknown native state must not invite an ineffective first click');
+  f.view.actions[button.key].click({isTrusted:true});
+  await pause();
+  assert.equal(toggles.length,0,'loading cannot toggle an unknown permission state');
+  gate.resolve();
+  await settle(()=>!button.disabled&&button.attributes.get('aria-checked')==='true');
+  assert.equal(button.textContent,'关闭右键快捷添加');
+  assert.equal(f.store.has(BROWSER_MENU_GRANTS_STORE),false,
+    'a reviewed default is active without a second OpenDesk grant record');
+  assert.equal(permissionRequests,0,'reading an existing Chrome permission never requests it again');
+  f.view.actions[button.key].click({isTrusted:true});
+  await settle(()=>toggles.length===1&&!button.disabled&&button.attributes.get('aria-checked')==='false');
+  assert.equal(toggles[0].enabled,false,'the first real click closes the already active menu');
+  assert.equal(button.textContent,'启用右键快捷添加');
+  assert.equal(permissionRequests,0,'stopping a menu requires no Chrome permission prompt');
+});
+
 test('native menu cannot defer an unbound launch behind the current tool dirty review',async t=>{
   const f=await hostFixture(t),frame=f.frame,loaded=f.loaded;
   f.win.emit('message',{origin:'null',source:frame.contentWindow,data:{
