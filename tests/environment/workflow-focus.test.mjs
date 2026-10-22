@@ -16,6 +16,7 @@ import * as taskReviewHandoff from '../../src/ui/workflow/task-review-handoff.js
 import * as directExecution from '../../src/ui/workflow/direct-execution.js';
 import * as agentLoop from '../../src/ui/workflow/agent-loop.js';
 import * as segmentReplay from '../../src/ui/workflow/segment-replay.js';
+import * as taskContract from '../../src/platform/tasks/contract.js';
 import * as promptActions from '../../src/ui/conversation/prompt-actions.js';
 import {workflowObservationForModel,workflowObservationGrantMatches,workflowObservationRecipientId} from '../../src/ui/workflow/observation.js';
 
@@ -132,7 +133,13 @@ if(!vm.SourceTextModule) {
       '../../framework/workflow/contract.js':{...contract,
         validateWorkflowParams:(workflow,params)=>contract.validateWorkflowParams(
           workflow,structuredClone(params))},
-      '../../platform/tasks/contract.js':{checkParamsSchema:value=>value,createTaskPackage:()=>{throw new Error('No packaging in focus suite');}},
+      '../../platform/tasks/contract.js':{
+        // Real parameter validation, with a host-realm clone for isolated VM objects.
+        checkParamsSchema:value=>taskContract.checkParamsSchema(structuredClone(value)),
+        validateTaskParams:(schema,params)=>taskContract.validateTaskParams(
+          structuredClone(schema),structuredClone(params)),
+        createTaskPackage:()=>{throw new Error('No packaging in focus suite');}
+      },
       '../../framework/workflow/compiler.js':{compileWorkflow:async workflow=>{contract.validateWorkflow(workflow);compiled.push(structuredClone(workflow));return {workflow,sourceUtf8:'component fixture',sourceHash:'a'.repeat(64)};}},
       '../../environment.js':{permissionPattern:()=> 'https://a.example/*'},
       '../../platform/page-port/codec.js':{decodeValue:value=>value},
