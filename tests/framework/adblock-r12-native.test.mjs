@@ -70,6 +70,15 @@ function connect(url){
   ws.onmessage=event=>{
     const obj=JSON.parse(event.data),row=waiting.get(obj.id);
     if(!row){if(obj.method){events.push(obj);
+      // Chrome may crash the attached SW target without closing the CDP socket.
+      // Fail the pending command now rather than mislabeling it a generic timeout.
+      if(obj.method==='Inspector.targetCrashed'&&obj.sessionId){
+        for(const [requestId,pending] of waiting){
+          if(pending.sessionId!==obj.sessionId)continue;
+          waiting.delete(requestId);clearTimeout(pending.timeout);
+          pending.reject(Error('CDP_TARGET_CRASHED '+pending.method+' '+obj.sessionId));
+        }
+      }
       if(obj.method==='Runtime.consoleAPICalled'){
         const value=obj.params.args?.[0]?.value;
         if(typeof value==='string'&&value.startsWith('ADBLOCK_NATIVE_CALL ')){
@@ -87,7 +96,7 @@ function connect(url){
   ws.onclose=()=>{for(const row of waiting.values()){clearTimeout(row.timeout);row.reject(Error('CDP closed'));}};
   return {ready,events,send(method,params={},sessionId){return new Promise((resolve,reject)=>{
     const id=++serial,timeout=setTimeout(()=>{waiting.delete(id);reject(Error('CDP timeout '+method));},18000);
-    waiting.set(id,{resolve,reject,timeout});
+    waiting.set(id,{resolve,reject,timeout,method,sessionId});
     ws.send(JSON.stringify({id,method,params,...(sessionId?{sessionId}:{})}));
   });},close(){ws.close();}};
 }
@@ -897,7 +906,27 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   const worker=(await client.send('Target.getTargets')).targetInfos.find(x=>x.type==='service_worker'&&x.url==='chrome-extension://'+id+'/sw.js');
   const workerSession=(await client.send('Target.attachToTarget',{targetId:worker.targetId,flatten:true})).sessionId;
   await client.send('Runtime.enable',{},workerSession);
-  await evaluate(client,workerSession,'('+observeNativeCalls.toString()+')()');
+  // Separate read-only worker health from the existing observation install.
+  // Neither probe authorizes or writes Chrome state; release gates stay intact.
+  const probeWorker=async(stage,expression)=>{
+    const entry={stage,targetId:worker.targetId,sessionId:workerSession};
+    report.workerInspectorChecks??=[];
+    try{
+      const value=await evaluate(client,workerSession,expression);
+      Object.assign(entry,{status:'PASS',...(stage==='read-only-context'?{result:value}:{})});
+      report.workerInspectorChecks.push(entry);
+      return value;
+    }catch(error){
+      Object.assign(entry,{status:'FAIL',error:String(error),
+        targetCrashed:client.events.some(event=>event.sessionId===workerSession&&
+          event.method==='Inspector.targetCrashed')});
+      report.workerInspectorChecks.push(entry);
+      throw error;
+    }
+  };
+  const context=await probeWorker('read-only-context','({url:location.href,extensionId:chrome.runtime.id})');
+  assert.equal(context?.extensionId,id,'native worker identity must match the installed extension');
+  await probeWorker('native-call-observer','('+observeNativeCalls.toString()+')()');
   const visit=await client.send('Target.createTarget',{url:page});
   let site=await attach(client,visit.targetId);
   await until(()=>evaluate(client,site,'document.querySelector("h1")?.textContent==="Network fixture ready"'),'first-party fixture');
