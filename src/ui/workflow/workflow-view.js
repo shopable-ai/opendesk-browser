@@ -809,7 +809,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         const serial=stable(),exactTarget=Object.fromEntries(
           ['windowId','tabId','frameId','documentId','url','origin'].map(key=>[key,target[key]]));
         const settings=agent.settings,source=agent.selected;
-        const planArgs={source,workflow:snapshot(),target:exactTarget,
+        // Each round is a new Document-bound fragment. The prior script's
+        // siteOrigin/steps must not contaminate normalization on navigation.
+        // Verified history is transmitted separately and carries no authority.
+        const roundWorkflow={...snapshot(),siteOrigin:target.origin,steps:[]};
+        const planArgs={source,workflow:roundWorkflow,target:exactTarget,
           observationReceipt:workflowObservationForModel(receipt),signal:agent.controller.signal,
           settings,history:verifiedTurnHistory,
           consent:{model:true,workflow:true,observation:true},
@@ -839,7 +843,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           agent.guard.check();
           planningCurrent(agent.epoch,serial,source);
           const facts=agent.guard.snapshot().facts;
-          const progress='\n已由独立 RunHost 读回核验：'+facts.join('、')+
+          const progress=('\n已由独立 RunHost 读回核验：'+facts.join('、')).slice(0,460)+
             '。只规划尚未完成的下一段；不得重放这些步骤，也不能改变原始目标、对象或禁止项。';
           const correction=attempt>0?'\n前一方案在执行前失败（'+
             lastPreflight.code+'）；仅纠正该错误，不增加动作。':'';
@@ -878,7 +882,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         await currentPageTarget.revalidate(target);
         agent.guard.check();
         const {executable,admission,freeze}=checked;
-        const ticket=agent.guard.claim({workflow:executable,target,observation:receipt});
+        const ticket=agent.guard.claim({workflow:executable,target,observation:receipt,linkGuard:admission.linkGuard});
         // Only the current round is shown/editable/savable as a JavaScript
         // artifact. A multi-Document agent journal is not misrepresented as a
         // portable one-script replay.
@@ -1466,7 +1470,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }
       if(planningObservation)
         agent.guard.observed({target:captured,receipt:planningObservation,remaining:frozen.request});
-      const ticket=agent.guard.claim({workflow:executable,target:captured,observation:planningObservation});
+      const ticket=agent.guard.claim({workflow:executable,target:captured,observation:planningObservation,linkGuard:prepared.linkGuard});
       agent.expectedNavigation=prepared.linkGuard||null;
       if(!await permission)throw err('E_PERMISSION','网站权限未授权，未执行浏览器操作');
       await currentPageTarget.revalidate(captured);

@@ -453,3 +453,16 @@ test('Agent continuation admits only remaining actions, not first-round fill/sea
     workflow:workflow([{stepId:'extract-price',op:'extract',locatorKind:'css',selector:'.price'}]),
     target}).hasUnprovenClick,false);
 });
+
+test('a second explicitly named detail is not rejected merely because the first was read',()=>{
+ const goal='打开 Camera X 和 Camera Y 商品详情并核对价格';
+ const link={stepId:'second',op:'click',locatorKind:'role',selector:'link',roleName:'Camera Y'};
+ const href='/product/camera-y',url=new URL(href,target.url).href;
+ const observation={summary:{origin,documentId:target.documentId,nodes:[{
+   role:'link',name:'Camera Y',state:{visible:true,disabled:false},
+   locator:{kind:'role',value:'link',name:'Camera Y',exact:true},
+   navigation:{href,url,origin}}]}};
+ assert.equal(prepareDirectExecution({request:goal,workflow:workflow([link]),
+   target,observation,verifiedFacts:['link-page','link-target:camera x',
+     'product-page','product-target:camera x']}).linkGuard.name,'Camera Y');
+});

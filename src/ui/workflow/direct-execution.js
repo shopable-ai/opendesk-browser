@@ -187,8 +187,8 @@ export function prepareDirectExecution({request,workflow,target,observation,veri
   };
   if(searchDone&&clicks.some(searchButton))
     throw error('E_AGENT_NO_PROGRESS','搜索已独立核验，不能重复点击搜索按钮');
-  if(linkDone&&linkGuard)
-    throw error('E_AGENT_NO_PROGRESS','目标页面已独立核验，不得重复打开链接');
+  if(linkDone&&linkGuard&&verified.has('link-target:'+linkGuard.name.toLocaleLowerCase()))
+    throw error('E_AGENT_NO_PROGRESS','相同目标链接已独立核验，不得重复打开');
   // A model click must match a Search control observed in the current Document.
   // Unknown side effects must be refused rather than inferred safe from text.
   if(clicks.some(step=>!searchButton(step)&&!linkGuard))

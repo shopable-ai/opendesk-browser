@@ -99,3 +99,28 @@ test('a different product or missing verified price cannot satisfy original goal
    evidenceLevel:'BUSINESS_EFFECT_VERIFIED',
    effect:{kind:'product-page',name:'Camera X',price:'unverified'}}}).state,'PARTIAL');
 });
+
+test('two named products must be independently verified before completion',()=>{
+ const goal='打开 Camera X 和 Camera Y 商品详情并核对价格';
+ const guard=createWorkflowAgentLoopGuard({goal});
+ const one=guard.claim({workflow:proposal([link]),target,
+   linkGuard:{name:'Camera X'}});
+ assert.equal(guard.verified({claim:one,reply:{ok:true,
+   evidenceLevel:'BUSINESS_EFFECT_VERIFIED',
+   effect:{kind:'product-page',name:'Camera X',price:'$99'}}}).state,'CONTINUE');
+ const secondLink={...link,stepId:'link-two',roleName:'Camera Y'};
+ const two=guard.claim({workflow:proposal([secondLink]),target,
+   linkGuard:{name:'Camera Y'}});
+ assert.equal(guard.verified({claim:two,reply:{ok:true,
+   evidenceLevel:'BUSINESS_EFFECT_VERIFIED',
+   effect:{kind:'product-page',name:'Camera Y',price:'$129'}}}).state,'COMPLETED');
+});
+test('two independently requested fills are not satisfied by the first readback',()=>{
+ const guard=createWorkflowAgentLoopGuard({goal:'填写 name 和 email'});
+ const first=guard.claim({workflow:proposal([{...fill,text:'name'}]),target});
+ assert.equal(guard.verified({claim:first,reply:{ok:true,
+   evidenceLevel:'BUSINESS_EFFECT_VERIFIED',readbackVerified:true}}).state,'CONTINUE');
+ const other=guard.claim({workflow:proposal([{...fill,text:'email',selector:'#email'}]),target});
+ assert.equal(guard.verified({claim:other,reply:{ok:true,
+   evidenceLevel:'BUSINESS_EFFECT_VERIFIED',readbackVerified:true}}).state,'COMPLETED');
+});

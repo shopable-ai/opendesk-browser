@@ -15,6 +15,17 @@ function goalFulfilled(goal,facts){
   const fill=/(?:填写|填入|输入|\bfill\b|\btype\b)/i.test(affirmed);
   const read=/(?:查看|读取|提取|读回|核对|观察|检查|\b(?:read|extract|verify|observe|inspect|check)\b)/i.test(affirmed);
   const product=facts.has('product-page'),link=product||facts.has('link-page');
+  // The same effect category does not prove two independently named targets.
+  // Fail closed on coordinated objects instead of declaring the first one
+  // "completed" merely because its generic category became true.
+  const fragments=affirmed.split(/[，,。；;\n]/);
+  const multiOpen=fragments.some(part=>
+    /(?:打开|进入|点开|点击|访问|\b(?:open|visit|click)\b)[^，,。；;]{1,100}(?:和|与|以及|\band\b)[^，,。；;]{1,100}/i.test(part)&&
+    !/(?:和|与|以及|\band\b)\s*(?:检查|核对|查看|读取|搜索|验证|\b(?:read|check|verify|search)\b)/i.test(part));
+  const multiFill=fragments.some(part=>
+    /(?:填写|填入|输入|\b(?:fill|type)\b)[^，,。；;]{1,100}(?:和|与|以及|\band\b)[^，,。；;]{1,100}/i.test(part)&&
+    !/(?:和|与|以及|\band\b)\s*(?:检查|核对|查看|读取|搜索|打开|点击|\b(?:read|check|verify|search|open|click)\b)/i.test(part))||
+    /(?:填写|填入|输入)[^，,。；;]{1,100}(?:并且|然后|再)(?:填写|填入|输入)/i.test(part));
   // A combined user goal is a conjunction, not "whichever fact happens first".
   // Search and fill are independently required when the user named both;
   // a product detail can satisfy a requested read of that detail.
@@ -23,6 +34,9 @@ function goalFulfilled(goal,facts){
   else if(open)required.push(link);
   if(search)required.push([...facts].some(value=>value.startsWith('search-')));
   if(fill)required.push(facts.has('input-readback'));
+  if(multiOpen)required.push([...facts].filter(value=>value.startsWith(
+    price||details?'product-target:':'link-target:')).length>=2);
+  if(multiFill)required.push([...facts].filter(value=>value.startsWith('fill-target:')).length>=2);
   if(read&&!open&&!price&&!details&&!search&&!fill)
     required.push(facts.has('read-only'));
   return required.length>0&&required.every(Boolean);
@@ -48,14 +62,14 @@ export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits=
     step.op==='click'&&(
       step.locatorKind==='role'&&step.selector==='button'&&
         /^(?:搜索|search)$/i.test(step.roleName||'')||
-      observation?.summary?.origin===target?.origin&&
-      observation?.summary?.documentId===target?.documentId&&
+      Boolean(observation?.summary&&target)&&observation.summary.origin===target.origin&&
+      observation.summary.documentId===target.documentId&&
       observation.summary.nodes?.some(node=>node.role==='button'&&
         /^(?:搜索|search)$/i.test(node.name||'')&&node.state?.visible===true&&
         node.locator?.kind===step.locatorKind&&node.locator?.value===step.selector&&
         (step.locatorKind!=='role'||node.locator.name===step.roleName))
     );
-  function claim({workflow,target,observation}={}){
+  function claim({workflow,target,observation,linkGuard}={}){
     check();
     if(!workflow||!Array.isArray(workflow.steps)||!workflow.steps.length||
       workflow.steps.length>4)
@@ -75,7 +89,7 @@ export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits=
       throw fault('E_AGENT_NO_PROGRESS','相同网页操作已经尝试；已停止，避免重复写入或点击');
     issued.add(signature);rounds++;actionCount+=workflow.steps.length;
     return Object.freeze({signature,round:rounds,actions:workflow.steps.length,
-      origin:target?.origin,steps:workflow.steps.map(actions),
+      origin:target?.origin,steps:workflow.steps.map(actions),linkName:linkGuard?.name||null,
       readOnly:workflow.steps.every(step=>['observe','extract','assert','wait'].includes(step.op))});
   }
   function verified({claim:ticket,reply}={}){
@@ -97,12 +111,23 @@ export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits=
           reason:'商品名称或价格不能与原始目标及读回结果共同核对，停止继续'};
       if(reply.readbackVerified===true)facts.add('input-readback');
       if(typeof reply.effect?.kind==='string')facts.add(reply.effect.kind);
+      const name=String(reply.effect?.name||ticket.linkName||
+        ticket.steps?.find(step=>step.op==='click'&&step.selector==='link')?.roleName||'')
+        .trim().toLocaleLowerCase();
+      if(name&&goal.toLocaleLowerCase().includes(name)&&
+        ['link-page','product-page'].includes(reply.effect?.kind)){
+        facts.add('link-target:'+name);
+        if(reply.effect.kind==='product-page')facts.add('product-target:'+name);
+      }
       const clickVerified=['search-results','search-empty','search-inline',
         'link-page','product-page'].includes(reply.effect?.kind);
       for(const step of ticket.steps||[])if(
         step.op==='fill'&&reply.readbackVerified===true||
-        step.op==='click'&&clickVerified)
-        confirmed.add(identity(ticket.origin,step));
+        step.op==='click'&&clickVerified){
+        const key=identity(ticket.origin,step);
+        confirmed.add(key);
+        if(step.op==='fill')facts.add('fill-target:'+key);
+      }
     } else if(ticket.readOnly&&reply.evidenceLevel==='EXECUTION_RECEIPT_VERIFIED'&&
       reply.readOnlyVerified===true)facts.add('read-only');
     else return {state:'PARTIAL',completed:false,reason:'执行回执已核对，但网页效果尚未独立确认，不继续写入'};
