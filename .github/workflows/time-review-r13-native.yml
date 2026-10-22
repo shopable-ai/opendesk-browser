@@ -38,6 +38,15 @@ jobs:
           cache: npm
       - name: Install pinned dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Stage existing official React assets for Host fixture
+        # Host regression fixtures stage all 12 catalog tools, including React
+        # tools whose dist/ output is intentionally absent from git.
+        # Compile with the same reviewed Vite builders as scripts/build.mjs
+        # before Node tests; never weaken the fail-closed stage checker.
+        run: |
+          node scripts/build-adblock-react.mjs
+          node scripts/build-stay-focus-react.mjs
+          node scripts/build-cookie-editor-react.mjs
       - name: Real Node R1.8 Time Review and Side Panel host regressions
         id: regressions
         run: |
