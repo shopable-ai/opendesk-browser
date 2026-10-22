@@ -117,7 +117,7 @@ function hostFixture({proposal={action:{type:'create',body:'给我一份准确�
     throw failure('E_SCOPE');
   };
   host=createTrustedPromptHost({
-    api,tool:{id:'prompt-shortcuts',version:'1.1.11'},token,epoch,model,
+    api,tool:{id:'prompt-shortcuts',version:'1.1.12'},token,epoch,model,
     conversation,assertIdentity:async()=>{if(revoked)throw failure('E_TOOL_CHANGED');},
     frameSource:()=>source,guardBlocked:()=>false,dispatch,etagFor:async value=>hash(value),
     confirm:async args=>{confirms.push(args.message);return allowReview;},
@@ -165,7 +165,7 @@ test('R1.3 pending receipt is independently reconciled, never replayed',async()=
   const f=hostFixture();await f.host.request({request:'创建英文翻译提示词',event:{isTrusted:true}});
   const expected=hash(f.library.value);
   await f.api.storage.local.set({[PROMPT_AI_RECOVERY_KEY]:{
-    toolId:'prompt-shortcuts',version:'1.1.11',instance:'older-instance',
+    toolId:'prompt-shortcuts',version:'1.1.12',instance:'older-instance',
     installEpoch:'older-epoch',expectedEtag:expected,createdAt:Date.now()}});
   assert.equal((await f.host.recovery()).expectedEtag,expected);
   const before=f.commits;
