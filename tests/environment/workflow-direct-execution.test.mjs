@@ -479,3 +479,18 @@ test('second user-requested query is allowed but an identical search is not repl
    target,observation:searchObservation,
    verifiedFacts:['input-readback','search-results','search-target:camera']}),{code:'E_AGENT_NO_PROGRESS'});
 });
+
+test('completed search requires the verified prior query identity, regardless of regenerated Step IDs',()=>{
+  const w=workflow([{...fill,stepId:'next-fill',text:'lens'},
+    {stepId:'next-click',op:'click',locatorKind:'role',selector:'button',roleName:'搜索'}]);
+  const goal='搜索 camera，搜索 lens';
+  assert.throws(()=>prepareDirectExecution({request:goal,workflow:w,target,
+    observation:searchObservation,verifiedFacts:['input-readback','search-results']}),
+    {code:'E_AGENT_NO_PROGRESS'});
+  const duplicate=workflow([{...fill,stepId:'new-fill',text:'camera'},
+    {stepId:'new-search',op:'click',locatorKind:'role',selector:'button',roleName:'搜索'}]);
+  assert.throws(()=>prepareDirectExecution({request:goal,workflow:duplicate,target,
+    observation:searchObservation,
+    verifiedFacts:['input-readback','search-results','search-target:camera']}),
+    {code:'E_AGENT_NO_PROGRESS'});
+});

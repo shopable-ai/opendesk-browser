@@ -15,6 +15,7 @@ import * as dataSharing from '../../src/ui/workflow/data-sharing.js';
 import * as taskReviewHandoff from '../../src/ui/workflow/task-review-handoff.js';
 import * as directExecution from '../../src/ui/workflow/direct-execution.js';
 import * as agentLoop from '../../src/ui/workflow/agent-loop.js';
+import * as segmentReplay from '../../src/ui/workflow/segment-replay.js';
 import * as promptActions from '../../src/ui/conversation/prompt-actions.js';
 import {workflowObservationForModel,workflowObservationGrantMatches,workflowObservationRecipientId} from '../../src/ui/workflow/observation.js';
 
@@ -148,6 +149,7 @@ if(!vm.SourceTextModule) {
       './task-review-handoff.js':taskReviewHandoff,
       './direct-execution.js':directExecution,
       './agent-loop.js':agentLoop,
+      './segment-replay.js':segmentReplay,
       '../conversation/prompt-actions.js':promptActions,
       './local-codex.js':{createLocalCodexPlanner:()=>planner,describeLocalCodex:value=>({state:value.state,message:'Component fixture',ready:value.readyForTurn===true})},
       './observation.js':{createWorkflowObservation:()=>observation,

@@ -190,7 +190,16 @@ export function prepareDirectExecution({request,workflow,target,observation,veri
   };
   const nextQuery=fills.length===1?values[0]?.trim().toLocaleLowerCase():null;
   const originalLower=request.toLocaleLowerCase().replace(/\s+/g,' ');
-  const freshSearch=Boolean(nextQuery&&!verified.has('search-target:'+nextQuery)&&
+  // A generic "search-results" receipt does not identify which query ran.
+  // To allow a *different* requested search, require the prior query identity
+  // from independently verified business facts; Step IDs cannot grant progress.
+  // If the prior search lacks its own identity, fail closed instead of
+  // treating an already-completed search as fresh merely from goal wording.
+  const priorSearchTargets=[...verified].filter(fact=>
+    typeof fact==='string'&&fact.startsWith('search-target:'))
+    .map(fact=>fact.slice('search-target:'.length));
+  const freshSearch=Boolean(nextQuery&&priorSearchTargets.length>0&&
+    priorSearchTargets.every(query=>query!==nextQuery)&&
     ['搜索','查找','检索','search'].some(verb=>
       originalLower.includes(verb+' '+nextQuery)||originalLower.includes(verb+nextQuery)));
   if(searchDone&&clicks.some(searchButton)&&!freshSearch)
