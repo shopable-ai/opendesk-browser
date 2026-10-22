@@ -58,8 +58,11 @@ jobs:
           node --version
       - name: Install locked dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Compile the official Cookie Editor resources required by package tests
-        run: node scripts/build-cookie-editor-react.mjs
+      - name: Prepare existing official React resources required by package and catalog fixtures
+        run: |
+          node scripts/build-adblock-react.mjs
+          node scripts/build-stay-focus-react.mjs
+          node scripts/build-cookie-editor-react.mjs
       - name: Execute Cookie Editor and installed SDK positive/negative Node tests
         # Global official-catalog parity is intentionally checked by npm test
         # below: concurrent unrelated Sidebar Tool updates must not erase
