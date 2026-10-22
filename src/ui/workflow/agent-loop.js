@@ -5,12 +5,15 @@ const terminalUnknown=code=>/(?:UNKNOWN|TIMEOUT|SETTLEMENT|DISCONNECT|WORKER)/i.
 const actions=step=>({op:step.op,locatorKind:step.locatorKind||'',selector:step.selector||'',
   roleName:step.roleName||'',param:step.param||'',text:step.text||'',url:step.url||''});
 function goalFulfilled(goal,facts){
-  const price=/(?:价格|标价|售价|价钱|\bprice\b)/i.test(goal);
-  const details=/(?:商品详情|商品页面|详情页|\bproduct\s*(?:page|detail)\b)/i.test(goal);
-  const open=/(?:打开|进入|点开|跳转|点击(?:.*?)(?:链接|结果)|\b(?:open|navigate)\b)/i.test(goal);
-  const search=/(?:搜索(?!框|栏|关键词|输入框|词)|查找(?!输入框|框)|检索(?!词|框)|\bsearch\b(?!\s+(?:keyword|input|field|box|term)\b))/i.test(goal);
-  const fill=/(?:填写|填入|输入|\bfill\b|\btype\b)/i.test(goal);
-  const read=/(?:查看|读取|提取|读回|核对|观察|检查|\b(?:read|extract|verify|observe|inspect|check)\b)/i.test(goal);
+  // A prohibition in the user's own request is not a positive completion
+  // condition (e.g. "填写搜索框，不要点击搜索").
+  const affirmed=goal.replace(/(?:不要|不需|无需|不得|别|禁止|勿|do\s+not|don't|never)\s*(?:点击|按下|提交|搜索|查找|检索|跳转|打开|进入|填写|填入|输入|press|click|submit|search|open|navigate|fill|type)[^，,。；;\n]*/gi,'');
+  const price=/(?:价格|标价|售价|价钱|\bprice\b)/i.test(affirmed);
+  const details=/(?:商品详情|商品页面|详情页|\bproduct\s*(?:page|detail)\b)/i.test(affirmed);
+  const open=/(?:打开|进入|点开|跳转|点击(?:.*?)(?:链接|结果)|\b(?:open|navigate)\b)/i.test(affirmed);
+  const search=/(?:搜索(?!框|栏|关键词|输入框|词)|查找(?!输入框|框)|检索(?!词|框)|\bsearch\b(?!\s+(?:keyword|input|field|box|term)\b))/i.test(affirmed);
+  const fill=/(?:填写|填入|输入|\bfill\b|\btype\b)/i.test(affirmed);
+  const read=/(?:查看|读取|提取|读回|核对|观察|检查|\b(?:read|extract|verify|observe|inspect|check)\b)/i.test(affirmed);
   const product=facts.has('product-page'),link=product||facts.has('link-page');
   // A combined user goal is a conjunction, not "whichever fact happens first".
   // Search and fill are independently required when the user named both;
