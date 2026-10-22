@@ -877,15 +877,14 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     }catch(error){
       if(workflowAgent!==agent||agent.stopping)return;
       const code=error?.code||'E_AGENT';
+      const question=workflowAgentQuestion(code);
       const state=code==='E_AGENT_NO_PROGRESS'?'NO_PROGRESS_STOPPED':
         code==='E_AGENT_LIMIT'?'LIMIT_REACHED':
         /UNKNOWN|TIMEOUT|SETTLEMENT/.test(code)?'OUTCOME_UNKNOWN':
-        ['E_AI_APPROVAL','E_AGENT_GOAL','E_AI_REVIEW_REQUIRED','E_AI_VALUE_NOT_GROUNDED',
-          'E_AI_MISSING_ACTION','E_AI_UNREQUESTED_ACTION'].includes(code)?'ASK_USER':'BLOCKED';
-      const guidance=state==='ASK_USER'
-        ?'需要明确可操作的目标或补充权限后才能继续；不会猜测性写入。'
-        :state==='OUTCOME_UNKNOWN'?'结果尚未核实，请检查网页，禁止自动重试。'
-        :'已保留之前核验成功的步骤，不会自动重放。';
+        question?'ASK_USER':'BLOCKED';
+      const guidance=question||(
+        state==='OUTCOME_UNKNOWN'?'结果尚未核实，请检查网页，禁止自动重试。':
+        '已保留之前核验成功的步骤，不会自动重放。');
       finishWorkflowAgent(agent,state,format(error)+'。'+guidance);
     }finally{
       if(workflowAgent===agent&&!agent.stopping){
@@ -1096,6 +1095,15 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(!state)return format(error);
     localCapability={...localCapability,state,reason:error.code,readyForTurn:false};
     updateLocalStatus();return describeLocalCodex(localCapability).message;
+  }
+  function workflowAgentQuestion(code) {
+    if(code==='E_AI_VALUE_NOT_GROUNDED')
+      return '请提供要填写的确切文字，并用引号标明？';
+    if(code==='E_AI_MISSING_ACTION')
+      return '请指出网页中要操作的搜索按钮或目标链接名称？';
+    if(code==='E_AGENT_GOAL')
+      return '请明确这次希望操作的唯一对象和目标？';
+    return null;
   }
   function finishWorkflowAgent(agent,state,message) {
     if(workflowAgent!==agent)return;
@@ -1474,9 +1482,12 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     }catch(error){
       if(!disposed&&epoch===planningGeneration){
         const message=frozen.selected==='local_codex'?localFailure(error):format(error);
-        appendChat('执行结果','本次任务未完成：'+message+'。不会自动重放。');
+        const question=workflowAgentQuestion(error?.code);
+        appendChat('执行结果',question
+          ?'本次尚未修改网页：'+message+'。'+question
+          :'本次任务未完成：'+message+'。不会自动重放。');
         status(message,true);
-        finishWorkflowAgent(agent,'BLOCKED','');
+        finishWorkflowAgent(agent,question?'ASK_USER':'BLOCKED','');
       }
     }
     finally{
