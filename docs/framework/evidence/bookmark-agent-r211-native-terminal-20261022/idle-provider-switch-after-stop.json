@@ -1,0 +1,415 @@
+{
+  "kind": "Actual Provider change AFTER verified cancellation; does not cover inflight Provider switching",
+  "before": {
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [],
+            "dateAdded": 1792634221693,
+            "folderType": "bookmarks-bar",
+            "id": "1",
+            "index": 0,
+            "parentId": "0",
+            "syncing": false,
+            "title": "书签栏"
+          },
+          {
+            "children": [],
+            "dateAdded": 1792634221693,
+            "folderType": "other",
+            "id": "2",
+            "index": 1,
+            "parentId": "0",
+            "syncing": false,
+            "title": "其他书签"
+          }
+        ],
+        "dateAdded": 1792634221693,
+        "id": "0",
+        "syncing": false,
+        "title": ""
+      }
+    ],
+    "trace": {
+      "sdk": [],
+      "events": [],
+      "inputs": [
+        {
+          "id": "",
+          "label": "发送",
+          "text": "",
+          "trusted": true,
+          "at": 1792635915169
+        },
+        {
+          "id": "tab-workflow",
+          "label": null,
+          "text": "工作流",
+          "trusted": true,
+          "at": 1792635928473
+        },
+        {
+          "id": "",
+          "label": "停止对话",
+          "text": "",
+          "trusted": true,
+          "at": 1792635991023
+        },
+        {
+          "id": "sidebar-tool-back",
+          "label": "返回扩展列表",
+          "text": "",
+          "trusted": true,
+          "at": 1792635992033
+        },
+        {
+          "id": "",
+          "label": "打开「网页笔记」",
+          "text": "▦网页笔记应用在侧栏离线管理多条本地笔记，可选择关联当前网页，不自动操作网站。",
+          "trusted": true,
+          "at": 1792635992041
+        },
+        {
+          "id": "sidebar-tool-back",
+          "label": "返回扩展列表",
+          "text": "",
+          "trusted": true,
+          "at": 1792635992055
+        },
+        {
+          "id": "",
+          "label": "打开「书签管理」",
+          "text": "▦书签管理应用独立 SDK 书签管理：请求单独的 Chrome 全部书签授权；修改和危险删除经可信界面确认。",
+          "trusted": true,
+          "at": 1792635992063
+        },
+        {
+          "id": "",
+          "label": "AI 对话",
+          "text": "",
+          "trusted": true,
+          "at": 1792635992088
+        }
+      ]
+    }
+  },
+  "at": 1792636255564,
+  "https": {
+    "selected": "true",
+    "at": 1792636255588
+  },
+  "native": {
+    "selected": "true",
+    "at": 1792636255592
+  },
+  "after": {
+    "tree": [
+      {
+        "children": [
+          {
+            "children": [],
+            "dateAdded": 1792634221693,
+            "folderType": "bookmarks-bar",
+            "id": "1",
+            "index": 0,
+            "parentId": "0",
+            "syncing": false,
+            "title": "书签栏"
+          },
+          {
+            "children": [],
+            "dateAdded": 1792634221693,
+            "folderType": "other",
+            "id": "2",
+            "index": 1,
+            "parentId": "0",
+            "syncing": false,
+            "title": "其他书签"
+          }
+        ],
+        "dateAdded": 1792634221693,
+        "id": "0",
+        "syncing": false,
+        "title": ""
+      }
+    ],
+    "ui": {
+      "url": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sidepanel.html?hostInstanceId=55d2f64a-c155-49da-8051-fef5eb37c108",
+      "body": "我的\n扩展\n工作流\n开发\n云控\n书签管理\n书签管理\n— 项\n搜索名称、URL 或文件夹\n正在读取书签…\n\n把当前页面放入R211-provider-取消验证收藏夹，如果没有，就创建目录\n\n已停止后续操作；此前已核实的写入不会撤销。\n\n对话输入",
+      "controls": [
+        {
+          "id": "tab-my-tasks",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "我的",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "tab-tools",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "扩展",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "tab-workflow",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "工作流",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "tab-develop",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "开发",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "tab-cloud",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": null,
+          "text": "云控",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "sidebar-tool-back",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "返回扩展列表",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "sidebar-tool-settings-open",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "工具设置",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "AI 对话",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "sidebar-tool-remove",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "卸载「书签管理」及其本地数据",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "新建书签",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "新建文件夹",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "收藏当前页",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "刷新书签",
+          "text": "",
+          "visible": true,
+          "disabled": true
+        },
+        {
+          "id": "bm-search",
+          "tag": "INPUT",
+          "type": "text",
+          "label": null,
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "收起对话",
+          "text": "",
+          "visible": true,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "type": "submit",
+          "label": "发送",
+          "text": "",
+          "visible": true,
+          "disabled": true
+        }
+      ]
+    },
+    "trace": {
+      "sdk": [],
+      "events": [],
+      "inputs": [
+        {
+          "id": "",
+          "label": "发送",
+          "text": "",
+          "trusted": true,
+          "at": 1792635915169
+        },
+        {
+          "id": "tab-workflow",
+          "label": null,
+          "text": "工作流",
+          "trusted": true,
+          "at": 1792635928473
+        },
+        {
+          "id": "",
+          "label": "停止对话",
+          "text": "",
+          "trusted": true,
+          "at": 1792635991023
+        },
+        {
+          "id": "sidebar-tool-back",
+          "label": "返回扩展列表",
+          "text": "",
+          "trusted": true,
+          "at": 1792635992033
+        },
+        {
+          "id": "",
+          "label": "打开「网页笔记」",
+          "text": "▦网页笔记应用在侧栏离线管理多条本地笔记，可选择关联当前网页，不自动操作网站。",
+          "trusted": true,
+          "at": 1792635992041
+        },
+        {
+          "id": "sidebar-tool-back",
+          "label": "返回扩展列表",
+          "text": "",
+          "trusted": true,
+          "at": 1792635992055
+        },
+        {
+          "id": "",
+          "label": "打开「书签管理」",
+          "text": "▦书签管理应用独立 SDK 书签管理：请求单独的 Chrome 全部书签授权；修改和危险删除经可信界面确认。",
+          "trusted": true,
+          "at": 1792635992063
+        },
+        {
+          "id": "",
+          "label": "AI 对话",
+          "text": "",
+          "trusted": true,
+          "at": 1792635992088
+        },
+        {
+          "id": "tab-workflow",
+          "label": null,
+          "text": "工作流",
+          "trusted": true,
+          "at": 1792636255568
+        },
+        {
+          "id": "workflow-provider-toggle",
+          "label": "AI 设置",
+          "text": "",
+          "trusted": true,
+          "at": 1792636255581
+        },
+        {
+          "id": "workflow-source-https",
+          "label": null,
+          "text": "HTTPS",
+          "trusted": true,
+          "at": 1792636255586
+        },
+        {
+          "id": "workflow-source-local",
+          "label": null,
+          "text": "本机 Codex",
+          "trusted": true,
+          "at": 1792636255590
+        },
+        {
+          "id": "",
+          "label": "关闭 AI 设置",
+          "text": "",
+          "trusted": true,
+          "at": 1792636255594
+        },
+        {
+          "id": "tab-tools",
+          "label": null,
+          "text": "扩展",
+          "trusted": true,
+          "at": 1792636255597
+        },
+        {
+          "id": "",
+          "label": "打开「书签管理」",
+          "text": "▦书签管理应用独立 SDK 书签管理：请求单独的 Chrome 全部书签授权；修改和危险删除经可信界面确认。",
+          "trusted": true,
+          "at": 1792636255623
+        },
+        {
+          "id": "",
+          "label": "AI 对话",
+          "text": "",
+          "trusted": true,
+          "at": 1792636255647
+        }
+      ]
+    },
+    "at": 1792636255660
+  },
+  "checks": {
+    "httpsSelected": true,
+    "nativeSelected": true,
+    "noNewSend": true,
+    "noWrites": true,
+    "treeUnchanged": true
+  },
+  "status": "PASS_IDLE_PROVIDER_CHANGE_ONLY"
+}

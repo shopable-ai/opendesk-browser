@@ -1,0 +1,1 @@
+import{client,save}from'./control.mjs';const c=await client();try{await c.send('Browser.close').catch(e=>{if(!/disconnected|closed/i.test(String(e)))throw e});await save('owned-browser-close',{at:Date.now(),requested:true,pid:30891})}finally{c.close()}

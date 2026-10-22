@@ -1,0 +1,26 @@
+{
+  "status": "PASS_RECORDED_STOP_TERMINAL_AND_NAVIGATION_OBSERVATIONS",
+  "at": "2026-10-22T02:39:03.904Z",
+  "identity": {
+    "sessionId": "e1693995aa52b131e8fdc393b4ed214f",
+    "threadId": "01a1616d-6bdf-7d31-87f1-da6c4cd6a37c",
+    "turnId": "01a1616d-7f7a-7311-b51e-49af55b72aca"
+  },
+  "trustedSendCount": 1,
+  "trustedStop": true,
+  "nativeStartedInProgress": true,
+  "nativeFinalStatus": "interrupted",
+  "terminal": "CANCELLED/interrupted",
+  "chromeWriteEvents": 0,
+  "sdkWrites": 0,
+  "independentTreeUnchanged": true,
+  "actualOtherToolNavigationRoundTrip": true,
+  "otherToolFullyReady": "NOT_TESTED",
+  "inflightProviderChange": "NOT_TESTED_BUSY_NAVIGATION_GUARD",
+  "idleProviderChangeOnly": true,
+  "fullNativeEventSequenceCaptured": false,
+  "fullEventSequenceBoundary": "Only cancel terminal batch sequence 5 is recorded. Matching identities/status are independently correlated with Native SQLite; no claim of captured events 1–4.",
+  "driverStatusBoundary": "Original driver PASS is not full T9 acceptance; actualOtherToolSwitch marker alone is insufficient to prove readiness.",
+  "noOverallT9Pass": true,
+  "cleaned": true
+}

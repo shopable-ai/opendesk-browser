@@ -1,0 +1,22 @@
+{
+  "at": 1792636337.36767,
+  "instance": "bm-r211-life-01a16018",
+  "ownedBrowserPid": 30891,
+  "launcherPid": 30890,
+  "otherProcessesSignalled": false,
+  "globalNativeConfigEdited": false,
+  "launcherSuspendedForOfficialCleanup": true,
+  "browserCloseExit": 0,
+  "chromeTerminalBeforeCleanup": true,
+  "profilePresentForOfficialCleanup": true,
+  "officialCleanupExit": 0,
+  "officialCleanup": {
+    "cleaned": true,
+    "otherNativeHostsUntouched": true
+  },
+  "launcherResumed": true,
+  "matchingOwnedProcessesAfterCleanup": 0,
+  "profileRemovedByLauncher": true,
+  "ownedPidAbsent": true,
+  "temporaryCodexHomeAndAuthCopyRemoved": true
+}

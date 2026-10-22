@@ -1,0 +1,217 @@
+{
+  "ui": {
+    "url": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sidepanel.html?hostInstanceId=55d2f64a-c155-49da-8051-fef5eb37c108",
+    "body": "我的\n扩展\n工作流\n开发\n云控\n书签管理\n书签管理\n3 项\n搜索名称、URL 或文件夹\n正在处理书签…\n书签栏\n0\n其他书签\n0\n\n把当前页面放入R211-provider-取消验证收藏夹，如果没有，就创建目录\n\n正在判断下一步…\n对话输入\n\n当前工具正在保存，请完成后再切换。",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": null,
+        "text": "我的",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "tab-tools",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": null,
+        "text": "扩展",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "tab-workflow",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": null,
+        "text": "工作流",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "tab-develop",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": null,
+        "text": "开发",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "tab-cloud",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": null,
+        "text": "云控",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "sidebar-tool-back",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": "返回扩展列表",
+        "text": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "sidebar-tool-settings-open",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": "工具设置",
+        "text": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": "AI 对话",
+        "text": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "sidebar-tool-remove",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": "卸载「书签管理」及其本地数据",
+        "text": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": "新建书签",
+        "text": "",
+        "visible": true,
+        "disabled": true
+      },
+      {
+        "id": "",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": "新建文件夹",
+        "text": "",
+        "visible": true,
+        "disabled": true
+      },
+      {
+        "id": "",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": "收藏当前页",
+        "text": "",
+        "visible": true,
+        "disabled": true
+      },
+      {
+        "id": "",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": "刷新书签",
+        "text": "",
+        "visible": true,
+        "disabled": true
+      },
+      {
+        "id": "bm-search",
+        "tag": "INPUT",
+        "type": "text",
+        "label": null,
+        "text": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": "折叠 书签栏",
+        "text": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": "操作 书签栏",
+        "text": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": "折叠 其他书签",
+        "text": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": "操作 其他书签",
+        "text": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": "收起对话",
+        "text": "",
+        "visible": true,
+        "disabled": false
+      },
+      {
+        "id": "",
+        "tag": "BUTTON",
+        "type": "button",
+        "label": "停止对话",
+        "text": "",
+        "visible": true,
+        "disabled": false
+      }
+    ]
+  },
+  "traces": {
+    "native": [
+      {
+        "kind": "plan-ack",
+        "sessionId": "e1693995aa52b131e8fdc393b4ed214f",
+        "threadId": "01a1616d-6bdf-7d31-87f1-da6c4cd6a37c",
+        "turnId": "01a1616d-7f7a-7311-b51e-49af55b72aca",
+        "at": 1792635928462
+      }
+    ],
+    "sdk": [],
+    "events": [],
+    "inputs": [
+      {
+        "id": "",
+        "label": "发送",
+        "text": "",
+        "trusted": true,
+        "at": 1792635915169
+      },
+      {
+        "id": "tab-workflow",
+        "label": null,
+        "text": "工作流",
+        "trusted": true,
+        "at": 1792635928473
+      }
+    ]
+  }
+}

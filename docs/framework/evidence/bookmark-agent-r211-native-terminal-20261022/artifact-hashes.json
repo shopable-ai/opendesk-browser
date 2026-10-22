@@ -1,0 +1,175 @@
+{
+  "excludesSelf": true,
+  "artifacts": [
+    {
+      "file": "acceptance-update.json",
+      "bytes": 11738,
+      "sha256": "c2ff207fa96bca07c62e7866e2031c88a457f3b085979f1677564dee08095107"
+    },
+    {
+      "file": "bookmark-permission-granted.json",
+      "bytes": 4393,
+      "sha256": "8bbd162e410b5735a0db237040153c97ce3246a68f70b83c2113251b827ed031"
+    },
+    {
+      "file": "cleanup-owned.py",
+      "bytes": 2235,
+      "sha256": "bc5eae5a4d88313b4446b2a9158bb6b96b2b6325d8395dd9ee3f33c50f73b567"
+    },
+    {
+      "file": "close-owned-browser.mjs",
+      "bytes": 253,
+      "sha256": "b7332c4d330fdb79b7c59eb360a8f17e14c6b7682db71fa1ad5cacd8c3fe69db"
+    },
+    {
+      "file": "control.mjs",
+      "bytes": 2478,
+      "sha256": "bcad6b32d328e031e518879edb5b615913aed2357c94ec827b74323bb0080cae"
+    },
+    {
+      "file": "driver-ownership-incident.json",
+      "bytes": 817,
+      "sha256": "5509370c38b3b8d035fc947c829e20e381761c722817babc7aaccad51c94e01f"
+    },
+    {
+      "file": "idle-provider-switch-after-stop.json",
+      "bytes": 10673,
+      "sha256": "0cd5445322f632e68f414fc0d65319dcf871a86e2b119e6f50493c47f9bc1d6f"
+    },
+    {
+      "file": "independent-review.json",
+      "bytes": 3070,
+      "sha256": "93b57e9a48acc366ccfdaae45f7141f28c1c0b0f72c41c3f67134842809c343b"
+    },
+    {
+      "file": "launch.json",
+      "bytes": 1218,
+      "sha256": "cc7c5a011460cd57d43e7b34a28aec89085c3dd08dfc29fd90166cea912e42f9"
+    },
+    {
+      "file": "lifecycle-correlation.json",
+      "bytes": 1150,
+      "sha256": "bfe9b3282c9b42bdcdd7b01a15dfa717b38de61fe2ff101856d2ba396bbfbd6d"
+    },
+    {
+      "file": "native-cleanup-final.json",
+      "bytes": 59,
+      "sha256": "6a4f164c38887d9802bce5fe120d7d67492cb70934baceb71a08b1e056e8d72a"
+    },
+    {
+      "file": "native-optional-api-before.json",
+      "bytes": 54,
+      "sha256": "27372d522a92ab0e0383cf3273a42bf76d508d4cd074358086ae192f543883cc"
+    },
+    {
+      "file": "native-ready.json",
+      "bytes": 4188,
+      "sha256": "0a366b90f156debf98fad9052a04091aed4a193b9c115e4ac5fabc9e85574064"
+    },
+    {
+      "file": "native-setup.json",
+      "bytes": 386,
+      "sha256": "849231e385eeb03d815520c9bec2079eca700e214c4efe297a0d033731017947"
+    },
+    {
+      "file": "native-thread-metadata.json",
+      "bytes": 357,
+      "sha256": "d64ebe8017f8ea16a0046ed03e1a017f7c86c465589cbfe12336e82f0e795e9d"
+    },
+    {
+      "file": "native-turns-final.json",
+      "bytes": 214,
+      "sha256": "f274de3ea3e76c49f45f1288c4f00b4a2cd12275da03e53ee8f076782cfffe29"
+    },
+    {
+      "file": "native-worker-restart.json",
+      "bytes": 4844,
+      "sha256": "3b4db7a8d254d1bc12c117dc0f2e37944e433e172cfd3d1370a2042df3fd305c"
+    },
+    {
+      "file": "native-worker-restart.mjs",
+      "bytes": 2061,
+      "sha256": "bb02f63bb1506cfcf499c49bdc49bd9da958c393741fb70ce9cc1257c70e0154"
+    },
+    {
+      "file": "owned-browser-close.json",
+      "bytes": 63,
+      "sha256": "8f77b87eb9693fa4813683df5615d21e7a9901a44f0be8a564cb28b7cd0d7a85"
+    },
+    {
+      "file": "owned-native-permission.png",
+      "bytes": 1137697,
+      "sha256": "20e31e4031a25c80521b9df2caa9d6acb10180de5d3a5ce2d12cb91769ad40f2"
+    },
+    {
+      "file": "owned-permission-current.png",
+      "bytes": 1169585,
+      "sha256": "88b07d1b602ae22e605c8d0b6f3b8e0f068726e66d667c7b142457ba4f34aa18"
+    },
+    {
+      "file": "provider-driver-recheck.json",
+      "bytes": 5124,
+      "sha256": "94efa189f373978da022f6b7b2cc12798b42818563a9173116f8874381e3b9dc"
+    },
+    {
+      "file": "provider-real.json",
+      "bytes": 11306,
+      "sha256": "09747959b3d43af574294c7f2489a3e79f99f97cd505473ad5df0024d37b1797"
+    },
+    {
+      "file": "report.zh-CN.txt",
+      "bytes": 3079,
+      "sha256": "0545f5d4a6c94fd1e29f07121f6ab822ef99d91f0c41f346cc8af83297004744"
+    },
+    {
+      "file": "resource-cleanup.json",
+      "bytes": 643,
+      "sha256": "d222a84dd2ebe4a6debf2917711d5a5ff71736c065e3895bc78d359fd000f342"
+    },
+    {
+      "file": "resume-stop-switch.mjs",
+      "bytes": 5069,
+      "sha256": "96794c43a0b5e536057bd713a899c1fb86fc8146a66b5f06d94c899fdc2d425e"
+    },
+    {
+      "file": "run-cancel-case.mjs",
+      "bytes": 8568,
+      "sha256": "152f31c4b35be92bc220559891dc01ecd7743e811f902887f37d4a2e42bf15ae"
+    },
+    {
+      "file": "runtime.json",
+      "bytes": 994,
+      "sha256": "0676ea63c67e9de8400b8e21ed0d9244c7cfabe705e4c63f546e11e2810b65d2"
+    },
+    {
+      "file": "same-turn-stop-switch-final.png",
+      "bytes": 83744,
+      "sha256": "2545338f8d5a99e68a1f5988495281f36a829c0d82577bb90510fe8b72266c30"
+    },
+    {
+      "file": "same-turn-stop-switch.json",
+      "bytes": 19371,
+      "sha256": "e343d88064b4cbf33878a2e067a12691371b89b961eadf7077598a411c01ccd9"
+    },
+    {
+      "file": "session.json",
+      "bytes": 304,
+      "sha256": "1bb955e0ada3e1a97e7edc6f755752892e1149ad687470b18cc7ec39d48d5793"
+    },
+    {
+      "file": "snapshot-extraction.json",
+      "bytes": 2239,
+      "sha256": "bd404ca554a2be612c28a9989ae5dbb5d58bdeef8bda09d1ef1a20681d2d84a3"
+    },
+    {
+      "file": "source-state.json",
+      "bytes": 2432,
+      "sha256": "ebe7c94c82f2a681cfc92546731c1a4d656c206666ad1d92dbf59413698b716e"
+    },
+    {
+      "file": "verify-lifecycle-evidence.mjs",
+      "bytes": 3806,
+      "sha256": "8cf4a6d70e6be1e4627f0256c25f13f59c2a574261a7c906c79ed8b6610a02dd"
+    }
+  ]
+}

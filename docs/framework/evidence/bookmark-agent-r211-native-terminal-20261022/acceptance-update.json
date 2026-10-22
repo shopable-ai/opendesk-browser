@@ -1,0 +1,251 @@
+{
+  "goal": "Bookmark AI Agent Loop R2.1.1-LOCAL-REAL-ACCEPTANCE",
+  "at": "2026-10-22T02:39:03.864545+00:00",
+  "decision": "NO_FINAL_PASS",
+  "currentTurn": "Real Native Stop terminal evidence; no product source change",
+  "gitObservedBeforeEvidenceCommit": {
+    "branch": "main",
+    "head": "6172ab9aa60eb4b06815fc3f0ef30772bb8e063b"
+  },
+  "runtime": {
+    "chrome": "Mac headed CFT155.0.8059.39",
+    "nativeCodex": "0.159.2",
+    "configuredModel": "gpt-6.1-sol",
+    "providerMetadata": "openai; metadata not provider-side per-turn attestation",
+    "productionCandidate": "a36689ac business source, tool-shell SHA f0432a8440223b0e9fd2a5718d4c87f5a59a7a961e3839fc1af282a402f7f39d",
+    "candidateBoundary": "10 relevant current business source files byte-match candidate source. Latest unrelated Workflow focus UI is not in this frozen production; its source Chromium/CI evidence is separate.",
+    "personalChromeAndDailyWatcher": "Not switched, stopped or rewritten"
+  },
+  "originalFiveTasks": [
+    {
+      "id": "P0.1",
+      "status": "CORE_REAL_NATIVE_PROVED_PRIOR",
+      "evidence": "Prior one original Send ->2 real decisions; search NOT_FOUND ->3 decisions separately; no core rewrite"
+    },
+    {
+      "id": "P0.2",
+      "status": "CORE_REAL_BRANCHES_PROVED_PRIOR",
+      "evidence": "Prior folder creation/reuse, URL reuse, ambiguity and NOT_FOUND continuation; no hardcoded folder name"
+    },
+    {
+      "id": "P0.3",
+      "status": "CORE_REAL_READBACK_PROVED_PRIOR",
+      "evidence": "Original goal retained; final success gated by independent Chrome bookmark readback"
+    },
+    {
+      "id": "P0.4",
+      "status": "PARTIAL_REAL_SAFETY_LIFECYCLE",
+      "evidence": "New actual Stop: same session/thread/turn CANCELLED/interrupted plus SQLite interrupted; zero SDK writes/events, independent unchanged tree; original UNKNOWN/revocation evidence retained",
+      "remaining": "Inflight switching, late response and complete long-task/update/deadline matrix"
+    },
+    {
+      "id": "P0.5",
+      "status": "FORMAL_ACCEPTANCE_INCOMPLETE",
+      "evidence": "Native one-Send core passed previously; current targeted terminal proof passed; full real Provider/Chrome/CI/UX contract not all passed"
+    }
+  ],
+  "newRealCase": {
+    "request": "把当前页面放入R211-provider-取消验证收藏夹，如果没有，就创建目录",
+    "trustedSends": 1,
+    "modelTurnsStarted": 1,
+    "modelDecisionsCompleted": 0,
+    "sdkWrites": 0,
+    "confirmedChromeWrites": 0,
+    "chromeChangeEvents": 0,
+    "stopUi": "已停止后续操作；此前已核实的写入不会撤销。",
+    "modelResult": "Cancelled while inference in progress; this is not a new completion-path run",
+    "finalNativeState": "CANCELLED/interrupted",
+    "nativeSqlStatus": "interrupted",
+    "independentReadback": "Before/after Chrome tree identical",
+    "scope": "PASS real Stop terminal, PASS actual navigation round trip only; T9 overall partial"
+  },
+  "cases": [
+    {
+      "id": "T1",
+      "currentEvidenceBoundary": "Reuses separately attributed prior installed/model and CI evidence; this turn adds the explicit T9 subcase below, not a full new matrix.",
+      "inheritedStatus": "PASS_REAL_NEW_CANDIDATE",
+      "status": "PASS_REAL_NEW_CANDIDATE"
+    },
+    {
+      "id": "T2",
+      "currentEvidenceBoundary": "Reuses separately attributed prior installed/model and CI evidence; this turn adds the explicit T9 subcase below, not a full new matrix.",
+      "inheritedStatus": "PASS_NEW_NATIVE_DIRECT_COMPLETE_AND_PRIOR_ACTION_BRANCH",
+      "status": "PASS_NEW_NATIVE_DIRECT_COMPLETE_AND_PRIOR_ACTION_BRANCH"
+    },
+    {
+      "id": "T3",
+      "currentEvidenceBoundary": "Reuses separately attributed prior installed/model and CI evidence; this turn adds the explicit T9 subcase below, not a full new matrix.",
+      "inheritedStatus": "PASS_NEW_NATIVE_DIRECT_COMPLETE_AND_PRIOR_ACTION_BRANCH",
+      "status": "PASS_NEW_NATIVE_DIRECT_COMPLETE_AND_PRIOR_ACTION_BRANCH"
+    },
+    {
+      "id": "T4",
+      "currentEvidenceBoundary": "Reuses separately attributed prior installed/model and CI evidence; this turn adds the explicit T9 subcase below, not a full new matrix.",
+      "inheritedStatus": "PRIOR_REAL_EVIDENCE_CARRIED_FORWARD_NOT_NEW_FULL_RETEST",
+      "status": "PRIOR_REAL_EVIDENCE_CARRIED_FORWARD_NOT_NEW_FULL_RETEST"
+    },
+    {
+      "id": "T5",
+      "currentEvidenceBoundary": "Reuses separately attributed prior installed/model and CI evidence; this turn adds the explicit T9 subcase below, not a full new matrix.",
+      "inheritedStatus": "PRIOR_REAL_EVIDENCE_CARRIED_FORWARD_NOT_NEW_FULL_RETEST",
+      "status": "PRIOR_REAL_EVIDENCE_CARRIED_FORWARD_NOT_NEW_FULL_RETEST"
+    },
+    {
+      "id": "T6",
+      "currentEvidenceBoundary": "Reuses separately attributed prior installed/model and CI evidence; this turn adds the explicit T9 subcase below, not a full new matrix.",
+      "inheritedStatus": "PRIOR_REAL_EVIDENCE_CARRIED_FORWARD_NOT_NEW_FULL_RETEST",
+      "status": "PRIOR_REAL_EVIDENCE_CARRIED_FORWARD_NOT_NEW_FULL_RETEST"
+    },
+    {
+      "id": "T7",
+      "currentEvidenceBoundary": "Reuses separately attributed prior installed/model and CI evidence; this turn adds the explicit T9 subcase below, not a full new matrix.",
+      "inheritedStatus": "FIXTURE_PASS_REAL_TRANSIENT_NOT_TESTED",
+      "status": "FIXTURE_PASS_REAL_TRANSIENT_NOT_TESTED"
+    },
+    {
+      "id": "T8",
+      "currentEvidenceBoundary": "Reuses separately attributed prior installed/model and CI evidence; this turn adds the explicit T9 subcase below, not a full new matrix.",
+      "inheritedStatus": "PRIOR_REAL_EVIDENCE_CARRIED_FORWARD_NOT_NEW_FULL_RETEST",
+      "status": "PRIOR_REAL_EVIDENCE_CARRIED_FORWARD_NOT_NEW_FULL_RETEST"
+    },
+    {
+      "id": "T9",
+      "currentEvidenceBoundary": "Reuses separately attributed prior installed/model and CI evidence; this turn adds the explicit T9 subcase below, not a full new matrix.",
+      "inheritedStatus": "PARTIAL_REAL_LIFECYCLE_NO_FULL_PASS",
+      "status": "PARTIAL_REAL_SAME_TURN_NATIVE_CANCEL_TERMINAL_AND_NAVIGATION_ONLY",
+      "newEvidence": [
+        "same-turn-stop-switch.json",
+        "native-turns-final.json",
+        "idle-provider-switch-after-stop.json",
+        "lifecycle-correlation.json"
+      ],
+      "notProven": [
+        "Inflight Provider change: actual navigation blocked",
+        "Inflight instance change: guarded",
+        "Other tool fully loaded before return",
+        "Real late-result discard scenario"
+      ]
+    },
+    {
+      "id": "T10",
+      "currentEvidenceBoundary": "Reuses separately attributed prior installed/model and CI evidence; this turn adds the explicit T9 subcase below, not a full new matrix.",
+      "inheritedStatus": "PARTIAL_OLD_CANDIDATE_WORKER_CLOSE_REOPEN_AND_NO_PROGRESS",
+      "status": "PARTIAL_OLD_CANDIDATE_WORKER_CLOSE_REOPEN_AND_NO_PROGRESS"
+    },
+    {
+      "id": "T11",
+      "currentEvidenceBoundary": "Reuses separately attributed prior installed/model and CI evidence; this turn adds the explicit T9 subcase below, not a full new matrix.",
+      "inheritedStatus": "NATIVE_REAL_PASS_HTTPS_RESPONSES_NOT_TESTED",
+      "status": "NATIVE_REAL_PASS_HTTPS_RESPONSES_NOT_TESTED"
+    },
+    {
+      "id": "T12",
+      "currentEvidenceBoundary": "Reuses separately attributed prior installed/model and CI evidence; this turn adds the explicit T9 subcase below, not a full new matrix.",
+      "inheritedStatus": "PARTIAL_REAL_PHYSICAL_SIDE_PANEL",
+      "status": "PARTIAL_REAL_PHYSICAL_SIDE_PANEL"
+    }
+  ],
+  "verification": {
+    "fresh": [
+      "node artifacts/bookmark-agent-r211-lifecycle/verify-lifecycle-evidence.mjs",
+      "node --check artifacts/bookmark-agent-r211-lifecycle/run-cancel-case.mjs",
+      "Actual headed installed SIDE_PANEL, trusted Input Send/Stop, native permission OS input, real Native app-server; matching cancellation receipt + readonly SQLite + independent chrome.bookmarks.getTree"
+    ],
+    "reusedBusinessNode": "326/326; R21 subset57, not added to326",
+    "reusedWorkflow": "147/147 CI parent tests; VM56/56 (42focus+14UI) separately reported, overlapping counts not summed",
+    "reusedCheck": "1005 local /1003 CI source files at recorded candidates",
+    "reusedChromium": "5 focused Workflow and23 all-tab source UI checks; source fixtures, not installed Provider proof",
+    "noFullRebuildThisTurn": "No product source changes or relevant failing input changes; existing build and safety evidence reused"
+  },
+  "ci": {
+    "r21": {
+      "run": 39698306861,
+      "agent-contract": "success",
+      "agent-build": "success"
+    },
+    "sharedWorkflow": {
+      "run": 39706472804,
+      "allThreeJobs": "success"
+    },
+    "oldR32": {
+      "run": 39705407655,
+      "trusted-source-build": "FAIL_ENGINEERING_BUDGET",
+      "actualToolShellBytes": 1191465,
+      "oldCapBytes": 1081344,
+      "productionBuildAndVerify": "success before cap assertion",
+      "guardNotRelaxed": true
+    }
+  },
+  "architecture": {
+    "newProductModules": 0,
+    "newDependencies": 0,
+    "secondProviderSdkHostAuthorityReactRoot": false,
+    "changes": "Evidence/observer drivers and stricter evidence assertions only"
+  },
+  "expertReview": "independent-review.json",
+  "expertScores": [
+    {
+      "dimension": "功能正确性",
+      "score": 95
+    },
+    {
+      "dimension": "架构简洁性",
+      "score": 90
+    },
+    {
+      "dimension": "Agent连续性",
+      "score": 93
+    },
+    {
+      "dimension": "异常恢复",
+      "score": 91
+    },
+    {
+      "dimension": "权限与数据安全",
+      "score": 94
+    },
+    {
+      "dimension": "UX与可访问性",
+      "score": 93
+    },
+    {
+      "dimension": "真实测试证据",
+      "score": 91
+    }
+  ],
+  "allExpertScoresAtLeast95": false,
+  "remaining": [
+    {
+      "status": "NOT_TESTED",
+      "item": "Live HTTPS and Responses endpoints/models/credentials not configured; no auth token forwarded or fabricated fixture PASS"
+    },
+    {
+      "status": "NOT_TESTED_REAL",
+      "item": "T7 real transient read/network recovery, remaining T9 actual inflight switching/late result, full T10 deadline/repeated plan/update lifecycle"
+    },
+    {
+      "status": "NOT_TESTED_FULL_UX",
+      "item": "Actual SidePanel320/200%; tab320/zoom2 and SidePanel360/400/440/960 remain separately attributed; current complete candidate not installed as final full matrix"
+    },
+    {
+      "status": "FAIL_ENGINEERING_BUDGET",
+      "item": "Old R32 fixed1056KiB cap, also exceeded by earlier candidate; no weakening to green CI"
+    },
+    {
+      "status": "NOT_ALL_95",
+      "item": "Seven independent dimension scores95/90/93/91/94/93/91"
+    },
+    {
+      "status": "PRIOR_OWNER_CLEANUP_BLOCKED",
+      "item": "Old bm-r211-155-01a16018 profile absent; no manual Native config removal. This new instance fully officially cleaned."
+    }
+  ],
+  "resourceCleanup": "resource-cleanup.json",
+  "driverCorrection": "driver-ownership-incident.json; original broad driver PASS must be read with lifecycle-correlation.json",
+  "priorEvidence": [
+    "../bookmark-agent-r211-followup-20261022/acceptance.json",
+    "../bookmark-agent-r211-ci-followup-20261022/acceptance-update.json"
+  ],
+  "nextOperation": "Complete a bounded remaining T9/T10 user operation with real installed app and full ready-state assertions; configure live HTTPS/Responses before dependent Provider tests. Do not repeat proved original one-Send core merely because unrelated main advances.",
+  "snapshotBoundary": "snapshot-extraction.json records original and retained hashes; only hidden UI control inventories omitted. Native/Chrome/SQL/trusted input/visible body evidence preserved."
+}

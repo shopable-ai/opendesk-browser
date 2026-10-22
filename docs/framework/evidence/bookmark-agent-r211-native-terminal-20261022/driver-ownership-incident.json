@@ -1,0 +1,10 @@
+{
+  "kind": "Driver window-ownership incident; not product failure",
+  "detail": "System Events AX PID lookup returned windows from a different concurrently running CFT156 despite own PID filter. One Esc may have reached that browser. No site data was cleared; no process was killed through that path. Exact impact of that Esc is unknown.",
+  "correction": "Stopped AX/window-title targeting. Native permission input used CoreGraphics window owner PID30891 + exact sheet ID and current bounds, verified frontmost PID and correct mouse down/up event constants.",
+  "excludedOtherOwnerImages": [
+    "storage-dialog.png",
+    "permission-window.png"
+  ],
+  "cleanupScope": "resource-cleanup.json otherProcessesSignalled=false describes cleanup signals only; it does not negate the earlier potentially misplaced Esc."
+}

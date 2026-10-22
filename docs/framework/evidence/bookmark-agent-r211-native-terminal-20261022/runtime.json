@@ -1,0 +1,13 @@
+{
+  "instance": "bm-r211-life-01a16018",
+  "codexHome": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/bm-r211-life-codex-aul6rp5s",
+  "extension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-agent-r211-followup/production",
+  "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "extensionId": "mcmnmlehmidheiacdiocikjkbdakdjoh",
+  "codexBinDir": "/Users/shopme/.local/opt/opendesk-codex-0.159.2/node_modules/.bin",
+  "sourceReference": "a36689ac0ecad72ad378144ad39812a72d31ef62",
+  "candidateBoundary": "Reuses frozen same business/Provider/Native input candidate; latest unrelated Workflow UI focus not in this frozen build.",
+  "toolShellSha256": "f0432a8440223b0e9fd2a5718d4c87f5a59a7a961e3839fc1af282a402f7f39d",
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-911sus05",
+  "pid": 30891
+}

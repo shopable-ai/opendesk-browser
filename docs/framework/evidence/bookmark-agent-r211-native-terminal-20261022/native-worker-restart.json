@@ -1,0 +1,152 @@
+{
+  "kind": "setup: restart stale optional permission API context, no model request",
+  "at": 1792635746081,
+  "before": {
+    "connectNative": "undefined",
+    "granted": true
+  },
+  "after": {
+    "connectNative": "function",
+    "granted": true
+  },
+  "versions": [
+    {
+      "versionId": "0",
+      "registrationId": "0",
+      "scriptURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+      "runningStatus": "stopped",
+      "status": "activated",
+      "scriptLastModified": 0,
+      "scriptResponseTime": 0,
+      "controlledClients": []
+    },
+    {
+      "versionId": "2",
+      "registrationId": "2",
+      "scriptURL": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sw.js",
+      "runningStatus": "running",
+      "status": "activated",
+      "scriptLastModified": 1792627745,
+      "scriptResponseTime": 0,
+      "controlledClients": [
+        "11751EB0026DDCEA46E664689C33F36E",
+        "812F0553A92C69E8B1E789D813739478"
+      ],
+      "targetId": "CB81E54FADEE7FD2E0AF3D6C0D4A5A50"
+    },
+    {
+      "versionId": "1",
+      "registrationId": "1",
+      "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+      "runningStatus": "stopped",
+      "status": "activated",
+      "scriptLastModified": 0,
+      "scriptResponseTime": 0,
+      "controlledClients": []
+    },
+    {
+      "versionId": "2",
+      "registrationId": "2",
+      "scriptURL": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sw.js",
+      "runningStatus": "stopping",
+      "status": "activated",
+      "scriptLastModified": 1792627745,
+      "scriptResponseTime": 0,
+      "controlledClients": [
+        "11751EB0026DDCEA46E664689C33F36E",
+        "812F0553A92C69E8B1E789D813739478"
+      ],
+      "targetId": "CB81E54FADEE7FD2E0AF3D6C0D4A5A50"
+    },
+    {
+      "versionId": "2",
+      "registrationId": "2",
+      "scriptURL": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sw.js",
+      "runningStatus": "stopping",
+      "status": "activated",
+      "scriptLastModified": 1792627745,
+      "scriptResponseTime": 0,
+      "controlledClients": [
+        "11751EB0026DDCEA46E664689C33F36E",
+        "812F0553A92C69E8B1E789D813739478"
+      ]
+    },
+    {
+      "versionId": "2",
+      "registrationId": "2",
+      "scriptURL": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sw.js",
+      "runningStatus": "stopped",
+      "status": "activated",
+      "scriptLastModified": 1792627745,
+      "scriptResponseTime": 0,
+      "controlledClients": [
+        "11751EB0026DDCEA46E664689C33F36E",
+        "812F0553A92C69E8B1E789D813739478"
+      ]
+    },
+    {
+      "versionId": "2",
+      "registrationId": "2",
+      "scriptURL": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sw.js",
+      "runningStatus": "stopped",
+      "status": "activated",
+      "scriptLastModified": 1792627745,
+      "scriptResponseTime": 0,
+      "controlledClients": [
+        "11751EB0026DDCEA46E664689C33F36E"
+      ]
+    },
+    {
+      "versionId": "2",
+      "registrationId": "2",
+      "scriptURL": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sw.js",
+      "runningStatus": "starting",
+      "status": "activated",
+      "scriptLastModified": 1792627745,
+      "scriptResponseTime": 0,
+      "controlledClients": [
+        "11751EB0026DDCEA46E664689C33F36E"
+      ]
+    },
+    {
+      "versionId": "2",
+      "registrationId": "2",
+      "scriptURL": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sw.js",
+      "runningStatus": "starting",
+      "status": "activated",
+      "scriptLastModified": 1792627745,
+      "scriptResponseTime": 0,
+      "controlledClients": [
+        "11751EB0026DDCEA46E664689C33F36E"
+      ],
+      "targetId": "CB81E54FADEE7FD2E0AF3D6C0D4A5A50"
+    },
+    {
+      "versionId": "2",
+      "registrationId": "2",
+      "scriptURL": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sw.js",
+      "runningStatus": "starting",
+      "status": "activated",
+      "scriptLastModified": 1792627745,
+      "scriptResponseTime": 0,
+      "controlledClients": [
+        "11751EB0026DDCEA46E664689C33F36E"
+      ],
+      "targetId": "CB81E54FADEE7FD2E0AF3D6C0D4A5A50"
+    },
+    {
+      "versionId": "2",
+      "registrationId": "2",
+      "scriptURL": "chrome-extension://mcmnmlehmidheiacdiocikjkbdakdjoh/sw.js",
+      "runningStatus": "running",
+      "status": "activated",
+      "scriptLastModified": 1792627745,
+      "scriptResponseTime": 0,
+      "controlledClients": [
+        "11751EB0026DDCEA46E664689C33F36E"
+      ],
+      "targetId": "CB81E54FADEE7FD2E0AF3D6C0D4A5A50"
+    }
+  ],
+  "ui": "我的\n扩展\n工作流\n开发\n云控\n新工作流\n✦\n创建新工作流\n\n用一句话描述任务，或选择下方示例开始。\n\n填写表单并读回\n只读提取网页信息\n描述任务，或告诉 AI 怎样修改步骤\n本机 Codex"
+}

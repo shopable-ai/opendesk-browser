@@ -1,0 +1,48 @@
+{
+  "reason": "Keep reviewable snapshots of visible controls; raw local captures remain in ignored artifacts/bookmark-agent-r211-lifecycle.",
+  "changes": "Only controls arrays in UI snapshots: retain visible controls and omit select option inventories. Preserve all body text, URLs, inputs trace, Native IDs/events/times, Chrome trees, SQL metadata, checks and error details. No model/SDK/Chrome response transformed.",
+  "files": [
+    {
+      "file": "bookmark-permission-granted.json",
+      "originalBytes": 82711,
+      "originalSha256": "26fe6fc7413fc858707fe6ca2635b0ab6db16ae6e5bcee2274c47ea4ef40a68b",
+      "retainedBytes": 4393,
+      "retainedSha256": "8bbd162e410b5735a0db237040153c97ce3246a68f70b83c2113251b827ed031"
+    },
+    {
+      "file": "idle-provider-switch-after-stop.json",
+      "originalBytes": 94985,
+      "originalSha256": "8ba4f7ab56fbdb2c76285f639ab7e4905a043472313c5fe43dff2f995c48a5ff",
+      "retainedBytes": 10673,
+      "retainedSha256": "0cd5445322f632e68f414fc0d65319dcf871a86e2b119e6f50493c47f9bc1d6f"
+    },
+    {
+      "file": "native-ready.json",
+      "originalBytes": 73158,
+      "originalSha256": "e60d8701bf2be511ccd9f6de79cff3b6396eaeeaed590e6404028c76f55a2e80",
+      "retainedBytes": 4188,
+      "retainedSha256": "0a366b90f156debf98fad9052a04091aed4a193b9c115e4ac5fabc9e85574064"
+    },
+    {
+      "file": "provider-driver-recheck.json",
+      "originalBytes": 82863,
+      "originalSha256": "73e24ea4872c57248607817e294620a1db82cb94e32c0f7945825be2dc29d744",
+      "retainedBytes": 5124,
+      "retainedSha256": "94efa189f373978da022f6b7b2cc12798b42818563a9173116f8874381e3b9dc"
+    },
+    {
+      "file": "provider-real.json",
+      "originalBytes": 173360,
+      "originalSha256": "0b5c6ee7be6ad8cbc0d8b1598e8b0460aaacd00d295c92180e3de609e04f33b9",
+      "retainedBytes": 11306,
+      "retainedSha256": "09747959b3d43af574294c7f2489a3e79f99f97cd505473ad5df0024d37b1797"
+    },
+    {
+      "file": "same-turn-stop-switch.json",
+      "originalBytes": 265736,
+      "originalSha256": "c4c69ad31dd4de747daaf6b7787d5e3c39ead8ef056e61b15e7dd130dc3d64f8",
+      "retainedBytes": 19371,
+      "retainedSha256": "e343d88064b4cbf33878a2e067a12691371b89b961eadf7077598a411c01ccd9"
+    }
+  ]
+}

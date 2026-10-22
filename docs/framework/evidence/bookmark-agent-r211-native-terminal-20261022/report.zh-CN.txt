@@ -1,0 +1,17 @@
+当前完成了什么：原始一次发送收藏闭环已有真实 Native/Chrome 证据；本轮新增真实 Stop 终态。一次可信发送启动 Native 回合，在等待模型时 Stop，收到同 session/thread/turn 的 CANCELLED / interrupted，Native SQLite 也为 interrupted。零 SDK 写入、零 Chrome 变更事件，独立书签树读回未变。Stop 后实际导航到网页笔记再返回；网页笔记快照仍在加载，不算其完整运行验收。
+
+当前仍有什么缺口：整体 NO_FINAL_PASS。运行中 Provider 切换被当前产品导航保护阻止；停止后可实际切换 HTTPS/Codex，但这不证明 live HTTPS/Responses。T7 真实瞬断、剩余 T9 晚到及运行中切换、完整 T10、实际 SidePanel320/200%、完整最新候选验收与旧 R32 容量失败未闭合。
+
+实际修复了什么：本轮无业务源码修改。Native 初次权限授予后 Worker 尚无 connectNative API；在没有模型请求时重启该隔离 Worker 后恢复。修正驱动选择真实 Stop 控件并继续原请求；收窄切换断言，新增离线 ID/时序/Native SQLite/Chrome 树关联核验。首次 AX 窗口归属不可靠，一次 Esc 可能到了并行浏览器；已停止该路径，未清除站点数据，具体影响未知。之后按 CoreGraphics PID/窗口 ID 和前台进程核验操作。
+
+用户现在能做什么：在已经配置并授权的本机 Codex 中，一次发送“把当前页面放入测试收藏夹，如果没有，就创建目录”。之前已实证创建/复用并独立读回；本轮验证等待模型时 Stop 的真实终态，不把取消案例冒充新的完成案例。
+
+测试证据：见 acceptance-update.json 与 lifecycle-correlation.json。既有 Node326/326（R21包含57），Workflow CI147/147，VM56/56独立；不叠加重叠计数。R21 agent-contract/agent-build 成功；共享 Workflow 三 Job 成功；R32 旧1056KiB cap 失败保留。无源码变更，不重复全量构建。本轮真实 CFT155、Native0.159.2、openai/gpt-6.1-sol 本地元数据、一次 Send/Stop、独立 SQLite/Chrome 关联；元数据不是 Provider 侧逐回合证明。
+
+架构复杂度：沿用唯一 Provider/SDK/Host/Authority/React 根；新增产品模块和依赖均为0，仅观察驱动、原始证据与关联核验。日常 Chrome/dist/development/watcher 未替换或停止。
+
+专家评分：独立只读 reviewer Dalton 分别给功能95、架构90、连续性93、恢复91、安全94、UX93、真实证据91；原因见 independent-review.json。未全部达到95，不能称最终通过。
+
+Git 交付：提交前观测 main=HEAD 见 source-state.json；最终本轮 evidence commit SHA 由 Git 日志与对话最终报告给出，文件中不虚构自身 commit SHA。保留并行源码及构建账本修改，不发布商店版本。
+
+剩余工作：仅上述未闭合项；不要重复已经有有效证据的核心一次发送操作。本轮 Chrome/Profile/Native instance 与临时 CODEX_HOME/auth副本已全部按 owner 清理；旧历史缺失Profile实例仍保留原阻塞记录。

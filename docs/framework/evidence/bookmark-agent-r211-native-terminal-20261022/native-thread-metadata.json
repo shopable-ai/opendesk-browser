@@ -1,0 +1,14 @@
+{
+  "kind": "Native app-server metadata only; not provider-side per-turn attestation",
+  "threads": [
+    {
+      "id": "01a1616d-6bdf-7d31-87f1-da6c4cd6a37c",
+      "model_provider": "openai",
+      "model": "gpt-6.1-sol",
+      "cli_version": "0.159.2",
+      "source": "vscode",
+      "created_at": 1792635928,
+      "updated_at": 1792635991
+    }
+  ]
+}
