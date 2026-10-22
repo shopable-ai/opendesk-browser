@@ -379,9 +379,10 @@ async function run(){
     report.scenes.push({width:n,form:'100-lines',overflow:x.horizontalOverflow,screenshot:'formal-long-body-'+n+'px.png'});
   }
   await click('#ps-cancel');
-  await poll('document.querySelector("#ps-leave")&&!document.querySelector("#ps-leave").hidden','unsaved draft guard');
-  await click('#ps-discard');
-  await poll('document.querySelector("#ps-index")&&!document.querySelector("#ps-index").hidden','discard returns to list');
+  await poll('document.querySelector("#ps-index")&&!document.querySelector("#ps-index").hidden',
+    'R1.9.5 ordinary unsaved form directly returns without an extra confirmation');
+  assert.equal(await evaluate('document.querySelector("#ps-leave")===null'),true,
+    'old unsaved warning must not return');
   await rpc('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:'dark'}]});
   await screenshot('formal-dark-440px');
   report.darkScreenshot='formal-dark-440px.png';
