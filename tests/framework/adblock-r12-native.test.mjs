@@ -924,8 +924,8 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
       throw error;
     }
   };
-  const context=await probeWorker('read-only-context','({url:location.href,extensionId:chrome.runtime.id})');
-  assert.equal(context?.extensionId,id,'native worker identity must match the installed extension');
+  const workerIdentity=await probeWorker('read-only-context','({url:location.href,extensionId:chrome.runtime.id})');
+  assert.equal(workerIdentity?.extensionId,id,'native worker identity must match the installed extension');
   await probeWorker('native-call-observer','('+observeNativeCalls.toString()+')()');
   const visit=await client.send('Target.createTarget',{url:page});
   let site=await attach(client,visit.targetId);
