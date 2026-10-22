@@ -245,7 +245,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
       scroller.current.scrollTop=scroller.current.scrollHeight;
   },[model.messages,model.phase,active]);
   const action=(id,label,{icon=false,primary=false,kind,...props}={})=>icon
-      ?<IconButton id={id} label={label} title={id==='workflow-ai-plan'?'发送任务并生成步骤':label}
+      ?<IconButton id={id} label={label} title={id==='workflow-ai-plan'?'发送任务，安全操作将直接执行':label}
         className={'workflow-icon-button'+(primary?' od-icon-button--primary':'')} hidden={c(id).hidden}
         disabled={Boolean(c(id).disabled)} onClick={event=>click(id,event)} {...props}><Glyph kind={kind}/></IconButton>
     :<Button id={id} variant={primary?'primary':'secondary'} hidden={c(id).hidden}
@@ -308,22 +308,18 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
             </div>
           </section>
           <section id="workflow-run-review" className="workflow-run-review od-alert od-alert--warning"
-            role="group" aria-label="确认网页操作" hidden={c('workflow-run-review').hidden!==false}
+            role="group" aria-label="网站权限或敏感操作确认" hidden={c('workflow-run-review').hidden!==false}
             onKeyDown={event=>{
               if(event.key==='Escape'&&event.nativeEvent.isTrusted){
                 event.preventDefault();event.stopPropagation();
                 actions.click?.('workflow-run-review-cancel',event.nativeEvent);
               }
             }}>
-            {model.awaitingReview&&<><h3>准备执行 {model.steps?.length||0} 步</h3>
-              <ol className="workflow-ai-review-steps">{model.steps?.map((step,index)=><li key={step.stepId}>
-                {index+1}. {({observe:'观察页面',fill:'填写内容',click:'点击网页元素',wait:'等待元素',extract:'读取文本',assert:'验证内容',navigate:'打开网页'})[step.op]||'执行操作'}
-                {step.param?' · 参数 '+step.param:step.op==='fill'&&step.text?' · 「'+String(step.text).slice(0,64)+'」':step.roleName?' · '+step.roleName:step.selector?' · '+step.selector:''}
-              </li>)}</ol></>}
+            {model.awaitingReview&&<h3>需要网站权限</h3>}
             {text('workflow-run-review-scope')}
             <div className="workflow-actions">
               {action('workflow-run-review-cancel','取消')}
-              {action('workflow-run-review-confirm','执行',{primary:true})}
+              {action('workflow-run-review-confirm',model.awaitingReview?'授权并执行':'执行',{primary:true})}
             </div>
           </section>
           <details id="workflow-result-panel" className="workflow-result-details od-disclosure od-disclosure--flat"
@@ -406,7 +402,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
         <div className="workflow-composer-actions">
           {action('workflow-provider-toggle','AI 设置',{icon:true,kind:'settings','aria-expanded':openSettings,'aria-controls':'workflow-provider-settings'})}
           <WorkflowSourceName value={model.sourceName||'本机 Codex'}/>
-        {action('workflow-ai-plan','发送任务并生成步骤',{icon:true,primary:true,kind:'send'})}
+        {action('workflow-ai-plan','发送任务',{icon:true,primary:true,kind:'send'})}
           {action('workflow-ai-cancel','停止 AI 规划')}
         </div>
       </div>
