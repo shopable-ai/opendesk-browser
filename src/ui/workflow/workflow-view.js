@@ -13,6 +13,7 @@ import {createLocalCodexPlanner,describeLocalCodex} from './local-codex.js';
 import {createWorkflowObservation,workflowObservationForModel,workflowObservationGrantMatches,workflowObservationRecipientId} from './observation.js';
 import {classifyWorkflowRunRisk,prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect,verifyOpenedLinkPage,verifySavedWorkflowRevision} from './direct-execution.js';
 import {createTaskReviewHandoff,taskReviewHandoffKey} from './task-review-handoff.js';
+import {createWorkflowAgentLoopGuard} from './agent-loop.js';
 
 const STORAGE_PREFIX = 'opendesk.sidebar.workflow.v1:';
 const SESSION_PREFIX = 'opendesk.sidebar.workflow-draft.v1:';
@@ -74,6 +75,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   let autoExecutionPending=false; // No second Send while a pre-granted, safe AI run is being admitted.
   let historyOpen=false,newReviewReturnFocus=null;
   let planningGeneration=0,planningAbort=null,planningTarget=null,pendingApproval=null,localChecking=false;
+  let workflowAgent=null; // A task-scoped coordinator only; RunHost/Provider remain unique.
   let observationApproval=null,planningObservation=null,approvalWrites=Promise.resolve();
   let localCapability={state:'UNKNOWN',readyForTurn:false},aiCleanup=Promise.resolve();
   let workflow=emptyWorkflow(currentPageTarget?.snapshot?.origin || '',crypto.randomUUID());
@@ -215,18 +217,19 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   function updateButtons() {
     if(disposed)return;
     // An active RunHost also owns the viewport, even after AI planning settles.
-    const operationBusy=busy||autoExecutionPending||Boolean(host.executionPending||host.currentRun);
+    const operationBusy=busy||autoExecutionPending||Boolean(workflowAgent)||Boolean(host.executionPending||host.currentRun);
     const runnable=Boolean(compiled && currentOrigin()===workflow.siteOrigin &&
       !operationBusy && !historyOpen && !pendingAIReview);
     control('workflow-run').disabled=!runnable;
     control('workflow-save').disabled=busy || autoExecutionPending || !compiled;
     control('workflow-candidate').disabled=busy || autoExecutionPending || !matchesRevision();
-    control('workflow-stop').disabled=!runId || host.currentRun!==runId;
+    control('workflow-stop').disabled=Boolean(workflowAgent)||!runId || host.currentRun!==runId;
+    control('workflow-stop').hidden=Boolean(workflowAgent);
     control('workflow-open-code').disabled=!compiled;
-    control('workflow-ai-plan').disabled=busy||autoExecutionPending||Boolean(pendingAIReview)||provider()==='opendesk_cloud'||
+    control('workflow-ai-plan').disabled=busy||autoExecutionPending||Boolean(workflowAgent)||Boolean(pendingAIReview)||provider()==='opendesk_cloud'||
       (provider()==='local_codex'&&localChecking);
-    control('workflow-ai-plan').hidden=phase==='planning';
-    control('workflow-ai-cancel').hidden=phase!=='planning';
+    control('workflow-ai-plan').hidden=phase==='planning'||Boolean(workflowAgent);
+    control('workflow-ai-cancel').hidden=phase!=='planning'&&!workflowAgent;
     const sessionState=localPlanner.snapshot();
     const sessionHint=sessionState.sessionId&&localCapability.resumeSupported===false
       ?'新对话（结束后旧对话不可恢复）':'新对话（保留当前工作流）';
@@ -921,6 +924,42 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     localCapability={...localCapability,state,reason:error.code,readyForTurn:false};
     updateLocalStatus();return describeLocalCodex(localCapability).message;
   }
+  function finishWorkflowAgent(agent,state,message) {
+    if(workflowAgent!==agent)return;
+    workflowAgent=null;
+    if(disposed)return;
+    control('workflow-editor').dataset.agentState=state;
+    phase='idle';busy=false;
+    if(message){appendChat('任务结果',message);status(message,state!=='COMPLETED'&&state!=='STOPPED');}
+    updateButtons();
+  }
+  function stopWorkflowAgent(reason='E_CANCELLED') {
+    const agent=workflowAgent;
+    if(!agent)return Promise.resolve();
+    if(agent.stopping)return agent.stopPromise||Promise.resolve();
+    agent.stopping=true;
+    agent.controller.abort(err(reason,'本次任务已请求停止，不再启动新的网页操作'));
+    control('workflow-editor').dataset.agentState='STOP_REQUESTED';
+    if(!disposed)status('正在停止当前任务；已发生的网页变化不会回滚，正在核对运行状态。');
+    const activeId=runId&&host.currentRun===runId?runId:null;
+    const observationId=observation.activeRunId;
+    dismissRunReview();
+    const pending=[Promise.resolve(stopPlanning())];
+    if(activeId&&activeId!==observationId)
+      pending.push(Promise.resolve().then(()=>host.stop({controller:true,runId:activeId,reason})));
+    if(observationId)pending.push(Promise.resolve(observation.cancel()));
+    agent.stopPromise=Promise.allSettled(pending).then(results=>{
+      const unknown=results.some(result=>result.status==='rejected')||
+        Boolean(activeId&&host.currentRun===activeId)||Boolean(host.executionPending);
+      const state=unknown?'OUTCOME_UNKNOWN':
+        agent.guard.snapshot().actionCount>0?'PARTIAL':'STOPPED';
+      finishWorkflowAgent(agent,state,unknown
+        ?'已禁止新操作，但运行或 Worker 收尾未核实；结果未知，请勿重放。'
+        :state==='PARTIAL'?'已停止后续操作；此前已执行的步骤可能保留，请核对网页。'
+          :'已停止本次任务，未启动后续网页操作。');
+    });
+    return agent.stopPromise;
+  }
   function stopPlanning({close=false,remember=false}={}) {
     const stoppedGeneration=++planningGeneration;
     if(close)localCapability={...localCapability,inferenceVerified:false};
@@ -1294,7 +1333,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   bind('workflow-https-protocol','change',event=>chooseSource(event.target.value,event));
   bind('workflow-ai-provider','change',()=>{
     dismissRunReview();
-    void stopPlanning({close:true}).catch(()=>{});
+    void (workflowAgent?stopWorkflowAgent('E_TOOL_CHANGED'):stopPlanning({close:true})).catch(()=>{});
     observationApproval=null;persistObservationApproval();
     verifiedTurnHistory=[];lastProviderTurn=null;
     renderProvider();if(control('workflow-provider-settings').open)void refreshLocal();
@@ -1302,8 +1341,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   bind('workflow-observation-revoke','click',event=>{
     if(!event.isTrusted)return;
     observationApproval=null;persistObservationApproval();renderObservationApproval();
-    void stopPlanning().catch(error=>status(format(error),true));
-    if(runId&&host.currentRun===runId)
+    void (workflowAgent?stopWorkflowAgent('E_PERMISSION'):stopPlanning()).catch(error=>status(format(error),true));
+    if(!workflowAgent&&runId&&host.currentRun===runId)
       void host.stop({controller:true,runId,reason:'E_PERMISSION'}).catch(error=>status(format(error),true));
     status('已撤权并停止任务；模型已收内容无法撤回。');
   });
@@ -1342,7 +1381,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }});
   });
   bind('workflow-ai-cancel','click',event=>{
-    if(!event.isTrusted||phase!=='planning')return;
+    if(!event.isTrusted||(phase!=='planning'&&!workflowAgent))return;
+    if(workflowAgent){void stopWorkflowAgent().catch(error=>status(format(error),true));return;}
     const stopped=stopPlanning(),epoch=planningGeneration;
     void stopped.then(reply=>{
       if(!disposed&&epoch===planningGeneration)status(reply?.terminalStatus==='interrupted'
@@ -1521,6 +1561,12 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   bind('workflow-ai-plan','click',plan);
   const unsubscribePage=currentPageTarget?.subscribe(next=>{
     if(disposed)return;
+    if(workflowAgent&&next.status==='available'&&
+      (next.windowId!==workflowAgent.initialTarget.windowId||
+       next.tabId!==workflowAgent.initialTarget.tabId||
+       (next.origin!==workflowAgent.initialTarget.origin&&
+        next.origin!==workflowAgent.expectedNavigation?.origin)))
+      void stopWorkflowAgent('E_DOCUMENT_STALE').catch(()=>{});
     const reviewTarget=pendingAIReview?.captured||pendingRunReview?.captured;
     if(reviewTarget&&(next.status!=='available'||
       ['windowId','tabId','frameId','documentId','url','origin']
@@ -1537,7 +1583,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     }
     if(planningTarget&&(['windowId','tabId','frameId','documentId','url','origin']
       .some(key=>next[key]!==planningTarget[key])||next.status!=='available'))
-      void stopPlanning().catch(error=>status(format(error),true));
+      void (workflowAgent?stopWorkflowAgent('E_DOCUMENT_STALE'):stopPlanning()).catch(error=>status(format(error),true));
     if(!touched&&!workflow.siteOrigin&&next.status==='available') {
       workflow.siteOrigin=next.origin;render();persistDraft();
     }else{control('workflow-site-note').text=next.status==='available'
@@ -1572,6 +1618,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(active&&((active.source==='local_codex'&&grant.permissions?.includes('nativeMessaging'))||
       (active.source!=='local_codex'&&grant.origins?.some(affectsProvider)))){
       invalidateBookmarkConversation(err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已撤销，本轮 AI 提议失效'));
+    }
+    if(workflowAgent&&(grant.origins?.length||grant.permissions?.includes('nativeMessaging'))){
+      let stillGranted=false;
+      try{stillGranted=await api.permissions.contains({
+        origins:[permissionPattern(workflowAgent.initialTarget.url)]});}catch{}
+      if(!stillGranted||workflowAgent.selected==='local_codex'&&grant.permissions?.includes('nativeMessaging'))
+        void stopWorkflowAgent('E_PERMISSION').catch(()=>{});
     }
     if(!grant.origins?.length&&!grant.permissions?.includes('nativeMessaging'))return;
     const approval=observationApproval;
@@ -1917,7 +1970,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     cancel:args=>conversation.cancel(args)
   });
   return {getSnapshot:ui.getSnapshot,subscribe:ui.subscribe,actions,conversation,taskConversation,dispose() {
-    if(disposed)return;dismissRunReview();disposed=true;compileToken++;planningGeneration++;
+    if(disposed)return;
+    if(workflowAgent)void stopWorkflowAgent('E_HOST_CLOSED').catch(()=>{});
+    dismissRunReview();disposed=true;compileToken++;planningGeneration++;
     bookmarkConversationActive?.abortController.abort(err('E_TOOL_CHANGED','书签扩展实例已关闭'));
     planningAbort?.abort(err('E_HOST_CLOSED','工作流窗口已关闭'));pendingApproval?.settle({decision:'deny'});
     localPlanner.dispose();conversationPlanner.dispose();taskConversationPlanner.dispose();void Promise.resolve(observation.dispose()).catch(()=>{});
