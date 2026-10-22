@@ -62,7 +62,7 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
   const nodes=Object.fromEntries([...html.matchAll(/<([a-z][a-z0-9-]*)\b([^>]*\bid="([^"]+)"[^>]*)>/gi)]
     .map(([,tag,attrs,id])=>{const node=new FakeNode(tag,id);
       node.type=attrs.match(/\btype="([^"]+)"/)?.[1]||'';return [id,node];}));
-  for(const id of ['ps-edit','ps-leave','ps-empty','ps-error','ps-body-error',
+  for(const id of ['ps-edit','ps-empty','ps-error','ps-body-error',
     'ps-transfer-menu','ps-import-panel','ps-import-warning','ps-import-file'])nodes[id].hidden=true;
   nodes['ps-body'].tagName='TEXTAREA';
   nodes['ps-label'].tagName='INPUT';nodes['ps-name'].tagName='INPUT';
@@ -180,16 +180,12 @@ test('R1.7 actual Sandbox UI: content-first create, inline confirm, draft guard 
   assert.equal(n['ps-index'].hidden,false);
   assert.equal(f.states.at(-1).dirty,false);
 
-  // Reopen and edit the content, protect unsaved changes on Back.
+  // R1.9.5: ordinary unsaved edits return directly; persisted content is untouched.
   buttonByAction(n['ps-list'],'more').click();buttonByAction(n['ps-list'],'edit').emit('click');
   assert.equal(n['ps-label'].value,'','automatic label stays unset during editing');
   n['ps-body'].value='覆盖前的未保存正文';n['ps-form'].emit('input');
   n['ps-cancel'].emit('click');
-  assert.equal(n['ps-leave'].hidden,false,'back is deferred to explicit review');
-  n['ps-stay'].emit('click');
-  assert.equal(n['ps-body'].value,'覆盖前的未保存正文');
-  n['ps-cancel'].emit('click');n['ps-discard'].emit('click');
-  assert.equal(n['ps-index'].hidden,false);
+  assert.equal(n['ps-index'].hidden,false,'Cancel immediately discards ordinary form edits');
   assert.equal(f.stored().items[0].body,' 中文项目\n第二行','discard cannot modify saved content');
 
   // User switches web buttons off without losing any content.
@@ -211,7 +207,8 @@ test('R1.7 actual Sandbox UI: content-first create, inline confirm, draft guard 
   assert.equal(n['ps-edit'].hidden,false);
   assert.equal(n['ps-body'].value.length,4000);
   assert.match(n['ps-error'].textContent,/8 KiB/);
-  n['ps-cancel'].emit('click');n['ps-discard'].emit('click');
+  n['ps-cancel'].emit('click');
+  assert.equal(n['ps-index'].hidden,false);
   assert.equal(f.stored().items.length,1);
 
   if(!allDescendants(n['ps-list']).some(item=>item.dataset.action==='delete'))
@@ -331,22 +328,21 @@ test('R1.8 deferred create acknowledgement binds the new ID before saving newer 
   assert.equal(n['ps-index'].hidden,false);assert.equal(f.states.at(-1).dirty,false);
 });
 
-test('R1.8 pending save blocks Cancel and an already-open discard confirmation',async()=>{
+test('R1.9.5 pending save blocks Cancel without opening the deleted discard layer',async()=>{
   const f=await fixture({deferWrites:true}),n=f.nodes;
   n['ps-new'].click();n['ps-body'].value='等待确认的正文';n['ps-form'].emit('input');
-  n['ps-cancel'].click();assert.equal(n['ps-leave'].hidden,false);
   n['ps-form'].emit('submit',{preventDefault(){}});
   assert.equal(f.states.at(-1).busy,true);
   assert.equal(n['ps-form'].attributes['aria-busy'],'true');
   assert.equal(n['ps-status'].hidden,false);assert.match(n['ps-status'].textContent,/保存中/);
-  for(const id of ['ps-cancel','ps-discard']){
+  for(const id of ['ps-cancel','ps-save']){
     assert.equal(n[id].disabled,true,id+' must be disabled while saving');
     n[id].emit('click'); // Exercise the JS guard too, even if an event was already queued.
     assert.equal(n['ps-edit'].hidden,false);assert.equal(n['ps-body'].value,'等待确认的正文');
   }
   f.pending.shift().resolve();await settle();
   assert.equal(f.states.at(-1).busy,false);assert.equal(n['ps-form'].attributes['aria-busy'],'false');
-  assert.equal(n['ps-cancel'].disabled,false);assert.equal(n['ps-discard'].disabled,false);
+  assert.equal(n['ps-cancel'].disabled,false);assert.equal(n['ps-save'].disabled,false);
   assert.equal(f.stored().items[0].body,'等待确认的正文');assert.equal(n['ps-index'].hidden,false);
 });
 
@@ -498,16 +494,14 @@ test('R1.8 native menu prefill is an unsaved draft until explicitly saved or dis
   const f=await fixture({menuSelection:selection}),n=f.nodes;
   assert.equal(n['ps-body'].value,selection);assert.equal(f.writes(),0);
   assert.equal(f.states.at(-1).dirty,true);
-  n['ps-cancel'].click();assert.equal(n['ps-leave'].hidden,false);
-  n['ps-stay'].click();assert.equal(n['ps-body'].value,selection);
+  assert.equal(n['ps-edit'].hidden,false,'native selection is a draft until explicit save');
   n['ps-body'].value+='修改';n['ps-form'].emit('input');
   n['ps-body'].value=selection;n['ps-form'].emit('input');
   assert.equal(f.states.at(-1).dirty,true,'returning to the received selection cannot pretend it was saved');
   n['ps-save'].click();await settle();assert.equal(f.stored().items[0].body,selection);
   assert.equal(f.states.at(-1).dirty,false);
   const discard=await fixture({menuSelection:selection});
-  discard.nodes['ps-cancel'].click();assert.equal(discard.nodes['ps-leave'].hidden,false);
-  discard.nodes['ps-discard'].click();assert.equal(discard.nodes['ps-index'].hidden,false);
+  discard.nodes['ps-cancel'].click();assert.equal(discard.nodes['ps-index'].hidden,false);
   assert.equal(discard.writes(),0);
 });
 
@@ -1141,11 +1135,8 @@ test('R1.7 official header: create, draft back, ETag save/readback, edit and foc
   assert.deepEqual(f.navigation.at(-1),{page:'create',title:'新建提示词',canBack:true});
   n['ps-body'].value='第一次草稿';n['ps-form'].emit('input');
   nav('back');
-  assert.equal(n['ps-leave'].hidden,false,'shared back must use the same draft guard');
-  n['ps-stay'].click();
-  assert.equal(n['ps-body'].value,'第一次草稿');
-  nav('back');n['ps-discard'].click();
-  assert.equal(n['ps-index'].hidden,false);
+  assert.equal(n['ps-index'].hidden,false,'shared Back directly discards an ordinary draft');
+  assert.equal(f.writes(),0,'Back must not create a persisted prompt');
   assert.equal(f.navigation.at(-1).page,'index');
   nav('primary');
   n['ps-body'].value='你好';n['ps-form'].emit('input');
@@ -1172,7 +1163,7 @@ test('R1.7 third-party and standalone preview keep the local New/title controls'
   assert.equal(n['ps-form-title'].textContent,'新建提示词');
   n['ps-body'].value='独立页面草稿';n['ps-form'].emit('input');
   n['ps-cancel'].click();
-  assert.equal(n['ps-leave'].hidden,false);
+  assert.equal(n['ps-index'].hidden,false,'standalone Back discards ordinary draft directly');
 });
 
 test('R1.7 shared back blocks pending and unknown storage results without replay',async()=>{
@@ -1188,6 +1179,6 @@ test('R1.7 shared back blocks pending and unknown storage results without replay
   f.readbacks.shift().reject(Error('readback unavailable'));await settle();
   assert.equal(n['ps-body'].value,'未确认草稿');
   back();assert.equal(n['ps-edit'].hidden,false);
-  assert.equal(n['ps-leave'].hidden,true,'unknown writes cannot be discarded');
+  assert.equal(n['ps-edit'].hidden,false,'unknown writes cannot be discarded');
   assert.equal(f.requests.filter(row=>row.op==='storage.set').length,1);
 });
