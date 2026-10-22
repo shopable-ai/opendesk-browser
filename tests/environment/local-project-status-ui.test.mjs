@@ -196,7 +196,7 @@ test('Local rejected preparation keeps its error while Controller history remain
   await controllerResults.read(oldRun.runId,{reveal:true});assert.match(text,/A_OLD_VALUE/);
   assert.equal(f.find('script-task-id').textContent,'runId：'+oldRun.runId);
 });
-function fixture(t,{nativeConnected=true,connected=false,saved,files=[]}={}){
+function fixture(t,{nativeConnected=true,connected=false,saved,files=[],preparationDelayMs=0}={}){
   const developerView=createDeveloperView(),find=developerTestFields(developerView);
   find('local-project-mode').checked=true;
   let state={connected,nativeConnected,providerEpoch:connected?'epoch-a':null},projects=[project],listener;
@@ -204,7 +204,7 @@ function fixture(t,{nativeConnected=true,connected=false,saved,files=[]}={}){
   const client={requestLocalProject:async method=>{calls.push(method);return method==='status'?state:method==='workspaces.list'?fileCatalog(files):{providerEpoch:state.providerEpoch,projects};},
     subscribeLocalProjects:callback=>{listener=callback;return ()=>{listener=null;};}};
   const api={runtime:{getURL:path=>'chrome-extension://test/'+path,openOptionsPage:async()=>opened.push('options')},tabs:{create:async value=>opened.push(value)},storage:{local:{get:async()=>saved?{'opendesk.local-project.selection.v1':saved}:{},set:async value=>{writes.push(value);}}}};
-  const view=createLocalProjectView({client,api,view:developerView,onChange:()=>changes++,preparationDelayMs:0});
+  const view=createLocalProjectView({client,api,view:developerView,onChange:()=>changes++,preparationDelayMs});
   t.after(()=>view.dispose());
   return {view,developerView,api,find,calls,writes,opened,client,setState:value=>{state=value;},setProjects:value=>{projects=value;},setFiles:value=>{files=value;},notify:value=>listener(value),
     activity:()=>{
@@ -821,6 +821,42 @@ test('local readiness hides connection help and Page parameters, without hiding 
   assert.equal(f.find('local-project-recovery').hidden,false);
   assert.equal(f.find('local-project-connect').hidden,false);
   assert.equal(f.view.readyForRun(),false);
+});
+for(const change of ['same','sourceHash','inputHash'])test(`resolved source stabilizes install review before background summary: ${change}`,async t=>{
+  const f=fixture(t,{connected:true,preparationDelayMs:250});
+  f.setProjects([{...project,runtimeKind:'controller',preparation:undefined}]);
+  const sourceUtf8='async function main(){return 1;}';
+  const source={bindingId:project.bindingId,providerEpoch:'epoch-a',projectId:'project-a',
+    runtimeKind:'controller',entryFormat:'async-main',sourceUtf8,sourceHash:await sha256Utf8(sourceUtf8),
+    sourceBytes:Buffer.byteLength(sourceUtf8),inputHash:'a'.repeat(64),siteOrigins:['https://example.com']};
+  const request=f.client.requestLocalProject;let reads=0;
+  const entered=deferred(),background=deferred();t.after(()=>background.resolve(source));
+  f.client.requestLocalProject=async(method,args)=>{
+    if(method!=='project.resolve')return request(method,args);
+    if(++reads===3){entered.resolve();return background.promise;}
+    return structuredClone(source);
+  };
+  f.client.request=async method=>{assert.equal(method,'listTaskCatalog');return {catalog:[],installed:[]};};
+  await tick();
+  const binding=f.view.capture(),resolved=await f.view.resolve(binding);
+  const target={status:'available',tabId:11,windowId:3,frameId:0,documentId:'doc-a',url:'https://example.com/form'};
+  const ui=createLocalInstallUI({client:f.client,api:{permissions:{contains:async()=>true}},
+    view:f.developerView,getProject:()=>f.view,currentPageTarget:{snapshot:target,revalidate:async()=>{}}});
+  t.after(()=>ui.dispose());
+  ui.succeeded({source:resolved,binding,target,runId:'verified-run'});
+  await ui.prepare();
+  assert.equal(f.find('local-install-review').hidden,false);
+  await entered.promise;
+  const later=structuredClone(source);
+  if(change==='inputHash')later.inputHash='b'.repeat(64);
+  if(change==='sourceHash'){
+    later.sourceUtf8='async function main(){return 2;}';
+    later.sourceHash=await sha256Utf8(later.sourceUtf8);later.sourceBytes=Buffer.byteLength(later.sourceUtf8);
+  }
+  background.resolve(later);await tick();await tick();ui.update();
+  assert.equal(f.find('local-install-review').hidden,change!=='same',
+    'same validated bytes keep the review; changed source/input must invalidate it');
+  assert.equal(f.find('local-install-confirm').disabled,change!=='same');
 });
 test('catalogs without preparation metadata only read selected authorized source and verify hash',async t=>{
   const f=fixture(t,{connected:true});f.setProjects([{...project,preparation:undefined}]);

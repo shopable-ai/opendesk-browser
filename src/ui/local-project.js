@@ -291,6 +291,12 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
       (currentPreparation?.state==='ready'&&/^[a-f0-9]{64}$/.test(currentPreparation.sourceHash||'')&&currentPreparation.sourceHash!==value.sourceHash)||
       (captured.preparedSourceRevision&&/^[a-f0-9]{64}$/.test(currentPreparation?.sourceRevision||'')&&captured.preparedSourceRevision!==currentPreparation.sourceRevision))
       throw failure('E_DEV_CONFLICT','本地项目运行类型或源码版本已变化；等待准备完成后明确重新运行');
+    // A metadata-free Provider may finish this explicit read before its
+    // background summary. Publish these already-validated bytes first so an
+    // identical late summary cannot invalidate the Run/install proof.
+    if(currentPreparation===undefined)prepared={bindingId:captured.bindingId,
+      providerEpoch:captured.providerEpoch,sourceHash:value.sourceHash,
+      inputHash:value.inputHash,runtimeKind:value.runtimeKind};
     last={inputHash:value.inputHash,sourceHash:value.sourceHash,cacheHit:value.cacheHit,timings:value.timings};render();return value;
   }
   listen(mode,'change',()=>{generation++;selectionGeneration++;checking=false;connected=false;nativeConnected=false;epoch=null;projects=[];workspaces=[];last=null;diagnostic='';nativeUpdateError=null;workspaceOpenError=null;resetBackground();persist();render();if(active())void refresh();});
