@@ -215,7 +215,7 @@ test('R1.3 app-owned trusted background inputs require an exact reviewed Git blo
     ['examples/sidebar-tools/ai-vip-share/trusted/provider-config.js','sw.js',
       'd09c57ef4bbc96f406bb2092feb9ff9b2465cf43'],
     ['examples/sidebar-tools/time-review/trusted/service.js','time-review/time-review-host.js',
-      '1b4dfe90936c70ef89e90dd87307b308ef30be68']
+      '3dfd773fa8cf38deeb23a5d5f9f56d0b27e11ff6']
   ];
   const make=(target,file,project=process.cwd())=>describeBundle({
     chunk:{fileName:target,modules:{[file]:{renderedLength:1,originalLength:1}}},
