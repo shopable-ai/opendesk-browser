@@ -65,11 +65,9 @@ export default function App(){
    {hostRoot&&(granted
     ?<CookieEditorApp key={scene+':'+revision} request={mock.request} hostRoot={hostRoot}/>
     :<section className="preview-global-grant" aria-labelledby="preview-grant-title">
-      <div className="preview-grant-icon" aria-hidden="true">🍪</div>
-      <h2 id="preview-grant-title">管理所有网站 Cookie</h2>
-      <p>首次允许一次，切换网站后直接使用，不再逐站授权。</p>
+      <h2 id="preview-grant-title">Cookie 访问授权</h2>
+      <p>允许管理普通 HTTP/HTTPS 网站的 Cookie；敏感值单独授权。</p>
       <button type="button" className="od-button od-button--primary" onClick={grant}>允许管理所有网站 Cookie</button>
-      <small>这是交互演示，不会授予真实浏览器权限。</small>
      </section>)}
   </section>
  </div>;
