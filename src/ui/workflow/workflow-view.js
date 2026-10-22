@@ -782,10 +782,31 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         if(workflowAgent!==agent||agent.stopping)return;
         agent.guard.check();
         const verdict=agent.guard.verified({claim:previous.ticket,reply});
+        // The journal is derived from durable RunHost + independent business
+        // evidence, never from model plans or a completed Worker alone.
+        if(['CONTINUE','COMPLETED'].includes(verdict.state)&&
+          !agent.segments.some(part=>part.signature===previous.ticket.signature)) {
+          const kind=reply.effect?.kind||
+            (reply.readbackVerified?'input-readback':
+              reply.readOnlyVerified?'read-only':null);
+          if(!kind)throw err('E_WORKFLOW_EVIDENCE','缺少分段业务核验证据');
+          const name=kind==='product-page'?reply.effect.name:
+            kind==='link-page'?reply.effect.title:null;
+          agent.segments.push({signature:previous.ticket.signature,
+            workflow:structuredClone(previous.freeze.workflow),
+            entryUrl:previous.captured.url,
+            verificationMode:previous.freeze.workflow.steps.some(step=>step.op==='fill')
+              ?'fill-readback':'none',
+            evidence:{kind,...(name?{name}: {})}});
+        }
         if(verdict.state==='COMPLETED') {
+          if(agent.segments.length>1)
+            fullAgentDraft={bundleId:'wf-'+crypto.randomUUID(),
+              goal:agent.goal,title:previous.freeze.workflow.title,
+              segments:structuredClone(agent.segments),tailSerial:stable()};
           const multi=agent.guard.snapshot().rounds>1;
           finishWorkflowAgent(agent,'COMPLETED','已核对原始任务目标。'+
-            (multi?'跨轮操作分别执行并核验；当前「保存」只冻结最后一个工作流分段，不代表整段跨页面任务可以独立复跑。':
+            (multi?'跨轮操作已分别核验；点击「保存」将冻结完整的多段 JavaScript 工作流，复跑仍须逐段确认网页和权限。':
               '可以保存此版本并在 AI 关闭时独立运行。'));
           return;
         }
@@ -1379,7 +1400,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     }
     
     const epoch=++planningGeneration,abort=new AbortController();planningAbort=abort;planningTarget=captured;planningObservation=null;
-    const agent={epoch,controller:abort,selected:frozen.selected,goal:frozen.request,initialTarget:structuredClone(captured),startedCount:0,
+    fullAgentDraft=null;selectedBundle=null;
+    const agent={epoch,controller:abort,selected:frozen.selected,goal:frozen.request,initialTarget:structuredClone(captured),startedCount:0,segments:[],
       settings:{endpoint:frozen.endpoint,apiKey:frozen.apiKey,model:frozen.model},modelDecisions:0,
       guard:createWorkflowAgentLoopGuard({goal:frozen.request,signal:abort.signal}),
       expectedNavigation:null,stopping:false};
@@ -1750,6 +1772,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     verifiedTurnHistory=[];lastProviderTurn=null;
     lastTrustedRun=null;runId=null;onRunOwner(null);
     workflow=emptyWorkflow(currentOrigin()||'',crypto.randomUUID());paramValues={};directVerifiedSerial=null;
+    selectedBundle=null;fullAgentDraft=null;
     revision=null;touched=true;lastRun='none';hasError=false;phase='idle';
     clearChat();entryMode='new-workflow';
     control('workflow-manage-panel').hidden=true;
