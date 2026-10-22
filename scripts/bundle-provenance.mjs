@@ -112,12 +112,14 @@ export function trustedToolShellStyle(root=process.cwd()){
 // #root and Perplexity to stable test-ID selectors. page.js preserves
 // existing origin, instance and permission gates; omits locale-based picker
 // selectors; accepts the exact ChatGPT footer mobile textarea; shows one
-// resting launcher for a bounded saved library and expands on trusted click.
+// launcher and expanded, bounded image/text tray on fresh render and navigation.
+// R1.9.5 reviewed delta: initial/reset expansion and no post-insertion auto-collapse;
+// site/instance/permission gates, IME/no-autosend and source imports are unchanged.
 // No dynamic imports, privileged outputs, origins or installer rights added.
 const compiledPromptShortcutInputs=Object.freeze({
   'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'65444eb5ad35847701d21b4489d895028c5fa0c3',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'4c6f608a26e0d69278c18a0afda94b3c8ce8274c',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'6a1e7d4a13da530a7a8648ca67f1b8dc00c8097d',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'0404b4e94aeb04aca6a4fb030cfae2508e48010c',
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js':'86e95bff786e52efb9089f97126542430f39a716',
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js':'b960044deb5e7d059c26d5d520f912c0b72c7b0e',
   'examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js':'7c10e8270c43be93229afbf0d3171455de628030',
