@@ -16,7 +16,8 @@ import {createTaskReviewHandoff,taskReviewHandoffKey} from './task-review-handof
 import {createWorkflowAgentLoopGuard,classifyWorkflowAgentStop} from './agent-loop.js';
 import {WORKFLOW_BUNDLE_FORMAT,replayParameterSchema,sealWorkflowBundle,
   verifyWorkflowBundle,verifyReplayBusinessEffect,assertLegacyReplayParameterScope,
-  WORKFLOW_DYNAMIC_BUNDLE_FORMAT,inferDynamicReplayPlan,dynamicReplayIntent} from './segment-replay.js';
+  WORKFLOW_DYNAMIC_BUNDLE_FORMAT,inferDynamicReplayPlan,dynamicReplayIntent,
+  simpleCommerceReplayGoal} from './segment-replay.js';
 
 const STORAGE_PREFIX = 'opendesk.sidebar.workflow.v1:';
 const SESSION_PREFIX = 'opendesk.sidebar.workflow-draft.v1:';
@@ -913,23 +914,19 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   // never substitutes unexecuted replay JavaScript for an original proof.
   function promoteVerifiedReplayParameters(executable,admission,goal) {
     const params=structuredClone(admission.params);
-    if(!/(?:搜索|查找|检索|\bsearch\b)/i.test(goal)||
-      !/(?:打开|进入|点开|\bopen\b)/i.test(goal)||
-      !/(?:价格|标价|售价|\bprice\b)/i.test(goal)||
-      /(?:付款|支付|下单|结账|删除|清空|提交|转账|发送|退款|checkout|delete|submit|payment)/i.test(goal)||
-      /(?:不要|不需|无需|不得|禁止|别|勿|never|do\s+not|don't)\s*(?:打开|进入|点击|搜索|查找|检索|核对|观察|读取|open|search|click|read|verify)/i.test(goal))
-      return params;
+    const intent=simpleCommerceReplayGoal(goal);
+    if(!intent)return params;
     const props=executable.paramsSchema.properties,required=executable.paramsSchema.required;
     const query=admission.effectExpectation?.query;
     const fill=executable.steps.find(step=>step.op==='fill');
-    if(typeof query==='string'&&/^[\p{L}\p{N} _.-]{2,120}$/u.test(query)&&
+    if(typeof query==='string'&&query===intent.query&&/^[\p{L}\p{N} _.-]{2,120}$/u.test(query)&&
       fill&&!fill.param&&fill.text===query&&
       executable.steps.length===2&&!Object.hasOwn(props,'query')){
       props.query={type:'string',title:'搜索关键词',maxLength:120,default:query};
       required.push('query');fill.param='query';delete fill.text;params.query=query;
     }
     const guard=admission.linkGuard,click=executable.steps.find(step=>step.op==='click');
-    if(guard&&click&&executable.steps.length===1&&!click.param&&
+    if(guard&&guard.name===intent.productName&&click&&executable.steps.length===1&&!click.param&&
       !Object.hasOwn(props,'productName')&&
       /^[\p{L}\p{N}][\p{L}\p{N} _.-]{2,119}$/u.test(guard.name)){
       props.productName={type:'string',title:'目标商品名称',maxLength:120,default:guard.name};
