@@ -1,6 +1,6 @@
 import {createWorkflowUIState} from './workflow-ui-state.js';
 import {emptyWorkflow,validateWorkflow,WORKFLOW_OPERATIONS,WORKFLOW_LOCATORS,validateWorkflowParams} from '../../framework/workflow/contract.js';
-import {checkParamsSchema} from '../../platform/tasks/contract.js';
+import {checkParamsSchema,validateTaskParams} from '../../platform/tasks/contract.js';
 import {compileWorkflow} from '../../framework/workflow/compiler.js';
 import {createTaskPackage} from '../../platform/tasks/contract.js';
 import {permissionPattern} from '../../environment.js';
@@ -14,6 +14,8 @@ import {createWorkflowObservation,workflowObservationForModel,workflowObservatio
 import {classifyWorkflowRunRisk,prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect,verifyOpenedLinkPage,verifySavedWorkflowRevision} from './direct-execution.js';
 import {createTaskReviewHandoff,taskReviewHandoffKey} from './task-review-handoff.js';
 import {createWorkflowAgentLoopGuard,classifyWorkflowAgentStop} from './agent-loop.js';
+import {WORKFLOW_BUNDLE_FORMAT,replayParameterSchema,sealWorkflowBundle,
+  verifyWorkflowBundle,verifyReplayBusinessEffect} from './segment-replay.js';
 
 const STORAGE_PREFIX = 'opendesk.sidebar.workflow.v1:';
 const SESSION_PREFIX = 'opendesk.sidebar.workflow-draft.v1:';
@@ -77,6 +79,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   let historyOpen=false,newReviewReturnFocus=null;
   let planningGeneration=0,planningAbort=null,planningTarget=null,pendingApproval=null,localChecking=false;
   let workflowAgent=null; // A task-scoped coordinator only; RunHost/Provider remain unique.
+  let fullAgentDraft=null,selectedBundle=null; // Frozen segments, never another runtime.
   let observationApproval=null,planningObservation=null,approvalWrites=Promise.resolve();
   let localCapability={state:'UNKNOWN',readyForTurn:false},aiCleanup=Promise.resolve();
   let workflow=emptyWorkflow(currentPageTarget?.snapshot?.origin || '',crypto.randomUUID());
@@ -167,8 +170,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   }
   const snapshot=()=>structuredClone(workflow);
   const stable=()=>JSON.stringify(workflow);
-  const matchesRevision=()=>revision && revision.sourceHash===compiled?.sourceHash &&
-    JSON.stringify(revision.workflow)===stable();
+  const matchesRevision=()=>selectedBundle?
+    selectedBundle.segments.at(-1)?.sourceHash===compiled?.sourceHash&&
+      JSON.stringify(selectedBundle.segments.at(-1).workflow)===stable():
+    Boolean(revision && revision.sourceHash===compiled?.sourceHash &&
+      JSON.stringify(revision.workflow)===stable());
   function persistDraft() {
     const key=session();if(!key)return;
     const value=snapshot();
@@ -179,7 +185,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   function updatePresentation() {
     if(disposed)return;
     const hasSteps=workflow.steps.length>0;
-    const hasParams=Object.keys(workflow.paramsSchema.properties).length>0;
+    const hasParams=Object.keys((selectedBundle?.paramsSchema||workflow.paramsSchema).properties).length>0;
     const transcript=control('workflow-ai-transcript');
     const hasMessages=chatRows.length>0;
     const ready=provider()==='local_codex'?describeLocalCodex(localCapability).ready:
@@ -222,8 +228,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     const runnable=Boolean(compiled && currentOrigin()===workflow.siteOrigin &&
       !operationBusy && !historyOpen && !pendingAIReview);
     control('workflow-run').disabled=!runnable;
-    control('workflow-save').disabled=busy || autoExecutionPending || !compiled;
-    control('workflow-candidate').disabled=busy || autoExecutionPending || !matchesRevision();
+    control('workflow-save').disabled=busy || autoExecutionPending || !compiled || Boolean(selectedBundle);
+    control('workflow-candidate').disabled=busy || autoExecutionPending || Boolean(selectedBundle) || !matchesRevision();
     control('workflow-stop').disabled=Boolean(workflowAgent)||!runId || host.currentRun!==runId;
     control('workflow-stop').hidden=Boolean(workflowAgent);
     control('workflow-open-code').disabled=!compiled;
@@ -243,10 +249,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       history:{open:historyOpen,busy:operationBusy,
         canResume:selected==='local_codex'&&Boolean(sessionState.resumable),
         rows:saveList.map(item=>({key:item.key,title:String(item.workflow.title||'未命名工作流'),
-          fullTitle:String(item.workflow.title||'未命名工作流')+' · r'+item.revision,
+          fullTitle:String(item.workflow.title||'未命名工作流')+(item.format===WORKFLOW_BUNDLE_FORMAT?' · 完整 '+item.segments.length+' 段':' · r'+item.revision),
           savedText:'r'+item.revision+' · '+(Number.isFinite(item.savedAt)?new Date(item.savedAt).toLocaleString('zh-CN'):'保存时间未知')}))},
-      header:{saved:Boolean(revision),savedText:revision?(matchesRevision()?'已保存':'未保存更改'):'',
-        savedTitle:revision?'工作流版本 r'+revision.revision+(matchesRevision()?' · 源码哈希一致':' · 已修改但尚未保存'):'',
+      header:{saved:Boolean(revision||selectedBundle),
+        savedText:selectedBundle?'完整 '+selectedBundle.segments.length+' 段已保存':
+          revision?(matchesRevision()?'已保存':'未保存更改'):'',
+        savedTitle:selectedBundle?'完整工作流 r'+selectedBundle.revision+' · '+selectedBundle.segments.length+' 段 · 分段哈希已冻结':
+          revision?'工作流版本 r'+revision.revision+(matchesRevision()?' · 源码哈希一致':' · 已修改但尚未保存'):'',
         historyExpanded:historyOpen,busy:operationBusy,planning:phase==='planning',sessionHint}
     });
     updatePresentation();
@@ -267,6 +276,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     updateButtons();
   }
   function edited() {
+    if(selectedBundle)revision=null; // Editing detaches a copy; never rewrites a frozen bundle.
+    selectedBundle=null;fullAgentDraft=null;
     dismissRunReview();
     dismissNewReview();
     touched=true;
@@ -287,23 +298,25 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   let paramValues={};
   function renderParams() {
     const next={};
-    for(const [name,rule] of Object.entries(workflow.paramsSchema.properties))
+    const schema=selectedBundle?.paramsSchema||workflow.paramsSchema;
+    for(const [name,rule] of Object.entries(schema.properties))
       next[name]=paramValues[name]??rule.default??(rule.type==='boolean'?false:'');
     paramValues=next;
-    ui.patch({params:Object.entries(workflow.paramsSchema.properties).map(([name,rule])=>({
-      name,rule:{...rule},required:workflow.paramsSchema.required.includes(name),value:next[name]}))});
+    ui.patch({params:Object.entries(schema.properties).map(([name,rule])=>({
+      name,rule:{...rule},required:schema.required.includes(name),value:next[name]}))});
   }
   function readParams() {
     const values={};
-    for(const [name,rule] of Object.entries(workflow.paramsSchema.properties)) {
+    const schema=selectedBundle?.paramsSchema||workflow.paramsSchema;
+    for(const [name,rule] of Object.entries(schema.properties)) {
       const value=paramValues[name];
       if(rule.type==='boolean')values[name]=Boolean(value);
-      else if(value===''&&!workflow.paramsSchema.required.includes(name)&&rule.default===undefined)continue;
+      else if(value===''&&!schema.required.includes(name)&&rule.default===undefined)continue;
       else if(['integer','number'].includes(rule.type))values[name]=value===''?NaN:Number(value);
       else if(rule.enum)values[name]=rule.enum.find(choice=>String(choice)===String(value));
       else values[name]=value;
     }
-    return validateWorkflowParams(workflow,values);
+    return validateTaskParams(schema,values);
   }
   function renderSteps(expandStepId=null) {
     ui.patch({steps:structuredClone(workflow.steps),siteOrigin:workflow.siteOrigin,
@@ -319,7 +332,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     const all=await api.storage.local.get(null);
     if(disposed)return;
     saveList=Object.entries(all).filter(([key,value])=>key.startsWith(STORAGE_PREFIX) &&
-      value?.format==='opendesk.workflow-revision.v1' &&
+      ['opendesk.workflow-revision.v1',WORKFLOW_BUNDLE_FORMAT].includes(value?.format) &&
       Number.isSafeInteger(value.revision)&&value.revision>0&&value.workflow?.workflowId)
       .map(([key,value])=>({key,...value})).sort((a,b)=>b.savedAt-a.savedAt || b.revision-a.revision);
     const prior=control('workflow-saved-list').value;
