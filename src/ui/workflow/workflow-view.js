@@ -1348,16 +1348,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         planningCurrent(epoch,frozen.serial,frozen.selected);
         const readiness=describeLocalCodex(localCapability);
         if(!readiness.ready){openAISettings('workflow-local-refresh');throw err(readiness.state,readiness.message);}
-        // All continuous rounds require the same independently verified DOM
-        // observation, even when the Native model can request its own tools.
-        const decision=await offerObservation(
-          {type:'tool.request',tool:'browser.observe',canApprove:true},
-          {signal:abort.signal,requestId:'native-agent-'+crypto.randomUUID()},
-          {epoch,serial:frozen.serial,selected:frozen.selected,captured,request:frozen.request,
-            recipientId,receiverPattern});
-        planningCurrent(epoch,frozen.serial,frozen.selected);
-        if(decision?.decision!=='approve'||!decision.result)
-          throw err('E_AI_APPROVAL','本次网页观察未经授权，不得连续执行');
+        // Native already requests a scoped observation through onApproval.
+        // Do not make an extra read, duplicate consent or delay the first turn.
       } else {
         if(!await permission)throw err('E_AI_PERMISSION','未授权访问模型网站');
         planningCurrent(epoch,frozen.serial,frozen.selected);
@@ -1402,7 +1394,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }
       const freeze=await compileWorkflow(executable,{verifyFill:true});
       planningCurrent(epoch,frozen.serial,frozen.selected);
-      agent.guard.observed({target:captured,receipt:planningObservation,remaining:frozen.request});
+      if(planningObservation)
+        agent.guard.observed({target:captured,receipt:planningObservation,remaining:frozen.request});
       const ticket=agent.guard.claim({workflow:executable,target:captured});
       agent.expectedNavigation=prepared.linkGuard||null;
       if(!await permission)throw err('E_PERMISSION','网站权限未授权，未执行浏览器操作');
