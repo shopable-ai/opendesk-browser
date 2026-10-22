@@ -88,7 +88,12 @@ function manifestFields(value) {
   const schema=replayParameterSchema(segments);
   if(JSON.stringify(schema)!==JSON.stringify(value.paramsSchema))
     fail('E_WORKFLOW_BUNDLE','共享参数定义与分段不一致');
-  if(!value.workflow||value.workflow.workflowId!==value.bundleId||
+  if(!value.workflow||typeof value.workflow!=='object'||
+    Array.isArray(value.workflow)||
+    Object.keys(value.workflow).length!==3||
+    Object.keys(value.workflow).some(key=>
+      !['workflowId','title','siteOrigin'].includes(key))||
+    value.workflow.workflowId!==value.bundleId||
     value.workflow.title!==value.title||
     value.workflow.siteOrigin!==segments[0].workflow.siteOrigin)
     fail('E_WORKFLOW_BUNDLE','摘要身份不一致');
