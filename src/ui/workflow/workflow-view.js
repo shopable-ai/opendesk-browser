@@ -170,11 +170,15 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   }
   const snapshot=()=>structuredClone(workflow);
   const stable=()=>JSON.stringify(workflow);
-  const matchesRevision=()=>selectedBundle?
-    selectedBundle.segments.at(-1)?.sourceHash===compiled?.sourceHash&&
-      JSON.stringify(selectedBundle.segments.at(-1).workflow)===stable():
-    Boolean(revision && revision.sourceHash===compiled?.sourceHash &&
-      JSON.stringify(revision.workflow)===stable());
+  // A clean persisted definition must not become 'dirty' while the async
+  // compiler has temporarily cleared its cache. Source identity is checked
+  // separately on every actual RunHost admission and history load.
+  const matchesSavedDefinition=()=>selectedBundle?
+    JSON.stringify(selectedBundle.segments.at(-1)?.workflow)===stable():
+    Boolean(revision&&JSON.stringify(revision.workflow)===stable());
+  const matchesRevision=()=>matchesSavedDefinition()&&Boolean(selectedBundle?
+    selectedBundle.segments.at(-1)?.sourceHash===compiled?.sourceHash:
+    revision?.sourceHash===compiled?.sourceHash);
   function persistDraft() {
     const key=session();if(!key)return;
     const value=snapshot();
@@ -358,7 +362,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       throw err('E_WORKFLOW_BUSY','当前操作尚未完成，不能切换历史版本');
     const serialBefore=stable(),requestBefore=control('workflow-ai-request').value;
     if((Boolean(workflow.steps.length||workflow.title!=='新工作流'||workflow.description)
-      && !matchesRevision())||requestBefore.trim())
+      && !matchesSavedDefinition())||requestBefore.trim())
       throw err('E_WORKFLOW_DIRTY','请先保存当前工作流，或确认新建后再打开历史版本');
     if(record.format===WORKFLOW_BUNDLE_FORMAT) {
       // History list adds a presentation-only key; do not hash that field.
@@ -1996,7 +2000,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   const onOpenSavedHistory=(key,event)=>{
     if(!event.isTrusted||busy||autoExecutionPending||host.executionPending||host.currentRun)return;
     const unsaved=(Boolean(workflow.steps.length||
-      workflow.title!=='新工作流'||workflow.description)&&!matchesRevision())
+      workflow.title!=='新工作流'||workflow.description)&&!matchesSavedDefinition())
       ||Boolean(control('workflow-ai-request').value.trim());
     if(unsaved){
       status('当前有未保存内容。请先保存，或通过「新工作流」确认放弃后再打开历史。',true);
@@ -2034,7 +2038,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       status('当前网页任务仍在执行，请先停止或完成，再新建工作流。',true);return;
     }
     const dirty=(Boolean(workflow.steps.length ||
-      workflow.title!=='新工作流' || workflow.description) && !matchesRevision())
+      workflow.title!=='新工作流' || workflow.description) && !matchesSavedDefinition())
       || Boolean(control('workflow-ai-request').value.trim());
     if(dirty){
       newReviewReturnFocus=historyOpen?'workflow-history-toggle':'workflow-new';
@@ -2093,7 +2097,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       status('参数定义已更新；请重新检查步骤中的参数引用');
     }catch(error){status('参数定义不合法：'+format(error),true);}
   });
-  bind('workflow-save','click',()=>{void save();});
+  bind('workflow-save','click',()=>save());
   bind('workflow-run','click',runManual);
   bind('workflow-run-review-confirm','click',event=>{
     if(!event.isTrusted)return Promise.resolve({ok:false,skipped:true});
@@ -2116,8 +2120,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         .catch(error=>status(format(error),true));
     }catch(error){status(format(error),true);}
   });
-  bind('workflow-refresh','click',()=>{void refreshSaved().catch(error=>status(format(error),true));});
-  bind('workflow-load','click',()=>{void loadSaved().catch(error=>status(format(error),true));});
+  bind('workflow-refresh','click',()=>refreshSaved().catch(error=>status(format(error),true)));
+  bind('workflow-load','click',()=>loadSaved().catch(error=>status(format(error),true)));
   bind('workflow-ai-plan','click',plan);
   const unsubscribePage=currentPageTarget?.subscribe(next=>{
     if(disposed)return;
