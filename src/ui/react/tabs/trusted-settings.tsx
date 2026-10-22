@@ -10,7 +10,7 @@ export function TimeReviewSettings({model,actions}){
   if(!model)return null;
   return <section id="time-review-permission-settings" className="time-review-trusted-actions" aria-label="时间回顾采集权限" hidden={!model.visible} ref={ref}>
 <p>
-{"安装不等于授权采集。先单独同意记录的网站，再主动开始；仅记录前台非空闲网页的域名和时长，默认只保存在本机。"}
+{"首次安装默认准备记录；明确批准网站统计范围并授予 Chrome 空闲检测权限后自动开始，无需再次点击开始。仅记录前台非空闲网页的域名和时长，默认只保存在本机。"}
 </p>
 <button onClick={event=>actions?.['time-review-grant-idle']?.(event.nativeEvent)} disabled={model.busy} hidden={model.idleGranted} id="time-review-grant-idle" type="button" className="od-button od-button--secondary">
 {"授权空闲检测"}
