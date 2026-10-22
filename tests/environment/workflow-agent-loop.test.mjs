@@ -17,6 +17,26 @@ test('search to detail requires independently verified link and price',()=>{
  const two=guard.claim({workflow:proposal([link]),target});
  assert.equal(guard.verified({claim:two,reply:{...successful,effect:{kind:'product-page',name:'Camera X',price:'$99'}}}).state,'COMPLETED');
 });
+test('combined fill, search and detail cannot declare completion early',()=>{
+ const guard=createWorkflowAgentLoopGuard({goal:'填写 camera，搜索 camera，打开 Camera X 的商品详情并核对价格'});
+ const one=guard.claim({workflow:proposal([fill,search]),target});
+ assert.equal(guard.verified({claim:one,reply:successful}).state,'CONTINUE');
+ const two=guard.claim({workflow:proposal([link]),target});
+ assert.equal(guard.verified({claim:two,reply:{ok:true,evidenceLevel:'BUSINESS_EFFECT_VERIFIED',
+  effect:{kind:'product-page',name:'Camera X',price:'$99'}}}).state,'COMPLETED');
+});
+test('read-only observation completes without falsely requiring a search effect',()=>{
+ const guard=createWorkflowAgentLoopGuard({goal:'Observe the page and inspect the content'});
+ const claim=guard.claim({workflow:proposal([{stepId:'observe1',op:'observe'}]),target});
+ assert.equal(guard.verified({claim,reply:{ok:true,evidenceLevel:'EXECUTION_RECEIPT_VERIFIED',
+  readOnlyVerified:true}}).state,'COMPLETED');
+});
+test('a search field fill alone requires input verification, not a search submission',()=>{
+ const guard=createWorkflowAgentLoopGuard({goal:'在搜索框填入 camera，不要点击搜索'});
+ const claim=guard.claim({workflow:proposal([fill]),target});
+ assert.equal(guard.verified({claim,reply:{ok:true,evidenceLevel:'BUSINESS_EFFECT_VERIFIED',
+  readbackVerified:true}}).state,'COMPLETED');
+});
 test('prevent repeated side effects across generated step IDs and Documents',()=>{
  const guard=createWorkflowAgentLoopGuard({goal:'搜索 camera'});
  guard.claim({workflow:proposal([fill,search]),target});
