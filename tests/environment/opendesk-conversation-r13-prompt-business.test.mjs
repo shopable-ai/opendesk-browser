@@ -1,0 +1,176 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createHash,webcrypto} from 'node:crypto';
+import {executePromptPlan,validatePromptPlan} from '../../src/ui/conversation/prompt-actions.js';
+import {createTrustedPromptHost,PROMPT_AI_RECOVERY_KEY} from '../../src/ui/conversation/prompt-host.js';
+import '../../examples/sidebar-tools/prompt-shortcuts/trusted/model.js';
+
+// Production Model, Validator, Adapter and Host coordination. In-memory
+// Chrome/Provider/iframe ports are deterministic *boundaries*, not Native PASS.
+if(!globalThis.crypto)globalThis.crypto=webcrypto;
+const model=globalThis.OpenDeskPromptShortcutsModel;
+const canonical=value=>JSON.stringify(value,(_k,row)=>row&&typeof row==='object'&&!Array.isArray(row)
+  ?Object.fromEntries(Object.keys(row).sort().map(k=>[k,row[k]])):row);
+const hash=value=>createHash('sha256').update(canonical(value)).digest('hex');
+const failure=code=>Object.assign(new Error(code),{code});
+function libraryFixture(initial=model.defaults()){
+  let value=structuredClone(initial),writes=0;
+  const read=async()=>({value:structuredClone(value),etag:hash(value)});
+  const write=async({value:next,ifMatch})=>{
+    if(ifMatch!==hash(value))throw failure('E_STORAGE_CONFLICT');
+    value=structuredClone(next);writes++;return {saved:true,etag:hash(value)};
+  };
+  const run=(action,options={})=>executePromptPlan({
+    plan:{action},model,read,write,review:async()=>true,...options
+  });
+  return {read,write,run,get value(){return value;},get writes(){return writes;}};
+}
+test('R1.3 real Model create, ETag write, independent readback and unique ID',async()=>{
+  const f=libraryFixture();
+  const saved=await f.run({type:'create',body:'把中文完整准确翻译成英文，并保留 Markdown 格式。'});
+  assert.equal(saved.writeIssued,true);assert.equal(saved.etag,hash(f.value));
+  assert.equal(f.writes,1);assert.equal(f.value.items.length,1);
+  assert.equal(model.load((await f.read()).value).items[0].body,'把中文完整准确翻译成英文，并保留 Markdown 格式。');
+  assert.match(f.value.items[0].id,/^[a-zA-Z0-9_-]{8,64}$/);
+});
+test('R1.3 ordinal search reference requires its exact library ETag',async()=>{
+  const f=libraryFixture();
+  await f.run({type:'create',body:'中文日语翻译，保留表格。'});
+  const search=await f.run({type:'search',query:'日语'});
+  assert.equal(search.total,1);assert.equal(search.refs.etag,hash(f.value));
+  await f.run({type:'set_enabled',target:'$search:1',enabled:false},{refs:search.refs});
+  assert.equal(f.value.items[0].enabled,false);
+  const oldRefs=search.refs,writes=f.writes;
+  await f.run({type:'create',body:'新版本的英文校对。'});
+  await assert.rejects(f.run({type:'move',target:'$search:1',direction:'down'},{refs:oldRefs}),
+    {code:'E_PROMPT_REFERENCE_STALE'});
+  assert.equal(f.writes,writes+1,'a stale ordinal is never executed');
+});
+test('R1.3 batch preview must be reviewed and preserve records on cancel',async()=>{
+  const f=libraryFixture();
+  await f.run({type:'create',body:'旧版测试：说明 A',name:'旧版测试 A'});
+  await f.run({type:'create',body:'旧版测试：说明 B',name:'旧版测试 B'});
+  const before=canonical(f.value),writes=f.writes;
+  await assert.rejects(f.run({type:'delete',query:'旧版测试'},
+    {review:async info=>{assert.equal(info.count,2);
+      assert.equal(info.changes.length,2);
+      assert.ok(info.changes.every(item=>item.after===null));return false;}}),{code:'E_CANCELLED'});
+  assert.equal(canonical(f.value),before);assert.equal(f.writes,writes);
+  let reviewed=null;
+  await f.run({type:'batch_edit',query:'旧版测试',instruction:'精简'},
+    {providerEdit:async({item})=>'精简：'+item.body,review:async value=>(reviewed=value,true)});
+  assert.equal(reviewed.count,2);
+  assert.ok(reviewed.changes.every(({before,after})=>
+    before.body!==after.body&&after.body==='精简：'+before.body));
+  assert.deepEqual(f.value.items.map(item=>item.name),['旧版测试 A','旧版测试 B']);
+});
+test('R1.3 8192 bytes whole-library limit and forbidden plan fields are fail-closed',async()=>{
+  const f=libraryFixture();
+  await assert.rejects(f.run({type:'create',body:'汉'.repeat(3000)}),{code:'E_TOOL_DATA_LIMIT'});
+  assert.equal(f.writes,0);
+  assert.throws(()=>validatePromptPlan({action:{type:'create',body:'x',approved:true}}),{code:'E_PROMPT_SCHEMA'});
+  assert.throws(()=>validatePromptPlan({action:{type:'delete',query:'a',confirmed:true}}),{code:'E_PROMPT_SCHEMA'});
+});
+test('R1.3 ETag races never overwrite another writer; lost ACK is read back, not replayed',async()=>{
+  const f=libraryFixture();
+  let first=true;
+  await assert.rejects(f.run({type:'create',body:'翻译 A'},{
+    beforeWrite:async()=>{
+      if(first){first=false;await f.run({type:'create',body:'来自另一窗口的修改'});}
+    }}),{code:'E_STORAGE_CONFLICT'});
+  assert.equal(f.value.items.length,1);assert.equal(f.writes,1);
+  const recovered=await f.run({type:'create',body:'翻译 B'},{
+    write:async payload=>{await f.write(payload);throw failure('E_HOST_ACK_LOST');}
+  });
+  assert.equal(recovered.writeIssued,true);
+  assert.equal(f.writes,2,'lost ACK cannot cause another storage.set');
+});
+test('R1.3 image references are retained during edits and orphan candidates are identified only after readback',async()=>{
+  const id='psa_'+'a'.repeat(32);
+  const record=model.draft({body:'图片提示词',appearance:'image',imageAssetId:id});
+  const f=libraryFixture({schema:1,items:[record],settings:model.defaults().settings});
+  await f.run({type:'edit',target:record.id,instruction:'只修改正文'},
+    {providerEdit:async()=> '新图片提示词'});
+  assert.equal(f.value.items[0].imageAssetId,id);
+  const removed=await f.run({type:'delete',query:'新图片提示词'});
+  assert.deepEqual(removed.releasedImageAssets,[id]);
+  assert.equal(f.value.items.length,0);
+});
+function hostFixture({proposal={action:{type:'create',body:'给我一份准确的英文翻译提示词'}},
+  granted=true,initial=model.defaults(),allowReview=true}={}){
+  const chromeStore=new Map(),library=libraryFixture(initial),messages=[],confirms=[];
+  const source={},token='prompt-fixture-'+crypto.randomUUID(),epoch='fixture-epoch';
+  const api={storage:{local:{
+    async get(key){return Object.fromEntries((Array.isArray(key)?key:[key])
+      .map(k=>[k,structuredClone(chromeStore.get(k))]));},
+    async set(rows){for(const [k,v] of Object.entries(rows))chromeStore.set(k,structuredClone(v));},
+    async remove(key){chromeStore.delete(key);}
+  }}};
+  const conversation={source:()=>({provider:'fixture-provider'}),
+    request:async()=>({proposal,authorization:{assertWrite:async()=>{},release:()=>{}}}),
+    cancel:async()=>{}};
+  let host,changed=false,guardReplies=0,commits=0,revoked=false;
+  const dispatch=async(op,payload)=>{
+    if(op==='storage.get'){const v=await library.read();return payload.withEtag?v:{value:v.value};}
+    if(op==='storage.set'){commits++;return library.write(payload);}
+    if(op==='prompt.asset.remove')return {removed:true};
+    throw failure('E_SCOPE');
+  };
+  host=createTrustedPromptHost({
+    api,tool:{id:'prompt-shortcuts',version:'1.1.11'},token,epoch,model,
+    conversation,assertIdentity:async()=>{if(revoked)throw failure('E_TOOL_CHANGED');},
+    frameSource:()=>source,guardBlocked:()=>false,dispatch,etagFor:async value=>hash(value),
+    confirm:async args=>{confirms.push(args.message);return allowReview;},
+    sendToFrame:message=>{
+      messages.push(message);
+      if(message.kind==='ai-guard'){
+        queueMicrotask(()=>{guardReplies++;host.onGuardResponse({
+          guardId:message.guardId,granted},source);});
+      }
+      if(message.kind==='state-changed')changed=true;
+    }
+  });
+  return {host,api,library,chromeStore,messages,confirms,
+    get changed(){return changed;},get guardReplies(){return guardReplies;},
+    get commits(){return commits;},revoke:()=>{revoked=true;}};
+}
+test('R1.3 trusted Host guard nonce -> conditional dispatcher -> readback -> iframe notice',async()=>{
+  const f=hostFixture();
+  const result=await f.host.request({request:'创建英文翻译提示词',event:{isTrusted:true}});
+  assert.equal(result.writeIssued,true);
+  assert.equal(f.guardReplies,1);assert.equal(f.commits,1);assert.equal(f.changed,true);
+  assert.ok(f.messages.some(message=>message.kind==='ai-guard-release'));
+  assert.equal(f.chromeStore.has(PROMPT_AI_RECOVERY_KEY),false);
+  assert.equal(f.library.value.items.length,1);
+  f.host.dispose();
+});
+test('R1.3 sandbox Guard denial forbids all writes and recovery records',async()=>{
+  const f=hostFixture({granted:false});
+  await assert.rejects(f.host.request({request:'创建英文翻译提示词',
+    event:{isTrusted:true}}),{code:'E_PROMPT_DRAFT'});
+  assert.equal(f.commits,0);assert.equal(f.chromeStore.has(PROMPT_AI_RECOVERY_KEY),false);
+  f.host.dispose();
+});
+test('R1.3 trusted Host review aborts destructive operations without a storage write',async()=>{
+  const row=model.draft({body:'旧版测试',name:'旧版测试'});
+  const f=hostFixture({initial:{schema:1,items:[row],settings:model.defaults().settings},
+    proposal:{action:{type:'delete',query:'旧版测试'}},allowReview:false});
+  await assert.rejects(f.host.request({request:'删除旧版测试',event:{isTrusted:true}}),
+    {code:'E_CANCELLED'});
+  assert.equal(f.commits,0);assert.equal(f.library.value.items.length,1);
+  assert.match(f.confirms[0],/旧版测试/);
+  f.host.dispose();
+});
+test('R1.3 pending receipt is independently reconciled, never replayed',async()=>{
+  const f=hostFixture();await f.host.request({request:'创建英文翻译提示词',event:{isTrusted:true}});
+  const expected=hash(f.library.value);
+  await f.api.storage.local.set({[PROMPT_AI_RECOVERY_KEY]:{
+    toolId:'prompt-shortcuts',version:'1.1.11',instance:'older-instance',
+    installEpoch:'older-epoch',expectedEtag:expected,createdAt:Date.now()}});
+  assert.equal((await f.host.recovery()).expectedEtag,expected);
+  const before=f.commits;
+  const checked=await f.host.reconcile();
+  assert.equal(checked.verified,true);assert.match(checked.message,/写入已确认/);
+  assert.equal(f.commits,before);assert.equal(f.chromeStore.has(PROMPT_AI_RECOVERY_KEY),false);
+  f.host.dispose();
+});
