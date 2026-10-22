@@ -17,9 +17,11 @@ export default function CookieEditorApp({request,hostRoot,setState}){
   const [mode,setMode]=React.useState('browser');
   const [offlineInitialSite,setOfflineInitialSite]=React.useState(null);
   const modeRef=React.useRef('browser');
-  const syncGate=React.useRef({panel:null,selected:null,dirty:false,confirmation:null,working:false});
+  const syncGate=React.useRef({panel:null,selected:null,dirty:false,confirmation:null,working:false,exportOpen:false});
   const [panel,updatePanel]=React.useState(null);
   const setPanel=value=>{syncGate.current.panel=value;updatePanel(value);};
+  const [exportOpen,updateExportOpen]=React.useState(false);
+  const setExportOpen=value=>{syncGate.current.exportOpen=value;updateExportOpen(value);};
   const [selected,updateSelected]=React.useState(null);
   const setSelected=value=>{syncGate.current.selected=value;updateSelected(value);};
   const [query,setQuery]=React.useState('');
@@ -68,7 +70,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     }
   };
   const cleanEditor=()=>{
-    setPanel(null);setSelected(null);setDirty(false);setStatus('');
+    setPanel(null);setExportOpen(false);setSelected(null);setDirty(false);setStatus('');
   };
   const ask=(text,action,onCancel,kind='discard',details={})=>{
     setConfirmation({text,action,onCancel,kind,...details});
@@ -97,7 +99,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       controller.invalidate(reason);
       return;
     }
-    scrubSensitive();
+    scrubSensitive();setExportOpen(false);
     const hadDirty=dirtyRef.current;
     const uncertain=controller.invalidate(reason);
     cleanEditor();setConfirmation(null);setQuery('');setPage(1);
@@ -129,7 +131,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
   },[snapshot.epoch,snapshot.phase]);
   React.useEffect(()=>{
     if(mode!=='browser'||snapshot.phase!=='ready'||selected!==null||
-      panel!==null||busy||dirty||confirmation)return;
+      panel!==null||exportOpen||busy||dirty||confirmation)return;
     let active=true;
     const visible=()=>{
       const surface=hostRoot?.host||hostRoot;
@@ -145,7 +147,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       void controller.syncMetadata({canApply:()=>{
         const gate=syncGate.current;
         return active&&modeRef.current==='browser'&&gate.selected===null&&
-          gate.panel===null&&!gate.dirty&&!gate.confirmation&&!gate.working&&visible();
+          gate.panel===null&&!gate.exportOpen&&!gate.dirty&&!gate.confirmation&&!gate.working&&visible();
       }});
     };
     sync();
@@ -158,20 +160,25 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       window.removeEventListener('focus',immediate);
       document.removeEventListener('visibilitychange',immediate);
     };
-  },[mode,snapshot.phase,snapshot.epoch,selected,panel,busy,dirty,confirmation,controller,hostRoot]);
+  },[mode,snapshot.phase,snapshot.epoch,selected,panel,exportOpen,busy,dirty,confirmation,controller,hostRoot]);
   React.useEffect(()=>{
     // A live session invalidation must not discard an offline editor's
     // independent dirty state when an unrelated browser event fires.
     if(modeRef.current==='offline')return;
     if(snapshot.phase!=='ready'){
-      setSelected(null);setPanel(null);setDirty(false);setConfirmation(null);
+      setSelected(null);setPanel(null);setExportOpen(false);setDirty(false);setConfirmation(null);
     }
   },[snapshot.epoch,snapshot.phase]);
   const target=snapshot.target;
   const openPanel=name=>guarded(()=>{
-    setSelected(null);setPanel(name);setPage(1);setStatus('');
+    setSelected(null);setExportOpen(false);setPanel(name);setPage(1);setStatus('');
     if(name==='import')setImportNotice(null);
   });
+  const closeExport=(restoreFocus=false)=>{
+    setExportOpen(false);
+    if(restoreFocus)hostRoot.querySelector('.cookie-editor-react [aria-label="导出 Cookie"]')
+      ?.focus({preventScroll:true});
+  };
   const switchMode=next=>guarded(()=>{
     if(next===mode)return;
     scrubSensitive();
@@ -184,22 +191,16 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       void controller.load(appliedSite.current);
     }
     modeRef.current=next;
-    setMode(next);setSelected(null);setPanel(null);setDirty(false);
+    setMode(next);setSelected(null);setPanel(null);setExportOpen(false);setDirty(false);
   });
   const activeImportRef=React.useRef(null);
   const writeInFlight=React.useRef(false);
   const restoreImportFocus=React.useRef(false);
-  const restoreExportFocus=React.useRef(false);
   React.useLayoutEffect(()=>{
     if(panel!==null)return;
     if(restoreImportFocus.current){
       restoreImportFocus.current=false;
       hostRoot.querySelector('.cookie-editor-react [aria-label="导入 Cookie"]')
-        ?.focus({preventScroll:true});
-    }
-    if(restoreExportFocus.current){
-      restoreExportFocus.current=false;
-      hostRoot.querySelector('.cookie-editor-react [aria-label="导出 Cookie"]')
         ?.focus({preventScroll:true});
     }
   },[panel]);
@@ -341,7 +342,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       ()=>controller.discardClear(),'clear',
       {hostname:result.hostname,count:result.count});
   };
-  const select=id=>guarded(()=>{setPanel(null);setSelected(id);setStatus('');});
+  const select=id=>guarded(()=>{setPanel(null);setExportOpen(false);setSelected(id);setStatus('');});
   const onKeyDown=e=>{
     if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){
       // Child forms own Save; never accidentally save hidden/redacted values.
@@ -376,7 +377,15 @@ export default function CookieEditorApp({request,hostRoot,setState}){
           sort={sort} onSort={v=>{setSort(v);setPage(1);}}
           expandedFilters={expanded} onToggleFilters={()=>setExpanded(x=>!x)}
           page={page} onPage={setPage} busy={locked}
-          onImport={()=>openPanel('import')} onExport={()=>openPanel('export')}
+          onImport={()=>openPanel('import')}
+          onExport={()=>{if(!locked)setExportOpen(!exportOpen);}}
+          exportOpen={exportOpen} onCloseExport={closeExport}
+          exportContent={exportOpen?<CookieExport controller={controller} disabled={locked}
+            onDelivered={method=>{
+              closeExport(true);
+              noteImport(method==='copy'?'已复制 Cookie':'Cookie 文件下载已发起','success');
+            }}
+            onClose={()=>closeExport(true)}/>:null}
           onNew={()=>select('new')} onClear={()=>void clear()}
           clearDisabled={!snapshot.rows.length}
           newEditor={selected==='new'?<CookieInlineEditor key="new" target={target}
@@ -390,9 +399,6 @@ export default function CookieEditorApp({request,hostRoot,setState}){
           notice={importNotice} onImportText={importFromText} onNotice={noteImport}
           onBeginImport={beginImportIntent}
           onClose={()=>{restoreImportFocus.current=true;controller.discardImport();finishImportIntent(activeImportRef.current);setPanel(null);}}/>}
-        {panel==='export'&&<CookieExport controller={controller} disabled={locked}
-          onDelivered={method=>{restoreExportFocus.current=true;setPanel(null);noteImport(method==='copy'?'已复制 Cookie':'已导出 Cookie','success');}}
-          onClose={()=>{restoreExportFocus.current=true;setPanel(null);}}/>}
       </div>}
     </>}
     {mode==='browser'&&snapshot.phase==='ready'&&snapshot.message&&
