@@ -563,3 +563,16 @@ test('Native wait/extract/assert also require the exact current approved locator
     }
   }
 });
+
+test('R23.26 verified read-only facts pass to the next Native turn, but forged facts fail closed',()=>{
+  const proven={request:'读取当前网页内容，不修改。',outcome:'verified',
+    readbackVerified:false,stepCount:1,effectKind:'read-only'};
+  const input=workflowCodexInput('再次读取当前网页。',workflow(),[proven]);
+  assert.deepEqual(JSON.parse(input.slice(input.lastIndexOf('\\n')+1)).verifiedTurnHistory,[proven]);
+  assert.throws(()=>workflowCodexInput('继续',workflow(),[
+    {...proven,readbackVerified:true}]),{code:'E_AI_CONFIG'});
+  assert.throws(()=>workflowCodexInput('继续',workflow(),[
+    {...proven,stepCount:0}]),{code:'E_AI_CONFIG'});
+  assert.throws(()=>workflowCodexInput('继续',workflow(),[
+    {...proven,effectKind:'unverified-click'}]),{code:'E_AI_CONFIG'});
+});
