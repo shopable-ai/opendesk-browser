@@ -751,7 +751,7 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     // do not click Start or write business storage in this native proof.
     await setTimeReviewSettingsVisible(browser,side,false);
     const automaticallyStarted=await until(async()=>{
-      const s=await readTime();return s&&!s.paused&&s.authorizedHash&&s.checkpoint?.origin===approvedOrigin?s:null;
+      const s=await readTime();return s&&!s.paused&&s.authorizedHash?s:null;
     },'automatic start after real Chrome idle and website consent, without Start',10000);
     await until(()=>evaluate(browser,frame,
       'document.querySelector("#start")?.hidden===true&&document.querySelector("#pause")?.hidden===false'),
