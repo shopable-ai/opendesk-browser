@@ -352,3 +352,10 @@ Node state.json 现状与生产需求明确分开；正式环境必须核对多�
 ### 12.5 下一步唯一优先顺序
 
 先取得**真实业务 Web 与 BFF 身份/授权/部署入口**，跑通 T00（固定 Task、持久 jobId、刷新/重复/Cancel）；紧接着准备真实可新增/更新持久业务记录的**经审阅固定 Task**，在授权 Mac Chrome + Provider HTTPS/WSS 环境按 T01（真正 WSS 断线创建 A）→T02（关面板后新 Web B 更新 A）执行并记录网页读回、唯一 Run/Result/Receipt。再关 T03–T08、T10/灾备/正式发行和 Cloud R3 shared UI CI。所有记录必须绑定精确代码 SHA、Chrome extension ID/Task pin、Provider Job/Assignment、原 Run/Result/Receipt 和原生网页副作用。
+
+### 12.6 R19.6 新增真实 TLS Provider 的 Pull→Push 组合协议测试
+
+- 新增 `tests/cloud-control/pull-push-tls-r196.test.mjs`，通过真正的本机 HTTPS/TLS listener（校验 CA）、真实 Client Credential 和真实 Provider `state.json`，串起：已批准 Task Schema → Client 入队 A/去重/冲突 → 无 WSS 时 Claim 拒绝 → HTTPS Pull Session → 原 Claim/Assignment/Permit/模拟状态型 Receipt → WSS 认证 → Client 入队 B → 定向 `notify:{jobId}` → 另一 Claim/Permit/Receipt → Provider 重启 → 原 Job/Receipt/Claim 只读回与去重。
+- **明确证据界限：**该集成测试不启动 Mac Chrome，不调用网页 Controller，不创建或修改真实业务 A。因此是 **TLS 传输和持久协议 PASS**，并非 T00/T01/T02 Chrome 最终 PASS。此项测试不会接受来自普通 Web 的 JS/Shell/CDP。
+- [Cloud R5.2 #39812808063](https://github.com/shopable-ai/opendesk-browser/actions/runs/39812808063) 绑定新增用例首次提交 `681568cc558bba62ecf430405d783c750c4c12d5`：`R19.6: HTTPS Client → WSS-free Pull → WSS Push...` 为 TAP **ok 102**，整个 workflow **SUCCESS**。随后针对能力清单一致性做加强测试：Provider `/v1/capabilities` 会把未含版本的公告归一为四字段 Task Pin，`/v1/pull-open` 必须传入完全相同的**版本化**能力；错误三字段 Session 在 [#39812876130](https://github.com/shopable-ai/opendesk-browser/actions/runs/39812876130) 被正确拒绝 `E_GRANT`，未削弱 Provider 检查；更正测试并提交 `99e53ad699ecbe13c4086576e21eeec2d262c00b`，其复跑 [#39813403571](https://github.com/shopable-ai/opendesk-browser/actions/runs/39813403571) 须以精确最终结果为准。
+- [Cloud R3 #39811501437](https://github.com/shopable-ai/opendesk-browser/actions/runs/39811501437) 的 `af8f8f62...` package 作业 **SUCCESS**，其日志记录 Production `packageHash=0ccb629275ce15f63919ea14e2bd0c1eeee4890c726aca2bda8af804c56e7d9a`（106 assets）、Development `packageHash=f55a45a00cb23f7429a1b0213d442e5851f7ac0ccc00165c619ce9abffe70aea`（146 assets），其 `npm run verify` 包/CSP **PASS**。这两项 Hash **仅归属于该构建提交**，不等于最新并行 `main` 或 Mac 原生发布包。
