@@ -22,6 +22,21 @@ test('preview uses the fixed React and Shared UI runtime without bundling anothe
   assert.match(build,/connect-src 'none'/);
 });
 
+test('authorization preview presents one clearly scoped grant action',async()=>{
+  const [legacy,react,css]=await Promise.all([
+    read('../cookie-editor-r4.3-preview.html'),read('./src/App.jsx'),read('./src/style.css')
+  ]);
+  assert.match(legacy,/Cookie 访问授权/);
+  assert.match(legacy,/允许管理本站 Cookie/);
+  assert.doesNotMatch(legacy,/data-action="grantRead"|class="readonly"|data-scene="readonly"/);
+  assert.match(legacy,/g\.read=true;g\.write=true/);
+  assert.match(react,/Cookie 访问授权/);
+  assert.match(react,/允许管理普通 HTTP\/HTTPS 网站的 Cookie；敏感值单独授权。/);
+  assert.match(react,/onClick=\{grant\}>允许管理所有网站 Cookie<\/button>/);
+  assert.doesNotMatch(react,/preview-grant-icon|首次允许一次|<small>/);
+  assert.doesNotMatch(css,/preview-grant-icon|preview-global-grant small/);
+});
+
 test('fictional transport has no real Cookie, permission, network or persistence path',async()=>{
   const [preview,mock]=await Promise.all([read('./src/App.jsx'),read('./src/mock-sdk.js')]);
   for(const source of [preview,mock])assert.doesNotMatch(source,/chrome\.|document\.cookie|localStorage|sessionStorage|\bfetch\s*\(|XMLHttpRequest/);
