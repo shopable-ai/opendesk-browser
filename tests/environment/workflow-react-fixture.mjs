@@ -69,10 +69,12 @@ export async function workflowFixture(options={}) {
   function finish(state='completed') {
     if(!pending)return;
     const {claim,resolve,isObservation,source,params}=pending;pending=null;
-    const observed={kind:'semantic-dom-summary',document:{
-      documentId:claim.target.documentId,url:claim.target.url
-    },nodes:[{role:'textbox',name:'姓名',text:'',state:{visible:true},
-      locator:{kind:'role',value:'textbox',name:'姓名',exact:true}}],truncated:false};
+    const observed=typeof options.observationResult==='function'
+      ? options.observationResult({claim,source,params,target:{...target}})
+      : {kind:'semantic-dom-summary',document:{
+        documentId:claim.target.documentId,url:claim.target.url
+      },nodes:[{role:'textbox',name:'姓名',text:'',state:{visible:true},
+        locator:{kind:'role',value:'textbox',name:'姓名',exact:true}}],truncated:false};
     const result={runId:claim.runId,resultId:claim.resultId,state,revision:claim.revision,
       outcome:state==='completed'?{ok:true,valueWire:encodeValue(isObservation?observed:
         (typeof options.actionResult==='function'
@@ -81,6 +83,10 @@ export async function workflowFixture(options={}) {
     snapshot={run:{...claim,state,workerRetired:true,retirementState:'released'},results:[result]};
     if(service.corruptResult)snapshot.results[0].resultId='different-result';
     host.currentRun=null;notify('run');
+    if(state==='completed'&&!isObservation&&typeof options.afterAction==='function') {
+      options.afterAction({source,params,target,claim});
+      notify('page');
+    }
     resolve({runId:claim.runId,state,retirement:{state:'released'},result});
   }
   const client=options.client||{ready:Promise.resolve(),subscribeWorkflowAI:fn=>{subscriptions.native.add(fn);return ()=>subscriptions.native.delete(fn);},
