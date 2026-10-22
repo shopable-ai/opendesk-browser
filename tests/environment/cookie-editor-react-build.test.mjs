@@ -8,7 +8,33 @@ import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
 
 const repo=resolve('.');
 const root=resolve(repo,'examples/sidebar-tools/cookie-editor');
-const candidate=resolve(repo,'artifacts/sidebar-tools/cookie-editor/candidate.opendesk-tool.json');
+// The R5 candidate workflow and App CI intentionally stage into different
+// directories. Always rebuild the canonical package in this test; compare any
+// already-staged candidate byte-for-byte instead of relying on either path.
+const stagedCandidates=[
+  'artifacts/sidebar-tools/cookie-editor/candidate.opendesk-tool.json',
+  'artifacts/app-ci/cookie-editor/candidate.opendesk-tool.json'
+];
+let candidateRead;
+function sourceBuiltCandidate(){
+  return candidateRead ||= (async()=>{
+    const scratch=await mkdtemp(resolve(tmpdir(),'cookie-react-canonical-'));
+    try{
+      const out=resolve(scratch,'candidate.opendesk-tool.json');
+      await buildSidebarTool(root,{out});
+      const bytes=await readFile(out);
+      for(const location of stagedCandidates){
+        const staged=await readFile(resolve(repo,location)).catch(error=>{
+          if(error.code==='ENOENT')return null;
+          throw error;
+        });
+        if(staged)assert.deepEqual(staged,bytes,
+          'Previously staged Cookie React candidate is not the canonical source build: '+location);
+      }
+      return bytes;
+    }finally{await rm(scratch,{recursive:true,force:true});}
+  })();
+}
 const get=(path)=>readFile(resolve(root,path));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 
@@ -54,7 +80,7 @@ test('built React JSX uses one classic chunk and pinned runtime, not bundled Rea
 test('canonical packer emits the configured React release from current source',async()=>{
   const [config,bytes]=await Promise.all([
     get('tool.config.json').then(bytes=>JSON.parse(bytes.toString('utf8'))),
-    readFile(candidate)
+    sourceBuiltCandidate()
   ]);
   const output=JSON.parse(bytes.toString('utf8'));
   assert.equal(config.uiRuntime,'opendesk.react-ui.v1');
@@ -73,7 +99,7 @@ test('canonical packer emits the configured React release from current source',a
 
 test('checked-in official React package matches the canonical source-built candidate',async()=>{
   const official=JSON.parse((await get('cookie-editor.opendesk-tool.json')).toString('utf8'));
-  const candidatePkg=JSON.parse((await readFile(candidate)).toString('utf8'));
+  const candidatePkg=JSON.parse((await sourceBuiltCandidate()).toString('utf8'));
   for(const key of ['id','version','uiRuntime','html','css','js']){
     assert.equal(candidatePkg[key],official[key],
       'Official Cookie Editor release differs from source-built candidate: '+key);
