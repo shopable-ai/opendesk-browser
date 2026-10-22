@@ -1193,6 +1193,61 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       });
       return;
     }
+    // Official admission runs before constructing the opaque iframe. The
+    // iframe is appended to its final React business target just once.
+    if(!forceSandbox&&!readOnly&&!launchGate&&tool.id===PROMPT_ID&&
+       trustedPromptPilot?.enabled===true&&typeof trustedPromptPilot.mount==='function'){
+      nativePending=true;render();notice('正在核验提示词快捷按钮官方安装身份…');
+      void admittedNativePrompt(tool,frameRevocationEpoch).then(async admitted=>{
+        if(disposed||active!==tool||instance!==token)return;
+        if(!admitted){
+          mountTool(tool,{forceSandbox:true});
+          notice('官方身份核验未通过，已保留受限 iframe，未开放可信 AI。');
+          return;
+        }
+        try{
+          const epoch=frameRevocationEpoch;
+          const assertIdentity=async()=>{
+            if(disposed||readOnlyPreview||active!==tool||instance!==token||
+               nativeUI?.kind!=='prompt'||!frame?.contentWindow||
+               !sameInstance(frame.contentWindow,token))
+              throw Object.assign(new Error('提示词实例已经关闭'),{code:'E_TOOL_CHANGED'});
+            if(!await admittedNativePrompt(tool,epoch)||active!==tool||instance!==token)
+              throw Object.assign(new Error('官方身份或安装代际已失效'),{code:'E_TOOL_CHANGED'});
+          };
+          const host=createTrustedPromptHost({
+            api,tool,token,epoch,model:globalThis.OpenDeskPromptShortcutsModel,
+            conversation:trustedPromptPilot.conversation(),assertIdentity,
+            frameSource:()=>frame?.contentWindow,
+            guardBlocked:()=>toolDirty||toolSaving||Boolean(pendingAction),
+            dispatch:(operation,payload)=>dispatch(operation,payload,tool,
+              frame?.contentWindow,token,epoch),
+            etagFor,confirm:args=>requestBrowserClick({...args,toolId:PROMPT_ID}),
+            sendToFrame:message=>frame?.contentWindow?.postMessage({
+              protocol:SIDEBAR_TOOL_PROTOCOL,instance:token,toolId:PROMPT_ID,...message
+            },'*'),notice
+          });
+          const recovery=await host.recovery();
+          if(disposed||active!==tool||instance!==token){host.dispose();return;}
+          const portal=trustedPromptPilot.mount({container:frameRoot,onRequest:host.request,
+            onReconcile:host.reconcile,recovery});
+          if(disposed||active!==tool||instance!==token){host.dispose();portal.dispose();return;}
+          promptHost=host;nativeUI={kind:'prompt',dispose:portal.dispose};nativePending=false;
+          frameRoot.dataset.promptAi='true';frameRoot.dataset.officialWorkspace='true';
+          mountSandbox(portal.frameTarget);
+          notice('');
+        }catch(error){
+          destroyFrame();tocSettingsOpen=true;render();
+          notice('可信提示词 AI 接线失败：'+String(error?.message||error).slice(0,180),true);
+        }
+      }).catch(error=>{
+        if(disposed||active!==tool||instance!==token)return;
+        destroyFrame();tocSettingsOpen=true;render();
+        notice('官方身份核验失败，未开放 AI 数据访问：'+String(error?.message||error).slice(0,180),true);
+      });
+      return;
+    }
+    function mountSandbox(target=frameRoot){
     let initialized=false;
     frame=doc.createElement('iframe');
     frame.title=tool.title+'（独立受限界面）';
@@ -1275,8 +1330,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         locale:localeController?.getLocale()||'zh-CN'},'*',transferred);
       syncFrameLayout();
     };
-    frameRoot.append(frame);render();syncFrameLayout();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
+    target.append(frame);render();syncFrameLayout();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
     notice(readOnly?'正在加载隔离只读预览（不会安装或保存）…':'正在打开「'+tool.title+'」…');
+    }
+    mountSandbox(frameRoot);
   }
   function openTool(id,{launchGate=null}={}) {
     
