@@ -127,7 +127,7 @@ test('line change preview explains omissions and leaves original sources immutab
   const result=summarizeCloudSourceDifference(before,after);
   assert.equal(result.removed,1);
   assert.equal(result.added,1);
-  assert.match(result.excerpt,/- old/);
-  assert.match(result.excerpt,/\\+ new/);
+  assert.match(result.excerpt,/^- old$/m);
+  assert.match(result.excerpt,/^\+ new$/m);
   assert.equal(summarizeCloudSourceDifference(undefined,after),null);
 });
