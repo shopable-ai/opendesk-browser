@@ -733,6 +733,166 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }
     };
   }
+  // One user's Send owns every round. A round is only an admitted fragment;
+  // neither a model completion claim nor a successful Worker receipt can
+  // bypass verification of the original goal.
+  async function advanceWorkflowAgent(agent,previous,reply) {
+    try {
+      for(;;) {
+        if(workflowAgent!==agent||agent.stopping)return;
+        agent.guard.check();
+        const verdict=agent.guard.verified({claim:previous.ticket,reply});
+        if(verdict.state==='COMPLETED') {
+          const multi=agent.guard.snapshot().rounds>1;
+          finishWorkflowAgent(agent,'COMPLETED','已核对原始任务目标。'+
+            (multi?'跨轮操作分别执行并核验；当前「保存」只冻结最后一个工作流分段，不代表整段跨页面任务可以独立复跑。':
+              '可以保存此版本并在 AI 关闭时独立运行。'));
+          return;
+        }
+        if(verdict.state!=='CONTINUE'){
+          finishWorkflowAgent(agent,verdict.state,verdict.reason);
+          return;
+        }
+        if(agent.guard.snapshot().remainingRounds<=0)
+          throw err('E_AGENT_LIMIT','达到连续决策上限，部分目标尚未证实，已停止');
+        // Rebind after any click/navigation. A new document never inherits an
+        // old locator or grants a new origin. Same tab and approved origin only.
+        phase='planning';busy=true;planningAbort=agent.controller;
+        control('workflow-editor').dataset.agentState='OBSERVING';
+        control('workflow-planning-indicator').text='正在读取最新网页以判断下一步…';
+        updateButtons();
+        const target=await currentPageTarget.refresh();
+        agent.guard.check();
+        if(target?.status!=='available'||target.frameId!==0||
+          target.windowId!==agent.initialTarget.windowId||
+          target.tabId!==agent.initialTarget.tabId||
+          target.origin!==agent.initialTarget.origin)
+          throw err('E_DOCUMENT_STALE','网页已切换到其他授权范围；不会自行扩大权限或重复点击');
+        planningTarget=target;
+        if(!await api.permissions.contains({origins:[permissionPattern(target.url)]}))
+          throw err('E_PERMISSION','当前网页授权失效，停止后续操作');
+        agent.guard.check();
+        const recipientId=await workflowObservationRecipientId({
+          selected:agent.selected,endpoint:agent.settings.endpoint,model:agent.settings.model});
+        const receiverPattern=agent.selected==='local_codex'?null:permissionPattern(agent.settings.endpoint);
+        const approval={selected:agent.selected,
+          sessionId:agent.selected==='local_codex'?localPlanner.snapshot().sessionId:session(),
+          captured:target,recipientId,receiverPattern};
+        if(!validObservationApproval(approval))
+          throw err('E_AI_APPROVAL','网页摘要授权已失效，请重新发送并授权，不再自动读取');
+        if(receiverPattern&&!await api.permissions.contains({origins:[receiverPattern]}))
+          throw err('E_AI_PERMISSION','AI 接收方权限已撤销，后续决策已停止');
+        const receipt=await observation.observe(target,{signal:agent.controller.signal,
+          requestId:'agent-observe-'+crypto.randomUUID(),request:agent.goal});
+        await currentPageTarget.revalidate(target);
+        agent.guard.check();
+        planningObservation=receipt;
+        agent.guard.observed({target,receipt,remaining:agent.goal});
+        const serial=stable(),exactTarget=Object.fromEntries(
+          ['windowId','tabId','frameId','documentId','url','origin'].map(key=>[key,target[key]]));
+        const settings=agent.settings,source=agent.selected;
+        const planArgs={source,workflow:snapshot(),target:exactTarget,
+          observationReceipt:workflowObservationForModel(receipt),signal:agent.controller.signal,
+          settings,history:verifiedTurnHistory,
+          consent:{model:true,workflow:true,observation:true},
+          onApproval:(event,context)=>offerObservation(event,context,{
+            epoch:agent.epoch,serial,selected:source,captured:target,
+            request:agent.goal,recipientId,receiverPattern})};
+        // Schema and incomplete-step failures precede any issued RunHost effect.
+        // One bounded corrective model decision is permitted, not blind retries.
+        let checked=null,lastPreflight=null;
+        for(let attempt=0;attempt<2;attempt++){
+          agent.guard.check();
+          planningCurrent(agent.epoch,serial,source);
+          const prompt=attempt===0?agent.goal:
+            agent.goal.slice(0,3600)+'\n上一次方案未通过执行前校验（'+
+            lastPreflight.code+'）；只纠正该错误，不能增加未经要求的操作。';
+          let proposed;
+          try{
+            proposed=(await workflowProviders.generateWorkflow({...planArgs,request:prompt})).proposal;
+            planningCurrent(agent.epoch,serial,source);
+            const admission=prepareDirectExecution({
+              request:agent.goal,workflow:proposed,target,observation:receipt});
+            const executable=structuredClone(proposed);
+            if(admission.linkGuard){
+              const click=executable.steps.find(step=>step.op==='click');
+              if(!click)throw err('E_AI_REVIEW_REQUIRED','缺少已核验链接点击');
+              click.linkGuard=structuredClone(admission.linkGuard);
+            }
+            const freeze=await compileWorkflow(executable,{verifyFill:true});
+            checked={executable,admission,freeze};break;
+          }catch(error){
+            const code=error?.code||'';
+            if(attempt>0||!['E_WORKFLOW_SCHEMA','E_WORKFLOW_AI',
+              'E_AI_MISSING_ACTION','E_AI_ASSERT_TARGET','E_AI_VALUE_NOT_GROUNDED',
+              'E_AI_RESPONSE','E_AI_SCHEMA'].includes(code))throw error;
+            lastPreflight=error;
+            control('workflow-planning-indicator').text='步骤校验失败，正在进行唯一一次安全纠正…';
+          }
+        }
+        if(!checked)throw err('E_AGENT_SCHEMA','模型未返回可执行的受限步骤');
+        planningCurrent(agent.epoch,serial,source);
+        if(!await api.permissions.contains({origins:[permissionPattern(target.url)]}))
+          throw err('E_PERMISSION','步骤生成后网站权限已撤销');
+        await currentPageTarget.revalidate(target);
+        agent.guard.check();
+        const {executable,admission,freeze}=checked;
+        const ticket=agent.guard.claim({workflow:executable,target});
+        // Only the current round is shown/editable/savable as a JavaScript
+        // artifact. A multi-Document agent journal is not misrepresented as a
+        // portable one-script replay.
+        workflow=structuredClone(executable);touched=true;lastTrustedRun=null;
+        directVerifiedSerial=stable();
+        render();persistDraft();
+        const next={
+          epoch:agent.epoch,selected:source,request:agent.goal,serial:stable(),
+          freeze,captured:structuredClone(target),params:structuredClone(admission.params),
+          hasReadback:admission.hasReadback,hasUnprovenClick:admission.hasUnprovenClick,
+          beforeObservation:receipt,effectExpectation:admission.effectExpectation,
+          linkGuard:admission.linkGuard,signal:agent.controller.signal,
+          agent,ticket,continuation:true
+        };
+        agent.expectedNavigation=admission.linkGuard||null;
+        const origins=[permissionPattern(target.url)];
+        if(admission.linkGuard&&admission.linkGuard.origin!==target.origin)
+          origins.push(permissionPattern(admission.linkGuard.url));
+        const granted=await api.permissions.contains({origins:[...new Set(origins)]});
+        agent.guard.check();
+        if(!granted){
+          // Only an actual trusted user click may obtain the missing Chrome
+          // permission. Keep the exact frozen proposal; no synthetic gesture.
+          pendingAIReview=next;
+          control('workflow-run-review-scope').text=
+            '下一步需要新增网站权限。确认后由 Chrome 原生授权，不会自动扩大范围。';
+          control('workflow-run-review').hidden=false;
+          appendChat('任务进展','已经核对前面的操作；下一步需要网站授权后继续。');
+          phase='idle';busy=false;planningAbort=null;planningTarget=null;
+          updateButtons();focus('workflow-run-review-confirm');return;
+        }
+        planningAbort=null;planningTarget=null;busy=false;phase='running';updateButtons();
+        previous=next;
+        reply=await executeAIAuto(next);
+      }
+    }catch(error){
+      if(workflowAgent!==agent||agent.stopping)return;
+      const code=error?.code||'E_AGENT';
+      const state=code==='E_AGENT_NO_PROGRESS'?'NO_PROGRESS_STOPPED':
+        code==='E_AGENT_LIMIT'?'LIMIT_REACHED':
+        /UNKNOWN|TIMEOUT|SETTLEMENT/.test(code)?'OUTCOME_UNKNOWN':
+        ['E_AI_APPROVAL','E_AGENT_GOAL','E_AI_REVIEW_REQUIRED','E_AI_VALUE_NOT_GROUNDED',
+          'E_AI_MISSING_ACTION','E_AI_UNREQUESTED_ACTION'].includes(code)?'ASK_USER':'BLOCKED';
+      const guidance=state==='ASK_USER'
+        ?'需要明确可操作的目标或补充权限后才能继续；不会猜测性写入。'
+        :state==='OUTCOME_UNKNOWN'?'结果尚未核实，请检查网页，禁止自动重试。'
+        :'已保留之前核验成功的步骤，不会自动重放。';
+      finishWorkflowAgent(agent,state,format(error)+'。'+guidance);
+    }finally{
+      if(workflowAgent===agent&&!agent.stopping){
+        busy=false;phase='idle';planningAbort=null;planningTarget=null;updateButtons();
+      }
+    }
+  }
+
   // Send is the user's task intent, not a Chrome permission gesture after an
   // asynchronous Provider turn. Auto-run ONLY when every required site grant
   // already exists. RunHost is still the sole execution and write authority.
