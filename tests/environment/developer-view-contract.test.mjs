@@ -6,6 +6,22 @@ import {createScriptEditor} from '../../src/ui/script-editor.js';
 import {createControllerResultsView} from '../../src/ui/controller-results-view.js';
 import {createControllerRevisionView} from '../../src/ui/controller-revision-view.js';
 
+test('native form edits publish before controlled restoration while results remain batched', async () => {
+  const view=createDeveloperView(),snapshots=[];
+  view.subscribe(()=>snapshots.push(view.getSnapshot()));
+  try{
+    view.patch('script-source',{value:'edited at the caret'},{immediate:true});
+    assert.equal(snapshots.length,1,'React receives the edited value within the native input event');
+    assert.equal(snapshots[0].fields['script-source'].value,'edited at the caret');
+    view.patch('script-status',{textContent:'running'});
+    view.patch('script-result',{textContent:'result'});
+    assert.equal(snapshots.length,1,'background status updates retain their batch');
+    await Promise.resolve();
+    assert.equal(snapshots.length,2);
+    assert.equal(snapshots[1].fields['script-result'].textContent,'result');
+  }finally{view.dispose();}
+});
+
 test('developer controllers publish state, options and attributes without DOM fields', async () => {
   const view=createDeveloperView(),field=view.fields['script-list'],snapshots=[];
   const unsubscribe=view.subscribe(()=>snapshots.push(view.getSnapshot()));

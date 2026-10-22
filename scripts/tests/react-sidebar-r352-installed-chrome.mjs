@@ -9,6 +9,7 @@ import {tmpdir} from 'node:os';
 import {resolve,join} from 'node:path';
 import {verifyPackage} from '../verify-package.mjs';
 import {createHash} from 'node:crypto';
+import {verifyDeveloperSourceInput} from './developer-source-input.mjs';
 
 const extension=resolve(process.env.OPENDESK_EXTENSION_DIR||'dist/production');
 const output=resolve(process.argv[2]||'artifacts/react-sidebar-r352-installed');
@@ -201,6 +202,9 @@ try{
   extensionId=new URL(worker.url).host;
   report.extensionId=extensionId;
   await openInstalledPage();
+  report.steps.push({name:'native-developer-source-editing',...await verifyDeveloperSourceInput({
+    call:(method,params)=>call(method,params,host),evaluate,until
+  })});
   await call('Target.closeTarget',{targetId});
   host=null;targetId=null;
   await openInstalledPage();

@@ -20,7 +20,7 @@ export function DevelopField({as:Tag='div',id,children,...props}){
     title:field.title??props.title,className:field.className??props.className};
   for(const [key,value] of Object.entries(field.data||{}))attrs['data-'+key.replace(/[A-Z]/g,c=>'-'+c.toLowerCase())]=value;
   for(const key of ['ariaLabel','ariaLive'])if(field[key]!==undefined)attrs[key==='ariaLabel'?'aria-label':'aria-live']=field[key];
-  const invoke=(event,values)=>{if(values)model.patch(id,values);actions[id]?.(event.nativeEvent);};
+  const invoke=(event,values)=>{if(values)model.patch(id,values,{immediate:true});actions[id]?.(event.nativeEvent);};
   if(Tag==='input'||Tag==='textarea'){
     attrs.readOnly=field.readOnly;
     if(props.type==='radio'||props.type==='checkbox'){

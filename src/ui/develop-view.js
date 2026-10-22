@@ -12,10 +12,13 @@ export function createDeveloperView(){
   const actions={},subscribers=new Set();
   let snapshot={fields:Object.fromEntries(Object.entries(fields).map(([key,state])=>[key,{...state}])),
     dependencies:{classic:null,network:null}},disposed=false,queued=false;
-  function notify(){
+  function notify(immediate=false){
+    // Controlled inputs must publish before React restores their value at the
+    // end of the native input event. Result/status projections stay batched.
+    if(immediate){for(const fn of subscribers)fn();return;}
     if(!queued){queued=true;queueMicrotask(()=>{queued=false;if(!disposed)for(const fn of subscribers)fn();});}
   }
-  function patch(key,values){
+  function patch(key,values,{immediate=false}={}){
     if(disposed)return;
     if(!fields[key])throw new Error('E_DEVELOPER_FIELD: '+key);
     if(Object.hasOwn(values,'textContent'))values={...values,textSet:true};
@@ -26,7 +29,7 @@ export function createDeveloperView(){
       Object.is(fields[key][name],value)&&Object.is(snapshot.fields[key][name],value)))return;
     Object.assign(fields[key],values);
     snapshot={...snapshot,fields:{...snapshot.fields,[key]:{...fields[key]}}};
-    notify();
+    notify(immediate);
   }
   function patchDependencies(section,value){
     if(disposed)return;
