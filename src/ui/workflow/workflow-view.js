@@ -787,8 +787,12 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }
     })().catch(error=>{
       lastRun='failed';
-      writeWorkflowOutput(format(error)+'；失败不会自动重放');
-      status(format(error)+'；失败不会自动重放',true);
+      // A late Host start/Stop settlement cannot overwrite the task-level
+      // OUTCOME_UNKNOWN or STOP_REQUESTED result already shown to the user.
+      if(!disposed&&!prepared?.agent?.stopping){
+        writeWorkflowOutput(format(error)+'；失败不会自动重放');
+        status(format(error)+'；失败不会自动重放',true);
+      }
       return {ok:false,error};
     }).finally(()=>{
       busy=false;phase='idle';
