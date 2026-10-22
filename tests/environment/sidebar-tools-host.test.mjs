@@ -2542,3 +2542,71 @@ test('R3.2 a sidecar alone cannot install Focus when its worker probe fails',asy
   assert.equal(f.store.has(SIDEBAR_TOOL_STORE),false,'failed worker preflight must not install');
   assert.match(f.elements['sidebar-tool-file-error'].textContent,/后台无响应/);
 });
+
+test('R5.25 Cookie Editor settings keeps one live sandbox through ten returns and unsaved edits',async t=>{
+  const tool=await officialToolFixture('cookie-editor');
+  const baseGrant={storeId:'0',grantEpoch:'r525-fixture',read:true,write:true,observe:true,clear:true};
+  const store=new Map([
+    [SIDEBAR_TOOL_STORE,[tool]],
+    [BROWSER_MENU_GRANTS_STORE,{[tool.id]:{version:tool.version,installEpoch:null,cookieAllSites:baseGrant}}]
+  ]);
+  const f=await hostFixture(t,{tool,store}),original=f.frame;
+  assert.ok(original,'installed Cookie Editor mounts its official iframe');
+  const settings=f.elements['sidebar-tool-cookie-permissions'];
+  assert.equal(settings.hidden,true);
+  for(let i=0;i<10;i++){
+    assert.equal(f.host.openSettings(tool.id),true,'settings opens without destroying the editor');
+    assert.equal(f.runtime.frameRoot.children[0],original,'openSettings must not destroy the active frame');
+    assert.equal(f.elements['sidebar-tool-frame'].hidden,true,'settings hides the live workspace');
+    assert.equal(f.elements['sidebar-tool-settings-view'].hidden,true,'generic management page is not duplicated');
+    assert.equal(settings.hidden,false,'dedicated Cookie permissions remain visible');
+    assert.equal(f.elements['sidebar-tool-back'].title,'返回上一页');
+    f.emit(f.elements['sidebar-tool-back'],'click');
+    assert.equal(f.runtime.frameRoot.children[0],original,'return keeps the original form and draft');
+    assert.equal(f.elements['sidebar-tool-frame'].hidden,false,'return must restore the real workspace');
+    assert.equal(settings.hidden,true);
+  }
+  f.emit(f.elements['sidebar-tool-back'],'click');
+  assert.equal(f.elements['sidebar-tool-display'].hidden,true,'second back returns to extension list');
+  assert.equal(f.runtime.frameRoot.children.length,0,'closing the editor retires the iframe');
+});
+
+test('R5.25 Extension Center direct settings returns to an available Cookie Editor workspace',async t=>{
+  const tool=await officialToolFixture('cookie-editor');
+  const store=new Map([
+    [SIDEBAR_TOOL_STORE,[tool]],
+    [BROWSER_MENU_GRANTS_STORE,{[tool.id]:{version:tool.version,installEpoch:null,
+      cookieAllSites:{storeId:'0',grantEpoch:'r525-fixture',read:true,write:true,observe:true,clear:true}}}]
+  ]);
+  const f=await hostFixture(t,{tool,store,startTool:false});
+  assert.equal(f.runtime.frameRoot.children.length,0);
+  assert.equal(f.host.openSettings(tool.id),true);
+  assert.equal(f.runtime.frameRoot.children.length,0,'management must not silently execute a tool');
+  assert.equal(f.elements['sidebar-tool-cookie-permissions'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,true);
+  f.emit(f.elements['sidebar-tool-back'],'click');
+  assert.equal(f.elements['sidebar-tool-display'].hidden,false);
+  assert.equal(f.runtime.frameRoot.children.length,1,'back from settings mounts the real editor');
+  const frame=f.runtime.frameRoot.children[0];
+  assert.equal(f.elements['sidebar-tool-frame'].hidden,false);
+  await frame.onload();
+  assert.ok(frame.contentWindow.sent.some(row=>row.kind==='load'&&row.tool?.id===tool.id));
+  f.emit(f.elements['sidebar-tool-back'],'click');
+  assert.equal(f.elements['sidebar-tool-display'].hidden,true);
+  assert.equal(f.runtime.frameRoot.children.length,0);
+});
+
+test('R5.25 Cookie grant revocation hides the prior iframe instead of exposing stale metadata',async t=>{
+  const tool=await officialToolFixture('cookie-editor');
+  const saved={version:tool.version,installEpoch:null,
+    cookieAllSites:{storeId:'0',grantEpoch:'r525-fixture',read:true,write:true,observe:true,clear:true}};
+  const store=new Map([[SIDEBAR_TOOL_STORE,[tool]],[BROWSER_MENU_GRANTS_STORE,{[tool.id]:saved}]]);
+  const f=await hostFixture(t,{tool,store}),frame=f.frame;
+  assert.equal(f.elements['sidebar-tool-frame'].hidden,false);
+  const revoked={...saved,cookieAllSites:null};
+  f.store.set(BROWSER_MENU_GRANTS_STORE,{[tool.id]:revoked});
+  f.changeStorage({[BROWSER_MENU_GRANTS_STORE]:{newValue:{[tool.id]:revoked}}});
+  assert.equal(f.elements['sidebar-tool-frame'].hidden,true,'revoked grants conceal the live Cookie tree');
+  assert.equal(f.elements['sidebar-tool-cookie-permissions'].hidden,false);
+  assert.equal(f.runtime.frameRoot.children[0],frame,'navigation still retains the correct installed instance');
+});

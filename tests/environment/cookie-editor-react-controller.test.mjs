@@ -778,3 +778,42 @@ test('R5.20 batched revocation receipts retire the epoch and cannot replay an im
   assert.equal(writes,1);
   f.controller.dispose();
 });
+
+test('R5.25 unresolvable current pages show separate reasons without any Cookie read or auto retry',async()=>{
+  for(const reasonCode of ['E_NO_ACTIVE_TAB','E_UNSUPPORTED_SCHEME','E_DOCUMENT_UNRESOLVED','E_INCOGNITO']){
+    let calls=0;
+    const adapter=createCookieSdkAdapter({getBrowser:()=>null,request:async operation=>{
+      assert.equal(operation,'currentPage.info');calls++;
+      return {status:'unavailable',reasonCode,message:'not available'};
+    }});
+    const controller=createCookieController({adapter});
+    await controller.load();
+    const state=controller.snapshot();
+    assert.equal(state.phase,'blocked');
+    assert.equal(state.problem,reasonCode);
+    assert.equal(state.target,null,'unresolvable page never fabricates a target Origin');
+    assert.deepEqual(state.rows,[]);
+    assert.equal(calls,1,'no retry loop for '+reasonCode);
+    controller.dispose();
+  }
+});
+test('R5.25 Host closure is distinct from a missing Cookie grant',async()=>{
+  const adapter=createCookieSdkAdapter({getBrowser:()=>null,request:async()=>{
+    throw Object.assign(new Error('Host closed'),{code:'E_HOST_CLOSED'});
+  }});
+  const controller=createCookieController({adapter});
+  await controller.load();
+  assert.equal(controller.snapshot().phase,'error');
+  assert.equal(controller.snapshot().problem,'E_HOST_CLOSED');
+  controller.dispose();
+});
+test('R5.25 Chrome permission rejection retains its diagnostic reason',async()=>{
+  const adapter=createCookieSdkAdapter({getBrowser:()=>({capabilities:{
+    getStatus:async()=>({callableNow:false,reasonCode:'E_CHROME_PERMISSION_REQUIRED'})
+  }}),request:async()=>({status:'available',url:'https://shop.example.com/account'})});
+  const controller=createCookieController({adapter});
+  await controller.load();
+  assert.equal(controller.snapshot().phase,'blocked');
+  assert.equal(controller.snapshot().problem,'E_CHROME_PERMISSION_REQUIRED');
+  controller.dispose();
+});

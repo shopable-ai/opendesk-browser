@@ -36,6 +36,7 @@
 .cookie-editor-react .cookie-panel>p{margin:0}
 .cookie-editor-react .cookie-permission,.cookie-editor-react .cookie-offline-banner{margin-bottom:var(--space-3)}
 .cookie-editor-react .cookie-permission p,.cookie-editor-react .cookie-offline-banner p{margin:var(--space-2) 0;font-size:var(--od-note-size)}
+.cookie-editor-react .cookie-permission-actions{display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:center;margin-top:var(--space-3)}
 .cookie-editor-react .cookie-confirm{position:relative;z-index:2;margin-top:var(--space-3)}
 .cookie-editor-react .cookie-confirm p{margin:0 0 var(--space-2)}
 .cookie-editor-react .cookie-pages{display:flex;align-items:center;justify-content:center;gap:var(--space-2);padding:var(--space-3)}
