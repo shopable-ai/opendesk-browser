@@ -241,6 +241,22 @@ async function operateReactControl(c,side,react,selector,description){
     'document.getElementById("sidebar-tool-action-review")?.hidden!==false'),true,
     'Reviewed AdBlock '+description+' must not open another Host confirmation dialog');
 }
+// The reviewed first-party React tool uses the Host's single shared Back
+// control. Its obsolete in-sandbox Back button is deliberately not rendered.
+// Use real Chrome pointer input and prove the nested -> outer transition.
+async function returnToAdblockOverview(c,side,react){
+  await until(()=>evaluate(c,side,
+    'document.querySelector("#sidebar-tool-back")?.getAttribute("aria-label")==="返回上一级"'),
+    'trusted AdBlock Host exposes nested Back');
+  await click(c,side,'#sidebar-tool-back');
+  await until(()=>evaluate(c,react,
+    'document.querySelector(".adblock-control-row strong")?.textContent==="全局保护"'),
+    'installed AdBlock React returns to overview');
+  await until(()=>evaluate(c,side,
+    'document.querySelector("#sidebar-tool-back")?.getAttribute("aria-label")==="返回扩展列表"'),
+    'trusted Host returns to outer Back state');
+}
+
 async function approveReactReview(c,side){
   await click(c,side,'#sidebar-tool-action-continue');
   await until(()=>evaluate(c,side,
@@ -1411,7 +1427,7 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   assert.equal((await probe(client,site,adUrl())).network.errorText,'net::ERR_BLOCKED_BY_CLIENT');
   note('react-site-restored',{exceptions:0});
 
-  await clickSandbox(client,sid,react,'button[aria-label="返回广告拦截概览"]');
+  await returnToAdblockOverview(client,sid,react);
   // Genuine Side Panel keyboard input must traverse into the React Aria input.
   // Do not invoke input.focus() or synthesize DOM keyboard events.
   let focused=false;
@@ -1808,7 +1824,7 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
       'installed list displays persisted empty state');
     const reload=await reloadFixture(client,manualSession,'installed list restoration durability');
     const fresh=await manualVisibility(false,'list restoration remains visible after refresh');
-    await clickSandbox(client,sid,resumedReact,'button[aria-label="返回广告拦截概览"]');
+    await returnToAdblockOverview(client,sid,resumedReact);
     return {dom,reload,fresh};
   });
   await manualCase('globalPauseResume',async()=>{
