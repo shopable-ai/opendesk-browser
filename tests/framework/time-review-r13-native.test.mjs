@@ -398,13 +398,40 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     const c=await evaluate(browser,uiTarget.sessionId,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})");
     return c.find(x=>x.documentUrl?.includes('/sidepanel.html')&&x.documentId);
   },'actual SIDE_PANEL context');
+  // Chrome may classify a native Side Panel as a non-default target type.
+  // Include every CDP target type, then retain strict exact document-URL and
+  // unique-target requirements; never attach to the launcher tab as fallback.
   const sideTarget=await until(async()=>{
-    const rows=(await browser.send('Target.getTargets')).targetInfos;
-    return rows.find(x=>x.url===sideDocument.documentUrl);
-  },'native Side Panel target');
+    const rows=(await browser.send('Target.getTargets',{filter:[{}]})).targetInfos;
+    const matches=rows.filter(x=>x.url===sideDocument.documentUrl);
+    return matches.length===1?matches[0]:null;
+  },'native Side Panel target').catch(async error=>{
+    // Diagnostic evidence only. No synthetic panel, injected grant or widened
+    // identity check when Chrome reports a SIDE_PANEL but CDP cannot attach.
+    const observeTargets=async params=>{
+      try{return (await browser.send('Target.getTargets',params)).targetInfos.map(x=>({
+        targetId:x.targetId,type:x.type,url:x.url,attached:x.attached
+      }));}catch(cause){return {error:String(cause)};}
+    };
+    const contexts=await evaluate(browser,uiTarget.sessionId,
+      'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})').catch(cause=>({error:String(cause)}));
+    const debuggerList=await fetch(base+'/json/list').then(response=>response.json()).then(rows=>
+      rows.map(x=>({id:x.id,type:x.type,url:x.url}))).catch(cause=>({error:String(cause)}));
+    note('native-side-panel-target-discovery-failed',{
+      expected:{documentId:sideDocument.documentId,documentUrl:sideDocument.documentUrl},
+      contexts,defaultTargets:await observeTargets({}),
+      allTargets:await observeTargets({filter:[{}]}),debuggerList,
+      error:String(error)
+    });
+    throw error;
+  });
   let side=(await browser.send('Target.attachToTarget',{targetId:sideTarget.targetId,flatten:true})).sessionId;
   sideSid=side;
   await browser.send('Runtime.enable',{},side);await browser.send('Page.enable',{},side);
+  // Independently read the attached document rather than trusting TargetInfo.
+  const attachedDocument=await evaluate(browser,side,'location.href');
+  assert.equal(attachedDocument,sideDocument.documentUrl,
+    'attached native Side Panel document URL must equal Chrome SIDE_PANEL context');
   evidence.realSidePanel='PASS';
   await nativeClick(browser,side,'#tab-tools');
   // Confirm the one shipped React root owns the real extension rows before
