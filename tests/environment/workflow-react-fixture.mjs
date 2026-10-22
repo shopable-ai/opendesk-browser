@@ -17,7 +17,8 @@ export async function workflowFixture(options={}) {
   const subscriptions={page:new Set(),run:new Set(),native:new Set(),permission:new Set()};
   const requests=[],starts=[],stops=[],owners=[];
   let snapshot=null,pending=null,sequence=0;
-  const service={hold:Boolean(options.hold),fail:Boolean(options.fail),corrupt:false,corruptResult:false,beforeJournalRead:null};
+  const service={hold:Boolean(options.hold),fail:Boolean(options.fail),corrupt:false,corruptResult:false,beforeJournalRead:null,
+    holdActionStart:false,releaseActionStart:null};
   const storage=map=>({get:async keys=>keys===null?Object.fromEntries(map):Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(key=>[key,map.get(key)])),
     set:async values=>{for(const [key,value] of Object.entries(values))map.set(key,structuredClone(value));}});
   const permissions=new Set(options.permission===false?[]:[target.origin+'/*']);
@@ -44,15 +45,20 @@ export async function workflowFixture(options={}) {
     },
     async start(options) {
       starts.push(structuredClone(options));
+      const source=options.source;
+      const isObservation=source.kind==='draft'&&source.sourceUtf8===WORKFLOW_OBSERVE_SOURCE;
+      // Simulate an admitted action whose RunHost.start response is delayed,
+      // while the first, independently authorized observation still completes.
+      const heldAction=service.holdActionStart&&!isObservation;
+      if(heldAction)await new Promise(resolve=>{service.releaseActionStart=resolve;});
       const runId='workflow-run-'+(++sequence),resultId='workflow-result-'+sequence;
       host.currentRun=runId;
-      const source=options.source,sourceHash=source.kind==='saved'?source.contentHash:await hash(source.sourceUtf8);
+      const sourceHash=source.kind==='saved'?source.contentHash:await hash(source.sourceUtf8);
       const revision={sourceHash,...(source.kind==='saved'?{scriptId:source.scriptId,revision:source.revision}:{})};
       const bound={windowId:7,tabId:9,frameId:0,documentId:options.target.documentId,url:options.target.expectedUrl,allowedOrigin:target.origin};
       const claim={runId,resultId,revision,target:bound};
-      const isObservation=source.kind==='draft'&&source.sourceUtf8===WORKFLOW_OBSERVE_SOURCE;
       host.completion=new Promise(resolve=>{pending={resolve,claim,isObservation};});
-      notify('run');if(!service.hold)queueMicrotask(()=>finish(service.fail?'failed':'completed'));
+      notify('run');if(!service.hold&&!heldAction)queueMicrotask(()=>finish(service.fail?'failed':'completed'));
       return claim;
     },
     async stop(request) {
