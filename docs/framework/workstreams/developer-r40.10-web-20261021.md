@@ -713,3 +713,77 @@ Chrome 官方说明：开关关闭后，既有 context 中 userScripts 对象可
 本对话 native goal 最新实读仍为 **active**。没有把文档交付或部分验收冒充 complete，没有用户暂停请求所以未设 paused，也没有把同一长工作轮的多次检查计作三轮阻塞。**正式项目不能结束**；后续最小范围是：先解决普通 Page 取消/终止的实际能力与产品合同，以及 Chrome USER_SCRIPT 撤权 epoch 的 ABA 缺口；再仅针对尚缺的取消、迟到、Page 安装/数据恢复、200% 完整交互补证。当前没有安全且可证明的通用 ABA 补丁，不能靠轮询、假 Stop、第二 Runtime 或 Node Fixture 授予 FINAL_ACCEPTED。
 
 本节逐项回答本轮要求：七目标、五类真实执行、构建/包身份、Mac/Native、真实故障与修复、安全竞态、宽度/缩放、普通 Run/Stop、维护复杂度、历史保留、未测原因、文件/净变化及源码/包/Chrome 身份；结论均为上述限定范围，**不是 FINAL_ACCEPTED**。
+
+## R40.10.12-LOCAL-FINAL-ACCEPTANCE · 续测 M · 2026-10-22
+
+**当前结论仍为 ACCEPTANCE_PARTIAL，不能结束 Developer R40.10.x。** 本次续测补齐原生编辑、200% 键盘与 Page 安装升级证据，修复一个真实编辑故障；没有重开架构或代码减行工程。原 L 的事实、失败和未测范围保留，以下内容更新当前交付身份及新增结果。
+
+### 当前正式包与主线
+
+- 候选 **M** 的冻结源码：已提交的 main `3340ee7beac6430cad42b3ac9170c5aa28fb8c93`；冻结时为当前 HEAD。仍用普通文件快照和原打包器，无 worktree、dirty/untracked 源码输入或第二构建系统。
+- 正式构建/安装路径仍为 `/private/tmp/opendesk-r401012-inputs-fi9sleqi/dist/production-developer`，本轮隔离 CFT 加载此 production Developer 包。关闭所属 L CFT 后才更新所属输出；日常 watcher/dist、扩展 ID 与 Native 配对未改。原 L 包已按原 Hash 完整保存于 `artifacts/developer-r401012-local-final-20261022/candidate-L-package/`，旧输入清单及源码提交保留；该临时快照路径现在承载 M，不能再当作仍保存 L 的目录。
+- **M Package Hash：`c4178c7ed2c940a6b03b4330c882c8f583a537ec375954a432b501b2f54df95b`**；Build Receipt：`c5b380d5-ac5a-407f-867f-a605c535f21e`。116 个包文件、3736 项冻结输入重新计算均无漂移；实际加载 `ui/tool-shell.js` 字节与 M 一致。独立审阅者也重算了包指纹和冻结输入。[来源](../../../artifacts/developer-r401012-local-final-20261022/M-final-provenance.json)、[输入](../../../artifacts/developer-r401012-local-final-20261022/candidate-M-inputs.json)、[回执](../../../artifacts/developer-r401012-local-final-20261022/candidate-M-build-receipts/build-production-developer.json)、[实际 UI](../../../artifacts/developer-r401012-local-final-20261022/M-ui-loaded.json)。
+- 真实 Mac Chrome 仍为 **156.0.8078.4**，扩展 ID `fiojgodnbinnlnkbmeamlpjemagblaga`，复用原隔离 Profile。真实 SIDE_PANEL context、目标网页及各执行身份见 [M Chrome](../../../artifacts/developer-r401012-local-final-20261022/candidate-M-browser.json) 和各场景 JSON；没有把目录页当原生侧栏。
+- 冻结后 main 继续被其他 owner 推进；来源清单列明后继差异，相关 Developer 输入修复 Blob 未漂移，后继生产变化为工作流 Tab。M 不冒充这些后继 HEAD 的构建；没有因无关 main 更新重复覆盖产物。最终文档提交 SHA 以 Git 和交付消息为准。
+
+### 本次真实故障与最小修复
+
+100% 和 200% 下，源码光标移到开头输入后跳至末尾，下一字符也写到末尾。[旧 L 原始复现](../../../artifacts/developer-r401012-local-final-20261022/continuation-L-editor-caret.json) 和修前真实 Chrome 回归均失败。根因是原 view 已更新 snapshot，但订阅通知排到微任务；React 在事件收尾恢复旧 props，随后又写入新值，破坏浏览器 caret/undo。
+
+`3340ee7be` 只在原 `develop-view.js` / `DevelopField` 让用户表单输入同步通知；运行结果、状态仍按原机制批量发布。没有新 editor、局部源码副本、选择区补丁或 Runtime。增加原生浏览器回归及视图时序回归；原 IME、模式、节点和 Run/Stop 定向检查保留。只读诊断者 Feynman 核查根因及补丁，无阻断问题。[M 原生编辑](../../../artifacts/developer-r401012-local-final-20261022/M-editor-native.json) 中 caret、连续输入、Undo、Redo 实际 PASS。
+
+新增浏览器回归最初被错误接入 CI 的 catalog 路由：该页有 React 根，但五 Tab 故意隐藏，首个点击尚未进行编辑就失败。日志确认 `surface=catalog`、`visibleTabs=[]`，属于测试入口错误。`4d891b2d784e6113bbdf7acae57ee9bcf2eba86c` 仅修原测试驱动的真实 SIDE_PANEL 检查及既有 workflow 路径触发；catalog 输入明确 NOT_TESTED，产品未放宽。[失败日志](../../../artifacts/developer-r401012-local-final-20261022/github-M-ci-failure.txt)、[同 M Mac headless catalog](../../../artifacts/developer-r401012-local-final-20261022/M-headless-catalog/report.json)。
+
+### 当前分层证据
+
+| 验收层 | 当前结果与边界 |
+|---|---|
+| Node（M 源码） | **PASS**：Task Workbench 独立 **52/52**、正常退出；Developer **360+113=473/473**。52 不包含在 473 中 |
+| Source Check / Developer Build / Package Verify | **PASS（M / 3340ee7be / c4178c7e…）**；原 npm check/build:developer/verify:developer 均退出 0 |
+| Mac Controller | **PASS（已执行八场景）**：JS、ESM、Classic、字符串、undefined、异常、重复 Run、真实 Stop；[M Controller](../../../artifacts/developer-r401012-local-final-20261022/controller-M-result.json) |
+| Mac Page | 普通 JS DOM 与固定依赖 ESM **PASS**；完整类别仍 **PARTIAL**，普通长任务 Stop 未关闭；[M JS](../../../artifacts/developer-r401012-local-final-20261022/M-P1.json)、[M ESM](../../../artifacts/developer-r401012-local-final-20261022/M-P2.json) |
+| Mac React / Vue | **PASS（本轮重测的挂载、交互、重复 Run、原 owner Stop/清理）**；[M 组件](../../../artifacts/developer-r401012-local-final-20261022/M-component-acceptance-result.json)。L 的六个错误原生场景另按 L 保留，未冒称本次 M 全部重跑 |
+| Mac Local / Native Provider | **PASS（真实 Controller、Page、交互和受管 Stop）**；[M Local](../../../artifacts/developer-r401012-local-final-20261022/local-M-result.json)。使用已有官方 `opendesk browser dev --read-only`，没有 Mock 或安装额外 Native；初次遗漏子命令的 CLI 启动错误按驱动问题保留 |
+| Linux Installed Chrome | **PASS（CI 4d891b2d / 包 2a3ec4e9…）**：新 [CI 39706653895](https://github.com/shopable-ai/opendesk-browser/actions/runs/39706653895) 的 developer-node / developer-release-smoke 均 success；实际 Linux 壳报告 Hash 为 `2a3ec4e94029c528b181ea45fe6f6837948b8a7f1600e9add17779ffa0e83780`，输入层 NOT_TESTED、Mac NOT_TESTED。[报告](../../../artifacts/developer-r401012-local-final-20261022/github-M-driver-fixed-shell-report.json)。**同 M 包的 Linux 仍 NOT_TESTED**；不同 SHA/包不合并为一份验收 |
+| React UX | 新增原生编辑与 200% 键盘路径 PASS；完整 UX 仍 PARTIAL，详见下文 |
+
+### Page 安装、版本与数据，以及安全边界
+
+[M 的十二阶段原始记录](../../../artifacts/developer-r401012-local-final-20261022/M-page-install.json) 使用安全测试页及独立 `r401012-page-installed-top` 身份，实证如下：
+
+1. 当前源码 Run 后保存 r1 Candidate，验证后仍没有安装；明确安装后持久记录 r1 / registered，随后导航自动运行，无第二次通用“启用”。
+2. 页面按钮实际修改测试页 localStorage 计数为 2；r2 Candidate/Verified 的预览 DOM 可以显示 v2，但持久安装仍是 r1，导航实际运行 v1。**预览 DOM 不是升级证据。**
+3. 明确升级后持久安装变 r2，再导航实际运行 v2；原 localStorage 计数保持 2。
+4. 主动停用后导航不再执行；明确恢复后导航运行 r2，原计数仍为 2。仅证明该真实网页数据样例，未推断所有数据迁移格式。
+5. 先前未加 `@noframes` 的独立候选被 `E_PAGE_FRAME_SCOPE` 拒绝，未产生 installed 记录；随后使用另一个 programId 和顶层范围，不覆写原不可变 Revision、不放宽保护。[拒绝原始记录](../../../artifacts/developer-r401012-local-final-20261022/M-page-install-allframes-rejected.json)。
+
+本轮另取得 [L Page ESM 联合捕获](../../../artifacts/developer-r401012-local-final-20261022/continuation-L-esm-joint.json)：同一次原 SW 派发的 authorLockId、作者源码、实际编译字节 SHA 与最终 tab/document、返回值 5 一致。收集脚本的 JSON 空格断言曾误报 NOT_TESTED，保存原记录后只读结构化复核，没有第二次 Run。**这份联合捕获绑定 L，不冒充 M。**
+
+安全总结果仍为 **PARTIAL**：L 实际 USER_SCRIPT 运行中关闭再恢复后的 ABA 旧成功回执仍交付；M 没有修改对应执行代码，也没有重跑该 ABA，不能宣称 M 新实测 FAIL 或已经修复。普通 Page 长任务的真实终止仍缺少现有公开能力。L 的 CAS、安装 ACK 丢失后只读恢复、持续撤权、导航 UNKNOWN、迟到准备等原生证据继续按原包和事件保存；CAS 准备取消/提交后取消、全部运行/Stop 迟到组合、完整 Native 会话撤销及全部 UNKNOWN 关闭面板恢复仍未关闭。新增安装正常路径不抵消这些缺口；不重试未知不可逆操作，不以 Node Fixture 推导原生 PASS。
+
+### 200% UX、七目标及六维复核
+
+[M 200% 导航](../../../artifacts/developer-r401012-local-final-20261022/M-UX-200-keyboard.json) 实测方向键、Home/End、循环导航共 12 次，焦点均可见；Run 可由 Tab 到达，来回切换后草稿保留。文件的 PARTIAL 反映“textarea 整框必须全部在视口”的保守判据；[M 200% 实际编辑](../../../artifacts/developer-r401012-local-final-20261022/M-UX-200-editor.json) 已另外证明首尾行、连续输入、caret、Undo/Redo 可用，未据少量整框越界修改正常产品。使用真实 Chrome zoom=2、DPR4、visualViewport.scale=1，结束恢复 zoom=1。
+
+L 的 360/400/440/宽屏、CSS320@125% 证据保留，未在 M 重跑全部宽度。100% 物理320仍受本机 Chrome 原生最小约360限制，记 NOT_TESTED，不判产品失败；全部 ARIA、加载/错误/UNKNOWN 和多击组合尚未完整证明。普通正常 Run 无需先创建 Revision、Candidate 或安装；安装/高级版本按需使用。Page Stop 与未知结果恢复成本仍是用户可见缺口。
+
+七目标当前仍为：职责精简 PARTIAL；原业务 owner 保留 PASS（核查范围）；直接 Run/Stop PARTIAL；无效协调消除 PARTIAL；唯一运行设施 PASS（核查范围）；完整维护成本 PARTIAL；业务和安全零退化 PARTIAL。没有用 LOC 或更多正常运行推断完整维护性。
+
+| 维度 | 独立分数 | 尚存风险 / 反方质疑 | ≥95 |
+|---|---:|---|---|
+| 普通开发流程简洁性 | **92** | 原生输入、直接 Run 改善；普通 Page 长任务不能可靠结束 | 否 |
+| 信息架构与 UX | **93** | 200% 导航和编辑补证；全部 ARIA 与异常组合仍缺 | 否 |
+| Script Editor 职责精简 | **89** | 补丁在原视图层；Editor 仍组织组件准备、候选及跨来源状态 | 否 |
+| 完整生产维护性 | **87** | 局部边界改善；完整调用链成本及安全恢复组合未证明 | 否 |
+| 执行安全合同 | **88** | 正常安装版本分离成立；ABA、Page Stop 与取消/迟到组合未关闭 | 否 |
+| 构建与真实验收证据 | **94** | 亲核 M 包/冻结字节、正常路径及安装；同 M Linux与部分 P0仍缺 | 否 |
+
+Russell（`01a1613f-57c7-7660-a8a8-21dc1718cdc8`）只读复核前四维，Lovelace（`01a1613f-58ff-7631-9a2a-330117fb89c5`）亲核后两维及来源/假 PASS 风险；二者未实施生产补丁或亲自重跑浏览器。第一位未展开所有底层聚合事件/重算整包；第二位重新计算 M 包及冻结输入。各自不是双专家交叉签核。评分时新 CI 尚在运行，随后实读已 success，但该 Linux 包不是 M，不据此自动提到 95。
+
+### 交付与剩余工作
+
+本次生产补丁仅两文件，净 **+3 行**；累计本 GOAL 9 个源码/驱动提交为 **14 个生产/构建文件 +172/-57，净 +115 行**，另有 9 个 Node 测试文件、2 个浏览器测试驱动文件及 1 个既有 workflow 配置；[精确逐提交清单](../../../artifacts/developer-r401012-local-final-20261022/M-own-change-stats.json)。`3340ee7be` 已在 origin/main 历史中，驱动修复 `4d891b2d7` 已普通推送。未收录他人 dirty/index，未建分支/worktree/PR或强推。HTML/CSS/JS、React/Vue、版本、历史及原安装 owner 保留；未扩写为全部历史工具导入/升级均已实测。
+
+所属 M CFT 与两个官方 CLI Provider 已正常收尾，复核无剩余所属 PID；持久槽 available、无活动 run，userScripts 可用、受管 DOM 为零，隔离 Profile 保留 r2 安装及测试计数。其他 owner 的服务、共享43111页、日常 Native 配对没有收到本轮信号。[M 收尾](../../../artifacts/developer-r401012-local-final-20261022/M-closeout-runtime.json)。
+
+**最小剩余范围**：先明确并实现普通 Page 长任务取消/实际终止的可行合同，解决 USER_SCRIPT 撤权 ABA 的可证明身份边界；再针对尚缺的 CAS 取消、运行/Stop 迟到回执、完整 Native 会话及 UNKNOWN 恢复补证。不能用假 Stop、轮询保证、自动重放、新 Runtime 或额外架构项目补评分。当前 native goal 仍 active；本次有实际进展，未伪报 complete、paused 或达到阻塞轮数。正式项目仍不能结束。
