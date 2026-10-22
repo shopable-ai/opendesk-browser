@@ -194,7 +194,8 @@ test('parameterizing sensitive fields never saves a secret as a default',async t
 
 test('full saved bundle loads from real Controller revisions and blocks stale entry without dispatch',async t=>{
   const f=await workflowFixture();t.after(()=>f.view.dispose());
-  f.click('workflow-save');await tick();await tick();await tick();
+  await f.click('workflow-save');
+  assert.equal(f.state().header.saved,true,'save must settle before history may replace a clean draft');
   const id='wf-44444444-3333-2222-1111-111111111111';
   const segments=[];
   for(let index=1;index<=2;index++){
@@ -216,9 +217,9 @@ test('full saved bundle loads from real Controller revisions and blocks stale en
     workflow:{workflowId:id,title:'完整只读示例',siteOrigin:f.target.origin},
     segments,paramsSchema:replayParameterSchema(segments)});
   const key='opendesk.sidebar.workflow.v1:'+id+':1';
-  f.local.set(key,record);f.click('workflow-refresh');await tick();await tick();
+  f.local.set(key,record);await f.click('workflow-refresh');
   f.input('workflow-saved-list',key,'change');
-  f.click('workflow-load');await tick();await tick();await tick();
+  await f.click('workflow-load');
   assert.match(get(f,'workflow-status').text,/完整 2 段工作流/);
   assert.equal(f.state().header.saved,true);
   assert.match(f.state().header.savedTitle,/完整工作流/);
@@ -233,7 +234,8 @@ test('full saved bundle loads from real Controller revisions and blocks stale en
 test('changed parameter on a legacy cross-navigation bundle fails before permission or RunHost dispatch',async t=>{
   const f=await workflowFixture();t.after(()=>f.view.dispose());
   // A dirty user draft correctly blocks history replacement: save it first.
-  f.click('workflow-save');await tick();await tick();await tick();
+  await f.click('workflow-save');
+  assert.equal(f.state().header.saved,true,'save must settle before history may replace a clean draft');
   const id='wf-55555555-3333-2222-1111-111111111111';
   const shared={type:'object',properties:{query:{type:'string',title:'搜索关键词',
     maxLength:120,default:'camera'}},required:['query'],additionalProperties:false};
@@ -263,9 +265,9 @@ test('changed parameter on a legacy cross-navigation bundle fails before permiss
     segments,paramsSchema:replayParameterSchema(segments)});
   const key='opendesk.sidebar.workflow.v1:'+id+':1';
   f.local.set(key,bundle);
-  f.click('workflow-refresh');await tick();await tick();
+  await f.click('workflow-refresh');
   f.input('workflow-saved-list',key,'change');
-  f.click('workflow-load');await tick();await tick();await tick();
+  await f.click('workflow-load');
   assert.equal(f.state().header.saved,true,
     'bundle load: '+JSON.stringify({status:f.state().controls['workflow-status'],
       selection:f.state().controls['workflow-saved-list'],history:f.state().history}));
@@ -301,7 +303,8 @@ test('two-segment saved AI-off bundle reopens and runs all frozen revisions',asy
   const f=await workflowFixture({actionResult:({params})=>({
     fill:{kind:'input-readback',matched:true,value:params.query}})});
   t.after(()=>f.view.dispose());
-  f.click('workflow-save');await tick();await tick();await tick();
+  await f.click('workflow-save');
+  assert.equal(f.state().header.saved,true,'save must settle before history may replace a clean draft');
   const id='wf-77777777-3333-2222-1111-111111111111';
   const shared={type:'object',properties:{query:{type:'string',title:'搜索关键词',
     maxLength:120,default:'camera'}},required:['query'],additionalProperties:false};
@@ -329,9 +332,9 @@ test('two-segment saved AI-off bundle reopens and runs all frozen revisions',asy
     segments,paramsSchema:replayParameterSchema(segments)});
   const key='opendesk.sidebar.workflow.v1:'+id+':1';
   f.local.set(key,bundle);
-  f.click('workflow-refresh');await tick();await tick();
+  await f.click('workflow-refresh');
   f.input('workflow-saved-list',key,'change');
-  f.click('workflow-load');await tick();await tick();await tick();
+  await f.click('workflow-load');
   assert.equal(f.state().header.saved,true,
     'bundle load: '+JSON.stringify({status:f.state().controls['workflow-status'],
       selection:f.state().controls['workflow-saved-list'],history:f.state().history}));
