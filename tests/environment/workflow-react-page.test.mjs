@@ -228,3 +228,48 @@ test('full saved bundle loads from real Controller revisions and blocks stale en
   assert.equal(result.error.code,'E_DOCUMENT_STALE');
   assert.equal(f.starts.length,0);
 });
+
+
+test('changed parameter on a legacy cross-navigation bundle fails before permission or RunHost dispatch',async t=>{
+  const f=await workflowFixture();t.after(()=>f.view.dispose());
+  const id='wf-55555555-3333-2222-1111-111111111111';
+  const shared={type:'object',properties:{query:{type:'string',title:'搜索关键词',
+    maxLength:120,default:'camera'}},required:['query'],additionalProperties:false};
+  const first={format:'opendesk.workflow.v1',workflowId:id+'-s1',
+    title:'搜索并核对',description:'',siteOrigin:f.target.origin,paramsSchema:shared,
+    steps:[{stepId:'fill',op:'fill',locatorKind:'css',selector:'#search',param:'query'}]};
+  const second={format:'opendesk.workflow.v1',workflowId:id+'-s2',
+    title:'搜索并核对',description:'',siteOrigin:f.target.origin,
+    paramsSchema:{type:'object',properties:{},required:[],additionalProperties:false},
+    steps:[{stepId:'read',op:'observe'}]};
+  const segments=[];
+  for(const [index,workflow] of [first,second].entries()){
+    const mode=index===0?'fill-readback':'none';
+    const freeze=await compileWorkflow(workflow,{verifyFill:index===0});
+    const saved=await f.host.controller.commitControllerScript({
+      scriptId:workflow.workflowId,expectedRevision:0,sourceUtf8:freeze.sourceUtf8});
+    segments.push({workflow,entryUrl:index===0?f.target.url:
+      f.target.origin+'/search?q=camera',revision:saved.revision,
+      sourceHash:freeze.sourceHash,verificationMode:mode,
+      evidence:{kind:index===0?'input-readback':'read-only'},
+      proof:{runId:'original-'+index,resultId:'receipt-'+index,sourceHash:freeze.sourceHash,
+        origin:f.target.origin,documentId:'document-'+index}});
+  }
+  const bundle=await sealWorkflowBundle({format:WORKFLOW_BUNDLE_FORMAT,bundleId:id,revision:1,
+    goal:'搜索 camera，然后核对搜索结果',title:'搜索并核对',
+    workflow:{workflowId:id,title:'搜索并核对',siteOrigin:f.target.origin},
+    segments,paramsSchema:replayParameterSchema(segments)});
+  const key='opendesk.sidebar.workflow.v1:'+id+':1';
+  f.local.set(key,bundle);
+  f.click('workflow-refresh');await tick();await tick();
+  f.input('workflow-saved-list',key,'change');
+  f.click('workflow-load');await tick();await tick();await tick();
+  assert.equal(f.state().header.saved,true);
+  f.view.actions.setParam('query','lens');await tick();
+  const beforeRequests=f.requests.length;
+  const result=await f.click('workflow-run');
+  assert.equal(result.ok,false);
+  assert.equal(result.error.code,'E_WORKFLOW_PARAM_BINDING');
+  assert.equal(f.requests.length,beforeRequests,'no new Chrome permission requested');
+  assert.equal(f.starts.length,0,'no first segment or browser side effect dispatched');
+});
