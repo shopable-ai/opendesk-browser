@@ -4,6 +4,11 @@ on:
     branches: [main]
     paths:
       - 'examples/sidebar-tools/cookie-editor/preview/react/**'
+      # The preview imports the real CookieEditorApp, not a copied UI.
+      - 'examples/sidebar-tools/cookie-editor/app/**'
+      - 'examples/sidebar-tools/cookie-editor/src/react.css'
+      - 'examples/sidebar-tools/cookie-editor/tool.config.json'
+      - 'examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json'
       - 'examples/sidebar-tools/cookie-editor/ui/**'
       - 'examples/sidebar-tools/cookie-editor/app/components/CookieEditorView.jsx'
       - 'src/ui/react/cookie-editor/**'
