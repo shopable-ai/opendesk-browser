@@ -124,3 +124,21 @@ test('two independently requested fills are not satisfied by the first readback'
  assert.equal(guard.verified({claim:other,reply:{ok:true,
    evidenceLevel:'BUSINESS_EFFECT_VERIFIED',readbackVerified:true}}).state,'COMPLETED');
 });
+
+test('separate named search queries require separate results and avoid false completion',()=>{
+ const guard=createWorkflowAgentLoopGuard({goal:'搜索 camera，搜索 lens'});
+ const first=guard.claim({workflow:proposal([fill,search]),target});
+ assert.equal(guard.verified({claim:first,reply:{...successful}}).state,'CONTINUE');
+ const lens={...fill,stepId:'lens',text:'lens'};
+ const second=guard.claim({workflow:proposal([lens,{...search,stepId:'search-lens'}]),target});
+ assert.equal(guard.verified({claim:second,reply:{...successful}}).state,'COMPLETED');
+});
+test('same input field with changed text does not prove two distinct field targets',()=>{
+ const guard=createWorkflowAgentLoopGuard({goal:'填写 name 和 email'});
+ const first=guard.claim({workflow:proposal([{...fill,text:'name'}]),target});
+ assert.equal(guard.verified({claim:first,reply:{ok:true,evidenceLevel:'BUSINESS_EFFECT_VERIFIED',
+   readbackVerified:true}}).state,'CONTINUE');
+ const second=guard.claim({workflow:proposal([{...fill,text:'email'}]),target});
+ assert.equal(guard.verified({claim:second,reply:{ok:true,evidenceLevel:'BUSINESS_EFFECT_VERIFIED',
+   readbackVerified:true}}).state,'CONTINUE');
+});

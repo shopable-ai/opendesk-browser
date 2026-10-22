@@ -19,10 +19,14 @@ function goalFulfilled(goal,facts){
   // Fail closed on coordinated objects instead of declaring the first one
   // "completed" merely because its generic category became true.
   const fragments=affirmed.split(/[，,。；;\n]/);
-  const multiOpen=fragments.some(part=>
+  const explicitFillCount=fragments.filter(value=>/(?:填写|填入|输入|\b(?:fill|type)\b)/i.test(value)).length;
+  const explicitOpenCount=fragments.filter(value=>/(?:打开|进入|点开|跳转|\b(?:open|navigate)\b)/i.test(value)).length;
+  const explicitSearchCount=fragments.filter(value=>
+    /(?:搜索(?!框|栏|关键词|输入框|词)|查找(?!输入框|框)|检索(?!词|框)|\bsearch\b(?!\s+(?:keyword|input|field|box|term)\b))/i.test(value)).length;
+  const multiOpen=explicitOpenCount>=2||fragments.some(part=>
     /(?:打开|进入|点开|点击|访问|\b(?:open|visit|click)\b)[^，,。；;]{1,100}(?:和|与|以及|\band\b)[^，,。；;]{1,100}/i.test(part)&&
     !/(?:和|与|以及|\band\b)\s*(?:检查|核对|查看|读取|搜索|验证|\b(?:read|check|verify|search)\b)/i.test(part));
-  const multiFill=fragments.some(part=>
+  const multiFill=explicitFillCount>=2||fragments.some(part=>
     (/(?:填写|填入|输入|\b(?:fill|type)\b)[^，,。；;]{1,100}(?:和|与|以及|\band\b)[^，,。；;]{1,100}/i.test(part)&&
     !/(?:和|与|以及|\band\b)\s*(?:检查|核对|查看|读取|搜索|打开|点击|\b(?:read|check|verify|search|open|click)\b)/i.test(part))||
     /(?:填写|填入|输入)[^，,。；;]{1,100}(?:并且|然后|再)(?:填写|填入|输入)/i.test(part));
@@ -37,6 +41,8 @@ function goalFulfilled(goal,facts){
   if(multiOpen)required.push([...facts].filter(value=>value.startsWith(
     price||details?'product-target:':'link-target:')).length>=2);
   if(multiFill)required.push([...facts].filter(value=>value.startsWith('fill-target:')).length>=2);
+  if(explicitSearchCount>=2)
+    required.push([...facts].filter(value=>value.startsWith('search-target:')).length>=2);
   if(read&&!open&&!price&&!details&&!search&&!fill)
     required.push(facts.has('read-only'));
   return required.length>0&&required.every(Boolean);
@@ -58,6 +64,8 @@ export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits=
   // Prevent verified effects being replayed under a new step ID, Document
   // or group. Only the original Controller marks an effect verified.
   const identity=(origin,step)=>JSON.stringify([origin,actions(step)]);
+  const fieldIdentity=(origin,step)=>JSON.stringify(
+    [origin,step.locatorKind||'',step.selector||'',step.roleName||'']);
   const isObservedSearch=(step,observation,target)=>
     step.op==='click'&&(
       step.locatorKind==='role'&&step.selector==='button'&&
@@ -76,10 +84,19 @@ export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits=
       throw fault('E_AGENT_SCHEMA','每轮只允许一至四个受限步骤');
     if(rounds>=cap.rounds||actionCount+workflow.steps.length>cap.actions)
       throw fault('E_AGENT_LIMIT','已达连续决策或操作数量上限，不再继续执行');
+    const requested=goal.toLocaleLowerCase().replace(/\s+/g,' ');
+    const freshSearch=workflow.steps.some(step=>{
+      if(step.op!=='fill'||typeof step.text!=='string'||!step.text.trim())return false;
+      const value=step.text.trim().toLocaleLowerCase();
+      return !facts.has('search-target:'+value)&&
+        ['搜索','查找','检索','search'].some(verb=>
+          requested.includes(verb+' '+value)||requested.includes(verb+value));
+    });
     if(workflow.steps.some(step=>['fill','click'].includes(step.op)&&
-      confirmed.has(identity(target?.origin,step))))
+      confirmed.has(identity(target?.origin,step))&&
+      !(freshSearch&&isObservedSearch(step,observation,target))))
       throw fault('E_AGENT_NO_PROGRESS','该填写或点击已独立核验，不得拆分后重复执行');
-    if([...facts].some(value=>value.startsWith('search-'))&&
+    if([...facts].some(value=>value.startsWith('search-'))&&!freshSearch&&
       workflow.steps.some(step=>isObservedSearch(step,observation,target)))
       throw fault('E_AGENT_NO_PROGRESS','搜索结果已核验，不再重复点击搜索按钮');
     // Do not include model-generated step IDs or Document IDs: renamed
@@ -111,6 +128,10 @@ export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits=
           reason:'商品名称或价格不能与原始目标及读回结果共同核对，停止继续'};
       if(reply.readbackVerified===true)facts.add('input-readback');
       if(typeof reply.effect?.kind==='string')facts.add(reply.effect.kind);
+      if(['search-results','search-empty','search-inline'].includes(reply.effect?.kind)){
+        const query=ticket.steps?.find(step=>step.op==='fill'&&typeof step.text==='string')?.text;
+        if(query?.trim())facts.add('search-target:'+query.trim().toLocaleLowerCase());
+      }
       const name=String(reply.effect?.name||ticket.linkName||
         ticket.steps?.find(step=>step.op==='click'&&step.selector==='link')?.roleName||'')
         .trim().toLocaleLowerCase();
@@ -126,7 +147,7 @@ export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits=
         step.op==='click'&&clickVerified){
         const key=identity(ticket.origin,step);
         confirmed.add(key);
-        if(step.op==='fill')facts.add('fill-target:'+key);
+        if(step.op==='fill')facts.add('fill-target:'+fieldIdentity(ticket.origin,step));
       }
     } else if(ticket.readOnly&&reply.evidenceLevel==='EXECUTION_RECEIPT_VERIFIED'&&
       reply.readOnlyVerified===true)facts.add('read-only');

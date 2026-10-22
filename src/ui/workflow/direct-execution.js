@@ -185,8 +185,13 @@ export function prepareDirectExecution({request,workflow,target,observation,veri
       node.locator.value==='button'&&node.locator.name===step.roleName&&
       !node.locator.parent&&node.locator.index===undefined)===true;
   };
-  if(searchDone&&clicks.some(searchButton))
-    throw error('E_AGENT_NO_PROGRESS','搜索已独立核验，不能重复点击搜索按钮');
+  const nextQuery=fills.length===1?values[0]?.trim().toLocaleLowerCase():null;
+  const originalLower=request.toLocaleLowerCase().replace(/\s+/g,' ');
+  const freshSearch=Boolean(nextQuery&&!verified.has('search-target:'+nextQuery)&&
+    ['搜索','查找','检索','search'].some(verb=>
+      originalLower.includes(verb+' '+nextQuery)||originalLower.includes(verb+nextQuery)));
+  if(searchDone&&clicks.some(searchButton)&&!freshSearch)
+    throw error('E_AGENT_NO_PROGRESS','该搜索已经独立核验，不能重复点击相同查询');
   if(linkDone&&linkGuard&&verified.has('link-target:'+linkGuard.name.toLocaleLowerCase()))
     throw error('E_AGENT_NO_PROGRESS','相同目标链接已独立核验，不得重复打开');
   // A model click must match a Search control observed in the current Document.

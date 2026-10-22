@@ -466,3 +466,16 @@ test('a second explicitly named detail is not rejected merely because the first 
    target,observation,verifiedFacts:['link-page','link-target:camera x',
      'product-page','product-target:camera x']}).linkGuard.name,'Camera Y');
 });
+
+test('second user-requested query is allowed but an identical search is not replayed',()=>{
+ const w=workflow([{...fill,text:'lens'},
+   {stepId:'search-lens',op:'click',locatorKind:'role',selector:'button',roleName:'搜索'}]);
+ const permitted=prepareDirectExecution({request:'搜索 camera，搜索 lens',
+   workflow:w,target,observation:searchObservation,
+   verifiedFacts:['input-readback','search-results','search-target:camera']});
+ assert.equal(permitted.effectExpectation.query,'lens');
+ assert.throws(()=>prepareDirectExecution({request:'搜索 camera，搜索 lens',
+   workflow:workflow([{...fill,text:'camera'},w.steps[1]]),
+   target,observation:searchObservation,
+   verifiedFacts:['input-readback','search-results','search-target:camera']}),{code:'E_AGENT_NO_PROGRESS'});
+});
