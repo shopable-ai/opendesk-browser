@@ -41,7 +41,8 @@ export function TrustedConversationWorkspace({controller,...props}){
  return <ConversationWorkspace key={owner.current.revision} controller={controller} {...props}/>;
 }
 function ConversationWorkspace({
- controller,renderBusiness,headerTarget=null,title='AI 对话',placeholder='描述要完成的操作'
+ controller,renderBusiness,headerTarget=null,title='AI 对话',placeholder='描述要完成的操作',
+ businessKind='bookmark'
 }){
  const restored=React.useMemo(()=>controller?.readSession?.()||{},[controller]);
  const [open,setOpen]=React.useState(restored.open===true);
@@ -278,8 +279,11 @@ function ConversationWorkspace({
     <ConversationTranscript rows={rows} entryClassName="od-conversation-entry" showSpeaker={false}/>
    </div>
    {busy&&<div className="od-conversation-phase" role="status" aria-live="polite">
-    {{thinking:'正在判断下一步…',observing:'正在查找并核对书签…',
-      writing:'正在更新书签并读回确认…',verifying:'正在核实最终结果…'}[phase]||'正在执行任务…'}
+    {(businessKind==='prompt'?{
+      thinking:'正在理解提示词操作…',observing:'正在查找并核对提示词…',
+      writing:'正在保存提示词并读回确认…',verifying:'正在核对提示词结果…'
+     }:{thinking:'正在判断下一步…',observing:'正在查找并核对书签…',
+      writing:'正在更新书签并读回确认…',verifying:'正在核实最终结果…'})[phase]||'正在执行任务…'}
    </div>}
    {(feedbackError||needsReview)&&<div className="od-conversation-feedback" tabIndex={0} aria-label="对话状态详情">
     {feedbackError&&<p className="od-conversation-error" role="alert">{feedbackError}</p>}

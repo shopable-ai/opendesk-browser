@@ -78,7 +78,8 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
       {promptPilot&&createPortal(
         <TrustedConversationWorkspace controller={promptPilot.controller}
           headerTarget={promptPilot.headerTarget}
-          title="提示词 AI 对话" placeholder="例如：创建一条将中文翻译成日语的提示词"
+          title="提示词 AI 对话" businessKind="prompt"
+          placeholder="例如：创建一条将中文翻译成日语的提示词"
           renderBusiness={dock=><PromptSandboxBusiness dock={dock} onRequest={promptPilot.onRequest}/>}/>,
         promptPilot.container)}
       {bookmarkPilot&&createPortal(<>
