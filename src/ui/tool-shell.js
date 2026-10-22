@@ -134,6 +134,14 @@ const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbenc
       if(!extensionList?.mountBookmarkPilot)throw new Error('E_BOOKMARK_REACT_ROOT_MISSING');
       return extensionList.mountBookmarkPilot({...args,conversation:workflowView?.conversation||null});
     }
+  },
+  trustedPromptPilot:{
+    enabled:true,
+    conversation:()=>workflowView?.conversation||null,
+    mount:args=>{
+      if(!extensionList?.mountPromptConversation)throw new Error('E_PROMPT_REACT_ROOT_MISSING');
+      return extensionList.mountPromptConversation({...args,conversation:workflowView?.conversation||null});
+    }
   }});
 // React owns the whole page; the original workflow controller retains Authority.
 workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptEditor.host,currentPageTarget,
