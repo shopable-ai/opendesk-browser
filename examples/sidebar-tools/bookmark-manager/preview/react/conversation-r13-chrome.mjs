@@ -28,6 +28,19 @@ async function evaluate(code,context=ctx){
  if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text);
  return r.result?.value;
 }
+async function mockNodes(){return evaluate(`const nodes=[];let cursor;
+ do{const page=await OpenDeskSDK.browser.bookmarks.getTree({cursor});
+ nodes.push(...page.nodes);cursor=page.nextCursor;}while(cursor);return nodes;`)}
+async function untilConversation(fn,label){
+ for(let i=0;i<120;i++){
+  const result=await fn();if(result)return result;
+  const error=await evaluate(`const row=document.querySelector('.od-conversation-entry:last-child');
+   return row?.dataset.speaker==='system'?row.textContent:null;`);
+  if(error)throw Error(label+': '+error);
+  await wait(50);
+ }
+ throw Error('Timeout '+label);
+}
 async function key(key,modifiers=0){
  const code={a:'KeyA',' ':'Space'}[key]||key;
  const windowsVirtualKeyCode={a:65,' ':32,Enter:13,Tab:9,Escape:27,Home:36,End:35}[key];
@@ -76,7 +89,7 @@ async function load(path,width,dark=false,zoom=1){
 async function geometry(){return evaluate(`const app=document.querySelector('.bm-app'),a=app.getBoundingClientRect();
  const controls=[...document.querySelectorAll('.bm-topbar .bm-icon-btn')].map(e=>{
  const b=e.getBoundingClientRect(),s=e.querySelector('svg').getBoundingClientRect(),hit=document.elementFromPoint(b.x+b.width/2,b.y+b.height/2);
- return {label:e.getAttribute('aria-label'),type:e.type,width:b.width,height:b.height,dx:(s.x+s.width/2)-(b.x+b.width/2),dy:(s.y+s.height/2)-(b.y+b.height/2),inside:b.left>=a.left-.5&&b.right<=a.right+.5,hittable:e.contains(hit),padding:getComputedStyle(e).paddingLeft};});
+ return {label:e.getAttribute('aria-label'),type:e.type,width:b.width,height:b.height,dx:(s.x+s.width/2)-(b.x+b.width/2),dy:(s.y+s.height/2)-(b.y+b.height/2),inside:b.left>=a.left-.5&&b.right<=a.right+.5,hittable:e.contains(hit),hitTag:hit?.tagName,hitClass:hit?.getAttribute('class'),padding:getComputedStyle(e).paddingLeft};});
  const overflow=[...app.querySelectorAll('*')].filter(e=>{const s=getComputedStyle(e);return e.getClientRects().length&&s.overflowX==='visible'&&e.scrollWidth>e.clientWidth+2&&e.clientWidth>0}).map(e=>({tag:e.tagName,cls:e.className,overflow:e.scrollWidth-e.clientWidth}));
  return {appOverflow:app.scrollWidth-app.clientWidth,controls,overflow};`)}
 async function assertDockKeepsTreeVisible(){
@@ -190,7 +203,13 @@ try{
    const focus=await evaluate('const s=getComputedStyle(document.activeElement);return {visible:document.activeElement.matches(":focus-visible"),style:s.outlineStyle,width:s.outlineWidth}');
    assert.ok(focus.visible&&focus.style!=='none'&&parseFloat(focus.width)>=2,JSON.stringify(focus));
    await key(' ',0); // browser keyboard activation; submit actual App form
-   await until(()=>evaluate('return document.querySelectorAll(".od-conversation-entry").length>=3'),'mock create + bookmark verified');
+   const readback=await untilConversation(async()=>{
+    const nodes=await mockNodes(),folder=nodes.find(n=>n.title==='AI 工具'&&n.parentId==='10'&&!n.url);
+    const bookmark=folder&&nodes.find(n=>n.parentId===folder.id&&n.url==='https://example.com/');
+    return bookmark&&await evaluate('return document.querySelectorAll(".od-conversation-entry").length>=3')?
+     {folder,bookmark}:null;
+   },'mock create + bookmark independently read back');
+   assert.equal(readback.bookmark.parentId,readback.folder.id);
    assert.match(await evaluate('return document.querySelector(".od-conversation-log").textContent'),/已创建/);
    assertGeometry(await geometry());
    await assertDockKeepsTreeVisible();
@@ -222,13 +241,15 @@ try{
    await input('#bm-search','React 文档');
    await until(()=>evaluate('return [...document.querySelectorAll(".bm-node-title")].some(e=>e.textContent==="React 文档")'),'list reflects mock rename');
    matrix.push({...currentCase,status:'PASS',viewport,minContrast:Math.min(...colors.map(c=>c.ratio)),focus,screenshot:screenshotFile});
-   return {screenshot:screenshotFile,minContrast:Math.min(...colors.map(c=>c.ratio))};
+   return {screenshot:screenshotFile,minContrast:Math.min(...colors.map(c=>c.ratio)),mockReadback:readback};
   });
  }
  for(const physicalWidth of (process.env.BOOKMARK_R13_SMOKE?[320]:[320,360,400,440,960,1280]))for(const dark of [false,true]){
   currentCase={physicalWidth,layoutWidth:physicalWidth/2,theme:dark?'dark':'light',zoom:2,fixedPhysicalHeight:800};
   const viewport=await load(preview,physicalWidth/2,dark,2);
   await evaluate('document.getElementById("opendesk-preview-frame").style.height="800px";',outer);
+  // Let the resized child paint before comparing layout rects with hit testing.
+  await evaluate('await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));');
   await check('200% CSS zoom reflow at fixed physical width/height',async()=>{
    assertGeometry(await geometry());
    await ensureDockOpen();
@@ -246,11 +267,14 @@ try{
   await click('[data-node-id="10"]');
   await ensureDockOpen();
   await input('#od-conversation-input','创建 AI 工具文件夹');await key('Enter');
-  await until(()=>evaluate('return [...document.querySelectorAll(".bm-node-title")].some(e=>e.textContent==="AI 工具")'),'R15 folder visible');
+  await untilConversation(()=>evaluate('return [...document.querySelectorAll(".bm-node-title")].some(e=>e.textContent==="AI 工具")'),'R15 folder visible');
   const folderId=await evaluate('return [...document.querySelectorAll(".bm-tree-row")].find(e=>e.querySelector(".bm-node-title")?.textContent==="AI 工具")?.dataset.nodeId');
   assert.ok(folderId,'actual fixture folder ID must be rendered');
+  assert.equal((await mockNodes()).find(n=>n.id===folderId)?.title,'AI 工具','independent fixture tree confirms folder');
   await input('#od-conversation-input','把当前网页收藏进去');await key('Enter');
-  await until(()=>evaluate('return [...document.querySelectorAll(".bm-node-title")].some(e=>e.textContent==="模拟当前页")'),'R15 current page readback in tree');
+  await untilConversation(()=>evaluate('return [...document.querySelectorAll(".bm-node-title")].some(e=>e.textContent==="模拟当前页")'),'R15 current page readback in tree');
+  assert.ok((await mockNodes()).some(n=>n.parentId===folderId&&n.url==='https://example.org/current-page'),
+   'independent fixture tree confirms current page in the created folder');
   assert.match(await evaluate('return document.querySelector(".od-conversation-log").textContent'),/已收藏书签/);
   await input('#bm-search','不存在的搜索词');
   await input('#od-conversation-input','创建 R15 测试文件夹');await key('Enter');

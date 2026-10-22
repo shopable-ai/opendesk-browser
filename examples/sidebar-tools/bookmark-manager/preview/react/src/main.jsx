@@ -38,6 +38,8 @@ const conversation=Object.freeze({
  readSession:()=>structuredClone(session),
  saveSession:next=>{session=structuredClone(next)},
  async request({request,signal}={}){
+  if(!signal||typeof globalThis.__opendeskBookmarkMockDiagnostic!=='function')
+   throw Object.assign(Error('离线请求必须绑定模拟书签环境与本轮信号'),{code:'E_PREVIEW_MOCK'});
   if(signal?.aborted)throw Object.assign(Error('已停止'),{code:'E_CANCELLED'});
   // Make Stop and concurrent user interactions observable in this preview only.
   // Abort before proposal delivery: the business adapter must not issue writes.
@@ -50,7 +52,18 @@ const conversation=Object.freeze({
   });
   if(String(request).trim()==='模拟 Provider 失败')
    throw Object.assign(Error('离线模拟：模型服务暂时不可用，请检查后重试。'),{code:'E_OFFLINE_PROVIDER_FAILED'});
-  return {proposal:mockIntent(request),metadata:{provider:'offline_fixture',nativeVerified:false}};
+  // This grant can reach only the in-memory SDK above. It is not a Host grant
+  // and is never packaged or accepted as real Chrome/Provider authorization.
+  let active=true;
+  const authorization=Object.freeze({signal,
+   assertWrite(){
+    if(!active||signal.aborted)
+     throw Object.assign(Error('离线请求已停止或结束'),{code:'E_CANCELLED'});
+   },
+   release(){active=false}
+  });
+  return {proposal:mockIntent(request),authorization,
+   metadata:{provider:'offline_fixture',nativeVerified:false}};
  },
  cancel:async()=>{}
 });
