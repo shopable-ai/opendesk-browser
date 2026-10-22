@@ -3,6 +3,28 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const read=path=>readFile(new URL(path,import.meta.url),'utf8');
 
+test('export is an anchored two-tab React popover, never a replacement page',async()=>{
+  const [app,view,popup,css]=await Promise.all([
+    read('../../app/CookieEditorApp.jsx'),
+    read('../../app/components/CookieEditorView.jsx'),
+    read('../../app/components/CookieExport.jsx'),
+    read('../../src/react.css')
+  ]);
+  assert.match(app,/exportContent=\{exportOpen\?<CookieExport/);
+  assert.doesNotMatch(app,/panel==='export'|restoreExportFocus/);
+  assert.match(view,/className="cookie-export-popover"/);
+  assert.match(view,/haspopup="dialog" expanded=\{exportOpen\}/);
+  assert.match(view,/document\.addEventListener\('focusin'/);
+  assert.match(view,/window\.addEventListener\('blur'/);
+  assert.match(view,/\['json','JSON'/);
+  assert.match(view,/\['header','Cookie Header'/);
+  assert.doesNotMatch(view,/<option value="netscape">|aria-label="导出格式" value=/);
+  assert.match(popup,/role="dialog"/);
+  assert.match(popup,/onDelivered\?\.\(method\)/);
+  assert.match(css,/\.cookie-export-popover\{/);
+  assert.doesNotMatch(css,/\.cookie-export-workspace\{/);
+});
+
 test('preview mounts the actual App and delegates all Cookie business',async()=>{
   const source=await read('./src/App.jsx');
   assert.match(source,/import CookieEditorApp from ['"]\.\.\/\.\.\/\.\.\/app\/CookieEditorApp\.jsx/);
