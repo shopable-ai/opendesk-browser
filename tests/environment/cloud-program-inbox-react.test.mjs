@@ -122,7 +122,8 @@ test('reviewed descriptor pins name and origin as well as source and manifest ha
   assert.equal(matchesCloudProgramDescriptor({...pin,siteOrigins:['https://bad.example']},deliveryId,pkg),false);
 });
 test('line change preview explains omissions and leaves original sources immutable',()=>{
-  const before='same\\nold\\nfooter',after='same\\nnew\\nfooter';
+  const before='same\nold\nfooter',after='same\nnew\nfooter';
+  assert.equal(before.split('\n').length,3,'fixture must contain actual line breaks');
   const result=summarizeCloudSourceDifference(before,after);
   assert.equal(result.removed,1);
   assert.equal(result.added,1);
