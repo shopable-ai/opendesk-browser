@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'tests/framework/time-review-r13-native.test.mjs'
+      - 'tests/framework/helpers/verified-side-panel-native.mjs'
+      - 'tests/environment/verified-side-panel-native.test.mjs'
       - 'src/time-review/**'
       - 'src/ui/sidebar-tools.js'
       - 'src/ui/sidebar-tools-view.js'
@@ -31,6 +33,8 @@ on:
       - 'scripts/bundle-provenance.mjs'
       - 'src/entrypoints/sidebar-tool-host.js'
       - 'tests/framework/time-review-r13-native.test.mjs'
+      - 'tests/framework/helpers/verified-side-panel-native.mjs'
+      - 'tests/environment/verified-side-panel-native.test.mjs'
       - '.github/workflows/time-review-r13-native.yml'
   workflow_dispatch:
 
@@ -76,6 +80,7 @@ jobs:
             tests/environment/time-review-r13.test.mjs \
             tests/environment/time-review-host-controls-r51.test.mjs \
             tests/environment/time-review-r14-sync-outbox.test.mjs \
+            tests/environment/verified-side-panel-native.test.mjs \
             2>&1 | tee artifacts/time-review-r18-node-build/node.tap
       - name: Real official tool, Source Check, Production and Development builds
         id: builds
@@ -136,6 +141,8 @@ jobs:
       - name: Real R1.3 model and consent regression
         run: |
           node --check tests/framework/time-review-r13-native.test.mjs
+          node --check tests/framework/helpers/verified-side-panel-native.mjs
+          node --test tests/environment/verified-side-panel-native.test.mjs
           node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-r13.test.mjs tests/environment/time-review-r13-service.test.mjs tests/environment/time-review-r13-consent.test.mjs tests/environment/time-review-host-controls-r51.test.mjs tests/environment/time-review-r14-sync-outbox.test.mjs tests/environment/time-review-r15-site-grants.test.mjs tests/environment/time-review-r16-trusted-native.test.mjs
       - name: Build standalone Time Review package and verify source/pack limits
         run: |
