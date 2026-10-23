@@ -128,7 +128,17 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
         signal.reason:err('E_CANCELLED','本轮已停止，未发出新的书签操作'));
       signal?.addEventListener('abort',abortFromParent,{once:true});
       if(signal?.aborted)abortFromParent();
-      const round=conversationSession.begin({signal:abortController.signal,providerGeneration});
+      let round;
+      try{
+        round=conversationSession.begin({signal:abortController.signal,providerGeneration});
+      }catch(error){
+        // A pre-cancelled parent or stale busy round must not leak the deadline
+        // timer and signal listeners before the request's normal finally exists.
+        clearDeadline();
+        abortController.signal.removeEventListener('abort',clearDeadline);
+        signal?.removeEventListener('abort',abortFromParent);
+        throw error;
+      }
       const active={abortController,source:selected,generation,providerGeneration,
         grantPattern,signal,scope,round};
       bookmarkConversationBusy=true;bookmarkConversationActive=active;
