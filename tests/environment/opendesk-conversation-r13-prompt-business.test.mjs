@@ -333,11 +333,11 @@ test('R1.17 single and consecutive edits send selected bodies without extra auth
   }),second=model.draft({body:'第二条原始私人正文',name:'另一条测试'});
   const f=hostFixture({initial:{...base,items:[first,second]},
     proposal:{action:{type:'edit',target:first.id,instruction:'保留段落和编号'}},
-    editResult:'法语新版正文：\\n1. 保留段落。\\n2. 保留编号。'});
+    editResult:'法语新版正文：\n1. 保留段落。\n2. 保留编号。'});
   await f.host.request({request:'修改 R17 法语翻译测试',event:{isTrusted:true}});
   assert.equal(f.confirms.length,0);assert.equal(f.commits,1);
-  assert.match(f.library.value.items[0].body,/法语新版正文/);
-  assert.equal(f.library.value.items[1].body,second.body);
+  assert.match(f.library.value.items.find(item=>item.id===first.id).body,/法语新版正文/);
+  assert.equal(f.library.value.items.find(item=>item.id===second.id).body,second.body);
   f.setProposal({action:{type:'edit',target:second.id,instruction:'按需求优化'}});
   f.setEditResult('第二条修改后正文');
   await f.host.request({request:'继续修改另一条测试',event:{isTrusted:true}});
