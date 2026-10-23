@@ -110,6 +110,9 @@ export function ToolHost({view}) {
     if(!overflowVisible || snapshot.fields['sidebar-tool-display']?.hidden !== false)
       setHeaderMoreOpen(false);
   },[overflowVisible,snapshot.fields['sidebar-tool-display']?.hidden]);
+  // Switching installed tools or moving to a different product page must never
+  // leave the previous tool's trusted menu floating over the next tool.
+  React.useEffect(() => {setHeaderMoreOpen(false);},[snapshot.fields['sidebar-tool-title']?.textContent]);
   React.useEffect(() => {
     if(!headerMoreOpen)return;
     const holder=headerMoreRef.current,doc=holder?.ownerDocument;
@@ -283,7 +286,13 @@ export function ToolHost({view}) {
   </button>
   <div id="sidebar-tool-more-menu" className="sidebar-tool-more-menu od-surface"
     role="group" aria-label="更多工具操作" hidden={!headerMoreOpen}
-    onClick={event=>{if(event.target.closest('button'))setHeaderMoreOpen(false);}}>
+    onClick={event=>{
+      const target=event.target.closest('button');
+      if(!target)return;
+      setHeaderMoreOpen(false);
+      if(target.id==='sidebar-tool-visibility'||target.id==='sidebar-tool-context-menu')
+        headerMoreRef.current?.querySelector('#sidebar-tool-more-open')?.focus({preventScroll:true});
+    }}>
     <ToolField as="button" type="button" id="sidebar-tool-settings-open" className="sidebar-tool-icon-action od-icon-button" title="工具设置" aria-label="工具设置" aria-controls="sidebar-tool-settings-view" aria-expanded="false" hidden={true} nodeRef={runtimeRefs.settingsControl}>
 <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
 <circle cx="12" cy="12" r="3">
