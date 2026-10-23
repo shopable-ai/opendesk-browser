@@ -894,6 +894,44 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
       return page.id===present&&new URL(page.url).searchParams.get('toolId')==='time-review'?page:null;
     },'owned actual extension tab with correct tool identity');
     await nativeClick(browser,otherManager,'#sidebar-tool-back');
+    // The shared Back first returns from a nested official React page or
+    // settings, then closes the mounted tool. Read the current real DOM after
+    // every physical click instead of assuming a fixed number of levels.
+    const inspectOtherManager=async()=>{
+      const state=await evaluate(browser,otherManager,`(()=>{
+        const root=document.querySelector("#sidebar-tool-frame");
+        return {
+          hidden:document.querySelector("#sidebar-tool-display")?.hidden===true,
+          backLabel:document.querySelector("#sidebar-tool-back")?.getAttribute("aria-label")||null,
+          actionReviewVisible:document.querySelector("#sidebar-tool-action-review")?.hidden===false,
+          content:(root?.textContent||"").slice(0,1600)
+        };
+      })()`);
+      return {...state,signature:createHash('sha256').update(state.content).digest('hex').slice(0,16),
+        content:undefined};
+    };
+    const returnOtherToolToManager=async toolId=>{
+      for(let level=0;level<5;level++){
+        const before=await inspectOtherManager();
+        note('other-tool-real-back-level',{toolId,level,hidden:before.hidden,
+          backLabel:before.backLabel,signature:before.signature,
+          actionReviewVisible:before.actionReviewVisible});
+        if(before.hidden)return;
+        assert.equal(before.actionReviewVisible,false,
+          'an unreviewed unsaved-change confirmation cannot be silently accepted');
+        assert.ok(['返回上一级','返回上一页','返回扩展列表'].includes(before.backLabel),
+          'real Back must declare a recognized current route');
+        await nativeClick(browser,otherManager,'#sidebar-tool-back');
+        await until(async()=>{
+          const after=await inspectOtherManager();
+          return after.hidden||after.backLabel!==before.backLabel||
+            after.signature!==before.signature||after.actionReviewVisible!==before.actionReviewVisible
+            ?after:null;
+        },'real '+toolId+' Back advances to the next UI level',10000);
+      }
+      assert.equal((await inspectOtherManager()).hidden,true,
+        'five observed real Back levels must exit the installed tool without discarding data');
+    };
     let realOtherOfficialUpgrade=false;
     for(const toolId of ['reading-toc','cookie-editor','stay-focus']){
       const previouslyInstalled=await evaluate(browser,side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.some(t=>t.id==='+JSON.stringify(toolId)+'))');
@@ -940,8 +978,7 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
       assert.equal(await evaluate(browser,side,'document.querySelectorAll("#sidebar-tool-frame iframe").length'),0);
       note('unrelated-official-install',{toolId,previouslyInstalled,disableEnable:true,nativeStillMounted:true,authorizationUnchanged:true,paused:false});
       await setTimeReviewSettingsVisible(browser,otherManager,false);
-      await nativeClick(browser,otherManager,'#sidebar-tool-back');
-      await until(()=>evaluate(browser,otherManager,'document.querySelector("#sidebar-tool-display").hidden'),'return other tool manager list');
+      await returnOtherToolToManager(toolId);
       const officialTool=await evaluate(browser,otherManager,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"].find(t=>t.id==='+JSON.stringify(toolId)+'))');
       // Preinstalled official IDs stay source-pinned. They are checked for
       // intact data, provenance and consent, but not falsely called upgrades.
