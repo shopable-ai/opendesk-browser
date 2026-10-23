@@ -203,6 +203,13 @@ test('Workflow independent readback must also pass original Host result; dedupe 
     'all three raw RunIds remain on this installation');
   assert(!queue.some(row=>row.event==='tool.engaged'||row.event==='tool.manual_attempt'),
     'an AI auto step cannot manufacture active DAU');
+  // Simulate bounded local dedupe eviction + drained transport queue. Replayed
+  // Host proof must use the exact same event UUID for D1/PostHog dedupe.
+  const originalEventId=evidence[0].eventId;
+  const stored=records.get(ANALYTICS_STATE_KEY);
+  records.set(ANALYTICS_STATE_KEY,{...stored,verifiedWorkflowRunIds:[],queue:[]});
+  assert.equal((await send(event,panel)).data.recorded,true);
+  assert.equal(records.get(ANALYTICS_STATE_KEY).queue[0].eventId,originalEventId);
   await send({protocol:ANALYTICS_PROTOCOL,kind:'consent.set',enabled:false},options);
   assert.equal(records.get(ANALYTICS_STATE_KEY).verifiedWorkflowRunIds.length,0);
   assert.equal((await send(event,panel)).data.recorded,false);
@@ -296,4 +303,11 @@ test('R1.12 Page intent requires installed Authority; Host validates terminal re
   assert(rows.every(row=>/^anon-[a-f0-9]{24}$/.test(row.toolId)));
   assert(!JSON.stringify(rows).includes(receiptId),'receipt never leaves the device');
   assert(!JSON.stringify(rows).includes('private-installed-program'),'raw program ID never leaves the device');
+  const stableEventId=rows[1].eventId;
+  const stored=records.get(ANALYTICS_STATE_KEY);
+  records.set(ANALYTICS_STATE_KEY,{...stored,manualResultRunIds:[],queue:[]});
+  assert.equal((await send(result,panel)).data.recorded,true,
+    'a private bounded dedupe list is not a lifetime uniqueness guarantee');
+  assert.equal(records.get(ANALYTICS_STATE_KEY).queue[0].eventId,stableEventId,
+    'the original receipt must always map to one stable D1/PostHog event UUID');
 });
