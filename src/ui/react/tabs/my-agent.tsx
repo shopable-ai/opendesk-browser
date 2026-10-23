@@ -69,6 +69,7 @@ export function MyAgentPanel({agent,onOpenSettings=null}){
   </header>
   <SharedConversationFrame open={state.open} rows={state.rows} draft={state.draft}
    busy={state.busy} blocked={state.busy||Boolean(state.pending)}
+   inputDisabled={state.busy||Boolean(state.pending)}
    canSend={Boolean(agent)&&!state.pending} inputId="my-agent-input"
    inputLabel="向 AI 任务助手发送消息" inputRef={input}
    placeholder="例如：每天上午 9 点运行这个任务…"

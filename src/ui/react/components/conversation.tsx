@@ -26,7 +26,7 @@ export function ConversationInput({id,value='',onChange,onKeyDown,placeholder=''
 
 // A business-neutral trusted Chat Frame: no Provider, Chrome, Host, or business IDs.
 export function SharedConversationFrame({
- open=true,rows=[],draft='',busy=false,blocked=false,canSend=true,
+ open=true,rows=[],draft='',busy=false,blocked=false,inputDisabled=false,canSend=true,
  inputId,placeholder='描述要完成的操作',inputLabel='对话输入',
  onDraftChange=()=>{},onSend=()=>{},onStop=()=>{},
  intro=null,feedback=null,review=null,technical=null,inputRef=null,logRef=null,
@@ -63,7 +63,7 @@ export function SharedConversationFrame({
    <label className="od-conversation-sr" htmlFor={inputId}>{inputLabel}</label>
    <ConversationInput id={inputId} inputRef={input} value={draft}
     className="od-conversation-input" rows={1} maxLength={4000}
-    placeholder={placeholder} disabled={blocked}
+    placeholder={placeholder} disabled={inputDisabled}
     onChange={event=>onDraftChange(event.currentTarget.value,event)}
     onCompositionStart={()=>{composing.current=true;}}
     onCompositionEnd={()=>{composing.current=false;}}

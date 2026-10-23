@@ -14,6 +14,8 @@ test('R2.2 shared frame drives My, Bookmark and Prompt; presentation holds no bu
  assert.match(frame,/export function SharedConversationFrame\(/);
  assert.match(frame,/<SharedConversationFrame open=\{open\}/);
  assert.match(my,/<SharedConversationFrame open=\{state\.open\}/);
+ assert.match(frame,/inputDisabled=false/,'editor can still accept a draft while inference is pending');
+ assert.match(my,/inputDisabled=\{state\.busy\|\|Boolean\(state\.pending\)\}/);
  assert.doesNotMatch(my,/<form|<ConversationInput|<ConversationTranscript/);
  assert.doesNotMatch(frame,/businessKind|bookmarkId|folderId|promptId|taskId|scheduleId/);
  assert.match(main,/phaseLabels=\{PROMPT_PHASE_LABELS\}/);

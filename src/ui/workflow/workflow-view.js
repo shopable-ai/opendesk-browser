@@ -1499,9 +1499,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     control('workflow-local-settings').hidden=!local;
     control('workflow-custom-settings').hidden=!external;
     const endpoint=control('workflow-ai-endpoint');
-    if(cloud&&endpoint.value==='https://api.openai.com/v1/chat/completions')
+    if(!synchronizingProvider&&cloud&&endpoint.value==='https://api.openai.com/v1/chat/completions')
       endpoint.value='https://api.openai.com/v1/responses';
-    if(custom&&endpoint.value==='https://api.openai.com/v1/responses')
+    if(!synchronizingProvider&&custom&&endpoint.value==='https://api.openai.com/v1/responses')
       endpoint.value='https://api.openai.com/v1/chat/completions';
     control('workflow-ai-endpoint-label').text='接口地址';
     control('workflow-ai-endpoint').title=cloud?'Responses API 的 HTTPS 地址':'Chat Completions API 的 HTTPS 地址';
