@@ -305,7 +305,9 @@ test('R23.37 real Task Service versioned-intent import -> Verify -> Available ->
   assert.equal(selected.state,'MATCH');
   assert.equal(selected.candidate.taskId,manifest.taskId);
   assert.equal(selected.candidate.expected.manifestHash,pkg.manifestHash);
-  assert.equal(selected.candidate.expected.installationId,install.installationId);
+  assert.match(catalog.installed[0].installationId,/^[a-f0-9-]{36}$/,
+    'installation identity is returned by the formal Catalog read, not installTask');
+  assert.equal(selected.candidate.expected.installationId,catalog.installed[0].installationId);
   assert.deepEqual(selected.candidate.params,{keyword:'OpenDesk'});
   assert.deepEqual(selected.candidate.intent.resultTexts,manifest.intent.resultTexts);
   assert.equal(select('在当前演示搜索页搜索 ，并核对结果').state,'MISSING_PARAMS',
