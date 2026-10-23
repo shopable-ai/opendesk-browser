@@ -10,7 +10,8 @@ const uuidPattern=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[
 const exact=(obj,keys)=>obj&&typeof obj==='object'&&!Array.isArray(obj)&&Object.keys(obj).every(key=>keys.includes(key));
 export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_INGEST_URL,
   fetcher=globalThis.fetch,now=()=>Date.now(),newId=()=>crypto.randomUUID(),allowLoopback=false,
-  loadAuthority=null,verifyManualTask=null,readManualResult=null,verifyWorkflowResult=null}={}){
+  loadAuthority=null,verifyManualTask=null,readManualResult=null,
+  verifyManualPage=null,readManualPageResult=null,verifyWorkflowResult=null}={}){
   const collector=createAnalyticsCollector({api,endpoint,fetcher,now,newId,allowLoopback});
   const recordAuthorities=()=>typeof loadAuthority==='function'?
     collector.reportAuthority(loadAuthority):Promise.resolve({recorded:false});
@@ -108,7 +109,7 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
   };
   async function handle(message,sender){
     if(!exact(message,['protocol','kind','enabled','disclosureVersion','event','toolId','channel','reason',
-      'toolIdentity','runId'])||
+      'toolIdentity','runId','toolType'])||
        message.protocol!==ANALYTICS_PROTOCOL)return {ok:false,code:'E_SCHEMA'};
     if(message.kind==='consent.status'){
       if(!fromOptions(sender)||!exact(message,['protocol','kind']))return {ok:false,code:'E_SENDER'};
@@ -134,27 +135,31 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
     }
     if(['event.manual_attempt','event.manual_result'].includes(message.kind)){
       const result=message.kind==='event.manual_result';
+      const type=message.toolType??'task',page=type==='page';
+      const verifier=result?(page?readManualPageResult:readManualResult):
+        (page?verifyManualPage:verifyManualTask);
       if(!fromPanel(sender)||message.toolId!=='opendesk'||message.channel!=='extension'||
+        !['page','task'].includes(type)||
+        (page?message.toolType!=='page':message.toolType!==undefined)||
         message.event!==(result?'tool.manual_result':'tool.manual_attempt')||
         typeof message.toolIdentity!=='string'||!message.toolIdentity||
         message.toolIdentity.length>256||
         !exact(message,['protocol','kind','event','toolId','channel','toolIdentity',
-          ...(result?['runId']:[])])||
+          ...(page?['toolType']:[]),...(result?['runId']:[])])||
         (result&&!uuidPattern.test(message.runId||''))||
-        typeof (result?readManualResult:verifyManualTask)!=='function'||
-        !limit('manual_task'))return {ok:false,code:'E_SENDER'};
-      // Never read another authority, hash a private ID, or create a telemetry
-      // identity before consent. Revalidation also occurs inside the collector.
+        typeof verifier!=='function'||!limit(page?'manual_page':'manual_task'))
+        return {ok:false,code:'E_SENDER'};
+      // Consent is checked before reading the original installation, receipt
+      // or any private identity. Host alone derives the hashed tool identity.
       if(!(await collector.status()).consent)return {ok:true,data:{recorded:false}};
       const verified=result?
-        await readManualResult(message.toolIdentity,message.runId,sender):
-        await verifyManualTask(message.toolIdentity,sender);
+        await verifier(message.toolIdentity,message.runId,sender):
+        await verifier(message.toolIdentity,sender);
       if(result?!verified?.status:verified!==true)
         return {ok:false,code:'E_SENDER'};
-      const data=await collector.recordManualTask({event:message.event,
-        identity:message.toolIdentity,
-        ...(result?{runId:message.runId,runStatus:verified.status}:{})});
-      return {ok:true,data};
+      return {ok:true,data:await collector.recordManualTask({event:message.event,
+        identity:message.toolIdentity,toolType:type,
+        ...(result?{runId:message.runId,runStatus:verified.status}:{})})};
     }
     if(message.kind==='event.reading_toc_navigated'){
       if(message.event!=='reading_toc.navigated'||message.toolId!=='reading-toc'||
