@@ -409,6 +409,52 @@
 @media(max-width:240px){.sidebar-tool-view-head{flex-wrap:wrap}.sidebar-tool-view-head strong{flex-basis:calc(100% - max(44px,var(--od-icon-size)) - var(--space-2))}.sidebar-tool-item-version{margin-left:29px}}
 #sidebar-tool-settings-open{flex:none;border:1px solid transparent;background:transparent;color:var(--od-sub)}
 #sidebar-tool-settings-open:hover{background:var(--od-muted);color:var(--od-ink);border-color:transparent}
+/* R4.2 shared installed-tool header: reserve horizontal space for the title,
+   keep primary/approved secondary/AI Chat inline, and use one trusted overflow.
+   This does not alter global tool-button touch targets or sandbox permissions. */
+.sidebar-tool-view-head{position:relative;z-index:3;gap:2px;min-height:32px;margin-bottom:6px}
+.sidebar-tool-view-head>strong{font-size:13px}
+.sidebar-tool-view-head>.sidebar-tool-icon-action,
+.sidebar-tool-header-more>#sidebar-tool-more-open{
+  box-sizing:border-box;flex:0 0 30px;width:30px;min-width:30px;max-width:30px;
+  height:30px;min-height:30px;max-height:30px;padding:0;
+  border:1px solid transparent;background:transparent;color:var(--od-sub)
+}
+.sidebar-tool-view-head .sidebar-tool-icon-action svg{width:17px;height:17px}
+.sidebar-tool-header-more{position:relative;display:flex;align-items:center;flex:0 0 auto;min-width:0}
+.sidebar-tool-header-more[hidden],.sidebar-tool-more-menu[hidden]{display:none!important}
+#sidebar-tool-more-open:hover:not(:disabled),
+#sidebar-tool-more-open[aria-expanded=true]{background:var(--od-muted);color:var(--od-accent-ink)}
+.sidebar-tool-more-menu{
+  position:absolute;right:0;top:calc(100% + 4px);z-index:40;
+  width:min(208px,calc(100vw - 22px));max-width:calc(100vw - 22px);
+  display:grid;gap:2px;padding:5px;box-shadow:0 12px 28px #00000018;
+  background:var(--od-paper)
+}
+.sidebar-tool-more-menu .sidebar-tool-icon-action{
+  display:flex;align-items:center;justify-content:flex-start;gap:9px;
+  box-sizing:border-box;flex:none;width:100%;min-width:0;max-width:none;
+  height:auto;min-height:38px;max-height:none;padding:7px 9px;
+  border:1px solid transparent;border-radius:var(--radius-control);
+  background:transparent;color:var(--od-ink);text-align:left
+}
+.sidebar-tool-more-menu .sidebar-tool-icon-action:hover:not(:disabled),
+.sidebar-tool-more-menu .sidebar-tool-icon-action[aria-expanded=true]{
+  background:var(--od-muted);border-color:transparent
+}
+.sidebar-tool-more-menu .sidebar-tool-icon-action svg{flex:0 0 17px}
+.sidebar-tool-more-label{flex:1;min-width:0;font-size:12px;font-weight:550;line-height:1.5}
+#sidebar-tool-more-menu #sidebar-tool-settings-open{width:100%;min-width:0;background:transparent}
+#sidebar-tool-more-menu #sidebar-tool-settings-open:hover{background:var(--od-muted)}
+#sidebar-tool-more-menu #sidebar-tool-remove{width:100%;min-width:0;color:var(--od-negative)}
+@media(pointer:coarse){
+  .sidebar-tool-view-head>.sidebar-tool-icon-action,
+  .sidebar-tool-header-more>#sidebar-tool-more-open{
+    flex-basis:36px;width:36px;min-width:36px;max-width:36px;
+    height:36px;min-height:36px;max-height:36px
+  }
+  .sidebar-tool-more-menu .sidebar-tool-icon-action{min-height:44px}
+}
 .sidebar-tool-settings-view{padding:14px 15px;border-radius:var(--radius-surface);background:var(--surface,#fff);min-width:0}
 .time-review-trusted-actions{display:flex;flex-wrap:wrap;gap:8px;min-width:0;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
 .time-review-trusted-actions[hidden]{display:none!important}
