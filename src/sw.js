@@ -13,6 +13,7 @@ import {createCloudRunnerLifecycle} from './cloud-control/runner-lifecycle.js';
 import {handlePromptRailOpen} from '../examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
 import {installAnalyticsHost} from './analytics/host.js';
 import {readAnalyticsAuthorityProjection} from './analytics/authority-projection.js';
+import {installedKey as taskInstalledKey} from './platform/tasks/contract.js';
 
 
 export function initServiceWorker({development=null}={}) {
@@ -43,8 +44,42 @@ chrome.alarms?.onAlarm?.addListener(alarm=>{if(alarm?.name===MANAGED_PROXY_ALARM
 recoverManagedProxy();
 try{importScripts('cloud-control/cloud-host.js');}catch(e){console.warn('E_CLOUD_LOAD',e);}
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts,downloadEventsAttached:true});
+const analyticsNamespace='tool:'+chrome.runtime.id;
 installAnalyticsHost({api:chrome,loadAuthority:async()=>
-  readAnalyticsAuthorityProjection({storage:(await foundation).storage,api:chrome})});
+  readAnalyticsAuthorityProjection({storage:(await foundation).storage,api:chrome}),
+  verifyManualTask:async taskId=>{
+    const storage=(await foundation).storage;
+    const row=await storage.transaction(['frameworkKV'],'readonly',tx=>
+      tx.get('frameworkKV',taskInstalledKey(analyticsNamespace,taskId)));
+    // A failed user-initiated Task attempt still counts if a real installed
+    // enabled Task was selected. Site grant/Run success are NOT prerequisites.
+    return row?.tag==='task-installed-v1'&&row.namespace===analyticsNamespace&&
+      row.enabled===true&&typeof row.authorization?.installationId==='string';
+  },
+  readManualResult:async(taskId,runId,sender)=>{
+    const storage=(await foundation).storage;
+    const [run,result]=await storage.transaction(['runs','results'],'readonly',async tx=>{
+      const row=await tx.get('runs',runId);
+      const result=row?.resultId?await tx.get('results',row.resultId):null;
+      return [row,result];
+    });
+    if(run?.tag!=='controller-run'||run.namespace!==analyticsNamespace||
+      run.runId!==runId||run.hostDocumentId!==sender?.documentId||
+      run.scheduledFireId||run.profile==='app-service'||
+      run.installedTaskAuthorization?.taskId!==taskId||
+      !run.scriptId?.startsWith('task:'))return null;
+    if(result){
+      if(result.tag!=='controller-result'||result.namespace!==analyticsNamespace||
+        result.runId!==runId||result.resultId!==run.resultId||
+        result.state!==run.state)return null;
+      return {status:result.state==='completed'&&result.outcome?.ok===true?'completed':
+        result.state==='failed'?'failed':'outcome_unknown'};
+    }
+    // A missing durable Result is UNKNOWN only after the original authority
+    // durably fenced/stopped this Run. Never invent success or pre-empt a live Run.
+    return ['paused_unknown','stopped','interrupted','failed'].includes(run.state)?
+      {status:'outcome_unknown'}:null;
+  }});
 // Lifecycle only: this adapter never claims Tasks or runs a second Controller.
 // Keep the original RunHost alive while any durable @slot retirement is pending.
 const cloudRunnerLifecycle=createCloudRunnerLifecycle({api:chrome});
