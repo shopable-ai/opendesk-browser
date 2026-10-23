@@ -1,4 +1,4 @@
-name: Cookie Editor R5.36 React source-bound release and Chromium
+name: Cookie Editor R5.38 one-click clear, source-bound React release and Chromium
 on:
   push:
     branches: [main]
@@ -19,6 +19,8 @@ on:
       - 'src/platform/chrome/context-menus.js'
       - 'tests/environment/cookie-editor-cross-site-import.test.mjs'
       - 'src/ui/sidebar-tools/cookie-write-intent.js'
+      - 'src/ui/sidebar-tools/cookie-clear-intent.js'
+      - 'tests/environment/cookie-editor-clear-intent.test.mjs'
       - 'src/ui/tool-shell.css'
       - 'examples/sidebar-tools/cookie-editor/vite.config.mjs'
       - 'examples/sidebar-tools/cookie-editor/scripts/**'
@@ -82,6 +84,7 @@ jobs:
           node --check examples/sidebar-tools/cookie-editor/app/adapters/browser-sdk.js
           node --check src/ui/sidebar-tools.js
           node --check src/ui/sidebar-tools/cookie-write-intent.js
+          node --check src/ui/sidebar-tools/cookie-clear-intent.js
           node --check examples/sidebar-tools/cookie-editor/app/controller/cookie-controller.js
           node --check examples/sidebar-tools/cookie-editor/scripts/stage-react-candidate.mjs
           node --test \
@@ -92,6 +95,7 @@ jobs:
             tests/environment/cookie-editor-import-intent.test.mjs \
             tests/environment/cookie-editor-cross-site-import.test.mjs \
             tests/environment/cookie-editor-write-intent.test.mjs \
+            tests/environment/cookie-editor-clear-intent.test.mjs \
             tests/environment/cookie-editor-react-design.test.mjs \
             tests/environment/browser-sdk-r8-cookies.test.mjs \
             tests/environment/browser-sdk-r9-installed-cookies.test.mjs \
@@ -146,7 +150,7 @@ jobs:
           fi
           git -c user.name='OpenDesk Cookie CI' \
             -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-            commit -m 'build(cookie-editor): promote tested 2.0.35 installable JSON and React preview'
+            commit -m 'build(cookie-editor): promote tested 2.0.36 installable JSON and React preview'
           # The WXT prerequisite regenerates this tracked *CI-only* audit receipt.
           # It is unrelated to the tested Cookie package and must never block a
           # safe non-destructive rebase or leak into the release commit.
