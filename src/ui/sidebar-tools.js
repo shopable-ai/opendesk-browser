@@ -2192,7 +2192,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             }catch(error){cookieWriteGate.revoke();throw error;}
           }
         }
+        // Older installed official packages retain their historic Host review.
+        // R5.38+ has the first-dialog trusted click and MUST NOT show it twice.
         if(operation==='browser.cookies.clearSite'&&tool.id==='cookie-editor'&&
+           compareToolVersions(tool.version,'2.0.36')>=0&&
            await admittedOfficialCookieImport(tool,revocationEpoch)){
           const owner=cookieImportOwner(tool,token,revocationEpoch);
           const {captured,document}=captureCookieImportDocument('清理');
