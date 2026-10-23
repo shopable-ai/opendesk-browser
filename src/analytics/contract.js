@@ -29,7 +29,7 @@ const inventoryCounters=row=>object(row)&&exact(row,['installed','enabled','disa
   row.installed===row.enabled+row.disabled+row.blocked+row.unknown;
 const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 export function validateAnalyticsEvent(value,{now=Date.now()}={}){
-  if(!object(value)||!exact(value,['eventId','installId','event','toolId','timestamp','source','channel','reason','installedTools','coverage','inventoryTypes','readState','projectionGap','toolType','utcDate','metricType','total','version','runStatus'])||
+  if(!object(value)||!exact(value,['eventId','installId','event','toolId','timestamp','source','channel','reason','installedTools','coverage','inventoryTypes','readState','projectionGap','toolType','utcDate','metricType','total','version','runStatus','inventoryItems','inventoryOverflow'])||
     !uuid.test(value.eventId||'')||!uuid.test(value.installId||'')||
     !ANALYTICS_EVENTS.includes(value.event)||!toolId.test(value.toolId||'')||
     !sources.has(value.source)||!channels.has(value.channel)||
@@ -59,13 +59,22 @@ export function validateAnalyticsEvent(value,{now=Date.now()}={}){
   }else if(value.installedTools!==undefined||value.coverage!==undefined)
     throw Object.assign(new Error('Unexpected inventory'),{code:'E_ANALYTICS_SCHEMA'});
   if(value.event==='app.inventory_types'){
-    const rows=value.inventoryTypes;
+    const rows=value.inventoryTypes,items=value.inventoryItems;
+    const validItems=Array.isArray(items)&&items.length<=96&&items.every((row,i)=>
+      object(row)&&exact(row,['type','toolId','status'])&&
+      ['page','task'].includes(row.type)&&
+      /^anon-[a-f0-9]{24}$/.test(row.toolId||'')&&
+      ['enabled','disabled','blocked','unknown'].includes(row.status)&&
+      (i===0||[items[i-1].type,items[i-1].toolId].join(':')<
+        [row.type,row.toolId].join(':')));
     if(!['fresh','failed'].includes(value.readState)||
-      (value.readState==='failed'?rows!==undefined:
+      (value.readState==='failed'?rows!==undefined||items!==undefined||value.inventoryOverflow!==undefined:
         !object(rows)||!exact(rows,['page','task','scheduler'])||
         !inventoryCounters(rows.page)||!inventoryCounters(rows.task)||
         !object(rows.scheduler)||!exact(rows.scheduler,['definitions'])||
-        !nonnegative(rows.scheduler.definitions))||
+        !nonnegative(rows.scheduler.definitions)||
+        !validItems||!nonnegative(value.inventoryOverflow)||
+        items.length+value.inventoryOverflow!==rows.page.installed+rows.task.installed)||
       (value.projectionGap!==undefined&&typeof value.projectionGap!=='boolean'))
       throw Object.assign(new Error('Invalid authority inventory'),{code:'E_ANALYTICS_SCHEMA'});
   }else if(value.event==='tool.auto_daily'){
@@ -80,7 +89,8 @@ export function validateAnalyticsEvent(value,{now=Date.now()}={}){
       day>now+86400000||day<now-ANALYTICS_MAX_AGE_MS||
       (value.projectionGap!==undefined&&typeof value.projectionGap!=='boolean'))
       throw Object.assign(new Error('Invalid automatic daily snapshot'),{code:'E_ANALYTICS_SCHEMA'});
-  }else if(value.inventoryTypes!==undefined||value.readState!==undefined||value.projectionGap!==undefined)
+  }else if(value.inventoryTypes!==undefined||value.readState!==undefined||value.projectionGap!==undefined||
+    value.inventoryItems!==undefined||value.inventoryOverflow!==undefined)
     throw Object.assign(new Error('Unexpected authority projection'),{code:'E_ANALYTICS_SCHEMA'});
   const manual=['tool.manual_attempt','tool.manual_result'].includes(value.event);
   if(manual&&(!/^anon-[a-f0-9]{24}$/.test(value.toolId)||value.toolType!=='task'||
