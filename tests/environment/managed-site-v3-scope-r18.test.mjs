@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {MANAGED_SITE_REVIEWED_SCOPE_STORE,reviewedManagedSiteScopeCovers,
   extendReviewedManagedSiteScopes,managedSiteV3RequiredOrigins,
-  rebindReviewedManagedSiteScopes}
+  rebindReviewedManagedSiteScopes,hasReviewedManagedSiteScopes}
   from '../../src/framework/host/managed-site-reviewed-scopes.js';
 
 const hash='a'.repeat(64),epoch='epoch-one';
@@ -14,9 +14,14 @@ test('an extension-wide native grant never substitutes app+epoch+hash-specific r
   const wanted=policy([site('video.example.com',true)]);
   assert.equal(MANAGED_SITE_REVIEWED_SCOPE_STORE,'opendesk.browser.site-budget.reviewed-sites.v1');
   assert.equal(reviewedManagedSiteScopeCovers(undefined,'stay-focus',epoch,hash,wanted),false);
+  assert.equal(hasReviewedManagedSiteScopes(undefined,'stay-focus',epoch,hash),false);
   const updated=extendReviewedManagedSiteScopes(undefined,{
     id:'stay-focus',installEpoch:epoch,packageHash:hash,policy:wanted});
   assert.equal(reviewedManagedSiteScopeCovers(updated,'stay-focus',epoch,hash,wanted),true);
+  assert.equal(hasReviewedManagedSiteScopes(updated,'stay-focus',epoch,hash),true);
+  assert.equal(hasReviewedManagedSiteScopes(updated,'stay-focus','revoked',hash),false);
+  assert.equal(hasReviewedManagedSiteScopes(updated,'stay-focus',epoch,'b'.repeat(64)),false);
+  assert.equal(hasReviewedManagedSiteScopes(updated,'other-tool',epoch,hash),false);
   assert.equal(reviewedManagedSiteScopeCovers(updated,'stay-focus','other-epoch',hash,wanted),false);
   assert.equal(reviewedManagedSiteScopeCovers(updated,'stay-focus',epoch,'b'.repeat(64),wanted),false);
   assert.equal(reviewedManagedSiteScopeCovers(updated,'other-app',epoch,hash,wanted),false);
@@ -53,6 +58,7 @@ test('scope widening requires explicit committed review; malformed scopes fail c
 test('paused policy requires no new scope but revocation does not activate anything',()=>{
   const paused=policy([site('example.com')],false);
   assert.equal(reviewedManagedSiteScopeCovers(undefined,'stay-focus',epoch,hash,paused),true);
+  assert.equal(hasReviewedManagedSiteScopes(undefined,'stay-focus',epoch,hash),false);
   assert.deepEqual(managedSiteV3RequiredOrigins(paused),[]);
   assert.deepEqual(extendReviewedManagedSiteScopes(undefined,{
     id:'stay-focus',installEpoch:epoch,packageHash:hash,policy:paused}),{});
