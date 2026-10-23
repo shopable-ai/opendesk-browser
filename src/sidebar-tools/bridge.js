@@ -22,6 +22,7 @@ export function initSidebarToolSandbox() {
   const root=document.getElementById('tool-root');
   const status=document.getElementById('tool-status');
   let instance=null, toolId=null, sequence=0, scriptUrl=null,disposed=false, navigationAllowed=false;
+  let currentNavigation=null;
   // Capture these before any package code runs. The port never enters the
   // public SDK; only this closure can attest a native click still in dispatch.
   const apply=Reflect.apply,NativePromise=Promise,NativeError=Error;
@@ -339,7 +340,8 @@ export function initSidebarToolSandbox() {
     // Presentation-only navigation request. Sandbox owns its business history.
     if(message.kind==='navigation-action'){
       if(message.instance===instance&&message.toolId===toolId&&
-         navigationAllowed&&['back','primary'].includes(message.action))
+         navigationAllowed&&(['back','primary'].includes(message.action)||
+           (message.action==='secondary'&&currentNavigation?.secondary)))
         root.dispatchEvent(new CustomEvent('opendesk-tool-navigation',{detail:{action:message.action}}));
       return;
     }
@@ -378,6 +380,7 @@ export function initSidebarToolSandbox() {
       }
       const state=normalizeToolNavigation(value);
       if(!state)return false;
+      currentNavigation=state;
       parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'navigation-state',instance,toolId,state},'*');
       return true;
     };

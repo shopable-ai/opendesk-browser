@@ -188,3 +188,10 @@ Native Agent 全页 Workspace 和 Settings 具有自己的大屏结构与本地�
 - 时间回顾等在**编译期确认**的第一方可信 UI 可复用既有 `#sidebar-tool-display`、宿主标题栏、`od-page/od-toolbar/od-button/od-surface` 和同一 `src/ui/design-tokens.css` 直接渲染，不添加第二层页面 gutter、第二个卸载入口或新的滚动容器。可用 ES Module/局部 CSS/必要时 ShadowRoot 防止同名变量和 CSS 污染；ShadowRoot 并非安全边界。
 - 未经编译期准入的安装工具继续使用原 opaque-origin iframe；不把宿主 `design-tokens.css`、Preflight、`chrome.*` 或任意包脚本放进工具执行世界。视觉差异通过隔离工具自己的 CSS 数值映射修复，不能为“统一样式”解除权限隔离。
 - 可信界面上的开始/恢复/暂停应在同一区域完成；首次来源与网站权限在原位可信 DOM 完成。已存在有效权限时避免二次确认，只有扩大范围、Chrome 缺失权限或不可逆清理才要求必要审核。320/360/400/600px、200% 缩放与真实键盘顺序以同候选 Chrome 证据为准，不能把静态 UI 评审当原生 95+ PASS。
+
+## R40：工具标题栏次级操作与紧凑 Ghost 图标（2026-10-23）
+
+- 正式宿主拥有唯一标题栏，标准尺寸 `--od-icon-size`（当前 34px）；顶部操作组以 `--space-1`（4px）排布。`od-page-head` 内图标按钮默认透明背景、透明边框，Hover/展开使用 `--od-muted`，保留可见 Focus、文字 `aria-label` / `title`。不要通过取消按钮点击区域来节省宽度；动作过多时低频操作应合并进更多菜单。
+- 已验证的官方 Sidebar Tool 可通过既有 `OpenDeskTool.setNavigation({page,title,canBack,primary,secondary,secondaryExpanded})` 声明一个可选**展示级**次级入口；当前 `secondary` 枚举 `transfer` 或 `more`，宿主仅渲染图标、状态并将 `secondary` 点击回送给原沙箱，不读取菜单内容或代替执行。非官方/未验证工具仍保留自己的工具内导航，不能用此显示契约提升权限。
+- Prompt Shortcuts 把导入/导出触发图标移入宿主顶部（新建按钮旁）；真正的 `input[type=file]` 用户点击、`user.export` 调用、8 KiB 容量校验、ETag 并发控制与菜单均保留在沙箱。展开菜单从 iframe 内容顶部对齐，关闭后**不保留空白工具栏行**。不要跨 iframe 转发合成文件点击、伪造用户手势，也不要将导入导出升级为第二个 Host。
+- 宿主标签、动作密度和状态色属于公共 `src/ui/design-system.css` / `src/ui/tool-shell.css`，扩展只管理浮层定位和业务反馈。`preview/index.html` 是模拟交互预览，真实 Chrome/CFT 是否达到目标必须另验；窄尺寸下检查标题省略、按钮顺序、Tab/Escape、弹出层不裁切。

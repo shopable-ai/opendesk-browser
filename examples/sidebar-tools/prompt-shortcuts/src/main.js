@@ -69,7 +69,9 @@ function publishNavigation(){
   if(typeof setNavigation!=='function')return;
   const page=mode==='index'?'index':editId?'edit':'create';
   const title={index:'提示词快捷按钮',create:'新建提示词',edit:'编辑提示词'}[page];
-  const state={page,title,canBack:page!=='index',...(page==='index'?{primary:'new'}:{})};
+  const state={page,title,canBack:page!=='index',
+    ...(page==='index'?{primary:'new',secondary:'transfer',
+      secondaryExpanded:!el('ps-transfer-menu').hidden}:{})};
   if(setNavigation(state)===true)root.querySelector('.ps')?.classList.add('ps-host-nav');
 }
 function status(message='',isError=false){const n=el('ps-status');n.textContent=message;n.hidden=!message;n.dataset.error=String(isError);}
@@ -292,6 +294,7 @@ function back(callback=index){
   if(!ready||busy||uploadBusy||transferBusy||unconfirmedWrite||stagedImport)return;
   const row=id?data.items.find(item=>item.id===id):null;
   if(id&&!row){status('原条目已变化，请重新打开工具核对。',true);return;}
+  closeTransfer();
   mode='form';editId=id;returnFocusId=id;expanded=null;pendingDelete=null;
   el('ps-index').hidden=true;el('ps-edit').hidden=false;
   el('ps-save-next').hidden=Boolean(id);
@@ -768,8 +771,22 @@ function render(){
 }
 
 function closeTransfer(){
-  const menu=el('ps-transfer-menu');
+  const menu=el('ps-transfer-menu'),wasOpen=!menu.hidden;
   menu.hidden=true;el('ps-transfer').setAttribute('aria-expanded','false');
+  if(wasOpen)publishNavigation();
+}
+function restoreTransferFocus(){
+  if(root.querySelector('.ps')?.classList.contains('ps-host-nav')){
+    const count=el('ps-count');count.tabIndex=-1;count.focus({preventScroll:true});
+  }else el('ps-transfer').focus({preventScroll:true});
+}
+function toggleTransfer(){
+  if(!ready||busy||transferBusy||unconfirmedWrite||mode!=='index')return;
+  const menu=el('ps-transfer-menu');menu.hidden=!menu.hidden;
+  const open=!menu.hidden;
+  el('ps-transfer').setAttribute('aria-expanded',String(open));
+  publishNavigation();
+  if(open)el('ps-export').focus({preventScroll:true});
 }
 function discardImport(){
   importTicket++;stagedImport=null;stagedEtag=null;replaceArmed=false;
@@ -886,7 +903,7 @@ async function applyImport(mode){
     discardImport();expanded=null;pendingDelete=null;render();
     status((mode==='replace'?'已替换 ':'已追加 ')+planned.added+' 条，跳过 '+planned.skipped+
       ' 条重复；已核实保存，网页按钮将通过存储事件同步。');
-    el('ps-transfer').focus({preventScroll:true});
+    restoreTransferFocus();
   }catch(e){
     replaceArmed=false;el('ps-import-warning').hidden=true;
     el('ps-import-replace').textContent='替换现有';
@@ -1082,13 +1099,7 @@ async function launch(){
 el('ps-new').append(icon('plus'));
 el('ps-transfer').append(icon('transfer'));
 el('ps-export').prepend(icon('export'));el('ps-import').prepend(icon('import'));
-el('ps-transfer').addEventListener('click',()=>{
-  if(!ready||busy||transferBusy||unconfirmedWrite)return;
-  const next=el('ps-transfer-menu').hidden;
-  closeTransfer();el('ps-transfer-menu').hidden=!next;
-  el('ps-transfer').setAttribute('aria-expanded',String(next));
-  if(next)el('ps-export').focus({preventScroll:true});
-});
+el('ps-transfer').addEventListener('click',toggleTransfer);
 el('ps-export').addEventListener('click',()=>void exportJson());
 el('ps-import').addEventListener('click',()=>{
   closeTransfer();
@@ -1096,24 +1107,26 @@ el('ps-import').addEventListener('click',()=>{
   el('ps-import-file').click();
 });
 el('ps-import-file').addEventListener('change',()=>void chooseImportFile());
-el('ps-import-cancel').addEventListener('click',()=>{discardImport();el('ps-transfer').focus({preventScroll:true});});
+el('ps-import-cancel').addEventListener('click',()=>{discardImport();restoreTransferFocus();});
 el('ps-import-append').addEventListener('click',()=>void applyImport('append'));
 el('ps-import-replace').addEventListener('click',()=>void applyImport('replace'));
 root.addEventListener('click',event=>{
   if(!el('ps-transfer-control').contains?.(event.target))closeTransfer();
 });
 el('ps-new').addEventListener('click',()=>start());
-// Back and primary are existing instance-gated bridge gestures, never a second router.
+// Existing instance-gated bridge gestures never grant file/clipboard authority.
+// Secondary only opens the sandbox menu; real import/export clicks stay here.
 root.addEventListener('opendesk-tool-navigation',event=>{
   if(event.detail?.action==='back'&&mode==='form')back();
   else if(event.detail?.action==='primary'&&mode==='index')start();
+  else if(event.detail?.action==='secondary'&&mode==='index')toggleTransfer();
 });
 root.addEventListener('keydown',event=>{
   if(event.key!=='Escape')return;
   if(pendingDelete){const id=pendingDelete;pendingDelete=null;render();focusListAction(id,'delete');event.preventDefault();}
   else if(expanded){const id=expanded;expanded=null;render();focusListAction(id,'more');event.preventDefault();}
-  else if(!el('ps-transfer-menu').hidden){closeTransfer();el('ps-transfer').focus({preventScroll:true});event.preventDefault();}
-  else if(stagedImport&&!busy&&!transferBusy){discardImport();el('ps-transfer').focus({preventScroll:true});event.preventDefault();}
+  else if(!el('ps-transfer-menu').hidden){closeTransfer();restoreTransferFocus();event.preventDefault();}
+  else if(stagedImport&&!busy&&!transferBusy){discardImport();restoreTransferFocus();event.preventDefault();}
 });
 // The sandbox intentionally disallows forms. Native button activation must
 // save directly, without relying on the browser dispatching a submit event.

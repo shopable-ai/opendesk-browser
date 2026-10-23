@@ -139,6 +139,14 @@ export const SIDEBAR_TOOL_FIELDS = {
     "data": {"action": ""},
     "attributes": {"aria-label": "当前页面操作"}
   },
+  "sidebar-tool-secondary-action": {
+    "hidden": true,
+    "title": "",
+    "className": "sidebar-tool-icon-action od-icon-button",
+    "type": "button",
+    "data": {"action": ""},
+    "attributes": {"aria-label": "更多操作", "aria-haspopup": "true", "aria-expanded": "false"}
+  },
   "sidebar-tool-open-tab": {
     "disabled": true,
     "title": "在新标签页打开",

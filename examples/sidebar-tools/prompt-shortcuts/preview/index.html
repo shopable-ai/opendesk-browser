@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R4.0</title>
+<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R4.1</title>
 <meta name="description" content="OpenDesk Prompt Shortcuts 独立侧边栏交互原型。仅模拟、不安装、无真实权限请求。">
 <style>
 /* Offline design contract: semantic values mirror src/ui/design-tokens.css (blob 134dd7871da4bf0ee26b6d0135e69e7273fdabdb).
@@ -460,6 +460,19 @@ border:0;background:transparent;color:var(--od-sub)}
 .ps-image-selected-actions .od-icon-button{width:34px;min-width:34px}}
 @media(pointer:coarse){.ps-image-selected-actions .od-icon-button{width:42px;min-width:42px;height:44px;min-height:44px}}
 @media(prefers-reduced-motion:reduce){.ps-image-dropzone{transition:none}}
+/* R4.1: match the real shared Host toolbar, not a second padded icon row. */
+.tool-host-head{gap:var(--space-1)}
+.tool-host-head .od-icon-button,.tool-host-head .host-add,
+.sidepanel.is-compact .tool-host-head .od-icon-button,
+.sidepanel.is-compact .tool-host-head .host-add,
+.sidepanel.is-compact .transfer-holder>.od-icon-button{
+  width:34px;min-width:34px;max-width:34px;height:34px;min-height:34px;
+  border-color:transparent;background:transparent;color:var(--od-sub)}
+.tool-host-head .host-add{color:var(--od-brand)}
+.tool-host-head .od-icon-button:hover:not(:disabled){border-color:transparent;background:var(--od-muted);color:var(--od-ink)}
+.tool-host-head .od-icon-button[aria-expanded="true"]{border-color:transparent;background:var(--od-muted);color:var(--od-accent-ink)}
+@media(max-width:380px){.tool-host-head{gap:var(--space-1)}}
+
 </style>
 </head>
 <body>
@@ -489,7 +502,7 @@ border:0;background:transparent;color:var(--od-sub)}
 <header class="demo-header">
  <div class="demo-title"><span class="logo" aria-hidden="true">OD</span><div>
   <h1>Prompt Shortcuts · Side Panel UI</h1>
-  <p>交互预览 R4.0 · 图片拖放与链接预览 · 原功能保留</p></div></div>
+  <p>交互预览 R4.1 · 紧凑透明宿主操作栏 · 原功能保留</p></div></div>
  <div class="demo-controls" aria-label="预览控制">
   <span class="design-badge">模拟预览 · 非真实安装</span>
   <a id="brandAdLabLink" class="od-button od-button--small" href="./brand-ad-lab-r213.html" title="打开 R2.13 四种 ChatGPT 对话状态与双广告区域高保真设计预览（仅 HTML 模拟）">R2.13 广告视觉预览 ↗</a>

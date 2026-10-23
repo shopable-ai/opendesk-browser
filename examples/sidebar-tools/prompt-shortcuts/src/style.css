@@ -214,5 +214,10 @@
 }
 @media(prefers-reduced-motion:reduce){.ps-appearance-switch label{transition:none}}
 
-/* Verified official Host owns the same-level heading and New action only. */
-.ps.ps-host-nav #ps-new,.ps.ps-host-nav .ps-form-head{display:none!important}
+/* Verified official Host owns the heading, New and Transfer triggers. No
+   empty action row may remain in the sandbox. Only its true-gesture menu stays. */
+.ps.ps-host-nav{position:relative}
+.ps.ps-host-nav .ps-head{position:absolute;z-index:20;top:0;right:var(--space-3);width:0;min-height:0;margin:0;padding:0}
+.ps.ps-host-nav .ps-head-actions,.ps.ps-host-nav .ps-transfer-control{display:block;position:static;min-height:0;gap:0}
+.ps.ps-host-nav #ps-new,.ps.ps-host-nav #ps-transfer,.ps.ps-host-nav .ps-form-head{display:none!important}
+.ps.ps-host-nav .ps-transfer-menu{top:0;right:0}

@@ -13,6 +13,7 @@ export function ToolHost({view}) {
   const snapshot = React.useSyncExternalStore(view.subscribe, view.getSnapshot, view.getSnapshot);
   const importOpen = snapshot.fields['sidebar-tool-import']?.hidden === false;
   const topAction = snapshot.fields['sidebar-tool-primary-action']?.data?.action || '';
+  const secondaryAction = snapshot.fields['sidebar-tool-secondary-action']?.data?.action || '';
   // Cookie Editor has its own trusted settings card. Move the existing enable
   // action there instead of leaving it in the hidden generic Settings section.
   // Render exactly one enable switch and hint: the Cookie card owns both
@@ -230,6 +231,14 @@ export function ToolHost({view}) {
 {topAction==='new' ? <path d="M12 5v14M5 12h14"/> :
  topAction==='edit' ? <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L9 17l-4 1 1-4z"/> :
  <path d="M4 3h14l3 3v15H3V3h1M7 3v6h10V3M7 21v-8h10v8"/>}
+</svg>
+</ToolField>
+<ToolField as="button" type="button" id="sidebar-tool-settings-open"</ToolField>
+<ToolField as="button" type="button" id="sidebar-tool-secondary-action" className="sidebar-tool-icon-action od-icon-button" title="更多操作" aria-label="更多操作" aria-haspopup="true" aria-expanded="false" hidden={true}>
+<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+{secondaryAction==='transfer'
+  ? <><path d="M7 17V4m-4 4 4-4 4 4M17 7v13m-4-4 4 4 4-4"/></>
+  : <><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>}
 </svg>
 </ToolField>
 <ToolField as="button" type="button" id="sidebar-tool-settings-open" className="sidebar-tool-icon-action od-icon-button" title="工具设置" aria-label="工具设置" aria-controls="sidebar-tool-settings-view" aria-expanded="false" hidden={true} nodeRef={runtimeRefs.settingsControl}>

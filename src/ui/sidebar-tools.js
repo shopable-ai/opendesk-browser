@@ -165,6 +165,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const updateWarning=view.fields["sidebar-tool-update-warning"];
   const title=view.fields["sidebar-tool-title"],openTabButton=view.fields["sidebar-tool-open-tab"];
   const primaryAction=view.fields["sidebar-tool-primary-action"];
+  const secondaryAction=view.fields["sidebar-tool-secondary-action"];
   const clipNavigationTitles=Object.freeze({
     home:'网页剪藏',library:'我的摘录',reader:'摘录详情',edit:'编辑摘录',new:'新建便签'
   });
@@ -1119,6 +1120,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view,primaryAction,{hidden:!contextAction,disabled:!contextAction||busy||toolSaving,
       title:contextLabel,data:{action:contextAction}});
     setToolFieldAttribute(view,primaryAction,'aria-label',contextLabel||'当前页面操作');
+    const secondary=navigation&&!tocSettingsOpen?navigation.secondary||'':'';
+    const secondaryLabel={transfer:'导入与导出',more:'更多操作'}[secondary]||'更多操作';
+    patchToolField(view,secondaryAction,{hidden:!secondary,disabled:!secondary||busy||toolSaving,
+      title:secondaryLabel,data:{action:secondary}});
+    setToolFieldAttribute(view,secondaryAction,'aria-label',secondaryLabel);
+    setToolFieldAttribute(view,secondaryAction,'aria-expanded',
+      String(Boolean(secondary&&navigation?.secondaryExpanded)));
+
     patchToolField(view, removeButton, {title: readOnlyPreview?'只读预览尚未安装，不能卸载':
       active?(trustedTocTitle?
         readingTocHostText(currentTocLocale,'uninstallPrefix')+visibleTitle+
@@ -3397,7 +3406,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const requestBusinessNavigation=action=>{
     if(!navigationAllowed||!toolNavigation||!frame?.contentWindow||!instance)return false;
     if(action==='back'&&!toolNavigation.canBack||
-       action==='primary'&&!toolNavigation.primary)return false;
+       action==='primary'&&!toolNavigation.primary||
+       action==='secondary'&&!toolNavigation.secondary)return false;
     if(toolSaving){notice('当前工具正在处理操作，请完成后再切换。',true);return true;}
     frame.contentWindow.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,
       kind:'navigation-action',instance,toolId:active.id,action},'*');
@@ -3416,6 +3426,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(requestBusinessNavigation('primary'))return;
     if(['library','reader','edit','new'].includes(clipPage))
       requestClipNavigation('primary');
+  });
+  listen(secondaryAction,'click',()=>{
+    if(tocSettingsOpen)return;
+    requestBusinessNavigation('secondary');
   });
   const toggleContextMenu=async event=>{
     if(!event.isTrusted||!active||readOnlyPreview||busy)return;
