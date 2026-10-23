@@ -19,6 +19,26 @@ async function ready(fixture) {
   assert.equal(state(fixture,'workflow-ai-provider').value,'custom_https');
 }
 
+// Discovery now checks the separately required Chrome HTTPS receiver origin
+// before offering the page-summary disclosure. Never erase this security gate
+// just to keep an old one-dialog test green.
+async function beginWithDisclosure(f) {
+  const send=f.click('workflow-ai-plan');
+  await tick();await tick();
+  let continuation=send;
+  if(state(f,'workflow-run-review').hidden===false) {
+    assert.equal(state(f,'workflow-ai-approval').hidden,true,
+      'the missing HTTPS receiver grant must precede any page disclosure');
+    assert.equal(f.starts.length,0,'no RunHost observation before Chrome permission');
+    await send;
+    continuation=f.click('workflow-run-review-confirm');
+    await tick();await tick();
+  }
+  assert.equal(state(f,'workflow-ai-approval').hidden,false,
+    'first external page disclosure must still be explicit');
+  return {continuation};
+}
+
 test('R23.17 Controller: first HTTPS disclosure, repeat without dialog, revoke then reauthorize',async t=>{
   const priorFetch=globalThis.fetch;
   const posts=[];
@@ -35,9 +55,9 @@ test('R23.17 Controller: first HTTPS disclosure, repeat without dialog, revoke t
   const f=await workflowFixture();t.after(()=>f.view.dispose());
   await ready(f);
   f.input('workflow-ai-request','读取本页结构，然后说明。不要修改网页。');
-  const first=f.click('workflow-ai-plan');
-  await tick();await tick();
-  assert.equal(state(f,'workflow-ai-approval').hidden,false,'first external disclosure must be explicit');
+  const {continuation:first}=await beginWithDisclosure(f);
+  assert.equal(f.requests.length,1,'missing HTTPS receiver permission needs one trusted Chrome grant');
+  assert.ok(f.requests[0].origins.includes(receiverPattern));
   assert.equal(f.starts.length,0,'model and RunHost may not observe before disclosure');
   await f.click('workflow-ai-approve');await first;await tick();await tick();
   assert.equal(state(f,'workflow-ai-approval').hidden,true);
@@ -61,16 +81,15 @@ test('R23.17 Controller: first HTTPS disclosure, repeat without dialog, revoke t
   assert.equal(f.starts.length,4,'second user Send independently observes and auto-executes once without review');
   assert.equal(state(f,'workflow-run-review').hidden,true);
   assert.ok(f.starts[2].source.sourceUtf8.includes('await page.observe('));
-  assert.equal(f.requests.length,2,'granted origins require only the two trusted Send gestures, not an extra Run permission request');
+  assert.equal(f.requests.length,1,'same granted HTTPS receiver and site need no second Chrome request');
   assert.ok(f.starts.every(call=>call.target.documentId==='document-one'));
 
   await f.revoke([receiverPattern]);
   await tick();
   assert.equal(f.session.get(grantKey),null,'revocation destroys the previous disclosure scope');
   f.input('workflow-ai-request','第三次读取当前网页，不修改任何输入。');
-  const third=f.click('workflow-ai-plan');
-  await tick();await tick();
-  assert.equal(state(f,'workflow-ai-approval').hidden,false,'receiver revocation must require new disclosure');
+  const {continuation:third}=await beginWithDisclosure(f);
+  assert.equal(f.requests.length,2,'revoked HTTPS receiver must require a new Chrome grant');
   assert.equal(posts.length,2,'the provider must not receive unapproved page data');
   await f.click('workflow-ai-deny');await third;
   assert.equal(posts.length,2);
@@ -113,9 +132,7 @@ test('R23.26 Stop races a submitted RunHost.start before runId and cancels the l
   await ready(f);
   f.service.holdActionStart=true;
   f.input('workflow-ai-request','读取当前网页内容，不修改。');
-  const send=f.click('workflow-ai-plan');
-  await tick();await tick();
-  assert.equal(state(f,'workflow-ai-approval').hidden,false);
+  const {continuation:send}=await beginWithDisclosure(f);
   await f.click('workflow-ai-approve');await send;
   // The first RunHost observation finishes. The actual action has been sent,
   // but its start response (and runId) are deliberately held by the fixture.
