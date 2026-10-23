@@ -145,7 +145,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
             void Promise.resolve(api.runtime?.sendMessage?.({
               protocol:'opendesk.analytics.v1',kind:'event.reading_toc_navigated',
               event:'reading_toc.navigated',toolId:READING_TOC_TOOL_ID,
-              channel:'page_button'
+              channel:'page_button',installationEpoch:result.installationEpoch
             })).catch(()=>{});
           }catch{/* Telemetry is strictly optional. */}
         }).catch(()=>{}),
@@ -287,7 +287,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
       if(visibleTarget()){
         activeId=id;settled={running:false,id,position:isPageRoot(root)?win.scrollY??root.scrollTop:root.scrollTop};
         redraw();
-        return {ok:true,id,sourceId};
+        return {ok:true,id,sourceId,installationEpoch:installEpoch};
       }
       if(attempt<2){
         const correction=desired();

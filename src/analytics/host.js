@@ -3,7 +3,11 @@ import {ANALYTICS_PROTOCOL,ANALYTICS_ALARM,ANALYTICS_PAGE_SCOPE_CHECK,ANALYTICS_
 import {ANALYTICS_INGEST_URL} from './config.js';
 import {createAnalyticsCollector} from './collector.js';
 import {SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS} from '../ui/sidebar-tools/package.js';
-import {SIDEBAR_TOOL_ENABLE_STORE,sidebarToolEnabled} from '../ui/sidebar-tools/lifecycle.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,requireToolRevocationEpochs,sidebarToolEnabled} from '../ui/sidebar-tools/lifecycle.js';
+import {MARKET_PROVENANCE_STORE} from '../sidebar-tools/official-reading-toc.js';
+import {READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE,
+  verifyOfficialReadingToc,tocGrantAllowed,readingTocPageAllowed}
+  from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
 
 const idPattern=/^[a-z][a-z0-9-]{1,39}$/;
 const uuidPattern=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
@@ -109,7 +113,7 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
   };
   async function handle(message,sender){
     if(!exact(message,['protocol','kind','enabled','disclosureVersion','event','toolId','channel','reason',
-      'toolIdentity','runId','toolType','beforeRunId','afterRunId'])||
+      'toolIdentity','runId','toolType','beforeRunId','afterRunId','installationEpoch'])||
        message.protocol!==ANALYTICS_PROTOCOL)return {ok:false,code:'E_SCHEMA'};
     if(message.kind==='consent.status'){
       if(!fromOptions(sender)||!exact(message,['protocol','kind']))return {ok:false,code:'E_SENDER'};
@@ -164,15 +168,37 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
     if(message.kind==='event.reading_toc_navigated'){
       if(message.event!=='reading_toc.navigated'||message.toolId!=='reading-toc'||
         message.channel!=='page_button'||
-        !exact(message,['protocol','kind','event','toolId','channel'])||
+        !exact(message,['protocol','kind','event','toolId','channel','installationEpoch'])||
+        !Object.hasOwn(message,'installationEpoch')||
+        !(message.installationEpoch===null||
+          typeof message.installationEpoch==='string'&&message.installationEpoch.length>0&&
+          message.installationEpoch.length<=128)||
         !limit('reading_toc_nav'))return {ok:false,code:'E_SENDER'};
       if(!(await collector.status()).consent)return {ok:true,data:{recorded:false}};
       const identity=promptPageIdentity(sender);
       if(!identity||typeof api.tabs?.get!=='function'||
         typeof api.webNavigation?.getFrame!=='function'||
-        !await toolInstalled('reading-toc'))return {ok:false,code:'E_SENDER'};
-      // A first-party page adapter already proved real user click + a visible
-      // heading; additionally fence this exact native document before receipt.
+        typeof api.storage?.local?.get!=='function')return {ok:false,code:'E_SENDER'};
+      // A tool ID alone is not authoritative. Independently revalidate the
+      // official package, provenance, page grant and revocation generation.
+      let authorityValid=false;
+      try{
+        const stored=await api.storage.local.get([
+          SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,
+          MARKET_PROVENANCE_STORE,READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE
+        ]);
+        const epochs=requireToolRevocationEpochs(stored[TOOL_REVOCATION_EPOCHS_STORE]);
+        const official=await verifyOfficialReadingToc(
+          stored[SIDEBAR_TOOL_STORE],stored[MARKET_PROVENANCE_STORE]);
+        authorityValid=official===true&&
+          (epochs['reading-toc']??null)===message.installationEpoch&&
+          tocGrantAllowed(stored[SIDEBAR_TOOL_STORE],stored[READING_TOC_SITE_STORE],
+            'reading-toc',identity.url,stored[SIDEBAR_TOOL_ENABLE_STORE],official)&&
+          readingTocPageAllowed(stored[READING_TOC_PAGE_RULES_STORE],'reading-toc',identity.url);
+      }catch{/* Missing/corrupt Authority must not become successful telemetry. */}
+      if(!authorityValid)return {ok:false,code:'E_SENDER'};
+      // The fixed Page adapter measured a visible heading after a user click;
+      // Host additionally fences the exact current native Document.
       let valid=false;
       try{
         const [frame,tab]=await Promise.all([
