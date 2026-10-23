@@ -493,6 +493,8 @@ test('v2 AI-off changes search and explicit product, then runs each saved RunHos
   assert.equal(resumed.length,2);
   assert.deepEqual(resumed.map(row=>row.source.contentHash),segments.map(row=>row.sourceHash));
   assert.deepEqual([resumed[0].params.query,resumed[1].params.productName],['lens','Lens Y']);
+  assert.match(f.state().controls['workflow-technical'].text,RegExp(id+'-s2'));
+  assert.match(f.state().controls['workflow-technical'].text,RegExp(id));
   assert.ok(f.state().messages.some(row=>row.speaker==='执行结果'&&
     row.message.includes('Lens Y')&&row.message.includes('$129')));
   assert.equal(providerCalls.filter(method=>method!=='ai.connection.read').length,0);

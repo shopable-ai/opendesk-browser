@@ -521,10 +521,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     }catch(error){status(format(error),true);}
     finally{busy=false;updateButtons();}
   }
-  function resultDisplay(runId,view) {
+  function resultDisplay(runId,view,{workflowId=workflow.workflowId,bundleId=null,bundleRevision=null}={}) {
     const run=view?.run,result=view?.results?.find(row=>row.runId===runId);
     control('workflow-technical').text=JSON.stringify({
-      workflowId:workflow.workflowId,
+      workflowId,bundleId,bundleRevision,
       modelSource:lastProviderTurn?.businessWorkflowId===workflow.workflowId?lastProviderTurn:null,
       runId,state:run?.state||'unknown',revision:run?.revision||null,
       resultId:result?.resultId||null,sourceHash:run?.revision?.sourceHash||null,
@@ -678,7 +678,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       const view=await host.controller.snapshotControllerRun({runId:claim.runId});
       const result=view?.results?.find(item=>item?.runId===claim.runId);
       if(!disposed) {
-        const decoded=resultDisplay(claim.runId,view);
+        const decoded=resultDisplay(claim.runId,view,{
+          workflowId:freeze.workflow.workflowId,bundleId:prepared?.bundleId||null,
+          bundleRevision:prepared?.bundleRevision||null});
         if(prepared) {
           let proof=null;
           try{proof=verifyDirectExecutionReceipt({claim,completed,view,sourceHash:freeze.sourceHash,target:captured});}
@@ -1343,7 +1345,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           previousNavigationDocument=target.documentId;
         }else previousNavigationDocument=null;
         phase='running';busy=false;
-        status('AI 已关闭：正在执行完整工作流第 '+(i+1)+' / '+bundle.segments.length+' 段…');
+        status((prepared?'正在复用已保存的固定 JavaScript':'AI 已关闭')+
+          '：执行第 '+(i+1)+' / '+bundle.segments.length+' 段…');
         updateButtons();
         const reply=await run(null,{
           freeze,captured:structuredClone(target),params:boundParams,
@@ -1352,6 +1355,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           hasUnprovenClick:admitted.hasUnprovenClick,
           beforeObservation:before,effectExpectation:admitted.effectExpectation,
           linkGuard:admitted.linkGuard,
+          bundleId:bundle.bundleId,bundleRevision:bundle.revision,
           savedSource:{kind:'saved',scriptId:segment.workflow.workflowId,
             revision:segment.revision,contentHash:segment.sourceHash},
           agent,assertCurrent:()=>{
@@ -1969,6 +1973,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     let target;
     try{target=currentPageTarget.capture();}
     catch(error){status(format(error),true);return;}
+    // Cached history is hydrated on mount and after Save. When it contains no
+    // eligible fixed contract, immediately preserve the original trusted Send
+    // admission: an asynchronous storage/catalog lookup must not consume the
+    // Chrome permission gesture or delay the first disclosure authorization.
+    // A potential v2 candidate instead enters the verified read-only route.
+    const immediate=selectSavedWorkflowRoute({request:original,target,records:saveList});
+    if(immediate.state==='AI'&&!pendingReuse)return plan(event);
     const prior=pendingReuse;
     pendingReuse=null;pendingNaturalPlanning=null;pendingBundleGrant=null;
     let request=original,chosenKey=null;
