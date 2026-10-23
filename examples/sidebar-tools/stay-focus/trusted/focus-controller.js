@@ -11,6 +11,13 @@ const isLegacyCapabilityError=e=>['E_TOOL_CAPABILITY_REQUIRED','E_CAPABILITY','E
 const hashModel=async model=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',
   canonicalManagedSiteV3ModelBytes(model))),
   v=>v.toString(16).padStart(2,'0')).join('');
+// A matching model SHA alone cannot prove that the finite native policy and
+// its revision committed. Compare the normalized Driver policy as well.
+function samePolicy(left,right){
+  try{return JSON.stringify(normalizeManagedSiteV3Policy(left))===
+    JSON.stringify(normalizeManagedSiteV3Policy(right));}
+  catch{return false;}
+}
 function reflect(receipt,now){
   if(receipt?.kind!=='site-budget.v3'||!receipt.desiredPolicy||
      !Number.isSafeInteger(receipt.desiredPolicyRev)||
@@ -69,18 +76,26 @@ export function createFocusController({request,siteBudget,now=Date.now}={}){
     const sealedModel={...model,usage:{},checkpoint:null,clockHighWater:0,
       authorizedHash:null,authorizedEpoch:null};
     const modelRef=await hashModel(sealedModel);
+    const unchanged=current.receipt.modelRef===modelRef&&
+      samePolicy(current.receipt.desiredPolicy,desiredPolicy);
+    // An idempotent no-op may retain its revision; a changed payload must
+    // advance exactly once, not claim success from a stale or racing response.
+    const expectedRevision=current.revision+(unchanged?0:1);
     try{
       const receipt=await siteBudget.setPolicy({expectedRev:current.revision,
         desiredPolicy,modelRef,sealedModel});
       const view=reflect(receipt,now());
-      if(view.receipt.modelRef!==modelRef||view.revision!==current.revision+1&&
-         JSON.stringify(current.receipt.desiredPolicy)!==JSON.stringify(desiredPolicy))
-        fail('E_OUTCOME_UNKNOWN','v3 提交回执未能证明模型与策略已经同步');
+      if(view.receipt.modelRef!==modelRef||
+         view.revision!==expectedRevision||
+         !samePolicy(view.receipt.desiredPolicy,desiredPolicy))
+        fail('E_OUTCOME_UNKNOWN','v3 提交回执未能证明模型、策略和修订号一致');
       return view.summary;
     }catch(error){
       if(error?.code==='E_OUTCOME_UNKNOWN'){
         const observed=await siteBudget.getStatus({});
-        if(observed?.kind==='site-budget.v3'&&observed.modelRef===modelRef)
+        if(observed?.kind==='site-budget.v3'&&observed.modelRef===modelRef&&
+            observed.desiredPolicyRev===expectedRevision&&
+            samePolicy(observed.desiredPolicy,desiredPolicy))
           return reflect(observed,now()).summary;
       }
       throw error;
