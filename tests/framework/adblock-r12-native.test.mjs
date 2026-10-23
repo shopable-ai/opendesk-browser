@@ -2123,7 +2123,8 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
     const value=await focusState();return value?.sites?.find(site=>site.host==='127.0.0.1'&&site.enabled&&site.mode==='limit');
   });
   await clickSandbox(client,sid,focusFrame,'.sf-advanced > summary');
-  const focusSessionButton='.sf-advanced .sf-setting:last-child button';
+  // The last section is followed by a hint paragraph; :last-child misses it.
+  const focusSessionButton='.sf-advanced .sf-setting:last-of-type button';
   assert.equal(await evaluate(client,focusFrame,'document.querySelector('+JSON.stringify(focusSessionButton)+').textContent'),'屏蔽 25 分钟');
   await clickSandbox(client,sid,focusFrame,focusSessionButton);
   const focusActive=await finishFocusAction('real nonempty high-priority Focus redirects',async()=>{
