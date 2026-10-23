@@ -35,6 +35,7 @@ on:
       - 'scripts/build-contract.mjs'
       - 'tests/environment/verify-package-react-constructor.test.mjs'
       - 'scripts/preview/**'
+      - 'scripts/tests/adblock-preview-chrome.mjs'
       - 'scripts/templates/sidebar-tool-preview-shell.html'
       - 'contracts/ui-preview/**'
       - '.github/workflows/sidebar-preview-contract.yml'
