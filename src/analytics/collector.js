@@ -7,7 +7,7 @@ const capped=(a,b)=>Math.min(Number.MAX_SAFE_INTEGER,a+b);
 const ATTEMPT_TIMEOUT_MS=10000;
 const empty=()=>({consent:false,consentReceipt:null,installId:null,identitySalt:null,queue:[],failures:0,nextAttemptAt:0,
   inventorySignature:null,inventoryReportedAt:0,inventoryCoverageVersion:0,coverage:{overflow:0,expired:0},openedContexts:[],
-  inventoryTypesSignature:null,inventoryTypesReportedAt:0,autoDaily:[],authorityGap:false,manualResultRunIds:[]});
+  inventoryTypesSignature:null,inventoryTypesReportedAt:0,autoDaily:[],authorityGap:false,manualResultRunIds:[],verifiedWorkflowRunIds:[]});
 export function validAnalyticsEndpoint(value,{allowLoopback=false}={}){
   try{
     const url=new URL(value);
@@ -57,13 +57,15 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       typeof (raw.authorityGap??false)!=='boolean'||
       !Array.isArray(raw.manualResultRunIds??[])||(raw.manualResultRunIds??[]).length>1024||
       (raw.manualResultRunIds??[]).some(id=>typeof id!=='string'||!/^[a-f0-9-]{36}$/i.test(id))||
+      !Array.isArray(raw.verifiedWorkflowRunIds??[])||(raw.verifiedWorkflowRunIds??[]).length>1024||
+      (raw.verifiedWorkflowRunIds??[]).some(id=>typeof id!=='string'||!/^[a-f0-9-]{36}$/i.test(id))||
       !Array.isArray(raw.openedContexts??[])||(raw.openedContexts??[]).length>96||
       (raw.openedContexts??[]).some(id=>typeof id!=='string'||id.length>64))return empty();
     return {...raw,inventorySignature:raw.inventorySignature??null,
       inventoryReportedAt:raw.inventoryReportedAt??0,
       inventoryCoverageVersion:raw.inventoryCoverageVersion??0,
       coverage:{overflow:raw.coverage?.overflow??0,expired:raw.coverage?.expired??0},
-      openedContexts:raw.openedContexts??[],
+      openedContexts:raw.openedContexts??[],verifiedWorkflowRunIds:raw.verifiedWorkflowRunIds??[],
       inventoryTypesSignature:raw.inventoryTypesSignature??null,
       inventoryTypesReportedAt:raw.inventoryTypesReportedAt??0,
       autoDaily:raw.autoDaily??[],authorityGap:raw.authorityGap??false,manualResultRunIds:raw.manualResultRunIds??[]};
@@ -106,7 +108,8 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
   }
   const statusSnapshot=consent=>({configured,consent,queued:0,needsReview:false});
   function record({event,toolId,source,channel,reason,installedTools,contextId,inventoryTypes,
-    readState,projectionGap,inventoryItems,inventoryOverflow,toolType,runStatus,manualRunId},{authorize}={}){
+    readState,projectionGap,inventoryItems,inventoryOverflow,toolType,runStatus,manualRunId,evidenceLevel,
+    verifiedWorkflowRunId},{authorize}={}){
     if(revoked||!configured)return Promise.resolve({recorded:false});
     const generation=revision;
     return run(async()=>{
@@ -125,6 +128,9 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       if(event==='tool.manual_result'&&
         (!/^[a-f0-9-]{36}$/i.test(manualRunId||'')||
         state.manualResultRunIds.includes(manualRunId)))return {recorded:false};
+      if(event==='workflow.business_effect_verified'&&
+        (!/^[a-f0-9-]{36}$/i.test(verifiedWorkflowRunId||'')||
+        state.verifiedWorkflowRunIds.includes(verifiedWorkflowRunId)))return {recorded:false};
       // The context ID is Chrome-owned sender identity; never transmitted.
       if(event==='app.opened'&&
         (typeof contextId!=='string'||!(/^[a-f0-9-]{36}$/i).test(contextId)||
@@ -157,7 +163,7 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       const entry=validateAnalyticsEvent({
         eventId:newId(),installId:state.installId,event,toolId,
         source,channel,timestamp:new Date(time).toISOString(),
-        ...(reason?{reason}:{}),
+        ...(reason?{reason}:{}),...(evidenceLevel?{evidenceLevel}:{}),
         ...(['tool.manual_attempt','tool.manual_result'].includes(event)?
           {toolType,...(runStatus?{runStatus}:{})}:{}),
         ...(event==='app.inventory_types'?{readState, ...(inventoryTypes?{inventoryTypes}:{}),
@@ -191,7 +197,9 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
         ...(event==='app.inventory_types'?{inventoryTypesSignature:signature,
           inventoryTypesReportedAt:time,authorityGap:state.authorityGap||projectionGap===true}:{}),
         ...(event==='app.opened'?{openedContexts:[...state.openedContexts,contextId].slice(-96)}:{}),
-        ...(event==='tool.manual_result'?{manualResultRunIds:[...state.manualResultRunIds,manualRunId].slice(-1024)}:{})});
+        ...(event==='tool.manual_result'?{manualResultRunIds:[...state.manualResultRunIds,manualRunId].slice(-1024)}:{}),
+        ...(event==='workflow.business_effect_verified'?{
+          verifiedWorkflowRunIds:[...state.verifiedWorkflowRunIds,verifiedWorkflowRunId].slice(-1024)}:{})});
       return {recorded:true};
     });
   }
@@ -211,6 +219,15 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
         return current.consent&&current.installId===state.installId&&
           current.identitySalt===state.identitySalt;
       }});
+  }
+  // Workflow business evidence is admitted only after the trusted UI has
+  // independently read back the page effect AND Host has checked original
+  // durable Run/Result. RunId never enters the transmitted event.
+  function recordWorkflowVerified({runId}={}){
+    if(typeof runId!=='string'||!/^[a-f0-9-]{36}$/i.test(runId))
+      return Promise.resolve({recorded:false});
+    return record({event:'workflow.business_effect_verified',toolId:'workflow',
+      source:'host',channel:'extension',evidenceLevel:'B',verifiedWorkflowRunId:runId});
   }
   // These are CUMULATIVE observations of durable Authority, not client-reported
   // invocations. Only a larger count advances a key; IDB history loss yields
@@ -387,5 +404,5 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
     await api.alarms?.create?.(ANALYTICS_ALARM,{periodInMinutes:5});
     void flush().catch(()=>{});
   };
-  return Object.freeze({status,setConsent,record,recordManualTask,recordAutoDaily,reportAuthority,flush,ensureWake,configured});
+  return Object.freeze({status,setConsent,record,recordManualTask,recordWorkflowVerified,recordAutoDaily,reportAuthority,flush,ensureWake,configured});
 }
