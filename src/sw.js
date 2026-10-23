@@ -79,6 +79,27 @@ installAnalyticsHost({api:chrome,loadAuthority:async({since}={})=>
     // durably fenced/stopped this Run. Never invent success or pre-empt a live Run.
     return ['paused_unknown','stopped','interrupted','failed'].includes(run.state)?
       {status:'outcome_unknown'}:null;
+  },
+  verifyWorkflowResult:async(runId,sender)=>{
+    const storage=(await foundation).storage;
+    const [run,result]=await storage.transaction(['runs','results'],'readonly',async tx=>{
+      const row=await tx.get('runs',runId);
+      return [row,row?.resultId?await tx.get('results',row.resultId):null];
+    });
+    // Independent page readback remains owned by the audited Workflow UI.
+    // Host additionally validates the original durable Controller result;
+    // Run.completed without that readback is never itself business proof.
+    return run?.tag==='controller-run'&&run.namespace===analyticsNamespace&&
+      run.runId===runId&&run.hostDocumentId===sender?.documentId&&
+      !run.scheduledFireId&&!run.cloudRequestId&&run.profile!=='app-service'&&
+      ['draft','saved'].includes(run.sourceKind)&&
+      run.state==='completed'&&run.workerRetired===true&&
+      run.retirementState==='released'&&
+      typeof run.revision?.sourceHash==='string'&&
+      result?.tag==='controller-result'&&result.namespace===analyticsNamespace&&
+      result.runId===runId&&result.resultId===run.resultId&&
+      result.state==='completed'&&result.outcome?.ok===true&&
+      result.revision?.sourceHash===run.revision.sourceHash;
   }});
 // Lifecycle only: this adapter never claims Tasks or runs a second Controller.
 // Keep the original RunHost alive while any durable @slot retirement is pending.
