@@ -168,3 +168,40 @@ test('R2.1 official consumer adapters do not share threads, cancellation or busi
   assert.equal(listeners.size,0);
   r.runtime.dispose();
 });
+
+test('R2.2.1 shared Consumer Session retains Prompt ETag but never leaks other business IDs',()=>{
+  const r=setup(),listeners=new Set();
+  const api={permissions:{onRemoved:{
+    addListener:listener=>listeners.add(listener),
+    removeListener:listener=>listeners.delete(listener)
+  }}};
+  const make=(consumerId,instanceId)=>createBusinessConversation({
+    api,providerRuntime:r.runtime,hostInstanceId:'panel-1',consumerId,instanceId
+  });
+  const bookmark=make('bookmark','bookmark-session');
+  const prompt=make('prompt','prompt-session');
+  const tasks=make('tasks','tasks-session');
+  const etag='a'.repeat(64),row={id:'turn-1',speaker:'你',message:'搜索'};
+  bookmark.saveSession({open:true,draft:'保留书签草稿',rows:[row],
+    refs:{folderId:'folder-1',bookmarkId:'bookmark-1',matches:['bookmark-2'],etag}});
+  prompt.saveSession({open:true,draft:'保留提示词草稿',rows:[row],
+    refs:{folderId:'must-not-cross',bookmarkId:'must-not-cross',matches:['prompt-1'],etag}});
+  tasks.saveSession({open:true,draft:'保留任务草稿',rows:[row],
+    refs:{folderId:'must-not-cross',matches:['private-id'],etag}});
+  assert.deepEqual(bookmark.readSession().refs,{
+    folderId:'folder-1',bookmarkId:'bookmark-1',matches:['bookmark-2']
+  });
+  assert.deepEqual(prompt.readSession().refs,{matches:['prompt-1'],etag});
+  assert.deepEqual(tasks.readSession().refs,{});
+  prompt.saveSession({open:true,refs:{matches:['prompt-2'],etag:'invalid'}});
+  assert.deepEqual(prompt.readSession().refs,{matches:['prompt-2'],etag:null},
+    'unverified Prompt ETag cannot authorize a later ordinal reference');
+  bookmark.dispose();prompt.dispose();tasks.dispose();
+  assert.deepEqual(bookmark.readSession().refs,{
+    folderId:null,bookmarkId:null,matches:[]
+  });
+  assert.deepEqual(prompt.readSession().refs,{matches:[],etag:null});
+  assert.deepEqual(tasks.readSession().refs,{});
+  assert.equal(listeners.size,0);
+  r.runtime.dispose();
+});

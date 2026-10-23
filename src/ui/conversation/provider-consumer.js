@@ -44,14 +44,31 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
         invalidateBookmarkConversation(err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已撤销'));
     }
     api.permissions.onRemoved?.addListener(consumerPermissionRemoved);
+    // Shared sessions keep only references belonging to their original business.
+    // Prompt needs its verified library ETag for safe ordinal follow-up actions.
+    const emptyRefs=()=>consumerId==='bookmark'
+      ?{folderId:null,bookmarkId:null,matches:[]}
+      :consumerId==='prompt'?{matches:[],etag:null}:{};
+    const sessionRefs=refs=>{
+      const matches=Array.isArray(refs?.matches)?refs.matches.slice(0,12)
+        .filter(id=>typeof id==='string'&&id.length<=160):[];
+      if(consumerId==='bookmark')return {
+        folderId:typeof refs?.folderId==='string'?refs.folderId.slice(0,160):null,
+        bookmarkId:typeof refs?.bookmarkId==='string'?refs.bookmarkId.slice(0,160):null,
+        matches
+      };
+      if(consumerId==='prompt')return {matches,
+        etag:typeof refs?.etag==='string'&&/^[a-f0-9]{64}$/.test(refs.etag)?refs.etag:null};
+      return {};
+    };
     let bookmarkConversationSession={open:false,draft:'',rows:[],needsReview:false,
-      refs:{folderId:null,bookmarkId:null,matches:[]}};
+      refs:emptyRefs()};
     const conversation=Object.freeze({
     source(){const selected=providers.configuration().source;return {
       provider:selected,label:selected==='local_codex'?'Codex':
         selected==='cloud_responses'?'Responses':'HTTPS'};},
     readSession(){return consumerDisposed?{open:false,draft:'',rows:[],needsReview:false,
-      refs:{folderId:null,bookmarkId:null,matches:[]}}:structuredClone(bookmarkConversationSession);},
+      refs:emptyRefs()}:structuredClone(bookmarkConversationSession);},
     saveSession(snapshot){
       if(consumerDisposed||!snapshot||typeof snapshot!=='object')return;
       const rows=Array.isArray(snapshot.rows)?snapshot.rows.slice(-24).filter(row=>
@@ -62,11 +79,7 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
       bookmarkConversationSession={open:snapshot.open===true,
         needsReview:snapshot.needsReview===true,
         draft:typeof snapshot.draft==='string'?snapshot.draft.slice(0,4000):'',
-        rows,refs:{
-          folderId:typeof refs.folderId==='string'?refs.folderId.slice(0,160):null,
-          bookmarkId:typeof refs.bookmarkId==='string'?refs.bookmarkId.slice(0,160):null,
-          matches:Array.isArray(refs.matches)?refs.matches.slice(0,12).filter(id=>typeof id==='string'&&id.length<=160):[]
-        }};
+        rows,refs:sessionRefs(refs)};
     },
     async request({request,context={},event,signal,scope=consumerId,continuation=false}={}){
       if(consumerDisposed||!event?.isTrusted)
@@ -113,7 +126,7 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
       };
       const assertLive=()=>{
         if(consumerDisposed||bookmarkConversationActive!==active)
-          throw err('E_TOOL_CHANGED','书签扩展实例已切换，本轮操作失效');
+          throw err('E_TOOL_CHANGED','当前 AI 消费者实例已切换，本轮操作失效');
         if(generation!==bookmarkConversationGrantEpoch)
           throw err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已撤销，未继续写入');
         if(abortController.signal.aborted)
@@ -150,7 +163,7 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
           assertLive();
           if(!permitted){
             invalidateBookmarkConversation(err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已失效'));
-            throw err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已失效，拒绝继续书签写入');
+            throw err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已失效，拒绝继续业务写入');
           }
         }
         assertLive();
@@ -222,7 +235,7 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
       api.permissions.onRemoved?.removeListener(consumerPermissionRemoved);
       // Display-only drafts and references must not remain readable after close.
       bookmarkConversationSession={open:false,draft:'',rows:[],needsReview:false,
-        refs:{folderId:null,bookmarkId:null,matches:[]}};
+        refs:emptyRefs()};
       editLease?.dispose();mainLease.dispose();
     }
   });
