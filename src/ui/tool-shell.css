@@ -611,6 +611,12 @@
 .workflow-composer{flex:none;min-width:0;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:6px 10px;margin:var(--space-1) 0 var(--space-2)}
 .workflow-composer:focus-within{outline:2px solid var(--od-focus);outline-offset:1px}
 .workflow-composer textarea{display:block;border:0;background:transparent;outline:none;padding:2px 0;width:100%;font:var(--od-body-size)/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;color:var(--od-ink);resize:vertical;min-height:42px;max-height:122px;margin:0 0 var(--space-1)}
+/* Workflow now uses the shared Chat Frame inside its original sticky composer. */
+.workflow-composer-frame{min-width:0}
+.workflow-composer .od-conversation-composer{border:0;padding:0;min-height:48px}
+.workflow-composer .od-conversation-input{resize:none;outline-offset:1px;margin:0;min-height:44px;max-height:112px;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);padding:9px 48px 9px 10px}
+.workflow-composer .od-conversation-action{margin:0 6px 6px 0}
+.workflow-composer:has(.od-conversation-composer):focus-within{outline:none}
 .workflow-composer-actions{display:flex;justify-content:flex-end;align-items:center;gap:var(--space-2);flex-wrap:nowrap}
 /* Send, stop and settings always keep the public 34px icon footprint, including first use. */
 .workflow-composer .workflow-send-button{flex:none}
