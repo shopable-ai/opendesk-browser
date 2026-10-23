@@ -7,13 +7,13 @@ export const ANALYTICS_ALARM='opendesk.analytics.flush.v1';
 export const ANALYTICS_STATE_KEY='opendesk.analytics.state.v1';
 export const ANALYTICS_VERSION=1;
 // Changing collection categories, recipients or purpose requires a new reviewed receipt.
-export const ANALYTICS_DISCLOSURE_VERSION='analytics-disclosure-2026-10-23-v5';
+export const ANALYTICS_DISCLOSURE_VERSION='analytics-disclosure-2026-10-23-v6';
 export const ANALYTICS_MAX_BATCH=10;
 export const ANALYTICS_MAX_BYTES=16384;
 export const ANALYTICS_MAX_AGE_MS=7*24*60*60*1000;
 export const ANALYTICS_EVENTS=Object.freeze([
   'app.opened','app.inventory','app.inventory_types','tool.engaged','tool.auto_daily',
-  'tool.manual_attempt','tool.manual_result','workflow.business_effect_verified',
+  'tool.manual_attempt','tool.manual_result','workflow.manual_attempt','workflow.business_effect_verified',
   'tool.installed','tool.uninstalled','tool.enabled','tool.disabled','tool.opened',
   'prompt.saved','prompt.inserted','prompt.copied','prompt.fallback_copied','prompt.failed'
 ]);
