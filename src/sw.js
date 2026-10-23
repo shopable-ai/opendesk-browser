@@ -12,13 +12,14 @@ import {reconcileManagedProxy,MANAGED_PROXY_ALARM} from './platform/chrome/brows
 import {createCloudRunnerLifecycle} from './cloud-control/runner-lifecycle.js';
 import {handlePromptRailOpen} from '../examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
 import {installAnalyticsHost} from './analytics/host.js';
+import {readAnalyticsAuthorityProjection} from './analytics/authority-projection.js';
 
 
 export function initServiceWorker({development=null}={}) {
 let pendingFoundation=0;
 configureSidePanel(chrome).catch(error => console.error(`[side-panel ${error.code || 'E_TARGET'}] ${error.message}`));
-// Isolated trusted telemetry sidecar; disabled until a configured endpoint and opt-in.
-installAnalyticsHost({api:chrome});
+// Isolated trusted telemetry sidecar attaches after the single Foundation
+// instance is created. This must never create a second IndexedDB owner.
 // Validated foundation ports are shared only with the fixed local Native
 // transport. Failure to load optional Native code cannot disable Sidebar.
 const hostPorts=globalThis.__opendeskNativeHostPorts=new Map();
@@ -42,6 +43,8 @@ chrome.alarms?.onAlarm?.addListener(alarm=>{if(alarm?.name===MANAGED_PROXY_ALARM
 recoverManagedProxy();
 try{importScripts('cloud-control/cloud-host.js');}catch(e){console.warn('E_CLOUD_LOAD',e);}
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts,downloadEventsAttached:true});
+installAnalyticsHost({api:chrome,loadAuthority:async()=>
+  readAnalyticsAuthorityProjection({storage:(await foundation).storage,api:chrome})});
 // Lifecycle only: this adapter never claims Tasks or runs a second Controller.
 // Keep the original RunHost alive while any durable @slot retirement is pending.
 const cloudRunnerLifecycle=createCloudRunnerLifecycle({api:chrome});
