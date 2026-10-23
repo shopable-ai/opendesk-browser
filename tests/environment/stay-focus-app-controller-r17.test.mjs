@@ -204,3 +204,44 @@ test('unchanged v3 policy and sealed model are valid no-op commits',async()=>{
   assert.deepEqual(expected,[0,1]);
   assert.equal(receipt.desiredPolicyRev,1,'idempotent update must not invent a revision');
 });
+
+test('old Focus identity gets a verified legacy fallback for Driver E_TOOL_CHANGED',async()=>{
+  const operations=[];
+  const controller=createFocusController({
+    request:async operation=>{
+      operations.push(operation);
+      return {enabled:false,sites:[]};
+    },
+    siteBudget:{
+      getStatus:async()=>{throw Object.assign(new Error('no v3 capability'),
+        {code:'E_TOOL_CHANGED'});},
+      setPolicy:async()=>{throw Error('must not enter v3');}
+    },now:()=>at
+  });
+  assert.equal((await controller.readStatus()).enabled,false);
+  await controller.operate('focus.site.remove',{host:'example.com'});
+  assert.deepEqual(operations,['focus.status','focus.status','focus.site.remove']);
+});
+
+test('failed legacy proof never caches fallback after an install-epoch change',async()=>{
+  let statusReads=0,legacyReads=0;
+  const controller=createFocusController({
+    request:async()=>{
+      legacyReads++;
+      throw Object.assign(new Error('old tool revoked'),{code:'E_TOOL_CHANGED'});
+    },
+    siteBudget:{
+      getStatus:async()=>{
+        statusReads++;
+        if(statusReads===1)
+          throw Object.assign(new Error('old owner'),{code:'E_TOOL_CHANGED'});
+        return initial();
+      },
+      setPolicy:async()=>{throw Error('no mutation requested');}
+    },now:()=>at
+  });
+  await assert.rejects(controller.readStatus(),{code:'E_TOOL_CHANGED'});
+  assert.equal((await controller.readStatus()).enabled,false);
+  assert.equal(statusReads,2,'next read must recheck the live public Driver');
+  assert.equal(legacyReads,1,'a revoked legacy worker cannot become a cached fallback');
+});
