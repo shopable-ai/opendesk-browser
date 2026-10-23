@@ -229,7 +229,7 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
          !/^\d{4}-\d\d-\d\d$/.test(row.day||'')||
          !Number.isSafeInteger(row.total)||row.total<1)return {recorded:false};
       const time=now(),day=Date.parse(row.day+'T00:00:00Z');
-      if(!Number.isFinite(day)||day<time-ANALYTICS_MAX_AGE_MS||day>time+86400000){
+      if(!Number.isFinite(day)||day<time-ANALYTICS_MAX_AGE_MS||day>Math.floor(time/86400000)*86400000){
         await persist({...state,authorityGap:true});
         return {recorded:false,gap:true};
       }
