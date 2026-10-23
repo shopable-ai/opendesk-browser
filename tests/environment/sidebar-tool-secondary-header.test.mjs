@@ -32,7 +32,7 @@ test('R40 Host owns header trigger but sandbox retains actual file and export ge
   assert.match(tool,/secondary:'transfer'/);
   assert.match(tool,/action==='secondary'&&mode==='index'/);
   assert.match(tool,/el\('ps-import-file'\)\.click\(\)/);
-  assert.match(tool,/request\('user\.export'/);
+  assert.match(tool,/request\('browser\.downloads\.text'/);
   assert.match(bridge,/navigationAllowed&&\(\['back','primary'\]/);
   assert.match(host,/requestBusinessNavigation\('secondary'\)/);
   assert.match(react,/id="sidebar-tool-secondary-action"/);
