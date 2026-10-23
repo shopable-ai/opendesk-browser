@@ -107,10 +107,10 @@ export function CookieExportFormatRow({format='json',onFormat,includeValues=true
           aria-selected={format===key} aria-controls={panelId} tabIndex={format===key?0:-1}
           disabled={disabled} onClick={()=>onFormat?.(key)}>{label}</button>)}
     </div>
-    {format==='json'&&<label className="export-inline-values cookie-export-values">
+    <label className="export-inline-values cookie-export-values">
       <input type="checkbox" checked={includeValues} disabled={disabled}
         onChange={e=>onIncludeValues?.(e.target.checked)}/>包含 Cookie 值
-    </label>}
+    </label>
   </div>;
 }
 export function CookieExportActions({onCopy,onDownload,disabled=false,downloadLabel='下载'}){

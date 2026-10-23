@@ -1597,19 +1597,19 @@
 /* Cookie Editor: one trusted first-use action before the existing React iframe. */
 .sidebar-tool-cookie-permissions[hidden]{display:none!important}
 .sidebar-tool-cookie-permissions[data-mode="first-use"]{
-  display:flex;flex-direction:column;justify-content:center;gap:10px;
-  min-height:216px;padding:28px 20px;margin:0 0 8px;
+  display:flex;flex-direction:column;justify-content:center;gap:9px;
+  min-height:236px;padding:36px clamp(16px,6vw,28px);margin:0 0 8px;
 }
 .sidebar-tool-cookie-permissions[data-mode="first-use"] #sidebar-tool-cookie-heading{
-  font-size:16px;line-height:1.4;font-weight:650;
+  font-size:16px;line-height:1.4;font-weight:650;margin:0;
 }
 .sidebar-tool-cookie-permissions[data-mode="first-use"] #sidebar-tool-cookie-help{
-  margin:0 0 6px;font-size:12px;line-height:1.6;
+  margin:0 0 8px;font-size:12px;line-height:1.65;max-width:40ch;
 }
 .sidebar-tool-cookie-permissions[data-mode="first-use"] #sidebar-tool-cookie-first-use,
 .sidebar-tool-cookie-permissions[data-mode="first-use"] #sidebar-tool-cookie-site-toggle{
   width:100%;
 }
 .sidebar-tool-cookie-permissions[data-mode="first-use"] #sidebar-tool-cookie-site-toggle{
-  min-height:40px;
+  min-height:40px;max-width:360px;
 }

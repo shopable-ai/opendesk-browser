@@ -21,6 +21,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
   const [panel,updatePanel]=React.useState(null);
   const setPanel=value=>{syncGate.current.panel=value;updatePanel(value);};
   const [exportOpen,updateExportOpen]=React.useState(false);
+  const exportPending=React.useRef(false);
   const setExportOpen=value=>{syncGate.current.exportOpen=value;updateExportOpen(value);};
   const [selected,updateSelected]=React.useState(null);
   const setSelected=value=>{syncGate.current.selected=value;updateSelected(value);};
@@ -174,7 +175,9 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     setSelected(null);setExportOpen(false);setPanel(name);setPage(1);setStatus('');
     if(name==='import')setImportNotice(null);
   });
-  const closeExport=(restoreFocus=false)=>{
+  const closeExport=(restoreFocus=false,confirmed=false)=>{
+    // A window blur during the Host effect cannot dismiss an unfinished export.
+    if(exportPending.current&&!confirmed)return;
     setExportOpen(false);
     if(restoreFocus)hostRoot.querySelector('.cookie-editor-react [aria-label="导出 Cookie"]')
       ?.focus({preventScroll:true});
@@ -381,8 +384,9 @@ export default function CookieEditorApp({request,hostRoot,setState}){
           onExport={()=>{if(!locked)setExportOpen(!exportOpen);}}
           exportOpen={exportOpen} onCloseExport={closeExport}
           exportContent={exportOpen?<CookieExport controller={controller} disabled={locked}
+            onPendingChange={pending=>{exportPending.current=pending;}}
             onDelivered={method=>{
-              closeExport(true);
+              closeExport(true,true);
               noteImport(method==='copy'?'已复制 Cookie':'Cookie 文件下载已发起','success');
             }}
             onClose={()=>closeExport(true)}/>:null}

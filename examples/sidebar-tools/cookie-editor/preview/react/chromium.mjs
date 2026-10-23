@@ -234,6 +234,13 @@ try{
   const popup=page.getByRole('dialog',{name:'导出 Cookie'});await popup.waitFor();
   assert.equal(await popup.getByRole('tab',{name:'JSON'}).getAttribute('aria-selected'),'true');
   assert.equal(await popup.getByRole('checkbox',{name:/包含 Cookie 值/}).isChecked(),true);
+  // Header cannot silently restore sensitive values after an explicit opt-out.
+  await popup.getByRole('checkbox',{name:/包含 Cookie 值/}).uncheck();
+  await popup.getByRole('tab',{name:'Cookie Header'}).click();
+  await popup.getByRole('alert').filter({hasText:/Cookie Header 需要包含 Cookie 值/}).waitFor();
+  assert.equal(await popup.getByRole('button',{name:'复制'}).isDisabled(),true);
+  await popup.getByRole('tab',{name:'JSON'}).click();
+  await popup.getByRole('checkbox',{name:/包含 Cookie 值/}).check();
   assert.equal(await page.locator('.cookie-row').count(),8);
   assert.equal(await popup.locator('[data-cookie-secret-output]').count(),0);
   await popup.getByRole('button',{name:'复制'}).click();await ready();

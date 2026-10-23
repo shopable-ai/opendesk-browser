@@ -3,15 +3,17 @@ import {CookieExportFormatRow,CookieExportActions,CookieIconButton} from './Cook
 
 // Compact, non-modal export popover used by both official React and the preview.
 // Credential reads and clipboard/download effects remain Controller -> SDK -> Host.
-export default function CookieExport({controller,disabled=false,onClose,onDelivered}){
+export default function CookieExport({controller,disabled=false,onClose,onDelivered,onPendingChange}){
   const titleId=React.useId();
   const panelId=React.useId();
   const root=React.useRef(null);
+  const pendingRef=React.useRef(false);
   const [message,setMessage]=React.useState('');
   const [format,setFormat]=React.useState('json');
   const [includeValues,setIncludeValues]=React.useState(true);
   const [working,setWorking]=React.useState(false);
-  const metadata=format==='json'&&!includeValues;
+  const metadata=!includeValues;
+  const requiresValues=format==='header'&&!includeValues;
   const rows=controller.snapshot().rows;
   const partitioned=rows.some(row=>Boolean(row.partitionKey));
   const lossy=partitioned&&format==='header';
@@ -20,7 +22,9 @@ export default function CookieExport({controller,disabled=false,onClose,onDelive
     root.current?.querySelector('[role="tab"][aria-selected="true"]')?.focus({preventScroll:true});
   },[]);
   const deliver=async method=>{
-    if(busy||lossy)return;
+    if(busy||lossy||requiresValues||pendingRef.current)return;
+    pendingRef.current=true;
+    onPendingChange?.(true);
     setWorking(true);
     setMessage('');
     try{
@@ -30,7 +34,11 @@ export default function CookieExport({controller,disabled=false,onClose,onDelive
       else setMessage(controller.snapshot().message||'导出失败，请检查授权或格式');
     }catch{
       setMessage('导出未完成，请检查授权后手动重试。');
-    }finally{setWorking(false);}
+    }finally{
+      pendingRef.current=false;
+      onPendingChange?.(false);
+      setWorking(false);
+    }
   };
   return <section ref={root} className="cookie-export-panel" role="dialog"
     aria-modal="false" aria-labelledby={titleId}>
@@ -46,7 +54,10 @@ export default function CookieExport({controller,disabled=false,onClose,onDelive
       {lossy&&<p className="cookie-message od-alert od-alert--warning" role="alert">
         当前网站存在分区 Cookie，Cookie Header 无法完整导出。请选择 JSON。
       </p>}
-      <CookieExportActions disabled={busy||lossy}
+      {requiresValues&&<p className="cookie-message od-alert od-alert--warning" role="alert">
+        Cookie Header 需要包含 Cookie 值。
+      </p>}
+      <CookieExportActions disabled={busy||lossy||requiresValues}
         onCopy={()=>void deliver('copy')} onDownload={()=>void deliver('download')}/>
       {message&&<p role="alert" className="cookie-message od-alert od-alert--error">{message}</p>}
     </div>

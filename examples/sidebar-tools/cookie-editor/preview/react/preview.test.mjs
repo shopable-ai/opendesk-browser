@@ -20,6 +20,12 @@ test('export is an anchored two-tab React popover, never a replacement page',asy
   assert.match(view,/\['header','Cookie Header'/);
   assert.doesNotMatch(view,/<option value="netscape">|aria-label="导出格式" value=/);
   assert.match(popup,/role="dialog"/);
+  assert.match(popup,/const requiresValues=format==='header'&&!includeValues/);
+  assert.match(popup,/Cookie Header 需要包含 Cookie 值/);
+  assert.match(popup,/pendingRef\.current=true/);
+  assert.match(popup,/onPendingChange\?\.\(true\)/);
+  assert.match(app,/if\(exportPending\.current&&!confirmed\)return/);
+  assert.doesNotMatch(view,/\{format==='json'&&<label className="export-inline-values/);
   assert.match(popup,/onDelivered\?\.\(method\)/);
   assert.match(popup,/role="tabpanel"/);
   assert.doesNotMatch(popup,/JSON 备份保留完整属性|复制为请求头文本|仅导出属性，不包含 Cookie 值/);
@@ -59,6 +65,9 @@ test('authorization preview presents one clearly scoped grant action',async()=>{
   assert.match(react,/onClick=\{grant\}>允许管理所有网站 Cookie<\/button>/);
   assert.doesNotMatch(react,/preview-grant-icon|首次允许一次|<small>/);
   assert.doesNotMatch(css,/preview-grant-icon|preview-global-grant small/);
+  const trustedCss=await read('../../../../../src/ui/tool-shell.css');
+  assert.match(trustedCss,/min-height:236px;padding:36px clamp\(16px,6vw,28px\)/);
+  assert.match(trustedCss,/max-width:360px/);
 });
 
 test('committed standalone React preview reflects the one-action consent UI',async()=>{
