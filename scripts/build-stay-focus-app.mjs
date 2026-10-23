@@ -16,8 +16,12 @@ export async function buildStandaloneStayFocus({preview=false,log=true}={}){
   const isV3=pkg.backgroundPolicy?.kind==='site-budget.v3'&&
     pkg.capabilities.includes('browser.siteBudget')&&
     !pkg.capabilities.includes('focus.control');
-  if(!isV3&&!preview)
-    throw new Error('E_STAY_FOCUS_RELEASE_GATE: 旧服务/模型迁移尚未关闭，不得将旧包宣称为独立升级发行');
+  // Migration must be verified with the real Installer transaction and
+  // Chrome resource readback before a separate build becomes a published
+  // upgrade. A version bump or manifest-only v3 toggle is not proof.
+  const installerMigrationVerified=false; // No verified Installer transfer yet.
+  if((!isV3||!installerMigrationVerified)&&!preview)
+    throw new Error('E_STAY_FOCUS_RELEASE_GATE: v3 旧数据无损迁移和 Installer 事务未完成');
   const bytes=encodeSidebarToolPackage(pkg);
   const dirname=resolve(root,'dist'),name='stay-focus.opendesk-tool.json';
   await mkdir(dirname,{recursive:true});
@@ -30,7 +34,7 @@ export async function buildStandaloneStayFocus({preview=false,log=true}={}){
   const result={
     format:'opendesk.independent-app-receipt.v1',toolId:pkg.id,
     version:pkg.version,bytes:bytes.length,sha256:sha256(bytes),
-    package:name,releaseReady:isV3,
+    package:name,releaseReady:isV3&&installerMigrationVerified,
     browserBuildTouched:false
   };
   const receipt=resolve(dirname,'standalone-release-receipt.json');
