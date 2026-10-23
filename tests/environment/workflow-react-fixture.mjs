@@ -95,7 +95,10 @@ export async function workflowFixture(options={}) {
     }
     resolve({runId:claim.runId,state,retirement:{state:'released'},result});
   }
-  const client=options.client||{ready:Promise.resolve(),controller:host.controller,
+  // Always provide the production Host Client's mandatory discovery route.
+  // Per-test custom provider clients override only what they explicitly test.
+  // An explicitly failing request is never replaced, preserving fail-closed tests.
+  const client={ready:Promise.resolve(),controller:host.controller,
     subscribeWorkflowAI:fn=>{subscriptions.native.add(fn);return ()=>subscriptions.native.delete(fn);},
     // Match the real Host Client's discovery and immutable task admission RPCs.
     request:async method=>method==='listTaskCatalog'?
@@ -103,7 +106,7 @@ export async function workflowFixture(options={}) {
       method==='resolveInstalledTask'&&options.resolveTask?options.resolveTask:
       Promise.reject(fail('E_FIXTURE_RPC','Unknown Host RPC: '+method)),
     requestWorkflowAI:async method=>method==='ai.connection.read'?{nativeConnected:false,protocolAvailable:false,state:'NATIVE_PERMISSION_REQUIRED'}:
-      {state:'DISCONNECTED',readyForTurn:false}};
+      {state:'DISCONNECTED',readyForTurn:false},...(options.client||{})};
   const currentPageTarget={windowId:7,snapshot:target,ready:Promise.resolve(),capture:()=>({...target}),
     refresh:async()=>({...target}),
     revalidate:async captured=>{if(['windowId','tabId','frameId','documentId','url','origin'].some(key=>captured[key]!==target[key]))throw fail('E_DOCUMENT_STALE','网页已变化');},
