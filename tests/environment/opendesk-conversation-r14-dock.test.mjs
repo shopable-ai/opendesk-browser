@@ -85,8 +85,11 @@ test('R1.4 original bookmark workspace and search never disappear with chat',asy
  assert.match(css,/\.od-conversation-separator\{[^\n]*touch-action:none/,'slim visual splitter remains draggable');
  assert.doesNotMatch(css,/\.od-conversation-separator\{[^\n]*border-bottom/,'avoid doubled visual separator lines');
  assert.match(component,/IconButton as OpenDeskIconButton/,'reuse the canonical React icon button');
- assert.match(component,/label="发送" onClick=\{send\}/);
- assert.match(component,/label="停止对话" onClick=\{stop\}/);
+ assert.match(component,/label="发送"/);
+  assert.match(component,/onClick=\{submit\}/);
+  assert.match(component,/onSend\(event\)/,'trusted Send remains the only business dispatch');
+ assert.match(component,/label="停止对话"/);
+  assert.match(component,/onStop\(event\)/,'Stop delegates to the current consumer only');
  assert.doesNotMatch(css,/\.od-conversation-controls/,'no second action row');
 });
 
@@ -100,8 +103,11 @@ test('R1.4 shared separator and edit draft coexistence retain keyboard access an
  assert.match(component,/e\.key==='Home'/);
  assert.match(component,/e\.key==='End'/);
  assert.match(component,/onPointerDown=\{separatorDown\}/);
- assert.match(component,/e\.nativeEvent\.isComposing/);
- assert.match(component,/e\.key==='Enter'&&!e\.shiftKey&&!e\.nativeEvent\.isComposing/);
+ assert.match(component,/event\.nativeEvent\?\.isComposing/);
+  assert.match(component,/onCompositionStart=/);
+  assert.match(component,/onCompositionEnd=/);
+ assert.match(component,/event\.key==='Enter'&&!event\.shiftKey&&!event\.nativeEvent\?\.isComposing/);
+  assert.match(component,/!composing\.current&&event\.nativeEvent\?\.keyCode!==229/);
  assert.match(component,/aria-label="收起对话"/);
  assert.match(component,/showSpeaker=\{false\}/,'shared transcript removes redundant visible speaker labels');
  assert.doesNotMatch(component,/od-conversation-samples|od-conversation-source/);
