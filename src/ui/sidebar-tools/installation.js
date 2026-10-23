@@ -509,19 +509,31 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
     const ops=identity?recoverableOperations((await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE]):null;
     if(identity&&ops[identity.operationId])
       throw error('事务已存在，请先恢复核对，不能再次提交','E_OUTCOME_UNKNOWN');
-    // An external review consumes its bounded handoff only after all preflight
-    // checks, under the existing install locks and before the first journal write.
-    if(identity&&commitIntent)await commitIntent();
     const prior=provenance[tool.id];
     const previousProvenance=identity&&existing&&prior?.marketId===identity.marketId&&
       prior.version===existing.version&&shaPattern.test(prior.sha256)&&Object.keys(prior).length===3&&
       await canonicalSha256(existing)===prior.sha256
       ?{marketId:prior.marketId,version:prior.version,sha256:prior.sha256}:null;
+    // Independent v3 apps may retain EXACTLY their previous approved site
+    // scope, but only when both releases have verified same-source provenance.
+    // No candidate JS runs and no new domain can be authorized by this path.
+    const scopeTransfer=identity&&previousProvenance&&
+      existing.backgroundPolicy?.kind==='site-budget.v3'&&
+      tool.backgroundPolicy?.kind==='site-budget.v3'&&
+      existing.capabilities.includes(MANAGED_SITE_BUDGET_CAPABILITY)&&
+      tool.capabilities.includes(MANAGED_SITE_BUDGET_CAPABILITY)&&
+      typeof epochs[tool.id]==='string'?
+      await readSiteScopeTransferPlan(api,{id:tool.id,source:identity.marketId,
+        fromEpoch:epochs[tool.id],fromHash:await sidebarToolPackageHash(existing),
+        toEpoch:nextEpoch,toHash:await sidebarToolPackageHash(tool)}):null;
+    // Consume an external handoff only AFTER read-only migration preflight.
+    if(identity&&commitIntent)await commitIntent();
     const writeOp=async(state,reason='')=>{
       if(!identity)return;
       const original=(await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE]||{};
       const updated={...original,[identity.operationId]:{marketId:identity.marketId,sha256:identity.sha256,
         toolId:tool.id,version:tool.version,installEpoch:nextEpoch,...(previousProvenance?{previousProvenance}:{}),
+        ...(scopeTransfer?{scopeTransfer}:{}),
         state,reason:reason.slice(0,140),updatedAt:Date.now()}};
       await writeVerifiedLocalValue(api,MARKET_OPERATIONS_STORE,trimmedOperations(updated),original,'市场事务记录');
     };
@@ -610,6 +622,12 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         const updated={...provenance};delete updated[tool.id];
         await writeVerifiedLocalValue(api,MARKET_PROVENANCE_STORE,updated,provenance,'旧市场来源清理');
       }
+      // Publish the scope on the same original Installer path, AFTER the
+      // package, source and epoch have been read back. Any write ambiguity
+      // leaves an unresolved market journal, not a fabricated success.
+      if(scopeTransfer)await transferReviewedSiteScopeLocked(api,lockManager,{
+        id:tool.id,source:identity.marketId,toEpoch:nextEpoch,
+        toHash:await sidebarToolPackageHash(tool),scope:scopeTransfer});
       const cleanup=await getPendingToolCleanups(api);
       if(cleanup[tool.id]){
         const updated={...cleanup};delete updated[tool.id];
