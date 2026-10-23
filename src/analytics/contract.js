@@ -7,13 +7,13 @@ export const ANALYTICS_ALARM='opendesk.analytics.flush.v1';
 export const ANALYTICS_STATE_KEY='opendesk.analytics.state.v1';
 export const ANALYTICS_VERSION=1;
 // Changing collection categories, recipients or purpose requires a new reviewed receipt.
-export const ANALYTICS_DISCLOSURE_VERSION='analytics-disclosure-2026-10-23-v6';
+export const ANALYTICS_DISCLOSURE_VERSION='analytics-disclosure-2026-10-23-v7';
 export const ANALYTICS_MAX_BATCH=10;
 export const ANALYTICS_MAX_BYTES=16384;
 export const ANALYTICS_MAX_AGE_MS=7*24*60*60*1000;
 export const ANALYTICS_EVENTS=Object.freeze([
   'app.opened','app.inventory','app.inventory_types','tool.engaged','tool.auto_daily',
-  'tool.manual_attempt','tool.manual_result','workflow.manual_attempt','workflow.business_effect_verified',
+  'tool.manual_attempt','tool.manual_result','workflow.manual_attempt','workflow.business_effect_verified','reading_toc.navigated',
   'tool.installed','tool.uninstalled','tool.enabled','tool.disabled','tool.opened',
   'prompt.saved','prompt.inserted','prompt.copied','prompt.fallback_copied','prompt.failed'
 ]);
@@ -111,10 +111,13 @@ export function validateAnalyticsEvent(value,{now=Date.now()}={}){
      (value.event==='tool.manual_attempt'?value.runStatus!==undefined:
        !['completed','failed','outcome_unknown'].includes(value.runStatus))))
     throw Object.assign(new Error('Invalid manual authority receipt'),{code:'E_ANALYTICS_SCHEMA'});
-  if(value.event==='workflow.business_effect_verified'?
-     value.toolId!=='workflow'||value.source!=='host'||value.channel!=='extension'||
-       value.evidenceLevel!=='B':
-     value.evidenceLevel!==undefined)
+  const toc=value.event==='reading_toc.navigated';
+  if((value.event==='workflow.business_effect_verified'?
+       value.toolId!=='workflow'||value.source!=='host'||value.channel!=='extension'||
+         value.evidenceLevel!=='B':
+       toc?value.toolId!=='reading-toc'||value.source!=='page_adapter'||
+         value.channel!=='page_button'||value.evidenceLevel!=='B':
+       value.evidenceLevel!==undefined))
     throw Object.assign(new Error('Invalid verified business evidence'),{code:'E_ANALYTICS_SCHEMA'});
   if(!manual&&value.runStatus!==undefined)
     throw Object.assign(new Error('Unexpected manual result'),{code:'E_ANALYTICS_SCHEMA'});
@@ -128,13 +131,13 @@ export function validateAnalyticsEvent(value,{now=Date.now()}={}){
   const prompt=value.event.startsWith('prompt.');
   if(prompt!== (value.toolId==='prompt-shortcuts'&&value.event.startsWith('prompt.')))
     throw Object.assign(new Error('Invalid analytics tool ownership'),{code:'E_ANALYTICS_SCHEMA'});
-  if((!prompt&&value.source!=='host')||
+  if((!prompt&&!toc&&value.source!=='host')||
      (['prompt.saved'].includes(value.event)&&value.source!=='host')||
      (['prompt.inserted','prompt.fallback_copied','prompt.failed'].includes(value.event)&&value.source!=='page_adapter')||
      (value.event==='prompt.copied'&&value.source!=='tool_reported')||
      (value.event==='prompt.failed'&&!value.reason)||
      (value.event!=='prompt.failed'&&value.reason!==undefined)||
-     (prompt&&value.channel==='extension')||(!prompt&&value.channel!=='extension'&&
+     (prompt&&value.channel==='extension')||(!prompt&&!toc&&value.channel!=='extension'&&
        !['tool.opened','app.opened','tool.engaged'].includes(value.event))||
      (value.event==='app.opened'&&value.channel!=='sidepanel')||
      (value.event==='tool.engaged'&&value.channel!=='page_button')||
