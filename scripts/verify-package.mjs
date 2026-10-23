@@ -48,8 +48,15 @@ export const FOCUS_BLOCK_RESOURCES=Object.freeze([
   'stay-focus/blocked-quota.html','stay-focus/blocked-schedule.html',
   'stay-focus/blocked-session.html','stay-focus/blocked-always.html'
 ]);
+// First-party managed-site v3 uses these four immutable DNR redirect pages.
+// Never admit wildcard paths or JS into web-accessible resources.
+export const MANAGED_SITE_BLOCK_RESOURCES=Object.freeze([
+  'managed-site/blocked-quota.html','managed-site/blocked-schedule.html',
+  'managed-site/blocked-session.html','managed-site/blocked-always.html'
+]);
 export const APPROVED_WEB_ACCESSIBLE_RESOURCES=Object.freeze([...SDK_MAIN_WAR,
-  {resources:[...FOCUS_BLOCK_RESOURCES],matches:['http://*/*','https://*/*']}]);
+  {resources:[...FOCUS_BLOCK_RESOURCES],matches:['http://*/*','https://*/*']},
+  {resources:[...MANAGED_SITE_BLOCK_RESOURCES],matches:['http://*/*','https://*/*']}]);
 export const SDK_AUTOMATIC_CONTENT_SCRIPTS = Object.freeze([
   {matches:['http://*/*','https://*/*'],js:['agents/page-relay.js'],run_at:'document_start',all_frames:true,world:'ISOLATED'},
   {matches:['http://*/*','https://*/*'],js:['framework/sdk-main.js'],run_at:'document_start',all_frames:true,world:'MAIN'}
@@ -71,7 +78,9 @@ const HTML_REFERENCES = Object.freeze({
   [SANDBOX_HTML]: ['sandbox.js'],
   [TOOL_SANDBOX_HTML]: ['bridge.js'],
   ...Object.fromEntries(['quota','schedule','session','always'].map(reason=>[
-    'stay-focus/blocked-'+reason+'.html',['./blocked.css','./blocked.js']]))
+    'stay-focus/blocked-'+reason+'.html',['./blocked.css','./blocked.js']])),
+  ...Object.fromEntries(['quota','schedule','session','always'].map(reason=>[
+    'managed-site/blocked-'+reason+'.html',['./blocked.css']]))
 });
 const generatedJS = ['sw.js', ...Object.values(FIXED_OUTPUTS)].sort();
 const vendorJS = [BUILTIN_CATALOG.bootstrap,...Object.values(PINNED_USER_SCRIPT_LIBRARIES).map(row => row.output)];
@@ -90,7 +99,7 @@ function editionFiles(edition){
     'licenses/shared-ui-third-party-notices.txt',
     ...BUILTIN_RESOURCE_PATHS,...frameworkLicenses,...browserCompilerESM,
     ...(edition==='developer'?[PAGE_BROWSER_COMPILER.licensePath]:[]),
-    ...Object.keys(HTML_REFERENCES),'stay-focus/blocked.css','ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/time-review.css','ui/cloud-hosting.css','ui/extension-center.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css','ui/marketplace.css',...officialPaths,...expectedJS,...Object.keys(FIXED_ASSETS)].sort();
+    ...Object.keys(HTML_REFERENCES),'stay-focus/blocked.css','managed-site/blocked.css','ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/time-review.css','ui/cloud-hosting.css','ui/extension-center.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css','ui/marketplace.css',...officialPaths,...expectedJS,...Object.keys(FIXED_ASSETS)].sort();
   return {compilerFiles,expectedJS,required};
 }
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -648,7 +657,7 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   if(!['workspace-root','file-workspace','workspace-locale','file-editor','adopt-edit',
     'svg-r3','local-svg','data-variant','folder-open','tree-caret','file-icon'].every(value=>explorerJS.includes(value)))
     throw Error('Workspace React runtime is stale: packaged settings.js lacks full Workspace components');
-  for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/extension-center.css','ui/time-review.css','ui/cloud-hosting.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css','stay-focus/blocked.css']) {
+  for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/extension-center.css','ui/time-review.css','ui/cloud-hosting.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css','stay-focus/blocked.css','managed-site/blocked.css']) {
     const css = await readFile(join(root,cssPath),'utf8');
     if(cssPath==='ui/tool-shell.css') {
       const expected=trustedToolShellStyle();
