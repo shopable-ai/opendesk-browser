@@ -88,7 +88,8 @@ async function deliver(env,{fetcher,now}){
               inventory_read_state:row.readState,projection_gap:row.projectionGap===true}:{}),
             ...(row.event==='tool.auto_daily'?{tool_type:row.toolType,utc_day:row.utcDate,
               metric_type:row.metricType,cumulative_total:row.total,
-              snapshot_version:row.version,projection_gap:row.projectionGap===true}:{}),
+              source_totals:row.sourceTotals,snapshot_version:row.version,
+              projection_gap:row.projectionGap===true}:{}),
             ...(['tool.manual_attempt','tool.manual_result'].includes(row.event)?
               {tool_type:row.toolType,...(row.runStatus?{run_status:row.runStatus}:{})}:{}),
             $process_person_profile:false,$ip:null}

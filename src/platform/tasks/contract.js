@@ -92,9 +92,49 @@ export function installedKey(namespace,taskId) {
 export function scriptStorageKey(namespace,id,revision) {
   return `script:${canonical(revision === undefined ? [namespace,id] : [namespace,id,revision])}`;
 }
+// Optional, hash-covered natural-language contract for NEW immutable Task
+// versions. An author-provided description/title alone never proves intent or
+// result. These templates only bind explicit Schema parameters; execution
+// still requires normal installation identity, permissions and TaskWorkbench.
+export function checkTaskIntent(intent, schema) {
+  object(intent,['templates','resultTexts'],['templates']);
+  invariant(Array.isArray(intent.templates) && intent.templates.length>=1 &&
+    intent.templates.length<=6 && new Set(intent.templates).size===intent.templates.length,
+    'E_SCHEMA','Task intent needs 1–6 distinct templates');
+  const namesOf=text=>{
+    const matches=[...text.matchAll(/\{([A-Za-z][A-Za-z0-9_]{0,39})\}/gu)];
+    invariant(!/[{}]/u.test(text.replace(/\{[A-Za-z][A-Za-z0-9_]{0,39}\}/gu,'')) &&
+      matches.every(match=>Object.hasOwn(schema.properties,match[1])),
+    'E_SCHEMA','Task intent uses an undeclared parameter or malformed template');
+    return matches.map(match=>match[1]);
+  };
+  for(const template of intent.templates){
+    label(template,320);
+    invariant(!/[\r\n]/u.test(template),'E_SCHEMA','Task intent must be one line');
+    const names=namesOf(template);
+    invariant(schema.required.every(name=>names.includes(name)),
+      'E_SCHEMA','Each intent template must bind every required parameter');
+  }
+  if(intent.resultTexts!==undefined){
+    invariant(Array.isArray(intent.resultTexts) && intent.resultTexts.length>=1 &&
+      intent.resultTexts.length<=4 && new Set(intent.resultTexts).size===intent.resultTexts.length,
+      'E_SCHEMA','Task readback needs 1–4 distinct visible text claims');
+    const all=new Set();
+    for(const value of intent.resultTexts){
+      label(value,160);
+      invariant(!/[\r\n]/u.test(value),'E_SCHEMA','Task readback must be one line');
+      for(const name of namesOf(value))all.add(name);
+    }
+    invariant(schema.required.length===0||schema.required.some(name=>all.has(name)),
+      'E_SCHEMA','Task readback must include a user-bound parameter');
+  }
+  return intent;
+}
+
 export function validateTaskManifest(manifest) {
-  object(manifest,['format','taskId','version','title','description','author','source','siteOrigins',
-    'permissions','entryFormat','program','paramsSchema']);
+  const required=['format','taskId','version','title','description','author','source','siteOrigins',
+    'permissions','entryFormat','program','paramsSchema'];
+  object(manifest,[...required,'intent'],required);
   invariant(manifest.format===TASK_MANIFEST_FORMAT && ID.test(manifest.taskId) &&
     VERSION.test(manifest.version) && manifest.version.length<=24,'E_SCHEMA','Unsupported task version');
   for(const key of ['title','author','source']) label(manifest[key],key==='title'?100:160);
@@ -115,6 +155,7 @@ export function validateTaskManifest(manifest) {
   invariant(Number.isSafeInteger(manifest.program.revision) && manifest.program.revision>0 &&
     SHA256.test(manifest.program.sourceHash),'E_SCHEMA','Invalid immutable program reference');
   checkParamsSchema(manifest.paramsSchema);
+  if(manifest.intent!==undefined)checkTaskIntent(manifest.intent,manifest.paramsSchema);
   canonical(manifest);
   return manifest;
 }

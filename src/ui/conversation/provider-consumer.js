@@ -2,6 +2,7 @@
 // Keeps private drafts, model authorization, cancel and Native thread scoped;
 // does not grant a business write or change the existing Host/SDK/ETag gate.
 import {permissionPattern} from '../../environment.js';
+import {createConversationSession} from './session.js';
 import {describeLocalCodex} from '../workflow/local-codex.js';
 import {promptInstructions,promptEditInstructions} from './prompt-actions.js';
 import {bookmarkInstructions} from './bookmark-instructions.js';
@@ -73,25 +74,29 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
         etag:typeof refs?.etag==='string'&&/^[a-f0-9]{64}$/.test(refs.etag)?refs.etag:null};
       return {};
     };
-    let bookmarkConversationSession={open:false,draft:'',rows:[],needsReview:false,
-      refs:emptyRefs()};
+    const conversationSession=createConversationSession({identity:{
+      consumerId,instanceId,hostInstanceId,installEpoch},rowsLimit:24});
+    // References are strictly owned by this adapter, not the neutral Session.
+    // Preserve Prompt's verified ETag, rather than treating it as a bookmark ID.
+    let businessRefs=emptyRefs();
     const conversation=Object.freeze({
+    identity:()=>conversationSession.identity(),
+    subscribeSession:listener=>conversationSession.subscribe(listener),
     source(){const selected=providers.configuration().source;return {
       provider:selected,label:selected==='local_codex'?'Codex':
         selected==='cloud_responses'?'Responses':'HTTPS'};},
-    readSession(){return consumerDisposed?{open:false,draft:'',rows:[],needsReview:false,
-      refs:emptyRefs()}:structuredClone(bookmarkConversationSession);},
+    readSession(){
+      if(consumerDisposed)return {open:false,draft:'',rows:[],needsReview:false,
+        refs:emptyRefs()};
+      const {open,draft,rows,needsReview}=conversationSession.getSnapshot();
+      return {open,draft,rows:structuredClone(rows),needsReview,
+        refs:structuredClone(businessRefs)};
+    },
     saveSession(snapshot){
       if(consumerDisposed||!snapshot||typeof snapshot!=='object')return;
-      const rows=Array.isArray(snapshot.rows)?snapshot.rows.slice(-24).filter(row=>
-        typeof row?.id==='string'&&typeof row?.message==='string'&&row.message.length<=3500&&
-        ['你','助手','系统'].includes(row.speaker)).map(row=>({
-          id:row.id.slice(0,100),speaker:row.speaker,message:row.message})):bookmarkConversationSession.rows;
-      const refs=snapshot.refs||{};
-      bookmarkConversationSession={open:snapshot.open===true,
-        needsReview:snapshot.needsReview===true,
-        draft:typeof snapshot.draft==='string'?snapshot.draft.slice(0,4000):'',
-        rows,refs:sessionRefs(refs)};
+      conversationSession.update({open:snapshot.open,draft:snapshot.draft,
+        rows:snapshot.rows,needsReview:snapshot.needsReview});
+      businessRefs=sessionRefs(snapshot.refs||{});
     },
     async request({request,context={},event,signal,scope=consumerId,continuation=false}={}){
       if(consumerDisposed||!event?.isTrusted)
@@ -124,12 +129,14 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
         signal.reason:err('E_CANCELLED','本轮已停止，未发出新的书签操作'));
       signal?.addEventListener('abort',abortFromParent,{once:true});
       if(signal?.aborted)abortFromParent();
-      const active={abortController,source:selected,generation,grantPattern,signal,scope};
+      const round=conversationSession.begin({signal:abortController.signal,providerGeneration});
+      const active={abortController,source:selected,generation,grantPattern,signal,scope,round};
       bookmarkConversationBusy=true;bookmarkConversationActive=active;
       let released=false,deciding=false;
       const release=()=>{
         if(released)return;released=true;
         clearDeadline();
+        round.finish();
         abortController.signal.removeEventListener('abort',clearDeadline);
         signal?.removeEventListener('abort',abortFromParent);
         if(bookmarkConversationActive===active){
@@ -150,6 +157,7 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
           throw err('E_CANCELLED','本轮已停止，未继续写入');
         if(providers.configuration().generation!==providerGeneration)
           throw err('E_TOOL_CHANGED','Provider 配置或会话已变化，请重新发送');
+        round.assertCurrent(providers.configuration().generation);
       };
       // Permission prompts and transport responses can outlive the UI. Stop
       // releases this wait immediately; late settlements stay attached only to
@@ -248,7 +256,8 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
       const active=bookmarkConversationActive;
       if(!active||signal&&active.signal!==signal)return Promise.resolve();
       active.abortController.abort(
-        err('E_CANCELLED','已停止当前书签对话'));
+        err('E_CANCELLED','已停止当前 AI 对话'));
+      conversationSession.cancel();
       return forScope(active.scope).cancelInference();
     },
     dispose(){
@@ -256,9 +265,8 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
       invalidateBookmarkConversation(err('E_TOOL_CHANGED','AI 消费者实例已关闭'));
       api.permissions.onRemoved?.removeListener(consumerPermissionRemoved);
       unsubscribeProviderSettings();
-      // Display-only drafts and references must not remain readable after close.
-      bookmarkConversationSession={open:false,draft:'',rows:[],needsReview:false,
-        refs:emptyRefs()};
+      // No install-scoped references or in-flight responses survive disposal.
+      businessRefs=emptyRefs();conversationSession.dispose();
       editLease?.dispose();mainLease.dispose();
     }
   });

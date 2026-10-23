@@ -7,7 +7,7 @@ export const ANALYTICS_ALARM='opendesk.analytics.flush.v1';
 export const ANALYTICS_STATE_KEY='opendesk.analytics.state.v1';
 export const ANALYTICS_VERSION=1;
 // Changing collection categories, recipients or purpose requires a new reviewed receipt.
-export const ANALYTICS_DISCLOSURE_VERSION='analytics-disclosure-2026-10-23-v4';
+export const ANALYTICS_DISCLOSURE_VERSION='analytics-disclosure-2026-10-23-v5';
 export const ANALYTICS_MAX_BATCH=10;
 export const ANALYTICS_MAX_BYTES=16384;
 export const ANALYTICS_MAX_AGE_MS=7*24*60*60*1000;
@@ -29,7 +29,7 @@ const inventoryCounters=row=>object(row)&&exact(row,['installed','enabled','disa
   row.installed===row.enabled+row.disabled+row.blocked+row.unknown;
 const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 export function validateAnalyticsEvent(value,{now=Date.now()}={}){
-  if(!object(value)||!exact(value,['eventId','installId','event','toolId','timestamp','source','channel','reason','installedTools','coverage','inventoryTypes','readState','projectionGap','toolType','utcDate','metricType','total','version','runStatus','inventoryItems','inventoryOverflow'])||
+  if(!object(value)||!exact(value,['eventId','installId','event','toolId','timestamp','source','channel','reason','installedTools','coverage','inventoryTypes','readState','projectionGap','toolType','utcDate','metricType','total','version','runStatus','inventoryItems','inventoryOverflow','sourceTotals'])||
     !uuid.test(value.eventId||'')||!uuid.test(value.installId||'')||
     !ANALYTICS_EVENTS.includes(value.event)||!toolId.test(value.toolId||'')||
     !sources.has(value.source)||!channels.has(value.channel)||
@@ -62,19 +62,25 @@ export function validateAnalyticsEvent(value,{now=Date.now()}={}){
     const rows=value.inventoryTypes,items=value.inventoryItems;
     const validItems=Array.isArray(items)&&items.length<=96&&items.every((row,i)=>
       object(row)&&exact(row,['type','toolId','status'])&&
-      ['page','task'].includes(row.type)&&
-      /^anon-[a-f0-9]{24}$/.test(row.toolId||'')&&
+      ['sidebar','page','task'].includes(row.type)&&
+      (row.type==='sidebar'?/^[a-z][a-z0-9-]{1,39}$/.test(row.toolId||'')&&row.toolId!=='opendesk':
+        /^anon-[a-f0-9]{24}$/.test(row.toolId||''))&&
       ['enabled','disabled','blocked','unknown'].includes(row.status)&&
       (i===0||[items[i-1].type,items[i-1].toolId].join(':')<
         [row.type,row.toolId].join(':')));
     if(!['fresh','failed'].includes(value.readState)||
       (value.readState==='failed'?rows!==undefined||items!==undefined||value.inventoryOverflow!==undefined:
-        !object(rows)||!exact(rows,['page','task','scheduler'])||
-        !inventoryCounters(rows.page)||!inventoryCounters(rows.task)||
-        !object(rows.scheduler)||!exact(rows.scheduler,['definitions'])||
-        !nonnegative(rows.scheduler.definitions)||
+        !object(rows)||!exact(rows,['sidebar','page','task','scheduler','app_service'])||
+        !inventoryCounters(rows.sidebar)||!inventoryCounters(rows.page)||!inventoryCounters(rows.task)||
+        !object(rows.scheduler)||!exact(rows.scheduler,['definitions','active','paused','unknown'])||
+        !['definitions','active','paused','unknown'].every(k=>nonnegative(rows.scheduler[k]))||
+        rows.scheduler.definitions!==rows.scheduler.active+rows.scheduler.paused+rows.scheduler.unknown||
+        !object(rows.app_service)||!exact(rows.app_service,['bindings','enabled','disabled','unknown'])||
+        !['bindings','enabled','disabled','unknown'].every(k=>nonnegative(rows.app_service[k]))||
+        rows.app_service.bindings!==rows.app_service.enabled+rows.app_service.disabled+rows.app_service.unknown||
+        rows.app_service.bindings>rows.sidebar.installed||
         !validItems||!nonnegative(value.inventoryOverflow)||
-        items.length+value.inventoryOverflow!==rows.page.installed+rows.task.installed)||
+        items.length+value.inventoryOverflow!==rows.sidebar.installed+rows.page.installed+rows.task.installed)||
       (value.projectionGap!==undefined&&typeof value.projectionGap!=='boolean'))
       throw Object.assign(new Error('Invalid authority inventory'),{code:'E_ANALYTICS_SCHEMA'});
   }else if(value.event==='tool.auto_daily'){
@@ -87,7 +93,15 @@ export function validateAnalyticsEvent(value,{now=Date.now()}={}){
       !Number.isSafeInteger(value.total)||value.total<1||
       !Number.isFinite(day)||new Date(day).toISOString().slice(0,10)!==value.utcDate||
       day>Math.floor(now/86400000)*86400000||day<now-ANALYTICS_MAX_AGE_MS||
-      (value.projectionGap!==undefined&&typeof value.projectionGap!=='boolean'))
+      (value.projectionGap!==undefined&&typeof value.projectionGap!=='boolean')||
+      !object(value.sourceTotals)||
+      !exact(value.sourceTotals,['page_auto','scheduler','cloud'])||
+      Object.keys(value.sourceTotals).length===0||
+      Object.entries(value.sourceTotals).some(([source,n])=>!nonnegative(n)||n===0||
+        (value.toolType==='page'&&source!=='page_auto')||
+        (value.toolType==='app_service'&&source!=='scheduler')||
+        (value.toolType==='task'&&source==='page_auto'))||
+      Object.values(value.sourceTotals).reduce((sum,n)=>sum+n,0)!==value.total)
       throw Object.assign(new Error('Invalid automatic daily snapshot'),{code:'E_ANALYTICS_SCHEMA'});
   }else if(value.inventoryTypes!==undefined||value.readState!==undefined||value.projectionGap!==undefined||
     value.inventoryItems!==undefined||value.inventoryOverflow!==undefined)
@@ -99,7 +113,7 @@ export function validateAnalyticsEvent(value,{now=Date.now()}={}){
     throw Object.assign(new Error('Invalid manual authority receipt'),{code:'E_ANALYTICS_SCHEMA'});
   if(!manual&&value.runStatus!==undefined)
     throw Object.assign(new Error('Unexpected manual result'),{code:'E_ANALYTICS_SCHEMA'});
-  if(value.event!=='tool.auto_daily'&&['utcDate','metricType','total','version'].some(key=>value[key]!==undefined))
+  if(value.event!=='tool.auto_daily'&&['utcDate','metricType','total','version','sourceTotals'].some(key=>value[key]!==undefined))
     throw Object.assign(new Error('Unexpected automatic metric'),{code:'E_ANALYTICS_SCHEMA'});
   if(!manual&&value.event!=='tool.auto_daily'&&value.toolType!==undefined)
     throw Object.assign(new Error('Unexpected tool type'),{code:'E_ANALYTICS_SCHEMA'});

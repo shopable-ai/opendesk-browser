@@ -226,6 +226,7 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       if(!row||typeof row.identity!=='string'||row.identity.length>256||
          !['page','task','app_service'].includes(row.type)||
          !['attempted','completed','failed','outcome_unknown'].includes(row.metricType)||
+         !row.sourceTotals||typeof row.sourceTotals!=='object'||
          !/^\d{4}-\d\d-\d\d$/.test(row.day||'')||
          !Number.isSafeInteger(row.total)||row.total<1)return {recorded:false};
       const time=now(),day=Date.parse(row.day+'T00:00:00Z');
@@ -259,7 +260,7 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       const entry=validateAnalyticsEvent({eventId:newId(),installId:state.installId,
         event:'tool.auto_daily',toolId,source:'host',channel:'extension',
         timestamp:new Date(time).toISOString(),toolType:row.type,utcDate:row.day,
-        metricType:row.metricType,total:row.total,version,
+        metricType:row.metricType,total:row.total,version,sourceTotals:row.sourceTotals,
         ...(projectionGap?{projectionGap:true}:{})},{now:time});
       // One pending cumulative snapshot per stable key, even after 100 executions.
       const queue=retained.filter(event=>!(event.event==='tool.auto_daily'&&
@@ -298,11 +299,12 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
     if(revoked)return {recorded:false};
     // Bound each transmitted census to 96 anonymous per-install identities.
     // Overflow is explicit coverage loss, not a false "zero installed" claim.
-    const installed=(projection.inventoryTypes?.page?.installed??0)+
+    const installed=(projection.inventoryTypes?.sidebar?.installed??0)+
+      (projection.inventoryTypes?.page?.installed??0)+
       (projection.inventoryTypes?.task?.installed??0);
     const unique=new Set();
     const selected=(projection.inventoryItems||[]).filter(row=>{
-      if(!['page','task'].includes(row?.type)||typeof row.identity!=='string'||
+      if(!['sidebar','page','task'].includes(row?.type)||typeof row.identity!=='string'||
         row.identity.length>256||!['enabled','disabled','blocked','unknown'].includes(row.status))
         return false;
       const key=row.type+':'+row.identity;
@@ -310,8 +312,8 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       unique.add(key);return true;
     }).sort((a,b)=>(a.type+':'+a.identity).localeCompare(b.type+':'+b.identity)).slice(0,96);
     const inventoryItems=await Promise.all(selected.map(async item=>({
-      type:item.type,toolId:await hashedToolId({identitySalt:grant.salt},
-        item.type,item.identity),status:item.status
+      type:item.type,toolId:item.type==='sidebar'?item.identity:
+        await hashedToolId({identitySalt:grant.salt},item.type,item.identity),status:item.status
     })));
     inventoryItems.sort((a,b)=>(a.type+':'+a.toolId).localeCompare(b.type+':'+b.toolId));
     const inventoryOverflow=Math.max(0,installed-inventoryItems.length);

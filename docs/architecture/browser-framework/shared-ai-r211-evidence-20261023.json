@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
   "scope": "OpenDesk Browser AI Chat R2.1.1",
-  "recordedAt": "2026-10-23T13:23:10.736780+00:00",
+  "recordedAt": "2026-10-23T13:27:27.714597+00:00",
   "baseCommit": "254a4cd5ea94dfdee57782f563d7c156b844c5dc",
   "candidateBinding": "sourceSha256 plus the Git commit containing this evidence file; baseCommit is integrated main before this repair commit",
   "nodeVersion": "v24.16.0",
   "sourceSha256": {
     ".github/workflows/shared-ai-chat-r22.yml": "ade256d27374e6715e66d4d3e5b4179b06599f6c7558a354cc188266a2a749e1",
     "src/ui/ai/provider-runtime.js": "dbff8f920473dd4d996b4eb718810cec456670238f9d30d64d6be1d4c9878e59",
-    "src/ui/conversation/provider-consumer.js": "d6a7f6475291378f5d31b80189e0866832741706bbf799b827f380787be29366",
+    "src/ui/conversation/provider-consumer.js": "80de4a95e535c305bc56ef774a18b8506b95641a73d7c02e8489e3e30e3fc23a",
     "src/ui/workflow/local-codex.js": "41272fb6916fe4ea667ac4446bde3c70e695bd30f63692a2e7bfd20b5008e71e",
     "src/ui/workflow/segment-replay.js": "45954646c7c1482b1f7a170743760bb5932635a2046b9b9784b9d2439f184d8a",
     "src/ui/workflow/workflow-reuse.js": "098260ade59e98ef9b07929b65542ef00fb2333fe44182cf852775ae9dcb9ac4",
-    "src/ui/workflow/workflow-view.js": "29b4c7f05cb0e0a18d062d8afeea877f8d05ef8798d4dee6e6aca2603edb1d53",
+    "src/ui/workflow/workflow-view.js": "1e30066dc6b481e108c680afceabf3dcc6ffa037710581ccad4e8f029c6ced98",
     "tests/environment/workflow-local-codex.test.mjs": "0233e4185ff0023dfb1ed74549b83bd99252e0273ffe98b3df3b57e6fefaa441",
     "tests/environment/workflow-react-fixture.mjs": "7b1365f9876087c1c3392e37fb3619cbce147d85877ab6ac5c7b5daace2272d7",
     "tests/environment/workflow-recipient-grant-integration-r2317.test.mjs": "22e3975564afeb226d6d2958f4657b60f9ba813474f898871938f80e9efd1451",
@@ -23,19 +23,20 @@
   },
   "results": [
     {
-      "command": "node --test tests/environment/shared-ai-provider-runtime-r21.test.mjs tests/environment/workflow-provider-facade.test.mjs tests/environment/opendesk-conversation-r16-authorization.test.mjs tests/environment/opendesk-conversation-r13-prompt-business.test.mjs tests/environment/my-task-agent-r1.test.mjs tests/environment/workflow-natural-reuse.test.mjs tests/environment/workflow-recipient-grant-integration-r2317.test.mjs tests/environment/shared-ai-consumer-lifecycle-r211.test.mjs",
+      "command": "node --test --test-reporter=tap tests/environment/shared-ai-provider-runtime-r21.test.mjs tests/environment/workflow-provider-facade.test.mjs tests/environment/opendesk-conversation-r16-authorization.test.mjs tests/environment/opendesk-conversation-r13-prompt-business.test.mjs tests/environment/my-task-agent-r1.test.mjs tests/environment/workflow-natural-reuse.test.mjs tests/environment/workflow-recipient-grant-integration-r2317.test.mjs tests/environment/shared-ai-consumer-lifecycle-r211.test.mjs tests/environment/shared-ai-workflow-settings-r211.test.mjs",
       "status": "PASS",
       "counts": {
-        "tests": 101,
-        "pass": 101,
+        "tests": 102,
+        "pass": 102,
         "fail": 0,
         "cancelled": 0,
         "skipped": 0
       },
+      "log": "artifacts/shared-ai-r211-20261023/merged-required-consumer-settings.tap",
+      "sha256": "af54f2f06ecc3a20db1aa24fcf82c2a781ce5f6c6fc7a5650e5ec78d0cd2f6c6",
       "requiredSevenTests": 90,
       "consumerLifecycleTests": 11,
-      "log": "artifacts/shared-ai-r211-20261023/integrated-required-consumer.tap",
-      "sha256": "5a7b89710e0ed1e65f4e7e99350147c45b45e285a2b77186de95ff61446c98cc"
+      "workflowSettingsTests": 1
     },
     {
       "command": "node --test tests/environment/shared-ai-native-lifecycle-r211.test.mjs tests/environment/workflow-local-codex.test.mjs tests/environment/shared-ai-conversation-r22.test.mjs tests/environment/shared-ai-workflow-settings-r211.test.mjs",
@@ -88,14 +89,27 @@
       },
       "log": "artifacts/shared-ai-r211-20261023/reuse-and-binding.tap",
       "sha256": "598532939a78b9414b49129c5d48d77b8e5ac6a5eb1a12295daa63df43fd2c8c"
+    },
+    {
+      "command": "node --test --test-reporter=tap tests/environment/shared-ai-conversation-r22.test.mjs",
+      "status": "PASS",
+      "counts": {
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "log": "artifacts/shared-ai-r211-20261023/merged-frame-compatibility.tap",
+      "sha256": "1cac2367917300533b02031f0f82f22b4909213e92d33089b55d982aa5a14368"
     }
   ],
   "sourceGate": {
     "command": "npm run check",
     "status": "PASS",
-    "checkedFiles": 1053,
-    "log": "artifacts/shared-ai-r211-20261023/source-check-integrated.log",
-    "sha256": "b075cded99b3ccb2af8c4a1e2f1a177d471665775b68c3fc8be0f4fbec61927e"
+    "checkedFiles": 1054,
+    "log": "artifacts/shared-ai-r211-20261023/source-check-merged.log",
+    "sha256": "441903130154f4fe37b8c78a64aad89589a854403765d4e3b8e51d3e019822a9"
   },
   "diffCheck": "PASS",
   "groupCountsOverlap": true,
@@ -136,21 +150,44 @@
   },
   "r22Entry": "NOT_RELEASED",
   "postPushCI": "Read GitHub Actions for the commit containing this file; no future CI result asserted here.",
-  "priorIntegrationResult": {
-    "command": "node --test tests/environment/shared-ai-provider-runtime-r21.test.mjs tests/environment/workflow-provider-facade.test.mjs tests/environment/opendesk-conversation-r16-authorization.test.mjs tests/environment/opendesk-conversation-r13-prompt-business.test.mjs tests/environment/my-task-agent-r1.test.mjs tests/environment/workflow-natural-reuse.test.mjs tests/environment/workflow-recipient-grant-integration-r2317.test.mjs",
-    "status": "PASS_BEFORE_FINAL_REMOTE_INTEGRATION",
-    "counts": {
-      "tests": 89,
-      "pass": 89,
-      "fail": 0,
-      "cancelled": 0,
-      "skipped": 0
-    },
-    "log": "artifacts/shared-ai-r211-20261023/required-seven-final.tap",
-    "sha256": "c4c7a352cd0abff4a75a482af64360490ebbafc515237e149157a5348e91918d"
-  },
   "remoteIntegration": {
-    "head": "254a4cd5ea94dfdee57782f563d7c156b844c5dc",
-    "preserved": "Consumer refs scoped by business, Prompt ETag and trusted HTTPS confirmation; stronger untrusted/synchronous-gesture assertions retained. Only affected consumer/required tests repeated; unchanged Native/Workflow/parser evidence reused."
-  }
+    "head": "12f514fb4567f291ac8ccc3dff0636b30f0d9cd7",
+    "preserved": "Parallel neutral Session and split-layout Frame/installed Task work are retained, not implemented by this task. Session round fences and disposal coexist with Provider-generation/revocation errors and settings unsubscribe. Independent reviewer rechecked the conflict resolution; no new evidenced P0-P2 findings. Affected 102 tests plus Frame compatibility 4 rerun PASS; unchanged Native/transport/parser evidence reused."
+  },
+  "dependencySha256": {
+    "src/ui/conversation/session.js": "0a018514e21f75a5684737f3aa8c60bc566464203c313d6fd261a8fe360100e2",
+    "src/ui/react/components/conversation.tsx": "218ddf7b24ea0482b8a462727465e3e75ad8f6e7a135c57cb4b229d28c3bccbf"
+  },
+  "repairCommit": "d36bff0db2e93d949ca96d2e9497cf38a6ff2d30",
+  "mergedMain": "12f514fb4567f291ac8ccc3dff0636b30f0d9cd7",
+  "preMergeResults": [
+    {
+      "command": "node --test tests/environment/shared-ai-provider-runtime-r21.test.mjs tests/environment/workflow-provider-facade.test.mjs tests/environment/opendesk-conversation-r16-authorization.test.mjs tests/environment/opendesk-conversation-r13-prompt-business.test.mjs tests/environment/my-task-agent-r1.test.mjs tests/environment/workflow-natural-reuse.test.mjs tests/environment/workflow-recipient-grant-integration-r2317.test.mjs",
+      "status": "PASS_BEFORE_FINAL_REMOTE_INTEGRATION",
+      "counts": {
+        "tests": 89,
+        "pass": 89,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "log": "artifacts/shared-ai-r211-20261023/required-seven-final.tap",
+      "sha256": "c4c7a352cd0abff4a75a482af64360490ebbafc515237e149157a5348e91918d"
+    },
+    {
+      "command": "node --test tests/environment/shared-ai-provider-runtime-r21.test.mjs tests/environment/workflow-provider-facade.test.mjs tests/environment/opendesk-conversation-r16-authorization.test.mjs tests/environment/opendesk-conversation-r13-prompt-business.test.mjs tests/environment/my-task-agent-r1.test.mjs tests/environment/workflow-natural-reuse.test.mjs tests/environment/workflow-recipient-grant-integration-r2317.test.mjs tests/environment/shared-ai-consumer-lifecycle-r211.test.mjs",
+      "status": "PASS",
+      "counts": {
+        "tests": 101,
+        "pass": 101,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "requiredSevenTests": 90,
+      "consumerLifecycleTests": 11,
+      "log": "artifacts/shared-ai-r211-20261023/integrated-required-consumer.tap",
+      "sha256": "5a7b89710e0ed1e65f4e7e99350147c45b45e285a2b77186de95ff61446c98cc"
+    }
+  ]
 }

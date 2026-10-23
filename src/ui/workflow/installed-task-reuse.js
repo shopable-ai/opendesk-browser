@@ -1,5 +1,5 @@
 // Pure candidate selection; the existing Catalog/TaskWorkbench/RunHost keep authority.
-import {validateTaskParams} from '../../platform/tasks/contract.js';
+import {validateTaskParams,checkTaskIntent} from '../../platform/tasks/contract.js';
 import {simpleCommerceReplayGoal} from './segment-replay.js';
 
 const hashPattern=/^[a-f0-9]{64}$/;
@@ -18,15 +18,15 @@ const normalize=value=>typeof value==='string'?value.trim()
   .replace(/[。.!！]+$/gu,'').replace(/[,，]\s*/gu,'，').replace(/\s+/gu,' '):'';
 const escapeRegExp=value=>value.replace(/[/\\^$*+?.()|[\]{}]/g,'\\$&');
 
-function extractDeclaredParameters(template,request,schema){
+function extractDeclaredParameters(template,request,schema,{allowMissing=false}={}){
   const example=template.replaceAll('{query}','camera').replaceAll('{productName}','Camera X');
   if(simpleCommerceReplayGoal(example)){
     if(!Object.hasOwn(schema.properties,'query')||
       !Object.hasOwn(schema.properties,'productName'))return null;
     const intent=simpleCommerceReplayGoal(request);
-    if(intent)return {params:intent,kind:'commerce',sensitive:false};
+    if(intent)return {params:intent,kind:'commerce',sensitive:true};
     const partial=normalize(request).match(partialProduct);
-    return partial?{params:{query:partial[1]},kind:'commerce',sensitive:false}:null;
+    return partial?{params:{query:partial[1]},kind:'commerce',sensitive:true}:null;
   }
   // One generic constrained intent contract for the legacy "fill demo search
   // field, await results" operation; no Task ID, title or arbitrary action
@@ -48,7 +48,8 @@ function extractDeclaredParameters(template,request,schema){
   const names=[];let cursor=0,pattern='^';
   for(const match of template.matchAll(variable)){
     if(!Object.hasOwn(schema.properties,match[1]))return null;
-    pattern+=escapeRegExp(template.slice(cursor,match.index))+'(.{1,120}?)';
+    pattern+=escapeRegExp(template.slice(cursor,match.index))+
+      (allowMissing?'(.{0,120}?)':'(.{1,120}?)');
     names.push(match[1]);cursor=match.index+match[0].length;
   }
   pattern+=escapeRegExp(template.slice(cursor))+'$';
@@ -57,6 +58,7 @@ function extractDeclaredParameters(template,request,schema){
   const params={};
   for(let i=0;i<names.length;i++){
     const name=names[i],rule=schema.properties[name],raw=hit[i+1].trim();
+    if(!raw&&allowMissing)continue;
     let value=raw;
     if(rule.type==='boolean'){
       if(!['true','false','是','否'].includes(raw))return null;
@@ -84,9 +86,22 @@ export function selectInstalledTaskRoute({request,target,catalog,installed}={}){
       item?.taskId===row.taskId&&item.version===row.version)){
       const manifest=candidate?.manifest,schema=manifest?.paramsSchema;
       if(!schema?.properties||!Array.isArray(schema.required))continue;
-      const phrase=normalize(manifest.description).replace(/^自然语言任务[:：]\s*/u,'');
-      if(!phrase||phrase.length>800)continue;
-      const declared=extractDeclaredParameters(phrase,request,schema);
+      const intent=manifest.intent;
+      if(intent!==undefined){
+        try{checkTaskIntent(intent,schema);}catch{continue;}
+      }
+      // Verified, hash-covered intent templates take precedence over mutable
+      // marketing descriptions. Old immutable v1 packages keep their legacy
+      // constrained description route without rewriting their source hashes.
+      const templates=intent?intent.templates:
+        [normalize(manifest.description).replace(/^自然语言任务[:：]\s*/u,'')];
+      let declared=null;
+      for(const template of templates){
+        if(!template||template.length>800)continue;
+        declared=extractDeclaredParameters(normalize(template),request,schema,
+          {allowMissing:Boolean(intent)});
+        if(declared)break;
+      }
       if(!declared)continue;
       if(manifest.siteOrigins?.length!==1||manifest.siteOrigins[0]!==target.origin)continue;
       if(row.enabled!==true||candidate.stage!=='available'||
@@ -114,7 +129,7 @@ export function selectInstalledTaskRoute({request,target,catalog,installed}={}){
         continue;
       }
       matches.push({taskId:row.taskId,title:manifest.title,params,kind:declared.kind,
-        sensitive:declared.sensitive,
+        sensitive:declared.sensitive,intent:intent?structuredClone(intent):null,
         expected:{version:row.version,manifestHash:row.manifestHash,
           generation:row.generation,installationId:row.installationId},
         sourceHash:manifest.program.sourceHash,revision:manifest.program.revision});

@@ -163,7 +163,7 @@ R2.2 抽出中立 Conversation Session、共享 Chat Frame、通用 Provider 设
 
 ## R2.1.1 回归修复与验证记录（2026-10-23）
 
-基于 main `254a4cd5e` 的修复（收尾前安全合入并行的业务引用作用域与 Prompt ETag 修复）；保留 main 已有 R2.2 源码，不把它视为 R2.1 已验收或本轮新增范围。可复核命令、源码与日志 SHA-256 见 [R2.1.1 证据](shared-ai-r211-evidence-20261023.json)。本地原始日志位于 `artifacts/shared-ai-r211-20261023/`，不包含 API Key。
+源码修复提交 `d36bff0db`；最终候选安全合入 main `12f514fb4`（含并行的业务引用作用域、Prompt ETag 和中立 Session 接入）；保留 main 已有 R2.2 源码，不把它视为 R2.1 已验收或本轮新增范围。可复核命令、源码与日志 SHA-256 见 [R2.1.1 证据](shared-ai-r211-evidence-20261023.json)。本地原始日志位于 `artifacts/shared-ai-r211-20261023/`，不包含 API Key。
 
 ### 两项历史 CI 失败的原因分类
 
@@ -183,12 +183,12 @@ R2.2 抽出中立 Conversation Session、共享 Chat Frame、通用 Provider 设
 
 | 验证 | 结果 |
 | --- | --- |
-| 用户指定七文件（Runtime、Facade、R16 授权、R13 Prompt、My Task、自然语言复用、recipient integration） | NODE_PASS，90/90；与新增 consumer 11 项同跑为 101/101 |
-| 新 Native 生命周期 + 原 local-codex + 已有 R2.2 合同 + 新 Workflow 设置 | NODE_PASS，52/52 |
-| 新 consumer 生命周期 + R16 授权 | NODE_PASS，40/40；最终合入后也包含在上述 101/101 中 |
+| 用户指定七文件（Runtime、Facade、R16 授权、R13 Prompt、My Task、自然语言复用、recipient integration） | NODE_PASS，90/90；与新增 consumer 11 项、设置 1 项同跑为 102/102 |
+| 新 Native 生命周期 + 原 local-codex + 已有 R2.2 合同 + 新 Workflow 设置 | NODE_PASS，52/52；合并后受影响设置 1 项、Frame 4 项分别复验通过 |
+| 新 consumer 生命周期 + R16 授权 | NODE_PASS，40/40；最终合入后也包含在上述 102/102 中 |
 | 设置/Facade/Native 传输上限与 owner 校验/Observation grant | NODE_PASS，36/36 |
 | 自然语言复用与 segment 参数绑定 | NODE_PASS，13/13 |
-| `npm run check`、`git diff --check` | PASS；1053 文件语法、入口、CSP、MIT 来源门禁 |
+| `npm run check`、`git diff --check` | PASS；1054 文件语法、入口、CSP、MIT 来源门禁 |
 | 真实 Chrome：书签、Prompt、“我的”、Workflow 写入/读回、跨实例切换 | NOT_TESTED |
 | 真实 Native 多线程、Stop、失联恢复、迟到 ACK 与撤权 | NOT_TESTED |
 | 正式安装、停用、卸载、升级及安装代际转换 | NOT_TESTED |
@@ -214,4 +214,4 @@ R2.2 抽出中立 Conversation Session、共享 Chat Frame、通用 Provider 设
 
 扣分主要为遗留 Workflow 设置/兼容入口耦合、consumer 错误分类时序复杂，以及 Runtime/Planner 组合测试少于分层测试。设计目标 ≥95 尚未达到；真实产品验收质量为 NOT_SCORED，不借 Node 或评分宣称产品放行。
 
-**R2.2 入口尚未放行**：下一条用户操作是在允许访问扩展页面的真实环境，先完成 Bookmark AI 创建文件夹/书签并读回真实树，再验 Prompt、My Task、Workflow 复用及 Native 隔离/升级。恢复后复用本轮有效 Node 证据，源码不变不重复全组。通过 R2.1 门槛后，才可继续审核现有 `src/ui/react/components/conversation.tsx`、`provider-settings.tsx` 与 `tool-shell.js` 注入接口、`provider-runtime.js` 的 settings/Lease 合同、`provider-consumer.js` 业务授权适配及 `workflow-view.js` 的共享会话接入；业务 Service/Host 的执行权威保持不变。本轮不新增 Conversation Session 或扩大 UI 迁移。
+**R2.2 入口尚未放行**：下一条用户操作是在允许访问扩展页面的真实环境，先完成 Bookmark AI 创建文件夹/书签并读回真实树，再验 Prompt、My Task、Workflow 复用及 Native 隔离/升级。恢复后复用本轮有效 Node 证据，源码不变不重复全组。通过 R2.1 门槛后，才可继续审核现有 `src/ui/react/components/conversation.tsx`、`provider-settings.tsx` 与 `tool-shell.js` 注入接口、`provider-runtime.js` 的 settings/Lease 合同、`provider-consumer.js` 业务授权适配及 `workflow-view.js` 的共享会话接入；业务 Service/Host 的执行权威保持不变。本轮未开发 Conversation Session 或扩大 UI 迁移；合入的 `session.js` 来自并行 main 提交。冲突解决保留 Session 的 round begin/finish/assertCurrent/dispose，同时维持本轮错误语义、设置退订、引用与 Lease 清理。
