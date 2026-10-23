@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - 'src/ui/ai/provider-runtime.js'
+      - 'src/ui/conversation/provider-consumer.js'
+      - 'src/ui/workflow/local-codex.js'
       - 'src/ui/react/components/conversation.tsx'
       - 'src/ui/react/components/provider-settings.tsx'
       - 'src/ui/react/components/conversation-dock.css'
@@ -16,6 +18,8 @@ on:
       - 'src/ui/workflow/workflow-view.js'
       - 'src/ui/tool-shell.js'
       - 'tests/environment/shared-ai-conversation-r22.test.mjs'
+      - 'tests/environment/shared-ai-provider-runtime-r21.test.mjs'
+      - 'tests/environment/shared-ai-*-r211.test.mjs'
       - '.github/workflows/shared-ai-chat-r22.yml'
   workflow_dispatch:
 permissions:
@@ -37,6 +41,10 @@ jobs:
           node --test \
             tests/environment/shared-ai-conversation-r22.test.mjs \
             tests/environment/shared-ai-provider-runtime-r21.test.mjs \
+            tests/environment/shared-ai-native-lifecycle-r211.test.mjs \
+            tests/environment/shared-ai-consumer-lifecycle-r211.test.mjs \
+            tests/environment/shared-ai-workflow-settings-r211.test.mjs \
+            tests/environment/opendesk-conversation-r16-authorization.test.mjs \
             tests/environment/my-task-agent-r1.test.mjs \
             tests/environment/opendesk-conversation-r14-dock.test.mjs \
             tests/environment/opendesk-conversation-r13-prompt-business.test.mjs \

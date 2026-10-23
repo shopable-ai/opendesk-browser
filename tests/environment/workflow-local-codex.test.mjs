@@ -296,16 +296,24 @@ test('a paginated terminal state still delivers its final provider failure after
 });
 
 test('cancel during opening discards its late session and never starts a turn',async t=>{
-  const gate=deferred();
-  const f=fixture({override:({method})=>method==='ai.session.open'?gate.promise:undefined});
+  const gate=deferred(),entered=deferred();
+  const f=fixture({override:({method})=>{
+    if(method==='ai.session.open'){entered.resolve();return gate.promise;}
+  }});
   t.after(()=>f.planner.dispose());
   const running=f.planner.plan(request()),rejected=assert.rejects(running,{code:'E_CANCELLED'});
-  await tick();await f.planner.cancel();await rejected;
+  await entered.promise;
+  assert.equal(f.planner.snapshot().busy,true,'the actual pending open owns the busy fence');
+  await assert.rejects(f.planner.plan(request()),{code:'E_AI_BUSY'});
+  await f.planner.cancel();await rejected;
+  assert.equal(f.planner.snapshot().busy,false);
+  assert.deepEqual(f.calls.filter(call=>call.method==='ai.session.close'),[],
+    'an unacknowledged open has no exact session ID to close');
   gate.resolve({sessionId:'late-session',threadId:'late-thread',state:'READY_FOR_TURN',cursor:0});await tick();
   assert.equal(f.planner.snapshot().sessionId,null);
   assert.equal(f.calls.some(call=>call.method==='ai.plan.start'),false);
-  assert.ok(f.calls.some(call=>call.method==='ai.session.close'&&call.sessionId===null));
-  assert.ok(f.calls.some(call=>call.method==='ai.session.close'&&call.sessionId==='late-session'));
+  assert.deepEqual(f.calls.filter(call=>call.method==='ai.session.close').map(call=>call.sessionId),['late-session'],
+    'only the late exact ID is closed; empty/owner-wide IDs are forbidden');
 });
 
 test('cancellation during approval discards a late observation result',async t=>{
@@ -407,23 +415,41 @@ test('missing or different-turn cancellation terminal closes and forgets the old
   }
 });
 
-test('external cancellation during opening blocks new intent until owner close and rejects a late open reply',async t=>{
-  const open=deferred(),close=deferred();let firstOpen=true,firstClose=true;
-  const f=fixture({override:({method})=>{
-    if(method==='ai.session.open'&&firstOpen){firstOpen=false;return open.promise;}
-    if(method==='ai.session.close'&&firstClose){firstClose=false;return close.promise;}
+test('external cancellation retires a pending open without disturbing the next intent busy fence',async t=>{
+  const open=deferred(),entered=deferred(),nextOpen=deferred(),nextEntered=deferred(),close=deferred();
+  let opens=0;
+  const f=fixture({override:({method,sessions})=>{
+    if(method==='ai.session.open') {
+      if(++opens===1){entered.resolve();return open.promise;}
+      const session={sessionId:'fresh-session',threadId:'fresh-thread',events:[],turnId:null,state:'READY_FOR_TURN'};
+      sessions.set(session.sessionId,session);nextEntered.resolve();return nextOpen.promise;
+    }
+    if(method==='ai.session.close')return close.promise;
   }});t.after(()=>f.planner.dispose());
   const external=new AbortController(),running=f.planner.plan(request({signal:external.signal}));
   const rejected=assert.rejects(running,{code:'E_CANCELLED'});
-  await tick();external.abort();await rejected;const cleanup=f.planner.cancel();
+  await entered.promise;
   await assert.rejects(f.planner.plan(request()),{code:'E_AI_BUSY'});
   assert.equal(f.calls.filter(call=>call.method==='ai.session.open').length,1);
-  close.resolve({state:'CLOSED',resumable:false});await cleanup;
-  await f.planner.plan(request());const current=f.planner.snapshot().sessionId;
+  external.abort();await rejected;await f.planner.cancel();
+  assert.equal(f.planner.snapshot().busy,false);
+  assert.deepEqual(f.calls.filter(call=>call.method==='ai.session.close'),[]);
+  const fresh=f.planner.plan(request());await nextEntered.promise;
   open.resolve({sessionId:'late-session',threadId:'late-thread',cursor:0,state:'READY_FOR_TURN'});await tick();
-  assert.equal(f.planner.snapshot().sessionId,current);
+  assert.equal(f.planner.snapshot().sessionId,null,'late ACK cannot attach to the new intent');
+  assert.equal(f.planner.snapshot().busy,true);
+  await assert.rejects(f.planner.plan(request()),{code:'E_AI_BUSY'});
+  assert.deepEqual(f.calls.filter(call=>call.method==='ai.session.close').map(call=>call.sessionId),['late-session']);
+  assert.equal(f.calls.some(call=>call.method==='ai.plan.start'),false);
+  close.resolve({state:'CLOSED',resumable:false});await tick();
+  assert.equal(f.planner.snapshot().busy,true,'old exact close ACK cannot release the new pending open');
+  nextOpen.resolve({sessionId:'fresh-session',threadId:'fresh-thread',cursor:0,state:'READY_FOR_TURN'});
+  await fresh;
+  assert.equal(f.planner.snapshot().sessionId,'fresh-session');
+  assert.equal(f.planner.snapshot().busy,false);
   assert.equal(f.calls.filter(call=>call.method==='ai.plan.start').length,1);
-  assert.ok(f.calls.some(call=>call.method==='ai.session.close'&&call.sessionId==='late-session'));
+  assert.equal(f.calls.find(call=>call.method==='ai.plan.start').sessionId,'fresh-session');
+  assert.deepEqual(f.calls.filter(call=>call.method==='ai.session.close').map(call=>call.sessionId),['late-session']);
 });
 
 test('an already-aborted request creates no Native session or cleanup traffic',async t=>{

@@ -2692,13 +2692,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   // The framework settings panel may update Provider configuration while this
   // Workflow tab is hidden. Mirror its generation into the legacy controls;
   // stale planning and observation grants must not survive a source switch.
-  const unsubscribeProviderSettings=providers.subscribeSettings?.(()=>{
-    if(disposed)return;
+  function mirrorSharedProviderSettings(){
+    if(disposed)return false;
     const next=providers.configuration(),settings=next.settings;
     if(provider()===next.source &&
       control('workflow-ai-endpoint').value===settings.endpoint &&
       control('workflow-ai-model').value===settings.model &&
-      control('workflow-ai-key').value===settings.apiKey)return;
+      control('workflow-ai-key').value===settings.apiKey)return false;
     synchronizingProvider=true;
     try {
       control('workflow-ai-provider').value=next.source;
@@ -2707,6 +2707,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       control('workflow-ai-key').value=settings.apiKey;
       renderProvider();
     }finally{synchronizingProvider=false;}
+    return true;
+  }
+  const unsubscribeProviderSettings=providers.subscribeSettings?.(()=>{
+    if(!mirrorSharedProviderSettings())return;
     dismissRunReview();
     observationApproval=null;persistObservationApproval();
     verifiedTurnHistory=[];lastProviderTurn=null;
@@ -2782,7 +2786,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       throw err('E_TASK_CATALOG','任务目录初始化不完整');
     if(!disposed)updateButtons();
   })().catch(error=>status(format(error),true));
-  render();renderProvider();syncAISettings();status('');
+  render();
+  // Mounting a consumer must never overwrite the Shell's shared configuration
+  // or invalidate other leases with the standalone controls' initial defaults.
+  if(!mirrorSharedProviderSettings())renderProvider();
+  syncAISettings();status('');
   const dispatch=(id,eventName,event)=>{
     if(disposed||control(id).disabled)return;
     return bindings.get(id+':'+eventName)?.(event);

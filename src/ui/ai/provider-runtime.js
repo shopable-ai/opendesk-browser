@@ -127,7 +127,14 @@ export function createSharedAIProviderRuntime({client,hostInstanceId,
         return guarded(signal=>transport.generateStructured({...request,
           source:selected.source,settings:selected.settings,signal}),input.signal);
       },
-      cancelInference(){assertOpen();return planner.cancel();},
+      cancelInference(){
+        assertOpen();
+        // Start Native cleanup before forwarding abort (which also requests
+        // cancellation). Preserve its exact promise, including UNKNOWN outcomes.
+        const cleanup=planner.cancel();
+        for(const controller of pending)controller.abort(fail('E_CANCELLED','AI 已停止'));
+        return cleanup;
+      },
       invalidate,
       dispose(){if(stopped)return;stopped=true;invalidate();leases.delete(key);}
     });

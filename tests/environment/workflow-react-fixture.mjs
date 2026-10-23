@@ -114,6 +114,7 @@ export async function workflowFixture(options={}) {
   const taskWorkbench=typeof options.taskWorkbench==='function'?
     options.taskWorkbench({host,client,target}):options.taskWorkbench||null;
   const view=createWorkflowView({api,client,host,currentPageTarget,taskWorkbench,
+    providerRuntime:options.providerRuntime,
     onRunOwner:id=>owners.push(id)});
   const event=(id,value,isTrusted=true)=>({isTrusted,target:{id,value},preventDefault(){}});
   const click=(id,isTrusted=true)=>view.actions.click(id,event(id,undefined,isTrusted));

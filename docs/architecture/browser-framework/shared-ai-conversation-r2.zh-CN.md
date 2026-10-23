@@ -160,3 +160,58 @@ R2.2 抽出中立 Conversation Session、共享 Chat Frame、通用 Provider 设
 - `SharedProviderSettingsSheet` 是单一可信 React Root 的 Portal。Bookmark、Prompt、「我的」、Workflow 均通过唯一可信 ToolShell 注入的脱敏 `providerSettings` Facade 打开共享 Provider 设置（仅 `settingsSnapshot/subscribeSettings/updateSettings` 三项能力，不向 React 提供 `configuration()` 的密钥或 `acquire()` 的推理权限），不再依赖 Workflow Controller 作为入口。保存调用 `SharedAIProviderRuntime.updateSettings`，敏感 Key 仍仅存原 Runtime 内存；公开 `settingsSnapshot/subscribeSettings` 绝不返回 Key。 原 Native Codex 本机连接设置页由 ToolShell 传入已有受控 Chrome 打开动作，需当前用户可信点击，不另建连接或授权系统。原权限和 Host 系统均不复制，设置可以直接从当前业务打开。 Workflow 在 Native/Provider 错误恢复调用旧 `openAISettings` 时，正式 ToolShell 注入 `openAIProviderSettings` 转接到同一共享面板；standalone 测试仍保留原设置控件。
 - **剩余边界**：共享 Provider 设置的字段和入口已由可信 Frame/Runtime 直接拥有；Workflow 仍保留自身历史设置控件/Native 诊断与网页摘要授权业务，仅在 standalone 兼容场景展示老设置页，在正式 ToolShell 场景监听共享 Runtime 并同步自己的控制快照。Workflow 对话当前保留业务页 Composer（复用公共 Transcript/Input），尚未完整迁入公共 Frame；原页面执行/RunHost 不可因此改写。
 - 源码定向保护：`tests/environment/shared-ai-conversation-r22.test.mjs`（含 Runtime 配置代次/密钥遮蔽/消费者隔离）。只有实际执行测试、构建、Chrome/Native/安装升级并保存对应候选证据，才可将其提升为 VERIFIED；否则均 `NOT_TESTED`。
+
+## R2.1.1 回归修复与验证记录（2026-10-23）
+
+基于 main `254a4cd5e` 的修复（收尾前安全合入并行的业务引用作用域与 Prompt ETag 修复）；保留 main 已有 R2.2 源码，不把它视为 R2.1 已验收或本轮新增范围。可复核命令、源码与日志 SHA-256 见 [R2.1.1 证据](shared-ai-r211-evidence-20261023.json)。本地原始日志位于 `artifacts/shared-ai-r211-20261023/`，不包含 API Key。
+
+### 两项历史 CI 失败的原因分类
+
+[39938483755](https://github.com/shopable-ai/opendesk-browser/actions/runs/39938483755) 的 recipient integration 两项失败均停在正式 HTTPS 路由权限确认。Fixture 跳过可信 `workflow-run-review-confirm`，提前断言网页摘要审阅，Stop 用例尚未执行到 pending RunHost.start。并行 main 已修复相同测试入口；本轮合入并加强测试以执行正式 UI 动作：不可信确认不得申请权限；可信确认同步申请；有效权限复用；撤权后重新确认。原摘要批准、拒绝、无权限不传输、迟到 runId 精确停止及 UNKNOWN 断言保留。此处没有证据表明 R2.1 产品权限或迟到 Stop 回归，不为测试改写权限链。
+
+### 本轮真实源码修复
+
+- `provider-runtime.js / cancelInference`：Stop 中止本 Lease 的 HTTPS 请求，保留 Native cancel 原 Promise 和 UNKNOWN；不影响其他 Lease。
+- `provider-consumer.js / invalidateBookmarkConversation / consumerPermissionRemoved`：配置变化立即解除旧 busy，旧结果不得释放新一轮；相关权限撤销同时退休空闲 main/edit Native 历史，保留撤权、实例变化、取消的公开错误语义，清理订阅与草稿引用。
+- `local-codex.js / ensureSession`：open ACK 带有效 sessionId、但 thread/cursor 畸形时，精确关闭该已分配 session；不使用 owner-wide close。
+- `workflow-view.js / mirrorSharedProviderSettings`：Workflow 挂载先读取共享配置，避免初始控件覆盖 ToolShell 的 source/model/endpoint/key、增加 generation 并误伤其他 Lease；后续控件与共享设置双向同步。
+- `segment-replay.js / commerceGoalPattern`、`workflow-reuse.js / missingProduct`：修正现有中文复用语句强制“核对 名称”空格的问题；保留整句锚定和额外限制、否定、写动作拒绝。
+
+实际所有权仍为 ToolShell → Runtime → 独立 Consumer Lease → 既有 Provider Facade → Native/HTTPS/Responses。Runtime 无 Workflow DOM 依赖，兼容 facade 保留，Key 仅在内存中。业务写入仍由 Bookmark Service、Prompt Host、TaskWorkbench、Workflow RunHost 核验及读回；未新建传输、权限、安装器或存储。
+
+### 验证结果及边界
+
+| 验证 | 结果 |
+| --- | --- |
+| 用户指定七文件（Runtime、Facade、R16 授权、R13 Prompt、My Task、自然语言复用、recipient integration） | NODE_PASS，90/90；与新增 consumer 11 项同跑为 101/101 |
+| 新 Native 生命周期 + 原 local-codex + 已有 R2.2 合同 + 新 Workflow 设置 | NODE_PASS，52/52 |
+| 新 consumer 生命周期 + R16 授权 | NODE_PASS，40/40；最终合入后也包含在上述 101/101 中 |
+| 设置/Facade/Native 传输上限与 owner 校验/Observation grant | NODE_PASS，36/36 |
+| 自然语言复用与 segment 参数绑定 | NODE_PASS，13/13 |
+| `npm run check`、`git diff --check` | PASS；1053 文件语法、入口、CSP、MIT 来源门禁 |
+| 真实 Chrome：书签、Prompt、“我的”、Workflow 写入/读回、跨实例切换 | NOT_TESTED |
+| 真实 Native 多线程、Stop、失联恢复、迟到 ACK 与撤权 | NOT_TESTED |
+| 正式安装、停用、卸载、升级及安装代际转换 | NOT_TESTED |
+
+各测试组有重叠，不能将组内计数相加为独立用例总数。Node 通过证明被测试的代码合同，不能代替真实书签树、Prompt 持久化/ETag、任务历史或 Native 回执。独立 Lease、prompt-edit 分离、配置失效、取消/Close 竞争、精确 sessionId、超限 fail-closed 有 Node 证据；真实 threadId 隔离尚无产品证据。
+
+环境观察：日常路径仍为 `dist/development`。开始时存在已有 dev watcher，收尾时该进程已由外部退出；本任务未启动/停止 watcher、覆盖输出或切换 Profile。未证明当前源码已被 Chrome 加载。`opendesk browser doctor` 曾返回真实 Native bridge 连接，extensionId 与 Native manifest `allowed_origins` 配对为 `ccfcjegpkdlgbclopjmadlcjedelidmf`；这只是连接证据，不是本候选的 Native 会话验收。浏览器自动审批拒绝打开 `chrome-extension://`，明确仅允许 HTTP/HTTPS；未绕过该限制。没有本地候选构建/Chrome PASS；提交后的 CI 独立记录，不从历史 run 推断。
+
+### 独立源码设计评审与下一阶段
+
+只读审查未发现有证据的 P0–P2 问题，结论 COMMENT，未给出产品合并批准。
+
+| 维度 | 源码设计 /100 |
+| --- | ---: |
+| 架构归属 | 96 |
+| 复用完整性 | 97 |
+| 会话隔离 | 95 |
+| 安全授权 | 95 |
+| 业务兼容性 | 94 |
+| 迁移质量 | 93 |
+| 可测试性 | 94 |
+| 算术平均 | 94.86 |
+
+扣分主要为遗留 Workflow 设置/兼容入口耦合、consumer 错误分类时序复杂，以及 Runtime/Planner 组合测试少于分层测试。设计目标 ≥95 尚未达到；真实产品验收质量为 NOT_SCORED，不借 Node 或评分宣称产品放行。
+
+**R2.2 入口尚未放行**：下一条用户操作是在允许访问扩展页面的真实环境，先完成 Bookmark AI 创建文件夹/书签并读回真实树，再验 Prompt、My Task、Workflow 复用及 Native 隔离/升级。恢复后复用本轮有效 Node 证据，源码不变不重复全组。通过 R2.1 门槛后，才可继续审核现有 `src/ui/react/components/conversation.tsx`、`provider-settings.tsx` 与 `tool-shell.js` 注入接口、`provider-runtime.js` 的 settings/Lease 合同、`provider-consumer.js` 业务授权适配及 `workflow-view.js` 的共享会话接入；业务 Service/Host 的执行权威保持不变。本轮不新增 Conversation Session 或扩大 UI 迁移。

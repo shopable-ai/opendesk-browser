@@ -20,27 +20,39 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
       bookmarkConversationActive=null,bookmarkConversationGrantEpoch=0;
     function forScope(scope){return scope==='prompt-edit'?editLease:mainLease;}
     function invalidateBookmarkConversation(reason){
-      bookmarkConversationGrantEpoch++;
+      if(reason?.code==='E_MODEL_GRANT_REVOKED')bookmarkConversationGrantEpoch++;
       bookmarkConversationActive?.abortController.abort(reason);
-      const lease=bookmarkConversationActive&&forScope(bookmarkConversationActive.scope);
-      if(lease)void Promise.resolve(lease.cancelInference()).catch(()=>{});
+      bookmarkConversationActive?.release();
+      // Revocation retires private Native history even between turns, and
+      // includes prompt edit's separate lease. Regrant starts fresh context.
+      mainLease.invalidate();editLease?.invalidate();
     }
-    // Provider grant invalidation must affect only this consumer's in-flight
-    // authorization. A removed unrelated website grant is not a revocation.
+    const unsubscribeProviderSettings=providers.subscribeSettings(()=>{
+      const active=bookmarkConversationActive;
+      active?.abortController.abort(err('E_TOOL_CHANGED','Provider 配置已变化，请重新发送'));
+      active?.release();
+    });
+    // Revoke this consumer's authorization and retained context only when the
+    // removed grant covers its Provider; unrelated websites are unaffected.
     function consumerPermissionRemoved(grant){
       const active=bookmarkConversationActive;
-      if(!active)return;
+      const selected=active?.source||providers.configuration().source;
+      let grantPattern=active?.grantPattern||null;
+      if(!grantPattern&&selected!=='local_codex'){
+        // Settings may contain an incomplete endpoint before the next Send.
+        try{grantPattern=permissionPattern(providers.configuration().settings.endpoint);}catch{}
+      }
       const affectsProvider=pattern=>{
         if(pattern==='<all_urls>')return true;
         const match=typeof pattern==='string'&&pattern.match(/^(\*|https?):\/\/([^/]+)\//i);
-        if(!match||!active.grantPattern)return false;
-        const url=new URL(active.grantPattern),host=match[2].toLowerCase();
+        if(!match||!grantPattern)return false;
+        const url=new URL(grantPattern),host=match[2].toLowerCase();
         return (match[1]==='*'||match[1].toLowerCase()+':'===url.protocol)&&
           (host==='*'||host===url.hostname||host.startsWith('*.')&&
             (url.hostname===host.slice(2)||url.hostname.endsWith('.'+host.slice(2))));
       };
-      if((active.source==='local_codex'&&grant.permissions?.includes('nativeMessaging'))||
-        (active.source!=='local_codex'&&grant.origins?.some(affectsProvider)))
+      if((selected==='local_codex'&&grant.permissions?.includes('nativeMessaging'))||
+        (selected!=='local_codex'&&grant.origins?.some(affectsProvider)))
         invalidateBookmarkConversation(err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已撤销'));
     }
     api.permissions.onRemoved?.addListener(consumerPermissionRemoved);
@@ -124,13 +136,16 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
           bookmarkConversationActive=null;bookmarkConversationBusy=false;
         }
       };
+      active.release=release;
       const assertLive=()=>{
-        if(consumerDisposed||bookmarkConversationActive!==active)
-          throw err('E_TOOL_CHANGED','当前 AI 消费者实例已切换，本轮操作失效');
+        if(consumerDisposed)
+          throw err('E_TOOL_CHANGED','AI 消费者实例已关闭');
         if(generation!==bookmarkConversationGrantEpoch)
           throw err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已撤销，未继续写入');
         if(abortController.signal.aborted)
           throw abortController.signal.reason||err('E_CANCELLED','本轮已停止，未继续写入');
+        if(bookmarkConversationActive!==active)
+          throw err('E_TOOL_CHANGED','当前 AI 消费者实例已切换，本轮操作失效');
         if(signal?.aborted)
           throw err('E_CANCELLED','本轮已停止，未继续写入');
         if(providers.configuration().generation!==providerGeneration)
@@ -215,9 +230,16 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
           ...(scope==='bookmark'?{continueWith}:{}),
           authorization:Object.freeze({signal:abortController.signal,assertWrite,release})};
       }catch(error){
+        // Stop releases pending waits immediately. Allow already queued grant
+        // removal listeners to run before classifying that cancellation, so a
+        // same-turn revocation retains its stronger public error semantics.
+        if(error?.code==='E_CANCELLED')await Promise.resolve();
         const revoked=generation!==bookmarkConversationGrantEpoch;
         release();
+        if(consumerDisposed)throw err('E_TOOL_CHANGED','AI 消费者实例已关闭');
         if(revoked)throw err('E_MODEL_GRANT_REVOKED','本轮模型权限已撤销；迟到提议已丢弃');
+        if(providers.configuration().generation!==providerGeneration)
+          throw err('E_TOOL_CHANGED','Provider 配置或会话已变化，请重新发送');
         if(signal?.aborted)throw err('E_CANCELLED','本轮已停止；迟到提议已丢弃');
         throw error;
       }
@@ -233,6 +255,7 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
       if(consumerDisposed)return;consumerDisposed=true;
       invalidateBookmarkConversation(err('E_TOOL_CHANGED','AI 消费者实例已关闭'));
       api.permissions.onRemoved?.removeListener(consumerPermissionRemoved);
+      unsubscribeProviderSettings();
       // Display-only drafts and references must not remain readable after close.
       bookmarkConversationSession={open:false,draft:'',rows:[],needsReview:false,
         refs:emptyRefs()};

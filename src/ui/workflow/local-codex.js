@@ -133,7 +133,15 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
       if((disposed||active!==row||row.controller.signal.aborted)&&value?.sessionId)void safeClose(value.sessionId);
     },()=>{});
     const value=await withSignal(pending,row.controller.signal);
-    assertActive(row);session={...validSession(value),observation:consent.observation,model:model||null};row.sessionId=session.sessionId;
+    assertActive(row);
+    let opened;
+    try{opened=validSession(value);}catch(error){
+      // An allocated ID can still arrive with a malformed thread/cursor ACK.
+      // It never became session, so close() cannot retire it for this caller.
+      if(typeof value?.sessionId==='string'&&value.sessionId)await safeClose(value.sessionId);
+      throw error;
+    }
+    session={...opened,observation:consent.observation,model:model||null};row.sessionId=session.sessionId;
     return session;
   }
   function begin(externalSignal) {

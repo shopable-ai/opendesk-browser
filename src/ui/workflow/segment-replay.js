@@ -86,7 +86,7 @@ const safeSearchQuery=/^[\p{L}\p{N} _.-]{2,120}$/u;
 const safeProductName=/^[\p{L}\p{N}][\p{L}\p{N} _.-]{2,119}$/u;
 // A deliberately bounded set of equivalent, read-only commerce requests.
 // Exact end anchoring rejects extra limits, negations and additional actions.
-const commerceGoalPattern=/^(?:请)?(?:搜索|查找|检索) ([\p{L}\p{N} _.-]{2,120})，(?:打开|点开|进入) ([\p{L}\p{N} _.-]{3,120}) (?:商品详情页|商品详情|详情页)，(?:核对|检查|验证|确认) (?:商品)?名称(?:和|与)(?:价格|售价|标价)$/u;
+const commerceGoalPattern=/^(?:请)?(?:搜索|查找|检索) ([\p{L}\p{N} _.-]{2,120})，(?:打开|点开|进入) ([\p{L}\p{N} _.-]{3,120}) (?:商品详情页|商品详情|详情页)，(?:核对|检查|验证|确认) ?(?:商品)?名称(?:和|与)(?:价格|售价|标价)$/u;
 
 // Never silently drop other clauses from a saved natural-language goal.
 // A future richer product may explicitly version policy predicates, but v2
