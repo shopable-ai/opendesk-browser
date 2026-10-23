@@ -9,8 +9,11 @@ const idPattern=/^[a-z][a-z0-9-]{1,39}$/;
 const uuidPattern=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 const exact=(obj,keys)=>obj&&typeof obj==='object'&&!Array.isArray(obj)&&Object.keys(obj).every(key=>keys.includes(key));
 export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_INGEST_URL,
-  fetcher=globalThis.fetch,now=()=>Date.now(),newId=()=>crypto.randomUUID(),allowLoopback=false}={}){
+  fetcher=globalThis.fetch,now=()=>Date.now(),newId=()=>crypto.randomUUID(),allowLoopback=false,
+  loadAuthority=null}={}){
   const collector=createAnalyticsCollector({api,endpoint,fetcher,now,newId,allowLoopback});
+  const recordAuthorities=()=>typeof loadAuthority==='function'?
+    collector.reportAuthority(loadAuthority):Promise.resolve({recorded:false});
   const optionsURL=api.runtime.getURL('native-agent/settings.html');
   const sidepanelURL=api.runtime.getURL('sidepanel.html');
   const extensionId=api.runtime.id;
@@ -120,7 +123,12 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
       });
       // Opt-in immediately captures the pre-existing inventory, including zero tools.
       // Census failure cannot undo a consent write or break the Options page.
-      if(message.enabled)await recordInventory().catch(()=>{});
+      if(message.enabled){
+        await recordInventory().catch(()=>{});
+        // The original IndexedDB authority is read only after opt-in.
+        // A failed Page/Task read is recorded as UNKNOWN, never as zero installed.
+        await recordAuthorities().catch(()=>{});
+      }
       return {ok:true,data};
     }
     if(!idPattern.test(message.toolId||'')||typeof message.event!=='string'||
@@ -175,6 +183,7 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
     if(alarm.name===ANALYTICS_ALARM){
       void collector.flush().catch(()=>{});
       void recordInventory().catch(()=>{}); // no DAU; daily unchanged-state heartbeat
+      void recordAuthorities().catch(()=>{});
     }
   });
   api.runtime.onStartup?.addListener(()=>void collector.ensureWake().catch(()=>{}));
@@ -205,6 +214,9 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
   });
   // Reconcile on every real Host startup after crashes or missed changes.
   // Collector suppresses duplicate inventories; service-worker wake is NOT usage.
-  void collector.ensureWake().then(recordInventory).catch(()=>{});
+  void collector.ensureWake().then(async()=>{
+    await recordInventory();
+    await recordAuthorities();
+  }).catch(()=>{});
   return collector;
 }
