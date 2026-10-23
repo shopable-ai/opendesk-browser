@@ -104,7 +104,8 @@ test('R5.26 React import requires explicit opt-in before replacing native Cookie
     get('app/components/CookieImport.jsx'),get('app/CookieEditorApp.jsx')]);
   assert.match(importer,/\[overwrite,setOverwrite\]=React\.useState\(false\)/);
   assert.match(importer,/type="checkbox" checked=\{overwrite\}/);
-  assert.match(importer,/onChange=\{event=>setOverwrite\(event\.currentTarget\.checked\)\}/);
+  assert.match(importer,/const next=event\.currentTarget\.checked;setOverwrite\(next\)/);
+  assert.match(importer,/onPendingChange\?\.\(next\|\|Boolean\(stagedFile\.current\)/);
   assert.match(importer,/onImportText\?\.\(text,\{overwrite\}\)/);
   assert.match(app,/const importFromText=async \(text,\{overwrite=false\}=\{\}\)=>/);
   assert.match(app,/controller\.previewImport\(text,'auto',overwrite,\{allSites:true\}\)/);
