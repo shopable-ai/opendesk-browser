@@ -64,7 +64,9 @@ SELECT tool_type, metric_type,
   sum(latest_total) AS total,
   sum(page_auto) AS page_auto,
   sum(scheduler) AS scheduler,
-  sum(cloud) AS cloud
+  sum(cloud) AS cloud,
+  sum(latest_total)-sum(page_auto)-sum(scheduler)-sum(cloud)
+    AS reconciliation_gap
 FROM (
   SELECT distinct_id,properties.tool_type AS tool_type,
     properties.tool_id AS tool,properties.utc_day AS utc_day,
@@ -82,8 +84,9 @@ FROM (
   GROUP BY distinct_id,tool_type,tool,utc_day,metric_type
 )
 GROUP BY tool_type,metric_type
-HAVING total=page_auto+scheduler+cloud
 \`\`\`
+
+如果 `reconciliation_gap != 0`，应将该分组标记为 **SOURCE_MISMATCH** 并调查，不得用 `HAVING` 隐藏不一致数据；若某期无源数据也不能凭缺失记录宣布零执行。
 
 Reading TOC 的 `reading_toc.navigated` 同时是 B 级可视效果与主动操作，但不代表页面业务交易完成。
 
