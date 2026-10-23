@@ -419,6 +419,20 @@ test('R2.2.2 declined private-body review never transmits text or writes',async(
   assert.match(f.confirms[0],/不允许外发的秘密正文\n含完整编号 1\./);
   f.host.dispose();
 });
+test('R2.2.3 local private-body review identifies the recipient and model before sending',async()=>{
+ const row=model.draft({body:'不要发送私人旧正文',name:'私人'});
+ const f=hostFixture({initial:{...model.defaults(),items:[row]},allowReview:false,
+  proposal:{action:{type:'edit',target:row.id,instruction:'只修复格式'}}});
+ f.setProvider('local_codex');
+ await assert.rejects(f.host.request({request:'修改私人',event:{isTrusted:true}}),
+  {code:'E_CANCELLED'});
+ assert.match(f.confirms[0],/接收方：本机 Codex · .* · 模型 fixture-model/);
+ assert.match(f.confirms[0],/原始正文（完整）：\n不要发送私人旧正文/);
+ assert.equal(f.modelCalls.filter(call=>call.scope==='prompt-edit').length,0);
+ assert.equal(f.commits,0);
+ f.host.dispose();
+});
+
 test('R2.2.2 new recipient generation invalidates already reviewed private bodies',async()=>{
   const row=model.draft({body:'不应传给新模型',name:'接收方版本'});
   const f=hostFixture({initial:{...model.defaults(),items:[row]},
