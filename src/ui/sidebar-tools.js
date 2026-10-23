@@ -247,6 +247,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     })).catch(()=>{});}catch{/* Optional analytics stays silent. */}
   };
   let visible=false,toolDirty=false,toolSaving=false,installedReadError=false,preinstallBusy=false,preinstallQueued=false;
+  // Only an explicit trusted launch may become an open, after the real UI is ready.
+  // Never equate a route locator, React remount, iframe load start or denied admission with usage.
+  let pendingAnalyticsOpen=null;
+  const reportReadyOpen=token=>{
+    if(!token||pendingAnalyticsOpen!==token||instance!==token||disposed||
+      !visible||readOnlyPreview||!active)return;
+    pendingAnalyticsOpen=null; // consume before dispatch, including retries and duplicate ready signals
+    reportAnalytics('event.host_report','tool.opened',active.id,'sidepanel');
+  };
   let pendingUninstallId=null,pendingUninstallBaseline=null;
   const listeners=[];
   const listen=(field,type,fn)=>listeners.push(view.bind(field.key,type,fn));
@@ -1158,7 +1167,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   // Revoking a hidden iframe also revokes its session token and pending responses.
   const isDirty=()=>!readOnlyPreview&&active?.id===KNOWLEDGE_TOOL_ID&&knowledgeDirty;
   const canLeaveTool=()=>!isDirty()||(notice('知识收件箱有未保存的编辑，请先保存；不会自动丢弃草稿。',true),false);
-  function suspendTool() {cookieImportGate.revoke();cookieWriteGate.revoke();cookieExportGate.revoke();cancelRemovalReview();cancelActionReview();tocSettingsOpen=false;tocScope='site';destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
+  function suspendTool() {pendingAnalyticsOpen=null;cookieImportGate.revoke();cookieWriteGate.revoke();cookieExportGate.revoke();cancelRemovalReview();cancelActionReview();tocSettingsOpen=false;tocScope='site';destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
   function closeTool() {
     if(busy)return false;
     const previousId=active?.id;
@@ -1182,6 +1191,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     return true;
   }
   function mountTool(tool,{readOnly=false,launchGate=null,forceSandbox=false}={}) {
+    // Native official admission can fall back to a new sandbox session.
+    // Preserve only that same verified launch intent across the fallback.
+    const carryOpen=forceSandbox&&instance!==null&&pendingAnalyticsOpen===instance;
     // An installed Focus tool opens with a visible trusted first-use grant.
     // First-use Full Bookmarks consent remains a visible, separate trusted
     // Chrome/Host grant; do not bury the button behind an empty React tree.
@@ -1196,6 +1208,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     tocScope='site';destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;knowledgeDirty=false;
     frameRevocationEpoch=readOnly?null:(revocationEpochs[tool.id]??null);
     instance=crypto.randomUUID();
+    pendingAnalyticsOpen=carryOpen?instance:null;
     const token=instance;
     if(!forceSandbox&&!readOnly&&!launchGate&&tool.id===TIME_REVIEW_ID&&
        nativeTimeReview?.version===TRUSTED_TIME_REVIEW_VERSION&&typeof nativeTimeReview.mount==='function'){
@@ -1217,7 +1230,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           if(disposed||active!==tool||instance!==token){dispose();return;}
           nativeUI={dispose};nativePending=false;
           if(frameRoot.dataset)frameRoot.dataset.timeReviewNative='true';
-          render();notice('');
+          render();notice('');reportReadyOpen(token);
         }catch(error){
           destroyFrame();tocSettingsOpen=true;render();
           notice('已拒绝启动不完整的可信 UI：'+String(error?.message||error).slice(0,180),true);
@@ -1251,7 +1264,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           if(disposed||active!==tool||instance!==token){dispose();return;}
           nativeUI={dispose,kind:'bookmark'};nativePending=false;
           frameRoot.dataset.bookmarkTrusted='true';
-          render();notice('');
+          render();notice('');reportReadyOpen(token);
         }catch(error){
           destroyFrame();tocSettingsOpen=true;render();
           notice('书签 React 界面启动失败，已停止可信会话：'+String(error?.message||error).slice(0,160),true);
@@ -1410,7 +1423,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     mountSandbox(frameRoot);
   }
-  function openTool(id,{launchGate=null}={}) {
+  function openTool(id,{launchGate=null,userInitiated=false}={}) {
     
     cancelRemovalReview();
     if(disposed||busy||!visible)return;
@@ -1424,7 +1437,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     if(active&&!canLeave(()=>{
       const target=toolById(id);
-      if(target&&visible&&!busy)mountTool(target);
+      if(target&&visible&&!busy){
+        mountTool(target);
+        if(userInitiated===true)pendingAnalyticsOpen=instance;
+      }
     }))return;
     const tool=toolById(id);
     if(!tool){notice('找不到已安装的工具',true);return;}
@@ -1434,7 +1450,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       destroyFrame();active=tool;readOnlyPreview=false;tocSettingsOpen=true;render();requestToolFieldEffect(view, backButton, 'focus');return;
     }
     mountTool(tool,{launchGate});
-    reportAnalytics('event.host_report','tool.opened',tool.id,'sidepanel');
+    if(userInitiated===true||launchGate!==null)pendingAnalyticsOpen=instance;
     return instance;
   }
   // Management never mounts untrusted code. The existing trusted settings UI
@@ -2465,7 +2481,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       return;
     }
     if(message.kind==='status'){
-      if(message.state==='ready')notice('');
+      if(message.state==='ready'){notice('');reportReadyOpen(message.instance);}
       else if(message.state==='error')notice(active.title+'：'+String(message.message||'').slice(0,240),true);
       return;
     }
@@ -3574,7 +3590,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     void toggleEnabled(active?.id,event).catch(error=>notice(
       (error?.code||'E_TOOL')+'：'+String(error?.message||error).slice(0,240),true));
   });
-  if(launchButton)listen(launchButton,'click',action(()=>openTool(active?.id)));
+  if(launchButton)listen(launchButton,'click',event=>{
+    if(event?.isTrusted!==true)return;
+    action(()=>openTool(active?.id,{userInitiated:true}))();
+  });
   if(eyeButton)listen(eyeButton,'click',action(()=>runSiteToggle(READING_TOC_TOOL_ID,
     ()=>toggleTocDisplay(READING_TOC_TOOL_ID,'quick'))));
   listen(settingsSiteVisibility,'click',action(()=>runSiteToggle(READING_TOC_TOOL_ID,
