@@ -67,9 +67,28 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .web-button{font-size:11px;background:transparent;color:var(--stage-sub);border:1px solid var(--stage-line);border-radius:8px;padding:6px 10px}
 .web-button:hover{color:var(--stage-ink)}
 .message-area{position:relative;flex:1;min-height:430px;overflow:hidden}
-.message-inner{height:100%;width:min(670px,calc(100% - 128px));margin:0 auto;padding:40px 12px;overflow-y:auto}
+.message-inner{height:100%;width:min(670px,calc(100% - 128px));margin:0 auto;padding:40px 12px;overflow-y:auto;scrollbar-width:thin}
 .message-inner h2{font-size:24px;margin:0 0 18px;font-weight:650;letter-spacing:-.03em}
 .message-inner p{font-size:14px;line-height:1.85;margin:0 0 17px}.message-inner .user{margin-left:auto;margin-bottom:25px;width:max-content;max-width:80%;padding:11px 16px;border-radius:20px;background:var(--stage-bubble)}
+/* Scrolling laboratory: the mock transcript is the sole scrollport. */
+.demo-long-reply{margin:26px 0 55px;padding:10px 14px;border-left:2px solid var(--stage-line)}
+.demo-long-reply p{margin:10px 0 18px!important}
+.demo-reply-actions{display:flex;justify-content:flex-end;gap:4px;margin:4px 0 12px}
+.demo-reply-actions button{border:1px solid var(--stage-line);border-radius:10px;background:var(--stage-bubble);
+ color:var(--stage-ink);width:36px;height:36px;font-size:21px;cursor:pointer}
+.demo-reply-actions button:hover{filter:brightness(.96)}
+.demo-reply-actions button[hidden],#mockFloatingTop[hidden]{display:none!important}
+#mockFloatingTop{position:absolute;bottom:14px;right:16px;z-index:5;width:42px;height:42px;
+ background:var(--ps-rail-bg);color:var(--ps-button-fg);border:1px solid var(--ps-rail-border);
+ box-shadow:var(--ps-rail-shadow);border-radius:14px;font-size:23px;cursor:pointer}
+.page-shortcut.nav-preview{font-size:21px;font-weight:550}
+.preview-scroll-settings{margin:0 0 10px;padding:8px 10px}
+.preview-scroll-settings summary{cursor:pointer;font-size:12px;font-weight:650}
+.preview-scroll-settings summary small{color:var(--od-sub);font-weight:400;margin-left:5px}
+.preview-scroll-group{display:grid;gap:2px;margin-top:10px}
+.preview-scroll-group strong{font-size:11px;color:var(--od-sub)}
+.preview-scroll-group label{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:34px;font-size:12px}
+.preview-scroll-group .switch{flex:none}
 /* Mirrors approved R1.2 decision: 12 px from content area's LEFT EDGE, not the centered text column or composer. */
 .page-rail{position:absolute;left:12px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:5px;max-height:248px;overflow-y:auto;overflow-x:hidden;padding:6px;width:max-content;max-width:calc(100% - 24px);border:1px solid var(--ps-rail-border);background:var(--ps-rail-bg);box-shadow:var(--ps-rail-shadow);border-radius:17px;box-sizing:border-box;scrollbar-width:thin;overscroll-behavior:contain}
 .page-shortcut{flex:none;width:38px;height:38px;display:grid;place-items:center;border:1px solid transparent;background:var(--ps-button-bg);color:var(--ps-button-fg);border-radius:11px;font-size:13px;line-height:1.07;font-weight:700;box-sizing:border-box;user-select:none}
@@ -541,7 +560,7 @@ border:0;background:transparent;color:var(--od-sub)}
   <button id="size440" class="od-button od-button--small" type="button">440px</button>
   <button id="themeButton" class="od-icon-button" type="button" aria-label="切换深色模式" title="切换深色模式" aria-pressed="false"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ps-icon-moon"/></svg></button>
   <button id="resetButton" class="od-icon-button" type="button" aria-label="重置模拟数据" title="重置模拟数据"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ps-icon-rotate-ccw"/></svg></button>
-<label class="demo-mode">模拟网站 <select id="sitePreviewSelect" aria-label="切换模拟网站"><option value="chatgpt">ChatGPT</option><option value="claude">Claude</option><option value="gemini">Gemini</option><option value="custom">自定义网站</option><option value="deepseek">DeepSeek · 规划</option><option value="perplexity">Perplexity · 规划</option><option value="grok">Grok · 规划</option><option value="cursor">Cursor Web · 规划</option></select></label>
+<label class="demo-mode">模拟网站 <select id="sitePreviewSelect" aria-label="切换模拟网站"><option value="chatgpt">ChatGPT</option><option value="claude">Claude</option><option value="gemini">Gemini</option><option value="deepseek">DeepSeek</option><option value="custom">自定义网站</option><option value="deepseek">DeepSeek · 规划</option><option value="perplexity">Perplexity · 规划</option><option value="grok">Grok · 规划</option><option value="cursor">Cursor Web · 规划</option></select></label>
 <label class="demo-mode">语言 <select id="languagePreview" aria-label="切换模拟界面语言"><option value="zh">中文</option><option value="en">English</option><option value="ja">日本語</option></select></label>
 <label class="demo-mode">路径 <select id="sitePreviewPath" aria-label="切换模拟网站路径"><option value="/work">/work</option><option value="/work/notes">/work/notes</option><option value="/other">/other</option></select></label>
 <button class="od-button od-button--small" id="spaRemount" type="button">模拟 SPA 重绘</button>
@@ -566,12 +585,21 @@ border:0;background:transparent;color:var(--od-sub)}
     <nav class="page-rail" id="pageRail" aria-label="模拟网页左侧提示词快捷按钮"></nav>
     <div id="webTooltip" class="web-tip" hidden><strong id="tipTitle"></strong><small>完整提示词 · 仅模拟</small><pre id="tipBody"></pre></div>
     <div class="mock-menu" id="mockContextMenu" hidden><p>Chrome 原生右键菜单 · 模拟</p><button id="mockMenuAdd" type="button">＋ 添加为提示词快捷按钮</button></div>
-    <div class="message-inner"><h2>把常用提示词放在伸手可及的位置</h2>
+    <div class="message-inner" id="demoTranscript"><h2>把常用提示词放在伸手可及的位置</h2>
      <div class="user">如何让每次写作更清晰？</div>
      <p>把高频提示词变成可重复使用的小按钮，可以减少每次重新输入的时间。</p>
      <p id="selectionSample">请在不改变原意的前提下润色以下文字，保留原有语气，并提出必要的结构优化建议。</p>
      <p>选中文字后，通过右键菜单快速添加为新快捷按钮。新建流程仍需要人工确认保存。</p>
+     <article id="mockLongReply" class="demo-long-reply" aria-label="模拟 AI 长回复">
+       <div class="demo-reply-actions" role="group" aria-label="长回复导航">
+         <button id="demoReplyTop" type="button" aria-label="回到此内容开头" title="回到此内容开头">↑</button>
+         <button id="demoReplyBottom" type="button" aria-label="跳到此内容末尾" title="跳到此内容末尾">↓</button>
+       </div>
+       <strong>模拟长回复 · 滚动导航实验</strong>
+       <div id="demoLongText"></div><div id="demoReplyEnd"></div>
+     </article>
     </div>
+    <button id="mockFloatingTop" type="button" aria-label="右下角返回对话顶部" title="右下角返回对话顶部" hidden>↑</button>
    </div>
    <div class="web-compose"><div id="mockComposer" data-composer-zone="true"><textarea id="mockDraft" aria-label="模拟 ChatGPT 草稿输入框" placeholder="点击左侧按钮，将完整提示词插入此模拟草稿……"></textarea></div><div class="web-compose-foot"><span>仅插入文本，不自动发送</span><span>⌘ / Ctrl + Enter 不执行发送</span></div></div>
   </div>
@@ -632,6 +660,20 @@ border:0;background:transparent;color:var(--od-sub)}
       <div class="import-actions"><button id="cancelImport" type="button" class="od-button">取消</button><button id="importReplace" type="button" class="od-button od-button--danger">替换现有</button><button id="importAppend" type="button" class="od-button od-button--primary">追加导入</button></div>
      </div>
      <div id="imageSizeGroup" class="host-setting-row od-surface image-size-setting" role="group" aria-label="图片快捷按钮尺寸设置"><span id="imageSizeLabel">图片按钮大小</span><input id="imageSizeSetting" type="hidden" value="large"><div class="image-size-buttons" role="group" aria-labelledby="imageSizeLabel"><button class="image-size-button" type="button" data-image-size="compact" aria-pressed="false" aria-label="紧凑图片尺寸，48×40 像素" title="紧凑 · 48×40"><span class="size-dot" style="--dot:6px"></span></button><button class="image-size-button" type="button" data-image-size="standard" aria-pressed="false" aria-label="标准图片尺寸，56×44 像素" title="标准 · 56×44"><span class="size-dot" style="--dot:10px"></span></button><button class="image-size-button" type="button" data-image-size="large" aria-pressed="true" aria-label="大图图片尺寸，68×48 像素" title="大图 · 68×48"><span class="size-dot" style="--dot:14px"></span></button></div></div>
+     <details id="previewScrollSettings" class="preview-scroll-settings od-surface">
+       <summary>滚动导航 <small>默认开启 · 可分别关闭</small></summary>
+       <div class="preview-scroll-group"><strong>单条长内容</strong>
+         <label>回到内容开头<span class="switch"><input type="checkbox" role="switch" data-scroll-nav-preview="regionTop" checked><span class="switch-track"></span></span></label>
+         <label>跳到内容末尾<span class="switch"><input type="checkbox" role="switch" data-scroll-nav-preview="regionBottom" checked><span class="switch-track"></span></span></label>
+       </div>
+       <div class="preview-scroll-group"><strong>整段对话</strong>
+         <label>回到对话顶部<span class="switch"><input type="checkbox" role="switch" data-scroll-nav-preview="conversationTop" checked><span class="switch-track"></span></span></label>
+         <label>跳到对话底部<span class="switch"><input type="checkbox" role="switch" data-scroll-nav-preview="conversationBottom" checked><span class="switch-track"></span></span></label>
+       </div>
+       <div class="preview-scroll-group"><strong>悬浮按钮</strong>
+         <label>右下角返回顶部<span class="switch"><input type="checkbox" role="switch" data-scroll-nav-preview="floatingTop" checked><span class="switch-track"></span></span></label>
+       </div>
+     </details>
      <div id="promptList" class="shortcuts-list"></div>
    </section>
    <section id="formView" hidden aria-labelledby="hostToolTitle">
@@ -780,12 +822,16 @@ border:0;background:transparent;color:var(--od-sub)}
   return Object.keys(next).length===Object.keys(imageAssets).length||persistDemoAssets(next);
  }
  const IMAGE_SIZES=['compact','standard','large'];
+ const SCROLL_NAV_DEFAULTS={regionTop:true,regionBottom:true,conversationTop:true,conversationBottom:true,floatingTop:true};
+ const normalizedScrollNav=flags=>Object.fromEntries(Object.keys(SCROLL_NAV_DEFAULTS).map(key=>
+   [key,typeof flags?.[key]==='boolean'?flags[key]:true]));
  function restoreDemoSettings(){
-  const fallback={showBar:true,contextMenu:false,imageSize:'large'};
+  const fallback={showBar:true,contextMenu:false,imageSize:'large',scrollNavigation:normalizedScrollNav()};
   try{const raw=JSON.parse(localStorage.getItem(DEMO_SETTINGS_KEY));if(!raw||typeof raw!=='object')return fallback;
    return {showBar:typeof raw.showBar==='boolean'?raw.showBar:true,
     contextMenu:typeof raw.contextMenu==='boolean'?raw.contextMenu:false,
-    imageSize:IMAGE_SIZES.includes(raw.imageSize)?raw.imageSize:'large'};
+    imageSize:IMAGE_SIZES.includes(raw.imageSize)?raw.imageSize:'large',
+    scrollNavigation:normalizedScrollNav(raw.scrollNavigation)};
   }catch{return fallback;}
  }
  function restoreDemoItems(){
@@ -911,7 +957,8 @@ border:0;background:transparent;color:var(--od-sub)}
  }
  function uninstallMock(){
   closeUninstall();closeTransfer();discardImport();
-  state={version:1,revision:state.revision+1,settings:{showBar:false,contextMenu:false,imageSize:'large'},items:[],toolEnabled:false};
+  state={version:1,revision:state.revision+1,settings:{showBar:false,contextMenu:false,imageSize:'large',
+      scrollNavigation:normalizedScrollNav()},items:[],toolEnabled:false};
   persistDemoItems();persistDemoSettings();persistDemoAssets({});
   draftImageAssetId='';installed=false;editId=null;dirty=false;expandedId=null;deleteId=null;copyId=null;
   el('mockContextMenu').hidden=true;
@@ -953,6 +1000,10 @@ border:0;background:transparent;color:var(--od-sub)}
     const control=el(id);
     control.closest('.host-setting-row')?.classList.toggle('is-dependent-disabled',control.disabled);
   }
+  document.querySelectorAll('[data-scroll-nav-preview]').forEach(control=>{
+    control.checked=state.settings.scrollNavigation[control.dataset.scrollNavPreview]===true;
+    control.disabled=!state.toolEnabled||!state.settings.showBar||!installed;
+  });
   el('hostSettings').setAttribute('aria-expanded',String(currentView==='settings'));
  }
  /* R2.6 offline import/export; actual installed tool must use trusted Host storage */
@@ -1055,12 +1106,8 @@ border:0;background:transparent;color:var(--od-sub)}
  function renderRail(){const rail=el('pageRail');rail.replaceChildren();rail.dataset.imageSize=state.settings.imageSize||'large';el('webTooltip').hidden=true;tipButton=null;
   if(!installed||!state.settings.showBar||!state.toolEnabled){rail.hidden=true;return;}rail.hidden=false;
   const active=state.items.filter(item=>item.enabled);
-  if(!active.length){
-   const manage=create('button','page-shortcut starter-toggle','OD');manage.type='button';
-   manage.title='打开模拟侧边栏管理提示词';manage.setAttribute('aria-label',manage.title);
-   manage.addEventListener('click',()=>{setView('index');el('sidepanel').scrollIntoView({block:'nearest'});});
-   rail.append(manage);return;
-  }
+  // No extra "管理" button on the target page, including an empty library.
+
   // Match the installed trusted adapter: user data, not initial-seed IDs, owns the launcher.
   const compact=active.length>0;
   if(compact){
@@ -1553,6 +1600,19 @@ border:0;background:transparent;color:var(--od-sub)}
   state.settings.contextMenu=event.currentTarget.checked;persistDemoSettings();state.revision++;renderIndex();renderRail();el('mockContextMenu').hidden=true;
   notice(state.settings.contextMenu?'模拟原生右键功能已开启；正式使用仍取决于 Chrome 菜单许可。':'模拟原生右键功能已关闭。');
  });
+ document.querySelectorAll('[data-scroll-nav-preview]').forEach(control=>
+  control.addEventListener('change',()=>{
+    const key=control.dataset.scrollNavPreview;
+    if(!Object.hasOwn(SCROLL_NAV_DEFAULTS,key)||!state.toolEnabled||!state.settings.showBar||!installed){setSettings();return;}
+    const previous=state.settings.scrollNavigation;
+    state.settings.scrollNavigation={...previous,[key]:control.checked};
+    if(!persistDemoSettings()){
+      state.settings.scrollNavigation=previous;setSettings();
+      notice('滚动导航开关未保存，已恢复上次状态（模拟）。','error');return;
+    }
+    state.revision++;renderIndex();renderRail();
+    notice('滚动导航设置已保存到预览本地存储（不影响正式扩展）。','success');
+  }));
  el('imageSizeGroup').querySelectorAll('[data-image-size]').forEach(button=>button.addEventListener('click',()=>{
   const next=button.dataset.imageSize;if(!IMAGE_SIZES.includes(next)){setSettings();return;}
   if(next===state.settings.imageSize)return;
@@ -1625,7 +1685,8 @@ border:0;background:transparent;color:var(--od-sub)}
   claude:{name:'Claude',origin:'https://claude.ai',path:'/new',builtIn:true,mount:['[data-demo-container="claude"]'],editor:['[data-demo-editor="claude"][contenteditable="true"]']},
   gemini:{name:'Gemini',origin:'https://gemini.google.com',path:'/app',builtIn:true,mount:['[data-demo-container="gemini"]'],editor:['rich-textarea [data-demo-editor="gemini"][contenteditable="true"]']},
   custom:{name:'自定义网站',origin:'https://example.com',path:'/work',builtIn:false},
-  deepseek:{name:'DeepSeek',origin:'https://chat.deepseek.com',path:'/',planned:true},
+  deepseek:{name:'DeepSeek',origin:'https://chat.deepseek.com',path:'/a/chat/s/demo',builtIn:true,
+    mount:['[data-demo-container="deepseek"]'],editor:['[data-demo-editor="deepseek"]']},
   perplexity:{name:'Perplexity',origin:'https://www.perplexity.ai',path:'/',planned:true},
   grok:{name:'Grok',origin:'https://grok.com',path:'/',planned:true},
   cursor:{name:'Cursor Web',origin:'https://cursor.com',path:'/',planned:true}
@@ -1682,8 +1743,61 @@ border:0;background:transparent;color:var(--od-sub)}
    el('currentSiteStatus').textContent=site.name+' · '+(ok?'模拟就绪':result.error);
    el('currentSiteOrigin').textContent=effectiveOrigin()+sitePath;
  }
+ // Mirrors the production five-option contract. The mock transcript is an
+ // explicit scrollport; no scroll events are sent to the outer side panel.
+ const demoTranscript=el('demoTranscript'),demoReply=el('mockLongReply');
+ for(let i=1;i<=14;i++){
+   const para=document.createElement('p');
+   para.textContent='第 '+i+' 段：这里模拟 AI 输出的长篇说明，包含结构、验证步骤与使用建议。滚动时可以测试该条回复开头、末尾，以及整个对话的顶部与底部。';
+   el('demoLongText').append(para);
+ }
+ function demoScroll(direction,scope){
+   const port=demoTranscript,box=port.getBoundingClientRect();
+   if(!box.height||port.scrollHeight<=port.clientHeight+1)return;
+   let top=direction==='top'?0:port.scrollHeight-port.clientHeight;
+   if(scope==='region'){
+     const edge=(direction==='top'?demoReply:el('demoReplyEnd')).getBoundingClientRect();
+     top=port.scrollTop+(direction==='top'?edge.top-box.top-12:edge.bottom-box.bottom+12);
+   }
+   port.scrollTo({top:Math.max(0,Math.min(port.scrollHeight-port.clientHeight,top)),behavior:'instant'});
+ }
+ function demoNavigationReady(result){
+   return Boolean(result.editor&&['chatgpt','deepseek','gemini'].includes(currentSite)&&
+     demoTranscript.scrollHeight>demoTranscript.clientHeight+120);
+ }
+ function updateDemoFloating(){
+   const ready=demoNavigationReady(resolveSite());
+   el('mockFloatingTop').hidden=!ready||!state.settings.scrollNavigation.floatingTop||
+     demoTranscript.scrollTop<=Math.max(180,demoTranscript.clientHeight*.55);
+ }
+ function renderDemoNavigation(result){
+   const active=demoNavigationReady(result)&&installed&&state.toolEnabled&&state.settings.showBar;
+   const flags=state.settings.scrollNavigation,rail=el('pageRail');
+   for(const [key,direction,label,glyph] of [
+     ['conversationTop','top','回到对话顶部','↑'],
+     ['conversationBottom','bottom','跳到对话底部','↓']
+   ]){
+     if(!active||!flags[key])continue;
+     const button=create('button','page-shortcut nav-preview',glyph);
+     button.type='button';button.title=label;button.setAttribute('aria-label',label);
+     button.addEventListener('click',()=>demoScroll(direction,'conversation'));
+     rail.append(button);
+   }
+   el('demoReplyTop').hidden=!active||!flags.regionTop;
+   el('demoReplyBottom').hidden=!active||!flags.regionBottom;
+   updateDemoFloating();
+ }
+ el('demoReplyTop').addEventListener('click',()=>demoScroll('top','region'));
+ el('demoReplyBottom').addEventListener('click',()=>demoScroll('bottom','region'));
+ el('mockFloatingTop').addEventListener('click',()=>demoScroll('top','conversation'));
+ demoTranscript.addEventListener('scroll',updateDemoFloating,{passive:true});
  const renderRailOriginal=renderRail;
- renderRail=function(){const result=resolveSite();renderRailOriginal();const rail=el('pageRail');rail.hidden=rail.hidden||!result.editor;if(rail.hidden)rail.replaceChildren();showSiteStatus(result);};
+ renderRail=function(){
+   const result=resolveSite();renderRailOriginal();const rail=el('pageRail');
+   rail.hidden=rail.hidden||!result.editor;if(rail.hidden)rail.replaceChildren();
+   showSiteStatus(result);renderDemoNavigation(result);
+   if(![...rail.children].some(button=>!button.hidden))rail.hidden=true;
+ };
  function saveCurrentDraft(){const field=SITE_ROOT()?.querySelector('[data-demo-editor="'+currentSite+'"]')||el('mockDraft');
    if(field&&visibleNode(field))siteDrafts[currentSite]=readEditor(field);}
  function renderSiteFixture({preserve=true}={}){
@@ -1693,6 +1807,7 @@ border:0;background:transparent;color:var(--od-sub)}
    document.querySelectorAll('.web-top [data-created-fixture]').forEach(e=>e.remove());
    textarea.hidden=currentSite!=='chatgpt';textarea.disabled=mode==='no-editor'||mode==='clipboard-failure'||mode==='unsupported';
    el('messageArea').dataset.demoContainer=currentSite;
+   demoTranscript.scrollTop=0;
    el('sitePreviewPath').disabled=currentSite!=='custom';if(currentSite==='custom')el('sitePreviewPath').value=sitePath;
    document.querySelector('.web-top strong').textContent=site.name;
    document.querySelector('.web-sub').textContent=t[2];
@@ -1732,7 +1847,7 @@ border:0;background:transparent;color:var(--od-sub)}
      const pw=document.createElement('input');pw.type='password';pw.dataset.demoEditor=currentSite;pw.dataset.createdFixture='';pw.className='od-field';composer.append(pw);
    }
    if(mode==='no-editor')editor.hidden=true;
-   el('mockContextMenu').hidden=true;renderRail();renderSiteDetails();
+   el('mockContextMenu').hidden=true;renderRail();renderSiteDetails();updateDemoFloating();
  }
  function previewStatus(msg,ok=false){const n=el('siteFormStatus');n.textContent=msg;n.dataset.kind=ok?'success':'error';n.hidden=!msg;}
  function setConfigValues(rule){el('siteOrigin').value=effectiveOrigin();el('sitePath').value=rule?.path||sitePath;

@@ -39,7 +39,17 @@ function normalizeImageAssetId(value){
     fail('无效的本地图片资源标识');
   return value;
 }
-const defaults=()=>({schema:1,items:[],settings:{webButtons:true,imageSize:'large'}});
+const SCROLL_NAV_DEFAULTS=Object.freeze({regionTop:true,regionBottom:true,
+  conversationTop:true,conversationBottom:true,floatingTop:true});
+function navigationSettings(value){
+  if(value===undefined)return {...SCROLL_NAV_DEFAULTS};
+  if(!value||typeof value!=='object'||Array.isArray(value)||
+      Object.entries(value).some(([key,flag])=>!Object.hasOwn(SCROLL_NAV_DEFAULTS,key)||
+        typeof flag!=='boolean'))fail('滚动导航设置无效，已拒绝覆盖');
+  return {...SCROLL_NAV_DEFAULTS,...value};
+}
+const defaults=()=>({schema:1,items:[],settings:{webButtons:true,imageSize:'large',
+  scrollNavigation:navigationSettings()}});
 const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).byteLength;
 function draft(input,previous=null,newId=secureId){
   if(typeof input?.body!=='string'||!input.body.trim())fail('提示词内容是唯一必填项');
@@ -92,7 +102,8 @@ function load(value){
       ...(imageAssetId?{imageAssetId}:{})};
   });
   return {schema:1,items:items.sort((a,b)=>a.order-b.order||a.id.localeCompare(b.id)),
-    settings:{webButtons:value.settings.webButtons,imageSize:value.settings.imageSize??'large'}};
+    settings:{webButtons:value.settings.webButtons,imageSize:value.settings.imageSize??'large',
+      scrollNavigation:navigationSettings(value.settings.scrollNavigation)}};
 }
 
 // R2: Site configuration is a separate 8-KiB tool-local data item.
@@ -319,7 +330,7 @@ function backupPlan(library,imported,mode='append'){
 }
 
 Object.defineProperty(globalThis,'OpenDeskPromptShortcutsModel',{
-  value:Object.freeze({parts,visible,auto,validLabel,IMAGE_SIZES,normalizeImageUrl,normalizeImageAssetId,defaults,bytes,draft,load,
+  value:Object.freeze({parts,visible,auto,validLabel,IMAGE_SIZES,SCROLL_NAV_DEFAULTS,navigationSettings,normalizeImageUrl,normalizeImageAssetId,defaults,bytes,draft,load,
      BACKUP_FORMAT,BACKUP_VERSION,BACKUP_MAX_BYTES,duplicateKey,backupExport,backupParse,backupPlan,
     sitesDefaults,siteUrl,validSelector,siteRule,sitesLoad,siteFor,builtinSite,siteHint}),configurable:true
 });
