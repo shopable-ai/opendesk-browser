@@ -7,7 +7,7 @@ export const ANALYTICS_ALARM='opendesk.analytics.flush.v1';
 export const ANALYTICS_STATE_KEY='opendesk.analytics.state.v1';
 export const ANALYTICS_VERSION=1;
 // Changing collection categories, recipients or purpose requires a new reviewed receipt.
-export const ANALYTICS_DISCLOSURE_VERSION='analytics-disclosure-2026-10-23-v7';
+export const ANALYTICS_DISCLOSURE_VERSION='analytics-disclosure-2026-10-24-v8';
 export const ANALYTICS_MAX_BATCH=10;
 export const ANALYTICS_MAX_BYTES=16384;
 export const ANALYTICS_MAX_AGE_MS=7*24*60*60*1000;
@@ -107,7 +107,7 @@ export function validateAnalyticsEvent(value,{now=Date.now()}={}){
     value.inventoryItems!==undefined||value.inventoryOverflow!==undefined)
     throw Object.assign(new Error('Unexpected authority projection'),{code:'E_ANALYTICS_SCHEMA'});
   const manual=['tool.manual_attempt','tool.manual_result'].includes(value.event);
-  if(manual&&(!/^anon-[a-f0-9]{24}$/.test(value.toolId)||value.toolType!=='task'||
+  if(manual&&(!/^anon-[a-f0-9]{24}$/.test(value.toolId)||!['task','page'].includes(value.toolType)||
      (value.event==='tool.manual_attempt'?value.runStatus!==undefined:
        !['completed','failed','outcome_unknown'].includes(value.runStatus))))
     throw Object.assign(new Error('Invalid manual authority receipt'),{code:'E_ANALYTICS_SCHEMA'});
