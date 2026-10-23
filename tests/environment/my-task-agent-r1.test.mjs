@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createMyTaskAgent,validateMyTaskAgentProposal} from '../../src/ui/my-task-agent.js';
+import {taskInstructions} from '../../src/ui/conversation/my-task-instructions.js';
 
 const schema={type:'object',properties:{},required:[],additionalProperties:false};
 const installed=()=>({taskId:'search',version:'1.0.0',enabled:true,manifestHash:'pinned',
@@ -46,6 +47,10 @@ function rig(proposals,{hasTask=true}={}){
     get planned(){return planned;}};
 }
 
+test('My task provider receives readable newline-separated instructions',()=>{
+  assert.ok(taskInstructions.includes('\nAllowed action types:'));
+  assert.equal(taskInstructions.includes('\\nAllowed action types:'),false);
+});
 test('strict whitelist prevents fabricated Chrome methods, unexpected fields and multiple writes',()=>{
   assert.throws(()=>validateMyTaskAgentProposal({actions:[{type:'chrome.eval'}]}),
     /不受支持/);
