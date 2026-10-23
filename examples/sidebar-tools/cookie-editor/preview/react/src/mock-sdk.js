@@ -123,6 +123,19 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
     return {authorized:true,ref:1};
    }
    if(operation==='cookieEditor.export.finish')return {closed:true};
+   if(operation==='cookieEditor.clear.begin'){
+     if(!globalGrant)throw error('E_SITE_GRANT_REQUIRED');
+     if(payload?.url!=='https://'+currentSite+'/'||
+       payload.previewRef!==clearPlan?.ref||payload.expectedCount!==clearPlan.ids.length)
+       throw error('E_COOKIE_CONFLICT');
+     const ref=++writeRef;
+     record(operation,{url:payload.url,expectedCount:payload.expectedCount});
+     return {authorized:true,ref};
+   }
+   if(operation==='cookieEditor.clear.finish'){
+     const closed=payload?.ref===writeRef&&writeRef>0;
+     record(operation,{closed});return {closed};
+   }
    // Preview-only synthetic admission; no bypass of formal Host grants.
    if(operation==='cookieEditor.import.begin'||operation==='cookieEditor.write.begin'){
     if(!globalGrant)throw error('E_SITE_GRANT_REQUIRED');
