@@ -21,5 +21,8 @@ test('specialized Workflow fixtures stay linked from the existing Browser Test L
    'workflow-commerce-sort','workflow-commerce-category'])
   assert.ok(commerce.includes('id="'+id+'"'),id);
  assert.match(search,/\?detail=/);assert.match(commerce,/\?product=/);
+ for(const [id,name] of [['camera-x','Camera X'],['lens-y','Lens Y']]){
+  assert.ok(commerce.includes("id:'"+id+"',name:'"+name+"'"),name+' needs an exact local commerce fixture');
+ }
  assert.doesNotMatch(commerce,/id="(?:buy|checkout|payment|submit-order)"/);
 });
