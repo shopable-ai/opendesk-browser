@@ -33,6 +33,7 @@ jobs:
           node --check src/ui/workflow/agent-loop.js
           node --check src/ui/workflow/segment-replay.js
           node --check src/ui/workflow/workflow-reuse.js
+          node --check src/ui/workflow/installed-task-reuse.js
       - name: Install locked dependencies for real build and tests
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: R23.17 exact-recipient observation grant regressions
@@ -45,7 +46,7 @@ jobs:
         run: |
           node --test tests/environment/workflow-direct-execution.test.mjs tests/environment/workflow-local-codex.test.mjs tests/environment/workflow-r15.test.mjs tests/environment/workflow-ai-observation.test.mjs tests/environment/workflow-ai-data-sharing.test.mjs tests/environment/workflow-ai-transport.test.mjs tests/environment/workflow-ui-states.test.mjs tests/environment/workflow-focus.test.mjs tests/environment/workflow-provider-facade.test.mjs
       - name: Bounded agent loop, parameter identity and frozen multi-segment replay
-        run: node --test tests/environment/workflow-agent-loop.test.mjs tests/environment/workflow-segment-replay.test.mjs tests/environment/workflow-natural-reuse.test.mjs
+        run: node --test tests/environment/workflow-agent-loop.test.mjs tests/environment/workflow-segment-replay.test.mjs tests/environment/workflow-natural-reuse.test.mjs tests/environment/workflow-installed-reuse.test.mjs
       - name: Real React Controller save, parameter editing and AI-off replay regression
         run: node --test tests/environment/workflow-react-page.test.mjs
       - name: Real source verification
