@@ -18,6 +18,7 @@ import {packageFingerprint} from '../../scripts/verify-package.mjs';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {verifyAdblockNativeRelease} from '../../scripts/verify-adblock-native-release.mjs';
 import {runAdblockLayoutNative,runAdblockCloseoutNative,adblockSwitchSelector} from './helpers/adblock-layout-native.mjs';
+import {attachVerifiedSidePanel} from './helpers/verified-side-panel-native.mjs';
 
 const BIN=process.env.CHROME_BIN,ROOT=path.resolve(process.env.OPENDESK_ADBLOCK_NATIVE_ROOT||'dist/production');
 const OUT=path.resolve(process.env.OPENDESK_ADBLOCK_NATIVE_EVIDENCE||'artifacts/adblock-r12-native');
@@ -127,51 +128,20 @@ async function attach(c,targetId){
  */
 async function attachActualPanel(c,context,excludeIds=[]){
   assert.ok(context?.documentId&&context?.documentUrl,
-    'Chrome must report real SIDE_PANEL document');
-  const expected=new URL(context.documentUrl);
-  return until(async()=>{
-    const targets=(await c.send('Target.getTargets')).targetInfos
-      .filter(x=>!excludeIds.includes(x.targetId)&&
-        (x.type==='page'||x.type==='other')&&(()=>{
-          try{const actual=new URL(x.url);return actual.protocol===expected.protocol&&actual.host===expected.host&&
-            actual.pathname===expected.pathname;}
-          catch{return false;}
-        })());
-    for(const target of targets){
-      let session;
-      try{
-        session=await attach(c,target.targetId);
-        // Ask inside this document. A CDP target ID is not a Chrome document ID.
-        // Never use a canonical context URL to query all same-path panels: that
-        // would also authenticate a different panel with the same canonical URL.
-        const identity=await evaluate(c,session,`(async()=>{
-          const href=location.href;
-          const contexts=await chrome.runtime.getContexts({
-            contextTypes:["SIDE_PANEL"],documentUrls:[href]
-          });
-          return {href,hostInstanceId:new URL(href).searchParams.get("hostInstanceId"),
-            contexts,realPanel:!!document.querySelector("#tab-tools")&&
-              !!document.querySelector("#sidebar-tool-frame")};
-        })()`);
-        // The selected document may add hostInstanceId with replaceState after
-        // getContexts first reports its canonical URL. Keep its document ID,
-        // then require the live context URL to match this exact target document.
-        const own=identity.contexts.filter(x=>x.documentId===context.documentId&&
-          x.documentUrl===identity.href&&x.contextType==='SIDE_PANEL');
-        const actual=new URL(identity.href);
-        const targetUrl=new URL(target.url);
-        const selectedHost=expected.searchParams.get('hostInstanceId');
-        if(identity.realPanel&&own.length===1&&
-          actual.href===targetUrl.href&&identity.hostInstanceId&&
-          (!selectedHost||selectedHost===identity.hostInstanceId)&&
-          own[0].documentUrl===actual.href){
-          return {target,session,identity,context:own[0]};
-        }
-      }catch{/* An unready target is not proof of Side Panel identity. */}
-      if(session)await c.send('Target.detachFromTarget',{sessionId:session}).catch(()=>{});
-    }
-    return null;
-  },'real Side Panel self-reported documentId and full URL/hostInstanceId',25000);
+    'real Chrome SIDE_PANEL context must be observed before discovery');
+  // The launcher can capture a canonical URL or an already-retired document.
+  // The current SIDE_PANEL document authenticates itself after CDP attaches;
+  // never pin the previous documentId across navigation/reopen.
+  const extensionId=new URL(context.documentUrl).host;
+  return attachVerifiedSidePanel({
+    client:c,extensionId,excludeTargetIds:excludeIds,
+    attachTarget:targetId=>attach(c,targetId),
+    evaluate:(session,expression)=>evaluate(c,session,expression),
+    until,
+    onFailure:diagnostic=>console.error('ADBLOCK_NATIVE side-panel-identity-revalidation-failed '+
+      JSON.stringify({initialContext:{documentId:context.documentId,
+        documentUrl:context.documentUrl},...diagnostic}))
+  });
 }
 async function attachActualReact(c,side){
   const url=await until(()=>evaluate(c,side,
