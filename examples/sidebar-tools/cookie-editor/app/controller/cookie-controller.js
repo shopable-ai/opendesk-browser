@@ -225,11 +225,19 @@ export function createCookieController({adapter,onChange=()=>{}}){
   }
   async function executeClear(){
     const plan=clearPlan,guard=lock();if(!guard)return false;
-    clearPlan=null;let verified=false;
+    clearPlan=null;let verified=false,dispatched=false,ref=null;
     try{
       if(!plan||plan.epoch!==guard.ticket||plan.url!==guard.at.url)
         throw Error('E_COOKIE_CONFLICT');
-      effectPending=true;
+      // This call begins synchronously inside the existing Clear dialog's
+      // real Confirm click, before its activation can be lost to an await.
+      // The trusted Side Panel still checks the exact preview and Host grant.
+      const allowed=await adapter.beginClearIntent(guard.at,plan.previewRef,plan.count);
+      if(!verifiedRead(guard))return false;
+      if(allowed?.authorized!==true||!Number.isSafeInteger(allowed.ref)||allowed.ref<1)
+        throw Object.assign(Error('清理确认未获得可信 Host 授权'),{code:'E_USER_GESTURE_REQUIRED'});
+      ref=allowed.ref;
+      effectPending=true;dispatched=true;
       const p=await adapter.clearExecute(guard.at,plan.previewRef,plan.count);
       if(!verifiedRead(guard))return false;
       if(p?.preview!==false||p?.scope!=='EXACT_HOST_HOST_ONLY'||
@@ -239,10 +247,15 @@ export function createCookieController({adapter,onChange=()=>{}}){
       verified=true;report('Chrome 清理 '+p.removed+' 条，剩余 '+p.remaining+' 条。','success');
     }catch(error){if(verifiedRead(guard)){
       if(rejectLostAccess(error))return false;
-      report('清理可能部分生效'+formatCode(error,'E_COOKIE_CLEAR')+
-        '；重新预览前请先核对，勿自动重试。','error');
+      report((dispatched?'清理可能部分生效':'清理尚未执行')+
+        formatCode(error,'E_COOKIE_CLEAR')+
+        (dispatched?'；重新预览前请先核对，勿自动重试。':
+          '；请检查授权或网页状态后重新预览。'),'error');
     }
-    }finally{unlock(guard);}
+    }finally{
+      if(ref!==null)void adapter.finishClearIntent(ref).catch(()=>{});
+      unlock(guard);
+    }
     if(verified&&current(guard.ticket,guard.at))
       await load(guard.at.url,{preserveMessage:true});
     return verified;
