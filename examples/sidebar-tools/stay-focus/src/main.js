@@ -1,10 +1,11 @@
+import {createFocusController} from '../trusted/focus-controller.js';
 (() => {
   'use strict';
   const api=globalThis.OpenDeskTool, R=globalThis.OpenDeskPageReact, U=globalThis.OpenDeskSidebarUI;
   if(!api?.root||!api?.request||!R?.createRoot||!U?.IconButton||!U?.Switch)
     throw Error('E_STAY_FOCUS_SHARED_UI');
   const h=R.createElement,{Button,IconButton,Card,CardContent,Switch}=U;
-  const controller=globalThis.__opendeskCreateFocusController?.({
+  const controller=createFocusController({
     request:api.request,siteBudget:globalThis.OpenDeskSDK?.browser?.siteBudget
   });
   if(!controller)throw Error('E_STAY_FOCUS_CONTROLLER');
