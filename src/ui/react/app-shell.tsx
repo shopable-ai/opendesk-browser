@@ -5,6 +5,7 @@ import {ExtensionCenterPage} from './tabs/tools.tsx';
 import {CloudConnectionPage} from './tabs/cloud.tsx';
 import {DeveloperPage,DeveloperDock} from './tabs/develop.tsx';
 import {MyTasksPage,MyTasksDock} from './tabs/my-page.tsx';
+import {MyAgentDock} from './tabs/my-agent.tsx';
 import {WorkflowPage} from './tabs/workflow.tsx';
 import {SharedProviderSettingsSheet} from './components/provider-settings.tsx';
 import {ToolHost} from './tabs/tool-host.tsx';
@@ -51,8 +52,7 @@ export function SidebarAppShell({
         </button>
       </div>
       <TaskCatalogPage view={myView} hidden={activeTab!=='catalog'} standalone={activeTab==='catalog'}/>
-      <MyTasksPage view={myView} agent={myAgent} hidden={activeTab!=='tasks'}
-        onOpenSettings={onOpenProviderSettings}/>
+      <MyTasksPage view={myView} agent={myAgent} hidden={activeTab!=='tasks'}/>
       <div id="workbench-tools" role="tabpanel" aria-labelledby="tab-tools"
         className="od-page" data-workbench-page="tools" hidden={activeTab!=='tools'}>
         <section id="sidebar-tools" className="sidebar-tools" aria-label="自定义工具">
@@ -66,6 +66,7 @@ export function SidebarAppShell({
       </div>
       <WorkflowPage controller={workflowController} active={activeTab==='workflow'}
         onOpenProviderSettings={onOpenProviderSettings}
+        providerSettings={providerSettings}
         sharedProviderSettings={Boolean(providerSettings)}/>
       <DeveloperPage view={developerView} hidden={activeTab!=='develop'}/>
       <CloudConnectionPage model={cloudModel} requestsModel={cloudRequestsModel}
@@ -76,6 +77,7 @@ export function SidebarAppShell({
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
         hidden={activeTab!=='debug'}/>}
     </main>
+    <MyAgentDock agent={myAgent} active={activeTab==='tasks'} onOpenSettings={onOpenProviderSettings}/>
     {providerSettings&&<SharedProviderSettingsSheet providerSettings={providerSettings}
       onOpenNativeSettings={onOpenNativeSettings}
       open={providerSettingsOpen} onClose={onCloseProviderSettings}/>}

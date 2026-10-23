@@ -27,6 +27,8 @@ const inputs=[
   'src/ui/react/preview/developer-preview.js',
   'src/ui/my-workbench-view.js','src/ui/sidebar-tools-view.js',
   'src/ui/workflow/workflow-ui-state.js','src/ui/react/tabs/workflow.tsx',
+  'src/ui/react/preview/shared-ai-preview.js','src/ui/conversation/draft-suggestion.js',
+  'src/ui/react/tabs/my-agent.tsx','src/ui/react/tabs/my-agent.css',
   'src/ui/react/tabs/tasks.tsx','src/ui/react/tabs/my-page.tsx',
   'src/ui/react/tabs/schedule.tsx','src/ui/react/tabs/cloud.tsx','src/ui/react/tabs/debug.tsx',
   'scripts/preview/build-sidebar-six-react-preview.mjs','scripts/preview/clipper-stage.mjs','scripts/preview/shared-tool-design.mjs',
@@ -46,6 +48,8 @@ import {createMyWorkbenchView} from ${JSON.stringify(join(root,'src/ui/my-workbe
 import {createSidebarToolsView} from ${JSON.stringify(join(root,'src/ui/sidebar-tools-view.js'))};
 import {createClipperPreview} from ${JSON.stringify(join(root,'src/ui/react/preview/clipper-preview.js'))};
 import {createWorkflowUIState} from ${JSON.stringify(join(root,'src/ui/workflow/workflow-ui-state.js'))};
+import {createPreviewProviderSettings,createPreviewMyAgent} from ${JSON.stringify(join(root,'src/ui/react/preview/shared-ai-preview.js'))};
+import {appendWorkflowSuggestionDraft} from ${JSON.stringify(join(root,'src/ui/conversation/draft-suggestion.js'))};
 const proof={scope:'UI_PREVIEW_ONLY',realHost:false,realPermission:false,realResult:false};
 const names=['tasks','tools','workflow','develop','cloud','debug'];
 const initial=new URLSearchParams(location.search).get('tab');
@@ -58,7 +62,15 @@ myView.setText('task-installed-count','仅预览 · 无真实安装任务');
 myView.actions.taskSearchToggleClick=()=>{
   myView.field('task-search-panel').hidden=!myView.field('task-search-panel').hidden;myView.publish();
 };
+const providerSettings=createPreviewProviderSettings();
+const myAgent=createPreviewMyAgent();
 const workflow=createWorkflowUIState();
+providerSettings.subscribeSettings(()=>{
+ const source=providerSettings.settingsSnapshot().source;
+ workflow.control('workflow-ai-provider').value=source;
+ workflow.patch({sourceName:source==='local_codex'?'本机 Codex':
+  source==='cloud_responses'?'HTTPS Responses':'HTTPS Chat Completions'});
+});
 for(const id of ['workflow-ai-plan','workflow-save','workflow-run','workflow-local-connect'])
   workflow.control(id).disabled=true;
 workflow.control('workflow-local-status').textContent='未连接';
@@ -71,16 +83,23 @@ const workflowActions={
     if(id==='workflow-new')workflow.patch({entryMode:'new-workflow',messages:[]});
   },
   closeSettings(){workflow.control('workflow-provider-settings').open=false;},
-  chooseExample(key){workflow.control('workflow-ai-request').value={
-    fill:'在本地演示表单填写内容',read:'读取本地演示页面',continue:'继续上次的工作流',check:'检查已有工作流'
-  }[key]||'';}
+  chooseExample(key){
+   const text={fill:'在本地演示表单填写内容',read:'读取本地演示页面',
+    continue:'继续上次的工作流',check:'检查已有工作流'}[key];
+   const outcome=appendWorkflowSuggestionDraft(workflow.control('workflow-ai-request').value,text);
+   if(['filled','appended'].includes(outcome.kind))
+    workflow.control('workflow-ai-request').value=outcome.value;
+   workflow.setFocus('workflow-ai-request');
+   return outcome;
+  }
 };
 let app;
 const onNavigate=tab=>{
   document.documentElement.dataset.opendeskTab=tab;
   app.renderNavigation(tab);return true;
 };
-app=mountSidebarApp(document,{debugEnabled:true,onNavigate,developerView,myView,toolView});
+app=mountSidebarApp(document,{debugEnabled:true,onNavigate,developerView,myView,toolView,providerSettings});
+app.connectMyAgent(myAgent);
 const clipper=createClipperPreview({view:toolView,stage:CLIPPER_STAGE_DOCUMENT});
 app.connectWorkflowPage({...workflow,actions:workflowActions});
 // Debug-only, read-only preview: no Chrome permission, history query or data.
@@ -271,7 +290,8 @@ publishRows();
 publishDemoUninstall();
 app.renderDebugDiagnostics({cloudSummary:'仅预览 · 未连接真实 Host',snapshotText:'UI_PREVIEW_ONLY'});
 if(new URLSearchParams(location.search).get('tool')==='web-markdown-clipper')clipper.open();
-window.addEventListener('pagehide',()=>{clipper.dispose();app.dispose();developerView.dispose();workflow.dispose();},{once:true});
+window.addEventListener('pagehide',()=>{clipper.dispose();app.dispose();
+ developerView.dispose();workflow.dispose();myAgent.dispose();providerSettings.dispose();},{once:true});
 document.documentElement.dataset.previewProof=proof.scope;
 document.documentElement.dataset.previewBootScript='ready';
 `;
