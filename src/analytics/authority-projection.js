@@ -58,7 +58,8 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
         continue;
       }
       if(row.state==='prepared')continue;
-      executions.push({type:'page',identity:row.programId,day,status:row.state,
+      executions.push({type:'page',identity:row.programId,day,
+        status:row.state==='outcome-unknown'?'outcome_unknown':row.state,
         receiptId:row.receiptId});
       // effectConfirmed reflects runtime behavior, NOT independent business proof.
     }
