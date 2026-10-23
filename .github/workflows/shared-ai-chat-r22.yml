@@ -19,6 +19,7 @@ on:
       - 'src/ui/tool-shell.js'
       - 'tests/environment/shared-ai-conversation-r22.test.mjs'
       - 'tests/environment/shared-ai-provider-runtime-r21.test.mjs'
+      - 'tests/environment/shared-ai-session-core-r221.test.mjs'
       - 'tests/environment/shared-ai-*-r211.test.mjs'
       - '.github/workflows/shared-ai-chat-r22.yml'
   workflow_dispatch:
@@ -41,6 +42,7 @@ jobs:
           node --test \
             tests/environment/shared-ai-conversation-r22.test.mjs \
             tests/environment/shared-ai-provider-runtime-r21.test.mjs \
+            tests/environment/shared-ai-session-core-r221.test.mjs \
             tests/environment/shared-ai-native-lifecycle-r211.test.mjs \
             tests/environment/shared-ai-consumer-lifecycle-r211.test.mjs \
             tests/environment/shared-ai-workflow-settings-r211.test.mjs \

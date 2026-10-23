@@ -56,9 +56,10 @@ test('R2.2.1 stop, provider generation and disposal reject stale turns without a
 });
 
 test('R2.2.1 business adapters retain Prompt ETag and do not share Bookmark references',()=>{
-  const leased=[];
+  const leased=[],settingsListeners=new Set();
   const providers={
-    acquire:identity=>{leased.push(identity);return {dispose(){},cancelInference:async()=>{}};},
+    acquire:identity=>{leased.push(identity);return {invalidate(){},dispose(){},cancelInference:async()=>{}};},
+    subscribeSettings:listener=>{settingsListeners.add(listener);return ()=>settingsListeners.delete(listener);},
     configuration:()=>({source:'local_codex',generation:1})
   };
   const api={permissions:{onRemoved:{addListener(){},removeListener(){}}}};
@@ -80,9 +81,12 @@ test('R2.2.1 business adapters retain Prompt ETag and do not share Bookmark refe
   assert.equal(bookmark.identity().consumerId,'bookmark');
   assert.equal(prompt.identity().consumerId,'prompt');
   assert.equal(leased.length,3,'Prompt Edit keeps its own Provider Lease');
+  assert.equal(settingsListeners.size,2);
   bookmark.dispose();
+  assert.equal(settingsListeners.size,1,'closing one consumer removes only its settings subscription');
   assert.deepEqual(bookmark.readSession().refs,{folderId:null,bookmarkId:null,matches:[]});
   assert.equal(prompt.readSession().refs.etag,etag,'Bookmark close must not destroy Prompt ETag');
   prompt.dispose();
+  assert.equal(settingsListeners.size,0);
   assert.equal(prompt.readSession().draft,'');
 });

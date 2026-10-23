@@ -17,6 +17,9 @@ const partialProduct=/^(?:请)?(?:搜索|查找|检索) ([\p{L}\p{N} _.-]{2,120}
 const normalize=value=>typeof value==='string'?value.trim()
   .replace(/[。.!！]+$/gu,'').replace(/[,，]\s*/gu,'，').replace(/\s+/gu,' '):'';
 const escapeRegExp=value=>value.replace(/[/\\^$*+?.()|[\]{}]/g,'\\$&');
+const hiddenInstruction=/(?:[，,;；。!?！？]|然后|随后|接着|同时|并且|以及|但是|不过|如果|否则|必须|要求|限制|限定|不要|不得|禁止|删除|提交|购买|下单|发送|上传|下载|修改|登录|付款|支付|转账|撤销|\b(?:then|and|delete|submit|pay|buy|send|upload|download|update|must|without|never|don't)\b)/iu;
+// A free-text parameter is data, not a second instruction channel.
+// Conservative rejection is safer than silently dropping new user clauses.
 
 function extractDeclaredParameters(template,request,schema,{allowMissing=false}={}){
   const example=template.replaceAll('{query}','camera').replaceAll('{productName}','Camera X');
@@ -39,7 +42,8 @@ function extractDeclaredParameters(template,request,schema,{allowMissing=false}=
     schema.properties.keyword?.type==='string'&&
     schema.properties.keyword.title==='搜索关键词'){
     const found=normalize(request).match(declaredDemoSearch);
-    if(found)return {params:{keyword:found[1].trim()},kind:'demo-search',sensitive:true};
+    if(found&&!hiddenInstruction.test(found[1]))
+      return {params:{keyword:found[1].trim()},kind:'demo-search',sensitive:true};
     if(missingDemoSearch.test(normalize(request)))
       return {params:{},kind:'demo-search',sensitive:true};
     return null;
@@ -59,6 +63,7 @@ function extractDeclaredParameters(template,request,schema,{allowMissing=false}=
   for(let i=0;i<names.length;i++){
     const name=names[i],rule=schema.properties[name],raw=hit[i+1].trim();
     if(!raw&&allowMissing)continue;
+    if(rule.type==='string'&&hiddenInstruction.test(raw))return null;
     let value=raw;
     if(rule.type==='boolean'){
       if(!['true','false','是','否'].includes(raw))return null;

@@ -6,22 +6,37 @@
   "candidateBinding": "sourceSha256 plus the Git commit containing this evidence file; baseCommit is integrated main before this repair commit",
   "nodeVersion": "v24.16.0",
   "sourceSha256": {
-    ".github/workflows/shared-ai-chat-r22.yml": "ade256d27374e6715e66d4d3e5b4179b06599f6c7558a354cc188266a2a749e1",
+    ".github/workflows/shared-ai-chat-r22.yml": "82f3d642f9adfee52c1e71c3a379f04294edead8bb764af72ce325931f845dd3",
     "src/ui/ai/provider-runtime.js": "dbff8f920473dd4d996b4eb718810cec456670238f9d30d64d6be1d4c9878e59",
-    "src/ui/conversation/provider-consumer.js": "80de4a95e535c305bc56ef774a18b8506b95641a73d7c02e8489e3e30e3fc23a",
+    "src/ui/conversation/provider-consumer.js": "d4a16953ba208cf3cd3bfa317d8656c49572215cc8e9bee07940c2acff02028b",
     "src/ui/workflow/local-codex.js": "41272fb6916fe4ea667ac4446bde3c70e695bd30f63692a2e7bfd20b5008e71e",
-    "src/ui/workflow/segment-replay.js": "45954646c7c1482b1f7a170743760bb5932635a2046b9b9784b9d2439f184d8a",
+    "src/ui/workflow/segment-replay.js": "d8d9f988ea4def20e66810d491462f344a196af1338dfdfe3c060a07780a07dc",
     "src/ui/workflow/workflow-reuse.js": "098260ade59e98ef9b07929b65542ef00fb2333fe44182cf852775ae9dcb9ac4",
-    "src/ui/workflow/workflow-view.js": "1e30066dc6b481e108c680afceabf3dcc6ffa037710581ccad4e8f029c6ced98",
+    "src/ui/workflow/workflow-view.js": "e629f26ae0c8430e8af0a6cfde6ba30fb4497e6850f925d194bc6dc10bf11758",
     "tests/environment/workflow-local-codex.test.mjs": "0233e4185ff0023dfb1ed74549b83bd99252e0273ffe98b3df3b57e6fefaa441",
     "tests/environment/workflow-react-fixture.mjs": "7b1365f9876087c1c3392e37fb3619cbce147d85877ab6ac5c7b5daace2272d7",
     "tests/environment/workflow-recipient-grant-integration-r2317.test.mjs": "22e3975564afeb226d6d2958f4657b60f9ba813474f898871938f80e9efd1451",
     "tests/environment/shared-ai-consumer-lifecycle-r211.test.mjs": "cf9c15256765e8604d3c54b2b33ddd03bab6a68721b6868b9177eea3df04ed16",
     "tests/environment/shared-ai-native-lifecycle-r211.test.mjs": "1fd5684a71555b25843f2382593eeeee593b3d4408f530c6feb8bb5dbba327ca",
     "tests/environment/shared-ai-workflow-settings-r211.test.mjs": "c1f378f169999de973699b04e5a526a5064a31c456a3b1a1b29ba83072a74847",
-    "tests/environment/shared-ai-provider-runtime-r21.test.mjs": "cb41e933f91ae1e8362c6b71a4d641c674b1d2444abfb04d3f98006e806decaf"
+    "tests/environment/shared-ai-provider-runtime-r21.test.mjs": "cb41e933f91ae1e8362c6b71a4d641c674b1d2444abfb04d3f98006e806decaf",
+    "tests/environment/shared-ai-session-core-r221.test.mjs": "b515a1202c2afd9c3930ba0ed77353f2bbcd7c51c9741fa647b4a768d94bfd37"
   },
   "results": [
+    {
+      "command": "node --test --test-reporter=tap tests/environment/shared-ai-provider-runtime-r21.test.mjs tests/environment/workflow-provider-facade.test.mjs tests/environment/opendesk-conversation-r16-authorization.test.mjs tests/environment/opendesk-conversation-r13-prompt-business.test.mjs tests/environment/my-task-agent-r1.test.mjs tests/environment/workflow-natural-reuse.test.mjs tests/environment/workflow-recipient-grant-integration-r2317.test.mjs tests/environment/shared-ai-consumer-lifecycle-r211.test.mjs tests/environment/shared-ai-session-core-r221.test.mjs tests/environment/workflow-segment-replay.test.mjs tests/environment/shared-ai-conversation-r22.test.mjs tests/environment/shared-ai-workflow-settings-r211.test.mjs",
+      "status": "PASS",
+      "counts": {
+        "tests": 118,
+        "pass": 118,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "requiredSevenTests": 90,
+      "log": "artifacts/shared-ai-r211-20261023/final-integrated-contracts.tap",
+      "sha256": "01f5133b2cae6ac0d4979833419246797a466e10c5454fa15fdac5c579965a73"
+    },
     {
       "command": "node --test --test-reporter=tap tests/environment/shared-ai-provider-runtime-r21.test.mjs tests/environment/workflow-provider-facade.test.mjs tests/environment/opendesk-conversation-r16-authorization.test.mjs tests/environment/opendesk-conversation-r13-prompt-business.test.mjs tests/environment/my-task-agent-r1.test.mjs tests/environment/workflow-natural-reuse.test.mjs tests/environment/workflow-recipient-grant-integration-r2317.test.mjs tests/environment/shared-ai-consumer-lifecycle-r211.test.mjs tests/environment/shared-ai-workflow-settings-r211.test.mjs",
       "status": "PASS",
@@ -181,7 +196,7 @@
     "head": "12f514fb4567f291ac8ccc3dff0636b30f0d9cd7",
     "preserved": "Parallel neutral Session and split-layout Frame/installed Task work are retained, not implemented by this task. Session round fences and disposal coexist with Provider-generation/revocation errors and settings unsubscribe. Independent reviewer rechecked the conflict resolution; no new evidenced P0-P2 findings. Affected 102 tests plus Frame compatibility 4 rerun PASS; unchanged Native/transport/parser evidence reused.",
     "finalNote": "A second non-conflicting merge retained parallel Workflow Frame/My draft changes through de1e61e938019662269bb0c8a0d224582a10cdb0. Only affected Frame/settings compatibility rerun: 6 PASS. Prior required/Native/transport/parser implementation inputs unchanged; source gate evidence is from 3e46315b2, final CI tracked separately.",
-    "lastMergeNote": "Retained parallel My Agent Session changes; 21 affected My/recipient tests PASS. Recipient keeps stronger inlined permission gates instead of the duplicate helper. All original repair source hashes unchanged."
+    "lastMergeNote": "Retained parallel Workflow readback/analytics changes. Final affected suite: 118 PASS. New parallel Session fixture lacked Runtime subscribeSettings/invalidate; fixed fixture to match actual Runtime and assert subscription cleanup, without weakening product authority. Included Session test in existing CI. Prior 112 test run was 111 PASS/1 FAIL and is superseded."
   },
   "dependencySha256": {
     "src/ui/conversation/session.js": "0a018514e21f75a5684737f3aa8c60bc566464203c313d6fd261a8fe360100e2",
@@ -220,5 +235,12 @@
       "sha256": "5a7b89710e0ed1e65f4e7e99350147c45b45e285a2b77186de95ff61446c98cc"
     }
   ],
-  "latestCompatibilityMerge": "45426aa21bd92446851999add43f8c2fa8162878"
+  "latestCompatibilityMerge": "7b2d516513b99e88904808ac8c2d01f1f2ea5f7e",
+  "supersededFailure": {
+    "log": "artifacts/shared-ai-r211-20261023/merged-isolation-reuse-final.tap",
+    "sha256": "a67bfdb9918226abfd4ac65b0017cb6138b97bd563ed6dbfa97ef14492933cc7",
+    "pass": 111,
+    "fail": 1,
+    "reason": "New parallel test fixture missing Runtime methods; corrected and revalidated in final 118."
+  }
 }

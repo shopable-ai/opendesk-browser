@@ -119,9 +119,10 @@ test('R1.5 issued write with ambiguous receipt is UNKNOWN, never safe to replay'
 });
 
 test('R1.5 React reveal respects filter/manual navigation; Provider lifecycle remains trusted',async()=>{
- const [app,workflow,dock,preview]=await Promise.all([
+ const [app,workflow,consumer,dock,preview]=await Promise.all([
   readFile('examples/sidebar-tools/bookmark-manager/src/react/App.jsx','utf8'),
   readFile('src/ui/workflow/workflow-view.js','utf8'),
+  readFile('src/ui/conversation/provider-consumer.js','utf8'),
   readFile('src/ui/react/components/conversation.tsx','utf8'),
   readFile('examples/sidebar-tools/bookmark-manager/preview/react/src/main.jsx','utf8')
  ]);
@@ -135,10 +136,10 @@ test('R1.5 React reveal respects filter/manual navigation; Provider lifecycle re
  assert.doesNotMatch(app,/disabled=\{!dock\} onClick=\{dock\?\.toggle\}/);
   assert.match(dock,/className="sidebar-tool-icon-action od-icon-button od-conversation-frame-trigger"/);
  assert.match(workflow,/api\.permissions\.onRemoved\?\.addListener\(removedPermissions\)/);
- assert.match(workflow,/invalidateBookmarkConversation\(/);
- assert.match(workflow,/api\.permissions\.contains\(grantPattern\?/);
- assert.match(workflow,/permissions:\['nativeMessaging'\]/);
- assert.match(workflow,/authorization:Object\.freeze\(\{signal:abortController\.signal,assertWrite,release\}\)/);
+ assert.match(consumer,/invalidateBookmarkConversation\(/);
+ assert.match(consumer,/api\.permissions\.contains\(grantPattern\?/);
+ assert.match(consumer,/permissions:\['nativeMessaging'\]/);
+ assert.match(consumer,/authorization:Object\.freeze\(\{signal:abortController\.signal,assertWrite,release\}\)/);
  assert.doesNotMatch(dock,/\.bookmarks\.|generateStructured\(|createRoot\(/);
  assert.match(preview,/创建\|新建/);
  assert.match(preview,/\$currentPage/);

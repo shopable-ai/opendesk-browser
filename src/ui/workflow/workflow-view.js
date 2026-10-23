@@ -73,6 +73,17 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   const get=id=>doc?.getElementById(id);
   const focus=(id)=>ui.setFocus(id);
   const writeWorkflowOutput=value=>{control('workflow-output').text=String(value);};
+  // Audited first-party result adapter. It reports NO page text, URL,
+  // step names or user input; the Host independently checks original Run/Result.
+  const reportVerifiedWorkflowEffect=originalRunId=>{
+    try{
+      void Promise.resolve(api.runtime?.sendMessage?.({
+        protocol:'opendesk.analytics.v1',kind:'event.workflow_verified',
+        event:'workflow.business_effect_verified',toolId:'workflow',
+        channel:'extension',runId:originalRunId
+      })).catch(()=>{});
+    }catch{/* Telemetry can never affect the user's Workflow. */}
+  };
   const session=()=>Number.isSafeInteger(currentPageTarget?.windowId)
     ? SESSION_PREFIX + currentPageTarget.windowId:null;
   let disposed=false,busy=false,runId=null,revision=null,compileToken=0,compiled=null;
@@ -777,8 +788,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
             searchEffectVerified:Boolean(effect&&effect.kind.startsWith('search-')),
             navigationEffectVerified:Boolean(effect&&['link-page','product-page'].includes(effect.kind))
           });
-          if(lastRun==='success'&&evidenceLevel==='BUSINESS_EFFECT_VERIFIED')
+          if(lastRun==='success'&&evidenceLevel==='BUSINESS_EFFECT_VERIFIED'){
             lastTrustedRun={runId:claim.runId,sourceHash:freeze.sourceHash,siteOrigin:captured.origin};
+            if(proof?.resultId)reportVerifiedWorkflowEffect(claim.runId);
+          }
           if(lastRun==='failed' && !hasError)
             status('运行未成功或结果无法确认，请检查真实结果及页面效果；不会自动重试。',true);
           const readOnlyVerified=lastRun==='success'&&decoded&&
@@ -826,6 +839,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           }
           evidenceLevel=directExecutionEvidenceLevel({
             receiptVerified:true,hasReadback:readbackVerified});
+          if(evidenceLevel==='BUSINESS_EFFECT_VERIFIED'&&receiptProof?.resultId)
+            reportVerifiedWorkflowEffect(claim.runId);
           lastTrustedRun={runId:claim.runId,sourceHash:freeze.sourceHash,siteOrigin:captured.origin};
           if(source.kind==='saved')status('固定 r'+source.revision+
             ' 已脱离 AI 运行（SHA-256：'+source.contentHash.slice(0,12)+'…）。'+

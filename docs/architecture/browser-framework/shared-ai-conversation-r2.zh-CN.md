@@ -217,3 +217,5 @@ R2.2 抽出中立 Conversation Session、共享 Chat Frame、通用 Provider 设
 **R2.2 入口尚未放行**：下一条用户操作是在允许访问扩展页面的真实环境，先完成 Bookmark AI 创建文件夹/书签并读回真实树，再验 Prompt、My Task、Workflow 复用及 Native 隔离/升级。恢复后复用本轮有效 Node 证据，源码不变不重复全组。通过 R2.1 门槛后，才可继续审核现有 `src/ui/react/components/conversation.tsx`、`provider-settings.tsx` 与 `tool-shell.js` 注入接口、`provider-runtime.js` 的 settings/Lease 合同、`provider-consumer.js` 业务授权适配及 `workflow-view.js` 的共享会话接入；业务 Service/Host 的执行权威保持不变。本轮未开发 Conversation Session 或扩大 UI 迁移；合入的 `session.js` 来自并行 main 提交。冲突解决保留 Session 的 round begin/finish/assertCurrent/dispose，同时维持本轮错误语义、设置退订、引用与 Lease 清理。
 
 推送竞争的最后一次无冲突集成保留 main 已有 Workflow Frame / My Agent 草稿修复；仅复验受影响 Frame 与设置 6/6 PASS。其余有效证据复用；1054 文件源码门禁对应 `3e46315b2`，后续候选完整门禁以新提交 CI 为准。
+
+最终受影响合同集为 **118/118 PASS**（含指定七文件90项）。合入至 `7b2d51651` 后，新并行 Session Fixture 缺 `subscribeSettings/invalidate` 导致 111/112；补齐正式 Runtime 接口并断言订阅清理，复验通过，已纳入原 CI。先前失败日志保留，不冒称曾全部通过。最终提交包含哪个远端父提交、各源码与日志 SHA-256 以证据 JSON 为准。
