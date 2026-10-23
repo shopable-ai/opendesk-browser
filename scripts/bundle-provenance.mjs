@@ -121,7 +121,7 @@ export function trustedToolShellStyle(root=process.cwd()){
 const compiledPromptShortcutInputs=Object.freeze({
   'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'65444eb5ad35847701d21b4489d895028c5fa0c3',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'4c6f608a26e0d69278c18a0afda94b3c8ce8274c',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'eadc84bf753a8ebcde05cce08dacddad54f5f5c1',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'197b0a54ac8685631f046ad465b79714b235bdfb',
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js':'86e95bff786e52efb9089f97126542430f39a716',
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js':'b960044deb5e7d059c26d5d520f912c0b72c7b0e',
   'examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js':'7c10e8270c43be93229afbf0d3171455de628030',
@@ -279,8 +279,8 @@ const compiledReadingTocInputs=Object.freeze({
   'examples/sidebar-tools/reading-toc/trusted/overview.js':'a148dc645ec49b22f0f0a911f4861960442617b5',
   'examples/sidebar-tools/reading-toc/trusted/model.js':'9a7320084caa2efa2acb40dcaf5c00e60659bc66',
   'examples/sidebar-tools/reading-toc/trusted/placement.js':'b29ddc6e66d0203fefccbcb98c071b046aaaa2c0',
-  'examples/sidebar-tools/reading-toc/trusted/page.js':'8c9c3faa71c26a84e3388c41c31dffcac947d76e',
-  'examples/sidebar-tools/reading-toc/trusted/view.js':'623ff8831e8400d0598e600fd0d274d4788d9358',
+  'examples/sidebar-tools/reading-toc/trusted/page.js':'7a5337360a9512b17acefd4dc2f45b894c4b8eaf',
+  'examples/sidebar-tools/reading-toc/trusted/view.js':'5528e01bc46fa8c6bb38390898dec3a608c055b7',
   'examples/sidebar-tools/reading-toc/trusted/policy.js':'17d930495245bf92c6e36a9228a7cd286dc611b3',
   'examples/sidebar-tools/reading-toc/trusted/locales.generated.js':'0484bd67fadb23a88c6a7164435d5bf90acd8295',
   'examples/sidebar-tools/reading-toc/trusted/existing-tabs.js':'f5d9882cd1de65ef2ed0115c4d002114575c1058'

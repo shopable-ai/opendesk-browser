@@ -37,3 +37,15 @@
 - 精确第一处异常：`scripts/verify-package.mjs:208`，`Error: Unexpected web accessible resources`。旧候选 `a77c01e97ad39f907d99d6f05e847362cefaff66` 的 `manifest.json` 已公开四个 `managed-site/blocked-{quota,schedule,session,always}.html`，但该候选 `APPROVED_WEB_ACCESSIBLE_RESOURCES` 只认可 SDK MAIN 和 Stay Focus 四个阻断页面。不是 DNR Native 失败，也不是旧 Stay Focus Blob pin 失败。
 - 已有**并行修正** [`b91416fe9fd8`](https://github.com/shopable-ai/opendesk-browser/commit/b91416fe9fd81accb488b435a48a8fbe48537ef1)：`scripts/verify-package.mjs` 的 `MANAGED_SITE_BLOCK_RESOURCES`、`APPROVED_WEB_ACCESSIBLE_RESOURCES`、`HTML_REFERENCES`、`editionFiles` 和 CSS 验证对四个确切静态页面同步。该改动不增加 wildcard JS，不取消原验证。**新 main 静态输入一致性已审计，但修正提交之后仍没有看到同 SHA 的生产/NATIVE PASS**，状态 `FIX_PRESENT_VERIFICATION_PENDING`。
 - 核对 `Time Review 39962819855` 时仍为 `queued`；不得误称包含 `8b71f57` 的原生安装诊断已返回。下一步只针对更新后候选查看 App/AdBlock 同 SHA 真实校验、DNR Native 和其它全部必要门禁。
+
+
+## R1.12.1-CORE GitHub 精确来源审阅与最小修复（2026-10-24）
+
+- **参考 HEAD**：`0e066b6a87d4abaae89390d0f5f6df4a31b29134`。
+- **Owner/边界**：本对话官方扩展 R1.12.1-CORE；仅写入 `scripts/bundle-provenance.mjs`、`scripts/tests/prompt-shortcuts-r111-preview-chrome.mjs`、本文件。仅 main，使用最新 HEAD 租约原子提交，不强推、不开分支/PR；无 Mac 工作区、Chrome profile、端口或构建产物占用。远端 Git 事务完成即释放。
+- **失败原始证据**：[AdBlock Actions 40005306500 source job 120591589557](https://github.com/shopable-ai/opendesk-browser/actions/runs/40005306500) 的 `scripts/bundle-provenance.mjs:303` 首先拒绝 Reading TOC `view.js`，Native 和 Publish 被跳过；[Prompt Shortcuts Actions 40005306351](https://github.com/shopable-ai/opendesk-browser/actions/runs/40005306351) 有两例旧 Blob pin 失败，Chromium 真实预览测试 `scripts/tests/prompt-shortcuts-r111-preview-chrome.mjs:169` 预期五个、实际四个入口（冗余「管理」已按产品决策删除）。[Time Review 39962819855](https://github.com/shopable-ai/opendesk-browser/actions/runs/39962819855) 是旧候选的 Host 断言和 WASM/WAR 资源门禁，不构成当前 Native 功能结果。
+- **变更对比已审阅**：Reading TOC `trusted/view.js` `623ff883`→`5528e01b` 仅将原生点击 `event.isTrusted===true` 向现有回调传递（来源提交 `fec1fc16`）；`trusted/page.js` `8c9c3faa`→`7a533736` 仅在原导航重验授权、代际及章节实际可见且真实点击后上报无网页内容的 `reading_toc.navigated` 统计；回执失败不影响原导航（来源提交 `0869b6cf`）。仅编入既有 `agents/page-relay.js`。
+- **Prompt Shortcuts** `trusted/page.js` `eadc84bf`→`197b0a54` 仅删除 6 行附加「管理」按钮的生成逻辑，保留 OD 折叠、提示词入口及现有独立管理页（来源提交 `b3f06ec0`）。既有 `agents/page-relay.js` / `ui/sidebar-tool-host.js` 固定目标不变。未增加远端依赖、执行世界、权限、网站范围或动态安装权。
+- **实施**：只重新固定以上三份经审阅的完整 40 位 Git Blob SHA，旧的路径/文件真实类型/符号链接/固定目标审计、非法来源拒绝保持；Stay Focus 十二个 pin、AdBlock、Time Review、权限、Catalog、正式 JSON 不改。旧 Chromium 预览脚本的 OD+N 数量由 N+2 改为 N+1，新增确认「管理」按钮不存在的负例；不恢复已删除的产品入口。
+- **验证**：在 GitHub 通过 Blob/API 历史比对与原始 Actions 日志确认上述源差异和第一失败。该提交不是 Node、生产打包、真实 Chromium、Native、Storage 或 Release 的 PASS；其最新候选这些层仍为 `NOT_TESTED`，须等同 SHA 新 Actions/真实设备回执。原先本地成功按原来源身份保留，不升级身份。**RELEASE=NO**；目前不得生成最终 Mac Codex 全量验收提示词。
+- **后续最小任务**：检查最新候选的 Source/Node/Prompt Chromium/AdBlock CI；出现首错则定向修复。Time Review 需要新 Native 安装诊断和真实计时，AdBlock 需要 DNR 实际拦截/规则所有权，Prompt Shortcuts 1.1.15 需要正式 Chrome 安装升级/真实网站授权、数据及注入回执。保持其余工具按影响复用已有证据。
