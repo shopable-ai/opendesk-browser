@@ -31,8 +31,12 @@ export function migrateFocusState(legacy,{at=Date.now()}={}){
   const usedAfter=Object.values(usage).reduce((a,b)=>a+b,0);
   if(usedBefore!==usedAfter||Object.entries(state.usage).some(([pool,ms])=>usage[pool]!==ms))
     fail('E_MIGRATION_LOSS','迁移后的每池用量与旧账本不守恒');
-  if(state.enabled&&!state.authorizedHash)
-    fail('E_MIGRATION_GRANT','旧启用状态缺少原授权，不能直接恢复');
+  // A grant is a hash + installation-epoch pair. An enabled v1 snapshot
+  // with either half missing is not authority to activate Chrome rules after
+  // an upgrade. The Installer must also compare both against the installed
+  // legacy owner before binding any reviewed v3 site scope.
+  if(state.enabled&&(!state.authorizedHash||!state.authorizedEpoch))
+    fail('E_MIGRATION_GRANT','旧启用状态缺少完整的原授权身份，不能直接恢复');
 
   // Legacy reminders were only generated for the product's default shared
   // group. Transfer the exact threshold ledger, not a new notification.
