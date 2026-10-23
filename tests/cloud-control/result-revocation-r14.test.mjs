@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {canonical} from '../../src/platform/protocol.js';
 import {createCloudService} from '../../src/cloud-control/service.js';
 
 const KV='frameworkKV',CONFIG='cloud:config',PREFIX='cloud:request:';
@@ -34,6 +36,7 @@ const baseRun={tag:'controller-run',namespace,principal:host.principal,registrat
 const baseResult={tag:'controller-result',namespace,runId:runRef.runId,resultId:runRef.resultId,
   revision:{sourceHash:'source-one'},state:'completed',outcome:{ok:true,valueWire:{type:'json',value:7}}};
 
+const receiptDigest=options=>createHash('sha256').update(canonical(JSON.parse(options.body))).digest('hex');
 const clone=value=>value===undefined?undefined:structuredClone(value);
 const rowKey=row=>row.storageKey||PREFIX+row.requestId;
 const errorCode=code=>error=>error?.code===code;
@@ -80,7 +83,7 @@ function fixture({row=baseRow,run=baseRun,result=baseResult,fetcher}={}){
     fetcher:fetcher??(async(url,options)=>{
       if(url.endsWith('/v1/reconcile'))return Response.json({providerId:'provider-one',
         assignments:[{assignmentId:'assignment-one',runRef,leaseUntil:60_000}]});
-      if(url.endsWith('/v1/receipt'))return Response.json({receiptId:'receipt-one',digest:'digest-one'});
+      if(url.endsWith('/v1/receipt'))return Response.json({receiptId:'receipt-one',digest:receiptDigest(options)});
       return Response.json({});
     })});
   return {storage,service,emitted};
@@ -112,7 +115,7 @@ test('revoking one Task preserves another approved Task receipt already in fligh
     if(url.endsWith('/v1/receipt')){
       receiptSignal=options.signal;receiptStarted();await release;
       if(receiptSignal.aborted)throw receiptSignal.reason;
-      return Response.json({receiptId:'other-task-receipt',digest:'other-task-digest'});
+      return Response.json({receiptId:'other-task-receipt',digest:receiptDigest(options)});
     }
     return Response.json({});
   };
@@ -169,7 +172,7 @@ test('revocation aborts an in-flight receipt and prevents async confirmation',as
       receiptSignal=options.signal;receiptStarted();
       await release;
       if(receiptSignal.aborted)throw receiptSignal.reason;
-      return Response.json({receiptId:'late-receipt',digest:'late-digest'});
+      return Response.json({receiptId:'late-receipt',digest:receiptDigest(options)});
     }
     return Response.json({});
   };
@@ -292,12 +295,12 @@ test('late receipt success that ignores AbortSignal is not confirmed after revok
   const release=new Promise(resolve=>{releaseReceipt=resolve;});
   const row={...baseRow,state:'permitted',receipt:null,delivery:null};
   const run={...baseRun,state:'completed',retirementState:'released'};
-  const fetcher=async(url)=>{
+  const fetcher=async(url,options)=>{
     if(url.endsWith('/v1/reconcile'))return Response.json({providerId:'provider-one',
       assignments:[{assignmentId:'assignment-one',runRef,leaseUntil:60_000}]});
     if(url.endsWith('/v1/receipt')){
       receiptStarted();await release;
-      return Response.json({receiptId:'ignored-abort-receipt',digest:'ignored-abort-digest'});
+      return Response.json({receiptId:'ignored-abort-receipt',digest:receiptDigest(options)});
     }
     return Response.json({});
   };

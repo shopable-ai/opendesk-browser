@@ -15,8 +15,11 @@ const exact=(v,keys,optional=[])=>{if(!v||typeof v!=='object'||Array.isArray(v)|
 const nonempty=v=>typeof v==='string'&&v.trim().length>0;
 const secureEqual=(a,b)=>typeof a==='string'&&typeof b==='string'&&Buffer.byteLength(a)===Buffer.byteLength(b)&&timingSafeEqual(Buffer.from(a),Buffer.from(b));
 const runRefKeys=['runId','resultId','requestId','sourceHash','manifestHash','grantId'];
+const uuid=v=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
+const controlOption=b=>{if(Object.hasOwn(b,'controlProtocol')&&b.controlProtocol!==2)fail('E_SCHEMA');return b.controlProtocol===2?{controlProtocol:2}:{};};
 const bindingKeys=['providerId','executorId','pairingId','pairingGeneration','attemptEpoch','claimId','jobId','assignmentId'];
-export async function openProvider({directory='.local/cloud-control',port=43112,clock=()=>Date.now(),publicTls=null,taskPackages=[]}={}) {
+export async function openProvider({directory='.local/cloud-control',port=43112,clock=()=>Date.now(),publicTls=null,taskPackages=[],ledger=null}={}) {
+  if(ledger&&(!nonempty(ledger.ledgerId)||typeof ledger.initialize!=='function'||typeof ledger.transaction!=='function'||typeof ledger.readOutbox!=='function'))fail('E_LEDGER_CONFIG');
   if(!Array.isArray(taskPackages))fail('E_SCHEMA');
   const additionalTasks=[];const packageKeys=new Set([taskRegistryKey(builtinTask)]);
   for(const value of taskPackages){const task=await registeredPackage(value),key=taskRegistryKey(task);if(packageKeys.has(key))fail('E_TASK');packageKeys.add(key);additionalTasks.push(task);}
@@ -36,12 +39,22 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
     cert:await readFile(resolve(publicTls.certFile))
   }:null;
   directory=resolve(directory);await mkdir(directory,{recursive:true,mode:0o700});
+  const backendFile=resolve(directory,'ledger.json');
   const lock=resolve(directory,'provider.lock');
   let handle;try{handle=await open(lock,'wx',0o600);await handle.writeFile(String(process.pid));}
   catch(error){if(error.code!=='EEXIST')throw error;const pid=Number(await readFile(lock,'utf8'));try{process.kill(pid,0);fail('E_PROVIDER_BUSY');}catch(e){if(e.code!=='ESRCH')throw e;}await unlink(lock);handle=await open(lock,'wx',0o600);await handle.writeFile(String(process.pid));}
+  // Release only this instance's lock on every startup failure, including a
+  // database outage or invalid stored Task. Never leave an apparently live writer.
+  try{
+  let backend;
+  try{backend=JSON.parse(await readFile(backendFile,'utf8'));}catch(error){if(error.code!=='ENOENT')throw error;}
+  if(backend!==undefined&&(!backend||backend.format!=='opendesk.cloud-ledger.v1'||!nonempty(backend.ledgerId)||!nonempty(backend.providerId)))fail('E_LEDGER_IDENTITY','Invalid PostgreSQL backend marker; recovery required');
+  if(backend&&(!ledger||backend.ledgerId!==ledger.ledgerId))fail('E_LEDGER_REQUIRED','Use the original PostgreSQL ledger; never fall back to JSON');
+  if(ledger){try{await readFile(resolve(directory,'state.json'));fail('E_MIGRATION_REQUIRED','Existing JSON requires an explicit verified single-writer migration');}catch(error){if(error.code!=='ENOENT')throw error;}}
   const file=resolve(directory,'state.json'),credentialFile=resolve(directory,'admin.json');
   let state,credentials;
   try{state=JSON.parse(await readFile(file,'utf8'));}catch(e){if(e.code!=='ENOENT')throw e;state={version:1,providerId:randomUUID(),executors:{},pairs:{},jobs:{},requests:{},faults:{}};}
+  async function prepareState(){
   // Migrate legacy R1-R4 state without changing old jobs, requests or receipts.
   // Legacy assigned work remains pinned to its original Executor. Unowned queued
   // R1-R5 jobs stay quarantined: an identical Task never grants ownership.
@@ -61,16 +74,35 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
     fail('E_TASK_CONFLICT','Built-in task identity changed');
   state.taskRegistry[builtinKey]=builtinTask;
   for(const task of additionalTasks){const key=taskRegistryKey(task);if(state.taskRegistry[key]&&canonical(state.taskRegistry[key])!==canonical(task))fail('E_TASK_CONFLICT');state.taskRegistry[key]=task;}
+  }
+  await prepareState();
   try{credentials=JSON.parse(await readFile(credentialFile,'utf8'));}catch(e){if(e.code!=='ENOENT')throw e;credentials={adminToken:token(),pairingCode:token()};await writeFile(credentialFile,JSON.stringify(credentials),{mode:0o600});}
+  if(ledger){
+    const initialized=await ledger.initialize({state,credentials,
+      expectedProviderId:backend?.providerId,requireExisting:!!backend,
+      beforeInitialize:async providerId=>{
+        if(backend)return;
+        const temporary=backendFile+'.tmp';
+        const marker=await open(temporary,'w',0o600);
+        try{await marker.writeFile(JSON.stringify({format:'opendesk.cloud-ledger.v1',ledgerId:ledger.ledgerId,providerId}));await marker.sync();}finally{await marker.close();}
+        await rename(temporary,backendFile);
+        const parent=await open(directory,'r');
+        try{await parent.sync();}finally{await parent.close();}
+      }});
+    state=initialized.state;credentials=initialized.credentials;
+    await ledger.transaction(async current=>{state=current;await prepareState();},{event:{kind:'provider.initialize'}});
+    await writeFile(credentialFile,JSON.stringify(credentials),{mode:0o600});
+  }
   let tail=Promise.resolve();
-  async function save(){const h=await open(file+'.tmp','w',0o600);try{await h.writeFile(JSON.stringify(state,null,2));await h.sync();}finally{await h.close();}await rename(file+'.tmp',file);}
+  async function save(){if(ledger)return;const h=await open(file+'.tmp','w',0o600);try{await h.writeFile(JSON.stringify(state,null,2));await h.sync();}finally{await h.close();}await rename(file+'.tmp',file);}
   await save();
   // State snapshots and fsync are only required for real mutations. Pure
   // observations remain serialized with writes but never touch the .tmp file.
   const readonlyRoutes=new Set(['/v1/auth','/v1/job-status','/v1/client-scope','/v1/reconcile','/v1/cancellation','/v1/client-list',
     '/v1/program-inbox','/v1/program-fetch','/v1/pull-open',
     '/admin/state','/admin/tasks','/admin/executors','/admin/clients']);
-  const serial=(fn,readOnly=false)=>{const next=tail.then(async()=>{
+  const serial=(fn,readOnly=false,event=null)=>{const next=tail.then(async()=>{
+    if(ledger)return ledger.transaction(async current=>{state=current;return fn();},{readOnly,event:typeof event==='string'?{kind:event}:event});
     const before=readOnly?null:structuredClone(state);
     try{return await fn();}catch(error){if(!readOnly)state=before;throw error;}
   });tail=next.catch(()=>{});return next;};
@@ -82,7 +114,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
         delete row.package;
       }
   }
-  function once(scope,key,body,fn){if(typeof key!=='string'||key.length>150)fail('E_SCHEMA');const k=scope+':'+key,d=hash(body),old=state.requests[k];if(old){if(old.digest!==d)fail('E_REQUEST_CONFLICT');return structuredClone(old.answer);}const answer=fn();state.requests[k]={digest:d,answer:structuredClone(answer)};return answer;}
+  function once(scope,key,body,fn,maxKeyLength=150){if(typeof key!=='string'||key.length>maxKeyLength)fail('E_SCHEMA');const k=scope+':'+key,d=hash(body),old=state.requests[k];if(old){if(old.digest!==d)fail('E_REQUEST_CONFLICT');return structuredClone(old.answer);}const answer=fn();state.requests[k]={digest:d,answer:structuredClone(answer)};return answer;}
   // Scope both remote status and Stop to the exact submitting client.
   function clientJob(jobId,client){
     const job=typeof jobId==='string'?state.jobs[jobId]:null;
@@ -107,16 +139,25 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
     }
     return pinned;
   }
-const sockets=new Map(),tickets=new Map(),pullSessions=new Map();
+// In database mode transport sessions share the same transaction as current
+// pairing facts. An HTTPS request may land on a different Provider instance.
+const sessionMap=name=>ledger?{
+  get:key=>state.agentSessions?.[name]?.[key],
+  set(key,value){state.agentSessions??={};state.agentSessions[name]??={};state.agentSessions[name][key]=value;},
+  delete(key){if(state.agentSessions?.[name])delete state.agentSessions[name][key];},
+  [Symbol.iterator]:()=>Object.entries(state.agentSessions?.[name]??{})[Symbol.iterator](),
+  values:()=>Object.values(state.agentSessions?.[name]??{})
+}:new Map();
+const sockets=new Map(),tickets=sessionMap('tickets'),pullSessions=sessionMap('pull'),connections=sessionMap('connections');
 const pairing=id=>{const e=state.executors[id];if(!nonempty(e?.pairingId)||!Number.isSafeInteger(e.pairingGeneration)||e.pairingGeneration<1)fail('E_PAIRING');return {providerId:state.providerId,executorId:id,pairingId:e.pairingId,pairingGeneration:e.pairingGeneration};};
 const activePairing=p=>{const e=state.executors[p.executorId];return e&&!e.revocation&&!e.revokedAt&&nonempty(e.pairingId)&&Number.isSafeInteger(e.pairingGeneration)&&e.pairingGeneration>0&&p.providerId===state.providerId&&p.pairingId===e.pairingId&&p.pairingGeneration===e.pairingGeneration;};
-const retire=executorId=>{pullSessions.delete(executorId);for(const [ticket,p]of tickets)if(p.executorId===executorId)tickets.delete(ticket);for(const [ws,p]of sockets)if((p.executorId??p)===executorId){sockets.delete(ws);if(ws.readyState===0||ws.readyState===1)ws.close(1008,'Pairing retired');}};
+const retire=executorId=>{pullSessions.delete(executorId);for(const [ticket,p]of tickets)if(p.executorId===executorId)tickets.delete(ticket);for(const [key,p]of connections)if(p.executorId===executorId)connections.delete(key);for(const [ws,p]of sockets)if((p.executorId??p)===executorId){sockets.delete(ws);if(ws.readyState===0||ws.readyState===1)ws.close(1008,'Pairing retired');}};
 // Offer is a scoped wake hint, never an executable task or execution permission.
 const notify=(executorId,jobId)=>{for(const [ws,p]of sockets)if((!executorId||(p.executorId??p)===executorId)&&activePairing(p)&&ws.readyState===1){
   const j=jobId&&state.jobs[jobId],e=state.executors[p.executorId??p];
   const offer=j?.state==='queued'&&!j.cancelled&&j.targetExecutorId===(p.executorId??p)&&
     j.targetPairingId===p.pairingId&&j.targetGrantId===e?.grantId?{jobId:j.jobId}:null;
-  ws.send(JSON.stringify({type:'notify',...(offer?{offer}:{})}));
+  try{ws.send(JSON.stringify({type:'notify',...(offer?{offer}:{})}));}catch{ws.close();}
 }};
 function identity(j){const a=j.assignment,e=state.executors[a.executorId],legacy=!Object.hasOwn(a,'pairingId')&&!Object.hasOwn(a,'pairingGeneration');if(!nonempty(a.assignmentId)||!nonempty(a.claimId)||!nonempty(j.jobId)||(!legacy&&bindingKeys.some(k=>!Object.hasOwn(a,k)))||(Object.hasOwn(a,'jobId')&&a.jobId!==j.jobId))fail('E_BINDING');return {providerId:legacy&&!Object.hasOwn(a,'providerId')?state.providerId:a.providerId,executorId:a.executorId,pairingId:legacy?e?.legacyPairingId:a.pairingId,pairingGeneration:legacy?e?.legacyPairingGeneration:a.pairingGeneration,attemptEpoch:Object.hasOwn(a,'attemptEpoch')?a.attemptEpoch:1,claimId:a.claimId,jobId:j.jobId,assignmentId:a.assignmentId};}
 const bindingFor=identity;
@@ -125,6 +166,35 @@ const assertBinding=(j,b)=>{if(!Object.hasOwn(b,'binding'))return;const expected
 function validRunRef(ref,j){exact(ref,runRefKeys);if(runRefKeys.some(k=>!nonempty(ref[k])))fail('E_RUN_REF');if(ref.requestId!=='cloud:'+j.assignment.assignmentId)fail('E_RUN_REF');if(ref.sourceHash!==j.task.sourceHash||ref.manifestHash!==j.task.manifestHash)fail('E_TASK');}
 const liveLease=j=>{if(j.cancelled||!Number.isFinite(j.assignment.leaseUntil)||j.assignment.leaseUntil<=clock())fail('E_LEASE');};
 function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEASE');const bound=identity(j);if((Object.hasOwn(j.assignment,'pairingId')||Object.hasOwn(j.permit,'pairingId')||Object.hasOwn(j.permit,'pairingGeneration'))&&bindingKeys.some(k=>!Object.hasOwn(j.permit,k)))fail('E_BINDING');for(const k of bindingKeys)if(Object.hasOwn(j.permit,k)&&j.permit[k]!==bound[k])fail(k==='attemptEpoch'?'E_ATTEMPT':'E_BINDING');if(!Number.isFinite(j.permit.leaseUntil))fail('E_LEASE');validRunRef(j.permit.runRef,j);if(canonical(j.permit.runRef)!==canonical(j.runRef))fail('E_RUN_REF');return {...j.permit,...bound};}
+
+// These durable facts never turn an old assignment into a fresh execution.
+const controlFields=j=>j.controlProtocol===2?{controlProtocol:2,controlGeneration:j.assignment.controlGeneration}:{};
+function currentControl(j){
+  const e=state.executors[j.assignment.executorId];
+  if(j.controlProtocol!==2||j.assignment.controlProtocol!==2||e.controlProtocol!==2)fail('E_CONTROL_PROTOCOL');
+  if(e.suspendedAt)fail('E_CLOUD_STOPPED');
+  if(!j.targetGrantId||j.targetGrantId!==e.grantId||!uuid(j.assignment.controlGeneration)||
+    j.assignment.controlGeneration!==e.controlGeneration)fail('E_CONTROL_GENERATION');
+  if(!e.capabilities?.some(t=>canonical(t)===canonical(j.task)))fail('E_GRANT');
+  if(j.submittedBy){
+    const client=state.clients[j.submittedBy];
+    if(!client||client.revokedAt||client.executorId!==j.assignment.executorId||
+      client.pairingId!==e.pairingId||client.grantId!==e.grantId||
+      !client.tasks?.some(t=>canonical(t)===canonical(j.task)))fail('E_GRANT');
+  }
+  liveLease(j);
+  if(j.receipt)fail('E_CONTROL_FINISHED');
+  return controlFields(j);
+}
+function freshControl(b,executorId){
+  const j=owned({assignmentId:b.binding?.assignmentId,binding:b.binding},executorId);
+  const control=currentControl(j),permit=currentPermit(j);
+  validRunRef(b.runRef,j);
+  if(canonical(b.runRef)!==canonical(j.runRef))fail('E_RUN_REF');
+  if(b.permitId!==permit.permitId||permit.leaseUntil<=clock())fail('E_LEASE');
+  if(permit.controlProtocol!==2||permit.controlGeneration!==control.controlGeneration)fail('E_CONTROL_GENERATION');
+  return j;
+}
   const handler=async(req,res,publicRequest=false)=>{
     let afterCommit=null;
     try{
@@ -136,7 +206,7 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
       let text='';for await(const chunk of req){text+=chunk;if(Buffer.byteLength(text)>requestLimit)fail('E_LIMIT');}const b=JSON.parse(text||'{}');
       const admin=path.startsWith('/admin/');
       let executorId,client;
-      const readOnly=readonlyRoutes.has(path);
+      const readOnly=readonlyRoutes.has(path)&&!(ledger&&['/v1/auth','/v1/pull-open'].includes(path));
       const answer=await serial(async()=>{
       if(admin){
         // Local administration is never served by the external HTTPS listener.
@@ -174,18 +244,20 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
             if(old&&!old.revokedAt&&!old.revocation)fail('E_PAIR_ACTIVE');
             if(old&&(!Number.isSafeInteger(old.pairingGeneration)||old.pairingGeneration<1||old.pairingGeneration>=Number.MAX_SAFE_INTEGER))fail('E_PAIRING');
             if(old)purgePairingPrograms(b.executorId,old.pairingId);
-            const row={...old,credential:token(),pairedAt:clock(),pairingId:randomUUID(),pairingGeneration:(old?.pairingGeneration??0)+1,revokedAt:null};delete row.revocation;delete row.suspendedAt;state.executors[b.executorId]=row;
+            const row={...old,credential:token(),pairedAt:clock(),pairingId:randomUUID(),pairingGeneration:(old?.pairingGeneration??0)+1,revokedAt:null};delete row.revocation;delete row.suspendedAt;if(row.controlProtocol===2)row.controlGeneration=randomUUID();state.executors[b.executorId]=row;
             out={...pairing(b.executorId),credential:row.credential};afterCommit=()=>retire(b.executorId);break;}
           case '/v1/revoke':{
  exact(b,['revocationId'],['pairingId','pairingGeneration']);if(!nonempty(b.revocationId)||b.revocationId.length>150)fail('E_SCHEMA');
  const e=state.executors[executorId],pair=pairing(executorId);for(const k of ['pairingId','pairingGeneration'])if(Object.hasOwn(b,k)&&b[k]!==pair[k])fail('E_PAIRING');
  if(e.revocation&&e.revocation.revocationId!==b.revocationId)fail('E_REVOCATION');
  out=e.revocation??{providerId:pair.providerId,pairingId:pair.pairingId,pairingGeneration:pair.pairingGeneration,revocationId:b.revocationId,revoked:true};
+ if(!e.revocation&&e.controlProtocol===2)e.controlGeneration=randomUUID();
  e.revocation=out;
  for(const client of Object.values(state.clients))if(client.executorId===executorId&&client.pairingId===pair.pairingId)client.revokedAt??=clock()||1;
  purgePairingPrograms(executorId,pair.pairingId);afterCommit=()=>retire(executorId);break;}
  case '/v1/unpair':{
             exact(b,[]);const row=state.executors[executorId];
+            if(row.controlProtocol===2)row.controlGeneration=randomUUID();
             row.revokedAt=clock()||1;row.credential=token();delete row.capabilities;delete row.grantId;
             purgePairingPrograms(executorId,row.pairingId);
             // Never erase historical Run, Result or receipt. Quarantine unclaimed old work.
@@ -201,11 +273,12 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
             exact(b,[]);
             const now=clock();
             for(const [key,old] of tickets)if(old.until<=now||!activePairing(old))tickets.delete(key);
+            for(const [key,old] of connections)if(old.expiresAt<=now||!activePairing(old))connections.delete(key);
             const t=token(),pair=pairing(executorId),expiresAt=now+30000;
             tickets.set(t,{...pair,until:expiresAt});
             out={ticket:t,expiresAt,...pair};break;}
           case '/v1/capabilities':{
-            exact(b,['tasks','grantId']);
+            exact(b,['tasks','grantId'],['controlProtocol']);controlOption(b);
             if(!Array.isArray(b.tasks)||b.tasks.length>32||
               typeof b.grantId!=='string'||!/^[-a-f0-9]{36}$/.test(b.grantId))
               fail('E_SCHEMA');
@@ -217,6 +290,7 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
             }
             const owner=state.executors[executorId];
             if(owner.retiredGrants?.[b.grantId])fail('E_GRANT_STALE');
+            if(owner.grantId===b.grantId&&owner.suspendedAt)fail('E_CLOUD_STOPPED');
             if(owner.grantId&&owner.grantId!==b.grantId){
               // A delayed old connection cannot roll back a newer approval.
               owner.retiredGrants??={};
@@ -233,13 +307,20 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
             }
             if(owner.grantId!==b.grantId||canonical(owner.capabilities)!==canonical(b.tasks))pullSessions.delete(executorId);
             if(owner.grantId!==b.grantId)owner.suspendedAt=null;
+            const protocolChanged=owner.controlProtocol!==b.controlProtocol;
+            if(owner.grantId!==b.grantId||canonical(owner.capabilities)!==canonical(b.tasks)||protocolChanged||owner.suspendedAt){
+              owner.controlGeneration=randomUUID();pullSessions.delete(executorId);
+            }
+            if(b.controlProtocol===2)owner.controlProtocol=2;
+            else delete owner.controlProtocol;
             owner.grantId=b.grantId;owner.capabilities=b.tasks;
-            out={accepted:true};break;
+            out={accepted:true,...(b.controlProtocol===2?{controlProtocol:2,controlGeneration:owner.controlGeneration}:{})};break;
           }
           case '/v1/suspend':{
             exact(b,['grantId']);
             const owner=state.executors[executorId];
             if(!owner.grantId||owner.grantId!==b.grantId)fail('E_GRANT');
+            if(!owner.suspendedAt&&owner.controlProtocol===2)owner.controlGeneration=randomUUID();
             owner.suspendedAt??=clock()||1;
             for(const j of Object.values(state.jobs))
               if(j.state==='queued'&&j.targetExecutorId===executorId&&
@@ -286,22 +367,60 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
               }
               out=structuredClone(cached.answer);
             }else out=once(scope,b.claimId,claimBody,()=>{
-              if(![...sockets.values()].some(p=>(p.executorId??p)===executorId&&activePairing(p))&&!pullValid)fail('E_CONNECTION');
+              const connected=[...sockets.values()].some(p=>(p.executorId??p)===executorId&&activePairing(p))||
+                ledger&&[...connections.values()].some(p=>p.executorId===executorId&&p.expiresAt>clock()&&activePairing(p));
+              if(!connected&&!pullValid)fail('E_CONNECTION');
+              // Capacity and Claim are one database transaction. Expiry and
+              // Stop do not prove retirement or absence of webpage effects.
+              if(ledger&&Object.values(state.jobs).some(j=>j.assignment?.executorId===executorId&&!j.receipt))return {assignment:null};
               const j=Object.values(state.jobs).find(j=>j.state==='queued'&&!j.assignment&&!Object.hasOwn(j,'attemptEpoch')&&!j.cancelled&&
-                j.targetExecutorId===executorId&&(!j.targetPairingId||j.targetPairingId===e.pairingId)&&
+                j.targetExecutorId===executorId&&(j.controlProtocol!==2||e.controlProtocol===2)&&(!j.targetPairingId||j.targetPairingId===e.pairingId)&&
                 (!j.targetGrantId||(Object.hasOwn(b,'grantId')&&j.targetGrantId===b.grantId&&j.targetGrantId===e.grantId))&&
                 b.tasks.some(t=>t.taskId===j.task.taskId&&t.manifestHash===j.task.manifestHash&&t.sourceHash===j.task.sourceHash&&(!Object.hasOwn(t,'version')||t.version===j.task.version))&&
                 canonical(taskPin(state.taskRegistry[taskRegistryKey(j.task)]??j.task))===canonical(j.task));
-              if(!j)return {assignment:null};j.state='assigned';j.attemptEpoch=1;j.assignment={...pairing(executorId),assignmentId:randomUUID(),attemptEpoch:1,jobId:j.jobId,claimId:b.claimId,leaseUntil:clock()+90000};return {assignment:{...j.assignment,task:j.task,params:j.params,target:j.target}};});
-            if(out.assignment){const j=owned(out.assignment,executorId);out.assignment={...out.assignment,...identity(j)};}break;}
+              if(!j)return {assignment:null};j.state='assigned';j.attemptEpoch=1;j.assignment={...pairing(executorId),assignmentId:randomUUID(),attemptEpoch:1,jobId:j.jobId,claimId:b.claimId,leaseUntil:clock()+90000,...(j.controlProtocol===2?{controlProtocol:2,controlGeneration:e.controlGeneration}:{})};return {assignment:{...j.assignment,task:j.task,params:j.params,target:j.target}};});
+            if(out.assignment){const j=owned(out.assignment,executorId);if(j.controlProtocol===2)currentControl(j);out.assignment={...out.assignment,...identity(j)};}break;}
           case '/v1/admission':{
             exact(b,['assignmentId','runRef'],[...bindingKeys,'binding','resultAllowed']);const j=owned(b,executorId);assertBinding(j,b);
             if(Object.hasOwn(b,'resultAllowed')&&typeof b.resultAllowed!=='boolean')fail('E_SCHEMA');
             const e=state.executors[executorId];if(j.targetGrantId&&j.targetGrantId!==e.grantId)fail('E_GRANT');if(e.suspendedAt)fail('E_CLOUD_STOPPED');
+            if(j.controlProtocol===2)currentControl(j);
             validRunRef(b.runRef,j);if(j.targetGrantId&&b.runRef.grantId!==j.targetGrantId)fail('E_RUN_REF');liveLease(j);if(j.permit)currentPermit(j);
-            out=once('admission',b.assignmentId,b,()=>{j.runRef=b.runRef;j.resultAllowed=b.resultAllowed===true;j.state='admitted';j.permit={...identity(j),permitId:randomUUID(),assignmentId:b.assignmentId,runRef:b.runRef,leaseUntil:j.assignment.leaseUntil};return j.permit;});out={...out,...identity(j)};break;}
+            out=once('admission',b.assignmentId,b,()=>{j.runRef=b.runRef;j.resultAllowed=b.resultAllowed===true;j.state='admitted';j.permit={...identity(j),...controlFields(j),permitId:randomUUID(),assignmentId:b.assignmentId,runRef:b.runRef,leaseUntil:j.assignment.leaseUntil};return j.permit;});out={...out,...identity(j)};break;}
+          case '/v1/start-ticket':{
+            exact(b,['binding','runRef','permitId','startId','challenge']);
+            if(!uuid(b.challenge)||![b.runRef?.requestId,b.runRef?.runId].includes(b.startId))fail('E_SCHEMA');
+            const j=freshControl(b,executorId),now=clock();
+            if(j.startTicket&&j.startTicket.expiresAt<=now)fail('E_START_TICKET_EXPIRED');
+            out=once('start-ticket',j.jobId,b,()=>{
+              const ticket={...identity(j),runRef:j.runRef,permitId:j.permit.permitId,...controlFields(j),
+                startId:b.startId,challenge:b.challenge,ticketId:randomUUID(),issuedAt:now,
+                expiresAt:Math.min(now+5000,j.assignment.leaseUntil,j.permit.leaseUntil)};
+              j.startTicket=ticket;return ticket;
+            });break;}
+          case '/v1/control-fence':{
+            exact(b,['binding','runRef','permitId','ticketId','controlGeneration','requestId','requestDigest','effectId','challenge']);
+            if(!uuid(b.challenge)||!nonempty(b.requestId)||b.requestId.length>512||
+              !nonempty(b.effectId)||b.effectId.length>512||typeof b.requestDigest!=='string'||!/^[a-f0-9]{64}$/.test(b.requestDigest))fail('E_SCHEMA');
+            const j=freshControl(b,executorId),now=clock(),ticket=j.startTicket;
+            if(b.controlGeneration!==j.assignment.controlGeneration)fail('E_CONTROL_GENERATION');
+            if(!ticket||ticket.ticketId!==b.ticketId||ticket.permitId!==b.permitId||
+              ticket.controlGeneration!==b.controlGeneration||canonical(ticket.runRef)!==canonical(b.runRef))fail('E_START_TICKET');
+            if(!Object.hasOwn(j,'startConsumedAt')&&ticket.expiresAt<=now)fail('E_START_TICKET_EXPIRED');
+            out=once('control-fence:'+executorId+':'+j.jobId,b.effectId,b,()=>{
+              // The first fence consumes only this startup window, atomically
+              // with its durable answer. Later effects keep the original ticket
+              // identity but obtain fresh authority and their own bounded TTL.
+              j.startConsumedAt??=now;
+              return {...identity(j),runRef:j.runRef,
+              permitId:b.permitId,ticketId:b.ticketId,...controlFields(j),requestId:b.requestId,
+              requestDigest:b.requestDigest,effectId:b.effectId,challenge:b.challenge,fenceId:randomUUID(),
+              issuedAt:now,expiresAt:Math.min(now+2000,j.assignment.leaseUntil,j.permit.leaseUntil)};},512);
+            if(out.expiresAt<=now)fail('E_CONTROL_FENCE_EXPIRED');
+            break;}
           case '/v1/renew':{
             exact(b,['assignmentId','permitId'],[...bindingKeys,'binding']);const j=owned(b,executorId);assertBinding(j,b);const permit=currentPermit(j),e=state.executors[executorId];
+            if(j.controlProtocol===2)currentControl(j);
             if(!nonempty(b.permitId)||permit.permitId!==b.permitId||!Number.isFinite(permit.leaseUntil)||permit.leaseUntil<=clock()||j.cancelled||j.assignment.leaseUntil<=clock()||(j.targetGrantId&&j.targetGrantId!==e.grantId)||e.suspendedAt)fail('E_LEASE');
             j.assignment.leaseUntil=clock()+90000;j.permit={...permit,leaseUntil:j.assignment.leaseUntil};out={leaseUntil:j.assignment.leaseUntil};break;}
           case '/v1/cancel':{
@@ -315,13 +434,13 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
           case '/v1/receipt':{
             exact(b,['assignmentId','receiptKey','runRef','result'],[...bindingKeys,'binding']);const j=owned(b,executorId);assertBinding(j,b);validRunRef(b.runRef,j);
             if(!j.permit||canonical(j.runRef)!==canonical(b.runRef))fail('E_RUN_REF');if(b.receiptKey!==b.runRef.resultId)fail('E_RECEIPT_KEY');currentPermit(j);
-            out=once('receipt',b.receiptKey,b,()=>{if(!b.result||typeof b.result!=='object'||Array.isArray(b.result))fail('E_RESULT_SCOPE');
+            out=once('receipt',b.receiptKey,b,()=>{if(!b.result||typeof b.result!=='object'||Array.isArray(b.result)||(ledger&&b.result.retirementState!=='released'))fail('E_RESULT_SCOPE');
               const visibility=b.result.visibility??'status-only';
               if(visibility==='status-only'){const allowed=new Set(['visibility','state','retirementState']);if(Object.keys(b.result).some(k=>!allowed.has(k))||!['completed','failed','stopped','interrupted'].includes(b.result.state)|| (Object.hasOwn(b.result,'retirementState')&&b.result.retirementState!=='released'))fail('E_RESULT_SCOPE');}
               else if(visibility==='full'&&j.resultAllowed===true){exact(b.result,['visibility','runId','resultId','revision','state','sourceHash','retirementState'],['valueWire','error']);if(b.result.runId!==j.runRef.runId||b.result.resultId!==j.runRef.resultId||b.result.sourceHash!==j.runRef.sourceHash||b.result.revision?.sourceHash!==j.runRef.sourceHash||!['completed','failed','stopped','interrupted'].includes(b.result.state)||b.result.retirementState!=='released')fail('E_RESULT_SCOPE');}
               else fail('E_RESULT_SCOPE');
               j.receipt={receiptId:randomUUID(),receivedAt:clock(),digest:hash(b),result:b.result};j.state='received';return {receiptId:j.receipt.receiptId,digest:j.receipt.digest};});break;}
-          case '/v1/reconcile':exact(b,[]);out={...pairing(executorId),assignments:Object.values(state.jobs).filter(j=>j.assignment?.executorId===executorId&&activePairing(identity(j))).map(j=>{owned({assignmentId:j.assignment.assignmentId},executorId);return {...identity(j),runRef:j.runRef??null,permit:j.permit?currentPermit(j):null,cancelled:!!j.cancelled,leaseUntil:j.assignment.leaseUntil,receipt:j.receipt?{receiptId:j.receipt.receiptId,digest:j.receipt.digest}:null};})};break;
+          case '/v1/reconcile':exact(b,[]);out={...pairing(executorId),assignments:Object.values(state.jobs).filter(j=>j.assignment?.executorId===executorId&&activePairing(identity(j))).map(j=>{owned({assignmentId:j.assignment.assignmentId},executorId);return {...identity(j),...controlFields(j),runRef:j.runRef??null,permit:j.permit?currentPermit(j):null,cancelled:!!j.cancelled,leaseUntil:j.assignment.leaseUntil,receipt:j.receipt?{receiptId:j.receipt.receiptId,digest:j.receipt.digest}:null};})};break;
           case '/admin/program-deliver':{
             // Durable, immutable delivery is NOT a Run or installation.
             exact(b,['requestKey','targetExecutorId','package']);
@@ -459,11 +578,11 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
             exact(b,[]);out={tasks:Object.values(state.taskRegistry).map(task=>({...taskPin(task),
               title:task.manifest.title,siteOrigins:task.manifest.siteOrigins}))};break;}
           case '/admin/seed':{
-            if(Object.hasOwn(b,'task')){exact(b,['requestKey','params','target','task'],['targetExecutorId']);exact(b.task,['taskId','version']);const task=state.taskRegistry[b.task.taskId+'@'+b.task.version];if(!task)fail('E_TASK');Object.assign(b,taskPin(task));delete b.task;if(!b.targetExecutorId){const eligible=Object.entries(state.executors).filter(([,row])=>!row.revokedAt&&!row.revocation);if(eligible.length!==1)fail('E_EXECUTOR_TARGET');b.targetExecutorId=eligible[0][0];}}
+            if(Object.hasOwn(b,'task')){exact(b,['requestKey','params','target','task'],['targetExecutorId','controlProtocol']);exact(b.task,['taskId','version']);const task=state.taskRegistry[b.task.taskId+'@'+b.task.version];if(!task)fail('E_TASK');Object.assign(b,taskPin(task));delete b.task;if(!b.targetExecutorId){const eligible=Object.entries(state.executors).filter(([,row])=>!row.revokedAt&&!row.revocation);if(eligible.length!==1)fail('E_EXECUTOR_TARGET');b.targetExecutorId=eligible[0][0];}}
 
             // Old seed/form requests retain their original requestKey/digest so pre-R5 provider restarts remain strictly idempotent.
             const legacy=!Object.hasOwn(b,'taskId');
-            exact(b,legacy?['requestKey','params','target']:['requestKey','taskId','version','manifestHash','sourceHash','params','target','targetExecutorId'],legacy?['targetExecutorId']:[]);
+            exact(b,legacy?['requestKey','params','target']:['requestKey','taskId','version','manifestHash','sourceHash','params','target','targetExecutorId'],legacy?['targetExecutorId','controlProtocol']:['controlProtocol']);const control=controlOption(b);
             const candidates=Object.entries(state.executors).filter(([,row])=>!row.revokedAt);
             const targetExecutorId=b.targetExecutorId??(candidates.length===1?candidates[0][0]:null);
             if(typeof targetExecutorId!=='string'||!state.executors[targetExecutorId]||state.executors[targetExecutorId].revokedAt)fail('E_EXECUTOR_TARGET');
@@ -476,13 +595,13 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
             const params=validateTaskParams(task.manifest.paramsSchema,b.params??{}),pin=taskPin(task),owner=state.executors[targetExecutorId];
             if(!legacy&&(!owner.grantId||!owner.capabilities?.some(t=>t.taskId===pin.taskId&&t.manifestHash===pin.manifestHash&&t.sourceHash===pin.sourceHash)))fail('E_GRANT','Target Executor has not approved this Task');
             if(legacy&&owner.grantId&&owner.capabilities&&!owner.capabilities.some(t=>t.taskId===pin.taskId&&t.manifestHash===pin.manifestHash&&t.sourceHash===pin.sourceHash))fail('E_GRANT','Target Executor has not approved this Task');
-            out=once('seed:'+(legacy?'legacy':targetExecutorId+':'+owner.pairingId),b.requestKey,{task:pin,params,target,targetExecutorId},()=>{
+            out=once('seed:'+(legacy?'legacy':targetExecutorId+':'+owner.pairingId),b.requestKey,{task:pin,params,target,targetExecutorId,...control},()=>{
               if(owner.suspendedAt)fail('E_CLOUD_STOPPED');
-              const jobId=randomUUID();state.jobs[jobId]={jobId,state:'queued',createdAt:clock(),task:pin,params,target,targetExecutorId,targetPairingId:owner.pairingId,targetGrantId:owner.grantId};return {jobId};});break;}
+              const jobId=randomUUID();state.jobs[jobId]={jobId,state:'queued',createdAt:clock(),task:pin,params,target,targetExecutorId,targetPairingId:owner.pairingId,targetGrantId:owner.grantId,...control};return {jobId};});break;}
           case '/v1/submit':{
             // HTTPS caller is bound to one active paired Executor, not arbitrary
             // installed Tasks or browsers. Reuse the immutable Task registry.
-            exact(b,['requestKey','taskId','version','manifestHash','sourceHash','params','target']);
+            exact(b,['requestKey','taskId','version','manifestHash','sourceHash','params','target'],['controlProtocol']);const control=controlOption(b);
             if(!nonempty(b.requestKey)||b.requestKey.length>150)fail('E_SCHEMA');
             const task=state.taskRegistry[String(b.taskId)+'@'+String(b.version)];
             if(!task||canonical(taskPin(task))!==canonical({
@@ -497,7 +616,7 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
               t.taskId===pin.taskId&&t.manifestHash===pin.manifestHash&&t.sourceHash===pin.sourceHash))
               fail('E_GRANT','Target Executor has not approved this Task');
             out=once('external:'+client.clientId+':'+client.pairingId,b.requestKey,
-              {task:pin,params,target,executorId:client.executorId},()=>{
+              {task:pin,params,target,executorId:client.executorId,...control},()=>{
                 if(owner.suspendedAt)fail('E_CLOUD_STOPPED');
                 // Persisted limits survive restart. Check only inside the
                 // first-admission callback: idempotent retries of the same
@@ -510,7 +629,7 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
                 const jobId=randomUUID();
                 state.jobs[jobId]={jobId,state:'queued',createdAt:clock(),
                   task:pin,params,target,targetExecutorId:client.executorId,
-                  targetPairingId:client.pairingId,targetGrantId:owner.grantId,submittedBy:client.clientId};
+                  targetPairingId:client.pairingId,targetGrantId:owner.grantId,submittedBy:client.clientId,...control};
                 return {jobId};
               });
             break;
@@ -569,7 +688,7 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
             break;
           }
           case '/admin/cancel':exact(b,['jobId']);if(!state.jobs[b.jobId])fail('E_JOB');state.jobs[b.jobId].cancelled=true;out={cancelled:true};break;
-          case '/admin/fault':exact(b,['path','count']);if(!['/v1/admission','/v1/claim','/v1/receipt','/v1/revoke'].includes(b.path)||!Number.isSafeInteger(b.count)||b.count<0||b.count>10)fail('E_SCHEMA');state.faults[b.path]=b.count;out={set:true};break;
+          case '/admin/fault':exact(b,['path','count']);if(!['/v1/admission','/v1/claim','/v1/receipt','/v1/revoke','/v1/start-ticket','/v1/control-fence'].includes(b.path)||!Number.isSafeInteger(b.count)||b.count<0||b.count>10)fail('E_SCHEMA');state.faults[b.path]=b.count;out={set:true};break;
           case '/admin/state':exact(b,[]);out={providerId:state.providerId,jobs:state.jobs,executors:Object.fromEntries(Object.entries(state.executors).map(([id,e])=>[id,{pairedAt:e.pairedAt,connected:[...sockets.values()].some(p=>(p.executorId??p)===id),capabilities:e.capabilities}]))};break;
           default:fail('E_ROUTE');
         }
@@ -579,7 +698,7 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
         if(drop&&readOnly)fail('E_SCHEMA');
         if(!readOnly){if(drop)state.faults[path]--;await save();}
         return {out,drop};
-      },readOnly);
+      },readOnly,()=>({kind:path,...(['/v1/suspend','/v1/revoke'].includes(path)?{executorId}:{})}));
       if(afterCommit)afterCommit();
       if(path==='/admin/seed')notify(b.targetExecutorId,answer.out?.jobId);
       if(path==='/v1/submit')notify(client.executorId,answer.out?.jobId);
@@ -600,26 +719,50 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
   server.on('upgrade',upgrade);
   secureServer?.on('upgrade',upgrade);
   wss.on('connection',ws=>{
-    const timeout=setTimeout(()=>ws.close(),5000);let authenticated=false;
-    ws.on('message',data=>{try{const m=JSON.parse(String(data));if(!authenticated){exact(m,['type','ticket']);const t=tickets.get(m.ticket);tickets.delete(m.ticket);if(m.type!=='authenticate'||!t||t.until<=clock()||
-          !activePairing(t))fail('E_AUTH');authenticated=true;clearTimeout(timeout);sockets.set(ws,t);ws.send(JSON.stringify({type:'authenticated',...pairing(t.executorId)}));}else if(m.type==='ping')ws.send(JSON.stringify({type:'pong'}));else fail('E_SCHEMA');}catch{ws.close();}});
-    ws.on('close',()=>{clearTimeout(timeout);sockets.delete(ws);});
+    const timeout=setTimeout(()=>ws.close(),5000),connectionId=randomUUID();let authenticated=false;
+    ws.on('message',data=>{void serial(async()=>{
+      const m=JSON.parse(String(data));
+      if(!authenticated){
+        exact(m,['type','ticket']);const t=tickets.get(m.ticket);tickets.delete(m.ticket);
+        if(m.type!=='authenticate'||!t||t.until<=clock()||!activePairing(t))fail('E_AUTH');
+        const p={...t,expiresAt:clock()+45000};connections.set(connectionId,p);
+        return {pair:p};
+      }
+      exact(m,['type']);const p=connections.get(connectionId);
+      if(m.type!=='ping'||!p||!activePairing(p)||p.expiresAt<=clock())fail('E_AUTH');
+      connections.set(connectionId,{...p,expiresAt:clock()+45000});return {pong:true};
+    },false,'/v1/events').then(answer=>{
+      if(ws.readyState!==1)return;
+      if(answer.pair){authenticated=true;clearTimeout(timeout);sockets.set(ws,answer.pair);ws.send(JSON.stringify({type:'authenticated',providerId:answer.pair.providerId,executorId:answer.pair.executorId,pairingId:answer.pair.pairingId,pairingGeneration:answer.pair.pairingGeneration}));}
+      else ws.send(JSON.stringify({type:'pong'}));
+    }).catch(()=>ws.close());});
+    ws.on('close',()=>{clearTimeout(timeout);sockets.delete(ws);void serial(()=>connections.delete(connectionId),false,'session.closed').catch(()=>{});});
   });
+  let relayTimer,relayBusy=false,relaySequence=0,closing=false;
+  if(ledger){relayTimer=setInterval(()=>{
+    if(closing||relayBusy)return;relayBusy=true;
+    void ledger.readOutbox(relaySequence).then(rows=>serial(()=>{
+      if(closing)return;
+      for(const row of rows){notify(row.executorId,row.jobId);relaySequence=row.sequence;}
+    },true)).catch(()=>{}).finally(()=>{relayBusy=false;});
+  },250);relayTimer.unref();}
   try{
     await new Promise((ok,no)=>{server.once('error',no);server.listen(port,'127.0.0.1',ok);});
     if(secureServer)await new Promise((ok,no)=>{
       secureServer.once('error',no);secureServer.listen(publicTls.port,publicTls.host,ok);
     });
   }catch(e){
+    clearInterval(relayTimer);
     if(server.listening)await new Promise(r=>server.close(r));
     if(secureServer?.listening)await new Promise(r=>secureServer.close(r));
-    await handle.close();await unlink(lock);throw e;
+    throw e;
   }
   return {port:server.address().port,publicPort:secureServer?.address().port??null,
     directory,credentialFile,providerId:state.providerId,
-    close:async()=>{for(const ws of wss.clients)ws.terminate();
+    close:async()=>{closing=true;clearInterval(relayTimer);for(const ws of wss.clients)ws.terminate();
       await Promise.all([new Promise(r=>server.close(r)),
         ...(secureServer?[new Promise(r=>secureServer.close(r))]:[])]);
       await tail;await handle.close();await unlink(lock);
     }};
+  }catch(error){await handle.close();await unlink(lock);throw error;}
 }

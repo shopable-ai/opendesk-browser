@@ -1,0 +1,54 @@
+{
+  "format": "opendesk.task-package.v1",
+  "manifest": {
+    "format": "opendesk.task.v1",
+    "taskId": "local.record-update",
+    "version": "1.0.1",
+    "title": "本地测试：更新业务记录",
+    "description": "仅供隔离本地持久业务站；结果提示后仍需独立读取，不证明生产验收。",
+    "author": "OpenDesk Browser",
+    "source": "local-r201-test",
+    "siteOrigins": [
+      "http://127.0.0.1:43163"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "entryFormat": "async-main",
+    "program": {
+      "revision": 2,
+      "sourceHash": "be8d13da3b3c98f27e43f34c71e31bed5c4e31dcf5c4c41488bd8efc13a5d25c"
+    },
+    "paramsSchema": {
+      "type": "object",
+      "properties": {
+        "recordKey": {
+          "type": "string",
+          "title": "记录唯一标识",
+          "minLength": 1,
+          "maxLength": 150
+        },
+        "name": {
+          "type": "string",
+          "title": "名称",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "status": {
+          "type": "string",
+          "title": "状态",
+          "minLength": 1,
+          "maxLength": 80
+        }
+      },
+      "required": [
+        "recordKey",
+        "name",
+        "status"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "manifestHash": "80bc9a86c8f3fe16fe0e52b943d2fbf71faedf00fabe84c940e35a239874ad6c",
+  "sourceUtf8": "async function main() {\n  await page.locator('#execution-context[data-state=\"ready\"]').waitFor();\n  await page.locator('#update-recordKey').fill(params.recordKey);\n  await page.locator('#update-name').fill(params.name);\n  await page.locator('#update-status').fill(params.status);\n  await page.locator('#update-submit').click();\n  await page.locator('#update-result:not(:empty)').waitFor();\n  if (await page.locator('#update-result').textContent() !== '已持久保存：' + params.recordKey) {\n    throw new Error('保存提示与当前记录不匹配');\n  }\n  return {recordKey:params.recordKey, action:'update', persistence:'requires-independent-readback'};\n}\n"
+}

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>本地任务提交测试入口</title>
+<style>[hidden]{display:none!important}body{font:16px system-ui;max-width:850px;margin:32px auto;padding:0 20px}form,label{display:grid;gap:10px}form{margin:20px 0}input,button,select,textarea{font:inherit;padding:8px}pre{white-space:pre-wrap;overflow-wrap:anywhere}li{margin:12px 0}button{margin-right:8px}</style>
+<h1>本地任务提交测试入口</h1><p>本地测试站，不是生产门户。只提交 Provider 与本站配置共同批准的固定 Task。目标 Records 必须登录同一业务账号，账号不符时禁止执行。</p>
+<form id="login-form"><label>账号<input id="login-username" autocomplete="username" required></label><label>密码<input id="login-password" type="password" autocomplete="current-password" required></label><button id="login-submit">登录</button></form>
+<p id="identity"></p><button id="logout" hidden>退出</button>
+<main id="portal" hidden><p id="target"></p><form id="task-form"><label>已批准 Task<select id="task-select" required></select></label><div id="params"></div><label>稳定 requestKey<input id="request-key" readonly></label><button id="submit-task">提交 / 重试同一请求</button></form><button id="new-request">开始新请求</button><p>刷新后从数据库恢复当前账号的 job；网络状态未知时请重试同一请求，不要新建请求。</p><button id="refresh-jobs">刷新 jobs</button><ul id="jobs"></ul><pre id="job-status" role="status"></pre></main><pre id="message" role="alert"></pre>
+<script>
+const $ = id => document.getElementById(id);
+let csrf, username, tasks = [], storageKey;
+async function api(path,input) {
+  const response = await fetch(path,input === undefined ? {} : {method:'POST',headers:{'content-type':'application/json','x-csrf-token':csrf},body:JSON.stringify(input)});
+  const value = await response.json(); if (!response.ok) throw Error(value.error?.code || '请求失败'); return value;
+}
+function showError(error) { $('message').textContent = error.message; }
+function task() { return tasks[Number($('task-select').value)]; }
+function save() {
+  localStorage.setItem(storageKey,JSON.stringify({requestKey:$('request-key').value,taskId:task()?.taskId,version:task()?.version,
+    values:Object.fromEntries([...$('params').querySelectorAll('[data-param]')].map(el => [el.dataset.param,el.type==='checkbox'?el.checked:el.value]))}));
+}
+function render(values = {}) {
+  $('params').replaceChildren();
+  for (const [key,schema] of Object.entries(task()?.paramsSchema?.properties || {})) {
+    const label = document.createElement('label'); label.textContent = schema.title || key;
+    const field = document.createElement(schema.enum?'select':['object','array'].includes(schema.type)?'textarea':'input');
+    field.id='param-' + key; field.dataset.param=key; field.dataset.kind=schema.type;
+    if (schema.enum) for (const option of schema.enum) { const el = document.createElement('option'); el.value=JSON.stringify(option); el.textContent=String(option); field.append(el); }
+    else if (schema.type==='boolean') field.type='checkbox';
+    else if (['number','integer'].includes(schema.type)) { field.type='number'; field.step=schema.type==='integer'?'1':'any'; }
+    const initial = values[key] ?? (schema.enum ? JSON.stringify(schema.default ?? schema.enum[0]) : schema.default ?? '');
+    if (field.type==='checkbox') field.checked=!!initial;
+    else field.value=typeof initial==='object'?JSON.stringify(initial):String(initial);
+    field.required=task().paramsSchema.required?.includes(key) && field.type!=='checkbox';
+    field.dataset.enum=schema.enum?'true':''; field.oninput=save; label.append(field); $('params').append(label);
+  }
+}
+async function refreshJobs() {
+  const value=await api('/api/jobs'); $('jobs').replaceChildren();
+  for (const job of value.jobs) {
+    const li=document.createElement('li'); li.textContent=job.requestKey + ' → ' + job.jobId + ' ';
+    for (const [title,route] of [['查询','job-status'],['Stop','job-cancel']]) {
+      const button=document.createElement('button'); button.textContent=title;
+      button.onclick=async () => { try { $('job-status').textContent=JSON.stringify(await api('/api/' + route,{jobId:job.jobId}),null,2); } catch(error) { showError(error); } };
+      li.append(button);
+    }
+    $('jobs').append(li);
+  }
+}
+async function boot() {
+  const session=await api('/api/session'); csrf=session.csrf; username=session.username;
+  $('login-form').hidden=!!username; $('portal').hidden=!username; $('logout').hidden=!username;
+  $('identity').textContent=username?'已登录：' + username:'请登录';
+  if (!username) return;
+  storageKey='od-local-business:' + username;
+  const catalog=await api('/api/catalog'); tasks=catalog.tasks; $('target').textContent='固定业务目标：' + catalog.target;
+  $('task-select').replaceChildren(...tasks.map((t,i) => { const option=document.createElement('option'); option.value=i; option.textContent=t.title + ' @' + t.version; return option; }));
+  let draft; try { draft=JSON.parse(localStorage.getItem(storageKey)); } catch {}
+  const index=tasks.findIndex(t => t.taskId===draft?.taskId && t.version===draft?.version);
+  if (index>=0) $('task-select').value=index;
+  $('request-key').value=draft?.requestKey || crypto.randomUUID(); render(index>=0?draft.values:{});
+  $('submit-task').disabled=!tasks.length; if (!tasks.length) $('message').textContent='没有获批且匹配当前 records origin 的 Task，请由父任务安装并授权。';
+  await refreshJobs();
+}
+$('login-form').onsubmit=async event => { event.preventDefault(); try { await api('/api/login',{username:$('login-username').value,password:$('login-password').value}); $('login-password').value=''; await boot(); } catch(error) { showError(error); } };
+$('logout').onclick=async () => { try { await api('/api/logout',{}); await boot(); } catch(error) { showError(error); } };
+$('task-select').onchange=() => { render(); save(); };
+$('new-request').onclick=() => { $('request-key').value=crypto.randomUUID(); save(); $('job-status').textContent=''; };
+$('refresh-jobs').onclick=() => refreshJobs().catch(showError);
+$('task-form').onsubmit=async event => {
+  event.preventDefault(); $('message').textContent='';
+  try {
+    const params={};
+    for (const el of $('params').querySelectorAll('[data-param]')) {
+      if (!el.required && el.value==='' && el.type!=='checkbox') continue;
+      params[el.dataset.param]=el.type==='checkbox'?el.checked:el.dataset.enum || ['object','array'].includes(el.dataset.kind)?JSON.parse(el.value):['number','integer'].includes(el.dataset.kind)?Number(el.value):el.value;
+    }
+    save(); const selected=task();
+    $('job-status').textContent=JSON.stringify(await api('/api/submit',{requestKey:$('request-key').value,taskId:selected.taskId,version:selected.version,params}),null,2);
+    await refreshJobs();
+  } catch(error) { showError(error); }
+};
+boot().catch(showError);
+</script></html>

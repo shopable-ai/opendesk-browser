@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>本地持久业务记录</title>
+<style>[hidden]{display:none!important}body{font:16px system-ui;max-width:850px;margin:32px auto;padding:0 20px}form{display:flex;flex-wrap:wrap;gap:12px;margin:20px 0}label{display:grid;gap:6px}input,button{font:inherit;padding:8px}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;border-bottom:1px solid #ccc}pre{white-space:pre-wrap}section{border-top:1px solid #ccc;margin-top:24px}</style>
+<h1>本地持久业务记录</h1><p>隔离测试站 · PostgreSQL 真数据 · 不是外部生产业务站</p>
+<form id="login-form"><label>账号<input id="login-username" autocomplete="username" required></label><label>密码<input id="login-password" type="password" autocomplete="current-password" required></label><button id="login-submit">登录</button></form>
+<p id="identity"></p><button id="logout" hidden>退出</button>
+<p id="execution-context" data-state="blocked" role="status">请登录以确认执行上下文</p>
+<pre id="execution-params"></pre>
+<main id="business" hidden>
+<section><h2>创建记录</h2><form id="create-form"><label>recordKey<input id="create-recordKey" required maxlength="150"></label><label>name<input id="create-name" required maxlength="200"></label><label>status<input id="create-status" required maxlength="80"></label><button id="create-submit">创建</button></form><p id="create-result" role="status"></p></section>
+<section><h2>更新记录</h2><form id="update-form"><label>recordKey<input id="update-recordKey" required maxlength="150"></label><label>name<input id="update-name" required maxlength="200"></label><label>status<input id="update-status" required maxlength="80"></label><button id="update-submit">保存</button></form><p id="update-result" role="status"></p></section>
+<section><h2>查询记录</h2><form id="search-form"><label>recordKey（留空列出）<input id="search-recordKey" maxlength="150"></label><button id="search-submit">查询</button></form><table><thead><tr><th>recordKey</th><th>name</th><th>status</th><th>更新时间</th></tr></thead><tbody id="records-list"></tbody></table></section>
+<section><h2>独立只读验证</h2><form id="verify-form"><label>Job ID<input id="verify-jobId" required maxlength="200"></label><button id="verify-submit">验证当前记录</button></form><pre id="verify-result" role="status"></pre><p>仅比较当前数据库状态与已提交意图；不证明某次 Run 是唯一写入者。</p></section>
+</main><pre id="message" role="alert"></pre>
+<script>
+const $ = id => document.getElementById(id);
+let csrf, approved;
+const executionQuery = new URLSearchParams(location.search);
+const cloudMode = executionQuery.has('executionKey');
+const executionKey = executionQuery.get('executionKey');
+function block() {
+  approved = null;
+  $('execution-context').dataset.state = 'blocked';
+  $('execution-context').textContent = '执行上下文未验证，请确认登录账号';
+  $('business').hidden = true;
+  for (const el of $('business').querySelectorAll('input,button')) el.disabled = true;
+}
+block();
+async function api(path, input) {
+  const response = await fetch(path, input === undefined ? {} : {method:'POST', headers:{'content-type':'application/json','x-csrf-token':csrf},body:JSON.stringify(input)});
+  const value = await response.json();
+  if (!response.ok) throw Error(value.error?.code || '请求失败');
+  return value;
+}
+function showError(error) { $('message').textContent = error.message; }
+async function search() {
+  const value = await api('/api/records?recordKey=' + encodeURIComponent($('search-recordKey').value));
+  $('records-list').replaceChildren(...value.records.map(record => {
+    const row = document.createElement('tr'); row.dataset.recordKey = record.recordKey;
+    for (const key of ['recordKey','name','status','updatedAt']) { const cell = document.createElement('td'); cell.textContent = record[key]; cell.dataset.field = key; row.append(cell); }
+    return row;
+  }));
+}
+async function boot() {
+  block();
+  const session = await api('/api/session'); csrf = session.csrf;
+  $('login-form').hidden = !!session.username; $('business').hidden = true; $('logout').hidden = !session.username;
+  $('identity').textContent = session.username ? '已登录：' + session.username : '请登录';
+  $('execution-params').textContent = '';
+  if (!session.username) return;
+  if (cloudMode) {
+    if (executionQuery.getAll('executionKey').length !== 1) throw Error('E_EXECUTION_KEY');
+    approved = await api('/api/execution?executionKey=' + encodeURIComponent(executionKey));
+    $('execution-params').textContent = JSON.stringify(approved, null, 2);
+  }
+  await search();
+  for (const action of ['create','update']) {
+    const allowed = !cloudMode || approved.action === action;
+    $(action + '-form').hidden = !allowed;
+    for (const el of $(action + '-form').querySelectorAll('input,button')) el.disabled = !allowed;
+  }
+  for (const id of ['search-form','verify-form']) for (const el of $(id).querySelectorAll('input,button')) el.disabled = false;
+  $('business').hidden = false;
+  $('execution-context').textContent = cloudMode ? '已验证执行上下文：' + approved.action : '手工业务模式';
+  $('execution-context').dataset.state = 'ready';
+}
+$('login-form').onsubmit = async event => { event.preventDefault(); try { await api('/api/login',{username:$('login-username').value,password:$('login-password').value}); $('login-password').value=''; await boot(); $('message').textContent=''; } catch(error) { showError(error); } };
+$('logout').onclick = async () => { try { await api('/api/logout',{}); await boot(); } catch(error) { showError(error); } };
+for (const action of ['create','update']) $(action + '-form').onsubmit = async event => {
+  event.preventDefault(); $(action + '-result').textContent=''; $('message').textContent='';
+  try {
+    const input = Object.fromEntries(['recordKey','name','status'].map(key => [key,$(action + '-' + key).value]));
+    if ($('execution-context').dataset.state !== 'ready' || (cloudMode && approved?.action !== action)) throw Error('E_EXECUTION_SCOPE');
+    if (cloudMode) input.executionKey = executionKey;
+    const value = await api('/api/records/' + action,input);
+    $('search-recordKey').value = input.recordKey; await search();
+    $(action + '-result').textContent = '已持久保存：' + value.record.recordKey;
+  } catch(error) { if (cloudMode) block(); showError(error); }
+};
+$('search-form').onsubmit = event => { event.preventDefault(); search().catch(showError); };
+$('verify-form').onsubmit = async event => {
+  event.preventDefault(); $('verify-result').textContent='';
+  try { $('verify-result').textContent=JSON.stringify(await api('/api/verify?jobId='+encodeURIComponent($('verify-jobId').value)),null,2); }
+  catch(error) { showError(error); }
+};
+boot().catch(showError);
+</script></html>

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {isDurableCloudResult} from '../../src/cloud-control/durable-outcome.js';
+import {digest} from '../../src/platform/protocol.js';
 import {createCloudService} from '../../src/cloud-control/service.js';
 
 const namespace='tool:trusted',requestId='cloud:assignment-one';
@@ -57,7 +58,7 @@ function fixture({request=baseRequest,run=baseRun,result=baseResult,suspendAck=f
       if(url.endsWith('/v1/receipt')){
         assert.deepEqual(posts.at(-1).body.result,{visibility:'status-only',
           state:'completed',retirementState:'released'});
-        return new Response(JSON.stringify({receiptId:'status-receipt',digest:'status-digest'}),
+        return new Response(JSON.stringify({receiptId:'status-receipt',digest:await digest(JSON.parse(options.body))}),
           {status:200,headers:{'Content-Type':'application/json'}});
       }
       throw Error('Unexpected Provider call '+url);

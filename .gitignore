@@ -121,6 +121,7 @@ docs/framework/workstreams/evidence/**
 
 # Cloud provider credentials and durable local state
 .local/cloud-control/
+.local/cloud-r201/
 
 # Mutable build-attempt pointers; archive incident receipts in workstream evidence.
 /docs/cloud-build-evidence/build-*-latest.json

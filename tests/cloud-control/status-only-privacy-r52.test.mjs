@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {digest} from '../../src/platform/protocol.js';
 import {createCloudService} from '../../src/cloud-control/service.js';
 
 const ref={runId:'run-private',resultId:'result-private',requestId:'cloud:request-private',
@@ -49,7 +50,7 @@ test('Browser reconciles status-only Result while withholding secret payload and
           runRef:ref,cancelled:false,leaseUntil:200000}]
       }),{status:200});
       if(url.endsWith('/v1/receipt'))return new Response(JSON.stringify({
-        receiptId:'receipt-confirmed',digest:'private-digest'
+        receiptId:'receipt-confirmed',digest:await digest(body)
       }),{status:200});
       throw Error('Unexpected '+url);
     }});

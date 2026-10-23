@@ -15,12 +15,31 @@ if(command==='provider'){
     host:option('public-host','127.0.0.1')}:null;
   const packageFile=option('task-package');
   const taskPackages=packageFile?[JSON.parse(await readFile(resolve(packageFile),'utf8'))]:[];
-  const provider=await openProvider({directory,port,publicTls,taskPackages});
+  let pool,ledger;
+  if(args.includes('--postgres')){
+    const ledgerId=option('ledger-id',''),envName=option('database-url-env','CLOUD_CONTROL_DATABASE_URL');
+    if(!/^[A-Z][A-Z0-9_]*$/.test(envName)||!ledgerId||!process.env[envName])
+      throw Error('PostgreSQL requires --ledger-id and a database URL environment variable');
+    const {default:pg}=await import('pg');
+    const {openPostgresLedger}=await import('./postgres-ledger.mjs');
+    pool=new pg.Pool({connectionString:process.env[envName],max:4,
+      connectionTimeoutMillis:5000,application_name:'opendesk-cloud-provider'});
+    pool.on('error',()=>console.error('PostgreSQL connection unavailable; new requests fail closed'));
+    try{ledger=await openPostgresLedger({pool,ledgerId});}catch(error){await pool.end();throw error;}
+  }
+  let provider;
+  try{provider=await openProvider({directory,port,publicTls,taskPackages,ledger});}
+  catch(error){await pool?.end();throw error;}
   console.log(JSON.stringify({providerId:provider.providerId,
     localAdminUrl:`http://127.0.0.1:${provider.port}`,
     httpsPort:provider.publicPort,httpsHost:publicTls?.host??null,
-    directory,credentials:provider.credentialFile}));
-  for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>provider.close().then(()=>process.exit(0)));
+    directory,credentials:provider.credentialFile,
+    persistence:ledger?'postgresql':'legacy-json',...(ledger?{ledgerId:ledger.ledgerId}:{})}));
+  let stopping=false;
+  for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>{
+    if(stopping)return;stopping=true;
+    void provider.close().then(()=>pool?.end()).then(()=>process.exit(0));
+  });
 }else if(command==='submit:remote'||command==='status:remote'||command==='cancel:remote'){
   const url=option('url',''),credentialPath=option('token-file',null),packagePath=option('package',null);
   const parsed=new URL(url);
@@ -124,7 +143,13 @@ if(command==='provider'){
   else if(command==='inspect'){path='state';body={};}
   else if(command==='cancel'){path='cancel';body={jobId:option('job','')};}
   else if(command==='fault'){path='fault';body={path:option('path','/v1/admission'),count:Number(option('count','1'))};}
-  else if(command==='pairing'){console.log(JSON.stringify({providerId:JSON.parse(await readFile(resolve(directory,'state.json'),'utf8')).providerId,pairingCode:credentials.pairingCode}));process.exit(0);}
+  else if(command==='pairing'){
+    let identity;
+    try{identity=JSON.parse(await readFile(resolve(directory,'ledger.json'),'utf8'));}
+    catch(error){if(error.code!=='ENOENT')throw error;identity=JSON.parse(await readFile(resolve(directory,'state.json'),'utf8'));}
+    if(typeof identity.providerId!=='string'||!identity.providerId)throw Error('Provider identity unavailable');
+    console.log(JSON.stringify({providerId:identity.providerId,pairingCode:credentials.pairingCode}));process.exit(0);
+  }
   else throw new Error('Unknown cloud command');
   const response=await fetch(`http://127.0.0.1:${port}/admin/${path}`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+credentials.adminToken},body:JSON.stringify(body)});const value=await response.json();
   if(command==='client:grant'&&response.ok){

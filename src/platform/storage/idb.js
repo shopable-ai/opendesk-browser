@@ -248,7 +248,19 @@ export function transact(db, stores, mode, work, {raw = false} = {}) {
   return new Promise((resolve, reject) => {
     let native, result, failure, workDone = false, ended = false;
     const queue = [];
-    try { native = db.transaction(stores, mode); } catch (error) { reject(storageError(error)); return; }
+    try {
+      // frameworkKV also holds Authority/Receipt evidence; the transaction
+      // scope cannot distinguish those keys from ordinary framework settings.
+      const strict = mode === 'readwrite' &&
+        stores.some(store => ['runs', 'results', 'commandJournal', 'frameworkKV'].includes(store));
+      native = strict ? db.transaction(stores, mode, {durability: 'strict'}) : db.transaction(stores, mode);
+      // Older engines may silently ignore transaction options. Do not run work
+      // unless the engine confirms the requested durability policy.
+      invariant(!strict || native.durability === 'strict', 'E_VERSION', 'Strict IndexedDB durability unavailable');
+    } catch (error) {
+      try { native?.abort(); } catch {}
+      reject(storageError(error)); return;
+    }
     const enqueue = action => new Promise((yes, no) => {
       if (ended || workDone) { no(new FoundationError('E_SCHEMA', 'Transaction already finished')); return; }
       queue.push({action, yes, no});

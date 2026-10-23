@@ -16,7 +16,7 @@ function event() {
   return {addListener: fn => listeners.add(fn), removeListener: fn => listeners.delete(fn),
     emit: (...args) => { for (const fn of [...listeners]) fn(...args); }, size: () => listeners.size};
 }
-function fixture({frameId = 0} = {}) {
+function fixture({frameId = 0, beforeEffect} = {}) {
   const target = {mode: 'borrowed', tabId: 17, frameId, documentId: 'doc-A', url: 'https://a.example/dir/page',
     allowedOrigin: 'https://a.example', browserSessionIncarnation: 'browser-A', targetSessionId: 'session-A', targetVersion: 4};
   const identity = {tag: 'controller-run', runId: 'run-A', ownerEpoch: 3, hostInstanceId: 'host-A', hostDocumentId: 'host-doc', target};
@@ -121,7 +121,7 @@ function fixture({frameId = 0} = {}) {
   let number = 0;
   const envelope = (method, args = [], kind = 'packaged', extra = {}) => ({requestId: `request-${++number}`, identity, revision, target,
     operation: {kind, method, args: encodeValue(args, {maxBytes: method === 'uploadChunk' ? 131072 : 65536})}, ...extra});
-  const driver = createControllerDriver({api, authorize});
+  const driver = createControllerDriver({api, authorize, beforeEffect});
   const result = async (method, args, kind, config) => {
     const reply=await driver.execute(envelope(method,args,kind),config);
     if(reply.error)throw new PageError(reply.error.code,reply.error.message,reply.error.cause);
@@ -485,8 +485,8 @@ test('native HTML stream honors site access revoked between automatic chunks',as
     row.args[1].envelope?.operation?.method==='contentRead').length,0);
 });
 
-function offscreenLocatorFixture() {
-  const f = fixture(), effects = {scrolls:[], focuses:[], events:[]};
+function offscreenLocatorFixture(options) {
+  const f = fixture(options), effects = {scrolls:[], focuses:[], events:[]};
   class Input extends EventTarget {
     constructor() {
       super(); this.nodeType = 1; this.tagName = 'INPUT'; this.type = 'text';
@@ -667,4 +667,137 @@ test('Locator timeout:0 disables local expiry while respecting the Controller ru
   await assert.rejects(f.driver.execute(f.envelope('locatorWait', [
     {kind:'css',value:'#not-there'}, {action:'waitFor',state:'visible',timeout:0}
   ]), {deadlineAt:Date.now()+80}), {code:'E_TIMEOUT'});
+});
+
+
+test('beforeEffect fences scroll and fill separately at their final native submission windows', async t => {
+  const effects = [];
+  const f = offscreenLocatorFixture({beforeEffect: async (envelope, details) => {
+    assert.equal(envelope.operation.method, 'locatorAction');
+    assert.equal(details.kind, 'packaged'); assert.equal(details.method, 'locatorCommit');
+    assert.equal(details.documentId, f.target.documentId);
+    assert.equal(details.tabId, f.target.tabId); assert.equal(details.frameId, f.target.frameId);
+    assert.equal(details.action, 'fill'); assert.equal(typeof details.commitToken, 'string');
+    assert.equal(f.state.native.filter(row => row.args?.[1]?.envelope?.operation.method === 'locatorCommit').length, effects.length);
+    assert.equal(f.effects.scrolls.length, effects.length); assert.equal(f.element.value, '');
+    effects.push({envelope, details});
+    return {proof: 'accepted'};
+  }}); t.after(f.dispose);
+  const envelope = f.envelope('locatorAction', [nameLocator, nameFill]);
+  await f.driver.execute(envelope);
+  assert.deepEqual(effects.map(row => row.details.scrollOnly), [true, false]);
+  assert.equal(new Set(effects.map(row => row.details.effectId)).size, 2);
+  assert.ok(effects.every(row => row.details.effectId.startsWith(envelope.requestId + ':')));
+  assert.equal(f.element.value, nameFill.value);
+});
+
+test('beforeEffect rejection prevents each Locator commit, including fill after an accepted scroll', async t => {
+  for (const deniedWindow of [1, 2]) await t.test(`window ${deniedWindow}`, async t => {
+    let calls = 0;
+    const f = offscreenLocatorFixture({beforeEffect: async () => {
+      if (++calls === deniedWindow) throw new PageError('E_REMOTE_REJECTED');
+    }}); t.after(f.dispose);
+    await assert.rejects(f.result('locatorAction', [nameLocator, nameFill]), {code: 'E_REMOTE_REJECTED'});
+    assert.equal(calls, deniedWindow);
+    assert.equal(f.state.native.filter(row => row.args?.[1]?.envelope?.operation.method === 'locatorCommit').length, deniedWindow - 1);
+    assert.equal(f.effects.scrolls.length, deniedWindow - 1);
+    assert.equal(f.element.value, ''); assert.deepEqual(f.effects.focuses, []);
+  });
+});
+
+test('explicit Locator no-effect retry obtains a fresh effectId and can be rejected independently', async t => {
+  const effects = [];
+  const f = offscreenLocatorFixture({beforeEffect: async (_envelope, details) => {
+    effects.push(details);
+    if (effects.length === 2) throw new PageError('E_REMOTE_REJECTED');
+  }}); t.after(f.dispose);
+  let commits = 0;
+  f.state.hooks['tabs.sendMessage'] = (args, dispatch) => {
+    const envelope = args[1].envelope;
+    if (envelope?.operation.method === 'locatorCommit') {
+      commits++;
+      return {requestId: envelope.requestId, runId: f.identity.runId, ownerEpoch: f.identity.ownerEpoch,
+        value: encodeValue({committed: false, reason: 'E_ELEMENT_DETACHED'})};
+    }
+    return dispatch();
+  };
+  const receipts = [];
+  await assert.rejects(f.driver.execute(f.envelope('locatorAction', [nameLocator, nameFill]), {
+    recordReceipt: row => receipts.push(row)
+  }), {code: 'E_REMOTE_REJECTED'});
+  assert.equal(commits, 1); assert.equal(effects.length, 2);
+  assert.notEqual(effects[0].effectId, effects[1].effectId);
+  assert.ok(receipts.some(row => row.stage === 'locator.commitNoEffect'));
+  assert.deepEqual(f.effects, {scrolls: [], focuses: [], events: []});
+});
+
+test('read-only Locator/query/wait polling never calls beforeEffect', async t => {
+  let effects = 0, prepares = 0;
+  const f = fixture({beforeEffect: async () => { effects++; throw new Error('read must not fence'); }}); t.after(f.dispose);
+  f.state.hooks['tabs.sendMessage'] = (args, dispatch) => {
+    if (args[1].envelope?.operation.method === 'locatorPrepare') prepares++;
+    return dispatch();
+  };
+  assert.equal(await f.result('title'), 'Document A');
+  assert.equal(await f.result('locatorRead', [nameLocator, {action: 'count'}]), 0);
+  assert.equal(await f.result('locatorWait', [nameLocator, {action: 'waitFor', state: 'hidden', timeout: 100}]), undefined);
+  const reply = await f.driver.execute(f.envelope('locatorAction', [nameLocator, {...nameFill, timeout: 100}]));
+  assert.equal(reply.error.code, 'E_TIMEOUT'); assert.ok(prepares >= 2);
+  assert.equal(effects, 0);
+});
+
+test('Cancel while beforeEffect is pending prevents late callback success from submitting a commit', async t => {
+  let entered, release;
+  const started = new Promise(resolve => { entered = resolve; });
+  const held = new Promise(resolve => { release = resolve; });
+  const f = offscreenLocatorFixture({beforeEffect: async () => { entered(); await held; }}); t.after(f.dispose);
+  const signal = new AbortController();
+  const pending = f.driver.execute(f.envelope('locatorAction', [nameLocator, nameFill]), {signal: signal.signal});
+  const rejected = assert.rejects(pending, {code: 'E_CANCELLED'});
+  await started; signal.abort(new PageError('E_CANCELLED')); await rejected;
+  release(); await pause(0);
+  assert.equal(f.state.native.filter(row => row.args?.[1]?.envelope?.operation.method === 'locatorCommit').length, 0);
+  assert.deepEqual(f.effects, {scrolls: [], focuses: [], events: []});
+});
+
+test('navigation, packaged writes, USER_SCRIPT and individual cookie writes are fenced before dispatch', async t => {
+  const cases = [
+    ['goto', ['https://a.example/next', {timeout: 1000, waitUntil: 'complete'}], 'browser', 'tabs.update'],
+    ['reload', [{timeout: 1000, waitUntil: 'complete'}], 'browser', 'tabs.reload'],
+    ...['click','type','keyboard','uploadChunk','uploadCommit','addScriptTag','addStyleTag'].map(method =>
+      [method, [], 'packaged', 'tabs.sendMessage']),
+    ['evaluateExpression', ['document.body.innerHTML = "changed"'], 'user-script', 'userScripts.execute'],
+    ['waitForFunction', ['() => true', {timeout: 100, polling: 1}, []], 'user-script', 'userScripts.execute'],
+    ['setCookie', [{name: 'a', value: '1'}], 'browser', 'cookies.set'],
+    ['deleteCookie', [{name: 'a', path: '/dir'}], 'browser', 'cookies.remove']
+  ];
+  for (const [method, args, kind, stage] of cases) await t.test(method, async t => {
+    const effects = [];
+    const f = fixture({beforeEffect: async (envelope, details) => {
+      assert.equal(envelope.operation.method, method); assert.equal(details.kind, kind);
+      assert.equal(details.method, method); assert.equal(details.documentId, 'doc-A');
+      effects.push(details); throw new PageError('E_REMOTE_REJECTED');
+    }}); t.after(f.dispose);
+    f.state.cookies.push({name: 'a', value: '1', path: '/dir', domain: 'a.example', storeId: 'store-A'});
+    await assert.rejects(f.result(method, args, kind), {code: 'E_REMOTE_REJECTED'});
+    assert.equal(effects.length, 1);
+    assert.equal(f.state.native.filter(row => row.stage === stage &&
+      (stage !== 'tabs.sendMessage' || row.args[1].action === 'execute')).length, 0);
+  });
+});
+
+test('a cookie batch obtains a separate fence for every actual set and remove', async t => {
+  for (const method of ['setCookie', 'deleteCookie']) await t.test(method, async t => {
+    const effects = [];
+    const f = fixture({beforeEffect: async (_envelope, details) => {
+      effects.push(details);
+      if (effects.length === 2) throw new PageError('E_REMOTE_REJECTED');
+    }}); t.after(f.dispose);
+    const rows = [{name: 'a', value: '1', path: '/dir'}, {name: 'b', value: '2', path: '/dir'},
+      {name: 'c', value: '3', path: '/dir'}];
+    if (method === 'deleteCookie') f.state.cookies = rows.map(row => ({...row, domain: 'a.example', storeId: 'store-A'}));
+    await assert.rejects(f.result(method, method === 'setCookie' ? rows : rows.map(row => ({name: row.name, path: row.path})), 'browser'), {code: 'E_REMOTE_REJECTED'});
+    assert.equal(effects.length, 2); assert.notEqual(effects[0].effectId, effects[1].effectId);
+    assert.equal(f.state.native.filter(row => row.stage === (method === 'setCookie' ? 'cookies.set' : 'cookies.remove')).length, 1);
+  });
 });

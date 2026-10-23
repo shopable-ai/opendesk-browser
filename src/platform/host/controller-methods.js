@@ -292,12 +292,33 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       invariant(!previous, EFFECT_UNKNOWN, 'Owned creation dispatch is never replayed');
       const creationId = newId(), bootstrapUrl = api.runtime.getURL(`ui/target-bootstrap.html?creationId=${encodeURIComponent(creationId)}`);
       const value = {tag: 'controller-target-create', runId: current.runId, creationId, browserSessionIncarnation: session,
-        bootstrapUrl, state: 'dispatched', submissionCount: 1, tabId: null, dispatchAt: now()};
+        bootstrapUrl, state: 'prepared', submissionCount: 0, tabId: null};
       await transaction.put(COMMAND_JOURNAL, value, creationKey);
       return value;
     });
     await requireGrant(api, httpUrl(run.startUrl).origin);
-    await tx(RUN_READ,transaction=>owner(transaction,run,host,sender,{active:true}));
+    const createEffect={requestId:run.requestId,requestDigest:run.requestDigest,effectId:`${intent.creationId}:create`,kind:'owned-create'};
+    const createProof=run.cloudRequestId?await cloud.controlFence(run,createEffect):null;
+    const createReady=await tx(RUN_WRITE,async transaction=>{
+      const current=await owner(transaction,await transaction.get(RUN_STORE,run.runId),host,sender,{active:true});
+      const journal=await transaction.get(COMMAND_JOURNAL,creationKey);
+      invariant(journal?.state==='prepared'&&journal.submissionCount===0,EFFECT_UNKNOWN);
+      const ready=await consumeCloudFence(transaction,current,journal,createProof,createEffect);
+      journal.state='dispatched';journal.submissionCount=1;journal.dispatchAt=now();
+      await transaction.put(COMMAND_JOURNAL,journal,creationKey);
+      return ready;
+    });
+    try{createReady?.();}catch(error){
+      // A consumed proof is never refreshed/replayed. Record definite absence
+      // because tabs.create has not been invoked, preserving the consumed proof.
+      await tx(RUN_WRITE,async transaction=>{
+        const journal=await transaction.get(COMMAND_JOURNAL,creationKey);
+        invariant(journal?.state==='dispatched'&&journal.submissionCount===1&&journal.tabId===null,EFFECT_UNKNOWN);
+        journal.state='not-dispatched';journal.submissionCount=0;journal.deniedAt=now();
+        await transaction.put(COMMAND_JOURNAL,journal,creationKey);
+      });
+      throw error;
+    }
     const created = await api.tabs.create({url: intent.bootstrapUrl, active: false});
     invariant(Number.isSafeInteger(created?.id), EFFECT_UNKNOWN, 'No native owned tab receipt');
     creatingTabs.set(run.runId, created.id);
@@ -313,16 +334,30 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     });
     const bootstrap = await waitDocument(run, created.id, {bootstrapUrl: intent.bootstrapUrl});
     await requireGrant(api, httpUrl(run.startUrl).origin);
-    await tx(RUN_WRITE, async transaction => {
-      await owner(transaction, await transaction.get(RUN_STORE, run.runId), host, sender, {active: true});
+    const navigateEffect={requestId:run.requestId,requestDigest:run.requestDigest,effectId:`${intent.creationId}:navigate`,kind:'owned-navigate'};
+    const navigateProof=run.cloudRequestId?await cloud.controlFence(run,navigateEffect):null;
+    const navigateReady=await tx(RUN_WRITE, async transaction => {
+      const current=await owner(transaction, await transaction.get(RUN_STORE, run.runId), host, sender, {active: true});
       const value = await transaction.get(COMMAND_JOURNAL, creationKey);
       invariant(!value.navigationSubmissionCount, EFFECT_UNKNOWN);
+      const ready=await consumeCloudFence(transaction,current,value,navigateProof,navigateEffect);
       value.bootstrapDocumentId = bootstrap.documentId; value.navigationSubmissionCount = 1; value.navigationState = 'dispatched';
       await transaction.put(COMMAND_JOURNAL, value, creationKey);
+      return ready;
     });
+    navigateReady?.();
     await api.tabs.update(created.id, {url: run.startUrl});
     const observed = await waitDocument(run, created.id, {changedFrom: bootstrap.documentId});
     return {...observed, creationId: intent.creationId};
+  }
+  async function consumeCloudFence(transaction,run,journal,proof,expected){
+    if(!run.cloudRequestId)return;
+    const ready=await cloud.assertControlFence(transaction,run,proof,expected);
+    if(proof){
+      invariant(!(journal.controlFences||[]).some(row=>row.proof.effectId===expected.effectId||row.proof.fenceId===proof.fenceId),EFFECT_UNKNOWN);
+      (journal.controlFences||=[]).push({proof:structuredClone(proof),consumedAt:now()});
+    }
+    return ready;
   }
   async function startControllerRun(request, sender) {
     return withRunAdmissionLock(()=>startControllerRunLocked(request,sender),{allowWithoutLocks:api!==globalThis.chrome});
@@ -511,7 +546,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     if (admitted.duplicate) return {runId: run.runId, state: run.state, duplicate: true, runRevision: run.runRevision};
     try {
       const pinned = admitted.pinned;
-      if(run.cloudRequestId) await cloud.permit(run);
+      if(run.cloudRequestId){await cloud.permit(run);await cloud.start(run);}
       if (!observed) observed = await createOwned(run, host, sender);
       await verifyControllerTarget({api, target: observed, expectedUrl: request.target.expectedUrl, expectedWindowId:request.target.expectedWindowId});
       return await tx(RUN_WRITE, async transaction => {
@@ -649,7 +684,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       });
       if (navigation) navigating.set(run.runId, envelope.requestId);
       const abort = new AbortController(); cancellations.set(key, {runId: run.runId, abort});
-      let appDispatched=false;
+      let appDispatched=false,cloudEffectsAuthorized=0,cloudDeniedBeforeDispatch=false;
       const authorizeOperation = async (captured, details = {}) => {
         invariant(same(captured, envelope), CONTROLLER_OWNER_ERROR);
         if(run.profile==='app-service'){
@@ -677,7 +712,33 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         locatorWriters.add(writeKey);
         try { return await effect(); } finally { locatorWriters.delete(writeKey); }
       };
-      const driver = createControllerDriver({api, clock, authorize:authorizeOperation, withWrite:withLocatorWrite});
+      const beforeEffect=async(captured,details)=>{
+        invariant(same(captured,envelope),CONTROLLER_OWNER_ERROR);
+        if(!run.cloudRequestId)return;
+        try{
+          const expected={requestId:envelope.requestId,requestDigest,effectId:details.effectId,kind:details.kind};
+          const proof=await cloud.controlFence(run,expected);
+          await authorizeOperation(envelope,{phase:'pre',...details});
+          const ready=await tx(RUN_WRITE,async transaction=>{
+            const current=await admittedOperation(transaction,envelope,host,sender);
+            const operation=await transaction.get(COMMAND_JOURNAL,key);
+            invariant(operation?.requestDigest===requestDigest&&operation.state==='dispatched',REQUEST_CONFLICT);
+            const assertReady=await consumeCloudFence(transaction,current,operation,proof,expected);
+            await transaction.put(COMMAND_JOURNAL,operation,key);
+            return assertReady;
+          });
+          return submit=>{
+            try{ready?.();const dispatched=submit();cloudEffectsAuthorized++;return dispatched;}
+            catch(error){if(cloudEffectsAuthorized===0)cloudDeniedBeforeDispatch=true;throw error;}
+          };
+        }catch(error){
+          // This trusted callback has not returned to the driver's dispatch.
+          // Only the first submission window can prove the whole op had no effect.
+          if(cloudEffectsAuthorized===0)cloudDeniedBeforeDispatch=true;
+          throw error;
+        }
+      };
+      const driver = createControllerDriver({api, clock, authorize:authorizeOperation, beforeEffect, withWrite:withLocatorWrite});
       const recordReceipt = async receipt => tx(RUN_WRITE, async transaction => {
         const operation = await transaction.get(COMMAND_JOURNAL, key);
         invariant(operation?.requestDigest === requestDigest, REQUEST_CONFLICT);
@@ -774,6 +835,11 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         const failureReply = await tx(RUN_WRITE, async transaction => {
           const operation = await transaction.get(COMMAND_JOURNAL, key);
           if (!operation || operation.state === 'durable') return;
+          if(cloudDeniedBeforeDispatch){
+            operation.state='failed';operation.effectState='not-dispatched';operation.failure=typed(error);
+            operation.deliveryState='fenced';operation.receiptAt=now();
+            await transaction.put(COMMAND_JOURNAL,operation,key);return;
+          }
           // Only the trusted app Host can signal dispatch. Before that signal,
           // a rejected read or write preflight has no effect to reconcile.
           if (appCall && !appDispatched) {
@@ -932,7 +998,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     let targetQuarantine = null;
     if (run.selection.mode === 'owned') {
       const intent = await tx(RUN_READ, transaction => transaction.get(COMMAND_JOURNAL, `controller-create:${run.runId}`), [COMMAND_JOURNAL]);
-      if (intent && previousSession) {
+      if(['prepared','not-dispatched'].includes(intent?.state)&&intent.submissionCount===0&&intent.tabId===null){
+        absence='not-created-before-dispatch';
+      } else if (intent && previousSession) {
         // Session changes also include extension reloads. They revoke old
         // authority, but cannot prove a restored numeric tab belongs to us.
         // Retain that unresolved resource in quarantine instead of closing it.

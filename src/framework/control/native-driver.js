@@ -18,6 +18,9 @@ const methods = Object.freeze({
   browser: new Set(['goto', 'reload', 'cookies', 'setCookie', 'deleteCookie', 'screenshot', 'uploadFromUrl']),
   'user-script': new Set(['evaluate', '$eval', '$$eval', 'evaluateExpression', 'eval', 'waitForFunction'])
 });
+// These operations only observe page state or manage framework-owned read buffers.
+const packagedReads = new Set(['title','content','contentOpen','contentRead','contentClose','url','snapshot','snapshots',
+  'waitForTimeout','waitForSelector','locatorRead','locatorPrepare','locatorObserve']);
 const ownerKey = run => JSON.stringify([run.runId, run.ownerEpoch]);
 const injectionTarget = target => ({tabId: target.tabId, documentIds: [target.documentId]});
 const messageTarget = target => ({documentId: target.documentId, frameId: target.frameId});
@@ -47,8 +50,10 @@ export function validateControllerEnvelope(envelope) {
 // result persistence. This driver only observes and dispatches exact native APIs.
 export const COOKIE_PREFLIGHT_METHODS=Object.freeze(['cookies','setCookie','deleteCookie']);
 export const COOKIE_PREFLIGHT_CODES=Object.freeze([COOKIE_FORMAT_CODE,'E_COOKIE_SCOPE','E_COOKIE_PARTITION_UNSUPPORTED','E_PERMISSION_DENIED']);
-export function createControllerDriver({api = globalThis.chrome, authorize, clock = Date, withWrite = async (_owner, fn) => fn()} = {}) {
-  requireValue(api && typeof authorize === 'function' && typeof clock.now === 'function' && typeof withWrite === 'function', 'E_PAGE_CONTEXT_REQUIRED');
+export function createControllerDriver({api = globalThis.chrome, authorize, clock = Date, withWrite = async (_owner, fn) => fn(),
+  beforeEffect = async () => {}} = {}) {
+  requireValue(api && typeof authorize === 'function' && typeof clock.now === 'function' && typeof withWrite === 'function' &&
+    typeof beforeEffect === 'function', 'E_PAGE_CONTEXT_REQUIRED');
   const runs = new Map(), retired = new Set();
   const finalFailures = new WeakMap();
   if (!unavailableByAPI.has(api)) unavailableByAPI.set(api, new Set());
@@ -96,14 +101,25 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
   async function saveReceipt(state, stage, receipt) {
     if (state.recordReceipt) await state.recordReceipt({requestId: state.envelope.requestId, stage, receipt: frozenCopy(receipt)});
   }
-  async function step(state, dispatch, extra = {}, stage) {
+  async function effect(state, details, dispatch) {
+    guard(state);
+    const {tabId, frameId, documentId} = state.envelope.target;
+    // Allocate at each actual submission window, never at admission or prepare.
+    const effectId = `${state.envelope.requestId}:effect:${++state.effectSequence}`;
+    const ready=await race(state, beforeEffect(state.envelope, {tabId, frameId, documentId, ...details, effectId}));
+    // The trusted authority may wrap this final synchronous submission. No
+    // await separates its deadline check, the local guard, and native dispatch.
+    const submit=()=>{guard(state);return dispatch();};
+    return typeof ready==='function'?ready(submit):submit();
+  }
+  async function step(state, dispatch, extra = {}, stage, effectDetails) {
     await permission(state, 'pre', extra); guard(state);
-    const dispatched = Promise.resolve(dispatch()).then(async value => {
+    const dispatched = Promise.resolve(effectDetails ? effect(state, effectDetails, dispatch) : dispatch()).then(async value => {
       if (stage) await saveReceipt(state, stage, value); return value;
     });
     return wait(state, dispatched, extra);
   }
-  async function native(state, owner, method, args, extra) {
+  async function native(state, owner, method, args, extra, effectDetails) {
     const namespace = ['tabs', 'windows', 'cookies', 'scripting', 'webNavigation'].find(name => api[name] === owner);
     // A long Locator wait can create thousands of read-only native polls.
     // Only the commit callback retains a native-stage receipt; commit intent
@@ -111,7 +127,7 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     const locator = ['locatorAction','locatorWait'].includes(state.envelope.operation.method);
     const silent = locator && (namespace === 'webNavigation' || namespace === 'tabs' &&
       args[1]?.envelope?.operation.method !== 'locatorCommit');
-    return step(state, () => chromeCall(api, owner, method, ...args), extra, silent ? undefined : `${namespace}.${method}`);
+    return step(state, () => chromeCall(api, owner, method, ...args), extra, silent ? undefined : `${namespace}.${method}`, effectDetails);
   }
   async function verifyTarget(state, target = state.handoff?.to || state.envelope.target) {
     const frames = await native(state, api.webNavigation, 'getAllFrames', [{tabId: target.tabId}]);
@@ -148,13 +164,14 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     state.run.pages.set(key, ready); state.run.pageTargets.set(key, state.envelope);
     try { await wait(state, ready); } catch (cause) { state.run.pages.delete(key); throw cause; }
   }
-  async function packaged(state, method = state.envelope.operation.method, args = state.args) {
+  async function packaged(state, method = state.envelope.operation.method, args = state.args, commitDetails = {}) {
     await pageReady(state); await verifyTarget(state);
     const envelope = method === state.envelope.operation.method && args === state.args ? state.envelope :
       {...state.envelope, requestId: newPageRequestId(), operation: {kind: 'packaged', method,
         args: controlEncodeValue(args, {maxBytes: method === 'uploadChunk' ? 131072 : 65536})}};
     const reply = await native(state, api.tabs, 'sendMessage', [envelope.target.tabId,
-      {type: MESSAGE, action: 'execute', envelope}, messageTarget(envelope.target)]);
+      {type: MESSAGE, action: 'execute', envelope}, messageTarget(envelope.target)], {}, packagedReads.has(method) ? undefined :
+      {kind: 'packaged', method, dispatchRequestId: envelope.requestId, ...commitDetails});
     await verifyTarget(state);
     requireValue(reply?.requestId === envelope.requestId && reply.runId === envelope.identity.runId &&
       reply.ownerEpoch === envelope.identity.ownerEpoch, RESULT_FORMAT_CODE);
@@ -190,7 +207,8 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     if (descriptor.wait) state.run.waits.set(state.envelope.requestId, {envelope: state.envelope, descriptor});
     try {
       const replies = await step(state, () => api.userScripts.execute({target: injectionTarget(state.envelope.target),
-        world: descriptor.world, js: [{code: descriptor.code}]}), {}, 'userScripts.execute');
+        world: descriptor.world, js: [{code: descriptor.code}]}), {}, 'userScripts.execute',
+        {kind: 'user-script', method: state.envelope.operation.method, world: descriptor.world});
       await userScriptsAvailable(state); await verifyTarget(state);
       requireValue(Array.isArray(replies) && replies.length === 1 && replies[0].frameId === state.envelope.target.frameId &&
         replies[0].documentId === state.envelope.target.documentId, 'E_TARGET');
@@ -257,7 +275,7 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     await verifyTarget(state); await permission(state, 'pre', {url});
     // The parent's durable intent MUST already be admitted by this pre-check.
     armed = true; state.navigationPending = true;
-    await native(state, api.tabs, method === 'goto' ? 'update' : 'reload', method === 'goto' ? [from.tabId, {url}] : [from.tabId], {url});
+    await native(state, api.tabs, method === 'goto' ? 'update' : 'reload', method === 'goto' ? [from.tabId, {url}] : [from.tabId], {url}, {kind: 'browser', method, url});
     await wait(state, completed, {url}); await verifyTarget(state); return undefined;
   }
   async function screenshot(state) {
@@ -334,17 +352,22 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
           } catch (cause) { fault = cause; callback(undefined); } }, cause => { fault = cause; callback(undefined); });
         });
       },
-      set(details, callback) { guard(state); api.cookies.set({...details, storeId}, receipt => {
-        if (api.runtime.lastError) { callback(receipt); return; }
-        saveReceipt(state, 'cookies.set', receipt).then(() => callback(receipt), cause => { fault = cause; callback(undefined); });
-      }); },
-      remove(details, callback) { guard(state); api.cookies.remove({...details, storeId}, receipt => {
-        if (api.runtime.lastError) { callback(receipt); return; }
-        if (!receipt) fault = error('E_COOKIE_OPERATION');
-        saveReceipt(state, 'cookies.remove', receipt).then(() => callback(receipt), cause => { fault = cause; callback(undefined); });
-      }); }
+      set(details, callback) {
+        effect(state, {kind: 'browser', method: 'setCookie', url: details.url, storeId},
+          () => chromeCall(api, api.cookies, 'set', {...details, storeId})).then(async receipt => {
+          await saveReceipt(state, 'cookies.set', receipt); callback(receipt);
+        }).catch(cause => { fault = cause; callback(undefined); });
+      },
+      remove(details, callback) {
+        effect(state, {kind: 'browser', method: 'deleteCookie', url: details.url, storeId},
+          () => chromeCall(api, api.cookies, 'remove', {...details, storeId})).then(async receipt => {
+          if (!receipt) fault = error('E_COOKIE_OPERATION');
+          await saveReceipt(state, 'cookies.remove', receipt); callback(receipt);
+        }).catch(cause => { fault = cause; callback(undefined); });
+      }
     }};
     const service = createCookieService({api: scopedAPI, authorize: async request => {
+      if (fault) throw fault;
       if (request.phase === 'pre') await verifyTarget(state);
       await permission(state, request.phase, {url: request.url});
     }});
@@ -375,7 +398,7 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
       }
       await verifyTarget(state); return undefined;
     } catch (cause) {
-      if (fault) throw fault;
+      if (fault) cause = fault;
       if (cause.code === 'E_CHROME') throw new PageError('E_COOKIE_OPERATION', cause.message);
       if (cause.code === 'E_SCHEMA') throw new PageError(COOKIE_FORMAT_CODE, cause.message);
       throw cause;
@@ -512,7 +535,8 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
               // Persist the uncertainty boundary before sending a page effect.
               await saveReceipt(state, 'locator.commitIntent', {documentId:state.envelope.target.documentId});
               submitted = true;
-              return packaged(state, 'locatorCommit', [descriptor, op, prepared.token]);
+              return packaged(state, 'locatorCommit', [descriptor, op, prepared.token],
+                {commitToken: prepared.token, action: op.action, scrollOnly: prepared.scrollOnly === true});
             });
             requireValue(outcome && typeof outcome.committed === 'boolean', RESULT_FORMAT_CODE);
             requireValue(outcome.scrolled !== true || outcome.committed && prepared.scrollOnly === true, RESULT_FORMAT_CODE);
@@ -595,7 +619,7 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
       run = {pending: new Set(), requests: new Set(), pages: new Map(), pageTargets: new Map(), waits: new Map(), userScriptsUnavailable: false}; runs.set(key, run);
     }
     requireValue(!run.requests.has(envelope.requestId), 'E_OPERATION_REPLAY'); run.requests.add(envelope.requestId);
-    const controller = new AbortController(), state = {envelope, args, descriptor, run, controller, deadlineAt, recordReceipt, cleanups: []};
+    const controller = new AbortController(), state = {envelope, args, descriptor, run, controller, deadlineAt, recordReceipt, effectSequence: 0, cleanups: []};
     if (kind === 'packaged' && (method === 'locatorAction' || method === 'locatorWait')) {
       // Playwright's explicit timeout: 0 disables the Locator-local deadline.
       // The Controller run deadline (when present) still fences the operation.

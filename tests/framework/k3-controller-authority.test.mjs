@@ -1687,11 +1687,18 @@ test('duplicate draft admissions require the original frozen runtime, without an
   }
 });
 
-async function cloudTaskFixture(){
+async function cloudTaskFixture({controlProtocol}={}){
   const f=await installedTaskFixture(),cloud=f.authority.cloud,executorId=crypto.randomUUID();
   const config={url:'http://127.0.0.1:43112',providerId:'provider',credential:'test-only',executorId,namespace:`tool:${f.api.runtime.id}`,enabled:true,grantId:'grant',tasks:[{...f.resolved,resultAllowed:true}]};
   const assignment={assignmentId:'assignment',executorId,claimId:'claim',leaseUntil:Date.now()+90000,jobId:'job',task:{taskId:f.resolved.taskId,version:f.resolved.version,manifestHash:f.resolved.manifestHash,sourceHash:f.resolved.contentHash},params:{no:false,zero:0},target:{mode:'owned',url:'https://a.example/page'}};
+  if(controlProtocol===2){
+    Object.assign(config,{pairingId:crypto.randomUUID(),pairingGeneration:1});
+    Object.assign(assignment,{providerId:config.providerId,pairingId:config.pairingId,pairingGeneration:1,
+      attemptEpoch:1,controlProtocol:2,controlGeneration:crypto.randomUUID()});
+  }
   const requestId='cloud:assignment',row={tag:'cloud-request-v1',requestId,digest:'digest',assignment,params:assignment.params,task:config.tasks[0],grantId:config.grantId,namespace:config.namespace,state:'waiting'};
+  if(controlProtocol===2)row.identity={pairing:{providerId:config.providerId,executorId,pairingId:config.pairingId,pairingGeneration:1},
+    jobId:assignment.jobId,claimId:assignment.claimId,assignmentId:assignment.assignmentId,attemptEpoch:1};
   await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{await tx.put('frameworkKV',config,'cloud:config');await tx.put('frameworkKV',row,'cloud:request:'+requestId);});
   const {params,...resolvedRequest}=await cloud.cloudResolve({requestId},f.sender);
   const request={...resolvedRequest,paramsWire:encodeValue(params)};
@@ -2097,7 +2104,7 @@ test('cloud late permit from a retired connection epoch cannot dispatch',async t
 });
 test('completed released receipt-confirmed cloud run ignores later lease expiry without hiding cancellation history',async t=>{
   const f=await admittedCloud(t);await f.finish(f.run);await f.authority.retireControllerTarget({runId:f.run.runId},f.sender);
-  t.mock.method(globalThis,'fetch',async url=>url.endsWith('/receipt')?new Response(JSON.stringify({receiptId:'ack',digest:'digest'})):new Response(JSON.stringify(await remoteCloud(f))));
+  t.mock.method(globalThis,'fetch',async(url,options)=>url.endsWith('/receipt')?new Response(JSON.stringify({receiptId:'ack',digest:await digest(JSON.parse(options.body))})):new Response(JSON.stringify(await remoteCloud(f))));
   await f.cloud.reconcile();
   const before=(await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1');
   t.mock.method(globalThis,'fetch',async()=>{const remote=await remoteCloud(f);remote.assignments[0].leaseUntil=Date.now()-1;return new Response(JSON.stringify(remote));});
@@ -2171,8 +2178,8 @@ test('confirmed Cloud Result stays finished after provider lease expiry and loca
   const f=await admittedCloud(t);
   await f.finish(f.run);await f.authority.retireControllerTarget({runId:f.run.runId},f.sender);
   const remote=await remoteCloud(f);
-  t.mock.method(globalThis,'fetch',async url=>{
-    if(url.endsWith('/receipt'))return new Response(JSON.stringify({receiptId:'original-ack',digest:'original-digest'}));
+  t.mock.method(globalThis,'fetch',async(url,options)=>{
+    if(url.endsWith('/receipt'))return new Response(JSON.stringify({receiptId:'original-ack',digest:await digest(JSON.parse(options.body))}));
     if(url.endsWith('/reconcile'))return new Response(JSON.stringify(remote));
     throw Error('Unexpected provider method: '+url);
   });
@@ -2196,7 +2203,7 @@ test('late cloud renewal cannot restore a stopped grant or permit',async t=>{
 });
 test('cloud result pending-write failure prevents upload; retry uploads original result without execution',async t=>{
   const f=await admittedCloud(t);await f.finish(f.run);await f.authority.retireControllerTarget({runId:f.run.runId},f.sender);let uploads=0;
-  t.mock.method(globalThis,'fetch',async url=>{if(url.endsWith('/receipt')){uploads++;return new Response(JSON.stringify({receiptId:'ack',digest:'digest'}));}return new Response(JSON.stringify(await remoteCloud(f)));});
+  t.mock.method(globalThis,'fetch',async(url,options)=>{if(url.endsWith('/receipt')){uploads++;return new Response(JSON.stringify({receiptId:'ack',digest:await digest(JSON.parse(options.body))}));}return new Response(JSON.stringify(await remoteCloud(f)));});
   const transaction=f.storage.transaction.bind(f.storage);f.storage.transaction=(names,mode,body)=>transaction(names,mode,async tx=>{const answer=await body(tx);if(mode==='readwrite'&&answer===true)throw Object.assign(Error('quota'),{name:'QuotaExceededError'});return answer;});
   await assert.rejects(f.cloud.reconcile(),{name:'QuotaExceededError'});assert.equal(uploads,0);f.storage.transaction=transaction;await f.cloud.reconcile();
   assert.equal(uploads,1);assert.equal(f.calls.filter(c=>c.method==='create').length,1);const r=(await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1');assert.equal(r.runId,f.run.runId);assert.equal(r.delivery.state,'confirmed');
@@ -2211,7 +2218,7 @@ test('revocation between durable delivery intent and network submission suppress
 });
 test('cloud receipt transport loss leaves one durable result pending and retries without dispatch',async t=>{
   const f=await admittedCloud(t);await f.finish(f.run);await f.authority.retireControllerTarget({runId:f.run.runId},f.sender);let uploads=0;const bodies=[];
-  t.mock.method(globalThis,'fetch',async(url,options)=>{if(url.endsWith('/receipt')){bodies.push(JSON.parse(options.body));if(++uploads===1)throw TypeError('response lost');return new Response(JSON.stringify({receiptId:'original-ack',digest:'digest'}));}return new Response(JSON.stringify(await remoteCloud(f)));});
+  t.mock.method(globalThis,'fetch',async(url,options)=>{if(url.endsWith('/receipt')){bodies.push(JSON.parse(options.body));if(++uploads===1)throw TypeError('response lost');return new Response(JSON.stringify({receiptId:'original-ack',digest:await digest(JSON.parse(options.body))}));}return new Response(JSON.stringify(await remoteCloud(f)));});
   await assert.rejects(f.cloud.reconcile(),/response lost/);const pending=(await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1');assert.equal(pending.delivery.state,'pending');assert.equal(pending.receipt,undefined);
   await f.cloud.reconcile();assert.equal(uploads,2);assert.deepEqual(bodies[0],bodies[1]);assert.equal(f.calls.filter(c=>c.method==='create').length,1);
   assert.equal((await f.rows('results')).filter(r=>r.tag==='controller-result'&&r.runId===f.run.runId).length,1);assert.equal((await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1').delivery.state,'confirmed');
@@ -2240,7 +2247,7 @@ test('website or task authorization withdrawn after delivery intent prevents res
 // A live Provider + the actual Task Installer/Resolver, Cloud Service and RunHost
 // must execute LOCAL pinned bytes. Chrome DOM/native APIs are test doubles here:
 // NODE_INTEGRATION, not a native Chrome/CWS acceptance result.
-test('remote fixed Task request runs locally installed JS via the original RunHost and confirms one Provider receipt',{timeout:25000},async t=>{
+for(const controlProtocol of [undefined,2])test(`remote fixed Task request runs locally installed JS via the original RunHost and confirms one Provider receipt (${controlProtocol===2?'v2':'legacy'})`,{timeout:25000},async t=>{
   const f=await installedTaskFixture(),source='async function main(){return await page.title();}',
     pkg=await createTaskPackage(f.manifest,source);
   const directory=await mkdtemp(join(tmpdir(),'od-cloud-installed-runhost-'));
@@ -2301,7 +2308,7 @@ test('remote fixed Task request runs locally installed JS via the original RunHo
       admin.adminToken),error=>error?.code==='E_SCHEMA',
       'Provider must not ingest a remote executable payload');
     const seed=await post('/admin/seed',{requestKey:'fixed-local-task',...pin,
-      targetExecutorId:executorId,params,target},admin.adminToken);
+      targetExecutorId:executorId,params,target,...(controlProtocol===2?{controlProtocol}: {})},admin.adminToken);
     await waitForReconciliation(beforeNotify+1);
     // WebSocket notification cannot dispatch a privileged Worker by itself.
     // The Side Panel's trusted cloudNext/RunHost path remains the sole owner.
@@ -2360,6 +2367,19 @@ test('remote fixed Task request runs locally installed JS via the original RunHo
     assert.equal(decodeValue(completion.result.outcome.valueWire),'Top');
     const persisted=(await f.rows('runs')).find(row=>row.runId===claimed.runId);
     assert.equal(persisted.cloudRequestId,waiting.requestId);
+    const creation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-target-create'&&row.runId===claimed.runId);
+    if(controlProtocol===2){
+      const local=(await f.rows('frameworkKV')).find(row=>row.tag==='cloud-request-v1'&&row.runId===claimed.runId);
+      assert.equal(local.assignment.controlProtocol,2);
+      assert.equal(persisted.cloudStartTicketId,local.startTicket.ticketId);
+      assert.equal(creation.controlFences.length,2,'tabs.create and initial navigate each consume their own Provider fence');
+      assert.equal(new Set(creation.controlFences.map(row=>row.proof.fenceId)).size,2);
+      assert.ok(creation.controlFences.every(row=>Number.isFinite(row.consumedAt)&&row.proof.ticketId===persisted.cloudStartTicketId));
+    }else{
+      assert.equal(persisted.cloudControlProtocol,undefined,'Legacy jobs do not upgrade when the Executor advertises v2');
+      assert.equal(creation.controlFences,undefined);
+    }
+
     assert.equal(persisted.retirementState,'released');
     assert.equal(persisted.revision.sourceHash,pin.sourceHash);
     await cloud.reconcile();
@@ -2376,4 +2396,284 @@ test('remote fixed Task request runs locally installed JS via the original RunHo
     await provider?.close();
     await rm(directory,{recursive:true,force:true});
   }
+});
+
+// R20.1 Host tests retain the real Cloud service and Authority. Only transport
+// replies and Chrome callbacks are doubled; the network integration above also
+// exercises the same wire against the actual Provider for legacy and v2 jobs.
+function freshCloudTransport(t,f,{reply=async()=>{}}={}){
+  const requests=[];
+  t.mock.method(globalThis,'fetch',async(url,options)=>{
+    const path=url.split('/').at(-1),body=JSON.parse(options.body);requests.push({path,body});
+    const a=f.row.assignment,binding=body.binding||{};let answer;
+    if(path==='admission')answer={...binding,permitId:'permit',runRef:body.runRef,leaseUntil:a.leaseUntil,
+      controlProtocol:2,controlGeneration:a.controlGeneration};
+    else if(path==='start-ticket')answer={...binding,runRef:body.runRef,permitId:body.permitId,controlProtocol:2,
+      controlGeneration:a.controlGeneration,startId:body.startId,challenge:body.challenge,ticketId:crypto.randomUUID(),
+      issuedAt:f.clock.now(),expiresAt:f.clock.now()+5000};
+    else if(path==='control-fence'){
+      const {binding:ignored,...rest}=body;answer={...binding,...rest,controlProtocol:2,fenceId:crypto.randomUUID(),
+        issuedAt:f.clock.now(),expiresAt:f.clock.now()+2000};
+    }else if(path==='suspend')answer={suspended:true};
+    else if(path==='cancel')answer={cancelled:true};
+    else throw Error('Unexpected fresh-control route '+path);
+    const override=await reply(path,answer,body);return override??new Response(JSON.stringify(answer));
+  });
+  return requests;
+}
+for(const [name,alter,expected]of[
+  ['missing ticket',p=>{delete p.ticketId;},'E_CONTROL_FENCE'],
+  ['wrong Run',p=>{p.runRef={...p.runRef,runId:crypto.randomUUID()};},'E_CONTROL_FENCE'],
+  ['wrong generation',p=>{p.controlGeneration=crypto.randomUUID();},'E_CONTROL_PROTOCOL'],
+  ['expired ticket',p=>{p.expiresAt=p.issuedAt-1;},'E_CONTROL_FENCE']
+])test('R20.1 cloud '+name+' cannot create a target or reach Worker dispatch',async t=>{
+  const f=await cloudTaskFixture({controlProtocol:2}),before=f.calls.length;
+  freshCloudTransport(t,f,{reply:(path,p)=>{if(path==='start-ticket')alter(p);}});
+  await assert.rejects(f.authority.startControllerRun(f.request,f.sender),code(expected));
+  assert.deepEqual(f.calls.slice(before).filter(c=>['create','update','userScripts.execute'].includes(c.method)),[]);
+});
+for(const mode of ['Stop','installation generation','late reply'])test('R20.1 cloud '+mode+' during start reply prevents target and Worker dispatch',async t=>{
+  const f=await cloudTaskFixture({controlProtocol:2}),before=f.calls.length;
+  freshCloudTransport(t,f,{reply:async(path,p)=>{
+    if(path!=='start-ticket')return;
+    if(mode==='Stop')await f.cloud.cloudStop({},f.sender);
+    else if(mode==='installation generation')await f.authority.setInstalledTaskEnabled({...f.installClaim(f.resolved),enabled:false},f.sender);
+    else {const later=f.clock.now()+5000;f.clock.now=()=>later;p.issuedAt=later;p.expiresAt=later+5000;}
+  }});
+  let failure;
+  try{await f.authority.startControllerRun(f.request,f.sender);}catch(error){failure=error;}
+  assert.deepEqual(f.calls.slice(before).filter(c=>['create','update','userScripts.execute'].includes(c.method)),[],
+    'A start reply invalidated before consumption must leave zero target/Worker dispatches');
+  assert.equal(failure?.code,mode==='Stop'||mode==='installation generation'?'E_CLOUD_FENCED':'E_CONTROL_FENCE');
+});
+test('R20.1 repeated cloud start reuses the Run without a second target or start ticket',async t=>{
+  const f=await cloudTaskFixture({controlProtocol:2}),requests=freshCloudTransport(t,f),before=f.calls.length;
+  const run=await f.authority.startControllerRun(f.request,f.sender);
+  const again=await f.authority.startControllerRun(f.request,f.sender);
+  assert.equal(again.runId,run.runId);assert.equal(again.duplicate,true);
+  assert.equal(f.calls.slice(before).filter(c=>c.method==='create').length,1);
+  assert.equal(requests.filter(r=>r.path==='start-ticket').length,1);
+});
+test('R20.1 read-only cloud operation does not request or consume a fence',async t=>{
+  const f=await cloudTaskFixture({controlProtocol:2}),requests=freshCloudTransport(t,f);
+  const run=await f.authority.startControllerRun(f.request,f.sender),count=requests.length;
+  const envelope=f.operation(run,'packaged','title');
+  const result=await f.authority.controllerOperation({envelope},f.sender);
+  assert.deepEqual(result.value,controlEncode('Top'));assert.equal(requests.length,count);
+  const op=(await f.rows('commandJournal')).find(row=>row.envelope?.requestId===envelope.requestId);
+  assert.equal(op.controlFences,undefined);
+});
+async function freshCloudLocator(t,{cancelAfterScroll=false,denyFirst=false,revokeBeforeFirst=false}={}){
+  const f=await cloudTaskFixture({controlProtocol:2});let commits=0,prepares=0;
+  const requests=freshCloudTransport(t,f,{reply:async(path,p,body)=>{
+    if(path==='control-fence'&&body.requestId==='fresh-scroll-fill'&&revokeBeforeFirst)f.setAllowed(false);
+    if(path==='control-fence'&&body.requestId==='fresh-scroll-fill'&&
+      (cancelAfterScroll&&body.effectId.endsWith(':effect:2')||denyFirst)){
+      return new Response(JSON.stringify({error:{code:'E_LEASE',message:'Provider Cancel committed'}}),{status:409});
+    }
+  }});
+  const run=await f.authority.startControllerRun(f.request,f.sender),send=f.api.tabs.sendMessage;
+  f.api.tabs.sendMessage=(id,message,options,callback)=>{
+    const e=message.envelope,method=e?.operation.method;
+    if(message.action!=='execute'||!['locatorPrepare','locatorCommit'].includes(method))return send(id,message,options,callback);
+    let value;
+    if(method==='locatorPrepare')value={ready:true,token:'fresh-prepare-'+(++prepares),...(prepares===1?{scrollOnly:true}:{})};
+    else value=++commits===1?{committed:true,scrolled:true}:{committed:true};
+    queueMicrotask(()=>callback({requestId:e.requestId,runId:run.runId,ownerEpoch:run.identity.ownerEpoch,value:controlEncode(value)}));
+  };
+  const envelope={requestId:'fresh-scroll-fill',identity:run.identity,revision:run.revision,target:run.target,
+    operation:{kind:'packaged',method:'locatorAction',args:controlEncode([{kind:'css',value:'#name'},{action:'fill',value:'R20.1',timeout:1000}])}};
+  return {...f,run,requests,envelope,commits:()=>commits};
+}
+// Advance time only after the authority has validated and durably consumed a
+// fence, simulating an IDB commit delayed beyond its dispatch deadline.
+function expireConsumedFence(f,match){
+  const original=f.storage.transaction.bind(f.storage);let expired=false;
+  f.storage.transaction=(names,mode,body)=>original(names,mode,async tx=>{
+    const put=tx.put;let proof;
+    tx.put=async(name,value,key)=>{
+      await put(name,value,key);
+      if(!expired&&name==='commandJournal'&&match(value))proof=value.controlFences?.at(-1)?.proof;
+    };
+    const result=await body(tx);
+    if(proof){expired=true;const at=proof.expiresAt+1;f.clock.now=()=>at;}
+    return result;
+  });
+}
+function disconnectDuringConsumption(f,ready){
+  const original=f.storage.transaction.bind(f.storage);let changed=false;
+  f.storage.transaction=(names,mode,body)=>original(names,mode,async tx=>{
+    const get=tx.get;
+    tx.get=async(name,key)=>{
+      const value=await get(name,key);
+      if(!changed&&mode==='readwrite'&&name==='runs'&&value?.cloudStartTicketId&&ready()){
+        changed=true;f.cloud.connection('offline');
+      }
+      return value;
+    };
+    return body(tx);
+  });
+}
+test('R20.1 disconnect during owned fence consumption cannot adopt the newer connection epoch',async t=>{
+  const f=await cloudTaskFixture({controlProtocol:2}),requests=freshCloudTransport(t,f),before=f.calls.length;
+  disconnectDuringConsumption(f,()=>requests.some(row=>row.path==='control-fence'));
+  await assert.rejects(f.authority.startControllerRun(f.request,f.sender),code('E_CONTROL_FENCE'));
+  assert.deepEqual(f.calls.slice(before).filter(c=>['create','update','userScripts.execute'].includes(c.method)),[]);
+});
+test('R20.1 disconnect during Locator fence consumption cannot submit a commit',async t=>{
+  const f=await freshCloudLocator(t);
+  disconnectDuringConsumption(f,()=>f.requests.some(row=>row.path==='control-fence'&&row.body.requestId===f.envelope.requestId));
+  await assert.rejects(f.authority.controllerOperation({envelope:f.envelope},f.sender),code('E_CONTROL_FENCE'));
+  assert.equal(f.commits(),0);
+  const op=(await f.rows('commandJournal')).find(row=>row.envelope?.requestId===f.envelope.requestId);
+  assert.equal(op.effectState,'not-dispatched');assert.equal(op.controlFences,undefined);
+});
+for(const phase of ['create','navigate'])test('R20.1 expired committed fence blocks owned '+phase+' without refreshing proof',async t=>{
+  const f=await cloudTaskFixture({controlProtocol:2}),requests=freshCloudTransport(t,f),before=f.calls.length;
+  expireConsumedFence(f,row=>row.tag==='controller-target-create'&&row.controlFences?.length===(phase==='create'?1:2));
+  await assert.rejects(f.authority.startControllerRun(f.request,f.sender),code('E_CONTROL_FENCE'));
+  const calls=f.calls.slice(before);
+  assert.equal(calls.filter(c=>c.method==='create').length,phase==='create'?0:1);
+  assert.equal(calls.filter(c=>c.method==='update').length,0);
+  assert.equal(requests.filter(r=>r.path==='control-fence').length,phase==='create'?1:2);
+  const intent=(await f.rows('commandJournal')).find(row=>row.tag==='controller-target-create');
+  assert.equal(intent.controlFences.length,phase==='create'?1:2,'consumed evidence is retained');
+  if(phase==='create'){
+    assert.equal(intent.state,'not-dispatched');assert.equal(intent.submissionCount,0);
+    assert.ok(!(await f.rows('runs')).find(row=>row.tag==='slot')?.currentRunId,'known no-create releases original slot');
+  }
+});
+test('R20.1 expired committed first Locator fence blocks native commit and records definite absence',async t=>{
+  const f=await freshCloudLocator(t);
+  expireConsumedFence(f,row=>row.envelope?.requestId===f.envelope.requestId&&row.controlFences?.length===1);
+  await assert.rejects(f.authority.controllerOperation({envelope:f.envelope},f.sender),code('E_CONTROL_FENCE'));
+  assert.equal(f.commits(),0);
+  const op=(await f.rows('commandJournal')).find(row=>row.envelope?.requestId===f.envelope.requestId);
+  assert.equal(op.state,'failed');assert.equal(op.effectState,'not-dispatched');assert.equal(op.controlFences.length,1);
+});
+test('R20.1 scroll and fill in one logical operation consume different fences in the original journal',async t=>{
+  const f=await freshCloudLocator(t);await f.authority.controllerOperation({envelope:f.envelope},f.sender);
+  assert.equal(f.commits(),2);
+  const op=(await f.rows('commandJournal')).find(row=>row.envelope?.requestId===f.envelope.requestId),facts=op.controlFences;
+  assert.equal(facts.length,2);assert.equal(new Set(facts.map(r=>r.proof.fenceId)).size,2);
+  assert.equal(new Set(facts.map(r=>r.proof.effectId)).size,2);
+  assert.ok(facts.every(r=>r.proof.requestId===f.envelope.requestId&&r.proof.requestDigest===op.requestDigest&&Number.isFinite(r.consumedAt)));
+});
+test('R20.1 Provider Cancel between scroll and fill denies the second effect without consuming its fence',async t=>{
+  const f=await freshCloudLocator(t,{cancelAfterScroll:true});
+  await assert.rejects(f.authority.controllerOperation({envelope:f.envelope},f.sender),code('E_LEASE'));
+  assert.equal(f.commits(),1);
+  const op=(await f.rows('commandJournal')).find(row=>row.envelope?.requestId===f.envelope.requestId);
+  assert.equal(op.controlFences.length,1);
+  assert.equal(op.state,'effect_unknown');assert.notEqual(op.effectState,'not-dispatched');
+  assert.ok(op.nativeReceipts.some(row=>row.stage==='locator.scrollCommitted'));
+  assert.equal((await f.rows('runs')).find(row=>row.runId===f.run.runId).state,'paused_unknown');
+  const beforeRequests=f.requests.length;
+  await assert.rejects(f.authority.controllerOperation({envelope:f.envelope},f.sender),code('E_EFFECT_UNKNOWN'));
+  assert.equal(f.commits(),1);assert.equal(f.requests.length,beforeRequests);
+  assert.deepEqual((await f.rows('commandJournal')).find(row=>row.envelope?.requestId===f.envelope.requestId),op);
+  const fences=f.requests.filter(r=>r.path==='control-fence'&&r.body.requestId===f.envelope.requestId);
+  assert.equal(fences.length,2);assert.notEqual(fences[0].body.effectId,fences[1].body.effectId);
+});
+for(const [name,alter,expected]of[
+  ['missing fence',p=>{delete p.fenceId;},'E_CONTROL_FENCE'],
+  ['wrong Run fence',p=>{p.runRef={...p.runRef,runId:crypto.randomUUID()};},'E_CONTROL_FENCE'],
+  ['wrong generation fence',p=>{p.controlGeneration=crypto.randomUUID();},'E_CONTROL_PROTOCOL'],
+  ['expired fence',p=>{p.expiresAt=p.issuedAt;},'E_CONTROL_FENCE']
+])test('R20.1 cloud '+name+' prevents tabs.create after a valid start ticket',async t=>{
+  const f=await cloudTaskFixture({controlProtocol:2}),before=f.calls.length;
+  freshCloudTransport(t,f,{reply:(path,p)=>{if(path==='control-fence')alter(p);}});
+  await assert.rejects(f.authority.startControllerRun(f.request,f.sender),code(expected));
+  assert.deepEqual(f.calls.slice(before).filter(c=>['create','update','userScripts.execute'].includes(c.method)),[]);
+  const intent=(await f.rows('commandJournal')).find(row=>row.tag==='controller-target-create');
+  assert.equal(intent.state,'prepared');assert.equal(intent.submissionCount,0);
+  assert.equal(intent.controlFences,undefined);assert.equal(intent.dispatchAt,undefined);
+});
+for(const mode of ['Stop','installation generation','late reply'])test('R20.1 cloud '+mode+' during create-fence reply prevents tabs.create',async t=>{
+  const f=await cloudTaskFixture({controlProtocol:2}),before=f.calls.length;
+  freshCloudTransport(t,f,{reply:async(path,p)=>{
+    if(path!=='control-fence')return;
+    if(mode==='Stop')await f.cloud.cloudStop({},f.sender);
+    else if(mode==='installation generation')await f.authority.setInstalledTaskEnabled({...f.installClaim(f.resolved),enabled:false},f.sender);
+    else {const later=f.clock.now()+2000;f.clock.now=()=>later;p.issuedAt=later;p.expiresAt=later+2000;}
+  }});
+  await assert.rejects(f.authority.startControllerRun(f.request,f.sender),code('E_CONTROL_FENCE'));
+  assert.deepEqual(f.calls.slice(before).filter(c=>['create','update','userScripts.execute'].includes(c.method)),[]);
+});
+for(const mode of ['remote denial','local permission recheck'])test('R20.1 first Locator fence '+mode+' records no dispatch instead of pausing unknown',async t=>{
+  const f=await freshCloudLocator(t,{denyFirst:mode==='remote denial',revokeBeforeFirst:mode==='local permission recheck'}),before=f.calls.length;
+  await assert.rejects(f.authority.controllerOperation({envelope:f.envelope},f.sender),code(mode==='remote denial'?'E_LEASE':'E_PERMISSION'));
+  assert.equal(f.commits(),0,'Locator prepare and commitIntent cannot count as a native write');
+  assert.deepEqual(f.calls.slice(before).filter(row=>['create','update','userScripts.execute'].includes(row.method)),[]);
+  const op=(await f.rows('commandJournal')).find(row=>row.envelope?.requestId===f.envelope.requestId);
+  assert.equal(op.state,'failed');assert.equal(op.effectState,'not-dispatched');
+  assert.equal(op.failure.code,mode==='remote denial'?'E_LEASE':'E_PERMISSION');
+  assert.equal(op.controlFences,undefined);assert.ok(op.nativeReceipts.some(row=>row.stage==='locator.commitIntent'));
+  assert.equal(op.nativeReceipts.some(row=>row.stage==='locator.scrollCommitted'),false);
+  assert.notEqual((await f.rows('runs')).find(row=>row.runId===f.run.runId).state,'paused_unknown');
+});
+test('R20.1 owned target consumes each fresh fence durably before create and initial navigation',async t=>{
+  const f=await cloudTaskFixture({controlProtocol:2});let dispatches=0;
+  freshCloudTransport(t,f,{reply:async(path)=>{
+    if(path!=='control-fence')return;
+    const intent=(await f.rows('commandJournal')).find(row=>row.tag==='controller-target-create');
+    if(dispatches===0){assert.equal(intent.state,'prepared');assert.equal(intent.submissionCount,0);assert.equal(intent.controlFences,undefined);}
+    else {assert.equal(intent.submissionCount,1);assert.equal(intent.controlFences.length,1);assert.equal(intent.navigationSubmissionCount,undefined);}
+  }});
+  for(const method of ['create','update']){
+    const native=f.api.tabs[method];
+    f.api.tabs[method]=async(...args)=>{
+      const intent=(await f.rows('commandJournal')).find(row=>row.tag==='controller-target-create');
+      dispatches++;assert.equal(intent.controlFences.length,dispatches);
+      assert.equal(intent.submissionCount,1);
+      if(method==='create')assert.equal(intent.state,'dispatched');
+      else {assert.equal(intent.navigationState,'dispatched');assert.equal(intent.navigationSubmissionCount,1);}
+      assert.ok(intent.controlFences.every(row=>Number.isFinite(row.consumedAt)));
+      return native(...args);
+    };
+  }
+  await f.authority.startControllerRun(f.request,f.sender);assert.equal(dispatches,2);
+});
+test('R20.1 Provider denial before owned creation releases the original slot with zero target submissions',async t=>{
+  const f=await cloudTaskFixture({controlProtocol:2}),before=f.calls.length;
+  freshCloudTransport(t,f,{reply:path=>path==='control-fence'?new Response(JSON.stringify({error:{code:'E_LEASE'}}),{status:409}):undefined});
+  await assert.rejects(f.authority.startControllerRun(f.request,f.sender),code('E_LEASE'));
+  assert.deepEqual(f.calls.slice(before).filter(row=>['create','update','userScripts.execute'].includes(row.method)),[]);
+  const intent=(await f.rows('commandJournal')).find(row=>row.tag==='controller-target-create');
+  assert.equal(intent.state,'prepared');assert.equal(intent.submissionCount,0);
+  assert.equal(intent.dispatchAt,undefined);assert.equal(intent.controlFences,undefined);assert.equal(intent.tabId,null);
+  const run=(await f.rows('runs')).find(row=>row.runId===intent.runId),slot=(await f.rows('runs')).find(row=>row.tag==='slot');
+  assert.equal(run.state,'failed');assert.equal(run.workerRetired,true);assert.equal(run.retirementState,'released');
+  assert.equal(slot.currentRunId,null);assert.equal(slot.state,'available');assert.equal(slot.releaseCount,1);
+  const retirements=(await f.rows('commandJournal')).filter(row=>row.tag==='controller-retirement'&&row.runId===run.runId);
+  assert.equal(retirements.length,1);assert.equal(retirements[0].absence,'not-created-before-dispatch');
+  const beforeRetire=f.calls.length;
+  assert.deepEqual(await f.authority.retireControllerTarget({runId:run.runId},f.sender),{state:'released',releaseCount:1});
+  assert.deepEqual((await f.rows('runs')).find(row=>row.tag==='slot'),slot);
+  assert.deepEqual((await f.rows('commandJournal')).filter(row=>row.tag==='controller-retirement'&&row.runId===run.runId),retirements);
+  assert.deepEqual(f.calls.slice(beforeRetire),[]);
+});
+test('R20.1 dispatched owned creation with a lost tab receipt keeps the original slot pending',async t=>{
+  const f=await cloudTaskFixture({controlProtocol:2}),create=f.api.tabs.create,before=f.calls.length;
+  freshCloudTransport(t,f);
+  f.api.tabs.create=async options=>{await create(options);throw Error('R20.1 creation callback lost');};
+  let runId;
+  await assert.rejects(f.authority.startControllerRun(f.request,f.sender),error=>{
+    assert.equal(error.message,'R20.1 creation callback lost');runId=error.runId;assert.ok(runId);return true;
+  });
+  const intent=(await f.rows('commandJournal')).find(row=>row.tag==='controller-target-create'&&row.runId===runId);
+  assert.equal(intent.state,'dispatched');assert.equal(intent.submissionCount,1);assert.equal(intent.tabId,null);
+  assert.equal(intent.controlFences.length,1,'The create fence was consumed before the callback was lost');
+  assert.equal(f.calls.slice(before).filter(row=>row.method==='create').length,1);
+  assert.equal(f.calls.slice(before).filter(row=>['update','remove'].includes(row.method)).length,0);
+  const run=(await f.rows('runs')).find(row=>row.runId===runId),slot=(await f.rows('runs')).find(row=>row.tag==='slot');
+  assert.equal(run.workerRetired,true);assert.notEqual(run.retirementState,'released');
+  assert.equal(slot.currentRunId,runId);assert.equal(slot.releaseCount,0);
+  const beforeRetire=f.calls.length;
+  for(let i=0;i<2;i++)assert.deepEqual(await f.authority.retireControllerTarget({runId},f.sender),
+    {state:'pending',releaseCount:0,reason:'creation-unknown'});
+  assert.deepEqual((await f.rows('runs')).find(row=>row.tag==='slot'),slot);
+  assert.deepEqual((await f.rows('commandJournal')).find(row=>row.tag==='controller-target-create'&&row.runId===runId),intent);
+  assert.equal((await f.rows('commandJournal')).some(row=>row.tag==='controller-retirement'&&row.runId===runId),false);
+  assert.deepEqual(f.calls.slice(beforeRetire),[],'Retirement cannot close or replay an unacknowledged target');
 });

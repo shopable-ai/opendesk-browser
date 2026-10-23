@@ -21,7 +21,7 @@ export function createCloudConnection({service,api,Socket=globalThis.WebSocket,c
       if(!isCurrent())return false;
       const tasks=c.tasks.map(t=>({taskId:t.taskId,version:t.version,
         manifestHash:t.manifestHash,sourceHash:t.contentHash}));
-      await service.post(c,'capabilities',{grantId:c.grantId,tasks},{isCurrent});
+      await service.post(c,'capabilities',{grantId:c.grantId,tasks,controlProtocol:2},{isCurrent});
       if(!isCurrent())return false;
       const ready=await service.post(c,'pull-open',{grantId:c.grantId,tasks},{isCurrent});
       if(!isCurrent())return false;
@@ -84,7 +84,7 @@ export function createCloudConnection({service,api,Socket=globalThis.WebSocket,c
         if(m.type==='authenticated'&&!authenticated&&m.providerId===c.providerId&&(!c.pairingId||m.executorId===c.executorId&&m.pairingId===c.pairingId&&m.pairingGeneration===c.pairingGeneration)){
           authenticated=true;
           clearTimeout(authTimeout);attempt=0;lastPong=clock.now();connecting=false;
-          await service.post(c,'capabilities',{grantId:c.grantId,tasks:c.tasks.map(t=>({taskId:t.taskId,manifestHash:t.manifestHash,sourceHash:t.contentHash}))});if(stale())return;
+          await service.post(c,'capabilities',{grantId:c.grantId,tasks:c.tasks.map(t=>({taskId:t.taskId,manifestHash:t.manifestHash,sourceHash:t.contentHash})),controlProtocol:2});if(stale())return;
           // The initial pass covers notifications received before this acknowledgement.
           // No remote claim can start while the approved capability set is in flight.
           capabilitiesReady=true;
