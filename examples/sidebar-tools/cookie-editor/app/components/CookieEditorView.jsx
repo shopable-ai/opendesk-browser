@@ -103,7 +103,7 @@ export function CookieExportFormatRow({format='json',onFormat,includeValues=true
       aria-label="导出格式" onKeyDown={changeFromKeys}>
       {[['json','JSON',jsonId],['header','Cookie Header',headerId]].map(([key,label,id])=>
         <button key={key} id={id} data-export-format={key} type="button" role="tab"
-          className={'cookie-export-format-tab'+(format===key?' is-selected':'')}
+          className={'od-button '+(format===key?'od-button--secondary':'od-button--quiet')}
           aria-selected={format===key} aria-controls={panelId} tabIndex={format===key?0:-1}
           disabled={disabled} onClick={()=>onFormat?.(key)}>{label}</button>)}
     </div>

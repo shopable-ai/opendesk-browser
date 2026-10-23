@@ -30,9 +30,9 @@ test('export is an anchored two-tab React popover, never a replacement page',asy
   assert.match(popup,/role="tabpanel"/);
   assert.doesNotMatch(popup,/JSON 备份保留完整属性|复制为请求头文本|仅导出属性，不包含 Cookie 值/);
   assert.match(css,/\.cookie-export-popover\{/);
- assert.match(view,/cookie-export-format-tab/);
+ assert.match(view,/format===key\?'od-button--secondary':'od-button--quiet'/);
  assert.match(css,/display:inline-grid;grid-template-columns:max-content max-content/);
- assert.match(css,/\.cookie-export-tabs>button:focus-visible/);
+ assert.match(view,/aria-selected=\{format===key\}/);
   assert.doesNotMatch(css,/\.cookie-export-workspace\{/);
 });
 
