@@ -560,7 +560,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const hash=await sidebarToolPackageHash(tool);
     const expected=all
       ?['read','values','write','observe','clear'].every(cap=>record?.[cap]!==true)
-      :record?.[capability]===true;
+      :record?.[capability]===(granted[capability]!==true);
     if(row?.version!==tool.version||row?.packageHash!==hash||
       row?.installEpoch!==(revocationEpochs[tool.id]??null)||!record?.grantEpoch||
       !expected)
