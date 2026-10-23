@@ -72,6 +72,9 @@ export function DevelopAdvanced(){
               <DevelopField as="button" id="page-program-install" type="button" className="od-button">
                 {"安装自动运行"}
               </DevelopField>
+              <DevelopField as="button" id="page-program-run" type="button" className="od-button od-button--secondary">
+                {"手动运行"}
+              </DevelopField>
               <DevelopField as="button" id="page-program-toggle" type="button" className="od-button od-button--secondary">
                 {"停用自动运行"}
               </DevelopField>
