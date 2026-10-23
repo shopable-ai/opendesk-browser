@@ -479,4 +479,36 @@ test('v2 AI-off changes search and explicit product, then runs each saved RunHos
   assert.equal(f.starts.filter(item=>item.source.kind==='saved').length,beforeNegative+1,
     'search is allowed once, but no unverified product click may dispatch');
   assert.equal(providerCalls.filter(method=>method!=='ai.connection.read').length,0);
+
+  // Sending natural language must reuse both saved segments, not the model.
+  await f.setPage({url:base+'/demo',documentId:'chat-reuse-entry'});
+  f.input('workflow-ai-request','搜索 lens，打开 Lens Y 商品详情，核对名称和价格。');
+  const beforeNatural=f.starts.filter(row=>row.source.kind==='saved').length;
+  let reuseTimer;
+  const reused=await Promise.race([f.click('workflow-ai-plan'),new Promise((_,reject)=>{
+    reuseTimer=setTimeout(()=>reject(Error('Natural-language replay did not settle')),5000);
+  })]).finally(()=>clearTimeout(reuseTimer));
+  assert.equal(reused?.ok,true,JSON.stringify({reused,status:f.state().controls['workflow-status']?.text}));
+  const resumed=f.starts.filter(row=>row.source.kind==='saved').slice(beforeNatural);
+  assert.equal(resumed.length,2);
+  assert.deepEqual(resumed.map(row=>row.source.contentHash),segments.map(row=>row.sourceHash));
+  assert.deepEqual([resumed[0].params.query,resumed[1].params.productName],['lens','Lens Y']);
+  assert.ok(f.state().messages.some(row=>row.speaker==='执行结果'&&
+    row.message.includes('Lens Y')&&row.message.includes('$129')));
+  assert.equal(providerCalls.filter(method=>method!=='ai.connection.read').length,0);
+
+  // Extra limits cannot reuse a superficially similar fixed script.
+  await f.setPage({url:base+'/demo',documentId:'chat-extra-constraint'});
+  f.input('workflow-ai-request','搜索 lens，打开 Lens Y 商品详情，核对名称和价格，要求价格低于 $100。');
+  const beforeChanged=f.starts.filter(row=>row.source.kind==='saved').length;
+  await f.click('workflow-ai-plan');
+  assert.equal(f.starts.filter(row=>row.source.kind==='saved').length,beforeChanged);
+
+  await f.setPage({url:base+'/demo',documentId:'chat-mismatched-source'});
+  f.service.corrupt=true;
+  f.input('workflow-ai-request','搜索 lens，打开 Lens Y 商品详情，核对名称和价格。');
+  const beforeCorrupt=f.starts.filter(row=>row.source.kind==='saved').length;
+  await f.click('workflow-ai-plan');
+  assert.equal(f.starts.filter(row=>row.source.kind==='saved').length,beforeCorrupt);
+  assert.match(f.state().controls['workflow-status'].text,/E_WORKFLOW_HASH/);
 });

@@ -1,4 +1,5 @@
 import {createWorkflowUIState} from './workflow-ui-state.js';
+import {selectSavedWorkflowRoute,naturalProductReply} from './workflow-reuse.js';
 import {emptyWorkflow,validateWorkflow,WORKFLOW_OPERATIONS,WORKFLOW_LOCATORS,validateWorkflowParams} from '../../framework/workflow/contract.js';
 import {checkParamsSchema,validateTaskParams} from '../../platform/tasks/contract.js';
 import {compileWorkflow} from '../../framework/workflow/compiler.js';
@@ -79,6 +80,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   let phase='idle',lastRun='none',hasError=false,newReviewSignature=null,pendingRunReview=null,pendingAIReview=null;
   let autoExecutionPending=false; // No second Send while a pre-granted, safe AI run is being admitted.
   let historyOpen=false,newReviewReturnFocus=null;
+  let pendingReuse=null,pendingNaturalPlanning=null,pendingBundleGrant=null;
   let planningGeneration=0,planningAbort=null,planningTarget=null,pendingApproval=null,localChecking=false;
   let workflowAgent=null; // A task-scoped coordinator only; RunHost/Provider remain unique.
   let fullAgentDraft=null,selectedBundle=null; // Frozen segments, never another runtime.
@@ -1229,14 +1231,16 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   // AI-off orchestration ONLY: existing Controller/Compiler/RunHost remain
   // the sole execution and permission authorities. Each saved fragment gets
   // a fresh Document observation and exact frozen-revision check.
-  async function runSavedBundle(event) {
-    if(!event?.isTrusted||!selectedBundle||workflowAgent||
+  async function runSavedBundle(event,prepared=null) {
+    if(!event?.isTrusted||(!selectedBundle&&!prepared?.bundle)||workflowAgent||
       busy||autoExecutionPending||host.executionPending||host.currentRun)
       return {ok:false,skipped:true};
-    const bundle=selectedBundle,dynamic=bundle.format===WORKFLOW_DYNAMIC_BUNDLE_FORMAT;
+    // Natural-language intent cannot be reused as a delayed permission gesture.
+    const bundle=prepared?.bundle||selectedBundle,
+      dynamic=bundle.format===WORKFLOW_DYNAMIC_BUNDLE_FORMAT;
     let params,initial,permission,runtimeGoal;
     try {
-      params=readParams();
+      params=prepared?validateTaskParams(bundle.paramsSchema,prepared.params):readParams();
       if(dynamic){
         const intent=dynamicReplayIntent(bundle,params);
         params=intent.values;runtimeGoal=intent.goal;
@@ -1244,14 +1248,15 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         assertLegacyReplayParameterScope(bundle,params);
         runtimeGoal=bundle.goal;
       }
-      initial=currentPageTarget.capture();
+      initial=prepared?.captured||currentPageTarget.capture();
       if(initial.origin!==bundle.segments[0].workflow.siteOrigin||
         initial.url!==bundle.segments[0].entryUrl)
         throw err('E_DOCUMENT_STALE','请先打开完整工作流原始入口网页；不会从任意页面盲目复跑');
       // Chrome's grant request is started synchronously in this trusted click.
       // A later segment never requests a new origin outside a user gesture.
       const scopes=[...new Set(bundle.segments.map(part=>permissionPattern(part.entryUrl)))];
-      permission=api.permissions.request({origins:scopes});
+      permission=prepared?(prepared.permission||api.permissions.contains({origins:scopes})):
+        api.permissions.request({origins:scopes});
     }catch(error){status(format(error),true);return {ok:false,error};}
     const epoch=++planningGeneration,abort=new AbortController();
     const agent={epoch,controller:abort,selected:'replay',goal:runtimeGoal,
@@ -1266,9 +1271,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       if(!await permission)throw err('E_PERMISSION','完整工作流所需网站权限未批准，尚未执行');
       agent.guard.check();
       await verifyWorkflowBundle(bundle);
-      let previousNavigationDocument=null,verifiedEntry=null;
+      let previousNavigationDocument=null,verifiedEntry=null,lastEffect=null;
       for(let i=0;i<bundle.segments.length;i++){
-        if(workflowAgent!==agent||agent.stopping||selectedBundle!==bundle)
+        if(workflowAgent!==agent||agent.stopping||(!prepared&&selectedBundle!==bundle))
           throw err('E_CANCELLED','复跑已经停止或历史版本已改变');
         const segment=bundle.segments[i];
         const target=await currentPageTarget.refresh();
@@ -1351,7 +1356,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
             revision:segment.revision,contentHash:segment.sourceHash},
           agent,assertCurrent:()=>{
             if(workflowAgent!==agent||agent.stopping||abort.signal.aborted||
-              selectedBundle!==bundle)
+              (!prepared&&selectedBundle!==bundle))
               throw err('E_CANCELLED','完整复跑已停止或版本已更改');
           }
         });
@@ -1361,6 +1366,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           segment.evidence;
         if(!verifyReplayBusinessEffect(expectedEvidence,reply))
           throw err('E_WORKFLOW_EVIDENCE','第 '+(i+1)+' 段业务效果未独立核验，停止且绝不重复操作');
+        lastEffect=reply.effect||null;
         if(dynamic&&i<bundle.segments.length-1){
           if(!reply.effectTarget||!['search-results','search-inline'].includes(reply.effect?.kind))
             throw err('E_WORKFLOW_EVIDENCE','未获得搜索后独立核验的网页入口，拒绝猜测导航');
@@ -1374,8 +1380,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         if(i===bundle.segments.length-1&&verdict.state!=='COMPLETED')
           throw err('E_WORKFLOW_EVIDENCE','完整复跑仍未满足原始任务全部目标');
       }
-      finishWorkflowAgent(agent,'COMPLETED','AI-off 完整 '+bundle.segments.length+
-        ' 段复跑结束；每段 RunHost 回执和独立网页效果均已核对。');
+      finishWorkflowAgent(agent,'COMPLETED',(prepared?'已复用保存的固定 JavaScript：':'AI-off 完整 ')+bundle.segments.length+
+        ' 段完成；每段 RunHost 回执和独立网页效果均已核对。');
+      if(prepared&&lastEffect?.kind==='product-page')
+        appendChat('执行结果','已搜索 '+params.query+'，打开 '+lastEffect.name+
+          '，并独立核对商品名称与页面价格：'+lastEffect.price+'。');
       return {ok:true,segments:bundle.segments.length};
     }catch(error){
       if(workflowAgent===agent&&!agent.stopping){
@@ -1577,6 +1586,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   }
   function stopPlanning({close=false,remember=false}={}) {
     const stoppedGeneration=++planningGeneration;
+    pendingReuse=null;pendingNaturalPlanning=null;pendingBundleGrant=null;
     if(close)localCapability={...localCapability,inferenceVerified:false};
     planningAbort?.abort(err('E_CANCELLED','AI 规划已停止'));
     planningAbort=null;
@@ -1690,7 +1700,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       if(!disposed&&row.epoch===planningGeneration)status(format(error),true);
     }
   }
-  async function plan(event) {
+  async function plan(event,{pregranted=false}={}) {
     if(!event.isTrusted||busy||autoExecutionPending||host.executionPending||host.currentRun||
       pendingAIReview||(provider()==='local_codex'&&localChecking))return;
     dismissRunReview();
@@ -1717,7 +1727,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       if(selected!=='local_codex')origins.push(permissionPattern(frozen.endpoint));
       // The existing task approval supplies the real gesture for a missing site
       // grant. A local task with valid permission does not request it again.
-      permission=selected==='local_codex'?Promise.resolve(true):api.permissions.request({origins:[...new Set(origins)]});
+      permission=selected==='local_codex'?Promise.resolve(true):
+        pregranted?api.permissions.contains({origins:[...new Set(origins)]}):
+          api.permissions.request({origins:[...new Set(origins)]});
     }catch(error){
       if(error?.code==='E_AI_CONFIG'){
         let field='workflow-source-local';
@@ -1938,8 +1950,153 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     control('workflow-editor').dataset.historyOpen='false';
     updateButtons();
   };
+
+  const sameTarget=(a,b)=>Boolean(a&&b&&b.status==='available'&&
+    ['windowId','tabId','frameId','documentId','url','origin']
+      .every(key=>a[key]===b[key]));
+  function showRoutingGrant(message){
+    control('workflow-run-review-scope').text=message;
+    control('workflow-run-review').hidden=false;
+    focus('workflow-run-review-confirm');updateButtons();
+  }
+  // Exactly one entry for natural-language work: search frozen candidates
+  // before asking the existing Provider to generate any new code.
+  async function sendNaturalLanguage(event){
+    if(!event?.isTrusted||disposed||busy||autoExecutionPending||workflowAgent||
+      host.executionPending||host.currentRun||pendingAIReview||localChecking)return;
+    const original=control('workflow-ai-request').value.trim();
+    if(!original){status('请描述希望完成的任务',true);focus('workflow-ai-request');return;}
+    let target;
+    try{target=currentPageTarget.capture();}
+    catch(error){status(format(error),true);return;}
+    const prior=pendingReuse;
+    pendingReuse=null;pendingNaturalPlanning=null;pendingBundleGrant=null;
+    let request=original,chosenKey=null;
+    if(prior&&sameTarget(prior.target,target)){
+      const choice=original.match(/^(?:使用|选择)第([1-9][0-9]?)个(?:工作流)?[。.]?$/u);
+      if(prior.kind==='choice'&&choice){
+        chosenKey=prior.keys[Number(choice[1])-1];
+        if(!chosenKey){status('候选序号无效，请明确选择。',true);return;}
+        request=prior.request;
+      }else if(prior.kind==='product'&&!original.startsWith('搜索 ')){
+        const name=naturalProductReply(original);
+        if(!name){status('请补充完整、明确的商品名称。',true);return;}
+        chosenKey=prior.key;
+        request='搜索 '+prior.query+'，打开 '+name+' 商品详情，核对名称和价格';
+      }
+    }
+    const epoch=++planningGeneration,abort=new AbortController();
+    planningAbort=abort;planningTarget=target;phase='planning';busy=true;
+    control('workflow-planning-indicator').text='正在查找可复用的 JavaScript 工作流…';
+    updateButtons();
+    const assertLive=()=>{
+      if(disposed||epoch!==planningGeneration||abort.signal.aborted||
+        !sameTarget(target,currentPageTarget.snapshot)||host.executionPending||host.currentRun)
+        throw err('E_WORKFLOW_STALE','网页或执行状态已变化，未启动新操作');
+    };
+    const release=()=>{
+      if(disposed||epoch!==planningGeneration)return;
+      planningAbort=null;planningTarget=null;busy=false;phase='idle';updateButtons();
+    };
+    try{
+      await refreshSaved();assertLive();
+      let match=selectSavedWorkflowRoute({request,target,records:saveList});
+      if(chosenKey){
+        const row=match.state==='AMBIGUOUS'?
+          match.candidates.find(item=>item.key===chosenKey):
+          ['MATCH','MISSING_PRODUCT'].includes(match.state)&&match.record?.key===chosenKey?
+            match.record:null;
+        if(!row)throw err('E_WORKFLOW_STALE','所选历史工作流已改变，请重新发送完整任务');
+        match=match.params?{state:'MATCH',record:row,params:match.params}:
+          {state:'MISSING_PRODUCT',record:row,query:match.query};
+      }
+      if(match.state==='BLOCKED')
+        throw err(match.code,'保存的动态绑定契约不一致，不允许退回 AI 盲目执行');
+      if(match.state==='AMBIGUOUS'){
+        pendingReuse={kind:'choice',request,target:structuredClone(target),
+          keys:match.candidates.map(row=>row.key)};
+        appendChat('你',original);
+        appendChat('助手','找到多个匹配的固定工作流：'+match.candidates.map((row,i)=>
+          (i+1)+'「'+row.title+'」').join('、')+'。请回复“使用第1个”等选择；尚未执行。');
+        status('多个匹配项，需要先明确选择。');return;
+      }
+      if(match.state==='MISSING_PRODUCT'){
+        pendingReuse={kind:'product',key:match.record.key,query:match.query,
+          target:structuredClone(target)};
+        appendChat('你',original);
+        appendChat('助手','已找到商品搜索工作流。请告诉我要打开的商品完整名称；尚未执行。');
+        status('还需要商品名称。');return;
+      }
+      if(match.state==='MATCH'){
+        const {key,...record}=match.record;
+        const bundle=await verifyWorkflowBundle(record);assertLive();
+        // The Controller journal, not storage.local or the model, is the
+        // authority for every Revision used by RunHost.
+        for(const segment of bundle.segments){
+          const freeze=await compileWorkflow(segment.workflow,{
+            verifyFill:segment.verificationMode==='fill-readback'});
+          const stored=await host.controller.getControllerScript({
+            scriptId:segment.workflow.workflowId,revision:segment.revision});
+          if(freeze.sourceHash!==segment.sourceHash||
+            stored?.contentHash!==freeze.sourceHash||
+            stored.sourceUtf8!==freeze.sourceUtf8)
+            throw err('E_WORKFLOW_HASH','保存的 JavaScript、Revision 或源码哈希不一致');
+          assertLive();
+        }
+        const scopes=[...new Set(bundle.segments.map(row=>permissionPattern(row.entryUrl)))];
+        const granted=await api.permissions.contains({origins:scopes});assertLive();
+        const prepared={bundle,params:match.params,
+          captured:structuredClone(target),request};
+        appendChat('你',original);
+        appendChat('助手','已找到保存的「'+bundle.title+'」工作流，'+
+          (granted?'正在使用新参数执行。':'使用新参数复跑前需要网站授权。'));
+        if(!granted){
+          pendingBundleGrant=prepared;
+          status('当前站点尚未授权；未启动网页操作。');
+          showRoutingGrant('固定工作流需要当前网站的 Chrome 授权。确认后继续使用冻结 JavaScript。');
+          return;
+        }
+        release();
+        return runSavedBundle(event,prepared);
+      }
+      // Existing Task catalog is queried read-only too. A title/description
+      // resemblance cannot replace MyTaskAgent's trusted task/run gate.
+      if(typeof client.request==='function')
+        await client.request('listTaskCatalog',{}).catch(()=>null);
+      assertLive();
+      const chosenProvider=provider();
+      let scopes=[permissionPattern(target.url)],invalidSettings=false;
+      if(chosenProvider!=='local_codex'){
+        try{
+          const endpoint=control('workflow-ai-endpoint').value.trim();
+          const url=new URL(endpoint);
+          if(url.protocol!=='https:'||url.username||url.password||url.hash)
+            invalidSettings=true;
+          else scopes.push(permissionPattern(endpoint));
+        }catch{invalidSettings=true;}
+      }
+      const pregranted=chosenProvider==='local_codex'||invalidSettings||
+        await api.permissions.contains({origins:[...new Set(scopes)]});
+      assertLive();
+      if(!pregranted){
+        pendingNaturalPlanning={request,target:structuredClone(target),
+          provider:chosenProvider,serial:stable()};
+        status('未找到可复用的固定工作流；新 AI 规划需要 Chrome 授权。');
+        showRoutingGrant('确认后申请必要的网站与 AI 接收方权限，再由现有 Provider 规划。');
+        return;
+      }
+      release();
+      return plan(event,{pregranted:true});
+    }catch(error){
+      if(!disposed&&epoch===planningGeneration&&!abort.signal.aborted){
+        appendChat('执行结果','未执行：'+format(error)+'。不会自动生成替代代码重试。');
+        status(format(error),true);
+      }
+    }finally{release();}
+  }
   const onHistoryClick=event=>{
-    if(!event.isTrusted||busy||autoExecutionPending||host.executionPending||host.currentRun)return;
+    if(!event.isTrusted||busy||autoExecutionPending||workflowAgent||
+      host.executionPending||host.currentRun)return;
     dismissRunReview();
     historyOpen=!historyOpen;
     control('workflow-editor').dataset.historyOpen=String(historyOpen);
@@ -2049,7 +2206,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   bind('workflow-ai-approve','click',event=>answerObservation(event,true));
   bind('workflow-ai-deny','click',event=>answerObservation(event,false));
   const onNewSessionClick=event=>{
-    if(!event.isTrusted||busy||autoExecutionPending||host.executionPending||host.currentRun)return;
+    if(!event.isTrusted||busy||autoExecutionPending||workflowAgent||
+      host.executionPending||host.currentRun)return;
+    pendingReuse=null;pendingBundleGrant=null;pendingNaturalPlanning=null;
     dismissRunReview();closeHistory();
     observationApproval=null;persistObservationApproval();
     clearChat();entryMode='new-chat';updatePresentation();
@@ -2102,6 +2261,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       .catch(error=>status(format(error),true));
   };
   function commitNewWorkflow(){
+    pendingReuse=null;pendingBundleGrant=null;pendingNaturalPlanning=null;
     dismissRunReview();
     dismissNewReview();
     closeHistory();
@@ -2192,13 +2352,40 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   bind('workflow-run','click',runManual);
   bind('workflow-run-review-confirm','click',event=>{
     if(!event.isTrusted)return Promise.resolve({ok:false,skipped:true});
+    if(pendingBundleGrant){
+      const row=pendingBundleGrant;pendingBundleGrant=null;
+      if(!sameTarget(row.captured,currentPageTarget.snapshot)){
+        dismissRunReview();status('网页已变化，授权确认已失效。',true);
+        return Promise.resolve({ok:false,skipped:true});
+      }
+      const scopes=[...new Set(row.bundle.segments.map(s=>permissionPattern(s.entryUrl)))];
+      // Only this fresh Confirm click may open Chrome permissions.request.
+      let permission;
+      try{permission=api.permissions.request({origins:scopes});}
+      catch(error){status(format(error),true);return Promise.resolve({ok:false,error});}
+      dismissRunReview();
+      return runSavedBundle(event,{...row,permission});
+    }
+    if(pendingNaturalPlanning){
+      const row=pendingNaturalPlanning;pendingNaturalPlanning=null;
+      if(!sameTarget(row.target,currentPageTarget.snapshot)||
+        row.provider!==provider()||row.serial!==stable()||
+        row.request!==control('workflow-ai-request').value.trim()){
+        dismissRunReview();status('任务或网页已经变化，请重新发送。',true);
+        return Promise.resolve({ok:false,skipped:true});
+      }
+      dismissRunReview();
+      return plan(event);
+    }
     if(pendingAIReview)return executeAIReview(event);
     if(!pendingRunReview)return Promise.resolve({ok:false,skipped:true});
     return runManual(event,pendingRunReview);
   });
   bind('workflow-run-review-cancel','click',event=>{
-    if(!event.isTrusted||(!pendingRunReview&&!pendingAIReview))return;
-    const wasAI=Boolean(pendingAIReview);
+    if(!event.isTrusted||(!pendingRunReview&&!pendingAIReview&&
+      !pendingBundleGrant&&!pendingNaturalPlanning))return;
+    const wasAI=Boolean(pendingAIReview||pendingNaturalPlanning);
+    pendingBundleGrant=null;pendingNaturalPlanning=null;
     dismissRunReview();status('本次操作已取消，未执行。');
     if(wasAI)appendChat('对话状态','已取消本次操作，网页未因本次确认发生修改。');
   });
@@ -2213,9 +2400,14 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   });
   bind('workflow-refresh','click',()=>refreshSaved().catch(error=>status(format(error),true)));
   bind('workflow-load','click',()=>loadSaved().catch(error=>status(format(error),true)));
-  bind('workflow-ai-plan','click',plan);
+  bind('workflow-ai-plan','click',sendNaturalLanguage);
   const unsubscribePage=currentPageTarget?.subscribe(next=>{
     if(disposed)return;
+    if(pendingReuse&&!sameTarget(pendingReuse.target,next))pendingReuse=null;
+    if(pendingBundleGrant&&!sameTarget(pendingBundleGrant.captured,next)||
+      pendingNaturalPlanning&&!sameTarget(pendingNaturalPlanning.target,next)){
+      pendingBundleGrant=null;pendingNaturalPlanning=null;dismissRunReview();
+    }
     if(workflowAgent&&next.status==='available'&&
       (next.windowId!==workflowAgent.initialTarget.windowId||
        next.tabId!==workflowAgent.initialTarget.tabId||
@@ -2257,7 +2449,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     updateLocalStatus();updateButtons();
   });
   const removedPermissions=async grant=>{
-    if((pendingRunReview||pendingAIReview)&&(grant.origins?.length||grant.permissions?.length))dismissRunReview();
+    if(grant.origins?.length||grant.permissions?.length){
+      if(pendingRunReview||pendingAIReview||pendingBundleGrant||pendingNaturalPlanning)
+        dismissRunReview();
+      pendingReuse=null;pendingBundleGrant=null;pendingNaturalPlanning=null;
+    }
     const active=bookmarkConversationActive;
     // Invalidate synchronously only when a removed Chrome match pattern covers
     // this Provider. An unrelated site's grant must not cancel this round.
@@ -2635,6 +2831,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   return {getSnapshot:ui.getSnapshot,subscribe:ui.subscribe,actions,conversation,taskConversation,dispose() {
     if(disposed)return;
     if(workflowAgent)void stopWorkflowAgent('E_HOST_CLOSED').catch(()=>{});
+    pendingReuse=null;pendingBundleGrant=null;pendingNaturalPlanning=null;
     dismissRunReview();disposed=true;compileToken++;planningGeneration++;
     bookmarkConversationActive?.abortController.abort(err('E_TOOL_CHANGED','书签扩展实例已关闭'));
     planningAbort?.abort(err('E_HOST_CLOSED','工作流窗口已关闭'));pendingApproval?.settle({decision:'deny'});
