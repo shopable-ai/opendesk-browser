@@ -12,7 +12,7 @@ import {MANAGED_SITE_REVIEWED_SCOPE_STORE}
   from '../../src/framework/host/managed-site-reviewed-scopes.js';
 import {MANAGED_SITE_BUDGET_PROTOCOL} from '../../src/platform/host/managed-site-runtime-contract.js';
 import {normalizeBrowserOperation} from '../../src/framework/sdk/browser-contract.js';
-import {installReviewedSidebarTool} from '../../src/ui/sidebar-tools/installation.js';
+import {installReviewedSidebarTool,recoverMarketOperation} from '../../src/ui/sidebar-tools/installation.js';
 
 const id='budget-fixture',start=Date.parse('2026-10-21T09:00:00Z');
 const schedule={enabled:false,days:[1,2,3,4,5],startMinute:540,endMinute:1020};
@@ -359,4 +359,89 @@ test('v3 suspended app grant cannot install DNR; reviewed epoch rebind resumes u
   await f.service.run({boot:true});
   assert.equal(f.rules.length,1,'trusted reviewed generation may rebind safely');
   assert.equal(f.local.get(MANAGED_SITE_BUDGET_STORE)[id].desiredPolicyRev,2);
+});
+
+test('same-source v3 package upgrade journals and rebinds reviewed sites without new grant',async()=>{
+  const policy={kind:'site-budget.v3',enabled:true,whitelist:[],
+    sites:[{host:'example.com',subdomains:true,enabled:true,
+      pool:'s:example.com',conditions:[{type:'counter-limit',limitMs:60000}]}]};
+  const before=tool('1.1.0',{kind:'site-budget.v3',suggestions:[]});
+  const candidate=tool('1.1.1',{kind:'site-budget.v3',suggestions:[]});
+  const f=fixture([before]),marketId='opendesk/'+id;
+  const fromHash=await sidebarToolPackageHash(before);
+  const toHash=await sidebarToolPackageHash(candidate);
+  const date=new Date(start),pad=n=>String(n).padStart(2,'0');
+  const day=[date.getFullYear(),pad(date.getMonth()+1),pad(date.getDate())].join('-');
+  f.local.set(MARKET_PROVENANCE_STORE,{[id]:{marketId,sha256:fromHash,version:before.version}});
+  f.local.set(MANAGED_SITE_REVIEWED_SCOPE_STORE,{[id]:{installEpoch:'epoch-a',
+    packageHash:fromHash,sites:[{host:'example.com',subdomains:true}]}});
+  f.local.set(MANAGED_SITE_BUDGET_STORE,{[id]:{
+    slot:0,epoch:'epoch-a',source:marketId,packageHash:fromHash,
+    kind:'site-budget.v3',policy,modelRef:null,sealedModel:null,
+    desiredPolicyRev:3,appliedPolicyRev:3,status:'applied',day,
+    clockHighWater:start,usage:{'s:example.com':30000},
+    checkpoint:null,notices:{day,pools:{}}
+  }});
+  const operationId='123e4567-e89b-42d3-a456-426614174999';
+  const installed=await installReviewedSidebarTool({api:f.api,lockManager:f.lockManager,
+    candidate,baseline:before,reviewApproved:true,approveUpdate:async()=>true,
+    identity:{marketId,sha256:toHash,operationId}});
+  assert.equal(installed.state,'installed');
+  const nextEpoch=f.local.get(TOOL_REVOCATION_EPOCHS_STORE)[id];
+  assert.notEqual(nextEpoch,'epoch-a');
+  const scopes=f.local.get(MANAGED_SITE_REVIEWED_SCOPE_STORE);
+  assert.deepEqual(scopes[id],{installEpoch:nextEpoch,packageHash:toHash,
+    sites:[{host:'example.com',subdomains:true}]});
+  assert.deepEqual(f.local.get(MANAGED_SITE_BUDGET_STORE)[id].usage,
+    {'s:example.com':30000},'no ledger reset or double counting at installer boundary');
+  await f.service.run({boot:true});
+  const after=f.local.get(MANAGED_SITE_BUDGET_STORE)[id];
+  assert.equal(after.policy.enabled,true);
+  assert.equal(after.desiredPolicyRev,3,'native reconcile never changes app policy revision');
+  assert.equal(after.usage['s:example.com'],30000,'usage carried across epoch');
+});
+
+test('ambiguous v3 grant rebind resumes via the original market journal once only',async()=>{
+  const policy={kind:'site-budget.v3',enabled:false,sites:[],whitelist:[]};
+  const before=tool('1.2.0',{kind:'site-budget.v3',suggestions:[]});
+  const candidate=tool('1.2.1',{kind:'site-budget.v3',suggestions:[]});
+  const f=fixture([before]),marketId='opendesk/'+id;
+  const fromHash=await sidebarToolPackageHash(before);
+  const toHash=await sidebarToolPackageHash(candidate);
+  const date=new Date(start),pad=n=>String(n).padStart(2,'0');
+  const day=[date.getFullYear(),pad(date.getMonth()+1),pad(date.getDate())].join('-');
+  f.local.set(MARKET_PROVENANCE_STORE,{[id]:{marketId,sha256:fromHash,version:before.version}});
+  f.local.set(MANAGED_SITE_REVIEWED_SCOPE_STORE,{[id]:{installEpoch:'epoch-a',
+    packageHash:fromHash,sites:[{host:'example.com',subdomains:true}]}});
+  f.local.set(MANAGED_SITE_BUDGET_STORE,{[id]:{
+    slot:0,epoch:'epoch-a',source:marketId,packageHash:fromHash,kind:'site-budget.v3',
+    policy,modelRef:null,sealedModel:null,desiredPolicyRev:4,appliedPolicyRev:4,
+    status:'inactive',day,clockHighWater:start,usage:{},checkpoint:null,
+    notices:{day,pools:{}}
+  }});
+  let failOnce=true;
+  const save=f.api.storage.local.set;
+  f.api.storage.local.set=async value=>{
+    if(failOnce&&Object.hasOwn(value,MANAGED_SITE_REVIEWED_SCOPE_STORE)){
+      failOnce=false;throw new Error('simulated storage interruption');
+    }
+    return save(value);
+  };
+  const operationId='123e4567-e89b-42d3-a456-426614174998';
+  await assert.rejects(installReviewedSidebarTool({api:f.api,lockManager:f.lockManager,
+    candidate,baseline:before,reviewApproved:true,approveUpdate:async()=>true,
+    identity:{marketId,sha256:toHash,operationId}}),{code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(f.local.get(SIDEBAR_TOOL_STORE)[0].version,'1.2.1');
+  assert.equal(f.local.get(MANAGED_SITE_REVIEWED_SCOPE_STORE)[id].installEpoch,'epoch-a',
+    'failed site grant must remain old, never guessed committed');
+  const recovered=await recoverMarketOperation({api:f.api,lockManager:f.lockManager,operationId});
+  assert.equal(recovered.state,'succeeded');
+  const newEpoch=f.local.get(TOOL_REVOCATION_EPOCHS_STORE)[id];
+  assert.equal(f.local.get(MANAGED_SITE_REVIEWED_SCOPE_STORE)[id].installEpoch,newEpoch);
+  assert.deepEqual((await recoverMarketOperation({
+    api:f.api,lockManager:f.lockManager,operationId})).state,'succeeded');
+  await f.service.run({boot:true});
+  assert.equal(f.local.get(MANAGED_SITE_BUDGET_STORE)[id].policy.enabled,false,
+    'upgrade recovery must preserve explicit STOP');
+  assert.deepEqual(f.rules,[],'STOP cannot revive restrictions');
 });
