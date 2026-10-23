@@ -13,7 +13,7 @@ test('trusted React Host has exactly one first-use grant control outside the san
   assert.match(host,/Cookie 访问授权/);
   assert.match(host,/允许管理普通 HTTP\/HTTPS 网站的 Cookie；敏感值单独授权。/);
   assert.match(host,/允许管理所有网站 Cookie/);
-  assert.match(host,/if\(!event\?\.isTrusted\|\|cookieGrantPending\|\|busy\)return/);
+  assert.match(host,/if\(!event\?\.isTrusted\|\|cookieGrantPending\|\|busy\|\|readOnlyPreview/);
   assert.match(host,/E_GRANT_READBACK/);
   assert.match(fields,/sidebar-tool-cookie-values-toggle/);
 });
@@ -37,5 +37,18 @@ test('R5.26 stopped Cookie Editor exposes trusted re-enable without duplicate fi
   assert.match(cookie,/\{!firstUse&&<>[\s\S]*id="sidebar-tool-enable"/);
   assert.match(cookie,/id="sidebar-tool-enable-hint"/);
   assert.equal((cookie.match(/id="sidebar-tool-cookie-site-toggle"/g)||[]).length,1);
-  assert.match(host,/cookieGrantPending\|\|enableReadError\|\|!sidebarToolEnabled\(enableRecords,tool.id\)/);
+  assert.match(host,/enableReadError\|\|!sidebarToolEnabled\(enableRecords,tool.id\)/);
+});
+
+test('R5.37 Cookie consent checks official provenance before offering all-site, supports site fallback and native Chrome repair',async()=>{
+  const host=await source('src/ui/sidebar-tools.js');
+  assert.match(host,/const admitted=Boolean\(release&&await admittedOfficialCookieImport\(tool,epoch\)\)/);
+  assert.match(host,/const allSites=tool.id==='cookie-editor'&&cookieAdmissionState===true/);
+  assert.match(host,/!cookieHasManageGrant\(active,websiteOrigin\(currentPageTarget\?\.snapshot\?\.url\)\)/);
+  assert.match(host,/const nativeRequest=revoke\?Promise.resolve\(true\):requestCookieChrome\(event,origin,allSites\)/);
+  assert.match(host,/pageConsent.confirm\(event,cookieChromeRequest\(origin,allSites\)\)/);
+  assert.match(host,/chromeMissing\?'恢复 Chrome Cookie 网站访问'/);
+  assert.match(host,/const requested=cookieBaseCapabilities\(tool\)/);
+  assert.match(host,/else await changeCookieSite\(\{capability:'values'\}\)/);
+  assert.match(host,/kind:'cookie-grants-changed'/);
 });
