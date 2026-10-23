@@ -63,6 +63,27 @@ export function workflowExecutionFeedback({execution,workflow,params={},values}=
   return (detail?'已将“'+label+'”填写'+detail:'已填写“'+label+'”')+
     '，并核对输入值一致；未确认服务器已提交。';
 }
+
+/** A suggestion is draft text, not a Provider identity or an executable command.
+ * Returns a new immutable value; never submits a turn or mutates RunHost. */
+export function appendWorkflowSuggestionDraft(draft,suggestion,maxLength=4000){
+ const original=String(draft??''),instruction=String(suggestion??'').trim();
+ if(!instruction)return {value:original,kind:'empty'};
+ const normalized=original.replace(/\r\n/g,'\n');
+ let index=normalized.indexOf(instruction);
+ while(index>=0){
+  const before=index===0||normalized[index-1]==='\n';
+  const after=index+instruction.length===normalized.length||
+   normalized[index+instruction.length]==='\n';
+  if(before&&after)return {value:original,kind:'duplicate'};
+  index=normalized.indexOf(instruction,index+1);
+ }
+ const separator=!original.trim()?'':original.endsWith('\n')?'\n':'\n\n';
+ const value=original+separator+instruction;
+ return value.length>maxLength?{value:original,kind:'too_long'}:
+  {value,kind:original.trim()?'appended':'filled'};
+}
+
 export function createWorkflowView({api=globalThis.chrome,document:doc=globalThis.document,
   client,host,currentPageTarget,taskWorkbench=null,onRunOwner=()=>{},openDeveloper=()=>{},openCatalog=()=>{},
   reactUI=null,providerRuntime=null,openAIProviderSettings=null,
@@ -2546,8 +2567,18 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   const chooseExample=(key,event)=>{
     if(!event.isTrusted||busy||autoExecutionPending||host.executionPending||host.currentRun)return;
     if(!Object.hasOwn(exampleRequests,key))return;
-    setConversationDraft(exampleRequests[key]);focus('workflow-ai-request');
-    status('示例已填入输入框；不会自动发送或运行。');
+    const outcome=appendWorkflowSuggestionDraft(control('workflow-ai-request').value,
+      exampleRequests[key]);
+    if(outcome.kind==='too_long'){
+      status('草稿已达到 4000 字符上限，未追加示例，请先缩短内容。',true);
+      focus('workflow-ai-request');return outcome;
+    }
+    if(outcome.kind==='appended'||outcome.kind==='filled')
+      setConversationDraft(outcome.value);
+    focus('workflow-ai-request');
+    status(outcome.kind==='duplicate'?'草稿已有相同示例，未重复追加。':
+      '示例已'+(outcome.kind==='appended'?'追加':'填入')+'草稿；不会自动发送或运行。');
+    return outcome;
   };
   const onResumeSessionClick=event=>{
     if(!event.isTrusted||busy||autoExecutionPending||host.executionPending||host.currentRun||provider()!=='local_codex')return;

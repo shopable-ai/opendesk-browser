@@ -625,6 +625,31 @@
 .workflow-composer-actions{display:flex;justify-content:flex-end;align-items:center;gap:var(--space-2);flex-wrap:nowrap}
 /* Send, stop and settings always keep the public 34px icon footprint, including first use. */
 .workflow-composer .workflow-send-button{flex:none}
+
+/* R2.3: one icon Source menu below the two-line shared composer. This is a
+ * layout-only Portal-free control; runtime configuration belongs to ToolShell. */
+.workflow-composer-actions{justify-content:flex-start;min-height:34px}
+.workflow-source-picker{position:relative;min-width:0;display:flex;align-items:center}
+.workflow-source-menu{position:absolute;z-index:24;left:0;bottom:calc(100% + 8px);
+ width:min(278px,calc(100vw - 26px));max-width:calc(100vw - 26px);
+ padding:5px;display:grid;gap:2px;min-width:0;background:var(--od-paper);
+ border:1px solid var(--od-line);border-radius:var(--radius-surface);
+ box-shadow:0 10px 24px #18294124}
+.workflow-source-option{min-height:36px;display:flex;align-items:center;
+ justify-content:space-between;gap:12px;width:100%;min-width:0;padding:7px 9px;
+ border:0;border-radius:var(--radius-control);background:transparent;
+ color:var(--od-ink);font:inherit;font-size:var(--od-note-size);text-align:left;cursor:pointer}
+.workflow-source-option[aria-checked="true"],.workflow-source-option:hover{background:var(--od-muted)}
+.workflow-source-option:focus-visible{outline:2px solid var(--od-focus);outline-offset:-2px}
+.workflow-source-menu-divider{height:1px;margin:3px 5px;background:var(--od-line)}
+.workflow-source-notice{font-size:var(--od-meta-size);line-height:1.5;margin:0 0 0 6px;
+ color:var(--od-negative);overflow-wrap:anywhere;min-width:0}
+.workflow-composer:has(.workflow-source-menu){position:relative;z-index:3}
+@media(max-width:360px){.workflow-composer{padding:5px 6px}
+ .workflow-source-menu{width:min(250px,calc(100vw - 24px))}}
+@media(pointer:coarse){.workflow-source-option{min-height:44px}
+ .workflow-composer-actions{min-height:44px}}
+
 #workflow-provider-settings:not([open]){display:none}
 #workflow-provider-settings>summary{display:none}
 /* R23.11: the approved history is a dedicated React view, not the advanced manager. */

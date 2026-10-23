@@ -50,6 +50,104 @@ export function WorkflowSourceName({value=''}) {
     title={`当前模型：${value}`} aria-label={`当前模型：${value}`}>{value}</span> : null;
 }
 
+
+const SOURCE_LABELS=Object.freeze({
+  local_codex:'本机 Codex',
+  custom_https:'HTTPS Chat Completions',
+  cloud_responses:'HTTPS Responses'
+});
+const EMPTY_PROVIDER_SNAPSHOT=Object.freeze({
+  source:'local_codex',endpoint:'',model:'',hasApiKey:false,generation:0
+});
+const readEmptyProviderSettings=()=>EMPTY_PROVIDER_SNAPSHOT;
+const CHAT_ENDPOINT='https://api.openai.com/v1/chat/completions';
+const RESPONSES_ENDPOINT='https://api.openai.com/v1/responses';
+
+// A trusted presentation control. The sole ToolShell Runtime owns the real
+// credentials, generation/Lease changes, cancellation and authorization.
+export function WorkflowSourceMenu({snapshot=EMPTY_PROVIDER_SNAPSHOT,providerSettings=null,
+  onOpenSettings=null,active=true,doc=globalThis.document}){
+ const root=React.useRef(null),menu=React.useRef(null);
+ const [open,setOpen]=React.useState(false),[notice,setNotice]=React.useState('');
+ const selected=SOURCE_LABELS[snapshot.source]||'未知 AI 来源';
+ React.useEffect(()=>{if(!active)setOpen(false);},[active]);
+ React.useEffect(()=>{
+  if(!open||!doc)return;
+  const outside=event=>{if(!root.current?.contains(event.target))setOpen(false);};
+  doc.addEventListener('pointerdown',outside,true);
+  return ()=>doc.removeEventListener('pointerdown',outside,true);
+ },[open,doc]);
+ React.useLayoutEffect(()=>{
+  if(open)menu.current?.querySelector('[role="menuitemradio"][aria-checked="true"]')?.focus({preventScroll:true});
+ },[open]);
+ const trigger=()=>doc?.getElementById('workflow-provider-toggle');
+ const composer=()=>doc?.getElementById('workflow-ai-request');
+ const close=restore=>{setOpen(false);if(restore)trigger()?.focus({preventScroll:true});};
+ const advanced=()=>{setOpen(false);onOpenSettings?.();};
+ const select=(next,event)=>{
+  if(!event.nativeEvent?.isTrusted||!providerSettings)return;
+  if(next===snapshot.source){close(true);return;}
+  let endpoint=String(snapshot.endpoint||'').trim();
+  if(next!=='local_codex'){
+   if(next==='cloud_responses'&&endpoint===CHAT_ENDPOINT)endpoint=RESPONSES_ENDPOINT;
+   if(next==='custom_https'&&endpoint===RESPONSES_ENDPOINT)endpoint=CHAT_ENDPOINT;
+   let valid=false;
+   try{
+    const url=new URL(endpoint);
+    valid=url.protocol==='https:'&&Boolean(url.hostname)&&!url.username&&!url.password;
+    // Changing protocols on a custom endpoint cannot assume API compatibility.
+    if(valid&&snapshot.source!==next)
+     valid=next==='cloud_responses'?/\/responses\/?$/.test(url.pathname):
+       /\/chat\/completions\/?$/.test(url.pathname);
+   }catch{valid=false;}
+   if(!valid||!String(snapshot.model||'').trim()||!snapshot.hasApiKey){
+    setNotice('此 HTTPS 来源尚未配置完整。请在 AI 设置中确认地址、模型与本次会话密钥。');
+    advanced();return;
+   }
+  }
+  try{
+   providerSettings.updateSettings({source:next,...(endpoint!==snapshot.endpoint?{endpoint}:{})});
+   setNotice('');setOpen(false);
+   composer()?.focus({preventScroll:true});
+  }catch(error){
+   setNotice('来源切换失败：'+String(error?.message||'请检查 AI 设置').slice(0,160));
+   advanced();
+  }
+ };
+ const onMenuKeyDown=event=>{
+  if(event.key==='Escape'){event.preventDefault();close(true);return;}
+  if(!['ArrowDown','ArrowUp','Home','End'].includes(event.key))return;
+  const options=[...menu.current?.querySelectorAll('[role^="menuitem"]')||[]];
+  if(!options.length)return;
+  event.preventDefault();
+  const at=options.indexOf(doc?.activeElement);
+  const next=event.key==='Home'?0:event.key==='End'?options.length-1:
+   (at+(event.key==='ArrowDown'?1:-1)+options.length)%options.length;
+  options[next]?.focus({preventScroll:true});
+ };
+ return <div className="workflow-source-picker" ref={root}>
+  <IconButton id="workflow-provider-toggle" label={`AI 来源：${selected}；选择来源`}
+   title={`当前来源：${selected} · 点击切换`}
+   aria-haspopup="menu" aria-expanded={open} aria-controls="workflow-source-menu"
+   disabled={!active} onClick={()=>{setNotice('');setOpen(value=>!value);}}>
+   <Glyph kind="settings"/>
+  </IconButton>
+  {open&&<div id="workflow-source-menu" className="workflow-source-menu"
+    role="menu" aria-label="选择 AI 来源" ref={menu} onKeyDown={onMenuKeyDown}>
+    {Object.entries(SOURCE_LABELS).map(([value,label])=>
+     <button type="button" key={value} role="menuitemradio"
+      id={`workflow-source-option-${value}`} aria-checked={snapshot.source===value}
+      className="workflow-source-option" onClick={event=>select(value,event)}>
+      <span>{label}</span>{snapshot.source===value&&<span aria-hidden="true">✓</span>}
+     </button>)}
+    <div className="workflow-source-menu-divider"/>
+    <button type="button" role="menuitem" className="workflow-source-option"
+     onClick={advanced}>高级 AI 设置…</button>
+  </div>}
+  {notice&&<p className="workflow-source-notice" role="alert">{notice}</p>}
+ </div>;
+}
+
 /** The only history entries are real revision records or a resumable Codex session.
  * Restoring a saved workflow still goes through WorkflowView's hash verification. */
 export function WorkflowHistory({model={open:false,rows:[],canResume:false},actions}) {
@@ -160,12 +258,17 @@ function WorkflowStep({step,index,count,model,actions}) {
  * while this tree owns fields, event wiring, disclosure, focus and modal DOM. */
 export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,actions:providedActions=EMPTY_ACTIONS,
   active=true,document:doc=globalThis.document,
-  onOpenProviderSettings=null,sharedProviderSettings=false}) {
+  onOpenProviderSettings=null,sharedProviderSettings=false,providerSettings=null}) {
   const fallback=React.useCallback(()=>providedModel,[providedModel]);
   const model=React.useSyncExternalStore(controller?.subscribe||noSubscribe,controller?.getSnapshot||fallback,controller?.getSnapshot||fallback);
   const actions=controller?.actions||providedActions;
+  const settingsSnapshot=React.useSyncExternalStore(
+   providerSettings?.subscribeSettings??noSubscribe,
+   providerSettings?.settingsSnapshot??readEmptyProviderSettings,
+   providerSettings?.settingsSnapshot??readEmptyProviderSettings);
+  const [legacyKeyDraft,setLegacyKeyDraft]=React.useState('');
   const page=React.useRef(null),lastFocus=React.useRef(null),scroller=React.useRef(null);
-  const stepFocus=React.useRef(null);
+  const stepFocus=React.useRef(null),exampleFocus=React.useRef(false);
   const nearBottom=React.useRef(true);
    const [transcriptTarget,setTranscriptTarget]=React.useState(null);
    const [composerTarget,setComposerTarget]=React.useState(null);
@@ -174,10 +277,18 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
   const field=(id,value,event,eventName='input')=>actions.input?.(id,value,event.nativeEvent,eventName);
   const closeSettings=React.useCallback(()=>actions.closeSettings?.(),[actions]);
   const openSettings=Boolean(c('workflow-provider-settings').open);
+  React.useEffect(()=>{if(!openSettings)setLegacyKeyDraft('');},[openSettings]);
   React.useLayoutEffect(()=>{
     if(!active)return;
     const node=doc?.getElementById(model.focusRequest?.id);
-    if(node&&page.current?.contains(node))node.focus?.({preventScroll:true});
+    if(node&&page.current?.contains(node)){
+      node.focus?.({preventScroll:true});
+      if(model.focusRequest?.id==='workflow-ai-request'&&exampleFocus.current){
+        exampleFocus.current=false;
+        const end=node.value.length;
+        node.setSelectionRange?.(end,end);
+      }
+    }
   },[model.focusRequest?.version,active,doc]);
   React.useLayoutEffect(()=>{
     const previous=stepFocus.current,current=doc?.activeElement;
@@ -219,8 +330,12 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
       {options.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}
     </select>:textarea?<textarea id={id} className="od-field" value={c(id).value||''}
       onChange={event=>field(id,event.currentTarget.value,event,eventName)} {...props}/>
-      :<input id={id} className="od-field" value={c(id).value||''}
-        onChange={event=>field(id,event.currentTarget.value,event,eventName)} {...props}/>}
+      :<input id={id} className="od-field"
+        value={id==='workflow-ai-key'?legacyKeyDraft:c(id).value||''}
+        onChange={event=>{
+          if(id==='workflow-ai-key')setLegacyKeyDraft(event.currentTarget.value);
+          field(id,event.currentTarget.value,event,eventName);
+        }} {...props}/>}
   </>;
   const text=(id,props={})=><p id={id} hidden={c(id).hidden} {...props}>{c(id).text||''}</p>;
   return <div id="workbench-workflow" ref={page} role="tabpanel" aria-labelledby="tab-workflow"
@@ -253,7 +368,10 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
             <div id="workflow-intro-suggestions" className="workflow-intro-suggestions" aria-label="示例需求">
               {(model.entryMode==='new-chat'?[['continue','继续修改填写内容'],['check','检查当前网页']]:
                 [['fill','填写表单并读回'],['read','只读提取网页信息']]).map(([key,title])=>
-                <button key={key} type="button" data-workflow-example={key} onClick={event=>actions.chooseExample?.(key,event.nativeEvent)}>{title}</button>)}
+                <button key={key} type="button" data-workflow-example={key} onClick={event=>{
+                 const outcome=actions.chooseExample?.(key,event.nativeEvent);
+                 if(['filled','appended','duplicate'].includes(outcome?.kind))exampleFocus.current=true;
+                }}>{title}</button>)}
             </div>
           </div>
           <div id="workflow-ai-transcript" ref={setTranscriptTarget}
@@ -362,11 +480,13 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
       <div className="workflow-composer">
          <div className="workflow-composer-frame" ref={setComposerTarget}/>
          <div className="workflow-composer-actions">
-           {sharedProviderSettings?
-             <IconButton id="workflow-provider-toggle" label="AI 设置" title="AI 设置"
-               onClick={onOpenProviderSettings}><Glyph kind="settings"/></IconButton>:
-             action('workflow-provider-toggle','AI 设置',{icon:true,kind:'settings','aria-expanded':openSettings,'aria-controls':'workflow-provider-settings'})}
-           <WorkflowSourceName value={model.sourceName||'本机 Codex'}/>
+           {sharedProviderSettings&&providerSettings?
+             <WorkflowSourceMenu snapshot={settingsSnapshot} providerSettings={providerSettings}
+               onOpenSettings={onOpenProviderSettings} active={active} doc={doc}/>:
+             <>
+              {action('workflow-provider-toggle','AI 设置',{icon:true,kind:'settings','aria-expanded':openSettings,'aria-controls':'workflow-provider-settings'})}
+              <WorkflowSourceName value={model.sourceName||'本机 Codex'}/>
+             </>}
          </div>
        </div>
        <div id="workflow-page-actions" className="workflow-actions od-toolbar" hidden={Boolean(model.awaitingReview)||(!model.hasSteps&&model.phase!=='running')}>
@@ -413,7 +533,9 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
      blocked={Boolean(c('workflow-ai-plan').disabled)}
      canSend={c('workflow-ai-plan').hidden!==true}
      inputId="workflow-ai-request" inputLabel="描述任务，或告诉 AI 怎样修改步骤"
-     placeholder="描述要自动完成的任务…" inputRows={2}
+     placeholder={`${SOURCE_LABELS[sharedProviderSettings&&providerSettings?
+       settingsSnapshot.source:c('workflow-ai-provider').value]||'AI'} · 描述要完成的操作…`}
+     inputRows={2}
      sendId="workflow-ai-plan" stopId="workflow-ai-cancel"
      splitTargets transcriptTarget={transcriptTarget} composerTarget={composerTarget}
      autoScroll={false} focusOnOpen={false} entryClassName="workflow-chat-entry"

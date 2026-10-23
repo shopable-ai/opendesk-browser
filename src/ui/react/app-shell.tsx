@@ -66,6 +66,7 @@ export function SidebarAppShell({
       </div>
       <WorkflowPage controller={workflowController} active={activeTab==='workflow'}
         onOpenProviderSettings={onOpenProviderSettings}
+        providerSettings={providerSettings}
         sharedProviderSettings={Boolean(providerSettings)}/>
       <DeveloperPage view={developerView} hidden={activeTab!=='develop'}/>
       <CloudConnectionPage model={cloudModel} requestsModel={cloudRequestsModel}

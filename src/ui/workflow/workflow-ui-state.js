@@ -143,8 +143,11 @@ export function createWorkflowUIState() {
     return proxies.get(id);
   }
   // Proxies never enter a React snapshot (structuredClone rejects Proxy).
+  // Password remains only in the trusted View/Runtime, never in the publicly
+  // subscribable React UI projection, logs, URLs or persisted draft messages.
   const copy=()=>({...state,controls:Object.fromEntries(Object.entries(controls)
-    .map(([key,value])=>[key,{...value,dataset:{...value.dataset}}]))});
+    .map(([key,value])=>[key,{...value,
+      value:key==='workflow-ai-key'?'':value,dataset:{...value.dataset}}]))});
   // The proxy data are shallow UI records. Clone their plain projection at emit.
   const commit=()=>structuredClone(copy());
   for(const id of Object.keys(initialControls))control(id);
