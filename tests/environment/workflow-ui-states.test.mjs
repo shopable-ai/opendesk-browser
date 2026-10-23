@@ -205,7 +205,8 @@ test('workflow model selector stays minimal without manual creation or custom ap
   assert.doesNotMatch(settings.text(),/模型的数据发送许可|同意并生成|每次读取仍需确认/);
   assert.ok(settings.hasClass('od-disclosure--flat'));
   assert.doesNotMatch(html,/localCodexReady\s*=\s*true|模拟连接成功/);
-  assert.match(view,/bind\('workflow-ai-plan','click',plan\)/);
+  assert.match(view,/bind\('workflow-ai-plan','click',sendNaturalLanguage\)/);
+  assert.match(view,/if\(immediate.state==='AI'&&!pendingReuse\)return plan\(event\)/);
   assert.match(view,/control\('workflow-provider-settings'\)\.open=true/);
   assert.doesNotMatch(view,/modelConsent|pendingModelReview|renderDataDisclosure/);
 });
