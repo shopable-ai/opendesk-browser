@@ -48,6 +48,15 @@ test('old reminders survive transfer while sealed app model cannot bill usage tw
   assert.equal(converted.sealedModel.clockHighWater,0);
   assert.equal(converted.sealedModel.authorizedHash,null);
   assert.equal(converted.sealedModel.authorizedEpoch,null);
+  // The Installer will hash and journal this plan; an app or callback must
+  // not be able to alter a nested counter, grant or reminder after preflight.
+  for(const value of [converted,converted.model,converted.model.sites[0],
+    converted.desiredPolicy,converted.desiredPolicy.sites[0],
+    converted.usage,converted.sealedModel,
+    converted.notices.pools['g:entertainment'].thresholds])
+    assert.equal(Object.isFrozen(value),true,'migration snapshot must be recursively sealed');
+  assert.throws(()=>{converted.usage['g:entertainment']=0;},TypeError);
+  assert.deepEqual(state,snapshot,'deep freeze may not mutate legacy storage');
   assert.throws(()=>migrateFocusState(undefined,{at}),{code:'E_MIGRATION_SOURCE'},
     'missing legacy state cannot be silently interpreted as first install');
   const corrupt=structuredClone(state);
