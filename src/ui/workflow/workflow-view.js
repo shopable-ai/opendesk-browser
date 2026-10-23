@@ -2009,6 +2009,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       if(!await api.permissions.contains({origins:[permissionPattern(captured.url)]}))
         throw err('E_PERMISSION','网站权限已撤销，未启动任务');
       await currentPageTarget.revalidate(captured);
+      // The shared TaskWorkbench may have an older display cache than the
+      // fresh Send Catalog snapshot. Synchronize its sole installed list
+      // before its existing pinned Run admission; never create another runner.
+      await taskWorkbench.refresh();
       const resolved=await verifyInstalledCandidate(candidate);
       if(disposed||!sameTarget(captured,currentPageTarget.snapshot)||
         host.executionPending||host.currentRun)
@@ -2174,7 +2178,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           pendingInstalledGrant={...prepared,confirmInput:original,needsPermission:!granted};
           appendChat('你',original);
           appendChat('助手',!granted?'找到已安装任务，但需要当前网站授权。':
-            '找到已安装任务，此敏感操作需要确认。');
+            '找到已安装任务，尚未证明其业务操作完全只读，执行前需要确认。');
           showRoutingGrant(!granted?'确认后申请当前网站权限，再执行原固定任务。':
             '确认执行已安装任务。已有权限不会重复申请。');
           return;
