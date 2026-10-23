@@ -887,13 +887,17 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     const beforeOtherTools=await readTime();
     const nativeRoot=(await browser.send('Runtime.evaluate',{expression:'document.querySelector("#sidebar-tool-frame main.review")'},side)).result.objectId;
     assert.ok(nativeRoot,'actual mounted native root handle');
-    const priorTargets=new Set((await browser.send('Target.getTargets')).targetInfos.map(t=>t.targetId));
-    await nativeClick(browser,side,'#sidebar-tool-open-tab');
-    const otherManagerTarget=await until(async()=>
-      (await browser.send('Target.getTargets')).targetInfos.find(t=>!priorTargets.has(t.targetId)&&t.type==='page'&&t.url.includes('/sidepanel.html')&&t.url.includes('toolId=time-review')),
-      'existing open-tool-in-tab product action');
+    // Use a test-owned real extension TAB for cross-tool operations. The
+    // Time Review trusted Side Panel deliberately has no legacy open-tab
+    // button; CDP creates only the workbench, not business state or grants.
+    const otherManagerTarget=await browser.send('Target.createTarget',{
+      url:'chrome-extension://'+present+'/sidepanel.html?toolId=time-review'});
     const otherManager=(await browser.send('Target.attachToTarget',{targetId:otherManagerTarget.targetId,flatten:true})).sessionId;
     await browser.send('Runtime.enable',{},otherManager);await browser.send('Page.enable',{},otherManager);
+    const managerTab=await until(async()=>{
+      const page=await evaluate(browser,otherManager,'({url:location.href,id:chrome.runtime.id})');
+      return page.id===present&&new URL(page.url).searchParams.get('toolId')==='time-review'?page:null;
+    },'owned actual extension tab with correct tool identity');
     await nativeClick(browser,otherManager,'#sidebar-tool-back');
     for(const toolId of ['reading-toc','cookie-editor','stay-focus']){
       const previouslyInstalled=await evaluate(browser,side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.some(t=>t.id==='+JSON.stringify(toolId)+'))');
@@ -1741,11 +1745,16 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   // Negative identity cases use the SAME product file-review installer and
   // real macOS chooser. No package/epoch/provenance storage is injected.
   const trustedRoot=(await browser.send('Runtime.evaluate',{expression:'document.querySelector("#sidebar-tool-frame main.review")'},manager)).result.objectId;
-  const targetsBefore=new Set((await browser.send('Target.getTargets')).targetInfos.map(row=>row.targetId));
-  await nativeClick(browser,manager,'#sidebar-tool-open-tab');
-  const importTarget=await until(async()=>(await browser.send('Target.getTargets')).targetInfos.find(row=>!targetsBefore.has(row.targetId)&&row.type==='page'&&row.url.includes('/sidepanel.html')&&row.url.includes('toolId=time-review')),'existing product tab for reviewed identity tests');
+  // Independent owned extension tab performs the real reviewed installer
+  // interactions; it never substitutes for the genuine SIDE_PANEL above.
+  const importTarget=await browser.send('Target.createTarget',{
+    url:'chrome-extension://'+present+'/sidepanel.html?toolId=time-review'});
   const importer=(await browser.send('Target.attachToTarget',{targetId:importTarget.targetId,flatten:true})).sessionId;
   await browser.send('Runtime.enable',{},importer);await browser.send('Page.enable',{},importer);
+  await until(async()=>{
+    const page=await evaluate(browser,importer,'({url:location.href,id:chrome.runtime.id})');
+    return page.id===present&&new URL(page.url).searchParams.get('toolId')==='time-review';
+  },'review installer runs in exact owned extension tab');
   await nativeClick(browser,importer,'#sidebar-tool-back');
   const importPackage=async(candidate,name)=>{
     await installReviewedPackage(browser,importer,candidate,name,zoomInput,restartProc.pid,note);
