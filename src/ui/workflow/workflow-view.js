@@ -64,7 +64,8 @@ export function workflowExecutionFeedback({execution,workflow,params={},values}=
 }
 export function createWorkflowView({api=globalThis.chrome,document:doc=globalThis.document,
   client,host,currentPageTarget,taskWorkbench=null,onRunOwner=()=>{},openDeveloper=()=>{},openCatalog=()=>{},
-  reactUI=null,providerRuntime=null,hostInstanceId=client?.hostInstanceId||'standalone'}) {
+  reactUI=null,providerRuntime=null,openAIProviderSettings=null,
+  hostInstanceId=client?.hostInstanceId||'standalone'}) {
   // Presentation snapshots only. Compiler, RunHost, revision journal and grants
   // below remain the sole business authority; React is the sole DOM owner.
   const ui=createWorkflowUIState();
@@ -1479,6 +1480,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(opened)void refreshLocal();
   }
   function openAISettings(focusId='workflow-source-local') {
+    // The official ToolShell opens the sole global trusted settings sheet;
+    // standalone fixtures retain their historical local controls.
+    if(typeof openAIProviderSettings==='function'){openAIProviderSettings();return;}
     control('workflow-provider-settings').open=true;
     syncAISettings();
     focus(focusId);

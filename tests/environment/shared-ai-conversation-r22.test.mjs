@@ -39,6 +39,8 @@ test('R2.2 all trusted consumers reach the same Provider settings sheet and owne
  assert.match(app,/onOpenSettings=\{onOpenProviderSettings\}/);
  assert.match(app,/providerSettings=\{providerSettings\}/);
  assert.match(view,/unsubscribeProviderSettings/);
+ assert.match(main,/openProviderSettings:openSharedProviderSettings/);
+ assert.match(view,/if\(typeof openAIProviderSettings==='function'\)/);
  assert.match(workflow,/<WorkflowSettingsSheet open=\{openSettings\}/);
  assert.match(workflow,/<IconButton id="workflow-provider-toggle"/);
  assert.match(sheet,/createPortal\(/);

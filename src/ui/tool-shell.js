@@ -194,6 +194,7 @@ const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbenc
 // React owns the whole page; the original workflow controller retains Authority.
 workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptEditor.host,
   providerRuntime,hostInstanceId,currentPageTarget,taskWorkbench,
+  openAIProviderSettings:()=>extensionList?.openProviderSettings?.(),
   onRunOwner:id=>taskWorkbench.setWorkflowRunOwner(id),
   openDeveloper:sourceUtf8=>taskWorkbench.receiveDraft(sourceUtf8),
   openCatalog:()=>taskWorkbench.navigate('catalog')});

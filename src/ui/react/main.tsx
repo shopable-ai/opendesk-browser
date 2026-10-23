@@ -129,6 +129,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
   }
   return Object.freeze({
     owner:'extension-list',navigationMounted:true,appShellMounted:true,debugMounted:debugEnabled,
+    openProviderSettings:openSharedProviderSettings,
     cloudPageMounted:true,cloudOverviewMounted:true,
     renderNavigation(view){
       if(disposed)return;
