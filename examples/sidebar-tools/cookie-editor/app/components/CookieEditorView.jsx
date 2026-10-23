@@ -331,13 +331,15 @@ export function CookieEditorView({
   return <main className="cookie-react-view" aria-label="Cookie Editor">
     <CookieSiteBar site={site} readonly={readonly} busy={busy}
       syncStale={syncStale} onRefresh={onRefresh}/>
+    {/* Keep search accessible in one click while the export popover is open.
+        The menu still floats over the list, never over the search field. */}
+    <CookieSearch query={query} onQuery={onQuery}
+      expandedFilters={expandedFilters} onToggleFilters={onToggleFilters}
+      filter={filter} onFilter={onFilter} sort={sort} onSort={onSort}/>
     <CookieToolbar count={rows.length} onImport={onImport} onExport={onExport}
       onNew={onNew} onClear={onClear} clearDisabled={clearDisabled}
       exportOpen={exportOpen} exportContent={exportContent} onCloseExport={onCloseExport}
       busy={busy} readonly={readonly}/>
-    <CookieSearch query={query} onQuery={onQuery}
-      expandedFilters={expandedFilters} onToggleFilters={onToggleFilters}
-      filter={filter} onFilter={onFilter} sort={sort} onSort={onSort}/>
     <CookieRows rows={currentPage} totalCount={rows.length} selected={selected}
       newEditor={newEditor}
       onSelect={id=>onSelect(id===selected?null:id)} renderEditor={editor}

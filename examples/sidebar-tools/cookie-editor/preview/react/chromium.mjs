@@ -225,20 +225,26 @@ try{
   await page.keyboard.press('ArrowRight');
   assert.equal(await popup.getByRole('tab',{name:'Cookie Header'}).getAttribute('aria-selected'),'true');
   assert.equal(await popup.getByRole('button',{name:'复制'}).isDisabled(),true,'partitioned data cannot export as header');
-  // The popover overlays the search input. First click outside its bounds,
-  // then focus the search; clicking through an overlay is not a browser action.
-  await page.locator('.site-hostname').click();
+  // The anchored popover must not geometrically cover the search field.
+  // A single real pointer click focuses search and dismisses the menu.
+  const search=page.getByRole('searchbox',{name:'搜索 Cookie'});
+  const menuBox=await popup.boundingBox();
+  const searchBox=await search.boundingBox();
+  assert.ok(menuBox.y>=searchBox.y+searchBox.height-1,
+    'popover must not cover search, even in a narrow sidebar');
+  await search.click();
   await popup.waitFor({state:'detached'});
-  await page.getByRole('searchbox',{name:'搜索 Cookie'}).click();
-  assert.equal(await page.getByRole('searchbox',{name:'搜索 Cookie'}).evaluate(el=>el===el.ownerDocument.activeElement),true);
+  assert.equal(await search.evaluate(el=>el===el.ownerDocument.activeElement),true);
  });
  await test('export preserves search, list scroll and pending Host receipts',async()=>{
   await page.setViewportSize({width:360,height:420});
   const list=page.locator('.cookie-list');
+  const search=page.getByRole('searchbox',{name:'搜索 Cookie'});
+  // Filtering changes list geometry and may naturally reset scrollTop.
+  // Capture the baseline only after the unfiltered list is restored.
+  await search.fill('session');await search.fill('');
   const before=await list.evaluate(el=>{el.scrollTop=55;return el.scrollTop;});
   assert.ok(before>0,'scroll test must actually have an overflowing Cookie list');
-  const search=page.getByRole('searchbox',{name:'搜索 Cookie'});
-  await search.fill('session');await search.fill('');
   await button('导出 Cookie').click();
   let popup=page.getByRole('dialog',{name:'导出 Cookie'});await popup.waitFor();
   assert.equal(await search.inputValue(),'');
