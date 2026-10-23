@@ -1,9 +1,9 @@
 import {ANALYTICS_ALARM,ANALYTICS_STATE_KEY,ANALYTICS_MAX_BATCH,
-  ANALYTICS_MAX_AGE_MS,ANALYTICS_VERSION,validateAnalyticsEvent} from './contract.js';
+  ANALYTICS_MAX_AGE_MS,ANALYTICS_VERSION,ANALYTICS_DISCLOSURE_VERSION,validateAnalyticsEvent} from './contract.js';
 
 const MAX_QUEUED=250;
 const ATTEMPT_TIMEOUT_MS=10000;
-const empty=()=>({consent:false,installId:null,queue:[],failures:0,nextAttemptAt:0,
+const empty=()=>({consent:false,consentReceipt:null,installId:null,queue:[],failures:0,nextAttemptAt:0,
   inventorySignature:null,openedContexts:[]});
 export function validAnalyticsEndpoint(value,{allowLoopback=false}={}){
   try{
@@ -25,6 +25,14 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
   const read=async()=>{
     const raw=(await api.storage.local.get(ANALYTICS_STATE_KEY))[ANALYTICS_STATE_KEY];
     if(raw===undefined)return empty();
+    // A previous unversioned consent is not a transferable grant for today's disclosure.
+    // The old outbox and install identity cannot be replayed without fresh opt-in.
+    if(raw?.consent===true&&(
+      raw.consentReceipt?.disclosureVersion!==ANALYTICS_DISCLOSURE_VERSION||
+      !Number.isSafeInteger(raw.consentReceipt?.acceptedAt)||
+      raw.consentReceipt.acceptedAt<=0||
+      raw.consentReceipt.acceptedAt>now()+5*60*1000))
+      return {...empty(),needsReview:true};
     if(!raw||typeof raw!=='object'||Array.isArray(raw)||typeof raw.consent!=='boolean'||
       !Array.isArray(raw.queue)||raw.queue.length>MAX_QUEUED||
       !Number.isSafeInteger(raw.failures)||raw.failures<0||
@@ -42,16 +50,18 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
   });
   const status=()=>run(async()=>{
     const state=await read();
-    return {configured,consent:configured&&!revoked&&state.consent,queued:state.consent?state.queue.length:0};
+    return {configured,consent:configured&&!revoked&&state.consent,queued:state.consent?state.queue.length:0,needsReview:state.needsReview===true};
   });
-  async function setConsent(enabled){
+  async function setConsent(enabled,{disclosureVersion}={}){
     if(typeof enabled!=='boolean')throw Object.assign(new Error('Invalid consent'),{code:'E_ANALYTICS_CONSENT'});
     if(enabled&&!configured)throw Object.assign(new Error('No HTTPS analytics endpoint configured'),{code:'E_ANALYTICS_UNCONFIGURED'});
+    if(enabled&&disclosureVersion!==ANALYTICS_DISCLOSURE_VERSION)
+      throw Object.assign(new Error('Current disclosure must be confirmed'),{code:'E_ANALYTICS_DISCLOSURE'});
     if(!enabled){revoked=true;revision++;activeAbort?.abort();}
     return run(async()=>{
       if(enabled){
         const current=await read();
-        const state=current.consent?current:{...empty(),consent:true,installId:newId()};
+        const state=current.consent?current:{...empty(),consent:true,installId:newId(),consentReceipt:{disclosureVersion,acceptedAt:now()}};
         await persist(state);
         revoked=false;
         try{await api.alarms?.create?.(ANALYTICS_ALARM,{periodInMinutes:5});}catch{/* startup also reconciles */}
@@ -62,7 +72,7 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       return statusSnapshot(enabled);
     });
   }
-  const statusSnapshot=consent=>({configured,consent,queued:0});
+  const statusSnapshot=consent=>({configured,consent,queued:0,needsReview:false});
   function record({event,toolId,source,channel,reason,installedTools,contextId},{authorize}={}){
     if(revoked||!configured)return Promise.resolve({recorded:false});
     const generation=revision;
