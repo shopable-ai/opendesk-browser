@@ -7,6 +7,9 @@ import {createDeveloperView} from '../../src/ui/develop-view.js';
 import {createTaskReviewHandoff,taskReviewHandoffKey} from '../../src/ui/workflow/task-review-handoff.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 import {verifyTaskPackage} from '../../src/platform/tasks/contract.js';
+import {createMyTaskAgent} from '../../src/ui/my-task-agent.js';
+import {createSharedAIProviderRuntime} from '../../src/ui/ai/provider-runtime.js';
+import {createBusinessConversation} from '../../src/ui/conversation/provider-consumer.js';
 
 
 // Task business tests exercise registered React actions and view projections.
@@ -141,6 +144,83 @@ test('ordinary Task Run returns immediately while the agent receives its exact c
   assert.equal(result.runId,'run-task-1');
   assert.equal(result.taskId,installed.taskId);
   assert.equal(result.installationId,installed.installationId);
+});
+
+// Real Agent -> Consumer/Runtime -> Workbench -> Host admission. Only Chrome,
+// model transport and the durable Host use the existing in-memory substitutes.
+async function agentWorkbench(t){
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  f.page.snapshot.origin='https://a.example';
+  let modelGranted=true,turn=0;
+  const removed=new Set(),contains=f.api.permissions.contains;
+  f.api.permissions.onRemoved={addListener:fn=>removed.add(fn),removeListener:fn=>removed.delete(fn)};
+  f.api.permissions.contains=input=>input.origins?.includes('https://model.example/*')
+    ?Promise.resolve(modelGranted):contains(input);
+  const runtime=createSharedAIProviderRuntime({client:{requestWorkflowAI:async()=>({})},
+    hostInstanceId:'agent-workbench-test',facadeFactory:()=>({
+      generateStructured:async()=>({proposal:turn++===0?{actions:[{
+        type:'run_task',taskId:'demo.form',params:{name:'Agent'}
+      }]}:{question:'已核对执行结果'}})
+    })});
+  runtime.updateSettings({source:'custom_https',endpoint:'https://model.example/v1/responses',
+    model:'memory-model',apiKey:'memory-only'});
+  const provider=createBusinessConversation({api:f.api,providerRuntime:runtime,
+    hostInstanceId:'agent-workbench-test',consumerId:'tasks',instanceId:'my-agent'});
+  const agent=createMyTaskAgent({client:f.client,taskWorkbench:f.ui,provider,
+    currentPageTarget:f.page,api:f.api});
+  t.after(()=>{agent.dispose();provider.dispose();runtime.dispose();});
+  return {f,agent,runtime,revoke(notify=true){modelGranted=false;
+    if(notify)for(const fn of [...removed])fn({origins:['https://model.example/*']});}};
+}
+
+for(const invalidation of ['model revocation','AI Stop','missing model grant without an event']){
+  test('real Agent + Workbench blocks RunHost after '+invalidation+' during installed-task lookup',async t=>{
+    const {f,agent,runtime,revoke}=await agentWorkbench(t);
+    const generation=runtime.configuration().generation;
+    await agent.send('运行表单任务',{isTrusted:true});
+    assert.equal(agent.getSnapshot().status,'review');
+    let entered,release;
+    const resolving=new Promise(resolve=>{entered=resolve;});
+    const gate=new Promise(resolve=>{release=resolve;});
+    const request=f.client.request.bind(f.client);
+    f.client.request=async(method,payload)=>{
+      if(method==='resolveInstalledTask'){entered();await gate;}
+      return request(method,payload);
+    };
+    const confirming=agent.confirm({isTrusted:true});
+    await resolving;
+    assert.equal(f.starts.length,0,'lookup is held before Host admission');
+    if(invalidation==='AI Stop')await agent.stop();
+    else revoke(invalidation==='model revocation');
+    release();await confirming;
+    assert.equal(runtime.configuration().generation,generation);
+    assert.equal(f.starts.length,0,'invalidated Agent must never dispatch RunHost.start');
+    assert.equal(f.stops.length,0,'pre-admission AI cancellation is not business Stop');
+    assert.equal(agent.getSnapshot().pending,null);
+    // Retire the confirmation once; releasing lookup cannot restore it.
+    await agent.confirm({isTrusted:true});
+    assert.equal(f.starts.length,0);
+    assert.deepEqual(f.permissions,[{origins:['https://model.example/*']}],
+      'only the original Send requests model access; preflight never prompts');
+  });
+}
+
+test('real Agent + Workbench runs normally and AI Stop preserves an already submitted Host run',async t=>{
+  const {f,agent}=await agentWorkbench(t);
+  await agent.send('运行表单任务',{isTrusted:true});
+  let entered;
+  const submitted=new Promise(resolve=>{entered=resolve;});
+  const start=f.host.start.bind(f.host);
+  f.host.start=async input=>{const claim=await start(input);entered();return claim;};
+  const confirming=agent.confirm({isTrusted:true});
+  await submitted;
+  assert.equal(f.starts.length,1);
+  await agent.stop();
+  assert.equal(f.host.currentRun,'run-task-1');
+  assert.equal(f.stops.length,0,'AI Stop cannot cancel a business run already submitted');
+  f.host.complete({done:true});await confirming;
+  assert.equal(f.starts.length,1,'no automatic replay after completion');
+  assert.match(agent.getSnapshot().rows.map(row=>row.message).join(' '),/可能已经提交/);
 });
 
 test('legacy first-run migration refreshes the installed identity before the next explicit Run',async t=>{

@@ -317,15 +317,19 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
       default:return action.type;
     }
   };
-  async function write(action,event,signal,expected=null){
+  async function write(action,event,signal,expected=null,authorization=null){
     stopCheck(signal);
     if(!event?.isTrusted)throw fail('E_USER_GESTURE','只有点击可信确认按钮才能修改真实任务或计划');
+    const assertWrite=async()=>{
+      await authorization?.assertWrite?.();
+      stopCheck(signal);
+    };
     if(action.type==='run_task'){
-      // This MUST be the first side effect in the trusted Confirm click.
-      // TaskWorkbench synchronously checks the pinned catalog, parameters and
-      // Chrome permissions before its own first await, then uses the only RunHost.
+      // TaskWorkbench checks existing site grants; it does not request new
+      // Chrome permissions after this asynchronous model-authorization check.
+      await assertWrite();
       const completed=await taskWorkbench.runInstalledForAgent({
-        taskId:action.taskId,params:action.params,event,expected});
+        taskId:action.taskId,params:action.params,event,expected,signal,assertWrite});
       const history=await runHistory(action.taskId,3);
       const observed=history.find(v=>v.runId===completed.runId);
       if(!observed||!observed.hasResult)throw fail('E_OUTCOME_UNKNOWN','任务已提交，但尚未读取到持久结果；请核查历史，不要重新运行');
@@ -334,6 +338,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
         verified:isTerminal(observed.state)&&observed.hasResult};
     }
     if(action.type==='stop_task'){
+      await assertWrite();
       const stopped=await taskWorkbench.stopAgentTask({taskId:action.taskId,event});
       return {taskId:action.taskId,stopRequested:true,
         note:'停止请求已发出，需通过运行历史核对最终状态',receipt:clip(stopped?.state||'',60)};
@@ -345,7 +350,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
       const patterns=candidate.manifest.siteOrigins.map(origin=>permissionPattern(origin));
       if(action.enabled&&!await api.permissions.contains({origins:patterns}))
         throw fail('E_PERMISSION','网站访问权限不足，请先使用原任务管理界面授权');
-      stopCheck(signal);
+      await assertWrite();
       await client.request('setInstalledTaskEnabled',{
         taskId:row.taskId,version:row.version,enabled:action.enabled,
         expectedGeneration:row.generation??null,expectedInstallationId:row.installationId??null
@@ -377,7 +382,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
         timezone:action.timezone,triggerKind:action.triggerKind,triggerSpec:action.triggerSpec,
         misfirePolicy:'skip',startDeadlineMs:300000,paused:action.paused
       });
-      stopCheck(signal);
+      await assertWrite();
       const saved=await client.request('saveSchedule',input);
       const actual=(await schedules()).find(p=>p.scheduleId===saved?.scheduleId);
       if(!actual||actual.scheduleId!==saved?.scheduleId||actual.generation!==1||
@@ -394,7 +399,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
       assertPinned(before,expected);
       if((action.operation==='pause'&&before.paused)||(action.operation==='resume'&&!before.paused))
         return {scheduleId:before.scheduleId,paused:before.paused,unchanged:true};
-      stopCheck(signal);
+      await assertWrite();
       await client.request('changeSchedule',{scheduleId:before.scheduleId,
         expectedGeneration:before.generation,action:action.operation});
       const after=(await schedules()).find(p=>p.scheduleId===before.scheduleId);
@@ -426,7 +431,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
         throw fail('E_TARGET','新目标网站不属于原固定任务许可范围');
       if(!await api.permissions.contains({origins:[permissionPattern(input.targetUrl)]}))
         throw fail('E_PERMISSION','原网站访问权限不足，请先从计划界面授权');
-      stopCheck(signal);
+      await assertWrite();
       const receipt=await client.request('saveSchedule',input);
       const after=(await schedules()).find(v=>v.scheduleId===before.scheduleId);
       if(receipt?.scheduleId!==before.scheduleId||!after||
@@ -447,12 +452,18 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
   const limitContext=records=>records.slice(-8).map(row=>({
     action:row.action,observation:clip(JSON.stringify(row.observation),2300)
   }));
+  function releaseAuthorization(current){
+    current.authorization?.signal?.removeEventListener('abort',current.onAuthorizationAbort);
+    current.authorization?.release?.();
+    current.authorization=null;
+  }
   async function loop(session,originalRequest,context=[],continuation=false){
     const {event,signal}=session,goal=session.goal;
     for(let turn=0;turn<6;turn++){
       stopCheck(signal);
       publish({busy:true,status:'thinking',step:'正在核对任务与计划…'});
-      let proposal,auth;
+      releaseAuthorization(session);
+      let proposal;
       // First provider permission request must begin in the actual Send gesture.
       const incoming=provider.request({request:originalRequest,context:{
         goal,currentPage:currentPage(),
@@ -460,9 +471,21 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
         verifiedObservations:limitContext(context)
       },event,signal,continuation:continuation||turn>0});
       const response=await incoming;
-      auth=response.authorization;
-      try{proposal=validateMyTaskAgentProposal(response.proposal);}
-      finally{auth?.release?.();}
+      session.authorization=response.authorization;
+      session.onAuthorizationAbort=()=>{
+        const reason=session.authorization?.signal?.reason;
+        if(reason?.code!=='E_MODEL_GRANT_REVOKED'||!session.active)return;
+        session.controller.abort(reason);
+        session.active=false;
+        releaseAuthorization(session);
+        session.round.finish();
+        verifiedHistory=[];
+        publish({busy:false,pending:null,status:'idle',step:''});
+        add('系统','模型权限已撤销，旧提议和确认已失效；已提交的业务操作请在原界面核实，勿直接重试。');
+      };
+      session.authorization?.signal?.addEventListener('abort',session.onAuthorizationAbort,{once:true});
+      if(session.authorization?.signal?.aborted)session.onAuthorizationAbort();
+      proposal=validateMyTaskAgentProposal(response.proposal);
       stopCheck(signal);
       if(proposal.question){
         add('助手',proposal.question);
@@ -561,7 +584,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
     publish({busy:false,status:'idle',step:''});session.active=false;
   }
   async function start(request,event){
-    if(disposed||session?.active)throw fail('E_AI_BUSY','当前 AI 请求还未结束');
+    if(disposed||session?.active||session?.stopping)throw fail('E_AI_BUSY','当前 AI 请求或 Native 收尾还未结束');
     if(!event?.isTrusted)throw fail('E_USER_GESTURE','请使用可信对话发送按钮');
     const goal=clip(request.trim(),4000);
     if(!goal)throw fail('E_AI_REQUEST','请输入需要完成的任务');
@@ -575,14 +598,14 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
     add('你',goal);
     try{await loop(current,goal,current.context);}
     catch(error){
-      if(session!==current)return;
+      if(session!==current||current.stopping)return;
       add('系统',error?.code==='E_CANCELLED'?'AI 后续操作已停止；已启动的任务不会自动停止。':
         clip(error?.message||error,600));
       publish({busy:false,pending:null,status:'idle',step:''});
       current.active=false;
     }finally{
       // A review is still the same live turn. Completion or failure retires it.
-      if(!current.active)round.finish();
+      if(!current.active){releaseAuthorization(current);round.finish();}
       else chatSession.setPhase('reading');
     }
   }
@@ -601,7 +624,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
     const record={action:pending.action.type,observation:null};
     current.confirmed.add(JSON.stringify(pending.action));
     try{
-      const observation=await write(pending.action,event,current.signal,pending.expected);
+      const observation=await write(pending.action,event,current.signal,pending.expected,current.authorization);
       if(session!==current||current.signal.aborted)return;
       record.observation=observation;
       current.context.push(record);
@@ -611,28 +634,45 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
       stopCheck(current.signal);
       await loop(current,current.goal,current.context,true);
     }catch(error){
-      if(session!==current)return;
+      if(session!==current||current.stopping)return;
       add('系统',(['E_OUTCOME_UNKNOWN','E_EFFECT_UNKNOWN','E_TIMEOUT','E_DISCONNECTED'].includes(error?.code)
         ?'操作结果未知，禁止自动重试。请在原业务界面核实。 '
         :'操作未确认完成。 ')+clip(error?.message||error,500));
       publish({busy:false,status:'idle',pending:null,step:''});
       current.active=false;
     }finally{
-      if(!current.active)current.round.finish();
+      if(!current.active){releaseAuthorization(current);current.round.finish();}
       else chatSession.setPhase('reading');
     }
   }
   function stop(){
-    if(!session?.active)return;
+    if(!session?.active)return session?.cleanup;
+    const current=session;
     const effectInFlight=snapshot.status==='executing';
-    session.controller.abort(fail('E_CANCELLED','用户停止 AI'));
+    current.stopping=true;
+    current.active=false;
+    publish({busy:true,pending:null,status:'stopping',step:'正在确认 AI 停止结果…'});
+    // Capture the owning consumer's cancellation before releasing its capability.
+    let cancellation;
+    try{cancellation=provider.cancel({signal:current.signal});}
+    catch(error){cancellation=Promise.reject(error);}
+    current.controller.abort(fail('E_CANCELLED','用户停止 AI'));
     chatSession.cancel();
-    session.round.finish();
-    void provider.cancel({signal:session.signal}).catch(()=>{});
-    publish({busy:false,pending:null,status:'idle',step:''});
+    current.round.finish();
+    releaseAuthorization(current);
+    current.cleanup=Promise.resolve(cancellation).catch(error=>{
+      if(disposed||session!==current)return;
+      if(error?.code==='E_AI_OUTCOME_UNKNOWN')
+        add('系统','AI 停止结果未知（E_AI_OUTCOME_UNKNOWN），无法确认 Native 已停止；禁止自动重放，请先核实原会话状态。');
+      else add('系统','AI 停止未确认完成：'+clip(error?.message||error,400));
+    }).finally(()=>{
+      current.stopping=false;
+      if(!disposed&&session===current)
+        publish({busy:false,pending:null,status:'idle',step:''});
+    });
     if(effectInFlight)
       add('系统','AI 已停止后续操作。此前确认的任务或计划可能已经提交；请先核对实际运行历史或计划状态，勿直接重试。');
-    session.active=false;
+    return current.cleanup;
   }
   const unsubscribeProviderChanges=provider.subscribeProviderChanges?.(()=>{
     if(disposed)return;

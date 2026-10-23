@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createMyTaskAgent,validateMyTaskAgentProposal} from '../../src/ui/my-task-agent.js';
 import {taskInstructions} from '../../src/ui/conversation/my-task-instructions.js';
+import {createSharedAIProviderRuntime} from '../../src/ui/ai/provider-runtime.js';
+import {createBusinessConversation} from '../../src/ui/conversation/provider-consumer.js';
 
 const schema={type:'object',properties:{},required:[],additionalProperties:false};
 const installed=()=>({taskId:'search',version:'1.0.0',enabled:true,manifestHash:'pinned',
@@ -11,7 +13,7 @@ const candidate=()=>({taskId:'search',version:'1.0.0',manifestHash:'pinned',
   stage:'available',manifest:{title:'网页搜索',description:'搜索当前网页',
     siteOrigins:['https://example.com'],paramsSchema:schema}});
 const trusted={isTrusted:true};
-function rig(proposals,{hasTask=true}={}){
+function rig(proposals,{hasTask=true,provider:realProvider,api:realAPI}={}){
   let executions=0,changes=0,planned=0,paused=false,generation=1,scheduleGeneration=1,pinned=null;
   let providerGeneration=1;const providerListeners=new Set();
   const client={
@@ -39,9 +41,9 @@ function rig(proposals,{hasTask=true}={}){
     request:async()=>({proposal:proposals[Math.min(planned++,proposals.length-1)],
       authorization:{release(){}}}),cancel:async()=>{}};
   const target={snapshot:{status:'available',origin:'https://example.com',url:'https://example.com/'}};
-  const agent=createMyTaskAgent({client,taskWorkbench,provider,currentPageTarget:target,
-    api:{permissions:{contains:async()=>true}}});
-  return {agent,get executions(){return executions;},get changes(){return changes;},
+  const agent=createMyTaskAgent({client,taskWorkbench,provider:realProvider||provider,currentPageTarget:target,
+    api:realAPI||{permissions:{contains:async()=>true}}});
+  return {agent,client,taskWorkbench,get executions(){return executions;},get changes(){return changes;},
     get pinned(){return pinned;},bumpGeneration(){generation++;},
     changeProvider(){providerGeneration++;for(const listener of [...providerListeners])listener();},
     get planned(){return planned;}};
@@ -359,4 +361,209 @@ test('stopping AI while an edit is submitted does not cancel or misreport the re
   assert.match(messages,/可能已经提交；请先核对/);
   assert.doesNotMatch(messages,/已更新并重新读取验证/);
   x.agent.dispose();
+});
+
+// Real Runtime + Consumer authorization/cancellation; only Chrome, Native
+// transport and the business Host are in-memory substitutes.
+function authorizedRig({source='custom_https',holdInference=false,unknownCancel=false,
+  syncCancel=false,cancelGate=null}={}){
+  let permitted=true,requestInGesture=false,inGesture=false,planned=0;
+  const removed=new Set(),cancelled=[],native=[];
+  let resolveInference,enteredInference;
+  const inference=new Promise(resolve=>{resolveInference=resolve;});
+  const inferenceEntered=new Promise(resolve=>{enteredInference=resolve;});
+  const api={permissions:{
+    request(){requestInGesture=inGesture;return Promise.resolve(permitted);},
+    contains:async()=>permitted,
+    onRemoved:{addListener:fn=>removed.add(fn),removeListener:fn=>removed.delete(fn)}
+  }};
+  const runtime=createSharedAIProviderRuntime({
+    client:{requestWorkflowAI:async()=>({})},hostInstanceId:'my-agent-test',
+    plannerFactory:()=>{
+      const id='native-'+(native.length+1);native.push(id);
+      return {
+        probe:async()=>({state:'READY_FOR_TURN',readyForTurn:true}),
+        async planStructured({request}){
+          if(request==='other lease')return {question:'other lease alive'};
+          enteredInference();
+          if(holdInference)return inference;
+          return planned++===0?{actions:[{type:'change_schedule',scheduleId:'plan1',operation:'pause'}]}:
+            {question:'已完成'};
+        },
+        cancel(){cancelled.push(id);
+          const error=Object.assign(new Error('Native receipt missing'),{code:'E_AI_OUTCOME_UNKNOWN'});
+          if(syncCancel)throw error;
+          return Promise.resolve(cancelGate).then(()=>{
+            if(unknownCancel)throw error;
+            return {state:'CANCELLED'};
+          });
+        },snapshot:()=>({sessionId:id}),dispose(){}
+      };
+    },
+    facadeFactory:({localPlanner})=>({
+      generateStructured:async args=>({proposal:await localPlanner.planStructured(args)})
+    })
+  });
+  runtime.updateSettings({source,endpoint:'https://model.example/v1/responses',
+    model:'test-model',apiKey:'memory-only'});
+  const provider=createBusinessConversation({api,providerRuntime:runtime,
+    hostInstanceId:'my-agent-test',consumerId:'tasks',instanceId:'tasks-one'});
+  const x=rig([],{provider,api});
+  return {agent:x.agent,client:x.client,runtime,provider,api,cancelled,inferenceEntered,resolveInference,
+    get changes(){return x.changes;},
+    get requestInGesture(){return requestInGesture;},
+    send(){inGesture=true;try{return x.agent.send('暂停计划',trusted);}finally{inGesture=false;}},
+    revoke(notify=true){permitted=false;if(notify)for(const fn of [...removed])fn(
+      source==='local_codex'?{permissions:['nativeMessaging']}:{origins:['https://model.example/*']});},
+    restore(){permitted=true;},
+    dispose(){x.agent.dispose();provider.dispose();runtime.dispose();}
+  };
+}
+
+test('real task Consumer revocation invalidates pending approval without a Provider generation change',async t=>{
+  for(const source of ['custom_https','local_codex']){
+    const x=authorizedRig({source});t.after(()=>x.dispose());
+    const generation=x.runtime.configuration().generation;
+    await x.send();
+    assert.equal(x.agent.getSnapshot().status,'review');
+    if(source==='custom_https')assert.equal(x.requestInGesture,true,'request starts before Send yields');
+    x.revoke();
+    assert.equal(x.runtime.configuration().generation,generation);
+    assert.equal(x.agent.getSnapshot().pending,null);
+    assert.match(x.agent.getSnapshot().rows.map(row=>row.message).join(' '),/模型权限已撤销/);
+    x.restore();
+    await x.agent.confirm(trusted);
+    assert.equal(x.changes,0,'regrant must not revive an old approval');
+  }
+});
+
+test('real Consumer assertWrite rechecks model grant after asynchronous schedule preflight',async t=>{
+  const x=authorizedRig();t.after(()=>x.dispose());
+  await x.send();
+  const request=x.client.request;
+  x.client.request=async(name,payload)=>{
+    const response=await request(name,payload);
+    if(name==='listSchedules')x.revoke(false); // No onRemoved or generation bump.
+    return response;
+  };
+  await x.agent.confirm(trusted);
+  await x.agent.confirm(trusted);
+  assert.equal(x.changes,0);
+  assert.equal(x.agent.getSnapshot().pending,null);
+  assert.match(x.agent.getSnapshot().rows.map(row=>row.message).join(' '),/模型.*权限.*失效/);
+});
+
+test('real task Consumer releases completed authorization before the next model decision',async t=>{
+  const x=authorizedRig();t.after(()=>x.dispose());
+  await x.send();
+  await x.agent.confirm(trusted);
+  assert.equal(x.changes,1);
+  assert.equal(x.agent.getSnapshot().status,'idle');
+  assert.equal(x.agent.getSnapshot().pending,null);
+  assert.match(x.agent.getSnapshot().rows.map(row=>row.message).join(' '),/已完成/);
+  // A completed authorization must not retain the Consumer's busy slot.
+  await x.send();
+  assert.match(x.agent.getSnapshot().rows.at(-1).message,/已完成/);
+});
+
+test('real Consumer Stop during submitted schedule write preserves the business effect',async t=>{
+  const x=authorizedRig({source:'local_codex',unknownCancel:true});t.after(()=>x.dispose());
+  await x.send();
+  let entered,release;
+  const submitted=new Promise(resolve=>{entered=resolve;});
+  const gate=new Promise(resolve=>{release=resolve;});
+  const request=x.client.request;
+  x.client.request=async(name,payload)=>{
+    if(name==='changeSchedule'){entered();await gate;}
+    return request(name,payload);
+  };
+  const confirming=x.agent.confirm(trusted);
+  await submitted;
+  x.agent.stop();release();
+  await confirming;
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(x.changes,1,'AI Stop must not cancel or repeat the submitted Host write');
+  assert.equal(x.agent.getSnapshot().pending,null);
+  const messages=x.agent.getSnapshot().rows.map(row=>row.message).join(' ');
+  assert.match(messages,/可能已经提交；请先核对/);
+  assert.match(messages,/停止结果未知/);
+  assert.doesNotMatch(messages,/已暂停.*已重新读取计划列表验证/);
+  assert.deepEqual(x.cancelled,['native-1']);
+});
+
+test('real Native Consumer Stop exposes UNKNOWN, never replays or cancels another lease',async t=>{
+  const x=authorizedRig({source:'local_codex',holdInference:true,unknownCancel:true});
+  t.after(()=>x.dispose());
+  const other=x.runtime.acquire({consumerId:'bookmark',instanceId:'other-one'});
+  const first=await other.requestStructured({request:'other lease'});
+  const sending=x.send();
+  await x.inferenceEntered;
+  x.agent.stop();
+  await sending;
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(x.cancelled,['native-2']);
+  const transcript=x.agent.getSnapshot().rows.map(row=>row.message).join(' ');
+  assert.match(transcript,/停止结果未知.*E_AI_OUTCOME_UNKNOWN/);
+  assert.match(transcript,/禁止自动重放/);
+  assert.doesNotMatch(transcript,/Native 已停止成功|已成功停止/);
+  const again=await other.requestStructured({request:'other lease'});
+  assert.deepEqual(again.proposal,first.proposal);
+  x.resolveInference({actions:[{type:'change_schedule',scheduleId:'plan1',operation:'pause'}]});
+  await new Promise(resolve=>setImmediate(resolve));
+  await x.agent.confirm(trusted);
+  assert.equal(x.changes,0);
+  assert.equal(x.agent.getSnapshot().pending,null,'late inference cannot restore approval');
+  assert.deepEqual(x.cancelled,['native-2']);
+});
+
+test('synchronous Native cancel failure still retires approval and reports UNKNOWN',async t=>{
+  const x=authorizedRig({source:'local_codex',syncCancel:true});t.after(()=>x.dispose());
+  await x.send();
+  let cleanup;
+  assert.doesNotThrow(()=>{cleanup=x.agent.stop();});
+  assert.equal(x.agent.getSnapshot().pending,null);
+  await cleanup;
+  assert.equal(x.agent.getSnapshot().busy,false);
+  assert.match(x.agent.getSnapshot().rows.at(-1).message,/停止结果未知.*E_AI_OUTCOME_UNKNOWN/);
+  await x.agent.confirm(trusted);
+  assert.equal(x.changes,0);
+});
+
+test('Native cleanup keeps agent busy until UNKNOWN settles before admitting a new session',async t=>{
+  let settle;
+  const cancelGate=new Promise(resolve=>{settle=resolve;});
+  const x=authorizedRig({source:'local_codex',holdInference:true,unknownCancel:true,cancelGate});
+  t.after(()=>x.dispose());
+  const sending=x.send();await x.inferenceEntered;
+  const cleanup=x.agent.stop();
+  await sending; // The old inference catch must not clear cleanup busy state.
+  assert.equal(x.agent.getSnapshot().busy,true);
+  assert.equal(x.agent.getSnapshot().status,'stopping');
+  await assert.rejects(x.send(),{code:'E_AI_BUSY'});
+  assert.equal(x.agent.stop(),cleanup,'repeated Stop shares the original cleanup');
+  assert.deepEqual(x.cancelled,['native-1']);
+  settle();await cleanup;
+  assert.equal(x.agent.getSnapshot().busy,false);
+  assert.match(x.agent.getSnapshot().rows.at(-1).message,/停止结果未知/);
+  x.resolveInference({question:'新会话结果'});
+  await x.send();
+  assert.equal(x.agent.getSnapshot().rows.at(-1).message,'新会话结果');
+  assert.equal(x.agent.getSnapshot().rows.filter(row=>/停止结果未知/.test(row.message)).length,1);
+});
+
+test('disposed agent ignores late Native UNKNOWN cleanup without publishing',async()=>{
+  let settle;
+  const cancelGate=new Promise(resolve=>{settle=resolve;});
+  const x=authorizedRig({source:'local_codex',unknownCancel:true,cancelGate});
+  try{
+    await x.send();
+    const cleanup=x.agent.stop();
+    let published=0;x.agent.subscribe(()=>{published++;});
+    x.agent.dispose();
+    const snapshot=x.agent.getSnapshot();
+    settle();await cleanup;
+    assert.equal(x.agent.getSnapshot(),snapshot);
+    assert.equal(published,0);
+    assert.doesNotMatch(snapshot.rows.map(row=>row.message).join(' '),/停止结果未知/);
+  }finally{x.dispose();}
 });

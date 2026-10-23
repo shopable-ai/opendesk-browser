@@ -8,10 +8,34 @@ import {sealWorkflowBundle,replayParameterSchema,WORKFLOW_BUNDLE_FORMAT,
   WORKFLOW_DYNAMIC_BUNDLE_FORMAT,inferDynamicReplayPlan,simpleCommerceReplayGoal} from '../../src/ui/workflow/segment-replay.js';
 const fill={stepId:'fill',op:'fill',locatorKind:'css',selector:'#keyword',text:'OpenDesk'};
 const get=(f,id)=>f.state().controls[id]||{};
+function assertNoLegacyRenderer(source) {
+  // Only the known conversation owner may append non-DOM transcript rows.
+  // Keep append forbidden for every other receiver, including DOM controls.
+  const rendererSource=source.replace(/(?<![\w$.])workflowSession\s*\.\s*append\s*\(/g,'workflowSession.record(');
+  assert.doesNotMatch(rendererSource,/createElement|replaceChildren|\.\s*append\s*\(|addEventListener\('(click|input|change)'|new Option|dispatchEvent/);
+}
+test('workflow DOM ownership guard allows session rows but rejects legacy DOM rendering',()=>{
+  assertNoLegacyRenderer("workflowSession.append(speaker,String(message));");
+  for(const source of [
+    'container.append(row);',
+    "get('workflow-ai-transcript').append(row);",
+    'container . append (row);',
+    'other.workflowSession.append(row);',
+    "document.createElement('div');",
+    'container.replaceChildren(row);',
+    "button.addEventListener('click',send);",
+    "new Option('label','value');",
+    'button.dispatchEvent(event);',
+  ]) {
+    assert.throws(()=>assertNoLegacyRenderer(source),assert.AssertionError,source);
+    assert.throws(()=>assertNoLegacyRenderer('workflowSession.append(speaker,message);\n'+source),
+      assert.AssertionError,'session append must not hide DOM rendering: '+source);
+  }
+});
 test('workflow whole page declares DOM in TSX and adapter has no legacy renderer/listeners',async()=>{
   const [component,view]=await Promise.all(['src/ui/react/tabs/workflow.tsx','src/ui/workflow/workflow-view.js'].map(path=>readFile(path,'utf8')));
   assert.doesNotMatch(component,/dangerouslySetInnerHTML|innerHTML|MutationObserver|append\(settings\)/);
-  assert.doesNotMatch(view,/createElement|replaceChildren|\.append\(|addEventListener\('(click|input|change)'|new Option|dispatchEvent/);
+  assertNoLegacyRenderer(view);
   assert.match(component,/export function WorkflowPage/);
   assert.match(component,/useSyncExternalStore/);
   const result=await transform(component,{loader:'tsx',jsx:'transform',target:'es2022'});

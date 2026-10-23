@@ -206,15 +206,17 @@ const actions={
       control('workflow-manage-panel').hidden=true;return;
     }
   },
-  chooseExample(key,event){
+  chooseExample(key,event,editDraft){
     if(!requireGesture(event))return;
     const instruction={
       fill:'请填写表单并读回（预览不会执行）',read:'请只读提取网页信息（预览不会执行）',
       continue:'请继续修改上次填写内容',check:'请检查当前网页'
     }[key];
     const outcome=appendWorkflowSuggestionDraft(control('workflow-ai-request').value,instruction);
-    if(['filled','appended'].includes(outcome.kind))
+    if(['filled','appended'].includes(outcome.kind)){
+     editDraft?.(outcome);
      control('workflow-ai-request').value=outcome.value;
+    }
     state.setFocus('workflow-ai-request');
     return outcome;
   },
@@ -236,7 +238,7 @@ for(const button of doc.querySelectorAll('nav.workbench-nav button')){
 selectors.scenario.addEventListener('change',event=>showScene(event.target.value));
 selectors.width.addEventListener('change',event=>{
   const width=Number(event.target.value);
-  if([320,360,400,420,440,520].includes(width))stage.style.width=width+'px';
+  if([320,360,400,420,440,520,640,768,960].includes(width))stage.style.width=width+'px';
 });
 selectors.theme.addEventListener('change',event=>{
   stage.dataset.previewTheme=event.target.value==='dark'?'dark':'light';

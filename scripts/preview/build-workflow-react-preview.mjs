@@ -93,7 +93,10 @@ export async function generateWorkflowReactPreview(){
       '.od-workflow-preview-stage{max-width:100%;height:750px;max-height:calc(100dvh - 145px);'+
         'min-height:490px;background:var(--od-bg);border:1px solid var(--od-line);'+
         'border-radius:var(--radius-surface);box-shadow:0 10px 30px #142a4c14;'+
-        'overflow:hidden;display:flex;flex-direction:column;min-width:0;position:relative}',
+        'overflow:hidden;display:flex;flex-direction:column;min-width:0;position:relative;'+
+        'color:var(--od-ink);--ink:var(--od-ink);--sub:var(--od-sub);--line:var(--od-line);'+
+        '--blue:var(--od-brand);--paper:var(--od-paper);'+
+        '--od-action-bg:var(--od-muted);--od-action-border:var(--od-input-border);--od-action-ink:var(--od-ink)}',
       // In the real extension the Side Panel IS the viewport. Here the
       // external 360px review frame must bound the unchanged modal.
       '.od-workflow-preview-stage .workflow-sheet-overlay{position:absolute}',
@@ -155,7 +158,8 @@ export async function generateWorkflowReactPreview(){
       '<option value="320">320px</option><option value="360" selected>360px</option>',
       '<option value="400">400px</option><option value="420">420px</option>',
       '<option value="440">440px</option>',
-      '<option value="520">520px</option></select></label>',
+      '<option value="520">520px</option><option value="640">640px</option>',
+      '<option value="768">768px</option><option value="960">960px</option></select></label>',
       '<label>主题<select id="od-workflow-preview-theme" data-preview-theme>',
       '<option value="light">浅色</option><option value="dark">深色</option>',
       '</select></label></div></div>',

@@ -121,13 +121,17 @@ export function createWorkflowUIState() {
     history:{open:false,rows:[],canResume:false},header:{},sourceName:'本机 Codex',
     entryMode:'new-workflow',focusRequest:null};
   let snapshot;
+  const emit=()=>{
+    if(disposed)return;
+    snapshot=commit();
+    for(const listener of [...listeners])listener();
+  };
   const publish=()=>{
     if(disposed||pending)return;
     pending=true;
     queueMicrotask(()=>{
       pending=false;if(disposed)return;
-      snapshot=commit();
-      for(const listener of [...listeners])listener();
+      emit();
     });
   };
   function control(id) {
@@ -137,7 +141,12 @@ export function createWorkflowUIState() {
       data.dataset=new Proxy(data.dataset,{set(target,key,value){target[key]=value;publish();return true;}});
       controls[id]=data;
       proxies.set(id,new Proxy(data,{set(target,key,value){
-        if(target[key]!==value){target[key]=value;publish();}return true;
+        if(target[key]!==value){
+          target[key]=value;
+          // A controlled textarea must publish during its input event. Deferring
+          // its value makes React restore the old DOM value and erases Undo/IME.
+          if(id==='workflow-ai-request'&&key==='value')emit();else publish();
+        }return true;
       }}));
     }
     return proxies.get(id);

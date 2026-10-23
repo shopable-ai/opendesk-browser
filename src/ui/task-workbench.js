@@ -618,7 +618,12 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       if((resolved.generation??null)!==(chosen.generation??null)||
         (resolved.installationId??null)!==(chosen.installationId??null))throw {code:'E_REVISION',message:'任务安装或授权已改变，请重新运行'};
       if(!resolved.manifest.siteOrigins.includes(site))throw {code:'E_PERMISSION',message:'安装网站权限不匹配'};
-      if(agentIntent&&agentStopRequested)
+      // The Agent's initial check predates asynchronous document/version reads.
+      // Recheck its retained model grant at the actual RunHost write boundary.
+      // Manual Run keeps the original synchronous Chrome permission entry.
+      if(agentIntent?.assertWrite)await agentIntent.assertWrite();
+      if(disposed)throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭'};
+      if(agentIntent&&(agentStopRequested||agentIntent.signal?.aborted))
         throw {code:'E_CANCELLED',message:'已请求停止，尚未启动任务'};
       agentStartSubmitted=Boolean(agentIntent);
       const claim=await host.start({source:{kind:'saved',scriptId:resolved.scriptId,revision:resolved.revision,
@@ -913,8 +918,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   },setScheduledRunOwner(runId) {
     scheduledRunId=typeof runId==='string'&&runId?runId:null;
     if(!disposed)syncRunDock();
-  },runInstalledForAgent({taskId,params,event,expected}){
-    return run(event,{taskId,params,expected});
+  },runInstalledForAgent({taskId,params,event,expected,signal,assertWrite}){
+    return run(event,{taskId,params,expected,signal,assertWrite});
   },stopAgentTask({taskId,event}){
     if(!event?.isTrusted||disposed||!running||
       runOwnerKey!==identity(installed.find(row=>row.taskId===taskId)))

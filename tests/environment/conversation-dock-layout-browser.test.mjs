@@ -22,6 +22,7 @@ const sourcePaths=['src/ui/react/components/conversation.tsx',
 const entry=`import React from 'react';import {createRoot} from 'react-dom/client';
 import {TrustedConversationWorkspace} from './src/ui/react/components/conversation.tsx';
 const review=new URLSearchParams(location.search).has('review');
+const unknownStop=new URLSearchParams(location.search).has('unknownStop');
 const state=window.fixture={scope:'RENDER_ONLY',realAI:'NOT_TESTED',sdk:'NOT_TESTED',
   businessLoop:'NOT_TESTED',requests:0,cancels:0,aborts:0,inputEvents:[],clicks:[],pointers:[],session:null};
 document.addEventListener('input',event=>{
@@ -35,14 +36,15 @@ document.addEventListener('click',event=>{
   const button=event.target.closest('button');
   if(button)state.clicks.push({label:button.getAttribute('aria-label'),trusted:event.isTrusted});
 },true);
-let pendingSignal;
+let pendingSignal,rejectCancellation;
 const controller={
   readSession:()=>({open:true,draft:'',needsReview:review,
     rows:Array.from({length:16},(_,i)=>({id:'render-'+i,speaker:'系统',
       message:'RENDER_ONLY 布局占位记录 '+i+'；没有调用模型、SDK 或执行业务。'}))}),
   saveSession:value=>{state.session=value;},
   request:()=>{throw Error('The render fixture must never dispatch a real request');},
-  cancel:({signal})=>{state.cancels++;state.cancelledOriginal=signal===pendingSignal&&signal.aborted;}
+  cancel:({signal})=>{state.cancels++;state.cancelledOriginal=signal===pendingSignal&&signal.aborted;
+    if(unknownStop)return new Promise((resolve,reject)=>{rejectCancellation=reject;});}
 };
 function request({signal,event,onPhase}){
   state.requests++;state.requestTrusted=event.isTrusted;pendingSignal=signal;
@@ -58,7 +60,11 @@ function request({signal,event,onPhase}){
 const root=createRoot(document.getElementById('root'));
 root.render(<TrustedConversationWorkspace controller={controller} renderBusiness={bridge=>{
   bridge.adapterRef.current={request};
-  return <div className="fixture-business">RENDER_ONLY business placeholder</div>;
+  return <div className="fixture-business">RENDER_ONLY business placeholder
+    {unknownStop&&<button onClick={()=>rejectCancellation?.(Object.assign(
+      Error('RENDER_ONLY Native 停止结果未知；没有自动重发'),{code:'E_AI_OUTCOME_UNKNOWN'}))}>
+      模拟未知停止回执</button>}
+  </div>;
 }}/>);
 window.unmount=()=>root.unmount();`;
 
@@ -246,6 +252,25 @@ test('Conversation Dock Chromium RENDER_ONLY: draft, busy Stop, clipping and ind
       await page.evaluate(()=>window.unmount());assert.deepEqual(errors,[]);
     });
   }
+  await t.test('Native Stop UNKNOWN remains visible after the request abort, without replay',async()=>{
+    const context=await browser.newContext({viewport:{width:420,height:900}});
+    try{
+      const page=await context.newPage();
+      await page.goto(`http://127.0.0.1:${server.address().port}/?unknownStop`);
+      const input=page.locator('textarea');
+      await input.fill('停止状态回归');await page.getByRole('button',{name:'发送',exact:true}).click();
+      await input.fill('保留未发送草稿');
+      await page.getByRole('button',{name:'停止对话',exact:true}).click();
+      await settle(page);
+      assert.equal(await page.getByRole('button',{name:'停止对话',exact:true}).count(),1,
+        'Native cleanup must finish before busy clears');
+      await page.getByRole('button',{name:'模拟未知停止回执',exact:true}).click();
+      await page.getByRole('button',{name:'发送',exact:true}).waitFor();
+      assert.match(await page.getByRole('log').innerText(),/Native 停止结果未知/);
+      assert.equal(await input.inputValue(),'保留未发送草稿');
+      assert.equal(await page.evaluate(()=>window.fixture.requests),1,'no automatic retry or queued draft submission');
+    }finally{await context.close();}
+  });
   for(const width of [180,240])for(const coarse of [false,true]){
     await t.test(`real ToolHost header / ${width}px / ${coarse?'coarse':'fine'}`,async t=>{
       const context=await browser.newContext({viewport:{width,height:407},hasTouch:coarse,isMobile:false});

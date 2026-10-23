@@ -83,7 +83,12 @@ export function WorkflowSourceMenu({snapshot=EMPTY_PROVIDER_SNAPSHOT,providerSet
  const trigger=()=>doc?.getElementById('workflow-provider-toggle');
  const composer=()=>doc?.getElementById('workflow-ai-request');
  const close=restore=>{setOpen(false);if(restore)trigger()?.focus({preventScroll:true});};
- const advanced=()=>{setOpen(false);onOpenSettings?.();};
+ const advanced=()=>{
+  // The menu item disappears when the sheet opens. Hand focus to its stable
+  // trigger first so the shared sheet can restore the original entry on close.
+  trigger()?.focus({preventScroll:true});
+  setOpen(false);onOpenSettings?.();
+ };
  const select=(next,event)=>{
   if(!event.nativeEvent?.isTrusted||!providerSettings)return;
   if(next===snapshot.source){close(true);return;}
@@ -125,7 +130,9 @@ export function WorkflowSourceMenu({snapshot=EMPTY_PROVIDER_SNAPSHOT,providerSet
    (at+(event.key==='ArrowDown'?1:-1)+options.length)%options.length;
   options[next]?.focus({preventScroll:true});
  };
- return <div className="workflow-source-picker" ref={root}>
+ return <div className="workflow-source-picker" ref={root} onBlur={event=>{
+  if(!event.currentTarget.contains(event.relatedTarget))setOpen(false);
+ }}>
   <IconButton id="workflow-provider-toggle" label={`AI 来源：${selected}；选择来源`}
    title={`当前来源：${selected} · 点击切换`}
    aria-haspopup="menu" aria-expanded={open} aria-controls="workflow-source-menu"
@@ -369,7 +376,18 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
               {(model.entryMode==='new-chat'?[['continue','继续修改填写内容'],['check','检查当前网页']]:
                 [['fill','填写表单并读回'],['read','只读提取网页信息']]).map(([key,title])=>
                 <button key={key} type="button" data-workflow-example={key} onClick={event=>{
-                 const outcome=actions.chooseExample?.(key,event.nativeEvent);
+                 const input=doc?.getElementById('workflow-ai-request');
+                 const previous=input?.value;
+                 const outcome=actions.chooseExample?.(key,event.nativeEvent,next=>{
+                  if(input&&input.value===previous&&next.value.startsWith(previous)&&
+                   typeof doc?.execCommand==='function'){
+                   // Native editing keeps Chromium's Undo/Redo history. The
+                   // input event updates the same controller draft synchronously.
+                   input.focus({preventScroll:true});
+                   input.setSelectionRange(previous.length,previous.length);
+                   doc.execCommand('insertText',false,next.value.slice(previous.length));
+                  }
+                 });
                  if(['filled','appended','duplicate'].includes(outcome?.kind))exampleFocus.current=true;
                 }}>{title}</button>)}
             </div>

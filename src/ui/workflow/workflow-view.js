@@ -2546,7 +2546,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   bind('workflow-ai-new-session','click',onNewSessionClick);
   // Only fill the trusted composer; examples never submit, request permissions,
   // start AI planning, or mutate any current page.
-  const chooseExample=(key,event)=>{
+  const chooseExample=(key,event,editDraft)=>{
     if(!event.isTrusted||busy||autoExecutionPending||host.executionPending||host.currentRun)return;
     if(!Object.hasOwn(exampleRequests,key))return;
     const outcome=appendWorkflowSuggestionDraft(control('workflow-ai-request').value,
@@ -2555,8 +2555,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       status('草稿已达到 4000 字符上限，未追加示例，请先缩短内容。',true);
       focus('workflow-ai-request');return outcome;
     }
-    if(outcome.kind==='appended'||outcome.kind==='filled')
+    if(outcome.kind==='appended'||outcome.kind==='filled'){
+      editDraft?.(outcome);
       setConversationDraft(outcome.value);
+    }
     focus('workflow-ai-request');
     status(outcome.kind==='duplicate'?'草稿已有相同示例，未重复追加。':
       '示例已'+(outcome.kind==='appended'?'追加':'填入')+'草稿；不会自动发送或运行。');

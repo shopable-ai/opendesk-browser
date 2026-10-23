@@ -55,22 +55,46 @@ test('R2.3 suggestion draft is append-only, deduplicated, IME-neutral, length bo
   {value:'x'.repeat(3998),kind:'too_long'});
 });
 
+test('Workflow controlled input publishes in the input event while other projection updates stay batched',async()=>{
+ const ui=createWorkflowUIState();let seen=[];
+ const unsubscribe=ui.subscribe(()=>seen.push(ui.getSnapshot().controls['workflow-ai-request'].value));
+ try{
+  ui.control('workflow-ai-request').value='中文输入';
+  assert.deepEqual(seen,['中文输入'],'React must receive the new value before native input returns');
+  ui.control('workflow-ai-title').text='标题更新';
+  assert.equal(seen.length,1,'unrelated layout updates keep existing batching');
+  await tick();
+  assert.equal(ui.getSnapshot().controls['workflow-ai-title'].text,'标题更新');
+ }finally{unsubscribe();ui.dispose();}
+});
+
 test('R2.3 real Workflow consumer choice appends without replacing or launching RunHost',async t=>{
  const f=await workflowFixture();t.after(()=>f.view.dispose());
  f.input('workflow-ai-request','先报告任务情况');
- const first=f.view.actions.chooseExample('fill',{isTrusted:true});
+ let nativeEdits=0;
+ const first=f.view.actions.chooseExample('fill',{isTrusted:true},outcome=>{
+  assert.equal(f.state().controls['workflow-ai-request'].value,'先报告任务情况',
+   'native edit happens before a controlled snapshot can replace DOM value');
+  nativeEdits++;
+  f.input('workflow-ai-request',outcome.value);
+ });
  assert.equal(first.kind,'appended');
+ assert.equal(nativeEdits,1);
+ // Feedback/focus is still batched; the input value is already current.
+ await tick();
  const draft=f.state().controls['workflow-ai-request'].value;
  assert.ok(draft.startsWith('先报告任务情况\n\n'));
  assert.match(draft,/读取输入框实际值/);
  assert.equal(f.starts.length,0);
  const second=f.view.actions.chooseExample('fill',{isTrusted:true});
  assert.equal(second.kind,'duplicate');
+ await tick();
  assert.equal(f.state().controls['workflow-ai-request'].value,draft);
  assert.equal(f.starts.length,0,'choosing suggestions must not trigger RunHost');
  f.input('workflow-ai-request','x'.repeat(3998));
  const tooLong=f.view.actions.chooseExample('read',{isTrusted:true});
  assert.equal(tooLong.kind,'too_long');
+ await tick();
  assert.equal(f.state().controls['workflow-ai-request'].value.length,3998);
  await tick();
  assert.equal(f.starts.length,0);

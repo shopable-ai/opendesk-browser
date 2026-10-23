@@ -227,9 +227,14 @@ function ConversationWorkspace({
   // Aborting can replace this button with Send before the click default runs.
   event.preventDefault();
   const signal=abortRef.current?.signal;
-  if(!signal)return;
+  const run=runRef.current;
+  if(!signal||!run||run.cancelPromise)return;
   abortRef.current.abort();
-  void Promise.resolve(controller?.cancel?.({signal})).catch(()=>{});
+  // The request abort can settle before Native confirms its terminal state.
+  // Keep this round busy until that exact cleanup settles, and retain UNKNOWN.
+  let cleanup;
+  try{cleanup=controller?.cancel?.({signal});}catch(error){cleanup=Promise.reject(error);}
+  run.cancelPromise=Promise.resolve(cleanup).catch(error=>{run.cancelError=error;});
  }
  function send(event){
   event.preventDefault();
@@ -254,19 +259,25 @@ function ConversationWorkspace({
     event:event.nativeEvent,onStep:step=>{if(current())onStep(step);},
     onPhase:next=>{if(current()){phaseRef.current=next;setPhase(next);}}});
   }catch(ex){pending=Promise.reject(ex);}
-  void Promise.resolve(pending).then(result=>{
+  void Promise.resolve(pending).then(async result=>{
+   await run.cancelPromise;
    if(!current())return;
+   if(run.cancelError)throw run.cancelError;
+   if(signal.signal.aborted)throw Object.assign(new Error('已停止后续操作。'),{code:'E_CANCELLED'});
    if(result?.refs)refsRef.current=result.refs;
    if(result?.question)append('助手',result.question);
    else persist({refs:refsRef.current});
-  }).catch(ex=>{
+  }).catch(async ex=>{
+   await run.cancelPromise;
    if(!current())return;
    if(ex?.refs)refsRef.current=ex.refs;
-   const unknown=ex?.code==='E_OUTCOME_UNKNOWN'||ex?.writeIssued===true;
-   if(unknown)setNeedsReview(true);
+   const writeUnknown=ex?.code==='E_OUTCOME_UNKNOWN'||ex?.writeIssued===true;
+   const cancelError=run.cancelError;
+   const unknown=writeUnknown||ex?.code==='E_AI_OUTCOME_UNKNOWN'||cancelError?.code==='E_AI_OUTCOME_UNKNOWN';
+   if(writeUnknown)setNeedsReview(true);
    const partial=ex?.partial?.length?'已核实 '+ex.partial.length+' 步，其余未完成。 ':'';
-   const message=ex?.code==='E_CANCELLED'?'已停止后续操作；此前已核实的写入不会撤销。':
-    partial+errorText(ex);
+   const message=cancelError?errorText(cancelError)+(writeUnknown?' '+partial+errorText(ex):''):
+    ex?.code==='E_CANCELLED'?'已停止后续操作；此前已核实的写入不会撤销。':partial+errorText(ex);
    setError(message);append('系统',message);
    // Never silently repeat an issued or ambiguous write.
    if(!unknown&&!ex?.partial?.length&&ex?.code!=='E_CANCELLED'&&!draftRef.current){

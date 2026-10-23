@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-CN" data-preview-instance="" data-preview-parent-origin=""><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src data:; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="od-clipper-source-sha256" content="bd68470fdade70c44be0c52099f1ebac31178cfe5fb83e2a4fe57ef8053a3c4e"><title>网页剪藏 · 正式源码 / 模拟 Host</title><style>/* opendesk.shared-tokens.v1 sha256=dc9715b3c09fc168d751987e227082a44160551508414017ac3b79aba38e7962 */
+<!doctype html><html lang="zh-CN" data-preview-instance="" data-preview-parent-origin=""><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src data:; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="od-clipper-source-sha256" content="a31c6b44fbc3ea6d8f9137a70345d72446bf780f97ef7c95e7e1b759728741da"><title>网页剪藏 · 正式源码 / 模拟 Host</title><style>/* opendesk.shared-tokens.v1 sha256=dc9715b3c09fc168d751987e227082a44160551508414017ac3b79aba38e7962 */
 /* R23: single, page-agnostic OpenDesk semantic tokens.
  * No resets, selectors for host pages, remote resources or page scroll policy.
  * Trusted extension UI only; never inject into tools, iframes or web pages. */
@@ -301,6 +301,12 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-vis
 .clip.clip-hosted .clip-note-editor,
 .clip.clip-hosted .clip-note-reader{margin-top:0}
 .clip-note-excerpt:empty{display:none}
+
+/* The official integrated Host supplies the whole workspace, while the
+ * existing reader/editor retain their content scrolling and tool navigation. */
+#tool-root[data-opendesk-height-mode="workspace"] .clip{
+  min-height:var(--opendesk-host-available-height);
+}
 </style></head><body>
 <main class="clip" aria-label="网页剪藏">
 <svg class="clip-icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">

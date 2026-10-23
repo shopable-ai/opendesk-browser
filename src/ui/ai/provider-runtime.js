@@ -42,9 +42,12 @@ export function createSharedAIProviderRuntime({client,hostInstanceId,
     if(!patch||typeof patch!=='object'||Array.isArray(patch)||
       Object.keys(patch).some(key=>!allowed.has(key)))
       throw fail('E_AI_CONFIG','未知 Provider 设置字段');
-    return configure({source:patch.source??config.source,
+    configure({source:patch.source??config.source,
       endpoint:patch.endpoint??config.endpoint,model:patch.model??config.model,
       apiKey:Object.hasOwn(patch,'apiKey')?patch.apiKey:config.apiKey});
+    // This method is also the public settings facade. Credentials stay in the
+    // trusted configuration used by consumer adapters, including on save.
+    return publicSettings;
   }
   function subscribeSettings(listener){
     ensure();if(typeof listener!=='function')throw fail('E_AI_CONFIG','设置监听器无效');

@@ -92,14 +92,16 @@ test('R2.2 public Provider settings are stable, never reveal a key and preserve 
   source:'custom_https',endpoint:'https://example.org/v1/chat/completions',
   model:'model-one',apiKey:'private-secret'
  });
- assert.equal(changed.settings.apiKey,'private-secret');
+ assert.strictEqual(changed,runtime.settingsSnapshot());
+ assert.equal(JSON.stringify(changed).includes('private-secret'),false,'save result must not disclose the key');
  assert.equal(events.length,1);
  assert.deepEqual(runtime.settingsSnapshot(),{
   source:'custom_https',endpoint:'https://example.org/v1/chat/completions',
   model:'model-one',hasApiKey:true,generation:2
  });
  assert.equal(Object.hasOwn(runtime.settingsSnapshot(),'apiKey'),false);
- runtime.updateSettings({model:'model-two'});
+ const edited=runtime.updateSettings({model:'model-two'});
+ assert.equal(JSON.stringify(edited).includes('private-secret'),false,'editing a model cannot disclose a retained key');
  assert.equal(events.length,2);
  assert.equal(runtime.configuration().settings.apiKey,'private-secret','model update cannot erase key');
  assert.notEqual(bookmark.identity().instanceId,tasks.identity().instanceId);
