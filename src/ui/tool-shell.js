@@ -8,6 +8,8 @@ import {snapshotToolResources} from './resource-diagnostics.js';
 import {createCurrentPageTarget} from './current-page-target.js';
 import {createSidebarTabMemory} from './sidebar-tab-memory.js';
 import {createWorkflowView} from './workflow/workflow-view.js';
+import {createSharedAIProviderRuntime} from './ai/provider-runtime.js';
+import {createBusinessConversation} from './conversation/provider-consumer.js';
 import {createSidebarTools} from './sidebar-tools-loader.js';
 import {createPanelToolIntentReceiver} from './sidebar-tools/panel-tool-intent.js';
 import {createExtensionCenter} from './extension-center.js';
@@ -57,6 +59,8 @@ export function initToolShell(installDevelopment=null,{debugEnabled=false}={}) {
     return;
   }
   const foundationClient = createHostClient(chrome, {hostInstanceId});
+  // The trusted Host shell, not any business View, owns Provider resources.
+  const providerRuntime=createSharedAIProviderRuntime({client:foundationClient,hostInstanceId});
  const localeController=createUiLocaleController(chrome);
 const currentPageTarget = createCurrentPageTarget({api:chrome});
 const historyUI=globalThis.__opendeskTrustedHistoryUI;
@@ -122,7 +126,7 @@ const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEd
   reactNavigation,myView,developerView});
 extensionList.renderNavigation(pendingReactTab);
 // Installed extensions retain their existing sandbox and SDK Hosts.
-let workflowView=null;
+let workflowView=null,promptConversation=null,bookmarkDisplayCache=null;
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench,foundationClient,localeController,view:toolView,
   // Normal opens try the compiled React UI. The controller MUST still verify
   // the exact official installed package, catalog SHA, enabled state and
@@ -132,19 +136,57 @@ const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbenc
     enabled:true,
     mount:args=>{
       if(!extensionList?.mountBookmarkPilot)throw new Error('E_BOOKMARK_REACT_ROOT_MISSING');
-      return extensionList.mountBookmarkPilot({...args,conversation:workflowView?.conversation||null});
+      const installEpoch=args.installEpoch??null;
+      const conversation=createBusinessConversation({providerRuntime,api:chrome,hostInstanceId,
+        consumerId:'bookmark',
+        instanceId:args.instanceId||crypto.randomUUID(),installEpoch});
+      // Preserve the historical display-only draft/transcript on re-open of
+      // the SAME installation epoch, never its executable Bookmark references.
+      if(bookmarkDisplayCache?.installEpoch===installEpoch)
+        conversation.saveSession({...bookmarkDisplayCache.session,open:false,needsReview:false,
+          refs:{folderId:null,bookmarkId:null,matches:[]}});
+      try {
+        const unmount=extensionList.mountBookmarkPilot({...args,conversation});
+        return ()=>{try{unmount();}finally{
+          const snapshot=conversation.readSession();
+          bookmarkDisplayCache={installEpoch,session:{open:false,
+            draft:snapshot.draft,rows:snapshot.rows,needsReview:false,
+            refs:{folderId:null,bookmarkId:null,matches:[]}}};
+          conversation.dispose();
+        }};;
+      }catch(error){conversation.dispose();throw error;}
     }
   },
   trustedPromptPilot:{
     enabled:true,
-    conversation:()=>workflowView?.conversation||null,
+    conversation:({instanceId=crypto.randomUUID(),installEpoch=null}={})=>{
+      promptConversation?.dispose();
+      promptConversation=createBusinessConversation({providerRuntime,api:chrome,hostInstanceId,
+        consumerId:'prompt',instanceId,installEpoch});
+      return promptConversation;
+    },
+    releaseConversation(){
+      const owned=promptConversation;promptConversation=null;owned?.dispose();
+    },
     mount:args=>{
-      if(!extensionList?.mountPromptConversation)throw new Error('E_PROMPT_REACT_ROOT_MISSING');
-      return extensionList.mountPromptConversation({...args,conversation:workflowView?.conversation||null});
+      if(!extensionList?.mountPromptConversation||!promptConversation)
+        throw new Error('E_PROMPT_REACT_ROOT_MISSING');
+      const owned=promptConversation;
+      try {
+        const portal=extensionList.mountPromptConversation({...args,conversation:owned});
+        return {...portal,dispose(){
+          try{portal.dispose();}finally{
+            if(promptConversation===owned)promptConversation=null;
+            owned.dispose();
+          }
+        }};
+      }catch(error){if(promptConversation===owned)promptConversation=null;
+        owned.dispose();throw error;}
     }
   }});
 // React owns the whole page; the original workflow controller retains Authority.
-workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptEditor.host,currentPageTarget,taskWorkbench,
+workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptEditor.host,
+  providerRuntime,hostInstanceId,currentPageTarget,taskWorkbench,
   onRunOwner:id=>taskWorkbench.setWorkflowRunOwner(id),
   openDeveloper:sourceUtf8=>taskWorkbench.receiveDraft(sourceUtf8),
   openCatalog:()=>taskWorkbench.navigate('catalog')});
@@ -158,8 +200,11 @@ const scheduleStatus=message=>{
 scheduleUI=createScheduledTaskWorkbench({client:foundationClient,host:scriptEditor.host,taskWorkbench,
   api:chrome,document,myView,developerView,onOpen:()=>scheduleStatus(scheduleHost?
     scheduleHost.status:'没有活动运行页')});
+const myConversation=createBusinessConversation({providerRuntime,api:chrome,hostInstanceId,
+  consumerId:'tasks',
+  instanceId:'my-'+crypto.randomUUID()});
 const myAgent=createMyTaskAgent({client:foundationClient,taskWorkbench,
-  provider:workflowView.taskConversation,currentPageTarget,api:chrome,
+  provider:myConversation,currentPageTarget,api:chrome,
   onScheduleChange:()=>void scheduleUI?.refresh().catch(error=>console.warn('AI schedule refresh',error))});
 extensionList.connectMyAgent(myAgent);
 function startScheduledHost(){
@@ -379,8 +424,8 @@ listen(window, 'pagehide', () => {
   developHostControls.dispose();
   for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
   listeners.length = 0;
-  myAgent.dispose();scheduleHost?.dispose();scheduleUI?.dispose();
-  panelToolIntents?.dispose();tabMemory.dispose(); localeController.dispose(); debugWorkbench?.dispose(); workflowView.dispose(); extensionCenter.dispose(); sidebarTools.dispose(); extensionList.dispose(); toolView.dispose(); nativeAgentHost.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); sharedRunHost.dispose(); developerView.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
+  myAgent.dispose();myConversation.dispose();scheduleHost?.dispose();scheduleUI?.dispose();
+  panelToolIntents?.dispose();tabMemory.dispose(); localeController.dispose(); debugWorkbench?.dispose(); promptConversation?.dispose();workflowView.dispose();providerRuntime.dispose(); extensionCenter.dispose(); sidebarTools.dispose(); extensionList.dispose(); toolView.dispose(); nativeAgentHost.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); sharedRunHost.dispose(); developerView.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
 }, {once: true});
 
 }

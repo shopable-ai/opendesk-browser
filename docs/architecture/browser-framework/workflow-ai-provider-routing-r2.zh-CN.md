@@ -1,5 +1,8 @@
 # OpenDesk Browser Workflow R2：文档驱动的 Provider 路由、可信网页执行与本机 HTTP Gateway 正式设计合同
 
+> **Shared AI Conversation R2.1 新增权威入口：** 2026-10-23 **共享 AI Chat R2.1 所有权划分**：跨 Bookmark/Prompt/「我的」/Workflow 的 Provider Runtime、Lease、Native thread 隔离和消费者接入，唯一权威见 [共享 AI Conversation 架构合同](shared-ai-conversation-r2.zh-CN.md)。本文件继续唯一负责 Workflow 专属 Provider 传输、观察、Compiler、RunHost 及 Workflow 固定脚本复用协议；其历史“唯一当前 AI Provider 架构入口”不得解释为 WorkflowView 对其他消费者的 Provider 所有权。SOURCE_IMPLEMENTED 与真实 Chrome/Native PASS 分开记录。
+
+
 > **版本**：R2.1 / 2026-10-15。**状态**：DESIGN_CONTRACT / SOURCE_PARTIAL / INTEGRATION_PARTIAL / NATIVE_NOT_VERIFIED / PRODUCT_NOT_ACCEPTED。**唯一当前架构入口**：本文件；实施账本沿用 [对话式任务执行记录](../../framework/workstreams/conversation-direct-r1-20261013.md)，历史 [R16 方案](workflow-ai-provider-routing-r16.zh-CN.md) 保留。  
 > **源码核对锚点**：Browser `main@a7246887f5d09015b6244a1b2c5da5e232a2d015`；Go `master@310a24a726a6d218ae585df2dbe449b86f13ea62`。这只是编写本设计时的读取基线，不代表冻结或构建身份；后续提交需以最新 Git HEAD、目标文件 blob SHA 和实际源内容复核。  
 > **阅读顺序**：本文件 → 相关源码/接口 → 实施账本 → 对应候选的测试与真实回执。旧 R16 的“生成→采用建议→再运行”是**历史设计**，不覆盖本文件的“发送后经授权安全执行”。

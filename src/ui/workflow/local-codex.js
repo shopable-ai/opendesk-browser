@@ -223,7 +223,7 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
   }
   function close({remember=false}={}) {
     if(closing){closing.remember=closing.remember&&remember;if(!remember)resumable=null;return closing.promise;}
-    const prior=session,opening=Boolean(active&&!active.sessionId);
+    const prior=session;
     const record=cleanupRecord();record.remember=remember;closing=record;
     const closeGeneration=++generation;
     // A user close must not queue behind an interrupt or a stalled event poll.
@@ -232,11 +232,13 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
     session=null;
     if(!remember)resumable=null;
     (async()=>{
-      const reply=await rpc('ai.session.close',{},prior?.sessionId||null);
+      // Null sessionId would close the *whole* Sidebar Native owner.
+      // Pending opens are retired by open()'s exact-ID late acknowledgement.
+      const reply=prior?.sessionId?
+        await rpc('ai.session.close',{},prior.sessionId):{state:'NO_SESSION'};
       if(record.remember&&prior&&reply?.resumable===true&&generation===closeGeneration)
         resumable={sessionId:prior.sessionId,threadId:prior.threadId,observation:prior.observation,model:prior.model};
-      // Go also revokes pending opens when close has no sessionId.
-      if(opening&&prior)await rpc('ai.session.close');
+      // Never send an owner-wide close for a pending open.
       return reply;
     })().then(value=>{if(closing===record)closing=null;
       if(cancelling?.replacedBy===record)cancelling=null;record.resolve(value);},
@@ -393,9 +395,10 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
       state:session?.state||'IDLE',inferenceVerified:session?.inferenceVerified===true,
       busy:Boolean(active||cancelling||closing),resumable:Boolean(resumable&&!session)}),
     dispose(){if(disposed)return;disposed=true;generation++;unsubscribe?.();
-      const owned=Boolean(active||session||resumable||cancelling||closing);
       cancelling?.controller.abort(fail('E_HOST_CLOSED','工作流窗口已关闭'));
       active?.controller.abort(fail('E_HOST_CLOSED','工作流窗口已关闭'));
-      if(owned)void safeClose(null);session=null;resumable=null;}
+      // Closing this consumer must not retire another lease's Native thread.
+      if(session?.sessionId)void safeClose(session.sessionId);
+      session=null;resumable=null;}
   };
 }

@@ -1,5 +1,8 @@
 # OpenDesk Browser：浏览器自动化与网页用户脚本框架
 
+> **Shared AI Conversation R2.1 新增权威入口：** 框架共享 AI Chat 的所有权、消费者 Lease 与 Native thread 隔离，以 [Shared AI Conversation R2.1 正式架构合同](shared-ai-conversation-r2.zh-CN.md) 为唯一依据。Workflow Provider R2 仍负责其专用传输和执行协议；旧文中的“唯一 AI Provider 合同”只适用于 Workflow，不代表 WorkflowView 拥有书签、Prompt Shortcuts 或「我的」的 Provider。R2.1 的源码接通不等于 Chrome/Native/安装验收。
+
+
 > **Workflow R2.3（2026-10-15）当前产品优先入口**：先读[唯一 R2 正式合同第 13 节：核心目标、任务树、进度口径与下一步](workflow-ai-provider-routing-r2.zh-CN.md)，再看[同一工作账本](../../framework/workstreams/conversation-direct-r1-20261013.md)的最新证据；[下一轮可复制执行 GOAL](../../framework/prompts/goal-workflow-r23-product-first-next-20261015.zh-CN.md)。约 52% 是风险加权**规划估算**，不等于产品验收；P0 真实网页业务结果和 AI-free Run×2 优先，HTTP 不阻塞主线。
 
 > **Workflow R2.1（2026-10-15）唯一当前 AI Provider/本机 Codex/HTTP 架构合同：**[正式 R2 技术设计与实施状态](workflow-ai-provider-routing-r2.zh-CN.md)。本设计解释 Send → 当前网页观察 → 统一 Provider → 原 Compiler/RunHost → 业务回执 → 可选 Save/无模型复跑；区分 SOURCE_WIRED、NOT_VERIFIED 和产品验收。保留 [R16 历史基线](workflow-ai-provider-routing-r16.zh-CN.md)，但其旧“采用建议再执行”不代表当前 UX。Go HTTP Gateway 源码已在 Native Host 内复用原 Codex Manager，Browser HTTP 配对/Origin/入口仍未完成。

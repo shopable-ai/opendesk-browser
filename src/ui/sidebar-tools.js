@@ -769,6 +769,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   function destroyFrame() {
     if(promptHost){const previous=promptHost;promptHost=null;previous.dispose();}
+    // Also retire a failed Prompt admission's installation-scoped Provider.
+    trustedPromptPilot?.releaseConversation?.();
     if(frameExportPort){frameExportPort.onmessage=null;frameExportPort.close();frameExportPort=null;}
     toolDirty=false;toolSaving=false;frameDraft='';clipPage=null;
     toolNavigation=null;navigationAllowed=false;
@@ -1256,6 +1258,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         try{
           const sdk=trustedBookmarkSDK(tool,token,frameRevocationEpoch);
           const dispose=trustedBookmarkPilot.mount({container:frameRoot,sdk,
+            instanceId:token,installEpoch:frameRevocationEpoch==null?null:String(frameRevocationEpoch),
             onStateChange:state=>{
               if(disposed||active!==tool||instance!==token)return;
               toolDirty=Boolean(state?.dirty);toolSaving=Boolean(state?.saving);
@@ -1305,7 +1308,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           };
           const host=createTrustedPromptHost({
             api,tool,token,epoch,lockManager,model:globalThis.OpenDeskPromptShortcutsModel,
-            conversation:trustedPromptPilot.conversation(),assertIdentity,
+            conversation:trustedPromptPilot.conversation({
+              instanceId:token,installEpoch:frameRevocationEpoch==null?null:String(frameRevocationEpoch)}),assertIdentity,
             frameSource:()=>frame?.contentWindow,
             guardBlocked:()=>toolDirty||toolSaving||Boolean(pendingAction),
             dispatch:(operation,payload,controls)=>dispatch(operation,payload,tool,

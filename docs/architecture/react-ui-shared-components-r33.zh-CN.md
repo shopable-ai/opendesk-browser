@@ -1,5 +1,8 @@
 # OpenDesk Browser · 统一 React Side Panel 与自定义工具兼容合同（R33.1）
 
+> **Shared AI Conversation R2.1 新增权威入口：** 2026-10-23 共享 AI Chat **R2.1 结构性归属修订**：通用 Provider Runtime 由 ToolShell 持有；Bookmark、Prompt（含独立 prompt-edit）、「我的」、Workflow 从安装/工作台实例领取各自 Lease，WorkflowView 不拥有其他消费者 Provider。详见 [共享 AI Conversation 权威合同](browser-framework/shared-ai-conversation-r2.zh-CN.md)。下方 R1.4/R1.5“由 WorkflowView 提供共享 Provider”“Prompt 尚未实施”等仅描述当时阶段快照，不是本轮 CURRENT；单一 React Root 与原 Opaque iframe/业务 Authority 保持。真实 Chrome/Native 验收仍需独立收据。
+
+
 ## Conversation R1.5 · WEB_PARTIAL 增量修复（2026-10-21）
 
 **本节高于下方 R1.4 历史源码候选的实施状态，但不改变其原始产品目标。** 仍是书签首个真实业务试点：上方原书签管理器、下方共享可信 React Dock，Provider 只提议，Bookmark Service 与 SDK/Host 决定真实写入与读回。没有第二 Provider、Root、Chat iframe 或可执行动态 JSX 提权。
