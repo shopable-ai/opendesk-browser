@@ -80,6 +80,35 @@ installAnalyticsHost({api:chrome,loadAuthority:async({since}={})=>
     return ['paused_unknown','stopped','interrupted','failed'].includes(run.state)?
       {status:'outcome_unknown'}:null;
   },
+  verifyManualPage:async programId=>{
+    const storage=(await foundation).storage;
+    const installed=await storage.transaction(['frameworkKV'],'readonly',tx=>tx.all('frameworkKV'));
+    // Count a genuine attempted click even when the permission grant has just
+    // expired or the installed script is disabled. Never count a draft.
+    return installed.some(row=>row?.tag==='page-installed-v1'&&
+      row.namespace===analyticsNamespace&&row.programId===programId&&
+      typeof row.authorization?.installationId==='string');
+  },
+  readManualPageResult:async(programId,receiptId,sender)=>{
+    const storage=(await foundation).storage;
+    const installed=await storage.transaction(['frameworkKV'],'readonly',tx=>tx.all('frameworkKV'));
+    const receipt=installed.find(row=>row?.tag==='page-execution-v1'&&
+      row.namespace===analyticsNamespace&&row.source==='manual'&&
+      row.programId===programId&&row.receiptId===receiptId&&
+      row.manualHostDocumentId===sender?.documentId);
+    const origin=installed.find(row=>row?.tag==='page-installed-v1'&&
+      row.namespace===analyticsNamespace&&row.programId===programId&&
+      row.authorization?.installationId===receipt?.installationId);
+    // Both the durable receipt and the original installation version must
+    // agree. Reject old/pre-consent records replayed through another Host.
+    if(!origin||!receipt||receipt.manifestHash!==origin.manifestHash||
+      receipt.sourceHash!==origin.sourceHash||
+      !Number.isFinite(receipt.createdAt)||!Number.isFinite(receipt.finishedAt)||
+      receipt.finishedAt<receipt.createdAt||Date.now()-receipt.finishedAt>60*60*1000||
+      receipt.finishedAt>Date.now()+300000)return null;
+    const status=receipt.state==='outcome-unknown'?'outcome_unknown':receipt.state;
+    return ['completed','failed','outcome_unknown'].includes(status)?{status}:null;
+  },
   verifyWorkflowResult:async(runId,sender)=>{
     const storage=(await foundation).storage;
     const [run,result]=await storage.transaction(['runs','results'],'readonly',async tx=>{
