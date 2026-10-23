@@ -99,13 +99,16 @@ test('R5.25 file selection never starts a Cookie write or trusted import intent'
   assert.doesNotMatch(importer,/onPick=\{[^\n]*beginIntent\(/);
 });
 
-test('R5.26 React import requires explicit opt-in before replacing native Cookie identities',async()=>{
+test('R5.36 React UI defaults overwrite, supports opt-out and preserves Controller safe defaults',async()=>{
   const [importer,app]=await Promise.all([
     get('app/components/CookieImport.jsx'),get('app/CookieEditorApp.jsx')]);
-  assert.match(importer,/\[overwrite,setOverwrite\]=React\.useState\(false\)/);
+  assert.match(importer,/\[overwrite,setOverwrite\]=React\.useState\(true\)/);
   assert.match(importer,/type="checkbox" checked=\{overwrite\}/);
   assert.match(importer,/const next=event\.currentTarget\.checked;setOverwrite\(next\)/);
-  assert.match(importer,/onPendingChange\?\.\(next\|\|Boolean\(stagedFile\.current\)/);
+  assert.match(importer,/onPendingChange\?\.\(Boolean\(stagedFile\.current\)/);
+   assert.match(importer,/onPendingChange\?\.\(Boolean\(event\.currentTarget\.value\.trim\(\)\)\)/);
+   assert.doesNotMatch(importer,/默认不覆盖|\|\|overwrite/);
+   assert.match(importer,/if\(stagedFile\.current\|\|sourceRef\.current\?\.value\.trim\(\)\)/);
   assert.match(importer,/onImportText\?\.\(text,\{overwrite\}\)/);
   assert.match(app,/const importFromText=async \(text,\{overwrite=false\}=\{\}\)=>/);
   assert.match(app,/controller\.previewImport\(text,'auto',overwrite,\{allSites:true\}\)/);
