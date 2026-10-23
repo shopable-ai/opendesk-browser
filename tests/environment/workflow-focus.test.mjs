@@ -349,11 +349,17 @@ if(!vm.SourceTextModule) {
     assert.equal(control('workflow-ai-provider').value,selected);
     assert.equal(control('workflow-ai-plan').disabled,false,'HTTPS Send remains available');
     const running=f.ui.actions.click('workflow-ai-plan',trusted);await tick();await tick();
-    assert.equal(f.permissionRequests.length,1,'HTTPS Send still requests its own origin permission');
+    assert.equal(f.permissionRequests.length,0,
+      'an awaited dual-source lookup must never request Chrome permissions outside a user gesture');
+    await waitFor(()=>!control('workflow-run-review').hidden);
+    const confirming=f.ui.actions.click('workflow-run-review-confirm',trusted);
+    await tick();await tick();
+    assert.equal(f.permissionRequests.length,1,
+      'missing HTTPS receiver permission is requested synchronously only on the second trusted Confirm click');
     await waitFor(()=>!control('workflow-ai-approval').hidden);
     assert.equal(control('workflow-ai-approval').hidden,false,'HTTPS Send still requires its own observation approval');
     assert.equal(f.probeCalls,1);assert.equal(f.plannerOptions,undefined);
-    await f.ui.actions.click('workflow-ai-cancel',trusted);await running;
+    await f.ui.actions.click('workflow-ai-cancel',trusted);await confirming;await running;
     check.resolve();await tick();
     assert.equal(control('workflow-ai-plan').disabled,false);
   });
