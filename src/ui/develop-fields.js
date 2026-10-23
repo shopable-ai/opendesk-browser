@@ -477,6 +477,10 @@ export const DEVELOPER_FIELDS = {
     "disabled": true,
     "textContent": "安装自动运行"
   },
+  "page-program-run": {
+    "disabled": true,
+    "textContent": "在当前网页手动运行"
+  },
   "page-program-toggle": {
     "disabled": true,
     "textContent": "停用自动运行"
