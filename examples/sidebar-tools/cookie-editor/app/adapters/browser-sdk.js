@@ -117,6 +117,10 @@ export function createCookieSdkAdapter({getBrowser,request}){
       url:target.url,name:row.name,domain:row.domain,path:row.path,
       ...identityScope(row)
     }),
+    beginClearIntent:(target,previewRef,expectedCount)=>request('cookieEditor.clear.begin',{
+      url:target.url,previewRef,expectedCount
+    }),
+    finishClearIntent:ref=>request('cookieEditor.clear.finish',{ref}),
     clearPreview:(target)=>browser().cookies.clearSite({
       url:target.url,preview:true,maxCookies:50
     }),
