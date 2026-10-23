@@ -72,7 +72,7 @@ function fixture(installed=[tool()]){
     try{return {ok:true,data:await service.dispatch(message,sender)};}
     catch(error){return {ok:false,error:{code:error.code,message:error.message}};}
   };
-  const msg=async(operation,args={},row=local.get(SIDEBAR_TOOL_STORE)[0],epoch='epoch-a')=>({
+  const msg=async(operation,args={},row=local.get(SIDEBAR_TOOL_STORE)[0],epoch=(local.get(TOOL_REVOCATION_EPOCHS_STORE)||{})[id]??null)=>({
     protocol:MANAGED_SITE_BUDGET_PROTOCOL,toolId:id,operation,args,
     packageHash:await sidebarToolPackageHash(row),installEpoch:epoch
   });
@@ -84,7 +84,7 @@ test('compatibility probe admits the original live Side Panel installer before i
   const f=fixture([]);
   const result=await f.service.dispatch({protocol:MANAGED_SITE_BUDGET_PROTOCOL,
     toolId:id,operation:'probe'},f.sender);
-  assert.deepEqual(result.managedSiteRuntime.policyKinds,['site-budget.v2']);
+  assert.deepEqual(result.managedSiteRuntime.policyKinds,['site-budget.v2','site-budget.v3']);
   assert.equal(result.managedSiteRuntime.privilegedJs,false);
   assert.equal(f.local.has(MANAGED_SITE_BUDGET_STORE),false,'read-only admission must not create owner resources');
 });
