@@ -1668,7 +1668,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(['browser.siteBudget.getStatus','browser.siteBudget.setPolicy'].includes(operation)){
         // Reuse the original SDK Tool Host + installation hash/epoch envelope.
         // No untrusted JavaScript enters the fixed background service.
-        if(operation==='browser.siteBudget.setPolicy'&&payload?.enabled&&
+        const v3=tool.backgroundPolicy?.kind==='site-budget.v3';
+        const desired=v3?payload?.desiredPolicy:payload;
+        if(operation==='browser.siteBudget.setPolicy'&&desired?.enabled&&
            !await api.permissions.contains({permissions:['idle']})){
           const approved=await requestBrowserClick({toolId:tool.id,
             message:'「'+tool.title+'」需要 Chrome 空闲检测权限，才能计量已审阅网站的实际前台时间。',
@@ -1683,7 +1685,46 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             {code:'E_CHROME_PERMISSION_REQUIRED'});
           assertSession(source,token);
         }
-        if(operation==='browser.siteBudget.setPolicy'){
+        if(operation==='browser.siteBudget.setPolicy'&&v3){
+          // Normal quota edits reuse the explicit app UI Save action. A real
+          // trusted confirmation is reserved for an expanded blocking scope.
+          const prior=await api.runtime.sendMessage({protocol:MANAGED_SITE_BUDGET_PROTOCOL,
+            toolId:tool.id,operation:'getStatus',args:{},packageHash,installEpoch:revocationEpoch});
+          if(!prior?.ok||prior.data?.kind!=='site-budget.v3')
+            throw Object.assign(new Error('请先读取有效的 v3 后台状态'),
+              {code:prior?.error?.code||'E_SITE_BUDGET'});
+          if(prior.data.desiredPolicyRev!==payload.expectedRev)
+            throw Object.assign(new Error('策略已经变化，请刷新后重试'),
+              {code:'E_STORAGE_CONFLICT'});
+          const old=prior.data.desiredPolicy;
+          const priorSites=new Map(old.sites.map(site=>[site.host,site]));
+          const expanding=desired.enabled&&(!old.enabled||
+            desired.sites.some(site=>site.enabled&&
+              (!priorSites.get(site.host)?.enabled||
+               site.subdomains&&!priorSites.get(site.host)?.subdomains||
+               site.conditions.some(condition=>
+                 condition.type==='constant-deny'||
+                 condition.type==='weekly-window'&&!priorSites.get(site.host)?.conditions
+                   ?.some(oldCondition=>oldCondition.type==='weekly-window'))))||
+            old.whitelist.some(site=>!desired.whitelist.includes(site)));
+          if(expanding){
+            const sites=desired.sites.filter(site=>site.enabled).map(site=>site.host);
+            const confirmed=await requestBrowserClick({toolId:tool.id,
+              message:'「'+tool.title+'」将对以下网站启用或扩大访问限制：'+
+                (sites.join('、')||'已配置网站')+'。限制将在关闭界面后继续生效。',
+              button:'确认限制范围',run:event=>{
+                assertSession(source,token);
+                if(!event?.isTrusted)throw Object.assign(new Error('需要真实点击'),
+                  {code:'E_USER_GESTURE_REQUIRED'});
+                return true;
+              }});
+            if(confirmed!==true)
+              throw Object.assign(new Error('未批准扩大网站限制范围'),
+                {code:'E_USER_APPROVAL_REQUIRED'});
+            assertSession(source,token);
+          }
+        }
+        if(operation==='browser.siteBudget.setPolicy'&&!v3){
           const sites=payload.sites.join('、')||'无';
           const approved=await requestBrowserClick({toolId:tool.id,
             message:'「'+tool.title+'」请求'+(payload.enabled?'启用':'停用')+

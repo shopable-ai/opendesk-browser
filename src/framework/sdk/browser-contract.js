@@ -6,6 +6,7 @@ import {operationSchemas,assertBrowserSchemaCoverage,validateExportArguments,
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from './browser-direct.generated.js';
 import {APPROVED_BROWSER_SCOPED_BINDINGS} from './browser-services.generated.js';
 import {normalizeManagedSiteBudgetSettings} from '../../ui/sidebar-tools/background-policy.js';
+import {normalizeManagedSiteV3Commit} from '../../platform/chrome/managed-site-v3-policy.js';
 import {MANAGED_SITE_BUDGET_CAPABILITY} from '../../platform/host/managed-site-runtime-contract.js';
 import {MANAGED_PROXY_DEVELOPMENT_ENABLED,isFixedDevelopmentManagedProxyConfig}
   from '../../platform/chrome/browser-managed-proxy-profiles.js';
@@ -32,9 +33,11 @@ const USER_GESTURE_OPERATIONS=new Set([
 ]);
 function entry(operation,capability,contexts,chromePermissions,effect,risk,siteScope='none',state='IMPLEMENTED',lifecycle='request'){
   return Object.freeze({...shared,operation,namespace:operation.split('.').slice(0,-1).join('.'),
-    maxRequestBytes:['browser.clipboard.writeText','browser.downloads.text'].includes(operation)?170000:shared.maxRequestBytes,
+    maxRequestBytes:['browser.clipboard.writeText','browser.downloads.text'].includes(operation)?170000:
+      operation==='browser.siteBudget.setPolicy'?80000:shared.maxRequestBytes,
     maxResponseBytes:['browser.launch.consume','browser.page.getSelection'].includes(operation)?65536:
-     operation==='browser.capabilities.list'?32000:shared.maxResponseBytes,
+     operation==='browser.capabilities.list'?32000:
+      operation==='browser.siteBudget.getStatus'||operation==='browser.siteBudget.setPolicy'?80000:shared.maxResponseBytes,
     implementation:state,supportedContexts:Object.freeze(contexts),requiredCapabilities:capability?[capability]:[],
     requiredChromePermissions:chromePermissions,effectClass:effect,riskLevel:risk,siteScope,
     requiresUserGesture:USER_GESTURE_OPERATIONS.has(operation),lifecycle,
@@ -270,6 +273,7 @@ export function normalizeBrowserOperation(operation,args={}){
     case 'browser.siteBudget.getStatus':fields(args,[]);return {};
     case 'browser.siteBudget.setPolicy':{
       if(!Object.hasOwn(args,'expectedRev'))throw fail('E_SCHEMA','预算策略必须指定 expectedRev');
+      if(Object.hasOwn(args,'desiredPolicy'))return normalizeManagedSiteV3Commit(args);
       const settings=normalizeManagedSiteBudgetSettings(args);
       return {...settings,expectedRev:args.expectedRev};
     }
