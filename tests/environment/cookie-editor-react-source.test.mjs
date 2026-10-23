@@ -225,3 +225,25 @@ test('R5.26 React project version matches the official Cookie release identity',
   assert.equal(installed.id,config.id);
   assert.equal(installed.uiRuntime,'opendesk.react-ui.v1');
 });
+
+
+test('R5.38 clearing Host-only cookies uses first React dialog confirmation, not second Host review',async()=>{
+  const [app,controller,adapter,host,gate]=await Promise.all([
+    get('app/CookieEditorApp.jsx'),get('app/controller/cookie-controller.js'),
+    get('app/adapters/browser-sdk.js'),sourceHost(),getHostGate()
+  ]);
+  assert.match(app,/onConfirm=\{\(\)=>endConfirm\(true\)\}/);
+  assert.match(app,/controller\.executeClear\(\)/);
+  assert.match(controller,/const allowed=await adapter\.beginClearIntent\(/);
+  assert.match(controller,/await adapter\.clearExecute\(/);
+  assert.match(adapter,/request\('cookieEditor\.clear\.begin'/);
+  assert.match(adapter,/request\('cookieEditor\.clear\.finish'/);
+  assert.match(host,/operation==='cookieEditor\.clear\.begin'/);
+  assert.match(host,/cookieClearGate\.consume\(/);
+  assert.match(host,/!importBatchOwner&&!writeIntentOwner&&!clearIntentOwner/);
+  assert.match(gate,/verifiedUserActivation!==true/);
+  assert.match(gate,/maxCookies!==50/);
+  assert.match(gate,/documentKey\(document\)!==original\.documentKey/);
+});
+const sourceHost=()=>readFile(new URL('../../src/ui/sidebar-tools.js',import.meta.url),'utf8');
+const getHostGate=()=>readFile(new URL('../../src/ui/sidebar-tools/cookie-clear-intent.js',import.meta.url),'utf8');
