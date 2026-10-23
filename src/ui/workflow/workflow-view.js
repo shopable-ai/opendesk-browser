@@ -509,6 +509,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         const freeze=await compileWorkflow(withId,{
           verifyFill:old.verificationMode==='fill-readback'});
         assertSaveCurrent();
+        // Refuse an unverified proof BEFORE creating any Controller Revision.
+        // Even an eventual storage failure must not leave unverifiable JS in
+        // the immutable journal under a newly allocated script identity.
+        if(freeze.sourceHash!==old.proof?.sourceHash)
+          throw err('E_WORKFLOW_HASH','冻结 JavaScript 与真实已核验运行源码不一致');
         let head=null;
         try{head=await host.controller.getControllerScript({scriptId:withId.workflowId});}
         catch(error){if(error?.code!=='E_TOMBSTONE')throw error;}
@@ -523,8 +528,6 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         assertSaveCurrent();
         if(saved.contentHash!==freeze.sourceHash)
           throw err('E_WORKFLOW_HASH','Controller 返回的分段哈希不一致');
-        if(freeze.sourceHash!==old.proof?.sourceHash)
-          throw err('E_WORKFLOW_HASH','冻结 JavaScript 与真实已核验运行源码不一致');
         segments.push({workflow:freeze.workflow,entryUrl:old.entryUrl,
           revision:saved.revision,sourceHash:freeze.sourceHash,
           verificationMode:old.verificationMode,evidence:old.evidence,proof:old.proof});
