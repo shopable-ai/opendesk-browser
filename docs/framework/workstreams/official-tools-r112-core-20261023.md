@@ -29,3 +29,11 @@
 - Prompt Shortcuts 新正式包依仓库证据复用已有 Node/UI PASS 的相同源码部分；仍需同一 `1.1.15` 真实 Chrome 官方目录安装/升级及 Host/站点/撤权验收，不以此前 `1.1.9`/模拟 Host 记录替代。
 - 保护并行 Site Budget、Stay Focus Publisher、Cookie Editor 的现有修改；不创建分支、Worktree、PR，不强推、reset、clean、stash。当前会话只读取 GitHub 公开/授权仓库和历史 Actions，没有用户 Mac 访问，也没有真实测试执行。
 - 九项产品质量及五个专家视角：没有足够的同一最终候选功能、Native 和发行原始证据，均暂为 `NOT_RATED`；综合分 `NOT_RATED`，不虚构大于 95。**目前不生成最终 Mac Codex 验收提示词**；先关闭剩余核心和发行门禁。
+
+
+### 增量观察：AdBlock 新 CI 真实首错已产生（2026-10-23）
+
+- [Actions 39963630511](https://github.com/shopable-ai/opendesk-browser/actions/runs/39963630511) 当前 `completed/failure`；source job `120447691827` 在“Source check and complete production and development validation”失败；Native job `120469538321` 和正式 publish job `120469539552` 均 `skipped`。
+- 精确第一处异常：`scripts/verify-package.mjs:208`，`Error: Unexpected web accessible resources`。旧候选 `a77c01e97ad39f907d99d6f05e847362cefaff66` 的 `manifest.json` 已公开四个 `managed-site/blocked-{quota,schedule,session,always}.html`，但该候选 `APPROVED_WEB_ACCESSIBLE_RESOURCES` 只认可 SDK MAIN 和 Stay Focus 四个阻断页面。不是 DNR Native 失败，也不是旧 Stay Focus Blob pin 失败。
+- 已有**并行修正** [`b91416fe9fd8`](https://github.com/shopable-ai/opendesk-browser/commit/b91416fe9fd81accb488b435a48a8fbe48537ef1)：`scripts/verify-package.mjs` 的 `MANAGED_SITE_BLOCK_RESOURCES`、`APPROVED_WEB_ACCESSIBLE_RESOURCES`、`HTML_REFERENCES`、`editionFiles` 和 CSS 验证对四个确切静态页面同步。该改动不增加 wildcard JS，不取消原验证。**新 main 静态输入一致性已审计，但修正提交之后仍没有看到同 SHA 的生产/NATIVE PASS**，状态 `FIX_PRESENT_VERIFICATION_PENDING`。
+- 核对 `Time Review 39962819855` 时仍为 `queued`；不得误称包含 `8b71f57` 的原生安装诊断已返回。下一步只针对更新后候选查看 App/AdBlock 同 SHA 真实校验、DNR Native 和其它全部必要门禁。
