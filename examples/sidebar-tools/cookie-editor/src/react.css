@@ -104,7 +104,7 @@
 .cookie-editor-react .cookie-export-tabs>button{
   min-width:0;min-height:32px;white-space:nowrap;
 }
-/* Tab appearance, focus and contrast use the shared od-button skins. */
+/* Format choices reuse shared component states and focus rules. */
 .cookie-editor-react .cookie-export-values{
   display:flex;align-items:center;gap:var(--space-2);
   font-size:var(--od-meta-size);color:var(--od-sub);
