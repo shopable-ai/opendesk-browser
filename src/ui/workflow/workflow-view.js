@@ -16,7 +16,7 @@ export {appendWorkflowSuggestionDraft} from '../conversation/draft-suggestion.js
 import {deriveWorkflowViewState} from './view-state.js';
 import {describeLocalCodex} from './local-codex.js';
 import {createWorkflowObservation,workflowObservationForModel,workflowObservationGrantMatches,workflowObservationRecipientId} from './observation.js';
-import {classifyWorkflowRunRisk,prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect,verifyOpenedLinkPage,verifySavedWorkflowRevision} from './direct-execution.js';
+import {classifyWorkflowRunRisk,prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect,verifyOpenedLinkPage,verifySavedWorkflowRevision,workflowLinkBusinessRunRefs} from './direct-execution.js';
 import {createTaskReviewHandoff,taskReviewHandoffKey} from './task-review-handoff.js';
 import {createWorkflowAgentLoopGuard,classifyWorkflowAgentStop} from './agent-loop.js';
 import {WORKFLOW_BUNDLE_FORMAT,replayParameterSchema,sealWorkflowBundle,
@@ -89,12 +89,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       })).catch(()=>{});
     }catch{/* Analytics cannot affect a workflow attempt. */}
   };
-  const reportVerifiedWorkflowEffect=originalRunId=>{
+  const reportVerifiedWorkflowEffect=refs=>{
+    if(!refs)return;
     try{
       void Promise.resolve(api.runtime?.sendMessage?.({
         protocol:'opendesk.analytics.v1',kind:'event.workflow_verified',
         event:'workflow.business_effect_verified',toolId:'workflow',
-        channel:'extension',runId:originalRunId
+        channel:'extension',...refs
       })).catch(()=>{});
     }catch{/* Telemetry can never affect the user's Workflow. */}
   };
@@ -762,7 +763,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
               }catch{readbackVerified=false;}
             }
           }
-          let effect=null,effectTarget=null;
+          let effect=null,effectTarget=null,linkEffectAfter=null;
           if(lastRun==='success'&&prepared.effectExpectation&&!prepared.signal?.aborted) {
             try {
               let resultTarget=null;
@@ -818,7 +819,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
                   effect=verifyOpenedLinkPage({
                     linkGuard:prepared.linkGuard,after:post,
                     actionTarget:captured,resultTarget:destination});
-                  if(effect)effectTarget=structuredClone(destination);
+                  if(effect){effectTarget=structuredClone(destination);linkEffectAfter=post;}
                 }
               }
             }catch{ /* Unknown effects never authorize a repeat click or ungranted read. */ }
@@ -829,9 +830,18 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
             searchEffectVerified:Boolean(effect&&effect.kind.startsWith('search-')),
             navigationEffectVerified:Boolean(effect&&['link-page','product-page'].includes(effect.kind))
           });
-          if(lastRun==='success'&&evidenceLevel==='BUSINESS_EFFECT_VERIFIED'){
+          if(lastRun==='success'&&evidenceLevel==='BUSINESS_EFFECT_VERIFIED'&&
+            !prepared.signal?.aborted){
             lastTrustedRun={runId:claim.runId,sourceHash:freeze.sourceHash,siteOrigin:captured.origin};
-            if(proof?.resultId)reportVerifiedWorkflowEffect(claim.runId);
+            if(proof?.resultId){
+              // Only a separately observed link navigation can be backed by
+              // the Host's current three-Run B-grade validator. Never forward
+              // UI-only search or fill evidence as verified telemetry.
+              const refs=workflowLinkBusinessRunRefs({
+                actionRunId:claim.runId,before:prepared.beforeObservation,
+                after:linkEffectAfter,effect});
+              if(refs)reportVerifiedWorkflowEffect(refs);
+            }
           }
           if(lastRun==='failed' && !hasError)
             status('运行未成功或结果无法确认，请检查真实结果及页面效果；不会自动重试。',true);
@@ -880,8 +890,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           }
           evidenceLevel=directExecutionEvidenceLevel({
             receiptVerified:true,hasReadback:readbackVerified});
-          if(evidenceLevel==='BUSINESS_EFFECT_VERIFIED'&&receiptProof?.resultId)
-            reportVerifiedWorkflowEffect(claim.runId);
+          // A standalone fill can prove a same-Document readback to the UI,
+          // but the Analytics Host cannot yet independently certify it as
+          // a B-grade result. Do not send a legacy one-Run success claim.
           lastTrustedRun={runId:claim.runId,sourceHash:freeze.sourceHash,siteOrigin:captured.origin};
           if(source.kind==='saved')status('固定 r'+source.revision+
             ' 已脱离 AI 运行（SHA-256：'+source.contentHash.slice(0,12)+'…）。'+
