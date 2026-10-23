@@ -100,8 +100,12 @@ jobs:
             fi
           fi
           git add -- examples/sidebar-tools/cookie-editor/preview/react/index.html \
-            examples/sidebar-tools/cookie-editor/preview/react/package-lock.json \
-            examples/sidebar-tools/cookie-editor/preview/react/screenshots/
+            examples/sidebar-tools/cookie-editor/preview/react/package-lock.json
+          # Screenshot files are optional: the Chromium runner may write evidence
+          # to artifacts/ instead of preview/react/screenshots/.
+          if [ -d examples/sidebar-tools/cookie-editor/preview/react/screenshots ]; then
+            git add -- examples/sidebar-tools/cookie-editor/preview/react/screenshots/
+          fi
           if git diff --cached --quiet; then
             echo "Already contains exact React preview"; exit 0
           fi
