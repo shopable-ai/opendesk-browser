@@ -45,8 +45,8 @@ recoverManagedProxy();
 try{importScripts('cloud-control/cloud-host.js');}catch(e){console.warn('E_CLOUD_LOAD',e);}
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts,downloadEventsAttached:true});
 const analyticsNamespace='tool:'+chrome.runtime.id;
-installAnalyticsHost({api:chrome,loadAuthority:async()=>
-  readAnalyticsAuthorityProjection({storage:(await foundation).storage,api:chrome}),
+installAnalyticsHost({api:chrome,loadAuthority:async({since}={})=>
+  readAnalyticsAuthorityProjection({storage:(await foundation).storage,api:chrome,since}),
   verifyManualTask:async taskId=>{
     const storage=(await foundation).storage;
     const row=await storage.transaction(['frameworkKV'],'readonly',tx=>
