@@ -9,6 +9,7 @@ import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createAnalyticsGateway} from '../../services/analytics/worker.mjs';
 import {createAnalyticsCollector} from '../../src/analytics/collector.js';
+import {ANALYTICS_DISCLOSURE_VERSION} from '../../src/analytics/contract.js';
 
 async function listen(server){
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
@@ -81,7 +82,7 @@ test('real loopback HTTP → D1 SQL → PostHog-shaped HTTP, stable dedup and re
     fetcher:globalThis.fetch});
   // Consent is not inferred from the presence of an endpoint.
   assert.equal((await collector.record(EVENT_ARGS)).recorded,false);
-  await collector.setConsent(true);
+  await collector.setConsent(true,{disclosureVersion:ANALYTICS_DISCLOSURE_VERSION});
   await collector.record(EVENT_ARGS);
   await collector.record(EVENT_ARGS);
   // Simulate MV3 Service Worker re-creation; queue survives in storage.
