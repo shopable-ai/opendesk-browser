@@ -49,7 +49,11 @@ export function createConversationSession({identity,rowsLimit=32}={}) {
   }
   function append(speaker,message){
     ensure();
-    const id='conversation-'+(++sequence);
+    // Restored rows may already contain IDs from an earlier Session instance.
+    // Never reuse an existing React key or replace the wrong restored row.
+    let id;
+    do { id='conversation-'+(++sequence); }
+    while(snapshot.rows.some(row=>row.id===id));
     update({rows:[...snapshot.rows,{id,speaker:String(speaker),message:String(message)}]});
     return id;
   }

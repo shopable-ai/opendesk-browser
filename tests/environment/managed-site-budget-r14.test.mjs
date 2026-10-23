@@ -8,6 +8,8 @@ import {SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_FORMAT_V2,sidebarToolPackageHash,
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE}
   from '../../src/ui/sidebar-tools/lifecycle.js';
 import {MARKET_PROVENANCE_STORE} from '../../src/sidebar-tools/official-reading-toc.js';
+import {MANAGED_SITE_REVIEWED_SCOPE_STORE}
+  from '../../src/framework/host/managed-site-reviewed-scopes.js';
 import {MANAGED_SITE_BUDGET_PROTOCOL} from '../../src/platform/host/managed-site-runtime-contract.js';
 import {normalizeBrowserOperation} from '../../src/framework/sdk/browser-contract.js';
 import {installReviewedSidebarTool} from '../../src/ui/sidebar-tools/installation.js';
@@ -313,4 +315,48 @@ test('legacy stateful Focus capability cannot be dropped by a v3 package without
     'installer must not mutate a legacy app when state transfer is unavailable');
   assert.equal(f.local.has(MANAGED_SITE_BUDGET_STORE),false,
     'driver must not create an empty ledger mistaken for migrated usage');
+});
+
+test('v3 suspended app grant cannot install DNR; reviewed epoch rebind resumes unchanged desired policy',async()=>{
+  const v3=tool('1.1.0',{kind:'site-budget.v3',suggestions:[]});
+  const f=fixture([v3]);
+  f.setUrl('https://unrelated.test/');
+  const packageHash=await sidebarToolPackageHash(v3);
+  const date=new Date(start),pad=x=>String(x).padStart(2,'0');
+  const day=[date.getFullYear(),pad(date.getMonth()+1),pad(date.getDate())].join('-');
+  const desiredPolicy={kind:'site-budget.v3',enabled:true,whitelist:[],
+    sites:[{host:'example.com',subdomains:true,enabled:true,pool:'s:example.com',
+      conditions:[{type:'constant-deny'}]}]};
+  f.local.set(MANAGED_SITE_BUDGET_STORE,{[id]:{
+    slot:0,epoch:'epoch-a',source:null,packageHash,
+    kind:'site-budget.v3',policy:desiredPolicy,modelRef:null,sealedModel:null,
+    desiredPolicyRev:2,appliedPolicyRev:2,status:'applied',
+    day,clockHighWater:0,usage:{},checkpoint:null,
+    notices:{day,pools:{}}
+  }});
+  await f.service.run({boot:true});
+  const suspended=f.local.get(MANAGED_SITE_BUDGET_STORE)[id];
+  assert.equal(suspended.policy.enabled,true,'review gap is not the user STOP intent');
+  assert.equal(suspended.status,'inactive','never report native effects without app-site grant');
+  assert.equal(suspended.desiredPolicyRev,2,'native reconcile must not advance app policy revision');
+  assert.deepEqual(f.rules,[],'Chrome extension-wide origins cannot substitute for app review');
+  const review=epoch=>f.local.set(MANAGED_SITE_REVIEWED_SCOPE_STORE,{
+    [id]:{installEpoch:epoch,packageHash,
+      sites:[{host:'example.com',subdomains:true}]}
+  });
+  review('epoch-a');
+  await f.service.run({boot:true});
+  assert.equal(f.rules.length,1);
+  assert.equal(f.rules[0].action.redirect.extensionPath,
+    '/managed-site/blocked-always.html');
+  assert.equal(f.local.get(MANAGED_SITE_BUDGET_STORE)[id].status,'applied');
+  f.local.set(TOOL_REVOCATION_EPOCHS_STORE,{[id]:'epoch-b'});
+  await f.service.run({boot:true});
+  assert.equal(f.local.get(MANAGED_SITE_BUDGET_STORE)[id].policy.enabled,true);
+  assert.equal(f.local.get(MANAGED_SITE_BUDGET_STORE)[id].desiredPolicyRev,2);
+  assert.deepEqual(f.rules,[],'previous generation review never leaks native DNR');
+  review('epoch-b');
+  await f.service.run({boot:true});
+  assert.equal(f.rules.length,1,'trusted reviewed generation may rebind safely');
+  assert.equal(f.local.get(MANAGED_SITE_BUDGET_STORE)[id].desiredPolicyRev,2);
 });

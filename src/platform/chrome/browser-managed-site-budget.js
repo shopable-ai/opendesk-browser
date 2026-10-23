@@ -362,25 +362,41 @@ export function createManagedSiteBudgetService({
           nextRow.desiredPolicyRev++;
           nextRow.checkpoint=null;
         }
-        if(!valid||epochChanged||revoke||permissionRevoked||!permission.ready||!authorizedExecution){
+        // Installation epoch changes and a pending app-site review suspend
+        // native effects and metering, but are not the user's explicit STOP.
+        // Preserve the desired finite policy so a verified, same-publisher
+        // upgrade can resume after its new epoch/scope are independently
+        // reviewed. The old checkpoint must never charge across generations.
+        // Explicit STOP, installed-tool revocation or lost Chrome permissions
+        // remain durable disable events; none may silently auto-resume.
+        // An interim provenance mismatch during Installer's multi-key commit
+        // is NOT itself a user STOP. Its native effects stay suspended by
+        // canApply=false until the journal/installation identity is consistent.
+        if(!auth.enabled||revoke||permissionRevoked||!permission.ready){
           if(nextRow.policy.enabled){
             nextRow.policy={...nextRow.policy,enabled:false};
             nextRow.desiredPolicyRev++;
           }
-          nextRow.checkpoint=null;
         }
+        if(!valid||epochChanged||revoke||permissionRevoked||
+           !permission.ready||!authorizedExecution)nextRow.checkpoint=null;
         nextRow.epoch=auth.epoch;
         if(valid)nextRow.packageHash=packageHash;
         nextRow.status=permission.dnr?'reconciling':'missing-permission';
         const updated={...workingLedger,[id]:nextRow};
         await save(updated,workingRaw);
         if(permission.dnr){
-          const wanted=valid&&permission.ready?
+          // A Chrome-wide <all_urls> permission is NOT a reviewed app-site
+          // grant. Defense in depth: DNR must have no desired effect until
+          // the current installation's site review AND native origin check
+          // both pass, even if a persisted desired policy remains enabled.
+          const canApply=valid&&permission.ready&&authorizedExecution&&nextRow.policy.enabled;
+          const wanted=canApply?
             desiredManagedSiteV3Rules(nextRow.policy,nextRow.usage,at,nextRow.slot):[];
           try{
             await nativeRules(nextRow.slot,wanted,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V3);
             nextRow.appliedPolicyRev=nextRow.desiredPolicyRev;
-            nextRow.status=valid&&nextRow.policy.enabled?'applied':'inactive';
+            nextRow.status=canApply?'applied':'inactive';
             await save(updated,(await resourceRead()).raw);
             // DNR redirects future navigations; already-open tabs need the
             // same finite reason view, never package-provided executable JS.

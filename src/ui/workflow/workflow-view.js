@@ -1915,7 +1915,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           recipientId,receiverPattern})||
          !await api.permissions.contains({origins:[receiverPattern]})))
         throw err('E_AI_PERMISSION','网页摘要或模型接收方授权已撤销，未发送');
-      let prepared,executable,freeze,preflightError=null;
+      let prepared,executable,freeze,runParams,preflightError=null;
       for(let correction=0;correction<2;correction++){
         // The first failed proposal has issued no Chrome operation. Only a
         // Schema/missing-action mistake may be corrected, at most once.
@@ -1943,6 +1943,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
             if(!click)throw err('E_AI_REVIEW_REQUIRED','链接确认缺少点击步骤');
             click.linkGuard=structuredClone(prepared.linkGuard);
           }
+          // Bind the FIRST generated commerce round before compiling and running.
+          // Otherwise a successful first search is frozen with a literal
+          // keyword and cannot be saved as a dynamic Bundle v2 for a new Send.
+          runParams=promoteVerifiedReplayParameters(executable,prepared,frozen.request);
           freeze=await compileWorkflow(executable,{verifyFill:true});
           if(executable.steps.length>4)throw err('E_AGENT_SCHEMA','AI 每轮最多四步，请提出下一组必要动作');
           planningCurrent(epoch,frozen.serial,frozen.selected);
@@ -1961,7 +1965,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }
       if(planningObservation)
         agent.guard.observed({target:captured,receipt:planningObservation,remaining:frozen.request});
-      const ticket=agent.guard.claim({workflow:executable,target:captured,observation:planningObservation,linkGuard:prepared.linkGuard,params:prepared.params});
+      const ticket=agent.guard.claim({workflow:executable,target:captured,observation:planningObservation,linkGuard:prepared.linkGuard,params:runParams});
       agent.expectedNavigation=prepared.linkGuard||null;
       if(!await permission)throw err('E_PERMISSION','网站权限未授权，未执行浏览器操作');
       await currentPageTarget.revalidate(captured);
@@ -1980,7 +1984,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       // Never treat model output as a Chrome permission or User Activation.
       const plannedExecution={
         epoch,selected:frozen.selected,request:frozen.request,serial:executionSerial,
-        freeze,captured:structuredClone(captured),params:structuredClone(prepared.params),
+        freeze,captured:structuredClone(captured),params:structuredClone(runParams),
         hasReadback:prepared.hasReadback,hasUnprovenClick:prepared.hasUnprovenClick,
         beforeObservation:planningObservation,effectExpectation:prepared.effectExpectation,
         linkGuard:prepared.linkGuard,

@@ -229,3 +229,30 @@ test('trusted Workflow Send counts once even on failure; later business evidence
   await send({protocol:ANALYTICS_PROTOCOL,kind:'consent.set',enabled:false},options);
   assert.equal((await send(payload,panel)).data.recorded,false);
 });
+
+test('Reading TOC B-grade navigation needs installed tool, current document and v7 consent',async()=>{
+  const {api,send,records}=chromeMock([{id:'reading-toc'}]);
+  installAnalyticsHost({api,endpoint:'https://analytics.example/v1/events',
+    now:()=>Date.UTC(2026,9,23,12),newId:randomUUID,
+    fetcher:async()=>{throw Error('offline');}});
+  const id=api.runtime.id;
+  const options={id,url:api.runtime.getURL('native-agent/settings.html')};
+  const page={id,url:'https://chatgpt.com/',documentId:'prompt-document',frameId:0,
+    tab:{id:12,url:'https://chatgpt.com/',incognito:false}};
+  const nav={protocol:ANALYTICS_PROTOCOL,kind:'event.reading_toc_navigated',
+    event:'reading_toc.navigated',toolId:'reading-toc',channel:'page_button'};
+  assert.equal((await send(nav,page)).data.recorded,false);
+  assert.equal(records.get(ANALYTICS_STATE_KEY),undefined);
+  await send({protocol:ANALYTICS_PROTOCOL,kind:'consent.set',enabled:true,
+    disclosureVersion:ANALYTICS_DISCLOSURE_VERSION},options);
+  assert.equal((await send(nav,{...page,documentId:'stale-doc'})).code,'E_SENDER');
+  assert.equal((await send(nav,{...page,frameId:1})).code,'E_SENDER');
+  assert.equal((await send(nav,page)).data.recorded,true);
+  const evidence=records.get(ANALYTICS_STATE_KEY).queue
+    .filter(row=>row.event==='reading_toc.navigated');
+  assert.equal(evidence.length,1);
+  assert.equal(evidence[0].evidenceLevel,'B');
+  assert.equal(evidence[0].source,'page_adapter');
+  assert(!JSON.stringify(evidence).includes('https://chatgpt.com/'),
+    'page URL must not enter collection even in a trusted adapter');
+});

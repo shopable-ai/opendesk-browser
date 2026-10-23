@@ -6,6 +6,7 @@ import {createTaskWorkbench} from '../../src/ui/task-workbench.js';
 import {createDeveloperView} from '../../src/ui/develop-view.js';
 import {createTaskReviewHandoff,taskReviewHandoffKey} from '../../src/ui/workflow/task-review-handoff.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
+import {verifyTaskPackage} from '../../src/platform/tasks/contract.js';
 
 
 // Task business tests exercise registered React actions and view projections.
@@ -1096,4 +1097,74 @@ test('R24 one installed management list opens focused actions and cancel protect
   await f.click('task-manage-toggle');
   assert.equal(f.field('task-manage-toggle').attributes['aria-pressed'],'false');
   assert.equal(f.field('task-tools').open,false);
+});
+
+test('R23.37 formal Developer Task candidate hashes intent templates and visible readback into a new package',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());
+  const source='async function main(params) { return {keyword: params.keyword}; }';
+  const fields=f.developerView.fields;
+  fields['script-id'].value='saved-demo-search';
+  fields['script-revision'].value='4';
+  fields['script-source'].value=source;
+  fields['task-dev-id'].value='demo.intent-search';
+  fields['task-dev-version'].value='1.0.1';
+  fields['task-dev-title'].value='演示搜索和结果核对';
+  fields['task-dev-description'].value='按指定关键词搜索并独立核对网页结果';
+  fields['task-dev-schema'].value=JSON.stringify({
+    type:'object',properties:{keyword:{type:'string',title:'搜索关键词',minLength:1,maxLength:80}},
+    required:['keyword'],additionalProperties:false
+  });
+  fields['task-dev-intent-templates'].value='在当前演示搜索页搜索 {keyword}，并核对结果';
+  fields['task-dev-intent-result-texts'].value='结果：{keyword}\n提交次数：1';
+  let savedReadCount=0,importCount=0,packageFromAuthoring=null;
+  f.client.controller.getControllerScript=async({scriptId,revision})=>{
+    assert.equal(scriptId,'saved-demo-search');assert.equal(revision,4);savedReadCount++;
+    return {sourceUtf8:source,revision};
+  };
+  const original=f.client.request.bind(f.client);
+  f.client.request=async(method,payload)=>{
+    if(method==='importTaskPackage'){
+      importCount++;
+      packageFromAuthoring=await verifyTaskPackage(payload.package);
+      f.catalogState.catalog.push({
+        taskId:packageFromAuthoring.manifest.taskId,
+        version:packageFromAuthoring.manifest.version,
+        manifest:packageFromAuthoring.manifest,
+        manifestHash:packageFromAuthoring.manifestHash,
+        stage:'candidate',installed:false
+      });
+      return {taskId:packageFromAuthoring.manifest.taskId,
+        version:packageFromAuthoring.manifest.version};
+    }
+    return original(method,payload);
+  };
+  assert.equal(typeof f.developerView.actions['task-create-candidate'],'function');
+  await f.developerView.actions['task-create-candidate']({isTrusted:true});
+  assert.equal(savedReadCount,1);
+  assert.equal(importCount,1);
+  assert.deepEqual(packageFromAuthoring.manifest.intent,{
+    templates:['在当前演示搜索页搜索 {keyword}，并核对结果'],
+    resultTexts:['结果：{keyword}','提交次数：1']
+  });
+  assert.equal(packageFromAuthoring.manifest.program.revision,4);
+  assert.equal(packageFromAuthoring.sourceUtf8,source);
+  assert.equal(f.catalogState.catalog.at(-1).stage,'candidate',
+    'authoring/import does not bypass Verify -> Available -> Install');
+  assert.equal(f.starts.length,0);
+  assert.equal(f.catalogState.installed.length,1,
+    'the existing installed v1 fixture must remain unchanged');
+  assert.equal(f.catalogOpens.length,1,'the original catalog review opens, not a new publisher');
+
+  // Changing the declared parameter name may not produce an importable Task.
+  fields['task-dev-version'].value='1.0.2';
+  fields['task-dev-intent-templates'].value='在当前演示搜索页搜索 {undeclared}，并核对结果';
+  await f.developerView.actions['task-create-candidate']({isTrusted:true});
+  assert.equal(importCount,1);
+  assert.match(f.field('task-status').text,/E_SCHEMA/);
+
+  // Readback claims without a matching, hash-bound intent are forbidden.
+  fields['task-dev-intent-templates'].value='';
+  await f.developerView.actions['task-create-candidate']({isTrusted:true});
+  assert.equal(importCount,1);
+  assert.match(f.field('task-status').text,/E_SCHEMA/);
 });

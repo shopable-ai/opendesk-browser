@@ -140,6 +140,22 @@ export function DevelopAdvanced(){
                 {"参数 Schema（JSON）"}
               </label>
               <DevelopField as="textarea" id="task-dev-schema" rows="4" spellCheck={false} className="od-field"/>
+              <label htmlFor="task-dev-intent-templates" className="od-field-label">
+                {"自然语言匹配模板（可选，每行一条）"}
+              </label>
+              <DevelopField as="textarea" id="task-dev-intent-templates" rows="3" spellCheck={false} className="od-field"
+                placeholder="在当前演示搜索页搜索 {keyword}，并核对结果"/>
+              <p className="hint">
+                {"模板仅匹配声明的业务操作；{keyword} 等占位符必须属于上方参数 Schema。必填参数必须在每条模板中明确绑定。"}
+              </p>
+              <label htmlFor="task-dev-intent-result-texts" className="od-field-label">
+                {"独立网页结果核验（可选，每行一条）"}
+              </label>
+              <DevelopField as="textarea" id="task-dev-intent-result-texts" rows="2" spellCheck={false} className="od-field"
+                placeholder={"结果：{keyword}\n提交次数：1"}/>
+              <p className="hint">
+                {"声明需要从运行后的真实网页独立读取的可见文本；没有核验声明时，不会把脚本返回值当成业务成功。创建仅产生待验证候选。"}
+              </p>
               <DevelopField as="button" type="button" id="task-create-candidate" className="od-button">
                 {"保存为待验证任务候选"}
               </DevelopField>

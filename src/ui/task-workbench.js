@@ -507,13 +507,26 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(developer('script-id').value.trim()!==id || Number(developer('script-revision').value)!==revision ||
       saved.sourceUtf8!==editorSource())
       throw {code:'E_REVISION',message:'脚本版本或编辑内容已变化，请重新确认并保存'};
+    // These author-entered declarations become part of the immutable,
+    // hash-covered Manifest. Blank fields preserve pre-intent Task versions;
+    // a readback assertion without a match contract is never imported.
+    const templatesText=developer('task-dev-intent-templates').value.trim();
+    const resultTextsText=developer('task-dev-intent-result-texts').value.trim();
+    if(resultTextsText&&!templatesText)
+      throw {code:'E_SCHEMA',message:'请先填写自然语言匹配模板，再定义独立结果核验'};
+    const splitLines=text=>text.split(/\r?\n/u).map(value=>value.trim()).filter(Boolean);
+    const intent=templatesText?{
+      templates:splitLines(templatesText),
+      ...(resultTextsText?{resultTexts:splitLines(resultTextsText)}:{})
+    }:null;
     const manifest={format:'opendesk.task.v1',taskId:developer('task-dev-id').value.trim(),
       version:developer('task-dev-version').value.trim(),title:developer('task-dev-title').value.trim(),
       description:developer('task-dev-description').value.trim(),author:developer('task-dev-author').value.trim(),
       source:'local-developer',siteOrigins:[new URL(captured.url).origin],
       permissions:['page.automation'],entryFormat:'async-main',
       program:{revision:saved.revision,sourceHash:await digestUtf8(saved.sourceUtf8)},
-      paramsSchema:JSON.parse(developer('task-dev-schema').value)};
+      paramsSchema:JSON.parse(developer('task-dev-schema').value),
+      ...(intent?{intent}:{})};
     const pkg=await createTaskPackage(manifest,saved.sourceUtf8);
     await currentPageTarget.revalidate(captured); // Reject wrong-site candidate after async work.
     const value=await client.request('importTaskPackage',{package:pkg});

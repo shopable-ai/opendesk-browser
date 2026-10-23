@@ -9,6 +9,7 @@ import {BUILTIN_ABI} from '../../src/libs/runtime-contract.js';
 import {createTaskPackage, verifyTaskPackage, validateTaskParams, taskScriptId, taskKey, installedKey,
   TASK_MANIFEST_FORMAT} from '../../src/platform/tasks/contract.js';
 import {assertInstalledTask, taskMethods} from '../../src/platform/tasks/service.js';
+import {selectInstalledTaskRoute} from '../../src/ui/workflow/installed-task-reuse.js';
 
 // Repository/authority component test only. This is not a Chrome native receipt.
 const source='async function main() { await page.click("#go"); return {ok:true}; }';
@@ -238,4 +239,84 @@ test('Task immutable runtime refuses missing legacy identity, changed ABI and ch
     assert.equal((await f.tx.all('runs')).length,0);
     assert.equal((await f.tx.all('scriptRevisions')).length,0);
   }
+});
+
+test('R23.37 real Task Service versioned-intent import -> Verify -> Available -> Install -> natural-language match',async()=>{
+  // Uses the actual catalog/installer and immutable package validators. The
+  // journal below is an isolated native-receipt fixture, NOT a Chrome E2E.
+  const f=fixture();
+  const source='async function main(params) { await page.fill("#keyword",params.keyword); await page.click("#search"); return {ok:true}; }';
+  const manifest={format:TASK_MANIFEST_FORMAT,taskId:'example.intent-search',version:'1.0.1',
+    title:'搜索演示页',description:'当前网页搜索并核对结果',
+    author:'OpenDesk',source:'local-developer',
+    siteOrigins:['http://127.0.0.1:43111'],permissions:['page.automation'],
+    entryFormat:'async-main',program:{revision:3,sourceHash:await digestUtf8(source)},
+    paramsSchema:{type:'object',properties:{
+      keyword:{type:'string',title:'搜索关键词',minLength:1,maxLength:80}
+    },required:['keyword'],additionalProperties:false},
+    intent:{templates:['在当前演示搜索页搜索 {keyword}，并核对结果'],
+      resultTexts:['结果：{keyword}','提交次数：1']}
+  };
+  const pkg=await createTaskPackage(manifest,source);
+  const candidate=await f.send('importTaskPackage',{package:pkg});
+  assert.equal(candidate.stage,'candidate');
+  assert.equal((await f.send('listTaskCatalog',{})).installed.length,0);
+  await assert.rejects(f.send('makeTaskAvailable',{
+    taskId:manifest.taskId,version:manifest.version,manifestHash:pkg.manifestHash
+  }),errorCode('E_VERIFICATION'));
+  const runId='native-intent-run',resultId='native-intent-result',requestId='native-intent-op';
+  const run={builtinIdentity:environment,builtinAbi:BUILTIN_ABI,tag:'controller-run',
+    runId,namespace:f.namespace,state:'completed',retirementState:'released',
+    workerRetired:true,scriptId:'draft:native-intent-run',hostInstanceId:'host-instance',
+    hostDocumentId:'host-document',revision:{sourceHash:manifest.program.sourceHash},
+    target:{allowedOrigin:manifest.siteOrigins[0]},resultId};
+  const result={builtinIdentity:environment,tag:'controller-result',resultId,runId,
+    namespace:f.namespace,state:'completed',
+    revision:{sourceHash:manifest.program.sourceHash},outcome:{ok:true}};
+  await f.tx.put('runs',run,runId);
+  await f.tx.put('results',result,resultId);
+  const envelope={requestId,identity:{tag:'controller-run',runId,scriptId:run.scriptId,
+    hostInstanceId:run.hostInstanceId,hostDocumentId:run.hostDocumentId,
+    contentHash:manifest.program.sourceHash},
+    revision:{sourceHash:manifest.program.sourceHash},
+    target:{allowedOrigin:manifest.siteOrigins[0]},
+    operation:{kind:'packaged',method:'click',args:[]}};
+  const reply={requestId,value:{kind:'undefined'}};
+  await f.tx.put('commandJournal',{tag:'controller-operation',runId,state:'durable',
+    requestDigest:await digest(envelope,{maxDepth:48}),envelope,reply,
+    nativeReceipts:[{stage:'result',requestId,receipt:reply}]},'intent-real-op');
+  assert.equal((await f.send('verifyTaskCandidate',{
+    taskId:manifest.taskId,version:manifest.version,runId})).stage,'verified');
+  assert.equal((await f.send('makeTaskAvailable',{
+    taskId:manifest.taskId,version:manifest.version,
+    manifestHash:pkg.manifestHash})).stage,'available');
+  const install=await f.send('installTask',{
+    taskId:manifest.taskId,version:manifest.version,
+    manifestHash:pkg.manifestHash,expectedInstalledVersion:null});
+  assert.equal(install.enabled,true);
+  const catalog=await f.send('listTaskCatalog',{});
+  assert.equal(catalog.installed.length,1);
+  assert.deepEqual(catalog.catalog[0].manifest.intent,manifest.intent);
+  const target={status:'available',frameId:0,origin:manifest.siteOrigins[0]};
+  const select=request=>selectInstalledTaskRoute({
+    request,target,catalog:catalog.catalog,installed:catalog.installed
+  });
+  const selected=select('在当前演示搜索页搜索 OpenDesk，并核对结果。');
+  assert.equal(selected.state,'MATCH');
+  assert.equal(selected.candidate.taskId,manifest.taskId);
+  assert.equal(selected.candidate.expected.manifestHash,pkg.manifestHash);
+  assert.equal(selected.candidate.expected.installationId,install.installationId);
+  assert.deepEqual(selected.candidate.params,{keyword:'OpenDesk'});
+  assert.deepEqual(selected.candidate.intent.resultTexts,manifest.intent.resultTexts);
+  assert.equal(select('在当前演示搜索页搜索 ，并核对结果').state,'MISSING_PARAMS',
+    'no Schema default may be substituted for missing natural-language input');
+  assert.equal(select('在当前演示搜索页搜索 OpenDesk，然后删除订单，并核对结果').state,'NO_MATCH',
+    'an additional dangerous operation cannot be dropped and treated as a match');
+  const disabled=selectInstalledTaskRoute({request:'在当前演示搜索页搜索 OpenDesk，并核对结果',
+    target,catalog:catalog.catalog,installed:[{...catalog.installed[0],enabled:false}]});
+  assert.equal(disabled.state,'BLOCKED');
+  const rehashed=await createTaskPackage({...manifest,intent:{
+    ...manifest.intent,resultTexts:['结果：{keyword}','提交次数：2']}},source);
+  await assert.rejects(f.send('importTaskPackage',{package:rehashed}),
+    errorCode('E_REQUEST_CONFLICT'),'published exact version cannot be overwritten');
 });

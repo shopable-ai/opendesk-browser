@@ -6,6 +6,7 @@ on:
     paths:
       - 'tests/environment/global-first-r5-fixed-workflow-to-task.test.mjs'
       - 'tests/environment/task-workbench.test.mjs'
+      - 'tests/environment/task-package-flow.test.mjs'
       - 'tests/environment/workflow-task-review-handoff-r5.test.mjs'
       - 'src/ui/task-workbench.js'
       - 'src/ui/workflow/task-review-handoff.js'

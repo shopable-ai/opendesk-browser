@@ -161,6 +161,7 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
         message.channel!=='page_button'||
         !exact(message,['protocol','kind','event','toolId','channel'])||
         !limit('reading_toc_nav'))return {ok:false,code:'E_SENDER'};
+      if(!(await collector.status()).consent)return {ok:true,data:{recorded:false}};
       const identity=promptPageIdentity(sender);
       if(!identity||typeof api.tabs?.get!=='function'||
         typeof api.webNavigation?.getFrame!=='function'||
@@ -175,7 +176,8 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
         ]);
         valid=frame?.documentId===identity.documentId&&frame.url===identity.url&&
           frame.documentLifecycle==='active'&&frame.errorOccurred===false&&
-          tab?.url===identity.url&&tab?.incognito===false&&!tab.pendingUrl;
+          tab?.id===identity.tabId&&tab?.url===identity.url&&
+          tab?.incognito===false&&!tab.pendingUrl;
       }catch{/* Navigation/revocation is not a verified active interaction. */}
       if(!valid)return {ok:false,code:'E_SENDER'};
       return {ok:true,data:await collector.record({event:'reading_toc.navigated',
