@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {validateAnalyticsEvent,validateAnalyticsBatch,ANALYTICS_VERSION} from '../../src/analytics/contract.js';
+import {validateAnalyticsEvent,validateAnalyticsBatch,ANALYTICS_VERSION,ANALYTICS_DISCLOSURE_VERSION} from '../../src/analytics/contract.js';
 import {validAnalyticsEndpoint,createAnalyticsCollector} from '../../src/analytics/collector.js';
 
 const now=Date.UTC(2026,9,20,12,0,0);
@@ -56,7 +56,7 @@ test('default off, explicit opt-in, bounded queue, and revoke clears install ide
   const evt={event:'prompt.saved',toolId:'prompt-shortcuts',source:'host',channel:'sidepanel'};
   assert.deepEqual(await collector.record(evt),{recorded:false});
   assert.equal((await collector.status()).consent,false);
-  await collector.setConsent(true);
+  await collector.setConsent(true,{disclosureVersion:ANALYTICS_DISCLOSURE_VERSION});
   await Promise.all(Array.from({length:32},()=>collector.record(evt)));
   assert.equal((await collector.status()).queued,32,'concurrent panel events must share one queue');
   const state=api.values.get('opendesk.analytics.state.v1');
@@ -70,7 +70,7 @@ test('default off, explicit opt-in, bounded queue, and revoke clears install ide
   assert.equal(cleared.queue.length,0);
   assert.equal(cleared.installId,null);
   assert.equal((await collector.record(evt)).recorded,false);
-  await collector.setConsent(true);
+  await collector.setConsent(true,{disclosureVersion:ANALYTICS_DISCLOSURE_VERSION});
   assert.notEqual(api.values.get('opendesk.analytics.state.v1').installId,state.installId);
   clock+=1000;
 });
