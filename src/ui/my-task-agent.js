@@ -127,6 +127,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
     for(const listener of [...subscribers])listener();
   };
   const add=(speaker,message)=>{
+    if(disposed)return;
     chatSession.append(speaker,clip(message,2400));
     publish({});
   };
