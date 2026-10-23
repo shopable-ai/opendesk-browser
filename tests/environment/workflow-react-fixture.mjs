@@ -9,7 +9,8 @@ const hash=async text=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA
 export const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
 export async function workflowFixture(options={}) {
   const target={status:'available',windowId:7,tabId:9,frameId:0,documentId:'document-one',
-    origin:'https://workflow.example',url:'https://workflow.example/demo'};
+    origin:'https://workflow.example',url:'https://workflow.example/demo',
+    ...(options.target||{})};
   const workflow=emptyWorkflow(target.origin,'12345678-1234-1234-1234-123456789abc');
   workflow.title='测试工作流';workflow.steps=options.steps||[{stepId:'one',op:'observe'}];
   const session=new Map([['opendesk.sidebar.workflow-draft.v1:7',workflow]]),local=new Map(),scripts=new Map();
@@ -94,10 +95,12 @@ export async function workflowFixture(options={}) {
     }
     resolve({runId:claim.runId,state,retirement:{state:'released'},result});
   }
-  const client=options.client||{ready:Promise.resolve(),subscribeWorkflowAI:fn=>{subscriptions.native.add(fn);return ()=>subscriptions.native.delete(fn);},
-    // Match the real Host Client's mandatory discovery RPC. An absent catalog
-    // method previously short-circuited HTTPS consent and pending-start Stop.
-    request:async method=>method==='listTaskCatalog'?{catalog:[],installed:[]}:
+  const client=options.client||{ready:Promise.resolve(),controller:host.controller,
+    subscribeWorkflowAI:fn=>{subscriptions.native.add(fn);return ()=>subscriptions.native.delete(fn);},
+    // Match the real Host Client's discovery and immutable task admission RPCs.
+    request:async method=>method==='listTaskCatalog'?
+      (options.taskCatalog||{catalog:[],installed:[]}):
+      method==='resolveInstalledTask'&&options.resolveTask?options.resolveTask:
       Promise.reject(fail('E_FIXTURE_RPC','Unknown Host RPC: '+method)),
     requestWorkflowAI:async method=>method==='ai.connection.read'?{nativeConnected:false,protocolAvailable:false,state:'NATIVE_PERMISSION_REQUIRED'}:
       {state:'DISCONNECTED',readyForTurn:false}};
@@ -105,7 +108,10 @@ export async function workflowFixture(options={}) {
     refresh:async()=>({...target}),
     revalidate:async captured=>{if(['windowId','tabId','frameId','documentId','url','origin'].some(key=>captured[key]!==target[key]))throw fail('E_DOCUMENT_STALE','网页已变化');},
     subscribe:fn=>{subscriptions.page.add(fn);return ()=>subscriptions.page.delete(fn);}};
-  const view=createWorkflowView({api,client,host,currentPageTarget,onRunOwner:id=>owners.push(id)});
+  const taskWorkbench=typeof options.taskWorkbench==='function'?
+    options.taskWorkbench({host,client,target}):options.taskWorkbench||null;
+  const view=createWorkflowView({api,client,host,currentPageTarget,taskWorkbench,
+    onRunOwner:id=>owners.push(id)});
   const event=(id,value,isTrusted=true)=>({isTrusted,target:{id,value},preventDefault(){}});
   const click=(id,isTrusted=true)=>view.actions.click(id,event(id,undefined,isTrusted));
   const input=(id,value,eventName='input')=>view.actions.input(id,value,event(id,value),eventName);
