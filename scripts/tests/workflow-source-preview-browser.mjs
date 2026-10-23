@@ -143,7 +143,8 @@ try {
   await select('od-workflow-preview-scenario','run-review');
   await eventually('!document.getElementById("workflow-run-review").hidden');
   await click('#workflow-run-review-confirm');
-  await eventually('document.getElementById("workflow-ai-transcript").textContent.includes("不会执行网页操作")');
+  await eventually('document.getElementById("workflow-run-review").hidden');
+  await eventually('document.getElementById("workflow-ai-transcript").textContent.includes("离线预览无法请求 Chrome 权限或执行网页操作")');
   await select('od-workflow-preview-scenario','empty');
   for(const width of ['320','360','400','420','440','520']){
     await select('od-workflow-preview-width',width);
