@@ -137,7 +137,7 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       }
       if(event==='app.inventory_types'&&signature===state.inventoryTypesSignature&&
         time>=state.inventoryTypesReportedAt&&time-state.inventoryTypesReportedAt<INVENTORY_REFRESH_MS&&
-        projectionGap!==true&&state.authorityGap!==true){
+        projectionGap!==true){
         if(retained.length!==state.queue.length)
           await persist({...state,queue:retained,coverage:currentCoverage});
         return {recorded:false};
