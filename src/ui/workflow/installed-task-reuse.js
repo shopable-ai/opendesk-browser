@@ -5,7 +5,9 @@ import {simpleCommerceReplayGoal} from './segment-replay.js';
 const hashPattern=/^[a-f0-9]{64}$/;
 const variable=/\{([A-Za-z][A-Za-z0-9_]{0,39})\}/gu;
 const verb=/(搜索|查找|检索|打开|进入|核对|检查|验证|确认|读取|提取|统计|填写|设置|修改|运行|删除|保存|启用|停用|下载|上传|发送|提交|search|open|verify|read|extract|update|run|save)/i;
-const sensitive=/(付款|支付|结账|下单|购买|删除|清空|提交|发送|转账|退款|登录|登出|注销|上传|修改|写入|填写|设置|启用|停用|安装|upload|submit|pay|checkout|purchase|delete|remove|transfer|send|order|update|write|install)/i;
+// In the absence of machine-verifiable effects, arbitrary Task descriptions
+// never prove read-only safety. Only the audited commerce shape runs hands-free.
+const partialProduct=/^(?:请)?(?:搜索|查找|检索) ([\p{L}\p{N} _.-]{2,120})，(?:打开|点开|进入) ?(?:商品详情页|商品详情|详情页)，(?:核对|检查|验证|确认) (?:商品)?名称(?:和|与)(?:价格|售价|标价)$/u;
 const normalize=value=>typeof value==='string'?value.trim()
   .replace(/[。.!！]+$/gu,'').replace(/[,，]\s*/gu,'，').replace(/\s+/gu,' '):'';
 const escapeRegExp=value=>value.replace(/[/\\^$*+?.()|[\]{}]/g,'\\$&');
@@ -13,10 +15,12 @@ const escapeRegExp=value=>value.replace(/[/\\^$*+?.()|[\]{}]/g,'\\$&');
 function extractDeclaredParameters(template,request,schema){
   const example=template.replaceAll('{query}','camera').replaceAll('{productName}','Camera X');
   if(simpleCommerceReplayGoal(example)){
-    const intent=simpleCommerceReplayGoal(request);
-    if(!intent||!Object.hasOwn(schema.properties,'query')||
+    if(!Object.hasOwn(schema.properties,'query')||
       !Object.hasOwn(schema.properties,'productName'))return null;
-    return {params:intent,kind:'commerce',sensitive:false};
+    const intent=simpleCommerceReplayGoal(request);
+    if(intent)return {params:intent,kind:'commerce',sensitive:false};
+    const partial=normalize(request).match(partialProduct);
+    return partial?{params:{query:partial[1]},kind:'commerce',sensitive:false}:null;
   }
   if(!verb.test(template))return null;
   const names=[];let cursor=0,pattern='^';
@@ -42,7 +46,7 @@ function extractDeclaredParameters(template,request,schema){
     if(Object.hasOwn(params,name)&&params[name]!==value)return null;
     params[name]=value;
   }
-  return {params,kind:'declared',sensitive:sensitive.test(template)};
+  return {params,kind:'declared',sensitive:true};
 }
 
 // The caller MUST supply an authoritative completed listTaskCatalog read.
@@ -62,13 +66,6 @@ export function selectInstalledTaskRoute({request,target,catalog,installed}={}){
       if(!phrase||phrase.length>800)continue;
       const declared=extractDeclaredParameters(phrase,request,schema);
       if(!declared)continue;
-      let params;
-      try{params=validateTaskParams(schema,declared.params);}
-      catch(error){
-        missing.push({taskId:row.taskId,fields:schema.required.filter(key=>
-          !Object.hasOwn(declared.params,key)),code:error?.code||'E_PARAMS'});
-        continue;
-      }
       if(manifest.siteOrigins?.length!==1||manifest.siteOrigins[0]!==target.origin)continue;
       if(row.enabled!==true||candidate.stage!=='available'||
         candidate.manifestHash!==row.manifestHash||
@@ -78,6 +75,13 @@ export function selectInstalledTaskRoute({request,target,catalog,installed}={}){
         !hashPattern.test(manifest.program?.sourceHash||'')||
         !Number.isSafeInteger(manifest.program?.revision)){
         blocked.push({taskId:row.taskId,code:'E_TASK_IDENTITY'});continue;
+      }
+      let params;
+      try{params=validateTaskParams(schema,declared.params);}
+      catch(error){
+        missing.push({taskId:row.taskId,fields:schema.required.filter(key=>
+          !Object.hasOwn(declared.params,key)),code:error?.code||'E_PARAMS'});
+        continue;
       }
       matches.push({taskId:row.taskId,title:manifest.title,params,kind:declared.kind,
         sensitive:declared.sensitive,
