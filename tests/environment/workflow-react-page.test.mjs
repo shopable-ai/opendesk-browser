@@ -537,3 +537,153 @@ test('Workflow Chinese replay grammar accepts natural word spacing but rejects e
  assert.equal(simpleCommerceReplayGoal('搜索 camera，打开 Camera X 商品详情，核对名称和价格，要求价格低于100'),null);
  assert.equal(simpleCommerceReplayGoal('搜索 camera，打开 Camera X 商品详情，并且提交订单'),null);
 });
+
+test('R23.37 cold-chat second Send finds the first natural-language saved Bundle v2 without generating another script',async t=>{
+  // Component integration: production View/Provider/Compiler/Controller APIs,
+  // with test RunHost and deterministic page observations. Native Chrome DOM
+  // evidence must still be obtained separately, never inferred from this test.
+  const base='https://workflow.example',receiver='https://api.example.test/*';
+  const firstProposal={title:'搜索并核对商品',description:'',
+    paramsSchema:{type:'object',properties:{},required:[],additionalProperties:false},
+    steps:[
+      {stepId:'fill',op:'fill',locatorKind:'css',selector:'#keyword',text:'camera'},
+      {stepId:'search',op:'click',locatorKind:'role',selector:'button',roleName:'Search'}
+    ]};
+  const secondProposal={title:'搜索并核对商品',description:'',
+    paramsSchema:{type:'object',properties:{},required:[],additionalProperties:false},
+    steps:[{stepId:'product',op:'click',locatorKind:'role',selector:'link',roleName:'Camera X'}]};
+  const oldFetch=globalThis.fetch;
+  let modelGenerations=0;
+  globalThis.fetch=async()=>{
+    modelGenerations++;
+    if(modelGenerations>2)throw Error('E_GENERATION_NOT_ALLOWED: original agent had only two required rounds');
+    const proposal=modelGenerations===1?firstProposal:secondProposal;
+    return {ok:true,text:async()=>JSON.stringify({choices:[{
+      message:{content:JSON.stringify(proposal)}
+    }]})};
+  };
+  let original=null,reopened=null;
+  t.after(()=>{
+    original?.view.dispose();reopened?.view.dispose();
+    globalThis.fetch=oldFetch;
+  });
+  const observations=[];
+  const observationResult=({claim})=>{
+    const url=claim.target.url,documentId=claim.target.documentId;
+    const node=(role,name,locator,extra={})=>({
+      role,name,text:'',state:{visible:true},locator,...extra
+    });
+    let nodes,title='Search';
+    if(url.endsWith('/demo')){
+      nodes=[node('textbox','Search',{kind:'css',value:'#keyword'}),
+        node('button','Search',{kind:'role',value:'button',name:'Search',exact:true})];
+    }else if(url.includes('/search?q=')){
+      const keyword=new URL(url).searchParams.get('q');
+      const name=keyword==='lens'?'Lens Y':'Camera X';
+      const href=keyword==='lens'?'/product/lens-y':'/product/camera-x';
+      nodes=[node('heading','Search results for '+keyword,
+          {kind:'role',value:'heading',name:'Search results for '+keyword}),
+        node('link',name,{kind:'role',value:'link',name,exact:true},
+          {navigation:{href,url:base+href,origin:base}})];
+    }else{
+      const name=url.endsWith('/lens-y')?'Lens Y':'Camera X';
+      const price=name==='Lens Y'?'¥129.00':'¥499.00';
+      title=name+' product';
+      nodes=[node('heading',name,{kind:'role',value:'heading',name}),
+        node('text',price,{kind:'css',value:'#price'})];
+    }
+    observations.push({url,documentId,nodes:nodes.map(item=>item.name)});
+    return {kind:'semantic-dom-summary',document:{documentId,url},title,nodes,truncated:false};
+  };
+  const actionResult=({params})=>params?.query?{
+    fill:{kind:'input-readback',matched:true,value:params.query}
+  }:{};
+  const afterAction=({params,target})=>{
+    if(target.url.endsWith('/demo')){
+      const query=params?.query||'camera';
+      target.url=base+'/search?q='+encodeURIComponent(query);
+      target.documentId='search-'+query;
+    }else if(target.url.includes('/search?q=')){
+      const name=params?.productName||'Camera X';
+      target.url=base+(name==='Lens Y'?'/product/lens-y':'/product/camera-x');
+      target.documentId='product-'+name;
+    }
+  };
+  const fixtureOptions={observationResult,actionResult,afterAction};
+  const until=async (condition,diagnostic)=>{
+    for(let attempt=0;attempt<1200;attempt++){
+      if(condition())return;
+      await tick();
+    }
+    throw Error('Workflow full-cycle did not settle: '+diagnostic());
+  };
+  original=await workflowFixture(fixtureOptions);
+  original.click('workflow-source-https');
+  original.input('workflow-ai-endpoint','https://api.example.test/v1/chat/completions');
+  original.input('workflow-ai-key','IN_MEMORY_FIXTURE_CREDENTIAL');
+  original.input('workflow-ai-model','test-model');
+  original.input('workflow-ai-request','搜索 camera，打开 Camera X 商品详情，核对名称和价格。');
+  await tick();await tick();
+  let send=original.click('workflow-ai-plan');
+  await until(()=>original.state().controls['workflow-run-review'].hidden===false||
+    original.state().controls['workflow-ai-approval'].hidden===false,
+    ()=>JSON.stringify(original.state().controls['workflow-status']));
+  if(original.state().controls['workflow-run-review'].hidden===false){
+    await send;
+    send=original.click('workflow-run-review-confirm');
+  }
+  await until(()=>original.state().controls['workflow-ai-approval'].hidden===false,
+    ()=>JSON.stringify(original.state().controls['workflow-status']));
+  assert.equal(modelGenerations,0,'HTTPS page summary is never sent before recipient disclosure');
+  await original.click('workflow-ai-approve');
+  await send;
+  await until(()=>original.state().controls['workflow-editor'].dataset.agentState==='COMPLETED',
+    ()=>JSON.stringify({agent:original.state().controls['workflow-editor'].dataset.agentState,
+      status:original.state().controls['workflow-status'].text,
+      starts:original.starts.map(x=>x.source.kind),modelGenerations}));
+  assert.equal(modelGenerations,2,'first two-Document task uses the existing provider twice');
+  assert.ok(observations.some(row=>row.nodes.includes('Camera X')&&row.nodes.includes('¥499.00')),
+    'original price comes from a separate final Document observation');
+  assert.ok(original.starts.some(x=>x.source.kind==='draft'),'first run generated authorized JavaScript');
+
+  await original.click('workflow-save');
+  await until(()=>[...original.local.values()].some(value=>
+    value?.format===WORKFLOW_DYNAMIC_BUNDLE_FORMAT),
+    ()=>JSON.stringify(original.state().controls['workflow-status']));
+  const record=[...original.local.values()].find(value=>
+    value?.format===WORKFLOW_DYNAMIC_BUNDLE_FORMAT);
+  assert.equal(record.segments.length,2,'initial Send must actually create the entire v2 Bundle');
+  assert.deepEqual(record.segments.map(part=>part.evidence.kind),['search-results','product-page']);
+  assert.ok(record.segments.every(part=>original.scripts.get(
+    part.workflow.workflowId+':'+part.revision)?.contentHash===part.sourceHash));
+  assert.equal(original.state().header.saved,true);
+  const storedLocal=original.local,storedScripts=original.scripts;
+  original.view.dispose();
+  original=null;
+
+  // Entirely new React Workflow/controller conversation. Only committed
+  // local bundle and original Controller journal are shared, not any live
+  // assistant, host, page locator, or generated JavaScript object.
+  reopened=await workflowFixture({...fixtureOptions,local:storedLocal,scripts:storedScripts});
+  await tick();await tick();
+  await reopened.setPage({url:base+'/demo',documentId:'cold-conversation-entry'});
+  const beforeGeneration=modelGenerations;
+  const beforeStarts=reopened.starts.length;
+  reopened.input('workflow-ai-request','搜索 lens，打开 Lens Y 商品详情，核对名称和价格。');
+  const reused=await reopened.click('workflow-ai-plan');
+  assert.equal(reused?.ok,true,JSON.stringify({
+    result:reused,status:reopened.state().controls['workflow-status'].text
+  }));
+  assert.equal(modelGenerations-beforeGeneration,0,'second Send must generate ZERO JavaScript');
+  const operations=reopened.starts.slice(beforeStarts);
+  assert.equal(operations.filter(row=>row.source.kind==='saved').length,2);
+  assert.deepEqual(operations.filter(row=>row.source.kind==='saved').map(row=>
+    row.source.contentHash),record.segments.map(part=>part.sourceHash));
+  const saved=operations.filter(row=>row.source.kind==='saved');
+  assert.deepEqual([saved[0].params.query,saved[1].params.productName],['lens','Lens Y']);
+  assert.ok(observations.some(row=>row.nodes.includes('Lens Y')&&row.nodes.includes('¥129.00')),
+    'the new page price must be independently read back');
+  assert.ok(reopened.state().messages.some(row=>row.speaker==='执行结果'&&
+    row.message.includes('Lens Y')&&row.message.includes('¥129.00')));
+  assert.equal(reopened.state().lastRun,'success');
+});
