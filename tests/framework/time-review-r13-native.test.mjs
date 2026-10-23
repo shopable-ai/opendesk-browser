@@ -232,8 +232,53 @@ async function installReviewedPackage(client,session,candidate,name,helper,pid,n
   await until(()=>evaluate(client,session,'!document.querySelector("#sidebar-tool-preview").hidden&&document.querySelector("#sidebar-tool-preview-version").textContent.includes('+JSON.stringify(candidate.version)+')'),
     'exact reviewed local package version');
   await nativeClick(client,session,'#sidebar-tool-install');
-  const saved=await until(()=>evaluate(client,session,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==='+JSON.stringify(candidate.id)+'&&t.version==='+JSON.stringify(candidate.version)+'))'),
-    'reviewed package installed');
+  // Real trusted UI, source identity and durable Chrome readback distinguish
+  // rejected installs from a slow transaction. Only native click may mutate.
+  const receiptExpression=`chrome.storage.local.get([
+    "opendesk.sidebar-tools.installed.v1","opendesk.market.provenance.v1",
+    "opendesk.market.operations.v1"]).then(data=>{
+    const id=${JSON.stringify(candidate.id)};
+    const row=(data["opendesk.sidebar-tools.installed.v1"]||[]).find(t=>t.id===id);
+    const source=data["opendesk.market.provenance.v1"]?.[id]||null;
+    const journal=Object.values(data["opendesk.market.operations.v1"]||{})
+      .filter(op=>op?.toolId===id).map(op=>({version:op.version,state:op.state,
+        reason:op.reason,marketId:op.marketId}));
+    const error=document.querySelector("#sidebar-tool-file-error");
+    const install=document.querySelector("#sidebar-tool-install");
+    const preview=document.querySelector("#sidebar-tool-preview");
+    const update=document.querySelector("#sidebar-tool-update");
+    return {
+      installed:row?{id:row.id,version:row.version}:null,
+      source:source?{marketId:source.marketId,version:source.version,sha256:source.sha256}:null,
+      journal,reviewVisible:Boolean(preview&&!preview.hidden),
+      updateReviewVisible:Boolean(update&&!update.hidden),
+      installDisabled:install?.disabled??null,
+      installLabel:install?.textContent?.trim().slice(0,100)||null,
+      error:error&&!error.hidden?error.textContent.slice(0,500):null
+    };
+  })`;
+  let lastReceipt=null,installOutcome;
+  try{
+    installOutcome=await until(async()=>{
+      lastReceipt=await evaluate(client,session,receiptExpression);
+      if(lastReceipt.installed?.version===candidate.version)return 'installed';
+      if(lastReceipt.error)return 'rejected';
+      return null;
+    },'reviewed package installed');
+    if(installOutcome!=='installed')
+      throw Error('reviewed package rejected: '+JSON.stringify(lastReceipt));
+  }catch(cause){
+    // Keep only this package's sanitized receipt; never copy other app data.
+    if(!lastReceipt)try{lastReceipt=await evaluate(client,session,receiptExpression);}catch{}
+    const diagnostic={toolId:candidate.id,version:candidate.version,
+      packageSha256:createHash('sha256').update(bytes).digest('hex'),
+      receipt:lastReceipt,error:String(cause)};
+    await writeFile(path.join(OUT,name+'-install-diagnostic.json'),
+      JSON.stringify(diagnostic,null,2)+'\n');
+    note('native-file-review-install-failed',diagnostic);
+    throw cause;
+  }
+  const saved=await evaluate(client,session,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==='+JSON.stringify(candidate.id)+'&&t.version==='+JSON.stringify(candidate.version)+'))');
   assert.deepEqual(saved,candidate,'exact reviewed local bytes persisted');
   assert.equal(await evaluate(client,session,'chrome.storage.local.get("opendesk.market.provenance.v1").then(v=>v["opendesk.market.provenance.v1"]?.['+JSON.stringify(candidate.id)+']||null)'),
     null,'local review cannot acquire official provenance');
