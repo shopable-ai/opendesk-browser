@@ -86,3 +86,37 @@ test('R2.2.1 business adapters retain Prompt ETag and do not share Bookmark refe
   prompt.dispose();
   assert.equal(prompt.readSession().draft,'');
 });
+
+test('R2.2.1 settings changes retire an unresolved inference without pinning UI busy',async()=>{
+  let generation=1,turns=0;
+  const subscribers=new Set(),leases=[];
+  const providers={
+    configuration:()=>({source:'custom_https',generation,
+      settings:{endpoint:'https://example.org/v1/chat/completions',model:'test-model',
+        apiKey:'session-only-key'}}),
+    subscribeSettings(listener){subscribers.add(listener);return ()=>subscribers.delete(listener);},
+    acquire:()=>{const lease={
+      requestStructured:()=>++turns===1?new Promise(()=>{}):
+        Promise.resolve({proposal:{question:'new turn'}}),
+      cancelInference:async()=>({state:'IDLE'}),dispose(){}
+    };leases.push(lease);return lease;}
+  };
+  const api={permissions:{
+    contains:async()=>true,request:async()=>true,
+    onRemoved:{addListener(){},removeListener(){}}
+  }};
+  const consumer=createBusinessConversation({api,providerRuntime:providers,
+    ...identity('bookmark','bookmark-settings')});
+  const first=consumer.request({request:'first',event:{isTrusted:true}});
+  // Permit the original permission check and model dispatch to start.
+  for(let i=0;i<8&&turns===0;i++)await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(turns,1,'the first turn has reached the intentionally hanging transport');
+  generation=2;
+  for(const listener of subscribers)listener();
+  await assert.rejects(first,{code:'E_TOOL_CHANGED'});
+  const result=await consumer.request({request:'second',event:{isTrusted:true}});
+  assert.equal(result.proposal.question,'new turn','a new turn must not inherit stale busy state');
+  result.authorization.release();
+  consumer.dispose();
+  assert.equal(subscribers.size,0,'settings listener is removed on disposal');
+});
