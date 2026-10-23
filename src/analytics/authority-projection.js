@@ -1,4 +1,6 @@
 import {permissionPattern} from '../environment.js';
+import {SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOOL_BACKGROUND_KIND} from '../ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from '../ui/sidebar-tools/lifecycle.js';
 // Read-only projection of the original Page/Task/Scheduler authorities.
 // Raw program/task IDs, URLs, source and execution values MUST NOT leave this module's caller.
 const asDate=value=>{
@@ -10,6 +12,17 @@ const blank=()=>({installed:0,enabled:0,disabled:0,blocked:0,unknown:0});
 const safeIdentity=id=>typeof id==='string'&&id.length>0&&id.length<=256;
 const validStatus=new Set(['prepared','dispatched','completed','failed','outcome-unknown']);
 const namespaceFor=api=>'tool:'+api.runtime.id;
+const sidebarId=/^[a-z][a-z0-9-]{1,39}$/;
+const resultStatus=(run,result)=>{
+  if(result){
+    if(result.tag!=='controller-result'||result.runId!==run.runId||
+       result.resultId!==run.resultId||result.namespace!==run.namespace)return null;
+    return result.state==='completed'&&result.outcome?.ok===true?'completed':
+      result.state==='failed'?'failed':'outcome-unknown';
+  }
+  return ['paused_unknown','stopped','interrupted','failed','completed'].includes(run.state)?
+    'outcome-unknown':'dispatched';
+};
 
 export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date.now(),since=0}={}){
   if(typeof storage?.transaction!=='function'||typeof api?.runtime?.id!=='string')
@@ -27,7 +40,19 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
   const [kv,runs,results]=await storage.transaction(['frameworkKV','runs','results'],'readonly',
     async tx=>Promise.all([tx.all('frameworkKV'),tx.all('runs'),tx.all('results')]));
   if(![kv,runs,results].every(Array.isArray))throw new Error('Invalid authority readback');
-  const types={page:blank(),task:blank(),scheduler:{definitions:0}};
+  // This is the actual Sidebar installer + enable store, not a second registry.
+  // An inaccessible/corrupt snapshot must fail closed as READ_FAILED.
+  if(typeof api.storage?.local?.get!=='function')throw new Error('Sidebar authority unavailable');
+  const local=await api.storage.local.get([SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE]);
+  const sidebarRows=local[SIDEBAR_TOOL_STORE]??[];
+  if(!Array.isArray(sidebarRows)||sidebarRows.length>MAX_INSTALLED_TOOLS||
+     sidebarRows.some(row=>!sidebarId.test(row?.id||'')||row.id==='opendesk')||
+     new Set(sidebarRows.map(row=>row.id)).size!==sidebarRows.length)
+    throw new Error('Invalid Sidebar installation authority');
+  const sidebarEnabled=requireToolEnableRecords(local[SIDEBAR_TOOL_ENABLE_STORE]);
+  const types={sidebar:blank(),page:blank(),task:blank(),
+    scheduler:{definitions:0,active:0,paused:0,unknown:0},
+    app_service:{bindings:0,enabled:0,disabled:0,unknown:0}};
   const pages=[],tasks=[],executions=[];
   let projectionGap=false;
   for(const row of kv){
@@ -40,6 +65,9 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
       tasks.push(row);
     }else if(row.tag==='schedule-definition-v1'&&!row.deleted){
       types.scheduler.definitions++;
+      if(row.paused===true)types.scheduler.paused++;
+      else if(row.paused===false)types.scheduler.active++;
+      else types.scheduler.unknown++;
     }else if(row.tag==='page-execution-v1'){
       const day=asDate(row.createdAt);
       // Historical execution before this installation's effective opt-in is
@@ -60,13 +88,23 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
       if(row.state==='prepared')continue;
       executions.push({type:'page',identity:row.programId,day,
         status:row.state==='outcome-unknown'?'outcome_unknown':row.state,
-        receiptId:row.receiptId});
+        receiptId:row.receiptId,source:'page_auto'});
       // effectConfirmed reflects runtime behavior, NOT independent business proof.
     }
   }
   if(pages.length>4096||tasks.length>4096||executions.length>4096)
     throw new Error('Analytics authority projection exceeds bounded inventory');
   const inventoryItems=[];
+  for(const row of sidebarRows){
+    const status=sidebarEnabled[row.id]===false?'disabled':'enabled';
+    types.sidebar.installed++;types.sidebar[status]++;
+    inventoryItems.push({type:'sidebar',identity:row.id,status});
+    // Background App Services belong to this Sidebar installation; they are
+    // bindings, never extra installed tools or separate census identities.
+    if(row.background?.kind===SIDEBAR_TOOL_BACKGROUND_KIND){
+      types.app_service.bindings++;types.app_service[status]++;
+    }
+  }
   for(const row of pages){
     const item=types.page;item.installed++;
     let status='unknown';
@@ -96,47 +134,73 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
     .map(row=>[row.runId,row]));
   const resultById=new Map(results.filter(row=>row?.tag==='controller-result'&&row.namespace===namespace)
     .map(row=>[row.resultId,row]));
-  for(const fire of kv){
-    if(fire?.tag!=='schedule-fire-v1'||fire.namespace!==namespace||!fire.runId)continue;
-    const run=runById.get(fire.runId);
-    // An unbound Fire is merely a scheduled intention, never a real execution.
-    if(!run||run.scheduledFireId!==fire.fireId||
-       fire.resultId&&fire.resultId!==run.resultId){projectionGap=true;continue;}
+  const cloudById=new Map();
+  for(const row of kv){
+    if(row?.tag!=='cloud-request-v1'||row.namespace!==namespace)continue;
+    if(!safeIdentity(row.requestId)||cloudById.has(row.requestId)){
+      projectionGap=true;continue;
+    }
+    cloudById.set(row.requestId,row);
+  }
+  const processedRuns=new Set();
+  const includeRun=(run,receiptId,source)=>{
+    if(processedRuns.has(run.runId)){projectionGap=true;return;}
+    processedRuns.add(run.runId);
     const app=run.profile==='app-service';
     const type=app?'app_service':'task';
     const identity=app?run.appBinding?.appId:run.installedTaskAuthorization?.taskId;
     const day=asDate(run.createdAt);
     if(typeof run.createdAt==='number'&&run.createdAt<since||
-      typeof run.createdAt==='string'&&Date.parse(run.createdAt)<since)continue;
-    if(!safeIdentity(identity)||!day||!uuid.test(run.runId||'')){projectionGap=true;continue;}
-    const result=resultById.get(run.resultId);
-    let status='dispatched';
-    if(result){
-      if(result.runId!==run.runId){projectionGap=true;continue;}
-      status=result.state==='completed'&&result.outcome?.ok===true?'completed':
-        result.state==='failed'?'failed':'outcome-unknown';
-    }else if(['paused_unknown','stopped','interrupted','failed','completed'].includes(run.state)){
-      status='outcome-unknown';
-    }
-    executions.push({type,identity,day,status,receiptId:fire.fireId});
+       typeof run.createdAt==='string'&&Date.parse(run.createdAt)<since)return;
+    if(!safeIdentity(identity)||!day||!uuid.test(run.runId||'')||
+       !uuid.test(run.resultId||'')){projectionGap=true;return;}
+    const result=run.resultId?resultById.get(run.resultId):null;
+    const status=resultStatus(run,result);
+    if(!status){projectionGap=true;return;}
+    executions.push({type,identity,day,status,receiptId,source});
+  };
+  for(const fire of kv){
+    if(fire?.tag!=='schedule-fire-v1'||fire.namespace!==namespace||!fire.runId)continue;
+    const run=runById.get(fire.runId);
+    // A Fire is only a scheduler execution when the original Run is bound
+    // to that exact Fire and Result. Never count an unbound intention.
+    if(!run||run.scheduledFireId!==fire.fireId||
+       fire.resultId&&fire.resultId!==run.resultId||
+       run.cloudRequestId){projectionGap=true;continue;}
+    includeRun(run,fire.fireId,'scheduler');
   }
-  const counts=new Map(),dedup=new Set();
-  const add=(type,identity,day,metric)=>{
+  for(const run of runById.values()){
+    if(!run.cloudRequestId||run.scheduledFireId||run.profile==='app-service')continue;
+    const request=cloudById.get(run.cloudRequestId);
+    // Cloud initiation is an AUTOMATIC source only after durable Cloud
+    // request -> Run binding. The user's manual/AI-run Task stays separate.
+    if(!request||request.runId!==run.runId||
+       request.requestId!==run.cloudRequestId||
+       run.cloudRequestKey&&request.tag!=='cloud-request-v1'){
+      projectionGap=true;continue;
+    }
+    includeRun(run,run.runId,'cloud');
+  }
+  const counts=new Map(),sourceCounts=new Map(),dedup=new Set();
+  const add=(type,identity,day,metric,source)=>{
     const key=JSON.stringify([type,identity,day,metric]);
     counts.set(key,(counts.get(key)||0)+1);
+    const sources=sourceCounts.get(key)||{};
+    sources[source]=(sources[source]||0)+1;
+    sourceCounts.set(key,sources);
   };
   for(const row of executions){
     const key=row.type+':'+row.receiptId;
     if(dedup.has(key)){projectionGap=true;continue;}
     dedup.add(key);
-    add(row.type,row.identity,row.day,'attempted');
-    if(row.status==='completed')add(row.type,row.identity,row.day,'completed');
-    if(row.status==='failed')add(row.type,row.identity,row.day,'failed');
-    if(row.status==='outcome-unknown')add(row.type,row.identity,row.day,'outcome_unknown');
+    add(row.type,row.identity,row.day,'attempted',row.source);
+    if(row.status==='completed')add(row.type,row.identity,row.day,'completed',row.source);
+    if(row.status==='failed')add(row.type,row.identity,row.day,'failed',row.source);
+    if(row.status==='outcome-unknown')add(row.type,row.identity,row.day,'outcome_unknown',row.source);
   }
   return {inventoryTypes:types,inventoryItems,readState:'fresh',projectionGap,observedAt:now(),
     daily:[...counts].map(([key,total])=>{
       const [type,identity,day,metricType]=JSON.parse(key);
-      return {type,identity,day,metricType,total};
+      return {type,identity,day,metricType,total,sourceTotals:sourceCounts.get(key)};
     })};
 }
