@@ -44,6 +44,21 @@ function memory(){
   }},alarms:{async create(){},async clear(){}}}};
 }
 const daily=(projection,type,metric)=>projection.daily.find(row=>row.type===type&&row.metricType===metric);
+const SCHEDULE_SOURCE_HASH='c'.repeat(64),SCHEDULE_MANIFEST_HASH='d'.repeat(64);
+const scheduledRun=(runId,resultId,fireId,state='completed')=>({
+  tag:'controller-run',namespace,runId,resultId,scheduledFireId:fireId,
+  sourceKind:'saved',scriptId:'task:task-1:1.0.0',contentHash:SCHEDULE_SOURCE_HASH,
+  revision:{sourceHash:SCHEDULE_SOURCE_HASH},
+  installedTaskAuthorization:{taskId:'task-1',version:'1.0.0',
+    manifestHash:SCHEDULE_MANIFEST_HASH,
+    authorization:{installationId:randomUUID(),generation:1}},
+  createdAt:NOW,state
+});
+const scheduledResult=(runId,resultId,state='completed')=>({
+  tag:'controller-result',namespace,runId,resultId,revision:{sourceHash:SCHEDULE_SOURCE_HASH},
+  state,outcome:{ok:state==='completed'}
+});
+
 test('read-only Page/Task/Scheduler authority: 100 actual Page receipts; no fake DAU',async()=>{
   const {storage,api,stores}=authorityDB();
   for(let i=0;i<100;i++)stores.frameworkKV.push({
@@ -54,9 +69,8 @@ test('read-only Page/Task/Scheduler authority: 100 actual Page receipts; no fake
   const runId=randomUUID(),resultId=randomUUID(),fireId='fire:2026-10-23:1';
   stores.frameworkKV.push({tag:'schedule-fire-v1',namespace,
     fireId,runId,resultId,status:'ADMITTED'});
-  stores.runs.push({tag:'controller-run',namespace,runId,resultId,scheduledFireId:fireId,
-    installedTaskAuthorization:{taskId:'task-1'},createdAt:NOW,state:'completed'});
-  stores.results.push({tag:'controller-result',namespace,runId,resultId,state:'completed',outcome:{ok:true}});
+  stores.runs.push(scheduledRun(runId,resultId,fireId));
+  stores.results.push(scheduledResult(runId,resultId));
   const data=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
   assert.deepEqual(data.inventoryTypes,{
     sidebar:{installed:2,enabled:1,disabled:1,blocked:0,unknown:0},
@@ -82,8 +96,7 @@ test('Scheduler FireId + bound RunId/ResultId; inconsistent result is UNKNOWN',a
   const {storage,api,stores}=authorityDB();
   const runId=randomUUID(),resultId=randomUUID();
   stores.frameworkKV.push({tag:'schedule-fire-v1',namespace,fireId:'f-1',runId,resultId});
-  stores.runs.push({tag:'controller-run',namespace,runId,resultId,scheduledFireId:'f-1',
-    installedTaskAuthorization:{taskId:'task-1'},createdAt:NOW,state:'paused_unknown'});
+  stores.runs.push(scheduledRun(runId,resultId,'f-1','paused_unknown'));
   let value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
   assert.equal(daily(value,'task','outcome_unknown')?.total,1);
   stores.results.push({tag:'controller-result',namespace,runId:'forged-other-run',resultId,state:'completed',
@@ -97,10 +110,8 @@ test('Scheduler requires original FireId + RunId + ResultId before counting auto
   const runId=randomUUID(),resultId=randomUUID(),fireId='f-three-ids';
   const fire={tag:'schedule-fire-v1',namespace,fireId,runId,resultId:null,status:'ADMITTED'};
   stores.frameworkKV.push(fire);
-  stores.runs.push({tag:'controller-run',namespace,runId,resultId,scheduledFireId:fireId,
-    installedTaskAuthorization:{taskId:'task-1'},createdAt:NOW,state:'completed'});
-  stores.results.push({tag:'controller-result',namespace,runId,resultId,state:'completed',
-    outcome:{ok:true}});
+  stores.runs.push(scheduledRun(runId,resultId,fireId));
+  stores.results.push(scheduledResult(runId,resultId));
   let value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
   assert.equal(daily(value,'task','attempted'),undefined);
   assert.equal(value.projectionGap,true);
@@ -113,6 +124,60 @@ test('Scheduler requires original FireId + RunId + ResultId before counting auto
   assert.equal(daily(value,'task','completed')?.total,1);
   assert.deepEqual(daily(value,'task','completed')?.sourceTotals,{scheduler:1});
   assert.equal(value.projectionGap,false);
+});
+
+test('Scheduler refuses forged original source, task manifest, generation and version',async()=>{
+  const {storage,api,stores}=authorityDB(),runId=randomUUID(),resultId=randomUUID(),fireId='f-source';
+  const run=scheduledRun(runId,resultId,fireId);
+  stores.frameworkKV.push({tag:'schedule-fire-v1',namespace,fireId,runId,resultId});
+  stores.runs.push(run);stores.results.push(scheduledResult(runId,resultId));
+  assert.equal(daily(await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW}),
+    'task','completed')?.total,1);
+  const broken=[
+    ()=>{run.revision.sourceHash='0'.repeat(64);},
+    ()=>{run.installedTaskAuthorization.manifestHash='not-a-hash';},
+    ()=>{run.installedTaskAuthorization.authorization.generation=0;},
+    ()=>{run.installedTaskAuthorization.authorization.installationId='changed';},
+    ()=>{run.installedTaskAuthorization.version='9.0.0';},
+    ()=>{stores.results[0].revision.sourceHash='1'.repeat(64);}
+  ];
+  for(const tamper of broken){
+    const originalRun=structuredClone(run),originalResult=structuredClone(stores.results[0]);
+    tamper();
+    const actual=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
+    assert.equal(daily(actual,'task','completed'),undefined);
+    assert.equal(actual.projectionGap,true);
+    Object.assign(run,originalRun);Object.assign(stores.results[0],originalResult);
+  }
+  assert.equal(daily(await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW}),
+    'task','completed')?.total,1);
+});
+
+test('App Service scheduler requires original Sidebar binding and frozen source',async()=>{
+  const {storage,api,stores}=authorityDB(),runId=randomUUID(),resultId=randomUUID(),fireId='f-app';
+  const binding={appId:'adblock',packageHash:'a'.repeat(64),codeHash:'b'.repeat(64),
+    generation:randomUUID(),sourceIdentity:{kind:'local-reviewed'}};
+  const fire={tag:'schedule-fire-v1',namespace,fireId,runId,resultId,
+    profile:'app-service',appId:binding.appId,appBinding:structuredClone(binding)};
+  const run={tag:'controller-run',namespace,runId,resultId,scheduledFireId:fireId,
+    profile:'app-service',sourceKind:'app-service',scriptId:'app:adblock',
+    appBinding:structuredClone(binding),contentHash:binding.codeHash,
+    revision:{sourceHash:binding.codeHash},createdAt:NOW,state:'completed'};
+  const result={tag:'controller-result',namespace,runId,resultId,state:'completed',
+    revision:{sourceHash:binding.codeHash},outcome:{ok:true}};
+  stores.frameworkKV.push(fire);stores.runs.push(run);stores.results.push(result);
+  let current=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
+  assert.equal(daily(current,'app_service','completed')?.total,1);
+  assert.deepEqual(daily(current,'app_service','completed')?.sourceTotals,{scheduler:1});
+  fire.appBinding.generation=randomUUID();
+  current=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
+  assert.equal(daily(current,'app_service','completed'),undefined);
+  assert.equal(current.projectionGap,true);
+  fire.appBinding.generation=binding.generation;
+  run.revision.sourceHash='0'.repeat(64);
+  current=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
+  assert.equal(daily(current,'app_service','completed'),undefined);
+  assert.equal(current.projectionGap,true);
 });
 
 test('consent gates readback and daily version; automatic runs do not invent app.opened',async()=>{
@@ -233,6 +298,9 @@ test('cloud bound Run/Result is automatic, manual Run is not; source totals cann
         runRef:{runId,resultId,requestId,sourceHash,manifestHash,grantId}});
     }else if(source==='scheduler'){
       run.scheduledFireId=requestId;
+      run.sourceKind='saved';
+      run.scriptId='task:task-1:1.0.0';
+      run.installedTaskAuthorization={...grant,version:'1.0.0'};
       stores.frameworkKV.push({tag:'schedule-fire-v1',namespace,fireId:requestId,runId,resultId});
     }
     stores.runs.push(run);

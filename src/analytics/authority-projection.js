@@ -1,4 +1,6 @@
 import {permissionPattern} from '../environment.js';
+import {canonical} from '../platform/protocol.js';
+import {taskScriptId} from '../platform/tasks/contract.js';
 import {SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOOL_BACKGROUND_KIND} from '../ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from '../ui/sidebar-tools/lifecycle.js';
 import {readAppServiceInstallation} from '../platform/tasks/app-service-installation.js';
@@ -14,6 +16,9 @@ const safeIdentity=id=>typeof id==='string'&&id.length>0&&id.length<=256;
 const validStatus=new Set(['prepared','dispatched','completed','failed','outcome-unknown']);
 const namespaceFor=api=>'tool:'+api.runtime.id;
 const sidebarId=/^[a-z][a-z0-9-]{1,39}$/;
+const frozenHash=/^[a-f0-9]{64}$/;
+const taskVersion=/^(0|[1-9][0-9]*)[.](0|[1-9][0-9]*)[.](0|[1-9][0-9]*)$/;
+const taskIdPattern=/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,59}$/;
 const resultStatus=(run,result)=>{
   if(result){
     if(result.tag!=='controller-result'||result.runId!==run.runId||
@@ -156,6 +161,31 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
     }
     cloudById.set(row.requestId,row);
   }
+  // Use only the persisted original Fire, frozen Run, and terminal Result.
+  // Current installations can be upgraded or uninstalled after a valid run.
+  const validScheduledRun=(fire,run,result)=>{
+    if(!frozenHash.test(run.contentHash||'')||
+       run.revision?.sourceHash!==run.contentHash||
+       result&&result.revision?.sourceHash!==run.contentHash)return false;
+    if(run.profile==='app-service'){
+      const binding=run.appBinding;
+      return fire.profile==='app-service'&&run.sourceKind==='app-service'&&
+        sidebarId.test(binding?.appId||'')&&fire.appId===binding.appId&&
+        run.scriptId==='app:'+binding.appId&&
+        frozenHash.test(binding.packageHash||'')&&
+        binding.codeHash===run.contentHash&&uuid.test(binding.generation||'')&&
+        binding.sourceIdentity&&typeof binding.sourceIdentity==='object'&&
+        fire.appBinding&&typeof fire.appBinding==='object'&&
+        canonical(binding)===canonical(fire.appBinding);
+    }
+    const grant=run.installedTaskAuthorization;
+    return fire.profile!=='app-service'&&run.sourceKind==='saved'&&
+      taskIdPattern.test(grant?.taskId||'')&&taskVersion.test(grant?.version||'')&&
+      frozenHash.test(grant.manifestHash||'')&&
+      run.scriptId===taskScriptId(grant.taskId,grant.version)&&
+      uuid.test(grant.authorization?.installationId||'')&&
+      Number.isSafeInteger(grant.authorization?.generation)&&grant.authorization.generation>0;
+  };
   const processedRuns=new Set();
   const includeRun=(run,receiptId,source)=>{
     if(processedRuns.has(run.runId)){projectionGap=true;return;}
@@ -186,6 +216,8 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
        typeof fire.resultId!=='string'||!fire.resultId||
        fire.resultId!==run.resultId||
        run.cloudRequestId){projectionGap=true;continue;}
+    const result=run.resultId?resultById.get(run.resultId):null;
+    if(!validScheduledRun(fire,run,result)){projectionGap=true;continue;}
     includeRun(run,fire.fireId,'scheduler');
   }
   for(const run of runById.values()){
