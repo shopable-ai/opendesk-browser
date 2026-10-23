@@ -117,6 +117,15 @@ jobs:
       - name: Read validated App test profile; cannot grant Host permissions
         id: profile
         run: node scripts/app-ci.mjs inspect "${{ matrix.app }}"
+      # Shared R26 install/enable tests load every official catalog source.
+      # Compiling only matrix.app leaves Stay Focus (or another React app)
+      # with a missing dist/tool.css. Build pinned prerequisites first, then
+      # build and freeze the selected app's own exact candidate.
+      - name: Compile official React prerequisites for shared installed-tool tests
+        run: |
+          node scripts/build-adblock-react.mjs
+          node scripts/build-stay-focus-react.mjs
+          node scripts/build-cookie-editor-react.mjs
       - name: Compile App and build a source-identical, unpromoted candidate
         run: node scripts/app-ci.mjs build "${{ matrix.app }}"
       - name: Existing shared install/update/disable/uninstall and App-owned tests
