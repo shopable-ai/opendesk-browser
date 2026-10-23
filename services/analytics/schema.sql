@@ -19,3 +19,19 @@ CREATE TABLE IF NOT EXISTS analytics_rate (
   used INTEGER NOT NULL,
   expires_at INTEGER NOT NULL
 );
+
+-- Latest accepted cumulative observation per installation/tool/day/metric.
+-- Older/repeated versions cannot replace it; event IDs remain the separate outbox.
+CREATE TABLE IF NOT EXISTS analytics_auto_latest (
+  install_id TEXT NOT NULL,
+  tool_type TEXT NOT NULL,
+  tool_id TEXT NOT NULL,
+  utc_day TEXT NOT NULL,
+  metric_type TEXT NOT NULL,
+  version INTEGER NOT NULL CHECK(version>0),
+  total INTEGER NOT NULL CHECK(total>0),
+  projection_gap INTEGER NOT NULL DEFAULT 0 CHECK(projection_gap IN (0,1)),
+  last_event_id TEXT NOT NULL,
+  received_at INTEGER NOT NULL,
+  PRIMARY KEY (install_id,tool_type,tool_id,utc_day,metric_type)
+);
