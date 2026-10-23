@@ -7,7 +7,11 @@ import {mutateFocusModel} from './mutations.js';
 import {normalizeManagedSiteV3Policy,canonicalManagedSiteV3ModelBytes}
   from '../../../../src/framework/sdk/site-budget-v3-policy.js';
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};
-const isLegacyCapabilityError=e=>['E_TOOL_CAPABILITY_REQUIRED','E_CAPABILITY','E_TOOL_CAPABILITY'].includes(e?.code);
+// The public Driver reports E_TOOL_CHANGED for a real legacy focus.control
+// owner because it lacks browser.siteBudget. The private Host must independently
+// prove the installed legacy identity before we cache the fallback.
+const isLegacyCapabilityError=e=>['E_TOOL_CAPABILITY_REQUIRED','E_CAPABILITY',
+  'E_TOOL_CAPABILITY','E_TOOL_CHANGED'].includes(e?.code);
 const hashModel=async model=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',
   canonicalManagedSiteV3ModelBytes(model))),
   v=>v.toString(16).padStart(2,'0')).join('');
@@ -55,7 +59,10 @@ export function createFocusController({request,siteBudget,now=Date.now}={}){
       // Only existing pre-v3 installations may use their old, separately
       // authorized tool operation. Never downgrade a known v3 instance.
       if(legacy!==false&&isLegacyCapabilityError(error)){
-        legacy=true;return {kind:'legacy',summary:await request('focus.status',{})};
+        // Do not pin the Controller to the legacy worker unless the original
+        // trusted focus Host actually accepted this installed legacy owner.
+        const summary=await request('focus.status',{});
+        legacy=true;return {kind:'legacy',summary};
       }
       throw error;
     }
