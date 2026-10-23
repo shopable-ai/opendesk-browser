@@ -71,6 +71,12 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
       else if(row.paused===false)types.scheduler.active++;
       else types.scheduler.unknown++;
     }else if(row.tag==='page-execution-v1'){
+      // Explicit user attempts have their own low-frequency, consented events;
+      // never transform one into automated daily activity or active DAU.
+      if(row.source==='manual')continue;
+      if(row.source!==undefined&&row.source!=='page_auto'){
+        projectionGap=true;continue;
+      }
       const day=asDate(row.createdAt);
       // Historical execution before this installation's effective opt-in is
       // NEVER backfilled merely because a user granted permission today.
