@@ -10,6 +10,7 @@ import {decodeValue} from '../../platform/page-port/codec.js';
 import {presentTaskValue,formatTaskError} from '../task-run-diagnostics.js';
 import {createSharedAIProviderRuntime} from '../ai/provider-runtime.js';
 import {createBusinessConversation} from '../conversation/provider-consumer.js';
+import {createConversationSession} from '../conversation/session.js';
 import {deriveWorkflowViewState} from './view-state.js';
 import {describeLocalCodex} from './local-codex.js';
 import {createWorkflowObservation,workflowObservationForModel,workflowObservationGrantMatches,workflowObservationRecipientId} from './observation.js';
@@ -105,8 +106,27 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   // unit fixtures operational without introducing a second production owner.
   const ownsProviderRuntime=!providerRuntime;
   const providers=providerRuntime||createSharedAIProviderRuntime({client,hostInstanceId});
+  const workflowInstanceId='workflow-'+crypto.randomUUID();
   const workflowLease=providers.acquire({consumerId:'workflow',
-    instanceId:'workflow-'+crypto.randomUUID(),hostInstanceId});
+    instanceId:workflowInstanceId,hostInstanceId});
+  const workflowSession=createConversationSession({identity:{
+    consumerId:'workflow',instanceId:workflowInstanceId,hostInstanceId},rowsLimit:21});
+  // RunHost, authorization and script reuse remain in the Workflow Controller.
+  let activeConversationRound=null;
+  const beginConversationRound=signal=>{
+    const round=workflowSession.begin({signal,
+      providerGeneration:providers.configuration().generation});
+    activeConversationRound=round;
+    return round;
+  };
+  const finishConversationRound=round=>{
+    round?.finish();
+    if(activeConversationRound===round)activeConversationRound=null;
+  };
+  const retireConversationRound=()=>{
+    workflowSession.cancel();
+    if(activeConversationRound)finishConversationRound(activeConversationRound);
+  };
   const localPlanner=workflowLease.planner;
   const workflowProviders=workflowLease.facade;
   // Memory-only, verified business context; never persist model credentials or page text.
@@ -172,7 +192,6 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       apiKey:control('workflow-ai-key').value});
   }
   let lastHttpsProvider='custom_https';
-  const chatRows=[];
   let entryMode='new-workflow';
   const exampleRequests=Object.freeze({
     continue:'请继续修改刚才填写的内容，并读回确认。不要提交表单。',
@@ -180,15 +199,23 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     fill:'请将指定内容填入当前网页的目标表单，并读取输入框实际值进行验证，不要提交。',
     read:'请只读提取当前网页的主要内容并整理，不要修改网页或提交表单。'
   });
-  let chatSequence=0;
-  function clearChat() {chatRows.length=0;ui.patch({messages:[]});}
+  const setConversationDraft=value=>{
+    workflowSession.update({draft:String(value)});
+    control('workflow-ai-request').value=workflowSession.getSnapshot().draft;
+  };
+  function clearChat() {
+    workflowSession.update({rows:[]});
+    ui.patch({messages:[]});
+  }
   function appendChat(speaker,message) {
     if(disposed)return;
-    const row={id:'chat-'+(++chatSequence),speaker,message:String(message)};
-    chatRows.push(row);while(chatRows.length>21)chatRows.shift();
-    const paint=()=>ui.patch({messages:chatRows.map(value=>({...value}))});
+    const id=workflowSession.append(speaker,String(message));
+    const paint=()=>ui.patch({messages:workflowSession.getSnapshot().rows.map(row=>({...row}))});
     paint();
-    return {get text(){return row.message;},set text(value){row.message=String(value);paint();}};
+    return {
+      get text(){return workflowSession.getSnapshot().rows.find(row=>row.id===id)?.message||'';},
+      set text(value){if(workflowSession.replaceMessage(id,String(value)))paint();}
+    };
   }
   const snapshot=()=>structuredClone(workflow);
   const stable=()=>JSON.stringify(workflow);
@@ -213,7 +240,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     const hasSteps=workflow.steps.length>0;
     const hasParams=Object.keys((selectedBundle?.paramsSchema||workflow.paramsSchema).properties).length>0;
     const transcript=control('workflow-ai-transcript');
-    const hasMessages=chatRows.length>0;
+    const hasMessages=workflowSession.getSnapshot().rows.length>0;
     const ready=provider()==='local_codex'?describeLocalCodex(localCapability).ready:
       ['cloud_responses','custom_https'].includes(provider())&&
         Boolean(control('workflow-ai-key').value.trim() && control('workflow-ai-model').value.trim() &&
@@ -412,7 +439,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       verifiedTurnHistory=[];lastProviderTurn=null;observationApproval=null;
       persistObservationApproval();
       control('workflow-editor').dataset.historyOpen='false';
-      control('workflow-ai-request').value='';
+      setConversationDraft('');
       runId=null;onRunOwner(null);
       selectedBundle=bundle;fullAgentDraft=null;revision=null;
       workflow=structuredClone(bundle.segments.at(-1).workflow);paramValues={};
@@ -440,7 +467,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     historyOpen=false;
     control('workflow-editor').dataset.historyOpen='false';
     clearChat();
-    control('workflow-ai-request').value='';
+    setConversationDraft('');
     runId=null;onRunOwner(null);
     workflow=clean;paramValues={};lastTrustedRun=null;
     directVerifiedSerial=record.verificationMode==='fill-readback'?stable():null;
@@ -1637,6 +1664,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     pendingReuse=null;pendingNaturalPlanning=null;pendingBundleGrant=null;pendingInstalledGrant=null;
     if(close)localCapability={...localCapability,inferenceVerified:false};
     planningAbort?.abort(err('E_CANCELLED','AI 规划已停止'));
+    retireConversationRound();
     planningAbort=null;
     planningTarget=null;
     pendingApproval?.settle({decision:'deny'});
@@ -1798,6 +1826,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     }
     
     const epoch=++planningGeneration,abort=new AbortController();planningAbort=abort;planningTarget=captured;planningObservation=null;
+    const conversationRound=beginConversationRound(abort.signal);
     fullAgentDraft=null;selectedBundle=null;
     const agent={epoch,controller:abort,selected:frozen.selected,goal:frozen.request,initialTarget:structuredClone(captured),startedCount:0,segments:[],
       settings:{endpoint:frozen.endpoint,apiKey:frozen.apiKey,model:frozen.model},modelDecisions:0,
@@ -1814,6 +1843,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     appendChat('你',frozen.request);status('');updateButtons();
     let stream='',streamNode=null;
     const progress=event=>{
+      conversationRound.assertCurrent(providers.configuration().generation);
       planningCurrent(epoch,frozen.serial,frozen.selected);
       const indicator=control('workflow-planning-indicator');
       if(event.type==='turn.started')indicator.text='Codex 正在规划…';
@@ -1986,6 +2016,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }
     }
     finally{
+      finishConversationRound(conversationRound);
       if(epoch===planningGeneration){busy=false;phase='idle';planningAbort=null;planningTarget=null;pendingApproval?.settle({decision:'deny'});
         control('workflow-ai-progress').hidden=true;if(!disposed){updateLocalStatus();updateButtons();}
         if(autoStart&&!disposed)void executeAIAuto(autoStart);}
@@ -2214,15 +2245,18 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }
     }
     const epoch=++planningGeneration,abort=new AbortController();
+    const conversationRound=beginConversationRound(abort.signal);
     planningAbort=abort;planningTarget=target;phase='planning';busy=true;
     control('workflow-planning-indicator').text='正在查找可复用的 JavaScript 工作流…';
     updateButtons();
     const assertLive=()=>{
+      conversationRound.assertCurrent(providers.configuration().generation);
       if(disposed||epoch!==planningGeneration||abort.signal.aborted||
         !sameTarget(target,currentPageTarget.snapshot)||host.executionPending||host.currentRun)
         throw err('E_WORKFLOW_STALE','网页或执行状态已变化，未启动新操作');
     };
     const release=()=>{
+      finishConversationRound(conversationRound);
       if(disposed||epoch!==planningGeneration)return;
       planningAbort=null;planningTarget=null;busy=false;phase='idle';updateButtons();
     };
@@ -2496,7 +2530,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   const chooseExample=(key,event)=>{
     if(!event.isTrusted||busy||autoExecutionPending||host.executionPending||host.currentRun)return;
     if(!Object.hasOwn(exampleRequests,key))return;
-    control('workflow-ai-request').value=exampleRequests[key];focus('workflow-ai-request');
+    setConversationDraft(exampleRequests[key]);focus('workflow-ai-request');
     status('示例已填入输入框；不会自动发送或运行。');
   };
   const onResumeSessionClick=event=>{
@@ -2547,7 +2581,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     control('workflow-manage-panel').hidden=true;
     control('workflow-history-toggle').expanded='false';
     newReviewReturnFocus=null;
-    control('workflow-ai-request').value='';
+    setConversationDraft('');
     render();persistDraft();
     focus('workflow-ai-request');
     status('');
@@ -2844,7 +2878,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     click:(id,event)=>dispatch(id,'click',event),
     input(id,value,event,eventName='input') {
       if(disposed)return;
-      control(id).value=String(value);
+      if(id==='workflow-ai-request')setConversationDraft(value);
+      else control(id).value=String(value);
       return dispatch(id,eventName,event);
     },
     onHistory:onHistoryClick,onNewSession:onNewSessionClick,onNewWorkflow:onNewWorkflowClick,
@@ -2947,6 +2982,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     dismissRunReview();disposed=true;compileToken++;planningGeneration++;
     conversation?.dispose();taskConversation?.dispose();
     planningAbort?.abort(err('E_HOST_CLOSED','工作流窗口已关闭'));pendingApproval?.settle({decision:'deny'});
+    retireConversationRound();workflowSession.dispose();
     workflowLease.dispose();if(ownsProviderRuntime)providers.dispose();
     void Promise.resolve(observation.dispose()).catch(()=>{});
     unsubscribePage?.();unsubscribeRun?.();unsubscribeNative?.();
