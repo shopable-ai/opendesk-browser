@@ -157,7 +157,16 @@ export async function verifyBookmarkCompletion({checks,requiredChecks=[],service
  for(const check of conditions){
   let ok=false;
   try{
-   if(check.kind==='folder.exists')ok=Boolean(parentOf(tree,check.folder,context,refs));
+   if(check.kind==='folder.exists'){
+    // Prefer the freshly Host-resolved folder ID when its title/path matches.
+    // A second folder with the same name elsewhere must not invalidate a
+    // correctly verified creation, nor can an invented model ID satisfy it.
+    const recent=tree.byId.get(refs.folderId);
+    ok=Boolean(availableNode(tree,recent,true)&&
+      (check.folder==='$lastFolder'||check.folder===recent.title||
+        check.folder===pathOf(tree,recent.id)));
+    if(!ok)ok=Boolean(parentOf(tree,check.folder,context,refs));
+   }
    if(check.kind==='bookmark.inFolder'){
     const parent=parentOf(tree,check.folder,context,refs);
     const source=check.url==='$currentPage'?context.pageContext:null;

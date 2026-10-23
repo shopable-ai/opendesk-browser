@@ -61,8 +61,11 @@ function requiredChecks(goal){
   // names must be clarified rather than reinterpreted as another destination.
   if(name&&name.length<=256&&!name.startsWith('$')&&!name.includes('/')&&
     (pageFirst||verbFirst)&&sameFolder)
-   return [{kind:'folder.exists',folder:name},
-    {kind:'bookmark.inFolder',folder:name,url:'$currentPage'}];
+   // The user's newly named folder belongs under the folder selected at Send,
+   // never under some unrelated existing folder with the same title.
+   return [{kind:'bookmark.title',target:'$lastFolder',title:name},
+    {kind:'bookmark.parent',target:'$lastFolder',folder:'$currentFolder'},
+    {kind:'bookmark.inFolder',folder:'$lastFolder',url:'$currentPage'}];
   return null;
  }
  const {filing,name}=filingTarget(goal);
@@ -83,6 +86,12 @@ function requiredChecks(goal){
   text.match(/^(?:创建|新建)\s*(?:一个)?(?:文件夹|目录)\s*(.+?)[。！!]?$/);
  if(folder){
   const title=folder[1].trim().replace(/^[「“『"'](.+)[」”』"']$/,'$1');
+  // A create/new request must independently verify BOTH the title and the
+  // actual parent of the Host-resolved folder ID. A generic "exists" check
+  // alone can succeed when the model wrote under the wrong directory.
+  if(/^(?:请)?(?:创建|新建)/.test(text))
+   return [{kind:'bookmark.title',target:'$lastFolder',title},
+    {kind:'bookmark.parent',target:'$lastFolder',folder:'$currentFolder'}];
   return [{kind:'folder.exists',folder:title}];
  }
  // An unrecognized or compound intent must be clarified, never reduced to
