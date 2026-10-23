@@ -56,28 +56,31 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
   }
   if(pages.length>4096||tasks.length>4096||executions.length>4096)
     throw new Error('Analytics authority projection exceeds bounded inventory');
+  const inventoryItems=[];
   for(const row of pages){
     const item=types.page;item.installed++;
-    if(row.enabled===false||row.authorization?.status==='disabled')item.disabled++;
-    else if(row.authorization?.status!=='active'||row.nativeState==='blocked')item.blocked++;
-    else if(row.nativeState==='registered'&&nativeIds?.has(row.nativeId))item.enabled++;
-    else item.unknown++;
+    let status='unknown';
+    if(row.enabled===false||row.authorization?.status==='disabled')status='disabled';
+    else if(row.authorization?.status!=='active'||row.nativeState==='blocked')status='blocked';
+    else if(row.nativeState==='registered'&&nativeIds?.has(row.nativeId))status='enabled';
+    item[status]++;
+    inventoryItems.push({type:'page',identity:row.programId,status});
   }
   for(const row of tasks){
     const item=types.task;item.installed++;
-    if(row.enabled===false)item.disabled++;
+    let status='unknown';
+    if(row.enabled===false)status='disabled';
     else if(!Number.isSafeInteger(row.authorization?.generation)||
-      !uuid.test(row.authorization?.installationId||''))item.blocked++;
+      !uuid.test(row.authorization?.installationId||''))status='blocked';
     else{
       const origins=row.authorization?.scope?.siteOrigins;
-      if(!Array.isArray(origins)||!origins.length||typeof api.permissions?.contains!=='function'){
-        item.unknown++;continue;
+      if(Array.isArray(origins)&&origins.length&&typeof api.permissions?.contains==='function'){
+        try{status=await api.permissions.contains({origins})?'enabled':'blocked';}
+        catch{status='unknown';}
       }
-      try{
-        if(await api.permissions.contains({origins}))item.enabled++;
-        else item.blocked++;
-      }catch{item.unknown++;}
     }
+    item[status]++;
+    inventoryItems.push({type:'task',identity:row.taskId,status});
   }
   const runById=new Map(runs.filter(row=>row?.tag==='controller-run'&&row.namespace===namespace)
     .map(row=>[row.runId,row]));
@@ -121,7 +124,7 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
     if(row.status==='failed')add(row.type,row.identity,row.day,'failed');
     if(row.status==='outcome-unknown')add(row.type,row.identity,row.day,'outcome_unknown');
   }
-  return {inventoryTypes:types,readState:'fresh',projectionGap,observedAt:now(),
+  return {inventoryTypes:types,inventoryItems,readState:'fresh',projectionGap,observedAt:now(),
     daily:[...counts].map(([key,total])=>{
       const [type,identity,day,metricType]=JSON.parse(key);
       return {type,identity,day,metricType,total};
