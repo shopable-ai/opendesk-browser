@@ -545,6 +545,12 @@ export const DEVELOPER_FIELDS = {
   "task-dev-schema": {
     "value": "{\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}"
   },
+  "task-dev-intent-templates": {
+    "value": ""
+  },
+  "task-dev-intent-result-texts": {
+    "value": ""
+  },
   "task-create-candidate": {
     "textContent": "保存为待验证任务候选"
   },
