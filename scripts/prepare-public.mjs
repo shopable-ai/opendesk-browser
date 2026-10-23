@@ -33,6 +33,9 @@ export const STATIC_RESOURCES=Object.freeze({
   ...Object.fromEntries(['quota','schedule','session','always'].map(reason=>[
     'examples/sidebar-tools/stay-focus/trusted/blocked-'+reason+'.html','stay-focus/blocked-'+reason+'.html'])),
   'examples/sidebar-tools/stay-focus/trusted/blocked.css':'stay-focus/blocked.css',
+  ...Object.fromEntries(['quota','schedule','session','always'].map(reason=>[
+    'src/platform/chrome/blocked/blocked-'+reason+'.html','managed-site/blocked-'+reason+'.html'])),
+  'src/platform/chrome/blocked/blocked.css':'managed-site/blocked.css',
   'src/native-agent/settings.html':'native-agent/settings.html',
   'src/native-agent/settings.css':'native-agent/settings.css',
   'src/native-agent/workspace.html':'native-agent/workspace.html',

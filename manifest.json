@@ -69,6 +69,13 @@
         "stay-focus/blocked-session.html", "stay-focus/blocked-always.html"
       ],
       "matches": ["http://*/*", "https://*/*"]
+    },
+    {
+      "resources": [
+        "managed-site/blocked-quota.html", "managed-site/blocked-schedule.html",
+        "managed-site/blocked-session.html", "managed-site/blocked-always.html"
+      ],
+      "matches": ["http://*/*", "https://*/*"]
     }
   ],
   "side_panel": {

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {desiredManagedSiteV3Rules,isManagedSiteV3RuleId,managedSiteV3RuleRange}
+import {desiredManagedSiteV3Rules,isManagedSiteV3RuleId,managedSiteV3RuleRange,
+  managedSiteV3BlockedPath}
   from '../../src/platform/chrome/managed-site-v3-rules.js';
 import {normalizeManagedSiteV3Commit,assertManagedSiteV3ModelRef,canonicalManagedSiteV3ModelBytes}
   from '../../src/framework/sdk/site-budget-v3-policy.js';
@@ -11,7 +12,8 @@ test('v3 native DNR uses fixed disjoint owner IDs and rejects unbounded code',()
   const policy=plan([site('example.com'),site('sub.example.com',{enabled:false})],['safe.example.net']);
   const rules=desiredManagedSiteV3Rules(policy,{'g:shared':60000},1234567,1);
   assert.equal(rules.length,1);
-  assert.equal(rules[0].action.type,'block');
+  assert.deepEqual(rules[0].action,{type:'redirect',
+    redirect:{extensionPath:'/managed-site/blocked-quota.html'}});
   assert.equal(rules[0].id,managedSiteV3RuleRange(1).first);
   assert.ok(rules[0].condition.excludedRequestDomains.includes('sub.example.com'));
   assert.ok(rules[0].condition.excludedRequestDomains.includes('safe.example.net'));
@@ -36,4 +38,15 @@ test('v3 immutable model hash is verified independently of claimed digest',async
   await assert.rejects(()=>assertManagedSiteV3ModelRef({...commit,modelRef:'0'.repeat(64)}),
     {code:'E_SITE_BUDGET_V3_POLICY'});
   assert.throws(()=>normalizeManagedSiteV3Commit({...commit,sealedModel:JSON.parse('{"__proto__":"not allowed"}')}));
+});
+
+test('v3 reason destinations are fixed Browser resources',()=>{
+  assert.equal(managedSiteV3BlockedPath('temporary'),'/managed-site/blocked-session.html');
+  assert.equal(managedSiteV3BlockedPath('weekly-window'),'/managed-site/blocked-schedule.html');
+  assert.equal(managedSiteV3BlockedPath('constant-deny'),'/managed-site/blocked-always.html');
+  assert.equal(managedSiteV3BlockedPath('counter-limit'),'/managed-site/blocked-quota.html');
+  assert.equal(managedSiteV3BlockedPath('https://outside.example'),null);
+  const denied=plan([{...site('example.com'),conditions:[{type:'constant-deny'}]}]);
+  assert.deepEqual(desiredManagedSiteV3Rules(denied,{},1234567,0)[0].action,
+    {type:'redirect',redirect:{extensionPath:'/managed-site/blocked-always.html'}});
 });

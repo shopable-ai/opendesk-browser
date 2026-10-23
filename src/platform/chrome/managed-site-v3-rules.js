@@ -4,6 +4,13 @@
 import {normalizeManagedSiteV3Policy,normalizeManagedSiteV3Usage,
   evaluateManagedSiteV3,matchesManagedSiteV3Host} from './managed-site-v3-policy.js';
 
+// Only four fixed Browser-owned destinations, never app supplied.
+const REASONS=Object.freeze({temporary:'session','weekly-window':'schedule',
+  'constant-deny':'always','counter-limit':'quota'});
+export function managedSiteV3BlockedPath(reason){
+  const name=Object.hasOwn(REASONS,reason)?REASONS[reason]:null;
+  return name?'/managed-site/blocked-'+name+'.html':null;
+}
 export const MANAGED_SITE_V3_RULE_FIRST=753000;
 export const MANAGED_SITE_V3_RULES_PER_OWNER=60;
 
@@ -41,7 +48,8 @@ export function desiredManagedSiteV3Rules(raw,rawUsage,at,slot){
     if(exclude.length)condition.excludedRequestDomains=exclude;
     rules.push({id:range.first+index,
       priority:20+site.host.split('.').length*4+(site.subdomains?0:1),
-      action:{type:'block'},condition});
+      action:{type:'redirect',redirect:{
+        extensionPath:managedSiteV3BlockedPath(effect.reason)}},condition});
   }
   return rules;
 }

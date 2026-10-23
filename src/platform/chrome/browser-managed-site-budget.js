@@ -16,12 +16,13 @@ import {normalizeManagedSiteV3Policy,normalizeManagedSiteV3Usage,
   normalizeManagedSiteV3Commit,assertManagedSiteV3ModelRef,
   selectedManagedSiteV3,evaluateManagedSiteV3,MANAGED_SITE_V3_OBSERVATION_GAP_MS}
   from './managed-site-v3-policy.js';
-import {desiredManagedSiteV3Rules,isManagedSiteV3RuleId} from './managed-site-v3-rules.js';
+import {desiredManagedSiteV3Rules,isManagedSiteV3RuleId,managedSiteV3BlockedPath}
+  from './managed-site-v3-rules.js';
 import {writeVerifiedLocalValue,sameStorageValue} from '../../ui/sidebar-tools/storage-state.js';
 import {isSidebarToolHostSender} from '../../sidebar-tools/sender.js';
 import {resolveToolSender} from '../../environment.js';
-import {observeManagedForeground,settleManagedSiteBudget,reconcileManagedDynamicRules}
-  from './browser-managed-site-policy.js';
+import {observeManagedForeground,settleManagedSiteBudget,reconcileManagedDynamicRules,
+  redirectManagedBlockedTabs} from './browser-managed-site-policy.js';
 import {subscribeManagedSiteActivity} from './managed-site-lifecycle.js';
 import {MANAGED_SITE_REVIEWED_SCOPE_STORE,reviewedManagedSiteScopeCovers,
   managedSiteV3RequiredOrigins} from '../../framework/host/managed-site-reviewed-scopes.js';
@@ -361,6 +362,21 @@ export function createManagedSiteBudgetService({
             nextRow.appliedPolicyRev=nextRow.desiredPolicyRev;
             nextRow.status=valid&&nextRow.policy.enabled?'applied':'inactive';
             await save(updated,(await resourceRead()).raw);
+            // DNR redirects future navigations; already-open tabs need the
+            // same finite reason view, never package-provided executable JS.
+            if(valid&&authorizedExecution&&permission.ready&&nextRow.policy.enabled){
+              const tabs=await redirectManagedBlockedTabs(api,{
+                redirectUrlForTab:tab=>{
+                  const host=hostFromUrl(tab?.url);
+                  if(!host)return null;
+                  const result=evaluateManagedSiteV3(nextRow.policy,nextRow.usage,host,at);
+                  const fixed=managedSiteV3BlockedPath(result?.reason);
+                  return fixed?api.runtime.getURL(fixed.slice(1)):null;
+                }
+              });
+              if(tabs.failed>0)
+                fail('E_MANAGED_TAB_INCOMPLETE','部分已打开网站无法显示限制原因');
+            }
           }catch(error){
             nextRow.status='unknown';
             await save(updated,(await resourceRead()).raw);
