@@ -271,3 +271,52 @@ test('old Focus grant hash is NOT the new public Installer package digest',async
   assert.equal(plan.sealedModel.authorizedHash,null,
     'obsolete Focus grant can never become standalone v3 Driver authority');
 });
+
+test('an open legacy UI adopts the authenticated v3 Driver after package replacement',async()=>{
+  let installed='legacy',legacyReads=0,driverReads=0;
+  const controller=createFocusController({
+    request:async operation=>{
+      assert.equal(operation,'focus.status');
+      legacyReads++;
+      if(installed==='v3')
+        throw Object.assign(new Error('old package lease retired'),{code:'E_TOOL_CHANGED'});
+      return {enabled:false,sites:[]};
+    },
+    siteBudget:{
+      getStatus:async()=>{
+        driverReads++;
+        if(installed==='legacy')
+          throw Object.assign(new Error('not a v3 app'),{code:'E_TOOL_CHANGED'});
+        return initial();
+      },
+      setPolicy:async()=>{throw Error('read-only test');}
+    },now:()=>at
+  });
+  assert.equal((await controller.readStatus()).enabled,false);
+  installed='v3';
+  assert.equal((await controller.readStatus()).enabled,false);
+  assert.equal(legacyReads,2,'the original Host must refuse the retired lease');
+  assert.equal(driverReads,2,'new epoch must be independently checked by public SDK');
+  await controller.readStatus();
+  assert.equal(legacyReads,2,'v3 adoption must never return to old privileged RPC');
+  assert.equal(driverReads,3);
+});
+
+test('unverified replacement never reports an old UI as successfully migrated',async()=>{
+  let reads=0;
+  const controller=createFocusController({
+    request:async()=>{
+      reads++;
+      if(reads===1)return {enabled:false,sites:[]};
+      throw Object.assign(new Error('old lease retired'),{code:'E_TOOL_CHANGED'});
+    },
+    siteBudget:{
+      getStatus:async()=>{throw Object.assign(new Error('no public lease'),
+        {code:'E_TOOL_CHANGED'});},
+      setPolicy:async()=>{throw Error('forbidden');}
+    },now:()=>at
+  });
+  await controller.readStatus();
+  await assert.rejects(controller.readStatus(),{code:'E_TOOL_CHANGED'},
+    'old Host retirement alone is not v3 installation or native success');
+});
