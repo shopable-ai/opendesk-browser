@@ -7,7 +7,7 @@ const capped=(a,b)=>Math.min(Number.MAX_SAFE_INTEGER,a+b);
 const ATTEMPT_TIMEOUT_MS=10000;
 const empty=()=>({consent:false,consentReceipt:null,installId:null,identitySalt:null,queue:[],failures:0,nextAttemptAt:0,
   inventorySignature:null,inventoryReportedAt:0,inventoryCoverageVersion:0,coverage:{overflow:0,expired:0},openedContexts:[],
-  inventoryTypesSignature:null,inventoryTypesReportedAt:0,autoDaily:[],authorityGap:false});
+  inventoryTypesSignature:null,inventoryTypesReportedAt:0,autoDaily:[],authorityGap:false,manualResultRunIds:[]});
 export function validAnalyticsEndpoint(value,{allowLoopback=false}={}){
   try{
     const url=new URL(value);
@@ -55,6 +55,8 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
         !Number.isSafeInteger(row.total)||row.total<1||
         !Number.isSafeInteger(row.version)||row.version<1)||
       typeof (raw.authorityGap??false)!=='boolean'||
+      !Array.isArray(raw.manualResultRunIds??[])||(raw.manualResultRunIds??[]).length>1024||
+      (raw.manualResultRunIds??[]).some(id=>typeof id!=='string'||!/^[a-f0-9-]{36}$/i.test(id))||
       !Array.isArray(raw.openedContexts??[])||(raw.openedContexts??[]).length>96||
       (raw.openedContexts??[]).some(id=>typeof id!=='string'||id.length>64))return empty();
     return {...raw,inventorySignature:raw.inventorySignature??null,
@@ -64,12 +66,17 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       openedContexts:raw.openedContexts??[],
       inventoryTypesSignature:raw.inventoryTypesSignature??null,
       inventoryTypesReportedAt:raw.inventoryTypesReportedAt??0,
-      autoDaily:raw.autoDaily??[],authorityGap:raw.authorityGap??false};
+      autoDaily:raw.autoDaily??[],authorityGap:raw.authorityGap??false,manualResultRunIds:raw.manualResultRunIds??[]};
   };
   const persist=state=>api.storage.local.set({[ANALYTICS_STATE_KEY]:state});
   const prune=(queue,time)=>queue.filter(item=>{
     try{validateAnalyticsEvent(item,{now:time});return true;}catch{return false;}
   });
+  const hashedToolId=async(state,type,identity)=>{
+    const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',
+      new TextEncoder().encode(state.identitySalt+':'+type+':'+identity)));
+    return 'anon-'+[...digest].slice(0,12).map(byte=>byte.toString(16).padStart(2,'0')).join('');
+  };
   const status=()=>run(async()=>{
     const state=await read();
     return {configured,consent:configured&&!revoked&&state.consent,
@@ -98,7 +105,8 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
     });
   }
   const statusSnapshot=consent=>({configured,consent,queued:0,needsReview:false});
-  function record({event,toolId,source,channel,reason,installedTools,contextId,inventoryTypes,readState,projectionGap},{authorize}={}){
+  function record({event,toolId,source,channel,reason,installedTools,contextId,inventoryTypes,
+    readState,projectionGap,toolType,runStatus,manualRunId},{authorize}={}){
     if(revoked||!configured)return Promise.resolve({recorded:false});
     const generation=revision;
     return run(async()=>{
@@ -114,6 +122,9 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
            fresh.installId!==state.installId)return {recorded:false};
         state=fresh;
       }
+      if(event==='tool.manual_result'&&
+        (!/^[a-f0-9-]{36}$/i.test(manualRunId||'')||
+        state.manualResultRunIds.includes(manualRunId)))return {recorded:false};
       // The context ID is Chrome-owned sender identity; never transmitted.
       if(event==='app.opened'&&
         (typeof contextId!=='string'||!(/^[a-f0-9-]{36}$/i).test(contextId)||
@@ -146,6 +157,8 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
         eventId:newId(),installId:state.installId,event,toolId,
         source,channel,timestamp:new Date(time).toISOString(),
         ...(reason?{reason}:{}),
+        ...(['tool.manual_attempt','tool.manual_result'].includes(event)?
+          {toolType,...(runStatus?{runStatus}:{})}:{}),
         ...(event==='app.inventory_types'?{readState, ...(inventoryTypes?{inventoryTypes}:{}),
           ...(projectionGap!==undefined?{projectionGap}: {})}:{}),
         ...(event==='app.inventory'?{installedTools,
@@ -174,9 +187,27 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
           inventoryCoverageVersion:coverageVersion}:{}),
         ...(event==='app.inventory_types'?{inventoryTypesSignature:signature,
           inventoryTypesReportedAt:time,authorityGap:state.authorityGap||projectionGap===true}:{}),
-        ...(event==='app.opened'?{openedContexts:[...state.openedContexts,contextId].slice(-96)}:{})});
+        ...(event==='app.opened'?{openedContexts:[...state.openedContexts,contextId].slice(-96)}:{}),
+        ...(event==='tool.manual_result'?{manualResultRunIds:[...state.manualResultRunIds,manualRunId].slice(-1024)}:{})});
       return {recorded:true};
     });
+  }
+  // Called only by the trusted SW Host after validating first-party user action
+  // or durable Run/Result authority. The raw task ID is never sent to Worker.
+  async function recordManualTask({event,identity,runId,runStatus}={}){
+    if(revoked||!configured||typeof identity!=='string'||!identity||
+      identity.length>256||!['tool.manual_attempt','tool.manual_result'].includes(event))
+      return {recorded:false};
+    const state=await read();
+    if(!state.consent||revoked)return {recorded:false};
+    const toolId=await hashedToolId(state,'task',identity);
+    return record({event,toolId,source:'host',channel:'extension',toolType:'task',
+      ...(event==='tool.manual_result'?{manualRunId:runId,runStatus}:{})},{
+      authorize:async()=>{
+        const current=await read();
+        return current.consent&&current.installId===state.installId&&
+          current.identitySalt===state.identitySalt;
+      }});
   }
   // These are CUMULATIVE observations of durable Authority, not client-reported
   // invocations. Only a larger count advances a key; IDB history loss yields
@@ -200,10 +231,8 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       }
       // Install-specific digest makes third-party identifiers unlinkable across
       // installations; never send a raw user-controlled program/task ID.
-      const bytes=new Uint8Array(await crypto.subtle.digest('SHA-256',
-        new TextEncoder().encode(state.identitySalt+':'+row.type+':'+row.identity)));
+      const toolId=await hashedToolId(state,row.type,row.identity);
       if(revoked||generation!==revision)return {recorded:false};
-      const toolId='anon-'+[...bytes].slice(0,12).map(b=>b.toString(16).padStart(2,'0')).join('');
       const key=[row.type,toolId,row.day,row.metricType].join('|');
       const previous=state.autoDaily.find(entry=>entry.key===key);
       if(previous&&row.total<=previous.total){
@@ -321,5 +350,5 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
     await api.alarms?.create?.(ANALYTICS_ALARM,{periodInMinutes:5});
     void flush().catch(()=>{});
   };
-  return Object.freeze({status,setConsent,record,recordAutoDaily,reportAuthority,flush,ensureWake,configured});
+  return Object.freeze({status,setConsent,record,recordManualTask,recordAutoDaily,reportAuthority,flush,ensureWake,configured});
 }
