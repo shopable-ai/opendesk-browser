@@ -22,7 +22,12 @@ export async function workflowFixture(options={}) {
   const storage=map=>({get:async keys=>keys===null?Object.fromEntries(map):Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(key=>[key,map.get(key)])),
     set:async values=>{for(const [key,value] of Object.entries(values))map.set(key,structuredClone(value));}});
   const permissions=new Set(options.permission===false?[]:[target.origin+'/*']);
-  const api={storage:{session:storage(session),local:storage(local)},permissions:{
+  const localStorage=storage(local);
+  if(options.savedStorageGate){
+    const originalRead=localStorage.get;
+    localStorage.get=async keys=>{await options.savedStorageGate();return originalRead(keys);};
+  }
+  const api={storage:{session:storage(session),local:localStorage},permissions:{
     request:async request=>{requests.push(structuredClone(request));for(const origin of request.origins||[])permissions.add(origin);return true;},
     contains:async ({origins=[]})=>origins.every(origin=>permissions.has(origin)),
     onRemoved:{addListener:fn=>subscriptions.permission.add(fn),removeListener:fn=>subscriptions.permission.delete(fn)}},

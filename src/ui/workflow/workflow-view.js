@@ -75,7 +75,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     ? SESSION_PREFIX + currentPageTarget.windowId:null;
   let disposed=false,busy=false,runId=null,revision=null,compileToken=0,compiled=null;
   let lastTrustedRun=null; // UI hint only, original Task Verify must validate the real receipt.
-  let touched=false,saveList=[],draftWrites=Promise.resolve();
+  let touched=false,saveList=[],draftWrites=Promise.resolve(),savedHistoryReady=false,historyReadEpoch=0;
   let directVerifiedSerial=null; // Verified fill source is the same byte sequence saved later.
   let phase='idle',lastRun='none',hasError=false,newReviewSignature=null,pendingRunReview=null,pendingAIReview=null;
   let autoExecutionPending=false; // No second Send while a pre-granted, safe AI run is being admitted.
@@ -253,7 +253,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     control('workflow-stop').disabled=Boolean(workflowAgent)||!runId || host.currentRun!==runId;
     control('workflow-stop').hidden=Boolean(workflowAgent);
     control('workflow-open-code').disabled=!compiled;
-    control('workflow-ai-plan').disabled=busy||autoExecutionPending||Boolean(workflowAgent)||Boolean(pendingAIReview)||provider()==='opendesk_cloud'||
+    control('workflow-ai-plan').disabled=!savedHistoryReady||busy||autoExecutionPending||Boolean(workflowAgent)||Boolean(pendingAIReview)||provider()==='opendesk_cloud'||
       (provider()==='local_codex'&&localChecking);
     control('workflow-ai-plan').hidden=phase==='planning'||Boolean(workflowAgent);
     control('workflow-ai-cancel').hidden=phase!=='planning'&&!workflowAgent;
@@ -349,9 +349,12 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     void updateCode();updateButtons();
   }
   async function refreshSaved() {
-    // Immutable revision records in existing extension chrome.storage.local; no second DB.
+    // Until history is read, an empty in-memory cache is NOT evidence that
+    // nothing can be reused. A later, superseded read cannot restore it.
+    const epoch=++historyReadEpoch;
+    savedHistoryReady=false;updateButtons();
     const all=await api.storage.local.get(null);
-    if(disposed)return;
+    if(disposed||epoch!==historyReadEpoch)return;
     saveList=Object.entries(all).filter(([key,value])=>key.startsWith(STORAGE_PREFIX) &&
       ['opendesk.workflow-revision.v1',WORKFLOW_BUNDLE_FORMAT,WORKFLOW_DYNAMIC_BUNDLE_FORMAT].includes(value?.format) &&
       Number.isSafeInteger(value.revision)&&value.revision>0&&value.workflow?.workflowId)
@@ -359,7 +362,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     const prior=control('workflow-saved-list').value;
     ui.patch({savedOptions:saveList.map(item=>({value:item.key,label:item.workflow.title+' · r'+item.revision+' · '+item.workflow.siteOrigin}))});
     if(!saveList.some(item=>item.key===prior))control('workflow-saved-list').value='';
-    updateButtons();
+    savedHistoryReady=true;updateButtons();
   }
   async function loadSaved() {
     const record=saveList.find(item=>item.key===control('workflow-saved-list').value);
@@ -1980,7 +1983,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     // Chrome permission gesture or delay the first disclosure authorization.
     // A potential v2 candidate instead enters the verified read-only route.
     const immediate=selectSavedWorkflowRoute({request:original,target,records:saveList});
-    if(immediate.state==='AI'&&!pendingReuse)return plan(event);
+    if(immediate.state==='AI'&&!pendingReuse&&savedHistoryReady)return plan(event);
     const prior=pendingReuse;
     pendingReuse=null;pendingNaturalPlanning=null;pendingBundleGrant=null;
     let request=original,chosenKey=null;
@@ -1990,7 +1993,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         chosenKey=prior.keys[Number(choice[1])-1];
         if(!chosenKey){status('候选序号无效，请明确选择。',true);return;}
         request=prior.request;
-      }else if(prior.kind==='product'&&!original.startsWith('搜索 ')){
+      }else if(prior.kind==='product'&&!/^(?:请)?(?:搜索|查找|检索)\s+/u.test(original)){
         const name=naturalProductReply(original);
         if(!name){status('请补充完整、明确的商品名称。',true);return;}
         chosenKey=prior.key;
@@ -2012,6 +2015,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     };
     try{
       await refreshSaved();assertLive();
+      if(!savedHistoryReady)throw err('E_WORKFLOW_STALE','保存的工作流列表正在刷新，请重新发送');
       let match=selectSavedWorkflowRoute({request,target,records:saveList});
       if(chosenKey){
         const row=match.state==='AMBIGUOUS'?
@@ -2505,6 +2509,16 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(!disposed)renderObservationApproval();
   };
   api.permissions.onRemoved?.addListener(removedPermissions);
+  // Another sidebar or installed revision can change local history without
+  // this view saving it. Invalidate before any new natural-language dispatch.
+  const savedStorageChanged=(changes,area)=>{
+    if(disposed||area!=='local'||!Object.keys(changes||{}).some(key=>key.startsWith(STORAGE_PREFIX)))return;
+    savedHistoryReady=false;updateButtons();
+    void refreshSaved().catch(error=>{
+      if(!disposed)status('保存的工作流刷新失败：'+format(error),true);
+    });
+  };
+  api.storage.onChanged?.addListener(savedStorageChanged);
   (async()=>{
     await currentPageTarget?.ready;
     const key=session();
@@ -2850,6 +2864,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     localPlanner.dispose();conversationPlanner.dispose();taskConversationPlanner.dispose();void Promise.resolve(observation.dispose()).catch(()=>{});
     unsubscribePage?.();unsubscribeRun?.();unsubscribeNative?.();
     api.permissions.onRemoved?.removeListener(removedPermissions);
+    api.storage.onChanged?.removeListener(savedStorageChanged);
     bindings.clear();ui.dispose();onRunOwner(null);
     // RunHost is owned and disposed by the existing ScriptEditor, not by this view.
   }};

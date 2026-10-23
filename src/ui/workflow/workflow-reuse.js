@@ -3,7 +3,7 @@
 import {WORKFLOW_DYNAMIC_BUNDLE_FORMAT,inferDynamicReplayPlan,
   dynamicReplayIntent,simpleCommerceReplayGoal,replayParameterSchema} from './segment-replay.js';
 
-const missingProduct=/^搜索 ([\p{L}\p{N} _.-]{2,120})，打开商品详情，核对名称和价格$/u;
+const missingProduct=/^(?:请)?(?:搜索|查找|检索) ([\p{L}\p{N} _.-]{2,120})，(?:打开|点开|进入) ?(?:商品详情页|商品详情|详情页)，(?:核对|检查|验证|确认) (?:商品)?名称(?:和|与)(?:价格|售价|标价)$/u;
 const safeQuery=/^[\p{L}\p{N} _.-]{2,120}$/u;
 export const naturalProductReply=value=>
   typeof value==='string'&&/^[\p{L}\p{N}][\p{L}\p{N} _.-]{2,119}$/u.test(value.trim())?

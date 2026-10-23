@@ -84,6 +84,9 @@ const unsafeReplayGoal=/(?:付款|支付|结账|下单|购买|订单|删除|清�
 const negativeReplayGoal=/(?:不要|不需|无需|不得|禁止|别|勿|never|do\s+not|don't)\s*(?:打开|进入|点击|搜索|查找|检索|核对|观察|读取|open|search|click|read|verify)/i;
 const safeSearchQuery=/^[\p{L}\p{N} _.-]{2,120}$/u;
 const safeProductName=/^[\p{L}\p{N}][\p{L}\p{N} _.-]{2,119}$/u;
+// A deliberately bounded set of equivalent, read-only commerce requests.
+// Exact end anchoring rejects extra limits, negations and additional actions.
+const commerceGoalPattern=/^(?:请)?(?:搜索|查找|检索) ([\p{L}\p{N} _.-]{2,120})，(?:打开|点开|进入) ([\p{L}\p{N} _.-]{3,120}) (?:商品详情页|商品详情|详情页)，(?:核对|检查|验证|确认) (?:商品)?名称(?:和|与)(?:价格|售价|标价)$/u;
 
 // Never silently drop other clauses from a saved natural-language goal.
 // A future richer product may explicitly version policy predicates, but v2
@@ -92,7 +95,7 @@ export function simpleCommerceReplayGoal(goal) {
   if(typeof goal!=='string')return null;
   const normalized=goal.trim().replace(/[。.!！]+$/gu,'')
     .replace(/[,，]\s*/gu,'，').replace(/\s+/gu,' ');
-  const match=normalized.match(/^搜索 ([\p{L}\p{N} _.-]{2,120})，打开 ([\p{L}\p{N} _.-]{3,120}) 商品详情，核对名称和价格$/u);
+  const match=normalized.match(commerceGoalPattern);
   return match&&safeSearchQuery.test(match[1])&&safeProductName.test(match[2])?
     {query:match[1],productName:match[2]}:null;
 }

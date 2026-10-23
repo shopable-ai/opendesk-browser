@@ -514,3 +514,15 @@ test('v2 AI-off changes search and explicit product, then runs each saved RunHos
   assert.equal(f.starts.filter(row=>row.source.kind==='saved').length,beforeCorrupt);
   assert.match(f.state().controls['workflow-status'].text,/E_WORKFLOW_HASH/);
 });
+
+test('Send cannot assume no saved match before asynchronous history hydration',async t=>{
+  let release;
+  const historyRead=new Promise(resolve=>{release=resolve;});
+  const f=await workflowFixture({savedStorageGate:()=>historyRead});
+  t.after(()=>f.view.dispose());
+  assert.equal(get(f,'workflow-ai-plan').disabled,true);
+  await f.click('workflow-ai-plan');
+  assert.equal(f.starts.length,0);
+  release();await tick();await tick();
+  assert.equal(get(f,'workflow-ai-plan').disabled,false);
+});

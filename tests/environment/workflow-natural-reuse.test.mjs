@@ -86,3 +86,24 @@ test('multiple matching versions require choice and missing product requires a r
   assert.equal(naturalProductReply('<script>'),null);
   assert.equal(naturalProductReply(''),null);
 });
+
+test('bounded equivalent Chinese read-only goals reuse v2 without silently dropping clauses',async()=>{
+  const saved=await record();
+  for(const goal of [
+    '请搜索 lens，打开 Lens Y 商品详情，核对名称和价格。',
+    '查找 lens，点开 Lens Y 商品详情页，验证商品名称和售价。',
+    '检索 lens，进入 Lens Y 详情页，检查名称与标价。'
+  ]) {
+    const result=route([saved],goal);
+    assert.equal(result.state,'MATCH',goal);
+    assert.deepEqual(result.params,{query:'lens',productName:'Lens Y'});
+  }
+  const missing=route([saved],'查找 lens，进入详情页，检查名称与售价');
+  assert.equal(missing.state,'MISSING_PRODUCT');
+  assert.equal(missing.query,'lens');
+  for(const goal of [
+    '查找 lens，点开 Lens Y 商品详情页，验证商品名称和售价，且不能超过 ¥100。',
+    '查找 lens，点开 Lens Y 商品详情页，但不要验证商品名称和售价。',
+    '查找 lens，点开 Lens Y 商品详情页，验证商品名称和售价并购买。'
+  ])assert.equal(route([saved],goal).state,'AI',goal);
+});
