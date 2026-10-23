@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R4.1</title>
+<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R4.2</title>
 <meta name="description" content="OpenDesk Prompt Shortcuts 独立侧边栏交互原型。仅模拟、不安装、无真实权限请求。">
 <style>
 /* Offline design contract: semantic values mirror src/ui/design-tokens.css (blob 134dd7871da4bf0ee26b6d0135e69e7273fdabdb).
@@ -460,18 +460,40 @@ border:0;background:transparent;color:var(--od-sub)}
 .ps-image-selected-actions .od-icon-button{width:34px;min-width:34px}}
 @media(pointer:coarse){.ps-image-selected-actions .od-icon-button{width:42px;min-width:42px;height:44px;min-height:44px}}
 @media(prefers-reduced-motion:reduce){.ps-image-dropzone{transition:none}}
-/* R4.1: match the real shared Host toolbar, not a second padded icon row. */
-.tool-host-head{gap:var(--space-1)}
+/* R4.2: mirror formal Host compact button geometry; no second toolbar. */
+.tool-host-head{gap:2px;min-height:40px;padding:4px 9px;position:relative;z-index:4}
 .tool-host-head .od-icon-button,.tool-host-head .host-add,
 .sidepanel.is-compact .tool-host-head .od-icon-button,
 .sidepanel.is-compact .tool-host-head .host-add,
 .sidepanel.is-compact .transfer-holder>.od-icon-button{
-  width:34px;min-width:34px;max-width:34px;height:34px;min-height:34px;
-  border-color:transparent;background:transparent;color:var(--od-sub)}
+ width:30px;min-width:30px;max-width:30px;height:30px;min-height:30px;max-height:30px;
+ padding:0;border-color:transparent;background:transparent;color:var(--od-sub)}
 .tool-host-head .host-add{color:var(--od-brand)}
 .tool-host-head .od-icon-button:hover:not(:disabled){border-color:transparent;background:var(--od-muted);color:var(--od-ink)}
 .tool-host-head .od-icon-button[aria-expanded="true"]{border-color:transparent;background:var(--od-muted);color:var(--od-accent-ink)}
-@media(max-width:380px){.tool-host-head{gap:var(--space-1)}}
+.tool-host-head .od-glyph{width:17px;height:17px}
+.preview-more{position:relative;flex:none}
+.preview-more-menu{position:absolute;right:0;top:calc(100% + 4px);z-index:20;
+ width:188px;max-width:calc(100vw - 22px);padding:5px;display:grid;gap:2px;
+ background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-control);
+ box-shadow:0 12px 28px #0002}
+#hostMoreMenu .od-icon-button{display:flex;justify-content:flex-start;align-items:center;gap:9px;
+ width:100%;min-width:0;max-width:none;height:auto;min-height:38px;padding:7px 9px;
+ text-align:left;background:transparent;border-color:transparent;color:var(--od-ink);font-size:12px}
+#hostMoreMenu .od-icon-button .od-glyph{flex:0 0 17px}
+#hostMoreMenu #hostRemove{color:var(--od-negative)}
+#hostMoreMenu .od-icon-button:hover{background:var(--od-muted)}
+.preview-chat-info{display:grid;gap:8px;padding:11px;margin:0 0 10px;font-size:12px;line-height:1.55}
+.preview-chat-info p{margin:0;color:var(--od-sub)}
+.preview-chat-info button{justify-self:end}
+@media(pointer:coarse){
+ .tool-host-head .od-icon-button,.tool-host-head .host-add,
+ .sidepanel.is-compact .tool-host-head .od-icon-button,
+ .sidepanel.is-compact .tool-host-head .host-add,
+ .sidepanel.is-compact .transfer-holder>.od-icon-button{
+  width:36px;min-width:36px;max-width:36px;height:36px;min-height:36px;max-height:36px}
+ #hostMoreMenu .od-icon-button{min-height:44px}
+}
 
 </style>
 </head>
@@ -479,6 +501,7 @@ border:0;background:transparent;color:var(--od-sub)}
 <svg class="od-icon-sprite" width="0" height="0" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
  <symbol id="ps-icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
  <symbol id="ps-icon-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5m7-7-7 7 7 7"/></symbol>
+ <symbol id="ps-icon-chat" viewBox="0 0 24 24"><path d="M4 5h16v12H9l-5 4V5Z"/><path d="M8 10h8M8 13h5"/></symbol>
  <symbol id="ps-icon-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M10 2h4l.5 2.5 2 1 2.4-1 2.3 3-1.7 2v3l1.7 2-2.3 3-2.4-1-2 1L14 21h-4l-.5-2.5-2-1-2.4 1-2.3-3 1.7-2v-3l-1.7-2 2.3-3 2.4 1 2-1Z"/></symbol>
  <symbol id="ps-icon-uninstall" viewBox="0 0 24 24"><path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5"/></symbol>
  <symbol id="ps-icon-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
@@ -502,7 +525,7 @@ border:0;background:transparent;color:var(--od-sub)}
 <header class="demo-header">
  <div class="demo-title"><span class="logo" aria-hidden="true">OD</span><div>
   <h1>Prompt Shortcuts · Side Panel UI</h1>
-  <p>交互预览 R4.1 · 紧凑透明宿主操作栏 · 原功能保留</p></div></div>
+  <p>交互预览 R4.2 · 30px 紧凑标题栏与更多操作 · 原功能保留</p></div></div>
  <div class="demo-controls" aria-label="预览控制">
   <span class="design-badge">模拟预览 · 非真实安装</span>
   <a id="brandAdLabLink" class="od-button od-button--small" href="./brand-ad-lab-r213.html" title="打开 R2.13 四种 ChatGPT 对话状态与双广告区域高保真设计预览（仅 HTML 模拟）">R2.13 广告视觉预览 ↗</a>
@@ -567,11 +590,22 @@ border:0;background:transparent;color:var(--od-sub)}
       <button id="chooseImport" type="button"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true"><use href="#ps-icon-import"/></svg>导入 JSON</button>
            </div><input id="importFile" type="file" accept=".json,application/json" aria-label="选择提示词备份 JSON" hidden>
     </div>
-    <button id="hostSettings" class="od-icon-button" type="button" aria-label="工具设置" title="工具设置" aria-expanded="false"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ps-icon-settings"/></svg></button>
-    <button id="hostRemove" class="od-icon-button" type="button" aria-label="卸载当前工具及本地数据" title="卸载工具及本地数据" aria-controls="uninstallConfirm" aria-expanded="false"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ps-icon-uninstall"/></svg></button>
+    <button id="hostChat" class="od-icon-button" type="button" aria-label="AI 对话（共享入口模拟）" title="AI 对话 · 模拟" aria-controls="previewChatPanel" aria-expanded="false"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true"><use href="#ps-icon-chat"/></svg></button>
+     <div class="preview-more" id="hostMoreControl">
+      <button id="hostMore" class="od-icon-button" type="button" aria-label="更多工具操作" title="更多工具操作" aria-controls="hostMoreMenu" aria-expanded="false" aria-haspopup="true"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true"><use href="#ps-icon-more"/></svg></button>
+      <div id="hostMoreMenu" class="preview-more-menu" role="group" aria-label="更多工具操作" hidden>
+       <button id="hostSettings" class="od-icon-button" type="button" aria-label="工具设置" title="工具设置" aria-expanded="false"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true"><use href="#ps-icon-settings"/></svg><span>工具设置</span></button>
+       <button id="hostRemove" class="od-icon-button" type="button" aria-label="卸载当前工具及本地数据" title="卸载工具及本地数据" aria-controls="uninstallConfirm" aria-expanded="false"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true"><use href="#ps-icon-uninstall"/></svg><span>卸载工具</span></button>
+      </div>
+     </div>
   </div>
   <div class="panel-body" id="panelBody">
    <div id="panelStatus" class="status" role="status" aria-live="polite" hidden></div>
+    <div id="previewChatPanel" class="preview-chat-info od-surface" role="group" aria-label="AI 对话入口模拟" hidden>
+      <strong>共享 AI 对话 · 交互预览</strong>
+      <p>只模拟入口及焦点交互。正式版继续使用框架原有 AI Chat Provider 和权限流程；此处不发送消息。</p>
+      <button id="previewChatClose" class="od-button od-button--small" type="button">关闭</button>
+    </div>
     <section id="uninstallConfirm" class="uninstall-confirm od-surface" aria-label="卸载工具确认" hidden>
      <strong>卸载提示词快捷按钮？</strong>
      <p>卸载会删除本工具保存的提示词和网站规则。建议先导出备份。</p>
@@ -857,7 +891,15 @@ border:0;background:transparent;color:var(--od-sub)}
   return glyphs(body).slice(0,36).join('')||'空提示词';
  }
  function countText(){const enabled=state.items.filter(item=>item.enabled).length;return `${state.items.length} 个 · ${enabled} 个启用`;}
- function closeUninstall(){el('uninstallConfirm').hidden=true;el('hostRemove').setAttribute('aria-expanded','false');}
+ function closeMore(returnFocus=false){
+    el('hostMoreMenu').hidden=true;el('hostMore').setAttribute('aria-expanded','false');
+    if(returnFocus)el('hostMore').focus({preventScroll:true});
+  }
+  function closeChat(returnFocus=false){
+    el('previewChatPanel').hidden=true;el('hostChat').setAttribute('aria-expanded','false');
+    if(returnFocus)el('hostChat').focus({preventScroll:true});
+  }
+  function closeUninstall(){el('uninstallConfirm').hidden=true;el('hostRemove').setAttribute('aria-expanded','false');}
  function openUninstall(){
   if(saving){showFormError('保存正在进行中，请等待保存结果后再卸载。');return;}
   closeTransfer();
@@ -865,7 +907,7 @@ border:0;background:transparent;color:var(--od-sub)}
   el('uninstallConfirm').hidden=!open;el('hostRemove').setAttribute('aria-expanded',String(open));
   el('uninstallDraftWarning').hidden=!(currentView==='form'&&dirty);
   if(open){el('uninstallConfirm').scrollIntoView({block:'nearest'});el('cancelUninstall').focus({preventScroll:true});}
-  else el('hostRemove').focus({preventScroll:true});
+  else el('hostMore').focus({preventScroll:true});
  }
  function uninstallMock(){
   closeUninstall();closeTransfer();discardImport();
@@ -885,7 +927,7 @@ border:0;background:transparent;color:var(--od-sub)}
   closeUninstall();
   currentView=next;
   for(const v of ['index','form','settings','toolList'])el(v+'View').hidden=v!==next;
-  el('hostToolHead').hidden=next==='toolList';
+  el('hostToolHead').hidden=next==='toolList';closeMore();closeChat();
   el('hostToolTitle').textContent=next==='form'?(editId?'编辑提示词':'新建提示词'):next==='settings'?'工具设置':'提示词快捷按钮';
   el('addButton').hidden=next!=='index';
   el('transferControl').hidden=next!=='index';
@@ -1420,10 +1462,25 @@ border:0;background:transparent;color:var(--od-sub)}
   openForm(null,{body:text});notice('已预填选中文字；只需确认正文即可保存，短标签和名称可留空自动生成。');}
  el('mockSelection').addEventListener('click',prepareSelection);el('mockMenuAdd').addEventListener('click',confirmSelection);
  el('addButton').addEventListener('click',()=>openForm());el('cancelForm').addEventListener('click',()=>requestBack('index'));
- el('hostRemove').addEventListener('click',openUninstall);
- el('cancelUninstall').addEventListener('click',()=>{closeUninstall();el('hostRemove').focus({preventScroll:true});});
+ el('hostMore').addEventListener('click',()=>{
+    const open=el('hostMoreMenu').hidden;closeTransfer();closeChat();
+    el('hostMoreMenu').hidden=!open;el('hostMore').setAttribute('aria-expanded',String(open));
+    if(open)el('hostSettings').focus({preventScroll:true});
+  });
+  for(const id of ['hostSettings','hostRemove'])el(id).addEventListener('click',()=>closeMore());
+  document.addEventListener('pointerdown',event=>{
+    if(!el('hostMoreControl').contains(event.target))closeMore();
+  },true);
+  el('hostChat').addEventListener('click',()=>{
+    const open=el('previewChatPanel').hidden;closeMore();closeTransfer();
+    el('previewChatPanel').hidden=!open;el('hostChat').setAttribute('aria-expanded',String(open));
+    if(open)el('previewChatClose').focus({preventScroll:true});
+  });
+  el('previewChatClose').addEventListener('click',()=>closeChat(true));
+  el('hostRemove').addEventListener('click',openUninstall);
+ el('cancelUninstall').addEventListener('click',()=>{closeUninstall();el('hostMore').focus({preventScroll:true});});
  el('confirmUninstall').addEventListener('click',uninstallMock);
- el('hostBack').addEventListener('click',()=>{if(currentView==='settings'){setView('index');renderIndex();el('hostSettings').focus();}else requestBack('host');});el('reopenTool').addEventListener('click',()=>{if(!installed)return;setView('index');renderIndex();renderRail();el('addButton').focus({preventScroll:true});});
+ el('hostBack').addEventListener('click',()=>{if(currentView==='settings'){setView('index');renderIndex();el('hostMore').focus();}else requestBack('host');});el('reopenTool').addEventListener('click',()=>{if(!installed)return;setView('index');renderIndex();renderRail();el('addButton').focus({preventScroll:true});});
  el('verifySaved').addEventListener('click',()=>{
   const target=el('verificationRows');target.replaceChildren();
   if(!state.items.length)target.append(create('p','','当前还没有已保存的提示词。'));
@@ -1560,7 +1617,8 @@ border:0;background:transparent;color:var(--od-sub)}
  for(const [id,mode,label] of [['simulateWriteFail','write','写入失败'],['simulateConflict','conflict','并发冲突'],['simulateUnknown','unknown','结果未知']])el(id).addEventListener('click',()=>{nextSaveFailure=mode;el('failureStatus').textContent='下次保存将模拟：'+label;notice('已设置下次保存模拟：'+label+'，当前草稿会保留。');});
  document.addEventListener('keydown',event=>{
   if(event.key!=='Escape')return;
-  if(!el('uninstallConfirm').hidden){closeUninstall();el('hostRemove').focus({preventScroll:true});event.preventDefault();return;}
+  if(!el('uninstallConfirm').hidden){closeUninstall();el('hostMore').focus({preventScroll:true});event.preventDefault();return;}
+  if(!el('hostMoreMenu').hidden){closeMore(true);event.preventDefault();return;}
   if(!el('transferMenu').hidden){closeTransfer();el('transferButton').focus({preventScroll:true});event.preventDefault();return;}
   if(!el('mockContextMenu').hidden){el('mockContextMenu').hidden=true;el('mockSelection').focus();event.preventDefault();}
   else if(!el('webTooltip').hidden){el('webTooltip').hidden=true;tipButton=null;}
