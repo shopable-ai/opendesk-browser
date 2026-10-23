@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createMyTaskAgent,validateMyTaskAgentProposal} from '../../src/ui/my-task-agent.js';
+import {taskInstructions} from '../../src/ui/conversation/my-task-instructions.js';
 
 const schema={type:'object',properties:{},required:[],additionalProperties:false};
 const installed=()=>({taskId:'search',version:'1.0.0',enabled:true,manifestHash:'pinned',
@@ -46,6 +47,10 @@ function rig(proposals,{hasTask=true}={}){
     get planned(){return planned;}};
 }
 
+test('My task provider receives readable newline-separated instructions',()=>{
+  assert.ok(taskInstructions.includes('\nAllowed action types:'));
+  assert.equal(taskInstructions.includes('\\nAllowed action types:'),false);
+});
 test('strict whitelist prevents fabricated Chrome methods, unexpected fields and multiple writes',()=>{
   assert.throws(()=>validateMyTaskAgentProposal({actions:[{type:'chrome.eval'}]}),
     /不受支持/);
@@ -56,6 +61,10 @@ test('strict whitelist prevents fabricated Chrome methods, unexpected fields and
     {type:'change_schedule',scheduleId:'plan1',operation:'delete'}]}),/最多确认一项/);
   assert.throws(()=>validateMyTaskAgentProposal({actions:[{type:'run_task',params:{}}]}),
     /任务 ID/);
+  assert.deepEqual(validateMyTaskAgentProposal({actions:[{type:'recent_runs',limit:3}]}).actions,
+    [{type:'recent_runs',limit:3}]);
+  assert.throws(()=>validateMyTaskAgentProposal({actions:[{type:'recent_runs',taskId:'invented'}]}),
+    /额外参数/);
   assert.throws(()=>validateMyTaskAgentProposal({actions:[
     {type:'create_schedule',taskId:'search',title:'x',params:{},timezone:'Asia\/Tokyo',
       targetUrl:'https://example.com/',triggerKind:'daily',triggerSpec:{hour:9,minute:0}}]}),
@@ -70,6 +79,19 @@ test('read-only AI turns use Host list and do not enter RunHost',async()=>{
   assert.equal(rigged.agent.getSnapshot().pending,null);
   assert.match(rigged.agent.getSnapshot().rows.map(x=>x.message).join(' '),/已检查 1 个已安装任务/);
   rigged.agent.dispose();
+});
+
+test('recent task query reads Controller run journal without task execution',async()=>{
+  const fixture=rig([{actions:[{type:'recent_runs',limit:3}]},
+    {question:'最近运行的是网页搜索任务'}]);
+  await fixture.agent.send('查看我最近执行的任务',trusted);
+  assert.equal(fixture.executions,0);
+  assert.equal(fixture.agent.getSnapshot().pending,null);
+  const transcript=fixture.agent.getSnapshot().rows.map(row=>row.message).join(' ');
+  assert.match(transcript,/已读取 1 条最近任务的真实运行记录/);
+  assert.match(fixture.agent.getSnapshot().technical,/"taskId":"search"/);
+  assert.match(fixture.agent.getSnapshot().technical,/"runId":"run1"/);
+  fixture.agent.dispose();
 });
 
 test('confirmation is consumed before await and cannot double-run',async()=>{

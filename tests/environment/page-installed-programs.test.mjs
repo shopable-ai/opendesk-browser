@@ -736,3 +736,39 @@ test('installed list reports unexpected native errors without inventing a disabl
   assert.equal(result.installed[0].error.message,'native quota exceeded');
   assert.deepEqual(f.rows(),before);
 });
+
+
+test('R1.12 explicit installed Page click uses the original Native runner and a separate manual receipt',async()=>{
+  const f=fixture(),installed=await f.install();
+  f.message(); // Only the original registered bootstrap establishes the Native marker.
+  const request={programId:'script',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,
+    expectedGeneration:installed.authorization.generation,target:f.target};
+  const response=await f.service.runInstalledPageProgram(request,{documentId:'tool-document'});
+  assert.equal(response.state,'completed');
+  assert.equal(f.executeCalls,1,'one real USER_SCRIPT evaluation, not a second runner');
+  const manual=f.rows().find(row=>row.tag==='page-execution-v1'&&row.receiptId===response.receiptId);
+  assert.equal(manual.source,'manual');
+  assert.equal(manual.manualHostDocumentId,'tool-document');
+  assert.equal(manual.installationId,installed.authorization.installationId);
+  assert.equal(manual.manifestHash,installed.manifestHash);
+  assert.equal(manual.state,'completed');
+  assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed',
+    'Native page_auto remains independently admitted in the same document');
+  const receipts=f.rows().filter(row=>row.tag==='page-execution-v1');
+  assert.equal(receipts.filter(row=>row.source==='page_auto').length,1);
+  assert.equal(receipts.filter(row=>row.source==='manual').length,1);
+});
+
+test('R1.12 manual Page refuses an invalid document or installation grant without execution',async()=>{
+  const f=fixture(),installed=await f.install();f.message();
+  const base={programId:'script',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,
+    expectedGeneration:installed.authorization.generation,target:f.target};
+  await fails(()=>f.service.runInstalledPageProgram({...base,
+    target:{...f.target,expectedUrl:'https://another.example/'}},{documentId:'tool-document'}),'E_DOCUMENT_STALE');
+  await fails(()=>f.service.runInstalledPageProgram({...base,
+    expectedGeneration:installed.authorization.generation+1},{documentId:'tool-document'}),'E_REVISION');
+  assert.equal(f.executeCalls,0,'failed manual attempts must never inject source');
+  assert.equal(f.rows().filter(row=>row.tag==='page-execution-v1').length,0);
+});

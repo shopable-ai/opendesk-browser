@@ -130,7 +130,26 @@ export function createTrustedPromptHost({
   };
   const summaryRow=row=>(row.name||row.label||row.id)+' ['+row.id+']';
   const review=proposal=>{
-    const deleting=proposal.action==='delete',editing=proposal.action==='batch_edit';
+    if(proposal.action==='share_private_body'){
+     const {recipient,items,instruction}=proposal;
+     if(!Array.isArray(items)||!items.length||items.length>12||
+        items.some(row=>typeof row?.id!=='string'||typeof row.body!=='string')||
+        typeof instruction!=='string'||typeof recipient?.provider!=='string'||
+        typeof recipient.endpoint!=='string'||typeof recipient.model!=='string')
+       throw failure('E_PROMPT_REVIEW','私人正文披露信息无效');
+     const where=recipient.provider==='local_codex'?'本机 Codex':
+       recipient.provider+' · '+recipient.endpoint+' · 模型 '+recipient.model;
+     const originals=items.map((row,index)=>(index+1)+'. '+summaryRow(row)+
+       '\n原始正文（完整）：\n'+row.body).join('\n\n');
+     return confirm({
+       button:'允许发送 '+items.length+' 条正文',
+       message:'私人提示词正文发送审阅（本次编辑专用）\n接收方：'+where+
+         '\n编辑要求：'+instruction+'\n\n'+originals+
+         '\n\n确认后才会向上述接收方发送这些原始正文。取消则不发送、不修改存储。',
+       run:async()=>{await live();return true;}
+     });
+   }
+   const deleting=proposal.action==='delete',editing=proposal.action==='batch_edit';
     const details=proposal.changes.map(({before,after},index)=>{
       const title=(index+1)+'. '+summaryRow(before);
       if(deleting)return title; // Deletion confirmation never displays private bodies.

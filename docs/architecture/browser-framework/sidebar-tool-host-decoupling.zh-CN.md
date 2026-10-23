@@ -85,3 +85,17 @@ Browser main 已提交公共 `site-budget.v2` **源码候选**（首提交 `c6c9
 - 受控 DNR 区间由 Host 分配，单个策略只编译已有固定阻断动作；持久化 `desiredPolicyRev/appliedPolicyRev/status`，原生 DNR/Alarm 回读与存储记录分开核对。已停用、撤权、来源改变或卸载只清理自身，未知效果不得报告成功。
 - Stay Focus 与 AdBlock 第一方固定执行器**继续保留**，尚无正式生产所有权切换。公共预算不是任意过滤、共享分组、UI picker、CSS 或新算法的通用特权执行器。
 - **证据状态**：`SOURCE_COMMITTED`；`NODE_PASS`、`BUILD_PASS`、`B0_FROZEN`、`CHROMIUM_NATIVE_PASS`、`MAC_NATIVE_PASS` 在获得与同一候选绑定的实际报告前均为 `NOT_TESTED`。定向测试入口 `tests/environment/managed-site-budget-r14.test.mjs`；GitHub 工作流 `.github/workflows/site-budget-r14.yml` 输出的产物是 B0 **候选**，尚不能宣称已由 Chrome 实际加载。固定 B0 后，才在普通应用项目确定新的验收应用 ID、发行 1.0.0/1.0.1 并执行真实安装升级闭环。
+
+## 8. R1.10 局部源码实施记录（2026-10-24）
+
+> 状态：**v3 应用授权状态链已修复；旧 Focus → v3 完整安装迁移仍 BLOCKED；未进行 Mac Chrome Native 验收。** 本记录只覆盖实际提交，不将测试源码提交解释为测试 PASS。
+
+- 公共 v3 Host 范围记录现在可只读核实当前 `toolId + installEpoch + packageHash` 是否拥有非空、结构合法的网站审阅记录；错误、伪造代际、被撤权、错包 Hash 全部返回否，不允许用 Chrome 全局 `<all_urls>` 替代。源码：`src/framework/host/managed-site-reviewed-scopes.js`。
+- 公共 v3 Driver 的 `getStatus/setPolicy` 回执加入 `siteReviewActive`：只有当前真实安装租约有效、所需网站范围与 Chrome 访问范围核实通过且仍存在当前应用授权记录时才为 true。实际 DNR 生效仍由原有 `appliedPolicyRev/status` 和原生读回独立判定。源码：`src/platform/chrome/browser-managed-site-budget.js`。
+- 应用 `FocusController` 不再从已封存的旧 `authorizedHash` 推断 v3 用户授权，使用 Driver 回执；后续变更显式不再把旧授权 Hash/Epoch 写入 `sealedModel`。源码：`examples/sidebar-tools/stay-focus/trusted/focus-controller.js`。
+- 增加三个定向测试文件的断言，覆盖错误授权、撤权与 Epoch 更换、用户 STOP 后授权状态，以及应用封存模型不重复携带旧授权。**当前仅确认测试已提交，未取得这些测试在相同候选上的终态 PASS**：`tests/environment/managed-site-v3-scope-r18.test.mjs`、`tests/environment/managed-site-budget-r14.test.mjs`、`tests/environment/stay-focus-app-controller-r17.test.mjs`。
+- 相关提交：`c97be9c`、`bf3ed32`、`0ab701b`、`708dedd`、`0514c97`、`cb30788`。由于并行 Agent 可能持续更新 `main`，这些提交是本条证据，不是固定最终 HEAD。
+
+**尚未完成，不得冒称本轮已修复：** 旧 `focus.control → browser.siteBudget` Installer 安全迁移事务、隔离迁移算法入口、原生 DNR/Alarm 安全移交、正式 v3 包和旧 Service 退休、Browser 编译图去 Focus 私有依赖、可信 Ed25519 生产发行公钥/Marketplace 来源、B0 冻结及仅更换独立 Focus 包的 Chrome 原生行为差异证明。保留 `E_MIGRATION_REQUIRED` 安全拦截和旧 Service，不得为交付表面解耦而先删除。
+
+**下一处 P0 实施点：** 在同一 Installer 操作锁与事务日志内，取得有效旧安装的原始 `FOCUS_STORE`、旧包 Hash、撤权 Epoch、来源及原生规则快照，在既有隔离 Sandbox 中运行应用自有 `migrateFocusState`，用公共 v3 Schema 验证策略、用量、Clock、Checkpoint、Notices 并构建幂等升级检查点；完成真实新账本与 DNR/Alarm 交接及来源读回后才提交成功并退休旧服务。期间不在特权安装器执行候选应用 JS，不新增第二套 Runner。

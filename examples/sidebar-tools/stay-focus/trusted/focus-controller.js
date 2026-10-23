@@ -25,7 +25,10 @@ function reflect(receipt,now){
     checkpoint:null};
   if(day!==original.day)state.notices={day,revision:original.notices.revision,budgetMs:null,thresholds:[]};
   const summary=focusSummary(state,now,FOCUS_CATALOG,FOCUS_DEFAULT_MINUTES);
-  return {model:state,summary:{...summary,permissions:receipt.permissions,
+  return {model:state,summary:{...summary,
+    // The sealed product model deliberately drops legacy hash/epoch. Only the
+    // authenticated public Driver may attest a current app-level site review.
+    authorized:receipt.siteReviewActive===true,permissions:receipt.permissions,
     ruleReceipt:{verified:receipt.status==='applied'&&
       receipt.appliedPolicyRev===receipt.desiredPolicyRev},
     tabs:{moved:0,failed:0}},
@@ -63,7 +66,8 @@ export function createFocusController({request,siteBudget,now=Date.now}={}){
     const desiredPolicy=normalizeManagedSiteV3Policy(compileFocusPolicy(model));
     // Native metering has ONE authority: the Driver ledger. Preserve the v1
     // model envelope for legacy migration but never seal a second usage copy.
-    const sealedModel={...model,usage:{},checkpoint:null,clockHighWater:0};
+    const sealedModel={...model,usage:{},checkpoint:null,clockHighWater:0,
+      authorizedHash:null,authorizedEpoch:null};
     const modelRef=await hashModel(sealedModel);
     try{
       const receipt=await siteBudget.setPolicy({expectedRev:current.revision,

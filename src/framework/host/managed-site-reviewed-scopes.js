@@ -34,6 +34,14 @@ function validated(raw){
 }
 const grants=(record,installEpoch,packageHash)=>
   record?.installEpoch===installEpoch&&record.packageHash===packageHash?record.sites:[];
+// A site review is retained across user STOP, but never across an unverified
+// package digest or revocation epoch. An empty record is not authorization.
+export function hasReviewedManagedSiteScopes(raw,id,installEpoch,packageHash){
+  if(!toolId(id)||!validEpoch(installEpoch)||installEpoch===null||
+     !packageDigest(packageHash))return false;
+  try{return grants(validated(raw)[id],installEpoch,packageHash).length>0;}
+  catch{return false;}
+}
 function covers(granted,site){
   return granted.some(entry=>
     (entry.host===site.host&&(entry.subdomains||!site.subdomains))||

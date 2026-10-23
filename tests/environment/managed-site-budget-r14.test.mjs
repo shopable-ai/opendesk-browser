@@ -338,6 +338,7 @@ test('v3 suspended app grant cannot install DNR; reviewed epoch rebind resumes u
   const suspended=f.local.get(MANAGED_SITE_BUDGET_STORE)[id];
   assert.equal(suspended.policy.enabled,true,'review gap is not the user STOP intent');
   assert.equal(suspended.status,'inactive','never report native effects without app-site grant');
+  assert.equal((await f.service.dispatch(await f.msg('getStatus'),f.sender)).siteReviewActive,false);
   assert.equal(suspended.desiredPolicyRev,2,'native reconcile must not advance app policy revision');
   assert.deepEqual(f.rules,[],'Chrome extension-wide origins cannot substitute for app review');
   const review=epoch=>f.local.set(MANAGED_SITE_REVIEWED_SCOPE_STORE,{
@@ -350,11 +351,13 @@ test('v3 suspended app grant cannot install DNR; reviewed epoch rebind resumes u
   assert.equal(f.rules[0].action.redirect.extensionPath,
     '/managed-site/blocked-always.html');
   assert.equal(f.local.get(MANAGED_SITE_BUDGET_STORE)[id].status,'applied');
+  assert.equal((await f.service.dispatch(await f.msg('getStatus'),f.sender)).siteReviewActive,true);
   f.local.set(TOOL_REVOCATION_EPOCHS_STORE,{[id]:'epoch-b'});
   await f.service.run({boot:true});
   assert.equal(f.local.get(MANAGED_SITE_BUDGET_STORE)[id].policy.enabled,true);
   assert.equal(f.local.get(MANAGED_SITE_BUDGET_STORE)[id].desiredPolicyRev,2);
   assert.deepEqual(f.rules,[],'previous generation review never leaks native DNR');
+  assert.equal((await f.service.dispatch(await f.msg('getStatus'),f.sender)).siteReviewActive,false);
   review('epoch-b');
   await f.service.run({boot:true});
   assert.equal(f.rules.length,1,'trusted reviewed generation may rebind safely');

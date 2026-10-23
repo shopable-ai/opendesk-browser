@@ -27,6 +27,7 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
     patchDeveloperField(view,button('install'),{disabled:busy||!row||!candidateAccess||!['Verified','Available'].includes(row.stage)||
       install?.manifestHash===row.manifestHash&&!needsConfirmation});
     patchDeveloperField(view,button('install'),{textContent:needsConfirmation?'重新确认安装':install&&row?.authorizationChange?.requiresConfirmation?'确认新增权限并升级':install?'安装此版本':'安装自动运行'});
+    patchDeveloperField(view,button('run'),{disabled:busy||!install||install.manifestHash!==row?.manifestHash});
     patchDeveloperField(view,button('toggle'),{disabled:busy||!install});
     patchDeveloperField(view,button('toggle'),{textContent:install?.enabled?'停用自动运行':'启用自动运行'});
     patchDeveloperField(view,button('uninstall'),{disabled:busy||!install});
@@ -111,6 +112,38 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
       if(result.nativeState!=='registered')throw result.error||new Error('原生注册尚未确认');
       return '已安装并授权；以后进入匹配网页自动运行。当前网页不会自动重放。';
     })();
+  });
+  // A real trusted click is the only manual Page activity emitter. The Worker
+  // authenticates the persisted installation/receipt before queuing telemetry.
+  const reportManualPage=(kind,programId,receiptId)=>{
+    try{
+      void Promise.resolve(api.runtime?.sendMessage?.({
+        protocol:'opendesk.analytics.v1',kind,
+        event:kind==='event.manual_attempt'?'tool.manual_attempt':'tool.manual_result',
+        toolId:'opendesk',toolType:'page',toolIdentity:programId,channel:'extension',
+        ...(receiptId?{runId:receiptId}:{})
+      })).catch(()=>{});
+    }catch{/* Statistics never interrupt a Page execution. */}
+  };
+  operation('run',async row=>{
+    const install=row?.installed;
+    if(!install||install.manifestHash!==row.manifestHash)
+      throw {code:'E_REVISION',message:'请选择当前已安装的固定版本'};
+    reportManualPage('event.manual_attempt',row.programId);
+    const captured=currentPageTarget.capture();
+    await currentPageTarget.revalidate(captured);
+    const outcome=await client.request('runInstalledPageProgram',{
+      programId:row.programId,manifestHash:install.manifestHash,
+      installationId:install.authorization?.installationId,
+      expectedGeneration:install.authorization?.generation,
+      target:{tabId:captured.tabId,frameId:0,documentId:captured.documentId,
+        expectedUrl:captured.url,expectedWindowId:captured.windowId}
+    });
+    if(outcome?.receiptId&&['completed','failed','outcome-unknown'].includes(outcome.state))
+      reportManualPage('event.manual_result',row.programId,outcome.receiptId);
+    if(outcome?.error)throw outcome.error;
+    if(outcome?.state!=='completed')throw {code:'E_EFFECT_UNKNOWN',message:'Page 手动执行结果未知，禁止自动重试'};
+    return '当前网页已完成一次手动运行；执行完成不代表独立业务效果已验证。';
   });
   operation('toggle',async row=>{
     if(!row?.installed)throw new Error('尚未安装');const enabled=!row.installed.enabled;

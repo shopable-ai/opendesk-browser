@@ -80,6 +80,9 @@ test('public v3 Controller issues sealed finite commits, no focus RPC',async()=>
   assert.equal(calls[0].expectedRev,0);
   assert.equal(calls[0].desiredPolicy.sites[0].pool,'g:entertainment');
   assert.equal(calls[0].sealedModel.sites.length,1);
+  assert.equal(calls[0].sealedModel.authorizedHash,null,
+    'legacy authorization hash must never re-enter v3 sealed model');
+  assert.equal(calls[0].sealedModel.authorizedEpoch,null);
   assert.equal((await controller.readStatus()).sites.length,1);
 });
 test('known legacy permission failure preserves old installed tool path',async()=>{
@@ -92,4 +95,26 @@ test('known legacy permission failure preserves old installed tool path',async()
   assert.deepEqual(methods,['focus.status']);
   await controller.operate('focus.site.remove',{host:'example.com'});
   assert.deepEqual(methods,['focus.status','focus.status','focus.site.remove']);
+});
+
+test('v3 Focus UI authorization follows only the authenticated Driver site review',async()=>{
+  const model=emptyFocus(at);
+  model.authorizedHash='a'.repeat(64);
+  model.authorizedEpoch='legacy-epoch';
+  const receipt={...initial(),modelRef:'a'.repeat(64),sealedModel:model,
+    siteReviewActive:false};
+  const controller=createFocusController({
+    request:async()=>{throw Error('legacy private operation is not allowed')},
+    siteBudget:{getStatus:async()=>structuredClone(receipt),
+      setPolicy:async()=>{throw Error('not required')}},
+    now:()=>at
+  });
+  assert.equal((await controller.readStatus()).authorized,false,
+    'a sealed legacy hash alone is not an application review');
+  receipt.siteReviewActive=true;
+  assert.equal((await controller.readStatus()).authorized,true,
+    'the Driver may preserve a genuine reviewed grant after user STOP');
+  receipt.siteReviewActive=false;
+  assert.equal((await controller.readStatus()).authorized,false,
+    'revocation or epoch mismatch must not be presented as authorized');
 });

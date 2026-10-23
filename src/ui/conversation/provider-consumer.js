@@ -92,6 +92,13 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
     // Trusted consumers can retire pending business reviews when a different
     // model/endpoint/key replaces the context that generated their proposal.
     providerGeneration:()=>providers.configuration().generation,
+    // Disclosure-only metadata: never expose Provider API Key or Native Lease.
+    recipient(){
+      const {source,generation,settings}=providers.configuration();
+      return Object.freeze({provider:source,generation,
+        endpoint:source==='local_codex'?'本机 OpenDesk Native Host':settings.endpoint,
+        model:source==='local_codex'?'本机 Codex':settings.model});
+    },
     subscribeProviderChanges:listener=>providers.subscribeSettings?.(listener)??(()=>{}),
     source(){const selected=providers.configuration().source;return {
       provider:selected,label:selected==='local_codex'?'Codex':

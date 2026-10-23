@@ -21,7 +21,8 @@ function libraryFixture(initial=model.defaults()){
     value=structuredClone(next);writes++;return {saved:true,etag:hash(value)};
   };
   const run=(action,options={})=>executePromptPlan({
-    plan:{action},model,read,write,review:async()=>true,...options
+    plan:{action},model,read,write,review:async()=>true,
+    reviewPrivateSend:async()=>true,...options
   });
   return {read,write,run,get value(){return value;},get writes(){return writes;}};
 }
@@ -127,8 +128,12 @@ function hostFixture({proposal={action:{type:'create',body:'给我一份准确�
     async remove(key){chromeStore.delete(key);}
   }}};
   let currentProposal=proposal,currentEditResult=editResult,provider='fixture-provider',
-    modelAuthorized=true,onModelRequest=null,onRead=null,readCount=0;
+    modelAuthorized=true,onModelRequest=null,onRead=null,onConfirm=null,
+     providerGeneration=1,readCount=0;
   const conversation={source:()=>({provider}),
+     providerGeneration:()=>providerGeneration,
+     recipient:()=>({provider,generation:providerGeneration,
+       endpoint:'https://fixture.ai.example/v1/chat/completions',model:'fixture-model'}),
     request:async args=>{
       if(!modelAuthorized)throw failure('E_MODEL_GRANT_REVOKED');
       modelCalls.push({scope:args.scope,originalBody:args.context?.originalBody,
@@ -154,7 +159,7 @@ function hostFixture({proposal={action:{type:'create',body:'给我一份准确�
     conversation,assertIdentity:async()=>{if(revoked)throw failure('E_TOOL_CHANGED');},
     frameSource:()=>source,guardBlocked:()=>false,dispatch,etagFor:async value=>hash(value),
     lockManager,
-    confirm:async args=>{confirms.push(args.message);return allowReview;},
+    confirm:async args=>{confirms.push(args.message);await onConfirm?.(args);return allowReview;},
     sendToFrame:message=>{
       messages.push(message);
       if(message.kind==='ai-guard'){
@@ -169,9 +174,10 @@ function hostFixture({proposal={action:{type:'create',body:'给我一份准确�
     get commits(){return commits;},revoke:()=>{revoked=true;},
     setProposal:next=>{currentProposal=next;},
     setEditResult:next=>{currentEditResult=next;},
-    setProvider:next=>{provider=next;},revokeModel:()=>{modelAuthorized=false;},
+    setProvider:next=>{provider=next;providerGeneration++;},
+     bumpRecipient:()=>{providerGeneration++;},revokeModel:()=>{modelAuthorized=false;},
     onModelRequest:callback=>{onModelRequest=callback;},
-    onRead:callback=>{onRead=callback;}};
+    onRead:callback=>{onRead=callback;},onConfirm:callback=>{onConfirm=callback;}};
 }
 test('R1.17 Host refuses writes without real or injected Web Locks',async()=>{
   const f=hostFixture({lockManager:null});
@@ -336,14 +342,16 @@ test('R1.4 Host verifies all seven Prompt business categories with readback and 
   f.setEditResult('请专业翻译：保留所有 Markdown 标题和表格。');
   const beforeSingle=f.confirms.length;
   await run({type:'edit',target:thirdId,instruction:'更专业，保留格式'});
-  assert.equal(f.confirms.length-beforeSingle,0,'single edit has no extra approval');
+  assert.equal(f.confirms.length-beforeSingle,1,'single edit reviews private body');
+   assert.match(f.confirms[beforeSingle],/接收方：.*fixture.ai.example/);
   assert.match(f.library.value.items[1].body,/Markdown/);
   const oldOthers=f.library.value.items.filter(row=>row.name.startsWith('测试翻译')).length;
   const beforeBatch=f.confirms.length;
   f.setEditResult('简洁版专业说明：保留 Markdown');
   await run({type:'batch_edit',query:'测试翻译',instruction:'缩短为简洁版本'});
-  assert.equal(f.confirms.length-beforeBatch,1,'one batch change review, no extra body approval');
-  assert.match(f.confirms[beforeBatch],/修改前：[\s\S]*修改后：/);
+  assert.equal(f.confirms.length-beforeBatch,2,'batch gets one disclosure and one write review');
+   assert.match(f.confirms[beforeBatch],/接收方：[\s\S]*原始正文（完整）/);
+  assert.match(f.confirms[beforeBatch+1],/修改前：[\s\S]*修改后：/);
   assert.equal(f.modelCalls.filter(row=>row.scope==='prompt-edit').length,3,
     'one selected original body per edit, including two batch records');
   assert.equal(f.library.value.items.filter(row=>row.name.startsWith('测试翻译')).length,oldOthers);
@@ -360,7 +368,7 @@ test('R1.4 Host verifies all seven Prompt business categories with readback and 
   f.host.dispose();
 });
 
-test('R1.17 single and consecutive edits send selected bodies without extra authorization',async()=>{
+test('R2.2.2 consecutive edits disclose selected bodies and recipient',async()=>{
   const base=model.defaults(),first=model.draft({
     body:'法语旧版正文：保留段落。',name:'R17 法语翻译测试'
   }),second=model.draft({body:'第二条原始私人正文',name:'另一条测试'});
@@ -368,13 +376,15 @@ test('R1.17 single and consecutive edits send selected bodies without extra auth
     proposal:{action:{type:'edit',target:first.id,instruction:'保留段落和编号'}},
     editResult:'法语新版正文：\n1. 保留段落。\n2. 保留编号。'});
   await f.host.request({request:'修改 R17 法语翻译测试',event:{isTrusted:true}});
-  assert.equal(f.confirms.length,0);assert.equal(f.commits,1);
+  assert.equal(f.confirms.length,1);assert.equal(f.commits,1);
+   assert.match(f.confirms[0],/原始正文（完整）：\n法语旧版正文：保留段落。/);
   assert.match(f.library.value.items.find(item=>item.id===first.id).body,/法语新版正文/);
   assert.equal(f.library.value.items.find(item=>item.id===second.id).body,second.body);
   f.setProposal({action:{type:'edit',target:second.id,instruction:'按需求优化'}});
   f.setEditResult('第二条修改后正文');
   await f.host.request({request:'继续修改另一条测试',event:{isTrusted:true}});
-  assert.equal(f.confirms.length,0);assert.equal(f.commits,2);
+  assert.equal(f.confirms.length,2);assert.equal(f.commits,2);
+   assert.match(f.confirms[1],/原始正文（完整）：\n第二条原始私人正文/);
   assert.deepEqual(f.modelCalls.filter(row=>row.scope==='prompt-edit').map(row=>row.originalBody),
     [first.body,second.body],'each model edit receives only its selected original body');
   assert.equal(f.modelCalls.filter(row=>row.scope==='prompt-edit').every(row=>row.continuation),true);
@@ -384,6 +394,27 @@ test('R1.17 single and consecutive edits send selected bodies without extra auth
   f.host.dispose();
 });
 
+test('R2.2.2 declined private-body review never transmits text or writes',async()=>{
+  const row=model.draft({body:'不允许外发的秘密正文\n含完整编号 1.',name:'秘密'});
+  const f=hostFixture({initial:{...model.defaults(),items:[row]},allowReview:false,
+    proposal:{action:{type:'edit',target:row.id,instruction:'只改格式'}}});
+  await assert.rejects(f.host.request({request:'修改秘密',event:{isTrusted:true}}),{code:'E_CANCELLED'});
+  assert.equal(f.modelCalls.filter(call=>call.scope==='prompt-edit').length,0);
+  assert.equal(f.commits,0);assert.equal(f.confirms.length,1);
+  assert.match(f.confirms[0],/https:\/\/fixture\.ai\.example\/v1\/chat\/completions/);
+  assert.match(f.confirms[0],/不允许外发的秘密正文\n含完整编号 1\./);
+  f.host.dispose();
+});
+test('R2.2.2 new recipient generation invalidates already reviewed private bodies',async()=>{
+  const row=model.draft({body:'不应传给新模型',name:'接收方版本'});
+  const f=hostFixture({initial:{...model.defaults(),items:[row]},
+    proposal:{action:{type:'edit',target:row.id,instruction:'保持格式'}}});
+  f.onConfirm(()=>f.bumpRecipient());
+  await assert.rejects(f.host.request({request:'编辑',event:{isTrusted:true}}),{code:'E_MODEL_GRANT_REVOKED'});
+  assert.equal(f.modelCalls.filter(call=>call.scope==='prompt-edit').length,0);
+  assert.equal(f.commits,0);
+  f.host.dispose();
+});
 test('R1.17 untrusted Send and ambiguous edit never transmit private bodies',async()=>{
   const base=model.defaults(),first=model.draft({body:'秘密甲',name:'法语翻译测试甲'}),
     second=model.draft({body:'秘密乙',name:'法语翻译测试乙'});
@@ -433,7 +464,7 @@ test('R1.17 ETag changed before sending prevents original-body export and Host w
   await assert.rejects(f.host.request({request:'编辑 ETag 校验',event:{isTrusted:true}}),
     {code:'E_STORAGE_CONFLICT'});
   assert.equal(f.modelCalls.filter(call=>call.scope==='prompt-edit').length,0);
-  assert.equal(f.commits,0);assert.equal(f.confirms.length,0);
+  assert.equal(f.commits,0);assert.equal(f.confirms.length,1,'ETag raced after review, no body sent');
   assert.equal(f.library.value.items.length,2);
   f.host.dispose();
 });

@@ -71,6 +71,12 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
       else if(row.paused===false)types.scheduler.active++;
       else types.scheduler.unknown++;
     }else if(row.tag==='page-execution-v1'){
+      // Explicit user attempts have their own low-frequency, consented events;
+      // never transform one into automated daily activity or active DAU.
+      if(row.source==='manual')continue;
+      if(row.source!==undefined&&row.source!=='page_auto'){
+        projectionGap=true;continue;
+      }
       const day=asDate(row.createdAt);
       // Historical execution before this installation's effective opt-in is
       // NEVER backfilled merely because a user granted permission today.
@@ -184,8 +190,21 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
     const request=cloudById.get(run.cloudRequestId);
     // Cloud initiation is an AUTOMATIC source only after durable Cloud
     // request -> Run binding. The user's manual/AI-run Task stays separate.
+    // The original Cloud Authority commits all of these facts atomically
+    // at bind(): task installation, exact source, request, Run and Result.
+    // A naked requestId/RunId pair is not an authentic cloud execution.
+    const task=request?.task,ref=request?.runRef,grant=run.installedTaskAuthorization;
     if(!request||request.runId!==run.runId||
-       request.requestId!==run.cloudRequestId){
+       request.requestId!==run.cloudRequestId||
+       request.storageKey!==run.cloudRequestKey||
+       !ref||ref.runId!==run.runId||ref.resultId!==run.resultId||
+       ref.requestId!==request.requestId||ref.grantId!==request.grantId||
+       ref.sourceHash!==run.contentHash||ref.manifestHash!==grant?.manifestHash||
+       !task||task.taskId!==grant?.taskId||
+       task.manifestHash!==grant?.manifestHash||
+       task.contentHash!==run.contentHash||
+       task.installationId!==grant?.authorization?.installationId||
+       task.generation!==grant?.authorization?.generation){
       projectionGap=true;continue;
     }
     includeRun(run,run.runId,'cloud');

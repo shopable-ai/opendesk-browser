@@ -194,11 +194,18 @@ test('cloud bound Run/Result is automatic, manual Run is not; source totals cann
   const {api,storage,stores}=authorityDB();
   const add=(source,state='completed')=>{
     const runId=randomUUID(),resultId=randomUUID(),requestId='cloud:'+randomUUID();
+    const sourceHash='a'.repeat(64),manifestHash='b'.repeat(64),
+      installationId=randomUUID(),generation=1,grantId='grant-test';
+    const grant={taskId:'task-1',manifestHash,
+      authorization:{installationId,generation}};
     const run={tag:'controller-run',namespace,runId,resultId,createdAt:NOW,
-      state,installedTaskAuthorization:{taskId:'task-1'}};
+      state,contentHash:sourceHash,installedTaskAuthorization:grant};
     if(source==='cloud'){
       run.cloudRequestId=requestId;run.cloudRequestKey='cloud-key:'+requestId;
-      stores.frameworkKV.push({tag:'cloud-request-v1',namespace,requestId,runId});
+      stores.frameworkKV.push({tag:'cloud-request-v1',namespace,requestId,runId,
+        storageKey:run.cloudRequestKey,grantId,
+        task:{taskId:'task-1',manifestHash,contentHash:sourceHash,installationId,generation},
+        runRef:{runId,resultId,requestId,sourceHash,manifestHash,grantId}});
     }else if(source==='scheduler'){
       run.scheduledFireId=requestId;
       stores.frameworkKV.push({tag:'schedule-fire-v1',namespace,fireId:requestId,runId,resultId});
@@ -236,4 +243,48 @@ test('Sidebar installation/enable is original authority; corrupt readback is fai
   sidebarTools.push({id:'a'}, {id:'a'});
   await assert.rejects(readAnalyticsAuthorityProjection({storage,api,now:()=>NOW}),
     /Sidebar installation authority/);
+});
+
+
+test('R1.12 manual Page receipt stays out of automatic UTC totals, including same-document automatic boot',async()=>{
+  const {storage,api,stores}=authorityDB();
+  stores.frameworkKV.push({tag:'page-execution-v1',namespace,programId:pageId,
+    receiptId:randomUUID(),createdAt:NOW,state:'completed',dispatchedAt:NOW,
+    source:'manual',manualHostDocumentId:'real-host'});
+  stores.frameworkKV.push({tag:'page-execution-v1',namespace,programId:pageId,
+    receiptId:randomUUID(),createdAt:NOW,state:'completed',dispatchedAt:NOW,
+    source:'page_auto'});
+  const value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
+  assert.equal(daily(value,'page','attempted')?.total,1);
+  assert.equal(daily(value,'page','completed')?.total,1);
+  assert.deepEqual(daily(value,'page','completed')?.sourceTotals,{page_auto:1});
+  assert.equal(value.projectionGap,false);
+});
+
+test('R1.12 Cloud forged installation/version/Result mapping is not counted',async()=>{
+  const {storage,api,stores}=authorityDB();
+  const runId=randomUUID(),resultId=randomUUID(),requestId='cloud:'+randomUUID(),
+    sourceHash='a'.repeat(64),manifestHash='b'.repeat(64),installationId=randomUUID(),grantId='g1';
+  const run={tag:'controller-run',namespace,runId,resultId,state:'completed',createdAt:NOW,
+    contentHash:sourceHash,cloudRequestId:requestId,cloudRequestKey:'key:'+requestId,
+    installedTaskAuthorization:{taskId:'task-1',manifestHash,
+      authorization:{installationId,generation:1}}};
+  stores.runs.push(run);
+  stores.results.push({tag:'controller-result',namespace,runId,resultId,state:'completed',outcome:{ok:true}});
+  const request={tag:'cloud-request-v1',namespace,requestId,runId,
+    storageKey:run.cloudRequestKey,grantId,
+    task:{taskId:'task-1',manifestHash,contentHash:sourceHash,installationId,generation:1},
+    runRef:{runId,resultId,requestId,sourceHash,manifestHash,grantId}};
+  stores.frameworkKV.push(request);
+  let value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
+  assert.equal(daily(value,'task','completed')?.total,1);
+  request.runRef.resultId=randomUUID();
+  value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
+  assert.equal(daily(value,'task','completed'),undefined);
+  assert.equal(value.projectionGap,true);
+  request.runRef.resultId=resultId;
+  request.task.generation=2;
+  value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
+  assert.equal(daily(value,'task','completed'),undefined);
+  assert.equal(value.projectionGap,true);
 });

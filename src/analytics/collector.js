@@ -205,14 +205,15 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
   }
   // Called only by the trusted SW Host after validating first-party user action
   // or durable Run/Result authority. The raw task ID is never sent to Worker.
-  async function recordManualTask({event,identity,runId,runStatus}={}){
+  async function recordManualTask({event,identity,runId,runStatus,toolType='task'}={}){
     if(revoked||!configured||typeof identity!=='string'||!identity||
-      identity.length>256||!['tool.manual_attempt','tool.manual_result'].includes(event))
+      identity.length>256||!['task','page'].includes(toolType)||
+      !['tool.manual_attempt','tool.manual_result'].includes(event))
       return {recorded:false};
     const state=await read();
     if(!state.consent||revoked)return {recorded:false};
-    const toolId=await hashedToolId(state,'task',identity);
-    return record({event,toolId,source:'host',channel:'extension',toolType:'task',
+    const toolId=await hashedToolId(state,toolType,identity);
+    return record({event,toolId,source:'host',channel:'extension',toolType,
       ...(event==='tool.manual_result'?{manualRunId:runId,runStatus}:{})},{
       authorize:async()=>{
         const current=await read();
