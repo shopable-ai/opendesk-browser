@@ -2007,8 +2007,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       resolved.revision!==1||
       resolved.scriptId!=='task:'+candidate.taskId+':'+candidate.expected.version||
       resolved.manifest?.program?.revision!==candidate.revision||
-      resolved.manifest?.program?.sourceHash!==candidate.sourceHash)
-      throw err('E_REVISION','已安装任务身份、Manifest 或冻结源码不一致');
+      resolved.manifest?.program?.sourceHash!==candidate.sourceHash||
+      JSON.stringify(resolved.manifest?.intent??null)!==JSON.stringify(candidate.intent??null))
+      throw err('E_REVISION','已安装任务身份、Manifest、意图或冻结源码不一致');
     return resolved;
   }
 
@@ -2111,6 +2112,43 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         appendChat('执行结果','已从当前页面独立读回“结果：'+keyword+'”及“提交次数：1”。');
         status('已安装任务复用成功；固定源码、RunHost 回执及页面结果已核验。');
         return {ok:true,runId:completed.runId,effect:{kind:'demo-search',keyword,submitCount:1}};
+      }
+      if(candidate.intent?.resultTexts?.length){
+        // For newer, separately verified Task versions the immutable Manifest
+        // can state exact post-run DOM facts with user-bound parameters. This
+        // is a second RunHost-backed read, not the Task's own returned value.
+        const after=await currentPageTarget.refresh();
+        if(!sameTarget(captured,after)||installedStopRequested)
+          throw err('E_DOCUMENT_STALE','任务结束后网页变化或收到停止请求，结果未知');
+        if(!await api.permissions.contains({origins:[permissionPattern(after.url)]}))
+          throw err('E_PERMISSION','网页授权已撤销，拒绝读取业务结果');
+        const expectedTexts=candidate.intent.resultTexts.map(template=>
+          template.replace(/\{([A-Za-z][A-Za-z0-9_]{0,39})\}/gu,(_,name)=>{
+            if(!Object.hasOwn(candidate.params,name))
+              throw err('E_PARAMS','缺少业务结果核验使用的动态参数');
+            return String(candidate.params[name]);
+          }));
+        if(expectedTexts.some(value=>value.length>300))
+          throw err('E_WORKFLOW_EVIDENCE','动态结果核验文本过长，拒绝猜测');
+        const receipt=await observation.observe(after,{
+          requestId:'installed-intent-'+crypto.randomUUID(),
+          request:expectedTexts.join('；')});
+        if(installedStopRequested)
+          throw err('E_OUTCOME_UNKNOWN','独立读取结果时收到停止请求，不报告成功');
+        if(receipt?.summary?.documentId!==after.documentId)
+          throw err('E_WORKFLOW_EVIDENCE','页面结果来自错误的 Document');
+        const visible=(receipt.summary.nodes||[])
+          .filter(row=>row?.state?.visible===true)
+          .flatMap(row=>[row.text,row.name])
+          .filter(value=>typeof value==='string').map(value=>value.trim());
+        if(!expectedTexts.every(value=>visible.includes(value)))
+          throw err('E_WORKFLOW_EVIDENCE','独立网页读取未满足固定 Manifest 的业务结果断言，禁止报告成功或重试');
+        lastRun='success';
+        appendChat('执行结果','已从当前网页独立核对 '+expectedTexts.length+
+          ' 项可见结果：'+expectedTexts.join('；')+'。这不代表服务器端事务已持久提交。');
+        status('已安装任务固定源码及网页结果读取已核验；没有重新生成 JavaScript。');
+        return {ok:true,runId:completed.runId,
+          effect:{kind:'task-visible-readback',texts:expectedTexts}};
       }
       // An arbitrary task may return a value without proving web-side effects.
       lastRun='failed';
