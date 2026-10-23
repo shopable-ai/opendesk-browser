@@ -6,7 +6,7 @@ import {operationSchemas,assertBrowserSchemaCoverage,validateExportArguments,
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from './browser-direct.generated.js';
 import {APPROVED_BROWSER_SCOPED_BINDINGS} from './browser-services.generated.js';
 import {normalizeManagedSiteBudgetSettings} from '../../ui/sidebar-tools/background-policy.js';
-import {normalizeManagedSiteV3Commit} from '../../platform/chrome/managed-site-v3-policy.js';
+import {normalizeManagedSiteV3Commit} from './site-budget-v3-policy.js';
 import {MANAGED_SITE_BUDGET_CAPABILITY} from '../../platform/host/managed-site-runtime-contract.js';
 import {MANAGED_PROXY_DEVELOPMENT_ENABLED,isFixedDevelopmentManagedProxyConfig}
   from '../../platform/chrome/browser-managed-proxy-profiles.js';

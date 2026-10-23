@@ -1,6 +1,6 @@
 import {FOCUS_MAX_GAP_MS,FOCUS_MAX_SITES,focusHost,hostnameMatches,focusLocalDay,focusNextMidnight,focusError} from './policy.js';
 import {FOCUS_CATALOG,FOCUS_DEFAULT_GROUP,FOCUS_DEFAULT_MINUTES} from './catalog.js';
-import {settleManagedSiteBudget} from '../../../../src/platform/chrome/browser-managed-site-policy.js';
+import {settleManagedSiteBudget} from '../../../../src/framework/sdk/site-budget-observation.js';
 const obj=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const keys=(value,expected)=>obj(value)&&Object.keys(value).sort().join(',')===expected.slice().sort().join(',');
 const fail=()=>{throw focusError('Stay Focus 本机策略数据无效；已停止修改以保护原始数据');};

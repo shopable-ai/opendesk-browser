@@ -4,7 +4,7 @@
 import {readFocus} from './model.js';
 import {compileFocusPolicy} from './compile-site-policy.js';
 import {normalizeManagedSiteV3Policy,normalizeManagedSiteV3Usage}
-  from '../../../../src/platform/chrome/managed-site-v3-policy.js';
+  from '../../../../src/framework/sdk/site-budget-v3-policy.js';
 
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};
 export function migrateFocusState(legacy,{at=Date.now()}={}){

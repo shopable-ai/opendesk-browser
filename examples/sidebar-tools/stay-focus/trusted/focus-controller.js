@@ -4,11 +4,12 @@ import {emptyFocus,readFocus,focusSummary} from './model.js';
 import {FOCUS_CATALOG,FOCUS_DEFAULT_GROUP,FOCUS_DEFAULT_MINUTES} from './catalog.js';
 import {compileFocusPolicy} from './compile-site-policy.js';
 import {mutateFocusModel} from './mutations.js';
-import {normalizeManagedSiteV3Policy} from '../../../../src/platform/chrome/managed-site-v3-policy.js';
+import {normalizeManagedSiteV3Policy,canonicalManagedSiteV3ModelBytes}
+  from '../../../../src/framework/sdk/site-budget-v3-policy.js';
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};
 const isLegacyCapabilityError=e=>['E_TOOL_CAPABILITY_REQUIRED','E_CAPABILITY','E_TOOL_CAPABILITY'].includes(e?.code);
 const hashModel=async model=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',
-  new TextEncoder().encode(JSON.stringify(model)))),
+  canonicalManagedSiteV3ModelBytes(model))),
   v=>v.toString(16).padStart(2,'0')).join('');
 function reflect(receipt,now){
   if(receipt?.kind!=='site-budget.v3'||!receipt.desiredPolicy||
@@ -60,10 +61,13 @@ export function createFocusController({request,siteBudget,now=Date.now}={}){
     const model=mutateFocusModel(structuredClone(current.model),operation,payload,now(),
       current.model.groups[FOCUS_DEFAULT_GROUP]??FOCUS_DEFAULT_MINUTES);
     const desiredPolicy=normalizeManagedSiteV3Policy(compileFocusPolicy(model));
-    const modelRef=await hashModel(model);
+    // Native metering has ONE authority: the Driver ledger. Preserve the v1
+    // model envelope for legacy migration but never seal a second usage copy.
+    const sealedModel={...model,usage:{},checkpoint:null,clockHighWater:0};
+    const modelRef=await hashModel(sealedModel);
     try{
       const receipt=await siteBudget.setPolicy({expectedRev:current.revision,
-        desiredPolicy,modelRef,sealedModel:model});
+        desiredPolicy,modelRef,sealedModel});
       const view=reflect(receipt,now());
       if(view.receipt.modelRef!==modelRef||view.revision!==current.revision+1&&
          JSON.stringify(current.receipt.desiredPolicy)!==JSON.stringify(desiredPolicy))
