@@ -1,5 +1,5 @@
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../framework/sdk/browser-direct.generated.js';
-import {normalizeSidebarToolBackgroundPolicy,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2} from './background-policy.js';
+import {normalizeSidebarToolBackgroundPolicy,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V3} from './background-policy.js';
 import {MANAGED_SITE_BUDGET_CAPABILITY} from '../../platform/host/managed-site-runtime-contract.js';
 // Sidebar tool UI package contract. This is NOT a Task v1 program or an authority grant.
 export const SIDEBAR_TOOL_FORMAT = 'opendesk.sidebar-tool.v1';
@@ -66,7 +66,7 @@ export function validateSidebarToolPackage(value) {
      !value.capabilities.includes(MANAGED_SITE_BUDGET_CAPABILITY))
     fail('网站预算声明需要已审阅的受管后台能力','E_TOOL_POLICY');
   if(value.capabilities.includes(MANAGED_SITE_BUDGET_CAPABILITY)&&
-     (!v2||backgroundPolicy?.kind!==SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2||
+     (!v2||![SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V3].includes(backgroundPolicy?.kind)||
        value.capabilities.includes('focus.control')))
     fail('公共预算能力只支持独立的 v2 有限预算合同','E_TOOL_POLICY');
   if(v2){

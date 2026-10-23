@@ -2,6 +2,7 @@
 // An installed JSON package is never a worker executable or a Chrome permission grant.
 export const SIDEBAR_TOOL_BACKGROUND_POLICY_KIND='site-budget.v1';
 export const SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2='site-budget.v2';
+export const SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V3='site-budget.v3';
 export const SIDEBAR_TOOL_BACKGROUND_POLICY_MAX_SITES=40;
 const fail=message=>{throw Object.assign(new Error(message),{code:'E_TOOL_POLICY'});};
 const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value)&&
@@ -31,8 +32,10 @@ export function normalizeSidebarToolBackgroundPolicy(raw){
   if(raw===undefined)return undefined;
   const v1=raw?.kind===SIDEBAR_TOOL_BACKGROUND_POLICY_KIND;
   const v2=raw?.kind===SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2;
+  const v3=raw?.kind===SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V3;
   if(!(v1&&exact(raw,['kind','suggestions'])||
-       v2&&exact(raw,['kind','dailyMinutes','defaultSites','schedule','suggestions']))||
+       v2&&exact(raw,['kind','dailyMinutes','defaultSites','schedule','suggestions'])||
+        v3&&exact(raw,['kind','suggestions']))||
      !Array.isArray(raw.suggestions)||raw.suggestions.length>SIDEBAR_TOOL_BACKGROUND_POLICY_MAX_SITES||
      new TextEncoder().encode(JSON.stringify(raw)).byteLength>8192)
     fail('后台策略模板格式或大小无效；只允许有限的网站预算声明');
@@ -50,6 +53,7 @@ export function normalizeSidebarToolBackgroundPolicy(raw){
       suggestLimit:row.suggestLimit,quick:row.quick};
   });
   if(v1)return {kind:SIDEBAR_TOOL_BACKGROUND_POLICY_KIND,suggestions};
+  if(v3)return {kind:SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V3,suggestions};
   if(!Number.isInteger(raw.dailyMinutes)||raw.dailyMinutes<1||raw.dailyMinutes>1440||
      !Array.isArray(raw.defaultSites)||raw.defaultSites.length>SIDEBAR_TOOL_BACKGROUND_POLICY_MAX_SITES||
      new Set(raw.defaultSites).size!==raw.defaultSites.length||

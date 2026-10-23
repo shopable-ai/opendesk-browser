@@ -4,6 +4,7 @@
 // it cannot ask Chrome to run privileged JavaScript from a package.
 export const MANAGED_SITE_RUNTIME_CONTRACT='opendesk.managed-site-runtime.v1';
 export const MANAGED_SITE_BUDGET_CAPABILITY='browser.siteBudget';
+export const MANAGED_SITE_BUDGET_V3_PROTOCOL='opendesk.browser.site-budget.v3';
 export const MANAGED_SITE_BUDGET_PROTOCOL='opendesk.browser.site-budget.v2';
 const unsupported=kind=>Object.assign(new Error(
   '当前 OpenDesk Browser 后台不能执行 '+String(kind).slice(0,80)+

@@ -103,6 +103,57 @@ export function normalizeManagedSiteV3Usage(value){
   }
   return Object.fromEntries(Object.entries(result));
 }
+// Every app model is opaque to Browser: only its bounded, immutable bytes and
+// SHA are sealed alongside the finite native policy. No model JavaScript runs here.
+export function normalizeManagedSiteV3Commit(raw){
+  if(!exact(raw,['expectedRev','desiredPolicy','modelRef','sealedModel'])||
+     !integer(raw.expectedRev,0,Number.MAX_SAFE_INTEGER)||
+     typeof raw.modelRef!=='string'||!/^[a-f0-9]{64}$/.test(raw.modelRef)||
+     !plain(raw.sealedModel))fail('v3 提交必须绑定修订号、策略和业务模型');
+  let text;
+  try{text=JSON.stringify(raw.sealedModel);}catch{fail('业务模型必须是有界纯 JSON');}
+  if(typeof text!=='string'||new TextEncoder().encode(text).byteLength>32768)
+    fail('业务模型超过 32 KiB 的独立封存限制');
+  const scan=(value,depth)=>{
+    if(depth>12)fail('业务模型嵌套层次超限');
+    if(value===null||typeof value==='boolean')return;
+    if(typeof value==='number'){
+      if(!Number.isFinite(value))fail('业务模型包含无效数字');
+      return;
+    }
+    if(typeof value==='string'){
+      if(value.length>8192)fail('业务模型文本字段过长');
+      return;
+    }
+    if(Array.isArray(value)){
+      if(value.length>500)fail('业务模型数组过长');
+      for(const item of value)scan(item,depth+1);
+      return;
+    }
+    if(!plain(value)||Object.keys(value).length>160)
+      fail('业务模型不能携带执行代码或异常对象');
+    for(const [key,item] of Object.entries(value)){
+      if(!/^[A-Za-z][A-Za-z0-9._:-]{0,127}$/.test(key)||
+         ['__proto__','prototype','constructor'].includes(key))
+        fail('业务模型字段名不合法');
+      scan(item,depth+1);
+    }
+  };
+  scan(raw.sealedModel,0);
+  const desiredPolicy=normalizeManagedSiteV3Policy(raw.desiredPolicy);
+  if(new TextEncoder().encode(JSON.stringify(desiredPolicy)).byteLength>32768)
+    fail('v3 策略超过 32 KiB');
+  return {expectedRev:raw.expectedRev,desiredPolicy,
+    modelRef:raw.modelRef,sealedModel:JSON.parse(text)};
+}
+export async function assertManagedSiteV3ModelRef(commit){
+  const bytes=new TextEncoder().encode(JSON.stringify(commit.sealedModel));
+  const digest=await crypto.subtle.digest('SHA-256',bytes);
+  const sha=Array.from(new Uint8Array(digest),x=>x.toString(16).padStart(2,'0')).join('');
+  if(sha!==commit.modelRef)fail('业务模型 SHA-256 不一致，禁止执行');
+  return true;
+}
+
 export function matchesManagedSiteV3Host(host,site,subdomains=false){
   return typeof host==='string'&&typeof site==='string'&&
     (host===site||subdomains&&host.endsWith('.'+site));
