@@ -13,7 +13,11 @@ export async function workflowFixture(options={}) {
     ...(options.target||{})};
   const workflow=emptyWorkflow(target.origin,'12345678-1234-1234-1234-123456789abc');
   workflow.title='测试工作流';workflow.steps=options.steps||[{stepId:'one',op:'observe'}];
-  const session=new Map([['opendesk.sidebar.workflow-draft.v1:7',workflow]]),local=new Map(),scripts=new Map();
+  // Opt-in persisted stores let a second newly constructed conversation read
+  // the same saved bundle and Controller revisions. Do not reuse a live View
+  // or its transient in-memory execution state across the restart.
+  const session=options.session||new Map([['opendesk.sidebar.workflow-draft.v1:7',workflow]]);
+  const local=options.local||new Map(),scripts=options.scripts||new Map();
   if(options.grant)session.set('opendesk.sidebar.workflow-draft.v1:7:observation',options.grant);
   const subscriptions={page:new Set(),run:new Set(),native:new Set(),permission:new Set()};
   const requests=[],starts=[],stops=[],owners=[];
