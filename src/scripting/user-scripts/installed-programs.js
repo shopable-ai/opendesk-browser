@@ -563,7 +563,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       });return {catalog,installed:installed.map(publicInstall)};
     });
   }
-  async function boot(message,sender,source='page_auto',manualReceiptId=null){
+  async function boot(message,sender,source='page_auto',manualReceiptId=null,manualHostDocumentId=null){
     fields(message,['protocol','nativeId','token']);
     invariant(message.protocol===PAGE_BOOT_PROTOCOL&&sender?.id===api.runtime.id&&sender.frameId===0&&
       typeof sender.documentId==='string'&&Number.isSafeInteger(sender.tab?.id)&&!sender.tab.incognito,
@@ -604,7 +604,8 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       if(previous)return false;
       const count=(await tx.all(PAGE_STORE)).filter(r=>r?.tag==='page-execution-v1').length;
       invariant(count<4096,'E_QUOTA','页面执行回执已达上限；保留原始证据后再维护');
-      await tx.put(PAGE_STORE,{tag:'page-execution-v1',namespace,receiptId,source,programId:row.programId,
+      await tx.put(PAGE_STORE,{tag:'page-execution-v1',namespace,receiptId,source,
+        ...(source==='manual'?{manualHostDocumentId}:{}),programId:row.programId,
         revision:row.revision,manifestHash:row.manifestHash,sourceHash:row.sourceHash,
         installationToken:row.token,installationId:row.authorization.installationId,grantGeneration:row.authorization.generation,
         executionKey,browserSessionIncarnation:session,
@@ -736,9 +737,9 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       if(held&&(confirmed||!dispatched))await admission.release({nonce:message.requestId});
     }
   }
-  function handleBoot(message,sender,source='page_auto',manualReceiptId=null){
+  function handleBoot(message,sender,source='page_auto',manualReceiptId=null,manualHostDocumentId=null){
     if(message?.action===PAGE_FRAME_ACTION)return frameBoot(message,sender);
-    const next=executions.then(()=>boot(message,sender,source,manualReceiptId)).catch(async error=>{
+    const next=executions.then(()=>boot(message,sender,source,manualReceiptId,manualHostDocumentId)).catch(async error=>{
       // Chrome's User Scripts toggle does not necessarily emit permissions
       // onRemoved. A real access failure must durably suspend this installation
       // too. Forged markers, stale documents and ordinary source errors cannot
@@ -794,7 +795,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     let response;
     try{
       response=await handleBoot({protocol:PAGE_BOOT_PROTOCOL,nativeId:row.nativeId,token:row.token},
-        frameSender,'manual',receiptId);
+        frameSender,'manual',receiptId,sender.documentId);
     }catch(error){
       const execution=await read(tx=>tx.get(PAGE_STORE,executionKey));
       if(execution?.source!=='manual'||execution.receiptId!==receiptId||
