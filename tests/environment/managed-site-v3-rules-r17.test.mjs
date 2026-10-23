@@ -32,5 +32,5 @@ test('v3 immutable model hash is verified independently of claimed digest',async
   assert.equal(await assertManagedSiteV3ModelRef(commit),true);
   await assert.rejects(()=>assertManagedSiteV3ModelRef({...commit,modelRef:'0'.repeat(64)}),
     {code:'E_SITE_BUDGET_V3_POLICY'});
-  assert.throws(()=>normalizeManagedSiteV3Commit({...commit,sealedModel:{__proto__:null}}));
+  assert.throws(()=>normalizeManagedSiteV3Commit({...commit,sealedModel:JSON.parse('{"__proto__":"not allowed"}')}));
 });
