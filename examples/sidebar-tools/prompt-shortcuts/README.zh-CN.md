@@ -199,7 +199,7 @@ git diff -- examples/sidebar-tools/prompt-shortcuts/
 - **定位通过不代表实际插入通过**。需要在安装的 Mac Chrome 真网站账号会话中验收富文本、多行、中文 IME、Cmd+Z、SPA、权限撤销。没有创建第二套 Host，也没有扩大站点权限。
 - 参考：Playwright Locators、danslabs/Claude.ai-CSS-fixes、afumu/openteam Gemini site adapter、ops120/grok-brain。
 
-### R4.1 顶部操作栏（2026-10-23）
+### R4.1 顶部操作栏（2026-10-23，正式候选 1.1.15）
 
 - 经官方完整性验证的已安装工具，标题、新建和「导入与导出」同处宿主右上角，34px 透明图标按钮、4px 间距；无常驻彩色方形背景，Hover/聚焦有反馈。正常列表中不再另占一行导入导出按钮。
 - 导入、导出菜单及文件选择器仍在沙箱里，必须由用户直接点击菜单项才能执行，保留原有安全校验和失败回执。不是新增授权，也不触发文件的自动读写。
