@@ -69,3 +69,35 @@ export function managedSiteV3RequiredOrigins(policy){
   return normalized.enabled?normalized.sites.filter(site=>site.enabled)
     .map(site=>'*://'+(site.subdomains?'*.':'')+site.host+'/*'):[];
 }
+
+// A *trusted Installer*, after verifying both installed packages' provenance,
+// may carry an existing app-level review to a new installation epoch. The
+// passed policy MUST be read from the old sealed Driver ledger, never from
+// candidate JS. The old grant is replaced, not widened or duplicated.
+// This is a pure proposed state: caller journals, serializes and verifies the
+// Chrome Storage write under the existing tool/catalog/grant locks.
+export function rebindReviewedManagedSiteScopes(raw,{
+  id,fromEpoch,fromHash,toEpoch,toHash,policy
+}={}){
+  if(!toolId(id)||!validEpoch(fromEpoch)||fromEpoch===null||
+     !validEpoch(toEpoch)||toEpoch===null||
+     !packageDigest(fromHash)||!packageDigest(toHash)||
+     fromEpoch===toEpoch&&fromHash===toHash)fail();
+  const records=validated(raw),normalized=normalizeManagedSiteV3Policy(policy);
+  const prior=records[id];
+  if(!prior)return {...records}; // No previous user review to inherit.
+  if(prior.installEpoch===toEpoch&&prior.packageHash===toHash){
+    // Readback of a previously committed transfer is idempotent only when
+    // the migrated record still covers the persisted policy.
+    if(!reviewedManagedSiteScopeCovers(records,id,toEpoch,toHash,normalized))fail();
+    return {...records};
+  }
+  if(prior.installEpoch!==fromEpoch||prior.packageHash!==fromHash||
+     !reviewedManagedSiteScopeCovers(records,id,fromEpoch,fromHash,normalized))
+    fail(); // No implicit scope escalation or cross-owner inheritance.
+  const next={installEpoch:toEpoch,packageHash:toHash,
+    sites:prior.sites.map(site=>({...site}))};
+  if(!reviewedManagedSiteScopeCovers({...records,[id]:next},id,toEpoch,toHash,normalized))
+    fail();
+  return {...records,[id]:next};
+}
