@@ -547,7 +547,10 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
             :action.type==='list_schedules'
               ?'已读取 '+observation.schedules.length+' 项定时计划。'
               :action.type==='task_history'?'已读取 '+observation.records.length+' 条实际执行记录。'
-              :action.type==='recent_runs'?'已读取 '+observation.records.length+' 条最近任务的真实运行记录。'
+              :action.type==='recent_runs'?'已读取 '+observation.records.length+' 条最近任务的真实运行记录。'+
+                (observation.records.length?'\n'+observation.records.map((row,i)=>
+                  (i+1)+'. '+row.title+' · '+row.state+' · 运行编号 '+row.runId+
+                  ' · '+row.outcome).join('\n'):'\n没有可核实的已安装任务运行记录。')
               :'已读取 '+(action.taskId||action.scheduleId||'')+' 的实际信息。');
         }catch(error){
           context.push({action:action.type,observation:{error:clip(error.message,280),code:error.code||'E_TOOL'}});
