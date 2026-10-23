@@ -10,7 +10,7 @@ const safeIdentity=id=>typeof id==='string'&&id.length>0&&id.length<=256;
 const validStatus=new Set(['prepared','dispatched','completed','failed','outcome-unknown']);
 const namespaceFor=api=>'tool:'+api.runtime.id;
 
-export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date.now()}={}){
+export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date.now(),since=0}={}){
   if(typeof storage?.transaction!=='function'||typeof api?.runtime?.id!=='string')
     throw new Error('Analytics authority unavailable');
   const namespace=namespaceFor(api);
@@ -41,6 +41,10 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
       types.scheduler.definitions++;
     }else if(row.tag==='page-execution-v1'){
       const day=asDate(row.createdAt);
+      // Historical execution before this installation's effective opt-in is
+      // NEVER backfilled merely because a user granted permission today.
+      if(typeof row.createdAt==='number'&&row.createdAt<since||
+        typeof row.createdAt==='string'&&Date.parse(row.createdAt)<since)continue;
       if(!safeIdentity(row.programId)||!day||!uuid.test(row.receiptId||'')||
          !validStatus.has(row.state)){projectionGap=true;continue;}
       // A persisted admission after the native document marker is an actual
@@ -89,6 +93,8 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
     const type=app?'app_service':'task';
     const identity=app?run.appBinding?.appId:run.installedTaskAuthorization?.taskId;
     const day=asDate(run.createdAt);
+    if(typeof run.createdAt==='number'&&run.createdAt<since||
+      typeof run.createdAt==='string'&&Date.parse(run.createdAt)<since)continue;
     if(!safeIdentity(identity)||!day||!uuid.test(run.runId||'')){projectionGap=true;continue;}
     const result=resultById.get(run.resultId);
     let status='dispatched';
