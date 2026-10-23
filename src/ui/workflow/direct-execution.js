@@ -332,6 +332,24 @@ export function verifyOpenedLinkPage({linkGuard,after,actionTarget,resultTarget}
   return {kind:'link-page',title:title.trim()};
 }
 
+// The UI is allowed to forward only identity references for a verified
+// navigation; it cannot award B-grade evidence itself. The Analytics Host
+// reads all three original Controller journals before accepting this claim.
+// Search and standalone fill currently have no corresponding Host oracle.
+export function workflowLinkBusinessRunRefs({actionRunId,before,after,effect}={}) {
+  const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
+  const observed=row=>row?.format==='opendesk.workflow-observation.v1'&&
+    uuid.test(row.runId||'')&&uuid.test(row.resultId||'')&&
+    /^[a-f0-9]{64}$/.test(row.sourceHash||'')&&
+    typeof row.summary?.documentId==='string'&&row.summary.documentId.length>0;
+  if(!['link-page','product-page'].includes(effect?.kind)||
+    !uuid.test(actionRunId||'')||!observed(before)||!observed(after)||
+    new Set([actionRunId,before.runId,after.runId]).size!==3||
+    before.resultId===after.resultId||before.sourceHash!==after.sourceHash||
+    before.summary.documentId===after.summary.documentId)return null;
+  return {runId:actionRunId,beforeRunId:before.runId,afterRunId:after.runId};
+}
+
 // Three independent levels: a durable receipt alone cannot prove click effects.
 export function directExecutionEvidenceLevel({receiptVerified=false,hasReadback=false,
   hasUnprovenClick=false,searchEffectVerified=false,navigationEffectVerified=false}={}) {
