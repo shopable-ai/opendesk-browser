@@ -30,57 +30,70 @@ export function SharedConversationFrame({
  inputId,placeholder='描述要完成的操作',inputLabel='对话输入',
  onDraftChange=()=>{},onSend=()=>{},onStop=()=>{},
  intro=null,feedback=null,review=null,technical=null,inputRef=null,logRef=null,
- onLogScroll=null,logClassName='od-conversation-log',entryClassName='od-conversation-entry'
+ onLogScroll=null,logClassName='od-conversation-log',entryClassName='od-conversation-entry',
+ // Workflow preserves its native scrolling and sticky-composer layout. The
+ // transcript and form still belong to this same trusted React Frame/root.
+ splitTargets=false,transcriptTarget=null,composerTarget=null,
+ autoScroll=true,focusOnOpen=true,inputRows=1,sendId=null,stopId=null
 }){
  const localInput=React.useRef(null),localLog=React.useRef(null),composing=React.useRef(false);
  const input=inputRef||localInput,log=logRef||localLog;
- React.useEffect(()=>{if(open)input.current?.focus({preventScroll:true});},[open,input]);
+ React.useEffect(()=>{
+  if(open&&focusOnOpen)input.current?.focus({preventScroll:true});
+ },[open,input,focusOnOpen,composerTarget]);
  React.useLayoutEffect(()=>{
-  if(open&&log.current)log.current.scrollTop=log.current.scrollHeight;
- },[open,rows,log]);
+  if(open&&autoScroll&&log.current)log.current.scrollTop=log.current.scrollHeight;
+ },[open,rows,log,autoScroll]);
  React.useLayoutEffect(()=>{
   const node=input.current;if(!open||!node)return;
   node.style.height='auto';
   node.style.height=Math.max(44,Math.min(112,node.scrollHeight))+'px';
- },[open,draft,input]);
+ },[open,draft,input,composerTarget]);
  const submit=event=>{
   event.preventDefault();
   if(!open||busy||blocked||!canSend||!draft.trim()||
    composing.current||event.nativeEvent?.isComposing||event.nativeEvent?.keyCode===229)return;
-  // Invoke directly in the trusted Send gesture, preserving Chrome permissions.request eligibility.
+  // Permission requests must start during this original trusted Send event.
   onSend(event);
  };
- return <>
-  {intro}
-  <div ref={log} className={logClassName} role="log" aria-live="polite"
-   aria-label="对话及已核实操作结果" onScroll={onLogScroll||undefined}>
-   <ConversationTranscript rows={rows} entryClassName={entryClassName} showSpeaker={false}/>
-  </div>
-  {feedback}
-  {review}
-  {technical}
-  <form className="od-conversation-composer" onSubmit={submit}>
+ const transcript=<ConversationTranscript rows={rows} entryClassName={entryClassName} showSpeaker={false}/>;
+ const composer=<form className="od-conversation-composer" onSubmit={submit}>
    <label className="od-conversation-sr" htmlFor={inputId}>{inputLabel}</label>
    <ConversationInput id={inputId} inputRef={input} value={draft}
-    className="od-conversation-input" rows={1} maxLength={4000}
+    className="od-conversation-input" rows={inputRows} maxLength={4000}
     placeholder={placeholder} disabled={inputDisabled}
     onChange={event=>onDraftChange(event.currentTarget.value,event)}
     onCompositionStart={()=>{composing.current=true;}}
     onCompositionEnd={()=>{composing.current=false;}}
     onKeyDown={event=>{
-     if(event.key==='Enter'&&!event.shiftKey&&!event.nativeEvent.isComposing&&
-      !composing.current&&event.nativeEvent.keyCode!==229){event.preventDefault();submit(event);}
+     if(event.key==='Enter'&&!event.shiftKey&&!event.nativeEvent?.isComposing&&
+      !composing.current&&event.nativeEvent?.keyCode!==229){event.preventDefault();submit(event);}
     }}/>
-   {busy?<OpenDeskIconButton className="od-conversation-action od-conversation-action--stop"
-      type="button" label="停止对话" title="停止 AI 后续操作" onClick={event=>{event.preventDefault();onStop(event);}}>
+   {busy?<OpenDeskIconButton id={stopId||undefined}
+      className="od-conversation-action od-conversation-action--stop"
+      type="button" label="停止对话" title="停止 AI 后续操作"
+      onClick={event=>{event.preventDefault();onStop(event);}}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
      </OpenDeskIconButton>:
-    <OpenDeskIconButton className="od-conversation-action od-conversation-action--primary"
+    <OpenDeskIconButton id={sendId||undefined}
+      className="od-conversation-action od-conversation-action--primary"
       type="submit" title="发送消息" label="发送"
       onClick={submit} disabled={blocked||!canSend||!draft.trim()}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-7 7 7-7 7 7"/></svg>
      </OpenDeskIconButton>}
-  </form>
+  </form>;
+ return <>
+  {intro}
+  {splitTargets
+   ?transcriptTarget?createPortal(transcript,transcriptTarget):null
+   :<div ref={log} className={logClassName} role="log" aria-live="polite"
+      aria-label="对话及已核实操作结果" onScroll={onLogScroll||undefined}>{transcript}</div>}
+  {feedback}
+  {review}
+  {technical}
+  {splitTargets
+   ?composerTarget?createPortal(composer,composerTarget):null
+   :composer}
  </>;
 }
 
