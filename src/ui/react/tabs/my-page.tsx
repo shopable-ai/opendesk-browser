@@ -3,7 +3,7 @@ import {MyControl} from './my-controls.tsx';
 import {MyTaskRows,MyTaskDetail} from './tasks.tsx';
 import {SchedulePlanRows,ScheduleManagerRows} from './schedule.tsx';
 import {MyTaskParams,MyTaskHistory,MyScheduleDetail,MyCopyConfirmation} from './my-sections.tsx';
-import {MyAgentPanel,MyAgentToggle} from './my-agent.tsx';
+import {MyAgentToggle} from './my-agent.tsx';
 
 export function MyTasksDock({view,hidden=false}){
   React.useSyncExternalStore(view.subscribe,view.getSnapshot,view.getSnapshot);
@@ -83,11 +83,9 @@ function MyTaskWorkspace({view}){return (<MyControl view={view} as="div" id="tas
 </MyControl>
 </MyControl>);}
 
-export function MyTasksPage({view,agent=null,hidden=false,onOpenSettings=null}){
+export function MyTasksPage({view,agent=null,hidden=false}){
   React.useSyncExternalStore(view.subscribe,view.getSnapshot,view.getSnapshot);
   return <div id="workbench-tasks" role="tabpanel" aria-labelledby="tab-my-tasks" className="od-page" data-workbench-page="tasks" hidden={hidden}>
-<MyAgentPanel agent={agent} onOpenSettings={onOpenSettings}/>
-
 <MyControl view={view} as="section" className="tasks-surface" aria-label="已安装任务" id="my-task-surface">
 <div className="task-section-head od-toolbar">
 <div className="task-section-copy">

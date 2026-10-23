@@ -24,7 +24,18 @@ export function MyAgentToggle({agent,id='my-agent-toggle'}){
   </IconButton>;
 }
 
-export function MyAgentPanel({agent,onOpenSettings=null}){
+// One Dock stays mounted below the scrollable task workspace. Hiding a tab
+// does not destroy the Tasks ConversationSession, pending review or draft.
+export function MyAgentDock({agent,active=false,onOpenSettings=null}){
+ const state=React.useSyncExternalStore(agent?.subscribe??noSubscribe,
+  agent?.getSnapshot??readEmpty,agent?.getSnapshot??readEmpty);
+ return <aside className="my-agent-dock" hidden={!active||!state.open}
+  aria-label="任务 AI Chat 底部对话">
+  <MyAgentPanel agent={agent} active={active} onOpenSettings={onOpenSettings}/>
+ </aside>;
+}
+
+export function MyAgentPanel({agent,active=true,onOpenSettings=null}){
  const state=React.useSyncExternalStore(agent?.subscribe??noSubscribe,
   agent?.getSnapshot??readEmpty,agent?.getSnapshot??readEmpty);
  const input=React.useRef<HTMLTextAreaElement>(null);
@@ -67,7 +78,7 @@ export function MyAgentPanel({agent,onOpenSettings=null}){
      strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
    </IconButton>
   </header>
-  <SharedConversationFrame open={state.open} rows={state.rows} draft={state.draft}
+  <SharedConversationFrame open={state.open} focusOnOpen={active} rows={state.rows} draft={state.draft}
    busy={state.busy} blocked={state.busy||Boolean(state.pending)}
    inputDisabled={Boolean(state.pending)}
    canSend={Boolean(agent)&&!state.pending} inputId="my-agent-input"
