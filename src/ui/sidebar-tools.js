@@ -1905,6 +1905,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
                 {code:'E_TOOL_LOCK'});
               await locks.request('opendesk.browser:managed-site-site-grants',async()=>{
                 assertSession(source,token);
+                // The previous admission ran before a user confirmation.
+                // Installer may have rotated the package/epoch in that gap:
+                // recheck the live installed owner UNDER the grant write lock
+                // so a stale dialog cannot overwrite a migrated site's review.
+                await assertManagedSiteToolLease(api,{toolId:tool.id,
+                  capability:MANAGED_SITE_BUDGET_CAPABILITY,packageHash,
+                  installEpoch:revocationEpoch,hashPackage:sidebarToolPackageHash});
+                assertSession(source,token);
                 const current=(await api.storage.local.get(MANAGED_SITE_REVIEWED_SCOPE_STORE))
                   [MANAGED_SITE_REVIEWED_SCOPE_STORE];
                 const next=extendReviewedManagedSiteScopes(current,{
