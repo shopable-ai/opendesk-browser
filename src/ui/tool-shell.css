@@ -450,8 +450,8 @@
 @media(pointer:coarse){
   .sidebar-tool-view-head>.sidebar-tool-icon-action,
   .sidebar-tool-header-more>#sidebar-tool-more-open{
-    flex-basis:36px;width:36px;min-width:36px;max-width:36px;
-    height:36px;min-height:36px;max-height:36px
+    flex-basis:44px;width:44px;min-width:44px;max-width:44px;
+    height:44px;min-height:44px;max-height:44px
   }
   .sidebar-tool-more-menu .sidebar-tool-icon-action{min-height:44px}
 }
