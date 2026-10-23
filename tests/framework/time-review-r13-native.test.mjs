@@ -906,7 +906,7 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
         const shipped=JSON.parse(officialBytes);
         assert.equal(shipped.id,'stay-focus','older fixture derives from the actual shipped package');
         const localOlder={...shipped,version:'0.0.0',
-          js:shipped.js+'\\n// Native reviewed local older-version fixture.\\n'};
+          js:shipped.js+'\n// Native reviewed local older-version fixture.\n'};
         await installReviewedPackage(browser,otherManager,localOlder,
           'older-'+toolId,zoomInput,proc.pid,note);
         note('unrelated-local-prior-version',
