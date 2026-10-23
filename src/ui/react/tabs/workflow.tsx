@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {SharedProviderSettingsSheet as WorkflowSettingsSheet} from '../components/provider-settings.tsx';
 export {SharedProviderSettingsSheet as WorkflowSettingsSheet} from '../components/provider-settings.tsx';
-import {ConversationTranscript,ConversationInput} from '../components/conversation.tsx';
+import {SharedConversationFrame,ConversationTranscript} from '../components/conversation.tsx';
 
 // R23.11: trusted chrome only. No Provider, Host, secrets, drafts or web-page
 // content is copied into this view. Native user gestures go to WorkflowView.
@@ -166,7 +166,9 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
   const actions=controller?.actions||providedActions;
   const page=React.useRef(null),lastFocus=React.useRef(null),scroller=React.useRef(null);
   const stepFocus=React.useRef(null);
-  const nearBottom=React.useRef(true),composing=React.useRef(false);
+  const nearBottom=React.useRef(true);
+   const [transcriptTarget,setTranscriptTarget]=React.useState(null);
+   const [composerTarget,setComposerTarget]=React.useState(null);
   const c=id=>model.controls?.[id]||{};
   const click=(id,event)=>actions.click?.(id,event.nativeEvent);
   const field=(id,value,event,eventName='input')=>actions.input?.(id,value,event.nativeEvent,eventName);
@@ -254,9 +256,10 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
                 <button key={key} type="button" data-workflow-example={key} onClick={event=>actions.chooseExample?.(key,event.nativeEvent)}>{title}</button>)}
             </div>
           </div>
-          <div id="workflow-ai-transcript" className="workflow-chat-transcript" role="log" aria-label="浏览器任务对话与执行记录" aria-live="polite" hidden={!model.messages?.length}>
-            <WorkflowTranscript rows={model.messages}/>
-          </div>
+          <div id="workflow-ai-transcript" ref={setTranscriptTarget}
+            className="workflow-chat-transcript" role="log"
+            aria-label="浏览器任务对话与执行记录" aria-live="polite"
+            hidden={!model.messages?.length}/>
           {text('workflow-planning-indicator',{className:'workflow-planning-indicator',role:'status'})}
           <ol id="workflow-ai-progress" className="workflow-ai-progress" aria-label="Codex 实时规划进度" hidden={c('workflow-ai-progress').hidden}>
             {model.progress?.map((item,index)=><li key={index} data-state={item.state}>{item.text}</li>)}
@@ -357,29 +360,16 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
         </section>
       </div>
       <div className="workflow-composer">
-        <label className="visually-hidden" htmlFor="workflow-ai-request">描述任务，或告诉 AI 怎样修改步骤</label>
-        <ConversationInput id="workflow-ai-request" rows={2} maxLength={4000} placeholder="描述要自动完成的任务…" value={c('workflow-ai-request').value||''}
-          onChange={event=>field('workflow-ai-request',event.currentTarget.value,event)}
-          onCompositionStart={()=>{composing.current=true;}}
-          onCompositionEnd={()=>{composing.current=false;}}
-          onKeyDown={event=>{
-            if(event.key!=='Enter'||event.shiftKey||composing.current||
-              event.nativeEvent?.isComposing||event.nativeEvent?.keyCode===229)return;
-            event.preventDefault();
-            if(!c('workflow-ai-plan').hidden&&!c('workflow-ai-plan').disabled)
-              click('workflow-ai-plan',event);
-          }}/> 
-        <div className="workflow-composer-actions">
-          {sharedProviderSettings?
+         <div className="workflow-composer-frame" ref={setComposerTarget}/>
+         <div className="workflow-composer-actions">
+           {sharedProviderSettings?
              <IconButton id="workflow-provider-toggle" label="AI 设置" title="AI 设置"
                onClick={onOpenProviderSettings}><Glyph kind="settings"/></IconButton>:
              action('workflow-provider-toggle','AI 设置',{icon:true,kind:'settings','aria-expanded':openSettings,'aria-controls':'workflow-provider-settings'})}
-          <WorkflowSourceName value={model.sourceName||'本机 Codex'}/>
-        {action('workflow-ai-plan','发送任务',{icon:true,primary:true,kind:'send'})}
-          {action('workflow-ai-cancel','停止')}
-        </div>
-      </div>
-      <div id="workflow-page-actions" className="workflow-actions od-toolbar" hidden={Boolean(model.awaitingReview)||(!model.hasSteps&&model.phase!=='running')}>
+           <WorkflowSourceName value={model.sourceName||'本机 Codex'}/>
+         </div>
+       </div>
+       <div id="workflow-page-actions" className="workflow-actions od-toolbar" hidden={Boolean(model.awaitingReview)||(!model.hasSteps&&model.phase!=='running')}>
         {action('workflow-run','再次运行',{primary:true})}{action('workflow-save','保存工作流')}{action('workflow-stop','停止')}
       </div>
       {text('workflow-status',{className:'workflow-status',role:'status','aria-live':'polite','data-state':c('workflow-status').dataset?.state})}
@@ -417,5 +407,18 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
         </details>
       </details>
     </WorkflowSettingsSheet>}
+  <SharedConversationFrame open={active} rows={model.messages||[]}
+     draft={c('workflow-ai-request').value||''}
+     busy={c('workflow-ai-cancel').hidden===false}
+     blocked={Boolean(c('workflow-ai-plan').disabled)}
+     canSend={c('workflow-ai-plan').hidden!==true}
+     inputId="workflow-ai-request" inputLabel="描述任务，或告诉 AI 怎样修改步骤"
+     placeholder="描述要自动完成的任务…" inputRows={2}
+     sendId="workflow-ai-plan" stopId="workflow-ai-cancel"
+     splitTargets transcriptTarget={transcriptTarget} composerTarget={composerTarget}
+     autoScroll={false} focusOnOpen={false} entryClassName="workflow-chat-entry"
+     onDraftChange={(value,event)=>field('workflow-ai-request',value,event)}
+     onSend={event=>click('workflow-ai-plan',event)}
+     onStop={event=>click('workflow-ai-cancel',event)}/>
   </div>;
 }
