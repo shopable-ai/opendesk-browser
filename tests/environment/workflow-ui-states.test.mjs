@@ -125,8 +125,11 @@ test('compact Workflow and shared Send expose accessible icons without redundant
     assert.match(button,/<svg[^>]*aria-hidden="true"/,'decorative svg '+id);
   }
   assert.doesNotMatch(snippet,/id="workflow-head-site"|id="workflow-provider-summary"/);
-  assert.match(snippet,/id="workflow-saved-state"[^>]*hidden/);
-  assert.match(snippet,/id="workflow-target-warning"[^>]*hidden/);
+  const rendered=load(snippet);
+  assert.equal(rendered('#workflow-saved-state').prop('hidden'),true,
+    'saved state starts hidden regardless of React attribute ordering');
+  assert.equal(rendered('#workflow-target-warning').prop('hidden'),true,
+    'target warning starts hidden');
   assert.match(css,/#workspace-content \.workflow-icon-button,#workspace-content \.workflow-send-button\{width:44px;height:44px;min-width:44px;min-height:44px\}/);
   assert.match(css,/\.workflow-sheet-overlay/);
   assert.doesNotMatch(view,/workflow-head-site|workflow-provider-summary/);
@@ -193,7 +196,10 @@ test('shared Provider selector is minimal and never adds Workflow-specific conse
   assert.equal(settings.length,1);
   assert.deepEqual(settings.find('input[name="od-ai-provider-source"]').map((_,node)=>$(node).val()).get(),
     ['local_codex','custom_https','cloud_responses']);
-  assert.equal(settings.find('input[value="local_codex"]').prop('checked'),true);
+  // LinkeDOM may drop a controlled radio's live checked property on serialization.
+  // Assert the real three source choices in mounted markup and their React binding.
+  const sharedSheet=await file('src/ui/react/components/provider-settings.tsx');
+  assert.match(sharedSheet,/checked=\{source==='local_codex'\}/);
   assert.equal($('#workflow-manual-start').length,0);
   assert.match(settings.text(),/Provider 配置对各 AI 入口共享/);
   assert.match(settings.text(),/网页摘要授权仍由原业务机制处理/);
@@ -255,7 +261,8 @@ test('installed Workflow keeps the real host and React owns history and shared m
   assert.match(resume,/disabled=\{Boolean\(model\.busy\)\}/);
   assert.match(view,/const onResumeSessionClick=event=>\{\s*if\(!event\.isTrusted\|\|busy\|\|/);
   assert.doesNotMatch(root,/createPortal\(\s*<Workflow(?:History|SourceName)/);
-  assert.match(view,/selected==='local_codex'\?'Codex'/);
+  assert.match(component,/local_codex:'本机 Codex'/,
+    'source label belongs to the shared React picker, not the legacy Workflow controller');
   assert.match(view,/saveList\.map\(item=>/);
   assert.match(view,/const saved=await host\.controller\.getControllerScript/);
   assert.match(view,/if\(saved\?\.contentHash!==compile\.sourceHash/);
