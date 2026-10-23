@@ -174,7 +174,10 @@ test('explicit official all-http-sites grant is atomic, covers A/B/C and survive
   assert.equal(row.version, official.version);
   assert.equal(row.packageHash, officialOwner.packageHash);
   assert.equal(row.installEpoch, null);
-  for (const cap of ['read', 'values', 'write', 'observe', 'clear']) assert.equal(grant[cap], true);
+  // Ordinary all-site consent must not silently reveal sensitive Cookie values.
+  for (const cap of ['read', 'write', 'observe', 'clear']) assert.equal(grant[cap], true);
+  assert.equal(grant.values, false);
+  assert.equal(grant.valueConsent, false);
   assert.equal(grant.storeId, '0'); assert.match(grant.grantEpoch, /^[0-9a-f-]{36}$/i);
   assert.equal(row.cookieSites, undefined);
   const queries = [];
@@ -185,8 +188,10 @@ test('explicit official all-http-sites grant is atomic, covers A/B/C and survive
     assert.deepEqual(await f.sdk.cookies.getCurrentStore({url: target}), {storeId: '0'});
     assert.deepEqual(await f.sdk.cookies.getPartitionKey({url: target}),
       {partitionKey: {topLevelSite: new URL(target).origin, hasCrossSiteAncestor: false}});
-    const rows = await f.sdk.cookies.getAll({url: target, includeValues: true});
-    assert.equal(rows[0].value, 'NODE_FIXTURE_SECRET');
+    const rows = await f.sdk.cookies.getAll({url: target});
+    assert.equal(rows.length, 1);
+    await f.denied(() => f.sdk.cookies.getAll({url: target, includeValues: true}),
+      'E_COOKIE_VALUES_REQUIRED');
     const status = await f.sdk.capabilities.getStatus({operation: 'browser.cookies.getCurrentStore', url: target});
     assert.equal(status.authorization.site, 'granted');
     f.restart();
@@ -194,6 +199,16 @@ test('explicit official all-http-sites grant is atomic, covers A/B/C and survive
   assert.equal(writes, 1, 'Navigation and worker restarts must not ask for another grant');
   assert.deepEqual(f.local.get(grantsKey), saved);
   assert(queries.length >= 3 && queries.every(query => targets.includes(query.url) && query.storeId === '0'));
+  // Only the separate trusted values action can upgrade this grant.
+  assert.equal((await f.grantAll(true, {cookieCapability: 'values'})).capability, 'values');
+  const withValues = f.local.get(grantsKey)[official.id].cookieAllSites;
+  assert.equal(withValues.values, true);
+  assert.equal(withValues.valueConsent, true);
+  assert.notEqual(withValues.grantEpoch, grant.grantEpoch);
+  assert.equal(writes, 2, 'Sensitive values require a separate persisted Host grant');
+  f.restart();
+  const rowsWithValues = await f.sdk.cookies.getAll({url: f.tab.url, includeValues: true});
+  assert.equal(rowsWithValues[0].value, 'NODE_FIXTURE_SECRET');
   assert.throws(() => f.sdk.cookies.getAll({}));
   assert.throws(() => f.sdk.cookies.getAll({url: 'file:///tmp/private'}));
 });
