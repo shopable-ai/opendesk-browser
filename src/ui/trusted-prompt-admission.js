@@ -5,7 +5,11 @@ import {sameSidebarToolPackage} from './sidebar-tools/installation.js';
 import {requireToolEnableRecords} from './sidebar-tools/lifecycle.js';
 
 export const TRUSTED_PROMPT_ID='prompt-shortcuts';
-export const TRUSTED_PROMPT_VERSION='1.1.14';
+// R1.11 reviewed source candidate: the built-in catalog is produced from the
+// 1.1.15 project sources. This version gate does NOT grant trust on its own:
+// installed bytes, official digest, provenance, enable state and epoch must all
+// still match. The checked-in 1.1.14 release JSON is not promoted here.
+export const TRUSTED_PROMPT_VERSION='1.1.15';
 const validHash=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 const own=value=>value&&typeof value==='object'&&!Array.isArray(value)
  ?value[TRUSTED_PROMPT_ID]:null;
