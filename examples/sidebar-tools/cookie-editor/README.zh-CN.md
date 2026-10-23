@@ -1,6 +1,25 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
-## 当前安装包 2.0.33（2026-10-23）
+## 2.0.36 源码候选：清理 Cookie 仅一次确认（2026-10-23）
+
+**产品目标：** 对当前已授权 HTTP(S) 网站执行安全清理时，先由正式 React「清理本站 Cookie」预览真实 Host-only Cookie 数量；点击其中的「清理 N 条」后，直接使用现有 Browser Host 的精确、一次性操作批准，不再额外显示「确认本次 Cookie 操作」。绝不把删除确认简化成未授权执行。
+
+**实施链路：** `CookieClearDialog` → `CookieEditorApp` → `createCookieController.executeClear` → `createCookieSdkAdapter.beginClearIntent` → 可信 Side Panel `cookieEditor.clear.begin`（真实用户点击，绑定工具安装身份、当前 Document、URL、`previewRef`、`expectedCount`、Cookie 授权代际）→ `browser.cookies.clearSite` → 现有 `browser.intent.confirm` 一次性 Host 回执 → 原生 Chrome 清理及结果校验。无第二个通用确认面板。新 Gate 不能重放，切站、授权撤销、取消或包变更会失效；结果未知时不会自动再执行。
+
+**兼容边界：** 仅精确匹配官方发行的 **2.0.36 及以后** 可将已审阅的 React 清理弹窗作为唯一确认；更早的正式安装版本沿用原 Host 确认以维持可用性。自定义或来源不符的同 ID 安装包不得冒用官方单击特权，用户应从「扩展」中更新官方版本。单条 Cookie 删除、保存、导入、导出已有各自的可信 Intent，不得借此更改授权、Value 单独许可或 Native Store/Partition 限制。
+
+**交付状态：** `tool.config.json` 和 React 包已升级至 **2.0.36**；CI 将基于同源 React 构建候选，经 Node、Host、Chromium 门禁通过后才晋升为可安装的 `cookie-editor.opendesk-tool.json`。在 CI 和 Mac 真实 Chrome 安装/升级验收得到确切证据之前，分别标记 `PENDING` 与 `NOT_TESTED`，不能将源码提交当作完成升级。
+
+**定向回归：**
+
+```bash
+node --test tests/environment/cookie-editor-clear-intent.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/cookie-editor-react-controller.test.mjs
+node --test examples/sidebar-tools/cookie-editor/preview/react/preview.test.mjs
+node --check src/ui/sidebar-tools.js
+node --check src/ui/sidebar-tools/cookie-clear-intent.js
+```
+
+## 历史安装包 2.0.33（2026-10-23）
 
 由 main 提交 `eec9e83a74c73ca2baf42a35d33ec98728018d1e` 的正式 React 源码，经仓库既有 Vite 构建和规范打包器生成同源候选，版本 **2.0.33**，JSON SHA-256 `6c669c3d6fb6d715e247b242bf16cbfa0a4b998f3924e67b43528f271cd0d13d`。本次明确晋升此候选为唯一正式安装 JSON，未手工修改生成的 CSS/JS。
 
