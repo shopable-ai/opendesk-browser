@@ -167,6 +167,7 @@ R2.2 抽出中立 Conversation Session、共享 Chat Frame、通用 Provider 设
 > 本节覆盖 R2.2 中“Workflow Composer 尚未接入公共 Frame”的历史状态，不意味着业务 RunHost 及真实 Chrome/Native 验收已通过。
 
 - **书签 AI 是已接入共享 UI 的早期业务实现，不是第二套 Provider**：官方可信 Bookmark React 树通过 `TrustedConversationWorkspace → SharedConversationFrame`；其业务请求仍由 `examples/sidebar-tools/bookmark-manager/src/react/App.jsx` 中的 `runBookmarkConversation` 对接 `runBookmarkAgentLoop → executeBookmarkPlan → Bookmark Service/SDK/Host`。真实 `folderId/bookmarkId` 只能来自写入后的独立书签树读回，跨安装实例只可恢复展示草稿和消息，不能恢复可执行对象 ID。
+- **统一中立 Session（并行后续提交）**：现有 `src/ui/conversation/session.js` 暴露 `createConversationSession({identity,rowsLimit})`，只处理通用草稿、消息、阶段、取消、订阅及旧轮次失效；`provider-consumer.js` 的 Bookmark/Prompt/Tasks Adapter 保存各自业务 refs，`workflow-view.js` 通过中立 Session 管理 Workflow 轮次与消息。Session 不获取 Provider Key、Chrome Authority、书签 ID 或 RunHost 凭据。不同消费者的具体读回与授权仍由各自 Controller/Host 负责。
 - **按消费者限定会话引用**：`provider-consumer.js` 的 Session 保存和销毁支持 Bookmark `folderId/bookmarkId/matches`、Prompt `matches + 验证过的 ETag`、Tasks 空引用。失效/撤权/销毁不泄露其他消费者引用；Provider generation 变化使旧推理失败为身份变化错误，区别于用户主动 Stop，不允许迟到建议变成写入。
 - **Workflow 现在实际使用公共 Frame**：`workflow.tsx` 将 transcript 与 sticky composer 作为共享 Frame 的两个可信 React 插槽（`splitTargets/transcriptTarget/composerTarget`），消息、输入、中文 IME、Enter/Shift+Enter、发送和 AI Stop 由 `SharedConversationFrame` 实现；`WorkflowView` 保留唯一工作流业务状态、危险操作审阅、计划、RunHost、保存版本、动态复用的全部 Authority 和读回。
 - **「我的」保持新草稿可编辑**：AI 在途时不能再次发送，但允许继续编辑尚未发送的输入；用户确认中仍保留业务限制。
