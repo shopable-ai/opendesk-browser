@@ -894,13 +894,36 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
       return page.id===present&&new URL(page.url).searchParams.get('toolId')==='time-review'?page:null;
     },'owned actual extension tab with correct tool identity');
     await nativeClick(browser,otherManager,'#sidebar-tool-back');
+    let realOtherOfficialUpgrade=false;
     for(const toolId of ['reading-toc','cookie-editor','stay-focus']){
       const previouslyInstalled=await evaluate(browser,side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.some(t=>t.id==='+JSON.stringify(toolId)+'))');
+      // Only an uninstalled optional tool can serve as a lawful local older
+      // baseline. Never overwrite official provenance or Reading TOC's
+      // reserved ID with a forged old package during acceptance testing.
+      if(toolId==='stay-focus'&&!previouslyInstalled){
+        const officialBytes=await readFile(path.join(EXTENSION,
+          'official-tools/stay-focus/stay-focus.opendesk-tool.json'));
+        const shipped=JSON.parse(officialBytes);
+        assert.equal(shipped.id,'stay-focus','older fixture derives from the actual shipped package');
+        const localOlder={...shipped,version:'0.0.0',
+          js:shipped.js+'\\n// Native reviewed local older-version fixture.\\n'};
+        await installReviewedPackage(browser,otherManager,localOlder,
+          'older-'+toolId,zoomInput,proc.pid,note);
+        note('unrelated-local-prior-version',
+          {toolId,fromVersion:localOlder.version,source:'real reviewed local JSON file'});
+      }
       if(!previouslyInstalled){
         await nativeOfficialReview(browser,otherManager,toolId);
         await nativeClick(browser,otherManager,'#sidebar-tool-install');
       }
-      await until(()=>evaluate(browser,side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.some(t=>t.id==='+JSON.stringify(toolId)+'))'),'other official package installed');
+      const released=releaseCatalog.apps.find(row=>row.toolId===toolId);
+      assert.ok(released,'official catalog entry for '+toolId);
+      const officialReadback=await until(()=>evaluate(browser,side,
+        'chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1","opendesk.market.provenance.v1"]).then(v=>{const tool=v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==='+JSON.stringify(toolId)+');const provenance=v["opendesk.market.provenance.v1"]?.['+JSON.stringify(toolId)+'];return tool?.version==='+JSON.stringify(released.version)+'&&provenance?.marketId==='+JSON.stringify(released.id)+'&&provenance?.version==='+JSON.stringify(released.version)+'&&provenance?.sha256==='+JSON.stringify(released.sha256)+'?{tool,provenance}:null})'),
+        'other official package and exact verified provenance installed');
+      assert.deepEqual(officialReadback.provenance,
+        {marketId:released.id,version:released.version,sha256:released.sha256});
+      if(toolId==='stay-focus'&&!previouslyInstalled)realOtherOfficialUpgrade=true;
       await nativeOpenInstalledApp(browser,otherManager,toolId);
       await nativeClick(browser,otherManager,'#sidebar-tool-settings-open');
       for(const enabled of [false,true]){
@@ -920,27 +943,35 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
       await nativeClick(browser,otherManager,'#sidebar-tool-back');
       await until(()=>evaluate(browser,otherManager,'document.querySelector("#sidebar-tool-display").hidden'),'return other tool manager list');
       const officialTool=await evaluate(browser,otherManager,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"].find(t=>t.id==='+JSON.stringify(toolId)+'))');
-      const older={...officialTool,version:'0.0.0',js:officialTool.js+'\n// Reviewed local older-version lifecycle fixture, not an official release.\n'};
-      await installReviewedPackage(browser,otherManager,older,'older-'+toolId,zoomInput,proc.pid,note);
-      assert.equal((await browser.send('Runtime.callFunctionOn',{objectId:nativeRoot,functionDeclaration:'function(){return this.isConnected}',returnByValue:true},side)).result.value,true,
-        'other reviewed version replacement preserves the same Time Review native root');
-      await nativeOfficialReview(browser,otherManager,toolId);
-      await until(()=>evaluate(browser,otherManager,
-        'document.querySelector("#sidebar-tool-preview-version")?.textContent.includes('+JSON.stringify(officialTool.version)+')'),
-        'review actual official upgrade '+toolId);
-      await nativeClick(browser,otherManager,'#sidebar-tool-install');
-      const upgraded=await until(()=>evaluate(browser,otherManager,'chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1","opendesk.market.provenance.v1"]).then(v=>({tool:v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==='+JSON.stringify(toolId)+'),provenance:v["opendesk.market.provenance.v1"]?.['+JSON.stringify(toolId)+']}))')
-        .then(row=>row.tool?.version===officialTool.version&&row.provenance?row:null),'actual other official upgrade settles');
-      assert.deepEqual(upgraded.tool,officialTool);
-      const otherRelease=releaseCatalog.apps.find(row=>row.toolId===toolId);
-      assert.deepEqual(upgraded.provenance,{marketId:otherRelease.id,version:otherRelease.version,sha256:otherRelease.sha256});
+      // Preinstalled official IDs stay source-pinned. They are checked for
+      // intact data, provenance and consent, but not falsely called upgrades.
+      // Stay Focus alone had a genuine local v0.0.0 -> official version
+      // replacement through reviewed import + trusted catalog click.
+      assert.equal(officialTool.version,released.version);
+      const afterProvenance=await evaluate(browser,otherManager,
+        'chrome.storage.local.get("opendesk.market.provenance.v1").then(v=>v["opendesk.market.provenance.v1"]?.['+JSON.stringify(toolId)+'])');
+      assert.deepEqual(afterProvenance,
+        {marketId:released.id,version:released.version,sha256:released.sha256});
       const afterUpgrade=await readTime();
-      assert.equal(afterUpgrade.paused,false);assert.equal(afterUpgrade.authorizedHash,beforeOtherTools.authorizedHash);
+      assert.equal(afterUpgrade.paused,false);
+      assert.equal(afterUpgrade.authorizedHash,beforeOtherTools.authorizedHash);
       assert.equal(afterUpgrade.authorizedEpoch,beforeOtherTools.authorizedEpoch);
-      assert.equal((await browser.send('Runtime.callFunctionOn',{objectId:nativeRoot,functionDeclaration:'function(){return this.isConnected}',returnByValue:true},side)).result.value,true);
+      assert.equal((await browser.send('Runtime.callFunctionOn',
+        {objectId:nativeRoot,functionDeclaration:'function(){return this.isConnected}',returnByValue:true},side)).result.value,true,
+        'other tool identity change cannot retire current Time Review native root');
       assert.equal(await evaluate(browser,side,'document.querySelectorAll("#sidebar-tool-frame iframe").length'),0);
-      note('unrelated-official-upgrade',{toolId,fromVersion:older.version,fromSource:'reviewed-local-older-version-fixture',toVersion:officialTool.version,toSource:'actual-official-catalog',nativeRootUnchanged:true,authorizationUnchanged:true,paused:false});
+      if(toolId==='stay-focus'&&!previouslyInstalled){
+        note('unrelated-official-upgrade',{toolId,fromVersion:'0.0.0',
+          fromSource:'reviewed-local-older-version-fixture',toVersion:officialTool.version,
+          toSource:'actual-official-catalog',provenanceVerified:true,
+          nativeRootUnchanged:true,authorizationUnchanged:true,paused:false});
+      }else{
+        note('unrelated-preinstalled-official-protected',{toolId,
+          version:officialTool.version,provenanceVerified:true,
+          nativeRootUnchanged:true,authorizationUnchanged:true,paused:false});
+      }
     }
+    assert.equal(realOtherOfficialUpgrade,true,'a genuine reviewed local-to-official upgrade must complete');
     evidence.unrelatedToolInstall='PASS';
     evidence.unrelatedToolLifecycle='PASS';
     evidence.unrelatedToolUpgrade='PASS';
