@@ -45,6 +45,17 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
         invalidateBookmarkConversation(err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已撤销'));
     }
     api.permissions.onRemoved?.addListener(consumerPermissionRemoved);
+    // Provider reconfiguration must also interrupt an unresolved transport or
+    // permission wait. An aborted round releases its UI busy state promptly;
+    // unlike permission revocation, a settings change is not a revoked grant.
+    const unsubscribeProviderSettings=providers.subscribeSettings?.(()=>{
+      const active=bookmarkConversationActive;
+      if(!active||active.providerGeneration===providers.configuration().generation)return;
+      active.abortController.abort(err('E_TOOL_CHANGED',
+        'AI Provider 已改变，本轮推理停止；迟到结果无效'));
+      const lease=forScope(active.scope);
+      if(lease)void Promise.resolve(lease.cancelInference()).catch(()=>{});
+    });
     // Shared sessions keep only references belonging to their original business.
     // Prompt needs its verified library ETag for safe ordinal follow-up actions.
     const emptyRefs=()=>consumerId==='bookmark'
@@ -118,7 +129,8 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
       signal?.addEventListener('abort',abortFromParent,{once:true});
       if(signal?.aborted)abortFromParent();
       const round=conversationSession.begin({signal:abortController.signal,providerGeneration});
-      const active={abortController,source:selected,generation,grantPattern,signal,scope,round};
+      const active={abortController,source:selected,generation,providerGeneration,
+        grantPattern,signal,scope,round};
       bookmarkConversationBusy=true;bookmarkConversationActive=active;
       let released=false,deciding=false;
       const release=()=>{
@@ -247,6 +259,7 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
       if(consumerDisposed)return;consumerDisposed=true;
       invalidateBookmarkConversation(err('E_TOOL_CHANGED','AI 消费者实例已关闭'));
       api.permissions.onRemoved?.removeListener(consumerPermissionRemoved);
+      unsubscribeProviderSettings?.();
       // No install-scoped references or in-flight responses survive disposal.
       businessRefs=emptyRefs();conversationSession.dispose();
       editLease?.dispose();mainLease.dispose();
