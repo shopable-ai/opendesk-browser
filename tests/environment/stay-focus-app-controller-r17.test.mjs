@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {focusPackageHash} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
+import {sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 import {emptyFocus} from '../../examples/sidebar-tools/stay-focus/trusted/model.js';
 import {migrateFocusState} from '../../examples/sidebar-tools/stay-focus/trusted/migrations.js';
 import {mutateFocusModel} from '../../examples/sidebar-tools/stay-focus/trusted/mutations.js';
@@ -244,4 +247,27 @@ test('failed legacy proof never caches fallback after an install-epoch change',a
   assert.equal((await controller.readStatus()).enabled,false);
   assert.equal(statusReads,2,'next read must recheck the live public Driver');
   assert.equal(legacyReads,1,'a revoked legacy worker cannot become a cached fallback');
+});
+
+test('old Focus grant hash is NOT the new public Installer package digest',async()=>{
+  const legacy=JSON.parse(await readFile(
+    new URL('../../examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json',import.meta.url),
+    'utf8'));
+  assert.equal(legacy.version,'1.0.10','test must attest the pinned legacy owner');
+  assert.equal(legacy.id,'stay-focus');
+  const oldHash=await focusPackageHash(legacy);
+  const publicHash=await sidebarToolPackageHash(legacy);
+  assert.match(oldHash,/^[a-f0-9]{64}$/);
+  assert.match(publicHash,/^[a-f0-9]{64}$/);
+  assert.notEqual(oldHash,publicHash,
+    'legacy Focus grant and public Browser SDK have distinct package identities');
+  const state=emptyFocus(at);
+  state.enabled=true;state.authorizedHash=oldHash;
+  state.authorizedEpoch='installed-legacy-epoch';
+  const plan=migrateFocusState(state,{at});
+  assert.equal(plan.legacyAuthorizedHash,oldHash,
+    'migration input preserves the true legacy grant digest, never public hash');
+  assert.equal(plan.legacyAuthorizedEpoch,'installed-legacy-epoch');
+  assert.equal(plan.sealedModel.authorizedHash,null,
+    'obsolete Focus grant can never become standalone v3 Driver authority');
 });
