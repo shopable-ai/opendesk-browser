@@ -137,6 +137,17 @@ test('new immutable Task intent templates match declared operation, not marketin
   assert.equal(selected.candidate.sensitive,true,'intent does not prove the JavaScript read-only');
   assert.deepEqual(selected.candidate.params,{keyword:'OpenDesk'});
   assert.deepEqual(selected.candidate.intent.resultTexts,manifest.intent.resultTexts);
+  // Literal search terms are not authority to invoke other Task operations.
+  // Do not over-block harmless terms merely containing an action-like verb.
+  for(const keyword of ['提交次数','删除键','下载速度']){
+    const benign=route('在当前演示搜索页搜索 '+keyword+'，并核对结果',data);
+    assert.equal(benign.state,'MATCH',keyword);
+    assert.equal(benign.candidate.params.keyword,keyword);
+  }
+  for(const keyword of ['OpenDesk 然后删除记录','OpenDesk 删除订单','删除所有记录']){
+    assert.equal(route('在当前演示搜索页搜索 '+keyword+'，并核对结果',data).state,'NO_MATCH',
+      'a concealed second action is not silently reduced to query text: '+keyword);
+  }
   assert.equal(route('在当前演示搜索页搜索 ，并核对结果',data).state,'MISSING_PARAMS',
     'an authored default must not silently choose the user keyword');
   for(const changed of [

@@ -10,6 +10,16 @@ export const OFFICIAL_CATALOG_PATH='official-tools/catalog.json';
 // Compiled-in publisher trust root; untrusted JSON cannot override it.
 export const OFFICIAL_STAY_FOCUS_RELEASE_URL=
   'https://raw.githubusercontent.com/shopable-ai/opendesk-browser/main/official-tools/stay-focus/latest.json';
+/*
+ * Browser B0 must pin an independently held Ed25519 publisher verification
+ * key BEFORE it is frozen. Never take this key from latest.json or allow a
+ * publisher-controlled URL to change it. There is intentionally no fallback
+ * to HTTPS+SHA alone; those prove transport/integrity, not publication consent.
+ * Production release remains BLOCKED until a real offline-owned key is
+ * provisioned and recorded through the existing release review.
+ */
+export const OFFICIAL_STAY_FOCUS_RELEASE_KEY_ID='stay-focus-publisher-ed25519-v1';
+export const OFFICIAL_STAY_FOCUS_RELEASE_PUBLIC_KEY_BASE64=null;
 const immutableFocusPackage=commit=>
   'https://raw.githubusercontent.com/shopable-ai/opendesk-browser/'+commit+
   '/examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json';
@@ -140,6 +150,57 @@ export function validateOfficialStayFocusRemoteDescriptor(value){
     throw error('远程发行不属于授权的 Stay Focus 身份','E_PACKAGE_IDENTITY');
   return {...release,remoteCommit:value.commit};
 }
+// Canonical, finite bytes signed by the offline release publisher. No JSON
+// object insertion order, whitespace or remote-provided keys influence trust.
+export function officialStayFocusSignedPayload(unsigned){
+  const release=validateOfficialStayFocusRemoteDescriptor(unsigned);
+  const plain={schema:unsigned.schema,repository:unsigned.repository,
+    commit:unsigned.commit,release:{...release}};
+  delete plain.release.remoteCommit;
+  const canonical=value=>Array.isArray(value)?value.map(canonical):
+    value&&typeof value==='object'?
+      Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;
+  return new TextEncoder().encode(JSON.stringify(canonical(plain)));
+}
+const base64Bytes=(encoded,size,label)=>{
+  if(typeof encoded!=='string'||encoded.length>200||
+     !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(encoded))
+    throw error('官方发行'+label+'格式错误','E_RELEASE_SIGNATURE');
+  let bytes;
+  try{bytes=Uint8Array.from(atob(encoded),character=>character.charCodeAt(0));}
+  catch{throw error('官方发行'+label+'无法解码','E_RELEASE_SIGNATURE');}
+  if(bytes.length!==size)throw error('官方发行'+label+'长度无效','E_RELEASE_SIGNATURE');
+  return bytes;
+};
+export async function verifyOfficialStayFocusRemoteDescriptor(value,{
+  publicKeyBase64=OFFICIAL_STAY_FOCUS_RELEASE_PUBLIC_KEY_BASE64
+}={}){
+  if(!fields(value,['schema','repository','commit','release','signature'])||
+     !fields(value.signature,['algorithm','keyId','value'])||
+     value.signature.algorithm!=='Ed25519'||
+     value.signature.keyId!==OFFICIAL_STAY_FOCUS_RELEASE_KEY_ID)
+    throw error('官方 Stay Focus 发行缺少固定签名合同','E_RELEASE_SIGNATURE');
+  const verifiedRelease=validateOfficialStayFocusRemoteDescriptor({
+    schema:value.schema,repository:value.repository,
+    commit:value.commit,release:value.release
+  });
+  if(publicKeyBase64===null)
+    throw error('Browser 尚未预置信任的 Stay Focus 发行验证公钥；拒绝远程升级',
+      'E_RELEASE_TRUST_UNCONFIGURED');
+  const key=base64Bytes(publicKeyBase64,32,'公钥');
+  const signature=base64Bytes(value.signature.value,64,'签名');
+  let trusted=false;
+  try{
+    const imported=await crypto.subtle.importKey('raw',key,{name:'Ed25519'},false,['verify']);
+    trusted=await crypto.subtle.verify({name:'Ed25519'},imported,signature,
+      officialStayFocusSignedPayload({
+        schema:value.schema,repository:value.repository,
+        commit:value.commit,release:value.release
+      }));
+  }catch{throw error('当前 Browser 不支持官方发行签名核验','E_RELEASE_CRYPTO');}
+  if(!trusted)throw error('Stay Focus 官方发行签名不可信','E_RELEASE_SIGNATURE');
+  return verifiedRelease;
+}
 export async function loadOfficialCatalog({api=globalThis.chrome,fetcher=globalThis.fetch}={}){
   const base=validateOfficialReleaseCatalog(json(
     await resourceBytes(api,fetcher,OFFICIAL_CATALOG_PATH,128000)));
@@ -153,7 +214,7 @@ export async function loadOfficialCatalog({api=globalThis.chrome,fetcher=globalT
     if(cause?.code==='E_PACKAGE_MISSING'||cause instanceof TypeError)return base;
     throw cause;
   }
-  const release=validateOfficialStayFocusRemoteDescriptor(json(remoteBytes));
+  const release=await verifyOfficialStayFocusRemoteDescriptor(json(remoteBytes));
   const previous=base.apps.find(item=>item.toolId==='stay-focus');
   if(!previous)throw error('B0 中缺少可信初始 Stay Focus 身份','E_PACKAGE_IDENTITY');
   const order=compareToolVersions(release.version,previous.version);
@@ -169,6 +230,16 @@ export async function loadOfficialCatalog({api=globalThis.chrome,fetcher=globalT
 export async function loadOfficialTool(release,{api=globalThis.chrome,fetcher=globalThis.fetch}={}){
   const row=validateOfficialReleaseCatalog({schema:OFFICIAL_RELEASE_SCHEMA,
     sourceRepository:OFFICIAL_SOURCE_REPOSITORY,apps:[release]}).apps[0];
+  if(row.remoteCommit){
+    // Catalog and actual installation can be separated by user review.
+    // Recheck publisher signature and the exact immutable release identity
+    // before loading executable bytes; do not trust a forged descriptor arg.
+    const descriptor=json(await resourceBytes(api,fetcher,
+      OFFICIAL_STAY_FOCUS_RELEASE_URL,8192,{external:true}));
+    const current=await verifyOfficialStayFocusRemoteDescriptor(descriptor);
+    if(JSON.stringify(current)!==JSON.stringify(row))
+      throw error('官方发行在用户审阅后已变化，拒绝更换版本','E_PACKAGE_IDENTITY');
+  }
   const bytes=await resourceBytes(api,fetcher,
     row.remoteCommit?immutableFocusPackage(row.remoteCommit):officialPackagePath(row),
     320000,{external:Boolean(row.remoteCommit)});
