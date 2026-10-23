@@ -403,7 +403,10 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   // unique-target requirements; never attach to the launcher tab as fallback.
   const sideTarget=await until(async()=>{
     const rows=(await browser.send('Target.getTargets',{filter:[{}]})).targetInfos;
-    const matches=rows.filter(x=>x.url===sideDocument.documentUrl);
+    // filter:[{}] includes both a document target (page/other) and a tab
+    // wrapper for the same URL on Chrome 155. A tab is not the panel document.
+    const matches=rows.filter(x=>x.url===sideDocument.documentUrl&&
+      (x.type==='page'||x.type==='other'));
     return matches.length===1?matches[0]:null;
   },'native Side Panel target').catch(async error=>{
     // Diagnostic evidence only. No synthetic panel, injected grant or widened
@@ -432,6 +435,11 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   const attachedDocument=await evaluate(browser,side,'location.href');
   assert.equal(attachedDocument,sideDocument.documentUrl,
     'attached native Side Panel document URL must equal Chrome SIDE_PANEL context');
+  const attachedContexts=await evaluate(browser,side,
+    'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"],documentUrls:[location.href]})');
+  assert.equal(attachedContexts.filter(x=>x.contextType==='SIDE_PANEL'&&
+    x.documentId===sideDocument.documentId&&x.documentUrl===attachedDocument).length,1,
+    'attached target must be the exact Chrome SIDE_PANEL documentId, not another same-URL page');
   evidence.realSidePanel='PASS';
   await nativeClick(browser,side,'#tab-tools');
   // Confirm the one shipped React root owns the real extension rows before
