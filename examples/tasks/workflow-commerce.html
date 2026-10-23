@@ -26,7 +26,7 @@ button:disabled{opacity:.6;cursor:wait}button.secondary{background:#fff;color:#2
 <label for="workflow-commerce-query">搜索商品<input id="workflow-commerce-query" name="keyword" type="search" value="" required></label>
 <button id="workflow-commerce-submit" type="submit">搜索</button></form>
 <section id="workflow-commerce-filters" aria-label="商品筛选">
-<label for="workflow-commerce-category">商品分类<select id="workflow-commerce-category"><option value="all">全部</option><option value="mouse">鼠标</option><option value="keyboard">键盘</option></select></label>
+<label for="workflow-commerce-category">商品分类<select id="workflow-commerce-category"><option value="all">全部</option><option value="mouse">鼠标</option><option value="keyboard">键盘</option><option value="camera">相机</option><option value="lens">镜头</option></select></label>
 <label for="workflow-commerce-sort">排序<select id="workflow-commerce-sort"><option value="relevance">默认排序</option><option value="price-asc">价格从低到高</option><option value="price-desc">价格从高到低</option></select></label>
 </section>
 <p id="workflow-commerce-status" role="status" aria-live="polite">等待搜索</p>
@@ -47,6 +47,8 @@ button:disabled{opacity:.6;cursor:wait}button.secondary{background:#fff;color:#2
 'use strict';
 const $=id=>document.getElementById(id);
 const products=[
+ {id:'camera-x',name:'Camera X',price:499,category:'camera',description:'相机商品，用于精确搜索、导航与价格核验'},
+ {id:'lens-y',name:'Lens Y',price:129,category:'lens',description:'镜头商品，用于动态参数跨导航复跑核验'},
  {id:'mouse-silent',name:'无线鼠标 · 静音款',price:89,category:'mouse',description:'静音按键、无线连接，适合日常办公'},
  {id:'mouse-pro',name:'无线鼠标 · 专业款',price:159,category:'mouse',description:'高精度传感器，适合多设备办公'},
  {id:'keyboard',name:'蓝牙键盘 · 便携款',price:129,category:'keyboard',description:'便携蓝牙键盘与多设备切换'}
