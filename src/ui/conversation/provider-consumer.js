@@ -81,6 +81,10 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
     const conversation=Object.freeze({
     identity:()=>conversationSession.identity(),
     subscribeSession:listener=>conversationSession.subscribe(listener),
+    // Trusted consumers can retire pending business reviews when a different
+    // model/endpoint/key replaces the context that generated their proposal.
+    providerGeneration:()=>providers.configuration().generation,
+    subscribeProviderChanges:listener=>providers.subscribeSettings?.(listener)??(()=>{}),
     source(){const selected=providers.configuration().source;return {
       provider:selected,label:selected==='local_codex'?'Codex':
         selected==='cloud_responses'?'Responses':'HTTPS'};},
