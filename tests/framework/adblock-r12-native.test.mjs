@@ -9,9 +9,8 @@ import {spawn,spawnSync} from 'node:child_process';
 import {createServer} from 'node:http';
 import {mkdtemp,mkdir,readFile,readdir,writeFile,rm,cp} from 'node:fs/promises';
 import {constants as fsConstants} from 'node:fs';
-import {tmpdir,homedir} from 'node:os';
+import {tmpdir} from 'node:os';
 import path from 'node:path';
-import {pathToFileURL} from 'node:url';
 import {randomUUID,createHash} from 'node:crypto';
 import {setTimeout as pause} from 'node:timers/promises';
 import {sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
@@ -594,7 +593,7 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
     manualCosmeticCases:MANUAL_CASES.map(id=>({id,status:'NOT_TESTED',evidence:{},error:null})),
     manualCosmeticTotals:{total:MANUAL_CASES.length,passed:0,failed:0,notTested:MANUAL_CASES.length,running:0},
     manualCosmeticEvidence:{schemaVersion:1,identity:{},storageKey:COSMETIC_STORE,
-      inputDriver:'playwright.page.mouse',fixtureSHA256:createHash('sha256').update(MANUAL_FIXTURE).digest('hex')},
+      inputDriver:'CDP Input.dispatchMouseEvent',fixtureSHA256:createHash('sha256').update(MANUAL_FIXTURE).digest('hex')},
     status:'NOT_TESTED',nativePermission:'NOT_TESTED',
     network:'NOT_TESTED',globalToggle:'NOT_TESTED',siteException:'NOT_TESTED',
     otherSite:'NOT_TESTED',iframe:'NOT_TESTED',nestedIframe:'NOT_TESTED',
@@ -625,7 +624,6 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
       cases.every(x=>x.status==='PASS')?'PASS':'NOT_TESTED';
   };
   let manualStorageSession=null,manualSession=null,manualOtherSession=null,manualMousePage=null;
-  let mouseBrowser=null,cdpEndpoint=null;
   const manualStorage=()=>evaluate(client,manualStorageSession,
     'chrome.storage.local.get('+JSON.stringify([STORE,COSMETIC_STORE])+')');
   const manualDom=session=>evaluate(client,session,`(()=>{
@@ -697,43 +695,65 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
       await saveManualEvidence(row);note('manual-cosmetic-'+id,row);}
     return row;
   };
-  const connectMouse=async()=>{
-    if(mouseBrowser?.isConnected())return mouseBrowser;
-    const modules=process.env.OPENDESK_PLAYWRIGHT_MODULE?[process.env.OPENDESK_PLAYWRIGHT_MODULE]:
-      ['playwright',pathToFileURL(path.join(homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs')).href];
-    let chromium;
-    for(const module of modules){try{({chromium}=await import(module));break;}catch(error){
-      report.manualCosmeticEvidence.playwrightImportError=String(error.message||error);
-    }}
-    assert.ok(chromium,'page.mouse requires Playwright; set OPENDESK_PLAYWRIGHT_MODULE to the existing runtime module');
-    mouseBrowser=await chromium.connectOverCDP(cdpEndpoint);
-    return mouseBrowser;
-  };
-  const mousePage=async targetId=>{
-    const browser=await connectMouse();
-    return until(async()=>{
-      for(const context of browser.contexts())for(const page of context.pages()){
-        const session=await context.newCDPSession(page);
-        try{const {targetInfo}=await session.send('Target.getTargetInfo');
-          if(targetInfo.targetId===targetId)return page;
-        }finally{await session.detach();}
-      }
-      return null;
-    },'Playwright page bound to exact owned CDP target');
+  // Reuse the owned Chrome CDP session for genuine pointer input. No separate
+  // browser, Playwright runtime dependency, or fabricated DOM click is needed.
+  const mousePage=async(targetId,attachedSession=null)=>{
+    let session=attachedSession;
+    if(!session){
+      session=(await client.send('Target.attachToTarget',{targetId,flatten:true})).sessionId;
+      await client.send('Runtime.enable',{},session);
+      await client.send('Page.enable',{},session);
+    }
+    const target=await until(async()=>{
+      const info=(await client.send('Target.getTargetInfo',{targetId})).targetInfo;
+      if(info?.type!=='page'||!info.url?.startsWith('http'))return null;
+      if(new URL(info.url).pathname!=='/manual')return null;
+      return await evaluate(client,session,'location.href')===info.url?info:null;
+    },'actual manual fixture document bound to exact CDP target');
+    const point=async selector=>{
+      const expression='(()=>{const n=document.querySelector('+JSON.stringify(selector)+');if(!n)return null;'+
+        'const r=n.getBoundingClientRect(),s=getComputedStyle(n),x=r.left+r.width/2,y=r.top+r.height/2;'+
+        'return {x,y,width:r.width,height:r.height,hit:n.contains(document.elementFromPoint(x,y)),'+
+        'display:s.display,visibility:s.visibility};})()';
+      const box=await evaluate(client,session,expression);
+      assert.ok(box&&box.width>0&&box.height>0&&box.display!=='none'&&box.visibility==='visible',
+        'visible fixture target '+selector);
+      assert.equal(box.hit,true,'Chrome pointer must hit actual fixture target '+selector);
+      return {x:box.x,y:box.y};
+    };
+    return {
+      targetId,session,url:()=>target.url,point,
+      async bringToFront(){
+        const info=(await client.send('Target.getTargetInfo',{targetId})).targetInfo;
+        assert.equal(info?.url,await evaluate(client,session,'location.href'),
+          'do not activate an unrelated Chrome document');
+        await client.send('Target.activateTarget',{targetId});
+        await until(()=>evaluate(client,session,'document.visibilityState==="visible"'),
+          'real Chrome fixture page visible after activation',5000);
+      },
+      locator:selector=>({hover:async()=>{
+        const {x,y}=await point(selector);
+        await client.send('Input.dispatchMouseEvent',
+          {type:'mouseMoved',x,y,button:'none',pointerType:'mouse'},session);
+      }})
+    };
   };
   const mouseClick=async(page,selector)=>{
-    const point=await page.locator(selector).boundingBox();
-    assert.ok(point&&point.width>0&&point.height>0,'visible fixture target '+selector);
-    const x=point.x+point.width/2,y=point.y+point.height/2;
-    assert.equal(await page.evaluate(({selector,x,y})=>{
-      const node=document.querySelector(selector);return node?.contains(document.elementFromPoint(x,y));
-    },{selector,x,y}),true,'real page.mouse hit target '+selector);
+    const {x,y}=await page.point(selector);
     const dispatchedAt=Date.now();
-    await page.mouse.move(x,y);await page.mouse.click(x,y);
-    const event=await page.evaluate(()=>window.manualFixtureEvents.at(-1));
-    assert.ok(event?.isTrusted&&event.type==='click'&&event.at>=dispatchedAt,
-      'page fixture must observe the actual trusted Chrome click');
-    return {selector,x,y,driver:'playwright.page.mouse',event};
+    await client.send('Input.dispatchMouseEvent',
+      {type:'mouseMoved',x,y,button:'none',pointerType:'mouse'},page.session);
+    await client.send('Input.dispatchMouseEvent',
+      {type:'mousePressed',x,y,button:'left',buttons:1,clickCount:1,pointerType:'mouse'},page.session);
+    await client.send('Input.dispatchMouseEvent',
+      {type:'mouseReleased',x,y,button:'left',buttons:0,clickCount:1,pointerType:'mouse'},page.session);
+    const event=await until(async()=>{
+      const value=await evaluate(client,page.session,'window.manualFixtureEvents.at(-1)');
+      return value?.isTrusted&&value.type==='click'&&value.at>=dispatchedAt?value:null;
+    },'actual trusted Chrome mouse click recorded by fixture',1500);
+    assert.equal(event.target,selector.slice(1),
+      'genuine pointer click must reach the selected fixture element');
+    return {selector,x,y,driver:'CDP Input.dispatchMouseEvent',event};
   };
   const counts={ad:0,normal:0,frameAd:0,framePage:0},serverRequests=[];
   let port;
@@ -908,7 +928,6 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
       const port=Number(source?.split('\n')[0]);return port>0?port:null;
     },'native Chrome CDP port',30000);
     const raw=await(await fetch('http://127.0.0.1:'+debugPort+'/json/version')).json();
-    cdpEndpoint=raw.webSocketDebuggerUrl;
     const socket=connect(raw.webSocketDebuggerUrl);socket.launchId=report.browserSessions.length;await socket.ready;
     return {socket,version:raw.Browser};
   }
@@ -1621,7 +1640,7 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   let firstManualSelection;
   await manualCase('mouseSelection',async row=>{
     const target=await client.send('Target.createTarget',{url:manualUrl+'?visit='+randomUUID()});
-    manualSession=await attach(client,target.targetId);manualMousePage=await mousePage(target.targetId);
+    manualSession=await attach(client,target.targetId);manualMousePage=await mousePage(target.targetId,manualSession);
     await until(()=>evaluate(client,manualSession,
       'document.querySelector("h1")?.textContent==="Manual cosmetic fixture ready"'),'manual fixture ready');
     assert.equal((await manualStorage())[COSMETIC_STORE],undefined,'fresh profile has no seeded manual rules');
@@ -1753,7 +1772,7 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
     assert.equal(report.browserSessions[0].profile,report.browserSessions[1].profile,'restart uses same durable profile');
     assert.deepEqual((await manualStorage())[COSMETIC_STORE],expectedManual,'Chrome restart preserves exact manual state');
     const target=await client.send('Target.createTarget',{url:manualUrl+'?visit='+randomUUID()});
-    manualSession=await attach(client,target.targetId);manualMousePage=await mousePage(target.targetId);
+    manualSession=await attach(client,target.targetId);manualMousePage=await mousePage(target.targetId,manualSession);
     const dom=await manualVisibility(true,'new document auto-hides after actual Chrome process restart');
     assert.equal(dom.events.length,0,'restart recovery must not need another page selection');
     return {targetId:target.targetId,dom,browserSessions:report.browserSessions.map(x=>({...x})),storage:await manualStorage()};
@@ -1863,7 +1882,7 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   await manualCase('otherSiteIsolation',async()=>{
     const target=await client.send('Target.createTarget',{url:manualOtherUrl});
     manualOtherSession=await attach(client,target.targetId);
-    const otherMouse=await mousePage(target.targetId);await otherMouse.bringToFront();
+    const otherMouse=await mousePage(target.targetId,manualOtherSession);await otherMouse.bringToFront();
     await until(()=>evaluate(client,resumedReact,
       'document.querySelector(".adblock-host")?.textContent.trim()==="127.0.0.1"'),'installed React follows other site');
     // Remove A's existing DNR exception while testing isolation. Otherwise a
