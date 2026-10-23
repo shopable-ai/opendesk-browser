@@ -138,6 +138,15 @@ test('verified Side Panel opens → opt-in collector → real HTTP D1 → PostHo
     ['cookie-editor','prompt-shortcuts'],'first opt-in includes previously installed tools');
   assert(batch.every(row=>row.properties.$process_person_profile===false));
   assert(!JSON.stringify(received).includes('https://chatgpt.com/'));
+  // A verified unsuccessful page-button attempt is still an active installation.
+  const failed=await send({protocol:ANALYTICS_PROTOCOL,kind:'event.page_report',
+    event:'prompt.failed',toolId:'prompt-shortcuts',channel:'page_button',
+    reason:'editor_changed'},page);
+  assert.equal(failed.ok,true);
+  assert.equal((await collector.flush()).sent,2);
+  await Promise.allSettled(pending.splice(0));
+  assert.deepEqual(received.flatMap(row=>row.batch).slice(-2).map(row=>row.event).sort(),
+    ['prompt.failed','tool.engaged'].sort());
   // The actual persisted registry, not a speculative install button, changes census.
   await api.storage.local.set({[SIDEBAR_TOOL_STORE]:[prompt]});
   await eventually(()=>records.get(ANALYTICS_STATE_KEY)?.queue?.some(
