@@ -83,6 +83,8 @@ async function deliver(env,{fetcher,now}){
               ...(row.coverage?{coverage_overflow:row.coverage.overflow,
                 coverage_expired:row.coverage.expired,coverage_version:row.coverage.version}:{})}:{}),
             ...(row.event==='app.inventory_types'?{inventory_types:row.inventoryTypes??null,
+              inventory_items:row.inventoryItems??null,
+              inventory_overflow:row.inventoryOverflow??0,
               inventory_read_state:row.readState,projection_gap:row.projectionGap===true}:{}),
             ...(row.event==='tool.auto_daily'?{tool_type:row.toolType,utc_day:row.utcDate,
               metric_type:row.metricType,cumulative_total:row.total,
