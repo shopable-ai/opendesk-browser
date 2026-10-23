@@ -86,7 +86,7 @@ export function validateAnalyticsEvent(value,{now=Date.now()}={}){
       !Number.isSafeInteger(value.version)||value.version<1||
       !Number.isSafeInteger(value.total)||value.total<1||
       !Number.isFinite(day)||new Date(day).toISOString().slice(0,10)!==value.utcDate||
-      day>now+86400000||day<now-ANALYTICS_MAX_AGE_MS||
+      day>Math.floor(now/86400000)*86400000||day<now-ANALYTICS_MAX_AGE_MS||
       (value.projectionGap!==undefined&&typeof value.projectionGap!=='boolean'))
       throw Object.assign(new Error('Invalid automatic daily snapshot'),{code:'E_ANALYTICS_SCHEMA'});
   }else if(value.inventoryTypes!==undefined||value.readState!==undefined||value.projectionGap!==undefined||
