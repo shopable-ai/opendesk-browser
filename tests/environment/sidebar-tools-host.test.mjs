@@ -516,13 +516,14 @@ function sharedLocks(){
     next.finally(()=>{if(queues.get(name)===next)queues.delete(name);}).catch(()=>{});
     return next;}};
 }
-async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch,trustedBookmarkPilot=null,trustedPromptPilot=null}={}){
+async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch,trustedBookmarkPilot=null,trustedPromptPilot=null,chromePermissions=null,hostReply=null}={}){
   const oldWindow=globalThis.window,oldConfirm=globalThis.confirm;
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
   const {doc,view,runtime,elements,emit,selectFile}=toolRuntimeFixture();
   let focused=0;
   const changed=new Node();
   const api={runtime:{getURL:p=>'chrome-extension://test/'+p,async sendMessage(message){
+    if(hostReply){const response=await hostReply(message,{store});if(response!==undefined)return response;}
     if(message?.protocol==='opendesk.foundation.v1'&&message.type==='cleanupUninstalledToolSchedules')
       return {ok:true,data:{toolId:message.payload.toolId,schedulesRetired:true,alarmsCleared:true}};
   }},storage:{session:{async get(){return {};},async remove(){}},onChanged:{
@@ -535,6 +536,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     async set(value){await setHook?.(value);for(const [key,row] of Object.entries(value))store.set(key,structuredClone(row));},
     async remove(key){store.delete(key);}
   }}};
+  if(chromePermissions)api.permissions=chromePermissions;
   const host=createSidebarTools({api,doc,view,currentPageTarget:target,lockManager:locks,fetcher,trustedBookmarkPilot,trustedPromptPilot,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
   t.after(()=>{host.dispose();view.dispose();globalThis.window=oldWindow;globalThis.confirm=oldConfirm;});
   if(awaitReady)await host.ready;else await pause();host.setVisible(true);
@@ -2560,6 +2562,122 @@ async function verifiedCookieStore(tool,baseGrant,other=[]){
     ...other
   ]);
 }
+
+
+function cookieChromeFixture({grant=true}={}){
+  let allowed=false;const requests=[];
+  const changes={addListener(){},removeListener(){}};
+  return {requests,permissions:{
+    onAdded:changes,onRemoved:changes,
+    async contains({permissions,origins}){
+      return permissions?.length?permissions.every(name=>name==='cookies'):Boolean(origins?.length&&allowed);
+    },
+    request(request){
+      requests.push(structuredClone(request));
+      if(grant)allowed=true;
+      return Promise.resolve(grant);
+    }
+  }};
+}
+function cookieTestTarget(origin='https://cookie-r537.example'){
+  const url=origin+'/account';
+  return {snapshot:{status:'available',url},capture:()=>({
+    tabId:7,windowId:1,documentId:'cookie-r537-document',url,origin
+  })};
+}
+function cookieHostReceipt(tool,store,calls){
+  return async request=>{
+    if(request.operation!=='browser.cookies.userGrant')return;
+    calls.push(request);
+    const saved=structuredClone(store.get(BROWSER_MENU_GRANTS_STORE)||{});
+    const old=saved[tool.id]||{version:tool.version,packageHash:await sidebarToolPackageHash(tool),
+      installEpoch:null,cookieSites:{}};
+    if(request.scope==='all-http-sites'){
+      const grant={storeId:'0',grantEpoch:'r537-'+calls.length,valueConsent:false,
+        read:request.enabled,values:false,write:request.enabled,
+        observe:request.enabled,clear:request.enabled};
+      saved[tool.id]={...old,cookieAllSites:grant};
+    }else{
+      const site=request.origin,oldSite=old.cookieSites?.[site]||{};
+      const next=request.cookieCapability==='all'
+        ?{...oldSite,read:false,values:false,write:false,observe:false,clear:false}
+        :{...oldSite,[request.cookieCapability]:request.enabled};
+      saved[tool.id]={...old,cookieSites:{...old.cookieSites,[site]:{
+        ...next,storeId:'0',grantEpoch:'r537-'+calls.length}}};
+    }
+    store.set(BROWSER_MENU_GRANTS_STORE,saved);
+    return {ok:true,data:{enabled:request.enabled}};
+  };
+}
+function cookieTestLocation(t){
+  const old=globalThis.location;
+  globalThis.location={href:'chrome-extension://test/sidepanel.html?hostInstanceId='+
+    '5b69971e-94b0-4e5d-8fad-c5bdbb997380'};
+  t.after(()=>{if(old===undefined)delete globalThis.location;else globalThis.location=old;});
+}
+
+test('R5.37 development Cookie package grants current site after Chrome permission, never all sites or values',async t=>{
+  cookieTestLocation(t);
+  const official=await officialToolFixture('cookie-editor');
+  const tool={...official,js:official.js+'\\nvoid 0;'},target=cookieTestTarget(),origin=target.capture().origin;
+  const store=new Map([[SIDEBAR_TOOL_STORE,[tool]]]);
+  const chrome=cookieChromeFixture(),hostCalls=[];
+  const f=await hostFixture(t,{tool,store,target,chromePermissions:chrome.permissions,
+    hostReply:cookieHostReceipt(tool,store,hostCalls)});
+  await settle(()=>f.elements['sidebar-tool-cookie-site-toggle'].textContent==='允许管理本站 Cookie'&&
+    !f.elements['sidebar-tool-cookie-site-toggle'].disabled);
+  assert.equal(f.elements['sidebar-tool-frame'].hidden,true);
+  f.emit(f.elements['sidebar-tool-cookie-site-toggle'],'click',{isTrusted:true});
+  await settle(()=>store.get(BROWSER_MENU_GRANTS_STORE)?.[tool.id]?.cookieSites?.[origin]?.clear===true);
+  await settle(()=>f.elements['sidebar-tool-frame'].hidden===false);
+  assert.equal(chrome.requests.length,1,'missing Chrome website permission is requested in the click');
+  assert.deepEqual(chrome.requests[0],{origins:['https://cookie-r537.example/*']});
+  assert.equal(hostCalls.length,4,'ordinary read/write/observe/clear share one explicit site decision');
+  assert.ok(hostCalls.every(call=>call.scope===undefined&&call.cookieCapability!=='values'),
+    'neither all-site nor sensitive values can be upgraded by a same-ID development package');
+  assert.equal(store.get(BROWSER_MENU_GRANTS_STORE)[tool.id].cookieSites[origin].values,undefined);
+  assert.equal(f.host.openSettings(tool.id),true);
+  await settle(()=>!f.elements['sidebar-tool-cookie-values-toggle'].hidden);
+  f.emit(f.elements['sidebar-tool-cookie-values-toggle'],'click',{isTrusted:true});
+  await settle(()=>store.get(BROWSER_MENU_GRANTS_STORE)?.[tool.id]?.cookieSites?.[origin]?.values===true);
+  assert.equal(hostCalls.at(-1).cookieCapability,'values','sensitive values require their own trusted click');
+});
+
+test('R5.37 verified official Cookie Editor requests missing Chrome all-site access and resumes UI',async t=>{
+  cookieTestLocation(t);
+  const tool=await officialToolFixture('cookie-editor');
+  const store=await verifiedCookieStore(tool,null);
+  const target=cookieTestTarget(),chrome=cookieChromeFixture(),hostCalls=[];
+  const f=await hostFixture(t,{tool,store,target,chromePermissions:chrome.permissions,
+    hostReply:cookieHostReceipt(tool,store,hostCalls)});
+  await settle(()=>f.elements['sidebar-tool-cookie-site-toggle'].textContent==='允许管理所有网站 Cookie'&&
+    !f.elements['sidebar-tool-cookie-site-toggle'].disabled);
+  f.emit(f.elements['sidebar-tool-cookie-site-toggle'],'click',{isTrusted:true});
+  await settle(()=>store.get(BROWSER_MENU_GRANTS_STORE)?.[tool.id]?.cookieAllSites?.read===true);
+  await settle(()=>!f.elements['sidebar-tool-frame'].hidden);
+  assert.equal(chrome.requests.length,1);
+  assert.deepEqual(chrome.requests[0],{origins:['http://*/*','https://*/*']});
+  assert.equal(hostCalls.length,1);
+  assert.equal(hostCalls[0].scope,'all-http-sites');
+  assert.equal(store.get(BROWSER_MENU_GRANTS_STORE)[tool.id].cookieAllSites.values,false);
+});
+
+test('R5.37 denied Chrome permission retains first-use and never creates a false Host grant',async t=>{
+  cookieTestLocation(t);
+  const tool=await officialToolFixture('cookie-editor');
+  const store=await verifiedCookieStore(tool,null),chrome=cookieChromeFixture({grant:false});
+  const calls=[],target=cookieTestTarget();
+  const f=await hostFixture(t,{tool,store,target,chromePermissions:chrome.permissions,
+    hostReply:cookieHostReceipt(tool,store,calls)});
+  await settle(()=>f.elements['sidebar-tool-cookie-site-toggle'].textContent==='允许管理所有网站 Cookie'&&
+    !f.elements['sidebar-tool-cookie-site-toggle'].disabled);
+  f.emit(f.elements['sidebar-tool-cookie-site-toggle'],'click',{isTrusted:true});
+  await settle(()=>chrome.requests.length===1&&
+    !f.elements['sidebar-tool-cookie-site-toggle'].disabled);
+  assert.equal(calls.length,0,'denied Chrome permission must never reach trusted Host');
+  assert.equal(store.get(BROWSER_MENU_GRANTS_STORE)?.[tool.id]?.cookieAllSites,null);
+  assert.equal(f.elements['sidebar-tool-frame'].hidden,true,'denial cannot uncover Cookie workspace');
+});
 
 test('R5.25 Cookie Editor settings keeps one live sandbox through ten returns and unsaved edits',async t=>{
   const tool=await officialToolFixture('cookie-editor');
