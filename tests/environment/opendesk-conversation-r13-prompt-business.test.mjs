@@ -96,8 +96,28 @@ test('R1.3 image references are retained during edits and orphan candidates are 
   assert.deepEqual(removed.releasedImageAssets,[id]);
   assert.equal(f.value.items.length,0);
 });
+// Node does not expose Chrome's navigator.locks. This deterministic FIFO
+// adapter models exclusive acquisition only for Host boundary tests; the
+// production Host still fails closed if real Web Locks are unavailable.
+function testExclusiveLocks(){
+  const tails=new Map();
+  return {request(name,options,callback){
+    const run=typeof options==='function'?options:callback;
+    const signal=typeof options==='function'?null:options?.signal;
+    const prior=tails.get(name)||Promise.resolve();
+    const pending=prior.then(()=>{
+      if(signal?.aborted)throw failure('E_CANCELLED');
+      return run({name,mode:'exclusive'});
+    });
+    const settled=pending.then(()=>{},()=>{});
+    tails.set(name,settled);
+    void settled.then(()=>{if(tails.get(name)===settled)tails.delete(name);});
+    return pending;
+  }};
+}
 function hostFixture({proposal={action:{type:'create',body:'给我一份准确的英文翻译提示词'}},
-  granted=true,initial=model.defaults(),allowReview=true,editResult='改进后的专业提示词'}={}){
+  granted=true,initial=model.defaults(),allowReview=true,editResult='改进后的专业提示词',
+  lockManager=testExclusiveLocks()}={}){
   const chromeStore=new Map(),library=libraryFixture(initial),messages=[],confirms=[],modelCalls=[];
   const source={},token='prompt-fixture-'+crypto.randomUUID(),epoch='fixture-epoch';
   const api={storage:{local:{
@@ -133,6 +153,7 @@ function hostFixture({proposal={action:{type:'create',body:'给我一份准确�
     api,tool:{id:'prompt-shortcuts',version:'1.1.13'},token,epoch,model,
     conversation,assertIdentity:async()=>{if(revoked)throw failure('E_TOOL_CHANGED');},
     frameSource:()=>source,guardBlocked:()=>false,dispatch,etagFor:async value=>hash(value),
+    lockManager,
     confirm:async args=>{confirms.push(args.message);return allowReview;},
     sendToFrame:message=>{
       messages.push(message);
@@ -152,6 +173,13 @@ function hostFixture({proposal={action:{type:'create',body:'给我一份准确�
     onModelRequest:callback=>{onModelRequest=callback;},
     onRead:callback=>{onRead=callback;}};
 }
+test('R1.17 Host refuses writes without real or injected Web Locks',async()=>{
+  const f=hostFixture({lockManager:null});
+  await assert.rejects(f.host.request({request:'尝试创建',event:{isTrusted:true}}),
+    {code:'E_TOOL_LOCK'});
+  assert.equal(f.commits,0);assert.equal(f.library.value.items.length,0);
+  f.host.dispose();
+});
 test('R1.3 trusted Host guard nonce -> conditional dispatcher -> readback -> iframe notice',async()=>{
   const f=hostFixture();
   const result=await f.host.request({request:'创建英文翻译提示词',event:{isTrusted:true}});
