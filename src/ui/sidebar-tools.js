@@ -3601,7 +3601,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   };
   listen(backButton,'click',()=>{
     if(busy)return;
-    if(tocSettingsOpen){closePromptSettings();requestToolFieldEffect(view, settingsButton, 'focus', {preventScroll:true});return;}
+    if(tocSettingsOpen){closePromptSettings();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});return;}
     if(requestBusinessNavigation('back'))return;
     if(clipPage&&clipPage!=='home'&&requestClipNavigation('back'))return;
     const id=active?.id;
@@ -3778,7 +3778,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       return;
     }
     if(active.id===PROMPT_ID){
-      if(tocSettingsOpen){closePromptSettings();requestToolFieldEffect(view, settingsButton, 'focus', {preventScroll:true});return;}
+      if(tocSettingsOpen){closePromptSettings();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});return;}
       if(toolDirty||toolSaving){notice('请先保存或取消未保存的提示词草稿，再打开工具设置。',true);return;}
       tocSettingsOpen=true;tocScope='site';refreshPromptSettings(active);requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});return;
     }
@@ -3855,7 +3855,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   listen(removeReviewConfirm,'click',action(()=>remove(pendingUninstallId,{confirmed:true})));
   listen(removeReviewCancel,'click',()=>{
     cancelRemovalReview();notice('已取消卸载。');
-    requestToolFieldEffect(view, removeButton, 'focus', {preventScroll:true});
+    requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
   });
   if(openTabButton)listen(openTabButton,'click',action(()=>openInTab()));
   const messageWindow=window;
