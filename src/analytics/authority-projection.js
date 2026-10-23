@@ -1,3 +1,4 @@
+import {permissionPattern} from '../environment.js';
 // Read-only projection of the original Page/Task/Scheduler authorities.
 // Raw program/task IDs, URLs, source and execution values MUST NOT leave this module's caller.
 const asDate=value=>{
@@ -75,7 +76,7 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
     else{
       const origins=row.authorization?.scope?.siteOrigins;
       if(Array.isArray(origins)&&origins.length&&typeof api.permissions?.contains==='function'){
-        try{status=await api.permissions.contains({origins})?'enabled':'blocked';}
+        try{status=await api.permissions.contains({origins:origins.map(permissionPattern)})?'enabled':'blocked';}
         catch{status='unknown';}
       }
     }
