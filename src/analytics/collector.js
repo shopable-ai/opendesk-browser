@@ -278,8 +278,14 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
   async function reportAuthority(load){
     if(!configured||revoked||typeof load!=='function')return {recorded:false};
     if(!(await status()).consent||revoked)return {recorded:false};
+    const grant=await run(async()=>{
+      const state=await read();
+      return state.consent&&state.consentReceipt?.disclosureVersion===ANALYTICS_DISCLOSURE_VERSION?
+        {since:state.consentReceipt.acceptedAt,installId:state.installId}:null;
+    });
+    if(!grant||revoked)return {recorded:false};
     let projection;
-    try{projection=await load();}
+    try{projection=await load({since:grant.since});}
     catch{
       await record({event:'app.inventory_types',toolId:'opendesk',source:'host',
         channel:'extension',readState:'failed'});
