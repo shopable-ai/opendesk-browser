@@ -9,22 +9,24 @@ const refsOnly=refs=>({matches:Array.isArray(refs?.matches)?
  etag:typeof refs?.etag==='string'&&/^[a-f0-9]{64}$/.test(refs.etag)?refs.etag:null});
 const changedProvider=(source,initial)=>source?.provider!==initial;
 export function createPromptConversationRequest({
- conversation,model,storage,assertIdentity,acquireGuard,review,reviewShare,notify
+ conversation,model,storage,assertIdentity,acquireGuard,review,notify
 }={}){
  if(typeof conversation?.request!=='function'||typeof conversation?.cancel!=='function'||
   !model?.load||typeof storage!=='function'||typeof assertIdentity!=='function'||
   typeof acquireGuard!=='function'||typeof review!=='function'||
-  typeof reviewShare!=='function'||typeof notify!=='function')
+  typeof notify!=='function')
   throw fail('E_PROMPT_HOST','官方提示词对话依赖未就绪');
  return async function requestPrompt({request,refs={},signal,event,onStep=()=>{},onPhase=()=>{}}={}){
   if(typeof request!=='string'||!request.trim()||request.length>4000)
    throw fail('E_AI_REQUEST','请输入有效的提示词管理请求');
+  if(event?.isTrusted!==true)
+   throw fail('E_USER_GESTURE','请从可信 AI 对话输入框主动发送请求');
   const initialSource=conversation.source()?.provider;
   // Do NOT await reads here: the first permission.request must start in the
   // original trusted Send gesture, exactly like Bookmark Manager's controller.
   const first=conversation.request({request,context:{previousSearch:refsOnly(refs)},
    scope:'prompt',event,signal});
-  let authority=null,releaseGuard=null,outcome=null,unknown=false,sharedEditReview=false;
+  let authority=null,releaseGuard=null,outcome=null,unknown=false;
   const live=async()=>{
    if(signal?.aborted)throw fail('E_CANCELLED','已停止后续操作');
    if(changedProvider(conversation.source(),initialSource))
@@ -63,25 +65,23 @@ export function createPromptConversationRequest({
      await live();
      return review({...proposal,provider:initialSource});
     },
-    providerEdit:async({item,instruction,batchItems})=>{
+    providerEdit:async({item,instruction,expectedEtag})=>{
      authority?.release?.();authority=null;
      await live();
-     // Explicit, provider-named private-body consent BEFORE any model receives
-     // even one user-authored prompt. The first classifier saw no private body.
-     if(!sharedEditReview){
-      const agreed=await reviewShare({items:batchItems?.length?batchItems:[item],
-       provider:initialSource});
-      if(agreed!==true)throw fail('E_CANCELLED','已取消发送私人提示词，未修改数据');
-      sharedEditReview=true;
-     }
-     await live();
+     // The classifier never sees saved bodies. Only the Host-resolved,
+     // unchanged record is sent for this explicit trusted Send.
      const latest=await read();
-     if(!latest.value?.items?.some(row=>row.id===item.id&&row.body===item.body))
-      throw fail('E_STORAGE_CONFLICT','准备发送的原始提示词已变化，请重新确认');
+     if(latest.etag!==expectedEtag||
+       !latest.value?.items?.some(row=>row.id===item.id&&row.body===item.body))
+      throw fail('E_STORAGE_CONFLICT','准备发送的正文或库版本已变化，请重新发出操作');
+     await live();
+     // Continuation reuses the configured Provider and its existing permission.
      const edited=await conversation.request({request:instruction,
       context:{originalBody:item.body},scope:'prompt-edit',continuation:true,event,signal});
      authority=edited.authorization;
-     await live();await authority?.assertWrite();
+     if(typeof authority?.assertWrite!=='function'||typeof authority?.release!=='function')
+      throw fail('E_PROMPT_AUTH','正文处理未取得有效模型授权');
+     await live();await authority.assertWrite();
      const body=edited.proposal;
      if(!obj(body)||Object.keys(body).sort().join(',')!=='body'||
        typeof body.body!=='string'||!body.body.trim()||body.body.length>6000)

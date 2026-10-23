@@ -98,7 +98,7 @@ test('R1.3 image references are retained during edits and orphan candidates are 
 });
 function hostFixture({proposal={action:{type:'create',body:'给我一份准确的英文翻译提示词'}},
   granted=true,initial=model.defaults(),allowReview=true,editResult='改进后的专业提示词'}={}){
-  const chromeStore=new Map(),library=libraryFixture(initial),messages=[],confirms=[];
+  const chromeStore=new Map(),library=libraryFixture(initial),messages=[],confirms=[],modelCalls=[];
   const source={},token='prompt-fixture-'+crypto.randomUUID(),epoch='fixture-epoch';
   const api={storage:{local:{
     async get(key){return Object.fromEntries((Array.isArray(key)?key:[key])
@@ -106,14 +106,25 @@ function hostFixture({proposal={action:{type:'create',body:'给我一份准确�
     async set(rows){for(const [k,v] of Object.entries(rows))chromeStore.set(k,structuredClone(v));},
     async remove(key){chromeStore.delete(key);}
   }}};
-  let currentProposal=proposal,currentEditResult=editResult;
-  const conversation={source:()=>({provider:'fixture-provider'}),
-    request:async({scope})=>({proposal:scope==='prompt-edit'?{body:currentEditResult}:currentProposal,
-      authorization:{assertWrite:async()=>{},release:()=>{}}}),
-    cancel:async()=>{}};
+  let currentProposal=proposal,currentEditResult=editResult,provider='fixture-provider',
+    modelAuthorized=true,onModelRequest=null,onRead=null,readCount=0;
+  const conversation={source:()=>({provider}),
+    request:async args=>{
+      if(!modelAuthorized)throw failure('E_MODEL_GRANT_REVOKED');
+      modelCalls.push({scope:args.scope,originalBody:args.context?.originalBody,
+        continuation:args.continuation===true,context:structuredClone(args.context||{})});
+      await onModelRequest?.(args);
+      return {proposal:args.scope==='prompt-edit'?{body:currentEditResult}:currentProposal,
+        authorization:{assertWrite:async()=>{
+          if(!modelAuthorized)throw failure('E_MODEL_GRANT_REVOKED');
+        },release:()=>{}}};
+    },cancel:async()=>{}};
   let host,changed=false,guardReplies=0,commits=0,revoked=false;
   const dispatch=async(op,payload)=>{
-    if(op==='storage.get'){const v=await library.read();return payload.withEtag?v:{value:v.value};}
+    if(op==='storage.get'){
+      await onRead?.(++readCount,library);
+      const v=await library.read();return payload.withEtag?v:{value:v.value};
+    }
     if(op==='storage.set'){commits++;return library.write(payload);}
     if(op==='prompt.asset.remove')return {removed:true};
     throw failure('E_SCOPE');
@@ -132,11 +143,14 @@ function hostFixture({proposal={action:{type:'create',body:'给我一份准确�
       if(message.kind==='state-changed')changed=true;
     }
   });
-  return {host,api,library,chromeStore,messages,confirms,
+  return {host,api,library,chromeStore,messages,confirms,modelCalls,
     get changed(){return changed;},get guardReplies(){return guardReplies;},
     get commits(){return commits;},revoke:()=>{revoked=true;},
     setProposal:next=>{currentProposal=next;},
-    setEditResult:next=>{currentEditResult=next;}};
+    setEditResult:next=>{currentEditResult=next;},
+    setProvider:next=>{provider=next;},revokeModel:()=>{modelAuthorized=false;},
+    onModelRequest:callback=>{onModelRequest=callback;},
+    onRead:callback=>{onRead=callback;}};
 }
 test('R1.3 trusted Host guard nonce -> conditional dispatcher -> readback -> iframe notice',async()=>{
   const f=hostFixture();
@@ -286,15 +300,21 @@ test('R1.4 Host verifies all seven Prompt business categories with readback and 
   assert.equal(f.library.value.items[1].name,'专业翻译');
   assert.equal(f.library.value.items[1].label,'译');
   assert.notEqual(oldName,f.library.value.items[1].name);
-  assert.equal(f.confirms.length,reviewsBeforeUpdate,'attribute update never exports the private body');
+  assert.equal(f.confirms.length,reviewsBeforeUpdate,'attribute update has no confirmation');
+  assert.equal(f.modelCalls.filter(row=>row.scope==='prompt-edit').length,0,
+    'search, enabled, ordering and attributes never export original bodies');
   f.setEditResult('请专业翻译：保留所有 Markdown 标题和表格。');
+  const beforeSingle=f.confirms.length;
   await run({type:'edit',target:thirdId,instruction:'更专业，保留格式'});
+  assert.equal(f.confirms.length-beforeSingle,0,'single edit has no extra approval');
   assert.match(f.library.value.items[1].body,/Markdown/);
   const oldOthers=f.library.value.items.filter(row=>row.name.startsWith('测试翻译')).length;
   const beforeBatch=f.confirms.length;
   f.setEditResult('简洁版专业说明：保留 Markdown');
   await run({type:'batch_edit',query:'测试翻译',instruction:'缩短为简洁版本'});
-  assert.equal(f.confirms.length-beforeBatch,2,'one grouped privacy review and one batch change review');
+  assert.equal(f.confirms.length-beforeBatch,1,'one batch change review, no extra body approval');
+  assert.equal(f.modelCalls.filter(row=>row.scope==='prompt-edit').length,3,
+    'one selected original body per edit, including two batch records');
   assert.equal(f.library.value.items.filter(row=>row.name.startsWith('测试翻译')).length,oldOthers);
   const beforeDelete=f.confirms.length;
   await run({type:'delete',query:'新增日语'},'删除指定旧提示词');
@@ -304,6 +324,84 @@ test('R1.4 Host verifies all seven Prompt business categories with readback and 
     'every durable Host write notifies the existing iframe; search does not');
   assert.equal(f.commits,7,'one storage.set per successful mutation, zero replays');
   assert.equal(f.chromeStore.has(PROMPT_AI_RECOVERY_KEY),false);
+  f.host.dispose();
+});
+
+test('R1.17 single and consecutive edits send selected bodies without extra authorization',async()=>{
+  const base=model.defaults(),first=model.draft({
+    body:'法语旧版正文：保留段落。',name:'R17 法语翻译测试'
+  }),second=model.draft({body:'第二条原始私人正文',name:'另一条测试'});
+  const f=hostFixture({initial:{...base,items:[first,second]},
+    proposal:{action:{type:'edit',target:first.id,instruction:'保留段落和编号'}},
+    editResult:'法语新版正文：\\n1. 保留段落。\\n2. 保留编号。'});
+  await f.host.request({request:'修改 R17 法语翻译测试',event:{isTrusted:true}});
+  assert.equal(f.confirms.length,0);assert.equal(f.commits,1);
+  assert.match(f.library.value.items[0].body,/法语新版正文/);
+  assert.equal(f.library.value.items[1].body,second.body);
+  f.setProposal({action:{type:'edit',target:second.id,instruction:'按需求优化'}});
+  f.setEditResult('第二条修改后正文');
+  await f.host.request({request:'继续修改另一条测试',event:{isTrusted:true}});
+  assert.equal(f.confirms.length,0);assert.equal(f.commits,2);
+  assert.deepEqual(f.modelCalls.filter(row=>row.scope==='prompt-edit').map(row=>row.originalBody),
+    [first.body,second.body],'each model edit receives only its selected original body');
+  assert.equal(f.modelCalls.filter(row=>row.scope==='prompt-edit').every(row=>row.continuation),true);
+  assert.equal(f.modelCalls.filter(row=>row.scope==='prompt').every(row=>
+    row.originalBody===undefined&&Object.keys(row.context).join(',')==='previousSearch'),true);
+  assert.equal(f.chromeStore.has(PROMPT_AI_RECOVERY_KEY),false);
+  f.host.dispose();
+});
+
+test('R1.17 untrusted Send and ambiguous edit never transmit private bodies',async()=>{
+  const base=model.defaults(),first=model.draft({body:'秘密甲',name:'法语翻译测试甲'}),
+    second=model.draft({body:'秘密乙',name:'法语翻译测试乙'});
+  const f=hostFixture({initial:{...base,items:[first,second]},
+    proposal:{action:{type:'edit',target:'法语翻译测试',instruction:'保持格式'}}});
+  await assert.rejects(f.host.request({request:'修改',event:{isTrusted:false}}),
+    {code:'E_USER_GESTURE'});
+  assert.equal(f.modelCalls.length,0);
+  await assert.rejects(f.host.request({request:'修改法语翻译测试',event:{isTrusted:true}}),
+    {code:'E_PROMPT_AMBIGUOUS'});
+  assert.equal(f.modelCalls.filter(row=>row.scope==='prompt-edit').length,0);
+  assert.equal(f.commits,0);assert.equal(f.confirms.length,0);
+  f.host.dispose();
+});
+
+test('R1.17 Provider switch or revocation blocks selected body transmission',async()=>{
+  const base=model.defaults(),row=model.draft({body:'不应传输的正文',name:'需验证权限'}),
+    initial={...base,items:[row]};
+  for(const mode of ['switch','revoke']){
+    const f=hostFixture({initial,proposal:{action:{
+      type:'edit',target:row.id,instruction:'完善'}}});
+    f.onModelRequest(async({scope})=>{
+      if(scope==='prompt')mode==='switch'?f.setProvider('another-provider'):f.revokeModel();
+    });
+    await assert.rejects(f.host.request({request:'编辑',event:{isTrusted:true}}),
+      {code:'E_MODEL_GRANT_REVOKED'});
+    assert.equal(f.modelCalls.filter(call=>call.scope==='prompt-edit').length,0);
+    assert.equal(f.commits,0);assert.equal(f.confirms.length,0);
+    f.host.dispose();
+  }
+});
+
+test('R1.17 ETag changed before sending prevents original-body export and Host write',async()=>{
+  const base=model.defaults(),row=model.draft({body:'旧正文',name:'ETag 校验'}),
+    initial={...base,items:[row]};
+  const f=hostFixture({initial,proposal:{action:{
+    type:'edit',target:row.id,instruction:'保持编号'}}});
+  f.onRead(async(count,library)=>{
+    if(count!==2)return;
+    const saved=await library.read();
+    await library.write({ifMatch:saved.etag,value:model.load({
+      ...saved.value,items:[...saved.value.items,model.draft({
+        body:'并发创建的独立记录',name:'另一个窗口'
+      })]
+    })});
+  });
+  await assert.rejects(f.host.request({request:'编辑 ETag 校验',event:{isTrusted:true}}),
+    {code:'E_STORAGE_CONFLICT'});
+  assert.equal(f.modelCalls.filter(call=>call.scope==='prompt-edit').length,0);
+  assert.equal(f.commits,0);assert.equal(f.confirms.length,0);
+  assert.equal(f.library.value.items.length,2);
   f.host.dispose();
 });
 

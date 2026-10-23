@@ -121,10 +121,10 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
   return {messages:[message],refs:refsNext,total:found.length};
  }
  let affected=[],nextItems=items.slice(),reviewRequired=false,verb='';
- const edit=async(row,batchItems=null)=>{
+ const edit=async row=>{
   if(typeof providerEdit!=='function')throw error('E_PROMPT_EDIT','缺少受控的正文编辑能力');
   const body=await providerEdit({item:structuredClone(row),instruction:a.instruction,
-   batchItems:batchItems?.map(item=>structuredClone(item))||null,signal});
+   expectedEtag:etag,signal});
   stop(signal);
   if(!valid(body))throw error('E_PROMPT_EDIT','AI 未返回有效的完整正文');
   const revised=model.draft({body,name:row.nameAuto?'':row.name,
@@ -174,7 +174,7 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
  if(!affected.length)throw error('E_PROMPT_NOT_FOUND','目标提示词不存在');
  if(a.type==='batch_edit'){
   const revisions=new Map();
-  for(const row of affected){stop(signal);revisions.set(row.id,await edit(row,affected));}
+  for(const row of affected){stop(signal);revisions.set(row.id,await edit(row));}
   nextItems=items.map(row=>revisions.get(row.id)||row);
  }
  if(reviewRequired){
