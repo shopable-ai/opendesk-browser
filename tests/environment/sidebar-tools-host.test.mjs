@@ -2548,15 +2548,26 @@ test('R3.2 a sidecar alone cannot install Focus when its worker probe fails',asy
   assert.match(f.elements['sidebar-tool-file-error'].textContent,/后台无响应/);
 });
 
+async function verifiedCookieStore(tool,baseGrant,other=[]){
+  const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
+  assert.ok(release,'source-derived official release required');
+  return new Map([
+    [SIDEBAR_TOOL_STORE,[tool]],
+    [MARKET_PROVENANCE_STORE,{[tool.id]:{marketId:release.id,
+      version:release.version,sha256:release.sha256}}],
+    [BROWSER_MENU_GRANTS_STORE,{[tool.id]:{version:tool.version,installEpoch:null,
+      packageHash:await sidebarToolPackageHash(tool),cookieAllSites:baseGrant}}],
+    ...other
+  ]);
+}
+
 test('R5.25 Cookie Editor settings keeps one live sandbox through ten returns and unsaved edits',async t=>{
   const tool=await officialToolFixture('cookie-editor');
   const baseGrant={storeId:'0',grantEpoch:'r525-fixture',read:true,write:true,observe:true,clear:true};
-  const store=new Map([
-    [SIDEBAR_TOOL_STORE,[tool]],
-    [BROWSER_MENU_GRANTS_STORE,{[tool.id]:{version:tool.version,installEpoch:null,cookieAllSites:baseGrant}}]
-  ]);
+  const store=await verifiedCookieStore(tool,baseGrant);
   const f=await hostFixture(t,{tool,store}),original=f.frame;
   assert.ok(original,'installed Cookie Editor mounts its official iframe');
+  await settle(()=>!f.elements['sidebar-tool-frame'].hidden);
   const settings=f.elements['sidebar-tool-cookie-permissions'];
   assert.equal(settings.hidden,true);
   for(let i=0;i<10;i++){
@@ -2578,11 +2589,8 @@ test('R5.25 Cookie Editor settings keeps one live sandbox through ten returns an
 
 test('R5.25 Extension Center direct settings returns to an available Cookie Editor workspace',async t=>{
   const tool=await officialToolFixture('cookie-editor');
-  const store=new Map([
-    [SIDEBAR_TOOL_STORE,[tool]],
-    [BROWSER_MENU_GRANTS_STORE,{[tool.id]:{version:tool.version,installEpoch:null,
-      cookieAllSites:{storeId:'0',grantEpoch:'r525-fixture',read:true,write:true,observe:true,clear:true}}}]
-  ]);
+  const store=await verifiedCookieStore(tool,
+    {storeId:'0',grantEpoch:'r525-fixture',read:true,write:true,observe:true,clear:true});
   const f=await hostFixture(t,{tool,store,startTool:false});
   assert.equal(f.runtime.frameRoot.children.length,0);
   assert.equal(f.host.openSettings(tool.id),true);
@@ -2593,7 +2601,7 @@ test('R5.25 Extension Center direct settings returns to an available Cookie Edit
   assert.equal(f.elements['sidebar-tool-display'].hidden,false);
   assert.equal(f.runtime.frameRoot.children.length,1,'back from settings mounts the real editor');
   const frame=f.runtime.frameRoot.children[0];
-  assert.equal(f.elements['sidebar-tool-frame'].hidden,false);
+  await settle(()=>!f.elements['sidebar-tool-frame'].hidden);
   await frame.onload();
   assert.ok(frame.contentWindow.sent.some(row=>row.kind==='load'&&row.tool?.id===tool.id));
   f.emit(f.elements['sidebar-tool-back'],'click');
@@ -2605,12 +2613,8 @@ test('R5.26 disabled Cookie Editor direct settings can re-enable without auto-mo
   const tool=await officialToolFixture('cookie-editor');
   const baseGrant={storeId:'0',grantEpoch:'r526-fixture',read:true,write:true,observe:true,clear:true};
   const key=sidebarToolStorageKey(tool.id),userData={draft:'retain-on-enable'};
-  const store=new Map([
-    [SIDEBAR_TOOL_STORE,[tool]],
-    [SIDEBAR_TOOL_ENABLE_STORE,{[tool.id]:false}],
-    [BROWSER_MENU_GRANTS_STORE,{[tool.id]:{version:tool.version,installEpoch:null,
-      packageHash:await sidebarToolPackageHash(tool),cookieAllSites:baseGrant}}],
-    [key,userData]
+  const store=await verifiedCookieStore(tool,baseGrant,[
+    [SIDEBAR_TOOL_ENABLE_STORE,{[tool.id]:false}],[key,userData]
   ]);
   const f=await hostFixture(t,{tool,store,startTool:false});
   assert.equal(f.host.openSettings(tool.id),true);
@@ -2634,16 +2638,16 @@ test('R5.26 disabled Cookie Editor direct settings can re-enable without auto-mo
   f.changeStorage({[BROWSER_MENU_GRANTS_STORE]:{newValue:store.get(BROWSER_MENU_GRANTS_STORE)}});
   f.emit(f.elements['sidebar-tool-back'],'click');
   assert.equal(f.runtime.frameRoot.children.length,1,'return mounts the existing React application');
-  assert.equal(f.elements['sidebar-tool-frame'].hidden,false);
+  await settle(()=>!f.elements['sidebar-tool-frame'].hidden);
 });
 
 test('R5.25 Cookie grant revocation hides the prior iframe instead of exposing stale metadata',async t=>{
   const tool=await officialToolFixture('cookie-editor');
   const saved={version:tool.version,installEpoch:null,
     cookieAllSites:{storeId:'0',grantEpoch:'r525-fixture',read:true,write:true,observe:true,clear:true}};
-  const store=new Map([[SIDEBAR_TOOL_STORE,[tool]],[BROWSER_MENU_GRANTS_STORE,{[tool.id]:saved}]]);
+  const store=await verifiedCookieStore(tool,saved.cookieAllSites);
   const f=await hostFixture(t,{tool,store}),frame=f.frame;
-  assert.equal(f.elements['sidebar-tool-frame'].hidden,false);
+  await settle(()=>!f.elements['sidebar-tool-frame'].hidden);
   const revoked={...saved,cookieAllSites:null};
   f.store.set(BROWSER_MENU_GRANTS_STORE,{[tool.id]:revoked});
   f.changeStorage({[BROWSER_MENU_GRANTS_STORE]:{newValue:{[tool.id]:revoked}}});
