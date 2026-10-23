@@ -76,6 +76,16 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   const writeWorkflowOutput=value=>{control('workflow-output').text=String(value);};
   // Audited first-party result adapter. It reports NO page text, URL,
   // step names or user input; the Host independently checks original Run/Result.
+  // One trusted user Send/Run is active; provider's later automatic rounds
+  // never call this and cannot manufacture a new active installation.
+  const reportWorkflowAttempt=()=>{
+    try{
+      void Promise.resolve(api.runtime?.sendMessage?.({
+        protocol:'opendesk.analytics.v1',kind:'event.workflow_attempt',
+        event:'workflow.manual_attempt',toolId:'workflow',channel:'extension'
+      })).catch(()=>{});
+    }catch{/* Analytics cannot affect a workflow attempt. */}
+  };
   const reportVerifiedWorkflowEffect=originalRunId=>{
     try{
       void Promise.resolve(api.runtime?.sendMessage?.({
@@ -599,6 +609,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   function run(event,prepared=null,approvedReview=null) {
     if((!prepared&&!event?.isTrusted)||((busy||autoExecutionPending)&&!prepared)||host.executionPending||host.currentRun||(!compiled&&!prepared))
       return Promise.resolve({ok:false,skipped:true});
+    if(!prepared)reportWorkflowAttempt();
     let captured,params,freeze,permission,runOrigins;
     try {
       freeze=prepared?.freeze||compiled;captured=prepared?.captured||currentPageTarget.capture();
@@ -2223,6 +2234,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       (provider()==='local_codex'&&localChecking))return;
     const original=control('workflow-ai-request').value.trim();
     if(!original){status('请描述希望完成的任务',true);focus('workflow-ai-request');return;}
+    reportWorkflowAttempt(); // before capture: a failed attempt is still active
     let target;
     try{target=currentPageTarget.capture();}
     catch(error){status(format(error),true);return;}
