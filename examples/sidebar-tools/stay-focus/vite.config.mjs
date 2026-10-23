@@ -10,6 +10,9 @@ const fingerprint=bytes=>({bytes:bytes.length,sha256:hash(bytes)});
 // Fingerprint every authored source, not just the last generated Vite bytes.
 export const STAY_FOCUS_REACT_SOURCES=[
   'src/main.js','src/entry.js','src/style.css','src/index.html',
+  'trusted/focus-controller.js','trusted/migrations.js','trusted/mutations.js',
+  'trusted/model.js','trusted/compile-site-policy.js','trusted/policy.js',
+  'trusted/catalog.js',
   'tool.config.json','vite.config.mjs','package.json'
 ];
 function receiptPlugin(){

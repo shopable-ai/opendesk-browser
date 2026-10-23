@@ -4,6 +4,10 @@
   if(!api?.root||!api?.request||!R?.createRoot||!U?.IconButton||!U?.Switch)
     throw Error('E_STAY_FOCUS_SHARED_UI');
   const h=R.createElement,{Button,IconButton,Card,CardContent,Switch}=U;
+  const controller=globalThis.__opendeskCreateFocusController?.({
+    request:api.request,siteBudget:globalThis.OpenDeskSDK?.browser?.siteBudget
+  });
+  if(!controller)throw Error('E_STAY_FOCUS_CONTROLLER');
   const svgPaths={
     add:['M12 5v14','M5 12h14'],edit:['M12 20h9','M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z'],
     more:['M5 12h.01','M12 12h.01','M19 12h.01'],close:['M18 6 6 18','M6 6l12 12'],
@@ -214,7 +218,7 @@
       if(writing.current)return;
       const id=++readId.current;
       try{
-        const value=await api.request('focus.status',{});
+        const value=await controller.readStatus();
         if(!value?.dailyBudget||!Array.isArray(value.sites))
           throw Error('后台状态数据不完整');
         if(!alive.current||writing.current||id!==readId.current)return;
@@ -227,7 +231,7 @@
       writing.current=true;readId.current++;setBusy(true);
       notice('');
       try{
-        const value=await api.request(operation,payload);
+        const value=await controller.operate(operation,payload);
         if(!value?.dailyBudget||!Array.isArray(value.sites))
           throw Error('保存回执尚未确认，请检查当前设置');
         if(!alive.current)return false;
