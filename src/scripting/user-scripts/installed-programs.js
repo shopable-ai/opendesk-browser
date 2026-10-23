@@ -563,7 +563,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       });return {catalog,installed:installed.map(publicInstall)};
     });
   }
-  async function boot(message,sender){
+  async function boot(message,sender,source='page_auto',manualReceiptId=null){
     fields(message,['protocol','nativeId','token']);
     invariant(message.protocol===PAGE_BOOT_PROTOCOL&&sender?.id===api.runtime.id&&sender.frameId===0&&
       typeof sender.documentId==='string'&&Number.isSafeInteger(sender.tab?.id)&&!sender.tab.incognito,
@@ -593,7 +593,10 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       worldId:PAGE_BOOT_WORLD,js:[{code:'typeof '+desired.marker+' === "string" ? '+desired.marker+' : null'}]});
     invariant(probe.length===1&&probe[0]?.frameId===0&&probe[0]?.documentId===frame.documentId&&
       probe[0].error===undefined&&probe[0].result===row.token,PAGE_PERMISSION_ERROR,'缺少匹配文档的真实安装引导标记');
-    const executionKey=key('execution',namespace,row.manifestHash,frame.documentId),receiptId=crypto.randomUUID();
+    const receiptId=manualReceiptId??crypto.randomUUID();
+    const executionKey=source==='manual'?
+      key('execution',namespace,row.manifestHash,frame.documentId,receiptId):
+      key('execution',namespace,row.manifestHash,frame.documentId);
     const admitted=await storage.transaction([PAGE_STORE],PAGE_WRITE,async tx=>{
       const current=await tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId));
       invariant(current&&active(current)&&current.token===row.token&&permissionEpoch(row)===epoch&&compilationCurrent(),PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
@@ -601,7 +604,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       if(previous)return false;
       const count=(await tx.all(PAGE_STORE)).filter(r=>r?.tag==='page-execution-v1').length;
       invariant(count<4096,'E_QUOTA','页面执行回执已达上限；保留原始证据后再维护');
-      await tx.put(PAGE_STORE,{tag:'page-execution-v1',namespace,receiptId,programId:row.programId,
+      await tx.put(PAGE_STORE,{tag:'page-execution-v1',namespace,receiptId,source,programId:row.programId,
         revision:row.revision,manifestHash:row.manifestHash,sourceHash:row.sourceHash,
         installationToken:row.token,installationId:row.authorization.installationId,grantGeneration:row.authorization.generation,
         executionKey,browserSessionIncarnation:session,
@@ -733,9 +736,9 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       if(held&&(confirmed||!dispatched))await admission.release({nonce:message.requestId});
     }
   }
-  function handleBoot(message,sender){
+  function handleBoot(message,sender,source='page_auto',manualReceiptId=null){
     if(message?.action===PAGE_FRAME_ACTION)return frameBoot(message,sender);
-    const next=executions.then(()=>boot(message,sender)).catch(async error=>{
+    const next=executions.then(()=>boot(message,sender,source,manualReceiptId)).catch(async error=>{
       // Chrome's User Scripts toggle does not necessarily emit permissions
       // onRemoved. A real access failure must durably suspend this installation
       // too. Forged markers, stale documents and ordinary source errors cannot
@@ -755,6 +758,52 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       throw error;
     });executions=next.catch(()=>{});return next;
   }
+  // An authenticated first-party Developer click can ask the *same* installed
+  // USER_SCRIPT executor for one explicit invocation. It never replays the
+  // native bootstrap, changes a grant, or invents a page sender from UI input.
+  async function runInstalledPageProgram(request,sender){
+    request=structuredClone(request);
+    fields(request,['programId','manifestHash','installationId','expectedGeneration','target']);
+    const target=request.target;
+    fields(target,['tabId','frameId','documentId','expectedUrl','expectedWindowId']);
+    invariant(Number.isSafeInteger(target.tabId)&&target.tabId>=0&&target.frameId===0&&
+      typeof target.documentId==='string'&&target.documentId.length>0&&target.documentId.length<=256&&
+      typeof target.expectedUrl==='string'&&Number.isSafeInteger(target.expectedWindowId),
+      'E_SCHEMA','手动运行必须指定当前可信网页文档');
+    const row=await scoped(sender,'readonly',async tx=>tx.get(PAGE_STORE,
+      key(INSTALL_KEY_KIND,namespace,request.programId)));
+    invariant(row?.tag===PAGE_INSTALL_TAG&&row.manifestHash===request.manifestHash&&
+      row.authorization?.installationId===request.installationId&&
+      row.authorization?.generation===request.expectedGeneration,
+      PAGE_REVISION_ERROR,'手动运行引用的安装身份或授权代数已改变');
+    invariant(active(row),PAGE_PERMISSION_ERROR,'程序已停用或网站授权不可用');
+    const [tab,frames]=await Promise.all([api.tabs.get(target.tabId),
+      api.webNavigation.getAllFrames({tabId:target.tabId})]);
+    const frame=frames?.find(value=>value.frameId===0&&value.documentId===target.documentId);
+    invariant(tab?.id===target.tabId&&tab.windowId===target.expectedWindowId&&tab.active===true&&
+      tab.incognito===false&&tab.url===target.expectedUrl&&!tab.pendingUrl&&
+      frame?.url===target.expectedUrl&&!frame.errorOccurred&&
+      (!frame.documentLifecycle||frame.documentLifecycle==='active'),
+      'E_DOCUMENT_STALE','手动运行目标已不再是活动网页文档');
+    const receiptId=crypto.randomUUID(),executionKey=
+      key('execution',namespace,row.manifestHash,frame.documentId,receiptId);
+    // Only the original Broker can synthesize these sender facts after its
+    // Host + Chrome readbacks; an untrusted page cannot call this RPC.
+    const frameSender={id:api.runtime.id,frameId:0,documentId:frame.documentId,
+      url:frame.url,tab:{id:tab.id,incognito:false}};
+    let response;
+    try{
+      response=await handleBoot({protocol:PAGE_BOOT_PROTOCOL,nativeId:row.nativeId,token:row.token},
+        frameSender,'manual',receiptId);
+    }catch(error){
+      const execution=await read(tx=>tx.get(PAGE_STORE,executionKey));
+      if(execution?.source!=='manual'||execution.receiptId!==receiptId||
+        !['failed','outcome-unknown'].includes(execution.state))throw error;
+      return {receiptId,state:execution.state,error:{code:error.code||PAGE_UNKNOWN_ERROR,
+        message:String(error.message||error)}};
+    }
+    return {...response,receiptId};
+  }
   return Object.freeze({importPageInstallPackage,verifyPageCandidate,makePageAvailable,installPageProgram,setInstalledPageEnabled,uninstallPageProgram,
-    listPagePrograms,recoverExecutions,reconcile,observeManagedCleanup,revokePermissions,handleBoot});
+    listPagePrograms,runInstalledPageProgram,recoverExecutions,reconcile,observeManagedCleanup,revokePermissions,handleBoot});
 }
