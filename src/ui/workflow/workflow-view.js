@@ -149,9 +149,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   const currentOrigin=()=>currentPageTarget?.snapshot?.status==='available'
     ? currentPageTarget.snapshot.origin:null;
   const provider=()=>control('workflow-ai-provider').value;
+  let synchronizingProvider=false;
   // The trusted Workflow settings UI edits shared memory-only configuration.
   // Provider and all other consumers never read Workflow DOM controls.
   function syncSharedProviderSettings(){
+    if(synchronizingProvider)return;
     providers.configure({source:provider(),
       endpoint:control('workflow-ai-endpoint').value.trim(),
       model:control('workflow-ai-model').value.trim(),
@@ -2683,6 +2685,31 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(runId && host.currentRun!==runId && !busy){runId=null;onRunOwner(null);}
     updateButtons();
   });
+  // The framework settings panel may update Provider configuration while this
+  // Workflow tab is hidden. Mirror its generation into the legacy controls;
+  // stale planning and observation grants must not survive a source switch.
+  const unsubscribeProviderSettings=providers.subscribeSettings?.(()=>{
+    if(disposed)return;
+    const next=providers.configuration(),settings=next.settings;
+    if(provider()===next.source &&
+      control('workflow-ai-endpoint').value===settings.endpoint &&
+      control('workflow-ai-model').value===settings.model &&
+      control('workflow-ai-key').value===settings.apiKey)return;
+    synchronizingProvider=true;
+    try {
+      control('workflow-ai-provider').value=next.source;
+      control('workflow-ai-endpoint').value=settings.endpoint;
+      control('workflow-ai-model').value=settings.model;
+      control('workflow-ai-key').value=settings.apiKey;
+      renderProvider();
+    }finally{synchronizingProvider=false;}
+    dismissRunReview();
+    observationApproval=null;persistObservationApproval();
+    verifiedTurnHistory=[];lastProviderTurn=null;
+    void (workflowAgent?stopWorkflowAgent('E_TOOL_CHANGED'):stopPlanning({close:true}))
+      .catch(error=>{if(!disposed)status(format(error),true);});
+    updateButtons();
+  });
   const unsubscribeNative=client.subscribeWorkflowAI?.(state=>{
     if(disposed||!state)return;
     if(state.nativeConnected===false||!state.protocolAvailable)localCapability=state;
@@ -2866,6 +2893,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     workflowLease.dispose();if(ownsProviderRuntime)providers.dispose();
     void Promise.resolve(observation.dispose()).catch(()=>{});
     unsubscribePage?.();unsubscribeRun?.();unsubscribeNative?.();
+    unsubscribeProviderSettings?.();
     api.permissions.onRemoved?.removeListener(removedPermissions);
     api.storage.onChanged?.removeListener(savedStorageChanged);
     bindings.clear();ui.dispose();onRunOwner(null);

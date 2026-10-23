@@ -159,7 +159,8 @@ function WorkflowStep({step,index,count,model,actions}) {
 /** One trusted page, one DOM owner. The optional controller owns business state,
  * while this tree owns fields, event wiring, disclosure, focus and modal DOM. */
 export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,actions:providedActions=EMPTY_ACTIONS,
-  active=true,document:doc=globalThis.document}) {
+  active=true,document:doc=globalThis.document,
+  onOpenProviderSettings=null,sharedProviderSettings=false}) {
   const fallback=React.useCallback(()=>providedModel,[providedModel]);
   const model=React.useSyncExternalStore(controller?.subscribe||noSubscribe,controller?.getSnapshot||fallback,controller?.getSnapshot||fallback);
   const actions=controller?.actions||providedActions;
@@ -369,7 +370,10 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
               click('workflow-ai-plan',event);
           }}/> 
         <div className="workflow-composer-actions">
-          {action('workflow-provider-toggle','AI 设置',{icon:true,kind:'settings','aria-expanded':openSettings,'aria-controls':'workflow-provider-settings'})}
+          {sharedProviderSettings?
+             <IconButton id="workflow-provider-toggle" label="AI 设置" title="AI 设置"
+               onClick={onOpenProviderSettings}><Glyph kind="settings"/></IconButton>:
+             action('workflow-provider-toggle','AI 设置',{icon:true,kind:'settings','aria-expanded':openSettings,'aria-controls':'workflow-provider-settings'})}
           <WorkflowSourceName value={model.sourceName||'本机 Codex'}/>
         {action('workflow-ai-plan','发送任务',{icon:true,primary:true,kind:'send'})}
           {action('workflow-ai-cancel','停止')}
@@ -380,7 +384,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
       </div>
       {text('workflow-status',{className:'workflow-status',role:'status','aria-live':'polite','data-state':c('workflow-status').dataset?.state})}
     </section>
-    <WorkflowSettingsSheet open={openSettings} onClose={closeSettings} doc={doc}>
+    {!sharedProviderSettings&&<WorkflowSettingsSheet open={openSettings} onClose={closeSettings} doc={doc}>
       <details id="workflow-provider-settings" className="workflow-provider od-disclosure od-disclosure--flat" open>
         <summary>AI 设置</summary>
         <div className="workflow-source-switch" role="group" aria-label="AI 来源">
@@ -412,6 +416,6 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
           {action('workflow-observation-revoke','撤销网页摘要授权')}
         </details>
       </details>
-    </WorkflowSettingsSheet>
+    </WorkflowSettingsSheet>}
   </div>;
 }

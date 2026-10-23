@@ -1,0 +1,53 @@
+name: Shared AI Chat R2.2 - trusted source and build
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/ui/ai/provider-runtime.js'
+      - 'src/ui/react/components/conversation.tsx'
+      - 'src/ui/react/components/provider-settings.tsx'
+      - 'src/ui/react/components/conversation-dock.css'
+      - 'src/ui/react/tabs/my-agent.tsx'
+      - 'src/ui/react/tabs/my-agent.css'
+      - 'src/ui/react/tabs/my-page.tsx'
+      - 'src/ui/react/tabs/workflow.tsx'
+      - 'src/ui/react/app-shell.tsx'
+      - 'src/ui/react/main.tsx'
+      - 'src/ui/workflow/workflow-view.js'
+      - 'src/ui/tool-shell.js'
+      - 'tests/environment/shared-ai-conversation-r22.test.mjs'
+      - '.github/workflows/shared-ai-chat-r22.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Shared Provider, My Task, Bookmark, Prompt and Workflow targeted contracts
+        run: |
+          node --test \
+            tests/environment/shared-ai-conversation-r22.test.mjs \
+            tests/environment/shared-ai-provider-runtime-r21.test.mjs \
+            tests/environment/my-task-agent-r1.test.mjs \
+            tests/environment/opendesk-conversation-r14-dock.test.mjs \
+            tests/environment/opendesk-conversation-r13-prompt-business.test.mjs \
+            tests/environment/opendesk-conversation-r15-closeout.test.mjs \
+            tests/environment/workflow-provider-facade.test.mjs \
+            tests/environment/workflow-react-page.test.mjs
+      - name: Source check
+        run: npm run check
+      - name: Development build
+        run: npm run build:dev
+      - name: Production build
+        run: npm run build
+      - name: Verify installed source packages
+        run: npm run verify

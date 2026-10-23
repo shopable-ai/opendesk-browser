@@ -37,14 +37,14 @@ function PromptSandboxBusiness({dock,onRequest}){
 const mountedDocuments=new WeakSet();
 
 export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
-  developerView=createDeveloperView(),myView=createMyWorkbenchView(),toolView=null}={}){
+  developerView=createDeveloperView(),myView=createMyWorkbenchView(),toolView=null,providerRuntime=null}={}){
   const mount=doc.getElementById('opendesk-react-app');
   if(!mount||mount.childNodes.length||mountedDocuments.has(doc))throw new Error('E_REACT_APP_MOUNT');
   if(typeof onNavigate!=='function')throw new Error('E_REACT_APP_SHELL_NAVIGATION');
   const initialTab=doc.documentElement?.dataset?.opendeskTab||'tasks';
   const root=createRoot(mount);
   mountedDocuments.add(doc);
-  let disposed=false,navigationTab=initialTab,workflowController=null,myAgent=null;
+  let disposed=false,navigationTab=initialTab,workflowController=null,myAgent=null,settingsOpen=false;
   let extensionView='list',onExtensionBack=()=>{},menuKey=null,detailModel=null,uninstallModel=null;
   let model={rows:[],busy:false,pendingKey:null,onOpenRow:()=>{},onMore:()=>{}};
   let toolbarModel={query:'',kind:'all',scope:'smart',language:'zh-CN',menuOpen:false};
@@ -71,6 +71,8 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
       }
     }
   }
+  function openSharedProviderSettings(){if(disposed||!providerRuntime)return;settingsOpen=true;paint();}
+  function closeSharedProviderSettings(){if(disposed)return;settingsOpen=false;paint();}
   function paint(){
     if(disposed)return;
     const extensionProps={rowsModel:model,menuKey,rowMenuModel,detailModel,uninstallModel,toolbarModel,feedbackModel,recoveryModel,statusModel,
@@ -81,6 +83,9 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
         debugEnabled={debugEnabled} debugModel={debugModel} debugActions={debugActions} development={development}
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
         onNavigate={onNavigate} extensionProps={extensionProps}
+        providerRuntime={providerRuntime} providerSettingsOpen={settingsOpen}
+        onOpenProviderSettings={openSharedProviderSettings}
+        onCloseProviderSettings={closeSharedProviderSettings}
         developerView={developerView} myView={myView} myAgent={myAgent} toolView={toolView} workflowController={workflowController}
         cloudModel={cloudPageModel.overview} cloudRequestsModel={cloudPageModel.requests}
         cloudSetupModel={cloudPageModel.setup} cloudPageModel={cloudPageModel}/>
@@ -88,7 +93,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
         <TrustedConversationWorkspace controller={promptPilot.controller}
           headerTarget={promptPilot.headerTarget}
           title="提示词 AI 对话" phaseLabels={PROMPT_PHASE_LABELS}
-          onOpenSettings={()=>workflowController?.actions?.openSettings?.()}
+          onOpenSettings={openSharedProviderSettings}
           placeholder="例如：创建一条将中文翻译成日语的提示词"
           renderBusiness={dock=><PromptSandboxBusiness dock={dock} onRequest={promptPilot.onRequest}/>}/>,
         promptPilot.container)}
@@ -96,7 +101,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
         <TrustedConversationWorkspace controller={bookmarkPilot.runtime.conversation}
           headerTarget={bookmarkPilot.headerTarget}
          title="AI 对话" phaseLabels={BOOKMARK_PHASE_LABELS}
-         onOpenSettings={()=>workflowController?.actions?.openSettings?.()}
+         onOpenSettings={openSharedProviderSettings}
          placeholder="例如：创建一个文件夹并收藏当前网页"
          
          renderBusiness={dock=><BookmarkReactApp mode="trusted" runtime={bookmarkPilot.runtime}

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {transform} from 'esbuild';
+import {createSharedAIProviderRuntime} from '../../src/ui/ai/provider-runtime.js';
 
 const read=path=>readFile(new URL('../../'+path,import.meta.url),'utf8');
 
@@ -29,12 +30,16 @@ test('R2.2 all trusted consumers reach the same Provider settings sheet and owne
   read('src/ui/react/tabs/workflow.tsx'),
   read('src/ui/react/components/provider-settings.tsx')]);
  assert.equal((main.match(/createRoot\(/g)||[]).length,1);
- assert.match(main,/onOpenSettings=\{\(\)=>workflowController\?\.actions\?\.openSettings\?\.\(\)\}/);
+ assert.match(main,/onOpenSettings=\{openSharedProviderSettings\}/);
+ assert.match(main,/providerRuntime=\{providerRuntime\}/);
  assert.match(my,/onClick=\{onOpenSettings\}/);
- assert.match(app,/onOpenSettings=\{\(\)=>workflowController\?\.actions\?\.openSettings\?\.\(\)\}/);
- assert.match(view,/openSettings:\(\)=>\{if\(!disposed\)openAISettings\(\);\}/);
+ assert.match(app,/onOpenSettings=\{onOpenProviderSettings\}/);
+ assert.match(app,/providerRuntime=\{providerRuntime\}/);
+ assert.match(view,/unsubscribeProviderSettings/);
  assert.match(workflow,/<WorkflowSettingsSheet open=\{openSettings\}/);
+ assert.match(workflow,/<IconButton id="workflow-provider-toggle"/);
  assert.match(sheet,/createPortal\(/);
+ assert.match(sheet,/providerRuntime\.updateSettings\(patch\)/);
  assert.doesNotMatch(sheet,/createRoot\(|chrome\.|permissions\.request|configure\(/);
  for(const source of [main,workflow,sheet,app])
   assert.ok((await transform(source,{loader:'tsx',jsx:'transform',target:'es2022'})).code.length>100);
@@ -49,4 +54,47 @@ test('R2.2 trusted business authority and isolated Provider leases are unchanged
  assert.match(agent,/createMyTaskAgent/);
  assert.match(prompt,/etag|ETag/i);
  assert.match(workflow,/workflowLease=providers\.acquire/);
+});
+
+
+test('R2.2 public Provider settings are stable, never reveal a key and preserve each Lease',async()=>{
+ const disposed=[];
+ const runtime=createSharedAIProviderRuntime({
+  hostInstanceId:'trusted-panel',
+  client:{requestWorkflowAI:async()=>({})},
+  plannerFactory:()=>({
+   plan:async()=>({}),planStructured:async()=>({}),probe:async()=>({}),
+   resume:async()=>({}),cancel:async()=>({}),close:async()=>({}),
+   snapshot:()=>({sessionId:'native-session-one'}),dispose:()=>disposed.push('released')
+  }),
+  facadeFactory:()=>({probeCapabilities:()=>({}),generateWorkflow:async()=>({}),
+   generateStructured:async()=>({})})
+ });
+ const events=[],unsubscribe=runtime.subscribeSettings(()=>events.push(runtime.settingsSnapshot()));
+ const before=runtime.settingsSnapshot();
+ assert.strictEqual(runtime.settingsSnapshot(),before,'no change must retain snapshot identity');
+ assert.equal(before.hasApiKey,false);
+ const bookmark=runtime.acquire({consumerId:'bookmark',instanceId:'bookmark-1'});
+ const tasks=runtime.acquire({consumerId:'tasks',instanceId:'tasks-1'});
+ assert.notEqual(bookmark,tasks,'different business leases');
+ const changed=runtime.updateSettings({
+  source:'custom_https',endpoint:'https://example.org/v1/chat/completions',
+  model:'model-one',apiKey:'private-secret'
+ });
+ assert.equal(changed.settings.apiKey,'private-secret');
+ assert.equal(events.length,1);
+ assert.deepEqual(runtime.settingsSnapshot(),{
+  source:'custom_https',endpoint:'https://example.org/v1/chat/completions',
+  model:'model-one',hasApiKey:true,generation:2
+ });
+ assert.equal(Object.hasOwn(runtime.settingsSnapshot(),'apiKey'),false);
+ runtime.updateSettings({model:'model-two'});
+ assert.equal(events.length,2);
+ assert.equal(runtime.configuration().settings.apiKey,'private-secret','model update cannot erase key');
+ assert.notEqual(bookmark.identity().instanceId,tasks.identity().instanceId);
+ assert.throws(()=>runtime.updateSettings({admin:true}),{code:'E_AI_CONFIG'});
+ unsubscribe();runtime.updateSettings({source:'local_codex'});
+ assert.equal(events.length,2);
+ bookmark.dispose();tasks.dispose();runtime.dispose();
+ assert.throws(()=>runtime.updateSettings({model:'later'}),{code:'E_HOST_CLOSED'});
 });

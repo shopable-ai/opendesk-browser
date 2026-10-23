@@ -13,7 +13,14 @@ export function createSharedAIProviderRuntime({client,hostInstanceId,
     throw fail('E_AI_RUNTIME','共享 Provider 缺少可信 Host 身份');
   let disposed=false,generation=1;
   let config={source:'local_codex',endpoint:'https://api.openai.com/v1/chat/completions',model:'',apiKey:''};
-  const leases=new Map();
+  const leases=new Map(),settingsListeners=new Set();
+  let publicSettings=Object.freeze({source:config.source,endpoint:config.endpoint,
+    model:config.model,hasApiKey:false,generation});
+  const publishSettings=()=>{
+    publicSettings=Object.freeze({source:config.source,endpoint:config.endpoint,
+      model:config.model,hasApiKey:Boolean(config.apiKey),generation});
+    for(const listener of [...settingsListeners])listener();
+  };
   const ensure=()=>{if(disposed)throw fail('E_HOST_CLOSED','共享 Provider 已关闭');};
   const configuration=()=>({source:config.source,generation,
     settings:{endpoint:config.endpoint,model:config.model,apiKey:config.apiKey}});
@@ -25,8 +32,23 @@ export function createSharedAIProviderRuntime({client,hostInstanceId,
     if(Object.keys(updated).some(k=>updated[k]!==config[k])) {
       config=updated;generation++;
       for(const lease of leases.values())lease.invalidate();
+      publishSettings();
     }
     return configuration();
+  }
+  function updateSettings(patch={}) {
+    ensure();
+    const allowed=new Set(['source','endpoint','model','apiKey']);
+    if(!patch||typeof patch!=='object'||Array.isArray(patch)||
+      Object.keys(patch).some(key=>!allowed.has(key)))
+      throw fail('E_AI_CONFIG','未知 Provider 设置字段');
+    return configure({source:patch.source??config.source,
+      endpoint:patch.endpoint??config.endpoint,model:patch.model??config.model,
+      apiKey:Object.hasOwn(patch,'apiKey')?patch.apiKey:config.apiKey});
+  }
+  function subscribeSettings(listener){
+    ensure();if(typeof listener!=='function')throw fail('E_AI_CONFIG','设置监听器无效');
+    settingsListeners.add(listener);return ()=>settingsListeners.delete(listener);
   }
   function acquire({consumerId,instanceId,hostInstanceId:owner=hostInstanceId,installEpoch=null}={}) {
     ensure();
@@ -112,7 +134,9 @@ export function createSharedAIProviderRuntime({client,hostInstanceId,
     leases.set(key,lease);
     return lease;
   }
-  return Object.freeze({acquire,configure,configuration,
+  return Object.freeze({acquire,configure,configuration,updateSettings,
+    settingsSnapshot:()=>publicSettings,subscribeSettings,
     dispose(){if(disposed)return;for(const lease of [...leases.values()])lease.dispose();
-      disposed=true;config={source:'local_codex',endpoint:'',model:'',apiKey:''};}});
+      disposed=true;settingsListeners.clear();
+      config={source:'local_codex',endpoint:'',model:'',apiKey:''};}});
 }

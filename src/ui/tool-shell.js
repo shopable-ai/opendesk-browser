@@ -116,7 +116,7 @@ const tabMemory=createSidebarTabMemory({
 });
 let scheduleUI=null,scheduleHost=null;
 // Create the complete interface before controllers attach their real hosts.
-extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolView,
+extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolView,providerRuntime,
   onNavigate:view=>reactNavigationRequest?.(view)??false});
 const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget,
   importDraft:sourceUtf8=>scriptEditor.importDraft(sourceUtf8),executionSource:scriptEditor.executionSource,

@@ -6,6 +6,7 @@ import {CloudConnectionPage} from './tabs/cloud.tsx';
 import {DeveloperPage,DeveloperDock} from './tabs/develop.tsx';
 import {MyTasksPage,MyTasksDock} from './tabs/my-page.tsx';
 import {WorkflowPage} from './tabs/workflow.tsx';
+import {SharedProviderSettingsSheet} from './components/provider-settings.tsx';
 import {ToolHost} from './tabs/tool-host.tsx';
 import {DebugPage} from './tabs/debug.tsx';
 
@@ -16,7 +17,9 @@ const subscribeEmptyTool=()=>()=>{};
 export function SidebarAppShell({
   activeTab='tasks',debugEnabled=false,onNavigate=()=>{},
   extensionProps={},cloudModel={},cloudRequestsModel={},cloudSetupModel={},cloudPageModel={},
-  developerView,myView,myAgent=null,toolView=null,workflowController=null,debugModel={},debugActions={},development=null,
+  developerView,myView,myAgent=null,toolView=null,workflowController=null,providerRuntime=null,
+  providerSettingsOpen=false,onOpenProviderSettings=()=>{},onCloseProviderSettings=()=>{},
+  debugModel={},debugActions={},development=null,
   browserHistoryModel=null,browserHistoryActions=null
 }){
   React.useSyncExternalStore(myView.subscribe,myView.getSnapshot,myView.getSnapshot);
@@ -48,7 +51,7 @@ export function SidebarAppShell({
       </div>
       <TaskCatalogPage view={myView} hidden={activeTab!=='catalog'} standalone={activeTab==='catalog'}/>
       <MyTasksPage view={myView} agent={myAgent} hidden={activeTab!=='tasks'}
-        onOpenSettings={()=>workflowController?.actions?.openSettings?.()}/>
+        onOpenSettings={onOpenProviderSettings}/>
       <div id="workbench-tools" role="tabpanel" aria-labelledby="tab-tools"
         className="od-page" data-workbench-page="tools" hidden={activeTab!=='tools'}>
         <section id="sidebar-tools" className="sidebar-tools" aria-label="自定义工具">
@@ -60,7 +63,9 @@ export function SidebarAppShell({
           {toolView&&<ToolHost view={toolView}/>}
         </section>
       </div>
-      <WorkflowPage controller={workflowController} active={activeTab==='workflow'}/>
+      <WorkflowPage controller={workflowController} active={activeTab==='workflow'}
+        onOpenProviderSettings={onOpenProviderSettings}
+        sharedProviderSettings={Boolean(providerRuntime)}/>
       <DeveloperPage view={developerView} hidden={activeTab!=='develop'}/>
       <CloudConnectionPage model={cloudModel} requestsModel={cloudRequestsModel}
         setupModel={cloudSetupModel}
@@ -70,6 +75,8 @@ export function SidebarAppShell({
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
         hidden={activeTab!=='debug'}/>}
     </main>
+    {providerRuntime&&<SharedProviderSettingsSheet providerRuntime={providerRuntime}
+      open={providerSettingsOpen} onClose={onCloseProviderSettings}/>}
     <footer id="workspace-dock" className="workspace-dock" hidden={runDock.hidden&&!developerCanStop} data-stop-only={String(runDock.stopOnly||developerCanStop&&activeTab!=='develop')}>
       <MyTasksDock view={myView} hidden={runDock.taskHidden}/>
       <DeveloperDock view={developerView} hidden={runDock.developHidden&&!developerCanStop}/>
