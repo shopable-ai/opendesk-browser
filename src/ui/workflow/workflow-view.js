@@ -1988,7 +1988,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       resolved.installationId!==candidate.expected.installationId||
       resolved.generation!==candidate.expected.generation||
       resolved.contentHash!==candidate.sourceHash||
-      resolved.revision!==candidate.revision||
+      resolved.revision!==1||
+      resolved.scriptId!=='task:'+candidate.taskId+':'+candidate.expected.version||
+      resolved.manifest?.program?.revision!==candidate.revision||
       resolved.manifest?.program?.sourceHash!==candidate.sourceHash)
       throw err('E_REVISION','已安装任务身份、Manifest 或冻结源码不一致');
     return resolved;
@@ -2007,7 +2009,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       if(!await api.permissions.contains({origins:[permissionPattern(captured.url)]}))
         throw err('E_PERMISSION','网站权限已撤销，未启动任务');
       await currentPageTarget.revalidate(captured);
-      await verifyInstalledCandidate(candidate);
+      const resolved=await verifyInstalledCandidate(candidate);
       if(disposed||!sameTarget(captured,currentPageTarget.snapshot)||
         host.executionPending||host.currentRun)
         throw err('E_DOCUMENT_STALE','目标网页或执行槽已变化，不运行任务');
@@ -2031,8 +2033,14 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         run?.runId!==completed.runId||run.state!=='completed'||
         run.workerRetired!==true||run.retirementState!=='released'||
         run.revision?.sourceHash!==candidate.sourceHash||
-        run.revision?.revision!==candidate.revision||
+        run.revision?.scriptId!==resolved.scriptId||
+        run.revision?.revision!==resolved.revision||
+        run.target?.tabId!==captured.tabId||
+        run.target?.documentId!==captured.documentId||
+        run.target?.allowedOrigin!==captured.origin||
         result?.runId!==completed.runId||result.resultId!==run.resultId||
+        result.revision?.scriptId!==resolved.scriptId||
+        result.revision?.revision!==resolved.revision||
         result.revision?.sourceHash!==candidate.sourceHash||
         result.outcome?.ok!==true)
         throw err('E_OUTCOME_UNKNOWN','运行回执、固定源码或 Worker 收尾无法共同确认，不会重试');
@@ -2163,7 +2171,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         const granted=await api.permissions.contains({origins:[permissionPattern(target.url)]});
         assertLive();
         if(!granted||selectedTask.sensitive){
-          pendingInstalledGrant={...prepared,needsPermission:!granted};
+          pendingInstalledGrant={...prepared,confirmInput:original,needsPermission:!granted};
           appendChat('你',original);
           appendChat('助手',!granted?'找到已安装任务，但需要当前网站授权。':
             '找到已安装任务，此敏感操作需要确认。');
@@ -2516,7 +2524,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(pendingInstalledGrant){
       const row=pendingInstalledGrant;pendingInstalledGrant=null;
       if(!sameTarget(row.captured,currentPageTarget.snapshot)||
-        row.request!==control('workflow-ai-request').value.trim()){
+        row.confirmInput!==control('workflow-ai-request').value.trim()){
         dismissRunReview();status('任务或网页已变化，请重新发送。',true);
         return Promise.resolve({ok:false,skipped:true});
       }
