@@ -121,8 +121,30 @@ try{
  await waitUntil('location.search.includes("product=mouse-silent")&&!!document.getElementById("workflow-commerce-product-title")?.textContent');
  assert.match(await evalOnPage('document.title'),/无线鼠标/);
  assert.equal(await evalOnPage('document.getElementById("workflow-commerce-product-price").textContent'),'¥89.00');
+ // These two searches exercise the real browser DOM and new Document navigation.
+ // This is the fixture prerequisite for the saved v2 RunHost replay, NOT that E2E.
+ for(const target of [
+   {query:'camera',name:'Camera X',product:'camera-x',price:'¥499.00'},
+   {query:'lens',name:'Lens Y',product:'lens-y',price:'¥129.00'}
+ ]){
+   await page('workflow-commerce.html');
+   await fill('#workflow-commerce-query',target.query);
+   await click('#workflow-commerce-submit');
+   await waitUntil('document.getElementById("workflow-commerce-status").textContent==="搜索完成"');
+   assert.equal(await evalOnPage('document.getElementById("workflow-commerce-query").value'),target.query);
+   assert.equal(await evalOnPage('new URL(location.href).searchParams.get("keyword")'),target.query);
+   assert.equal(await evalOnPage('document.querySelectorAll("#workflow-commerce-results a").length'),1,
+     'the requested product link must be unique');
+   assert.equal(await evalOnPage('document.querySelector("#workflow-commerce-results a").textContent'),target.name);
+   assert.equal(await evalOnPage('document.querySelector("#workflow-commerce-count").textContent'),'提交次数：1');
+   await click('#workflow-commerce-results a');
+   await waitUntil('new URL(location.href).searchParams.get("product")==='+
+     JSON.stringify(target.product)+'&&document.getElementById("workflow-commerce-product-title")?.textContent==='+JSON.stringify(target.name));
+   assert.equal(await evalOnPage('document.getElementById("workflow-commerce-product-title").textContent'),target.name);
+   assert.equal(await evalOnPage('document.getElementById("workflow-commerce-product-price").textContent'),target.price);
+ }
  assert.deepEqual(errors,[]);
- console.log('WORKFLOW_FIXTURES_CHROMIUM_DOM_PASS=search+navigation+empty+commerce+price; RUNHOST=NOT_TESTED');
+ console.log('WORKFLOW_FIXTURES_CHROMIUM_DOM_PASS=search+navigation+empty+commerce+price+camera+lens; RUNHOST=NOT_TESTED');
 }finally{
  for(const item of pending.values())item.reject(Error('Browser fixture closed'));
  try{socket?.close();}catch{}
