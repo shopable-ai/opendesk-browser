@@ -82,6 +82,11 @@ async function deliver(env,{fetcher,now}){
             ...(row.event==='app.inventory'?{installed_tools:row.installedTools,
               ...(row.coverage?{coverage_overflow:row.coverage.overflow,
                 coverage_expired:row.coverage.expired,coverage_version:row.coverage.version}:{})}:{}),
+            ...(row.event==='app.inventory_types'?{inventory_types:row.inventoryTypes??null,
+              inventory_read_state:row.readState,projection_gap:row.projectionGap===true}:{}),
+            ...(row.event==='tool.auto_daily'?{tool_type:row.toolType,utc_day:row.utcDate,
+              metric_type:row.metricType,cumulative_total:row.total,
+              snapshot_version:row.version,projection_gap:row.projectionGap===true}:{}),
             $process_person_profile:false,$ip:null}
         }))}),redirect:'error',signal:controller.signal});
       success=response.ok;
@@ -121,13 +126,44 @@ export function createAnalyticsGateway({now=()=>Date.now(),fetcher=globalThis.fe
         const time=now();
         if(!await admitRate(request,env,events.length,time))
           return json({ok:false,code:'RATE_LIMIT'},429);
-        const results=await env.DB.batch(events.map(event=>env.DB.prepare(
-          'INSERT OR IGNORE INTO analytics_events '+
-          '(event_id,install_id,event_name,tool_id,occurred_at,received_at,event_json) '+
-          'VALUES (?1,?2,?3,?4,?5,?6,?7)'
-        ).bind(event.eventId,event.installId,event.event,event.toolId,event.timestamp,time,JSON.stringify(event))));
+        // D1 batch executes atomically. An auto snapshot first claims a newer
+        // monotone version; only that winning event enters the PostHog outbox.
+        // Replayed/older versions receive a durable stale/duplicate ACK.
+        const statements=[],receiptIndexes=[];
+        for(const event of events){
+          if(event.event==='tool.auto_daily'){
+            statements.push(env.DB.prepare(
+              'INSERT INTO analytics_auto_latest '+
+              '(install_id,tool_type,tool_id,utc_day,metric_type,version,total,projection_gap,last_event_id,received_at) '+
+              'VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10) '+
+              'ON CONFLICT(install_id,tool_type,tool_id,utc_day,metric_type) '+
+              'DO UPDATE SET version=excluded.version,total=excluded.total,'+
+              'projection_gap=MAX(analytics_auto_latest.projection_gap,excluded.projection_gap),'+
+              'last_event_id=excluded.last_event_id,received_at=excluded.received_at '+
+              'WHERE excluded.version>analytics_auto_latest.version AND excluded.total>=analytics_auto_latest.total'
+            ).bind(event.installId,event.toolType,event.toolId,event.utcDate,event.metricType,
+              event.version,event.total,event.projectionGap===true?1:0,event.eventId,time));
+          }
+          receiptIndexes.push(statements.length);
+          const prefix='INSERT OR IGNORE INTO analytics_events '+
+            '(event_id,install_id,event_name,tool_id,occurred_at,received_at,event_json) ';
+          if(event.event==='tool.auto_daily'){
+            statements.push(env.DB.prepare(prefix+
+              'SELECT ?1,?2,?3,?4,?5,?6,?7 WHERE EXISTS ('+
+              'SELECT 1 FROM analytics_auto_latest WHERE install_id=?2 AND '+
+              'tool_type=?8 AND tool_id=?4 AND utc_day=?9 AND metric_type=?10 AND last_event_id=?1)'
+            ).bind(event.eventId,event.installId,event.event,event.toolId,event.timestamp,
+              time,JSON.stringify(event),event.toolType,event.utcDate,event.metricType));
+          }else{
+            statements.push(env.DB.prepare(prefix+'VALUES (?1,?2,?3,?4,?5,?6,?7)')
+              .bind(event.eventId,event.installId,event.event,event.toolId,event.timestamp,time,
+                JSON.stringify(event)));
+          }
+        }
+        const results=await env.DB.batch(statements);
         const accepted=[],duplicates=[];
-        results.forEach((row,i)=>(row?.meta?.changes===1?accepted:duplicates).push(events[i].eventId));
+        events.forEach((event,i)=>
+          (results[receiptIndexes[i]]?.meta?.changes===1?accepted:duplicates).push(event.eventId));
         // D1 durable acceptance is the ACK boundary; PostHog may lag.
         if(ctx?.waitUntil)ctx.waitUntil(deliver(env,{now,fetcher}).catch(()=>{}));
         return json({ok:true,accepted,duplicates},202);
@@ -141,7 +177,8 @@ export function createAnalyticsGateway({now=()=>Date.now(),fetcher=globalThis.fe
         await env.DB.batch([
           env.DB.prepare("DELETE FROM analytics_events WHERE status!='sent' AND received_at<?1").bind(time-7*86400000),
           env.DB.prepare("DELETE FROM analytics_events WHERE status='sent' AND received_at<?1").bind(time-35*86400000),
-          env.DB.prepare('DELETE FROM analytics_rate WHERE expires_at<?1').bind(time)
+          env.DB.prepare('DELETE FROM analytics_rate WHERE expires_at<?1').bind(time),
+          env.DB.prepare('DELETE FROM analytics_auto_latest WHERE received_at<?1').bind(time-35*86400000)
         ]);
       };
       if(ctx?.waitUntil)ctx.waitUntil(run());else await run();
