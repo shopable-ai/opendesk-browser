@@ -135,3 +135,72 @@ test('v3 Focus UI authorization follows only the authenticated Driver site revie
   assert.equal((await controller.readStatus()).authorized,false,
     'revocation or epoch mismatch must not be presented as authorized');
 });
+
+test('v3 mutation rejects a stale revision even if the model SHA and policy match',async()=>{
+  let receipt=initial(),attempted=0;
+  const controller=createFocusController({
+    request:async()=>{throw Error('No private worker operation is allowed');},
+    siteBudget:{
+      getStatus:async()=>structuredClone(receipt),
+      setPolicy:async commit=>{
+        attempted++;
+        // A lost or stale revision must not look like a successful policy
+        // commit merely because a model hash appears in the response.
+        return {...receipt,modelRef:commit.modelRef,
+          sealedModel:commit.sealedModel,desiredPolicy:commit.desiredPolicy};
+      }
+    },now:()=>at
+  });
+  await assert.rejects(controller.operate('focus.disable',{}),
+    {code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(attempted,1);
+  assert.equal(receipt.desiredPolicyRev,0);
+});
+
+test('unknown outcome readback requires model, policy AND exact revision',async()=>{
+  let reads=0,pending;
+  const controller=createFocusController({
+    request:async()=>{throw Error('No private worker operation is allowed');},
+    siteBudget:{
+      getStatus:async()=>{
+        reads++;
+        return reads===1?initial():{
+          ...initial(),desiredPolicyRev:1,modelRef:pending.modelRef,
+          // Deliberately stale policy despite a matching model SHA.
+          desiredPolicy:initial().desiredPolicy
+        };
+      },
+      setPolicy:async commit=>{
+        pending=commit;
+        throw Object.assign(new Error('Native result unknown'),{code:'E_OUTCOME_UNKNOWN'});
+      }
+    },now:()=>at
+  });
+  await assert.rejects(controller.operate('focus.site.put',{site}),
+    {code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(reads,2,'one authoritative readback; never replay an unknown commit');
+});
+
+test('unchanged v3 policy and sealed model are valid no-op commits',async()=>{
+  let receipt=initial(),expected=[];
+  const controller=createFocusController({
+    request:async()=>{throw Error('No private worker operation is allowed');},
+    siteBudget:{
+      getStatus:async()=>structuredClone(receipt),
+      setPolicy:async commit=>{
+        expected.push(commit.expectedRev);
+        const isNoop=receipt.modelRef===commit.modelRef&&
+          JSON.stringify(receipt.desiredPolicy)===JSON.stringify(commit.desiredPolicy);
+        const revision=receipt.desiredPolicyRev+(isNoop?0:1);
+        receipt={...receipt,modelRef:commit.modelRef,
+          sealedModel:commit.sealedModel,desiredPolicy:commit.desiredPolicy,
+          desiredPolicyRev:revision,appliedPolicyRev:revision};
+        return structuredClone(receipt);
+      }
+    },now:()=>at
+  });
+  await controller.operate('focus.disable',{});
+  await controller.operate('focus.disable',{});
+  assert.deepEqual(expected,[0,1]);
+  assert.equal(receipt.desiredPolicyRev,1,'idempotent update must not invent a revision');
+});
