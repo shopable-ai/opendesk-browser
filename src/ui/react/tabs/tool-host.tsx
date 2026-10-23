@@ -14,6 +14,11 @@ export function ToolHost({view}) {
   const importOpen = snapshot.fields['sidebar-tool-import']?.hidden === false;
   const topAction = snapshot.fields['sidebar-tool-primary-action']?.data?.action || '';
   const secondaryAction = snapshot.fields['sidebar-tool-secondary-action']?.data?.action || '';
+  const [headerMoreOpen,setHeaderMoreOpen] = React.useState(false);
+  const headerMoreRef = React.useRef(null);
+  const overflowVisible = ['sidebar-tool-settings-open','sidebar-tool-visibility',
+    'sidebar-tool-context-menu','sidebar-tool-remove']
+    .some(id => snapshot.fields[id]?.hidden === false);
   // Cookie Editor has its own trusted settings card. Move the existing enable
   // action there instead of leaving it in the hidden generic Settings section.
   // Render exactly one enable switch and hint: the Cookie card owns both
@@ -99,6 +104,30 @@ export function ToolHost({view}) {
       }
     };
   },[importOpen,view]);
+  // Header overflow is only a presentation layer. Every action still dispatches
+  // through its original trusted ToolField, never through the sandbox.
+  React.useEffect(() => {
+    if(!overflowVisible || snapshot.fields['sidebar-tool-display']?.hidden !== false)
+      setHeaderMoreOpen(false);
+  },[overflowVisible,snapshot.fields['sidebar-tool-display']?.hidden]);
+  React.useEffect(() => {
+    if(!headerMoreOpen)return;
+    const holder=headerMoreRef.current,doc=holder?.ownerDocument;
+    if(!doc)return;
+    const closeOutside=event => {if(!holder.contains(event.target))setHeaderMoreOpen(false);};
+    const closeEscape=event => {
+      if(event.key!=='Escape')return;
+      event.preventDefault();event.stopPropagation();
+      setHeaderMoreOpen(false);
+      holder.querySelector('#sidebar-tool-more-open')?.focus({preventScroll:true});
+    };
+    doc.addEventListener('pointerdown',closeOutside,true);
+    doc.addEventListener('keydown',closeEscape,true);
+    return () => {
+      doc.removeEventListener('pointerdown',closeOutside,true);
+      doc.removeEventListener('keydown',closeEscape,true);
+    };
+  },[headerMoreOpen]);
   const context = React.useMemo(() => ({view, snapshot, refs}), [view, snapshot]);
   return <ToolContext.Provider value={context}><div className="sidebar-tool-host od-stack"><ToolField as="section" id="sidebar-tool-action-review" className="sidebar-tool-action-review od-surface" role="group" aria-label="确认当前工具操作" hidden={true}>
 <ToolField as="p" id="sidebar-tool-action-summary" role="status">
@@ -240,7 +269,22 @@ export function ToolHost({view}) {
   : <><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>}
 </svg>
 </ToolField>
-<ToolField as="button" type="button" id="sidebar-tool-settings-open" className="sidebar-tool-icon-action od-icon-button" title="工具设置" aria-label="工具设置" aria-controls="sidebar-tool-settings-view" aria-expanded="false" hidden={true} nodeRef={runtimeRefs.settingsControl}>
+<TrustedConversationHeaderSlot/>
+<div className="sidebar-tool-header-more" ref={headerMoreRef} hidden={!overflowVisible}
+  onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget))setHeaderMoreOpen(false);}}>
+  <button type="button" id="sidebar-tool-more-open"
+    className="sidebar-tool-icon-action od-icon-button"
+    title="更多工具操作" aria-label="更多工具操作" aria-controls="sidebar-tool-more-menu"
+    aria-haspopup="true" aria-expanded={headerMoreOpen}
+    onClick={()=>setHeaderMoreOpen(open=>!open)}>
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+      <circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>
+    </svg>
+  </button>
+  <div id="sidebar-tool-more-menu" className="sidebar-tool-more-menu od-surface"
+    role="group" aria-label="更多工具操作" hidden={!headerMoreOpen}
+    onClick={event=>{if(event.target.closest('button'))setHeaderMoreOpen(false);}}>
+    <ToolField as="button" type="button" id="sidebar-tool-settings-open" className="sidebar-tool-icon-action od-icon-button" title="工具设置" aria-label="工具设置" aria-controls="sidebar-tool-settings-view" aria-expanded="false" hidden={true} nodeRef={runtimeRefs.settingsControl}>
 <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
 <circle cx="12" cy="12" r="3">
 
@@ -251,6 +295,7 @@ export function ToolHost({view}) {
 
 </svg>
 
+<span className="sidebar-tool-more-label">工具设置</span>
 </ToolField>
 <ToolField as="button" type="button" id="sidebar-tool-visibility" className="sidebar-tool-icon-action od-icon-button" title="显示或隐藏此网站的悬浮目录" aria-label="显示或隐藏此网站的悬浮目录" aria-pressed="true" hidden={true}>
 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -263,6 +308,7 @@ export function ToolHost({view}) {
 
 </svg>
 
+<span className="sidebar-tool-more-label">悬浮目录</span>
 </ToolField>
 <ToolField as="button" type="button" id="sidebar-tool-context-menu" className="sidebar-tool-icon-action od-icon-button" title="为当前网站启用右键菜单" aria-label="为当前网站启用右键菜单" aria-pressed="false" hidden={true}>
 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -272,8 +318,8 @@ export function ToolHost({view}) {
 
 </svg>
 
+<span className="sidebar-tool-more-label">网页右键菜单</span>
 </ToolField>
-<TrustedConversationHeaderSlot/>
 <ToolField as="button" type="button" id="sidebar-tool-remove" className="sidebar-tool-icon-action od-icon-button" title="卸载工具及本地数据" aria-label="卸载当前工具及本地数据" disabled={true}>
 <svg viewBox="0 0 24 24" aria-hidden="true">
 <path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5">
@@ -282,7 +328,10 @@ export function ToolHost({view}) {
 
 </svg>
 
+<span className="sidebar-tool-more-label">卸载工具</span>
 </ToolField>
+  </div>
+</div>
 
 </div>
 <ToolField as="p" id="sidebar-tool-readonly-banner" className="sidebar-tool-status" data-state="readonly" role="note" hidden={true}>
@@ -461,7 +510,7 @@ export function ToolHost({view}) {
 <UninstallDialog open={snapshot.fields['sidebar-tool-inline-remove'].hidden===false}
   title={'卸载「'+(snapshot.fields['sidebar-tool-title']?.textContent||'当前扩展')+'」？'}
   busy={snapshot.fields['sidebar-tool-inline-remove-confirm'].disabled}
-  returnFocusSelector="#sidebar-tool-remove"
+  returnFocusSelector="#sidebar-tool-more-open"
   onCancel={event=>view.dispatch('sidebar-tool-inline-remove-cancel','click',event)}>
 <ToolField as="section" id="sidebar-tool-inline-remove" className="sidebar-tool-inline-remove od-surface" aria-label="卸载工具确认" hidden={true}>
 <ToolField as="p" id="sidebar-tool-inline-remove-text">
