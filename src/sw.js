@@ -143,7 +143,6 @@ installAnalyticsHost({api:chrome,loadAuthority:async({since}={})=>
         tab.windowId===target.windowId&&tab.url===target.url&&
         tab.incognito===false&&!tab.pendingUrl;
     }catch{return false;}
-  }
   }});
 // Lifecycle only: this adapter never claims Tasks or runs a second Controller.
 // Keep the original RunHost alive while any durable @slot retirement is pending.
