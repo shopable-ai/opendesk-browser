@@ -109,7 +109,7 @@ function App(){
     let needsReadback=false;
     locked.current=true;reading.current++;
     const operationContext=contextRevision.current;
-    setBusy(true);setProblem(false);setNotice('请在可信宿主中确认此次操作…');
+    setBusy(true);setProblem(false);setNotice('正在更新 Chrome 规则并读取最终状态…');
     try{
       const result=await api.request(operation,payload);
       const checked=await api.request('adblock.status',{});
