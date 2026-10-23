@@ -2,9 +2,11 @@ import {ANALYTICS_ALARM,ANALYTICS_STATE_KEY,ANALYTICS_MAX_BATCH,
   ANALYTICS_MAX_AGE_MS,ANALYTICS_VERSION,ANALYTICS_DISCLOSURE_VERSION,validateAnalyticsEvent} from './contract.js';
 
 const MAX_QUEUED=250;
+const INVENTORY_REFRESH_MS=24*60*60*1000;
+const capped=(a,b)=>Math.min(Number.MAX_SAFE_INTEGER,a+b);
 const ATTEMPT_TIMEOUT_MS=10000;
 const empty=()=>({consent:false,consentReceipt:null,installId:null,queue:[],failures:0,nextAttemptAt:0,
-  inventorySignature:null,openedContexts:[]});
+  inventorySignature:null,inventoryReportedAt:0,coverage:{overflow:0,expired:0},openedContexts:[]});
 export function validAnalyticsEndpoint(value,{allowLoopback=false}={}){
   try{
     const url=new URL(value);
@@ -39,9 +41,14 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       !Number.isFinite(raw.nextAttemptAt)||
       (raw.consent&&typeof raw.installId!=='string')||
       (raw.inventorySignature!==undefined&&raw.inventorySignature!==null&&typeof raw.inventorySignature!=='string')||
+      !Number.isSafeInteger(raw.inventoryReportedAt??0)||(raw.inventoryReportedAt??0)<0||
+      !Number.isSafeInteger(raw.coverage?.overflow??0)||(raw.coverage?.overflow??0)<0||
+      !Number.isSafeInteger(raw.coverage?.expired??0)||(raw.coverage?.expired??0)<0||
       !Array.isArray(raw.openedContexts??[])||(raw.openedContexts??[]).length>96||
       (raw.openedContexts??[]).some(id=>typeof id!=='string'||id.length>64))return empty();
     return {...raw,inventorySignature:raw.inventorySignature??null,
+      inventoryReportedAt:raw.inventoryReportedAt??0,
+      coverage:{overflow:raw.coverage?.overflow??0,expired:raw.coverage?.expired??0},
       openedContexts:raw.openedContexts??[]};
   };
   const persist=state=>api.storage.local.set({[ANALYTICS_STATE_KEY]:state});
@@ -50,7 +57,10 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
   });
   const status=()=>run(async()=>{
     const state=await read();
-    return {configured,consent:configured&&!revoked&&state.consent,queued:state.consent?state.queue.length:0,needsReview:state.needsReview===true};
+    return {configured,consent:configured&&!revoked&&state.consent,
+      queued:state.consent?state.queue.length:0,needsReview:state.needsReview===true,
+      coverageGap:state.consent&&(state.coverage.overflow>0||state.coverage.expired>0),
+      coverage:state.consent?state.coverage:{overflow:0,expired:0}};
   });
   async function setConsent(enabled,{disclosureVersion}={}){
     if(typeof enabled!=='boolean')throw Object.assign(new Error('Invalid consent'),{code:'E_ANALYTICS_CONSENT'});
@@ -93,17 +103,21 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       if(event==='app.opened'&&
         (typeof contextId!=='string'||!(/^[a-f0-9-]{36}$/i).test(contextId)||
           state.openedContexts.includes(contextId)))return {recorded:false};
+      const time=now();
       const signature=event==='app.inventory'&&Array.isArray(installedTools)?
         installedTools.join(','):null;
-      if(event==='app.inventory'&&signature===state.inventorySignature)
+      // Unchanged inventories are refreshed on the next alarm after 24 UTC hours.
+      if(event==='app.inventory'&&signature===state.inventorySignature&&
+        time>=state.inventoryReportedAt&&time-state.inventoryReportedAt<INVENTORY_REFRESH_MS)
         return {recorded:false};
-      const time=now(),entry=validateAnalyticsEvent({
+      const entry=validateAnalyticsEvent({
         eventId:newId(),installId:state.installId,event,toolId,
         source,channel,timestamp:new Date(time).toISOString(),
         ...(reason?{reason}:{}),...(event==='app.inventory'?{installedTools}:{})
       },{now:time});
       // A new census supersedes unsent old censuses. Transitions remain separate.
-      const queue=prune(state.queue,time).filter(row=>
+      const retained=prune(state.queue,time);
+      const queue=retained.filter(row=>
         event!=='app.inventory'||row.event!=='app.inventory');
       // A bounded queue is intentionally lossy under prolonged disconnection.
       // Never block or compromise a tool's primary operation when full.
@@ -115,7 +129,9 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
         bounded.shift();bounded.unshift(latestCensus);
       }
       await persist({...state,queue:bounded,
-        ...(event==='app.inventory'?{inventorySignature:signature}:{}),
+        coverage:{overflow:capped(state.coverage.overflow,Math.max(0,queue.length-MAX_QUEUED)),
+          expired:capped(state.coverage.expired,state.queue.length-retained.length)},
+        ...(event==='app.inventory'?{inventorySignature:signature,inventoryReportedAt:time}:{}),
         ...(event==='app.opened'?{openedContexts:[...state.openedContexts,contextId].slice(-96)}:{})});
       return {recorded:true};
     });
@@ -127,7 +143,8 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       const state=await read();
       if(!state.consent)return {sent:0};
       const time=now(),queue=prune(state.queue,time);
-      if(queue.length!==state.queue.length)await persist({...state,queue});
+      if(queue.length!==state.queue.length)await persist({...state,queue,
+        coverage:{...state.coverage,expired:capped(state.coverage.expired,state.queue.length-queue.length)}});
       if(!queue.length||state.nextAttemptAt>time)return {sent:0};
       const batch=queue.slice(0,ANALYTICS_MAX_BATCH),idSet=new Set(batch.map(item=>item.eventId));
       const controller=new AbortController(),generation=revision;
