@@ -66,7 +66,8 @@ test('chat finds installed verified Task, binds keyword, dispatches the same Run
   assert.equal(f.starts.length,2,'one pinned original source plus one separate RunHost observation');
   assert.deepEqual(f.starts.map(row=>row.source.kind),['saved','draft']);
   assert.equal(f.starts[0].source.contentHash,scriptHash);
-  assert.match(f.state().controls['workflow-chat-log']?.text||JSON.stringify(f.state()),/结果：OpenDesk/);
+  assert.ok(f.state().messages.some(row=>row.speaker==='执行结果'&&/结果：OpenDesk/.test(row.message)));
+  assert.ok(!f.state().messages.some(row=>/重新生成.*JavaScript/.test(row.message)));
 });
 
 test('durable Task completion without independent submission-count readback cannot claim success',async t=>{
@@ -75,6 +76,7 @@ test('durable Task completion without independent submission-count readback cann
   await f.click('workflow-ai-plan');
   const reply=await f.click('workflow-run-review-confirm');
   assert.equal(reply.ok,false);
+  assert.equal(reply.error?.code,'E_WORKFLOW_EVIDENCE');
   assert.equal(calls.length,1,'unknown DOM result never re-runs the Task');
   assert.equal(f.starts.length,2);
   assert.equal(f.state().controls['workflow-run-review'].hidden,true);
