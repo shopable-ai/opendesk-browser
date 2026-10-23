@@ -86,6 +86,20 @@ test('R1.3 ETag races never overwrite another writer; lost ACK is read back, not
   assert.equal(recovered.writeIssued,true);
   assert.equal(f.writes,2,'lost ACK cannot cause another storage.set');
 });
+test('R2.2.3 a matching Prompt body without a readback ETag remains UNKNOWN and never retries',async()=>{
+ const f=libraryFixture();let reads=0;
+ await assert.rejects(f.run({type:'create',name:'测试',body:'你好'},{
+  read:async()=>{
+   const snapshot=await f.read();
+   return ++reads===3?{...snapshot,etag:null}:snapshot;
+  }
+ }),{code:'E_OUTCOME_UNKNOWN',writeIssued:true});
+ assert.equal(reads,3);
+ assert.equal(f.writes,1,'an uncertain post-write read cannot trigger a second Host write');
+ assert.equal(f.value.items[0].name,'测试');
+ assert.equal(f.value.items[0].body,'你好');
+});
+
 test('R1.3 image references are retained during edits and orphan candidates are identified only after readback',async()=>{
   const id='psa_'+'a'.repeat(32);
   const record=model.draft({body:'图片提示词',appearance:'image',imageAssetId:id});
@@ -405,6 +419,20 @@ test('R2.2.2 declined private-body review never transmits text or writes',async(
   assert.match(f.confirms[0],/不允许外发的秘密正文\n含完整编号 1\./);
   f.host.dispose();
 });
+test('R2.2.3 local private-body review identifies the recipient and model before sending',async()=>{
+ const row=model.draft({body:'不要发送私人旧正文',name:'私人'});
+ const f=hostFixture({initial:{...model.defaults(),items:[row]},allowReview:false,
+  proposal:{action:{type:'edit',target:row.id,instruction:'只修复格式'}}});
+ f.setProvider('local_codex');
+ await assert.rejects(f.host.request({request:'修改私人',event:{isTrusted:true}}),
+  {code:'E_CANCELLED'});
+ assert.match(f.confirms[0],/接收方：本机 Codex · .* · 模型 fixture-model/);
+ assert.match(f.confirms[0],/原始正文（完整）：\n不要发送私人旧正文/);
+ assert.equal(f.modelCalls.filter(call=>call.scope==='prompt-edit').length,0);
+ assert.equal(f.commits,0);
+ f.host.dispose();
+});
+
 test('R2.2.2 new recipient generation invalidates already reviewed private bodies',async()=>{
   const row=model.draft({body:'不应传给新模型',name:'接收方版本'});
   const f=hostFixture({initial:{...model.defaults(),items:[row]},

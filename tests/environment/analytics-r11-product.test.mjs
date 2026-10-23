@@ -168,18 +168,20 @@ test('Workflow independent readback must also pass original Host result; dedupe 
   const now=Date.UTC(2026,9,23,12);
   const {api,send,records}=chromeMock([{id:'cookie-editor'}]);
   let verified=false,reads=0;
+  const runId=randomUUID(),beforeRunId=randomUUID(),afterRunId=randomUUID();
   const collector=installAnalyticsHost({api,endpoint:'https://analytics.example/v1/events',
     now:()=>now,newId:randomUUID,fetcher:async()=>{throw Error('offline');},
-    verifyWorkflowResult:async(runId,sender)=>{
-      reads++;return verified&&sender.documentId==='trusted-workflow'&&typeof runId==='string';
+    verifyWorkflowResult:async(actionId,sender,ids)=>{
+      reads++;return verified&&sender.documentId==='trusted-workflow'&&
+        actionId===runId&&ids?.beforeRunId===beforeRunId&&ids?.afterRunId===afterRunId;
     }});
-  const id=api.runtime.id,runId=randomUUID();
+  const id=api.runtime.id;
   const panel={id,documentId:'trusted-workflow',frameId:0,
     url:api.runtime.getURL('sidepanel.html')+'?hostInstanceId='+randomUUID()};
   const options={id,url:api.runtime.getURL('native-agent/settings.html'),frameId:0};
   const event={protocol:ANALYTICS_PROTOCOL,kind:'event.workflow_verified',
     event:'workflow.business_effect_verified',toolId:'workflow',
-    channel:'extension',runId};
+    channel:'extension',runId,beforeRunId,afterRunId};
   assert.equal((await send(event,panel)).data.recorded,false);
   assert.equal(reads,0,'before consent no original Controller readback');
   await send({protocol:ANALYTICS_PROTOCOL,kind:'consent.set',enabled:true,
@@ -187,6 +189,8 @@ test('Workflow independent readback must also pass original Host result; dedupe 
   assert.equal((await send(event,panel)).code,'E_SENDER',
     'failed Host corroboration cannot be B-grade');
   verified=true;
+  assert.equal((await send({...event,afterRunId:beforeRunId},panel)).code,'E_SENDER',
+    'reused observer Run must be rejected before verification');
   assert.equal((await send(event,{...panel,url:panel.url+'&previewId=x'})).code,'E_SENDER');
   assert.equal((await send(event,panel)).data.recorded,true);
   assert.equal((await send(event,panel)).data.recorded,false,'same Run cannot double-count');
@@ -195,9 +199,17 @@ test('Workflow independent readback must also pass original Host result; dedupe 
   assert.equal(evidence.length,1);
   assert.equal(evidence[0].evidenceLevel,'B');
   assert.equal(evidence[0].toolId,'workflow');
-  assert(!JSON.stringify(queue).includes(runId),'RunId remains on this installation');
+  assert(![runId,beforeRunId,afterRunId].some(id=>JSON.stringify(queue).includes(id)),
+    'all three raw RunIds remain on this installation');
   assert(!queue.some(row=>row.event==='tool.engaged'||row.event==='tool.manual_attempt'),
     'an AI auto step cannot manufacture active DAU');
+  // Simulate bounded local dedupe eviction + drained transport queue. Replayed
+  // Host proof must use the exact same event UUID for D1/PostHog dedupe.
+  const originalEventId=evidence[0].eventId;
+  const stored=records.get(ANALYTICS_STATE_KEY);
+  records.set(ANALYTICS_STATE_KEY,{...stored,verifiedWorkflowRunIds:[],queue:[]});
+  assert.equal((await send(event,panel)).data.recorded,true);
+  assert.equal(records.get(ANALYTICS_STATE_KEY).queue[0].eventId,originalEventId);
   await send({protocol:ANALYTICS_PROTOCOL,kind:'consent.set',enabled:false},options);
   assert.equal(records.get(ANALYTICS_STATE_KEY).verifiedWorkflowRunIds.length,0);
   assert.equal((await send(event,panel)).data.recorded,false);
@@ -291,4 +303,11 @@ test('R1.12 Page intent requires installed Authority; Host validates terminal re
   assert(rows.every(row=>/^anon-[a-f0-9]{24}$/.test(row.toolId)));
   assert(!JSON.stringify(rows).includes(receiptId),'receipt never leaves the device');
   assert(!JSON.stringify(rows).includes('private-installed-program'),'raw program ID never leaves the device');
+  const stableEventId=rows[1].eventId;
+  const stored=records.get(ANALYTICS_STATE_KEY);
+  records.set(ANALYTICS_STATE_KEY,{...stored,manualResultRunIds:[],queue:[]});
+  assert.equal((await send(result,panel)).data.recorded,true,
+    'a private bounded dedupe list is not a lifetime uniqueness guarantee');
+  assert.equal(records.get(ANALYTICS_STATE_KEY).queue[0].eventId,stableEventId,
+    'the original receipt must always map to one stable D1/PostHog event UUID');
 });

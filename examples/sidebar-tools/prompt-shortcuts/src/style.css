@@ -219,3 +219,14 @@
 .ps.ps-host-nav .ps-head-actions,.ps.ps-host-nav .ps-transfer-control{display:block;position:static;min-height:0;gap:0}
 .ps.ps-host-nav #ps-new,.ps.ps-host-nav #ps-transfer,.ps.ps-host-nav .ps-form-head{display:none!important}
 .ps.ps-host-nav .ps-transfer-menu{top:0;right:0}
+
+/* Scroll navigation: compact native switches, no duplicate settings page. */
+.ps-scroll-settings{margin:var(--space-2) 0;padding:8px 10px;min-width:0}
+.ps-scroll-settings summary{cursor:pointer;font-size:var(--od-note-size);font-weight:650;list-style-position:inside}
+.ps-scroll-settings summary small{font-size:var(--od-meta-size);font-weight:400;color:var(--od-sub);margin-left:6px}
+.ps-scroll-groups{display:grid;gap:10px;padding:10px 0 2px}
+.ps-scroll-group{display:grid;gap:2px}
+.ps-scroll-group>strong{font-size:var(--od-meta-size);color:var(--od-sub);font-weight:650}
+.ps-scroll-row{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:34px;font-size:var(--od-note-size);cursor:pointer}
+.ps-scroll-row .ps-switch{min-height:34px}
+.ps-scroll-row:has(input:disabled){opacity:.55;cursor:default}

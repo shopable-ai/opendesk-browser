@@ -290,6 +290,27 @@ test('page policy never returns active CSS after navigation, origin revocation o
   assert.equal((await f.service.pagePolicy(request,page)).enabled,false);
   assert.deepEqual(f.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST]);
 });
+test('a live Time Review manager may only probe AdBlock, never write rules',async()=>{
+  const f=await fixture(),url=hostUrl+'&toolId=time-review';
+  const manager={...sender,url};
+  f.api.runtime.getContexts=async()=>[{contextType:'SIDE_PANEL',documentUrl:url,
+    documentId:manager.documentId,frameId:0,windowId:10,incognito:false}];
+  const probe=f.message('adblock.probe');delete probe.installEpoch;
+  const before=structuredClone([...f.stored]),calls=f.actions.length;
+  assert.equal((await f.service.probe(probe,manager)).serviceReady,true);
+  assert.deepEqual([...f.stored],before,'probe must not change installed tools or policy');
+  assert.equal(f.actions.length,calls,'probe must not write Chrome DNR');
+  await assert.rejects(f.service.dispatch(f.message('adblock.status'),manager),
+    {code:'E_ADBLOCK_SENDER'},'cross-tool manager cannot invoke AdBlock operations');
+  await assert.rejects(f.service.probe(probe,{...manager,url:url+'&extra=1'}),
+    {code:'E_ADBLOCK_SENDER'});
+  await assert.rejects(f.service.probe(probe,{...manager,id:'untrusted-extension'}),
+    {code:'E_ADBLOCK_SENDER'});
+  f.api.runtime.getContexts=async()=>[{contextType:'SIDE_PANEL',documentUrl:url,
+    documentId:'retired-document',frameId:0,windowId:10,incognito:false}];
+  await assert.rejects(f.service.probe(probe,manager),{code:'E_ADBLOCK_SENDER'});
+});
+
 test('installation probe accepts Chrome hiding ungranted optional DNR but rejects a broken granted runtime',async()=>{
   const f=await fixture({permission:false});
   delete f.api.declarativeNetRequest;

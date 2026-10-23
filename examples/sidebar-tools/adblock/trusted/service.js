@@ -4,7 +4,7 @@ import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage,sidebarToolPackageHash} fr
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,requireToolEnableRecords} from '../../../../src/ui/sidebar-tools/lifecycle.js';
 import {requireCompleteInstalledSidebarTools} from '../../../../src/ui/sidebar-tools/installation.js';
 import {writeVerifiedLocalValue,sameStorageValue} from '../../../../src/ui/sidebar-tools/storage-state.js';
-import {isSidebarToolHostSender} from '../../../../src/sidebar-tools/sender.js';
+import {isSidebarToolHostSender,isSidebarToolManagementSender} from '../../../../src/sidebar-tools/sender.js';
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PROTOCOL,ADBLOCK_SERVICE_VERSION,
   ADBLOCK_STORE,ADBLOCK_PERMISSION,ADBLOCK_MAX_EXCEPTIONS,ADBLOCK_OPERATIONS,ADBLOCK_PAGE_PROTOCOL,
   adblockError,adblockHost,readAdblockState} from './policy.js';
@@ -109,8 +109,11 @@ export function createAdblockService({
       throw error;
     }
   }
-  async function hostDocument(sender,expected=sender?.documentId){
-    if(!isSidebarToolHostSender(api,sender,ADBLOCK_ID)||sender.tab?.incognito||
+  async function hostDocument(sender,expected=sender?.documentId,managementProbe=false){
+    // Peer managers can only probe availability; DNR mutations remain owner-bound.
+    const allowed=managementProbe?isSidebarToolManagementSender(api,sender):
+      isSidebarToolHostSender(api,sender,ADBLOCK_ID);
+    if(!allowed||sender.tab?.incognito||
        sender.frameId!==undefined&&sender.frameId!==0||
        sender.documentLifecycle&&sender.documentLifecycle!=='active'||
        sender.tab&&!sender.documentId)
@@ -143,7 +146,8 @@ export function createAdblockService({
     return windowId;
   }
   async function probeDocument(sender){
-    if(isSidebarToolHostSender(api,sender,ADBLOCK_ID))return (await hostDocument(sender)).documentId;
+    if(isSidebarToolManagementSender(api,sender))
+      return (await hostDocument(sender,sender?.documentId,true)).documentId;
     try{
       const url=new URL(sender?.url),market=new URL(api.runtime.getURL('ui/marketplace.html'));
       if(sender?.id!==api.runtime.id||!sender.tab||sender.tab.incognito||

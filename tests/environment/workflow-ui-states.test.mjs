@@ -8,18 +8,19 @@ import * as React from 'react';
 import {createRoot} from 'react-dom/client';
 import {parseHTML} from 'linkedom';
 import {workflowFixture,tick} from './workflow-react-fixture.mjs';
+import {mountWorkflowClient} from './workflow-mounted-ui.mjs';
 import {deriveWorkflowViewState,WORKFLOW_VIEW_STATES} from '../../src/ui/workflow/view-state.js';
 
 const file=path=>readFile(path,'utf8');
 // Real controller initial state and actions, rendered by the production React
 // tree. Service fakes belong to workflowFixture; this creates no legacy nodes.
 async function workflowDOM({settings=false,...options}={}) {
-  const fixture=await workflowFixture({steps:[],...options});
-  try{
-    if(settings){fixture.click('workflow-provider-toggle');await tick();}
-    const html=await renderSidebarFixture({activeTab:'workflow',workflowController:fixture.view});
+  const mounted=await mountWorkflowClient(options);
+  try {
+    if(settings)await mounted.openSettings();
+    const html=mounted.html();
     return {html,$:load(html)};
-  }finally{fixture.view.dispose();}
+  }finally{await mounted.close();}
 }
 
 test('workflow UI phases are independently derived, not stored as execution authority',()=>{
@@ -41,7 +42,7 @@ test('workflow UI phases are independently derived, not stored as execution auth
     assert.equal(deriveWorkflowViewState(input),expected,JSON.stringify(input));
 });
 
-test('workflow default structure prioritizes AI conversation and hides advanced sections',async()=>{
+test('workflow default structure prioritizes the real shared composer and hides advanced sections',async()=>{
   const [{html,$},css,view]=await Promise.all([
     workflowDOM(),file('src/ui/tool-shell.css'),file('src/ui/workflow/workflow-view.js')
   ]);
@@ -53,13 +54,16 @@ test('workflow default structure prioritizes AI conversation and hides advanced 
   for(const id of ['workflow-plan-panel','workflow-params-panel','workflow-result-panel','workflow-manage-panel'])
     assert.equal(workflow.find('#'+id).prop('hidden'),true,id);
   assert.equal(workflow.find('#workflow-history-toggle').attr('aria-expanded'),'false');
-  assert.equal(workflow.find('#workflow-provider-settings').length,1,'one settings owner inside the hidden modal');
-  assert.equal(workflow.find('.workflow-sheet-overlay').prop('hidden'),true,'settings have no visible overlay');
-  assert.ok(ids.indexOf('workflow-ai-request')<ids.indexOf('workflow-ai-key'),'composer precedes credentials');
-  assert.match(workflow.find('#workflow-ai-request').attr('placeholder'),/任务/);
+  assert.equal(workflow.find('#workflow-ai-request').length,1,'React portal must mount the composer');
+  assert.equal(workflow.find('#workflow-ai-plan').attr('aria-label'),'发送');
+  assert.equal(workflow.find('.od-conversation-composer').length,1);
+  assert.equal(workflow.find('#workflow-provider-settings').length,0,
+    'the old Workflow-specific Provider form is not a second settings owner');
+  assert.equal($('.workflow-sheet-overlay').length,0,'closed settings do not mount a dialog');
+  assert.match(workflow.find('#workflow-ai-request').attr('placeholder'),/描述要完成的操作/);
   const settings=await workflowDOM({settings:true});
-  assert.equal(settings.$('#workflow-provider-settings').prop('open'),true);
-  assert.ok(settings.$('#workflow-provider-settings').hasClass('od-disclosure--flat'));
+  assert.equal(settings.$('.workflow-sheet-overlay [role="dialog"][aria-modal="true"]').length,1);
+  assert.equal(settings.$('.od-shared-provider-form').length,1,'one shared Provider Settings form');
   const draft=await workflowDOM({steps:[{stepId:'one',op:'observe'}]});
   assert.equal(draft.$('#workflow-plan-panel').prop('hidden'),false);
   assert.equal(draft.$('#workflow-steps details summary').length,1,'semantic steps have readable summaries');
@@ -72,7 +76,6 @@ test('workflow default structure prioritizes AI conversation and hides advanced 
   assert.match(view,/lastRun=completed\?\.state===/);
   assert.doesNotMatch(view,/innerHTML\s*=|eval\(|new Function\(/);
 });
-
 
 test('no new privileged workflow executor, no default visible version manager',async()=>{
   const [html,view,contract]=await Promise.all([
@@ -108,14 +111,14 @@ test('updated offline prototype covers ten user-visible states without claiming 
 });
 
 
-test('R15.3 compact workflow header and composer use meaningful icons without redundant metadata',async()=>{
-  const [html,css,view]=await Promise.all([
-    renderSidebarFixture(),file('src/ui/tool-shell.css'),file('src/ui/workflow/workflow-view.js')
+test('compact Workflow and shared Send expose accessible icons without redundant metadata',async()=>{
+  const [{html},css,view]=await Promise.all([
+    workflowDOM(),file('src/ui/tool-shell.css'),file('src/ui/workflow/workflow-view.js')
   ]);
   const snippet=html.slice(html.indexOf('id="workbench-workflow"'),html.indexOf('id="workbench-develop"'));
   assert.ok(snippet.length>1000);
-  for(const id of ['workflow-history-toggle','workflow-new','workflow-provider-toggle','workflow-ai-plan',
-    'workflow-manage-close','workflow-refresh']){
+  for(const id of ['workflow-history-toggle','workflow-new','workflow-provider-toggle',
+    'workflow-ai-plan','workflow-manage-close','workflow-refresh']){
     const button=snippet.match(new RegExp('<button[^>]*id="'+id+'"[^>]*>[\\s\\S]*?<\\/button>'))?.[0];
     assert.ok(button,'icon exists '+id);
     assert.match(button,/aria-label="[^"]+"/,'accessible name '+id);
@@ -125,7 +128,7 @@ test('R15.3 compact workflow header and composer use meaningful icons without re
   assert.match(snippet,/id="workflow-saved-state"[^>]*hidden/);
   assert.match(snippet,/id="workflow-target-warning"[^>]*hidden/);
   assert.match(css,/#workspace-content \.workflow-icon-button,#workspace-content \.workflow-send-button\{width:44px;height:44px;min-width:44px;min-height:44px\}/);
-  assert.match(css,/#workflow-provider-settings:not\(\[open\]\)\{display:none\}/);
+  assert.match(css,/\.workflow-sheet-overlay/);
   assert.doesNotMatch(view,/workflow-head-site|workflow-provider-summary/);
   assert.match(view,/warning.hidden=!mismatch/);
   assert.match(view,/saved:Boolean\(revision\|\|selectedBundle\)/);
@@ -155,10 +158,10 @@ test('compact workflow keeps header actions accessible under 200 percent zoom',a
 });
 
 
-test('workflow R23.10 has three independent header actions and one React modal owner',async()=>{
-  const [{html,$},view,css,root,component]=await Promise.all([
-    workflowDOM({settings:true}),file('src/ui/workflow/workflow-view.js'),
-    file('src/ui/tool-shell.css'),file('src/ui/react/main.tsx'),file('src/ui/react/tabs/workflow.tsx')
+test('Workflow has three header actions and exactly one shared Provider modal owner',async()=>{
+  const [{html,$},css,root,sheet]=await Promise.all([
+    workflowDOM({settings:true}),file('src/ui/tool-shell.css'),
+    file('src/ui/react/app-shell.tsx'),file('src/ui/react/components/provider-settings.tsx')
   ]);
   const header=$('#workflow-editor > .workflow-head');
   for(const id of ['workflow-history-toggle','workflow-ai-new-session','workflow-new']){
@@ -166,53 +169,44 @@ test('workflow R23.10 has three independent header actions and one React modal o
     assert.ok(header.find('#'+id).attr('aria-label'));
   }
   assert.equal(header.find('#workflow-create-toggle,#workflow-create-menu').length,0);
-  assert.equal($('#workflow-ai-resume').prop('hidden'),true,'unavailable Codex resume is hidden');
-  assert.equal($('[role="dialog"][aria-modal="true"]').length,1);
-  const settings=$('#workflow-provider-settings');
-  assert.equal(settings.find('#workflow-provider-privacy > summary').text(),'数据与隐私');
-  assert.equal(settings.find('#workflow-local-diagnostics > summary').text(),'连接诊断');
-  assert.equal(settings.find('#workflow-local-connect').length,1);
-  assert.equal(settings.find('#workflow-ai-new-session,#workflow-ai-resume').length,0);
+  assert.equal($('#workflow-ai-resume').prop('hidden'),true);
+  assert.equal($('.workflow-sheet-overlay [role="dialog"][aria-modal="true"]').length,1);
+  assert.equal($('.od-shared-provider-form').length,1);
+  assert.equal($('#workflow-provider-settings').length,0,'no legacy settings overlay beside shared modal');
+  assert.equal($('[name="od-ai-provider-source"]').length,3);
   assert.equal($('[id$="-react-host"]').length,0,'no legacy portal anchors');
   assert.match(css,/\.workflow-sheet-content\{min-height:0;min-width:0;overflow-y:auto/);
-  assert.match(root,/connectWorkflowPage\(controller\)/);
+  assert.match(root,/<SharedProviderSettingsSheet providerSettings=\{providerSettings\}/);
+  assert.match(sheet,/doc\.addEventListener\('keydown',onKeydown,true\)/);
+  assert.match(sheet,/if\(root\)root\.inert=true/);
+  assert.match(sheet,/if\(root\)root\.inert=wasInert/);
   assert.doesNotMatch(root,/createPortal\(\s*<Workflow/);
-  assert.match(component,/doc\.addEventListener\('keydown',onKeydown,true\)/);
-  assert.match(component,/editor\.inert=true/);
-  assert.match(view,/state\.ready\?'Codex 已就绪':compact\[state\.state\]/);
-  assert.match(view,/control\('workflow-local-status-detail'\)\.text=detail/);
-  assert.match(view,/sessionState\.sessionId&&localCapability\.resumeSupported===false/);
-  assert.match(view,/if\(describeLocalCodex\(localCapability\)\.ready\)closeAISettings\(true\)/);
-  assert.doesNotMatch(view,/showCreateMenu\(/);
+  assert.doesNotMatch(html,/id="workflow-local-connect"|id="workflow-ai-model"/);
 });
 
-
-test('workflow model selector stays minimal without manual creation or custom approval',async()=>{
-  const [{html,$},view]=await Promise.all([
-    workflowDOM({settings:true}),file('src/ui/workflow/workflow-view.js')
+test('shared Provider selector is minimal and never adds Workflow-specific consent',async()=>{
+  const [{$},view,frame]=await Promise.all([
+    workflowDOM({settings:true}),file('src/ui/workflow/workflow-view.js'),
+    file('src/ui/react/components/conversation.tsx')
   ]);
-  const settings=$('#workflow-provider-settings');
-  assert.equal(settings.find('#workflow-provider-scope').length,1);
-  assert.equal(settings.find('#workflow-source-local').text(),'本机 Codex');
-  assert.equal(settings.find('#workflow-source-https').text(),'HTTPS');
-  assert.deepEqual(settings.find('#workflow-https-protocol option').map((_,node)=>$(node).val()).get(),['custom_https','cloud_responses']);
+  const settings=$('.od-shared-provider-form');
+  assert.equal(settings.length,1);
+  assert.deepEqual(settings.find('input[name="od-ai-provider-source"]').map((_,node)=>$(node).val()).get(),
+    ['local_codex','custom_https','cloud_responses']);
+  assert.equal(settings.find('input[value="local_codex"]').prop('checked'),true);
   assert.equal($('#workflow-manual-start').length,0);
-  assert.match(settings.text(),/模型推理可能联网/);
-  assert.match(settings.text(),/可能保存在 Codex 本机对话中/);
-  assert.match(settings.text(),/请勿填写 Codex 登录凭据|API Key（本次使用，不保存）/);
-  assert.equal($('#workflow-ai-plan').attr('aria-label'),'发送任务');
+  assert.match(settings.text(),/Provider 配置对各 AI 入口共享/);
+  assert.match(settings.text(),/网页摘要授权仍由原业务机制处理/);
+  assert.equal($('#workflow-ai-plan').attr('aria-label'),'发送');
   assert.equal($('#workflow-ai-disclosure,[id^="workflow-ai-review-"],#workflow-ai-revoke').length,0);
-  assert.doesNotMatch(settings.text(),/模型的数据发送许可|同意并生成|每次读取仍需确认/);
-  assert.ok(settings.hasClass('od-disclosure--flat'));
-  assert.doesNotMatch(html,/localCodexReady\s*=\s*true|模拟连接成功/);
+  assert.doesNotMatch(settings.text(),/模型的数据发送许可|同意并生成/);
+  assert.match(frame,/onSubmit=\{submit\}/);
   assert.match(view,/bind\('workflow-ai-plan','click',sendNaturalLanguage\)/);
   assert.match(view,/const taskSnapshot=await client\.request\('listTaskCatalog',\{\}\)/);
   assert.match(view,/return plan\(event,\{pregranted:true\}\)/);
   assert.doesNotMatch(view,/if\(immediate.state==='AI'&&!pendingReuse/);
-  assert.match(view,/control\('workflow-provider-settings'\)\.open=true/);
   assert.doesNotMatch(view,/modelConsent|pendingModelReview|renderDataDisclosure/);
 });
-
 
 test('R5.2 unsaved workflow starts a non-modal explicit discard or cancel review',async()=>{
   const [html,view,css]=await Promise.all([
@@ -238,20 +232,23 @@ test('later AI Send retains committed Controller revision for optimistic Save',a
 });
 
 
-test('R23.11 installed Workflow preserves real host while React owns concise history and model label',async()=>{
-  const [{html,$},css,view,root,component]=await Promise.all([
+test('installed Workflow keeps the real host and React owns history and shared model source',async()=>{
+  const [{$},css,view,root,component]=await Promise.all([
     workflowDOM({settings:true}),file('src/ui/tool-shell.css'),
-    file('src/ui/workflow/workflow-view.js'),file('src/ui/react/main.tsx'),file('src/ui/react/tabs/workflow.tsx')
+    file('src/ui/workflow/workflow-view.js'),file('src/ui/react/main.tsx'),
+    file('src/ui/react/tabs/workflow.tsx')
   ]);
-  for(const id of ['workflow-history-panel','workflow-source-name','workflow-edit-details',
-    'workflow-source-local','workflow-source-https','workflow-https-protocol','workflow-history-toggle','workflow-ai-request'])
+  for(const id of ['workflow-history-panel','workflow-edit-details',
+    'workflow-history-toggle','workflow-ai-request','workflow-provider-toggle'])
     assert.equal($('#'+id).length,1,id+' owned by React');
   assert.equal($('#workflow-history-panel').prop('hidden'),true);
-  assert.equal($('#workflow-ai-model').attr('placeholder'),'输入模型 ID');
-  assert.notEqual($('#workflow-ai-model').val(),'gpt-4o-mini');
-  assert.equal($('#workflow-ai-provider').length,0,'provider value is controller state, not a hidden native select');
+  assert.match($('#workflow-provider-toggle').attr('aria-label'),/AI 来源：本机 Codex/);
+  assert.equal($('#workflow-source-name').length,0,'shared source picker replaces the duplicate label');
+  assert.equal($('.od-shared-provider-form').length,1);
+  assert.equal($('#workflow-ai-provider').length,0,'provider is managed by shared Runtime, not hidden select');
+  assert.equal($('#workflow-ai-model').length,0,'old Workflow-specific credential form is absent');
   assert.match(component,/export function WorkflowHistory/);
-  assert.match(component,/export function WorkflowSourceName/);
+  assert.match(component,/export function WorkflowSourceMenu/);
   assert.match(component,/onOpenSavedHistory/);
   const resume=component.match(/id="workflow-history-resume"[\s\S]*?<\/button>/)?.[0];
   assert.ok(resume);
@@ -259,7 +256,6 @@ test('R23.11 installed Workflow preserves real host while React owns concise his
   assert.match(view,/const onResumeSessionClick=event=>\{\s*if\(!event\.isTrusted\|\|busy\|\|/);
   assert.doesNotMatch(root,/createPortal\(\s*<Workflow(?:History|SourceName)/);
   assert.match(view,/selected==='local_codex'\?'Codex'/);
-  assert.match(view,/control\('workflow-ai-model'\)\.value\.trim\(\)/);
   assert.match(view,/saveList\.map\(item=>/);
   assert.match(view,/const saved=await host\.controller\.getControllerScript/);
   assert.match(view,/if\(saved\?\.contentHash!==compile\.sourceHash/);
@@ -269,95 +265,60 @@ test('R23.11 installed Workflow preserves real host while React owns concise his
   assert.match(view,/control\('workflow-saved-list'\)\.value=key/);
   assert.doesNotMatch(view,/dispatchEvent\(/);
   assert.match(css,/\.workflow-history-panel\[hidden\]\{display:none!important\}/);
-  assert.match(css,/\.workflow-source-name\{/);
   assert.doesNotMatch(component,/(?:createRoot\(|fetch\(|createWorkflowProviderFacade\()/);
 });
 
-
-test('R23.14 Codex connection is one-row action with full diagnostics, not a fake switch',async()=>{
-  const [{$},css,view]=await Promise.all([
-    workflowDOM({settings:true}),file('src/ui/tool-shell.css'),file('src/ui/workflow/workflow-view.js')
+test('shared Provider exposes real Native settings without a fake connection switch',async()=>{
+  const [{$},sheet]=await Promise.all([
+    workflowDOM({settings:true}),file('src/ui/react/components/provider-settings.tsx')
   ]);
-  const settings=$('#workflow-provider-settings'),line=settings.find('.workflow-connection-line');
-  assert.equal(line.length,1);
-  assert.equal(line.find('#workflow-local-connect').text(),'连接');
-  assert.equal(line.find('#workflow-local-status').length,1);
-  assert.equal(line.find('[role="switch"],[aria-checked]').length,0);
-  assert.equal(settings.find('#workflow-local-status-detail').length,1);
-  assert.equal(settings.find('#workflow-local-connected').length,1);
-  assert.equal(settings.find('#workflow-provider-privacy').prev().attr('id'),'workflow-custom-settings');
-  assert.match(css,/grid-template-columns:minmax\(0,1fr\) auto/);
-  assert.match(view,/control\('workflow-local-status-detail'\)\.text=detail/);
-  assert.match(view,/control\('workflow-local-connected'\)\.hidden=!connected/);
-  assert.match(view,/connect\.hidden=localChecking\|\|connected\|\|state\.ready/);
+  const settings=$('.od-shared-provider-form');
+  assert.equal(settings.length,1);
+  assert.equal(settings.find('[role="switch"],[aria-checked]').length,0);
+  assert.equal(settings.find('input[name="od-ai-provider-source"]').length,3);
+  assert.equal(settings.find('.od-shared-provider-fields .od-button--secondary').text(),'本机连接设置 ↗');
+  assert.match(settings.text(),/当前授权/);
+  assert.match(settings.text(),/切换后已有推理会安全失效/);
+  assert.match(sheet,/onOpenNativeSettings\(\)/);
+  assert.match(sheet,/event\.nativeEvent\?\.isTrusted/);
 });
 
-
-test('R37 Workflow renders controller actions and releases subscriptions/modal effects on unmount',async t=>{
-  const f=await workflowFixture({steps:[]});
-  const {SidebarAppShell,createDeveloperView,createMyWorkbenchView,createSidebarToolsView}=await loadSidebarReact();
-  const views=[createDeveloperView(),createMyWorkbenchView(),createSidebarToolsView()];
-  const {window,document}=parseHTML('<html><body><div id="root"></div></body></html>');
-  const previous=new Map(['window','document','IS_REACT_ACT_ENVIRONMENT'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
-  for(const [key,value] of Object.entries({window,document,IS_REACT_ACT_ENVIRONMENT:true}))
-    Object.defineProperty(globalThis,key,{value,writable:true,configurable:true});
-  let subscriptions=0,unmounted=false;
-  const keys=new Set(),add=document.addEventListener.bind(document),remove=document.removeEventListener.bind(document);
-  document.addEventListener=(type,listener,...rest)=>{if(type==='keydown')keys.add(listener);return add(type,listener,...rest);};
-  document.removeEventListener=(type,listener,...rest)=>{if(type==='keydown')keys.delete(listener);return remove(type,listener,...rest);};
-  const controller={...f.view,subscribe(listener){subscriptions++;const off=f.view.subscribe(listener);return ()=>{subscriptions--;off();};}};
-  const root=createRoot(document.getElementById('root'));
-  const unmount=async()=>{if(!unmounted){await React.act(async()=>root.unmount());unmounted=true;}};
-  t.after(async()=>{
-    await unmount();f.view.dispose();for(const view of views)view.dispose?.();
-    for(const [key,value] of previous){if(value)Object.defineProperty(globalThis,key,value);else delete globalThis[key];}
-  });
-  const get=id=>document.getElementById(id);
-  const click=async(id,trusted=false)=>React.act(async()=>{
-    const event=new window.Event('click',{bubbles:true});
-    if(trusted)Object.defineProperty(event,'isTrusted',{value:true});
-    get(id).dispatchEvent(event);await tick();
-  });
-  await React.act(async()=>root.render(React.createElement(SidebarAppShell,{
-    activeTab:'workflow',workflowController:controller,developerView:views[0],myView:views[1],toolView:views[2]})));
-  assert.equal(subscriptions,1);
-  const baselineKeys=new Set(keys);
+test('Workflow mounts the shared Provider and releases all modal subscriptions and focus traps',async t=>{
+  const f=await mountWorkflowClient();
+  t.after(()=>f.close());
+  const get=id=>f.document.getElementById(id);
+  assert.equal(f.subscriptions(),1,'one WorkflowView subscription');
+  const baselineKeys=new Set(f.keys);
   assert.equal(get('workbench-workflow').hidden,false);
   assert.equal(get('workflow-provider-toggle').getAttribute('aria-expanded'),'false');
-  await click('workflow-provider-toggle');
-  assert.equal(f.state().controls['workflow-provider-settings'].open,false,'untrusted DOM click cannot open settings');
-  await click('workflow-provider-toggle',true);
-  assert.equal(f.state().controls['workflow-provider-settings'].open,true);
-  assert.equal(document.querySelector('.workflow-sheet-overlay').hidden,false);
-  const editor=get('workflow-editor');
-  assert.equal(editor.inert,true);
-  assert.equal(keys.size,baselineKeys.size+1,'one additional modal keyboard owner');
-  const modalKey=[...keys].find(listener=>!baselineKeys.has(listener));
-  await React.act(async()=>{
-    const event=new window.Event('keydown',{bubbles:true});Object.defineProperty(event,'key',{value:'Escape'});
-    document.dispatchEvent(event);await tick();
-  });
-  assert.equal(f.state().controls['workflow-provider-settings'].open,false);
-  assert.equal(document.querySelector('.workflow-sheet-overlay').hidden,true);
-  assert.equal(Boolean(editor.inert),false);
-  assert.equal(keys.has(modalKey),false,'modal listener is released');
-  const example=document.querySelector('[data-workflow-example="read"]');
-  await React.act(async()=>{
-    const event=new window.Event('click',{bubbles:true});Object.defineProperty(event,'isTrusted',{value:true});
-    example.dispatchEvent(event);await tick();
-  });
-  assert.match(f.state().controls['workflow-ai-request'].value,/只读提取/);
-  assert.equal(get('workflow-ai-request').value,f.state().controls['workflow-ai-request'].value);
-  assert.equal(f.starts.length,0,'choosing an example never executes');
-  assert.equal(f.requests.length,0,'choosing an example never requests permissions');
-  await click('workflow-provider-toggle',true);
-  assert.equal(editor.inert,true);
-  await unmount();
-  assert.equal(subscriptions,0);
-  assert.equal(keys.has(modalKey),false,'modal listener is released');
-  assert.equal(Boolean(editor.inert),false,'unmount restores editor interaction');
-  assert.equal(get('root').childNodes.length,0);
-  f.view.actions.chooseExample('fill',f.event('workflow-ai-request'));
+  await f.click('workflow-provider-toggle');
+  assert.equal(f.document.querySelectorAll('#workflow-source-menu').length,1);
+  assert.equal(f.document.querySelectorAll('.workflow-sheet-overlay').length,0,
+    'source selection alone does not create a settings dialog');
+  await f.clickNode(f.document.querySelector('#workflow-source-menu [role="menuitem"]'));
+  assert.equal(f.document.querySelectorAll('.workflow-sheet-overlay [role="dialog"]').length,1);
+  const app=get('opendesk-react-app');
+  assert.equal(app.inert,true,'shared settings make the trusted app root inert');
+  assert.equal(f.keys.size,baselineKeys.size+1,'one additional modal keyboard owner');
+  const modalKey=[...f.keys].find(listener=>!baselineKeys.has(listener));
+  await f.keydown('Escape');
+  assert.equal(f.document.querySelectorAll('.workflow-sheet-overlay').length,0);
+  assert.equal(app.inert,false,'Escape restores app interaction');
+  assert.equal(f.keys.has(modalKey),false,'Escape releases modal listener');
+  const example=f.document.querySelector('[data-workflow-example="read"]');
+  await f.clickNode(example);
+  assert.match(f.source.state().controls['workflow-ai-request'].value,/只读提取/);
+  assert.equal(get('workflow-ai-request').value,f.source.state().controls['workflow-ai-request'].value);
+  assert.equal(f.source.starts.length,0,'choosing an example does not execute code');
+  assert.equal(f.source.requests.length,0,'choosing an example does not request Chrome permissions');
+  await f.openSettings();
+  assert.equal(app.inert,true);
+  await f.close();
+  assert.equal(f.subscriptions(),0,'unmount releases WorkflowView subscription');
+  assert.equal(f.keys.has(modalKey),false,'unmount releases the keyboard listener');
+  assert.equal(app.inert,false,'unmount restores app interaction');
+  assert.equal(app.childNodes.length,0);
+  f.source.view.actions.chooseExample('fill',f.source.event('workflow-ai-request'));
   await tick();
-  assert.equal(get('root').childNodes.length,0,'late controller updates cannot recreate DOM');
+  assert.equal(app.childNodes.length,0,'late updates cannot recreate DOM');
 });

@@ -194,6 +194,7 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
     // at bind(): task installation, exact source, request, Run and Result.
     // A naked requestId/RunId pair is not an authentic cloud execution.
     const task=request?.task,ref=request?.runRef,grant=run.installedTaskAuthorization;
+    const result=run.resultId?resultById.get(run.resultId):null;
     if(!request||request.runId!==run.runId||
        request.requestId!==run.cloudRequestId||
        request.storageKey!==run.cloudRequestKey||
@@ -201,10 +202,16 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
        ref.requestId!==request.requestId||ref.grantId!==request.grantId||
        ref.sourceHash!==run.contentHash||ref.manifestHash!==grant?.manifestHash||
        !task||task.taskId!==grant?.taskId||
+       task.version!==grant?.version||task.scriptId!==run.scriptId||
+       !Number.isSafeInteger(task.version)||!safeIdentity(task.scriptId)||
        task.manifestHash!==grant?.manifestHash||
        task.contentHash!==run.contentHash||
        task.installationId!==grant?.authorization?.installationId||
-       task.generation!==grant?.authorization?.generation){
+       task.generation!==grant?.authorization?.generation||
+       // Require the original admitted source and any result revision to
+       // match the Cloud Request. A matching requestId alone is insufficient.
+       (run.state!=='preparing'&&run.revision?.sourceHash!==run.contentHash)||
+       (result&&result.revision?.sourceHash!==run.contentHash)){
       projectionGap=true;continue;
     }
     includeRun(run,run.runId,'cloud');

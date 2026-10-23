@@ -252,6 +252,9 @@ function lock(){
     el(id).disabled=!ready||busy||uploadBusy||transferBusy||unconfirmedWrite||
       (id==='ps-new'&&Boolean(stagedImport))||(id==='ps-image-size'&&Boolean(stagedImport));
   const blocked=!ready||busy||uploadBusy||transferBusy||unconfirmedWrite;
+  el('ps-scroll-settings').querySelectorAll('[data-scroll-nav]').forEach(input=>{
+    input.disabled=blocked||Boolean(stagedImport)||Boolean(aiGuardId);
+  });
    el('ps-image-size-setting').querySelectorAll('[data-image-size]').forEach(button=>{
      button.disabled=blocked||Boolean(stagedImport);
    });
@@ -706,6 +709,9 @@ function render(){
   el('ps-count').textContent=data.items.length+' 个 · '+enabled+' 个启用';
   el('ps-empty').hidden=data.items.length>0;
   el('ps-web').checked=data.settings.webButtons;
+  el('ps-scroll-settings').querySelectorAll('[data-scroll-nav]').forEach(input=>{
+    input.checked=data.settings.scrollNavigation[input.dataset.scrollNav]===true;
+  });
   el('ps-image-size').value=data.settings.imageSize||'large';
    el('ps-image-size-setting').querySelectorAll('[data-image-size]').forEach(button=>{
      const selected=button.dataset.imageSize===el('ps-image-size').value;
@@ -1070,6 +1076,24 @@ async function changeWeb(){
   try{await commit(next);render();status(desired?'网页快捷按钮已开启。':'网页快捷按钮已关闭，提示词仍保留。');}
   catch(e){render();status('网页按钮设置未确认，当前显示上次确认状态：'+(e.code||e.message)+'；请重新打开核对。',true);}
 }
+async function changeScrollSetting(control){
+  const key=control.dataset.scrollNav;
+  if(!Object.hasOwn(model.SCROLL_NAV_DEFAULTS,key)||!ready||busy||transferBusy||
+     stagedImport||unconfirmedWrite||aiGuardId){render();return;}
+  const desired=control.checked;
+  if(desired===data.settings.scrollNavigation[key])return;
+  const next=model.load({...data,settings:{...data.settings,
+    scrollNavigation:{...data.settings.scrollNavigation,[key]:desired}}});
+  try{
+    await commit(next);
+    render();
+    status('滚动导航设置已保存，目标网页将同步更新。');
+  }catch(e){
+    render();
+    status('滚动导航设置未确认：'+(e.code||e.message)+
+      '；已恢复最后确认的开关状态，请重新打开核对。',true);
+  }
+}
 async function changeImageSize(){
   const control=el('ps-image-size');
   if(!ready||busy||transferBusy||stagedImport||unconfirmedWrite){render();return;}
@@ -1189,6 +1213,8 @@ el('ps-cancel').addEventListener('click',()=>back());
 
 el('ps-toggle-settings').addEventListener('click',()=>options(el('ps-setting-fields').hidden));
 el('ps-web').addEventListener('change',()=>void changeWeb());
+el('ps-scroll-settings').querySelectorAll('[data-scroll-nav]').forEach(control=>
+  control.addEventListener('change',()=>void changeScrollSetting(control)));
 el('ps-image-size-setting').querySelectorAll('[data-image-size]').forEach(button=>
    button.addEventListener('click',()=>{
      el('ps-image-size').value=button.dataset.imageSize;

@@ -52,8 +52,11 @@ if(!vm.SourceTextModule) {
   const button=await compile('../../src/ui/react/components/ui/button.tsx',imports);
   const conversation=await compile('../../src/ui/react/components/conversation.tsx',
     {...imports,'./ui/button.tsx':button});
+  const providerSettings=await compile('../../src/ui/react/components/provider-settings.tsx',
+    {...imports,'./ui/button.tsx':button});
   const {WorkflowPage}=await import(await compile('../../src/ui/react/tabs/workflow.tsx',
-    {...imports,'../components/ui/button.tsx':button,'../components/conversation.tsx':conversation}));
+    {...imports,'../components/ui/button.tsx':button,'../components/conversation.tsx':conversation,
+      '../components/provider-settings.tsx':providerSettings}));
   const initial=parseHTML('<html><body></body></html>');
   const original={window:globalThis.window,document:globalThis.document};
   globalThis.window=initial.window;globalThis.document=initial.document;
@@ -94,7 +97,21 @@ if(!vm.SourceTextModule) {
       if(type==='click'&&this.disabled)return [];
       if(type==='input')this._valueTracker?.setValue('\0');
       dispatched.delete(this.id);
-      flushSync(()=>this.dispatchEvent(event));
+      flushSync(()=>{
+        this.dispatchEvent(event);
+        // LinkeDOM does not run a submit-button's browser default action.
+        // Dispatch the same trusted submit event that a real user click
+        // produces, through the production SharedConversationFrame form.
+        if(type==='click'&&event.isTrusted&&this.tagName==='BUTTON'&&
+          this.getAttribute('type')==='submit'&&!event.defaultPrevented){
+          const form=this.closest('form');
+          if(form){
+            const submit=new window.Event('submit',{bubbles:true,cancelable:true});
+            Object.assign(submit,{isTrusted:true});
+            form.dispatchEvent(submit);
+          }
+        }
+      });
       const result=dispatched.get(this.id);
       await tick();
       return [await result];
@@ -397,9 +414,14 @@ if(!vm.SourceTextModule) {
     assert.equal((await f.get('workflow-run').fire('click')).length,0);
     assert.equal((await f.get('workflow-save').fire('click')).length,0);
     assert.equal(f.compiled.length,0,'disabled actions cannot compile an empty workflow');
-    assert.equal(f.get('workflow-ai-plan').disabled,false);
+    assert.equal(f.get('workflow-ai-plan').disabled,true,
+      'empty shared composer must not issue an empty Send');
     assert.equal(f.get('workflow-ai-disclosure'),null);
-    assert.equal(f.get('workflow-ai-plan').getAttribute('aria-label'),'发送任务');
+    assert.equal(f.get('workflow-ai-plan').getAttribute('aria-label'),'发送');
+    f.get('workflow-ai-request').value='检查当前网页';
+    await f.get('workflow-ai-request').fire('input');
+    assert.equal(f.get('workflow-ai-plan').disabled,false,
+      'a nonempty shared composer enables Send once ready');
   });
 
   test('component: three standalone workflow header actions preserve keyboard focus',async t=>{

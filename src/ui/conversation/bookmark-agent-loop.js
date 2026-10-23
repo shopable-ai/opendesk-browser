@@ -44,7 +44,9 @@ function requiredChecks(goal){
  // Bind the two parts to the user's named folder, not a model's $lastFolder.
  // Only the complete create-and-file intent is accepted here; extra commands
  // still need clarification rather than a weaker completion condition.
- const text=goal.trim();
+ // Strip only a bounded polite preamble; the entire remaining goal must still
+ // match a strict completion contract, so extra instructions are never ignored.
+ const text=goal.trim().replace(/^(?:请\s*)?(?:帮我\s*)?/u,'');
  const compound=text.match(/^(?:请)?(?:创建|新建)\s*(?:一个)?(?:名为|叫做)?\s*([「“『"'][^」”』"']+[」”』"']|[^，,。；;\n]+?)\s*(?:的)?(?:文件夹|目录)\s*[，,；;]?\s*(?:并且|并|然后|再|同时)\s*(.+?)[。！!]?$/)||
   text.match(/^(?:请)?(?:创建|新建)\s*(?:一个)?(?:文件夹|目录)\s*([「“『"'][^」”』"']+[」”』"']|[^，,。；;\n]+?)\s*[，,；;]?\s*(?:并且|并|然后|再|同时)\s*(.+?)[。！!]?$/);
  if(compound){
@@ -59,8 +61,11 @@ function requiredChecks(goal){
   // names must be clarified rather than reinterpreted as another destination.
   if(name&&name.length<=256&&!name.startsWith('$')&&!name.includes('/')&&
     (pageFirst||verbFirst)&&sameFolder)
-   return [{kind:'folder.exists',folder:name},
-    {kind:'bookmark.inFolder',folder:name,url:'$currentPage'}];
+   // The user's newly named folder belongs under the folder selected at Send,
+   // never under some unrelated existing folder with the same title.
+   return [{kind:'bookmark.title',target:'$lastFolder',title:name},
+    {kind:'bookmark.parent',target:'$lastFolder',folder:'$currentFolder'},
+    {kind:'bookmark.inFolder',folder:'$lastFolder',url:'$currentPage'}];
   return null;
  }
  const {filing,name}=filingTarget(goal);
@@ -81,6 +86,12 @@ function requiredChecks(goal){
   text.match(/^(?:创建|新建)\s*(?:一个)?(?:文件夹|目录)\s*(.+?)[。！!]?$/);
  if(folder){
   const title=folder[1].trim().replace(/^[「“『"'](.+)[」”』"']$/,'$1');
+  // A create/new request must independently verify BOTH the title and the
+  // actual parent of the Host-resolved folder ID. A generic "exists" check
+  // alone can succeed when the model wrote under the wrong directory.
+  if(/^(?:请)?(?:创建|新建)/.test(text))
+   return [{kind:'bookmark.title',target:'$lastFolder',title},
+    {kind:'bookmark.parent',target:'$lastFolder',folder:'$currentFolder'}];
   return [{kind:'folder.exists',folder:title}];
  }
  // An unrecognized or compound intent must be clarified, never reduced to

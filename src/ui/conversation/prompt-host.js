@@ -137,7 +137,8 @@ export function createTrustedPromptHost({
         typeof instruction!=='string'||typeof recipient?.provider!=='string'||
         typeof recipient.endpoint!=='string'||typeof recipient.model!=='string')
        throw failure('E_PROMPT_REVIEW','私人正文披露信息无效');
-     const where=recipient.provider==='local_codex'?'本机 Codex':
+     const where=recipient.provider==='local_codex'
+       ?'本机 Codex · '+recipient.endpoint+' · 模型 '+recipient.model:
        recipient.provider+' · '+recipient.endpoint+' · 模型 '+recipient.model;
      const originals=items.map((row,index)=>(index+1)+'. '+summaryRow(row)+
        '\n原始正文（完整）：\n'+row.body).join('\n\n');

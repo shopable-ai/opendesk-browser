@@ -11,7 +11,7 @@ const ASSISTANT_TURN = '[data-content-search-unit-key][data-chatgpt-search-unit-
 const OWN = 'data-opendesk-chatgpt-jump-top';
 const EXCLUDED = '[role="dialog"],[aria-modal="true"],[hidden],[inert],[aria-hidden="true"]';
 const GAP = 12;
-const sessions = new WeakMap();
+const sessions = new WeakMap(); // doc -> per-owner sessions (Program and trusted tool may coexist)
 
 function isWritingViewer(element, aside, win) {
   const section = element.closest('section');
@@ -171,6 +171,61 @@ export function jumpRegionTop(binding, doc, win) {
 export function jumpConversationTop(main, doc, win) {
   return jumpRegionTop({target: main?.querySelector(TURN), main, kind: 'conversation'}, doc, win);
 }
+
+// Reuse the same bounded scrollport resolution for both directions. Never
+// allow a nested code block/editor to replace the conversation scrollport.
+function scrollPort(scroller, doc, win, top) {
+  const max = scroller.scrollHeight - scroller.clientHeight;
+  if (!(max > 1) || !Number.isFinite(top)) return false;
+  const options = {top: Math.max(0, Math.min(max, top)),
+    left: scroller.scrollLeft || 0, behavior: 'instant'};
+  if (scroller === doc.scrollingElement && typeof win.scrollTo === 'function') win.scrollTo(options);
+  else if (typeof scroller.scrollTo === 'function') scroller.scrollTo(options);
+  else scroller.scrollTop = options.top;
+  return true;
+}
+export function jumpRegionEnd(binding, doc, win) {
+  const {target, main, header, kind} = binding || {};
+  if (!target?.isConnected || !main?.isConnected || !main.contains(target) ||
+      (header && !header.isConnected) ||
+      /^(sticky|fixed)$/.test(win.getComputedStyle(target).position)) return false;
+  const scroller = findConversationScroller(target, doc, win, {includeSelf: true});
+  if (!scroller || (kind === 'editor' && scroller !== target)) return false;
+  if (scroller === target) return scrollPort(scroller, doc, win,
+    scroller.scrollHeight - scroller.clientHeight);
+  const port = viewport(scroller, doc, win);
+  const rect = target.getBoundingClientRect();
+  if (rect.left >= port.right || rect.right <= port.left) return false;
+  return scrollPort(scroller, doc, win,
+    scroller.scrollTop + rect.bottom - (port.top + port.height) + GAP);
+}
+// Fixed, audited site adapters provide the transcript container and turn
+// selector. Ambiguous/empty/unscrollable regions fail closed.
+export function findConversationNavigation(main, turnSelector, doc, win) {
+  if (!main?.isConnected || !rendered(main, win) ||
+      typeof turnSelector !== 'string' || !turnSelector) return null;
+  const candidates = [...main.querySelectorAll(turnSelector)].filter(node=>rendered(node, win));
+  const turns = candidates.filter(node=>!candidates.some(parent=>parent!==node&&parent.contains(node)));
+  if (!turns.length) return null;
+  const first = turns[0], last = turns.at(-1);
+  const scroller = findConversationScroller(first, doc, win);
+  if (!scroller || findConversationScroller(last, doc, win) !== scroller ||
+      !(scroller.scrollHeight - scroller.clientHeight > Math.max(240, scroller.clientHeight * .6)))
+    return null;
+  // Do not accept a scrollport inside a single message, code editor, or aside.
+  if (scroller !== doc.scrollingElement && scroller !== doc.documentElement &&
+      (!scroller.contains(first) || !scroller.contains(last) || scroller.closest('aside')))
+    return null;
+  return {scroller, main, first, last};
+}
+export function jumpConversationEdge(main, turnSelector, direction, doc, win) {
+  if (direction !== 'top' && direction !== 'bottom') return false;
+  const navigation = findConversationNavigation(main, turnSelector, doc, win);
+  if (!navigation) return false;
+  const {scroller} = navigation;
+  return scrollPort(scroller, doc, win,
+    direction === 'top' ? 0 : scroller.scrollHeight - scroller.clientHeight);
+}
 function localTarget(header, anchor, main, idIndex, win) {
   const controls = anchor.getAttribute('aria-controls');
   if (controls) {
@@ -294,9 +349,9 @@ export function findRegionBindings(doc, win) {
   }
   return bindings;
 }
-function newButton(doc, kind) {
+function newButton(doc, kind, directions, sessionKey) {
   const host = doc.createElement('span');
-  host.setAttribute(OWN, 'host');
+  host.setAttribute(OWN, sessionKey === 'default' ? 'host' : sessionKey);
   host.style.cssText = 'display:inline-flex;align-items:center;flex:0 0 auto;vertical-align:middle;color:inherit;';
   const shadow = host.attachShadow({mode: 'open'});
   const style = doc.createElement('style');
@@ -308,25 +363,42 @@ function newButton(doc, kind) {
     button:focus-visible{outline:2px solid currentColor;outline-offset:2px}
     svg{width:20px;height:20px;display:block;fill:none;stroke:currentColor;
     stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}`;
-  const button = doc.createElement('button');
-  button.type = 'button';
-  const label = kind === 'conversation' ? '回到对话开头' : '回到此内容开头';
-  button.setAttribute('aria-label', label);
-  button.title = label;
-  const svg = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  svg.setAttribute('aria-hidden', 'true');
-  svg.setAttribute('focusable', 'false');
-  const path = doc.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('d', 'M5 4h14M12 20V8m-6 6 6-6 6 6');
-  svg.append(path);
-  button.append(svg);
-  shadow.append(style, button);
-  return {host, button};
+  shadow.append(style);
+  const controls = directions.map(direction => {
+    const button = doc.createElement('button');
+    button.type = 'button';
+    const label = kind === 'conversation'
+      ? (direction === 'top' ? '回到对话开头' : '跳到对话末尾')
+      : (direction === 'top' ? '回到此内容开头' : '跳到此内容末尾');
+    button.setAttribute('aria-label', label);
+    button.title = label;
+    button.dataset.scrollNavKey = kind === 'conversation'
+      ? (direction === 'top' ? 'conversationTop' : 'conversationBottom')
+      : (direction === 'top' ? 'regionTop' : 'regionBottom');
+    const svg = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false');
+    const path = doc.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', direction === 'top'
+      ? 'M5 4h14M12 20V8m-6 6 6-6 6 6'
+      : 'M5 20h14M12 4v12m-6-6 6 6 6-6');
+    svg.append(path);
+    button.append(svg);
+    shadow.append(button);
+    return {button, direction};
+  });
+  return {host, controls};
 }
 export function installJumpToTop({doc, win, owner, resolveBindings = findRegionBindings,
-  regionSelector = 'main,[role="main"],header'}) {
-  sessions.get(doc)?.dispose();
+  regionSelector = 'main,[role="main"],header', sessionKey = 'default',
+  regionDirections = {top: true, bottom: false},
+  conversationDirections = {top: true, bottom: false}}) {
+  // An old session may delete the WeakMap entry when it was the last owner.
+  // Reacquire after disposing, or a repeated install becomes untracked.
+  sessions.get(doc)?.get(sessionKey)?.dispose();
+  let active = sessions.get(doc);
+  if (!active) {active = new Map();sessions.set(doc, active);}
   const mounted = new Map();
   const cleanups = [];
   let pending = false;
@@ -340,26 +412,36 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
   function refresh() {
     pending = false;
     if (disposed) return;
-    const bindings = resolveBindings(doc, win);
+    const bindings = resolveBindings(doc, win).map(binding => {
+      const options = binding.kind === 'conversation' ? conversationDirections : regionDirections;
+      const programTop = sessionKey !== 'default' &&
+        [...binding.header.querySelectorAll(`[${OWN}="host"]`)].some(host => host.isConnected);
+      const directions = ['top', 'bottom'].filter(direction =>
+        options[direction] === true && !(direction === 'top' && programTop));
+      return {...binding, directions};
+    }).filter(binding => binding.directions.length);
     for (const header of mounted.keys()) {
       if (!bindings.some(binding => binding.header === header)) remove(header);
     }
     for (const binding of bindings) {
       const old = mounted.get(binding.header);
       if (old?.host.isConnected && old.anchor === binding.anchor && old.target === binding.target
-          && old.host.nextElementSibling === binding.anchor) continue;
+          && old.directions.join(',') === binding.directions.join(',') &&
+          old.host.nextElementSibling === binding.anchor) continue;
       remove(binding.header);
-      const item = newButton(doc, binding.kind);
-      const unlisten = owner.on(item.button, 'click', event => {
+      const item = newButton(doc, binding.kind, binding.directions, sessionKey);
+      const cleanups = item.controls.map(({button, direction})=>owner.on(button, 'click', event => {
         event.preventDefault();
         event.stopPropagation();
         const current = resolveBindings(doc, win).find(next => next.header === binding.header
           && next.anchor === binding.anchor && next.target === binding.target);
-        if (current) jumpRegionTop(current, doc, win);
-        else schedule();
-      });
+        if (current) {
+          if (direction === 'bottom') jumpRegionEnd(current, doc, win);
+          else jumpRegionTop(current, doc, win);
+        } else schedule();
+      }));
       binding.anchor.before(item.host);
-      mounted.set(binding.header, {...item, ...binding, unlisten});
+      mounted.set(binding.header, {...item, ...binding, unlisten:()=>cleanups.forEach(off=>off())});
     }
   }
   function schedule() {
@@ -370,12 +452,13 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
   const observer = owner.observe(doc.documentElement, records => {
     const relevant = records.some(record => {
       const target = record.target.nodeType === 1 ? record.target : record.target.parentElement;
-      if (target?.closest(`[${OWN}]`)) return false;
+      if (target?.closest(`[${OWN}="${sessionKey === 'default' ? 'host' : sessionKey}"]`)) return false;
       const inRegion = target?.closest(regionSelector);
       if (record.type !== 'childList') return Boolean(inRegion);
       if ([...record.removedNodes].some(node => node.hasAttribute?.(OWN)
           && [...mounted.values()].some(item => item.host === node && !node.isConnected))) return true;
-      const changed = [...record.addedNodes, ...record.removedNodes].filter(node => !node.hasAttribute?.(OWN));
+      const changed = [...record.addedNodes, ...record.removedNodes]
+        .filter(node => node.getAttribute?.(OWN) !== (sessionKey === 'default' ? 'host' : sessionKey));
       return changed.length > 0 && (inRegion || changed.some(node => node.nodeType === 1
         && (node.matches(regionSelector) || node.querySelector(regionSelector))));
     });
@@ -390,11 +473,14 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
     disposed = true;
     for (const header of mounted.keys()) remove(header);
     cleanups.forEach(cleanup => cleanup());
-    if (sessions.get(doc)?.dispose === dispose) sessions.delete(doc);
+    if (sessions.get(doc)?.get(sessionKey)?.dispose === dispose) {
+      sessions.get(doc).delete(sessionKey);
+      if (!sessions.get(doc).size) sessions.delete(doc);
+    }
   }
   owner.onDispose(dispose);
   const session = {refresh, dispose, isMounted: () => [...mounted.values()].some(item => item.host.isConnected)};
-  sessions.set(doc, session);
+  active.set(sessionKey, session);
   refresh();
   return session;
 }

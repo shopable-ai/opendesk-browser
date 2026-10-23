@@ -5,11 +5,15 @@ import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnable
 import {PROMPT_ID,PROMPT_DATA_STORE,PROMPT_PICKER_PROTOCOL,supportedOrigin,allowedPromptSite,installedPromptTool} from './policy.js';
 import {PROMPT_RAIL_OPEN_PROTOCOL} from './rail-open.js';
 import {PROMPT_ASSET_STORE,imageAssetDataUrl} from './asset-contract.js';
-import {installJumpToTop} from '../../../programs/chatgpt-jump-top/src/conversation.js';
+import {installJumpToTop,findConversationMain,findConversationNavigation,
+  jumpConversationEdge} from '../../../programs/chatgpt-jump-top/src/conversation.js';
 import {deepSeekConversation,findDeepSeekBindings} from './conversation-sites.js';
 const MODEL=globalThis.OpenDeskPromptShortcutsModel;
 const builtInPage=url=>Boolean(supportedOrigin(url)||MODEL.builtinSite(url));
 const SLOT='__openDeskPromptShortcutsPageV1';
+const CHAT_TURNS='[data-testid^="conversation-turn-"],[data-content-search-unit-key]';
+const DEEPSEEK_TURNS='.ds-message';
+const GEMINI_TURNS='user-query,model-response';
 const STYLE=String.raw`
 :host{all:initial;position:fixed;z-index:2147483600;pointer-events:none;color-scheme:light;font:13px/1.4 system-ui,sans-serif;
  --od-rail-bg:#fff;--od-rail-border:#e9e9eb;--od-rail-shadow:0 6px 24px #18243b15;
@@ -19,6 +23,8 @@ const STYLE=String.raw`
  --od-button-bg:#444851;--od-button-fg:#f4f5f8;--od-button-hover:#525866;--od-focus:#91b0ff;
  --od-pop-bg:#20242b;--od-pop-fg:#ebedf1;--od-pop-border:#373c45}
 :host([hidden]){display:none!important}
+button[hidden]{display:none!important}
+.nav-item{font-size:21px;font-weight:550;line-height:1;letter-spacing:0}
 .rail{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:5px;
  max-height:min(248px,calc(100vh - 16px));overflow-y:auto;overflow-x:hidden;
  width:max-content;max-width:calc(100vw - 16px);padding:6px;border-radius:17px;
@@ -89,14 +95,18 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   let locationTimer=0,retryTimer=0,readFailures=0;
   let composing=false,inserting=false,lastAttempt=0,lastAttemptId=null;
   let activeRule=null,picker=null;
+  let navigationSettings=MODEL.navigationSettings();
+  let floatingHost=null,floatingButton=null;
   let jump=null,jumpRoot=null,releaseJump=null;
   const stopJump=()=>{
     jump?.dispose();jump=null;jumpRoot=null;
     releaseJump?.();releaseJump=null;
+    floatingHost?.remove();floatingHost=null;floatingButton=null;
   };
   const syncJump=()=>{
-    const deepSeek=activeRule&&deepSeekConversation(win.location.href);
-    if(!supportedOrigin(win.location.href)&&!deepSeek){stopJump();return;}
+    const deepSeek=activeRule?.builtin==='deepseek'&&deepSeekConversation(win.location.href);
+    const gemini=activeRule?.builtin==='gemini';
+    if(!supportedOrigin(win.location.href)&&!deepSeek&&!gemini){stopJump();return;}
     if(jump&&jumpRoot===doc.documentElement)return;
     stopJump();
     const root=doc.documentElement,token=epoch,url=win.location.href;
@@ -117,15 +127,21 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
           if(type!=='click'){callback(event);return;}
           event.preventDefault();event.stopPropagation();
           if(event.isTrusted!==true)return;
+          // Capture before the asynchronous Host read; currentTarget is nulled after dispatch.
+          const setting=event.currentTarget?.dataset?.scrollNavKey;
           void api.storage.local.get(KEYS).then(async values=>{
             const permitted=await allowedPromptSite({
-              installed:values[SIDEBAR_TOOL_STORE],enabled:values[SIDEBAR_TOOL_ENABLE_STORE],url,
+              installed:values[SIDEBAR_TOOL_STORE],enabled:values[SIDEBAR_TOOL_ENABLE_STORE],
+              epochs:values[TOOL_REVOCATION_EPOCHS_STORE],url,
               sites:supportedOrigin(url)?null:model.sitesLoad(values[PROMPT_DATA_STORE]?.sites)
             });
             if(!current())return;
-            const sameRule=!deepSeek||JSON.stringify(model.siteFor(values[PROMPT_DATA_STORE]?.sites,url))===
-              JSON.stringify(activeRule);
-            if(!permitted||!sameRule||!model.load(values[PROMPT_DATA_STORE]?.library).settings.webButtons){
+            const sameRule=Boolean(supportedOrigin(url))||
+              JSON.stringify(model.siteFor(values[PROMPT_DATA_STORE]?.sites,url))===
+                JSON.stringify(activeRule);
+            const settings=model.load(values[PROMPT_DATA_STORE]?.library).settings;
+            if(!permitted||!sameRule||!settings.webButtons||
+                (setting&&settings.scrollNavigation[setting]!==true)){
               stopJump();return;
             }
             callback(event);
@@ -150,10 +166,18 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       for(const cleanup of [...resources]){resources.delete(cleanup);cleanup();}
     };
     jumpRoot=root;
-    try{jump=installJumpToTop({doc,win,owner,...(deepSeek?{
-      regionSelector:activeRule.containerSelector,
-        resolveBindings:()=>checkedEditor()?findDeepSeekBindings(doc,win,siteContainer()):[]
-    }:{})});}catch(error){stopJump();throw error;}
+    try{
+      // Gemini has no verified per-response toolbar binding; do not guess one.
+      jump=gemini?{dispose(){}}:installJumpToTop({doc,win,owner,
+        sessionKey:'prompt-shortcuts',
+        regionDirections:{top:navigationSettings.regionTop,bottom:navigationSettings.regionBottom},
+        conversationDirections:{top:false,bottom:false},
+        ...(deepSeek?{
+          regionSelector:activeRule.containerSelector,
+          resolveBindings:()=>checkedEditor()?findDeepSeekBindings(doc,win,siteContainer()):[]
+        }:{})
+      });
+    }catch(error){stopJump();throw error;}
   };
   const PICK_BLOCK_EVENTS=['pointerdown','pointerup','pointercancel','mousedown','mouseup',
     'dblclick','auxclick','contextmenu','touchstart','touchend','touchcancel'];
@@ -246,6 +270,107 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     // Never write into an editor outside the user's chosen button region.
     return container&&available(container)&&node&&container.contains?.(node)&&
       editorKind(node)?node:null;
+  };
+  // A fixed adapter may claim navigation only after both transcript endpoints
+  // resolve to the same real scrollport. Custom sites do not inherit this claim.
+  const conversationNavigation=()=>{
+    if(!visible||paused||disposed)return null;
+    const url=win.location.href;
+    let main=null,selector=null;
+    if(supportedOrigin(url)){
+      main=findConversationMain(doc,win);
+      selector=CHAT_TURNS;
+    }else if(activeRule?.builtin==='deepseek'&&deepSeekConversation(url)&&checkedEditor()){
+      main=siteContainer();selector=DEEPSEEK_TURNS;
+    }else if(activeRule?.builtin==='gemini'&&checkedEditor()){
+      main=siteContainer();selector=GEMINI_TURNS;
+    }
+    if(!main||!selector)return null;
+    const result=findConversationNavigation(main,selector,doc,win);
+    return result?{...result,selector}:null;
+  };
+  const navigationClick=async(direction,key,event)=>{
+    event?.preventDefault();event?.stopPropagation();
+    if(event?.isTrusted!==true||!runtimeCurrent()||paused||!visible||
+        navigationSettings[key]!==true)return;
+    const token=epoch,url=win.location.href;
+    try{
+      const values=await api.storage.local.get(KEYS);
+      const sites=supportedOrigin(url)?null:model.sitesLoad(values[PROMPT_DATA_STORE]?.sites);
+      const permitted=await allowedPromptSite({
+        installed:values[SIDEBAR_TOOL_STORE],enabled:values[SIDEBAR_TOOL_ENABLE_STORE],
+        epochs:values[TOOL_REVOCATION_EPOCHS_STORE],url,sites
+      });
+      if(!permitted||!runtimeCurrent()||paused||!visible||token!==epoch||url!==win.location.href||
+          (!supportedOrigin(url)&&JSON.stringify(model.siteFor(sites,url))!==JSON.stringify(activeRule)))
+        return;
+      const settings=model.load(values[PROMPT_DATA_STORE]?.library).settings;
+      if(!settings.webButtons||settings.scrollNavigation[key]!==true)return;
+      const context=conversationNavigation();
+      if(context)jumpConversationEdge(context.main,context.selector,direction,doc,win);
+    }catch{/* Stale or revoked grants fail closed; scrolling is never retried blindly. */}
+  };
+  const nativeTopVisible=()=>{
+    const re=/^(?:scroll to top|back to top|return to top|回到顶部|返回顶部|回到对话顶部|回到对话开头)$/i;
+    return [...doc.querySelectorAll('button[aria-label],button[title]')].some(button=>{
+      if(button.closest('[data-opendesk-prompts],[data-opendesk-prompts-floating]'))return false;
+      if(!re.test((button.getAttribute('aria-label')||button.getAttribute('title')||'').trim()))return false;
+      const r=button.getBoundingClientRect(),s=win.getComputedStyle(button);
+      return r.width>8&&r.height>8&&r.bottom>0&&r.top<win.innerHeight&&
+        s.display!=='none'&&s.visibility!=='hidden';
+    });
+  };
+  const updateFloating=context=>{
+    const scroller=context?.scroller;
+    if(!navigationSettings.floatingTop||!scroller||
+        scroller.scrollTop<=Math.max(320,Math.min(win.innerHeight,scroller.clientHeight)*.65)||
+        nativeTopVisible()){
+      floatingHost?.remove();floatingHost=null;floatingButton=null;return;
+    }
+    const composer=editor()?.getBoundingClientRect?.();
+    const bottom=composer?.top>win.innerHeight*.5&&composer.top<win.innerHeight
+      ? Math.max(18,Math.round(win.innerHeight-composer.top+12)):18;
+    if(bottom>win.innerHeight*.55){floatingHost?.remove();floatingHost=null;floatingButton=null;return;}
+    // Skip a position occupied by the site's own controls (for example its
+    // "scroll to latest" button). Inspect only the proposed button centre.
+    const overlapsControl=doc.elementsFromPoint?.(Math.max(0,win.innerWidth-39),
+      Math.max(0,win.innerHeight-bottom-21))?.some(node=>{
+        if(node===floatingHost||node?.getRootNode?.()?.host===floatingHost||
+           node?.closest?.('[data-opendesk-prompts-floating]'))return false;
+        return Boolean(node?.closest?.('button,[role="button"],input,textarea,[contenteditable="true"]'));
+      });
+    if(overlapsControl){floatingHost?.remove();floatingHost=null;floatingButton=null;return;}
+    if(!floatingHost){
+      floatingHost=doc.createElement('div');
+      floatingHost.setAttribute('data-opendesk-prompts-floating','');
+      floatingHost.style.cssText='position:fixed;right:18px;z-index:2147483599;pointer-events:none;';
+      const shadow=floatingHost.attachShadow({mode:'closed'});
+      const style=doc.createElement('style');
+      style.textContent=`:host{all:initial;color-scheme:light}
+        :host(.dark){color-scheme:dark}
+        button{pointer-events:auto;width:42px;height:42px;border:1px solid #b8c2d44d;
+        border-radius:14px;background:#ffffffed;color:#2b3b51;box-shadow:0 4px 18px #0002;
+        cursor:pointer;display:grid;place-items:center;padding:0}
+        :host(.dark) button{background:#303239ef;color:#f3f4f8;border-color:#ffffff30}
+        button:hover{background:#e8eef8}
+        :host(.dark) button:hover{background:#434a55}
+        button:focus-visible{outline:3px solid #4c82ff;outline-offset:2px}
+        svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;
+        stroke-linecap:round;stroke-linejoin:round}`;
+      floatingButton=doc.createElement('button');floatingButton.type='button';
+      floatingButton.title='回到对话顶部';floatingButton.setAttribute('aria-label','右下角返回对话顶部');
+      const svg=doc.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
+      const path=doc.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d','M5 4h14M12 20V8m-6 6 6-6 6 6');svg.append(path);floatingButton.append(svg);
+      floatingButton.addEventListener('click',event=>void navigationClick('top','floatingTop',event));
+      shadow.append(style,floatingButton);
+    }
+    // Avoid a style attribute mutation on every scroll/layout reconciliation.
+    // The existing document observer would otherwise schedule itself forever.
+    if(floatingHost.style.bottom!==bottom+'px')floatingHost.style.bottom=bottom+'px';
+    floatingHost.classList.toggle('dark',!!darkTheme());
+    if(!floatingHost.isConnected)doc.documentElement?.append(floatingHost);
   };
   const pickerSelector=node=>{
     if(!node||node===doc.documentElement||node===doc.body)return null;
@@ -504,6 +629,12 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     if(href!==win.location.href){void refresh();return;}
     observeRoot();
     syncJump();
+    const conversation=conversationNavigation();
+    rail?.querySelectorAll('[data-scroll-conversation]').forEach(button=>{
+      button.hidden=!conversation;
+    });
+    updateFloating(conversation);
+    if(![...rail.children].some(button=>!button.hidden)){host.hidden=true;return;}
     for(const old of observedRegions){
       if(old.isConnected)continue;
       resizeObserver?.unobserve?.(old);observedRegions.delete(old);
@@ -808,23 +939,32 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     hideTip();rail.replaceChildren();rail.dataset.imageSize=imageSize;
     // Every saved library, including legacy and fully customized ones, shares a
     // One launcher and a visible image/text tray by default; users may collapse it.
-    const compact=usesCompactMenu(),builtin=builtInPage(win.location.href);
-    if(builtin||compact){
+    const compact=usesCompactMenu();
+    // No dedicated management launcher on the webpage: the Browser side panel
+    // remains the only administration entry. Navigation may work without prompts.
+    if(compact){
       const brand=doc.createElement('button');brand.type='button';brand.className='brand';
-      if(compact){
-        brand.textContent='OD';brand.title=compactExpanded?'收起提示词':'展开提示词';
-        brand.setAttribute('aria-label',(compactExpanded?'收起':'展开')+items.length+' 个提示词快捷按钮');
-        brand.setAttribute('aria-expanded',String(compactExpanded));
-        brand.addEventListener('click',event=>{
-          if(event?.isTrusted!==true)return;
-          compactExpanded=!compactExpanded;render();rail.children[0]?.focus();
-        });
-      }else{
-        brand.textContent='OD';brand.title='打开提示词快捷按钮';
-        brand.setAttribute('aria-label','打开提示词快捷按钮');
-        brand.addEventListener('click',openSidebar);
-      }
+      brand.textContent='OD';brand.title=compactExpanded?'收起提示词':'展开提示词';
+      brand.setAttribute('aria-label',(compactExpanded?'收起':'展开')+items.length+' 个提示词快捷按钮');
+      brand.setAttribute('aria-expanded',String(compactExpanded));
+      brand.addEventListener('click',event=>{
+        if(event?.isTrusted!==true)return;
+        compactExpanded=!compactExpanded;render();rail.children[0]?.focus();
+      });
       rail.append(brand);
+    }
+    // Global transcript navigation is independent of prompt tray expansion.
+    for(const [key,direction,label,glyph] of [
+      ['conversationTop','top','回到对话顶部','↑'],
+      ['conversationBottom','bottom','跳到对话底部','↓']
+    ]){
+      if(!navigationSettings[key])continue;
+      const button=doc.createElement('button');button.type='button';
+      button.className='item nav-item';button.dataset.scrollConversation=direction;
+      button.title=label;button.setAttribute('aria-label',label);button.textContent=glyph;
+      button.hidden=true; // Layout resolves an actual scrollport before showing.
+      button.addEventListener('click',event=>void navigationClick(direction,key,event));
+      rail.append(button);
     }
     if(compact&&!compactExpanded){schedule();return;}
     for(const row of items){
@@ -895,7 +1035,8 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       win.clearTimeout(retryTimer);retryTimer=0;
       if(!resizeObserver&&win.ResizeObserver)resizeObserver=new win.ResizeObserver(schedule);
       imageAssets=values[PROMPT_ASSET_STORE]?.assets||{};
-      items=rows;imageSize=library.settings.imageSize;visible=true;render();
+      items=rows;imageSize=library.settings.imageSize;
+      navigationSettings=library.settings.scrollNavigation;visible=true;render();
       syncJump();
       if(!observer){
         observer=new win.MutationObserver(records=>{

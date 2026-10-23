@@ -10,6 +10,15 @@ import {normalizeManagedSiteV3Notices}
   from '../../../../src/framework/sdk/site-budget-v3-reminders.js';
 
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};
+// The prepared legacy plan is a transaction input, not a mutable draft.
+// Freeze every nested ledger/policy/notice object without freezing the source.
+function freezeMigrationPlan(value){
+  if(value!==null&&typeof value==='object'&&!Object.isFrozen(value)){
+    for(const entry of Object.values(value))freezeMigrationPlan(entry);
+    Object.freeze(value);
+  }
+  return value;
+}
 export function migrateFocusState(legacy,{at=Date.now()}={}){
   // Absence of the old key is NOT evidence that an installed legacy owner had
   // an empty policy. The Installer must distinguish fresh install from upgrade.
@@ -22,8 +31,12 @@ export function migrateFocusState(legacy,{at=Date.now()}={}){
   const usedAfter=Object.values(usage).reduce((a,b)=>a+b,0);
   if(usedBefore!==usedAfter||Object.entries(state.usage).some(([pool,ms])=>usage[pool]!==ms))
     fail('E_MIGRATION_LOSS','迁移后的每池用量与旧账本不守恒');
-  if(state.enabled&&!state.authorizedHash)
-    fail('E_MIGRATION_GRANT','旧启用状态缺少原授权，不能直接恢复');
+  // A grant is a hash + installation-epoch pair. An enabled v1 snapshot
+  // with either half missing is not authority to activate Chrome rules after
+  // an upgrade. The Installer must also compare both against the installed
+  // legacy owner before binding any reviewed v3 site scope.
+  if(state.enabled&&(!state.authorizedHash||!state.authorizedEpoch))
+    fail('E_MIGRATION_GRANT','旧启用状态缺少完整的原授权身份，不能直接恢复');
 
   // Legacy reminders were only generated for the product's default shared
   // group. Transfer the exact threshold ledger, not a new notification.
@@ -46,7 +59,7 @@ export function migrateFocusState(legacy,{at=Date.now()}={}){
   // This preparation is NOT a successful installation or native migration.
   // The trusted Installer must still attest the old hash/epoch, persist a
   // journaled snapshot, bind a reviewed v3 scope and reconcile Chrome rules.
-  return Object.freeze({
+  return freezeMigrationPlan({
     model:structuredClone(state),sealedModel,desiredPolicy,usage,notices,
     day:state.day,clockHighWater:state.clockHighWater,
     checkpoint:state.checkpoint===null?null:structuredClone(state.checkpoint),

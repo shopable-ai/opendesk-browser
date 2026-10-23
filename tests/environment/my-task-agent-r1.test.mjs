@@ -91,6 +91,8 @@ test('recent task query reads Controller run journal without task execution',asy
   assert.equal(fixture.agent.getSnapshot().pending,null);
   const transcript=fixture.agent.getSnapshot().rows.map(row=>row.message).join(' ');
   assert.match(transcript,/已读取 1 条最近任务的真实运行记录/);
+  assert.match(transcript,/网页搜索 · completed · 运行编号 run1 · 测试结果/,
+    'verified task name, run identity, terminal state and journal outcome must be visible');
   assert.match(fixture.agent.getSnapshot().technical,/"taskId":"search"/);
   assert.match(fixture.agent.getSnapshot().technical,/"runId":"run1"/);
   fixture.agent.dispose();

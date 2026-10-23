@@ -241,6 +241,71 @@ test('R2.1 name is generic: different folder goal runs without hardcoded title',
  assert.equal(currentIn(f,folder.id).length,1);
 });
 
+test('R2.2.3 polite folder-creation request verifies Chrome state rather than a model claim',async()=>{
+ for(const goal of ['帮我创建一个工作资料文件夹。','请帮我创建一个工作资料文件夹。']){
+  const f=fixture(),p=proposals([{complete:[{kind:'folder.exists',folder:'工作资料'}]}]);
+  const result=await run(f,{goal,
+   initialProposal:{actions:[{type:'folder.create',title:'工作资料',parent:'$currentFolder'}]},
+   nextProposal:p.nextProposal});
+  assert.equal(result.completed,true,goal);
+  assert.equal(created(f).length,1,'only one Chrome folder mutation is issued');
+  assert.equal(f.nodes.find(node=>node.id===result.refs.folderId)?.title,'工作资料');
+  assert.ok(f.reads.length>=2,'writing and completion both require independent Chrome snapshots');
+ }
+});
+
+test('R2.2.4 creation cannot pass by finding the same folder name under the wrong parent',async()=>{
+ const f=fixture();
+ const next=proposals([
+  {complete:[{kind:'folder.exists',folder:'工作资料'}]},
+  {question:'新文件夹不在当前目录，请重新确认位置'}
+ ]);
+ const result=await run(f,{goal:'帮我创建一个工作资料文件夹。',
+  initialProposal:{actions:[{type:'folder.create',title:'工作资料',parent:'其他'}]},
+  nextProposal:next.nextProposal});
+ assert.equal(result.completed,false);
+ assert.match(result.question,/当前目录/);
+ assert.equal(created(f).length,1);
+ assert.equal(f.nodes.find(node=>node.title==='工作资料')?.parentId,'2');
+ assert.equal(next.contexts[1].progress.at(-1).observations[0].status,'NOT_MET');
+});
+
+test('R2.2.4 a verified current-folder creation is not rejected by an unrelated namesake',async()=>{
+ const f=fixture();
+ f.nodes.push({id:'unrelated-folder',title:'工作资料',parentId:'2'});
+ const next=proposals([{complete:[{kind:'folder.exists',folder:'工作资料'}]}]);
+ const result=await run(f,{goal:'请帮我创建一个工作资料文件夹。',
+  initialProposal:{actions:[{type:'folder.ensure',title:'工作资料',parent:'$currentFolder'}]},
+  nextProposal:next.nextProposal});
+ assert.equal(result.completed,true);
+ assert.equal(created(f).length,1);
+ assert.equal(f.nodes.find(node=>node.id===result.refs.folderId)?.parentId,'1');
+ assert.equal(f.nodes.find(node=>node.id==='unrelated-folder')?.parentId,'2');
+});
+
+test('R2.2.4 a completion-only claim cannot borrow an unrelated existing folder',async()=>{
+ const f=fixture();
+ f.nodes.push({id:'unrelated-folder',title:'工作资料',parentId:'2'});
+ const next=proposals([{question:'当前目录尚未创建该文件夹'}]);
+ const result=await run(f,{goal:'帮我创建一个工作资料文件夹。',
+  initialProposal:{complete:[{kind:'folder.exists',folder:'工作资料'}]},
+  nextProposal:next.nextProposal});
+ assert.equal(result.completed,false);
+ assert.equal(created(f).length,0);
+ assert.match(result.question,/尚未创建/);
+});
+
+test('R2.2.3 polite compound instructions never complete after only the first folder write',async()=>{
+ const f=fixture(),p=proposals([{complete:[{kind:'folder.exists',folder:'工作资料'}]},
+  {question:'仍需确认其他操作'}]);
+ const result=await run(f,{goal:'帮我创建一个工作资料文件夹，并删除其中所有书签。',
+  initialProposal:{actions:[{type:'folder.create',title:'工作资料',parent:'$currentFolder'}]},
+  nextProposal:p.nextProposal});
+ assert.equal(result.completed,false);
+ assert.match(result.question,/其他操作/);
+ assert.equal(created(f).length,1);
+});
+
 test('R2.1 verifies the user destination, not another successful model check',async()=>{
  const f=fixture();f.nodes.push(
   {id:'other',title:'错误收藏夹',parentId:'1'},

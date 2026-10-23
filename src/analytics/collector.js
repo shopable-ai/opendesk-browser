@@ -79,6 +79,20 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       new TextEncoder().encode(state.identitySalt+':'+type+':'+identity)));
     return 'anon-'+[...digest].slice(0,12).map(byte=>byte.toString(16).padStart(2,'0')).join('');
   };
+  // Idempotent transport identity for an already verified durable result.
+  // Only the salted event UUID leaves this installation, never a raw RunId or
+  // Page receipt. Retries after queue loss, SW restart or LRU eviction cannot
+  // create a second D1/PostHog fact for the same result.
+  const stableResultEventId=async(state,event,toolId,receiptId)=>{
+    const bytes=new Uint8Array(await crypto.subtle.digest('SHA-256',
+      new TextEncoder().encode(state.identitySalt+':analytics-result-v1:'+
+        event+':'+toolId+':'+receiptId))).slice(0,16);
+    bytes[6]=(bytes[6]&15)|0x40;
+    bytes[8]=(bytes[8]&63)|0x80;
+    const hex=[...bytes].map(byte=>byte.toString(16).padStart(2,'0')).join('');
+    return [hex.slice(0,8),hex.slice(8,12),hex.slice(12,16),
+      hex.slice(16,20),hex.slice(20)].join('-');
+  };
   const status=()=>run(async()=>{
     const state=await read();
     return {configured,consent:configured&&!revoked&&state.consent,
@@ -160,8 +174,14 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
           await persist({...state,queue:retained,coverage:currentCoverage});
         return {recorded:false};
       }
+      const receiptId=event==='tool.manual_result'?manualRunId:
+        event==='workflow.business_effect_verified'?verifiedWorkflowRunId:null;
+      const eventId=receiptId?
+        await stableResultEventId(state,event,toolId,receiptId):newId();
+      if(revoked||generation!==revision||
+        retained.some(row=>row.eventId===eventId))return {recorded:false};
       const entry=validateAnalyticsEvent({
-        eventId:newId(),installId:state.installId,event,toolId,
+        eventId,installId:state.installId,event,toolId,
         source,channel,timestamp:new Date(time).toISOString(),
         ...(reason?{reason}:{}),...(evidenceLevel?{evidenceLevel}:{}),
         ...(['tool.manual_attempt','tool.manual_result'].includes(event)?
