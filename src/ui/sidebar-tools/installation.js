@@ -422,6 +422,22 @@ export async function recoverMarketOperation({api,lockManager,operationId,expect
       const identity={marketId:row.marketId,sha256:row.sha256,version:row.version};
       if(!checked.provenanceVerified)await writeVerifiedLocalValue(api,MARKET_PROVENANCE_STORE,
         {...saved,[row.toolId]:identity},saved,'市场来源恢复');
+      // A partial package commit can already have advanced the installed
+      // epoch while the independently reviewed site grant still names the
+      // previous one. Journal recovery must finish that exact scope transfer
+      // BEFORE calling the market operation succeeded; no new approval or
+      // arbitrary candidate code is consumed a second time.
+      if(row.scopeTransfer){
+        if(typeof row.installEpoch!=='string'||!row.installEpoch)
+          throw unknownStorageOutcome(null,'应用网站授权代际');
+        const current=(await getInstalledSidebarTools(api)).find(tool=>tool.id===row.toolId);
+        if(!current||await canonicalSha256(current)!==row.sha256)
+          throw unknownStorageOutcome(null,'应用升级包身份');
+        await transferReviewedSiteScopeLocked(api,lockManager,{
+          id:row.toolId,source:row.marketId,toEpoch:row.installEpoch,
+          toHash:await sidebarToolPackageHash(current),scope:row.scopeTransfer
+        });
+      }
       const original=(await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE]||{};
       const active=recoverableOperations(original)[operationId];
       if(!matchesIdentity(active))
