@@ -556,6 +556,15 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       return ui('task-catalog-status').text=`已导入待验证任务 ${identity(value)}；未自动赋予可信状态`;
     }
   }
+  // Only a real trusted click is an active attempt; this is telemetry only,
+  // never an execution requirement or a permission prompt.
+  const reportTaskUsage=(kind,taskId,runId)=>{
+    if(typeof taskId!=='string'||!taskId)return;
+    void api.runtime.sendMessage({protocol:'opendesk.analytics.v1',
+      kind,event:kind==='event.manual_attempt'?'tool.manual_attempt':'tool.manual_result',
+      toolId:'opendesk',channel:'extension',toolIdentity:taskId,
+      ...(runId?{runId}:{})}).catch(()=>{});
+  };
   function run(event,agentIntent=null) {
     if(!event?.isTrusted||disposed||running||working||host.currentRun||
       (agentIntent===null&&ui('task-run').disabled)){
@@ -565,6 +574,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     let chosen,params,site,permission,captured;
     try {
       chosen=agentIntent?installed.find(row=>row.taskId===agentIntent.taskId):installedRow();
+      if(chosen?.enabled)reportTaskUsage('event.manual_attempt',chosen.taskId);
       if(agentIntent?.expected&&(!chosen||
         ['version','manifestHash','generation','installationId'].some(key=>
           chosen[key]!==agentIntent.expected[key])))
@@ -602,12 +612,14 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       setTaskNotice(runOwnerKey,`运行中：${resolved.manifest.title} · v${resolved.version}`);
       update(); // Expose the owning Stop immediately; do not rely on a later host event.
       const completion=await host.completion;
+      reportTaskUsage('event.manual_result',resolved.taskId,claim.runId);
       if(completion?.state==='paused_unknown'||completion?.pendingSettlement)
         setTaskNotice(runOwnerKey,unresolvedTaskRunMessage());
       else if(completion?.error)setTaskNotice(runOwnerKey,formatTaskError(completion.error));
       return {runId:claim.runId,completion,taskId:resolved.taskId,
         version:resolved.version,installationId:resolved.installationId};
     })().catch(async error=>{
+      if(activeRunId)reportTaskUsage('event.manual_result',chosen.taskId,activeRunId);
       if(error.code==='E_REVISION'&&!disposed)await refresh(undefined,{skipUnchanged:true}).catch(fail);
       setTaskNotice(identity(chosen),formatTaskError(error));
       if(agentIntent)throw error;
