@@ -61,7 +61,12 @@ test('R26 stopped details remain manageable and enabling waits for an explicit O
   await settle(()=>store.get(SIDEBAR_TOOL_ENABLE_STORE)?.[sample.id]===true&&!f.elements['sidebar-tool-enable'].disabled);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'enable cannot execute code');
   assert.deepEqual(store.get(key),{note:'keep'});assert.deepEqual(store.get(READING_TOC_SITE_STORE),grants);
-  f.emit(f.elements['sidebar-tool-launch'],'click');await settle(()=>f.elements['sidebar-tool-frame'].children.length===1);
+  // Opening an installed tool requires a genuine user gesture. Synthetic events
+  // must never launch untrusted application code.
+  f.emit(f.elements['sidebar-tool-launch'],'click',{isTrusted:false});
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'untrusted click cannot execute code');
+  f.emit(f.elements['sidebar-tool-launch'],'click',{isTrusted:true});
+  await settle(()=>f.elements['sidebar-tool-frame'].children.length===1);
 });
 
 test('same-title installed tools keep distinct iframe identities without granting trust',async t=>{
