@@ -172,6 +172,8 @@ jobs:
               echo "::error::Parallel Cookie Editor changes; refuse to overwrite"
               printf '%s\n' "$overlap"; exit 1
             fi
-            git rebase origin/main
+            git -c user.name='OpenDesk Cookie CI' \
+              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+              rebase origin/main
           fi
           git push origin HEAD:main
