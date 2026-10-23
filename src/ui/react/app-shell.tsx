@@ -47,7 +47,8 @@ export function SidebarAppShell({
         </button>
       </div>
       <TaskCatalogPage view={myView} hidden={activeTab!=='catalog'} standalone={activeTab==='catalog'}/>
-      <MyTasksPage view={myView} agent={myAgent} hidden={activeTab!=='tasks'}/>
+      <MyTasksPage view={myView} agent={myAgent} hidden={activeTab!=='tasks'}
+        onOpenSettings={()=>workflowController?.actions?.openSettings?.()}/>
       <div id="workbench-tools" role="tabpanel" aria-labelledby="tab-tools"
         className="od-page" data-workbench-page="tools" hidden={activeTab!=='tools'}>
         <section id="sidebar-tools" className="sidebar-tools" aria-label="自定义工具">

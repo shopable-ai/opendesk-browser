@@ -150,3 +150,13 @@ R2.2 抽出中立 Conversation Session、共享 Chat Frame、通用 Provider 设
 本文件是**共享 AI Conversation 所有权与消费者接入的唯一架构合同**。workflow-ai-provider-routing-r2.zh-CN.md 仍负责 Workflow 专用 Provider 传输、Native 探测、Workflow Observation/Compiler/RunHost 协议；react-ui-shared-components-r33.zh-CN.md 仍负责统一 React Root 和 UI 边界。三者不可互相覆盖。
 
 原 R2.0 证据线索：fc4e6238d2ad33e737307c2ca10e0f10202486b1、079f25d2cfce33613b9fedb6c9a3f055cf6a6b26；本轮实际读取的 main 及提交 SHA 需在执行记录注明。源码证据定位：ToolShell、workflow-view.js、workflow/provider.js、workflow/local-codex.js、native-agent/workflow-ai-service.js、react/main.tsx、sidebar-tools.js、conversation/prompt-controller.js。**NOT_TESTED**：Mac 本地 Chrome、真实 Native Codex/多线程、安装升级、长时复杂操作；没有对应新候选收据前不提升状态。
+
+
+## R2.2 共享 AI Frame 与设置入口（SOURCE_IMPLEMENTED；正式验收另计）
+
+- 公共 React `SharedConversationFrame`（`src/ui/react/components/conversation.tsx`）统一消息列表、输入、IME、Enter/Shift+Enter、Stop、焦点、滚动及交互语义。接受业务方 `intro`/`feedback`/`review`/`technical` 展示槽；不持有 bookmarkId、promptId、taskId、scheduleId 或 Workflow 执行身份。
+- `my-agent.tsx` 复用同一个 Frame；真实任务查询、运行、必要确认、Scheduler CAS 和结果读回继续属于原 `MyTaskAgent`、Task/Scheduler Host。
+- Bookmark、Prompt 继续挂载原 `TrustedConversationWorkspace`，但实际消息与输入由共享 Frame 渲染。Bookmark/Prompt 阶段文案由入口 `phaseLabels` 提供；原书签 Service 与 Prompt opaque iframe、Host/ETag、草稿 Guard 和敏感正文外发审阅保留。
+- `SharedProviderSettingsSheet` 是单一可信 React Root 的 Portal。Bookmark、Prompt、「我的」、Workflow 的 AI 设置入口统一调用现有可信 Workflow 配置控制器，最终仍写入 ToolShell 的唯一 `SharedAIProviderRuntime`，不复制密钥存储或授权系统。打开设置不需要切到 Workflow 标签。
+- **剩余边界**：设置字段及本机诊断的控制器仍位于 WorkflowView（虽然 UI Portal 已共享），尚未完成业务中立的 Provider Settings Controller；Workflow 对话当前保留现有业务页 Composer，仅使用公共 Transcript/Input 原子组件，尚不是完整共享 Frame。以上两项不能标成完成。
+- 源码定向保护：`tests/environment/shared-ai-conversation-r22.test.mjs`。只有实际执行测试、构建、Chrome/Native/安装升级并保存对应候选证据，才可将其提升为 VERIFIED；否则均 `NOT_TESTED`。

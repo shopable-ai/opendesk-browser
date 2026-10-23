@@ -2765,6 +2765,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     },
     onHistory:onHistoryClick,onNewSession:onNewSessionClick,onNewWorkflow:onNewWorkflowClick,
     onResumeHistory:(_key,event)=>onResumeSessionClick(event),onOpenSavedHistory,
+    openSettings:()=>{if(!disposed)openAISettings();},
     closeSettings:closeWorkflowSheet,chooseExample,
     setParam(name,value) {
       if(disposed||busy||autoExecutionPending||workflowAgent||

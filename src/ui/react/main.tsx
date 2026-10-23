@@ -12,6 +12,15 @@ import conversationDockCSS from './components/conversation-dock.css?raw';
 import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 import myAgentCSS from './tabs/my-agent.css?raw';
 
+const PROMPT_PHASE_LABELS=Object.freeze({
+ thinking:'正在理解提示词操作…',observing:'正在查找并核对提示词…',
+ writing:'正在保存提示词并读回确认…',verifying:'正在核对提示词结果…'
+});
+const BOOKMARK_PHASE_LABELS=Object.freeze({
+ thinking:'正在判断下一步…',observing:'正在查找并核对书签…',
+ writing:'正在更新书签并读回确认…',verifying:'正在核实最终结果…'
+});
+
 // Prompt Shortcuts remains an installed opaque iframe. Only the trusted
 // conversation and its stable frame target are rendered by the single React root.
 function PromptSandboxBusiness({dock,onRequest}){
@@ -78,14 +87,16 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
       {promptPilot&&createPortal(
         <TrustedConversationWorkspace controller={promptPilot.controller}
           headerTarget={promptPilot.headerTarget}
-          title="提示词 AI 对话" businessKind="prompt"
+          title="提示词 AI 对话" phaseLabels={PROMPT_PHASE_LABELS}
+          onOpenSettings={()=>workflowController?.actions?.openSettings?.()}
           placeholder="例如：创建一条将中文翻译成日语的提示词"
           renderBusiness={dock=><PromptSandboxBusiness dock={dock} onRequest={promptPilot.onRequest}/>}/>,
         promptPilot.container)}
       {bookmarkPilot&&createPortal(<>
         <TrustedConversationWorkspace controller={bookmarkPilot.runtime.conversation}
           headerTarget={bookmarkPilot.headerTarget}
-         title="AI 对话"
+         title="AI 对话" phaseLabels={BOOKMARK_PHASE_LABELS}
+         onOpenSettings={()=>workflowController?.actions?.openSettings?.()}
          placeholder="例如：创建一个文件夹并收藏当前网页"
          
          renderBusiness={dock=><BookmarkReactApp mode="trusted" runtime={bookmarkPilot.runtime}

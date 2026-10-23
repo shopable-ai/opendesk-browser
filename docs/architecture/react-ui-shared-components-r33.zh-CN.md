@@ -153,3 +153,8 @@ R33 历史基线的可信 Side Panel 核心入口包括已退役的 `src/ui/tool
 - 「开发」Tab **开始迁移**：`src/ui/react/tabs/develop.tsx` 只显示当前活动网页身份与可执行状态的可信指示器，由 `src/ui/script-editor.js` 提供快照模型；原 DOM 无 React 时保留完整行为。仍复用相同 React Root，不新建包或第二 Root。
 - 草稿/编译器/JS、JSX、Vue/Run/Stop/本地项目/权限与存储的所有权**未迁移**，不得称 Developer Tab 已全部 React 化。禁止 React 修改原编辑器的 input、textarea 或自动启动脚本。
 - 成功的源码模拟 Chromium CI 与 `dist` 包 CI 只能证明相应提交的部分门槛，不能代替已安装 Mac Chrome 的用户级功能验收。最新变动仍以 CI 实际状态为准。
+
+
+### R2.2 跨业务 AI Chat 共享 React 边界
+
+`src/ui/react/main.tsx` 继续拥有唯一 `createRoot`。`SharedConversationFrame`/`SharedProviderSettingsSheet` 是同一 React 树内的组件/Portal，不能为设置或用户扩展再建根。MyTaskAgent 与 Bookmark/Prompt 各自的 Service、Session、授权及 HTML/JS iframe 不因共享交互 UI 而合并。Provider 配置依旧归 ToolShell 的 Runtime；现阶段设置字段由可信 Workflow Controller 桥接，后续要消除该控制器依赖，不能通过复制状态来伪装解耦。动态用户 HTML/JS/React/Vue 仍留原沙箱与 SDK 边界。

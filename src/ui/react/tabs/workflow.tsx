@@ -1,4 +1,6 @@
 import * as React from 'react';
+import {SharedProviderSettingsSheet as WorkflowSettingsSheet} from '../components/provider-settings.tsx';
+export {SharedProviderSettingsSheet as WorkflowSettingsSheet} from '../components/provider-settings.tsx';
 import {ConversationTranscript,ConversationInput} from '../components/conversation.tsx';
 
 // R23.11: trusted chrome only. No Provider, Host, secrets, drafts or web-page
@@ -83,13 +85,6 @@ export function WorkflowHistory({model={open:false,rows:[],canResume:false},acti
   </section>;
 }
 
-function focusableElements(panel) {
-  return [...panel.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')]
-    .filter(item => item.tabIndex>=0 && item.getAttribute('aria-hidden')!=='true' &&
-      !item.closest('[hidden],[inert]') && item.getClientRects().length>0);
-}
-
-
 // Only trusted, already-minimized UI strings cross the adapter. Never mount
 // provider HTML/markdown or give a page script access to this React tree.
 export function WorkflowTranscript({rows=[]}) {
@@ -101,42 +96,6 @@ export function WorkflowTranscript({rows=[]}) {
 // Only the trusted Durable Result presentation is React-owned; its value comes
 // exclusively from WorkflowView after the existing RunHost receipt is read.
 export function WorkflowResultText({value=''}) {return <>{String(value)}</>;}
-
-// The whole settings form is React-owned. Only focus/inert use DOM APIs.
-export function WorkflowSettingsSheet({open=false,onClose,doc=globalThis.document,children}) {
-  const panel=React.useRef(null);
-  React.useLayoutEffect(()=>{
-    if(!open||!panel.current||!doc)return;
-    const currentPanel=panel.current,editor=doc.getElementById('workflow-editor');
-    const restore=doc.getElementById('workflow-provider-toggle')||doc.activeElement;
-    const wasInert=editor?.inert;if(editor)editor.inert=true;
-    const onKeydown=event=>{
-      if(event.key==='Escape'){event.preventDefault();event.stopPropagation();onClose?.();return;}
-      if(event.key!=='Tab')return;
-      const elements=focusableElements(currentPanel),first=elements[0],last=elements.at(-1);
-      if(!first){event.preventDefault();currentPanel.focus();return;}
-      if(!currentPanel.contains(doc.activeElement)||(event.shiftKey&&doc.activeElement===first)){
-        event.preventDefault();(event.shiftKey?last:first).focus();
-      }else if(!event.shiftKey&&doc.activeElement===last){event.preventDefault();first.focus();}
-    };
-    doc.addEventListener('keydown',onKeydown,true);
-    (currentPanel.querySelector('[aria-pressed="true"]')||currentPanel).focus({preventScroll:true});
-    return ()=>{
-      doc.removeEventListener('keydown',onKeydown,true);if(editor)editor.inert=wasInert;
-      if(restore?.isConnected&&(currentPanel.contains(doc.activeElement)||doc.activeElement===doc.body))
-        restore.focus?.({preventScroll:true});
-    };
-  },[open,onClose,doc]);
-  return <div className="workflow-sheet-overlay" hidden={!open}>
-    <div className="workflow-sheet-backdrop" aria-hidden="true" onClick={()=>onClose?.()}/>
-    <section className="workflow-sheet-panel" role="dialog" aria-modal="true"
-      aria-labelledby="workflow-sheet-title" ref={panel} tabIndex={-1}>
-      <div className="workflow-sheet-heading od-toolbar"><h3 id="workflow-sheet-title">AI 设置</h3>
-        <IconButton label="关闭 AI 设置" onClick={()=>onClose?.()}><Glyph kind="close"/></IconButton></div>
-      <div className="workflow-sheet-content">{children}</div>
-    </section>
-  </div>;
-}
 
 import {Button,IconButton} from '../components/ui/button.tsx';
 const EMPTY_MODEL=Object.freeze({controls:{}}),EMPTY_ACTIONS=Object.freeze({});
@@ -421,7 +380,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
       </div>
       {text('workflow-status',{className:'workflow-status',role:'status','aria-live':'polite','data-state':c('workflow-status').dataset?.state})}
     </section>
-    <WorkflowSettingsSheet open={active&&openSettings} onClose={closeSettings} doc={doc}>
+    <WorkflowSettingsSheet open={openSettings} onClose={closeSettings} doc={doc}>
       <details id="workflow-provider-settings" className="workflow-provider od-disclosure od-disclosure--flat" open>
         <summary>AI 设置</summary>
         <div className="workflow-source-switch" role="group" aria-label="AI 来源">

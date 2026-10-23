@@ -83,10 +83,10 @@ function MyTaskWorkspace({view}){return (<MyControl view={view} as="div" id="tas
 </MyControl>
 </MyControl>);}
 
-export function MyTasksPage({view,agent=null,hidden=false}){
+export function MyTasksPage({view,agent=null,hidden=false,onOpenSettings=null}){
   React.useSyncExternalStore(view.subscribe,view.getSnapshot,view.getSnapshot);
   return <div id="workbench-tasks" role="tabpanel" aria-labelledby="tab-my-tasks" className="od-page" data-workbench-page="tasks" hidden={hidden}>
-<MyAgentPanel agent={agent}/>
+<MyAgentPanel agent={agent} onOpenSettings={onOpenSettings}/>
 
 <MyControl view={view} as="section" className="tasks-surface" aria-label="已安装任务" id="my-task-surface">
 <div className="task-section-head od-toolbar">

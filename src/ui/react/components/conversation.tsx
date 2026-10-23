@@ -23,11 +23,72 @@ export function ConversationInput({id,value='',onChange,onKeyDown,placeholder=''
   onChange={onChange} onKeyDown={onKeyDown} {...props}/>;
 }
 
+
+// A business-neutral trusted Chat Frame: no Provider, Chrome, Host, or business IDs.
+export function SharedConversationFrame({
+ open=true,rows=[],draft='',busy=false,blocked=false,canSend=true,
+ inputId,placeholder='描述要完成的操作',inputLabel='对话输入',
+ onDraftChange=()=>{},onSend=()=>{},onStop=()=>{},
+ intro=null,feedback=null,review=null,technical=null,inputRef=null,logRef=null,
+ onLogScroll=null,logClassName='od-conversation-log',entryClassName='od-conversation-entry'
+}){
+ const localInput=React.useRef(null),localLog=React.useRef(null),composing=React.useRef(false);
+ const input=inputRef||localInput,log=logRef||localLog;
+ React.useEffect(()=>{if(open)input.current?.focus({preventScroll:true});},[open,input]);
+ React.useLayoutEffect(()=>{
+  if(open&&log.current)log.current.scrollTop=log.current.scrollHeight;
+ },[open,rows,log]);
+ React.useLayoutEffect(()=>{
+  const node=input.current;if(!open||!node)return;
+  node.style.height='auto';
+  node.style.height=Math.max(44,Math.min(112,node.scrollHeight))+'px';
+ },[open,draft,input]);
+ const submit=event=>{
+  event.preventDefault();
+  if(!open||busy||blocked||!canSend||!draft.trim()||
+   composing.current||event.nativeEvent?.isComposing||event.nativeEvent?.keyCode===229)return;
+  // Invoke directly in the trusted Send gesture, preserving Chrome permissions.request eligibility.
+  onSend(event);
+ };
+ return <>
+  {intro}
+  <div ref={log} className={logClassName} role="log" aria-live="polite"
+   aria-label="对话及已核实操作结果" onScroll={onLogScroll||undefined}>
+   <ConversationTranscript rows={rows} entryClassName={entryClassName} showSpeaker={false}/>
+  </div>
+  {feedback}
+  {review}
+  {technical}
+  <form className="od-conversation-composer" onSubmit={submit}>
+   <label className="od-conversation-sr" htmlFor={inputId}>{inputLabel}</label>
+   <ConversationInput id={inputId} inputRef={input} value={draft}
+    className="od-conversation-input" rows={1} maxLength={4000}
+    placeholder={placeholder} disabled={blocked}
+    onChange={event=>onDraftChange(event.currentTarget.value,event)}
+    onCompositionStart={()=>{composing.current=true;}}
+    onCompositionEnd={()=>{composing.current=false;}}
+    onKeyDown={event=>{
+     if(event.key==='Enter'&&!event.shiftKey&&!event.nativeEvent.isComposing&&
+      !composing.current&&event.nativeEvent.keyCode!==229){event.preventDefault();submit(event);}
+    }}/>
+   {busy?<OpenDeskIconButton className="od-conversation-action od-conversation-action--stop"
+      type="button" label="停止对话" title="停止 AI 后续操作" onClick={event=>{event.preventDefault();onStop(event);}}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+     </OpenDeskIconButton>:
+    <OpenDeskIconButton className="od-conversation-action od-conversation-action--primary"
+      type="submit" title="发送消息" label="发送"
+      onClick={submit} disabled={blocked||!canSend||!draft.trim()}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-7 7 7-7 7 7"/></svg>
+     </OpenDeskIconButton>}
+  </form>
+ </>;
+}
+
 // ToolHost owns the slot. Only an admitted trusted workspace may portal Chat here.
 export const TrustedConversationHeaderSlot=React.forwardRef<HTMLSpanElement, Record<string, never>>(function TrustedConversationHeaderSlot(_,ref){
  return <span id="sidebar-tool-chat-slot" className="od-conversation-header-slot" ref={ref}/>;
 });
-const newRefs=()=>({folderId:null,bookmarkId:null,matches:[]});
+const newRefs=()=>({});
 const errorText=error=>String(error?.message||'操作失败，未将未核实的操作视为成功。').slice(0,1500);
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 
@@ -42,7 +103,7 @@ export function TrustedConversationWorkspace({controller,...props}){
 }
 function ConversationWorkspace({
  controller,renderBusiness,headerTarget=null,title='AI 对话',placeholder='描述要完成的操作',
- businessKind='bookmark'
+ phaseLabels=null,onOpenSettings=null
 }){
  const restored=React.useMemo(()=>controller?.readSession?.()||{},[controller]);
  const [open,setOpen]=React.useState(restored.open===true);
@@ -88,20 +149,6 @@ function ConversationWorkspace({
    adapterRef.current=null;
   };
  },[controller,persist]);
- React.useEffect(()=>{
-  if(open)inputRef.current?.focus({preventScroll:true});
- },[open]);
- React.useLayoutEffect(()=>{
-  const log=logRef.current;if(open&&log)log.scrollTop=logScrollRef.current??log.scrollHeight;
- },[open]);
- React.useLayoutEffect(()=>{
-  if(open&&logRef.current)logRef.current.scrollTop=logRef.current.scrollHeight;
- },[rows,error]);
- React.useLayoutEffect(()=>{
-  const input=inputRef.current;if(!open||!input)return;
-  input.style.height='auto';
-  input.style.height=clamp(input.scrollHeight,44,112)+'px';
- },[draft,open]);
  React.useLayoutEffect(()=>{
   const node=shellRef.current;
   if(!node)return;
@@ -268,55 +315,47 @@ function ConversationWorkspace({
      onPointerDown={separatorDown} onPointerMove={separatorMove}
      onPointerUp={e=>{resizeRef.current=null;e.currentTarget.releasePointerCapture?.(e.pointerId)}}
      onPointerCancel={()=>{resizeRef.current=null;}} onKeyDown={separatorKey}/>
+    {onOpenSettings&&<button type="button" className="od-conversation-settings"
+     aria-label="AI Provider 设置" title="AI 设置" onClick={onOpenSettings}>
+     <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+      strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 7h9m6 0h1M4 17h1m6 0h9"/>
+      <circle cx="16" cy="7" r="3"/><circle cx="8" cy="17" r="3"/>
+     </svg>
+    </button>}
     <button type="button" className="od-conversation-close" aria-label="收起对话"
      title="收起对话" onClick={close}>
      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
     </button>
    </div>
-   <div ref={logRef} className="od-conversation-log" role="log" aria-live="polite"
-    onScroll={event=>{if(openRef.current&&event.currentTarget.clientHeight>0)logScrollRef.current=event.currentTarget.scrollTop;}}
-    aria-label="对话及已核实操作结果">
-    <ConversationTranscript rows={rows} entryClassName="od-conversation-entry" showSpeaker={false}/>
-   </div>
-   {busy&&<div className="od-conversation-phase" role="status" aria-live="polite">
-    {(businessKind==='prompt'?{
-      thinking:'正在理解提示词操作…',observing:'正在查找并核对提示词…',
-      writing:'正在保存提示词并读回确认…',verifying:'正在核对提示词结果…'
-     }:{thinking:'正在判断下一步…',observing:'正在查找并核对书签…',
-      writing:'正在更新书签并读回确认…',verifying:'正在核实最终结果…'})[phase]||'正在执行任务…'}
-   </div>}
-   {(feedbackError||needsReview)&&<div className="od-conversation-feedback" tabIndex={0} aria-label="对话状态详情">
-    {feedbackError&&<p className="od-conversation-error" role="alert">{feedbackError}</p>}
-    {needsReview&&<>
-     <p className="od-conversation-error" role="status">
-      上次写入结果不确定，不能直接重放。请先刷新并核对真实 Host 中的列表。
-     </p>
-     {typeof controller?.reconcile==='function'&&<button type="button"
-       className="od-conversation-reconcile" disabled={busy||reconciling}
-       onClick={()=>void reconcileStorage()}>
-       {reconciling?'正在核对真实存储…':unverifiedEtag?'我已检查当前列表，解除阻止':'读取 Host 真实存储并核对'}
-     </button>}
-    </>}
-   </div>}
-   <form className="od-conversation-composer" onSubmit={send}>
-    <label className="od-conversation-sr" htmlFor="od-conversation-input">对话输入</label>
-    <ConversationInput id="od-conversation-input" inputRef={inputRef} value={draft}
-     className="od-conversation-input" rows={1} maxLength={4000} placeholder={placeholder}
-     onChange={e=>setDraft(e.target.value)}
-     onCompositionStart={()=>{composingRef.current=true;}}
-     onCompositionEnd={()=>{composingRef.current=false;}}
-     onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing&&
-      !composingRef.current&&e.nativeEvent.keyCode!==229){e.preventDefault();send(e);}}}/>
-    {busy?<OpenDeskIconButton className="od-conversation-action od-conversation-action--stop" type="button"
-      title="停止后续操作" label="停止对话" onClick={stop}>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
-     </OpenDeskIconButton>:
-     <OpenDeskIconButton className="od-conversation-action od-conversation-action--primary" type="submit"
-      title="发送消息" label="发送" onClick={send}
-      disabled={!draft.trim()||needsReview||!controller?.request}>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-7 7 7-7 7 7"/></svg>
-     </OpenDeskIconButton>}
-   </form>
+   <SharedConversationFrame open={open} rows={rows} draft={draft} busy={busy}
+    blocked={needsReview||busy} canSend={Boolean(controller?.request)}
+    placeholder={placeholder} inputId="od-conversation-input"
+    inputRef={inputRef} logRef={logRef}
+    onDraftChange={setDraft} onSend={send} onStop={stop}
+    onLogScroll={event=>{
+     if(openRef.current&&event.currentTarget.clientHeight>0)
+      logScrollRef.current=event.currentTarget.scrollTop;
+    }}
+    feedback={<>
+     {busy&&<div className="od-conversation-phase" role="status" aria-live="polite">
+      {phaseLabels?.[phase]||'正在执行任务…'}
+     </div>}
+     {(feedbackError||needsReview)&&<div className="od-conversation-feedback" tabIndex={0} aria-label="对话状态详情">
+      {feedbackError&&<p className="od-conversation-error" role="alert">{feedbackError}</p>}
+      {needsReview&&<>
+       <p className="od-conversation-error" role="status">
+        上次写入结果不确定，不能直接重放。请先刷新并核对真实 Host 中的列表。
+       </p>
+       {typeof controller?.reconcile==='function'&&<button type="button"
+        className="od-conversation-reconcile" disabled={busy||reconciling}
+        onClick={()=>void reconcileStorage()}>
+        {reconciling?'正在核对真实存储…':unverifiedEtag?'我已检查当前列表，解除阻止':'读取 Host 真实存储并核对'}
+       </button>}
+      </>}
+     </div>}
+    </>}/>
+
   </section>
  </div>;
 }
