@@ -1,4 +1,4 @@
-name: Analytics R1.1 core usage and HTTP integration checks
+name: Analytics R1.10 source authority and HTTP integration checks
 
 on:
   push:
@@ -10,6 +10,8 @@ on:
       - 'tests/environment/analytics-r10*.test.mjs'
       - 'tests/environment/analytics-r11*.test.mjs'
       - 'src/sw.js'
+      - 'src/ui/task-workbench.js'
+      - 'src/native-agent/settings.html'
       - 'src/ui/sidebar-tools.js'
       - 'src/ui/tool-shell.js'
       - 'src/native-agent/settings.js'
@@ -34,10 +36,12 @@ jobs:
           node --check src/analytics/contract.js
           node --check src/analytics/collector.js
           node --check src/analytics/host.js
+          node --check src/analytics/authority-projection.js
           node --check src/analytics/consent-ui.js
           node --check services/analytics/worker.mjs
           node --check src/sw.js
           node --check src/ui/sidebar-tools.js
+          node --check src/ui/task-workbench.js
           node --check src/ui/tool-shell.js
           node --check src/native-agent/settings.js
           node --check examples/sidebar-tools/prompt-shortcuts/src/main.js
