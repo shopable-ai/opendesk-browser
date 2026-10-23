@@ -96,15 +96,25 @@
 .cookie-editor-react .cookie-export-panel h3{font-size:var(--od-body-size);margin:0}
 .cookie-editor-react .export-format.cookie-export-options{display:grid;gap:var(--space-2);min-width:0}
 .cookie-editor-react .cookie-export-tabs{
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;
+  display:inline-grid;grid-template-columns:max-content max-content;gap:2px;
+  width:max-content;max-width:100%;justify-self:start;
   padding:3px;border:1px solid var(--od-line);
   border-radius:var(--radius-control);background:var(--od-bg);
 }
 .cookie-editor-react .cookie-export-tabs>button{
-  min-width:0;min-height:32px;
+  appearance:none;min-width:0;min-height:32px;padding:4px 10px;
+  border:1px solid transparent;border-radius:6px;
+  background:transparent;color:var(--od-sub);font:inherit;
+  font-size:var(--od-note-size);font-weight:500;line-height:1.2;white-space:nowrap;
 }
-/* Active and inactive export tabs use the canonical shared component skins.
-   Keep only layout rules in tool-local CSS. */
+.cookie-editor-react .cookie-export-tabs>button[aria-selected="true"]{
+  background:var(--od-paper);color:var(--od-ink);font-weight:650;
+  box-shadow:0 1px 3px rgba(0,0,0,.10);
+}
+.cookie-editor-react .cookie-export-tabs>button:focus-visible{
+  outline:2px solid var(--od-brand);outline-offset:1px;
+}
+.cookie-editor-react .cookie-export-tabs>button:disabled{opacity:.6}
 .cookie-editor-react .cookie-export-values{
   display:flex;align-items:center;gap:var(--space-2);
   font-size:var(--od-meta-size);color:var(--od-sub);
@@ -217,15 +227,15 @@
 .cookie-editor-react .cookie-editor-actions>.cookie-react-icon{flex:0 0 36px}
 
 
-/* R5.34: the list stays mounted. A subtle dismiss layer blocks background Cookie
-   edits while staged import data exists; only the sheet body scrolls. */
+/* R5.36: the list stays mounted and inert. The sheet hugs its content;
+   only overflowing sheet content scrolls, not the header/actions. */
 .cookie-editor-react>.cookie-editor-workspace{position:relative}
 .cookie-editor-react .cookie-import-dismiss-layer{
   position:absolute;inset:0;z-index:4;background:color-mix(in srgb,var(--od-ink) 5%,transparent);
 }
 .cookie-editor-react .cookie-import-workspace{
   position:absolute;inset-inline:var(--space-2);bottom:var(--space-2);z-index:5;
-  box-sizing:border-box;height:min(510px,calc(100% - 112px));max-height:calc(100% - var(--space-2));
+  box-sizing:border-box;height:auto;max-height:calc(100% - var(--space-2));
   min-height:0;min-width:0;display:flex;flex-direction:column;overflow:hidden;
   border:1px solid var(--od-line);border-radius:var(--radius-surface);
   background:var(--od-paper);color:var(--od-ink);
@@ -237,7 +247,7 @@
 }
 .cookie-editor-react .cookie-import-heading h2{font-size:16px;line-height:1.45;font-weight:650;margin:0}
 .cookie-editor-react .cookie-import-body{
-  display:flex;flex:1 1 auto;flex-direction:column;gap:var(--space-3);min-height:0;
+  display:flex;flex:0 1 auto;flex-direction:column;gap:var(--space-3);min-height:0;
   padding:var(--space-3);overflow-y:auto;overscroll-behavior:contain;
 }
 .cookie-editor-react .cookie-import-dropzone{flex:0 0 auto}
@@ -278,7 +288,6 @@
 .cookie-editor-react .cookie-import-toast--error{border-color:var(--od-danger,var(--od-line))}
 .cookie-editor-react .cookie-import-selected{flex:0 0 auto;margin:0;font-size:var(--od-note-size);overflow-wrap:anywhere}
 @media(max-height:520px){
-  .cookie-editor-react .cookie-import-workspace{height:calc(100% - 32px)}
   .cookie-editor-react .cookie-import-heading,.cookie-editor-react .cookie-import-footer{padding:var(--space-2)}
   .cookie-editor-react .cookie-import-body{padding:var(--space-2);gap:var(--space-2)}
   .cookie-editor-react .cookie-import-paste textarea{min-height:72px}

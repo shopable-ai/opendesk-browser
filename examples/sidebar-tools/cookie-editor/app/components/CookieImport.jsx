@@ -14,7 +14,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
   const sourceRef=React.useRef(null);
   const stagedFile=React.useRef(null);
   const [stagedName,setStagedName]=React.useState('');
-  const [overwrite,setOverwrite]=React.useState(false);
+  const [overwrite,setOverwrite]=React.useState(true);
   const active=React.useRef(false);
   const running=React.useRef(false);
   const reading=React.useRef(false);
@@ -44,7 +44,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
   },[]);
   const close=()=>{
     if(running.current||reading.current||disabled||busy)return;
-    if(stagedFile.current||sourceRef.current?.value.trim()||overwrite){
+    if(stagedFile.current||sourceRef.current?.value.trim()){
       setConfirmDiscard(true);return;
     }
     onClose?.();
@@ -163,14 +163,14 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
         <label className="cookie-import-paste" htmlFor="cookie-import-source">
           <span>或粘贴 Cookie 内容</span>
           <textarea id="cookie-import-source" ref={sourceRef}
-            className="od-field" rows={5} aria-label="粘贴 Cookie 内容"
+            className="od-field" rows={4} aria-label="粘贴 Cookie 内容"
             placeholder="JSON、Cookie Header 或 Netscape"
             autoComplete="off" spellCheck={false} data-cookie-secret-input="true"
             disabled={disabled||busy||uncertain}
             onInput={event=>{
               if(stagedFile.current){stagedFile.current=null;setStagedName('');}
               setConfirmDiscard(false);onNotice?.(null);
-              onPendingChange?.(Boolean(event.currentTarget.value.trim())||overwrite);
+              onPendingChange?.(Boolean(event.currentTarget.value.trim()));
             }}/>
         </label>
         <label className="cookie-import-overwrite">
@@ -178,10 +178,10 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
             disabled={disabled||busy||uncertain}
             onChange={event=>{
               const next=event.currentTarget.checked;setOverwrite(next);
-              setConfirmDiscard(false);onPendingChange?.(next||Boolean(stagedFile.current)||
+              setConfirmDiscard(false);onPendingChange?.(Boolean(stagedFile.current)||
                 Boolean(sourceRef.current?.value.trim()));
             }}/>
-          <span>覆盖已存在的 Cookie（默认不覆盖）</span>
+          <span>覆盖已有 Cookie</span>
         </label>
       </div>
       <div className="cookie-import-footer">

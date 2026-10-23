@@ -81,6 +81,15 @@ try{
     width+'px preview Host frame must fit viewport: '+JSON.stringify(hostBox));
    assert.equal(await page.locator('.cookie-react-view').getAttribute('inert'),'');
    const geom=await checkSheetBounds(sheet,width,760,width+'px list');
+   assert.equal(await sheet.getByRole('checkbox',{name:'覆盖已有 Cookie'}).isChecked(),true);
+   const layout=await sheet.evaluate(el=>{
+     const body=el.querySelector('.cookie-import-body');
+     return {height:el.getBoundingClientRect().height,
+       bodyClient:body.clientHeight,bodyScroll:body.scrollHeight};
+   });
+   assert.ok(layout.height<495,'empty sheet must fit its content: '+JSON.stringify(layout));
+   assert.ok(layout.bodyClient-layout.bodyScroll<24,
+     'import body must not stretch to fill empty space: '+JSON.stringify(layout));
    await page.screenshot({path:join(output,width+'-sheet-light.png')});
    const field=await sheet.getByRole('textbox',{name:'粘贴 Cookie 内容'}).boundingBox();
    assert.ok(field.width>=190&&field.height>=72);
@@ -241,7 +250,7 @@ try{
   assert.equal(await page.locator('.cookie-row').count(),8);
   assert.equal(await page.locator('.cookie-import-panel').count(),0);
   assert.equal(await page.getByRole('status',{name:'导入预检结果'}).count(),0);
-  assert.equal(await workspace.getByRole('checkbox',{name:/覆盖已存在的 Cookie/}).isChecked(),false);
+  assert.equal(await workspace.getByRole('checkbox',{name:'覆盖已有 Cookie'}).isChecked(),true);
   const input=workspace.getByRole('textbox',{name:'粘贴 Cookie 内容'});
   await input.fill(JSON.stringify([{name:'import_a',value:'fictional A'},
     {name:'import_b',value:'fictional B'},{name:'bad name',value:'invalid'},
@@ -251,11 +260,39 @@ try{
   await workspace.getByRole('button',{name:'导入',exact:true}).click();
   await row('import_a').waitFor();await workspace.waitFor({state:'detached'});
   assert.equal(await page.locator('.cookie-row').count(),10);
-  assert.match(await page.locator('.cookie-import-toast').innerText(),/已导入 2 条，跳过 2 条/);
+  assert.match(await page.locator('.cookie-import-toast').innerText(),/已导入 3 条，跳过 1 条/);
+  await row('theme').click();await valueInput().waitFor();
+  await page.waitForFunction(()=>document.querySelector('[data-cookie-secret-input]')?.value==='overwrite existing');
+  assert.equal(await valueInput().inputValue(),'overwrite existing',
+    'default checked import must replace the exact existing Cookie');
+  await reset();
+ });
+ await test('unchecked overwrite skips existing and each fresh sheet restores checked default',async()=>{
+  await button('导入 Cookie').click();
+  let sheet=page.getByRole('dialog',{name:'导入 Cookie'});await sheet.waitFor();
+  const option=sheet.getByRole('checkbox',{name:'覆盖已有 Cookie'});
+  assert.equal(await option.isChecked(),true);
+  await option.uncheck();
+  await sheet.getByRole('button',{name:'取消'}).click();
+  await sheet.waitFor({state:'detached'});
+  assert.equal(await page.getByRole('group',{name:'放弃导入内容'}).count(),0,
+    'changing only an option is not unsaved import content');
+  await button('导入 Cookie').click();sheet=page.getByRole('dialog',{name:'导入 Cookie'});
+  await sheet.waitFor();
+  const checkbox=sheet.getByRole('checkbox',{name:'覆盖已有 Cookie'});
+  assert.equal(await checkbox.isChecked(),true);
+  await checkbox.uncheck();
+  await sheet.getByRole('textbox',{name:'粘贴 Cookie 内容'}).fill(
+    JSON.stringify([{name:'unchecked_added',value:'added'},
+      {name:'theme',value:'must not overwrite'}]));
+  await sheet.getByRole('button',{name:'导入',exact:true}).click();
+  await row('unchecked_added').waitFor();await sheet.waitFor({state:'detached'});
+  assert.match(await page.locator('.cookie-import-toast').innerText(),/跳过 1 条/);
   await row('theme').click();await valueInput().waitFor();
   await page.waitForFunction(()=>document.querySelector('[data-cookie-secret-input]')?.value==='light');
-  assert.equal(await valueInput().inputValue(),'light','default import must preserve the existing Cookie');
-  await reset();
+  assert.equal(await valueInput().inputValue(),'light',
+    'manually unchecked import must preserve existing Cookie');
+  await button('取消').click();await reset();
  });
  await test('invalid-domain errors stay in workspace; real file chooser click imports once',async()=>{
   await button('导入 Cookie').click();
@@ -295,6 +332,11 @@ try{
    assert.equal(await popup.getByRole('tab',{name:'JSON'}).getAttribute('aria-selected'),'true');
    assert.equal(await page.locator('dialog:modal').count(),0);
    const box=await popup.boundingBox();
+   const segment=await popup.locator('.cookie-export-tabs').boundingBox();
+   const format=await popup.getByRole('tab',{name:'Cookie Header'}).boundingBox();
+   assert.ok(segment.width<230,'format control must be compact');
+   assert.ok(format.height>=28&&format.width>=90,
+     'compact tabs must retain usable pointer targets');
    assert.ok(box.x>=4&&box.x+box.width<=width-4,'popover within '+width+'px');
    await page.keyboard.press('Escape');await popup.waitFor({state:'detached'});
    assert.equal(await button('导出 Cookie').evaluate(el=>el===el.ownerDocument.activeElement),true);

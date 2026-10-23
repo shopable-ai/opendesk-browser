@@ -30,6 +30,9 @@ test('export is an anchored two-tab React popover, never a replacement page',asy
   assert.match(popup,/role="tabpanel"/);
   assert.doesNotMatch(popup,/JSON 备份保留完整属性|复制为请求头文本|仅导出属性，不包含 Cookie 值/);
   assert.match(css,/\.cookie-export-popover\{/);
+ assert.match(view,/cookie-export-format-tab/);
+ assert.match(css,/display:inline-grid;grid-template-columns:max-content max-content/);
+ assert.match(css,/\.cookie-export-tabs>button:focus-visible/);
   assert.doesNotMatch(css,/\.cookie-export-workspace\{/);
 });
 
@@ -239,9 +242,14 @@ test('one-source import lives in a bottom sheet while the list stays mounted',as
  assert.match(component,/onBeforeSubmit\?\.\(\)===false/);
  assert.doesNotMatch(component,/<dialog\b|showModal\(\)/);
  assert.match(component,/onImportText/);
- assert.match(component,/const \[overwrite,setOverwrite\]=React\.useState\(false\)/);
+ assert.match(component,/const \[overwrite,setOverwrite\]=React\.useState\(true\)/);
  assert.match(component,/onImportText\?\.\(text,\{overwrite\}\)/);
  assert.match(component,/className="cookie-import-overwrite"/);
+ assert.match(component,/<span>覆盖已有 Cookie<\/span>/);
+ assert.doesNotMatch(component,/默认不覆盖|\|\|overwrite/);
+ assert.match(css,/height:auto;max-height:calc\(100% - var\(--space-2\)\)/);
+ assert.match(css,/display:flex;flex:0 1 auto;flex-direction:column/);
+ assert.doesNotMatch(css,/height:min\(510px|height:calc\(100% - 32px\)/);
  assert.match(app,/controller\.previewImport\(text,'auto',overwrite,\{allSites:true\}\)/);
  assert.match(app,/controller\.executeImport\(text,'auto',overwrite,\{allSites:true\}\)/);
  assert.match(app,/cookie-import-toast/);
