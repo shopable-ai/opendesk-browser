@@ -237,3 +237,19 @@ test('Sidebar installation/enable is original authority; corrupt readback is fai
   await assert.rejects(readAnalyticsAuthorityProjection({storage,api,now:()=>NOW}),
     /Sidebar installation authority/);
 });
+
+
+test('R1.12 manual Page receipt stays out of automatic UTC totals, including same-document automatic boot',async()=>{
+  const {storage,api,stores}=authorityDB();
+  stores.frameworkKV.push({tag:'page-execution-v1',namespace,programId:pageId,
+    receiptId:randomUUID(),createdAt:NOW,state:'completed',dispatchedAt:NOW,
+    source:'manual',manualHostDocumentId:'real-host'});
+  stores.frameworkKV.push({tag:'page-execution-v1',namespace,programId:pageId,
+    receiptId:randomUUID(),createdAt:NOW,state:'completed',dispatchedAt:NOW,
+    source:'page_auto'});
+  const value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
+  assert.equal(daily(value,'page','attempted')?.total,1);
+  assert.equal(daily(value,'page','completed')?.total,1);
+  assert.deepEqual(daily(value,'page','completed')?.sourceTotals,{page_auto:1});
+  assert.equal(value.projectionGap,false);
+});
