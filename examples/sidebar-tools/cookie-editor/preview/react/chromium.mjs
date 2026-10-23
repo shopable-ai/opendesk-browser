@@ -76,6 +76,9 @@ try{
    const sheet=page.getByRole('dialog',{name:'导入 Cookie'});await sheet.waitFor();
    assert.equal(await page.locator('dialog:modal').count(),0);
    assert.equal(await page.locator('.cookie-row').count(),8,'Cookie list must remain mounted');
+   const hostBox=await page.locator('.cookie-app').boundingBox();
+   assert.ok(hostBox.y>=0&&hostBox.y+hostBox.height<=760,
+    width+'px preview Host frame must fit viewport: '+JSON.stringify(hostBox));
    assert.equal(await page.locator('.cookie-react-view').getAttribute('inert'),'');
    const geom=await checkSheetBounds(sheet,width,760,width+'px list');
    await page.screenshot({path:join(output,width+'-sheet-light.png')});
@@ -92,6 +95,9 @@ try{
   await page.setViewportSize({width:320,height:420});
   await button('导入 Cookie').click();
   const sheet=page.getByRole('dialog',{name:'导入 Cookie'});await sheet.waitFor();
+  const hostBox=await page.locator('.cookie-app').boundingBox();
+  assert.ok(hostBox.y>=0&&hostBox.y+hostBox.height<=420,
+   'short preview Host frame must fit viewport: '+JSON.stringify(hostBox));
   await checkSheetBounds(sheet,320,420,'320x420 short viewport');
   await page.screenshot({path:join(output,'320x420-sheet-light.png')});
   const cancel=await sheet.getByRole('button',{name:'取消'}).boundingBox();

@@ -2,20 +2,25 @@
    Attribute/storage disclosures and the compact hostname stay in the shared product styles. */
 *{box-sizing:border-box}
 body{margin:0;background:var(--od-bg);color:var(--od-ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",system-ui,sans-serif;font-size:13px;line-height:1.5}
-.r49-page{min-height:100vh;padding:16px 0 32px}
+/* Model the host iframe: preview chrome consumes space but must not push the
+   actual 100%-height Cookie Editor below the viewport. */
+.r49-page{box-sizing:border-box;height:100dvh;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding:16px 0 12px}
 .demo-lab,.cookie-app{width:100%;max-width:520px;margin:0 auto}
-.demo-lab{padding:0 12px;margin-bottom:12px;color:var(--od-sub);font-size:11px}
+.demo-lab{flex:0 0 auto;padding:0 12px;margin-bottom:12px;color:var(--od-sub);font-size:11px}
 .lab-title{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;cursor:pointer}
 .lab-title>span:first-child{font-weight:700;color:var(--od-ink);font-size:13px}
 .lab-controllers{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .lab-controllers label{display:flex;align-items:center;gap:4px}
 .lab-controllers select,.lab-button{font:inherit;min-height:32px;max-width:100%;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);padding:4px 6px}
-.cookie-app{background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);overflow:clip}
+.cookie-app{flex:1 1 auto;min-height:0;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);overflow:clip}
+/* The real trusted Side Panel has its app at viewport origin. The demo adds
+   scene/permission controls above it, so its child fills the remaining frame. */
+.cookie-app>.cookie-editor-react{height:100%;max-height:100%}
 
 /* Trusted-Host permission controls are simulated outside the unchanged product. */
-.preview-host-controls{max-width:520px;margin:0 auto 8px;padding:0 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--od-sub);font-size:11px}
+.preview-host-controls{flex:0 0 auto;max-width:520px;margin:0 auto 8px;padding:0 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--od-sub);font-size:11px}
 .preview-host-controls .lab-button{min-height:30px;flex:none}
-.preview-settings-panel{max-width:496px;margin:0 auto 10px;padding:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);font-size:12px}
+.preview-settings-panel{flex:0 0 auto;max-width:496px;margin:0 auto 10px;padding:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);font-size:12px}
 .preview-settings-panel strong{flex:1 1 130px}
 .preview-settings-panel span{color:var(--od-sub)}
 .preview-global-grant{min-height:236px;padding:36px clamp(16px,6vw,28px);display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:9px}
