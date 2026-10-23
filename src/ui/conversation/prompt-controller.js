@@ -52,6 +52,9 @@ export function createPromptConversationRequest({
     onStep:onVerifiedStep,
      reviewPrivateSend:async disclosure=>{
       await live();
+      // A revoked model grant must not display a stale private-body review,
+      // even though no body has been sent to the Provider yet.
+      await authority.assertWrite();
       const recipient=conversation.recipient?.();
       if(!recipient||typeof recipient.provider!=='string'||
          typeof recipient.endpoint!=='string'||!recipient.endpoint||
@@ -60,6 +63,9 @@ export function createPromptConversationRequest({
       const frozen=JSON.stringify(recipient);
       const approved=await review({...disclosure,action:'share_private_body',recipient});
       await live();
+      // Review may remain open while the user revokes the Provider grant.
+      // Never carry an approval across that permission boundary.
+      await authority.assertWrite();
       if(JSON.stringify(conversation.recipient?.())!==frozen)
         throw fail('E_MODEL_GRANT_REVOKED','私人正文接收方已变化，请重新审阅');
       return approved;
