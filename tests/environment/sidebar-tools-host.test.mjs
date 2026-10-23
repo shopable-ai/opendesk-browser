@@ -2585,7 +2585,11 @@ function cookieTestTarget(origin='https://cookie-r537.example'){
   const url=origin+'/account';
   return {snapshot:{status:'available',url},capture:()=>({
     tabId:7,windowId:1,documentId:'cookie-r537-document',url,origin
-  })};
+  }),async revalidate(captured){
+    assert.equal(captured.documentId,'cookie-r537-document');
+    assert.equal(captured.url,url);
+    return true;
+  }};
 }
 function cookieHostReceipt(tool,store,calls){
   return async request=>{
@@ -2617,6 +2621,104 @@ function cookieTestLocation(t){
     '5b69971e-94b0-4e5d-8fad-c5bdbb997380'};
   t.after(()=>{if(old===undefined)delete globalThis.location;else globalThis.location=old;});
 }
+
+
+test('R5.38 one clear preview dialog mints one exact native Host approval without a second review',async t=>{
+  cookieTestLocation(t);
+  const tool=await officialToolFixture('cookie-editor'),target=cookieTestTarget();
+  const grant={storeId:'0',grantEpoch:'r538-clear-grant',read:true,write:true,
+    observe:true,clear:true,values:false,valueConsent:false};
+  const store=await verifiedCookieStore(tool,grant);
+  const f=await hostFixture(t,{tool,store,target});
+  await settle(()=>!f.elements['sidebar-tool-frame'].hidden);
+  const old=Object.getOwnPropertyDescriptor(globalThis,'navigator');
+  let trusted=false;
+  Object.defineProperty(globalThis,'navigator',{configurable:true,
+    value:{userActivation:{get isActive(){return trusted;}}}});
+  t.after(()=>{if(old)Object.defineProperty(globalThis,'navigator',old);
+    else delete globalThis.navigator;});
+  const approvals=[],native=[];
+  f.api.runtime.sendMessage=async message=>{
+    if(message.operation==='browser.intent.confirm'){
+      approvals.push(message);
+      return {ok:true,data:{approvalRef:'one-use-clear-approval'}};
+    }
+    if(message.operation==='browser.cookies.clearSite'&&message.kind==='tool'){
+      native.push(message);
+      return {ok:true,data:{preview:false,scope:'EXACT_HOST_HOST_ONLY',
+        matched:2,removed:2,remaining:0}};
+    }
+    return {ok:false,error:{code:'E_SCHEMA',message:'Unexpected Host operation'}};
+  };
+  const exact={url:target.snapshot.url,previewRef:'12345678-1234-1234-1234-123456789abc',
+    expectedCount:2,maxCookies:50};
+  const receipt=async id=>{
+    await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='response'&&row.requestId===id));
+    return f.frame.contentWindow.sent.find(row=>row.kind==='response'&&row.requestId===id);
+  };
+  f.ask('cookieEditor.clear.begin',{url:exact.url,previewRef:exact.previewRef,expectedCount:2},'no-gesture');
+  assert.equal((await receipt('no-gesture')).error.code,'E_USER_GESTURE_REQUIRED');
+  assert.equal(approvals.length,0);
+  trusted=true;
+  f.ask('cookieEditor.clear.begin',{url:exact.url,previewRef:exact.previewRef,expectedCount:2},'first-click');
+  trusted=false;
+  const begin=await receipt('first-click');
+  assert.equal(begin.ok,true,JSON.stringify(begin.error));
+  assert.equal(begin.result.authorized,true);
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,true);
+  f.ask('browser.cookies.clearSite',exact,'execute');
+  const executed=await receipt('execute');
+  assert.equal(executed.ok,true,JSON.stringify(executed.error));
+  assert.equal(native.length,1);
+  assert.equal(approvals.length,1);
+  assert.deepEqual(approvals[0].targetArgs,exact);
+  assert.equal(native[0].approvalRef,'one-use-clear-approval');
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,true,
+    'no second Host review after first confirmed React clear dialog');
+  f.ask('browser.cookies.clearSite',exact,'replay');
+  assert.equal((await receipt('replay')).error.code,'E_USER_GESTURE_REQUIRED');
+  assert.equal(native.length,1,'one first click cannot remove twice');
+  assert.equal(approvals.length,1);
+});
+
+test('R5.38 forged clear size or revoked site grant never falls through to a duplicate review',async t=>{
+  cookieTestLocation(t);
+  const tool=await officialToolFixture('cookie-editor'),target=cookieTestTarget();
+  const grant={storeId:'0',grantEpoch:'r538-grant',read:true,write:true,
+    observe:true,clear:true,values:false,valueConsent:false};
+  const store=await verifiedCookieStore(tool,grant);
+  const f=await hostFixture(t,{tool,store,target});
+  await settle(()=>!f.elements['sidebar-tool-frame'].hidden);
+  const old=Object.getOwnPropertyDescriptor(globalThis,'navigator');
+  Object.defineProperty(globalThis,'navigator',{configurable:true,
+    value:{userActivation:{isActive:true}}});
+  t.after(()=>{if(old)Object.defineProperty(globalThis,'navigator',old);
+    else delete globalThis.navigator;});
+  const messages=[];f.api.runtime.sendMessage=async message=>{
+    messages.push(message);return {ok:true,data:{approvalRef:'never'}};
+  };
+  const url=target.snapshot.url,previewRef='12345678-1234-1234-1234-123456789abc';
+  const reply=async id=>{
+    await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='response'&&row.requestId===id));
+    return f.frame.contentWindow.sent.find(row=>row.kind==='response'&&row.requestId===id);
+  };
+  f.ask('cookieEditor.clear.begin',{url,previewRef,expectedCount:2},'prepared');
+  assert.equal((await reply('prepared')).ok,true);
+  f.ask('browser.cookies.clearSite',{url,previewRef,expectedCount:1,maxCookies:50},'changed-count');
+  assert.equal((await reply('changed-count')).error.code,'E_DOCUMENT_CHANGED');
+  assert.equal(messages.length,0);
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,true);
+  f.ask('cookieEditor.clear.begin',{url,previewRef,expectedCount:2},'prepared-again');
+  assert.equal((await reply('prepared-again')).ok,true);
+  const saved=structuredClone(store.get(BROWSER_MENU_GRANTS_STORE));
+  saved[tool.id].cookieAllSites.grantEpoch='r538-revoked';
+  store.set(BROWSER_MENU_GRANTS_STORE,saved);
+  f.changeStorage({[BROWSER_MENU_GRANTS_STORE]:{newValue:saved}});
+  f.ask('browser.cookies.clearSite',{url,previewRef,expectedCount:2,maxCookies:50},'revoked');
+  assert.equal((await reply('revoked')).error.code,'E_USER_GESTURE_REQUIRED');
+  assert.equal(messages.length,0,'no native Host execution or confirmation was dispatched');
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,true);
+});
 
 test('R5.37 development Cookie package grants current site after Chrome permission, never all sites or values',async t=>{
   cookieTestLocation(t);
