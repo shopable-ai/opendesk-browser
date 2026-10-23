@@ -229,8 +229,11 @@ async function openSettings(){
   assert.ok(menu.id,'Preview has no visible Settings/overflow path: '+JSON.stringify(menu.controls));
   await clickOuter('#'+menu.id);
   const item=await poll(()=>evaluate('('+function(){
-    return [...document.querySelectorAll('[role=menuitem], [role=menu] button')]
-      .find(el=>el.getClientRects().length&&/设置|Settings/i.test(el.getAttribute('aria-label')||el.textContent))?.id;
+    // The compact trusted React header uses role=group for its overflow.
+    // Find the actual visible settings control without fabricating a click.
+    return [...document.querySelectorAll('#sidebar-tool-more-menu button, [role=menuitem], [role=menu] button')]
+      .find(el=>!el.hidden&&el.getClientRects().length&&
+        /设置|Settings/i.test(el.getAttribute('aria-label')||el.textContent))?.id;
   }.toString()+')()'),'visible Settings menu item');
   await clickOuter('#'+item);
 }
