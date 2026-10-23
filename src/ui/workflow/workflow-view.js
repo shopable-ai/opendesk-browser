@@ -2583,7 +2583,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   // Only fill the trusted composer; examples never submit, request permissions,
   // start AI planning, or mutate any current page.
   const chooseExample=(key,event)=>{
-    if(!event.isTrusted||busy||autoExecutionPending||host.executionPending||host.currentRun)return;
+    // A late React callback after unmount must not write to a disposed session,
+    // nor steal a draft while Workflow Agent still owns this conversation.
+    if(disposed||!event?.isTrusted||busy||autoExecutionPending||workflowAgent||
+      host.executionPending||host.currentRun)return;
     if(!Object.hasOwn(exampleRequests,key))return;
     const outcome=appendWorkflowSuggestionDraft(control('workflow-ai-request').value,
       exampleRequests[key]);
