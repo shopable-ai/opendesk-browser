@@ -229,8 +229,10 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
  let checkedValue;
  try{
   checkedValue=await read();
-  if(canonical(model.load(checkedValue.value))!==canonical(next))
-   throw error('E_OUTCOME_UNKNOWN','读回与拟写入数据不一致');
+  // A matching body without a usable Host ETag cannot authorize subsequent edits.
+  if(!/^[a-f0-9]{64}$/.test(checkedValue?.etag||'')||
+     canonical(model.load(checkedValue.value))!==canonical(next))
+   throw error('E_OUTCOME_UNKNOWN','读回与拟写入数据或版本不一致');
  }catch(e){
   throw error('E_OUTCOME_UNKNOWN',
    '持久化结果无法核实，请先在原工具中刷新对账，不要重放写入',
