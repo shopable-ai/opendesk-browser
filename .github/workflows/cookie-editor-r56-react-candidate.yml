@@ -146,6 +146,19 @@ jobs:
           git -c user.name='OpenDesk Cookie CI' \
             -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
             commit -m 'build(cookie-editor): promote tested 2.0.34 installable JSON and React preview'
+          # The WXT prerequisite regenerates this tracked *CI-only* audit receipt.
+          # It is unrelated to the tested Cookie package and must never block a
+          # safe non-destructive rebase or leak into the release commit.
+          generated_receipt='docs/framework/evidence/wxt/builds/build-development.json'
+          if ! git diff --quiet -- "$generated_receipt"; then
+            git restore --source=HEAD -- "$generated_receipt"
+          fi
+          unexpected="$(git status --porcelain)"
+          if [ -n "$unexpected" ]; then
+            echo "::error::Unexpected dirty CI checkout; refuse release rebase"
+            printf '%s\n' "$unexpected"
+            exit 1
+          fi
           git fetch origin main
           remote_head="$(git rev-parse origin/main)"
           if [ "$remote_head" != "$GITHUB_SHA" ]; then
