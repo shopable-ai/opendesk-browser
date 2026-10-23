@@ -22,6 +22,7 @@ export function createPromptConversationRequest({
   if(event?.isTrusted!==true)
    throw fail('E_USER_GESTURE','请从可信 AI 对话输入框主动发送请求');
   const initialSource=conversation.source()?.provider;
+  const initialGeneration=conversation.providerGeneration?.()??null;
   // Do NOT await reads here: the first permission.request must start in the
   // original trusted Send gesture, exactly like Bookmark Manager's controller.
   const first=conversation.request({request,context:{previousSearch:refsOnly(refs)},
@@ -29,8 +30,9 @@ export function createPromptConversationRequest({
   let authority=null,releaseGuard=null,outcome=null,unknown=false;
   const live=async()=>{
    if(signal?.aborted)throw fail('E_CANCELLED','已停止后续操作');
-   if(changedProvider(conversation.source(),initialSource))
-    throw fail('E_MODEL_GRANT_REVOKED','模型来源已切换，旧计划失效');
+   if(changedProvider(conversation.source(),initialSource)||
+      initialGeneration!==null&&conversation.providerGeneration?.()!==initialGeneration)
+    throw fail('E_MODEL_GRANT_REVOKED','模型接收方或配置已切换，旧计划失效');
    await assertIdentity();
    if(signal?.aborted)throw fail('E_CANCELLED','已停止后续操作');
   };
@@ -48,6 +50,20 @@ export function createPromptConversationRequest({
    const onVerifiedStep=step=>onStep(step);
    outcome=await executePromptPlan({plan,model,read,refs:refsOnly(refs),signal,
     onStep:onVerifiedStep,
+     reviewPrivateSend:async disclosure=>{
+      await live();
+      const recipient=conversation.recipient?.();
+      if(!recipient||typeof recipient.provider!=='string'||
+         typeof recipient.endpoint!=='string'||!recipient.endpoint||
+         typeof recipient.model!=='string'||!recipient.model)
+        throw fail('E_PROMPT_AUTH','无法核实私人正文接收方，拒绝发送');
+      const frozen=JSON.stringify(recipient);
+      const approved=await review({...disclosure,action:'share_private_body',recipient});
+      await live();
+      if(JSON.stringify(conversation.recipient?.())!==frozen)
+        throw fail('E_MODEL_GRANT_REVOKED','私人正文接收方已变化，请重新审阅');
+      return approved;
+     },
     write:async({value,ifMatch})=>{
      onPhase('writing');
      return storage('storage.set',{key:'library',value,ifMatch},{signal,

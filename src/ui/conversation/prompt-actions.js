@@ -97,7 +97,7 @@ export const promptEditInstructions=[
 ].join('\n');
 
 export async function executePromptPlan({plan,model,read,write,refs={},signal,
- providerEdit,review,beforeWrite=async()=>{},onStep=()=>{},maxBatch=12}={}){
+ providerEdit,review,reviewPrivateSend,beforeWrite=async()=>{},onStep=()=>{},maxBatch=12}={}){
  const checked=validatePromptPlan(plan);
  if(checked.question)return {question:checked.question,refs,messages:[]};
  if(!model?.load||!model?.draft||!model?.bytes||
@@ -108,6 +108,18 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
  if(!/^[a-f0-9]{64}$/.test(etag||''))throw error('E_PROMPT_HOST','Host 缺少有效数据版本');
  stop(signal);
  const a=checked.action,items=library.items;
+ // Review exact Host-resolved originals once before sending to the model.
+ // For a batch one disclosure covers every selected body, not one prompt per row.
+ const disclose=async selected=>{
+   if(typeof reviewPrivateSend!=='function')
+     throw error('E_PROMPT_REVIEW','私人正文发送前缺少可信审阅，未外发');
+   stop(signal);
+   const approved=await reviewPrivateSend({items:selected.map(row=>({
+     id:row.id,name:row.name,label:row.label,body:row.body
+   })),instruction:a.instruction,etag});
+   stop(signal);
+   if(approved!==true)throw error('E_CANCELLED','未授权发送私人正文；没有外发或写入');
+ };
  if(['edit','update','set_enabled','move'].includes(a.type)&&/^\$search:(?:[1-9]|1[0-2])$/.test(a.target||'')&&
     refs.etag!==etag)
   throw error('E_PROMPT_REFERENCE_STALE','上次搜索对应的库版本已变化，请重新搜索定位');
@@ -141,7 +153,7 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
  }else if(['edit','update','set_enabled','move'].includes(a.type)){
   const row=target(items,a.target,refs),i=items.findIndex(v=>v.id===row.id);
   affected=[row];
-  if(a.type==='edit'){nextItems[i]=await edit(row);verb='修改';}
+  if(a.type==='edit'){await disclose([row]);nextItems[i]=await edit(row);verb='修改';}
   else if(a.type==='update'){
    const changed=model.draft({body:row.body,
     name:a.name===undefined?(row.nameAuto?'':row.name):a.name,
@@ -173,6 +185,7 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
  }
  if(!affected.length)throw error('E_PROMPT_NOT_FOUND','目标提示词不存在');
  if(a.type==='batch_edit'){
+  await disclose(affected);
   const revisions=new Map();
   for(const row of affected){stop(signal);revisions.set(row.id,await edit(row));}
   nextItems=items.map(row=>revisions.get(row.id)||row);
