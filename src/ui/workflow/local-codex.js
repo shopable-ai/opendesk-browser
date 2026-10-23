@@ -98,6 +98,9 @@ function delay(ms,signal) {
 // workflows, credentials, browser results, or private thread history.
 export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180000,cancelTimeoutMs=12000}={}) {
   let session=null,resumable=null,active=null,cancelling=null,closing=null,generation=0,disposed=false;
+  // A Native session.open may acknowledge after Stop. Until its exact returned
+  // session ID has been retired, opening a new thread risks cross-turn ownership.
+  const pendingOpens=new Set();
   const rpc=(method,params={},sessionId=null)=>client.requestWorkflowAI(method,params,sessionId);
   const safeClose=id=>rpc('ai.session.close',{},id).catch(()=>null);
   function discardUncertainSession(error) {
@@ -125,13 +128,16 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
   }
   async function open(row,consent,model,resumeSessionId) {
     assertActive(row);
-    const pending=rpc('ai.session.open',{consent,...(model?{model}:{}),
-      ...(resumeSessionId?{resumeSessionId}:{})});
-    // If opening was already submitted when the user cancelled, dispose its
-    // eventual reply too. A late session must not attach to the new UI.
-    pending.then(value=>{
-      if((disposed||active!==row||row.controller.signal.aborted)&&value?.sessionId)void safeClose(value.sessionId);
-    },()=>{});
+    const pending=Promise.resolve(rpc('ai.session.open',{consent,...(model?{model}:{}),
+      ...(resumeSessionId?{resumeSessionId}:{})}));
+    // Cancellation releases the caller's UI wait but not the native ownership
+    // fence. Never admit a later session while an earlier open can still
+    // acknowledge, or before its exact-ID safeClose has completed.
+    const pendingRecord={row};pendingOpens.add(pendingRecord);
+    void pending.then(async value=>{
+      if((disposed||active!==row||row.controller.signal.aborted)&&value?.sessionId)
+        await safeClose(value.sessionId);
+    },()=>{}).finally(()=>pendingOpens.delete(pendingRecord));
     const value=await withSignal(pending,row.controller.signal);
     assertActive(row);
     let opened;
@@ -146,7 +152,7 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
   }
   function begin(externalSignal) {
     if(disposed)throw fail('E_HOST_CLOSED','工作流窗口已关闭');
-    if(active||cancelling||closing)throw fail('E_AI_BUSY','请先等待当前 AI 规划或停止收尾完成');
+    if(active||cancelling||closing||pendingOpens.size)throw fail('E_AI_BUSY','请先等待当前 AI 规划、晚到会话回执或停止收尾完成');
     if(externalSignal?.aborted)throw interrupted(externalSignal);
     const row={generation:++generation,controller:new AbortController(),sessionId:session?.sessionId||null};
     active=row;
@@ -401,7 +407,7 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
     cancel,close,resume,
     snapshot:()=>({sessionId:session?.sessionId||null,threadId:session?.threadId||null,
       state:session?.state||'IDLE',inferenceVerified:session?.inferenceVerified===true,
-      busy:Boolean(active||cancelling||closing),resumable:Boolean(resumable&&!session)}),
+      busy:Boolean(active||cancelling||closing||pendingOpens.size),resumable:Boolean(resumable&&!session)}),
     dispose(){if(disposed)return;disposed=true;generation++;unsubscribe?.();
       cancelling?.controller.abort(fail('E_HOST_CLOSED','工作流窗口已关闭'));
       active?.controller.abort(fail('E_HOST_CLOSED','工作流窗口已关闭'));
