@@ -225,9 +225,53 @@ try{
   await page.keyboard.press('ArrowRight');
   assert.equal(await popup.getByRole('tab',{name:'Cookie Header'}).getAttribute('aria-selected'),'true');
   assert.equal(await popup.getByRole('button',{name:'复制'}).isDisabled(),true,'partitioned data cannot export as header');
-  await page.getByRole('searchbox',{name:'搜索 Cookie'}).click();
+  // The popover overlays the search input. First click outside its bounds,
+  // then focus the search; clicking through an overlay is not a browser action.
+  await page.locator('.site-hostname').click();
   await popup.waitFor({state:'detached'});
+  await page.getByRole('searchbox',{name:'搜索 Cookie'}).click();
   assert.equal(await page.getByRole('searchbox',{name:'搜索 Cookie'}).evaluate(el=>el===el.ownerDocument.activeElement),true);
+ });
+ await test('export preserves search, list scroll and pending Host receipts',async()=>{
+  await page.setViewportSize({width:360,height:420});
+  const list=page.locator('.cookie-list');
+  const before=await list.evaluate(el=>{el.scrollTop=55;return el.scrollTop;});
+  assert.ok(before>0,'scroll test must actually have an overflowing Cookie list');
+  const search=page.getByRole('searchbox',{name:'搜索 Cookie'});
+  await search.fill('session');await search.fill('');
+  await button('导出 Cookie').click();
+  let popup=page.getByRole('dialog',{name:'导出 Cookie'});await popup.waitFor();
+  assert.equal(await search.inputValue(),'');
+  await page.keyboard.press('Escape');await popup.waitFor({state:'detached'});
+  assert.equal(await list.evaluate(el=>el.scrollTop),before,'export popup must keep list scroll');
+  await search.fill('session');
+  await button('导出 Cookie').click();await popup.waitFor();
+  await page.keyboard.press('Escape');await popup.waitFor({state:'detached'});
+  assert.equal(await search.inputValue(),'session','export popup must keep search query');
+  await search.fill('');
+  await button('导出 Cookie').click();await popup.waitFor();
+  await page.evaluate(()=>{
+    // A fictional delayed copy receipt exercises synchronous blur-before-render.
+    // The real Host path is tested separately and never mocked as authorized.
+    const clipboard=globalThis.OpenDeskSDK.browser.clipboard;
+    const original=clipboard.writeText;
+    clipboard.writeText=()=>new Promise(resolve=>{
+      globalThis.__finishCookiePreviewCopy=()=>{
+        clipboard.writeText=original;resolve({copied:true});
+      };
+    });
+    [...document.querySelectorAll('.cookie-export-popover button')]
+      .find(node=>node.textContent.trim()==='复制')?.click();
+    window.dispatchEvent(new Event('blur'));
+  });
+  await page.waitForFunction(()=>typeof globalThis.__finishCookiePreviewCopy==='function');
+  assert.equal(await popup.count(),1,'pending effect must not close on window blur');
+  await page.evaluate(()=>{
+    globalThis.__finishCookiePreviewCopy();
+    delete globalThis.__finishCookiePreviewCopy;
+  });
+  await popup.waitFor({state:'detached'});
+  await page.setViewportSize({width:380,height:880});
  });
  await test('JSON copy/download use real Controller without navigation or data preview',async()=>{
   await button('导出 Cookie').click();
