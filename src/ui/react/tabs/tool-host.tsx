@@ -233,7 +233,6 @@ export function ToolHost({view}) {
  <path d="M4 3h14l3 3v15H3V3h1M7 3v6h10V3M7 21v-8h10v8"/>}
 </svg>
 </ToolField>
-<ToolField as="button" type="button" id="sidebar-tool-settings-open"</ToolField>
 <ToolField as="button" type="button" id="sidebar-tool-secondary-action" className="sidebar-tool-icon-action od-icon-button" title="更多操作" aria-label="更多操作" aria-haspopup="true" aria-expanded="false" hidden={true}>
 <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
 {secondaryAction==='transfer'
