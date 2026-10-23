@@ -2005,6 +2005,13 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
     return value.state?.enabled&&value.state.exceptions?.includes('127.0.0.1')&&
       value.owned.some(rule=>rule.id===741001&&rule.action?.type==='allowAllRequests'&&rule.priority===2)?value:null;
   },'AdBlock A exception rule priority 2 exists before Stay Focus');
+  // Storage/DNR readback can win the race with the first-party React Host's
+  // busy=false acknowledgement. A Back during that in-flight transaction
+  // correctly refuses to leave, so wait for the actual control to settle.
+  await until(async()=>{
+    const site=await reactSwitch(client,reinstalledReact,currentLabel);
+    return site&&!site.disabled&&!site.on?site:null;
+  },'installed AdBlock React site exception transaction fully settled');
   // After uninstall/reinstall the trusted React tool may restore its nested
   // settings route. One real Back navigates inside the app; the next Back
   // exits to the Extension Center. Never assume the first Back always exits.
@@ -2026,6 +2033,15 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   }
   assert.equal(backLevel,'返回扩展列表','the real Host must expose outer Back before leaving app');
   await click(client,sid,'#sidebar-tool-back');
+  const backResult=await evaluate(client,sid,
+    '(()=>({displayHidden:document.querySelector("#sidebar-tool-display")?.hidden===true,'+
+    'backLabel:document.querySelector("#sidebar-tool-back")?.getAttribute("aria-label"),'+
+    'actionReviewVisible:document.querySelector("#sidebar-tool-action-review")?.hidden===false,'+
+    'actionSummary:document.querySelector("#sidebar-tool-action-summary")?.textContent?.slice(0,150),'+
+    'notice:document.querySelector("#sidebar-tool-notice")?.textContent?.slice(0,150)}))()');
+  note('coexistence-back-after-click',backResult);
+  assert.equal(backResult.actionReviewVisible,false,
+    'a completed AdBlock site toggle must not demand unsaved-content confirmation');
   await until(()=>evaluate(client,sid,
     'document.querySelector("#sidebar-tool-display")?.hidden===true'),
     'installed AdBlock returned to extension management');
