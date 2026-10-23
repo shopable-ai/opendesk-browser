@@ -555,8 +555,17 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(!response?.ok)throw Object.assign(new Error(response?.error?.message||'Cookie 授权未确认'),
         {code:response?.error?.code||'E_BROWSER'});
     }
-    const latest=(await api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE];
-    menuGrants=latest||{};
+    const latest=(await api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE]||{};
+    const row=latest[tool.id],record=row?.cookieSites?.[current];
+    const hash=await sidebarToolPackageHash(tool);
+    const expected=all
+      ?['read','values','write','observe','clear'].every(cap=>record?.[cap]!==true)
+      :record?.[capability]===true;
+    if(row?.version!==tool.version||row?.packageHash!==hash||
+      row?.installEpoch!==(revocationEpochs[tool.id]??null)||!record?.grantEpoch||
+      !expected)
+      throw Object.assign(new Error('Cookie 网站授权未通过持久化回读核对'),{code:'E_GRANT_READBACK'});
+    menuGrants=latest;
     render();notice(all?'已撤销 '+current+' 的 Cookie 网站权限':
       (cookieSiteRecord(tool,current)?.[capability]?'已授权 ':'已撤销 ')+current+' 的 '+capability+' 能力');
   }
