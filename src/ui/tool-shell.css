@@ -389,6 +389,7 @@
 .sidebar-tool-action-review{position:sticky;top:0;z-index:3;margin:0 0 10px;padding:10px 12px;border:1px solid #d2ddeb;background:var(--od-paper,#fff);border-radius:var(--radius-surface)}
 .sidebar-tool-action-review[hidden]{display:none!important}
 .sidebar-tool-action-review p{margin:0 0 8px;color:var(--od-ink,#213854);font-size:12px;line-height:1.5}
+#sidebar-tool-action-summary{white-space:pre-wrap;overflow-wrap:anywhere;max-height:min(44vh,360px);overflow-y:auto;overscroll-behavior:contain}
 .sidebar-tool-action-buttons{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .sidebar-tool-action-buttons button{min-height:34px;width:auto;padding:6px 10px;font-size:12px}
 .sidebar-tool-display{min-width:0;margin:0;padding:0;background:transparent}

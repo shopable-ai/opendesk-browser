@@ -6,7 +6,7 @@ import {decodeValue} from '../platform/page-port/codec.js';
 import {presentTaskValue} from './task-run-diagnostics.js';
 
 const fail=(code,message)=>Object.assign(new Error(message),{code});
-const allowed=new Set(['list_tasks','get_task','task_history','run_task','stop_task',
+const allowed=new Set(['list_tasks','get_task','task_history','recent_runs','run_task','stop_task',
   'set_task_enabled','list_schedules','get_schedule','schedule_history',
   'create_schedule','change_schedule','edit_schedule']);
 const changes=new Set(['run_task','stop_task','set_task_enabled','create_schedule','change_schedule','edit_schedule']);
@@ -40,6 +40,7 @@ export function validateMyTaskAgentProposal(proposal){
     if(!plain(item)||!allowed.has(item.type))throw fail('E_AI_SCHEMA','包含不受支持的 AI 任务操作');
     const fields={
       list_tasks:['type','query','currentPageOnly'],get_task:['type','taskId'],task_history:['type','taskId','limit'],
+       recent_runs:['type','limit'],
       run_task:['type','taskId','params'],stop_task:['type','taskId'],
       set_task_enabled:['type','taskId','enabled'],list_schedules:['type'],
       get_schedule:['type','scheduleId'],schedule_history:['type','scheduleId','limit'],
@@ -161,22 +162,41 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
     stage:candidate.stage,siteOrigins:candidate.manifest?.siteOrigins||[],
     paramsSchema:candidate.manifest?.paramsSchema
   });
+  // Both task histories derive evidence exclusively from the Controller journal.
+  const describeRun=(run,results)=>{
+    const result=results.find(row=>row.runId===run.runId);
+    let outcome='结果尚未持久化';
+    if(result?.outcome?.ok){
+      try{outcome=clip(presentTaskValue(decodeValue(result.outcome.valueWire)).text,280);}
+      catch{outcome='结果格式暂不可读取';}
+    }else if(result?.outcome?.error)
+      outcome=clip(result.outcome.error?.message||result.outcome.error?.code,240);
+    else if(result?.outcome?.ok===false)outcome='任务失败，但未返回具体错误原因';
+    return {runId:run.runId,state:run.state,outcome,
+      hasError:result?.outcome?.ok===false,hasResult:Boolean(result?.outcome)};
+  };
   async function runHistory(taskId,limit){
     const {row}=taskInfo(await tasks(),taskId);
     const journal=await client.controller.snapshotControllerRun({});
-    const runs=(journal.runs||[]).filter(v=>v.revision?.scriptId===row.scriptId)
-      .slice(-limited(limit)).reverse();
-    return runs.map(run=>{
-      const result=(journal.results||[]).find(r=>r.runId===run.runId);
-      let outcome='结果尚未持久化';
-      if(result?.outcome?.ok){
-        try{outcome=clip(presentTaskValue(decodeValue(result.outcome.valueWire)).text,280);}
-        catch{outcome='结果格式暂不可读取';}
-      }else if(result?.outcome?.error)outcome=clip(result.outcome.error?.message||result.outcome.error?.code,240);
-      else if(result?.outcome?.ok===false)outcome='任务失败，但未返回具体错误原因';
-      return {runId:run.runId,state:run.state,outcome,
-        hasError:result?.outcome?.ok===false,hasResult:Boolean(result?.outcome)};
-    });
+    return (journal.runs||[]).filter(v=>v.revision?.scriptId===row.scriptId)
+      .slice(-limited(limit)).reverse().map(run=>describeRun(run,journal.results||[]));
+  }
+  async function recentRuns(limit){
+    // Only catalog-verified installed tasks. Workflow and unrelated scripts
+    // must never be misidentified as task executions in the AI response.
+    const data=await tasks(),byScript=new Map();
+    for(const row of data.installed){
+      const verified=data.catalog.find(v=>v.taskId===row.taskId&&
+        v.version===row.version&&v.manifestHash===row.manifestHash);
+      if(verified&&typeof row.scriptId==='string'&&row.scriptId)
+        byScript.set(row.scriptId,{taskId:row.taskId,
+          title:clip(verified.manifest?.title||row.taskId,100)});
+    }
+    const journal=await client.controller.snapshotControllerRun({});
+    return (journal.runs||[]).filter(run=>byScript.has(run.revision?.scriptId))
+      .slice(-limited(limit)).reverse().map(run=>({
+        ...byScript.get(run.revision.scriptId),...describeRun(run,journal.results||[])
+      }));
   }
   async function schedules(){const result=await client.request('listSchedules',{});return result.schedules||[];}
   const schedulePin=row=>Object.fromEntries(scheduleIdentityKeys.map(key=>[key,row[key]]));
@@ -232,6 +252,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
       case 'get_task':return summarizeTask(taskInfo(await tasks(),action.taskId));
       case 'task_history':return {taskId:action.taskId,
         records:await runHistory(action.taskId,action.limit)};
+      case 'recent_runs':return {records:await recentRuns(action.limit)};
       case 'list_schedules':return {schedules:(await schedules()).slice(0,100).map(summarizeSchedule)};
       case 'get_schedule': {
         const row=(await schedules()).find(v=>v.scheduleId===action.scheduleId);
@@ -526,6 +547,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
             :action.type==='list_schedules'
               ?'已读取 '+observation.schedules.length+' 项定时计划。'
               :action.type==='task_history'?'已读取 '+observation.records.length+' 条实际执行记录。'
+              :action.type==='recent_runs'?'已读取 '+observation.records.length+' 条最近任务的真实运行记录。'
               :'已读取 '+(action.taskId||action.scheduleId||'')+' 的实际信息。');
         }catch(error){
           context.push({action:action.type,observation:{error:clip(error.message,280),code:error.code||'E_TOOL'}});
