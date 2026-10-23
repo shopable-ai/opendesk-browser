@@ -5,7 +5,7 @@ const MAX_QUEUED=250;
 const INVENTORY_REFRESH_MS=24*60*60*1000;
 const capped=(a,b)=>Math.min(Number.MAX_SAFE_INTEGER,a+b);
 const ATTEMPT_TIMEOUT_MS=10000;
-const empty=()=>({consent:false,consentReceipt:null,installId:null,queue:[],failures:0,nextAttemptAt:0,
+const empty=()=>({consent:false,consentReceipt:null,installId:null,identitySalt:null,queue:[],failures:0,nextAttemptAt:0,
   inventorySignature:null,inventoryReportedAt:0,inventoryCoverageVersion:0,coverage:{overflow:0,expired:0},openedContexts:[],
   inventoryTypesSignature:null,inventoryTypesReportedAt:0,autoDaily:[],authorityGap:false});
 export function validAnalyticsEndpoint(value,{allowLoopback=false}={}){
@@ -40,7 +40,8 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       !Array.isArray(raw.queue)||raw.queue.length>MAX_QUEUED||
       !Number.isSafeInteger(raw.failures)||raw.failures<0||
       !Number.isFinite(raw.nextAttemptAt)||
-      (raw.consent&&typeof raw.installId!=='string')||
+      (raw.consent&&(typeof raw.installId!=='string'||typeof raw.identitySalt!=='string'||
+        !/^[a-f0-9-]{36}$/i.test(raw.identitySalt)))||
       (raw.inventorySignature!==undefined&&raw.inventorySignature!==null&&typeof raw.inventorySignature!=='string')||
       !Number.isSafeInteger(raw.inventoryReportedAt??0)||(raw.inventoryReportedAt??0)<0||
       !Number.isSafeInteger(raw.inventoryCoverageVersion??0)||(raw.inventoryCoverageVersion??0)<0||
@@ -85,7 +86,7 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
     return run(async()=>{
       if(enabled){
         const current=await read();
-        const state=current.consent?current:{...empty(),consent:true,installId:newId(),consentReceipt:{disclosureVersion,acceptedAt:now()}};
+        const state=current.consent?current:{...empty(),consent:true,installId:newId(),identitySalt:newId(),consentReceipt:{disclosureVersion,acceptedAt:now()}};
         await persist(state);
         revoked=false;
         try{await api.alarms?.create?.(ANALYTICS_ALARM,{periodInMinutes:5});}catch{/* startup also reconciles */}
@@ -200,7 +201,7 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       // Install-specific digest makes third-party identifiers unlinkable across
       // installations; never send a raw user-controlled program/task ID.
       const bytes=new Uint8Array(await crypto.subtle.digest('SHA-256',
-        new TextEncoder().encode(state.installId+':'+row.type+':'+row.identity)));
+        new TextEncoder().encode(state.identitySalt+':'+row.type+':'+row.identity)));
       if(revoked||generation!==revision)return {recorded:false};
       const toolId='anon-'+[...bytes].slice(0,12).map(b=>b.toString(16).padStart(2,'0')).join('');
       const key=[row.type,toolId,row.day,row.metricType].join('|');
@@ -210,7 +211,12 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
           await persist({...state,authorityGap:true});
         return {recorded:false,gap:row.total<previous.total};
       }
-      if(!previous&&state.autoDaily.length>=1024){
+      const retainedKeys=state.autoDaily.filter(item=>{
+        const oldDay=item.key.split('|')[2];
+        return /^\d{4}-\d\d-\d\d$/.test(oldDay||'')&&
+          Date.parse(oldDay+'T00:00:00Z')>=time-8*86400000;
+      });
+      if(!previous&&retainedKeys.length>=1024){
         await persist({...state,authorityGap:true});
         return {recorded:false,gap:true};
       }
@@ -230,9 +236,9 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       const bounded=queue.slice(-MAX_QUEUED);
       const coverage={overflow:capped(state.coverage.overflow,Math.max(0,queue.length-MAX_QUEUED)),
         expired:capped(state.coverage.expired,expired)};
-      const autoDaily=previous?state.autoDaily.map(item=>item.key===key?
+      const autoDaily=previous?retainedKeys.map(item=>item.key===key?
         {key,total:row.total,version}:item):
-        [...state.autoDaily,{key,total:row.total,version}];
+        [...retainedKeys,{key,total:row.total,version}];
       await persist({...state,queue:bounded,coverage,autoDaily,
         authorityGap:state.authorityGap||projectionGap===true});
       return {recorded:true,key,total:row.total,version};
