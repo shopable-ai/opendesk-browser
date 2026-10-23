@@ -38,7 +38,7 @@ const mountedDocuments=new WeakSet();
 
 export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
   developerView=createDeveloperView(),myView=createMyWorkbenchView(),toolView=null,
-  providerRuntime=null,openNativeSettings=null}={}){
+  providerSettings=null,openNativeSettings=null}={}){
   const mount=doc.getElementById('opendesk-react-app');
   if(!mount||mount.childNodes.length||mountedDocuments.has(doc))throw new Error('E_REACT_APP_MOUNT');
   if(typeof onNavigate!=='function')throw new Error('E_REACT_APP_SHELL_NAVIGATION');
@@ -72,7 +72,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
       }
     }
   }
-  function openSharedProviderSettings(){if(disposed||!providerRuntime)return;settingsOpen=true;paint();}
+  function openSharedProviderSettings(){if(disposed||!providerSettings)return;settingsOpen=true;paint();}
   function closeSharedProviderSettings(){if(disposed)return;settingsOpen=false;paint();}
   function paint(){
     if(disposed)return;
@@ -84,7 +84,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
         debugEnabled={debugEnabled} debugModel={debugModel} debugActions={debugActions} development={development}
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
         onNavigate={onNavigate} extensionProps={extensionProps}
-        providerRuntime={providerRuntime} providerSettingsOpen={settingsOpen}
+        providerSettings={providerSettings} providerSettingsOpen={settingsOpen}
         onOpenNativeSettings={openNativeSettings}
         onOpenProviderSettings={openSharedProviderSettings}
         onCloseProviderSettings={closeSharedProviderSettings}

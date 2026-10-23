@@ -157,4 +157,4 @@ R33 历史基线的可信 Side Panel 核心入口包括已退役的 `src/ui/tool
 
 ### R2.2 跨业务 AI Chat 共享 React 边界
 
-`src/ui/react/main.tsx` 继续拥有唯一 `createRoot`。`SharedConversationFrame`/`SharedProviderSettingsSheet` 是同一 React 树内的组件/Portal，不能为设置或用户扩展再建根。MyTaskAgent 与 Bookmark/Prompt 各自的 Service、Session、授权及 HTML/JS iframe 不因共享交互 UI 而合并。Provider 配置仍只归 ToolShell 的 Runtime：单 Root 下的全局设置 Portal 通过 `settingsSnapshot/subscribeSettings/updateSettings` 直接编辑原 Runtime，公开快照不包含会话 API Key；Workflow 原控制器只保留业务运行快照与 Native/Observation 授权管理，并被动同步 Runtime 代次。动态用户 HTML/JS/React/Vue 仍留原沙箱与 SDK 边界。
+`src/ui/react/main.tsx` 继续拥有唯一 `createRoot`。`SharedConversationFrame`/`SharedProviderSettingsSheet` 是同一 React 树内的组件/Portal，不能为设置或用户扩展再建根。MyTaskAgent 与 Bookmark/Prompt 各自的 Service、Session、授权及 HTML/JS iframe 不因共享交互 UI 而合并。Provider 配置仍只归 ToolShell 的 Runtime：单 Root 下的全局设置 Portal 只经 ToolShell 提供的三方法受限 Facade（`settingsSnapshot/subscribeSettings/updateSettings`）编辑原 Runtime；UI 不持有 Runtime 的 `configuration()`/`acquire()` 权限，公开快照不包含会话 API Key；Workflow 原控制器只保留业务运行快照与 Native/Observation 授权管理，并被动同步 Runtime 代次。动态用户 HTML/JS/React/Vue 仍留原沙箱与 SDK 边界。

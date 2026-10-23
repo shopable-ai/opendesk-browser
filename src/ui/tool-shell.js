@@ -61,6 +61,12 @@ export function initToolShell(installDevelopment=null,{debugEnabled=false}={}) {
   const foundationClient = createHostClient(chrome, {hostInstanceId});
   // The trusted Host shell, not any business View, owns Provider resources.
   const providerRuntime=createSharedAIProviderRuntime({client:foundationClient,hostInstanceId});
+  // React receives only the public settings surface, never configuration() or Provider Lease authority.
+  const providerSettings=Object.freeze({
+    settingsSnapshot:providerRuntime.settingsSnapshot,
+    subscribeSettings:providerRuntime.subscribeSettings,
+    updateSettings:providerRuntime.updateSettings
+  });
  const localeController=createUiLocaleController(chrome);
 const currentPageTarget = createCurrentPageTarget({api:chrome});
 const historyUI=globalThis.__opendeskTrustedHistoryUI;
@@ -116,7 +122,7 @@ const tabMemory=createSidebarTabMemory({
 });
 let scheduleUI=null,scheduleHost=null;
 // Create the complete interface before controllers attach their real hosts.
-extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolView,providerRuntime,
+extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolView,providerSettings,
   openNativeSettings:()=>chrome.tabs.create({url:chrome.runtime.getURL('native-agent/settings.html')}),
   onNavigate:view=>reactNavigationRequest?.(view)??false});
 const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget,

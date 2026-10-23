@@ -13,13 +13,13 @@ const noSubscribe=()=>()=>{};
 // ToolShell owns the sole Runtime; this is a presentational settings client,
 // rendered as a Portal of the existing trusted React root, never a second root.
 export function SharedProviderSettingsSheet({
- open=false,onClose,doc=globalThis.document,providerRuntime=null,
+ open=false,onClose,doc=globalThis.document,providerSettings=null,
  onOpenNativeSettings=null,children
 }){
  const panel=React.useRef(null);
- const snapshot=React.useSyncExternalStore(providerRuntime?.subscribeSettings??noSubscribe,
-  providerRuntime?.settingsSnapshot??(()=>EMPTY_SETTINGS),
-  providerRuntime?.settingsSnapshot??(()=>EMPTY_SETTINGS));
+ const snapshot=React.useSyncExternalStore(providerSettings?.subscribeSettings??noSubscribe,
+  providerSettings?.settingsSnapshot??(()=>EMPTY_SETTINGS),
+  providerSettings?.settingsSnapshot??(()=>EMPTY_SETTINGS));
  const [source,setSource]=React.useState(snapshot.source);
  const [endpoint,setEndpoint]=React.useState(snapshot.endpoint);
  const [model,setModel]=React.useState(snapshot.model);
@@ -44,7 +44,7 @@ export function SharedProviderSettingsSheet({
  };
  const save=event=>{
   event.preventDefault();
-  if(!event.nativeEvent?.isTrusted||!providerRuntime)return;
+  if(!event.nativeEvent?.isTrusted||!providerSettings)return;
   try {
    if(external){
     const url=new URL(endpoint.trim());
@@ -55,7 +55,7 @@ export function SharedProviderSettingsSheet({
    const patch:{source:string;endpoint:string;model:string;apiKey?:string}={source,endpoint:endpoint.trim(),model:model.trim()};
    if(clearKey)patch.apiKey='';
    else if(keyDraft)patch.apiKey=keyDraft;
-   providerRuntime.updateSettings(patch);
+   providerSettings.updateSettings(patch);
    setKeyDraft('');onClose?.();
   }catch(ex){setError(String(ex?.message||'设置未保存'));}
  };
@@ -94,7 +94,7 @@ export function SharedProviderSettingsSheet({
     </IconButton>
    </div>
    <div className="workflow-sheet-content">
-    {!providerRuntime?children:
+    {!providerSettings?children:
      <form className="od-shared-provider-form" onSubmit={save} autoComplete="off">
       <fieldset>
        <legend>AI 来源</legend>

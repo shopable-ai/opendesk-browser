@@ -17,7 +17,7 @@ const subscribeEmptyTool=()=>()=>{};
 export function SidebarAppShell({
   activeTab='tasks',debugEnabled=false,onNavigate=()=>{},
   extensionProps={},cloudModel={},cloudRequestsModel={},cloudSetupModel={},cloudPageModel={},
-  developerView,myView,myAgent=null,toolView=null,workflowController=null,providerRuntime=null,
+  developerView,myView,myAgent=null,toolView=null,workflowController=null,providerSettings=null,
   providerSettingsOpen=false,onOpenProviderSettings=()=>{},onCloseProviderSettings=()=>{},
   onOpenNativeSettings=null,
   debugModel={},debugActions={},development=null,
@@ -66,7 +66,7 @@ export function SidebarAppShell({
       </div>
       <WorkflowPage controller={workflowController} active={activeTab==='workflow'}
         onOpenProviderSettings={onOpenProviderSettings}
-        sharedProviderSettings={Boolean(providerRuntime)}/>
+        sharedProviderSettings={Boolean(providerSettings)}/>
       <DeveloperPage view={developerView} hidden={activeTab!=='develop'}/>
       <CloudConnectionPage model={cloudModel} requestsModel={cloudRequestsModel}
         setupModel={cloudSetupModel}
@@ -76,7 +76,7 @@ export function SidebarAppShell({
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
         hidden={activeTab!=='debug'}/>}
     </main>
-    {providerRuntime&&<SharedProviderSettingsSheet providerRuntime={providerRuntime}
+    {providerSettings&&<SharedProviderSettingsSheet providerSettings={providerSettings}
       onOpenNativeSettings={onOpenNativeSettings}
       open={providerSettingsOpen} onClose={onCloseProviderSettings}/>}
     <footer id="workspace-dock" className="workspace-dock" hidden={runDock.hidden&&!developerCanStop} data-stop-only={String(runDock.stopOnly||developerCanStop&&activeTab!=='develop')}>
