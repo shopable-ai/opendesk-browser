@@ -256,3 +256,39 @@ test('Reading TOC B-grade navigation needs installed tool, current document and 
   assert(!JSON.stringify(evidence).includes('https://chatgpt.com/'),
     'page URL must not enter collection even in a trusted adapter');
 });
+
+
+test('R1.12 Page intent requires installed Authority; Host validates terminal receipt before anonymous telemetry',async()=>{
+  const now=Date.UTC(2026,9,24,2),{api,send,records}=chromeMock([]);
+  let allowed=false,terminal=null,reads=0;
+  installAnalyticsHost({api,endpoint:'https://analytics.example/v1/events',now:()=>now,
+    newId:randomUUID,fetcher:async()=>{throw Error('offline');},
+    verifyManualPage:async()=>{reads++;return allowed;},
+    readManualPageResult:async(_identity,_receipt,sender)=>{
+      reads++;return sender.documentId==='trusted-page-host'?terminal:null;
+    }});
+  const panel={id:api.runtime.id,documentId:'trusted-page-host',frameId:0,
+    url:api.runtime.getURL('sidepanel.html')+'?hostInstanceId='+randomUUID()};
+  const options={id:api.runtime.id,url:api.runtime.getURL('native-agent/settings.html'),frameId:0};
+  const base={protocol:ANALYTICS_PROTOCOL,toolId:'opendesk',toolType:'page',
+    toolIdentity:'private-installed-program',channel:'extension'};
+  const attempt={...base,kind:'event.manual_attempt',event:'tool.manual_attempt'};
+  const receiptId=randomUUID(),result={...base,kind:'event.manual_result',event:'tool.manual_result',runId:receiptId};
+  assert.equal((await send(attempt,panel)).data.recorded,false);
+  assert.equal(reads,0,'before consent neither identity nor Authority is read');
+  await send({protocol:ANALYTICS_PROTOCOL,kind:'consent.set',enabled:true,
+    disclosureVersion:ANALYTICS_DISCLOSURE_VERSION},options);
+  assert.equal((await send(attempt,panel)).code,'E_SENDER','no verified installation');
+  allowed=true;
+  assert.equal((await send(attempt,panel)).data.recorded,true,'denied execution still constitutes user intent');
+  assert.equal((await send(result,panel)).code,'E_SENDER','a forged RunId is not a result');
+  terminal={status:'failed'};
+  assert.equal((await send(result,panel)).data.recorded,true);
+  assert.equal((await send(result,panel)).data.recorded,false,'same durable receipt counted once');
+  const rows=records.get(ANALYTICS_STATE_KEY).queue.filter(row=>row.toolType==='page');
+  assert.deepEqual(rows.map(row=>row.event),['tool.manual_attempt','tool.manual_result']);
+  assert.equal(rows[1].runStatus,'failed');
+  assert(rows.every(row=>/^anon-[a-f0-9]{24}$/.test(row.toolId)));
+  assert(!JSON.stringify(rows).includes(receiptId),'receipt never leaves the device');
+  assert(!JSON.stringify(rows).includes('private-installed-program'),'raw program ID never leaves the device');
+});
