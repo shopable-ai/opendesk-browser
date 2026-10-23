@@ -4,11 +4,11 @@
 
 ## 统计口径与证据边界
 
-- 主动 DAU 唯一允许事件：app.opened、tool.opened、tool.engaged、tool.manual_attempt、workflow.manual_attempt。手动 Task 失败仍算主动尝试；SW 唤醒、脚本自动运行、安装、React 挂载及 tool.manual_result 均不算主动 DAU。
+- 主动 DAU 唯一允许事件：app.opened、tool.opened、tool.engaged、tool.manual_attempt、workflow.manual_attempt、reading_toc.navigated。手动 Task 失败仍算主动尝试；SW 唤醒、脚本自动运行、安装、React 挂载及 tool.manual_result 均不算主动 DAU。
 - Page 自动执行来自原 page-execution-v1；Scheduler 自动执行必须由 FireId 绑定 RunId 和 ResultId。单独 Fire 不代表一次已执行任务。云端 Controller 自动任务额外要求原 cloud-request-v1 的 requestId→RunId 双向绑定；非云端、非调度的手动/AI Controller Run 不混入自动指标。最新 `tool.auto_daily` 同时包含 `source_totals`（page_auto / scheduler / cloud）；每行各来源数量之和必须等于总量。
 - Task 手动点击来自 task-workbench 的真实 isTrusted 事件；其结果在 Host 从原 Controller Run/Result 读取。completed 仅代表程序执行完成，不是业务效果独立验证。
 - R1.11 新增经审查的第一方 Workflow 业务效果（B 级）：仅在工作流 UI 已取得独立业务读回，并由 Host 再次核对原始 Controller Run/Result 后，上报 `workflow.business_effect_verified`。该事件不计入 DAU，同一原始 RunId 在本安装内去重；不得将普通 `completed` 或 Page `effectConfirmed` 解释为此事件。
-- 仍缺 Reading TOC 的独立使用接入、AdBlock 真正网络规则命中（Chrome 生产环境目前标记 NOT_OBSERVABLE）、Page 手动执行和 Workflow 用户主动尝试的完整归因。尚未观察到的效果为 NOT_OBSERVED，不是数值 0。
+- Reading TOC 浮动目录的用户真实点击经过原网页适配器对目标章节的可读视区测量、原站点/Chrome 授权检查及 Host 活动 Document 校验后，发送 `reading_toc.navigated`（B 级，计入主动 DAU）；自动目录渲染、Scroll Spy 不发主动使用事件。依旧没有全类型 Page 手动执行入口、AdBlock 真正网络规则命中（Chrome 生产环境标记 NOT_OBSERVABLE）及 Workflow 任意执行的可信业务效果。尚未观察到的指标是 NOT_OBSERVED，不是数值 0。
 - 每个用户自定义 Page/Task ID 使用仅保存在本机的独立随机秘密盐生成 anon-*，只能在同一安装内关联，不能跨安装把相同工具合并。官方 Sidebar ID 可直接聚合。跨安装 Page/Task 按类型统计可靠，按具体匿名工具身份的全球排行榜不可宣称完成。
 - 最新安装是原 Sidebar Installer + Foundation Authority 的已知快照；不代表实时 Chrome 商店总装机。R1.11 的 `inventory_types` 分别包括 sidebar/page/task 安装数、Scheduler Definition（active/paused/unknown）与 App Service 正式 Sidebar 父级绑定（enabled/disabled/unknown）；Scheduler 与 App Service 不增加独立 installed 总量。`inventory_items` 最多 96 项，官方 Sidebar ID 公开，用户 Page/Task 使用每安装盐化代号。inventory_read_state=failed 和 inventory_overflow 必须显示为未知/覆盖缺口。
 
@@ -19,7 +19,7 @@ HogQL 示例（真实 PostHog 项目的 SQL 方言和时区仍须核对）：
 \`\`\`sql
 SELECT toDate(timestamp) AS day, uniqExact(distinct_id) AS active_installs
 FROM events
-WHERE event IN ('app.opened','tool.opened','tool.engaged','tool.manual_attempt','workflow.manual_attempt')
+WHERE event IN ('app.opened','tool.opened','tool.engaged','tool.manual_attempt','workflow.manual_attempt','reading_toc.navigated')
   AND timestamp >= now() - INTERVAL 30 DAY
 GROUP BY day ORDER BY day
 \`\`\`
@@ -47,6 +47,8 @@ FROM (
 GROUP BY tool_type,metric_type
 \`\`\`
 
+Reading TOC 的 `reading_toc.navigated` 同时是 B 级可视效果与主动操作，但不代表页面业务交易完成。
+
 Workflow 用户真实 Send（有任务文本）及可信手动运行会发出一次 `workflow.manual_attempt`；多轮 AI 自动分段不再计入，后续 B 级业务验证也不参与 DAU。
 
 PostHog 自动来源查询应先选同一 `distinct_id/tool_type/tool_id/utc_day/metric_type` 的最新 `snapshot_version`，并一起选择那条快照的 `source_totals`；再对 `page_auto`、`scheduler`、`cloud` 逐来源求和。**不得**逐版本累计，也不得将一行多个来源当成多个安装或主动 DAU。云端不能访问时 SOURCE_DEFINED / NOT_DEPLOYED，不得伪造结果。
@@ -66,7 +68,7 @@ GROUP BY day, tool ORDER BY day
 
 ## Insights C — 排行与日/周/月趋势
 
-将 tool.opened、tool.engaged、tool.manual_attempt、workflow.manual_attempt、手动完成、手动失败、Workflow B 级验证效果，以及从 Insight B 按最新版本取值的自动完成、自动失败、自动未知分别展示。时间分桶：手动事件 timestamp；自动事件 utc_day。工具身份：Sidebar 可以跨安装排行；自定义 Page/Task 按类型或单安装内匿名 ID 排行，不能虚构跨安装同一工具排行。
+将 tool.opened、tool.engaged、tool.manual_attempt、workflow.manual_attempt、reading_toc.navigated、手动完成、手动失败、Workflow B 级验证效果，以及从 Insight B 按最新版本取值的自动完成、自动失败、自动未知分别展示。时间分桶：手动事件 timestamp；自动事件 utc_day。工具身份：Sidebar 可以跨安装排行；自定义 Page/Task 按类型或单安装内匿名 ID 排行，不能虚构跨安装同一工具排行。
 
 ## Insights D — 最新已知安装状态、权限与新鲜度
 
