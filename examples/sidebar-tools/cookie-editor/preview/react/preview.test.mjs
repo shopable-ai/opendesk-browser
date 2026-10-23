@@ -21,6 +21,8 @@ test('export is an anchored two-tab React popover, never a replacement page',asy
   assert.doesNotMatch(view,/<option value="netscape">|aria-label="导出格式" value=/);
   assert.match(popup,/role="dialog"/);
   assert.match(popup,/onDelivered\?\.\(method\)/);
+  assert.match(popup,/role="tabpanel"/);
+  assert.doesNotMatch(popup,/JSON 备份保留完整属性|复制为请求头文本|仅导出属性，不包含 Cookie 值/);
   assert.match(css,/\.cookie-export-popover\{/);
   assert.doesNotMatch(css,/\.cookie-export-workspace\{/);
 });
