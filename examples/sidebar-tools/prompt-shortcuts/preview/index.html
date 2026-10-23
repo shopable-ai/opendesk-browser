@@ -1075,15 +1075,6 @@ border:0;background:transparent;color:var(--od-sub)}
    b.addEventListener('click',()=>{void usePrompt(item);});
    b.addEventListener('mouseenter',()=>showTip(item,b));b.addEventListener('focus',()=>showTip(item,b));b.addEventListener('mouseleave',()=>hideTip(b));b.addEventListener('blur',()=>hideTip(b));rail.append(b);
   }
-  if(compact){
-   const manage=create('button','page-shortcut','管理');manage.type='button';
-   manage.title='打开模拟侧边栏管理提示词';manage.setAttribute('aria-label',manage.title);
-   manage.addEventListener('click',()=>{
-    renderRail();setView('index');
-    el('sidepanel').scrollIntoView({block:'nearest'});notice('已打开模拟管理页面，不会切换真实扩展。');
-   });
-   rail.append(manage);
-  }
  }
  function positionWebTip(){
   const tip=el('webTooltip'),rail=el('pageRail'),area=el('messageArea');
