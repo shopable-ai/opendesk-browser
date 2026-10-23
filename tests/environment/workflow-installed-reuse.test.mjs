@@ -51,6 +51,24 @@ test('origin, missing Catalog, duplicate matches have safe separate states',()=>
   data.installed.push({...data.installed[0],taskId:'commerce.other'});
   assert.equal(route(request,data).state,'AMBIGUOUS');
 });
+
+test('partial read-only commerce intent requests only missing product name',()=>{
+  const input='搜索 lens，打开商品详情，核对名称和价格';
+  const selected=route(input);
+  assert.equal(selected.state,'MISSING_PARAMS');
+  assert.deepEqual(selected.candidates[0].fields,['productName']);
+  assert.equal(route(input,fixture(),{...target,origin:'https://else.example'}).state,'NO_MATCH');
+  assert.equal(route(input,fixture({enabled:false})).state,'BLOCKED');
+});
+test('non-commerce installed Task demands explicit review even for read-like descriptions',()=>{
+  const data=fixture({description:'读取 {productName} 商品价格'});
+  data.catalog[0].manifest.paramsSchema={type:'object',additionalProperties:false,
+    properties:{productName:schema.properties.productName},required:['productName']};
+  const selected=route('读取 Lens Y 商品价格',data);
+  assert.equal(selected.state,'MATCH');
+  assert.equal(selected.candidate.sensitive,true,'opaque Task source cannot be assumed read-only');
+});
+
 test('exact declared sensitive Task needs a separate confirmation',()=>{
   const data=fixture({description:'自然语言任务：修改商品 {productName} 的备注'});
   assert.equal(route('修改商品 Lens Y 的备注',data).state,'MISSING_PARAMS');
