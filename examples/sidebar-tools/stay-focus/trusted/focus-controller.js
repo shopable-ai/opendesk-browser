@@ -50,7 +50,20 @@ export function createFocusController({request,siteBudget,now=Date.now}={}){
     throw Error('E_FOCUS_PUBLIC_SDK_REQUIRED');
   let legacy=null;
   const read=async()=>{
-    if(legacy===true)return {kind:'legacy',summary:await request('focus.status',{})};
+    if(legacy===true){
+      try{return {kind:'legacy',summary:await request('focus.status',{})};}
+      catch(error){
+        // A still-open UI may observe the old tool being replaced by v3.
+        // Accept ONLY an authenticated new public Driver lease. Never replay
+        // the legacy mutation or treat an absent/revoked owner as migrated.
+        if(!isLegacyCapabilityError(error))throw error;
+        const receipt=await siteBudget.getStatus({});
+        if(receipt?.kind!=='site-budget.v3')
+          fail('E_FOCUS_POLICY_KIND','旧专注应用已失效，但新的公共 Driver 尚未核对');
+        const view=reflect(receipt,now());
+        legacy=false;return {kind:'v3',...view};
+      }
+    }
     try{
       const receipt=await siteBudget.getStatus({});
       if(receipt?.kind==='site-budget.v3'){legacy=false;return {kind:'v3',...reflect(receipt,now())};}
