@@ -25,7 +25,8 @@ export function settleManagedSiteBudget(state,{at,session,current=null,boot=fals
 }){
   const today=dayFor(at),cp=state.checkpoint,offset=new Date(at).getTimezoneOffset();
   // Stay Focus stores enabled at root; public finite apps store settings.enabled.
-  const enabled=typeof state.enabled==='boolean'?state.enabled:state.settings?.enabled===true;
+  const enabled=typeof state.enabled==='boolean'?state.enabled:
+    state.policy?.enabled===true||state.settings?.enabled===true;
   if(at<state.clockHighWater){state.checkpoint=null;return {state,clockRollback:true};}
   if(today>state.day){state.day=today;state.usage={};state.checkpoint=null;}
   if(today<state.day){state.checkpoint=null;return {state,clockRollback:true};}
