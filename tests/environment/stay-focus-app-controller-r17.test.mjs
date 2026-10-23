@@ -32,6 +32,30 @@ test('lossless legacy preparation conserves per-pool usage and STOP',()=>{
   assert.equal(converted.desiredPolicy.enabled,false);
   assert.deepEqual(state,before);
 });
+test('old reminders survive transfer while sealed app model cannot bill usage twice',()=>{
+  const state=emptyFocus(at);
+  state.sites=[site];state.groups.entertainment=30;
+  state.enabled=false;
+  state.usage={'g:entertainment':25*60000,'s:other.test':20000};
+  state.notices={day:state.day,revision:7,budgetMs:30*60000,thresholds:[10,5]};
+  const snapshot=structuredClone(state),converted=migrateFocusState(state,{at});
+  assert.deepEqual(state,snapshot,'preflight never mutates the source snapshot');
+  assert.deepEqual(converted.notices.pools['g:entertainment'],
+    {limitMs:30*60000,thresholds:[10,5]});
+  assert.deepEqual(converted.usage,state.usage,'per-pool usage must be conserved');
+  assert.deepEqual(converted.sealedModel.usage,{},'one authoritative Driver ledger');
+  assert.equal(converted.sealedModel.checkpoint,null,'never replay old time checkpoint');
+  assert.equal(converted.sealedModel.clockHighWater,0);
+  assert.equal(converted.sealedModel.authorizedHash,null);
+  assert.equal(converted.sealedModel.authorizedEpoch,null);
+  assert.throws(()=>migrateFocusState(undefined,{at}),{code:'E_MIGRATION_SOURCE'},
+    'missing legacy state cannot be silently interpreted as first install');
+  const corrupt=structuredClone(state);
+  corrupt.notices.thresholds=[10,5];
+  corrupt.notices.budgetMs=null;
+  assert.throws(()=>migrateFocusState(corrupt,{at}),{code:'E_MIGRATION_NOTICE'},
+    'unknown reminder limit must not create duplicate alerts');
+});
 test('public v3 Controller issues sealed finite commits, no focus RPC',async()=>{
   let receipt=initial(),calls=[];
   const siteBudget={
