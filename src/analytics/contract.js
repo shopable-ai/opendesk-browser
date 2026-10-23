@@ -7,12 +7,12 @@ export const ANALYTICS_ALARM='opendesk.analytics.flush.v1';
 export const ANALYTICS_STATE_KEY='opendesk.analytics.state.v1';
 export const ANALYTICS_VERSION=1;
 // Changing collection categories, recipients or purpose requires a new reviewed receipt.
-export const ANALYTICS_DISCLOSURE_VERSION='analytics-disclosure-2026-10-23-v3';
+export const ANALYTICS_DISCLOSURE_VERSION='analytics-disclosure-2026-10-23-v4';
 export const ANALYTICS_MAX_BATCH=10;
 export const ANALYTICS_MAX_BYTES=16384;
 export const ANALYTICS_MAX_AGE_MS=7*24*60*60*1000;
 export const ANALYTICS_EVENTS=Object.freeze([
-  'app.opened','app.inventory','tool.engaged',
+  'app.opened','app.inventory','app.inventory_types','tool.engaged','tool.auto_daily',
   'tool.installed','tool.uninstalled','tool.enabled','tool.disabled','tool.opened',
   'prompt.saved','prompt.inserted','prompt.copied','prompt.fallback_copied','prompt.failed'
 ]);
@@ -22,9 +22,13 @@ const sources=new Set(['host','page_adapter','tool_reported']);
 const channels=new Set(['extension','sidepanel','page_button','fallback']);
 const reasons=new Set(['editor_changed','editor_unavailable','site_denied','clipboard_failed','write_unconfirmed','other']);
 const exact=(value,names)=>Object.keys(value).every(key=>names.includes(key));
+const nonnegative=value=>Number.isSafeInteger(value)&&value>=0;
+const inventoryCounters=row=>object(row)&&exact(row,['installed','enabled','disabled','blocked','unknown'])&&
+  ['installed','enabled','disabled','blocked','unknown'].every(key=>nonnegative(row[key]))&&
+  row.installed===row.enabled+row.disabled+row.blocked+row.unknown;
 const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 export function validateAnalyticsEvent(value,{now=Date.now()}={}){
-  if(!object(value)||!exact(value,['eventId','installId','event','toolId','timestamp','source','channel','reason','installedTools','coverage'])||
+  if(!object(value)||!exact(value,['eventId','installId','event','toolId','timestamp','source','channel','reason','installedTools','coverage','inventoryTypes','readState','projectionGap','toolType','utcDate','metricType','total','version'])||
     !uuid.test(value.eventId||'')||!uuid.test(value.installId||'')||
     !ANALYTICS_EVENTS.includes(value.event)||!toolId.test(value.toolId||'')||
     !sources.has(value.source)||!channels.has(value.channel)||
@@ -53,6 +57,32 @@ export function validateAnalyticsEvent(value,{now=Date.now()}={}){
     }
   }else if(value.installedTools!==undefined||value.coverage!==undefined)
     throw Object.assign(new Error('Unexpected inventory'),{code:'E_ANALYTICS_SCHEMA'});
+  if(value.event==='app.inventory_types'){
+    const rows=value.inventoryTypes;
+    if(!['fresh','failed'].includes(value.readState)||
+      (value.readState==='failed'?rows!==undefined:
+        !object(rows)||!exact(rows,['page','task','scheduler'])||
+        !inventoryCounters(rows.page)||!inventoryCounters(rows.task)||
+        !object(rows.scheduler)||!exact(rows.scheduler,['definitions'])||
+        !nonnegative(rows.scheduler.definitions))||
+      (value.projectionGap!==undefined&&typeof value.projectionGap!=='boolean'))
+      throw Object.assign(new Error('Invalid authority inventory'),{code:'E_ANALYTICS_SCHEMA'});
+  }else if(value.event==='tool.auto_daily'){
+    const day=typeof value.utcDate==='string'&&/^\d{4}-\d\d-\d\d$/.test(value.utcDate)?
+      Date.parse(value.utcDate+'T00:00:00Z'):NaN;
+    if(!/^anon-[a-f0-9]{24}$/.test(value.toolId)||
+      !['page','task','app_service'].includes(value.toolType)||
+      !['attempted','completed','failed','outcome_unknown'].includes(value.metricType)||
+      !Number.isSafeInteger(value.version)||value.version<1||
+      !Number.isSafeInteger(value.total)||value.total<1||
+      !Number.isFinite(day)||new Date(day).toISOString().slice(0,10)!==value.utcDate||
+      day>now+86400000||day<now-ANALYTICS_MAX_AGE_MS||
+      (value.projectionGap!==undefined&&typeof value.projectionGap!=='boolean'))
+      throw Object.assign(new Error('Invalid automatic daily snapshot'),{code:'E_ANALYTICS_SCHEMA'});
+  }else if(value.inventoryTypes!==undefined||value.readState!==undefined||value.projectionGap!==undefined)
+    throw Object.assign(new Error('Unexpected authority projection'),{code:'E_ANALYTICS_SCHEMA'});
+  if(value.event!=='tool.auto_daily'&&['toolType','utcDate','metricType','total','version'].some(key=>value[key]!==undefined))
+    throw Object.assign(new Error('Unexpected automatic metric'),{code:'E_ANALYTICS_SCHEMA'});
   if((value.event.startsWith('app.')!==(value.toolId==='opendesk'))||
     (value.event==='tool.engaged'&&value.toolId!=='prompt-shortcuts'))
     throw Object.assign(new Error('Invalid platform or tool identity'),{code:'E_ANALYTICS_SCHEMA'});
