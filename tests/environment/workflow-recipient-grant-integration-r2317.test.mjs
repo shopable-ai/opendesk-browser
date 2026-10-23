@@ -23,13 +23,14 @@ async function ready(fixture) {
 // before offering the page-summary disclosure. Never erase this security gate
 // just to keep an old one-dialog test green.
 async function beginWithDisclosure(f) {
+  const startsBefore=f.starts.length;
   const send=f.click('workflow-ai-plan');
   await tick();await tick();
   let continuation=send;
   if(state(f,'workflow-run-review').hidden===false) {
     assert.equal(state(f,'workflow-ai-approval').hidden,true,
       'the missing HTTPS receiver grant must precede any page disclosure');
-    assert.equal(f.starts.length,0,'no RunHost observation before Chrome permission');
+    assert.equal(f.starts.length,startsBefore,'no new RunHost observation before Chrome permission');
     await send;
     continuation=f.click('workflow-run-review-confirm');
     await tick();await tick();
