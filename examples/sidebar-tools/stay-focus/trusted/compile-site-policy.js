@@ -10,6 +10,8 @@ export function compileFocusPolicy(state){
   const schedule=state.schedule;
   return {
     kind:'site-budget.v3',enabled:state.enabled,
+    // This product alone chooses 10/5/1; Browser contains no Focus alert constants.
+    reminderMinutes:[10,5,1],
     whitelist:[...state.whitelist],
     sites:state.sites.map(site=>({
       host:site.host,subdomains:site.subdomains,enabled:site.enabled,

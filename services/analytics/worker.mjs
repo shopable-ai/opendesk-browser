@@ -79,7 +79,7 @@ async function deliver(env,{fetcher,now}){
           event:row.event,uuid:row.eventId,distinct_id:row.installId,timestamp:row.timestamp,
           properties:{distinct_id:row.installId,tool_id:row.toolId,source:row.source,channel:row.channel,
             ...(row.reason?{reason:row.reason}:{}),
-            ...(row.event==='workflow.business_effect_verified'?{evidence_level:'B'}:{}),
+            ...(['workflow.business_effect_verified','reading_toc.navigated'].includes(row.event)?{evidence_level:'B'}:{}),
             ...(row.event==='app.inventory'?{installed_tools:row.installedTools,
               ...(row.coverage?{coverage_overflow:row.coverage.overflow,
                 coverage_expired:row.coverage.expired,coverage_version:row.coverage.version}:{})}:{}),

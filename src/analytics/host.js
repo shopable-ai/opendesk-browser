@@ -156,6 +156,41 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
         ...(result?{runId:message.runId,runStatus:verified.status}:{})});
       return {ok:true,data};
     }
+    if(message.kind==='event.reading_toc_navigated'){
+      if(message.event!=='reading_toc.navigated'||message.toolId!=='reading-toc'||
+        message.channel!=='page_button'||
+        !exact(message,['protocol','kind','event','toolId','channel'])||
+        !limit('reading_toc_nav'))return {ok:false,code:'E_SENDER'};
+      const identity=promptPageIdentity(sender);
+      if(!identity||typeof api.tabs?.get!=='function'||
+        typeof api.webNavigation?.getFrame!=='function'||
+        !await toolInstalled('reading-toc'))return {ok:false,code:'E_SENDER'};
+      // A first-party page adapter already proved real user click + a visible
+      // heading; additionally fence this exact native document before receipt.
+      let valid=false;
+      try{
+        const [frame,tab]=await Promise.all([
+          api.webNavigation.getFrame({tabId:identity.tabId,frameId:0}),
+          api.tabs.get(identity.tabId)
+        ]);
+        valid=frame?.documentId===identity.documentId&&frame.url===identity.url&&
+          frame.documentLifecycle==='active'&&frame.errorOccurred===false&&
+          tab?.url===identity.url&&tab?.incognito===false&&!tab.pendingUrl;
+      }catch{/* Navigation/revocation is not a verified active interaction. */}
+      if(!valid)return {ok:false,code:'E_SENDER'};
+      return {ok:true,data:await collector.record({event:'reading_toc.navigated',
+        toolId:'reading-toc',source:'page_adapter',channel:'page_button',evidenceLevel:'B'})};
+    }
+    if(message.kind==='event.workflow_attempt'){
+      if(!fromPanel(sender)||message.toolId!=='workflow'||
+        message.channel!=='extension'||message.event!=='workflow.manual_attempt'||
+        !exact(message,['protocol','kind','event','toolId','channel'])||
+        !limit('workflow_attempt'))return {ok:false,code:'E_SENDER'};
+      // The trusted Workflow Send/Run UI is the sole emitter. This is user
+      // intent even if permission or execution fails before any durable Run.
+      return {ok:true,data:await collector.record({event:'workflow.manual_attempt',
+        toolId:'workflow',source:'host',channel:'extension'})};
+    }
     if(message.kind==='event.workflow_verified'){
       if(!fromPanel(sender)||message.toolId!=='workflow'||
         message.channel!=='extension'||message.event!=='workflow.business_effect_verified'||

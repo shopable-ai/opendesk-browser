@@ -203,3 +203,29 @@ test('Workflow independent readback must also pass original Host result; dedupe 
   assert.equal((await send(event,panel)).data.recorded,false);
   assert.equal((await collector.status()).consent,false);
 });
+
+test('trusted Workflow Send counts once even on failure; later business evidence is not DAU',async()=>{
+  const {api,send,records}=chromeMock([]);
+  installAnalyticsHost({api,endpoint:'https://analytics.example/v1/events',
+    now:()=>Date.UTC(2026,9,23,12),newId:randomUUID,
+    fetcher:async()=>{throw Error('offline');}});
+  const id=api.runtime.id;
+  const panel={id,frameId:0,url:api.runtime.getURL('sidepanel.html')+
+    '?hostInstanceId='+randomUUID()};
+  const options={id,url:api.runtime.getURL('native-agent/settings.html')};
+  const payload={protocol:ANALYTICS_PROTOCOL,kind:'event.workflow_attempt',
+    event:'workflow.manual_attempt',toolId:'workflow',channel:'extension'};
+  assert.equal((await send(payload,panel)).data.recorded,false);
+  assert.equal(records.get(ANALYTICS_STATE_KEY),undefined);
+  await send({protocol:ANALYTICS_PROTOCOL,kind:'consent.set',enabled:true,
+    disclosureVersion:ANALYTICS_DISCLOSURE_VERSION},options);
+  assert.equal((await send(payload,{...panel,url:panel.url+'&previewId=1'})).code,'E_SENDER');
+  assert.equal((await send(payload,panel)).data.recorded,true);
+  const rows=records.get(ANALYTICS_STATE_KEY).queue;
+  assert.equal(rows.filter(row=>row.event==='workflow.manual_attempt').length,1);
+  assert(!rows.some(row=>row.event==='workflow.business_effect_verified'),
+    'a user gesture or Controller completed is not independently verified business effect');
+  assert(!JSON.stringify(rows).includes('some-private-workflow-text'));
+  await send({protocol:ANALYTICS_PROTOCOL,kind:'consent.set',enabled:false},options);
+  assert.equal((await send(payload,panel)).data.recorded,false);
+});

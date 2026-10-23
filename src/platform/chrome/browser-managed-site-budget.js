@@ -24,6 +24,8 @@ import {resolveToolSender} from '../../environment.js';
 import {observeManagedForeground,settleManagedSiteBudget,reconcileManagedDynamicRules,
   redirectManagedBlockedTabs} from './browser-managed-site-policy.js';
 import {subscribeManagedSiteActivity} from './managed-site-lifecycle.js';
+import {normalizeManagedSiteV3Notices,nextManagedSiteV3Reminder}
+  from '../../framework/sdk/site-budget-v3-reminders.js';
 import {MANAGED_SITE_REVIEWED_SCOPE_STORE,reviewedManagedSiteScopeCovers,
   managedSiteV3RequiredOrigins} from '../../framework/host/managed-site-reviewed-scopes.js';
 
@@ -71,7 +73,11 @@ function readLedger(value){
       const required=['slot','epoch','source','packageHash','kind','policy','modelRef',
         'sealedModel','desiredPolicyRev','appliedPolicyRev','status','day',
         'clockHighWater','usage','checkpoint'];
-      if(!plain(row)||Object.keys(row).sort().join(',')!==required.sort().join(',')||
+      // Old v3 ledger rows remain readable until the next reconciliation.
+      const rowKeys=Object.keys(row||{}).sort().join(',');
+      const newKeys=[...required,'notices'].sort().join(',');
+      if(!plain(row)||(rowKeys!==required.sort().join(',')&&rowKeys!==newKeys)||
+         (row.notices!==undefined&&!normalizeManagedSiteV3Notices(row.notices,row.day))||
          !idPattern.test(id)||!Number.isInteger(row.slot)||row.slot<0||
          row.slot>=CAPACITY||used.has(row.slot)||
          !(row.source===null||typeof row.source==='string'&&
@@ -140,7 +146,7 @@ const defaultV3=()=>({kind:SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V3,
 const initialV3=(slot,epoch,source,packageHash,at)=>({slot,epoch,source,packageHash,
   kind:SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V3,policy:defaultV3(),modelRef:null,sealedModel:null,
   desiredPolicyRev:0,appliedPolicyRev:0,status:'inactive',day:dayAt(at),
-  clockHighWater:0,usage:{},checkpoint:null});
+  clockHighWater:0,usage:{},checkpoint:null,notices:{day:dayAt(at),pools:{}}});
 const initial=(slot,epoch,source,packageHash,at)=>({slot,epoch,source,packageHash,settings:defaultSettings(),
   desiredPolicyRev:0,appliedPolicyRev:0,status:'inactive',day:dayAt(at),
   clockHighWater:0,usage:{},checkpoint:null});
@@ -324,6 +330,8 @@ export function createManagedSiteBudgetService({
            !epochChanged&&!revoke&&!permissionRevoked)
           try{current=await observeManagedForeground(api,{ready:true,hostFromUrl,
             siteForHost:host=>selectedManagedSiteV3(nextRow.policy,host)});}catch{}
+        const beforeUsage={...nextRow.usage},beforeDay=nextRow.day;
+        nextRow.notices=normalizeManagedSiteV3Notices(nextRow.notices,nextRow.day);
         const settled=settleManagedSiteBudget(nextRow,{at,session:await sessionId(),current,
           boot:boot||observedGeneration!==settledGenerations.get(id)},{
           dayFor:dayAt,poolFor:site=>site.pool,
@@ -333,6 +341,18 @@ export function createManagedSiteBudgetService({
           maxGapMs:MANAGED_SITE_V3_OBSERVATION_GAP_MS
         });
         if(settled.clockRollback)nextRow.status='reconciling';
+        // Only genuine chargeable observations generate reminders; interruptions,
+        // day rollover, revoked scopes and restarts cannot forge elapsed time.
+        let thresholdNotice=null;
+        if(nextRow.day!==beforeDay)nextRow.notices={day:nextRow.day,pools:{}};
+        else if(valid&&authorizedExecution&&permission.ready&&current&&
+           nextRow.policy.enabled&&!epochChanged&&!revoke&&!permissionRevoked){
+          const due=nextManagedSiteV3Reminder({policy:nextRow.policy,
+            previousUsage:beforeUsage,currentUsage:nextRow.usage,
+            site:current.site,record:nextRow.notices,day:nextRow.day});
+          nextRow.notices=due.notices;
+          thresholdNotice=due.reminder;
+        }
         if(expectedRev!==null&&(!sameStorageValue(settings.desiredPolicy,nextRow.policy)||
             settings.modelRef!==nextRow.modelRef||
             !sameStorageValue(settings.sealedModel,nextRow.sealedModel))){
@@ -388,6 +408,19 @@ export function createManagedSiteBudgetService({
           nextRow.status='unknown';
           await save(updated,(await resourceRead()).raw);
           throw error;
+        }
+        // Persisted notice receipt above, before delivery. Delivery failure is
+        // not an invitation to repeat a toast after a SW restart.
+        if(thresholdNotice&&nextRow.policy.enabled&&api.tabs?.get&&api.tabs?.sendMessage){
+          try{
+            const tab=await api.tabs.get(current.tabId);
+            if(tab?.active&&!tab.incognito&&tab.windowId===current.windowId&&
+               hostFromUrl(tab.url)===current.host)
+              await api.tabs.sendMessage(current.tabId,{
+                protocol:'opendesk.browser.site-budget.notice.v3',kind:'threshold',
+                toolId:id,revision:nextRow.desiredPolicyRev,
+                ...thresholdNotice},{frameId:0});
+          }catch{/* Unsupported content-script delivery cannot weaken DNR. */}
         }
         settledGenerations.set(id,observedGeneration);
         return {receipt:safeStatus(nextRow,permission,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V3)};

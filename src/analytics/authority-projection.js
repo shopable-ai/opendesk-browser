@@ -1,6 +1,7 @@
 import {permissionPattern} from '../environment.js';
 import {SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOOL_BACKGROUND_KIND} from '../ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from '../ui/sidebar-tools/lifecycle.js';
+import {readAppServiceInstallation} from '../platform/tasks/app-service-installation.js';
 // Read-only projection of the original Page/Task/Scheduler authorities.
 // Raw program/task IDs, URLs, source and execution values MUST NOT leave this module's caller.
 const asDate=value=>{
@@ -16,7 +17,8 @@ const sidebarId=/^[a-z][a-z0-9-]{1,39}$/;
 const resultStatus=(run,result)=>{
   if(result){
     if(result.tag!=='controller-result'||result.runId!==run.runId||
-       result.resultId!==run.resultId||result.namespace!==run.namespace)return null;
+       result.resultId!==run.resultId||result.namespace!==run.namespace||
+       result.state!==run.state)return null;
     return result.state==='completed'&&result.outcome?.ok===true?'completed':
       result.state==='failed'?'failed':'outcome-unknown';
   }
@@ -102,7 +104,13 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
     // Background App Services belong to this Sidebar installation; they are
     // bindings, never extra installed tools or separate census identities.
     if(row.background?.kind===SIDEBAR_TOOL_BACKGROUND_KIND){
-      types.app_service.bindings++;types.app_service[status]++;
+      // Original App Service authority validates content hash, capability,
+      // generation and binding. A merely present background property cannot
+      // be reported as a running service.
+      const serviceStatus=status==='disabled'?'disabled':
+        await readAppServiceInstallation(api,row.id).then(()=> 'enabled',()=> 'unknown');
+      types.app_service.bindings++;types.app_service[serviceStatus]++;
+      if(serviceStatus==='unknown')projectionGap=true;
     }
   }
   for(const row of pages){
@@ -146,6 +154,8 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
   const includeRun=(run,receiptId,source)=>{
     if(processedRuns.has(run.runId)){projectionGap=true;return;}
     processedRuns.add(run.runId);
+    // A prepared reservation is not a dispatched automatic execution.
+    if(run.state==='preparing')return;
     const app=run.profile==='app-service';
     const type=app?'app_service':'task';
     const identity=app?run.appBinding?.appId:run.installedTaskAuthorization?.taskId;
@@ -175,8 +185,7 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
     // Cloud initiation is an AUTOMATIC source only after durable Cloud
     // request -> Run binding. The user's manual/AI-run Task stays separate.
     if(!request||request.runId!==run.runId||
-       request.requestId!==run.cloudRequestId||
-       run.cloudRequestKey&&request.tag!=='cloud-request-v1'){
+       request.requestId!==run.cloudRequestId){
       projectionGap=true;continue;
     }
     includeRun(run,run.runId,'cloud');

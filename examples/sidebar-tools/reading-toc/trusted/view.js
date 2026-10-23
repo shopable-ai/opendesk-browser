@@ -300,7 +300,8 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
         const button=make('button','link'+(item.depth?' child':''));button.type='button';
         button.dataset.id=item.id;button.title=item.label;button.setAttribute('aria-label',item.label);
         const span=make('span','label');span.textContent=item.label;button.append(span);
-        button.addEventListener('click',()=>onNavigate(item.id,item.sourceId));
+        button.addEventListener('click',event=>
+          onNavigate(item.id,item.sourceId,event.isTrusted===true));
         li.append(button);fragment.append(li);
       }
       list.replaceChildren(fragment);lastKey=key;

@@ -80,6 +80,7 @@ test('Stay Focus v1 data compiles to code-free generic rules without changing le
   const compiled=normalizeManagedSiteV3Policy(compileFocusPolicy(focus));
   assert.deepEqual(focus,before,'compiler must never mutate saved data');
   assert.deepEqual(compiled.sites.map(x=>x.pool),['g:shared','g:shared','s:c.example.com']);
+  assert.deepEqual(compiled.reminderMinutes,[10,5,1]);
   assert.equal(compiled.sites[0].conditions.at(-1).limitMs,300000);
   assert.equal(compiled.sites[1].conditions.at(-1).limitMs,300000);
   assert.equal(compiled.sites[2].conditions.at(-1).type,'constant-deny');

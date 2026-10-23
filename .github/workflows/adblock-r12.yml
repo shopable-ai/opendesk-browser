@@ -9,6 +9,9 @@ on:
       - 'src/sw.js'
       - 'src/entrypoints/sidebar-tool-host.js'
       - 'src/ui/sidebar-tools.js'
+      # Compiled into the same fixed Tool Host as AdBlock; changing its exact
+      # official admission also changes the Chrome candidate under test.
+      - 'src/ui/trusted-prompt-admission.js'
       - 'src/ui/sidebar-tools/**'
       - 'src/ui/tool.html'
       - 'src/ui/tool-shell.css'

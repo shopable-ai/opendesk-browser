@@ -28,11 +28,6 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
       // includes prompt edit's separate lease. Regrant starts fresh context.
       mainLease.invalidate();editLease?.invalidate();
     }
-    const unsubscribeProviderSettings=providers.subscribeSettings(()=>{
-      const active=bookmarkConversationActive;
-      active?.abortController.abort(err('E_TOOL_CHANGED','Provider 配置已变化，请重新发送'));
-      active?.release();
-    });
     // Revoke this consumer's authorization and retained context only when the
     // removed grant covers its Provider; unrelated websites are unaffected.
     function consumerPermissionRemoved(grant){
@@ -57,6 +52,18 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
         invalidateBookmarkConversation(err('E_MODEL_GRANT_REVOKED','模型网站或 Native 权限已撤销'));
     }
     api.permissions.onRemoved?.addListener(consumerPermissionRemoved);
+    // Provider reconfiguration must also interrupt an unresolved transport or
+    // permission wait. An aborted round releases its UI busy state promptly;
+    // unlike permission revocation, a settings change is not a revoked grant.
+    const unsubscribeProviderSettings=providers.subscribeSettings?.(()=>{
+      const active=bookmarkConversationActive;
+      if(!active||active.providerGeneration===providers.configuration().generation)return;
+      active.abortController.abort(err('E_TOOL_CHANGED',
+        'AI Provider 已改变，本轮推理停止；迟到结果无效'));
+      const lease=forScope(active.scope);
+      if(lease)void Promise.resolve(lease.cancelInference()).catch(()=>{});
+      active.release();
+    });
     // Shared sessions keep only references belonging to their original business.
     // Prompt needs its verified library ETag for safe ordinal follow-up actions.
     const emptyRefs=()=>consumerId==='bookmark'
@@ -82,6 +89,10 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
     const conversation=Object.freeze({
     identity:()=>conversationSession.identity(),
     subscribeSession:listener=>conversationSession.subscribe(listener),
+    // Trusted consumers can retire pending business reviews when a different
+    // model/endpoint/key replaces the context that generated their proposal.
+    providerGeneration:()=>providers.configuration().generation,
+    subscribeProviderChanges:listener=>providers.subscribeSettings?.(listener)??(()=>{}),
     source(){const selected=providers.configuration().source;return {
       provider:selected,label:selected==='local_codex'?'Codex':
         selected==='cloud_responses'?'Responses':'HTTPS'};},
@@ -129,8 +140,19 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
         signal.reason:err('E_CANCELLED','本轮已停止，未发出新的书签操作'));
       signal?.addEventListener('abort',abortFromParent,{once:true});
       if(signal?.aborted)abortFromParent();
-      const round=conversationSession.begin({signal:abortController.signal,providerGeneration});
-      const active={abortController,source:selected,generation,grantPattern,signal,scope,round};
+      let round;
+      try{
+        round=conversationSession.begin({signal:abortController.signal,providerGeneration});
+      }catch(error){
+        // A pre-cancelled parent or stale busy round must not leak the deadline
+        // timer and signal listeners before the request's normal finally exists.
+        clearDeadline();
+        abortController.signal.removeEventListener('abort',clearDeadline);
+        signal?.removeEventListener('abort',abortFromParent);
+        throw error;
+      }
+      const active={abortController,source:selected,generation,providerGeneration,
+        grantPattern,signal,scope,round};
       bookmarkConversationBusy=true;bookmarkConversationActive=active;
       let released=false,deciding=false;
       const release=()=>{
@@ -267,7 +289,7 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
       if(consumerDisposed)return;consumerDisposed=true;
       invalidateBookmarkConversation(err('E_TOOL_CHANGED','AI 消费者实例已关闭'));
       api.permissions.onRemoved?.removeListener(consumerPermissionRemoved);
-      unsubscribeProviderSettings();
+      unsubscribeProviderSettings?.();
       // No install-scoped references or in-flight responses survive disposal.
       businessRefs=emptyRefs();conversationSession.dispose();
       editLease?.dispose();mainLease.dispose();

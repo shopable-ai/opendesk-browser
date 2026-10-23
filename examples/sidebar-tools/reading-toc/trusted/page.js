@@ -136,7 +136,19 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
       viewEpoch=installEpoch;
       const key=placementKey||readingTocPlacementKey(win.location.href);
       view=createReadingTocView({doc,win,initialPlacement,initialLocale:uiLocale,
-        onNavigate:(id,sourceId)=>void navigate(id,sourceId,READING_TOC_TOOL_ID,installEpoch),
+        onNavigate:(id,sourceId,userGesture)=>void navigate(
+          id,sourceId,READING_TOC_TOOL_ID,installEpoch).then(result=>{
+          // Only an actual trusted click plus measured visible heading qualifies.
+          // Never count automatic mount/scroll tracking or a programmatic .click().
+          if(userGesture!==true||result?.ok!==true)return;
+          try{
+            void Promise.resolve(api.runtime?.sendMessage?.({
+              protocol:'opendesk.analytics.v1',kind:'event.reading_toc_navigated',
+              event:'reading_toc.navigated',toolId:READING_TOC_TOOL_ID,
+              channel:'page_button'
+            })).catch(()=>{});
+          }catch{/* Telemetry is strictly optional. */}
+        }).catch(()=>{}),
         onPlacementChange:next=>{
           if(disposed||!enabled||!key||readingTocPlacementKey(win.location.href)!==key)return;
           // Persist only at drag end, keyboard step or explicit reset, never

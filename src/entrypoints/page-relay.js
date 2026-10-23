@@ -4,6 +4,7 @@ import {initReadingToc} from '../../examples/sidebar-tools/reading-toc/trusted/p
 import {initPageClip} from '../../examples/sidebar-tools/web-markdown-clipper/trusted/page.js';
 import {initKnowledgeCapture} from '../knowledge/page.js';
 import {installFocusPageNotice} from '../../examples/sidebar-tools/stay-focus/trusted/page-notice.js';
+import {installManagedSiteNoticePage} from '../platform/chrome/managed-site-notice-page.js';
 import {initPromptShortcuts} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/page.js';
 import {initAdblockCosmetics} from '../../examples/sidebar-tools/adblock/trusted/page.js';
 export default defineUnlistedScript(() => {
@@ -13,6 +14,6 @@ export default defineUnlistedScript(() => {
   Object.defineProperty(globalThis,'__opendeskTrustedPageRelayV1',{value:true,configurable:false});
   initPageRelay();
   if(globalThis.window?.top===globalThis.window){
-    initReadingToc();initPageClip();initKnowledgeCapture();installFocusPageNotice();initPromptShortcuts();initAdblockCosmetics();
+    initReadingToc();initPageClip();initKnowledgeCapture();installFocusPageNotice();installManagedSiteNoticePage();initPromptShortcuts();initAdblockCosmetics();
   }
 });

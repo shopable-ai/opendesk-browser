@@ -12,6 +12,7 @@ const candidate=()=>({taskId:'search',version:'1.0.0',manifestHash:'pinned',
 const trusted={isTrusted:true};
 function rig(proposals,{hasTask=true}={}){
   let executions=0,changes=0,planned=0,paused=false,generation=1,scheduleGeneration=1,pinned=null;
+  let providerGeneration=1;const providerListeners=new Set();
   const client={
     async request(name,payload){
       if(name==='listTaskCatalog')return {installed:hasTask?[{...installed(),generation}]:[],
@@ -31,13 +32,18 @@ function rig(proposals,{hasTask=true}={}){
   const taskWorkbench={runInstalledForAgent:async({expected})=>{executions++;pinned=expected;return {runId:'run1'};},
     stopAgentTask:async()=>{},myView:{field:()=>({value:'search'})}};
   const provider={source:()=>({provider:'local_codex'}),
+    providerGeneration:()=>providerGeneration,
+    subscribeProviderChanges(listener){providerListeners.add(listener);
+      return ()=>providerListeners.delete(listener);},
     request:async()=>({proposal:proposals[Math.min(planned++,proposals.length-1)],
       authorization:{release(){}}}),cancel:async()=>{}};
   const target={snapshot:{status:'available',origin:'https://example.com',url:'https://example.com/'}};
   const agent=createMyTaskAgent({client,taskWorkbench,provider,currentPageTarget:target,
     api:{permissions:{contains:async()=>true}}});
   return {agent,get executions(){return executions;},get changes(){return changes;},
-    get pinned(){return pinned;},bumpGeneration(){generation++;},get planned(){return planned;}};
+    get pinned(){return pinned;},bumpGeneration(){generation++;},
+    changeProvider(){providerGeneration++;for(const listener of [...providerListeners])listener();},
+    get planned(){return planned;}};
 }
 
 test('strict whitelist prevents fabricated Chrome methods, unexpected fields and multiple writes',()=>{
@@ -108,6 +114,18 @@ test('untrusted synthetic event cannot initiate a modifying AI turn',async()=>{
   await assert.rejects(rigged.agent.send('run',{isTrusted:false}),/可信对话/);
   assert.equal(rigged.planned,0);
   assert.equal(rigged.executions,0);
+  rigged.agent.dispose();
+});
+
+test('Provider generation switch retires pending My task approvals before Host writes',async()=>{
+  const rigged=rig([{actions:[{type:'run_task',taskId:'search',params:{}}]}]);
+  await rigged.agent.send('运行网页搜索任务',trusted);
+  assert.equal(rigged.agent.getSnapshot().status,'review');
+  rigged.changeProvider();
+  assert.equal(rigged.agent.getSnapshot().pending,null);
+  await rigged.agent.confirm(trusted);
+  assert.equal(rigged.executions,0,'an old model proposal must never start RunHost');
+  assert.ok(rigged.agent.getSnapshot().rows.some(row=>/设置已切换/.test(row.message)));
   rigged.agent.dispose();
 });
 
