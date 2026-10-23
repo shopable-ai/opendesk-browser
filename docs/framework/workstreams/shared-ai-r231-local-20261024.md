@@ -27,6 +27,7 @@
 | shared-ai-conversation-r22/r23、workflow-react-page、workflow-react-preview-contract、shared-ai-provider-runtime-r21 | 51/51 PASS | 最终共享输入、公开设置、Lease 与预览合同；`/tmp/opendesk-r231-shared-final-tests.log` |
 | 原 Workflow / 六 Tab 生成器 `--check` | PASS | 接入远端 main 后重新生成并核对来源，未写 dist；见下方指纹 |
 | 接入远端后的 recent task query 定向用例 | 1/1 PASS | 只核对远端改变的最近运行展示；未重跑以上 85/51 项 |
+| 再次整合 Workflow 的交汇点增量 | 4/4 PASS | 受控输入、保留 native edit 的示例追加、disposed 后迟到回调不得改草稿、自动保存后无模型冷对话复用；`/tmp/opendesk-r231-merge-incremental.log` |
 | 变更 JS 语法与 `git diff --check` | PASS | 没有可用 LSP，未声称执行 LSP |
 | My Dock 开合、跨 Tab 草稿隔离、Workflow 示例/Undo/Redo/来源键盘 | 复用原 Chrome PASS | 相关 React 源输入未继续改变；具体旧证据见交接截图 |
 | 320–960、浅深色、浏览器 200% | 复用原 PREVIEW_ONLY | 不提升为真实 Side Panel 尺寸/缩放 PASS |
@@ -50,13 +51,13 @@
 
 ## 主线整合与预览
 
-修复提交 `fb7dfcf10820444aa1dfcd0a11f4ce4548558778`，随后安全合入远端 `2f256b5fd`，合并提交 `535aae2729f2bce26b52a2aea350303c207aed66`。保留远端最近运行展示、Workflow 与来源校验变化。未接管另一个 R23.39 owner 的后续任务。
+修复提交 `fb7dfcf10820444aa1dfcd0a11f4ce4548558778`，随后安全合入远端 `2f256b5fd`，合并提交 `535aae2729f2bce26b52a2aea350303c207aed66`。保留远端最近运行展示、Workflow 与来源校验变化。增量实测记录提交 `d19218034`。随后接入远端 `f278e61d0` 的 Workflow 自动保存及生命周期修复：`chooseExample` 同时保留本轮 native edit 回调和远端 disposed / active Agent 守卫，并增加关闭后迟到回调的定向用例。没有接管另一个 R23.39 owner 的后续任务。
 
-原生成器更新后的 Workflow input SHA256：`023962105ddf6a80c2da1067c89819bd0b2477aa74bd490aa5f0fd96eb714644`；六 Tab input SHA256：`860ad2478dca1e7a76287d93eed85f9445915ab838660735e2a3262b1fd6f0db`，bundle input SHA256：`38a64e122690a991bb75e1c7fb444204f41080527606aa63fd42dee881c2172b`。只重新生成和核对受整合影响的预览，没有重新执行预览尺寸矩阵。
+原生成器最终 Workflow input SHA256：`e8644b7607796413b37e02ce432fce09b9f2d2614f6712f17d3d3ea39adf1cc8`；六 Tab input SHA256：`860ad2478dca1e7a76287d93eed85f9445915ab838660735e2a3262b1fd6f0db`，bundle input SHA256：`38a64e122690a991bb75e1c7fb444204f41080527606aa63fd42dee881c2172b`。两者最终 `--check` PASS。只重新生成和核对受整合影响的预览，没有重新执行预览尺寸矩阵。
 
 ## 持续开发身份与资源
 
-本轮实读：日常 `/Users/shopme/Applications/Google Chrome.app` 的真实 Side Panel，扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`。整合后安全更新，调试页再次确认“开发服务已连接”，revision `e19c741a232586a8492332b318c1b64fc50cad9ea92dc20f388c0828d7838a9e`；此前 revision `7fef7fce77dee6eaef1997990a4793b95ab9e410dbfbe2b46e22134e230f4cb9` 仅作先前观察。加载目录沿用 `dist/development`；没有重新安装或复制开发包。本项是持续开发证据，不是 production 验收。
+上次实读：日常 `/Users/shopme/Applications/Google Chrome.app` 的真实 Side Panel，扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`。首次整合后安全更新，调试页再次确认“开发服务已连接”，revision `e19c741a232586a8492332b318c1b64fc50cad9ea92dc20f388c0828d7838a9e`；此前 revision `7fef7fce77dee6eaef1997990a4793b95ab9e410dbfbe2b46e22134e230f4cb9` 仅作先前观察。加载目录沿用 `dist/development`；没有重新安装或复制开发包。真实 Run/Stop 证据早于最终 `f278e61d0` 整合；该次整合没有改变 MyTaskAgent / TaskWorkbench，复用相关行为证据，最新 Workflow 整合只取得上述定向 Node 证据。本项是持续开发证据，不是 production 验收。
 
 保留 npm dev PID 16868 / node 16888、43119 / 43120 守卫、demo Python PID 68658 / 43111、自有只读预览 PID 46214 / 59895；不关闭其他 CFT/Profile，不启动第二个 dist writer。两旧标签页的浏览器自动化句柄仍归原对话，本轮通过确切 Chrome 应用的原生入口操作真实侧边栏。
 

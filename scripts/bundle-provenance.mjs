@@ -34,7 +34,7 @@ function reviewedCompiledTimeReview(target,path,root){
 // a single output and independently enforced release/package identity.
 const compiledAdblockInputs=Object.freeze({
   'examples/sidebar-tools/adblock/trusted/dnr-session.js':'d3e221eac17261a34751cb8ab035c622eb1b42a8',
-  'examples/sidebar-tools/adblock/trusted/service.js':'8284585a083aec095524b175730d0521de267261',
+  'examples/sidebar-tools/adblock/trusted/service.js':'72294807bea97a1e1b33328bb4f3864ddc342dc5',
   'examples/sidebar-tools/adblock/trusted/policy.js':'1ba80150d930f51130ceb7806371f7542f35871b',
   'examples/sidebar-tools/adblock/trusted/rules.js':'4bebe24f991783d6ceb14dd80aa507f8497fce61',
   'examples/sidebar-tools/adblock/trusted/lifecycle.js':'708e2b226eb327d46ac109afa6145fe9b13b1526',
@@ -167,7 +167,7 @@ const compiledStayFocusInputs=Object.freeze({
   'examples/sidebar-tools/stay-focus/trusted/policy.js':'508056b5ad9e1651efec29fbcfe87676c4fd0495',
   'examples/sidebar-tools/stay-focus/trusted/rule-host.js':'b6aa04a83ca05d2c11bdee6dd65bca78b9b26841',
   'examples/sidebar-tools/stay-focus/trusted/rule-ownership.js':'f5bd5722b94a772bb461ff00882ae8cf66ce9d29',
-  'examples/sidebar-tools/stay-focus/trusted/service.js':'ab31f2cf32133c5c3fd3e1208c5879c190b4b7a3',
+  'examples/sidebar-tools/stay-focus/trusted/service.js':'98c2db8cbc9602fa7eb9ac23fc6b50362c2cca74',
   'examples/sidebar-tools/stay-focus/trusted/tool-host.js':'cb7ac4b76be907d07d699c802fc576de6074d0b9'
 });
 // The shared lifecycle module is statically linked by other approved hosts

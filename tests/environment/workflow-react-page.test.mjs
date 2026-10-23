@@ -670,10 +670,13 @@ test('R23.37 cold-chat second Send finds the first natural-language saved Bundle
     'original price comes from a separate final Document observation');
   assert.ok(original.starts.some(x=>x.source.kind==='draft'),'first run generated authorized JavaScript');
 
-  await original.click('workflow-save');
-  await until(()=>[...original.local.values()].some(value=>
-    value?.format===WORKFLOW_DYNAMIC_BUNDLE_FORMAT),
-    ()=>JSON.stringify(original.state().controls['workflow-status']));
+  // The initial natural-language Send must durably save an eligible v2
+  // without any extra manual Save click after the verified second Document.
+  assert.equal([...original.local.values()].some(value=>
+    value?.format===WORKFLOW_DYNAMIC_BUNDLE_FORMAT),true,
+  'the first verified two-Document task automatically saves Bundle v2');
+  assert.equal(original.state().controls['workflow-save'].disabled,true,
+    'auto-saved Bundle is immutable and cannot be saved again as a draft');
   const record=[...original.local.values()].find(value=>
     value?.format===WORKFLOW_DYNAMIC_BUNDLE_FORMAT);
   assert.equal(record.segments.length,2,'initial Send must actually create the entire v2 Bundle');
@@ -682,6 +685,7 @@ test('R23.37 cold-chat second Send finds the first natural-language saved Bundle
     part.workflow.workflowId+':'+part.revision)?.contentHash===part.sourceHash));
   assert.equal(original.state().header.saved,true);
   const storedLocal=original.local,storedScripts=original.scripts;
+  const journalBeforeReuse=[...storedScripts.entries()].map(([key,row])=>[key,structuredClone(row)]);
   original.view.dispose();
   original=null;
 
@@ -699,6 +703,8 @@ test('R23.37 cold-chat second Send finds the first natural-language saved Bundle
     result:reused,status:reopened.state().controls['workflow-status'].text
   }));
   assert.equal(modelGenerations-beforeGeneration,0,'second Send must generate ZERO JavaScript');
+  assert.deepEqual([...reopened.scripts.entries()],journalBeforeReuse,
+    'second Send must not commit a new Controller Revision or alter any saved source bytes');
   const operations=reopened.starts.slice(beforeStarts);
   assert.equal(operations.filter(row=>row.source.kind==='saved').length,2);
   assert.deepEqual(operations.filter(row=>row.source.kind==='saved').map(row=>

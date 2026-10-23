@@ -1186,14 +1186,23 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
     'const title=document.getElementById("sidebar-tool-title");'+
     'const frame=document.getElementById("sidebar-tool-frame");'+
     'const settings=document.getElementById("sidebar-tool-settings-open");'+
+    'const menu=document.getElementById("sidebar-tool-more-menu");'+
+    'const more=document.getElementById("sidebar-tool-more-open");'+
     'const remove=document.getElementById("sidebar-tool-remove");'+
     'return {title:title?.textContent?.trim(),frameVisible:!!frame&&!frame.hidden,'+
-    'settingsVisible:!!settings&&!settings.hidden,'+
-    'removeVisible:!!remove&&!remove.hidden};})()');
+    'settingsAvailable:!!settings&&!settings.hidden,settingsInOverflow:settings?.parentElement===menu,'+
+    'menuInitiallyClosed:!!menu&&menu.hidden,menuTriggerVisible:!!more&&more.getClientRects().length>0,'+
+    'removeAvailable:!!remove&&!remove.hidden};})()');
   assert.equal(installedToolbar.title,'广告拦截');
   assert.equal(installedToolbar.frameVisible,true,'installed React must not be hidden as the retired native view');
-  assert.equal(installedToolbar.settingsVisible,true);
-  assert.equal(installedToolbar.removeVisible,true);
+  assert.equal(installedToolbar.settingsAvailable,true);
+  assert.equal(installedToolbar.settingsInOverflow,true,
+    'installed settings must use the real React More menu, not a detached shortcut');
+  assert.equal(installedToolbar.menuInitiallyClosed,true,
+    'installed React overflow must not start expanded');
+  assert.equal(installedToolbar.menuTriggerVisible,true,
+    'the actual More button must be visible and clickable');
+  assert.equal(installedToolbar.removeAvailable,true);
   report.installedUiParity='PASS';
   note('installed-react-ui-parity',installedToolbar);
   report.screenshots.push(await screenshot(client,sid,'adblock-installed-react-on'));
@@ -1203,8 +1212,17 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
     await until(async()=>{try{return (await readFile(path.join(OUT,'manual-layout-continue'),'utf8')).trim()==='continue';}
       catch{return false;}},'native physical splitter review',180000);
   }
-  // The host toolbar Settings message navigates the installed React product,
-  // not a detached, retired native AdBlock screen.
+  // The reviewed React toolbar moved Settings into the real More menu.
+  // Exercise the same user-visible pointer route as an installed user:
+  // More -> visible Settings -> React settings -> trusted Back.
+  await click(client,sid,'#sidebar-tool-more-open');
+  await until(()=>evaluate(client,sid,'(()=>{'+
+    'const more=document.getElementById("sidebar-tool-more-open");'+
+    'const menu=document.getElementById("sidebar-tool-more-menu");'+
+    'const settings=document.getElementById("sidebar-tool-settings-open");'+
+    'return more?.getAttribute("aria-expanded")==="true"&&!menu?.hidden&&'+
+    '!!settings&&!settings.hidden&&settings.getClientRects().length>0;})()'),
+  'real React overflow opens a visible Settings menu item');
   await click(client,sid,'#sidebar-tool-settings-open');
   // In shared-navigation mode React does not render its retired inner
   // “设置说明” header or inner Back button. Verify the actual settings

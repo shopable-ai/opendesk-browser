@@ -490,23 +490,34 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     render();persistDraft();
     status('已打开冻结版本 r'+record.revision+'；运行不会调用 AI');
   }
-  async function saveAgentBundle() {
+  async function saveAgentBundle({signal=null}={}) {
     const draft=fullAgentDraft;
-    if(!draft||draft.tailSerial!==stable())
-      throw err('E_WORKFLOW_STALE','完整任务完成后草稿已修改，不能保存旧证据');
+    const assertSaveCurrent=()=>{
+      if(disposed||signal?.aborted)
+        throw err('E_CANCELLED','已停止或关闭，不能继续保存完整工作流');
+      if(!draft||draft!==fullAgentDraft||draft.tailSerial!==stable())
+        throw err('E_WORKFLOW_STALE','完整任务已修改，不能保存旧的执行证据');
+    };
+    assertSaveCurrent();
     busy=true;updateButtons();
     try {
       const segments=[];
       for(let i=0;i<draft.segments.length;i++){
-        if(draft!==fullAgentDraft||draft.tailSerial!==stable())
-          throw err('E_WORKFLOW_STALE','分段保存期间草稿发生变化');
+        assertSaveCurrent();
         const old=draft.segments[i],withId={...old.workflow,
           workflowId:draft.bundleId+'-s'+(i+1)};
         const freeze=await compileWorkflow(withId,{
           verifyFill:old.verificationMode==='fill-readback'});
+        assertSaveCurrent();
+        // Refuse an unverified proof BEFORE creating any Controller Revision.
+        // Even an eventual storage failure must not leave unverifiable JS in
+        // the immutable journal under a newly allocated script identity.
+        if(freeze.sourceHash!==old.proof?.sourceHash)
+          throw err('E_WORKFLOW_HASH','冻结 JavaScript 与真实已核验运行源码不一致');
         let head=null;
         try{head=await host.controller.getControllerScript({scriptId:withId.workflowId});}
         catch(error){if(error?.code!=='E_TOMBSTONE')throw error;}
+        assertSaveCurrent();
         let saved;
         if(head?.contentHash===freeze.sourceHash&&head.sourceUtf8===freeze.sourceUtf8)
           saved={revision:head.revision,contentHash:head.contentHash};
@@ -514,10 +525,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           saved=await host.controller.commitControllerScript({
             scriptId:withId.workflowId,expectedRevision:0,sourceUtf8:freeze.sourceUtf8});
         else throw err('E_WORKFLOW_REVISION','分段脚本版本与本次成功任务不一致，拒绝覆盖');
+        assertSaveCurrent();
         if(saved.contentHash!==freeze.sourceHash)
           throw err('E_WORKFLOW_HASH','Controller 返回的分段哈希不一致');
-        if(freeze.sourceHash!==old.proof?.sourceHash)
-          throw err('E_WORKFLOW_HASH','冻结 JavaScript 与真实已核验运行源码不一致');
         segments.push({workflow:freeze.workflow,entryUrl:old.entryUrl,
           revision:saved.revision,sourceHash:freeze.sourceHash,
           verificationMode:old.verificationMode,evidence:old.evidence,proof:old.proof});
@@ -530,8 +540,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         workflow:{workflowId:draft.bundleId,title:draft.title,
           siteOrigin:segments[0].workflow.siteOrigin},
         segments,paramsSchema:replayParameterSchema(segments)});
-      if(draft!==fullAgentDraft||draft.tailSerial!==stable())
-        throw err('E_WORKFLOW_STALE','保存结束前草稿已更改');
+      assertSaveCurrent();
       const key=STORAGE_PREFIX+draft.bundleId+':1';
       await api.storage.local.set({[key]:record});
       selectedBundle=record;revision=null;fullAgentDraft=null;
@@ -540,8 +549,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       render();persistDraft();await refreshSaved();
       control('workflow-saved-list').value=key;
       status('完整 '+segments.length+' 段 JavaScript 工作流已保存；每段有独立 Revision 和 sourceHash。');
-    }catch(error){status(format(error),true);}
-    finally{busy=false;updateButtons();}
+      return {ok:true,record};
+    }catch(error){
+      status(format(error),true);
+      return {ok:false,error};
+    }finally{busy=false;updateButtons();}
   }
   async function save() {
     if(busy||autoExecutionPending||!compiled||selectedBundle)return;
@@ -1051,10 +1063,26 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
               origin:previous.captured.origin,documentId:previous.captured.documentId}});
         }
         if(verdict.state==='COMPLETED') {
-          if(agent.segments.length>1)
+          if(agent.segments.length>1){
             fullAgentDraft={bundleId:'wf-'+crypto.randomUUID(),
               goal:agent.goal,title:previous.freeze.workflow.title,
               segments:structuredClone(agent.segments),tailSerial:stable()};
+            // Only the bounded two-Document commerce contract may silently
+            // persist a reusable v2. Arbitrary scripts still need Save review.
+            let bindingPlan=null;
+            try{bindingPlan=inferDynamicReplayPlan({goal:agent.goal,
+              segments:fullAgentDraft.segments});}catch{}
+            if(bindingPlan){
+              control('workflow-editor').dataset.agentState='SAVING';
+              const saved=await saveAgentBundle({signal:agent.controller.signal});
+              if(workflowAgent!==agent||agent.stopping)return;
+              finishWorkflowAgent(agent,saved.ok?'COMPLETED':'SAVE_FAILED',
+                saved.ok?'原始任务已从真实网页独立核验，并自动保存为可跨对话复用的 Bundle v2；下次将优先使用固定 JavaScript。':
+                  '网页任务已核验，但 Bundle v2 自动保存失败：'+format(saved.error)+
+                  '。没有再次执行网页操作，可以点击「保存」重试。');
+              return;
+            }
+          }
           const multi=agent.guard.snapshot().rounds>1;
           finishWorkflowAgent(agent,'COMPLETED','已核对原始任务目标。'+
             (multi?'跨轮操作已分别核验；点击「保存」将冻结完整的多段 JavaScript 工作流，复跑仍须逐段确认网页和权限。':
@@ -2558,7 +2586,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   // Only fill the trusted composer; examples never submit, request permissions,
   // start AI planning, or mutate any current page.
   const chooseExample=(key,event,editDraft)=>{
-    if(!event.isTrusted||busy||autoExecutionPending||host.executionPending||host.currentRun)return;
+    // A late React callback after unmount must not write to a disposed session,
+    // nor steal a draft while Workflow Agent still owns this conversation.
+    if(disposed||!event?.isTrusted||busy||autoExecutionPending||workflowAgent||
+      host.executionPending||host.currentRun)return;
     if(!Object.hasOwn(exampleRequests,key))return;
     const outcome=appendWorkflowSuggestionDraft(control('workflow-ai-request').value,
       exampleRequests[key]);
@@ -2778,7 +2809,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   const unsubscribePage=currentPageTarget?.subscribe(next=>{
     if(disposed)return;
     if(pendingReuse&&!sameTarget(pendingReuse.target,next))pendingReuse=null;
-    if(pendingInstalledGrant&&!sameTarget(pendingInstalledGrant.captured,next))pendingInstalledGrant=null;
+    if(pendingInstalledGrant&&!sameTarget(pendingInstalledGrant.captured,next)){
+      // A previously trusted Confirm must not remain visible for another
+      // Document. No Task, permission prompt or AI fallback may follow it.
+      pendingInstalledGrant=null;
+      dismissRunReview();
+      status('网页已变化，已取消已安装任务的待确认操作；请重新发送。',true);
+    }
     if(pendingBundleGrant&&!sameTarget(pendingBundleGrant.captured,next)||
       pendingNaturalPlanning&&!sameTarget(pendingNaturalPlanning.target,next)){
       pendingBundleGrant=null;pendingNaturalPlanning=null;dismissRunReview();
@@ -2854,9 +2891,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   });
   const removedPermissions=async grant=>{
     if(grant.origins?.length||grant.permissions?.length){
-      if(pendingRunReview||pendingAIReview||pendingBundleGrant||pendingNaturalPlanning)
+      if(pendingRunReview||pendingAIReview||pendingBundleGrant||
+        pendingNaturalPlanning||pendingInstalledGrant)
         dismissRunReview();
       pendingReuse=null;pendingBundleGrant=null;pendingNaturalPlanning=null;
+      // The user explicitly revoked permission: an installed Task's old
+      // one-shot Confirm is invalid even when its previous Document persists.
+      pendingInstalledGrant=null;
     }
     // Each consumer now observes its own Provider grant and invalidates only
     // its own Lease, not another consumer's Native thread or authorization.

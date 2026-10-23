@@ -21,6 +21,9 @@ import * as installedTaskReuse from '../../src/ui/workflow/installed-task-reuse.
 import * as taskContract from '../../src/platform/tasks/contract.js';
 import * as promptActions from '../../src/ui/conversation/prompt-actions.js';
 import {workflowObservationForModel,workflowObservationGrantMatches,workflowObservationRecipientId} from '../../src/ui/workflow/observation.js';
+import {createSharedAIProviderRuntime} from '../../src/ui/ai/provider-runtime.js';
+import {createConversationSession} from '../../src/ui/conversation/session.js';
+import {appendWorkflowSuggestionDraft} from '../../src/ui/conversation/draft-suggestion.js';
 
 // Component grade only: real VM controller + real mounted WorkflowPage,
 // stubbed compiler/planner/observation. No browser, native input or real AI.
@@ -164,12 +167,29 @@ if(!vm.SourceTextModule) {
       '../../platform/page-port/codec.js':{decodeValue:value=>value},
       '../task-run-diagnostics.js':{presentTaskValue:value=>({text:String(value)}),formatTaskError:String},
       '../run-value-format.js':{formatRunValue:String},
-      './provider.js':{createWorkflowProviderFacade:({localPlanner})=>({
-        async generateWorkflow(options){
-          assert.equal(options.source,'local_codex','focus suite only simulates Native');
-          return {proposal:await localPlanner.plan(options),metadata:{provider:'local_codex'}};
-        }
-      })},
+      // Link the actual shared Provider Runtime with injected fixture transport.
+      // This exercises its real Lease / settings lifecycle; tests still never
+      // impersonate Chrome, Native Host or a successful browser business effect.
+      '../ai/provider-runtime.js':{createSharedAIProviderRuntime:options=>
+        createSharedAIProviderRuntime({...options,
+          client:{...options.client,
+            requestWorkflowAI:options.client.requestWorkflowAI||(async()=>({state:'DISCONNECTED'}))},
+          plannerFactory:()=>planner,
+          facadeFactory:({localPlanner})=>({
+            async generateWorkflow(options){
+              assert.equal(options.source,'local_codex','focus suite simulates Native only');
+              return {proposal:await localPlanner.plan(options),metadata:{provider:'local_codex'}};
+            },
+            generateStructured:async()=>{throw Error('Not used by Workflow focus suite');},
+            probeCapabilities:async()=>({nativeConnected:false})
+          })
+        })},
+      // Workflow is the sole subject of the focus harness. The production
+      // neutral Session is linked directly, unrelated business adapters are
+      // intentionally unmounted while the shared Provider Runtime is real.
+      '../conversation/provider-consumer.js':{createBusinessConversation:()=>({dispose(){}})},
+      '../conversation/session.js':{createConversationSession},
+      '../conversation/draft-suggestion.js':{appendWorkflowSuggestionDraft},
       './view-state.js':{deriveWorkflowViewState},
       './data-sharing.js':dataSharing,
       './task-review-handoff.js':taskReviewHandoff,

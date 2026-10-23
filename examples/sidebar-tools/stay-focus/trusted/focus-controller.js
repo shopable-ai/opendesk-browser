@@ -7,10 +7,21 @@ import {mutateFocusModel} from './mutations.js';
 import {normalizeManagedSiteV3Policy,canonicalManagedSiteV3ModelBytes}
   from '../../../../src/framework/sdk/site-budget-v3-policy.js';
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};
-const isLegacyCapabilityError=e=>['E_TOOL_CAPABILITY_REQUIRED','E_CAPABILITY','E_TOOL_CAPABILITY'].includes(e?.code);
+// The public Driver reports E_TOOL_CHANGED for a real legacy focus.control
+// owner because it lacks browser.siteBudget. The private Host must independently
+// prove the installed legacy identity before we cache the fallback.
+const isLegacyCapabilityError=e=>['E_TOOL_CAPABILITY_REQUIRED','E_CAPABILITY',
+  'E_TOOL_CAPABILITY','E_TOOL_CHANGED'].includes(e?.code);
 const hashModel=async model=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',
   canonicalManagedSiteV3ModelBytes(model))),
   v=>v.toString(16).padStart(2,'0')).join('');
+// A matching model SHA alone cannot prove that the finite native policy and
+// its revision committed. Compare the normalized Driver policy as well.
+function samePolicy(left,right){
+  try{return JSON.stringify(normalizeManagedSiteV3Policy(left))===
+    JSON.stringify(normalizeManagedSiteV3Policy(right));}
+  catch{return false;}
+}
 function reflect(receipt,now){
   if(receipt?.kind!=='site-budget.v3'||!receipt.desiredPolicy||
      !Number.isSafeInteger(receipt.desiredPolicyRev)||
@@ -39,7 +50,20 @@ export function createFocusController({request,siteBudget,now=Date.now}={}){
     throw Error('E_FOCUS_PUBLIC_SDK_REQUIRED');
   let legacy=null;
   const read=async()=>{
-    if(legacy===true)return {kind:'legacy',summary:await request('focus.status',{})};
+    if(legacy===true){
+      try{return {kind:'legacy',summary:await request('focus.status',{})};}
+      catch(error){
+        // A still-open UI may observe the old tool being replaced by v3.
+        // Accept ONLY an authenticated new public Driver lease. Never replay
+        // the legacy mutation or treat an absent/revoked owner as migrated.
+        if(!isLegacyCapabilityError(error))throw error;
+        const receipt=await siteBudget.getStatus({});
+        if(receipt?.kind!=='site-budget.v3')
+          fail('E_FOCUS_POLICY_KIND','旧专注应用已失效，但新的公共 Driver 尚未核对');
+        const view=reflect(receipt,now());
+        legacy=false;return {kind:'v3',...view};
+      }
+    }
     try{
       const receipt=await siteBudget.getStatus({});
       if(receipt?.kind==='site-budget.v3'){legacy=false;return {kind:'v3',...reflect(receipt,now())};}
@@ -48,7 +72,10 @@ export function createFocusController({request,siteBudget,now=Date.now}={}){
       // Only existing pre-v3 installations may use their old, separately
       // authorized tool operation. Never downgrade a known v3 instance.
       if(legacy!==false&&isLegacyCapabilityError(error)){
-        legacy=true;return {kind:'legacy',summary:await request('focus.status',{})};
+        // Do not pin the Controller to the legacy worker unless the original
+        // trusted focus Host actually accepted this installed legacy owner.
+        const summary=await request('focus.status',{});
+        legacy=true;return {kind:'legacy',summary};
       }
       throw error;
     }
@@ -69,18 +96,26 @@ export function createFocusController({request,siteBudget,now=Date.now}={}){
     const sealedModel={...model,usage:{},checkpoint:null,clockHighWater:0,
       authorizedHash:null,authorizedEpoch:null};
     const modelRef=await hashModel(sealedModel);
+    const unchanged=current.receipt.modelRef===modelRef&&
+      samePolicy(current.receipt.desiredPolicy,desiredPolicy);
+    // An idempotent no-op may retain its revision; a changed payload must
+    // advance exactly once, not claim success from a stale or racing response.
+    const expectedRevision=current.revision+(unchanged?0:1);
     try{
       const receipt=await siteBudget.setPolicy({expectedRev:current.revision,
         desiredPolicy,modelRef,sealedModel});
       const view=reflect(receipt,now());
-      if(view.receipt.modelRef!==modelRef||view.revision!==current.revision+1&&
-         JSON.stringify(current.receipt.desiredPolicy)!==JSON.stringify(desiredPolicy))
-        fail('E_OUTCOME_UNKNOWN','v3 提交回执未能证明模型与策略已经同步');
+      if(view.receipt.modelRef!==modelRef||
+         view.revision!==expectedRevision||
+         !samePolicy(view.receipt.desiredPolicy,desiredPolicy))
+        fail('E_OUTCOME_UNKNOWN','v3 提交回执未能证明模型、策略和修订号一致');
       return view.summary;
     }catch(error){
       if(error?.code==='E_OUTCOME_UNKNOWN'){
         const observed=await siteBudget.getStatus({});
-        if(observed?.kind==='site-budget.v3'&&observed.modelRef===modelRef)
+        if(observed?.kind==='site-budget.v3'&&observed.modelRef===modelRef&&
+            observed.desiredPolicyRev===expectedRevision&&
+            samePolicy(observed.desiredPolicy,desiredPolicy))
           return reflect(observed,now()).summary;
       }
       throw error;

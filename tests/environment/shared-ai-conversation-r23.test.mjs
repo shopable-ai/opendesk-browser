@@ -100,6 +100,19 @@ test('R2.3 real Workflow consumer choice appends without replacing or launching 
  assert.equal(f.starts.length,0);
 });
 
+test('late Workflow example callback cannot edit a disposed shared composer',async()=>{
+ const f=await workflowFixture();
+ f.input('workflow-ai-request','保留关闭前的草稿');
+ await tick();
+ const draft=f.state().controls['workflow-ai-request'].value;
+ let nativeEdits=0;
+ f.view.dispose();
+ assert.equal(f.view.actions.chooseExample('fill',{isTrusted:true},()=>{nativeEdits++;}),undefined);
+ assert.equal(nativeEdits,0,'unmounted callbacks must not edit the native input');
+ assert.equal(f.state().controls['workflow-ai-request'].value,draft);
+ assert.equal(f.starts.length,0);
+});
+
 test('R2.3 workflow public React snapshot never contains the old standalone API key',async()=>{
  const state=createWorkflowUIState();
  state.control('workflow-ai-key').value='credential-must-stay-private';

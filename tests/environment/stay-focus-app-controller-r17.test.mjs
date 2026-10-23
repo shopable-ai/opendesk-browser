@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {focusPackageHash} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
+import {sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 import {emptyFocus} from '../../examples/sidebar-tools/stay-focus/trusted/model.js';
 import {migrateFocusState} from '../../examples/sidebar-tools/stay-focus/trusted/migrations.js';
 import {mutateFocusModel} from '../../examples/sidebar-tools/stay-focus/trusted/mutations.js';
@@ -134,4 +137,186 @@ test('v3 Focus UI authorization follows only the authenticated Driver site revie
   receipt.siteReviewActive=false;
   assert.equal((await controller.readStatus()).authorized,false,
     'revocation or epoch mismatch must not be presented as authorized');
+});
+
+test('v3 mutation rejects a stale revision even if the model SHA and policy match',async()=>{
+  let receipt=initial(),attempted=0;
+  const controller=createFocusController({
+    request:async()=>{throw Error('No private worker operation is allowed');},
+    siteBudget:{
+      getStatus:async()=>structuredClone(receipt),
+      setPolicy:async commit=>{
+        attempted++;
+        // A lost or stale revision must not look like a successful policy
+        // commit merely because a model hash appears in the response.
+        return {...receipt,modelRef:commit.modelRef,
+          sealedModel:commit.sealedModel,desiredPolicy:commit.desiredPolicy};
+      }
+    },now:()=>at
+  });
+  await assert.rejects(controller.operate('focus.disable',{}),
+    {code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(attempted,1);
+  assert.equal(receipt.desiredPolicyRev,0);
+});
+
+test('unknown outcome readback requires model, policy AND exact revision',async()=>{
+  let reads=0,pending;
+  const controller=createFocusController({
+    request:async()=>{throw Error('No private worker operation is allowed');},
+    siteBudget:{
+      getStatus:async()=>{
+        reads++;
+        return reads===1?initial():{
+          ...initial(),desiredPolicyRev:1,modelRef:pending.modelRef,
+          // Deliberately stale policy despite a matching model SHA.
+          desiredPolicy:initial().desiredPolicy
+        };
+      },
+      setPolicy:async commit=>{
+        pending=commit;
+        throw Object.assign(new Error('Native result unknown'),{code:'E_OUTCOME_UNKNOWN'});
+      }
+    },now:()=>at
+  });
+  await assert.rejects(controller.operate('focus.site.put',{site}),
+    {code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(reads,2,'one authoritative readback; never replay an unknown commit');
+});
+
+test('unchanged v3 policy and sealed model are valid no-op commits',async()=>{
+  let receipt=initial(),expected=[];
+  const controller=createFocusController({
+    request:async()=>{throw Error('No private worker operation is allowed');},
+    siteBudget:{
+      getStatus:async()=>structuredClone(receipt),
+      setPolicy:async commit=>{
+        expected.push(commit.expectedRev);
+        const isNoop=receipt.modelRef===commit.modelRef&&
+          JSON.stringify(receipt.desiredPolicy)===JSON.stringify(commit.desiredPolicy);
+        const revision=receipt.desiredPolicyRev+(isNoop?0:1);
+        receipt={...receipt,modelRef:commit.modelRef,
+          sealedModel:commit.sealedModel,desiredPolicy:commit.desiredPolicy,
+          desiredPolicyRev:revision,appliedPolicyRev:revision};
+        return structuredClone(receipt);
+      }
+    },now:()=>at
+  });
+  await controller.operate('focus.disable',{});
+  await controller.operate('focus.disable',{});
+  assert.deepEqual(expected,[0,1]);
+  assert.equal(receipt.desiredPolicyRev,1,'idempotent update must not invent a revision');
+});
+
+test('old Focus identity gets a verified legacy fallback for Driver E_TOOL_CHANGED',async()=>{
+  const operations=[];
+  const controller=createFocusController({
+    request:async operation=>{
+      operations.push(operation);
+      return {enabled:false,sites:[]};
+    },
+    siteBudget:{
+      getStatus:async()=>{throw Object.assign(new Error('no v3 capability'),
+        {code:'E_TOOL_CHANGED'});},
+      setPolicy:async()=>{throw Error('must not enter v3');}
+    },now:()=>at
+  });
+  assert.equal((await controller.readStatus()).enabled,false);
+  await controller.operate('focus.site.remove',{host:'example.com'});
+  assert.deepEqual(operations,['focus.status','focus.status','focus.site.remove']);
+});
+
+test('failed legacy proof never caches fallback after an install-epoch change',async()=>{
+  let statusReads=0,legacyReads=0;
+  const controller=createFocusController({
+    request:async()=>{
+      legacyReads++;
+      throw Object.assign(new Error('old tool revoked'),{code:'E_TOOL_CHANGED'});
+    },
+    siteBudget:{
+      getStatus:async()=>{
+        statusReads++;
+        if(statusReads===1)
+          throw Object.assign(new Error('old owner'),{code:'E_TOOL_CHANGED'});
+        return initial();
+      },
+      setPolicy:async()=>{throw Error('no mutation requested');}
+    },now:()=>at
+  });
+  await assert.rejects(controller.readStatus(),{code:'E_TOOL_CHANGED'});
+  assert.equal((await controller.readStatus()).enabled,false);
+  assert.equal(statusReads,2,'next read must recheck the live public Driver');
+  assert.equal(legacyReads,1,'a revoked legacy worker cannot become a cached fallback');
+});
+
+test('old Focus grant hash is NOT the new public Installer package digest',async()=>{
+  const legacy=JSON.parse(await readFile(
+    new URL('../../examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json',import.meta.url),
+    'utf8'));
+  assert.equal(legacy.version,'1.0.10','test must attest the pinned legacy owner');
+  assert.equal(legacy.id,'stay-focus');
+  const oldHash=await focusPackageHash(legacy);
+  const publicHash=await sidebarToolPackageHash(legacy);
+  assert.match(oldHash,/^[a-f0-9]{64}$/);
+  assert.match(publicHash,/^[a-f0-9]{64}$/);
+  assert.notEqual(oldHash,publicHash,
+    'legacy Focus grant and public Browser SDK have distinct package identities');
+  const state=emptyFocus(at);
+  state.enabled=true;state.authorizedHash=oldHash;
+  state.authorizedEpoch='installed-legacy-epoch';
+  const plan=migrateFocusState(state,{at});
+  assert.equal(plan.legacyAuthorizedHash,oldHash,
+    'migration input preserves the true legacy grant digest, never public hash');
+  assert.equal(plan.legacyAuthorizedEpoch,'installed-legacy-epoch');
+  assert.equal(plan.sealedModel.authorizedHash,null,
+    'obsolete Focus grant can never become standalone v3 Driver authority');
+});
+
+test('an open legacy UI adopts the authenticated v3 Driver after package replacement',async()=>{
+  let installed='legacy',legacyReads=0,driverReads=0;
+  const controller=createFocusController({
+    request:async operation=>{
+      assert.equal(operation,'focus.status');
+      legacyReads++;
+      if(installed==='v3')
+        throw Object.assign(new Error('old package lease retired'),{code:'E_TOOL_CHANGED'});
+      return {enabled:false,sites:[]};
+    },
+    siteBudget:{
+      getStatus:async()=>{
+        driverReads++;
+        if(installed==='legacy')
+          throw Object.assign(new Error('not a v3 app'),{code:'E_TOOL_CHANGED'});
+        return initial();
+      },
+      setPolicy:async()=>{throw Error('read-only test');}
+    },now:()=>at
+  });
+  assert.equal((await controller.readStatus()).enabled,false);
+  installed='v3';
+  assert.equal((await controller.readStatus()).enabled,false);
+  assert.equal(legacyReads,2,'the original Host must refuse the retired lease');
+  assert.equal(driverReads,2,'new epoch must be independently checked by public SDK');
+  await controller.readStatus();
+  assert.equal(legacyReads,2,'v3 adoption must never return to old privileged RPC');
+  assert.equal(driverReads,3);
+});
+
+test('unverified replacement never reports an old UI as successfully migrated',async()=>{
+  let reads=0;
+  const controller=createFocusController({
+    request:async()=>{
+      reads++;
+      if(reads===1)return {enabled:false,sites:[]};
+      throw Object.assign(new Error('old lease retired'),{code:'E_TOOL_CHANGED'});
+    },
+    siteBudget:{
+      getStatus:async()=>{throw Object.assign(new Error('no public lease'),
+        {code:'E_TOOL_CHANGED'});},
+      setPolicy:async()=>{throw Error('forbidden');}
+    },now:()=>at
+  });
+  await controller.readStatus();
+  await assert.rejects(controller.readStatus(),{code:'E_TOOL_CHANGED'},
+    'old Host retirement alone is not v3 installation or native success');
 });
