@@ -1967,7 +1967,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   // before asking the existing Provider to generate any new code.
   async function sendNaturalLanguage(event){
     if(!event?.isTrusted||disposed||busy||autoExecutionPending||workflowAgent||
-      host.executionPending||host.currentRun||pendingAIReview||localChecking)return;
+      host.executionPending||host.currentRun||pendingAIReview||
+      (provider()==='local_codex'&&localChecking))return;
     const original=control('workflow-ai-request').value.trim();
     if(!original){status('请描述希望完成的任务',true);focus('workflow-ai-request');return;}
     let target;
