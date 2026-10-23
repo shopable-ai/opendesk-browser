@@ -104,10 +104,7 @@
   display:flex;align-items:center;gap:var(--space-2);
   font-size:var(--od-meta-size);color:var(--od-sub);
 }
-.cookie-editor-react .cookie-export-hint{
-  font-size:var(--od-meta-size);color:var(--od-sub);
-  line-height:1.5;margin:0;
-}
+.cookie-editor-react .cookie-export-content{display:grid;gap:var(--space-3);min-width:0}
 .cookie-editor-react .cookie-export-panel .cookie-message{margin:0}
 .cookie-editor-react .cookie-export-actions{
   display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2);
