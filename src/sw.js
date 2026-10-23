@@ -1,4 +1,5 @@
-import {configureSidePanel, resolveToolSender, httpUrl, EnvironmentError} from './environment.js';
+import {configureSidePanel, resolveToolSender, httpUrl, permissionPattern, EnvironmentError} from './environment.js';
+import {verifyWorkflowLinkBusinessProof} from './analytics/workflow-business-proof.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL, projectFoundationError} from './platform/protocol.js';
 import {createFoundationBroker} from './platform/host/broker.js';
 import {registerDownloadEvents} from './platform/downloads/events.js';
@@ -109,26 +110,40 @@ installAnalyticsHost({api:chrome,loadAuthority:async({since}={})=>
     const status=receipt.state==='outcome-unknown'?'outcome_unknown':receipt.state;
     return ['completed','failed','outcome_unknown'].includes(status)?{status}:null;
   },
-  verifyWorkflowResult:async(runId,sender)=>{
+  verifyWorkflowResult:async(runId,sender,{beforeRunId,afterRunId}={})=>{
+    // Each ID resolves to an actual original Controller journal record; the
+    // observer is the one fixed, read-only Workflow script, never a UI claim.
     const storage=(await foundation).storage;
-    const [run,result]=await storage.transaction(['runs','results'],'readonly',async tx=>{
-      const row=await tx.get('runs',runId);
-      return [row,row?.resultId?await tx.get('results',row.resultId):null];
+    const evidence=await storage.transaction(['runs','results','commandJournal'],'readonly',async tx=>{
+      const [actionRun,beforeRun,afterRun]=await Promise.all([
+        tx.get('runs',runId),tx.get('runs',beforeRunId),tx.get('runs',afterRunId)]);
+      const [actionResult,beforeResult,afterResult]=await Promise.all([
+        actionRun?.resultId?tx.get('results',actionRun.resultId):null,
+        beforeRun?.resultId?tx.get('results',beforeRun.resultId):null,
+        afterRun?.resultId?tx.get('results',afterRun.resultId):null]);
+      const operations=(await tx.all('commandJournal')).filter(row=>row?.runId===runId);
+      return {actionRun,beforeRun,afterRun,actionResult,beforeResult,afterResult,operations};
     });
-    // Independent page readback remains owned by the audited Workflow UI.
-    // Host additionally validates the original durable Controller result;
-    // Run.completed without that readback is never itself business proof.
-    return run?.tag==='controller-run'&&run.namespace===analyticsNamespace&&
-      run.runId===runId&&run.hostDocumentId===sender?.documentId&&
-      !run.scheduledFireId&&!run.cloudRequestId&&run.profile!=='app-service'&&
-      ['draft','saved'].includes(run.sourceKind)&&
-      run.state==='completed'&&run.workerRetired===true&&
-      run.retirementState==='released'&&
-      typeof run.revision?.sourceHash==='string'&&
-      result?.tag==='controller-result'&&result.namespace===analyticsNamespace&&
-      result.runId===runId&&result.resultId===run.resultId&&
-      result.state==='completed'&&result.outcome?.ok===true&&
-      result.revision?.sourceHash===run.revision.sourceHash;
+    if(evidence.actionRun?.namespace!==analyticsNamespace||
+      evidence.beforeRun?.namespace!==analyticsNamespace||
+      evidence.afterRun?.namespace!==analyticsNamespace)return false;
+    const proof=verifyWorkflowLinkBusinessProof({...evidence,
+      hostDocumentId:sender?.documentId});
+    if(!proof)return false; // Run completed alone never produces B-grade.
+    const target=proof.resultTarget;
+    try{
+      const [frame,tab,granted]=await Promise.all([
+        chrome.webNavigation.getFrame({tabId:target.tabId,frameId:0}),
+        chrome.tabs.get(target.tabId),
+        chrome.permissions.contains({origins:[
+          permissionPattern(proof.actionTarget.url),permissionPattern(target.url)]})]);
+      return granted===true&&frame?.documentId===target.documentId&&
+        frame.url===target.url&&frame.documentLifecycle==='active'&&
+        !frame.errorOccurred&&tab?.id===target.tabId&&tab.active===true&&
+        tab.windowId===target.windowId&&tab.url===target.url&&
+        tab.incognito===false&&!tab.pendingUrl;
+    }catch{return false;}
+  }
   }});
 // Lifecycle only: this adapter never claims Tasks or runs a second Controller.
 // Keep the original RunHost alive while any durable @slot retirement is pending.
