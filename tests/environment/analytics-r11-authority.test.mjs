@@ -287,16 +287,16 @@ test('cloud bound Run/Result is automatic, manual Run is not; source totals cann
     const runId=randomUUID(),resultId=randomUUID(),requestId='cloud:'+randomUUID();
     const sourceHash='a'.repeat(64),manifestHash='b'.repeat(64),
       installationId=randomUUID(),generation=1,grantId='grant-test';
-    const grant={taskId:'task-1',version:3,manifestHash,
+    const grant={taskId:'task-1',version:'1.0.0',manifestHash,
       authorization:{installationId,generation}};
     const run={tag:'controller-run',namespace,runId,resultId,createdAt:NOW,
-      state,scriptId:'script-1',revision:{sourceHash},
+      state,scriptId:'task:task-1:1.0.0',revision:{sourceHash},
       contentHash:sourceHash,installedTaskAuthorization:grant};
     if(source==='cloud'){
       run.cloudRequestId=requestId;run.cloudRequestKey='cloud-key:'+requestId;
       stores.frameworkKV.push({tag:'cloud-request-v1',namespace,requestId,runId,
         storageKey:run.cloudRequestKey,grantId,
-        task:{taskId:'task-1',version:3,scriptId:'script-1',
+        task:{taskId:'task-1',version:'1.0.0',scriptId:'task:task-1:1.0.0',
           manifestHash,contentHash:sourceHash,installationId,generation},
         runRef:{runId,resultId,requestId,sourceHash,manifestHash,grantId}});
     }else if(source==='scheduler'){
@@ -391,16 +391,16 @@ test('R1.12 Cloud forged installation/version/Result mapping is not counted',asy
   const runId=randomUUID(),resultId=randomUUID(),requestId='cloud:'+randomUUID(),
     sourceHash='a'.repeat(64),manifestHash='b'.repeat(64),installationId=randomUUID(),grantId='g1';
   const run={tag:'controller-run',namespace,runId,resultId,state:'completed',createdAt:NOW,
-    scriptId:'script-1',revision:{sourceHash},contentHash:sourceHash,
+    scriptId:'task:task-1:1.0.0',revision:{sourceHash},contentHash:sourceHash,
     cloudRequestId:requestId,cloudRequestKey:'key:'+requestId,
-    installedTaskAuthorization:{taskId:'task-1',version:3,manifestHash,
+    installedTaskAuthorization:{taskId:'task-1',version:'1.0.0',manifestHash,
       authorization:{installationId,generation:1}}};
   stores.runs.push(run);
   stores.results.push({tag:'controller-result',namespace,runId,resultId,
     revision:{sourceHash},state:'completed',outcome:{ok:true}});
   const request={tag:'cloud-request-v1',namespace,requestId,runId,
     storageKey:run.cloudRequestKey,grantId,
-    task:{taskId:'task-1',version:3,scriptId:'script-1',
+    task:{taskId:'task-1',version:'1.0.0',scriptId:'task:task-1:1.0.0',
       manifestHash,contentHash:sourceHash,installationId,generation:1},
     runRef:{runId,resultId,requestId,sourceHash,manifestHash,grantId}};
   stores.frameworkKV.push(request);
@@ -416,14 +416,14 @@ test('R1.12 Cloud forged installation/version/Result mapping is not counted',asy
   assert.equal(daily(value,'task','completed'),undefined);
   assert.equal(value.projectionGap,true);
   request.task.generation=1;
-  request.task.version=4;
+  request.task.version='2.0.0';
   value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
   assert.equal(daily(value,'task','completed'),undefined,'wrong immutable task version');
-  request.task.version=3;
+  request.task.version='1.0.0';
   request.task.scriptId='replaced-script';
   value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
   assert.equal(daily(value,'task','completed'),undefined,'wrong installed script ID');
-  request.task.scriptId='script-1';
+  request.task.scriptId='task:task-1:1.0.0';
   run.revision.sourceHash='c'.repeat(64);
   value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
   assert.equal(daily(value,'task','completed'),undefined,'run source not pinned to Cloud request');
@@ -433,5 +433,11 @@ test('R1.12 Cloud forged installation/version/Result mapping is not counted',asy
   assert.equal(daily(value,'task','completed'),undefined,'forged terminal result source');
   stores.results[0].revision.sourceHash=sourceHash;
   value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
-  assert.equal(daily(value,'task','completed')?.total,1,'valid binding recovered without replay');
+  assert.equal(daily(value,'task','completed')?.total,1,
+    'real Cloud Task semver and immutable script ID must be counted');
+  request.task.version=3;
+  value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
+  assert.equal(daily(value,'task','completed'),undefined,
+    'numeric fixture must not pass for a real installed Task version');
+  assert.equal(value.projectionGap,true);
 });

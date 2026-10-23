@@ -257,7 +257,10 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
        ref.sourceHash!==run.contentHash||ref.manifestHash!==grant?.manifestHash||
        !task||task.taskId!==grant?.taskId||
        task.version!==grant?.version||task.scriptId!==run.scriptId||
-       !Number.isSafeInteger(task.version)||!safeIdentity(task.scriptId)||
+       // Cloud Service freezes a semver Task version, not numeric revision.
+       !taskVersion.test(task.version||'')||
+       !taskIdPattern.test(task.taskId||'')||
+       task.scriptId!==taskScriptId(task.taskId,task.version)||
        task.manifestHash!==grant?.manifestHash||
        task.contentHash!==run.contentHash||
        task.installationId!==grant?.authorization?.installationId||
