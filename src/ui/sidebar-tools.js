@@ -479,8 +479,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const allSites=tool?.id==='cookie-editor'&&cookieAdmissionState===true;
     const globalAllowed=allSites&&cookieHasBaseGrant(tool);
     const managed=cookieHasManageGrant(tool,origin);
-    const firstUse=tool?.id==='cookie-editor'&&!managed&&!show&&
-      cookieGrantStatusLoaded&&!officialPending;
+    const firstUse=tool?.id==='cookie-editor'&&!managed&&!show&&cookieGrantStatusLoaded;
     const app=(show||firstUse)&&isCookieTool(tool)&&!readOnlyPreview;
     patchToolField(view,cookiePermissions,{hidden:!app,data:{mode:firstUse?'first-use':'settings'}});
     if(!app)return;
@@ -2744,8 +2743,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       MARKET_PROVENANCE_STORE,BROWSER_MENU_GRANTS_STORE].some(key=>Object.hasOwn(changes||{},key)))
       (cookieImportGate.revoke(),cookieWriteGate.revoke(),cookieExportGate.revoke());
     if([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,
-      MARKET_PROVENANCE_STORE].some(key=>Object.hasOwn(changes||{},key)))
+      MARKET_PROVENANCE_STORE].some(key=>Object.hasOwn(changes||{},key))){
       invalidateCookieAdmission();
+      if(active?.id==='cookie-editor')render();
+    }
     if([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE].some(key=>Object.hasOwn(changes||{},key)))
       if(pendingAction?.cancel)cancelActionReview();
     if(Object.hasOwn(changes||{},SIDEBAR_TOOL_ENABLE_STORE)){
