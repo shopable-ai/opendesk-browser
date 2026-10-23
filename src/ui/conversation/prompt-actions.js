@@ -16,18 +16,27 @@ const schema={
 };
 const summary=item=>({id:item.id,name:item.nameAuto?'':item.name,label:item.label,
  enabled:item.enabled,order:item.order,preview:item.body.replace(/\s+/gu,' ').slice(0,64)});
-const matching=(items,query)=>items.filter(item=>
- clean([item.name,item.label,item.body].join(' ')).includes(clean(query)));
+const isIdQuery=(items,query,refs={})=>
+ /^(?:[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}|ps_[a-z0-9_-]+)$/iu.test(query)||
+ items.some(item=>item.id===query)||refs.matches?.includes(query);
+const matching=(items,query,refs={})=>{
+ const id=query.trim();
+ if(isIdQuery(items,id,refs))return items.filter(item=>item.id===id);
+ return items.filter(item=>
+  clean([item.name,item.label,item.body].join(' ')).includes(clean(query)));
+};
 const target=(items,name,refs)=>{
  if(!valid(name,160))throw error('E_PROMPT_TARGET','缺少提示词目标');
  const n=/^\$search:([1-9]|1[0-2])$/.exec(name);
+ const id=name.trim(),idQuery=isIdQuery(items,id,refs);
  let rows=n?items.filter(item=>item.id===refs.matches?.[Number(n[1])-1]):
+  idQuery?items.filter(item=>item.id===id):
   items.filter(item=>item.id===name||clean(item.name)===clean(name));
  // Natural-language shorthand is resolved ONLY if it selects exactly one
  // real record. Multiple matches still require a search + ordinal reference.
- if(!rows.length&&!n){
+ if(!rows.length&&!n&&!idQuery){
   const keyword=clean(name).replace(/(?:提示词|快捷按钮)$/u,'').trim();
-  if(keyword.length>=2)rows=matching(items,keyword);
+  if(keyword.length>=2)rows=matching(items,keyword,refs);
  }
  if(rows.length!==1)throw error(rows.length?'E_PROMPT_AMBIGUOUS':'E_PROMPT_NOT_FOUND',
   rows.length?'存在多个同名提示词，请先搜索并指定序号':'未找到指定提示词，请先搜索');
@@ -103,7 +112,7 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
     refs.etag!==etag)
   throw error('E_PROMPT_REFERENCE_STALE','上次搜索对应的库版本已变化，请重新搜索定位');
  if(a.type==='search'){
-  const found=matching(items,a.query),shown=found.slice(0,12);
+  const found=matching(items,a.query,refs),shown=found.slice(0,12);
   const refsNext={matches:shown.map(row=>row.id),etag};
   const message='搜索「'+a.query+'」：共 '+found.length+' 条，显示 '+shown.length+' 条'+
    (shown.length?'\n'+shown.map((row,i)=>String(i+1)+'. '+
@@ -148,7 +157,7 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
    nextItems=nextItems.map((v,order)=>({...v,order}));verb='调整顺序';
   }
  }else{
-  affected=matching(items,a.query);
+  affected=matching(items,a.query,refs);
   if(!affected.length)throw error('E_PROMPT_NOT_FOUND','没有匹配的提示词，未写入');
   if(affected.length>maxBatch)throw error('E_PROMPT_LIMIT','匹配 '+affected.length+
    ' 条，超过单次 '+maxBatch+' 条上限，请缩小匹配范围');
@@ -201,7 +210,7 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
   if(ack?.saved!==true||!/^[a-f0-9]{64}$/.test(ack.etag||''))
    throw error('E_OUTCOME_UNKNOWN','Host 回执无法核实');
  }catch(e){
-  if(['E_STORAGE_CONFLICT','E_TOOL_DATA_LIMIT'].includes(e?.code))throw e;
+  if(e?.writeIssued===false||['E_STORAGE_CONFLICT','E_TOOL_DATA_LIMIT'].includes(e?.code))throw e;
   writeFailure=e;
  }
  let checkedValue;

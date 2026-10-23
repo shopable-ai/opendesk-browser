@@ -48,7 +48,8 @@ export function createPromptConversationRequest({
     onStep:onVerifiedStep,
     write:async({value,ifMatch})=>{
      onPhase('writing');
-     return storage('storage.set',{key:'library',value,ifMatch});
+     return storage('storage.set',{key:'library',value,ifMatch},{signal,
+      assertWrite:async()=>{await live();await authority?.assertWrite();}});
     },
     beforeWrite:async context=>{
      await live();

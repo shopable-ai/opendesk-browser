@@ -1,6 +1,18 @@
 # 提示词快捷按钮（Prompt Shortcuts）
 
-独立工具 ID：`prompt-shortcuts`，正式可安装包版本 **1.1.9**。ChatGPT、DeepSeek、Gemini 对话页使用内置默认适配；源码、工具包与实际安装状态见下方证据，其他网站仍可建立自定义规则。
+独立工具 ID：`prompt-shortcuts`，正式可安装包版本 **1.1.14**。ChatGPT、DeepSeek、Gemini 对话页使用内置默认适配；源码、工具包与实际安装状态见下方证据，其他网站仍可建立自定义规则。
+
+## AI 会话核心功能（2026-10-23 开发收尾）
+
+从「扩展」的官方可选目录安装本工具，打开原工具界面及现有 AI Dock，使用已配置的 Provider，即可用自然语言查找、创建和修改提示词，例如「创建一条日语翻译提示词」或「把法语提示词写得更简洁」。涉及私人正文时，先在可信宿主确认本次发送范围；删除和批量修改结果仍经过现有审阅，取消审阅不写入。
+
+持续开发环境的真实 Mac Chrome 与 Native `local_codex` 已完成查找、创建（含禁用条目）、调整顺序、授权后修改正文，以及删除审阅取消后保留原数据、再次确认后仅删除指定记录；保存结果均有真实存储读回，原 opaque iframe 保留。核心流程已有可运行证据，本次不再逐条重测其他自然语言命令。
+
+本轮可信适配器修复了恢复记录被旧操作误清除、缺失 ID 回退到文本误选记录，以及等待锁期间 Stop、撤权或关闭后仍可能写入的问题。恢复记录使用共享 Web Lock 和 intent 身份；真正写入前重新检查当前授权；回执未知时只读核对，不自动重放。原工具源码、唯一正式 JSON、安装身份和权限保持不变。
+
+已有定向回归、受影响 Host 路径和独立复审通过，六个源码/测试文件的指纹在收尾时一致；独立快照的 `build:dev`、`build`、`verify` 通过。原始记录保存在本机 `artifacts/conversation-r17-mac-20261023/`，新增回归见 [恢复与取消](../../../tests/environment/opendesk-conversation-r17-prompt-recovery.test.mjs)和 [ID 精确匹配](../../../tests/environment/opendesk-conversation-r17-id-query.test.mjs)。
+
+以上是加载仓库 `dist/development` 的核心开发证据。历史版本升级、完整安装矩阵和新 production 候选真实运行仍为 `NOT_TESTED`；本轮不开展完整正式验收或评分。
 
 ## 输入框与容器识别（2026-10-22）
 
@@ -10,11 +22,13 @@ ChatGPT 内置识别使用编辑器 ID、`data-testid` 或 `data-composer-markdo
 
 本轮 48 项定向 Node 检查通过，覆盖中英文属性切换、多行草稿、隐藏/歧义/失效节点、安全回退及异步规则变更。真实未登录 ChatGPT 的 footer DOM 已核对，但站点脚本/样式返回 403，本轮完整点击插入为 `NOT_TESTED`；已登录真实会话、安装升级及 production 验收也未执行。现有 watcher 已更新 `dist/development/agents/page-relay.js`；日常 Chrome 的加载路径、ID 和 serve 连接未验证。本轮只交付源码，未晋升正式 JSON，已安装 JSON 中的配置建议仍待后续包更新。
 
-## 文字与图片快捷按钮（2026-10-22）
+## 文字与图片快捷按钮（历史 1.1.9 验收，2026-10-22）
 
 新建或编辑提示词时，正文仍是唯一必填项。在默认展开的「按钮设置」中选择文字或图片；图片可使用本地 PNG/JPEG/WebP，或 HTTPS 图片网址。本地原图上限为 2 MiB，保存前由现有工具压缩至最多 64 KiB，并经原 Trusted Host 存入独立资源库；8 KiB 文本库只保存资源引用。再次编辑可预览、更换或移除图片。文字和图片条目共存，网页点击均插入完整正文、保留原草稿，不自动发送。
 
-本次修复了源码已有图片功能、正式 JSON 仍为旧内容的交付缺口，升至 `1.1.9`，身份和申请能力不变。真实 Mac Chrome 的独立 Profile 已通过原安装器安装该包，并在 Gemini 验证文字和图片点击、完整正文及草稿保留；本地 PNG 的预览、保存和重开恢复也已通过真实 Host。日常已登录 Chrome 的文字操作单独通过，日常 Profile 的 `1.1.9` 升级未完成验证。同日续测已通过独立 Profile 的原生图片选择与取消、取消后继续输入、已保存图片取消保护、保存后重开及图片来源切换的未保存提醒；安装版仍与正式 JSON 字节一致。本轮未发现需修改业务源码的缺陷。JPEG/WebP 文件选择、拖放、IME/Undo 和 production 验收仍为 `NOT_TESTED`。证据及候选边界见 [安装版核心功能记录](evidence/installed-image-core-20261022.json)。
+当时修复了源码已有图片功能、正式 JSON 仍为旧内容的交付缺口，升至 `1.1.9`，身份和申请能力不变。真实 Mac Chrome 的独立 Profile 已通过原安装器安装该包，并在 Gemini 验证文字和图片点击、完整正文及草稿保留；本地 PNG 的预览、保存和重开恢复也已通过真实 Host。日常已登录 Chrome 的文字操作单独通过，日常 Profile 的 `1.1.9` 升级未完成验证。同日续测已通过独立 Profile 的原生图片选择与取消、取消后继续输入、已保存图片取消保护、保存后重开及图片来源切换的未保存提醒；安装版仍与正式 JSON 字节一致。本轮未发现需修改业务源码的缺陷。JPEG/WebP 文件选择、拖放、IME/Undo 和 production 验收仍为 `NOT_TESTED`。证据及候选边界见 [安装版核心功能记录](evidence/installed-image-core-20261022.json)。
+
+以上 `1.1.9` 记录仅为历史证据，不证明当前 `1.1.14` 已完成安装升级或原生验收。
 
 ## 当前任务：内置默认网站适配（2026-10-20）
 
@@ -47,8 +61,10 @@ DeepSeek、Gemini 对话页与 ChatGPT 一样使用扩展代码中的固定默�
 
 ## 手动安装 JSON 与页面验证
 
+**AI Dock 须从官方目录安装并通过可信来源核验。** 当前准入要求官方 `1.1.14` 发行包、已安装包摘要、可信官方来源记录、启用状态与安装代际一致。手动导入本地 JSON 即使 ID、版本和字节相同，也不等同于官方目录安装，不能据此获得 AI Dock 准入；需要 AI 对话时请使用「扩展」中的官方可选目录，经原安装器审阅确认。下列手动导入仅用于工具包与网页功能验证，不代表 AI Dock 已可用或 R1.7 原生验收通过。
+
 1. 先更新 OpenDesk Browser 扩展代码，使它包含本次可信 `page-relay` 适配器。日常开发加载本仓库 `dist/development`，复用已有 `npm run dev`。**只向旧版扩展导入 JSON 不会更新这个静态适配器。**
-2. 在侧栏「扩展」点击「筛选和管理扩展」（省略号图标），选择「导入本地工具包」。在「导入扩展」中选择本目录唯一正式包 `prompt-shortcuts.opendesk-tool.json`，核对身份 `prompt-shortcuts`、版本 `1.1.9` 及权限后「确认安装」或「确认更新」。不要选独立 `chatgpt-jump-top` Page 包。
+2. 在侧栏「扩展」点击「筛选和管理扩展」（省略号图标），选择「导入本地工具包」。在「导入扩展」中选择本目录唯一正式包 `prompt-shortcuts.opendesk-tool.json`，核对身份 `prompt-shortcuts`、版本 `1.1.14` 及权限后「确认安装」或「确认更新」。不要选独立 `chatgpt-jump-top` Page 包。
 3. 已安装同身份同版本时保留现有数据，直接核对状态即可，不要为了测试卸载重装。新安装后默认可用；如果此前主动停用，在工具行的「管理」菜单选择「启用应用」，或在「工具设置」恢复「启用工具」，并恢复「网页快捷按钮」。
 4. 进入或刷新 `https://chatgpt.com`，无需去「开发」点击 Run。已有文档在扩展更新后应先刷新；先保存重要草稿，勿刷新其他会话页面。确认提示词入口只有一个，支持的长内容操作组旁出现回顶箭头。
 5. 点击长用户消息、长助手回复、Writing 或文档查看器中实际出现的箭头，观察对应内容起点是否可见、是否被工具栏遮挡，并确认正文和输入草稿不变。未出现某种内容时，该类型记为未验证，不用其他类型代替。
@@ -109,7 +125,7 @@ git diff -- examples/sidebar-tools/prompt-shortcuts/
 
 现有打包器负责全部 `tool.config.json`/HTML/CSS/JS 的确定性编译，`--promote-from` 只接受与当前源码逐字节一致的已测试候选；不同版本的临时包保存在忽略的 artifacts 目录即可，工具根只保留 `prompt-shortcuts.opendesk-tool.json`。自动测试通过代表 `PACKAGE_PASS`，真实 ChatGPT/IME、安装、停用与卸载仍需原生验收。常规打包不再自动刷新根目录文件；不要使用 `--out` 直接写正式路径。
 
-本地真实安装：先确认日常 OpenDesk 浏览器仍加载标准 `dist/development` 与现有唯一 `npm run dev` watcher；在 OpenDesk「扩展」的已有工具导入入口选择上述 **JSON 文件**，完成原有权限/来源审阅后安装并打开。若同 ID/版本的正式官方工具已经安装，先核对当前包身份与原有数据，禁止绕过版本、授权或更新审核硬替换。也可使用已有「官方可选工具」入口安装，二者不能造成第二个工具身份。
+本地真实安装：先确认日常 OpenDesk 浏览器仍加载标准 `dist/development` 与现有唯一 `npm run dev` watcher；在 OpenDesk「扩展」的已有工具导入入口选择上述 **JSON 文件**，完成原有权限/来源审阅后安装并打开。若同 ID/版本的正式官方工具已经安装，先核对当前包身份与原有数据，禁止绕过版本、授权或更新审核硬替换。需要 AI Dock 时，必须使用已有「官方可选工具」入口安装并通过可信来源核验；本地导入不等同于该官方来源准入。两条路径沿用同一工具 ID 与原安装器，不创建第二个工具身份。
 
 **R1.5 CI 证据：** [Run 38743743798](https://github.com/shopable-ai/opendesk-browser/actions/runs/38743743798) 为 **11/11 Node PASS、语法 PASS、可移植 v2 PACKAGE_PASS**；[Run 38747308859](https://github.com/shopable-ai/opendesk-browser/actions/runs/38747308859) 验证并提交了本目录的同字节工具包。它们仍不代表完整 production WXT 构建、真实 Chrome、ChatGPT 富文本、Mac 中文 IME、原生右键或卸载/重装已经通过；原始证据和缺口记录在唯一 [交接文档](../../../docs/framework/workstreams/prompt-shortcuts-r12-ui-handoff.zh-CN.md)。
 

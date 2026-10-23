@@ -8,14 +8,27 @@ const hashValid=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 
 export function createTrustedPromptHost({
   api,tool,token,epoch,model,conversation,assertIdentity,frameSource,
-  guardBlocked,dispatch,etagFor,confirm,sendToFrame,notice=()=>{}
+  guardBlocked,dispatch,etagFor,confirm,sendToFrame,notice=()=>{},
+  lockManager=globalThis.navigator?.locks
 }={}){
   if(!api?.storage?.local||typeof assertIdentity!=='function'||
      typeof frameSource!=='function'||typeof dispatch!=='function'||
      typeof etagFor!=='function'||typeof confirm!=='function'||
      typeof sendToFrame!=='function'||typeof conversation?.request!=='function')
     throw failure('E_PROMPT_HOST','可信提示词 Host 所需依赖不完整');
-  let waiting=null,guardId=null,disposed=false,lastExpected=null;
+  let waiting=null,guardId=null,disposed=false,lastIntent=null;
+  // Reuse the Host's cross-document Web Locks. Keep this separate from the
+  // tool lock acquired by dispatch: receipt lock -> existing tool lock only.
+  const locked=(work,signal)=>{
+    if(typeof lockManager?.request!=='function')
+      throw failure('E_TOOL_LOCK','当前浏览器无法安全协调提示词写入核对');
+    const name='opendesk.sidebar-tools:prompt-ai-recovery';
+    return signal?lockManager.request(name,{signal},work):lockManager.request(name,work);
+  };
+  const ownsIntent=(record,intent)=>Boolean(intent)&&
+    record?.toolId===tool.id&&record?.instance===token&&
+    record?.installEpoch===epoch&&record?.intentId===intent.intentId&&
+    record?.expectedEtag===intent.expectedEtag&&record?.beforeEtag===intent.beforeEtag;
   const live=async()=>{
     if(disposed)throw failure('E_TOOL_CHANGED','对话实例已经关闭');
     await assertIdentity();
@@ -65,35 +78,52 @@ export function createTrustedPromptHost({
       pending.reject(failure('E_PROMPT_DRAFT','原 iframe 拒绝草稿租约，未写入'));
     }
   }
-  const storage=async(operation,payload)=>{
+  const storage=async(operation,payload,{signal,assertWrite}={})=>{
     if(!['storage.get','storage.set'].includes(operation)||payload?.key!=='library'||
        (operation==='storage.set'&&!hashValid(payload.ifMatch)))
       throw failure('E_PROMPT_SCOPE','仅允许当前工具 library 的条件读写');
     await live();
-    if(operation==='storage.set'){
-      lastExpected=await etagFor(payload.value);
-      if(!hashValid(lastExpected))throw failure('E_PROMPT_HOST','写入预期版本计算失败');
-      // Persist only non-sensitive intent metadata *before* issuing a write.
-      // The actual library stays exclusively in the tool's storage namespace.
-      const unresolved=(await api.storage.local.get(PROMPT_AI_RECOVERY_KEY))[PROMPT_AI_RECOVERY_KEY];
-      if(unresolved?.toolId===tool.id&&!(
-        unresolved.instance===token&&unresolved.expectedEtag===lastExpected))
-        throw failure('E_OUTCOME_UNKNOWN','存在尚未完成的 AI 写入核对；先读取真实 Host 存储，禁止覆盖恢复记录');
-      await api.storage.local.set({[PROMPT_AI_RECOVERY_KEY]:{
-        toolId:tool.id,version:tool.version,instance:token,installEpoch:epoch,
-        beforeEtag:payload.ifMatch,expectedEtag:lastExpected,createdAt:Date.now()
-      }});
+    if(operation==='storage.get')return dispatch(operation,payload);
+    const assertCurrent=async()=>{
+      if(signal?.aborted)throw failure('E_CANCELLED','已停止，未发出提示词写入');
       await live();
-    }
-    try{return await dispatch(operation,payload);}
-    catch(error){
-      // A rejected conditional write did not commit; don't leave a false
-      // unknown-outcome receipt that blocks the user's next request.
-      if(operation==='storage.set'&&error?.code==='E_STORAGE_CONFLICT'){
-        const current=(await api.storage.local.get(PROMPT_AI_RECOVERY_KEY))[PROMPT_AI_RECOVERY_KEY];
-        if(current?.instance===token&&current?.expectedEtag===lastExpected&&
-           current?.beforeEtag===payload.ifMatch)
-          await api.storage.local.remove(PROMPT_AI_RECOVERY_KEY);
+      if(typeof assertWrite!=='function')throw failure('E_PROMPT_AUTH','缺少本轮写入授权');
+      await assertWrite();
+      if(signal?.aborted)throw failure('E_CANCELLED','已停止，未发出提示词写入');
+    };
+    let dispatched=false;
+    try{return await locked(async()=>{
+      let intent=null;
+      try{
+        await assertCurrent();
+        const expectedEtag=await etagFor(payload.value);
+        if(!hashValid(expectedEtag))throw failure('E_PROMPT_HOST','写入预期版本计算失败');
+        // Metadata stays under the same receipt lock through dispatch. The
+        // actual library still belongs exclusively to the existing tool Host.
+        const unresolved=(await api.storage.local.get(PROMPT_AI_RECOVERY_KEY))[PROMPT_AI_RECOVERY_KEY];
+        if(unresolved?.toolId===tool.id)
+          throw failure('E_OUTCOME_UNKNOWN','存在尚未完成的 AI 写入核对；先读取真实 Host 存储，禁止覆盖恢复记录');
+        intent={toolId:tool.id,version:tool.version,instance:token,installEpoch:epoch,
+          intentId:crypto.randomUUID(),beforeEtag:payload.ifMatch,expectedEtag,createdAt:Date.now()};
+        await api.storage.local.set({[PROMPT_AI_RECOVERY_KEY]:intent});
+        lastIntent=intent;
+        await assertCurrent();
+        dispatched=true;
+        // The trusted callback is a lexical argument, never iframe payload.
+        // Dispatcher calls it after its own tool lock and final async reads.
+        return await dispatch(operation,payload,{beforeWrite:assertCurrent});
+      }catch(error){
+        if(!dispatched||error?.writeIssued===false||
+           ['E_STORAGE_CONFLICT','E_TOOL_DATA_LIMIT'].includes(error?.code)){
+          const current=(await api.storage.local.get(PROMPT_AI_RECOVERY_KEY))[PROMPT_AI_RECOVERY_KEY];
+          if(ownsIntent(current,intent))await api.storage.local.remove(PROMPT_AI_RECOVERY_KEY);
+        }
+        throw error;
+      }
+    },signal);}catch(error){
+      if(!dispatched){
+        if(error?.name==='AbortError')error=failure('E_CANCELLED','已停止等待，未发出提示词写入');
+        error.writeIssued=false;
       }
       throw error;
     }
@@ -123,12 +153,14 @@ export function createTrustedPromptHost({
   const notify=async({changed=false,unknown=false,targetId=null,releasedImageAssets=[]}={})=>{
     if(disposed)return;
     if(changed||unknown)try{send('state-changed',{targetId});}catch{}
-    if(changed&&lastExpected){
+    if(changed&&lastIntent){
       // A late old completion cannot erase a newer instance's recovery receipt.
       try{
-        const current=(await api.storage.local.get(PROMPT_AI_RECOVERY_KEY))[PROMPT_AI_RECOVERY_KEY];
-        if(current?.instance===token&&current?.expectedEtag===lastExpected)
-          await api.storage.local.remove(PROMPT_AI_RECOVERY_KEY);
+        const intent=lastIntent;
+        await locked(async()=>{
+          const current=(await api.storage.local.get(PROMPT_AI_RECOVERY_KEY))[PROMPT_AI_RECOVERY_KEY];
+          if(ownsIntent(current,intent))await api.storage.local.remove(PROMPT_AI_RECOVERY_KEY);
+        });
       }catch{/* Keep recovery receipt rather than claiming durable cleanup. */}
     }
     if(changed&&Array.isArray(releasedImageAssets)){
@@ -150,13 +182,15 @@ export function createTrustedPromptHost({
     conversation,model,storage,assertIdentity:live,acquireGuard,
     review,reviewShare,notify
   });
-  async function recovery(){
+  async function readRecovery(){
     const saved=(await api.storage.local.get(PROMPT_AI_RECOVERY_KEY))[PROMPT_AI_RECOVERY_KEY];
     return saved?.toolId===tool.id&&hashValid(saved.expectedEtag)?saved:null;
   }
+  const recovery=()=>locked(readRecovery);
   async function reconcile({acknowledgeEtag=null}={}){
+    return locked(async()=>{
     await live();
-    const record=await recovery();
+    const record=await readRecovery();
     // Read through the SAME dispatcher. A successful read alone cannot
     // prove whether a previous write was applied.
     const current=await storage('storage.get',{key:'library',withEtag:true});
@@ -176,7 +210,7 @@ export function createTrustedPromptHost({
         message:'已读取当前列表，但它与上次写入前后两个版本都不同，不能证明旧操作成功或失败。请查看原工具中的记录，确认没有重复后再选择解除待核对；不会自动重放。'};
     }
     // Before dropping the recovery marker, rule out a newer operation.
-    const latest=await recovery();
+    const latest=await readRecovery();
     if(latest?.instance!==record.instance||latest?.expectedEtag!==record.expectedEtag)
       throw failure('E_STORAGE_CONFLICT','新的待核对写入已出现，请重新读取');
     await api.storage.local.remove(PROMPT_AI_RECOVERY_KEY);
@@ -185,6 +219,7 @@ export function createTrustedPromptHost({
     if(notApplied)return {verified:true,status:'not_applied',message:'当前数据仍与写入前一致，已确认这次变更未保留；没有自动重试。'};
     return {verified:true,status:'acknowledged',
       message:'你已核对当前列表并解除旧的待核对状态。旧操作仍无法证明成功或失败，且不会自动重放。'};
+    });
   }
   return Object.freeze({request,onGuardResponse,recovery,reconcile,dispose(){
     if(disposed)return;

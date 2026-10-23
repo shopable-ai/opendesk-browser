@@ -15,7 +15,9 @@
 | stay-focus | 可信专注/站点限额控制 | 查询状态和解释额度，草拟调整 | 调整拦截规则需可审阅、明确操作授权 | P3，禁止无确认变更 |
 | adblock | 可信 DNR 广告规则运行 | 查询拦截状态、帮助解释规则 | 不能让模型任意创建浏览器级规则或权限 | P3，低收益 |
 | cookie-editor | Cookies 专用 Host，网站作用域 | 仅解释界面与权限文档 | **不允许向模型发送 Cookie/令牌**，不提供 AI 数据操作 | 暂不接入 |
-| ai-vip-share | 可信 Managed Proxy / 账号相关设置 | 仅解释状态或故障信息 | **不允许发送代理凭据、Token、账号秘密**，代理切换不得由模型擅自执行 | 暂不接入 |
+| ai-vip-share | 沙箱 SDK 界面；受控激活码兑换、会话 Cookie 交付与 Managed Proxy；生产协议未配置 | 仅解释脱敏状态或故障信息 | **不允许发送激活码、Cookie、代理凭据、Token、账号秘密**；模型不得兑换、写入会话 Cookie 或擅自切换代理 | 暂不接入 |
+
+2026-10-23 R1.7 复核：其他 11 项仍为适用性判断，不新增 Adapter。`ai-vip-share` 的当前范围以[工具 README](../../../examples/sidebar-tools/ai-vip-share/README.zh-CN.md)为据补齐；本表不代表其生产服务可用或已经完成 AI 业务验收。
 
 ## 产品与技术边界
 

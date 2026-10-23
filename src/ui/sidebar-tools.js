@@ -1304,12 +1304,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
               throw Object.assign(new Error('官方安装状态已变化，请重新打开工具'),{code:'E_TOOL_CHANGED'});
           };
           const host=createTrustedPromptHost({
-            api,tool,token,epoch,model:globalThis.OpenDeskPromptShortcutsModel,
+            api,tool,token,epoch,lockManager,model:globalThis.OpenDeskPromptShortcutsModel,
             conversation:trustedPromptPilot.conversation(),assertIdentity,
             frameSource:()=>frame?.contentWindow,
             guardBlocked:()=>toolDirty||toolSaving||Boolean(pendingAction),
-            dispatch:(operation,payload)=>dispatch(operation,payload,tool,
-              frame?.contentWindow,token,epoch),
+            dispatch:(operation,payload,controls)=>dispatch(operation,payload,tool,
+              frame?.contentWindow,token,epoch,false,null,null,controls?.beforeWrite),
             etagFor,confirm:args=>requestBrowserClick({...args,toolId:PROMPT_ID}),
             sendToFrame:message=>frame?.contentWindow?.postMessage({
               protocol:SIDEBAR_TOOL_PROTOCOL,instance:token,toolId:PROMPT_ID,...message
@@ -1519,7 +1519,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // Entering the Tools tab only shows the list: an iframe requires an explicit Open.
     render();
   }
-  async function dispatch(operation,payload,tool,source,token,revocationEpoch,verifiedGesture=false,exportGrantEpoch=null,directExportPort=null) {
+  async function dispatch(operation,payload,tool,source,token,revocationEpoch,verifiedGesture=false,exportGrantEpoch=null,directExportPort=null,assertWrite=null) {
     assertSession(source,token);
     if(!readOnlyPreview)await assertSidebarToolEnabled(api,tool.id);
     assertSession(source,token);
@@ -2431,6 +2431,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         new TextEncoder().encode(JSON.stringify(next)).byteLength>SIDEBAR_TOOL_DATA_LIMITS.totalBytes)
         throw Object.assign(new Error('工具数据超过 32 KB'),{code:'E_TOOL_DATA_LIMIT'});
       assertSession(source,token);
+      // Only a static trusted caller can supply this lexical callback. It runs
+      // after the tool lock and all asynchronous validation, before any effect.
+      if(assertWrite)try{await assertWrite();}catch(error){error.writeIssued=false;throw error;}
       await writeVerifiedLocalValue(api,namespace,next,stored,'工具数据');
       assertSession(source,token);
       // Only a verified single-item mutation with an explicit save intent counts.
