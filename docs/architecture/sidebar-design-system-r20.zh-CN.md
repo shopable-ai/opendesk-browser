@@ -195,3 +195,13 @@ Native Agent 全页 Workspace 和 Settings 具有自己的大屏结构与本地�
 - 已验证的官方 Sidebar Tool 可通过既有 `OpenDeskTool.setNavigation({page,title,canBack,primary,secondary,secondaryExpanded})` 声明一个可选**展示级**次级入口；当前 `secondary` 枚举 `transfer` 或 `more`，宿主仅渲染图标、状态并将 `secondary` 点击回送给原沙箱，不读取菜单内容或代替执行。非官方/未验证工具仍保留自己的工具内导航，不能用此显示契约提升权限。
 - Prompt Shortcuts 把导入/导出触发图标移入宿主顶部（新建按钮旁）；真正的 `input[type=file]` 用户点击、已获 `user.export` 能力支持的 `browser.downloads.text` 调用、8 KiB 容量校验、ETag 并发控制与菜单均保留在沙箱。展开菜单从 iframe 内容顶部对齐，关闭后**不保留空白工具栏行**。不要跨 iframe 转发合成文件点击、伪造用户手势，也不要将导入导出升级为第二个 Host。
 - 宿主标签、动作密度和状态色属于公共 `src/ui/design-system.css` / `src/ui/tool-shell.css`，扩展只管理浮层定位和业务反馈。`preview/index.html` 是模拟交互预览，真实 Chrome/CFT 是否达到目标必须另验；窄尺寸下检查标题省略、按钮顺序、Tab/Escape、弹出层不裁切。
+
+## R4.2：已安装工具共享标题栏单行紧凑收纳（2026-10-23）
+
+R40 的通用 34px Ghost 图标、4px 间距仍用于普通页头。**仅**已安装工具的可信 `sidebar-tool-view-head` 在 R4.2 按窄侧栏实际空间采用桌面 30×30px 命中区域、17px 图标、2px 相邻间距；默认无背景与边框，使用原有 Hover/Focus/展开态 Tokens。标题 `flex:1;min-width:0`，单行省略。粗指针改为 36×36px，更多菜单内操作至少 44px；前者与历史 44px 粗指针目标的差距需在真实触屏/200% 测试中继续消除，不能凭源码评为无障碍 PASS。
+
+标题行的顺序由已有可信 React Host 决定：返回、标题、官方核准的主操作（新建）、次级操作（导入导出）、共享 AI Chat Slot、可信「更多」。设置、显示控制、右键菜单和卸载在同一更多容器中**移动原始 `ToolField` 控件，不复制 ID，不增加新权限或第二套 Host**。更多负责打开/关闭及焦点；原安装/设置/卸载业务、二次确认、授权与导航仍通过 `src/ui/sidebar-tools.js` 分发。任意功能缺少授权时不因菜单内嵌而获权。
+
+Prompt Shortcuts 的 `ps-count` 保留数量计算及 `aria-live`，用视觉隐藏样式从文档流移除；`ps-seed-hint` 可见提示与其冗余布局删除。关闭导入导出时不可把焦点放回隐藏统计，必须转到真实可见按钮。无官方导航核准的安装或开发预览，仍应保留工具自身的操作回退。
+
+`examples/sidebar-tools/prompt-shortcuts/preview/index.html` R4.2 保留原完整交互场景，并模拟 320/360/400/440px、更多、导入导出与共享聊天位置；模拟不是安装、Chrome 权限或 Provider 实测。正式 JSX 编译、框架菜单行为、包晋升及 Mac Chrome 安装必须按各自证据分别标记 PASS/FAIL/NOT_TESTED。
