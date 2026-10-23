@@ -17,25 +17,34 @@ const pinned={taskId:manifest.taskId,version:manifest.version,enabled:true,
   manifestHash:'b'.repeat(64),installationId:'local-installed-1',generation:1};
 const scriptId='task:'+manifest.taskId+':'+manifest.version;
 
-async function fixture({correctReadback=true}={}){
+async function fixture({correctReadback=true,versionedIntent=false}={}){
   const calls=[];
+  const selectedManifest=versionedIntent?{...manifest,version:'1.0.1',
+    description:'普通用户可读的产品简介；不作为路由依据',
+    intent:{templates:['在当前演示搜索页搜索 {keyword}，并核对结果'],
+      resultTexts:['结果：{keyword}','提交次数：1']}}:manifest;
+  const selectedPin=versionedIntent?{...pinned,version:'1.0.1',
+    manifestHash:'d'.repeat(64)}:pinned;
+  const selectedScriptId='task:'+selectedManifest.taskId+':'+selectedManifest.version;
   const target={origin,url:origin+'/demo-form.html'};
-  const taskCatalog={catalog:[{taskId:manifest.taskId,version:manifest.version,
-    stage:'available',manifestHash:pinned.manifestHash,manifest}],installed:[pinned]};
-  const resolveTask={...pinned,scriptId,revision:1,contentHash:scriptHash,manifest};
+  const taskCatalog={catalog:[{taskId:selectedManifest.taskId,version:selectedManifest.version,
+    stage:'available',manifestHash:selectedPin.manifestHash,manifest:selectedManifest}],
+    installed:[selectedPin]};
+  const resolveTask={...selectedPin,scriptId:selectedScriptId,revision:1,
+    contentHash:scriptHash,manifest:selectedManifest};
   const f=await workflowFixture({target,taskCatalog,resolveTask,
     taskWorkbench:({host,target:liveTarget})=>({
       refresh:async()=>{},
       runInstalledForAgent:async({taskId,params,expected,event})=>{
         assert.equal(event.isTrusted,true);
         calls.push({taskId,params,expected});
-        const claim=await host.start({source:{kind:'saved',scriptId,revision:1,contentHash:scriptHash},
+        const claim=await host.start({source:{kind:'saved',scriptId:selectedScriptId,revision:1,contentHash:scriptHash},
           params,target:{mode:'borrowed',tabId:liveTarget.tabId,frameId:0,
             documentId:liveTarget.documentId,expectedUrl:liveTarget.url,
             expectedWindowId:liveTarget.windowId}});
         const completion=await host.completion;
-        return {runId:claim.runId,completion,version:pinned.version,
-          installationId:pinned.installationId};
+        return {runId:claim.runId,completion,version:selectedPin.version,
+          installationId:selectedPin.installationId};
       },
       stopAgentTask:async()=>{throw Object.assign(new Error('not active'),{code:'E_RUN_NOT_ACTIVE'});}
     }),
@@ -80,4 +89,36 @@ test('durable Task completion without independent submission-count readback cann
   assert.equal(calls.length,1,'unknown DOM result never re-runs the Task');
   assert.equal(f.starts.length,2);
   assert.equal(f.state().controls['workflow-run-review'].hidden,true);
+});
+
+test('new versioned Task uses immutable Manifest intent and independent readback, not description',async t=>{
+  const {f,calls}=await fixture({versionedIntent:true});t.after(()=>f.view.dispose());
+  f.input('workflow-ai-request','在当前演示搜索页搜索 OpenDesk，并核对结果。');
+  await f.click('workflow-ai-plan');
+  assert.equal(f.state().controls['workflow-run-review'].hidden,false,
+    'unproven Task JavaScript still requires execution confirmation');
+  assert.equal(calls.length,0);
+  const reply=await f.click('workflow-run-review-confirm');
+  assert.equal(reply.ok,true);
+  assert.equal(reply.effect.kind,'task-visible-readback');
+  assert.deepEqual(reply.effect.texts,['结果：OpenDesk','提交次数：1']);
+  assert.equal(calls.length,1);
+  assert.deepEqual(calls[0].params,{keyword:'OpenDesk'});
+  assert.equal(calls[0].expected.version,'1.0.1');
+  assert.deepEqual(f.starts.map(row=>row.source.kind),['saved','draft'],
+    'Task code is the pinned saved JS and result verification is a separate RunHost read');
+  assert.ok(f.state().messages.some(row=>row.speaker==='执行结果'&&
+    /提交次数：1/.test(row.message)));
+});
+
+test('new versioned Task cannot report success without all independently visible claims',async t=>{
+  const {f,calls}=await fixture({versionedIntent:true,correctReadback:false});
+  t.after(()=>f.view.dispose());
+  f.input('workflow-ai-request','在当前演示搜索页搜索 OpenDesk，并核对结果');
+  await f.click('workflow-ai-plan');
+  const reply=await f.click('workflow-run-review-confirm');
+  assert.equal(reply.ok,false);
+  assert.equal(reply.error?.code,'E_WORKFLOW_EVIDENCE');
+  assert.equal(calls.length,1,'uncertain effect must not re-execute');
+  assert.equal(f.starts.length,2);
 });
