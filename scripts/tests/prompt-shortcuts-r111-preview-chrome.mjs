@@ -238,7 +238,7 @@ async function run(){
   // R1.16 all SVG icons come from inline source with accessible button names.
   const icons=await evalChrome('('+function(){
     const a=document.querySelector('#addButton');
-    const ids=['addButton','hostBack','hostSettings','themeButton','resetButton'];
+    const ids=['addButton','hostBack','hostSettings','hostMore','hostChat','themeButton','resetButton'];
     const named=ids.map(id=>({id,button:document.getElementById(id),svg:document.getElementById(id)?.querySelector('svg use')}));
     const r=a.getBoundingClientRect();
     return {symbols:document.querySelectorAll('.od-icon-sprite symbol').length,
@@ -248,7 +248,7 @@ async function run(){
   }.toString()+')()');
   assert(icons.symbols>=15);
   assert.equal(icons.addVisibleText,'');
-  assert(icons.addBounds.width>=40&&icons.addBounds.height>=40);
+  assert(icons.addBounds.width>=30&&icons.addBounds.width<=36&&icons.addBounds.height>=30);
   assert(icons.names.every(x=>x.name&&x.href?.startsWith('#ps-icon-')));
   assert.equal(icons.cardButtons,1);
   report.iconOnlyPrimaryActions=true;
@@ -291,7 +291,9 @@ async function run(){
   await click('#size440');
   report.responsiveIconToolbar=true;
   // R1.16 trusted settings: three switches and multi-site status (no fake site authorization).
-  await click('#hostSettings');
+  await click('#hostMore');
+   assert.equal(await evalChrome('!document.querySelector("#hostMoreMenu").hidden'),true);
+   await click('#hostSettings');
   assert.equal(await evalChrome('!document.querySelector("#settingsView").hidden'),true);
   assert.equal(await evalChrome('document.querySelector("#hostToolTitle").textContent'),"工具设置");
   assert.equal(await evalChrome('document.querySelector("#settingsView h2")===null'),true);
@@ -753,19 +755,21 @@ async function run(){
   report.simulatedFailure=true;
   // R2.6.1: canonical host gear + uninstall in the header; no extra explanatory menu text.
   await click('#size320');
-  const header=await evalChrome('(()=>{const panel=document.querySelector("#sidepanel").getBoundingClientRect(),title=document.querySelector("#hostToolTitle").getBoundingClientRect(),remove=document.querySelector("#hostRemove").getBoundingClientRect();return {noOverflow:document.querySelector("#hostToolHead").scrollWidth<=document.querySelector("#hostToolHead").clientWidth+1,titleWidth:title.width,removeRight:remove.right,panelRight:panel.right,gear:document.querySelector("#ps-icon-settings")?.innerHTML.includes("<circle"),trash:document.querySelector("#hostRemove use")?.getAttribute("href"),visible:!document.querySelector("#hostRemove").hidden,menuNote:document.querySelector(".transfer-note")!==null};})()');
+  const header=await evalChrome('(()=>{const panel=document.querySelector("#sidepanel").getBoundingClientRect(),title=document.querySelector("#hostToolTitle").getBoundingClientRect(),more=document.querySelector("#hostMore").getBoundingClientRect();return {noOverflow:document.querySelector("#hostToolHead").scrollWidth<=document.querySelector("#hostToolHead").clientWidth+1,titleWidth:title.width,moreRight:more.right,panelRight:panel.right,gear:document.querySelector("#ps-icon-settings")?.innerHTML.includes("<circle"),trash:document.querySelector("#hostRemove use")?.getAttribute("href"),moreHidden:document.querySelector("#hostMoreMenu").hidden,chat:document.querySelector("#hostChat").getBoundingClientRect().width,menuNote:document.querySelector(".transfer-note")!==null};})()');
   assert.equal(header.noOverflow,true,'320px header must not overflow');
   assert(header.titleWidth>=80,'tool title must remain legible at 320px');
-  assert(header.removeRight<=header.panelRight+1,'uninstall must be inside the panel');
+  assert(header.moreRight<=header.panelRight+1,'overflow trigger must stay inside the panel');
   assert.equal(header.gear,true);assert.equal(header.trash,'#ps-icon-uninstall');
-  assert.equal(header.visible,true);assert.equal(header.menuNote,false);
-  await click('#hostRemove');
+  assert.equal(header.moreHidden,true);assert(header.chat>=30);assert.equal(header.menuNote,false);
+  await click('#hostMore');
+   await click('#hostRemove');
   assert.equal(await evalChrome('!document.querySelector("#uninstallConfirm").hidden'),true);
   await shot('r261-uninstall-confirm-320px');
   await click('#cancelUninstall');
   assert.equal(await evalChrome('document.querySelector("#uninstallConfirm").hidden'),true);
   assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),4,'cancel keeps all prompts');
-  await click('#hostRemove');
+  await click('#hostMore');
+   await click('#hostRemove');
   await click('#confirmUninstall');
   assert.equal(await evalChrome('!document.querySelector("#toolListView").hidden'),true);
   assert.equal(await evalChrome('document.querySelector("#reopenTool").hidden'),true);
