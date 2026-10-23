@@ -17,6 +17,7 @@ import {stopAdblockForTool,cleanupUninstalledAdblock} from '../../../examples/si
 import {stopAiAccessForTool,cleanupUninstalledAiAccess} from '../../../examples/sidebar-tools/ai-vip-share/trusted/lifecycle.js';
 import {stopManagedProxyForTool} from '../../platform/chrome/browser-managed-proxy.js';
 import {stopManagedSiteBudgetForTool} from '../../platform/chrome/browser-managed-site-budget.js';
+import {MANAGED_SITE_REVIEWED_SCOPE_STORE} from '../../framework/host/managed-site-reviewed-scopes.js';
 import {MANAGED_SITE_BUDGET_CAPABILITY,MANAGED_SITE_BUDGET_PROTOCOL} from '../../platform/host/managed-site-runtime-contract.js';
 import {assertManagedSitePolicySupported} from '../../platform/host/managed-site-runtime-contract.js';
 
@@ -223,7 +224,7 @@ export async function cleanupUninstalledToolLocked(api,id){
     await cleanupUninstalledAdblock(api,id,removeVerifiedKey);
     await cleanupUninstalledAiAccess(api,id,removeVerifiedKey);
     await stopManagedProxyForTool(api,id,{removeVerifiedKey});
-    for(const store of [SIDEBAR_TOOL_ENABLE_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE,PROMPT_SHORTCUTS_SITE_CLEANUP_STORE,MARKET_PROVENANCE_STORE,BROWSER_MENU_GRANTS_STORE]){
+    for(const store of [SIDEBAR_TOOL_ENABLE_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE,PROMPT_SHORTCUTS_SITE_CLEANUP_STORE,MARKET_PROVENANCE_STORE,BROWSER_MENU_GRANTS_STORE,MANAGED_SITE_REVIEWED_SCOPE_STORE]){
       const raw=(await api.storage.local.get(store))[store];
       const original=store===SIDEBAR_TOOL_ENABLE_STORE?requireToolEnableRecords(raw):
         raw===undefined?{}:raw;

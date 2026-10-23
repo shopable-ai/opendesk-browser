@@ -3,6 +3,10 @@ import {ANALYTICS_PROTOCOL} from '../analytics/contract.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE,normalizeBrowserOperation,browserOperation} from '../framework/sdk/browser-contract.js';
 import {MANAGED_SITE_BUDGET_CAPABILITY,MANAGED_SITE_BUDGET_PROTOCOL} from '../platform/host/managed-site-runtime-contract.js';
 import {assertManagedSitePolicySupported} from '../platform/host/managed-site-runtime-contract.js';
+import {assertManagedSiteToolLease} from '../platform/host/managed-site-authority.js';
+import {MANAGED_SITE_REVIEWED_SCOPE_STORE,reviewedManagedSiteScopeCovers,
+  extendReviewedManagedSiteScopes,managedSiteV3RequiredOrigins}
+  from '../framework/host/managed-site-reviewed-scopes.js';
 import {browserTextDownloadUrl} from '../framework/sdk/browser-schemas.js';
 import readingTocCatalog from '../../examples/sidebar-tools/reading-toc/trusted/locales.generated.js';
 import {uiMessage,resolveUiLocale} from './app-localization.js';
@@ -1856,31 +1860,60 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             throw Object.assign(new Error('策略已经变化，请刷新后重试'),
               {code:'E_STORAGE_CONFLICT'});
           const old=prior.data.desiredPolicy;
+          const scopes=(await api.storage.local.get(MANAGED_SITE_REVIEWED_SCOPE_STORE))
+            [MANAGED_SITE_REVIEWED_SCOPE_STORE];
+          const scopeNeeded=desired.enabled&&!reviewedManagedSiteScopeCovers(
+            scopes,tool.id,revocationEpoch,packageHash,desired);
+          // Changes to an existing limit or weekly time window are normal app
+          // edits, not repeated browser permission prompts. A new permanent
+          // restriction or removal of a previous whitelist is an escalation.
           const priorSites=new Map(old.sites.map(site=>[site.host,site]));
-          const expanding=desired.enabled&&(!old.enabled||
+          const escalating=desired.enabled&&(
             desired.sites.some(site=>site.enabled&&
-              (!priorSites.get(site.host)?.enabled||
-               site.subdomains&&!priorSites.get(site.host)?.subdomains||
-               site.conditions.some(condition=>
-                 condition.type==='constant-deny'||
-                 condition.type==='weekly-window'&&!priorSites.get(site.host)?.conditions
-                   ?.some(oldCondition=>oldCondition.type==='weekly-window'))))||
-            old.whitelist.some(site=>!desired.whitelist.includes(site)));
-          if(expanding){
+              site.conditions.some(condition=>condition.type==='constant-deny'&&
+                !priorSites.get(site.host)?.conditions?.some(oldItem=>oldItem.type==='constant-deny')))||
+            old.whitelist.some(white=>!desired.whitelist.includes(white)));
+          if(scopeNeeded||escalating){
             const sites=desired.sites.filter(site=>site.enabled).map(site=>site.host);
+            const origins=managedSiteV3RequiredOrigins(desired);
+            const chromeHasOrigins=!origins.length||await api.permissions.contains({origins});
             const confirmed=await requestBrowserClick({toolId:tool.id,
-              message:'「'+tool.title+'」将对以下网站启用或扩大访问限制：'+
-                (sites.join('、')||'已配置网站')+'。限制将在关闭界面后继续生效。',
-              button:'确认限制范围',run:event=>{
+              message:'「'+tool.title+'」将对以下网站'+
+                (scopeNeeded?'申请独立于 Chrome 扩展权限的网站限制授权':'扩大限制方式')+
+                '：'+(sites.join('、')||'已配置网站')+'。关闭界面后仍继续生效。',
+              button:scopeNeeded?'批准网站限制':'确认限制扩大',run:event=>{
                 assertSession(source,token);
                 if(!event?.isTrusted)throw Object.assign(new Error('需要真实点击'),
                   {code:'E_USER_GESTURE_REQUIRED'});
-                return true;
+                // Native permission requests MUST be the first API call in
+                // the genuine user gesture; <all_urls> never grants app scope.
+                return chromeHasOrigins||!origins.length?true:api.permissions.request({origins});
               }});
             if(confirmed!==true)
               throw Object.assign(new Error('未批准扩大网站限制范围'),
                 {code:'E_USER_APPROVAL_REQUIRED'});
             assertSession(source,token);
+            if(origins.length&&!await api.permissions.contains({origins}))
+              throw Object.assign(new Error('Chrome 未批准所选网站访问范围'),
+                {code:'E_CHROME_PERMISSION_REQUIRED'});
+            if(scopeNeeded){
+              await assertManagedSiteToolLease(api,{toolId:tool.id,
+                capability:MANAGED_SITE_BUDGET_CAPABILITY,packageHash,
+                installEpoch:revocationEpoch,hashPackage:sidebarToolPackageHash});
+              const locks=globalThis.navigator?.locks;
+              if(!locks?.request)throw Object.assign(new Error('缺少可信网站授权存储锁'),
+                {code:'E_TOOL_LOCK'});
+              await locks.request('opendesk.browser:managed-site-site-grants',async()=>{
+                assertSession(source,token);
+                const current=(await api.storage.local.get(MANAGED_SITE_REVIEWED_SCOPE_STORE))
+                  [MANAGED_SITE_REVIEWED_SCOPE_STORE];
+                const next=extendReviewedManagedSiteScopes(current,{
+                  id:tool.id,installEpoch:revocationEpoch,packageHash,policy:desired});
+                await writeVerifiedLocalValue(api,MANAGED_SITE_REVIEWED_SCOPE_STORE,next,current,
+                  '已审阅的网站限制范围');
+              });
+              assertSession(source,token);
+            }
           }
         }
         if(operation==='browser.siteBudget.setPolicy'&&!v3){

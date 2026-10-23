@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {desiredManagedSiteV3Rules,isManagedSiteV3RuleId,managedSiteV3RuleRange}
   from '../../src/platform/chrome/managed-site-v3-rules.js';
-import {normalizeManagedSiteV3Commit,assertManagedSiteV3ModelRef}
-  from '../../src/platform/chrome/managed-site-v3-policy.js';
+import {normalizeManagedSiteV3Commit,assertManagedSiteV3ModelRef,canonicalManagedSiteV3ModelBytes}
+  from '../../src/framework/sdk/site-budget-v3-policy.js';
 const site=(host,{subdomains=true,enabled=true,pool='g:shared',limitMs=60000}={})=>({
   host,subdomains,enabled,pool,conditions:[{type:'counter-limit',limitMs}]});
 const plan=(sites,whitelist=[])=>({kind:'site-budget.v3',enabled:true,sites,whitelist});
@@ -25,11 +25,14 @@ test('v3 native DNR uses fixed disjoint owner IDs and rejects unbounded code',()
 test('v3 immutable model hash is verified independently of claimed digest',async()=>{
   const sealedModel={version:1,sites:[{host:'example.com',minutes:30}],groups:{}};
   const digest=await crypto.subtle.digest('SHA-256',
-    new TextEncoder().encode(JSON.stringify(sealedModel)));
+    canonicalManagedSiteV3ModelBytes(sealedModel));
   const modelRef=Array.from(new Uint8Array(digest),x=>x.toString(16).padStart(2,'0')).join('');
   const commit=normalizeManagedSiteV3Commit({expectedRev:0,desiredPolicy:plan([]),
     modelRef,sealedModel});
   assert.equal(await assertManagedSiteV3ModelRef(commit),true);
+  assert.equal(await assertManagedSiteV3ModelRef({...commit,
+    sealedModel:{groups:{},sites:sealedModel.sites,version:1}}),true,
+    'Storage key insertion order must not affect sealed model identity');
   await assert.rejects(()=>assertManagedSiteV3ModelRef({...commit,modelRef:'0'.repeat(64)}),
     {code:'E_SITE_BUDGET_V3_POLICY'});
   assert.throws(()=>normalizeManagedSiteV3Commit({...commit,sealedModel:JSON.parse('{"__proto__":"not allowed"}')}));

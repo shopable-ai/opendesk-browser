@@ -23,6 +23,8 @@ import {resolveToolSender} from '../../environment.js';
 import {observeManagedForeground,settleManagedSiteBudget,reconcileManagedDynamicRules}
   from './browser-managed-site-policy.js';
 import {subscribeManagedSiteActivity} from './managed-site-lifecycle.js';
+import {MANAGED_SITE_REVIEWED_SCOPE_STORE,reviewedManagedSiteScopeCovers,
+  managedSiteV3RequiredOrigins} from '../../framework/host/managed-site-reviewed-scopes.js';
 
 export const MANAGED_SITE_BUDGET_STORE='opendesk.browser.site-budget.resources.v1';
 export const MANAGED_SITE_BUDGET_ALARM='opendesk.browser.site-budget.tick.v1';
@@ -230,7 +232,7 @@ export function createManagedSiteBudgetService({
       // Admission always comes from the original installed-tool registry, NOT
       // from this resource ledger, which may retain a removed owner's cleanup.
       const auth=await readManagedSiteToolAuthority(api,{toolId:id,
-        capability:MANAGED_SITE_BUDGET_CAPABILITY,extraStoreKeys:[MARKET_PROVENANCE_STORE]});
+        capability:MANAGED_SITE_BUDGET_CAPABILITY,extraStoreKeys:[MARKET_PROVENANCE_STORE,MANAGED_SITE_REVIEWED_SCOPE_STORE]});
       const provenance=sourceId(auth.saved,id);
       const packageHash=auth.tool?await sidebarToolPackageHash(auth.tool):null;
       const kind=auth.tool?.backgroundPolicy?.kind;
@@ -301,16 +303,24 @@ export function createManagedSiteBudgetService({
             fail('E_CHROME_PERMISSION_REQUIRED','请启用 Chrome DNR 和 idle 权限');
           await assertManagedSiteV3ModelRef(settings);
           if(settings.desiredPolicy.enabled){
-            for(const site of settings.desiredPolicy.sites.filter(item=>item.enabled)){
-              const pattern=site.subdomains?'*.'+site.host:site.host;
-              if(!await api.permissions.contains({origins:['*://'+pattern+'/*']}))
-                fail('E_SITE_SCOPE','Chrome 尚未授予网站访问权限：'+site.host);
-            }
+            if(!reviewedManagedSiteScopeCovers(auth.saved[MANAGED_SITE_REVIEWED_SCOPE_STORE],
+                id,auth.epoch,packageHash,settings.desiredPolicy))
+              fail('E_SITE_SCOPE','没有绑定当前应用安装代际的可信网站限制授权');
+            const requested=managedSiteV3RequiredOrigins(settings.desiredPolicy);
+            if(requested.length&&!await api.permissions.contains({origins:requested}))
+              fail('E_SITE_SCOPE','Chrome 尚未授予全部受审阅网站的原生访问权限');
           }
         }
         const epochChanged=nextRow.epoch!==auth.epoch||nextRow.packageHash!==packageHash;
+        const scopeTrusted=reviewedManagedSiteScopeCovers(
+          auth.saved[MANAGED_SITE_REVIEWED_SCOPE_STORE],id,auth.epoch,packageHash,nextRow.policy);
+        const requestedOrigins=managedSiteV3RequiredOrigins(nextRow.policy);
+        const nativeScopeTrusted=!requestedOrigins.length||
+          await api.permissions.contains({origins:requestedOrigins});
+        const authorizedExecution=scopeTrusted&&nativeScopeTrusted;
         let current=null;
-        if(valid&&permission.ready&&nextRow.policy.enabled&&!epochChanged&&!revoke&&!permissionRevoked)
+        if(valid&&authorizedExecution&&permission.ready&&nextRow.policy.enabled&&
+           !epochChanged&&!revoke&&!permissionRevoked)
           try{current=await observeManagedForeground(api,{ready:true,hostFromUrl,
             siteForHost:host=>selectedManagedSiteV3(nextRow.policy,host)});}catch{}
         const settled=settleManagedSiteBudget(nextRow,{at,session:await sessionId(),current,
@@ -331,7 +341,7 @@ export function createManagedSiteBudgetService({
           nextRow.desiredPolicyRev++;
           nextRow.checkpoint=null;
         }
-        if(!valid||epochChanged||revoke||permissionRevoked||!permission.ready){
+        if(!valid||epochChanged||revoke||permissionRevoked||!permission.ready||!authorizedExecution){
           if(nextRow.policy.enabled){
             nextRow.policy={...nextRow.policy,enabled:false};
             nextRow.desiredPolicyRev++;
@@ -559,7 +569,7 @@ export function installManagedSiteBudgetService({api=globalThis.chrome,...option
     },
     onStorageChanged:(changes,area)=>{
       if(area==='local'&&[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,
-        MARKET_PROVENANCE_STORE].some(key=>Object.hasOwn(changes,key))){
+        MARKET_PROVENANCE_STORE,MANAGED_SITE_REVIEWED_SCOPE_STORE].some(key=>Object.hasOwn(changes,key))){
         service.invalidate();void service.run({boot:true}).catch(error=>
           console.warn('E_SITE_BUDGET_CHANGE',error?.code||'E_SITE_BUDGET'));
       }
