@@ -163,3 +163,43 @@ test('verified Side Panel opens → opt-in collector → real HTTP D1 → PostHo
   assert.equal(records.get(ANALYTICS_STATE_KEY).installId,null);
   assert.equal((await report('tool.opened','prompt-shortcuts')).data.recorded,false);
 });
+
+test('Workflow independent readback must also pass original Host result; dedupe by private RunId',async()=>{
+  const now=Date.UTC(2026,9,23,12);
+  const {api,send,records}=chromeMock([{id:'cookie-editor'}]);
+  let verified=false,reads=0;
+  const collector=installAnalyticsHost({api,endpoint:'https://analytics.example/v1/events',
+    now:()=>now,newId:randomUUID,fetcher:async()=>{throw Error('offline');},
+    verifyWorkflowResult:async(runId,sender)=>{
+      reads++;return verified&&sender.documentId==='trusted-workflow'&&typeof runId==='string';
+    }});
+  const id=api.runtime.id,runId=randomUUID();
+  const panel={id,documentId:'trusted-workflow',frameId:0,
+    url:api.runtime.getURL('sidepanel.html')+'?hostInstanceId='+randomUUID()};
+  const options={id,url:api.runtime.getURL('native-agent/settings.html'),frameId:0};
+  const event={protocol:ANALYTICS_PROTOCOL,kind:'event.workflow_verified',
+    event:'workflow.business_effect_verified',toolId:'workflow',
+    channel:'extension',runId};
+  assert.equal((await send(event,panel)).data.recorded,false);
+  assert.equal(reads,0,'before consent no original Controller readback');
+  await send({protocol:ANALYTICS_PROTOCOL,kind:'consent.set',enabled:true,
+    disclosureVersion:ANALYTICS_DISCLOSURE_VERSION},options);
+  assert.equal((await send(event,panel)).code,'E_SENDER',
+    'failed Host corroboration cannot be B-grade');
+  verified=true;
+  assert.equal((await send(event,{...panel,url:panel.url+'&previewId=x'})).code,'E_SENDER');
+  assert.equal((await send(event,panel)).data.recorded,true);
+  assert.equal((await send(event,panel)).data.recorded,false,'same Run cannot double-count');
+  const queue=records.get(ANALYTICS_STATE_KEY).queue;
+  const evidence=queue.filter(row=>row.event==='workflow.business_effect_verified');
+  assert.equal(evidence.length,1);
+  assert.equal(evidence[0].evidenceLevel,'B');
+  assert.equal(evidence[0].toolId,'workflow');
+  assert(!JSON.stringify(queue).includes(runId),'RunId remains on this installation');
+  assert(!queue.some(row=>row.event==='tool.engaged'||row.event==='tool.manual_attempt'),
+    'an AI auto step cannot manufacture active DAU');
+  await send({protocol:ANALYTICS_PROTOCOL,kind:'consent.set',enabled:false},options);
+  assert.equal(records.get(ANALYTICS_STATE_KEY).verifiedWorkflowRunIds.length,0);
+  assert.equal((await send(event,panel)).data.recorded,false);
+  assert.equal((await collector.status()).consent,false);
+});

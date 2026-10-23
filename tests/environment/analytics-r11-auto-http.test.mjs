@@ -79,6 +79,8 @@ test('real D1 SQL + PostHog-shaped HTTP: cumulative 100, retry, late version, ga
   assert.equal(got.flatMap(row=>row.batch).length,1);
   assert.deepEqual([got[0].batch[0].properties.cumulative_total,
     got[0].batch[0].properties.snapshot_version],[100,1]);
+  assert.deepEqual(got[0].batch[0].properties.source_totals,{page_auto:100},
+    'PostHog retains source totals without extra D1 cumulative keys');
   // D1 ACK can succeed while the PostHog HTTP sink is down.
   online=false;
   const newer=auto({version:2,total:101});

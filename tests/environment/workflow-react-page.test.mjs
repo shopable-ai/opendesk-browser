@@ -5,7 +5,7 @@ import {transform} from 'esbuild';
 import {workflowFixture,tick} from './workflow-react-fixture.mjs';
 import {compileWorkflow} from '../../src/framework/workflow/compiler.js';
 import {sealWorkflowBundle,replayParameterSchema,WORKFLOW_BUNDLE_FORMAT,
-  WORKFLOW_DYNAMIC_BUNDLE_FORMAT,inferDynamicReplayPlan} from '../../src/ui/workflow/segment-replay.js';
+  WORKFLOW_DYNAMIC_BUNDLE_FORMAT,inferDynamicReplayPlan,simpleCommerceReplayGoal} from '../../src/ui/workflow/segment-replay.js';
 const fill={stepId:'fill',op:'fill',locatorKind:'css',selector:'#keyword',text:'OpenDesk'};
 const get=(f,id)=>f.state().controls[id]||{};
 test('workflow whole page declares DOM in TSX and adapter has no legacy renderer/listeners',async()=>{
@@ -29,6 +29,9 @@ test('workflow normal execution preserves durable run, result, document and sour
 });
 test('workflow compiler failure clears old artifact and cannot execute it',async t=>{
   const f=await workflowFixture();t.after(()=>f.view.dispose());
+  // The compiler resolves asynchronously; this test must first prove the
+  // original source is runnable before asserting that an invalid edit blocks it.
+  for(let attempt=0;attempt<12&&get(f,'workflow-run').disabled;attempt++)await tick();
   assert.equal(get(f,'workflow-run').disabled,false);
   f.view.actions.editStep('one','op','confirm');await tick();await tick();
   assert.equal(get(f,'workflow-run').disabled,true);
@@ -525,4 +528,12 @@ test('Send cannot assume no saved match before asynchronous history hydration',a
   assert.equal(f.starts.length,0);
   release();await tick();await tick();
   assert.equal(get(f,'workflow-ai-plan').disabled,false);
+});
+
+test('Workflow Chinese replay grammar accepts natural word spacing but rejects extra demands',()=>{
+ const intent={query:'camera',productName:'Camera X'};
+ assert.deepEqual(simpleCommerceReplayGoal('搜索 camera，打开 Camera X 商品详情，核对名称和价格'),intent);
+ assert.deepEqual(simpleCommerceReplayGoal('搜索 camera，打开 Camera X 商品详情，核对 名称和价格'),intent);
+ assert.equal(simpleCommerceReplayGoal('搜索 camera，打开 Camera X 商品详情，核对名称和价格，要求价格低于100'),null);
+ assert.equal(simpleCommerceReplayGoal('搜索 camera，打开 Camera X 商品详情，并且提交订单'),null);
 });
