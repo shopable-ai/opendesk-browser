@@ -6,6 +6,7 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 import {createHash,randomUUID} from 'node:crypto';
 import {parse} from 'acorn';
 import {createSidebarToolPackage,encodeSidebarToolPackage} from './build-sidebar-tool.mjs';
+import {validateSidebarToolPackage} from '../src/ui/sidebar-tools/package.js';
 import {inspectSidebarToolProject} from './stage-sidebar-tool.mjs';
 import {validateOfficialSourceCatalog,validateOfficialReleaseCatalog,OFFICIAL_RELEASE_SCHEMA,
   OFFICIAL_CATALOG_PATH,officialPackagePath} from '../src/sidebar-tools/official-catalog.js';
@@ -33,6 +34,19 @@ async function projectPath(root,row){
   if(actual!==path||!actual.startsWith(root+'/examples/sidebar-tools/'))fail('official project symlink escaped trusted source: '+row.id);
   return actual;
 }
+async function prepackedPackage(project,name){
+  const path=resolve(project,name);
+  if(!path.startsWith(project+'/'))fail('prepacked package escaped project directory');
+  const info=await lstat(path);
+  if(!info.isFile()||info.size<1||info.size>320000||await realpath(path)!==path)
+    fail('prepacked official package is not a bounded regular file');
+  const bytes=await readFile(path);
+  let object;
+  try{object=JSON.parse(bytes.toString('utf8'));}
+  catch{fail('prepacked official package JSON invalid');}
+  // Use the same authoritative package validator as all other releases.
+  return validateSidebarToolPackage(object);
+}
 // Include only declared release inputs, including build-ready for a precompiled
 // project. This same list feeds build identity and the existing dev watcher.
 export async function officialToolInputs(root=REPOSITORY_ROOT){
@@ -40,6 +54,12 @@ export async function officialToolInputs(root=REPOSITORY_ROOT){
   const catalog=await readOfficialSources(root),paths=[OFFICIAL_CATALOG_PATH];
   for(const row of catalog.tools){
     const project=await projectPath(root,row);
+    if(row.packageFile){
+      const path=resolve(project,row.packageFile);
+      if(await realpath(path)!==path)fail('prepacked source is a symlink');
+      paths.push(relative(root,path));
+      continue;
+    }
     await inspectSidebarToolProject(project);
     const config=JSON.parse(await readFile(resolve(project,'tool.config.json'),'utf8'));
     const files=['tool.config.json',config.files.html,config.files.css,config.files.js,
@@ -62,8 +82,10 @@ export async function createOfficialToolResources({root=REPOSITORY_ROOT}={}){
   root=await realpath(root);
   const before=await fingerprint(root),source=await readOfficialSources(root),apps=[],resources=new Map();
   for(const row of source.tools){
-    const tool=await createSidebarToolPackage(await projectPath(root,row));
-    if(tool.id!==row.id)fail('tool.config.json ID does not match catalog: '+row.id);
+    const project=await projectPath(root,row);
+    const tool=row.packageFile?await prepackedPackage(project,row.packageFile):
+      await createSidebarToolPackage(project);
+    if(tool.id!==row.id)fail('official release ID does not match catalog: '+row.id);
     try{parse(tool.js,{ecmaVersion:'latest',sourceType:'script'});}
     catch(error){fail('official tool JavaScript syntax error: '+row.id+' '+error.message);}
     const raster=/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/;

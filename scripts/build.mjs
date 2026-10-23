@@ -1,6 +1,5 @@
 import {preparePublic} from './prepare-public.mjs';
 import {buildAdblockReact} from './build-adblock-react.mjs';
-import {buildStayFocusReact} from './build-stay-focus-react.mjs';
 import {buildCookieEditorReactIfOfficial} from './build-cookie-editor-react.mjs';
 import {officialToolInputs} from './build-official-tools.mjs';
 import {acquireDevelopmentLock} from './development-lock.mjs';
@@ -30,9 +29,9 @@ try {
 await mkdir(evidence,{recursive:true});
 await writeFile(`${evidence}/build-${outputLabel}-latest.json`,JSON.stringify({status:'in_progress',mode,attemptId,startedAt:new Date().toISOString()})+'\n');
 await verifyReadingTocTrustedLocales();
-// Compile independent React tools before fingerprinting official inputs.
+// Compile React tools that still belong to the Browser build. Stay Focus
+// is now consumed only as an independently built, reviewed package asset.
 await buildAdblockReact({log:false});
-await buildStayFocusReact({log:false});
 await buildCookieEditorReactIfOfficial({log:false});
 inputsBefore = await sourceInputs();
 process.env.OPENDESK_BUILD_MODE=mode;

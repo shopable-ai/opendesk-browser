@@ -42,7 +42,8 @@
       "id": "stay-focus",
       "project": "examples/sidebar-tools/stay-focus",
       "kind": "sidebar-tool",
-      "installationPolicy": "optional"
+      "installationPolicy": "optional",
+      "packageFile": "stay-focus.opendesk-tool.json"
     },
     {
       "id": "adblock",

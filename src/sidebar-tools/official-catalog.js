@@ -25,7 +25,12 @@ export function validateOfficialSourceCatalog(value){
       value.sourceRepository!==OFFICIAL_SOURCE_REPOSITORY)throw error('官方工具源码目录不受信任');
   const seen=new Set();
   for(const tool of list(value.tools)){
-    if(!fields(tool,['id','project','kind','installationPolicy'])||!idPattern.test(tool.id)||
+    if(!fields(tool,['id','project','kind','installationPolicy',
+          ...(tool?.packageFile===undefined?[]:['packageFile'])])||
+        (tool.packageFile!==undefined&&
+          (typeof tool.packageFile!=='string'||!idPattern.test(tool.id)||
+           !/^[a-z][a-z0-9._-]{0,110}.opendesk-tool.json$/.test(tool.packageFile)))||
+        !idPattern.test(tool.id)||
         typeof tool.id!=='string'||tool.project!=='examples/sidebar-tools/'+tool.id||
         tool.kind!=='sidebar-tool'||!['optional','preinstalled'].includes(tool.installationPolicy)||seen.has(tool.id))
       throw error('官方工具身份、源码路径或安装策略无效');
@@ -47,6 +52,7 @@ export function validateOfficialReleaseCatalog(value){
     // Reuse the existing package metadata/capability validator. These inert
     // placeholders only validate the descriptor; executable bytes load later.
     const hasMenus=Array.isArray(row.capabilities)&&row.capabilities.includes('browser.contextMenu');
+    const hasBudget=Array.isArray(row.capabilities)&&row.capabilities.includes('browser.siteBudget');
     // V2 may expose approved Browser SDK services beyond Cookies/Bookmarks.
     // Reuse the one package validator; do not invent special product exceptions.
     const hasSdk=hasMenus||Array.isArray(row.capabilities)&&row.capabilities.some(cap=>
@@ -55,6 +61,7 @@ export function validateOfficialReleaseCatalog(value){
       id:row.toolId,version:row.version,
       title:row.packageTitle,description:row.description,capabilities:row.capabilities,
       html:'<main></main>',css:'',js:'void 0;',
+      ...(hasBudget?{backgroundPolicy:{kind:'site-budget.v3',suggestions:[]}}:{}),
       ...(hasSdk?{requires:{browserSdk:'1.0.0'},
         contributes:{contextMenus:hasMenus?[{actionId:'sample-action',title:'Validation placeholder',
           contexts:['page'],documentUrlPatterns:['https://example.com/*'],handler:'open-self'}]:[]}}:{})});
