@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {selectInstalledTaskRoute} from '../../src/ui/workflow/installed-task-reuse.js';
+import {createTaskPackage,verifyTaskPackage,validateTaskManifest} from '../../src/platform/tasks/contract.js';
+import {digestUtf8} from '../../src/platform/protocol.js';
 const target={status:'available',frameId:0,origin:'https://shop.example',url:'https://shop.example/'};
 const schema={type:'object',additionalProperties:false,properties:{
   query:{type:'string',title:'查询词',minLength:2,maxLength:120},
@@ -25,7 +27,8 @@ test('pinned installed Task extracts params from declared complete operation cha
   assert.deepEqual(matched.candidate.params,{query:'lens',productName:'Lens Y'});
   assert.equal(matched.candidate.expected.generation,2);
   assert.equal(matched.candidate.sourceHash,'a'.repeat(64));
-  assert.equal(matched.candidate.sensitive,false);
+  assert.equal(matched.candidate.sensitive,true,
+    'a self-described commerce Task cannot prove its source safe enough to skip review');
 });
 test('read-only equivalents match, added conditions and negations cannot be dropped',()=>{
   assert.equal(route('查找 lens，进入 Lens Y 详情页，验证名称与售价').state,'MATCH');
@@ -114,4 +117,59 @@ test('legacy verified demo search discovers keyword from complete operation cont
   manifest.paramsSchema.properties.keyword.title='搜索关键词';
   manifest.description='可重复搜索关键词';
   assert.equal(match('在当前演示搜索页搜索 OpenDesk，并核对结果').state,'NO_MATCH');
+});
+
+
+test('new immutable Task intent templates match declared operation, not marketing description or ID',()=>{
+  const data=fixture({description:'一段不用于路由的普通产品描述'});
+  const manifest=data.catalog[0].manifest;
+  manifest.paramsSchema={type:'object',additionalProperties:false,
+    properties:{keyword:{type:'string',title:'搜索关键词',minLength:1,maxLength:80,default:'OpenDesk'}},
+    required:['keyword']};
+  manifest.intent={
+    templates:['在当前演示搜索页搜索 {keyword}，并核对结果'],
+    resultTexts:['结果：{keyword}','提交次数：1']
+  };
+  const request='在当前演示搜索页搜索 OpenDesk，并核对结果';
+  const selected=route(request,data);
+  assert.equal(selected.state,'MATCH');
+  assert.equal(selected.candidate.kind,'declared');
+  assert.equal(selected.candidate.sensitive,true,'intent does not prove the JavaScript read-only');
+  assert.deepEqual(selected.candidate.params,{keyword:'OpenDesk'});
+  assert.deepEqual(selected.candidate.intent.resultTexts,manifest.intent.resultTexts);
+  assert.equal(route('在当前演示搜索页搜索 ，并核对结果',data).state,'MISSING_PARAMS',
+    'an authored default must not silently choose the user keyword');
+  for(const changed of [
+    request+'，然后删除记录',
+    '在当前演示搜索页搜索 OpenDesk，但不要执行，并核对结果',
+    '在当前演示搜索页搜索 OpenDesk，并核对日志'
+  ])assert.equal(route(changed,data).state,'NO_MATCH',changed);
+  assert.equal(route(request,data,{...target,origin:'https://else.example'}).state,'NO_MATCH');
+});
+
+test('new Task intent and DOM result claims are schema-bound and tamper-evident',async()=>{
+  const source='async function main(){ return {result:"sample"}; }\n';
+  const schema={type:'object',additionalProperties:false,
+    properties:{keyword:{type:'string',title:'搜索关键词',minLength:1,maxLength:80}},
+    required:['keyword']};
+  const manifest={format:'opendesk.task.v1',taskId:'sample.intent-search',version:'1.0.1',
+    title:'搜索并核对',description:'使用已安装的固定 JavaScript',
+    author:'OpenDesk Browser',source:'local-demo',
+    siteOrigins:['https://shop.example'],permissions:['page.automation'],entryFormat:'async-main',
+    program:{revision:3,sourceHash:await digestUtf8(source)},
+    paramsSchema:schema,
+    intent:{templates:['搜索 {keyword}，核对结果'],
+      resultTexts:['结果：{keyword}','提交次数：1']}};
+  assert.equal(validateTaskManifest(manifest),manifest);
+  const pkg=await createTaskPackage(manifest,source);
+  assert.equal((await verifyTaskPackage(pkg)).manifestHash,pkg.manifestHash);
+  await assert.rejects(verifyTaskPackage({...pkg,manifest:{...manifest,
+    intent:{...manifest.intent,resultTexts:['结果：{keyword}','提交次数：2']}}}),{code:'E_HASH'});
+  assert.throws(()=>validateTaskManifest({...manifest,
+    intent:{templates:['搜索 {missing}，核对结果']}}),{code:'E_SCHEMA'});
+  assert.throws(()=>validateTaskManifest({...manifest,
+    intent:{templates:['搜索固定值，核对结果']}}),{code:'E_SCHEMA'});
+  assert.throws(()=>validateTaskManifest({...manifest,
+    intent:{templates:['搜索 {keyword}，核对结果'],
+      resultTexts:['静态文字 1','静态文字 2']}}),{code:'E_SCHEMA'});
 });
