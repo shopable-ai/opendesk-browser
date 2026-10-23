@@ -160,3 +160,16 @@ R2.2 抽出中立 Conversation Session、共享 Chat Frame、通用 Provider 设
 - `SharedProviderSettingsSheet` 是单一可信 React Root 的 Portal。Bookmark、Prompt、「我的」、Workflow 均通过唯一可信 ToolShell 注入的脱敏 `providerSettings` Facade 打开共享 Provider 设置（仅 `settingsSnapshot/subscribeSettings/updateSettings` 三项能力，不向 React 提供 `configuration()` 的密钥或 `acquire()` 的推理权限），不再依赖 Workflow Controller 作为入口。保存调用 `SharedAIProviderRuntime.updateSettings`，敏感 Key 仍仅存原 Runtime 内存；公开 `settingsSnapshot/subscribeSettings` 绝不返回 Key。 原 Native Codex 本机连接设置页由 ToolShell 传入已有受控 Chrome 打开动作，需当前用户可信点击，不另建连接或授权系统。原权限和 Host 系统均不复制，设置可以直接从当前业务打开。 Workflow 在 Native/Provider 错误恢复调用旧 `openAISettings` 时，正式 ToolShell 注入 `openAIProviderSettings` 转接到同一共享面板；standalone 测试仍保留原设置控件。
 - **剩余边界**：共享 Provider 设置的字段和入口已由可信 Frame/Runtime 直接拥有；Workflow 仍保留自身历史设置控件/Native 诊断与网页摘要授权业务，仅在 standalone 兼容场景展示老设置页，在正式 ToolShell 场景监听共享 Runtime 并同步自己的控制快照。Workflow 对话当前保留业务页 Composer（复用公共 Transcript/Input），尚未完整迁入公共 Frame；原页面执行/RunHost 不可因此改写。
 - 源码定向保护：`tests/environment/shared-ai-conversation-r22.test.mjs`（含 Runtime 配置代次/密钥遮蔽/消费者隔离）。只有实际执行测试、构建、Chrome/Native/安装升级并保存对应候选证据，才可将其提升为 VERIFIED；否则均 `NOT_TESTED`。
+
+
+## R2.2.1 Consumer 引用隔离与 Workflow Chat Frame（SOURCE_IMPLEMENTED / CI_PENDING）
+
+> 本节覆盖 R2.2 中“Workflow Composer 尚未接入公共 Frame”的历史状态，不意味着业务 RunHost 及真实 Chrome/Native 验收已通过。
+
+- **书签 AI 是已接入共享 UI 的早期业务实现，不是第二套 Provider**：官方可信 Bookmark React 树通过 `TrustedConversationWorkspace → SharedConversationFrame`；其业务请求仍由 `examples/sidebar-tools/bookmark-manager/src/react/App.jsx` 中的 `runBookmarkConversation` 对接 `runBookmarkAgentLoop → executeBookmarkPlan → Bookmark Service/SDK/Host`。真实 `folderId/bookmarkId` 只能来自写入后的独立书签树读回，跨安装实例只可恢复展示草稿和消息，不能恢复可执行对象 ID。
+- **按消费者限定会话引用**：`provider-consumer.js` 的 Session 保存和销毁支持 Bookmark `folderId/bookmarkId/matches`、Prompt `matches + 验证过的 ETag`、Tasks 空引用。失效/撤权/销毁不泄露其他消费者引用；Provider generation 变化使旧推理失败为身份变化错误，区别于用户主动 Stop，不允许迟到建议变成写入。
+- **Workflow 现在实际使用公共 Frame**：`workflow.tsx` 将 transcript 与 sticky composer 作为共享 Frame 的两个可信 React 插槽（`splitTargets/transcriptTarget/composerTarget`），消息、输入、中文 IME、Enter/Shift+Enter、发送和 AI Stop 由 `SharedConversationFrame` 实现；`WorkflowView` 保留唯一工作流业务状态、危险操作审阅、计划、RunHost、保存版本、动态复用的全部 Authority 和读回。
+- **「我的」保持新草稿可编辑**：AI 在途时不能再次发送，但允许继续编辑尚未发送的输入；用户确认中仍保留业务限制。
+- **受限中文自然语言规则**：工作流“核对名称和价格”与“核对 名称和价格”均可匹配已保存的安全只读两段复用；额外条件/危险操作仍拒绝部分匹配与静默丢弃，避免误执行。
+- **执行证据状态**：新增/更新 `shared-ai-provider-runtime-r21.test.mjs`、`shared-ai-conversation-r22.test.mjs`、`workflow-react-page.test.mjs`，并修正 Bookmark R1.4/R1.5 旧架构正则断言。GitHub Actions 需以当前最新提交的真实退出码为准，排队或尚未返回结果记 `CI_PENDING`；Mac Chrome、Native、多窗口生命周期、官方包首装/升级均为 `NOT_TESTED`。旧 R2.2 103/109 通过的记录不代表新候选 PASS。
+- **仍需核对**：Bookmark 业务编排目前仍嵌于较大的旧 React App 文件中，尚未证实彻底拆成独立 `BusinessConversationAdapter`；在确保草稿冲突、持续 Agent Loop、Service 写入与读回不退化前，不应为了文件形式抽象而进行大搬迁。真实跨消费者同时推理、撤权、切换和 Stop 要补 Chrome/Native 证据。
