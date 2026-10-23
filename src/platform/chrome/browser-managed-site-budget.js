@@ -369,7 +369,10 @@ export function createManagedSiteBudgetService({
         // reviewed. The old checkpoint must never charge across generations.
         // Explicit STOP, installed-tool revocation or lost Chrome permissions
         // remain durable disable events; none may silently auto-resume.
-        if(!valid||revoke||permissionRevoked||!permission.ready){
+        // An interim provenance mismatch during Installer's multi-key commit
+        // is NOT itself a user STOP. Its native effects stay suspended by
+        // canApply=false until the journal/installation identity is consistent.
+        if(!auth.enabled||revoke||permissionRevoked||!permission.ready){
           if(nextRow.policy.enabled){
             nextRow.policy={...nextRow.policy,enabled:false};
             nextRow.desiredPolicyRev++;
