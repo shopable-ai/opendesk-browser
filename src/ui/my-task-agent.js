@@ -499,6 +499,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
               add('系统','计划执行前核查失败：'+clip(error.message,360));continue;
             }
           }
+          stopCheck(signal); // Cancelled Provider cannot publish a late approval.
           if(session.confirmed?.has(JSON.stringify(action))){
             add('系统','这一操作在当前请求中已确认过，拒绝再次自动执行。');
             publish({busy:false,status:'idle',pending:null,step:''});
@@ -515,6 +516,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
         publish({busy:true,status:'reading',step:'正在读取真实 '+action.type});
         try{
           const observation=await read(action);
+          stopCheck(signal); // Discard readback after Stop/config change.
           context.push({action:action.type,observation});
           verifiedHistory=context.slice(-8);
           publish({technical:clip(JSON.stringify({action:action.type,observation}),2400)});
@@ -544,6 +546,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
     const controller=new AbortController();
     const round=chatSession.begin({signal:controller.signal});
     const current={active:true,event,goal,signal:controller.signal,controller,round,
+      providerGeneration:provider.providerGeneration?.()??null,
       context:verifiedHistory.slice(-8),confirmed:new Set()};
     session=current;
     publish({busy:true,pending:null,status:'thinking',step:'正在理解请求',technical:''});
@@ -564,6 +567,12 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
   async function confirm(event){
     if(!event?.isTrusted||!session?.active||!snapshot.pending||snapshot.busy)return;
     const current=session,pending=snapshot.pending;
+    if(current.providerGeneration!==null&&
+      current.providerGeneration!==provider.providerGeneration?.()){
+      stop();
+      add('系统','AI Provider 设置已变化，旧任务提议不再有效；请重新发送指令。');
+      return;
+    }
     // Consume exactly once before any asynchronous operation. A duplicate
     // confirmation can never start the same effect a second time.
     publish({pending:null,busy:true,status:'executing',step:'正在执行并验证：'+pending.summary});
@@ -603,6 +612,14 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
       add('系统','AI 已停止后续操作。此前确认的任务或计划可能已经提交；请先核对实际运行历史或计划状态，勿直接重试。');
     session.active=false;
   }
+  const unsubscribeProviderChanges=provider.subscribeProviderChanges?.(()=>{
+    if(disposed)return;
+    verifiedHistory=[]; // Never forward old recipient history to the new model.
+    if(session?.active||snapshot.pending){
+      stop();
+      add('系统','AI Provider 设置已切换；旧提议和确认已失效，请重新发送。');
+    }
+  });
   return Object.freeze({
     subscribe(fn){subscribers.add(fn);return ()=>subscribers.delete(fn);},
     getSnapshot(){return snapshot;},
@@ -610,6 +627,7 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
     setDraft(value){publish({draft:clip(value,4000)});},
     async send(request,event){return start(request,event);},
     confirm,stop,
-    dispose(){if(disposed)return;stop();disposed=true;chatSession.dispose();subscribers.clear();}
+    dispose(){if(disposed)return;stop();disposed=true;
+      unsubscribeProviderChanges?.();chatSession.dispose();subscribers.clear();}
   });
 }
