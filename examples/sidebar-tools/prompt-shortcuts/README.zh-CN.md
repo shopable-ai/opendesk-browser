@@ -2,13 +2,17 @@
 
 独立工具 ID：`prompt-shortcuts`，正式可安装包版本 **1.1.15**。ChatGPT、DeepSeek、Gemini 对话页使用内置默认适配；源码、工具包与实际安装状态见下方证据，其他网站仍可建立自定义规则。
 
-## R4.2-LOCAL 当前交付状态（2026-10-23）
+## R4.2-LOCAL 当前交付状态（2026-10-24 增量收尾）
 
 唯一正式 JSON 已经由原打包器从通过定向门禁的候选晋升，并通过 `--check-project`；SHA-256 为 `4085c155d2d8dbac7b55cc5dcaea24229a3fb1d6cfb69431dad2ae5c0eb33ce0`。ID、capabilities、SDK 要求与右键菜单声明未变。
 
 真实 Chromium 的原始完整预览、正式包 UI 和共享 React Host 回归已验证菜单、键盘与焦点、编辑保存、Emoji、导入导出及受控草稿插入；共享标题栏的 AI 按钮现与其他按钮一致，桌面 30px、粗指针 44px、间距 2px、图标 17px。窄视口换行后的更多菜单改为锚定整个标题栏。
 
-**本版 Mac Chrome 安装升级与 chatgpt.com 验收仍为 `NOT_TESTED`。** Computer Use 拒绝当前浏览器 URL；同时本机 `npm run dev` 因并行 managed-site 资源不在发布白名单而停止，serve 连接未验证。本轮没有绕过浏览器限制或放宽白名单。200% 等效视口和触屏媒体模拟通过，不能替代真实浏览器缩放；额外 CSS `zoom:2` 诊断仍有溢出。七维评分与综合分均为 `NOT_SCORED`，详细边界、测试及本机证据见 [R4.2-LOCAL 记录](evidence/r42-local-20261023.json)。以下历史记录保留各自版本和环境边界。
+真实 Mac Chrome 已从官方目录完成 **1.1.8 → 1.1.15 同 ID 升级**，无能力增减；升级前两条记录的所有原字段与升级后导出一致，v2 只补充文字外观默认字段。新建、多行中文与 Emoji、编辑保存、关闭重开、向已登录 ChatGPT 草稿追加全文且不发送、导出与同文件导入均已通过原生操作。单一紧凑标题栏可见，更多菜单的 Escape 焦点恢复、键盘进入设置及停用/恢复也已验证。原 ChatGPT 草稿已恢复，本轮测试条目保留并有本地导出备份。
+
+当前为仓库 `dist/development` 持续开发环境，实际 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`；调试页已显示 serve 连接成功，构建指纹 `76e6a9ee199f…`。上一轮 Computer Use 拒绝与 dev 资源阻塞属于历史状态。CI 原取消主 job 的实际原因是 16 分钟超时，重跑后主 job、四项 Chromium fixture 和下游包同步全部成功，包未变化；该 run 仍绑定旧提交，不冒充当前 main 的全量结果。
+
+按用户最新“顶多增量测试”要求，本轮复用已有回归，未继续宽度、主题、真实 200% 缩放、触屏或 production 完整矩阵；七维与综合分保持 `NOT_SCORED`，不宣称完整 95+ 验收。新增 [Mac Chrome 增量记录](evidence/r42-native-incremental-20261024.json)；[上一轮 R4.2-LOCAL 记录](evidence/r42-local-20261023.json)和以下历史记录保持各自版本与环境边界。
 
 ## AI 会话核心功能（2026-10-23 开发收尾）
 

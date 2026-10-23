@@ -1,0 +1,156 @@
+{
+  "schema": "opendesk.prompt-shortcuts.incremental-evidence.v1",
+  "date": "2026-10-24",
+  "scope": "Prompt Shortcuts R4.2-LOCAL 增量收尾",
+  "stage": {
+    "latestUserInstruction": "不用过度测试，之前已经完成过。顶多增量测试。",
+    "scope": "仅本次增量收尾，复用此前有效回归；不继续完整验收矩阵",
+    "businessSourceChanged": false
+  },
+  "result": "INCREMENTAL_CORE_COMPLETE_FULL_ACCEPTANCE_NOT_CLAIMED",
+  "observedSourceCommit": "11633f0eb9350ac6cc6ae27abb498bf4213b2b80",
+  "environment": {
+    "version": "155.0.8059.85",
+    "platform": "macOS 26.5.1 arm64",
+    "profile": "/Users/shopme/Library/Application Support/Google/Chrome/Default",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "mode": "continuous-development",
+    "serve": "CONNECTED_VISIBLE_IN_DEBUG",
+    "buildRevision": "76e6a9ee199fab147621b9364a579fbcaaf0cc6b2dd6bf6d0794ca8f00ecadc3"
+  },
+  "ownership": {
+    "type": "独立 Sidebar Tool + 既有共享 React Host + 固定编译可信网页适配器",
+    "newPlatformOrToolCode": false,
+    "opaqueSandboxPreserved": true
+  },
+  "package": {
+    "id": "prompt-shortcuts",
+    "oldVersion": "1.1.8",
+    "oldPackageSHA": "7825e56e5b75984a646f451ebd532a4e64b622fc6cd225c9ff4ee1b89486286c",
+    "newVersion": "1.1.15",
+    "newPackageSHA": "4085c155d2d8dbac7b55cc5dcaea24229a3fb1d6cfb69431dad2ae5c0eb33ce0",
+    "source": "official-catalog-review",
+    "addedCapabilities": [],
+    "removedCapabilities": [],
+    "sameIdUpgrade": "PASS_NATIVE_CUA",
+    "oldItemsPreserved": 2
+  },
+  "incrementalChecks": {
+    "sameIdUpgrade": "PASS_NATIVE_CUA：官方目录审阅 1.1.8 → 1.1.15，无新增或移除 capability，安装后直接打开",
+    "originalData": "PASS：升级前 2 条记录在升级后导出中逐项核对，全部原字段相同。v1 → v2 仅补 appearance=text、imageUrl 空字符串默认字段。",
+    "createEditReopen": "PASS_NATIVE_CUA：新增多行中文与 Emoji、编辑追加并保存、关闭重开后读回；新 hostInstanceId 证明重新打开",
+    "realChatGPT": "PASS_NATIVE_CUA：点击网页快捷按钮，原八行草稿完整保留，追加全文与 Emoji，页面提示“提示词已插入草稿，未发送”；未触发发送",
+    "importExport": "PASS_NATIVE_CUA：升级前 752 B、升级后 1433 B 本地下载完成；同文件预检 3 条重复，确认替换后 UI 显示“已替换 3 条…已核实保存”",
+    "hostMenus": "PASS_NATIVE_CUA：条目与宿主更多菜单 Escape 关闭并恢复触发器焦点；Space 打开宿主更多、Tab 到工具设置",
+    "disableRestore": "PASS_NATIVE_CUA：停用后网页 rail 消失；恢复后 3 条按钮出现，原启用、网页快捷按钮、原生右键设置均恢复 on",
+    "packageSource": "PASS：既有 --check-project 返回 PROJECT_PACKAGE_MATCH；工具目录与 development 官方目录包 SHA256 相同"
+  },
+  "baselineExport": {
+    "path": "artifacts/prompt-shortcuts-r42-native-20261024/native/r42-before-upgrade.json",
+    "bytes": 752,
+    "sha256": "defbb99bd8b8802564ab3325e91e8a937a322487dffcefdf454ac98c16d3c95c",
+    "items": 2,
+    "nativeDownload": "COMPLETED_VISIBLE"
+  },
+  "afterUpgradeExport": {
+    "path": "artifacts/prompt-shortcuts-r42-native-20261024/native/r42-after-upgrade.json",
+    "bytes": 1433,
+    "sha256": "0f28b0705e77f9056e8072a48c26c4e0caa23dcc93bdc6afb32bcec46ebce7c6",
+    "allPriorItemFieldsEqual": true,
+    "addedDefaultFields": {
+      "appearance": "text",
+      "imageUrl": ""
+    },
+    "beforeFormatVersion": 1,
+    "afterFormatVersion": 2,
+    "items": 3,
+    "duplicatePrecheck": 3,
+    "importReadback": "已替换 3 条，跳过 0 条重复；已核实保存"
+  },
+  "cleanup": {
+    "draft": "RESTORED_ORIGINAL_TEXT_NATIVE_CUA",
+    "toolEnabled": true,
+    "railEnabled": true,
+    "contextMenuEnabled": true,
+    "testItem": "R42-NATIVE-20261024 保留，完整导出已备份；按最新范围未继续删除测试",
+    "watcher": "保留本轮启动的 npm run dev；未操作其他会话服务"
+  },
+  "ci": {
+    "runUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/39968552911",
+    "sourceCommit": "f8e3c4e6c9e7cac93dee7c5c1e9bd5f471e66040",
+    "attempt": 2,
+    "conclusion": "success",
+    "originalCause": "GitHub 注释确认主 job 达 16m0s 超时；fonts-noto-cjk 下载等待约 15m47s，不是产品断言失败；传输停滞根因未知",
+    "action": "仅重跑被取消的主 job；原 peer 成功复用；未修改 workflow、timeout 或门禁",
+    "mainJob": 120559796659,
+    "syncJob": 120560847964,
+    "syncResult": "PROMPT_PROJECT_PACKAGE_ALREADY_CURRENT；无新提交",
+    "chromiumBoundary": "四项 Linux Chromium fixture 步骤成功，不代表已安装 Mac Chrome；Host fixture 110 个阻断检查零失败，146 总检查中 139 通过，7 项既有 CSS zoom 溢出诊断失败，未隐藏",
+    "currentMainFullWorkflow": "NOT_TESTED：旧 run 不冒充 11633f0eb；用户收缩为增量，本轮无业务输入变化，不主动 dispatch 整套回归",
+    "rawEvidence": "artifacts/prompt-shortcuts-r42-native-20261024/ci/"
+  },
+  "reusedEvidence": [
+    "evidence/r42-local-20261023.json",
+    "既有 AI 会话核心功能与安全回归（README 2026-10-23 段落），本轮不重测"
+  ],
+  "deferredByLatestScope": [
+    "320/360/400/440 真实 Side Panel 宽度与浅深主题矩阵",
+    "真实 200% 浏览器缩放、实体触屏、Mac 中文 IME 专项",
+    "再次删除确认、右键选择、新 production 冻结验收与完整撤权矩阵",
+    "无输入变化的全量本地测试、构建与 CI dispatch"
+  ],
+  "scoring": {
+    "dimensions": [
+      {
+        "name": "单一宿主与架构归属",
+        "score": "NOT_SCORED",
+        "reason": "不以有限增量记录替代完整独立评分；此前与本轮证据边界分别保留"
+      },
+      {
+        "name": "标题栏视觉与信息密度",
+        "score": "NOT_SCORED",
+        "reason": "不以有限增量记录替代完整独立评分；此前与本轮证据边界分别保留"
+      },
+      {
+        "name": "管理与草稿数据完整性",
+        "score": "NOT_SCORED",
+        "reason": "不以有限增量记录替代完整独立评分；此前与本轮证据边界分别保留"
+      },
+      {
+        "name": "响应布局与触屏",
+        "score": "NOT_SCORED",
+        "reason": "不以有限增量记录替代完整独立评分；此前与本轮证据边界分别保留"
+      },
+      {
+        "name": "键盘与焦点可访问性",
+        "score": "NOT_SCORED",
+        "reason": "不以有限增量记录替代完整独立评分；此前与本轮证据边界分别保留"
+      },
+      {
+        "name": "权限、来源与撤权安全",
+        "score": "NOT_SCORED",
+        "reason": "不以有限增量记录替代完整独立评分；此前与本轮证据边界分别保留"
+      },
+      {
+        "name": "Mac Chrome 安装升级与真实网站",
+        "score": "NOT_SCORED",
+        "reason": "不以有限增量记录替代完整独立评分；此前与本轮证据边界分别保留"
+      }
+    ],
+    "arithmeticMean": "NOT_SCORED",
+    "threshold": 95,
+    "fullAcceptance": "NOT_CLAIMED"
+  },
+  "evidenceBoundary": {
+    "native": "本对话 CUA 原生 AX 与截图；未保存本轮本地 PNG，不虚构截图文件",
+    "localRoot": "artifacts/prompt-shortcuts-r42-native-20261024/",
+    "privateExports": "导出原文仅保留 ignored artifacts，不提交用户正文",
+    "historicalEvidence": "旧 evidence 与 artifacts 保持原状，不将过去的 Computer Use 拒绝写成当前阻塞",
+    "prohibitedFallbacksUsed": false
+  },
+  "parallelWorkPreserved": [
+    "tests/environment/cookie-editor-cross-site-import.test.mjs",
+    "tests/environment/browser-sdk-v3-schema-repair.test.mjs"
+  ]
+}
