@@ -46,10 +46,12 @@ export async function generateWorkflowReactPreview(){
   const workflow=$('#workbench-workflow');
   must(nav.length===1&&workflow.length===1,'installed Side Panel navigation/Workflow DOM not found');
   for(const id of ['workflow-editor','workflow-ai-transcript',
-    'workflow-history-panel','workflow-ai-request','workflow-provider-toggle']){
+    'workflow-history-panel','workflow-provider-toggle']){
     must(workflow.find('#'+id).length===1,'real DOM element missing '+id);
   }
   must(workflow.find('.workflow-head-actions').length===1,'React header target missing');
+  must(workflow.find('.workflow-composer-frame').length===1,
+    'shared composer Portal target missing from SSR structure');
   must(workflow.find('#workflow-provider-toggle[aria-haspopup="menu"]').length===1,
     'shared AI source icon menu missing');
   must(workflow.find('.workflow-source-name').length===0,

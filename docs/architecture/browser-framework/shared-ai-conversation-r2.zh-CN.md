@@ -232,3 +232,26 @@ R2.2 抽出中立 Conversation Session、共享 Chat Frame、通用 Provider 设
 - **受限中文自然语言规则**：工作流“核对名称和价格”与“核对 名称和价格”均可匹配已保存的安全只读两段复用；额外条件/危险操作仍拒绝部分匹配与静默丢弃，避免误执行。
 - **执行证据状态**：新增/更新 `shared-ai-provider-runtime-r21.test.mjs`、`shared-ai-conversation-r22.test.mjs`、`workflow-react-page.test.mjs`，并修正 Bookmark R1.4/R1.5 旧架构正则断言。GitHub Actions 需以当前最新提交的真实退出码为准，排队或尚未返回结果记 `CI_PENDING`；Mac Chrome、Native、多窗口生命周期、官方包首装/升级均为 `NOT_TESTED`。旧 R2.2 103/109 通过的记录不代表新候选 PASS。
 - **仍需核对**：Bookmark 业务编排目前仍嵌于较大的旧 React App 文件中，尚未证实彻底拆成独立 `BusinessConversationAdapter`；在确保草稿冲突、持续 Agent Loop、Service 写入与读回不退化前，不应为了文件形式抽象而进行大搬迁。真实跨消费者同时推理、撤权、切换和 Stop 要补 Chrome/Native 证据。
+
+## R2.3-CORE（2026-10-24）：「我的」与 Workflow 共享输入布局收口
+
+**主线目标**：四类消费者继续共用既有可信 React Root、SharedConversationFrame、memory-only Provider Settings 和 Runtime Lease；每个消费者仍独立保留 Session、Native thread、业务执行身份、授权与实际读回。**没有引入第二套 Provider、RunHost、Task Scheduler 或 Chrome Authority。**
+
+1. 「我的」：`SidebarAppShell` 将原 `MyAgentPanel` 从 `MyTasksPage` 顶部移至 `workspace-content` 之后、原 `workspace-dock` 之前的 `MyAgentDock`。该实例始终挂载，仅按活动 Tab/展开状态隐藏；任务区独立滚动，AI 消息只在自身 Dock 滚动，收起不删除草稿/确认/历史，原 Task Run/Stop Dock 独立。
+2. Workflow：继续以 `SharedConversationFrame` 的 `splitTargets` 提供 transcript 和底部双行 composer；正式 ToolShell 的来源图标在 `WorkflowSourceMenu` 中切换本机 Codex、HTTPS Chat Completions、HTTPS Responses，并复用唯一 `SharedProviderSettingsSheet` 的高级配置。原 standalone 测试路径仍可使用旧控件，但正式 React 不展示重复模型名称。
+3. 输入：空草稿显示来源相关 placeholder，有草稿时不覆盖；示例通过纯函数 `appendWorkflowSuggestionDraft` 去重、换行追加、4000 字符保护、只填不发送。相关 UI 仍继承共享组件的中文 IME、Enter / Shift+Enter 和 Stop。
+4. 配置与安全：唯一 ToolShell `providerSettings.updateSettings` 更新来源，原 Runtime generation/Lease 失效；未配置 HTTPS 路径转到现有设置，禁止静默发送到错误接收方。旧 standalone Workflow 的 Key 仅保留在可信 View 内存控制中：`workflow-ui-state` 的公开 React snapshot 不复制 Key，React 仅使用局部受控密码草稿。没有扩大网页摘要授权或绕过 RunHost。
+5. 预览：`src/ui/react/preview/workflow-preview.tsx` 与六 Tab React 预览的 source adapter 已接入来源图标/设置，六 Tab 预览有显式的无 Host Tasks AI Dock 演示。`src/ui/react/preview/shared-ai-preview.js` 仅为离线 `UI_PREVIEW_ONLY`，不持久 Key、不联网、不读页面；`scripts/preview/build-workflow-react-preview.mjs` 和 `build-sidebar-six-react-preview.mjs` 均仍从正式 React 构建，不另行维护一套 JSX。
+6. 定向回归新增 `tests/environment/shared-ai-conversation-r23.test.mjs`：复用真实 React SSR、Workflow View fixture、公开 snapshot 和纯草稿函数，而不仅检查静态字符串。仍须在 Mac 本地运行测试及刷新已生成的 HTML，并执行真实 Chrome/Native、窄屏/200% 缩放和 IME 人工验收。
+
+**验证状态**：以上是已提交到 `main` 的源码/测试/预览生成器范围；本次 GitHub 远程编辑环境没有 Mac Chrome 或完整 Node 安装，以上测试执行、离线 HTML 重新生成、真实 Native/Chrome E2E 均标记 `NOT_TESTED`。不得据此声称专家评分≥95或正式验收 PASS。
+
+**建议本地最小命令**：
+
+```bash
+node --test tests/environment/shared-ai-conversation-r23.test.mjs tests/environment/shared-ai-conversation-r22.test.mjs tests/environment/shared-ai-provider-runtime-r21.test.mjs tests/environment/workflow-react-page.test.mjs tests/environment/my-task-agent-r1.test.mjs
+node scripts/preview/build-workflow-react-preview.mjs
+node scripts/preview/build-sidebar-six-react-preview.mjs
+```
+
+如定向测试失败，按“用户操作 → 真正缺陷 → 最小修复 → 同一操作重验”的顺序修复，再决定是否开展正式 Chrome 验收。
