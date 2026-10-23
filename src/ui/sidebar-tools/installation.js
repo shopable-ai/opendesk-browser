@@ -7,7 +7,7 @@ import {BROWSER_MENU_GRANTS_STORE,BOOKMARK_OWNED_STORE_PREFIX} from '../../frame
 import {READING_TOC_SITE_STORE, READING_TOC_VISIBILITY_STORE, READING_TOC_PAGE_RULES_STORE, READING_TOC_PLACEMENT_PREFIX, READING_TOC_TOOL_ID} from '../../../examples/sidebar-tools/reading-toc/trusted/policy.js';
 import {CLIP_SITE_STORE} from '../../../examples/sidebar-tools/web-markdown-clipper/trusted/policy.js';
 import {CAPTURE_SITE_STORE, KNOWLEDGE_TOOL_ID, KNOWLEDGE_WORKSPACE_PREFIX} from '../../knowledge/policy.js';
-import {writeVerifiedLocalValue,classifyStorageWriteError,unknownStorageOutcome,sameStorageValue} from './storage-state.js';
+import {writeVerifiedLocalValue,classifyStorageWriteError,unknownStorageOutcome,sameStorageValue,stableStorageString} from './storage-state.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,requireToolRevocationEpochs,TOOL_REVOCATION_EPOCHS_STORE,TOOL_CLEANUP_STORE,requirePendingToolCleanups} from './lifecycle.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL} from '../../platform/protocol.js';
 import {TIME_REVIEW_KEY} from '../../../examples/sidebar-tools/time-review/trusted/model.js';
@@ -16,8 +16,9 @@ import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../../example
 import {stopAdblockForTool,cleanupUninstalledAdblock} from '../../../examples/sidebar-tools/adblock/trusted/lifecycle.js';
 import {stopAiAccessForTool,cleanupUninstalledAiAccess} from '../../../examples/sidebar-tools/ai-vip-share/trusted/lifecycle.js';
 import {stopManagedProxyForTool} from '../../platform/chrome/browser-managed-proxy.js';
-import {stopManagedSiteBudgetForTool} from '../../platform/chrome/browser-managed-site-budget.js';
-import {MANAGED_SITE_REVIEWED_SCOPE_STORE} from '../../framework/host/managed-site-reviewed-scopes.js';
+import {stopManagedSiteBudgetForTool,MANAGED_SITE_BUDGET_STORE} from '../../platform/chrome/browser-managed-site-budget.js';
+import {MANAGED_SITE_REVIEWED_SCOPE_STORE,rebindReviewedManagedSiteScopes} from '../../framework/host/managed-site-reviewed-scopes.js';
+import {normalizeManagedSiteV3Policy} from '../../framework/sdk/site-budget-v3-policy.js';
 import {MANAGED_SITE_BUDGET_CAPABILITY,MANAGED_SITE_BUDGET_PROTOCOL} from '../../platform/host/managed-site-runtime-contract.js';
 import {assertManagedSitePolicySupported} from '../../platform/host/managed-site-runtime-contract.js';
 
@@ -265,6 +266,75 @@ async function canonicalSha256(tool){
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),
     value=>value.toString(16).padStart(2,'0')).join('');
 }
+// Only trusted, same-source v3->v3 upgrades may rebind site review. The old
+// finite Driver policy (not app JS) is hashed in the EXISTING install journal;
+// recovery checks the hash before any scope write. Chrome origins and policy
+// are independently checked by the Driver at every native operation.
+async function siteScopePolicyHash(policy){
+  const normalized=normalizeManagedSiteV3Policy(policy);
+  const bytes=new TextEncoder().encode(stableStorageString(normalized));
+  const digest=await crypto.subtle.digest('SHA-256',bytes);
+  return Array.from(new Uint8Array(digest),x=>x.toString(16).padStart(2,'0')).join('');
+}
+async function readSiteScopeTransferPlan(api,{id,source,fromEpoch,fromHash,toEpoch,toHash}){
+  const saved=await api.storage.local.get([MANAGED_SITE_BUDGET_STORE,MANAGED_SITE_REVIEWED_SCOPE_STORE]);
+  const row=saved[MANAGED_SITE_BUDGET_STORE]?.[id];
+  if(!row||row.kind!=='site-budget.v3')return null;
+  // A stale or local-reviewed ledger is not evidence of a market-owned
+  // grant. Never transfer it on the basis of the candidate's own claims.
+  if(row.epoch!==fromEpoch||row.packageHash!==fromHash||row.source!==source)
+    return null;
+  const scopes=saved[MANAGED_SITE_REVIEWED_SCOPE_STORE];
+  if(!scopes||!Object.hasOwn(scopes,id))return null;
+  const normalized=normalizeManagedSiteV3Policy(row.policy);
+  const proposed=rebindReviewedManagedSiteScopes(scopes,
+    {id,fromEpoch,fromHash,toEpoch,toHash,policy:normalized});
+  if(sameStorageValue(scopes,proposed))return null;
+  return {fromEpoch,fromHash,policyHash:await siteScopePolicyHash(normalized)};
+}
+async function transferReviewedSiteScopeLocked(api,lockManager,{id,source,toEpoch,toHash,scope}){
+  if(!scope)return;
+  const [installed,identity,epochs,ledger]=await Promise.all([
+    getInstalledSidebarTools(api),
+    api.storage.local.get(MARKET_PROVENANCE_STORE),
+    api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE),
+    api.storage.local.get(MANAGED_SITE_BUDGET_STORE)
+  ]);
+  const current=installed.find(row=>row.id===id);
+  const provenance=identity[MARKET_PROVENANCE_STORE]?.[id];
+  const active=ledger[MANAGED_SITE_BUDGET_STORE]?.[id];
+  if(!current||!current.capabilities.includes(MANAGED_SITE_BUDGET_CAPABILITY)||
+     current.backgroundPolicy?.kind!=='site-budget.v3'||
+     await sidebarToolPackageHash(current)!==toHash||
+     epochs[TOOL_REVOCATION_EPOCHS_STORE]?.[id]!==toEpoch||
+     provenance?.marketId!==source||provenance?.version!==current.version||
+     provenance?.sha256!==await canonicalSha256(current)||
+     active?.kind!=='site-budget.v3'||active.source!==source||
+     !((active.epoch===scope.fromEpoch&&active.packageHash===scope.fromHash)||
+       (active.epoch===toEpoch&&active.packageHash===toHash))||
+     await siteScopePolicyHash(active.policy)!==scope.policyHash)
+    throw error('同来源网站授权迁移身份或持久策略已变化，请恢复核对',
+      'E_MIGRATION_SCOPE_CHANGED');
+  await lockManager.request('opendesk.browser:managed-site-site-grants',async()=>{
+    // The old Host may have been awaiting a real consent click. Recheck the
+    // committed installed owner and provenance under the grants lock before
+    // carrying its already-reviewed scope to the new generation.
+    const nowInstalled=(await getInstalledSidebarTools(api)).find(row=>row.id===id);
+    const nowEpoch=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))
+      [TOOL_REVOCATION_EPOCHS_STORE]?.[id];
+    if(!sameSidebarToolPackage(nowInstalled,current)||nowEpoch!==toEpoch)
+      throw error('应用升级期间身份已更换','E_MIGRATION_SCOPE_CHANGED');
+    const raw=(await api.storage.local.get(MANAGED_SITE_REVIEWED_SCOPE_STORE))
+      [MANAGED_SITE_REVIEWED_SCOPE_STORE];
+    const next=rebindReviewedManagedSiteScopes(raw,{id,
+      fromEpoch:scope.fromEpoch,fromHash:scope.fromHash,
+      toEpoch,toHash,policy:active.policy});
+    if(!sameStorageValue(raw??{},next))
+      await writeVerifiedLocalValue(api,MANAGED_SITE_REVIEWED_SCOPE_STORE,next,raw,
+        '跨安装代际网站授权');
+  });
+}
+
 // Submit package bytes and their generation together through the existing
 // storage/locks. Chrome writes are not a cross-call transaction: partial or
 // unreadable outcomes stay unknown and must never trigger an automatic replay.
