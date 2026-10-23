@@ -285,6 +285,8 @@ async function readSiteScopeTransferPlan(api,{id,source,fromEpoch,fromHash,toEpo
   if(row.epoch!==fromEpoch||row.packageHash!==fromHash||row.source!==source)
     return null;
   const scopes=saved[MANAGED_SITE_REVIEWED_SCOPE_STORE];
+  if(scopes!==undefined&&(!scopes||typeof scopes!=='object'||Array.isArray(scopes)))
+    throw error('应用网站授权账本损坏，禁止迁移','E_SITE_SCOPE_CORRUPT');
   if(!scopes||!Object.hasOwn(scopes,id))return null;
   const normalized=normalizeManagedSiteV3Policy(row.policy);
   const proposed=rebindReviewedManagedSiteScopes(scopes,
@@ -326,6 +328,9 @@ async function transferReviewedSiteScopeLocked(api,lockManager,{id,source,toEpoc
       throw error('应用升级期间身份已更换','E_MIGRATION_SCOPE_CHANGED');
     const raw=(await api.storage.local.get(MANAGED_SITE_REVIEWED_SCOPE_STORE))
       [MANAGED_SITE_REVIEWED_SCOPE_STORE];
+    if(!raw||!Object.hasOwn(raw,id))
+      throw error('旧版网站授权已被撤销或丢失，不能伪报迁移完成',
+        'E_MIGRATION_SCOPE_CHANGED');
     const next=rebindReviewedManagedSiteScopes(raw,{id,
       fromEpoch:scope.fromEpoch,fromHash:scope.fromHash,
       toEpoch,toHash,policy:active.policy});
