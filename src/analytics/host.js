@@ -156,9 +156,9 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
       const data=await collector.record({event:message.event,toolId:PROMPT_ID,
         source:'page_adapter',channel:message.channel,reason:message.reason},
          {authorize:()=>fromPromptPage(sender)});
-      // A verified successful page action is enough for broad tool engagement;
-      // failure / automatic adapter loads must never create an active-use event.
-      if(data.recorded&&['prompt.inserted','prompt.fallback_copied'].includes(message.event))
+      // Verified manual failures are active attempts too, not business successes.
+      // A script bootstrap/load cannot originate one of these action receipts.
+      if(data.recorded&&['prompt.inserted','prompt.fallback_copied','prompt.failed'].includes(message.event))
         await collector.record({event:'tool.engaged',toolId:PROMPT_ID,
           source:'host',channel:'page_button'},{authorize:()=>fromPromptPage(sender)});
       return {ok:true,data};
@@ -172,7 +172,10 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
     return true;
   });
   api.alarms?.onAlarm?.addListener(alarm=>{
-    if(alarm.name===ANALYTICS_ALARM)void collector.flush().catch(()=>{});
+    if(alarm.name===ANALYTICS_ALARM){
+      void collector.flush().catch(()=>{});
+      void recordInventory().catch(()=>{}); // no DAU; daily unchanged-state heartbeat
+    }
   });
   api.runtime.onStartup?.addListener(()=>void collector.ensureWake().catch(()=>{}));
   api.runtime.onInstalled?.addListener(()=>void collector.ensureWake().catch(()=>{}));
