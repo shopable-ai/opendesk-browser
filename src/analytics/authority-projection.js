@@ -48,8 +48,16 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
         typeof row.createdAt==='string'&&Date.parse(row.createdAt)<since)continue;
       if(!safeIdentity(row.programId)||!day||!uuid.test(row.receiptId||'')||
          !validStatus.has(row.state)){projectionGap=true;continue;}
-      // A persisted admission after the native document marker is an actual
-      // automated attempt. The bootstrap request alone is never counted.
+      // An admission marked PREPARED is not a Chrome execution. Only a durable
+      // DISPATCHED receipt with its original timestamp establishes a real run.
+      // A terminal without dispatch proof is uncertain, not a successful run.
+      const dispatchedAt=typeof row.dispatchedAt==='string'?
+        Date.parse(row.dispatchedAt):row.dispatchedAt;
+      if(!Number.isFinite(dispatchedAt)){
+        if(row.state!=='prepared')projectionGap=true;
+        continue;
+      }
+      if(row.state==='prepared')continue;
       executions.push({type:'page',identity:row.programId,day,status:row.state,
         receiptId:row.receiptId});
       // effectConfirmed reflects runtime behavior, NOT independent business proof.
