@@ -19,11 +19,14 @@ const inputs=[
   'src/ui/design-system.css',
   'src/ui/tool-shell.css',
   'src/ui/react/preview/workflow-preview.tsx',
+  'src/ui/react/preview/shared-ai-preview.js',
+  'src/ui/conversation/draft-suggestion.js',
   'src/ui/react/app-shell.tsx',
   'src/ui/workflow/workflow-ui-state.js',
   'src/ui/react/tabs/workflow.tsx',
   'src/ui/react/components/conversation.tsx',
   'src/ui/react/main.tsx',
+  'src/ui/react/components/provider-settings.tsx',
   'src/ui/workflow/workflow-view.js',
   'scripts/preview/build-workflow-react-preview.mjs',
   'package.json',
@@ -35,16 +38,22 @@ export async function generateWorkflowReactPreview(){
   const bytes=await Promise.all(inputs.map(path=>readFile(join(root,path))));
   const sourceSha=sha(Buffer.concat(bytes.flatMap((value,i)=>[
     Buffer.from(inputs[i]+'\u0000'),value,Buffer.from('\u0000')])));
-  const $=load(await renderSidebarReact({activeTab:'workflow',debugEnabled:true}),{decodeEntities:false});
+  const $=load(await renderSidebarReact({activeTab:'workflow',debugEnabled:true,
+    providerSettings:{settingsSnapshot:()=>({
+      source:'local_codex',endpoint:'',model:'',hasApiKey:false,generation:1
+    }),subscribeSettings:()=>()=>{}}}),{decodeEntities:false});
   const nav=$('nav.workbench-nav').first();
   const workflow=$('#workbench-workflow');
   must(nav.length===1&&workflow.length===1,'installed Side Panel navigation/Workflow DOM not found');
-  for(const id of ['workflow-editor','workflow-ai-transcript','workflow-provider-settings',
-    'workflow-sheet-title','workflow-history-panel','workflow-ai-request',
-    'workflow-provider-toggle','workflow-local-status-detail']){
+  for(const id of ['workflow-editor','workflow-ai-transcript',
+    'workflow-history-panel','workflow-ai-request','workflow-provider-toggle']){
     must(workflow.find('#'+id).length===1,'real DOM element missing '+id);
   }
   must(workflow.find('.workflow-head-actions').length===1,'React header target missing');
+  must(workflow.find('#workflow-provider-toggle[aria-haspopup="menu"]').length===1,
+    'shared AI source icon menu missing');
+  must(workflow.find('.workflow-source-name').length===0,
+    'standalone legacy model-name label leaked into shared Workflow');
   // Validate the installed JSX SSR, but mount the installed SidebarAppShell
   // through mountSidebarApp rather than portalling into its already-owned DOM.
   // One product React root renders navigation, WorkflowPage and its settings.

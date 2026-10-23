@@ -11,6 +11,8 @@ import {presentTaskValue,formatTaskError} from '../task-run-diagnostics.js';
 import {createSharedAIProviderRuntime} from '../ai/provider-runtime.js';
 import {createBusinessConversation} from '../conversation/provider-consumer.js';
 import {createConversationSession} from '../conversation/session.js';
+import {appendWorkflowSuggestionDraft} from '../conversation/draft-suggestion.js';
+export {appendWorkflowSuggestionDraft} from '../conversation/draft-suggestion.js';
 import {deriveWorkflowViewState} from './view-state.js';
 import {describeLocalCodex} from './local-codex.js';
 import {createWorkflowObservation,workflowObservationForModel,workflowObservationGrantMatches,workflowObservationRecipientId} from './observation.js';
@@ -62,26 +64,6 @@ export function workflowExecutionFeedback({execution,workflow,params={},values}=
   const detail=!sensitive&&value.length<=80&&!/[\r\n]/.test(value)?'为“'+value+'”':'';
   return (detail?'已将“'+label+'”填写'+detail:'已填写“'+label+'”')+
     '，并核对输入值一致；未确认服务器已提交。';
-}
-
-/** A suggestion is draft text, not a Provider identity or an executable command.
- * Returns a new immutable value; never submits a turn or mutates RunHost. */
-export function appendWorkflowSuggestionDraft(draft,suggestion,maxLength=4000){
- const original=String(draft??''),instruction=String(suggestion??'').trim();
- if(!instruction)return {value:original,kind:'empty'};
- const normalized=original.replace(/\r\n/g,'\n');
- let index=normalized.indexOf(instruction);
- while(index>=0){
-  const before=index===0||normalized[index-1]==='\n';
-  const after=index+instruction.length===normalized.length||
-   normalized[index+instruction.length]==='\n';
-  if(before&&after)return {value:original,kind:'duplicate'};
-  index=normalized.indexOf(instruction,index+1);
- }
- const separator=!original.trim()?'':original.endsWith('\n')?'\n':'\n\n';
- const value=original+separator+instruction;
- return value.length>maxLength?{value:original,kind:'too_long'}:
-  {value,kind:original.trim()?'appended':'filled'};
 }
 
 export function createWorkflowView({api=globalThis.chrome,document:doc=globalThis.document,

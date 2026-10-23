@@ -3,6 +3,8 @@ import {createWorkflowUIState} from '../../workflow/workflow-ui-state.js';
 import {createDeveloperView} from '../../develop-view.js';
 import {createMyWorkbenchView} from '../../my-workbench-view.js';
 import {createSidebarToolsView} from '../../sidebar-tools-view.js';
+import {createPreviewProviderSettings} from './shared-ai-preview.js';
+import {appendWorkflowSuggestionDraft} from '../../conversation/draft-suggestion.js';
 
 // PREVIEW_ADAPTER_NOT_NATIVE: the production SidebarAppShell/WorkflowPage owns
 // the one React root. This adapter is presentation state only: no Host, Provider,
@@ -42,6 +44,7 @@ const scenes=Object.freeze({
   history:[],
   settings:[]
 });
+const providerSettings=createPreviewProviderSettings();
 let scene='empty',messages=[],historyOpen=false,review=false,source='local_codex';
 let lastHttps='custom_https';
 const sample=x=>scenes[x].map(row=>({...row}));
@@ -119,9 +122,10 @@ function showScene(next,{keepRows=false}={}){
   if(!Object.hasOwn(scenes,next))return;
   scene=next;if(!keepRows)messages=sample(next);
   historyOpen=next==='history';review=false;
-  control('workflow-provider-settings').open=next==='settings';
+  control('workflow-provider-settings').open=false;
   selectors.scenario.value=next;
   apply();
+  if(next==='settings')app.openProviderSettings();
 }
 function chooseProvider(next){
   if(!['local_codex','custom_https','cloud_responses'].includes(next))return;
@@ -204,18 +208,26 @@ const actions={
   },
   chooseExample(key,event){
     if(!requireGesture(event))return;
-    control('workflow-ai-request').value={
+    const instruction={
       fill:'请填写表单并读回（预览不会执行）',read:'请只读提取网页信息（预览不会执行）',
       continue:'请继续修改上次填写内容',check:'请检查当前网页'
-    }[key]||'';
+    }[key];
+    const outcome=appendWorkflowSuggestionDraft(control('workflow-ai-request').value,instruction);
+    if(['filled','appended'].includes(outcome.kind))
+     control('workflow-ai-request').value=outcome.value;
     state.setFocus('workflow-ai-request');
+    return outcome;
   },
   closeSettings
 };
 const app=mountSidebarApp(doc,{debugEnabled:true,onNavigate:()=>false,
   developerView:createDeveloperView(),myView:createMyWorkbenchView(),
-  toolView:createSidebarToolsView()});
+  toolView:createSidebarToolsView(),providerSettings});
 app.connectWorkflowPage({...state,actions});
+const unsubscribeSettings=providerSettings.subscribeSettings(()=>{
+ source=providerSettings.settingsSnapshot().source;
+ apply();
+});
 for(const button of doc.querySelectorAll('nav.workbench-nav button')){
   if(button.dataset.workbenchTab!=='workflow'){
     button.disabled=true;button.setAttribute('aria-disabled','true');
@@ -235,7 +247,7 @@ Object.defineProperty(window,'__workflowPreviewInfo',{configurable:true,
     runHost:false,permission:false,realResult:false})});
 showScene('empty');
 window.addEventListener('pagehide',()=>{
-  app.dispose();state.dispose();
+  unsubscribeSettings();app.dispose();state.dispose();providerSettings.dispose();
   delete doc.documentElement.dataset.workflowPreviewReady;
   delete window.__workflowPreviewInfo;
 },{once:true});
