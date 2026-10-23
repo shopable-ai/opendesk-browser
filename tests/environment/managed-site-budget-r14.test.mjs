@@ -299,3 +299,18 @@ test('event arriving during native reconciliation cannot be acknowledged by old 
   assert.equal(f.local.get(MANAGED_SITE_BUDGET_STORE)[id].usage.daily,30000,
     'an intervening event must discard unobserved elapsed time');
 });
+
+test('legacy stateful Focus capability cannot be dropped by a v3 package without verified transfer',async()=>{
+  const previous={...tool('1.0.0'),capabilities:['focus.control']};
+  const f=fixture([previous]);
+  const newPackage={...tool('1.0.1',{
+    kind:'site-budget.v3',suggestions:template.suggestions
+  }),capabilities:['browser.siteBudget']};
+  await assert.rejects(installReviewedSidebarTool({api:f.api,lockManager:f.lockManager,
+    candidate:newPackage,baseline:previous,reviewApproved:true,approveUpdate:async()=>true}),
+    {code:'E_MIGRATION_REQUIRED'});
+  assert.deepEqual(f.local.get(SIDEBAR_TOOL_STORE),[previous],
+    'installer must not mutate a legacy app when state transfer is unavailable');
+  assert.equal(f.local.has(MANAGED_SITE_BUDGET_STORE),false,
+    'driver must not create an empty ledger mistaken for migrated usage');
+});
