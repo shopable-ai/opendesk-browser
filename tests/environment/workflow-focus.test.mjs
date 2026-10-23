@@ -173,7 +173,7 @@ if(!vm.SourceTextModule) {
       '../ai/provider-runtime.js':{createSharedAIProviderRuntime:options=>
         createSharedAIProviderRuntime({...options,
           client:{...options.client,
-            requestWorkflowAI:options.client.requestWorkflowAI||async()=>({state:'DISCONNECTED'})},
+            requestWorkflowAI:options.client.requestWorkflowAI||(async()=>({state:'DISCONNECTED'}))},
           plannerFactory:()=>planner,
           facadeFactory:({localPlanner})=>({
             async generateWorkflow(options){
