@@ -10,7 +10,7 @@ const uuidPattern=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[
 const exact=(obj,keys)=>obj&&typeof obj==='object'&&!Array.isArray(obj)&&Object.keys(obj).every(key=>keys.includes(key));
 export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_INGEST_URL,
   fetcher=globalThis.fetch,now=()=>Date.now(),newId=()=>crypto.randomUUID(),allowLoopback=false,
-  loadAuthority=null,verifyManualTask=null,readManualResult=null}={}){
+  loadAuthority=null,verifyManualTask=null,readManualResult=null,verifyWorkflowResult=null}={}){
   const collector=createAnalyticsCollector({api,endpoint,fetcher,now,newId,allowLoopback});
   const recordAuthorities=()=>typeof loadAuthority==='function'?
     collector.reportAuthority(loadAuthority):Promise.resolve({recorded:false});
@@ -155,6 +155,19 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
         identity:message.toolIdentity,
         ...(result?{runId:message.runId,runStatus:verified.status}:{})});
       return {ok:true,data};
+    }
+    if(message.kind==='event.workflow_verified'){
+      if(!fromPanel(sender)||message.toolId!=='workflow'||
+        message.channel!=='extension'||message.event!=='workflow.business_effect_verified'||
+        !uuidPattern.test(message.runId||'')||
+        !exact(message,['protocol','kind','event','toolId','channel','runId'])||
+        typeof verifyWorkflowResult!=='function'||!limit('workflow_effect'))
+        return {ok:false,code:'E_SENDER'};
+      // The original Controller record is read only after active opt-in.
+      if(!(await collector.status()).consent)return {ok:true,data:{recorded:false}};
+      if(await verifyWorkflowResult(message.runId,sender)!==true)
+        return {ok:false,code:'E_SENDER'};
+      return {ok:true,data:await collector.recordWorkflowVerified({runId:message.runId})};
     }
     if(!idPattern.test(message.toolId||'')||typeof message.event!=='string'||
        !exact(message,['protocol','kind','event','toolId','channel','reason']))

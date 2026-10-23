@@ -95,6 +95,12 @@ export function simpleCommerceReplayGoal(goal) {
   if(typeof goal!=='string')return null;
   const normalized=goal.trim().replace(/[。.!！]+$/gu,'')
     .replace(/[,，]\s*/gu,'，').replace(/\s+/gu,' ');
+  // A clause can be smuggled into a free-text query or product name even
+  // when the outer grammar is fully anchored. Reject those rather than
+  // executing only the visible prefix and silently dropping the condition.
+  if(unsafeReplayGoal.test(normalized)||negativeReplayGoal.test(normalized)||
+    /(?:必须|要求|限定|限制|条件|前提|如果|若|然后|随后|接着|同时|并且|额外|否则)/u.test(normalized))
+    return null;
   const match=normalized.match(commerceGoalPattern);
   return match&&safeSearchQuery.test(match[1])&&safeProductName.test(match[2])?
     {query:match[1],productName:match[2]}:null;

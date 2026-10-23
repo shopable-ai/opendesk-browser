@@ -246,8 +246,11 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
         release();
         if(consumerDisposed)throw err('E_TOOL_CHANGED','AI 消费者实例已关闭');
         if(revoked)throw err('E_MODEL_GRANT_REVOKED','本轮模型权限已撤销；迟到提议已丢弃');
+        // The transport may report E_CANCELLED when a Provider switch aborts
+        // inference. Preserve the stronger, actionable identity-change reason.
+        // A user's own Stop remains E_CANCELLED if the Provider is unchanged.
         if(providers.configuration().generation!==providerGeneration)
-          throw err('E_TOOL_CHANGED','Provider 配置或会话已变化，请重新发送');
+          throw err('E_TOOL_CHANGED','AI Provider 已切换，旧推理结果不能继续写入');
         if(signal?.aborted)throw err('E_CANCELLED','本轮已停止；迟到提议已丢弃');
         throw error;
       }
