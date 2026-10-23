@@ -141,6 +141,8 @@ test('strict transport refuses raw custom IDs and untrusted completed-success cl
     {...row,url:'https://private.example'},
     {...row,outcome:{success:true}},
     {...row,total:0},
+    {...row,sourceTotals:{scheduler:100}},
+    {...row,sourceTotals:{page_auto:99}},
   ])assert.throws(()=>validateAnalyticsEvent(invalid,{now:NOW}));
 });
 
@@ -206,7 +208,7 @@ test('cloud bound Run/Result is automatic, manual Run is not; source totals cann
       resultId,state:'completed',outcome:{ok:true}});
     return run;
   };
-  add('manual');add('cloud');add('scheduler');
+  add('manual');add('cloud');add('scheduler');add('cloud','preparing');
   let value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
   assert.equal(daily(value,'task','attempted')?.total,2);
   assert.deepEqual(daily(value,'task','completed')?.sourceTotals,{scheduler:1,cloud:1});
@@ -225,6 +227,9 @@ test('Sidebar installation/enable is original authority; corrupt readback is fai
   assert.equal(value.inventoryTypes.sidebar.installed,3);
   assert.equal(value.inventoryTypes.sidebar.enabled,3);
   assert.equal(value.inventoryTypes.app_service.bindings,1);
+  assert.equal(value.inventoryTypes.app_service.unknown,1,
+    'a package field alone cannot prove the original App Service binding');
+  assert.equal(value.projectionGap,true);
   sidebarTools.splice(0,sidebarTools.length);
   value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
   assert.equal(value.inventoryTypes.sidebar.installed,0);
