@@ -46,11 +46,11 @@ test('R2.3 suggestion draft is append-only, deduplicated, IME-neutral, length bo
  assert.deepEqual(appendWorkflowSuggestionDraft('',instruction),
   {value:instruction,kind:'filled'});
  assert.deepEqual(appendWorkflowSuggestionDraft('先检查标题',instruction),
-  {value:'先检查标题\\n\\n'+instruction,kind:'appended'});
- assert.deepEqual(appendWorkflowSuggestionDraft('先检查标题\\n\\n'+instruction,instruction),
-  {value:'先检查标题\\n\\n'+instruction,kind:'duplicate'});
+  {value:'先检查标题\n\n'+instruction,kind:'appended'});
+ assert.deepEqual(appendWorkflowSuggestionDraft('先检查标题\n\n'+instruction,instruction),
+  {value:'先检查标题\n\n'+instruction,kind:'duplicate'});
  assert.deepEqual(appendWorkflowSuggestionDraft('请在段落中引用'+instruction+'这些文字',instruction),
-  {value:'请在段落中引用'+instruction+'这些文字\\n\\n'+instruction,kind:'appended'});
+  {value:'请在段落中引用'+instruction+'这些文字\n\n'+instruction,kind:'appended'});
  assert.deepEqual(appendWorkflowSuggestionDraft('x'.repeat(3998),instruction),
   {value:'x'.repeat(3998),kind:'too_long'});
 });
@@ -61,7 +61,7 @@ test('R2.3 real Workflow consumer choice appends without replacing or launching 
  const first=f.view.actions.chooseExample('fill',{isTrusted:true});
  assert.equal(first.kind,'appended');
  const draft=f.state().controls['workflow-ai-request'].value;
- assert.ok(draft.startsWith('先报告任务情况\\n\\n'));
+ assert.ok(draft.startsWith('先报告任务情况\n\n'));
  assert.match(draft,/读取输入框实际值/);
  assert.equal(f.starts.length,0);
  const second=f.view.actions.chooseExample('fill',{isTrusted:true});
@@ -83,6 +83,10 @@ test('R2.3 workflow public React snapshot never contains the old standalone API 
  assert.equal(state.control('workflow-ai-key').value,'credential-must-stay-private',
   'legacy standalone View retains original in-memory contract');
  assert.equal(state.getSnapshot().controls['workflow-ai-key'].value,'');
+ state.control('workflow-ai-request').value='normal-text';
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(state.getSnapshot().controls['workflow-ai-request'].value,'normal-text',
+  'all nonsecret input values remain plain strings');
  assert.doesNotMatch(JSON.stringify(state.getSnapshot()),/credential-must-stay-private/);
  state.dispose();
 });
