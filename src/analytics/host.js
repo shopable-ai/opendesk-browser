@@ -10,7 +10,7 @@ const uuidPattern=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[
 const exact=(obj,keys)=>obj&&typeof obj==='object'&&!Array.isArray(obj)&&Object.keys(obj).every(key=>keys.includes(key));
 export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_INGEST_URL,
   fetcher=globalThis.fetch,now=()=>Date.now(),newId=()=>crypto.randomUUID(),allowLoopback=false,
-  loadAuthority=null}={}){
+  loadAuthority=null,verifyManualTask=null,readManualResult=null}={}){
   const collector=createAnalyticsCollector({api,endpoint,fetcher,now,newId,allowLoopback});
   const recordAuthorities=()=>typeof loadAuthority==='function'?
     collector.reportAuthority(loadAuthority):Promise.resolve({recorded:false});
@@ -107,7 +107,8 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
     row.count++;return true;
   };
   async function handle(message,sender){
-    if(!exact(message,['protocol','kind','enabled','disclosureVersion','event','toolId','channel','reason'])||
+    if(!exact(message,['protocol','kind','enabled','disclosureVersion','event','toolId','channel','reason',
+      'toolIdentity','runId'])||
        message.protocol!==ANALYTICS_PROTOCOL)return {ok:false,code:'E_SCHEMA'};
     if(message.kind==='consent.status'){
       if(!fromOptions(sender)||!exact(message,['protocol','kind']))return {ok:false,code:'E_SENDER'};
@@ -129,6 +130,30 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
         // A failed Page/Task read is recorded as UNKNOWN, never as zero installed.
         await recordAuthorities().catch(()=>{});
       }
+      return {ok:true,data};
+    }
+    if(['event.manual_attempt','event.manual_result'].includes(message.kind)){
+      const result=message.kind==='event.manual_result';
+      if(!fromPanel(sender)||message.toolId!=='opendesk'||message.channel!=='extension'||
+        message.event!==(result?'tool.manual_result':'tool.manual_attempt')||
+        typeof message.toolIdentity!=='string'||!message.toolIdentity||
+        message.toolIdentity.length>256||
+        !exact(message,['protocol','kind','event','toolId','channel','toolIdentity',
+          ...(result?['runId']:[])])||
+        (result&&!uuidPattern.test(message.runId||''))||
+        typeof (result?readManualResult:verifyManualTask)!=='function'||
+        !limit('manual_task'))return {ok:false,code:'E_SENDER'};
+      // Never read another authority, hash a private ID, or create a telemetry
+      // identity before consent. Revalidation also occurs inside the collector.
+      if(!(await collector.status()).consent)return {ok:true,data:{recorded:false}};
+      const verified=result?
+        await readManualResult(message.toolIdentity,message.runId,sender):
+        await verifyManualTask(message.toolIdentity,sender);
+      if(result?!verified?.status:verified!==true)
+        return {ok:false,code:'E_SENDER'};
+      const data=await collector.recordManualTask({event:message.event,
+        identity:message.toolIdentity,
+        ...(result?{runId:message.runId,runStatus:verified.status}:{})});
       return {ok:true,data};
     }
     if(!idPattern.test(message.toolId||'')||typeof message.event!=='string'||
