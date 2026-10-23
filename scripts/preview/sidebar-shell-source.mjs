@@ -42,13 +42,22 @@ export function extractSidebarPreviewShell(html,css){
     fail('React settings action missing: sidebar-tool-open-tab');
   if(navigation.find('[role=tab]').length!==6)fail('unexpected real Side Panel tab count');
   const nav=navigation.toString(),head=toolbar.toString();
-  const rules=css.split('\n');
-  const shellCss=selectors.map(selector=>{
-    const matched=rules.filter(line=>line.startsWith(selector));
-    if(matched.length!==1||!matched[0].trimEnd().endsWith('}'))
-      fail('missing or ambiguous canonical rule: '+selector);
-    return matched[0];
+  // Production CSS may intentionally repeat a selector for later overrides.
+  // Preserve every reviewed one-line rule in source order, so the preview
+  // reproduces normal browser cascading instead of treating a valid override
+  // as an ambiguous source or silently dropping the latest visual change.
+  const counts=new Map(selectors.map(selector=>[selector,0]));
+  const shellCss=css.split('\n').filter(line=>{
+    const selector=selectors.find(value=>line.startsWith(value));
+    if(!selector)return false;
+    if(!line.trimEnd().endsWith('}'))
+      fail('non-canonical rule: '+selector);
+    counts.set(selector,counts.get(selector)+1);
+    return true;
   }).join('\n');
+  for(const [selector,count] of counts){
+    if(count===0)fail('missing canonical rule: '+selector);
+  }
   return Object.freeze({nav,head,css:shellCss,
     digest:sha256(nav+'\n'+head+'\n'+shellCss)});
 }
