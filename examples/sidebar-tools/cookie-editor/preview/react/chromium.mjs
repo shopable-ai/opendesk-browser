@@ -27,6 +27,25 @@ const row=name=>page.locator('.row-trigger').filter({has:page.locator('strong',{
 const nameInput=()=>page.getByRole('textbox',{name:'名称',exact:true});
 const valueInput=()=>page.getByRole('textbox',{name:'Cookie 值',exact:true});
 const editor=()=>page.locator('.cookie-inline-editor');
+// Check both entry frames and settled layout; no fixed timeout masks overflow.
+const checkSheetBounds=async(sheet,width,height,stage)=>{
+ const measure=()=>sheet.evaluate(el=>{
+  const b=el.getBoundingClientRect(),p=el.parentElement.getBoundingClientRect();
+  return {x:b.x,y:b.y,width:b.width,height:b.height,
+   parent:{x:p.x,y:p.y,width:p.width,height:p.height,
+    clientHeight:el.parentElement.clientHeight},
+   viewport:{width:innerWidth,height:innerHeight},
+   animations:el.getAnimations().map(a=>({state:a.playState,time:a.currentTime}))};
+ });
+ const check=sample=>assert.ok(
+  sample.x>=0&&sample.x+sample.width<=width&&
+  sample.y>=0&&sample.y+sample.height<=height,
+  stage+' sheet overflows viewport: '+JSON.stringify(sample));
+ check(await measure());
+ await sheet.evaluate(el=>Promise.all(el.getAnimations().map(a=>a.finished.catch(()=>{}))));
+ const settled=await measure();check(settled);
+ return settled;
+};
 try{
  await page.goto(pathToFileURL(join(here,'index.html')).href,{waitUntil:'load'});await ready();
  await test('fixed React 19 + Shared UI, one actual App and 380px frame',async()=>{
@@ -58,8 +77,8 @@ try{
    assert.equal(await page.locator('dialog:modal').count(),0);
    assert.equal(await page.locator('.cookie-row').count(),8,'Cookie list must remain mounted');
    assert.equal(await page.locator('.cookie-react-view').getAttribute('inert'),'');
-   const geom=await sheet.boundingBox();
-   assert.ok(geom.x>=0&&geom.x+geom.width<=width&&geom.y+geom.height<=760);
+   const geom=await checkSheetBounds(sheet,width,760,width+'px list');
+   await page.screenshot({path:join(output,width+'-sheet-light.png')});
    const field=await sheet.getByRole('textbox',{name:'粘贴 Cookie 内容'}).boundingBox();
    assert.ok(field.width>=190&&field.height>=72);
    const action=await sheet.getByRole('button',{name:'导入',exact:true}).boundingBox();
@@ -73,6 +92,8 @@ try{
   await page.setViewportSize({width:320,height:420});
   await button('导入 Cookie').click();
   const sheet=page.getByRole('dialog',{name:'导入 Cookie'});await sheet.waitFor();
+  await checkSheetBounds(sheet,320,420,'320x420 short viewport');
+  await page.screenshot({path:join(output,'320x420-sheet-light.png')});
   const cancel=await sheet.getByRole('button',{name:'取消'}).boundingBox();
   const save=await sheet.getByRole('button',{name:'导入',exact:true}).boundingBox();
   assert.ok(cancel.y+cancel.height<=420&&save.y+save.height<=420);

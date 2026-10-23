@@ -288,7 +288,9 @@
 }
 @media(prefers-reduced-motion:no-preference){
   .cookie-editor-react .cookie-import-workspace{animation:cookie-sheet-enter .16s ease-out both}
-  @keyframes cookie-sheet-enter{from{transform:translateY(18px);opacity:.92}to{transform:translateY(0);opacity:1}}
+  /* The first animation frame must remain inside the 8px bottom inset. A
+     larger downward offset escapes a short Chrome sidebar before settling. */
+  @keyframes cookie-sheet-enter{from{transform:translateY(4px);opacity:.92}to{transform:translateY(0);opacity:1}}
 }
 
 /* R5.23: the trusted Side Panel sizes the iframe; this app fills that viewport
