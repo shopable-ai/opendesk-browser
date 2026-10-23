@@ -7,7 +7,7 @@ import {readFile} from 'node:fs/promises';
 import {installAnalyticsHost} from '../../src/analytics/host.js';
 import {createAnalyticsGateway} from '../../services/analytics/worker.mjs';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
-import {ANALYTICS_PROTOCOL,ANALYTICS_STATE_KEY,ANALYTICS_PAGE_SCOPE_CHECK} from '../../src/analytics/contract.js';
+import {ANALYTICS_PROTOCOL,ANALYTICS_STATE_KEY,ANALYTICS_PAGE_SCOPE_CHECK,ANALYTICS_DISCLOSURE_VERSION} from '../../src/analytics/contract.js';
 
 const listen=server=>new Promise(resolve=>server.listen(0,'127.0.0.1',
   ()=>resolve('http://127.0.0.1:'+server.address().port)));
@@ -114,7 +114,7 @@ test('verified Side Panel opens → opt-in collector → real HTTP D1 → PostHo
     protocol:ANALYTICS_PROTOCOL,kind:'event.host_report',event,toolId,channel:'sidepanel'},sender);
   assert.equal((await report('app.opened','opendesk')).data.recorded,false,
     'pre-consent is never collected');
-  assert.equal((await send({protocol:ANALYTICS_PROTOCOL,kind:'consent.set',enabled:true},options)).ok,true);
+  assert.equal((await send({protocol:ANALYTICS_PROTOCOL,kind:'consent.set',enabled:true,disclosureVersion:ANALYTICS_DISCLOSURE_VERSION},options)).ok,true);
   assert.equal((await report('app.opened','opendesk')).data.recorded,true);
   assert.equal((await report('app.opened','opendesk')).data.recorded,false,
     'same context reload is not a second opening');
