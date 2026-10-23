@@ -106,7 +106,7 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
   }
   const statusSnapshot=consent=>({configured,consent,queued:0,needsReview:false});
   function record({event,toolId,source,channel,reason,installedTools,contextId,inventoryTypes,
-    readState,projectionGap,toolType,runStatus,manualRunId},{authorize}={}){
+    readState,projectionGap,inventoryItems,inventoryOverflow,toolType,runStatus,manualRunId},{authorize}={}){
     if(revoked||!configured)return Promise.resolve({recorded:false});
     const generation=revision;
     return run(async()=>{
@@ -137,7 +137,8 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       const currentVersion=capped(currentCoverage.overflow,currentCoverage.expired);
       const signature=event==='app.inventory'&&Array.isArray(installedTools)?
         installedTools.join(','):event==='app.inventory_types'?
-        JSON.stringify({inventoryTypes,readState,projectionGap:projectionGap===true}):null;
+        JSON.stringify({inventoryTypes,inventoryItems,inventoryOverflow,readState,
+          projectionGap:projectionGap===true}):null;
       // Missing data immediately invalidates the prior census freshness version.
       if(event==='app.inventory'&&signature===state.inventorySignature&&
         currentVersion===state.inventoryCoverageVersion&&
@@ -160,6 +161,8 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
         ...(['tool.manual_attempt','tool.manual_result'].includes(event)?
           {toolType,...(runStatus?{runStatus}:{})}:{}),
         ...(event==='app.inventory_types'?{readState, ...(inventoryTypes?{inventoryTypes}:{}),
+          ...(inventoryItems?{inventoryItems}:{}),
+          ...(inventoryOverflow!==undefined?{inventoryOverflow}:{}),
           ...(projectionGap!==undefined?{projectionGap}: {})}:{}),
         ...(event==='app.inventory'?{installedTools,
           coverage:{...currentCoverage,version:currentVersion}}:{})
@@ -212,13 +215,14 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
   // These are CUMULATIVE observations of durable Authority, not client-reported
   // invocations. Only a larger count advances a key; IDB history loss yields
   // coverage uncertainty instead of re-counting an already seen execution.
-  function recordAutoDaily(row,projectionGap=false){
+  function recordAutoDaily(row,projectionGap=false,expectedInstallId=null){
     if(revoked||!configured)return Promise.resolve({recorded:false});
     const generation=revision;
     return run(async()=>{
       if(revoked||generation!==revision)return {recorded:false};
       const state=await read();
-      if(!state.consent||revoked||generation!==revision)return {recorded:false};
+      if(!state.consent||revoked||generation!==revision||
+        expectedInstallId!==null&&state.installId!==expectedInstallId)return {recorded:false};
       if(!row||typeof row.identity!=='string'||row.identity.length>256||
          !['page','task','app_service'].includes(row.type)||
          !['attempted','completed','failed','outcome_unknown'].includes(row.metricType)||
@@ -281,7 +285,7 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
     const grant=await run(async()=>{
       const state=await read();
       return state.consent&&state.consentReceipt?.disclosureVersion===ANALYTICS_DISCLOSURE_VERSION?
-        {since:state.consentReceipt.acceptedAt,installId:state.installId}:null;
+        {since:state.consentReceipt.acceptedAt,installId:state.installId,salt:state.identitySalt}:null;
     });
     if(!grant||revoked)return {recorded:false};
     let projection;
@@ -292,12 +296,37 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       return {recorded:false,readState:'failed'};
     }
     if(revoked)return {recorded:false};
+    // Bound each transmitted census to 96 anonymous per-install identities.
+    // Overflow is explicit coverage loss, not a false "zero installed" claim.
+    const installed=(projection.inventoryTypes?.page?.installed??0)+
+      (projection.inventoryTypes?.task?.installed??0);
+    const unique=new Set();
+    const selected=(projection.inventoryItems||[]).filter(row=>{
+      if(!['page','task'].includes(row?.type)||typeof row.identity!=='string'||
+        row.identity.length>256||!['enabled','disabled','blocked','unknown'].includes(row.status))
+        return false;
+      const key=row.type+':'+row.identity;
+      if(unique.has(key))return false;
+      unique.add(key);return true;
+    }).sort((a,b)=>(a.type+':'+a.identity).localeCompare(b.type+':'+b.identity)).slice(0,96);
+    const inventoryItems=await Promise.all(selected.map(async item=>({
+      type:item.type,toolId:await hashedToolId({identitySalt:grant.salt},
+        item.type,item.identity),status:item.status
+    })));
+    inventoryItems.sort((a,b)=>(a.type+':'+a.toolId).localeCompare(b.type+':'+b.toolId));
+    const inventoryOverflow=Math.max(0,installed-inventoryItems.length);
+    const hasGap=projection.projectionGap===true||inventoryOverflow>0;
     const inventory=await record({event:'app.inventory_types',toolId:'opendesk',
       source:'host',channel:'extension',readState:'fresh',
-      inventoryTypes:projection.inventoryTypes,projectionGap:projection.projectionGap===true});
+      inventoryTypes:projection.inventoryTypes,inventoryItems,inventoryOverflow,
+      projectionGap:hasGap},{authorize:async()=>{
+        const state=await read();
+        return state.consent&&state.installId===grant.installId&&
+          state.identitySalt===grant.salt;
+      }});
     let changed=0;
     for(const row of projection.daily||[]){
-      if((await recordAutoDaily(row,projection.projectionGap===true)).recorded)changed++;
+      if((await recordAutoDaily(row,hasGap,grant.installId)).recorded)changed++;
     }
     return {recorded:inventory.recorded||changed>0,autoSnapshots:changed,readState:'fresh'};
   }
