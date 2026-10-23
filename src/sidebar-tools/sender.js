@@ -1,6 +1,15 @@
 // Shared URL gate for fixed extension-owned tool hosts. Services additionally
 // validate the live document/context, installation, capability and epoch.
 import {SIDEPANEL_DOCUMENT_PATH} from '../tool-document-url.js';
+// Only read-only installer probes may use the selected, live manager's toolId.
+// Mutations must continue binding their own exact tool identity.
+export function isSidebarToolManagementSender(api,sender){
+  let toolIds;
+  try{toolIds=new URL(sender?.url).searchParams.getAll('toolId');}
+  catch{return false;}
+  if(toolIds.length>1)return false;
+  return isSidebarToolHostSender(api,sender,toolIds[0]??null);
+}
 export function isSidebarToolHostSender(api,sender,expectedToolId=null) {
   if(!api?.runtime?.id || sender?.id!==api.runtime.id || typeof sender.url!=='string')return false;
   try {

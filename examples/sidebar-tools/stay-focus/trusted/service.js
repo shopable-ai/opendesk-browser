@@ -8,7 +8,7 @@ import {MANAGED_SITE_RUNTIME_CONTRACT} from '../../../../src/platform/host/manag
 import {SIDEBAR_TOOL_BACKGROUND_POLICY_KIND,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2}
   from '../../../../src/ui/sidebar-tools/background-policy.js';
 import {writeVerifiedLocalValue} from '../../../../src/ui/sidebar-tools/storage-state.js';
-import {isSidebarToolHostSender} from '../../../../src/sidebar-tools/sender.js';
+import {isSidebarToolHostSender,isSidebarToolManagementSender} from '../../../../src/sidebar-tools/sender.js';
 import {FOCUS_ID,FOCUS_STORE,FOCUS_PROTOCOL,FOCUS_CAPABILITY,FOCUS_ALARM,FOCUS_SESSION,
   FOCUS_OPERATIONS,FOCUS_PROBE_OPERATION,FOCUS_SERVICE_VERSION,FOCUS_MAX_SITES,FOCUS_PAGE_NOTICE_PROTOCOL,focusPackageHash,focusHost,focusNextMidnight,focusRemovedOriginAffectsSite,focusError} from './policy.js';
 import {readFocus,emptyFocus,focusSite,focusSiteScopesValid,focusSchedule,focusMatchingSite,focusReason,
@@ -50,8 +50,11 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     return readManagedSiteToolAuthority(api,{toolId:FOCUS_ID,capability:FOCUS_CAPABILITY,
       extraStoreKeys:[FOCUS_STORE]});
   }
-  async function hostDocument(sender,expectedDocumentId=sender?.documentId){
-    if(!isSidebarToolHostSender(api,sender,FOCUS_ID)||sender.tab?.incognito||
+  async function hostDocument(sender,expectedDocumentId=sender?.documentId,managementProbe=false){
+    // Peer managers can only probe availability; Focus mutations remain owner-bound.
+    const allowed=managementProbe?isSidebarToolManagementSender(api,sender):
+      isSidebarToolHostSender(api,sender,FOCUS_ID);
+    if(!allowed||sender.tab?.incognito||
        sender.frameId!==undefined&&sender.frameId!==0||
        sender.documentLifecycle&&sender.documentLifecycle!=='active'||
        sender.tab&&!sender.documentId)
@@ -68,7 +71,8 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
   // The extension-owned Marketplace may check availability before installation,
   // but it never gains Focus mutation authority. A live TAB document is required.
   async function probeDocument(sender){
-    if(isSidebarToolHostSender(api,sender,FOCUS_ID))return hostDocument(sender);
+    if(isSidebarToolManagementSender(api,sender))
+      return hostDocument(sender,sender?.documentId,true);
     try{
       const url=new URL(sender?.url),market=new URL(api.runtime.getURL('ui/marketplace.html'));
       if(sender?.id!==api.runtime.id||!sender.tab||

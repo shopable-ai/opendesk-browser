@@ -8,7 +8,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/
 import {FOCUS_ID,FOCUS_STORE,FOCUS_SESSION,FOCUS_RULE_FIRST,FOCUS_PROTOCOL,focusPackageHash} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
 import {TIME_REVIEW_KEY} from '../../examples/sidebar-tools/time-review/trusted/model.js';
 import {requestStayFocusOperation,runTrustedStayFocusOperation,probeStayFocusService} from '../../examples/sidebar-tools/stay-focus/trusted/tool-host.js';
-import {isSidebarToolHostSender} from '../../src/sidebar-tools/sender.js';
+import {isSidebarToolHostSender,isSidebarToolManagementSender} from '../../src/sidebar-tools/sender.js';
 import {createStayFocusPermissionControls} from '../../examples/sidebar-tools/stay-focus/trusted/host-controls.js';
 
 const tool={format:'opendesk.sidebar-tool.v1',id:'stay-focus',version:'1.0.0',title:'Stay Focus',
@@ -331,10 +331,15 @@ test('Shared sender URL gate binds optional toolId and rejects extra query or cr
   const url=api.runtime.getURL('sidepanel.html')+'?hostInstanceId=123e4567-e89b-42d3-a456-426614174000';
   const sender=url=>({id:'extension',url});
   assert.equal(isSidebarToolHostSender(api,sender(url)),true);
+  assert.equal(isSidebarToolManagementSender(api,sender(url)),true);
+  assert.equal(isSidebarToolManagementSender(api,sender(url+'&toolId=stay-focus&toolId=time-review')),false);
+  assert.equal(isSidebarToolManagementSender(api,sender(url+'&toolId=../bad')),false);
   for(const id of ['stay-focus','time-review','reading-toc','cookie-editor']){
     assert.equal(isSidebarToolHostSender(api,sender(url+'&toolId='+id),id),true);
+    assert.equal(isSidebarToolManagementSender(api,sender(url+'&toolId='+id)),true);
     assert.equal(isSidebarToolHostSender(api,sender(url+'&toolId='+id),'different-tool'),false);
     assert.equal(isSidebarToolHostSender(api,sender(url+'&toolId='+id+'&extra=1'),id),false);
+    assert.equal(isSidebarToolManagementSender(api,sender(url+'&toolId='+id+'&extra=1')),false);
   }
   assert.equal(isSidebarToolHostSender(api,sender(url.replace('//extension/','//other/'))),false);
   assert.equal(isSidebarToolHostSender(api,sender(url+'#spoof')),false);

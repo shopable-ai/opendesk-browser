@@ -62,6 +62,28 @@ function fixture(){
     setFocused:value=>{focused=value;},
     setUrl:value=>{tabUrl=value;},get url(){return tabUrl;}};
 }
+test('a live Time Review manager may only perform a read-only Focus install probe',async()=>{
+  const f=fixture(),url=f.sender.url+'&toolId=time-review';
+  const manager={...f.sender,url};
+  f.api.runtime.getContexts=async()=>[{contextType:'SIDE_PANEL',documentUrl:url,
+    documentId:manager.documentId,frameId:0,incognito:false}];
+  const probe={protocol:FOCUS_PROTOCOL,toolId:'stay-focus',
+    operation:FOCUS_PROBE_OPERATION,payload:{}};
+  const before=structuredClone([...f.stored]),calls=f.nativeOps.length;
+  assert.equal((await f.focus.probe(probe,manager)).serviceReady,true);
+  assert.deepEqual([...f.stored],before,'read-only probe must not install or change data');
+  assert.equal(f.nativeOps.length,calls,'read-only probe must not write Chrome DNR');
+  await assert.rejects(f.focus.dispatch(await f.msg('focus.status'),manager),
+    {code:'E_FOCUS_SENDER'},'cross-tool manager cannot invoke Focus operations');
+  await assert.rejects(f.focus.probe(probe,{...manager,url:url+'&extra=1'}),
+    {code:'E_FOCUS_SENDER'});
+  await assert.rejects(f.focus.probe(probe,{...manager,id:'untrusted-extension'}),
+    {code:'E_FOCUS_SENDER'});
+  f.api.runtime.getContexts=async()=>[{contextType:'SIDE_PANEL',documentUrl:url,
+    documentId:'retired-document',frameId:0,incognito:false}];
+  await assert.rejects(f.focus.probe(probe,manager),{code:'E_FOCUS_SENDER'});
+});
+
 test('trusted sender and exact package hash/epoch are mandatory for all mutations',async()=>{
   const f=fixture(),request=await f.msg('focus.site.put',{site:mkSite('example.com')});
   await assert.rejects(f.focus.dispatch(request,{...f.sender,id:'fake-page'}),e=>e.code==='E_FOCUS_SENDER');
