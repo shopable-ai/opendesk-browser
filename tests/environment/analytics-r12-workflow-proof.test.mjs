@@ -116,9 +116,9 @@ test('original Controller journals certify only observed navigation with settled
 
 test('formal Workflow UI forwards only three-run link evidence; legacy one-run B-grade is gone',async()=>{
   const ui=await readFile(new URL('../../src/ui/workflow/workflow-view.js',import.meta.url),'utf8');
-  assert.match(ui,/workflowLinkBusinessRunRefs\\(\\{/);
-  assert.match(ui,/actionRunId:claim\\.runId,before:prepared\\.beforeObservation/);
+  assert.match(ui,/workflowLinkBusinessRunRefs\(\{/);
+  assert.match(ui,/actionRunId:claim\.runId,before:prepared\.beforeObservation/);
   assert.match(ui,/after:linkEffectAfter,effect/);
-  assert.match(ui,/if\\(refs\\)reportVerifiedWorkflowEffect\\(refs\\)/);
-  assert.doesNotMatch(ui,/reportVerifiedWorkflowEffect\\(claim\\.runId\\)/);
+  assert.match(ui,/if\(refs\)reportVerifiedWorkflowEffect\(refs\)/);
+  assert.doesNotMatch(ui,/reportVerifiedWorkflowEffect\(claim\.runId\)/);
 });
