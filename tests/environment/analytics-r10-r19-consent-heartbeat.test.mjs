@@ -112,3 +112,40 @@ test('R1.9 overflow and expiry are flagged as gaps, never reported as zero cover
   await current.setConsent(false);
   assert.equal((await current.status()).coverageGap,false);
 });
+
+test('R1.9 census exposes monotonic coverage gaps without manufacturing active users',async()=>{
+  const {api,values}=memoryChrome();
+  let clock=BASE;
+  const current=instance(api,()=>clock);
+  await approve(current);
+  assert.equal((await current.record(census)).recorded,true);
+  for(let i=0;i<260;i++)await current.record(prompt);
+  assert((await current.status()).coverage.overflow>=10);
+  // No 24-hour delay after new gaps, even if tool installations are unchanged.
+  assert.equal((await current.record(census)).recorded,true);
+  const state=savedState(values),last=state.queue.find(row=>row.event==='app.inventory');
+  assert.deepEqual(last.coverage,{...state.coverage,
+    version:state.coverage.overflow+state.coverage.expired});
+  assert.equal(state.inventoryCoverageVersion,last.coverage.version);
+  assert.equal((await current.record(census)).recorded,false);
+  assert(!state.queue.some(row=>row.event==='app.opened'||row.event==='tool.engaged'));
+  clock+=8*86400000;
+  assert.equal((await current.record(census)).recorded,true);
+  const next=savedState(values),latest=next.queue.find(row=>row.event==='app.inventory');
+  assert(next.coverage.expired>=250);
+  assert(latest.coverage.version>last.coverage.version);
+  assert.deepEqual(latest.coverage,{...next.coverage,
+    version:next.coverage.overflow+next.coverage.expired});
+});
+test('R1.9 unreviewed v2 grant cannot authorize new loss counter categories',async()=>{
+  const {api,values}=memoryChrome();
+  const first=instance(api,()=>BASE);
+  await approve(first);
+  const old=structuredClone(savedState(values));
+  old.consentReceipt.disclosureVersion='analytics-disclosure-2026-10-23-v2';
+  values.set(ANALYTICS_STATE_KEY,old);
+  const changed=instance(api,()=>BASE);
+  assert.equal((await changed.status()).consent,false);
+  assert.equal((await changed.status()).needsReview,true);
+  assert.deepEqual(await changed.record(census),{recorded:false});
+});

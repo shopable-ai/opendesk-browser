@@ -64,3 +64,22 @@ Do not configure a tracking SDK on the user's web page or build a local React an
 Run Node 22: node --test tests/environment/analytics-r10*.test.mjs
 
 The integration test runs a real loopback HTTP collection endpoint, a SQLite database executing the actual D1 schema, an HTTP PostHog-shaped sink and MV3-like persistent browser state. It proves the local data-path behavior but is NOT live Cloudflare/real PostHog/installed Mac Chrome evidence. Use CI evidence and label each environment independently. Native Chrome, live cloud configuration, Chrome Web Store policy review and production monitoring remain blocked/unverified until executed.
+
+
+## R1.9 统计覆盖缺口快照（开发态）
+
+继续使用既有 `app.inventory` Host 快照，不增加第二套服务或安装仓库。
+增加固定字段 `coverage_overflow`、`coverage_expired`、`coverage_version`：
+前两者分别表示本机队列丢弃以及过期/无效丢弃的累计数（非业务失败数）；
+`coverage_version` 为两者之和的安全整数饱和值，在同一个有效授权安装身份内单调不减。
+原清单不变时，24 小时定期保鲜仍然有效；出现新覆盖缺口会提前更新快照。
+
+**PostHog 查询必须按安装身份选取 coverage_version 最大的最新有效快照**，
+同版本再按事件时间确定最新；不能直接 SUM 累计快照，也不能把无快照当作零缺口。
+D1 的事件 ACK 只表示已持久接收，并不等于 PostHog 已可查询。
+撤回同意后本机身份与累计计数一并清除；新版披露凭据变更为 v3，
+未经重新审阅的 v2 同意及历史队列不得延续上报。
+
+这里仅补齐原 R1.1 事件范围内的覆盖缺口上报，**不代表**全类型 Page/Task 安装、
+Scheduler/Workflow 自动业务快照、全部工具效果排行或 R1.9 的 28 场景已经完成。
+生产正式接收 URL 仍在 `src/analytics/config.js` 中保持为空。

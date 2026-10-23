@@ -7,7 +7,7 @@ export const ANALYTICS_ALARM='opendesk.analytics.flush.v1';
 export const ANALYTICS_STATE_KEY='opendesk.analytics.state.v1';
 export const ANALYTICS_VERSION=1;
 // Changing collection categories, recipients or purpose requires a new reviewed receipt.
-export const ANALYTICS_DISCLOSURE_VERSION='analytics-disclosure-2026-10-23-v2';
+export const ANALYTICS_DISCLOSURE_VERSION='analytics-disclosure-2026-10-23-v3';
 export const ANALYTICS_MAX_BATCH=10;
 export const ANALYTICS_MAX_BYTES=16384;
 export const ANALYTICS_MAX_AGE_MS=7*24*60*60*1000;
@@ -24,7 +24,7 @@ const reasons=new Set(['editor_changed','editor_unavailable','site_denied','clip
 const exact=(value,names)=>Object.keys(value).every(key=>names.includes(key));
 const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 export function validateAnalyticsEvent(value,{now=Date.now()}={}){
-  if(!object(value)||!exact(value,['eventId','installId','event','toolId','timestamp','source','channel','reason','installedTools'])||
+  if(!object(value)||!exact(value,['eventId','installId','event','toolId','timestamp','source','channel','reason','installedTools','coverage'])||
     !uuid.test(value.eventId||'')||!uuid.test(value.installId||'')||
     !ANALYTICS_EVENTS.includes(value.event)||!toolId.test(value.toolId||'')||
     !sources.has(value.source)||!channels.has(value.channel)||
@@ -43,7 +43,15 @@ export function validateAnalyticsEvent(value,{now=Date.now()}={}){
       ids.some(id=>typeof id!=='string'||!toolId.test(id)||id==='opendesk')||
       ids.some((id,i)=>i>0&&id<=ids[i-1]))
       throw Object.assign(new Error('Invalid installed tool inventory'),{code:'E_ANALYTICS_SCHEMA'});
-  }else if(value.installedTools!==undefined)
+    // A cumulative loss snapshot is only accepted on Host-owned inventory.
+    if(value.coverage!==undefined){
+      const gap=value.coverage;
+      if(!object(gap)||!exact(gap,['overflow','expired','version'])||
+        !['overflow','expired','version'].every(key=>Number.isSafeInteger(gap[key])&&gap[key]>=0)||
+        gap.version!==Math.min(Number.MAX_SAFE_INTEGER,gap.overflow+gap.expired))
+        throw Object.assign(new Error('Invalid analytics coverage'),{code:'E_ANALYTICS_SCHEMA'});
+    }
+  }else if(value.installedTools!==undefined||value.coverage!==undefined)
     throw Object.assign(new Error('Unexpected inventory'),{code:'E_ANALYTICS_SCHEMA'});
   if((value.event.startsWith('app.')!==(value.toolId==='opendesk'))||
     (value.event==='tool.engaged'&&value.toolId!=='prompt-shortcuts'))

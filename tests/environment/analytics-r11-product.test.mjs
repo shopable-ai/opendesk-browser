@@ -136,6 +136,9 @@ test('verified Side Panel opens → opt-in collector → real HTTP D1 → PostHo
     'DAU counts one installation, not six events or two tools');
   assert.deepEqual(batch.find(row=>row.event==='app.inventory').properties.installed_tools,
     ['cookie-editor','prompt-shortcuts'],'first opt-in includes previously installed tools');
+  const gap=batch.find(row=>row.event==='app.inventory').properties;
+  assert.deepEqual([gap.coverage_overflow,gap.coverage_expired,gap.coverage_version],
+    [0,0,0],'HTTP/D1/PostHog path carries explicit coverage counters');
   assert(batch.every(row=>row.properties.$process_person_profile===false));
   assert(!JSON.stringify(received).includes('https://chatgpt.com/'));
   // A verified unsuccessful page-button attempt is still an active installation.

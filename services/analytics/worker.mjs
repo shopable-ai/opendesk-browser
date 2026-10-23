@@ -79,7 +79,9 @@ async function deliver(env,{fetcher,now}){
           event:row.event,uuid:row.eventId,distinct_id:row.installId,timestamp:row.timestamp,
           properties:{distinct_id:row.installId,tool_id:row.toolId,source:row.source,channel:row.channel,
             ...(row.reason?{reason:row.reason}:{}),
-            ...(row.event==='app.inventory'?{installed_tools:row.installedTools}:{}),
+            ...(row.event==='app.inventory'?{installed_tools:row.installedTools,
+              ...(row.coverage?{coverage_overflow:row.coverage.overflow,
+                coverage_expired:row.coverage.expired,coverage_version:row.coverage.version}:{})}:{}),
             $process_person_profile:false,$ip:null}
         }))}),redirect:'error',signal:controller.signal});
       success=response.ok;

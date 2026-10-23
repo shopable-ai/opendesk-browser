@@ -6,7 +6,7 @@ const INVENTORY_REFRESH_MS=24*60*60*1000;
 const capped=(a,b)=>Math.min(Number.MAX_SAFE_INTEGER,a+b);
 const ATTEMPT_TIMEOUT_MS=10000;
 const empty=()=>({consent:false,consentReceipt:null,installId:null,queue:[],failures:0,nextAttemptAt:0,
-  inventorySignature:null,inventoryReportedAt:0,coverage:{overflow:0,expired:0},openedContexts:[]});
+  inventorySignature:null,inventoryReportedAt:0,inventoryCoverageVersion:0,coverage:{overflow:0,expired:0},openedContexts:[]});
 export function validAnalyticsEndpoint(value,{allowLoopback=false}={}){
   try{
     const url=new URL(value);
@@ -42,12 +42,14 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       (raw.consent&&typeof raw.installId!=='string')||
       (raw.inventorySignature!==undefined&&raw.inventorySignature!==null&&typeof raw.inventorySignature!=='string')||
       !Number.isSafeInteger(raw.inventoryReportedAt??0)||(raw.inventoryReportedAt??0)<0||
+      !Number.isSafeInteger(raw.inventoryCoverageVersion??0)||(raw.inventoryCoverageVersion??0)<0||
       !Number.isSafeInteger(raw.coverage?.overflow??0)||(raw.coverage?.overflow??0)<0||
       !Number.isSafeInteger(raw.coverage?.expired??0)||(raw.coverage?.expired??0)<0||
       !Array.isArray(raw.openedContexts??[])||(raw.openedContexts??[]).length>96||
       (raw.openedContexts??[]).some(id=>typeof id!=='string'||id.length>64))return empty();
     return {...raw,inventorySignature:raw.inventorySignature??null,
       inventoryReportedAt:raw.inventoryReportedAt??0,
+      inventoryCoverageVersion:raw.inventoryCoverageVersion??0,
       coverage:{overflow:raw.coverage?.overflow??0,expired:raw.coverage?.expired??0},
       openedContexts:raw.openedContexts??[]};
   };
@@ -104,19 +106,28 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
         (typeof contextId!=='string'||!(/^[a-f0-9-]{36}$/i).test(contextId)||
           state.openedContexts.includes(contextId)))return {recorded:false};
       const time=now();
+      // A periodic census must account for newly expired outbox entries too.
+      const retained=prune(state.queue,time);
+      const currentCoverage={overflow:state.coverage.overflow,
+        expired:capped(state.coverage.expired,state.queue.length-retained.length)};
+      const currentVersion=capped(currentCoverage.overflow,currentCoverage.expired);
       const signature=event==='app.inventory'&&Array.isArray(installedTools)?
         installedTools.join(','):null;
-      // Unchanged inventories are refreshed on the next alarm after 24 UTC hours.
+      // Missing data immediately invalidates the prior census freshness version.
       if(event==='app.inventory'&&signature===state.inventorySignature&&
-        time>=state.inventoryReportedAt&&time-state.inventoryReportedAt<INVENTORY_REFRESH_MS)
+        currentVersion===state.inventoryCoverageVersion&&
+        time>=state.inventoryReportedAt&&time-state.inventoryReportedAt<INVENTORY_REFRESH_MS){
+        if(retained.length!==state.queue.length)
+          await persist({...state,queue:retained,coverage:currentCoverage});
         return {recorded:false};
+      }
       const entry=validateAnalyticsEvent({
         eventId:newId(),installId:state.installId,event,toolId,
         source,channel,timestamp:new Date(time).toISOString(),
-        ...(reason?{reason}:{}),...(event==='app.inventory'?{installedTools}:{})
+        ...(reason?{reason}:{}),...(event==='app.inventory'?{installedTools,
+          coverage:{...currentCoverage,version:currentVersion}}:{})
       },{now:time});
       // A new census supersedes unsent old censuses. Transitions remain separate.
-      const retained=prune(state.queue,time);
       const queue=retained.filter(row=>
         event!=='app.inventory'||row.event!=='app.inventory');
       // A bounded queue is intentionally lossy under prolonged disconnection.
@@ -128,10 +139,14 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       if(latestCensus&&!bounded.some(row=>row.eventId===latestCensus.eventId)){
         bounded.shift();bounded.unshift(latestCensus);
       }
-      await persist({...state,queue:bounded,
-        coverage:{overflow:capped(state.coverage.overflow,Math.max(0,queue.length-MAX_QUEUED)),
-          expired:capped(state.coverage.expired,state.queue.length-retained.length)},
-        ...(event==='app.inventory'?{inventorySignature:signature,inventoryReportedAt:time}:{}),
+      const coverage={overflow:capped(currentCoverage.overflow,Math.max(0,queue.length-MAX_QUEUED)),
+        expired:currentCoverage.expired};
+      const coverageVersion=capped(coverage.overflow,coverage.expired);
+      // Include losses caused by admitting this census itself.
+      if(event==='app.inventory')entry.coverage={...coverage,version:coverageVersion};
+      await persist({...state,queue:bounded,coverage,
+        ...(event==='app.inventory'?{inventorySignature:signature,inventoryReportedAt:time,
+          inventoryCoverageVersion:coverageVersion}:{}),
         ...(event==='app.opened'?{openedContexts:[...state.openedContexts,contextId].slice(-96)}:{})});
       return {recorded:true};
     });
