@@ -27,7 +27,7 @@ import {subscribeManagedSiteActivity} from './managed-site-lifecycle.js';
 import {normalizeManagedSiteV3Notices,nextManagedSiteV3Reminder}
   from '../../framework/sdk/site-budget-v3-reminders.js';
 import {MANAGED_SITE_REVIEWED_SCOPE_STORE,reviewedManagedSiteScopeCovers,
-  managedSiteV3RequiredOrigins} from '../../framework/host/managed-site-reviewed-scopes.js';
+  hasReviewedManagedSiteScopes,managedSiteV3RequiredOrigins} from '../../framework/host/managed-site-reviewed-scopes.js';
 
 export const MANAGED_SITE_BUDGET_STORE='opendesk.browser.site-budget.resources.v1';
 export const MANAGED_SITE_BUDGET_ALARM='opendesk.browser.site-budget.tick.v1';
@@ -172,14 +172,15 @@ const currentPermission=api=>Promise.all([
   api.permissions.contains({permissions:['idle']}),
   api.permissions.contains({permissions:['declarativeNetRequestWithHostAccess']})
 ]).then(([idle,dnr])=>({idle,dnr,ready:idle&&dnr}));
-const safeStatus=(row,permission,kind=SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2)=>
+const safeStatus=(row,permission,kind=SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2,siteReviewActive=false)=>
   kind===SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V3?{
     contract:MANAGED_SITE_RUNTIME_CONTRACT,kind,
     desiredPolicyRev:row?.desiredPolicyRev??0,appliedPolicyRev:row?.appliedPolicyRev??0,
     status:row?.status??'inactive',desiredPolicy:row?.policy??defaultV3(),
     modelRef:row?.modelRef??null,sealedModel:row?.sealedModel??null,
     usage:row?.usage??{},day:row?.day??dayAt(Date.now()),
-    clockHighWater:row?.clockHighWater??0,permissions:permission
+    clockHighWater:row?.clockHighWater??0,permissions:permission,
+    siteReviewActive:siteReviewActive===true
   }:({contract:MANAGED_SITE_RUNTIME_CONTRACT,
   kind:SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2,desiredPolicyRev:row?.desiredPolicyRev??0,
   appliedPolicyRev:row?.appliedPolicyRev??0,status:row?.status??'inactive',
@@ -439,7 +440,9 @@ export function createManagedSiteBudgetService({
           }catch{/* Unsupported content-script delivery cannot weaken DNR. */}
         }
         settledGenerations.set(id,observedGeneration);
-        return {receipt:safeStatus(nextRow,permission,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V3)};
+        return {receipt:safeStatus(nextRow,permission,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V3,
+          valid&&authorizedExecution&&hasReviewedManagedSiteScopes(
+            auth.saved[MANAGED_SITE_REVIEWED_SCOPE_STORE],id,auth.epoch,packageHash))};
       }
       if(!permission.dnr&&!auth.enabled)
         fail('E_CLEANUP_PENDING','Chrome DNR 权限不可用，无法证明停用后旧原生规则已清除');
