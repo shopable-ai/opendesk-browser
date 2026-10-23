@@ -4,7 +4,25 @@ import {access, mkdir, mkdtemp, cp, readFile, writeFile, rm} from 'node:fs/promi
 import {spawnSync} from 'node:child_process';
 import {resolve} from 'node:path';
 import {BUILD_POLICY} from '../../scripts/build-contract.mjs';
-import {verifyPackage} from '../../scripts/verify-package.mjs';
+import {verifyPackage,APPROVED_WEB_ACCESSIBLE_RESOURCES,MANAGED_SITE_BLOCK_RESOURCES} from '../../scripts/verify-package.mjs';
+
+test('managed-site v3 restriction resources match exact manifest and contain no executable page code',async()=>{
+  const manifest=JSON.parse(await readFile('manifest.json','utf8'));
+  const paths=['quota','schedule','session','always'].map(reason=>
+    'managed-site/blocked-'+reason+'.html');
+  assert.deepEqual(MANAGED_SITE_BLOCK_RESOURCES,paths);
+  assert.deepEqual(manifest.web_accessible_resources,APPROVED_WEB_ACCESSIBLE_RESOURCES,
+    'the root manifest must not grant more web resources than the verifier permits');
+  assert.deepEqual(APPROVED_WEB_ACCESSIBLE_RESOURCES.at(-1),{
+    resources:paths,matches:['http://*/*','https://*/*']
+  },'only four fixed redirect pages may be website-visible');
+  for(const reason of ['quota','schedule','session','always']){
+    const html=await readFile('src/platform/chrome/blocked/blocked-'+reason+'.html','utf8');
+    assert.match(html,/href="\.\/blocked\.css"/);
+    assert.doesNotMatch(html,/<script\b|\bon\w+\s*=/i,
+      'restriction UI is an inert local document');
+  }
+});
 
 // These checks use the actual built package to detect regressions in the release scanner.
 async function mutatedPackage(change, expectation) {
@@ -52,6 +70,23 @@ test('R3 rejects a stale Workspace HTML artifact even when its JS bundle is othe
     assert.notEqual(mutated,html,'stale-Workspace mutation must change the fixture');
     await writeFile(file,mutated);
   },/native-agent\/workspace\.html must ship one empty React root without static business DOM/);
+});
+
+test('packaged managed-site v3 assets remain exact and fail closed on injected content',async()=>{
+  await mutatedPackage(async root=>{
+    const manifestPath=root+'/manifest.json',manifest=JSON.parse(await readFile(manifestPath,'utf8'));
+    manifest.web_accessible_resources[2].resources.push('managed-site/unapproved.js');
+    await writeFile(manifestPath,JSON.stringify(manifest));
+  },/Unexpected web accessible resources/);
+  await mutatedPackage(async root=>{
+    const css=root+'/managed-site/blocked.css';
+    await writeFile(css,(await readFile(css,'utf8'))+'\n@import "https://untrusted.invalid/external.css";');
+  },/Unsafe CSS resources in managed-site\/blocked\.css/);
+  await mutatedPackage(async root=>{
+    const page=root+'/managed-site/blocked-quota.html';
+    await writeFile(page,(await readFile(page,'utf8')).replace(
+      'href="./blocked.css"','href="https://untrusted.invalid/external.css"'));
+  },/Unsafe HTML resources in managed-site\/blocked-quota\.html/);
 });
 
 test('packaged design system rejects remote CSS imports',async()=>{
