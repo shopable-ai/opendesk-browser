@@ -456,6 +456,8 @@ async function captureRealRailGeometry(page, scene) {
       rail: rect(rail), text: rect(text), image: rect(image), brand: rect(rail.querySelector('.starter-toggle')),
       tip: tip.hidden ? null : rect(tip), area: rect(document.querySelector('#messageArea')),
       buttons: rail.querySelectorAll(':scope > button').length,
+      managementButtons: [...rail.querySelectorAll(':scope > button')].filter(button =>
+        button.textContent.trim() === '管理' || button.getAttribute('aria-label')?.includes('管理提示词')).length,
       expanded: rail.querySelector('.starter-toggle')?.getAttribute('aria-expanded') ?? null,
       imageSize: rail.dataset.imageSize,
       background: style.backgroundColor, border: style.borderTopWidth, borderColor: style.borderTopColor,
@@ -466,8 +468,9 @@ async function captureRealRailGeometry(page, scene) {
   const close = (actual, expected) => actual != null && Math.abs(actual - expected) <= 1;
   const initial = await read();
   scene.railGeometry = {initial};
-  check(scene, 'real DOM: 3 text buttons + OD + manage, default expanded',
-    initial.visible && initial.expanded === 'true' && initial.buttons === 5, initial);
+  check(scene, 'real DOM: 3 text buttons + OD, no redundant manage button, default expanded',
+    initial.visible && initial.expanded === 'true' && initial.buttons === 4 &&
+    initial.managementButtons === 0, initial);
   check(scene, 'real DOM: text 38px, intrinsic rail 52px, 6px padding, 5px gap',
     close(initial.text?.width, 38) && close(initial.text?.height, 38) &&
     close(initial.brand?.width, 38) && close(initial.rail?.width, 52) &&
@@ -513,8 +516,8 @@ async function captureRealRailGeometry(page, scene) {
   check(scene, 'real DOM: reopened preview honors current manual collapse',
     reopened.expanded === 'false' && reopened.buttons === 1 && close(reopened.rail?.width, 52), reopened);
   await page.click('#pageRail .starter-toggle');
-  check(scene, 'real DOM: manual expand restores 3 full shortcut buttons',
-    (await read()).buttons === 5);
+  check(scene, 'real DOM: manual expand restores 3 shortcuts and OD without manage',
+    (await read()).buttons === 4 && (await read()).managementButtons === 0);
 
   if (scene.state !== 'empty-local') return;
   const switchScenario = value => page.evaluate(v => {
@@ -545,8 +548,9 @@ async function captureRealRailGeometry(page, scene) {
     empty.buttons === 1 && close(empty.rail?.width, 52), empty);
   await switchScenario('fresh');
   const restored = await read();
-  check(scene, 'real DOM: scenario reset returns to default-expanded 3 prompts',
-    restored.buttons === 5 && restored.expanded === 'true' && close(restored.rail?.width, 52), restored);
+  check(scene, 'real DOM: scenario reset restores 3 prompts and OD, no manage',
+    restored.buttons === 4 && restored.managementButtons === 0 &&
+    restored.expanded === 'true' && close(restored.rail?.width, 52), restored);
   scene.railGeometry.reset = restored;
   scene.screenshots ??= {};
   scene.screenshots.rail = await screenshot(page, scene.id + '-rail-full.png', false);
