@@ -1,4 +1,4 @@
-import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
+import {mountWorkflowClient} from './workflow-mounted-ui.mjs';
 import {load} from 'cheerio';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -56,14 +56,26 @@ test('custom HTTPS planning follows the same minimization',async()=>{
 });
 test('user-initiated AI sends directly without custom consent UI or ledger',async()=>{
   const {readFile}=await import('node:fs/promises');
-  const [html,view,css,sharing]=await Promise.all([
-    renderSidebarFixture({activeTab:'workflow',debugEnabled:false}),
-    ...['src/ui/workflow/workflow-view.js','src/ui/tool-shell.css',
-    'src/ui/workflow/data-sharing.js'].map(path=>readFile(path,'utf8'))
-  ]);
+  const mounted=await mountWorkflowClient();
+  let html;
+  try {
+    html=mounted.html();
+    const live=load(html);
+    assert.equal(live('#workflow-ai-plan').attr('aria-label'),'发送',
+      'the real shared Chat Frame owns the accessible Send control');
+    assert.equal(live('#workflow-ai-plan').closest('.od-conversation-composer').length,1,
+      'Send must be inside the real shared form, not a legacy manual button');
+    assert.equal(live('#workflow-ai-plan').closest('[data-opendesk-react-owner="workflow-page"]').length,1);
+    assert.equal(live('#workflow-ai-request').length,1,'the split-target portal mounts the actual input');
+  } finally { await mounted.close(); }
+  const [view,css,sharing,frame,component]=await Promise.all(
+    ['src/ui/workflow/workflow-view.js','src/ui/tool-shell.css',
+     'src/ui/workflow/data-sharing.js','src/ui/react/components/conversation.tsx',
+     'src/ui/react/tabs/workflow.tsx'].map(path=>readFile(path,'utf8')));
   const $=load(html);
-  assert.equal($('#workflow-ai-plan').attr('aria-label'),'发送任务');
-  assert.equal($('#workflow-ai-plan').closest('[data-opendesk-react-owner="workflow-page"]').length,1);
+  assert.match(frame,/onSubmit=\{submit\}/);
+  assert.match(frame,/onSend\(event\)/);
+  assert.match(component,/onSend=\{event=>click\('workflow-ai-plan',event\)\}/);
   assert.equal($('[id$="-react-host"]').length,0,'no legacy workflow portals');
   assert.doesNotMatch(html,/id="workflow-ai-disclosure"|id="workflow-ai-review-|id="workflow-ai-revoke"/);
   assert.doesNotMatch(html,/workflow-ai-data-details|同意并生成|模型的数据发送许可/);

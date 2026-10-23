@@ -52,8 +52,11 @@ if(!vm.SourceTextModule) {
   const button=await compile('../../src/ui/react/components/ui/button.tsx',imports);
   const conversation=await compile('../../src/ui/react/components/conversation.tsx',
     {...imports,'./ui/button.tsx':button});
+  const providerSettings=await compile('../../src/ui/react/components/provider-settings.tsx',
+    {...imports,'./ui/button.tsx':button});
   const {WorkflowPage}=await import(await compile('../../src/ui/react/tabs/workflow.tsx',
-    {...imports,'../components/ui/button.tsx':button,'../components/conversation.tsx':conversation}));
+    {...imports,'../components/ui/button.tsx':button,'../components/conversation.tsx':conversation,
+      '../components/provider-settings.tsx':providerSettings}));
   const initial=parseHTML('<html><body></body></html>');
   const original={window:globalThis.window,document:globalThis.document};
   globalThis.window=initial.window;globalThis.document=initial.document;
