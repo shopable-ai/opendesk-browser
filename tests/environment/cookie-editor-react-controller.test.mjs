@@ -38,8 +38,10 @@ function fixture(){
     clipboard:{writeText:async text=>{calls.push(['copy',text]);return {copied:true};}},
     downloads:{text:async args=>{calls.push(['download',copy(args)]);return {started:true};}}};
   const adapter=createCookieSdkAdapter({getBrowser:()=>browser,
-    request:async operation=>operation==='cookieEditor.export.begin'?{authorized:true,ref:1}:
-      operation==='cookieEditor.export.finish'?{closed:true}:{status:'available',url:site}});
+    request:async operation=>operation==='cookieEditor.export.begin'||
+      operation==='cookieEditor.clear.begin'?{authorized:true,ref:1}:
+      operation==='cookieEditor.export.finish'||operation==='cookieEditor.clear.finish'?
+        {closed:true}:{status:'available',url:site}});
   const snapshots=[];
   const controller=createCookieController({adapter,onChange:s=>snapshots.push(s)});
   return {browser,cookies,adapter,controller,calls,snapshots,
