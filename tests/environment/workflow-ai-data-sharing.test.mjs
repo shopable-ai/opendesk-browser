@@ -84,7 +84,9 @@ test('user-initiated AI sends directly without custom consent UI or ledger',asyn
   assert.doesNotMatch(sharing,/createModelConsent|modelDataScope|CONSENT_STORAGE_KEY|ConsentManager|AuthorizationManager/);
   assert.doesNotMatch(view,/create(?:Consent|Authorization|Permission)Manager|new (?:Consent|Authorization|Permission)Manager/);
   assert.match(view,/bind\('workflow-ai-plan','click',sendNaturalLanguage\)/);
-  assert.match(view,/selectSavedWorkflowRoute\(\{request:original,target,records:saveList\}\)/);
+   assert.match(view,/let request=original,chosenKey=null/,'original Send must own the intent before explicit user choices');
+   assert.match(view,/selectSavedWorkflowRoute\(\{request,target,records:saveList\}\)/,
+     'saved Workflow matching must use the resolved request, never stale first text');
   assert.match(view,/const taskSnapshot=await client\.request\('listTaskCatalog',\{\}\)/);
   assert.match(view,/selectInstalledTaskRoute\(\{request,target,/);
   assert.match(view,/return executeMatchedInstalled\(event,prepared\)/);
