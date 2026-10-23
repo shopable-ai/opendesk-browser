@@ -2089,9 +2089,11 @@ test('R5.30.3 official export reuses one real click and still requires exact Hos
   },store:new Map([
     [SIDEBAR_TOOL_STORE,[tool]],
     [BROWSER_MENU_GRANTS_STORE,{[tool.id]:{version:tool.version,installEpoch:null,
-      packageHash:await sidebarToolPackageHash(tool),cookieAllSites:{read:true,grantEpoch:'grant-1'}}}],
+      packageHash:await sidebarToolPackageHash(tool),cookieAllSites:{storeId:'0',read:true,write:true,
+        observe:true,clear:true,values:false,valueConsent:false,grantEpoch:'grant-1'}}}],
     [MARKET_PROVENANCE_STORE,{[tool.id]:{marketId:release.id,version:release.version,sha256:release.sha256}}]
   ])});
+  await settle(()=>!f.elements['sidebar-tool-frame'].hidden);
   const old=Object.getOwnPropertyDescriptor(globalThis,'navigator'),oldLocation=globalThis.location;
   const copied=[],downloads=[],calls=[];let active=false,authorized=true,revokeBeforeDelivery=false;
   Object.defineProperty(globalThis,'navigator',{configurable:true,value:{
@@ -2637,7 +2639,8 @@ test('R5.37 development Cookie package grants current site after Chrome permissi
     'neither all-site nor sensitive values can be upgraded by a same-ID development package');
   assert.equal(store.get(BROWSER_MENU_GRANTS_STORE)[tool.id].cookieSites[origin].values,undefined);
   assert.equal(f.host.openSettings(tool.id),true);
-  await settle(()=>!f.elements['sidebar-tool-cookie-values-toggle'].hidden);
+  await settle(()=>!f.elements['sidebar-tool-cookie-values-toggle'].hidden&&
+    !f.elements['sidebar-tool-cookie-values-toggle'].disabled);
   f.emit(f.elements['sidebar-tool-cookie-values-toggle'],'click',{isTrusted:true});
   await settle(()=>store.get(BROWSER_MENU_GRANTS_STORE)?.[tool.id]?.cookieSites?.[origin]?.values===true);
   assert.equal(hostCalls.at(-1).cookieCapability,'values','sensitive values require their own trusted click');
