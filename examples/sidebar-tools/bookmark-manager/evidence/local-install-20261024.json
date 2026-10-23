@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-24",
+  "timezone": "Asia/Shanghai",
+  "scope": "Rebuild the current Bookmark Manager JSON and test its update in daily Chrome",
+  "observationMethod": "Native Chrome UI through cua_repl; version, source, hash and operation results read from returned accessibility state",
+  "environment": {
+    "mode": "CONTINUOUS_DEVELOPMENT",
+    "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "watcherConnected": true,
+    "revision": "88388515f557546a748f2652dc11cc2a62dd212bc44f871f01289b3ea617958d",
+    "profile": "Existing daily Chrome; no isolated profile or replacement extension directory created"
+  },
+  "before": {
+    "version": "0.3.10",
+    "source": "Not recorded",
+    "sha256": "4157bd984596d54c1a0c8a35ec38332d707d041b4ef038f018e8b452459073a4",
+    "ui": "Isolated compatibility iframe"
+  },
+  "package": {
+    "path": "examples/sidebar-tools/bookmark-manager/bookmark-manager.opendesk-tool.json",
+    "version": "0.3.11",
+    "bytes": 88766,
+    "sha256": "86cc68f413ab421ec7895b4faecb061d81b005f4b363efdd72e6a8e833cdb4cf",
+    "changedFields": ["version", "css"],
+    "capabilities": ["browser.bookmarks.full", "currentPage.read"],
+    "capabilitiesChanged": false,
+    "officialDevelopmentResourceByteEqual": true,
+    "projectSourceCheck": "PROJECT_PACKAGE_MATCH"
+  },
+  "installation": {
+    "route": "Existing official marketplace -> Review version update -> Confirm fixed version",
+    "result": "PASS",
+    "installedVersion": "0.3.11",
+    "installedSource": "OpenDesk official marketplace / opendesk/bookmark-manager",
+    "installedSha256": "86cc68f413ab421ec7895b4faecb061d81b005f4b363efdd72e6a8e833cdb4cf",
+    "installedEnabled": true,
+    "fullBookmarks": "Same-scope access reapproved in the existing tool settings for the new install version",
+    "ui": "Statically compiled official React with AI conversation toggle"
+  },
+  "nativeChecks": [
+    {"operation": "Open after update and read native bookmark tree", "result": "PASS", "visibleNodeCount": 3},
+    {"operation": "Search for 其他书签", "result": "PASS", "matches": 1},
+    {"operation": "Clear search, open new-folder form, type a draft and cancel", "result": "PASS", "nativeWrite": false},
+    {"operation": "Open and close AI conversation panel", "result": "PASS", "modelRequestSent": false},
+    {"operation": "Return to extension list and reopen in daily Side Panel", "result": "PASS", "permissionPromptRepeated": false},
+    {"operation": "Read installed version, official provenance and package SHA in extension details", "result": "PASS"}
+  ],
+  "automatedChecks": {
+    "packageUpdate": {"command": "npm run app:update -- bookmark-manager", "result": "PASS", "packageTestsPassed": 6},
+    "bookmarksBeforeVersionChange": {"files": ["bookmark-manager-r2.test.mjs", "bookmark-manager-r24-lifecycle.test.mjs"], "result": "PASS", "passed": 49},
+    "admissionBeforeFix": {"file": "bookmark-manager-r306-trusted-react.test.mjs", "result": "EXPECTED_FAIL", "reason": "Package 0.3.11 did not match the static admission pin 0.3.10"},
+    "releaseChecks": {
+      "files": ["bookmark-manager-r2.test.mjs", "bookmark-manager-r24-lifecycle.test.mjs", "bookmark-manager-r306-trusted-react.test.mjs", "bookmark-manager-r33-default-react.test.mjs", "official-tools-catalog-r45.test.mjs"],
+      "result": "PARTIAL_PASS",
+      "passed": 70,
+      "failed": 3,
+      "bookmarkAndAdmissionChecks": "PASS",
+      "deferredFailures": [
+        {"test": "R4.8 authored catalog includes default Cookie Editor and optional AI VIP Share UI", "reason": "Stay Focus generated package differs from the project package"},
+        {"test": "R4.5 exact bytes, versions and capabilities are reproducible from the existing packer", "reason": "An unrelated catalog package has a 47539 vs 28393 byte mismatch"},
+        {"test": "R4.5 runtime fetches only extension-owned bytes; catalog alone has no install or execution effects", "reason": "Schema assertion expects 1 while the current catalog returns 2"}
+      ]
+    },
+    "syntax": "node --check src/ui/trusted-bookmark-admission.js: PASS",
+    "diffWhitespace": "git diff --check: PASS"
+  },
+  "notTested": ["Actual bookmark create/update/move/delete writes", "AI provider requests and model-driven operations", "Production build and full release acceptance", "Chrome restart persistence"],
+  "finalState": "Daily Chrome Side Panel left on the updated React Bookmark Manager with its AI conversation panel open; original bookmarks retained"
+}
