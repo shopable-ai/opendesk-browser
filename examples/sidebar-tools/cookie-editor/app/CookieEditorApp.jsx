@@ -51,11 +51,11 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     data.current={adapter,controller};
   }
   const {controller,adapter}=data.current;
-  const noteImport=(text,kind='error')=>setImportNotice({text,kind});
+  const noteImport=(text,kind='error')=>setImportNotice(text?{text,kind}:null);
+  const importDirtyRef=React.useRef(false);
   React.useEffect(()=>{
-    if(!importNotice)return;
-    const timer=window.setTimeout(()=>setImportNotice(null),
-      importNotice.kind==='error'?6500:3500);
+    if(!importNotice||importNotice.kind!=='success')return;
+    const timer=window.setTimeout(()=>setImportNotice(null),3500);
     return ()=>window.clearTimeout(timer);
   },[importNotice]);
   const snapshot=view||controller.snapshot();
@@ -102,11 +102,13 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     }
     scrubSensitive();setExportOpen(false);
     const hadDirty=dirtyRef.current;
+    const hadImportDraft=importDirtyRef.current;
     const uncertain=controller.invalidate(reason);
     cleanEditor();setConfirmation(null);setQuery('');setPage(1);
     if(siteChanged)appliedSite.current='';
     if(!uncertain){
-      if(hadDirty)setStatus('网站或授权已改变，未保存的 Cookie 草稿已清除；请重新编辑。');
+      if(hadImportDraft)setStatus('网站或授权已改变，未提交的导入内容已清除；请确认新网站后重新准备。');
+      else if(hadDirty)setStatus('网站或授权已改变，未保存的 Cookie 草稿已清除；请重新编辑。');
       void controller.load(appliedSite.current);
     }
   };
@@ -171,10 +173,12 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     }
   },[snapshot.epoch,snapshot.phase]);
   const target=snapshot.target;
-  const openPanel=name=>guarded(()=>{
-    setSelected(null);setExportOpen(false);setPanel(name);setPage(1);setStatus('');
-    if(name==='import')setImportNotice(null);
-  });
+  // Opening import preserves the mounted list, query, page, scroll and draft.
+  // Only a later native write needs the editor-dirty conflict gate.
+  const openImport=()=>{
+    if(locked||panel==='import')return;
+    setExportOpen(false);setPanel('import');setImportNotice(null);
+  };
   const closeExport=(restoreFocus=false,confirmed=false)=>{
     // A window blur during the Host effect cannot dismiss an unfinished export.
     if(exportPending.current&&!confirmed)return;
@@ -228,6 +232,10 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     // Raw Cookie values are never stored in React state or rendered as a preview.
     const initial=controller.snapshot();
     if(modeRef.current!=='browser'||initial.phase!=='ready')return false;
+    if(dirtyRef.current){
+      noteImport('请先保存或取消当前 Cookie 编辑草稿，再提交导入。');
+      return 'failed';
+    }
     const sessionRef=activeImportRef.current;
     try{
     const plan=await controller.previewImport(text,'auto',overwrite,{allSites:true});
@@ -255,7 +263,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       restoreImportFocus.current=true;
       noteImport('已导入 '+plan.accepted+' 条'+
         (plan.skipped?'，跳过 '+plan.skipped+' 条':'')+'。','success');
-      setPanel(null);setSelected(null);setDirty(false);setPage(1);
+      setPanel(null);setSelected(null);setDirty(false);
       return true;
     }
     const outcome=controller.snapshot();
@@ -372,7 +380,8 @@ export default function CookieEditorApp({request,hostRoot,setState}){
         disabled={busy} onRetry={()=>guarded(refresh)}
         onOffline={()=>switchMode('offline')}/>
       {snapshot.phase==='ready'&&<div className="od-surface cookie-editor-workspace">
-        {panel===null&&<CookieEditorView site={target?.hostname||''} syncStale={snapshot.syncStale}
+        <CookieEditorView site={target?.hostname||''} syncStale={snapshot.syncStale}
+          importOpen={panel==='import'}
           rows={snapshot.rows} selected={selected} onSelect={select}
           onRefresh={()=>guarded(refresh)}
           query={query} onQuery={v=>{setQuery(v);setPage(1);}}
@@ -380,7 +389,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
           sort={sort} onSort={v=>{setSort(v);setPage(1);}}
           expandedFilters={expanded} onToggleFilters={()=>setExpanded(x=>!x)}
           page={page} onPage={setPage} busy={locked}
-          onImport={()=>openPanel('import')}
+          onImport={openImport}
           onExport={()=>{if(!locked)setExportOpen(!exportOpen);}}
           exportOpen={exportOpen} onCloseExport={closeExport}
           exportContent={exportOpen?<CookieExport controller={controller} disabled={locked}
@@ -398,11 +407,23 @@ export default function CookieEditorApp({request,hostRoot,setState}){
           editor={row=><CookieInlineEditor key={row.id} row={row} target={target}
             disabled={locked} readValue={controller.readValue} onSave={save}
             onDirty={setDirty} onCancel={()=>{setSelected(null);setDirty(false);}}
-            onDelete={remove}/>}/>}
+            onDelete={remove}/>}/>
         {panel==='import'&&<CookieImport disabled={locked}
           notice={importNotice} onImportText={importFromText} onNotice={noteImport}
+          onPendingChange={value=>{importDirtyRef.current=value;}}
+          onBeforeSubmit={()=>{
+            if(!dirtyRef.current)return true;
+            noteImport('请先保存或取消当前 Cookie 编辑草稿，再提交导入。');
+            return false;
+          }}
           onBeginImport={beginImportIntent}
-          onClose={()=>{restoreImportFocus.current=true;controller.discardImport();finishImportIntent(activeImportRef.current);setPanel(null);}}/>}
+          onClose={({committed=false}={})=>{
+            if(locked&&!committed)return;
+            restoreImportFocus.current=true;
+            importDirtyRef.current=false;
+            if(!committed){controller.discardImport();finishImportIntent(activeImportRef.current);}
+            setPanel(null);
+          }}/>}
       </div>}
     </>}
     {mode==='browser'&&snapshot.phase==='ready'&&snapshot.message&&

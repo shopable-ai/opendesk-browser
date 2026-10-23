@@ -56,8 +56,13 @@
 .cookie-editor-react .action-separator{width:1px;height:20px;background:var(--od-line);margin:0 var(--space-1)}
 .cookie-editor-react .cookie-react-icon{flex:none}
 .cookie-editor-react .searchbar{display:flex;align-items:center;gap:var(--space-2);padding:0 var(--space-3) var(--space-2)}
-.cookie-editor-react .searchbox{min-width:0;flex:1;display:flex;align-items:center;gap:var(--space-2)}
-.cookie-editor-react .searchbox input{width:100%;min-width:0;min-height:36px}
+.cookie-editor-react .searchbox{min-width:0;flex:1;display:flex;align-items:center;gap:var(--space-2);min-height:36px;padding-inline:var(--space-2);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper)}
+.cookie-editor-react .searchbox:focus-within{outline:2px solid var(--od-brand);outline-offset:1px}
+.cookie-editor-react .cookie-search-symbol{display:grid;place-items:center;flex:none;color:var(--od-sub)}
+.cookie-editor-react .searchbox input{flex:1;width:100%;min-width:0;min-height:34px;border:0;outline:0;box-shadow:none;background:transparent;padding:0}
+.cookie-editor-react .searchbox input:focus-visible{outline:0;box-shadow:none}
+.cookie-editor-react .searchbox input::-webkit-search-cancel-button{display:none}
+.cookie-editor-react .cookie-search-clear{flex:none;width:28px;min-width:28px;height:28px}
 .cookie-editor-react .filter-panel{padding:var(--space-2) var(--space-3);border-top:1px solid var(--od-line);border-bottom:1px solid var(--od-line)}
 .cookie-editor-react .filter-chips{display:flex;flex-wrap:wrap;gap:var(--space-1)}
 .cookie-editor-react .sort-field{display:flex;justify-content:space-between;align-items:center;gap:var(--space-2);margin-top:var(--space-2)}
@@ -212,29 +217,55 @@
 .cookie-editor-react .cookie-editor-actions>.cookie-react-icon{flex:0 0 36px}
 
 
-/* Import belongs to the content workspace; no native modal/backdrop remains. */
-.cookie-editor-react .cookie-import-body{
-  display:grid;gap:var(--space-3);min-width:0;padding:var(--space-3);
+/* R5.34: the list stays mounted. A subtle dismiss layer blocks background Cookie
+   edits while staged import data exists; only the sheet body scrolls. */
+.cookie-editor-react>.cookie-editor-workspace{position:relative}
+.cookie-editor-react .cookie-import-dismiss-layer{
+  position:absolute;inset:0;z-index:4;background:color-mix(in srgb,var(--od-ink) 5%,transparent);
+}
+.cookie-editor-react .cookie-import-workspace{
+  position:absolute;inset-inline:var(--space-2);bottom:var(--space-2);z-index:5;
+  box-sizing:border-box;height:min(510px,calc(100% - 112px));max-height:calc(100% - var(--space-2));
+  min-height:0;min-width:0;display:flex;flex-direction:column;overflow:hidden;
+  border:1px solid var(--od-line);border-radius:var(--radius-surface);
+  background:var(--od-paper);color:var(--od-ink);
+  box-shadow:0 12px 32px color-mix(in srgb,var(--od-ink) 18%,transparent);
 }
 .cookie-editor-react .cookie-import-heading{
-  display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);
+  flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+  gap:var(--space-2);padding:var(--space-3);border-bottom:1px solid var(--od-line);
 }
-.cookie-editor-react .cookie-import-heading h2{
-  font-size:16px;line-height:1.45;font-weight:650;margin:0;
+.cookie-editor-react .cookie-import-heading h2{font-size:16px;line-height:1.45;font-weight:650;margin:0}
+.cookie-editor-react .cookie-import-body{
+  display:flex;flex:1 1 auto;flex-direction:column;gap:var(--space-3);min-height:0;
+  padding:var(--space-3);overflow-y:auto;overscroll-behavior:contain;
 }
+.cookie-editor-react .cookie-import-dropzone{flex:0 0 auto}
 .cookie-editor-react .cookie-import-paste{
-  display:grid;gap:var(--space-2);min-width:0;
+  display:flex;flex-direction:column;gap:var(--space-2);min-width:0;
   font-size:var(--od-note-size);color:var(--od-sub);
 }
 .cookie-editor-react .cookie-import-paste textarea{
-  min-height:110px;max-height:30dvh;resize:vertical;
+  width:100%;min-width:0;min-height:90px;max-height:none;resize:vertical;
   font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
   font-size:12px;color:var(--od-ink);
 }
-.cookie-editor-react .cookie-import-actions{
-  display:flex;justify-content:flex-end;gap:var(--space-2);
+.cookie-editor-react .cookie-import-footer{
+  flex:0 0 auto;display:grid;gap:var(--space-2);min-width:0;
+  padding:var(--space-3);border-top:1px solid var(--od-line);
 }
-.cookie-editor-react .cookie-import-actions button{min-width:80px}
+.cookie-editor-react .cookie-import-inline-notice{
+  max-height:64px;overflow-y:auto;overflow-wrap:anywhere;
+  font-size:var(--od-note-size);color:var(--od-sub);
+}
+.cookie-editor-react .cookie-import-inline-notice.is-error{color:var(--od-danger,var(--od-ink))}
+.cookie-editor-react .cookie-import-discard{
+  display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2);
+  font-size:var(--od-note-size);overflow-wrap:anywhere;
+}
+.cookie-editor-react .cookie-import-discard>span{flex:1 1 100%}
+.cookie-editor-react .cookie-import-actions{display:flex;justify-content:flex-end;gap:var(--space-2)}
+.cookie-editor-react .cookie-import-actions>button{min-width:80px}
 .cookie-editor-react .cookie-import-toast{
   position:fixed;inset-inline:12px;bottom:16px;
   z-index:100;box-sizing:border-box;margin-inline:auto;
@@ -245,9 +276,19 @@
   border-radius:var(--radius-control);box-shadow:0 6px 18px color-mix(in srgb,var(--od-ink) 16%,transparent);
 }
 .cookie-editor-react .cookie-import-toast--error{border-color:var(--od-danger,var(--od-line))}
+.cookie-editor-react .cookie-import-selected{flex:0 0 auto;margin:0;font-size:var(--od-note-size);overflow-wrap:anywhere}
+@media(max-height:520px){
+  .cookie-editor-react .cookie-import-workspace{height:calc(100% - 32px)}
+  .cookie-editor-react .cookie-import-heading,.cookie-editor-react .cookie-import-footer{padding:var(--space-2)}
+  .cookie-editor-react .cookie-import-body{padding:var(--space-2);gap:var(--space-2)}
+  .cookie-editor-react .cookie-import-paste textarea{min-height:72px}
+}
 @media(max-width:350px){
-  .cookie-editor-react .cookie-import-body{padding:var(--space-2)}
-  .cookie-editor-react .cookie-import-actions button{flex:1 1 0;min-width:0}
+  .cookie-editor-react .cookie-import-actions>button{flex:1 1 0;min-width:0}
+}
+@media(prefers-reduced-motion:no-preference){
+  .cookie-editor-react .cookie-import-workspace{animation:cookie-sheet-enter .16s ease-out both}
+  @keyframes cookie-sheet-enter{from{transform:translateY(18px);opacity:.92}to{transform:translateY(0);opacity:1}}
 }
 
 /* R5.23: the trusted Side Panel sizes the iframe; this app fills that viewport
@@ -266,33 +307,8 @@
 .cookie-editor-react .cookie-react-view>.cookie-list{
   flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
 }
-.cookie-editor-react .cookie-import-workspace{
-  display:flex;flex:1 1 auto;flex-direction:column;min-height:0;min-width:0;
-  padding:var(--space-3);overflow:hidden;
-}
-.cookie-editor-react .cookie-import-workspace .cookie-import-body{
-  display:flex;flex:1 1 auto;flex-direction:column;gap:var(--space-3);min-height:0;min-width:0;
-}
-.cookie-editor-react .cookie-import-workspace .cookie-import-heading,
-.cookie-editor-react .cookie-import-workspace .cookie-import-dropzone,
-.cookie-editor-react .cookie-import-workspace .cookie-import-actions{flex:0 0 auto}
-.cookie-editor-react .cookie-import-workspace .cookie-import-paste{
-  display:flex;flex:1 1 auto;flex-direction:column;min-height:120px;min-width:0;
-}
-.cookie-editor-react .cookie-import-workspace .cookie-import-paste textarea{
-  flex:1 1 auto;height:100%;min-height:140px;max-height:none;resize:none;
-}
-@media(max-height:420px){
-  .cookie-editor-react .cookie-import-workspace{overflow-y:auto}
-  .cookie-editor-react .cookie-import-workspace .cookie-import-paste{flex:0 0 auto}
-  .cookie-editor-react .cookie-import-workspace .cookie-import-paste textarea{height:140px}
-}
-
 /* Keep the offline workspace reachable inside the same fixed-height sandbox. */
 .cookie-editor-react .cookie-offline{
   flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
-}
-.cookie-editor-react .cookie-import-selected{
-  flex:0 0 auto;margin:0;font-size:var(--od-note-size);overflow-wrap:anywhere;
 }
 .cookie-editor-react .row-text small{font-size:var(--od-note-size)}

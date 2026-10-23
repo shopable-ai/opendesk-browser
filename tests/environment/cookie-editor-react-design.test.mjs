@@ -45,7 +45,7 @@ test('real React app relies on shared buttons, fields and surfaces',async()=>{
   for(const src of files.slice(2))assert.doesNotMatch(src,/<button\b/);
 });
 
-test('R5.23 fills the sidebar and imports in an inline workspace, not a native modal',async()=>{
+test('R5.34 keeps the sidebar list mounted under the responsive import sheet',async()=>{
   const [css,app,importer,host]=await Promise.all([
     readFile(root+'src/react.css','utf8'),
     readFile(root+'app/CookieEditorApp.jsx','utf8'),
@@ -56,8 +56,12 @@ test('R5.23 fills the sidebar and imports in an inline workspace, not a native m
   assert.match(css,/\.cookie-import-workspace/);
   assert.match(css,/\.cookie-react-view>\.cookie-list/);
   assert.match(css,/\.cookie-offline/);
-  assert.match(app,/panel===null&&<CookieEditorView/);
+  assert.doesNotMatch(app,/panel===null&&<CookieEditorView/);
+  assert.match(app,/importOpen=\{panel==='import'\}/);
   assert.match(importer,/<section ref={workspaceRef}/);
+  assert.match(importer,/role="dialog" aria-modal="true"/);
+  assert.match(css,/\.cookie-import-workspace\{[^}]*position:absolute/s);
+  assert.match(css,/\.cookie-import-dismiss-layer/);
   assert.doesNotMatch(importer,/<dialog\b|showModal\(/);
   assert.match(host,/const fitCookieFrame=/);
   assert.match(host,/if\(active\?\.id==='cookie-editor'\)\{fitCookieFrame\(\);return;\}/);

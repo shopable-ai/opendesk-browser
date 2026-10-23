@@ -4,12 +4,12 @@ import {CookieImportDropzone,CookieIconButton} from './CookieEditorView.jsx';
 
 const MAX_FILE=8*1024*1024;
 
-// Import is a full-height sidebar workspace, not a cramped modal or second editor.
+// One responsive bottom sheet within the same mounted list; Controller still owns all writes.
 // Raw Cookie values live only in a DOM textarea / local async stack, never React state.
 // The Controller performs the existing permission, preflight and verified Host writes.
-export default function CookieImport({disabled=false,onClose,onImportText,onBeginImport,onNotice,notice}){
+export default function CookieImport({disabled=false,onClose,onImportText,onBeginImport,onNotice,
+  onBeforeSubmit,onPendingChange,notice}){
   const workspaceRef=React.useRef(null);
-  const triggerRef=React.useRef(null);
   const fileRef=React.useRef(null);
   const sourceRef=React.useRef(null);
   const stagedFile=React.useRef(null);
@@ -30,21 +30,24 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
   const [busy,setBusy]=React.useState(false);
   const [uncertain,setUncertain]=React.useState(false);
   const [dragging,setDragging]=React.useState(false);
+  const [confirmDiscard,setConfirmDiscard]=React.useState(false);
   React.useLayoutEffect(()=>{
     active.current=true;
     const workspace=workspaceRef.current;
-    const previous=workspace.ownerDocument.activeElement;
-    triggerRef.current=previous&&previous!==workspace.ownerDocument.body?previous:null;
-    sourceRef.current?.focus();
+    sourceRef.current?.focus({preventScroll:true});
     return ()=>{
       active.current=false;
       if(sourceRef.current)sourceRef.current.value='';
       stagedFile.current=null;
-      if(triggerRef.current?.isConnected)triggerRef.current.focus();
+      onPendingChange?.(false);
     };
   },[]);
   const close=()=>{
-    if(!running.current&&!reading.current&&!disabled)onClose?.();
+    if(running.current||reading.current||disabled||busy)return;
+    if(stagedFile.current||sourceRef.current?.value.trim()||overwrite){
+      setConfirmDiscard(true);return;
+    }
+    onClose?.();
   };
   const importText=async text=>{
     if(running.current||disabled||uncertain)return;
@@ -106,71 +109,112 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
       return;
     }
     stagedFile.current=file;setStagedName(file.name.slice(0,100));
+    setConfirmDiscard(false);onNotice?.(null);onPendingChange?.(true);
   };
-  return <section ref={workspaceRef} className="cookie-import-workspace"
-    role="region" aria-labelledby={headingId}
-    onKeyDown={event=>{if(event.key==='Escape'){event.stopPropagation();close();}}}>
-    <div className="cookie-import-body">
+  const keepFocus=event=>{
+    if(event.key==='Escape'){
+      event.preventDefault();event.stopPropagation();close();return;
+    }
+    if(event.key!=='Tab')return;
+    const all=Array.from(workspaceRef.current?.querySelectorAll(
+      'button:not(:disabled),textarea:not(:disabled),input:not(:disabled):not([type=file])')||[])
+      .filter(el=>el.getClientRects().length>0);
+    if(!all.length)return;
+    const first=all[0],last=all[all.length-1];
+    if(event.shiftKey&&(document.activeElement===first||!workspaceRef.current.contains(document.activeElement))){
+      event.preventDefault();last.focus();
+    }else if(!event.shiftKey&&(document.activeElement===last||!workspaceRef.current.contains(document.activeElement))){
+      event.preventDefault();first.focus();
+    }
+  };
+  return <>
+    <div className="cookie-import-dismiss-layer" aria-hidden="true"
+      onPointerDown={event=>{event.preventDefault();close();}}/>
+    <section ref={workspaceRef} id="cookie-import-drawer" className="cookie-import-workspace"
+      role="dialog" aria-modal="true" aria-labelledby={headingId}
+      onKeyDown={keepFocus}>
       <header className="cookie-import-heading">
         <h2 id={headingId}>导入 Cookie</h2>
         <CookieIconButton name="close" label="关闭导入" disabled={disabled||busy}
           onClick={close}/>
       </header>
-      <input ref={fileRef} type="file" hidden
-        accept=".json,.txt,.cookies,text/plain,application/json"
-        disabled={disabled||busy||uncertain}
-        onChange={event=>{stageFile(event.currentTarget.files?.[0]);}}/>
-      <CookieImportDropzone dragging={dragging} fileName={stagedName}
-        disabled={disabled||busy||uncertain}
-        maxSize="8 MiB" onPick={()=>{if(fileRef.current)fileRef.current.value='';fileRef.current?.click();}}
-        onDragEnter={event=>{event.preventDefault();if(!busy)setDragging(true);}}
-        onDragOver={event=>{event.preventDefault();if(!busy)setDragging(true);}}
-        onDragLeave={event=>{
-          if(!event.currentTarget.contains(event.relatedTarget))setDragging(false);
-        }}
-        onDrop={event=>{
-          event.preventDefault();setDragging(false);
-          const file=event.dataTransfer?.files?.[0];
-          if(!file||busy||uncertain||disabled)return;
-          stageFile(file);
-        }}/>
-      {stagedName&&<p className="cookie-import-selected" role="status">
-        已选择 {stagedName} · 点击导入即可写入
-      </p>}
-      <label className="cookie-import-paste" htmlFor="cookie-import-source">
-        <span>或粘贴 Cookie 内容</span>
-        <textarea id="cookie-import-source" ref={sourceRef}
-          className="od-field" rows={5} aria-label="粘贴 Cookie 内容"
-          placeholder="JSON、Cookie Header 或 Netscape"
-          autoComplete="off" spellCheck={false} data-cookie-secret-input="true"
+      <div className="cookie-import-body">
+        <input ref={fileRef} type="file" hidden
+          accept=".json,.txt,.cookies,text/plain,application/json"
           disabled={disabled||busy||uncertain}
-          onInput={()=>{if(stagedFile.current){stagedFile.current=null;setStagedName('');}}}/>
-      </label>
-      <label className="cookie-import-overwrite">
-        <input type="checkbox" checked={overwrite}
+          onChange={event=>{stageFile(event.currentTarget.files?.[0]);}}/>
+        <CookieImportDropzone dragging={dragging} fileName={stagedName}
           disabled={disabled||busy||uncertain}
-          onChange={event=>setOverwrite(event.currentTarget.checked)}/>
-        <span>覆盖已存在的 Cookie（默认不覆盖）</span>
-      </label>
-      <div className="cookie-import-actions">
-        <Button type="button" variant="primary" disabled={disabled||busy||uncertain}
-          onClick={()=>{
-            if(reading.current||running.current||disabled||uncertain)return;
-            const file=stagedFile.current;
-            if(!file&&!(sourceRef.current?.value||'').trim()){
-              onNotice?.('请先选择文件或粘贴 Cookie 内容。','error');return;
-            }
-            beginIntent();
-            if(file)void importFile(file);
-            else void importText(sourceRef.current?.value||'');
-          }}>
-          {busy?'导入中…':'导入'}
-        </Button>
+          maxSize="8 MiB" onPick={()=>{if(fileRef.current)fileRef.current.value='';fileRef.current?.click();}}
+          onDragEnter={event=>{event.preventDefault();if(!busy)setDragging(true);}}
+          onDragOver={event=>{event.preventDefault();if(!busy)setDragging(true);}}
+          onDragLeave={event=>{
+            if(!event.currentTarget.contains(event.relatedTarget))setDragging(false);
+          }}
+          onDrop={event=>{
+            event.preventDefault();setDragging(false);
+            const file=event.dataTransfer?.files?.[0];
+            if(!file||busy||uncertain||disabled)return;
+            stageFile(file);
+          }}/>
+        {stagedName&&<p className="cookie-import-selected" role="status">
+          已选择 {stagedName} · 点击导入即可写入
+        </p>}
+        <label className="cookie-import-paste" htmlFor="cookie-import-source">
+          <span>或粘贴 Cookie 内容</span>
+          <textarea id="cookie-import-source" ref={sourceRef}
+            className="od-field" rows={5} aria-label="粘贴 Cookie 内容"
+            placeholder="JSON、Cookie Header 或 Netscape"
+            autoComplete="off" spellCheck={false} data-cookie-secret-input="true"
+            disabled={disabled||busy||uncertain}
+            onInput={event=>{
+              if(stagedFile.current){stagedFile.current=null;setStagedName('');}
+              setConfirmDiscard(false);onNotice?.(null);
+              onPendingChange?.(Boolean(event.currentTarget.value.trim())||overwrite);
+            }}/>
+        </label>
+        <label className="cookie-import-overwrite">
+          <input type="checkbox" checked={overwrite}
+            disabled={disabled||busy||uncertain}
+            onChange={event=>{
+              const next=event.currentTarget.checked;setOverwrite(next);
+              setConfirmDiscard(false);onPendingChange?.(next||Boolean(stagedFile.current)||
+                Boolean(sourceRef.current?.value.trim()));
+            }}/>
+          <span>覆盖已存在的 Cookie（默认不覆盖）</span>
+        </label>
       </div>
-      {notice&&<div role={notice.kind==='error'?'alert':'status'}
-        className={'cookie-import-toast'+(notice.kind==='error'?' cookie-import-toast--error':'')}>
-        {notice.text}
-      </div>}
-    </div>
-  </section>;
+      <div className="cookie-import-footer">
+        {notice&&<div role={notice.kind==='error'?'alert':'status'}
+          className={'cookie-import-inline-notice'+(notice.kind==='error'?' is-error':'')}>
+          {notice.text}
+        </div>}
+        {confirmDiscard&&<div className="cookie-import-discard" role="group"
+          aria-label="放弃导入内容">
+          <span>放弃未导入的内容？</span>
+          <Button type="button" variant="secondary"
+            onClick={()=>{setConfirmDiscard(false);sourceRef.current?.focus({preventScroll:true});}}>继续导入</Button>
+          <Button type="button" variant="secondary" onClick={()=>onClose?.()}>放弃内容</Button>
+        </div>}
+        <div className="cookie-import-actions">
+          <Button type="button" variant="secondary" disabled={disabled||busy}
+            onClick={close}>取消</Button>
+          <Button type="button" variant="primary" disabled={disabled||busy||uncertain}
+            onClick={()=>{
+              if(reading.current||running.current||disabled||uncertain)return;
+              const file=stagedFile.current;
+              if(!file&&!(sourceRef.current?.value||'').trim()){
+                onNotice?.('请先选择文件或粘贴 Cookie 内容。','error');return;
+              }
+              if(onBeforeSubmit?.()===false)return;
+              beginIntent();
+              if(file)void importFile(file);
+              else void importText(sourceRef.current?.value||'');
+            }}>
+            {busy?'导入中…':'导入'}
+          </Button>
+        </div>
+      </div>
+    </section>
+  </>;
 }

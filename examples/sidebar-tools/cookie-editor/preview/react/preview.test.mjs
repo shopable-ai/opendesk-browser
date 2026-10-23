@@ -225,13 +225,18 @@ test('scene disposal retires metadata sync and releases pending reads',async()=>
 });
 
 
-test('full-height import workspace uses real Controller without a review panel',async()=>{
+test('one-source import lives in a bottom sheet while the list stays mounted',async()=>{
  const [component,app,css]=await Promise.all([
   read('../../app/components/CookieImport.jsx'),
   read('../../app/CookieEditorApp.jsx'),
   read('../../src/react.css')
  ]);
  assert.match(component,/className="cookie-import-workspace"/);
+ assert.match(component,/role="dialog" aria-modal="true"/);
+ assert.match(component,/cookie-import-dismiss-layer/);
+ assert.match(app,/importOpen=\{panel==='import'\}/);
+ assert.doesNotMatch(app,/panel===null&&<CookieEditorView/);
+ assert.match(component,/onBeforeSubmit\?\.\(\)===false/);
  assert.doesNotMatch(component,/<dialog\b|showModal\(\)/);
  assert.match(component,/onImportText/);
  assert.match(component,/const \[overwrite,setOverwrite\]=React\.useState\(false\)/);
@@ -241,6 +246,8 @@ test('full-height import workspace uses real Controller without a review panel',
  assert.match(app,/controller\.executeImport\(text,'auto',overwrite,\{allSites:true\}\)/);
  assert.match(app,/cookie-import-toast/);
  assert.match(css,/\.cookie-import-workspace/);
+ assert.match(css,/\.cookie-import-footer/);
+ assert.match(css,/\.cookie-import-body/);
  for(const legacy of ['cookie-import-summary','导入预检结果','新增 {plan.created}'])
   assert.equal(component.includes(legacy),false);
 });

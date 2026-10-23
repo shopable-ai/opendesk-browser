@@ -1,4 +1,4 @@
-name: Cookie Editor R5.6 React candidate (no native promotion)
+name: Cookie Editor R5.34 React source-bound release and Chromium
 on:
   push:
     branches: [main]
@@ -36,7 +36,7 @@ on:
       - 'src/ui/sidebar-tools/package.js'
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 concurrency:
   # GitHub keeps only one pending run per group; a ref-wide group cancels
   # older queued commits even when in-progress cancellation is disabled.
@@ -54,16 +54,19 @@ jobs:
           cache: npm
       - name: Restore pinned project dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
+      # Work in the disposable Actions checkout. Only after every subsequent
+      # test passes may this generated JSON and preview HTML be committed.
+      - name: Compile canonical React and stage source-bound candidate
+        run: |
+          npm run build --prefix examples/sidebar-tools/cookie-editor
+          npm run stage:candidate --prefix examples/sidebar-tools/cookie-editor
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor             --promote-from artifacts/sidebar-tools/cookie-editor/candidate.opendesk-tool.json
       - name: R5.24 independent trusted grant and native Host regressions
         run: |
           node --test tests/environment/cookie-editor-r524-grant.test.mjs
           node --test tests/environment/browser-sdk-r9-installed-host.test.mjs
       - name: R5.24 preview and controller source-bound scenarios
         run: node --test examples/sidebar-tools/cookie-editor/preview/react/preview.test.mjs
-      - name: Build independent React 19 tool using pinned externals
-        run: npm run build --prefix examples/sidebar-tools/cookie-editor
-      - name: Stage React candidate via canonical installed-package packer
-        run: npm run stage:candidate --prefix examples/sidebar-tools/cookie-editor
       - name: Verify real Vite bytes and staged official packer artifact
         run: node --test tests/environment/cookie-editor-react-build.test.mjs
       - name: Build real WXT and Shared UI Demo prerequisites for build-bound tests
@@ -105,12 +108,19 @@ jobs:
           npm ci --prefix examples/sidebar-tools/cookie-editor/preview/react --ignore-scripts --no-audit --no-fund
           npm run build --prefix examples/sidebar-tools/cookie-editor/preview/react
           npm run check --prefix examples/sidebar-tools/cookie-editor/preview/react
-      - name: Assert no mutations to official release sources
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Chromium interaction verification for the built React sheet
+        working-directory: examples/sidebar-tools/cookie-editor/preview/react
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: npm run test:chromium
+      - name: Assert source-bound candidate equals the installable project package
         run: |
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --check-project
           git diff --exit-code -- \
             examples/sidebar-tools/cookie-editor/tool.config.json \
-            examples/sidebar-tools/cookie-editor/src/main.js \
-            examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json
+            examples/sidebar-tools/cookie-editor/src/main.js
           git status --short
       - uses: actions/upload-artifact@v4
         if: always()
@@ -122,3 +132,33 @@ jobs:
             examples/sidebar-tools/cookie-editor/dist/
             examples/sidebar-tools/cookie-editor/preview/react/index.html
             artifacts/sidebar-tools/cookie-editor/
+            artifacts/cookie-editor-r523/
+      - name: Promote only Chromium-tested preview and source-bound package to main
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json \
+            examples/sidebar-tools/cookie-editor/preview/react/index.html
+          if git diff --cached --quiet; then
+            echo 'Exact build artifacts already checked in'; exit 0
+          fi
+          git -c user.name='OpenDesk Cookie CI' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m 'build(cookie-editor): promote tested 2.0.34 installable JSON and React preview'
+          git fetch origin main
+          remote_head="$(git rev-parse origin/main)"
+          if [ "$remote_head" != "$GITHUB_SHA" ]; then
+            if ! git merge-base --is-ancestor "$GITHUB_SHA" "$remote_head"; then
+              echo "::error::main diverged; no promotion"; exit 1
+            fi
+            overlap="$(git diff --name-only "$GITHUB_SHA" "$remote_head" -- \
+              examples/sidebar-tools/cookie-editor/ \
+              .github/workflows/cookie-editor-r56-react-candidate.yml)"
+            if [ -n "$overlap" ]; then
+              echo "::error::Parallel Cookie Editor changes; refuse to overwrite"
+              printf '%s\n' "$overlap"; exit 1
+            fi
+            git rebase origin/main
+          fi
+          git push origin HEAD:main

@@ -192,7 +192,7 @@ export function CookieSiteBar({site,loading=false,readonly=false,busy=false,gran
   </header>;
 }
 export function CookieToolbar({count=0,onImport,onExport,onNew,onClear,
-  busy=false,readonly=false,clearDisabled=false,exportOpen=false,
+  busy=false,readonly=false,clearDisabled=false,exportOpen=false,importOpen=false,
   exportContent=null,onCloseExport}){
   const exportButton=React.useRef(null);
   const exportPopup=React.useRef(null);
@@ -225,7 +225,9 @@ export function CookieToolbar({count=0,onImport,onExport,onNew,onClear,
     <strong>Cookie <span>{count}</span></strong>
     <div className="toolbar-actions">
       <Action name="upload" label="导入 Cookie" onClick={onImport}
-        disabled={busy||readonly||typeof onImport!=='function'}/>
+        haspopup="dialog" expanded={importOpen}
+        controls={importOpen?"cookie-import-drawer":undefined}
+        disabled={busy||importOpen||readonly||typeof onImport!=='function'}/>
       <Action name="download" label="导出 Cookie" onClick={onExport}
         buttonRef={exportButton} haspopup="dialog" expanded={exportOpen}
         controls={exportOpen?exportPopupId:undefined}
@@ -245,11 +247,15 @@ export function CookieSearch({
   query='',onQuery=()=>{},expandedFilters=false,onToggleFilters=()=>{},
   filter='all',onFilter=()=>{},sort='name',onSort=()=>{}
 }){
+  const searchRef=React.useRef(null);
   return <>
     <div className="searchbar">
-      <div className="searchbox"><CookieIcon name="search"/>
-        <input className="od-field" value={query} type="search" onChange={e=>onQuery(e.target.value)}
+      <div className="searchbox" role="search">
+        <span className="cookie-search-symbol"><CookieIcon name="search"/></span>
+        <input ref={searchRef} value={query} type="search" onChange={e=>onQuery(e.target.value)}
           placeholder="搜索名称、域名或路径" aria-label="搜索 Cookie"/>
+        {query&&<Action name="close" label="清除搜索" className="cookie-search-clear"
+          onClick={()=>{onQuery("");searchRef.current?.focus({preventScroll:true});}}/>}
       </div>
       <Action name="filter" label="筛选与排序" pressed={expandedFilters}
         onClick={onToggleFilters}/>
@@ -310,7 +316,7 @@ export function CookieEditorView({
   query='',onQuery=()=>{},filter='all',onFilter=()=>{},sort='name',
   onSort=()=>{},expandedFilters=false,onToggleFilters=()=>{},
   onImport,onExport,onNew,onClear,clearDisabled=false,exportOpen=false,
-  exportContent=null,onCloseExport,
+  exportContent=null,onCloseExport,importOpen=false,
   editor=null,newEditor=null,busy=false,readonly=false,page=1,pageSize=40,onPage=()=>{}
 }){
   const matching=row=>[row.name,row.domain,row.path].some(value=>
@@ -328,7 +334,7 @@ export function CookieEditorView({
   const currentPage=visible.slice((safePage-1)*pageSize,safePage*pageSize);
   // Keep expanded editor reachable even when the filter or page changes.
   if(current&&!currentPage.includes(current))currentPage.unshift(current);
-  return <main className="cookie-react-view" aria-label="Cookie Editor">
+  return <main className="cookie-react-view" aria-label="Cookie Editor" inert={importOpen}>
     <CookieSiteBar site={site} readonly={readonly} busy={busy}
       syncStale={syncStale} onRefresh={onRefresh}/>
     {/* Keep search accessible in one click while the export popover is open.
@@ -339,7 +345,7 @@ export function CookieEditorView({
     <CookieToolbar count={rows.length} onImport={onImport} onExport={onExport}
       onNew={onNew} onClear={onClear} clearDisabled={clearDisabled}
       exportOpen={exportOpen} exportContent={exportContent} onCloseExport={onCloseExport}
-      busy={busy} readonly={readonly}/>
+      importOpen={importOpen} busy={busy} readonly={readonly}/>
     <CookieRows rows={currentPage} totalCount={rows.length} selected={selected}
       newEditor={newEditor}
       onSelect={id=>onSelect(id===selected?null:id)} renderEditor={editor}
