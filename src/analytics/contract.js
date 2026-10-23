@@ -13,6 +13,7 @@ export const ANALYTICS_MAX_BYTES=16384;
 export const ANALYTICS_MAX_AGE_MS=7*24*60*60*1000;
 export const ANALYTICS_EVENTS=Object.freeze([
   'app.opened','app.inventory','app.inventory_types','tool.engaged','tool.auto_daily',
+  'tool.manual_attempt','tool.manual_result',
   'tool.installed','tool.uninstalled','tool.enabled','tool.disabled','tool.opened',
   'prompt.saved','prompt.inserted','prompt.copied','prompt.fallback_copied','prompt.failed'
 ]);
@@ -28,7 +29,7 @@ const inventoryCounters=row=>object(row)&&exact(row,['installed','enabled','disa
   row.installed===row.enabled+row.disabled+row.blocked+row.unknown;
 const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 export function validateAnalyticsEvent(value,{now=Date.now()}={}){
-  if(!object(value)||!exact(value,['eventId','installId','event','toolId','timestamp','source','channel','reason','installedTools','coverage','inventoryTypes','readState','projectionGap','toolType','utcDate','metricType','total','version'])||
+  if(!object(value)||!exact(value,['eventId','installId','event','toolId','timestamp','source','channel','reason','installedTools','coverage','inventoryTypes','readState','projectionGap','toolType','utcDate','metricType','total','version','runStatus'])||
     !uuid.test(value.eventId||'')||!uuid.test(value.installId||'')||
     !ANALYTICS_EVENTS.includes(value.event)||!toolId.test(value.toolId||'')||
     !sources.has(value.source)||!channels.has(value.channel)||
@@ -81,8 +82,17 @@ export function validateAnalyticsEvent(value,{now=Date.now()}={}){
       throw Object.assign(new Error('Invalid automatic daily snapshot'),{code:'E_ANALYTICS_SCHEMA'});
   }else if(value.inventoryTypes!==undefined||value.readState!==undefined||value.projectionGap!==undefined)
     throw Object.assign(new Error('Unexpected authority projection'),{code:'E_ANALYTICS_SCHEMA'});
-  if(value.event!=='tool.auto_daily'&&['toolType','utcDate','metricType','total','version'].some(key=>value[key]!==undefined))
+  const manual=['tool.manual_attempt','tool.manual_result'].includes(value.event);
+  if(manual&&(!/^anon-[a-f0-9]{24}$/.test(value.toolId)||value.toolType!=='task'||
+     (value.event==='tool.manual_attempt'?value.runStatus!==undefined:
+       !['completed','failed','outcome_unknown'].includes(value.runStatus))))
+    throw Object.assign(new Error('Invalid manual authority receipt'),{code:'E_ANALYTICS_SCHEMA'});
+  if(!manual&&value.runStatus!==undefined)
+    throw Object.assign(new Error('Unexpected manual result'),{code:'E_ANALYTICS_SCHEMA'});
+  if(value.event!=='tool.auto_daily'&&['utcDate','metricType','total','version'].some(key=>value[key]!==undefined))
     throw Object.assign(new Error('Unexpected automatic metric'),{code:'E_ANALYTICS_SCHEMA'});
+  if(!manual&&value.event!=='tool.auto_daily'&&value.toolType!==undefined)
+    throw Object.assign(new Error('Unexpected tool type'),{code:'E_ANALYTICS_SCHEMA'});
   if((value.event.startsWith('app.')!==(value.toolId==='opendesk'))||
     (value.event==='tool.engaged'&&value.toolId!=='prompt-shortcuts'))
     throw Object.assign(new Error('Invalid platform or tool identity'),{code:'E_ANALYTICS_SCHEMA'});
