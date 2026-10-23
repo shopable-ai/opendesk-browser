@@ -46,11 +46,12 @@ function memory(){
 }
 const daily=(projection,type,metric)=>projection.daily.find(row=>row.type===type&&row.metricType===metric);
 const PAGE_MANIFEST_HASH='e'.repeat(64),PAGE_SOURCE_HASH='f'.repeat(64);
+const PAGE_INSTALLATION_ID=randomUUID();
 const pageAutoReceipt=({createdAt=NOW,dispatchedAt=createdAt,state='completed',
   receiptId=randomUUID(),documentId='document-page-1',...extra}={})=>({
   tag:'page-execution-v1',namespace,programId:pageId,source:'page_auto',
   revision:1,manifestHash:PAGE_MANIFEST_HASH,sourceHash:PAGE_SOURCE_HASH,
-  installationId:randomUUID(),grantGeneration:1,installationToken:'a'.repeat(32),
+  installationId:PAGE_INSTALLATION_ID,grantGeneration:1,installationToken:'a'.repeat(32),
   tabId:12,documentId,
   executionKey:'page-execution:'+canonical([namespace,PAGE_MANIFEST_HASH,documentId]),
   receiptId,createdAt,dispatchedAt,state,...extra
@@ -73,7 +74,7 @@ const scheduledResult=(runId,resultId,state='completed')=>({
 test('read-only Page/Task/Scheduler authority: 100 actual Page receipts; no fake DAU',async()=>{
   const {storage,api,stores}=authorityDB();
   for(let i=0;i<100;i++)stores.frameworkKV.push(
-    pageAutoReceipt({createdAt:NOW-1000,effectConfirmed:true}));
+    pageAutoReceipt({createdAt:NOW-1000,documentId:'boot-document-'+i,effectConfirmed:true}));
   const runId=randomUUID(),resultId=randomUUID(),fireId='fire:2026-10-23:1';
   stores.frameworkKV.push({tag:'schedule-fire-v1',namespace,
     fireId,runId,resultId,status:'ADMITTED'});
@@ -190,11 +191,11 @@ test('App Service scheduler requires original Sidebar binding and frozen source'
 
 test('consent gates readback and daily version; automatic runs do not invent app.opened',async()=>{
   const {api:ext,values}=memory();const {api,storage,stores}=authorityDB();
-  for(let i=0;i<100;i++)stores.frameworkKV.push(pageAutoReceipt());
+  for(let i=0;i<100;i++)stores.frameworkKV.push(pageAutoReceipt({documentId:'consented-document-'+i}));
   const collector=createAnalyticsCollector({api:ext,endpoint:'https://analytics.example/v1/events',
     now:()=>NOW,newId:randomUUID,fetcher:async()=>{throw Error('offline');}});
   // Old execution remains in the original Authority but was never consented.
-  stores.frameworkKV.push(pageAutoReceipt({createdAt:NOW-60000}));
+  stores.frameworkKV.push(pageAutoReceipt({createdAt:NOW-60000,documentId:'pre-consent-document'}));
   let reads=0;
   const load=({since}={})=>{reads++;return readAnalyticsAuthorityProjection({storage,api,now:()=>NOW,since});};
   assert.equal((await collector.reportAuthority(load)).recorded,false);
@@ -211,7 +212,7 @@ test('consent gates readback and daily version; automatic runs do not invent app
   assert(!state.queue.some(row=>row.event==='app.opened'||row.event==='tool.engaged'));
   assert.equal((await collector.reportAuthority(load)).autoSnapshots,0);
   assert.equal(values.get(ANALYTICS_STATE_KEY).queue.filter(row=>row.event==='tool.auto_daily').length,2);
-  stores.frameworkKV.push(pageAutoReceipt());
+  stores.frameworkKV.push(pageAutoReceipt({documentId:'new-consented-document'}));
   assert.equal((await collector.reportAuthority(load)).autoSnapshots,2);
   const latest=values.get(ANALYTICS_STATE_KEY).queue.filter(row=>row.event==='tool.auto_daily');
   assert(latest.every(row=>row.version===2&&row.total===101));
@@ -268,8 +269,8 @@ test('trusted manual Task failure is DAU-eligible; RunId stays local and dedupli
 test('consent epoch excludes pre-consent history without hiding current installed state',async()=>{
   const {api,storage,stores}=authorityDB();
   const sameDay=NOW-15000;
-  stores.frameworkKV.push(pageAutoReceipt({createdAt:sameDay}));
-  stores.frameworkKV.push(pageAutoReceipt({createdAt:NOW+1000,state:'failed'}));
+  stores.frameworkKV.push(pageAutoReceipt({createdAt:sameDay,documentId:'epoch-old-document'}));
+  stores.frameworkKV.push(pageAutoReceipt({createdAt:NOW+1000,state:'failed',documentId:'epoch-new-document'}));
   const before=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW,since:0});
   const after=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW,since:NOW});
   assert.equal(before.inventoryTypes.page.installed,1);
