@@ -156,6 +156,16 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
         ...(result?{runId:message.runId,runStatus:verified.status}:{})});
       return {ok:true,data};
     }
+    if(message.kind==='event.workflow_attempt'){
+      if(!fromPanel(sender)||message.toolId!=='workflow'||
+        message.channel!=='extension'||message.event!=='workflow.manual_attempt'||
+        !exact(message,['protocol','kind','event','toolId','channel'])||
+        !limit('workflow_attempt'))return {ok:false,code:'E_SENDER'};
+      // The trusted Workflow Send/Run UI is the sole emitter. This is user
+      // intent even if permission or execution fails before any durable Run.
+      return {ok:true,data:await collector.record({event:'workflow.manual_attempt',
+        toolId:'workflow',source:'host',channel:'extension'})};
+    }
     if(message.kind==='event.workflow_verified'){
       if(!fromPanel(sender)||message.toolId!=='workflow'||
         message.channel!=='extension'||message.event!=='workflow.business_effect_verified'||
