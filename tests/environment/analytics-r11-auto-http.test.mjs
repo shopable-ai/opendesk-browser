@@ -27,7 +27,7 @@ const installId=randomUUID(),toolId='anon-0123456789ab0123456789ab';
 function auto({version=1,total=100,utcDate='2026-10-23',eventId=randomUUID()}={}){
   return {eventId,installId,toolId,event:'tool.auto_daily',
     source:'host',channel:'extension',timestamp:new Date(NOW).toISOString(),
-    toolType:'page',utcDate,metricType:'attempted',total,version};
+    toolType:'page',utcDate,metricType:'attempted',total,version,sourceTotals:{page_auto:total}};
 }
 test('real D1 SQL + PostHog-shaped HTTP: cumulative 100, retry, late version, gap & UTC day',async t=>{
   const db=new DatabaseSync(':memory:');

@@ -78,7 +78,7 @@ export function SharedConversationFrame({
     <OpenDeskIconButton id={sendId||undefined}
       className="od-conversation-action od-conversation-action--primary"
       type="submit" title="发送消息" label="发送"
-      onClick={submit} disabled={blocked||!canSend||!draft.trim()}>
+      disabled={blocked||!canSend||!draft.trim()}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-7 7 7-7 7 7"/></svg>
      </OpenDeskIconButton>}
   </form>;

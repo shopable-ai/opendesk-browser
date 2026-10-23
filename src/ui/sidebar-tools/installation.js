@@ -421,6 +421,15 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
     if(!existing&&installed.length>=MAX_INSTALLED_TOOLS)
       throw error('最多安装 '+MAX_INSTALLED_TOOLS+' 个工具','E_TOOL_CAPACITY');
     if(existing){
+      // A legacy privileged app cannot shed its native-state owner merely by
+      // changing a package capability. Its independent v3 Driver ledger must
+      // first receive a verified, resumable migration of counters, STOP,
+      // source, epoch and native rules. Ordinary package updates are unchanged.
+      // This is an admission fence, NEVER a silent migration in Installer.
+      if(existing.capabilities.includes('focus.control')&&
+         !tool.capabilities.includes('focus.control'))
+        throw error('旧网站限制状态尚未获得可恢复迁移凭据；升级已阻止，原安装及数据保持不变',
+          'E_MIGRATION_REQUIRED');
       if(identity&&compareToolVersions(tool.version,existing.version)<=0)
         throw error('市场不允许同版本替换或自动降级','E_VERSION_CONFLICT');
       if(!(await approveUpdate(existing,tool)))return {state:'cancelled',tool};

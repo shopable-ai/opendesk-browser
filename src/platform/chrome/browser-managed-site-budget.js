@@ -316,7 +316,7 @@ export function createManagedSiteBudgetService({
           auth.saved[MANAGED_SITE_REVIEWED_SCOPE_STORE],id,auth.epoch,packageHash,nextRow.policy);
         const requestedOrigins=managedSiteV3RequiredOrigins(nextRow.policy);
         const nativeScopeTrusted=!requestedOrigins.length||
-          await api.permissions.contains({origins:requestedOrigins});
+          await api.permissions.contains({origins:requestedOrigins}).catch(()=>false);
         const authorizedExecution=scopeTrusted&&nativeScopeTrusted;
         let current=null;
         if(valid&&authorizedExecution&&permission.ready&&nextRow.policy.enabled&&

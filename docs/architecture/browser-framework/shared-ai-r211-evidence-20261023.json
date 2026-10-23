@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "scope": "OpenDesk Browser AI Chat R2.1.1",
-  "recordedAt": "2026-10-23T13:27:27.714597+00:00",
+  "recordedAt": "2026-10-23T13:29:16.090966+00:00",
   "baseCommit": "254a4cd5ea94dfdee57782f563d7c156b844c5dc",
   "candidateBinding": "sourceSha256 plus the Git commit containing this evidence file; baseCommit is integrated main before this repair commit",
   "nodeVersion": "v24.16.0",
@@ -102,6 +102,19 @@
       },
       "log": "artifacts/shared-ai-r211-20261023/merged-frame-compatibility.tap",
       "sha256": "1cac2367917300533b02031f0f82f22b4909213e92d33089b55d982aa5a14368"
+    },
+    {
+      "command": "node --test --test-reporter=tap tests/environment/shared-ai-conversation-r22.test.mjs tests/environment/shared-ai-workflow-settings-r211.test.mjs",
+      "status": "PASS",
+      "counts": {
+        "tests": 6,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "log": "artifacts/shared-ai-r211-20261023/merged-frame-settings-final.tap",
+      "sha256": "3a4f9056451f2afa5011914ec70d4e4c9a74a4a98f6a2effc834097df9ad265c"
     }
   ],
   "sourceGate": {
@@ -109,7 +122,8 @@
     "status": "PASS",
     "checkedFiles": 1054,
     "log": "artifacts/shared-ai-r211-20261023/source-check-merged.log",
-    "sha256": "441903130154f4fe37b8c78a64aad89589a854403765d4e3b8e51d3e019822a9"
+    "sha256": "441903130154f4fe37b8c78a64aad89589a854403765d4e3b8e51d3e019822a9",
+    "validatedCommit": "3e46315b21d25b6e2f5b060b46d0f7d00a6ddffc"
   },
   "diffCheck": "PASS",
   "groupCountsOverlap": true,
@@ -152,11 +166,12 @@
   "postPushCI": "Read GitHub Actions for the commit containing this file; no future CI result asserted here.",
   "remoteIntegration": {
     "head": "12f514fb4567f291ac8ccc3dff0636b30f0d9cd7",
-    "preserved": "Parallel neutral Session and split-layout Frame/installed Task work are retained, not implemented by this task. Session round fences and disposal coexist with Provider-generation/revocation errors and settings unsubscribe. Independent reviewer rechecked the conflict resolution; no new evidenced P0-P2 findings. Affected 102 tests plus Frame compatibility 4 rerun PASS; unchanged Native/transport/parser evidence reused."
+    "preserved": "Parallel neutral Session and split-layout Frame/installed Task work are retained, not implemented by this task. Session round fences and disposal coexist with Provider-generation/revocation errors and settings unsubscribe. Independent reviewer rechecked the conflict resolution; no new evidenced P0-P2 findings. Affected 102 tests plus Frame compatibility 4 rerun PASS; unchanged Native/transport/parser evidence reused.",
+    "finalNote": "A second non-conflicting merge retained parallel Workflow Frame/My draft changes through de1e61e938019662269bb0c8a0d224582a10cdb0. Only affected Frame/settings compatibility rerun: 6 PASS. Prior required/Native/transport/parser implementation inputs unchanged; source gate evidence is from 3e46315b2, final CI tracked separately."
   },
   "dependencySha256": {
     "src/ui/conversation/session.js": "0a018514e21f75a5684737f3aa8c60bc566464203c313d6fd261a8fe360100e2",
-    "src/ui/react/components/conversation.tsx": "218ddf7b24ea0482b8a462727465e3e75ad8f6e7a135c57cb4b229d28c3bccbf"
+    "src/ui/react/components/conversation.tsx": "a826f56a6f9215ea94bb97c727b27641081dcb4cb968998af02b7bf6d7e3db14"
   },
   "repairCommit": "d36bff0db2e93d949ca96d2e9497cf38a6ff2d30",
   "mergedMain": "12f514fb4567f291ac8ccc3dff0636b30f0d9cd7",
@@ -189,5 +204,6 @@
       "log": "artifacts/shared-ai-r211-20261023/integrated-required-consumer.tap",
       "sha256": "5a7b89710e0ed1e65f4e7e99350147c45b45e285a2b77186de95ff61446c98cc"
     }
-  ]
+  ],
+  "latestCompatibilityMerge": "de1e61e938019662269bb0c8a0d224582a10cdb0"
 }

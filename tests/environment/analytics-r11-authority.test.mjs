@@ -15,16 +15,25 @@ function authorityDB(){
       nativeId:'native-page-1',nativeState:'registered',authorization:{status:'active'}},
     {tag:'task-installed-v1',namespace,taskId:'task-1',enabled:true,
       authorization:{installationId:randomUUID(),generation:1,scope:{siteOrigins:['https://example.com']}}},
-    {tag:'schedule-definition-v1',namespace,scheduleId:'sched-1',deleted:false},
+    {tag:'schedule-definition-v1',namespace,scheduleId:'sched-1',paused:false,deleted:false},
   ],runs:[],results:[]};
   const storage={transaction:async(_names,mode,work)=>{
     assert.equal(mode,'readonly');
     return work({all:async name=>structuredClone(stores[name])});
   }};
+  const sidebarTools=[
+    {id:'cookie-editor'},
+    {id:'adblock',background:{kind:'opendesk.app-service.v1'}}
+  ];
+  const sidebarEnabled={'adblock':false};
   const api={runtime:{id:'analytics-r11-test'},
+    storage:{local:{async get(){return {
+      'opendesk.sidebar-tools.installed.v1':structuredClone(sidebarTools),
+      'opendesk.sidebar-tools.enabled.v1':structuredClone(sidebarEnabled)
+    };}}},
     userScripts:{async getScripts(){return [{id:'native-page-1'}];}},
     permissions:{async contains(){return true;}}};
-  return {storage,api,stores};
+  return {storage,api,stores,sidebarTools,sidebarEnabled};
 }
 function memory(){
   const values=new Map();
@@ -50,13 +59,17 @@ test('read-only Page/Task/Scheduler authority: 100 actual Page receipts; no fake
   stores.results.push({tag:'controller-result',namespace,runId,resultId,state:'completed',outcome:{ok:true}});
   const data=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
   assert.deepEqual(data.inventoryTypes,{
+    sidebar:{installed:2,enabled:1,disabled:1,blocked:0,unknown:0},
     page:{installed:1,enabled:1,disabled:0,blocked:0,unknown:0},
     task:{installed:1,enabled:1,disabled:0,blocked:0,unknown:0},
-    scheduler:{definitions:1}});
+    scheduler:{definitions:1,active:1,paused:0,unknown:0},
+    app_service:{bindings:1,enabled:0,disabled:1,unknown:0}});
   assert.equal(daily(data,'page','attempted')?.total,100);
   assert.equal(daily(data,'page','completed')?.total,100);
+  assert.deepEqual(daily(data,'page','completed')?.sourceTotals,{page_auto:100});
   assert.equal(daily(data,'task','attempted')?.total,1);
   assert.equal(daily(data,'task','completed')?.total,1);
+  assert.deepEqual(daily(data,'task','completed')?.sourceTotals,{scheduler:1});
   assert(!data.daily.some(row=>row.metricType==='business_effect_verified'),
     'Run completed and effectConfirmed never constitute independent business proof');
   // Browser refused Native User Scripts access: cannot claim an enabled Page.
@@ -119,7 +132,7 @@ test('strict transport refuses raw custom IDs and untrusted completed-success cl
   const row={eventId:randomUUID(),installId:randomUUID(),event:'tool.auto_daily',
     toolId:'anon-0123456789ab0123456789ab',source:'host',channel:'extension',
     timestamp:new Date(NOW).toISOString(),toolType:'page',utcDate:'2026-10-23',
-    metricType:'completed',total:100,version:1};
+    metricType:'completed',total:100,version:1,sourceTotals:{page_auto:100}};
   assert.equal(validateAnalyticsEvent(row,{now:NOW}).total,100);
   for(const invalid of [
     {...row,toolId:'custom-secret-script'},
@@ -172,4 +185,50 @@ test('consent epoch excludes pre-consent history without hiding current installe
   assert.equal(daily(after,'page','attempted')?.total,1);
   assert.equal(daily(after,'page','completed'),undefined);
   assert.equal(daily(after,'page','failed')?.total,1);
+});
+
+
+test('cloud bound Run/Result is automatic, manual Run is not; source totals cannot merge with Scheduler',async()=>{
+  const {api,storage,stores}=authorityDB();
+  const add=(source,state='completed')=>{
+    const runId=randomUUID(),resultId=randomUUID(),requestId='cloud:'+randomUUID();
+    const run={tag:'controller-run',namespace,runId,resultId,createdAt:NOW,
+      state,installedTaskAuthorization:{taskId:'task-1'}};
+    if(source==='cloud'){
+      run.cloudRequestId=requestId;run.cloudRequestKey='cloud-key:'+requestId;
+      stores.frameworkKV.push({tag:'cloud-request-v1',namespace,requestId,runId});
+    }else if(source==='scheduler'){
+      run.scheduledFireId=requestId;
+      stores.frameworkKV.push({tag:'schedule-fire-v1',namespace,fireId:requestId,runId,resultId});
+    }
+    stores.runs.push(run);
+    if(state==='completed')stores.results.push({tag:'controller-result',namespace,runId,
+      resultId,state:'completed',outcome:{ok:true}});
+    return run;
+  };
+  add('manual');add('cloud');add('scheduler');
+  let value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
+  assert.equal(daily(value,'task','attempted')?.total,2);
+  assert.deepEqual(daily(value,'task','completed')?.sourceTotals,{scheduler:1,cloud:1});
+  assert(!value.daily.some(row=>row.metricType==='business_effect_verified'));
+  const cloud=stores.runs.find(row=>row.cloudRequestId);
+  stores.frameworkKV=stores.frameworkKV.filter(row=>row.requestId!==cloud.cloudRequestId);
+  value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
+  assert.equal(daily(value,'task','attempted')?.total,1);
+  assert.equal(value.projectionGap,true,'broken cloud binding is coverage uncertainty');
+});
+test('Sidebar installation/enable is original authority; corrupt readback is failure, not zero',async()=>{
+  const {storage,api,sidebarTools,sidebarEnabled}=authorityDB();
+  sidebarEnabled.adblock=true;
+  sidebarTools.push({id:'prompt-shortcuts'});
+  let value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
+  assert.equal(value.inventoryTypes.sidebar.installed,3);
+  assert.equal(value.inventoryTypes.sidebar.enabled,3);
+  assert.equal(value.inventoryTypes.app_service.bindings,1);
+  sidebarTools.splice(0,sidebarTools.length);
+  value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
+  assert.equal(value.inventoryTypes.sidebar.installed,0);
+  sidebarTools.push({id:'a'}, {id:'a'});
+  await assert.rejects(readAnalyticsAuthorityProjection({storage,api,now:()=>NOW}),
+    /Sidebar installation authority/);
 });

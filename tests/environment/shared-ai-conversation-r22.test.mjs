@@ -15,7 +15,7 @@ test('R2.2 shared frame drives My, Bookmark and Prompt; presentation holds no bu
  assert.match(frame,/<SharedConversationFrame open=\{open\}/);
  assert.match(my,/<SharedConversationFrame open=\{state\.open\}/);
  assert.match(frame,/inputDisabled=false/,'editor can still accept a draft while inference is pending');
- assert.match(my,/inputDisabled=\{state\.busy\|\|Boolean\(state\.pending\)\}/);
+ assert.match(my,/inputDisabled=\{Boolean\(state\.pending\)\}/,'draft remains editable while AI is busy');
  assert.doesNotMatch(my,/<form|<ConversationInput|<ConversationTranscript/);
  assert.doesNotMatch(frame,/businessKind|bookmarkId|folderId|promptId|taskId|scheduleId/);
  assert.match(main,/phaseLabels=\{PROMPT_PHASE_LABELS\}/);
@@ -108,4 +108,26 @@ test('R2.2 public Provider settings are stable, never reveal a key and preserve 
  assert.equal(events.length,2);
  bookmark.dispose();tasks.dispose();runtime.dispose();
  assert.throws(()=>runtime.updateSettings({model:'later'}),{code:'E_HOST_CLOSED'});
+});
+
+test('R2.2.1 Workflow shares transcript, IME, Send and Stop with the trusted frame',async()=>{
+ const [page,frame,css]=await Promise.all([
+  read('src/ui/react/tabs/workflow.tsx'),
+  read('src/ui/react/components/conversation.tsx'),
+  read('src/ui/tool-shell.css')
+ ]);
+ assert.match(page,/<SharedConversationFrame open=\{active\}/);
+ assert.match(page,/splitTargets transcriptTarget=\{transcriptTarget\} composerTarget=\{composerTarget\}/);
+ assert.match(page,/onSend=\{event=>click\('workflow-ai-plan',event\)\}/);
+ assert.match(page,/onStop=\{event=>click\('workflow-ai-cancel',event\)\}/);
+ assert.match(page,/onDraftChange=\{\(value,event\)=>field\('workflow-ai-request',value,event\)\}/);
+ assert.doesNotMatch(page,/<ConversationInput id="workflow-ai-request"/);
+ assert.match(frame,/splitTargets=false,transcriptTarget=null,composerTarget=null/);
+ assert.match(frame,/createPortal\(transcript,transcriptTarget\)/);
+ assert.match(frame,/createPortal\(composer,composerTarget\)/);
+ assert.match(frame,/onCompositionStart=/);
+ assert.match(frame,/!event\.shiftKey/);
+ assert.match(css,/\.workflow-composer \.od-conversation-composer/);
+ for(const source of [page,frame])
+  assert.ok((await transform(source,{loader:'tsx',jsx:'transform',target:'es2022'})).code.length>1000);
 });

@@ -163,7 +163,7 @@ R2.2 抽出中立 Conversation Session、共享 Chat Frame、通用 Provider 设
 
 ## R2.1.1 回归修复与验证记录（2026-10-23）
 
-源码修复提交 `d36bff0db`；最终候选安全合入 main `12f514fb4`（含并行的业务引用作用域、Prompt ETag 和中立 Session 接入）；保留 main 已有 R2.2 源码，不把它视为 R2.1 已验收或本轮新增范围。可复核命令、源码与日志 SHA-256 见 [R2.1.1 证据](shared-ai-r211-evidence-20261023.json)。本地原始日志位于 `artifacts/shared-ai-r211-20261023/`，不包含 API Key。
+源码修复提交 `d36bff0db`；最终候选安全合入 main `de1e61e93`（含此前 `12f514fb4`）（含并行的业务引用作用域、Prompt ETag 和中立 Session 接入）；保留 main 已有 R2.2 源码，不把它视为 R2.1 已验收或本轮新增范围。可复核命令、源码与日志 SHA-256 见 [R2.1.1 证据](shared-ai-r211-evidence-20261023.json)。本地原始日志位于 `artifacts/shared-ai-r211-20261023/`，不包含 API Key。
 
 ### 两项历史 CI 失败的原因分类
 
@@ -215,3 +215,5 @@ R2.2 抽出中立 Conversation Session、共享 Chat Frame、通用 Provider 设
 扣分主要为遗留 Workflow 设置/兼容入口耦合、consumer 错误分类时序复杂，以及 Runtime/Planner 组合测试少于分层测试。设计目标 ≥95 尚未达到；真实产品验收质量为 NOT_SCORED，不借 Node 或评分宣称产品放行。
 
 **R2.2 入口尚未放行**：下一条用户操作是在允许访问扩展页面的真实环境，先完成 Bookmark AI 创建文件夹/书签并读回真实树，再验 Prompt、My Task、Workflow 复用及 Native 隔离/升级。恢复后复用本轮有效 Node 证据，源码不变不重复全组。通过 R2.1 门槛后，才可继续审核现有 `src/ui/react/components/conversation.tsx`、`provider-settings.tsx` 与 `tool-shell.js` 注入接口、`provider-runtime.js` 的 settings/Lease 合同、`provider-consumer.js` 业务授权适配及 `workflow-view.js` 的共享会话接入；业务 Service/Host 的执行权威保持不变。本轮未开发 Conversation Session 或扩大 UI 迁移；合入的 `session.js` 来自并行 main 提交。冲突解决保留 Session 的 round begin/finish/assertCurrent/dispose，同时维持本轮错误语义、设置退订、引用与 Lease 清理。
+
+推送竞争的最后一次无冲突集成保留 main 已有 Workflow Frame / My Agent 草稿修复；仅复验受影响 Frame 与设置 6/6 PASS。其余有效证据复用；1054 文件源码门禁对应 `3e46315b2`，后续候选完整门禁以新提交 CI 为准。
