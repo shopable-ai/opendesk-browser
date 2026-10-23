@@ -2037,6 +2037,19 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   },'AdBlock A exception rule priority 2 exists before Stay Focus');
   await click(client,sid,'#sidebar-tool-back');
   await click(client,sid,'#tab-tools');
+  // The React Extension Center can restore the previously selected AdBlock
+  // detail after leaving the tool. Its list toolbar is correctly hidden until
+  // the user presses the real detail Back button. Do not click a hidden menu.
+  await until(()=>evaluate(client,sid,
+    'document.querySelector("#sidebar-tool-display")?.hidden===true'),
+    'installed AdBlock returned to extension management');
+  if(await evaluate(client,sid,
+    'document.querySelector("#extension-center-detail")?.hidden===false'))
+    await click(client,sid,'#extension-center-back');
+  await until(()=>evaluate(client,sid,
+    'document.querySelector("#extension-center-list-view")?.hidden===false&&'+
+    'document.querySelector("#workbench-tools")?.hidden===false'),
+    'visible React Extension Center list after exiting installed app');
   await click(client,sid,'#extension-center-more');
   await click(client,sid,'#extension-center-menu [data-ec-scope="available"]');
   await click(client,sid,'#extension-center-more');
