@@ -102,15 +102,15 @@ export function checkTaskIntent(intent, schema) {
     intent.templates.length<=6 && new Set(intent.templates).size===intent.templates.length,
     'E_SCHEMA','Task intent needs 1–6 distinct templates');
   const namesOf=text=>{
-    const matches=[...text.matchAll(/\\{([A-Za-z][A-Za-z0-9_]{0,39})\\}/gu)];
-    invariant(!/[{}]/u.test(text.replace(/\\{[A-Za-z][A-Za-z0-9_]{0,39}\\}/gu,'')) &&
+    const matches=[...text.matchAll(/\{([A-Za-z][A-Za-z0-9_]{0,39})\}/gu)];
+    invariant(!/[{}]/u.test(text.replace(/\{[A-Za-z][A-Za-z0-9_]{0,39}\}/gu,'')) &&
       matches.every(match=>Object.hasOwn(schema.properties,match[1])),
     'E_SCHEMA','Task intent uses an undeclared parameter or malformed template');
     return matches.map(match=>match[1]);
   };
   for(const template of intent.templates){
     label(template,320);
-    invariant(!/[\\r\\n]/u.test(template),'E_SCHEMA','Task intent must be one line');
+    invariant(!/[\r\n]/u.test(template),'E_SCHEMA','Task intent must be one line');
     const names=namesOf(template);
     invariant(schema.required.every(name=>names.includes(name)),
       'E_SCHEMA','Each intent template must bind every required parameter');
@@ -122,7 +122,7 @@ export function checkTaskIntent(intent, schema) {
     const all=new Set();
     for(const value of intent.resultTexts){
       label(value,160);
-      invariant(!/[\\r\\n]/u.test(value),'E_SCHEMA','Task readback must be one line');
+      invariant(!/[\r\n]/u.test(value),'E_SCHEMA','Task readback must be one line');
       for(const name of namesOf(value))all.add(name);
     }
     invariant(schema.required.length===0||schema.required.some(name=>all.has(name)),
