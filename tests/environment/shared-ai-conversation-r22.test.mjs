@@ -34,6 +34,7 @@ test('R2.2 all trusted consumers reach the same Provider settings sheet and owne
  assert.equal((main.match(/createRoot\(/g)||[]).length,1);
  assert.match(main,/onOpenSettings=\{openSharedProviderSettings\}/);
  assert.match(main,/providerRuntime=\{providerRuntime\}/);
+ assert.match(main,/onOpenNativeSettings=\{openNativeSettings\}/);
  assert.match(my,/onClick=\{onOpenSettings\}/);
  assert.match(app,/onOpenSettings=\{onOpenProviderSettings\}/);
  assert.match(app,/providerRuntime=\{providerRuntime\}/);
@@ -42,6 +43,8 @@ test('R2.2 all trusted consumers reach the same Provider settings sheet and owne
  assert.match(workflow,/<IconButton id="workflow-provider-toggle"/);
  assert.match(sheet,/createPortal\(/);
  assert.match(sheet,/providerRuntime\.updateSettings\(patch\)/);
+ assert.match(sheet,/onOpenNativeSettings\(\)/);
+ assert.match(sheet,/!event\.nativeEvent\?\.isTrusted/);
  assert.doesNotMatch(sheet,/createRoot\(|chrome\.|permissions\.request|configure\(/);
  for(const source of [main,workflow,sheet,app])
   assert.ok((await transform(source,{loader:'tsx',jsx:'transform',target:'es2022'})).code.length>100);

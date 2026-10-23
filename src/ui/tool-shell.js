@@ -117,6 +117,7 @@ const tabMemory=createSidebarTabMemory({
 let scheduleUI=null,scheduleHost=null;
 // Create the complete interface before controllers attach their real hosts.
 extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolView,providerRuntime,
+  openNativeSettings:()=>chrome.tabs.create({url:chrome.runtime.getURL('native-agent/settings.html')}),
   onNavigate:view=>reactNavigationRequest?.(view)??false});
 const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget,
   importDraft:sourceUtf8=>scriptEditor.importDraft(sourceUtf8),executionSource:scriptEditor.executionSource,

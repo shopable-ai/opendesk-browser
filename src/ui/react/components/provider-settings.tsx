@@ -13,7 +13,8 @@ const noSubscribe=()=>()=>{};
 // ToolShell owns the sole Runtime; this is a presentational settings client,
 // rendered as a Portal of the existing trusted React root, never a second root.
 export function SharedProviderSettingsSheet({
- open=false,onClose,doc=globalThis.document,providerRuntime=null,children
+ open=false,onClose,doc=globalThis.document,providerRuntime=null,
+ onOpenNativeSettings=null,children
 }){
  const panel=React.useRef(null);
  const snapshot=React.useSyncExternalStore(providerRuntime?.subscribeSettings??noSubscribe,
@@ -43,7 +44,7 @@ export function SharedProviderSettingsSheet({
  };
  const save=event=>{
   event.preventDefault();
-  if(!providerRuntime)return;
+  if(!event.nativeEvent?.isTrusted||!providerRuntime)return;
   try {
    if(external){
     const url=new URL(endpoint.trim());
@@ -122,7 +123,17 @@ export function SharedProviderSettingsSheet({
         <input type="checkbox" checked={clearKey} onChange={event=>setClearKey(event.currentTarget.checked)}/>
         清除现有会话密钥
        </label>}
-      </div>:<p className="workflow-minor-note">使用本机 Codex 连接及当前授权；连接诊断、网页摘要授权仍由原可信业务机制处理。</p>}
+      </div>:<div className="od-shared-provider-fields">
+       <p className="workflow-minor-note">使用本机 Codex 连接及当前授权；网页摘要授权仍由原业务机制处理。</p>
+       {onOpenNativeSettings&&<button type="button" className="od-button od-button--secondary"
+         onClick={event=>{
+          if(!event.nativeEvent?.isTrusted)return;
+          try {
+           void Promise.resolve(onOpenNativeSettings()).catch(ex=>setError(
+            '无法打开本机连接设置：'+String(ex?.message||ex)));
+          }catch(ex){setError('无法打开本机连接设置：'+String(ex?.message||ex));}
+         }}>本机连接设置 ↗</button>}
+      </div>}
       <p className="workflow-minor-note">Provider 配置对各 AI 入口共享；切换后已有推理会安全失效，不自动重放业务操作。原 Chrome/Native 权限不因此扩大。</p>
       {error&&<p className="od-conversation-error" role="alert">{error}</p>}
       <div className="od-shared-provider-actions">

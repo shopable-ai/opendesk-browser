@@ -37,7 +37,8 @@ function PromptSandboxBusiness({dock,onRequest}){
 const mountedDocuments=new WeakSet();
 
 export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
-  developerView=createDeveloperView(),myView=createMyWorkbenchView(),toolView=null,providerRuntime=null}={}){
+  developerView=createDeveloperView(),myView=createMyWorkbenchView(),toolView=null,
+  providerRuntime=null,openNativeSettings=null}={}){
   const mount=doc.getElementById('opendesk-react-app');
   if(!mount||mount.childNodes.length||mountedDocuments.has(doc))throw new Error('E_REACT_APP_MOUNT');
   if(typeof onNavigate!=='function')throw new Error('E_REACT_APP_SHELL_NAVIGATION');
@@ -84,6 +85,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
         onNavigate={onNavigate} extensionProps={extensionProps}
         providerRuntime={providerRuntime} providerSettingsOpen={settingsOpen}
+        onOpenNativeSettings={openNativeSettings}
         onOpenProviderSettings={openSharedProviderSettings}
         onCloseProviderSettings={closeSharedProviderSettings}
         developerView={developerView} myView={myView} myAgent={myAgent} toolView={toolView} workflowController={workflowController}

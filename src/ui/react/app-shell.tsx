@@ -19,6 +19,7 @@ export function SidebarAppShell({
   extensionProps={},cloudModel={},cloudRequestsModel={},cloudSetupModel={},cloudPageModel={},
   developerView,myView,myAgent=null,toolView=null,workflowController=null,providerRuntime=null,
   providerSettingsOpen=false,onOpenProviderSettings=()=>{},onCloseProviderSettings=()=>{},
+  onOpenNativeSettings=null,
   debugModel={},debugActions={},development=null,
   browserHistoryModel=null,browserHistoryActions=null
 }){
@@ -76,6 +77,7 @@ export function SidebarAppShell({
         hidden={activeTab!=='debug'}/>}
     </main>
     {providerRuntime&&<SharedProviderSettingsSheet providerRuntime={providerRuntime}
+      onOpenNativeSettings={onOpenNativeSettings}
       open={providerSettingsOpen} onClose={onCloseProviderSettings}/>}
     <footer id="workspace-dock" className="workspace-dock" hidden={runDock.hidden&&!developerCanStop} data-stop-only={String(runDock.stopOnly||developerCanStop&&activeTab!=='develop')}>
       <MyTasksDock view={myView} hidden={runDock.taskHidden}/>
