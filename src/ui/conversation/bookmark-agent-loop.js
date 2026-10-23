@@ -41,15 +41,39 @@ function filingTarget(goal){
  return {filing:true,name};
 }
 function requiredChecks(goal){
+ // Bind the two parts to the user's named folder, not a model's $lastFolder.
+ // Only the complete create-and-file intent is accepted here; extra commands
+ // still need clarification rather than a weaker completion condition.
+ const text=goal.trim();
+ const compound=text.match(/^(?:请)?(?:创建|新建)\s*(?:一个)?(?:名为|叫做)?\s*([「“『"'][^」”』"']+[」”』"']|[^，,。；;\n]+?)\s*(?:的)?(?:文件夹|目录)\s*[，,；;]?\s*(?:并且|并|然后|再|同时)\s*(.+?)[。！!]?$/)||
+  text.match(/^(?:请)?(?:创建|新建)\s*(?:一个)?(?:文件夹|目录)\s*([「“『"'][^」”』"']+[」”』"']|[^，,。；;\n]+?)\s*[，,；;]?\s*(?:并且|并|然后|再|同时)\s*(.+?)[。！!]?$/);
+ if(compound){
+  const name=compound[1].trim().replace(/^[「“『"'](.+)[」”』"']$/,'$1');
+  const filing=compound[2].trim();
+  const pageFirst=filing.match(/^(?:把|将)?\s*当前(?:网页|页面|页)\s*(?:(?:收藏|保存|添加)(?:到|至|进)|放(?:入|到)|存入|加入)\s*(.+)$/);
+  const verbFirst=filing.match(/^(?:收藏|保存|添加)\s*当前(?:网页|页面|页)(?:\s*(?:到|至|进)\s*(.+))?$/);
+  const destination=(pageFirst||verbFirst)?.[1]?.trim();
+  const sameFolder=destination===undefined||/^(?:该|这个|新建的|新创建的)(?:文件夹|目录)(?:里|中)?$/.test(destination)||
+   destination.replace(/^[「“『"'](.+)[」”』"']$/,'$1')===name;
+  // Completion's folder field accepts paths and references. Ambiguous literal
+  // names must be clarified rather than reinterpreted as another destination.
+  if(name&&name.length<=256&&!name.startsWith('$')&&!name.includes('/')&&
+    (pageFirst||verbFirst)&&sameFolder)
+   return [{kind:'folder.exists',folder:name},
+    {kind:'bookmark.inFolder',folder:name,url:'$currentPage'}];
+  return null;
+ }
  const {filing,name}=filingTarget(goal);
  if(filing){
+  // A compound creation request that failed full parsing (including multiline
+  // suffixes) must not fall through to the weaker filing-only contract.
+  if(/^(?:请)?(?:创建|新建)/.test(text))return null;
   if(/(?:[，,；;\n]|并|然后|同时|再)\s*(?:(?:把|将).{0,80})?(?:重命名|改名|修改|删除|移动|创建|新建|搜索|查找)/.test(goal))
    return null;
   if(!name&&!/^(?:请)?(?:收藏|保存)当前(?:网页|页面|页)[。！!]?$/.test(goal.trim()))
    return null;
   return [{kind:'bookmark.inFolder',folder:name||'$currentFolder',url:'$currentPage'}];
  }
- const text=goal.trim();
  const search=text.match(/^(?:搜索|查找|找出|检索)\s*(.+?)\s*(?:相关(?:的)?书签|书签)?[。！!]?$/);
  if(search)return [{kind:'search.observed',query:search[1].trim()}];
  const folder=text.match(/^确保\s*(.+?)(?:文件夹|目录)存在[。！!]?$/)||

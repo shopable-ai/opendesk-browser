@@ -711,3 +711,90 @@ test('R2.1 plain current-page filing still verifies the current folder',async()=
   nextProposal:()=>({complete:[{kind:'folder.exists',folder:'$currentFolder'}]})});
  assert.equal(result.completed,true);assert.equal(currentIn(f,'1').length,1);
 });
+
+test('R2.1 create a named folder and file the current page completes after independent readback',async()=>{
+ const f=fixture(),p=proposals([done]);
+ const result=await run(f,{goal:'创建一个名为“测试收藏夹”的文件夹，并将当前页面收藏到该文件夹',
+  initialProposal:{actions:[ensure,save]},nextProposal:p.nextProposal});
+ assert.equal(result.completed,true);
+ assert.equal(created(f).length,2);
+ assert.equal(currentIn(f,result.refs.folderId).length,1);
+ assert.match(result.summary,/当前网页.+测试收藏夹/);
+});
+
+test('R2.1 create-and-file accepts noun-first and explicitly repeated destination names',async()=>{
+ for(const goal of ['新建文件夹“测试收藏夹”，然后收藏当前页面。',
+  '创建测试收藏夹文件夹，并把当前网页放入“测试收藏夹”。']){
+  const f=fixture(),p=proposals([done]);
+  const result=await run(f,{goal,initialProposal:{actions:[ensure,save]},nextProposal:p.nextProposal});
+  assert.equal(result.completed,true,goal);
+  assert.equal(created(f).length,2);
+  assert.equal(currentIn(f,result.refs.folderId).length,1);
+ }
+});
+
+test('R2.1 folder existence alone cannot complete create-and-file',async()=>{
+ const f=fixture(),p=proposals([
+  {complete:[{kind:'folder.exists',folder:'测试收藏夹'}]},
+  {question:'还需要收藏当前页面'}]);
+ const result=await run(f,{goal:'创建“测试收藏夹”文件夹，并收藏当前页面',
+  initialProposal:{actions:[ensure]},nextProposal:p.nextProposal});
+ assert.equal(result.completed,false);
+ assert.equal(created(f).length,1);
+ assert.equal(p.contexts[1].progress.at(-1).observations[0].status,'NOT_MET');
+});
+
+test('R2.1 create-and-file cannot substitute another lastFolder for the named destination',async()=>{
+ const f=fixture();f.nodes.push({id:'wanted',title:'测试收藏夹',parentId:'1'},
+  {id:'other',title:'别的目录',parentId:'1'},
+  {id:'book',title:'Example',url:page.url,parentId:'other'});
+ const p=proposals([{question:'当前页面尚未放入测试收藏夹'}]);
+ const result=await runBookmarkAgentLoop({
+  goal:'创建“测试收藏夹”文件夹，并将当前页面收藏到该文件夹',
+  initialProposal:done,service:f.service,context,refs:{folderId:'other'},
+  nextProposal:p.nextProposal,beforeWrite:()=>{throw err('E_TEST_NO_WRITE');}});
+ assert.equal(result.completed,false);
+ assert.equal(p.contexts[0].progress[0].observations[0].status,'NOT_MET');
+ assert.equal(f.writes.length,0);
+});
+
+test('R2.1 create-and-file with additional commands never claims the compound goal is complete',async()=>{
+ for(const goal of ['创建“测试收藏夹”文件夹，并将当前页面收藏到该文件夹，再将书签重命名为“新标题”',
+  '创建“测试收藏夹”文件夹，并删除旧书签，然后收藏当前页面',
+  '创建“测试收藏夹”文件夹，并将当前页面收藏到别的目录']){
+  const f=fixture();f.nodes.push({id:'folder',title:'测试收藏夹',parentId:'1'},
+   {id:'book',title:'旧标题',url:page.url,parentId:'folder'});
+  const p=proposals([{question:'请明确剩余目标'}]);
+  const result=await run(f,{goal,
+   initialProposal:{complete:[{kind:'bookmark.inFolder',folder:'测试收藏夹',url:'$currentPage'}]},
+   nextProposal:p.nextProposal});
+  assert.equal(result.completed,false,goal);
+  assert.equal(f.writes.length,0);
+ }
+});
+
+test('R2.1 create-and-file preserves literal folder names instead of treating them as paths',async()=>{
+ const f=fixture();f.nodes.push({id:'folder',title:'测试收藏夹',parentId:'1'},
+  {id:'book',title:'Example',url:page.url,parentId:'folder'});
+ const p=proposals([{question:'请明确包含斜杠的目录名称'}]);
+ const result=await run(f,{
+  goal:'创建一个名为“书签栏 / 测试收藏夹”的文件夹，并将当前页面收藏到该文件夹',
+  initialProposal:{complete:[{kind:'bookmark.inFolder',folder:'书签栏 / 测试收藏夹',url:'$currentPage'}]},
+  nextProposal:p.nextProposal});
+ assert.equal(result.completed,false);
+ assert.equal(f.nodes.some(node=>node.title==='书签栏 / 测试收藏夹'),false);
+ assert.equal(f.writes.length,0);
+});
+
+test('R2.1 multiline create-and-file never falls back to ignoring an additional rename',async()=>{
+ const f=fixture();f.nodes.push({id:'folder',title:'测试收藏夹',parentId:'1'},
+  {id:'book',title:'旧标题',url:page.url,parentId:'folder'});
+ const p=proposals([{question:'请确认剩余改名要求'}]);
+ const result=await run(f,{
+  goal:'创建一个名为“测试收藏夹”的文件夹，并将当前页面收藏到测试收藏夹。\n并且将书签重命名为“新标题”',
+  initialProposal:{complete:[{kind:'bookmark.inFolder',folder:'测试收藏夹',url:'$currentPage'}]},
+  nextProposal:p.nextProposal});
+ assert.equal(result.completed,false);
+ assert.equal(f.nodes.find(node=>node.id==='book').title,'旧标题');
+ assert.equal(f.writes.length,0);
+});
