@@ -861,12 +861,6 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       button.addEventListener('click',event=>{void insert(row,event);});
       rail.append(button);
     }
-    if(compact&&builtin){
-      const manage=doc.createElement('button');manage.type='button';manage.className='item';
-      manage.textContent='管理';manage.title='管理提示词';
-      manage.setAttribute('aria-label','打开侧边栏管理提示词');
-      manage.addEventListener('click',openSidebar);rail.append(manage);
-    }
     schedule();
   }
   async function refresh(){
