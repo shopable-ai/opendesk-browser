@@ -42,6 +42,8 @@ on:
       - 'tests/environment/adblock-host-controls-r13.test.mjs'
       - 'tests/framework/adblock-r12-native.test.mjs'
       - 'tests/framework/helpers/adblock-layout-native.mjs'
+      - 'tests/framework/helpers/verified-side-panel-native.mjs'
+      - 'tests/environment/verified-side-panel-native.test.mjs'
       - '.github/workflows/adblock-r12.yml'
   workflow_dispatch:
 
@@ -85,6 +87,8 @@ jobs:
           node --test tests/environment/adblock-r12.test.mjs tests/environment/adblock-host-controls-r13.test.mjs tests/environment/adblock-preview-contract.test.mjs tests/environment/adblock-navigation-r15.test.mjs tests/environment/stay-focus-boundary-r1.test.mjs tests/environment/verify-package-react-constructor.test.mjs tests/environment/react-dom-input-csp-r3331.test.mjs
           node --test tests/environment/adblock-native-release.test.mjs tests/environment/adblock-sandbox-refresh.test.mjs
           node --check tests/framework/adblock-r12-native.test.mjs
+          node --check tests/framework/helpers/verified-side-panel-native.mjs
+          node --test tests/environment/verified-side-panel-native.test.mjs
       - name: Source check and complete production and development validation
         run: |
           npm run check
