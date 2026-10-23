@@ -1,7 +1,7 @@
 // Read-only natural-language routing. Saved Bundle v2 is an immutable execution
 // candidate, not a model instruction or an additional RunHost authority.
 import {WORKFLOW_DYNAMIC_BUNDLE_FORMAT,inferDynamicReplayPlan,
-  dynamicReplayIntent,simpleCommerceReplayGoal} from './segment-replay.js';
+  dynamicReplayIntent,simpleCommerceReplayGoal,replayParameterSchema} from './segment-replay.js';
 
 const missingProduct=/^搜索 ([\p{L}\p{N} _.-]{2,120})，打开商品详情，核对名称和价格$/u;
 const safeQuery=/^[\p{L}\p{N} _.-]{2,120}$/u;
@@ -24,6 +24,9 @@ export function selectSavedWorkflowRoute({request,target,records=[]}={}) {
   if(!candidates.length)return {state:'AI'};
   for(const row of candidates){
     try{
+      if(JSON.stringify(replayParameterSchema(row.segments))!==
+         JSON.stringify(row.paramsSchema))
+        return {state:'BLOCKED',code:'E_WORKFLOW_BUNDLE'};
       const plan=inferDynamicReplayPlan(row);
       if(!plan||JSON.stringify(plan)!==JSON.stringify(row.bindingPlan))
         return {state:'BLOCKED',code:'E_WORKFLOW_PARAM_BINDING'};
