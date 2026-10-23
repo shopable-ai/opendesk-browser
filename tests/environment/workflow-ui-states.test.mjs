@@ -206,7 +206,9 @@ test('workflow model selector stays minimal without manual creation or custom ap
   assert.ok(settings.hasClass('od-disclosure--flat'));
   assert.doesNotMatch(html,/localCodexReady\s*=\s*true|模拟连接成功/);
   assert.match(view,/bind\('workflow-ai-plan','click',sendNaturalLanguage\)/);
-  assert.match(view,/if\(immediate.state==='AI'&&!pendingReuse\)return plan\(event\)/);
+  assert.match(view,/const taskSnapshot=await client\.request\('listTaskCatalog',\{\}\)/);
+  assert.match(view,/return plan\(event,\{pregranted:true\}\)/);
+  assert.doesNotMatch(view,/if\(immediate.state==='AI'&&!pendingReuse/);
   assert.match(view,/control\('workflow-provider-settings'\)\.open=true/);
   assert.doesNotMatch(view,/modelConsent|pendingModelReview|renderDataDisclosure/);
 });

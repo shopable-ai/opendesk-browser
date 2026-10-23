@@ -1,5 +1,6 @@
 import {createWorkflowUIState} from './workflow-ui-state.js';
 import {selectSavedWorkflowRoute,naturalProductReply} from './workflow-reuse.js';
+import {selectInstalledTaskRoute} from './installed-task-reuse.js';
 import {emptyWorkflow,validateWorkflow,WORKFLOW_OPERATIONS,WORKFLOW_LOCATORS,validateWorkflowParams} from '../../framework/workflow/contract.js';
 import {checkParamsSchema,validateTaskParams} from '../../platform/tasks/contract.js';
 import {compileWorkflow} from '../../framework/workflow/compiler.js';
@@ -62,7 +63,7 @@ export function workflowExecutionFeedback({execution,workflow,params={},values}=
     '，并核对输入值一致；未确认服务器已提交。';
 }
 export function createWorkflowView({api=globalThis.chrome,document:doc=globalThis.document,
-  client,host,currentPageTarget,onRunOwner=()=>{},openDeveloper=()=>{},openCatalog=()=>{},
+  client,host,currentPageTarget,taskWorkbench=null,onRunOwner=()=>{},openDeveloper=()=>{},openCatalog=()=>{},
   reactUI=null}) {
   // Presentation snapshots only. Compiler, RunHost, revision journal and grants
   // below remain the sole business authority; React is the sole DOM owner.
@@ -80,7 +81,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   let phase='idle',lastRun='none',hasError=false,newReviewSignature=null,pendingRunReview=null,pendingAIReview=null;
   let autoExecutionPending=false; // No second Send while a pre-granted, safe AI run is being admitted.
   let historyOpen=false,newReviewReturnFocus=null;
-  let pendingReuse=null,pendingNaturalPlanning=null,pendingBundleGrant=null;
+  let pendingReuse=null,pendingNaturalPlanning=null,pendingBundleGrant=null,pendingInstalledGrant=null;
+  let activeInstalledTaskId=null;
   let planningGeneration=0,planningAbort=null,planningTarget=null,pendingApproval=null,localChecking=false;
   let workflowAgent=null; // A task-scoped coordinator only; RunHost/Provider remain unique.
   let fullAgentDraft=null,selectedBundle=null; // Frozen segments, never another runtime.
@@ -250,7 +252,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     control('workflow-run').disabled=!runnable;
     control('workflow-save').disabled=busy || autoExecutionPending || !compiled || Boolean(selectedBundle);
     control('workflow-candidate').disabled=busy || autoExecutionPending || Boolean(selectedBundle) || !matchesRevision();
-    control('workflow-stop').disabled=Boolean(workflowAgent)||!runId || host.currentRun!==runId;
+    control('workflow-stop').disabled=Boolean(workflowAgent)||(!activeInstalledTaskId&&(!runId||host.currentRun!==runId));
     control('workflow-stop').hidden=Boolean(workflowAgent);
     control('workflow-open-code').disabled=!compiled;
     control('workflow-ai-plan').disabled=!savedHistoryReady||busy||autoExecutionPending||Boolean(workflowAgent)||Boolean(pendingAIReview)||provider()==='opendesk_cloud'||
@@ -1415,7 +1417,15 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     return reply;
   }
   function stop(event) {
-    if(!event.isTrusted||!runId||host.currentRun!==runId)return;
+    if(!event?.isTrusted)return;
+    if(activeInstalledTaskId){
+      const taskId=activeInstalledTaskId;
+      void Promise.resolve().then(()=>taskWorkbench.stopAgentTask({taskId,event}))
+        .then(()=>status('已请求停止已安装任务；正在核对最终回执。'))
+        .catch(error=>status(format(error)+'；停止状态仍需核对',true));
+      return;
+    }
+    if(!runId||host.currentRun!==runId)return;
     const id=runId;control('workflow-stop').disabled=true;
     host.stop({controller:true,runId:id,reason:'E_CANCELLED'})
       .then(()=>status('已请求停止 '+id+'；已发生的网页副作用不会回滚'))
@@ -1593,7 +1603,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   }
   function stopPlanning({close=false,remember=false}={}) {
     const stoppedGeneration=++planningGeneration;
-    pendingReuse=null;pendingNaturalPlanning=null;pendingBundleGrant=null;
+    pendingReuse=null;pendingNaturalPlanning=null;pendingBundleGrant=null;pendingInstalledGrant=null;
     if(close)localCapability={...localCapability,inferenceVerified:false};
     planningAbort?.abort(err('E_CANCELLED','AI 规划已停止'));
     planningAbort=null;
@@ -1966,6 +1976,104 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     control('workflow-run-review').hidden=false;
     focus('workflow-run-review-confirm');updateButtons();
   }
+  // Catalog is only a discovery snapshot: Host and the original TaskWorkbench
+  // must independently revalidate the fixed install before RunHost admission.
+  async function verifyInstalledCandidate(candidate){
+    if(!taskWorkbench?.runInstalledForAgent)
+      throw err('E_TASK_HOST','原有任务执行器不可用，未启动');
+    const resolved=await client.request('resolveInstalledTask',{taskId:candidate.taskId});
+    if(resolved?.taskId!==candidate.taskId||
+      resolved.version!==candidate.expected.version||
+      resolved.manifestHash!==candidate.expected.manifestHash||
+      resolved.installationId!==candidate.expected.installationId||
+      resolved.generation!==candidate.expected.generation||
+      resolved.contentHash!==candidate.sourceHash||
+      resolved.revision!==candidate.revision||
+      resolved.manifest?.program?.sourceHash!==candidate.sourceHash)
+      throw err('E_REVISION','已安装任务身份、Manifest 或冻结源码不一致');
+    return resolved;
+  }
+
+  async function executeMatchedInstalled(event,prepared){
+    const {candidate,captured,request}=prepared;
+    try{
+      if(!event?.isTrusted||disposed||activeInstalledTaskId||
+        host.executionPending||host.currentRun)
+        throw err('E_TASK_BUSY','当前 RunHost 已忙或不是用户可信操作');
+      if(!sameTarget(captured,currentPageTarget.snapshot))
+        throw err('E_DOCUMENT_STALE','当前网页已变化，不运行任务');
+      // TaskWorkbench's requireChromePermissions only checks existing grants.
+      // New permissions must be requested in the separate synchronous click.
+      if(!await api.permissions.contains({origins:[permissionPattern(captured.url)]}))
+        throw err('E_PERMISSION','网站权限已撤销，未启动任务');
+      await currentPageTarget.revalidate(captured);
+      await verifyInstalledCandidate(candidate);
+      if(disposed||!sameTarget(captured,currentPageTarget.snapshot)||
+        host.executionPending||host.currentRun)
+        throw err('E_DOCUMENT_STALE','目标网页或执行槽已变化，不运行任务');
+      const started=taskWorkbench.runInstalledForAgent({
+        taskId:candidate.taskId,params:candidate.params,event,
+        expected:candidate.expected});
+      activeInstalledTaskId=candidate.taskId;
+      busy=true;phase='running';lastRun='running';updateButtons();
+      appendChat('你',request);
+      appendChat('助手','找到已安装任务「'+candidate.title+'」，正在使用新参数执行原有 JavaScript。');
+      const completed=await started;
+      const journal=await client.controller.snapshotControllerRun({runId:completed?.runId});
+      const run=journal?.run||(journal?.runs||[]).find(row=>row.runId===completed?.runId);
+      const result=(journal?.results||[]).find(row=>row.runId===completed?.runId);
+      if(!completed?.runId||completed.version!==candidate.expected.version||
+        completed.installationId!==candidate.expected.installationId||
+        completed.completion?.state!=='completed'||
+        completed.completion?.pendingSettlement||
+        completed.completion?.retirement?.state!=='released'||
+        completed.completion?.result?.outcome?.ok!==true||
+        run?.runId!==completed.runId||run.state!=='completed'||
+        run.workerRetired!==true||run.retirementState!=='released'||
+        run.revision?.sourceHash!==candidate.sourceHash||
+        run.revision?.revision!==candidate.revision||
+        result?.runId!==completed.runId||result.resultId!==run.resultId||
+        result.revision?.sourceHash!==candidate.sourceHash||
+        result.outcome?.ok!==true)
+        throw err('E_OUTCOME_UNKNOWN','运行回执、固定源码或 Worker 收尾无法共同确认，不会重试');
+      if(candidate.kind==='commerce'){
+        const after=await currentPageTarget.refresh();
+        if(after?.status!=='available'||after.windowId!==captured.windowId||
+          after.tabId!==captured.tabId||after.frameId!==0||
+          after.origin!==captured.origin||after.documentId===captured.documentId)
+          throw err('E_WORKFLOW_EVIDENCE','尚未核验到商品详情新 Document，不能报告业务成功');
+        const receipt=await observation.observe(after,{
+          requestId:'task-reuse-'+crypto.randomUUID(),request:candidate.params.productName});
+        const effect=verifyOpenedLinkPage({
+          linkGuard:{origin:captured.origin,url:after.url,name:candidate.params.productName},
+          after:receipt,actionTarget:captured,resultTarget:after});
+        if(effect?.kind!=='product-page')
+          throw err('E_WORKFLOW_EVIDENCE','商品名称或页面标价未独立核验，不能报告成功');
+        lastRun='success';
+        appendChat('执行结果','已搜索 '+candidate.params.query+'，打开 '+effect.name+
+          '，并独立核对页面价格：'+effect.price+'。');
+        status('已安装任务执行成功，持久回执和真实页面效果均已核验。');
+        return {ok:true,runId:completed.runId,effect};
+      }
+      // An arbitrary task may return a value without proving web-side effects.
+      lastRun='failed';
+      appendChat('执行结果','持久 RunHost 回执已核对；该任务的业务效果仍待独立核验。');
+      status('任务运行结束，但业务效果未独立确认；不会自动重试。',true);
+      return {ok:false,receiptVerified:true,runId:completed.runId};
+    }catch(error){
+      lastRun='failed';
+      if(!disposed){
+        appendChat('执行结果','尚未核验成功：'+format(error)+
+          '。不会自动重试，也不会交给 AI 重做已发生的操作。');
+        status(format(error),true);
+      }
+      return {ok:false,error};
+    }finally{
+      activeInstalledTaskId=null;
+      if(!disposed){busy=false;phase='idle';updateButtons();}
+    }
+  }
+
   // Exactly one entry for natural-language work: search frozen candidates
   // before asking the existing Provider to generate any new code.
   async function sendNaturalLanguage(event){
@@ -1977,15 +2085,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     let target;
     try{target=currentPageTarget.capture();}
     catch(error){status(format(error),true);return;}
-    // Cached history is hydrated on mount and after Save. When it contains no
-    // eligible fixed contract, immediately preserve the original trusted Send
-    // admission: an asynchronous storage/catalog lookup must not consume the
-    // Chrome permission gesture or delay the first disclosure authorization.
-    // A potential v2 candidate instead enters the verified read-only route.
-    const immediate=selectSavedWorkflowRoute({request:original,target,records:saveList});
-    if(immediate.state==='AI'&&!pendingReuse&&savedHistoryReady)return plan(event);
+    // All candidate searches must finish before falling through to Provider.
+    // A delayed Chrome permission request is NEVER attempted inside Send.
     const prior=pendingReuse;
-    pendingReuse=null;pendingNaturalPlanning=null;pendingBundleGrant=null;
+    pendingReuse=null;pendingNaturalPlanning=null;pendingBundleGrant=null;pendingInstalledGrant=null;
     let request=original,chosenKey=null;
     if(prior&&sameTarget(prior.target,target)){
       const choice=original.match(/^(?:使用|选择)第([1-9][0-9]?)个(?:工作流)?[。.]?$/u);
@@ -1996,7 +2099,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }else if(prior.kind==='product'&&!/^(?:请)?(?:搜索|查找|检索)\s+/u.test(original)){
         const name=naturalProductReply(original);
         if(!name){status('请补充完整、明确的商品名称。',true);return;}
-        chosenKey=prior.key;
+        chosenKey='workflow:'+prior.key;
         request='搜索 '+prior.query+'，打开 '+name+' 商品详情，核对名称和价格';
       }
     }
@@ -2017,24 +2120,69 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       await refreshSaved();assertLive();
       if(!savedHistoryReady)throw err('E_WORKFLOW_STALE','保存的工作流列表正在刷新，请重新发送');
       let match=selectSavedWorkflowRoute({request,target,records:saveList});
-      if(chosenKey){
-        const row=match.state==='AMBIGUOUS'?
-          match.candidates.find(item=>item.key===chosenKey):
-          ['MATCH','MISSING_PRODUCT'].includes(match.state)&&match.record?.key===chosenKey?
-            match.record:null;
-        if(!row)throw err('E_WORKFLOW_STALE','所选历史工作流已改变，请重新发送完整任务');
-        match=match.params?{state:'MATCH',record:row,params:match.params}:
-          {state:'MISSING_PRODUCT',record:row,query:match.query};
-      }
+      // A failed Catalog RPC is not NO_MATCH: fail closed before AI or RunHost.
+      const taskSnapshot=await client.request('listTaskCatalog',{});
+      if(!Array.isArray(taskSnapshot?.catalog)||!Array.isArray(taskSnapshot?.installed))
+        throw err('E_TASK_CATALOG','任务目录查询未完成，不能断言无可复用程序');
+      assertLive();
+      const installedRoute=selectInstalledTaskRoute({request,target,
+        catalog:taskSnapshot.catalog,installed:taskSnapshot.installed});
       if(match.state==='BLOCKED')
-        throw err(match.code,'保存的动态绑定契约不一致，不允许退回 AI 盲目执行');
-      if(match.state==='AMBIGUOUS'){
+        throw err(match.code,'保存工作流动态绑定不一致，禁止回退 AI 盲目重做');
+      if(installedRoute.state==='BLOCKED')
+        throw err(installedRoute.code,'已安装任务匹配但身份或版本无效，禁止盲目回退 AI');
+      if(installedRoute.state==='LOADING')
+        throw err('E_TASK_CATALOG','任务目录未加载，不能启动新 AI');
+      const workflows=match.state==='AMBIGUOUS'?match.candidates:
+        ['MATCH','MISSING_PRODUCT'].includes(match.state)?[match.record]:[];
+      const tasks=installedRoute.state==='AMBIGUOUS'?installedRoute.candidates:
+        installedRoute.state==='MATCH'?[installedRoute.candidate]:[];
+      const options=[
+        ...workflows.map(row=>({kind:'workflow',key:'workflow:'+row.key,title:row.title,row})),
+        ...tasks.map(row=>({kind:'task',key:'task:'+row.taskId,title:row.title,row}))
+      ];
+      let selectedTask=null;
+      if(chosenKey){
+        const selected=options.find(row=>row.key===chosenKey);
+        if(!selected)throw err('E_WORKFLOW_STALE','选择的程序已改变，请重新发送完整任务');
+        if(selected.kind==='task'){selectedTask=selected.row;match={state:'AI'};}
+        else match=match.params?{state:'MATCH',record:selected.row,params:match.params}:
+          {state:'MISSING_PRODUCT',record:selected.row,query:match.query};
+      }else if(options.length>1){
         pendingReuse={kind:'choice',request,target:structuredClone(target),
-          keys:match.candidates.map(row=>row.key)};
+          keys:options.map(row=>row.key)};
         appendChat('你',original);
-        appendChat('助手','找到多个匹配的固定工作流：'+match.candidates.map((row,i)=>
-          (i+1)+'「'+row.title+'」').join('、')+'。请回复“使用第1个”等选择；尚未执行。');
-        status('多个匹配项，需要先明确选择。');return;
+        appendChat('助手','找到多个可复用程序：'+options.map((row,i)=>
+          (i+1)+'「'+row.title+'」'+(row.kind==='task'?'（已安装任务）':'（保存工作流）')).join('、')+
+          '。请回复“使用第1个”等选择；尚未执行。');
+        status('存在多个候选，需要明确选择。');return;
+      }else if(tasks.length===1)selectedTask=tasks[0];
+      if(selectedTask){
+        const prepared={candidate:selectedTask,captured:structuredClone(target),request};
+        await verifyInstalledCandidate(selectedTask);assertLive();
+        const granted=await api.permissions.contains({origins:[permissionPattern(target.url)]});
+        assertLive();
+        if(!granted||selectedTask.sensitive){
+          pendingInstalledGrant={...prepared,needsPermission:!granted};
+          appendChat('你',original);
+          appendChat('助手',!granted?'找到已安装任务，但需要当前网站授权。':
+            '找到已安装任务，此敏感操作需要确认。');
+          showRoutingGrant(!granted?'确认后申请当前网站权限，再执行原固定任务。':
+            '确认执行已安装任务。已有权限不会重复申请。');
+          return;
+        }
+        autoExecutionPending=true;
+        release();
+        return executeMatchedInstalled(event,prepared).finally(()=>{
+          autoExecutionPending=false;if(!disposed)updateButtons();
+        });
+      }
+      if(installedRoute.state==='MISSING_PARAMS'&&match.state==='AI'){
+        const fields=[...new Set(installedRoute.candidates.flatMap(row=>row.fields))];
+        appendChat('你',original);
+        appendChat('助手','已找到相关任务，但缺少必要参数：'+(fields.join('、')||'参数格式有误')+
+          '。请补充完整任务；尚未执行。');
+        status('参数缺失或无效，尚未执行。');return;
       }
       if(match.state==='MISSING_PRODUCT'){
         pendingReuse={kind:'product',key:match.record.key,query:match.query,
@@ -2075,10 +2223,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         release();
         return runSavedBundle(event,prepared);
       }
-      // Existing Task catalog is queried read-only too. A title/description
-      // resemblance cannot replace MyTaskAgent's trusted task/run gate.
-      if(typeof client.request==='function')
-        await client.request('listTaskCatalog',{}).catch(()=>null);
+      // Both saved Workflow and installed Task candidates were checked.
       assertLive();
       const chosenProvider=provider();
       let scopes=[permissionPattern(target.url)],invalidSettings=false;
@@ -2368,6 +2513,33 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   bind('workflow-run','click',runManual);
   bind('workflow-run-review-confirm','click',event=>{
     if(!event.isTrusted)return Promise.resolve({ok:false,skipped:true});
+    if(pendingInstalledGrant){
+      const row=pendingInstalledGrant;pendingInstalledGrant=null;
+      if(!sameTarget(row.captured,currentPageTarget.snapshot)||
+        row.request!==control('workflow-ai-request').value.trim()){
+        dismissRunReview();status('任务或网页已变化，请重新发送。',true);
+        return Promise.resolve({ok:false,skipped:true});
+      }
+      let permission;
+      try{
+        // Chrome native permission dialog is invoked synchronously ONLY from
+        // this separate actual trusted Confirm click, never after an await.
+        permission=row.needsPermission?
+          api.permissions.request({origins:[permissionPattern(row.captured.url)]}):
+          Promise.resolve(true);
+      }catch(error){status(format(error),true);return Promise.resolve({ok:false,error});}
+      dismissRunReview();
+      autoExecutionPending=true;updateButtons();
+      return Promise.resolve(permission).then(approved=>{
+        if(approved!==true)throw err('E_PERMISSION','网站授权未批准，未执行任务');
+        if(!sameTarget(row.captured,currentPageTarget.snapshot))
+          throw err('E_DOCUMENT_STALE','授权时网页已变化，不执行任务');
+        return executeMatchedInstalled(event,row);
+      }).catch(error=>{
+        if(!disposed)status(format(error)+'；不会自动重试。',true);
+        return {ok:false,error};
+      }).finally(()=>{autoExecutionPending=false;if(!disposed)updateButtons();});
+    }
     if(pendingBundleGrant){
       const row=pendingBundleGrant;pendingBundleGrant=null;
       if(!sameTarget(row.captured,currentPageTarget.snapshot)){
@@ -2399,9 +2571,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   });
   bind('workflow-run-review-cancel','click',event=>{
     if(!event.isTrusted||(!pendingRunReview&&!pendingAIReview&&
-      !pendingBundleGrant&&!pendingNaturalPlanning))return;
+      !pendingBundleGrant&&!pendingNaturalPlanning&&!pendingInstalledGrant))return;
     const wasAI=Boolean(pendingAIReview||pendingNaturalPlanning);
-    pendingBundleGrant=null;pendingNaturalPlanning=null;
+    pendingBundleGrant=null;pendingNaturalPlanning=null;pendingInstalledGrant=null;
     dismissRunReview();status('本次操作已取消，未执行。');
     if(wasAI)appendChat('对话状态','已取消本次操作，网页未因本次确认发生修改。');
   });
@@ -2420,6 +2592,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   const unsubscribePage=currentPageTarget?.subscribe(next=>{
     if(disposed)return;
     if(pendingReuse&&!sameTarget(pendingReuse.target,next))pendingReuse=null;
+    if(pendingInstalledGrant&&!sameTarget(pendingInstalledGrant.captured,next))pendingInstalledGrant=null;
     if(pendingBundleGrant&&!sameTarget(pendingBundleGrant.captured,next)||
       pendingNaturalPlanning&&!sameTarget(pendingNaturalPlanning.target,next)){
       pendingBundleGrant=null;pendingNaturalPlanning=null;dismissRunReview();
@@ -2534,6 +2707,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     }
     await client.ready;
     await refreshSaved();
+    // Both sources are primed at initial conversation mount. Send always
+    // refreshes Catalog again before deciding NO_MATCH.
+    const initialCatalog=await client.request('listTaskCatalog',{});
+    if(!Array.isArray(initialCatalog?.catalog)||!Array.isArray(initialCatalog?.installed))
+      throw err('E_TASK_CATALOG','任务目录初始化不完整');
     if(!disposed)updateButtons();
   })().catch(error=>status(format(error),true));
   render();renderProvider();syncAISettings();status('');
@@ -2857,7 +3035,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   return {getSnapshot:ui.getSnapshot,subscribe:ui.subscribe,actions,conversation,taskConversation,dispose() {
     if(disposed)return;
     if(workflowAgent)void stopWorkflowAgent('E_HOST_CLOSED').catch(()=>{});
-    pendingReuse=null;pendingBundleGrant=null;pendingNaturalPlanning=null;
+    pendingReuse=null;pendingBundleGrant=null;pendingNaturalPlanning=null;pendingInstalledGrant=null;
     dismissRunReview();disposed=true;compileToken++;planningGeneration++;
     bookmarkConversationActive?.abortController.abort(err('E_TOOL_CHANGED','书签扩展实例已关闭'));
     planningAbort?.abort(err('E_HOST_CLOSED','工作流窗口已关闭'));pendingApproval?.settle({decision:'deny'});

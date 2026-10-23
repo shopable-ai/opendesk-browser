@@ -73,7 +73,10 @@ test('user-initiated AI sends directly without custom consent UI or ledger',asyn
   assert.doesNotMatch(view,/create(?:Consent|Authorization|Permission)Manager|new (?:Consent|Authorization|Permission)Manager/);
   assert.match(view,/bind\('workflow-ai-plan','click',sendNaturalLanguage\)/);
   assert.match(view,/selectSavedWorkflowRoute\(\{request:original,target,records:saveList\}\)/);
-  assert.match(view,/if\(immediate.state==='AI'&&!pendingReuse\)return plan\(event\)/);
+  assert.match(view,/const taskSnapshot=await client\.request\('listTaskCatalog',\{\}\)/);
+  assert.match(view,/selectInstalledTaskRoute\(\{request,target,/);
+  assert.match(view,/return executeMatchedInstalled\(event,prepared\)/);
+  assert.doesNotMatch(view,/if\(immediate.state==='AI'&&!pendingReuse/);
   assert.match(view,/verifyWorkflowBundle\(record\)/);
   assert.match(view,/return runSavedBundle\(event,prepared\)/);
   assert.match(view,/async function plan\(event,\{pregranted=false\}=\{\}\)\s*\{\s*if\(!event\.isTrusted\|\|busy\|\|autoExecutionPending\|\|host\.executionPending\|\|host\.currentRun\|\|/);
