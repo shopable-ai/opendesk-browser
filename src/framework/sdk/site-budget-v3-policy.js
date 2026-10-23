@@ -53,11 +53,20 @@ function normalizeCondition(condition){
 // Never accept native DNR rules, redirect paths, scripts or user-selected IDs.
 // The owner ledger separately stores usage/checkpoint and applies a fixed slot.
 export function normalizeManagedSiteV3Policy(raw){
-  if(!exact(raw,['kind','enabled','sites','whitelist'])||
+  if(!(exact(raw,['kind','enabled','sites','whitelist'])||
+       exact(raw,['kind','enabled','sites','whitelist','reminderMinutes']))||
      raw.kind!==MANAGED_SITE_V3_KIND||typeof raw.enabled!=='boolean'||
      !Array.isArray(raw.sites)||raw.sites.length>MANAGED_SITE_V3_LIMITS.sites||
      !Array.isArray(raw.whitelist)||raw.whitelist.length>MANAGED_SITE_V3_LIMITS.whitelist)
     fail('v3 策略结构或数量超出边界');
+  // App-selected, code-free reminders: the Driver supplies the common
+  // threshold-crossing mechanism; no product-specific schedule is compiled in.
+  const reminderMinutes=raw.reminderMinutes===undefined?null:raw.reminderMinutes;
+  if(reminderMinutes!==null&&(
+     !Array.isArray(reminderMinutes)||reminderMinutes.length>8||
+     reminderMinutes.some(min=>!Number.isInteger(min)||min<1||min>120)||
+     new Set(reminderMinutes).size!==reminderMinutes.length))
+    fail('提醒阈值只能声明最多八个 1–120 分钟的整数');
   const hosts=new Set(),pools=new Set(),groups=new Set();
   const sites=raw.sites.map(site=>{
     if(!exact(site,['host','subdomains','enabled','pool','conditions'])||
@@ -91,7 +100,8 @@ export function normalizeManagedSiteV3Policy(raw){
   if(sites.some(child=>sites.some(parent=>parent!==child&&parent.subdomains&&
      matchesManagedSiteV3Host(child.host,parent.host,true)&&!child.subdomains)))
     fail('父子网站范围无法无损映射到 Chrome DNR');
-  return {kind:MANAGED_SITE_V3_KIND,enabled:raw.enabled,sites,whitelist:[...whitelist]};
+  return {kind:MANAGED_SITE_V3_KIND,enabled:raw.enabled,sites,whitelist:[...whitelist],
+    ...(reminderMinutes===null?{}:{reminderMinutes:[...reminderMinutes].sort((a,b)=>b-a)})};
 }
 export function normalizeManagedSiteV3Usage(value){
   if(!plain(value)||Object.keys(value).length>MANAGED_SITE_V3_LIMITS.usage)
