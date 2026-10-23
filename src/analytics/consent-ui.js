@@ -23,6 +23,8 @@ export function initAnalyticsConsentControls({api,doc}){
       data.needsReview?'既有统计授权缺少可核验的披露凭据，已暂停发送；请重新审阅后自行开启。':
       data.consent?'已同意当前披露范围的使用统计。可随时关闭。':
       '统计默认关闭；不会发送任何产品使用事件。');
+    if(data.consent===true&&data.coverageGap===true)
+      show(status.textContent+' 本机队列出现丢弃或过期，管理员统计存在覆盖缺口。');
   };
   toggle.addEventListener('change',event=>{
     if(!event.isTrusted||working)return;
