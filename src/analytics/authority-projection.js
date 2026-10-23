@@ -79,7 +79,8 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
       // Explicit user attempts have their own low-frequency, consented events;
       // never transform one into automated daily activity or active DAU.
       if(row.source==='manual')continue;
-      if(row.source!==undefined&&row.source!=='page_auto'){
+      if(row.source!=='page_auto'){
+        // Legacy/unknown execution origins are not verified automatic activity.
         projectionGap=true;continue;
       }
       const day=asDate(row.createdAt);
@@ -87,8 +88,23 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
       // NEVER backfilled merely because a user granted permission today.
       if(typeof row.createdAt==='number'&&row.createdAt<since||
         typeof row.createdAt==='string'&&Date.parse(row.createdAt)<since)continue;
+      // Native boot persists these fields in one original transaction, after
+      // verifying the installed script, permission and active Document.
+      // Do not treat an incomplete legacy row as a real automatic execution.
+      const frozenKey='page-execution:'+canonical([namespace,row.manifestHash,row.documentId]);
       if(!safeIdentity(row.programId)||!day||!uuid.test(row.receiptId||'')||
-         !validStatus.has(row.state)){projectionGap=true;continue;}
+         !validStatus.has(row.state)||
+         !Number.isSafeInteger(row.revision)||row.revision<1||
+         !frozenHash.test(row.manifestHash||'')||
+         !frozenHash.test(row.sourceHash||'')||
+         !uuid.test(row.installationId||'')||
+         !/^[a-f0-9]{32}$/.test(row.installationToken||'')||
+         !Number.isSafeInteger(row.grantGeneration)||row.grantGeneration<1||
+         !Number.isSafeInteger(row.tabId)||row.tabId<0||
+         typeof row.documentId!=='string'||!row.documentId||
+         row.executionKey!==frozenKey){
+        projectionGap=true;continue;
+      }
       // An admission marked PREPARED is not a Chrome execution. Only a durable
       // DISPATCHED receipt with its original timestamp establishes a real run.
       // A terminal without dispatch proof is uncertain, not a successful run.
@@ -97,6 +113,9 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
       if(!Number.isFinite(dispatchedAt)){
         if(row.state!=='prepared')projectionGap=true;
         continue;
+      }
+      if(dispatchedAt<Date.parse(new Date(row.createdAt).toISOString())){
+        projectionGap=true;continue;
       }
       if(row.state==='prepared')continue;
       executions.push({type:'page',identity:row.programId,day,

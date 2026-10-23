@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
+import {canonical} from '../../src/platform/protocol.js';
 import {readAnalyticsAuthorityProjection} from '../../src/analytics/authority-projection.js';
 import {createAnalyticsCollector} from '../../src/analytics/collector.js';
 import {ANALYTICS_DISCLOSURE_VERSION,ANALYTICS_STATE_KEY,
@@ -44,6 +45,16 @@ function memory(){
   }},alarms:{async create(){},async clear(){}}}};
 }
 const daily=(projection,type,metric)=>projection.daily.find(row=>row.type===type&&row.metricType===metric);
+const PAGE_MANIFEST_HASH='e'.repeat(64),PAGE_SOURCE_HASH='f'.repeat(64);
+const pageAutoReceipt=({createdAt=NOW,dispatchedAt=createdAt,state='completed',
+  receiptId=randomUUID(),documentId='document-page-1',...extra}={})=>({
+  tag:'page-execution-v1',namespace,programId:pageId,source:'page_auto',
+  revision:1,manifestHash:PAGE_MANIFEST_HASH,sourceHash:PAGE_SOURCE_HASH,
+  installationId:randomUUID(),grantGeneration:1,installationToken:'a'.repeat(32),
+  tabId:12,documentId,
+  executionKey:'page-execution:'+canonical([namespace,PAGE_MANIFEST_HASH,documentId]),
+  receiptId,createdAt,dispatchedAt,state,...extra
+});
 const SCHEDULE_SOURCE_HASH='c'.repeat(64),SCHEDULE_MANIFEST_HASH='d'.repeat(64);
 const scheduledRun=(runId,resultId,fireId,state='completed')=>({
   tag:'controller-run',namespace,runId,resultId,scheduledFireId:fireId,
@@ -61,11 +72,8 @@ const scheduledResult=(runId,resultId,state='completed')=>({
 
 test('read-only Page/Task/Scheduler authority: 100 actual Page receipts; no fake DAU',async()=>{
   const {storage,api,stores}=authorityDB();
-  for(let i=0;i<100;i++)stores.frameworkKV.push({
-    tag:'page-execution-v1',namespace,programId:pageId,
-    receiptId:randomUUID(),createdAt:NOW-1000,state:'completed',effectConfirmed:true,
-    dispatchedAt:NOW-1500
-  });
+  for(let i=0;i<100;i++)stores.frameworkKV.push(
+    pageAutoReceipt({createdAt:NOW-1000,effectConfirmed:true}));
   const runId=randomUUID(),resultId=randomUUID(),fireId='fire:2026-10-23:1';
   stores.frameworkKV.push({tag:'schedule-fire-v1',namespace,
     fireId,runId,resultId,status:'ADMITTED'});
@@ -182,13 +190,11 @@ test('App Service scheduler requires original Sidebar binding and frozen source'
 
 test('consent gates readback and daily version; automatic runs do not invent app.opened',async()=>{
   const {api:ext,values}=memory();const {api,storage,stores}=authorityDB();
-  for(let i=0;i<100;i++)stores.frameworkKV.push({tag:'page-execution-v1',namespace,
-    programId:pageId,receiptId:randomUUID(),createdAt:NOW,state:'completed',dispatchedAt:NOW});
+  for(let i=0;i<100;i++)stores.frameworkKV.push(pageAutoReceipt());
   const collector=createAnalyticsCollector({api:ext,endpoint:'https://analytics.example/v1/events',
     now:()=>NOW,newId:randomUUID,fetcher:async()=>{throw Error('offline');}});
   // Old execution remains in the original Authority but was never consented.
-  stores.frameworkKV.push({tag:'page-execution-v1',namespace,programId:pageId,
-    receiptId:randomUUID(),createdAt:NOW-60000,state:'completed',dispatchedAt:NOW-60000});
+  stores.frameworkKV.push(pageAutoReceipt({createdAt:NOW-60000}));
   let reads=0;
   const load=({since}={})=>{reads++;return readAnalyticsAuthorityProjection({storage,api,now:()=>NOW,since});};
   assert.equal((await collector.reportAuthority(load)).recorded,false);
@@ -205,8 +211,7 @@ test('consent gates readback and daily version; automatic runs do not invent app
   assert(!state.queue.some(row=>row.event==='app.opened'||row.event==='tool.engaged'));
   assert.equal((await collector.reportAuthority(load)).autoSnapshots,0);
   assert.equal(values.get(ANALYTICS_STATE_KEY).queue.filter(row=>row.event==='tool.auto_daily').length,2);
-  stores.frameworkKV.push({tag:'page-execution-v1',namespace,
-    programId:pageId,receiptId:randomUUID(),createdAt:NOW,state:'completed',dispatchedAt:NOW});
+  stores.frameworkKV.push(pageAutoReceipt());
   assert.equal((await collector.reportAuthority(load)).autoSnapshots,2);
   const latest=values.get(ANALYTICS_STATE_KEY).queue.filter(row=>row.event==='tool.auto_daily');
   assert(latest.every(row=>row.version===2&&row.total===101));
@@ -263,10 +268,8 @@ test('trusted manual Task failure is DAU-eligible; RunId stays local and dedupli
 test('consent epoch excludes pre-consent history without hiding current installed state',async()=>{
   const {api,storage,stores}=authorityDB();
   const sameDay=NOW-15000;
-  stores.frameworkKV.push({tag:'page-execution-v1',namespace,programId:pageId,
-    receiptId:randomUUID(),createdAt:sameDay,state:'completed',dispatchedAt:sameDay});
-  stores.frameworkKV.push({tag:'page-execution-v1',namespace,programId:pageId,
-    receiptId:randomUUID(),createdAt:NOW+1000,state:'failed',dispatchedAt:NOW+1000});
+  stores.frameworkKV.push(pageAutoReceipt({createdAt:sameDay}));
+  stores.frameworkKV.push(pageAutoReceipt({createdAt:NOW+1000,state:'failed'}));
   const before=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW,since:0});
   const after=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW,since:NOW});
   assert.equal(before.inventoryTypes.page.installed,1);
@@ -344,14 +347,43 @@ test('R1.12 manual Page receipt stays out of automatic UTC totals, including sam
   stores.frameworkKV.push({tag:'page-execution-v1',namespace,programId:pageId,
     receiptId:randomUUID(),createdAt:NOW,state:'completed',dispatchedAt:NOW,
     source:'manual',manualHostDocumentId:'real-host'});
-  stores.frameworkKV.push({tag:'page-execution-v1',namespace,programId:pageId,
-    receiptId:randomUUID(),createdAt:NOW,state:'completed',dispatchedAt:NOW,
-    source:'page_auto'});
+  stores.frameworkKV.push(pageAutoReceipt());
   const value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
   assert.equal(daily(value,'page','attempted')?.total,1);
   assert.equal(daily(value,'page','completed')?.total,1);
   assert.deepEqual(daily(value,'page','completed')?.sourceTotals,{page_auto:1});
   assert.equal(value.projectionGap,false);
+});
+
+test('Page automatic receipts need original Native install, source and Document identity',async()=>{
+  const {storage,api,stores}=authorityDB();
+  const valid=pageAutoReceipt();
+  stores.frameworkKV.push(valid);
+  const read=()=>readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
+  assert.equal(daily(await read(),'page','completed')?.total,1);
+  const tamper=[
+    ['missing source',row=>{delete row.source;}],
+    ['manifest hash',row=>{row.manifestHash='0'.repeat(64);}],
+    ['source hash',row=>{row.sourceHash='not-a-hash';}],
+    ['installation',row=>{row.installationId='forged';}],
+    ['generation',row=>{row.grantGeneration=0;}],
+    ['native token',row=>{row.installationToken='changed';}],
+    ['wrong document key',row=>{row.documentId='replaced';}],
+    ['dispatch precedes admission',row=>{row.dispatchedAt=row.createdAt-1;}]
+  ];
+  for(const [name,change] of tamper){
+    const original=structuredClone(valid);change(valid);
+    const actual=await read();
+    assert.equal(daily(actual,'page','completed'),undefined,name);
+    assert.equal(actual.projectionGap,true,name);
+    Object.assign(valid,original);
+  }
+  stores.frameworkKV.push({tag:'page-execution-v1',namespace,
+    programId:pageId,receiptId:randomUUID(),source:'page_auto',
+    createdAt:NOW,state:'completed',dispatchedAt:NOW});
+  const gap=await read();
+  assert.equal(daily(gap,'page','completed')?.total,1);
+  assert.equal(gap.projectionGap,true,'legacy row cannot become a second execution');
 });
 
 test('R1.12 Cloud forged installation/version/Result mapping is not counted',async()=>{
