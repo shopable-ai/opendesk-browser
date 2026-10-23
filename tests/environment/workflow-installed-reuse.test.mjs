@@ -78,3 +78,38 @@ test('exact declared sensitive Task needs a separate confirmation',()=>{
   assert.equal(result.state,'MATCH');
   assert.equal(result.candidate.sensitive,true);
 });
+
+test('legacy verified demo search discovers keyword from complete operation contract, not its title',()=>{
+  const manifest={taskId:'example.search',version:'1.0.0',title:'可重复搜索',
+    description:'使用现代 Locator 填写演示搜索框、等待结果；仅作为待验证候选导入。',
+    siteOrigins:['http://127.0.0.1:43111'],
+    program:{revision:1,sourceHash:'a'.repeat(64)},
+    paramsSchema:{type:'object',additionalProperties:false,
+      properties:{keyword:{type:'string',title:'搜索关键词',minLength:1,maxLength:80,default:'OpenDesk'}},
+      required:['keyword']}};
+  const catalog=[{taskId:manifest.taskId,version:manifest.version,
+    stage:'available',manifestHash:'b'.repeat(64),manifest}];
+  const installed=[{taskId:manifest.taskId,version:manifest.version,
+    enabled:true,manifestHash:'b'.repeat(64),generation:1,installationId:'test-installed'}];
+  const page={status:'available',frameId:0,origin:manifest.siteOrigins[0],
+    url:manifest.siteOrigins[0]+'/demo-form.html'};
+  const match=input=>selectInstalledTaskRoute({request:input,target:page,catalog,installed});
+  const done=match('在当前演示搜索页搜索 OpenDesk，并核对结果。');
+  assert.equal(done.state,'MATCH');
+  assert.equal(done.candidate.kind,'demo-search');
+  assert.equal(done.candidate.sensitive,true,'opaque Task submission still requires an existing review');
+  assert.deepEqual(done.candidate.params,{keyword:'OpenDesk'});
+  assert.equal(match('在当前演示搜索页搜索，并核对结果。').state,'MISSING_PARAMS');
+  for(const unsafe of [
+    '在当前演示搜索页搜索 OpenDesk，并核对结果，然后删除记录',
+    '在当前演示搜索页搜索 OpenDesk，但不要点击搜索，并核对结果',
+    '在当前演示搜索页搜索 OpenDesk，并核对提交日志'
+  ])assert.equal(match(unsafe).state,'NO_MATCH',unsafe);
+  assert.equal(selectInstalledTaskRoute({request:'在当前演示搜索页搜索 OpenDesk，并核对结果',
+    target:{...page,origin:'https://other.example'},catalog,installed}).state,'NO_MATCH');
+  manifest.paramsSchema.properties.keyword.title='密码';
+  assert.equal(match('在当前演示搜索页搜索 OpenDesk，并核对结果').state,'NO_MATCH');
+  manifest.paramsSchema.properties.keyword.title='搜索关键词';
+  manifest.description='可重复搜索关键词';
+  assert.equal(match('在当前演示搜索页搜索 OpenDesk，并核对结果').state,'NO_MATCH');
+});

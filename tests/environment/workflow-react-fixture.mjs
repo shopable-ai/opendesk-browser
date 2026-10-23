@@ -95,6 +95,10 @@ export async function workflowFixture(options={}) {
     resolve({runId:claim.runId,state,retirement:{state:'released'},result});
   }
   const client=options.client||{ready:Promise.resolve(),subscribeWorkflowAI:fn=>{subscriptions.native.add(fn);return ()=>subscriptions.native.delete(fn);},
+    // Match the real Host Client's mandatory discovery RPC. An absent catalog
+    // method previously short-circuited HTTPS consent and pending-start Stop.
+    request:async method=>method==='listTaskCatalog'?{catalog:[],installed:[]}:
+      Promise.reject(fail('E_FIXTURE_RPC','Unknown Host RPC: '+method)),
     requestWorkflowAI:async method=>method==='ai.connection.read'?{nativeConnected:false,protocolAvailable:false,state:'NATIVE_PERMISSION_REQUIRED'}:
       {state:'DISCONNECTED',readyForTurn:false}};
   const currentPageTarget={windowId:7,snapshot:target,ready:Promise.resolve(),capture:()=>({...target}),

@@ -7,6 +7,12 @@ const variable=/\{([A-Za-z][A-Za-z0-9_]{0,39})\}/gu;
 const verb=/(搜索|查找|检索|打开|进入|核对|检查|验证|确认|读取|提取|统计|填写|设置|修改|运行|删除|保存|启用|停用|下载|上传|发送|提交|search|open|verify|read|extract|update|run|save)/i;
 // In the absence of machine-verifiable effects, arbitrary Task descriptions
 // never prove read-only safety. Only the audited commerce shape runs hands-free.
+// A legacy verified Task v1 may not carry a {keyword} template. Do not match
+// its title: require its *declared operation*, a closed one-key Schema and an
+// exact bounded user goal. The Task remains review-required because the v1
+// Manifest alone cannot prove that a click has no sensitive side effects.
+const declaredDemoSearch=/^(?:请)?在(?:当前)?演示搜索页搜索 ([\p{L}\p{N} _.-]{1,80})，(?:并)?(?:核对|验证|检查)(?:搜索)?结果$/u;
+const missingDemoSearch=/^(?:请)?在(?:当前)?演示搜索页搜索，(?:并)?(?:核对|验证|检查)(?:搜索)?结果$/u;
 const partialProduct=/^(?:请)?(?:搜索|查找|检索) ([\p{L}\p{N} _.-]{2,120})，(?:打开|点开|进入) ?(?:商品详情页|商品详情|详情页)，(?:核对|检查|验证|确认) (?:商品)?名称(?:和|与)(?:价格|售价|标价)$/u;
 const normalize=value=>typeof value==='string'?value.trim()
   .replace(/[。.!！]+$/gu,'').replace(/[,，]\s*/gu,'，').replace(/\s+/gu,' '):'';
@@ -21,6 +27,22 @@ function extractDeclaredParameters(template,request,schema){
     if(intent)return {params:intent,kind:'commerce',sensitive:false};
     const partial=normalize(request).match(partialProduct);
     return partial?{params:{query:partial[1]},kind:'commerce',sensitive:false}:null;
+  }
+  // One generic constrained intent contract for the legacy "fill demo search
+  // field, await results" operation; no Task ID, title or arbitrary action
+  // similarity grants execution. Newer versioned packages may declare an
+  // explicit {keyword} template and use the normal matcher below.
+  if(template.includes('填写演示搜索框、等待结果')&&
+    schema.additionalProperties===false&&
+    Object.keys(schema.properties).length===1&&
+    schema.required.length===1&&schema.required[0]==='keyword'&&
+    schema.properties.keyword?.type==='string'&&
+    schema.properties.keyword.title==='搜索关键词'){
+    const found=normalize(request).match(declaredDemoSearch);
+    if(found)return {params:{keyword:found[1].trim()},kind:'demo-search',sensitive:true};
+    if(missingDemoSearch.test(normalize(request)))
+      return {params:{},kind:'demo-search',sensitive:true};
+    return null;
   }
   if(!verb.test(template))return null;
   const names=[];let cursor=0,pattern='^';

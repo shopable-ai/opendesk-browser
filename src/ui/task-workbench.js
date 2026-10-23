@@ -28,6 +28,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const editorSource=executionSource || (() => developer('script-source').value);
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
   let toolActive=false, toolsViewListener=null, workflowRunId=null, workflowClaimPending=false;
+  let agentStopRequested=false,agentStartSubmitted=false;
   let scheduledSurfaceActive=false, scheduledRunId=null;
   let catalogSequence=0, catalogSelectionEpoch=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
   let permissionSequence=0,candidatePermission=null;
@@ -589,7 +590,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       chosen={...chosen,manifestHash:info.manifestHash,title:info.manifest.title};
       permission=requireChromePermissions({api,request:{origins:[permissionPattern(captured.url)]}});
     }catch(error){fail(error);return agentIntent?Promise.reject(error):undefined;}
-    running=true;activeRunId=null;runOwnerKey=identity(chosen);runOwnerTitle=chosen.title||chosen.taskId;
+    running=true;activeRunId=null;agentStopRequested=false;agentStartSubmitted=false;
+    runOwnerKey=identity(chosen);runOwnerTitle=chosen.title||chosen.taskId;
     ui('task-result-panel').hidden=true;update();
     setTaskNotice(runOwnerKey,'正在检查访问权限并验证目标网页');
     const pendingRun=(async()=>{
@@ -603,12 +605,23 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       if((resolved.generation??null)!==(chosen.generation??null)||
         (resolved.installationId??null)!==(chosen.installationId??null))throw {code:'E_REVISION',message:'任务安装或授权已改变，请重新运行'};
       if(!resolved.manifest.siteOrigins.includes(site))throw {code:'E_PERMISSION',message:'安装网站权限不匹配'};
+      if(agentIntent&&agentStopRequested)
+        throw {code:'E_CANCELLED',message:'已请求停止，尚未启动任务'};
+      agentStartSubmitted=Boolean(agentIntent);
       const claim=await host.start({source:{kind:'saved',scriptId:resolved.scriptId,revision:resolved.revision,
           contentHash:resolved.contentHash},params,expectedTaskGeneration:chosen.generation??null,expectedTaskInstallationId:chosen.installationId??null,
         target:{mode:'borrowed',tabId:captured.tabId,frameId:0,documentId:captured.documentId,
           expectedUrl:captured.url,expectedWindowId:captured.windowId},
         deadlineAt:Date.now()+30000});
-      activeRunId=claim.runId;
+      activeRunId=claim.runId;agentStartSubmitted=false;
+      if(agentIntent&&agentStopRequested){
+        // Stop can arrive while the RunHost admission RPC has been sent but
+        // before its runId is known. Cancel the late run exactly once, and
+        // never claim that possible web side effects were rolled back.
+        try { await host.stop({runId:claim.runId,controller:true,reason:'E_CANCELLED'}); }
+        catch { throw {code:'E_OUTCOME_UNKNOWN',message:'停止已提交但 Worker 收尾未知，请勿重放'}; }
+        throw {code:'E_OUTCOME_UNKNOWN',message:'已请求停止；任务可能已经产生网页效果，请勿重放'};
+      }
       setTaskNotice(runOwnerKey,`运行中：${resolved.manifest.title} · v${resolved.version}`);
       update(); // Expose the owning Stop immediately; do not rely on a later host event.
       const completion=await host.completion;
@@ -625,7 +638,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       if(agentIntent)throw error;
       return null;
     }).finally(async()=>{
-      running=false;
+      running=false;agentStopRequested=false;agentStartSubmitted=false;
       if(disposed)return;
       renderTaskStatus();update(); // Retire the visible Stop without waiting for history RPC.
       try{
@@ -887,10 +900,16 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   },runInstalledForAgent({taskId,params,event,expected}){
     return run(event,{taskId,params,expected});
   },stopAgentTask({taskId,event}){
-    if(!event?.isTrusted||disposed||!activeRunId||host.currentRun!==activeRunId||
+    if(!event?.isTrusted||disposed||!running||
       runOwnerKey!==identity(installed.find(row=>row.taskId===taskId)))
       throw Object.assign(new Error('未找到该任务正在运行的有效执行槽'),{code:'E_RUN_NOT_ACTIVE'});
-    return host.stop({runId:activeRunId,controller:true});
+    if(agentStopRequested)return Promise.resolve({requested:true,pending:true});
+    agentStopRequested=true;
+    if(activeRunId&&host.currentRun===activeRunId)
+      return host.stop({runId:activeRunId,controller:true,reason:'E_CANCELLED'});
+    // No runId yet: run() checks this flag before host.start, then cancels
+    // the late claim if the RPC already crossed the RunHost boundary.
+    return Promise.resolve({requested:true,pending:agentStartSubmitted});
   },focusInstalledTask(taskId) {
     // Selecting an installed task for management is safe even when it is disabled.
     // The Run button is gated separately by the installed enabled state.

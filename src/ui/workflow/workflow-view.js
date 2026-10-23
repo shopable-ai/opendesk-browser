@@ -82,7 +82,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   let autoExecutionPending=false; // No second Send while a pre-granted, safe AI run is being admitted.
   let historyOpen=false,newReviewReturnFocus=null;
   let pendingReuse=null,pendingNaturalPlanning=null,pendingBundleGrant=null,pendingInstalledGrant=null;
-  let activeInstalledTaskId=null;
+  let activeInstalledTaskId=null,installedStopRequested=false;
   let planningGeneration=0,planningAbort=null,planningTarget=null,pendingApproval=null,localChecking=false;
   let workflowAgent=null; // A task-scoped coordinator only; RunHost/Provider remain unique.
   let fullAgentDraft=null,selectedBundle=null; // Frozen segments, never another runtime.
@@ -1421,10 +1421,17 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   function stop(event) {
     if(!event?.isTrusted)return;
     if(activeInstalledTaskId){
+      // The request remains authoritative across the gap before start returns
+      // a runId and while a separate read-only result observation is active.
+      installedStopRequested=true;
       const taskId=activeInstalledTaskId;
       void Promise.resolve().then(()=>taskWorkbench.stopAgentTask({taskId,event}))
-        .then(()=>status('已请求停止已安装任务；正在核对最终回执。'))
-        .catch(error=>status(format(error)+'；停止状态仍需核对',true));
+        .catch(error=>{
+          if(error?.code==='E_RUN_NOT_ACTIVE'&&observation.activeRunId)
+            return observation.cancel();
+          throw error;
+        }).then(()=>status('已禁止后续操作；正在核对本次执行是否已经产生网页变化。'))
+        .catch(error=>status(format(error)+'；停止结果未知，不会自动重试',true));
       return;
     }
     if(!runId||host.currentRun!==runId)return;
@@ -2001,6 +2008,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
 
   async function executeMatchedInstalled(event,prepared){
     const {candidate,captured,request}=prepared;
+    installedStopRequested=false;
     try{
       if(!event?.isTrusted||disposed||activeInstalledTaskId||
         host.executionPending||host.currentRun)
@@ -2028,6 +2036,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       appendChat('你',request);
       appendChat('助手','找到已安装任务「'+candidate.title+'」，正在使用新参数执行原有 JavaScript。');
       const completed=await started;
+      if(installedStopRequested)
+        throw err('E_OUTCOME_UNKNOWN','已请求停止；此前提交的操作可能生效，不能报告完成或自动重放');
       const journal=await client.controller.snapshotControllerRun({runId:completed?.runId});
       const run=journal?.run||(journal?.runs||[]).find(row=>row.runId===completed?.runId);
       const result=(journal?.results||[]).find(row=>row.runId===completed?.runId);
@@ -2070,6 +2080,32 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         status('已安装任务执行成功，持久回执和真实页面效果均已核验。');
         return {ok:true,runId:completed.runId,effect};
       }
+      if(candidate.kind==='demo-search'){
+        // A returned Task value is NOT proof that its click affected the page.
+        // Reuse the existing RunHost-backed, read-only observation on the
+        // current Document and require two independently visible DOM facts.
+        const after=await currentPageTarget.refresh();
+        if(!sameTarget(captured,after)||installedStopRequested)
+          throw err('E_DOCUMENT_STALE','任务完成后页面已变化或收到停止请求，不能确认搜索结果');
+        if(!await api.permissions.contains({origins:[permissionPattern(after.url)]}))
+          throw err('E_PERMISSION','网站授权已撤销，未读取搜索结果');
+        const keyword=candidate.params.keyword;
+        const receipt=await observation.observe(after,{
+          requestId:'installed-search-'+crypto.randomUUID(),
+          request:'结果：'+keyword+' 提交次数：1'});
+        if(installedStopRequested)
+          throw err('E_OUTCOME_UNKNOWN','搜索结果读取时发生停止，不能报告成功');
+        const visible=(receipt?.summary?.nodes||[])
+          .filter(row=>row?.state?.visible===true)
+          .flatMap(row=>[row.text,row.name]).filter(v=>typeof v==='string')
+          .map(v=>v.trim());
+        if(!visible.includes('结果：'+keyword)||!visible.includes('提交次数：1'))
+          throw err('E_WORKFLOW_EVIDENCE','未从真实页面独立读到匹配的搜索结果和提交次数 1，不能报告业务成功');
+        lastRun='success';
+        appendChat('执行结果','已从当前页面独立读回“结果：'+keyword+'”及“提交次数：1”。');
+        status('已安装任务复用成功；固定源码、RunHost 回执及页面结果已核验。');
+        return {ok:true,runId:completed.runId,effect:{kind:'demo-search',keyword,submitCount:1}};
+      }
       // An arbitrary task may return a value without proving web-side effects.
       lastRun='failed';
       appendChat('执行结果','持久 RunHost 回执已核对；该任务的业务效果仍待独立核验。');
@@ -2084,7 +2120,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }
       return {ok:false,error};
     }finally{
-      activeInstalledTaskId=null;
+      activeInstalledTaskId=null;installedStopRequested=false;
       if(!disposed){busy=false;phase='idle';updateButtons();}
     }
   }
