@@ -41,16 +41,14 @@ export default function CookieExport({controller,disabled=false,onClose,onDelive
     <CookieExportFormatRow format={format} includeValues={includeValues} disabled={busy}
       panelId={panelId} onFormat={next=>{setFormat(next);setMessage('');}}
       onIncludeValues={value=>{setIncludeValues(value);setMessage('');}}/>
-    <p id={panelId} role="tabpanel" tabIndex={0} aria-label="格式说明" className="cookie-export-hint">
-      {metadata?'仅导出属性，不包含 Cookie 值，无法用于恢复。':
-        format==='json'?'JSON 备份保留完整属性；Cookie 值属于敏感信息。':
-          '复制为请求头文本；不保留过期时间等 Cookie 属性。'}
-    </p>
-    {lossy&&<p className="cookie-message od-alert od-alert--warning" role="alert">
-      当前网站存在分区 Cookie，Cookie Header 无法完整导出。请选择 JSON。
-    </p>}
-    <CookieExportActions disabled={busy||lossy}
-      onCopy={()=>void deliver('copy')} onDownload={()=>void deliver('download')}/>
-    {message&&<p role="alert" className="cookie-message od-alert od-alert--error">{message}</p>}
+    <div id={panelId} role="tabpanel" tabIndex={0} className="cookie-export-content"
+      aria-label="导出操作">
+      {lossy&&<p className="cookie-message od-alert od-alert--warning" role="alert">
+        当前网站存在分区 Cookie，Cookie Header 无法完整导出。请选择 JSON。
+      </p>}
+      <CookieExportActions disabled={busy||lossy}
+        onCopy={()=>void deliver('copy')} onDownload={()=>void deliver('download')}/>
+      {message&&<p role="alert" className="cookie-message od-alert od-alert--error">{message}</p>}
+    </div>
   </section>;
 }
