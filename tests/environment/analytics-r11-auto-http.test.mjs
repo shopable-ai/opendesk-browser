@@ -97,6 +97,7 @@ test('real D1 SQL + PostHog-shaped HTTP: cumulative 100, retry, late version, ga
   assert.equal(db.prepare("SELECT COUNT(*) AS n FROM analytics_events WHERE status='pending'").get().n,0);
   assert.equal(got.flatMap(row=>row.batch).length,2);
   // Independent UTC date creates a separate stable key, never the same day's 102.
+  time=Date.UTC(2026,9,24,0,1);
   const next=auto({utcDate:'2026-10-24',version:1,total:1});
   assert.deepEqual((await send(next)).accepted,[next.eventId]);
   await deliver();
