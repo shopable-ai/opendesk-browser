@@ -4,7 +4,7 @@
 
 ## 统计口径与证据边界
 
-- 主动 DAU 唯一允许事件：app.opened、tool.opened、tool.engaged、tool.manual_attempt。手动 Task 失败仍算主动尝试；SW 唤醒、脚本自动运行、安装、React 挂载及 tool.manual_result 均不算主动 DAU。
+- 主动 DAU 唯一允许事件：app.opened、tool.opened、tool.engaged、tool.manual_attempt、workflow.manual_attempt。手动 Task 失败仍算主动尝试；SW 唤醒、脚本自动运行、安装、React 挂载及 tool.manual_result 均不算主动 DAU。
 - Page 自动执行来自原 page-execution-v1；Scheduler 自动执行必须由 FireId 绑定 RunId 和 ResultId。单独 Fire 不代表一次已执行任务。云端 Controller 自动任务额外要求原 cloud-request-v1 的 requestId→RunId 双向绑定；非云端、非调度的手动/AI Controller Run 不混入自动指标。最新 `tool.auto_daily` 同时包含 `source_totals`（page_auto / scheduler / cloud）；每行各来源数量之和必须等于总量。
 - Task 手动点击来自 task-workbench 的真实 isTrusted 事件；其结果在 Host 从原 Controller Run/Result 读取。completed 仅代表程序执行完成，不是业务效果独立验证。
 - R1.11 新增经审查的第一方 Workflow 业务效果（B 级）：仅在工作流 UI 已取得独立业务读回，并由 Host 再次核对原始 Controller Run/Result 后，上报 `workflow.business_effect_verified`。该事件不计入 DAU，同一原始 RunId 在本安装内去重；不得将普通 `completed` 或 Page `effectConfirmed` 解释为此事件。
@@ -19,7 +19,7 @@ HogQL 示例（真实 PostHog 项目的 SQL 方言和时区仍须核对）：
 \`\`\`sql
 SELECT toDate(timestamp) AS day, uniqExact(distinct_id) AS active_installs
 FROM events
-WHERE event IN ('app.opened','tool.opened','tool.engaged','tool.manual_attempt')
+WHERE event IN ('app.opened','tool.opened','tool.engaged','tool.manual_attempt','workflow.manual_attempt')
   AND timestamp >= now() - INTERVAL 30 DAY
 GROUP BY day ORDER BY day
 \`\`\`
@@ -47,6 +47,8 @@ FROM (
 GROUP BY tool_type,metric_type
 \`\`\`
 
+Workflow 用户真实 Send（有任务文本）及可信手动运行会发出一次 `workflow.manual_attempt`；多轮 AI 自动分段不再计入，后续 B 级业务验证也不参与 DAU。
+
 PostHog 自动来源查询应先选同一 `distinct_id/tool_type/tool_id/utc_day/metric_type` 的最新 `snapshot_version`，并一起选择那条快照的 `source_totals`；再对 `page_auto`、`scheduler`、`cloud` 逐来源求和。**不得**逐版本累计，也不得将一行多个来源当成多个安装或主动 DAU。云端不能访问时 SOURCE_DEFINED / NOT_DEPLOYED，不得伪造结果。
 
 B 级 Workflow 独立效果查询定义（无原始 RunId/网页内容上传）：
@@ -64,7 +66,7 @@ GROUP BY day, tool ORDER BY day
 
 ## Insights C — 排行与日/周/月趋势
 
-将 tool.opened、tool.engaged、tool.manual_attempt、手动完成、手动失败、Workflow B 级验证效果，以及从 Insight B 按最新版本取值的自动完成、自动失败、自动未知分别展示。时间分桶：手动事件 timestamp；自动事件 utc_day。工具身份：Sidebar 可以跨安装排行；自定义 Page/Task 按类型或单安装内匿名 ID 排行，不能虚构跨安装同一工具排行。
+将 tool.opened、tool.engaged、tool.manual_attempt、workflow.manual_attempt、手动完成、手动失败、Workflow B 级验证效果，以及从 Insight B 按最新版本取值的自动完成、自动失败、自动未知分别展示。时间分桶：手动事件 timestamp；自动事件 utc_day。工具身份：Sidebar 可以跨安装排行；自定义 Page/Task 按类型或单安装内匿名 ID 排行，不能虚构跨安装同一工具排行。
 
 ## Insights D — 最新已知安装状态、权限与新鲜度
 
