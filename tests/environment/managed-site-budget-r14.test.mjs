@@ -385,7 +385,7 @@ test('same-source v3 package upgrade journals and rebinds reviewed sites without
   const operationId='123e4567-e89b-42d3-a456-426614174999';
   const installed=await installReviewedSidebarTool({api:f.api,lockManager:f.lockManager,
     candidate,baseline:before,reviewApproved:true,approveUpdate:async()=>true,
-    identity:{marketId,sha256:toHash,operationId}});
+    market:{marketId,sha256:toHash,operationId}});
   assert.equal(installed.state,'installed');
   const nextEpoch=f.local.get(TOOL_REVOCATION_EPOCHS_STORE)[id];
   assert.notEqual(nextEpoch,'epoch-a');
@@ -430,7 +430,7 @@ test('ambiguous v3 grant rebind resumes via the original market journal once onl
   const operationId='123e4567-e89b-42d3-a456-426614174998';
   await assert.rejects(installReviewedSidebarTool({api:f.api,lockManager:f.lockManager,
     candidate,baseline:before,reviewApproved:true,approveUpdate:async()=>true,
-    identity:{marketId,sha256:toHash,operationId}}),{code:'E_OUTCOME_UNKNOWN'});
+    market:{marketId,sha256:toHash,operationId}}),{code:'E_OUTCOME_UNKNOWN'});
   assert.equal(f.local.get(SIDEBAR_TOOL_STORE)[0].version,'1.2.1');
   assert.equal(f.local.get(MANAGED_SITE_REVIEWED_SCOPE_STORE)[id].installEpoch,'epoch-a',
     'failed site grant must remain old, never guessed committed');
