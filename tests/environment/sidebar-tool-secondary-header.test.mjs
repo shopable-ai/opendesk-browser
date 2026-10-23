@@ -21,9 +21,10 @@ test('R40 navigation keeps old hints and rejects unbounded or forged secondary a
   ])assert.equal(normalizeToolNavigation({page:'index',title:'列表',canBack:false,...extra}),null);
 });
 test('R40 Host owns header trigger but sandbox retains actual file and export gestures',async()=>{
-  const [tool,toolCSS,bridge,host,react,hostCSS,sharedCSS,preview]=await Promise.all([
+  const [tool,toolCSS,formalHTML,bridge,host,react,hostCSS,sharedCSS,preview]=await Promise.all([
     read('examples/sidebar-tools/prompt-shortcuts/src/main.js'),
     read('examples/sidebar-tools/prompt-shortcuts/src/style.css'),
+    read('examples/sidebar-tools/prompt-shortcuts/src/index.html'),
     read('src/sidebar-tools/bridge.js'),read('src/ui/sidebar-tools.js'),
     read('src/ui/react/tabs/tool-host.tsx'),read('src/ui/tool-shell.css'),
     read('src/ui/design-system.css'),
@@ -38,7 +39,17 @@ test('R40 Host owns header trigger but sandbox retains actual file and export ge
   assert.match(react,/id="sidebar-tool-secondary-action"/);
   assert.match(toolCSS,/\.ps\.ps-host-nav \.ps-head\{position:absolute/);
   assert.match(toolCSS,/\.ps\.ps-host-nav #ps-new,\.ps\.ps-host-nav #ps-transfer/);
-  assert.match(hostCSS,/\.sidebar-tool-view-head\{[^\n]*gap:var\(--space-1\)/);
+  assert.match(hostCSS,/\.sidebar-tool-view-head\{position:relative;z-index:3;gap:2px/);
+  assert.match(hostCSS,/\.sidebar-tool-more-menu\{/);
   assert.match(sharedCSS,/\.od-page-head \.od-icon-button\{border-color:transparent;background:transparent/);
-  assert.match(preview,/Side Panel 交互预览 R4\.1/);
+  assert.match(preview,/Side Panel 交互预览 R4\.2/);
+  assert.match(preview,/id="hostMore"/);
+  assert.match(react,/id="sidebar-tool-more-open"/);
+  assert.equal((react.match(/id="sidebar-tool-settings-open"/g)||[]).length,1);
+  assert.equal((react.match(/id="sidebar-tool-secondary-action"/g)||[]).length,1);
+  assert.match(react,/returnFocusSelector="#sidebar-tool-more-open"/);
+  assert.match(formalHTML,/<span id="ps-count" class="ps-sr-only"/);
+  assert.doesNotMatch(formalHTML,/ps-list-caption|ps-seed-hint/);
+  assert.doesNotMatch(tool,/el\('ps-count'\)\.focus/);
+  assert.match(tool,/el\('ps-list'\)\.querySelector\('button:not\(\[disabled\]\)'\)/);
 });
