@@ -1132,7 +1132,8 @@ test('R1.7 official header: create, draft back, ETag save/readback, edit and foc
   const nav=action=>f.root.emit('opendesk-tool-navigation',{detail:{action}});
   assert.equal(f.page.classList.contains('ps-host-nav'),true);
   assert.deepEqual(f.navigation.at(-1),
-    {page:'index',title:'提示词快捷按钮',canBack:false,primary:'new'});
+    {page:'index',title:'提示词快捷按钮',canBack:false,primary:'new',
+      secondary:'transfer',secondaryExpanded:false});
   nav('primary');
   assert.deepEqual(f.navigation.at(-1),{page:'create',title:'新建提示词',canBack:true});
   n['ps-body'].value='第一次草稿';n['ps-form'].emit('input');
