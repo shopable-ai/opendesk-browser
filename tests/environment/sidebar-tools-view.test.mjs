@@ -11,6 +11,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {createSidebarToolsView, patchToolField, setToolFieldAttribute, requestToolFieldEffect} from '../../src/ui/sidebar-tools-view.js';
 import {createSidebarTools} from '../../src/ui/sidebar-tools.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
+import {OFFICIAL_STAY_FOCUS_RELEASE_URL as OFFICIAL_FOCUS_LATEST_URL} from '../../src/sidebar-tools/official-catalog.js';
 
 const compiled = await transform(await readFile(new URL('../../src/ui/react/tabs/tool-host.tsx', import.meta.url), 'utf8'),
   {loader: 'tsx', format: 'esm', jsx: 'transform'});
@@ -311,6 +312,9 @@ test('real sidebar controller initializes with React DOM runtime, reaches ready 
   const api = {runtime: {
     getURL: path => 'chrome-extension://test/' + path,
     sendMessage() {assert.fail('an untrusted Cookie click cannot request authority');}
+  }, permissions: {
+    contains: async () => false,
+    request() {assert.fail('initialization and untrusted clicks cannot request Chrome permissions');}
   }, storage: {local: {
     async get(keys) {
       reads.push(keys);
@@ -338,6 +342,7 @@ test('real sidebar controller initializes with React DOM runtime, reaches ready 
     lockManager: {request: (_name, work) => Promise.resolve().then(work)},
     fetcher: async url => {
       fetched.push(url);
+      if(url===OFFICIAL_FOCUS_LATEST_URL)return new Response('offline fixture', {status: 404});
       assert.equal(url, api.runtime.getURL('official-tools/catalog.json'));
       return new Response(JSON.stringify(catalog));
     },
@@ -372,13 +377,18 @@ test('real sidebar controller initializes with React DOM runtime, reaches ready 
   assert.equal(pageListeners.size, 1);
   assert.equal(localeListeners.size, 1);
   assert.ok(reads.flat().includes(SIDEBAR_TOOL_STORE));
-  assert.deepEqual(fetched, [api.runtime.getURL('official-tools/catalog.json')], 'catalog loads without the retired list DOM');
+  assert.deepEqual(fetched, [api.runtime.getURL('official-tools/catalog.json'), OFFICIAL_FOCUS_LATEST_URL],
+    'only local catalog and fixed Focus metadata load without the retired list DOM; no tool packages');
   assert.equal(view.fields['sidebar-tool-status'].textContent, '', 'ready cannot hide a caught initialization failure');
   assert.equal(document.getElementById('sidebar-tool-list'), null);
 
   await React.act(async () => {assert.equal(facade.openSettings(tool.id), true);});
   assert.equal(view.fields['sidebar-tool-cookie-permissions'].hidden, false);
   const key = 'sidebar-tool-cookie-site-toggle', button = document.getElementById(key);
+  // Wait for the real asynchronous package identity and missing-permission checks.
+  for (let attempt = 0; button.disabled && attempt < 100; attempt++) {
+    await React.act(async () => {await nextTick();});
+  }
   assert.equal(button.disabled, false);
   const cookieAction = view.actions[key]?.click;
   assert.equal(typeof cookieAction, 'function', 'the real controller owns one Cookie action');

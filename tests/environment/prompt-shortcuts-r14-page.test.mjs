@@ -6,7 +6,7 @@ import {initPromptShortcuts} from '../../examples/sidebar-tools/prompt-shortcuts
 import {PROMPT_ID,PROMPT_SITE_STORE,PROMPT_DATA_STORE,CHATGPT_ORIGIN,changePromptSiteGrant}
   from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
 import {installAnalyticsHost} from '../../src/analytics/host.js';
-import {ANALYTICS_STATE_KEY,ANALYTICS_PROTOCOL,ANALYTICS_PAGE_SCOPE_CHECK} from '../../src/analytics/contract.js';
+import {ANALYTICS_STATE_KEY,ANALYTICS_PROTOCOL,ANALYTICS_PAGE_SCOPE_CHECK,ANALYTICS_DISCLOSURE_VERSION} from '../../src/analytics/contract.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 
@@ -2345,17 +2345,26 @@ test('Host probes real custom-site adapter for failures and fallback, then block
     const batch=JSON.parse(options.body);wire.push(batch);
     return {ok:true,json:async()=>({ok:true,accepted:batch.events.map(row=>row.eventId),duplicates:[]})};
   }});
-  await collector.setConsent(true);
+  await assert.rejects(collector.setConsent(true),{code:'E_ANALYTICS_DISCLOSURE'});
+  assert.equal((await collector.status()).consent,false);
+  assert.equal(wire.length,0,'missing disclosure cannot send analytics');
+  // The real Options opt-in also records inventory; do not depend on startup timing.
+  const optIn=await new Promise(resolve=>listeners[0]({
+    protocol:ANALYTICS_PROTOCOL,kind:'consent.set',enabled:true,
+    disclosureVersion:ANALYTICS_DISCLOSURE_VERSION
+  },{id:api.runtime.id,url:api.runtime.getURL('native-agent/settings.html')},resolve));
+  assert.equal(optIn.ok,true);
   const source={id:api.runtime.id,url,frameId:0,documentId:'custom-document',tab:{id:29,url,incognito:false}};
   const report=(event,channel,reason)=>new Promise(resolve=>listeners[0]({
     protocol:ANALYTICS_PROTOCOL,kind:'event.page_report',toolId:PROMPT_ID,event,channel,...(reason?{reason}:{})
   },source,resolve));
   assert.equal((await report('prompt.failed','page_button','editor_unavailable')).data.recorded,true);
+  assert.equal(probes.length,2,'verified failure and its engagement each revalidate page scope');
   assert.equal((await report('prompt.fallback_copied','fallback')).data.recorded,true);
-  assert.equal(probes.length,3,'failure probes once, success probes separately for engagement');
+  assert.equal(probes.length,4,'fallback and its engagement each revalidate page scope');
   assert.deepEqual(f.values.get(ANALYTICS_STATE_KEY).queue.map(row=>row.event),[
-    'app.inventory','prompt.failed','prompt.fallback_copied','tool.engaged']);
-  assert.equal((await collector.flush()).sent,4);
+    'app.inventory','prompt.failed','tool.engaged','prompt.fallback_copied','tool.engaged']);
+  assert.equal((await collector.flush()).sent,5);
   assert(!JSON.stringify(wire).includes(url));assert(!JSON.stringify(wire).includes('secret'));
   f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});await settle();
   assert.equal((await report('prompt.failed','page_button','site_denied')).data.recorded,false);

@@ -23,6 +23,7 @@ on:
       - 'scripts/bundle-provenance.mjs'
       - 'scripts/tests/prompt-shortcuts-r111-preview-chrome.mjs'
       - 'scripts/tests/prompt-shortcuts-r113-formal-chrome.mjs'
+      - 'scripts/tests/prompt-shortcuts-r42-host-chrome.mjs'
       - 'scripts/tests/prompt-shortcuts-r41-visual-chrome.mjs'
       - 'tests/environment/prompt-shortcuts-r195-return-and-rail.test.mjs'
       - 'scripts/tests/prompt-shortcuts-r21-page-chromium.mjs'
@@ -33,6 +34,7 @@ on:
       - 'src/ui/sidebar-tools/lifecycle.js'
       - 'src/ui/design-tokens.css'
       - 'src/ui/design-system.css'
+      - 'src/ui/tool-shell.css'
       - 'scripts/build-sidebar-tool.mjs'
       - 'scripts/preview/shared-tool-design.mjs'
       - 'scripts/bundle-provenance.mjs'
@@ -110,6 +112,10 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.preview-chrome.outputs.chrome-path }}
         run: node scripts/tests/prompt-shortcuts-r113-formal-chrome.mjs artifacts/prompt-shortcuts-r113-formal-chrome
+      - name: Real shared React Host keyboard and touch geometry (controller fixture, not installed)
+        env:
+          CHROME_BIN: ${{ steps.preview-chrome.outputs.chrome-path }}
+        run: node scripts/tests/prompt-shortcuts-r42-host-chrome.mjs artifacts/prompt-shortcuts-r42-host-chrome
       - name: Real Chromium trusted page picker, textarea insert, rule lifecycle and safe single-line fallback (mock Host)
         env:
           CHROME_BIN: ${{ steps.preview-chrome.outputs.chrome-path }}
@@ -119,6 +125,13 @@ jobs:
         with:
           name: prompt-shortcuts-r21-page-chromium-${{ github.sha }}
           path: artifacts/prompt-shortcuts-r21-page-chromium/
+          if-no-files-found: warn
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prompt-shortcuts-r42-host-chrome-${{ github.sha }}
+          path: artifacts/prompt-shortcuts-r42-host-chrome/
           if-no-files-found: warn
           retention-days: 14
       - uses: actions/upload-artifact@v4

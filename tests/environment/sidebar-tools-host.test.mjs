@@ -17,6 +17,7 @@ import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE} from '../../src/framewo
 import {ANALYTICS_PROTOCOL} from '../../src/analytics/contract.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 import {officialToolFixture,officialFixtureFetch,officialFixtures} from '../helpers/official-tools.mjs';
+import {OFFICIAL_STAY_FOCUS_RELEASE_URL as OFFICIAL_FOCUS_LATEST_URL} from '../../src/sidebar-tools/official-catalog.js';
 import {OFFICIAL_READING_TOC_RELEASE} from '../../src/sidebar-tools/official-reading-toc.js';
 import {TRUSTED_BOOKMARK_COMPONENT_VERSION} from '../../src/ui/trusted-bookmark-admission.js';
 import {admitsTrustedPrompt,TRUSTED_PROMPT_VERSION} from '../../src/ui/trusted-prompt-admission.js';
@@ -1490,11 +1491,12 @@ test('R4.8 manual reviewed installation remains available for every offline offi
     else globalThis.__opendeskAdblockTrustedUI=previousAdblock;});
   const requested=[],store=new Map();
   const f=await hostFixture(t,{store,startTool:false,fetcher:async(url,options)=>{
-    requested.push(new URL(url).pathname);return officialFixtureFetch(url,options);
+    requested.push(String(url));return officialFixtureFetch(url,options);
   }});
   f.api.permissions={contains:async()=>false}; // No native proxy rights in this installer fixture.
   const {catalog}=await officialFixtures();
-  assert.deepEqual(requested,['/official-tools/catalog.json'],'first run loads metadata only');
+  assert.deepEqual(requested,[f.api.runtime.getURL('official-tools/catalog.json'),OFFICIAL_FOCUS_LATEST_URL],
+    'first run loads only the local catalog and fixed Focus metadata, never tool packages');
   assert.equal(store.has(SIDEBAR_TOOL_STORE),false);
   for(const key of [READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE])assert.equal(store.has(key),false);
   for(const release of catalog.apps){

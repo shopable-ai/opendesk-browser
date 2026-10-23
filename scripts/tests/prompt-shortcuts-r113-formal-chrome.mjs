@@ -7,7 +7,8 @@ import {spawn} from 'node:child_process';
 import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {tmpdir} from 'node:os';
-import {createSidebarToolPackage} from '../build-sidebar-tool.mjs';
+import {createHash} from 'node:crypto';
+import {createSidebarToolPackage,encodeSidebarToolPackage} from '../build-sidebar-tool.mjs';
 
 const out=resolve(process.argv[2]||'artifacts/prompt-shortcuts-r113-formal-chrome');
 await mkdir(out,{recursive:true});
@@ -127,7 +128,8 @@ const chrome=spawn(process.env.CHROME_BIN||'chromium',[
 let socket,seq=0;
 const outstanding=new Map(),jsErrors=[];
 const report={kind:'FORMAL_PACKAGED_UI_REAL_CHROMIUM_SIMULATED_HOST',installedExtension:false,
-  liveChatGPT:false,version:pkg.version,candidateSource:pkg.id,scenes:[]};
+  liveChatGPT:false,version:pkg.version,candidateSource:pkg.id,
+  packageSHA256:createHash('sha256').update(encodeSidebarToolPackage(pkg)).digest('hex'),scenes:[]};
 const sleep=ms=>new Promise(ok=>setTimeout(ok,ms));
 function rpc(method,params={}){
   const id=++seq;
@@ -253,7 +255,9 @@ async function run(){
   assert.equal(x.countText,'1 个 · 1 个启用');
   const buttonStyle=await evaluate('('+function(){
     const use=getComputedStyle(document.querySelector('.ps-card-use'));
-    const primary=getComputedStyle(document.querySelector('#ps-new'));
+    // The compact header's New icon is intentionally transparent too. Compare
+    // with the actual primary Save control, not a second quiet header action.
+    const primary=getComputedStyle(document.querySelector('#ps-save'));
     return {useBackground:use.backgroundColor,useColor:use.color,
       primaryBackground:primary.backgroundColor};
   }.toString()+')()');

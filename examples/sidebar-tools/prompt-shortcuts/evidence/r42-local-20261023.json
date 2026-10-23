@@ -1,0 +1,234 @@
+{
+  "schema": 1,
+  "date": "2026-10-23",
+  "scope": "Prompt Shortcuts R4.2-LOCAL",
+  "status": "PACKAGE_AND_TARGETED_REGRESSION_PASS_NATIVE_BLOCKED",
+  "baseCommit": "ccc85fe1812da33efb4b7f9d8965992b18246077",
+  "branch": "main",
+  "identity": "file SHA256 values identify the tested worktree; this record does not claim a clean committed HEAD or native installation",
+  "package": {
+    "path": "examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json",
+    "id": "prompt-shortcuts",
+    "version": "1.1.15",
+    "bytes": 136199,
+    "sha256": "4085c155d2d8dbac7b55cc5dcaea24229a3fb1d6cfb69431dad2ae5c0eb33ce0",
+    "workflow": [
+      "--out artifacts/sidebar-tools/prompt-shortcuts/candidate.opendesk-tool.json",
+      "--promote-from artifacts/sidebar-tools/prompt-shortcuts/candidate.opendesk-tool.json",
+      "--check-project"
+    ],
+    "result": "PROJECT_PACKAGE_MATCH",
+    "candidateByteIdentical": true,
+    "identityCapabilitiesRequiresContextMenuUnchanged": true,
+    "nativeSameIdUpgrade": "NOT_TESTED",
+    "installed": false
+  },
+  "header": {
+    "desktopButtonCSSPx": 30,
+    "coarseButtonCSSPx": 44,
+    "gapCSSPx": 2,
+    "iconCSSPx": 17,
+    "fixes": [
+      "AI slot trigger now uses the same scoped 30/44px rule",
+      "wrapped More anchors to the complete header at viewport <=240px"
+    ],
+    "sharedHost": "existing ToolHost and AI Chat slot; no new SDK/installer/authority"
+  },
+  "verification": {
+    "tsx": {
+      "components": 2,
+      "warnings": 0,
+      "kind": "esbuild transform, not complete TypeScript typecheck"
+    },
+    "node": {
+      "uniqueCurrentChecks": 420,
+      "pass": 420,
+      "fail": 0,
+      "method": "414-test group initially 413 PASS / 1 stale metadata fixture FAIL; replace its 9-test view suite with final 9/9 PASS; add post-promotion source-bound r195 6/6 PASS. Counts are distinct tests, not a single 420-test invocation.",
+      "logs": [
+        "node/final-prepromotion.log",
+        "node/view-fixed-full.log",
+        "node/r195-postpromotion.log"
+      ],
+      "mergeSupport": "15/15 Provider/Session tests after non-destructive main merge"
+    },
+    "preview": {
+      "result": "PASS",
+      "widths": [
+        320,
+        360,
+        400,
+        440
+      ],
+      "keyboardEscapeTabFocus": true,
+      "unicodeSaveReadback": true,
+      "importExport": true,
+      "kind": "original offline HTML"
+    },
+    "visual": {
+      "scenes": 32,
+      "passed": 32,
+      "failed": 0,
+      "screenshots": 72
+    },
+    "formal": {
+      "result": "PASS",
+      "scenes": 20,
+      "packageSHA256": "4085c155d2d8dbac7b55cc5dcaea24229a3fb1d6cfb69431dad2ae5c0eb33ce0",
+      "host": "simulated"
+    },
+    "page": {
+      "scenarios": 13,
+      "consoleErrors": [],
+      "host": "simulated; no real third-party site"
+    },
+    "host": {
+      "result": "PASS",
+      "gates": {
+        "checks": 110,
+        "failed": 0
+      },
+      "diagnostics": {
+        "checks": 36,
+        "failed": 7
+      },
+      "scenes": 24,
+      "browser": {
+        "binary": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "pid": 7025,
+        "protocolVersion": "1.3",
+        "product": "Chrome/155.0.8059.39",
+        "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+        "jsVersion": "15.5.35.20"
+      },
+      "ownedProfileRemoved": true,
+      "coverage": [
+        "real React components and CSS",
+        "trusted pointer and keyboard events",
+        "settings and display/context actions via fixture",
+        "uninstall confirm/cancel/focus",
+        "shared AI portal open/close",
+        "unique IDs",
+        "coarse media and effective 200% viewport geometry"
+      ],
+      "limits": "controller/provider are fixtures; CSS zoom 2 is a diagnostic with remaining overflow, effective viewport/DPR is not native Chrome browser zoom",
+      "scriptSHA256": "0c196fe6fe1ddb173452cd7e1fb3dd7aa124d17d297397033a6c0b8f3332ec22"
+    },
+    "review": "Separate subagent reviewed scripts/CI/CSS read-only, with no new blocking finding; not formal independent expert approval",
+    "knownHarnessLimitations": [
+      "Existing r111/r113 do not await browser termination and swallow profile removal errors; their PASS does not prove full resource cleanup. This run did not expand into that existing harness refactor.",
+      "Unicode roundtrip is not native IME; only r42 profile removal is explicitly confirmed by its report."
+    ]
+  },
+  "failures": {
+    "fixed": [
+      "nested AI button measured 34px instead of required 30/44px",
+      "wrapped More menu left overflow at 160 CSS px effective viewport",
+      "obsolete Analytics disclosure/engagement fixture",
+      "obsolete fixed Focus metadata fixtures",
+      "old 1.1.14 formal package mismatch",
+      "old formal UI test compared two intentionally transparent controls"
+    ],
+    "remaining": [
+      "7 of 36 artificial CSS zoom:2 diagnostic checks overflow; retained in report",
+      "native browser zoom, real installer and chatgpt.com acceptance NOT_TESTED"
+    ]
+  },
+  "native": {
+    "date": "2026-10-23",
+    "status": "BLOCKED",
+    "kind": "NATIVE_ACCEPTANCE_NOT_EXECUTED",
+    "computerUse": {
+      "action": "getApp(/Users/shopme/Applications/Google Chrome.app)",
+      "outcome": "This session has been stopped because Computer Use is not allowed on the current browser URL.",
+      "url": "not provided by tool",
+      "bypassAttempted": false
+    },
+    "development": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "serveConnected": "NOT_VERIFIED",
+      "startup": "FAILED",
+      "reason": "Unexpected web accessible resources: generated managed-site/blocked-*.html is absent from APPROVED_WEB_ACCESSIBLE_RESOURCES",
+      "log": "../dev.log"
+    },
+    "installedVersion": "NOT_VERIFIED",
+    "installedPackageSHA256": "NOT_VERIFIED",
+    "chromeProfile": "NOT_VERIFIED",
+    "chatgptAcceptance": "NOT_TESTED",
+    "sameIdUpgrade": "NOT_TESTED",
+    "screenshots": "NONE"
+  },
+  "scoring": {
+    "dimensions": [
+      {
+        "name": "单一宿主与架构归属",
+        "score": "NOT_SCORED",
+        "reason": "本候选缺实际 Mac Chrome 对应证据与独立专家评分"
+      },
+      {
+        "name": "标题栏视觉与信息密度",
+        "score": "NOT_SCORED",
+        "reason": "本候选缺实际 Mac Chrome 对应证据与独立专家评分"
+      },
+      {
+        "name": "管理与草稿数据完整性",
+        "score": "NOT_SCORED",
+        "reason": "本候选缺实际 Mac Chrome 对应证据与独立专家评分"
+      },
+      {
+        "name": "响应布局与触屏",
+        "score": "NOT_SCORED",
+        "reason": "本候选缺实际 Mac Chrome 对应证据与独立专家评分"
+      },
+      {
+        "name": "键盘与焦点可访问性",
+        "score": "NOT_SCORED",
+        "reason": "本候选缺实际 Mac Chrome 对应证据与独立专家评分"
+      },
+      {
+        "name": "权限、来源与撤权安全",
+        "score": "NOT_SCORED",
+        "reason": "本候选缺实际 Mac Chrome 对应证据与独立专家评分"
+      },
+      {
+        "name": "Mac Chrome 安装升级与真实网站",
+        "score": "NOT_SCORED",
+        "reason": "本候选缺实际 Mac Chrome 对应证据与独立专家评分"
+      }
+    ],
+    "arithmeticMean": "NOT_SCORED",
+    "threshold": 95
+  },
+  "localEvidenceRoot": "artifacts/prompt-shortcuts-r42-local/",
+  "localReports": [
+    "preview/report.json",
+    "visual/report.json",
+    "formal-ui/report.json",
+    "page/report.json",
+    "host/report.json",
+    "package/promotion.log",
+    "native/blocked.json"
+  ],
+  "sourceSHA256": {
+    "src/ui/tool-shell.css": "170df0ee7b69af8ddc57d25c468fab728ad07121d3dd4314f82934fbbf891a28",
+    "src/ui/react/tabs/tool-host.tsx": "e2f76f6ff5bd8ca4d135bf127c4d03e668576a5b016be40a87f41440f8fcef75",
+    "src/ui/react/app-shell.tsx": "66318c6f9a7f7cc76cafc551b28f445e768bf338a2265368f9fd70241f610e82",
+    "examples/sidebar-tools/prompt-shortcuts/tool.config.json": "a7bcafaf73936d08daaf854c37b392727dae0c2cf7e45d0fd94d51e88b2aaa75",
+    "examples/sidebar-tools/prompt-shortcuts/src/main.js": "7cb07fa7d16432dfc249b016b3fe3bbcb861cbc6c3e4f4a0c66340a5257284c3",
+    "examples/sidebar-tools/prompt-shortcuts/src/style.css": "d386f29620cea810ee38232e690ad649a3fa74fd1b1491ecc656d4e6f660be97",
+    "examples/sidebar-tools/prompt-shortcuts/src/index.html": "df9cc600a7585e8d7819cfca9123ff2e6595c55d0ddd99625a3d10dcda6079d6",
+    "examples/sidebar-tools/prompt-shortcuts/preview/index.html": "5a8e0973445ecc3024f56355aac4320306d8af9174fc51f194d04d6c9a3a0bfc",
+    "scripts/tests/prompt-shortcuts-r111-preview-chrome.mjs": "d00afc5e7f565d602b31bce4424a074de1619e38d323081873dc4e0f38740f59",
+    "scripts/tests/prompt-shortcuts-r113-formal-chrome.mjs": "0d31a05f77b8d1244f465ed0efb36ee5fc04404853f499871ef7bce99f7c1cb3",
+    "scripts/tests/prompt-shortcuts-r42-host-chrome.mjs": "0c196fe6fe1ddb173452cd7e1fb3dd7aa124d17d297397033a6c0b8f3332ec22",
+    "tests/environment/prompt-shortcuts-r14-page.test.mjs": "7dbf287095f939ad034b946d37932c44be63b0d8c03411525bf3ce88a5b97c9f",
+    "tests/environment/sidebar-tools-host.test.mjs": "c17f7f7d69f83079afeb3a34f5d35cee777130c34f343fba9b9fb4494be1c5bd",
+    "tests/environment/sidebar-tools-view.test.mjs": "c0e61ccbf4266c529d343d444830191520081989742cf842c1b8a045a22fbc2b"
+  },
+  "ci": "Exact pushed commit results must be read from GitHub Actions; local PASS is not CI PASS",
+  "protectedParallelFiles": [
+    "tests/environment/cookie-editor-cross-site-import.test.mjs",
+    "tests/environment/browser-sdk-v3-schema-repair.test.mjs"
+  ]
+}

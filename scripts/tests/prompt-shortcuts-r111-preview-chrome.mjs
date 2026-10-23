@@ -74,6 +74,11 @@ async function reloadPreview(){
   await poll('performance.timeOrigin!=='+JSON.stringify(previousTimeOrigin)+
     '&&document.readyState==="complete"','reloaded offline HTML document');
 }
+async function pressKey(key,code,virtualKey,modifiers=0){
+  for(const type of ['keyDown','keyUp'])
+    await call('Input.dispatchKeyEvent',{type,key,code,windowsVirtualKeyCode:virtualKey,
+      nativeVirtualKeyCode:virtualKey,modifiers});
+}
 async function expandPreviewRail(){
   await poll('["true","false"].includes(document.querySelector("#pageRail .starter-toggle")?.getAttribute("aria-expanded"))',
     'initialized offline HTML launcher');
@@ -292,8 +297,18 @@ async function run(){
   report.responsiveIconToolbar=true;
   // R1.16 trusted settings: three switches and multi-site status (no fake site authorization).
   await click('#hostMore');
-   assert.equal(await evalChrome('!document.querySelector("#hostMoreMenu").hidden'),true);
-   await click('#hostSettings');
+  assert.equal(await evalChrome('!document.querySelector("#hostMoreMenu").hidden'),true);
+  await pressKey('Escape','Escape',27);
+  assert.equal(await evalChrome('document.querySelector("#hostMoreMenu").hidden'),true);
+  assert.equal(await evalChrome('document.activeElement?.id'),'hostMore');
+  await click('#hostMore');
+  assert.equal(await evalChrome('document.activeElement?.id'),'hostSettings');
+  await pressKey('Tab','Tab',9);
+  assert.equal(await evalChrome('document.activeElement?.id'),'hostRemove');
+  await pressKey('Tab','Tab',9,8);
+  assert.equal(await evalChrome('document.activeElement?.id'),'hostSettings');
+  report.r42HostMenuKeyboard=true;
+  await click('#hostSettings');
   assert.equal(await evalChrome('!document.querySelector("#settingsView").hidden'),true);
   assert.equal(await evalChrome('document.querySelector("#hostToolTitle").textContent'),"工具设置");
   assert.equal(await evalChrome('document.querySelector("#settingsView h2")===null'),true);
@@ -326,6 +341,11 @@ async function run(){
   await click('#size360');
   await click('#transferButton');
   assert.equal(await evalChrome('!document.querySelector("#transferMenu").hidden'),true);
+  await pressKey('Escape','Escape',27);
+  assert.equal(await evalChrome('document.querySelector("#transferMenu").hidden'),true);
+  assert.equal(await evalChrome('document.activeElement?.id'),'transferButton');
+  await click('#transferButton');
+  report.r42TransferEscapeFocus=true;
   const menuFits=await evalChrome('(()=>{const p=document.querySelector("#sidepanel").getBoundingClientRect(),m=document.querySelector("#transferMenu").getBoundingClientRect();return m.left>=p.left-1&&m.right<=p.right+1;})()');
   assert.equal(menuFits,true);
   await shot('r26-transfer-menu-360px');
@@ -753,6 +773,23 @@ async function run(){
   await poll('document.querySelector("#panelStatus").dataset.kind==="error"','double-failure notice');
   x=await state();assert.match(x.notice,/安全停止：模拟编辑器与剪贴板均不可用/);assert.equal(x.copyDialog,false);
   report.simulatedFailure=true;
+  // Exercise Unicode editing in the original full preview, including a ZWJ
+  // emoji, skin tone, combining accent and blank line; then restore the fixture.
+  await click('.prompt-actions button[aria-label^="更多操作"]');
+  await click('.prompt-more button[aria-label^="编辑："]');
+  const unicodeBody='R4.2 编辑保存 👩🏽‍💻 🇨🇳 e\u0301\n\n保留完整正文与 Emoji。';
+  await evalChrome('(()=>{const f=document.querySelector("#promptBody");f.value='+
+    JSON.stringify(unicodeBody)+';f.dispatchEvent(new Event("input",{bubbles:true}));})()');
+  await click('#saveButton');
+  await poll('document.querySelector("#formView").hidden','Unicode edit saved');
+  assert.equal((await state()).firstContent,unicodeBody);
+  await shot('r42-emoji-saved');
+  await click('.prompt-actions button[aria-label^="更多操作"]');
+  await click('.prompt-more button[aria-label^="编辑："]');
+  assert.equal(await evalChrome('document.querySelector("#promptBody").value'),unicodeBody);
+  await click('#cancelForm');
+  await click('#resetButton');
+  report.r42UnicodeEditSaveReadback=true;
   // R2.6.1: canonical host gear + uninstall in the header; no extra explanatory menu text.
   await click('#size320');
   const header=await evalChrome('(()=>{const panel=document.querySelector("#sidepanel").getBoundingClientRect(),title=document.querySelector("#hostToolTitle").getBoundingClientRect(),more=document.querySelector("#hostMore").getBoundingClientRect();return {noOverflow:document.querySelector("#hostToolHead").scrollWidth<=document.querySelector("#hostToolHead").clientWidth+1,titleWidth:title.width,moreRight:more.right,panelRight:panel.right,gear:document.querySelector("#ps-icon-settings")?.innerHTML.includes("<circle"),trash:document.querySelector("#hostRemove use")?.getAttribute("href"),moreHidden:document.querySelector("#hostMoreMenu").hidden,chat:document.querySelector("#hostChat").getBoundingClientRect().width,menuNote:document.querySelector(".transfer-note")!==null};})()');

@@ -415,6 +415,7 @@
 .sidebar-tool-view-head{position:relative;z-index:3;gap:2px;min-height:32px;margin-bottom:6px}
 .sidebar-tool-view-head>strong{font-size:13px}
 .sidebar-tool-view-head>.sidebar-tool-icon-action,
+.sidebar-tool-view-head .od-conversation-header-slot>.od-conversation-frame-trigger,
 .sidebar-tool-header-more>#sidebar-tool-more-open{
   box-sizing:border-box;flex:0 0 30px;width:30px;min-width:30px;max-width:30px;
   height:30px;min-height:30px;max-height:30px;padding:0;
@@ -447,8 +448,12 @@
 #sidebar-tool-more-menu #sidebar-tool-settings-open{width:100%;min-width:0;background:transparent}
 #sidebar-tool-more-menu #sidebar-tool-settings-open:hover{background:var(--od-muted)}
 #sidebar-tool-more-menu #sidebar-tool-remove{width:100%;min-width:0;color:var(--od-negative)}
+/* Once the header wraps, anchor overflow to the whole header rather than
+   the More button, which may start the next row at the left edge. */
+@media(max-width:240px){.sidebar-tool-header-more{position:static}}
 @media(pointer:coarse){
   .sidebar-tool-view-head>.sidebar-tool-icon-action,
+  .sidebar-tool-view-head .od-conversation-header-slot>.od-conversation-frame-trigger,
   .sidebar-tool-header-more>#sidebar-tool-more-open{
     flex-basis:44px;width:44px;min-width:44px;max-width:44px;
     height:44px;min-height:44px;max-height:44px
