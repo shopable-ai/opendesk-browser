@@ -98,8 +98,8 @@
 .cookie-editor-react .cookie-export-tabs>button{
   min-width:0;min-height:32px;
 }
-/* The active tab uses the shared od-button--primary appearance; the remaining
-   tabs use od-button--secondary. Keep only layout rules in tool-local CSS. */
+/* Active and inactive export tabs use the canonical shared component skins.
+   Keep only layout rules in tool-local CSS. */
 .cookie-editor-react .cookie-export-values{
   display:flex;align-items:center;gap:var(--space-2);
   font-size:var(--od-meta-size);color:var(--od-sub);
