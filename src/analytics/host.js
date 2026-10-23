@@ -109,7 +109,7 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
   };
   async function handle(message,sender){
     if(!exact(message,['protocol','kind','enabled','disclosureVersion','event','toolId','channel','reason',
-      'toolIdentity','runId','toolType'])||
+      'toolIdentity','runId','toolType','beforeRunId','afterRunId'])||
        message.protocol!==ANALYTICS_PROTOCOL)return {ok:false,code:'E_SCHEMA'};
     if(message.kind==='consent.status'){
       if(!fromOptions(sender)||!exact(message,['protocol','kind']))return {ok:false,code:'E_SENDER'};
@@ -202,12 +202,17 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
       if(!fromPanel(sender)||message.toolId!=='workflow'||
         message.channel!=='extension'||message.event!=='workflow.business_effect_verified'||
         !uuidPattern.test(message.runId||'')||
-        !exact(message,['protocol','kind','event','toolId','channel','runId'])||
+        !uuidPattern.test(message.beforeRunId||'')||
+        !uuidPattern.test(message.afterRunId||'')||
+        new Set([message.runId,message.beforeRunId,message.afterRunId]).size!==3||
+        !exact(message,['protocol','kind','event','toolId','channel',
+          'runId','beforeRunId','afterRunId'])||
         typeof verifyWorkflowResult!=='function'||!limit('workflow_effect'))
         return {ok:false,code:'E_SENDER'};
       // The original Controller record is read only after active opt-in.
       if(!(await collector.status()).consent)return {ok:true,data:{recorded:false}};
-      if(await verifyWorkflowResult(message.runId,sender)!==true)
+      if(await verifyWorkflowResult(message.runId,sender,{
+        beforeRunId:message.beforeRunId,afterRunId:message.afterRunId})!==true)
         return {ok:false,code:'E_SENDER'};
       return {ok:true,data:await collector.recordWorkflowVerified({runId:message.runId})};
     }
