@@ -98,6 +98,14 @@ export function selectInstalledTaskRoute({request,target,catalog,installed}={}){
         !Number.isSafeInteger(manifest.program?.revision)){
         blocked.push({taskId:row.taskId,code:'E_TASK_IDENTITY'});continue;
       }
+      // An explicit natural-language input is mandatory for every required
+      // binding, even if an older Task schema supplies a form default. Using
+      // that default here could silently search the wrong keyword/product.
+      const absent=schema.required.filter(key=>!Object.hasOwn(declared.params,key));
+      if(absent.length){
+        missing.push({taskId:row.taskId,fields:absent,code:'E_PARAMS'});
+        continue;
+      }
       let params;
       try{params=validateTaskParams(schema,declared.params);}
       catch(error){

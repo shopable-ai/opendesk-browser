@@ -632,6 +632,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       return {runId:claim.runId,completion,taskId:resolved.taskId,
         version:resolved.version,installationId:resolved.installationId};
     })().catch(async error=>{
+      if(agentIntent&&agentStartSubmitted)
+        error={code:'E_OUTCOME_UNKNOWN',
+          message:'RunHost.start 已提交但未取得可靠 runId；可能已产生网页变化，请勿重放'};
       if(activeRunId)reportTaskUsage('event.manual_result',chosen.taskId,activeRunId);
       if(error.code==='E_REVISION'&&!disposed)await refresh(undefined,{skipUnchanged:true}).catch(fail);
       setTaskNotice(identity(chosen),formatTaskError(error));

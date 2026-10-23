@@ -99,7 +99,9 @@ test('legacy verified demo search discovers keyword from complete operation cont
   assert.equal(done.candidate.kind,'demo-search');
   assert.equal(done.candidate.sensitive,true,'opaque Task submission still requires an existing review');
   assert.deepEqual(done.candidate.params,{keyword:'OpenDesk'});
-  assert.equal(match('在当前演示搜索页搜索，并核对结果。').state,'MISSING_PARAMS');
+  const absent=match('在当前演示搜索页搜索，并核对结果。');
+  assert.equal(absent.state,'MISSING_PARAMS','schema default cannot replace user-supplied dynamic keyword');
+  assert.deepEqual(absent.candidates[0].fields,['keyword']);
   for(const unsafe of [
     '在当前演示搜索页搜索 OpenDesk，并核对结果，然后删除记录',
     '在当前演示搜索页搜索 OpenDesk，但不要点击搜索，并核对结果',
