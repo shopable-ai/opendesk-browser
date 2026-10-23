@@ -370,7 +370,7 @@ test('v2 AI-off changes search and explicit product, then runs each saved RunHos
           {navigation:{href:productHref,url:base+productHref,origin:base}})
       ]:[
         node('heading','Lens Y',{kind:'role',value:'heading',name:'Lens Y'}),
-        node('text','$129',{kind:'css',value:'#price'})
+        node('text','¥129.00',{kind:'css',value:'#price'})
       ];
       observations.push({url,documentId:doc});
       return {kind:'semantic-dom-summary',document:{documentId:doc,url},
@@ -496,7 +496,7 @@ test('v2 AI-off changes search and explicit product, then runs each saved RunHos
   assert.match(f.state().controls['workflow-technical'].text,RegExp(id+'-s2'));
   assert.match(f.state().controls['workflow-technical'].text,RegExp(id));
   assert.ok(f.state().messages.some(row=>row.speaker==='执行结果'&&
-    row.message.includes('Lens Y')&&row.message.includes('$129')));
+    row.message.includes('Lens Y')&&row.message.includes('¥129.00')));
   assert.equal(providerCalls.filter(method=>method!=='ai.connection.read').length,0);
 
   // Extra limits cannot reuse a superficially similar fixed script.
