@@ -1,5 +1,5 @@
 // Single trusted MV3 analytics authority. The sandbox is never a telemetry sender.
-import {ANALYTICS_PROTOCOL,ANALYTICS_ALARM,ANALYTICS_PAGE_SCOPE_CHECK,ANALYTICS_PROMPT_TOOL_ID as PROMPT_ID} from './contract.js';
+import {ANALYTICS_PROTOCOL,ANALYTICS_ALARM,ANALYTICS_PAGE_SCOPE_CHECK,ANALYTICS_DISCLOSURE_VERSION,ANALYTICS_PROMPT_TOOL_ID as PROMPT_ID} from './contract.js';
 import {ANALYTICS_INGEST_URL} from './config.js';
 import {createAnalyticsCollector} from './collector.js';
 import {SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS} from '../ui/sidebar-tools/package.js';
@@ -104,16 +104,20 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
     row.count++;return true;
   };
   async function handle(message,sender){
-    if(!exact(message,['protocol','kind','enabled','event','toolId','channel','reason'])||
+    if(!exact(message,['protocol','kind','enabled','disclosureVersion','event','toolId','channel','reason'])||
        message.protocol!==ANALYTICS_PROTOCOL)return {ok:false,code:'E_SCHEMA'};
     if(message.kind==='consent.status'){
-      if(!fromOptions(sender))return {ok:false,code:'E_SENDER'};
+      if(!fromOptions(sender)||!exact(message,['protocol','kind']))return {ok:false,code:'E_SENDER'};
       return {ok:true,data:await collector.status()};
     }
     if(message.kind==='consent.set'){
       if(!fromOptions(sender)||typeof message.enabled!=='boolean'||
-         !exact(message,['protocol','kind','enabled']))return {ok:false,code:'E_SENDER'};
-      const data=await collector.setConsent(message.enabled);
+         !exact(message,['protocol','kind','enabled','disclosureVersion'])||
+         (message.enabled?message.disclosureVersion!==ANALYTICS_DISCLOSURE_VERSION:
+           message.disclosureVersion!==undefined))return {ok:false,code:'E_SENDER'};
+      const data=await collector.setConsent(message.enabled,{
+        disclosureVersion:message.disclosureVersion
+      });
       // Opt-in immediately captures the pre-existing inventory, including zero tools.
       // Census failure cannot undo a consent write or break the Options page.
       if(message.enabled)await recordInventory().catch(()=>{});
