@@ -1,4 +1,5 @@
 import {validateTaskParams} from '../platform/tasks/contract.js';
+import {createConversationSession} from './conversation/session.js';
 import {validateScheduleInput} from '../platform/tasks/schedule-contract.js';
 import {permissionPattern} from '../environment.js';
 import {decodeValue} from '../platform/page-port/codec.js';
@@ -105,17 +106,30 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
   api=globalThis.chrome,onScheduleChange=()=>{}}){
   if(!client?.request||!taskWorkbench?.runInstalledForAgent||!provider?.request)
     throw fail('E_AI_UNAVAILABLE','现有任务、Provider 或 RunHost 尚未连接');
+  // My's business approvals and RunHost effects remain private to this agent.
+  // The shared Session is the only owner of its chat messages, draft and open state.
+  const chatSession=createConversationSession({identity:provider.identity?.()||{
+    consumerId:'tasks',instanceId:'my-agent-'+crypto.randomUUID(),
+    hostInstanceId:'standalone-my-agent'},rowsLimit:32});
   let snapshot={open:false,rows:[],draft:'',status:'idle',pending:null,step:'',busy:false,technical:''};
   const subscribers=new Set();
-  let disposed=false,session=null,sequence=0,verifiedHistory=[];
+  let disposed=false,session=null,verifiedHistory=[];
   const publish=patch=>{
     if(disposed)return;
-    snapshot={...snapshot,...patch};
+    const {open,draft,rows,...business}=patch;
+    const uiPatch={};
+    if(Object.hasOwn(patch,'open'))uiPatch.open=open;
+    if(Object.hasOwn(patch,'draft'))uiPatch.draft=draft;
+    if(Object.hasOwn(patch,'rows'))uiPatch.rows=rows;
+    if(Object.keys(uiPatch).length)chatSession.update(uiPatch);
+    const current=chatSession.getSnapshot();
+    snapshot={...snapshot,...business,open:current.open,draft:current.draft,rows:current.rows};
     for(const listener of [...subscribers])listener();
   };
   const add=(speaker,message)=>{
-    const row={id:'my-agent-'+(++sequence),speaker,message:clip(message,2400)};
-    publish({rows:[...snapshot.rows,row].slice(-32)});
+    if(disposed)return;
+    chatSession.append(speaker,clip(message,2400));
+    publish({});
   };
   const currentPage=()=>{
     const row=currentPageTarget?.snapshot;
@@ -528,7 +542,8 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
     const goal=clip(request.trim(),4000);
     if(!goal)throw fail('E_AI_REQUEST','请输入需要完成的任务');
     const controller=new AbortController();
-    const current={active:true,event,goal,signal:controller.signal,controller,
+    const round=chatSession.begin({signal:controller.signal});
+    const current={active:true,event,goal,signal:controller.signal,controller,round,
       context:verifiedHistory.slice(-8),confirmed:new Set()};
     session=current;
     publish({busy:true,pending:null,status:'thinking',step:'正在理解请求',technical:''});
@@ -540,6 +555,10 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
         clip(error?.message||error,600));
       publish({busy:false,pending:null,status:'idle',step:''});
       current.active=false;
+    }finally{
+      // A review is still the same live turn. Completion or failure retires it.
+      if(!current.active)round.finish();
+      else chatSession.setPhase('reading');
     }
   }
   async function confirm(event){
@@ -567,12 +586,17 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
         :'操作未确认完成。 ')+clip(error?.message||error,500));
       publish({busy:false,status:'idle',pending:null,step:''});
       current.active=false;
+    }finally{
+      if(!current.active)current.round.finish();
+      else chatSession.setPhase('reading');
     }
   }
   function stop(){
     if(!session?.active)return;
     const effectInFlight=snapshot.status==='executing';
     session.controller.abort(fail('E_CANCELLED','用户停止 AI'));
+    chatSession.cancel();
+    session.round.finish();
     void provider.cancel({signal:session.signal}).catch(()=>{});
     publish({busy:false,pending:null,status:'idle',step:''});
     if(effectInFlight)
@@ -586,6 +610,6 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
     setDraft(value){publish({draft:clip(value,4000)});},
     async send(request,event){return start(request,event);},
     confirm,stop,
-    dispose(){if(disposed)return;stop();disposed=true;subscribers.clear();}
+    dispose(){if(disposed)return;stop();disposed=true;chatSession.dispose();subscribers.clear();}
   });
 }

@@ -115,6 +115,19 @@
       },
       "log": "artifacts/shared-ai-r211-20261023/merged-frame-settings-final.tap",
       "sha256": "3a4f9056451f2afa5011914ec70d4e4c9a74a4a98f6a2effc834097df9ad265c"
+    },
+    {
+      "command": "node --test --test-reporter=tap tests/environment/my-task-agent-r1.test.mjs tests/environment/workflow-recipient-grant-integration-r2317.test.mjs",
+      "status": "PASS",
+      "counts": {
+        "tests": 21,
+        "pass": 21,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "log": "artifacts/shared-ai-r211-20261023/merged-my-recipient-final.tap",
+      "sha256": "fe9b5d1c37393c971996d170b504b744999dad92481c8ea91123370aacd45778"
     }
   ],
   "sourceGate": {
@@ -167,11 +180,13 @@
   "remoteIntegration": {
     "head": "12f514fb4567f291ac8ccc3dff0636b30f0d9cd7",
     "preserved": "Parallel neutral Session and split-layout Frame/installed Task work are retained, not implemented by this task. Session round fences and disposal coexist with Provider-generation/revocation errors and settings unsubscribe. Independent reviewer rechecked the conflict resolution; no new evidenced P0-P2 findings. Affected 102 tests plus Frame compatibility 4 rerun PASS; unchanged Native/transport/parser evidence reused.",
-    "finalNote": "A second non-conflicting merge retained parallel Workflow Frame/My draft changes through de1e61e938019662269bb0c8a0d224582a10cdb0. Only affected Frame/settings compatibility rerun: 6 PASS. Prior required/Native/transport/parser implementation inputs unchanged; source gate evidence is from 3e46315b2, final CI tracked separately."
+    "finalNote": "A second non-conflicting merge retained parallel Workflow Frame/My draft changes through de1e61e938019662269bb0c8a0d224582a10cdb0. Only affected Frame/settings compatibility rerun: 6 PASS. Prior required/Native/transport/parser implementation inputs unchanged; source gate evidence is from 3e46315b2, final CI tracked separately.",
+    "lastMergeNote": "Retained parallel My Agent Session changes; 21 affected My/recipient tests PASS. Recipient keeps stronger inlined permission gates instead of the duplicate helper. All original repair source hashes unchanged."
   },
   "dependencySha256": {
     "src/ui/conversation/session.js": "0a018514e21f75a5684737f3aa8c60bc566464203c313d6fd261a8fe360100e2",
-    "src/ui/react/components/conversation.tsx": "a826f56a6f9215ea94bb97c727b27641081dcb4cb968998af02b7bf6d7e3db14"
+    "src/ui/react/components/conversation.tsx": "a826f56a6f9215ea94bb97c727b27641081dcb4cb968998af02b7bf6d7e3db14",
+    "src/ui/my-task-agent.js": "3b3bae065a77bc78789ffcfa83ac7859d9f1ab81bef6cfbf7cd8ff9350a23bc2"
   },
   "repairCommit": "d36bff0db2e93d949ca96d2e9497cf38a6ff2d30",
   "mergedMain": "12f514fb4567f291ac8ccc3dff0636b30f0d9cd7",
@@ -205,5 +220,5 @@
       "sha256": "5a7b89710e0ed1e65f4e7e99350147c45b45e285a2b77186de95ff61446c98cc"
     }
   ],
-  "latestCompatibilityMerge": "de1e61e938019662269bb0c8a0d224582a10cdb0"
+  "latestCompatibilityMerge": "45426aa21bd92446851999add43f8c2fa8162878"
 }
