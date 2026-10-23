@@ -15,8 +15,9 @@ async function fixture(catalog=[candidate()]){
   const view=createDeveloperView(),find=developerTestFields(view);
   let confirmation=true;
   const doc={defaultView:{confirm:()=>confirmation}};
-  const grants=new Set(['https://a.example/*']),requests=[],calls=[];
-  const api={permissions:{onAdded:events(),onRemoved:events(),contains:async request=>(request.origins||[]).every(value=>grants.has(value)),
+  const grants=new Set(['https://a.example/*']),requests=[],calls=[],telemetry=[];
+  const api={runtime:{sendMessage:async message=>{telemetry.push(structuredClone(message));return {ok:true};}},
+    permissions:{onAdded:events(),onRemoved:events(),contains:async request=>(request.origins||[]).every(value=>grants.has(value)),
     request:request=>{requests.push(structuredClone(request));for(const origin of request.origins||[])grants.add(origin);return Promise.resolve(true);}}};
   const client={ready:Promise.resolve(),request:async(method,input)=>{
     calls.push({method,input:structuredClone(input)});
@@ -34,6 +35,7 @@ async function fixture(catalog=[candidate()]){
       row.installed.enabled=input.enabled;row.installed.authorization.status=input.enabled?'active':'disabled';
       row.installed.authorization.generation++;return row.installed;
     }
+    if(method==='runInstalledPageProgram')return {receiptId:'11111111-1111-4111-8111-111111111112',state:'completed'};
     if(method==='uninstallPageProgram'){
       row.installed=null;
       return {programId:input.programId,manifestHash:input.manifestHash,
@@ -44,7 +46,7 @@ async function fixture(catalog=[candidate()]){
   const target={capture:()=>({tabId:1,documentId:'document-a',url:'https://a.example/',windowId:1}),revalidate:async()=>true};
   const ui=createPageProgramLibrary({client,currentPageTarget:target,api,document:doc,view,onLoad:async()=>{}});
   await tick();await tick();
-  return{ui,api,client,target,catalog,grants,requests,calls,
+  return{ui,api,client,target,catalog,grants,requests,calls,telemetry,
     setConfirmation:value=>{confirmation=value;},get:id=>find('page-program-'+id),
     click:async id=>{find('page-program-'+id).fire('click',{isTrusted:true});await tick();await tick();}};
 }
@@ -188,4 +190,24 @@ test('updating a disabled Page revision reports success without enabling or regi
   assert.equal(f.calls.filter(call=>call.method==='setInstalledPageEnabled').length,0);
   assert.equal(f.calls.find(call=>call.method==='installPageProgram').input.expectedGeneration,4);
   assert.equal(f.requests.length,0);
+});
+
+test('R1.12 trusted Page manual run goes through current installed revision and reports one attempt/result',async t=>{
+  const row=candidate();
+  row.installed={revision:row.revision,manifestHash:row.manifestHash,
+    pageRules:row.pageRules,enabled:true,nativeState:'registered',
+    authorization:{installationId,status:'active',generation:2}};
+  const f=await fixture([row]);t.after(()=>f.ui.dispose());
+  f.get('run').fire('click',{isTrusted:false});await tick();
+  assert.equal(f.calls.filter(x=>x.method==='runInstalledPageProgram').length,0);
+  assert.equal(f.telemetry.length,0,'programmatic event cannot forge manual activity');
+  await f.click('run');
+  const runs=f.calls.filter(x=>x.method==='runInstalledPageProgram');
+  assert.equal(runs.length,1);
+  assert.deepEqual(runs[0].input,{programId:row.programId,manifestHash:row.manifestHash,
+    installationId,expectedGeneration:2,target:{tabId:1,frameId:0,
+      documentId:'document-a',expectedUrl:'https://a.example/',expectedWindowId:1}});
+  assert.deepEqual(f.telemetry.map(x=>x.kind),['event.manual_attempt','event.manual_result']);
+  assert(f.telemetry.every(x=>x.toolType==='page'&&x.toolIdentity===row.programId));
+  assert.equal(f.telemetry[1].runId,'11111111-1111-4111-8111-111111111112');
 });
