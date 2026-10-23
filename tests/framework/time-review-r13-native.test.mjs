@@ -12,6 +12,7 @@ import {randomUUID,createHash} from 'node:crypto';
 import {reviewExport} from '../../examples/sidebar-tools/time-review/trusted/model.js';
 import {TIME_REVIEW_ALARM,timeReviewPackageHash} from '../../examples/sidebar-tools/time-review/trusted/policy.js';
 import {setTimeout as sleep} from 'node:timers/promises';
+import {attachVerifiedSidePanel} from './helpers/verified-side-panel-native.mjs';
 
 const KEY='opendesk.time-review.v1';
 const OUT=path.resolve(process.env.OPENDESK_TIME_NATIVE_EVIDENCE||'artifacts/time-review-r13-native');
@@ -395,51 +396,45 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     'visible React catalog Side Panel launcher');
   note('trusted-open',await nativeClick(browser,uiTarget.sessionId,'#catalog-open-dev-sidebar'));
   const sideDocument=await until(async()=>{
-    const c=await evaluate(browser,uiTarget.sessionId,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})");
-    return c.find(x=>x.documentUrl?.includes('/sidepanel.html')&&x.documentId);
-  },'actual SIDE_PANEL context');
-  // Chrome may classify a native Side Panel as a non-default target type.
-  // Include every CDP target type, then retain strict exact document-URL and
-  // unique-target requirements; never attach to the launcher tab as fallback.
-  const sideTarget=await until(async()=>{
-    const rows=(await browser.send('Target.getTargets',{filter:[{}]})).targetInfos;
-    // filter:[{}] includes both a document target (page/other) and a tab
-    // wrapper for the same URL on Chrome 155. A tab is not the panel document.
-    const matches=rows.filter(x=>x.url===sideDocument.documentUrl&&
-      (x.type==='page'||x.type==='other'));
-    return matches.length===1?matches[0]:null;
-  },'native Side Panel target').catch(async error=>{
-    // Diagnostic evidence only. No synthetic panel, injected grant or widened
-    // identity check when Chrome reports a SIDE_PANEL but CDP cannot attach.
-    const observeTargets=async params=>{
-      try{return (await browser.send('Target.getTargets',params)).targetInfos.map(x=>({
-        targetId:x.targetId,type:x.type,url:x.url,attached:x.attached
-      }));}catch(cause){return {error:String(cause)};}
-    };
     const contexts=await evaluate(browser,uiTarget.sessionId,
-      'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})').catch(cause=>({error:String(cause)}));
-    const debuggerList=await fetch(base+'/json/list').then(response=>response.json()).then(rows=>
-      rows.map(x=>({id:x.id,type:x.type,url:x.url}))).catch(cause=>({error:String(cause)}));
-    note('native-side-panel-target-discovery-failed',{
-      expected:{documentId:sideDocument.documentId,documentUrl:sideDocument.documentUrl},
-      contexts,defaultTargets:await observeTargets({}),
-      allTargets:await observeTargets({filter:[{}]}),debuggerList,
-      error:String(error)
+      "chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})");
+    return contexts.find(row=>row.documentId&&row.documentUrl?.includes('/sidepanel.html'));
+  },'Chrome initially reports a real SIDE_PANEL context');
+  // All lifecycle reopens use the same strict document verifier. The initial
+  // context can be canonical and already retired when Chrome adds hostInstanceId.
+  const attachCurrentSidePanel=async(excludeIds=[])=>{
+    const resolved=await attachVerifiedSidePanel({
+      client:browser,extensionId:present,excludeTargetIds:excludeIds,
+      attachTarget:async targetId=>{
+        const {sessionId}=await browser.send('Target.attachToTarget',{targetId,flatten:true});
+        await browser.send('Runtime.enable',{},sessionId);
+        await browser.send('Page.enable',{},sessionId);
+        return sessionId;
+      },
+      evaluate:(session,expression)=>evaluate(browser,session,expression),
+      until,
+      onFailure:diagnostic=>note('native-side-panel-target-discovery-failed',
+        {initialContext:{documentId:sideDocument.documentId,
+          documentUrl:sideDocument.documentUrl},...diagnostic})
     });
-    throw error;
-  });
-  let side=(await browser.send('Target.attachToTarget',{targetId:sideTarget.targetId,flatten:true})).sessionId;
+    evidence.currentSidePanelIdentity={
+      contextId:resolved.context.contextId,
+      documentId:resolved.context.documentId,
+      documentUrl:resolved.context.documentUrl,
+      hostInstanceId:resolved.identity.hostInstanceId,
+      targetId:resolved.target.targetId,targetType:resolved.target.type
+    };
+    return resolved;
+  };
+  const firstPanel=await attachCurrentSidePanel([ui.targetId]);
+  let side=firstPanel.session;
   sideSid=side;
-  await browser.send('Runtime.enable',{},side);await browser.send('Page.enable',{},side);
-  // Independently read the attached document rather than trusting TargetInfo.
-  const attachedDocument=await evaluate(browser,side,'location.href');
-  assert.equal(attachedDocument,sideDocument.documentUrl,
-    'attached native Side Panel document URL must equal Chrome SIDE_PANEL context');
-  const attachedContexts=await evaluate(browser,side,
-    'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"],documentUrls:[location.href]})');
-  assert.equal(attachedContexts.filter(x=>x.contextType==='SIDE_PANEL'&&
-    x.documentId===sideDocument.documentId&&x.documentUrl===attachedDocument).length,1,
-    'attached target must be the exact Chrome SIDE_PANEL documentId, not another same-URL page');
+  note('live-side-panel-identity',{
+    initiallyObserved:{documentId:sideDocument.documentId,
+      documentUrl:sideDocument.documentUrl},
+    verified:evidence.currentSidePanelIdentity,
+    documentRebuilt:sideDocument.documentId!==firstPanel.context.documentId
+  });
   evidence.realSidePanel='PASS';
   await nativeClick(browser,side,'#tab-tools');
   // Confirm the one shipped React root owns the real extension rows before
@@ -1041,10 +1036,9 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
       evidence.panelClosedCollection='PASS';note('real-panel-closed-collection',{noSidePanel:true,noTimeRpc:true,ms:hostMs(whileClosed,'127.0.0.1')-hostMs(closedBaseline,'127.0.0.1')});
       await browser.send('Target.activateTarget',{targetId:ui.targetId});
       await nativeClick(browser,uiTarget.sessionId,'#catalog-open-dev-sidebar');
-      const reopenedContext=await until(()=>evaluate(browser,uiTarget.sessionId,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(c=>c.find(x=>x.documentUrl.includes("/sidepanel.html")))'),'Side Panel context after normal reopen');
-      const reopenedTarget=await until(async()=>(await browser.send('Target.getTargets')).targetInfos.find(t=>t.url===reopenedContext.documentUrl),'reopened Side Panel target');
-      side=(await browser.send('Target.attachToTarget',{targetId:reopenedTarget.targetId,flatten:true})).sessionId;sideSid=side;frame=side;
-      await browser.send('Runtime.enable',{},side);await browser.send('Page.enable',{},side);
+      const reopenedPanel=await attachCurrentSidePanel([ui.targetId]);
+      side=reopenedPanel.session;sideSid=side;frame=side;
+      note('reopened-side-panel-identity',evidence.currentSidePanelIdentity);
       await nativeClick(browser,side,'#tab-tools');await nativeClick(browser,side,installed);
       await until(()=>evaluate(browser,side,'Boolean(document.querySelector("#sidebar-tool-frame main.review"))'),'trusted native UI after Panel reopen');
       await browser.send('Target.activateTarget',{targetId:site.targetId});
@@ -1198,11 +1192,9 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     const reopenTimePanel=async()=>{
       await browser.send('Target.activateTarget',{targetId:ui.targetId});
       await nativeClick(browser,uiTarget.sessionId,'#catalog-open-dev-sidebar');
-      const context=await until(()=>evaluate(browser,uiTarget.sessionId,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(c=>c.find(x=>x.documentUrl.includes("/sidepanel.html")))'),'actual Side Panel context after lifecycle observation');
-      const target=await until(async()=>(await browser.send('Target.getTargets')).targetInfos.find(row=>row.url===context.documentUrl),'actual reopened Side Panel target');
-      side=(await browser.send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId;
-      sideSid=side;frame=side;
-      await browser.send('Runtime.enable',{},side);await browser.send('Page.enable',{},side);
+      const currentPanel=await attachCurrentSidePanel([ui.targetId]);
+      side=currentPanel.session;sideSid=side;frame=side;
+      note('lifecycle-side-panel-identity',evidence.currentSidePanelIdentity);
       await until(()=>evaluate(browser,side,'!!document.querySelector('+JSON.stringify(installed)+')'),'Time Review installed row after reopen');
       await nativeClick(browser,side,installed);
       await until(()=>evaluate(browser,side,'!!document.querySelector("main.review")&&!document.querySelector("#sidebar-tool-frame iframe")'),'same official native Time Review after lifecycle observation');
@@ -1648,24 +1640,15 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   // SIDE_PANEL through its visible "打开开发侧栏" button and trusted native
   // pointer input rather than pretending the catalog tab is a Side Panel.
   await nativeClick(browser,newSide,'#catalog-open-dev-sidebar');
-  const restoredSideContext=await until(async()=>{
-    const contexts=await evaluate(browser,newSide,
-      'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})');
-    return contexts.find(c=>c.documentId&&c.documentUrl?.includes('/sidepanel.html'))||null;
-  },'original native Side Panel reopens after Chrome restart',12000);
-  const restoredSideTarget=await until(async()=>{
-    const targets=(await browser.send('Target.getTargets')).targetInfos;
-    return targets.find(t=>t.url===restoredSideContext.documentUrl)||null;
-  },'real restarted Side Panel target',12000);
-  const manager=(await browser.send('Target.attachToTarget',{
-    targetId:restoredSideTarget.targetId,flatten:true})).sessionId;
+  const restoredPanel=await attachCurrentSidePanel([reopened.targetId]);
+  const manager=restoredPanel.session;
   sideSid=manager;
-  await browser.send('Runtime.enable',{},manager);
-  await browser.send('Page.enable',{},manager);
   evidence.realSidePanelReopened='PASS';
   note('real-sidepanel-reopened-after-chrome-restart',{
-    ownSidePanel:true,documentId:restoredSideContext.documentId,
-    targetId:restoredSideTarget.targetId});
+    ownSidePanel:true,documentId:restoredPanel.context.documentId,
+    documentUrl:restoredPanel.context.documentUrl,
+    targetId:restoredPanel.target.targetId,
+    hostInstanceId:restoredPanel.identity.hostInstanceId});
   await nativeClick(browser,manager,'#tab-tools');
   const readOtherPackage=()=>evaluate(browser,manager,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==="reading-toc")||null)');
   if(!await readOtherPackage()){
@@ -1857,7 +1840,7 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     websiteGrantRevocation:evidence.websiteGrantRevocation,
     idlePermissionRevocation:evidence.idlePermissionRevocation,
     disableEnable:evidence.disableEnable,uninstall:evidence.uninstall,
-    currentSourceHash:process.env.GITHUB_SHA||null,actualSidePanelDocumentId:sideDocument.documentId
+    currentSourceHash:process.env.GITHUB_SHA||null,actualSidePanelDocumentId:evidence.currentSidePanelIdentity?.documentId??null
   },null,2)+'\n');
   if(NATIVE_SCOPE==='full')assert.ok(REQUIRED_NATIVE.every(key=>evidence[key]==='PASS'),
     'Full native acceptance requires every recorded case to pass: '+REQUIRED_NATIVE.filter(key=>evidence[key]!=='PASS').join(', '));
