@@ -20,7 +20,7 @@ const escapeRegExp=value=>value.replace(/[/\\^$*+?.()|[\]{}]/g,'\\$&');
 // Command delimiters and high-impact verb + target are forbidden inside a
 // free-text parameter. Do not mistake innocent nouns such as "提交次数" or
 // "删除键" for instructions; they remain literal search data.
-const hiddenInstruction=/(?:[，,;；。!?！？]|然后|随后|接着|同时|并且|以及|但是|不过|如果|否则|必须|要求|限制|限定|不要|不得|禁止|(?:删除|提交|购买|下单|发送|上传|下载|修改|登录|付款|支付|转账|撤销)(?:所有|全部|订单|记录|文件|数据|账户|账号|用户|商品|表单|交易|消息)|(?:^|\\s)(?:删除|提交|购买|下单|发送|上传|下载|修改|登录|付款|支付|转账|撤销)(?=\\s|$)|\\b(?:then|and|delete|submit|pay|buy|send|upload|download|update|must|without|never|don't)\\b)/iu;
+const hiddenInstruction=/(?:[，,;；。!?！？]|然后|随后|接着|同时|并且|以及|但是|不过|如果|否则|必须|要求|限制|限定|不要|不得|禁止|(?:删除|提交|购买|下单|发送|上传|下载|修改|登录|付款|支付|转账|撤销)(?:所有|全部|订单|记录|文件|数据|账户|账号|用户|商品|表单|交易|消息)|(?:^|\s)(?:删除|提交|购买|下单|发送|上传|下载|修改|登录|付款|支付|转账|撤销)(?=\s|$)|\b(?:then|and|delete|submit|pay|buy|send|upload|download|update|must|without|never|don't)\b)/iu;
 // A free-text parameter is data, not a second instruction channel.
 // Conservative rejection is safer than silently dropping new user clauses.
 
