@@ -64,6 +64,14 @@ test('old reminders survive transfer while sealed app model cannot bill usage tw
   corrupt.notices.budgetMs=null;
   assert.throws(()=>migrateFocusState(corrupt,{at}),{code:'E_MIGRATION_NOTICE'},
     'unknown reminder limit must not create duplicate alerts');
+  // Enabled legacy owners must have BOTH halves of their original grant.
+  // A hash without its installation epoch is not upgrade authority.
+  const incomplete=structuredClone(state);
+  incomplete.enabled=true;incomplete.authorizedHash='a'.repeat(64);
+  incomplete.authorizedEpoch=null;
+  assert.throws(()=>migrateFocusState(incomplete,{at}),{code:'E_MIGRATION_GRANT'});
+  incomplete.authorizedHash=null;incomplete.authorizedEpoch='legacy-epoch';
+  assert.throws(()=>migrateFocusState(incomplete,{at}),{code:'E_MIGRATION_GRANT'});
 });
 test('public v3 Controller issues sealed finite commits, no focus RPC',async()=>{
   let receipt=initial(),calls=[];
