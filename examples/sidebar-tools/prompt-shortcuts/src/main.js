@@ -704,7 +704,6 @@ function render(){
   const list=el('ps-list');list.replaceChildren();
   const enabled=data.items.filter(item=>item.enabled).length;
   el('ps-count').textContent=data.items.length+' 个 · '+enabled+' 个启用';
-  el('ps-seed-hint').hidden=!data.items.some(item=>['ps_seed_plugin','ps_seed_outsource','ps_seed_ai_prompt'].includes(item.id));
   el('ps-empty').hidden=data.items.length>0;
   el('ps-web').checked=data.settings.webButtons;
   el('ps-image-size').value=data.settings.imageSize||'large';
@@ -777,7 +776,8 @@ function closeTransfer(){
 }
 function restoreTransferFocus(){
   if(root.querySelector('.ps')?.classList.contains('ps-host-nav')){
-    const count=el('ps-count');count.tabIndex=-1;count.focus({preventScroll:true});
+    // The Host trigger is outside this sandbox. Restore focus to a visible in-tool action.
+    (el('ps-list').querySelector('button:not([disabled])')||el('ps-sites-open')).focus({preventScroll:true});
   }else el('ps-transfer').focus({preventScroll:true});
 }
 function toggleTransfer(){
