@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-24",
+  "timezone": "Asia/Shanghai",
+  "owner": "01a16a1c-5e74-7423-b221-96c038df41be",
+  "scope": "Recover daily Side Panel list startup and the already-installed official Bookmark Manager UI",
+  "sourceBaseCommit": "ebefeb89ddb3428689068bd914f339fb71ed1029",
+  "concurrentMainSync": {
+    "observedHead": "fd9b1b78c",
+    "existingSnapshotFixCommit": "dac62c356",
+    "note": "A concurrent main sync brought in the identical control-value fix before this task committed; retain that commit and add regression coverage here. Native observations remain bound to observedRevision below."
+  },
+  "observationMethod": "Native Chrome UI via cua_repl; package hashes read from workspace and installed detail UI",
+  "environment": {
+    "mode": "CONTINUOUS_DEVELOPMENT",
+    "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "pathVerifiedInChromeExtensions": true,
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "watcherConnected": true,
+    "watcherPidsPreserved": [16868, 16888],
+    "observedRevision": "353c60ea36e17e4862f78568c062839d793c27d1ec65ca358dfed8b9d1706935",
+    "sidePanelHostInstanceId": "dee549a3-9e9c-4df2-9486-8e80024d7a21",
+    "profile": "Existing daily Chrome; no profile, extension ID or output directory replacement"
+  },
+  "failures": [
+    {
+      "symptom": "Extension center stuck on 正在读取扩展…; debug controller not initialized",
+      "evidence": "Side Panel DevTools: DataCloneError in workflow-ui-state.js:152 -> workflow-view.js:75 -> tool-shell.js:195",
+      "cause": "Control snapshot used the complete control object as value, retaining a dataset Proxy that structuredClone rejects",
+      "fix": "Project the control's scalar value; keep provider key excluded and dataset copied"
+    },
+    {
+      "symptom": "Installed 0.3.11 opened the Classic compatibility sandbox",
+      "evidence": "Installed detail showed the exact current official package SHA but 来源未记录",
+      "cause": "Missing provenance fails the existing official React admission; marketplace had no same-package provenance review entry",
+      "sourceLossOrigin": "UNKNOWN; user reported uninstall/reinstall before the symptom, exact installation path was not observed",
+      "fix": "Offer explicit official-source review and use the existing reviewed installer same-package branch"
+    }
+  ],
+  "package": {
+    "path": "examples/sidebar-tools/bookmark-manager/bookmark-manager.opendesk-tool.json",
+    "version": "0.3.11",
+    "sha256": "86cc68f413ab421ec7895b4faecb061d81b005f4b363efdd72e6a8e833cdb4cf",
+    "installationPolicy": "optional",
+    "packageChanged": false,
+    "developmentOfficialResourceByteHashEqual": true
+  },
+  "nativeChecks": [
+    {"operation": "Reopen Side Panel after the startup repair", "result": "PASS", "installedExtensionCount": 11},
+    {"operation": "Read development connection and real extension loading path", "result": "PASS"},
+    {"operation": "Market detail -> 审阅官方来源 -> 确认官方来源", "result": "PASS", "addedCapabilities": []},
+    {"operation": "Read installed version, official provenance and fixed package SHA", "result": "PASS", "source": "OpenDesk 官方市场 · opendesk/bookmark-manager"},
+    {"operation": "Open official React Bookmark Manager and read native tree", "result": "PASS", "visibleNodeCount": 3},
+    {"operation": "Refresh bookmarks, open settings, read existing Full Bookmarks approval and return", "result": "PASS", "permissionPromptRepeated": false},
+    {"operation": "Return to 11-item extension list and reopen Bookmark Manager on original ChatGPT tab", "result": "PASS", "visibleNodeCount": 3}
+  ],
+  "automatedChecks": {
+    "startupBeforeFix": {"result": "EXPECTED_FAIL", "failed": 2, "reason": "Both direct UI-state construction tests reproduced DataCloneError"},
+    "sourceReviewBeforeFix": {"result": "EXPECTED_FAIL", "passed": 1, "failed": 2, "reason": "Missing-source review entry and provenance-change refresh absent"},
+    "targetedRegression": {
+      "command": "node --test tests/environment/marketplace-source-review.test.mjs tests/environment/workflow-ui-state-snapshot.test.mjs",
+      "result": "PASS", "passed": 11,
+      "behaviors": ["cloneable immutable snapshots and secret exclusion", "review/cancel/confirm", "source-only write preserving package, epoch and data", "invalid provenance cannot suppress review", "same-version altered bytes and downgrade rejected", "stale installation rejected"]
+    },
+    "trustedAdmission": {
+      "command": "node --test --test-name-pattern='only the exact official' tests/environment/bookmark-manager-r306-trusted-react.test.mjs",
+      "result": "PASS", "passed": 1,
+      "guards": ["full package hash", "official identity and provenance", "enabled state", "installed package", "current revocation epoch"]
+    },
+    "workflowAdjacent": {
+      "command": "node --test tests/environment/workflow-ui-state-snapshot.test.mjs tests/environment/workflow-react-page.test.mjs",
+      "result": "PARTIAL_PASS", "passed": 24, "failed": 1,
+      "deferredFailure": "Existing static no-DOM regex matches workflowSession.append() in workflow-view.js:225; unchanged by this repair. Functional workflow tests passed."
+    },
+    "syntax": "node --check for both changed JS files: PASS",
+    "whitespace": "git diff --check: PASS"
+  },
+  "preserved": ["11 installed extensions", "native bookmarks", "existing Full Bookmarks approval", "tool data and install epoch via source-only installer branch", "original ChatGPT draft", "existing dev watcher and output"],
+  "notTested": ["Repeat uninstall/reinstall and original source-loss path", "Classic sandbox SDK-refresh action after the React route was restored", "Actual bookmark create/update/move/delete writes", "AI provider or model requests", "Chrome restart persistence", "Production build or full release acceptance"],
+  "finalState": "Original daily Chrome tab with official React Bookmark Manager open, three native tree nodes, AI conversation closed"
+}

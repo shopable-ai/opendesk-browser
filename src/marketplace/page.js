@@ -90,18 +90,26 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   const state={installed:[],catalog:null,apps:[],notice:'',error:false,review:null,busy:false,batchPlan:null,batch:null,
     batchRunning:false,batchRecovering:false,cancel:false,selected:new Set(),matched:new Set(),personalCollections:{},transfer:'',
     localStatus:'loading',localError:'',catalogStatus:'loading',catalogError:'',
-    usageStatus:'loading',usage:null,usageError:'',cleanups:{},operations:{},
+    usageStatus:'loading',usage:null,usageError:'',cleanups:{},operations:{},provenance:{},
     handoff:null,handoffStatus:reviewId?'loading':'none',handoffError:'',handoffCancelled:false};
   const currentRoute=()=>route(state.handoff?marketSubjectRoute(state.handoff.subject):location.hash);
   const getOfficialApp=id=>state.apps.find(row=>row.id===id)||null;
   const say=(message='',isError=false)=>{state.notice=message;state.error=isError;render();};
   const installedTool=app=>state.installed.find(tool=>tool.id===app.toolId)||null;
+  const recordedOfficialSource=app=>{
+    const source=state.provenance?.[app.toolId];
+    const release=state.catalog?.apps.find(row=>row.id===app.id&&row.version===app.version);
+    return Boolean(release&&source&&typeof source==='object'&&!Array.isArray(source)&&
+      Object.keys(source).sort().join(',')==='marketId,sha256,version'&&
+      source.marketId===release.id&&source.version===release.version&&source.sha256===release.sha256);
+  };
   const settleHandoff=()=>state.handoff?settleReviewIntent({api,lockManager,reviewId:state.handoff.reviewId}).catch(()=>{}):Promise.resolve();
   const installedStatus=app=>{
     const current=installedTool(app);
     if(!current)return '未安装';
     if(current.version!==app.version)return '版本不同 · '+current.version;
-    return state.matched.has(app.id)?'已安装 v'+current.version:'已有同 ID 版本 · 来源待核对';
+    return state.matched.has(app.id)?'已安装 v'+current.version+
+      (recordedOfficialSource(app)?'':' · 官方来源待审阅'):'已有同 ID 版本 · 来源待核对';
   };
   async function packageFor(app){
     const row=state.catalog?.apps.find(item=>item.id===app?.id&&item.version===app?.version);
@@ -113,7 +121,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     const fixed=state.handoff;
     const [stored,handoff]=await Promise.all([
       api.storage.local.get([SIDEBAR_TOOL_STORE,MARKET_BATCH_STORE,MY_COLLECTIONS_STORE,
-        TOOL_CLEANUP_STORE,MARKET_OPERATIONS_STORE]),
+        TOOL_CLEANUP_STORE,MARKET_OPERATIONS_STORE,MARKET_PROVENANCE_STORE]),
       fixed?loadReviewIntent(api,fixed.reviewId).then(value=>({value}),error=>({error})):null
     ]);
     if(disposed||generation!==localReadGeneration)return false;
@@ -135,6 +143,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     state.installed=admitted;
     state.cleanups=stored[TOOL_CLEANUP_STORE]||{};
     state.operations=stored[MARKET_OPERATIONS_STORE]||{};
+    state.provenance=stored[MARKET_PROVENANCE_STORE]||{};
     // Official publisher matching is optional metadata: a slow or missing
     // package resource must never delay the locally installed tool list.
     scheduleOfficialMatches();
@@ -320,8 +329,11 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
         '只有审阅并确认后才能安装。安装本身不运行工具、不授予站点授权，也不会读取网页内容。','minor'));
     const side=elem('aside','side'),meta=elem('section','surface');meta.append(infoSpecs(app));
     const acts=elem('div','actions');
-    const open=button('打开使用',()=>api.tabs.create({url:toolPageHref(api.runtime,app.toolId)}),true);
-    if(current&&state.matched.has(app.id))acts.append(open);
+    const open=button('打开使用',()=>api.tabs.create({url:toolPageHref(api.runtime,app.toolId)}),recordedOfficialSource(app));
+    if(current&&state.matched.has(app.id)){
+      if(!recordedOfficialSource(app))acts.append(button('审阅官方来源',()=>reviewApp(app),true));
+      acts.append(open);
+    }
     else acts.append(button(current?'审阅版本更新':'审阅并安装',()=>reviewApp(app)));
     acts.append(button('复制详情链接',()=>copy(location.href).then(()=>say('已复制此扩展内详情链接；跨设备分享请使用部署后的公网地址。')).catch(e=>say(e.message,true))));
     if(app.toolId==='time-review'&&app.externalWeb?.url==='https://todo6.com/'){
@@ -341,7 +353,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     const content=container('OPENDESK · 可信安装审阅',app.title,'固定版本 v'+app.version+' · '+app.surfaces.join('、'));
     content.append(para('来自 '+state.handoff.origin+' 的安装请求。此候选不会被其他网页请求替换。','minor'));
     if(state.review)content.append(renderReview(state.review));
-    else if(state.matched.has(app.id)){
+    else if(state.matched.has(app.id)&&recordedOfficialSource(app)){
       content.append(para('已核对本机安装：v'+app.version+'。安装不会自动运行。'));
       const open=button('打开使用',()=>api.tabs.create({url:toolPageHref(api.runtime,app.toolId)}),true);
       open.dataset.marketAction='open-installed';content.append(add(elem('div','actions'),open));
@@ -391,7 +403,8 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
       const operationId=state.handoff?.operationId||crypto.randomUUID();
       const prior=state.operations[operationId];
       state.handoffCancelled=false;
-      if(state.handoff&&(!prior||prior.state==='succeeded')&&sameSidebarToolPackage(installedTool(app),candidate.tool)){
+      if(state.handoff&&(!prior||prior.state==='succeeded')&&recordedOfficialSource(app)&&
+        sameSidebarToolPackage(installedTool(app),candidate.tool)){
         state.review=null;state.matched.add(app.id);state.notice='相同官方发行已经安装，可以主动打开。';state.error=false;return;
       }
       state.review={app,...candidate,baseline:installedTool(app),operationId,
@@ -403,15 +416,16 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   }
   function renderReview(review){
     const parent=elem('section','surface review');parent.tabIndex=-1;parent.append(elem('h2','','安装审阅 · '+review.app.title));
-    const current=review.baseline,tool=review.tool;
+    const current=review.baseline,tool=review.tool,samePackage=Boolean(current&&sameSidebarToolPackage(current,tool));
     parent.append(para('发布者：OpenDesk · 制品来源：当前扩展内的官方发行包。网站只负责提出安装请求。','minor'));
     parent.append(para('当前：'+(current?'v'+current.version:'未安装')+' → 发行：v'+tool.version));
     parent.append(para('申请能力：'+capabilityNames(tool.capabilities)));
     if(current){
       const added=tool.capabilities.filter(v=>!current.capabilities.includes(v));
       parent.append(para('新增能力：'+capabilityNames(added)+'；原工具数据保留。','minor'));
-      parent.append(para('将替换此 ID 已安装的代码，可能变更来源。请核对发行者与能力后点击下方确认；不会再二次弹窗。','minor'));
-      if(compareToolVersions(tool.version,current.version)<=0){
+      parent.append(para(samePackage?'已安装内容与官方发行包完全一致。确认后仅记录官方来源，保留代码、数据及已有授权。':
+        '将替换此 ID 已安装的代码，可能变更来源。请核对发行者与能力后点击下方确认；不会再二次弹窗。','minor'));
+      if(!samePackage&&compareToolVersions(tool.version,current.version)<=0){
         parent.append(para('市场不允许用同版本不同内容或旧版本覆盖现有工具。','minor'));
       }
     }
@@ -433,9 +447,9 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
       retry.dataset.marketAction='review-again';retry.disabled=state.busy;parent.append(retry);return parent;
     }
     const controls=elem('div','actions');
-    const install=button('确认安装此固定版本',()=>commitApp(review),true);
+    const install=button(samePackage?'确认官方来源':'确认安装此固定版本',()=>commitApp(review),true);
     install.dataset.marketAction='confirm-install';
-    install.disabled=state.busy||Boolean(current&&compareToolVersions(tool.version,current.version)<=0);
+    install.disabled=state.busy||Boolean(current&&!samePackage&&compareToolVersions(tool.version,current.version)<=0);
     const cancel=button('取消',()=>{if(state.busy)return;state.review=null;state.handoffCancelled=true;say('已取消本次安装。');});
     cancel.dataset.marketAction='cancel-install';
     cancel.disabled=state.busy;controls.append(install,cancel);
@@ -472,7 +486,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
       if(result.state==='installed'&&!state.installed.some(row=>sameSidebarToolPackage(row,review.tool)))
         throw fail('安装状态读回不一致，请先恢复核对','E_OUTCOME_UNKNOWN');
       state.review=null;void refreshUsage();
-      state.notice=result.state==='cancelled'?'已取消更新。':result.state==='already-installed'?'已经安装相同工具。':
+      state.notice=result.state==='cancelled'?'已取消更新。':result.state==='already-installed'?'已确认官方来源，原安装和数据保留。':
         review.app.toolId==='reading-toc'?'安装完成。阅读目录默认可用于 HTTP(S) 网页；点击“打开使用”开始。':
         '安装完成。点击“打开使用”开始；需要网站访问能力时请单独授权。';state.error=false;
     }catch(e){
@@ -803,7 +817,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     if(area!=='local')return;
     const keys=Object.keys(changes||{});
     if(keys.some(key=>[SIDEBAR_TOOL_STORE,MARKET_BATCH_STORE,TOOL_CLEANUP_STORE,MARKET_INTENTS_STORE,
-      MARKET_OPERATIONS_STORE].includes(key))){void refreshLocal();return;}
+      MARKET_OPERATIONS_STORE,MARKET_PROVENANCE_STORE].includes(key))){void refreshLocal();return;}
     if(keys.some(key=>key.startsWith(SIDEBAR_TOOL_DATA_PREFIX))&&currentRoute().kind==='my')
       void refreshUsage();
   };
