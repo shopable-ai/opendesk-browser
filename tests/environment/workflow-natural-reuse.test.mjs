@@ -87,6 +87,24 @@ test('multiple matching versions require choice and missing product requires a r
   assert.equal(naturalProductReply(''),null);
 });
 
+test('R2.2.3 concise search/open-details routes to saved JavaScript without guessing a product',async()=>{
+ const saved=await record();
+ for(const goal of ['搜索商品 B，打开详情，核对名称和价格。',
+  '搜索 商品 B，打开商品详情，核对名称和价格。',
+  '请搜索商品 B，打开详情页，检查名称与售价。']){
+  const selected=route([saved],goal);
+  assert.equal(selected.state,'MISSING_PRODUCT',goal);
+  assert.equal(selected.record.key,saved.key);
+  assert.equal(selected.query,'商品 B');
+  assert.equal(selected.record.segments[0].sourceHash,saved.segments[0].sourceHash);
+ }
+ for(const goal of ['搜索商品 B，打开详情，核对名称和价格，还要购买。',
+  '搜索商品 B，打开详情，核对名称和价格，价格不能超过100。',
+  '搜索商品 B，但不要打开详情，核对名称和价格。']){
+  assert.equal(route([saved],goal).state,'AI',goal);
+ }
+});
+
 test('bounded equivalent Chinese read-only goals reuse v2 without silently dropping clauses',async()=>{
   const saved=await record();
   for(const goal of [
