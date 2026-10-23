@@ -658,6 +658,7 @@ test('R23.37 cold-chat second Send finds the first natural-language saved Bundle
     part.workflow.workflowId+':'+part.revision)?.contentHash===part.sourceHash));
   assert.equal(original.state().header.saved,true);
   const storedLocal=original.local,storedScripts=original.scripts;
+  const journalBeforeReuse=[...storedScripts.entries()].map(([key,row])=>[key,structuredClone(row)]);
   original.view.dispose();
   original=null;
 
@@ -675,6 +676,8 @@ test('R23.37 cold-chat second Send finds the first natural-language saved Bundle
     result:reused,status:reopened.state().controls['workflow-status'].text
   }));
   assert.equal(modelGenerations-beforeGeneration,0,'second Send must generate ZERO JavaScript');
+  assert.deepEqual([...reopened.scripts.entries()],journalBeforeReuse,
+    'second Send must not commit a new Controller Revision or alter any saved source bytes');
   const operations=reopened.starts.slice(beforeStarts);
   assert.equal(operations.filter(row=>row.source.kind==='saved').length,2);
   assert.deepEqual(operations.filter(row=>row.source.kind==='saved').map(row=>

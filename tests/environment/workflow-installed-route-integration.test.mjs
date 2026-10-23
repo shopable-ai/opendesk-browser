@@ -122,3 +122,31 @@ test('new versioned Task cannot report success without all independently visible
   assert.equal(calls.length,1,'uncertain effect must not re-execute');
   assert.equal(f.starts.length,2);
 });
+
+test('installed Task confirmation is dismissed after a different Document becomes active',async t=>{
+  const {f,calls}=await fixture();t.after(()=>f.view.dispose());
+  f.input('workflow-ai-request','在当前演示搜索页搜索 OpenDesk，并核对结果。');
+  await f.click('workflow-ai-plan');
+  assert.equal(f.state().controls['workflow-run-review'].hidden,false);
+  await f.setPage({url:origin+'/demo-form.html?changed=1',documentId:'different-document'});
+  assert.equal(f.state().controls['workflow-run-review'].hidden,true,
+    'an old Document must not retain a usable Task confirmation');
+  const reply=await f.click('workflow-run-review-confirm');
+  assert.equal(reply?.ok,false);
+  assert.equal(calls.length,0,'stale confirmation never dispatches Task or AI');
+  assert.equal(f.starts.length,0,'stale confirmation never calls RunHost');
+});
+
+test('Chrome site revocation invalidates a pending installed Task confirmation',async t=>{
+  const {f,calls}=await fixture();t.after(()=>f.view.dispose());
+  f.input('workflow-ai-request','在当前演示搜索页搜索 OpenDesk，并核对结果。');
+  await f.click('workflow-ai-plan');
+  assert.equal(f.state().controls['workflow-run-review'].hidden,false);
+  await f.revoke([origin+'/*']);
+  assert.equal(f.state().controls['workflow-run-review'].hidden,true,
+    'revocation must dismiss the one-shot approval immediately');
+  const reply=await f.click('workflow-run-review-confirm');
+  assert.equal(reply?.ok,false);
+  assert.equal(calls.length,0);
+  assert.equal(f.starts.length,0,'no RunHost start after revoked approval');
+});

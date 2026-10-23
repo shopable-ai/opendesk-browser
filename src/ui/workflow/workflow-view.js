@@ -2776,7 +2776,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   const unsubscribePage=currentPageTarget?.subscribe(next=>{
     if(disposed)return;
     if(pendingReuse&&!sameTarget(pendingReuse.target,next))pendingReuse=null;
-    if(pendingInstalledGrant&&!sameTarget(pendingInstalledGrant.captured,next))pendingInstalledGrant=null;
+    if(pendingInstalledGrant&&!sameTarget(pendingInstalledGrant.captured,next)){
+      // A previously trusted Confirm must not remain visible for another
+      // Document. No Task, permission prompt or AI fallback may follow it.
+      pendingInstalledGrant=null;
+      dismissRunReview();
+      status('网页已变化，已取消已安装任务的待确认操作；请重新发送。',true);
+    }
     if(pendingBundleGrant&&!sameTarget(pendingBundleGrant.captured,next)||
       pendingNaturalPlanning&&!sameTarget(pendingNaturalPlanning.target,next)){
       pendingBundleGrant=null;pendingNaturalPlanning=null;dismissRunReview();
@@ -2852,9 +2858,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   });
   const removedPermissions=async grant=>{
     if(grant.origins?.length||grant.permissions?.length){
-      if(pendingRunReview||pendingAIReview||pendingBundleGrant||pendingNaturalPlanning)
+      if(pendingRunReview||pendingAIReview||pendingBundleGrant||
+        pendingNaturalPlanning||pendingInstalledGrant)
         dismissRunReview();
       pendingReuse=null;pendingBundleGrant=null;pendingNaturalPlanning=null;
+      // The user explicitly revoked permission: an installed Task's old
+      // one-shot Confirm is invalid even when its previous Document persists.
+      pendingInstalledGrant=null;
     }
     // Each consumer now observes its own Provider grant and invalidates only
     // its own Lease, not another consumer's Native thread or authorization.
