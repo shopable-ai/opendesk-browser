@@ -2005,14 +2005,34 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
     return value.state?.enabled&&value.state.exceptions?.includes('127.0.0.1')&&
       value.owned.some(rule=>rule.id===741001&&rule.action?.type==='allowAllRequests'&&rule.priority===2)?value:null;
   },'AdBlock A exception rule priority 2 exists before Stay Focus');
+  // After uninstall/reinstall the trusted React tool may restore its nested
+  // settings route. One real Back navigates inside the app; the next Back
+  // exits to the Extension Center. Never assume the first Back always exits.
+  let backLevel=await evaluate(client,sid,
+    'document.querySelector("#sidebar-tool-back")?.getAttribute("aria-label")');
+  note('coexistence-back-before-exit',{backLevel,toolVisible:await evaluate(client,sid,
+    'document.querySelector("#sidebar-tool-display")?.hidden===false')});
+  if(backLevel==='返回上一级'){
+    await returnToAdblockOverview(client,sid,reinstalledReact);
+    backLevel=await evaluate(client,sid,
+      'document.querySelector("#sidebar-tool-back")?.getAttribute("aria-label")');
+  }
+  if(backLevel==='返回上一页'){
+    await click(client,sid,'#sidebar-tool-back');
+    await until(()=>evaluate(client,sid,
+      'document.querySelector("#sidebar-tool-back")?.getAttribute("aria-label")==="返回扩展列表"'),
+      'trusted tool settings close before returning to extensions');
+    backLevel='返回扩展列表';
+  }
+  assert.equal(backLevel,'返回扩展列表','the real Host must expose outer Back before leaving app');
   await click(client,sid,'#sidebar-tool-back');
+  await until(()=>evaluate(client,sid,
+    'document.querySelector("#sidebar-tool-display")?.hidden===true'),
+    'installed AdBlock returned to extension management');
   await click(client,sid,'#tab-tools');
   // The React Extension Center can restore the previously selected AdBlock
   // detail after leaving the tool. Its list toolbar is correctly hidden until
   // the user presses the real detail Back button. Do not click a hidden menu.
-  await until(()=>evaluate(client,sid,
-    'document.querySelector("#sidebar-tool-display")?.hidden===true'),
-    'installed AdBlock returned to extension management');
   if(await evaluate(client,sid,
     'document.querySelector("#extension-center-detail")?.hidden===false'))
     await click(client,sid,'#extension-center-back');
