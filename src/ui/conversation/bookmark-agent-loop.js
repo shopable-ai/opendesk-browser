@@ -44,7 +44,9 @@ function requiredChecks(goal){
  // Bind the two parts to the user's named folder, not a model's $lastFolder.
  // Only the complete create-and-file intent is accepted here; extra commands
  // still need clarification rather than a weaker completion condition.
- const text=goal.trim();
+ // Strip only a bounded polite preamble; the entire remaining goal must still
+ // match a strict completion contract, so extra instructions are never ignored.
+ const text=goal.trim().replace(/^(?:请\s*)?(?:帮我\s*)?/u,'');
  const compound=text.match(/^(?:请)?(?:创建|新建)\s*(?:一个)?(?:名为|叫做)?\s*([「“『"'][^」”』"']+[」”』"']|[^，,。；;\n]+?)\s*(?:的)?(?:文件夹|目录)\s*[，,；;]?\s*(?:并且|并|然后|再|同时)\s*(.+?)[。！!]?$/)||
   text.match(/^(?:请)?(?:创建|新建)\s*(?:一个)?(?:文件夹|目录)\s*([「“『"'][^」”』"']+[」”』"']|[^，,。；;\n]+?)\s*[，,；;]?\s*(?:并且|并|然后|再|同时)\s*(.+?)[。！!]?$/);
  if(compound){
