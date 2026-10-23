@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {MANAGED_SITE_REVIEWED_SCOPE_STORE,reviewedManagedSiteScopeCovers,
-  extendReviewedManagedSiteScopes,managedSiteV3RequiredOrigins}
+  extendReviewedManagedSiteScopes,managedSiteV3RequiredOrigins,
+  rebindReviewedManagedSiteScopes}
   from '../../src/framework/host/managed-site-reviewed-scopes.js';
 
 const hash='a'.repeat(64),epoch='epoch-one';
@@ -55,4 +56,27 @@ test('paused policy requires no new scope but revocation does not activate anyth
   assert.deepEqual(managedSiteV3RequiredOrigins(paused),[]);
   assert.deepEqual(extendReviewedManagedSiteScopes(undefined,{
     id:'stay-focus',installEpoch:epoch,packageHash:hash,policy:paused}),{});
+});
+
+test('only an unchanged previously reviewed site scope may transfer to a new verified epoch',()=>{
+  const original=policy([site('video.example.com',true)]);
+  const old=extendReviewedManagedSiteScopes(undefined,{
+    id:'stay-focus',installEpoch:epoch,packageHash:hash,policy:original});
+  const nextEpoch='epoch-two',nextHash='b'.repeat(64);
+  const input={id:'stay-focus',fromEpoch:epoch,fromHash:hash,toEpoch:nextEpoch,
+    toHash:nextHash,policy:original};
+  const moved=rebindReviewedManagedSiteScopes(old,input);
+  assert.deepEqual(moved['stay-focus'].sites,old['stay-focus'].sites);
+  assert.equal(reviewedManagedSiteScopeCovers(moved,'stay-focus',nextEpoch,nextHash,original),true);
+  assert.equal(reviewedManagedSiteScopeCovers(moved,'stay-focus',epoch,hash,original),false);
+  assert.deepEqual(rebindReviewedManagedSiteScopes(moved,input),moved,'journal retry is idempotent');
+  assert.deepEqual(old['stay-focus'].sites,[{host:'video.example.com',subdomains:true}],
+    'the source record and scopes are not mutated by the transfer');
+  assert.throws(()=>rebindReviewedManagedSiteScopes(old,{...input,fromEpoch:'other'}),
+    {code:'E_SITE_SCOPE_CORRUPT'});
+  assert.throws(()=>rebindReviewedManagedSiteScopes(old,{...input,
+    policy:policy([site('new.example.com')])}),{code:'E_SITE_SCOPE_CORRUPT'},
+    'same application identity never permits new websites without explicit review');
+  assert.deepEqual(rebindReviewedManagedSiteScopes(undefined,input),{},
+    'an unreviewed legacy owner never gains new sites by upgrading');
 });
