@@ -2,6 +2,7 @@
 // never installs a tool, changes site grants or creates a sandbox instance.
 import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,serializeSidebarToolPackage} from '../ui/sidebar-tools/package.js';
 import {compareToolVersions,sameSidebarToolPackage} from '../ui/sidebar-tools/installation.js';
+import {sameStorageValue} from '../ui/sidebar-tools/storage-state.js';
 
 export const OFFICIAL_SOURCE_SCHEMA='opendesk.official-tools.sources.v1';
 export const OFFICIAL_RELEASE_SCHEMA='opendesk.official-tools.releases.v1';
@@ -237,7 +238,7 @@ export async function loadOfficialTool(release,{api=globalThis.chrome,fetcher=gl
     const descriptor=json(await resourceBytes(api,fetcher,
       OFFICIAL_STAY_FOCUS_RELEASE_URL,8192,{external:true}));
     const current=await verifyOfficialStayFocusRemoteDescriptor(descriptor);
-    if(JSON.stringify(current)!==JSON.stringify(row))
+    if(!sameStorageValue(current,row))
       throw error('官方发行在用户审阅后已变化，拒绝更换版本','E_PACKAGE_IDENTITY');
   }
   const bytes=await resourceBytes(api,fetcher,
