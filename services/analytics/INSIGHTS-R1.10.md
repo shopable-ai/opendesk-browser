@@ -138,9 +138,9 @@ ORDER BY period,events_count DESC
 \`\`\`sql
 SELECT distinct_id,max(timestamp) AS last_reported,
   dateDiff('hour',max(timestamp),now()) AS age_hours,
-  if(dateDiff('hour',max(timestamp),now())>=24,'STALE',
-    if(argMax(properties.inventory_read_state,timestamp)='failed',
-      'READ_FAILED','FRESH')) AS freshness,
+  if(argMax(properties.inventory_read_state,timestamp)='failed','READ_FAILED',
+    if(dateDiff('hour',max(timestamp),now())>=24,'STALE','FRESH'))
+    AS freshness,
   argMax(properties.inventory_read_state,timestamp) AS latest_state,
   argMax(properties.inventory_types,timestamp) AS latest_types,
   argMax(properties.inventory_items,timestamp) AS latest_items,
