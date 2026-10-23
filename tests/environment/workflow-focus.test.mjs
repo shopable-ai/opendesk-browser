@@ -17,6 +17,7 @@ import * as directExecution from '../../src/ui/workflow/direct-execution.js';
 import * as agentLoop from '../../src/ui/workflow/agent-loop.js';
 import * as segmentReplay from '../../src/ui/workflow/segment-replay.js';
 import * as workflowReuse from '../../src/ui/workflow/workflow-reuse.js';
+import * as installedTaskReuse from '../../src/ui/workflow/installed-task-reuse.js';
 import * as taskContract from '../../src/platform/tasks/contract.js';
 import * as promptActions from '../../src/ui/conversation/prompt-actions.js';
 import {workflowObservationForModel,workflowObservationGrantMatches,workflowObservationRecipientId} from '../../src/ui/workflow/observation.js';
@@ -103,13 +104,13 @@ if(!vm.SourceTextModule) {
 
   async function make(t,{steps=[],approval=false,observeGate=null,storedGrant=null,
     sessionId='component-session',initialPermission=true,savedRecord=null,configureHost=null,
-    resumable=false,controllerOnly=false,probe=null}={}) {
+    resumable=false,controllerOnly=false,probe=null,catalogReadGate=null,catalogFail=false}={}) {
     const dom=controllerOnly?null:documentFixture();
     const doc=dom?.doc||{getElementById:()=>null};
     const get=id=>doc.getElementById(id),draft=contract.emptyWorkflow('https://a.example',crypto.randomUUID());
     draft.steps=structuredClone(steps);
     const planGate=deferred(),approvalReady=deferred(),answers=[],observations=[];
-    let plannerOptions,projection,currentSessionId=sessionId,resumeCalls=0,probeCalls=0;const compiled=[],sessionWrites=[];
+    let plannerOptions,projection,currentSessionId=sessionId,resumeCalls=0,probeCalls=0,catalogReads=0;const compiled=[],sessionWrites=[];
     const proposal=workflow=>({...structuredClone(workflow),title:'Component proposal',steps:[{stepId:'proposed',op:'observe'}]});
     const planner={snapshot:()=>({sessionId:currentSessionId,state:'READY_FOR_TURN',readyForTurn:true,resumable}),
       probe:async()=>{probeCalls++;return probe?probe():{state:'READY_FOR_TURN',readyForTurn:true};},
@@ -159,6 +160,7 @@ if(!vm.SourceTextModule) {
       './agent-loop.js':agentLoop,
       './segment-replay.js':segmentReplay,
       './workflow-reuse.js':workflowReuse,
+      './installed-task-reuse.js':installedTaskReuse,
       '../conversation/prompt-actions.js':promptActions,
       './local-codex.js':{createLocalCodexPlanner:()=>planner,describeLocalCodex:value=>({state:value.state,message:'Component fixture',ready:value.readyForTurn===true})},
       './observation.js':{createWorkflowObservation:()=>observation,
@@ -205,7 +207,15 @@ if(!vm.SourceTextModule) {
     const host={subscribe:()=>()=>{},currentRun:null,executionPending:false};
     configureHost?.(host);
     const ui=module.namespace.createWorkflowView({document:doc,api,
-      client:{ready:Promise.resolve(),subscribeWorkflowAI:()=>()=>{}},
+      client:{ready:Promise.resolve(),subscribeWorkflowAI:()=>()=>{},
+        async request(method){
+          if(method!=='listTaskCatalog')throw Object.assign(new Error('Unexpected Host method '+method),{code:'E_FIXTURE_HOST'});
+          catalogReads++;
+          if(catalogReads>1&&catalogReadGate)await catalogReadGate.promise;
+          if(catalogReads>1&&catalogFail)
+            throw Object.assign(new Error('Task Catalog unavailable'),{code:'E_TASK_CATALOG'});
+          return {catalog:[],installed:[]};
+        }},
       host,
       currentPageTarget:{windowId:7,get snapshot(){return target;},ready:Promise.resolve(),capture:()=>({...target}),revalidate:async captured=>{
         if(['windowId','tabId','frameId','documentId','url','origin'].some(key=>captured[key]!==target[key]))
@@ -253,7 +263,7 @@ if(!vm.SourceTextModule) {
     return {doc,get,ui,click,openCreation,clickNew,focusNew,control,stepsNow,startPlan,planGate,approvalReady,answers,observations,compiled,
       permissions,permissionRequests,sessionWrites,sessionStore,setPage,removePermission,host,savedKey,
       setSessionId:value=>{currentSessionId=value;},get projection(){return projection;},
-      get plannerOptions(){return plannerOptions;},get resumeCalls(){return resumeCalls;},get probeCalls(){return probeCalls;}};
+      get plannerOptions(){return plannerOptions;},get resumeCalls(){return resumeCalls;},get probeCalls(){return probeCalls;},get catalogReads(){return catalogReads;}};
   }
   const fill=id=>({stepId:id,op:'fill',locatorKind:'css',selector:'#keyword',text:''});
   const observe=id=>({stepId:id,op:'observe'});
@@ -346,6 +356,31 @@ if(!vm.SourceTextModule) {
     await f.ui.actions.click('workflow-ai-cancel',trusted);await running;
     check.resolve();await tick();
     assert.equal(control('workflow-ai-plan').disabled,false);
+  });
+
+  test('component: trusted Send waits for installed Task Catalog before asking AI',async t=>{
+    const gate=deferred(),f=await make(t,{controllerOnly:true,catalogReadGate:gate});
+    t.after(()=>{gate.resolve();f.planGate.resolve();});
+    await waitFor(()=>f.catalogReads===1);
+    const trusted={isTrusted:true};
+    f.ui.actions.input('workflow-ai-request','Observe page with no reusable program',trusted);
+    const pending=f.ui.actions.click('workflow-ai-plan',trusted);
+    await waitFor(()=>f.catalogReads===2);
+    assert.equal(f.plannerOptions,undefined,'AI cannot skip pending Task Catalog');
+    gate.resolve();
+    await waitFor(()=>Boolean(f.plannerOptions));
+    f.planGate.resolve();await pending;
+  });
+
+  test('component: Task Catalog failure does not become NO_MATCH or start Provider',async t=>{
+    const f=await make(t,{controllerOnly:true,catalogFail:true});
+    await waitFor(()=>f.catalogReads===1);
+    const trusted={isTrusted:true};
+    f.ui.actions.input('workflow-ai-request','Observe page with Catalog unavailable',trusted);
+    await f.ui.actions.click('workflow-ai-plan',trusted);
+    assert.equal(f.catalogReads,2);
+    assert.equal(f.plannerOptions,undefined);
+    assert.ok(f.ui.getSnapshot().messages.some(row=>/未执行|E_TASK_CATALOG/.test(row.message)));
   });
 
   test('component: current AI-only markup initializes Run and Save without a manual-start control',async t=>{
