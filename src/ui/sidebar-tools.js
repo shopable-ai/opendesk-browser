@@ -2192,7 +2192,36 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             }catch(error){cookieWriteGate.revoke();throw error;}
           }
         }
-        if(!importBatchOwner&&!writeIntentOwner){
+        if(operation==='browser.cookies.clearSite'&&tool.id==='cookie-editor'&&
+           await admittedOfficialCookieImport(tool,revocationEpoch)){
+          const owner=cookieImportOwner(tool,token,revocationEpoch);
+          const {captured,document}=captureCookieImportDocument('清理');
+          await currentPageTarget.revalidate(captured);
+          assertSession(source,token);
+          const grant=cookieSiteRecord(tool,origin);
+          // Consume exactly once and fail closed on an expired, changed or
+          // forged preview. Do not fall through to a second confirmation UI.
+          if(!cookieClearGate.consume({owner,url:payload.url,previewRef:payload.previewRef,
+            expectedCount:payload.expectedCount,maxCookies:payload.maxCookies,
+            grantEpoch:grant?.grantEpoch??null,document}))
+            throw Object.assign(new Error('本次清理未获得有效确认，请重新预览并点击清理'),
+              {code:'E_USER_GESTURE_REQUIRED'});
+          clearIntentOwner=owner;
+          try{
+            if(websiteOrigin(currentPageTarget?.snapshot?.url)!==origin||grant?.clear!==true)
+              throw Object.assign(new Error('清理网站或授权已变化'),{code:'E_DOCUMENT_CHANGED'});
+            const approval=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
+              operation:'browser.intent.confirm',toolId:tool.id,toolVersion:tool.version,
+              installEpoch:revocationEpoch,packageHash,toolInstance:token,hostInstanceId,
+              targetOperation:operation,targetArgs:payload||{}});
+            if(!approval?.ok||typeof approval.data?.approvalRef!=='string')
+              throw Object.assign(new Error(approval?.error?.message||'可信 Host 拒绝本次清理'),
+                {code:approval?.error?.code||'E_BROWSER'});
+            assertSession(source,token);
+            envelope.approvalRef=approval.data.approvalRef;
+          }catch(error){cookieClearGate.revoke();throw error;}
+        }
+        if(!importBatchOwner&&!writeIntentOwner&&!clearIntentOwner){
           const kind=operation==='browser.cookies.clearSite'?'清理该网站的 Host-only Cookie':
             operation==='browser.cookies.observe.start'?'开始临时监听 Cookie 变化':
             operation==='browser.cookies.remove'?'删除指定 Cookie':
@@ -2245,6 +2274,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       }catch(error){
         if(importBatchOwner)cookieImportGate.revoke();
         if(writeIntentOwner)cookieWriteGate.revoke();
+        if(clearIntentOwner)cookieClearGate.revoke();
         throw error;
       }
       if(browserExport){
