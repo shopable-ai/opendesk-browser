@@ -129,18 +129,26 @@ export function createTrustedPromptHost({
     }
   };
   const summaryRow=row=>(row.name||row.label||row.id)+' ['+row.id+']';
-  const review=proposal=>confirm({
-    button:'确认'+proposal.label+' '+proposal.count+' 条',
-    message:'可信 Host 将'+proposal.label+'以下 '+proposal.count+' 条提示词。\n'+
-      '匹配条件：'+proposal.query+'\n操作无法自动撤销。逐项改动：\n'+
-      proposal.changes.map(({id,before,after},index)=>
-        (index+1)+'. '+summaryRow(before)+'\n'+JSON.stringify({
-          id,before:{body:before.body,enabled:before.enabled,order:before.order},
-          after:after?{body:after.body,enabled:after.enabled,order:after.order}:null
-        },null,2)).join('\n')+
-      '\n确认后仍会核对官方安装身份、草稿和 ETag。',
-    run:async()=>{await live();return true;}
-  });
+  const review=proposal=>{
+    const deleting=proposal.action==='delete',editing=proposal.action==='batch_edit';
+    const details=proposal.changes.map(({before,after},index)=>{
+      const title=(index+1)+'. '+summaryRow(before);
+      if(deleting)return title; // Deletion confirmation never displays private bodies.
+      if(editing)return title+'\n修改前：\n'+before.body+'\n修改后：\n'+after.body;
+      return title+' · '+(before.enabled?'启用':'停用')+' → '+
+        (after.enabled?'启用':'停用');
+    }).join('\n');
+    return confirm({
+      button:deleting?'确认删除 '+proposal.count+' 条':
+        '确认'+proposal.label+' '+proposal.count+' 条',
+      message:(deleting?'确认删除以下 '+proposal.count+' 条提示词？':
+        '请核对以下 '+proposal.count+' 条提示词的'+proposal.label+'结果：')+
+        '\n匹配条件：'+proposal.query+'\n'+details+
+        (deleting?'\n删除后无法撤销。':'\n确认后将保存上述变更。')+
+        '\n保存前仍会校验官方安装身份、草稿状态和 ETag。',
+      run:async()=>{await live();return true;}
+    });
+  };
   const notify=async({changed=false,unknown=false,targetId=null,releasedImageAssets=[]}={})=>{
     if(disposed)return;
     if(changed||unknown)try{send('state-changed',{targetId});}catch{}

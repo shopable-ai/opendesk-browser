@@ -198,13 +198,15 @@ test('R1.3 sandbox Guard denial forbids all writes and recovery records',async()
   f.host.dispose();
 });
 test('R1.3 trusted Host review aborts destructive operations without a storage write',async()=>{
-  const row=model.draft({body:'旧版测试',name:'旧版测试'});
+  const row=model.draft({body:'私密删除正文不得展示在确认界面',name:'旧版测试'});
   const f=hostFixture({initial:{schema:1,items:[row],settings:model.defaults().settings},
     proposal:{action:{type:'delete',query:'旧版测试'}},allowReview:false});
   await assert.rejects(f.host.request({request:'删除旧版测试',event:{isTrusted:true}}),
     {code:'E_CANCELLED'});
   assert.equal(f.commits,0);assert.equal(f.library.value.items.length,1);
   assert.match(f.confirms[0],/旧版测试/);
+  assert.match(f.confirms[0],/确认删除以下 1 条/);
+  assert.doesNotMatch(f.confirms[0],/私密删除正文/);
   f.host.dispose();
 });
 test('R1.3 pending receipt is independently reconciled, never replayed',async()=>{
@@ -341,12 +343,15 @@ test('R1.4 Host verifies all seven Prompt business categories with readback and 
   f.setEditResult('简洁版专业说明：保留 Markdown');
   await run({type:'batch_edit',query:'测试翻译',instruction:'缩短为简洁版本'});
   assert.equal(f.confirms.length-beforeBatch,1,'one batch change review, no extra body approval');
+  assert.match(f.confirms[beforeBatch],/修改前：[\s\S]*修改后：/);
   assert.equal(f.modelCalls.filter(row=>row.scope==='prompt-edit').length,3,
     'one selected original body per edit, including two batch records');
   assert.equal(f.library.value.items.filter(row=>row.name.startsWith('测试翻译')).length,oldOthers);
   const beforeDelete=f.confirms.length;
   await run({type:'delete',query:'新增日语'},'删除指定旧提示词');
   assert.equal(f.confirms.length-beforeDelete,1,'delete requires only one target review');
+  assert.match(f.confirms[beforeDelete],/新增日语/);
+  assert.doesNotMatch(f.confirms[beforeDelete],/将中文翻译成日语，保留 Markdown 格式/);
   assert.equal(f.library.value.items.some(row=>row.name==='新增日语'),false);
   assert.equal(f.messages.filter(m=>m.kind==='state-changed').length,7,
     'every durable Host write notifies the existing iframe; search does not');
