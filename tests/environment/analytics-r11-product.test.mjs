@@ -7,6 +7,10 @@ import {readFile} from 'node:fs/promises';
 import {installAnalyticsHost} from '../../src/analytics/host.js';
 import {createAnalyticsGateway} from '../../services/analytics/worker.mjs';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
+import {MARKET_PROVENANCE_STORE,OFFICIAL_READING_TOC_RELEASE} from '../../src/sidebar-tools/official-reading-toc.js';
+import {READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
+import {officialToolFixture} from '../helpers/official-tools.mjs';
 import {ANALYTICS_PROTOCOL,ANALYTICS_STATE_KEY,ANALYTICS_PAGE_SCOPE_CHECK,ANALYTICS_DISCLOSURE_VERSION} from '../../src/analytics/contract.js';
 
 const listen=server=>new Promise(resolve=>server.listen(0,'127.0.0.1',
@@ -242,33 +246,55 @@ test('trusted Workflow Send counts once even on failure; later business evidence
   assert.equal((await send(payload,panel)).data.recorded,false);
 });
 
-test('Reading TOC B-grade navigation needs installed tool, current document and v7 consent',async()=>{
-  const {api,send,records}=chromeMock([{id:'reading-toc'}]);
+test('Reading TOC B-grade requires official bytes, site, page, generation and consent',async()=>{
+  const tool=await officialToolFixture('reading-toc'),pin=OFFICIAL_READING_TOC_RELEASE;
+  const {api,send,records}=chromeMock([tool]);
+  const provenance={[pin.id]:{marketId:pin.marketId,sha256:pin.sha256,version:pin.version}};
+  await api.storage.local.set({[MARKET_PROVENANCE_STORE]:provenance});
   installAnalyticsHost({api,endpoint:'https://analytics.example/v1/events',
     now:()=>Date.UTC(2026,9,23,12),newId:randomUUID,
     fetcher:async()=>{throw Error('offline');}});
-  const id=api.runtime.id;
-  const options={id,url:api.runtime.getURL('native-agent/settings.html')};
+  const id=api.runtime.id,options={id,url:api.runtime.getURL('native-agent/settings.html')};
   const page={id,url:'https://chatgpt.com/',documentId:'prompt-document',frameId:0,
     tab:{id:12,url:'https://chatgpt.com/',incognito:false}};
   const nav={protocol:ANALYTICS_PROTOCOL,kind:'event.reading_toc_navigated',
-    event:'reading_toc.navigated',toolId:'reading-toc',channel:'page_button'};
+    event:'reading_toc.navigated',toolId:'reading-toc',channel:'page_button',
+    installationEpoch:null};
   assert.equal((await send(nav,page)).data.recorded,false);
   assert.equal(records.get(ANALYTICS_STATE_KEY),undefined);
   await send({protocol:ANALYTICS_PROTOCOL,kind:'consent.set',enabled:true,
     disclosureVersion:ANALYTICS_DISCLOSURE_VERSION},options);
   assert.equal((await send(nav,{...page,documentId:'stale-doc'})).code,'E_SENDER');
   assert.equal((await send(nav,{...page,frameId:1})).code,'E_SENDER');
-  assert.equal((await send(nav,page)).data.recorded,true);
+  const {installationEpoch,...withoutEpoch}=nav;
+  assert.equal((await send(withoutEpoch,page)).code,'E_SENDER');
+  await api.storage.local.set({[MARKET_PROVENANCE_STORE]:{}});
+  assert.equal((await send(nav,page)).code,'E_SENDER','ID without official provenance');
+  await api.storage.local.set({[MARKET_PROVENANCE_STORE]:provenance,
+    [SIDEBAR_TOOL_STORE]:[{...tool,js:tool.js+'/* unreviewed */'}]});
+  assert.equal((await send(nav,page)).code,'E_SENDER','changed package source is not official');
+  await api.storage.local.set({[SIDEBAR_TOOL_STORE]:[tool],
+    [SIDEBAR_TOOL_ENABLE_STORE]:{'reading-toc':false}});
+  assert.equal((await send(nav,page)).code,'E_SENDER','disabled tool must not claim navigation');
+  await api.storage.local.set({[SIDEBAR_TOOL_ENABLE_STORE]:{},
+    [READING_TOC_SITE_STORE]:{'reading-toc':{mode:'all-except',blockedOrigins:['https://chatgpt.com']}}});
+  assert.equal((await send(nav,page)).code,'E_SENDER','site grant revoked');
+  await api.storage.local.set({[READING_TOC_SITE_STORE]:{},
+    [READING_TOC_PAGE_RULES_STORE]:{'reading-toc':['https://chatgpt.com/']}});
+  assert.equal((await send(nav,page)).code,'E_SENDER','page explicitly disabled');
+  const epoch=randomUUID();
+  await api.storage.local.set({[READING_TOC_PAGE_RULES_STORE]:{},
+    [TOOL_REVOCATION_EPOCHS_STORE]:{'reading-toc':epoch}});
+  assert.equal((await send(nav,page)).code,'E_SENDER','old generation may not report');
+  assert.equal((await send({...nav,installationEpoch:epoch},page)).data.recorded,true);
   const evidence=records.get(ANALYTICS_STATE_KEY).queue
     .filter(row=>row.event==='reading_toc.navigated');
   assert.equal(evidence.length,1);
   assert.equal(evidence[0].evidenceLevel,'B');
   assert.equal(evidence[0].source,'page_adapter');
-  assert(!JSON.stringify(evidence).includes('https://chatgpt.com/'),
-    'page URL must not enter collection even in a trusted adapter');
+  assert(!JSON.stringify(evidence).includes('https://chatgpt.com/'));
+  assert(!JSON.stringify(evidence).includes(epoch),'epoch remains local to Host');
 });
-
 
 test('R1.12 Page intent requires installed Authority; Host validates terminal receipt before anonymous telemetry',async()=>{
   const now=Date.UTC(2026,9,24,2),{api,send,records}=chromeMock([]);

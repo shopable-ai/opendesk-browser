@@ -181,7 +181,10 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
     // A Fire is only a scheduler execution when the original Run is bound
     // to that exact Fire and Result. Never count an unbound intention.
     if(!run||run.scheduledFireId!==fire.fireId||
-       fire.resultId&&fire.resultId!==run.resultId||
+       // The Scheduler persists these three IDs together at admission.
+       // A missing ResultId is not a proven execution receipt.
+       typeof fire.resultId!=='string'||!fire.resultId||
+       fire.resultId!==run.resultId||
        run.cloudRequestId){projectionGap=true;continue;}
     includeRun(run,fire.fireId,'scheduler');
   }

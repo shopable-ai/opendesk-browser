@@ -92,6 +92,29 @@ test('Scheduler FireId + bound RunId/ResultId; inconsistent result is UNKNOWN',a
   assert.equal(daily(value,'task','completed'),undefined);
   assert.equal(value.projectionGap,true);
 });
+test('Scheduler requires original FireId + RunId + ResultId before counting automatic use',async()=>{
+  const {storage,api,stores}=authorityDB();
+  const runId=randomUUID(),resultId=randomUUID(),fireId='f-three-ids';
+  const fire={tag:'schedule-fire-v1',namespace,fireId,runId,resultId:null,status:'ADMITTED'};
+  stores.frameworkKV.push(fire);
+  stores.runs.push({tag:'controller-run',namespace,runId,resultId,scheduledFireId:fireId,
+    installedTaskAuthorization:{taskId:'task-1'},createdAt:NOW,state:'completed'});
+  stores.results.push({tag:'controller-result',namespace,runId,resultId,state:'completed',
+    outcome:{ok:true}});
+  let value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
+  assert.equal(daily(value,'task','attempted'),undefined);
+  assert.equal(value.projectionGap,true);
+  fire.resultId=randomUUID();
+  value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
+  assert.equal(daily(value,'task','completed'),undefined);
+  fire.resultId=resultId;
+  value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
+  assert.equal(daily(value,'task','attempted')?.total,1);
+  assert.equal(daily(value,'task','completed')?.total,1);
+  assert.deepEqual(daily(value,'task','completed')?.sourceTotals,{scheduler:1});
+  assert.equal(value.projectionGap,false);
+});
+
 test('consent gates readback and daily version; automatic runs do not invent app.opened',async()=>{
   const {api:ext,values}=memory();const {api,storage,stores}=authorityDB();
   for(let i=0;i<100;i++)stores.frameworkKV.push({tag:'page-execution-v1',namespace,

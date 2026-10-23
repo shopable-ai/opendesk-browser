@@ -11,6 +11,25 @@ const model=globalThis.OpenDeskPromptShortcutsModel;
 const hash=value=>createHash('sha256').update(stableStorageString(value)).digest('hex');
 const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).byteLength;
 const fail=code=>Object.assign(new Error(code),{code});
+// Node lacks Chrome navigator.locks. Model its FIFO exclusive semantics only
+// for deterministic Host interleaving regressions; the production Host still
+// rejects missing real Web Locks, covered separately by the source-bound gate.
+function testExclusiveLocks(){
+  const tails=new Map();
+  return {request(name,options,callback){
+    const work=typeof options==='function'?options:callback;
+    const signal=typeof options==='function'?null:options?.signal;
+    const prior=tails.get(name)||Promise.resolve();
+    const pending=prior.then(()=>{
+      if(signal?.aborted)throw Object.assign(new Error('Lock request aborted'),{name:'AbortError'});
+      return work({name,mode:'exclusive'});
+    });
+    const settled=pending.then(()=>{},()=>{});
+    tails.set(name,settled);
+    void settled.then(()=>{if(tails.get(name)===settled)tails.delete(name);});
+    return pending;
+  }};
+}
 // Execute the production dispatcher's storage branch verbatim, not a fake
 // E_TOOL_DATA_LIMIT throw. Session/Chrome/Provider boundaries remain local fixtures.
 const source=readFileSync(new URL('../../src/ui/sidebar-tools.js',import.meta.url),'utf8');
@@ -23,6 +42,7 @@ const storageBranch=new (Object.getPrototypeOf(async()=>{}).constructor)(
   'etagFor','reportAnalytics','assertWrite',source.slice(start,end));
 
 function fixture({quota=false,mode='normal'}={}){
+  const locks=testExclusiveLocks();
   const tool={id:'prompt-shortcuts',version:'1.1.13'},namespace=sidebarToolStorageKey(tool.id);
   const initial={library:model.defaults()};
   if(quota){
@@ -57,7 +77,7 @@ function fixture({quota=false,mode='normal'}={}){
       SIDEBAR_TOOL_DATA_LIMITS,()=>true,()=>{},writeVerifiedLocalValue,async value=>hash(value),()=>{});
   };
   host=createTrustedPromptHost({api,tool,token:'instance',epoch:'epoch',model,
-    assertIdentity:async()=>{},frameSource:()=>frame,guardBlocked:()=>false,
+    lockManager:locks,assertIdentity:async()=>{},frameSource:()=>frame,guardBlocked:()=>false,
     dispatch,etagFor:async value=>hash(value),confirm:async()=>true,
     conversation:{source:()=>({provider:'fixture'}),cancel:async()=>{},
       request:async({request})=>({proposal:{action:{type:'create',body:request}},
@@ -85,22 +105,23 @@ for(const waitAt of ['recovery','tool'])for(const mode of ['stop','grant-revoked
         rows.set(key,structuredClone(value));if(key===namespace)writes++;
       }},async remove(key){rows.delete(key);}
     }}};
+    const locks=testExclusiveLocks();
     const receiptLock='opendesk.sidebar-tools:prompt-ai-recovery';
     const toolLock='opendesk.sidebar-tools:tool:'+tool.id;
-    const block=name=>navigator.locks.request(name,async()=>{held.resolve();await release.promise;});
+    const block=name=>locks.request(name,async()=>{held.resolve();await release.promise;});
     if(waitAt==='recovery'){blocker=block(receiptLock);await held.promise;}
     const dispatch=async(operation,payload,controls)=>{
       if(waitAt==='tool'&&operation==='storage.set'){
         blocker=block(toolLock);await held.promise;
       }
-      const pending=navigator.locks.request(toolLock,()=>storageBranch(operation,payload,
+      const pending=locks.request(toolLock,()=>storageBranch(operation,payload,
         tool,frame,'queued',api,sidebarToolStorageKey,SIDEBAR_TOOL_DATA_LIMITS,
         ()=>true,()=>{},writeVerifiedLocalValue,async value=>hash(value),()=>{},controls?.beforeWrite));
       if(waitAt==='tool'&&operation==='storage.set')queued.resolve();
       return pending;
     };
     host=createTrustedPromptHost({api,tool,token:'queued',epoch:'epoch',model,
-      lockManager:{request(name,...args){const pending=navigator.locks.request(name,...args);
+      lockManager:{request(name,...args){const pending=locks.request(name,...args);
         if(waitAt==='recovery')queued.resolve();return pending;}},
       assertIdentity:async()=>{},frameSource:()=>frame,dispatch,etagFor:async value=>hash(value),
       confirm:async()=>true,conversation:{source:()=>({provider:'fixture'}),cancel:async()=>{},
@@ -199,6 +220,7 @@ for(const phase of ['quota','conflict','notify','reconcile']){
         rows.delete(key);
       }
     }}};
+    const locks=testExclusiveLocks();
     const makeHost=(token,isNew=false)=>{
       const frame={};let host,lost=false;
       const dispatch=async(operation,payload)=>{
@@ -212,7 +234,7 @@ for(const phase of ['quota','conflict','notify','reconcile']){
         return result;
       };
       host=createTrustedPromptHost({api,tool,token,epoch:token,model,
-        assertIdentity:async()=>{},frameSource:()=>frame,dispatch,
+        lockManager:locks,assertIdentity:async()=>{},frameSource:()=>frame,dispatch,
         etagFor:async value=>hash(value),confirm:async()=>true,
         conversation:{source:()=>({provider:'fixture'}),cancel:async()=>{},
           request:async({request})=>({proposal:{action:{type:'create',body:request}},
