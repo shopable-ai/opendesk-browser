@@ -19,6 +19,7 @@ import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,sidebarTool
 import {officialToolFixture,officialFixtureFetch,officialFixtures} from '../helpers/official-tools.mjs';
 import {OFFICIAL_READING_TOC_RELEASE} from '../../src/sidebar-tools/official-reading-toc.js';
 import {TRUSTED_BOOKMARK_COMPONENT_VERSION} from '../../src/ui/trusted-bookmark-admission.js';
+import {admitsTrustedPrompt,TRUSTED_PROMPT_VERSION} from '../../src/ui/trusted-prompt-admission.js';
 import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation,recoverMarketOperation,
   TOOL_CLEANUP_STORE,retryUninstalledToolCleanup,getPendingToolCleanups,installReviewedSidebarTool,
   TOOL_REVOCATION_EPOCHS_STORE,recordToolUninstall} from '../../src/ui/sidebar-tools/installation.js';
@@ -559,6 +560,8 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
 test('R1.3 exact official Prompt admits one trusted React Dock and one sandbox iframe without remount',async t=>{
   const tool=await officialToolFixture('prompt-shortcuts');
   const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
+  assert.equal(tool.version,TRUSTED_PROMPT_VERSION,'source candidate must be reviewed before trusted admission');
+  assert.equal(release.version,tool.version,'official fixture must describe those same candidate bytes');
   const epoch='prompt-generation-r13',store=new Map([
     [SIDEBAR_TOOL_STORE,[tool]],[SIDEBAR_TOOL_ENABLE_STORE,{[tool.id]:true}],
     [TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:epoch}],
@@ -587,6 +590,23 @@ test('R1.3 exact official Prompt admits one trusted React Dock and one sandbox i
   assert.equal(target.children[0],frame,'iframe is not re-parented after load');
   assert.equal(typeof mounts[0].onRequest,'function');
   assert.equal(typeof mounts[0].onReconcile,'function');
+});
+test('R1.11 Prompt trusted admission requires exact candidate digest and refuses legacy version',async()=>{
+  const current=await officialToolFixture('prompt-shortcuts');
+  const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===current.id);
+  const epoch='prompt-r111-verified-generation';
+  const valid={release,installed:[current],enableRecords:{[current.id]:true},
+    provenance:{[current.id]:{marketId:release.id,version:release.version,sha256:release.sha256}},
+    epochs:{[current.id]:epoch},expectedEpoch:epoch};
+  assert.equal(await admitsTrustedPrompt({tool:current,...valid}),true,
+    'matching version alone is insufficient: official release digest must also match');
+  const legacy={...current,version:'1.1.14'};
+  assert.equal(await admitsTrustedPrompt({tool:legacy,...valid,installed:[legacy]}),false,
+    'older installed release cannot borrow the current trusted identity');
+  assert.equal(await admitsTrustedPrompt({tool:{...current,js:current.js+'\\nvoid 0;'},...valid}),false,
+    'a changed same-version body never inherits trusted privileges');
+  assert.equal(await admitsTrustedPrompt({tool:current,...valid,epochs:{[current.id]:'revoked'}}),false,
+    'a revoked or replaced installation cannot retain the trusted Dock');
 });
 test('R1.3 same-ID modified Prompt is never admitted to trusted Dock',async t=>{
   const official=await officialToolFixture('prompt-shortcuts');
