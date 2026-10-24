@@ -277,7 +277,7 @@ export function ToolHost({view}) {
 
 </ToolField>
 <ToolField as="section" id="sidebar-tool-settings-view" className="sidebar-tool-settings-view od-surface" aria-label="工具设置" hidden={true}>
-<div className="sidebar-tool-settings-heading">
+{snapshot.fields['sidebar-tool-bookmark-permissions']?.hidden===false&&<div className="sidebar-tool-settings-heading">
   <div className="sidebar-tool-settings-heading-icon" aria-hidden="true">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="3"/>
@@ -288,7 +288,7 @@ export function ToolHost({view}) {
     <h2>工具设置</h2>
     <p>{snapshot.fields['sidebar-tool-title']?.textContent||'当前扩展'} · 权限与应用管理</p>
   </div>
-</div>
+</div>}
 
 <BookmarkSettings/><ToolField as="div" id="sidebar-tool-toc-language" className="sidebar-toc-settings-row" hidden={true}>
 <label htmlFor="sidebar-tool-toc-language-select">
