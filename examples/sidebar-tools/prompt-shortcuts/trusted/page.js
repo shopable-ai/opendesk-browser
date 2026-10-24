@@ -24,9 +24,11 @@ const STYLE=String.raw`
  --od-pop-bg:#20242b;--od-pop-fg:#ebedf1;--od-pop-border:#373c45}
 :host([hidden]){display:none!important}
 button[hidden]{display:none!important}
+/* Fit the OD launcher, three default prompts and both navigation actions without
+   an artificial scrollbar; longer user libraries still scroll within the viewport. */
 .nav-item{font-size:21px;font-weight:550;line-height:1;letter-spacing:0}
 .rail{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:5px;
- max-height:min(248px,calc(100vh - 16px));overflow-y:auto;overflow-x:hidden;
+ max-height:min(400px,calc(100dvh - 16px));overflow-y:auto;overflow-x:hidden;
  width:max-content;max-width:calc(100vw - 16px);padding:6px;border-radius:17px;
  background:var(--od-rail-bg);border:1px solid var(--od-rail-border);
  box-shadow:var(--od-rail-shadow);scrollbar-width:thin;overscroll-behavior:contain;box-sizing:border-box}
@@ -667,7 +669,8 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     rail.classList.toggle('narrow',rect.width<680);
     if(vertical){
       const visibleTop=Math.max(0,rect.top),visibleBottom=Math.min(win.innerHeight,rect.top+rect.height);
-      const railHeight=Math.min(rail.scrollHeight||222,win.innerHeight-16);
+      // Center the visible scrollport, not its potentially longer scrollable content.
+      const railHeight=Math.min(rail.offsetHeight||rail.scrollHeight||222,win.innerHeight-16);
       const center=(visibleTop+visibleBottom)/2;
       const top=Math.max(8+railHeight/2,Math.min(win.innerHeight-8-railHeight/2,center));
       host.style.left=Math.round(left)+'px';host.style.top=Math.round(top)+'px';
