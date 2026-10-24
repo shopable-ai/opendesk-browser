@@ -79,19 +79,12 @@ async function pressKey(key,code,virtualKey,modifiers=0){
     await call('Input.dispatchKeyEvent',{type,key,code,windowsVirtualKeyCode:virtualKey,
       nativeVirtualKeyCode:virtualKey,modifiers});
 }
-async function expandPreviewRail(){
-  await poll('["true","false"].includes(document.querySelector("#pageRail .starter-toggle")?.getAttribute("aria-expanded"))',
-    'initialized offline HTML launcher');
-  const collapsed=await evalChrome('document.querySelector("#pageRail .starter-toggle")?.getAttribute("aria-expanded")==="false"');
-  if(collapsed)await click('#pageRail .starter-toggle');
-  await poll('document.querySelector("#pageRail .starter-toggle")?.getAttribute("aria-expanded")==="true"',
-    'expanded offline HTML launcher');
-}
-async function collapsePreviewRail(){
-  const expanded=await evalChrome('document.querySelector("#pageRail .starter-toggle")?.getAttribute("aria-expanded")==="true"');
-  if(expanded)await click('#pageRail .starter-toggle');
-  await poll('document.querySelector("#pageRail .starter-toggle")?.getAttribute("aria-expanded")==="false"',
-    'collapsed offline HTML launcher');
+async function waitPreviewRail(){
+  await poll('document.querySelector("#pageRail .page-shortcut")?.isConnected',
+    'direct saved prompts in offline HTML rail');
+  assert.equal(await evalChrome('document.querySelector("#pageRail .starter-toggle")===null && '+
+    'document.querySelector("#pageRail .nav-preview")===null'),true,
+    'OD launcher and transcript top/bottom arrows are deleted');
 }
 async function shot(name){
   const r=await call('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
@@ -165,30 +158,26 @@ async function run(){
   await call('Emulation.setDeviceMetricsOverride',{width:1200,height:1000,deviceScaleFactor:1,mobile:false});
   await call('Page.navigate',{url:pathToFileURL(resolve('examples/sidebar-tools/prompt-shortcuts/preview/index.html')).href});
   await poll('document.readyState==="complete"&&document.querySelectorAll(".prompt-card").length===3','three first-install demo cards');
-  assert.equal(await evalChrome('document.querySelector("#pageRail .starter-toggle")?.textContent'),'OD');
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),4,
-    'default-expanded rail has three prompts and one OD launcher');
-  assert.equal(await evalChrome('Array.from(document.querySelectorAll("#pageRail .page-shortcut")).filter(button=>button.textContent.trim()==="管理").length'),0,
-    'removed page-rail management button never returns');
-  await collapsePreviewRail();
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),1,
-    'manual collapse retains only the permanent OD entry');
-  await expandPreviewRail();
-  await poll('document.querySelectorAll("#pageRail .page-shortcut").length===4','manual re-expansion restores full list');
-  await click('#pageRail .page-shortcut:nth-child(2)');
+  await waitPreviewRail();
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),3,
+    'default webpage rail contains exactly three saved prompt buttons');
+  await click('#pageRail .page-shortcut:nth-child(1)');
   await poll('document.querySelector("#mockDraft").value.includes("浏览器插件定制开发需求")',
-    'first-run button inserted the actual stored prompt');
-  await poll('document.querySelectorAll("#pageRail .page-shortcut").length===4','starter rail remains expanded after use');
+    'first-run button directly inserts the stored prompt');
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),3,
+    'insertion must not add OD, transcript arrows or management controls');
   await evalChrome('document.querySelector("#mockDraft").value=""');
   await evalChrome('(()=>{const select=document.querySelector("#previewDataScenario");select.value="empty";select.dispatchEvent(new Event("change",{bubbles:true}));})()');
   await poll('document.querySelectorAll(".prompt-card").length===0','genuine intentionally empty library');
-  assert.equal(await evalChrome('document.querySelector("#pageRail .page-shortcut")?.textContent'),'OD',
-    'an empty built-in page retains one OD launcher, without another management button');
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),0,
+    'empty library has no synthetic launcher or navigation buttons');
+  assert.equal(await evalChrome('document.querySelector("#pageRail").hidden'),true,
+    'empty rail stays visually hidden');
   await evalChrome('(()=>{const select=document.querySelector("#previewDataScenario");select.value="legacy";select.dispatchEvent(new Event("change",{bubbles:true}));})()');
   await poll('document.querySelectorAll(".prompt-card").length===4','legacy four cards');
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),5,
-    'legacy four prompts are expanded without relying on seed IDs');
-  await expandPreviewRail();
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),4,
+    'legacy four prompts are directly visible without an OD button');
+  await waitPreviewRail();
   await poll('document.querySelector("#pageRail img[data-preview-fixture]")?.naturalWidth>0',
     'R3.5 offline example image decoded');
   report.r35ImageEvidence=[];
@@ -213,13 +202,13 @@ async function run(){
     'three distinct pixel-measured sizes required');
   await shot('r35-full-original-mixed-text-and-image');
   await evalChrome('(()=>{const draft=document.querySelector("#mockDraft");draft.value="原草稿";draft.setSelectionRange(draft.value.length,draft.value.length);})()');
-  await expandPreviewRail();
-  await click('#pageRail .page-shortcut:nth-child(2)');
+  await waitPreviewRail();
+  await click('#pageRail .page-shortcut:nth-child(1)');
   await poll('document.querySelector("#mockDraft").value.includes("不改变原意")',
     'legacy text insertion from expanded launcher');
   const textInsert=await evalChrome('document.querySelector("#mockDraft").value');
-  await expandPreviewRail();
-  await click('#pageRail .page-shortcut:nth-child(3)');
+  await waitPreviewRail();
+  await click('#pageRail .page-shortcut:nth-child(2)');
   await poll('document.querySelector("#mockDraft").value.includes("重要依据")',
     'legacy image insertion from expanded launcher');
   const imageInsert=await evalChrome('document.querySelector("#mockDraft").value');
@@ -229,7 +218,7 @@ async function run(){
   report.r35PromptInsert=true;
   await r35ChooseSize('standard');
   await reloadPreview();
-  await expandPreviewRail();
+  await waitPreviewRail();
   await poll('document.querySelector("#pageRail img[data-preview-fixture]")?.naturalWidth>0',
     'offline image must recover after reload');
   const persisted=await r35ImageEvidence();
@@ -366,10 +355,10 @@ async function run(){
   await shot('r26-import-preview-360px');
   await click('#importAppend');
   assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),5);
-  await collapsePreviewRail();
+  
   assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),1,
     'five imported-and-legacy prompts still have exactly one resting launcher');
-  await expandPreviewRail();
+  await waitPreviewRail();
   assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),6,
     'expanded five prompts and one OD launcher preserve every item');
   assert.equal(await evalChrome('document.querySelector("#panelStatus").textContent.includes("网页按钮已即时同步")'),true);
@@ -381,14 +370,14 @@ async function run(){
   assert.equal(await evalChrome('!document.querySelector("#replaceWarning").hidden'),true);
   await click('#importReplace');
   assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),1);
-  await collapsePreviewRail();
+  
   assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),1,
     'an entirely custom replacement still uses one compact launcher');
   assert.equal(await evalChrome('document.querySelector("#pageRail .starter-toggle")?.textContent'),'OD');
-  await expandPreviewRail();
+  await waitPreviewRail();
   assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),2,
     'custom-only menu exposes one saved prompt and the OD launcher');
-  await collapsePreviewRail();
+  
   assert.equal(await evalChrome('document.querySelector("#imageSizeGroup").hidden'),true,
     'text-only list retains original uncluttered header');
   await shot('r34-text-only-list-360px');
@@ -451,20 +440,20 @@ async function run(){
   await click('#saveContinue');
   await poll('document.querySelectorAll(".prompt-card").length===5&&document.querySelector("#promptBody").value===""','save and continue first');
   x=await state();assert.equal(x.editing,true);assert.equal(x.cards,5);
-  await collapsePreviewRail();
+  
   assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),1,
     'save-and-continue updates five choices while keeping one resting launcher');
-  await expandPreviewRail();
+  await waitPreviewRail();
   assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),6);
   await shot('batch-create-320px');
   await evalChrome('(()=>{const f=document.querySelector("#promptBody");f.value="连续创建第二条：列出下一步计划。";f.dispatchEvent(new Event("input",{bubbles:true}));})()');
   await click('#saveContinue');
   await poll('document.querySelectorAll(".prompt-card").length===6&&document.querySelector("#promptBody").value===""','save and continue second');
   x=await state();assert.equal(x.cards,6);assert.equal(x.editing,true);
-  await collapsePreviewRail();
+  
   assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),1,
     'second save preserves one resting launcher');
-  await expandPreviewRail();
+  await waitPreviewRail();
   assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),7,
     'all six choices remain accessible without a hard cap');
   await poll('document.querySelector("#promptForm").getAttribute("aria-busy")!=="true"',
@@ -621,13 +610,13 @@ async function run(){
   report.r41PickerAndErrors={...firstImage,blankDropzone:true,invalidPreserved:true,oversizedPreserved:true};
   await shot('r37-original-local-upload');
   await click('#saveButton');
-  await expandPreviewRail();
-  await poll('document.querySelector("#formView").hidden&&document.querySelector("#pageRail .page-shortcut:nth-child(3) img")?.naturalWidth>0',
+  await waitPreviewRail();
+  await poll('document.querySelector("#formView").hidden&&document.querySelector("#pageRail .page-shortcut:nth-child(2) img")?.naturalWidth>0',
     'saved local raster appears on real rail');
   const uploadEvidence=await evalChrome('('+function(){
     const item=JSON.parse(localStorage.getItem('opendesk.prompt-shortcuts.preview.items-r3'))[1];
     const store=JSON.parse(localStorage.getItem('opendesk.prompt-shortcuts.preview.assets-r37'));
-    const img=document.querySelector('#pageRail .page-shortcut:nth-child(3) img');
+    const img=document.querySelector('#pageRail .page-shortcut:nth-child(2) img');
     const box=img.closest('button').getBoundingClientRect();
     const canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
     const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0);
@@ -641,14 +630,14 @@ async function run(){
   assert(Math.abs(uploadEvidence.width-68)<.6&&Math.abs(uploadEvidence.height-48)<.6);
   await shot('r37-original-local-image-saved');
   await reloadPreview();
-  await expandPreviewRail();
-  await poll('document.querySelector("#pageRail .page-shortcut:nth-child(3) img")?.naturalWidth>0',
+  await waitPreviewRail();
+  await poll('document.querySelector("#pageRail .page-shortcut:nth-child(2) img")?.naturalWidth>0',
     'same saved local image after reload');
-  assert.equal(await evalChrome('document.querySelector("#pageRail .page-shortcut:nth-child(3) img")?.dataset.previewFixture??null'),null,
+  assert.equal(await evalChrome('document.querySelector("#pageRail .page-shortcut:nth-child(2) img")?.dataset.previewFixture??null'),null,
     'saved local image must really be restored; initial offline sample is NOT reload evidence');
   const insert=await evalChrome('('+async function(){
     const field=document.querySelector('#mockDraft');field.value='原草稿';field.setSelectionRange(field.value.length,field.value.length);
-    document.querySelector('#pageRail .page-shortcut:nth-child(3)').click();
+    document.querySelector('#pageRail .page-shortcut:nth-child(2)').click();
     await new Promise(done=>setTimeout(done,110));
     return field.value;
   }.toString()+')()');
@@ -670,7 +659,7 @@ async function run(){
     const row=rows.find(r=>r.imageAssetId);
     const card=document.querySelector('.prompt-card[data-id="'+row?.id+'"]');
     const cardPicture=card?.querySelector('img');
-    const railPicture=document.querySelector('#pageRail .page-shortcut:nth-child(3) img');
+    const railPicture=document.querySelector('#pageRail .page-shortcut:nth-child(2) img');
     return {formVisible:!document.querySelector('#formView').hidden,
       sourceLocal:document.querySelector('#imageSourceLocal').checked,
       sourceUrl:document.querySelector('#imageSourceUrl').checked,
@@ -741,13 +730,13 @@ async function run(){
     'host back must clean temporary image without deleting the committed one');
   assert.equal(afterDiscard.saved,uploadEvidence.id);
   await click('#reopenTool');
-  await expandPreviewRail();
-  await poll('document.querySelector("#pageRail .page-shortcut:nth-child(3) img")?.naturalWidth>0',
+  await waitPreviewRail();
+  await poll('document.querySelector("#pageRail .page-shortcut:nth-child(2) img")?.naturalWidth>0',
     'saved picture survives aborted host exit');
   report.r41DraftProtection={inactiveUrlGuard:true,realFilesystemJpegDrop:true,
     hostDiscardClean:true,oldSavedAssetRetained:true};
   await click('#resetButton');
-  await expandPreviewRail();
+  await waitPreviewRail();
   await poll('document.querySelector("#pageRail img[data-preview-fixture]")?.naturalWidth>0','reset original fixtures');
   assert.equal(await evalChrome('localStorage.getItem("opendesk.prompt-shortcuts.preview.assets-r37")'),null);
   // R3.4: genuine Chromium storage-rejection fault, not a synthetic status banner.
@@ -817,7 +806,7 @@ async function run(){
   assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),4);
   assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),5,
     'reset returns the four legacy prompts and OD, without a management button');
-  await expandPreviewRail();
+  await waitPreviewRail();
   assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),5,
     'four legacy actions remain accessible on demand');
   report.unifiedGearAndUninstall=true;report.result='PASS';
