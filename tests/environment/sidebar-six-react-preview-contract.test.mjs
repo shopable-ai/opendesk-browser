@@ -17,6 +17,20 @@ test('R37 offline preview generates from the empty official root with working pr
   assert.match($('#od-official-ui-css').text(),/\.ec-row--action-visible \.ec-row-actions/,
     'preview embeds production CSS for the last-hovered row affordance');
   assert.equal($('#opendesk-react-app').contents().length,0,'React receives an empty root, never an SSR template');
+  assert.equal($('#od-sidebar-preview-shell').length,1,'one standalone wrapper owns the preview geometry');
+  assert.equal($('#od-sidebar-preview-stage').length,1,'one bounded visible sidepanel viewport');
+  assert.equal($('#od-sidebar-preview-width option').length,5,'320–520px review choices remain interactive');
+  assert.equal($('#od-sidebar-preview-boot[role="status"]').length,1,
+    'bootstrap failures must not show a blank page');
+  assert.equal($('#od-sidebar-preview-error[role="alert"][hidden]').length,1,
+    'pre-render runtime errors have a visible recovery surface');
+  assert.match($('#od-official-ui-css').text(),/\.opendesk-react-app/);
+  assert.match($('style').last().text(),/html,body\{height:auto;min-height:100%;overflow:auto!important\}/,
+    'standalone HTML must not inherit hidden/height-constrained product document');
+  assert.match($('style').last().text(),/\.od-sidebar-preview-stage\{display:flex;flex-direction:column/,
+    'React needs a real flex host rather than an auto-height block');
+  assert.match($('style').last().text(),/#opendesk-react-app\{flex:1 1 auto;min-height:0;height:100%/,
+    'main React root must receive measurable viewport height');
   assert.equal($('#opendesk-react-app').attr('class'),load(await read('src/ui/sidepanel.html'))('#opendesk-react-app').attr('class'));
   assert.equal($('nav.workbench-nav').length,0,'navigation is mounted by the production shell');
   assert.equal($('meta[name="od-preview-proof"]').attr('content'),'UI_PREVIEW_ONLY');
