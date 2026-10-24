@@ -457,7 +457,9 @@ try{
   assert.equal(await evaluate('document.querySelector("#workflow-ai-transcript .workflow-chat-entry p").textContent'),'安全输出 <script>不可执行</script>');
   assert.equal(await evaluate('document.querySelectorAll("#workflow-ai-transcript script").length'),0);
   assert.equal(await evaluate('document.querySelectorAll("#workflow-history-toggle,#workflow-ai-new-session,#workflow-new").length'),3);
-  assert.equal(await evaluate('document.querySelector("#workflow-source-name").textContent'),'my-inference-model');
+  assert.equal(await evaluate('document.getElementById("workflow-provider-toggle").getAttribute("aria-label")'),
+    'AI 来源：HTTPS Chat Completions；选择来源',
+    'The shared Provider source button replaces the retired static model label');
   await evaluate('window.__reactTest.publishWorkflow({history:{open:true,busy:false,canResume:false,rows:[{key:"saved-revision-fixture",title:"已保存的测试版本",fullTitle:"测试版本 r2",savedText:"r2 · fixtures only"}]}})');
   await checkEventually('document.querySelectorAll("#workflow-history-panel .workflow-history-row").length===1');
   assert.equal(await evaluate('document.querySelectorAll("#workflow-history-panel .workflow-history-row").length'),1);
