@@ -154,6 +154,21 @@ test('all capability types share exactly one trusted lifecycle switch and direct
   }
 });
 
+test('Cookie first-use and everyday settings each mount one permission control without duplicating lifecycle',()=>{
+  for(const mode of ['first-use','settings']){
+    const view=createSidebarToolsView();
+    view.patch('sidebar-tool-display',{hidden:false});
+    view.patch('sidebar-tool-cookie-permissions',{hidden:false,
+      data:{mode,isCookieEditor:true}});
+    view.patch('sidebar-tool-settings-view',{hidden:mode!=='settings'});
+    const {document}=parseHTML(renderToStaticMarkup(React.createElement(ToolHost,{view})));
+    assert.equal(document.querySelectorAll('#sidebar-tool-cookie-permissions').length,1,mode);
+    assert.equal(document.querySelectorAll('#sidebar-tool-enable').length,1,mode);
+    assert.equal(document.querySelector('#sidebar-tool-enable').getAttribute('role'),'switch',mode);
+    view.dispose();
+  }
+});
+ 
 test('React layout supplies real runtime refs, preserves opaque children, dispatches native events and cleans up', async t => {
   const {window, document} = parseHTML('<html><body><div id="mount"></div></body></html>');
   const previous = {window: globalThis.window, document: globalThis.document, act: globalThis.IS_REACT_ACT_ENVIRONMENT};

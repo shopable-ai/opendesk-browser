@@ -7,8 +7,12 @@ test('trusted React Host has exactly one first-use grant control outside the san
   const [host,view,fields]=await Promise.all([
     source('src/ui/sidebar-tools.js'),source('src/ui/react/tabs/tool-host.tsx'),
     source('src/ui/sidebar-tools-fields.js')]);
-  assert.equal(view.split('<CookieSettings onRevoke={actions.revoke}/>').length-1,1);
-  assert.match(view,/<CookieSettings onRevoke=\{actions.revoke\}\/><div id="sidebar-tool-frame"/);
+  // The component has two guarded placement sites: first-use outside settings
+  // and everyday permission management inside the common Settings page.
+  // Only one site may mount for a given snapshot (verified by React SSR below).
+  assert.equal(view.split('<CookieSettings onRevoke={actions.revoke}/>').length-1,2);
+  assert.match(view,/\{cookieFirstUse&&<CookieSettings onRevoke=\{actions.revoke\}\/>\}/);
+  assert.match(view,/\{!cookieFirstUse&&<CookieSettings onRevoke=\{actions.revoke\}\/>\}/);
   assert.match(view,/const firstUse=snapshot.fields\['sidebar-tool-cookie-permissions'\].data\?\.mode==='first-use'/);
   assert.match(host,/Cookie 访问授权/);
   assert.match(host,/允许管理.*Cookie，包括/);
@@ -38,11 +42,12 @@ test('explicit complete consent includes Values while unreceipted legacy all-sit
 test('R5.26 stopped Cookie Editor exposes trusted re-enable without duplicate first-use consent',async()=>{
   const [host,view]=await Promise.all([
     source('src/ui/sidebar-tools.js'),source('src/ui/react/tabs/tool-host.tsx')]);
-  assert.match(view,/const cookieManagementVisible=/);
-  assert.match(view,/\{!cookieManagementVisible&&<section className="sidebar-tool-management"/);
+  assert.match(view,/const cookieFirstUse=/);
+  assert.match(view,/className="sidebar-tool-management"/);
   const cookie=view.slice(view.indexOf('function CookieSettings('),view.indexOf('function BookmarkSettings('));
-  assert.match(cookie,/\{!firstUse&&<>[\s\S]*id="sidebar-tool-enable"/);
-  assert.match(cookie,/id="sidebar-tool-enable-hint"/);
+  assert.doesNotMatch(cookie,/id="sidebar-tool-enable"/,'Cookie permission card must not own a second app switch');
+  assert.equal((view.match(/id="sidebar-tool-enable"/g)||[]).length,1);
+  assert.match(view,/role="switch" aria-label="启用工具"/);
   assert.equal((cookie.match(/id="sidebar-tool-cookie-site-toggle"/g)||[]).length,1);
   assert.match(host,/enableReadError\|\|!sidebarToolEnabled\(enableRecords,tool.id\)/);
 });
@@ -74,11 +79,14 @@ test('R5.38 Cookie Editor keeps infrequent app stop out of its toolbar',async()=
   assert.doesNotMatch(view,/sidebar-tool-header-enable|enableInOverflow|sidebar-tool-more-open/,
     'tool enable remains a low-frequency trusted Settings action, not a header or overflow command');
   const card=view.slice(view.indexOf('function CookieSettings('),view.indexOf('function BookmarkSettings('));
-  assert.equal((card.match(/id="sidebar-tool-enable"/g)||[]).length,1);
-  assert.match(card,/\{!firstUse&&<>[\s\S]*id="sidebar-tool-enable"/);
-  assert.ok(card.indexOf('id="sidebar-tool-cookie-other-sites"')<card.indexOf('id="sidebar-tool-enable"'),
-    'infrequent app management follows cookie permissions');
-  assert.match(card,/isCookieEditor\?'应用管理':'使用状态'/);
+  assert.equal((card.match(/id="sidebar-tool-enable"/g)||[]).length,0,
+    'Cookie-specific permission card must not repeat the shared lifecycle switch');
+  assert.equal((view.match(/id="sidebar-tool-enable"/g)||[]).length,1);
+  const shared=view.slice(view.indexOf('id="sidebar-tool-settings-view"'),
+    view.indexOf('function CookieSettings('));
+  assert.ok(shared.indexOf('!cookieFirstUse&&<CookieSettings')<
+    shared.indexOf('className="sidebar-tool-management"'),
+    'permissions appear before the single common application management switch');
   assert.match(center,/add\(row.enabled\?'停用应用':'启用应用'/);
   assert.match(center,/sidebarTools\.toggleEnabled\(row\.id,event\)/);
   assert.doesNotMatch(app,/>停用工具<|>停用应用</);
