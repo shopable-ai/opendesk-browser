@@ -50,6 +50,8 @@ test('R37 offline preview generates from the empty official root with working pr
   assert.ok(!paths.includes('src/ui/react/preview/sidebar-six-preview.tsx'),'retired Portal adapter is not a consumer');
   const previewSource=await read('scripts/preview/build-sidebar-six-react-preview.mjs');
   assert.match(previewSource,/app=mountSidebarApp\(document,\{debugEnabled:true,onNavigate/);
+  assert.match(previewSource,/get\('ai-settings'\)==='1'\)\s*app\.openProviderSettings\(\)/,
+    'AI settings deep link opens the real React sheet, never a duplicate prototype');
   assert.match(previewSource,/app\.connectBack\(closeDetail\)/);
   assert.match(previewSource,/app\.renderRows\(\{rows:shown\.map/);
   assert.match(previewSource,/onSearch:value=>\{toolbar\.query=value;publishToolbar\(\);publishRows\(\)/);
