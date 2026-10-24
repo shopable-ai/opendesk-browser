@@ -92,7 +92,8 @@ boot=[
   'Object.defineProperty(navigator,"clipboard",{configurable:true,value:{writeText:async text=>window.__copied.push(text)}});',
   'const oldShadow=Element.prototype.attachShadow;',
   'Element.prototype.attachShadow=function(options){const root=oldShadow.call(this,options);',
-  ' if(this.hasAttribute("data-opendesk-prompts"))window.__railRoot=root;return root;};',
+  ' if(this.hasAttribute("data-opendesk-prompts"))window.__railRoot=root;',
+  ' if(this.hasAttribute("data-opendesk-prompts-floating"))window.__floatingRoot=root;return root;};',
   'const api={runtime:{id:"fixture-extension",getURL:()=>"chrome-extension://fixture-extension/",',
   '  onMessage:{addListener:fn=>messages.add(fn),removeListener:fn=>messages.delete(fn)}},',
   '  storage:{local:{async get(keys){const out={};for(const key of keys)if(Object.hasOwn(values,key))',
@@ -110,6 +111,9 @@ boot=[
   ' lib.items.push({id:"r35-image-fixture",body:"图片快捷按钮完整正文",label:"山景",name:"图片快捷按钮",',
   '  shape:"square",enabled:true,order:1,appearance:"image",imageUrl:url});',
   ' lib.settings.imageSize=size;localStorage.setItem("ps-r21-fixture",JSON.stringify(values));',
+  ' for(const fn of changes)fn({[DATA]:{newValue:values[DATA]}},"local");};',
+  'window.__setScrollNav=flags=>{values[DATA].library.settings.scrollNavigation=flags;',
+  ' localStorage.setItem("ps-r21-fixture",JSON.stringify(values));',
   ' for(const fn of changes)fn({[DATA]:{newValue:values[DATA]}},"local");};',
   'window.__setPrompts=rows=>{values[DATA].library.items=rows;',
   ' localStorage.setItem("ps-r21-fixture",JSON.stringify(values));',
@@ -537,6 +541,63 @@ try{
   scenes.push({step:'R2.16 no unnecessary rail scrollbar, bounded real overflow and dynamic recovery',
     normalRail,overflowRail,restoredRail,lastButtonReachable:bottomIsReachable,
     actualChromiumDOM:true,installedExtension:false});
+  // R1.16.3: Chromium DOM + trusted CDP pointer clicks cover the independent
+  // transcript dock. The prompt-only rail scenarios above remain untouched.
+  await evaluate('(()=>{'+
+    'const main=document.querySelector("main#main");'+
+    'main.style.overflowY="auto";main.style.height="500px";'+
+    'const editor=main.querySelector("textarea#prompt-textarea");'+
+    'for(let i=0;i<3;i++){const turn=document.createElement("article");'+
+    'turn.setAttribute("data-testid","conversation-turn-"+i);'+
+    'turn.style.cssText="display:block;height:900px;box-sizing:border-box;padding:12px";'+
+    'const content=document.createElement("div");content.style.height="860px";'+
+    'content.textContent="独立对话消息 "+i;turn.append(content);main.insertBefore(turn,editor);}'+
+    'main.scrollTop=750;main.dispatchEvent(new Event("scroll",{bubbles:true}));'+
+    '})()');
+  await poll('window.__floatingRoot?.host?.isConnected && '+
+    'window.__floatingRoot.querySelectorAll(".stack button").length===2',
+    'right-bottom conversation dock has two buttons in real Chromium');
+  const dockLabels=await evaluate('Array.from(window.__floatingRoot.querySelectorAll(".stack button"))'+
+    '.map(button=>button.getAttribute("aria-label"))');
+  assert.deepEqual(dockLabels,['回到对话顶部','跳到对话底部']);
+  assert.equal(await evaluate('document.querySelector("[data-opendesk-prompts-floating]")'+
+    '.closest("[data-opendesk-prompts]")===null'),true,
+    'whole-conversation dock must never become a child of the prompt rail');
+  await shot('r1163-independent-conversation-nav');
+  await clickJS('window.__floatingRoot.querySelectorAll(".stack button")[1]');
+  await poll('(()=>{const m=document.querySelector("main#main");return '+
+    'Math.abs(m.scrollTop-(m.scrollHeight-m.clientHeight))<=2;})()',
+    'trusted downward CDP click reaches transcript bottom');
+  await clickJS('window.__floatingRoot.querySelectorAll(".stack button")[0]');
+  await poll('document.querySelector("main#main").scrollTop<=2',
+    'trusted upward CDP click reaches transcript top');
+  const flags={regionTop:true,regionBottom:true,conversationTop:false,
+    conversationBottom:true,floatingTop:true};
+  await evaluate('window.__setScrollNav('+JSON.stringify(flags)+')');
+  await poll('window.__floatingRoot?.host?.isConnected && '+
+    'window.__floatingRoot.querySelectorAll(".stack button").length===1',
+    'fallback top remains threshold hidden at transcript start');
+  await evaluate('(()=>{const m=document.querySelector("main#main");m.scrollTop=800;'+
+    'm.dispatchEvent(new Event("scroll",{bubbles:true}));})()');
+  await poll('window.__floatingRoot?.host?.isConnected && '+
+    'window.__floatingRoot.querySelectorAll(".stack button").length===2',
+    'historical floatingTop appears once after scrolling');
+  assert.equal(await evaluate('window.__floatingRoot.querySelector(".stack button")'+
+    '.dataset.scrollNavKey'),'floatingTop');
+  await evaluate('window.__setScrollNav('+JSON.stringify({
+    ...flags,floatingTop:false,conversationBottom:false
+  })+')');
+  await poll('!document.querySelector("[data-opendesk-prompts-floating]")',
+    'both top switches and bottom switch disabled clears dock');
+  await evaluate('window.__setScrollNav('+JSON.stringify({
+    ...flags,conversationTop:true,conversationBottom:true,floatingTop:true
+  })+')');
+  await poll('window.__floatingRoot?.host?.isConnected && '+
+    'window.__floatingRoot.querySelectorAll(".stack button").length===2',
+    'restored settings recover one two-button dock');
+  scenes.push({step:'R1.16.3 Chromium transcript navigation and legacy top deduplication',
+    genuineCDPClicks:true,realScrollport:true,settingsCombinationChecked:true,
+    separateFromPromptRail:true,installedExtension:false});
   assert.equal(jsErrors.length,0,JSON.stringify(jsErrors));
   const report={kind:'ACTUAL_CHROMIUM_DOM_FIXED_PAGE_WITH_MOCK_HOST',installedExtension:false,
     realThirdPartySite:false,realMacIme:false,version:pkg.version,scenes,consoleErrors:jsErrors};
