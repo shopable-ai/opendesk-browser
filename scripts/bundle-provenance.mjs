@@ -135,7 +135,8 @@ export function trustedToolShellStyle(root=process.cwd()){
 const compiledPromptShortcutInputs=Object.freeze({
   'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'f5bc9499a4d5df8166959b3b9c207fa8eb7e2afa',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'4c6f608a26e0d69278c18a0afda94b3c8ce8274c',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'b764c107eea97016e23fe8c86554925d91461ada',
+  // Reviewed 7f569f280b05: separate two-way transcript dock only; trusted click, grant and epoch gates unchanged.
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'0c5e411173e2814ff5d9d081efd36875b9bf473a',
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js':'86e95bff786e52efb9089f97126542430f39a716',
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js':'b960044deb5e7d059c26d5d520f912c0b72c7b0e',
   'examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js':'7c10e8270c43be93229afbf0d3171455de628030',
