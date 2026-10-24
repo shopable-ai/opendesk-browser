@@ -470,7 +470,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     return Boolean(record?.storeId&&record.grantEpoch&&required.length>0&&
       required.every(cap=>record[cap]===true)&&
       (!allSites||!required.includes('values')||record.valueConsent===true)&&
-      (allSites||Boolean(record.partitionKey?.topLevelSite)));
+      (allSites||tool?.id!=='cookie-editor'||Boolean(record.partitionKey?.topLevelSite)));
   };
   const cookieHasBaseGrant=tool=>cookieRecordComplete(tool,cookieAllSiteRecord(tool),true);
   const cookieSiteBaseRecord=(tool,origin)=>cookieGrantRow(tool)?.cookieSites?.[origin]??null;
