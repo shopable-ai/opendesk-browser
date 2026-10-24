@@ -56,6 +56,22 @@
 <div class="ps-actions"><button id="ps-site-cancel" class="od-button od-button--secondary" type="button">取消</button><button id="ps-site-test" class="od-button od-button--secondary" type="button">测试定位</button><button id="ps-site-save" class="od-button od-button--primary" type="button">保存网站</button></div></div><p id="ps-site-status" class="ps-status" role="status" aria-live="polite" hidden></p><div id="ps-sites-list" class="ps-sites-list" aria-live="polite"></div></div></section>
 <textarea id="ps-clipboard-buffer" class="ps-clipboard-buffer" readonly tabindex="-1" aria-hidden="true"></textarea>
   </section>
+  <section id="ps-detail" hidden aria-labelledby="ps-detail-title">
+    <header class="ps-detail-head"><h2 id="ps-detail-title" class="od-title">提示词详情</h2></header>
+    <div class="ps-detail-identity">
+      <div id="ps-detail-glyph" class="ps-glyph" aria-hidden="true"></div>
+      <div class="ps-detail-heading">
+        <strong id="ps-detail-name" hidden></strong>
+        <span id="ps-detail-state" class="od-note"></span>
+      </div>
+    </div>
+    <div id="ps-detail-body" class="ps-detail-body od-surface" role="region" aria-label="完整提示词正文" tabindex="0"></div>
+    <div class="ps-actions ps-detail-actions">
+      <button id="ps-detail-back" class="od-button od-button--secondary" type="button">返回列表</button>
+      <button id="ps-detail-edit" class="od-button od-button--secondary" type="button">编辑</button>
+      <button id="ps-detail-copy" class="od-button od-button--primary" type="button">复制全文</button>
+    </div>
+  </section>
   <section id="ps-edit" hidden aria-labelledby="ps-form-title">
     <header class="ps-form-head"><h2 id="ps-form-title" class="od-title">新建提示词</h2></header>
     <form id="ps-form" novalidate aria-busy="false">
