@@ -28,7 +28,7 @@ export function loadSidebarReact(){
  export {createDeveloperView} from './src/ui/develop-view.js';
       export {createMyWorkbenchView} from './src/ui/my-workbench-view.js';
       export {createSidebarToolsView} from './src/ui/sidebar-tools-view.js';
-    `},bundle:true,write:false,format:'esm',platform:'node',jsx:'transform',
+    `},bundle:true,write:false,format:'esm',platform:'node',jsx:'transform',loader:{'.css':'empty'},
       banner:{js:'import {createRequire as fixtureRequire} from "node:module"; const require=fixtureRequire('+JSON.stringify(import.meta.url)+');'},
       plugins:[{name:'shared-react-instance',setup(builder){
         builder.onResolve({filter:/^react(?:$|\/)/},({path,kind})=>({

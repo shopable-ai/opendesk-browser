@@ -348,23 +348,31 @@ test('R1.3 pinned shared Markdown converter can only enter the existing Page Rel
   assert.throws(()=>make('sw.js',root),/cannot enter a privileged fixed bundle/);
 });
 
-test('R1.3 Reading TOC model, overview and placement require audited Page Relay pins',async ctx=>{
-  const names=['overview.js','model.js','placement.js'];
+test('R1.3 Reading TOC model, overview, placement, page and view require audited Page Relay pins',async ctx=>{
+  const names=['overview.js','model.js','placement.js','page.js','view.js'];
   const prefix='examples/sidebar-tools/reading-toc/trusted/';
   const make=(target,root=process.cwd(),list=names)=>describeBundle({chunk:{fileName:target,
     modules:Object.fromEntries(list.map(name=>[resolve(root,prefix+name),
       {renderedLength:20,originalLength:100}]))},root,lock:{packages:{}}});
   const row=make('agents/page-relay.js');
-  assert.equal(row.modules.length,3);
+  assert.equal(row.modules.length,names.length);
   for(const item of row.modules)assert.match(item.reviewedFirstPartyBlob,/^[0-9a-f]{40}$/);
   for(const target of ['sw.js','ui/tool-shell.js','ui/sidebar-tool-host.js','scripting/sandbox/worker-runtime.js'])
     assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
   const tmp=await realpath(await mkdtemp(join(tmpdir(),'reading-toc-source-pin-')));
   ctx.after(()=>rm(tmp,{recursive:true,force:true}));
   await mkdir(join(tmp,prefix),{recursive:true});
-  await writeFile(join(tmp,prefix,'model.js'),(await readFile(resolve(prefix,'model.js'),'utf8'))+'\n// unsigned edit\n');
-  assert.throws(()=>make('agents/page-relay.js',tmp,['model.js']),
-    /Trusted Reading TOC source changed/);
+  for(const name of ['model.js','page.js','view.js']){
+    const path=join(tmp,prefix,name),bytes=await readFile(resolve(prefix,name));
+    await writeFile(path,bytes);
+    assert.equal(make('agents/page-relay.js',tmp,[name]).modules[0].reviewedFirstPartyBlob,
+      row.modules.find(item=>item.path===prefix+name).reviewedFirstPartyBlob);
+    await writeFile(path,Buffer.concat([bytes,Buffer.from('\n// unsigned edit\n')]));
+    assert.throws(()=>make('agents/page-relay.js',tmp,[name]),
+      /Trusted Reading TOC source changed/);
+    await rm(path);await symlink(resolve(prefix,name),path);
+    assert.throws(()=>make('agents/page-relay.js',tmp,[name]),/must not be a symlink/);
+  }
 });
 
 test('shared visible-selection helper is pinned only into existing Page Relay',async t=>{

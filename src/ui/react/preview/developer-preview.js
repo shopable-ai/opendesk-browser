@@ -14,7 +14,6 @@ export function createDeveloperPreviewView(){
   view.patch('script-current-page-title',{textContent:'无真实网页身份'});
   view.patch('script-status',{textContent:'仅演示 UI，不读取真实数据',data:{state:'unknown'}});
   view.patch('script-source',{value:'async function main() {\n  return "仅预览";\n}'});
-  view.patch('local-project-intro',{textContent:'选择已授权的本地项目，核对来源后明确运行。离线预览只能展示交互。'});
   view.patch('local-project-diagnostics',{textContent:'仅预览 · Chrome Native：未连接；源码 Provider：未连接；固定项目身份与源代码均未读取。'});
   view.patch('local-project-select',{options:[
     {label:'选择演示项目（不代表授权）',value:''},

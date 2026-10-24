@@ -9,6 +9,7 @@ import {CLIP_SITE_STORE} from '../../../examples/sidebar-tools/web-markdown-clip
 import {CAPTURE_SITE_STORE, KNOWLEDGE_TOOL_ID, KNOWLEDGE_WORKSPACE_PREFIX} from '../../knowledge/policy.js';
 import {writeVerifiedLocalValue,classifyStorageWriteError,unknownStorageOutcome,sameStorageValue,stableStorageString} from './storage-state.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,requireToolRevocationEpochs,TOOL_REVOCATION_EPOCHS_STORE,TOOL_CLEANUP_STORE,requirePendingToolCleanups} from './lifecycle.js';
+import {toolLocaleStorageKey} from './locale-packs.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL} from '../../platform/protocol.js';
 import {TIME_REVIEW_KEY} from '../../../examples/sidebar-tools/time-review/trusted/model.js';
 import {PROMPT_ASSET_STORE} from '../../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js';
@@ -218,6 +219,7 @@ export async function cleanupUninstalledToolLocked(api,id){
     // Scheduler confirms retirement. A same-ID reinstall cannot hide this intent.
     await retireUninstalledToolSchedules(api,id);
     await removeVerifiedKey(api,sidebarToolStorageKey(id));
+    await removeVerifiedKey(api,toolLocaleStorageKey(id));
     if(id==='prompt-shortcuts')await removeVerifiedKey(api,PROMPT_ASSET_STORE);
     // Delete private bookmark ownership IDs but do not silently remove user bookmarks.
     await removeVerifiedKey(api,BOOKMARK_OWNED_STORE_PREFIX+id);

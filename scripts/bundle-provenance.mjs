@@ -301,8 +301,8 @@ const compiledReadingTocInputs=Object.freeze({
   'examples/sidebar-tools/reading-toc/trusted/overview.js':'a148dc645ec49b22f0f0a911f4861960442617b5',
   'examples/sidebar-tools/reading-toc/trusted/model.js':'9a7320084caa2efa2acb40dcaf5c00e60659bc66',
   'examples/sidebar-tools/reading-toc/trusted/placement.js':'b29ddc6e66d0203fefccbcb98c071b046aaaa2c0',
-  'examples/sidebar-tools/reading-toc/trusted/page.js':'181ea70e6e3d83a7636518b9a423fa49ad48410e',
-  'examples/sidebar-tools/reading-toc/trusted/view.js':'5528e01bc46fa8c6bb38390898dec3a608c055b7',
+  'examples/sidebar-tools/reading-toc/trusted/page.js':'4b95602c7f4bf2a41a7236b525c5555951702dfc',
+  'examples/sidebar-tools/reading-toc/trusted/view.js':'8a7d7d1b42871b6943c2794ea741359ca61b178b',
   'examples/sidebar-tools/reading-toc/trusted/policy.js':'17d930495245bf92c6e36a9228a7cd286dc611b3',
   'examples/sidebar-tools/reading-toc/trusted/locales.generated.js':'0484bd67fadb23a88c6a7164435d5bf90acd8295',
   'examples/sidebar-tools/reading-toc/trusted/existing-tabs.js':'f5d9882cd1de65ef2ed0115c4d002114575c1058'

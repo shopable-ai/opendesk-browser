@@ -1,10 +1,11 @@
 (function(){
 'use strict';
 const {root,request}=globalThis.OpenDeskTool;
-const catalog=__OPENDESK_TOOL_MESSAGES__;
-const languages=Object.keys(catalog.messages);
+const bundledCatalog=__OPENDESK_TOOL_MESSAGES__;
+let catalog=globalThis.OpenDeskTool.messages||bundledCatalog;
 let locale=globalThis.OpenDeskTool.locale||catalog.sourceLocale;
 function t(key,values={}){
+ const languages=Object.keys(catalog.messages);
  let display=languages.includes(locale)?locale:catalog.sourceLocale;
  if(display===catalog.sourceLocale){
   try{const base=new Intl.Locale(locale).language;
@@ -194,6 +195,7 @@ async function refresh(){
 }
 globalThis.OpenDeskTool.onLocaleChange?.(next=>{
  if(closed)return;
+ catalog=globalThis.OpenDeskTool.messages||bundledCatalog;
  locale=next;paintLanguage();render(); // Same data; never makes a network or TOC request.
 });
 paintLanguage();

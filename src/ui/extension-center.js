@@ -6,10 +6,11 @@ import {installedPageEnableAction,setInstalledPageProgramEnabled} from './instal
 import {composeExtensionEntries,filterExtensionEntries,describeInstalledAppSource,resolveExtensionRowIntent,resolveExtensionPrimaryAction} from './extension-center-model.js';
 import readingTocCatalog from '../../examples/sidebar-tools/reading-toc/trusted/locales.generated.js';
 import {OFFICIAL_READING_TOC_RELEASE} from '../sidebar-tools/official-reading-toc.js';
-import {uiMessage,resolveUiLocale} from './app-localization.js';
+import {uiMessage} from './app-localization.js';
+import {PROGRAM_DRAFT_INPUT_LIMIT} from './program-source.js';
 
 // One trusted presentation. All writes and launches delegate to the existing hosts.
-export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench,localeController=null,extensionList=null}){
+export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench,localeController=null,toolLocaleService=null,extensionList=null}){
   const get=id=>doc.getElementById(id);
   const list=get('extension-center-list'),search=get('extension-center-search');
   const more=get('extension-center-more'),workspace=get('workspace-content');
@@ -17,7 +18,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     throw new Error('E_REACT_LIST_OWNERSHIP');
   let disposed=false,sequence=0,officialSequence=0,busy=false,pendingKey=null,installed=[],pages=[],enabled={},official=[];
   let appStatusKnown=false,pageStatusKnown=false,pendingCleanups=new Set();
-  let toolbarMenuOpen=false,searchText='';
+  let toolbarMenuOpen=false,searchText='',languageManager=null,languageSession=0;
   let sources={};
   let catalogError='',dataError='',statusOrigin='loading',hasLoaded=false,query='',kind='all',scope='smart',selectedKey=null,selectedInstalled=null;
   let listScroll=0,focusKey=null,focusAction=null,detailFocusAction=null,selectedIdentity=null,uninstallReview=null,listUninstallReview=null;
@@ -67,10 +68,42 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(toolbarMenuOpen){toolbarMenuOpen=false;syncFilters();}
     if(returnFocus)more.focus({preventScroll:true});
   }
+  function openLanguageSettings(toolId=null,importPack=null){
+    if(disposed)return false;
+    closeMenu();closeRowMenu();
+    languageManager={toolId:typeof toolId==='string'?toolId:null,importPack,session:++languageSession,
+      returnFocusSelector:toolId&&!importPack?'#sidebar-tool-language-manage':'#extension-center-more'};
+    syncFilters();return true;
+  }
+  // Inspect every file before dispatch: language data never reaches a code installer,
+  // including mixed drops and failed language previews.
+  async function importFiles(files){
+    if(disposed||busy||pendingKey)return;
+    closeMenu();closeRowMenu();
+    try{
+      const inputs=Array.from(files||[]);
+      if(!inputs.length)return;
+      const packs=await Promise.all(inputs.map(async file=>{
+        if(file.size>PROGRAM_DRAFT_INPUT_LIMIT)throw new Error('文件超过程序草稿包大小上限。');
+        const text=await file.text();
+        let value;
+        try{value=JSON.parse(text);}catch{return null;}
+        return value?.format==='opendesk.locale-pack.v1'?value:null;
+      }));
+      if(disposed)return;
+      if(packs.some(Boolean)){
+        if(inputs.length!==1)throw new Error('语言包请逐个导入，不可与代码安装包混合。');
+        openLanguageSettings(packs[0].toolId,packs[0]);return;
+      }
+      backIfNeeded();
+      if(sidebarTools.openImportFiles?.(inputs)!==true)
+        message('当前无法打开扩展安装器，请稍后重试。','error');
+    }catch(error){message('导入失败：'+String(error?.message||error),'error');}
+  }
   function syncFilters(){
     extensionList.renderToolbar({
       query:searchText,kind,scope,menuOpen:toolbarMenuOpen,
-      language:resolveUiLocale(language(),['zh-CN','en'],'zh-CN'),
+      language:localeController?.getPreference?.()||language(),
       onSearch(value){if(disposed)return;searchText=value;query=value.trim();draw();},
       onMarket(){if(!disposed)openMarket();},
       onToggleMenu(){if(disposed)return;closeRowMenu();toolbarMenuOpen=!toolbarMenuOpen;syncFilters();},
@@ -78,16 +111,12 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       onKind(value){if(disposed)return;kind=value;draw();},
       onScope(value){if(disposed)return;scope=value;draw();},
       onReset(){if(disposed)return;kind='all';scope='smart';draw();},
-      onImport(){if(disposed)return;closeMenu();backIfNeeded();sidebarTools.openImport();
-        get('sidebar-tool-file')?.focus({preventScroll:true});},
-      onImportFiles(files){
-        if(disposed||busy||pendingKey)return;
-        closeMenu();closeRowMenu();backIfNeeded();
-        try{
-          if(sidebarTools.openImportFiles?.(files)!==true)
-            message('当前无法打开扩展安装器，请稍后重试。','error');
-        }catch(error){message('导入失败：'+String(error?.message||error),'error');}
-      },
+      onImport(){if(disposed)return;closeMenu();get('extension-center-file')?.click();},
+      onImportFiles:importFiles,
+      onLanguageSettings(){openLanguageSettings();},
+      localeManager:languageManager?{...languageManager,service:toolLocaleService,
+        tools:installed.filter(tool=>tool.localization),localeController,
+        onClose(){languageManager=null;syncFilters();}}:null,
       onReload(){if(disposed)return;closeMenu();message('正在刷新扩展…','loading','loading');
         void readOfficial();void refresh();},
       onLanguage(value){if(disposed)return;void localeController?.setLocale(value).catch(error=>{
@@ -639,6 +668,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       Object.keys(changes).some(key=>key.startsWith('opendesk.page'))))void refresh();
   };
   const pageInstallationChanged=()=>{void refresh();};
+  const languageSettingsRequested=event=>openLanguageSettings(event.detail?.toolId);
+  doc.addEventListener('opendesk-language-settings',languageSettingsRequested);
   doc.addEventListener('opendesk:page-installation-changed',pageInstallationChanged);
   api.storage.onChanged?.addListener(storageChanged);
   const connChanged=client.subscribeConnection?.(state=>{if(state.connected)void refresh();});
@@ -646,6 +677,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   void readOfficial();void refresh();
   return {refresh,dispose(){if(disposed)return;disposed=true;sequence++;officialSequence++;
     listUninstallReview=null;uninstallReview=null;closeRowMenu();
+    doc.removeEventListener('opendesk-language-settings',languageSettingsRequested);
     doc.removeEventListener('opendesk:page-installation-changed',pageInstallationChanged);
-    api.storage.onChanged?.removeListener(storageChanged);connChanged?.();stopLanguage?.();}};
+    api.storage.onChanged?.removeListener(storageChanged);connChanged?.();stopLanguage?.();},openLanguageSettings};
 }

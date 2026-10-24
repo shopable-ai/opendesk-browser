@@ -22,6 +22,7 @@ import {TRUSTED_BOOKMARK_COMPONENT_VERSION} from './trusted-bookmark-admission.j
 import {isActualSidePanelContext} from './sidepanel-context.js';
 import {ANALYTICS_PROTOCOL} from '../analytics/contract.js';
 import {createUiLocaleController} from './app-localization.js';
+import {createToolLocaleService} from './sidebar-tools/locale-packs.js';
 import {requestedToolId,requestedPreviewId,canonicalToolHostUrl} from './sidebar-tools/navigation.js';
 import {previewStorageKey} from '../native-agent/tool-snapshot.js';
 import {validatePreviewSession} from './sidebar-tools/preview-session.js';
@@ -68,6 +69,7 @@ export function initToolShell(installDevelopment=null,{debugEnabled=false}={}) {
     updateSettings:providerRuntime.updateSettings
   });
  const localeController=createUiLocaleController(chrome);
+ const toolLocaleService=createToolLocaleService({api:chrome});
 const currentPageTarget = createCurrentPageTarget({api:chrome});
 const historyUI=globalThis.__opendeskTrustedHistoryUI;
 if(!historyUI?.createScheduledTaskHost)throw new Error('E_TRUSTED_SCHEDULE_HOST_MISSING');
@@ -134,7 +136,7 @@ const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEd
 extensionList.renderNavigation(pendingReactTab);
 // Installed extensions retain their existing sandbox and SDK Hosts.
 let workflowView=null,promptConversation=null,bookmarkDisplayCache=null;
-const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench,foundationClient,localeController,view:toolView,
+const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench,foundationClient,localeController,toolLocaleService,view:toolView,
   // Normal opens try the compiled React UI. The controller MUST still verify
   // the exact official installed package, catalog SHA, enabled state and
   // revocation epoch before mounting; other packages stay in opaque iframes.
@@ -199,7 +201,7 @@ workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptE
   openDeveloper:sourceUtf8=>taskWorkbench.receiveDraft(sourceUtf8),
   openCatalog:()=>taskWorkbench.navigate('catalog')});
 extensionList.connectWorkflowPage(workflowView);
-const extensionCenter=createExtensionCenter({api:chrome,client:foundationClient,doc:document,sidebarTools,taskWorkbench,localeController,extensionList});
+const extensionCenter=createExtensionCenter({api:chrome,client:foundationClient,doc:document,sidebarTools,taskWorkbench,localeController,toolLocaleService,extensionList});
 const scheduleStatus=message=>{
   for(const id of ['schedule-host-status','schedule-runner-host-status']){
     myView.setText(id,message);
@@ -433,7 +435,7 @@ listen(window, 'pagehide', () => {
   for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
   listeners.length = 0;
   myAgent.dispose();myConversation.dispose();scheduleHost?.dispose();scheduleUI?.dispose();
-  panelToolIntents?.dispose();tabMemory.dispose(); localeController.dispose(); debugWorkbench?.dispose(); promptConversation?.dispose();workflowView.dispose();providerRuntime.dispose(); extensionCenter.dispose(); sidebarTools.dispose(); extensionList.dispose(); toolView.dispose(); nativeAgentHost.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); sharedRunHost.dispose(); developerView.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
+  panelToolIntents?.dispose();tabMemory.dispose(); localeController.dispose();toolLocaleService.dispose(); debugWorkbench?.dispose(); promptConversation?.dispose();workflowView.dispose();providerRuntime.dispose(); extensionCenter.dispose(); sidebarTools.dispose(); extensionList.dispose(); toolView.dispose(); nativeAgentHost.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); sharedRunHost.dispose(); developerView.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
 }, {once: true});
 
 }

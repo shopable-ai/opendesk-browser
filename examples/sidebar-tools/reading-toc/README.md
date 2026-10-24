@@ -153,3 +153,12 @@ R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流]
 - 当前正式 `reading-toc` 包与受信身份为 **1.0.9**；上述“R1.8.6 发行版本 1.0.8”记录是历史基线，不代表现行版本。
 - 原最新阅读组合 revision 7 仍固定 1.0.8，现追加不可变 revision 8 固定 1.0.9，保留历史版本及每个成员身份；源码提交见 [`c0060a0`](https://github.com/shopable-ai/opendesk-browser/commit/c0060a080754a5f5a33b72b605e218ad7ec1ccf0)。
 - CI 中的通用安装器测试不再借用官方保留 `reading-toc` ID；伪造官方 ID 仍须失败。真实网页目录、Site Panel、扩展安装升级和 Mac Chrome 未经同候选验证前不可标记 PASS，详细失败与状态见 [唯一需求规格](REQUIREMENTS.zh-CN.md#7-r191-版本一致性修复与真实验收边界2026-10-18)。
+
+## R2.1 · 语言包试点（2026-10-25）
+
+唯一正式包已晋升为 **1.0.10**，官方 pin 同步；源码/包自动验证通过，真实 Chrome 安装仍为 `NOT_TESTED`。详细证据见 [R2.1 交付记录](../../../docs/framework/workstreams/locale-packs-r21-reading-toc.md)。旧章节的 1.0.9 是此前正式基线，不能当作本轮语言包已安装的证据。
+
+- `locales.json` 是源文案和已复核英文的唯一作者资源，构建产生只读 `localization` metadata；现有中文原文不改。
+- [日语语言包样例](languages/ja.opendesk-locale.json) 包含 55 条业务 UI 文案，格式 `opendesk.locale-pack.v1`，绑定 `reading-toc` 与源 catalog hash；不是可安装工具包，也不会自动随目录加载。
+- 工具动态展示采用 Host 只读 `OpenDeskTool.messages`，保留内嵌文案兜底；具体接线和测试状态以交付记录为准。不翻译网页章节或宿主权限/安全文案，可信网页悬浮目录也从同一受控 store 原位更新，但须固定 Content Script 已更新并完成官方包验真；真实 Chrome 尚未测试。
+- 作者格式、hash 算法、预算、安全与回退详见 [唯一 R2.1 本地化合同](../../../docs/api/sidebar-tool-localization.zh-CN.md)。Page Program、Controller 等扩展类型以后接入。

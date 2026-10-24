@@ -230,7 +230,12 @@ export const SIDEBAR_TOOL_FIELDS = {
         "label": "English"
       }
     ],
-    "value": "zh-CN"
+    "value": "follow"
+  },
+  "sidebar-tool-language-manage": {
+    "className": "od-button od-button--secondary",
+    "textContent": "翻译与语言包…",
+    "hidden": true
   },
   "sidebar-tool-context-menu": {
     "hidden": true,

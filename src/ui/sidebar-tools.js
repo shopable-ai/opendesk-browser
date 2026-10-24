@@ -119,7 +119,19 @@ export function createSidebarTools(options={}) {
 }
 
 function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.document,
-  currentPageTarget,taskWorkbench,foundationClient,localeController=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,trustedPromptPilot=null,view,trustedSettingsUI=view.trustedSettings}) {
+  currentPageTarget,taskWorkbench,foundationClient,localeController=null,toolLocaleService=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,trustedPromptPilot=null,view,trustedSettingsUI=view.trustedSettings}) {
+  const languageNames={'zh-CN':'简体中文','zh-TW':'繁體中文',en:'English',ja:'日本語'};
+  function toolLocaleContext(tool){
+    const requested=localeController?.getLocale?.()||'zh-CN';
+    try{
+      const projected=toolLocaleService?.getCatalog(tool,requested);
+      if(projected)return {locale:projected.locale,localization:{sourceLocale:projected.sourceLocale,
+        sourceCatalogHash:projected.sourceCatalogHash,messages:{
+          [projected.sourceLocale]:tool.localization.messages[projected.sourceLocale],
+          [projected.locale]:projected.messages}}};
+    }catch{/* Damaged local translations never prevent the source UI opening. */}
+    return {locale:requested,localization:tool?.localization||null};
+  }
   // Native focus controls load from an audited extension-only classic WXT entry.
   // A missing sidecar fails closed; user-owned opaque sandbox cannot supply it.
   const focus=globalThis.__opendeskStayFocusTrustedUI||null;
@@ -1072,10 +1084,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // Settings live in the trusted Host. Repaint text, never iframe content or permissions.
     const tocLocale=isToc?localeController?.getLocale?.()||'zh-CN':'zh-CN';
     const tocText=key=>readingTocHostText(tocLocale,key);
-    if(tocLanguageRow)patchToolField(view, tocLanguageRow, {hidden: !isToc});
+    const localized=managed&&!!active?.localization&&!!toolLocaleService;
+    if(tocLanguageRow)patchToolField(view, tocLanguageRow, {hidden: !localized});
+    patchToolField(view,view.fields['sidebar-tool-language-manage'],{hidden:!localized,disabled:busy});
     if(tocLanguageSelect){
-      patchToolField(view, tocLanguageSelect, {value: resolveUiLocale(tocLocale,['zh-CN','en'],'zh-CN')});
-      patchToolField(view, tocLanguageSelect, {disabled: busy||!isToc});
+      let choices=[];
+      try{if(localized)choices=toolLocaleService.getAvailableLocales(active);}catch{/* Source remains usable. */}
+      patchToolField(view, tocLanguageSelect, {value: localized?toolLocaleService.getToolLocale(id)||'follow':'follow',
+        rows:choices.map(id=>({id,label:languageNames[id]||id}))});
+      patchToolField(view, tocLanguageSelect, {disabled: busy||!localized});
       setToolFieldAttribute(view, tocLanguageSelect, 'aria-label', tocText('languageLabel'));
     }
     view.patchLabels(Object.fromEntries(Object.entries(view.labels).map(([key])=>[key,tocText(key)])));
@@ -1229,9 +1246,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const trustedTocTitle=active?.id===READING_TOC_TOOL_ID&&
       active?.capabilities.includes(TOC_CAPABILITY)&&
       active?.title===readingTocCatalog.messages['zh-CN'].title;
-    const currentTocLocale=localeController?.getLocale?.()||'zh-CN';
+    const currentTocLocale=toolLocaleContext(active).locale;
     const visibleTitle=trustedTocTitle?
-      uiMessage(readingTocCatalog,currentTocLocale,'title'):active?.title;
+      uiMessage(toolLocaleContext(active).localization||readingTocCatalog,currentTocLocale,'title'):active?.title;
     patchToolField(view, title, {textContent: active?visibleTitle+(readOnlyPreview?' · '+(trustedTocTitle?
       readingTocHostText(currentTocLocale,'readonly'):'只读预览'):''):''});
     patchToolField(view, title, {title: active?'v'+active.version:''});
@@ -1556,7 +1573,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       frame.contentWindow.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:token,tool,
         navigationAllowed:approvedNavigation,
-        locale:localeController?.getLocale()||'zh-CN'},'*',transferred);
+        ...toolLocaleContext(tool)},'*',transferred);
       syncFrameLayout();
     };
     target.append(frame);render();syncFrameLayout();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
@@ -4042,21 +4059,38 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   if(tocLanguageSelect){
     listen(tocLanguageSelect,'change',()=>{
-      if(disposed||active?.id!==READING_TOC_TOOL_ID||!localeController?.setLocale)return;
+      if(disposed||!active?.localization||!toolLocaleService)return;
+      const tool=active;
       const requested=tocLanguageSelect.value;
-      void Promise.resolve().then(()=>localeController.setLocale(requested)).catch(error=>{
-        patchToolField(view, tocLanguageSelect, {value: resolveUiLocale(localeController.getLocale(),['zh-CN','en'],'zh-CN')});
-        notice(readingTocHostText(localeController.getLocale(),'languageSaveError')+
+      patchToolField(view,tocLanguageSelect,{disabled:true});
+      void toolLocaleService.setToolLocale(tool.id,requested==='follow'?null:requested).catch(error=>{
+        notice(readingTocHostText(localeController?.getLocale?.()||'zh-CN','languageSaveError')+
           String(error?.message||error),true);
-      });
+      }).finally(()=>{if(!disposed&&active===tool)render();});
     });
+  }
+  listen(view.fields['sidebar-tool-language-manage'],'click',()=>{
+    if(!active?.localization||disposed)return;
+    doc.dispatchEvent(new CustomEvent('opendesk-language-settings',{detail:{toolId:active.id}}));
+  });
+  function syncToolLanguage(){
+    if(disposed)return;
+    render();
+    if(frame&&active&&instance)frame.contentWindow?.postMessage({
+      protocol:SIDEBAR_TOOL_PROTOCOL,kind:'locale-changed',instance,toolId:active.id,
+      ...toolLocaleContext(active)
+    },'*');
+  }
+  if(toolLocaleService){
+    listeners.push(toolLocaleService.subscribe(syncToolLanguage));
+    void toolLocaleService.ready.then(syncToolLanguage).catch(()=>{});
   }
   if(localeController?.subscribe){
     listeners.push(localeController.subscribe(locale=>{
       // Presentation-only: retain the live tool iframe, TOC snapshot, and website policy.
       if(active?.id===READING_TOC_TOOL_ID)render();
       if(frame&&active&&instance)frame.contentWindow?.postMessage({
-        protocol:SIDEBAR_TOOL_PROTOCOL,kind:'locale-changed',instance,toolId:active.id,locale
+        protocol:SIDEBAR_TOOL_PROTOCOL,kind:'locale-changed',instance,toolId:active.id,...toolLocaleContext(active)
       },'*');
     }));
   }

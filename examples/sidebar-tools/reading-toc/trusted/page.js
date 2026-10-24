@@ -7,7 +7,9 @@ import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,
 import {MARKET_PROVENANCE_STORE,READING_TOC_CHROME_ACCESS_PROTOCOL} from '../../../../src/sidebar-tools/official-reading-toc.js';
 import {createReadingTocIndex} from './model.js';
 import {createReadingTocView} from './view.js';
-import {UI_LOCALE_STORE,canonicalUiLocale,UI_LOCALE_DEFAULT} from '../../../../src/ui/app-localization.js';
+import {UI_LOCALE_STORE,resolveGlobalUiLocale,UI_LOCALE_DEFAULT} from '../../../../src/ui/app-localization.js';
+
+import {toolLocaleStorageKey,resolveToolLocaleState} from '../../../../src/ui/sidebar-tools/locale-packs.js';
 
 // Verify the actual extension host document, not the raw URL string:
 // tool.html deliberately adds a hostInstanceId query on its first navigation.
@@ -20,7 +22,8 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
   let enabled=false,disposed=false,suspended=false,view=null,observer=null,rebuildTimer=0,spyFrame=0,refreshEpoch=0;
   let policyRetryTimer=0,policyFailures=0;
   let activeId='',href=win.location.href,navEpoch=0,settled=null,knownIds=[],viewEpoch=null;
-  let uiLocale=UI_LOCALE_DEFAULT;
+  let uiLocale=UI_LOCALE_DEFAULT,uiCatalog=null,localeEpoch=0;
+  const localeKey=toolLocaleStorageKey(READING_TOC_TOOL_ID);
   const removers=[];
   const listen=(target,type,fn,option)=>{target.addEventListener(type,fn,option);removers.push(()=>target.removeEventListener(type,fn,option));};
   const scrollRoot=element=>{
@@ -103,7 +106,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     rebuildTimer=win.setTimeout(rebuild,280); // Collapse streaming token bursts.
   }
   function stop() {
-    enabled=false;navEpoch++;settled=null;
+    enabled=false;navEpoch++;localeEpoch++;settled=null;
     observer?.disconnect();observer=null;
     if(view){view.dispose();view=null;}
     win.clearTimeout(rebuildTimer);rebuildTimer=0;
@@ -135,7 +138,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     if(showWidget&&!view){
       viewEpoch=installEpoch;
       const key=placementKey||readingTocPlacementKey(win.location.href);
-      view=createReadingTocView({doc,win,initialPlacement,initialLocale:uiLocale,
+      view=createReadingTocView({doc,win,initialPlacement,initialLocale:uiLocale,initialCatalog:uiCatalog,
         onNavigate:(id,sourceId,userGesture)=>void navigate(
           id,sourceId,READING_TOC_TOOL_ID,installEpoch).then(result=>{
           // Only an actual trusted click plus measured visible heading qualifies.
@@ -162,10 +165,45 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     if(!showWidget&&view){view.dispose();view=null;}
     redraw();
   }
+  async function readLocale(stored,verifiedOfficial){
+    const next=resolveGlobalUiLocale(stored[UI_LOCALE_STORE]);
+    // Never inspect metadata or language packs before exact official identity admission.
+    if(!verifiedOfficial)return {locale:next,catalog:null};
+    const tool=stored[SIDEBAR_TOOL_STORE].find(row=>row.id===READING_TOC_TOOL_ID);
+    try{
+      const raw=(await api.storage.local.get(localeKey))[localeKey];
+      const resolved=resolveToolLocaleState(tool,raw,next);
+      if(!resolved)return {locale:next,catalog:null};
+      return {locale:resolved.locale,catalog:{sourceLocale:resolved.sourceLocale,
+        sourceCatalogHash:resolved.sourceCatalogHash,messages:{
+          [resolved.sourceLocale]:tool.localization.messages[resolved.sourceLocale],
+          [resolved.locale]:resolved.messages}}};
+    }catch{
+      // Malformed/unreadable translations fail closed to reviewed built-in copy.
+      return {locale:next,catalog:null};
+    }
+  }
+  function applyLocale(next){
+    uiLocale=next.locale;uiCatalog=next.catalog;
+    view?.setLocale(uiLocale,uiCatalog);
+  }
+  async function refreshLocale(){
+    const token=++localeEpoch;
+    try{
+      const stored=await api.storage.local.get([SIDEBAR_TOOL_STORE,MARKET_PROVENANCE_STORE,UI_LOCALE_STORE]);
+      const verified=await verifyOfficialReadingToc(stored[SIDEBAR_TOOL_STORE],stored[MARKET_PROVENANCE_STORE]);
+      if(disposed||suspended||token!==localeEpoch)return;
+      const next=await readLocale(stored,verified);
+      if(disposed||suspended||token!==localeEpoch)return;
+      applyLocale(next); // Presentation only: preserve index, navigation and view identity.
+    }catch{
+      if(!disposed&&!suspended&&token===localeEpoch)applyLocale({locale:UI_LOCALE_DEFAULT,catalog:null});
+    }
+  }
   async function refreshPolicy() {
     if(suspended||disposed)return;
     win.clearTimeout(policyRetryTimer);policyRetryTimer=0;
-    const token=++refreshEpoch;
+    const token=++refreshEpoch,languageToken=++localeEpoch;
     try{
       const currentUrl=win.location.href,key=readingTocPlacementKey(currentUrl);
       const keys=[SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,MARKET_PROVENANCE_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,
@@ -173,14 +211,15 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
       const stored=await api.storage.local.get(keys);
       if(disposed||suspended||token!==refreshEpoch)return;
       policyFailures=0;
-      uiLocale=canonicalUiLocale(stored[UI_LOCALE_STORE])||UI_LOCALE_DEFAULT;
-      view?.setLocale(uiLocale);
       if(win.location.href!==currentUrl){void refreshPolicy();return;}
       const installed=stored[SIDEBAR_TOOL_STORE],sites=stored[READING_TOC_SITE_STORE];
       const ids=Array.isArray(installed)?installed.filter(row=>row?.capabilities?.includes('page.toc')).map(row=>row.id):[];
       knownIds=ids;
       const verifiedOfficial=await verifyOfficialReadingToc(installed,stored[MARKET_PROVENANCE_STORE]);
       if(disposed||suspended||token!==refreshEpoch||win.location.href!==currentUrl)return;
+      const presentation=await readLocale(stored,verifiedOfficial);
+      if(disposed||suspended||token!==refreshEpoch||win.location.href!==currentUrl)return;
+      if(languageToken===localeEpoch)applyLocale(presentation);
       const pageRules=stored[READING_TOC_PAGE_RULES_STORE];
       const any=ids.some(id=>tocGrantAllowed(installed,sites,id,currentUrl,stored[SIDEBAR_TOOL_ENABLE_STORE],verifiedOfficial)&&
         readingTocPageAllowed(pageRules,id,currentUrl));
@@ -342,10 +381,6 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
   api.runtime.onMessage.addListener(messageListener);
   const storageListener=(changes,area)=>{
     if(area!=='local')return;
-    if(Object.hasOwn(changes,UI_LOCALE_STORE)){
-      uiLocale=canonicalUiLocale(changes[UI_LOCALE_STORE].newValue)||UI_LOCALE_DEFAULT;
-      view?.setLocale(uiLocale); // Presentation-only: no policy or index invalidation.
-    }
     if((knownIds.length?knownIds.some(id=>sidebarToolLifecycleChanged(changes,id)):
        [SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE].some(key=>Object.hasOwn(changes,key)))||
        Object.hasOwn(changes,READING_TOC_SITE_STORE)||
@@ -356,6 +391,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
       // Appearance changes never revoke page.toc authority or cancel navigation.
       void refreshPolicy();return;
     }
+    if(Object.hasOwn(changes,UI_LOCALE_STORE)||Object.hasOwn(changes,localeKey))void refreshLocale();
     const key=readingTocPlacementKey(win.location.href);
     if(key&&Object.hasOwn(changes,key))view?.setPlacement(changes[key].newValue);
   };

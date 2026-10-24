@@ -1,3 +1,4 @@
+import {validateToolLocalization,verifyToolLocalization} from './localization.js';
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../framework/sdk/browser-direct.generated.js';
 import {normalizeSidebarToolBackgroundPolicy,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V3} from './background-policy.js';
 import {MANAGED_SITE_BUDGET_CAPABILITY} from '../../platform/host/managed-site-runtime-contract.js';
@@ -18,7 +19,7 @@ const V2_CAPABILITIES = Object.freeze([...new Set([...CAPABILITIES,'page.prompts
   'browser.network.observe','browser.events','browser.operations','browser.screenshot','browser.bookmarks','browser.bookmarks.full','browser.scheduler',
   'browser.cookies.read','browser.cookies.values','browser.cookies.write','browser.cookies.observe','browser.cookies.clear','browser.storage','browser.proxy.managed',MANAGED_SITE_BUDGET_CAPABILITY,
   ...APPROVED_BROWSER_DIRECT_BINDINGS.flatMap(row=>row.requiredCapabilities)])]);
-const PACKAGE_FIELDS=Object.freeze(['format','id','version','title','description','capabilities','html','css','js','uiRuntime','backgroundPolicy']);
+const PACKAGE_FIELDS=Object.freeze(['format','id','version','title','description','capabilities','html','css','js','uiRuntime','backgroundPolicy','localization']);
 const V2_FIELDS=Object.freeze([...PACKAGE_FIELDS,'requires','contributes','scripts','initialData','background']);
 const MENU_CONTEXTS=Object.freeze(['page','selection','link']);
 const fail = (message,code='E_TOOL_SCHEMA') => { const error=new Error(message);error.code=code;throw error; };
@@ -35,6 +36,7 @@ export function validateSidebarToolPackage(value) {
       !/^[a-z][a-z0-9-]{1,39}$/.test(value.id) ||
       typeof value.version!=='string' || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(value.version))
     fail('工具格式、ID 或版本无效');
+  if(value.localization!==undefined)validateToolLocalization(value.localization);
   if(value.uiRuntime!==undefined&&value.uiRuntime!==SIDEBAR_TOOL_SHARED_UI_RUNTIME)
     fail('不支持的共享 UI Runtime','E_TOOL_RUNTIME');
   for (const name of ['title','description','html','css','js'])
@@ -161,6 +163,11 @@ export function serializeSidebarToolPackage(value){
   const tool=validateSidebarToolPackage(value);
   const isV2=tool.format===SIDEBAR_TOOL_FORMAT_V2;
   const stable=Object.fromEntries((isV2?V2_FIELDS:PACKAGE_FIELDS).map(key=>[key,tool[key]]));
+  if(tool.localization!==undefined){
+    const canonical=row=>row&&typeof row==='object'?
+      Object.fromEntries(Object.keys(row).sort().map(key=>[key,canonical(row[key])])):row;
+    stable.localization=canonical(tool.localization);
+  }
   // Persisted Chrome Storage does not promise nested object property order.
   // A version-matched v2 contribution must have ONE canonical digest regardless
   // of object-key order; never let storage reordering revoke or inherit grants.
@@ -204,6 +211,7 @@ export async function sidebarToolPackageHash(tool){
 // also verify the fixed UTF-8 payload; a self-declared hash is not publisher trust.
 export async function verifySidebarToolBackground(value){
   const tool=validateSidebarToolPackage(value);
+  if(tool.localization!==undefined)await verifyToolLocalization(tool.localization);
   if(tool.background===undefined)return tool;
   const bytes=new TextEncoder().encode(tool.background.js);
   const sha256=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),

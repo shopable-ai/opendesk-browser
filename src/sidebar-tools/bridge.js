@@ -3,6 +3,19 @@ import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_SHARED_UI_RUNTIME} from '../ui/sideba
 import {createBrowserSdk} from '../framework/sdk/browser.js';
 import {browserOperation,normalizeBrowserOperation} from '../framework/sdk/browser-contract.js';
 import {normalizeToolNavigation} from './navigation-state.js';
+import {validateToolLocalization} from '../ui/sidebar-tools/localization.js';
+
+// Presentation data only, delivered by the verified parent. Never evaluate a
+// package's JavaScript to discover its messages, or expose host storage here.
+export function sandboxToolMessages(value){
+  if(!value)return null;
+  try{
+    const checked=validateToolLocalization(value);
+    for(const rows of Object.values(checked.messages))Object.freeze(rows);
+    Object.freeze(checked.messages);
+    return Object.freeze(checked);
+  }catch{return null;}
+}
 // AdBlock confirmation is an actual separate Side Panel click. The trusted host
 // closes unconfirmed reviews after 90 seconds; ordinary tool RPCs stay short.
 // Waiting is never an authorization grant or a DNR deadline.
@@ -80,6 +93,7 @@ export function initSidebarToolSandbox() {
   });
   let startupFailed=false;
   let uiLocale='zh-CN';
+  let uiMessages=null;
   const localeListeners=new Set();
   const acceptedLocale=value=>typeof value==='string'&&value.length<=45&&/^[A-Za-z0-9-]+$/.test(value)?
     (()=>{try{return Intl.getCanonicalLocales(value)[0]||'zh-CN';}catch{return 'zh-CN';}})():'zh-CN';
@@ -323,7 +337,10 @@ export function initSidebarToolSandbox() {
     if(message.kind==='locale-changed'){
       if(message.instance===instance&&message.toolId===toolId){
         const next=acceptedLocale(message.locale);
-        if(next!==uiLocale){uiLocale=next;document.documentElement.lang=next;
+        const messages=sandboxToolMessages(message.localization);
+        const catalogChanged=JSON.stringify(messages)!==JSON.stringify(uiMessages);
+        uiMessages=messages;
+        if(next!==uiLocale||catalogChanged){uiLocale=next;document.documentElement.lang=next;
           for(const callback of localeListeners)try{callback(next);}catch{/* Isolated tool UI callback. */}
           scheduleSize();
         }
@@ -362,7 +379,8 @@ export function initSidebarToolSandbox() {
     // Snapshot installed capabilities before any package script can run.
     cookieExports=Array.isArray(tool.capabilities)&&tool.capabilities.some(capability=>
       typeof capability==='string'&&capability.startsWith('browser.cookies.'));
-    uiLocale=acceptedLocale(message.locale);document.documentElement.lang=uiLocale;
+    uiLocale=acceptedLocale(message.locale);uiMessages=sandboxToolMessages(message.localization);
+    document.documentElement.lang=uiLocale;
     root.replaceChildren();
     const style=document.createElement('style');
     style.textContent=tool.css;
@@ -393,6 +411,7 @@ export function initSidebarToolSandbox() {
       root,request,setState,
       ...(navigationAllowed?{setNavigation}:{}),
       get locale(){return uiLocale;},
+      get messages(){return uiMessages;},
       onLocaleChange(callback){
         if(typeof callback!=='function')throw Error('E_UI_LOCALE_CALLBACK');
         localeListeners.add(callback);return ()=>localeListeners.delete(callback);

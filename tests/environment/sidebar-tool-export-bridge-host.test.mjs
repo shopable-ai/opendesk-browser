@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {runInNewContext} from 'node:vm';
 import {parseHTML} from 'linkedom';
-import {initSidebarToolSandbox,sidebarToolRequestTimeout,ADBLOCK_CONFIRM_OPERATIONS} from '../../src/sidebar-tools/bridge.js';
+import {initSidebarToolSandbox,sidebarToolRequestTimeout,ADBLOCK_CONFIRM_OPERATIONS,sandboxToolMessages} from '../../src/sidebar-tools/bridge.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {browserOperation,normalizeBrowserOperation,BROWSER_HOST_PROTOCOL,BROWSER_OPERATIONS} from '../../src/framework/sdk/browser-contract.js';
 import {createSidebarTools} from '../../src/ui/sidebar-tools.js';
@@ -11,6 +11,7 @@ import {SIDEBAR_TOOL_FORMAT_V2,SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE} from '.
 import {TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {officialFixtureFetch} from '../helpers/official-tools.mjs';
+import {createToolLocalization} from '../../src/ui/sidebar-tools/localization.js';
 
 const tool={format:SIDEBAR_TOOL_FORMAT_V2,id:'export-example',version:'1.0.0',title:'Export',
   description:'generic export fixture',capabilities:['user.export'],html:'<main>Export</main>',css:'',js:'void 0;',
@@ -62,7 +63,7 @@ function sandbox({loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'f
   const realm=runInNewContext(`const browserOperation=(${browserOperation.toString()});
     const sidebarToolRequestTimeout=(${sidebarToolRequestTimeout.toString()});
     (${initSidebarToolSandbox.toString()})(); ({Reflect,Function,Promise,Object,Map,Set,Number,globalThis})`,{
-    SIDEBAR_TOOL_PROTOCOL,createBrowserSdk,BROWSER_OPERATIONS,ADBLOCK_CONFIRM_OPERATIONS,normalizeBrowserOperation,performance:clock,
+    SIDEBAR_TOOL_PROTOCOL,createBrowserSdk,BROWSER_OPERATIONS,ADBLOCK_CONFIRM_OPERATIONS,normalizeBrowserOperation,sandboxToolMessages,performance:clock,
     window:win,parent,Event:NativeEvent,MessagePort:Port,
     document:{getElementById:id=>id==='tool-root'?root:status,documentElement:{},head:node(),body:node(),createElement:node},
     Blob,URL:{createObjectURL:()=> 'blob:export-fixture',revokeObjectURL(){}},...timers,requestAnimationFrame:()=>0
@@ -98,6 +99,25 @@ function sandbox({loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'f
     async dispose(){win.emit('pagehide',{});await Promise.all(pending);}
   };
 }
+
+test('bridge: read-only locale data updates in place even when the selected language stays the same',async()=>{
+  const localization=await createToolLocalization({sourceLocale:'zh-CN',messages:{'zh-CN':{title:'目录'},ja:{title:'目次'}}});
+  const loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'frame-1',tool,locale:'ja',localization};
+  const b=sandbox({loaded});
+  try{
+    assert.equal(b.win.OpenDeskTool.messages.messages.ja.title,'目次');
+    assert(Object.isFrozen(b.win.OpenDeskTool.messages.messages.ja));
+    const seen=[];b.win.OpenDeskTool.onLocaleChange(value=>seen.push(value));
+    const next=structuredClone(localization);next.messages.ja.title='新しい目次';
+    b.respond({...loaded,kind:'locale-changed',toolId:tool.id,localization:next});
+    assert.deepEqual(seen,['ja']);assert.equal(b.win.OpenDeskTool.messages.messages.ja.title,'新しい目次');
+    b.respond({...loaded,kind:'locale-changed',instance:'old-frame',toolId:tool.id,localization});
+    assert.equal(b.win.OpenDeskTool.messages.messages.ja.title,'新しい目次');
+    next.messages.ja.title='<script>bad</script>';
+    b.respond({...loaded,kind:'locale-changed',toolId:tool.id,localization:next});
+    assert.equal(b.win.OpenDeskTool.messages,null,'invalid data restores bundled source fallback');
+  }finally{await b.dispose();}
+});
 
 test('bridge: one synchronous export per native click; private handshake and public fallback',async()=>{
   const b=sandbox();

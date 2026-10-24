@@ -290,15 +290,17 @@ export function ToolHost({view}) {
 <select id="sidebar-tool-toc-language-select" className="od-field" aria-label="界面语言"
   value={snapshot.fields['sidebar-tool-toc-language-select'].value} disabled={snapshot.fields['sidebar-tool-toc-language-select'].disabled}
   onChange={actions.language}>
-<option value="zh-CN">
-{"简体中文"}
-</option>
-<option value="en">
-{"English"}
-</option>
+<option value="follow">跟随 OpenDesk</option>
+{(snapshot.fields['sidebar-tool-toc-language-select'].rows?.length?
+ snapshot.fields['sidebar-tool-toc-language-select'].rows:
+ [{id:'zh-CN',label:'简体中文'},{id:'en',label:'English'}]).map(row=>
+ <option key={row.id} value={row.id}>{row.label}</option>)}
 
 </select>
 
+</ToolField>
+<ToolField as="button" type="button" id="sidebar-tool-language-manage" className="od-button od-button--secondary" hidden={true}>
+翻译与语言包…
 </ToolField>
 <ToolField as="div" id="sidebar-tool-prompt-web-row" className="sidebar-toc-settings-row sidebar-tool-prompt-native" hidden={true}>
 <span className="sidebar-tool-prompt-native-info">

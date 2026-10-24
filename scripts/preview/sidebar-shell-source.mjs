@@ -34,13 +34,11 @@ export function extractSidebarPreviewShell(html,css){
   if(navigation.length!==1||toolbar.length!==1||navigation.find('#tab-tools').text()!=='扩展')
     fail('real React navigation/toolbar contract unavailable');
   for(const id of ['sidebar-tool-back','sidebar-tool-title',
-    'sidebar-tool-more-open','sidebar-tool-more-menu',
     'sidebar-tool-settings-open','sidebar-tool-remove']){
     if(toolbar.find('#'+id).length!==1)fail('React toolbar action missing: '+id);
   }
-  if(toolbar.find('#sidebar-tool-more-open').attr('aria-controls')!=='sidebar-tool-more-menu'||
-     toolbar.find('#sidebar-tool-more-menu').attr('role')!=='group')
-    fail('React overflow action/target contract unavailable');
+  if(toolbar.find('#sidebar-tool-settings-open').attr('aria-controls')!=='sidebar-tool-settings-view')
+    fail('React settings action/target contract unavailable');
   const settings=$('#sidebar-tool-settings-view');
   if(settings.length!==1||settings.find('#sidebar-tool-open-tab').length!==1)
     fail('React settings action missing: sidebar-tool-open-tab');
@@ -62,18 +60,17 @@ export function extractSidebarPreviewShell(html,css){
   for(const [selector,count] of counts){
     if(count===0)fail('missing canonical rule: '+selector);
   }
-  // The shared R4.2 React overflow contains multiline rules. Include that
+  // The shared React header contains multiline rules. Include that
   // exact source CSS in the static preview instead of inventing menu styling
   // or leaving the real, initially hidden menu visually unrepresentative.
-  const start=css.indexOf('/* R4.2 shared installed-tool header:');
+  const start=css.indexOf('/* Shared installed-tool management:');
   const end=start<0?-1:css.indexOf('.sidebar-tool-settings-view{',start);
-  if(start<0||end<=start||css.indexOf('/* R4.2 shared installed-tool header:',start+1)!==-1)
-    fail('real React overflow styles unavailable');
+  if(start<0||end<=start||css.indexOf('/* Shared installed-tool management:',start+1)!==-1)
+    fail('real React header styles unavailable');
   const overflowCss=css.slice(start,end).trim();
-  for(const marker of ['.sidebar-tool-header-more[hidden]',
-    '.sidebar-tool-more-menu[hidden]','.sidebar-tool-more-menu{',
-    '#sidebar-tool-more-menu #sidebar-tool-settings-open{']){
-    if(!overflowCss.includes(marker))fail('real React overflow style missing: '+marker);
+  for(const marker of ['.sidebar-tool-header-actions[hidden]',
+    '.sidebar-tool-header-actions{','#sidebar-tool-settings-open[aria-expanded="true"]']){
+    if(!overflowCss.includes(marker))fail('real React header style missing: '+marker);
   }
   const extractedCss=shellCss+'\n'+overflowCss;
   return Object.freeze({nav,head,css:extractedCss,

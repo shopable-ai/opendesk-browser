@@ -10,6 +10,7 @@ import {
   createUiLocaleController,UI_LOCALE_STORE
 } from '../../src/ui/app-localization.js';
 
+import {createReadingTocView} from '../../examples/sidebar-tools/reading-toc/trusted/view.js';
 const root='examples/sidebar-tools/reading-toc/';
 const getCatalog=async()=>JSON.parse(await readFile(root+'locales.json','utf8'));
 
@@ -100,10 +101,10 @@ test('R1.2 source wiring covers both trusted webpage overlay and sandbox without
     readFile('scripts/build-sidebar-tool.mjs','utf8'),
     readFile('scripts/build-official-tools.mjs','utf8')
   ]);
-  assert.match(overlay,/setLocale\(next\)/);
+  assert.match(overlay,/setLocale\(next,nextCatalog=catalog\)/);
   assert.match(overlay,/readingTocCatalog/);
   assert.match(page,/UI_LOCALE_STORE/);
-  assert.match(page,/view\?\.setLocale\(uiLocale\)/);
+  assert.match(page,/view\?\.setLocale\(uiLocale,uiCatalog\)/);
   assert.match(bridge,/kind==='locale-changed'/);
   assert.match(bridge,/onLocaleChange/);
   assert.match(host,/kind:'locale-changed'/);
@@ -136,4 +137,91 @@ test('R1.3 trusted TOC settings change language without importing tool permissio
   assert.match(markup,/阅读目录已排除的页面/);
   assert.match(markup,/id="sidebar-tool-toc-language-select"/);
   assert.match(host,/listen\(tocLanguageSelect,'change'/);
+});
+
+// Same lightweight DOM fixture as the existing placement component tests.
+class MockElement {
+  constructor(tag,win){
+    this.tagName=tag.toUpperCase();this.win=win;this.children=[];this.options=[];
+    this.events=new Map();this.attributes=new Map();this.dataset={};
+    this.style={removeProperty(key){delete this[key];},setProperty(key,value){this[key]=value;}};
+    this.scrollTop=0;
+  }
+  setAttribute(key,value){this.attributes.set(key,value);}
+  removeAttribute(key){this.attributes.delete(key);}
+  append(...nodes){
+    this.children.push(...nodes);
+    if(this.tagName==='SELECT')this.options.push(...nodes);
+  }
+  replaceChildren(...nodes){
+    this.children=nodes.flatMap(node=>node.tagName==='FRAGMENT'?node.children:[node]);
+    if(this.tagName==='SELECT')this.options=[...this.children];
+  }
+  attachShadow(){return this.shadow=new MockElement('shadow',this.win);}
+  addEventListener(type,handler){
+    if(!this.events.has(type))this.events.set(type,new Set());
+    this.events.get(type).add(handler);
+  }
+  removeEventListener(type,handler){this.events.get(type)?.delete(handler);}
+  fire(type,event={}){for(const fn of [...(this.events.get(type)||[])])fn(event);}
+  setPointerCapture(id){this.pointerCapture=id;}
+  hasPointerCapture(id){return this.pointerCapture===id;}
+  releasePointerCapture(id){if(this.pointerCapture===id)this.pointerCapture=null;}
+  getBoundingClientRect(){
+    if(this.attributes.has('data-opendesk-toc-root')){
+      const width=this.win.innerWidth<=1100?220:254,height=180;
+      const left=this.style.left!==undefined?parseFloat(this.style.left):this.win.innerWidth-width-8;
+      const top=this.style.top!==undefined?parseFloat(this.style.top):8;
+      return {width,height,left,top,right:left+width,bottom:top+height};
+    }
+    return {width:220,height:160,left:0,top:0,right:220,bottom:160};
+  }
+  querySelectorAll(selector){
+    if(selector!=='button')return [];
+    return this.children.flatMap(child=>[child,...child.querySelectorAll(selector)])
+      .filter(child=>child.tagName==='BUTTON');
+  }
+  querySelector(){return null;}
+  remove(){this.removed=true;}
+}
+function viewFixture(){
+  const win={
+    innerWidth:800,innerHeight:600,events:new Map(),
+    addEventListener(type,fn){
+      if(!this.events.has(type))this.events.set(type,new Set());
+      this.events.get(type).add(fn);
+    },
+    removeEventListener(type,fn){this.events.get(type)?.delete(fn);},
+    fire(type){for(const fn of this.events.get(type)||[])fn();}
+  };
+  const doc={body:new MockElement('body',win),defaultView:win,
+    createElement:tag=>new MockElement(tag,win),
+    createDocumentFragment:()=>new MockElement('fragment',win)};
+  const host=()=>doc.body.children[0];
+  const handle=()=>host().shadow.children[0].children[0].children[0];
+  const pointer=(x,y)=>({pointerId:7,button:0,isPrimary:true,clientX:x,clientY:y,
+    preventDefault(){}});
+  return {doc,win,host,handle,pointer};
+}
+
+test('R2.1 dynamic Japanese catalog replaces same-language text and removal falls back without remount',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const pkg=await createSidebarToolPackage(root);
+ const pack=JSON.parse(await readFile('examples/sidebar-tools/reading-toc/languages/ja.opendesk-locale.json','utf8'));
+ const prior=globalThis.CSSStyleSheet;globalThis.CSSStyleSheet=class{replaceSync(){}};
+ try{
+  const f=viewFixture(),view=createReadingTocView({doc:f.doc,win:f.win,onNavigate(){}});
+  const host=f.host(),panel=host.shadow.children[0],scroll=panel.children[1];
+  const catalog={...pkg.localization,messages:{...pkg.localization.messages,ja:Object.fromEntries(Object.entries(pack.messages).map(([k,v])=>[k,v.text]))}};
+  view.render({adapter:'article',items:[{id:'h-1',label:'Actual page heading',sourceId:'s-1',depth:0,topId:'h-1'}],activeId:'h-1',sources:[{id:'s-1',label:'Original source'}]});
+  const list=scroll.children[0],item=list.children[0];scroll.scrollTop=37;
+  view.setLocale('ja',catalog);
+  assert.equal(panel.attributes.get('aria-label'),pack.messages.pageLabel.text);
+  assert.equal(f.host(),host);assert.equal(list.children[0],item);assert.equal(scroll.scrollTop,37);
+  const changed=structuredClone(catalog);changed.messages.ja.pageLabel='更新した目次';
+  view.setLocale('ja',changed);assert.equal(panel.attributes.get('aria-label'),'更新した目次');
+  view.setLocale('ja',null);assert.equal(panel.attributes.get('aria-label'),pkg.localization.messages['zh-CN'].pageLabel);
+  assert.equal(f.host(),host);assert.equal(list.children[0],item);assert.equal(scroll.scrollTop,37);
+  view.dispose();
+ }finally{globalThis.CSSStyleSheet=prior;}
 });

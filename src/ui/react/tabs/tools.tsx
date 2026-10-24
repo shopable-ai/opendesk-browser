@@ -2,6 +2,8 @@ import * as React from 'react';
 import {createPortal} from 'react-dom';
 import {Button,IconButton} from '../components/ui/button.tsx';
 
+const LocaleManager=React.lazy(()=>import('./locale-manager.tsx'));
+
 // Sole owner of extension-center-list children. All actions delegate to the
 // trusted existing Extension Center; user packages stay in their sandbox.
 export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore}){
@@ -64,7 +66,8 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore}){
 
 /** Shared confirmation shell; the trusted controller still owns uninstall. */
 export function UninstallDialog({open=false,title='卸载扩展？',busy=false,
-  onCancel,returnFocusSelector,description,identity,children}) {
+  onCancel,returnFocusSelector,description,identity,children,
+  cancelLabel='取消卸载',closeLabel='关闭卸载确认'}) {
   const panelRef=React.useRef(null),titleId=React.useId(),descriptionId=React.useId();
   const latest=React.useRef({busy,onCancel});
   latest.current={busy,onCancel};
@@ -109,7 +112,7 @@ export function UninstallDialog({open=false,title='卸载扩展？',busy=false,
       }
       if(event.key!=='Tab')return;
       const focusable=[...panel.querySelectorAll(
-        'button:not([disabled]),[href],input:not([disabled]),[tabindex]:not([tabindex="-1"])')]
+        'button:not([disabled]),[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')]
         .filter(node=>!node.closest('[hidden]')&&node.getClientRects().length);
       const first=focusable[0],last=focusable.at(-1);
       if(!first){event.preventDefault();panel.focus({preventScroll:true});return;}
@@ -150,14 +153,14 @@ export function UninstallDialog({open=false,title='卸载扩展？',busy=false,
   if(!open)return null;
   const surface=<div className="od-uninstall-overlay">
     <button type="button" className="od-uninstall-backdrop" tabIndex={-1}
-      aria-label="取消卸载" disabled={busy}
+      aria-label={cancelLabel} disabled={busy}
       onClick={cancel}/>
     <section ref={panelRef} className="od-uninstall-dialog" tabIndex={-1}
       role="dialog" aria-modal="true" aria-labelledby={titleId}
       aria-describedby={description?descriptionId:undefined} aria-busy={busy}>
       <div className="od-uninstall-dialog-head">
         <h2 id={titleId}>{title}</h2>
-        <IconButton className="od-uninstall-close" label="关闭卸载确认" disabled={busy} onClick={cancel}>
+        <IconButton className="od-uninstall-close" label={closeLabel} disabled={busy} onClick={cancel}>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
         </IconButton>
       </div>
@@ -310,9 +313,10 @@ export function ExtensionToolbar({model}){
         <fieldset className="ec-language"><legend>OpenDesk 界面语言</legend>
           <label htmlFor="extension-center-language" className="visually-hidden">界面语言</label>
           <select id="extension-center-language" aria-label="OpenDesk 界面语言"
-            value={current.language||'zh-CN'}
+            value={current.language||'auto'}
             onChange={event=>current.onLanguage?.(event.currentTarget.value,event.nativeEvent)}>
-            <option value="zh-CN">简体中文</option><option value="en">English</option>
+            <option value="auto">跟随浏览器</option><option value="zh-CN">简体中文</option>
+            <option value="en">English</option><option value="zh-TW">繁體中文</option><option value="ja">日本語</option>
           </select>
         </fieldset>
         <fieldset><legend>显示范围</legend><div className="ec-filter-group">
@@ -323,8 +327,10 @@ export function ExtensionToolbar({model}){
         <button id="extension-center-reset" className="ec-menu-action" type="button"
           onClick={event=>current.onReset?.(event.nativeEvent)}>恢复默认筛选</button>
         <div className="ec-menu-separator">
+          <button id="extension-center-language-settings" className="ec-menu-action" type="button"
+            onClick={()=>current.onLanguageSettings?.()}>语言与翻译管理</button>
           <button id="extension-center-import" className="ec-menu-action" type="button"
-            onClick={event=>current.onImport?.(event.nativeEvent)}>导入本地工具包</button>
+            onClick={event=>current.onImport?.(event.nativeEvent)}>导入本地工具包或语言包</button>
           <button id="extension-center-reload" className="ec-menu-action" type="button"
             onClick={event=>current.onReload?.(event.nativeEvent)}>刷新扩展</button>
         </div>
@@ -459,6 +465,10 @@ export function ExtensionCenterPage({
     onDragLeave={onDragLeave} onDrop={onDrop}>
     <div ref={pageRef} id="extension-center-list-view" hidden={detailVisible}>
       <div className="ec-toolbar"><ExtensionToolbar model={toolbarModel}/></div>
+      <input id="extension-center-file" type="file" accept=".json,application/json" hidden
+        aria-label="选择扩展安装包或语言包" onChange={event=>{
+          toolbarModel?.onImportFiles?.(Array.from(event.currentTarget.files||[]));event.currentTarget.value='';
+        }}/>
       <div id="extension-center-import-host"></div>
       <span id="extension-center-count" className="visually-hidden" aria-live="polite">
         {feedbackModel?.countText||'正在读取扩展…'}
@@ -516,6 +526,9 @@ export function ExtensionCenterPage({
           {uninstallModel?.busy?'正在卸载…':'确认卸载'}</Button>
       </div>
     </UninstallDialog>
+    {toolbarModel?.localeManager&&<React.Suspense fallback={<p role="status">正在打开语言与翻译…</p>}>
+      <LocaleManager key={toolbarModel.localeManager.session} model={toolbarModel.localeManager}/>
+    </React.Suspense>}
     {rowMenuModel&&<ExtensionRowMenu model={rowMenuModel}/>}
     <p id="extension-center-status" className="ec-message" role="status"
       aria-live="polite" data-state={statusModel?.state||'info'}
@@ -523,8 +536,8 @@ export function ExtensionCenterPage({
       <ExtensionStatus model={statusModel}/>
     </p>
     {fileOver&&<div className="ec-file-drop-overlay" role="status" aria-live="polite">
-      <strong>松开以导入扩展安装包</strong>
-      <span>支持 JSON 文件；安装前仍需核对版本与权限</span>
+      <strong>松开以导入扩展安装包或语言包</strong>
+      <span>语言包进入翻译预览；代码安装包仍需审阅版本与权限</span>
     </div>}
   </div>;
 }

@@ -69,9 +69,11 @@ const ICONS=[
 export function readingTocDisplayMode(mode,compact,userSelected=false){
   return compact&&!userSelected?'top':mode;
 }
-export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=null,initialLocale='zh-CN',onPlacementChange=()=>{},onNavigate}) {
-  let locale=resolveUiLocale(initialLocale,Object.keys(readingTocCatalog.messages),'zh-CN');
-  const t=(key,params)=>uiMessage(readingTocCatalog,locale,key,params);
+export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=null,initialLocale='zh-CN',initialCatalog=readingTocCatalog,onPlacementChange=()=>{},onNavigate}) {
+  // Catalogs are admitted by the trusted controller, never read from page messages.
+  let catalog=initialCatalog||readingTocCatalog;
+  let locale=resolveUiLocale(initialLocale,Object.keys(catalog.messages),catalog.sourceLocale);
+  const t=(key,params)=>uiMessage(catalog,locale,key,params);
   const host=doc.createElement('div');
   host.setAttribute('data-opendesk-toc-root','');
   const root=host.attachShadow({mode:'closed'});
@@ -329,10 +331,11 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   if(placement)reposition();
   render();
   return Object.freeze({render,setPlacement,
-    setLocale(next){
-      const resolved=resolveUiLocale(next,Object.keys(readingTocCatalog.messages),'zh-CN');
-      if(locale===resolved)return;
-      locale=resolved;updateLanguage(); // No heading reindex, navigation, placement or scroll reset.
+    setLocale(next,nextCatalog=catalog){
+      const updated=nextCatalog||readingTocCatalog;
+      const resolved=resolveUiLocale(next,Object.keys(updated.messages),updated.sourceLocale);
+      if(locale===resolved&&catalog===updated)return;
+      catalog=updated;locale=resolved;updateLanguage(); // No heading reindex, navigation, placement or scroll reset.
     },
     dispose(){
     if(disposed)return;disposed=true;drag=null;observer?.disconnect();

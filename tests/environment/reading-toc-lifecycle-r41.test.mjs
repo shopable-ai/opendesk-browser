@@ -1,12 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {toolLocaleStorageKey} from '../../src/ui/sidebar-tools/locale-packs.js';
+import {UI_LOCALE_STORE} from '../../src/ui/app-localization.js';
 import {initReadingToc} from '../../examples/sidebar-tools/reading-toc/trusted/page.js';
 import {officialToolFixture} from '../helpers/official-tools.mjs';
 import {MARKET_PROVENANCE_STORE,OFFICIAL_READING_TOC_RELEASE,READING_TOC_CHROME_ACCESS_PROTOCOL}
   from '../../src/sidebar-tools/official-reading-toc.js';
 import {READING_TOC_SITE_STORE,READING_TOC_PROTOCOL,READING_TOC_PAGE_RULES_STORE,READING_TOC_VISIBILITY_STORE,
   changeTocPageAllowed,changeTocSiteAllowed,changeReadingTocVisibility} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
-import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_STORE,serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
@@ -470,4 +473,75 @@ test('R4.8 policy read failures retry fail-closed; forced snapshots respect disa
     await tick();await tick();
     assert.equal((await f.send({forceRefresh:true})).ok,false);
   }finally{controller.dispose();globalThis.MutationObserver=old;}
+});
+
+
+test('R2.1 verified locale reads preserve the index and observer; tampered bytes cannot read packs',async()=>{
+  const official=await officialToolFixture('reading-toc');
+  const pack=JSON.parse(await readFile(new URL(
+    '../../examples/sidebar-tools/reading-toc/languages/ja.opendesk-locale.json',import.meta.url),'utf8'));
+  const f=pageFixture(),key=toolLocaleStorageKey(official.id);
+  f.state.set(SIDEBAR_TOOL_STORE,[official]);
+  f.state.set(MARKET_PROVENANCE_STORE,{[official.id]:{
+    marketId:OFFICIAL_READING_TOC_RELEASE.marketId,version:official.version,
+    sha256:OFFICIAL_READING_TOC_RELEASE.sha256}});
+  // This controller fixture has no DOM view; the maintained R12 view test checks mount identity.
+  f.state.set(READING_TOC_VISIBILITY_STORE,
+    changeReadingTocVisibility({},official.id,f.win.location.href,'site',true));
+  f.state.set(key,{locale:'ja',packs:{ja:pack}});
+  let packReads=0,indexReads=0,verifiedDigests=0,finishTampered;
+  const tampered={...official,js:official.js+';void 0;'};
+  const tamperedBytes=serializeSidebarToolPackage(tampered);
+  const tamperedHashed=new Promise(resolve=>{finishTampered=resolve;});
+  const digest=crypto.subtle.digest,priorObserver=globalThis.MutationObserver;
+  const get=f.api.storage.local.get,query=f.doc.querySelectorAll;
+  let controller;
+  crypto.subtle.digest=async function(algorithm,bytes){
+    const result=await digest.call(this,algorithm,bytes);
+    const text=new TextDecoder().decode(bytes);
+    if(text===serializeSidebarToolPackage(official))verifiedDigests++;
+    if(text===tamperedBytes)finishTampered();
+    return result;
+  };
+  f.api.storage.local.get=async keys=>{
+    if(keys===key){
+      assert(verifiedDigests>0,'official package digest finishes before locale store access');
+      packReads++;
+    }
+    return get(keys);
+  };
+  f.doc.querySelectorAll=(...args)=>{indexReads++;return query(...args);};
+  const wait=async check=>{
+    for(let i=0;i<100&&!check();i++)await new Promise(resolve=>setTimeout(resolve,5));
+    assert(check(),'locale refresh reaches its observable completion');
+    await tick();
+  };
+  try{
+    globalThis.MutationObserver=f.Observer;
+    controller=initReadingToc({api:f.api,doc:f.doc,win:f.win});
+    await wait(()=>f.Observer.active===1&&packReads===1);
+    const indexed=indexReads,disconnects=f.disconnects;
+    const changed=structuredClone(pack);changed.messages.pageLabel.text='更新した目次';
+    for(const packs of [{ja:changed},{}]){
+      const before=packReads;
+      f.state.set(key,{locale:'ja',packs});
+      f.changes.send({[key]:{newValue:f.state.get(key)}},'local');
+      await wait(()=>packReads===before+1);
+      assert.equal(indexReads,indexed,'translation updates/removal never rescan headings');
+      assert.equal(f.Observer.active,1);
+      assert.equal(f.disconnects,disconnects,'translation updates/removal never replace the observer');
+    }
+    const before=packReads;
+    f.state.set(SIDEBAR_TOOL_STORE,[tampered]);
+    f.changes.send({[UI_LOCALE_STORE]:{newValue:'ja'}},'local');
+    // Fence on the actual rejected package hash, rather than a fixed delay.
+    await Promise.race([tamperedHashed,new Promise((_,reject)=>{
+      const timer=setTimeout(()=>reject(Error('tampered package verification did not finish')),1000);
+      tamperedHashed.then(()=>clearTimeout(timer));
+    })]);
+    await tick();
+    assert.equal(packReads,before,'unchanged provenance cannot admit modified package bytes');
+  }finally{
+    controller?.dispose();crypto.subtle.digest=digest;globalThis.MutationObserver=priorObserver;
+  }
 });

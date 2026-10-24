@@ -7,6 +7,7 @@ import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 import {createHash,randomUUID} from 'node:crypto';
 import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,serializeSidebarToolPackage,SIDEBAR_TOOL_SHARED_UI_RUNTIME,SIDEBAR_TOOL_BACKGROUND_KIND} from '../src/ui/sidebar-tools/package.js';
 import {compileSharedToolCss} from './preview/shared-tool-design.mjs';
+import {createToolLocalization} from '../src/ui/sidebar-tools/localization.js';
 import {compileToolLocaleCatalog} from '../src/ui/app-localization.js';
 const fail=(message)=>{throw new Error('E_TOOL_BUILD: '+message);};
 function rel(value) {
@@ -96,8 +97,9 @@ export async function createSidebarToolPackage(projectPath) {
   // Only opted-in tools import the canonical non-privileged component CSS at build time.
   css=await compileSharedToolCss(css);
   let js=await source(root,meta.files.js,220000);
-  // Build-only opt-in: localized resources are embedded into the SAME signed JS
-  // package bytes. No package Schema change, network load or second runtime.
+  // Opt-in catalog is compiled from its independent JSON source, never tool JS.
+  // Keep the existing marker payload and also expose inert package metadata.
+  let localization;
   const marker='__OPENDESK_TOOL_MESSAGES__';
   if(meta.locales!==undefined){
     if(typeof meta.locales!=='string'||!js.includes(marker)||js.split(marker).length!==2)
@@ -105,6 +107,7 @@ export async function createSidebarToolPackage(projectPath) {
     let catalog;
     try{catalog=compileToolLocaleCatalog(JSON.parse(await source(root,meta.locales,96000)));}
     catch(error){fail('invalid/stale locale resource: '+String(error?.message||error));}
+    localization=await createToolLocalization(catalog);
     js=js.replace(marker,JSON.stringify(catalog));
     if(new TextEncoder().encode(js).byteLength>220000)fail('compiled tool JS exceeds budget');
   }else if(js.includes(marker))fail('tool locale marker without resources');
@@ -149,6 +152,7 @@ export async function createSidebarToolPackage(projectPath) {
   if(/\{\{asset:/.test(embeddedHtml+css))fail('unresolved local asset reference');
   const pkg=validateSidebarToolPackage({format:v2?SIDEBAR_TOOL_FORMAT_V2:SIDEBAR_TOOL_FORMAT,id:meta.id,version:meta.version,
     title:meta.title,description:meta.description,capabilities:meta.capabilities||[],html:embeddedHtml,css,js,
+    ...(localization?{localization}:{}),
     ...(meta.uiRuntime?{uiRuntime:meta.uiRuntime}:{}),
     ...(meta.backgroundPolicy!==undefined?{backgroundPolicy:meta.backgroundPolicy}:{}),
     ...(v2?{requires:meta.requires,contributes:meta.contributes,...(scripts.length?{scripts}:{}),

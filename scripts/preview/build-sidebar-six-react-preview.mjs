@@ -10,6 +10,7 @@ import {load} from 'cheerio';
 import {build} from 'vite';
 import {clipperStagePaths,generateClipperStage} from './clipper-stage.mjs';
 import {compileSharedToolCss} from './shared-tool-design.mjs';
+import {createSidebarToolPackage} from '../build-sidebar-tool.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const output=join(root,'prototypes/sidebar/react-preview/index.html');
 const stylePaths=[
@@ -30,6 +31,10 @@ const inputs=[
   'src/ui/my-workbench-view.js','src/ui/sidebar-tools-view.js',
   'src/ui/workflow/workflow-ui-state.js','src/ui/react/tabs/workflow.tsx',
   'src/ui/react/preview/shared-ai-preview.js','src/ui/conversation/draft-suggestion.js',
+  'src/ui/react/preview/locale-preview.js',
+  'examples/sidebar-tools/reading-toc/tool.config.json','examples/sidebar-tools/reading-toc/locales.json',
+  'examples/sidebar-tools/reading-toc/src/index.html','examples/sidebar-tools/reading-toc/src/style.css',
+  'examples/sidebar-tools/reading-toc/src/main.js',
   'src/ui/react/tabs/my-agent.tsx','src/ui/react/tabs/my-agent.css',
   'src/ui/react/tabs/tasks.tsx','src/ui/react/tabs/my-page.tsx',
   'src/ui/react/tabs/schedule.tsx','src/ui/react/tabs/cloud.tsx','src/ui/react/tabs/debug.tsx',
@@ -52,6 +57,9 @@ import {createClipperPreview} from ${JSON.stringify(join(root,'src/ui/react/prev
 import {createWorkflowUIState} from ${JSON.stringify(join(root,'src/ui/workflow/workflow-ui-state.js'))};
 import {createPreviewProviderSettings,createPreviewMyAgent} from ${JSON.stringify(join(root,'src/ui/react/preview/shared-ai-preview.js'))};
 import {appendWorkflowSuggestionDraft} from ${JSON.stringify(join(root,'src/ui/conversation/draft-suggestion.js'))};
+import {createLocalePreview} from ${JSON.stringify(join(root,'src/ui/react/preview/locale-preview.js'))};
+const localePreview=createLocalePreview(LOCALE_PREVIEW_TOOL);
+let localeManagerOpen=false,localeSession=0;
 const proof={scope:'UI_PREVIEW_ONLY',realHost:false,realPermission:false,realResult:false};
 const names=['tasks','tools','workflow','develop','cloud','debug'];
 const initial=new URLSearchParams(location.search).get('tab');
@@ -59,6 +67,12 @@ document.documentElement.dataset.opendeskTab=names.includes(initial)?initial:'to
 // The standalone HTML must allocate a real viewport to the production flex root.
 // This changes the preview frame only; no installed Side Panel geometry is changed.
 const previewParams=new URLSearchParams(location.search);
+const themeInput=document.getElementById('od-sidebar-preview-theme');
+if(themeInput){
+ const applyTheme=value=>{document.documentElement.dataset.opendeskPreviewTheme=value;themeInput.value=value;};
+ applyTheme(['light','dark'].includes(previewParams.get('theme'))?previewParams.get('theme'):'auto');
+ themeInput.addEventListener('change',event=>applyTheme(event.currentTarget.value));
+}
 const previewShell=document.getElementById('od-sidebar-preview-shell');
 const previewWidth=Number(previewParams.get('width'));
 const widthChoices=[320,360,400,440,520];
@@ -338,6 +352,9 @@ function publishRows(){
 }
 function publishToolbar(){
   app.renderToolbar({...toolbar,
+    onLanguageSettings:()=>{localeManagerOpen=true;localeSession++;toolbar.menuOpen=false;publishToolbar();},
+    localeManager:localeManagerOpen?{...localePreview,session:localeSession,
+      onClose:()=>{localeManagerOpen=false;publishToolbar();}}:null,
     onSearch:value=>{toolbar.query=value;publishToolbar();publishRows();},
     onKind:value=>{toolbar.kind=value;publishToolbar();publishRows();},
     onScope:value=>{toolbar.scope=value;publishToolbar();publishRows();},
@@ -356,7 +373,7 @@ app.renderDebugDiagnostics({cloudSummary:'仅预览 · 未连接真实 Host',sna
 const previewTool=new URLSearchParams(location.search).get('tool');
 if(previewTool==='web-markdown-clipper')clipper.open();
 else if(previewTool)clipper.openScenario(previewTool);
-window.addEventListener('pagehide',()=>{clipper.dispose();app.dispose();
+window.addEventListener('pagehide',()=>{clipper.dispose();localePreview.dispose();app.dispose();
  developerView.dispose();workflow.dispose();myAgent.dispose();providerSettings.dispose();},{once:true});
 document.documentElement.dataset.previewProof=proof.scope;
 document.documentElement.dataset.previewBootScript='ready';
@@ -383,7 +400,9 @@ export async function generateSidebarSixReactPreview(){
   const clipperStage=generateClipperStage(sources,{compiledCss:await compileSharedToolCss(sources.get(clipperStagePaths[1]).toString())});
   try{
     const clipperVersion=JSON.parse(await readFile(join(root,'examples/sidebar-tools/web-markdown-clipper/tool.config.json'),'utf8')).version;
-    await writeFile(entry,previewEntry.replace('CLIPPER_STAGE_DOCUMENT',JSON.stringify(clipperStage)).replace('CLIPPER_TOOL_VERSION',clipperVersion));
+    const localeTool=await createSidebarToolPackage(join(root,'examples/sidebar-tools/reading-toc'));
+    await writeFile(entry,previewEntry.replace('CLIPPER_STAGE_DOCUMENT',JSON.stringify(clipperStage)).replace('CLIPPER_TOOL_VERSION',clipperVersion)
+      .replace('LOCALE_PREVIEW_TOOL',JSON.stringify(localeTool)));
     await build({root,configFile:false,logLevel:'error',
       plugins:[{name:'opendesk-offline-app-inputs',enforce:'pre',
         async load(id){
@@ -401,6 +420,8 @@ export async function generateSidebarSixReactPreview(){
     const scripts=(await readdir(bundle)).filter(path=>path.endsWith('.js'));
     must(scripts.length===1,'single offline bundle required');
     const compiled=await readFile(join(bundle,scripts[0]));
+    const componentCss=(await Promise.all((await readdir(bundle)).filter(path=>path.endsWith('.css')).map(path=>readFile(join(bundle,path),'utf8')))).join('\n');
+    must(!/<\/style/i.test(componentCss),'component CSS cannot terminate its element');
     must(compiled.length>20000&&!compiled.toString().includes('process.env.NODE_ENV'),'React production bundle missing');
     for(const [path,bytes]of sources)must(bytes.equals(await readFile(join(root,path))),'source changed during generation: '+path);
     const inputSha256=digest(initial),sourceInputs=[...sources].sort(([a],[b])=>a.localeCompare(b));
@@ -421,6 +442,15 @@ export async function generateSidebarSixReactPreview(){
       window.addEventListener('unhandledrejection',e=>report(e.reason));
     })();`;
     const executable=Buffer.concat([Buffer.from(probe),compiled]);
+    // Preview theme selectors reuse the exact canonical token bodies. No
+    // copied palette or product styling is maintained by this adapter.
+    const tokenCss=await readFile(join(root,'src/ui/design-tokens.css'),'utf8');
+    const lightTokens=tokenCss.match(/:root\{([\s\S]*?)\n\}/)?.[1];
+    const darkTokens=tokenCss.slice(tokenCss.indexOf('@media(prefers-color-scheme:dark)'))
+      .match(/:root\{([\s\S]*?)\n  \}/)?.[1];
+    must(lightTokens&&darkTokens,'canonical theme tokens unavailable');
+    const themeCss=':root[data-opendesk-preview-theme="light"]{'+lightTokens+'}\n'+
+      ':root[data-opendesk-preview-theme="dark"]{'+darkTokens+'}';
     const html=[
       '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">',
       '<meta name="viewport" content="width=device-width,initial-scale=1">',
@@ -431,7 +461,7 @@ export async function generateSidebarSixReactPreview(){
       '<meta name="od-source-input-sha256" content="'+inputSha256+'">',
       '<meta name="od-bundle-source-sha256" content="'+bundleInputSha256+'">',
       '<title>OpenDesk · 可信侧边栏离线设计预览</title>',
-      '<style id="od-official-ui-css">'+officialCss+'</style>',
+      '<style id="od-official-ui-css">'+officialCss+'\n'+componentCss+'\n'+themeCss+'</style>',
       '<style>'+
         'html,body{height:auto;min-height:100%;overflow:auto!important}'+
         'body{display:block;margin:0;padding:16px;background:var(--od-bg,#f8f8f8)}'+
@@ -463,6 +493,9 @@ export async function generateSidebarSixReactPreview(){
             '<option value="320">320</option><option value="360">360</option>'+
             '<option value="400" selected>400</option><option value="440">440</option>'+
             '<option value="520">520</option></select></label>'+
+          '<label>主题 <select id="od-sidebar-preview-theme" aria-label="预览主题">'+
+            '<option value="auto">跟随系统</option><option value="light">浅色</option>'+
+            '<option value="dark">深色</option></select></label>'+
         '</header>',
       '<div id="od-sidebar-preview-stage" class="od-sidebar-preview-stage">'+
         '<div id="od-sidebar-preview-boot" class="od-sidebar-preview-boot" role="status">'+

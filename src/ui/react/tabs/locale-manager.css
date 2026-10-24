@@ -1,0 +1,12 @@
+/* Trusted manager layout only; controls and surfaces inherit OpenDesk tokens. */
+.od-locale-manager { min-width: 0; gap: var(--space-3); }
+.od-locale-manager .od-locale-field { display: grid; min-width: 0; gap: var(--space-1); }
+.od-locale-manager .od-field { width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; }
+.od-locale-manager .od-locale-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); min-width: 0; }
+.od-locale-manager .od-locale-actions > button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.od-locale-manager p, .od-locale-manager h3 { margin: 0; overflow-wrap: anywhere; }
+.od-locale-manager .od-locale-preview { display: grid; min-width: 0; gap: var(--space-2); }
+.od-locale-manager .od-locale-samples { display: grid; gap: var(--space-1); margin: 0; min-width: 0; }
+.od-locale-manager .od-locale-samples dt { font-weight: 600; overflow-wrap: anywhere; }
+.od-locale-manager .od-locale-samples dd { display: grid; gap: var(--space-1); margin: 0 0 var(--space-2); overflow-wrap: anywhere; }
+.od-locale-manager .od-locale-recovery { display: grid; gap: var(--space-2); min-width: 0; }

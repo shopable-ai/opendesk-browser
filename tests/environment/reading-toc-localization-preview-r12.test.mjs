@@ -31,7 +31,7 @@ test('R1.2 same validated Side Panel JS/CSS executes in source-derived offline s
   const preview=await generatePreview({tool:'reading-toc',surface:'side-panel',width:360,
     scenario:'success',theme:'light'});
   assert.equal(preview.manifest.tool,'reading-toc');
-  assert.equal(preview.manifest.toolVersion,'1.0.9');
+  assert.equal(preview.manifest.toolVersion,pkg.version);
   assert.equal(preview.manifest.surface,'side-panel');
   assert.deepEqual(preview.manifest.operations,['toc.snapshot','toc.navigate']);
   assert.equal(preview.manifest.mock,true);
@@ -144,7 +144,7 @@ test('R1.4 checked-in interactive previews are byte-reproducible from the curren
   assert(marker,'offline interactive HTML must embed a provenance manifest');
   const metadata=JSON.parse(marker[1]);
   assert.equal(metadata.surface,surface);
-  assert.equal(metadata.toolVersion,'1.0.9');
+  assert.equal(metadata.toolVersion,packageData.version);
   assert.equal(metadata.uiSha256,pkgDigest,'preview embeds the installed tool package bytes');
   assert.equal(metadata.trustedOverlaySourceSha256,trustedDigest,
    'preview includes the actual trusted overlay sources');
