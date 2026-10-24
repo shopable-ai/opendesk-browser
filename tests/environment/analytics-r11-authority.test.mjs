@@ -178,6 +178,20 @@ test('App Service scheduler requires original Sidebar binding and frozen source'
   let current=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
   assert.equal(daily(current,'app_service','completed')?.total,1);
   assert.deepEqual(daily(current,'app_service','completed')?.sourceTotals,{scheduler:1});
+  // A corrupted original Fire binding must not break the whole readback: the
+  // healthy Task Scheduler receipt must still contribute to its daily total.
+  const healthyRunId=randomUUID(),healthyResultId=randomUUID(),healthyFireId='f-healthy';
+  stores.frameworkKV.push({tag:'schedule-fire-v1',namespace,fireId:healthyFireId,
+    runId:healthyRunId,resultId:healthyResultId});
+  stores.runs.push(scheduledRun(healthyRunId,healthyResultId,healthyFireId));
+  stores.results.push(scheduledResult(healthyRunId,healthyResultId));
+  fire.appBinding.sourceIdentity.corrupt=undefined;
+  current=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
+  assert.equal(daily(current,'app_service','completed'),undefined);
+  assert.equal(daily(current,'task','completed')?.total,1,
+    'one bad App Service receipt cannot hide a valid Task Scheduler run');
+  assert.equal(current.projectionGap,true,'bad Fire is a coverage gap, not a zero census');
+  delete fire.appBinding.sourceIdentity.corrupt;
   fire.appBinding.generation=randomUUID();
   current=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
   assert.equal(daily(current,'app_service','completed'),undefined);

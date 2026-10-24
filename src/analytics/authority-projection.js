@@ -191,14 +191,18 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
        result&&result.revision?.sourceHash!==run.contentHash)return false;
     if(run.profile==='app-service'){
       const binding=run.appBinding;
-      return fire.profile==='app-service'&&run.sourceKind==='app-service'&&
-        sidebarId.test(binding?.appId||'')&&fire.appId===binding.appId&&
-        run.scriptId==='app:'+binding.appId&&
-        frozenHash.test(binding.packageHash||'')&&
-        binding.codeHash===run.contentHash&&uuid.test(binding.generation||'')&&
-        binding.sourceIdentity&&typeof binding.sourceIdentity==='object'&&
-        fire.appBinding&&typeof fire.appBinding==='object'&&
-        canonical(binding)===canonical(fire.appBinding);
+      if(fire.profile!=='app-service'||run.sourceKind!=='app-service'||
+         !sidebarId.test(binding?.appId||'')||fire.appId!==binding.appId||
+         run.scriptId!=='app:'+binding.appId||
+         !frozenHash.test(binding.packageHash||'')||
+         binding.codeHash!==run.contentHash||!uuid.test(binding.generation||'')||
+         !binding.sourceIdentity||typeof binding.sourceIdentity!=='object'||
+         !fire.appBinding||typeof fire.appBinding!=='object')return false;
+      // One damaged Fire binding must only create a coverage gap. A non-JSON
+      // nested property may otherwise throw from canonical() and hide every
+      // unrelated valid Page/Task/Service execution in the same projection.
+      try{return canonical(binding)===canonical(fire.appBinding);}
+      catch{return false;}
     }
     const grant=run.installedTaskAuthorization;
     return fire.profile!=='app-service'&&run.sourceKind==='saved'&&
