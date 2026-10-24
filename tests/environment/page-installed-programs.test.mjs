@@ -31,7 +31,8 @@ function fixture(){
     });queue=next.catch(()=>{});return next;
   }};
   const f={builtinSource:fakeBuiltinSource,granted:true,access:true,registerCalls:0,executeCalls:0,previewCalls:0,permissionRequests:[],marker:true,native:new Map(),worlds:[],executionError:null,beforeExecute:null,
-    tabReads:0,tabStatus:'complete',framesGone:false,exactDocumentGone:false,documentLifecycle:'active',session:'session',nativeReads:0,unregisterCalls:0};
+    tabReads:0,tabStatus:'complete',framesGone:false,exactDocumentGone:false,documentLifecycle:'active',session:'session',nativeReads:0,unregisterCalls:0,
+    sourceCalls:0,retirementError:null};
   const sessions={},contexts=new Map();
   const assertHost=async()=>{assert.ok(db.get('commandJournal').get('host:host').active);return structuredClone(host);};
   const target={tabId:1,frameId:0,documentId:'web-document',expectedUrl:'https://example.com/demo',expectedWindowId:1};
@@ -41,8 +42,12 @@ function fixture(){
       if(++f.tabReads===3)await f.beforeExecute?.();
       return {id:1,windowId:1,active:true,url:target.expectedUrl,incognito:false,status:f.tabStatus};}},
     webNavigation:{getAllFrames:async()=>f.framesGone?[]:[{frameId:0,documentId:target.documentId,url:target.expectedUrl,documentLifecycle:f.documentLifecycle}],
-      getFrame:async input=>{assert.deepEqual(input,{documentId:target.documentId});if(f.frameObservationError)throw Error('observation failed');
-        return f.exactDocumentGone?null:{documentId:target.documentId,documentLifecycle:f.documentLifecycle};}},
+      getFrame:async input=>{
+        assert.equal(input.documentId,target.documentId);
+        if(Object.hasOwn(input,'tabId'))assert.deepEqual(input,{tabId:1,frameId:0,documentId:target.documentId});
+        if(f.frameObservationError)throw Error('observation failed');
+        return f.exactDocumentGone?null:{documentId:target.documentId,parentFrameId:-1,
+          frameType:'outermost_frame',documentLifecycle:f.documentLifecycle};}},
     userScripts:{
       getScripts:async filter=>{f.nativeReads++;if(!f.access)throw Error('toggle disabled');return [...f.native.values()].filter(row=>!filter||filter.ids.includes(row.id)).map(v=>structuredClone(v));},
       configureWorld:async config=>f.worlds.push(config),
@@ -52,7 +57,13 @@ function fixture(){
       execute:async input=>{
         if(input.worldId===PAGE_BOOT_WORLD)return [{frameId:0,documentId:target.documentId,result:f.marker?f.token:null}];
         const code=input.js.at(-1).code,probe=code.includes('__opendesk_probe_');
-        if(!probe){f.executeCalls++;if(f.executionError)throw f.executionError;await f.completionGate;}
+        if(!probe){
+          f.executeCalls++;
+          if(code.includes('const __opendeskManagedUIRegistryV1='))f.sourceCalls++;
+          if(code.includes('r.retire(')&&f.retirementError)throw f.retirementError;
+          if(f.executionError)throw f.executionError;
+          await f.completionGate;
+        }
         const id=input.worldId||'default';if(!contexts.has(id))contexts.set(id,vm.createContext({document:{},setTimeout,clearTimeout}));
         // Optional-library receipt wiring is a component test: only vendor DOM
         // initialization is replaced, after production loader/hash validation.
@@ -643,8 +654,10 @@ test('installed Page rejects missing legacy identity and CORE byte/catalog/ABI u
       delete row.builtinIdentity;await tx.put('frameworkKV',row,'page-candidate:'+canonical([row.namespace,row.manifest.programId,row.manifest.revision]));
     });
     else f.builtinSource={...fakeBuiltinSource,...(kind==='abi'?{abi:'future-runtime'}:kind==='bundle'?{sha256:'b'.repeat(64)}:{catalogSha256:'c'.repeat(64)})};
-    await fails(f.service.verifyPageCandidate({programId:'script',revision:1,target:f.target},{}),'E_BUILTIN_VERSION_UNAVAILABLE');
-    await fails(f.service.handleBoot(f.message(),f.sender),'E_BUILTIN_VERSION_UNAVAILABLE');
+    const rejection=kind==='missing'?'E_HASH':'E_BUILTIN_VERSION_UNAVAILABLE';
+    // Tampered candidate identity fails integrity before the Builtin ABI gate.
+    await fails(f.service.verifyPageCandidate({programId:'script',revision:1,target:f.target},{}),rejection);
+    await fails(f.service.handleBoot(f.message(),f.sender),rejection);
     assert.equal(f.executeCalls,0);assert.equal(f.registerCalls,registrations);
     assert.equal(f.rows().find(row=>row.tag==='page-verification-v1').status,'Available');
   }
@@ -758,6 +771,22 @@ test('R1.12 explicit installed Page click uses the original Native runner and a 
   const receipts=f.rows().filter(row=>row.tag==='page-execution-v1');
   assert.equal(receipts.filter(row=>row.source==='page_auto').length,1);
   assert.equal(receipts.filter(row=>row.source==='manual').length,1);
+  assert.equal(f.sourceCalls,2,'verified zero-resource retirement permits distinct manual and auto Native runs');
+});
+
+test('R1.12 unknown same-document managed UI cleanup blocks later Native source',async()=>{
+  const f=fixture(),installed=await f.install();
+  f.message();
+  await f.service.runInstalledPageProgram({programId:'script',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,
+    expectedGeneration:installed.authorization.generation,target:f.target},{documentId:'tool-document'});
+  assert.equal(f.sourceCalls,1);
+  f.retirementError=Object.assign(new Error('original document cleanup unavailable'),{code:'E_EFFECT_UNKNOWN'});
+  await fails(()=>f.service.handleBoot(f.message(),f.sender),'E_UI_CLEANUP_FAILED');
+  assert.equal(f.sourceCalls,1,'failed retirement cannot dispatch the next program source');
+  const auto=f.rows().find(row=>row.tag==='page-execution-v1'&&row.source==='page_auto');
+  assert.equal(auto.state,'failed');
+  assert.equal(auto.dispatchedAt,undefined,'cleanup refusal must not create a dispatched Native receipt');
 });
 
 test('R1.12 manual Page refuses an invalid document or installation grant without execution',async()=>{
