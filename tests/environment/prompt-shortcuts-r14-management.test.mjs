@@ -991,6 +991,25 @@ test('R2.7 export reserves native click before fresh ETag read and Host JSON dow
   assert.equal(f.siteWrites(),0);
   assert.match(n['ps-status'].textContent,/Chrome 已受理|下载记录/);
 });
+test('R4.3 export rejects stale ETag before dispatch and cannot reuse an expired click',async()=>{
+  const f=await fixture({initial:R27_SEED}),n=f.nodes;
+  const newer={...R27_SEED,items:[{...R27_SEED.items[0],body:'其他窗口更新后的正文'}]};
+  f.externalWrite(newer);
+  n['ps-export'].click();await settle();
+  assert.equal(f.preparedExports(),1,'the reservation precedes the authoritative read');
+  assert.equal(f.downloads.length,0,'stale preview cannot generate a download');
+  assert.match(n['ps-status'].textContent,/其他窗口修改了提示词库/);
+  // A sandbox-synthetic event has no reservation even after the first read.
+  n['ps-export'].emit('click',{});await settle();
+  assert.equal(f.preparedExports(),1,'no synthetic or post-await gesture reuse');
+  assert.equal(f.downloads.length,0);
+  assert.match(n['ps-status'].textContent,/E_EXPORT_GESTURE|需要原始点击/);
+  n['ps-export'].click();await settle();
+  assert.equal(f.preparedExports(),2);
+  assert.equal(f.downloads.length,1,'a new user click may export refreshed bytes');
+  assert.equal(JSON.parse(f.downloads[0].text).items[0].body,'其他窗口更新后的正文');
+  assert.equal(f.writes(),0);
+});
 test('R2.7 import preview + append dedupes normalized body and verifies readback',async()=>{
   const f=await fixture({initial:R27_SEED}),n=f.nodes;
   const file=R27_BACKUP([
