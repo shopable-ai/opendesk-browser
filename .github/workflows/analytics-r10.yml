@@ -13,6 +13,8 @@ on:
       - 'tests/environment/page-installed-programs.test.mjs'
       - 'tests/environment/page-program-library.test.mjs'
       - 'src/scripting/user-scripts/installed-programs.js'
+      - 'src/scripting/user-scripts/preview.js'
+      - 'tests/helpers/official-tools.mjs'
       - 'src/platform/host/broker.js'
       - 'src/ui/page-program-library.js'
       - 'src/ui/develop-fields.js'
@@ -60,6 +62,8 @@ jobs:
           node --check src/ui/page-program-library.js
           node --check src/ui/develop-fields.js
           node --check src/scripting/user-scripts/installed-programs.js
+          node --check src/scripting/user-scripts/preview.js
+          node --check tests/helpers/official-tools.mjs
           node --check src/platform/host/broker.js
           node --check src/ui/workflow/workflow-view.js
           node --check src/ui/tool-shell.js
