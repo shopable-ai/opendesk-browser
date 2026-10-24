@@ -45,6 +45,10 @@ test('R40 Host owns header trigger but sandbox retains actual file and export ge
   assert.match(preview,/Side Panel 交互预览 R4\.2/);
   assert.match(preview,/id="hostMore"/);
   assert.match(react,/id="sidebar-tool-more-open"/);
+  assert.match(react,/id="sidebar-tool-header-enable"/);
+  assert.match(react,/view\.dispatch\('sidebar-tool-enable','click',event\.nativeEvent\)/,
+    'More enable shortcut must preserve the actual trusted Host event');
+  assert.match(host,/listen\(enableButton,'click',event=>/);
   assert.equal((react.match(/id="sidebar-tool-settings-open"/g)||[]).length,1);
   assert.equal((react.match(/id="sidebar-tool-secondary-action"/g)||[]).length,1);
   assert.match(react,/returnFocusSelector="#sidebar-tool-more-open"/);
