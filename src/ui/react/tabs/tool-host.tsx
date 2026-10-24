@@ -17,8 +17,9 @@ export function ToolHost({view}) {
   const managementActionsVisible=['sidebar-tool-settings-open','sidebar-tool-remove']
     .some(id=>snapshot.fields[id]?.hidden===false);
   // Tool enable/disable is only reachable from trusted Settings, not header actions.
-  const cookieManagementVisible=snapshot.fields['sidebar-tool-cookie-permissions']?.hidden===false&&
-    snapshot.fields['sidebar-tool-cookie-permissions']?.data?.mode!=='first-use';
+  const cookieFirstUse=snapshot.fields['sidebar-tool-cookie-permissions']?.data?.mode==='first-use';
+  const permissionVisible=snapshot.fields['sidebar-tool-bookmark-permissions']?.hidden===false||
+    (snapshot.fields['sidebar-tool-cookie-permissions']?.hidden===false&&!cookieFirstUse);
   // These are the only editable inputs in this host. Business decisions remain
   // synchronous controller actions, with the original trusted browser event.
   const actions = React.useMemo(() => ({
@@ -262,7 +263,7 @@ export function ToolHost({view}) {
 <ToolField as="p" id="sidebar-tool-readonly-banner" className="sidebar-tool-status" data-state="readonly" role="note" hidden={true}>
 {"开发只读预览 · 未安装。模拟读取仅返回空值；禁止写入、发送消息、控制网页或运行任务。需要正式使用时，请另行审阅并安装工具包。"}
 </ToolField>
-<section id="sidebar-tool-adblock-native" hidden={!snapshot.legacyAdblockVisible}>此版本 AdBlock 的旧控制界面已退役。请在扩展中心更新至正式 React 版本；你仍可停用或卸载，可信服务负责清理该工具自有规则。</section><StayFocusQuickAdd model={snapshot.trustedSettings.stayFocus} actions={view.trustedSettingsActions.stayFocus}/><CookieSettings onRevoke={actions.revoke}/><div id="sidebar-tool-frame" className="sidebar-tool-frame" ref={runtimeRefs.frameRoot}/><section id="sidebar-tool-ai-proxy-native" className="sidebar-tool-ai-proxy-native" aria-label="AI 智能访问可信设置" hidden={!snapshot.trustedSettings.aiAccess?.visible}><AiAccessSettings model={snapshot.trustedSettings.aiAccess} actions={view.trustedSettingsActions.aiAccess}/></section><ToolField as="button" type="button" id="sidebar-tool-launch" className="od-button" hidden={true}>
+<section id="sidebar-tool-adblock-native" hidden={!snapshot.legacyAdblockVisible}>此版本 AdBlock 的旧控制界面已退役。请在扩展中心更新至正式 React 版本；你仍可停用或卸载，可信服务负责清理该工具自有规则。</section><StayFocusQuickAdd model={snapshot.trustedSettings.stayFocus} actions={view.trustedSettingsActions.stayFocus}/>{cookieFirstUse&&<CookieSettings onRevoke={actions.revoke}/>}<div id="sidebar-tool-frame" className="sidebar-tool-frame" ref={runtimeRefs.frameRoot}/><section id="sidebar-tool-ai-proxy-native" className="sidebar-tool-ai-proxy-native" aria-label="AI 智能访问可信设置" hidden={!snapshot.trustedSettings.aiAccess?.visible}><AiAccessSettings model={snapshot.trustedSettings.aiAccess} actions={view.trustedSettingsActions.aiAccess}/></section><ToolField as="button" type="button" id="sidebar-tool-launch" className="od-button" hidden={true}>
 {"打开工具"}
 </ToolField>
 <ToolField as="section" id="sidebar-tool-retired-draft" className="sidebar-tool-settings-view od-surface" aria-label="停用前的草稿" hidden={true}>
@@ -277,20 +278,8 @@ export function ToolHost({view}) {
 
 </ToolField>
 <ToolField as="section" id="sidebar-tool-settings-view" className="sidebar-tool-settings-view od-surface" aria-label="工具设置" hidden={true}>
-{snapshot.fields['sidebar-tool-bookmark-permissions']?.hidden===false&&<div className="sidebar-tool-settings-heading">
-  <div className="sidebar-tool-settings-heading-icon" aria-hidden="true">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="3"/>
-      <path d="M10 2h4l.5 2.5 2 1 2.4-1 2.3 3-1.7 2v3l1.7 2-2.3 3-2.4-1-2 1L14 21h-4l-.5-2.5-2-1-2.4 1-2.3-3 1.7-2v-3l-1.7-2 2.3-3 2.4 1 2-1Z"/>
-    </svg>
-  </div>
-  <div className="sidebar-tool-settings-heading-copy">
-    <h2>工具设置</h2>
-    <p>{snapshot.fields['sidebar-tool-title']?.textContent||'当前扩展'} · 权限与应用管理</p>
-  </div>
-</div>}
-
-<BookmarkSettings/><ToolField as="div" id="sidebar-tool-toc-language" className="sidebar-toc-settings-row" hidden={true}>
+<section className="sidebar-tool-settings-product" aria-label="扩展设置">
+<ToolField as="div" id="sidebar-tool-toc-language" className="sidebar-toc-settings-row" hidden={true}>
 <label htmlFor="sidebar-tool-toc-language-select">
 <ToolLabel name="languageLabel"/>
 </label>
@@ -307,31 +296,6 @@ export function ToolHost({view}) {
 </select>
 
 </ToolField>
-{!cookieManagementVisible&&<section className="sidebar-tool-management" aria-label="应用管理">
-<div className="sidebar-tool-section-caption">应用管理</div>
-<div className="sidebar-toc-settings-row">
-<span className="sidebar-tool-prompt-enable-info">
-<ToolField as="strong" id="sidebar-tool-prompt-enable-label">
-<ToolLabel name="toggleHeading"/>
-</ToolField>
-<ToolField as="small" id="sidebar-tool-prompt-enable-description" hidden={true}>
-{"停用后提示词仍保留"}
-</ToolField>
-
-</span>
-<ToolField as="button" type="button" id="sidebar-tool-enable" className="od-button od-button--secondary ps-host-switch" aria-pressed="true">
-{"停用工具"}
-</ToolField>
-
-</div>
-<ToolField as="p" id="sidebar-tool-enable-hint" className="sidebar-toc-settings-hint" role="status">
-
-</ToolField>
-<ToolField as="button" type="button" id="sidebar-tool-open-tab" className="od-button od-button--secondary sidebar-tool-settings-open-tab" title="在新标签页打开" aria-label="在新标签页打开当前工具">
-<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"/></svg>
-{"在新标签页打开"}
-</ToolField>
-</section>}
 <ToolField as="div" id="sidebar-tool-prompt-web-row" className="sidebar-toc-settings-row sidebar-tool-prompt-native" hidden={true}>
 <span className="sidebar-tool-prompt-native-info">
 <strong>
@@ -462,6 +426,36 @@ export function ToolHost({view}) {
 
 </ToolField>
 <TimeReviewSettings model={snapshot.trustedSettings.timeReview} actions={view.trustedSettingsActions.timeReview}/><StayFocusSettings model={snapshot.trustedSettings.stayFocus} actions={view.trustedSettingsActions.stayFocus}/>
+</section>
+<section className="sidebar-tool-settings-permissions" aria-label="权限管理" hidden={!permissionVisible}>
+<BookmarkSettings/>
+{!cookieFirstUse&&<CookieSettings onRevoke={actions.revoke}/>}
+</section>
+<section className="sidebar-tool-management" aria-label="应用管理">
+<div className="sidebar-tool-section-caption">应用管理</div>
+<div className="sidebar-toc-settings-row">
+<span className="sidebar-tool-prompt-enable-info">
+<ToolField as="strong" id="sidebar-tool-prompt-enable-label">
+<ToolLabel name="toggleHeading"/>
+</ToolField>
+<ToolField as="small" id="sidebar-tool-prompt-enable-description" hidden={true}>
+{"停用后提示词仍保留"}
+</ToolField>
+
+</span>
+<ToolField as="button" type="button" id="sidebar-tool-enable" className="od-tool-management-switch"
+  role="switch" aria-label="启用工具" aria-checked="true"/>
+
+</div>
+<ToolField as="p" id="sidebar-tool-enable-hint" className="sidebar-toc-settings-hint" role="status">
+
+</ToolField>
+<ToolField as="button" type="button" id="sidebar-tool-open-tab" className="od-button od-button--secondary sidebar-tool-settings-open-tab" title="在新标签页打开" aria-label="在新标签页打开当前工具">
+<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"/></svg>
+{"在新标签页打开"}
+</ToolField>
+</section>
+
 </ToolField>
 
 </ToolField>
@@ -533,7 +527,6 @@ function CookieSettings({onRevoke}) {
   const {rows,emptyLabel,disabled} = snapshot.fields['sidebar-tool-cookie-other-sites'];
   const firstUse=snapshot.fields['sidebar-tool-cookie-permissions'].data?.mode==='first-use';
   const isCookieEditor=snapshot.fields['sidebar-tool-cookie-permissions'].data?.isCookieEditor===true;
-  const showEnable=snapshot.fields['sidebar-tool-cookie-permissions'].hidden===false&&!firstUse;
   return <ToolField as="section" id="sidebar-tool-cookie-permissions"
     className="sidebar-tool-cookie-permissions od-surface" aria-label="Cookie 访问授权">
     <ToolField as="strong" id="sidebar-tool-cookie-heading"/>
@@ -546,19 +539,12 @@ function CookieSettings({onRevoke}) {
         className="od-button od-button--secondary"/>}
       <ToolGrantRows id="sidebar-tool-cookie-other-sites" rows={rows} emptyLabel={emptyLabel}
         disabled={disabled} rowClassName="sidebar-toc-settings-row" onRevoke={onRevoke}/>
-      {showEnable&&<>
-        <div className="sidebar-toc-settings-row">
-          <strong>{isCookieEditor?'应用管理':'使用状态'}</strong>
-          <ToolField as="button" type="button" id="sidebar-tool-enable" className="od-button od-button--secondary"/>
-        </div>
-        <ToolField as="p" id="sidebar-tool-enable-hint" className="sidebar-toc-settings-hint" role="status"/>
-      </>}
     </>}
   </ToolField>;
 }
 function BookmarkSettings() {
   return <ToolField as="section" id="sidebar-tool-bookmark-permissions"
-    className="sidebar-tool-bookmark-permissions od-surface" aria-label="完整书签访问">
+    className="sidebar-tool-bookmark-permissions od-surface" aria-label="书签访问">
     <div className="sidebar-tool-bookmark-intro">
       <div className="sidebar-tool-bookmark-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"

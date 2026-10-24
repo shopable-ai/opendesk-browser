@@ -439,9 +439,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   setToolFieldAttribute(view,fullBookmarkSettings,'aria-label','Chrome 完整书签独立授权');
   patchToolField(view,fullBookmarkSettings,{hidden:true});
   const fullBookmarkHeading=view.fields['sidebar-tool-bookmark-heading'];
-  patchToolField(view,fullBookmarkHeading,{textContent:'完整 Chrome 书签访问'});
+  patchToolField(view,fullBookmarkHeading,{textContent:'书签访问'});
   const fullBookmarkInfo=view.fields['sidebar-tool-bookmark-info'];patchToolField(view,fullBookmarkInfo,{className:'sidebar-toc-settings-hint'});
-  patchToolField(view,fullBookmarkInfo,{textContent:'允许本工具读取、编辑、移动和删除 Chrome 全部书签（含其他工具创建的）；删除文件夹仍须单独确认。'});
+  patchToolField(view,fullBookmarkInfo,{textContent:'允许管理浏览器书签'});
   const fullBookmarkButton=view.fields['sidebar-tool-bookmark-grant'];
   patchToolField(view,fullBookmarkButton,{type:'button'});patchToolField(view,fullBookmarkButton,{className:'od-button'});
   const isFullBookmarkTool=tool=>tool?.capabilities?.includes('browser.bookmarks.full')===true;
@@ -503,11 +503,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       '。授权可随时撤销。';
     patchToolField(view,cookieHeading,{textContent:firstUse?
       partial?'补全 Cookie 管理授权':'Cookie 访问授权':
-      allSites?'Cookie 权限设置':'Cookie 网站权限'});
+      'Cookie 访问'});
     patchToolField(view,cookieTarget,{hidden:firstUse,textContent:origin?
       '当前网站：'+origin+(allowed?' · 已授权':partial?' · 部分授权':' · 未授权'):
       '请选择普通 HTTP(S) 网页'});
-    patchToolField(view,cookieHelp,{textContent:officialPending?
+    patchToolField(view,cookieHelp,{textContent:!firstUse&&!officialPending?
+      (!origin?'请选择网站':allowed?'已授权 · 可撤销':'未授权 · 可申请访问'):officialPending?
       '正在核验当前安装包及官方发行来源，请勿重复授权。':!origin?
       '请先打开普通 HTTP/HTTPS 网站，再管理 Cookie 授权。':
       (partial?'此前授权不完整。':'')+description+
@@ -519,7 +520,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       attributes:{'aria-busy':String(cookieGrantPending)}});
     const chromeMissing=allowed&&cookieChromeState?.granted===false;
     patchToolField(view,cookieSiteToggle,{textContent:cookieGrantPending?'正在处理…':officialPending?
-      '正在核验安装身份…':chromeMissing?'恢复 Chrome Cookie 网站访问':allowed?
+      '正在核验安装身份…':!firstUse?(chromeMissing?'恢复 Chrome 访问':allowed?'撤销授权':
+        partial?'补全授权':'授权访问'):chromeMissing?'恢复 Chrome Cookie 网站访问':allowed?
       allSites?'撤销所有网站 Cookie 授权':'撤销本站 Cookie 授权':
       partial?'补全 Cookie 管理授权':allSites?'允许管理所有网站 Cookie':'允许管理本站 Cookie',
       className:firstUse?'od-button od-button--primary':'od-button',
@@ -1075,8 +1077,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       setToolFieldAttribute(view, tocLanguageSelect, 'aria-label', tocText('languageLabel'));
     }
     view.patchLabels(Object.fromEntries(Object.entries(view.labels).map(([key])=>[key,tocText(key)])));
-    if(promptEnableLabel)patchToolField(view, promptEnableLabel, {textContent: promptSettings?'启用工具':tocText('toggleHeading')});
-    if(promptEnableDescription)patchToolField(view, promptEnableDescription, {hidden: !promptSettings});
+    if(promptEnableLabel)patchToolField(view, promptEnableLabel, {textContent:'启用工具'});
+    if(promptEnableDescription)patchToolField(view, promptEnableDescription, {hidden:true});
     setToolFieldAttribute(view, settingsView, 'aria-label', id===ADBLOCK_ID?'工具管理':tocText('settingsTitle'));
     const adblockManagement=managed&&id===ADBLOCK_ID&&tocSettingsOpen;
     patchToolField(view, settingsButton, {title: id===ADBLOCK_ID?
@@ -1107,7 +1109,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     setToolFieldAttribute(view, display, 'data-trusted-tool-inline', String(trustedInline));
     // Cookie approval is in the dedicated trusted card above the frame.
     // The generic Settings page duplicates the management UI and must stay hidden.
-    patchToolField(view, settingsView, {hidden: !show||id==='cookie-editor'});
+    patchToolField(view, settingsView, {hidden: !show});
     if(promptNativeRow)patchToolField(view, promptNativeRow, {hidden: !(show&&promptSettings)});
     if(promptWebRow)patchToolField(view, promptWebRow, {hidden: !(show&&promptSettings)});
     if(promptNavAdvanced)patchToolField(view,promptNavAdvanced,{hidden: !(show&&promptSettings&&promptNavigationSnapshot&&
@@ -1146,25 +1148,20 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const fullGrant=menuGrants?.[id],currentEpoch=revocationEpochs[id]??null;
     const hasFullBookmarkConsent=Boolean(fullGrant?.bookmarkFull===true&&
       fullGrant.version===active?.version&&fullGrant.installEpoch===currentEpoch);
-    patchToolField(view,fullBookmarkButton,{textContent:hasFullBookmarkConsent?'撤销此工具的完整书签访问':'授权此工具访问全部书签'});
+    patchToolField(view,fullBookmarkButton,{textContent:hasFullBookmarkConsent?'撤销授权':'授权访问'});
     patchToolField(view,fullBookmarkButton,{disabled:busy||!enabled||!isFullBookmarkTool(active)});
     setToolFieldAttribute(view,fullBookmarkButton,'aria-pressed',String(hasFullBookmarkConsent));
     patchToolField(view, removeButton, {hidden: readOnlyPreview});if(openTabButton)patchToolField(view, openTabButton, {hidden: readOnlyPreview});
     if(enableButton){
-      const useSwitch=promptSettings||isFullBookmarkTool(active);
-      patchToolField(view, enableButton, {textContent: useSwitch?'':isToc?tocText(enabled?'disable':'enable'):enabled?'停用工具':'启用工具'});
-      patchToolField(view, enableButton, {disabled: busy||enableReadError||toolSaving||readOnlyPreview});
-      setToolFieldAttribute(view, enableButton, 'role', useSwitch?'switch':'button');
-      setToolFieldAttribute(view, enableButton, 'aria-label', useSwitch?'启用工具':enableButton.textContent);
-      setToolFieldAttribute(view, enableButton, 'aria-checked', useSwitch?String(enabled):null);
-      setToolFieldAttribute(view, enableButton, 'aria-pressed', useSwitch?null:String(enabled));
+      patchToolField(view, enableButton, {textContent:'',disabled:busy||enableReadError||toolSaving||readOnlyPreview,
+        title:enabled?'停用工具':'启用工具'});
+      setToolFieldAttribute(view, enableButton, 'role', 'switch');
+      setToolFieldAttribute(view, enableButton, 'aria-label', '启用工具');
+      setToolFieldAttribute(view, enableButton, 'aria-checked', String(enabled));
+      setToolFieldAttribute(view, enableButton, 'aria-pressed', null);
     }
-    if(enableHint)patchToolField(view, enableHint, {hidden: promptSettings&&!enableReadError});
-    if(enableHint)patchToolField(view, enableHint, {textContent: promptSettings?
-      (enableReadError?'工具状态读取异常，已保护性停止运行。':enabled?'已启用 · 基础快捷按钮可直接使用':'已停用 · 已保存提示词保留'):
-      isToc?tocText(enableReadError?'enableError':enabled?'enabledHint':'disabledHint'):
-      enableReadError?'启停状态读取异常；已保护性停止运行。':
-      enabled?'工具已启用。启用不会自动运行代码。':'工具已停用。数据、网站授权和显示偏好保留。'});
+    if(enableHint)patchToolField(view, enableHint, {hidden:false,textContent:
+      enableReadError?'状态不可用 · 已暂停执行':enabled?'已启用':'已停用 · 数据保留'});
     if(launchButton){patchToolField(view, launchButton, {hidden: !managed||Boolean(frame||nativeUI||nativePending)});patchToolField(view, launchButton, {disabled: busy||!enabled});
       patchToolField(view, launchButton, {textContent: isToc?tocText(enabled?'launch':'launchDisabled'):enabled?'打开工具':'已停用，请在设置中启用'});}
     const url=currentPageTarget?.snapshot?.url,capability=siteCapability(active);
@@ -1238,7 +1235,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, title, {title: active?'v'+active.version:''});
     const clipNavigation=navigationAllowed&&active?.id==='web-markdown-clipper'&&!!frame&&clipPage!==null;
     const navigation=navigationAllowed&&frame&&toolNavigation?toolNavigation:null;
-    if(tocSettingsOpen)patchToolField(view,title,{textContent:isFullBookmarkTool(active)?visibleTitle:'工具设置'});
+    if(tocSettingsOpen)patchToolField(view,title,{textContent:'工具设置'});
     else if(clipNavigation||navigation)
       patchToolField(view,title,{textContent:navigation?.title||clipNavigationTitles[clipPage]});
     const contextAction=tocSettingsOpen?'':navigation?.primary||

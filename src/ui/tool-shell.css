@@ -486,27 +486,31 @@
 .sidebar-tool-site-shortcuts>.sidebar-tool-icon-action svg{width:16px;height:16px;flex:none}
 .sidebar-tool-site-shortcuts>.sidebar-tool-icon-action[aria-pressed="true"]{border-color:var(--od-focus)}
 .sidebar-tool-site-shortcuts>.sidebar-tool-icon-action:hover:not(:disabled){background:var(--od-muted)}
-#sidebar-tool-settings-view[data-tool="bookmark-manager"] #sidebar-tool-enable{
-  position:relative;display:inline-block;box-sizing:border-box;flex:0 0 44px;
+/* All Sidebar Tool installs share one trusted, non-destructive lifecycle switch. */
+#sidebar-tool-enable.od-tool-management-switch{
+  position:relative;box-sizing:border-box;flex:0 0 44px;display:inline-block;
   width:44px;min-width:44px;height:36px;min-height:36px;max-height:36px;
-  padding:0;border:0;border-radius:9px;background:transparent;
-  font-size:0;cursor:pointer
+  padding:0;border:0;border-radius:9px;background:transparent;font-size:0;cursor:pointer
 }
-#sidebar-tool-settings-view[data-tool="bookmark-manager"] #sidebar-tool-enable::before{
-  content:"";position:absolute;left:3px;top:7px;width:38px;height:22px;
+#sidebar-tool-enable.od-tool-management-switch::before{
+  content:"";position:absolute;top:7px;left:3px;width:38px;height:22px;
   border-radius:20px;background:var(--od-input-border);transition:background .15s
 }
-#sidebar-tool-settings-view[data-tool="bookmark-manager"] #sidebar-tool-enable::after{
-  content:"";position:absolute;left:6px;top:10px;width:16px;height:16px;
-  border-radius:50%;background:var(--od-paper);box-shadow:0 1px 3px #0003;transition:transform .15s
+#sidebar-tool-enable.od-tool-management-switch::after{
+  content:"";position:absolute;top:10px;left:6px;width:16px;height:16px;
+  border-radius:50%;background:var(--od-paper);box-shadow:0 1px 3px #0003;
+  transition:transform .15s
 }
-#sidebar-tool-settings-view[data-tool="bookmark-manager"] #sidebar-tool-enable[aria-checked="true"]::before{background:var(--od-brand)}
-#sidebar-tool-settings-view[data-tool="bookmark-manager"] #sidebar-tool-enable[aria-checked="true"]::after{transform:translateX(16px)}
-#sidebar-tool-settings-view[data-tool="bookmark-manager"] #sidebar-tool-enable:disabled{opacity:.45;cursor:not-allowed}
-#sidebar-tool-settings-view[data-tool="bookmark-manager"] #sidebar-tool-enable:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
+#sidebar-tool-enable.od-tool-management-switch[aria-checked="true"]::before{background:var(--od-brand)}
+#sidebar-tool-enable.od-tool-management-switch[aria-checked="true"]::after{transform:translateX(16px)}
+#sidebar-tool-enable.od-tool-management-switch:disabled{opacity:.45;cursor:not-allowed}
+#sidebar-tool-enable.od-tool-management-switch:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
+.sidebar-tool-settings-product,.sidebar-tool-settings-permissions{display:grid;gap:10px;min-width:0}
+.sidebar-tool-settings-product:not(:has(> :not([hidden]))){display:none}
+.sidebar-tool-settings-permissions[hidden]{display:none!important}
 @media(prefers-reduced-motion:reduce){
- #sidebar-tool-settings-view[data-tool="bookmark-manager"] #sidebar-tool-enable::before,
- #sidebar-tool-settings-view[data-tool="bookmark-manager"] #sidebar-tool-enable::after{transition:none}
+ #sidebar-tool-enable.od-tool-management-switch::before,
+ #sidebar-tool-enable.od-tool-management-switch::after{transition:none}
 }
 @media(max-width:360px){
  .sidebar-tool-settings-view{padding:10px}
@@ -1536,9 +1540,7 @@
 
 /* Prompt Shortcuts: one lightweight settings page, no website grant grid. */
 #sidebar-tool-prompt-native-row[hidden]{display:none!important}
-#sidebar-tool-settings-view[data-tool="prompt-shortcuts"]{padding:12px 11px;display:grid;gap:8px}
 #sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .sidebar-toc-settings-row{padding:7px 2px;margin:0;gap:10px}
-#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] #sidebar-tool-enable-hint{margin:0;color:var(--od-sub);font-size:11px;line-height:1.5}
 #sidebar-tool-settings-view[data-tool="prompt-shortcuts"] #sidebar-tool-settings-hint{margin:0;padding:9px 10px;border-radius:8px;background:var(--od-muted);color:var(--od-sub);font-size:11px;line-height:1.55}
 #sidebar-tool-prompt-native-row{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
 .sidebar-tool-prompt-native-info{display:grid;gap:3px;flex:1;min-width:0}
@@ -1682,7 +1684,7 @@
 .cloud-program-trial-result .cloud-program-hash{word-break:break-all;font-size:10px;color:var(--od-sub)}
 
 /* R1.2: rare "open in tab" lives within trusted tool settings, not the toolbar. */
-#sidebar-tool-settings-view .sidebar-tool-settings-open-tab{display:flex;align-items:center;justify-content:center;gap:8px;min-height:34px;width:100%;margin-bottom:10px;font-size:12px}
+#sidebar-tool-settings-view .sidebar-tool-settings-open-tab{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:34px;width:auto;max-width:100%;margin:0;font-size:12px}
 #sidebar-tool-settings-view .sidebar-tool-settings-open-tab svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 #sidebar-tool-primary-action[hidden]{display:none!important}
 

@@ -158,3 +158,13 @@ R33 历史基线的可信 Side Panel 核心入口包括已退役的 `src/ui/tool
 ### R2.2 跨业务 AI Chat 共享 React 边界
 
 `src/ui/react/main.tsx` 继续拥有唯一 `createRoot`。`SharedConversationFrame`/`SharedProviderSettingsSheet` 是同一 React 树内的组件/Portal，不能为设置或用户扩展再建根。MyTaskAgent 与 Bookmark/Prompt 各自的 Service、Session、授权及 HTML/JS iframe 不因共享交互 UI 而合并。Provider 配置仍只归 ToolShell 的 Runtime：单 Root 下的全局设置 Portal 只经 ToolShell 提供的三方法受限 Facade（`settingsSnapshot/subscribeSettings/updateSettings`）编辑原 Runtime；UI 不持有 Runtime 的 `configuration()`/`acquire()` 权限，公开快照不包含会话 API Key；Workflow 原控制器只保留业务运行快照与 Native/Observation 授权管理，并被动同步 Runtime 代次。动态用户 HTML/JS/React/Vue 仍留原沙箱与 SDK 边界。
+
+## 共享 Sidebar Tool 管理规范（2026-10-24 增量）
+
+**唯一产品 UI owner：** `src/ui/react/tabs/tool-host.tsx` + `src/ui/sidebar-tools-view.js` 的 Field Snapshot；交互与安全生命周期仍由 `src/ui/sidebar-tools.js`、原 Installer、原权限 Authority 负责。安装工具右上角仅直接显示「工具设置」「卸载」两个管理图标；扩展中心列表/工具业务的专用更多菜单不属于此规则，不能误删。
+
+工具设置依次呈现：仅在工具具备可配置业务项时显示的「扩展设置」；仅当安装能力/授权场景确实需要时显示的「权限管理」；所有已安装 Sidebar Tool 的唯一「应用管理」。应用管理始终只有一个 `#sidebar-tool-enable`，使用 `role=switch` + `aria-checked`，状态为「已启用 / 已停用 · 数据保留」；启停通过既有 Controller 经草稿/保存保护后执行，不在 UI 副本或预览里私自写安装记录。
+
+完整书签授权仅对声明 `browser.bookmarks.full` 的工具显示；Cookie 首次授权继续在可信卡片内完整解释作用域和风险，完成后权限控制回到共享「工具设置」，不能产生第二个启停控件。原安全审阅、风险提示、Chrome 权限申请、撤权、卸载确认、安装身份/代际核验全部保留。文字精简仅作用于管理设置摘要，不得替代首次权限审阅。
+
+正式同源离线预览沿用 `scripts/preview/build-sidebar-six-react-preview.mjs` → `prototypes/sidebar/react-preview/index.html`。该 HTML 必须由当前源码重新生成，标记 `UI_PREVIEW_ONLY`，任何启停、授权、卸载演示只允许修改内存 Fixture，绝不调用真实 Installer/Chrome Permission。Mac 常用浏览器始终加载 `dist/development` 与现有 `npm run dev` watcher；源码更新不代表现有已运行的扩展产物自动刷新。没有实际浏览器指纹和点击回执时，一律 `NOT_TESTED`。

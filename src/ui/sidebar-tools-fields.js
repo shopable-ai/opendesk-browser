@@ -247,10 +247,12 @@ export const SIDEBAR_TOOL_FIELDS = {
   },
   "sidebar-tool-enable": {
     "textContent": "停用工具",
-    "className": "od-button od-button--secondary ps-host-switch",
+    "className": "od-tool-management-switch",
     "type": "button",
     "attributes": {
-      "aria-pressed": "true"
+      "role": "switch",
+      "aria-label": "启用工具",
+      "aria-checked": "true"
     }
   },
   "sidebar-tool-enable-hint": {
