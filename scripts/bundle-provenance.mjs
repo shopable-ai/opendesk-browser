@@ -281,6 +281,11 @@ function reviewedCompiledWebClipper(target,path,root){
   return hash;
 }
 
+// 2026-10-24 analytics attribution review: the Reading TOC visible-heading
+// success receipt now returns the authorization-checked installation epoch,
+// forwarded only to the existing content-free analytics Host. That Host
+// independently verifies exact official install, epoch, grant and document.
+// No new output owner, permission, site or untrusted code admission.
 // Reading TOC has one trusted business source. All these exact Git blobs
 // compile into EXISTING reviewed fixed outputs, never arbitrary JS, remote
 // packages or another privileged Host. Page algorithms/renderers are limited
@@ -289,7 +294,7 @@ const compiledReadingTocInputs=Object.freeze({
   'examples/sidebar-tools/reading-toc/trusted/overview.js':'a148dc645ec49b22f0f0a911f4861960442617b5',
   'examples/sidebar-tools/reading-toc/trusted/model.js':'9a7320084caa2efa2acb40dcaf5c00e60659bc66',
   'examples/sidebar-tools/reading-toc/trusted/placement.js':'b29ddc6e66d0203fefccbcb98c071b046aaaa2c0',
-  'examples/sidebar-tools/reading-toc/trusted/page.js':'7a5337360a9512b17acefd4dc2f45b894c4b8eaf',
+  'examples/sidebar-tools/reading-toc/trusted/page.js':'181ea70e6e3d83a7636518b9a423fa49ad48410e',
   'examples/sidebar-tools/reading-toc/trusted/view.js':'5528e01bc46fa8c6bb38390898dec3a608c055b7',
   'examples/sidebar-tools/reading-toc/trusted/policy.js':'17d930495245bf92c6e36a9228a7cd286dc611b3',
   'examples/sidebar-tools/reading-toc/trusted/locales.generated.js':'0484bd67fadb23a88c6a7164435d5bf90acd8295',

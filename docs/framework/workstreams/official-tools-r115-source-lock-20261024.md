@@ -9,3 +9,5 @@
 - 本次目标：只更新三项已审阅精确来源锁，仍然拒绝任何后续未知改动；未放宽白名单或来源校验。
 - 证据等级：SOURCE=reviewed/updated；NODE=NOT_TESTED；CHROMIUM=NOT_TESTED；NATIVE=NOT_TESTED；RELEASE=NOT_TESTED。必须让当前提交触发 CI 并检查定向 Prompt 模型/权限/滚动测试，再从当前源生成候选、测完后合法晋升，不可宣称本轮成功发布。
 - 未完成：Prompt 页面原始 rail 几何 8/32 场景失败；Stay Focus 正式旧包与 React 编译候选字节不一致；Time Review 合法旧版安装升级 Native；AdBlock HTTP/DNR Native 实测；十二项完整发行门禁。Stay Focus Ed25519 信任锚尚待真实发布者批准，远程升级 BLOCKED。
+
+- 2026-10-24 第二处共同构建阻断：Time Review 与 AdBlock 新 CI 在 Prompt 来源锁关闭后，命中 Reading TOC `trusted/page.js` 精确锁漂移。审阅原锁 `7a533736...` 到当前 `181ea70e...` 的完整差异只有两处：可信测量成功时返回 `installationEpoch: installEpoch`；向原 Analytics Host 的 `reading_toc.navigated` 消息传递相同值。`navigate` 的 Storage/权限/撤权代次复核以及 `src/analytics/host.js` 的独立 official-install/epoch/page-document 核查均保留；无需扩大来源白名单或扩展权限。对应精确锁已同步，但 Chrome 业务与完整发行继续 NOT_TESTED。
