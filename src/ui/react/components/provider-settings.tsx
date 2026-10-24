@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {createPortal} from 'react-dom';
 import {IconButton} from './ui/button.tsx';
+import {inferHttpsSource,isHttpsSource} from '../../ai/provider-https-source.js';
 
 function focusableElements(panel){
  return [...panel.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')]
@@ -20,7 +21,8 @@ export function SharedProviderSettingsSheet({
  const snapshot=React.useSyncExternalStore(providerSettings?.subscribeSettings??noSubscribe,
   providerSettings?.settingsSnapshot??(()=>EMPTY_SETTINGS),
   providerSettings?.settingsSnapshot??(()=>EMPTY_SETTINGS));
- const [source,setSource]=React.useState(snapshot.source);
+ const [mode,setMode]=React.useState(snapshot.source==='local_codex'?'local_codex':'https');
+ const [protocolOverride,setProtocolOverride]=React.useState(null);
  const [endpoint,setEndpoint]=React.useState(snapshot.endpoint);
  const [model,setModel]=React.useState(snapshot.model);
  const [keyDraft,setKeyDraft]=React.useState('');
@@ -28,20 +30,23 @@ export function SharedProviderSettingsSheet({
  const [error,setError]=React.useState('');
  React.useEffect(()=>{
   if(open){
-   setSource(snapshot.source);setEndpoint(snapshot.endpoint);setModel(snapshot.model);
+   setMode(snapshot.source==='local_codex'?'local_codex':'https');
+   setEndpoint(snapshot.endpoint);setModel(snapshot.model);setProtocolOverride(null);
    setKeyDraft('');setClearKey(false);setError('');
   }else{
    setKeyDraft('');setClearKey(false);
   }
  },[open,snapshot.generation]);
- const external=source!=='local_codex';
- const chooseSource=next=>{
-  setSource(next);
-  if(next==='cloud_responses'&&endpoint==='https://api.openai.com/v1/chat/completions')
-   setEndpoint('https://api.openai.com/v1/responses');
-  else if(next==='custom_https'&&endpoint==='https://api.openai.com/v1/responses')
-   setEndpoint('https://api.openai.com/v1/chat/completions');
- };
+ const external=mode==='https';
+ const endpointValue=endpoint.trim();
+ const inferredSource=inferHttpsSource(endpointValue);
+ // Reuse the exact configured protocol for a legacy nonstandard endpoint.
+ // A new unknown endpoint instead needs an explicit advanced choice.
+ const savedSource=isHttpsSource(snapshot.source)&&
+   endpointValue===String(snapshot.endpoint||'').trim()?snapshot.source:null;
+ const selectedHttpsSource=inferredSource||
+   (protocolOverride?.endpoint===endpointValue?protocolOverride.source:null)||
+   savedSource;
  const save=event=>{
   event.preventDefault();
   if(!event.nativeEvent?.isTrusted||!providerSettings)return;
@@ -51,8 +56,12 @@ export function SharedProviderSettingsSheet({
     if(url.protocol!=='https:'||!url.hostname||url.username||url.password)
      throw new Error('AI 接口必须是有效的 HTTPS 地址，不能包含账号密码');
     if(!model.trim())throw new Error('请输入模型 ID');
+    if(!selectedHttpsSource)
+     throw new Error('接口路径无法识别协议，请在高级配置中选择 Chat Completions 或 Responses');
    }
-   const patch:{source:string;endpoint:string;model:string;apiKey?:string}={source,endpoint:endpoint.trim(),model:model.trim()};
+   const providerSource=external?selectedHttpsSource:'local_codex';
+   const patch:{source:string;endpoint:string;model:string;apiKey?:string}={
+    source:providerSource,endpoint:endpointValue,model:model.trim()};
    if(clearKey)patch.apiKey='';
    else if(keyDraft)patch.apiKey=keyDraft;
    providerSettings.updateSettings(patch);
@@ -99,17 +108,31 @@ export function SharedProviderSettingsSheet({
       <fieldset>
        <legend>AI 来源</legend>
        <label><input type="radio" name="od-ai-provider-source" value="local_codex"
-        checked={source==='local_codex'} onChange={()=>chooseSource('local_codex')}/> 本机 Codex</label>
-       <label><input type="radio" name="od-ai-provider-source" value="custom_https"
-        checked={source==='custom_https'} onChange={()=>chooseSource('custom_https')}/> HTTPS Chat Completions</label>
-       <label><input type="radio" name="od-ai-provider-source" value="cloud_responses"
-        checked={source==='cloud_responses'} onChange={()=>chooseSource('cloud_responses')}/> HTTPS Responses</label>
+        checked={mode==='local_codex'} onChange={()=>setMode('local_codex')}/> 本机 Codex</label>
+       <label><input type="radio" name="od-ai-provider-source" value="https"
+        checked={mode==='https'} onChange={()=>setMode('https')}/> HTTPS 模型</label>
       </fieldset>
       {external?<div className="od-shared-provider-fields">
        <label htmlFor="od-ai-provider-endpoint">HTTPS 接口</label>
        <input className="od-field" id="od-ai-provider-endpoint" type="url" required
         value={endpoint} onChange={event=>setEndpoint(event.currentTarget.value)}
         autoComplete="off" spellCheck={false}/>
+       {inferredSource?
+        <p className="workflow-minor-note">根据接口路径识别：{inferredSource==='cloud_responses'?'Responses':'Chat Completions'}</p>:
+        <>
+         <p className="workflow-minor-note">无法根据接口路径识别协议，请在高级配置中明确选择。</p>
+         <details className="od-disclosure od-disclosure--flat od-shared-provider-protocol">
+          <summary>高级配置 · HTTPS 协议</summary>
+          <label htmlFor="od-ai-provider-protocol">接口协议</label>
+          <select className="od-field" id="od-ai-provider-protocol"
+           value={selectedHttpsSource||''}
+           onChange={event=>setProtocolOverride({endpoint:endpointValue,source:event.currentTarget.value})}>
+           <option value="">请选择协议</option>
+           <option value="custom_https">Chat Completions</option>
+           <option value="cloud_responses">Responses</option>
+          </select>
+         </details>
+        </>}
        <label htmlFor="od-ai-provider-model">模型 ID</label>
        <input className="od-field" id="od-ai-provider-model" required
         value={model} onChange={event=>setModel(event.currentTarget.value)}
