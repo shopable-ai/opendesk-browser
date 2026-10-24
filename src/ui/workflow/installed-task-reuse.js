@@ -13,7 +13,7 @@ const verb=/(搜索|查找|检索|打开|进入|核对|检查|验证|确认|读�
 // Manifest alone cannot prove that a click has no sensitive side effects.
 const declaredDemoSearch=/^(?:请)?在(?:当前)?演示搜索页搜索 ([\p{L}\p{N} _.-]{1,80})，(?:并)?(?:核对|验证|检查)(?:搜索)?结果$/u;
 const missingDemoSearch=/^(?:请)?在(?:当前)?演示搜索页搜索，(?:并)?(?:核对|验证|检查)(?:搜索)?结果$/u;
-const partialProduct=/^(?:请)?(?:搜索|查找|检索) ([\p{L}\p{N} _.-]{2,120})，(?:打开|点开|进入) ?(?:商品详情页|商品详情|详情页)，(?:核对|检查|验证|确认) (?:商品)?名称(?:和|与)(?:价格|售价|标价)$/u;
+const partialProduct=/^(?:请)?(?:搜索|查找|检索)\s*([\p{L}\p{N} _.-]{2,120})，(?:打开|点开|进入)\s*(?:商品详情页|商品详情|详情页)，(?:核对|检查|验证|确认)\s*(?:商品)?名称(?:和|与)(?:价格|售价|标价)$/u;
 const normalize=value=>typeof value==='string'?value.trim()
   .replace(/[。.!！]+$/gu,'').replace(/[,，]\s*/gu,'，').replace(/\s+/gu,' '):'';
 const escapeRegExp=value=>value.replace(/[/\\^$*+?.()|[\]{}]/g,'\\$&');
@@ -32,7 +32,9 @@ function extractDeclaredParameters(template,request,schema,{allowMissing=false}=
     const intent=simpleCommerceReplayGoal(request);
     if(intent)return {params:intent,kind:'commerce',sensitive:true};
     const partial=normalize(request).match(partialProduct);
-    return partial?{params:{query:partial[1]},kind:'commerce',sensitive:true}:null;
+    const query=partial?.[1]?.trim();
+    return query&&!hiddenInstruction.test(query)?
+      {params:{query},kind:'commerce',sensitive:true}:null;
   }
   // One generic constrained intent contract for the legacy "fill demo search
   // field, await results" operation; no Task ID, title or arbitrary action
