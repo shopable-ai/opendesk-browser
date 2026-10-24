@@ -70,7 +70,7 @@ export function MyAgentPanel({agent,active=true,onOpenSettings=null}){
    </IconButton>}
    <IconButton type="button" label="收起 AI 对话" onClick={close}>
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
-     strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg>
+     strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
    </IconButton>
   </header>
   <SharedConversationFrame open={state.open} focusOnOpen={active} rows={state.rows} draft={state.draft}

@@ -58,7 +58,8 @@ function request({signal,event,onPhase}){
   return pending;
 }
 const root=createRoot(document.getElementById('root'));
-root.render(<TrustedConversationWorkspace controller={controller} renderBusiness={bridge=>{
+root.render(<TrustedConversationWorkspace controller={controller}
+ phaseLabels={{observing:'正在查找并核对…'}} renderBusiness={bridge=>{
   bridge.adapterRef.current={request};
   return <div className="fixture-business">RENDER_ONLY business placeholder
     {unknownStop&&<button onClick={()=>rejectCancellation?.(Object.assign(
@@ -170,6 +171,29 @@ test('Conversation Dock Chromium RENDER_ONLY: draft, busy Stop, clipping and ind
   t.diagnostic(JSON.stringify({scope:'RENDER_ONLY',browser:browser.version(),platform:process.platform,
     nativeChrome:'NOT_TESTED',macSidePanelOrigin200:'NOT_TESTED',realAI:'NOT_TESTED',sdk:'NOT_TESTED',
     businessLoop:'NOT_TESTED',sourceHashes:Object.fromEntries(sourcePaths.map((path,i)=>[path,hashes[i]]))}));
+  for(const coarse of [false,true])await t.test(`host shorter than Dock floor / ${coarse?'coarse':'fine'}`,async()=>{
+    const context=await browser.newContext({viewport:{width:180,height:395},hasTouch:coarse,isMobile:false});
+    try{
+      const page=await context.newPage();page.setDefaultTimeout(5000);
+      await page.goto(`http://127.0.0.1:${server.address().port}/`);
+      // The real tool settings can leave only 137 CSS px below them at 200%.
+      // Resize the host, not the Dock, to exercise its existing ResizeObserver.
+      await page.locator('#root').evaluate(el=>{el.style.height='136px';});
+      const input=page.getByRole('textbox',{name:'对话输入'});
+      await input.fill(longDraft);await settle(page);
+      const result=await geometry(page,'[aria-label="发送"]');
+      assert.ok(result.dockHeight<=136,'the Dock must fit its actual host');
+      const separator=page.getByRole('separator');
+      assert.equal(Number(await separator.getAttribute('aria-valuemin')),result.dockHeight,
+        'keyboard resize limits describe the fitted Dock');
+      for(const selector of ['textarea','[aria-label="发送"]']){
+        const {box,clip,hit}=result.targets[selector];
+        assert.ok(box.top>=clip.top-1&&box.bottom<=clip.bottom+1,`host clips ${selector}`);
+        assert.equal(hit,true,`${selector} remains reachable`);
+      }
+      assert.equal(await input.inputValue(),longDraft,'host resizing preserves the draft');
+    }finally{await context.close();}
+  });
   for(const compact of [true,false])for(const coarse of [false,true])for(const needsReview of [false,true]){
     await t.test(`${compact?'small viewport / 144px dock':'large viewport'} / ${coarse?'coarse':'fine'} / ${needsReview?'needsReview':'long draft + busy phase'}`,async t=>{
       const context=await browser.newContext({viewport:{width:420,height:compact?400:900},hasTouch:coarse,isMobile:false});
@@ -290,8 +314,8 @@ test('Conversation Dock Chromium RENDER_ONLY: draft, busy Stop, clipping and ind
       t.diagnostic(JSON.stringify({scope:'RENDER_ONLY',width,coarse,rects}));
       assert.ok(rects.head.width>=width-20&&rects.head.width<=width,'use one production viewport gutter');
       assert.equal(rects.coarse,coarse,'the expected pointer media must be active');
-      assert.ok(rects.back.width>=(coarse?44:34),'use the production pointer button width');
-      assert.ok(rects.back.height>=(coarse?44:34),'use the production pointer button height');
+      assert.ok(rects.back.width>=(coarse?44:30),'use the R4.2 production pointer button width');
+      assert.ok(rects.back.height>=(coarse?44:30),'use the R4.2 production pointer button height');
       assert.ok(rects.title.top<rects.back.bottom,'title must share the back-button row');
       assert.ok(rects.head.height<=rects.back.height*2+10,'compact header must fit two rows');
       assert.ok(rects.title.right<=rects.head.right+.6,'title stays inside the header');

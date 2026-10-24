@@ -177,7 +177,9 @@ function ConversationWorkspace({
   // Prefer a scrollable transcript over collapsing the original bookmark tree.
   // Reserve up to 260 CSS px for business toolbar, tree header and visible rows.
   // Keep the compact composer, phase and coarse-pointer controls inside the Dock.
-  const min=Math.min(error||needsReview?184:156,Math.max(144,Math.floor(totalHeight*.34)));
+  // Tool settings outside this workspace may leave less than the usual floor.
+  // Keep the composer and resize limits inside that actual available space.
+  const min=Math.min(totalHeight,error||needsReview?184:156,Math.max(144,Math.floor(totalHeight*.34)));
   const businessMin=Math.min(260,Math.floor(totalHeight*.65));
   return {min,max:Math.max(min,totalHeight-businessMin)};
  },[totalHeight,error,needsReview]);

@@ -15,8 +15,9 @@
  margin:0 0 10px;padding:0;border:1px solid var(--od-line);border-radius:var(--radius-surface);
  background:var(--od-paper);overflow:hidden;flex:none}
 .my-agent-panel[hidden]{display:none!important}
-.my-agent-heading{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:8px 10px;border-bottom:1px solid var(--od-line)}
-.my-agent-heading .od-icon-button{flex:none}
+/* Match the shared Dock's quiet settings/collapse controls without another toolbar border. */
+.my-agent-heading{display:flex;align-items:center;justify-content:flex-end;gap:4px;padding:4px 6px}
+.my-agent-heading .od-icon-button{flex:none;width:28px;height:28px;min-width:28px;min-height:28px;border:0;background:transparent}
 .my-agent-toggle[aria-pressed=true]{background:var(--od-muted);color:var(--od-accent-ink)}
 .my-agent-panel .od-conversation-log{min-height:40px;max-height:240px}
 .my-agent-progress{margin:0 10px 6px;font-size:var(--od-meta-size);color:var(--od-sub)}
@@ -27,7 +28,7 @@
  overflow:auto;max-height:160px;flex:none}
 .my-agent-review p{font-size:var(--od-note-size);overflow-wrap:anywhere;white-space:pre-wrap;margin:0 0 8px}
 .my-agent-review-actions{display:flex;flex-wrap:wrap;gap:8px}
-@media(max-width:360px){.my-agent-heading{padding:6px 8px}}
 @media(max-height:520px){.my-agent-panel{max-height:55vh}
  .my-agent-panel .od-conversation-log{min-height:30px}}
-@media(pointer:coarse){.my-agent-panel .od-conversation-action{min-width:44px;min-height:44px}}
+@media(pointer:coarse){.my-agent-heading .od-icon-button{width:44px;height:44px;min-width:44px;min-height:44px}
+ .my-agent-panel .od-conversation-action{min-width:44px;min-height:44px}}
