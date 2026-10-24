@@ -205,7 +205,8 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
   const summarizeSchedule=row=>({
     scheduleId:row.scheduleId,title:row.title,taskId:row.taskId,version:row.version,
     generation:row.generation,paused:row.paused,timezone:row.timezone,
-    triggerKind:row.triggerKind,triggerSpec:row.triggerSpec,targetUrl:row.targetUrl,
+    triggerKind:row.triggerKind,triggerSpec:row.triggerSpec,
+    nextDueAt:row.nextDueAt??null,targetUrl:row.targetUrl,
     openIfMissing:row.openIfMissing,misfirePolicy:row.misfirePolicy,
     startDeadlineMs:row.startDeadlineMs,needsAttention:row.needsAttention,
     parameterNames:Object.keys(row.params||{}).slice(0,16)
@@ -273,6 +274,18 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
       default:throw fail('E_AI_SCHEMA','该操作需要单次用户确认');
     }
   }
+  // This timestamp comes from the independently reloaded Scheduler record,
+  // never from an AI estimate or a local prediction of the next alarm.
+  const describeNextDueAt=row=>{
+    if(row.paused)return '已暂停，无下次触发';
+    if(!Number.isFinite(row.nextDueAt))return '尚不可核实，请在计划页面确认';
+    try{
+      return new Intl.DateTimeFormat('zh-CN',{
+        timeZone:row.timezone,year:'numeric',month:'2-digit',day:'2-digit',
+        hour:'2-digit',minute:'2-digit',hourCycle:'h23'
+      }).format(new Date(row.nextDueAt))+'（'+row.timezone+'）';
+    }catch{return '暂时无法显示，请在计划页面核对';}
+  };
   const summarizeWrite=(action,receipt)=>{
     switch(action.type){
       case 'run_task':return receipt.hasError
@@ -298,7 +311,8 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
         '，已重新读取计划列表验证。';
       case 'edit_schedule':return '计划「'+receipt.title+'」已更新并重新读取验证。'+
         '计划编号：'+receipt.scheduleId+'；版本代次：'+receipt.generation+
-        '；状态：'+(receipt.paused?'已暂停':'已启用')+'。';
+        '；状态：'+(receipt.paused?'已暂停':'已启用')+
+        '；下次触发：'+describeNextDueAt(receipt)+'。';
       default:return '操作已返回真实执行回执。';
     }
   };
@@ -443,9 +457,16 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
         (input.revision!==undefined&&after.revision!==input.revision)||
         !equal(after.owner??null,before.owner??null))
         throw fail('E_OUTCOME_UNKNOWN','计划编辑结果无法读回核对；请到原计划界面检查，禁止直接重试');
+      // A daily active plan always has a Scheduler-computed next fire time.
+      // Do not claim the 09:00 -> 10:00 edit is fully verified if its next
+      // trigger cannot be independently read back from the Host.
+      if(after.triggerKind==='daily'&&!after.paused&&!after.needsAttention&&
+        !Number.isFinite(after.nextDueAt))
+        throw fail('E_OUTCOME_UNKNOWN','计划规则已写入，但下次触发时间无法独立核实；请在计划页面核对，勿直接重试');
       onScheduleChange();
       return {scheduleId:after.scheduleId,title:after.title,paused:after.paused,
-        generation:after.generation,verified:true};
+        generation:after.generation,timezone:after.timezone,
+        nextDueAt:after.nextDueAt??null,verified:true};
     }
     throw fail('E_AI_SCHEMA','不允许的修改操作');
   }
