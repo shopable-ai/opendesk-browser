@@ -266,6 +266,23 @@ test('127.0.0.1 site grant and partial legacy completion each use one durable Ho
   assert.notEqual(completed.grantEpoch, earlier);
 });
 
+test('unconfirmed first-click storage readback never returns a successful consent receipt', async () => {
+  const f = officialFixture();
+  const get = f.api.storage.local.get;
+  f.api.storage.local.get = async keys => {
+    const read = await get(keys);
+    // ReadSources uses a list of keys, whereas the confirmed write reads its
+    // single grant key. A stale independent read must not be acknowledged.
+    if (keys === grantsKey && Object.hasOwn(read, grantsKey))
+      return {[grantsKey]: {}};
+    return read;
+  };
+  await assert.rejects(f.grantAll(), {code: 'E_OUTCOME_UNKNOWN'});
+  const saved = f.local.get(grantsKey)[official.id].cookieAllSites;
+  assert.equal(saved.values, true, 'Actual storage may have changed despite unknown acknowledgement');
+  assert.equal(saved.valueConsent, true);
+});
+
 test('all-http-sites retains real Chrome permissions, regular Store and real document Partition fences', async () => {
   const f = officialFixture(); await f.grantAll();
   f.state.siteAllowed = false;
@@ -348,6 +365,7 @@ test('legacy single-site consent does not upgrade and ordinary tools cannot inhe
   await assert.rejects(f.grantAll(true, {cookieCapability: 'read'}), {code: 'E_SCHEMA'});
   const ordinary = fixture();
   await assert.rejects(ordinary.grantAll(), {code: 'E_OWNER'});
+  await assert.rejects(ordinary.grant('all'), {code: 'E_TOOL_CAPABILITY_REQUIRED'});
   await ordinary.grant('read');
   assert.equal(ordinary.local.get(grantsKey)[pkg.id].cookieSites[origin].read, true);
   await f.grantAll();
