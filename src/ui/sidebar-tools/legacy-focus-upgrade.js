@@ -25,8 +25,8 @@ const shaPattern=/^[a-f0-9]{64}$/;
 const sha256=async data=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',
   typeof data==='string'?new TextEncoder().encode(data):data)),
   v=>v.toString(16).padStart(2,'0')).join('');
-const isValidOld=tool=>tool?.id===FOCUS_ID&&tool.version==='1.0.10'&&
-  tool.capabilities.includes('focus.control');
+const isValidOld=tool=>tool?.id===FOCUS_ID&&tool.format==='opendesk.sidebar-tool.v1'&&
+  tool.version==='1.0.10'&&tool.capabilities.includes('focus.control');
 const isValidNew=tool=>tool?.id===FOCUS_ID&&tool.format==='opendesk.sidebar-tool.v2'&&
   tool.capabilities.includes('browser.siteBudget')&&
   !tool.capabilities.includes('focus.control')&&
