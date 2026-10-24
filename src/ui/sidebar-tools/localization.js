@@ -18,9 +18,10 @@ function exact(value,keys){
   if(Object.keys(value).sort().join(',')!==[...keys].sort().join(','))fail('unknown or missing field');
 }
 function text(value){
-  if(typeof value!=='string'||!value.length||value.length>380||
+  if(typeof value!=='string'||value.length>380||
      /[<>\u0000-\u001f\u007f-\u009f\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/u.test(value)||
      /(?:javascript|vbscript|data|file)\s*:|\bon[a-z]+\s*=/i.test(value))fail('unsafe message text');
+  if(!value.replace(/[\s\p{Default_Ignorable_Code_Point}]/gu,''))fail('blank message text');
 }
 function validateCatalog(value){
   exact(value,['sourceLocale','messages']);

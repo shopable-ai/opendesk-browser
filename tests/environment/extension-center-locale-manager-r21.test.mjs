@@ -80,6 +80,20 @@ test('language preview, cancellation, confirmed import/overwrite/delete and shar
   assert.equal(f.service.exportPack(f.tool.id,'ja'),null);
 });
 
+test('blank-label feedback explains source fallback without reporting storage corruption',async t=>{
+  const f=await setup(t);await f.service.install(f.pack,f.tool);
+  const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
+    tools:[f.tool],service:f.service,toolId:f.tool.id,onClose(){}}}}),{doc}=ui;
+  const before=structuredClone(f.saved),picker=doc.querySelector('input[type=file]');
+  const invalid=structuredClone(f.pack);invalid.messages.title.text='\u3000\u00a0';
+  Object.defineProperty(picker,'files',{value:[{size:100,text:async()=>JSON.stringify(invalid)}]});
+  picker.dispatch('change');await settle(()=>doc.querySelector('[role=alert]'));
+  assert.match(doc.querySelector('[role=alert]').textContent,/空白文案.*删除该词条以回退原文/);
+  assert.doesNotMatch(doc.body.textContent,/语言存储状态需要核对/);
+  assert.equal(doc.querySelector('[aria-label="语言包导入预览"]'),null);
+  assert.equal(f.service.getState().status,'ready');assert.deepEqual(f.saved,before);
+});
+
 test('external pack opens preview and unavailable tool cannot import',async t=>{
   const f=await setup(t),ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
     tools:[f.tool],service:f.service,toolId:f.tool.id,importPack:f.pack,onClose(){}}}});

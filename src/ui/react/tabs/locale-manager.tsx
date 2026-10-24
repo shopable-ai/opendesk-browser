@@ -14,6 +14,8 @@ const failureText=failure=>{
   if(code.includes('QUOTA'))return '本地存储空间不足。请先导出备份，再移除不需要的语言包。';
   if(code==='E_UI_LOCALE_STORAGE')return '默认语言未能确认保存。请重新核对存储。';
   if(failure instanceof SyntaxError)return 'JSON 文件无效，请检查文件格式后重新导入。';
+  if(code==='E_TOOL_LOCALIZATION'&&failure.message?.includes('blank message text'))
+    return '语言包包含空白文案。请补全译文，或删除该词条以回退原文。';
   if(code==='E_LOCALE_PACK'||code.startsWith('E_TOOL_LOCALIZATION'))
     return '语言包不符合规则，请核对应用 ID、语言、原文、占位符和纯文本内容。';
   return String(failure?.message||failure);
@@ -146,7 +148,7 @@ export default function LocaleManager({model}){
         默认语言：{failureText(globalError)}
       </p>}
       {(globalError||service&&(serviceStatus!=='ready'||error))&&<div className="od-locale-recovery">
-        <p role="status">{globalUnknown?'默认语言写入结果未知，已暂停写入；请重新核对存储，不会自动重放保存。':serviceStatus==='unknown'?'上次写入结果未知，请重新核对存储；不会自动重放导入。':'语言存储状态需要核对；重新读取不会执行保存或导入。'}</p>
+        <p role="status">{globalUnknown?'默认语言写入结果未知，已暂停写入；请重新核对存储，不会自动重放保存。':serviceStatus==='unknown'?'上次写入结果未知，请重新核对存储；不会自动重放导入。':serviceStatus==='ready'?'本次操作未完成。可修正问题后重试，或重新读取当前设置；重新读取不会执行保存或导入。':'语言存储状态需要核对；重新读取不会执行保存或导入。'}</p>
         <Button disabled={busy} onClick={()=>void run(async()=>{
           // Wait for both readbacks, even if one fails. Never replay a write.
           const results=await Promise.allSettled([

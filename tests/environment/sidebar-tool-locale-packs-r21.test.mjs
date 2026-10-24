@@ -62,6 +62,23 @@ test('pure data contract accepts canonical BCP47 and rejects executable/prototyp
   assert.throws(()=>parseLocalePack(many,tool));
 });
 
+test('blank or invisible translations cannot replace a valid saved label',async()=>{
+  const tool=await fixture(),env=host(tool),service=createToolLocaleService(env);
+  await service.ready;await service.install(pack(tool),tool);
+  const before=structuredClone(env.values);
+  for(const text of [' ', '\u3000\u00a0', '\u200b\u2060\ufeff']){
+    const value=pack(tool);value.messages.hello.text=text;
+    assert.throws(()=>service.install(value,tool),{code:'E_TOOL_LOCALIZATION'});
+    assert.deepEqual(env.values,before,'rejected import leaves the saved pack unchanged');
+    assert.equal(service.getCatalog(tool,'fr').messages.hello,'Salut');
+    await assert.rejects(createToolLocalization({sourceLocale:'en',messages:{en:{hello:text}}}),
+      {code:'E_TOOL_LOCALIZATION'});
+  }
+  const padded=pack(tool);padded.messages.hello.text='  Bonjour\u3000';
+  assert.equal(parseLocalePack(padded,tool).messages.hello.text,'  Bonjour\u3000');
+  service.dispose();
+});
+
 test('old source hash reuses exact original rows only, reports stale and missing keys',async()=>{
   const tool=await fixture(),value=pack(tool);value.sourceCatalogHash='0'.repeat(64);
   value.messages.other={source:'Old other',text:'Autre'};

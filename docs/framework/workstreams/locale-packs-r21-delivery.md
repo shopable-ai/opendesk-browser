@@ -49,6 +49,14 @@
 
 正式交付 JSON 仅通过工具包合同的 Node/来源/同源门禁，不代表完整扩展 production 构建或真实安装通过。
 
+## 续跑：空白文案保护
+
+`cb1643a66` 续跑时复核 main 与工作区，Prompt Shortcuts 的来源不匹配仍存在，故没有重复完整构建。通过真实 Reading TOC 日语包复现：把 `refreshLabel.text` 改为全角空格、不换行空格与普通空格后，验证器仍接受，投影后的按钮标签为空白。新增回归先确认失败，再由原 `localization.js` 的纯文本校验统一拒绝全空白或仅含 Unicode 默认不可见字符的源文案/译文；真实文字前后的空白原样保留，不修改源摘要的字节合同。
+
+写入范围限于该校验器、现有 React 管理器的对应反馈、两份定向测试及本地化合同/本记录；原正式 JSON、工具身份、权限、源语言资源与来源 pin 不变。回归检查无效导入不会替换已经保存的有效译文；空白文案提示明确说明补全或删除词条以回退原文，文件错误不再误报存储异常。共享六 Tab 预览输出仍有并行 owner 写入，补充预览使用原生成器输出到本轮独立证据目录 `artifacts/locale-packs-r21/react-preview.html`，保留其工作区修改。
+
+补充证据：`blank-label-before.log` 为修复前失败回归，`blank-label-after.log` 为语言包/metadata/试点/管理器 37/37 PASS（含实际组件 CSS 编译）；`blank-label-final-source-check.log` 为最终 `npm run check` PASS（1140 文件）。CUA 在同源 HTTP 页面实际选择无效包，显示空白文案与原文回退提示、已导入包仍为 0，没有进入安装预览；截图 `cua-blank-label-rejected.png`。这些补充证据仍不提升为原生 A–F 或完整 Browser 构建通过。正式 Reading TOC 1.0.10 JSON 与日语样例字节未改，原晋升证据继续有效。
+
 ## 独立开发阶段评分
 
 三个独立 native subagent 按各自负责的证据分别评分；没有按目标倒填 95。评分形成时尚无完整构建与原生证据，后续 HTTP 验证不自动改为发布分数。
