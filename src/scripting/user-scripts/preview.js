@@ -409,11 +409,12 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
   }
   // Internal broker control only: no UI message accepts an installation or
   // source here. Reuse the existing world ledger and lexical UI registry.
-  async function retireInstalled(installation,{includeCurrent=true,observeOnly=false}={}){
+  async function retireInstalled(installation,{includeCurrent=true,observeOnly=false,documentId=null}={}){
     const records=(await worlds.records()).filter(row=>{
       const r=row.installed,a=installation.authorization;
       return r&&r.namespace===installation.namespace&&r.programId===installation.programId&&
         r.installationId===a?.installationId&&r.grantGeneration<=a.generation&&
+        (documentId===null||row.documentId===documentId)&&
         (includeCurrent||r.grantGeneration<a.generation);
     });
     // Extension reload or session-ledger loss does not prove an old document
@@ -421,6 +422,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     const executions=await storage.transaction(['frameworkKV'],'readonly',async tx=>(await tx.all('frameworkKV')).filter(r=>
       r?.tag==='page-execution-v1'&&r.namespace===installation.namespace&&r.programId===installation.programId&&
       r.installationId===installation.authorization?.installationId&&r.grantGeneration<=installation.authorization.generation&&
+      (documentId===null||r.documentId===documentId)&&
       (includeCurrent||r.grantGeneration<installation.authorization.generation)&&r.managedUI));
     let unknown=false;
     for(const execution of executions){
@@ -494,6 +496,14 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       const history=await storage.transaction(['frameworkKV'],'readonly',async tx=>(await tx.all('frameworkKV')).filter(row=>
         row?.tag==='page-execution-v1'&&row.namespace===installation.namespace&&row.programId===installation.programId&&
         row.documentId===t.documentId&&row.executionKey!==installation.executionKey&&row.managedUI));
+      if(history.length){
+        // Retire a prior same-document world only through the original
+        // document-bound cleanup broker. Completion alone does not prove that
+        // managed UI has stopped, and UNKNOWN must block the new Native run.
+        const cleanup=await retireInstalled(installation,{documentId:t.documentId});
+        invariant(cleanup.state==='retired','E_UI_CLEANUP_FAILED',
+          '原安装的受管清理未确认；请重新加载原网页，不执行新源码');
+      }
       const known=await worlds.records();
       invariant(history.every(execution=>known.some(row=>row.worldId===execution.managedUI.worldId&&
         row.tabId===execution.tabId&&row.documentId===execution.documentId&&
