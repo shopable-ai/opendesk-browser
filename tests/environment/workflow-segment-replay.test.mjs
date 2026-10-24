@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {canonical} from '../../src/platform/protocol.js';
 import {compileWorkflow} from '../../src/framework/workflow/compiler.js';
 import {sealWorkflowBundle,verifyWorkflowBundle,replayParameterSchema,
   verifyReplayBusinessEffect,assertLegacyReplayParameterScope,WORKFLOW_BUNDLE_FORMAT,
@@ -37,6 +38,14 @@ test('independent frozen scripts can be sealed into a complete, ordered bundle',
   assert.match(record.sourceHash,/^[a-f0-9]{64}$/);
   assert.deepEqual(await verifyWorkflowBundle(record),record);
   assert.equal(record.paramsSchema.properties.query.default,'camera');
+});
+test('Chrome storage object key ordering preserves bundle identity and dynamic routing',async()=>{
+  const original=await sealWorkflowBundle(await dynamicCommerceFixture());
+  const roundtrip=JSON.parse(canonical(original));
+  assert.deepEqual(await verifyWorkflowBundle(roundtrip),roundtrip);
+  assert.equal((await sealWorkflowBundle(roundtrip)).sourceHash,original.sourceHash);
+  assert.deepEqual(dynamicReplayIntent(roundtrip,{query:'lens',productName:'Lens Y'}).values,
+    {query:'lens',productName:'Lens Y'});
 });
 test('bundle rejects changed step order, script hash and parameter schema',async()=>{
   const record=await sealWorkflowBundle(await fixture());

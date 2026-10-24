@@ -528,6 +528,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         assertSaveCurrent();
         if(saved.contentHash!==freeze.sourceHash)
           throw err('E_WORKFLOW_HASH','Controller 返回的分段哈希不一致');
+        const reread=await host.controller.getControllerScript({
+          scriptId:withId.workflowId,revision:saved.revision});
+        assertSaveCurrent();
+        if(reread?.contentHash!==freeze.sourceHash||reread.sourceUtf8!==freeze.sourceUtf8)
+          throw err('E_WORKFLOW_HASH','保存后独立读回的 Controller 字节与冻结分段不一致');
         segments.push({workflow:freeze.workflow,entryUrl:old.entryUrl,
           revision:saved.revision,sourceHash:freeze.sourceHash,
           verificationMode:old.verificationMode,evidence:old.evidence,proof:old.proof});
@@ -617,6 +622,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       workflowId,bundleId,bundleRevision,
       modelSource:lastProviderTurn?.businessWorkflowId===workflow.workflowId?lastProviderTurn:null,
       runId,state:run?.state||'unknown',revision:run?.revision||null,
+      terminalReason:run?.terminalReason||null,error:result?.outcome?.error||null,
       resultId:result?.resultId||null,sourceHash:run?.revision?.sourceHash||null,
       resultSourceHash:result?.revision?.sourceHash||null,documentId:run?.target?.documentId||null,
       workerRetired:run?.workerRetired===true,retirement:run?.retirementState||null},null,2);
@@ -774,7 +780,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           bundleRevision:prepared?.bundleRevision||null});
         if(prepared) {
           let proof=null;
-          try{proof=verifyDirectExecutionReceipt({claim,completed,view,sourceHash:freeze.sourceHash,target:captured});}
+          try{proof=verifyDirectExecutionReceipt({claim,completed,view,sourceHash:freeze.sourceHash,
+            target:captured,navigationTarget:prepared.linkGuard});}
           catch(error){status(format(error),true);}
           lastRun=proof&&decoded?'success':'failed';
           let readbackVerified=false;

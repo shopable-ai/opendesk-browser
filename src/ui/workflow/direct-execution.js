@@ -372,13 +372,25 @@ export function verifySavedWorkflowRevision({source,claim,completed,view,result}
 // A RunHost completion is not automatically a successful web-page effect.
 // Bind all independently durable run/result/revision/document identities and
 // the released Worker/target before presenting a verified success to the user.
-export function verifyDirectExecutionReceipt({claim,completed,view,sourceHash,target}) {
+export function verifyDirectExecutionReceipt({claim,completed,view,sourceHash,target,navigationTarget}) {
   const runId=claim?.runId,run=view?.run;
   const result=view?.results?.find(item=>item?.runId===runId);
-  const targetMatches=target&&run?.target&&claim?.target&&
-    ['windowId','tabId','frameId','documentId','url'].every(key=>
-      run.target[key]===target[key]&&claim.target[key]===target[key])&&
-    run.target.allowedOrigin===target.origin&&claim.target.allowedOrigin===target.origin;
+  const admittedTargetMatches=target&&claim?.target&&
+    ['windowId','tabId','frameId','documentId','url'].every(key=>claim.target[key]===target[key])&&
+    claim.target.allowedOrigin===target.origin;
+  const unchangedTarget=run?.target&&target&&
+    ['windowId','tabId','frameId','documentId','url'].every(key=>run.target[key]===target[key])&&
+    run.target.allowedOrigin===target.origin;
+  // Authority changes a Controller target only after its durable navigation
+  // handoff. Accept that exact, requested destination; arbitrary replacement
+  // Documents still fail, as do old-Document receipts for a navigation.
+  const navigatedTarget=navigationTarget&&run?.target&&claim?.target&&
+    ['windowId','tabId','frameId'].every(key=>run.target[key]===target[key])&&
+    run.target.documentId!==target.documentId&&typeof run.target.documentId==='string'&&
+    run.target.url===navigationTarget.url&&run.target.allowedOrigin===navigationTarget.origin&&
+    Number.isSafeInteger(claim.target.targetVersion)&&
+    run.target.targetVersion===claim.target.targetVersion+1;
+  const targetMatches=admittedTargetMatches&&(navigationTarget?navigatedTarget:unchangedTarget);
   if(!runId||!claim?.resultId||!targetMatches||
     completed?.runId!==runId||completed?.pendingSettlement||
     completed?.retirement?.state!=='released'||

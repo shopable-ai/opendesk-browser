@@ -2,7 +2,7 @@
 // fragments. It owns no browser authority, execution engine or permissions.
 import {validateWorkflow} from '../../framework/workflow/contract.js';
 import {checkParamsSchema,validateTaskParams} from '../../platform/tasks/contract.js';
-import {digestUtf8} from '../../platform/protocol.js';
+import {canonical,digestUtf8} from '../../platform/protocol.js';
 
 export const WORKFLOW_BUNDLE_FORMAT = 'opendesk.workflow-segment-bundle.v1';
 export const WORKFLOW_DYNAMIC_BUNDLE_FORMAT = 'opendesk.workflow-segment-bundle.v2';
@@ -32,7 +32,7 @@ export function replayParameterSchema(segments) {
     const schema=validateWorkflow(segment.workflow).paramsSchema;
     for(const [name,rule] of Object.entries(schema.properties)) {
       if(Object.hasOwn(properties,name)&&
-        JSON.stringify(properties[name])!==JSON.stringify(rule))
+        canonical(properties[name])!==canonical(rule))
         fail('E_WORKFLOW_PARAMS','跨段同名参数定义不一致');
       properties[name]=structuredClone(rule);
     }
@@ -148,7 +148,7 @@ export function dynamicReplayIntent(bundle,params) {
   if(bundle?.format!==WORKFLOW_DYNAMIC_BUNDLE_FORMAT)
     fail('E_WORKFLOW_BUNDLE','历史记录不是可动态绑定的版本');
   const plan=inferDynamicReplayPlan(bundle);
-  if(!plan||JSON.stringify(plan)!==JSON.stringify(bundle.bindingPlan))
+  if(!plan||canonical(plan)!==canonical(bundle.bindingPlan))
     fail('E_WORKFLOW_PARAM_BINDING','动态绑定契约已失效');
   if(!params||typeof params!=='object'||Array.isArray(params)||
     !Object.hasOwn(params,'query')||!Object.hasOwn(params,'productName'))
@@ -179,7 +179,7 @@ function manifestFields(value) {
     part.workflow.workflowId!==value.bundleId+'-s'+(index+1)))
     fail('E_WORKFLOW_BUNDLE','分段必须使用独立的 Controller 身份');
   const schema=replayParameterSchema(segments);
-  if(JSON.stringify(schema)!==JSON.stringify(value.paramsSchema))
+  if(canonical(schema)!==canonical(value.paramsSchema))
     fail('E_WORKFLOW_BUNDLE','共享参数定义与分段不一致');
   if(!value.workflow||typeof value.workflow!=='object'||
     Array.isArray(value.workflow)||
@@ -193,7 +193,7 @@ function manifestFields(value) {
   const dynamic=value.format===WORKFLOW_DYNAMIC_BUNDLE_FORMAT;
   if(dynamic){
     const plan=inferDynamicReplayPlan({goal:value.goal,segments});
-    if(!plan||JSON.stringify(plan)!==JSON.stringify(value.bindingPlan))
+    if(!plan||canonical(plan)!==canonical(value.bindingPlan))
       fail('E_WORKFLOW_PARAM_BINDING','动态绑定计划不符合已核验的原始业务范围');
   } else if(value.bindingPlan!==undefined)
     fail('E_WORKFLOW_BUNDLE','旧版历史不允许动态绑定');
@@ -205,7 +205,9 @@ function manifestFields(value) {
 }
 export async function sealWorkflowBundle(value) {
   const body=manifestFields(value);
-  return {...body,sourceHash:await digestUtf8(JSON.stringify(body)),
+  // Chrome storage may reorder object keys at every depth. Metadata identity
+  // follows JSON values and array order; frozen Controller bytes remain exact.
+  return {...body,sourceHash:await digestUtf8(canonical(body)),
     savedAt:Date.now()};
 }
 export async function verifyWorkflowBundle(value) {
@@ -213,7 +215,8 @@ export async function verifyWorkflowBundle(value) {
     !Number.isSafeInteger(value.savedAt)||value.savedAt<=0)
     fail('E_WORKFLOW_HASH','工作流包哈希或保存时间无效');
   const body=manifestFields(value);
-  if(await digestUtf8(JSON.stringify(body))!==value.sourceHash)
+  if(await digestUtf8(canonical(body))!==value.sourceHash&&
+    await digestUtf8(JSON.stringify(body))!==value.sourceHash)
     fail('E_WORKFLOW_HASH','完整工作流分段、顺序或参数已变化');
   return structuredClone(value);
 }

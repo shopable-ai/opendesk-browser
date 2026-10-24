@@ -4,6 +4,7 @@ import {createWorkflowView} from '../../src/ui/workflow/workflow-view.js';
 import {emptyWorkflow} from '../../src/framework/workflow/contract.js';
 import {WORKFLOW_OBSERVE_SOURCE} from '../../src/ui/workflow/observation.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
+import {canonical} from '../../src/platform/protocol.js';
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const hash=async text=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text))),b=>b.toString(16).padStart(2,'0')).join('');
 export const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
@@ -25,7 +26,8 @@ export async function workflowFixture(options={}) {
   const service={hold:Boolean(options.hold),fail:Boolean(options.fail),corrupt:false,corruptResult:false,beforeJournalRead:null,
     holdActionStart:false,releaseActionStart:null,dropVerifiedBundleWrite:Boolean(options.dropVerifiedBundleWrite)};
   const storage=map=>({get:async keys=>keys===null?Object.fromEntries(map):Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(key=>[key,map.get(key)])),
-    set:async values=>{for(const [key,value] of Object.entries(values))map.set(key,structuredClone(value));}});
+    set:async values=>{for(const [key,value] of Object.entries(values))
+      map.set(key,JSON.parse(canonical(value)));}});
   const permissions=new Set(options.permission===false?[]:[target.origin+'/*']);
   const localStorage=storage(local);
   // Simulate a storage transport that resolves SET without persisting the
@@ -73,7 +75,7 @@ export async function workflowFixture(options={}) {
       host.currentRun=runId;
       const sourceHash=source.kind==='saved'?source.contentHash:await hash(source.sourceUtf8);
       const revision={sourceHash,...(source.kind==='saved'?{scriptId:source.scriptId,revision:source.revision}:{})};
-      const bound={windowId:7,tabId:9,frameId:0,documentId:options.target.documentId,url:options.target.expectedUrl,allowedOrigin:target.origin};
+      const bound={windowId:7,tabId:9,frameId:0,documentId:options.target.documentId,url:options.target.expectedUrl,allowedOrigin:target.origin,targetVersion:1};
       const claim={runId,resultId,revision,target:bound};
       host.completion=new Promise(resolve=>{pending={resolve,claim,isObservation,source,params:options.params};});
       notify('run');if(!service.hold&&!heldAction)queueMicrotask(()=>finish(service.fail?'failed':'completed'));
@@ -103,6 +105,13 @@ export async function workflowFixture(options={}) {
     host.currentRun=null;notify('run');
     if(state==='completed'&&!isObservation&&typeof options.afterAction==='function') {
       options.afterAction({source,params,target,claim});
+      const bytes=source.kind==='draft'?source.sourceUtf8:
+        scripts.get(source.scriptId+':'+source.revision)?.sourceUtf8;
+      // Model the real Authority's durable goto handoff. A DOM click never
+      // gains this new-Document binding merely because the fixture navigated.
+      if(bytes?.includes('await page.goto(')&&target.documentId!==claim.target.documentId)
+        snapshot.run.target={...claim.target,documentId:target.documentId,url:target.url,
+          allowedOrigin:target.origin,targetVersion:claim.target.targetVersion+1};
       for(const listener of subscriptions.page)listener({...target});
     }
     resolve({runId:claim.runId,state,retirement:{state:'released'},result});

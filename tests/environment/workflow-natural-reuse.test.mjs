@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {canonical} from '../../src/platform/protocol.js';
 import {compileWorkflow} from '../../src/framework/workflow/compiler.js';
 import {sealWorkflowBundle,replayParameterSchema,inferDynamicReplayPlan,
   WORKFLOW_DYNAMIC_BUNDLE_FORMAT,WORKFLOW_BUNDLE_FORMAT}
@@ -50,7 +51,7 @@ async function record(id='wf-11111111-2222-3333-4444-555555555555'){
 const route=(records,requestText=request,targetValue=target)=>
   selectSavedWorkflowRoute({request:requestText,target:targetValue,records});
 test('one exact v2 search-to-product candidate extracts new values without compiling source',async()=>{
-  const saved=await record(),matched=route([saved]);
+  const saved=JSON.parse(canonical(await record())),matched=route([saved]);
   assert.equal(matched.state,'MATCH');
   assert.equal(matched.record.key,saved.key);
   assert.deepEqual(matched.params,{query:'lens',productName:'Lens Y'});

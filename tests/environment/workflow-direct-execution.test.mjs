@@ -359,7 +359,7 @@ test('trusted same-document search proves demo-form inline result without fabric
   ])assert.equal(verifySearchBusinessEffect(invalid),null);
 });
 
-test('current observed named link admits one frozen href-guarded RunHost click only',async()=>{
+test('current observed named link admits one frozen href-guarded RunHost navigation only',async()=>{
   const name='OpenDesk Browser',href='?detail=browser';
   const finalUrl=new URL(href,target.url).href;
   const click={stepId:'open-result',op:'click',locatorKind:'role',
@@ -378,7 +378,8 @@ test('current observed named link admits one frozen href-guarded RunHost click o
   const compiled=await compileWorkflow(frozen);
   assert.match(compiled.sourceUtf8,/Workflow link changed/);
   assert.match(compiled.sourceUtf8,/a\[href=/);
-  assert.match(compiled.sourceUtf8,/__fixed\.click/);
+  assert.match(compiled.sourceUtf8,/page\.goto/);
+  assert.doesNotMatch(compiled.sourceUtf8,/\.click\(/);
   assert.throws(()=>prepareDirectExecution({
     request:'打开 OpenDesk Browser',workflow:frozen,target,observation:summary
   }),{code:'E_AI_REVIEW_REQUIRED'}); // A model cannot borrow a prior proof.
@@ -394,6 +395,61 @@ test('current observed named link admits one frozen href-guarded RunHost click o
   assert.throws(()=>prepareDirectExecution({request:'打开第一个结果',
     workflow:steps,target,observation:summary}),{code:'E_AI_REVIEW_REQUIRED'});
 });
+test('verified links use one navigation handoff and reject changed DOM before dispatch',async()=>{
+  const guard={name:'Camera X',href:'?product=camera-x',
+    url:origin+'/form?product=camera-x',origin,sourceUrl:target.url,
+    locatorKind:'role',selector:'link',roleName:'Camera X'};
+  for(const dynamic of [false,true]) {
+    const w=workflow([{stepId:'product',op:'click',locatorKind:'role',selector:'link',
+      roleName:'Camera X',linkGuard:guard,...(dynamic?{param:'productName'}:{})}]);
+    if(dynamic)w.paramsSchema={type:'object',properties:{productName:{
+      type:'string',title:'目标商品',default:'Camera X'}},required:['productName'],additionalProperties:false};
+    const frozen=await compileWorkflow(w);
+    const execute=new Function('page','params',frozen.sourceUtf8+'; return main();');
+    const calls=[];
+    let href=guard.href,count=1;
+    const locator={count:async()=>count,getAttribute:async()=>href,
+      click:async()=>assert.fail('A locator click would lose the old Document receipt')};
+    const page={url:async()=>guard.sourceUrl,getByRole:()=>locator,locator:()=>locator,
+      goto:async url=>{calls.push(url);}};
+    const params={productName:guard.name,__odLinks:{product:{...guard}}};
+    await execute(page,params);
+    assert.deepEqual(calls,[guard.url]);
+    calls.length=0;href='?product=other';
+    await assert.rejects(execute(page,params),/link changed/);
+    assert.deepEqual(calls,[]);
+    href=guard.href;count=2;
+    await assert.rejects(execute(page,params),/link changed/);
+    assert.deepEqual(calls,[]);
+    if(dynamic){
+      count=1;href='https://evil.test/product';
+      params.__odLinks.product.href=href;
+      await assert.rejects(execute(page,params),/origin changed/);
+      assert.deepEqual(calls,[]);
+    }
+  }
+});
+
+test('navigation receipts bind the original claim and exact durable destination without weakening replacement fences',()=>{
+  const navigationTarget={url:origin+'/product/camera-x',origin};
+  const p=proof();p.claim.target={...p.claim.target,targetVersion:1};
+  p.view.run.target={...p.claim.target,documentId:'new-doc',url:navigationTarget.url,targetVersion:2};
+  assert.equal(verifyDirectExecutionReceipt({...p,navigationTarget}).runId,'run-1');
+  assert.throws(()=>verifyDirectExecutionReceipt(p),{code:'E_AI_OUTCOME_UNKNOWN'});
+  for(const changed of [
+    {documentId:target.documentId},{url:origin+'/product/other'},
+    {allowedOrigin:'https://evil.test'},{tabId:99},{windowId:99},
+    {frameId:1},{targetVersion:1},{targetVersion:3}
+  ])assert.throws(()=>verifyDirectExecutionReceipt({...p,navigationTarget,
+    view:{...p.view,run:{...p.view.run,target:{...p.view.run.target,...changed}}}}),
+    {code:'E_AI_OUTCOME_UNKNOWN'});
+  assert.throws(()=>verifyDirectExecutionReceipt({...p,navigationTarget,
+    claim:{...p.claim,target:{...p.claim.target,documentId:'unrelated'}}}),
+    {code:'E_AI_OUTCOME_UNKNOWN'});
+  assert.throws(()=>verifyDirectExecutionReceipt({...p,navigationTarget,
+    view:{...p.view,run:{...p.view.run,state:'stopped'}}}),{code:'E_AI_OUTCOME_UNKNOWN'});
+});
+
 test('only independently observed new Document title and product price prove navigation',()=>{
   const linkGuard={name:'OpenDesk Browser',href:'?detail=browser',
     url:origin+'/form?detail=browser',origin,sourceUrl:target.url,

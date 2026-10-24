@@ -2,6 +2,7 @@
 // candidate, not a model instruction or an additional RunHost authority.
 import {WORKFLOW_DYNAMIC_BUNDLE_FORMAT,inferDynamicReplayPlan,
   dynamicReplayIntent,simpleCommerceReplayGoal,replayParameterSchema} from './segment-replay.js';
+import {canonical} from '../../platform/protocol.js';
 
 // Users may omit the space after 搜索 and shorten 商品详情页 to 详情.
 // This is STILL missing the required exact product name: ask, never guess it
@@ -27,11 +28,10 @@ export function selectSavedWorkflowRoute({request,target,records=[]}={}) {
   if(!candidates.length)return {state:'AI'};
   for(const row of candidates){
     try{
-      if(JSON.stringify(replayParameterSchema(row.segments))!==
-         JSON.stringify(row.paramsSchema))
+      if(canonical(replayParameterSchema(row.segments))!==canonical(row.paramsSchema))
         return {state:'BLOCKED',code:'E_WORKFLOW_BUNDLE'};
       const plan=inferDynamicReplayPlan(row);
-      if(!plan||JSON.stringify(plan)!==JSON.stringify(row.bindingPlan))
+      if(!plan||canonical(plan)!==canonical(row.bindingPlan))
         return {state:'BLOCKED',code:'E_WORKFLOW_PARAM_BINDING'};
       if(complete)dynamicReplayIntent(row,complete);
     }catch(error){return {state:'BLOCKED',code:error?.code||'E_WORKFLOW_BUNDLE'};}

@@ -52,10 +52,15 @@ export async function compileWorkflow(value,{verifyFill=false}={}) {
         lines.push('    const __named=page.getByRole("link",{name:__name,exact:true});');
         lines.push('    if((await __named.count())!==1 || (await __named.getAttribute("href"))!==__bound.href) '+
           'throw new Error("Workflow bound link changed");');
-        lines.push('    await __named.click(); }');
+        // A verified ordinary link means navigation, not an arbitrary click
+        // handler. Use the existing durable browser navigation handoff so the
+        // old Document fence cannot cancel this Controller during commit.
+        lines.push('    const __url=new URL(__bound.href,__bound.sourceUrl);');
+        lines.push('    if(__url.origin!=='+origin+') throw new Error("Workflow link origin changed");');
+        lines.push('    await page.goto(__url.href); }');
       } else if (step.linkGuard) {
         // Frozen, trusted link identity is re-checked by the normal RunHost.
-        // CSS href equality is checked again during the native Locator commit.
+        // Re-check the named href and uniqueness before the durable navigation.
         const g=step.linkGuard,css='a[href='+JSON.stringify(g.href)+']';
         lines.push('  { if (await page.url() !== '+JSON.stringify(g.sourceUrl)+
           ') throw new Error("Workflow link source changed");');
@@ -64,7 +69,7 @@ export async function compileWorkflow(value,{verifyFill=false}={}) {
           JSON.stringify(g.href)+') throw new Error("Workflow link changed");');
         lines.push('    const __fixed = page.locator('+JSON.stringify(css)+');');
         lines.push('    if ((await __fixed.count()) !== 1) throw new Error("Workflow link is not unique");');
-        lines.push('    await __fixed.click(); }');
+        lines.push('    await page.goto('+JSON.stringify(g.url)+'); }');
       } else lines.push('  await ' + locator(step) + '.click();');
     }
     if (step.op === 'wait') lines.push('  await ' + locator(step) +
