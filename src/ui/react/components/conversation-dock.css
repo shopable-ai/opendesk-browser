@@ -55,7 +55,14 @@
  margin:0;padding:10px 12px;border:1px solid var(--od-line);border-radius:var(--radius-surface)}
 .od-shared-provider-form fieldset legend{padding-inline:5px;font-weight:650;font-size:var(--od-note-size)}
 .od-shared-provider-form label{display:flex;align-items:center;gap:8px;min-width:0;font-size:var(--od-note-size)}
-.od-shared-provider-form input[type=radio],.od-shared-provider-form input[type=checkbox]{accent-color:var(--od-brand)}
+.od-shared-provider-form fieldset label{margin:0;padding:2px 0;line-height:1.5;cursor:pointer}
+/* Scope native selection controls: the global 100%-wide 36px input rule is for text fields. */
+.od-shared-provider-form input[type=radio],.od-shared-provider-form input[type=checkbox]{
+ appearance:auto;flex:0 0 16px;width:16px;min-width:16px;max-width:16px;
+ height:16px;min-height:16px;margin:0;padding:0;accent-color:var(--od-brand)
+}
+.od-shared-provider-protocol label{margin:8px 0 4px}
+.od-shared-provider-protocol select{width:100%;min-width:0}
 .od-shared-provider-form .od-shared-provider-fields{display:grid;gap:6px;min-width:0}
 .od-shared-provider-fields>label:not(.od-shared-provider-clear-key){margin-top:5px;font-weight:600}
 .od-shared-provider-fields>.od-field{width:100%;min-width:0;max-width:100%}
