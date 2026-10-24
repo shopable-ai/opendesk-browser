@@ -17,7 +17,25 @@ import {createDeveloperView} from '/src/ui/develop-view.js';
 import {createMyWorkbenchView} from '/src/ui/my-workbench-view.js';
 const calls=[],navState={tab:'tasks',blocked:null};
 const developerView=createDeveloperView(),myView=createMyWorkbenchView();
-const ui=mountSidebarApp(document,{debugEnabled:false,developerView,myView,
+// Chromium source UI fixture: imitate only the existing shared settings store
+// contract. This is not a real Provider, grant, or installed-extension receipt.
+const settingsListeners=new Set();
+let providerSnapshot=Object.freeze({
+  source:'custom_https',endpoint:'https://example.com/v1/chat/completions',
+  model:'my-inference-model',hasApiKey:true,generation:1
+});
+const providerSettings=Object.freeze({
+  subscribeSettings(listener){settingsListeners.add(listener);return ()=>settingsListeners.delete(listener);},
+  settingsSnapshot(){return providerSnapshot;},
+  updateSettings(patch){
+    calls.push('provider-update:true');
+    providerSnapshot=Object.freeze({...providerSnapshot,...patch,
+      hasApiKey:patch.apiKey===undefined?providerSnapshot.hasApiKey:Boolean(patch.apiKey),
+      generation:providerSnapshot.generation+1});
+    for(const listener of settingsListeners)listener();
+  }
+});
+const ui=mountSidebarApp(document,{debugEnabled:false,developerView,myView,providerSettings,
   onNavigate(view){
     calls.push('nav:'+view);
     if(navState.blocked===view)return false;
@@ -149,8 +167,8 @@ const workflowController={
   }
 };
 ui.connectWorkflowPage(workflowController);
-const providerNode=document.getElementById('workflow-https-protocol');
-window.__reactTest={ui,calls,navState,state,dev,framework,developerView,myView,providerNode,subscriptions,publishWorkflow,workflowController,get workflowModel(){return workflowModel;},paintDeveloperDock,paintFramework,setDeveloperResult,setDeveloperStatus,setDeveloperTarget,dispose(){ui.dispose();developerView.dispose()}};
+const providerNode=document.getElementById('workflow-provider-toggle');
+window.__reactTest={ui,calls,navState,state,dev,framework,developerView,myView,providerNode,subscriptions,settingsListeners,publishWorkflow,workflowController,get workflowModel(){return workflowModel;},get providerSnapshot(){return providerSnapshot;},paintDeveloperDock,paintFramework,setDeveloperResult,setDeveloperStatus,setDeveloperTarget,dispose(){ui.dispose();developerView.dispose()}};
 document.documentElement.dataset.fixtureReady='true';
 `;
 const originalHtml=await readFile('src/ui/sidepanel.html','utf8');
@@ -457,34 +475,45 @@ try{
   await cdp('Input.insertText',{text:' · 浏览器输入'});
   await checkEventually('window.__reactTest.workflowModel.controls["workflow-ai-request"].value==="保留原始输入草稿 · 浏览器输入"');
   assert.equal(await evaluate('window.__reactTest.calls.filter(x=>x==="input:workflow-ai-request:true").length'),1);
+  // The source button now opens a menu. Advanced AI Settings is the ONE
+  // shared Provider Sheet; the old Workflow-specific details are retired.
   await click('#workflow-provider-toggle');
-  await checkEventually('document.querySelector(".workflow-sheet-overlay") && !document.querySelector(".workflow-sheet-overlay").hidden');
+  await checkEventually('document.querySelector("#workflow-source-menu [role=menuitem]")');
+  assert.equal(await evaluate('document.querySelectorAll("#workflow-source-menu [role=menuitemradio]").length'),3);
+  await click('#workflow-source-menu [role="menuitem"]');
+  await checkEventually('document.querySelector(".workflow-sheet-panel[role=dialog][aria-modal=true]")!==null');
   assert.equal(await evaluate('document.querySelectorAll(".workflow-sheet-panel[role=dialog][aria-modal=true]").length'),1);
-  assert.equal(await evaluate('document.getElementById("workflow-editor").inert'),true);
-  assert.equal(await evaluate('document.activeElement.id'),'workflow-source-https');
-  assert.equal(await evaluate('document.getElementById("workflow-https-protocol")===window.__reactTest.providerNode'),true);
-  await click('#workflow-ai-key');
-  await evaluate('(()=>{const node=document.getElementById("workflow-ai-key");node.setSelectionRange(node.value.length,node.value.length);})()');
+  assert.equal(await evaluate('document.getElementById("opendesk-react-app").inert'),true,
+    'The single React application, not a retired inner editor, is inert behind the modal');
+  assert.equal(await evaluate('document.querySelector(".workflow-sheet-panel").contains(document.activeElement)'),true,
+    'Initial focus stays within the portalled sheet');
+  assert.equal(await evaluate('document.getElementById("workflow-provider-toggle")===window.__reactTest.providerNode'),true);
+  assert.equal(await evaluate('document.getElementById("workflow-provider-settings")===null'),true,
+    'Legacy Workflow Provider details must not reappear');
+  await click('#od-ai-provider-key');
   await cdp('Input.insertText',{text:' · 浏览器输入'});
-  await checkEventually('window.__reactTest.workflowModel.controls["workflow-ai-key"].value==="保持原值 · 浏览器输入"');
-  assert.equal(await evaluate('window.__reactTest.calls.filter(x=>x==="input:workflow-ai-key:true").length'),1);
+  await checkEventually('document.getElementById("od-ai-provider-key")?.value===" · 浏览器输入"');
+  assert.equal(await evaluate('window.__reactTest.calls.filter(x=>x==="provider-update:true").length'),0,
+    'Typing a secret must not persist settings before explicit Save');
   await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
   assert.equal(await evaluate('document.querySelector(".workflow-sheet-panel").contains(document.activeElement)'),true);
   await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
-  await checkEventually('document.querySelector(".workflow-sheet-overlay").hidden');
-  assert.equal(await evaluate('document.getElementById("workflow-editor").inert'),false);
+  await checkEventually('document.querySelector(".workflow-sheet-overlay")===null');
+  assert.equal(await evaluate('document.getElementById("opendesk-react-app").inert'),false);
+  await checkEventually('document.activeElement.id==="workflow-provider-toggle"');
   assert.equal(await evaluate('document.getElementById("workflow-ai-request").value'),'保留原始输入草稿 · 浏览器输入');
-  assert.equal(await evaluate('document.getElementById("workflow-ai-key").value'),'保持原值 · 浏览器输入');
   await click('#workflow-provider-toggle');
-  await checkEventually('!document.querySelector(".workflow-sheet-overlay").hidden');
+  await checkEventually('document.querySelector("#workflow-source-menu [role=menuitem]")');
+  await click('#workflow-source-menu [role="menuitem"]');
+  await checkEventually('document.querySelector(".workflow-sheet-panel")!==null');
   // Click above the sheet using real CDP pointer input; the backdrop's
   // geometric center can sit beneath the foreground panel.
   const backdropPoint=await evaluate('({x:innerWidth/2,y:8,hit:document.elementFromPoint(innerWidth/2,8)?.className})');
   assert.equal(backdropPoint.hit,'workflow-sheet-backdrop');
   await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:backdropPoint.x,y:backdropPoint.y,button:'left',clickCount:1});
   await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:backdropPoint.x,y:backdropPoint.y,button:'left',clickCount:1});
-  await checkEventually('document.querySelector(".workflow-sheet-overlay").hidden');
-  assert.equal(await evaluate('document.getElementById("workflow-provider-settings")===window.__reactTest.providerNode.closest("details")'),true);
+  await checkEventually('document.querySelector(".workflow-sheet-overlay")===null');
+  assert.equal(await evaluate('document.getElementById("opendesk-react-app").inert'),false);
   // Use actual CDP mouse input (isTrusted=true), not a synthetic DOM click.
   await click('#tab-my-tasks');
   await checkEventually('window.__reactTest.navState.tab==="tasks"');
@@ -522,8 +551,10 @@ try{
   assert.deepEqual(exceptions,[],'React must not throw inside Chrome');
   await click('#tab-workflow');
   await click('#workflow-provider-toggle');
-  await checkEventually('document.getElementById("workflow-editor").inert');
-  await evaluate('(()=>{const s=window.__reactTest;s.detached={editor:document.getElementById("workflow-editor"),settings:document.getElementById("workflow-provider-settings"),navigation:document.querySelector(".workbench-nav"),menu:document.getElementById("extension-center-row-menu"),run:document.getElementById("script-run"),input:document.getElementById("workflow-ai-request")};s.beforeDispose=s.calls.length;s.dispose();})()');
+  await checkEventually('document.querySelector("#workflow-source-menu [role=menuitem]")');
+  await click('#workflow-source-menu [role="menuitem"]');
+  await checkEventually('document.getElementById("opendesk-react-app").inert');
+  await evaluate('(()=>{const s=window.__reactTest;s.detached={root:document.getElementById("opendesk-react-app"),editor:document.getElementById("workflow-editor"),settings:document.querySelector(".workflow-sheet-panel"),navigation:document.querySelector(".workbench-nav"),menu:document.getElementById("extension-center-row-menu"),run:document.getElementById("script-run"),input:document.getElementById("workflow-ai-request")};s.beforeDispose=s.calls.length;s.dispose();})()');
   assert.equal(await evaluate('document.querySelectorAll("#extension-center-react-root").length'),0);
   assert.equal(await evaluate('window.__reactTest.detached.settings.isConnected'),false,
     'The React-owned settings subtree is removed on disposal');
@@ -538,9 +569,11 @@ try{
   assert.equal(await evaluate('document.querySelectorAll("#develop-dock > *, #workbench-develop > *").length'),0);
   assert.equal(await evaluate('document.getElementById("workbench-develop")'),null);
   assert.equal(await evaluate('document.getElementById("opendesk-react-app").childElementCount'),0);
-  assert.equal(await evaluate('window.__reactTest.detached.editor.inert'),false,
-    'Disposing an open sheet restores the editor inert state');
+  assert.equal(await evaluate('window.__reactTest.detached.root.inert'),false,
+    'Disposing an open sheet restores the shared React root inert state');
   assert.equal(await evaluate('window.__reactTest.subscriptions.size'),0);
+  assert.equal(await evaluate('window.__reactTest.settingsListeners.size'),0,
+    'Unmount must release shared Provider settings subscribers');
   assert.equal(await evaluate('window.__reactTest.myView.subscriberCount'),0);
   assert.deepEqual(await evaluate('window.__reactTest.developerView.resourceSnapshot()'),{subscriptions:0,actions:0});
   await evaluate('(()=>{const s=window.__reactTest;s.detached.run.click();s.detached.navigation.querySelector("button").click();s.detached.input.dispatchEvent(new Event("input",{bubbles:true}));s.publishWorkflow({sourceName:"after disposal"});s.myView.setText("task-installed-count","after disposal");s.ui.renderNavigation("tools");})()');
