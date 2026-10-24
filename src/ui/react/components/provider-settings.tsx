@@ -44,9 +44,9 @@ export function SharedProviderSettingsSheet({
  // A new unknown endpoint instead needs an explicit advanced choice.
  const savedSource=isHttpsSource(snapshot.source)&&
    endpointValue===String(snapshot.endpoint||'').trim()?snapshot.source:null;
- const selectedHttpsSource=inferredSource||
+ const selectedHttpsSource=
    (protocolOverride?.endpoint===endpointValue?protocolOverride.source:null)||
-   savedSource;
+   savedSource||inferredSource;
  const save=event=>{
   event.preventDefault();
   if(!event.nativeEvent?.isTrusted||!providerSettings)return;
@@ -119,7 +119,8 @@ export function SharedProviderSettingsSheet({
         value={endpoint} onChange={event=>setEndpoint(event.currentTarget.value)}
         autoComplete="off" spellCheck={false}/>
        {inferredSource?
-        <p className="workflow-minor-note">根据接口路径识别：{inferredSource==='cloud_responses'?'Responses':'Chat Completions'}</p>:
+        <p className="workflow-minor-note">{savedSource&&savedSource!==inferredSource?'保留当前配置的协议：':'根据接口路径识别：'}
+         {selectedHttpsSource==='cloud_responses'?'Responses':'Chat Completions'}</p>:
         <>
          <p className="workflow-minor-note">无法根据接口路径识别协议，请在高级配置中明确选择。</p>
          <details className="od-disclosure od-disclosure--flat od-shared-provider-protocol">
