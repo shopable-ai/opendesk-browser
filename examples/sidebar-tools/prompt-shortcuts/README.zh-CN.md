@@ -1,8 +1,18 @@
 # 提示词快捷按钮（Prompt Shortcuts）
 
-独立工具 ID：`prompt-shortcuts`，正式可安装包版本 **1.1.16**。ChatGPT、DeepSeek、Gemini 对话页使用内置默认适配；源码、工具包与实际安装状态见下方证据，其他网站仍可建立自定义规则。
+独立工具 ID：`prompt-shortcuts`，正式可安装包版本 **1.1.18**。ChatGPT、DeepSeek、Gemini 对话页使用内置默认适配；源码、工具包与实际安装状态见下方证据，其他网站仍可建立自定义规则。
 
-## 当前增量完善结果（2026-10-24）
+## R4.4 列表进入详情与悬浮操作（2026-10-24）
+
+**原始产品目标**：点击提示词列表卡片进入完整只读详情（不是直接复制或自动发送）；右上角仅在 Hover、键盘焦点、操作展开或触屏场景显示浮动快捷按钮。操作浮层为绝对定位，不占正文网格列，不改变卡片文字列宽或两行截断。点击「更多」浮出已有编辑、启停、上下排序、复制与删除按钮；危险删除仍要求确认。
+
+- 正式 UI：`src/index.html` 增加只读详情；`src/main.js` 复用既有 `start` 编辑、`copy` 用户手势和 `update/move/remove/commit` ETag 读回。Host 导航新增正常的 `detail` 页面状态，不修改 Browser SDK/Host/权限。进入详情不会读取或修改网页草稿，网页自身快捷栏点击仍采用原插入流程。
+- 正式 CSS：`src/style.css` 的卡片正文只保留短标签和文本两列，操作区 `position:absolute`；菜单展开不在内容流追加按钮行。触屏不隐藏「更多」；支持 `:focus-within` 和 `prefers-reduced-motion`。
+- 完整交互预览：`preview/index.html` 与上述列表行为同步，用于视觉评审；其中保存、复制、网站模拟均不等于真实 Host 安装和授权。
+- 唯一正式包 `prompt-shortcuts.opendesk-tool.json` 已与本轮源码同步：**1.1.18 / 144,295 UTF-8 bytes / SHA-256 `7158d16bff8143bef8a6a4ebac54b0fecbf6dba364025ed192c27e397ed0d116`**，保留原 `prompt-shortcuts` ID、能力、固定 Classic 依赖与 `library` 首装数据。1.1.17、1.1.16、1.1.15 已审阅来源继续按固定原始摘要准入，禁止同版本换包假冒官方。
+- 之前同业务源码的定向 Node 运行记录可复用；本轮 Chromium 新交互及 Mac 已安装版本是否通过，依实际 CI 和安装回执再确认。**Mac Chrome 安装升级与 production 验收：NOT_TESTED**，不可用预览 PASS 替代。
+
+## 历史：R4.3 增量完善结果（2026-10-24）
 
 旧库接近 8 KiB 时，新增导航默认值曾导致正常保存超限；现仅在读取时展开默认值，保存按真实持久化字节计算，显式关闭设置仍保留。可信网页导航增加完整矩形避让，并忽略自身 DOM 变动引发的重复布局；来源 pin 已同步已审阅的双 chevron SVG。8 KiB、CAS、来源、启停与 epoch 门禁保留。
 
