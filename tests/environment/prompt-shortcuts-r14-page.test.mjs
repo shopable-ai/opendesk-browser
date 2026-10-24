@@ -148,14 +148,10 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
   };
   const rail=()=>root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined)
     ?.shadow?.children.find(item=>item.tagName==='nav');
-  // A visible-button query never opens the launcher. Test interactions do so explicitly.
+  // The rail contains only enabled prompt shortcuts: no OD or scroll arrows.
   const buttons=()=>rail()?.children.filter(item=>item.className.includes('item')&&
     item.getAttribute('aria-label')?.startsWith('插入提示词：'))||[];
-  const openPrompts=()=>{
-    const launcher=rail()?.children.find(item=>item.className==='brand');
-    if(launcher?.getAttribute('aria-expanded')==='false')launcher.emit('click',{isTrusted:true});
-    return buttons();
-  };
+  const openPrompts=()=>buttons();
   const mutate=records=>{
     for(const observer of [...mutationObservers])observer.notify(records.map(record=>({
       type:'childList',addedNodes:[],removedNodes:[],...record
@@ -245,7 +241,7 @@ for(const provider of ['DeepSeek','Gemini']){
     try{
       assert.equal(Object.hasOwn(f.values.get(PROMPT_DATA_STORE),'sites'),false,'no saved site rule');
       assert.equal(f.hosts().length,1);assert.equal(f.hosts()[0].hidden,false);
-      assert.equal(f.rail().children.filter(node=>node.className==='brand').length,1);
+      assert.equal(f.rail().children.filter(node=>node.className==='brand').length,0);
       assert.equal(f.openPrompts().length,1);
       const before=f.draft();
       f.openPrompts()[0].emit('click',{isTrusted:true});
@@ -258,17 +254,17 @@ for(const provider of ['DeepSeek','Gemini']){
       f.events.get('resize')?.();f.intervals[0]?.();await settle();
       assert.equal(f.hosts().length,1,'refresh reuses the only host');
       assert.equal(f.openPrompts().length,1);
-      assert.equal(f.rail().children.filter(node=>node.className==='brand').length,1);
+      assert.equal(f.rail().children.filter(node=>node.className==='brand').length,0);
     }finally{f.controller.dispose();}
   });
 
-  test('R2 builtin '+provider+' empty library keeps one OD entry without saving defaults',async()=>{
+  test('R2 builtin '+provider+' empty library renders no phantom OD or navigation buttons',async()=>{
     const f=await builtinPage(provider,{empty:true});
     try{
-      assert.equal(f.hosts().length,1);assert.equal(f.hosts()[0].hidden,false);
-      assert.equal(f.openPrompts().length,0);assert.equal(f.rail().children.length,1);
-      assert.equal(f.rail().children[0].className,'brand');
-      assert.equal(f.rail().children[0].textContent,'OD');
+      assert.equal(f.hosts().length,1,'navigation owner remains mounted for its independent controls');
+      assert.equal(f.hosts()[0].hidden,true,'empty shortcut rail is hidden');
+      assert.equal(f.openPrompts().length,0);
+      assert.equal(f.rail().children.length,0,'no OD launcher or transcript arrows');
       assert.equal(Object.hasOwn(f.values.get(PROMPT_DATA_STORE),'sites'),false);
       assert.deepEqual(f.calls,[]);assert.deepEqual(f.submissions,[]);
     }finally{f.controller.dispose();}
@@ -308,38 +304,29 @@ for(const provider of ['DeepSeek','Gemini']){
 }
 
 
-test('R1.9.6 first-run prompts begin expanded and safely allow manual collapse and insertion',async()=>{
+test('R2.17 default rail shows only stored prompts, with no OD or transcript arrows',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
   const f=fixture({pkg,library:pkg.initialData.library,grants:{}});
   const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
   try{
     await settle();
-    assert.equal(f.rail().children.length,4,'default rail shows OD and 3 real prompts only');
-    const launcher=f.rail().children[0];
-    assert.equal(launcher.textContent,'OD');
-    assert.equal(launcher.getAttribute('aria-expanded'),'true');
-    launcher.emit('click',{isTrusted:false});
-    assert.equal(f.rail().children.length,4,'synthetic click cannot change expansion');
-    launcher.emit('click',{isTrusted:true});await settle();
-    assert.equal(f.rail().children.length,1,'genuine click manually collapses to OD');
-    f.rail().children[0].emit('click',{isTrusted:true});await settle();
-    assert.equal(f.rail().children.length,4,'manual re-expand restores full prompt list');
-    assert.deepEqual(f.openPrompts().slice(0,3).map(button=>button.getAttribute('aria-label')),
+    assert.equal(f.rail().children.length,3,'three enabled prompts, no extra OD or scroll buttons');
+    assert(f.rail().children.every(button=>button.className.includes('item')));
+    assert(f.rail().children.every(button=>button.dataset.scrollConversation===undefined));
+    assert.deepEqual(f.openPrompts().map(button=>button.getAttribute('aria-label')),
       ['插入提示词：浏览器插件定制','插入提示词：软件定制与外包','插入提示词：AI 提示词扩展']);
     const first=f.openPrompts()[0];
-    first.emit('click',{isTrusted:true});
-    await settle();
+    first.emit('click',{isTrusted:true});await settle();
     assert.equal(f.calls.length,1);
     assert.equal(f.calls[0].command,'insertText');
     assert.equal(f.calls[0].text,'\n'+pkg.initialData.library.items[0].body);
     assert.equal(f.editor.textContent,'已有草稿\n'+pkg.initialData.library.items[0].body);
-    assert.equal(f.rail().children.length,4,'after insertion the rail remains expanded');
+    assert.equal(f.rail().children.length,3,'insertion never adds navigation or OD controls');
     assert.equal(controller.diagnostics().items,3);
     f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});await settle();
-    assert.equal(f.rail(),undefined,'revocation removes launcher immediately');
+    assert.equal(f.rail(),undefined,'revocation removes every shortcut immediately');
   }finally{controller.dispose();}
 });
-
 
 test('R1.9.1 each of the three built-in commercial prompts inserts its full stored body',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
@@ -350,7 +337,7 @@ test('R1.9.1 each of the three built-in commercial prompts inserts its full stor
     const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
     try{
       await settle();
-      assert.equal(f.rail().children.length,4,'initial expanded rail for '+row.name);
+      assert.equal(f.rail().children.length,3,'three real prompt buttons for '+row.name);
       const options=f.openPrompts();
       assert.equal(options.length,3);
       assert.equal(options[index].getAttribute('aria-label'),'插入提示词：'+row.name);
@@ -358,12 +345,12 @@ test('R1.9.1 each of the three built-in commercial prompts inserts its full stor
       assert.deepEqual(f.calls,[{command:'insertText',text:'\n'+row.body}],row.name);
       assert.equal(f.editor.textContent,'已有草稿\n'+row.body,row.name);
       assert.deepEqual(f.copied,[],'verified editor insertion must not also copy');
-      assert.equal(f.rail().children.length,4,'launcher remains expanded after '+row.name);
+      assert.equal(f.rail().children.length,3,'insertion does not alter shortcut count for '+row.name);
     }finally{controller.dispose();}
   }
 });
 
-test('R1.9.6 every saved prompt library starts expanded but can be manually collapsed',async()=>{
+test('R2.17 every saved library displays only real shortcuts, without a launcher',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
   const seed=pkg.initialData.library.items;
   const legacy=Array.from({length:5},(_,i)=>({...seed[0],
@@ -385,30 +372,23 @@ test('R1.9.6 every saved prompt library starts expanded but can be manually coll
     const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
     try{
       await settle();
-      const rail=f.rail();
       const expected=globalThis.OpenDeskPromptShortcutsModel.load({
         schema:1,items:rows,settings:{webButtons:true}
       }).items;
-      assert.equal(rail.children.length,expected.length+1,name+': default expanded rail');
-      const launcher=rail.children[0];
-      assert.equal(launcher.textContent,'OD',name);
-      assert.equal(launcher.getAttribute('aria-expanded'),'true',name);
-      assert.equal(f.buttons().length,expected.length,name+': immediate prompt actions');
-      launcher.emit('click',{isTrusted:true});await settle();
-      assert.equal(f.rail().children.length,1,name+': explicit manual collapse');
-      f.rail().children[0].emit('click',{isTrusted:true});await settle();
-      assert.equal(f.buttons().length,expected.length,name+': all saved actions visible on demand');
-      assert.equal(f.rail().children.length,expected.length+1,name+': one OD launcher and saved prompts');
+      assert.equal(f.rail().children.length,expected.length,name+': no phantom controls');
+      assert.equal(f.buttons().length,expected.length,name+': all enabled prompts immediately accessible');
       assert.deepEqual(f.buttons().map(button=>button.getAttribute('aria-label')),
         expected.map(row=>'插入提示词：'+row.name),name);
+      assert(f.rail().children.every(button=>button.className==='item'||button.className==='item image'),
+        name+': rail contains only prompt buttons');
       if(name==='legacy four with image')
         assert(f.buttons().some(button=>button.classList.contains('image')),
-          'the old image button remains available within the expanded menu');
+          'image prompt still appears in the direct shortcut list');
       const target=expected.at(-1),before=f.editor.textContent;
       f.buttons().at(-1).emit('click',{isTrusted:true});await settle();
       assert.deepEqual(f.calls,[{command:'insertText',text:'\n'+target.body}],name);
       assert.equal(f.editor.textContent,before+'\n'+target.body,name+': preserved draft');
-      assert.equal(f.rail().children.length,expected.length+1,name+': keep expanded after insertion');
+      assert.equal(f.rail().children.length,expected.length,name+': no OD controls after insertion');
     }finally{controller.dispose();}
   }
 });
@@ -920,7 +900,7 @@ test('R2.6 narrow ChatGPT rail shows shortcuts immediately without a fold button
     assert.equal(f.rail().classList.items.has('narrow'),true);
     assert.equal(f.rail().classList.items.has('folded'),false);
     assert.equal(f.openPrompts().length,1);
-    assert.equal(f.rail().children.length,2,'one launcher and one saved shortcut');
+    assert.equal(f.rail().children.length,1,'one enabled shortcut, no OD launcher');
     assert.deepEqual(f.openPrompts()[0].children.map(span=>span.textContent),['🧑‍💻','中']);
     f.openPrompts()[0].emit('mouseenter');
     const host=f.root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined);
@@ -945,7 +925,7 @@ test('R2.6 newly saved library entries appear on injected page via storage chang
     f.change(PROMPT_DATA_STORE,{library:{schema:1,items:[first,second],settings}});
     await settle();
     assert.equal(f.openPrompts().length,2,'storage change must update currently opened page');
-    assert.equal(f.rail().children.length,3,'one launcher and two saved shortcuts');
+    assert.equal(f.rail().children.length,2,'two enabled shortcuts, no OD launcher');
     assert.equal(f.openPrompts()[1].getAttribute('aria-label'),'插入提示词：'+second.name);
     f.change(PROMPT_DATA_STORE,{library:{schema:1,items:[first],settings}});
     await settle();
@@ -2117,7 +2097,7 @@ test('R2.8 long history scrolling keeps the shortcuts in the visible conversatio
   }finally{f.controller.dispose();}
 });
 
-test('R2.15 B rail keeps its OD entry with zero prompts and exposes all choices, respects theme',async()=>{
+test('R2.17 zero prompts shows no rail; subsequent saves show direct shortcuts and dark theme',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
   const model=globalThis.OpenDeskPromptShortcutsModel;
   const make=i=>model.draft({label:'提'+i,body:'正文'+i},null,()=> 'prompt-r215-'+i);
@@ -2126,43 +2106,40 @@ test('R2.15 B rail keeps its OD entry with zero prompts and exposes all choices,
   try{
     await settle();
     const rail=f.rail();
-    assert(rail,'empty ChatGPT library must preserve OD entry');
+    assert(rail,'the trusted owner remains ready for future storage changes');
     assert.equal(f.openPrompts().length,0);
-    assert.equal(rail.children.length,1);
-    assert.equal(rail.children[0].className,'brand');
-    assert.equal(rail.children[0].textContent,'OD');
-    assert.equal(rail.children[0].getAttribute('aria-label'),'打开提示词快捷按钮');
+    assert.equal(rail.children.length,0,'empty library does not create an OD button');
+    const host=f.root.children.find(node=>node.attributes['data-opendesk-prompts']!==undefined);
+    assert.equal(host.hidden,true,'empty button tray is not visually rendered');
     f.change(PROMPT_DATA_STORE,{library:{schema:1,
       items:[1,2,3,4,5].map(make),settings:{webButtons:true}}});
     await settle();
-    assert.equal(f.openPrompts().length,5,'all five prompts are accessible after expanding one launcher');
-    assert.equal(f.rail().children.length,6,'launcher plus five prompts, no extra management button');
+    assert.equal(f.openPrompts().length,5,'five stored prompts show directly');
+    assert.equal(f.rail().children.length,5,'there is no extra management or scroll button');
+    assert.equal(host.hidden,false,'storage update displays rail again');
     f.doc.documentElement.setAttribute('data-theme','dark');
     f.events.get('resize')();await settle();
-    const host=f.root.children.find(node=>node.attributes['data-opendesk-prompts']!==undefined);
     assert.equal(host.classList.contains('dark'),true,'theme follows actual page root');
     f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});await settle();
-    assert.equal(f.rail(),undefined,'explicit revocation removes OD and all prompts');
+    assert.equal(f.rail(),undefined,'explicit revocation removes all prompts');
   }finally{controller.dispose();}
 });
 
-test('R2.15 compact launcher shows only saved prompts, without an injected management button',async()=>{
+test('R2.17 shortcut rail never adds an OD launcher, phantom manager or arrows',async()=>{
   const f=await readyPage();
   try{
-    const brand=f.rail().children[0];let invoked=0;
+    let invoked=0;
     f.api.runtime.sendMessage=()=>{invoked++;return Promise.resolve({ok:true});};
-    assert.equal(f.rail().children.length,2,'single prompt shows OD and its saved shortcut only');
-    assert.equal(f.rail().children[1].getAttribute('aria-label').startsWith('插入提示词：'),true);
-    assert.equal(f.rail().children.some(node=>node.textContent==='管理'),false,'no fixed management item');
-    brand.emit('click',{isTrusted:false});await settle();
-    assert.equal(f.rail().children.length,2,'synthetic event cannot collapse choices');
-    brand.emit('click',{isTrusted:true});
-    assert.equal(f.rail().children.length,1,'manual click collapses choices');
-    f.rail().children[0].emit('click',{isTrusted:true});
-    assert.equal(f.rail().children.length,2,'second genuine click restores the saved shortcut');
-    assert.equal(invoked,0,'page-rail toggle never opens sidebar management');
-    await settle();
-    assert.equal(f.calls.length,0,'toggling must not edit the ChatGPT draft');
+    assert.equal(f.rail().children.length,1,'a single saved prompt renders exactly one button');
+    const prompt=f.rail().children[0];
+    assert.equal(prompt.getAttribute('aria-label').startsWith('插入提示词：'),true);
+    assert.equal(f.rail().children.some(node=>node.className==='brand'),false);
+    assert.equal(f.rail().children.some(node=>node.dataset.scrollConversation!==undefined),false);
+    assert.equal(f.rail().children.some(node=>node.textContent==='管理'),false);
+    prompt.emit('click',{isTrusted:false});await settle();
+    assert.equal(f.calls.length,0,'synthetic click cannot write to the draft');
+    assert.equal(f.rail().children.length,1,'click cannot collapse or add controls');
+    assert.equal(invoked,0,'rail does not navigate to extension management');
     assert.equal(f.panel('feedback').hidden,true,'no spurious management feedback');
   }finally{f.controller.dispose();}
 });
