@@ -191,14 +191,14 @@ async function clickJS(expression,clickCount=1){
     ['mouseReleased',{button:'left',clickCount}]])
     await rpc('Input.dispatchMouseEvent',{type,x:rect.x,y:rect.y,...extra});
 }
-async function expandPromptRail(){
-  // Connected buttons precede the first scheduled layout; wait for its coordinates.
+async function waitPromptRail(){
+  // No launcher: installed saved prompt buttons must be directly visible.
   await poll('window.__railRoot?.host?.isConnected&&!window.__railRoot.host.hidden&&'+
     'window.__railRoot.host.style.left!==""&&window.__railRoot.host.style.top!==""&&'+
-    'window.__railRoot.querySelector(".brand")?.isConnected','positioned prompt rail launcher');
-  const collapsed=await evaluate('window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")==="false"');
-  if(collapsed)await clickJS('window.__railRoot.querySelector(".brand")');
-  await poll('window.__railRoot?.querySelector(".item:not([data-scroll-conversation])")?.isConnected','real Chromium expanded prompt choices');
+    'window.__railRoot.querySelector(".item")?.isConnected','visible prompt-only rail');
+  assert.equal(await evaluate('window.__railRoot.querySelector(".item")===null && '+
+    'window.__railRoot.querySelector("[data-scroll-conversation]")===null'),true,
+    'no OD launcher or transcript arrows in the webpage rail');
 }
 async function shot(name){
   const response=await rpc('Page.captureScreenshot',{format:'png'});
@@ -210,7 +210,7 @@ const scenes=[];
 try{
   await connect();
   await rpc('Page.navigate',{url:origin+'/fixture'});
-  await poll('window.__ready&&window.__railRoot?.querySelector(".brand")','ready trusted page rail');
+  await poll('window.__ready&&window.__railRoot?.querySelector(".item")','ready trusted page rail');
   assert.equal(await evaluate('document.querySelector("#draft").value'),'旧草稿');
   const started=await evaluate('window.__send("prompt.page.pick.start",{kind:"container",session:'+JSON.stringify(sessionA)+'})');
   assert.equal(started.ok,true);
@@ -239,13 +239,13 @@ try{
   await poll('document.querySelector("[data-opendesk-prompts]")?.hidden===true',
     'retargeted editor outside region hides buttons');
   await evaluate('window.__setRule(window.__rule)');
-  await poll('window.__railRoot?.querySelector(".brand")?.isConnected && '+
+  await poll('window.__railRoot?.querySelector(".item")?.isConnected && '+
     '!document.querySelector("[data-opendesk-prompts]").hidden','restore safe editor');
   scenes.push({step:'disjoint container/editor and SPA retarget',safeFailClosed:true});
   // The trusted picker deliberately guards the selected target for 750 ms
   // against late click/double-click events. Do not race its release in CI.
   await sleep(825);
-  await expandPromptRail();
+  await waitPromptRail();
   await clickJS('window.__railRoot.querySelector(".item:not([data-scroll-conversation])")');
   await poll('document.querySelector("#draft").value.includes("第二行")','native textarea insertion');
   assert.equal(await evaluate('document.querySelector("#draft").value'),'旧草稿\n'+body);
@@ -269,13 +269,13 @@ try{
   await evaluate('window.__setRule(null)');
   await poll('!document.querySelector("[data-opendesk-prompts]")','site rule disabled');
   await evaluate('window.__setRule(window.__rule)');
-  await poll('window.__railRoot?.querySelector(".brand")?.isConnected','site rule re-enabled');
+  await poll('window.__railRoot?.querySelector(".item")?.isConnected','site rule re-enabled');
   await rpc('Page.reload',{ignoreCache:true});
-  await poll('window.__ready&&window.__railRoot?.querySelector(".brand")','reload restores stored site rule');
+  await poll('window.__ready&&window.__railRoot?.querySelector(".item")','reload restores stored site rule');
   scenes.push({step:'disabled / reenabled / reload',persisted:true});
   await evaluate('window.__setRule({...window.__rule,editorSelector:"#single"})');
-  await poll('window.__railRoot?.querySelector(".brand")?.isConnected','input rule mounted');
-  await expandPromptRail();
+  await poll('window.__railRoot?.querySelector(".item")?.isConnected','input rule mounted');
+  await waitPromptRail();
   await clickJS('window.__railRoot.querySelector(".item:not([data-scroll-conversation])")');
   await poll('window.__copied.length===1','multiline input safe clipboard fallback');
   assert.equal(await evaluate('document.querySelector("#single").value'),'旧单行');
@@ -292,13 +292,13 @@ try{
   assert.equal(richPick.data.editorType,'richtext');
   assert.equal(richPick.data.selector,'#rich-container div[contenteditable="true"]');
   await evaluate('window.__setRule({...window.__rule,editorSelector:'+JSON.stringify(richPick.data.selector)+'})');
-  await poll('window.__railRoot?.querySelector(".brand")?.isConnected','richtext rule mounted');
+  await poll('window.__railRoot?.querySelector(".item")?.isConnected','richtext rule mounted');
   const richChecked=await evaluate('window.__send("prompt.page.check",{rule:{...window.__rule,editorSelector:'+JSON.stringify(richPick.data.selector)+'}})');
   assert.equal(richChecked.data.editorType,'richtext');
   // The previous single-line clipboard fallback used this same prompt ID.
   // The trusted 700ms double-click guard must finish before a new user journey.
   await sleep(825);
-  await expandPromptRail();
+  await waitPromptRail();
   await clickJS('window.__railRoot.querySelector(".item:not([data-scroll-conversation])")');
   await poll('window.__richInputs>0','native contenteditable input event');
   await sleep(420);
@@ -313,7 +313,7 @@ try{
   // adapter must report uncertain insertion rather than a false success.
   await sleep(800);
   await evaluate('window.__richRollback=true;window.__copied=[]');
-  await expandPromptRail();
+  await waitPromptRail();
   await clickJS('window.__railRoot.querySelector(".item:not([data-scroll-conversation])")');
   await poll('window.__richRollbacks>0','controlled editor rolled back uncommitted DOM edit');
   await poll('window.__copied.length===1','unknown rich editor effect copied for explicit review');
@@ -322,7 +322,7 @@ try{
   scenes.push({step:'controlled editor reconciliation rollback',noFalseSuccess:true,
     noAutomaticRetry:true,fullCopyFallback:true});
   await evaluate('window.__setRule(window.__rule)');
-  await poll('window.__railRoot?.querySelector(".brand")?.isConnected','return to textarea rule');
+  await poll('window.__railRoot?.querySelector(".item")?.isConnected','return to textarea rule');
   await rpc('Emulation.setDeviceMetricsOverride',{width:360,height:780,deviceScaleFactor:1,mobile:false});
   await sleep(250);
   await shot('narrow-360-trusted-rail');
@@ -364,7 +364,7 @@ try{
   })()`);
   await poll('document.querySelector("main#main") && '+
     'document.querySelector("[data-opendesk-prompts]")?.hidden===false && '+
-    'window.__railRoot?.querySelector(".brand")?.isConnected && '+
+    'window.__railRoot?.querySelector(".item")?.isConnected && '+
     'document.querySelector("[data-opendesk-prompts]").style.left.endsWith("px")',
     'simulated ChatGPT fixed-site adapter mounted and positioned');
   const beforeHistoryLeft=await evaluate('document.querySelector("[data-opendesk-prompts]").style.left');
@@ -379,9 +379,9 @@ try{
   })()`);
   await poll('document.querySelector("[data-opendesk-prompts]")===window.__historyHost && '+
     '!window.__historyHost.hidden && window.__historyHost.style.left!=='+JSON.stringify(beforeHistoryLeft)+
-    ' && window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")==="true"',
+    ' && window.__railRoot?.querySelector(".item")?.isConnected',
     'history SPA remount reuses dock and repositions');
-  await expandPromptRail();
+  await waitPromptRail();
   await clickJS('window.__railRoot.querySelector(".item:not([data-scroll-conversation])")');
   await poll('document.querySelector("main#main textarea#prompt-textarea").value.includes("第二行")',
     'history conversation native insertion');
@@ -392,10 +392,10 @@ try{
     actualChromiumDOM:true,oldHostReused:true,newRegionAnchored:true,
     nativeDraftConfirmed:true,installedExtension:false});
   await shot('chatgpt-spa-history-recovery');
-  await poll('window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")==="true"',
+  await poll('window.__railRoot?.querySelector(".item")?.isConnected',
     'native insert keeps manually expanded choices');
-  await shot('r196-expanded-rail-after-insert');
-  await expandPromptRail();
+  await shot('r217-direct-rail-after-insert');
+  await waitPromptRail();
   // The actual trusted rail must shrink to its content: 38 + 6*2 + 1*2.
   // Measure inside the real injected ShadowRoot, never infer from CSS strings.
   const textRail=await evaluate('(()=>{const rail=window.__railRoot.querySelector(".rail");'+
@@ -413,7 +413,7 @@ try{
   const measured=[];
   for(const [size,w,h] of [['large',68,48],['compact',48,40],['standard',56,44]]){
     await evaluate('window.__setImage("https://fixture.opendesk.invalid/ok.png",'+JSON.stringify(size)+')');
-    await expandPromptRail();
+    await waitPromptRail();
     await poll('window.__railRoot?.querySelector(".item.image img")?.naturalWidth>0 && '+
       'window.__railRoot?.querySelector(".rail")?.dataset.imageSize==='+JSON.stringify(size),
       'trusted decoded HTTPS picture: '+size);
@@ -432,7 +432,7 @@ try{
     measured.push({size,...actual});await shot('r35-trusted-image-'+size);
   }
   await evaluate('window.__setImage("https://fixture.opendesk.invalid/bad.png","large")');
-  await expandPromptRail();
+  await waitPromptRail();
   await poll('window.__railRoot?.querySelectorAll(".item:not([data-scroll-conversation])").length===2 && '+
     '!window.__railRoot?.querySelector(".item.image")',
     'corrupt HTTPS response must fall back to short label');
@@ -441,11 +441,11 @@ try{
   assert(Math.abs(fallbackRailWidth-52)<1,
     'trusted corrupt image must shrink rail to 52px fallback: '+fallbackRailWidth);
   await evaluate('window.__setImage("https://fixture.opendesk.invalid/ok.png","standard")');
-  await expandPromptRail();
+  await waitPromptRail();
   await poll('window.__railRoot?.querySelector(".item.image img")?.naturalWidth>0',
     'corrected image URL recovers the decoded picture');
   await sleep(825);
-  await expandPromptRail();
+  await waitPromptRail();
   await clickJS('window.__railRoot.querySelector(".item.image")');
   await poll('document.querySelector("main#main textarea#prompt-textarea").value.includes("图片快捷按钮完整正文")',
     'trusted image button inserts only full body text');
@@ -472,16 +472,13 @@ try{
   ];
   for(const [name,rows] of compactCases){
     await evaluate('window.__setPrompts('+JSON.stringify(rows)+')');
-    await poll('window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")==="true" && '+
+    await poll('window.__railRoot?.querySelector(".item")?.isConnected && '+
       'window.__railRoot?.querySelectorAll(".item:not([data-scroll-conversation])").length==='+String(rows.length),
       'current library is expanded by default: '+name);
-    if(name==='three seeds'){
-      await clickJS('window.__railRoot.querySelector(".brand")');
-      await poll('window.__railRoot.querySelectorAll(".item:not([data-scroll-conversation])").length===0','manual user collapse');
-      await clickJS('window.__railRoot.querySelector(".brand")');
-      await poll('window.__railRoot.querySelectorAll(".item:not([data-scroll-conversation])").length==='+String(rows.length),'manual user expand');
-    }
-    await expandPromptRail();
+    assert.equal(await evaluate('window.__railRoot.querySelector(".brand")===null && '+
+      'window.__railRoot.querySelector("[data-scroll-conversation]")===null'),true,
+      'old OD and transcript navigation buttons must stay deleted');
+    await waitPromptRail();
     await poll('window.__railRoot?.querySelectorAll(".item:not([data-scroll-conversation])").length==='+String(rows.length)+' && '+
       'Array.from(window.__railRoot.querySelectorAll(".item:not([data-scroll-conversation])")).slice(0,'+rows.length+')'+
       '.map(button=>button.getAttribute("aria-label")).join("|")==='+
@@ -495,22 +492,21 @@ try{
     await clickJS('window.__railRoot.querySelectorAll(".item:not([data-scroll-conversation])")['+(rows.length-1)+']');
     await poll('document.querySelector("main#main textarea#prompt-textarea").value==='+
       JSON.stringify(before+'\n'+target.body),'full-body insertion: '+name);
-    assert.equal(await evaluate('window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")'),'true',
-      'insertion preserves expanded state');
+    assert.equal(await evaluate('window.__railRoot?.querySelectorAll(".item:not([data-scroll-conversation])").length'),rows.length,
+      'insertion leaves exactly the saved prompt buttons');
     assert.equal(await evaluate('document.querySelectorAll("[data-opendesk-prompts]").length'),1);
   }
-  scenes.push({step:'R1.9.6 default-expanded source-bound rail for current default, edited, deleted and legacy libraries',
+  scenes.push({step:'R2.17 source-bound prompt-only rail for current default, edited, deleted and legacy libraries',
     cases:compactCases.map(([name,rows])=>({name,count:rows.length})),
     actualChromiumDOM:true,genuineCDPClicks:true,installedExtension:false});
-  // R2.16: five saved prompts + OD have the same six visible 38px controls
-  // as the three initial prompts + two conversation arrows + OD. They must not
-  // get an artificial vertical scrollbar at ordinary desktop height.
+  // R2.17: Only five saved prompts are visible; no OD, transcript arrows,
+  // or phantom management controls may appear in the real trusted Shadow DOM.
   const railMetrics=()=>evaluate('(()=>{const rail=window.__railRoot.querySelector(".rail");'+
     'const rect=rail.getBoundingClientRect();return {buttons:[...rail.querySelectorAll("button")].filter(b=>!b.hidden).length,'+
     'horizontal:rail.classList.contains("horizontal"),scrollHeight:rail.scrollHeight,'+
     'clientHeight:rail.clientHeight,paintedHeight:rect.height,overflowY:getComputedStyle(rail).overflowY};})()');
   const normalRail=await railMetrics();
-  assert.equal(normalRail.buttons,6,'OD + five shortcuts should all be visible');
+  assert.equal(normalRail.buttons,5,'exactly five saved shortcuts, no OD/nav controls');
   assert.equal(normalRail.horizontal,false,'sufficient desktop gutter uses vertical layout');
   assert.equal(normalRail.overflowY,'auto','preserve scrolling for genuinely long lists');
   assert(normalRail.scrollHeight<=normalRail.clientHeight+1,
@@ -520,7 +516,7 @@ try{
   await evaluate('window.__setPrompts('+JSON.stringify(manyRows)+')');
   await poll('window.__railRoot?.querySelectorAll(".item:not([data-scroll-conversation])").length===11',
     'eleven saved prompt buttons, excluding navigation controls');
-  await expandPromptRail();
+  await waitPromptRail();
   const overflowRail=await railMetrics();
   assert(overflowRail.scrollHeight>overflowRail.clientHeight+10,
     'large custom libraries must retain internal scrolling: '+JSON.stringify(overflowRail));
@@ -534,7 +530,7 @@ try{
   await evaluate('window.__setPrompts('+JSON.stringify(personal)+')');
   await poll('window.__railRoot?.querySelectorAll(".item:not([data-scroll-conversation])").length===5',
     'restore exactly five saved prompt buttons');
-  await expandPromptRail();
+  await waitPromptRail();
   const restoredRail=await railMetrics();
   assert(restoredRail.scrollHeight<=restoredRail.clientHeight+1,
     'removing extra prompts must remove the scrollbar without reload: '+JSON.stringify(restoredRail));
