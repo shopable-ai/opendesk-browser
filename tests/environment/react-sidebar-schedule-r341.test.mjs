@@ -37,6 +37,12 @@ test('R34.1 MyTasksPage owns schedule rows projected through myView',async()=>{
     assert.equal(page.querySelectorAll('#'+id).length,1,id+' has one React owner');
     assert.ok(owner.contains(page.getElementById(id)));
   }
+  const runnerButton=page.getElementById('schedule-open-runner');
+  assert.equal(page.querySelectorAll('#schedule-open-runner').length,1,'runner action has one React owner');
+  assert.ok(page.querySelector('.schedule-header .od-page-actions')?.contains(runnerButton),
+    'open-runner belongs in the real header, not a collapsed detail');
+  assert.equal(runnerButton.getAttribute('aria-label'),'打开独立运行页');
+  assert.equal(runnerButton.closest('details'),null);
   const card=page.querySelector('#schedule-plan-list .schedule-card');
   assert.equal(card.dataset.scheduleId,plan.scheduleId);
   assert.equal(card.querySelector('.schedule-plan-open').textContent,plan.title);
