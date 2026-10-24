@@ -21,6 +21,8 @@ import {MANAGED_SITE_REVIEWED_SCOPE_STORE,rebindReviewedManagedSiteScopes} from 
 import {normalizeManagedSiteV3Policy} from '../../framework/sdk/site-budget-v3-policy.js';
 import {MANAGED_SITE_BUDGET_CAPABILITY,MANAGED_SITE_BUDGET_PROTOCOL} from '../../platform/host/managed-site-runtime-contract.js';
 import {assertManagedSitePolicySupported} from '../../platform/host/managed-site-runtime-contract.js';
+import {prepareLegacyFocusUpgrade,writeLegacyFocusUpgradeSnapshot,
+  finishLegacyFocusUpgradeLocked} from './legacy-focus-upgrade.js';
 
 export const MARKET_OPERATIONS_STORE='opendesk.market.operations.v1';
 export {TOOL_CLEANUP_STORE,requirePendingToolCleanups} from './lifecycle.js';
@@ -413,7 +415,9 @@ export async function recoverMarketOperation({api,lockManager,operationId,expect
       const matchesIdentity=active=>active&&['toolId','marketId','version','sha256'].every(key=>active[key]===row[key])&&
         Object.hasOwn(active,'installEpoch')===Object.hasOwn(row,'installEpoch')&&active.installEpoch===row.installEpoch&&
         Object.hasOwn(active,'previousProvenance')===Object.hasOwn(row,'previousProvenance')&&
-        sameStorageValue(active.previousProvenance,row.previousProvenance);
+        sameStorageValue(active.previousProvenance,row.previousProvenance)&&
+        Object.hasOwn(active,'legacyFocusUpgrade')===Object.hasOwn(row,'legacyFocusUpgrade')&&
+        sameStorageValue(active.legacyFocusUpgrade,row.legacyFocusUpgrade);
       const locked=(await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE];
       if(!matchesIdentity(recoverableOperations(locked)[operationId]))
         throw unknownStorageOutcome(null,'市场事务身份已变化');
@@ -443,12 +447,19 @@ export async function recoverMarketOperation({api,lockManager,operationId,expect
           toHash:await sidebarToolPackageHash(current),scope:row.scopeTransfer
         });
       }
+      // Never finalize a legacy owner transfer from package/provenance alone.
+      // Resume the stored immutable snapshot without running candidate JS.
+      let migrationReceipt=null;
+      if(row.legacyFocusUpgrade)
+        migrationReceipt=await finishLegacyFocusUpgradeLocked({
+          api,lockManager,descriptor:row.legacyFocusUpgrade});
       const original=(await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE]||{};
       const active=recoverableOperations(original)[operationId];
       if(!matchesIdentity(active))
         throw unknownStorageOutcome(null,'市场事务恢复');
       await writeVerifiedLocalValue(api,MARKET_OPERATIONS_STORE,trimmedOperations({
         ...original,[operationId]:{...active,state:'succeeded',reason:'reconciled-local',
+          ...(migrationReceipt?{migrationReceipt}:{}),
           updatedAt:Date.now()}}),original,'市场事务恢复');
       return reconcileMarketOperation(api,operationId);
     }));
@@ -512,14 +523,16 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
     if(!existing&&installed.length>=MAX_INSTALLED_TOOLS)
       throw error('最多安装 '+MAX_INSTALLED_TOOLS+' 个工具','E_TOOL_CAPACITY');
     if(existing){
-      // A legacy privileged app cannot shed its native-state owner merely by
-      // changing a package capability. Its independent v3 Driver ledger must
-      // first receive a verified, resumable migration of counters, STOP,
-      // source, epoch and native rules. Ordinary package updates are unchanged.
-      // This is an admission fence, NEVER a silent migration in Installer.
+      // Only the exact, journaled Stay Focus 1.0.10 -> public v3 handoff
+      // below may cross this historical native-owner boundary. Every other
+      // legacy-capability removal remains fail-closed.
       if(existing.capabilities.includes('focus.control')&&
-         !tool.capabilities.includes('focus.control'))
-        throw error('旧网站限制状态尚未获得可恢复迁移凭据；升级已阻止，原安装及数据保持不变',
+         !tool.capabilities.includes('focus.control')&&
+         !(existing.id==='stay-focus'&&tool.id==='stay-focus'&&
+           tool.format==='opendesk.sidebar-tool.v2'&&
+           tool.backgroundPolicy?.kind==='site-budget.v3'&&
+           tool.capabilities.includes(MANAGED_SITE_BUDGET_CAPABILITY)))
+        throw error('旧网站限制缺少受支持的无损升级迁移路径，原安装保持不变',
           'E_MIGRATION_REQUIRED');
       if(identity&&compareToolVersions(tool.version,existing.version)<=0)
         throw error('市场不允许同版本替换或自动降级','E_VERSION_CONFLICT');
@@ -547,14 +560,30 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       await readSiteScopeTransferPlan(api,{id:tool.id,source:identity.marketId,
         fromEpoch:epochs[tool.id],fromHash:await sidebarToolPackageHash(existing),
         toEpoch:nextEpoch,toHash:await sidebarToolPackageHash(tool)}):null;
+    const requiresLegacyFocusMigration=Boolean(existing?.capabilities.includes('focus.control')&&
+      !tool.capabilities.includes('focus.control'));
+    // Same-source provenance and old epoch/hash MUST be proven before any
+    // package/ledger mutation; candidate JavaScript is never evaluated.
+    let legacyFocusUpgrade=null;
+    if(requiresLegacyFocusMigration){
+      if(!identity||!previousProvenance)
+        throw error('旧网站限制升级必须有相同官方来源的可验证历史包','E_MIGRATION_REQUIRED');
+      legacyFocusUpgrade=await prepareLegacyFocusUpgrade({
+        api,existing,candidate:tool,source:identity.marketId,
+        previousProvenance,oldEpoch:epochs[tool.id],newEpoch:nextEpoch,
+        operationId:identity.operationId
+      });
+    }
     // Consume an external handoff only AFTER read-only migration preflight.
     if(identity&&commitIntent)await commitIntent();
-    const writeOp=async(state,reason='')=>{
+    const writeOp=async(state,reason='',migrationReceipt=null)=>{
       if(!identity)return;
       const original=(await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE]||{};
       const updated={...original,[identity.operationId]:{marketId:identity.marketId,sha256:identity.sha256,
         toolId:tool.id,version:tool.version,installEpoch:nextEpoch,...(previousProvenance?{previousProvenance}:{}),
         ...(scopeTransfer?{scopeTransfer}:{}),
+        ...(legacyFocusUpgrade?{legacyFocusUpgrade:legacyFocusUpgrade.descriptor}:{}),
+        ...(migrationReceipt?{migrationReceipt}:{}),
         state,reason:reason.slice(0,140),updatedAt:Date.now()}};
       await writeVerifiedLocalValue(api,MARKET_OPERATIONS_STORE,trimmedOperations(updated),original,'市场事务记录');
     };
@@ -564,6 +593,10 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       // tool's data and valid grants if that write fails. Orphan grants for
       // capabilities it never held must disappear before a new package is visible.
       await writeOp('reviewed');
+      if(legacyFocusUpgrade){
+        await writeLegacyFocusUpgradeSnapshot(api,legacyFocusUpgrade);
+        await writeOp('migration-prepared');
+      }
       await writeOp('committing');
       if(!existing){
         // Never delete a previous owner's private data before the registry
@@ -649,13 +682,19 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       if(scopeTransfer)await transferReviewedSiteScopeLocked(api,lockManager,{
         id:tool.id,source:identity.marketId,toEpoch:nextEpoch,
         toHash:await sidebarToolPackageHash(tool),scope:scopeTransfer});
+      // The journal stays unresolved until the public Driver and old native
+      // resources have both passed an independent readback.
+      let migrationReceipt=null;
+      if(legacyFocusUpgrade)migrationReceipt=await finishLegacyFocusUpgradeLocked({
+        api,lockManager,descriptor:legacyFocusUpgrade.descriptor});
       const cleanup=await getPendingToolCleanups(api);
       if(cleanup[tool.id]){
         const updated={...cleanup};delete updated[tool.id];
         await writeVerifiedLocalValue(api,TOOL_CLEANUP_STORE,updated,cleanup,'过期卸载记录清理');
       }
-      await writeOp('succeeded');
-      return {state:'installed',tool,operationId:identity?.operationId||null};
+      await writeOp('succeeded','',migrationReceipt);
+      return {state:'installed',tool,operationId:identity?.operationId||null,
+        ...(migrationReceipt?{migrationReceipt}:{})};
     }catch(cause){
       // A confirmed pre-commit failure must not strand default data as an orphan,
       // but an unknown/committed registry outcome must NEVER delete it.
