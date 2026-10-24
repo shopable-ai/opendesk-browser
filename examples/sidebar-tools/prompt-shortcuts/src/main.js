@@ -829,19 +829,32 @@ async function exportJson(){
   if(!ready||busy||transferBusy||unconfirmedWrite||stagedImport)return;
   closeTransfer();transferBusy=true;lock();
   try{
-    const saved=await readLibrary();
-    if(saved.etag!==etag){
-      data=saved.value;etag=saved.etag;render();
-      status('其他窗口修改了提示词库，列表已更新；请重新点击导出。',true);return;
-    }
-    const exportedAt=new Date().toISOString();
-    const text=model.backupExport(saved.value,exportedAt);
-    const filename='opendesk-prompt-shortcuts-'+exportedAt.slice(0,10)+'.json';
-    const outcome=await request('browser.downloads.text',{text,filename});
+    // Reserve the actual sandbox click synchronously, BEFORE any storage await.
+    // The original Bridge owns the one-shot MessagePort and sends the final
+    // download only after the fresh library/ETag has been checked.
+    const outcome=await OpenDeskSDK.browser.downloads.prepareText(async()=>{
+      const saved=await readLibrary();
+      if(saved.etag!==etag){
+        data=saved.value;etag=saved.etag;render();
+        throw Object.assign(Error('其他窗口修改了提示词库'),{code:'E_STORAGE_CONFLICT'});
+      }
+      const exportedAt=new Date().toISOString();
+      return {
+        text:model.backupExport(saved.value,exportedAt),
+        filename:'opendesk-prompt-shortcuts-'+exportedAt.slice(0,10)+'.json'
+      };
+    });
     if(outcome?.started!==true)throw Error('Chrome 尚未确认接收下载请求');
     status('Chrome 已受理 JSON 下载，请在下载记录中确认落盘。');
-  }catch(e){status('导出未确认：'+(e.code||e.message)+'；请检查下载记录，不会自动重试。',true);}
-  finally{transferBusy=false;lock();}
+  }catch(e){
+    const cause=e?.code==='E_EXPORT_PREPARE'&&e.cause?e.cause:e;
+    if(cause?.code==='E_STORAGE_CONFLICT'){
+      status('其他窗口修改了提示词库，列表已更新；请重新点击导出。',true);
+    }else{
+      status('导出未确认：'+(cause?.code||cause?.message||e?.code||e?.message)+
+        '；请检查下载记录，不会自动重试。',true);
+    }
+  }finally{transferBusy=false;lock();}
 }
 async function chooseImportFile(){
   const input=el('ps-import-file'),file=input.files?.[0];
