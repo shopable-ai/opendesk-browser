@@ -87,10 +87,19 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
   let stored=structuredClone(initialStored),version='a'.repeat(64),writes=0,reads=0;
   let siteStored=structuredClone(initialSites),siteVersion='b'.repeat(64),siteWrites=0;
   const states=[],requests=[],pending=[],readbacks=[],sitePending=[],launches=[],downloads=[];
+  // A local simulated click is not Chromium evidence. It only asserts that the
+  // app reserves the existing Bridge export helper before yielding to storage.
+  let simulatedExportClick=false,preparedExports=0,preparedDelivery=false;
+  const clickExport=nodes['ps-export'].click.bind(nodes['ps-export']);
+  nodes['ps-export'].click=()=>{
+    simulatedExportClick=true;
+    try{clickExport();}finally{simulatedExportClick=false;}
+  };
   const timers=new Map();let timerId=0;
   const request=async(op,payload={})=>{
     requests.push({op,payload});
     if(op==='browser.downloads.text'){
+      assert.equal(preparedDelivery,true,'unreserved async download must not impersonate a real click');
       downloads.push(payload);return {started:true};
     }
     if(op==='prompt.page.context')return pageContext;
@@ -135,13 +144,25 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
     }
     throw Error('unexpected operation: '+op);
   };
+  const prepareText=async factory=>{
+    if(!simulatedExportClick)throw Object.assign(Error('需要原始点击'),{code:'E_EXPORT_GESTURE'});
+    preparedExports++;
+    if(typeof factory!=='function')throw Error('invalid export factory');
+    let args;
+    try{args=await factory();}
+    catch(cause){throw Object.assign(Error('文本准备失败'),{code:'E_EXPORT_PREPARE',cause});}
+    assert.deepEqual(Object.keys(args).sort(),['filename','text']);
+    preparedDelivery=true;
+    try{return await request('browser.downloads.text',args);}
+    finally{preparedDelivery=false;}
+  };
   const sandbox={
     Intl,TextEncoder,URL,crypto:{getRandomValues:array=>webcrypto.getRandomValues(array)},
     setTimeout:callback=>{const id=++timerId;timers.set(id,callback);return id;},
     clearTimeout:id=>timers.delete(id),
     OpenDeskTool:{root,request,setState:row=>states.push({...row}),
       ...(sharedNavigation?{setNavigation:state=>{navigation.push({...state});return true;}}:{})},
-    OpenDeskSDK:{browser:{contextMenu:{
+    OpenDeskSDK:{browser:{downloads:{prepareText},contextMenu:{
       getStatus:async()=>({enabled:false,approvedOrigins:[],browserPermission:false}),
       register:async()=>({registered:true}),unregister:async()=>({registered:false})
     },launch:{consume:async()=>{if(deferLaunch)return new Promise(resolve=>launches.push(resolve));if(menuSelection!==null)return {toolId:'prompt-shortcuts',actionId:'add-selection',selection:menuSelection};throw Error('ordinary opening without menu ticket')}}}}
@@ -150,6 +171,7 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
   runInNewContext(main,sandbox,{filename:'src/main.js'});
   await settle();
   return {nodes,root,page,navigation,requests,states,pending,readbacks,sitePending,launches,downloads,
+    preparedExports:()=>preparedExports,
     copies:()=>copies.slice(),stored:()=>stored,writes:()=>writes,
     externalWrite:value=>{stored=structuredClone(value);version='c'.repeat(64);},
     siteStored:()=>siteStored,siteWrites:()=>siteWrites,timers};
@@ -952,9 +974,10 @@ async function r27Select(f,content,filename='prompt.json'){
   input.files=[{name:filename,size:Buffer.byteLength(content),text:async()=>content}];
   input.emit('change');await settle();
 }
-test('R2.7 export reads authoritative ETag library and requests Host JSON download only',async()=>{
+test('R2.7 export reserves native click before fresh ETag read and Host JSON download',async()=>{
   const f=await fixture({initial:R27_SEED}),n=f.nodes;
   n['ps-export'].click();await settle();
+  assert.equal(f.preparedExports(),1,'one real click is reserved synchronously');
   assert.equal(f.downloads.length,1);
   const payload=f.downloads[0],backup=JSON.parse(payload.text);
   assert.match(payload.filename,/^opendesk-prompt-shortcuts-\d{4}-\d\d-\d\d\.json$/);
