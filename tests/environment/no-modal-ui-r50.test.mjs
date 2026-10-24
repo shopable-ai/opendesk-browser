@@ -48,12 +48,11 @@ test('R5.4 no-modal interaction still keeps explicit undo/cancel and Chrome auth
   ]);
   for(const id of [
     'sidebar-tool-action-review','sidebar-tool-action-continue','sidebar-tool-action-cancel',
-    'sidebar-tool-inline-remove','sidebar-tool-inline-remove-confirm','sidebar-tool-inline-remove-cancel',
-    'workflow-new-review','workflow-new-discard','workflow-new-cancel'
+    'sidebar-tool-inline-remove','sidebar-tool-inline-remove-confirm','sidebar-tool-inline-remove-cancel'
   ])assert.match(html,new RegExp('id="'+id+'"'),'missing inline action '+id);
   assert.match(source,/requireCompleteInstalledSidebarTools/,'uninstall still verifies installed identities');
   assert.match(source,/writeVerifiedLocalValue/,'installed changes retain verified writes');
-  assert.match(workflow,/newReviewSignature!==workflowReviewSignature\(\)/,'workflow discards must verify current draft');
+  assert.doesNotMatch(workflow,/newReviewSignature|workflow-new-review/,'workflow New needs no discard review');
   assert.match(markdown,/mdw-review-cancel/,'editor still exposes inline Cancel');
   const manifest=JSON.parse(manifestText);
   assert.match(manifest.content_security_policy.sandbox,/sandbox allow-scripts/);

@@ -49,7 +49,7 @@ test('workflow React browser: edit, save/reopen, run/error/Stop, Tab return, foc
   await page.locator('#workflow-history-toggle').click();
   await page.getByRole('button',{name:'React 保存版本'}).click();
   await page.waitForFunction(()=>window.fixture.view.getSnapshot().steps.length===1);
-  assert.equal(await page.locator('#workflow-new-review').isVisible(),false);
+  assert.equal(await page.locator('#workflow-new-review').count(),0);
   assert.equal(await page.evaluate(()=>window.fixture.view.getSnapshot().controls['workflow-title'].value),'React 保存版本');
   await page.locator('#workflow-run:not([disabled])').click();
   await page.waitForFunction(()=>window.fixture.view.getSnapshot().lastRun==='success');

@@ -45,7 +45,7 @@ const scenes=Object.freeze({
   settings:[]
 });
 const providerSettings=createPreviewProviderSettings();
-let scene='empty',messages=[],historyOpen=false,review=false,source='local_codex';
+let scene='empty',messages=[],historyOpen=false,source='local_codex';
 let lastHttps='custom_https';
 const sample=x=>scenes[x].map(row=>({...row}));
 const apply=()=>{
@@ -71,7 +71,6 @@ const apply=()=>{
   control('workflow-ai-plan').hidden=busy;
   control('workflow-ai-plan').disabled=busy||scene==='run-review';
   control('workflow-ai-cancel').hidden=!busy;
-  control('workflow-new-review').hidden=!review;
   control('workflow-plan-panel').hidden=true;
   control('workflow-params-panel').hidden=true;
   control('workflow-manage-panel').hidden=true;
@@ -121,7 +120,7 @@ const apply=()=>{
 function showScene(next,{keepRows=false}={}){
   if(!Object.hasOwn(scenes,next))return;
   scene=next;if(!keepRows)messages=sample(next);
-  historyOpen=next==='history';review=false;
+  historyOpen=next==='history';
   control('workflow-provider-settings').open=false;
   selectors.scenario.value=next;
   apply();
@@ -147,13 +146,13 @@ const actions={
   },
   onNewSession(event){
     if(!requireGesture(event))return;
-    scene='empty';messages=[];historyOpen=false;review=false;
+    scene='empty';messages=[];historyOpen=false;
     selectors.scenario.value=scene;apply();state.setFocus('workflow-ai-request');
   },
   onNewWorkflow(event){
     if(!requireGesture(event))return;
-    if(messages.length||control('workflow-ai-request').value.trim()){review=true;apply();}
-    else actions.onNewSession(event);
+    messages=[];control('workflow-ai-request').value='';
+    showScene('empty');state.setFocus('workflow-ai-request');
   },
   input(id,value,event){
     if(!requireGesture(event))return;
@@ -168,11 +167,6 @@ const actions={
     }
     if(id==='workflow-source-local'){chooseProvider('local_codex');return;}
     if(id==='workflow-source-https'){chooseProvider(lastHttps);return;}
-    if(id==='workflow-new-cancel'){review=false;apply();state.setFocus('workflow-new');return;}
-    if(id==='workflow-new-discard'){
-      messages=[];control('workflow-ai-request').value='';review=false;
-      showScene('empty');state.setFocus('workflow-ai-request');return;
-    }
     if(id==='workflow-ai-plan'){
       const request=control('workflow-ai-request').value.trim();
       if(!request)return;

@@ -35,7 +35,7 @@ export function WorkflowHeader({model,actions}) {
     </button>
     <button type="button" id="workflow-new"
       className="workflow-icon-button od-icon-button" disabled={Boolean(model.busy && !model.planning)}
-      aria-label="新建工作流" title="新建工作流（检查未保存草稿）"
+      aria-label="新建工作流" title="新建工作流"
       onClick={event=>forward('onNewWorkflow',event)}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
         strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -352,11 +352,6 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
         </div>
       </header>
       <WorkflowHistory model={model.history||{open:false}} actions={actions}/>
-      <section id="workflow-new-review" className="workflow-new-review od-surface" aria-label="未保存工作流" hidden={c('workflow-new-review').hidden!==false}>
-        <p>当前有未保存的修改。是否放弃修改并新建工作流？</p><div className="workflow-new-review-actions">
-          {action('workflow-new-cancel','继续编辑')}{action('workflow-new-discard','放弃修改并新建',{primary:true})}
-        </div>
-      </section>
       <div className="workflow-scroll" ref={scroller}>
         <section className="workflow-card od-surface--padded workflow-chat od-surface" aria-label="AI 对话">
           <div id="workflow-ai-transcript" ref={setTranscriptTarget}

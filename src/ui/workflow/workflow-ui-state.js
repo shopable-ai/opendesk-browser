@@ -11,10 +11,7 @@ const initialControls={
     "title": "新对话"
   },
   "workflow-new": {
-    "title": "新建工作流（检查未保存草稿）"
-  },
-  "workflow-new-review": {
-    "hidden": true
+    "title": "新建工作流"
   },
   "workflow-ai-transcript": {
     "hidden": true

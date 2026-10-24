@@ -162,7 +162,6 @@ function Preview(){
   const [workflowDraft,setWorkflowDraft]=React.useState('');
   const [workflowConversationCleared,setWorkflowConversationCleared]=React.useState(false);
   const [workflowEntry,setWorkflowEntry]=React.useState('new-workflow');
-  const [workflowNewReview,setWorkflowNewReview]=React.useState(false);
   const [workflowFeedback,setWorkflowFeedback]=React.useState('');
   const [notice,setNotice]=React.useState('');
   const [extensionRecords,setExtensionRecords]=React.useState(sampleExtensions);
@@ -365,11 +364,10 @@ function Preview(){
     get('cloud-request-detail').hidden=!cloudDetailOpen;
     get('workflow-provider-toggle').setAttribute('aria-expanded',String(sheetOpen));
     get('workflow-editor').dataset.historyOpen=String(history);
-    get('workflow-new-review').hidden=!workflowNewReview;
     const workflowStatus=get('workflow-status');
     workflowStatus.textContent=workflowFeedback;
     workflowStatus.hidden=!workflowFeedback;
-  },[tab,width,scene,cloudScenario,cloudDetailOpen,selected,sheetOpen,history,workflowNewReview,workflowFeedback,transcript.length,workflowEntry,detail,taskMode,
+  },[tab,width,scene,cloudScenario,cloudDetailOpen,selected,sheetOpen,history,workflowFeedback,transcript.length,workflowEntry,detail,taskMode,
     opened,openToolKey,toolSettingsOpen,clipperPreviewOpened,clipperPage,clipperBusy,
     importOpen,importCandidate,importError,extensionReview,extensionRecords,taskNotice]);
   React.useEffect(()=>{
@@ -600,12 +598,6 @@ function Preview(){
       setWorkflowFeedback('示例已填入草稿，没有触发发送或网页执行。');
     };
     for(const button of exampleButtons)button.addEventListener('click',fillExample);
-    const keepDraft=()=>{setWorkflowNewReview(false);setWorkflowFeedback('已保留未发送草稿。');};
-    const discardDraft=()=>{
-      draft.value='';setWorkflowDraft('');setWorkflowNewReview(false);
-      setWorkflowConversationCleared(true);setWorkflowEntry('new-workflow');setHistory(false);
-      setWorkflowFeedback('已清空草稿，可以开始新工作流。');
-    };
     provider.addEventListener('change',refreshSource);
     localSource.addEventListener('click',chooseLocal);
     httpsSource.addEventListener('click',chooseHttps);
@@ -613,8 +605,6 @@ function Preview(){
     model.addEventListener('input',refreshSource);
     draft.addEventListener('input',draftEdited);
     get('workflow-ai-plan').addEventListener('click',explainSend);
-    get('workflow-new-cancel').addEventListener('click',keepDraft);
-    get('workflow-new-discard').addEventListener('click',discardDraft);
     refreshSource();draftEdited();
     return ()=>{
       provider.removeEventListener('change',refreshSource);
@@ -625,8 +615,6 @@ function Preview(){
       draft.removeEventListener('input',draftEdited);
       for(const button of exampleButtons)button.removeEventListener('click',fillExample);
       get('workflow-ai-plan').removeEventListener('click',explainSend);
-      get('workflow-new-cancel').removeEventListener('click',keepDraft);
-      get('workflow-new-discard').removeEventListener('click',discardDraft);
     };
   },[]);
   React.useEffect(()=>{
@@ -738,20 +726,16 @@ function Preview(){
       saved:false,busy:scene==='loading',planning:scene==='loading',
       historyExpanded:history,sessionHint:'新对话（仅预览）'}}
       actions={{
-        onHistory:()=>{setHistory(open=>!open);setWorkflowNewReview(false);
+        onHistory:()=>{setHistory(open=>!open);
           get('workflow-manage-panel').hidden=true;},
         onNewSession:()=>{setHistory(false);setWorkflowConversationCleared(true);
           setWorkflowEntry('new-chat');
           setWorkflowFeedback('演示对话已清空；不删除或重新执行真实工作流。');},
         onNewWorkflow:()=>{
           setHistory(false);
-          if(workflowDraft.trim()){
-            setWorkflowNewReview(true);
-            setWorkflowFeedback('未发送草稿尚未保存，请选择继续编辑或放弃。');
-          }else{
-            setWorkflowConversationCleared(true);setWorkflowEntry('new-workflow');
-            setWorkflowFeedback('已打开演示空工作流；没有创建或删除真实版本。');
-          }
+          get('workflow-ai-request').value='';setWorkflowDraft('');
+          setWorkflowConversationCleared(true);setWorkflowEntry('new-workflow');
+          setWorkflowFeedback('已打开演示空工作流；没有创建或删除真实版本。');
         },
         onOpenSavedHistory:()=>setWorkflowFeedback(
           '这是只读演示条目。正式打开须通过 WorkflowView 验证版本、来源与源码哈希。')

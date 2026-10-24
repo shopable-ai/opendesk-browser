@@ -105,9 +105,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   let lastTrustedRun=null; // UI hint only, original Task Verify must validate the real receipt.
   let touched=false,saveList=[],draftWrites=Promise.resolve(),savedHistoryReady=false,historyReadEpoch=0;
   let directVerifiedSerial=null; // Verified fill source is the same byte sequence saved later.
-  let phase='idle',lastRun='none',hasError=false,newReviewSignature=null,pendingRunReview=null,pendingAIReview=null;
+  let phase='idle',lastRun='none',hasError=false,pendingRunReview=null,pendingAIReview=null;
   let autoExecutionPending=false; // No second Send while a pre-granted, safe AI run is being admitted.
-  let historyOpen=false,newReviewReturnFocus=null;
+  let historyOpen=false;
   let pendingReuse=null,pendingNaturalPlanning=null,pendingBundleGrant=null,pendingInstalledGrant=null;
   let activeInstalledTaskId=null,installedStopRequested=false;
   let planningGeneration=0,planningAbort=null,planningTarget=null,pendingApproval=null,localChecking=false;
@@ -184,10 +184,6 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     element.hidden=!message;
     updatePresentation();
   };
-  function dismissNewReview(){
-    newReviewSignature=null;
-    hidePanel('workflow-new-review','workflow-new');
-  }
   function dismissRunReview() {
     pendingRunReview=null;pendingAIReview=null;
     hidePanel('workflow-run-review','workflow-ai-request');
@@ -359,7 +355,6 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(selectedBundle)revision=null; // Editing detaches a copy; never rewrites a frozen bundle.
     selectedBundle=null;fullAgentDraft=null;
     dismissRunReview();
-    dismissNewReview();
     touched=true;
     hasError=false;lastRun='none';
     control('workflow-status').hidden=true;control('workflow-status').text='';
@@ -2669,7 +2664,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       workflow.title!=='新工作流'||workflow.description)&&!matchesSavedDefinition())
       ||Boolean(control('workflow-ai-request').value.trim());
     if(unsaved){
-      status('当前有未保存内容。请先保存，或通过「新工作流」确认放弃后再打开历史。',true);
+      status('当前有未保存内容。请先保存，或通过「新建工作流」清空后再打开历史。',true);
       return;
     }
     control('workflow-saved-list').value=key;
@@ -2679,7 +2674,6 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   function commitNewWorkflow(){
     pendingReuse=null;pendingBundleGrant=null;pendingNaturalPlanning=null;
     dismissRunReview();
-    dismissNewReview();
     closeHistory();
     void stopPlanning({close:true}).catch(()=>{});
     observationApproval=null;persistObservationApproval();
@@ -2691,50 +2685,20 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     clearChat();entryMode='new-workflow';
     control('workflow-manage-panel').hidden=true;
     control('workflow-history-toggle').expanded='false';
-    newReviewReturnFocus=null;
     setConversationDraft('');
     render();persistDraft();
     focus('workflow-ai-request');
     status('');
   }
-  const workflowReviewSignature=()=>JSON.stringify([workflow,phase,control('workflow-ai-request').value]);
   const onNewWorkflowClick=event=>{
     if(!event.isTrusted||autoExecutionPending||busy&&phase!=='planning')return;
     dismissRunReview();
     if(host.executionPending||host.currentRun){
       status('当前网页任务仍在执行，请先停止或完成，再新建工作流。',true);return;
     }
-    const dirty=(Boolean(workflow.steps.length ||
-      workflow.title!=='新工作流' || workflow.description) && !matchesSavedDefinition())
-      || Boolean(control('workflow-ai-request').value.trim());
-    if(dirty){
-      newReviewReturnFocus=historyOpen?'workflow-history-toggle':'workflow-new';
-      newReviewSignature=workflowReviewSignature();
-      control('workflow-new-review').hidden=false;
-      status('请确认是否保留当前尚未保存的内容。');
-      focus('workflow-new-cancel');
-      return;
-    }
     commitNewWorkflow();
   };
   bind('workflow-new','click',onNewWorkflowClick);
-  bind('workflow-new-cancel','click',event=>{
-    if(!event.isTrusted)return;
-    const focusTarget=newReviewReturnFocus;
-    const focusWasInsideReview=get('workflow-new-review')?.contains(doc?.activeElement);
-    dismissNewReview();newReviewReturnFocus=null;status('草稿已保留。');
-    // Restore the opening control only when closing an actively focused review.
-    // Do not steal focus if the user moved to another field meanwhile.
-    if(focusWasInsideReview&&focusTarget)focus(focusTarget);
-  });
-  bind('workflow-new-discard','click',event=>{
-    if(!event.isTrusted||busy&&phase!=='planning'||newReviewSignature===null)return;
-    if(newReviewSignature!==workflowReviewSignature()){
-      dismissNewReview();status('草稿或规划状态已变化，请重新检查后再新建。',true);
-      return;
-    }
-    commitNewWorkflow();
-  });
   bind('workflow-title','input',event=>{workflow.title=event.target.value;edited();});
   bind('workflow-description','input',event=>{workflow.description=event.target.value;edited();});
   bind('workflow-add-step','click',()=>{

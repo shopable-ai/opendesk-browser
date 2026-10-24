@@ -214,17 +214,12 @@ test('shared Provider selector is minimal and never adds Workflow-specific conse
   assert.doesNotMatch(view,/modelConsent|pendingModelReview|renderDataDisclosure/);
 });
 
-test('R5.2 unsaved workflow starts a non-modal explicit discard or cancel review',async()=>{
-  const [html,view,css]=await Promise.all([
-    renderSidebarFixture(),file('src/ui/workflow/workflow-view.js'),file('src/ui/tool-shell.css')]);
+test('workflow New has no unsaved-change confirmation',async()=>{
+  const [html,view]=await Promise.all([
+    renderSidebarFixture(),file('src/ui/workflow/workflow-view.js')]);
   for(const id of ['workflow-new-review','workflow-new-discard','workflow-new-cancel'])
-    assert.match(html,new RegExp('id="'+id+'"'));
-  assert.match(html,/id="workflow-new-review"[^>]*hidden/);
-  assert.match(view,/newReviewSignature=workflowReviewSignature\(\)/);
-  assert.match(view,/function commitNewWorkflow\(\)/);
-  assert.match(view,/newReviewSignature!==workflowReviewSignature\(\)/);
-  assert.match(view,/function dismissNewReview\(\)/);
-  assert.match(css,/\.workflow-new-review\[hidden\]\{display:none!important\}/);
+    assert.doesNotMatch(html,new RegExp('id="'+id+'"'));
+  assert.doesNotMatch(html,/检查未保存草稿|是否放弃修改并新建工作流/);
   assert.doesNotMatch(view,/(?:globalThis\.|window\.)?confirm\s*\(/);
 });
 

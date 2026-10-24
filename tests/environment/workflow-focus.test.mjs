@@ -615,14 +615,6 @@ if(!vm.SourceTextModule) {
       assert.equal(f.permissionRequests.length,0,'pre-granted safe execution must not request Chrome permission again');
       assertFocus(f,f.get(external?'workflow-new':'workflow-ai-request'));
     });
-    for(const choice of ['cancel','discard'])test('component: new '+choice+' closes review '+(external?'without stealing focus':'with a visible destination'),async t=>{
-      const f=await make(t,{steps:[observe('one')]});await f.clickNew();
-      assertFocus(f,f.get('workflow-new-cancel'));
-      const button=f.get('workflow-new-'+choice);button.focus();if(external)f.get('workflow-ai-request').focus();
-      await f.click(button);assert.equal(f.get('workflow-new-review').hidden,true);
-      assert.equal(f.stepsNow().length,choice==='discard'?0:1);
-      assertFocus(f,f.get(external||choice==='discard'?'workflow-ai-request':'workflow-new'));
-    });
     test('component: observation denial closes focused approval '+(external?'without stealing focus':'to stable request'),async t=>{
       const f=await make(t,{approval:true});const {running}=await f.startPlan();await f.approvalReady.promise;
       assertFocus(f,f.get('workflow-ai-deny'));if(external)await f.focusNew();
@@ -632,9 +624,15 @@ if(!vm.SourceTextModule) {
     });
   }
 
-  test('component: clean New preserves an external keyboard destination',async t=>{
+  test('component: New clears unsaved steps and focuses the composer without confirmation',async t=>{
+    const f=await make(t,{steps:[observe('one')]});await f.clickNew();
+    assert.equal(f.get('workflow-new-review'),null);
+    assert.equal(f.stepsNow().length,0);assertFocus(f,f.get('workflow-ai-request'));
+  });
+
+  test('component: clean New focuses the composer',async t=>{
     const f=await make(t);f.get('workflow-ai-request').focus();await f.clickNew();
-    assertFocus(f,f.get('workflow-ai-request'));assert.equal(f.get('workflow-new-review').hidden,true);
+    assertFocus(f,f.get('workflow-ai-request'));assert.equal(f.get('workflow-new-review'),null);
     assert.equal(f.get('workflow-plan-panel').hidden,true);
   });
 

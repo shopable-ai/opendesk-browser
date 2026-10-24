@@ -161,16 +161,29 @@ test('workflow inconsistent result identity fails closed without replay',async t
   const result=await f.click('workflow-run');assert.equal(result.ok,false);
   assert.equal(f.starts.length,1);assert.equal(f.state().lastRun,'failed');
 });
-test('workflow dirty new/reopen protection retains draft until reviewed and resets review after edits',async t=>{
+test('workflow New immediately resets an unsaved workflow and composer only on a trusted click',async t=>{
   const f=await workflowFixture();t.after(()=>f.view.dispose());
-  f.input('workflow-title','未保存');await tick();f.click('workflow-new');await tick();
-  assert.equal(get(f,'workflow-new-review').hidden,false);
-  f.click('workflow-new-discard',false);await tick();assert.equal(get(f,'workflow-title').value,'未保存');
-  f.click('workflow-new-cancel');await tick();assert.equal(get(f,'workflow-title').value,'未保存');
-  f.click('workflow-new');f.input('workflow-description','确认后又编辑');await tick();
-  f.click('workflow-new-discard');await tick();assert.equal(get(f,'workflow-title').value,'未保存');
-  f.click('workflow-new');f.click('workflow-new-discard');await tick();await tick();
-  assert.equal(f.state().steps.length,0);assert.equal(get(f,'workflow-title').value,'新工作流');
+  f.input('workflow-title','未保存');f.input('workflow-description','未保存的步骤说明');
+  f.input('workflow-ai-request','尚未发送的需求');await tick();
+  await f.click('workflow-new',false);assert.equal(get(f,'workflow-title').value,'未保存');
+  assert.equal(get(f,'workflow-ai-request').value,'尚未发送的需求');
+  await f.click('workflow-new');await tick();await tick();
+  assert.equal(f.state().steps.length,0);
+  assert.equal(get(f,'workflow-title').value,'新工作流');
+  assert.equal(get(f,'workflow-description').value,'');
+  assert.equal(get(f,'workflow-ai-request').value,'');
+  assert.equal(f.state().focusRequest.id,'workflow-ai-request');
+  assert.equal(f.starts.length,0);assert.equal(f.requests.length,0);
+});
+for(const active of ['executionPending','currentRun'])test('workflow New retains the draft while '+active,async t=>{
+  const f=await workflowFixture();t.after(()=>f.view.dispose());
+  f.input('workflow-title','执行中保留');f.input('workflow-ai-request','尚未发送');
+  f.host[active]=active==='currentRun'?'active-run':true;
+  await f.click('workflow-new');await tick();
+  assert.equal(get(f,'workflow-title').value,'执行中保留');
+  assert.equal(get(f,'workflow-ai-request').value,'尚未发送');
+  assert.equal(f.state().steps.length,1);
+  assert.match(get(f,'workflow-status').text,/当前网页任务仍在执行/);
 });
 test('workflow provider settings retain protocol and credentials remain memory-only; disposal unsubscribes',async()=>{
   const f=await workflowFixture();
