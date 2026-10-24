@@ -365,7 +365,10 @@ test('Page automatic receipts need original Native install, source and Document 
   const tamper=[
     ['missing source',row=>{delete row.source;}],
     ['manifest hash',row=>{row.manifestHash='0'.repeat(64);}],
+    ['missing manifest hash',row=>{delete row.manifestHash;}],
     ['source hash',row=>{row.sourceHash='not-a-hash';}],
+    ['missing document',row=>{delete row.documentId;}],
+    ['impossible timestamp',row=>{row.createdAt=9e15;}],
     ['installation',row=>{row.installationId='forged';}],
     ['generation',row=>{row.grantGeneration=0;}],
     ['native token',row=>{row.installationToken='changed';}],
