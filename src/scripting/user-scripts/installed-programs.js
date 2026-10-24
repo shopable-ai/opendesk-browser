@@ -586,13 +586,17 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       '当前网页 URL 已离开安装范围或进入排除路径');
     const registered=await native.getScripts({ids:[row.nativeId]});
     invariant(registered.length===1&&nativeEqual(registered[0],desired.script),PAGE_PERMISSION_ERROR,'此安装的原生引导已经改变');
-    // The random global lexical marker proves Chrome injected THIS bootstrap
-    // in THIS document according to native match/exclude rules. Payloads cannot
-    // choose a URL, provide code, grant permissions, or invent a document ack.
-    const probe=await native.execute({target:{tabId:tab.id,documentIds:[frame.documentId]},world:'USER_SCRIPT',
-      worldId:PAGE_BOOT_WORLD,js:[{code:'typeof '+desired.marker+' === "string" ? '+desired.marker+' : null'}]});
-    invariant(probe.length===1&&probe[0]?.frameId===0&&probe[0]?.documentId===frame.documentId&&
-      probe[0].error===undefined&&probe[0].result===row.token,PAGE_PERMISSION_ERROR,'缺少匹配文档的真实安装引导标记');
+    // Automatic messages need Chrome's original matching bootstrap marker.
+    // A separately authenticated Host click can target the already open page:
+    // registration does not retroactively inject its bootstrap there. Its
+    // current document, rules, grant and native descriptor are checked above;
+    // it neither creates a marker nor replays the automatic bootstrap.
+    if(source!=='manual'){
+      const probe=await native.execute({target:{tabId:tab.id,documentIds:[frame.documentId]},world:'USER_SCRIPT',
+        worldId:PAGE_BOOT_WORLD,js:[{code:'typeof '+desired.marker+' === "string" ? '+desired.marker+' : null'}]});
+      invariant(probe.length===1&&probe[0]?.frameId===0&&probe[0]?.documentId===frame.documentId&&
+        probe[0].error===undefined&&probe[0].result===row.token,PAGE_PERMISSION_ERROR,'缺少匹配文档的真实安装引导标记');
+    }
     const receiptId=manualReceiptId??crypto.randomUUID();
     const executionKey=source==='manual'?
       key('execution',namespace,row.manifestHash,frame.documentId,receiptId):

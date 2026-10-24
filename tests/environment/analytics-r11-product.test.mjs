@@ -79,6 +79,58 @@ async function eventually(check){
   }
   throw new Error('Timed out waiting for trusted analytics storage');
 }
+test('real top-level Options tab can read consent and revoke while other documents remain rejected',async()=>{
+  const {api,send,records}=chromeMock([]);
+  const url=api.runtime.getURL('native-agent/settings.html');
+  const options={id:api.runtime.id,url,origin:'chrome-extension://'+api.runtime.id,
+    frameId:0,documentId:'real-options-document',documentLifecycle:'active',
+    tab:{id:23,url,incognito:false}};
+  const status={protocol:ANALYTICS_PROTOCOL,kind:'consent.status'};
+  const enable={protocol:ANALYTICS_PROTOCOL,kind:'consent.set',enabled:true,
+    disclosureVersion:ANALYTICS_DISCLOSURE_VERSION};
+  installAnalyticsHost({api,endpoint:'https://analytics.example.test/v1/events',newId:randomUUID,
+    fetcher:()=>{throw Error('Consent operations must not upload');}});
+  assert.equal((await send(status,options)).data.consent,false);
+  assert.equal((await send(enable,options)).data.consent,true);
+  assert.equal(records.get(ANALYTICS_STATE_KEY).consentReceipt.disclosureVersion,ANALYTICS_DISCLOSURE_VERSION);
+  for(const bad of [
+    {...options,id:'another-extension'},
+    {...options,url:url+'?previewId=untrusted'},
+    {...options,url:api.runtime.getURL('sidepanel.html')},
+    {...options,frameId:1},
+    {...options,frameId:undefined},
+    {...options,documentId:undefined},
+    {...options,documentLifecycle:'prerender'},
+    {...options,origin:'https://example.test'},
+    {...options,incognito:true},
+    {...options,tab:{...options.tab,id:-1}},
+    {...options,tab:{...options.tab,url:'https://example.test/'}},
+    {...options,tab:{...options.tab,pendingUrl:'https://example.test/'}},
+    {...options,tab:{...options.tab,incognito:true}}
+  ]){
+    assert.equal((await send(status,bad)).code,'E_SENDER');
+    assert.equal((await send({...enable,enabled:false,disclosureVersion:undefined},bad)).code,'E_SENDER');
+    assert.equal(records.get(ANALYTICS_STATE_KEY).consent,true);
+  }
+  assert.equal((await send({...enable,enabled:false,disclosureVersion:undefined},options)).data.consent,false);
+  assert.deepEqual(records.get(ANALYTICS_STATE_KEY).queue,[]);
+  assert.equal(records.get(ANALYTICS_STATE_KEY).installId,null);
+});
+
+test('real Options tab reports an unconfigured receiver without enabling collection',async()=>{
+  const {api,send,records}=chromeMock([]),url=api.runtime.getURL('native-agent/settings.html');
+  installAnalyticsHost({api,endpoint:''});
+  const options={id:api.runtime.id,url,origin:'chrome-extension://'+api.runtime.id,
+    frameId:0,documentId:'real-options-document',documentLifecycle:'active',tab:{id:23,url,incognito:false}};
+  const response=await send({protocol:ANALYTICS_PROTOCOL,kind:'consent.status'},options);
+  assert.equal(response.ok,true);
+  assert.equal(response.data.configured,false);
+  assert.equal(response.data.consent,false);
+  assert.equal((await send({protocol:ANALYTICS_PROTOCOL,kind:'consent.set',enabled:true,
+    disclosureVersion:ANALYTICS_DISCLOSURE_VERSION},options)).ok,false);
+  assert.notEqual(records.get(ANALYTICS_STATE_KEY)?.consent,true);
+});
+
 test('verified Side Panel opens → opt-in collector → real HTTP D1 → PostHog-shaped sink',async t=>{
   const now=Date.UTC(2026,9,20,12,0,0);
   const db=new DatabaseSync(':memory:');

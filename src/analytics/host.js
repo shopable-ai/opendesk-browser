@@ -22,7 +22,19 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
   const optionsURL=api.runtime.getURL('native-agent/settings.html');
   const sidepanelURL=api.runtime.getURL('sidepanel.html');
   const extensionId=api.runtime.id;
-  const fromOptions=sender=>sender?.id===extensionId&&sender.url===optionsURL&&!sender.tab;
+  const fromOptions=sender=>{
+    if(sender?.id!==extensionId||sender.url!==optionsURL||sender.incognito===true||
+      sender.tab?.incognito===true||(sender.frameId!==undefined&&sender.frameId!==0)||
+      (sender.origin!==undefined&&sender.origin!=='chrome-extension://'+extensionId)||
+      (sender.documentLifecycle!==undefined&&sender.documentLifecycle!=='active'))return false;
+    // Chrome supplies sender.tab when the existing Options page opens in a
+    // normal tab. Accept only that exact top-level document, never a web tab
+    // or embedded copy; the no-tab Options context remains supported.
+    if(!sender.tab)return true;
+    return Number.isInteger(sender.tab.id)&&sender.tab.id>=0&&
+      sender.frameId===0&&typeof sender.documentId==='string'&&sender.documentId.length>0&&
+      sender.tab.url===optionsURL&&!sender.tab.pendingUrl;
+  };
   // Canonical ToolShell documents always carry a hostInstanceId query parameter.
   // The previous exact-URL check silently rejected real Side Panel tool opens.
   const panelContextId=sender=>{

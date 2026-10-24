@@ -751,6 +751,62 @@ test('installed list reports unexpected native errors without inventing a disabl
 });
 
 
+test('manual first-document click works before the automatic bootstrap has visited that document',async()=>{
+  const f=fixture(),installed=await f.install();
+  f.marker=false; // Chrome registration does not inject into an already loaded document.
+  const response=await f.service.runInstalledPageProgram({programId:'script',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,
+    expectedGeneration:installed.authorization.generation,target:f.target},{documentId:'tool-document'});
+  assert.equal(response.state,'completed');
+  assert.equal(f.sourceCalls,1);
+  const receipt=f.rows().find(row=>row.receiptId===response.receiptId);
+  assert.equal(receipt.source,'manual');
+  assert.equal(receipt.documentId,f.target.documentId);
+  assert.equal(receipt.installationId,installed.authorization.installationId);
+  assert.equal(receipt.grantGeneration,installed.authorization.generation);
+  assert.equal(receipt.sourceHash,installed.sourceHash);
+  assert.equal(receipt.manualHostDocumentId,'tool-document');
+  await fails(()=>f.service.handleBoot(f.message(),f.sender),'E_PERMISSION');
+  assert.equal(f.sourceCalls,1,'a manual click must not create a native automatic bootstrap marker');
+  assert.equal(f.rows().filter(row=>row.tag==='page-execution-v1').length,1);
+});
+
+for(const [change,code] of [['missing registration','E_PERMISSION'],['changed registration','E_PERMISSION'],
+  ['website permission','E_PERMISSION'],['script switch','E_USER_SCRIPTS_UNAVAILABLE'],['disabled','E_PERMISSION'],
+  ['document','E_DOCUMENT_STALE'],['generation','E_REVISION'],['host','E_OWNER'],['excluded URL','E_PERMISSION']])
+test('manual first-document click preserves authority checks: '+change,async()=>{
+  const f=fixture(),candidate=await f.prepare('document-idle',{sourceUtf8:
+    '// ==UserScript==\n// @match https://example.com/*\n// @exclude-match https://example.com/private/*\n// @noframes\n// @run-at document-idle\n// ==/UserScript==\nasync function main(){return 42;}'});
+  const installed=await f.service.installPageProgram({programId:'script',revision:1,
+    manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
+  f.marker=false;
+  const request={programId:'script',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,
+    expectedGeneration:installed.authorization.generation,target:{...f.target}};
+  if(change==='missing registration')f.native.clear();
+  if(change==='changed registration')f.native.get(installed.nativeId).js[0].code+='\n// changed';
+  if(change==='website permission')f.granted=false;
+  if(change==='script switch')f.access=false;
+  if(change==='disabled'){
+    const disabled=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,
+      expectedGeneration:installed.authorization.generation,enabled:false},{});
+    request.expectedGeneration=disabled.authorization.generation;
+  }
+  if(change==='document')request.target.documentId='old-document';
+  if(change==='generation')request.expectedGeneration++;
+  if(change==='host')await f.storage.transaction(['commandJournal'],'readwrite',async tx=>{
+    const host=await tx.get('commandJournal','host:host');
+    await tx.put('commandJournal',{...host,revoked:true},'host:host');
+  });
+  if(change==='excluded URL'){
+    f.target.expectedUrl='https://example.com/private/current';
+    f.sender.url=f.target.expectedUrl;request.target.expectedUrl=f.target.expectedUrl;
+  }
+  await fails(()=>f.service.runInstalledPageProgram(request,{documentId:'tool-document'}),code);
+  assert.equal(f.sourceCalls,0);
+  assert.equal(f.rows().filter(row=>row.tag==='page-execution-v1').length,0);
+});
+
 test('R1.12 explicit installed Page click uses the original Native runner and a separate manual receipt',async()=>{
   const f=fixture(),installed=await f.install();
   f.message(); // Only the original registered bootstrap establishes the Native marker.
