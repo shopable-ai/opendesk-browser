@@ -568,13 +568,14 @@ async function captureRealRailGeometry(page, scene) {
   scene.railGeometry.imageSizeWidths=imageSizeWidths;
   await switchScenario('empty');
   const empty=await read();
-  check(scene,'real DOM: user-cleared library has no phantom OD or scroll buttons',
-    empty.buttons===0&&empty.promptButtons===0&&!empty.visible&&empty.strayControls===0,empty);
+  check(scene,'real DOM: empty built-in library retains only the first OD entry',
+    empty.visible&&empty.buttons===1&&empty.brandButtons===1&&empty.brandFirst&&
+    empty.promptButtons===0&&empty.navigationButtons===0&&empty.strayControls===0,empty);
   await switchScenario('fresh');
   const restored=await read();
-  check(scene,'real DOM: fresh scenario restores exactly three real prompts',
-    restored.visible&&restored.buttons===3&&restored.promptButtons===3&&
-    restored.managementButtons===0&&restored.navigationButtons===0&&
+  check(scene,'real DOM: fresh scenario restores OD followed by exactly three real prompts',
+    restored.visible&&restored.buttons===4&&restored.brandButtons===1&&restored.brandFirst&&
+    restored.promptButtons===3&&restored.managementButtons===0&&restored.navigationButtons===0&&
     restored.strayControls===0&&close(restored.rail?.width,52),restored);
   scene.railGeometry.reset=restored;
   scene.screenshots??={};
