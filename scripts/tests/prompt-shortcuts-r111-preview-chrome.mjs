@@ -70,7 +70,7 @@ async function click(selector){
 async function reloadPreview(){
   const previousTimeOrigin=await evalChrome('performance.timeOrigin');
   await call('Page.reload',{ignoreCache:true});
-  // A complete launcher in the old document is not evidence that reload finished.
+  // Saved prompt controls in an old document are not evidence that reload finished.
   await poll('performance.timeOrigin!=='+JSON.stringify(previousTimeOrigin)+
     '&&document.readyState==="complete"','reloaded offline HTML document');
 }
@@ -205,12 +205,12 @@ async function run(){
   await waitPreviewRail();
   await click('#pageRail .page-shortcut:nth-child(1)');
   await poll('document.querySelector("#mockDraft").value.includes("不改变原意")',
-    'legacy text insertion from expanded launcher');
+    'legacy text insertion directly from prompt button');
   const textInsert=await evalChrome('document.querySelector("#mockDraft").value');
   await waitPreviewRail();
   await click('#pageRail .page-shortcut:nth-child(2)');
   await poll('document.querySelector("#mockDraft").value.includes("重要依据")',
-    'legacy image insertion from expanded launcher');
+    'legacy image insertion directly from prompt button');
   const imageInsert=await evalChrome('document.querySelector("#mockDraft").value');
   assert(textInsert.includes('原草稿')&&textInsert.includes('不改变原意'));
   assert(imageInsert.includes('原草稿')&&imageInsert.includes('重要依据'));
@@ -356,11 +356,9 @@ async function run(){
   await click('#importAppend');
   assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),5);
   
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),1,
-    'five imported-and-legacy prompts still have exactly one resting launcher');
   await waitPreviewRail();
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),6,
-    'expanded five prompts and one OD launcher preserve every item');
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),5,
+    'five imported-and-legacy prompts are directly visible without a launcher');
   assert.equal(await evalChrome('document.querySelector("#panelStatus").textContent.includes("网页按钮已即时同步")'),true);
   // Replacement is two explicit actions and never alters the list before confirmation.
   await evalChrome('(()=>{const dt=new DataTransfer();dt.items.add(new File([JSON.stringify({format:"opendesk.prompt-shortcuts",version:1,items:[{body:"替换确认样例",label:"替换",name:"仅此一条"}]})],"r26-replace.json",{type:"application/json"}));const input=document.getElementById("importFile");input.files=dt.files;input.dispatchEvent(new Event("change",{bubbles:true}));})()');
@@ -371,12 +369,9 @@ async function run(){
   await click('#importReplace');
   assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),1);
   
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),1,
-    'an entirely custom replacement still uses one compact launcher');
-  assert.equal(await evalChrome('document.querySelector("#pageRail .starter-toggle")?.textContent'),'OD');
   await waitPreviewRail();
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),2,
-    'custom-only menu exposes one saved prompt and the OD launcher');
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),1,
+    'custom-only replacement exposes exactly its one saved prompt');
   
   assert.equal(await evalChrome('document.querySelector("#imageSizeGroup").hidden'),true,
     'text-only list retains original uncluttered header');
@@ -441,21 +436,18 @@ async function run(){
   await poll('document.querySelectorAll(".prompt-card").length===5&&document.querySelector("#promptBody").value===""','save and continue first');
   x=await state();assert.equal(x.editing,true);assert.equal(x.cards,5);
   
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),1,
-    'save-and-continue updates five choices while keeping one resting launcher');
   await waitPreviewRail();
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),6);
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),5,
+    'save-and-continue shows exactly five real prompts');
   await shot('batch-create-320px');
   await evalChrome('(()=>{const f=document.querySelector("#promptBody");f.value="连续创建第二条：列出下一步计划。";f.dispatchEvent(new Event("input",{bubbles:true}));})()');
   await click('#saveContinue');
   await poll('document.querySelectorAll(".prompt-card").length===6&&document.querySelector("#promptBody").value===""','save and continue second');
   x=await state();assert.equal(x.cards,6);assert.equal(x.editing,true);
   
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),1,
-    'second save preserves one resting launcher');
   await waitPreviewRail();
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),7,
-    'all six choices remain accessible without a hard cap');
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),6,
+    'all six saved shortcuts remain directly accessible');
   await poll('document.querySelector("#promptForm").getAttribute("aria-busy")!=="true"',
     'save-and-continue finishes before cancel');
   const batchCancelBefore=await evalChrome('('+function(){
@@ -804,11 +796,9 @@ async function run(){
   assert.equal(await evalChrome('document.querySelector("#pageRail").hidden'),true);
   await click('#resetButton');
   assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),4);
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),5,
-    'reset returns the four legacy prompts and OD, without a management button');
   await waitPreviewRail();
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),5,
-    'four legacy actions remain accessible on demand');
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),4,
+    'reset restores four legacy prompts without an OD launcher');
   report.unifiedGearAndUninstall=true;report.result='PASS';
   console.log('PROMPT_SHORTCUTS_R111_REAL_CHROME_MOCK_PASS',JSON.stringify(report));
 }
