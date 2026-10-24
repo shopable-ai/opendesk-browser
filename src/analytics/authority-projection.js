@@ -8,7 +8,9 @@ import {readAppServiceInstallation} from '../platform/tasks/app-service-installa
 // Raw program/task IDs, URLs, source and execution values MUST NOT leave this module's caller.
 const asDate=value=>{
   const time=typeof value==='string'?Date.parse(value):value;
-  return Number.isFinite(time)&&time>=0?new Date(time).toISOString().slice(0,10):null;
+  // Finite numbers can still be outside Date's representable range.
+  const date=Number.isFinite(time)&&time>=0?new Date(time):null;
+  return date&&Number.isFinite(date.getTime())?date.toISOString().slice(0,10):null;
 };
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 const blank=()=>({installed:0,enabled:0,disabled:0,blocked:0,unknown:0});
@@ -91,20 +93,21 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
       // Native boot persists these fields in one original transaction, after
       // verifying the installed script, permission and active Document.
       // Do not treat an incomplete legacy row as a real automatic execution.
-      const frozenKey='page-execution:'+canonical([namespace,row.manifestHash,row.documentId]);
       if(!safeIdentity(row.programId)||!day||!uuid.test(row.receiptId||'')||
          !validStatus.has(row.state)||
          !Number.isSafeInteger(row.revision)||row.revision<1||
-         !frozenHash.test(row.manifestHash||'')||
-         !frozenHash.test(row.sourceHash||'')||
+         typeof row.manifestHash!=='string'||!frozenHash.test(row.manifestHash)||
+         typeof row.sourceHash!=='string'||!frozenHash.test(row.sourceHash)||
          !uuid.test(row.installationId||'')||
          !/^[a-f0-9]{32}$/.test(row.installationToken||'')||
          !Number.isSafeInteger(row.grantGeneration)||row.grantGeneration<1||
          !Number.isSafeInteger(row.tabId)||row.tabId<0||
-         typeof row.documentId!=='string'||!row.documentId||
-         row.executionKey!==frozenKey){
+         typeof row.documentId!=='string'||!row.documentId){
         projectionGap=true;continue;
       }
+      // Only schema-checked JSON strings may form a canonical frozen key.
+      const frozenKey='page-execution:'+canonical([namespace,row.manifestHash,row.documentId]);
+      if(row.executionKey!==frozenKey){projectionGap=true;continue;}
       // An admission marked PREPARED is not a Chrome execution. Only a durable
       // DISPATCHED receipt with its original timestamp establishes a real run.
       // A terminal without dispatch proof is uncertain, not a successful run.
