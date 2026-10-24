@@ -60,6 +60,20 @@ test('partial read-only commerce intent requests only missing product name',()=>
   const selected=route(input);
   assert.equal(selected.state,'MISSING_PARAMS');
   assert.deepEqual(selected.candidates[0].fields,['productName']);
+  for(const [goal,keyword] of [
+    ['搜索lens，打开商品详情，核对名称和价格','lens'],
+    ['查找 lens，进入详情页，检查名称与售价','lens'],
+    ['请搜索 提交次数，点开商品详情，验证名称和价格','提交次数']
+  ]){
+    const reply=route(goal);
+    assert.equal(reply.state,'MISSING_PARAMS',goal);
+    assert.deepEqual(reply.candidates[0].fields,['productName'],goal);
+  }
+  for(const unsafe of [
+    '搜索 lens不要，打开商品详情，核对名称和价格',
+    '搜索 lens，然后下单，打开商品详情，核对名称和价格',
+    '搜索 lens，打开商品详情，核对名称和价格，要求价格低于100'
+  ])assert.equal(route(unsafe).state,'NO_MATCH',unsafe);
   assert.equal(route(input,fixture(),{...target,origin:'https://else.example'}).state,'NO_MATCH');
   assert.equal(route(input,fixture({enabled:false})).state,'BLOCKED');
 });
