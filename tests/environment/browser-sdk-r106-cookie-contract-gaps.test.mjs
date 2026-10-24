@@ -130,7 +130,8 @@ function fixture({tool = pkg, owner = identity} = {}) {
   }});
   const grant = (capability, enabled = true) => host.handleHost({
     ...owner, operation: 'browser.cookies.userGrant',
-    cookieCapability: capability, enabled, origin, ...(enabled ? {document} : {})
+    cookieCapability: capability, enabled, origin: document.origin,
+    ...(enabled ? {document} : {})
   }, sender);
   const denied = async (request, code) => {
     const before = [...native], cookieBefore = structuredClone(cookie);
