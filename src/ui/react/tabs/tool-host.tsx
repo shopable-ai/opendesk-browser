@@ -434,6 +434,13 @@ export function ToolHost({view}) {
 </ToolField>
 
 </ToolField>
+<ToolField as="details" id="sidebar-tool-prompt-nav-advanced" className="sidebar-tool-prompt-nav-advanced od-surface" hidden={true}>
+<summary>滚动导航 · 高级</summary>
+<p>以前关闭过部分导航；恢复后将使用默认开启的导航按钮。</p>
+<ToolField as="button" type="button" id="sidebar-tool-prompt-nav-reset" className="od-button od-button--secondary">
+{"恢复默认滚动导航"}
+</ToolField>
+</ToolField>
 <ToolField as="div" id="sidebar-tool-prompt-native-row" className="sidebar-toc-settings-row sidebar-tool-prompt-native" hidden={true}>
 <span className="sidebar-tool-prompt-native-info">
 <strong>

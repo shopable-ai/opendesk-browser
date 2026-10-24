@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "prompt-shortcuts",
-  "version": "1.1.16",
+  "version": "1.1.17",
   "title": "提示词快捷按钮",
   "description": "提示词快捷按钮：ChatGPT、DeepSeek、Gemini 对话页默认适配，保留草稿，只插入不发送；其他网站可自定义规则。",
   "capabilities": [

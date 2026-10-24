@@ -257,6 +257,16 @@ export const SIDEBAR_TOOL_FIELDS = {
     "textContent": "",
     "className": "sidebar-toc-settings-hint"
   },
+  "sidebar-tool-prompt-nav-advanced": {
+    "hidden": true,
+    "open": false,
+    "className": "sidebar-tool-prompt-nav-advanced od-surface"
+  },
+  "sidebar-tool-prompt-nav-reset": {
+    "disabled": true,
+    "type": "button",
+    "className": "od-button od-button--secondary"
+  },
   "sidebar-tool-prompt-native-row": {
     "hidden": true,
     "className": "sidebar-toc-settings-row sidebar-tool-prompt-native"

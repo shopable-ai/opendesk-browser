@@ -103,11 +103,11 @@ test('R1.16 formal management, preview, authority and uninstall cleanup are sour
     readFile(ROOT+'/src/index.html','utf8'),readFile(ROOT+'/src/main.js','utf8'),
     readFile(ROOT+'/trusted/page.js','utf8'),readFile(ROOT+'/preview/index.html','utf8')
   ]);
-  for(const key of flags){
-    assert.match(html,new RegExp('data-scroll-nav="'+key+'"'));
-    assert.match(preview,new RegExp('data-scroll-nav-preview="'+key+'"'));
-  }
-  assert.match(js,/changeScrollSetting/);
+  assert.doesNotMatch(html,/ps-scroll-settings|data-scroll-nav=/);
+  assert.doesNotMatch(js,/ps-scroll-settings|changeScrollSetting/);
+  assert.doesNotMatch(preview,/previewScrollSettings|data-scroll-nav-preview=/);
+  assert.match(preview,/id="previewScrollAdvanced"/);
+  assert.match(preview,/id="previewScrollRestore"/);
   assert.match(js,/await commit\(next\)/);
   assert.match(page,/await allowedPromptSite\(/);
   assert.match(page,/navigationSettings\.floatingTop/);
@@ -137,11 +137,43 @@ test('R1.16.3 formal nav uses one lower-right dock while preserving switches and
   assert.match(preview,/id="demoReplyTop"/);
   assert.match(preview,/id="demoReplyBottom"/);
   assert.doesNotMatch(preview,/mockFloatingTop|page-shortcut nav-preview/);
-  for(const key of ['conversationTop','conversationBottom']){
-    assert.match(html,new RegExp('data-scroll-nav="'+key+'"'));
-    assert.match(preview,new RegExp('data-scroll-nav-preview="'+key+'"'));
-  }
+  assert.doesNotMatch(html,/data-scroll-nav=/);
+  assert.doesNotMatch(preview,/data-scroll-nav-preview=/);
+  assert.match(page,/regionDirections:\{top:navigationSettings\.regionTop,bottom:navigationSettings\.regionBottom\}/);
+  assert.match(page,/floatingHost\.style\.cssText='position:fixed;right:18px/);
   const mockRail=preview.slice(preview.indexOf(' function renderRail(){'),
     preview.indexOf(' function positionWebTip(){'));
   assert.doesNotMatch(mockRail,/conversationTop|conversationBottom|floatingTop/);
+});
+
+test('R1.17 default navigation stays silent in the manager and legacy opt-outs can be restored',async()=>{
+  const model=await readModel();
+  const before=model.load({...model.defaults(),settings:{...model.defaults().settings,
+    imageSize:'compact',scrollNavigation:{regionBottom:false,floatingTop:false}}});
+  assert.equal(before.settings.scrollNavigation.regionBottom,false);
+  const webOff=model.load({...before,settings:{...before.settings,webButtons:false}});
+  assert.equal(webOff.settings.imageSize,'compact');
+  assert.equal(webOff.settings.scrollNavigation.floatingTop,false);
+  const restored=model.load({...webOff,settings:{...webOff.settings,
+    scrollNavigation:model.navigationSettings()}});
+  assert.equal(restored.settings.webButtons,false);
+  assert.equal(restored.settings.imageSize,'compact');
+  for(const key of flags)assert.equal(restored.settings.scrollNavigation[key],true,key);
+  const [host,view,html,preview]=await Promise.all([
+    readFile('src/ui/sidebar-tools.js','utf8'),
+    readFile('src/ui/react/tabs/tool-host.tsx','utf8'),
+    readFile(ROOT+'/src/index.html','utf8'),
+    readFile(ROOT+'/preview/index.html','utf8')
+  ]);
+  assert.doesNotMatch(html,/ps-scroll-settings|滚动导航.*默认开启/);
+  assert.match(host,/return \{\.\.\.previous,webButtons:!expected\}/);
+  assert.match(host,/return \{\.\.\.previous,scrollNavigation:model\.navigationSettings\(\)\}/);
+  assert.match(host,/writeVerifiedLocalValue\(api,namespace,next,raw,label\)/);
+  assert.match(host,/JSON\.stringify\(previous\.scrollNavigation\)!==expected/);
+  assert.match(host,/event\?\.isTrusted!==true/);
+  assert.match(host,/promptNavigationSnapshot&&/);
+  assert.match(view,/id="sidebar-tool-prompt-nav-advanced"/);
+  assert.match(view,/id="sidebar-tool-prompt-nav-reset"/);
+  assert.match(preview,/id="previewScrollAdvanced"/);
+  assert.match(preview,/id="previewScrollRestore"/);
 });

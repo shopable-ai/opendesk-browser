@@ -85,13 +85,6 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  background:var(--ps-rail-bg);color:var(--ps-button-fg);border:1px solid var(--ps-rail-border);
  box-shadow:var(--ps-rail-shadow);border-radius:14px;font-size:23px;cursor:pointer}
 .mock-conversation-nav button:disabled{opacity:.48;cursor:default}
-.preview-scroll-settings{margin:0 0 10px;padding:8px 10px}
-.preview-scroll-settings summary{cursor:pointer;font-size:12px;font-weight:650}
-.preview-scroll-settings summary small{color:var(--od-sub);font-weight:400;margin-left:5px}
-.preview-scroll-group{display:grid;gap:2px;margin-top:10px}
-.preview-scroll-group strong{font-size:11px;color:var(--od-sub)}
-.preview-scroll-group label{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:34px;font-size:12px}
-.preview-scroll-group .switch{flex:none}
 /* Mirrors approved R1.2 decision: 12 px from content area's LEFT EDGE, not the centered text column or composer. */
 .page-rail{position:absolute;left:12px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:5px;max-height:min(400px,calc(100% - 16px));overflow-y:auto;overflow-x:hidden;padding:6px;width:max-content;max-width:calc(100% - 24px);border:1px solid var(--ps-rail-border);background:var(--ps-rail-bg);box-shadow:var(--ps-rail-shadow);border-radius:17px;box-sizing:border-box;scrollbar-width:thin;overscroll-behavior:contain}
 .page-shortcut{flex:none;width:38px;height:38px;display:grid;place-items:center;border:1px solid transparent;background:var(--ps-button-bg);color:var(--ps-button-fg);border-radius:11px;font-size:13px;line-height:1.07;font-weight:700;box-sizing:border-box;user-select:none}
@@ -662,20 +655,6 @@ border:0;background:transparent;color:var(--od-sub)}
       <div class="import-actions"><button id="cancelImport" type="button" class="od-button">取消</button><button id="importReplace" type="button" class="od-button od-button--danger">替换现有</button><button id="importAppend" type="button" class="od-button od-button--primary">追加导入</button></div>
      </div>
      <div id="imageSizeGroup" class="host-setting-row od-surface image-size-setting" role="group" aria-label="图片快捷按钮尺寸设置"><span id="imageSizeLabel">图片按钮大小</span><input id="imageSizeSetting" type="hidden" value="large"><div class="image-size-buttons" role="group" aria-labelledby="imageSizeLabel"><button class="image-size-button" type="button" data-image-size="compact" aria-pressed="false" aria-label="紧凑图片尺寸，48×40 像素" title="紧凑 · 48×40"><span class="size-dot" style="--dot:6px"></span></button><button class="image-size-button" type="button" data-image-size="standard" aria-pressed="false" aria-label="标准图片尺寸，56×44 像素" title="标准 · 56×44"><span class="size-dot" style="--dot:10px"></span></button><button class="image-size-button" type="button" data-image-size="large" aria-pressed="true" aria-label="大图图片尺寸，68×48 像素" title="大图 · 68×48"><span class="size-dot" style="--dot:14px"></span></button></div></div>
-     <details id="previewScrollSettings" class="preview-scroll-settings od-surface">
-       <summary>滚动导航 <small>默认开启 · 可分别关闭</small></summary>
-       <div class="preview-scroll-group"><strong>单条长内容</strong>
-         <label>回到内容开头<span class="switch"><input type="checkbox" role="switch" data-scroll-nav-preview="regionTop" checked><span class="switch-track"></span></span></label>
-         <label>跳到内容末尾<span class="switch"><input type="checkbox" role="switch" data-scroll-nav-preview="regionBottom" checked><span class="switch-track"></span></span></label>
-       </div>
-       <div class="preview-scroll-group"><strong>整段对话</strong>
-         <label>回到对话顶部<span class="switch"><input type="checkbox" role="switch" data-scroll-nav-preview="conversationTop" checked><span class="switch-track"></span></span></label>
-         <label>跳到对话底部<span class="switch"><input type="checkbox" role="switch" data-scroll-nav-preview="conversationBottom" checked><span class="switch-track"></span></span></label>
-       </div>
-       <div class="preview-scroll-group"><strong>悬浮按钮</strong>
-         <label>右下角返回顶部<span class="switch"><input type="checkbox" role="switch" data-scroll-nav-preview="floatingTop" checked><span class="switch-track"></span></span></label>
-       </div>
-     </details>
      <div id="promptList" class="shortcuts-list"></div>
    </section>
    <section id="formView" hidden aria-labelledby="hostToolTitle">
@@ -746,6 +725,11 @@ border:0;background:transparent;color:var(--od-sub)}
     <label class="host-setting-row od-surface"><span><strong>网页快捷按钮</strong><small>在已支持的网站显示快捷按钮</small></span><span class="switch"><input id="showBarSwitch" type="checkbox" role="switch" checked aria-label="网页快捷按钮"><span class="switch-track" aria-hidden="true"></span></span></label>
 
     <label class="host-setting-row od-surface"><span><strong>选中文字快速添加</strong><small>Chrome 原生右键，可选</small></span><span class="switch"><input id="contextSwitch" type="checkbox" role="switch" aria-label="选中文字快速添加"><span class="switch-track" aria-hidden="true"></span></span></label>
+    <details id="previewScrollAdvanced" class="host-scroll-advanced od-surface" hidden>
+      <summary>滚动导航 · 高级</summary>
+      <p>之前关闭过部分导航，可在这里恢复默认开启。</p>
+      <button id="previewScrollRestore" type="button" class="od-button od-button--secondary">恢复默认滚动导航</button>
+    </details>
     <div class="host-setting-row host-site-row"><span><strong>适用网站</strong><small>ChatGPT 内置 · 自定义网站可配置</small></span><button id="sitesButton" class="od-icon-button od-icon-button--quiet" type="button" title="展开适用网站" aria-label="展开适用网站" aria-expanded="false" aria-controls="siteDetails"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ps-icon-chevron-right"/></svg></button></div>
     <div class="site-current"><div class="site-current-copy"><strong id="currentSiteStatus">ChatGPT · 模拟就绪</strong><small id="currentSiteOrigin">https://chatgpt.com/c/demo</small></div><button id="configureCurrentSite" class="od-button od-button--small" type="button">配置当前网站</button></div>
 <div id="siteDetails" class="host-site-details" hidden></div>
@@ -1001,10 +985,8 @@ border:0;background:transparent;color:var(--od-sub)}
     const control=el(id);
     control.closest('.host-setting-row')?.classList.toggle('is-dependent-disabled',control.disabled);
   }
-  document.querySelectorAll('[data-scroll-nav-preview]').forEach(control=>{
-    control.checked=state.settings.scrollNavigation[control.dataset.scrollNavPreview]===true;
-    control.disabled=!state.toolEnabled||!state.settings.showBar||!installed;
-  });
+  el('previewScrollAdvanced').hidden=!Object.values(state.settings.scrollNavigation).some(value=>value===false);
+  el('previewScrollRestore').disabled=!installed||!state.toolEnabled||!state.settings.showBar;
   el('hostSettings').setAttribute('aria-expanded',String(currentView==='settings'));
  }
  /* R2.6 offline import/export; actual installed tool must use trusted Host storage */
@@ -1592,19 +1574,17 @@ border:0;background:transparent;color:var(--od-sub)}
   state.settings.contextMenu=event.currentTarget.checked;persistDemoSettings();state.revision++;renderIndex();renderRail();el('mockContextMenu').hidden=true;
   notice(state.settings.contextMenu?'模拟原生右键功能已开启；正式使用仍取决于 Chrome 菜单许可。':'模拟原生右键功能已关闭。');
  });
- document.querySelectorAll('[data-scroll-nav-preview]').forEach(control=>
-  control.addEventListener('change',()=>{
-    const key=control.dataset.scrollNavPreview;
-    if(!Object.hasOwn(SCROLL_NAV_DEFAULTS,key)||!state.toolEnabled||!state.settings.showBar||!installed){setSettings();return;}
-    const previous=state.settings.scrollNavigation;
-    state.settings.scrollNavigation={...previous,[key]:control.checked};
-    if(!persistDemoSettings()){
-      state.settings.scrollNavigation=previous;setSettings();
-      notice('滚动导航开关未保存，已恢复上次状态（模拟）。','error');return;
-    }
-    state.revision++;renderIndex();renderRail();
-    notice('滚动导航设置已保存到预览本地存储（不影响正式扩展）。','success');
-  }));
+ el('previewScrollRestore').addEventListener('click',()=>{
+   if(!installed||!state.toolEnabled||!state.settings.showBar)return;
+   const previous=state.settings.scrollNavigation;
+   state.settings.scrollNavigation={...SCROLL_NAV_DEFAULTS};
+   if(!persistDemoSettings()){
+     state.settings.scrollNavigation=previous;setSettings();
+     notice('恢复默认导航未保存，已保留原设置（模拟）。','error');return;
+   }
+   state.revision++;renderIndex();renderRail();
+   notice('滚动导航已恢复默认开启（仅预览）。','success');
+ });
  el('imageSizeGroup').querySelectorAll('[data-image-size]').forEach(button=>button.addEventListener('click',()=>{
   const next=button.dataset.imageSize;if(!IMAGE_SIZES.includes(next)){setSettings();return;}
   if(next===state.settings.imageSize)return;

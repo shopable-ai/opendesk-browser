@@ -197,6 +197,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const enableButton=view.fields["sidebar-tool-enable"],enableHint=view.fields["sidebar-tool-enable-hint"];
   const promptNativeRow=view.fields["sidebar-tool-prompt-native-row"],promptNativeAction=view.fields["sidebar-tool-prompt-native-action"];
   const promptWebRow=view.fields["sidebar-tool-prompt-web-row"],promptWebAction=view.fields["sidebar-tool-prompt-web-action"];
+  const promptNavAdvanced=view.fields["sidebar-tool-prompt-nav-advanced"],promptNavReset=view.fields["sidebar-tool-prompt-nav-reset"];
   const promptEnableLabel=view.fields["sidebar-tool-prompt-enable-label"],promptEnableDescription=view.fields["sidebar-tool-prompt-enable-description"];
   const launchButton=view.fields["sidebar-tool-launch"],eyeButton=view.fields["sidebar-tool-visibility"];
   const visibilitySection=view.fields["sidebar-tool-visibility-settings"];
@@ -219,6 +220,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const siteTogglePending=new Set();
   let captureGrants={},enableRecords,enableReadEpoch=0,enableReadError=true;
   let promptWebButtons=null,promptWebPending=false,promptWebChanged=false;
+  let promptNavigationSnapshot=null;
   let knowledgeWindowStart=0,knowledgeRequestCount=0;
   let knowledgeDirty=false;
   const knowledgeOperation=operation=>KNOWLEDGE_OPERATIONS.includes(operation)||operation==='knowledge.editorState';
@@ -1102,6 +1104,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, settingsView, {hidden: !show||id==='cookie-editor'});
     if(promptNativeRow)patchToolField(view, promptNativeRow, {hidden: !(show&&promptSettings)});
     if(promptWebRow)patchToolField(view, promptWebRow, {hidden: !(show&&promptSettings)});
+    if(promptNavAdvanced)patchToolField(view,promptNavAdvanced,{hidden: !(show&&promptSettings&&promptNavigationSnapshot&&
+      Object.values(promptNavigationSnapshot).some(value=>value===false))});
+    if(promptNavReset)patchToolField(view,promptNavReset,{disabled: busy||sitePending||!enabled||promptWebPending||promptWebButtons===null});
     if(promptWebAction){setToolFieldAttribute(view, promptWebAction, 'aria-checked', String(promptWebButtons===true));
       patchToolField(view, promptWebAction, {disabled: !promptSettings||busy||sitePending||!enabled||promptWebPending||promptWebButtons===null});
       patchToolField(view, promptWebAction, {title: promptWebButtons===null?'读取网页按钮设置中':'在已支持的网站显示快捷按钮'});}
@@ -3735,14 +3740,44 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     })().catch(error=>notice((error?.code||'E_PERMISSION')+'：'+String(error?.message||error),true))
       .finally(()=>{render();});
   });
-  async function readPromptWebButtons(){
+  async function readPromptSettings(){
     const namespace=sidebarToolStorageKey(PROMPT_ID);
     const current=(await api.storage.local.get(namespace))[namespace];
     if(current!==undefined&&(!current||typeof current!=='object'||Array.isArray(current)))
       throw new Error('提示词存储异常，不允许修改设置');
     const model=globalThis.OpenDeskPromptShortcutsModel;
     if(typeof model?.load!=='function')throw new Error('可信提示词数据模型不可用');
-    return model.load(current?.library).settings.webButtons;
+    return model.load(current?.library).settings;
+  }
+  function applyPromptSettings(settings){
+    promptWebButtons=settings.webButtons;
+    promptNavigationSnapshot={...settings.scrollNavigation};
+  }
+  const promptSettingsConflict=()=>Object.assign(
+    new Error('设置已在其他窗口修改，请重新核对'),{code:'E_STORAGE_CONFLICT'});
+  // Use the one verified Host storage path for both website visibility and
+  // legacy navigation recovery; never reconstruct settings from one field.
+  async function writePromptSettings(tool,change,label){
+    return locked('tool:'+PROMPT_ID,async()=>{
+      const registry=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
+      if(disposed||!active||!samePackage(active,tool)||!requireCompleteInstalledSidebarTools(registry)
+        .some(row=>samePackage(row,tool)))throw new Error('工具已更新或卸载');
+      const namespace=sidebarToolStorageKey(PROMPT_ID);
+      const raw=(await api.storage.local.get(namespace))[namespace]??{};
+      if(!raw||typeof raw!=='object'||Array.isArray(raw))
+        throw new Error('工具存储损坏，拒绝覆盖');
+      const model=globalThis.OpenDeskPromptShortcutsModel;
+      if(typeof model?.load!=='function')throw new Error('可信提示词数据模型不可用');
+      const previous=model.load(raw.library);
+      const nextLibrary=model.load({...previous,settings:change(previous.settings,model)});
+      if(model.bytes(nextLibrary)>SIDEBAR_TOOL_DATA_LIMITS.itemBytes)
+        throw Object.assign(new Error('工具数据已达上限'),{code:'E_TOOL_DATA_LIMIT'});
+      const next={...raw,library:nextLibrary};
+      if(new TextEncoder().encode(JSON.stringify(next)).byteLength>SIDEBAR_TOOL_DATA_LIMITS.totalBytes)
+        throw Object.assign(new Error('工具数据超过上限'),{code:'E_TOOL_DATA_LIMIT'});
+      await writeVerifiedLocalValue(api,namespace,next,raw,label);
+      return nextLibrary.settings;
+    });
   }
   async function changePromptWebButtons(event){
     if(event?.isTrusted!==true||promptWebPending||promptWebButtons===null||busy||readOnlyPreview||
@@ -3750,44 +3785,52 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const tool=active,expected=promptWebButtons;
     promptWebPending=true;render();
     try{
-      const nextValue=await locked('tool:'+PROMPT_ID,async()=>{
-        const registry=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
-        if(disposed||!active||!samePackage(active,tool)||!requireCompleteInstalledSidebarTools(registry)
-          .some(row=>samePackage(row,tool)))throw new Error('工具已更新或卸载');
-        const namespace=sidebarToolStorageKey(PROMPT_ID);
-        const raw=(await api.storage.local.get(namespace))[namespace]??{};
-        if(!raw||typeof raw!=='object'||Array.isArray(raw))throw new Error('工具存储损坏，拒绝覆盖');
-        const model=globalThis.OpenDeskPromptShortcutsModel;
-        const previous=model.load(raw.library);
-        if(previous.settings.webButtons!==expected)
-          throw Object.assign(new Error('设置已在其他窗口修改，请重新核对'),{code:'E_STORAGE_CONFLICT'});
-        const nextLibrary=model.load({...previous,settings:{webButtons:!expected}});
-        if(model.bytes(nextLibrary)>SIDEBAR_TOOL_DATA_LIMITS.itemBytes)
-          throw Object.assign(new Error('工具数据已达上限'),{code:'E_TOOL_DATA_LIMIT'});
-        const next={...raw,library:nextLibrary};
-        if(new TextEncoder().encode(JSON.stringify(next)).byteLength>SIDEBAR_TOOL_DATA_LIMITS.totalBytes)
-          throw Object.assign(new Error('工具数据超过上限'),{code:'E_TOOL_DATA_LIMIT'});
-        await writeVerifiedLocalValue(api,namespace,next,raw,'提示词网页按钮设置');
-        return nextLibrary.settings.webButtons;
-      });
+      const next=await writePromptSettings(tool,previous=>{
+        if(previous.webButtons!==expected)throw promptSettingsConflict();
+        return {...previous,webButtons:!expected};
+      },'提示词网页按钮设置');
       if(disposed||!active||!samePackage(active,tool))return;
-      promptWebButtons=nextValue;promptWebChanged=true;notice(nextValue?'网页快捷按钮已开启':'网页快捷按钮已关闭，提示词仍保留');
+      applyPromptSettings(next);promptWebChanged=true;
+      notice(next.webButtons?'网页快捷按钮已开启':'网页快捷按钮已关闭，提示词仍保留');
     }catch(error){
       notice((error?.code||'E_STORAGE')+'：'+(error?.message||error),true);
       try{if(!disposed&&active&&samePackage(active,tool)){
-        const observed=await readPromptWebButtons();
-        if(observed!==expected)promptWebChanged=true;
-        promptWebButtons=observed;
-      }}
-      catch{promptWebButtons=null;promptWebChanged=true;}
+        const observed=await readPromptSettings();
+        if(observed.webButtons!==expected)promptWebChanged=true;
+        applyPromptSettings(observed);
+      }}catch{promptWebButtons=null;promptNavigationSnapshot=null;promptWebChanged=true;}
+    }finally{promptWebPending=false;render();}
+  }
+  async function restorePromptNavigation(event){
+    if(event?.isTrusted!==true||promptWebPending||!promptNavigationSnapshot||
+       !Object.values(promptNavigationSnapshot).some(value=>value===false)||
+       busy||readOnlyPreview||active?.id!==PROMPT_ID||enableReadError||
+       !sidebarToolEnabled(enableRecords,PROMPT_ID))return;
+    const tool=active,expected=JSON.stringify(promptNavigationSnapshot);
+    promptWebPending=true;render();
+    try{
+      const next=await writePromptSettings(tool,(previous,model)=>{
+        if(JSON.stringify(previous.scrollNavigation)!==expected)throw promptSettingsConflict();
+        return {...previous,scrollNavigation:model.navigationSettings()};
+      },'提示词滚动导航设置');
+      if(disposed||!active||!samePackage(active,tool))return;
+      applyPromptSettings(next);promptWebChanged=true;
+      notice('滚动导航已恢复默认开启，提示词和图片设置均已保留。');
+    }catch(error){
+      notice((error?.code||'E_STORAGE')+'：'+(error?.message||error),true);
+      try{if(!disposed&&active&&samePackage(active,tool)){
+        applyPromptSettings(await readPromptSettings());promptWebChanged=true;
+      }}catch{promptWebButtons=null;promptNavigationSnapshot=null;promptWebChanged=true;}
     }finally{promptWebPending=false;render();}
   }
   if(promptWebAction)listen(promptWebAction,'click',event=>void changePromptWebButtons(event));
+  if(promptNavReset)listen(promptNavReset,'click',event=>void restorePromptNavigation(event));
   function refreshPromptSettings(tool){
-    promptWebButtons=null;promptWebChanged=false;promptWebPending=true;render();
-    void readPromptWebButtons().then(value=>{
+    promptWebButtons=null;promptNavigationSnapshot=null;promptWebChanged=false;
+    promptWebPending=true;render();
+    void readPromptSettings().then(settings=>{
       if(disposed||!active||!samePackage(active,tool)||!tocSettingsOpen)return;
-      promptWebButtons=value;
+      applyPromptSettings(settings);
     },error=>notice('网页按钮设置读取失败：'+(error?.message||error),true))
       .finally(()=>{if(!disposed&&active&&samePackage(active,tool)){promptWebPending=false;render();}});
   }
