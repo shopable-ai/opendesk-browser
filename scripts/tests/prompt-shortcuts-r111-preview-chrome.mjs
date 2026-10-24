@@ -238,7 +238,23 @@ async function run(){
   await r35ChooseSize('large');
   let x=await state();
   assert.equal(x.cards,4);assert.equal(x.clamp,'2');assert(x.firstContent.includes('\n1. '));
-  assert(x.firstButton.startsWith('使用完整提示词'));
+  assert(x.firstButton.startsWith('查看提示词详情：'));
+  // R4.4: list click opens read-only detail without touching a real prompt draft.
+  const previousDraft=await evalChrome('document.querySelector("#mockDraft").value');
+  await click('.prompt-use');
+  const detail=await evalChrome('('+function(){
+    const p=document.querySelector('#detailView');
+    return {shown:!p.hidden,readonly:p.querySelector('textarea')===null,
+      fullText:document.querySelector('#detailBody').textContent.includes('不改变原意'),
+      title:document.querySelector('#hostToolTitle').textContent};
+  }.toString()+')()');
+  assert(detail.shown&&detail.readonly&&detail.fullText);
+  assert.equal(detail.title,'提示词详情');
+  assert.equal(await evalChrome('document.querySelector("#mockDraft").value'),previousDraft);
+  await shot('r44-readonly-detail-440px');
+  await click('#detailBack');
+  assert.equal(await evalChrome('document.querySelector("#detailView").hidden'),true);
+  report.r44ListDetailNoSideEffect=true;
   assert.equal(x.copyDialog,false);assert.equal(x.shapeInputs,0);
   // R1.16 all SVG icons come from inline source with accessible button names.
   const icons=await evalChrome('('+function(){
@@ -255,7 +271,7 @@ async function run(){
   assert.equal(icons.addVisibleText,'');
   assert(icons.addBounds.width>=30&&icons.addBounds.width<=36&&icons.addBounds.height>=30);
   assert(icons.names.every(x=>x.name&&x.href?.startsWith('#ps-icon-')));
-  assert.equal(icons.cardButtons,1);
+  assert.equal(icons.cardButtons,2,'hover layer offers copy and More');
   report.iconOnlyPrimaryActions=true;
   await click('#themeButton');
   assert.equal(await evalChrome('document.documentElement.dataset.theme'),"dark");
@@ -272,9 +288,25 @@ async function run(){
   assert.equal(await evalChrome('document.querySelector("#indexHeading")===null'),true);
   assert.equal(await evalChrome('getComputedStyle(document.querySelector("#listCount")).position'),"absolute");
   assert.equal(await evalChrome('!document.querySelector("#addButton").hidden'),true);
-  // Narrow sidebar must keep the icon toolbar unobstructed and focusable.
+  // Hover and More must overlay without changing card body width or card height.
   await click('#size320');
+  const base=await evalChrome('('+function(){
+    const c=document.querySelector('.prompt-card'),b=c.querySelector('.prompt-content'),u=c.querySelector('.prompt-use');
+    return {width:u.getBoundingClientRect().width,textWidth:b.getBoundingClientRect().width,
+      height:c.getBoundingClientRect().height,clamp:getComputedStyle(b).webkitLineClamp,body:b.textContent};
+  }.toString()+')()');
   await click('.prompt-actions button[aria-label^="更多操作"]');
+  const overlay=await evalChrome('('+function(){
+    const c=document.querySelector('.prompt-card'),b=c.querySelector('.prompt-content'),u=c.querySelector('.prompt-use');
+    return {width:u.getBoundingClientRect().width,textWidth:b.getBoundingClientRect().width,
+      height:c.getBoundingClientRect().height,clamp:getComputedStyle(b).webkitLineClamp,body:b.textContent,
+      layer:getComputedStyle(c.querySelector('.prompt-actions')).position,
+      menu:getComputedStyle(c.querySelector('.prompt-more')).position};
+  }.toString()+')()');
+  for(const k of ['width','textWidth','height','clamp','body'])
+    assert.equal(overlay[k],base[k],'hover actions must not reflow '+k);
+  assert.equal(overlay.layer,'absolute');assert.equal(overlay.menu,'absolute');
+  report.r44NoTextReflow=true;
   const iconMenu=await evalChrome('('+function(){
     const bar=document.querySelector('.prompt-more'),buttons=[...bar.querySelectorAll('button')];
     const card=bar.closest('.prompt-card'),panel=document.querySelector('#sidepanel');
@@ -389,12 +421,12 @@ async function run(){
   await click('#resetButton');
   assert.equal(await evalChrome('document.querySelector("#imageSizeGroup").hidden'),false,
     'image size control returns with restored image shortcut');
-  await click('.prompt-use');x=await state();
+  await click('#pageRail .page-shortcut:nth-child(2)');x=await state();
   assert(x.draft.includes('请在不改变原意的前提下润色以下文字：\n1. '));
   assert.equal(x.kind,'success');report.emptyInsert=true;
   await sleep(760);
   await evalChrome('(()=>{const f=document.querySelector("#mockDraft");f.value="已有内容";f.setSelectionRange(4,4);})()');
-  await click('.prompt-use');x=await state();assert(x.draft.startsWith('已有内容'));report.preservedExisting=true;
+  await click('#pageRail .page-shortcut:nth-child(2)');x=await state();assert(x.draft.startsWith('已有内容'));report.preservedExisting=true;
   await click('.prompt-actions button[aria-label^="更多操作"]');
   assert.equal(await evalChrome('document.activeElement?.getAttribute("aria-label")?.startsWith("编辑：")'),true);
   await click('.prompt-more button[aria-label^="编辑："]');
@@ -515,7 +547,7 @@ async function run(){
   assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),4);
   report.iconActionsReorderToggleDelete=true;report.managementSeparate=true;
   // R3.7: real native PNG file input, pixel decode, preview storage and reload.
-  await click('.prompt-card:nth-child(2) .prompt-actions button');
+  await click('.prompt-card:nth-child(2) .prompt-actions button[aria-label^="更多操作"]');
   await click('.prompt-more button[aria-label^="编辑："]');
   await click('label:has(#imageSourceLocal)');
   assert.equal(await evalChrome('!document.querySelector("#imageUploadControls").hidden'),true);
@@ -653,7 +685,7 @@ async function run(){
   }.toString()+')()');
   assert.equal(persistedImageRow?.imageAssetId,uploadEvidence.id,
     'expected saved local asset is still attached to a persisted prompt');
-  await click('.prompt-card[data-id="'+persistedImageRow.id+'"] .prompt-actions button');
+  await click('.prompt-card[data-id="'+persistedImageRow.id+'"] .prompt-actions button[aria-label^="更多操作"]');
   await click('.prompt-more button[aria-label^="编辑："]');
   const reopened=await evalChrome('('+function(){
     const rows=JSON.parse(localStorage.getItem('opendesk.prompt-shortcuts.preview.items-r3'));
@@ -761,7 +793,7 @@ async function run(){
   // The preview deliberately debounces repeated activation of one prompt for 650ms.
   // Reaching the clipboard-failure scenario requires a fresh real user click.
   await sleep(700);
-  await click('.prompt-use');
+  await click('#pageRail .page-shortcut:nth-child(2)');
   await poll('document.querySelector("#panelStatus").dataset.kind==="error"','double-failure notice');
   x=await state();assert.match(x.notice,/安全停止：模拟编辑器与剪贴板均不可用/);assert.equal(x.copyDialog,false);
   report.simulatedFailure=true;
