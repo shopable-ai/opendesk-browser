@@ -89,6 +89,21 @@ jobs:
           version=$(node -p "JSON.parse(require('fs').readFileSync('examples/sidebar-tools/stay-focus/tool.config.json','utf8')).version")
           test -s "artifacts/sidebar-tools/stay-focus/$version/stay-focus.opendesk-tool.json"
           sha256sum "artifacts/sidebar-tools/stay-focus/$version/stay-focus.opendesk-tool.json"
+      # Staging is confined to the throwaway CI checkout. The committed official
+      # JSON is NOT published here; Native/Release retain separate acceptance.
+      # Verify the already Node-tested React candidate through the original
+      # promotion and source-identity gate before running WXT's official packer.
+      # The reverse order wrongly checks a stale committed JSON (28393 bytes)
+      # against a newly compiled candidate and blocks all independent evidence.
+      - name: Stage Node-tested Stay Focus candidate for full build (CI only)
+        run: |
+          version=$(node -p "JSON.parse(require('fs').readFileSync('examples/sidebar-tools/stay-focus/tool.config.json','utf8')).version")
+          candidate="artifacts/sidebar-tools/stay-focus/$version/stay-focus.opendesk-tool.json"
+          npm run build:sidebar-tool -- examples/sidebar-tools/stay-focus --promote-from "$candidate"
+          npm run build:sidebar-tool -- examples/sidebar-tools/stay-focus --check-project
+          cmp "$candidate" examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json
+          test "$(find examples/sidebar-tools/stay-focus -maxdepth 1 -name '*.opendesk-tool.json' | wc -l)" -eq 1
+          sha256sum examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json
       - name: Full source security and both production/development WXT packages
         run: |
           npm run check
@@ -98,15 +113,8 @@ jobs:
           sha256sum dist/production/sw.js
           wc -c dist/production/sw.js
           sha256sum dist/production/official-tools/stay-focus/stay-focus.opendesk-tool.json
-      - name: Prepare tested Stay Focus candidate for native verification (not final release)
-        run: |
-          version=$(node -p "JSON.parse(require('fs').readFileSync('examples/sidebar-tools/stay-focus/tool.config.json','utf8')).version")
-          candidate="artifacts/sidebar-tools/stay-focus/$version/stay-focus.opendesk-tool.json"
-          npm run build:sidebar-tool -- examples/sidebar-tools/stay-focus --promote-from "$candidate"
-          npm run build:sidebar-tool -- examples/sidebar-tools/stay-focus --check-project
-          cmp "$candidate" examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json
-          test "$(find examples/sidebar-tools/stay-focus -maxdepth 1 -name '*.opendesk-tool.json' | wc -l)" -eq 1
-          sha256sum examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json
+          cmp "artifacts/sidebar-tools/stay-focus/$(node -p "JSON.parse(require('fs').readFileSync('examples/sidebar-tools/stay-focus/tool.config.json','utf8')).version")/stay-focus.opendesk-tool.json" \
+            dist/production/official-tools/stay-focus/stay-focus.opendesk-tool.json
       - name: Preserve exact candidate for native Mac (not acceptance yet)
         uses: actions/upload-artifact@v4
         with:

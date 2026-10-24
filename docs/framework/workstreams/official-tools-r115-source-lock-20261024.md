@@ -11,3 +11,5 @@
 - 未完成：Prompt 页面原始 rail 几何 8/32 场景失败；Stay Focus 正式旧包与 React 编译候选字节不一致；Time Review 合法旧版安装升级 Native；AdBlock HTTP/DNR Native 实测；十二项完整发行门禁。Stay Focus Ed25519 信任锚尚待真实发布者批准，远程升级 BLOCKED。
 
 - 2026-10-24 第二处共同构建阻断：Time Review 与 AdBlock 新 CI 在 Prompt 来源锁关闭后，命中 Reading TOC `trusted/page.js` 精确锁漂移。审阅原锁 `7a533736...` 到当前 `181ea70e...` 的完整差异只有两处：可信测量成功时返回 `installationEpoch: installEpoch`；向原 Analytics Host 的 `reading_toc.navigated` 消息传递相同值。`navigate` 的 Storage/权限/撤权代次复核以及 `src/analytics/host.js` 的独立 official-install/epoch/page-document 核查均保留；无需扩大来源白名单或扩展权限。对应精确锁已同步，但 Chrome 业务与完整发行继续 NOT_TESTED。
+
+- Stay Focus CI 源码顺序修复：正式源码/预览对齐之后，原作业先定向 Node，再生成独立发行候选；原流程却在 `--promote-from` 之前执行 WXT 官方包完整性门禁，导致旧正式包与新候选不同必定失败。现将经 Node 检查的候选在**临时 CI checkout** 内经既有 `--promote-from`、`--check-project`、`cmp` 分阶段验证，再执行 WXT build/verify 并再次比较 dist 官方字节；不更新 main 上的正式 JSON，不替代 Native、跨工具 release gate 和发布者签名。
