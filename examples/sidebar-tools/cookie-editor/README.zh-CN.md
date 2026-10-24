@@ -6,7 +6,9 @@
 
 导出仍必须先取得原有站点及授权代际绑定的一次性 Intent；身份、点击或授权拒绝时，不读取 Cookie 值、不尝试其他导出通道、不自动重试。JSON、Cookie Header 和无值 JSON 元数据的复制/下载经定向 Controller 测试覆盖，原分区 Cookie 的 Header 无损限制保留。未修改共享 Host、Authority 或权限模型。
 
-唯一正式包为 `cookie-editor.opendesk-tool.json`，125893 字节，SHA-256 `892887021f7135301bf40e171197f1352923e7339b4fd71489bcb1ee0e0c5202`；经原打包器候选门禁、显式晋升及同源检查。系统 Chrome 已完成安装；**安装成功不等于实际导出已通过**。旧授权记录仅包含 `https://chatgpt.com` 与 `http://127.0.0.1:43111`，升级后的当前官方入口要求全站 Cookie 管理授权，范围更广，尚未批准，因此修复版真实复制/下载为 **NOT_TESTED**。2.0.38 为本轮已被 2.0.39 替换的中间安装版本，不保留第二份正式 JSON。
+唯一正式包为 `cookie-editor.opendesk-tool.json`，125893 字节，SHA-256 `892887021f7135301bf40e171197f1352923e7339b4fd71489bcb1ee0e0c5202`；经原打包器候选门禁、显式晋升及同源检查。系统 Chrome 已完成安装。旧授权记录仅包含 `https://chatgpt.com` 与 `http://127.0.0.1:43111`；用户随后明确同意新版的全站 Cookie 管理范围，当前真实入口已授权可用。2.0.38 为本轮已被 2.0.39 替换的中间安装版本，不保留第二份正式 JSON。
+
+系统 Chrome 开发环境原生复测（扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，已连接既有开发服务；非 production 验收）：在 `http://127.0.0.1:43111/demo-form.html` 通过 Cookie Editor 新建 `opendesk_export_check=fixture-20261024`，JSON 与 Cookie Header 的包含值复制、下载均 **PASS**。复制内容粘贴至本地页面控件核对；JSON 可解析，下载文件显示完成且文件内容中的测试值一致。取消“包含 Cookie 值”后的 JSON 复制亦 **PASS**，可解析且没有 `value` 字段或测试值。未导出 ChatGPT 登录 Cookie；本轮创建的测试 Cookie 已通过原界面删除，既有本地 Cookie 保留。分区 Cookie、其他网站与 production 包未在本轮原生复测。
 
 定向验证：
 
