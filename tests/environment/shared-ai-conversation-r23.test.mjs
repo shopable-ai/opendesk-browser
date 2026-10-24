@@ -60,10 +60,11 @@ test('R2.3 provider settings expose two sources, keep native-sized selectors and
  assert.match(css,/\.od-shared-provider-form input\[type=radio\],\.od-shared-provider-form input\[type=checkbox\]\{/);
  assert.match(css,/flex:0 0 16px;width:16px;min-width:16px;max-width:16px/);
  assert.match(sheet,/providerSettings\.updateSettings\(patch\)/);
+ assert.match(sheet,/savedSource\|\|inferredSource/,'unchanged configured protocol wins over a URL hint');
  assert.match(sheet,/selectedHttpsSource/);
  assert.match(sheet,/option value="custom_https"/);
  assert.match(sheet,/option value="cloud_responses"/);
- assert.match(sheet,/if\(clearKey\)patch\.apiKey=''/);
+ assert.match(sheet,/if\(external&&clearKey\)patch\.apiKey=''/);
 });
 
 test('R2.3 infer known HTTPS protocol paths only; unknown custom paths require explicit selection',()=>{
