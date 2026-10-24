@@ -140,7 +140,12 @@ test('R1.16.3 formal nav uses one lower-right dock while preserving switches and
   assert.doesNotMatch(html,/data-scroll-nav=/);
   assert.doesNotMatch(preview,/data-scroll-nav-preview=/);
   assert.match(page,/regionDirections:\{top:navigationSettings\.regionTop,bottom:navigationSettings\.regionBottom\}/);
-  assert.match(page,/floatingHost\.style\.cssText='position:fixed;right:18px/);
+  assert.match(page,/floatingHost\.style\.cssText='position:fixed;left:0;top:0/);
+  assert.match(page,/const positionFloating=\(\)=>/);
+  assert.match(page,/bounds\.left\+\(compact\?4:/);
+  assert.doesNotMatch(page,/position:fixed;right:18px/);
+  assert.match(preview,/class="page-rail-group" id="pageRailGroup"/);
+  assert.match(preview,/\.mock-conversation-nav\{position:static/);
   const mockRail=preview.slice(preview.indexOf(' function renderRail(){'),
     preview.indexOf(' function positionWebTip(){'));
   assert.doesNotMatch(mockRail,/conversationTop|conversationBottom|floatingTop/);

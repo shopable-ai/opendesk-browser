@@ -560,10 +560,19 @@ try{
     '})()');
   await poll('window.__floatingRoot?.host?.isConnected && '+
     'window.__floatingRoot.querySelectorAll(".stack button").length===2',
-    'right-bottom conversation dock has two buttons in real Chromium');
+    'left-below-rail conversation dock has two buttons in real Chromium');
   const dockLabels=await evaluate('Array.from(window.__floatingRoot.querySelectorAll(".stack button"))'+
     '.map(button=>button.getAttribute("aria-label"))');
   assert.deepEqual(dockLabels,['回到对话顶部','跳到对话底部']);
+  const dockPlacement=await evaluate('(()=>{'+
+    'const rail=window.__railRoot.querySelector(".rail").getBoundingClientRect();'+
+    'const dock=document.querySelector("[data-opendesk-prompts-floating]");'+
+    'const rect=dock.getBoundingClientRect();'+
+    'return {below:rect.top>=rail.bottom+6&&rect.top<=rail.bottom+10,'+
+    'left:rect.left>=rail.left-1&&rect.left<=rail.right+1,'+
+    'visible:getComputedStyle(dock).visibility==="visible"};})()');
+  assert.deepEqual(dockPlacement,{below:true,left:true,visible:true},
+    'dock must sit immediately beneath the injected shortcut rail');
   assert.equal(await evaluate('document.querySelector("[data-opendesk-prompts-floating]")'+
     '.closest("[data-opendesk-prompts]")===null'),true,
     'whole-conversation dock must never become a child of the prompt rail');

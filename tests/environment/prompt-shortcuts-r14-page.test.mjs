@@ -2248,7 +2248,7 @@ test('R2.15 390px fallback aligns above composer, never overlays the input',asyn
     f.events.get('resize')();await settle();
     assert.equal(f.rail().classList.contains('horizontal'),true);
     assert.equal(f.host().style.left,'24px');
-    assert.equal(f.host().style.top,'630px');
+    assert.equal(f.host().style.top,'580px','reserve room for compact navigation below shortcuts');
     assert.equal(f.host().style.transform,'none');
     assert.equal(f.host().hidden,false);
     f.editor.getBoundingClientRect=()=>regionRect(24,42,342,75);
@@ -2441,32 +2441,29 @@ test('Host probes real custom-site adapter for failures and fallback, then block
 
 const floatingHost=f=>f.doc.querySelector('[data-opendesk-prompts-floating]');
 
-test('R1.16.1 floating edge-only native-control overlap moves the entire dock clear',async()=>{
+test('R1.16.1 the conversation dock sits beneath the left rail and respects native controls',async()=>{
   const f=await jumpPage();
   try{
-    await settle();assert(floatingHost(f),'long scrolled conversation starts with a floating button');
-    const native=f.element('button');native.setAttribute('aria-label','跳到最新消息');
-    // Composer top=480 gives bottom=300: floating rectangle x=1306..1348,
-    // y=426..468. This native control covers only its right edge, not its centre.
-    const bounds=regionRect(1344,436,20,20);
-    native.getBoundingClientRect=()=>bounds;f.doc.body.append(native);
-    const centre={x:f.win.innerWidth-39,y:447};
-    assert(centre.x<bounds.left,'native control does not cover the floating centre');
-    f.doc.elementsFromPoint=(x,y)=>!native.hidden&&x>=bounds.left&&x<=bounds.right&&
-      y>=bounds.top&&y<=bounds.bottom?[native]:[];
+    await settle();
+    const rail=f.rail();
+    rail.getBoundingClientRect=()=>regionRect(275,200,52,180);
+    f.events.get('scroll')?.();await settle();
+    const dock=floatingHost(f);assert(dock);
+    assert.equal(dock.style.left,'280px');
+    assert.equal(dock.style.top,'388px','8px beneath rail');
+    assert.equal(dock.style.visibility,'visible');
+
+    const native=f.element('button');
+    native.setAttribute('aria-label','网站按钮');
+    native.getBoundingClientRect=()=>regionRect(318,408,24,20);
+    f.doc.body.append(native);
     f.mutate([{target:f.doc.body,addedNodes:[native]}]);await settle();
-    const moved=floatingHost(f);assert(moved,'available space keeps the dock visible');
-    assert(Number.parseInt(moved.style.bottom)>300,'edge collision shifts the dock upwards');
-    const buttons=moved.shadow.querySelectorAll('button');
-    for(let index=0;index<buttons.length;index++){
-      const bottom=f.win.innerHeight-Number.parseInt(moved.style.bottom)-(buttons.length-1-index)*48;
-      assert(bottom<=bounds.top||bottom-42>=bounds.bottom||
-        f.win.innerWidth-18<=bounds.left||f.win.innerWidth-60>=bounds.right,
-        'each entire button rectangle clears the native control');
-    }
+    assert.equal(floatingHost(f)?.style.visibility,'hidden',
+      'a native button touching the new dock has precedence');
+
     native.hidden=true;
     f.mutate([{type:'attributes',attributeName:'hidden',target:native}]);await settle();
-    assert.equal(floatingHost(f)?.style.bottom,'300px','hidden native controls do not reserve the floating position');
+    assert.equal(floatingHost(f)?.style.visibility,'visible');
   }finally{f.controller.dispose();}
 });
 
