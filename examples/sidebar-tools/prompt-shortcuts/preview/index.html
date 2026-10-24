@@ -77,10 +77,14 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .demo-reply-actions button{border:1px solid var(--stage-line);border-radius:10px;background:var(--stage-bubble);
  color:var(--stage-ink);width:36px;height:36px;font-size:21px;cursor:pointer}
 .demo-reply-actions button:hover{filter:brightness(.96)}
-.demo-reply-actions button[hidden],#mockFloatingTop[hidden]{display:none!important}
-#mockFloatingTop{position:absolute;bottom:14px;right:16px;z-index:5;width:42px;height:42px;
+.demo-reply-actions button[hidden],.mock-conversation-nav[hidden],
+.mock-conversation-nav button[hidden]{display:none!important}
+.mock-conversation-nav{position:absolute;bottom:14px;right:16px;z-index:5;
+ display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
+.mock-conversation-nav button{pointer-events:auto;width:42px;height:42px;
  background:var(--ps-rail-bg);color:var(--ps-button-fg);border:1px solid var(--ps-rail-border);
  box-shadow:var(--ps-rail-shadow);border-radius:14px;font-size:23px;cursor:pointer}
+.mock-conversation-nav button:disabled{opacity:.48;cursor:default}
 .preview-scroll-settings{margin:0 0 10px;padding:8px 10px}
 .preview-scroll-settings summary{cursor:pointer;font-size:12px;font-weight:650}
 .preview-scroll-settings summary small{color:var(--od-sub);font-weight:400;margin-left:5px}
@@ -594,7 +598,10 @@ border:0;background:transparent;color:var(--od-sub)}
        <div id="demoLongText"></div><div id="demoReplyEnd"></div>
      </article>
     </div>
-    <button id="mockFloatingTop" type="button" aria-label="右下角返回对话顶部" title="右下角返回对话顶部" hidden>↑</button>
+    <nav class="mock-conversation-nav" id="mockConversationNav" aria-label="对话滚动导航" hidden>
+     <button id="mockConversationTop" type="button" aria-label="回到对话顶部" title="回到对话顶部">↑</button>
+     <button id="mockConversationBottom" type="button" aria-label="跳到对话底部" title="跳到对话底部">↓</button>
+    </nav>
    </div>
    <div class="web-compose"><div id="mockComposer" data-composer-zone="true"><textarea id="mockDraft" aria-label="模拟 ChatGPT 草稿输入框" placeholder="点击左侧按钮，将完整提示词插入此模拟草稿……"></textarea></div><div class="web-compose-foot"><span>仅插入文本，不自动发送</span><span>⌘ / Ctrl + Enter 不执行发送</span></div></div>
   </div>
@@ -660,6 +667,10 @@ border:0;background:transparent;color:var(--od-sub)}
        <div class="preview-scroll-group"><strong>单条长内容</strong>
          <label>回到内容开头<span class="switch"><input type="checkbox" role="switch" data-scroll-nav-preview="regionTop" checked><span class="switch-track"></span></span></label>
          <label>跳到内容末尾<span class="switch"><input type="checkbox" role="switch" data-scroll-nav-preview="regionBottom" checked><span class="switch-track"></span></span></label>
+       </div>
+       <div class="preview-scroll-group"><strong>整段对话</strong>
+         <label>回到对话顶部<span class="switch"><input type="checkbox" role="switch" data-scroll-nav-preview="conversationTop" checked><span class="switch-track"></span></span></label>
+         <label>跳到对话底部<span class="switch"><input type="checkbox" role="switch" data-scroll-nav-preview="conversationBottom" checked><span class="switch-track"></span></span></label>
        </div>
        <div class="preview-scroll-group"><strong>悬浮按钮</strong>
          <label>右下角返回顶部<span class="switch"><input type="checkbox" role="switch" data-scroll-nav-preview="floatingTop" checked><span class="switch-track"></span></span></label>
@@ -1746,12 +1757,20 @@ border:0;background:transparent;color:var(--od-sub)}
      demoTranscript.scrollHeight>demoTranscript.clientHeight+120);
  }
  function updateDemoFloating(){
-   const ready=demoNavigationReady(resolveSite());
-   el('mockFloatingTop').hidden=!ready||!state.settings.scrollNavigation.floatingTop||
-     demoTranscript.scrollTop<=Math.max(180,demoTranscript.clientHeight*.55);
+   const active=demoNavigationReady(resolveSite())&&installed&&state.toolEnabled&&state.settings.showBar;
+   const flags=state.settings.scrollNavigation;
+   const fallbackTop=flags.floatingTop&&
+     demoTranscript.scrollTop>Math.max(180,demoTranscript.clientHeight*.55);
+   const showTop=flags.conversationTop||fallbackTop;
+   const showBottom=flags.conversationBottom;
+   const nav=el('mockConversationNav'),top=el('mockConversationTop'),bottom=el('mockConversationBottom');
+   nav.hidden=!active||(!showTop&&!showBottom);
+   top.hidden=!showTop;bottom.hidden=!showBottom;
+   top.dataset.scrollNavKey=flags.conversationTop?'conversationTop':'floatingTop';
+   top.disabled=demoTranscript.scrollTop<=2;
+   bottom.disabled=demoTranscript.scrollTop>=demoTranscript.scrollHeight-demoTranscript.clientHeight-2;
  }
  function renderDemoNavigation(result){
-   // Reply-region controls and the lower-right floating button remain independent.
    const active=demoNavigationReady(result)&&installed&&state.toolEnabled&&state.settings.showBar;
    const flags=state.settings.scrollNavigation;
    el('demoReplyTop').hidden=!active||!flags.regionTop;
@@ -1760,7 +1779,8 @@ border:0;background:transparent;color:var(--od-sub)}
  }
  el('demoReplyTop').addEventListener('click',()=>demoScroll('top','region'));
  el('demoReplyBottom').addEventListener('click',()=>demoScroll('bottom','region'));
- el('mockFloatingTop').addEventListener('click',()=>demoScroll('top','conversation'));
+ el('mockConversationTop').addEventListener('click',()=>demoScroll('top','conversation'));
+ el('mockConversationBottom').addEventListener('click',()=>demoScroll('bottom','conversation'));
  demoTranscript.addEventListener('scroll',updateDemoFloating,{passive:true});
  const renderRailOriginal=renderRail;
  renderRail=function(){

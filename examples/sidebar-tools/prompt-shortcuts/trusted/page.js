@@ -92,12 +92,12 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   let composing=false,inserting=false,lastAttempt=0,lastAttemptId=null;
   let activeRule=null,picker=null;
   let navigationSettings=MODEL.navigationSettings();
-  let floatingHost=null,floatingButton=null;
+  let floatingHost=null,floatingButtons=null;
   let jump=null,jumpRoot=null,releaseJump=null;
   const stopJump=()=>{
     jump?.dispose();jump=null;jumpRoot=null;
     releaseJump?.();releaseJump=null;
-    floatingHost?.remove();floatingHost=null;floatingButton=null;
+    floatingHost?.remove();floatingHost=null;floatingButtons=null;
   };
   const syncJump=()=>{
     const deepSeek=activeRule?.builtin==='deepseek'&&deepSeekConversation(win.location.href);
@@ -316,54 +316,93 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
         s.display!=='none'&&s.visibility!=='hidden';
     });
   };
+  const clearFloating=()=>{
+    floatingHost?.remove();floatingHost=null;floatingButtons=null;
+  };
   const updateFloating=context=>{
     const scroller=context?.scroller;
-    if(!navigationSettings.floatingTop||!scroller||
-        scroller.scrollTop<=Math.max(320,Math.min(win.innerHeight,scroller.clientHeight)*.65)||
-        nativeTopVisible()){
-      floatingHost?.remove();floatingHost=null;floatingButton=null;return;
-    }
+    if(!scroller){clearFloating();return;}
+    // Keep both historic settings: conversationTop is the persistent action,
+    // floatingTop remains a scroll-triggered fallback. Never draw duplicate tops.
+    const floatingReady=navigationSettings.floatingTop&&
+      scroller.scrollTop>Math.max(320,Math.min(win.innerHeight,scroller.clientHeight)*.65);
+    const showTop=(navigationSettings.conversationTop||floatingReady)&&!nativeTopVisible();
+    const showBottom=navigationSettings.conversationBottom;
+    if(!showTop&&!showBottom){clearFloating();return;}
+    const topKey=navigationSettings.conversationTop?'conversationTop':'floatingTop';
+    const directions=[
+      ...(showTop?[{direction:'top',key:topKey}]:[]),
+      ...(showBottom?[{direction:'bottom',key:'conversationBottom'}]:[])
+    ];
     const composer=editor()?.getBoundingClientRect?.();
-    const bottom=composer?.top>win.innerHeight*.5&&composer.top<win.innerHeight
-      ? Math.max(18,Math.round(win.innerHeight-composer.top+12)):18;
-    if(bottom>win.innerHeight*.55){floatingHost?.remove();floatingHost=null;floatingButton=null;return;}
-    // Skip a position occupied by the site's own controls (for example its
-    // "scroll to latest" button). Inspect only the proposed button centre.
-    const overlapsControl=doc.elementsFromPoint?.(Math.max(0,win.innerWidth-39),
-      Math.max(0,win.innerHeight-bottom-21))?.some(node=>{
+    const composerBottom=composer?.top>win.innerHeight*.5&&composer.top<win.innerHeight
+      ?Math.max(18,Math.round(win.innerHeight-composer.top+12)):18;
+    const dockHeight=directions.length*42+(directions.length-1)*6;
+    const maxBottom=Math.min(Math.floor(win.innerHeight*.55),win.innerHeight-dockHeight-8);
+    // Keep all visible controls away from native webpage buttons and inputs.
+    // Shift the entire dock upwards, never move one arrow into the prompt rail.
+    const obstructed=bottom=>directions.some((entry,index)=>{
+      const nodes=doc.elementsFromPoint?.(Math.max(0,win.innerWidth-39),
+        Math.max(0,win.innerHeight-bottom-21-(directions.length-1-index)*48))||[];
+      return [...nodes].some(node=>{
         if(node===floatingHost||node?.getRootNode?.()?.host===floatingHost||
            node?.closest?.('[data-opendesk-prompts-floating]'))return false;
         return Boolean(node?.closest?.('button,[role="button"],input,textarea,[contenteditable="true"]'));
       });
-    if(overlapsControl){floatingHost?.remove();floatingHost=null;floatingButton=null;return;}
+    });
+    let bottom=composerBottom;
+    for(let attempt=0;attempt<5&&bottom<=maxBottom&&obstructed(bottom);attempt++)bottom+=48;
+    if(bottom>maxBottom||obstructed(bottom)){clearFloating();return;}
     if(!floatingHost){
-      floatingHost=doc.createElement('div');
+      floatingHost=doc.createElement('nav');
       floatingHost.setAttribute('data-opendesk-prompts-floating','');
+      floatingHost.setAttribute('aria-label','对话滚动导航');
       floatingHost.style.cssText='position:fixed;right:18px;z-index:2147483599;pointer-events:none;';
       const shadow=floatingHost.attachShadow({mode:'closed'});
       const style=doc.createElement('style');
       style.textContent=`:host{all:initial;color-scheme:light}
         :host(.dark){color-scheme:dark}
+        .stack{display:flex;flex-direction:column;align-items:center;gap:6px}
         button{pointer-events:auto;width:42px;height:42px;border:1px solid #b8c2d44d;
         border-radius:14px;background:#ffffffed;color:#2b3b51;box-shadow:0 4px 18px #0002;
         cursor:pointer;display:grid;place-items:center;padding:0}
         :host(.dark) button{background:#303239ef;color:#f3f4f8;border-color:#ffffff30}
-        button:hover{background:#e8eef8}
-        :host(.dark) button:hover{background:#434a55}
+        button:hover:not(:disabled){background:#e8eef8}
+        :host(.dark) button:hover:not(:disabled){background:#434a55}
+        button:disabled{opacity:.48;cursor:default}
         button:focus-visible{outline:3px solid #4c82ff;outline-offset:2px}
         svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;
         stroke-linecap:round;stroke-linejoin:round}`;
-      floatingButton=doc.createElement('button');floatingButton.type='button';
-      floatingButton.title='回到对话顶部';floatingButton.setAttribute('aria-label','右下角返回对话顶部');
-      const svg=doc.createElementNS('http://www.w3.org/2000/svg','svg');
-      svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
-      const path=doc.createElementNS('http://www.w3.org/2000/svg','path');
-      path.setAttribute('d','M5 4h14M12 20V8m-6 6 6-6 6 6');svg.append(path);floatingButton.append(svg);
-      floatingButton.addEventListener('click',event=>void navigationClick('top','floatingTop',event));
-      shadow.append(style,floatingButton);
+      const stack=doc.createElement('div');stack.className='stack';
+      const make=direction=>{
+        const button=doc.createElement('button');button.type='button';
+        const label=direction==='top'?'回到对话顶部':'跳到对话底部';
+        button.title=label;button.setAttribute('aria-label',label);
+        const svg=doc.createElementNS('http://www.w3.org/2000/svg','svg');
+        svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
+        const path=doc.createElementNS('http://www.w3.org/2000/svg','path');
+        path.setAttribute('d',direction==='top'
+          ?'M5 4h14M12 20V8m-6 6 6-6 6 6'
+          :'M5 20h14M12 4v12m-6-6 6 6 6-6');
+        svg.append(path);button.append(svg);
+        button.addEventListener('click',event=>
+          void navigationClick(direction,button.dataset.scrollNavKey,event));
+        return button;
+      };
+      floatingButtons={stack,top:make('top'),bottom:make('bottom')};
+      shadow.append(style,stack);
     }
-    // Avoid a style attribute mutation on every scroll/layout reconciliation.
-    // The existing document observer would otherwise schedule itself forever.
+    const signature=directions.map(item=>item.direction).join(',');
+    if(floatingHost.dataset.controls!==signature){
+      floatingButtons.stack.replaceChildren(...directions.map(item=>floatingButtons[item.direction]));
+      floatingHost.dataset.controls=signature;
+    }
+    const maxScroll=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
+    for(const {direction,key} of directions){
+      const button=floatingButtons[direction];
+      button.dataset.scrollNavKey=key;
+      button.disabled=direction==='top'?scroller.scrollTop<=2:scroller.scrollTop>=maxScroll-2;
+    }
     if(floatingHost.style.bottom!==bottom+'px')floatingHost.style.bottom=bottom+'px';
     floatingHost.classList.toggle('dark',!!darkTheme());
     if(!floatingHost.isConnected)doc.documentElement?.append(floatingHost);

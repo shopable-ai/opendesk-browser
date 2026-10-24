@@ -115,3 +115,33 @@ test('R1.16 formal management, preview, authority and uninstall cleanup are sour
   assert.doesNotMatch(page,/brand\.title='打开提示词快捷按钮'/);
   assert.doesNotMatch(preview,/title='打开模拟侧边栏管理提示词'/);
 });
+
+test('R1.16.3 formal nav uses one lower-right dock while preserving switches and region toolbar',async()=>{
+  const [page,preview,html]=await Promise.all([
+    readFile(ROOT+'/trusted/page.js','utf8'),readFile(ROOT+'/preview/index.html','utf8'),
+    readFile(ROOT+'/src/index.html','utf8')
+  ]);
+  const render=page.slice(page.indexOf('  function render(){'),page.indexOf('  async function refresh(){'));
+  assert.doesNotMatch(render,/data-scroll-conversation|nav-item|conversationTop|conversationBottom/,
+    'the injected prompt rail must contain saved prompt entries only');
+  assert.match(page,/floatingHost=doc.createElement\('nav'\)/);
+  assert.match(page,/floatingHost.setAttribute\('aria-label','对话滚动导航'\)/);
+  assert.match(page,/const showTop=\(navigationSettings.conversationTop\|\|floatingReady\)&&!nativeTopVisible\(\)/);
+  assert.match(page,/const showBottom=navigationSettings.conversationBottom/);
+  assert.match(page,/const topKey=navigationSettings.conversationTop\?'conversationTop':'floatingTop'/);
+  assert.match(page,/floatingButtons.stack.replaceChildren\(\.\.\.directions.map/);
+  assert.match(page,/navigationClick\(direction,button.dataset.scrollNavKey,event\)/);
+  assert.match(page,/button.disabled=direction==='top'\?/);
+  assert.match(page,/conversationDirections:\{top:false,bottom:false\}/);
+  assert.match(preview,/id="mockConversationNav" aria-label="对话滚动导航"/);
+  assert.match(preview,/id="demoReplyTop"/);
+  assert.match(preview,/id="demoReplyBottom"/);
+  assert.doesNotMatch(preview,/mockFloatingTop|page-shortcut nav-preview/);
+  for(const key of ['conversationTop','conversationBottom']){
+    assert.match(html,new RegExp('data-scroll-nav="'+key+'"'));
+    assert.match(preview,new RegExp('data-scroll-nav-preview="'+key+'"'));
+  }
+  const mockRail=preview.slice(preview.indexOf(' function renderRail(){'),
+    preview.indexOf(' function positionWebTip(){'));
+  assert.doesNotMatch(mockRail,/conversationTop|conversationBottom|floatingTop/);
+});

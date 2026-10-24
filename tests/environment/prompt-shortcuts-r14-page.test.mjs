@@ -554,6 +554,69 @@ async function jumpPage({installed=true,enabled=true,webButtons=true,url=CHATGPT
   return {...f,pkg,row,library,controller,element,conversation,content,scrolls,arrowHosts,arrows,click};
 }
 
+
+test('R1.16.3 real page controller: one independent dock, five switches, boundary, lifecycle',async()=>{
+  const f=await jumpPage();
+  const nav=()=>f.root.children.find(node=>
+    Object.hasOwn(node.attributes,'data-opendesk-prompts-floating'));
+  const buttons=()=>nav()?.shadow?.children.find(node=>node.className==='stack')?.children||[];
+  const labels=()=>buttons().map(button=>button.getAttribute('aria-label'));
+  const defaults={regionTop:true,regionBottom:true,conversationTop:true,
+    conversationBottom:true,floatingTop:true};
+  const setFlags=async changes=>{
+    f.change(PROMPT_DATA_STORE,{library:{...f.library,settings:{webButtons:true,
+      scrollNavigation:{...defaults,...changes}}}});
+    await settle();
+  };
+  try{
+    await settle();
+    assert.equal(f.rail().children.length,1,'the prompt-only rail owns no navigation');
+    assert.equal(nav()?.getAttribute('aria-label'),'对话滚动导航');
+    assert.deepEqual(labels(),['回到对话顶部','跳到对话底部']);
+    assert.equal(buttons()[0].dataset.scrollNavKey,'conversationTop',
+      'legacy floatingTop must not create a second top arrow');
+    f.click(buttons()[1]);await settle();
+    assert.equal(f.main.scrollTop,f.main.scrollHeight-f.main.clientHeight,
+      'bottom button scrolls the transcript, not the current AI reply');
+    f.events.get('scroll')?.();await settle();
+    assert.equal(buttons()[1].disabled,true,'bottom edge is disabled');
+    f.click(buttons()[0]);await settle();
+    assert.equal(f.main.scrollTop,0);
+    f.events.get('scroll')?.();await settle();
+    assert.equal(buttons()[0].disabled,true,'top edge is disabled');
+
+    await setFlags({conversationTop:false});
+    assert.deepEqual(labels(),['跳到对话底部'],
+      'historical floatingTop is threshold gated when conversationTop is off');
+    f.main.scrollTop=1200;f.events.get('scroll')?.();await settle();
+    assert.deepEqual(labels(),['回到对话顶部','跳到对话底部']);
+    assert.equal(buttons()[0].dataset.scrollNavKey,'floatingTop',
+      'legacy fallback only reuses the same physical button');
+
+    await setFlags({conversationTop:false,floatingTop:false});
+    assert.deepEqual(labels(),['跳到对话底部']);
+    await setFlags({conversationTop:false,floatingTop:false,conversationBottom:false});
+    assert.equal(nav(),undefined,'all conversation switches off removes the dock');
+    assert.equal(f.rail().children.length,1,'turning navigation off does not remove prompts');
+
+    await setFlags({});
+    assert.equal(buttons().length,2);
+    const native=f.element('button');
+    native.setAttribute('aria-label','返回顶部');
+    native.getBoundingClientRect=()=>regionRect(1150,600,44,44);
+    f.doc.body.append(native);
+    f.events.get('scroll')?.();await settle();
+    assert.deepEqual(labels(),['跳到对话底部'],
+      'a visible native top control suppresses only OpenDesk top, not bottom');
+    native.remove();f.events.get('scroll')?.();await settle();
+    assert.deepEqual(labels(),['回到对话顶部','跳到对话底部']);
+
+    f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});await settle();
+    assert.equal(nav(),undefined,'disable clears the independent dock');
+    assert.equal(f.rail(),undefined,'disable clears prompt rail');
+  }finally{f.controller.dispose();}
+});
+
 test('Prompt jump integration: installed initialization mounts one content arrow; refresh preserves insertion',async()=>{
   const f=await jumpPage();
   try{

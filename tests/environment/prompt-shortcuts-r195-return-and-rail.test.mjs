@@ -13,7 +13,7 @@ function between(source,start,end){
   return source.slice(from,to);
 }
 
-test('R2.17 injected rail contains only saved prompts; original preview matches',async()=>{
+test('R1.16.3 prompt rail and lower-right conversation dock are separate',async()=>{
   const [page,preview,sidepanel]=await Promise.all([
     file('trusted/page.js'),file('preview/index.html'),file('src/index.html')]);
   assert.match(page,/background:var\(--od-rail-bg\);border:1px solid var\(--od-rail-border\);/);
@@ -23,15 +23,17 @@ test('R2.17 injected rail contains only saved prompts; original preview matches'
   assert.match(preview,/for\(const item of active\)/);
   assert.doesNotMatch(page,/compactExpanded|usesCompactMenu|className='brand'|data-scroll-conversation|dataset\.scrollConversation|\.nav-item/);
   assert.doesNotMatch(preview,/previewCompactExpanded|starter-toggle|page-shortcut nav-preview/);
-  assert.doesNotMatch(sidepanel,/data-scroll-nav="conversationTop"|data-scroll-nav="conversationBottom"/,
-    'removed controls must not retain dead switches in official management UI');
-  assert.doesNotMatch(preview,/data-scroll-nav-preview="conversationTop"|data-scroll-nav-preview="conversationBottom"/);
-  assert.match(page,/navigationClick\('top','floatingTop',event\)/,
-    'independent lower-right floating return-to-top is preserved');
-  assert.match(preview,/el\('mockFloatingTop'\)\.addEventListener\('click'/,
-    'preview keeps the standalone lower-right control');
-  assert.match(preview,/el\('demoReplyBottom'\)\.addEventListener\('click'/,
-    'preview keeps reply-region navigation');
+  for(const key of ['conversationTop','conversationBottom']){
+    assert.match(sidepanel,new RegExp('data-scroll-nav="'+key+'"'),
+      'the official manager retains each independent conversation setting');
+    assert.match(preview,new RegExp('data-scroll-nav-preview="'+key+'"'));
+  }
+  assert.match(page,/floatingHost=doc.createElement\('nav'\)/);
+  assert.match(page,/const showBottom=navigationSettings.conversationBottom/);
+  assert.match(page,/const topKey=navigationSettings.conversationTop\?'conversationTop':'floatingTop'/);
+  assert.match(preview,/id="mockConversationNav"/);
+  assert.match(preview,/el\('mockConversationBottom'\)\.addEventListener\('click'/);
+  assert.match(preview,/el\('demoReplyBottom'\)\.addEventListener\('click'/);
   assert.doesNotMatch(page,/insert\(row,event\)\.finally/);
   assert.doesNotMatch(preview,/usePrompt\(item\)\.finally/);
 });
