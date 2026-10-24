@@ -178,9 +178,12 @@ const initialPlan=()=>({
   revision:1,params:{query:'PRIVATE_VALUE_DO_NOT_SEND',limit:2},
   targetUrl:'https://example.com/',openIfMissing:false,timezone:'Asia/Tokyo',
   triggerKind:'daily',triggerSpec:{hour:9,minute:0},misfirePolicy:'skip',
-  startDeadlineMs:300000,paused:false,owner:null
+  startDeadlineMs:300000,paused:false,owner:null,
+  // The real Schedule Repository persists the Scheduler-computed nextDueAt.
+  nextDueAt:Date.UTC(2030,0,1,0,0)
 });
-function editRig(proposals,{permission=true,uncertain=false,staleReadback=false,holdSave=false}={}){
+function editRig(proposals,{permission=true,uncertain=false,staleReadback=false,
+  missingNextDueAt=false,holdSave=false}={}){
   let plan=initialPlan(),installedGeneration=1,saveCount=0,proposalCount=0,latestInput=null;
   let grant=permission,unclear=uncertain,readStale=false,releaseSave=()=>{},enteredSave=()=>{};
   const gate=holdSave?new Promise(resolve=>{releaseSave=resolve;}):Promise.resolve();
@@ -207,6 +210,11 @@ function editRig(proposals,{permission=true,uncertain=false,staleReadback=false,
           throw Object.assign(new Error('version conflict'),{code:'E_REVISION'});
         plan={...plan,...structuredClone(payload),generation:plan.generation+1};
         delete plan.expectedGeneration;
+        // Host fixture emulates a fresh persisted Scheduler read, not a model
+        // prediction. Daily 09:00 Japan = 00:00 UTC for the fixed sample date.
+        plan.nextDueAt=missingNextDueAt?null:plan.paused?null:
+          plan.triggerKind==='daily'?Date.UTC(2030,0,1,
+            plan.triggerSpec.hour-9,plan.triggerSpec.minute):Date.UTC(2030,0,1,0,0);
         readStale=true;
         if(unclear)throw Object.assign(new Error('Host disconnected after submit'),{code:'E_DISCONNECTED'});
         return {scheduleId:plan.scheduleId};
@@ -264,7 +272,37 @@ test('AI edits an existing plan by CAS saveSchedule, preserving immutable identi
   assert.equal(x.latestInput.sourceHash,sourceHash);
   assert.equal(x.latestInput.installationId,installId);
   assert.equal(x.latestInput.taskGeneration,1);
-  assert.match(x.agent.getSnapshot().rows.map(v=>v.message).join(' '),/已更新并重新读取验证/);
+  assert.equal(x.plan.nextDueAt,Date.UTC(2030,0,1,1,30));
+  const message=x.agent.getSnapshot().rows.map(v=>v.message).join(' ');
+  assert.match(message,/已更新并重新读取验证/);
+  assert.match(message,/下次触发：.*10:30.*Asia\/Tokyo/);
+  x.agent.dispose();
+});
+
+test('editing daily 09:00 to 10:00 reports the independently read Scheduler next due',async()=>{
+  const x=editRig([{actions:[{type:'edit_schedule',scheduleId:'plan1',
+    changes:{triggerSpec:{hour:10,minute:0}}}]},
+    {question:'已核对新的时间'}]);
+  await x.agent.send('把每天上午9点执行的计划改到10点',trusted);
+  assert.equal(x.agent.getSnapshot().status,'review');
+  await x.agent.confirm(trusted);
+  assert.equal(x.saveCount,1);
+  assert.equal(x.plan.generation,4);
+  assert.equal(x.plan.nextDueAt,Date.UTC(2030,0,1,1,0));
+  assert.match(x.agent.getSnapshot().rows.map(v=>v.message).join(' '),
+    /下次触发：.*10:00.*Asia\/Tokyo/);
+  x.agent.dispose();
+});
+
+test('daily edit with missing Scheduler nextDueAt remains unknown, not successful',async()=>{
+  const x=editRig([{actions:[{type:'edit_schedule',scheduleId:'plan1',
+    changes:{triggerSpec:{hour:10,minute:0}}}]}],{missingNextDueAt:true});
+  await x.agent.send('把早上九点改到十点',trusted);
+  await x.agent.confirm(trusted);
+  assert.equal(x.saveCount,1);
+  const message=x.agent.getSnapshot().rows.map(v=>v.message).join(' ');
+  assert.match(message,/下次触发时间无法独立核实/);
+  assert.doesNotMatch(message,/已更新并重新读取验证/);
   x.agent.dispose();
 });
 
