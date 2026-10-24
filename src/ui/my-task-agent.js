@@ -1,6 +1,7 @@
 import {validateTaskParams} from '../platform/tasks/contract.js';
 import {createConversationSession} from './conversation/session.js';
 import {validateScheduleInput} from '../platform/tasks/schedule-contract.js';
+import {nextScheduleAt} from '../platform/tasks/schedule-time.js';
 import {permissionPattern} from '../environment.js';
 import {decodeValue} from '../platform/page-port/codec.js';
 import {presentTaskValue} from './task-run-diagnostics.js';
@@ -460,9 +461,17 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
       // A daily active plan always has a Scheduler-computed next fire time.
       // Do not claim the 09:00 -> 10:00 edit is fully verified if its next
       // trigger cannot be independently read back from the Host.
-      if(after.triggerKind==='daily'&&!after.paused&&!after.needsAttention&&
-        !Number.isFinite(after.nextDueAt))
-        throw fail('E_OUTCOME_UNKNOWN','计划规则已写入，但下次触发时间无法独立核实；请在计划页面核对，勿直接重试');
+      if(after.triggerKind==='daily'&&!after.paused&&!after.needsAttention){
+        const due=after.nextDueAt;
+        let valid=Number.isSafeInteger(due)&&due>0;
+        // Use the existing Scheduler recurrence helper to reject a stale
+        // 09:00 alarm accidentally returned for a newly saved 10:00 plan.
+        // This also respects the Scheduler's DST gap/fold semantics.
+        try{valid=valid&&nextScheduleAt('daily',after.triggerSpec,after.timezone,due-1)===due;}
+        catch{valid=false;}
+        if(!valid)throw fail('E_OUTCOME_UNKNOWN',
+          '计划规则已写入，但下次触发时间无法独立核实；请在计划页面核对，勿直接重试');
+      }
       onScheduleChange();
       return {scheduleId:after.scheduleId,title:after.title,paused:after.paused,
         generation:after.generation,timezone:after.timezone,
