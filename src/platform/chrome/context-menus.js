@@ -1131,7 +1131,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(allSites&&enabled&&!await admittedOfficialCookie(tool))
           throw failure('E_OWNER','All-site Cookie consent requires the exact official release');
         if(siteCapability==='all'
-          ?!tool.capabilities.some(name=>name.startsWith('browser.cookies.'))
+          ?!tool.capabilities.some(name=>name.startsWith('browser.cookies.'))||
+            enabled&&!allSites&&tool.id!=='cookie-editor'
           :!tool.capabilities.includes('browser.cookies.'+siteCapability))
           throw failure('E_TOOL_CAPABILITY_REQUIRED');
         const site=enabled?parsedHttp(document?.url)?.origin:parsedHttp(origin)?.origin;
