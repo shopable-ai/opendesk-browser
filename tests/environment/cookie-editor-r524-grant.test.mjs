@@ -70,14 +70,14 @@ test('R5.38 Cookie Editor keeps infrequent app stop out of its toolbar',async()=
   ]);
   assert.match(view,/const cookieEditorInHost=.*isCookieEditor===true/);
   assert.match(view,/const enableInOverflow=!cookieEditorInHost&&/);
-  assert.match(view,/id="sidebar-tool-header-enable"[\\s\\S]*?hidden=\\{!enableInOverflow\\}/);
+  assert.match(view,/id="sidebar-tool-header-enable"[\s\S]*?hidden=\{!enableInOverflow\}/);
   const card=view.slice(view.indexOf('function CookieSettings('),view.indexOf('function BookmarkSettings('));
   assert.equal((card.match(/id="sidebar-tool-enable"/g)||[]).length,1);
-  assert.match(card,/\\{!firstUse&&<>[\\s\\S]*id="sidebar-tool-enable"/);
+  assert.match(card,/\{!firstUse&&<>[\s\S]*id="sidebar-tool-enable"/);
   assert.ok(card.indexOf('id="sidebar-tool-cookie-other-sites"')<card.indexOf('id="sidebar-tool-enable"'),
     'infrequent app management follows cookie permissions');
-  assert.match(card,/isCookieEditor\\?'应用管理':'使用状态'/);
-  assert.match(center,/add\\(row.enabled\\?'停用应用':'启用应用'/);
-  assert.match(center,/sidebarTools\\.toggleEnabled\\(row\\.id,event\\)/);
+  assert.match(card,/isCookieEditor\?'应用管理':'使用状态'/);
+  assert.match(center,/add\(row.enabled\?'停用应用':'启用应用'/);
+  assert.match(center,/sidebarTools\.toggleEnabled\(row\.id,event\)/);
   assert.doesNotMatch(app,/>停用工具<|>停用应用</);
 });
