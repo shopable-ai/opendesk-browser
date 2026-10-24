@@ -429,6 +429,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         {code:'E_CHROME_PERMISSION_REQUIRED',cause:error});
     });
   }
+  const cookieValuesToggle=view.fields['sidebar-tool-cookie-values-toggle'];
+  patchToolField(view,cookieValuesToggle,{type:'button',className:'od-button od-button--secondary',hidden:true});
   const cookieOtherSites=view.fields['sidebar-tool-cookie-other-sites'];
   patchToolField(view,cookieOtherSites,{className:'sidebar-toc-settings-entries'});
   // Full Bookmarks belongs to the installed package, never inherited from Owned.
@@ -448,7 +450,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const isCookieTool=tool=>Array.isArray(tool?.capabilities)&&
     tool.capabilities.some(cap=>cap.startsWith('browser.cookies.'));
   const cookieRequiredCapabilities=tool=>['read','values','write','observe','clear']
-    .filter(cap=>tool?.capabilities?.includes('browser.cookies.'+cap));
+    .filter(cap=>tool?.capabilities?.includes('browser.cookies.'+cap)&&
+      (tool.id==='cookie-editor'||cap!=='values'));
   const cookieGrantRow=tool=>{
     const row=menuGrants?.[tool?.id];
     return row?.version===tool?.version&&
@@ -485,11 +488,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const managed=cookieHasManageGrant(tool,origin);
     const firstUse=tool?.id==='cookie-editor'&&!managed&&!show&&cookieGrantStatusLoaded;
     const app=(show||firstUse)&&isCookieTool(tool)&&!readOnlyPreview;
-    patchToolField(view,cookiePermissions,{hidden:!app,data:{mode:firstUse?'first-use':'settings'}});
+    patchToolField(view,cookiePermissions,{hidden:!app,
+      data:{mode:firstUse?'first-use':'settings',isCookieEditor:tool?.id==='cookie-editor'}});
     if(!app)return;
     prepareCookieChrome(tool,origin,allSites);
     const record=allSites?cookieAllSiteRecord(tool):cookieSiteBaseRecord(tool,origin);
-    const requested=cookieCaps.filter(([cap])=>tool.capabilities.includes('browser.cookies.'+cap));
+    const requested=cookieCaps.filter(([cap])=>tool.capabilities.includes('browser.cookies.'+cap)&&
+      (tool.id==='cookie-editor'||cap!=='values'));
     const allowed=allSites?globalAllowed:siteAllowed;
     const granted=requested.filter(([cap])=>record?.[cap]===true);
     const partial=Boolean(record?.storeId&&record.grantEpoch&&granted.length&&!allowed);
@@ -506,6 +511,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       '正在核验当前安装包及官方发行来源，请勿重复授权。':!origin?
       '请先打开普通 HTTP/HTTPS 网站，再管理 Cookie 授权。':
       (partial?'此前授权不完整。':'')+description+
+      (tool.id!=='cookie-editor'&&tool.capabilities.includes('browser.cookies.values')?
+        ' 敏感值读取仍由原有可信设置单独授权。':'')+
       (!allSites&&tool?.id==='cookie-editor'?
         ' 当前安装包未通过官方全站授权核验，仅能授权明确选择的网站。':'')});
     patchToolField(view,cookieFirstUse,{hidden:!origin,
@@ -520,6 +527,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         enableReadError||!sidebarToolEnabled(enableRecords,tool.id)||
         !origin||requested.length===0});
     setToolFieldAttribute(view,cookieSiteToggle,'data-enabled',String(allowed));
+    const valueAllowed=cookieSiteRecord(tool,origin)?.values===true;
+    patchToolField(view,cookieValuesToggle,{
+      hidden:tool.id==='cookie-editor'||!managed||firstUse||
+        !tool.capabilities.includes('browser.cookies.values'),
+      textContent:valueAllowed?'撤销敏感值读取授权':'单独授权读取敏感值',
+      disabled:busy||cookieGrantPending||officialPending||!cookieChromeState||
+        enableReadError||!sidebarToolEnabled(enableRecords,tool.id)||!origin});
+    setToolFieldAttribute(view,cookieValuesToggle,'aria-pressed',String(valueAllowed));
     const rows=(firstUse||globalAllowed?[]:Object.entries(menuGrants?.[tool.id]?.cookieSites||{}))
       .filter(([site,row])=>site!==origin&&Object.values(row||{}).some(v=>v===true))
       .map(([site])=>({id:site,text:site,label:'撤销网站权限',disabled:busy||cookieGrantPending}));
@@ -528,7 +543,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       return changeCookieSite({site}).catch(error=>notice((error.code||'E_COOKIE')+'：'+error.message,true));
     });
   }
-  async function changeCookieSite({site=null,enabled=false}={}){
+  async function changeCookieSite({site=null,enabled=false,capability='all'}={}){
     if(!active||!isCookieTool(active)||readOnlyPreview||busy)return;
     const tool=active,hostInstanceId=new URL(globalThis.location.href).searchParams.get('hostInstanceId');
     const current=site||websiteOrigin(currentPageTarget?.snapshot?.url);
@@ -538,7 +553,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       throw Object.assign(new Error('请切换到目标网站的活动 Chrome 标签页'),{code:'E_DOCUMENT_CHANGED'});
     const response=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
       operation:'browser.cookies.userGrant',hostInstanceId,toolId:tool.id,toolVersion:tool.version,
-      installEpoch:revocationEpochs[tool.id]??null,cookieCapability:'all',enabled,origin:current,
+      installEpoch:revocationEpochs[tool.id]??null,cookieCapability:capability,enabled,origin:current,
       ...(snapshot?{document:{
         tabId:snapshot.tabId,windowId:snapshot.windowId,documentId:snapshot.documentId,
         url:snapshot.url,origin:snapshot.origin}}:{})});
@@ -547,15 +562,18 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const latest=(await api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE]||{};
     const row=latest[tool.id],record=row?.cookieSites?.[current];
     const hash=await sidebarToolPackageHash(tool),required=cookieRequiredCapabilities(tool);
-    const verified=enabled?cookieRecordComplete(tool,record):
-      required.every(cap=>record?.[cap]!==true);
+    const verified=capability==='all'
+      ?enabled?cookieRecordComplete(tool,record):
+        ['read','values','write','observe','clear'].every(cap=>record?.[cap]!==true)
+      :record?.[capability]===enabled;
     if(row?.version!==tool.version||row?.packageHash!==hash||
       row?.installEpoch!==(revocationEpochs[tool.id]??null)||!record?.grantEpoch||
       !verified||(enabled&&!record?.partitionKey?.topLevelSite))
       throw Object.assign(new Error('Cookie 网站授权未通过持久化回读核对'),{code:'E_GRANT_READBACK'});
     menuGrants=latest;
     render();
-    notice(enabled?'':'已撤销 '+current+' 的 Cookie 网站权限');
+    notice(enabled?'':capability==='all'?'已撤销 '+current+' 的 Cookie 网站权限':
+      '已撤销 '+current+' 的 '+capability+' 能力');
   }
   async function changeCookieAllSites(tool,enabled){
     const hostInstanceId=new URL(globalThis.location.href).searchParams.get('hostInstanceId');
@@ -601,7 +619,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         throw Object.assign(new Error('授权期间网站或安装实例已改变'),{code:'E_DOCUMENT_CHANGED'});
       if(!restoreChrome){
         if(allSites)await changeCookieAllSites(tool,!revoke);
-        else await changeCookieSite({enabled:!revoke});
+        else if(revoke)await changeCookieSite();
+        else if(tool.id==='cookie-editor')await changeCookieSite({enabled:true});
+        else for(const capability of cookieRequiredCapabilities(tool)){
+          if(active!==tool||instance!==token||websiteOrigin(currentPageTarget?.snapshot?.url)!==origin)
+            throw Object.assign(new Error('工具或当前网站已变化，请重新选择网站'),{code:'E_DOCUMENT_CHANGED'});
+          if(cookieSiteRecord(tool,origin)?.[capability]!==true)
+            await changeCookieSite({capability,enabled:true});
+        }
       }
       if(active===tool&&instance===token){
         // The pre-consent iframe may already have seen a denied read. Replace
@@ -622,6 +647,27 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       notice((error?.code||'E_COOKIE')+'：'+String(error?.message||error).slice(0,185)+
         '。请检查当前授权状态后重试。',true);
     }).finally(()=>{cookieGrantPending=false;cookieChromeKey='';cookieChromeState=null;render();});
+  });
+  // Retain the pre-existing independent Values control for unrelated sandbox
+  // Cookie tools. Cookie Editor never presents or requires this second click.
+  listen(cookieValuesToggle,'click',event=>{
+    if(!event?.isTrusted||cookieGrantPending||busy||readOnlyPreview||
+      active?.id==='cookie-editor'||!cookieChromeState)return;
+    const tool=active,token=instance,origin=websiteOrigin(currentPageTarget?.snapshot?.url);
+    if(!tool||!origin||!cookieHasManageGrant(tool,origin))return;
+    const enable=cookieSiteRecord(tool,origin)?.values!==true;
+    const nativeRequest=enable?requestCookieChrome(event,origin,false):Promise.resolve(true);
+    cookieGrantPending=true;render();
+    void (async()=>{
+      if(await nativeRequest!==true)throw Object.assign(new Error('Chrome Cookie 权限未确认'),
+        {code:'E_CHROME_PERMISSION_REQUIRED'});
+      if(active!==tool||instance!==token||websiteOrigin(currentPageTarget?.snapshot?.url)!==origin)
+        throw Object.assign(new Error('网站或工具已改变'),{code:'E_DOCUMENT_CHANGED'});
+      await changeCookieSite({capability:'values',enabled:enable});
+      if(active===tool&&instance===token){tocSettingsOpen=true;render();notice('');}
+    })().catch(error=>notice('敏感值授权未确认（'+(error?.code||'E_COOKIE')+'）：'+
+      String(error?.message||error).slice(0,140),true))
+      .finally(()=>{cookieGrantPending=false;cookieChromeKey='';cookieChromeState=null;render();});
   });
   const timePermissions=settingsView?createTimeReviewPermissionControls({api,ui:trustedSettingsUI?.timeReview,notice,runOperation:runTrustedTimeReviewOperation}):null;
   const focusPermissions=settingsView&&focus?.createPermissionControls
