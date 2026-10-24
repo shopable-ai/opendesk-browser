@@ -4,7 +4,7 @@
 // Remove this adapter only after a separately verified archival upgrade path.
 import {FOCUS_ID,FOCUS_STORE,FOCUS_ALARM,FOCUS_RULE_FIRST,FOCUS_RULE_LAST,
   focusPackageHash} from '../../../examples/sidebar-tools/stay-focus/trusted/policy.js';
-import {migrateFocusState} from '../../../examples/sidebar-tools/stay-focus/trusted/migrations.js';
+import {migrateLegacyFocusV1Snapshot} from './legacy-focus-v1-snapshot.js';
 import {MARKET_PROVENANCE_STORE} from '../../sidebar-tools/official-reading-toc.js';
 import {sidebarToolPackageHash} from './package.js';
 import {TOOL_REVOCATION_EPOCHS_STORE} from './lifecycle.js';
@@ -67,7 +67,7 @@ export async function prepareLegacyFocusUpgrade({api,existing,candidate,source,
   const oldHash=await focusPackageHash(existing);
   const newHash=await sidebarToolPackageHash(candidate);
   const raw=(await api.storage.local.get(FOCUS_STORE))[FOCUS_STORE];
-  const prepared=migrateFocusState(raw,{at:Date.now()});
+  const prepared=migrateLegacyFocusV1Snapshot(raw,{at:Date.now()});
   // Only the old trusted Worker could have stored this legacy digest/epoch.
   // A missing/revoked pair cannot be recreated from the new package claim.
   const previouslyGranted=prepared.legacyAuthorizedHash===oldHash&&

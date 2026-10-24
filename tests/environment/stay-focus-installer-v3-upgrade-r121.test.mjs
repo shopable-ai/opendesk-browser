@@ -17,6 +17,10 @@ import {emptyFocus}
   from '../../examples/sidebar-tools/stay-focus/trusted/model.js';
 import {matchesManagedSiteV3NativeRules}
   from '../../src/ui/sidebar-tools/legacy-focus-upgrade.js';
+import {migrateLegacyFocusV1Snapshot}
+  from '../../src/ui/sidebar-tools/legacy-focus-v1-snapshot.js';
+import {migrateFocusState}
+  from '../../examples/sidebar-tools/stay-focus/trusted/migrations.js';
 import {desiredManagedSiteV3Rules,managedSiteV3RuleRange}
   from '../../src/platform/chrome/managed-site-v3-rules.js';
 
@@ -270,4 +274,36 @@ test('legacy v3 native handoff verifies complete DNR rule content and owner slot
     'STOP requires no owned rules and keeps foreign rules');
   assert.equal(matchesManagedSiteV3NativeRules(expected,[],slot),false,
     'STOP must reject a leaked active rule');
+});
+
+test('frozen historical Installer decoder matches app-owned legacy migration without privilege imports',async()=>{
+  const at=Date.now();
+  for(const options of [{enabled:true,authorized:true},
+    {enabled:false,authorized:false}]){
+    const value=oldState(options);
+    if(value.enabled)value.authorizedHash='a'.repeat(64);
+    value.notices.thresholds=[10,5];
+    const historical=migrateFocusState(value,{at});
+    const adapter=migrateLegacyFocusV1Snapshot(value,{at});
+    assert.deepEqual(adapter,historical,'settings, pools and reminders must match old product migration');
+    assert.equal(Object.isFrozen(adapter),true);
+    assert.equal(Object.isFrozen(adapter.sealedModel),true);
+  }
+  const withoutNotices=oldState({enabled:false,authorized:false});
+  delete withoutNotices.notices;
+  assert.deepEqual(migrateLegacyFocusV1Snapshot(withoutNotices,{at}),
+    migrateFocusState(withoutNotices,{at}),
+    'very old records without a notice ledger remain accepted');
+  const negative=oldState({enabled:false,authorized:false});
+  negative.usage['g:entertainment']=-1;
+  assert.throws(()=>migrateLegacyFocusV1Snapshot(negative,{at}),
+    {code:'E_MIGRATION_SOURCE'});
+  const adapterSource=await readFile(new URL(
+    '../../src/ui/sidebar-tools/legacy-focus-upgrade.js',import.meta.url),'utf8');
+  assert.doesNotMatch(adapterSource,/stay-focus\/trusted\/migrations\.js/,
+    'privileged Installer must never bundle the mutable app migrator');
+  const historicalBridge=await readFile(new URL(
+    '../../src/ui/sidebar-tools/legacy-focus-v1-snapshot.js',import.meta.url),'utf8');
+  assert.doesNotMatch(historicalBridge,/from ['"][^'"]*examples\/sidebar-tools\//,
+    'the audited finite decoder must not import product JavaScript');
 });
