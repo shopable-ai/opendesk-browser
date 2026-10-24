@@ -23,11 +23,19 @@ export async function workflowFixture(options={}) {
   const requests=[],starts=[],stops=[],owners=[];
   let snapshot=null,pending=null,sequence=0;
   const service={hold:Boolean(options.hold),fail:Boolean(options.fail),corrupt:false,corruptResult:false,beforeJournalRead:null,
-    holdActionStart:false,releaseActionStart:null};
+    holdActionStart:false,releaseActionStart:null,dropVerifiedBundleWrite:Boolean(options.dropVerifiedBundleWrite)};
   const storage=map=>({get:async keys=>keys===null?Object.fromEntries(map):Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(key=>[key,map.get(key)])),
     set:async values=>{for(const [key,value] of Object.entries(values))map.set(key,structuredClone(value));}});
   const permissions=new Set(options.permission===false?[]:[target.origin+'/*']);
   const localStorage=storage(local);
+  // Simulate a storage transport that resolves SET without persisting the
+  // immutable v2 Bundle. This is a failure injection only, never a fake PASS.
+  const localSet=localStorage.set;
+  localStorage.set=async values=>{
+    if(service.dropVerifiedBundleWrite&&Object.values(values).some(row=>
+      row?.format==='opendesk.workflow-segment-bundle.v2'))return;
+    return localSet(values);
+  };
   if(options.savedStorageGate){
     const originalRead=localStorage.get;
     localStorage.get=async keys=>{await options.savedStorageGate();return originalRead(keys);};
