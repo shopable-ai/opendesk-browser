@@ -438,124 +438,139 @@ async function screenshot(page, name, region) {
 
 
 async function captureRealRailGeometry(page, scene) {
-  // Real getBoundingClientRect measurements from the ORIGINAL full HTML.
-  // The inspected rail is not a recreated design sample or a CSS text assertion.
+  // Read real Chrome geometry and hit-testing from the original offline HTML.
+  // Product policy: this rail owns only saved prompts; no OD or transcript arrows.
   const read = () => page.evaluate(() => {
     const rail = document.querySelector('#pageRail');
+    const buttons = [...rail.querySelectorAll(':scope > button')];
     const rect = node => {
       if (!node) return null;
       const r = node.getBoundingClientRect();
-      return {x: r.x, y: r.y, width: r.width, height: r.height, right: r.right, bottom: r.bottom};
+      return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom};
     };
-    const text = rail.querySelector(':scope > .page-shortcut:not(.starter-toggle):not(.has-image)');
+    const text = rail.querySelector(':scope > .page-shortcut:not(.has-image)');
     const image = rail.querySelector(':scope > .page-shortcut.has-image');
     const tip = document.querySelector('#webTooltip');
     const style = getComputedStyle(rail);
-    const buttonStyle = getComputedStyle(rail.querySelector('.starter-toggle'));
+    const buttonStyle = text ? getComputedStyle(text) : null;
     return {
-      rail: rect(rail), text: rect(text), image: rect(image), brand: rect(rail.querySelector('.starter-toggle')),
+      rail: rect(rail), text: rect(text), image: rect(image),
       tip: tip.hidden ? null : rect(tip), area: rect(document.querySelector('#messageArea')),
-      buttons: rail.querySelectorAll(':scope > button').length,
-      managementButtons: [...rail.querySelectorAll(':scope > button')].filter(button =>
-        button.textContent.trim() === '管理' || button.getAttribute('aria-label')?.includes('管理提示词')).length,
-      expanded: rail.querySelector('.starter-toggle')?.getAttribute('aria-expanded') ?? null,
+      buttons: buttons.length,
+      promptButtons: buttons.filter(button => button.getAttribute('aria-label')?.startsWith('插入提示词：')).length,
+      managementButtons: buttons.filter(button => button.textContent.trim()==='管理'||
+        button.getAttribute('aria-label')?.includes('管理提示词')).length,
+      navigationButtons: buttons.filter(button => button.classList.contains('nav-preview')||
+        button.hasAttribute('data-scroll-conversation')).length,
+      strayControls: buttons.filter(button => !button.classList.contains('page-shortcut')||
+        !button.getAttribute('aria-label')?.startsWith('插入提示词：')).length,
       imageSize: rail.dataset.imageSize,
       background: style.backgroundColor, border: style.borderTopWidth, borderColor: style.borderTopColor,
       radius: style.borderTopLeftRadius, gap: style.rowGap, padding: style.paddingLeft, shadow: style.boxShadow,
-      buttonBackground: buttonStyle.backgroundColor, visible: !rail.hidden,
+      buttonBackground: buttonStyle?.backgroundColor, visible: !rail.hidden,
+      scrollHeight: rail.scrollHeight, clientHeight: rail.clientHeight,
     };
   });
-  const close = (actual, expected) => actual != null && Math.abs(actual - expected) <= 1;
-  const initial = await read();
-  scene.railGeometry = {initial};
-  check(scene, 'real DOM: 3 text buttons + OD, no redundant manage button, default expanded',
-    initial.visible && initial.expanded === 'true' && initial.buttons === 4 &&
-    initial.managementButtons === 0, initial);
-  check(scene, 'real DOM: text 38px, intrinsic rail 52px, 6px padding, 5px gap',
-    close(initial.text?.width, 38) && close(initial.text?.height, 38) &&
-    close(initial.brand?.width, 38) && close(initial.rail?.width, 52) &&
-    initial.padding === '6px' && initial.gap === '5px' &&
-    initial.border === '1px' && initial.radius === '17px', initial);
-  const expectedTheme = scene.theme === 'light'
-    ? {rail: 'rgb(255, 255, 255)', border: 'rgb(233, 233, 235)', button: 'rgb(51, 107, 244)'}
-    : {rail: 'rgb(48, 50, 57)', border: 'rgb(56, 56, 56)', button: 'rgb(51, 107, 244)'};
-  check(scene, 'real DOM: R2.14 B rail/background/OD palette and shadow',
-    initial.background === expectedTheme.rail && initial.borderColor === expectedTheme.border &&
-    initial.buttonBackground === expectedTheme.button && initial.shadow !== 'none', initial);
+  const close = (actual,expected) => actual!=null&&Math.abs(actual-expected)<=1;
+  const initial=await read();
+  scene.railGeometry={initial};
+  check(scene,'real DOM: three real prompts with no OD, navigation or management extras',
+    initial.visible&&initial.buttons===3&&initial.promptButtons===3&&
+    initial.managementButtons===0&&initial.navigationButtons===0&&initial.strayControls===0,initial);
+  check(scene,'real DOM: 38px prompt controls, 52px rail and bounded spacing',
+    close(initial.text?.width,38)&&close(initial.text?.height,38)&&
+    close(initial.rail?.width,52)&&initial.padding==='6px'&&initial.gap==='5px'&&
+    initial.border==='1px'&&initial.radius==='17px'&&
+    initial.scrollHeight<=initial.clientHeight+1,initial);
+  const expectedTheme=scene.theme==='light'
+    ? {rail:'rgb(255, 255, 255)',border:'rgb(233, 233, 235)',button:'rgb(244, 245, 247)'}
+    : {rail:'rgb(48, 50, 57)',border:'rgb(56, 56, 56)',button:'rgb(68, 72, 81)'};
+  check(scene,'real DOM: approved light/dark prompt-only rail palette',
+    initial.background===expectedTheme.rail&&initial.borderColor===expectedTheme.border&&
+    initial.buttonBackground===expectedTheme.button&&initial.shadow!=='none',initial);
 
-  const textSizeWidths = {};
-  for (const size of ['compact', 'standard', 'large']) {
-    await page.evaluate(value => { document.querySelector('#pageRail').dataset.imageSize = value; }, size);
-    const snapshot = await read();
-    textSizeWidths[size] = snapshot.rail?.width;
-    check(scene, 'real DOM: text-only rail ignores ' + size + ' image size',
-      close(snapshot.rail?.width, 52) && close(snapshot.text?.width, 38), snapshot);
+  const textSizeWidths={};
+  for(const size of ['compact','standard','large']){
+    await page.evaluate(value=>{document.querySelector('#pageRail').dataset.imageSize=value;},size);
+    const snapshot=await read();textSizeWidths[size]=snapshot.rail?.width;
+    check(scene,'real DOM: text-only rail ignores '+size+' picture setting',
+      close(snapshot.rail?.width,52)&&close(snapshot.text?.width,38),snapshot);
   }
-  scene.railGeometry.textSizeWidths = textSizeWidths;
-  await page.evaluate(() => { document.querySelector('#pageRail').dataset.imageSize = 'large'; });
+  scene.railGeometry.textSizeWidths=textSizeWidths;
+  await page.evaluate(()=>{document.querySelector('#pageRail').dataset.imageSize='large';});
 
-  // A physical pointer move (CDP Input) exercises the original hover and tooltip.
-  const hover = await page.point('#pageRail .page-shortcut:nth-child(2)');
-  await page.call('Input.dispatchMouseEvent', {type: 'mouseMoved', ...hover});
+  // Physical pointer events test the real original tooltip position.
+  const hover=await page.point('#pageRail .page-shortcut:nth-child(2)');
+  await page.call('Input.dispatchMouseEvent',{type:'mouseMoved',...hover});
   await page.settle();
-  const tooltip = await read();
-  scene.railGeometry.tooltip = tooltip.tip;
-  const tipGap = tooltip.tip && tooltip.rail ? tooltip.tip.x - tooltip.rail.right : null;
-  check(scene, 'real DOM: tooltip follows rail within 10px and viewport bounds',
-    tooltip.tip && tipGap >= 8 && tipGap <= 12 &&
-    tooltip.tip.x >= tooltip.area.x && tooltip.tip.right <= tooltip.area.right + 1, {tipGap, ...tooltip});
+  const tooltip=await read();scene.railGeometry.tooltip=tooltip.tip;
+  const tipGap=tooltip.tip&&tooltip.rail?tooltip.tip.x-tooltip.rail.right:null;
+  check(scene,'real DOM: tooltip follows rail and stays inside conversation stage',
+    tooltip.tip&&tipGap>=8&&tipGap<=12&&
+    tooltip.tip.x>=tooltip.area.x&&tooltip.tip.right<=tooltip.area.right+1,{tipGap,...tooltip});
 
-  await page.click('#pageRail .starter-toggle');
-  const collapsed = await read();
-  scene.railGeometry.collapsed = collapsed;
-  check(scene, 'real DOM: manual collapse keeps one 52px OD launcher',
-    collapsed.expanded === 'false' && collapsed.buttons === 1 && close(collapsed.rail?.width, 52), collapsed);
+  // Real CDP mouse click must insert the complete stored prompt, preserving
+  // the existing draft. Checking a button count alone cannot prove this.
+  const seed=JSON.parse(await readFile(join(root,'examples/sidebar-tools/prompt-shortcuts/tool.config.json'),'utf8'))
+    .initialData.library.items[0];
+  await page.evaluate(()=>{
+    const draft=document.querySelector('#mockDraft');draft.value='原草稿';
+    draft.setSelectionRange(draft.value.length,draft.value.length);
+  });
+  await page.click('#pageRail .page-shortcut:first-child');
+  await page.poll(()=>document.querySelector('#mockDraft')?.value.includes('浏览器插件定制开发需求'),
+    'actual preview prompt inserted after real pointer click');
+  const afterInsert=await page.evaluate(()=>({
+    draft:document.querySelector('#mockDraft').value,
+    feedback:document.querySelector('#panelStatus').textContent,
+    buttons:document.querySelectorAll('#pageRail .page-shortcut').length,
+  }));
+  check(scene,'real click: entire seed prompt appended, no automatic send or extra rail controls',
+    afterInsert.draft==='原草稿\n'+seed.body&&afterInsert.buttons===3&&
+    /已插入/.test(afterInsert.feedback),
+    {actualLength:afterInsert.draft.length,expectedLength:seed.body.length+4,buttons:afterInsert.buttons,feedback:afterInsert.feedback});
   await page.click('#previewReopen');
-  const reopened = await read();
-  scene.railGeometry.reopened = reopened;
-  check(scene, 'real DOM: reopened preview honors current manual collapse',
-    reopened.expanded === 'false' && reopened.buttons === 1 && close(reopened.rail?.width, 52), reopened);
-  await page.click('#pageRail .starter-toggle');
-  check(scene, 'real DOM: manual expand restores 3 shortcuts and OD without manage',
-    (await read()).buttons === 4 && (await read()).managementButtons === 0);
+  const reopened=await read();scene.railGeometry.reopened=reopened;
+  check(scene,'real DOM: reopening the tool retains three prompt actions and no OD',
+    reopened.visible&&reopened.buttons===3&&reopened.strayControls===0,reopened);
 
-  if (scene.state !== 'empty-local') return;
-  const switchScenario = value => page.evaluate(v => {
-    const select = document.querySelector('#previewDataScenario');
-    select.value = v; select.dispatchEvent(new Event('change', {bubbles: true}));
-  }, value);
+  if(scene.state!=='empty-local')return;
+  const switchScenario=value=>page.evaluate(v=>{
+    const select=document.querySelector('#previewDataScenario');
+    select.value=v;select.dispatchEvent(new Event('change',{bubbles:true}));
+  },value);
   await switchScenario('legacy');
-  await page.poll(() => {
-    const picture = document.querySelector('#pageRail .has-image img');
-    return picture?.complete && picture.naturalWidth > 0;
-  }, 'original legacy image decoded');
-  const imageSizeWidths = {};
-  for (const [size, imageWidth, imageHeight, railWidth] of [
-    ['compact', 48, 40, 62], ['standard', 56, 44, 70], ['large', 68, 48, 82],
-  ]) {
-    await page.click('#imageSizeGroup [data-image-size="' + size + '"]');
+  await page.poll(()=>{
+    const picture=document.querySelector('#pageRail .has-image img');
+    return picture?.complete&&picture.naturalWidth>0;
+  },'decoded legacy image in original preview');
+  const imageSizeWidths={};
+  for(const [size,imageWidth,imageHeight,railWidth] of [
+    ['compact',48,40,62],['standard',56,44,70],['large',68,48,82],
+  ]){
+    await page.click('#imageSizeGroup [data-image-size="'+size+'"]');
     await page.settle();
-    const snapshot = await read();
-    imageSizeWidths[size] = snapshot;
-    check(scene, 'real DOM: ' + size + ' image grows rail only to displayed content',
-      snapshot.image && close(snapshot.image.width, imageWidth) &&
-      close(snapshot.image.height, imageHeight) && close(snapshot.rail?.width, railWidth), snapshot);
+    const snapshot=await read();imageSizeWidths[size]=snapshot;
+    check(scene,'real DOM: '+size+' image sizes actual button and rail',
+      snapshot.image&&close(snapshot.image.width,imageWidth)&&
+      close(snapshot.image.height,imageHeight)&&close(snapshot.rail?.width,railWidth)&&
+      snapshot.strayControls===0,snapshot);
   }
-  scene.railGeometry.imageSizeWidths = imageSizeWidths;
+  scene.railGeometry.imageSizeWidths=imageSizeWidths;
   await switchScenario('empty');
-  const empty = await read();
-  check(scene, 'real DOM: intentionally empty library retains one 52px OD entry',
-    empty.buttons === 1 && close(empty.rail?.width, 52), empty);
+  const empty=await read();
+  check(scene,'real DOM: user-cleared library has no phantom OD or scroll buttons',
+    empty.buttons===0&&empty.promptButtons===0&&!empty.visible&&empty.strayControls===0,empty);
   await switchScenario('fresh');
-  const restored = await read();
-  check(scene, 'real DOM: scenario reset restores 3 prompts and OD, no manage',
-    restored.buttons === 4 && restored.managementButtons === 0 &&
-    restored.expanded === 'true' && close(restored.rail?.width, 52), restored);
-  scene.railGeometry.reset = restored;
-  scene.screenshots ??= {};
-  scene.screenshots.rail = await screenshot(page, scene.id + '-rail-full.png', false);
+  const restored=await read();
+  check(scene,'real DOM: fresh scenario restores exactly three real prompts',
+    restored.visible&&restored.buttons===3&&restored.promptButtons===3&&
+    restored.managementButtons===0&&restored.navigationButtons===0&&
+    restored.strayControls===0&&close(restored.rail?.width,52),restored);
+  scene.railGeometry.reset=restored;
+  scene.screenshots??={};
+  scene.screenshots.rail=await screenshot(page,scene.id+'-rail-full.png',false);
 }
-
 async function captureScene(page, scene) {
   await page.evaluate(() => document.querySelector('#imageFields').scrollIntoView({block: 'nearest'}));
   await page.settle();
