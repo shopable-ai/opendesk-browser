@@ -189,6 +189,20 @@ test('no DNR permission fails preflight for STOP too, without orphaning old nati
   assert.equal(f.local.get(SIDEBAR_TOOL_STORE)[0].version,'1.0.10');
   assert.equal(driverRow(f),undefined);
 });
+test('old 10/5 minute reminders stay deduplicated in the exact shared pool',async()=>{
+  const f=await fixture();
+  for(const state of [f.old,f.local.get(FOCUS_STORE)]){
+    state.usage['g:entertainment']=25*60000;
+    state.notices.thresholds=[10,5];
+  }
+  const result=await installReviewedSidebarTool(f.args);
+  assert.equal(result.state,'installed');
+  await assertConserved(f);
+  assert.deepEqual(driverRow(f).notices.pools['g:entertainment'],
+    {limitMs:1800000,thresholds:[10,5]});
+  assert.deepEqual(driverRow(f).notices.pools['s:reddit.com'],undefined,
+    'legacy reminders must not be cloned to other independent pools');
+});
 test('lost registry acknowledgement recovers exact historical snapshot without replay or peer cleanup',async()=>{
   const f=await fixture();
   f.loseRegistryAck();
