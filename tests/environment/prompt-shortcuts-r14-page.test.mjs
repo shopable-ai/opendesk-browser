@@ -1519,6 +1519,8 @@ async function multisiteInputPage(site){
   const rule=rules.find(candidate=>candidate.origin===new URL(site.url).origin);
   const stored={library,sites:{schema:1,rules}};
   const f=fixture({pkg,library,grants:{}}),before='已有草稿🙂\n\n保留最后一行';
+  // Browsers always expose this API; the mock must do so on Gemini/DeepSeek too.
+  f.win.getComputedStyle=()=>({display:'block',visibility:'visible',opacity:'1',overflowY:'auto'});
   f.values.set(PROMPT_DATA_STORE,stored);f.win.location.href=site.url;
   const caret={start:1,end:4},selections=[],dispatched=[],submissions=[];
   const writeDraft=text=>{
