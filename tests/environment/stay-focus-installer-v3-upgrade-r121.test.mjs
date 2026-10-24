@@ -131,7 +131,12 @@ async function assertConserved(f,{enabled=true}={}){
   assert.equal(actual?.kind,'site-budget.v3');
   assert.equal(actual.policy.enabled,enabled);
   assert.deepEqual(actual.usage,f.old.usage,'every original counter pool is conserved, not just sum');
-  assert.equal(actual.checkpoint,null,'retired checkpoint is never chargeable');
+  if(actual.checkpoint){
+    assert.notEqual(actual.checkpoint.session,f.old.checkpoint?.session,
+      'Driver must never replay an old Focus session checkpoint');
+    assert.ok(actual.checkpoint.at>=f.old.checkpoint.at,
+      'a live Driver observation starts a fresh checkpoint after migration');
+  }
   assert.ok(actual.clockHighWater>=f.old.clockHighWater);
   assert.deepEqual(actual.sealedModel.usage,{},'product model has no second billing ledger');
   assert.deepEqual(f.local.get(FOCUS_STORE),f.old,'source is immutable historical evidence');
