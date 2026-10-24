@@ -31,6 +31,23 @@ test('R1.9.5 webpage rail defaults expanded, keeps its background and remains ma
   assert.doesNotMatch(preview,/usePrompt\(item\)\.finally/);
 });
 
+test('R2.16 injected rail and original preview avoid false vertical overflow while preserving bounded scrolling',async()=>{
+  const [page,preview]=await Promise.all([file('trusted/page.js'),file('preview/index.html')]);
+  assert.match(page,/max-height:min\\(400px,calc\\(100dvh - 16px\\)\\);overflow-y:auto;overflow-x:hidden;/,
+    'real trusted Shadow DOM rail uses a viewport-bounded 400px cap');
+  assert.match(preview,/max-height:min\\(400px,calc\\(100% - 16px\\)\\);overflow-y:auto;overflow-x:hidden;/,
+    'full preview matches the taller bounded rail within its own conversation stage');
+  assert.doesNotMatch(page,/max-height:min\\(248px/,'old 248px fixed cap clipped ordinary controls');
+  assert.doesNotMatch(preview,/max-height:248px|max-height:min\\(340px/,'remove duplicate stale preview caps');
+  assert.match(page,/railHeight=Math.min\\(rail.offsetHeight\\|\\|rail.scrollHeight\\|\\|222,win.innerHeight-16\\)/,
+    'position the actual rendered scrollport, not the total height of hidden list items');
+  const verticalHeight=count=>count*38+(count-1)*5+2*6+2;
+  assert.equal(verticalHeight(6),267,
+    'OD + three default prompts + two navigation actions fit without a scrollbar');
+  assert(verticalHeight(11)>400,
+    'user-created longer lists keep internal scrolling instead of extending unbounded');
+});
+
 test('R1.9.5 current iframe Cancel/Back discards a draft directly, but never exits during unknown writes',async()=>{
   const js=await file('src/main.js'),html=await file('src/index.html');
   const snippet=between(js,'function back(callback=index){','function start(');
