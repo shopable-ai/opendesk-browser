@@ -329,7 +329,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     if(options.includeValues===true&&
        (!tool.capabilities.includes('browser.cookies.values')||grant.values!==true||
           allSites&&grant.valueConsent!==true))
-      throw failure('E_COOKIE_VALUES_REQUIRED','Cookie values require independent website authorization');
+      throw failure('E_COOKIE_VALUES_REQUIRED','Current trusted Cookie consent does not include sensitive values');
     if(options.storeId!==undefined&&options.storeId!==grant.storeId)
       throw failure('E_COOKIE_STORE');
     let partitionKey=grant.partitionKey??null;
@@ -1120,7 +1120,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const allSites=scope==='all-http-sites';
         if(!['read','values','write','observe','clear','all'].includes(siteCapability)||
            typeof enabled!=='boolean'||(scope!==undefined&&!allSites)||
-           (allSites?!['all','values'].includes(siteCapability):siteCapability==='all'&&enabled))
+           (allSites&&!['all','values'].includes(siteCapability)))
           throw failure('E_SCHEMA','Unsupported Cookie capability decision');
         const source=await readSources(api),tool=admittedTool(source.tools,toolId);
         if(!sidebarToolEnabled(source.enabled,toolId)||tool.version!==toolVersion||
@@ -1172,8 +1172,9 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const row=same?previous:{version:tool.version,packageHash:hash,
           installEpoch:source.epochs[toolId]??null,origins:[],activeActions:[]};
         if(allSites){
-          // A dedicated Host click is required for sensitive Values. Old
-          // values=true records without a valueConsent receipt stay denied.
+          // Old all-site values=true records without a valueConsent receipt
+          // remain denied. A new explicit complete-consent click mints that
+          // receipt together with all declared capabilities in one write.
           if(siteCapability==='values'){
             const prior=row.cookieAllSites;
             if(!prior?.read||!prior?.storeId||!prior?.grantEpoch)
@@ -1187,9 +1188,10 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
             return {scope,capability:siteCapability,enabled,storeId:cookieAllSites.storeId};
           }
           const cookieAllSites={storeId:enabled?storeId:row.cookieAllSites?.storeId??null,
-            grantEpoch:crypto.randomUUID(),valueConsent:false,
+            grantEpoch:crypto.randomUUID(),
+            valueConsent:enabled&&tool.capabilities.includes('browser.cookies.values'),
             ...Object.fromEntries(['read','values','write','observe','clear'].map(cap=>[cap,
-              enabled&&cap!=='values'&&tool.capabilities.includes('browser.cookies.'+cap)]))};
+              enabled&&tool.capabilities.includes('browser.cookies.'+cap)]))};
           await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,{
             ...source.grants,[toolId]:{...row,cookieAllSites,...(!enabled?{cookieSites:{}}:{})}});
           trustedCookies.revoke();
@@ -1206,15 +1208,23 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(enabled&&earlier&&(prior.storeId!==storeId||
           canonicalJSON(prior.partitionKey??null)!==canonicalJSON(partitionKey??null)))
           throw failure('E_COOKIE_SCOPE','Site rights are bound to another Cookie Store/Partition; revoke all first');
-        // Atomic all-site revocation: never leave values/write/observe active
-        // after a partially failed sequence of five independent revocations.
+        // A single trusted site decision grants (or revokes) every declared
+        // capability in one durable write. Never rebind an earlier site grant to
+        // a different Cookie Store/Partition, even for a partial legacy grant.
         const next=siteCapability==='all'
-          ?{...prior,read:false,values:false,write:false,observe:false,clear:false,
-            grantEpoch:crypto.randomUUID()}
+          ?enabled?{...prior,storeId,partitionKey,grantEpoch:crypto.randomUUID(),
+              valueConsent:tool.capabilities.includes('browser.cookies.values'),
+              ...Object.fromEntries(['read','values','write','observe','clear'].map(cap=>[cap,
+                tool.capabilities.includes('browser.cookies.'+cap)]))}
+            :{...prior,read:false,values:false,write:false,observe:false,clear:false,
+              valueConsent:false,grantEpoch:crypto.randomUUID()}
           :enabled?{...prior,storeId,partitionKey,[siteCapability]:true,
-            grantEpoch:crypto.randomUUID()}
-            :{...prior,[siteCapability]:false,grantEpoch:crypto.randomUUID()};
-        if(!enabled&&siteCapability==='read')next.values=false;
+              ...(siteCapability==='values'?{valueConsent:true}:{}),
+              grantEpoch:crypto.randomUUID()}
+            :{...prior,[siteCapability]:false,
+              ...(siteCapability==='values'?{valueConsent:false}:{}),
+              grantEpoch:crypto.randomUUID()};
+        if(!enabled&&siteCapability==='read'){next.values=false;next.valueConsent=false;}
         sites[site]=next;
         await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,{
           ...source.grants,[toolId]:{...row,version:tool.version,packageHash:hash,
