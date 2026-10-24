@@ -632,7 +632,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         // The pre-consent iframe may already have seen a denied read. Replace
         // that hidden instance once, so the first successful grant opens a fresh
         // Cookie list without another manual reload. Keep an in-use editor.
-        if(!revoke&&tool.id==='cookie-editor'&&
+        if(revoke&&tool.id==='cookie-editor'){
+          destroyFrame();tocSettingsOpen=true;render();
+        }else if(!revoke&&tool.id==='cookie-editor'&&
           ((!frame&&!nativeUI&&!nativePending)||(!wasUsable||restoreChrome)))
           mountTool(tool);
         else {tocSettingsOpen=revoke;render();}
@@ -2892,6 +2894,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     if(Object.hasOwn(changes||{},BROWSER_MENU_GRANTS_STORE)){
       menuGrants=changes[BROWSER_MENU_GRANTS_STORE]?.newValue||{};
+      // A revoked Cookie grant destroys the embedded editor, including any
+      // transient decrypted input, rather than merely hiding the iframe.
+      if(active?.id==='cookie-editor'&&!readOnlyPreview&&frame&&
+        !cookieHasManageGrant(active,websiteOrigin(currentPageTarget?.snapshot?.url))){
+        destroyFrame();tocSettingsOpen=true;
+        notice('Cookie 管理授权已失效，请重新审阅当前网站权限。',true);
+      }
       if(active?.id===TRUSTED_BOOKMARK_ID&&nativeUI?.kind==='bookmark'){
         const grant=menuGrants?.[TRUSTED_BOOKMARK_ID];
         if(grant?.bookmarkFull!==true||grant.version!==active.version||
