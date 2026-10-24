@@ -50,7 +50,7 @@ test('R2.3 Workflow SSR has one icon Source entry, one shared composer target an
  settings.dispose();
 });
 
-test('R2.3 provider settings expose two sources, keep native-sized selectors and legacy execution IDs',async()=>{
+test('R2.3 shared provider settings use two native radio choices in a compact segmented group',async()=>{
  const [sheet,css,workflow]=await Promise.all([
   readFile(new URL('../../src/ui/react/components/provider-settings.tsx',import.meta.url),'utf8'),
   readFile(new URL('../../src/ui/react/components/conversation-dock.css',import.meta.url),'utf8'),
@@ -60,8 +60,14 @@ test('R2.3 provider settings expose two sources, keep native-sized selectors and
  assert.deepEqual(choices,['local_codex','https'],'protocols are not peer-level sources');
  assert.match(workflow,/https:'HTTPS 模型'/);
  assert.doesNotMatch(workflow,/https:'HTTPS Chat Completions'/);
- assert.match(css,/\.od-shared-provider-form input\[type=radio\],\.od-shared-provider-form input\[type=checkbox\]\{/);
- assert.match(css,/flex:0 0 16px;width:16px;min-width:16px;max-width:16px/);
+ assert.match(sheet,/className="od-shared-provider-segments" role="radiogroup"/);
+ assert.match(sheet,/aria-labelledby="od-ai-provider-source-label"/);
+ assert.match(sheet,/querySelector\('input\[name="od-ai-provider-source"\]:checked'\)/);
+ assert.match(css,/\.od-shared-provider-segment input\[type=radio\]\{/);
+ assert.match(css,/\.od-shared-provider-segment input:checked\+span/);
+ assert.match(css,/\.od-shared-provider-segment input:focus-visible\+span/);
+ assert.match(css,/\.od-shared-provider-form input\[type=checkbox\]\{/);
+ assert.match(css,/@media\(pointer:coarse\)\{\.od-shared-provider-segment span\{min-height:44px\}\}/);
  assert.match(sheet,/providerSettings\.updateSettings\(patch\)/);
  assert.match(sheet,/savedSource\|\|inferredSource/,'unchanged configured protocol wins over a URL hint');
  assert.match(sheet,/selectedHttpsSource/);

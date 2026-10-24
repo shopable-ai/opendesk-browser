@@ -60,15 +60,36 @@
 .workflow-composer-actions #workflow-provider-toggle svg{width:17px;height:17px}
 @media(pointer:coarse){.workflow-composer-actions #workflow-provider-toggle{width:44px;min-width:44px;height:44px;min-height:44px}}
 
-/* Trusted global settings sheet, scoped to the sole React Root's Portal. */
-.od-shared-provider-form{display:flex;flex-direction:column;gap:12px;min-width:0}
-.od-shared-provider-form fieldset{display:flex;flex-direction:column;gap:8px;min-width:0;
- margin:0;padding:10px 12px;border:1px solid var(--od-line);border-radius:var(--radius-surface)}
-.od-shared-provider-form fieldset legend{padding-inline:5px;font-weight:650;font-size:var(--od-note-size)}
+/* Trusted global settings sheet; shared by all four AI entries. */
+.od-shared-provider-form{display:flex;flex-direction:column;gap:10px;min-width:0}
 .od-shared-provider-form label{display:flex;align-items:center;gap:8px;min-width:0;font-size:var(--od-note-size)}
-.od-shared-provider-form fieldset label{margin:0;padding:2px 0;line-height:1.5;cursor:pointer}
-/* Scope native selection controls: the global 100%-wide 36px input rule is for text fields. */
-.od-shared-provider-form input[type=radio],.od-shared-provider-form input[type=checkbox]{
+/* A two-choice button group, backed by native radios for keyboard and screen readers.
+ * Changing the draft selection never updates the provider until explicit Save. */
+.od-shared-provider-source{display:flex;align-items:center;justify-content:space-between;
+ flex-wrap:wrap;gap:8px;min-width:0}
+.od-shared-provider-source-label{flex:none;font-weight:650;font-size:var(--od-note-size);
+ color:var(--od-ink);white-space:nowrap}
+.od-shared-provider-segments{box-sizing:border-box;display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;flex:1 1 205px;
+ min-width:184px;max-width:264px;padding:3px;border:1px solid var(--od-line);
+ border-radius:var(--radius-surface);background:var(--od-muted)}
+.od-shared-provider-form .od-shared-provider-segment{
+ position:relative;display:block;min-width:0;margin:0;padding:0;cursor:pointer}
+.od-shared-provider-segment span{box-sizing:border-box;display:grid;place-items:center;
+ min-width:0;width:100%;min-height:34px;padding:6px 7px;
+ border-radius:var(--radius-control);font-size:var(--od-note-size);
+ color:var(--od-sub);line-height:1.3;text-align:center;white-space:nowrap}
+.od-shared-provider-segment:hover span{color:var(--od-ink)}
+/* Keep real radios focusable, yet use their adjacent label as the visible hit target. */
+.od-shared-provider-segment input[type=radio]{position:absolute;width:1px;min-width:1px;
+ max-width:1px;height:1px;min-height:1px;margin:0;padding:0;overflow:hidden;
+ opacity:0;clip-path:inset(50%)}
+.od-shared-provider-segment input:checked+span{background:var(--od-paper);
+ color:var(--od-ink);font-weight:650;box-shadow:0 1px 3px #00000016}
+.od-shared-provider-segment input:focus-visible+span{outline:2px solid var(--od-focus);
+ outline-offset:-2px}
+/* The HTTPS clear-key checkbox stays native-sized and independent of the segment. */
+.od-shared-provider-form input[type=checkbox]{
  appearance:auto;flex:0 0 16px;width:16px;min-width:16px;max-width:16px;
  height:16px;min-height:16px;margin:0;padding:0;accent-color:var(--od-brand)
 }
@@ -80,4 +101,6 @@
 .od-shared-provider-clear-key{margin-top:4px;color:var(--od-sub)}
 .od-shared-provider-form .workflow-minor-note{margin:0;line-height:1.5}
 .od-shared-provider-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
-@media(max-width:360px){.od-shared-provider-form{gap:8px}.od-shared-provider-form fieldset{padding:8px}}
+@media(max-width:360px){.od-shared-provider-form{gap:8px}
+ .od-shared-provider-source{gap:6px}.od-shared-provider-segments{min-width:180px}}
+@media(pointer:coarse){.od-shared-provider-segment span{min-height:44px}}

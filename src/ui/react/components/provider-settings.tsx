@@ -85,7 +85,8 @@ export function SharedProviderSettingsSheet({
    }else if(!event.shiftKey&&doc.activeElement===last){event.preventDefault();first.focus();}
   };
   doc.addEventListener('keydown',onKeydown,true);
-  (current.querySelector('[aria-pressed="true"]')||current).focus({preventScroll:true});
+  // Native segmented radios retain arrow-key semantics and visible focus in the styled label.
+  (current.querySelector('input[name="od-ai-provider-source"]:checked')||current).focus({preventScroll:true});
   return ()=>{
    doc.removeEventListener('keydown',onKeydown,true);
    if(root)root.inert=wasInert;
@@ -107,13 +108,22 @@ export function SharedProviderSettingsSheet({
    <div className="workflow-sheet-content">
     {!providerSettings?children:
      <form className="od-shared-provider-form" onSubmit={save} autoComplete="off">
-      <fieldset>
-       <legend>AI 来源</legend>
-       <label><input type="radio" name="od-ai-provider-source" value="local_codex"
-        checked={mode==='local_codex'} onChange={()=>setMode('local_codex')}/> 本机 Codex</label>
-       <label><input type="radio" name="od-ai-provider-source" value="https"
-        checked={mode==='https'} onChange={()=>setMode('https')}/> HTTPS 模型</label>
-      </fieldset>
+      <div className="od-shared-provider-source">
+       <span id="od-ai-provider-source-label" className="od-shared-provider-source-label">AI 来源</span>
+       <div className="od-shared-provider-segments" role="radiogroup"
+        aria-labelledby="od-ai-provider-source-label">
+        <label className="od-shared-provider-segment">
+         <input type="radio" name="od-ai-provider-source" value="local_codex"
+          checked={mode==='local_codex'} onChange={()=>setMode('local_codex')}/>
+         <span>本机 Codex</span>
+        </label>
+        <label className="od-shared-provider-segment">
+         <input type="radio" name="od-ai-provider-source" value="https"
+          checked={mode==='https'} onChange={()=>setMode('https')}/>
+         <span>HTTPS 模型</span>
+        </label>
+       </div>
+      </div>
       {external?<div className="od-shared-provider-fields">
        <label htmlFor="od-ai-provider-endpoint">HTTPS 接口</label>
        <input className="od-field" id="od-ai-provider-endpoint" type="url" required
