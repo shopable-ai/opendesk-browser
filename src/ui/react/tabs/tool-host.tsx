@@ -618,7 +618,6 @@ function CookieSettings({onRevoke}) {
       </div>
         <ToolField as="p" id="sidebar-tool-enable-hint" className="sidebar-toc-settings-hint" role="status"/>
       </>}
-      <ToolField as="button" type="button" id="sidebar-tool-cookie-values-toggle" className="od-button od-button--secondary"/>
       <ToolGrantRows id="sidebar-tool-cookie-other-sites" rows={rows} emptyLabel={emptyLabel}
         disabled={disabled} rowClassName="sidebar-toc-settings-row" onRevoke={onRevoke}/>
     </>}
