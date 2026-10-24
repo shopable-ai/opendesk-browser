@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {createPortal} from 'react-dom';
 import {IconButton} from './ui/button.tsx';
-import {inferHttpsSource,isHttpsSource} from '../../ai/provider-https-source.js';
+import {inferHttpsSource,isHttpsSource,httpsSourceConfigurationError} from '../../ai/provider-https-source.js';
 
 function focusableElements(panel){
  return [...panel.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')]
@@ -42,19 +42,19 @@ export function SharedProviderSettingsSheet({
  const inferredSource=inferHttpsSource(endpointValue);
  // Reuse the exact configured protocol for a legacy nonstandard endpoint.
  // A new unknown endpoint instead needs an explicit advanced choice.
- const savedSource=isHttpsSource(snapshot.source)&&
-   endpointValue===String(snapshot.endpoint||'').trim()?snapshot.source:null;
+ const retainedSource=isHttpsSource(snapshot.source)?snapshot.source:snapshot.httpsSource;
+ const savedSource=isHttpsSource(retainedSource)&&
+   endpointValue===String(snapshot.endpoint||'').trim()?retainedSource:null;
  const selectedHttpsSource=
    (protocolOverride?.endpoint===endpointValue?protocolOverride.source:null)||
    savedSource||inferredSource;
+ const protocolError=selectedHttpsSource?httpsSourceConfigurationError(selectedHttpsSource,endpointValue):'';
  const save=event=>{
   event.preventDefault();
   if(!event.nativeEvent?.isTrusted||!providerSettings)return;
   try {
    if(external){
-    const url=new URL(endpoint.trim());
-    if(url.protocol!=='https:'||!url.hostname||url.username||url.password)
-     throw new Error('AI 接口必须是有效的 HTTPS 地址，不能包含账号密码');
+    if(protocolError)throw new Error(protocolError);
     if(!model.trim())throw new Error('请输入模型 ID');
     if(!selectedHttpsSource)
      throw new Error('接口路径无法识别协议，请在高级配置中选择 Chat Completions 或 Responses');
@@ -129,11 +129,12 @@ export function SharedProviderSettingsSheet({
        <input className="od-field" id="od-ai-provider-endpoint" type="url" required
         value={endpoint} onChange={event=>setEndpoint(event.currentTarget.value)}
         autoComplete="off" spellCheck={false}/>
-       {inferredSource?
+       {inferredSource&&
         <p className="workflow-minor-note">{savedSource&&savedSource!==inferredSource?'保留当前配置的协议：':'根据接口路径识别：'}
-         {selectedHttpsSource==='cloud_responses'?'Responses':'Chat Completions'}</p>:
+         {selectedHttpsSource==='cloud_responses'?'Responses':'Chat Completions'}</p>}
+       {(!inferredSource||protocolError)&&
         <>
-         <p className="workflow-minor-note">无法根据接口路径识别协议，请在高级配置中明确选择。</p>
+         <p className="workflow-minor-note">{protocolError||'无法根据接口路径识别协议，请在高级配置中明确选择。'}</p>
          <details className="od-disclosure od-disclosure--flat od-shared-provider-protocol">
           <summary>高级配置 · HTTPS 协议</summary>
           <label htmlFor="od-ai-provider-protocol">接口协议</label>

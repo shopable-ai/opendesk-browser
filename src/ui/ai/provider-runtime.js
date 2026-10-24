@@ -6,18 +6,22 @@ const fail=(code,message)=>Object.assign(new Error(message),{code});
 const sources=new Set(['local_codex','cloud_responses','custom_https']);
 const consumers=new Set(['workflow','bookmark','prompt','prompt-edit','tasks']);
 const idle=()=>({sessionId:null,threadId:null,state:'IDLE',busy:false,resumable:false});
+const endpointOrigin=endpoint=>{
+  try{const origin=new URL(endpoint).origin;return origin==='null'?null:origin;}
+  catch{return null;}
+};
 
 export function createSharedAIProviderRuntime({client,hostInstanceId,
   plannerFactory=createLocalCodexPlanner,facadeFactory=createWorkflowProviderFacade}={}) {
   if(!client||typeof client.requestWorkflowAI!=='function'||typeof hostInstanceId!=='string'||!hostInstanceId)
     throw fail('E_AI_RUNTIME','共享 Provider 缺少可信 Host 身份');
   let disposed=false,generation=1;
-  let config={source:'local_codex',endpoint:'https://api.openai.com/v1/chat/completions',model:'',apiKey:''};
+  let config={source:'local_codex',endpoint:'https://api.openai.com/v1/chat/completions',model:'',apiKey:'',httpsSource:null};
   const leases=new Map(),settingsListeners=new Set();
-  let publicSettings=Object.freeze({source:config.source,endpoint:config.endpoint,
+  let publicSettings=Object.freeze({source:config.source,httpsSource:config.httpsSource,endpoint:config.endpoint,
     model:config.model,hasApiKey:false,generation});
   const publishSettings=()=>{
-    publicSettings=Object.freeze({source:config.source,endpoint:config.endpoint,
+    publicSettings=Object.freeze({source:config.source,httpsSource:config.httpsSource,endpoint:config.endpoint,
       model:config.model,hasApiKey:Boolean(config.apiKey),generation});
     for(const listener of [...settingsListeners])listener();
   };
@@ -29,6 +33,8 @@ export function createSharedAIProviderRuntime({client,hostInstanceId,
     const updated={source:next.source,endpoint:next.endpoint,model:next.model,apiKey:next.apiKey};
     if(!sources.has(updated.source)||['endpoint','model','apiKey'].some(k=>typeof updated[k]!=='string'))
       throw fail('E_AI_CONFIG','AI Provider 配置无效');
+    updated.httpsSource=updated.source==='local_codex'?
+      (updated.endpoint===config.endpoint?config.httpsSource:null):updated.source;
     if(Object.keys(updated).some(k=>updated[k]!==config[k])) {
       config=updated;generation++;
       for(const lease of leases.values())lease.invalidate();
@@ -42,8 +48,12 @@ export function createSharedAIProviderRuntime({client,hostInstanceId,
     if(!patch||typeof patch!=='object'||Array.isArray(patch)||
       Object.keys(patch).some(key=>!allowed.has(key)))
       throw fail('E_AI_CONFIG','未知 Provider 设置字段');
+    const endpoint=patch.endpoint??config.endpoint;
+    if(config.apiKey&&!Object.hasOwn(patch,'apiKey')&&
+      (!endpointOrigin(endpoint)||endpointOrigin(endpoint)!==endpointOrigin(config.endpoint)))
+      throw fail('E_AI_CONFIG','接收端来源已改变或地址无效，请输入新的 API Key，或明确清空 API Key 后保存');
     configure({source:patch.source??config.source,
-      endpoint:patch.endpoint??config.endpoint,model:patch.model??config.model,
+      endpoint,model:patch.model??config.model,
       apiKey:Object.hasOwn(patch,'apiKey')?patch.apiKey:config.apiKey});
     // This method is also the public settings facade. Credentials stay in the
     // trusted configuration used by consumer adapters, including on save.
@@ -148,5 +158,5 @@ export function createSharedAIProviderRuntime({client,hostInstanceId,
     settingsSnapshot:()=>publicSettings,subscribeSettings,
     dispose(){if(disposed)return;for(const lease of [...leases.values()])lease.dispose();
       disposed=true;settingsListeners.clear();
-      config={source:'local_codex',endpoint:'',model:'',apiKey:''};}});
+      config={source:'local_codex',endpoint:'',model:'',apiKey:'',httpsSource:null};}});
 }

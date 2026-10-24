@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {createSharedAIProviderRuntime} from '../../src/ui/ai/provider-runtime.js';
 import {createLocalCodexPlanner} from '../../src/ui/workflow/local-codex.js';
 import {createBusinessConversation} from '../../src/ui/conversation/provider-consumer.js';
+import {createPreviewProviderSettings} from '../../src/ui/react/preview/shared-ai-preview.js';
 
 const fail=code=>Object.assign(new Error(code),{code});
 const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
@@ -44,6 +45,100 @@ function setup() {
   return {runtime,setProvider,cancelled,released,pending,
     get threads(){return nextThread;}};
 }
+
+for(const [name,create] of [
+  ['runtime',()=>setup().runtime],
+  ['preview',createPreviewProviderSettings]
+]){
+  for(const [source,endpoint] of [
+    ['custom_https','https://model.example/unknown/custom-route'],
+    ['cloud_responses','https://model.example/v1/responses']
+  ])test(`shared settings ${name}: ${source} survives local roundtrip without losing its key`,()=>{
+    const settings=create();
+    try{
+      settings.updateSettings({source,endpoint,model:'test-model',apiKey:'test-only-key'});
+      const local=settings.updateSettings({source:'local_codex'});
+      assert.equal(local.source,'local_codex');
+      assert.equal(local.httpsSource,source);
+      assert.equal(local.endpoint,endpoint);
+      assert.equal(local.hasApiKey,true);
+      const restored=settings.updateSettings({source:local.httpsSource});
+      assert.equal(restored.source,source);
+      assert.equal(restored.httpsSource,source);
+      assert.equal(restored.hasApiKey,true);
+      assert.equal(Object.hasOwn(restored,'apiKey'),false);
+      if(name==='runtime')assert.equal(settings.configuration().settings.apiKey,'test-only-key');
+      settings.updateSettings({source:'local_codex'});
+      const changed=settings.updateSettings({endpoint:endpoint+'/changed'});
+      assert.equal(changed.httpsSource,null,'local endpoint edits discard the remembered source');
+      assert.equal(changed.hasApiKey,true,'same-origin path edits retain the key');
+    }finally{settings.dispose();}
+  });
+
+  test(`shared settings ${name}: unchanged updates preserve snapshot, generation and listeners`,()=>{
+    const settings=create();
+    try{
+      settings.updateSettings({source:'custom_https',endpoint:'https://model.example/custom',apiKey:'test-only-key'});
+      let notifications=0;
+      settings.subscribeSettings(()=>notifications++);
+      const before=settings.settingsSnapshot();
+      assert.equal(settings.updateSettings({}),before);
+      assert.equal(settings.updateSettings({source:before.source,endpoint:before.endpoint,model:before.model}),before);
+      assert.equal(settings.settingsSnapshot().generation,before.generation);
+      assert.equal(notifications,0);
+    }finally{settings.dispose();}
+  });
+
+  test(`shared settings ${name}: retained keys cannot move to another or invalid origin`,()=>{
+    const settings=create();
+    try{
+      settings.updateSettings({source:'custom_https',endpoint:'https://model.example/custom',apiKey:'test-only-key'});
+      const before=settings.settingsSnapshot();
+      let notifications=0;
+      settings.subscribeSettings(()=>notifications++);
+      for(const endpoint of ['https://other.example/custom','http://model.example/custom',
+        'https://model.example:8443/custom','invalid endpoint','data:text/plain,opaque']){
+        assert.throws(()=>settings.updateSettings({endpoint}),error=>{
+          assert.equal(error.code,'E_AI_CONFIG');
+          assert.match(error.message,/新的 API Key.*清空 API Key/);
+          assert.equal(error.message.includes('test-only-key'),false);
+          return true;
+        });
+        assert.equal(settings.settingsSnapshot(),before,'rejection must not mutate settings');
+      }
+      assert.equal(notifications,0);
+      const sameOrigin=settings.updateSettings({endpoint:'https://MODEL.example:443/new-path',model:'new-model'});
+      assert.equal(sameOrigin.hasApiKey,true);
+      if(name==='runtime')assert.equal(settings.configuration().settings.apiKey,'test-only-key');
+      const replaced=settings.updateSettings({endpoint:'https://other.example/custom',apiKey:'replacement-test-key'});
+      assert.equal(replaced.hasApiKey,true);
+      const cleared=settings.updateSettings({endpoint:'https://third.example/custom',apiKey:''});
+      assert.equal(cleared.hasApiKey,false);
+      assert.equal(settings.updateSettings({endpoint:'https://fourth.example/custom'}).hasApiKey,false);
+      assert.equal(JSON.stringify(settings.settingsSnapshot()).includes('replacement-test-key'),false);
+    }finally{settings.dispose();}
+  });
+}
+
+test('shared runtime configure keeps active-source semantics and remembers only the unchanged HTTPS endpoint',()=>{
+  const {runtime}=setup();
+  try{
+    assert.equal(runtime.settingsSnapshot().httpsSource,null);
+    for(const source of ['custom_https','cloud_responses']){
+      const config={source,endpoint:'https://model.example/unknown-route',model:'test',apiKey:'test-only-key'};
+      runtime.configure(config);
+      assert.equal(runtime.settingsSnapshot().httpsSource,source);
+      const local=runtime.configure({...config,source:'local_codex'});
+      assert.equal(local.source,'local_codex');
+      assert.equal(runtime.settingsSnapshot().httpsSource,source);
+      const before=runtime.settingsSnapshot();
+      runtime.configure({...config,source:'local_codex'});
+      assert.equal(runtime.settingsSnapshot(),before);
+      runtime.configure({...config,source:'local_codex',endpoint:config.endpoint+'/changed'});
+      assert.equal(runtime.settingsSnapshot().httpsSource,null);
+    }
+  }finally{runtime.dispose();}
+});
 
 test('R2.1 independent lease and Native-context identity for bookmark, prompt, prompt edit, My and Workflow',async()=>{
   const r=setup(),identities=['bookmark','bookmark','prompt','prompt-edit','tasks','workflow'];

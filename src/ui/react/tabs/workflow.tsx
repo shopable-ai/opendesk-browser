@@ -2,7 +2,7 @@ import * as React from 'react';
 import {SharedProviderSettingsSheet as WorkflowSettingsSheet} from '../components/provider-settings.tsx';
 export {SharedProviderSettingsSheet as WorkflowSettingsSheet} from '../components/provider-settings.tsx';
 import {SharedConversationFrame,ConversationTranscript} from '../components/conversation.tsx';
-import {inferHttpsSource} from '../../ai/provider-https-source.js';
+import {inferHttpsSource,isHttpsSource,httpsSourceConfigurationError} from '../../ai/provider-https-source.js';
 
 // R23.11: trusted chrome only. No Provider, Host, secrets, drafts or web-page
 // content is copied into this view. Native user gestures go to WorkflowView.
@@ -92,7 +92,8 @@ export function WorkflowSourceMenu({snapshot=EMPTY_PROVIDER_SNAPSHOT,providerSet
   if(!event.nativeEvent?.isTrusted||!providerSettings)return;
   if(next===selectedMode){close(true);return;}
   const endpoint=String(snapshot.endpoint||'').trim();
-  const targetSource=next==='local_codex'?'local_codex':inferHttpsSource(endpoint);
+  const targetSource=next==='local_codex'?'local_codex':
+    isHttpsSource(snapshot.httpsSource)?snapshot.httpsSource:inferHttpsSource(endpoint);
   if(next==='https'){
    let valid=false;
    try{
@@ -100,7 +101,8 @@ export function WorkflowSourceMenu({snapshot=EMPTY_PROVIDER_SNAPSHOT,providerSet
     valid=url.protocol==='https:'&&Boolean(url.hostname)&&
       !url.username&&!url.password&&!url.hash;
    }catch{/* Malformed or ambiguous HTTPS addresses must use advanced settings. */}
-   if(!valid||!targetSource||!String(snapshot.model||'').trim()||!snapshot.hasApiKey){
+   if(!valid||!targetSource||httpsSourceConfigurationError(targetSource,endpoint)||
+      !String(snapshot.model||'').trim()||!snapshot.hasApiKey){
     setNotice('请在 AI 设置中确认 HTTPS 接口、协议、模型及本次会话密钥。');
     advanced();return;
    }

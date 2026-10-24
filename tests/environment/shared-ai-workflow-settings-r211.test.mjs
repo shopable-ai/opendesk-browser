@@ -20,7 +20,11 @@ test('R2.1.1 mounting Workflow preserves Shell Provider settings and does not re
   f.input('workflow-ai-model','edited-model');
   assert.equal(runtime.configuration().settings.model,'edited-model');
   assert.equal(runtime.configuration().generation,before.generation+1);
-  runtime.updateSettings({source:'cloud_responses',model:'global-model',endpoint:'https://another.example/v1/responses'});
+  assert.throws(()=>runtime.updateSettings({source:'cloud_responses',model:'global-model',
+    endpoint:'https://another.example/v1/responses'}),{code:'E_AI_CONFIG'},
+    'changing recipients requires an explicit credential decision');
+  runtime.updateSettings({source:'cloud_responses',model:'global-model',
+    endpoint:'https://another.example/v1/responses',apiKey:'new-recipient-test-key'});
   await tick();
   assert.equal(control('workflow-ai-model').value,'global-model');
   assert.equal(control('workflow-ai-provider').value,'cloud_responses');

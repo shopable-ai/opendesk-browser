@@ -4,7 +4,7 @@
 // R23.9.2 design HTML; the only mock lives at the Provider/Host boundary.
 import {readFile,writeFile,mkdir,mkdtemp,readdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
-import {dirname,join,resolve} from 'node:path';
+import {dirname,join,resolve,relative} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
 import {load} from 'cheerio';
@@ -27,6 +27,8 @@ const inputs=[
   'src/ui/react/components/conversation.tsx',
   'src/ui/react/main.tsx',
   'src/ui/react/components/provider-settings.tsx',
+  'src/ui/react/components/conversation-dock.css',
+  'src/ui/ai/provider-https-source.js',
   'src/ui/workflow/workflow-view.js',
   'scripts/preview/build-workflow-react-preview.mjs',
   'package.json',
@@ -64,10 +66,20 @@ export async function generateWorkflowReactPreview(){
   const officialCss=bytes.slice(1,4).map(b=>b.toString('utf8')).join('\n');
   must(!/<\/style/i.test(officialCss),'CSS contains a style-closing token');
   const temp=await mkdtemp(join(tmpdir(),'opendesk-workflow-react-'));
+  const sources=new Map(inputs.map((path,i)=>[path,bytes[i]]));
   try{
     // React 19's CJS entry reads process.env.NODE_ENV. Browser file:// has
     // no Node process global; Vite library mode must replace this at build time.
     await build({root,configFile:false,logLevel:'error',
+      plugins:[{name:'opendesk-workflow-preview-inputs',enforce:'pre',
+        async load(id){
+          const path=id.split('?')[0];
+          if(path.startsWith(root)&&!path.includes('/node_modules/')&&/\.(?:[cm]?[jt]sx?|css)$/.test(path)){
+            const key=relative(root,path);
+            if(!sources.has(key))sources.set(key,await readFile(path));
+          }
+          return null;
+        }}],
       define:{'process.env.NODE_ENV':JSON.stringify('production')},
       build:{target:'es2022',outDir:temp,emptyOutDir:true,minify:'esbuild',
         sourcemap:false,cssCodeSplit:false,
@@ -77,6 +89,14 @@ export async function generateWorkflowReactPreview(){
     must(jsFiles.length===1,'offline React output must be a single JS bundle');
     const compiled=await readFile(join(temp,jsFiles[0]));
     must(compiled.length>20000,'real ReactDOM is absent from the bundle');
+    const componentCss=(await Promise.all((await readdir(temp)).filter(path=>path.endsWith('.css'))
+      .map(path=>readFile(join(temp,path),'utf8')))).join('\n');
+    must(!/<\/style/i.test(componentCss),'component CSS cannot terminate its element');
+    for(const [path,value]of sources)
+      must(value.equals(await readFile(join(root,path))),'source changed during generation: '+path);
+    const sourceInputs=[...sources].sort(([a],[b])=>a.localeCompare(b));
+    const bundleInputSha256=sha(Buffer.concat(sourceInputs.flatMap(([path,value])=>[
+      Buffer.from(path+'\u0000'),value,Buffer.from('\u0000')])));
     const previewCss=[
       '*,*::before,*::after{box-sizing:border-box}',
       'html,body{margin:0;min-width:0}',
@@ -99,7 +119,9 @@ export async function generateWorkflowReactPreview(){
         '--od-action-bg:var(--od-muted);--od-action-border:var(--od-input-border);--od-action-ink:var(--od-ink)}',
       // In the real extension the Side Panel IS the viewport. Here the
       // external 360px review frame must bound the unchanged modal.
-      '.od-workflow-preview-stage .workflow-sheet-overlay{position:absolute}',
+      'body>.workflow-sheet-overlay{inset:var(--od-preview-stage-top) auto auto var(--od-preview-stage-left);'+
+        'width:var(--od-preview-stage-width);height:var(--od-preview-stage-height)}',
+      'body>.workflow-sheet-overlay .workflow-sheet-panel{max-height:min(72dvh,560px,100%)}',
       '.od-workflow-preview-stage #opendesk-react-app{height:100%;min-height:0;'+
         'display:flex;flex-direction:column;overflow:hidden}',
       '.od-workflow-preview-stage .workbench-nav{flex:0 0 auto}',
@@ -136,9 +158,11 @@ export async function generateWorkflowReactPreview(){
         ' connect-src \'none\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'">',
       '<title>OpenDesk · Workflow 正式 React 同源离线预览</title>',
       '<meta name="od-source-input-sha256" content="'+sourceSha+'">',
+      '<meta name="od-bundle-source-sha256" content="'+bundleInputSha256+'">',
+      '<meta name="od-preview-proof" content="UI_PREVIEW_ONLY">',
       '<!-- SOURCE_BOUND_UI_PREVIEW React19; PREVIEW_ADAPTER_NOT_NATIVE; '+
         'inputsSha256='+sourceSha+' -->',
-      '<style id="od-official-ui-css">'+officialCss+'</style>',
+      '<style id="od-official-ui-css">'+officialCss+'\n'+componentCss+'</style>',
       '<style id="od-preview-viewport-css">'+previewCss+'</style>',
       '</head><body>',
       '<div class="od-workflow-preview-top" id="od-workflow-preview-controls">',
@@ -164,14 +188,14 @@ export async function generateWorkflowReactPreview(){
       '<option value="light">浅色</option><option value="dark">深色</option>',
       '</select></label></div></div>',
       '<div class="od-workflow-preview-frame">'+actualDom+'</div>',
-      '<p class="od-workflow-preview-footer">交互仅用于界面审阅，不会连接模型或操作网页</p>',
+      '<p class="od-workflow-preview-footer">UI_PREVIEW_ONLY · 交互仅用于界面审阅，不会连接模型或操作网页</p>',
       '<div id="od-workflow-preview-root" hidden></div>',
       '<script src="data:text/javascript;base64,'+compiled.toString('base64')+'"></script>',
       '</body></html>\n'
     ].join('\n');
     must(!/<script(?=\s)[^>]*src="https?:/i.test(page),
       'preview must contain no network scripts');
-    return {html:page,inputSha256:sourceSha,bytes:Buffer.byteLength(page),
+    return {html:page,inputSha256:sourceSha,bundleInputSha256,bytes:Buffer.byteLength(page),
       bundleBytes:compiled.length};
   }finally{await rm(temp,{recursive:true,force:true});}
 }
@@ -186,6 +210,7 @@ export async function buildWorkflowReactPreview({check=false}={}){
     await writeFile(output,result.html,'utf8');
   }
   return {path:output,inputSha256:result.inputSha256,bytes:result.bytes,
+    bundleInputSha256:result.bundleInputSha256,
     bundleBytes:result.bundleBytes,check};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){

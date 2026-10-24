@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {inferHttpsSource} from '../../src/ui/ai/provider-https-source.js';
+import {inferHttpsSource,httpsSourceConfigurationError} from '../../src/ui/ai/provider-https-source.js';
 import {load} from 'cheerio';
 import {renderSidebarReact} from '../../scripts/preview/react-sidebar-ssr.mjs';
 import {createWorkflowUIState} from '../../src/ui/workflow/workflow-ui-state.js';
@@ -85,6 +85,21 @@ test('R2.3 infer known HTTPS protocol paths only; unknown custom paths require e
    'http://example.com/v1/responses','https://name:password@example.com/v1/responses','not-a-url']){
   assert.equal(inferHttpsSource(endpoint),null,endpoint);
  }
+});
+
+test('settings reject unsupported Responses paths before saving without rejecting legacy Chat Completions gateways',()=>{
+ assert.equal(httpsSourceConfigurationError('cloud_responses','https://api.example.test/v1/responses'),'');
+ for(const endpoint of ['https://api.example.test/proxy/v1/responses',
+  'https://api.example.test/v1/responses/','https://api.example.test/v1/responses?feature=1',
+  'https://api.example.test/custom/plan'])
+  assert.match(httpsSourceConfigurationError('cloud_responses',endpoint),/仅支持 \/v1\/responses/);
+ assert.equal(httpsSourceConfigurationError('custom_https','https://api.example.test/custom/plan?feature=1'),'');
+ for(const endpoint of ['https://api.example.test/v1/responses',
+  'https://api.example.test/v1/responses?feature=1'])
+  assert.match(httpsSourceConfigurationError('custom_https',endpoint),/不能使用 Chat Completions/);
+ for(const endpoint of ['http://api.example.test/v1/chat/completions',
+  'https://user:secret@api.example.test/v1/chat/completions','https://api.example.test/v1/chat/completions#fragment'])
+  assert.match(httpsSourceConfigurationError('custom_https',endpoint),/有效的 HTTPS/);
 });
 
 test('R2.3 suggestion draft is append-only, deduplicated, IME-neutral, length bounded and never a Send',()=>{

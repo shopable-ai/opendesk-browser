@@ -146,7 +146,7 @@ test('R2.1.1 late old settlement cannot release a newer pending consumer',async 
 
 test('R2.1.1 incomplete idle HTTPS settings and consumer teardown leave no revocation listener',t=>{
   const h=harness(t,{source:'custom_https'}),conversation=h.make();
-  h.runtime.updateSettings({endpoint:''});
+  h.runtime.updateSettings({endpoint:'',apiKey:''});
   assert.doesNotThrow(()=>h.revoke({origins:['https://other.example/*']}));
   conversation.dispose();assert.equal(h.listeners.size,0);
   assert.doesNotThrow(()=>h.runtime.updateSettings({model:'after-close'}));

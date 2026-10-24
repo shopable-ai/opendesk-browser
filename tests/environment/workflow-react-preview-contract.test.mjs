@@ -35,6 +35,117 @@ async function sharedFixture(options={}){
 }
 
 const read=path=>readFile(path,'utf8');
+
+// Opt in to the same installed Playwright/Chromium used by existing browser
+// contracts. These are the generated file:// pages, with no product Host.
+for(const [name,path,ready]of [
+ ['Workflow','prototypes/sidebar/workflow/react-preview/index.html','workflowPreviewReady'],
+ ['Sidebar','prototypes/sidebar/react-preview/index.html','previewBootScript']
+])test(`${name} source-bound settings: native input, protocol retention, safe save/cancel and focus`,
+ {skip:process.env.OPENDESK_PLAYWRIGHT_MODULE?false:'NOT_TESTED: set OPENDESK_PLAYWRIGHT_MODULE'},async t=>{
+ const {chromium}=await import(process.env.OPENDESK_PLAYWRIGHT_MODULE);
+ const browser=await chromium.launch({headless:true,
+  ...(process.env.OPENDESK_CHROMIUM_EXECUTABLE?{executablePath:process.env.OPENDESK_CHROMIUM_EXECUTABLE}:{}),
+  args:['--no-sandbox']});
+ t.after(()=>browser.close());
+ const page=await browser.newPage({viewport:{width:1000,height:900}});
+ page.setDefaultTimeout(5000);
+ const errors=[],requests=[];
+ page.on('pageerror',error=>errors.push(String(error)));
+ page.on('request',request=>{if(/^https?:/.test(request.url()))requests.push(request.url());});
+ const url=pathToFileURL(new URL('../../'+path,import.meta.url).pathname);
+ if(name==='Sidebar')url.search='?tab=workflow';
+ await page.goto(url.href);
+ await page.waitForFunction(({ready,name})=>document.documentElement.dataset[ready]===(name==='Workflow'?'true':'ready'),{ready,name});
+ const open=async()=>{
+  await page.locator('#workflow-provider-toggle').click();
+  await page.getByRole('menuitem',{name:'高级 AI 设置…',exact:true}).click();
+  await page.getByRole('dialog',{name:'AI 设置'}).waitFor();
+  assert.equal(await page.getByRole('dialog').count(),1);
+ };
+ const segment=value=>page.locator(`.od-shared-provider-segment:has(input[value="${value}"]) span`);
+ const save=async()=>{
+  await page.getByRole('button',{name:'保存 AI 设置',exact:true}).click();
+  await page.getByRole('dialog').waitFor({state:'detached'});
+ };
+ await open();
+ assert.deepEqual(await page.getByRole('radio').evaluateAll(nodes=>nodes.map(node=>node.value)),['local_codex','https']);
+ assert.equal(await page.evaluate(()=>document.activeElement?.value),'local_codex');
+ await page.keyboard.press('ArrowRight');
+ assert.equal(await page.getByRole('radio',{name:'HTTPS 模型',exact:true}).isChecked(),true);
+ assert.equal(await page.getByLabel('HTTPS 接口',{exact:true}).isVisible(),true);
+ const viewport=await page.evaluate(()=>{
+  const stage=document.querySelector('.od-sidebar-preview-stage,.od-workflow-preview-stage').getBoundingClientRect();
+  const overlay=document.querySelector('.workflow-sheet-overlay').getBoundingClientRect();
+  const panel=document.querySelector('.workflow-sheet-panel').getBoundingClientRect();
+  return {stage:{left:stage.left,top:stage.top,width:stage.width,height:stage.height,bottom:stage.bottom},
+   overlay:{left:overlay.left,top:overlay.top,width:overlay.width,height:overlay.height},
+   panel:{left:panel.left,width:panel.width,bottom:panel.bottom}};
+ });
+ for(const key of ['left','top','width','height'])assert.ok(Math.abs(viewport.overlay[key]-viewport.stage[key])<1,
+  'settings viewport matches the displayed Side Panel: '+key);
+ assert.ok(viewport.panel.bottom<=viewport.stage.bottom+1);
+ const boxes=await page.locator('.od-shared-provider-segment span').evaluateAll(nodes=>nodes.map(node=>{
+  const r=node.getBoundingClientRect();return {top:r.top,height:r.height};
+ }));
+ assert.equal(boxes[0].top,boxes[1].top,'source options occupy one compact row');
+ assert.ok(boxes.every(box=>box.height>=30&&box.height<=44));
+ await page.getByLabel('HTTPS 接口',{exact:true}).fill('https://preview.example.test/custom/plan');
+ await page.locator('.od-shared-provider-protocol summary').click();
+ await page.getByLabel('接口协议',{exact:true}).selectOption('custom_https');
+ await page.getByLabel('模型 ID',{exact:true}).fill('preview-only-model');
+ await page.getByLabel('API Key（仅当前会话，不保存）',{exact:true}).fill('preview-dummy-not-a-real-key');
+ await save();
+ // Both the settings sheet and Workflow's shortcut use the retained explicit
+ // protocol for this nonstandard gateway, rather than re-inferring its path.
+ await page.locator('#workflow-provider-toggle').click();
+ await page.getByRole('menuitemradio',{name:'本机 Codex',exact:true}).click();
+ await open();await segment('https').click();
+ await page.locator('.od-shared-provider-protocol summary').click();
+ assert.equal(await page.getByLabel('接口协议',{exact:true}).inputValue(),'custom_https');
+ assert.equal(await page.getByLabel('模型 ID',{exact:true}).inputValue(),'preview-only-model');
+ assert.match(await page.getByLabel('API Key（仅当前会话，不保存）',{exact:true}).getAttribute('placeholder'),/已配置/);
+ await page.getByRole('button',{name:'取消',exact:true}).click();
+ await page.locator('#workflow-provider-toggle').click();
+ await page.getByRole('menuitemradio',{name:'HTTPS 模型',exact:true}).click();
+ assert.equal(await page.getByRole('dialog').count(),0,'configured legacy HTTPS shortcut needs no second review');
+ await open();
+ await page.getByLabel('HTTPS 接口',{exact:true}).fill('https://preview.example.test/proxy/v1/responses');
+ await page.getByRole('button',{name:'保存 AI 设置',exact:true}).click();
+ assert.match(await page.getByRole('alert').innerText(),/仅支持 \/v1\/responses/);
+ await page.getByLabel('HTTPS 接口',{exact:true}).fill('https://preview.example.test/v1/responses?feature=1');
+ await page.locator('.od-shared-provider-protocol summary').click();
+ await page.getByLabel('接口协议',{exact:true}).selectOption('custom_https');
+ await page.getByRole('button',{name:'保存 AI 设置',exact:true}).click();
+ assert.match(await page.getByRole('alert').innerText(),/不能使用 Chat Completions/);
+ await page.getByLabel('HTTPS 接口',{exact:true}).fill('https://preview.example.test/v1/responses');
+ await save();
+ await page.locator('#workflow-provider-toggle').click();
+ await page.getByRole('menuitemradio',{name:'本机 Codex',exact:true}).click();
+ await page.locator('#workflow-provider-toggle').click();
+ await page.getByRole('menuitemradio',{name:'HTTPS 模型',exact:true}).click();
+ await open();
+ assert.match(await page.locator('.od-shared-provider-fields').innerText(),/Responses/);
+ // A new receiver must not silently inherit another origin's credential.
+ await page.getByLabel('HTTPS 接口',{exact:true}).fill('https://other.example.test/v1/responses');
+ await page.getByRole('button',{name:'保存 AI 设置',exact:true}).click();
+ assert.match(await page.getByRole('alert').innerText(),/API Key|密钥/);
+ await page.getByRole('checkbox',{name:'清除现有会话密钥'}).check();
+ await save();await open();
+ assert.equal(await page.getByLabel('HTTPS 接口',{exact:true}).inputValue(),'https://other.example.test/v1/responses');
+ assert.equal(await page.getByRole('checkbox',{name:'清除现有会话密钥'}).count(),0);
+ // Save stays inside the scrollable sheet; Tab cycles and Escape returns to
+ // the stable Workflow trigger without changing the saved configuration.
+ await page.getByRole('button',{name:'保存 AI 设置',exact:true}).focus();
+ await page.keyboard.press('Tab');
+ assert.equal(await page.evaluate(()=>document.activeElement?.getAttribute('aria-label')),'关闭 AI 设置');
+ await page.keyboard.press('Shift+Tab');
+ assert.equal(await page.evaluate(()=>document.activeElement?.textContent),'保存 AI 设置');
+ await page.keyboard.press('Escape');
+ assert.equal(await page.evaluate(()=>document.activeElement?.id),'workflow-provider-toggle');
+ assert.equal(await page.evaluate(()=>document.getElementById('opendesk-react-app').inert),false);
+ assert.deepEqual(errors,[]);assert.deepEqual(requests,[],'preview cannot send AI requests');
+});
 test('Workflow preview mounts the installed SidebarAppShell and exactly one React root',async()=>{
   const [entry,builder,component,main]=await Promise.all([
     read('src/ui/react/preview/workflow-preview.tsx'),

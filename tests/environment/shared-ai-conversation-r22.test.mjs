@@ -97,7 +97,7 @@ test('R2.2 public Provider settings are stable, never reveal a key and preserve 
  assert.equal(events.length,1);
  assert.deepEqual(runtime.settingsSnapshot(),{
   source:'custom_https',endpoint:'https://example.org/v1/chat/completions',
-  model:'model-one',hasApiKey:true,generation:2
+  model:'model-one',hasApiKey:true,generation:2,httpsSource:'custom_https'
  });
  assert.equal(Object.hasOwn(runtime.settingsSnapshot(),'apiKey'),false);
  const edited=runtime.updateSettings({model:'model-two'});

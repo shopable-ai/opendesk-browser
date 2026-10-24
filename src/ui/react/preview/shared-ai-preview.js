@@ -1,9 +1,32 @@
 // OFFLINE UI_PREVIEW_ONLY. Not a Provider Runtime, Host or Permission Authority.
 // The preview never retains a credential or sends a request to a model or page.
 const allowedSources=new Set(['local_codex','custom_https','cloud_responses']);
+
+// The real settings Portal targets document.body. In an offline HTML review,
+// bound that viewport to the displayed Side Panel, without moving React DOM.
+export function bindPreviewSettingsViewport(stage){
+ const doc=stage.ownerDocument,view=doc.defaultView,style=doc.documentElement.style;
+ const sync=()=>{
+  const rect=stage.getBoundingClientRect();
+  for(const key of ['left','top','width','height'])
+   style.setProperty('--od-preview-stage-'+key,rect[key]+'px');
+ };
+ const observer=new view.ResizeObserver(sync);
+ observer.observe(stage);view.addEventListener('resize',sync);
+ view.addEventListener('scroll',sync,true);sync();
+ return ()=>{
+  observer.disconnect();view.removeEventListener('resize',sync);
+  view.removeEventListener('scroll',sync,true);
+  for(const key of ['left','top','width','height'])style.removeProperty('--od-preview-stage-'+key);
+ };
+}
+const endpointOrigin=endpoint=>{
+ try{const origin=new URL(endpoint).origin;return origin==='null'?null:origin;}
+ catch{return null;}
+};
 export function createPreviewProviderSettings(){
  const listeners=new Set();
- let publicState=Object.freeze({source:'local_codex',
+ let publicState=Object.freeze({source:'local_codex',httpsSource:null,
   endpoint:'https://api.openai.com/v1/chat/completions',model:'',
   hasApiKey:false,generation:1});
  const snapshot=()=>publicState;
@@ -21,9 +44,18 @@ export function createPreviewProviderSettings(){
    const model=patch.model??publicState.model;
    if(typeof endpoint!=='string'||typeof model!=='string')
     throw new Error('预览设置格式错误');
-   const hasApiKey=Object.hasOwn(patch,'apiKey')?Boolean(String(patch.apiKey||'')):publicState.hasApiKey;
+   if(Object.hasOwn(patch,'apiKey')&&typeof patch.apiKey!=='string')
+    throw Object.assign(new Error('预览设置格式错误'),{code:'E_AI_CONFIG'});
+   if(publicState.hasApiKey&&!Object.hasOwn(patch,'apiKey')&&
+    (!endpointOrigin(endpoint)||endpointOrigin(endpoint)!==endpointOrigin(publicState.endpoint)))
+    throw Object.assign(new Error('接收端来源已改变或地址无效，请输入新的 API Key，或明确清空 API Key 后保存'),{code:'E_AI_CONFIG'});
+   const hasApiKey=Object.hasOwn(patch,'apiKey')?Boolean(patch.apiKey):publicState.hasApiKey;
+   const httpsSource=source==='local_codex'?
+    (endpoint===publicState.endpoint?publicState.httpsSource:null):source;
+   if(source===publicState.source&&endpoint===publicState.endpoint&&model===publicState.model&&
+    hasApiKey===publicState.hasApiKey&&httpsSource===publicState.httpsSource)return snapshot();
    // API Key is deliberately never saved, even in this offline-only adapter.
-   publicState=Object.freeze({source,endpoint,model,hasApiKey,
+   publicState=Object.freeze({source,httpsSource,endpoint,model,hasApiKey,
     generation:publicState.generation+1});
    notify();return snapshot();
   },

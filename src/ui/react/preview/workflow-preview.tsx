@@ -3,7 +3,7 @@ import {createWorkflowUIState} from '../../workflow/workflow-ui-state.js';
 import {createDeveloperView} from '../../develop-view.js';
 import {createMyWorkbenchView} from '../../my-workbench-view.js';
 import {createSidebarToolsView} from '../../sidebar-tools-view.js';
-import {createPreviewProviderSettings} from './shared-ai-preview.js';
+import {createPreviewProviderSettings,bindPreviewSettingsViewport} from './shared-ai-preview.js';
 import {appendWorkflowSuggestionDraft} from '../../conversation/draft-suggestion.js';
 
 // PREVIEW_ADAPTER_NOT_NATIVE: the production SidebarAppShell/WorkflowPage owns
@@ -18,6 +18,7 @@ const get=id=>{
 };
 const state=createWorkflowUIState(),control=state.control;
 const stage=get('od-workflow-preview-stage');
+const releaseSettingsViewport=bindPreviewSettingsViewport(stage);
 const selectors={
   scenario:get('od-workflow-preview-scenario'),
   width:get('od-workflow-preview-width'),
@@ -243,7 +244,7 @@ Object.defineProperty(window,'__workflowPreviewInfo',{configurable:true,
     runHost:false,permission:false,realResult:false})});
 showScene('empty');
 window.addEventListener('pagehide',()=>{
-  unsubscribeSettings();app.dispose();state.dispose();providerSettings.dispose();
+  releaseSettingsViewport();unsubscribeSettings();app.dispose();state.dispose();providerSettings.dispose();
   delete doc.documentElement.dataset.workflowPreviewReady;
   delete window.__workflowPreviewInfo;
 },{once:true});

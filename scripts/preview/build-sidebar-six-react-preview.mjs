@@ -55,7 +55,7 @@ import {createMyWorkbenchView} from ${JSON.stringify(join(root,'src/ui/my-workbe
 import {createSidebarToolsView} from ${JSON.stringify(join(root,'src/ui/sidebar-tools-view.js'))};
 import {createClipperPreview} from ${JSON.stringify(join(root,'src/ui/react/preview/clipper-preview.js'))};
 import {createWorkflowUIState} from ${JSON.stringify(join(root,'src/ui/workflow/workflow-ui-state.js'))};
-import {createPreviewProviderSettings,createPreviewMyAgent} from ${JSON.stringify(join(root,'src/ui/react/preview/shared-ai-preview.js'))};
+import {createPreviewProviderSettings,createPreviewMyAgent,bindPreviewSettingsViewport} from ${JSON.stringify(join(root,'src/ui/react/preview/shared-ai-preview.js'))};
 import {appendWorkflowSuggestionDraft} from ${JSON.stringify(join(root,'src/ui/conversation/draft-suggestion.js'))};
 import {createLocalePreview} from ${JSON.stringify(join(root,'src/ui/react/preview/locale-preview.js'))};
 const localePreview=createLocalePreview(LOCALE_PREVIEW_TOOL);
@@ -74,6 +74,7 @@ if(themeInput){
  themeInput.addEventListener('change',event=>applyTheme(event.currentTarget.value));
 }
 const previewShell=document.getElementById('od-sidebar-preview-shell');
+const releaseSettingsViewport=bindPreviewSettingsViewport(document.getElementById('od-sidebar-preview-stage'));
 const previewWidth=Number(previewParams.get('width'));
 const widthChoices=[320,360,400,440,520];
 const selectedWidth=widthChoices.includes(previewWidth)?previewWidth:400;
@@ -373,7 +374,7 @@ app.renderDebugDiagnostics({cloudSummary:'仅预览 · 未连接真实 Host',sna
 const previewTool=new URLSearchParams(location.search).get('tool');
 if(previewTool==='web-markdown-clipper')clipper.open();
 else if(previewTool)clipper.openScenario(previewTool);
-window.addEventListener('pagehide',()=>{clipper.dispose();localePreview.dispose();app.dispose();
+window.addEventListener('pagehide',()=>{releaseSettingsViewport();clipper.dispose();localePreview.dispose();app.dispose();
  developerView.dispose();workflow.dispose();myAgent.dispose();providerSettings.dispose();},{once:true});
 document.documentElement.dataset.previewProof=proof.scope;
 document.documentElement.dataset.previewBootScript='ready';
@@ -476,6 +477,9 @@ export async function generateSidebarSixReactPreview(){
           'overflow:hidden;background:var(--od-paper);border:1px solid var(--od-line);'+
           'border-radius:var(--radius-surface)}'+
         '#opendesk-react-app{flex:1 1 auto;min-height:0;height:100%;overflow:hidden}'+
+        'body>.workflow-sheet-overlay{inset:var(--od-preview-stage-top) auto auto var(--od-preview-stage-left);'+
+          'width:var(--od-preview-stage-width);height:var(--od-preview-stage-height)}'+
+        'body>.workflow-sheet-overlay .workflow-sheet-panel{max-height:min(72dvh,560px,100%)}'+
         '.od-sidebar-preview-notice{margin:9px 0 0;color:var(--od-sub);font:11px/1.5 sans-serif}'+
         '.od-sidebar-preview-boot,.od-sidebar-preview-error{position:absolute;z-index:25;'+
           'inset:48px 8px auto;padding:12px;border-radius:8px;'+
