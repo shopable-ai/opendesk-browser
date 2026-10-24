@@ -19,6 +19,13 @@ export function ToolHost({view}) {
   const overflowVisible = ['sidebar-tool-settings-open','sidebar-tool-visibility',
     'sidebar-tool-context-menu','sidebar-tool-remove']
     .some(id => snapshot.fields[id]?.hidden === false);
+  const enableAction=snapshot.fields['sidebar-tool-enable'];
+  const enableIsOn=enableAction?.attributes?.['aria-pressed']==='true';
+  // The overflow shortcut forwards the SAME trusted click to the existing Host
+  // lifecycle. It never writes enable records or bypasses draft protection.
+  const enableInOverflow=snapshot.fields['sidebar-tool-remove']?.hidden===false;
+  const enableInOverflowDisabled=Boolean(enableAction?.disabled||
+    snapshot.fields['sidebar-tool-remove']?.disabled);
   // Cookie Editor has its own trusted settings card. Move the existing enable
   // action there instead of leaving it in the hidden generic Settings section.
   // Render exactly one enable switch and hint: the Cookie card owns both
@@ -290,7 +297,7 @@ export function ToolHost({view}) {
       const target=event.target.closest('button');
       if(!target)return;
       setHeaderMoreOpen(false);
-      if(target.id==='sidebar-tool-visibility'||target.id==='sidebar-tool-context-menu')
+      if(['sidebar-tool-visibility','sidebar-tool-context-menu','sidebar-tool-header-enable'].includes(target.id))
         headerMoreRef.current?.querySelector('#sidebar-tool-more-open')?.focus({preventScroll:true});
     }}>
     <ToolField as="button" type="button" id="sidebar-tool-settings-open" className="sidebar-tool-icon-action od-icon-button" title="工具设置" aria-label="工具设置" aria-controls="sidebar-tool-settings-view" aria-expanded="false" hidden={true} nodeRef={runtimeRefs.settingsControl}>
@@ -329,6 +336,16 @@ export function ToolHost({view}) {
 
 <span className="sidebar-tool-more-label">网页右键菜单</span>
 </ToolField>
+<button type="button" id="sidebar-tool-header-enable" className="sidebar-tool-icon-action od-icon-button"
+  title={enableIsOn?'停用工具':'启用工具'} aria-label={enableIsOn?'停用工具':'启用工具'}
+  aria-pressed={enableIsOn} hidden={!enableInOverflow} disabled={enableInOverflowDisabled}
+  onClick={event=>view.dispatch('sidebar-tool-enable','click',event.nativeEvent)}>
+  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+    strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 3v9M6.2 5.5a9 9 0 1 0 11.6 0"/>
+  </svg>
+  <span className="sidebar-tool-more-label">{enableIsOn?'停用工具':'启用工具'}</span>
+</button>
 <ToolField as="button" type="button" id="sidebar-tool-remove" className="sidebar-tool-icon-action od-icon-button" title="卸载工具及本地数据" aria-label="卸载当前工具及本地数据" disabled={true}>
 <svg viewBox="0 0 24 24" aria-hidden="true">
 <path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5">
