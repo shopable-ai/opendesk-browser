@@ -1139,7 +1139,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view,fullBookmarkButton,{disabled:busy||!enabled||!isFullBookmarkTool(active)});
     setToolFieldAttribute(view,fullBookmarkButton,'aria-pressed',String(hasFullBookmarkConsent));
     patchToolField(view, removeButton, {hidden: readOnlyPreview});if(openTabButton)patchToolField(view, openTabButton, {hidden: readOnlyPreview});
-    if(enableButton){patchToolField(view, enableButton, {textContent: promptSettings?'':isToc?tocText(enabled?'disable':'enable'):enabled?'停用工具':'启用工具'});patchToolField(view, enableButton, {disabled: busy||enableReadError});
+    if(enableButton){patchToolField(view, enableButton, {textContent: promptSettings?'':isToc?tocText(enabled?'disable':'enable'):enabled?'停用工具':'启用工具'});patchToolField(view, enableButton, {disabled: busy||enableReadError||toolSaving||readOnlyPreview});
       setToolFieldAttribute(view, enableButton, 'role', promptSettings?'switch':'button');
       setToolFieldAttribute(view, enableButton, 'aria-label', promptSettings?'启用工具':enableButton.textContent);
       if(promptSettings)setToolFieldAttribute(view, enableButton, 'aria-checked', String(enabled));else setToolFieldAttribute(view, enableButton, 'aria-checked', null);
