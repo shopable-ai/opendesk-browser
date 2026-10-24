@@ -6,6 +6,7 @@ const dom=(tag,cls='',text='')=>{const n=root.ownerDocument.createElement(tag);n
 const KEY='library',MENU_ACTION='add-selection';
 let data=model.defaults(),etag=null,ready=false,busy=false,dirty=false,mode='index',editId=null;
 let baseline='',expanded=null,pendingDelete=null,unconfirmedWrite=false,returnFocusId=null;
+let detailId=null,returnFocusAction='more';
  const imageAssets=new Map();let draftImageAssetId='',uploadBusy=false;
 let stagedImport=null,stagedEtag=null,replaceArmed=false,transferBusy=false,importTicket=0;
 const SITE_KEY='sites';
@@ -67,8 +68,8 @@ function report(){setState({dirty:dirty||siteDirty||Boolean(stagedImport),busy:b
 // The sandbox owns business navigation; the verified Host owns presentation only.
 function publishNavigation(){
   if(typeof setNavigation!=='function')return;
-  const page=mode==='index'?'index':editId?'edit':'create';
-  const title={index:'提示词快捷按钮',create:'新建提示词',edit:'编辑提示词'}[page];
+  const page=mode==='detail'?'detail':mode==='index'?'index':editId?'edit':'create';
+  const title={index:'提示词快捷按钮',detail:'提示词详情',create:'新建提示词',edit:'编辑提示词'}[page];
   const state={page,title,canBack:page!=='index',
     ...(page==='index'?{primary:'new',secondary:'transfer',
       secondaryExpanded:!el('ps-transfer-menu').hidden}:{})};
@@ -264,6 +265,8 @@ function lock(){
   el('ps-import-append').disabled=blocked||!append||Boolean(append.error||append.overLimit||append.added===0);
   el('ps-import-replace').disabled=blocked||!replace||Boolean(replace.error||replace.overLimit);
   el('ps-cancel').disabled=busy||uploadBusy||unconfirmedWrite||siteUnconfirmedWrite;
+  for(const id of ['ps-detail-back','ps-detail-edit','ps-detail-copy'])
+    el(id).disabled=blocked||Boolean(stagedImport);
   el('ps-form').setAttribute('aria-busy',String(busy));
   el('ps-save').textContent=busy?'保存中…':'保存';
   el('ps-save-next').textContent=busy?'保存中…':'保存并继续';
@@ -274,11 +277,13 @@ function index(){
   if(draftImageAssetId&&!data.items.some(item=>item.imageAssetId===draftImageAssetId))
     removeUnreferencedAsset(draftImageAssetId);
   draftImageAssetId='';
-  const focusId=returnFocusId;returnFocusId=null;
+  const focusId=returnFocusId,focusAction=returnFocusAction;
+  returnFocusId=null;returnFocusAction='more';detailId=null;
   mode='index';editId=null;dirty=false;pendingDelete=null;
-  el('ps-index').hidden=false;el('ps-edit').hidden=true;
+  el('ps-index').hidden=false;el('ps-edit').hidden=true;el('ps-detail').hidden=true;
   error('');bodyError('');render();
-  if(focusId)focusListAction(focusId,'more');
+  if(focusId&&!focusListAction(focusId,focusAction))
+    focusListAction(focusId,'more');
   report();publishNavigation();
 }
 function back(callback=index){
@@ -290,13 +295,31 @@ function back(callback=index){
    // Cancel/Back discards current draft. index() cleans unreferenced images.
    callback();
  }
+
+function openDetail(id){
+  if(!ready||busy||uploadBusy||transferBusy||siteBusy||unconfirmedWrite||
+     siteUnconfirmedWrite||stagedImport)return;
+  const item=data.items.find(row=>row.id===id);
+  if(!item){status('该提示词已发生变化，请刷新列表后重试。',true);return;}
+  closeTransfer();
+  mode='detail';detailId=id;editId=null;returnFocusId=id;returnFocusAction='detail';
+  expanded=null;pendingDelete=null;dirty=false;
+  el('ps-index').hidden=true;el('ps-edit').hidden=true;el('ps-detail').hidden=false;
+  el('ps-detail-name').hidden=Boolean(item.nameAuto||!item.name?.trim());
+  el('ps-detail-name').textContent=item.nameAuto?'':item.name||'';
+  el('ps-detail-state').textContent=item.enabled?'已启用 · 网页快捷按钮可用':'已停用 · 不在网页显示';
+  el('ps-detail-body').textContent=item.body;
+  const glyph=el('ps-detail-glyph');glyph.replaceChildren();picture(glyph,item);
+  lock();publishNavigation();
+  el('ps-detail-body').focus({preventScroll:true});
+}
  function start(id=null,preset=''){
   if(!ready||busy||uploadBusy||transferBusy||unconfirmedWrite||stagedImport)return;
   const row=id?data.items.find(item=>item.id===id):null;
   if(id&&!row){status('原条目已变化，请重新打开工具核对。',true);return;}
   closeTransfer();
-  mode='form';editId=id;returnFocusId=id;expanded=null;pendingDelete=null;
-  el('ps-index').hidden=true;el('ps-edit').hidden=false;
+  mode='form';editId=id;detailId=null;returnFocusId=id;returnFocusAction='more';expanded=null;pendingDelete=null;
+  el('ps-index').hidden=true;el('ps-edit').hidden=false;el('ps-detail').hidden=true;
   el('ps-save-next').hidden=Boolean(id);
   el('ps-form-title').textContent=id?'编辑提示词':'新建提示词';
   el('ps-body').value=row?.body??preset;
@@ -717,17 +740,25 @@ function render(){
   for(const [i,item] of data.items.entries()){
     const identity=(item.nameAuto?'':item.name?.trim())||
       item.body.trim().replace(/\s+/g,' ').slice(0,60)||'提示词';
-    const card=dom('article','ps-card'+(!item.enabled?' is-disabled':''));
+    const card=dom('article','ps-card'+(!item.enabled?' is-disabled':'')+
+      (expanded===item.id?' is-expanded':''));
     card.dataset.promptId=item.id;
+    card.addEventListener('click',event=>{
+      if(!event.target?.closest?.('button'))openDetail(item.id);
+    });
     const mainRow=dom('div','ps-card-main');
     const glyph=dom('div','ps-glyph');glyph.setAttribute('aria-hidden','true');
     picture(glyph,item);
-    const use=button(mainRow,item.body,()=>void copy(item),'quiet');
+    const use=button(mainRow,item.body,()=>openDetail(item.id),'quiet');
     use.replaceChildren(dom('span','ps-card-preview',item.body));
-    use.className='ps-card-use od-button od-button--quiet';use.dataset.locked=item.enabled?'0':'1';
-    use.setAttribute('aria-label',(item.enabled?'复制完整提示词：':'已停用的提示词：')+identity);
-    use.title=item.enabled?'复制完整正文；网页按钮可插入草稿':'已停用，请打开更多操作启用';
+    use.className='ps-card-use od-button od-button--quiet';
+    use.dataset.action='detail';use.dataset.itemId=item.id;use.dataset.locked='0';
+    use.setAttribute('aria-label','查看提示词详情：'+identity);
+    use.title='查看完整正文、复制或编辑';
     const actions=dom('div','ps-card-actions');
+    const quick=iconButton(actions,'copy','快速复制：'+identity,
+      ()=>void copy(item),'quick-copy',item.id,{disabled:!item.enabled});
+    quick.classList.add('ps-card-quick');
     const more=iconButton(actions,'more','更多操作：'+identity,()=>{
       const opening=expanded!==item.id;expanded=opening?item.id:null;pendingDelete=null;
       render();focusListAction(item.id,opening?'edit':'more');
@@ -736,7 +767,7 @@ function render(){
     if(expanded===item.id)more.setAttribute('aria-controls','ps-commands-'+i);
     mainRow.prepend(glyph);mainRow.append(actions);card.append(mainRow);
     if(!item.nameAuto&&item.name?.trim())card.append(dom('div','ps-card-caption',item.name));
-    if(expanded===item.id){
+    if(expanded===item.id&&!pendingDelete){
       const commands=dom('div','ps-more');
       commands.id='ps-commands-'+i;commands.setAttribute('role','group');
       commands.setAttribute('aria-label','提示词操作：'+identity);
@@ -759,7 +790,7 @@ function render(){
       confirm.append(dom('p','','确认删除「'+identity+'」？此操作不能撤销。'));
       const buttons=dom('div','ps-actions');
       const cancel=button(buttons,'取消',()=>{
-        pendingDelete=null;render();focusListAction(item.id,'delete');
+        pendingDelete=null;render();focusListAction(item.id,'more');
       });cancel.classList.add('ps-delete-cancel');
       button(buttons,'确认删除',()=>void remove(),'danger');
       confirm.append(buttons);card.append(confirm);
@@ -1130,16 +1161,18 @@ el('ps-new').addEventListener('click',()=>start());
 // Existing instance-gated bridge gestures never grant file/clipboard authority.
 // Secondary only opens the sandbox menu; real import/export clicks stay here.
 root.addEventListener('opendesk-tool-navigation',event=>{
-  if(event.detail?.action==='back'&&mode==='form')back();
+  if(event.detail?.action==='back'&&mode==='detail')back();
+  else if(event.detail?.action==='back'&&mode==='form')back();
   else if(event.detail?.action==='primary'&&mode==='index')start();
   else if(event.detail?.action==='secondary'&&mode==='index')toggleTransfer();
 });
 root.addEventListener('keydown',event=>{
   if(event.key!=='Escape')return;
-  if(pendingDelete){const id=pendingDelete;pendingDelete=null;render();focusListAction(id,'delete');event.preventDefault();}
+  if(pendingDelete){const id=pendingDelete;pendingDelete=null;render();focusListAction(id,'more');event.preventDefault();}
   else if(expanded){const id=expanded;expanded=null;render();focusListAction(id,'more');event.preventDefault();}
   else if(!el('ps-transfer-menu').hidden){closeTransfer();restoreTransferFocus();event.preventDefault();}
   else if(stagedImport&&!busy&&!transferBusy){discardImport();restoreTransferFocus();event.preventDefault();}
+  else if(mode==='detail'){back();event.preventDefault();}
 });
 // The sandbox intentionally disallows forms. Native button activation must
 // save directly, without relying on the browser dispatching a submit event.
@@ -1199,6 +1232,12 @@ el('ps-image-clear').addEventListener('click',()=>{
     removeUnreferencedAsset(previous);
 });
 el('ps-cancel').addEventListener('click',()=>back());
+el('ps-detail-back').addEventListener('click',()=>back());
+el('ps-detail-edit').addEventListener('click',()=>{if(detailId)start(detailId);});
+el('ps-detail-copy').addEventListener('click',()=>{
+  const item=data.items.find(row=>row.id===detailId);
+  if(item)void copy(item,true);
+});
 
 el('ps-toggle-settings').addEventListener('click',()=>options(el('ps-setting-fields').hidden));
 el('ps-web').addEventListener('change',()=>void changeWeb());
