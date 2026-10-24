@@ -70,7 +70,7 @@ if(widthInput){
   if(!widthChoices.includes(value))return;
   previewShell.style.width='min(100%, '+value+'px)';
   const url=new URL(location.href);url.searchParams.set('width',String(value));
-  history.replaceState(null,'',url);
+  try{history.replaceState(null,'',url);}catch{/* file:// history restrictions do not block width changes. */}
  });
 }
 const developerView=createDeveloperPreviewView();
