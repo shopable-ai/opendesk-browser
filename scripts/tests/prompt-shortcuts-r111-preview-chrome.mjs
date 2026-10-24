@@ -790,12 +790,15 @@ async function run(){
   assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),4);
   report.r34FailedWriteSafe=true;
   await evalChrome('(()=>{const f=document.getElementById("actionScenario");f.value="clipboard-failure";f.dispatchEvent(new Event("change",{bubbles:true}));})()');
-  // The preview deliberately debounces repeated activation of one prompt for 650ms.
-  // Reaching the clipboard-failure scenario requires a fresh real user click.
-  await sleep(700);
-  await click('#pageRail .page-shortcut:nth-child(2)');
-  await poll('document.querySelector("#panelStatus").dataset.kind==="error"','double-failure notice');
-  x=await state();assert.match(x.notice,/安全停止：模拟编辑器与剪贴板均不可用/);assert.equal(x.copyDialog,false);
+  // The disabled website insertion cannot be clicked here. In the updated
+  // management flow, copying from read-only detail must report a failure safely.
+  await click('.prompt-use');
+  assert.equal(await evalChrome('!document.querySelector("#detailView").hidden'),true);
+  await click('#detailCopy');
+  await poll('document.querySelector("#panelStatus").dataset.kind==="error"','detail copy failure notice');
+  x=await state();assert.match(x.notice,/复制失败：模拟剪贴板写入失败/);
+  assert.equal(x.copyDialog,false);
+  await click('#detailBack');
   report.simulatedFailure=true;
   // Exercise Unicode editing in the original full preview, including a ZWJ
   // emoji, skin tone, combining accent and blank line; then restore the fixture.
