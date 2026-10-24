@@ -1,5 +1,21 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
+## 2.0.39 导出故障定位与提示修复（2026-10-24）
+
+系统 Chrome 的 2.0.35 在官方候选更新后，一键导出被 Host 以 `E_TOOL_RUNTIME_UNAVAILABLE` 拒绝；原界面把该错误隐藏为 `E_COOKIE_EXPORT`，取消“包含 Cookie 值”后也一样失败。现通过原可信安装器同 ID 更新至 **2.0.39**，能力列表不变。工具遇到发行身份不匹配时明确提示从扩展列表审阅更新；缺少真实点击、敏感值回执不完整、容量限制、取消和结果未知也分别给出处理方式，不显示 Host 异常正文。
+
+导出仍必须先取得原有站点及授权代际绑定的一次性 Intent；身份、点击或授权拒绝时，不读取 Cookie 值、不尝试其他导出通道、不自动重试。JSON、Cookie Header 和无值 JSON 元数据的复制/下载经定向 Controller 测试覆盖，原分区 Cookie 的 Header 无损限制保留。未修改共享 Host、Authority 或权限模型。
+
+唯一正式包为 `cookie-editor.opendesk-tool.json`，125893 字节，SHA-256 `892887021f7135301bf40e171197f1352923e7339b4fd71489bcb1ee0e0c5202`；经原打包器候选门禁、显式晋升及同源检查。系统 Chrome 已完成安装；**安装成功不等于实际导出已通过**。旧授权记录仅包含 `https://chatgpt.com` 与 `http://127.0.0.1:43111`，升级后的当前官方入口要求全站 Cookie 管理授权，范围更广，尚未批准，因此修复版真实复制/下载为 **NOT_TESTED**。2.0.38 为本轮已被 2.0.39 替换的中间安装版本，不保留第二份正式 JSON。
+
+定向验证：
+
+```sh
+node --test tests/environment/cookie-editor-react-controller.test.mjs tests/environment/cookie-editor-export-intent.test.mjs tests/environment/cookie-editor-react-source.test.mjs
+node --test --test-name-pattern 'canonical packer rejects|built React JSX' tests/environment/cookie-editor-react-build.test.mjs
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --check-project
+```
+
 ## 2.0.37 一次完整授权：错误处理增量交付（2026-10-24）
 
 继承 `dd8ae879` 及最新 `main` 的完整授权事务，不修改可信 Host：一次明确管理授权包含已声明的读取、敏感值、写入、观察和清理，旧部分授权由一次明确补全完成。敏感值继续默认遮蔽，不进入 React 快照或持久化 UI 状态。

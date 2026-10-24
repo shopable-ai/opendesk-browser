@@ -16,6 +16,14 @@ const cookieFailureHelp=error=>({
   E_COOKIE_STORE:'Cookie Store 与当前授权不匹配；请核对当前窗口并刷新列表。',
   E_COOKIE_PARTITION:'Cookie Partition 与当前授权不匹配；请核对当前网站分区并刷新列表。'
 })[safeCode(error)];
+const exportFailureHelp=error=>({
+  E_USER_GESTURE_REQUIRED:'请重新点击复制或下载，以确认本次导出。',
+  E_CANCELLED:'本次导出已取消；需要时可重新发起。',
+  E_OUTCOME_UNKNOWN:'导出结果未确认；请先核对剪贴板或下载记录，不要自动重试。',
+  E_COOKIE_VALUES:'未取得完整 Cookie 值；请刷新列表并检查管理授权，或取消包含 Cookie 值后导出 JSON 元数据。',
+  E_LIMIT:'导出内容超过当前容量限制；可取消包含 Cookie 值后导出 JSON 元数据。',
+  E_TOOL_RUNTIME_UNAVAILABLE:'当前安装版本无法使用一键导出；请从扩展列表审阅更新 Cookie Editor。'
+})[safeCode(error,'E_COOKIE_EXPORT')]||cookieFailureHelp(error)||'请检查授权或选择其他格式。';
 const bounded=(text,limit)=>new Blob([text]).size<=limit;
 // These codes are rejected before the affected native Cookie write.
 const importPrewriteDenials=new Set([
@@ -278,7 +286,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
       if(!['copy','download'].includes(method))throw Error('E_COOKIE_EXPORT');
       const intent=await adapter.beginExportIntent(guard.at,method);
       if(intent?.authorized!==true||!Number.isSafeInteger(intent.ref)||intent.ref<1)
-        throw Object.assign(Error('E_COOKIE_EXPORT'),{code:'E_COOKIE_EXPORT'});
+        throw failure('E_COOKIE_EXPORT');
       exportRef=intent.ref;
       if(!verifiedRead(guard))return false;
       if(metadata&&format!=='json')throw Error('E_COOKIE_EXPORT');
@@ -293,10 +301,10 @@ export function createCookieController({adapter,onChange=()=>{}}){
           scope:'current-authorized-url-store-partition',cookies:safe},null,2)+'\n';
       }else{
         if(records.some(row=>row.valueRedacted!==false||typeof row.value!=='string'))
-          throw Error('E_COOKIE_VALUES');
+          throw failure('E_COOKIE_VALUES');
         plaintext=exportText(format,records);
       }
-      if(!bounded(plaintext,150000))throw Error('E_LIMIT');
+      if(!bounded(plaintext,150000))throw failure('E_LIMIT');
       const suffix=format==='json'?'json':'txt';
       effectPending=true;
       if(method==='copy'){
@@ -312,7 +320,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
     }catch(error){if(verifiedRead(guard)){
       if(rejectLostAccess(error))return false;
       report('导出失败或被拒绝'+formatCode(error,'E_COOKIE_EXPORT')+
-        '；检查授权或选择其他格式。','error');
+        '；'+exportFailureHelp(error),'error');
     }
     }finally{
       plaintext='';

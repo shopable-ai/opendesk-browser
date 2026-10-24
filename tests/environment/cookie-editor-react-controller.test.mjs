@@ -717,6 +717,65 @@ test('R5.20 metadata exports strip values and full exports require explicit valu
   f.controller.dispose();
 });
 
+test('JSON, Header and metadata exports deliver once through the authorized SDK sinks',async()=>{
+  for(const method of ['copy','download']){
+    for(const options of [{metadata:true},{format:'json'},{format:'header'}]){
+      const f=fixture();await f.controller.load();
+      f.cookies.getAll=async opts=>opts.partitionKey?[]:[{...base,valueRedacted:false}];
+      assert.equal(await f.controller.exportTo({...options,method}),true);
+      assert.equal(f.calls.filter(([name])=>name===method).length,1);
+      const delivered=f.calls.find(([name])=>name===method)[1];
+      const text=method==='copy'?delivered:delivered.text;
+      assert.equal(text.includes(base.value),options.metadata!==true);
+      assert.doesNotMatch(JSON.stringify(f.snapshots),/SECRET_FIXTURE/);
+      f.controller.dispose();
+    }
+  }
+});
+
+test('a target change while the export intent is rejected never reaches a sink',async()=>{
+  const f=fixture();await f.controller.load();
+  const pending=deferred();f.adapter.beginExportIntent=()=>pending.promise;
+  const exporting=f.controller.exportTo({metadata:true,method:'copy'});
+  f.controller.invalidate('网站已切换');
+  pending.reject(Object.assign(Error('shortcut unavailable'),{code:'E_TOOL_RUNTIME_UNAVAILABLE'}));
+  assert.equal(await exporting,false);
+  assert.equal(f.calls.some(([name])=>name==='copy'||name==='download'),false);
+  f.controller.dispose();
+});
+
+test('stale installation, lost grants and missing clicks stop export with actionable safe diagnostics',async()=>{
+  for(const code of ['E_TOOL_RUNTIME_UNAVAILABLE','E_SITE_GRANT_REQUIRED','E_DOCUMENT_CHANGED','E_USER_GESTURE_REQUIRED','E_TOOL_CHANGED']){
+    const f=fixture();await f.controller.load();
+    const reads=f.calls.length;
+    f.adapter.beginExportIntent=async()=>{throw Object.assign(Error('PRIVATE_ERROR_TEXT'),{code});};
+    assert.equal(await f.controller.exportTo({metadata:true,method:'copy'}),false);
+    assert.equal(f.calls.some(([name])=>name==='copy'||name==='download'),false);
+    assert.equal(f.calls.length,reads,'rejected intent cannot read Cookie values');
+    if(code==='E_USER_GESTURE_REQUIRED')assert.match(f.controller.snapshot().message,/E_USER_GESTURE_REQUIRED/);
+    if(code==='E_TOOL_RUNTIME_UNAVAILABLE')assert.match(f.controller.snapshot().message,/E_TOOL_RUNTIME_UNAVAILABLE.*审阅更新/);
+    assert.doesNotMatch(JSON.stringify(f.snapshots),/PRIVATE_ERROR_TEXT|SECRET_FIXTURE/);
+    f.controller.dispose();
+  }
+  const f=fixture();await f.controller.load();
+  f.adapter.beginExportIntent=async()=>undefined;
+  assert.equal(await f.controller.exportTo({metadata:true,method:'copy'}),false);
+  assert.equal(f.calls.some(([name])=>name==='copy'),false);
+  f.controller.dispose();
+});
+
+test('export rejection and unknown outcomes are never replayed and explain the next action',async()=>{
+  for(const code of ['E_CANCELLED','E_OUTCOME_UNKNOWN']){
+    const f=fixture();await f.controller.load();let calls=0;
+    f.adapter.download=async()=>{calls++;throw Object.assign(Error(code),{code});};
+    assert.equal(await f.controller.exportTo({metadata:true,method:'download'}),false);
+    assert.equal(calls,1);
+    assert.match(f.controller.snapshot().message,new RegExp(code));
+    assert.match(f.controller.snapshot().message,code==='E_CANCELLED'?/已取消/:/核对剪贴板或下载记录/);
+    f.controller.dispose();
+  }
+});
+
 test('R5.20 a revoked SDK receipt invalidates both preflights without waiting for a UI event',async()=>{
   const f=fixture();await f.controller.load();
   const id=f.controller.snapshot().rows[0].id,source='fresh=SECRET';
