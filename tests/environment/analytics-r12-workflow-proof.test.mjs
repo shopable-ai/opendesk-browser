@@ -14,7 +14,7 @@ const entryUrl='https://shop.example/search?q=camera';
 const destinationUrl='https://shop.example/products/camera-x';
 const entryTarget={windowId:4,tabId:12,frameId:0,documentId:'entry-document',url:entryUrl};
 const destinationTarget={...entryTarget,documentId:'detail-document',url:destinationUrl};
-const when=offset=>new Date(Date.UTC(2026,9,24,0,0,offset)).toISOString();
+const when=offset=>Date.UTC(2026,9,24,0,0,offset);
 
 function evidenceFixture(){
   const hostDocumentId='trusted-sidepanel-document',hostInstanceId=randomUUID();
@@ -104,6 +104,10 @@ test('original Controller journals certify only observed navigation with settled
     ['forged after result',v=>{v.afterResult.resultId=randomUUID();}],
     ['replayed run',v=>{v.afterRun.runId=v.beforeRun.runId;}],
     ['out-of-order readback',v=>{v.afterRun.createdAt=when(12);}],
+    ['pre-observation too late',v=>{v.beforeResult.committedAt=when(11);}],
+    ['after observation too late',v=>{v.afterRun.createdAt=when(400);}],
+    ['invalid numeric run timestamp',v=>{v.actionRun.createdAt=Infinity;}],
+    ['invalid numeric result timestamp',v=>{v.afterResult.committedAt=-1;}],
     ['unobserved destination',v=>{v.afterRun.target.url='https://shop.example/elsewhere';}],
     ['same document',v=>{v.afterRun.target.documentId=entryTarget.documentId;}],
     ['auto/cloud execution',v=>{v.actionRun.cloudRequestId=randomUUID();}],
@@ -125,6 +129,23 @@ test('original Controller journals certify only observed navigation with settled
     change(evidence);
     assert.equal(verifyWorkflowLinkBusinessProof(evidence),null,name+' must fail closed');
   }
+});
+
+test('Workflow business proof accepts real Controller epoch-millisecond journals and legacy ISO',()=>{
+  const numeric=evidenceFixture();
+  assert.equal(typeof numeric.actionRun.createdAt,'number');
+  assert.equal(typeof numeric.actionResult.committedAt,'number');
+  assert.deepEqual(verifyWorkflowLinkBusinessProof(numeric),{
+    actionTarget:entryTarget,resultTarget:destinationTarget
+  });
+  const iso=structuredClone(numeric);
+  for(const key of ['actionRun','beforeRun','afterRun'])
+    iso[key].createdAt=new Date(iso[key].createdAt).toISOString();
+  for(const key of ['actionResult','beforeResult','afterResult'])
+    iso[key].committedAt=new Date(iso[key].committedAt).toISOString();
+  assert.deepEqual(verifyWorkflowLinkBusinessProof(iso),{
+    actionTarget:entryTarget,resultTarget:destinationTarget
+  });
 });
 
 test('formal Workflow UI forwards only three-run link evidence; legacy one-run B-grade is gone',async()=>{

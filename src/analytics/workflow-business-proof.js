@@ -5,7 +5,11 @@ import {decodeValue as decodeControlValue} from '../framework/control/value.js';
 import {WORKFLOW_OBSERVE_SOURCE} from '../ui/workflow/observation.js';
 import {verifyOpenedLinkPage} from '../ui/workflow/direct-execution.js';
 
-const validTime=value=>typeof value==='string'&&Number.isFinite(Date.parse(value));
+// Original Controller journals use integer epoch milliseconds. Historical
+// records may be ISO strings; any invalid clock fails closed.
+const timeOf=value=>typeof value==='number'?
+  (Number.isSafeInteger(value)&&value>=0?value:NaN):
+  (typeof value==='string'?Date.parse(value):NaN);
 const origin=url=>{try{const row=new URL(url);return ['http:','https:'].includes(row.protocol)?row.origin:null;}catch{return null;}};
 function authentic(run,result,hostDocumentId,{observer=false}={}){
   if(run?.tag!=='controller-run'||result?.tag!=='controller-result'||
@@ -16,7 +20,8 @@ function authentic(run,result,hostDocumentId,{observer=false}={}){
     run.revision?.sourceHash!==run.contentHash||
     result.revision?.sourceHash!==run.contentHash||
     run.scheduledFireId||run.cloudRequestId||run.profile==='app-service'||
-    !run.target||!validTime(run.createdAt)||!validTime(result.committedAt))return false;
+    !run.target||!Number.isFinite(timeOf(run.createdAt))||
+    !Number.isFinite(timeOf(result.committedAt)))return false;
   if(observer&&(run.sourceKind!=='draft'||run.draftSourceUtf8!==WORKFLOW_OBSERVE_SOURCE))return false;
   return true;
 }
@@ -62,9 +67,9 @@ export function verifyWorkflowLinkBusinessProof({actionRun,actionResult,beforeRu
     beforeRun.contentHash!==afterRun.contentHash||
     beforeRun.hostInstanceId!==actionRun.hostInstanceId||
     afterRun.hostInstanceId!==actionRun.hostInstanceId||
-    !(Date.parse(beforeResult.committedAt)<=Date.parse(actionRun.createdAt))||
-    !(Date.parse(actionResult.committedAt)<=Date.parse(afterRun.createdAt))||
-    Date.parse(afterRun.createdAt)-Date.parse(actionResult.committedAt)>5*60*1000||
+    !(timeOf(beforeResult.committedAt)<=timeOf(actionRun.createdAt))||
+    !(timeOf(actionResult.committedAt)<=timeOf(afterRun.createdAt))||
+    timeOf(afterRun.createdAt)-timeOf(actionResult.committedAt)>5*60*1000||
     !operations.some(row=>durableClickFromJournal(row,actionRun)))return null;
   const action=actionRun.target,before=beforeRun.target,after=afterRun.target;
   if(before.documentId!==action.documentId||before.url!==action.url||
