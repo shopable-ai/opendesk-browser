@@ -39,7 +39,7 @@ test('R5.26 stopped Cookie Editor exposes trusted re-enable without duplicate fi
   const [host,view]=await Promise.all([
     source('src/ui/sidebar-tools.js'),source('src/ui/react/tabs/tool-host.tsx')]);
   assert.match(view,/const cookieManagementVisible=/);
-  assert.match(view,/\{!cookieManagementVisible&&<>/);
+  assert.match(view,/\{!cookieManagementVisible&&<section className="sidebar-tool-management"/);
   const cookie=view.slice(view.indexOf('function CookieSettings('),view.indexOf('function BookmarkSettings('));
   assert.match(cookie,/\{!firstUse&&<>[\s\S]*id="sidebar-tool-enable"/);
   assert.match(cookie,/id="sidebar-tool-enable-hint"/);
@@ -68,9 +68,11 @@ test('R5.38 Cookie Editor keeps infrequent app stop out of its toolbar',async()=
     source('src/ui/extension-center.js'),
     source('examples/sidebar-tools/cookie-editor/app/CookieEditorApp.jsx')
   ]);
-  assert.match(view,/const cookieEditorInHost=.*isCookieEditor===true/);
-  assert.match(view,/const enableInOverflow=!cookieEditorInHost&&/);
-  assert.match(view,/id="sidebar-tool-header-enable"[\s\S]*?hidden=\{!enableInOverflow\}/);
+  assert.match(view,/className="sidebar-tool-header-actions"/);
+  assert.match(view,/id="sidebar-tool-settings-open"/);
+  assert.match(view,/id="sidebar-tool-remove"/);
+  assert.doesNotMatch(view,/sidebar-tool-header-enable|enableInOverflow|sidebar-tool-more-open/,
+    'tool enable remains a low-frequency trusted Settings action, not a header or overflow command');
   const card=view.slice(view.indexOf('function CookieSettings('),view.indexOf('function BookmarkSettings('));
   assert.equal((card.match(/id="sidebar-tool-enable"/g)||[]).length,1);
   assert.match(card,/\{!firstUse&&<>[\s\S]*id="sidebar-tool-enable"/);
