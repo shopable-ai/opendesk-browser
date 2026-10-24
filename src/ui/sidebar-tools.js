@@ -191,6 +191,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const pageInstallReceipt=view.fields["page-install-import-receipt"];
   const pageInstallReceiptText=view.fields["page-install-import-receipt-text"];
   const settingsButton=view.fields["sidebar-tool-settings-open"],settingsView=view.fields["sidebar-tool-settings-view"];
+  const adblockProductSettings=view.fields["sidebar-tool-adblock-product-settings"];
   const tocLanguageRow=view.fields["sidebar-tool-toc-language"],tocLanguageSelect=view.fields["sidebar-tool-toc-language-select"];
   const menuButton=view.fields["sidebar-tool-context-menu"];
   const settingsScopeButton=view.fields["sidebar-tool-settings-scope"];
@@ -267,6 +268,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     reportAnalytics('event.host_report','tool.opened',active.id,'sidepanel');
   };
   let pendingUninstallId=null,pendingUninstallBaseline=null;
+  let pendingAdblockSettingsInstance=null;
   const listeners=[];
   const listen=(field,type,fn)=>listeners.push(view.bind(field.key,type,fn));
   // Verified workspaces inherit the measured flex frame height. Other
@@ -1080,12 +1082,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(promptEnableLabel)patchToolField(view, promptEnableLabel, {textContent:'启用工具'});
     if(promptEnableDescription)patchToolField(view, promptEnableDescription, {hidden:true});
     setToolFieldAttribute(view, settingsView, 'aria-label', id===ADBLOCK_ID?'工具管理':tocText('settingsTitle'));
-    const adblockManagement=managed&&id===ADBLOCK_ID&&tocSettingsOpen;
-    patchToolField(view, settingsButton, {title: id===ADBLOCK_ID?
-      adblockManagement?'返回 AdBlock 产品':'打开 AdBlock 产品设置':tocText('settingsTitle')});
+    patchToolField(view, settingsButton, {title:tocText('settingsTitle')});
     setToolFieldAttribute(view, settingsButton, 'aria-label', settingsButton.title);
-    setToolFieldAttribute(view, settingsButton, 'aria-controls', id===ADBLOCK_ID&&!tocSettingsOpen?
-      (active?.uiRuntime==='opendesk.react-ui.v1'?'sidebar-tool-frame':'sidebar-tool-adblock-native'):'sidebar-tool-settings-view');
+    setToolFieldAttribute(view, settingsButton, 'aria-controls', 'sidebar-tool-settings-view');
     patchToolField(view, backButton, {title: tocText('backAction')});
     setToolFieldAttribute(view, backButton, 'aria-label', backButton.title);
     if(openTabButton){
@@ -1101,6 +1100,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, settingsButton, {hidden: !managed});
     patchToolField(view, settingsButton, {disabled: busy||sitePending});
     setToolFieldAttribute(view, settingsButton, 'aria-expanded', String(show));
+    if(adblockProductSettings)patchToolField(view,adblockProductSettings,{
+      hidden:!(show&&id===ADBLOCK_ID&&active?.uiRuntime==='opendesk.react-ui.v1'),
+      disabled:busy||toolSaving||enableReadError||!enabled});
     // Time Review uses the same trusted static settings DOM as an inline
     // enrollment card. Do not replace/hide its live stats iframe.
     const trustedInline=show&&(id===TIME_REVIEW_ID||id===FOCUS_ID||id===AI_ID||
@@ -1235,7 +1237,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, title, {title: active?'v'+active.version:''});
     const clipNavigation=navigationAllowed&&active?.id==='web-markdown-clipper'&&!!frame&&clipPage!==null;
     const navigation=navigationAllowed&&frame&&toolNavigation?toolNavigation:null;
-    if(tocSettingsOpen)patchToolField(view,title,{textContent:'工具设置'});
+    if(tocSettingsOpen)patchToolField(view,title,{textContent:visibleTitle});
     else if(clipNavigation||navigation)
       patchToolField(view,title,{textContent:navigation?.title||clipNavigationTitles[clipPage]});
     const contextAction=tocSettingsOpen?'':navigation?.primary||
@@ -2770,7 +2772,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       return;
     }
     if(message.kind==='status'){
-      if(message.state==='ready'){notice('');reportReadyOpen(message.instance);}
+      if(message.state==='ready'){
+        notice('');reportReadyOpen(message.instance);
+        if(active?.id===ADBLOCK_ID&&pendingAdblockSettingsInstance===message.instance){
+          pendingAdblockSettingsInstance=null;
+          event.source.postMessage({protocol:'opendesk.adblock.ui.v1',
+            kind:'settings',toolId:ADBLOCK_ID,instance:message.instance},'*');
+        }
+      }
       else if(message.state==='error')notice(active.title+'：'+String(message.message||'').slice(0,240),true);
       return;
     }
@@ -3864,16 +3873,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(active.id==='web-markdown-clipper'&&!tocSettingsOpen&&(toolDirty||toolSaving)){
       notice('请先保存或取消当前摘录的未保存修改，再打开工具设置。',true);return;
     }
-    if(active.id===ADBLOCK_ID&&!tocSettingsOpen){
-      // Reuse the real trusted toolbar action adjacent to Uninstall.
-      // Product settings cannot trigger a native permission request.
-      if(active.uiRuntime==='opendesk.react-ui.v1'){
-        // A navigation hint only; no DNR privilege or synthetic trusted click.
-        // The tool owns the Settings page and remains inside its opaque iframe.
-        frame?.contentWindow?.postMessage({protocol:'opendesk.adblock.ui.v1',
-          kind:'settings',toolId:ADBLOCK_ID,instance},'*');
-      }else{tocSettingsOpen=true;render();}
-      return;
+    if(active.id===ADBLOCK_ID&&!tocSettingsOpen&&(toolDirty||toolSaving)){
+      notice('请先保存或取消 AdBlock 当前编辑，再打开工具设置。',true);return;
     }
     if(active.id===PROMPT_ID){
       if(tocSettingsOpen){closePromptSettings();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});return;}
@@ -3881,6 +3882,22 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       tocSettingsOpen=true;tocScope='site';refreshPromptSettings(active);requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});return;
     }
     tocSettingsOpen=!tocSettingsOpen;tocScope='site';render();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
+  });
+  if(adblockProductSettings)listen(adblockProductSettings,'click',event=>{
+    if(event?.isTrusted!==true||!tocSettingsOpen||disposed||busy||toolSaving||toolDirty||
+      readOnlyPreview||enableReadError||active?.id!==ADBLOCK_ID||
+      active.uiRuntime!=='opendesk.react-ui.v1')return;
+    const tool=active;
+    tocSettingsOpen=false;
+    if(!frame?.isConnected){
+      // From direct Extension Center settings, sandbox starts only on this click.
+      mountTool(tool);
+      if(frame?.isConnected)pendingAdblockSettingsInstance=instance;
+      return;
+    }
+    render();
+    frame.contentWindow?.postMessage({protocol:'opendesk.adblock.ui.v1',
+      kind:'settings',toolId:ADBLOCK_ID,instance},'*');
   });
   listen(settingsScopeButton,'click',()=>{tocScope=tocScope==='site'?'page':'site';render();});
   const setSitePermission=allowed=>{

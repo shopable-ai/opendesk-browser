@@ -240,7 +240,8 @@ export function ToolHost({view}) {
 </svg>
 </ToolField>
 <TrustedConversationHeaderSlot/>
-<div className="sidebar-tool-header-actions" role="group" aria-label="工具管理" hidden={!managementActionsVisible}>
+<div className="sidebar-tool-header-actions" role="group" aria-label="工具管理"
+  data-management-ui="direct-actions-v1" hidden={!managementActionsVisible}>
 <ToolField as="button" type="button" id="sidebar-tool-settings-open" className="sidebar-tool-icon-action od-icon-button"
   title="工具设置" aria-label="工具设置" aria-controls="sidebar-tool-settings-view"
   aria-expanded="false" hidden={true} nodeRef={runtimeRefs.settingsControl}>
@@ -278,7 +279,10 @@ export function ToolHost({view}) {
 
 </ToolField>
 <ToolField as="section" id="sidebar-tool-settings-view" className="sidebar-tool-settings-view od-surface" aria-label="工具设置" hidden={true}>
+<h2 className="sidebar-tool-settings-title">工具设置</h2>
 <section className="sidebar-tool-settings-product" aria-label="扩展设置">
+<ToolField as="button" type="button" id="sidebar-tool-adblock-product-settings"
+  className="od-button od-button--secondary" hidden={true}>{"广告拦截设置"}</ToolField>
 <ToolField as="div" id="sidebar-tool-toc-language" className="sidebar-toc-settings-row" hidden={true}>
 <label htmlFor="sidebar-tool-toc-language-select">
 <ToolLabel name="languageLabel"/>

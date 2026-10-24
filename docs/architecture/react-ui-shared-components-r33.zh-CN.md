@@ -168,3 +168,5 @@ R33 历史基线的可信 Side Panel 核心入口包括已退役的 `src/ui/tool
 完整书签授权仅对声明 `browser.bookmarks.full` 的工具显示；Cookie 首次授权继续在可信卡片内完整解释作用域和风险，完成后权限控制回到共享「工具设置」，不能产生第二个启停控件。原安全审阅、风险提示、Chrome 权限申请、撤权、卸载确认、安装身份/代际核验全部保留。文字精简仅作用于管理设置摘要，不得替代首次权限审阅。
 
 正式同源离线预览沿用 `scripts/preview/build-sidebar-six-react-preview.mjs` → `prototypes/sidebar/react-preview/index.html`。该 HTML 必须由当前源码重新生成，标记 `UI_PREVIEW_ONLY`，任何启停、授权、卸载演示只允许修改内存 Fixture，绝不调用真实 Installer/Chrome Permission。Mac 常用浏览器始终加载 `dist/development` 与现有 `npm run dev` watcher；源码更新不代表现有已运行的扩展产物自动刷新。没有实际浏览器指纹和点击回执时，一律 `NOT_TESTED`。
+
+**AdBlock 专有入口及工具名称（2026-10-24）：** 所有宿主工具右上角齿轮均打开统一管理设置。AdBlock 的业务配置仍由其受限业务 React iframe 拥有；共享设置的「扩展设置」为已验证 React AdBlock 显示一个「广告拦截设置」入口，通过原始 `opendesk.adblock.ui.v1` 导航消息跳转，不引入第二套 DNR Host。从扩展中心直达设置时，只有用户点击该入口才启动业务沙箱。宿主标题始终保持工具本身名称，设置卡片单独显示「工具设置」，避免撤销上一版书签标题修复。实际 Chrome 验收仍为 `NOT_TESTED`。

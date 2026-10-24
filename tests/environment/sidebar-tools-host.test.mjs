@@ -2847,7 +2847,7 @@ test('R5.25 Cookie Editor settings keeps one live sandbox through ten returns an
     assert.equal(f.host.openSettings(tool.id),true,'settings opens without destroying the editor');
     assert.equal(f.runtime.frameRoot.children[0],original,'openSettings must not destroy the active frame');
     assert.equal(f.elements['sidebar-tool-frame'].hidden,true,'settings hides the live workspace');
-    assert.equal(f.elements['sidebar-tool-settings-view'].hidden,true,'generic management page is not duplicated');
+    assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false,'Cookie Editor uses the shared management settings');
     assert.equal(settings.hidden,false,'dedicated Cookie permissions remain visible');
     assert.equal(f.elements['sidebar-tool-back'].title,'返回上一页');
     f.emit(f.elements['sidebar-tool-back'],'click');
@@ -2869,7 +2869,7 @@ test('R5.25 Extension Center direct settings returns to an available Cookie Edit
   assert.equal(f.host.openSettings(tool.id),true);
   assert.equal(f.runtime.frameRoot.children.length,0,'management must not silently execute a tool');
   assert.equal(f.elements['sidebar-tool-cookie-permissions'].hidden,false);
-  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,true);
+  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
   f.emit(f.elements['sidebar-tool-back'],'click');
   assert.equal(f.elements['sidebar-tool-display'].hidden,false);
   assert.equal(f.runtime.frameRoot.children.length,1,'back from settings mounts the real editor');
@@ -2893,9 +2893,10 @@ test('R5.26 disabled Cookie Editor direct settings can re-enable without auto-mo
   assert.equal(f.host.openSettings(tool.id),true);
   assert.equal(f.runtime.frameRoot.children.length,0,'settings cannot silently start a stopped sandbox');
   assert.equal(f.elements['sidebar-tool-cookie-permissions'].hidden,false);
-  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,true);
+  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
   assert.equal(f.elements['sidebar-tool-enable'].disabled,false);
-  assert.equal(f.elements['sidebar-tool-enable'].textContent,'启用工具');
+  assert.equal(f.elements['sidebar-tool-enable'].attributes['aria-checked'],'false');
+  assert.equal(f.elements['sidebar-tool-enable'].attributes.role,'switch');
   assert.equal(f.elements['sidebar-tool-cookie-site-toggle'].disabled,true,
     'stopped tools must not request more Cookie privileges');
   f.emit(f.elements['sidebar-tool-enable'],'click',{isTrusted:true});

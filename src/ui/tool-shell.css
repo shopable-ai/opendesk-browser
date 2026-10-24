@@ -446,6 +446,8 @@
   border:1px solid var(--od-line);border-radius:var(--radius-surface);
   background:var(--od-paper)
 }
+.sidebar-tool-settings-title{margin:0;font-size:13px;font-weight:700;line-height:1.35;color:var(--od-ink)}
+#sidebar-tool-adblock-product-settings{justify-self:start;max-width:100%;min-height:34px;font-size:12px}
 .sidebar-tool-settings-heading{display:flex;align-items:center;gap:10px;min-width:0;padding:2px 0 12px;border-bottom:1px solid var(--od-line)}
 .sidebar-tool-settings-heading-icon{display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;border-radius:10px;background:var(--od-muted);color:var(--od-sub)}
 .sidebar-tool-settings-heading-icon svg{width:17px;height:17px}

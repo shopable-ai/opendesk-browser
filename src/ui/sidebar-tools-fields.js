@@ -201,6 +201,9 @@ export const SIDEBAR_TOOL_FIELDS = {
       "aria-expanded": "false"
     }
   },
+  "sidebar-tool-adblock-product-settings": {
+    "hidden": true, "className": "od-button od-button--secondary", "type": "button"
+  },
   "sidebar-tool-settings-view": {
     "hidden": true,
     "className": "sidebar-tool-settings-view od-surface",
