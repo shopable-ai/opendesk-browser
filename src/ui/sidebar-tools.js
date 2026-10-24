@@ -1238,7 +1238,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, title, {title: active?'v'+active.version:''});
     const clipNavigation=navigationAllowed&&active?.id==='web-markdown-clipper'&&!!frame&&clipPage!==null;
     const navigation=navigationAllowed&&frame&&toolNavigation?toolNavigation:null;
-    if(tocSettingsOpen)patchToolField(view,title,{textContent:'工具设置'});
+    if(tocSettingsOpen)patchToolField(view,title,{textContent:isFullBookmarkTool(active)?visibleTitle:'工具设置'});
     else if(clipNavigation||navigation)
       patchToolField(view,title,{textContent:navigation?.title||clipNavigationTitles[clipPage]});
     const contextAction=tocSettingsOpen?'':navigation?.primary||
