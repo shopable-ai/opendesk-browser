@@ -68,7 +68,8 @@ test('real HTTP/native WebSocket provider: durable claim, empty retry, permit re
       {code:'E_CLOUD_STOPPED'},'Stop must reject new external work even before Browser reconnects');
     await assert.rejects(post('/v1/claim',{claimId:'stopped-claim',grantId,tasks}),
       {code:'E_CLOUD_STOPPED'});
-    await post('/v1/capabilities',{grantId,tasks});
+    await assert.rejects(post('/v1/capabilities',{grantId,tasks}),{code:'E_CLOUD_STOPPED'},
+      'A stale same-grant sync must be rejected instead of reopening stopped hosting');
     await assert.rejects(post('/admin/seed',{...seed,requestKey:'delayed-old-capabilities'},admin.adminToken),
       {code:'E_CLOUD_STOPPED'},'A late same-generation sync cannot resume stopped hosting');
     await post('/admin/cancel',{jobId:job.jobId},admin.adminToken);
