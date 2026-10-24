@@ -54,6 +54,25 @@ const proof={scope:'UI_PREVIEW_ONLY',realHost:false,realPermission:false,realRes
 const names=['tasks','tools','workflow','develop','cloud','debug'];
 const initial=new URLSearchParams(location.search).get('tab');
 document.documentElement.dataset.opendeskTab=names.includes(initial)?initial:'tools';
+// The standalone HTML must allocate a real viewport to the production flex root.
+// This changes the preview frame only; no installed Side Panel geometry is changed.
+const previewParams=new URLSearchParams(location.search);
+const previewShell=document.getElementById('od-sidebar-preview-shell');
+const previewWidth=Number(previewParams.get('width'));
+const widthChoices=[320,360,400,440,520];
+const selectedWidth=widthChoices.includes(previewWidth)?previewWidth:400;
+if(previewShell)previewShell.style.width='min(100%, '+selectedWidth+'px)';
+const widthInput=document.getElementById('od-sidebar-preview-width');
+if(widthInput){
+ widthInput.value=String(selectedWidth);
+ widthInput.addEventListener('change',event=>{
+  const value=Number(event.currentTarget.value);
+  if(!widthChoices.includes(value))return;
+  previewShell.style.width='min(100%, '+value+'px)';
+  const url=new URL(location.href);url.searchParams.set('width',String(value));
+  history.replaceState(null,'',url);
+ });
+}
 const developerView=createDeveloperPreviewView();
 for(const id of ['page-candidate-save','page-program-refresh'])
   if(developerView.fields[id])developerView.patch(id,{disabled:true});
@@ -319,6 +338,9 @@ window.addEventListener('pagehide',()=>{clipper.dispose();app.dispose();
  developerView.dispose();workflow.dispose();myAgent.dispose();providerSettings.dispose();},{once:true});
 document.documentElement.dataset.previewProof=proof.scope;
 document.documentElement.dataset.previewBootScript='ready';
+document.getElementById('od-sidebar-preview-boot')?.remove();
+document.getElementById('od-sidebar-preview-error')?.setAttribute('hidden','');
+document.getElementById('od-sidebar-preview-stage')?.setAttribute('data-preview-ready','true');
 `;
 
 export async function generateSidebarSixReactPreview(){
@@ -361,8 +383,21 @@ export async function generateSidebarSixReactPreview(){
     for(const [path,bytes]of sources)must(bytes.equals(await readFile(join(root,path))),'source changed during generation: '+path);
     const inputSha256=digest(initial),sourceInputs=[...sources].sort(([a],[b])=>a.localeCompare(b));
     const bundleInputSha256=digest(sourceInputs);
-    const probe="window.addEventListener('error',e=>{document.documentElement.dataset.previewBootError=String(e.message)});"+
-      "window.addEventListener('unhandledrejection',e=>{document.documentElement.dataset.previewBootRejection=String(e.reason)});";
+    // Preserve a visible failure reason even when React crashes before its first render.
+    // No unsafe HTML and no exception payload is sent to a server.
+    const probe=`(function(){
+      function report(error){
+        const message=String(error||'未知启动错误').slice(0,300);
+        document.documentElement.dataset.previewBootError=message;
+        const banner=document.getElementById('od-sidebar-preview-error');
+        if(banner){banner.textContent='React 预览启动失败：'+message+
+          '。请重新执行 node scripts/preview/build-sidebar-six-react-preview.mjs，并检查浏览器控制台。';
+          banner.hidden=false;}
+        document.getElementById('od-sidebar-preview-boot')?.remove();
+      }
+      window.addEventListener('error',e=>report(e.message));
+      window.addEventListener('unhandledrejection',e=>report(e.reason));
+    })();`;
     const executable=Buffer.concat([Buffer.from(probe),compiled]);
     const html=[
       '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">',
@@ -375,14 +410,46 @@ export async function generateSidebarSixReactPreview(){
       '<meta name="od-bundle-source-sha256" content="'+bundleInputSha256+'">',
       '<title>OpenDesk · 可信侧边栏离线设计预览</title>',
       '<style id="od-official-ui-css">'+officialCss+'</style>',
-      '<style>body{margin:0;padding:12px;background:var(--od-bg,#f8f8f8)}'+
-        '.od-sidebar-preview-stage{max-width:480px;margin:auto}'+
-        '#opendesk-react-app{min-height:640px}'+
-        '.od-sidebar-preview-header{max-width:480px;margin:0 auto 12px;font:14px/1.5 sans-serif}</style>',
-      '</head><body><header class="od-sidebar-preview-header" data-preview-development-only="true">'+
-        'UI_PREVIEW_ONLY · 离线设计预览，含开发专用调试 Tab。'+
-        '无真实安装、授权、执行结果；不是动态工具 Preview 验收。</header>',
-      '<div class="od-sidebar-preview-stage">'+appRoot+'</div>',
+      '<style>'+
+        'html,body{height:auto;min-height:100%;overflow:auto!important}'+
+        'body{display:block;margin:0;padding:16px;background:var(--od-bg,#f8f8f8)}'+
+        '.od-sidebar-preview-shell{width:min(100%,400px);max-width:100%;margin:auto}'+
+        '.od-sidebar-preview-header{display:flex;align-items:center;justify-content:space-between;'+
+          'gap:12px;flex-wrap:wrap;margin:0 0 10px;color:var(--od-ink);font:12px/1.5 sans-serif}'+
+        '.od-sidebar-preview-header strong{font-size:14px}'+
+        '.od-sidebar-preview-header label{display:flex;align-items:center;gap:6px;margin:0}'+
+        '.od-sidebar-preview-header select{width:auto;min-height:30px;padding:3px 8px}'+
+        '.od-sidebar-preview-stage{display:flex;flex-direction:column;position:relative;'+
+          'height:clamp(520px,calc(100dvh - 150px),860px);min-height:520px;min-width:0;'+
+          'overflow:hidden;background:var(--od-paper);border:1px solid var(--od-line);'+
+          'border-radius:var(--radius-surface)}'+
+        '#opendesk-react-app{flex:1 1 auto;min-height:0;height:100%;overflow:hidden}'+
+        '.od-sidebar-preview-notice{margin:9px 0 0;color:var(--od-sub);font:11px/1.5 sans-serif}'+
+        '.od-sidebar-preview-boot,.od-sidebar-preview-error{position:absolute;z-index:25;'+
+          'inset:48px 8px auto;padding:12px;border-radius:8px;'+
+          'border:1px solid var(--od-line);background:var(--od-paper);color:var(--od-ink);'+
+          'font:12px/1.6 sans-serif;overflow-wrap:anywhere}'+
+        '.od-sidebar-preview-error{color:var(--od-negative);border-color:var(--od-negative)}'+
+        '.od-sidebar-preview-error[hidden]{display:none!important}'+
+        '@media(max-width:420px){body{padding:10px}'+
+         '.od-sidebar-preview-stage{height:clamp(520px,calc(100dvh - 125px),860px)}}'+
+      '</style>',
+      '</head><body><div id="od-sidebar-preview-shell" class="od-sidebar-preview-shell">'+
+        '<header class="od-sidebar-preview-header" data-preview-development-only="true">'+
+          '<strong>OpenDesk · React UI 预览</strong>'+
+          '<label>宽度 <select id="od-sidebar-preview-width" aria-label="预览宽度">'+
+            '<option value="320">320</option><option value="360">360</option>'+
+            '<option value="400" selected>400</option><option value="440">440</option>'+
+            '<option value="520">520</option></select></label>'+
+        '</header>',
+      '<div id="od-sidebar-preview-stage" class="od-sidebar-preview-stage">'+
+        '<div id="od-sidebar-preview-boot" class="od-sidebar-preview-boot" role="status">'+
+          '正在加载正式 React 界面… 若持续只有此提示，请检查浏览器控制台。'+
+        '</div>'+
+        '<div id="od-sidebar-preview-error" class="od-sidebar-preview-error" role="alert" hidden></div>'+
+        appRoot+'</div>',
+      '<p class="od-sidebar-preview-notice">UI_PREVIEW_ONLY · 仅用于界面审阅，'+
+       '无真实安装、授权、模型推理或任务执行；含开发专用调试 Tab。</p></div>',
       '<script src="data:text/javascript;base64,'+executable.toString('base64')+'"></script>',
       '</body></html>\n'
     ].join('\n');
