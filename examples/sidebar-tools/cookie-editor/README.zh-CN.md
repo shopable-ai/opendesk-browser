@@ -1,5 +1,21 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
+## 2.0.37 一次完整授权：错误处理增量交付（2026-10-24）
+
+继承 `dd8ae879` 及最新 `main` 的完整授权事务，不修改可信 Host：一次明确管理授权包含已声明的读取、敏感值、写入、观察和清理，旧部分授权由一次明确补全完成。敏感值继续默认遮蔽，不进入 React 快照或持久化 UI 状态。
+
+本版移除 Controller 的“独立 Cookie Value 授权”旧提示，分别报告授权不完整、无效敏感值回执、Cookie 冲突、Chrome 权限失效、Store/Partition 不匹配。Chrome 权限失效会清除列表、待处理读取及预检；保存前失败不会写入，已发出的未知写入不重试。SDK 合同测试的离线 fetch fixture 同时修正为：可选远端发行不存在时返回 404，不再错误地把本地目录当成远端发行。
+
+本轮交付快照由 `bbaeb75980d2055c2143a87cba04df601c788818` 加本轮增量组成，**92/92 Node 检查通过**，包括真实产品 Host/Authority 行为和 React 包同源检查。快照排除了任务开始前两处互相冲突的暂存改动（取消精确 Origin 检查、恢复二次 Values 授权断言）；这些并行改动原样保留，当前工作区 Host 测试仍有 **2 项失败**，不能宣称工作区全绿。
+
+唯一正式 JSON 由现有 React 构建、候选门禁、`--promote-from` 与 `--check-project` 生成，版本 **2.0.37**，125194 字节，SHA-256 `33b7c7a5da576a2fbbbffa6b2b752ca73f43dd8185cce8a155539bb385b37da9`。工具 ID 和能力不变；上一个已提交正式包是 2.0.35，旧 2.0.36 仅为源码候选。既有官方包匹配/加载与篡改拒绝已验证，已安装包及 Browser 的发行目录没有被静默替换。
+
+**Mac Chrome 安装、一次授权→编辑→保存→回读→刷新/重开仍为 NOT_TESTED**：本次浏览器工具拒绝读取 `chrome-extension:` 页面，未改用其他浏览器表面或 CDP 绕过。完整 CI、Browser 发行目录重建不在本轮执行。证据和七项独立保守评分见 [交付记录](evidence/one-consent-closeout-20261024.json)；本地 Codex 定向验收命令：
+
+```sh
+codex -C /Users/shopme/Documents/workspace/opendesk-browser "读取 examples/sidebar-tools/cookie-editor/evidence/one-consent-closeout-local-acceptance.txt，执行其中限定的本轮原生验收。"
+```
+
 ## 2.0.36 源码候选：清理 Cookie 仅一次确认（2026-10-23）
 
 **产品目标：** 对当前已授权 HTTP(S) 网站执行安全清理时，先由正式 React「清理本站 Cookie」预览真实 Host-only Cookie 数量；点击其中的「清理 N 条」后，直接使用现有 Browser Host 的精确、一次性操作批准，不再额外显示「确认本次 Cookie 操作」。绝不把删除确认简化成未授权执行。

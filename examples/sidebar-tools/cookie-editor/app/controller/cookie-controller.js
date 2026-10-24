@@ -8,6 +8,14 @@ const badReceipt=()=>Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_U
 const isVerified=receipt=>receipt?.saved===true&&receipt.verified===true;
 const isRemoved=receipt=>receipt?.removed===true&&receipt.verified===true;
 const formatCode=(error,fallback)=>'（'+safeCode(error,fallback)+'）';
+const failure=code=>Object.assign(Error(code),{code});
+const cookieFailureHelp=error=>({
+  E_COOKIE_VALUES_REQUIRED:'Cookie 管理授权不完整或已失效；请在顶部可信设置中补全所选范围的管理授权，再手动重试。',
+  E_COOKIE_VALUES:'敏感值回执未确认；请刷新列表后重新打开编辑，不会自动重试。',
+  E_COOKIE_CONFLICT:'Cookie 已改变或不存在；请刷新列表后重新打开编辑。',
+  E_COOKIE_STORE:'Cookie Store 与当前授权不匹配；请核对当前窗口并刷新列表。',
+  E_COOKIE_PARTITION:'Cookie Partition 与当前授权不匹配；请核对当前网站分区并刷新列表。'
+})[safeCode(error)];
 const bounded=(text,limit)=>new Blob([text]).size<=limit;
 // These codes are rejected before the affected native Cookie write.
 const importPrewriteDenials=new Set([
@@ -17,7 +25,7 @@ const importPrewriteDenials=new Set([
   'E_PERMISSION','E_SCHEMA','E_LIMIT'
 ]);
 const accessLossCodes=new Set(['E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED',
-  'E_SITE_PERMISSION_REVOKED','E_TOOL_CHANGED','E_TOOL_DISABLED',
+  'E_SITE_PERMISSION_REVOKED','E_CHROME_PERMISSION_REQUIRED','E_TOOL_CHANGED','E_TOOL_DISABLED',
   'E_OWNER','E_CONTEXT','E_DOCUMENT_CHANGED']);
 
 // Only public, redacted metadata is published to React. Values, pending import
@@ -48,7 +56,9 @@ export function createCookieController({adapter,onChange=()=>{}}){
   // SDK revocation is authoritative even before the bridge/UI event arrives.
   function rejectLostAccess(error){
     if(!accessLossCodes.has(error?.code))return false;
-    invalidate('网站授权或安装身份已失效，请手动重新检查。');
+    invalidate(error.code==='E_CHROME_PERMISSION_REQUIRED'
+      ?'Chrome Cookie 或网站访问权限已失效；请在顶部可信设置中恢复 Chrome 访问后重新检查。'
+      :'网站授权或安装身份已失效，请手动重新检查。');
     phase='blocked';problem=error.code;notify();
     return true;
   }
@@ -124,7 +134,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
         if(rejectLostAccess(error))return null;
         if(!busy&&revision===valueRevision)
           report('读取敏感值被拒绝'+formatCode(error,'E_COOKIE_VALUES')+
-            '；请检查独立的 Cookie Value 授权。','error');
+            '；'+(cookieFailureHelp(error)||'请核对当前网站与授权后手动刷新。'),'error');
       }
       return null;
     }
@@ -135,24 +145,24 @@ export function createCookieController({adapter,onChange=()=>{}}){
     const old=originalId?getRow(originalId):null;
     let saved=false,newNameSaved=false,renamed=false;
     try{
-      if(originalId&&!old)throw Error('E_COOKIE_CONFLICT');
+      if(originalId&&!old)throw failure('E_COOKIE_CONFLICT');
       // A withheld input is not an explicit empty value. Validate attributes
       // first, then retrieve and validate the retained value under its grant.
       let updated=normalizeCookie({...input,valueRedacted:false,
         ...(old&&!valueEdited?{value:''}:{})},at.hostname);
       if(old&&!sameCookieScope(old,updated))
-        throw Error('E_COOKIE_SCOPE');
+        throw failure('E_COOKIE_SCOPE');
       renamed=Boolean(old&&old.name!==updated.name);
       nativeInput(updated,at);
       if(old){
         const before=await adapter.exactList(at,old,()=>current(ticket,at));
         if(!verifiedRead(guard))return false;
         const original=before?.find(item=>key(item)===key(old));
-        if(!original||!sameCookieMetadata(original,old))throw Error('E_COOKIE_CONFLICT');
+        if(!original||!sameCookieMetadata(original,old))throw failure('E_COOKIE_CONFLICT');
         if(renamed&&before.some(item=>sameNativeSlot(item,updated)))
           throw Object.assign(Error('E_COOKIE_CONFLICT'),{code:'E_COOKIE_CONFLICT'});
         if(!valueEdited){
-          // Retain the old value only with the separate values capability.
+          // Retain the old value only under the existing complete Cookie consent.
           const preserved=await adapter.readValue(at,old);
           if(!verifiedRead(guard))return false;
           updated=normalizeCookie({...updated,value:preserved},at.hostname);
@@ -176,7 +186,8 @@ export function createCookieController({adapter,onChange=()=>{}}){
         if(rejectLostAccess(error))return false;
         const part=newNameSaved?'新名称已写入，但旧名称删除未确认；两条可能并存。':
           '保存未确认或身份已改变。';
-        report(part+formatCode(error,'E_COOKIE_SET')+' 请手动核对，不要自动重试。','error');
+        report(part+formatCode(error,'E_COOKIE_SET')+' '+
+          (cookieFailureHelp(error)||'请手动核对，不要自动重试。'),'error');
       }
     }finally{unlock(guard);}
     if(saved&&current(ticket,at))await load(at.url,{preserveMessage:true});

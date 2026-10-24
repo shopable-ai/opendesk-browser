@@ -1,0 +1,121 @@
+{
+  "schema": "opendesk.cookie-editor.one-consent-closeout.v1",
+  "date": "2026-10-24",
+  "baseCommit": "bbaeb75980d2055c2143a87cba04df601c788818",
+  "inheritedFix": "dd8ae87901a47cce9b189bb412aa1256bcb7a82e",
+  "scope": "Only Controller/SDK error handling, offline Host test fixture, patch package and scoped evidence; Host consent source unchanged.",
+  "runtimeChanges": false,
+  "package": {
+    "status": "PACKAGE_SHA_VERIFIED_INSTALL_NOT_TESTED",
+    "id": "cookie-editor",
+    "version": "2.0.37",
+    "previousVersion": "2.0.35",
+    "sha256": "33b7c7a5da576a2fbbbffa6b2b752ca73f43dd8185cce8a155539bb385b37da9",
+    "bytes": 125194,
+    "checks": [
+      "canonical candidate = promoted package",
+      "same ID, patch version, unchanged capabilities",
+      "existing official release schema/matching/loading",
+      "same-ID JS alteration rejected",
+      "raw SHA tampering rejected"
+    ],
+    "officialDistributionRebuilt": false
+  },
+  "candidateValidation": {
+    "nodeVersion": "v24.16.0",
+    "source": "git archive of base main plus only this task changes; not a Git worktree",
+    "tests": 92,
+    "pass": 92,
+    "fail": 0,
+    "skip": 0,
+    "hostBehaviorTests": 16,
+    "suites": [
+      "cookie-editor-r524-grant.test.mjs",
+      "browser-sdk-r106-cookie-contract-gaps.test.mjs",
+      "cookie-editor-react-controller.test.mjs",
+      "cookie-editor-react-domain.test.mjs",
+      "cookie-editor-react-build.test.mjs"
+    ]
+  },
+  "workingTreeValidation": {
+    "baseline": {
+      "tests": 69,
+      "pass": 60,
+      "fail": 9
+    },
+    "afterOfflineFixtureRepair": {
+      "hostTests": 14,
+      "pass": 12,
+      "fail": 2
+    },
+    "excludedParallelStagedChanges": [
+      "context-menus.js removes enabled single-site request Origin equality; original bytes preserved outside task commit",
+      "r106 asserts first complete grant excludes Values, requires second Values click and removes two completion tests; original staged hunks preserved outside task commit"
+    ]
+  },
+  "status": {
+    "DONE_VERIFIED": [
+      "Candidate Host first full grant, localhost legacy completion, revoke, provenance and scope fences through real product Host/Authority Node execution",
+      "Controller/SDK distinguishes Values required, bad value receipt, conflict, Chrome permission loss, Store and Partition; safe state and no automatic replay",
+      "React build; candidate promotion; canonical project match; existing official release loading and tamper-negative SHA checks"
+    ],
+    "SOURCE_PRESENT_NOT_VERIFIED": [
+      "Same-candidate installed Mac UI and its actual loaded code/permission state"
+    ],
+    "TODO": [
+      "Review/install 2.0.37 using existing installer; perform local x-site-slug edit/save/readback/refresh/reopen acceptance",
+      "Coordinate pre-existing parallel staged Host/test changes before treating the live working tree as one-consent compliant"
+    ],
+    "BLOCKED": [
+      "Browser URL policy rejected chrome-extension page observation; no alternate browser surface or CDP workaround used",
+      "Live working tree Host test has two failures caused by excluded parallel staged changes"
+    ],
+    "NOT_TESTED": [
+      "Mac Chrome install/upgrade and native one-consent core chain",
+      "New Browser official distribution catalog and loaded extension identity",
+      "Full CI/production acceptance and unrelated extensions"
+    ]
+  },
+  "independentReview": {
+    "reviewer": "native code-reviewer subagent Rawls",
+    "blockingFindings": 0,
+    "followup": "Added same-topLevelSite ancestor-only mismatch coverage, then reran final 92 tests successfully.",
+    "scoresOutOf100": {
+      "function": 87,
+      "errorHandling": 90,
+      "authorizationPersistenceAndRevocation": 84,
+      "privacy": 90,
+      "storePartitionIsolation": 84,
+      "packageDelivery": 86,
+      "macNativeEvidence": 0
+    },
+    "arithmeticMean": 74.43,
+    "targetMet": false,
+    "basis": "Node behavior/package evidence only; Mac native evidence is zero, not a product quality claim."
+  },
+  "sourceSha256": {
+    "src/platform/chrome/context-menus.js": "25506066f5e4433d22a90d827a37ee3102d963f74b63650f7cad8319751da59e",
+    "src/ui/sidebar-tools.js": "19aa323e88b4eeb51001332c74350454a3d97a9b5421da7ca72b28b6e1657224",
+    "examples/sidebar-tools/cookie-editor/app/adapters/browser-sdk.js": "1551da2a33f2f4f0d6ab7f73e78bf282ac714398a544640a5c723aabd18135a5",
+    "examples/sidebar-tools/cookie-editor/app/controller/cookie-controller.js": "db74bcbaae33511da96fc9509ce32cde4913d2033791d413ee253b0d3be86b88",
+    "examples/sidebar-tools/cookie-editor/tool.config.json": "afaf42d747f227bf1a377e20c86a05013a5f087efdf689df329c0d8aeaa8cc07",
+    "examples/sidebar-tools/cookie-editor/package.json": "bf3aa840fd39bef0946188fb8e06e62421c0ea4720ac8fd3b4b1cee7ae3c1796",
+    "examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json": "33b7c7a5da576a2fbbbffa6b2b752ca73f43dd8185cce8a155539bb385b37da9",
+    "tests/environment/browser-sdk-r106-cookie-contract-gaps.test.mjs": "9bc318e7a4dfa0a27398b71b109fe46b3f29a97243f1dcdac1cfa14a947b0e71",
+    "tests/environment/cookie-editor-react-controller.test.mjs": "95c1cb773265e544fc5d293b96933f038223fb989308fbf12bda7c92ef71e03e"
+  },
+  "localLogs": {
+    "artifacts/cookie-editor-one-consent-closeout/baseline-node.log": "8e09bf508c417b4c954d1027bef9e53ce4456c4e5cf00ab1f5193ef23fa95fc0",
+    "artifacts/cookie-editor-one-consent-closeout/controller-node.log": "caa0d9cc154e6131ee2a7226c73cf3a36e8d3b3290529fad405ab111ddc2c8f8",
+    "artifacts/cookie-editor-one-consent-closeout/working-host-after-fixture.log": "cfa2b21245b3ca323c638151f1d6d6d58ca83a6a4e0b337a70b32a52b3fecf7b",
+    "artifacts/cookie-editor-one-consent-closeout/final-candidate-node.log": "ac70d34d924c015b261d76fa338bbf9259547592e1f7cd2e10ff51fb6e30c549",
+    "artifacts/cookie-editor-one-consent-closeout/react-build.log": "35b0426868c5c9bd0ad363bb7a2b5bff58d2730557574309e35264df7e1d6db3",
+    "artifacts/cookie-editor-one-consent-closeout/candidate-build.log": "0555f54d441448168e268b32906a78980746ffdd91c6c8ef1c63861edcee7e03",
+    "artifacts/cookie-editor-one-consent-closeout/candidate-package.log": "2eba5a08272de9b90ca973c2183650461ce494050274ec35aadfcdca0ff21ec7",
+    "artifacts/cookie-editor-one-consent-closeout/promote.log": "8e23b14fec1d603d4f36554449359308c60904e867742f93aac7e99c8fef0f2a",
+    "artifacts/cookie-editor-one-consent-closeout/check-project.log": "32b7b79c32ffec3d4d0f1566d79c01d8a2273ae46224266a650408ea72d301d3",
+    "artifacts/cookie-editor-one-consent-closeout/package-sha.json": "a35977f93c428b186d2ca184332151ef64c60fa99a35400bdeb0c2ab099c1063"
+  },
+  "nativePolicyBlock": "Browser URL policy allows only http/https and rejected the existing chrome-extension product page. No security-policy workaround attempted.",
+  "localAcceptance": "one-consent-closeout-local-acceptance.txt"
+}

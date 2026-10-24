@@ -821,3 +821,117 @@ test('R5.25 Chrome permission rejection retains its diagnostic reason',async()=>
   assert.equal(controller.snapshot().problem,'E_CHROME_PERMISSION_REQUIRED');
   controller.dispose();
 });
+
+test('one-consent value failures retain distinct safe diagnostics without requesting a second Values grant',async()=>{
+  const cases=[
+    ['E_COOKIE_VALUES_REQUIRED',/补全所选范围的管理授权/],
+    ['E_COOKIE_VALUES',/敏感值回执未确认/],
+    ['E_COOKIE_CONFLICT',/Cookie 已改变或不存在/],
+    ['E_COOKIE_STORE',/Store 与当前授权不匹配/],
+    ['E_COOKIE_PARTITION',/Partition 与当前授权不匹配/]
+  ];
+  for(const [code,help] of cases){
+    const f=fixture();await f.controller.load();let reads=0;
+    const row=f.controller.snapshot().rows[0];
+    f.cookies.get=async()=>{reads++;throw Object.assign(Error('PRIVATE_HOST_DETAIL'),{code});};
+    assert.equal(await f.controller.readValue(row.id),null);
+    const state=f.controller.snapshot();
+    assert.match(state.message,new RegExp(code));
+    assert.match(state.message,help);
+    assert.doesNotMatch(state.message,/独立.*Cookie Value|二次授权|PRIVATE_/);
+    assert.equal(reads,1);
+    assert.equal(f.calls.some(([name])=>name==='set'||name==='remove'),false);
+    assert.doesNotMatch(JSON.stringify(f.snapshots),/PRIVATE_|SECRET_FIXTURE/);
+    f.controller.dispose();
+  }
+});
+
+test('value receipt identity, Store, Partition and redaction failures are rejected separately',async()=>{
+  const cases=[
+    [null,'E_COOKIE_CONFLICT'],
+    [{...base,name:'other'},'E_COOKIE_CONFLICT'],
+    [{...base,httpOnly:true},'E_COOKIE_CONFLICT'],
+    [{...base,storeId:'foreign'},'E_COOKIE_STORE'],
+    [{...base,partitionKey:{topLevelSite:'https://foreign.example'}},'E_COOKIE_PARTITION'],
+    [{...base,partitionKey:{topLevelSite:site,hasCrossSiteAncestor:true}},'E_COOKIE_PARTITION'],
+    [{...base,valueRedacted:true},'E_COOKIE_VALUES'],
+    [{...base,value:undefined},'E_COOKIE_VALUES']
+  ];
+  for(const [cookie,code] of cases){
+    const f=fixture();await f.controller.load();
+    const row=f.controller.snapshot().rows[0];
+    f.cookies.get=async()=>({cookie:cookie?{valueRedacted:false,...cookie}:null});
+    await assert.rejects(()=>f.adapter.readValue(f.controller.snapshot().target,row),{code});
+    assert.equal(await f.controller.readValue(row.id),null);
+    assert.match(f.controller.snapshot().message,new RegExp(code));
+    assert.doesNotMatch(JSON.stringify(f.snapshots),/SECRET_FIXTURE/);
+    f.controller.dispose();
+  }
+  // Keep the same valid top-level site to test the ancestor fence by itself.
+  const f=fixture(),partitionKey={topLevelSite:'https://shop.example.com',hasCrossSiteAncestor:false};
+  const partitioned={...base,partitionKey};
+  f.cookies.getAll=async opts=>opts.partitionKey?[copy(partitioned)]:[];
+  await f.controller.load();
+  const row=f.controller.snapshot().rows[0];
+  f.cookies.get=async()=>({cookie:{...partitioned,valueRedacted:false,
+    partitionKey:{...partitionKey,hasCrossSiteAncestor:true}}});
+  await assert.rejects(()=>f.adapter.readValue(f.controller.snapshot().target,row),{code:'E_COOKIE_PARTITION'});
+  assert.equal(await f.controller.readValue(row.id),null);
+  assert.match(f.controller.snapshot().message,/E_COOKIE_PARTITION/);
+  assert.equal(f.calls.some(([name])=>name==='set'||name==='remove'),false);
+  assert.doesNotMatch(JSON.stringify(f.snapshots),/SECRET_FIXTURE/);
+  f.controller.dispose();
+});
+
+test('Chrome permission loss during value read retires sensitive reads and all pending plans',async()=>{
+  const f=fixture();await f.controller.load();
+  const id=f.controller.snapshot().rows[0].id;
+  await f.controller.previewImport('fresh=PRIVATE_IMPORT');
+  await f.controller.previewClear();
+  const epoch=f.controller.snapshot().epoch;
+  f.cookies.get=async()=>{throw Object.assign(Error('PRIVATE_CHROME'),{code:'E_CHROME_PERMISSION_REQUIRED'});};
+  assert.equal(await f.controller.readValue(id),null);
+  const state=f.controller.snapshot();
+  assert.ok(state.epoch>epoch);
+  assert.equal(state.phase,'blocked');
+  assert.equal(state.problem,'E_CHROME_PERMISSION_REQUIRED');
+  assert.equal(state.target,null);
+  assert.deepEqual(state.rows,[]);
+  assert.match(state.message,/恢复 Chrome 访问/);
+  await f.controller.load();
+  assert.equal(await f.controller.executeImport('fresh=PRIVATE_IMPORT'),false);
+  assert.equal(await f.controller.executeClear(),false);
+  assert.equal(f.calls.some(([name])=>name==='set'||name==='remove'),false);
+  assert.doesNotMatch(JSON.stringify(f.snapshots),/PRIVATE_|SECRET_FIXTURE/);
+  f.controller.dispose();
+});
+
+test('save preflight preserves Values and conflict reasons without writing or disclosing the retained value',async()=>{
+  for(const code of ['E_COOKIE_VALUES_REQUIRED','E_COOKIE_VALUES','E_COOKIE_STORE','E_COOKIE_PARTITION']){
+    const f=fixture();await f.controller.load();
+    const row=f.controller.snapshot().rows[0];
+    f.cookies.get=async()=>{throw Object.assign(Error('PRIVATE_HOST_DETAIL'),{code});};
+    assert.equal(await f.controller.save({...row,httpOnly:true},{originalId:row.id,valueEdited:false}),false);
+    assert.match(f.controller.snapshot().message,new RegExp(code));
+    assert.doesNotMatch(f.controller.snapshot().message,/独立.*Cookie Value|PRIVATE_/);
+    assert.equal(f.calls.some(([name])=>name==='set'||name==='remove'),false);
+    f.controller.dispose();
+  }
+  const f=fixture();await f.controller.load();
+  const row=f.controller.snapshot().rows[0];f.replaceRows([]);
+  assert.equal(await f.controller.save({...row,value:'PRIVATE_DRAFT'},{originalId:row.id}),false);
+  assert.match(f.controller.snapshot().message,/E_COOKIE_CONFLICT/);
+  assert.match(f.controller.snapshot().message,/刷新列表/);
+  assert.equal(f.calls.some(([name])=>name==='set'||name==='remove'),false);
+  assert.doesNotMatch(JSON.stringify(f.snapshots),/PRIVATE_|SECRET_FIXTURE/);
+  f.controller.dispose();
+});
+
+test('untrusted value error codes and text never enter diagnostics',async()=>{
+  const f=fixture();await f.controller.load();
+  f.cookies.get=async()=>{throw Object.assign(Error('PRIVATE_HOST_DETAIL'),{code:'PRIVATE_CODE'});};
+  assert.equal(await f.controller.readValue(f.controller.snapshot().rows[0].id),null);
+  assert.match(f.controller.snapshot().message,/E_COOKIE_VALUES/);
+  assert.doesNotMatch(JSON.stringify(f.snapshots),/PRIVATE_|SECRET_FIXTURE/);
+  f.controller.dispose();
+});

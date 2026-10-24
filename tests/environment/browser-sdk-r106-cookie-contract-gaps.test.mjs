@@ -111,8 +111,10 @@ function fixture({tool = pkg, owner = identity} = {}) {
       remove: () => {native.push('remove'); throw Error('These contracts must not remove Cookies');}
     }
   };
-  const fetchImpl = async () => new Response(JSON.stringify({schema: 'opendesk.official-tools.releases.v1',
-    sourceRepository: 'https://github.com/shopable-ai/opendesk-browser', apps: [release]}));
+  const fetchImpl = async resource => new URL(resource).protocol === 'chrome-extension:'
+    ? new Response(JSON.stringify({schema: 'opendesk.official-tools.releases.v1',
+      sourceRepository: 'https://github.com/shopable-ai/opendesk-browser', apps: [release]}))
+    : new Response('', {status: 404}); // Optional remote release is absent in this offline fixture.
   const rebuild = () => createContextMenuHost({api, logger: {warn() {}}, fetchImpl,
     lockManager: {request: (_key, work) => work()}});
   let host = rebuild();

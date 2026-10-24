@@ -5,6 +5,7 @@ import {parseTarget,redactMetadata,key,sameCookieMetadata,readAllCookies,scopedL
 const safeCodes=new Set([
   'E_CANCELLED','E_COOKIE_CONFLICT','E_OUTCOME_UNKNOWN','E_PERMISSION_REQUIRED',
   'E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED','E_SITE_PERMISSION_REVOKED','E_SESSION_EXPIRED','E_COOKIE_VALUES',
+  'E_COOKIE_VALUES_REQUIRED',
   'E_COOKIE_READ','E_COOKIE_SET','E_COOKIE_REMOVE','E_COOKIE_CLEAR',
   'E_COOKIE_OBSERVE','E_COOKIE_IMPORT','E_COOKIE_EXPORT','E_CLIPBOARD',
   'E_DOWNLOAD','E_COOKIE_WRITE','E_SCHEMA','E_PERMISSION','E_COOKIE_SCOPE',
@@ -86,12 +87,19 @@ export function createCookieSdkAdapter({getBrowser,request}){
       domain:row.domain,path:row.path,...identityScope(row),
       includeValues:true
     });
-    if(receipt?.cookie?.valueRedacted!==false||
-      typeof receipt.cookie.value!=='string'||key(receipt.cookie)!==key(row))
-      throw Object.assign(Error('E_COOKIE_VALUES'),{code:'E_COOKIE_VALUES'});
-    if(!sameCookieMetadata(redactMetadata([receipt.cookie])[0],row))
+    const cookie=receipt?.cookie;
+    if(!cookie)
       throw Object.assign(Error('E_COOKIE_CONFLICT'),{code:'E_COOKIE_CONFLICT'});
-    return receipt.cookie.value;
+    if((cookie.storeId??null)!==(row.storeId??null))
+      throw Object.assign(Error('E_COOKIE_STORE'),{code:'E_COOKIE_STORE'});
+    if((cookie.partitionKey?.topLevelSite??null)!==(row.partitionKey?.topLevelSite??null)||
+       Boolean(cookie.partitionKey?.hasCrossSiteAncestor)!==Boolean(row.partitionKey?.hasCrossSiteAncestor))
+      throw Object.assign(Error('E_COOKIE_PARTITION'),{code:'E_COOKIE_PARTITION'});
+    if(key(cookie)!==key(row)||!sameCookieMetadata(redactMetadata([cookie])[0],row))
+      throw Object.assign(Error('E_COOKIE_CONFLICT'),{code:'E_COOKIE_CONFLICT'});
+    if(cookie.valueRedacted!==false||typeof cookie.value!=='string')
+      throw Object.assign(Error('E_COOKIE_VALUES'),{code:'E_COOKIE_VALUES'});
+    return cookie.value;
   }
   return {
     targetFor,getTargetReason:()=>lastPageReason,checkRead,list,exactList,readValue,

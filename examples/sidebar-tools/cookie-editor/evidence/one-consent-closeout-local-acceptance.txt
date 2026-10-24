@@ -1,0 +1,18 @@
+OpenDesk Cookie Editor 2.0.37：仅本轮增量的本地验收
+
+工作目录 /Users/shopme/Documents/workspace/opendesk-browser。先读 AGENTS.md，以及本目录 one-consent-closeout-20261024.json。只在 main 工作，不建分支、Git worktree、PR，不覆盖并行改动，不重跑其他扩展/全仓测试、评分、缩放宽度矩阵。
+
+已完成：继承 dd8ae879 的一次完整授权事务；Controller/SDK 错误分类；交付快照 92/92 Node；React 构建、唯一正式包 2.0.37 晋升、同源及 SHA 核验。包 SHA-256 33b7c7a5da576a2fbbbffa6b2b752ca73f43dd8185cce8a155539bb385b37da9，125194 字节。不要重新实现 Host。代码与 Node 不能代替本地实际安装结果。
+
+开始时重查两处并行暂存冲突：src/platform/chrome/context-menus.js 删除精确请求 Origin 校验；tests/environment/browser-sdk-r106-cookie-contract-gaps.test.mjs 要求二次 Values 授权并删除两项补全测试。不要替 owner 回退、提交或构建这些改动。它们当时使工作区 Host 测试 12/14；本轮提交候选使用 main 原合同加离线 fetch fixture 修正，Host 16/16。先确认实际运行候选是否包含这两处冲突，不能把工作区失败称为交付候选失败，也不能把候选 PASS 称为当前工作区 PASS。
+
+只执行以下尚未完成链：
+1. 只读确认现有扩展真实 ID、加载路径、构建身份和连接状态。日常只用仓库 dist/development，优先已有 npm run dev watcher；不覆盖他人输出、Profile，不强杀/重启服务，不全量构建或切换日常扩展目录。
+2. 通过正常可信安装器审阅同 ID 2.0.37 更新，核对上述包 SHA、能力不变和原数据保留。不要直接改安装/授权存储、伪造官方 provenance 或静默覆盖当前包。如果当前官方目录尚不含本包，报告官方全站入口未验证；普通本地导入只能使用明确选定的网站授权。
+3. 使用已有 http://127.0.0.1:43111/demo-form.html。若服务确未运行，可按 AGENTS.md 用 python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks 启动本轮自有服务，不能抢占端口。经用户在可信页面明确点击一次完整授权后，打开 x-site-slug 编辑，确认不再要求独立 Cookie Value 授权。若需要新敏感权限，遵守当前工具的确认要求，由用户完成可信授权动作。
+4. 仅在用户指定的虚构测试 Cookie/测试值上完成编辑→保存→重新读取→刷新→关闭并重开 Cookie Editor。已有业务 Cookie 只检查编辑入口，不记录其值或擅自覆盖；无可安全写入的 x-site-slug 时如实记录该项缺口，可另用 UI 新建测试 Cookie 验证保存链。确认值默认遮蔽，报告、截图、日志和持久状态均不含敏感值。保留原 Cookie，不为收尾删除业务数据。
+5. 若自然遇到历史部分授权，只在原可信设置点击一次“补全 Cookie 管理授权”；验证之后无需第二个 Values 按钮。授权仍完整时不为制造场景撤权/重授权。只核对实际遇到的 E_COOKIE_VALUES_REQUIRED、E_COOKIE_VALUES、E_COOKIE_CONFLICT、Chrome 权限失效及 Store/Partition 错误是否保留真实原因；相关负例已在 Node 行为验证，不重跑完整权限矩阵。不触发未知写入，也不自动重放。
+
+前一次 Browser 工具拒绝读取 chrome-extension: 协议。如果当前仍不允许访问，不得改用 raw CDP、其他浏览器表面、命令或间接执行绕过同一策略；停止受阻的原生步骤，明确 BLOCKED/NOT_TESTED，其余已验证结果保留。此提示不授权绕过任何安全限制。
+
+交付：记录候选源码/包 SHA、实际加载 ID/路径/连接、真实操作结果及最短失败步骤。分别列 DONE_VERIFIED、SOURCE_PRESENT_NOT_VERIFIED、TODO、BLOCKED、NOT_TESTED。只在同候选原生操作真实完成后更新该项证据；不沿用旧版原生 PASS，不宣称整体 95+。不自动进入 production 全量验收或其他扩展任务。
