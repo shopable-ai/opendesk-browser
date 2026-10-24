@@ -152,6 +152,10 @@ const clipper=createClipperPreview({view:toolView,stage:CLIPPER_STAGE_DOCUMENT,
     app.renderStatus({text:'UI_PREVIEW_ONLY · 已从内存列表移除「'+id+'」，没有真实卸载或清理',state:'success'});
   }});
 app.connectWorkflowPage({...workflow,actions:workflowActions});
+// Deep-link the *real shared React sheet*, rather than drawing a second demo UI.
+// The preview Provider facade is memory-only and cannot acquire inference authority.
+if(new URLSearchParams(location.search).get('ai-settings')==='1')
+  app.openProviderSettings();
 // Debug-only, read-only preview: no Chrome permission, history query or data.
 app.renderBrowserHistory({text:'',startDate:'',endDate:'',limit:'25',busy:false,
   status:'仅界面预览 · 不读取浏览器历史',permission:'unknown',visits:null});
