@@ -5,11 +5,16 @@ import {sameSidebarToolPackage} from './sidebar-tools/installation.js';
 import {requireToolEnableRecords} from './sidebar-tools/lifecycle.js';
 
 export const TRUSTED_PROMPT_ID='prompt-shortcuts';
-// The source catalog now selects the 1.1.17 source-built package. Both earlier
-// immutable official releases retain exact-byte admission for existing users.
+// The source catalog selects the 1.1.18 source-built package. Prior reviewed
+// official releases retain exact-byte admission for existing users.
 // Never trust merely an installed tool ID, claimed version or unreviewed payload.
-export const TRUSTED_PROMPT_VERSION='1.1.17';
+export const TRUSTED_PROMPT_VERSION='1.1.18';
 // Each legacy record is an exact immutable official package, not a version range.
+const lastOfficialRelease=Object.freeze({
+ id:'opendesk/prompt-shortcuts',toolId:TRUSTED_PROMPT_ID,version:'1.1.17',
+ packagePath:officialPackagePath(TRUSTED_PROMPT_ID),bytes:138166,
+ sha256:'724bda006e82ebc2f1c041cb5f15e537c186785c071d298b0750e37b56e57d09'
+});
 const recentPreviousRelease=Object.freeze({
  id:'opendesk/prompt-shortcuts',toolId:TRUSTED_PROMPT_ID,version:'1.1.16',
  packagePath:officialPackagePath(TRUSTED_PROMPT_ID),bytes:142077,
@@ -22,7 +27,7 @@ const previousRelease=Object.freeze({
  sha256:'4085c155d2d8dbac7b55cc5dcaea24229a3fb1d6cfb69431dad2ae5c0eb33ce0'
 });
 const validHash=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
-const historicalReleases=[recentPreviousRelease,previousRelease];
+const historicalReleases=[lastOfficialRelease,recentPreviousRelease,previousRelease];
 const previousIdentity=value=>historicalReleases.some(release=>
  value?.version===release.version&&value.sha256===release.sha256);
 const historicalRelease=value=>historicalReleases.find(release=>
