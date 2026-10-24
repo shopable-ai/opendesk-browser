@@ -68,7 +68,7 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
     control.checked=/\bchecked\b/.test(attrs);
     nodes['ps-scroll-settings'].append(control);
   }
-  for(const id of ['ps-edit','ps-empty','ps-error','ps-body-error',
+  for(const id of ['ps-edit','ps-detail','ps-empty','ps-error','ps-body-error',
     'ps-transfer-menu','ps-import-panel','ps-import-warning','ps-import-file'])nodes[id].hidden=true;
   nodes['ps-body'].tagName='TEXTAREA';
   nodes['ps-label'].tagName='INPUT';nodes['ps-name'].tagName='INPUT';
@@ -535,26 +535,41 @@ test('R1.8 native menu prefill is an unsaved draft until explicitly saved or dis
   assert.equal(discard.writes(),0);
 });
 
-test('R1.13 management is content-first, one-click copy and no redundant grant widgets',async()=>{
-  const [html,preview,host]=await Promise.all([
+test('Prompt list click opens read-only detail; explicit quick copy keeps one gesture',async()=>{
+  const [html,preview,host,css]=await Promise.all([
     readFile(tool+'/src/index.html','utf8'),
     readFile(tool+'/preview/index.html','utf8'),
-    readFile('src/ui/sidebar-tools.js','utf8')
+    readFile('src/ui/sidebar-tools.js','utf8'),
+    readFile(tool+'/src/style.css','utf8')
   ]);
   assert.doesNotMatch(html,/ps-grant|ps-permission-strip|id="ps-menu"|ps-shapes/);
   assert.doesNotMatch(preview,/permissionView|mockRevoke|openPermissions/);
   assert.match(preview,/id="settingsView"/);
   assert.match(host,/promptNativeAction/);
   assert.match(host,/siteCapability\(active\)&&!promptSettings/);
+  assert.match(css,/\.ps-card-actions\{\s*position:absolute/);
+  assert.match(css,/\.ps-more\{\s*position:absolute/);
+  assert.match(css,/\.ps-card-main\{grid-template-columns:30px minmax\(0,1fr\)\}/);
+  assert.match(css,/\.ps-card:focus-within \.ps-card-actions/);
   const f=await fixture(),n=f.nodes;
-  n['ps-new'].emit('click');n['ps-body'].value='第一行\n\n第二行';
+  n['ps-new'].click();n['ps-body'].value='第一行\n\n第二行';
   n['ps-form'].emit('input');
   n['ps-form'].emit('submit',{preventDefault(){}});await settle();
-  const first=allDescendants(n['ps-list']).find(v=>v.classList.contains('ps-card-use'));
-  assert(first,'first visual tier must be a clickable full-body button');
+  const first=buttonByAction(n['ps-list'],'detail');
+  assert(first.classList.contains('ps-card-use'));
   assert.equal(first.children[0]?.textContent,'第一行\n\n第二行');
-  first.emit('click');await settle();
+  first.click();
+  assert.equal(n['ps-index'].hidden,true);
+  assert.equal(n['ps-detail'].hidden,false);
+  assert.equal(n['ps-detail-body'].textContent,'第一行\n\n第二行');
+  assert.deepEqual(f.copies(),[],'opening detail must not silently copy');
+  n['ps-detail-copy'].click();await settle();
   assert.deepEqual(f.copies(),['第一行\n\n第二行']);
+  n['ps-detail-back'].click();
+  assert.equal(n['ps-index'].hidden,false);
+  assert.equal(buttonByAction(n['ps-list'],'detail').focused,true,'Back restores card focus');
+  buttonByAction(n['ps-list'],'quick-copy').click();await settle();
+  assert.deepEqual(f.copies(),['第一行\n\n第二行','第一行\n\n第二行']);
   assert.equal(n['ps-status'].textContent,'已复制完整正文。');
 });
 
@@ -647,12 +662,13 @@ test('R2 Sandbox website manager saves an independent verified two-selector rule
 test('R1.17 per-item controls are SVG-only, keyboard-labelled and still use guarded Host storage',async()=>{
   const f=await fixture({initialStored:initialLibrary}),n=f.nodes;
   const actions=()=>allDescendants(n['ps-list']).filter(node=>node.tagName==='BUTTON'&&node.dataset.action);
-  assert.deepEqual(actions().map(node=>node.dataset.action),['more','more']);
-  assert.equal(actions()[0].textContent,'');
+  assert.deepEqual(actions().map(node=>node.dataset.action),
+    ['detail','quick-copy','more','detail','quick-copy','more']);
   buttonByAction(n['ps-list'],'more').click();
   const commandNames=actions().map(node=>node.dataset.action);
-  assert.deepEqual(commandNames,['more','edit','toggle','up','down','copy','delete','more']);
-  for(const node of actions()){
+  assert.deepEqual(commandNames,
+    ['detail','quick-copy','more','edit','toggle','up','down','copy','delete','detail','quick-copy','more']);
+  for(const node of actions().filter(node=>node.dataset.action!=='detail')){
     assert.equal(node.textContent,'','icon-only controls must not render text');
     assert.match(node.attributes['aria-label'],/\S/);
     assert.equal(node.children[0].tagName,'SVG');
@@ -1204,6 +1220,25 @@ test('R1.7 official header: create, draft back, ETag save/readback, edit and foc
   const reopen=await fixture({initialStored:f.stored(),sharedNavigation:true});
   assert.equal(reopen.nodes['ps-count'].textContent,'1 个 · 1 个启用');
   assert.equal(reopen.writes(),0,'return and reopening never duplicate an item');
+});
+
+test('Prompt detail uses the original trusted Host back without saving',async()=>{
+  const f=await fixture({sharedNavigation:true,initialStored:initialLibrary}),n=f.nodes;
+  buttonByAction(n['ps-list'],'detail').click();
+  assert.deepEqual(f.navigation.at(-1),{page:'detail',title:'提示词详情',canBack:true});
+  assert.equal(n['ps-detail'].hidden,false);
+  assert.equal(n['ps-detail-body'].textContent,initialLibrary.items[0].body);
+  assert.equal(f.writes(),0);
+  f.root.emit('opendesk-tool-navigation',{detail:{action:'back'}});
+  assert.equal(n['ps-detail'].hidden,true);
+  assert.equal(n['ps-index'].hidden,false);
+  assert.equal(buttonByAction(n['ps-list'],'detail').focused,true);
+  assert.equal(f.writes(),0,'navigation must not write to Host');
+  buttonByAction(n['ps-list'],'detail').click();
+  n['ps-detail-edit'].click();
+  assert.deepEqual(f.navigation.at(-1),{page:'edit',title:'编辑提示词',canBack:true});
+  assert.equal(n['ps-edit'].hidden,false);
+  assert.equal(n['ps-body'].value,initialLibrary.items[0].body);
 });
 
 test('R1.7 third-party and standalone preview keep the local New/title controls',async()=>{
