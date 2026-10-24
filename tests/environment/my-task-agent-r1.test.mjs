@@ -185,6 +185,7 @@ const initialPlan=()=>({
 function editRig(proposals,{permission=true,uncertain=false,staleReadback=false,
   missingNextDueAt=false,staleNextDueAt=false,holdSave=false}={}){
   let plan=initialPlan(),installedGeneration=1,saveCount=0,proposalCount=0,latestInput=null;
+   let refreshCount=0;
   let grant=permission,unclear=uncertain,readStale=false,releaseSave=()=>{},enteredSave=()=>{};
   const gate=holdSave?new Promise(resolve=>{releaseSave=resolve;}):Promise.resolve();
   const saveEntered=new Promise(resolve=>{enteredSave=resolve;});
@@ -234,8 +235,10 @@ function editRig(proposals,{permission=true,uncertain=false,staleReadback=false,
   const agent=createMyTaskAgent({client,taskWorkbench,provider,
     currentPageTarget:{snapshot:{status:'available',origin:'https://example.com',
       url:'https://example.com/'}},
-    api:{permissions:{contains:async()=>grant}}});
+    api:{permissions:{contains:async()=>grant}},
+    onScheduleChange:()=>{refreshCount++;}});
   return {agent,observations,get plan(){return plan;},get saveCount(){return saveCount;},
+    get refreshCount(){return refreshCount;},
     get latestInput(){return latestInput;},
     bumpPlan(){plan={...plan,generation:plan.generation+1};},
     bumpInstallation(){installedGeneration++;},revoke(){grant=false;},
@@ -261,6 +264,7 @@ test('AI edits an existing plan by CAS saveSchedule, preserving immutable identi
   assert.equal(x.agent.getSnapshot().status,'review');
   await x.agent.confirm(trusted);
   assert.equal(x.saveCount,1);
+  assert.equal(x.refreshCount,1,'original page refresh follows submitted write, not model success');
   assert.equal(x.plan.generation,4);
   assert.deepEqual(x.plan.triggerSpec,{hour:10,minute:30});
   assert.equal(x.plan.params.query,'PRIVATE_VALUE_DO_NOT_SEND');
@@ -287,6 +291,7 @@ test('editing daily 09:00 to 10:00 reports the independently read Scheduler next
   assert.equal(x.agent.getSnapshot().status,'review');
   await x.agent.confirm(trusted);
   assert.equal(x.saveCount,1);
+  assert.equal(x.refreshCount,1,'original page refresh follows submitted write, not model success');
   assert.equal(x.plan.generation,4);
   assert.equal(x.plan.nextDueAt,Date.UTC(2030,0,1,1,0));
   assert.match(x.agent.getSnapshot().rows.map(v=>v.message).join(' '),
@@ -300,6 +305,7 @@ test('daily edit with missing Scheduler nextDueAt remains unknown, not successfu
   await x.agent.send('把早上九点改到十点',trusted);
   await x.agent.confirm(trusted);
   assert.equal(x.saveCount,1);
+  assert.equal(x.refreshCount,1,'original page refresh follows submitted write, not model success');
   const message=x.agent.getSnapshot().rows.map(v=>v.message).join(' ');
   assert.match(message,/下次触发时间无法独立核实/);
   assert.doesNotMatch(message,/已更新并重新读取验证/);
@@ -312,6 +318,7 @@ test('daily edit rejects a stale 09:00 next due for a verified new 10:00 rule',a
   await x.agent.send('把早上九点改到十点',trusted);
   await x.agent.confirm(trusted);
   assert.equal(x.saveCount,1);
+  assert.equal(x.refreshCount,1,'original page refresh follows submitted write, not model success');
   const message=x.agent.getSnapshot().rows.map(v=>v.message).join(' ');
   assert.match(message,/下次触发时间无法独立核实/);
   assert.doesNotMatch(message,/已更新并重新读取验证/);
@@ -336,6 +343,7 @@ test('concurrent plan change after review rejects update without a write',async(
   x.bumpPlan();
   await x.agent.confirm(trusted);
   assert.equal(x.saveCount,0);
+  assert.equal(x.refreshCount,0,'original page refresh follows submitted write, not model success');
   assert.match(x.agent.getSnapshot().rows.map(v=>v.message).join(' '),/确认期间已变化/);
   x.agent.dispose();
 });
@@ -372,6 +380,7 @@ test('revoked website permission blocks plan editing; duplicate confirm does not
   await x.agent.confirm(trusted);
   await first;
   assert.equal(x.saveCount,0);
+  assert.equal(x.refreshCount,0,'original page refresh follows submitted write, not model success');
   assert.match(x.agent.getSnapshot().rows.map(v=>v.message).join(' '),/访问权限不足/);
   x.agent.dispose();
 });
@@ -383,6 +392,7 @@ test('uncertain Host receipt never triggers a second schedule write',async()=>{
   await x.agent.confirm(trusted);
   await x.agent.confirm(trusted);
   assert.equal(x.saveCount,1);
+  assert.equal(x.refreshCount,1,'original page refresh follows submitted write, not model success');
   assert.match(x.agent.getSnapshot().rows.map(v=>v.message).join(' '),/操作结果未知，禁止自动重试/);
   x.agent.dispose();
 });
@@ -393,6 +403,7 @@ test('readback mismatch after schedule edit is reported unknown, never as succes
   await x.agent.send('改到8点',trusted);
   await x.agent.confirm(trusted);
   assert.equal(x.saveCount,1);
+  assert.equal(x.refreshCount,1,'original page refresh follows submitted write, not model success');
   assert.doesNotMatch(x.agent.getSnapshot().rows.map(v=>v.message).join(' '),/已更新并重新读取验证/);
   assert.match(x.agent.getSnapshot().rows.map(v=>v.message).join(' '),/编辑结果无法读回核对/);
   x.agent.dispose();
@@ -408,6 +419,7 @@ test('stopping AI while an edit is submitted does not cancel or misreport the re
   x.releaseSave();
   await confirmation;
   assert.equal(x.saveCount,1);
+  assert.equal(x.refreshCount,1,'original page refresh follows submitted write, not model success');
   assert.equal(x.plan.triggerSpec.hour,15);
   const messages=x.agent.getSnapshot().rows.map(v=>v.message).join(' ');
   assert.match(messages,/可能已经提交；请先核对/);

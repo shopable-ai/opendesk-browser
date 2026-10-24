@@ -447,35 +447,44 @@ export function createMyTaskAgent({client,taskWorkbench,provider,currentPageTarg
       if(!await api.permissions.contains({origins:[permissionPattern(input.targetUrl)]}))
         throw fail('E_PERMISSION','原网站访问权限不足，请先从计划界面授权');
       await assertWrite();
-      const receipt=await client.request('saveSchedule',input);
-      const after=(await schedules()).find(v=>v.scheduleId===before.scheduleId);
-      if(receipt?.scheduleId!==before.scheduleId||!after||
-        after.generation!==before.generation+1||
-        ['scheduleId','title','taskId','version','manifestHash','sourceHash',
-          'installationId','taskGeneration','params','targetUrl','openIfMissing',
-          'timezone','triggerKind','triggerSpec','misfirePolicy','startDeadlineMs',
-          'paused'].some(key=>!equal(after[key],input[key]))||
-        (input.revision!==undefined&&after.revision!==input.revision)||
-        !equal(after.owner??null,before.owner??null))
-        throw fail('E_OUTCOME_UNKNOWN','计划编辑结果无法读回核对；请到原计划界面检查，禁止直接重试');
-      // A daily active plan always has a Scheduler-computed next fire time.
-      // Do not claim the 09:00 -> 10:00 edit is fully verified if its next
-      // trigger cannot be independently read back from the Host.
-      if(after.triggerKind==='daily'&&!after.paused&&!after.needsAttention){
-        const due=after.nextDueAt;
-        let valid=Number.isSafeInteger(due)&&due>0;
-        // Use the existing Scheduler recurrence helper to reject a stale
-        // 09:00 alarm accidentally returned for a newly saved 10:00 plan.
-        // This also respects the Scheduler's DST gap/fold semantics.
-        try{valid=valid&&nextScheduleAt('daily',after.triggerSpec,after.timezone,due-1)===due;}
-        catch{valid=false;}
-        if(!valid)throw fail('E_OUTCOME_UNKNOWN',
-          '计划规则已写入，但下次触发时间无法独立核实；请在计划页面核对，勿直接重试');
+      // A submitted edit must refresh the original schedule view even when the
+      // independent Scheduler readback is unknown. Refresh does not retry it.
+      let writeAttempted=false;
+      try{
+        writeAttempted=true;
+        const receipt=await client.request('saveSchedule',input);
+        const after=(await schedules()).find(v=>v.scheduleId===before.scheduleId);
+        if(receipt?.scheduleId!==before.scheduleId||!after||
+          after.generation!==before.generation+1||
+          ['scheduleId','title','taskId','version','manifestHash','sourceHash',
+            'installationId','taskGeneration','params','targetUrl','openIfMissing',
+            'timezone','triggerKind','triggerSpec','misfirePolicy','startDeadlineMs',
+            'paused'].some(key=>!equal(after[key],input[key]))||
+          (input.revision!==undefined&&after.revision!==input.revision)||
+          !equal(after.owner??null,before.owner??null))
+          throw fail('E_OUTCOME_UNKNOWN','计划编辑结果无法读回核对；请到原计划界面检查，禁止直接重试');
+        // A daily active plan always has a Scheduler-computed next fire time.
+        // Do not claim the 09:00 -> 10:00 edit is fully verified if its next
+        // trigger cannot be independently read back from the Host.
+        if(after.triggerKind==='daily'&&!after.paused&&!after.needsAttention){
+          const due=after.nextDueAt;
+          let valid=Number.isSafeInteger(due)&&due>0;
+          // Use the existing Scheduler recurrence helper to reject a stale
+          // 09:00 alarm accidentally returned for a newly saved 10:00 plan.
+          // This also respects the Scheduler's DST gap/fold semantics.
+          try{valid=valid&&nextScheduleAt('daily',after.triggerSpec,after.timezone,due-1)===due;}
+          catch{valid=false;}
+          if(!valid)throw fail('E_OUTCOME_UNKNOWN',
+            '计划规则已写入，但下次触发时间无法独立核实；请在计划页面核对，勿直接重试');
+        }
+        return {scheduleId:after.scheduleId,title:after.title,paused:after.paused,
+          generation:after.generation,timezone:after.timezone,
+          nextDueAt:after.nextDueAt??null,verified:true};
+      }finally{
+        if(writeAttempted)try{onScheduleChange();}catch{
+          // Do not mask an earlier Host/write verification failure.
+        }
       }
-      onScheduleChange();
-      return {scheduleId:after.scheduleId,title:after.title,paused:after.paused,
-        generation:after.generation,timezone:after.timezone,
-        nextDueAt:after.nextDueAt??null,verified:true};
     }
     throw fail('E_AI_SCHEMA','不允许的修改操作');
   }
