@@ -265,7 +265,7 @@ function lock(){
   el('ps-import-append').disabled=blocked||!append||Boolean(append.error||append.overLimit||append.added===0);
   el('ps-import-replace').disabled=blocked||!replace||Boolean(replace.error||replace.overLimit);
   el('ps-cancel').disabled=busy||uploadBusy||unconfirmedWrite||siteUnconfirmedWrite;
-  for(const id of ['ps-detail-back','ps-detail-edit','ps-detail-copy'])
+  for(const id of ['ps-detail-edit','ps-detail-copy'])
     el(id).disabled=blocked||Boolean(stagedImport);
   el('ps-form').setAttribute('aria-busy',String(busy));
   el('ps-save').textContent=busy?'保存中…':'保存';
@@ -1142,6 +1142,8 @@ async function launch(){
   }catch{/* An ordinary opening does not carry a one-use native menu ticket. */}
 }
 el('ps-new').append(icon('plus'));
+el('ps-detail-edit').prepend(icon('pencil'));
+el('ps-detail-copy').prepend(icon('copy'));
 el('ps-transfer').append(icon('transfer'));
 el('ps-export').prepend(icon('export'));el('ps-import').prepend(icon('import'));
 el('ps-transfer').addEventListener('click',toggleTransfer);
@@ -1233,7 +1235,6 @@ el('ps-image-clear').addEventListener('click',()=>{
     removeUnreferencedAsset(previous);
 });
 el('ps-cancel').addEventListener('click',()=>back());
-el('ps-detail-back').addEventListener('click',()=>back());
 el('ps-detail-edit').addEventListener('click',()=>{if(detailId)start(detailId);});
 el('ps-detail-copy').addEventListener('click',()=>{
   const item=data.items.find(row=>row.id===detailId);

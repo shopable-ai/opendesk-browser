@@ -563,9 +563,12 @@ test('Prompt list click opens read-only detail; explicit quick copy keeps one ge
   assert.equal(n['ps-detail'].hidden,false);
   assert.equal(n['ps-detail-body'].textContent,'第一行\n\n第二行');
   assert.deepEqual(f.copies(),[],'opening detail must not silently copy');
+  assert.doesNotMatch(await readFile(tool+'/src/index.html','utf8'),/id="ps-detail-back"/);
   n['ps-detail-copy'].click();await settle();
   assert.deepEqual(f.copies(),['第一行\n\n第二行']);
-  n['ps-detail-back'].click();
+  assert.equal(n['ps-detail-edit'].children[0]?.tagName,'SVG','Edit button includes its icon');
+  assert.equal(n['ps-detail-copy'].children[0]?.tagName,'SVG','Copy button includes its icon');
+  f.root.emit('opendesk-tool-navigation',{detail:{action:'back'}});
   assert.equal(n['ps-index'].hidden,false);
   assert.equal(buttonByAction(n['ps-list'],'detail').focused,true,'Back restores card focus');
   buttonByAction(n['ps-list'],'quick-copy').click();await settle();
