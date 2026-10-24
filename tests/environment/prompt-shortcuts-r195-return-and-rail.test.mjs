@@ -33,13 +33,13 @@ test('R1.9.5 webpage rail defaults expanded, keeps its background and remains ma
 
 test('R2.16 injected rail and original preview avoid false vertical overflow while preserving bounded scrolling',async()=>{
   const [page,preview]=await Promise.all([file('trusted/page.js'),file('preview/index.html')]);
-  assert.match(page,/max-height:min\\(400px,calc\\(100dvh - 16px\\)\\);overflow-y:auto;overflow-x:hidden;/,
+  assert.match(page,/max-height:min\(400px,calc\(100dvh - 16px\)\);overflow-y:auto;overflow-x:hidden;/,
     'real trusted Shadow DOM rail uses a viewport-bounded 400px cap');
-  assert.match(preview,/max-height:min\\(400px,calc\\(100% - 16px\\)\\);overflow-y:auto;overflow-x:hidden;/,
+  assert.match(preview,/max-height:min\(400px,calc\(100% - 16px\)\);overflow-y:auto;overflow-x:hidden;/,
     'full preview matches the taller bounded rail within its own conversation stage');
-  assert.doesNotMatch(page,/max-height:min\\(248px/,'old 248px fixed cap clipped ordinary controls');
-  assert.doesNotMatch(preview,/max-height:248px|max-height:min\\(340px/,'remove duplicate stale preview caps');
-  assert.match(page,/railHeight=Math.min\\(rail.offsetHeight\\|\\|rail.scrollHeight\\|\\|222,win.innerHeight-16\\)/,
+  assert.doesNotMatch(page,/max-height:min\(248px/,'old 248px fixed cap clipped ordinary controls');
+  assert.doesNotMatch(preview,/max-height:248px|max-height:min\(340px/,'remove duplicate stale preview caps');
+  assert.match(page,/railHeight=Math.min\(rail.offsetHeight\|\|rail.scrollHeight\|\|222,win.innerHeight-16\)/,
     'position the actual rendered scrollport, not the total height of hidden list items');
   const verticalHeight=count=>count*38+(count-1)*5+2*6+2;
   assert.equal(verticalHeight(6),267,
