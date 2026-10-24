@@ -685,8 +685,13 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       // The journal stays unresolved until the public Driver and old native
       // resources have both passed an independent readback.
       let migrationReceipt=null;
-      if(legacyFocusUpgrade)migrationReceipt=await finishLegacyFocusUpgradeLocked({
-        api,lockManager,descriptor:legacyFocusUpgrade.descriptor});
+      if(legacyFocusUpgrade){
+        // Persist handoff intent before old DNR/Alarm retirement, not after
+        // the first native effect. Recovery never guesses whether it ran.
+        await writeOp('native-handoff');
+        migrationReceipt=await finishLegacyFocusUpgradeLocked({
+          api,lockManager,descriptor:legacyFocusUpgrade.descriptor});
+      }
       const cleanup=await getPendingToolCleanups(api);
       if(cleanup[tool.id]){
         const updated={...cleanup};delete updated[tool.id];
