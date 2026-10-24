@@ -585,6 +585,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const origin=websiteOrigin(currentPageTarget?.snapshot?.url),tool=active,token=instance;
     if(!tool||!origin)return;
     const allSites=tool.id==='cookie-editor'&&cookieAdmissionState===true;
+    const wasUsable=cookieHasManageGrant(tool,origin);
     const scopeGranted=allSites?cookieHasBaseGrant(tool):cookieHasSiteGrant(tool,origin);
     const restoreChrome=scopeGranted&&cookieChromeState.granted===false;
     const revoke=!restoreChrome&&(allSites?cookieHasBaseGrant(tool):
@@ -603,7 +604,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         else await changeCookieSite({enabled:!revoke});
       }
       if(active===tool&&instance===token){
-        if(!revoke&&tool.id==='cookie-editor'&&!frame&&!nativeUI&&!nativePending)
+        // The pre-consent iframe may already have seen a denied read. Replace
+        // that hidden instance once, so the first successful grant opens a fresh
+        // Cookie list without another manual reload. Keep an in-use editor.
+        if(!revoke&&tool.id==='cookie-editor'&&
+          ((!frame&&!nativeUI&&!nativePending)||(!wasUsable||restoreChrome)))
           mountTool(tool);
         else {tocSettingsOpen=revoke;render();}
         notice(tool.id==='cookie-editor'?'':revoke?'已撤销本站 Cookie 授权':
