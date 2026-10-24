@@ -711,7 +711,8 @@ if(!vm.SourceTextModule) {
     assert.equal(f.answers[0].decision,'deny');
     assert.equal(f.sessionStore.get('opendesk.sidebar.workflow-draft.v1:7:observation').origin,'https://a.example');
     await f.setPage({status:'available',origin:'https://a.example',documentId:'doc-10',url:'https://a.example/next'});
-    assert.equal(f.ui.getSnapshot().controls['workflow-observation-scope']?.text,'网页摘要：使用前检查授权');
+    assert.equal(f.ui.getSnapshot().controls['workflow-observation-scope']?.text,'网页摘要：已授权',
+      'the actual resumed Native session validates the same-origin saved grant');
     running=(await f.startPlan('Observe the fresh same-origin document')).running;await f.approvalReady.promise;
     await tick();await tick();
     assert.equal(f.get('workflow-ai-approval').hidden,true);
