@@ -63,8 +63,9 @@ export function SharedProviderSettingsSheet({
    if(!providerSource)throw new Error('请选择 HTTPS 协议');
    const patch:{source:string;endpoint:string;model:string;apiKey?:string}={
     source:providerSource,endpoint:endpointValue,model:model.trim()};
-   if(clearKey)patch.apiKey='';
-   else if(keyDraft)patch.apiKey=keyDraft;
+   // Hidden HTTPS secret controls must never mutate the retained session key.
+   if(external&&clearKey)patch.apiKey='';
+   else if(external&&keyDraft)patch.apiKey=keyDraft;
    providerSettings.updateSettings(patch);
    setKeyDraft('');onClose?.();
   }catch(ex){setError(String(ex?.message||'设置未保存'));}
