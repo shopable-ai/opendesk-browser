@@ -318,7 +318,8 @@ function openDetail(id){
   const row=id?data.items.find(item=>item.id===id):null;
   if(id&&!row){status('原条目已变化，请重新打开工具核对。',true);return;}
   closeTransfer();
-  mode='form';editId=id;detailId=null;returnFocusId=id;returnFocusAction='more';expanded=null;pendingDelete=null;
+  const fromDetail=mode==='detail'&&detailId===id;
+  mode='form';editId=id;detailId=null;returnFocusId=id;returnFocusAction=fromDetail?'detail':'more';expanded=null;pendingDelete=null;
   el('ps-index').hidden=true;el('ps-edit').hidden=false;el('ps-detail').hidden=true;
   el('ps-save-next').hidden=Boolean(id);
   el('ps-form-title').textContent=id?'编辑提示词':'新建提示词';
