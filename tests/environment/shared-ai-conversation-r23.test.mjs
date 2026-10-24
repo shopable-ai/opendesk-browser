@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {inferHttpsSource} from '../../src/ui/ai/provider-https-source.js';
 import {load} from 'cheerio';
 import {renderSidebarReact} from '../../scripts/preview/react-sidebar-ssr.mjs';
 import {createWorkflowUIState} from '../../src/ui/workflow/workflow-ui-state.js';
@@ -34,7 +36,7 @@ test('R2.3 Workflow SSR has one icon Source entry, one shared composer target an
   apiKey:'session-only-preview'});
  const $=load(await renderSidebarReact({activeTab:'workflow',providerSettings:settings}));
  assert.equal($('#workflow-provider-toggle[aria-haspopup="menu"]').length,1);
- assert.match($('#workflow-provider-toggle').attr('aria-label')||'',/HTTPS Responses/);
+ assert.match($('#workflow-provider-toggle').attr('aria-label')||'',/HTTPS 模型/);
  assert.equal($('#workflow-source-name').length,0);
  assert.equal($('.workflow-composer-frame').length,1,'existing shared React Portal target');
  assert.equal($('#workflow-provider-settings').length,0,'legacy standalone settings not mounted in ToolShell');
@@ -43,6 +45,36 @@ test('R2.3 Workflow SSR has one icon Source entry, one shared composer target an
    'Workflow no longer shows a default welcome or suggestion card');
  assert.equal($('#workspace-dock').length,1,'original Run Dock untouched');
  settings.dispose();
+});
+
+test('R2.3 provider settings expose two sources, keep native-sized selectors and legacy execution IDs',async()=>{
+ const [sheet,css,workflow]=await Promise.all([
+  readFile(new URL('../../src/ui/react/components/provider-settings.tsx',import.meta.url),'utf8'),
+  readFile(new URL('../../src/ui/react/components/conversation-dock.css',import.meta.url),'utf8'),
+  readFile(new URL('../../src/ui/react/tabs/workflow.tsx',import.meta.url),'utf8')
+ ]);
+ const choices=[...sheet.matchAll(/name="od-ai-provider-source" value="([^"]+)"/g)].map(match=>match[1]);
+ assert.deepEqual(choices,['local_codex','https'],'protocols are not peer-level sources');
+ assert.match(workflow,/https:'HTTPS 模型'/);
+ assert.doesNotMatch(workflow,/https:'HTTPS Chat Completions'/);
+ assert.match(css,/\.od-shared-provider-form input\[type=radio\],\.od-shared-provider-form input\[type=checkbox\]\{/);
+ assert.match(css,/flex:0 0 16px;width:16px;min-width:16px;max-width:16px/);
+ assert.match(sheet,/providerSettings\.updateSettings\(patch\)/);
+ assert.match(sheet,/selectedHttpsSource/);
+ assert.match(sheet,/option value="custom_https"/);
+ assert.match(sheet,/option value="cloud_responses"/);
+ assert.match(sheet,/if\(clearKey\)patch\.apiKey=''/);
+});
+
+test('R2.3 infer known HTTPS protocol paths only; unknown custom paths require explicit selection',()=>{
+ assert.equal(inferHttpsSource('https://api.openai.com/v1/responses'),'cloud_responses');
+ assert.equal(inferHttpsSource('https://api.openai.com/v1/chat/completions'),'custom_https');
+ assert.equal(inferHttpsSource('https://api.example.com/custom/v2/responses/?feature=1'),'cloud_responses');
+ assert.equal(inferHttpsSource('https://api.example.com/proxy/v1/chat/completions'),'custom_https');
+ for(const endpoint of ['https://api.example.com/custom/plan','https://api.example.com/my-responses',
+   'http://example.com/v1/responses','https://name:password@example.com/v1/responses','not-a-url']){
+  assert.equal(inferHttpsSource(endpoint),null,endpoint);
+ }
 });
 
 test('R2.3 suggestion draft is append-only, deduplicated, IME-neutral, length bounded and never a Send',()=>{
