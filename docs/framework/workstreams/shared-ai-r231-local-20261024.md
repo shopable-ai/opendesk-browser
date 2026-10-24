@@ -1,12 +1,31 @@
 # Shared AI Chat R2.3.1-LOCAL · 增量验证记录
 
-日期：2026-10-24（Asia/Shanghai）。Owner：接收对话 `01a16a53-9295-74c3-b6f9-35cee9c26b69`。
+日期：2026-10-24（Asia/Shanghai）。历史 Owner：接收对话 `01a16a53-9295-74c3-b6f9-35cee9c26b69`；中文发送修复 Owner：`01a16ca6-62e3-75e3-aeac-5652800713c6`。
 
 ## 结论与阶段
 
 当前修复已提交，独立本机测试候选已通过原验证和安装链；「我的」成功运行、跨 Tab 原 RunHost Stop 与历史结果保留已实测。整体真实产品验收尚未通过，独立专家总分 **NOT_SCORED**。按用户最新要求采用增量测试：未改变的操作复用原证据，不重跑历史全量测试、完整尺寸矩阵或 production 构建。旧对话目标上次实读为 paused；本记录不恢复、迁移或完成旧目标。
 
 唯一 ToolShell、`src/ui/react` Root、共享 Provider Runtime、独立 Consumer Adapter 与原 Authority / Compiler / RunHost 保留。共享来源不授予业务权限。
+
+## 中文发送修复与同对话续聊（2026-10-24 后续实测）
+
+本节为最新状态，覆盖下方历史 Native 阻塞及旧“剩余操作”；旧测试和截图只保留原范围。本轮目标是日常 Chrome「工作流」选择本机 Codex，完成中文发送和同对话续聊，没有扩展为整体验收。
+
+- 实际首条：`你好，这是一次中文发送增量测试。请只回复“收到测试消息”，不要执行网页操作或创建任务。` → **收到测试消息**。
+- 同一对话第二条：`请继续只回复“中文续聊正常”，不要执行网页操作或创建任务。` → **中文续聊正常**。两轮结束、输入清空、恢复发送状态；没有生成工作流或执行网页操作。
+- Native 审计并支持精确 CLI 0.162.1，修复全局指令来源隔离及 GUI PATH 缺少 Node；保留当前模型、账户和 10100 路由。安全策略回执、无环境/无全局指令来源、MCP/工具关闭、取消/撤权仍受原门禁约束。冷恢复继续拒绝。
+- Browser 只接收严格 `{kind:"chat",message}` 纯文本结果，在原 turn 成功终态后显示；附带 steps/permissions、空文本或超长文本拒绝。此分支保留当前工作流及 bundle，在 Compiler/RunHost 之前结束；网页任务仍要求原观察与执行校验。
+
+运行环境：**持续开发**。日常 Chrome 扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，加载 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development`；调试页实读“开发服务已连接”，revision `7e699b549207843b00d802f2916ec7dfbfd6a1b526db7480ae2f7a4f856ebbce`。复用另一 owner 的 dev watcher（上次实读 PID 9648，43119/43120），未关闭或覆盖。Native 当前执行文件 `~/.opendesk-browser/native-agent-r1/build-shared-ai-01621-node/OpenDesk.app/Contents/MacOS/opendesk`，SHA256 `6bd1dd42746822aaae799bc256d9e9595acf5febb884527c06660ada3b6e79b7`；通过原 `browser update` 更新配对入口，原扩展 ID、授权、manifest、Socket 和其他实例保留。Native provenance 为 modified 源树，构建 overlay 排除其他 owner 的未提交源码，不声称干净提交构建。
+
+最小验证：Browser 五项定向用例通过（中文同线程、纯文本负例、组件不编译/不执行、网页观察要求、审批时取消），JS 语法及 diff 格式通过；Native 账户引用、路由、协议/策略、取消/撤权定向验证、真实 CLI 隔离 canary、GUI PATH Probe 与最终 App doctor 通过。独立静态复审未发现本次 Node fallback 和聊天分支阻塞项；没有重跑原 85/51 项或全量构建。真实推理证据来自上述 Chrome 两轮回复。
+
+现场截图：`artifacts/shared-ai-r231-local-20261024/incremental-send-codex-01621-success.png`、`incremental-send-codex-01621-continuation.png`。Native 源码/产物记录位于 sibling `.runtime/tests/browser-ai/shared-chat-01621/`；实现说明见 sibling `docs/integrations/browser/workflow-codex-app-server-r16-implementation.zh-CN.md`。
+
+Native 修复本地提交 `f5ab7a2d7f00d6cfbcdb76210592ebe32b2a879a`，未推送。Browser 本节与源码同次提交。
+
+本轮核心中文发送已完成。HTTPS 来源、Keyring、production、完整矩阵及整体独立评分未执行（**NOT_TESTED / NOT_SCORED**）；不作为本轮收尾前置。浏览器和当前对话保留打开，不推送提交。
 
 ## 本轮修复及独立复审
 
@@ -32,7 +51,7 @@
 | My Dock 开合、跨 Tab 草稿隔离、Workflow 示例/Undo/Redo/来源键盘 | 复用原 Chrome PASS | 相关 React 源输入未继续改变；具体旧证据见交接截图 |
 | 320–960、浅深色、浏览器 200% | 复用原 PREVIEW_ONLY | 不提升为真实 Side Panel 尺寸/缩放 PASS |
 | Conversation Stop→UNKNOWN | 复用原 RENDER_ONLY | 未运行 `conversation-dock-layout-browser.test.mjs` 的 Playwright 自动驱动 |
-| 真实 Native / HTTPS 模型闭环 | BLOCKED / NOT_TESTED | 见下文，不以 mock 代替 |
+| 历史 Native / HTTPS 模型闭环 | 当时 BLOCKED / NOT_TESTED | Native 中文发送已由上方最新实测解除；HTTPS 仍 NOT_TESTED |
 | 中文粘贴 / 真实 IME composition | 粘贴沿用 PASS；IME NOT_TESTED | 未取得候选/提交证据 |
 
 上次原始截图位于忽略目录 `artifacts/shared-ai-r231-local-20261024/`：`my-bottom-real-chrome.png`、`development-identity.png`、`render-only-stop-unknown.png`、`preview-workflow-320-dark.png`、`preview-workflow-320-dark-browser200.png`。截图层级与名字中的范围一致，不能替代真实业务回执。旧 `/tmp/opendesk-r231-security-tests.log` 早于最终补丁，不作为最终全量通过证据。
@@ -61,7 +80,7 @@
 
 保留 npm dev PID 16868 / node 16888、43119 / 43120 守卫、demo Python PID 68658 / 43111、自有只读预览 PID 46214 / 59895；不关闭其他 CFT/Profile，不启动第二个 dist writer。两旧标签页的浏览器自动化句柄仍归原对话，本轮通过确切 Chrome 应用的原生入口操作真实侧边栏。
 
-## Native / HTTPS 的具体阻塞
+## 历史 Native / HTTPS 的具体阻塞（修复前观察）
 
 只读专家查证：当前 `/Users/shopme/.local/bin/codex` 为 `0.162.1`；sibling `opendesk/internal/browserai/process.go` 目前只审计 `codex-cli 0.159.2`，会在启动 App Server 前拒绝当前版本。
 
@@ -71,8 +90,6 @@
 
 需 Native owner 在 sibling 的 `internal/browserai/process.go` / `manager.go` 及其测试验证版本、实际 Schema、线程和 `instructionSources` 策略；维护入口为 `docs/integrations/browser/workflow-codex-app-server-r16-implementation.zh-CN.md`。本轮只读核对，不接管 sibling master、其他改动或安装配对。HTTPS 两来源缺完整会话配置，真实请求 NOT_TESTED，不读取别处密钥或静默回退。
 
-## 剩余操作
+## 历史后续项（本轮不自动执行）
 
-1. Native owner 交付经验证兼容运行时后，按唯一 Workflow 核心冒烟手册完成同对话真实“测试甲→测试乙”、DOM 与持久 Run/Result 读回，及相关确认/撤权/取消。
-2. 有合法 HTTPS 会话配置后验证两来源；补真实 IME 和尚无有效证据的 Side Panel 尺寸/200%。未变化的预览矩阵不重复。
-3. 仅在同候选真实证据完整后进行整体独立评分；目前 NOT_SCORED。
+原计划中的 DOM 与持久 Run/Result、完整确认/撤权/取消、HTTPS、IME、尺寸/缩放矩阵和整体评分保留为历史后续项。当前中文发送核心阶段已收缩；本轮不因这些旧清单继续测试，尺寸/缩放专项须用户针对具体任务重新要求。Native 同对话中文续聊以最新实测为准。

@@ -125,7 +125,7 @@ if(!vm.SourceTextModule) {
 
   async function make(t,{steps=[],approval=false,observeGate=null,storedGrant=null,
     sessionId='component-session',initialPermission=true,savedRecord=null,configureHost=null,
-    resumable=false,controllerOnly=false,probe=null,catalogReadGate=null,catalogFail=false}={}) {
+    resumable=false,controllerOnly=false,probe=null,catalogReadGate=null,catalogFail=false,chatReply=null}={}) {
     const dom=controllerOnly?null:documentFixture();
     const doc=dom?.doc||{getElementById:()=>null};
     const get=id=>doc.getElementById(id),draft=contract.emptyWorkflow('https://a.example',crypto.randomUUID());
@@ -143,7 +143,7 @@ if(!vm.SourceTextModule) {
           approvalReady.resolve();answers.push(await answer);
         }
         await planGate.promise;
-        return proposal(options.workflow);
+        return chatReply?{kind:'chat',message:chatReply}:proposal(options.workflow);
       },cancel:async()=>{},close:async()=>{currentSessionId=null;},dispose(){},resume:async()=>{resumeCalls++;}};
     const observation={cancel:async()=>{},dispose:async()=>{},async observe(...args){
       observations.push(args);if(observeGate)await observeGate.promise;return {componentFixture:true};
@@ -317,6 +317,25 @@ if(!vm.SourceTextModule) {
     return {sessionId:'component-session',origin:'https://a.example',scope:'semantic-dom-summary-v1',
       approvedAt,expiresAt:approvedAt+30*60*1000,...overrides};
   };
+
+  test('component: text-only Chinese reply never compiles or starts a browser task',async t=>{
+    let starts=0;
+    const f=await make(t,{controllerOnly:true,steps:[observe('keep')],chatReply:'收到测试消息',
+      configureHost:host=>{host.start=async()=>{starts++;throw Error('chat must not execute');};}});
+    const before=f.ui.getSnapshot(),compiles=f.compiled.length,trusted={isTrusted:true};
+    f.ui.actions.input('workflow-ai-request','你好，不执行网页操作',trusted);
+    const running=f.ui.actions.click('workflow-ai-plan',trusted);
+    f.planGate.resolve();await running;
+    const after=f.ui.getSnapshot();
+    assert.deepEqual(after.steps,before.steps,'chat preserves the current workflow');
+    assert.equal(after.messages.at(-1).speaker,'Codex');
+    assert.equal(after.messages.at(-1).message,'收到测试消息');
+    assert.equal(after.controls['workflow-ai-request'].value,'');
+    assert.equal(after.controls['workflow-ai-cancel'].hidden,true);
+    assert.equal(f.compiled.length,compiles);
+    assert.equal(f.observations.length,0);
+    assert.equal(starts,0);
+  });
 
   test('component: local check prevents a concurrent probe even with a stale enabled Send control',async t=>{
     const check=deferred(),probeErrors=[];let checking=false;

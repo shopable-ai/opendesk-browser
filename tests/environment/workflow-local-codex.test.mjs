@@ -99,6 +99,34 @@ test('capability discovery differentiates unsupported Native from a usable turn 
   assert.match(describeLocalCodex({state:'PROVIDER_ERROR',readyForTurn:false}).message,/未完成/);
 });
 
+test('text-only Chinese replies continue the same thread without observation or workflow steps',async t=>{
+  const f=fixture({turnEvents:({turn})=>[
+    {type:'message.completed',text:JSON.stringify({kind:'chat',message:turn===1?'收到测试消息':'中文续聊正常'})},
+    {type:'turn.completed',status:'completed'}]});
+  t.after(()=>f.planner.dispose());
+  const options={consent:consent(true),target,onApproval:()=>assert.fail('chat must not request page access')};
+  assert.deepEqual(await f.planner.plan(request({...options,request:'你好，请只回复收到测试消息，不执行网页操作'})),
+    {kind:'chat',message:'收到测试消息'});
+  assert.deepEqual(await f.planner.plan(request({...options,request:'继续回复'})),
+    {kind:'chat',message:'中文续聊正常'});
+  assert.equal(f.calls.filter(call=>call.method==='ai.session.open').length,1);
+  assert.equal(f.planner.snapshot().inferenceVerified,true);
+});
+
+test('chat cannot smuggle workflow actions or accept an invalid text payload',async t=>{
+  for(const message of [
+    {kind:'chat',message:'已完成',steps:proposal().steps},
+    {kind:'chat',message:'已完成',permissions:['tabs']},
+    {kind:'chat',message:''},{kind:'chat',message:'界'.repeat(4001)}
+  ]) {
+    const f=fixture({turnEvents:()=>[
+      {type:'message.completed',text:JSON.stringify(message)},
+      {type:'turn.completed',status:'completed'}]});
+    t.after(()=>f.planner.dispose());
+    await assert.rejects(f.planner.plan(request()),{code:'E_AI_RESPONSE'});
+  }
+});
+
 test('sending freezes the minimal reviewed input, requires consent, and bounds UTF-8 bytes',async t=>{
   const f=fixture();t.after(()=>f.planner.dispose());
   const original=workflow();original.privateToken='DO_NOT_SEND_THIS';

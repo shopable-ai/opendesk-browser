@@ -1896,7 +1896,6 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     
     const epoch=++planningGeneration,abort=new AbortController();planningAbort=abort;planningTarget=captured;planningObservation=null;
     const conversationRound=beginConversationRound(abort.signal);
-    fullAgentDraft=null;selectedBundle=null;
     const agent={epoch,controller:abort,selected:frozen.selected,goal:frozen.request,initialTarget:structuredClone(captured),startedCount:0,segments:[],
       settings:{endpoint:frozen.endpoint,apiKey:frozen.apiKey,model:frozen.model},modelDecisions:0,
       guard:createWorkflowAgentLoopGuard({goal:frozen.request,signal:abort.signal}),
@@ -1993,6 +1992,14 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
                 recipientId,receiverPattern})});
           planningCurrent(epoch,frozen.serial,frozen.selected);
           const result=planned.proposal;
+          if(frozen.selected==='local_codex'&&result?.kind==='chat') {
+            appendChat('Codex',result.message);
+            if(control('workflow-ai-request').value.trim()===frozen.request)setConversationDraft('');
+            status('');
+            finishWorkflowAgent(agent,'COMPLETED','');
+            return;
+          }
+          fullAgentDraft=null;selectedBundle=null;
           prepared=prepareDirectExecution({request:frozen.request,workflow:result,
             target:captured,observation:planningObservation});
           executable=structuredClone(result);
