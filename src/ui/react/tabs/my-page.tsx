@@ -177,6 +177,11 @@ export function MyTasksPage({view,agent=null,hidden=false}){
 </div>
 <div className="od-page-actions">
 <MyAgentToggle agent={agent} id="my-agent-schedule-toggle"/>
+<MyControl view={view} as="button" id="schedule-open-runner" onClick={event=>view.actions.scheduleOpenRunnerClick?.(event.nativeEvent)} type="button" className="od-icon-button" title="打开独立运行页" aria-label="打开独立运行页">
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<path d="M14 3h7v7M10 14 21 3M21 13v8H3V3h8"/>
+</svg>
+</MyControl>
 <MyControl view={view} as="button" id="schedule-open-manager" onClick={event=>view.actions.scheduleOpenManagerClick?.(event.nativeEvent)} type="button" className="od-icon-button" title="任务管理" aria-label="任务管理">
 <svg viewBox="0 0 24 24" aria-hidden="true">
 <path d="M9 6h12M9 12h12M9 18h12M3 6l1 1 2-2M3 12l1 1 2-2M3 18l1 1 2-2"/>
@@ -271,9 +276,6 @@ export function MyTasksPage({view,agent=null,hidden=false}){
 </MyControl>
 <details className="schedule-storage-details od-disclosure">
 <summary>{"运行概览与本地记录"}</summary>
-<div className="schedule-runner-secondary">
-<MyControl view={view} as="button" id="schedule-open-runner" onClick={event=>view.actions.scheduleOpenRunnerClick?.(event.nativeEvent)} type="button" className="od-button od-button--secondary" title="在独立标签页打开运行概览" aria-label="打开独立运行页">{"打开运行概览"}</MyControl>
-</div>
 <MyControl view={view} as="p" id="schedule-storage-status" className="hint" role="status" aria-live="polite">{"历史记录按计划分页展示；未知副作用、未结算执行和审计记录不会自动清除。"}</MyControl>
 </details>
 </MyControl>
