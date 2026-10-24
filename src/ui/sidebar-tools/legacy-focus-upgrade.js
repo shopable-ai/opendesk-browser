@@ -179,9 +179,19 @@ export async function finishLegacyFocusUpgradeLocked({api,lockManager,descriptor
      saved.appliedPolicyRev!==saved.desiredPolicyRev||
      saved.status!==(policies.enabled?'applied':'inactive'))
     fail('E_OUTCOME_UNKNOWN','公共 Driver 接管状态及策略修订未通过独立读回');
-  if(saved.day===prepared.day&&Object.entries(prepared.usage).some(([pool,ms])=>
-      (saved.usage[pool]??0)<ms))
-    fail('E_MIGRATION_LOSS','原计量池历史用量未在公共 Driver 守恒');
+  if(saved.day===prepared.day){
+    if(saved.clockHighWater<prepared.clockHighWater||
+       Object.entries(prepared.usage).some(([pool,ms])=>
+         (saved.usage[pool]??0)<ms))
+      fail('E_MIGRATION_LOSS','原计量池用量或时钟水位未在公共 Driver 守恒');
+    // New actual observations may add reminders but may never forget any
+    // old already-triggered threshold for its specific metering pool.
+    const retained=saved.notices?.pools??{};
+    if(Object.entries(prepared.notices.pools).some(([pool,record])=>
+       retained[pool]?.limitMs!==record.limitMs||
+       record.thresholds.some(min=>!retained[pool]?.thresholds.includes(min))))
+      fail('E_MIGRATION_LOSS','公共 Driver 未保留全部已触发提醒去重记录');
+  }
   if(policies.enabled&&!await api.alarms.get(MANAGED_SITE_BUDGET_ALARM))
     fail('E_OUTCOME_UNKNOWN','公共 Driver 后台闹钟没有通过 Chrome 回读');
   const actual=await api.declarativeNetRequest.getDynamicRules();
