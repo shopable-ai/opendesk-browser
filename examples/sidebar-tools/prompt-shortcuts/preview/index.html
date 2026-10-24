@@ -85,6 +85,9 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  background:var(--ps-rail-bg);color:var(--ps-button-fg);border:1px solid var(--ps-rail-border);
  box-shadow:var(--ps-rail-shadow);border-radius:14px;font-size:23px;cursor:pointer}
 .mock-conversation-nav button:disabled{opacity:.48;cursor:default}
+.demo-reply-actions button,.mock-conversation-nav button{display:grid;place-items:center;padding:0}
+.demo-reply-actions svg,.mock-conversation-nav svg{width:20px;height:20px;fill:none;stroke:currentColor;
+ stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 /* Mirrors approved R1.2 decision: 12 px from content area's LEFT EDGE, not the centered text column or composer. */
 .page-rail{position:absolute;left:12px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:5px;max-height:min(400px,calc(100% - 16px));overflow-y:auto;overflow-x:hidden;padding:6px;width:max-content;max-width:calc(100% - 24px);border:1px solid var(--ps-rail-border);background:var(--ps-rail-bg);box-shadow:var(--ps-rail-shadow);border-radius:17px;box-sizing:border-box;scrollbar-width:thin;overscroll-behavior:contain}
 .page-shortcut{flex:none;width:38px;height:38px;display:grid;place-items:center;border:1px solid transparent;background:var(--ps-button-bg);color:var(--ps-button-fg);border-radius:11px;font-size:13px;line-height:1.07;font-weight:700;box-sizing:border-box;user-select:none}
@@ -584,16 +587,16 @@ border:0;background:transparent;color:var(--od-sub)}
      <p>选中文字后，通过右键菜单快速添加为新快捷按钮。新建流程仍需要人工确认保存。</p>
      <article id="mockLongReply" class="demo-long-reply" aria-label="模拟 AI 长回复">
        <div class="demo-reply-actions" role="group" aria-label="长回复导航">
-         <button id="demoReplyTop" type="button" aria-label="回到此内容开头" title="回到此内容开头">↑</button>
-         <button id="demoReplyBottom" type="button" aria-label="跳到此内容末尾" title="跳到此内容末尾">↓</button>
+         <button id="demoReplyTop" type="button" aria-label="回到此内容开头" title="回到此内容开头"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 4h14M12 20V8m-6 6 6-6 6 6"/></svg></button>
+         <button id="demoReplyBottom" type="button" aria-label="跳到此内容末尾" title="跳到此内容末尾"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 20h14M12 4v12m-6-6 6 6 6-6"/></svg></button>
        </div>
        <strong>模拟长回复 · 滚动导航实验</strong>
        <div id="demoLongText"></div><div id="demoReplyEnd"></div>
      </article>
     </div>
     <nav class="mock-conversation-nav" id="mockConversationNav" aria-label="对话滚动导航" hidden>
-     <button id="mockConversationTop" type="button" aria-label="回到对话顶部" title="回到对话顶部">↑</button>
-     <button id="mockConversationBottom" type="button" aria-label="跳到对话底部" title="跳到对话底部">↓</button>
+     <button id="mockConversationTop" type="button" aria-label="回到对话顶部" title="回到对话顶部"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17 11l-5-5-5 5m10 7-5-5-5 5"/></svg></button>
+     <button id="mockConversationBottom" type="button" aria-label="跳到对话底部" title="跳到对话底部"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 6l5 5 5-5M7 13l5 5 5-5"/></svg></button>
     </nav>
    </div>
    <div class="web-compose"><div id="mockComposer" data-composer-zone="true"><textarea id="mockDraft" aria-label="模拟 ChatGPT 草稿输入框" placeholder="点击左侧按钮，将完整提示词插入此模拟草稿……"></textarea></div><div class="web-compose-foot"><span>仅插入文本，不自动发送</span><span>⌘ / Ctrl + Enter 不执行发送</span></div></div>

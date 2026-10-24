@@ -371,7 +371,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
         :host(.dark) button:hover:not(:disabled){background:#434a55}
         button:disabled{opacity:.48;cursor:default}
         button:focus-visible{outline:3px solid #4c82ff;outline-offset:2px}
-        svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;
+        svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;
         stroke-linecap:round;stroke-linejoin:round}`;
       const stack=doc.createElement('div');stack.className='stack';
       const make=direction=>{
@@ -382,8 +382,8 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
         svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
         const path=doc.createElementNS('http://www.w3.org/2000/svg','path');
         path.setAttribute('d',direction==='top'
-          ?'M5 4h14M12 20V8m-6 6 6-6 6 6'
-          :'M5 20h14M12 4v12m-6-6 6 6 6-6');
+          ?'M17 11l-5-5-5 5m10 7-5-5-5 5'
+          :'M7 6l5 5 5-5M7 13l5 5 5-5');
         svg.append(path);button.append(svg);
         button.addEventListener('click',event=>
           void navigationClick(direction,button.dataset.scrollNavKey,event));
