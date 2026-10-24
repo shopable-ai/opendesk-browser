@@ -502,6 +502,45 @@ try{
   scenes.push({step:'R1.9.6 default-expanded source-bound rail for current default, edited, deleted and legacy libraries',
     cases:compactCases.map(([name,rows])=>({name,count:rows.length})),
     actualChromiumDOM:true,genuineCDPClicks:true,installedExtension:false});
+  // R2.16: five saved prompts + OD have the same six visible 38px controls
+  // as the three initial prompts + two conversation arrows + OD. They must not
+  // get an artificial vertical scrollbar at ordinary desktop height.
+  const railMetrics=()=>evaluate('(()=>{const rail=window.__railRoot.querySelector(".rail");'+
+    'const rect=rail.getBoundingClientRect();return {buttons:[...rail.querySelectorAll("button")].filter(b=>!b.hidden).length,'+
+    'horizontal:rail.classList.contains("horizontal"),scrollHeight:rail.scrollHeight,'+
+    'clientHeight:rail.clientHeight,paintedHeight:rect.height,overflowY:getComputedStyle(rail).overflowY};})()');
+  const normalRail=await railMetrics();
+  assert.equal(normalRail.buttons,6,'OD + five shortcuts should all be visible');
+  assert.equal(normalRail.horizontal,false,'sufficient desktop gutter uses vertical layout');
+  assert.equal(normalRail.overflowY,'auto','preserve scrolling for genuinely long lists');
+  assert(normalRail.scrollHeight<=normalRail.clientHeight+1,
+    'ordinary six-button rail must not display a vertical scrollbar: '+JSON.stringify(normalRail));
+  const manyRows=Array.from({length:11},(_,i)=>({...personal[0],
+    id:'r216-overflow-'+i,label:'长'+i,name:'完整提示词 '+i,body:'正文 '+i,order:i}));
+  await evaluate('window.__setPrompts('+JSON.stringify(manyRows)+')');
+  await poll('window.__railRoot?.querySelectorAll(".item").length===13',
+    'eleven saved prompts plus two hidden navigation buttons in the rail');
+  await expandPromptRail();
+  const overflowRail=await railMetrics();
+  assert(overflowRail.scrollHeight>overflowRail.clientHeight+10,
+    'large custom libraries must retain internal scrolling: '+JSON.stringify(overflowRail));
+  assert(overflowRail.paintedHeight<=400.5,
+    'long rail must remain bounded and not cover the full conversation viewport');
+  const bottomIsReachable=await evaluate('(()=>{const rail=window.__railRoot.querySelector(".rail");'+
+    'rail.scrollTop=rail.scrollHeight;const r=rail.getBoundingClientRect();'+
+    'const last=[...rail.querySelectorAll(".item")].at(-1).getBoundingClientRect();'+
+    'return last.top>=r.top-1&&last.bottom<=r.bottom+1;})()');
+  assert.equal(bottomIsReachable,true,'the last shortcut remains reachable by scrolling');
+  await evaluate('window.__setPrompts('+JSON.stringify(personal)+')');
+  await poll('window.__railRoot?.querySelectorAll(".item").length===7',
+    'restore five custom shortcuts and the two hidden navigation buttons');
+  await expandPromptRail();
+  const restoredRail=await railMetrics();
+  assert(restoredRail.scrollHeight<=restoredRail.clientHeight+1,
+    'removing extra prompts must remove the scrollbar without reload: '+JSON.stringify(restoredRail));
+  scenes.push({step:'R2.16 no unnecessary rail scrollbar, bounded real overflow and dynamic recovery',
+    normalRail,overflowRail,restoredRail,lastButtonReachable:bottomIsReachable,
+    actualChromiumDOM:true,installedExtension:false});
   assert.equal(jsErrors.length,0,JSON.stringify(jsErrors));
   const report={kind:'ACTUAL_CHROMIUM_DOM_FIXED_PAGE_WITH_MOCK_HOST',installedExtension:false,
     realThirdPartySite:false,realMacIme:false,version:pkg.version,scenes,consoleErrors:jsErrors};
