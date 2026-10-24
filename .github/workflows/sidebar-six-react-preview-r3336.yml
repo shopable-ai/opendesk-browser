@@ -70,13 +70,17 @@ jobs:
           node --input-type=module <<'DIAGNOSTICS'
           import {readFileSync} from 'node:fs';
           const dom=readFileSync('artifacts/sidebar-six-react-preview/dom.txt','utf8');
-          const markers=['data-sidebar-preview-ready="true"','data-preview-scenario','od-sidebar-preview-controls','od-sidebar-preview-root'];
+          const markers=['data-preview-boot-script="ready"','id="tab-my-tasks"','id="tab-tools"',
+            'id="workbench-tools"','id="workspace-content"','data-preview-ready="true"'];
           console.log('CHROMIUM_DIAGNOSTICS='+JSON.stringify({bytes:dom.length,markers:Object.fromEntries(markers.map(k=>[k,dom.includes(k)])),
             bodyHead:dom.slice(Math.max(0,dom.indexOf('<body')),Math.max(0,dom.indexOf('<body'))+800),
             documentTail:dom.slice(-850)}));
           DIAGNOSTICS
-          grep -q 'data-sidebar-preview-ready="true"' artifacts/sidebar-six-react-preview/dom.txt
-          grep -q 'data-preview-scenario' artifacts/sidebar-six-react-preview/dom.txt
+          grep -q 'data-preview-boot-script="ready"' artifacts/sidebar-six-react-preview/dom.txt
+          grep -q 'id="tab-tools"' artifacts/sidebar-six-react-preview/dom.txt
+          grep -q 'id="workbench-tools"' artifacts/sidebar-six-react-preview/dom.txt
+          grep -q 'data-preview-ready="true"' artifacts/sidebar-six-react-preview/dom.txt
+          ! grep -q 'data-preview-boot-error=' artifacts/sidebar-six-react-preview/dom.txt
           for tab in tasks tools workflow develop cloud debug; do
             "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
               --no-first-run --virtual-time-budget=4000 --window-size=540,950 \
