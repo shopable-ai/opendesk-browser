@@ -17,8 +17,11 @@ test('trusted React Host has exactly one first-use grant control outside the san
   assert.match(host,/允许管理所有网站 Cookie/);
   assert.match(host,/if\(!event\?\.isTrusted\|\|cookieGrantPending\|\|busy\|\|readOnlyPreview/);
   assert.match(host,/E_GRANT_READBACK/);
-  assert.doesNotMatch(view,/id="sidebar-tool-cookie-values-toggle"/);
-  assert.doesNotMatch(fields,/sidebar-tool-cookie-values-toggle/);
+  // The obsolete second button is absent for Cookie Editor, but remains
+  // conditional for unrelated sandbox Cookie tools using the old contract.
+  assert.match(view,/!isCookieEditor&&<ToolField as="button" type="button" id="sidebar-tool-cookie-values-toggle"/);
+  assert.match(fields,/sidebar-tool-cookie-values-toggle/);
+  assert.match(host,/hidden:tool.id==='cookie-editor'/);
 });
 test('explicit complete consent includes Values while unreceipted legacy all-site flags remain denied',async()=>{
   const host=await source('src/platform/chrome/context-menus.js');
@@ -53,8 +56,8 @@ test('R5.37 Cookie consent checks official provenance before offering all-site, 
   assert.match(host,/pageConsent.confirm\(event,cookieChromeRequest\(origin,allSites\)\)/);
   assert.match(host,/chromeMissing\?'恢复 Chrome Cookie 网站访问'/);
   assert.match(host,/const cookieRequiredCapabilities=/);
-  assert.match(host,/cookieCapability:'all',enabled,origin:current/);
-  assert.match(host,/else await changeCookieSite\(\{enabled:!revoke\}\)/);
-  assert.doesNotMatch(host,/for\(const capability of requested\)/);
+  assert.match(host,/cookieCapability:capability,enabled,origin:current/);
+  assert.match(host,/else if\(tool.id==='cookie-editor'\)await changeCookieSite\(\{enabled:true\}\)/);
+  assert.match(host,/else for\(const capability of cookieRequiredCapabilities\(tool\)\)/);
   assert.match(host,/kind:'cookie-grants-changed'/);
 });
