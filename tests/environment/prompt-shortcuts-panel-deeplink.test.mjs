@@ -132,10 +132,13 @@ test('a pending native open does not route until Chrome confirms it',async()=>{
   assert.deepEqual(responses,[{ok:true,data:{opened:true}}]);
 });
 
-test('R2.17 injected prompt rail has no OD launcher or transcript navigation arrows',async()=>{
+test('Built-in prompt rail has one first OD management entry but no collapsers or transcript arrows',async()=>{
   const source=await readFile('examples/sidebar-tools/prompt-shortcuts/trusted/page.js','utf8');
   assert.ok(source.includes("for(const row of items)"),'saved items remain directly usable');
-  assert.ok(!source.includes("brand.title"),'no obsolete OD launcher');
+  assert.ok(source.includes("brand.title='打开提示词快捷按钮管理侧栏'"),
+    'the single first OD brand entry has its accessible management purpose');
+  assert.ok(source.includes("brand.addEventListener('click',openSidebar)"),
+    'the restored brand uses the pre-existing user-gesture Side Panel bridge');
   assert.ok(!source.includes("compactExpanded"),'no collapse state');
   assert.ok(!source.includes("dataset.scrollConversation"),'no transcript up/down buttons in rail');
   assert.ok(source.includes("floatingHost.setAttribute('data-opendesk-prompts-floating','')"),
