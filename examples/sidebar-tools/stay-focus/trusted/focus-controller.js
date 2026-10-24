@@ -36,7 +36,7 @@ function reflect(receipt,now){
     checkpoint:null};
   if(day!==original.day)state.notices={day,revision:original.notices.revision,budgetMs:null,thresholds:[]};
   const summary=focusSummary(state,now,FOCUS_CATALOG,FOCUS_DEFAULT_MINUTES);
-  return {model:state,summary:{...summary,
+  return {model:state,summary:{...summary,runtimeKind:'site-budget.v3',
     // The sealed product model deliberately drops legacy hash/epoch. Only the
     // authenticated public Driver may attest a current app-level site review.
     authorized:receipt.siteReviewActive===true,permissions:receipt.permissions,
