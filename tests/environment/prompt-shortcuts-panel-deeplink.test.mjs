@@ -132,12 +132,14 @@ test('a pending native open does not route until Chrome confirms it',async()=>{
   assert.deepEqual(responses,[{ok:true,data:{opened:true}}]);
 });
 
-test('OD launcher describes expanding saved prompts, not extension management',async()=>{
+test('R2.17 injected prompt rail has no OD launcher or transcript navigation arrows',async()=>{
   const source=await readFile('examples/sidebar-tools/prompt-shortcuts/trusted/page.js','utf8');
-  assert.ok(source.includes("brand.title=compactExpanded?'收起提示词':'展开提示词'"));
-  assert.ok(source.includes("brand.setAttribute('aria-label',(compactExpanded?'收起':'展开')+items.length+' 个提示词快捷按钮')"));
-  assert.ok(source.includes("if(event?.isTrusted!==true)return;"),'only trusted gestures toggle the tray');
-  assert.ok(!source.includes("brand.title='打开提示词快捷按钮'"),'retired launcher label must not claim management');
+  assert.ok(source.includes("for(const row of items)"),'saved items remain directly usable');
+  assert.ok(!source.includes("brand.title"),'no obsolete OD launcher');
+  assert.ok(!source.includes("compactExpanded"),'no collapse state');
+  assert.ok(!source.includes("dataset.scrollConversation"),'no transcript up/down buttons in rail');
+  assert.ok(source.includes("navigationClick('top','floatingTop',event)"),
+    'separate bottom-right floating return-to-top remains');
 });
 
 test('official native Side Panel controller reuses React ToolHost and does not navigate full-size tabs',async()=>{
