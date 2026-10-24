@@ -13,39 +13,39 @@ function between(source,start,end){
   return source.slice(from,to);
 }
 
-test('R1.9.5 webpage rail defaults expanded, keeps its background and remains manually collapsible',async()=>{
-  const page=await file('trusted/page.js');
-  const preview=await file('preview/index.html');
-  assert.match(page,/let compactExpanded=true;/);
-  assert.match(page,/visible=false;items=\[\];activeRule=null;closePicker\(\);/);
-  assert.doesNotMatch(page,/compactExpanded=false;activeRule=null;/,'stop may not erase an explicit manual collapse');
-  assert.match(page,/if\(href!==url\)\{\s*clearFeedback\(\);hideTip\(\);/);
-  assert.match(page,/if\(compact&&!compactExpanded\)\{schedule\(\);return;\}/);
+test('R2.17 injected rail contains only saved prompts; original preview matches',async()=>{
+  const [page,preview,sidepanel]=await Promise.all([
+    file('trusted/page.js'),file('preview/index.html'),file('src/index.html')]);
   assert.match(page,/background:var\(--od-rail-bg\);border:1px solid var\(--od-rail-border\);/);
-  assert.doesNotMatch(page,/insert\(row,event\)\.finally/);
-  assert.match(preview,/let previewCompactExpanded=true;/);
-  assert.match(preview,/\.page-rail\{[^}]*width:max-content;/);
   assert.match(preview,/background:var\(--ps-rail-bg\);box-shadow:var\(--ps-rail-shadow\);/);
-  assert.doesNotMatch(preview,/\.page-rail(?:\[data-image-size[^\]]+\])?\{[^}]*width:(?:62|70|82)px/);
-  assert.match(preview,/function positionWebTip\(\)/);
+  assert.match(page,/rail\.replaceChildren\(\);rail\.dataset\.imageSize=imageSize/);
+  assert.match(page,/for\(const row of items\)/);
+  assert.match(preview,/for\(const item of active\)/);
+  assert.doesNotMatch(page,/compactExpanded|usesCompactMenu|className='brand'|data-scroll-conversation|dataset\.scrollConversation|\.nav-item/);
+  assert.doesNotMatch(preview,/previewCompactExpanded|starter-toggle|page-shortcut nav-preview/);
+  assert.doesNotMatch(sidepanel,/data-scroll-nav="conversationTop"|data-scroll-nav="conversationBottom"/,
+    'removed controls must not retain dead switches in official management UI');
+  assert.doesNotMatch(preview,/data-scroll-nav-preview="conversationTop"|data-scroll-nav-preview="conversationBottom"/);
+  assert.match(page,/navigationClick\('top','floatingTop',event\)/,
+    'independent lower-right floating return-to-top is preserved');
+  assert.match(preview,/el\('mockFloatingTop'\)\.addEventListener\('click'/,
+    'preview keeps the standalone lower-right control');
+  assert.match(preview,/el\('demoReplyBottom'\)\.addEventListener\('click'/,
+    'preview keeps reply-region navigation');
+  assert.doesNotMatch(page,/insert\(row,event\)\.finally/);
   assert.doesNotMatch(preview,/usePrompt\(item\)\.finally/);
 });
 
-test('R2.16 injected rail and original preview avoid false vertical overflow while preserving bounded scrolling',async()=>{
+test('R2.17 prompt-only rail scrolls only for genuinely long libraries',async()=>{
   const [page,preview]=await Promise.all([file('trusted/page.js'),file('preview/index.html')]);
-  assert.match(page,/max-height:min\(400px,calc\(100dvh - 16px\)\);overflow-y:auto;overflow-x:hidden;/,
-    'real trusted Shadow DOM rail uses a viewport-bounded 400px cap');
-  assert.match(preview,/max-height:min\(400px,calc\(100% - 16px\)\);overflow-y:auto;overflow-x:hidden;/,
-    'full preview matches the taller bounded rail within its own conversation stage');
-  assert.doesNotMatch(page,/max-height:min\(248px/,'old 248px fixed cap clipped ordinary controls');
-  assert.doesNotMatch(preview,/max-height:248px|max-height:min\(340px/,'remove duplicate stale preview caps');
-  assert.match(page,/railHeight=Math.min\(rail.offsetHeight\|\|rail.scrollHeight\|\|222,win.innerHeight-16\)/,
-    'position the actual rendered scrollport, not the total height of hidden list items');
+  assert.match(page,/max-height:min\(400px,calc\(100dvh - 16px\)\);overflow-y:auto;overflow-x:hidden;/);
+  assert.match(preview,/max-height:min\(400px,calc\(100% - 16px\)\);overflow-y:auto;overflow-x:hidden;/);
+  assert.doesNotMatch(page,/max-height:min\(248px/);
+  assert.doesNotMatch(preview,/max-height:248px|max-height:min\(340px/);
+  assert.match(page,/railHeight=Math.min\(rail.offsetHeight\|\|rail.scrollHeight\|\|222,win.innerHeight-16\)/);
   const verticalHeight=count=>count*38+(count-1)*5+2*6+2;
-  assert.equal(verticalHeight(6),267,
-    'OD + three default prompts + two navigation actions fit without a scrollbar');
-  assert(verticalHeight(11)>400,
-    'user-created longer lists keep internal scrolling instead of extending unbounded');
+  assert.equal(verticalHeight(3),138,'three default prompts need only their own content height');
+  assert(verticalHeight(11)>400,'long saved lists retain bounded internal scrolling');
 });
 
 test('R1.9.5 current iframe Cancel/Back discards a draft directly, but never exits during unknown writes',async()=>{
