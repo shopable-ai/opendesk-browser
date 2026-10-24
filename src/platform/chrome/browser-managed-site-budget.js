@@ -645,6 +645,90 @@ export function installManagedSiteBudgetService({api=globalThis.chrome,...option
   });
   return {service,dispose(){unsubscribe();api.runtime.onMessage.removeListener(listener);}};
 }
+// Installation-only admission for a journaled legacy -> v3 handoff.
+// The caller holds the existing tool/catalog locks and must first attest the
+// legacy snapshot, old package hash, epoch and source. This public Driver
+// validates the NEW lease and the finite state; it never evaluates app code.
+// It only stages the ledger. Native effects and legacy retirement require a
+// separate, independently read-back reconciliation in the original Installer.
+export async function stageManagedSiteV3MigrationLocked(api,{
+  id,source,epoch,packageHash,desiredPolicy,modelRef,sealedModel,
+  usage,day,clockHighWater,notices
+},{lockManager=globalThis.navigator?.locks}={}){
+  if(!idPattern.test(id)||typeof source!=='string'||source!=='opendesk/'+id||
+     typeof epoch!=='string'||!epoch||epoch.length>100||
+     typeof packageHash!=='string'||!/^[a-f0-9]{64}$/.test(packageHash)||
+     !/^\d{4}-\d\d-\d\d$/.test(day)||
+     !Number.isSafeInteger(clockHighWater)||clockHighWater<0||
+     !lockManager?.request)
+    fail('E_MIGRATION_IDENTITY','网站限制迁移缺少已确认的新安装身份');
+  const commit=normalizeManagedSiteV3Commit({
+    expectedRev:0,desiredPolicy,modelRef,sealedModel
+  });
+  await assertManagedSiteV3ModelRef(commit);
+  const counters=normalizeManagedSiteV3Usage(usage);
+  const reminderLedger=normalizeManagedSiteV3Notices(notices,day);
+  const authority=await readManagedSiteToolAuthority(api,{
+    toolId:id,capability:MANAGED_SITE_BUDGET_CAPABILITY,
+    extraStoreKeys:[MARKET_PROVENANCE_STORE]
+  });
+  const actualHash=authority.tool?await sidebarToolPackageHash(authority.tool):null;
+  const sourceRow=sourceId(authority.saved,id);
+  if(authority.tool?.backgroundPolicy?.kind!==SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V3||
+     actualHash!==packageHash||authority.epoch!==epoch||
+     sourceRow?.marketId!==source||sourceRow?.sha256!==packageHash||
+     (commit.desiredPolicy.enabled&&!authority.enabled))
+    fail('E_MIGRATION_IDENTITY','公共 Driver 迁移与已安装应用身份、来源或停用状态不符');
+  return lockManager.request('opendesk.browser:managed-site-budget',async()=>{
+    // The install lock excludes any competing owner mutation. A Worker
+    // restart can still have reconciled the previously staged v3 row.
+    const raw=(await api.storage.local.get(MANAGED_SITE_BUDGET_STORE))[MANAGED_SITE_BUDGET_STORE];
+    const ledger=readLedger(raw),previous=ledger[id];
+    if(previous){
+      if(previous.kind!==SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V3||
+         previous.epoch!==epoch||previous.packageHash!==packageHash||
+         previous.source!==source||previous.modelRef!==modelRef||
+         !sameStorageValue(previous.sealedModel,commit.sealedModel)||
+         !sameStorageValue(previous.policy,commit.desiredPolicy))
+        fail('E_MIGRATION_CONFLICT','目标公共账本已被其他操作占用，禁止覆盖');
+      // A live v3 ledger might already have accrued additional real usage.
+      // Never overwrite it with an older snapshot on a recovery retry.
+      if(previous.day===day&&Object.entries(counters).some(([pool,ms])=>
+        (previous.usage[pool]??0)<ms))
+        fail('E_MIGRATION_LOSS','目标账本已少于原计量池用量，禁止确认迁移');
+      return {state:'already-staged',modelRef,slot:previous.slot};
+    }
+    const used=new Set(Object.values(ledger).map(row=>row.slot));
+    // A slot containing native rules from an older owner is not allocatable.
+    const permission=await currentPermission(api);
+    if(!permission.dnr)
+      fail('E_MIGRATION_NATIVE_UNAVAILABLE','缺少 DNR 回读权限，不能安全分配原生资源');
+    const native=await api.declarativeNetRequest.getDynamicRules();
+    let slot=-1;
+    for(let candidate=0;candidate<CAPACITY;candidate++){
+      if(used.has(candidate)||native.some(rule=>owns(candidate,rule.id)||
+          isManagedSiteV3RuleId(candidate,rule.id)))continue;
+      slot=candidate;break;
+    }
+    if(slot<0)fail('E_TOOL_CAPACITY','公共网站规则范围已满或存在未恢复资源');
+    const staged={...initialV3(slot,epoch,source,packageHash,Date.now()),
+      policy:commit.desiredPolicy,modelRef,sealedModel:commit.sealedModel,
+      desiredPolicyRev:1,appliedPolicyRev:0,status:'reconciling',
+      day,clockHighWater,usage:counters,checkpoint:null,notices:reminderLedger};
+    await saveMigrationLedger(api,{...ledger,[id]:staged},raw);
+    const readback=readLedger((await api.storage.local.get(MANAGED_SITE_BUDGET_STORE))
+      [MANAGED_SITE_BUDGET_STORE]);
+    if(!sameStorageValue(readback[id],staged))
+      fail('E_OUTCOME_UNKNOWN','公共网站迁移账本写入后的回读不一致');
+    return {state:'staged',modelRef,slot};
+  });
+}
+// Use the same read-back storage contract as all public Driver mutations.
+async function saveMigrationLedger(api,updated,previous){
+  await writeVerifiedLocalValue(api,MANAGED_SITE_BUDGET_STORE,updated,previous,
+    '旧版网站限制公共账本迁移');
+}
+
 // Called under the EXISTING Installer's per-tool lock. Never reacquire that
 // lock here; the same shared resource lock fences racing native owner writes.
 export async function stopManagedSiteBudgetForTool(api,id,{cleanup=false,lockManager=globalThis.navigator?.locks}={}){
