@@ -516,7 +516,7 @@ try{
   assert(normalRail.scrollHeight<=normalRail.clientHeight+1,
     'ordinary six-button rail must not display a vertical scrollbar: '+JSON.stringify(normalRail));
   const manyRows=Array.from({length:11},(_,i)=>({...personal[0],
-    id:'r216-overflow-'+i,label:'长'+i,name:'完整提示词 '+i,body:'正文 '+i,order:i}));
+    id:'r216-overflow-'+i,label:'长'+(i%10),name:'完整提示词 '+i,body:'正文 '+i,order:i}));
   await evaluate('window.__setPrompts('+JSON.stringify(manyRows)+')');
   await poll('window.__railRoot?.querySelectorAll(".item:not([data-scroll-conversation])").length===11',
     'eleven saved prompt buttons, excluding navigation controls');
