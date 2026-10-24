@@ -1,6 +1,12 @@
 # 提示词快捷按钮（Prompt Shortcuts）
 
-独立工具 ID：`prompt-shortcuts`，正式可安装包版本 **1.1.15**。ChatGPT、DeepSeek、Gemini 对话页使用内置默认适配；源码、工具包与实际安装状态见下方证据，其他网站仍可建立自定义规则。
+独立工具 ID：`prompt-shortcuts`，正式可安装包版本 **1.1.16**。ChatGPT、DeepSeek、Gemini 对话页使用内置默认适配；源码、工具包与实际安装状态见下方证据，其他网站仍可建立自定义规则。
+
+## R4.4-CORE 包更新状态（2026-10-24）
+
+通过原 `npm run app:update -- prompt-shortcuts` 完成候选构建、定向门禁、显式晋升及 `--check-project`。唯一正式 JSON 与当前源码、`dist/development` 官方资源一致：版本 **1.1.16**，141,418 UTF-8 bytes，SHA-256 `90494dc67c32310d2db74195ed2812895c66c7c9de0f8db029115476a16f628d`；ID、能力及 SDK 要求未增加。本轮未修改产品业务源码。
+
+**包就绪不等于已安装。** 本轮真实 Chrome 最后核对为官方来源 **1.1.15**、已启用、显示可更新；加载仓库 `dist/development`，实际扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，开发服务已连接。自动浏览器工具随后因 `chrome-extension://` URL 策略拒绝继续，尚未取得 1.1.16 安装回执、更新后布局、业务及数据保留证据；这些均为 `NOT_TESTED`，六维及综合评分为 `NOT_SCORED`。升级应通过原可信「审阅新版」流程，不先卸载。详见 [R4.4 工作记录](../../../docs/framework/workstreams/prompt-shortcuts-r44-core-20261024.md)。以下记录保留各自历史版本和证据边界。
 
 ## R4.2-LOCAL 当前交付状态（2026-10-24 增量收尾）
 
