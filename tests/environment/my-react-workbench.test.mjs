@@ -106,7 +106,8 @@ async function fixture({twoTasks=false}={}){
   const api={permissions:{contains:async()=>state.pendingPermission?await state.pendingPermission:true,request:async()=>true,
     onAdded:{addListener:fn=>permissionAdded.add(fn),removeListener:fn=>permissionAdded.delete(fn)},
     onRemoved:{addListener:fn=>permissionRemoved.add(fn),removeListener:fn=>permissionRemoved.delete(fn)}},
-    runtime:{getURL:path=>'chrome-extension://test/'+path},tabs:{create:async()=>({id:4})}};
+    runtime:{getURL:path=>'chrome-extension://test/'+path,sendMessage:async()=>({ok:true})},
+    tabs:{create:async()=>({id:4})}};
   const view=createMyWorkbenchView({document:doc});
   const workbench=createTaskWorkbench({developerView:createDeveloperView(),client,host,currentPageTarget,api,document:doc,myView:view,
     reactNavigation:{ownsPages:true,connect:()=>{},select:()=>{}},importDraft:()=>{}});

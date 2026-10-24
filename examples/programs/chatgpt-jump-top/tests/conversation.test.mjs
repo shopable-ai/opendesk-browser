@@ -43,7 +43,7 @@ function element({tag = 'div', attributes = {}, parent = null, top = 100,
   const attrs = new Map(Object.entries(attributes));
   const node = {
     nodeType: 1, tagName: tag.toUpperCase(), isConnected: connected,
-    parentElement: null, children: [],
+    parentElement: null, children: [], dataset: {},
     scrollHeight, clientHeight: height, clientTop, scrollTop, scrollLeft,
     style: {display: 'block', visibility: 'visible', overflowY, position,
       top: position === 'sticky' ? '0px' : 'auto'},
@@ -172,9 +172,20 @@ function controlledEditors(count = 1) {
 
 function observerOwner() {
   let callback, options;
-  const timers = [];
+  const timers = [], disposals = [], listeners = new Map();
   return {
-    on: () => () => {}, onDispose() {},
+    on(target, type, listener) {
+      const events = listeners.get(target) || new Map();
+      const handlers = events.get(type) || new Set();
+      handlers.add(listener);events.set(type, handlers);listeners.set(target, events);
+      return () => handlers.delete(listener);
+    },
+    click(target) {
+      for (const listener of listeners.get(target)?.get('click') || [])
+        listener({currentTarget: target, isTrusted: true, preventDefault() {}, stopPropagation() {}});
+    },
+    onDispose(cleanup) { disposals.push(cleanup); },
+    dispose() { disposals.forEach(cleanup => cleanup()); },
     observe(_target, listener, config) {
       callback = listener;
       options = config;
@@ -852,3 +863,78 @@ test('native message lifecycle revalidates action labels and assistant identity 
   assert.equal(toolbar.querySelector(jumpHostSelector), null);
   assert.equal(session.isMounted(), false);
 });
+
+
+for (const sessionKey of ['default', 'prompt-shortcuts']) {
+  test(`shared adapter tracks repeated ${sessionKey} install/dispose and retires old listeners`, t => {
+    const {doc, view, main, root, rows: [{toolbar, target}]} = controlledEditors();
+    const owners = [], sessions = [], buttons = [];
+    t.after(() => owners.forEach(owner => owner.dispose()));
+    for (let index = 0; index < 3; index++) {
+      const owner = observerOwner();owners.push(owner);
+      const session = conversation.installJumpToTop({doc, win: view, owner, sessionKey,
+        regionDirections: {top: true, bottom: true}});
+      sessions.push(session);
+      assert.equal(toolbar.querySelectorAll('[data-opendesk-chatgpt-jump-top]').length, 1);
+      if (index) assert.equal(sessions[index - 1].isMounted(), false, 'replacement disposes the previous session');
+      const host = toolbar.querySelector('[data-opendesk-chatgpt-jump-top]');
+      const [top, bottom] = host.shadowRoot.querySelectorAll('button');
+      assert.equal(top.dataset.scrollNavKey, 'regionTop');
+      assert.equal(bottom.dataset.scrollNavKey, 'regionBottom');
+      const beforeStaleClicks = target.calls.length;
+      owners.slice(0, -1).forEach((oldOwner, oldIndex) => {
+        oldOwner.dispose();oldOwner.flush();oldOwner.click(buttons[oldIndex]);
+      });
+      assert.equal(target.calls.length, beforeStaleClicks, 'replaced owners have no live click listeners');
+      assert.equal(session.isMounted(), true, 'late disposal of an old owner cannot remove its replacement');
+      const count = target.calls.length;
+      owner.click(bottom);assertScroll(target, 1420, 27);
+      owner.click(top);assertScroll(target, 0, 27);
+      assert.equal(target.calls.length, count + 2);
+      buttons.push(top);
+    }
+    owners.at(-1).dispose();
+    assert.equal(toolbar.querySelectorAll('[data-opendesk-chatgpt-jump-top]').length, 0);
+    const count = target.calls.length;
+    owners.forEach((owner, index) => {owner.click(buttons[index]);owner.flush();});
+    assert.equal(target.calls.length, count, 'disposed controls cannot scroll');
+    assert.deepEqual(main.calls, []);assert.deepEqual(root.calls, []);
+  });
+}
+
+for (const order of [['default', 'prompt-shortcuts'], ['prompt-shortcuts', 'default']]) {
+  test(`Program and trusted navigation coexist without duplicate up arrows: ${order.join(' then ')}`, t => {
+    const {doc, view, root, main, rows: [{toolbar, target}]} = controlledEditors();
+    const owners = new Map(), sessions = new Map();
+    t.after(() => owners.forEach(owner => owner.dispose()));
+    for (const sessionKey of order) {
+      const owner = observerOwner();owners.set(sessionKey, owner);
+      sessions.set(sessionKey, conversation.installJumpToTop({doc, win: view, owner, sessionKey,
+        regionDirections: {top: true, bottom: sessionKey !== 'default'}}));
+    }
+    // Deliver the DOM mutation a real observer sees when the other owner mounts.
+    owners.get('prompt-shortcuts').emit({type: 'childList', target: toolbar,
+      addedNodes: toolbar.querySelectorAll('[data-opendesk-chatgpt-jump-top="host"]'), removedNodes: []});
+    owners.get('prompt-shortcuts').flush();
+    const controls = () => toolbar.querySelectorAll('[data-opendesk-chatgpt-jump-top]')
+      .flatMap(host => host.shadowRoot.querySelectorAll('button'));
+    assert.deepEqual(controls().map(button => button.dataset.scrollNavKey).sort(), ['regionBottom', 'regionTop']);
+    const top = controls().find(button => button.dataset.scrollNavKey === 'regionTop');
+    const bottom = controls().find(button => button.dataset.scrollNavKey === 'regionBottom');
+    owners.get('default').click(top);assertScroll(target, 0, 27);
+    owners.get('prompt-shortcuts').click(bottom);assertScroll(target, 1420, 27);
+    const programHost = toolbar.querySelector('[data-opendesk-chatgpt-jump-top="host"]');
+    owners.get('default').dispose();
+    owners.get('prompt-shortcuts').emit({type: 'childList', target: toolbar, addedNodes: [],
+      removedNodes: [programHost]});
+    owners.get('prompt-shortcuts').flush();
+    assert.equal(sessions.get('prompt-shortcuts').isMounted(), true);
+    assert.deepEqual(controls().map(button => button.dataset.scrollNavKey), ['regionTop', 'regionBottom']);
+    const before = target.calls.length;
+    owners.get('default').click(top);assert.equal(target.calls.length, before);
+    owners.get('prompt-shortcuts').click(controls()[0]);assertScroll(target, 0, 27);
+    owners.get('prompt-shortcuts').dispose();
+    assert.equal(controls().length, 0);
+    assert.deepEqual(main.calls, []);assert.deepEqual(root.calls, []);
+  });
+}

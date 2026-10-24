@@ -1,0 +1,85 @@
+{
+  "schema": "opendesk.prompt-shortcuts.incremental-evidence.v1",
+  "date": "2026-10-24",
+  "scope": "Prompt Shortcuts / Scheduler 右上操作增量完善",
+  "stage": "核心完善；复用有效证据，仅由新变化补定向验证，不进入正式验收",
+  "observedSourceCommit": "2f57286d4a91affaeb98aa8772c13b188ce4950e",
+  "sourceState": "本地任务改动；最终提交以 Git 记录为准",
+  "environment": {
+    "app": "/Users/shopme/Applications/Google Chrome.app",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "mode": "continuous-development",
+    "serve": "交接时 UI 已确认连接；本次复核原 watcher 仍监听 127.0.0.1:43119",
+    "lastObservedWatcherRevision": "81a456a9bc65",
+    "revisionBoundary": "watcher 输出记录，不等同于新的 production 或所有固定模块的原生验收",
+    "fixture": "http://127.0.0.1:43111/demo-form.html",
+    "hostInstanceId": "cc79d9ad-03c7-4138-95b0-7c311aa41c98",
+    "runnerHostInstanceId": "27f8076d-78b7-4c8d-93ef-ca599b198697",
+    "interaction": "cua_repl 原生 UI；未调用 Chrome storage 或业务内部 API 制造结果"
+  },
+  "package": {
+    "id": "prompt-shortcuts",
+    "version": "1.1.16",
+    "bytes": 142077,
+    "sha256": "f42d7acd013a727c8b3ab8b318d3cf77882686d468027b168647dcacf4df7787",
+    "capabilities": ["storage.local", "user.export", "page.prompts", "browser.contextMenu"],
+    "promoted": "PROJECT_PACKAGE_PROMOTED",
+    "sourceMatch": "PROJECT_PACKAGE_MATCH",
+    "installedIdentity": "原会话经原审阅链升级；本次真实详情再次读回相同版本及完整 SHA"
+  },
+  "reusedNativeEvidence": {
+    "upgrade": "1.1.15 → 1.1.16，原三条数据保留，无新增能力",
+    "export": "原 Chrome 下载完成，备份 1433 B / 3 条；SHA-256 4c07fcfa40cde98b98155b125d45d9fcae7c31f9683c78d86f1319c3b5d4dd58",
+    "draftBack": "有正文的未保存草稿返回，未持久化",
+    "create": "新建多行正文保存，四条读回",
+    "import": "原文件选择及追加导入，经 Host 确认读回五条；R43 三字素 label 的正确拒绝并非产品缺陷",
+    "reopen": "关闭侧栏后重开，五条读回",
+    "rawDirectory": "artifacts/r43-local-01a16cb8/"
+  },
+  "incrementalNativeEvidence": {
+    "settings": "PASS_NATIVE_CUA：右上更多 → 工具设置，原 Host 显示启用及网页按钮开关",
+    "disableRestore": "PASS_NATIVE_CUA：右上停用 → 已停用/数据授权保留/管理 iframe 消失 → 恢复 → 五条及原名称读回",
+    "ai": "PASS_NATIVE_CUA：顶部 AI → Dock 输入 → 发送 → AI 回复 R43_AI_OK → 收起；未请求修改数据",
+    "scheduler": "PASS_NATIVE_CUA：我的 → 定时计划 → 顶部打开独立运行页；原 sidepanel.html?scheduledRunner=1 显示可见运行宿主、运行概览及暂无已安装计划",
+    "rawFiles": [
+      "artifacts/r43-local-01a16cb8/native-disable-incremental.ax.txt",
+      "artifacts/r43-local-01a16cb8/native-restore-five.ax.txt",
+      "artifacts/r43-local-01a16cb8/native-ai-reply.ax.txt",
+      "artifacts/r43-local-01a16cb8/native-ai-reply.png",
+      "artifacts/r43-local-01a16cb8/native-scheduler-runner.ax.txt",
+      "artifacts/r43-local-01a16cb8/native-scheduler-runner.png"
+    ]
+  },
+  "verification": {
+    "review": "独立只读 review 指定业务与准入差异，未发现可确认 actionable findings；不是原生验收批准",
+    "pageGitBlob": "06c5dedef8ba890d67383c421b7a785b67d28df6",
+    "modelGitBlob": "9b29be376a28be9aa2958913ea7dc758459bb171",
+    "newChecks": [
+      "provenance-incremental.log：provenance pins only audited 1/1 PASS",
+      "package-source-incremental.log：distributable remains source-bound 1/1 PASS"
+    ],
+    "reusedChecks": [
+      "integrated-regression.log：405 PASS / 4 FAIL；保留原失败，不标整组通过",
+      "corrected-regression.log：原失败受影响三文件修正后 27/27 PASS",
+      "page-after-concurrent-svg.log：147/147 PASS，输入未再改变",
+      "host-after-source-fixes.log：受影响 Host 12/12 PASS",
+      "react-workbench-recheck.log：5/5 PASS"
+    ],
+    "rawDirectory": "artifacts/r43-local-01a16cb8/",
+    "fullRegressionRerun": false,
+    "newFullProductBuild": false
+  },
+  "notTested": [
+    "本轮卸载及完整撤权原生验收；原三条数据不得永久删除",
+    "新 production 候选、全宽度/缩放矩阵、全量安装升级矩阵、独立评分",
+    "Scheduler 实际到期执行；本轮只验证顶部运行页入口"
+  ],
+  "cleanup": {
+    "toolEnabled": true,
+    "webButtons": true,
+    "items": "保留原三条和本轮新增两条，共五条",
+    "originalWatcher": "保留；未启动第二 writer、全量构建、替换加载目录或操作他人 Profile"
+  },
+  "goalLifecycle": "旧完整 R4.3 goal 在原会话最后实读 active；本次未变更、未暂停或冒称完成"
+}

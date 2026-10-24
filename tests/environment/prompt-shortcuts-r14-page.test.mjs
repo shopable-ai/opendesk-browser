@@ -24,7 +24,7 @@ function mockElement(tag='div'){
     }},
     addEventListener(name,fn){const list=handlers.get(name)||[];list.push(fn);handlers.set(name,list);},
     removeEventListener(name,fn){handlers.set(name,(handlers.get(name)||[]).filter(f=>f!==fn));},
-    emit(name,event={}){for(const fn of handlers.get(name)||[])fn(event);},
+    emit(name,event={}){for(const fn of handlers.get(name)||[])fn({...event,currentTarget:node});},
     append(...elements){for(const item of elements){item.parentNode=node;item.isConnected=true;node.children.push(item);}},
     replaceChildren(...elements){for(const child of node.children)child.isConnected=false;node.children=[];
       node.append(...elements);},
@@ -51,7 +51,7 @@ function mockElement(tag='div'){
       node.shadow.activeElement=null;return node.shadow;},
     getBoundingClientRect(){return {left:260,top:80,width:900,height:640};}
   };
-  return node;
+  return jumpDOM(node);
 }
 function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=false}){
   const values=new Map([
@@ -72,6 +72,8 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
   };
   const win={
     location:{href:CHATGPT_ORIGIN+'/c/mock'},innerWidth:1366,innerHeight:768,
+    getComputedStyle:node=>({display:'block',visibility:'visible',opacity:'1',
+      position:'static',overflowY:'visible',...node.style}),
     addEventListener(name,fn){
       if(!windowListeners.has(name))windowListeners.set(name,new Set());
       windowListeners.get(name).add(fn);
@@ -451,7 +453,13 @@ test('R1.13 ChatGPT rail: no second consent, one click-to-draft, independent ena
 // Bounded light-DOM support for the real conversation adapter. This deliberately
 // models only tag/id/attribute selectors and does not enter shadow roots.
 function jumpDOM(node){
+  if(node.nodeType===1)return node;
   node.nodeType=1;
+  const dataAttribute=key=>'data-'+key.replace(/[A-Z]/g,letter=>'-'+letter.toLowerCase());
+  node.dataset=new Proxy({}, {
+    get:(_target,key)=>node.getAttribute(dataAttribute(key)),
+    set:(_target,key,value)=>{node.setAttribute(dataAttribute(key),String(value));return true;}
+  });
   Object.defineProperties(node,{
     parentElement:{get(){return node.parentNode||null;}},
     id:{get(){return node.getAttribute('id')||'';},set(value){node.setAttribute('id',String(value));}},
@@ -482,12 +490,12 @@ function jumpDOM(node){
     return null;
   };
   node.querySelectorAll=selector=>node.children.flatMap(child=>[
-    ...(child.matches(selector)?[child]:[]),...child.querySelectorAll(selector)
+    ...(child.matches?.(selector)?[child]:[]),...(child.querySelectorAll?.(selector)||[])
   ]);
   node.querySelector=selector=>node.querySelectorAll(selector)[0]||null;
   node.setConnected=connected=>{
     node.isConnected=connected;
-    for(const child of node.children)child.setConnected(connected);
+    for(const child of node.children)child.setConnected?.(connected);
     node.shadow?.setConnected(connected);
   };
   node.remove=()=>{
@@ -504,7 +512,8 @@ function jumpDOM(node){
     node.parentNode.children.splice(node.parentNode.children.indexOf(node),0,child);
     child.setConnected(node.isConnected);
   };
-  node.attachShadow=()=>{node.shadow=jumpDOM(mockElement('shadow'));node.shadow.setConnected(node.isConnected);return node.shadow;};
+  node.attachShadow=()=>{node.shadow=mockElement('shadow');node.shadow.host=node;
+    node.shadow.activeElement=null;node.shadow.setConnected(node.isConnected);return node.shadow;};
   return node;
 }
 
@@ -519,7 +528,7 @@ async function jumpPage({installed=true,enabled=true,webButtons=true,url=CHATGPT
     origin:new URL(url).origin,pathScope:'/compose',containerSelector:'main',editorSelector:'textarea',enabled:true
   }]}});
   f.win.location.href=url;
-  const element=tag=>jumpDOM(mockElement(tag));
+  const element=tag=>{const node=mockElement(tag);node.setConnected(false);return node;};
   for(const node of [f.root,f.doc.body,f.main,f.editor])jumpDOM(node);
   if(customSite){f.editor.tagName='textarea';f.editor.isContentEditable=false;}
   f.editor.setAttribute('id','prompt-textarea');
@@ -694,7 +703,7 @@ test('Prompt jump integration: same-URL documentElement replacement restores onl
     const root=f.element('html'),body=f.element('body'),content=f.conversation();
     oldRoot.setConnected(false);root.append(body);body.append(f.main);
     f.content.turn.remove();f.main.append(content.turn);
-    f.doc.documentElement=root;f.doc.body=body;
+    f.doc.documentElement=root;f.doc.body=body;root.setConnected(true);
     f.intervals[0]();await settle();
     assert.equal(f.arrows().length,1,'normal fallback detects root replacement without URL change');
     assert.equal(f.arrowHosts()[0].nextElementSibling,content.anchor);
@@ -1242,7 +1251,6 @@ test('R1.8 follows the full-height conversation container after a sidebar transi
     };
     const content=mockElement('div'),composer=mockElement('form');
     f.main.append(content);content.append(composer);composer.append(f.editor);
-    f.editor.parentElement=composer;composer.parentElement=content;content.parentElement=f.main;
     let edge=260;
     f.main.getBoundingClientRect=()=>regionRect(0,0,1263,899);
     content.getBoundingClientRect=()=>regionRect(edge,0,1263-edge,899);
@@ -1845,7 +1853,7 @@ for(const value of ['true','plaintext-only']){
     f.editor.attributes.contenteditable=value;
     const wrapper=mockElement('section'),label=mockElement('div');
     wrapper.attributes.id='rich-container';wrapper.append(label,f.editor);
-    f.editor.parentElement=wrapper;f.main.append(wrapper);
+    f.main.append(wrapper);
     const other=mockElement('div');other.isContentEditable=true;
     other.attributes.contenteditable=value;
     const semantic='[contenteditable="'+value+'"]',scoped='#rich-container div'+semantic;
@@ -2046,7 +2054,7 @@ test('R2.8 history conversation navigation restores one dock on the new composer
     nextEditor.textContent='新会话草稿';
     nextEditor.getBoundingClientRect=()=>regionRect(500,570,550,70);
     nextEditor.closest=selector=>selector==='main'?nextMain:null;
-    nextEditor.parentElement=nextMain;
+    nextMain.append(nextEditor);
     nextEditor.focus=()=>{f.doc.activeElement=nextEditor;};
     f.doc.querySelectorAll=selector=>selector==='main'?[nextMain]:
       selector.startsWith('main ')?[nextEditor]:[];
@@ -2413,4 +2421,85 @@ test('Host probes real custom-site adapter for failures and fallback, then block
   assert.equal((await report('prompt.failed','page_button','site_denied')).data.recorded,false);
   assert.deepEqual(f.values.get(ANALYTICS_STATE_KEY).queue.map(row=>row.event),['tool.disabled'],
     'disable lifecycle telemetry remains, but no page action crosses the revoked scope');
+});
+
+const floatingHost=f=>f.doc.querySelector('[data-opendesk-prompts-floating]');
+
+test('R1.16.1 floating edge-only native-control overlap moves the entire dock clear',async()=>{
+  const f=await jumpPage();
+  try{
+    await settle();assert(floatingHost(f),'long scrolled conversation starts with a floating button');
+    const native=f.element('button');native.setAttribute('aria-label','跳到最新消息');
+    // Composer top=480 gives bottom=300: floating rectangle x=1306..1348,
+    // y=426..468. This native control covers only its right edge, not its centre.
+    const bounds=regionRect(1344,436,20,20);
+    native.getBoundingClientRect=()=>bounds;f.doc.body.append(native);
+    const centre={x:f.win.innerWidth-39,y:447};
+    assert(centre.x<bounds.left,'native control does not cover the floating centre');
+    f.doc.elementsFromPoint=(x,y)=>!native.hidden&&x>=bounds.left&&x<=bounds.right&&
+      y>=bounds.top&&y<=bounds.bottom?[native]:[];
+    f.mutate([{target:f.doc.body,addedNodes:[native]}]);await settle();
+    const moved=floatingHost(f);assert(moved,'available space keeps the dock visible');
+    assert(Number.parseInt(moved.style.bottom)>300,'edge collision shifts the dock upwards');
+    const buttons=moved.shadow.querySelectorAll('button');
+    for(let index=0;index<buttons.length;index++){
+      const bottom=f.win.innerHeight-Number.parseInt(moved.style.bottom)-(buttons.length-1-index)*48;
+      assert(bottom<=bounds.top||bottom-42>=bounds.bottom||
+        f.win.innerWidth-18<=bounds.left||f.win.innerWidth-60>=bounds.right,
+        'each entire button rectangle clears the native control');
+    }
+    native.hidden=true;
+    f.mutate([{type:'attributes',attributeName:'hidden',target:native}]);await settle();
+    assert.equal(floatingHost(f)?.style.bottom,'300px','hidden native controls do not reserve the floating position');
+  }finally{f.controller.dispose();}
+});
+
+for(const mutation of ['class','style','childList','subtree']){
+  test('R1.16.1 own floating '+mutation+' mutation does not schedule layout',async()=>{
+    const f=await jumpPage();
+    try{
+      await settle();const host=floatingHost(f);assert(host);
+      assert.equal(f.pendingTimers.size,0,'initial layout settled');
+      const child=f.element('span');host.append(child);
+      const record=mutation==='childList'
+        ?{target:host,addedNodes:[child]}
+        :{type:'attributes',attributeName:mutation==='subtree'?'class':mutation,
+          target:mutation==='subtree'?child:host};
+      f.mutate([record]);
+      assert.equal(f.pendingTimers.size,0,'owned floating DOM must not trigger another layout timer');
+    }finally{f.controller.dispose();}
+  });
+}
+
+test('R1.16.1 site/native mutations schedule layout, detached rail restores, revocation cleans floating resources',async()=>{
+  const f=await jumpPage();
+  try{
+    await settle();const originalFloat=floatingHost(f);assert(originalFloat);
+    const native=f.element('button');native.setAttribute('aria-label','站点控制');f.doc.body.append(native);
+    for(const target of [f.doc.documentElement,native]){
+      assert.equal(f.pendingTimers.size,0);
+      f.mutate([{type:'attributes',attributeName:'class',target}]);
+      assert(f.pendingTimers.size>0,'site/native changes must still schedule layout');await settle();
+    }
+    f.mutate([{type:'attributes',attributeName:'style',target:originalFloat},
+      {type:'attributes',attributeName:'class',target:native}]);
+    assert(f.pendingTimers.size>0,'a mixed own/site batch still schedules layout');await settle();
+    originalFloat.remove();
+    f.mutate([{target:f.doc.documentElement,removedNodes:[originalFloat]}]);
+    assert(f.pendingTimers.size>0,'removing the floating dock from the site root remains relevant');
+    await settle();assert.equal(floatingHost(f),originalFloat,'detached dock restores');
+    const railHost=f.doc.querySelector('[data-opendesk-prompts]');
+    railHost.remove();f.mutate([{target:f.doc.documentElement,removedNodes:[railHost]}]);
+    assert(f.pendingTimers.size>0,'removing the owned rail from the site root is still relevant');
+    await settle();assert.equal(f.doc.querySelector('[data-opendesk-prompts]'),railHost);
+    const staleFloat=floatingHost(f),staleButton=staleFloat.shadow.querySelector('button');
+    f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});await settle();
+    assert.equal(floatingHost(f),null);assert.equal(staleFloat.isConnected,false);
+    assert.equal(f.rail(),undefined);assert.equal(f.arrows().length,0);
+    assert(f.mutationObservers.every(observer=>!observer.target),'revocation disconnects every observer');
+    assert.equal(f.pendingTimers.size,0,'revocation clears pending layout work');
+    f.click(staleButton);f.mutate([{type:'attributes',attributeName:'style',target:native}]);
+    await settle();assert.equal(floatingHost(f),null);assert.deepEqual(f.scrolls,[]);
+    assert.equal(f.pendingTimers.size,0,'stale callbacks cannot restart layout after revocation');
+  }finally{f.controller.dispose();}
 });

@@ -179,10 +179,10 @@ test('R1.4 fixed controller only uses scoped selectors, native insertion and no 
 
 test('R1.4 provenance pins only audited trusted tool modules to exact fixed entry points',()=>{
   const fixtures=[
-    ['trusted/model.js','f5bc9499a4d5df8166959b3b9c207fa8eb7e2afa'],
+    ['trusted/model.js','9b29be376a28be9aa2958913ea7dc758459bb171'],
     ['trusted/policy.js','4c6f608a26e0d69278c18a0afda94b3c8ce8274c'],
-    // Reviewed icon-only update; keep in sync with the fixed bundle provenance lock.
-    ['trusted/page.js','dead3c0a261bd62508f05442035488567a3f494f'],
+    // R4.3 independent review approved quota persistence and dock geometry/observer fixes.
+    ['trusted/page.js','06c5dedef8ba890d67383c421b7a785b67d28df6'],
     ['trusted/asset-contract.js','86e95bff786e52efb9089f97126542430f39a716'],
     // Exact approval was updated by bffde8f49 after the audited asset recovery fix 3d75d1a13.
     ['trusted/asset-host.js','b960044deb5e7d059c26d5d520f912c0b72c7b0e']
@@ -272,7 +272,7 @@ test('R1.13 formal source builds a canonical candidate, then CI promotes it only
   assert.match(css,/\.ps-switch input:checked\+\.ps-switch-track/);
   assert.match(css,/\.ps-card-main/);
   assert.match(js,/root\.querySelector\('\.ps-delete-cancel'\)/);
-  assert.match(js,/model\.bytes\(estimate\)/);
+  assert.match(js,/model\.libraryBytes\(estimate\)/);
   assert.match(js,/use\.className='ps-card-use od-button od-button--quiet'/,
     'formal list CTA must preserve canonical quiet-button token instead of blue primary button');
   assert.doesNotMatch(js,/request\('clipboard\.writeText'/);

@@ -132,8 +132,7 @@ function fixture({tool = pkg, owner = identity} = {}) {
   }});
   const grant = (capability, enabled = true) => host.handleHost({
     ...owner, operation: 'browser.cookies.userGrant',
-    cookieCapability: capability, enabled, origin: document.origin,
-    ...(enabled ? {document} : {})
+    cookieCapability: capability, enabled, origin, ...(enabled ? {document} : {})
   }, sender);
   const denied = async (request, code) => {
     const before = [...native], cookieBefore = structuredClone(cookie);
@@ -177,10 +176,10 @@ test('explicit official all-http-sites grant is atomic, covers A/B/C and survive
   assert.equal(row.version, official.version);
   assert.equal(row.packageHash, officialOwner.packageHash);
   assert.equal(row.installEpoch, null);
-  // One explicit complete-consent click persists every declared Cookie right,
-  // including the sensitive-value receipt, without displaying it by default.
-  for (const cap of ['read', 'values', 'write', 'observe', 'clear']) assert.equal(grant[cap], true);
-  assert.equal(grant.valueConsent, true);
+  // Ordinary all-site consent must not silently reveal sensitive Cookie values.
+  for (const cap of ['read', 'write', 'observe', 'clear']) assert.equal(grant[cap], true);
+  assert.equal(grant.values, false);
+  assert.equal(grant.valueConsent, false);
   assert.equal(grant.storeId, '0'); assert.match(grant.grantEpoch, /^[0-9a-f-]{36}$/i);
   assert.equal(row.cookieSites, undefined);
   const queries = [];
@@ -193,8 +192,8 @@ test('explicit official all-http-sites grant is atomic, covers A/B/C and survive
       {partitionKey: {topLevelSite: new URL(target).origin, hasCrossSiteAncestor: false}});
     const rows = await f.sdk.cookies.getAll({url: target});
     assert.equal(rows.length, 1);
-    const withValues = await f.sdk.cookies.getAll({url: target, includeValues: true});
-    assert.equal(withValues[0].value, 'NODE_FIXTURE_SECRET');
+    await f.denied(() => f.sdk.cookies.getAll({url: target, includeValues: true}),
+      'E_COOKIE_VALUES_REQUIRED');
     const status = await f.sdk.capabilities.getStatus({operation: 'browser.cookies.getCurrentStore', url: target});
     assert.equal(status.authorization.site, 'granted');
     f.restart();
@@ -202,70 +201,18 @@ test('explicit official all-http-sites grant is atomic, covers A/B/C and survive
   assert.equal(writes, 1, 'Navigation and worker restarts must not ask for another grant');
   assert.deepEqual(f.local.get(grantsKey), saved);
   assert(queries.length >= 3 && queries.every(query => targets.includes(query.url) && query.storeId === '0'));
-  assert.equal(writes, 1, 'No second grant is needed for Cookie Value');
+  // Only the separate trusted values action can upgrade this grant.
+  assert.equal((await f.grantAll(true, {cookieCapability: 'values'})).capability, 'values');
+  const withValues = f.local.get(grantsKey)[official.id].cookieAllSites;
+  assert.equal(withValues.values, true);
+  assert.equal(withValues.valueConsent, true);
+  assert.notEqual(withValues.grantEpoch, grant.grantEpoch);
+  assert.equal(writes, 2, 'Sensitive values require a separate persisted Host grant');
   f.restart();
   const rowsWithValues = await f.sdk.cookies.getAll({url: f.tab.url, includeValues: true});
   assert.equal(rowsWithValues[0].value, 'NODE_FIXTURE_SECRET');
   assert.throws(() => f.sdk.cookies.getAll({}));
   assert.throws(() => f.sdk.cookies.getAll({url: 'file:///tmp/private'}));
-});
-
-test('legacy all-site Values without consent receipt stay denied until one explicit completion click', async () => {
-  const f = officialFixture(); await f.grantAll();
-  const legacy = f.local.get(grantsKey)[official.id].cookieAllSites;
-  legacy.valueConsent = false; // Old persisted records cannot mint user consent.
-  const oldEpoch = legacy.grantEpoch;
-  await f.denied(() => f.sdk.cookies.getAll({url, includeValues: true}), 'E_COOKIE_VALUES_REQUIRED');
-  let writes = 0;
-  const originalSet = f.api.storage.local.set;
-  f.api.storage.local.set = async changes => {
-    if (Object.hasOwn(changes, grantsKey)) writes++;
-    await originalSet(changes);
-  };
-  await f.grantAll(); // Explicit trusted re-consent to full site scope.
-  const completed = f.local.get(grantsKey)[official.id].cookieAllSites;
-  assert.equal(writes, 1);
-  assert.equal(completed.values, true);
-  assert.equal(completed.valueConsent, true);
-  assert.notEqual(completed.grantEpoch, oldEpoch);
-  f.restart();
-  assert.equal((await f.sdk.cookies.getAll({url, includeValues: true}))[0].value,
-    'NODE_FIXTURE_SECRET');
-});
-
-test('127.0.0.1 site grant and partial legacy completion each use one durable Host transaction', async () => {
-  const f = officialFixture();
-  const localUrl = 'http://127.0.0.1/cookie';
-  f.navigate(localUrl);
-  f.state.allowedOrigins.push(new URL(localUrl).origin);
-  let writes = 0;
-  const originalSet = f.api.storage.local.set;
-  f.api.storage.local.set = async changes => {
-    if (Object.hasOwn(changes, grantsKey)) writes++;
-    await originalSet(changes);
-  };
-  // A fresh user needs one complete grant, not five sequential writes.
-  await f.grant('all');
-  assert.equal(writes, 1);
-  const site = new URL(localUrl).origin;
-  const first = f.local.get(grantsKey)[official.id].cookieSites[site];
-  assert.equal(first.storeId, '0');
-  assert.equal(first.partitionKey.topLevelSite, site);
-  assert.equal(first.valueConsent, true);
-  for (const cap of ['read','values','write','observe','clear']) assert.equal(first[cap], true);
-  f.restart();
-  assert.equal((await f.sdk.cookies.getAll({url:localUrl, includeValues:true}))[0].value,
-    'NODE_FIXTURE_SECRET');
-  const earlier = first.grantEpoch;
-  first.values = false; first.valueConsent = false; // Old partial grant, not silently expanded.
-  await f.denied(() => f.sdk.cookies.getAll({url:localUrl, includeValues:true}),
-    'E_COOKIE_VALUES_REQUIRED');
-  await f.grant('all');
-  assert.equal(writes, 2, 'Legacy completion must also require exactly one explicit write');
-  const completed = f.local.get(grantsKey)[official.id].cookieSites[site];
-  assert.equal(completed.values, true);
-  assert.equal(completed.valueConsent, true);
-  assert.notEqual(completed.grantEpoch, earlier);
 });
 
 test('unconfirmed first-click storage readback never returns a successful consent receipt', async () => {

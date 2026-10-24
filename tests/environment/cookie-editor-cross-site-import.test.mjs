@@ -43,11 +43,11 @@ test('30 fictional Cookies for two other websites use two verified Host batches'
       ['accounts.example.net','auth.example.org']);
     assert.deepEqual(calls.map(item=>item.args.cookies.length),[15,15]);
     assert.ok(calls.every(call=>call.args.cookies.every(item=>item.ifAbsent===true)),
-      'React default import must not silently replace existing Chrome Cookie slots');
+      'Explicit overwrite=false import must not replace existing Chrome Cookie slots');
     assert.equal(mock.inspect().rows.filter(item=>item.name.startsWith('import_')).length,30);
     assert.doesNotMatch(JSON.stringify(snapshots),/PRIVATE_COOKIE_/);
     // This transport is explicitly fictional; the real Chrome acceptance
-    // must separately verify the same no-overwrite property on native stores.
+    // must separately verify this overwrite=false protection on native stores.
     const original=mock.inspect().rows.filter(item=>item.name.startsWith('import_'));
     const again=await controller.previewImport(source,'json',false,{allSites:true});
     assert.equal(again.accepted,30,'foreign site has no arbitrary read grant');

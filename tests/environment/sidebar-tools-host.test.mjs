@@ -2,6 +2,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {execFileSync} from 'node:child_process';
 import {runInNewContext} from 'node:vm';
 import {createSidebarTools,checkSidebarToolRequestBudget} from '../../src/ui/sidebar-tools.js';
 import {requestStayFocusOperation,runTrustedStayFocusOperation} from '../../examples/sidebar-tools/stay-focus/trusted/tool-host.js';
@@ -592,7 +593,34 @@ test('R1.3 exact official Prompt admits one trusted React Dock and one sandbox i
   assert.equal(typeof mounts[0].onRequest,'function');
   assert.equal(typeof mounts[0].onReconcile,'function');
 });
-test('R1.11 Prompt trusted admission requires exact candidate digest and refuses legacy version',async()=>{
+test('R1.16.1 committed official 1.1.15 mounts trusted AI against the 1.1.16 catalog and revokes on epoch change',async t=>{
+  const tool=JSON.parse(execFileSync('git',['show',
+    '4a67583db:examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json'],
+    {cwd:new URL('../..',import.meta.url),encoding:'utf8'}));
+  const epoch='previous-official-install',store=new Map([
+    [SIDEBAR_TOOL_STORE,[tool]],[SIDEBAR_TOOL_ENABLE_STORE,{[tool.id]:true}],
+    [TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:epoch}],
+    [MARKET_PROVENANCE_STORE,{[tool.id]:{marketId:'opendesk/prompt-shortcuts',
+      version:'1.1.15',sha256:await sidebarToolPackageHash(tool)}}]
+  ]);
+  const mounts=[],pilot={enabled:true,
+    conversation:()=>({request:async()=>{},cancel:async()=>{}}),
+    mount({container}){
+      const frameTarget=new Node('div');container.append(frameTarget);mounts.push(frameTarget);
+      return {frameTarget,dispose(){}};
+    }};
+  const f=await hostFixture(t,{tool,store,startTool:false,trustedPromptPilot:pilot});
+  f.host.openTool(tool.id);await settle(()=>mounts.length===1);
+  assert.equal(f.runtime.frameRoot.dataset.promptAi,'true');
+  assert.equal(mounts[0].children.length,1,'old package still executes only in its sandbox');
+  const provenance=store.get(MARKET_PROVENANCE_STORE);
+  f.changeStorage({[MARKET_PROVENANCE_STORE]:{oldValue:provenance,newValue:{...provenance,other:{}}}});
+  assert.equal(f.runtime.frameRoot.dataset.promptAi,'true','unrelated provenance changes keep the admitted Dock');
+  store.set(TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:'revoked'});
+  f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{newValue:{[tool.id]:'revoked'}}});
+  assert.notEqual(f.runtime.frameRoot.dataset.promptAi,'true','revocation destroys the trusted Dock');
+});
+test('R1.11 Prompt trusted admission requires exact candidate digest and refuses unpinned legacy version',async()=>{
   const current=await officialToolFixture('prompt-shortcuts');
   const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===current.id);
   const epoch='prompt-r111-verified-generation';

@@ -100,7 +100,7 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
  providerEdit,review,reviewPrivateSend,beforeWrite=async()=>{},onStep=()=>{},maxBatch=12}={}){
  const checked=validatePromptPlan(plan);
  if(checked.question)return {question:checked.question,refs,messages:[]};
- if(!model?.load||!model?.draft||!model?.bytes||
+ if(!model?.load||!model?.draft||!model?.libraryBytes||!model?.libraryForStorage||
     typeof read!=='function'||typeof write!=='function')
   throw error('E_PROMPT_HOST','可信提示词存储接口不可用');
  stop(signal);
@@ -205,7 +205,7 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
   onStep({message});return {unchanged:true,messages:[message],refs};
  }
  const next=model.load({...library,items:nextItems});
- if(model.bytes(next)>8192)throw error('E_TOOL_DATA_LIMIT',
+ if(model.libraryBytes(next)>8192)throw error('E_TOOL_DATA_LIMIT',
   '整个提示词库超过 8192 UTF-8 字节，没有截断正文，也没有写入');
  stop(signal);
  await beforeWrite({phase:'prepare',etag,affected:affected.map(v=>v.id),action:a});
@@ -219,7 +219,7 @@ export async function executePromptPlan({plan,model,read,write,refs={},signal,
  let attempted=false,writeFailure=null;
  try{
   attempted=true;
-  const ack=await write({value:next,ifMatch:etag});
+  const ack=await write({value:model.libraryForStorage(next),ifMatch:etag});
   if(ack?.saved!==true||!/^[a-f0-9]{64}$/.test(ack.etag||''))
    throw error('E_OUTCOME_UNKNOWN','Host 回执无法核实');
  }catch(e){

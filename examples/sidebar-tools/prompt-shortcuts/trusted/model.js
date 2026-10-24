@@ -106,6 +106,17 @@ function load(value){
       scrollNavigation:navigationSettings(value.settings.scrollNavigation)}};
 }
 
+// Runtime reads expand defaults; persistence stores only navigation overrides.
+// Keep generic bytes() literal for site data and the Host's unchanged quotas.
+function libraryForStorage(value){
+  const library=load(value);
+  const {scrollNavigation,...settings}=library.settings;
+  const overrides=Object.fromEntries(Object.entries(scrollNavigation).filter(([,flag])=>flag===false));
+  return {...library,settings:{...settings,
+    ...(Object.keys(overrides).length?{scrollNavigation:overrides}:{})}};
+}
+const libraryBytes=value=>bytes(libraryForStorage(value));
+
 // R2: Site configuration is a separate 8-KiB tool-local data item.
 // Selectors are inert, bounded CSS data, never JavaScript or execution paths.
 const sitesDefaults=()=>({schema:1,rules:[]});
@@ -325,12 +336,12 @@ function backupPlan(library,imported,mode='append'){
     imageSize:mode==='replace'&&imported.imageSize?imported.imageSize:saved.settings.imageSize};
   const next=load({schema:1,settings,
     items:nextItems.map((row,order)=>({...row,order}))});
-  const size=bytes(next);
+  const size=libraryBytes(next);
   return {next,added,skipped,bytes:size,overLimit:size>8192};
 }
 
 Object.defineProperty(globalThis,'OpenDeskPromptShortcutsModel',{
-  value:Object.freeze({parts,visible,auto,validLabel,IMAGE_SIZES,SCROLL_NAV_DEFAULTS,navigationSettings,normalizeImageUrl,normalizeImageAssetId,defaults,bytes,draft,load,
+  value:Object.freeze({parts,visible,auto,validLabel,IMAGE_SIZES,SCROLL_NAV_DEFAULTS,navigationSettings,normalizeImageUrl,normalizeImageAssetId,defaults,bytes,draft,load,libraryForStorage,libraryBytes,
      BACKUP_FORMAT,BACKUP_VERSION,BACKUP_MAX_BYTES,duplicateKey,backupExport,backupParse,backupPlan,
     sitesDefaults,siteUrl,validSelector,siteRule,sitesLoad,siteFor,builtinSite,siteHint}),configurable:true
 });

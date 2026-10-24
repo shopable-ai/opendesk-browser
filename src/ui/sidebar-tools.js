@@ -3783,9 +3783,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(typeof model?.load!=='function')throw new Error('可信提示词数据模型不可用');
       const previous=model.load(raw.library);
       const nextLibrary=model.load({...previous,settings:change(previous.settings,model)});
-      if(model.bytes(nextLibrary)>SIDEBAR_TOOL_DATA_LIMITS.itemBytes)
+      if(model.libraryBytes(nextLibrary)>SIDEBAR_TOOL_DATA_LIMITS.itemBytes)
         throw Object.assign(new Error('工具数据已达上限'),{code:'E_TOOL_DATA_LIMIT'});
-      const next={...raw,library:nextLibrary};
+      const next={...raw,library:model.libraryForStorage(nextLibrary)};
       if(new TextEncoder().encode(JSON.stringify(next)).byteLength>SIDEBAR_TOOL_DATA_LIMITS.totalBytes)
         throw Object.assign(new Error('工具数据超过上限'),{code:'E_TOOL_DATA_LIMIT'});
       await writeVerifiedLocalValue(api,namespace,next,raw,label);

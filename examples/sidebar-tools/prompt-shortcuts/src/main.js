@@ -238,7 +238,7 @@ function preview(){
     el('ps-image-preview').replaceChildren();
     delete el('ps-image-preview').dataset.token;
   }
-  const estimate=projected(),bytes=estimate?model.bytes(estimate):null;
+  const estimate=projected(),bytes=estimate?model.libraryBytes(estimate):null;
   el('ps-quota-value').textContent=(bytes===null?'—':bytes)+' / 8192 B';
   el('ps-quota').dataset.error=String(bytes!==null&&bytes>8192);
   el('ps-quota').hidden=bytes===null||bytes<Math.ceil(8192*0.85);
@@ -939,7 +939,7 @@ async function readLibrary(){
 async function commit(next,analyticsSaveId=null){
   if(unconfirmedWrite)throw Error('上次写入结果未确认，请先保留草稿并重新打开核对');
   if(!ready||busy)throw Error('工具暂不可写入');
-  if(model.bytes(next)>8192)throw Object.assign(Error('提示词共用 8 KiB 数据项，超出存储上限'),{code:'E_TOOL_DATA_LIMIT'});
+  if(model.libraryBytes(next)>8192)throw Object.assign(Error('提示词共用 8 KiB 数据项，超出存储上限'),{code:'E_TOOL_DATA_LIMIT'});
   busy=true;lock();
   try{
     let saved,verifiedReadback=false;
@@ -947,7 +947,7 @@ async function commit(next,analyticsSaveId=null){
     const encode=value=>JSON.stringify(value,(_key,row)=>row&&typeof row==='object'&&!Array.isArray(row)
       ?Object.fromEntries(Object.keys(row).sort().map(key=>[key,row[key]])):row);
     try{
-      saved=await request('storage.set',{key:KEY,value:next,ifMatch:etag,
+      saved=await request('storage.set',{key:KEY,value:model.libraryForStorage(next),ifMatch:etag,
         ...(analyticsSaveId?{analyticsIntent:'save_prompt',itemId:analyticsSaveId}:{})});
       if(saved?.saved!==true||!/^[0-9a-f]{64}$/.test(saved.etag||''))throw Error('没有收到可核实的持久保存结果');
     }catch(e){
@@ -1037,7 +1037,7 @@ async function save(event,continueCreating=false){
     item=model.draft(input,old);
     next=model.load({...data,items:old?data.items.map(row=>row.id===old.id?item:row):
       [...data.items,{...item,order:data.items.length}]});
-    if(model.bytes(next)>8192)throw Error('超过 8 KiB，正文不会静默截断；请调整内容或删除其他条目');
+    if(model.libraryBytes(next)>8192)throw Error('超过 8 KiB，正文不会静默截断；请调整内容或删除其他条目');
   }catch(e){
     if(!input.body.trim()){bodyError(e.message);el('ps-body').focus();}
     else error(e.message);

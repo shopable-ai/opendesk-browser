@@ -122,7 +122,7 @@ test('R3.2 size changes keep web visibility state and 8 KiB is still enforced by
   const huge=m.draft({body:'大'.repeat(5000)},null,()=>id);
   assert(m.bytes(library(m,[huge]))>8192);
   const main=await read('src/main.js');
-  assert.match(main,/model\.bytes\(next\)>8192/);
+  assert.match(main,/model\.libraryBytes\(next\)>8192/);
   assert.match(main,/ifMatch:etag/);
   assert.match(main,/unconfirmedWrite=true/);
   assert.match(main,/async function changeImageSize\(/);

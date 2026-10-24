@@ -341,14 +341,23 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     const maxBottom=Math.min(Math.floor(win.innerHeight*.55),win.innerHeight-dockHeight-8);
     // Keep all visible controls away from native webpage buttons and inputs.
     // Shift the entire dock upwards, never move one arrow into the prompt rail.
+    const controlSelector='button,[role="button"],input,textarea,[contenteditable="true"]';
+    const ownFloating=node=>node===floatingHost||node?.getRootNode?.()?.host===floatingHost||
+      node?.closest?.('[data-opendesk-prompts-floating]');
+    // Hit-testing only the centre misses controls touching an edge (or a thin
+    // strip between sample points). Compare the complete button rectangles too.
+    const obstacles=[...doc.querySelectorAll(controlSelector)].filter(node=>{
+      if(ownFloating(node)||node.hidden)return false;
+      const style=win.getComputedStyle(node);
+      return style.display!=='none'&&style.visibility!=='hidden';
+    }).map(node=>node.getBoundingClientRect());
     const obstructed=bottom=>directions.some((entry,index)=>{
-      const nodes=doc.elementsFromPoint?.(Math.max(0,win.innerWidth-39),
-        Math.max(0,win.innerHeight-bottom-21-(directions.length-1-index)*48))||[];
-      return [...nodes].some(node=>{
-        if(node===floatingHost||node?.getRootNode?.()?.host===floatingHost||
-           node?.closest?.('[data-opendesk-prompts-floating]'))return false;
-        return Boolean(node?.closest?.('button,[role="button"],input,textarea,[contenteditable="true"]'));
-      });
+      const top=win.innerHeight-bottom-42-(directions.length-1-index)*48;
+      if(obstacles.some(rect=>rect.width>0&&rect.height>0&&
+        rect.left<win.innerWidth-18&&rect.right>win.innerWidth-60&&
+        rect.top<top+42&&rect.bottom>top))return true;
+      const nodes=doc.elementsFromPoint?.(Math.max(0,win.innerWidth-39),Math.max(0,top+21))||[];
+      return [...nodes].some(node=>!ownFloating(node)&&Boolean(node?.closest?.(controlSelector)));
     });
     let bottom=composerBottom;
     for(let attempt=0;attempt<5&&bottom<=maxBottom&&obstructed(bottom);attempt++)bottom+=48;
@@ -1044,7 +1053,8 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       syncJump();
       if(!observer){
         observer=new win.MutationObserver(records=>{
-          if(records.every(record=>record.target===host||host?.contains(record.target)))return;
+          if(records.every(record=>[host,floatingHost].some(owner=>owner&&
+            (record.target===owner||owner.contains(record.target)))))return;
           schedule();
         });
       }

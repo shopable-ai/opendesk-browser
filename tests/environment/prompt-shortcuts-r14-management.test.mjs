@@ -29,6 +29,7 @@ class FakeNode{
   prepend(...nodes){this.children.unshift(...nodes);}
   replaceChildren(...nodes){this.children=[...nodes];}
   querySelectorAll(selector){
+    if(selector==='[data-scroll-nav]')return allDescendants(this).filter(node=>node.dataset.scrollNav);
     if(selector!=='button')return [];
     const all=[];
     const visit=node=>{for(const child of node.children){if(child.tagName==='BUTTON')all.push(child);visit(child);}};
@@ -62,6 +63,11 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
   const nodes=Object.fromEntries([...html.matchAll(/<([a-z][a-z0-9-]*)\b([^>]*\bid="([^"]+)"[^>]*)>/gi)]
     .map(([,tag,attrs,id])=>{const node=new FakeNode(tag,id);
       node.type=attrs.match(/\btype="([^"]+)"/)?.[1]||'';return [id,node];}));
+  for(const [,attrs,key] of html.matchAll(/<input\b([^>]*data-scroll-nav="([^"]+)"[^>]*)>/g)){
+    const control=new FakeNode('input');control.dataset.scrollNav=key;
+    control.checked=/\bchecked\b/.test(attrs);
+    nodes['ps-scroll-settings'].append(control);
+  }
   for(const id of ['ps-edit','ps-empty','ps-error','ps-body-error',
     'ps-transfer-menu','ps-import-panel','ps-import-warning','ps-import-file'])nodes[id].hidden=true;
   nodes['ps-body'].tagName='TEXTAREA';
@@ -1226,4 +1232,72 @@ test('R1.7 shared back blocks pending and unknown storage results without replay
   back();assert.equal(n['ps-edit'].hidden,false);
   assert.equal(n['ps-edit'].hidden,false,'unknown writes cannot be discarded');
   assert.equal(f.requests.filter(row=>row.op==='storage.set').length,1);
+});
+
+const navigationKeys=['regionTop','regionBottom','conversationTop','conversationBottom','floatingTop'];
+const scrollControls=f=>f.nodes['ps-scroll-settings'].querySelectorAll('[data-scroll-nav]');
+const changeNavigation=(f,key,checked)=>{
+  const control=scrollControls(f).find(node=>node.dataset.scrollNav===key);
+  assert(control,'missing management switch '+key);control.checked=checked;control.emit('change');
+};
+test('R1.16.1 five management switches default on, persist independently and preserve prompts, images and export',async()=>{
+  const seed=structuredClone(initialLibrary);
+  seed.settings.imageSize='compact';seed.items[1].appearance='image';seed.items[1].imageUrl='https://example.org/image.png';
+  const f=await fixture({initial:seed});
+  assert.equal(scrollControls(f).length,5);
+  assert(scrollControls(f).every(node=>node.checked&&!node.disabled));
+  const beforeExport=()=>{f.nodes['ps-export'].click();};
+  beforeExport();await settle();const exported=f.downloads.at(-1);
+  for(const key of navigationKeys){
+    changeNavigation(f,key,false);await settle();
+    for(const control of scrollControls(f))assert.equal(control.checked,
+      !navigationKeys.slice(0,navigationKeys.indexOf(key)+1).includes(control.dataset.scrollNav));
+  }
+  assert.equal(f.writes(),5);
+  const reopened=await fixture({initial:f.stored()});
+  assert(scrollControls(reopened).every(node=>!node.checked));
+  assert.equal(f.stored().settings.imageSize,'compact');
+  assert.equal(f.stored().settings.webButtons,true);
+  assert.deepEqual(f.stored().items.map(row=>[row.id,row.body,row.appearance,row.imageUrl]),
+    seed.items.map(row=>[row.id,row.body,row.appearance??'text',row.imageUrl??'']));
+  beforeExport();await settle();
+  // Timestamp is the only nondeterministic backup field.
+  const backup=payload=>{const value=JSON.parse(payload.text);delete value.exportedAt;return value;};
+  assert.deepEqual(backup(f.downloads.at(-1)),backup(exported));
+  for(const key of navigationKeys){changeNavigation(reopened,key,true);await settle();}
+  assert(scrollControls(reopened).every(node=>node.checked));
+});
+for(const outcome of ['conflict','unknown-readback','positive-readback-fails','rejection']){
+  test('R1.16.1 navigation '+outcome+' restores confirmed switches and never replays unknown writes',async()=>{
+    const f=await fixture({initial:initialLibrary,deferWrites:true,
+      storageFault:outcome==='unknown-readback'?'unknown':null,
+      deferReadback:outcome==='positive-readback-fails'});
+    changeNavigation(f,'regionBottom',false);
+    assert(scrollControls(f).every(node=>node.disabled),'pending persistence locks all five');
+    if(outcome==='conflict')f.pending.shift().reject(Object.assign(Error('conflict'),{code:'E_STORAGE_CONFLICT'}));
+    else if(outcome==='rejection')f.pending.shift().reject(Object.assign(Error('rejected'),{code:'E_HOST_STORAGE_WRITE'}));
+    else f.pending.shift().resolve();
+    await settle();
+    if(outcome==='positive-readback-fails'){
+      assert.equal(f.readbacks.length,1);f.readbacks.shift().reject(Error('read unavailable'));await settle();
+    }
+    assert(scrollControls(f).every(node=>node.checked),'UI retains last confirmed state');
+    assert.match(f.nodes['ps-status'].textContent,/未确认/);
+    const unknown=outcome!=='conflict';
+    assert.equal(f.states.at(-1).busy,unknown);
+    assert(scrollControls(f).every(node=>node.disabled===unknown));
+    if(unknown){changeNavigation(f,'floatingTop',false);await settle();}
+    assert.equal(f.requests.filter(row=>row.op==='storage.set').length,1);
+    assert.equal(f.requests[1].payload.ifMatch,'a'.repeat(64));
+    assert.equal(f.nodes['ps-export'].disabled,unknown);
+  });
+}
+test('R1.16.1 navigation unknown acknowledgement is accepted only after full authoritative readback',async()=>{
+  const f=await fixture({initial:initialLibrary,deferWrites:true});
+  changeNavigation(f,'conversationTop',false);
+  f.pending.shift().resolve({failure:Object.assign(Error('lost ack'),{code:'E_OUTCOME_UNKNOWN'})});await settle();
+  assert.equal(f.states.at(-1).busy,false);
+  assert.equal(scrollControls(f).find(node=>node.dataset.scrollNav==='conversationTop').checked,false);
+  assert.equal(f.requests.filter(row=>row.op==='storage.set').length,1);
+  assert.equal(f.requests.filter(row=>row.op==='storage.get'&&row.payload.key==='library').length,2);
 });

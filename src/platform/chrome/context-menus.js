@@ -1136,8 +1136,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           :!tool.capabilities.includes('browser.cookies.'+siteCapability))
           throw failure('E_TOOL_CAPABILITY_REQUIRED');
         const site=enabled?parsedHttp(document?.url)?.origin:parsedHttp(origin)?.origin;
-        if((enabled||!allSites)&&(!site||!enabled&&site!==origin||
-           enabled&&!allSites&&origin!==site))
+        if((enabled||!allSites)&&(!site||!enabled&&site!==origin))
           throw failure('E_SCHEMA','Exact Cookie site Origin required');
         let storeId,partitionKey;
         if(enabled){
