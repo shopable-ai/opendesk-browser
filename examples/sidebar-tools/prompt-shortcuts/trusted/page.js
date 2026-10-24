@@ -24,9 +24,8 @@ const STYLE=String.raw`
  --od-pop-bg:#20242b;--od-pop-fg:#ebedf1;--od-pop-border:#373c45}
 :host([hidden]){display:none!important}
 button[hidden]{display:none!important}
-/* Fit the OD launcher, three default prompts and both navigation actions without
-   an artificial scrollbar; longer user libraries still scroll within the viewport. */
-.nav-item{font-size:21px;font-weight:550;line-height:1;letter-spacing:0}
+/* Only real saved prompt shortcuts live in this rail. The independent
+   reply/viewport scroll controls never take space in the prompt toolbar. */
 .rail{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:5px;
  max-height:min(400px,calc(100dvh - 16px));overflow-y:auto;overflow-x:hidden;
  width:max-content;max-width:calc(100vw - 16px);padding:6px;border-radius:17px;
@@ -45,12 +44,9 @@ button{font:inherit;cursor:pointer;color:var(--od-button-fg);background:var(--od
 button:focus-visible{outline:2px solid var(--od-focus)}
 button:hover{background:var(--od-button-hover);border-color:#a4b9ef66}
 button:active{transform:scale(.95)}
-.item,.brand{display:flex;flex:none;flex-direction:column;align-items:center;justify-content:center;
+.item{display:flex;flex:none;flex-direction:column;align-items:center;justify-content:center;
  gap:2px;width:38px;height:38px;min-width:38px;min-height:38px;padding:3px;
  font-weight:700;font-size:13px;line-height:1.05}
-.brand{background:#336bf4;border-color:#2c60dc;color:#fff;font-size:12px;
- font-weight:850;letter-spacing:-.8px}
-.brand:hover{background:#245de8;border-color:#245de8}
 .tip{pointer-events:auto;position:absolute;left:64px;top:0;width:248px;
  max-width:calc(100vw - 24px);max-height:min(240px,calc(100vh - 24px));
  overflow:auto;overscroll-behavior:contain;background:var(--od-pop-bg);color:var(--od-pop-fg);
@@ -90,8 +86,6 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   let host=null,shadow=null,rail=null,tip=null,tipOwner=null,hideTipTimer=0;
   let feedback=null,announcer=null,feedbackTimer=0,feedbackToken=0;
   let items=[],imageAssets={},imageSize='large',observer=null,observedRoot=null,resizeObserver=null,layoutTimer=0;
-  let compactExpanded=true;
-  const usesCompactMenu=()=>items.length>0;
   const observedRegions=new Set();
   const themeMedia=win.matchMedia?.('(prefers-color-scheme: dark)');
   let locationTimer=0,retryTimer=0,readFailures=0;
@@ -632,9 +626,6 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     observeRoot();
     syncJump();
     const conversation=conversationNavigation();
-    rail?.querySelectorAll('[data-scroll-conversation]').forEach(button=>{
-      button.hidden=!conversation;
-    });
     updateFloating(conversation);
     if(![...rail.children].some(button=>!button.hidden)){host.hidden=true;return;}
     for(const old of observedRegions){
@@ -930,7 +921,6 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       shadow.addEventListener('keydown',event=>{
         if(event.key==='Escape'){
           hideTip();clearFeedback();
-          if(compactExpanded){compactExpanded=false;render();rail.children[0]?.focus();}
         }
       });
       feedback=doc.createElement('div');feedback.className='feedback';feedback.hidden=true;
@@ -940,36 +930,8 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       shadow.append(style,rail,tip,feedback,announcer);doc.documentElement.append(host);
     }
     hideTip();rail.replaceChildren();rail.dataset.imageSize=imageSize;
-    // Every saved library, including legacy and fully customized ones, shares a
-    // One launcher and a visible image/text tray by default; users may collapse it.
-    const compact=usesCompactMenu();
-    // No dedicated management launcher on the webpage: the Browser side panel
-    // remains the only administration entry. Navigation may work without prompts.
-    if(compact){
-      const brand=doc.createElement('button');brand.type='button';brand.className='brand';
-      brand.textContent='OD';brand.title=compactExpanded?'收起提示词':'展开提示词';
-      brand.setAttribute('aria-label',(compactExpanded?'收起':'展开')+items.length+' 个提示词快捷按钮');
-      brand.setAttribute('aria-expanded',String(compactExpanded));
-      brand.addEventListener('click',event=>{
-        if(event?.isTrusted!==true)return;
-        compactExpanded=!compactExpanded;render();rail.children[0]?.focus();
-      });
-      rail.append(brand);
-    }
-    // Global transcript navigation is independent of prompt tray expansion.
-    for(const [key,direction,label,glyph] of [
-      ['conversationTop','top','回到对话顶部','↑'],
-      ['conversationBottom','bottom','跳到对话底部','↓']
-    ]){
-      if(!navigationSettings[key])continue;
-      const button=doc.createElement('button');button.type='button';
-      button.className='item nav-item';button.dataset.scrollConversation=direction;
-      button.title=label;button.setAttribute('aria-label',label);button.textContent=glyph;
-      button.hidden=true; // Layout resolves an actual scrollport before showing.
-      button.addEventListener('click',event=>void navigationClick(direction,key,event));
-      rail.append(button);
-    }
-    if(compact&&!compactExpanded){schedule();return;}
+    // The webpage rail contains saved prompt buttons only. There is no OD
+    // expander, no fixed management button, and no transcript up/down arrows.
     for(const row of items){
       const button=doc.createElement('button');button.type='button';
       button.className='item';
