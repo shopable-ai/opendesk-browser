@@ -138,8 +138,10 @@ test('R2.17 injected prompt rail has no OD launcher or transcript navigation arr
   assert.ok(!source.includes("brand.title"),'no obsolete OD launcher');
   assert.ok(!source.includes("compactExpanded"),'no collapse state');
   assert.ok(!source.includes("dataset.scrollConversation"),'no transcript up/down buttons in rail');
-  assert.ok(source.includes("navigationClick('top','floatingTop',event)"),
-    'separate bottom-right floating return-to-top remains');
+  assert.ok(source.includes("floatingHost.setAttribute('data-opendesk-prompts-floating','')"),
+    'the independent bottom-right transcript dock remains outside the prompt rail');
+  assert.ok(source.includes('void navigationClick(direction,button.dataset.scrollNavKey,event)'),
+    'navigation uses the live arrow setting, never a hard-coded floatingTop action');
 });
 
 test('official native Side Panel controller reuses React ToolHost and does not navigate full-size tabs',async()=>{

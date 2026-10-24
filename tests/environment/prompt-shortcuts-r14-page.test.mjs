@@ -6,6 +6,7 @@ import {initPromptShortcuts} from '../../examples/sidebar-tools/prompt-shortcuts
 import {PROMPT_ID,PROMPT_SITE_STORE,PROMPT_DATA_STORE,CHATGPT_ORIGIN,changePromptSiteGrant}
   from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
 import {installAnalyticsHost} from '../../src/analytics/host.js';
+import {findConversationMain,findConversationNavigation} from '../../examples/programs/chatgpt-jump-top/src/conversation.js';
 import {ANALYTICS_STATE_KEY,ANALYTICS_PROTOCOL,ANALYTICS_PAGE_SCOPE_CHECK,ANALYTICS_DISCLOSURE_VERSION} from '../../src/analytics/contract.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
@@ -571,6 +572,11 @@ test('R1.16.3 real page controller: one independent dock, five switches, boundar
   try{
     await settle();
     assert.equal(f.rail().children.length,1,'the prompt-only rail owns no navigation');
+    const main=findConversationMain(f.doc,f.win);
+    assert(main,'the test fixture has one rendered conversation main');
+    const scrollContext=findConversationNavigation(main,
+      '[data-testid^="conversation-turn-"],[data-content-search-unit-key]',f.doc,f.win);
+    assert.equal(scrollContext?.scroller,f.main,'conversation edges resolve to the same real scrollport');
     assert.equal(nav()?.getAttribute('aria-label'),'对话滚动导航');
     assert.deepEqual(labels(),['回到对话顶部','跳到对话底部']);
     assert.equal(buttons()[0].dataset.scrollNavKey,'conversationTop',
@@ -2174,17 +2180,17 @@ test('R2.17 zero prompts shows no rail; subsequent saves show direct shortcuts a
     assert(rail,'the trusted owner remains ready for future storage changes');
     assert.equal(f.openPrompts().length,0);
     assert.equal(rail.children.length,0,'empty library does not create an OD button');
-    const host=f.root.children.find(node=>node.attributes['data-opendesk-prompts']!==undefined);
-    assert.equal(host.hidden,true,'empty button tray is not visually rendered');
+    const host=()=>f.root.children.find(node=>node.attributes['data-opendesk-prompts']!==undefined);
+    assert.equal(host().hidden,true,'empty button tray is not visually rendered');
     f.change(PROMPT_DATA_STORE,{library:{schema:1,
       items:[1,2,3,4,5].map(make),settings:{webButtons:true}}});
     await settle();
     assert.equal(f.openPrompts().length,5,'five stored prompts show directly');
     assert.equal(f.rail().children.length,5,'there is no extra management or scroll button');
-    assert.equal(host.hidden,false,'storage update displays rail again');
+    assert.equal(host().hidden,false,'storage update displays rail again');
     f.doc.documentElement.setAttribute('data-theme','dark');
     f.events.get('resize')();await settle();
-    assert.equal(host.classList.contains('dark'),true,'theme follows actual page root');
+    assert.equal(host().classList.contains('dark'),true,'theme follows actual page root');
     f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});await settle();
     assert.equal(f.rail(),undefined,'explicit revocation removes all prompts');
   }finally{controller.dispose();}
@@ -2229,7 +2235,8 @@ test('R2.15 390px fallback aligns above composer, never overlays the input',asyn
 
 test('R2.16 light-dark sites track system theme changes and release the media listener',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
-  const f=fixture({pkg,library:{schema:1,items:[],settings:{webButtons:true}}});
+  const row=globalThis.OpenDeskPromptShortcutsModel.draft({body:'主题响应正文'},null,()=> 'theme-test-row');
+  const f=fixture({pkg,library:{schema:1,items:[row],settings:{webButtons:true}}});
   const listeners=new Set();let dark=false,scheme='light dark';
   f.win.matchMedia=()=>({get matches(){return dark;},
     addEventListener:(event,fn)=>{assert.equal(event,'change');listeners.add(fn);},

@@ -111,6 +111,7 @@ async function r35ImageEvidence(){
       naturalWidth:img?.naturalWidth||0,naturalHeight:img?.naturalHeight||0,
       colors:colors.size,objectFit:img&&getComputedStyle(img).objectFit,
       width:r?.width||0,height:r?.height||0,
+      rect:r?{left:r.left,top:r.top,right:r.right,bottom:r.bottom}:null,
       visible:!!(r&&r.width>0&&r.height>0&&i?.width>0&&i.height>0&&
         style.display!=='none'&&style.visibility==='visible'&&
         !rail.hidden&&r.left>=0&&r.top>=0&&r.right<=innerWidth&&r.bottom<=innerHeight)};
@@ -187,11 +188,18 @@ async function run(){
     ['standard',[56,44],'r35-image-standard'],
     ['large',[68,48],'r35-image-large-restored']]){
     await r35ChooseSize(size);
+    // A preview taller than the Chromium viewport must be scrolled like a user
+    // would before demanding a visible raster; we still measure real pixels.
+    await evalChrome('('+function(){
+      const img=document.querySelector('#pageRail img[data-preview-fixture="offline-png"]');
+      if(!img)throw Error('missing saved image shortcut after resizing');
+      img.scrollIntoView({block:'nearest',inline:'nearest',behavior:'auto'});
+    }.toString()+')()');
     const image=await r35ImageEvidence();
     assert.equal(image.size,size);
     assert(image.complete&&image.naturalWidth>0&&image.naturalHeight>0,'decoded PNG must be visible');
     assert(image.colors>10,'image must contain real multi-colored raster content');
-    assert(image.visible,'decoded image must be visible inside Chromium viewport');
+    assert(image.visible,'decoded image must be visible inside Chromium viewport: '+JSON.stringify(image));
     assert.equal(image.objectFit,'contain','do not crop image content');
     assert(Math.abs(image.width-dims[0])<.6&&Math.abs(image.height-dims[1])<.6,
       'real rendered button dimensions: '+size);
