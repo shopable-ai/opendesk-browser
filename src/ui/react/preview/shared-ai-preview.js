@@ -36,7 +36,7 @@ export function createPreviewMyAgent(){
  const listeners=new Set();
  let seq=0,timeout=null;
  let state=Object.freeze({open:false,rows:[],draft:'',status:'idle',
-  pending:null,step:'仅布局和交互预览；未连接任务执行宿主',busy:false});
+  pending:null,step:'',busy:false});
  const publish=patch=>{
   state=Object.freeze({...state,...patch});
   for(const listener of [...listeners])listener();

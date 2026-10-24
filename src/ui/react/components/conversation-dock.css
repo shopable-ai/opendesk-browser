@@ -3,6 +3,10 @@
 .od-conversation-business{min-height:0;min-width:0;flex:1 1 auto;overflow:hidden}
 .od-conversation-header-slot:empty{display:none}
 .od-conversation-header-slot{display:inline-flex;align-items:center;flex:none}
+.od-conversation-ai-glyph{display:inline-grid;place-items:center;width:17px;height:17px;
+ font:800 12px/1 system-ui,sans-serif;letter-spacing:-.025em}
+.od-conversation-frame-trigger{width:30px;min-width:30px;height:30px;min-height:30px;
+ padding:0;border:0;background:transparent}
 .od-conversation-frame-trigger[aria-pressed="true"]{background:var(--od-muted);border-color:var(--od-focus);color:var(--od-accent-ink)}
 .od-conversation-dock{position:relative;flex:none;min-height:0;min-width:0;display:flex;flex-direction:column;overflow:hidden;background:var(--od-paper);border-top:1px solid var(--od-line)}
 .od-conversation-dock[hidden]{display:none!important}
@@ -11,10 +15,11 @@
 .od-conversation-separator{position:absolute;top:-4px;bottom:-4px;left:0;right:40px;touch-action:none;cursor:row-resize}
 .od-conversation-separator:before{content:'';position:absolute;left:calc(50% - 16px);width:32px;height:2px;top:8px;background:var(--od-input-border);border-radius:var(--radius-pill)}
 .od-conversation-separator:focus-visible{outline:2px solid var(--od-focus);outline-offset:-2px}
-.od-conversation-close{position:absolute;z-index:2;top:-3px;right:6px;display:grid;place-items:center;width:28px;min-width:28px;height:28px;padding:0;border:0;background:var(--od-paper);color:var(--od-sub);border-radius:var(--radius-control);cursor:pointer}
-.od-conversation-close svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.od-conversation-close{position:absolute;z-index:2;top:-3px;right:6px;display:grid;place-items:center;width:30px;min-width:30px;height:30px;padding:0;border:0;background:var(--od-paper);color:var(--od-sub);border-radius:var(--radius-control);cursor:pointer}
+.od-conversation-close svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .od-conversation-close:hover{background:var(--od-muted)}
 .od-conversation-log{min-height:0;flex:1 1 auto;overflow:auto;overscroll-behavior:contain;padding:13px 10px 6px;display:flex;flex-direction:column;gap:7px;scrollbar-width:thin}
+.od-conversation-empty{margin:0;padding:2px 1px;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.5}
 .od-conversation-entry{align-self:flex-start;max-width:94%;min-width:0;display:grid;gap:3px;background:var(--od-bg);border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:7px 9px;overflow-wrap:anywhere}
 /* User-only outgoing bubble; assistant, system and error states remain neutral. */
 .od-conversation-entry[data-speaker="user"]{align-self:flex-end;background:var(--od-conversation-user-bg);color:var(--od-conversation-user-ink);border-color:transparent}
@@ -42,12 +47,18 @@
 
 /* Framework-level Provider settings: icon-only, compact, no default background. */
 .od-conversation-settings{position:absolute;z-index:2;top:-3px;right:38px;display:grid;
- place-items:center;width:28px;height:28px;padding:0;border:0;border-radius:var(--radius-control);
+ place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:var(--radius-control);
  background:transparent;color:var(--od-sub);cursor:pointer}
-.od-conversation-settings svg{width:16px;height:16px}
+.od-conversation-settings svg{width:17px;height:17px}
 .od-conversation-settings:hover{color:var(--od-ink);background:var(--od-muted)}
 .od-conversation-settings:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
-@media(pointer:coarse){.od-conversation-settings{width:44px;height:44px;right:48px;top:-4px}}
+@media(pointer:coarse){.od-conversation-settings{width:44px;height:44px;right:48px;top:-4px}
+ .od-conversation-frame-trigger{width:44px;min-width:44px;height:44px;min-height:44px}}
+/* Workflow reuses the same toolbar rhythm without changing its Source owner. */
+.workflow-composer-actions{gap:2px}
+.workflow-composer-actions #workflow-provider-toggle{width:30px;min-width:30px;height:30px;min-height:30px}
+.workflow-composer-actions #workflow-provider-toggle svg{width:17px;height:17px}
+@media(pointer:coarse){.workflow-composer-actions #workflow-provider-toggle{width:44px;min-width:44px;height:44px;min-height:44px}}
 
 /* Trusted global settings sheet, scoped to the sole React Root's Portal. */
 .od-shared-provider-form{display:flex;flex-direction:column;gap:12px;min-width:0}

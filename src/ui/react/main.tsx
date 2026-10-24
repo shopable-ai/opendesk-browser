@@ -94,7 +94,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
       {promptPilot&&createPortal(
         <TrustedConversationWorkspace controller={promptPilot.controller}
           headerTarget={promptPilot.headerTarget}
-          title="提示词 AI 对话" phaseLabels={PROMPT_PHASE_LABELS}
+          title="提示词 AI 对话" emptyPrompt="想管理哪些提示词？" phaseLabels={PROMPT_PHASE_LABELS}
           onOpenSettings={openSharedProviderSettings}
           placeholder="例如：创建一条将中文翻译成日语的提示词"
           renderBusiness={dock=><PromptSandboxBusiness dock={dock} onRequest={promptPilot.onRequest}/>}/>,
@@ -102,7 +102,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
       {bookmarkPilot&&createPortal(<>
         <TrustedConversationWorkspace controller={bookmarkPilot.runtime.conversation}
           headerTarget={bookmarkPilot.headerTarget}
-         title="AI 对话" phaseLabels={BOOKMARK_PHASE_LABELS}
+         title="AI 对话" emptyPrompt="想整理哪些书签？" phaseLabels={BOOKMARK_PHASE_LABELS}
          onOpenSettings={openSharedProviderSettings}
          placeholder="例如：创建一个文件夹并收藏当前网页"
          

@@ -62,6 +62,31 @@ myView.setText('task-installed-count','仅预览 · 无真实安装任务');
 myView.actions.taskSearchToggleClick=()=>{
   myView.field('task-search-panel').hidden=!myView.field('task-search-panel').hidden;myView.publish();
 };
+// Optional offline states live only in the existing six-tab React preview.
+// ?tab=tasks&task=selected and ?tab=tasks&task=running never invoke a Host.
+const taskScene=new URLSearchParams(location.search).get('task');
+myView.project('runDock',{taskHidden:true,developHidden:true,hidden:true,stopOnly:true});
+if(taskScene==='selected'||taskScene==='running'){
+  myView.project('taskRows',{rows:[{taskId:'preview-task',title:'演示任务',
+    description:'仅预览选中任务详情，不访问当前网页',enabled:true}],
+    selectedId:'preview-task',emptyText:'',onSelect:()=>{}});
+  myView.setText('task-installed-count','1 个演示任务 · 未安装');
+  myView.setText('task-current-site','当前网页适用 · 仅预览');
+  myView.field('task-run').disabled=taskScene==='running';
+  myView.actions.taskRunClick=()=>myView.setText('task-status','仅预览 · 没有实际运行任务');
+  if(taskScene==='running'){
+    myView.project('runDock',{taskHidden:false,developHidden:true,hidden:false,stopOnly:true});
+    myView.field('task-dock').hidden=false;
+    myView.field('task-stop').disabled=false;
+    myView.field('task-stop').attributes['aria-label']='停止「演示任务」';
+    myView.actions.taskStopClick=()=>{
+      myView.setText('task-status','仅预览 · 没有实际 Stop 或 RunHost 回执');
+      myView.field('task-stop').disabled=true;
+      myView.field('task-dock').hidden=true;
+      myView.project('runDock',{taskHidden:true,developHidden:true,hidden:true,stopOnly:true});
+    };
+  }
+}
 const providerSettings=createPreviewProviderSettings();
 const myAgent=createPreviewMyAgent();
 const workflow=createWorkflowUIState();

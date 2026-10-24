@@ -36,10 +36,13 @@ test('My page, owning dock and standalone task catalog consume the same presenta
     assert.ok(page.getElementById(id),id+' must be owned by the React page');
   assert.equal(page.getElementById('scheduled-panel').hasAttribute('hidden'),true);
   assert.equal(page.getElementById('schedule-form').hasAttribute('hidden'),true);
+  assert.ok(page.getElementById('task-run'),'Run is mounted once inside selected task details');
+  assert.ok(page.getElementById('task-selected-workspace').contains(page.getElementById('task-run')));
   const scheduleOpen=page.getElementById('schedule-open');
   assert.equal(scheduleOpen.getAttribute('aria-label'),'打开定时计划');
   assert.equal(scheduleOpen.className,'od-icon-button');
   const owningDock=parseHTML(renderToStaticMarkup(React.createElement(MyTasksDock,{view}))).document;
+  assert.equal(owningDock.getElementById('task-run'),null,'footer is Stop-only');
   assert.equal(owningDock.getElementById('task-stop').getAttribute('aria-label'),'停止「任务 A」');
   assert.ok(owningDock.getElementById('task-stop').classList.contains('od-button--danger'));
   view.data.catalogRows={rows:[{key:'task@1',title:'<unsafe>',description:'description',state:'待验证'}],selectedKey:'task@1'};

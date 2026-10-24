@@ -21,7 +21,10 @@ test('R2.3 real SidebarAppShell puts one Tasks AI Dock after scrolling workspace
  assert.equal($('#my-agent-input').attr('value')??$('#my-agent-input').text(),'原有草稿');
  assert.equal($('.my-agent-welcome, .my-agent-examples, .my-agent-secondary').length,0,
    'Tasks AI shows no default suggestion panel or redundant heading');
- assert.equal($('#workspace-dock #task-run').length,1,'original Task Run Dock remains');
+ assert.equal($('#workspace-dock #task-run').length,0,'idle footer must not contain ordinary Run');
+ assert.equal($('#workbench-tasks #task-run').length,1,'same Run control lives inside selected workspace');
+ assert.equal($('#workspace-dock #task-stop').length,1,'owner Stop stays in global dock');
+ assert.equal($('.my-agent-dock .od-conversation-empty').text(),'想自动化什么？');
  preview.toggle();
  assert.equal(preview.getSnapshot().draft,'原有草稿','collapse never clears draft');
  preview.toggle();

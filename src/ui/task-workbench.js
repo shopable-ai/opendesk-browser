@@ -150,7 +150,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const draftOwns=Boolean(host.currentRun && !taskOwns && !workflowOwns && !scheduledOwns && !running);
     // Idle scheduled plans have no ordinary manual Run. If a manual Task is
     // already running, keep its original Stop control visible across views.
-    const taskHidden=catalogSurface || (taskOwns?false:scheduledSurfaceActive || scheduledOwns || draftOwns || workflowOwns || view!=='tasks' || toolActive);
+    // Manual Run now lives in the selected task detail. Only the owning
+    // running task may reserve a persistent Stop dock, including across tabs.
+    const taskHidden=catalogSurface || !taskOwns;
     const developHidden=catalogSurface || (draftOwns?false:taskOwns || workflowOwns || scheduledOwns || view!=='develop');
     const workflowHidden=catalogSurface || (workflowOwns?false:taskOwns || draftOwns || scheduledOwns || view!=='workflow');
     // The dock follows the real RunHost owner, not the selected task or visible tab.

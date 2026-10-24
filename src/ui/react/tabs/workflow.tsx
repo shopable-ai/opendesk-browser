@@ -356,8 +356,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
         <section className="workflow-card od-surface--padded workflow-chat od-surface" aria-label="AI 对话">
           <div id="workflow-ai-transcript" ref={setTranscriptTarget}
             className="workflow-chat-transcript" role="log"
-            aria-label="浏览器任务对话与执行记录" aria-live="polite"
-            hidden={!model.messages?.length}/>
+            aria-label="浏览器任务对话与执行记录" aria-live="polite"/>
           {text('workflow-planning-indicator',{className:'workflow-planning-indicator',role:'status'})}
           <ol id="workflow-ai-progress" className="workflow-ai-progress" aria-label="Codex 实时规划进度" hidden={c('workflow-ai-progress').hidden}>
             {model.progress?.map((item,index)=><li key={index} data-state={item.state}>{item.text}</li>)}
@@ -513,7 +512,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
      blocked={Boolean(c('workflow-ai-plan').disabled)}
      canSend={c('workflow-ai-plan').hidden!==true}
      inputId="workflow-ai-request" inputLabel="描述任务，或告诉 AI 怎样修改步骤"
-     placeholder="描述要完成的操作…"
+     placeholder="描述要完成的操作…" emptyPrompt="想让浏览器做什么？"
      inputRows={1}
      sendId="workflow-ai-plan" stopId="workflow-ai-cancel"
      splitTargets transcriptTarget={transcriptTarget} composerTarget={composerTarget}

@@ -16,6 +16,10 @@ export function ConversationTranscript({rows=[],entryClassName='workflow-chat-en
   </div>;
  });
 }
+export function ConversationAiGlyph(){
+ return <span className="od-conversation-ai-glyph" aria-hidden="true">AI</span>;
+}
+
 export function ConversationInput({id,value='',onChange,onKeyDown,placeholder='',rows=2,maxLength=4000,
  disabled=false,className='',inputRef,...props}){
  return <textarea id={id} ref={inputRef} rows={rows} maxLength={maxLength}
@@ -29,7 +33,7 @@ export function SharedConversationFrame({
  open=true,rows=[],draft='',busy=false,blocked=false,inputDisabled=false,canSend=true,
  inputId,placeholder='描述要完成的操作',inputLabel='对话输入',
  onDraftChange=()=>{},onSend=()=>{},onStop=()=>{},
- intro=null,feedback=null,review=null,technical=null,inputRef=null,logRef=null,
+ intro=null,emptyPrompt=null,feedback=null,review=null,technical=null,inputRef=null,logRef=null,
  onLogScroll=null,logClassName='od-conversation-log',entryClassName='od-conversation-entry',
  // Workflow preserves its native scrolling and sticky-composer layout. The
  // transcript and form still belong to this same trusted React Frame/root.
@@ -56,7 +60,8 @@ export function SharedConversationFrame({
   // Permission requests must start during this original trusted Send event.
   onSend(event);
  };
- const transcript=<ConversationTranscript rows={rows} entryClassName={entryClassName} showSpeaker={false}/>;
+ const transcript=rows.length?<ConversationTranscript rows={rows} entryClassName={entryClassName} showSpeaker={false}/>:
+  emptyPrompt?<p className="od-conversation-empty">{emptyPrompt}</p>:null;
  const composer=<form className="od-conversation-composer" onSubmit={submit}>
    <label className="od-conversation-sr" htmlFor={inputId}>{inputLabel}</label>
    <ConversationInput id={inputId} inputRef={input} value={draft}
@@ -116,7 +121,7 @@ export function TrustedConversationWorkspace({controller,...props}){
 }
 function ConversationWorkspace({
  controller,renderBusiness,headerTarget=null,title='AI 对话',placeholder='描述要完成的操作',
- phaseLabels=null,onOpenSettings=null
+ emptyPrompt='想完成什么操作？',phaseLabels=null,onOpenSettings=null
 }){
  const restored=React.useMemo(()=>controller?.readSession?.()||{},[controller]);
  const [open,setOpen]=React.useState(restored.open===true);
@@ -325,9 +330,7 @@ function ConversationWorkspace({
    className="sidebar-tool-icon-action od-icon-button od-conversation-frame-trigger"
    aria-label="AI 对话" title="打开或收起 AI 对话" aria-pressed={open} aria-expanded={open}
    aria-controls="opendesk-conversation-dock" onClick={toggle}>
-   <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 11.5c0 4.6-3.9 8.5-8.8 8.5a10 10 0 0 1-4.2-.9L3 21l1.5-4.5A8.1 8.1 0 0 1 3 11.5C3 7 7 3 12.2 3s8.8 4 8.8 8.5Z"/>
-   </svg>
+   <ConversationAiGlyph/>
   </button>,headerTarget):null;
  return <div ref={shellRef} className="od-conversation-workspace" data-chat-open={open?'true':'false'}>
   {trigger}
@@ -356,7 +359,7 @@ function ConversationWorkspace({
    </div>
    <SharedConversationFrame open={open} rows={rows} draft={draft} busy={busy}
     blocked={needsReview||busy} canSend={Boolean(controller?.request)}
-    placeholder={placeholder} inputId="od-conversation-input"
+    placeholder={placeholder} emptyPrompt={emptyPrompt} inputId="od-conversation-input"
     inputRef={inputRef} logRef={logRef}
     onDraftChange={setDraft} onSend={send} onStop={stop}
     onLogScroll={event=>{

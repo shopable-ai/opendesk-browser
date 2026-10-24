@@ -8,7 +8,6 @@ import {MyAgentToggle} from './my-agent.tsx';
 export function MyTasksDock({view,hidden=false}){
   React.useSyncExternalStore(view.subscribe,view.getSnapshot,view.getSnapshot);
   return <MyControl view={view} id="task-dock" className="task-dock" hidden={hidden||view.field('task-dock').hidden}>
-    <MyControl view={view} as="button" id="task-run" type="button" className="od-button od-button--primary" onClick={event=>view.actions.taskRunClick?.(event.nativeEvent)}>运行任务</MyControl>
     <MyControl view={view} as="button" id="task-stop" type="button" className="od-button od-button--danger" onClick={event=>view.actions.taskStopClick?.(event.nativeEvent)}>停止</MyControl>
   </MyControl>;
 }
@@ -19,6 +18,9 @@ function MyTaskWorkspace({view}){return (<MyControl view={view} as="div" id="tas
 <MyControl view={view} as="form" id="task-params-form" onInput={event=>view.actions.taskParamsFormInput?.(event.nativeEvent)} onChange={event=>view.actions.taskParamsFormChange?.(event.nativeEvent)} onSubmit={event=>view.actions.taskParamsFormSubmit?.(event.nativeEvent)} autoComplete="off" aria-label="任务参数">
 <MyTaskParams view={view}/>
 </MyControl>
+<div className="task-action-row od-page-actions">
+<MyControl view={view} as="button" id="task-run" type="button" className="od-button od-button--primary" onClick={event=>view.actions.taskRunClick?.(event.nativeEvent)}>运行任务</MyControl>
+</div>
 <MyControl view={view} as="p" id="task-status" role="status" aria-live="polite">
 </MyControl>
 <MyControl view={view} as="div" id="task-result-panel" className="task-result-panel">
