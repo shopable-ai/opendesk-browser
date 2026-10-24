@@ -15,6 +15,10 @@ import {FOCUS_STORE,FOCUS_ALARM,FOCUS_RULE_FIRST,focusPackageHash}
   from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
 import {emptyFocus}
   from '../../examples/sidebar-tools/stay-focus/trusted/model.js';
+import {matchesManagedSiteV3NativeRules}
+  from '../../src/ui/sidebar-tools/legacy-focus-upgrade.js';
+import {desiredManagedSiteV3Rules,managedSiteV3RuleRange}
+  from '../../src/platform/chrome/managed-site-v3-rules.js';
 
 const legacy=JSON.parse(await readFile(new URL(
   '../../examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json',import.meta.url)));
@@ -230,4 +234,40 @@ test('uncertain native DNR cleanup retains operation journal for same-snapshot r
   const result=await recoverMarketOperation({api:f.api,lockManager:f.lockManager,operationId:opId});
   assert.equal(result.state,'succeeded');
   await assertConserved(f);
+});
+
+test('legacy v3 native handoff verifies complete DNR rule content and owner slot',()=>{
+  const slot=0;
+  const policy={kind:'site-budget.v3',enabled:true,whitelist:[],sites:[{
+    host:'youtube.com',subdomains:true,enabled:true,pool:'g:entertainment',
+    conditions:[{type:'counter-limit',limitMs:60000}]
+  }]};
+  const expected=desiredManagedSiteV3Rules(policy,{'g:entertainment':60000},Date.now(),slot);
+  assert.equal(expected.length,1,'fixture must create a blocked native rule');
+  assert.equal(matchesManagedSiteV3NativeRules([...expected,peerRule],expected,slot),true,
+    'another extension rule must not affect this owner');
+  const chromeDefault=clone(expected);
+  chromeDefault[0].condition.isUrlFilterCaseSensitive=false;
+  assert.equal(matchesManagedSiteV3NativeRules(chromeDefault,expected,slot),true,
+    'an explicit Chrome false default is equivalent');
+  const redirect=clone(expected);
+  redirect[0].action.redirect.extensionPath='/managed-site/blocked-always.html';
+  assert.equal(matchesManagedSiteV3NativeRules(redirect,expected,slot),false,
+    'same ID and redirect type with a different target must fail');
+  const regex=clone(expected);
+  regex[0].condition.regexFilter='^https?://other.example/';
+  assert.equal(matchesManagedSiteV3NativeRules(regex,expected,slot),false,
+    'same ID and action must not hide a changed domain');
+  const excludes=clone(expected);
+  excludes[0].condition.excludedRequestDomains=['youtube.com'];
+  assert.equal(matchesManagedSiteV3NativeRules(excludes,expected,slot),false,
+    'changed scope exemptions must fail closed');
+  const extra=clone(expected[0]);
+  extra.id=managedSiteV3RuleRange(slot).last;
+  assert.equal(matchesManagedSiteV3NativeRules([...expected,extra],expected,slot),false,
+    'an unexpected rule in the owner slot must block release');
+  assert.equal(matchesManagedSiteV3NativeRules([peerRule],[],slot),true,
+    'STOP requires no owned rules and keeps foreign rules');
+  assert.equal(matchesManagedSiteV3NativeRules(expected,[],slot),false,
+    'STOP must reject a leaked active rule');
 });
