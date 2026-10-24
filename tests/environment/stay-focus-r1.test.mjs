@@ -546,7 +546,15 @@ test('R5.6 React has button-driven budget, site, schedule, group and whitelist w
   assert.doesNotMatch(script,/addEventListener\('submit'|type=['"]submit['"]/);
   assert.doesNotMatch(script,/request\('currentPage\.info'/,
     'current-site discovery belongs to extension-owned trusted React');
-  assert.match(script,/request\('focus\.status'/);
+  const controller=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/trusted/focus-controller.js',import.meta.url),'utf8');
+  assert.match(script,/controller\.readStatus\(\)/,
+    'the installed React UI must read the one Controller, not bypass it');
+  assert.match(controller,/request\('focus\.status'/,
+    'the old authenticated focus.control path must remain available');
+  assert.match(controller,/siteBudget\.getStatus\(\{\}\)/,
+    'v3 must read through the public Driver');
+  assert.match(controller,/siteBudget\.setPolicy\(\{/,
+    'v3 mutations must go through the public Driver');
   assert.match(script,/writing\.current/);
   assert.match(script,/readId\.current\+\+/);
 });

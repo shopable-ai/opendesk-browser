@@ -75,13 +75,24 @@ export function mountStayFocusReact({url='https://m.youtube.com/',title='YouTube
     }
     return structuredClone(status);
   };
+  // This fixture owns a genuine legacy-installed tool: the public v3 Driver
+  // reports its missing capability, so the reviewed Controller must continue
+  // through the existing authenticated focus.control Host. Never fake v3 PASS.
+  const legacyLease={
+    async getStatus(){throw Object.assign(Error('legacy installation does not own v3'),
+      {code:'E_TOOL_CAPABILITY_REQUIRED'});},
+    async setPolicy(){throw Error('E_UNEXPECTED_V3_MUTATION_IN_LEGACY_FIXTURE');}
+  };
   const globals={OpenDeskTool:{root,request},OpenDeskSidebarUI:UI,
+    OpenDeskSDK:{browser:{siteBudget:legacyLease}},
     OpenDeskPageReact:React,addEventListener:(key,fn)=>listeners.set('global:'+key,fn),
     removeEventListener:(key,fn)=>{if(listeners.get('global:'+key)===fn)listeners.delete('global:'+key);},
     setInterval:()=>1,clearInterval(){}};
   const document={hidden:false,addEventListener:(key,fn)=>listeners.set('document:'+key,fn),
     removeEventListener:(key,fn)=>{if(listeners.get('document:'+key)===fn)listeners.delete('document:'+key);}};
-  const source=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/main.js',import.meta.url),'utf8');
+  // Vite emits the single audited Classic IIFE actually installed in Chrome.
+  // The authored main.js is ESM and must never be evaluated as a raw VM Script.
+  const source=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/dist/tool.js',import.meta.url),'utf8');
   runInNewContext(source,{globalThis:globals,document,URL});
   const visit=(item,visitor)=>{
     if(Array.isArray(item)){item.forEach(n=>visit(n,visitor));return;}

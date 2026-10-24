@@ -8,12 +8,12 @@ import {tmpdir} from 'node:os';
 import {execFileSync} from 'node:child_process';
 import {createSidebarToolPackage,checkCompiledToolBuildReady} from '../../scripts/build-sidebar-tool.mjs';
 import {inspectSidebarToolProject} from '../../scripts/stage-sidebar-tool.mjs';
+import {STAY_FOCUS_REACT_SOURCES} from '../../examples/sidebar-tools/stay-focus/vite.config.mjs';
 
 const root=resolve('examples/sidebar-tools/stay-focus');
-const sources=[
-  'src/main.js','src/entry.js','src/style.css','src/index.html',
-  'tool.config.json','vite.config.mjs','package.json'
-];
+// Assert every source Vite fingerprints, including the independently owned
+// v3 controller and policy modules; do not silently ignore a new import.
+const sources=[...STAY_FOCUS_REACT_SOURCES];
 const outputs=['dist/tool.js','dist/tool.css','dist/build-ready.json'];
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
 
@@ -38,12 +38,17 @@ test('R5.8 compiles the single React Root with source-bound Build Ready',async()
   assert.equal(pkg.js,await readFile(join(root,'dist/tool.js'),'utf8'));
   assert.ok(pkg.js.includes('OpenDeskPageReact'),'React must be host-owned');
   assert.ok(pkg.js.includes('OpenDeskSidebarUI'),'Shared UI must be host-owned');
+  assert.ok(sources.includes('trusted/focus-controller.js'),
+    'the current v3/legacy Controller must be part of the source receipt');
+  assert.ok(pkg.js.includes('E_FOCUS_PUBLIC_SDK_REQUIRED'),
+    'the compiled UI must retain the real Driver capability boundary');
   assert.doesNotMatch(pkg.js,/ReactDOM\.createRoot|ReactDOMClient\.createRoot/);
 });
 test('R5.8 forbids stale source, altered compiled JS and downgraded receipt',async t=>{
   const dir=await mkdtemp(join(tmpdir(),'od-stay-focus-r58-'));
   t.after(()=>rm(dir,{recursive:true,force:true}));
-  await Promise.all([mkdir(join(dir,'src')),mkdir(join(dir,'dist'))]);
+  await Promise.all([mkdir(join(dir,'src')),mkdir(join(dir,'dist')),
+    mkdir(join(dir,'trusted'))]);
   for(const file of [...sources,...outputs])await copyFile(join(root,file),join(dir,file));
   await createSidebarToolPackage(dir);
   await appendFile(join(dir,'src/main.js'),'\n// source changed after Vite build\n');
