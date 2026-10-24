@@ -26,10 +26,23 @@ import {desiredManagedSiteV3Rules,managedSiteV3RuleRange}
 
 const legacy=JSON.parse(await readFile(new URL(
   '../../examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json',import.meta.url)));
-const modern={...legacy,format:'opendesk.sidebar-tool.v2',version:'3.0.0',
-  capabilities:['browser.siteBudget','currentPage.read'],
-  requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]},
-  backgroundPolicy:{kind:'site-budget.v3',suggestions:legacy.backgroundPolicy.suggestions}};
+// The independent app build binds an actual v3 JSON package here. Original
+// historical tests keep their synthetic candidate without a redundant build.
+const realCandidateFile=process.env.OPENDESK_STAY_FOCUS_V3_CANDIDATE;
+const modern=realCandidateFile?JSON.parse(await readFile(realCandidateFile,'utf8')):
+  {...legacy,format:'opendesk.sidebar-tool.v2',version:'3.0.0',
+    capabilities:['browser.siteBudget','currentPage.read'],
+    requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]},
+    backgroundPolicy:{kind:'site-budget.v3',suggestions:legacy.backgroundPolicy.suggestions}};
+if(realCandidateFile){
+  assert.equal(modern.format,'opendesk.sidebar-tool.v2');
+  assert.equal(modern.id,'stay-focus');
+  assert.equal(modern.version,'3.0.0');
+  assert.deepEqual(modern.capabilities,['browser.siteBudget','currentPage.read']);
+  assert.equal(modern.backgroundPolicy?.kind,'site-budget.v3');
+  assert.ok(modern.js?.includes('E_FOCUS_PUBLIC_SDK_REQUIRED'));
+  assert.ok(modern.js?.includes('OpenDeskPageReact'));
+}
 const epoch='legacy-install-epoch',opId='a3b45678-e89b-42d3-a456-426614174000';
 const owner='stay-focus',source='opendesk/stay-focus';
 const peerRule={id:200,priority:1,action:{type:'block'},

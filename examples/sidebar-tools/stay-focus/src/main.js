@@ -202,7 +202,9 @@ import {createFocusController} from '../trusted/focus-controller.js';
             ?'focus.session.stop':'focus.session.start',
             state.focusUntil&&state.focusUntil>Date.now()?{}:{minutes:25})},
           state.focusUntil&&state.focusUntil>Date.now()?'提前结束':'屏蔽 25 分钟')),
-      h('p',{className:'sf-hint'},'全局停止与清空仅在外层可信扩展设置的「更多操作」中提供。'));
+      h('p',{className:'sf-hint'},state.runtimeKind==='site-budget.v3'
+        ?'开启与停止由页首按钮操作；清空全部记录请在扩展中心明确确认卸载与清理。'
+        :'全局停止与清空仅在外层可信扩展设置的「更多操作」中提供。'));
   }
   function App(){
     const [state,setState]=R.useState(null);
@@ -295,7 +297,12 @@ import {createFocusController} from '../trusted/focus-controller.js';
         h('span',{className:'sf-state','data-active':Boolean(state?.enabled&&state?.ruleReceipt?.verified),
           'data-warning':Boolean(state?.enabled&&!state?.ruleReceipt?.verified)},
           loading?'正在读取':!state?'状态未知':!state.enabled?'未开启':
-            state.ruleReceipt?.verified?(sites.length?'限制已开启':'已开启 · 待加入网站'):'规则待核对')),
+            state.ruleReceipt?.verified?(sites.length?'限制已开启':'已开启 · 待加入网站'):'规则待核对'),
+        state?.runtimeKind==='site-budget.v3'?h(Action,{
+          name:state.enabled?'pause':'play',
+          label:state.enabled?'停止所有网站限制':'开启网站限制',
+          disabled:busy,onClick:()=>void operate(state.enabled?'focus.disable':'focus.enable',{})
+        }):null),
       h(Card,{className:'sf-hero'},h(CardContent,null,
         h('div',{className:'sf-headrow'},h('span',null,'今日娱乐时间'),
           h('time',null,state?.day||'—')),

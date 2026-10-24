@@ -24,10 +24,11 @@ test('real Stay Focus install package carries bounded data, no privileged JS',as
     const config=JSON.parse(readFileSync(
     new URL('../../examples/sidebar-tools/stay-focus/tool.config.json',import.meta.url),'utf8'));
   assert.equal(tool.version,config.version);
-  assert.ok(tool.backgroundPolicy.defaultSites.includes('pinterest.com'));
-  assert.equal(tool.backgroundPolicy.kind,'site-budget.v2');
-  assert.equal(tool.backgroundPolicy.dailyMinutes,30);
-  assert.ok(tool.backgroundPolicy.defaultSites.includes('youtube.com'));
+  assert.equal(tool.format,'opendesk.sidebar-tool.v2');
+  assert.equal(tool.backgroundPolicy.kind,'site-budget.v3');
+  assert.deepEqual(tool.capabilities,['browser.siteBudget','currentPage.read']);
+  assert.equal(tool.requires.browserSdk,'1.0.0');
+  assert.deepEqual(tool.contributes.contextMenus,[]);
   assert.ok(tool.backgroundPolicy.suggestions.some(row=>row.host==='pinterest.com'));
   assert.ok(!Object.hasOwn(tool,'backgroundJs')&&!Object.hasOwn(tool,'trusted'));
   assert.deepEqual(validateSidebarToolPackage(JSON.parse(serializeSidebarToolPackage(tool))),tool);

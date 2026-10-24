@@ -5,15 +5,19 @@
   const $=id=>document.getElementById(id);
   const bundle=JSON.parse($('sf-bundle').textContent);
   const policy=bundle.config.backgroundPolicy;
+  // Preview-only defaults; v3 deliberately omits legacy v2 policy metadata.
+  const defaults={dailyMinutes:30,defaultSites:[],schedule:{enabled:false,
+    days:[1,2,3,4,5],startMinute:540,endMinute:1020}};
   const source=bundle.source;
   const catalog=()=>policy.suggestions.map(site=>({
-    ...site,auto:policy.defaultSites.includes(site.host),minutes:site.suggestLimit?policy.dailyMinutes:0
+    ...site,auto:defaults.defaultSites.includes(site.host),minutes:site.suggestLimit?defaults.dailyMinutes:0
   }));
   const clean=()=>({installed:true,granted:false,identityValid:false,enabled:false,
     configured:false,verified:false,pending:false,denied:false,
-    sites:[],groups:{},usageMs:0,whitelist:[],schedule:structuredClone(policy.schedule),
+    sites:[],groups:{},usageMs:0,whitelist:[],schedule:structuredClone(defaults.schedule),
     focusUntil:null,previewNewSite:false});
   let model=clean();
+  let revision=0,modelRef=null,driverPolicy=null;
   let scenario='first';
   const day=()=>{
     const date=new Date();
@@ -21,17 +25,17 @@
       String(date.getDate()).padStart(2,'0')].join('-');
   };
   const additional={host:'new-video.example',name:'新视频站（场景示例）',
-    category:'视频娱乐',auto:true,quick:false,minutes:policy.dailyMinutes};
+    category:'视频娱乐',auto:true,quick:false,minutes:defaults.dailyMinutes};
   function restoreScene(name){
-    scenario=name;model=clean();
+    scenario=name;model=clean();revision=0;modelRef=null;driverPolicy=null;
     const seed=()=>{model.sites=[{host:'youtube.com',subdomains:true,enabled:true,
-      mode:'limit',minutes:policy.dailyMinutes,group:'entertainment'}];
-      model.groups.entertainment=policy.dailyMinutes;
+      mode:'limit',minutes:defaults.dailyMinutes,group:'entertainment'}];
+      model.groups.entertainment=defaults.dailyMinutes;
       model.granted=true;model.identityValid=true;model.enabled=true;
       model.configured=true;model.verified=true;};
     switch(name){
       case 'used':seed();model.usageMs=19*60000;break;
-      case 'exhausted':seed();model.usageMs=policy.dailyMinutes*60000;break;
+      case 'exhausted':seed();model.usageMs=defaults.dailyMinutes*60000;break;
       case 'paused':seed();model.sites[0].enabled=false;model.usageMs=6*60000;break;
       case 'session':seed();model.focusUntil=Date.now()+25*60000;model.usageMs=5*60000;break;
       case 'upgrade':seed();model.previewNewSite=true;model.usageMs=12*60000;
@@ -50,13 +54,13 @@
   const publicCatalog=()=>model.previewNewSite?[...catalog(),additional]:catalog();
   const remaining=(site)=>{
     const pool=site.group==='entertainment'?
-      Number(model.groups.entertainment??policy.dailyMinutes):Number(site.group?
+      Number(model.groups.entertainment??defaults.dailyMinutes):Number(site.group?
         model.groups[site.group]??site.minutes:site.minutes);
     const used=site.group==='entertainment'?model.usageMs:0;
     return {budgetMs:pool*60000,usedMs:used,remainingMs:Math.max(0,pool*60000-used)};
   };
   function snapshot(){
-    const limit=Number(model.groups.entertainment??policy.dailyMinutes),budget=limit*60000;
+    const limit=Number(model.groups.entertainment??defaults.dailyMinutes),budget=limit*60000;
     return {
       enabled:model.enabled,authorized:model.granted&&model.identityValid,day:day(),
       permissions:{idle:model.granted,dnr:true,ready:model.granted},
@@ -93,7 +97,7 @@
       case 'focus.site.put':{
         const site=structuredClone(payload.site);
         if(site.group==='entertainment'&&model.groups.entertainment===undefined)
-          model.groups.entertainment=policy.dailyMinutes;
+          model.groups.entertainment=defaults.dailyMinutes;
         const index=model.sites.findIndex(row=>row.host===site.host);
         if(index<0)model.sites.push(site);else model.sites[index]=site;
         break;
@@ -115,6 +119,48 @@
     renderHost();
     return snapshot();
   };
+  // Explicit preview-only SDK simulation: never packaged and never Native.
+  function mockDriverStatus(){
+    const hasModel=model.configured||model.sites.length>0||model.enabled;
+    const sealedModel=hasModel?{
+      version:1,authorizedHash:null,authorizedEpoch:null,enabled:model.enabled,
+      day:day(),clockHighWater:0,sites:structuredClone(model.sites),
+      groups:structuredClone(model.groups),whitelist:[...model.whitelist],
+      schedule:structuredClone(model.schedule),focusUntil:model.focusUntil,
+      usage:{},checkpoint:null,notices:{day:day(),revision:0,budgetMs:null,thresholds:[]}
+    }:null;
+    return {
+      kind:'site-budget.v3',desiredPolicyRev:revision,appliedPolicyRev:revision,
+      status:model.enabled&&model.verified?'applied':'inactive',
+      desiredPolicy:structuredClone(driverPolicy??{
+        kind:'site-budget.v3',enabled:model.enabled,sites:[],whitelist:[]}),
+      modelRef:hasModel?(modelRef??'0'.repeat(64)):null,sealedModel,
+      usage:model.usageMs?{'g:entertainment':model.usageMs}:{},
+      day:day(),clockHighWater:0,
+      permissions:{idle:model.granted,dnr:true,ready:model.granted},
+      siteReviewActive:model.granted&&model.identityValid
+    };
+  }
+  globalThis.__stayFocusMockBudget=Object.freeze({
+    getStatus:async()=>mockDriverStatus(),
+    setPolicy:async commit=>{
+      if(!model.installed||commit.expectedRev!==revision)
+        fail('预览策略修订号已变化','E_STORAGE_CONFLICT');
+      const unchanged=modelRef===commit.modelRef&&
+        JSON.stringify(driverPolicy)===JSON.stringify(commit.desiredPolicy);
+      if(!unchanged)revision++;
+      modelRef=commit.modelRef;driverPolicy=structuredClone(commit.desiredPolicy);
+      const sealed=commit.sealedModel;
+      model.sites=structuredClone(sealed.sites);model.groups=structuredClone(sealed.groups);
+      model.whitelist=[...sealed.whitelist];model.schedule=structuredClone(sealed.schedule);
+      model.focusUntil=sealed.focusUntil;model.enabled=sealed.enabled;
+      model.configured=true;model.granted=true;model.identityValid=true;
+      model.verified=true;
+      $('host-feedback').textContent='仅模拟公共 v3 Driver 策略保存；没有 Chrome 原生执行。';
+      renderHost();
+      return mockDriverStatus();
+    }
+  });
   function renderFrame(){
     const frame=$('preview-frame');
     $('empty-install').hidden=model.installed;
@@ -122,7 +168,9 @@
     if(!model.installed){frame.removeAttribute('srcdoc');return;}
     // Produce valid literal closing tags without slash-escaping ambiguity.
     const closeScript='<'+'/script>';
-    const bridge='globalThis.OpenDeskTool={root:document,request:(op,payload)=>parent.__stayFocusMockRequest(op,payload)};';
+    const bridge='globalThis.OpenDeskTool={root:document,request:(op,payload)=>parent.__stayFocusMockRequest(op,payload)};'+
+      'globalThis.OpenDeskSDK={browser:{siteBudget:{getStatus:()=>parent.__stayFocusMockBudget.getStatus(),'+
+      'setPolicy:args=>parent.__stayFocusMockBudget.setPolicy(args)}}};';
     const tag=code=>'<script>'+String(code).replaceAll('<'+'/script','<\\'+'/script')+closeScript;
     frame.srcdoc='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+
       '<meta name="viewport" content="width=device-width,initial-scale=1">'+
@@ -184,7 +232,7 @@
         }else{
           model.granted=true;model.identityValid=true;
           model.enabled=true;model.configured=true;model.verified=true;
-          model.groups.entertainment??=policy.dailyMinutes;
+          model.groups.entertainment??=defaults.dailyMinutes;
           $('host-feedback').textContent='模拟授权并开启成功；未自动加入任何网站。';
         }
         renderHost();refreshFrameState();
@@ -227,7 +275,7 @@
     if(!model.installed||old?.enabled)return;
     const site=old?{...old,enabled:true}:
       {host:'youtube.com',subdomains:true,enabled:true,mode:'limit',
-        minutes:Number(model.groups.entertainment??policy.dailyMinutes),group:'entertainment'};
+        minutes:Number(model.groups.entertainment??defaults.dailyMinutes),group:'entertainment'};
     // Simulated trusted Side Panel: one explicit click, one in-memory Host write.
     // No native permission or Chrome DNR side effect is claimed.
     void globalThis.__stayFocusMockRequest('focus.site.put',{site})
