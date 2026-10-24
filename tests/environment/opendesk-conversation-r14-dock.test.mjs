@@ -90,7 +90,12 @@ test('R1.4 original bookmark workspace and search never disappear with chat',asy
  assert.doesNotMatch(css,/\.od-conversation-separator\{[^\n]*border-bottom/,'avoid doubled visual separator lines');
  assert.match(component,/IconButton as OpenDeskIconButton/,'reuse the canonical React icon button');
  assert.match(component,/label="发送"/);
-  assert.match(component,/onClick=\{submit\}/);
+  assert.match(component,/const submit=event=>\{\s*event\.preventDefault\(\)/,
+   'the original trusted user Submit event owns the send guard');
+  assert.match(component,/const composer=<form className="od-conversation-composer" onSubmit=\{submit\}>/,
+   'the shared frame submits through the original form handler');
+  assert.match(component,/type="submit" title="发送消息" label="发送"/,
+   'the Send icon remains a native submit control without a duplicate click dispatcher');
   assert.match(component,/onSend\(event\)/,'trusted Send remains the only business dispatch');
  assert.match(component,/label="停止对话"/);
   assert.match(component,/onStop\(event\)/,'Stop delegates to the current consumer only');

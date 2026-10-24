@@ -15,3 +15,10 @@
 **执行证据等级：** 已读取真实 GitHub 文件、失败原始 Job 日志与固定 SHA，对正则及现有生产源码做静态前置匹配；本会话无法访问用户 Mac 工作区执行其两组 `node --test` 或实际安装版 Chrome/Native，所以新 commit 的 `NODE_PASS`、`CHROME_PASS`、`NATIVE_PASS` 均不得声明。四页最终业务闭环仍 `NOT_TESTED`。
 
 **后续首要任务：** 在新 main 真运行用户指定的两组 Node 指令和 Workflow React 定向测试，提取首个实质性 PRODUCT_BUG 才修改业务源码；核对新 SHA 的 Actions 具体 Job/Step 状态（QUEUED 不等于 PASS）；用现有 Mac 开发环境/原生验收独立读回 Folder ID + parentId、Prompt full record/ETag、Task RunId/generation/CAS、Workflow Source Hash + Revision/新价格及原页面刷新。安全拒绝与 UNKNOWN 不能自动重试。
+
+## 同一候选 d9a4594b43af 的首次 CI 回读
+
+- [Bookmark run 40068056045](https://github.com/shopable-ai/opendesk-browser/actions/runs/40068056045) 首个 Node 合并步骤：330/331 PASS，剩余失败在 R1.4 旧断言 `onClick={submit}`；[Shared AI run 40068056059](https://github.com/shopable-ai/opendesk-browser/actions/runs/40068056059) 183/184 PASS，同一个断言。正式 JSX 使用原生表单 `onSubmit={submit}`、发送按钮 `type="submit"`，且同步 `submit(event)` → `onSend(event)`；故属 `TEST_BUG`，不能添加独立按钮 click dispatcher 破坏 Enter/IME/授权时机。
+- 本次只把旧源形态断言替换为表单 onSubmit、单一 submit 函数和原生 button type 的三项产品真实结构检查，保留 `onSend(event)`、`onStop(event)` 及撤权/UNKNOWN 断言。
+- [Official Tools AI run 40068055996](https://github.com/shopable-ai/opendesk-browser/actions/runs/40068055996) 新纳入的 Prompt 业务＋恢复测试首次实跑 **40/40 PASS**；后续 Host regression 133/133 PASS；overall workflow 因原 Catalog 3 项失败并不视为全局 CI_PASS。
+- 当前仍然没有用户 Mac 的真实仓库 Node、已安装 Chrome/Native、实际四业务对象独立读回，全部按证据分级。
