@@ -515,6 +515,28 @@ border:0;background:transparent;color:var(--od-sub)}
  #hostMoreMenu .od-icon-button{min-height:44px}
 }
 
+
+/* R4.4 card detail and overlay: simulated presentation, no data-width reflow. */
+.prompt-card{position:relative;isolation:isolate;cursor:pointer}
+.prompt-card.is-menu-open,.prompt-card:focus-within{z-index:9}
+.prompt-row{grid-template-columns:minmax(0,1fr)}
+.prompt-use{width:100%}
+.prompt-actions{position:absolute;top:7px;right:7px;z-index:2;margin:0;min-width:0;display:flex;gap:2px;padding:3px;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);box-shadow:0 4px 12px var(--od-line);opacity:0;pointer-events:none;transform:translateY(-2px);transition:opacity .12s ease,transform .12s ease}
+.prompt-card:hover .prompt-actions,.prompt-card:focus-within .prompt-actions,.prompt-card.is-menu-open .prompt-actions{opacity:1;pointer-events:auto;transform:none}
+.prompt-actions .od-icon-action{width:34px;min-width:34px;height:34px;min-height:34px}
+.prompt-card.is-disabled .preview-quick-copy{display:none}
+.prompt-more{position:absolute;top:calc(100% - 5px);right:7px;z-index:12;display:grid;grid-template-columns:repeat(3,40px);gap:5px;width:max-content;max-width:calc(100% - 14px);margin:0;padding:7px;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);box-shadow:0 8px 24px var(--od-line)}
+#detailView{display:grid;gap:11px}#detailView[hidden]{display:none!important}
+.preview-detail-id{display:flex;align-items:center;gap:9px}
+.preview-detail-id .prompt-icon{margin:0}
+.preview-detail-id>div{min-width:0;display:grid;gap:3px}
+.preview-detail-id strong{font-size:13px}
+.preview-detail-id small{font-size:11px;color:var(--od-sub)}
+.preview-detail-body{max-height:min(62dvh,560px);overflow:auto;min-height:110px;padding:12px;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font-size:13px;line-height:1.65;user-select:text}
+.preview-detail-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px}
+.preview-detail-actions .od-button{min-height:36px}
+@media(hover:none),(pointer:coarse){.prompt-actions{opacity:1;pointer-events:auto;transform:none}.preview-quick-copy{display:none}.prompt-actions .od-icon-action{width:40px;min-width:40px;height:40px;min-height:40px}}
+@media(prefers-reduced-motion:reduce){.prompt-actions{transition:none;transform:none}}
 </style>
 </head>
 <body>
@@ -665,6 +687,16 @@ border:0;background:transparent;color:var(--od-sub)}
      </div>
      <div id="imageSizeGroup" class="host-setting-row od-surface image-size-setting" role="group" aria-label="图片快捷按钮尺寸设置"><span id="imageSizeLabel">图片按钮大小</span><input id="imageSizeSetting" type="hidden" value="large"><div class="image-size-buttons" role="group" aria-labelledby="imageSizeLabel"><button class="image-size-button" type="button" data-image-size="compact" aria-pressed="false" aria-label="紧凑图片尺寸，48×40 像素" title="紧凑 · 48×40"><span class="size-dot" style="--dot:6px"></span></button><button class="image-size-button" type="button" data-image-size="standard" aria-pressed="false" aria-label="标准图片尺寸，56×44 像素" title="标准 · 56×44"><span class="size-dot" style="--dot:10px"></span></button><button class="image-size-button" type="button" data-image-size="large" aria-pressed="true" aria-label="大图图片尺寸，68×48 像素" title="大图 · 68×48"><span class="size-dot" style="--dot:14px"></span></button></div></div>
      <div id="promptList" class="shortcuts-list"></div>
+   </section>
+   <section id="detailView" hidden aria-label="提示词详情">
+      <div class="preview-detail-id"><span id="detailGlyph" class="prompt-icon" aria-hidden="true"></span>
+        <div><strong id="detailName"></strong><small id="detailState"></small></div></div>
+      <div id="detailBody" class="preview-detail-body od-surface" tabindex="0" role="region" aria-label="完整提示词正文"></div>
+      <div class="preview-detail-actions">
+        <button id="detailBack" class="od-button od-button--secondary" type="button">返回列表</button>
+        <button id="detailEdit" class="od-button od-button--secondary" type="button">编辑</button>
+        <button id="detailCopy" class="od-button od-button--primary" type="button">复制全文</button>
+      </div>
    </section>
    <section id="formView" hidden aria-labelledby="hostToolTitle">
     <form id="promptForm" novalidate>
@@ -850,7 +882,7 @@ border:0;background:transparent;color:var(--od-sub)}
  function persistDemoItems(items=state.items){try{localStorage.setItem(DEMO_ITEM_KEY,JSON.stringify(items));return true;}catch{return false;}}
  function persistDemoSettings(settings=state.settings){try{localStorage.setItem(DEMO_SETTINGS_KEY,JSON.stringify(settings));return true;}catch{return false;}}
  let state={version:1,revision:1,settings:restoreDemoSettings(),items:restoreDemoItems(),toolEnabled:true};
- let currentView='index', editId=null,baselineForm='',revisionAtEdit=1,dirty=false,saving=false,expandedId=null,deleteId=null,copyId=null,tipButton=null,noticeKind='info',nextSaveFailure=null;
+ let currentView='index', detailViewId=null,editId=null,baselineForm='',revisionAtEdit=1,dirty=false,saving=false,expandedId=null,deleteId=null,copyId=null,tipButton=null,noticeKind='info',nextSaveFailure=null;
  let stagedImport=null,importRevision=0,replaceArmed=false,installed=true;
  const create=(tag,classes,text)=>{const n=document.createElement(tag);if(classes)n.className=classes;if(text!==undefined)n.textContent=text;return n;};
  function icon(name){
@@ -967,16 +999,16 @@ border:0;background:transparent;color:var(--od-sub)}
  function setView(next){
   closeUninstall();
   currentView=next;
-  for(const v of ['index','form','settings','toolList'])el(v+'View').hidden=v!==next;
+  for(const v of ['index','detail','form','settings','toolList'])el(v+'View').hidden=v!==next;
   el('hostToolHead').hidden=next==='toolList';closeMore();closeChat();
-  el('hostToolTitle').textContent=next==='form'?(editId?'编辑提示词':'新建提示词'):next==='settings'?'工具设置':'提示词快捷按钮';
+  el('hostToolTitle').textContent=next==='form'?(editId?'编辑提示词':'新建提示词'):next==='detail'?'提示词详情':next==='settings'?'工具设置':'提示词快捷按钮';
   el('addButton').hidden=next!=='index';
   el('transferControl').hidden=next!=='index';
   el('hostRemove').hidden=next==='toolList';
   if(next!=='index'){closeTransfer();discardImport();}
   el('hostSettings').hidden=next==='form';
-  el('hostBack').setAttribute('aria-label',next==='settings'?'返回提示词列表':'返回已安装工具列表');
-  el('hostBack').title=next==='settings'?'返回提示词列表':'返回已安装工具';
+  el('hostBack').setAttribute('aria-label',['settings','detail'].includes(next)?'返回提示词列表':'返回已安装工具列表');
+  el('hostBack').title=['settings','detail'].includes(next)?'返回提示词列表':'返回已安装工具';
   el('panelBody').scrollTop=0;
 }
  function setSettings(){
@@ -1132,6 +1164,17 @@ border:0;background:transparent;color:var(--od-sub)}
  function hideTip(button){if(tipButton===button){el('webTooltip').hidden=true;tipButton=null;}}
  el('pageRail').addEventListener('scroll',positionWebTip);
  window.addEventListener('resize',positionWebTip);
+ function openDetail(id){
+  if(saving||imageUploadBusy)return;
+  const item=state.items.find(row=>row.id===id);
+  if(!item){notice('该提示词不存在，请核对列表。','error');return;}
+  detailViewId=id;expandedId=null;deleteId=null;
+  el('detailName').textContent=customTitle(item)||'提示词详情';
+  el('detailState').textContent=item.enabled?'已启用 · 网页快捷按钮可用':'已停用 · 不在网页显示';
+  el('detailBody').textContent=item.body;
+  paintPicture(el('detailGlyph'),item);
+  setView('detail');el('detailBody').focus({preventScroll:true});
+ }
  function renderIndex(){
   setSettings();el('listCount').textContent=countText();
   const list=el('promptList');list.replaceChildren();
@@ -1143,10 +1186,11 @@ border:0;background:transparent;color:var(--od-sub)}
     const hasTitle=Boolean(customTitle(item)),identity=itemIdentity(item);
     const card=create('article','prompt-card'+(!item.enabled?' is-disabled':'')+(expandedId===item.id?' is-menu-open':''));
    card.dataset.id=item.id;
+   card.addEventListener('click',event=>{if(!event.target.closest('button'))openDetail(item.id)});
     const row=create('div','prompt-row'),use=create('button','prompt-use'+(!hasTitle&&item.enabled?' is-untitled':''));
-   use.type='button';use.disabled=!item.enabled||!state.toolEnabled;
-    use.setAttribute('aria-label',(item.enabled?'使用完整提示词：':'已停用的提示词：')+identity);
-   use.title=item.enabled?'优先填写输入框；不支持时直接复制完整提示词':'已停用，请在更多操作中启用';
+   use.type='button';use.disabled=false;
+    use.setAttribute('aria-label','查看提示词详情：'+identity);
+   use.title='查看完整正文、复制或编辑';
    const icon=create('span','prompt-icon');
     icon.setAttribute('aria-hidden','true');paintPicture(icon,item);
     const details=create('span','prompt-copy'),body=create('span','prompt-content',item.body);
@@ -1157,8 +1201,10 @@ border:0;background:transparent;color:var(--od-sub)}
     details.append(body);
     if(meta.childElementCount)details.append(meta);
     use.append(icon,details);
-   use.addEventListener('click',()=>void usePrompt(item));
+   use.addEventListener('click',()=>openDetail(item.id));
    const actions=create('div','prompt-actions');
+   const quick=iconAction(actions,'copy','快速复制：'+identity,()=>void copyPrompt(item),{disabled:!item.enabled||!state.toolEnabled});
+   quick.classList.add('preview-quick-copy');
    const more=iconAction(actions,'more','更多操作：'+identity,()=>{
     const willOpen=expandedId!==item.id;expandedId=willOpen?item.id:null;deleteId=null;renderIndex();
     const target=willOpen?el('prompt-menu-'+i)?.querySelector('button'):el('prompt-more-'+i);
@@ -1169,7 +1215,7 @@ border:0;background:transparent;color:var(--od-sub)}
    more.setAttribute('aria-expanded',String(expandedId===item.id));
    if(expandedId===item.id)more.setAttribute('aria-controls','prompt-menu-'+i);
    row.append(use,actions);card.append(row);
-   if(expandedId===item.id){
+   if(expandedId===item.id&&!deleteId){
     const commands=create('div','prompt-more');commands.id='prompt-menu-'+i;commands.setAttribute('role','group');commands.setAttribute('aria-label','提示词操作');
     iconAction(commands,'pencil','编辑：'+identity,()=>openForm(item.id));
     iconAction(commands,item.enabled?'eye-off':'eye',item.enabled?'停用：'+identity:'启用：'+identity,()=>{
@@ -1493,6 +1539,9 @@ border:0;background:transparent;color:var(--od-sub)}
   openForm(null,{body:text});notice('已预填选中文字；只需确认正文即可保存，短标签和名称可留空自动生成。');}
  el('mockSelection').addEventListener('click',prepareSelection);el('mockMenuAdd').addEventListener('click',confirmSelection);
  el('addButton').addEventListener('click',()=>openForm());el('cancelForm').addEventListener('click',()=>requestBack('index'));
+ el('detailBack').addEventListener('click',returnIndex);
+ el('detailEdit').addEventListener('click',()=>{if(detailViewId)openForm(detailViewId)});
+ el('detailCopy').addEventListener('click',()=>{const item=state.items.find(row=>row.id===detailViewId);if(item)void copyPrompt(item)});
  el('hostMore').addEventListener('click',()=>{
     const open=el('hostMoreMenu').hidden;closeTransfer();closeChat();
     el('hostMoreMenu').hidden=!open;el('hostMore').setAttribute('aria-expanded',String(open));
@@ -1511,7 +1560,7 @@ border:0;background:transparent;color:var(--od-sub)}
   el('hostRemove').addEventListener('click',openUninstall);
  el('cancelUninstall').addEventListener('click',()=>{closeUninstall();el('hostMore').focus({preventScroll:true});});
  el('confirmUninstall').addEventListener('click',uninstallMock);
- el('hostBack').addEventListener('click',()=>{if(currentView==='settings'){setView('index');renderIndex();el('hostMore').focus();}else requestBack('host');});el('reopenTool').addEventListener('click',()=>{if(!installed)return;setView('index');renderIndex();renderRail();el('addButton').focus({preventScroll:true});});
+ el('hostBack').addEventListener('click',()=>{if(['settings','detail'].includes(currentView))returnIndex();else requestBack('host');});el('reopenTool').addEventListener('click',()=>{if(!installed)return;setView('index');renderIndex();renderRail();el('addButton').focus({preventScroll:true});});
  el('verifySaved').addEventListener('click',()=>{
   const target=el('verificationRows');target.replaceChildren();
   if(!state.items.length)target.append(create('p','','当前还没有已保存的提示词。'));
@@ -1666,7 +1715,7 @@ border:0;background:transparent;color:var(--od-sub)}
   else if(expandedId!==null){
    const index=state.items.findIndex(item=>item.id===expandedId);expandedId=null;deleteId=null;renderIndex();
    if(index>=0)el('prompt-more-'+index)?.focus({preventScroll:true});event.preventDefault();
-  }
+  }else if(currentView==='detail'){returnIndex();event.preventDefault();}
  });
  window.addEventListener('beforeunload',event=>{if(currentView==='form'&&(dirty||saving||imageUploadBusy)){event.preventDefault();event.returnValue='';}});
 /* R2.4: Offline site-adapter laboratory. This is intentionally not production site code. */
