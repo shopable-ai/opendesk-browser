@@ -338,7 +338,7 @@ export function ToolHost({view}) {
 </ToolField>
 <button type="button" id="sidebar-tool-header-enable" className="sidebar-tool-icon-action od-icon-button"
   title={enableIsOn?'停用工具':'启用工具'} aria-label={enableIsOn?'停用工具':'启用工具'}
-  aria-pressed={enableIsOn} hidden={!enableInOverflow} disabled={enableInOverflowDisabled}
+  hidden={!enableInOverflow} disabled={enableInOverflowDisabled}
   onClick={event=>view.dispatch('sidebar-tool-enable','click',event.nativeEvent)}>
   <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
     strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
