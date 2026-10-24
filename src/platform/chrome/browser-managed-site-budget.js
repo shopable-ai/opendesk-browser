@@ -693,9 +693,17 @@ export async function stageManagedSiteV3MigrationLocked(api,{
         fail('E_MIGRATION_CONFLICT','目标公共账本已被其他操作占用，禁止覆盖');
       // A live v3 ledger might already have accrued additional real usage.
       // Never overwrite it with an older snapshot on a recovery retry.
-      if(previous.day===day&&Object.entries(counters).some(([pool,ms])=>
-        (previous.usage[pool]??0)<ms))
-        fail('E_MIGRATION_LOSS','目标账本已少于原计量池用量，禁止确认迁移');
+      if(previous.day===day){
+        if(previous.clockHighWater<clockHighWater||
+           Object.entries(counters).some(([pool,ms])=>(previous.usage[pool]??0)<ms))
+          fail('E_MIGRATION_LOSS','目标账本已少于原计量池用量或时钟水位，禁止确认迁移');
+        const oldPools=reminderLedger.pools;
+        const currentPools=normalizeManagedSiteV3Notices(previous.notices,day).pools;
+        if(Object.entries(oldPools).some(([pool,record])=>
+          currentPools[pool]?.limitMs!==record.limitMs||
+          record.thresholds.some(min=>!currentPools[pool]?.thresholds.includes(min))))
+          fail('E_MIGRATION_LOSS','迁移后的提醒去重记录少于原有已触发阈值');
+      }
       return {state:'already-staged',modelRef,slot:previous.slot};
     }
     const used=new Set(Object.values(ledger).map(row=>row.slot));
