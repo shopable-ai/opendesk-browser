@@ -145,12 +145,28 @@ async function nativeOpenImport(client,session){
     'document.querySelector("#sidebar-tool-import")?.hidden===false'),
     'real Extension Center import review');
 }
+// React renders the installed tool's Settings action in its More menu.
+// Use only the native CDP pointer path, not a hidden DOM click or Host method.
+async function nativeToggleToolSettingsViaMore(client,side){
+  const expanded=await evaluate(client,side,
+    'document.querySelector("#sidebar-tool-more-open")?.getAttribute("aria-expanded")==="true"');
+  if(!expanded)await nativeClick(client,side,'#sidebar-tool-more-open');
+  await until(()=>evaluate(client,side,
+    '(()=>{const more=document.querySelector("#sidebar-tool-more-open");'+
+    'const menu=document.querySelector("#sidebar-tool-more-menu");'+
+    'const settings=document.querySelector("#sidebar-tool-settings-open");'+
+    'return more?.getAttribute("aria-expanded")==="true"&&!!menu&&!menu.hidden&&'+
+    'settings?.parentElement===menu&&!settings.hidden&&!settings.disabled&&'+
+    'settings.checkVisibility()&&settings.getClientRects().length>0;})()'),
+    'real React More -> visible Settings');
+  await nativeClick(client,side,'#sidebar-tool-settings-open');
+}
 // The new inline consent card auto-closes after a trusted start. Avoid
 // blind toggles that could mistake the correct UI for a missing permission.
 async function setTimeReviewSettingsVisible(client,side,visible){
   const shown=await evaluate(client,side,
     '(()=>{const n=document.querySelector("#sidebar-tool-settings-view");return !!n&&!n.hidden;})()');
-  if(shown!==visible)await nativeClick(client,side,'#sidebar-tool-settings-open');
+  if(shown!==visible)await nativeToggleToolSettingsViaMore(client,side);
   await until(()=>evaluate(client,side,
     '(()=>{const n=document.querySelector("#sidebar-tool-settings-view");return !!n&&n.hidden==='+String(!visible)+';})()'),
     visible?'trusted Time Review settings visible':'trusted Time Review settings closed');
@@ -1008,7 +1024,7 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
         {marketId:released.id,version:released.version,sha256:released.sha256});
       if(toolId==='stay-focus'&&!previouslyInstalled)realOtherOfficialUpgrade=true;
       await nativeOpenInstalledApp(browser,otherManager,toolId);
-      await nativeClick(browser,otherManager,'#sidebar-tool-settings-open');
+      await nativeToggleToolSettingsViaMore(browser,otherManager);
       for(const enabled of [false,true]){
         await nativeClick(browser,otherManager,'#sidebar-tool-enable');
         await until(()=>evaluate(browser,side,'chrome.storage.local.get("opendesk.sidebar-tools.enabled.v1").then(v=>(v["opendesk.sidebar-tools.enabled.v1"]?.['+JSON.stringify(toolId)+']!==false)==='+String(enabled)+')'),'other tool lifecycle '+enabled);
