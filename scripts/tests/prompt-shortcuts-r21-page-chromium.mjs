@@ -198,7 +198,7 @@ async function expandPromptRail(){
     'window.__railRoot.querySelector(".brand")?.isConnected','positioned prompt rail launcher');
   const collapsed=await evaluate('window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")==="false"');
   if(collapsed)await clickJS('window.__railRoot.querySelector(".brand")');
-  await poll('window.__railRoot?.querySelector(".item")?.isConnected','real Chromium expanded prompt choices');
+  await poll('window.__railRoot?.querySelector(".item:not([data-scroll-conversation])")?.isConnected','real Chromium expanded prompt choices');
 }
 async function shot(name){
   const response=await rpc('Page.captureScreenshot',{format:'png'});
@@ -246,7 +246,7 @@ try{
   // against late click/double-click events. Do not race its release in CI.
   await sleep(825);
   await expandPromptRail();
-  await clickJS('window.__railRoot.querySelector(".item")');
+  await clickJS('window.__railRoot.querySelector(".item:not([data-scroll-conversation])")');
   await poll('document.querySelector("#draft").value.includes("第二行")','native textarea insertion');
   assert.equal(await evaluate('document.querySelector("#draft").value'),'旧草稿\n'+body);
   assert.equal(await evaluate('window.__edits.length'),1,'exactly one native edit');
@@ -276,7 +276,7 @@ try{
   await evaluate('window.__setRule({...window.__rule,editorSelector:"#single"})');
   await poll('window.__railRoot?.querySelector(".brand")?.isConnected','input rule mounted');
   await expandPromptRail();
-  await clickJS('window.__railRoot.querySelector(".item")');
+  await clickJS('window.__railRoot.querySelector(".item:not([data-scroll-conversation])")');
   await poll('window.__copied.length===1','multiline input safe clipboard fallback');
   assert.equal(await evaluate('document.querySelector("#single").value'),'旧单行');
   assert.equal(await evaluate('window.__edits.length'),0,'preflight did not touch single-line input');
@@ -299,7 +299,7 @@ try{
   // The trusted 700ms double-click guard must finish before a new user journey.
   await sleep(825);
   await expandPromptRail();
-  await clickJS('window.__railRoot.querySelector(".item")');
+  await clickJS('window.__railRoot.querySelector(".item:not([data-scroll-conversation])")');
   await poll('window.__richInputs>0','native contenteditable input event');
   await sleep(420);
   const richOutcome=await evaluate('({html:document.querySelector("#rich-container [contenteditable]").innerHTML,text:document.querySelector("#rich-container [contenteditable]").innerText,feedback:window.__railRoot.querySelector(".feedback").textContent,feedbackHidden:window.__railRoot.querySelector(".feedback").hidden,announcement:window.__railRoot.querySelector(".announcer").textContent,copied:window.__copied,edits:window.__edits})');
@@ -314,7 +314,7 @@ try{
   await sleep(800);
   await evaluate('window.__richRollback=true;window.__copied=[]');
   await expandPromptRail();
-  await clickJS('window.__railRoot.querySelector(".item")');
+  await clickJS('window.__railRoot.querySelector(".item:not([data-scroll-conversation])")');
   await poll('window.__richRollbacks>0','controlled editor rolled back uncommitted DOM edit');
   await poll('window.__copied.length===1','unknown rich editor effect copied for explicit review');
   assert.equal(await evaluate('document.querySelector("#rich-container [contenteditable]").innerText'),'旧富文本');
@@ -382,7 +382,7 @@ try{
     ' && window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")==="true"',
     'history SPA remount reuses dock and repositions');
   await expandPromptRail();
-  await clickJS('window.__railRoot.querySelector(".item")');
+  await clickJS('window.__railRoot.querySelector(".item:not([data-scroll-conversation])")');
   await poll('document.querySelector("main#main textarea#prompt-textarea").value.includes("第二行")',
     'history conversation native insertion');
   assert.equal(await evaluate('document.querySelector("main#main textarea#prompt-textarea").value'),
@@ -433,10 +433,10 @@ try{
   }
   await evaluate('window.__setImage("https://fixture.opendesk.invalid/bad.png","large")');
   await expandPromptRail();
-  await poll('window.__railRoot?.querySelectorAll(".item").length===3 && '+
+  await poll('window.__railRoot?.querySelectorAll(".item:not([data-scroll-conversation])").length===2 && '+
     '!window.__railRoot?.querySelector(".item.image")',
     'corrupt HTTPS response must fall back to short label');
-  assert.equal(await evaluate('window.__railRoot.querySelectorAll(".item")[1].textContent'),'山景');
+  assert.equal(await evaluate('window.__railRoot.querySelectorAll(".item:not([data-scroll-conversation])")[1].textContent'),'山景');
   const fallbackRailWidth=await evaluate('window.__railRoot.querySelector(".rail").getBoundingClientRect().width');
   assert(Math.abs(fallbackRailWidth-52)<1,
     'trusted corrupt image must shrink rail to 52px fallback: '+fallbackRailWidth);
@@ -473,17 +473,17 @@ try{
   for(const [name,rows] of compactCases){
     await evaluate('window.__setPrompts('+JSON.stringify(rows)+')');
     await poll('window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")==="true" && '+
-      'window.__railRoot?.querySelectorAll(".item").length==='+String(rows.length+1),
+      'window.__railRoot?.querySelectorAll(".item:not([data-scroll-conversation])").length==='+String(rows.length),
       'current library is expanded by default: '+name);
     if(name==='three seeds'){
       await clickJS('window.__railRoot.querySelector(".brand")');
-      await poll('window.__railRoot.querySelectorAll(".item").length===0','manual user collapse');
+      await poll('window.__railRoot.querySelectorAll(".item:not([data-scroll-conversation])").length===0','manual user collapse');
       await clickJS('window.__railRoot.querySelector(".brand")');
-      await poll('window.__railRoot.querySelectorAll(".item").length==='+String(rows.length+1),'manual user expand');
+      await poll('window.__railRoot.querySelectorAll(".item:not([data-scroll-conversation])").length==='+String(rows.length),'manual user expand');
     }
     await expandPromptRail();
-    await poll('window.__railRoot?.querySelectorAll(".item").length==='+String(rows.length+1)+' && '+
-      'Array.from(window.__railRoot.querySelectorAll(".item")).slice(0,'+rows.length+')'+
+    await poll('window.__railRoot?.querySelectorAll(".item:not([data-scroll-conversation])").length==='+String(rows.length)+' && '+
+      'Array.from(window.__railRoot.querySelectorAll(".item:not([data-scroll-conversation])")).slice(0,'+rows.length+')'+
       '.map(button=>button.getAttribute("aria-label")).join("|")==='+
       JSON.stringify(rows.map(row=>'插入提示词：'+row.name).join('|')),
       'expanded exact current prompts and management: '+name);
@@ -492,7 +492,7 @@ try{
     const target=rows.at(-1);
     const before=await evaluate('document.querySelector("main#main textarea#prompt-textarea").value');
     await sleep(750);
-    await clickJS('window.__railRoot.querySelectorAll(".item")['+(rows.length-1)+']');
+    await clickJS('window.__railRoot.querySelectorAll(".item:not([data-scroll-conversation])")['+(rows.length-1)+']');
     await poll('document.querySelector("main#main textarea#prompt-textarea").value==='+
       JSON.stringify(before+'\n'+target.body),'full-body insertion: '+name);
     assert.equal(await evaluate('window.__railRoot?.querySelector(".brand")?.getAttribute("aria-expanded")'),'true',
@@ -518,8 +518,8 @@ try{
   const manyRows=Array.from({length:11},(_,i)=>({...personal[0],
     id:'r216-overflow-'+i,label:'长'+i,name:'完整提示词 '+i,body:'正文 '+i,order:i}));
   await evaluate('window.__setPrompts('+JSON.stringify(manyRows)+')');
-  await poll('window.__railRoot?.querySelectorAll(".item").length===13',
-    'eleven saved prompts plus two hidden navigation buttons in the rail');
+  await poll('window.__railRoot?.querySelectorAll(".item:not([data-scroll-conversation])").length===11',
+    'eleven saved prompt buttons, excluding navigation controls');
   await expandPromptRail();
   const overflowRail=await railMetrics();
   assert(overflowRail.scrollHeight>overflowRail.clientHeight+10,
@@ -528,12 +528,12 @@ try{
     'long rail must remain bounded and not cover the full conversation viewport');
   const bottomIsReachable=await evaluate('(()=>{const rail=window.__railRoot.querySelector(".rail");'+
     'rail.scrollTop=rail.scrollHeight;const r=rail.getBoundingClientRect();'+
-    'const last=[...rail.querySelectorAll(".item")].at(-1).getBoundingClientRect();'+
+    'const last=[...rail.querySelectorAll(".item:not([data-scroll-conversation])")].at(-1).getBoundingClientRect();'+
     'return last.top>=r.top-1&&last.bottom<=r.bottom+1;})()');
   assert.equal(bottomIsReachable,true,'the last shortcut remains reachable by scrolling');
   await evaluate('window.__setPrompts('+JSON.stringify(personal)+')');
-  await poll('window.__railRoot?.querySelectorAll(".item").length===7',
-    'restore five custom shortcuts and the two hidden navigation buttons');
+  await poll('window.__railRoot?.querySelectorAll(".item:not([data-scroll-conversation])").length===5',
+    'restore exactly five saved prompt buttons');
   await expandPromptRail();
   const restoredRail=await railMetrics();
   assert(restoredRail.scrollHeight<=restoredRail.clientHeight+1,
@@ -548,7 +548,7 @@ try{
   console.log('PROMPT_SHORTCUTS_R21_PAGE_CHROMIUM_FIXTURE_PASS',JSON.stringify(report));
 }catch(error){
   let snapshot;
-  try{snapshot=await evaluate('({ready:window.__ready,errors:window.__loadErrors||[],promptRail:!!document.querySelector("[data-opendesk-prompts]"),path:location.pathname,focused:document.activeElement?.id,draft:document.querySelector("#draft")?.value,edits:window.__edits||[],copied:window.__copied||[],inputEvents:window.__inputs||0,hostHidden:document.querySelector("[data-opendesk-prompts]")?.hidden,feedback:window.__railRoot?.querySelector(".feedback")?.textContent,feedbackHidden:window.__railRoot?.querySelector(".feedback")?.hidden,railButton:window.__railRoot?.querySelector(".item")?.getBoundingClientRect()?.toJSON()})');}
+  try{snapshot=await evaluate('({ready:window.__ready,errors:window.__loadErrors||[],promptRail:!!document.querySelector("[data-opendesk-prompts]"),path:location.pathname,focused:document.activeElement?.id,draft:document.querySelector("#draft")?.value,edits:window.__edits||[],copied:window.__copied||[],inputEvents:window.__inputs||0,hostHidden:document.querySelector("[data-opendesk-prompts]")?.hidden,feedback:window.__railRoot?.querySelector(".feedback")?.textContent,feedbackHidden:window.__railRoot?.querySelector(".feedback")?.hidden,railButton:window.__railRoot?.querySelector(".item:not([data-scroll-conversation])")?.getBoundingClientRect()?.toJSON()})');}
   catch(snapshotError){snapshot={diagnosticError:String(snapshotError)};}
   console.error('PROMPT_SHORTCUTS_R21_PAGE_CHROMIUM_FIXTURE_FAIL',
     JSON.stringify({message:String(error?.stack||error),snapshot,jsErrors}));
