@@ -1,4 +1,4 @@
-// Native-release gate contract fixtures must follow the real 1.2.2 evidence
+// Native-release gate contract fixtures must follow the real 1.2.3 evidence
 // schema. Synthetic evidence here tests validation only, NEVER native approval.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -22,7 +22,7 @@ const inputs={
   manifest:Buffer.from(JSON.stringify({
     manifest_version:3,name:'Reviewed AdBlock Fixture',version:'1.0.0',
     background:{service_worker:'sw.js'}})),
-  packageBytes:Buffer.from(JSON.stringify({id:'adblock',version:'1.2.2'}))
+  packageBytes:Buffer.from(JSON.stringify({id:'adblock',version:'1.2.3'}))
 };
 const host='news.example.com',selector='#sponsor';
 const rule={host,selector},present={version:1,entries:[rule]},empty={version:1,entries:[]};
@@ -62,14 +62,14 @@ function makeFixture(){
     if(['pick','cancel','restore'].includes(name))
       step.input={isTrusted:true,type:name==='cancel'?'keydown':'pointerdown'};
     if(name==='upgrade'){
-      step.fromVersion='1.2.1';step.toVersion='1.2.2';
+      step.fromVersion='1.2.1';step.toVersion='1.2.3';
       step.runtime={};
       for(const phase of ['before','after']){
         step[phase].storage={[ADBLOCK_STORE]:structuredClone(dnrState)};
         step[phase].storageReadKeys=[ADBLOCK_STORE,ADBLOCK_COSMETIC_STORE];
         step.runtime[phase]={extensionId:'a'.repeat(32),profile:'/tmp/reviewed-adblock/profile',root,
           artifactPackageHash:phase==='before'?'b'.repeat(64):inputs.artifactPackageHash,
-          installedVersion:phase==='before'?'1.2.1':'1.2.2',
+          installedVersion:phase==='before'?'1.2.1':'1.2.3',
           installedPackageHash:phase==='before'?digest(legacyPackageBytes):digest(inputs.packageBytes)};
         step[phase].storage[ADBLOCK_STORE].approvedHash=step.runtime[phase].installedPackageHash;
       }
@@ -86,7 +86,7 @@ function makeFixture(){
     chrome:'Chrome/156.0.8078.4',extensionId:'a'.repeat(32),
     artifactPackageHash:inputs.artifactPackageHash,driverSHA256:digest(inputs.driver),
     swSHA256:digest(inputs.runtime),manifestSHA256:digest(inputs.manifest),
-    packageSHA256,installedIdentity:{version:'1.2.2',packageHash:packageSHA256},
+    packageSHA256,installedIdentity:{version:'1.2.3',packageHash:packageSHA256},
     environment:'PRODUCTION',releaseReady:true,root,cleanupErrors:[],evidenceErrors:[],
     manualCosmetic:'PASS',screenshots,
     packageIdentity:{
@@ -114,7 +114,7 @@ function writeManualEvidence(report,files){
 const receipt=()=>makeFixture().report;
 inputs.evidenceFiles=makeFixture().evidenceFiles;
 
-test('release accepts the complete validated 1.2.2 fixture contract (not real Chrome evidence)',()=>{
+test('release accepts the complete validated 1.2.3 fixture contract (not real Chrome evidence)',()=>{
   assert.equal(verifyAdblockNativeRelease(receipt(),inputs).status,'PASS');
 });
 
@@ -191,7 +191,7 @@ test('upgrade rejects lost state, fabricated legacy rules and missing runtime id
     ['premature new manual',s=>{s.after.storage[ADBLOCK_COSMETIC_STORE]=present;}],
     ['missing runtime',s=>{delete s.runtime;}],
     ['wrong source version',s=>{s.fromVersion='1.2.0';}],
-    ['wrong target version',s=>{s.toVersion='1.2.3';}],
+    ['wrong target version',s=>{s.toVersion='1.2.2';}],
     ['changed profile',s=>{s.runtime.after.profile+='/different';}],
     ['reviewed artifact drift',s=>{s.runtime.after.artifactPackageHash='f'.repeat(64);}],
     ['installed package drift',s=>{s.runtime.after.installedPackageHash='f'.repeat(64);}],
@@ -298,7 +298,7 @@ test('release rejects skipped, incomplete, altered identity and manual cosmetic 
     {candidate:'b'.repeat(40)},{chrome:''},{extensionId:''},
     {installedIdentity:{version:'1.2.1',packageHash:digest(inputs.packageBytes)}},
     {environment:'DEVELOPMENT'},{releaseReady:false},{manualCosmetic:'NOT_TESTED'},
-    {installedIdentity:{version:'1.2.2',packageHash:'0'.repeat(64)}}])
+    {installedIdentity:{version:'1.2.3',packageHash:'0'.repeat(64)}}])
     assert.throws(()=>verifyAdblockNativeRelease({...receipt(),...change},inputs));
   for(const key of ['driverSHA256','swSHA256','manifestSHA256','packageSHA256','artifactPackageHash'])
     assert.throws(()=>verifyAdblockNativeRelease({...receipt(),[key]:'0'.repeat(64)},inputs),/drift/);

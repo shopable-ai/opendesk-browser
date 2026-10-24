@@ -14,7 +14,7 @@ const required=['nativePermission','network','globalToggle','siteException',
   'otherSite','iframe','closedPanel','workerRestart','browserRestart',
   'revocation','uninstall','installedUiParity','siteScopeSwitch','restoreOneClick'];
 
-// Native driver contract for 1.2.2. A DNR-only receipt cannot satisfy this gate.
+// Native driver contract for 1.2.3. A DNR-only receipt cannot satisfy this gate.
 // report.manualCosmetic = 'PASS'; report.cases.manualCosmetic = {
 //   schemaVersion:1, status:'PASS', host, selector, steps, evidence:{file,bytes,sha256},
 //   candidate, artifactPackageHash, extensionId, packageSHA256, driverSHA256
@@ -23,8 +23,8 @@ const required=['nativePermission','network','globalToggle','siteException',
 // Snapshots contain url, tabId, documentId, targetPresent, targetHidden and
 // storage:{[ADBLOCK_COSMETIC_STORE]:{version:1,entries:[{host,selector}]}}.
 // pick/cancel/restore also require input:{isTrusted:true,type:'pointerdown'|'keydown'}.
-// upgrade additionally requires fromVersion:'1.2.1', toVersion:'1.2.2'.
-// Its snapshots query both storage keys: 1.2.1 has no cosmetic key, and 1.2.2
+// upgrade additionally requires fromVersion:'1.2.1', toVersion:'1.2.3'.
+// Its snapshots query both storage keys: 1.2.1 has no cosmetic key, and 1.2.3
 // has no manual rules yet. Preserve enabled DNR state/exceptions and approval
 // epoch; rebind only the approval hash to the installed package in each phase.
 // step.runtime.{before,after} records extensionId, profile, root,
@@ -146,7 +146,7 @@ function verifyManualCosmetic(report,evidenceFiles){
     }
     if(name==='upgrade'){
       assert.equal(step.fromVersion,'1.2.1','manualCosmetic upgrade source version required');
-      assert.equal(step.toVersion,'1.2.2','manualCosmetic upgrade target version required');
+      assert.equal(step.toVersion,'1.2.3','manualCosmetic upgrade target version required');
       assert.ok(!Object.hasOwn(step.before.storage,ADBLOCK_COSMETIC_STORE),
         `${label} 1.2.1 must have no cosmetic key`);
       for(const phase of ['before','after']){
@@ -163,7 +163,7 @@ function verifyManualCosmetic(report,evidenceFiles){
         assert.equal(runtime.root,report.deployedRoot??report.root,`${label} ${phase} deployed root drift`);
         assert.ok(typeof runtime.profile==='string'&&isAbsolute(runtime.profile),
           `${label} ${phase} profile required`);
-        assert.equal(runtime.installedVersion,phase==='before'?'1.2.1':'1.2.2',
+        assert.equal(runtime.installedVersion,phase==='before'?'1.2.1':'1.2.3',
           `${label} ${phase} installed version drift`);
         for(const key of ['artifactPackageHash','installedPackageHash'])
           assert.match(runtime[key],sha256,`${label} ${phase} ${key} required`);
@@ -212,7 +212,7 @@ export function verifyAdblockNativeRelease(report,{head,driver,runtime,manifest,
     'installed package differs from official package');
   const pkg=JSON.parse(packageBytes),loadedManifest=JSON.parse(manifest);
   assert.equal(pkg.id,'adblock','official AdBlock identity required');
-  assert.equal(pkg.version,'1.2.2','manual cosmetic release requires version 1.2.2');
+  assert.equal(pkg.version,'1.2.3','manual cosmetic release requires version 1.2.3');
   assert.equal(loadedManifest.manifest_version,3,'native MV3 manifest required');
   assert.equal(loadedManifest.background?.service_worker,'sw.js','native reviewed worker required');
   assert.match(loadedManifest.version,/^\d+\.\d+(?:\.\d+){0,2}$/,'native manifest version required');

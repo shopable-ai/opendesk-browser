@@ -465,7 +465,7 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   if(CLOSEOUT){
     assert.equal(JSON.parse(oldBytes).id,'adblock');
     assert.equal(JSON.parse(oldBytes).version,'1.2.1','preserved old formal package required');
-    assert.equal(pkg.version,'1.2.2','frozen candidate must be 1.2.2');
+    assert.equal(pkg.version,'1.2.3','frozen candidate must be 1.2.3');
   }
   const adblockProject=path.join(SOURCE_ROOT,'examples/sidebar-tools/adblock');
   // Existing packer enforces the source-bound React build-ready receipt.
@@ -1026,7 +1026,7 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
   await until(()=>evaluate(client,sid,'!document.querySelector("#workbench-tools").hidden'),
     'real Extension Center tab is selected');
   if(CLOSEOUT){
-    report.verificationScope=CORE_UPGRADE?'ADBLOCK_CORE_121_SETTINGS_UPGRADE_122_PICKER_ACTIONS':
+    report.verificationScope=CORE_UPGRADE?'ADBLOCK_CORE_121_SETTINGS_UPGRADE_123_PICKER_ACTIONS':
       'ADBLOCK_CLOSEOUT_AB_UPGRADE_MANUAL_ICONS_CHROME_ZOOM';
     report.closeout={status:'RUNNING',oldPackage:{file:OLD_PACKAGE,version:'1.2.1',
       sha256:createHash('sha256').update(oldBytes).digest('hex')},sourceRoot:SOURCE_ROOT};

@@ -103,7 +103,7 @@ export function assertAdblockManualStep(name,step,{host,selector}) {
     if(Object.hasOwn(step.after.storage,cosmeticKey))assert.deepEqual(step.after.storage[cosmeticKey],{version:1,entries:[]});
     assert.equal(step.before.storage[stateKey].approvedHash,step.runtime.before.installedPackageHash);
     assert.deepEqual(step.after.storage[stateKey],{...step.before.storage[stateKey],approvedHash:step.runtime.after.installedPackageHash});
-    assert.equal(step.fromVersion,'1.2.1');assert.equal(step.toVersion,'1.2.2');
+    assert.equal(step.fromVersion,'1.2.1');assert.equal(step.toVersion,'1.2.3');
     for(const phase of ['before','after'])assert.equal(step.runtime[phase].installedVersion,step[phase==='before'?'fromVersion':'toVersion']);
     for(const key of ['extensionId','profile','root'])assert.equal(step.runtime.after[key],step.runtime.before[key]);
     for(const key of ['artifactPackageHash','installedPackageHash'])assert.notEqual(step.runtime.after[key],step.runtime.before[key]);
@@ -145,7 +145,7 @@ export function assertAdblockManualStep(name,step,{host,selector}) {
   if(['pick','cancel','restore'].includes(name)){
     assert.equal(step.input?.isTrusted,true);assert.ok(['pointerdown','keydown'].includes(step.input.type));
   }
-  if(name==='upgrade'){assert.equal(step.fromVersion,'1.2.1');assert.equal(step.toVersion,'1.2.2');}
+  if(name==='upgrade'){assert.equal(step.fromVersion,'1.2.1');assert.equal(step.toVersion,'1.2.3');}
   assert.ok(step.screenshots?.before&&step.screenshots?.after);
   assert.notEqual(step.screenshots.before,step.screenshots.after);
 }
@@ -349,7 +349,7 @@ export async function runAdblockCloseoutNative(ctx) {
     assert.equal(permission,true);report.nativePermission='PASS';
     if(ctx.candidateOnly){
       manual.steps.upgrade={status:'NOT_TESTED',reason:'Candidate-only diagnostics; old package installation blocked in separate raw receipt'};
-      report.closeout.candidateInstalled=await upload(ctx.candidatePackage,ctx.candidateBytes,'1.2.2');
+      report.closeout.candidateInstalled=await upload(ctx.candidatePackage,ctx.candidateBytes,'1.2.3');
     }else report.closeout.oldInstalled=await upload(ctx.oldPackage,ctx.oldBytes,'1.2.1');
     react=await openTool();
     await useFixture(ctx.manualOtherUrl);await enable();
@@ -369,14 +369,14 @@ export async function runAdblockCloseoutNative(ctx) {
       const preserved=await storage();
       assert.deepEqual(preserved[STORE],before[STORE],'whole extension upgrade preserves old intent before tool update');
       assert.equal(preserved[INSTALLED].find(t=>t.id==='adblock')?.version,'1.2.1','no uninstall/reinstall during runtime upgrade');
-      report.closeout.candidateInstalled=await upload(ctx.candidatePackage,ctx.candidateBytes,'1.2.2');
+      report.closeout.candidateInstalled=await upload(ctx.candidatePackage,ctx.candidateBytes,'1.2.3');
       react=await openTool();await useFixture(ctx.manualUrl);await pageMouse.bringToFront();await visible(false);
       const after=await storage();assert.deepEqual(after[STORE],{...before[STORE],
         approvedHash:report.closeout.candidateInstalled.packageHash},'upgrade preserves choice and exceptions with current package approval');
       assert.equal(after[INSTALLED].filter(t=>t.id==='adblock').length,1,'same tool ID without uninstall');
       return {historySetup:report.closeout.historicalSetup.method,runtime:{before:oldIdentity,
-        after:{...ctx.runtimeIdentity(),installedVersion:'1.2.2',installedPackageHash:report.closeout.candidateInstalled.packageHash}}};
-    },{fromVersion:'1.2.1',toVersion:'1.2.2'});
+        after:{...ctx.runtimeIdentity(),installedVersion:'1.2.3',installedPackageHash:report.closeout.candidateInstalled.packageHash}}};
+    },{fromVersion:'1.2.1',toVersion:'1.2.3'});
     report.upgrade='PASS';}
     const identity=report.closeout.candidateInstalled;
     report.installedIdentity={version:identity.version,packageHash:identity.packageHash,epoch:identity.epoch};
@@ -386,7 +386,7 @@ export async function runAdblockCloseoutNative(ctx) {
       manifestVersion:loadedManifest.version,manifestName:loadedManifest.name,
       ...Object.fromEntries(['artifactPackageHash','swSHA256','manifestSHA256','packageSHA256'].map(k=>[k,report[k]])),
       installedPackageHash:identity.packageHash};
-    // The first manual rule belongs to 1.2.2. Never seed storage or call an API
+    // The first manual rule belongs to 1.2.3. Never seed storage or call an API
     // that the real historical release did not implement.
     const initial=await snapshot('first-pick','before');
     await picker();await pageMouse.bringToFront();await pageMouse.locator(selector).hover();
@@ -447,7 +447,7 @@ export async function runAdblockCloseoutNative(ctx) {
       await useFixture(ctx.manualOtherUrl);
       const exceptionRequest=await probe(c,pageSession,ctx.adUrl());assert.equal(exceptionRequest.success,true);
       await c.send('Target.closeTarget',{targetId:pageTarget.targetId});({pageSession,pageTarget,pageMouse}=own);
-      report.core={status:'PASS',scope:'1.2.1 global/settings upgrade; 1.2.2 picker, refresh/reopen and rule actions',
+      report.core={status:'PASS',scope:'1.2.1 global/settings upgrade; 1.2.3 picker, refresh/reopen and rule actions',
         releaseReady:false,upgrade:manual.steps.upgrade.status,firstPick:true,
         refresh:manual.steps.reload.status,reopen:manual.steps.reopen.status,icons:icons.status,
         migratedNetwork:{status:'PASS',protectedRequest,exceptionRequest}};
