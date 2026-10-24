@@ -166,13 +166,9 @@ export async function finishLegacyFocusUpgradeLocked({api,lockManager,descriptor
           next,raw,'旧版网站范围授权转移');
     });
   }
-  // Retire only the OLD product's fixed range and alarm. Peer DNR/Alarms
-  // remain untouched. The public Driver owns the subsequent finite projection.
-  await stopStayFocusForTool(api,FOCUS_ID);
-  const native=await api.declarativeNetRequest.getDynamicRules();
-  if(native.some(rule=>rule.id>=FOCUS_RULE_FIRST&&rule.id<=FOCUS_RULE_LAST)||
-     await api.alarms.get(FOCUS_ALARM))
-    fail('E_OUTCOME_UNKNOWN','旧版网站规则或专用计时仍未确认退休');
+  // First establish and independently verify the NEW public Driver. Only
+  // then may the old native DNR/Alarm owner be retired: never introduce a
+  // protection gap or discard historical counters before v3 is live.
   await stopManagedSiteBudgetForTool(api,FOCUS_ID,{lockManager});
   const saved=(await api.storage.local.get(MANAGED_SITE_BUDGET_STORE))
     [MANAGED_SITE_BUDGET_STORE]?.[FOCUS_ID];
@@ -195,6 +191,18 @@ export async function finishLegacyFocusUpgradeLocked({api,lockManager,descriptor
      expected.some(rule=>!owned.some(found=>found.id===rule.id&&
        found.action?.type===rule.action?.type&&found.priority===rule.priority)))
     fail('E_OUTCOME_UNKNOWN','公共 Driver DNR 原生规则尚未通过独立回读');
+  // The new native owner has passed readback. Retire the fixed legacy range
+  // (never all DNR rules or shared alarms) and prove it is actually gone.
+  await stopStayFocusForTool(api,FOCUS_ID);
+  const native=await api.declarativeNetRequest.getDynamicRules();
+  if(native.some(rule=>rule.id>=FOCUS_RULE_FIRST&&rule.id<=FOCUS_RULE_LAST)||
+     await api.alarms.get(FOCUS_ALARM))
+    fail('E_OUTCOME_UNKNOWN','旧版网站规则或专用计时仍未确认退休');
+  // Read back the public effects again after retiring old resources.
+  const finalRules=await api.declarativeNetRequest.getDynamicRules();
+  if(expected.some(rule=>!finalRules.some(found=>found.id===rule.id&&
+       found.action?.type===rule.action.type&&found.priority===rule.priority)))
+    fail('E_OUTCOME_UNKNOWN','退休旧资源后公共网站规则未能独立验证');
   return {state:'native-verified',day:saved.day,usage:structuredClone(saved.usage),
     modelRef,desiredPolicyRev:saved.desiredPolicyRev,
     appliedPolicyRev:saved.appliedPolicyRev};
