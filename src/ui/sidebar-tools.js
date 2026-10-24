@@ -435,13 +435,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   patchToolField(view,cookieOtherSites,{className:'sidebar-toc-settings-entries'});
   // Full Bookmarks belongs to the installed package, never inherited from Owned.
   const fullBookmarkSettings=view.fields['sidebar-tool-bookmark-permissions'];
-  patchToolField(view,fullBookmarkSettings,{className:'sidebar-tool-cookie-permissions od-surface'});
+  patchToolField(view,fullBookmarkSettings,{className:'sidebar-tool-bookmark-permissions od-surface'});
   setToolFieldAttribute(view,fullBookmarkSettings,'aria-label','Chrome 完整书签独立授权');
   patchToolField(view,fullBookmarkSettings,{hidden:true});
   const fullBookmarkHeading=view.fields['sidebar-tool-bookmark-heading'];
   patchToolField(view,fullBookmarkHeading,{textContent:'完整 Chrome 书签访问'});
   const fullBookmarkInfo=view.fields['sidebar-tool-bookmark-info'];patchToolField(view,fullBookmarkInfo,{className:'sidebar-toc-settings-hint'});
-  patchToolField(view,fullBookmarkInfo,{textContent:'可读取、编辑、移动及删除所有 Chrome 书签和文件夹（包括其他工具创建的）。仅此工具安装版本可用，递归删除仍需逐次确认。'});
+  patchToolField(view,fullBookmarkInfo,{textContent:'允许本工具读取、编辑、移动和删除 Chrome 全部书签（含其他工具创建的）；删除文件夹仍须单独确认。'});
   const fullBookmarkButton=view.fields['sidebar-tool-bookmark-grant'];
   patchToolField(view,fullBookmarkButton,{type:'button'});patchToolField(view,fullBookmarkButton,{className:'od-button'});
   const isFullBookmarkTool=tool=>tool?.capabilities?.includes('browser.bookmarks.full')===true;
@@ -1052,7 +1052,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   function renderTocSettings(){
     const managed=Boolean(active&&!readOnlyPreview),id=active?.id,promptSettings=managed&&id===PROMPT_ID;
     if(managed&&id==='cookie-editor')prepareCookieAdmission(active);
-    setToolFieldAttribute(view, settingsView, 'data-tool', promptSettings?PROMPT_ID:'');
+    setToolFieldAttribute(view, settingsView, 'data-tool', managed?id:'');
     const enabled=Boolean(managed&&!enableReadError&&sidebarToolEnabled(enableRecords,id));
     timePermissions?.render(active,readOnlyPreview,frameRoot?.dataset?.timeReviewNative==='true');
     focusPermissions?.render(active,readOnlyPreview,enabled);
@@ -1102,7 +1102,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // Time Review uses the same trusted static settings DOM as an inline
     // enrollment card. Do not replace/hide its live stats iframe.
     const trustedInline=show&&(id===TIME_REVIEW_ID||id===FOCUS_ID||id===AI_ID||
-      (isCookieTool(active)&&id!=='cookie-editor')||isFullBookmarkTool(active));
+      (isCookieTool(active)&&id!=='cookie-editor'));
     // Native approval/stop remains visible above a live sandbox, never inside it.
     setToolFieldAttribute(view, display, 'data-trusted-tool-inline', String(trustedInline));
     // Cookie approval is in the dedicated trusted card above the frame.
@@ -1150,11 +1150,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view,fullBookmarkButton,{disabled:busy||!enabled||!isFullBookmarkTool(active)});
     setToolFieldAttribute(view,fullBookmarkButton,'aria-pressed',String(hasFullBookmarkConsent));
     patchToolField(view, removeButton, {hidden: readOnlyPreview});if(openTabButton)patchToolField(view, openTabButton, {hidden: readOnlyPreview});
-    if(enableButton){patchToolField(view, enableButton, {textContent: promptSettings?'':isToc?tocText(enabled?'disable':'enable'):enabled?'停用工具':'启用工具'});patchToolField(view, enableButton, {disabled: busy||enableReadError||toolSaving||readOnlyPreview});
-      setToolFieldAttribute(view, enableButton, 'role', promptSettings?'switch':'button');
-      setToolFieldAttribute(view, enableButton, 'aria-label', promptSettings?'启用工具':enableButton.textContent);
-      if(promptSettings)setToolFieldAttribute(view, enableButton, 'aria-checked', String(enabled));else setToolFieldAttribute(view, enableButton, 'aria-checked', null);
-      setToolFieldAttribute(view, enableButton, 'aria-pressed', String(enabled));}
+    if(enableButton){
+      const useSwitch=promptSettings||isFullBookmarkTool(active);
+      patchToolField(view, enableButton, {textContent: useSwitch?'':isToc?tocText(enabled?'disable':'enable'):enabled?'停用工具':'启用工具'});
+      patchToolField(view, enableButton, {disabled: busy||enableReadError||toolSaving||readOnlyPreview});
+      setToolFieldAttribute(view, enableButton, 'role', useSwitch?'switch':'button');
+      setToolFieldAttribute(view, enableButton, 'aria-label', useSwitch?'启用工具':enableButton.textContent);
+      setToolFieldAttribute(view, enableButton, 'aria-checked', useSwitch?String(enabled):null);
+      setToolFieldAttribute(view, enableButton, 'aria-pressed', useSwitch?null:String(enabled));
+    }
     if(enableHint)patchToolField(view, enableHint, {hidden: promptSettings&&!enableReadError});
     if(enableHint)patchToolField(view, enableHint, {textContent: promptSettings?
       (enableReadError?'工具状态读取异常，已保护性停止运行。':enabled?'已启用 · 基础快捷按钮可直接使用':'已停用 · 已保存提示词保留'):
