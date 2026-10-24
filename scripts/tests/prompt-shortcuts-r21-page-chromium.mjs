@@ -196,13 +196,13 @@ async function clickJS(expression,clickCount=1){
     await rpc('Input.dispatchMouseEvent',{type,x:rect.x,y:rect.y,...extra});
 }
 async function waitPromptRail(){
-  // No launcher: installed saved prompt buttons must be directly visible.
+  // A dedicated first OD brand entry is followed by every saved shortcut.
   await poll('window.__railRoot?.host?.isConnected&&!window.__railRoot.host.hidden&&'+
     'window.__railRoot.host.style.left!==""&&window.__railRoot.host.style.top!==""&&'+
     'window.__railRoot.querySelector(".item")?.isConnected','visible prompt-only rail');
-  assert.equal(await evaluate('window.__railRoot.querySelector(".brand")===null && '+
+  assert.equal(await evaluate('window.__railRoot.querySelector(".rail")?.firstElementChild?.className==="brand" && '+
     'window.__railRoot.querySelector("[data-scroll-conversation]")===null'),true,
-    'no OD launcher or transcript arrows in the webpage rail');
+    'only the first OD brand button is added, without transcript arrows');
 }
 async function shot(name){
   const response=await rpc('Page.captureScreenshot',{format:'png'});
@@ -479,9 +479,10 @@ try{
     await poll('window.__railRoot?.querySelector(".item")?.isConnected && '+
       'window.__railRoot?.querySelectorAll(".item:not([data-scroll-conversation])").length==='+String(rows.length),
       'current library renders all saved prompts directly: '+name);
-    assert.equal(await evaluate('window.__railRoot.querySelector(".brand")===null && '+
+    assert.equal(await evaluate('window.__railRoot.querySelector(".rail")?.firstElementChild?.className==="brand" && '+
+      'window.__railRoot.querySelectorAll(".brand").length===1 && '+
       'window.__railRoot.querySelector("[data-scroll-conversation]")===null'),true,
-      'old OD and transcript navigation buttons must stay deleted');
+      'one first OD brand remains, without old collapse or transcript arrows');
     await waitPromptRail();
     await poll('window.__railRoot?.querySelectorAll(".item:not([data-scroll-conversation])").length==='+String(rows.length)+' && '+
       'Array.from(window.__railRoot.querySelectorAll(".item:not([data-scroll-conversation])")).slice(0,'+rows.length+')'+
@@ -503,14 +504,14 @@ try{
   scenes.push({step:'R2.17 source-bound prompt-only rail for current default, edited, deleted and legacy libraries',
     cases:compactCases.map(([name,rows])=>({name,count:rows.length})),
     actualChromiumDOM:true,genuineCDPClicks:true,installedExtension:false});
-  // R2.17: Only five saved prompts are visible; no OD, transcript arrows,
-  // or phantom management controls may appear in the real trusted Shadow DOM.
+  // Five prompts plus exactly one first OD brand are visible; no old collapse,
+  // transcript arrows or phantom management controls may appear in this rail.
   const railMetrics=()=>evaluate('(()=>{const rail=window.__railRoot.querySelector(".rail");'+
     'const rect=rail.getBoundingClientRect();return {buttons:[...rail.querySelectorAll("button")].filter(b=>!b.hidden).length,'+
     'horizontal:rail.classList.contains("horizontal"),scrollHeight:rail.scrollHeight,'+
     'clientHeight:rail.clientHeight,paintedHeight:rect.height,overflowY:getComputedStyle(rail).overflowY};})()');
   const normalRail=await railMetrics();
-  assert.equal(normalRail.buttons,5,'exactly five saved shortcuts, no OD/nav controls');
+  assert.equal(normalRail.buttons,6,'one OD brand and five saved shortcuts, no navigation controls');
   assert.equal(normalRail.horizontal,false,'sufficient desktop gutter uses vertical layout');
   assert.equal(normalRail.overflowY,'auto','preserve scrolling for genuinely long lists');
   assert(normalRail.scrollHeight<=normalRail.clientHeight+1,

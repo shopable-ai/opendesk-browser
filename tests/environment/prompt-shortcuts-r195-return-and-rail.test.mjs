@@ -21,13 +21,14 @@ test('R1.16.3 prompt rail and lower-right conversation dock are separate',async(
   assert.match(page,/rail\.replaceChildren\(\);rail\.dataset\.imageSize=imageSize/);
   assert.match(page,/for\(const row of items\)/);
   assert.match(preview,/for\(const item of active\)/);
-  assert.doesNotMatch(page,/compactExpanded|usesCompactMenu|className='brand'|data-scroll-conversation|dataset\.scrollConversation|\.nav-item/);
+  assert.doesNotMatch(page,/compactExpanded|usesCompactMenu|data-scroll-conversation|dataset\.scrollConversation|\.nav-item/);
+  assert.match(page,/brand\.addEventListener\('click',openSidebar\)/,'brand retains existing trusted panel open');
+  assert.match(preview,/page-brand/,'brand is mirrored only in preview webpage rail');
   assert.doesNotMatch(preview,/previewCompactExpanded|starter-toggle|page-shortcut nav-preview/);
-  for(const key of ['conversationTop','conversationBottom']){
-    assert.match(sidepanel,new RegExp('data-scroll-nav="'+key+'"'),
-      'the official manager retains each independent conversation setting');
-    assert.match(preview,new RegExp('data-scroll-nav-preview="'+key+'"'));
-  }
+  assert.doesNotMatch(sidepanel,/ps-scroll-settings|data-scroll-nav=/,
+    'management list must not restore the removed navigation switches');
+  assert.match(preview,/id="previewScrollAdvanced"/,
+    'optional navigation recovery remains under preview tool settings only');
   assert.match(page,/floatingHost=doc.createElement\('nav'\)/);
   assert.match(page,/const showBottom=navigationSettings.conversationBottom/);
   assert.match(page,/const topKey=navigationSettings.conversationTop\?'conversationTop':'floatingTop'/);
@@ -46,8 +47,8 @@ test('R2.17 prompt-only rail scrolls only for genuinely long libraries',async()=
   assert.doesNotMatch(preview,/max-height:248px|max-height:min\(340px/);
   assert.match(page,/railHeight=Math.min\(rail.offsetHeight\|\|rail.scrollHeight\|\|222,win.innerHeight-16\)/);
   const verticalHeight=count=>count*38+(count-1)*5+2*6+2;
-  assert.equal(verticalHeight(3),138,'three default prompts need only their own content height');
-  assert(verticalHeight(11)>400,'long saved lists retain bounded internal scrolling');
+  assert.equal(verticalHeight(4),181,'one OD entry plus three prompts fit without scrolling');
+  assert(verticalHeight(12)>400,'long saved lists retain bounded internal scrolling');
 });
 
 test('R1.9.5 current iframe Cancel/Back discards a draft directly, but never exits during unknown writes',async()=>{

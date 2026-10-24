@@ -1234,70 +1234,21 @@ test('R1.7 shared back blocks pending and unknown storage results without replay
   assert.equal(f.requests.filter(row=>row.op==='storage.set').length,1);
 });
 
-const navigationKeys=['regionTop','regionBottom','conversationTop','conversationBottom','floatingTop'];
-const scrollControls=f=>f.nodes['ps-scroll-settings'].querySelectorAll('[data-scroll-nav]');
-const changeNavigation=(f,key,checked)=>{
-  const control=scrollControls(f).find(node=>node.dataset.scrollNav===key);
-  assert(control,'missing management switch '+key);control.checked=checked;control.emit('change');
-};
-test('R1.16.1 five management switches default on, persist independently and preserve prompts, images and export',async()=>{
-  const seed=structuredClone(initialLibrary);
-  seed.settings.imageSize='compact';seed.items[1].appearance='image';seed.items[1].imageUrl='https://example.org/image.png';
-  const f=await fixture({initial:seed});
-  assert.equal(scrollControls(f).length,5);
-  assert(scrollControls(f).every(node=>node.checked&&!node.disabled));
-  const beforeExport=()=>{f.nodes['ps-export'].click();};
-  beforeExport();await settle();const exported=f.downloads.at(-1);
-  for(const key of navigationKeys){
-    changeNavigation(f,key,false);await settle();
-    for(const control of scrollControls(f))assert.equal(control.checked,
-      !navigationKeys.slice(0,navigationKeys.indexOf(key)+1).includes(control.dataset.scrollNav));
-  }
-  assert.equal(f.writes(),5);
-  const reopened=await fixture({initial:f.stored()});
-  assert(scrollControls(reopened).every(node=>!node.checked));
-  assert.equal(f.stored().settings.imageSize,'compact');
-  assert.equal(f.stored().settings.webButtons,true);
-  assert.deepEqual(f.stored().items.map(row=>[row.id,row.body,row.appearance,row.imageUrl]),
-    seed.items.map(row=>[row.id,row.body,row.appearance??'text',row.imageUrl??'']));
-  beforeExport();await settle();
-  // Timestamp is the only nondeterministic backup field.
-  const backup=payload=>{const value=JSON.parse(payload.text);delete value.exportedAt;return value;};
-  assert.deepEqual(backup(f.downloads.at(-1)),backup(exported));
-  for(const key of navigationKeys){changeNavigation(reopened,key,true);await settle();}
-  assert(scrollControls(reopened).every(node=>node.checked));
+// Navigation remains an independent page feature; the prompt list deliberately
+// no longer owns its five switches. The shipped package must follow src/index.html.
+test('Prompt management index does not surface the obsolete navigation controls',async()=>{
+  const html=await readFile(tool+'/src/index.html','utf8');
+  assert.doesNotMatch(html,/ps-scroll-settings|data-scroll-nav=|默认开启 · 可分别关闭/);
+  const f=await fixture({initial:initialLibrary});
+  assert.equal(f.nodes['ps-scroll-settings'],undefined);
+  assert.equal(f.writes(),0,'opening the list must not mutate saved navigation preferences');
 });
-for(const outcome of ['conflict','unknown-readback','positive-readback-fails','rejection']){
-  test('R1.16.1 navigation '+outcome+' restores confirmed switches and never replays unknown writes',async()=>{
-    const f=await fixture({initial:initialLibrary,deferWrites:true,
-      storageFault:outcome==='unknown-readback'?'unknown':null,
-      deferReadback:outcome==='positive-readback-fails'});
-    changeNavigation(f,'regionBottom',false);
-    assert(scrollControls(f).every(node=>node.disabled),'pending persistence locks all five');
-    if(outcome==='conflict')f.pending.shift().reject(Object.assign(Error('conflict'),{code:'E_STORAGE_CONFLICT'}));
-    else if(outcome==='rejection')f.pending.shift().reject(Object.assign(Error('rejected'),{code:'E_HOST_STORAGE_WRITE'}));
-    else f.pending.shift().resolve();
-    await settle();
-    if(outcome==='positive-readback-fails'){
-      assert.equal(f.readbacks.length,1);f.readbacks.shift().reject(Error('read unavailable'));await settle();
-    }
-    assert(scrollControls(f).every(node=>node.checked),'UI retains last confirmed state');
-    assert.match(f.nodes['ps-status'].textContent,/未确认/);
-    const unknown=outcome!=='conflict';
-    assert.equal(f.states.at(-1).busy,unknown);
-    assert(scrollControls(f).every(node=>node.disabled===unknown));
-    if(unknown){changeNavigation(f,'floatingTop',false);await settle();}
-    assert.equal(f.requests.filter(row=>row.op==='storage.set').length,1);
-    assert.equal(f.requests[1].payload.ifMatch,'a'.repeat(64));
-    assert.equal(f.nodes['ps-export'].disabled,unknown);
-  });
-}
-test('R1.16.1 navigation unknown acknowledgement is accepted only after full authoritative readback',async()=>{
-  const f=await fixture({initial:initialLibrary,deferWrites:true});
-  changeNavigation(f,'conversationTop',false);
-  f.pending.shift().resolve({failure:Object.assign(Error('lost ack'),{code:'E_OUTCOME_UNKNOWN'})});await settle();
-  assert.equal(f.states.at(-1).busy,false);
-  assert.equal(scrollControls(f).find(node=>node.dataset.scrollNav==='conversationTop').checked,false);
-  assert.equal(f.requests.filter(row=>row.op==='storage.set').length,1);
-  assert.equal(f.requests.filter(row=>row.op==='storage.get'&&row.payload.key==='library').length,2);
+
+test('Existing navigation preferences are not silently reset by opening the prompt manager',async()=>{
+  const library=structuredClone(initialLibrary);
+  library.settings.scrollNavigation={regionTop:false,regionBottom:true,
+    conversationTop:false,conversationBottom:true,floatingTop:false};
+  const f=await fixture({initial:library});
+  assert.equal(f.writes(),0);
+  assert.deepEqual(f.stored().settings.scrollNavigation,library.settings.scrollNavigation);
 });

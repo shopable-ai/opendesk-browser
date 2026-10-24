@@ -5,21 +5,28 @@ import {sameSidebarToolPackage} from './sidebar-tools/installation.js';
 import {requireToolEnableRecords} from './sidebar-tools/lifecycle.js';
 
 export const TRUSTED_PROMPT_ID='prompt-shortcuts';
-// The source catalog selects the 1.1.16 candidate. Keep the last shipped
-// official install eligible until the user reviews an upgrade; never run its
-// payload as trusted code. Version alone never grants trust:
-// installed bytes, official digest, provenance, enable state and epoch must match.
-export const TRUSTED_PROMPT_VERSION='1.1.16';
-// Committed formal package at 4a67583db, canonical serialized bytes.
-// This is one reviewed identity, not a range of compatible older versions.
+// The source catalog now selects the 1.1.17 source-built package. Both earlier
+// immutable official releases retain exact-byte admission for existing users.
+// Never trust merely an installed tool ID, claimed version or unreviewed payload.
+export const TRUSTED_PROMPT_VERSION='1.1.17';
+// Each legacy record is an exact immutable official package, not a version range.
+const recentPreviousRelease=Object.freeze({
+ id:'opendesk/prompt-shortcuts',toolId:TRUSTED_PROMPT_ID,version:'1.1.16',
+ packagePath:officialPackagePath(TRUSTED_PROMPT_ID),bytes:142077,
+ sha256:'f42d7acd013a727c8b3ab8b318d3cf77882686d468027b168647dcacf4df7787'
+});
+// Earlier canonical release at 4a67583db remains pinned for upgrade compatibility.
 const previousRelease=Object.freeze({
  id:'opendesk/prompt-shortcuts',toolId:TRUSTED_PROMPT_ID,version:'1.1.15',
  packagePath:officialPackagePath(TRUSTED_PROMPT_ID),bytes:136199,
  sha256:'4085c155d2d8dbac7b55cc5dcaea24229a3fb1d6cfb69431dad2ae5c0eb33ce0'
 });
 const validHash=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
-const previousIdentity=value=>value?.version===previousRelease.version&&
- value.sha256===previousRelease.sha256;
+const historicalReleases=[recentPreviousRelease,previousRelease];
+const previousIdentity=value=>historicalReleases.some(release=>
+ value?.version===release.version&&value.sha256===release.sha256);
+const historicalRelease=value=>historicalReleases.find(release=>
+ value?.version===release.version&&value.sha256===release.sha256&&value.bytes===release.bytes);
 const own=value=>value&&typeof value==='object'&&!Array.isArray(value)
  ?value[TRUSTED_PROMPT_ID]:null;
 const validRecord=value=>value&&typeof value==='object'&&!Array.isArray(value)&&
@@ -41,14 +48,12 @@ export async function admitsTrustedPrompt({
     !tool.capabilities?.includes('storage.local')||
     release?.id!=='opendesk/prompt-shortcuts'||
     release.toolId!==TRUSTED_PROMPT_ID||
-    !(release.version===TRUSTED_PROMPT_VERSION||
-      previousIdentity(release)&&release.bytes===previousRelease.bytes)||
+    !(release.version===TRUSTED_PROMPT_VERSION||historicalRelease(release))||
     release.packagePath!==officialPackagePath(TRUSTED_PROMPT_ID)||
     !validHash(release.sha256))return false;
-  // The caller still requires the current official catalog before reaching
-  // admission. Only this pinned previous install may use its historical
-  // descriptor; new candidates continue to match the supplied catalog bytes.
-  const admittedRelease=tool.version===previousRelease.version?previousRelease:release;
+  // The caller still requires the current official catalog. Legacy installs
+  // resolve to their fixed reviewed bytes; new installs match the current catalog.
+  const admittedRelease=historicalReleases.find(row=>row.version===tool.version)||release;
   if(tool.version!==admittedRelease.version)return false;
   if(!Array.isArray(installed)||
     !installed.some(row=>sameSidebarToolPackage(row,tool))||

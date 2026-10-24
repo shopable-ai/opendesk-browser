@@ -91,6 +91,12 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 /* Mirrors approved R1.2 decision: 12 px from content area's LEFT EDGE, not the centered text column or composer. */
 .page-rail{position:absolute;left:12px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:5px;max-height:min(400px,calc(100% - 16px));overflow-y:auto;overflow-x:hidden;padding:6px;width:max-content;max-width:calc(100% - 24px);border:1px solid var(--ps-rail-border);background:var(--ps-rail-bg);box-shadow:var(--ps-rail-shadow);border-radius:17px;box-sizing:border-box;scrollbar-width:thin;overscroll-behavior:contain}
 .page-shortcut{flex:none;width:38px;height:38px;display:grid;place-items:center;border:1px solid transparent;background:var(--ps-button-bg);color:var(--ps-button-fg);border-radius:11px;font-size:13px;line-height:1.07;font-weight:700;box-sizing:border-box;user-select:none}
+.page-brand{display:grid;place-items:center;flex:none;width:38px;height:38px;padding:3px;
+ border:1px solid #2c60dc;border-radius:11px;background:#336bf4;color:#fff;
+ font:850 12px/1 system-ui,sans-serif;letter-spacing:-.8px;cursor:pointer;box-sizing:border-box}
+.page-brand:hover{background:#245de8;border-color:#245de8}
+.page-brand:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
+.page-brand:active{transform:scale(.95)}
 .page-shortcut.round{border-radius:50%}.page-shortcut:hover{border-color:#a4b9ef66;background:var(--ps-button-hover)}
 .page-shortcut .stack{display:flex;flex-direction:column;align-items:center;gap:2px}
 .page-rail-empty{font-size:11px;color:var(--stage-sub);background:var(--stage-bubble);border-radius:8px;padding:5px;writing-mode:vertical-rl}
@@ -1092,9 +1098,19 @@ border:0;background:transparent;color:var(--od-sub)}
  function renderRail(){const rail=el('pageRail');rail.replaceChildren();rail.dataset.imageSize=state.settings.imageSize||'large';el('webTooltip').hidden=true;tipButton=null;
   if(!installed||!state.settings.showBar||!state.toolEnabled){rail.hidden=true;return;}rail.hidden=false;
   const active=state.items.filter(item=>item.enabled);
-  // No extra "管理" button on the target page, including an empty library.
-
-  // The mock conversation rail mirrors the installed page: saved shortcuts only.
+  // A single OD brand entry is independent from saved shortcuts, on built-in AI sites.
+  if(['chatgpt','deepseek','gemini'].includes(currentSite)){
+   const brand=create('button','page-brand');brand.type='button';brand.textContent='OD';
+   brand.title='打开提示词快捷按钮管理侧栏';
+   brand.setAttribute('aria-label','打开提示词快捷按钮管理侧栏');
+   brand.addEventListener('click',()=>{
+    if(currentView!=='form'){setView('index');renderIndex();}
+    el('sidepanel').scrollIntoView?.({block:'nearest'});
+    (currentView==='form'?el('promptBody'):el('addButton')).focus({preventScroll:true});
+   });
+   rail.append(brand);
+  }
+  // Keep every enabled text/image prompt behind the fixed brand entry.
   for(const item of active){const b=create('button','page-shortcut');b.type='button';b.title=itemIdentity(item);b.setAttribute('aria-label','插入提示词：'+itemIdentity(item));paintPicture(b,item);
    b.addEventListener('click',()=>{void usePrompt(item);});
    b.addEventListener('mouseenter',()=>showTip(item,b));b.addEventListener('focus',()=>showTip(item,b));b.addEventListener('mouseleave',()=>hideTip(b));b.addEventListener('blur',()=>hideTip(b));rail.append(b);

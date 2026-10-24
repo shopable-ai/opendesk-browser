@@ -172,7 +172,8 @@ async function scene(name,count,dark){
       separate:!dock.host.closest('[data-opendesk-prompts]'),dockRects:rects,
       overlap:rects.some(a=>obstacles.some(b=>b.width>0&&a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top)),
       rail:{count:rail.querySelectorAll('button').length,labels:[...rail.querySelectorAll('button')].map(b=>b.getAttribute('aria-label')),
-        unwanted:!!window.__rail.querySelector('.brand,[data-scroll-conversation],[data-scroll-nav-key]'),
+        brandFirst:rail.firstElementChild?.className==='brand'&&rail.querySelectorAll('.brand').length===1,
+        unwanted:!!window.__rail.querySelector('[data-scroll-conversation],[data-scroll-nav-key]'),
         overflowX:rail.scrollWidth>rail.clientWidth+1,overflowY:rail.scrollHeight>rail.clientHeight+1,rect:r.toJSON()},
       dark:window.__rail.host.classList.contains('dark')&&dock.host.classList.contains('dark')};})()`);
   assert.deepEqual(metrics.icons.map(i=>i.path),paths,'four exact SVG paths');
@@ -182,8 +183,10 @@ async function scene(name,count,dark){
   const [a,b]=metrics.dockRects;
   assert(Math.abs(a.x-b.x)<1&&b.y>=a.bottom&&b.y-a.bottom<=8&&a.width<=42&&b.bottom-a.top<=92,'compact vertical dock');
   for(const rect of [a,b,metrics.rail.rect])assert(rect.left>=0&&rect.right<=await evaluate('innerWidth')+1&&rect.top>=0&&rect.bottom<=await evaluate('innerHeight')+1,'controls inside viewport');
-  assert.equal(metrics.rail.count,count);assert.equal(metrics.rail.unwanted,false);
-  assert.deepEqual(metrics.rail.labels,Array.from({length:count},(_,i)=>'插入提示词：提示词 '+i));
+  assert.equal(metrics.rail.count,count+1);assert.equal(metrics.rail.brandFirst,true);
+  assert.equal(metrics.rail.unwanted,false);
+  assert.deepEqual(metrics.rail.labels,['打开提示词快捷按钮管理侧栏',
+    ...Array.from({length:count},(_,i)=>'插入提示词：提示词 '+i)]);
   assert(!metrics.rail.overflowX&&!metrics.rail.overflowY,'3–5 saved prompts need no scrollbar');
   assert.equal(metrics.dark,dark);
   const outer=await evaluate('document.querySelector("#transcript").scrollTop');

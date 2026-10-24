@@ -24,8 +24,8 @@ const STYLE=String.raw`
  --od-pop-bg:#20242b;--od-pop-fg:#ebedf1;--od-pop-border:#373c45}
 :host([hidden]){display:none!important}
 button[hidden]{display:none!important}
-/* Only real saved prompt shortcuts live in this rail. The independent
-   reply/viewport scroll controls never take space in the prompt toolbar. */
+/* The built-in OD brand entry precedes real saved shortcuts. Independent
+   reply/viewport scrolling stays outside this prompt toolbar. */
 .rail{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:5px;
  max-height:min(400px,calc(100dvh - 16px));overflow-y:auto;overflow-x:hidden;
  width:max-content;max-width:calc(100vw - 16px);padding:6px;border-radius:17px;
@@ -44,9 +44,12 @@ button{font:inherit;cursor:pointer;color:var(--od-button-fg);background:var(--od
 button:focus-visible{outline:2px solid var(--od-focus)}
 button:hover{background:var(--od-button-hover);border-color:#a4b9ef66}
 button:active{transform:scale(.95)}
-.item{display:flex;flex:none;flex-direction:column;align-items:center;justify-content:center;
+.item,.brand{display:flex;flex:none;flex-direction:column;align-items:center;justify-content:center;
  gap:2px;width:38px;height:38px;min-width:38px;min-height:38px;padding:3px;
  font-weight:700;font-size:13px;line-height:1.05}
+.brand{background:#336bf4;border-color:#2c60dc;color:#fff;font-size:12px;
+ font-weight:850;letter-spacing:-.8px}
+.brand:hover{background:#245de8;border-color:#245de8}
 .tip{pointer-events:auto;position:absolute;left:64px;top:0;width:248px;
  max-width:calc(100vw - 24px);max-height:min(240px,calc(100vh - 24px));
  overflow:auto;overscroll-behavior:contain;background:var(--od-pop-bg);color:var(--od-pop-fg);
@@ -978,8 +981,14 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       shadow.append(style,rail,tip,feedback,announcer);doc.documentElement.append(host);
     }
     hideTip();rail.replaceChildren();rail.dataset.imageSize=imageSize;
-    // The webpage rail contains saved prompt buttons only. There is no OD
-    // expander, no fixed management button, and no transcript up/down arrows.
+    // Brand opens the existing Side Panel on built-in AI sites. No expander,
+    // extra management button, or transcript arrows are added to this rail.
+    if(builtInPage(win.location.href)){
+      const brand=doc.createElement('button');brand.type='button';brand.className='brand';
+      brand.textContent='OD';brand.title='打开提示词快捷按钮管理侧栏';
+      brand.setAttribute('aria-label','打开提示词快捷按钮管理侧栏');
+      brand.addEventListener('click',openSidebar);rail.append(brand);
+    }
     for(const row of items){
       const button=doc.createElement('button');button.type='button';
       button.className='item';

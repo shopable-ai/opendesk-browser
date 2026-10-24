@@ -182,7 +182,7 @@ test('R1.4 provenance pins only audited trusted tool modules to exact fixed entr
     ['trusted/model.js','9b29be376a28be9aa2958913ea7dc758459bb171'],
     ['trusted/policy.js','4c6f608a26e0d69278c18a0afda94b3c8ce8274c'],
     // R4.3 independent review approved quota persistence and dock geometry/observer fixes.
-    ['trusted/page.js','06c5dedef8ba890d67383c421b7a785b67d28df6'],
+    ['trusted/page.js','cb7dcbd4733ba546c4b50790433f1b3cb4e3fd6f'],
     ['trusted/asset-contract.js','86e95bff786e52efb9089f97126542430f39a716'],
     // Exact approval was updated by bffde8f49 after the audited asset recovery fix 3d75d1a13.
     ['trusted/asset-host.js','b960044deb5e7d059c26d5d520f912c0b72c7b0e']

@@ -136,8 +136,9 @@ const compiledPromptShortcutInputs=Object.freeze({
   // R4.3 independently reviewed: omit default navigation values only on persistence; quotas remain unchanged.
   'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'9b29be376a28be9aa2958913ea7dc758459bb171',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'4c6f608a26e0d69278c18a0afda94b3c8ce8274c',
-  // R4.3 independently reviewed: full-rectangle dock avoidance and own-mutation filtering; authority gates unchanged.
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'06c5dedef8ba890d67383c421b7a785b67d28df6',
+  // OD entry restored from ed7ceb65; first built-in rail button only, using already pinned SW gesture bridge.
+  // No origin, permission, storage, navigation arrows, sender scope or injection surface changed.
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'cb7dcbd4733ba546c4b50790433f1b3cb4e3fd6f',
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js':'86e95bff786e52efb9089f97126542430f39a716',
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js':'b960044deb5e7d059c26d5d520f912c0b72c7b0e',
   'examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js':'7c10e8270c43be93229afbf0d3171455de628030',

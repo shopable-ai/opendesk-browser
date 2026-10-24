@@ -439,7 +439,7 @@ async function screenshot(page, name, region) {
 
 async function captureRealRailGeometry(page, scene) {
   // Read real Chrome geometry and hit-testing from the original offline HTML.
-  // Product policy: this rail owns only saved prompts; no OD or transcript arrows.
+  // Product policy: one fixed OD brand precedes saved prompts, no transcript arrows.
   const read = () => page.evaluate(() => {
     const rail = document.querySelector('#pageRail');
     const buttons = [...rail.querySelectorAll(':scope > button')];
@@ -457,13 +457,17 @@ async function captureRealRailGeometry(page, scene) {
       rail: rect(rail), text: rect(text), image: rect(image),
       tip: tip.hidden ? null : rect(tip), area: rect(document.querySelector('#messageArea')),
       buttons: buttons.length,
+      brandButtons: buttons.filter(button => button.classList.contains('page-brand')).length,
+      brandFirst: buttons[0]?.classList.contains('page-brand') &&
+        buttons[0].getAttribute('aria-label')==='打开提示词快捷按钮管理侧栏',
       promptButtons: buttons.filter(button => button.getAttribute('aria-label')?.startsWith('插入提示词：')).length,
       managementButtons: buttons.filter(button => button.textContent.trim()==='管理'||
         button.getAttribute('aria-label')?.includes('管理提示词')).length,
       navigationButtons: buttons.filter(button => button.classList.contains('nav-preview')||
         button.hasAttribute('data-scroll-conversation')).length,
-      strayControls: buttons.filter(button => !button.classList.contains('page-shortcut')||
-        !button.getAttribute('aria-label')?.startsWith('插入提示词：')).length,
+      strayControls: buttons.filter(button =>
+        !(button.classList.contains('page-shortcut')&&button.getAttribute('aria-label')?.startsWith('插入提示词：'))&&
+        !(button.classList.contains('page-brand')&&button.getAttribute('aria-label')==='打开提示词快捷按钮管理侧栏')).length,
       imageSize: rail.dataset.imageSize,
       background: style.backgroundColor, border: style.borderTopWidth, borderColor: style.borderTopColor,
       radius: style.borderTopLeftRadius, gap: style.rowGap, padding: style.paddingLeft, shadow: style.boxShadow,
@@ -474,9 +478,10 @@ async function captureRealRailGeometry(page, scene) {
   const close = (actual,expected) => actual!=null&&Math.abs(actual-expected)<=1;
   const initial=await read();
   scene.railGeometry={initial};
-  check(scene,'real DOM: three real prompts with no OD, navigation or management extras',
-    initial.visible&&initial.buttons===3&&initial.promptButtons===3&&
-    initial.managementButtons===0&&initial.navigationButtons===0&&initial.strayControls===0,initial);
+  check(scene,'real DOM: OD first, three real prompts, no folding or transcript navigation',
+    initial.visible&&initial.buttons===4&&initial.brandButtons===1&&initial.brandFirst&&
+    initial.promptButtons===3&&initial.managementButtons===0&&
+    initial.navigationButtons===0&&initial.strayControls===0,initial);
   check(scene,'real DOM: 38px prompt controls, 52px rail and bounded spacing',
     close(initial.text?.width,38)&&close(initial.text?.height,38)&&
     close(initial.rail?.width,52)&&initial.padding==='6px'&&initial.gap==='5px'&&
@@ -519,7 +524,7 @@ async function captureRealRailGeometry(page, scene) {
     const draft=document.querySelector('#mockDraft');draft.value='原草稿';
     draft.setSelectionRange(draft.value.length,draft.value.length);
   });
-  await page.click('#pageRail .page-shortcut:first-child');
+  await page.click('#pageRail .page-shortcut');
   await page.poll(()=>document.querySelector('#mockDraft')?.value.includes('浏览器插件定制开发需求'),
     'actual preview prompt inserted after real pointer click');
   const afterInsert=await page.evaluate(()=>({
@@ -534,8 +539,9 @@ async function captureRealRailGeometry(page, scene) {
     {actualLength:afterInsert.draft.length,expectedLength:seed.body.length+4,buttons:afterInsert.buttons,feedback:afterInsert.feedback});
   await page.click('#previewReopen');
   const reopened=await read();scene.railGeometry.reopened=reopened;
-  check(scene,'real DOM: reopening the tool retains three prompt actions and no OD',
-    reopened.visible&&reopened.buttons===3&&reopened.strayControls===0,reopened);
+  check(scene,'real DOM: reopening retains one first OD and all three prompt actions',
+    reopened.visible&&reopened.buttons===4&&reopened.brandFirst&&
+    reopened.brandButtons===1&&reopened.strayControls===0,reopened);
 
   if(scene.state!=='empty-local')return;
   const switchScenario=value=>page.evaluate(v=>{
