@@ -10,6 +10,10 @@ import {installReviewedSidebarTool} from '../../src/ui/sidebar-tools/installatio
 import {requestStayFocusOperation} from '../../examples/sidebar-tools/stay-focus/trusted/tool-host.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 
+// Historical v2 worker tests must never load the current independent v3 app.
+const pinnedV2=()=>JSON.parse(readFileSync(new URL(
+  '../../examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json',import.meta.url),'utf8'));
+
 const suggestion={host:'pinterest.com',name:'Pinterest',category:'社交娱乐',suggestLimit:true,quick:true};
 const policy={kind:'site-budget.v1',suggestions:[suggestion]};
 const old=()=>({format:'opendesk.sidebar-tool.v1',id:'stay-focus',version:'1.0.1',
@@ -170,7 +174,7 @@ test('same Host SHA / only app package changes: no silent rules, direct edits, n
 });
 
 test('R4.3 v2 policy rejects unreviewed default scopes and malformed time data',async()=>{
-  const tool=await createSidebarToolPackage('examples/sidebar-tools/stay-focus');
+  const tool=pinnedV2();
   const policy=tool.backgroundPolicy;
   for(const candidate of [
     {...policy,defaultSites:[...policy.defaultSites,'unreviewed.example']},
@@ -186,7 +190,7 @@ test('R4.3 v2 policy rejects unreviewed default scopes and malformed time data',
   assert.equal(await focusPackageHash(tool),await focusPackageHash(reordered));
 });
 test('R5.9 first-use v2 recommendations require explicit site add; upgrade keeps preferences',async()=>{
-  const f=fixture(),app=await createSidebarToolPackage('examples/sidebar-tools/stay-focus');
+  const f=fixture(),app=pinnedV2();
   f.stored.set(SIDEBAR_TOOL_STORE,[app]);
   const before=await f.focus.dispatch(await f.msg(app,'focus.status'),f.sender);
   assert.equal(before.dailyBudget.minutes,app.backgroundPolicy.dailyMinutes);
@@ -232,7 +236,7 @@ test('R5.9 first-use v2 recommendations require explicit site add; upgrade keeps
 });
 
 test('R5.4 older package to 1.0.5: same worker, package-only upgrade and explicit Pinterest enrollment',async()=>{
-  const app=await createSidebarToolPackage('examples/sidebar-tools/stay-focus');
+  const app=pinnedV2();
   const previous={...app,version:'1.0.3',backgroundPolicy:{...app.backgroundPolicy,
     defaultSites:app.backgroundPolicy.defaultSites.filter(host=>host!=='pinterest.com')}};
   const f=fixture();f.stored.set(SIDEBAR_TOOL_STORE,[previous]);
