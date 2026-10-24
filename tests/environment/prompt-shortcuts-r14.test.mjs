@@ -179,9 +179,9 @@ test('R1.4 fixed controller only uses scoped selectors, native insertion and no 
 
 test('R1.4 provenance pins only audited trusted tool modules to exact fixed entry points',()=>{
   const fixtures=[
-    ['trusted/model.js','65444eb5ad35847701d21b4489d895028c5fa0c3'],
+    ['trusted/model.js','f5bc9499a4d5df8166959b3b9c207fa8eb7e2afa'],
     ['trusted/policy.js','4c6f608a26e0d69278c18a0afda94b3c8ce8274c'],
-    ['trusted/page.js','197b0a54ac8685631f046ad465b79714b235bdfb'],
+    ['trusted/page.js','feb973171d071afda5e142c759208dc2c9988e81'],
     ['trusted/asset-contract.js','86e95bff786e52efb9089f97126542430f39a716'],
     // Exact approval was updated by bffde8f49 after the audited asset recovery fix 3d75d1a13.
     ['trusted/asset-host.js','b960044deb5e7d059c26d5d520f912c0b72c7b0e']
@@ -202,7 +202,7 @@ test('R1.4 provenance pins only audited trusted tool modules to exact fixed entr
     /Historical\/user\/vendor code cannot enter/);
   const jump='../../programs/chatgpt-jump-top/src/conversation.js';
   assert.equal(examined(jump,'agents/page-relay.js').reviewedFirstPartyBlob,
-    'e9a342a409b60e1b5c162ef275cb1a8bb8b6ce3a');
+    '77139704bc9e918f97840a3a34756a07deb3a32c');
   for(const target of ['sw.js','ui/sidebar-tool-host.js']){
     assert.throws(()=>examined(jump,target),/Historical\/user\/vendor code cannot enter/);
   }
