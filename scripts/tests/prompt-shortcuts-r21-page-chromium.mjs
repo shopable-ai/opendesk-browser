@@ -196,7 +196,7 @@ async function waitPromptRail(){
   await poll('window.__railRoot?.host?.isConnected&&!window.__railRoot.host.hidden&&'+
     'window.__railRoot.host.style.left!==""&&window.__railRoot.host.style.top!==""&&'+
     'window.__railRoot.querySelector(".item")?.isConnected','visible prompt-only rail');
-  assert.equal(await evaluate('window.__railRoot.querySelector(".item")===null && '+
+  assert.equal(await evaluate('window.__railRoot.querySelector(".brand")===null && '+
     'window.__railRoot.querySelector("[data-scroll-conversation]")===null'),true,
     'no OD launcher or transcript arrows in the webpage rail');
 }
@@ -393,7 +393,7 @@ try{
     nativeDraftConfirmed:true,installedExtension:false});
   await shot('chatgpt-spa-history-recovery');
   await poll('window.__railRoot?.querySelector(".item")?.isConnected',
-    'native insert keeps manually expanded choices');
+    'native insert preserves directly visible prompt actions');
   await shot('r217-direct-rail-after-insert');
   await waitPromptRail();
   // The actual trusted rail must shrink to its content: 38 + 6*2 + 1*2.
@@ -474,7 +474,7 @@ try{
     await evaluate('window.__setPrompts('+JSON.stringify(rows)+')');
     await poll('window.__railRoot?.querySelector(".item")?.isConnected && '+
       'window.__railRoot?.querySelectorAll(".item:not([data-scroll-conversation])").length==='+String(rows.length),
-      'current library is expanded by default: '+name);
+      'current library renders all saved prompts directly: '+name);
     assert.equal(await evaluate('window.__railRoot.querySelector(".brand")===null && '+
       'window.__railRoot.querySelector("[data-scroll-conversation]")===null'),true,
       'old OD and transcript navigation buttons must stay deleted');
@@ -483,7 +483,7 @@ try{
       'Array.from(window.__railRoot.querySelectorAll(".item:not([data-scroll-conversation])")).slice(0,'+rows.length+')'+
       '.map(button=>button.getAttribute("aria-label")).join("|")==='+
       JSON.stringify(rows.map(row=>'插入提示词：'+row.name).join('|')),
-      'expanded exact current prompts and management: '+name);
+      'exact saved prompt buttons without management: '+name);
     if(name==='three seeds'||name==='legacy four')
       await shot('r191-menu-'+name.replaceAll(' ','-'));
     const target=rows.at(-1);
@@ -510,7 +510,7 @@ try{
   assert.equal(normalRail.horizontal,false,'sufficient desktop gutter uses vertical layout');
   assert.equal(normalRail.overflowY,'auto','preserve scrolling for genuinely long lists');
   assert(normalRail.scrollHeight<=normalRail.clientHeight+1,
-    'ordinary six-button rail must not display a vertical scrollbar: '+JSON.stringify(normalRail));
+    'ordinary five-prompt rail must not display a vertical scrollbar: '+JSON.stringify(normalRail));
   const manyRows=Array.from({length:11},(_,i)=>({...personal[0],
     id:'r216-overflow-'+i,label:'长'+(i%10),name:'完整提示词 '+i,body:'正文 '+i,order:i}));
   await evaluate('window.__setPrompts('+JSON.stringify(manyRows)+')');
