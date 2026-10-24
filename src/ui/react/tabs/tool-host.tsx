@@ -23,7 +23,11 @@ export function ToolHost({view}) {
   const enableIsOn=enableAction?.attributes?.['aria-pressed']==='true';
   // The overflow shortcut forwards the SAME trusted click to the existing Host
   // lifecycle. It never writes enable records or bypasses draft protection.
-  const enableInOverflow=snapshot.fields['sidebar-tool-remove']?.hidden===false;
+  // Cookie Editor keeps low-frequency enable/disable in trusted Settings and
+  // the installed Extension Center row menu, not the in-tool overflow.
+  const cookieEditorInHost=snapshot.fields['sidebar-tool-cookie-permissions']?.data?.isCookieEditor===true;
+  const enableInOverflow=!cookieEditorInHost&&
+    snapshot.fields['sidebar-tool-remove']?.hidden===false;
   const enableInOverflowDisabled=Boolean(enableAction?.disabled||
     snapshot.fields['sidebar-tool-remove']?.disabled);
   // Cookie Editor has its own trusted settings card. Move the existing enable
@@ -612,17 +616,17 @@ function CookieSettings({onRevoke}) {
     <ToolField id="sidebar-tool-cookie-first-use"><ToolField as="button"
       id="sidebar-tool-cookie-site-toggle" className="od-button"/></ToolField>
     {!firstUse&&<>
-      {showEnable&&<>
-        <div className="sidebar-toc-settings-row">
-          <strong>使用状态</strong>
-        <ToolField as="button" type="button" id="sidebar-tool-enable" className="od-button od-button--secondary"/>
-      </div>
-        <ToolField as="p" id="sidebar-tool-enable-hint" className="sidebar-toc-settings-hint" role="status"/>
-      </>}
       {!isCookieEditor&&<ToolField as="button" type="button" id="sidebar-tool-cookie-values-toggle"
         className="od-button od-button--secondary"/>}
       <ToolGrantRows id="sidebar-tool-cookie-other-sites" rows={rows} emptyLabel={emptyLabel}
         disabled={disabled} rowClassName="sidebar-toc-settings-row" onRevoke={onRevoke}/>
+      {showEnable&&<>
+        <div className="sidebar-toc-settings-row">
+          <strong>{isCookieEditor?'应用管理':'使用状态'}</strong>
+          <ToolField as="button" type="button" id="sidebar-tool-enable" className="od-button od-button--secondary"/>
+        </div>
+        <ToolField as="p" id="sidebar-tool-enable-hint" className="sidebar-toc-settings-hint" role="status"/>
+      </>}
     </>}
   </ToolField>;
 }
