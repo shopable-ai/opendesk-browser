@@ -70,8 +70,12 @@ test('R1.4 original bookmark workspace and search never disappear with chat',asy
  assert.doesNotMatch(app,/hidden=\{chatOpen\}|className="bm-conversation"|id="bm-conversation"/);
  assert.doesNotMatch(app,/label="对话"[\s\S]*aria-controls="opendesk-conversation-dock"/);
  const toolHost=await read('src/ui/react/tabs/tool-host.tsx');
- assert.match(toolHost,/<TrustedConversationHeaderSlot\/>\s*<ToolField as="button" type="button" id="sidebar-tool-remove"/,
-  'framework Chat icon must be in ToolHost header immediately before uninstall');
+ assert.equal((toolHost.match(/<TrustedConversationHeaderSlot\/>/g)||[]).length,1,
+  'ToolHost retains exactly one trusted Chat entry');
+ assert.match(toolHost,/<TrustedConversationHeaderSlot\/>\s*<div className="sidebar-tool-header-more"/,
+  'trusted Chat entry stays in the ToolHost toolbar beside the existing more menu');
+ assert.match(toolHost,/<div id="sidebar-tool-more-menu"[\s\S]*?<ToolField as="button" type="button" id="sidebar-tool-remove"/,
+  'uninstall stays in the ToolHost overflow menu');
  assert.match(await read('src/ui/react/components/conversation.tsx'),/createPortal\(/);
  assert.match(css,/\.od-conversation-business\{min-height:0;min-width:0;flex:1/);
  assert.match(css,/\.od-conversation-dock\{[^\n]*flex:none/);
@@ -135,7 +139,9 @@ test('R1.4 Send pins bookmark IDs; writing blocks conflicting draft and follows 
  assert.match(actions,/tree=await service\.load\(\)/);
  assert.match(actions,/if\(!found\|\|nodeFolder\(found\)/);
  assert.match(component,/onPhase:next=>\{if\(current\(\)\)\{phaseRef\.current=next;setPhase\(next\);\}\}/);
- assert.match(component,/if\(unknown\)setNeedsReview\(true\)/);
+ assert.match(component,/const writeUnknown=ex\?\.code==='E_OUTCOME_UNKNOWN'\|\|ex\?\.writeIssued===true/);
+ assert.match(component,/if\(writeUnknown\)setNeedsReview\(true\)/,
+  'issued or uncertain writes still enter recovery review');
  assert.match(component,/if\(!unknown&&!ex\?\.partial\?\.length/);
  assert.match(component,/controller\?\.cancel\?\.\(\{signal\}\)/);
 });

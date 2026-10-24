@@ -21,6 +21,7 @@ on:
       - 'tests/environment/shared-ai-provider-runtime-r21.test.mjs'
       - 'tests/environment/shared-ai-session-core-r221.test.mjs'
       - 'tests/environment/shared-ai-*-r211.test.mjs'
+      - 'tests/environment/opendesk-conversation-r14-dock.test.mjs'
       - '.github/workflows/shared-ai-chat-r22.yml'
   workflow_dispatch:
 permissions:
