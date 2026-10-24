@@ -46,7 +46,7 @@ export function migrateFocusState(legacy,{at=Date.now()}={}){
   if(prior.day===state.day&&prior.thresholds.length&&prior.budgetMs===null)
     fail('E_MIGRATION_NOTICE','旧提醒已有阈值但缺少额度，无法无损迁移');
   const pools=prior.day===state.day&&prior.budgetMs!==null?
-    {'g:'+FOCUS_DEFAULT_GROUP:{limitMs:prior.budgetMs,
+    {['g:'+FOCUS_DEFAULT_GROUP]:{limitMs:prior.budgetMs,
       thresholds:[...prior.thresholds]}}:{};
   const notices=normalizeManagedSiteV3Notices({day:state.day,pools},state.day);
 
