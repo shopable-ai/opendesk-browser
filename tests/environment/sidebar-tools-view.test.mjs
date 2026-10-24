@@ -126,6 +126,34 @@ test('SSR contains import, execution display and trusted reviews, with one owner
   view.dispose();
 });
 
+
+test('all capability types share exactly one trusted lifecycle switch and direct header management', () => {
+  for (const [kind,bookmark,cookie] of [
+    ['bookmark-manager',true,false],['cookie-editor',false,true],
+    ['prompt-shortcuts',false,false],['demo-generic',false,false]
+  ]) {
+    const view=createSidebarToolsView();
+    view.patch('sidebar-tool-display',{hidden:false});
+    view.patch('sidebar-tool-settings-view',{hidden:false});
+    view.patch('sidebar-tool-settings-open',{hidden:false});
+    view.patch('sidebar-tool-remove',{hidden:false,disabled:false});
+    view.patch('sidebar-tool-enable',{textContent:'',attributes:{role:'switch','aria-checked':'false'}});
+    view.patch('sidebar-tool-bookmark-permissions',{hidden:!bookmark});
+    view.patch('sidebar-tool-cookie-permissions',{hidden:!cookie,
+      data:{mode:'settings',isCookieEditor:cookie}});
+    const {document}=parseHTML(renderToStaticMarkup(React.createElement(ToolHost,{view})));
+    assert.equal(document.querySelectorAll('#sidebar-tool-enable').length,1,kind);
+    assert.equal(document.querySelector('#sidebar-tool-enable').getAttribute('role'),'switch',kind);
+    assert.equal(document.querySelector('#sidebar-tool-enable').getAttribute('aria-checked'),'false',kind);
+    assert.equal(document.querySelectorAll('#sidebar-tool-settings-open').length,1,kind);
+    assert.equal(document.querySelectorAll('#sidebar-tool-remove').length,1,kind);
+    assert.equal(document.querySelectorAll('#sidebar-tool-more-open').length,0,kind);
+    assert.equal(document.querySelector('#sidebar-tool-bookmark-permissions').hidden,!bookmark,kind);
+    assert.equal(document.querySelector('#sidebar-tool-cookie-permissions').hidden,!cookie,kind);
+    view.dispose();
+  }
+});
+
 test('React layout supplies real runtime refs, preserves opaque children, dispatches native events and cleans up', async t => {
   const {window, document} = parseHTML('<html><body><div id="mount"></div></body></html>');
   const previous = {window: globalThis.window, document: globalThis.document, act: globalThis.IS_REACT_ACT_ENVIRONMENT};

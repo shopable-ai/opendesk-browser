@@ -3547,7 +3547,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(!confirmed){
       pendingUninstallId=id;pendingUninstallBaseline=structuredClone(item);
       patchToolField(view, removeReviewText, {textContent: '卸载后将移除该工具，并清理其本地数据和网站授权。此操作无法撤销。'});
-      patchToolField(view, removeReview, {hidden: false});
+      patchToolField(view, removeReview, {hidden:false,data:{title:item.title}});
       patchToolField(view, removeReviewConfirm, {disabled: false});
       notice('');
       requestToolFieldEffect(view, removeReview, 'scrollIntoView', {block:'nearest'});

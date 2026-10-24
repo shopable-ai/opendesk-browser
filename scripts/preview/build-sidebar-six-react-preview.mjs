@@ -21,7 +21,9 @@ const inputs=[
   'src/ui/react/main.tsx','src/ui/react/app-shell.tsx',
   'src/ui/react/tabs/navigation.tsx','src/ui/react/tabs/browser-history.tsx',
   'src/ui/react/components/ui/button.tsx',
-  'src/ui/react/tabs/tools.tsx','src/ui/react/tabs/develop.tsx',
+  'src/ui/react/tabs/tools.tsx','src/ui/react/tabs/tool-host.tsx',
+  'src/ui/react/preview/clipper-preview.js','src/ui/sidebar-tools-fields.js',
+  'src/ui/react/tabs/develop.tsx',
   'src/ui/react/tabs/develop-controls.tsx','src/ui/react/tabs/develop-dependencies.tsx',
   'src/ui/develop-view.js','src/ui/develop-fields.js',
   'src/ui/react/preview/developer-preview.js',
@@ -144,7 +146,11 @@ const onNavigate=tab=>{
 };
 app=mountSidebarApp(document,{debugEnabled:true,onNavigate,developerView,myView,toolView,providerSettings});
 app.connectMyAgent(myAgent);
-const clipper=createClipperPreview({view:toolView,stage:CLIPPER_STAGE_DOCUMENT});
+const clipper=createClipperPreview({view:toolView,stage:CLIPPER_STAGE_DOCUMENT,
+  onUninstall:id=>{
+    demoRemoved.add('app:'+id);publishRows();
+    app.renderStatus({text:'UI_PREVIEW_ONLY · 已从内存列表移除「'+id+'」，没有真实卸载或清理',state:'success'});
+  }});
 app.connectWorkflowPage({...workflow,actions:workflowActions});
 // Debug-only, read-only preview: no Chrome permission, history query or data.
 app.renderBrowserHistory({text:'',startDate:'',endDate:'',limit:'25',busy:false,
@@ -155,6 +161,14 @@ app.connectBrowserHistoryActions(null);
 const demoRows=Object.freeze([
   {key:'app:web-markdown-clipper',title:'网页剪藏',kind:'app',type:'应用',
     description:'正式业务源码 · 模拟 Host 与预览数据',installed:true,version:'CLIPPER_TOOL_VERSION'},
+  {key:'app:bookmark-manager',title:'书签管理',kind:'app',type:'应用',
+    description:'共享管理 UI · 完整书签授权（仅预览）',installed:true,version:'1.0.0'},
+  {key:'app:cookie-editor',title:'Cookie Editor',kind:'app',type:'应用',
+    description:'共享管理 UI · Cookie 首次授权与撤销（仅预览）',installed:true,version:'1.0.0'},
+  {key:'app:prompt-shortcuts',title:'提示词快捷按钮',kind:'app',type:'应用',
+    description:'共享管理 UI · 快捷栏业务设置（仅预览）',installed:true,version:'1.0.0'},
+  {key:'app:demo-generic',title:'普通扩展',kind:'app',type:'应用',
+    description:'共享管理 UI · 无特殊权限（仅预览）',installed:true,version:'1.0.0'},
   {key:'app:demo-reading',title:'演示 · 阅读目录',kind:'app',type:'应用',
     description:'展示网页标题与文章大纲（演示数据）',installed:true,version:'1.0.0'},
   {key:'page:demo-markup',title:'演示 · 网页内容标注与阅读辅助工具',kind:'page',type:'网页增强',
@@ -294,7 +308,9 @@ function publishRows(){
     (!query||(row.title+' '+row.description).toLocaleLowerCase().includes(query)));
   app.renderRows({rows:shown.map(({key,title,kind,type,description,installed})=>
     ({key,title,kind,type,description,installed,stateKnown:true,primaryAction:null})),
-    busy:false,pendingKey:null,onOpenRow:key=>key==='app:web-markdown-clipper'?clipper.open():openDemoDetail(key),
+    busy:false,pendingKey:null,onOpenRow:key=>key==='app:web-markdown-clipper'?clipper.open():
+      ['app:bookmark-manager','app:cookie-editor','app:prompt-shortcuts','app:demo-generic'].includes(key)
+        ?clipper.openScenario(key.slice(4)):openDemoDetail(key),
     onMore:(key,trigger)=>{
       const row=demoRows.find(item=>item.key===key);
       if(!row)return;
@@ -333,7 +349,9 @@ publishToolbar();
 publishRows();
 publishDemoUninstall();
 app.renderDebugDiagnostics({cloudSummary:'仅预览 · 未连接真实 Host',snapshotText:'UI_PREVIEW_ONLY'});
-if(new URLSearchParams(location.search).get('tool')==='web-markdown-clipper')clipper.open();
+const previewTool=new URLSearchParams(location.search).get('tool');
+if(previewTool==='web-markdown-clipper')clipper.open();
+else if(previewTool)clipper.openScenario(previewTool);
 window.addEventListener('pagehide',()=>{clipper.dispose();app.dispose();
  developerView.dispose();workflow.dispose();myAgent.dispose();providerSettings.dispose();},{once:true});
 document.documentElement.dataset.previewProof=proof.scope;

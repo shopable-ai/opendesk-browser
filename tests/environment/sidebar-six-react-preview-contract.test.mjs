@@ -261,3 +261,24 @@ test('developer preview uses the complete page and dock with isolated local-proj
   assert.equal($('#script-save').prop('disabled'),true);
   assert.equal($('script').length,0);
 });
+
+
+test('unified tool management review uses formal ToolHost and memory-only adapters',async()=>{
+  const [builder,adapter,host]=await Promise.all([
+    read('scripts/preview/build-sidebar-six-react-preview.mjs'),
+    read('src/ui/react/preview/clipper-preview.js'),
+    read('src/ui/react/tabs/tool-host.tsx')
+  ]);
+  for(const id of ['bookmark-manager','cookie-editor','prompt-shortcuts','demo-generic']){
+    assert.ok(builder.includes("'app:"+id+"'"),id);
+    assert.ok(adapter.includes("'"+id+"'"),id);
+  }
+  assert.match(builder,/clipper\.openScenario\(key\.slice\(4\)\)/);
+  assert.match(builder,/const previewTool=new URLSearchParams/);
+  assert.match(adapter,/UI_PREVIEW_ONLY/);
+  assert.match(adapter,/states=new Map\(\)/);
+  assert.match(adapter,/view\.bind\('sidebar-tool-enable'/);
+  assert.match(adapter,/view\.bind\('sidebar-tool-inline-remove-confirm'/);
+  assert.match(host,/id="sidebar-tool-enable"/);
+  assert.doesNotMatch(host,/id="sidebar-tool-more-open"/);
+});

@@ -465,7 +465,8 @@ export function ToolHost({view}) {
 </ToolField>
 
 <UninstallDialog open={snapshot.fields['sidebar-tool-inline-remove'].hidden===false}
-  title={'卸载「'+(snapshot.fields['sidebar-tool-title']?.textContent||'当前扩展')+'」？'}
+  title={'卸载「'+(snapshot.fields['sidebar-tool-inline-remove']?.data?.title||
+    snapshot.fields['sidebar-tool-title']?.textContent||'当前扩展')+'」？'}
   busy={snapshot.fields['sidebar-tool-inline-remove-confirm'].disabled}
   returnFocusSelector="#sidebar-tool-remove"
   onCancel={event=>view.dispatch('sidebar-tool-inline-remove-cancel','click',event)}>
@@ -558,6 +559,10 @@ function BookmarkSettings() {
       </div>
     </div>
     <ToolField as="button" type="button" id="sidebar-tool-bookmark-grant" className="od-button"/>
+    <details className="od-disclosure od-disclosure--flat">
+      <summary>查看权限范围</summary>
+      <p>可读取、编辑、移动和删除 Chrome 全部书签，包括其他工具创建的内容。删除文件夹仍须单独确认。授权可随时撤销。</p>
+    </details>
   </ToolField>;
 }
 
