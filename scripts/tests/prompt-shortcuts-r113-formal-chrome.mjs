@@ -271,6 +271,19 @@ async function run(){
     'persisted after reload');
   x=await view();assert.deepEqual(x.itemBodies,['你好']);
   report.helloSaveAndReload=true;report.uniqueCount=x.visibleCards;
+  // Opening the saved card must display read-only detail, not write or copy.
+  const beforeDetail=await evaluate('globalThis.__readFormalToolStore().revision');
+  await click('.ps-card-use');
+  assert.equal(await evaluate('!document.querySelector("#ps-detail").hidden'),true);
+  assert.equal(await evaluate('document.querySelector("#ps-detail-body").textContent'),'你好');
+  assert.equal(await evaluate('document.querySelector("#ps-edit").hidden'),true);
+  assert.equal(await evaluate('globalThis.__readFormalToolStore().revision'),beforeDetail);
+  await screenshot('r44-formal-detail-400px');
+  await click('#ps-detail-back');
+  assert.equal(await evaluate('document.querySelector("#ps-detail").hidden'),true);
+  assert.equal(await evaluate('document.activeElement?.dataset.action'),'detail');
+  report.r44ReadOnlyDetail=true;
+
   // Real Chromium drives the formal website-settings UI against a bounded
   // deterministic Host mock; this is not a real website or extension install.
   await click('#ps-sites-open');
@@ -319,28 +332,36 @@ async function run(){
       return {count:buttons.length,actions:buttons.map(b=>b.dataset.action),
         hasIcons:buttons.every(b=>b.querySelector('svg')&&b.textContent.trim()===''&&b.title&&b.getAttribute('aria-label'))};
     }.toString()+')()');
-    assert.equal(initial.count,1,'one More trigger per prompt');
-    assert.deepEqual(initial.actions,['more']);
+    assert.equal(initial.count,2,'each card has quick copy and More, never fixed text-width controls');
+    assert.deepEqual(initial.actions,['quick-copy','more']);
     assert.equal(Boolean(initial.hasIcons),true);
-    await click('.ps-card-actions button');
+    const beforeMenu=await evaluate('('+function(){
+      const c=document.querySelector('.ps-card'),u=c.querySelector('.ps-card-use'),t=c.querySelector('.ps-card-preview');
+      return {width:u.getBoundingClientRect().width,textWidth:t.getBoundingClientRect().width,
+        cardHeight:c.getBoundingClientRect().height,clamp:getComputedStyle(t).webkitLineClamp,body:t.textContent};
+    }.toString()+')()');
+    await click('.ps-card-actions button[data-action="more"]');
     const menu=await evaluate('('+function(){
       const buttons=[...document.querySelectorAll('.ps-card-actions button,.ps-more button')];
+      const c=document.querySelector('.ps-card'),u=c.querySelector('.ps-card-use'),t=c.querySelector('.ps-card-preview');
       return {actions:buttons.map(b=>b.dataset.action),
         iconOnly:buttons.every(b=>b.textContent.trim()===''&&!!b.querySelector('svg')&&!!b.title&&!!b.getAttribute('aria-label')),
-        minWidth:Math.min(...buttons.map(b=>b.getBoundingClientRect().width)),
-        geometry:(()=>{const bar=document.querySelector('.ps-more');const controls=[...bar.querySelectorAll('button')];
-          const rects=controls.map(button=>button.getBoundingClientRect());const css=getComputedStyle(bar);
-          return {six:rects.length===6,exactSquares:rects.every(rect=>Math.abs(rect.width-40)<=1&&Math.abs(rect.height-40)<=1),
-            oneLine:rects.every(rect=>Math.abs(rect.top-rects[0].top)<=1),
-            rightAligned:css.justifyContent==='flex-end',gap:css.gap};})(),
+        geometry:(()=>{const bar=document.querySelector('.ps-more'),controls=[...bar.querySelectorAll('button')];
+          const rects=controls.map(button=>button.getBoundingClientRect()),css=getComputedStyle(bar);
+          return {six:rects.length===6,exactSquares:rects.every(r=>Math.abs(r.width-40)<=1&&Math.abs(r.height-40)<=1),
+            twoRows:rects.slice(0,3).every(r=>Math.abs(r.top-rects[0].top)<=1)&&rects.slice(3).every(r=>r.top>rects[0].top+20),
+            absolute:css.position==='absolute',columns:css.gridTemplateColumns.split(' ').length};})(),
+        unchanged:{width:u.getBoundingClientRect().width,textWidth:t.getBoundingClientRect().width,
+          cardHeight:c.getBoundingClientRect().height,clamp:getComputedStyle(t).webkitLineClamp,body:t.textContent},
+        overlay:getComputedStyle(c.querySelector('.ps-card-actions')).position,
         hasHorizontalOverflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1,
-        expanded:document.querySelector('.ps-card-actions button')?.getAttribute('aria-expanded')};
+        expanded:document.querySelector('.ps-card-actions button[data-action="more"]')?.getAttribute('aria-expanded')};
     }.toString()+')()');
-    assert.deepEqual(menu.actions,['more','edit','toggle','up','down','copy','delete']);
-    assert.equal(menu.iconOnly,true,'all management buttons must be SVG-only');
-    assert(menu.minWidth>=39,'every management icon should have an approximately 40px hit target');
-    assert.deepEqual(menu.geometry,{six:true,exactSquares:true,oneLine:true,rightAligned:true,gap:'6px'},
-      'R2.4.2 approved six 40x40 square controls must stay on one right-aligned row at '+n+'px');
+    assert.deepEqual(menu.actions,['quick-copy','more','edit','toggle','up','down','copy','delete']);
+    assert.equal(menu.iconOnly,true);
+    assert.deepEqual(menu.geometry,{six:true,exactSquares:true,twoRows:true,absolute:true,columns:3});
+    assert.deepEqual(menu.unchanged,beforeMenu,'hover and More must not alter card body width, lines or height');
+    assert.equal(menu.overlay,'absolute');
     assert.equal(menu.hasHorizontalOverflow,false,'management menu overflow '+n);
     assert.equal(menu.expanded,'true');
     await screenshot('formal-icon-actions-'+n+'px');
@@ -351,7 +372,7 @@ async function run(){
     await rpc('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',
       windowsVirtualKeyCode:27,nativeVirtualKeyCode:27});
     await poll('!document.querySelector(".ps-more")','Esc closes icon actions');
-    assert.equal(await evaluate('document.activeElement===document.querySelector(".ps-card-actions button")'),
+    assert.equal(await evaluate('document.activeElement===document.querySelector(".ps-card-actions button[data-action=more]")'),
       true,'Escape must restore focus to More');
   }
   report.iconOnlyFormalActions=true;
@@ -490,7 +511,7 @@ async function run(){
     'row=>row.body==="R3.9 正式图片上传保存读回").imageAssetId'),assetId);
   assert.equal(await evaluate('Object.keys(globalThis.__readFormalAssets()).length'),1);
   await screenshot('r39-formal-local-reloaded');
-  await click('#ps-list .ps-card:last-child .ps-card-actions button');
+  await click('#ps-list .ps-card:last-child .ps-card-actions button[data-action="more"]');
   await click('#ps-list .ps-card:last-child .ps-more button[data-action="delete"]');
   await click('#ps-list .ps-card:last-child .ps-confirm .od-button--danger');
   await poll('globalThis.__readFormalToolStore().value.items.length===3',
