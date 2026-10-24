@@ -110,9 +110,11 @@ try {
   assert.equal(await evaluate('document.querySelectorAll("#opendesk-react-app").length'),1);
   assert.equal(await evaluate('document.querySelectorAll("#workbench-workflow").length'),1);
   assert.equal(await evaluate('document.getElementById("workbench-workflow").dataset.opendeskReactOwner'),'workflow-page');
-  assert.equal(await evaluate('document.querySelectorAll(".workflow-sheet-overlay").length'),1);
+  assert.equal(await evaluate('document.querySelectorAll(".workflow-sheet-overlay").length'),0,
+    'the single shared Provider sheet is mounted only when explicitly opened');
   assert.equal(await evaluate('document.querySelectorAll("#workflow-settings-react-host").length'),0);
-  assert.equal(await evaluate('document.querySelectorAll("#workflow-provider-settings").length'),1);
+  assert.equal(await evaluate('document.querySelectorAll("#workflow-provider-settings").length'),0,
+    'retired standalone Workflow Provider settings must not be duplicated');
   assert.equal(await evaluate('document.getElementById("od-workflow-preview-stage").contains(document.getElementById("workbench-workflow"))'),true);
   assert.deepEqual(await evaluate('window.__workflowPreviewInfo'),{
     sourceBound:true,native:false,provider:false,runHost:false,permission:false,realResult:false
@@ -132,8 +134,13 @@ try {
     }
     if(scene==='unknown')await eventually(
       'document.getElementById("workflow-output").textContent.includes("结果未知")');
-    if(scene==='settings')await eventually(
-      '!document.querySelector(".workflow-sheet-overlay").hidden');
+    if(scene==='settings'){
+      await eventually('document.querySelectorAll(".workflow-sheet-overlay [role=dialog]").length===1');
+      assert.equal(await evaluate('document.getElementById("opendesk-react-app").inert'),true,
+        'opening the real shared sheet makes the background inaccessible');
+      await key('Escape','Escape',27);
+      await eventually('document.querySelectorAll(".workflow-sheet-overlay").length===0');
+    }
   }
   await select('od-workflow-preview-scenario','run-review');
   await eventually('!document.getElementById("workflow-run-review").hidden');
@@ -169,17 +176,21 @@ try {
   assert.equal(await evaluate('document.querySelectorAll("#workflow-ai-transcript .workflow-chat-entry").length'),count,
     'Shift+Enter must not send');
   await click('#workflow-provider-toggle');
-  await eventually('!document.querySelector(".workflow-sheet-overlay").hidden');
-  assert.equal(await evaluate('document.getElementById("workflow-editor").inert'),true);
+  await eventually('document.querySelectorAll("#workflow-source-menu [role=menuitem]").length===1');
+  assert.equal(await evaluate('document.querySelectorAll(".workflow-sheet-overlay").length'),0,
+    'opening the source menu cannot open a second Provider dialog');
+  await click('#workflow-source-menu [role=menuitem]');
+  await eventually('document.querySelectorAll(".workflow-sheet-overlay [role=dialog]").length===1');
+  assert.equal(await evaluate('document.getElementById("opendesk-react-app").inert'),true);
   await key('Escape','Escape',27);
-  await eventually('document.querySelector(".workflow-sheet-overlay").hidden');
-  assert.equal(await evaluate('document.getElementById("workflow-editor").inert'),false);
+  await eventually('document.querySelectorAll(".workflow-sheet-overlay").length===0');
+  assert.equal(await evaluate('document.getElementById("opendesk-react-app").inert'),false);
   assert.deepEqual(errors,[],'React/browser runtime must be exception-free');
   console.log(JSON.stringify({kind:'SOURCE_BOUND_WORKFLOW_PREVIEW_CHROMIUM',
     status:'PASS',browser:(await cdp('Browser.getVersion')).product,
     scenarios:scenes,viewportWidths:[320,360,400,420,440,520],themes:['dark','light'],
     checks:['single production React root','no retired Portal','input and Enter',
-      'Shift+Enter','offline result guard','run review Cancel/Confirm offline','settings Escape and inert'],native:false}));
+      'Shift+Enter','offline result guard','run review Cancel/Confirm offline','source menu to advanced settings, Escape and inert'],native:false}));
 }catch(error){
   let snapshot;
   try{snapshot=await evaluate('({ready:document.documentElement.dataset.workflowPreviewReady,'+
