@@ -49,6 +49,8 @@ test('R40 Host owns header trigger but sandbox retains actual file and export ge
   assert.match(react,/view\.dispatch\('sidebar-tool-enable','click',event\.nativeEvent\)/,
     'More enable shortcut must preserve the actual trusted Host event');
   assert.match(host,/listen\(enableButton,'click',event=>/);
+  assert.match(host,/disabled: busy\|\|enableReadError\|\|toolSaving\|\|readOnlyPreview/,
+    'tool lifecycle actions must not remain clickable while saving or previewing');
   assert.equal((react.match(/id="sidebar-tool-settings-open"/g)||[]).length,1);
   assert.equal((react.match(/id="sidebar-tool-secondary-action"/g)||[]).length,1);
   assert.match(react,/returnFocusSelector="#sidebar-tool-more-open"/);
