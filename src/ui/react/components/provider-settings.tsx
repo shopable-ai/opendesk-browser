@@ -22,7 +22,7 @@ export function SharedProviderSettingsSheet({
   providerSettings?.settingsSnapshot??(()=>EMPTY_SETTINGS),
   providerSettings?.settingsSnapshot??(()=>EMPTY_SETTINGS));
  const [mode,setMode]=React.useState(snapshot.source==='local_codex'?'local_codex':'https');
- const [protocolOverride,setProtocolOverride]=React.useState(null);
+ const [protocolOverride,setProtocolOverride]=React.useState<{endpoint:string;source:string}|null>(null);
  const [endpoint,setEndpoint]=React.useState(snapshot.endpoint);
  const [model,setModel]=React.useState(snapshot.model);
  const [keyDraft,setKeyDraft]=React.useState('');
@@ -60,6 +60,7 @@ export function SharedProviderSettingsSheet({
      throw new Error('接口路径无法识别协议，请在高级配置中选择 Chat Completions 或 Responses');
    }
    const providerSource=external?selectedHttpsSource:'local_codex';
+   if(!providerSource)throw new Error('请选择 HTTPS 协议');
    const patch:{source:string;endpoint:string;model:string;apiKey?:string}={
     source:providerSource,endpoint:endpointValue,model:model.trim()};
    if(clearKey)patch.apiKey='';
