@@ -543,13 +543,29 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       assertSaveCurrent();
       const key=STORAGE_PREFIX+draft.bundleId+':1';
       await api.storage.local.set({[key]:record});
-      selectedBundle=record;revision=null;fullAgentDraft=null;
+      // A resolved write is not a durable reuse claim. Independently read the
+      // exact persisted Bundle and verify its sealed manifest before switching
+      // the UI into saved mode. On failure keep the verified draft retryable;
+      // never execute the webpage a second time just to retry persistence.
+      const stored=(await api.storage.local.get(key))?.[key];
+      assertSaveCurrent();
+      if(!stored||stored.sourceHash!==record.sourceHash||
+        stored.savedAt!==record.savedAt||stored.bundleId!==record.bundleId||
+        stored.revision!==record.revision)
+        throw err('E_WORKFLOW_STORAGE','自动保存后无法独立读回完整工作流；网页不会重跑，请重试保存');
+      const confirmed=await verifyWorkflowBundle(stored);
+      assertSaveCurrent();
+      // History refresh can fail independently of a successful, verified
+      // write. Leave the draft retryable until the saved list is readable.
+      await refreshSaved();
+      assertSaveCurrent();
+      selectedBundle=confirmed;revision=null;fullAgentDraft=null;
       workflow=structuredClone(segments.at(-1).workflow);
       directVerifiedSerial=segments.at(-1).verificationMode==='fill-readback'?stable():null;
-      render();persistDraft();await refreshSaved();
+      render();persistDraft();
       control('workflow-saved-list').value=key;
-      status('完整 '+segments.length+' 段 JavaScript 工作流已保存；每段有独立 Revision 和 sourceHash。');
-      return {ok:true,record};
+      status('完整 '+segments.length+' 段 JavaScript 工作流已保存并独立读回；每段有 Revision 和 sourceHash。');
+      return {ok:true,record:confirmed};
     }catch(error){
       status(format(error),true);
       return {ok:false,error};
