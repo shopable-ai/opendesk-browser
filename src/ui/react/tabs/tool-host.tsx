@@ -14,27 +14,9 @@ export function ToolHost({view}) {
   const importOpen = snapshot.fields['sidebar-tool-import']?.hidden === false;
   const topAction = snapshot.fields['sidebar-tool-primary-action']?.data?.action || '';
   const secondaryAction = snapshot.fields['sidebar-tool-secondary-action']?.data?.action || '';
-  const [headerMoreOpen,setHeaderMoreOpen] = React.useState(false);
-  const headerMoreRef = React.useRef(null);
-  const overflowVisible = ['sidebar-tool-settings-open','sidebar-tool-visibility',
-    'sidebar-tool-context-menu','sidebar-tool-remove']
-    .some(id => snapshot.fields[id]?.hidden === false);
-  const enableAction=snapshot.fields['sidebar-tool-enable'];
-  const enableIsOn=enableAction?.attributes?.['aria-pressed']==='true';
-  // The overflow shortcut forwards the SAME trusted click to the existing Host
-  // lifecycle. It never writes enable records or bypasses draft protection.
-  // Cookie Editor keeps low-frequency enable/disable in trusted Settings and
-  // the installed Extension Center row menu, not the in-tool overflow.
-  const cookieEditorInHost=snapshot.fields['sidebar-tool-cookie-permissions']?.data?.isCookieEditor===true;
-  const enableInOverflow=!cookieEditorInHost&&
-    snapshot.fields['sidebar-tool-remove']?.hidden===false;
-  const enableInOverflowDisabled=Boolean(enableAction?.disabled||
-    snapshot.fields['sidebar-tool-remove']?.disabled);
-  // Cookie Editor has its own trusted settings card. Move the existing enable
-  // action there instead of leaving it in the hidden generic Settings section.
-  // Render exactly one enable switch and hint: the Cookie card owns both
-  // whenever it is visible outside first-use review; otherwise generic
-  // settings own them. This mirrors CookieSettings.showEnable below.
+  const managementActionsVisible=['sidebar-tool-settings-open','sidebar-tool-remove']
+    .some(id=>snapshot.fields[id]?.hidden===false);
+  // Tool enable/disable is only reachable from trusted Settings, not header actions.
   const cookieManagementVisible=snapshot.fields['sidebar-tool-cookie-permissions']?.hidden===false&&
     snapshot.fields['sidebar-tool-cookie-permissions']?.data?.mode!=='first-use';
   // These are the only editable inputs in this host. Business decisions remain
@@ -115,33 +97,6 @@ export function ToolHost({view}) {
       }
     };
   },[importOpen,view]);
-  // Header overflow is only a presentation layer. Every action still dispatches
-  // through its original trusted ToolField, never through the sandbox.
-  React.useEffect(() => {
-    if(!overflowVisible || snapshot.fields['sidebar-tool-display']?.hidden !== false)
-      setHeaderMoreOpen(false);
-  },[overflowVisible,snapshot.fields['sidebar-tool-display']?.hidden]);
-  // Switching installed tools or moving to a different product page must never
-  // leave the previous tool's trusted menu floating over the next tool.
-  React.useEffect(() => {setHeaderMoreOpen(false);},[snapshot.fields['sidebar-tool-title']?.textContent]);
-  React.useEffect(() => {
-    if(!headerMoreOpen)return;
-    const holder=headerMoreRef.current,doc=holder?.ownerDocument;
-    if(!doc)return;
-    const closeOutside=event => {if(!holder.contains(event.target))setHeaderMoreOpen(false);};
-    const closeEscape=event => {
-      if(event.key!=='Escape')return;
-      event.preventDefault();event.stopPropagation();
-      setHeaderMoreOpen(false);
-      holder.querySelector('#sidebar-tool-more-open')?.focus({preventScroll:true});
-    };
-    doc.addEventListener('pointerdown',closeOutside,true);
-    doc.addEventListener('keydown',closeEscape,true);
-    return () => {
-      doc.removeEventListener('pointerdown',closeOutside,true);
-      doc.removeEventListener('keydown',closeEscape,true);
-    };
-  },[headerMoreOpen]);
   const context = React.useMemo(() => ({view, snapshot, refs}), [view, snapshot]);
   return <ToolContext.Provider value={context}><div className="sidebar-tool-host od-stack"><ToolField as="section" id="sidebar-tool-action-review" className="sidebar-tool-action-review od-surface" role="group" aria-label="确认当前工具操作" hidden={true}>
 <ToolField as="p" id="sidebar-tool-action-summary" role="status">
@@ -284,83 +239,23 @@ export function ToolHost({view}) {
 </svg>
 </ToolField>
 <TrustedConversationHeaderSlot/>
-<div className="sidebar-tool-header-more" ref={headerMoreRef} hidden={!overflowVisible}
-  onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget))setHeaderMoreOpen(false);}}>
-  <button type="button" id="sidebar-tool-more-open"
-    className="sidebar-tool-icon-action od-icon-button"
-    title="更多工具操作" aria-label="更多工具操作" aria-controls="sidebar-tool-more-menu"
-    aria-haspopup="true" aria-expanded={headerMoreOpen}
-    onClick={()=>setHeaderMoreOpen(open=>!open)}>
-    <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
-      <circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>
-    </svg>
-  </button>
-  <div id="sidebar-tool-more-menu" className="sidebar-tool-more-menu od-surface"
-    role="group" aria-label="更多工具操作" hidden={!headerMoreOpen}
-    onClick={event=>{
-      const target=event.target.closest('button');
-      if(!target)return;
-      setHeaderMoreOpen(false);
-      if(['sidebar-tool-visibility','sidebar-tool-context-menu','sidebar-tool-header-enable'].includes(target.id))
-        headerMoreRef.current?.querySelector('#sidebar-tool-more-open')?.focus({preventScroll:true});
-    }}>
-    <ToolField as="button" type="button" id="sidebar-tool-settings-open" className="sidebar-tool-icon-action od-icon-button" title="工具设置" aria-label="工具设置" aria-controls="sidebar-tool-settings-view" aria-expanded="false" hidden={true} nodeRef={runtimeRefs.settingsControl}>
-<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-<circle cx="12" cy="12" r="3">
-
-</circle>
-<path d="M10 2h4l.5 2.5 2 1 2.4-1 2.3 3-1.7 2v3l1.7 2-2.3 3-2.4-1-2 1L14 21h-4l-.5-2.5-2-1-2.4 1-2.3-3 1.7-2v-3l-1.7-2 2.3-3 2.4 1 2-1Z">
-
-</path>
-
-</svg>
-
-<span className="sidebar-tool-more-label">工具设置</span>
+<div className="sidebar-tool-header-actions" role="group" aria-label="工具管理" hidden={!managementActionsVisible}>
+<ToolField as="button" type="button" id="sidebar-tool-settings-open" className="sidebar-tool-icon-action od-icon-button"
+  title="工具设置" aria-label="工具设置" aria-controls="sidebar-tool-settings-view"
+  aria-expanded="false" hidden={true} nodeRef={runtimeRefs.settingsControl}>
+  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8"
+    strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="3"/>
+    <path d="M10 2h4l.5 2.5 2 1 2.4-1 2.3 3-1.7 2v3l1.7 2-2.3 3-2.4-1-2 1L14 21h-4l-.5-2.5-2-1-2.4 1-2.3-3 1.7-2v-3l-1.7-2 2.3-3 2.4 1 2-1Z"/>
+  </svg>
 </ToolField>
-<ToolField as="button" type="button" id="sidebar-tool-visibility" className="sidebar-tool-icon-action od-icon-button" title="显示或隐藏此网站的悬浮目录" aria-label="显示或隐藏此网站的悬浮目录" aria-pressed="true" hidden={true}>
-<svg viewBox="0 0 24 24" aria-hidden="true">
-<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z">
-
-</path>
-<circle cx="12" cy="12" r="3">
-
-</circle>
-
-</svg>
-
-<span className="sidebar-tool-more-label">悬浮目录</span>
-</ToolField>
-<ToolField as="button" type="button" id="sidebar-tool-context-menu" className="sidebar-tool-icon-action od-icon-button" title="为当前网站启用右键菜单" aria-label="为当前网站启用右键菜单" aria-pressed="false" hidden={true}>
-<svg viewBox="0 0 24 24" aria-hidden="true">
-<path d="M4 5h16M4 12h16M4 19h16M9 3v4M15 10v4M11 17v4">
-
-</path>
-
-</svg>
-
-<span className="sidebar-tool-more-label">网页右键菜单</span>
-</ToolField>
-<button type="button" id="sidebar-tool-header-enable" className="sidebar-tool-icon-action od-icon-button"
-  title={enableIsOn?'停用工具':'启用工具'} aria-label={enableIsOn?'停用工具':'启用工具'}
-  hidden={!enableInOverflow} disabled={enableInOverflowDisabled}
-  onClick={event=>view.dispatch('sidebar-tool-enable','click',event.nativeEvent)}>
+<ToolField as="button" type="button" id="sidebar-tool-remove" className="sidebar-tool-icon-action od-icon-button"
+  title="卸载工具及本地数据" aria-label="卸载当前工具及本地数据" disabled={true}>
   <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
     strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 3v9M6.2 5.5a9 9 0 1 0 11.6 0"/>
+    <path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5"/>
   </svg>
-  <span className="sidebar-tool-more-label">{enableIsOn?'停用工具':'启用工具'}</span>
-</button>
-<ToolField as="button" type="button" id="sidebar-tool-remove" className="sidebar-tool-icon-action od-icon-button" title="卸载工具及本地数据" aria-label="卸载当前工具及本地数据" disabled={true}>
-<svg viewBox="0 0 24 24" aria-hidden="true">
-<path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5">
-
-</path>
-
-</svg>
-
-<span className="sidebar-tool-more-label">卸载工具</span>
 </ToolField>
-  </div>
 </div>
 
 </div>
@@ -382,10 +277,19 @@ export function ToolHost({view}) {
 
 </ToolField>
 <ToolField as="section" id="sidebar-tool-settings-view" className="sidebar-tool-settings-view od-surface" aria-label="工具设置" hidden={true}>
-<ToolField as="button" type="button" id="sidebar-tool-open-tab" className="od-button od-button--secondary sidebar-tool-settings-open-tab" title="在新标签页打开" aria-label="在新标签页打开当前工具">
-<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"/></svg>
-{"在新标签页打开"}
-</ToolField>
+<div className="sidebar-tool-settings-heading">
+  <div className="sidebar-tool-settings-heading-icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M10 2h4l.5 2.5 2 1 2.4-1 2.3 3-1.7 2v3l1.7 2-2.3 3-2.4-1-2 1L14 21h-4l-.5-2.5-2-1-2.4 1-2.3-3 1.7-2v-3l-1.7-2 2.3-3 2.4 1 2-1Z"/>
+    </svg>
+  </div>
+  <div className="sidebar-tool-settings-heading-copy">
+    <h2>工具设置</h2>
+    <p>{snapshot.fields['sidebar-tool-title']?.textContent||'当前扩展'} · 权限与应用管理</p>
+  </div>
+</div>
+
 <BookmarkSettings/><ToolField as="div" id="sidebar-tool-toc-language" className="sidebar-toc-settings-row" hidden={true}>
 <label htmlFor="sidebar-tool-toc-language-select">
 <ToolLabel name="languageLabel"/>
@@ -403,7 +307,8 @@ export function ToolHost({view}) {
 </select>
 
 </ToolField>
-{!cookieManagementVisible&&<>
+{!cookieManagementVisible&&<section className="sidebar-tool-management" aria-label="应用管理">
+<div className="sidebar-tool-section-caption">应用管理</div>
 <div className="sidebar-toc-settings-row">
 <span className="sidebar-tool-prompt-enable-info">
 <ToolField as="strong" id="sidebar-tool-prompt-enable-label">
@@ -422,7 +327,11 @@ export function ToolHost({view}) {
 <ToolField as="p" id="sidebar-tool-enable-hint" className="sidebar-toc-settings-hint" role="status">
 
 </ToolField>
-</>}
+<ToolField as="button" type="button" id="sidebar-tool-open-tab" className="od-button od-button--secondary sidebar-tool-settings-open-tab" title="在新标签页打开" aria-label="在新标签页打开当前工具">
+<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"/></svg>
+{"在新标签页打开"}
+</ToolField>
+</section>}
 <ToolField as="div" id="sidebar-tool-prompt-web-row" className="sidebar-toc-settings-row sidebar-tool-prompt-native" hidden={true}>
 <span className="sidebar-tool-prompt-native-info">
 <strong>
@@ -487,6 +396,23 @@ export function ToolHost({view}) {
 <ToolField as="p" id="sidebar-tool-settings-hint" className="sidebar-toc-settings-hint" role="status">
 
 </ToolField>
+<div className="sidebar-tool-site-shortcuts" role="group" aria-label="网页增强操作">
+<ToolField as="button" type="button" id="sidebar-tool-visibility" className="sidebar-tool-icon-action od-icon-button"
+  title="显示或隐藏此网站的悬浮目录" aria-label="显示或隐藏此网站的悬浮目录" aria-pressed="true" hidden={true}>
+  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </svg>
+  <span>悬浮目录</span>
+</ToolField>
+<ToolField as="button" type="button" id="sidebar-tool-context-menu" className="sidebar-tool-icon-action od-icon-button"
+  title="为当前网站启用右键菜单" aria-label="为当前网站启用右键菜单" aria-pressed="false" hidden={true}>
+  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <path d="M4 5h16M4 12h16M4 19h16M9 3v4M15 10v4M11 17v4"/>
+  </svg>
+  <span>网页右键菜单</span>
+</ToolField>
+</div>
 <ToolField as="div" id="sidebar-tool-visibility-settings" hidden={true}>
 <strong className="sidebar-toc-settings-title">
 <ToolLabel name="overlayHeading"/>
@@ -547,7 +473,7 @@ export function ToolHost({view}) {
 <UninstallDialog open={snapshot.fields['sidebar-tool-inline-remove'].hidden===false}
   title={'卸载「'+(snapshot.fields['sidebar-tool-title']?.textContent||'当前扩展')+'」？'}
   busy={snapshot.fields['sidebar-tool-inline-remove-confirm'].disabled}
-  returnFocusSelector="#sidebar-tool-more-open"
+  returnFocusSelector="#sidebar-tool-remove"
   onCancel={event=>view.dispatch('sidebar-tool-inline-remove-cancel','click',event)}>
 <ToolField as="section" id="sidebar-tool-inline-remove" className="sidebar-tool-inline-remove od-surface" aria-label="卸载工具确认" hidden={true}>
 <ToolField as="p" id="sidebar-tool-inline-remove-text">
@@ -631,10 +557,21 @@ function CookieSettings({onRevoke}) {
   </ToolField>;
 }
 function BookmarkSettings() {
-  return <ToolField as="section" id="sidebar-tool-bookmark-permissions" className="sidebar-tool-cookie-permissions od-surface">
-    <ToolField as="strong" id="sidebar-tool-bookmark-heading"/>
-    <ToolField as="p" id="sidebar-tool-bookmark-info"/>
-    <ToolField as="button" id="sidebar-tool-bookmark-grant" className="od-button"/>
+  return <ToolField as="section" id="sidebar-tool-bookmark-permissions"
+    className="sidebar-tool-bookmark-permissions od-surface" aria-label="完整书签访问">
+    <div className="sidebar-tool-bookmark-intro">
+      <div className="sidebar-tool-bookmark-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+          strokeLinecap="round" strokeLinejoin="round">
+          <path d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18l-6-4-6 4Z"/>
+        </svg>
+      </div>
+      <div className="sidebar-tool-bookmark-copy">
+        <ToolField as="strong" id="sidebar-tool-bookmark-heading"/>
+        <ToolField as="p" id="sidebar-tool-bookmark-info"/>
+      </div>
+    </div>
+    <ToolField as="button" type="button" id="sidebar-tool-bookmark-grant" className="od-button"/>
   </ToolField>;
 }
 
