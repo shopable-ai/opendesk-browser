@@ -616,11 +616,12 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     }catch(error){status(format(error),true);}
     finally{busy=false;updateButtons();}
   }
-  function resultDisplay(runId,view,{workflowId=workflow.workflowId,bundleId=null,bundleRevision=null}={}) {
+  function resultDisplay(runId,view,{workflowId=workflow.workflowId,bundleId=null,bundleRevision=null,installedTask=null}={}) {
     const run=view?.run,result=view?.results?.find(row=>row.runId===runId);
     control('workflow-technical').text=JSON.stringify({
       workflowId,bundleId,bundleRevision,
-      modelSource:lastProviderTurn?.businessWorkflowId===workflow.workflowId?lastProviderTurn:null,
+      ...(installedTask?{installedTask}:{}),
+      modelSource:!installedTask&&lastProviderTurn?.businessWorkflowId===workflow.workflowId?lastProviderTurn:null,
       runId,state:run?.state||'unknown',revision:run?.revision||null,
       terminalReason:run?.terminalReason||null,error:result?.outcome?.error||null,
       resultId:result?.resultId||null,sourceHash:run?.revision?.sourceHash||null,
@@ -2172,7 +2173,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         taskId:candidate.taskId,params:candidate.params,event,
         expected:candidate.expected});
       activeInstalledTaskId=candidate.taskId;
-      busy=true;phase='running';lastRun='running';updateButtons();
+      busy=true;phase='running';lastRun='running';
+      writeWorkflowOutput('尚无本次持久结果');
+      control('workflow-technical').text='';
+      updateButtons();
       appendChat('你',request);
       appendChat('助手','找到已安装任务「'+candidate.title+'」，正在使用新参数执行原有 JavaScript。');
       const completed=await started;
@@ -2201,6 +2205,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         result.revision?.sourceHash!==candidate.sourceHash||
         result.outcome?.ok!==true)
         throw err('E_OUTCOME_UNKNOWN','运行回执、固定源码或 Worker 收尾无法共同确认，不会重试');
+      // Keep the original business receipt visible after the separate
+      // read-only observation takes ownership of the RunHost slot.
+      if(!disposed)resultDisplay(completed.runId,{run,results:[result]},{
+        workflowId:null,installedTask:{taskId:candidate.taskId,...candidate.expected}});
       if(candidate.kind==='commerce'){
         const after=await currentPageTarget.refresh();
         if(after?.status!=='available'||after.windowId!==captured.windowId||

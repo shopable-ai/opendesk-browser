@@ -109,6 +109,19 @@ test('new versioned Task uses immutable Manifest intent and independent readback
     'Task code is the pinned saved JS and result verification is a separate RunHost read');
   assert.ok(f.state().messages.some(row=>row.speaker==='执行结果'&&
     /提交次数：1/.test(row.message)));
+  const proof=JSON.parse(f.state().controls['workflow-technical'].text);
+  assert.equal(proof.runId,'workflow-run-1','show the business Run, not its later observation');
+  assert.equal(proof.resultId,'workflow-result-1');
+  assert.equal(proof.revision.scriptId,'task:'+manifest.taskId+':1.0.1');
+  assert.equal(proof.sourceHash,scriptHash);
+  assert.equal(proof.documentId,'document-one');
+  assert.equal(proof.workerRetired,true);
+  assert.equal(proof.retirement,'released');
+  assert.equal(proof.modelSource,null);
+  assert.deepEqual(proof.installedTask,{taskId:manifest.taskId,version:'1.0.1',
+    manifestHash:'d'.repeat(64),installationId:pinned.installationId,generation:1});
+  assert.ok(f.state().controls['workflow-output'].text,
+    'completed installed Task must populate the existing durable-result panel');
 });
 
 test('new versioned Task cannot report success without all independently visible claims',async t=>{
@@ -121,6 +134,9 @@ test('new versioned Task cannot report success without all independently visible
   assert.equal(reply.error?.code,'E_WORKFLOW_EVIDENCE');
   assert.equal(calls.length,1,'uncertain effect must not re-execute');
   assert.equal(f.starts.length,2);
+  const proof=JSON.parse(f.state().controls['workflow-technical'].text);
+  assert.equal(proof.runId,'workflow-run-1',
+    'retain the verified business receipt when independent page evidence fails');
 });
 
 test('installed Task confirmation is dismissed after a different Document becomes active',async t=>{
