@@ -355,7 +355,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   // Cookies reuse the existing trusted tool-settings surface; sandbox JavaScript
   // cannot render a grant or forge a click in this extension-owned DOM.
   const cookieCaps=[
-    ['read','读取 Cookie 元数据'],['values','读取敏感值'],
+    ['read','读取 Cookie 元数据'],['values','查看 Cookie 值'],
     ['write','新建、编辑及删除'],['observe','短时观察变化'],['clear','清理当前主机']];
   const cookiePermissions=view.fields['sidebar-tool-cookie-permissions'];
   patchToolField(view,cookiePermissions,{className:'sidebar-tool-cookie-permissions od-surface'});
@@ -466,7 +466,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const required=cookieRequiredCapabilities(tool);
     return Boolean(record?.storeId&&record.grantEpoch&&required.length>0&&
       required.every(cap=>record[cap]===true)&&
-      (!allSites||!required.includes('values')||record.valueConsent===true));
+      (!allSites||!required.includes('values')||record.valueConsent===true)&&
+      (allSites||Boolean(record.partitionKey?.topLevelSite)));
   };
   const cookieHasBaseGrant=tool=>cookieRecordComplete(tool,cookieAllSiteRecord(tool),true);
   const cookieSiteBaseRecord=(tool,origin)=>cookieGrantRow(tool)?.cookieSites?.[origin]??null;
@@ -509,7 +510,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         ' 当前安装包未通过官方全站授权核验，仅能授权明确选择的网站。':'')});
     patchToolField(view,cookieFirstUse,{hidden:!origin,
       attributes:{'aria-busy':String(cookieGrantPending)}});
-    const chromeMissing=managed&&cookieChromeState?.granted===false;
+    const chromeMissing=allowed&&cookieChromeState?.granted===false;
     patchToolField(view,cookieSiteToggle,{textContent:cookieGrantPending?'正在处理…':officialPending?
       '正在核验安装身份…':chromeMissing?'恢复 Chrome Cookie 网站访问':allowed?
       allSites?'撤销所有网站 Cookie 授权':'撤销本站 Cookie 授权':
@@ -584,8 +585,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const origin=websiteOrigin(currentPageTarget?.snapshot?.url),tool=active,token=instance;
     if(!tool||!origin)return;
     const allSites=tool.id==='cookie-editor'&&cookieAdmissionState===true;
-    const managed=cookieHasManageGrant(tool,origin);
-    const restoreChrome=managed&&cookieChromeState.granted===false;
+    const scopeGranted=allSites?cookieHasBaseGrant(tool):cookieHasSiteGrant(tool,origin);
+    const restoreChrome=scopeGranted&&cookieChromeState.granted===false;
     const revoke=!restoreChrome&&(allSites?cookieHasBaseGrant(tool):
       cookieHasSiteGrant(tool,origin));
     // The shared Chrome gate consumes this genuine click synchronously,
@@ -609,8 +610,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           '已授权管理本站 Cookie，后续操作复用此次网站授权。');
       }
     })().catch(async error=>{
-      // A partially completed site grant must be displayed from the actual
-      // store; never claim an all-or-nothing success or replay native writes.
+      // A failed/uncertain Host receipt must be reconciled from storage;
+      // never claim the click succeeded or replay native Cookie writes.
       try{menuGrants=(await api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE]||{};}
       catch{/* Keep the prior safe status if local storage is unavailable. */}
       notice((error?.code||'E_COOKIE')+'：'+String(error?.message||error).slice(0,185)+
