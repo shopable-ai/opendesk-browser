@@ -13,7 +13,8 @@ import {PROTOCOL as FOUNDATION_PROTOCOL} from '../../platform/protocol.js';
 import {TIME_REVIEW_KEY} from '../../../examples/sidebar-tools/time-review/trusted/model.js';
 import {PROMPT_ASSET_STORE} from '../../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js';
 import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../../examples/sidebar-tools/stay-focus/trusted/lifecycle.js';
-import {stopAdblockForTool,cleanupUninstalledAdblock} from '../../../examples/sidebar-tools/adblock/trusted/lifecycle.js';
+import {stopAdblockForTool,cleanupUninstalledAdblock,prepareReviewedAdblockUpdate} from '../../../examples/sidebar-tools/adblock/trusted/lifecycle.js';
+import {ADBLOCK_STORE} from '../../../examples/sidebar-tools/adblock/trusted/policy.js';
 import {stopAiAccessForTool,cleanupUninstalledAiAccess} from '../../../examples/sidebar-tools/ai-vip-share/trusted/lifecycle.js';
 import {stopManagedProxyForTool} from '../../platform/chrome/browser-managed-proxy.js';
 import {stopManagedSiteBudgetForTool,MANAGED_SITE_BUDGET_STORE} from '../../platform/chrome/browser-managed-site-budget.js';
@@ -345,11 +346,13 @@ async function transferReviewedSiteScopeLocked(api,lockManager,{id,source,toEpoc
 // Submit package bytes and their generation together through the existing
 // storage/locks. Chrome writes are not a cross-call transaction: partial or
 // unreadable outcomes stay unknown and must never trigger an automatic replay.
-async function commitInstalledSidebarTools(api,next,previous,nextEpochs,previousEpochs,menuUpdate){
+async function commitInstalledSidebarTools(api,next,previous,nextEpochs,previousEpochs,menuUpdate,adblockUpdate){
   const updates={[SIDEBAR_TOOL_STORE]:next,[TOOL_REVOCATION_EPOCHS_STORE]:nextEpochs,
-    ...(menuUpdate?{[BROWSER_MENU_GRANTS_STORE]:menuUpdate.next}:{})};
+    ...(menuUpdate?{[BROWSER_MENU_GRANTS_STORE]:menuUpdate.next}:{}),
+    ...(adblockUpdate?{[ADBLOCK_STORE]:adblockUpdate.next}:{})};
   const prior={[SIDEBAR_TOOL_STORE]:previous,[TOOL_REVOCATION_EPOCHS_STORE]:previousEpochs,
-    ...(menuUpdate?{[BROWSER_MENU_GRANTS_STORE]:menuUpdate.previous}:{})};
+    ...(menuUpdate?{[BROWSER_MENU_GRANTS_STORE]:menuUpdate.previous}:{}),
+    ...(adblockUpdate?{[ADBLOCK_STORE]:adblockUpdate.previous}:{})};
   let failure=null;
   try{await api.storage.local.set(updates);}
   catch(cause){failure=cause;}
@@ -658,9 +661,11 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
             installEpoch:nextEpoch,packageHash:await sidebarToolPackageHash(tool),activeActions}
         }}};
       }
+      const adblockUpdate=await prepareReviewedAdblockUpdate(api,{
+        existing,candidate:tool,oldEpoch:epochs[tool.id]??null,newEpoch:nextEpoch});
       const next=existing?installed.map(row=>row.id===tool.id?tool:row):[...installed,tool];
       registryAttempted=true;
-      const registry=await commitInstalledSidebarTools(api,next,installed,{...epochs,[tool.id]:nextEpoch},rawEpochs,menuUpdate);
+      const registry=await commitInstalledSidebarTools(api,next,installed,{...epochs,[tool.id]:nextEpoch},rawEpochs,menuUpdate,adblockUpdate);
       registryCommitted=true;
       // Even if the local readback is durable, an unacknowledged package commit
       // must require explicit recovery of provenance and operation state.

@@ -8,11 +8,11 @@ import {createHash} from 'node:crypto';
 import {createSidebarToolPackage,encodeSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {sidebarToolPackageHash,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
-import {setInstalledSidebarToolEnabled,recordToolUninstall,retryUninstalledToolCleanup,
+import {installReviewedSidebarTool,setInstalledSidebarToolEnabled,recordToolUninstall,retryUninstalledToolCleanup,
   TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {FOCUS_RULE_FIRST} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
 import {ADBLOCK_ID,ADBLOCK_STORE,ADBLOCK_PROTOCOL,ADBLOCK_PAGE_PROTOCOL,ADBLOCK_CAPABILITY,
-  ADBLOCK_RULE_FIRST,ADBLOCK_RULE_LAST,ADBLOCK_DNR_CLEANUP_STORE,adblockHost} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
+  ADBLOCK_RULE_FIRST,ADBLOCK_RULE_LAST,ADBLOCK_DNR_CLEANUP_STORE,ADBLOCK_PERMISSION,adblockHost} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
 import {wantedAdblockRules,clearAdblockRules,reconcileAdblockRules}
   from '../../examples/sidebar-tools/adblock/trusted/rules.js';
 import {createAdblockService,installAdblockService} from '../../examples/sidebar-tools/adblock/trusted/service.js';
@@ -124,7 +124,7 @@ async function fixture({permission:initialPermission=true,sessionFailure=null}={
     sessionStored,sessionChanges,
     restartService:()=>createAdblockService({api,lockManager,fetcher}),
     get rules(){return rules;},
-    sessionRules,enabledRulesets,permissionRemoved,permissionAdded,
+    sessionRules,enabledRulesets,permissionRemoved,permissionAdded,storageChanged,
     get permission(){return permission;},
     setPermission:value=>{permission=value;service.invalidate(!value);},
     setCurrent:value=>{current=value;},
@@ -158,6 +158,170 @@ test('fresh reviewed official install enables verified DNR immediately, without 
   const writes=f.changes.length;
   assert.equal((await f.restartService().tick()).enabled,true);
   assert.equal(f.changes.length,writes,'boot readback must not rewrite a user choice');
+});
+test('reviewed install transaction defaults to protection on without opening the tool',async()=>{
+  const f=await fixture();
+  f.stored.set(SIDEBAR_TOOL_STORE,[]);
+  f.stored.set(TOOL_REVOCATION_EPOCHS_STORE,{});
+  f.stored.delete(ADBLOCK_STORE);
+  await installReviewedSidebarTool({api:f.api,lockManager:f.lockManager,
+    candidate:f.tool,reviewApproved:true});
+  assert.equal((await f.service.tick()).enabled,true);
+  assert.equal(f.stored.get(ADBLOCK_STORE).approvedEpoch,
+    f.stored.get(TOOL_REVOCATION_EPOCHS_STORE).adblock);
+});
+test('reviewed official update commits retained protection with the new package and epoch',async t=>{
+  const f=await fixture();
+  const previous={...f.tool,version:'1.2.2',js:f.tool.js+'\n'};
+  const oldHash=await sidebarToolPackageHash(previous);
+  const old={version:1,enabled:true,exceptions:['127.0.0.1'],
+    approvedHash:oldHash,approvedEpoch:'epoch-1'};
+  f.stored.set(SIDEBAR_TOOL_STORE,[previous]);
+  f.stored.set(ADBLOCK_STORE,old);
+  t.mock.method(globalThis,'fetch',f.fetcher);
+  // Updating the Browser's bundled resource may retire old rules, but must
+  // retain the user's policy until the reviewed tool update commits.
+  assert.equal((await f.service.tick()).enabled,false);
+  assert.deepEqual(f.stored.get(ADBLOCK_STORE),old);
+  const writes=[];
+  const set=f.api.storage.local.set;
+  f.api.storage.local.set=async values=>{writes.push(structuredClone(values));return set(values);};
+  await installReviewedSidebarTool({api:f.api,lockManager:f.lockManager,
+    candidate:f.tool,baseline:previous,reviewApproved:true});
+  const epoch=f.stored.get(TOOL_REVOCATION_EPOCHS_STORE).adblock;
+  assert.notEqual(epoch,'epoch-1');
+  const commit=writes.find(value=>Object.hasOwn(value,SIDEBAR_TOOL_STORE));
+  assert.deepEqual(commit[ADBLOCK_STORE],{...old,approvedHash:f.hash,approvedEpoch:epoch});
+  assert.equal((await f.service.tick()).enabled,true);
+  assert.deepEqual(f.stored.get(ADBLOCK_STORE).exceptions,old.exceptions);
+  assert.equal((await f.restartService().tick()).enabled,true);
+  assert.deepEqual(f.rules.find(rule=>rule.id===FOCUS_RULE_FIRST),focusRule);
+  await assert.rejects(f.service.dispatch(f.message('adblock.status'),sender),{code:'E_TOOL_CHANGED'});
+});
+test('reviewed same-version official replacement retains protection without another enable',async t=>{
+  const f=await fixture(),previous={...f.tool,js:f.tool.js+'\n'};
+  f.stored.set(SIDEBAR_TOOL_STORE,[previous]);
+  f.stored.set(ADBLOCK_STORE,{version:1,enabled:true,exceptions:[],
+    approvedHash:await sidebarToolPackageHash(previous),approvedEpoch:'epoch-1'});
+  t.mock.method(globalThis,'fetch',f.fetcher);
+  await installReviewedSidebarTool({api:f.api,lockManager:f.lockManager,
+    candidate:f.tool,baseline:previous,reviewApproved:true});
+  assert.equal((await f.service.tick()).enabled,true);
+});
+test('live reviewed update tolerates delayed commit events but retains native revocation',async t=>{
+  for(const timing of ['before','during','originRevoked','permissionRegranted']){
+    await t.test(timing,async t=>{
+      const f=await fixture(),previous={...f.tool,version:'1.2.2',js:f.tool.js+'\n'};
+      f.stored.set(SIDEBAR_TOOL_STORE,[previous]);
+      f.stored.set(ADBLOCK_STORE,{version:1,enabled:true,exceptions:['127.0.0.1'],
+        approvedHash:await sidebarToolPackageHash(previous),approvedEpoch:'epoch-1'});
+      const live=installAdblockService({api:f.api,lockManager:f.lockManager,fetcher:f.fetcher});
+      const drain=()=>f.lockManager.request('opendesk.sidebar-tools:tool:adblock',()=>{});
+      try{
+        await drain();
+        t.mock.method(globalThis,'fetch',f.fetcher);
+        const emit=f.storageChanged.emit,pending=[];
+        f.storageChanged.emit=(...args)=>pending.push(args);
+        await installReviewedSidebarTool({api:f.api,lockManager:f.lockManager,
+          candidate:f.tool,baseline:previous,reviewApproved:true});
+        f.storageChanged.emit=emit;
+        const deliver=()=>{
+          for(const args of pending.splice(0))emit(...args);
+          if(timing==='originRevoked')f.permissionRemoved.emit({origins:['https://news.example.com/*']});
+          if(timing==='permissionRegranted'){
+            f.setPermission(false);f.permissionRemoved.emit({permissions:[ADBLOCK_PERMISSION]});
+            f.setPermission(true);f.permissionAdded.emit({permissions:[ADBLOCK_PERMISSION]});
+          }
+        };
+        if(timing==='before')deliver();
+        else{
+          const contains=f.api.permissions.contains;
+          f.api.permissions.contains=async(...args)=>{
+            f.api.permissions.contains=contains;deliver();return contains(...args);
+          };
+        }
+        await live.service.tick();await drain();
+        const state=f.stored.get(ADBLOCK_STORE),enabled=['before','during'].includes(timing);
+        assert.equal((await live.service.tick()).enabled,enabled);
+        assert.equal(state.enabled,enabled);
+        assert.equal(state.approvedHash,enabled?f.hash:null);
+        assert.equal(state.approvedEpoch,enabled?f.stored.get(TOOL_REVOCATION_EPOCHS_STORE).adblock:null);
+        assert.deepEqual(state.exceptions,['127.0.0.1']);
+        assert.equal(f.rules.some(rule=>rule.id===ADBLOCK_RULE_FIRST),enabled);
+        assert.deepEqual(f.rules.find(rule=>rule.id===FOCUS_RULE_FIRST),focusRule);
+      }finally{live.dispose();}
+    });
+  }
+});
+test('reviewed update cannot reactivate a stopped, revoked or unverified installation',async t=>{
+  for(const kind of ['stopped','hash','epoch','toolDisabled','permission','cleanup','nativeRevoked']){
+    await t.test(kind,async t=>{
+      const f=await fixture(),previous={...f.tool,version:'1.2.2',js:f.tool.js+'\n'};
+      const old={version:1,enabled:true,exceptions:['127.0.0.1'],
+        approvedHash:await sidebarToolPackageHash(previous),approvedEpoch:'epoch-1'};
+      if(kind==='stopped')Object.assign(old,{enabled:false,approvedHash:null,approvedEpoch:null});
+      if(kind==='hash')old.approvedHash='f'.repeat(64);
+      if(kind==='epoch')old.approvedEpoch='revoked-epoch';
+      f.stored.set(SIDEBAR_TOOL_STORE,[previous]);f.stored.set(ADBLOCK_STORE,old);
+      if(kind==='toolDisabled')f.stored.set(SIDEBAR_TOOL_ENABLE_STORE,{adblock:false});
+      if(kind==='permission')f.setPermission(false);
+      if(kind==='cleanup')f.stored.set(ADBLOCK_DNR_CLEANUP_STORE,true);
+      if(kind==='nativeRevoked')f.service.invalidate(true);
+      t.mock.method(globalThis,'fetch',f.fetcher);
+      await installReviewedSidebarTool({api:f.api,lockManager:f.lockManager,
+        candidate:f.tool,baseline:previous,reviewApproved:true});
+      assert.equal((await f.service.tick()).enabled,false,kind);
+      assert.deepEqual(f.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST]);
+      assert.deepEqual(f.stored.get(ADBLOCK_STORE).exceptions,old.exceptions);
+    });
+  }
+});
+test('reviewed update transfers no approval to altered bytes, extra capabilities or another bundle',async t=>{
+  for(const kind of ['altered','capability','bundle'])await t.test(kind,async t=>{
+    const f=await fixture(),previous={...f.tool,version:'1.2.2',js:f.tool.js+'\n'};
+    const old={version:1,enabled:true,exceptions:['127.0.0.1'],
+      approvedHash:await sidebarToolPackageHash(previous),approvedEpoch:'epoch-1'};
+    f.stored.set(SIDEBAR_TOOL_STORE,[previous]);f.stored.set(ADBLOCK_STORE,old);
+    const candidate=kind==='altered'?{...f.tool,js:f.tool.js+'\n// changed'}:
+      kind==='capability'?{...f.tool,capabilities:[ADBLOCK_CAPABILITY,'storage.local']}:f.tool;
+    const bytes=encodeSidebarToolPackage(previous);
+    t.mock.method(globalThis,'fetch',kind==='bundle'?async uri=>({ok:true,url:uri,
+      arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.length)}):f.fetcher);
+    await installReviewedSidebarTool({api:f.api,lockManager:f.lockManager,
+      candidate,baseline:previous,reviewApproved:true});
+    assert.deepEqual(f.stored.get(ADBLOCK_STORE),old);
+  });
+});
+test('package epoch and retained policy have one verified commit without replay on uncertainty',async t=>{
+  for(const kind of ['package','epoch','policy','lostAck','readback'])await t.test(kind,async t=>{
+    const f=await fixture(),previous={...f.tool,version:'1.2.2',js:f.tool.js+'\n'};
+    f.stored.set(SIDEBAR_TOOL_STORE,[previous]);
+    f.stored.set(ADBLOCK_STORE,{version:1,enabled:true,exceptions:['127.0.0.1'],
+      approvedHash:await sidebarToolPackageHash(previous),approvedEpoch:'epoch-1'});
+    t.mock.method(globalThis,'fetch',f.fetcher);
+    const set=f.api.storage.local.set,get=f.api.storage.local.get;
+    let commits=0,unreadable=false;
+    f.api.storage.local.set=async values=>{
+      if(!Object.hasOwn(values,SIDEBAR_TOOL_STORE))return set(values);
+      commits++;
+      const partial={...values};
+      const omitted={package:SIDEBAR_TOOL_STORE,epoch:TOOL_REVOCATION_EPOCHS_STORE,policy:ADBLOCK_STORE}[kind];
+      if(omitted)delete partial[omitted];
+      await set(partial);
+      if(kind==='lostAck')throw Error('lost package commit acknowledgement');
+      if(kind==='readback')unreadable=true;
+    };
+    f.api.storage.local.get=async keys=>{
+      if(unreadable&&keys===ADBLOCK_STORE)throw Error('policy readback failed');
+      return get(keys);
+    };
+    await assert.rejects(installReviewedSidebarTool({api:f.api,lockManager:f.lockManager,
+      candidate:f.tool,baseline:previous,reviewApproved:true}),{code:'E_OUTCOME_UNKNOWN'});
+    assert.equal(commits,1,'no replay or rollback of an unknown commit');
+    unreadable=false;
+    assert.equal((await f.service.tick()).enabled,['lostAck','readback'].includes(kind));
+    assert.deepEqual(f.rules.find(rule=>rule.id===FOCUS_RULE_FIRST),focusRule);
+  });
 });
 test('first-run default cannot override missing permission, explicit stop or forged tool',async()=>{
   const denied=await fixture({permission:false});
@@ -435,7 +599,7 @@ test('official optional AdBlock uses one canonical installable project package',
 });
 test('build-ready official project, current version, one declared restricted capability',async()=>{
   const pkg=await createSidebarToolPackage(PROJECT);
-  assert.equal(pkg.version,'1.2.3');
+  assert.equal(pkg.version,'1.2.4');
   assert.deepEqual(pkg.capabilities,[ADBLOCK_CAPABILITY]);
   assert.ok(pkg.js.includes("adblock.site.restore"));
 });
@@ -508,14 +672,14 @@ test('an installed package from an older bundle requires review without changing
     installEpoch:'old'},sender),{code:'E_TOOL_CHANGED'});
 });
 
-test('reviewed official 1.2.1 upgrade preserves global choice and exceptions with the new package approval',async()=>{
+test('status reads cannot approve a historical package hash outside the reviewed update transaction',async()=>{
   const f=await fixture();
   const old={version:1,enabled:true,exceptions:['127.0.0.1'],
     approvedHash:'8bdb91a0a613932e76d69953b06af3752d217eaee3e15e96e8e27ee314cdbc35',approvedEpoch:'epoch-1'};
   f.stored.set(ADBLOCK_STORE,old);
   const result=await f.service.dispatch(f.message('adblock.status'),sender);
-  assert.equal(result.enabled,true);assert.deepEqual(result.exceptions,old.exceptions);
-  assert.deepEqual(f.stored.get(ADBLOCK_STORE),{...old,approvedHash:f.hash});
+  assert.equal(result.enabled,false);assert.deepEqual(result.exceptions,old.exceptions);
+  assert.deepEqual(f.stored.get(ADBLOCK_STORE),{...old,enabled:false,approvedHash:null,approvedEpoch:null});
   assert.deepEqual(f.rules.find(rule=>rule.id===FOCUS_RULE_FIRST),focusRule);
 });
 test('official upgrade cannot renew disabled, revoked, mismatched or uncertain approval',async t=>{

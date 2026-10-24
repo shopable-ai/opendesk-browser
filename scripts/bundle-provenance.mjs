@@ -34,10 +34,10 @@ function reviewedCompiledTimeReview(target,path,root){
 // a single output and independently enforced release/package identity.
 const compiledAdblockInputs=Object.freeze({
   'examples/sidebar-tools/adblock/trusted/dnr-session.js':'d3e221eac17261a34751cb8ab035c622eb1b42a8',
-  'examples/sidebar-tools/adblock/trusted/service.js':'72294807bea97a1e1b33328bb4f3864ddc342dc5',
+  'examples/sidebar-tools/adblock/trusted/service.js':'947294e8b961d3417491d1b248c8296228510564',
   'examples/sidebar-tools/adblock/trusted/policy.js':'1ba80150d930f51130ceb7806371f7542f35871b',
   'examples/sidebar-tools/adblock/trusted/rules.js':'4bebe24f991783d6ceb14dd80aa507f8497fce61',
-  'examples/sidebar-tools/adblock/trusted/lifecycle.js':'708e2b226eb327d46ac109afa6145fe9b13b1526',
+  'examples/sidebar-tools/adblock/trusted/lifecycle.js':'d63c2b7ea5faa86c9bf39d1b9a935859d55c4636',
   'examples/sidebar-tools/adblock/trusted/tool-host.js':'fe96d9d1a9b1e737f42c3f875c1622d4cd5ea076',
   'examples/sidebar-tools/adblock/trusted/host-controls.js':'79dbe97eaf1eb61315e634384d922079f2d4b136',
   'examples/sidebar-tools/adblock/rules/domains.js':'b6b2ad8bb2085018f355f046d9b2a787601039bd',

@@ -46,7 +46,7 @@ OpenDesk Browser 是用户主动安装的浏览器自动化扩展。为减少每
 | ChatGPT Mind Map / Page Program | 固定版本/ChatGPT 范围获准后可使用 | 已安装且启用的固定程序按网页规则运行；导图开关由用户操作 | Installed Page identity、网页规则、Chrome User Scripts | `examples/programs/chatgpt-mindmap/`、`src/scripting/user-scripts/installed-programs.js`；沿用原有授权 |
 | Cookie Editor / Sidebar Tool | 预装后可直接打开编辑界面 | 否 | Cookie 值读取/写入/清理与浏览器网站权限，危险删除仍由用户确认 | `examples/sidebar-tools/cookie-editor/tool.config.json`；不可因预装默认读取全部 Cookie |
 | Bookmark Manager / Sidebar Tool | 安装后可打开书签管理 | 否 | Chrome Bookmarks 原生许可及写操作 | `examples/sidebar-tools/bookmark-manager/tool.config.json`、`src/platform/chrome/permission-gate.js`；保留按需检查 |
-| AdBlock / Sidebar Tool + Trusted Service | 安装后可打开并配置过滤规则 | 不以普通安装替代用户启用拦截 | DNR / 敏感规则及配置生命周期 | `examples/sidebar-tools/adblock/tool.config.json`、`trusted/lifecycle.js`；不自动撤销敏感确认 |
+| AdBlock / Sidebar Tool + Trusted Service | 当前内置官方包经安装审阅、DNR 权限及会话就绪后默认开启；正常审阅更新保留开启状态与网站例外 | 已批准的固定网络规则及页面样式自动生效 | 精确内置包身份、DNR 权限、撤权与清理围栏；主动关闭或停用不得自动恢复 | `examples/sidebar-tools/adblock/tool.config.json`、`trusted/lifecycle.js`、`trusted/service.js`；1.2.4 在原安装事务内延续有效状态 |
 | Quick Notes / Sidebar Tool | 预装后立即可打开笔记 | 否 | Storage 与用户主动打开 Task | `examples/sidebar-tools/quick-notes/tool.config.json`；不增加启用步骤 |
 | Knowledge Inbox / Sidebar Tool | 安装后可打开收集界面，支持的 ChatGPT 网站显示保存入口 | 固定入口显示，点击才保存 | 安装审阅中的 `page.capture`、`knowledge.store`，Chrome 访问及站点停用例外 | `examples/sidebar-tools/knowledge-inbox/tool.config.json`；保留原固定网站和正文读取边界 |
 | Time Review / Trusted UI | 首次安装默认希望记录；网站范围与 Chrome `idle` 单独批准后自动开始，安装本身不触发采集 | 两项授权满足后；尊重主动暂停 | 明确网站采集范围、Chrome `idle`；撤销、停用后立即停止 | `examples/sidebar-tools/time-review/trusted/service.js` 与原可信 Host；保留独立授权、安装代际及撤权保护 |

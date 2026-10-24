@@ -24,7 +24,7 @@ const fail=(code,message)=>{throw adblockError(code,message);};
 export function createAdblockService({
   api=globalThis.chrome,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch
 }={}){
-  let compiled=null,generation=0,revoked=false;
+  let compiled=null,generation=0,revocationGeneration=0,revoked=false;
   const pendingPicks=new Map();
   const pickOutcomes=new Map();
   let nextPickNonce=0;
@@ -63,7 +63,8 @@ export function createAdblockService({
     return lockManager.request('opendesk.sidebar-tools:tool:'+ADBLOCK_ID,fn);
   };
   const invalidate=(nativeRevoked=false)=>{
-    generation++;pendingPicks.clear();pickOutcomes.clear();if(nativeRevoked)revoked=true;
+    generation++;pendingPicks.clear();pickOutcomes.clear();
+    if(nativeRevoked){revocationGeneration++;revoked=true;}
   };
   async function compiledPackage(){
     if(compiled)return compiled;
@@ -189,16 +190,19 @@ export function createAdblockService({
   }
   // Called only under the same per-tool Web Lock as the existing installer.
   async function reconcileLocked({operation='adblock.status',payload={},windowId=null,validateHost=null,beforeWrite=async()=>{}}={}){
-    const epoch=generation;
+    const nativeEpoch=revocationGeneration;
     const dnrReady=await dnrSessionReady();
     const auth=await authority({beforeWrite,dnrReady});
+    let expectedRaw=auth.raw;
     const persist=async(next,previous,scope)=>{
       await beforeWrite();
       // No authority/window awaits between this site read and the policy write.
       if(operation==='adblock.site.set'&&scope==='广告过滤策略'&&
          (await activeSite(windowId)).currentHost!==payload.host)
         fail('E_ADBLOCK_SITE_CHANGED','当前激活网站已改变，请重新核对网站');
-      return writeVerifiedLocalValue(api,ADBLOCK_STORE,next,previous,scope);
+      const result=await writeVerifiedLocalValue(api,ADBLOCK_STORE,next,previous,scope);
+      expectedRaw=next;
+      return result;
     };
     const hasPermission=await permission().catch(()=>
       fail('E_OUTCOME_UNKNOWN','Chrome DNR 授权读取失败'));
@@ -242,15 +246,8 @@ export function createAdblockService({
     // a recorded stop, native revocation, cleanup fence or impostor cannot.
     if(auth.raw===undefined&&hasPermission&&dnrReady&&!revoked&&!cleanupPending)
       state={...state,enabled:true,approvedHash:hash,approvedEpoch:auth.epoch};
-    // The reviewed official 1.2.1 -> 1.2.2/1.2.3 update keeps the existing
-    // DNR choice. Only that exact shipped predecessor may cross this boundary;
-    // arbitrary same-ID uploads, revoked epochs and missing permissions cannot.
-    const official121='8bdb91a0a613932e76d69953b06af3752d217eaee3e15e96e8e27ee314cdbc35';
-    if(state.enabled&&state.approvedHash===official121&&state.approvedEpoch===auth.epoch&&
-       ['1.2.2','1.2.3'].includes(auth.tool.version)&&auth.tool.capabilities.length===1&&
-       auth.tool.capabilities[0]===ADBLOCK_CAPABILITY&&hasPermission&&dnrReady&&!revoked&&!cleanupPending){
-      state={...state,approvedHash:hash};
-    }
+    // Reviewed updates rebind the policy in the Installer's package/epoch
+    // commit. A status read cannot approve an arbitrary predecessor hash.
     const approvalValid=state.approvedHash===hash&&state.approvedEpoch===auth.epoch;
     if(hasPermission&&!dnrReady){
       if(operation==='adblock.enable')
@@ -298,7 +295,7 @@ export function createAdblockService({
     }else if(operation!=='adblock.status')fail('E_ADBLOCK_OPERATION','未批准的广告操作');
     if(validateHost)await validateHost();
     const final=await authority({beforeWrite,dnrReady});
-    if(!final.tool||!final.enabled||final.epoch!==auth.epoch||
+    if(!final.tool||!final.enabled||final.epoch!==auth.epoch||!sameStorageValue(final.raw,expectedRaw)||
        await sidebarToolPackageHash(final.tool)!==hash||
        await compiledPackage()!==hash)
       fail('E_TOOL_CHANGED','AdBlock 安装/启停身份已变化');
@@ -306,7 +303,9 @@ export function createAdblockService({
       fail('E_OUTCOME_UNKNOWN','Chrome DNR 二次授权读取失败'));
     if(typeof fresh!=='boolean')fail('E_OUTCOME_UNKNOWN','Chrome DNR 二次授权状态未知');
     if(!fresh)cleanupPending=await adblockDnrCleanupPending(api,{ready:dnrReady,granted:false,beforeWrite});
-    if(!fresh||generation!==epoch){
+    // A delayed notification for this same committed authority is harmless.
+    // Native revocation still wins even if permission was already re-granted.
+    if(!fresh||revocationGeneration!==nativeEpoch){
       if(operation==='adblock.enable'||operation==='adblock.site.set')
         fail('E_ADBLOCK_PERMISSION','操作期间 Chrome 原生授权已变更');
       state={...state,enabled:false,approvedHash:null,approvedEpoch:null};
@@ -327,7 +326,7 @@ export function createAdblockService({
       {verified:false,ruleIds:[],reason:'native-permission-missing'};
     if(fresh&&rules.verified)await confirmAdblockDnrCleanup(api,beforeWrite);
     if(validateHost)await validateHost();
-    if(generation===epoch)revoked=false;
+    if(revocationGeneration===nativeEpoch)revoked=false;
     return {installed:true,toolEnabled:true,enabled:state.enabled&&fresh&&rules.verified,
       permissions:{dnr:fresh},exceptions:state.exceptions,
       ...await activeSite(windowId),rules,restartRequired:!fresh&&(dnrReady||cleanupPending),version:ADBLOCK_RULE_VERSION,
