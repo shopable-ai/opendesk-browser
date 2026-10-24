@@ -124,10 +124,14 @@ export function trustedToolShellStyle(root=process.cwd()){
 // epoch guards are retained. No automatic message submission, new Host calls,
 // new origins, output targets or extension permission grants. This precise blob
 // approval does NOT assert Chromium/Native success or official package parity.
+// R2.16 reviewed geometry-only delta: increase the bounded vertical rail
+// scrollport from the stale 248px cap to 400px or the actual dynamic viewport,
+// and center using its painted height. No added permission, origin, action,
+// Host call, input write, storage access, or dynamic module.
 const compiledPromptShortcutInputs=Object.freeze({
   'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'f5bc9499a4d5df8166959b3b9c207fa8eb7e2afa',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'4c6f608a26e0d69278c18a0afda94b3c8ce8274c',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'d2939acc9e40f169c92cc162657dbc860ed9a55c',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'feb973171d071afda5e142c759208dc2c9988e81',
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js':'86e95bff786e52efb9089f97126542430f39a716',
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js':'b960044deb5e7d059c26d5d520f912c0b72c7b0e',
   'examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js':'7c10e8270c43be93229afbf0d3171455de628030',
