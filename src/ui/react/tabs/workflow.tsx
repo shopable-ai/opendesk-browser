@@ -2,6 +2,7 @@ import * as React from 'react';
 import {SharedProviderSettingsSheet as WorkflowSettingsSheet} from '../components/provider-settings.tsx';
 export {SharedProviderSettingsSheet as WorkflowSettingsSheet} from '../components/provider-settings.tsx';
 import {SharedConversationFrame,ConversationTranscript} from '../components/conversation.tsx';
+import {inferHttpsSource} from '../../ai/provider-https-source.js';
 
 // R23.11: trusted chrome only. No Provider, Host, secrets, drafts or web-page
 // content is copied into this view. Native user gestures go to WorkflowView.
@@ -53,15 +54,12 @@ export function WorkflowSourceName({value=''}) {
 
 const SOURCE_LABELS=Object.freeze({
   local_codex:'本机 Codex',
-  custom_https:'HTTPS Chat Completions',
-  cloud_responses:'HTTPS Responses'
+  https:'HTTPS 模型'
 });
 const EMPTY_PROVIDER_SNAPSHOT=Object.freeze({
   source:'local_codex',endpoint:'',model:'',hasApiKey:false,generation:0
 });
 const readEmptyProviderSettings=()=>EMPTY_PROVIDER_SNAPSHOT;
-const CHAT_ENDPOINT='https://api.openai.com/v1/chat/completions';
-const RESPONSES_ENDPOINT='https://api.openai.com/v1/responses';
 
 // A trusted presentation control. The sole ToolShell Runtime owns the real
 // credentials, generation/Lease changes, cancellation and authorization.
@@ -69,7 +67,8 @@ export function WorkflowSourceMenu({snapshot=EMPTY_PROVIDER_SNAPSHOT,providerSet
   onOpenSettings=null,active=true,doc=globalThis.document}){
  const root=React.useRef(null),menu=React.useRef(null);
  const [open,setOpen]=React.useState(false),[notice,setNotice]=React.useState('');
- const selected=SOURCE_LABELS[snapshot.source]||'未知 AI 来源';
+ const selectedMode=snapshot.source==='local_codex'?'local_codex':'https';
+ const selected=SOURCE_LABELS[selectedMode];
  React.useEffect(()=>{if(!active)setOpen(false);},[active]);
  React.useEffect(()=>{
   if(!open||!doc)return;
@@ -91,27 +90,24 @@ export function WorkflowSourceMenu({snapshot=EMPTY_PROVIDER_SNAPSHOT,providerSet
  };
  const select=(next,event)=>{
   if(!event.nativeEvent?.isTrusted||!providerSettings)return;
-  if(next===snapshot.source){close(true);return;}
-  let endpoint=String(snapshot.endpoint||'').trim();
-  if(next!=='local_codex'){
-   if(next==='cloud_responses'&&endpoint===CHAT_ENDPOINT)endpoint=RESPONSES_ENDPOINT;
-   if(next==='custom_https'&&endpoint===RESPONSES_ENDPOINT)endpoint=CHAT_ENDPOINT;
+  if(next===selectedMode){close(true);return;}
+  const endpoint=String(snapshot.endpoint||'').trim();
+  const targetSource=next==='local_codex'?'local_codex':inferHttpsSource(endpoint);
+  if(next==='https'){
    let valid=false;
    try{
     const url=new URL(endpoint);
-    valid=url.protocol==='https:'&&Boolean(url.hostname)&&!url.username&&!url.password;
-    // Changing protocols on a custom endpoint cannot assume API compatibility.
-    if(valid&&snapshot.source!==next)
-     valid=next==='cloud_responses'?/\/responses\/?$/.test(url.pathname):
-       /\/chat\/completions\/?$/.test(url.pathname);
-   }catch{valid=false;}
-   if(!valid||!String(snapshot.model||'').trim()||!snapshot.hasApiKey){
-    setNotice('此 HTTPS 来源尚未配置完整。请在 AI 设置中确认地址、模型与本次会话密钥。');
+    valid=url.protocol==='https:'&&Boolean(url.hostname)&&
+      !url.username&&!url.password&&!url.hash;
+   }catch{/* Malformed or ambiguous HTTPS addresses must use advanced settings. */}
+   if(!valid||!targetSource||!String(snapshot.model||'').trim()||!snapshot.hasApiKey){
+    setNotice('请在 AI 设置中确认 HTTPS 接口、协议、模型及本次会话密钥。');
     advanced();return;
    }
   }
   try{
-   providerSettings.updateSettings({source:next,...(endpoint!==snapshot.endpoint?{endpoint}:{})});
+   // Protocol IDs and provider lifecycle remain owned by the existing Runtime.
+   providerSettings.updateSettings({source:targetSource});
    setNotice('');setOpen(false);
    composer()?.focus({preventScroll:true});
   }catch(error){
@@ -143,9 +139,9 @@ export function WorkflowSourceMenu({snapshot=EMPTY_PROVIDER_SNAPSHOT,providerSet
     role="menu" aria-label="选择 AI 来源" ref={menu} onKeyDown={onMenuKeyDown}>
     {Object.entries(SOURCE_LABELS).map(([value,label])=>
      <button type="button" key={value} role="menuitemradio"
-      id={`workflow-source-option-${value}`} aria-checked={snapshot.source===value}
+      id={`workflow-source-option-${value}`} aria-checked={selectedMode===value}
       className="workflow-source-option" onClick={event=>select(value,event)}>
-      <span>{label}</span>{snapshot.source===value&&<span aria-hidden="true">✓</span>}
+      <span>{label}</span>{selectedMode===value&&<span aria-hidden="true">✓</span>}
      </button>)}
     <div className="workflow-source-menu-divider"/>
     <button type="button" role="menuitem" className="workflow-source-option"

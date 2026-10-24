@@ -19,7 +19,7 @@ test('R2.15 fixed build admits exact reviewed rail code only in its two owners',
   for(const name of ['model.js','policy.js','page.js'])
     assert.throws(()=>describe('sw.js',process.cwd(),path.replace('rail-open.js',name)),/cannot enter a privileged fixed bundle/);
   assert.equal(describe('agents/page-relay.js',process.cwd(),path.replace('rail-open.js','page.js')).modules[0].reviewedFirstPartyBlob,
-    '0c5e411173e2814ff5d9d081efd36875b9bf473a');
+    'cb7dcbd4733ba546c4b50790433f1b3cb4e3fd6f');
   const root=await realpath(await mkdtemp(join(tmpdir(),'prompt-rail-provenance-')));
   try{
     await mkdir(resolve(root,'examples/sidebar-tools/prompt-shortcuts/trusted'),{recursive:true});

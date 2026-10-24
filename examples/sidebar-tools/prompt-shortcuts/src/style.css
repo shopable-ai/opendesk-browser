@@ -221,3 +221,59 @@
 .ps.ps-host-nav .ps-transfer-menu{top:0;right:0}
 
 /* Scroll navigation: compact native switches, no duplicate settings page. */
+
+/* Prompt list detail and non-reflow hover layer.
+   The card body always owns the same columns; tool CSS positions actions only.
+   All interactive button skins remain canonical .od-icon-button/.od-button. */
+.ps-card{position:relative;cursor:pointer;isolation:isolate}
+.ps-card:focus-within,.ps-card.is-expanded{z-index:10}
+.ps-card-main{grid-template-columns:30px minmax(0,1fr)}
+.ps-card-main:has(.ps-glyph.has-image){grid-template-columns:48px minmax(0,1fr)}
+.ps-card-use{width:100%;min-width:0}
+.ps-card-actions{
+  position:absolute;top:7px;right:7px;z-index:2;
+  display:flex;align-items:center;gap:2px;min-width:0;margin:0;padding:3px;
+  border:1px solid var(--od-line);border-radius:var(--radius-control);
+  background:var(--od-paper);box-shadow:0 4px 12px var(--od-line);
+  opacity:0;pointer-events:none;transform:translateY(-2px);
+  transition:opacity .12s ease,transform .12s ease
+}
+.ps-card:hover .ps-card-actions,
+.ps-card:focus-within .ps-card-actions,
+.ps-card.is-expanded .ps-card-actions{
+  opacity:1;pointer-events:auto;transform:none
+}
+.ps-card-actions>.od-icon-button{
+  box-sizing:border-box;flex:0 0 34px;width:34px;min-width:34px;max-width:34px;
+  height:34px;min-height:34px;max-height:34px
+}
+.ps-card.is-disabled .ps-card-quick{display:none}
+.ps-more{
+  position:absolute;right:7px;top:calc(100% - 5px);z-index:12;
+  display:grid;grid-template-columns:repeat(3,40px);gap:5px;
+  width:max-content;max-width:calc(100% - 14px);margin:0;padding:7px;
+  border:1px solid var(--od-line);border-radius:var(--radius-control);
+  background:var(--od-paper);box-shadow:0 8px 24px var(--od-line)
+}
+.ps-more>.od-icon-button{flex:none}
+.ps-detail-head{margin:0 0 var(--space-3)}
+.ps-detail-head h2{margin:0;font-size:15px}
+.ps-detail-identity{display:flex;gap:var(--space-2);align-items:center;margin-bottom:var(--space-3)}
+.ps-detail-identity .ps-glyph{flex:none}
+.ps-detail-heading{min-width:0;display:grid;gap:2px}
+.ps-detail-heading strong{font-size:var(--od-body-size);overflow-wrap:anywhere}
+.ps-detail-body{
+  box-sizing:border-box;padding:var(--space-3);
+  min-height:110px;max-height:min(62dvh,560px);overflow:auto;
+  white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;
+  font-size:var(--od-body-size);line-height:1.65;user-select:text
+}
+.ps-detail-actions{margin-top:var(--space-3);flex-wrap:wrap}
+.ps-detail-actions>.od-button{flex:1 1 auto}
+.ps.ps-host-nav .ps-detail-head{display:none}
+@media(hover:none),(pointer:coarse){
+  .ps-card-actions{opacity:1;pointer-events:auto;transform:none}
+  .ps-card-quick{display:none}
+  .ps-card-actions>.od-icon-button{width:40px;min-width:40px;max-width:40px;height:40px;min-height:40px;max-height:40px}
+}
+@media(prefers-reduced-motion:reduce){.ps-card-actions{transition:none;transform:none}}

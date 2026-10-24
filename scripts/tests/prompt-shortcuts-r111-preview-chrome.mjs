@@ -84,7 +84,7 @@ async function waitPreviewRail(){
     'direct saved prompts in offline HTML rail');
   assert.equal(await evalChrome('document.querySelector("#pageRail .starter-toggle")===null && '+
     'document.querySelector("#pageRail .nav-preview")===null'),true,
-    'OD launcher and transcript top/bottom arrows are deleted');
+    'deleted folding and transcript top/bottom arrows remain absent');
 }
 async function shot(name){
   const r=await call('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
@@ -162,22 +162,23 @@ async function run(){
   await waitPreviewRail();
   assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),3,
     'default webpage rail contains exactly three saved prompt buttons');
-  await click('#pageRail .page-shortcut:nth-child(1)');
+  await click('#pageRail .page-shortcut:nth-child(2)');
   await poll('document.querySelector("#mockDraft").value.includes("浏览器插件定制开发需求")',
     'first-run button directly inserts the stored prompt');
   assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),3,
-    'insertion must not add OD, transcript arrows or management controls');
+    'insertion does not add transcript arrows or extra management controls');
   await evalChrome('document.querySelector("#mockDraft").value=""');
   await evalChrome('(()=>{const select=document.querySelector("#previewDataScenario");select.value="empty";select.dispatchEvent(new Event("change",{bubbles:true}));})()');
   await poll('document.querySelectorAll(".prompt-card").length===0','genuine intentionally empty library');
   assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),0,
-    'empty library has no synthetic launcher or navigation buttons');
-  assert.equal(await evalChrome('document.querySelector("#pageRail").hidden'),true,
-    'empty rail stays visually hidden');
+    'empty library has no saved prompt shortcuts');
+  assert.equal(await evalChrome('document.querySelector("#pageRail").hidden'),false,
+    'empty built-in library still shows the OD entry');
+  assert.equal(await evalChrome('document.querySelector("#pageRail .page-brand")?.textContent'),'OD');
   await evalChrome('(()=>{const select=document.querySelector("#previewDataScenario");select.value="legacy";select.dispatchEvent(new Event("change",{bubbles:true}));})()');
   await poll('document.querySelectorAll(".prompt-card").length===4','legacy four cards');
   assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),4,
-    'legacy four prompts are directly visible without an OD button');
+    'legacy four prompts remain behind one first OD entry');
   await waitPreviewRail();
   await poll('document.querySelector("#pageRail img[data-preview-fixture]")?.naturalWidth>0',
     'R3.5 offline example image decoded');
@@ -211,12 +212,12 @@ async function run(){
   await shot('r35-full-original-mixed-text-and-image');
   await evalChrome('(()=>{const draft=document.querySelector("#mockDraft");draft.value="原草稿";draft.setSelectionRange(draft.value.length,draft.value.length);})()');
   await waitPreviewRail();
-  await click('#pageRail .page-shortcut:nth-child(1)');
+  await click('#pageRail .page-shortcut:nth-child(2)');
   await poll('document.querySelector("#mockDraft").value.includes("不改变原意")',
     'legacy text insertion directly from prompt button');
   const textInsert=await evalChrome('document.querySelector("#mockDraft").value');
   await waitPreviewRail();
-  await click('#pageRail .page-shortcut:nth-child(2)');
+  await click('#pageRail .page-shortcut:nth-child(3)');
   await poll('document.querySelector("#mockDraft").value.includes("重要依据")',
     'legacy image insertion directly from prompt button');
   const imageInsert=await evalChrome('document.querySelector("#mockDraft").value');
@@ -365,7 +366,7 @@ async function run(){
   assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),5);
   
   await waitPreviewRail();
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),5,
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),6,
     'five imported-and-legacy prompts are directly visible without a launcher');
   assert.equal(await evalChrome('document.querySelector("#panelStatus").textContent.includes("网页按钮已即时同步")'),true);
   // Replacement is two explicit actions and never alters the list before confirmation.
@@ -378,7 +379,7 @@ async function run(){
   assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),1);
   
   await waitPreviewRail();
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),1,
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),2,
     'custom-only replacement exposes exactly its one saved prompt');
   
   assert.equal(await evalChrome('document.querySelector("#imageSizeGroup").hidden'),true,
@@ -445,7 +446,7 @@ async function run(){
   x=await state();assert.equal(x.editing,true);assert.equal(x.cards,5);
   
   await waitPreviewRail();
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),5,
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),6,
     'save-and-continue shows exactly five real prompts');
   await shot('batch-create-320px');
   await evalChrome('(()=>{const f=document.querySelector("#promptBody");f.value="连续创建第二条：列出下一步计划。";f.dispatchEvent(new Event("input",{bubbles:true}));})()');
@@ -454,7 +455,7 @@ async function run(){
   x=await state();assert.equal(x.cards,6);assert.equal(x.editing,true);
   
   await waitPreviewRail();
-  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),6,
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),7,
     'all six saved shortcuts remain directly accessible');
   await poll('document.querySelector("#promptForm").getAttribute("aria-busy")!=="true"',
     'save-and-continue finishes before cancel');
@@ -611,12 +612,12 @@ async function run(){
   await shot('r37-original-local-upload');
   await click('#saveButton');
   await waitPreviewRail();
-  await poll('document.querySelector("#formView").hidden&&document.querySelector("#pageRail .page-shortcut:nth-child(2) img")?.naturalWidth>0',
+  await poll('document.querySelector("#formView").hidden&&document.querySelector("#pageRail .page-shortcut:nth-child(3) img")?.naturalWidth>0',
     'saved local raster appears on real rail');
   const uploadEvidence=await evalChrome('('+function(){
     const item=JSON.parse(localStorage.getItem('opendesk.prompt-shortcuts.preview.items-r3'))[1];
     const store=JSON.parse(localStorage.getItem('opendesk.prompt-shortcuts.preview.assets-r37'));
-    const img=document.querySelector('#pageRail .page-shortcut:nth-child(2) img');
+    const img=document.querySelector('#pageRail .page-shortcut:nth-child(3) img');
     const box=img.closest('button').getBoundingClientRect();
     const canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
     const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0);
@@ -631,13 +632,13 @@ async function run(){
   await shot('r37-original-local-image-saved');
   await reloadPreview();
   await waitPreviewRail();
-  await poll('document.querySelector("#pageRail .page-shortcut:nth-child(2) img")?.naturalWidth>0',
+  await poll('document.querySelector("#pageRail .page-shortcut:nth-child(3) img")?.naturalWidth>0',
     'same saved local image after reload');
-  assert.equal(await evalChrome('document.querySelector("#pageRail .page-shortcut:nth-child(2) img")?.dataset.previewFixture??null'),null,
+  assert.equal(await evalChrome('document.querySelector("#pageRail .page-shortcut:nth-child(3) img")?.dataset.previewFixture??null'),null,
     'saved local image must really be restored; initial offline sample is NOT reload evidence');
   const insert=await evalChrome('('+async function(){
     const field=document.querySelector('#mockDraft');field.value='原草稿';field.setSelectionRange(field.value.length,field.value.length);
-    document.querySelector('#pageRail .page-shortcut:nth-child(2)').click();
+    document.querySelector('#pageRail .page-shortcut:nth-child(3)').click();
     await new Promise(done=>setTimeout(done,110));
     return field.value;
   }.toString()+')()');
@@ -659,7 +660,7 @@ async function run(){
     const row=rows.find(r=>r.imageAssetId);
     const card=document.querySelector('.prompt-card[data-id="'+row?.id+'"]');
     const cardPicture=card?.querySelector('img');
-    const railPicture=document.querySelector('#pageRail .page-shortcut:nth-child(2) img');
+    const railPicture=document.querySelector('#pageRail .page-shortcut:nth-child(3) img');
     return {formVisible:!document.querySelector('#formView').hidden,
       sourceLocal:document.querySelector('#imageSourceLocal').checked,
       sourceUrl:document.querySelector('#imageSourceUrl').checked,
@@ -731,7 +732,7 @@ async function run(){
   assert.equal(afterDiscard.saved,uploadEvidence.id);
   await click('#reopenTool');
   await waitPreviewRail();
-  await poll('document.querySelector("#pageRail .page-shortcut:nth-child(2) img")?.naturalWidth>0',
+  await poll('document.querySelector("#pageRail .page-shortcut:nth-child(3) img")?.naturalWidth>0',
     'saved picture survives aborted host exit');
   report.r41DraftProtection={inactiveUrlGuard:true,realFilesystemJpegDrop:true,
     hostDiscardClean:true,oldSavedAssetRetained:true};
@@ -806,7 +807,7 @@ async function run(){
   assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),4);
   await waitPreviewRail();
   assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),4,
-    'reset restores four legacy prompts without an OD launcher');
+    'reset restores four legacy prompts behind one first OD brand');
   report.unifiedGearAndUninstall=true;report.result='PASS';
   console.log('PROMPT_SHORTCUTS_R111_REAL_CHROME_MOCK_PASS',JSON.stringify(report));
 }

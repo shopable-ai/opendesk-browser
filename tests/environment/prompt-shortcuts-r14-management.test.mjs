@@ -68,7 +68,7 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
     control.checked=/\bchecked\b/.test(attrs);
     nodes['ps-scroll-settings'].append(control);
   }
-  for(const id of ['ps-edit','ps-empty','ps-error','ps-body-error',
+  for(const id of ['ps-edit','ps-detail','ps-empty','ps-error','ps-body-error',
     'ps-transfer-menu','ps-import-panel','ps-import-warning','ps-import-file'])nodes[id].hidden=true;
   nodes['ps-body'].tagName='TEXTAREA';
   nodes['ps-label'].tagName='INPUT';nodes['ps-name'].tagName='INPUT';
@@ -535,26 +535,41 @@ test('R1.8 native menu prefill is an unsaved draft until explicitly saved or dis
   assert.equal(discard.writes(),0);
 });
 
-test('R1.13 management is content-first, one-click copy and no redundant grant widgets',async()=>{
-  const [html,preview,host]=await Promise.all([
+test('Prompt list click opens read-only detail; explicit quick copy keeps one gesture',async()=>{
+  const [html,preview,host,css]=await Promise.all([
     readFile(tool+'/src/index.html','utf8'),
     readFile(tool+'/preview/index.html','utf8'),
-    readFile('src/ui/sidebar-tools.js','utf8')
+    readFile('src/ui/sidebar-tools.js','utf8'),
+    readFile(tool+'/src/style.css','utf8')
   ]);
   assert.doesNotMatch(html,/ps-grant|ps-permission-strip|id="ps-menu"|ps-shapes/);
   assert.doesNotMatch(preview,/permissionView|mockRevoke|openPermissions/);
   assert.match(preview,/id="settingsView"/);
   assert.match(host,/promptNativeAction/);
   assert.match(host,/siteCapability\(active\)&&!promptSettings/);
+  assert.match(css,/\.ps-card-actions\{\s*position:absolute/);
+  assert.match(css,/\.ps-more\{\s*position:absolute/);
+  assert.match(css,/\.ps-card-main\{grid-template-columns:30px minmax\(0,1fr\)\}/);
+  assert.match(css,/\.ps-card:focus-within \.ps-card-actions/);
   const f=await fixture(),n=f.nodes;
-  n['ps-new'].emit('click');n['ps-body'].value='第一行\n\n第二行';
+  n['ps-new'].click();n['ps-body'].value='第一行\n\n第二行';
   n['ps-form'].emit('input');
   n['ps-form'].emit('submit',{preventDefault(){}});await settle();
-  const first=allDescendants(n['ps-list']).find(v=>v.classList.contains('ps-card-use'));
-  assert(first,'first visual tier must be a clickable full-body button');
+  const first=buttonByAction(n['ps-list'],'detail');
+  assert(first.classList.contains('ps-card-use'));
   assert.equal(first.children[0]?.textContent,'第一行\n\n第二行');
-  first.emit('click');await settle();
+  first.click();
+  assert.equal(n['ps-index'].hidden,true);
+  assert.equal(n['ps-detail'].hidden,false);
+  assert.equal(n['ps-detail-body'].textContent,'第一行\n\n第二行');
+  assert.deepEqual(f.copies(),[],'opening detail must not silently copy');
+  n['ps-detail-copy'].click();await settle();
   assert.deepEqual(f.copies(),['第一行\n\n第二行']);
+  n['ps-detail-back'].click();
+  assert.equal(n['ps-index'].hidden,false);
+  assert.equal(buttonByAction(n['ps-list'],'detail').focused,true,'Back restores card focus');
+  buttonByAction(n['ps-list'],'quick-copy').click();await settle();
+  assert.deepEqual(f.copies(),['第一行\n\n第二行','第一行\n\n第二行']);
   assert.equal(n['ps-status'].textContent,'已复制完整正文。');
 });
 
@@ -647,12 +662,13 @@ test('R2 Sandbox website manager saves an independent verified two-selector rule
 test('R1.17 per-item controls are SVG-only, keyboard-labelled and still use guarded Host storage',async()=>{
   const f=await fixture({initialStored:initialLibrary}),n=f.nodes;
   const actions=()=>allDescendants(n['ps-list']).filter(node=>node.tagName==='BUTTON'&&node.dataset.action);
-  assert.deepEqual(actions().map(node=>node.dataset.action),['more','more']);
-  assert.equal(actions()[0].textContent,'');
+  assert.deepEqual(actions().map(node=>node.dataset.action),
+    ['detail','quick-copy','more','detail','quick-copy','more']);
   buttonByAction(n['ps-list'],'more').click();
   const commandNames=actions().map(node=>node.dataset.action);
-  assert.deepEqual(commandNames,['more','edit','toggle','up','down','copy','delete','more']);
-  for(const node of actions()){
+  assert.deepEqual(commandNames,
+    ['detail','quick-copy','more','edit','toggle','up','down','copy','delete','detail','quick-copy','more']);
+  for(const node of actions().filter(node=>node.dataset.action!=='detail')){
     assert.equal(node.textContent,'','icon-only controls must not render text');
     assert.match(node.attributes['aria-label'],/\S/);
     assert.equal(node.children[0].tagName,'SVG');
@@ -1206,6 +1222,25 @@ test('R1.7 official header: create, draft back, ETag save/readback, edit and foc
   assert.equal(reopen.writes(),0,'return and reopening never duplicate an item');
 });
 
+test('Prompt detail uses the original trusted Host back without saving',async()=>{
+  const f=await fixture({sharedNavigation:true,initialStored:initialLibrary}),n=f.nodes;
+  buttonByAction(n['ps-list'],'detail').click();
+  assert.deepEqual(f.navigation.at(-1),{page:'detail',title:'提示词详情',canBack:true});
+  assert.equal(n['ps-detail'].hidden,false);
+  assert.equal(n['ps-detail-body'].textContent,initialLibrary.items[0].body);
+  assert.equal(f.writes(),0);
+  f.root.emit('opendesk-tool-navigation',{detail:{action:'back'}});
+  assert.equal(n['ps-detail'].hidden,true);
+  assert.equal(n['ps-index'].hidden,false);
+  assert.equal(buttonByAction(n['ps-list'],'detail').focused,true);
+  assert.equal(f.writes(),0,'navigation must not write to Host');
+  buttonByAction(n['ps-list'],'detail').click();
+  n['ps-detail-edit'].click();
+  assert.deepEqual(f.navigation.at(-1),{page:'edit',title:'编辑提示词',canBack:true});
+  assert.equal(n['ps-edit'].hidden,false);
+  assert.equal(n['ps-body'].value,initialLibrary.items[0].body);
+});
+
 test('R1.7 third-party and standalone preview keep the local New/title controls',async()=>{
   const f=await fixture(),n=f.nodes;
   assert.equal(f.navigation.length,0);
@@ -1234,70 +1269,21 @@ test('R1.7 shared back blocks pending and unknown storage results without replay
   assert.equal(f.requests.filter(row=>row.op==='storage.set').length,1);
 });
 
-const navigationKeys=['regionTop','regionBottom','conversationTop','conversationBottom','floatingTop'];
-const scrollControls=f=>f.nodes['ps-scroll-settings'].querySelectorAll('[data-scroll-nav]');
-const changeNavigation=(f,key,checked)=>{
-  const control=scrollControls(f).find(node=>node.dataset.scrollNav===key);
-  assert(control,'missing management switch '+key);control.checked=checked;control.emit('change');
-};
-test('R1.16.1 five management switches default on, persist independently and preserve prompts, images and export',async()=>{
-  const seed=structuredClone(initialLibrary);
-  seed.settings.imageSize='compact';seed.items[1].appearance='image';seed.items[1].imageUrl='https://example.org/image.png';
-  const f=await fixture({initial:seed});
-  assert.equal(scrollControls(f).length,5);
-  assert(scrollControls(f).every(node=>node.checked&&!node.disabled));
-  const beforeExport=()=>{f.nodes['ps-export'].click();};
-  beforeExport();await settle();const exported=f.downloads.at(-1);
-  for(const key of navigationKeys){
-    changeNavigation(f,key,false);await settle();
-    for(const control of scrollControls(f))assert.equal(control.checked,
-      !navigationKeys.slice(0,navigationKeys.indexOf(key)+1).includes(control.dataset.scrollNav));
-  }
-  assert.equal(f.writes(),5);
-  const reopened=await fixture({initial:f.stored()});
-  assert(scrollControls(reopened).every(node=>!node.checked));
-  assert.equal(f.stored().settings.imageSize,'compact');
-  assert.equal(f.stored().settings.webButtons,true);
-  assert.deepEqual(f.stored().items.map(row=>[row.id,row.body,row.appearance,row.imageUrl]),
-    seed.items.map(row=>[row.id,row.body,row.appearance??'text',row.imageUrl??'']));
-  beforeExport();await settle();
-  // Timestamp is the only nondeterministic backup field.
-  const backup=payload=>{const value=JSON.parse(payload.text);delete value.exportedAt;return value;};
-  assert.deepEqual(backup(f.downloads.at(-1)),backup(exported));
-  for(const key of navigationKeys){changeNavigation(reopened,key,true);await settle();}
-  assert(scrollControls(reopened).every(node=>node.checked));
+// Navigation remains an independent page feature; the prompt list deliberately
+// no longer owns its five switches. The shipped package must follow src/index.html.
+test('Prompt management index does not surface the obsolete navigation controls',async()=>{
+  const html=await readFile(tool+'/src/index.html','utf8');
+  assert.doesNotMatch(html,/ps-scroll-settings|data-scroll-nav=|默认开启 · 可分别关闭/);
+  const f=await fixture({initial:initialLibrary});
+  assert.equal(f.nodes['ps-scroll-settings'],undefined);
+  assert.equal(f.writes(),0,'opening the list must not mutate saved navigation preferences');
 });
-for(const outcome of ['conflict','unknown-readback','positive-readback-fails','rejection']){
-  test('R1.16.1 navigation '+outcome+' restores confirmed switches and never replays unknown writes',async()=>{
-    const f=await fixture({initial:initialLibrary,deferWrites:true,
-      storageFault:outcome==='unknown-readback'?'unknown':null,
-      deferReadback:outcome==='positive-readback-fails'});
-    changeNavigation(f,'regionBottom',false);
-    assert(scrollControls(f).every(node=>node.disabled),'pending persistence locks all five');
-    if(outcome==='conflict')f.pending.shift().reject(Object.assign(Error('conflict'),{code:'E_STORAGE_CONFLICT'}));
-    else if(outcome==='rejection')f.pending.shift().reject(Object.assign(Error('rejected'),{code:'E_HOST_STORAGE_WRITE'}));
-    else f.pending.shift().resolve();
-    await settle();
-    if(outcome==='positive-readback-fails'){
-      assert.equal(f.readbacks.length,1);f.readbacks.shift().reject(Error('read unavailable'));await settle();
-    }
-    assert(scrollControls(f).every(node=>node.checked),'UI retains last confirmed state');
-    assert.match(f.nodes['ps-status'].textContent,/未确认/);
-    const unknown=outcome!=='conflict';
-    assert.equal(f.states.at(-1).busy,unknown);
-    assert(scrollControls(f).every(node=>node.disabled===unknown));
-    if(unknown){changeNavigation(f,'floatingTop',false);await settle();}
-    assert.equal(f.requests.filter(row=>row.op==='storage.set').length,1);
-    assert.equal(f.requests[1].payload.ifMatch,'a'.repeat(64));
-    assert.equal(f.nodes['ps-export'].disabled,unknown);
-  });
-}
-test('R1.16.1 navigation unknown acknowledgement is accepted only after full authoritative readback',async()=>{
-  const f=await fixture({initial:initialLibrary,deferWrites:true});
-  changeNavigation(f,'conversationTop',false);
-  f.pending.shift().resolve({failure:Object.assign(Error('lost ack'),{code:'E_OUTCOME_UNKNOWN'})});await settle();
-  assert.equal(f.states.at(-1).busy,false);
-  assert.equal(scrollControls(f).find(node=>node.dataset.scrollNav==='conversationTop').checked,false);
-  assert.equal(f.requests.filter(row=>row.op==='storage.set').length,1);
-  assert.equal(f.requests.filter(row=>row.op==='storage.get'&&row.payload.key==='library').length,2);
+
+test('Existing navigation preferences are not silently reset by opening the prompt manager',async()=>{
+  const library=structuredClone(initialLibrary);
+  library.settings.scrollNavigation={regionTop:false,regionBottom:true,
+    conversationTop:false,conversationBottom:true,floatingTop:false};
+  const f=await fixture({initial:library});
+  assert.equal(f.writes(),0);
+  assert.deepEqual(f.stored().settings.scrollNavigation,library.settings.scrollNavigation);
 });
