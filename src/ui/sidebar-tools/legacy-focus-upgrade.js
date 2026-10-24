@@ -16,7 +16,7 @@ import {extendReviewedManagedSiteScopes,managedSiteV3RequiredOrigins,
 import {stageManagedSiteV3MigrationLocked,stopManagedSiteBudgetForTool,
   MANAGED_SITE_BUDGET_STORE,MANAGED_SITE_BUDGET_ALARM}
   from '../../platform/chrome/browser-managed-site-budget.js';
-import {desiredManagedSiteV3Rules} from '../../platform/chrome/managed-site-v3-rules.js';
+import {desiredManagedSiteV3Rules,isManagedSiteV3RuleId} from '../../platform/chrome/managed-site-v3-rules.js';
 import {stopStayFocusForTool} from '../../../examples/sidebar-tools/stay-focus/trusted/lifecycle.js';
 
 export const LEGACY_FOCUS_SNAPSHOT_PREFIX='opendesk.market.legacy-focus.v1:';
@@ -31,6 +31,26 @@ const isValidNew=tool=>tool?.id===FOCUS_ID&&tool.format==='opendesk.sidebar-tool
   tool.capabilities.includes('browser.siteBudget')&&
   !tool.capabilities.includes('focus.control')&&
   tool.backgroundPolicy?.kind==='site-budget.v3';
+
+// Verify the whole native DNR rule after the Driver's reconciliation.
+// Matching only ID, action type and priority can falsely accept a changed URL
+// scope, exemption or redirect destination during a legacy upgrade.
+function canonicalManagedNativeRule(rule){
+  if(!rule||typeof rule!=='object')return null;
+  const condition={...rule.condition};
+  if(condition.isUrlFilterCaseSensitive===false)
+    delete condition.isUrlFilterCaseSensitive;
+  return {id:rule.id,priority:rule.priority,action:rule.action,condition};
+}
+export function matchesManagedSiteV3NativeRules(actual,expected,slot){
+  if(!Array.isArray(actual)||!Array.isArray(expected))return false;
+  const owned=actual.filter(rule=>isManagedSiteV3RuleId(slot,rule?.id))
+    .sort((a,b)=>a.id-b.id);
+  const wanted=expected.slice().sort((a,b)=>a.id-b.id);
+  return owned.length===wanted.length&&owned.every((rule,index)=>
+    sameStorageValue(canonicalManagedNativeRule(rule),
+      canonicalManagedNativeRule(wanted[index])));
+}
 
 // Called read-only under the Installer's original tool/catalog locks.
 // A malformed, undocumented or different-source legacy owner is left intact.
@@ -196,10 +216,7 @@ export async function finishLegacyFocusUpgradeLocked({api,lockManager,descriptor
     fail('E_OUTCOME_UNKNOWN','公共 Driver 后台闹钟没有通过 Chrome 回读');
   const actual=await api.declarativeNetRequest.getDynamicRules();
   const expected=desiredManagedSiteV3Rules(saved.policy,saved.usage,Date.now(),saved.slot);
-  const owned=actual.filter(rule=>expected.some(w=>w.id===rule.id));
-  if(owned.length!==expected.length||
-     expected.some(rule=>!owned.some(found=>found.id===rule.id&&
-       found.action?.type===rule.action?.type&&found.priority===rule.priority)))
+  if(!matchesManagedSiteV3NativeRules(actual,expected,saved.slot))
     fail('E_OUTCOME_UNKNOWN','公共 Driver DNR 原生规则尚未通过独立回读');
   // The new native owner has passed readback. Retire the fixed legacy range
   // (never all DNR rules or shared alarms) and prove it is actually gone.
@@ -210,8 +227,7 @@ export async function finishLegacyFocusUpgradeLocked({api,lockManager,descriptor
     fail('E_OUTCOME_UNKNOWN','旧版网站规则或专用计时仍未确认退休');
   // Read back the public effects again after retiring old resources.
   const finalRules=await api.declarativeNetRequest.getDynamicRules();
-  if(expected.some(rule=>!finalRules.some(found=>found.id===rule.id&&
-       found.action?.type===rule.action.type&&found.priority===rule.priority)))
+  if(!matchesManagedSiteV3NativeRules(finalRules,expected,saved.slot))
     fail('E_OUTCOME_UNKNOWN','退休旧资源后公共网站规则未能独立验证');
   return {state:'native-verified',day:saved.day,usage:structuredClone(saved.usage),
     modelRef,desiredPolicyRev:saved.desiredPolicyRev,
