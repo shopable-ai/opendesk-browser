@@ -562,7 +562,10 @@ test('Workflow Chinese replay grammar accepts natural word spacing but rejects e
  assert.equal(simpleCommerceReplayGoal('搜索 camera，打开 Camera X 商品详情，并且提交订单'),null);
 });
 
-test('R23.37 cold-chat second Send finds the first natural-language saved Bundle v2 without generating another script',async t=>{
+for(const dropVerifiedBundleWrite of [false,true])
+test('R23.37 '+(dropVerifiedBundleWrite
+  ?'acknowledged but missing storage bytes fail closed, then retry Save without another web operation'
+  :'cold-chat second Send finds the first saved Bundle v2 without generating another script'),async t=>{
   // Component integration: production View/Provider/Compiler/Controller APIs,
   // with test RunHost and deterministic page observations. Native Chrome DOM
   // evidence must still be obtained separately, never inferred from this test.
@@ -633,7 +636,7 @@ test('R23.37 cold-chat second Send finds the first natural-language saved Bundle
       target.documentId='product-'+name;
     }
   };
-  const fixtureOptions={observationResult,actionResult,afterAction};
+  const fixtureOptions={observationResult,actionResult,afterAction,dropVerifiedBundleWrite};
   const until=async (condition,diagnostic)=>{
     for(let attempt=0;attempt<1200;attempt++){
       if(condition())return;
@@ -661,14 +664,38 @@ test('R23.37 cold-chat second Send finds the first natural-language saved Bundle
   assert.equal(modelGenerations,0,'HTTPS page summary is never sent before recipient disclosure');
   await original.click('workflow-ai-approve');
   await send;
-  await until(()=>original.state().controls['workflow-editor'].dataset.agentState==='COMPLETED',
+  await until(()=>['COMPLETED','SAVE_FAILED'].includes(
+    original.state().controls['workflow-editor'].dataset.agentState),
     ()=>JSON.stringify({agent:original.state().controls['workflow-editor'].dataset.agentState,
       status:original.state().controls['workflow-status'].text,
       starts:original.starts.map(x=>x.source.kind),modelGenerations}));
+  assert.equal(original.state().controls['workflow-editor'].dataset.agentState,
+    dropVerifiedBundleWrite?'SAVE_FAILED':'COMPLETED');
   assert.equal(modelGenerations,2,'first two-Document task uses the existing provider twice');
   assert.ok(observations.some(row=>row.nodes.includes('Camera X')&&row.nodes.includes('¥499.00')),
     'original price comes from a separate final Document observation');
   assert.ok(original.starts.some(x=>x.source.kind==='draft'),'first run generated authorized JavaScript');
+  if(dropVerifiedBundleWrite){
+    assert.equal([...original.local.values()].some(value=>
+      value?.format===WORKFLOW_DYNAMIC_BUNDLE_FORMAT),false,
+    'a successful storage SET ACK with missing bytes is not a saved Bundle');
+    assert.match(original.state().controls['workflow-status'].text,/自动保存失败/);
+    assert.equal(original.state().controls['workflow-save'].disabled,false,
+      'the verified two-Document draft must remain retryable after a failed persistence readback');
+    const startsBeforeRetry=original.starts.length;
+    const scriptsBeforeRetry=[...original.scripts.entries()].map(([key,row])=>[key,structuredClone(row)]);
+    original.service.dropVerifiedBundleWrite=false;
+    const retry=await original.click('workflow-save');
+    assert.equal(retry?.ok,true,'a separate Save retry should reuse verified Controller revisions');
+    assert.equal(original.starts.length,startsBeforeRetry,
+      'persistence retry must never regenerate or reexecute the original webpage operations');
+    assert.deepEqual([...original.scripts.entries()],scriptsBeforeRetry,
+      'persistence retry must not create extra JS revisions');
+    assert.ok([...original.local.values()].some(value=>
+      value?.format===WORKFLOW_DYNAMIC_BUNDLE_FORMAT));
+    assert.equal(modelGenerations,2,'Save retry must not generate new business code');
+    return;
+  }
 
   // The initial natural-language Send must durably save an eligible v2
   // without any extra manual Save click after the verified second Document.
