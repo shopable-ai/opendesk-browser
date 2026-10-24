@@ -90,7 +90,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .preview-scroll-group label{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:34px;font-size:12px}
 .preview-scroll-group .switch{flex:none}
 /* Mirrors approved R1.2 decision: 12 px from content area's LEFT EDGE, not the centered text column or composer. */
-.page-rail{position:absolute;left:12px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:5px;max-height:248px;overflow-y:auto;overflow-x:hidden;padding:6px;width:max-content;max-width:calc(100% - 24px);border:1px solid var(--ps-rail-border);background:var(--ps-rail-bg);box-shadow:var(--ps-rail-shadow);border-radius:17px;box-sizing:border-box;scrollbar-width:thin;overscroll-behavior:contain}
+.page-rail{position:absolute;left:12px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:5px;max-height:min(400px,calc(100% - 16px));overflow-y:auto;overflow-x:hidden;padding:6px;width:max-content;max-width:calc(100% - 24px);border:1px solid var(--ps-rail-border);background:var(--ps-rail-bg);box-shadow:var(--ps-rail-shadow);border-radius:17px;box-sizing:border-box;scrollbar-width:thin;overscroll-behavior:contain}
 .page-shortcut{flex:none;width:38px;height:38px;display:grid;place-items:center;border:1px solid transparent;background:var(--ps-button-bg);color:var(--ps-button-fg);border-radius:11px;font-size:13px;line-height:1.07;font-weight:700;box-sizing:border-box;user-select:none}
 .page-shortcut.starter-toggle{background:#336bf4;border-color:#2c60dc;color:#fff;font-size:12px;font-weight:850;letter-spacing:-.8px}
 .page-shortcut.starter-toggle:hover{background:#245de8;border-color:#245de8}
@@ -401,7 +401,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 }
 
 /* R3.0 image appearance: the existing complete preview remains intact. */
-.page-rail{--ps-image-width:68px;--ps-image-height:48px;max-height:min(340px,calc(100% - 16px))}
+.page-rail{--ps-image-width:68px;--ps-image-height:48px}
 .page-rail[data-image-size="compact"]{--ps-image-width:48px;--ps-image-height:40px}
 .page-rail[data-image-size="standard"]{--ps-image-width:56px;--ps-image-height:44px}
 .page-shortcut.has-image{width:var(--ps-image-width);height:var(--ps-image-height);padding:0;overflow:hidden;border-radius:10px}
