@@ -17,6 +17,8 @@ test('R2.3 real SidebarAppShell puts one Tasks AI Dock after scrolling workspace
  assert.equal($('#workspace-content').nextAll('.my-agent-dock').length,1);
  assert.equal($('.my-agent-dock').nextAll('#workspace-dock').length,1);
  assert.equal($('#my-agent-input').attr('value')??$('#my-agent-input').text(),'原有草稿');
+ assert.equal($('.my-agent-welcome, .my-agent-examples, .my-agent-secondary').length,0,
+   'Tasks AI shows no default suggestion panel or redundant heading');
  assert.equal($('#workspace-dock #task-run').length,1,'original Task Run Dock remains');
  preview.toggle();
  assert.equal(preview.getSnapshot().draft,'原有草稿','collapse never clears draft');
@@ -37,6 +39,8 @@ test('R2.3 Workflow SSR has one icon Source entry, one shared composer target an
  assert.equal($('.workflow-composer-frame').length,1,'existing shared React Portal target');
  assert.equal($('#workflow-provider-settings').length,0,'legacy standalone settings not mounted in ToolShell');
  assert.equal($('.workflow-scroll').length,1,'the existing scroll container remains');
+ assert.equal($('.workflow-chat-intro, .workflow-intro-suggestions').length,0,
+   'Workflow no longer shows a default welcome or suggestion card');
  assert.equal($('#workspace-dock').length,1,'original Run Dock untouched');
  settings.dispose();
 });

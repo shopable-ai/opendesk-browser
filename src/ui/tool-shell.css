@@ -580,48 +580,25 @@
 .workflow-card pre,.workflow-management pre{max-height:240px;margin:8px 0;font-size:11px}
 .workflow-section-header{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);margin-bottom:var(--space-2)}
 .workflow-section-header span{color:var(--od-sub);font-size:11px}
-.workflow-chat-intro{padding:4px 6px 8px;text-align:left}
-.workflow-chat-mark{height:28px;width:28px;border-radius:var(--radius-control);background:#eaf0ff;color:#3c64bf;display:grid;place-items:center;font-size:16px;margin-bottom:12px}
-.workflow-chat-intro h3{font-size:14px;line-height:1.4;margin-bottom:6px}
-.workflow-chat-intro p{font-size:var(--od-note-size);color:var(--od-sub);line-height:1.55;margin:0 0 var(--space-2)}
-.workflow-chat-intro{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
-.workflow-intro-suggestions{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-2);margin-top:var(--space-4);width:100%;max-width:100%;min-width:0}
-.workflow-intro-suggestions button{display:block;width:100%;min-width:0;max-width:100%;min-height:38px;padding:var(--space-2) var(--space-3);box-sizing:border-box;text-align:left;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);font:inherit;font-size:var(--od-note-size);cursor:pointer}
-.workflow-intro-suggestions button[hidden]{display:none!important}
-.workflow-intro-suggestions button:hover{border-color:var(--od-brand);background:var(--od-muted)}
-.workflow-intro-suggestions button:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 .workflow-editor[data-view-state="ai-unconfigured"] .workflow-chat,
 .workflow-editor[data-view-state="empty"] .workflow-chat{border-color:transparent;background:transparent;padding:8px}
-.workflow-editor[data-view-state="ai-unconfigured"]:not(:has(#workflow-manage-panel:not([hidden]))) .workflow-scroll,
-.workflow-editor[data-view-state="empty"]:not(:has(#workflow-manage-panel:not([hidden]))) .workflow-scroll{justify-content:center}
-.workflow-editor[data-view-state="ai-unconfigured"] .workflow-chat-intro,
-.workflow-editor[data-view-state="empty"] .workflow-chat-intro{text-align:center}
-.workflow-editor[data-view-state="ai-unconfigured"] .workflow-chat-mark,
-.workflow-editor[data-view-state="empty"] .workflow-chat-mark{margin-inline:auto}
 .workflow-text-action{font-size:var(--od-note-size);min-height:28px;padding:var(--space-1);font-weight:650;color:var(--od-brand)}
 /* One native scroll owner. The old nested 210px transcript wasted scarce vertical space. */
 .workflow-chat:has(>.workflow-chat-transcript:not([hidden])){padding:var(--space-1) 0;border:0;background:transparent;box-shadow:none}
-.workflow-chat-transcript{display:flex;flex-direction:column;gap:6px;min-width:0;max-height:none;overflow:visible}
+.workflow-chat-transcript{display:flex;flex-direction:column;gap:7px;min-width:0;max-height:none;overflow:visible}
 .workflow-chat-transcript[hidden],.workflow-chat-transcript:empty{display:none!important}
 .workflow-planning-indicator{font-size:11.5px;line-height:1.5;padding:6px 8px;color:#506eab;background:#eef4ff;border-radius:var(--radius-control);margin:2px 0}
-.workflow-chat-entry{min-width:0;max-width:100%;align-self:flex-start;padding:3px 0;background:transparent;border:0;border-radius:0}
-.workflow-chat-entry[data-speaker=user]{align-self:flex-end;width:fit-content;max-width:90%;margin-left:auto;padding:7px 10px;border-radius:14px 14px 4px 14px;background:color-mix(in srgb,var(--od-positive) 13%,var(--od-paper));border:1px solid color-mix(in srgb,var(--od-positive) 25%,var(--od-paper))}
-.workflow-chat-entry[data-speaker=system]{align-self:stretch;padding:5px 8px;background:var(--od-warning-bg);color:var(--od-warning-ink);border-left:2px solid var(--od-warning-border);border-radius:var(--radius-control)}
-.workflow-chat-entry p{font-size:var(--od-note-size);line-height:1.5;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
 .workflow-proposal{margin-top:var(--space-3);padding-top:var(--space-3);border-top:1px solid var(--od-line)}
 .workflow-ai-step-preview{list-style:none;margin:4px 0 10px;padding:0;counter-reset:workflow-steps}
 .workflow-ai-step-preview li{counter-increment:workflow-steps;border-bottom:1px solid var(--od-line);padding:var(--space-2) 0 var(--space-2) calc(var(--space-4) * 2);position:relative;color:var(--od-ink);font-size:var(--od-note-size);overflow-wrap:anywhere}
 .workflow-ai-step-preview li:before{content:counter(workflow-steps);position:absolute;left:0;top:9px;border-radius:var(--radius-control);width:21px;height:21px;display:grid;place-items:center;background:#eaf0fc;color:#4167b4;font-size:10px;font-weight:760}
 .workflow-ai-step-preview li strong{display:block;font-size:var(--od-body-size);font-weight:650}
 .workflow-ai-step-preview li span{display:block;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.55;margin-top:var(--space-1)}
-.workflow-composer{flex:none;min-width:0;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:6px 10px;margin:var(--space-1) 0 var(--space-2)}
+.workflow-composer{flex:none;min-width:0;background:var(--od-paper);border:0;padding:0;margin:var(--space-1) 0 var(--space-2)}
 .workflow-composer:focus-within{outline:2px solid var(--od-focus);outline-offset:1px}
-.workflow-composer textarea{display:block;border:0;background:transparent;outline:none;padding:2px 0;width:100%;font:var(--od-body-size)/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;color:var(--od-ink);resize:vertical;min-height:42px;max-height:122px;margin:0 0 var(--space-1)}
 /* Workflow now uses the shared Chat Frame inside its original sticky composer. */
 .workflow-composer-frame{min-width:0}
 .workflow-composer .od-conversation-composer{border:0;padding:0;min-height:48px}
-.workflow-composer .od-conversation-input{resize:none;outline-offset:1px;margin:0;min-height:44px;max-height:112px;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);padding:9px 48px 9px 10px}
-.workflow-composer .od-conversation-action{margin:0 6px 6px 0}
 .workflow-composer:has(.od-conversation-composer):focus-within{outline:none}
 .workflow-composer-actions{display:flex;justify-content:flex-end;align-items:center;gap:var(--space-2);flex-wrap:nowrap}
 /* Send, stop and settings always keep the public 34px icon footprint, including first use. */

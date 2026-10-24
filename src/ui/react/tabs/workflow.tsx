@@ -275,7 +275,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
    providerSettings?.settingsSnapshot??readEmptyProviderSettings);
   const [legacyKeyDraft,setLegacyKeyDraft]=React.useState('');
   const page=React.useRef(null),lastFocus=React.useRef(null),scroller=React.useRef(null);
-  const stepFocus=React.useRef(null),exampleFocus=React.useRef(false);
+  const stepFocus=React.useRef(null);
   const nearBottom=React.useRef(true);
    const [transcriptTarget,setTranscriptTarget]=React.useState(null);
    const [composerTarget,setComposerTarget]=React.useState(null);
@@ -290,11 +290,6 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
     const node=doc?.getElementById(model.focusRequest?.id);
     if(node&&page.current?.contains(node)){
       node.focus?.({preventScroll:true});
-      if(model.focusRequest?.id==='workflow-ai-request'&&exampleFocus.current){
-        exampleFocus.current=false;
-        const end=node.value.length;
-        node.setSelectionRange?.(end,end);
-      }
     }
   },[model.focusRequest?.version,active,doc]);
   React.useLayoutEffect(()=>{
@@ -367,31 +362,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
         </div>
       </section>
       <div className="workflow-scroll" ref={scroller}>
-        <section className="workflow-card od-surface--padded workflow-chat od-surface" aria-labelledby="workflow-ai-title">
-          <div id="workflow-chat-intro" className="workflow-chat-intro" hidden={c('workflow-chat-intro').hidden}>
-            <div className="workflow-chat-mark" aria-hidden="true">✦</div>
-            <h3 id="workflow-ai-title">{c('workflow-ai-title').text||'创建新工作流'}</h3>
-            {text('workflow-intro-description')}
-            <div id="workflow-intro-suggestions" className="workflow-intro-suggestions" aria-label="示例需求">
-              {(model.entryMode==='new-chat'?[['continue','继续修改填写内容'],['check','检查当前网页']]:
-                [['fill','填写表单并读回'],['read','只读提取网页信息']]).map(([key,title])=>
-                <button key={key} type="button" data-workflow-example={key} onClick={event=>{
-                 const input=doc?.getElementById('workflow-ai-request');
-                 const previous=input?.value;
-                 const outcome=actions.chooseExample?.(key,event.nativeEvent,next=>{
-                  if(input&&input.value===previous&&next.value.startsWith(previous)&&
-                   typeof doc?.execCommand==='function'){
-                   // Native editing keeps Chromium's Undo/Redo history. The
-                   // input event updates the same controller draft synchronously.
-                   input.focus({preventScroll:true});
-                   input.setSelectionRange(previous.length,previous.length);
-                   doc.execCommand('insertText',false,next.value.slice(previous.length));
-                  }
-                 });
-                 if(['filled','appended','duplicate'].includes(outcome?.kind))exampleFocus.current=true;
-                }}>{title}</button>)}
-            </div>
-          </div>
+        <section className="workflow-card od-surface--padded workflow-chat od-surface" aria-label="AI 对话">
           <div id="workflow-ai-transcript" ref={setTranscriptTarget}
             className="workflow-chat-transcript" role="log"
             aria-label="浏览器任务对话与执行记录" aria-live="polite"
@@ -551,12 +522,11 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
      blocked={Boolean(c('workflow-ai-plan').disabled)}
      canSend={c('workflow-ai-plan').hidden!==true}
      inputId="workflow-ai-request" inputLabel="描述任务，或告诉 AI 怎样修改步骤"
-     placeholder={`${SOURCE_LABELS[sharedProviderSettings&&providerSettings?
-       settingsSnapshot.source:c('workflow-ai-provider').value]||'AI'} · 描述要完成的操作…`}
-     inputRows={2}
+     placeholder="描述要完成的操作…"
+     inputRows={1}
      sendId="workflow-ai-plan" stopId="workflow-ai-cancel"
      splitTargets transcriptTarget={transcriptTarget} composerTarget={composerTarget}
-     autoScroll={false} focusOnOpen={false} entryClassName="workflow-chat-entry"
+     autoScroll={false} focusOnOpen={false} entryClassName="od-conversation-entry workflow-chat-entry"
      onDraftChange={(value,event)=>field('workflow-ai-request',value,event)}
      onSend={event=>click('workflow-ai-plan',event)}
      onStop={event=>click('workflow-ai-cancel',event)}/>

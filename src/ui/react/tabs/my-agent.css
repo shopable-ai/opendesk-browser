@@ -8,7 +8,6 @@
  min-height:0;min-width:0;max-width:980px;max-height:100%;margin:0 auto;flex:0 1 auto}
 .my-agent-dock .od-conversation-log{flex:1 1 auto;min-height:24px;max-height:none;
  overflow-y:auto;overscroll-behavior:contain}
-.my-agent-dock .my-agent-welcome{flex:0 1 auto;min-height:0;overflow-y:auto}
 @media(max-height:520px){.my-agent-dock{max-height:56dvh;padding-block:5px}
  .my-agent-dock .my-agent-panel{height:50dvh}}
 /* Trusted My AI workbench. It does not own the shared Run/Stop dock. */
@@ -16,17 +15,10 @@
  margin:0 0 10px;padding:0;border:1px solid var(--od-line);border-radius:var(--radius-surface);
  background:var(--od-paper);overflow:hidden;flex:none}
 .my-agent-panel[hidden]{display:none!important}
-.my-agent-heading{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--od-line)}
-.my-agent-heading strong{font-size:var(--od-note-size)}
-.my-agent-heading .od-icon-button{margin-inline-start:auto;flex:none}
-.my-agent-secondary{font-size:var(--od-meta-size);color:var(--od-sub);white-space:nowrap}
+.my-agent-heading{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:8px 10px;border-bottom:1px solid var(--od-line)}
+.my-agent-heading .od-icon-button{flex:none}
 .my-agent-toggle[aria-pressed=true]{background:var(--od-muted);color:var(--od-accent-ink)}
-.my-agent-welcome{padding:10px 12px 4px}
-.my-agent-welcome p{font-size:var(--od-note-size);margin:0 0 8px;line-height:1.5;color:var(--od-sub)}
-.my-agent-examples{display:flex;flex-wrap:wrap;gap:6px}
-.my-agent-examples .od-button{min-width:0;max-width:100%;white-space:normal;text-align:left;font-size:var(--od-meta-size)}
-.my-agent-panel .od-conversation-log{min-height:40px;max-height:240px;padding:8px 10px;gap:7px}
-.my-agent-panel .od-conversation-entry{max-width:94%}
+.my-agent-panel .od-conversation-log{min-height:40px;max-height:240px}
 .my-agent-progress{margin:0 10px 6px;font-size:var(--od-meta-size);color:var(--od-sub)}
 .my-agent-technical{margin:0 10px 7px;font-size:var(--od-meta-size);max-height:100px;overflow:auto}
 .my-agent-technical summary{cursor:pointer;color:var(--od-sub)}
@@ -35,13 +27,7 @@
  overflow:auto;max-height:160px;flex:none}
 .my-agent-review p{font-size:var(--od-note-size);overflow-wrap:anywhere;white-space:pre-wrap;margin:0 0 8px}
 .my-agent-review-actions{display:flex;flex-wrap:wrap;gap:8px}
-.my-agent-panel .od-conversation-composer{padding:6px 10px 8px}
-.my-agent-panel .od-conversation-input{min-height:44px}
-.my-agent-heading .od-icon-button{margin-inline-start:0}
-.my-agent-heading .my-agent-secondary{margin-inline-end:auto}
-@media(max-width:360px){.my-agent-heading{padding:6px 8px}
- .my-agent-secondary{display:none}.my-agent-examples .od-button{font-size:var(--od-meta-size)}
- .od-conversation-log{padding:6px 8px}}
-@media(max-height:520px){.my-agent-panel{max-height:55vh}.my-agent-welcome{padding:6px 8px 2px}
- .my-agent-welcome p{margin-bottom:4px}.od-conversation-log{min-height:30px}}
+@media(max-width:360px){.my-agent-heading{padding:6px 8px}}
+@media(max-height:520px){.my-agent-panel{max-height:55vh}
+ .my-agent-panel .od-conversation-log{min-height:30px}}
 @media(pointer:coarse){.my-agent-panel .od-conversation-action{min-width:44px;min-height:44px}}

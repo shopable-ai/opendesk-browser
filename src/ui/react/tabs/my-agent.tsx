@@ -5,8 +5,6 @@ import {IconButton} from '../components/ui/button.tsx';
 const empty={open:false,rows:[],draft:'',status:'idle',pending:null,step:'',busy:false};
 const noSubscribe=()=>()=>{};
 const readEmpty=()=>empty;
-const examples=['查找当前网页可运行的任务','查看上一次任务失败原因',
-  '查看已有定时计划','修改已有计划的执行时间'];
 
 export function MyAgentToggle({agent,id='my-agent-toggle'}){
   const state=React.useSyncExternalStore(agent?.subscribe??noSubscribe,
@@ -38,7 +36,6 @@ export function MyAgentDock({agent,active=false,onOpenSettings=null}){
 export function MyAgentPanel({agent,active=true,onOpenSettings=null}){
  const state=React.useSyncExternalStore(agent?.subscribe??noSubscribe,
   agent?.getSnapshot??readEmpty,agent?.getSnapshot??readEmpty);
- const input=React.useRef<HTMLTextAreaElement>(null);
  const close=()=>{
   agent?.toggle();
   const buttons=[...(globalThis.document?.querySelectorAll?.('[aria-controls="my-agent-panel"]')||[])];
@@ -63,8 +60,6 @@ export function MyAgentPanel({agent,active=true,onOpenSettings=null}){
  return <section id="my-agent-panel" className="my-agent-panel od-surface"
   hidden={!state.open} aria-label="AI 任务与定时计划助手" data-status={state.status}>
   <header className="my-agent-heading od-toolbar">
-   <strong>AI 任务助手</strong>
-   <span className="my-agent-secondary">真实任务与计划</span>
    {onOpenSettings&&<IconButton type="button" label="AI Provider 设置" title="AI 设置"
     onClick={onOpenSettings}>
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
@@ -75,24 +70,17 @@ export function MyAgentPanel({agent,active=true,onOpenSettings=null}){
    </IconButton>}
    <IconButton type="button" label="收起 AI 对话" onClick={close}>
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
-     strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+     strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg>
    </IconButton>
   </header>
   <SharedConversationFrame open={state.open} focusOnOpen={active} rows={state.rows} draft={state.draft}
    busy={state.busy} blocked={state.busy||Boolean(state.pending)}
    inputDisabled={Boolean(state.pending)}
    canSend={Boolean(agent)&&!state.pending} inputId="my-agent-input"
-   inputLabel="向 AI 任务助手发送消息" inputRef={input}
-   placeholder="例如：每天上午 9 点运行这个任务…"
+   inputLabel="向 AI 任务助手发送消息"
+   placeholder="描述任务或计划…"
    onDraftChange={value=>agent?.setDraft(value)} onSend={send}
    onStop={()=>agent?.stop()}
-   intro={!state.rows.length?<div className="my-agent-welcome">
-    <p>可以帮你查找、运行任务或管理定时计划；真实修改前会请你确认。</p>
-    <div className="my-agent-examples" aria-label="常用任务指令">
-     {examples.map(sample=><button type="button" key={sample} className="od-button od-button--secondary"
-      onClick={()=>{agent?.setDraft(sample);input.current?.focus({preventScroll:true});}}>{sample}</button>)}
-    </div>
-   </div>:null}
    feedback={state.step?<p role="status" className="my-agent-progress">{state.step}</p>:null}
    review={review}
    technical={state.technical?<details className="my-agent-technical">
