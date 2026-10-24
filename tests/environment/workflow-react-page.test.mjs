@@ -196,7 +196,11 @@ test('fixed fill becomes a Chinese parameter and repeated saved runs do not rewr
   assert.equal(value,'OpenDesk');
   assert.equal(f.state().steps[0].param,name);
   assert.equal(f.state().steps[0].text,undefined);
-  f.click('workflow-save');await tick();await tick();await tick();
+  for(let attempt=0;attempt<80&&f.state().controls['workflow-save'].disabled;attempt++)
+    await tick();
+  assert.equal(f.state().controls['workflow-save'].disabled,false,
+    'the asynchronous parameterized compilation must finish before a real Save gesture');
+  await f.click('workflow-save');
   assert.equal(f.local.size,1);
   const record=[...f.local.values()][0];
   const first=await f.click('workflow-run');assert.equal(first.ok,true);
