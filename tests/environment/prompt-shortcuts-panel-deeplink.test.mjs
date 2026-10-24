@@ -132,10 +132,12 @@ test('a pending native open does not route until Chrome confirms it',async()=>{
   assert.deepEqual(responses,[{ok:true,data:{opened:true}}]);
 });
 
-test('OD Logo names prompt management, not the general extension list',async()=>{
+test('OD launcher describes expanding saved prompts, not extension management',async()=>{
   const source=await readFile('examples/sidebar-tools/prompt-shortcuts/trusted/page.js','utf8');
-  assert.ok(source.includes("brand.title='打开提示词快捷按钮'"));
-  assert.ok(source.includes("brand.setAttribute('aria-label','打开提示词快捷按钮')"));
+  assert.ok(source.includes("brand.title=compactExpanded?'收起提示词':'展开提示词'"));
+  assert.ok(source.includes("brand.setAttribute('aria-label',(compactExpanded?'收起':'展开')+items.length+' 个提示词快捷按钮')"));
+  assert.ok(source.includes("if(event?.isTrusted!==true)return;"),'only trusted gestures toggle the tray');
+  assert.ok(!source.includes("brand.title='打开提示词快捷按钮'"),'retired launcher label must not claim management');
 });
 
 test('official native Side Panel controller reuses React ToolHost and does not navigate full-size tabs',async()=>{
