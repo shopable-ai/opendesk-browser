@@ -514,6 +514,8 @@ async function captureRealRailGeometry(page, scene) {
   const seed=JSON.parse(await readFile(join(root,'examples/sidebar-tools/prompt-shortcuts/tool.config.json'),'utf8'))
     .initialData.library.items[0];
   await page.evaluate(()=>{
+    window.__r41SubmitCount=0;
+    document.addEventListener('submit',()=>{window.__r41SubmitCount++;},true);
     const draft=document.querySelector('#mockDraft');draft.value='原草稿';
     draft.setSelectionRange(draft.value.length,draft.value.length);
   });
@@ -524,9 +526,10 @@ async function captureRealRailGeometry(page, scene) {
     draft:document.querySelector('#mockDraft').value,
     feedback:document.querySelector('#panelStatus').textContent,
     buttons:document.querySelectorAll('#pageRail .page-shortcut').length,
+    submissions:window.__r41SubmitCount,
   }));
   check(scene,'real click: entire seed prompt appended, no automatic send or extra rail controls',
-    afterInsert.draft==='原草稿\n'+seed.body&&afterInsert.buttons===3&&
+    afterInsert.draft==='原草稿\n'+seed.body&&afterInsert.buttons===3&&afterInsert.submissions===0&&
     /已插入/.test(afterInsert.feedback),
     {actualLength:afterInsert.draft.length,expectedLength:seed.body.length+4,buttons:afterInsert.buttons,feedback:afterInsert.feedback});
   await page.click('#previewReopen');
