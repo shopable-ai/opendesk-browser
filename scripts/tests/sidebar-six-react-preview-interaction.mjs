@@ -374,6 +374,23 @@ try{
     assert.match(await evaluate('document.getElementById("trusted-history-status").textContent'),/不读取浏览器历史/);
     await screenshot('debug-history-read-only');
   });
+  await step('source-bound AI settings deep link retains approved segmented layout',async()=>{
+    const url=pathToFileURL(html);
+    url.searchParams.set('tab','workflow');
+    url.searchParams.set('ai-settings','1');
+    await cdp('Page.navigate',{url:url.href});
+    await until('document.documentElement.dataset.previewBootScript==="ready"');
+    await until('!!document.querySelector(".workflow-sheet-overlay .od-shared-provider-segments")');
+    assert.equal(await evaluate('document.documentElement.dataset.previewProof'),'UI_PREVIEW_ONLY');
+    assert.deepEqual(await evaluate('[...document.querySelectorAll(".od-shared-provider-segments input[type=radio]")].map(n=>n.value)'),
+      ['local_codex','https'],'one native two-way selector; not three protocol-level choices');
+    assert.equal(await evaluate('document.querySelectorAll(".workflow-sheet-panel").length'),1);
+    assert.equal(await evaluate('document.querySelectorAll(".od-shared-provider-segments").length'),1);
+    await click('.od-shared-provider-segment:last-child span');
+    await until('!!document.getElementById("od-ai-provider-endpoint")');
+    assert.equal(await evaluate('document.getElementById("od-ai-provider-source-label").textContent'),'AI 来源');
+    await screenshot('workflow-real-shared-ai-settings');
+  });
   assert.deepEqual(exceptions,[],'Browser errors');report.status='PASS';
 }catch(error){
   report.status='FAIL';report.phase=phase;report.error=error.stack||String(error);
