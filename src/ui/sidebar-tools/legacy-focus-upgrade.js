@@ -56,6 +56,14 @@ export async function prepareLegacyFocusUpgrade({api,existing,candidate,source,
     fail('E_MIGRATION_GRANT','旧版启用状态的原始 Hash 或 Epoch 不符，禁止继承原生授权');
   const policy=normalizeManagedSiteV3Policy(prepared.desiredPolicy);
   const requested=managedSiteV3RequiredOrigins({...policy,enabled:true});
+  // Even a STOP upgrade must prove the old DNR range can be read and
+  // retired; it is unsafe to commit the new owner with orphan native rules.
+  const dnrAvailable=await api.permissions.contains({
+    permissions:['declarativeNetRequestWithHostAccess']});
+  if(!dnrAvailable||!api.declarativeNetRequest?.getDynamicRules||
+     !api.declarativeNetRequest?.updateDynamicRules||
+     !api.alarms?.get||!api.alarms?.clear)
+    fail('E_MIGRATION_NATIVE_UNAVAILABLE','无法核对或清理旧版 Chrome 原生资源，旧安装保持不变');
   const nativeGrant=await api.permissions.contains({permissions:['idle',
     'declarativeNetRequestWithHostAccess']});
   const originGrant=!requested.length||await api.permissions.contains({origins:requested});
@@ -125,6 +133,7 @@ export async function finishLegacyFocusUpgradeLocked({api,lockManager,descriptor
      await sidebarToolPackageHash(current)!==target.packageHash||
      epochs[TOOL_REVOCATION_EPOCHS_STORE]?.[FOCUS_ID]!==target.epoch||
      currentSource?.marketId!==target.marketId||
+     currentSource?.version!==target.version||
      !sameStorageValue(old[FOCUS_STORE],legacy.raw))
     fail('E_MIGRATION_IDENTITY','原始专注记录、新应用身份、来源或安装代际已变化');
   const policies=normalizeManagedSiteV3Policy(prepared.desiredPolicy);
