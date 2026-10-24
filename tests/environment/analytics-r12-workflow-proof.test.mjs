@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {createHash,randomUUID} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
+import {encodeValue as encodeControlValue} from '../../src/framework/control/value.js';
 import {WORKFLOW_OBSERVE_SOURCE} from '../../src/ui/workflow/observation.js';
 import {verifyWorkflowLinkBusinessProof} from '../../src/analytics/workflow-business-proof.js';
 import {workflowLinkBusinessRunRefs} from '../../src/ui/workflow/direct-execution.js';
@@ -55,7 +56,11 @@ function evidenceFixture(){
     afterRun:makeRun(afterRunId,afterResultId,destinationTarget,observerHash,20,true),
     afterResult:makeResult(afterRunId,afterResultId,observerHash,25,afterValue),
     operations:[{tag:'controller-operation',runId:actionRunId,
-      method:'locatorAction',state:'durable',reply:{success:true}}]
+      state:'durable',reply:{requestId:randomUUID(),value:{t:'undefined'}},
+      envelope:{identity:{runId:actionRunId},target:{...entryTarget},
+        operation:{kind:'packaged',method:'locatorAction',
+          args:encodeControlValue([{kind:'role',value:'link',name:'Camera X',exact:true},
+            {action:'click'}])}}}]
   };
 }
 
@@ -103,6 +108,14 @@ test('original Controller journals certify only observed navigation with settled
     ['same document',v=>{v.afterRun.target.documentId=entryTarget.documentId;}],
     ['auto/cloud execution',v=>{v.actionRun.cloudRequestId=randomUUID();}],
     ['wrong click receipt',v=>{v.operations[0].state='pending';}],
+    ['old flat method fixture',v=>{v.operations=[{tag:'controller-operation',
+      runId:v.actionRun.runId,method:'locatorAction',state:'durable',reply:{success:true}}];}],
+    ['fill is not a click',v=>{v.operations[0].envelope.operation.args=encodeControlValue([
+      {kind:'role',value:'textbox',name:'Query',exact:true},{action:'fill',value:'camera'}]);}],
+    ['wrong pre-navigation Document',v=>{v.operations[0].envelope.target.documentId='other-document';}],
+    ['wrong journal Run',v=>{v.operations[0].envelope.identity.runId=randomUUID();}],
+    ['malformed journal arguments',v=>{v.operations[0].envelope.operation.args={invalid:true};}],
+    ['missing durable reply',v=>{delete v.operations[0].reply;}],
     ['nonmatching link',v=>{v.beforeResult.outcome.valueWire=encodeValue({
       kind:'semantic-dom-summary',document:{documentId:entryTarget.documentId,url:entryUrl},
       title:'Search results',nodes:[]});}]

@@ -1,6 +1,7 @@
 // Narrow, source-backed Workflow business proof. No content or URL is sent to
 // analytics: the original Controller journals are inspected locally only.
 import {decodeValue} from '../platform/page-port/codec.js';
+import {decodeValue as decodeControlValue} from '../framework/control/value.js';
 import {WORKFLOW_OBSERVE_SOURCE} from '../ui/workflow/observation.js';
 import {verifyOpenedLinkPage} from '../ui/workflow/direct-execution.js';
 
@@ -29,6 +30,25 @@ function observedDocument(run,result){
     value.nodes.some(row=>!row||typeof row!=='object'))return null;
   return value;
 }
+// The Controller journal stores packaged actions in envelope.operation;
+// top-level "method" is emitted only for Service/App Service calls.
+// Bind a durable click to the same Run and pre-navigation Document.
+// A fill, wait, forged flat method, or malformed wire cannot prove navigation.
+function durableClickFromJournal(row, actionRun){
+  if(row?.tag!=='controller-operation'||row.runId!==actionRun.runId||
+    row.state!=='durable'||!row.reply||row.reply.error||
+    row.envelope?.identity?.runId!==actionRun.runId||
+    row.envelope?.operation?.kind!=='packaged'||
+    row.envelope.operation.method!=='locatorAction')return false;
+  const originalTarget=row.envelope?.target;
+  if(!originalTarget||['windowId','tabId','frameId','documentId','url']
+    .some(key=>originalTarget[key]!==actionRun.target?.[key]))return false;
+  try{
+    const args=decodeControlValue(row.envelope.operation.args);
+    return Array.isArray(args)&&args.length===2&&args[1]?.action==='click';
+  }catch{return false;}
+}
+
 // This currently certifies *only* an actual navigation to a previously
 // observed eligible link. Search-result / fill B-grade metrics remain gated
 // until the original Authority can verify their separate readback too.
@@ -45,9 +65,7 @@ export function verifyWorkflowLinkBusinessProof({actionRun,actionResult,beforeRu
     !(Date.parse(beforeResult.committedAt)<=Date.parse(actionRun.createdAt))||
     !(Date.parse(actionResult.committedAt)<=Date.parse(afterRun.createdAt))||
     Date.parse(afterRun.createdAt)-Date.parse(actionResult.committedAt)>5*60*1000||
-    !operations.some(row=>row?.tag==='controller-operation'&&
-      row.runId===actionRun.runId&&row.method==='locatorAction'&&
-      row.state==='durable'&&!row.reply?.error))return null;
+    !operations.some(row=>durableClickFromJournal(row,actionRun)))return null;
   const action=actionRun.target,before=beforeRun.target,after=afterRun.target;
   if(before.documentId!==action.documentId||before.url!==action.url||
     before.tabId!==action.tabId||before.windowId!==action.windowId||
