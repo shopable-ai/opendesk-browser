@@ -388,7 +388,17 @@ if(!vm.SourceTextModule) {
     const running=f.ui.actions.click('workflow-ai-plan',trusted);await tick();await tick();
     assert.equal(f.permissionRequests.length,0,
       'an awaited dual-source lookup must never request Chrome permissions outside a user gesture');
-    await waitFor(()=>!control('workflow-run-review').hidden);
+    await waitFor(()=>!control('workflow-run-review').hidden).catch(error=>{
+      // Preserve dual-source permission assertions; expose Controller state
+      // when the real route fails to open the trusted confirmation.
+      const snapshot=f.ui.getSnapshot();
+      throw new Error('HTTPS '+selected+' route never opened review: '+
+        JSON.stringify({phase:snapshot.phase,catalogReads:f.catalogReads,
+          provider:control('workflow-ai-provider').value,
+          status:snapshot.controls['workflow-status']?.text,
+          review:snapshot.controls['workflow-run-review']?.hidden,
+          transcript:snapshot.messages?.at(-1)?.message}),{cause:error});
+    });
     const confirming=f.ui.actions.click('workflow-run-review-confirm',trusted);
     await tick();await tick();
     assert.equal(f.permissionRequests.length,1,
@@ -675,22 +685,22 @@ if(!vm.SourceTextModule) {
 
   test('component: permission removal for the approved site revokes grant and stops pending receipt, unrelated origin keeps it',async t=>{
     const gate=deferred(),f=await make(t,{approval:true,storedGrant:grant(),observeGate:gate});
-    assert.equal(f.get('workflow-observation-scope').textContent,'网页摘要：已授权');
+    assert.equal(f.ui.getSnapshot().controls['workflow-observation-scope']?.text,'网页摘要：已授权');
     await f.removePermission({origins:['https://elsewhere.example/*']});
-    assert.equal(f.get('workflow-observation-scope').textContent,'网页摘要：已授权');
+    assert.equal(f.ui.getSnapshot().controls['workflow-observation-scope']?.text,'网页摘要：已授权');
     const running=(await f.startPlan('Observe with existing grant before revoke')).running;
     await f.approvalReady.promise;await tick();
     await f.removePermission({origins:['https://a.example/*']});
     gate.resolve();
     f.planGate.resolve();await running;
     assert.equal(f.answers[0].decision,'deny');
-    assert.equal(f.get('workflow-observation-scope').textContent,'网页摘要：使用前检查授权');
+    assert.equal(f.ui.getSnapshot().controls['workflow-observation-scope']?.text,'网页摘要：使用前检查授权');
   });
 
   test('component: resolving navigation cancels pending observation but same-origin fresh document keeps stored grant',async t=>{
     let gate=deferred();
     const f=await make(t,{approval:true,storedGrant:grant(),observeGate:gate});
-    assert.equal(f.get('workflow-observation-scope').textContent,'网页摘要：已授权');
+    assert.equal(f.ui.getSnapshot().controls['workflow-observation-scope']?.text,'网页摘要：已授权');
     let {running}=await f.startPlan('Observe before document navigation');await f.approvalReady.promise;
     await f.setPage({status:'resolving',origin:undefined,documentId:undefined,url:'https://a.example/refreshing'});
     gate.resolve();
@@ -698,7 +708,7 @@ if(!vm.SourceTextModule) {
     assert.equal(f.answers[0].decision,'deny');
     assert.equal(f.sessionStore.get('opendesk.sidebar.workflow-draft.v1:7:observation').origin,'https://a.example');
     await f.setPage({status:'available',origin:'https://a.example',documentId:'doc-10',url:'https://a.example/next'});
-    assert.equal(f.get('workflow-observation-scope').textContent,'网页摘要：已授权');
+    assert.equal(f.ui.getSnapshot().controls['workflow-observation-scope']?.text,'网页摘要：已授权');
     running=(await f.startPlan('Observe the fresh same-origin document')).running;await f.approvalReady.promise;
     await tick();await tick();
     assert.equal(f.get('workflow-ai-approval').hidden,true);
