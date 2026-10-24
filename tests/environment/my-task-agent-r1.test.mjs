@@ -183,7 +183,7 @@ const initialPlan=()=>({
   nextDueAt:Date.UTC(2030,0,1,0,0)
 });
 function editRig(proposals,{permission=true,uncertain=false,staleReadback=false,
-  missingNextDueAt=false,holdSave=false}={}){
+  missingNextDueAt=false,staleNextDueAt=false,holdSave=false}={}){
   let plan=initialPlan(),installedGeneration=1,saveCount=0,proposalCount=0,latestInput=null;
   let grant=permission,unclear=uncertain,readStale=false,releaseSave=()=>{},enteredSave=()=>{};
   const gate=holdSave?new Promise(resolve=>{releaseSave=resolve;}):Promise.resolve();
@@ -212,8 +212,8 @@ function editRig(proposals,{permission=true,uncertain=false,staleReadback=false,
         delete plan.expectedGeneration;
         // Host fixture emulates a fresh persisted Scheduler read, not a model
         // prediction. Daily 09:00 Japan = 00:00 UTC for the fixed sample date.
-        plan.nextDueAt=missingNextDueAt?null:plan.paused?null:
-          plan.triggerKind==='daily'?Date.UTC(2030,0,1,
+        plan.nextDueAt=missingNextDueAt?null:staleNextDueAt?Date.UTC(2030,0,1,0,0):
+          plan.paused?null:plan.triggerKind==='daily'?Date.UTC(2030,0,1,
             plan.triggerSpec.hour-9,plan.triggerSpec.minute):Date.UTC(2030,0,1,0,0);
         readStale=true;
         if(unclear)throw Object.assign(new Error('Host disconnected after submit'),{code:'E_DISCONNECTED'});
@@ -297,6 +297,18 @@ test('editing daily 09:00 to 10:00 reports the independently read Scheduler next
 test('daily edit with missing Scheduler nextDueAt remains unknown, not successful',async()=>{
   const x=editRig([{actions:[{type:'edit_schedule',scheduleId:'plan1',
     changes:{triggerSpec:{hour:10,minute:0}}}]}],{missingNextDueAt:true});
+  await x.agent.send('把早上九点改到十点',trusted);
+  await x.agent.confirm(trusted);
+  assert.equal(x.saveCount,1);
+  const message=x.agent.getSnapshot().rows.map(v=>v.message).join(' ');
+  assert.match(message,/下次触发时间无法独立核实/);
+  assert.doesNotMatch(message,/已更新并重新读取验证/);
+  x.agent.dispose();
+});
+
+test('daily edit rejects a stale 09:00 next due for a verified new 10:00 rule',async()=>{
+  const x=editRig([{actions:[{type:'edit_schedule',scheduleId:'plan1',
+    changes:{triggerSpec:{hour:10,minute:0}}}]}],{staleNextDueAt:true});
   await x.agent.send('把早上九点改到十点',trusted);
   await x.agent.confirm(trusted);
   assert.equal(x.saveCount,1);
