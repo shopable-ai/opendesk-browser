@@ -40,7 +40,7 @@ management、Host 等测试在执行时含其他会话未提交改动，因此�
 - 更新后右上角 320/360/400/440/520px × 深浅色、30px 按钮/2px gap/透明背景、重复工具栏和滚动条：NOT_TESTED；没有持久化更新后实机截图。
 - 新建、编辑、保存、重开；导入预览/追加/替换/冲突；Chrome 导出下载；未保存返回；AI Chat 真执行；设置、启停、卸载；Scheduler 真打开：NOT_TESTED。
 - 第三方不能取得官方权限：上述定向组件保护通过，当前安装版真实浏览器隔离仍为 NOT_TESTED。
-- 当前提交 CI：待正常推送后的原始 run 核对；不能继承旧 run 的成功。
+- 已推送提交 `aa56ad921254688a9e13b1c0f2466b195002d908` 的 Prompt Shortcuts CI：[run 40074271296](https://github.com/shopable-ai/opendesk-browser/actions/runs/40074271296)，本次查询为 `queued`，尚无结论；不能继承旧 run 的成功。该工作流中的 Preview/受控 Host 浏览器检查也不能替代实际安装验收。
 - 更新可靠性、真实视觉、交互、业务完整性、数据权限安全、发行升级质量六维及算术平均：均 NOT_SCORED，没有最终 PASS。
 
 Goal 仍未完成。本记录不暂停、不迁移或宣告完成该目标。
@@ -53,4 +53,8 @@ Goal 仍未完成。本记录不暂停、不迁移或宣告完成该目标。
 
 说明及独立复核修订提交为 `9c6765a0f7970dbb3bd4592297bb8194ab2bca10`。正常 `git push origin main` 被拒绝，因为远端继续收到并行更新。重新 fetch 到 `ee9249005` 后，普通 merge（明确关闭 autoStash）因会覆盖本地并行未提交的 `tests/environment/prompt-shortcuts-r14.test.mjs` 而安全中止。该文件两边固定 `trusted/page.js` SHA 相同，审核说明注释不同；本轮未覆盖、提交或暂存该并行改动，也未强推。
 
-因此本轮提交**尚未推送成功**，当前提交 CI 为 `NOT_TESTED`。安全续接须先由该并行文件负责人收尾/协调，再普通合入并推送；无需重跑输入未变的包门禁。实际安装仍待明确更新结果，不能把 Git 推送或包就绪当作安装回执。
+续跑时，上述并行测试文件已收尾，不再有未提交覆盖风险。重新 fetch 并核对路径后，普通 merge 成功，合入远端 `ee9249005`；正常推送成功，远端 `main` 到达 **`aa56ad921254688a9e13b1c0f2466b195002d908`**。其余未提交工作全部保留，没有使用 stash、强推或临时分支。上段为已解除的历史推送阻断。
+
+推送期间另一个任务又修改了 Prompt Shortcuts 的 `src/main.js`、`trusted/model.js`，随后还出现 `trusted/page.js` 改动。因为打包输入发生变化，本轮执行一次原打包器只读 `--check-project`，得到 `project installable package differs from current source`。这表示**当前工作区源码已领先于正式包**；从晋升提交 `60dc58a4` 到已推送 `aa56ad921`，工具目录已提交差异只有 README，正式包仍对应已提交的工具代码。本轮未擅自打包、提交或覆盖其他 owner 的未完成源码，也不把先前的 `PROJECT_PACKAGE_MATCH` 当作当前工作区状态。待这些并行改动收尾后，必须按原候选门禁再次确认源码、正式包和版本，再更新真实安装。
+
+实际安装仍待明确更新结果，不能把 Git 推送、CI 排队或已提交版本的包就绪当作安装回执。下一步仍受上述浏览器安全策略及尚未取得的用户更新回执限制；布局、业务与六维评分保持未验收状态。
