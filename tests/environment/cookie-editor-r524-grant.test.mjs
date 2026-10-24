@@ -11,20 +11,24 @@ test('trusted React Host has exactly one first-use grant control outside the san
   assert.match(view,/<CookieSettings onRevoke=\{actions.revoke\}\/><div id="sidebar-tool-frame"/);
   assert.match(view,/const firstUse=snapshot.fields\['sidebar-tool-cookie-permissions'\].data\?\.mode==='first-use'/);
   assert.match(host,/Cookie 访问授权/);
-  assert.match(host,/允许管理普通 HTTP\/HTTPS 网站的 Cookie；敏感值单独授权。/);
+  assert.match(host,/允许管理.*Cookie，包括/);
+  assert.match(host,/\['values','查看 Cookie 值'\]/);
+  assert.match(host,/补全 Cookie 管理授权/);
   assert.match(host,/允许管理所有网站 Cookie/);
   assert.match(host,/if\(!event\?\.isTrusted\|\|cookieGrantPending\|\|busy\|\|readOnlyPreview/);
   assert.match(host,/E_GRANT_READBACK/);
-  assert.match(fields,/sidebar-tool-cookie-values-toggle/);
+  assert.doesNotMatch(view,/id="sidebar-tool-cookie-values-toggle"/);
+  assert.doesNotMatch(fields,/sidebar-tool-cookie-values-toggle/);
 });
-test('cookie Values are not a side effect of ordinary global consent or legacy values flag',async()=>{
+test('explicit complete consent includes Values while unreceipted legacy all-site flags remain denied',async()=>{
   const host=await source('src/platform/chrome/context-menus.js');
   assert.match(host,/allSites&&grant.valueConsent!==true/);
   assert.match(host,/if\(siteCapability==='values'\)\{/);
   assert.match(host,/prior\.storeId!==storeId/);
   assert.match(host,/valueConsent:enabled/);
-  assert.match(host,/valueConsent:false/);
-  assert.match(host,/enabled&&cap!=='values'&&tool.capabilities.includes/);
+  assert.match(host,/valueConsent:enabled&&tool.capabilities.includes\('browser.cookies.values'\)/);
+  assert.match(host,/valueConsent:tool.capabilities.includes\('browser.cookies.values'\)/);
+  assert.doesNotMatch(host,/enabled&&cap!=='values'/);
   assert.match(host,/confirmedWrite\(api.storage.local,BROWSER_MENU_GRANTS_STORE/);
 });
 
@@ -48,7 +52,9 @@ test('R5.37 Cookie consent checks official provenance before offering all-site, 
   assert.match(host,/const nativeRequest=revoke\?Promise.resolve\(true\):requestCookieChrome\(event,origin,allSites\)/);
   assert.match(host,/pageConsent.confirm\(event,cookieChromeRequest\(origin,allSites\)\)/);
   assert.match(host,/chromeMissing\?'恢复 Chrome Cookie 网站访问'/);
-  assert.match(host,/const requested=cookieBaseCapabilities\(tool\)/);
-  assert.match(host,/else await changeCookieSite\(\{capability:'values'\}\)/);
+  assert.match(host,/const cookieRequiredCapabilities=/);
+  assert.match(host,/cookieCapability:'all',enabled,origin:current/);
+  assert.match(host,/else await changeCookieSite\(\{enabled:!revoke\}\)/);
+  assert.doesNotMatch(host,/for\(const capability of requested\)/);
   assert.match(host,/kind:'cookie-grants-changed'/);
 });
