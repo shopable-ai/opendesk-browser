@@ -118,15 +118,21 @@ export function trustedToolShellStyle(root=process.cwd()){
 // R1.9.5 reviewed delta: initial/reset expansion and no post-insertion auto-collapse;
 // site/instance/permission gates, IME/no-autosend and source imports are unchanged.
 // No dynamic imports, privileged outputs, origins or installer rights added.
+// R2.15 static source-diff review (2026-10-24): schema-1 optional scroll-navigation
+// defaults/validation; ChatGPT/DeepSeek/Gemini scoped scrolling and a floating
+// top affordance; per-owner jump sessions. Site-grant, activation and storage
+// epoch guards are retained. No automatic message submission, new Host calls,
+// new origins, output targets or extension permission grants. This precise blob
+// approval does NOT assert Chromium/Native success or official package parity.
 const compiledPromptShortcutInputs=Object.freeze({
-  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'65444eb5ad35847701d21b4489d895028c5fa0c3',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'f5bc9499a4d5df8166959b3b9c207fa8eb7e2afa',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'4c6f608a26e0d69278c18a0afda94b3c8ce8274c',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'197b0a54ac8685631f046ad465b79714b235bdfb',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'d2939acc9e40f169c92cc162657dbc860ed9a55c',
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js':'86e95bff786e52efb9089f97126542430f39a716',
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js':'b960044deb5e7d059c26d5d520f912c0b72c7b0e',
   'examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js':'7c10e8270c43be93229afbf0d3171455de628030',
   // Shared with the standalone diagnostic harness; never an installed package import.
-  'examples/programs/chatgpt-jump-top/src/conversation.js':'e9a342a409b60e1b5c162ef275cb1a8bb8b6ce3a',
+  'examples/programs/chatgpt-jump-top/src/conversation.js':'77139704bc9e918f97840a3a34756a07deb3a32c',
   // The first-party OD gesture bridge is fixed SW code, never an installed package.
   'examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js':'d8650195e9b43178caafa015edaf60649d994b2f'
 });
