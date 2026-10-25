@@ -275,7 +275,11 @@ export default function LocaleManager({model}){
       </div>
       <details className="od-locale-maintenance od-disclosure od-disclosure--flat" open={maintenanceOpen}
         onToggle={event=>setMaintenanceOpen(event.currentTarget.open)}>
-        <summary ref={maintenanceRef} aria-label={maintenanceOpen?t('backToDaily'):t('maintenance')}>
+        <summary ref={maintenanceRef} aria-label={maintenanceOpen?t('backToDaily'):t('maintenance')}
+          onClick={event=>{
+            // Native toggle is queued; commit the layer before a fast Escape.
+            event.preventDefault();setMaintenanceOpen(open=>!open);
+          }}>
           {maintenanceOpen?t('backToDaily'):t('maintenance')}
         </summary>
         <div className="od-locale-sheet-body od-locale-preview">

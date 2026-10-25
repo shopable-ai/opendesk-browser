@@ -134,3 +134,35 @@ Bridge 的真实原打包日志 `artifacts/ai-chat-bridge-r13/build-r13-current.
 最终 `final-input-check.json` 在 main `03f7cda72c5c2f19855ca4562e79a2407547ea70` 上逐项比较新预览104项输入，零漂移；当前 `dist/development/sidepanel.html` 仍不存在。独立快照构建已结束，guard正常释放；不触碰其他服务/窗口。只暂存本轮8个文件并安全 main 提交/正常推送，其余 dirty 文件与所有权保留。共享 Git 提交事务后释放。
 
 R2.3正式目标未完成。Native goal 仍 active，未暂停/迁移/伪报 complete；本轮检查点不意味着正式验收通过。
+
+## 后续增量：生产原生操作与最新 CI
+
+本对话继续拥有 `locale-manager.tsx`、`extension-center-locale-manager-r21.test.mjs`、本记录及原生成 React HTML。最新 CI `40202919561/job121197701725` 的同源检查通过，Chromium 在高级管理展开后立即 Escape 时超时，属于本轮待定位增量；仅补快速展开/分层关闭回归和必要修复。独立 reviewer Singer 只读复核，不占源码或浏览器。
+
+### 新 Mac production 实操，取代“本轮没有加载快照”的旧状态
+
+为绕开共享开发输出缺失，按既有 Chrome 隔离启动 Skill 启动本对话独立物理 CFT 副本及临时 Profile，加载上面已构建、此后未修改的 production 快照。真实 Mac CFT155.0.8059.39 arm64 / macOS26.5.1，MV3版本0.1.0 Standard，实际 ID `jmheceahaoolgdgnoobjgoceomohjcpk`，packageHash仍 `f0c11683…`；未改 Native 配对或日常加载路径。这是独立 unpacked production 候选，不能称当前整份 main 的正式交付包。
+
+实际完成：正式五 Tab打开；Reading TOC1.0.11自动显示；扩展→语言；全局 English 保存后管理界面和跟随的网页目录即时变英文；工具独立日本語后网页目录即时变日文，管理界面保持英文、正文保持原样；工具下拉仅 Follow/en/ja/zh-CN；高级管理正常显示55/55资源和原生文件入口。`native-production/01-version.*`、`02-language-initial.*`、`03-global-en-tool-ja.*` 为实际 AX/截图，完整边界见同目录 `result.json`。
+
+打开导入文件框后，CUA 路由到了并行 Send Queue 的同名 CFT 文件框；按精确 `.app` 路径重新绑定仍未隔离，已立即停止输入。没有确认导入，不把串窗当 LocaleManager 故障。该 production Profile 的导入预览/确认/取消/导出/补译、关闭重开、JSON安装升级与数据保留、HTML/React/Vue兼容均 `NOT_TESTED`。未修改任何并行文件或关闭其窗口。仅核实并 SIGTERM 自己的PID35784，启动器退出0并清理自己的临时Profile；本轮浏览器资源已释放。其他 CFT、watcher、demo服务保留。
+
+### 当前 CI 差量与 Escape 最小修复
+
+此前修复已 main 提交/推送 `ccf62a74b99eae637de9ccb18269fffab0fa23e9`。最新相关 [R5.3 run40202919561 / job121197701725](https://github.com/shopable-ai/opendesk-browser/actions/runs/40202919561/job/121197701725) 在该提交上来源三步通过；HTML SHA `f97fc37…` 的320/360/400/440/960浅色及360深色均无横向溢出，菜单、弹窗、输入、Switch及真实语言面板共九项交互通过。随后高级管理打开后立即Escape超时，后续列表、六Tab与包检查SKIPPED，不能称本次R5.3全绿。原始日志 `latest-ci/r53-job-121197701725.log`。
+
+根因源码：summary默认动作先改变原生details.open，异步toggle随后才更新React；中间的Escape可能读取旧maintenanceOpen，错误关闭整个Host。独立Singer认可这是合法快操作竞态；该次CI超时本身没有Host关闭快照，不能过度断言其具体分支。修复仅summary点击中preventDefault并函数式提交原有maintenanceOpen，保留onToggle回读和原共享Dialog，不加等待、不改全局Escape。
+
+`maintenance-queued-toggle-before.log` 在旧源码上模拟原生默认动作及尚未派发的toggle，首次Escape后仍open而FAIL；修复后完整组件与正式样式定向回归50/50 PASS，`maintenance-component-final.log`。模拟DOM只证明逻辑，不冒充Chromium或原生时序PASS。完整文件首次47/50时的三项为旧测试问题：异步控件未出现就读disabled、日语资源标题已经本地化为日本語、原文一词可在中日同形；仅同步断言/等待前提，不改产品资源或减弱存储/未知结果保护。中间失败日志保留。
+
+另 [六Tab run40202919518 / package-gates121197701410](https://github.com/shopable-ai/opendesk-browser/actions/runs/40202919518/job/121197701410) 仍有16个跨模块Node失败及旧Provider文字断言（HTTPS模型 vs HTTPS Chat Completions）；production/development的直接阻断是 `examples/programs/chatgpt-send-queue/src/site.js` 不得进入可信固定包。分别交原扩展中心/Debug/My-Schedule/Workflow及Bridge来源owner，不以恢复旧UI、放宽来源或接管pin来修绿。其原始完整日志 `latest-ci/six-package-job-121197701410.log`。六Tab另一个渲染job读取时仍在运行，不冒称最终结果。
+
+### 当前生成物、剩余边界与资源
+
+Escape源码改变后才用原生成器更新HTML，`maintenance-preview-generate.log`、`maintenance-preview-check.log` 来源检查PASS，104项当前输入零漂移；HTML1554735 B，SHA256 `512dd47fcb8f3baec00cd4f1f4b64bce9a0aad6dabcfdbdf79465cd3b36019c1`，bundleInputSha256 `24c548c1dcf3c600b0c9577c4b09da5c490ed4a4616a11c5a616f9aa681c3cf9`。新HTML和Escape修复的Chromium/原生复测仍 `NOT_TESTED`；上面Mac操作属于旧静态快照，不含新Escape补丁。没有另启浏览器或CDP绕过内置预览入口拒绝。
+
+最新 `app:update -- prompt-shortcuts --check` 仍 `READY_WITH_VERSION` /1.1.19 /installed:false /chrome:NOT_TESTED；正式JSON1.1.18差异、安全审阅及晋升继续 `BLOCKED_BY_OTHER_OWNER`。未触碰包、业务、pin、打包器或CI。远端新提交仅Knowledge Answers/独立热预览示例，已安全fast-forward至 `73f280a46cdcbef051f9b844a1de34c81fae3a5a`，与本轮来源无交集，不重跑无关构建。
+
+本次只提交上述Escape源码、对应测试、同源HTML与本文四文件；并行Bridge/Send Queue的所有dirty保留。无新增依赖、组件、Host、SDK、权限或安装器。六项正式评分和平均继续 `NOT_SCORED`：已有局部Mac及Chromium证据，缺少当前最终候选完整原生闭环和正式升级。下一条本轮操作为新Escape候选的Chromium分层关闭复验，随后需可独占的原生UI完成生产语言导入/重开与真实升级；当前包来源稳定仍依赖Bridge/Prompt原owner。
+
+独立 reviewer Singer 对最终四文件差异给出 COMMENT：无必须修改项，支持最小修复；三处断言修正未削弱安全保护，新增回归覆盖延迟 toggle 与分层 Escape。reviewer 未自行执行测试，修复后 Chromium 仍 NOT_TESTED。完整结论保存 `maintenance-independent-review.json`。Git 事务仅含本轮四文件，提交后释放；不包含并行 dirty。

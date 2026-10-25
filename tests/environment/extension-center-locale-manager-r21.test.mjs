@@ -184,6 +184,29 @@ test('help for a missing language invalidates an existing delete confirmation',a
   assert.equal(removals,0);assert.ok(f.service.exportPack(f.tool.id,'en'));
 });
 
+test('summary activation commits maintenance before an immediate layered Escape',async t=>{
+  const f=await setup(t);let closes=0;
+  const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
+    tools:[f.tool],toolId:f.tool.id,service:f.service,onClose(){closes++;}}}}),{doc}=ui;
+  const details=doc.querySelector('details'),summary=details.querySelector('summary');
+  summary.focus();
+  // Model the native default action without delivering its queued toggle yet.
+  // A controlled click must commit the layer before the next discrete input.
+  const activate=()=>{
+    const event=summary.dispatch('click');
+    if(!event.defaultPrevented)details.toggleAttribute('open');
+  };
+  activate();
+  assert.equal(details.hasAttribute('open'),true);
+  doc.dispatch('keydown',{key:'Escape'});
+  assert.equal(details.hasAttribute('open'),false);
+  assert.equal(closes,0,'the first Escape returns to daily languages');
+  activate();activate();
+  assert.equal(details.hasAttribute('open'),false,'rapid activations also use the committed state');
+  doc.dispatch('keydown',{key:'Escape'});
+  assert.equal(closes,1,'only the next Escape dismisses the language manager');
+});
+
 test('cancelling import or delete after collapsing maintenance returns focus to its visible summary',async t=>{
   const f=await setup(t);await f.service.install(f.pack,f.tool);
   const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
@@ -204,7 +227,7 @@ for(const action of ['import','delete']){
       tools:[f.tool],toolId:f.tool.id,service,importPack:action==='import'?f.pack:null,onClose(){}}}}),{doc}=ui;
     if(action==='import')await settle(()=>buttonNamed(doc,'取消导入')&&!buttonNamed(doc,'取消导入').disabled);
     else{
-      await settle(()=>!buttonNamed(doc,'删除语言包…').disabled);
+      await settle(()=>buttonNamed(doc,'删除语言包…')?.disabled===false);
       const details=doc.querySelector('details');details.open=true;details.toggleAttribute('open',true);details.dispatch('toggle');
       buttonNamed(doc,'删除语言包…').dispatch('click');
     }
@@ -447,8 +470,9 @@ test('unknown/error storage recovery reloads without replaying install; samples 
   Object.defineProperty(picker,'files',{value:[{size:100,text:async()=>JSON.stringify(f.pack)}]});
   picker.dispatch('change');await settle(()=>buttonNamed(ui.doc,'确认覆盖')&&!buttonNamed(ui.doc,'确认覆盖').disabled);
   assert.match(ui.doc.querySelector('.od-locale-samples').textContent,/原文：标题译文：見出し/);
-  const packChoice=ui.doc.querySelector('[aria-label="已安装语言包"] button');
-  assert.match(packChoice.textContent,/ja/);packChoice.dispatch('click');
+  const packChoice=[...ui.doc.querySelectorAll('[aria-label="已安装语言包"] button')]
+    .find(node=>node.querySelector('strong')?.textContent==='日本語');
+  assert.ok(packChoice);assert.match(packChoice.textContent,/已导入/);packChoice.dispatch('click');
   assert.equal(ui.doc.querySelector('input[list]').value,'ja');
 });
 
@@ -630,7 +654,8 @@ test('fixed catalog covers every used message in three languages with intact pla
     assert.ok(zh,key);
     for(const locale of ['en','ja']){
       const translated=msg(locale,key,placeholders);assert.ok(translated,locale+'.'+key);
-      if(!(locale==='ja'&&key==='sourcePrefix'))
+      // These Japanese terms correctly share the same written form as Chinese.
+      if(!(locale==='ja'&&['sourcePrefix','sourceResource'].includes(key)))
         assert.notEqual(translated,zh,locale+'.'+key+' must have its own trusted translation');
       assert.deepEqual(tokens(translated),tokens(zh));
     }
