@@ -246,6 +246,7 @@ try{
     await until('document.documentElement.dataset.previewBootScript==="ready"');
     await selectedTab('tools','tab-tools');
   });
+  if(!process.argv.includes('--settings-only')){
   await step('six Tab pointer navigation and keyboard roving focus',async()=>{
     const tabs=[['tasks','tab-my-tasks'],['tools','tab-tools'],['workflow','tab-workflow'],
       ['develop','tab-develop'],['cloud','tab-cloud'],['debug','tab-debug']];
@@ -444,6 +445,7 @@ try{
     assert.match(await evaluate('document.getElementById("trusted-history-status").textContent'),/不读取浏览器历史/);
     await screenshot('debug-history-read-only');
   });
+  }
   assert.deepEqual(exceptions,[],'Browser errors');report.status='PASS';
 }catch(error){
   report.status='FAIL';report.phase=phase;report.error=error.stack||String(error);
