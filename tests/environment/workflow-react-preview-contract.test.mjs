@@ -73,7 +73,7 @@ for(const [name,path,ready]of [
  assert.equal(await page.evaluate(()=>document.activeElement?.value),'local_codex');
  await page.keyboard.press('ArrowRight');
  assert.equal(await page.getByRole('radio',{name:'HTTPS 模型',exact:true}).isChecked(),true);
- assert.equal(await page.getByLabel('HTTPS 接口',{exact:true}).isVisible(),true);
+ assert.equal(await page.getByLabel('接口地址',{exact:true}).isVisible(),true);
  const viewport=await page.evaluate(()=>{
   const stage=document.querySelector('.od-sidebar-preview-stage,.od-workflow-preview-stage').getBoundingClientRect();
   const overlay=document.querySelector('.workflow-sheet-overlay').getBoundingClientRect();
@@ -90,11 +90,11 @@ for(const [name,path,ready]of [
  }));
  assert.equal(boxes[0].top,boxes[1].top,'source options occupy one compact row');
  assert.ok(boxes.every(box=>box.height>=30&&box.height<=44));
- await page.getByLabel('HTTPS 接口',{exact:true}).fill('https://preview.example.test/custom/plan');
+ await page.getByLabel('接口地址',{exact:true}).fill('https://preview.example.test/custom/plan');
  await page.locator('.od-shared-provider-protocol summary').click();
  await page.getByLabel('接口协议',{exact:true}).selectOption('custom_https');
  await page.getByLabel('模型 ID',{exact:true}).fill('preview-only-model');
- await page.getByLabel('API Key（仅当前会话，不保存）',{exact:true}).fill('preview-dummy-not-a-real-key');
+ await page.getByLabel('API Key（仅当前会话）',{exact:true}).fill('preview-dummy-not-a-real-key');
  await save();
  // Both the settings sheet and Workflow's shortcut use the retained explicit
  // protocol for this nonstandard gateway, rather than re-inferring its path.
@@ -104,35 +104,35 @@ for(const [name,path,ready]of [
  await page.locator('.od-shared-provider-protocol summary').click();
  assert.equal(await page.getByLabel('接口协议',{exact:true}).inputValue(),'custom_https');
  assert.equal(await page.getByLabel('模型 ID',{exact:true}).inputValue(),'preview-only-model');
- assert.match(await page.getByLabel('API Key（仅当前会话，不保存）',{exact:true}).getAttribute('placeholder'),/已配置/);
+ assert.match(await page.getByLabel('API Key（仅当前会话）',{exact:true}).getAttribute('placeholder'),/已配置/);
  await page.getByRole('button',{name:'取消',exact:true}).click();
  await page.locator('#workflow-provider-toggle').click();
  await page.getByRole('menuitemradio',{name:'HTTPS 模型',exact:true}).click();
  assert.equal(await page.getByRole('dialog').count(),0,'configured legacy HTTPS shortcut needs no second review');
  await open();
- await page.getByLabel('HTTPS 接口',{exact:true}).fill('https://preview.example.test/proxy/v1/responses');
+ await page.getByLabel('接口地址',{exact:true}).fill('https://preview.example.test/proxy/v1/responses');
  await page.getByRole('button',{name:'保存 AI 设置',exact:true}).click();
  assert.match(await page.getByRole('alert').innerText(),/仅支持 \/v1\/responses/);
- await page.getByLabel('HTTPS 接口',{exact:true}).fill('https://preview.example.test/v1/responses?feature=1');
+ await page.getByLabel('接口地址',{exact:true}).fill('https://preview.example.test/v1/responses?feature=1');
  await page.locator('.od-shared-provider-protocol summary').click();
  await page.getByLabel('接口协议',{exact:true}).selectOption('custom_https');
  await page.getByRole('button',{name:'保存 AI 设置',exact:true}).click();
  assert.match(await page.getByRole('alert').innerText(),/不能使用 Chat Completions/);
- await page.getByLabel('HTTPS 接口',{exact:true}).fill('https://preview.example.test/v1/responses');
+ await page.getByLabel('接口地址',{exact:true}).fill('https://preview.example.test/v1/responses');
  await save();
  await page.locator('#workflow-provider-toggle').click();
  await page.getByRole('menuitemradio',{name:'本机 Codex',exact:true}).click();
  await page.locator('#workflow-provider-toggle').click();
  await page.getByRole('menuitemradio',{name:'HTTPS 模型',exact:true}).click();
  await open();
- assert.match(await page.locator('.od-shared-provider-fields').innerText(),/Responses/);
+ assert.match(await page.locator('.od-shared-provider-remote').innerText(),/Responses/);
  // A new receiver must not silently inherit another origin's credential.
- await page.getByLabel('HTTPS 接口',{exact:true}).fill('https://other.example.test/v1/responses');
+ await page.getByLabel('接口地址',{exact:true}).fill('https://other.example.test/v1/responses');
  await page.getByRole('button',{name:'保存 AI 设置',exact:true}).click();
  assert.match(await page.getByRole('alert').innerText(),/API Key|密钥/);
  await page.getByRole('checkbox',{name:'清除现有会话密钥'}).check();
  await save();await open();
- assert.equal(await page.getByLabel('HTTPS 接口',{exact:true}).inputValue(),'https://other.example.test/v1/responses');
+ assert.equal(await page.getByLabel('接口地址',{exact:true}).inputValue(),'https://other.example.test/v1/responses');
  assert.equal(await page.getByRole('checkbox',{name:'清除现有会话密钥'}).count(),0);
  // Save stays inside the scrollable sheet; Tab cycles and Escape returns to
  // the stable Workflow trigger without changing the saved configuration.
@@ -282,8 +282,8 @@ test('Disconnected UI is honest and cannot connect or grant observation permissi
   assert.doesNotMatch(entry,/尚未连接 OpenDesk（离线预览，不探测）|示例规划中|本轮批准交互示例|UNKNOWN（模拟 UI 状态）/);
   assert.equal(load(html)('#workflow-provider-toggle').attr('aria-expanded'),'false');
   const settings=await read('src/ui/react/components/provider-settings.tsx');
-  assert.match(settings,/网页摘要授权仍由原业务机制处理/);
-  assert.match(settings,/原 Chrome\/Native 权限不因此扩大/);
+  assert.match(settings,/网页摘要仍需按本轮授权/);
+  assert.match(settings,/切换 AI 来源不会扩大 Chrome 或本机权限，也不会自动重放业务操作/);
   assert.doesNotMatch(settings,/chrome\.|(?:^|\W)fetch\(|requestPermissions\(/);
   assert.match(view,/control\('workflow-local-status-detail'\)\.text=detail/);
 });
@@ -376,11 +376,12 @@ test('Offline shared settings never expose legacy API keys or retain supplied cr
   const settings=await read('src/ui/react/components/provider-settings.tsx');
   assert.match(component,/value=\{id==='workflow-ai-key'\?legacyKeyDraft:c\(id\)\.value\|\|''\}/);
   assert.match(settings,/const \[keyDraft,setKeyDraft\]=React\.useState\(''\)/);
-  assert.match(settings,/id="od-ai-provider-key" type="password"\s+value=\{keyDraft\}/);
+  assert.match(settings,/const \[keyVisible,setKeyVisible\]=React\.useState\(false\)/);
+  assert.match(settings,/id="od-ai-provider-key" type=\{keyVisible\?'text':'password'\}\s+value=\{keyDraft\}/);
   assert.doesNotMatch(settings,/snapshot\.apiKey/);
   const adapter=await read('src/ui/react/preview/shared-ai-preview.js');
   assert.doesNotMatch(adapter,/chrome\.|(?:^|\W)fetch\(|localStorage|sessionStorage|createWorkflowProviderFacade|new WebSocket\(/);
-  assert.match(settings,/else\{\s*setKeyDraft\(''\);setClearKey\(false\)/);
+  assert.match(settings,/else\{\s*setKeyDraft\(''\);setKeyVisible\(false\);setClearKey\(false\)/);
   providerSettings.updateSettings({apiKey:''});
   assert.equal(providerSettings.settingsSnapshot().hasApiKey,false);
   // NOT_TESTED here: Portal mount, focus/inert restoration, key clearing on close,
