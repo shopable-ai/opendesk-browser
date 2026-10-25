@@ -589,6 +589,13 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
     owner.setTimeout(refresh, 120);
   }
   const observer = owner.observe(doc.documentElement, records => {
+    // A pre-rename installation can mount after this Page has mounted.
+    // Do not debounce its takeover or ignore it as our own DOM mutation.
+    const peerChanged = records.some(record => record.type === 'childList' &&
+      [...record.addedNodes, ...record.removedNodes].some(node =>
+        node.hasAttribute?.(OWN) && node.shadowRoot &&
+        ![...mounted.values()].some(item => item.host === node)));
+    if (peerChanged) { refresh(); return; }
     const relevant = records.some(record => {
       const target = record.target.nodeType === 1 ? record.target : record.target.parentElement;
       if (target?.closest(`[${OWN}="${sessionKey === 'default' ? 'host' : sessionKey}"]`)) return false;
