@@ -108,3 +108,12 @@ node scripts/preview/build-sidebar-six-react-preview.mjs --check
 **日常 Reading TOC 主界面读取被身份/访问校验拒绝。** 隔离默认安装可用，本轮未改 TOC 身份 pin、来源或运行策略，不能把原因写成已证实的旧版本。
 
 错误位于可信宿主发送网页消息之前。下一步在日常 Profile owner 可用时，只读对比安装版本/规范化包哈希、provenance 的 marketId/version/sha256、持久启停值及实际运行模块指纹；先确认是否为历史安装或开发模块漂移。只有证实记录不一致，才经现有官方更新/审阅链修复，禁止绕过签名或新增安装器。保留现有安装数据，不以重装整个日常扩展作为默认修复。
+
+## 本次续接：仅收拢 TOC 准入补丁
+
+- 开始时 main/远端均为 `5ea7046eb`；两份未提交补丁已接管。日常 Chrome 正在调试另一项 Tunnels 任务，未切换其前台、标签或存储，日常安装身份及章节读回仍为 **NOT_TESTED**，不能断言旧版本就是日常故障根因。
+- 修复已证实的准入缺陷：只保留不可变提交 `cb1643a66f8a7d588b301cd38e2fd2c5ce6d5cb2` 中官方 `1.0.10` 的精确 canonical SHA `8d6bf170c92f3093de34f1401f49897d9734f740a0deef87076666a548cc39f0`（35044 字节），并要求精确三字段来源及实际包哈希。当前 `1.0.11` 发行 pin 和安装器不变。
+- 为本次修改的 `trusted/policy.js` 同步固定构建审阅摘要；目标限制检查通过。未改已有 `locales.generated.js` 摘要缺口，未新建 watcher、重装、修改 Profile 或运行整包构建。
+- 新增历史原包及伪造负例，连同当前发行、第三方站点授权和本地导入保留保护，定向 **5/5 PASS**；停用、网站/页面排除、Chrome 撤权、迟到读回和显示偏好负例 **7/7 PASS**。语法及 diff 检查通过。
+- 命令：`node --test --test-reporter=spec --test-name-pattern='historical official|only authenticated|unrelated page.toc|installer reserves' tests/environment/reading-toc-official-identity-r11.test.mjs`；`node --test --test-reporter=spec --test-name-pattern='built-in default access|Chrome access recheck|R26 stop releases|disable during initial|R4.7 excluding|trusted content service verifies sender|display choices cannot' tests/environment/reading-toc-lifecycle-r41.test.mjs tests/environment/reading-toc-visibility-r46.test.mjs`。
+- 复用原 Cookie、统一启停、React 焦点和同源预览证据，没有相关差异，不重跑矩阵或评分。下一条仍是日常 Profile 空闲时，只读核对安装身份与实际开发指纹，再从“扩展 → 阅读目录”读取本地 demo 章节；来源异常走原安装审阅链。

@@ -2,7 +2,7 @@ import {sidebarToolEnabled} from '../../../../src/ui/sidebar-tools/lifecycle.js'
 import {websiteOrigin,grantedOrigins,changeSiteGrant as changeTocGrant} from '../../../../src/ui/sidebar-tools/site-grants.js';
 export {websiteOrigin,grantedOrigins,changeTocGrant};
 import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage,sidebarToolPackageHash} from '../../../../src/ui/sidebar-tools/package.js';
-import {matchesOfficialReadingToc,OFFICIAL_READING_TOC_RELEASE} from '../../../../src/sidebar-tools/official-reading-toc.js';
+import {matchesOfficialReadingToc,OFFICIAL_READING_TOC_RELEASE,OFFICIAL_READING_TOC_RELEASES} from '../../../../src/sidebar-tools/official-reading-toc.js';
 
 export const READING_TOC_SITE_STORE='opendesk.sidebar-tools.toc-sites.v1';
 // A distinct storage key per HTTP(S) origin prevents unrelated sites from
@@ -37,7 +37,9 @@ export async function verifyOfficialReadingToc(installed,provenance) {
   if(!Array.isArray(installed)||
      installed.filter(row=>row?.id===OFFICIAL_READING_TOC_RELEASE.id).length!==1)return false;
   const tool=admittedTocTool(installed,OFFICIAL_READING_TOC_RELEASE.id);
-  if(!tool||!matchesOfficialReadingToc(tool,provenance,OFFICIAL_READING_TOC_RELEASE.sha256))return false;
+  const release=tool&&OFFICIAL_READING_TOC_RELEASES.find(pin=>
+    matchesOfficialReadingToc(tool,provenance,pin.sha256));
+  if(!release)return false;
   try {return matchesOfficialReadingToc(tool,provenance,await sidebarToolPackageHash(tool));}
   catch{return false;}
 }
