@@ -15,6 +15,9 @@ export function createControllerResultsView({host,view,resultDownloads,isDispose
     retiring:'正在释放资源',completed:'已完成',failed:'失败',stopped:'已停止',interrupted:'已中断',paused_unknown:'状态待确认'};
   function renderTask(run) {
     if (isDisposed()) return;
+    // A newly started run supersedes reads begun under the previous selection.
+    // A history query started afterwards can still select its requested run.
+    if(currentTask?.runId!==run?.runId)++snapshotSequence;
     currentTask = run;
     patchDeveloperField(view,find('script-task-id'),{textContent:run ? `runId：${run.runId}` : '尚未运行'});
     patchDeveloperField(view,find('script-task-status'),{textContent:run ? `${stateLabels[run.state] || run.state} · ${run.retirementState === 'released' ? '资源已释放' : '以后台回执为准'}` : ''});
@@ -44,8 +47,10 @@ export function createControllerResultsView({host,view,resultDownloads,isDispose
     });
     resultDownloads.showResults(snapshot.results,deniedRuns);
     const task = currentTask && snapshot.runs.find(row=>row.runId === currentTask.runId);
-    if (task) renderTask(task);
-    else if (!isRunning() && !host.currentRun && snapshot.run) renderTask(snapshot.run);
+    // An explicit query selects both the decoded result and its technical
+    // identity, even when the snapshot also contains the previous run.
+    if (snapshot.run) renderTask(snapshot.run);
+    else if (task) renderTask(task);
     else if (!currentTask && !isRunning() && !host.currentRun && snapshot.runs.length) renderTask(snapshot.runs.at(-1));
     if (!snapshot.run) {
       // Publish the complete history once, keeping an existing selection.

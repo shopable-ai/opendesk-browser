@@ -87,8 +87,10 @@ export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=global
       const tools=contexts.filter(context=>{try{return new URL(context.documentUrl).pathname===SIDEPANEL_DOCUMENT_PATHNAME;}catch{return false;}});
       if(tools.some(context=>!ports.has(context.documentId))){waiting('等待全部工具页连接开发服务；没有响应的宿主不会被自动关闭。');return;}
       const rows=[...ports.values()];token=crypto.randomUUID();
-      for(const row of rows){row.ready=false;row.token=token;row.port.postMessage({type:'prepare',token});}
-      for(let i=0;i<30&&rows.some(row=>!row.ready);i++)await wait(50);
+      for(const row of rows){row.ready=null;row.token=token;row.port.postMessage({type:'prepare',token});}
+      // A negative vote is final for this attempt. Release ready documents
+      // immediately instead of holding their UI until the missing-ACK timeout.
+      for(let i=0;i<30&&rows.some(row=>row.ready===null)&&!rows.some(row=>row.ready===false);i++)await wait(50);
       if(rows.some(row=>!row.ready)||!await checkIdle()){waiting('等待任务结束和草稿成功保存；源码更新已保留。');return;}
       // A new host opened during acknowledgement must also participate.
       const current=await api.runtime.getContexts({});

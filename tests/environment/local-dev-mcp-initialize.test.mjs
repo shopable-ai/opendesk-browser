@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {PassThrough} from 'node:stream';
 import {serveMcp} from '../../native-agent/local-dev/mcp.mjs';
 
-test('ChatGPT Tunnel discovery repeats an identical handshake without resetting the session',async()=>{
+test('ChatGPT and Codex Tunnel discovery retain the session across client capability advertisements',async()=>{
   const input=new PassThrough(),output=new PassThrough(),responses=[];
   let calls=0,closes=0;
   output.on('data',chunk=>responses.push(...chunk.toString().trim().split('\n').map(JSON.parse)));
@@ -22,12 +22,17 @@ test('ChatGPT Tunnel discovery repeats an identical handshake without resetting 
   assert.deepEqual(responses.find(row=>row.id===2).result.tools,tools);
   assert.equal(responses.find(row=>row.id===3).result.structuredContent.calls,1);
   send(4,'initialize',params);
-  send(5,'initialize',{...params,clientInfo:{name:'another-client',version:'1'}});
+  send(5,'initialize',{...params,clientInfo:{name:'openai-mcp (Codex)',version:'1'},
+    capabilities:{...params.capabilities,extensions:{'openai/form':{},'io.modelcontextprotocol/ui':{mimeTypes:['text/html;profile=mcp-app','text/html+skybridge']}}}});
   send(6,'tools/call',{name:'test.result',arguments:{}});
+  send(7,'initialize',{...params,protocolVersion:'different-protocol'});
+  send(8,'tools/list');
   await new Promise(resolve=>setImmediate(resolve));
   assert.ok(responses.find(row=>row.id===4).result);
-  assert.equal(responses.find(row=>row.id===5).error.code,-32600);
+  assert.deepEqual(responses.find(row=>row.id===5).result,responses.find(row=>row.id===1).result);
   assert.equal(responses.find(row=>row.id===6).result.structuredContent.calls,2);
+  assert.equal(responses.find(row=>row.id===7).error.code,-32600);
+  assert.deepEqual(responses.find(row=>row.id===8).result.tools,tools);
   assert.equal(closes,0);
   server.close();assert.equal(closes,1);
 });

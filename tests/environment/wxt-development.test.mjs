@@ -243,3 +243,19 @@ test('a disconnected acknowledgement cannot authorize extension reload',async()=
   const f=workerFixture();f.port.postMessage=message=>{f.messages.push(message);if(message.type==='prepare'){f.port.onMessage.emit({type:'ready',token:message.token,ready:true});f.port.onDisconnect.emit();}};
   await f.connect();f.start();await until(()=>f.reads>1);f.change('sw.js','new');await until(()=>f.messages.some(m=>m.type==='prepare'));await new Promise(resolve=>setTimeout(resolve,100));assert.equal(f.reloads,0);f.worker.dispose();
 });
+test('a busy host immediately releases other hosts instead of freezing them for the acknowledgement timeout',async()=>{
+  const f=workerFixture();
+  const context={...await f.api.runtime.getContexts({}).then(rows=>rows[0]),documentId:'document-2',documentUrl:'chrome-extension://extension/sidepanel.html?hostInstanceId=host-2'};
+  (await f.api.runtime.getContexts({})).push(context);
+  const busy={name:f.port.name,sender:{id:'extension',url:context.documentUrl,documentId:context.documentId},
+    onMessage:event(),onDisconnect:event(),disconnect(){this.onDisconnect.emit();},
+    postMessage(message){if(message.type==='prepare')this.onMessage.emit({type:'ready',token:message.token,ready:false});}};
+  try{
+    await f.connect();await f.api.runtime.onConnect.emit(busy);f.start();await until(()=>f.reads>1);
+    f.change('sw.js','pending');await until(()=>f.messages.some(message=>message.type==='prepare'));
+    await new Promise(resolve=>setTimeout(resolve,100));
+    assert.equal(f.worker.held,false,'a negative vote must release the admission fence promptly');
+    assert.equal(f.messages.some(message=>message.type==='abort'),true,'the ready host must become interactive again');
+    assert.equal(f.reloads,0,'a busy host must continue to veto reload');
+  }finally{f.worker.dispose();}
+});

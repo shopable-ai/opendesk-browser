@@ -6,15 +6,17 @@ import {encodeValue} from '../../src/platform/page-port/codec.js';
 
 const reload=()=>Object.assign(new Error('Update refused before dispatch'),{code:'E_DEV_RELOADING'});
 function fixture(t,snapshotControllerRun){
-  const view=createDeveloperView();let disposed=false,text='';
+  const view=createDeveloperView();let disposed=false,text='',running=false;
+  const host={currentRun:null,controller:{snapshotControllerRun}};
   t.after(()=>view.dispose());
   const owner=createControllerResultsView({
-    host:{currentRun:null,controller:{snapshotControllerRun}},view,
-    resultDownloads:{showResults(){}},isDisposed:()=>disposed,isRunning:()=>false,
+    host,view,
+    resultDownloads:{showResults(){}},isDisposed:()=>disposed,isRunning:()=>running,
     getOwnedRunId:()=>'',isLocalPageResultCurrent:()=>false,onUpdate(){},onStatus(){},
     setResultText(value){text=value;},setResultKind(){},displayCopyResult(){},showRecovery(){},hideRecovery(){}
   });
-  return {owner,view,dispose(){disposed=true;},get text(){return text;}};
+  return {owner,view,dispose(){disposed=true;},get text(){return text;},
+    startRun(run){running=true;host.currentRun=run.runId;owner.renderTask(run);}};
 }
 function snapshot(runId){
   const run={runId,state:'completed',retirementState:'released',sourceKind:'draft'};
@@ -30,6 +32,43 @@ test('history read waits through reload refusals and displays the same durable r
   assert.equal(f.view.fields['script-task-id'].textContent,'runId：cloud-run');
   assert.match(f.text,/cloud value/);
   assert.equal(f.owner.projection.results[0].resultId,'original-result');
+});
+
+test('explicit history query keeps result and technical identity on the requested run',async t=>{
+  const written=snapshot('cloud-write'),restored=snapshot('cloud-restore');
+  restored.results[0].outcome.valueWire=encodeValue({matched:true,value:''});
+  const runs=[written.run,restored.run],results=[...written.results,...restored.results];
+  const f=fixture(t,async request=>({run:request.runId==='cloud-write'?written.run:restored.run,
+    runs,results,downloads:[]}));
+  await f.owner.read('cloud-restore');
+  await f.owner.read('cloud-write',{reveal:true});
+  assert.match(f.text,/cloud value/);
+  assert.equal(f.view.fields['script-task-id'].textContent,'runId：cloud-write');
+  assert.equal(f.owner.currentTask.runId,'cloud-write');
+  assert.equal(f.view.fields['script-task-status'].textContent,'已完成 · 资源已释放');
+});
+
+test('history response started before a new run cannot replace its identity',async t=>{
+  let resolve;const response=new Promise(done=>{resolve=done;});
+  const f=fixture(t,async()=>response);
+  const read=f.owner.read('old-history',{reveal:true});
+  const next={runId:'new-run',state:'running'};
+  f.startRun(next);
+  resolve({...snapshot('old-history'),runs:[snapshot('old-history').run,next]});
+  await read;
+  assert.equal(f.owner.currentTask.runId,'new-run');
+  assert.equal(f.view.fields['script-task-id'].textContent,'runId：new-run');
+  assert.equal(f.owner.projection,undefined);
+  assert.equal(f.text,'');
+});
+
+test('history explicitly selected after a new run starts stays on that selection',async t=>{
+  const f=fixture(t,async()=>snapshot('chosen-history'));
+  f.startRun({runId:'new-run',state:'running'});
+  await f.owner.read('chosen-history',{reveal:true});
+  assert.equal(f.owner.currentTask.runId,'chosen-history');
+  assert.equal(f.view.fields['script-task-id'].textContent,'runId：chosen-history');
+  assert.match(f.text,/cloud value/);
 });
 
 for(const code of ['E_OWNER','E_EFFECT_UNKNOWN','E_PERMISSION']){

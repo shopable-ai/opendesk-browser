@@ -4,7 +4,6 @@
 import {pathToFileURL} from 'node:url';
 import path from 'node:path';
 import fs from 'node:fs';
-import {isDeepStrictEqual} from 'node:util';
 import {LocalDevSession} from './session.mjs';
 import {createLocalProjectProvider} from './provider.mjs';
 
@@ -48,10 +47,11 @@ export function serveMcp({input=process.stdin,output=process.stdout,session,tool
     try{
       if(message.method==='initialize'){
         if(!object(message.params)||typeof message.params.protocolVersion!=='string'||!object(message.params.capabilities)||!object(message.params.clientInfo)||typeof message.params.clientInfo.name!=='string'||typeof message.params.clientInfo.version!=='string')return rpcError(id,-32602,'Invalid initialization parameters');
-        if(initialized&&!isDeepStrictEqual(message.params,initializationParams))return rpcError(id,-32600,'Already initialized with different parameters');
-        // ChatGPT discovery initializes the same Tunnel stdio stream twice.
-        // A matching handshake is repeatable; never reset readiness or runs.
-        initialized=true;initializationParams=message.params;
+        if(initialized&&message.params.protocolVersion!==initializationParams.protocolVersion)return rpcError(id,-32600,'Already initialized with a different protocol');
+        // Tunnel clients share this stdio stream. Client names and advertised
+        // UI capabilities may differ between ChatGPT and Codex; neither grants
+        // server authority. Keep the fixed tools, readiness and original runs.
+        initialized=true;initializationParams={protocolVersion:message.params.protocolVersion};
         return write({jsonrpc:'2.0',id,result:{protocolVersion:'2025-11-25',capabilities:{tools:{}},serverInfo,instructions}});
       }
       if(message.method==='ping')return write({jsonrpc:'2.0',id,result:{}});
