@@ -1224,7 +1224,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       'sidebar-tool-generic-site-advanced']){
       const field=view.fields[id];if(field)patchToolField(view,field,{hidden:!capabilityOnly});
     }
-    patchToolField(view, settingsHint, {hidden: !capabilityOnly});
     patchToolField(view, settingsScopeLabel, {textContent: isToc?tocText('siteAvailability'):'当前网站可用性'});
     patchToolField(view, settingsTarget, {textContent: capability?(origin||(isToc?tocText('selectPage'):'请选择适用网页')):'此工具不需要网站授权'});
     patchToolField(view, settingsScopeButton, {hidden: true});
@@ -1233,11 +1232,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         button===settingsAllow?'恢复当前网站':'停用当前网站',hidden:!capability,disabled:busy||sitePending||!origin});
       setToolFieldAttribute(view,button,'aria-pressed',String(Boolean(origin)&&chosen));
     }
-    patchToolField(view, settingsHint, {textContent: promptSettings?'默认在 chatgpt.com 使用网页快捷按钮，无需二次网站授权；点击只填写草稿，不会自动发送。':isToc?tocText('tocIntro')+
+    const siteHelp=isToc?tocText('tocIntro')+
       tocText(!origin?'unsupportedPage':grant?'siteAvailable':'siteDisabled'):
-      !capability?'工具能力以安装时的审阅为准。':!origin?'请切换到适用网页，设置仍可管理。':
-      grant?'安装时已批准基础能力，当前网站可直接使用。可在这里主动停用。':
-        '当前网站已停用，点击恢复即可使用。Chrome 网站访问仍须保持允许。'});
+      !capability?'':!origin?'请切换到适用网页。':
+        grant?'':'当前网站已停用；Chrome 网站访问仍须有效。';
+    patchToolField(view, settingsHint, {hidden:!capabilityOnly||!siteHelp,textContent:siteHelp});
     if(visibilitySection)patchToolField(view, visibilitySection, {hidden: !isToc});
     if(pageExceptionSection)patchToolField(view, pageExceptionSection, {hidden: !isToc});
     for(const [button,hidden] of [[settingsSiteVisibility,appearance.hiddenOnSite],[settingsPageVisibility,appearance.hiddenOnPage]]){
@@ -3993,7 +3992,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     void toggleEnabled(active?.id,event).catch(error=>{
       // A failed write may already have taken effect. Block another toggle
       // until the trusted store is read back; never optimistically replay it.
-      enableReadError=true;render();
+      enableReadError=true;
+      if(active&&!readOnlyPreview){
+        if(toolDirty||toolSaving||knowledgeDirty)
+          recoverableDrafts.set(active.id,frameDraft||'未收到可恢复的表单内容；工具已安全停止。');
+        destroyFrame();toolDirty=false;toolSaving=false;knowledgeDirty=false;tocSettingsOpen=true;
+      }
+      render();
       notice('启停结果未确认，请重新读取状态后再操作。'+
         (error?.code||'E_TOOL')+'：'+String(error?.message||error).slice(0,180),true);
     });
