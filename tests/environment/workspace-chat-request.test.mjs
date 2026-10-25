@@ -182,8 +182,9 @@ function modernRequestFixture({state='complete',userText,blocks}={}){
   const user=$('[data-chatgpt-search-unit-key$=":user"]'),assistant=$('[data-content-search-unit-key$=":assistant"]');
   user.text(userText??prompt);
   for(const block of blocks??[{text}]){
-    const code=$('<pre><code></code></pre>');
-    code.find('code').attr('class','language-'+(block.language||'opendesk-request')).text(block.text);
+    const code=$('<div data-code-block="true"><div data-markdown-copy="exclude" contenteditable="false"><svg></svg><div></div><div><button>Copy code</button></div></div><div data-code-block-source="true"><code><span></span></code></div></div>');
+    code.find('[data-markdown-copy="exclude"] > div').first().text(block.language||'opendesk-request');
+    code.find('code span').text(block.text);
     if(block.quoted)assistant.append($('<blockquote></blockquote>').append(code));
     else if(block.file)assistant.append($('<div data-opendesk-file-data></div>').append(code));
     else assistant.append(code);
@@ -197,6 +198,18 @@ test('modern complete turn reads one request through the unchanged strict parser
   const result=read();assert.equal(result.ok,true);assert.equal(result.assistantFragments,1);
   assert.equal(result.blocks[0],text);assert.deepEqual(parseFileRequest(result.blocks[0],request),request);
   assert.equal(result.answerKey,read().answerKey);
+});
+test('modern code sources stay distinct from legacy blocks, action labels and inline examples',()=>{
+  const {request}=makeContext(),text=JSON.stringify(request);
+  const mixed=modernRequestFixture();
+  mixed.assistant.append(mixed.$('<pre><code class="language-opendesk-request"></code></pre>').find('code').text(text).end());
+  assert.equal(mixed.read().error.code,'E_EDIT_AMBIGUOUS');
+  const controls=modernRequestFixture({blocks:[{text,language:'json'}]});
+  controls.assistant.find('button').text('opendesk-request');
+  assert.equal(controls.read().error.code,'E_CHAT_REQUEST_MARKER');
+  const inline=modernRequestFixture({blocks:[]});
+  inline.assistant.append(inline.$('<code class="language-opendesk-request"></code>').text(text));
+  assert.equal(inline.read().error.code,'E_CHAT_FORMAT');
 });
 test('modern turn state refuses streaming despite complete request text and absent stop button',()=>{
   for(const state of ['streaming','pending','']){

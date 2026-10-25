@@ -65,14 +65,23 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
     return error('E_CHAT_TURN','最新用户消息没有本轮请求身份，未使用旧回答。');
   const blocks=[];let count=0,total=0,unmarkedRequest=false;
   for(const node of answer){
-    for(const code of node.querySelectorAll('pre code')){
+    for(const code of node.querySelectorAll('pre code,[data-code-block="true"] [data-code-block-source="true"] code')){
       const legacyOwner=code.closest('[data-message-author-role]'),modernOwner=code.closest(modernSelector);
       if(hidden(code)||(!legacyOwner&&!modernOwner)||(legacyOwner&&legacyOwner!==node)||(modernOwner&&modernOwner!==node)||
         code.closest('blockquote,[data-opendesk-file-data]'))continue;
       if(++count>128)return error('E_CHAT_LIMIT','当前回答代码块过多。');
       const text=code.textContent||'';total+=text.length;
       if(total>400*1024)return error('E_CHAT_LIMIT','当前回答过长，未处理。');
-      const label=(code.getAttribute?.('class')||'')+' '+(code.parentElement?.getAttribute?.('data-language')||'');
+      let label=(code.getAttribute?.('class')||'')+' '+(code.parentElement?.getAttribute?.('data-language')||'');
+      // Current ChatGPT renders block code without <pre>. Only its source
+      // container supplies text; the separate action-bar language label must
+      // never include copy-button text or an unrelated block's header.
+      const surface=code.closest('[data-code-block="true"]'),source=code.closest('[data-code-block-source="true"]');
+      if(surface&&source?.closest('[data-code-block="true"]')===surface){
+        const header=surface.querySelector('[data-markdown-copy="exclude"]'),language=header?.querySelector('div');
+        if(language&&!hidden(language)&&header.closest('[data-code-block="true"]')===surface)
+          label+=' '+(language.textContent||'').trim();
+      }
       let protocol;try{protocol=JSON.parse(text).protocol;}catch{}
       // Count ALL protocol candidates before checking the nonce. Conflicting
       // old/new blocks cannot be hidden by filtering on the expected ID first.
