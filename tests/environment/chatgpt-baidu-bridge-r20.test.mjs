@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 import {createChatGPTBridgeTriggerLedger} from '../../src/native-agent/chatgpt-bridge-trigger-gate.js';
-import {bridgePrompt} from '../../src/native-agent/chatgpt-fixed-bridge-page.js';
+import {bridgePrompt,initChatGPTFixedBridgePage} from '../../src/native-agent/chatgpt-fixed-bridge-page.js';
 import {validateChatGPTTaskRequest,baiduSearchTarget} from '../../src/native-agent/chatgpt-task-request.js';
 import {createChatGPTFixedBridgeHost,verifyChatGPTTaskDurableResult,
   formatChatGPTBaiduResult,BAIDU_TASK_VERSION,BAIDU_TASK_SOURCE_HASH,
@@ -52,6 +52,79 @@ test('one durable nonce is pinned to exactly one selected Task and search query'
     {code:'E_BRIDGE_REVOKED'});
   await assert.rejects(restarted.reserve({...context,taskId:request.taskId,args}),
     {code:'E_BRIDGE_REPLAY'});
+});
+test('ChatGPT page selects Baidu keyword and performs one approved automatic request without manual Run click',async()=>{
+  const nodes=[],listeners=new Map();
+  const element=tag=>{
+    const node={tag,style:{},classList:{toggle(){}},listeners:{},
+      setAttribute(){},append(){},remove(){},
+      attachShadow(){return element('shadow');},
+      addEventListener(type,fn){this.listeners[type]=fn;}};
+    nodes.push(node);return node;
+  };
+  const doc={getElementById:()=>null,createElement:element,body:element('body'),
+    addEventListener:(type,fn)=>listeners.set(type,fn),
+    removeEventListener:type=>listeners.delete(type)};
+  const location={href:source.url,origin:'https://chatgpt.com'};
+  let poll=null;
+  const win={location,setInterval(fn){poll=fn;return 1;},clearInterval(){},
+    addEventListener(){},removeEventListener(){}};win.top=win;
+  const editor={ownerDocument:doc,focus(){doc.activeElement=editor;}};
+  const snap={ok:true,route:'c/search-session-12345678',editor,form:{},idle:true,
+    busy:false,answerComplete:true,draft:'',rich:false,users:[],assistants:[{}]};
+  const promptTexts=[];
+  const site={inspect:()=>({...snap}),prepare(text){
+    promptTexts.push(text);snap.draft=text;return {ok:true,token:{}};}};
+  const sends=[],issued=Promise.withResolvers();
+  const api={runtime:{id:'extid',getURL:()=>'chrome-extension://extid/',
+    onMessage:{addListener(){},removeListener(){}},
+    async sendMessage(message){
+      sends.push(message);
+      if(message.kind==='prepare'){
+        assert.equal(message.taskId,request.taskId);assert.deepEqual(message.args,args);
+        return {ok:true,data:{requestId:id,taskId:request.taskId,args,source}};
+      }
+      if(message.kind==='authorize'){
+        assert.equal(message.mode,'auto');return {ok:true,data:{}};
+      }
+      if(message.kind==='execute'){
+        assert.equal(message.mode,'auto');
+        assert.equal(message.requestId,id);
+        assert.deepEqual(JSON.parse(message.candidateText),request);
+        issued.resolve();
+        return {ok:true,data:{taskId:request.taskId,taskStatus:'success',
+          resultCount:2,sent:true,aiReplyObserved:true}};
+      }
+      throw Error('Unexpected message '+message.kind);
+    }}};
+  const page=initChatGPTFixedBridgePage({api,doc,win,site,readPage:opts=>({
+    ok:true,turnKey:'turn-1',answerKey:'answer-1:0',blocks:[candidateText]})});
+  const select=nodes.find(node=>node.tag==='select');
+  const input=nodes.find(node=>node.tag==='input');
+  const labels=nodes.filter(node=>node.tag==='label');
+  assert.ok(select&&input);
+  assert.equal(labels[1].hidden,true); // fixed task does not show a keyword field
+  select.value='baidu.search.top3';
+  select.listeners.change();
+  assert.equal(labels[1].hidden,false);
+  input.value=args.query;
+  const buttons=nodes.filter(node=>node.tag==='button');
+  await buttons[0].listeners.click({isTrusted:true});
+  assert.equal(promptTexts.length,1);
+  assert.match(promptTexts[0],/"taskId":"baidu.search.top3"/);
+  assert.equal(select.disabled,true); // task/params cannot switch within a prepared request
+  snap.users=[{textContent:id}];snap.draft=''; // the user sent the request on ChatGPT
+  await buttons[1].listeners.click({isTrusted:true}); // approve just this user turn
+  assert.equal(sends.filter(x=>x.kind==='authorize').length,1);
+  assert.equal(typeof poll,'function');
+  poll();
+  await issued.promise;
+  // Finish the asynchronous host result path before calling the interval again.
+  await Promise.resolve();await Promise.resolve();
+  poll();
+  assert.equal(sends.filter(x=>x.kind==='execute').length,1);
+  assert.equal(buttons[2].disabled,true);
+  page.dispose();
 });
 test('Baidu prompt contains the selected query in one immutable JSON candidate and no MCP authority',()=>{
   const text=bridgePrompt(id,request.taskId,args);
