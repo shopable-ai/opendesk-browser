@@ -19,10 +19,13 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
     const editLease=consumerId==='prompt'?providers.acquire({consumerId:'prompt-edit',
       instanceId:instanceId+':edit',hostInstanceId,installEpoch}):null;
     const authorizationListeners=new Set();
+    let approvedKnowledgeTest=null,knowledgeApprovalEpoch=0;
+    const clearKnowledgeTest=()=>{knowledgeApprovalEpoch++;approvedKnowledgeTest=null;};
     let consumerDisposed=false,bookmarkConversationBusy=false,
       bookmarkConversationActive=null,bookmarkConversationGrantEpoch=0;
     function forScope(scope){return scope==='prompt-edit'?editLease:mainLease;}
     function invalidateBookmarkConversation(reason){
+      clearKnowledgeTest();
       if(reason?.code==='E_MODEL_GRANT_REVOKED')bookmarkConversationGrantEpoch++;
       bookmarkConversationActive?.abortController.abort(reason);
       bookmarkConversationActive?.release();
@@ -60,6 +63,8 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
     // permission wait. An aborted round releases its UI busy state promptly;
     // unlike permission revocation, a settings change is not a revoked grant.
     const unsubscribeProviderSettings=providers.subscribeSettings?.(()=>{
+      if(approvedKnowledgeTest?.providerGeneration!==providers.configuration().generation)
+        clearKnowledgeTest();
       const active=bookmarkConversationActive;
       if(!active||active.providerGeneration===providers.configuration().generation)return;
       active.abortController.abort(err('E_TOOL_CHANGED',
@@ -123,9 +128,14 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
         rows:snapshot.rows,needsReview:snapshot.needsReview});
       businessRefs=sessionRefs(snapshot.refs||{});
     },
-    async request({request,context={},event,signal,scope=consumerId,continuation=false}={}){
-      if(consumerDisposed||!event?.isTrusted)
-        throw err('E_USER_GESTURE','请从可信 AI 对话输入框发送');
+    async request({request,context={},event,signal,scope=consumerId,continuation=false,
+      approvedKnowledgeTest:sessionGrant=null,knowledgeEtag=null}={}){
+      const isApproved=consumerId==='knowledge'&&scope==='knowledge'&&
+        sessionGrant!==null&&sessionGrant===approvedKnowledgeTest&&
+        Date.now()<=sessionGrant.expiresAt&&sessionGrant.etag===knowledgeEtag&&
+        sessionGrant.providerGeneration===providers.configuration().generation;
+      if(consumerDisposed||(!event?.isTrusted&&!isApproved))
+        throw err('E_USER_GESTURE','请从可信 AI 对话输入框发送，或批准本地知识测试会话');
       if(scope!==consumerId&&!(consumerId==='prompt'&&scope==='prompt-edit'))
         throw err('E_AI_SCOPE','当前消费者没有此业务作用域');
       if(bookmarkConversationBusy)throw err('E_AI_BUSY','此消费者已有 AI 请求');
@@ -141,7 +151,7 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
           throw err('E_AI_CONFIG','请在共享 AI 设置中配置 HTTPS 接口、模型及本次 API Key');
         grantPattern=permissionPattern(settings.endpoint);
         // Start inside the trusted Send gesture; no deferred permission prompt.
-        permission=continuation?api.permissions.contains({origins:[grantPattern]}):
+        permission=continuation||isApproved?api.permissions.contains({origins:[grantPattern]}):
           api.permissions.request({origins:[grantPattern]});
       }
       const abortController=new AbortController(),generation=bookmarkConversationGrantEpoch;
@@ -166,7 +176,7 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
         throw error;
       }
       const active={abortController,source:selected,generation,providerGeneration,
-        grantPattern,signal,scope,round};
+        grantPattern,signal,scope,round,sessionGrant:isApproved?sessionGrant:null};
       bookmarkConversationBusy=true;bookmarkConversationActive=active;
       let released=false,deciding=false;
       const release=()=>{
@@ -181,6 +191,9 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
       };
       active.release=release;
       const assertLive=()=>{
+        if(isApproved&&(approvedKnowledgeTest!==sessionGrant||
+           Date.now()>sessionGrant.expiresAt||sessionGrant.providerGeneration!==providers.configuration().generation))
+          throw err('E_MODEL_GRANT_REVOKED','本地知识自动推理会话已失效');
         if(consumerDisposed)
           throw err('E_TOOL_CHANGED','AI 消费者实例已关闭');
         if(generation!==bookmarkConversationGrantEpoch)
@@ -290,6 +303,44 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
         if(signal?.aborted)throw err('E_CANCELLED','本轮已停止；迟到提议已丢弃');
         throw error;
       }
+    },
+    // Approval is a first-party, memory-only capability, never exposed through the
+    // sandbox SDK. It grants ONLY knowledge inference on this exact local document.
+    beginKnowledgeTestApproval({event,origin,documentId,etag}={}){
+      if(consumerId!=='knowledge'||consumerDisposed||!event?.isTrusted||
+         origin!=='http://127.0.0.1:43111'||
+         typeof documentId!=='string'||documentId.length<8||documentId.length>160||
+         typeof etag!=='string'||!/^[a-f0-9]{64}$/u.test(etag))
+        throw err('E_KB_TEST_CONSENT','本地测试来源、知识版本或可信用户授权无效');
+      const config=providers.configuration(),selected=config.source;
+      let permission;
+      if(selected==='local_codex'){
+        // Must start synchronously from this real UI click if Native is optional.
+        permission=api.permissions.request({permissions:['nativeMessaging']});
+      }else if(['cloud_responses','custom_https'].includes(selected)){
+        let url;try{url=new URL(config.settings.endpoint)}catch{}
+        if(!url||url.protocol!=='https:'||url.username||url.password||url.hash||
+           !config.settings.apiKey||!config.settings.model)
+          throw err('E_AI_CONFIG','先完成共享 AI HTTPS 模型设置');
+        permission=api.permissions.request({origins:[permissionPattern(config.settings.endpoint)]});
+      }else throw err('E_AI_CONFIG','当前没有可使用的 AI Provider');
+      clearKnowledgeTest();const epoch=knowledgeApprovalEpoch;
+      return Promise.resolve(permission).then(permitted=>{
+        if(permitted!==true||consumerDisposed||epoch!==knowledgeApprovalEpoch||
+           providers.configuration().generation!==config.generation)
+          throw err('E_MODEL_GRANT_REVOKED','模型授权未批准或已变化');
+        const grant=Object.freeze({origin,documentId,etag,providerGeneration:config.generation,
+          expiresAt:Date.now()+600000});
+        approvedKnowledgeTest=grant;
+        return grant;
+      });
+    },
+    revokeKnowledgeTest(){
+      if(consumerId!=='knowledge')return;
+      const active=bookmarkConversationActive;
+      clearKnowledgeTest();
+      if(active?.sessionGrant)active.abortController.abort(
+        err('E_MODEL_GRANT_REVOKED','本地知识测试已停止'));
     },
     cancel({signal}={}){
       const active=bookmarkConversationActive;
