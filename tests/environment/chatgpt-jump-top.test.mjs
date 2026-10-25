@@ -18,7 +18,7 @@ test('AI Chat Scroll Navigation Page manifest uses only explicit top-frame site 
   // intact and must never act as an implicitly upgraded/authorized package.
   assert.equal(p.opendesk.id,'opendesk.ai-scroll-navigation');
   const entry=await readFile('examples/programs/chatgpt-jump-top/src/main.js','utf8');
-  assert.match(entry,/PROGRAM_ID='opendesk\\.ai-scroll-navigation'/);
+  assert.ok(entry.includes("PROGRAM_ID='opendesk.ai-scroll-navigation'"));
   assert.match(p.description,/AI 对话滚动导航/);
   assert.equal(p.opendesk.pageRules.allFrames, false);
   assert.equal(p.opendesk.pageRules.world, 'USER_SCRIPT');
