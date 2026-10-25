@@ -529,7 +529,8 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
       // own module-local WeakMap. The first connected live host wins; a
       // second install cannot create a second effective reply navigator.
       const incumbent = [...binding.header.querySelectorAll(`[${MODERN_OWN}="reply"]`)]
-        .find(node => node.isConnected && node.shadowRoot);
+        .find(node => node.isConnected && node.shadowRoot &&
+          node.getAttribute(OWN) === (sessionKey === 'default' ? 'host' : sessionKey));
       if (incumbent && incumbent !== mounted.get(binding.header)?.host) {
         remove(binding.header);
         continue;
@@ -558,7 +559,8 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
         event.preventDefault();
         event.stopPropagation();
         const active = [...binding.header.querySelectorAll(`[${MODERN_OWN}="reply"]`)]
-          .find(node => node.isConnected && node.shadowRoot);
+          .find(node => node.isConnected && node.shadowRoot &&
+            node.getAttribute(OWN) === (sessionKey === 'default' ? 'host' : sessionKey));
         // The old Page can mount between scheduled refresh and a click.
         // Revalidate the DOM owner before any scroll side effect.
         if (button.disabled || legacyNavigationPresent(doc) || active !== item.host) {
