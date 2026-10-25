@@ -19,6 +19,11 @@ const customer=(text,scope='',id='kb_msg_00000000-0000-4000-a000-000000000001')=
  createdAt:'2026-10-26T00:00:00.000Z',replyTo:'',text
 });
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function until(predicate,description,limitMs=4500){
+  const start=Date.now();
+  while(Date.now()-start<limitMs){if(predicate())return;await wait(40);}
+  assert.fail('Timeout waiting for '+description);
+}
 
 function lab({failSend=false,changeThread=false}={}){
  const site={threadId:'thread_demo_01',messages:[],sendCalls:0,readCalls:0,failSend};
@@ -110,7 +115,7 @@ test('R1.3 inbound: exact fixed answer observed but NOT sent without extra appro
  try{
    await rt.start({event:{isTrusted:true},autoSendFixed:false});
    site.messages.push(customer('几天内可以退款'));
-   await wait(950);
+   await until(()=>rt.snapshot().records[0]?.status==='ANSWERED_FIXED','fixed lookup');
    assert.equal(rt.snapshot().observed,1);
    const row=rt.snapshot().records[0];
    assert.equal(row.status,'ANSWERED_FIXED');
@@ -126,7 +131,7 @@ test('R1.3 inbound: explicit local fixed auto-send rechecks DOM receipt and prev
  try{
    await rt.start({event:{isTrusted:true},autoSendFixed:true});
    site.messages.push(customer('几天内可以退款'));
-   await wait(1050);
+   await until(()=>rt.snapshot().records[0]?.status==='CONFIRMED','confirmed fixed send');
    assert.equal(rt.snapshot().records[0].status,'CONFIRMED');
    assert.equal(site.sendCalls,1);
    assert.equal(rt.snapshot().confirmed,1);
@@ -152,7 +157,7 @@ test('R1.3 AI: local preapproved RAG creates a review draft, never silently send
    const context=rt.approvalContext();
    rt.approveAI({...context,providerGeneration:4,expiresAt:Date.now()+120000});
    site.messages.push(customer('退款需要几天'));
-   await wait(1010);
+   await until(()=>rt.snapshot().records[0]?.status==='REVIEW_REQUIRED','review draft');
    assert.equal(aiCalls,1);assert.equal(site.sendCalls,0);
    const row=rt.snapshot().records[0];
    assert.equal(row.status,'REVIEW_REQUIRED');
@@ -170,7 +175,7 @@ test('R1.3 identity: switching thread revokes this local fixture session',async(
  try{
    await rt.start({event:{isTrusted:true}});
    site.threadId='thread_demo_02';
-   await wait(960);
+   await until(()=>rt.snapshot().mode==='idle','thread-switch stop');
    assert.equal(rt.snapshot().mode,'idle');
    assert.match(rt.snapshot().message,/切换/);
  }finally{rt.dispose();}
@@ -183,7 +188,7 @@ test('R1.3 unknown send outcome is terminal, cannot be called again without new 
  try{
    await rt.start({event:{isTrusted:true}});
    site.messages.push(customer('几天内可以退款'));
-   await wait(940);
+   await until(()=>rt.snapshot().records[0]?.status==='ANSWERED_FIXED','sendable fixed answer');
    const id=site.messages[0].messageId;
    await assert.rejects(rt.confirm({event:{isTrusted:true},messageId:id}));
    assert.equal(rt.snapshot().records[0].status,'UNKNOWN');
