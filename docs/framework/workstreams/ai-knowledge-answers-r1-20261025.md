@@ -92,3 +92,30 @@ OPENDESK_KB_EVIDENCE=/Users/shopme/Documents/workspace/opendesk-browser/artifact
 真实 Mac Chrome 中，通过扩展官方目录审阅并安装/更新本候选 → 新建测试知识并保存 → 关闭重开确认保留 → 同义固定回答 → 非精确问题准备并真实 Send → 核对 sourceIds/人工审阅及错误恢复。纯文件导入没有官方 provenance 时保持受限，不改写来源记录绕过。
 
 只有该链及受影响的原生取消、撤权、更新、断线验证完成才可宣告 MVP。原始 Codex goal 仍 active，未因交付候选伪报 complete。网站阶段还需站点许可、精确页面身份、读取/草稿/发送确认与未知结果保护的独立设计和实测；保留 answer/sourceIds/needsHuman/status、取消及会话身份合同，不复制队列。
+
+
+## R2 UI 增量（2026-10-26）— 问答优先、知识列表/编辑互斥
+
+本轮保留原产品目标：AI 依据真实知识回答，未来在获批准的站点自动回复。用户指出 R1 的查询、横向芯片、编辑大表单在同一侧栏纵向堆叠。参考 cool-admin-vue 的搜索工具栏/列表/upsert 信息架构，不引入 Vue、PC 表格、侧边抽屉或第二套 Host。
+
+本轮修改的业务文件：
+- examples/sidebar-tools/ai-knowledge-answers/src/index.html
+- examples/sidebar-tools/ai-knowledge-answers/src/style.css
+- examples/sidebar-tools/ai-knowledge-answers/src/main.js
+
+分别建立：
+- 默认「问答」：仅问题、可选范围、回答状态及来源。
+- 「知识」：搜索、启停筛选、纵向摘要、点击条目进入编辑、导入导出次级入口。
+- 「新建/编辑」：问题/答案优先，其余折叠；保存读回、返回未保存保护、删除确认。
+- UNKNOWN 写入只能由显式刷新重新核对，不能通过切换视图清除或冒充核对。
+
+新增：
+- examples/sidebar-tools/ai-knowledge-answers/fixtures/sample-knowledge.json（14 条演示规则、每库低于 8 KiB）
+- examples/sidebar-tools/ai-knowledge-answers/preview/index.html（经 HTTP 加载原正式 HTML/CSS/model/main，唯独模拟 Host Storage）
+- tests/environment/ai-knowledge-answers-ui-r2.test.mjs（源码结构、调用和权限静态合同）
+
+本轮事实级证据：V8 解析通过；48 个 DOM ID 无重复，业务代码引用均存在；测试知识经真实模型校验，固定问答与未知问题可区分。单文件聊天内独立 UX 演示在当前环境 Chromium 完成问答、搜索、模拟保存、未保存离开确认和 320/360/400/440 宽度无演示内容横向溢出。该独立 UX 演示不是 source-linked preview 的真实 Chrome 执行，更不是 Mac Chrome 正式安装测试。
+
+NOT_TESTED：真实原源码加载及完整 Node 测试退出码、Mac Chrome 安装/重开、IME、暗色无障碍、Shared AI Provider、真实网页发送。
+
+R2 UI 不能代替 R1.3 自动问答闭环。下一项独立工作是接通已审核的 knowledge Shared AI Provider 消费者并在本地模拟聊天网页真实触发和读回；不要重做 R2 列表/编辑 UI。
