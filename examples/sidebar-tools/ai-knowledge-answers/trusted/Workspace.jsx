@@ -52,6 +52,8 @@ export default function KnowledgeWorkspace({host,onOpenSettings}){
       <div className="od-knowledge-summary">
         <span className="od-knowledge-label">共享 AI</span>
         <strong>{recipient.model||recipient.provider||'未配置模型'}</strong>
+        <span className="od-knowledge-label">已加载知识</span>
+        <strong>{test?.knowledgeCount===null||test?.knowledgeCount===undefined?'连接后核对':test.knowledgeCount+' 条'}</strong>
         <span className="od-knowledge-label">测试网页</span>
         <strong>{started?'监听中 · '+(test.threadId.endsWith('01')?'会话 A':'会话 B'):test?.mode==='connecting'?'正在连接':'未连接'}</strong>
       </div>
@@ -73,7 +75,7 @@ export default function KnowledgeWorkspace({host,onOpenSettings}){
           <div><strong>{test.errors}</strong><span>异常 / 未知</span></div>
         </div>
         {!test.autoAI&&<div className="od-knowledge-auto-ai">
-          <p className="od-note">额外批准后，定时到达的非精确问题可调用 <strong>{recipient.model||recipient.provider}</strong> 生成草稿。
+          <p className="od-note">额外批准后，定时到达的非精确问题可调用 <strong>{recipient.model||recipient.provider}</strong>（{recipient.endpoint}）生成草稿。
             只发送本轮命中的知识片段，最多 20 条、10 分钟；AI 草稿仍不自动发送。</p>
           <button type="button" className="od-button" disabled={paused||state.busy}
             onClick={event=>{setError('');guard(()=>host.approveLocalAI({event:event.nativeEvent}));}}>
