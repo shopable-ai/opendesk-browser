@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src https://api.github.com; script-src 'unsafe-inline'; style-src 'unsafe-inline'; object-src 'none'; base-uri 'none'">
+<title>OpenDesk · 正式 React HTML 原始文件获取</title>
+<style>
+:root{font:13px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC",system-ui,sans-serif;--od-bg:#f5f7fb;--od-paper:#fff;--od-ink:#1b2c49;--od-sub:#53647e;--od-line:#e1e8f1;--od-brand:#365eda;color:var(--od-ink);background:var(--od-bg)}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:start center;padding:24px}main{max-width:630px;width:100%;background:var(--od-paper);border:1px solid var(--od-line);border-radius:12px;padding:24px}h1{font-size:19px;margin:0 0 4px}p{color:var(--od-sub);margin:8px 0 16px}button,a.button{display:inline-block;padding:9px 14px;border:1px solid var(--od-brand);border-radius:8px;background:var(--od-brand);color:white;font:inherit;font-weight:600;text-decoration:none;cursor:pointer;margin:0 8px 10px 0}button:disabled{opacity:.45;cursor:not-allowed}button:focus-visible,a:focus-visible{outline:3px solid var(--od-brand);outline-offset:3px}code{overflow-wrap:anywhere}small{color:var(--od-sub)}.meta{padding:12px;background:var(--od-bg);border-radius:8px}.meta div{margin:3px 0}#status{min-height:22px;font-weight:600}#status[data-error]{color:#ae3d4b}
+</style>
+</head>
+<body>
+<main>
+<h1>OpenDesk · 正式 React HTML</h1>
+<p>本工具不是 React 预览，也不是模拟界面。它从 GitHub 仓库读取已固定的 Git blob，核对 SHA-1 和文件字节数后，在你的浏览器本地保存原始完整 HTML，不修改 GitHub 或 Chrome 扩展数据。</p>
+<div class="meta"><div>main 核验提交：<code>73f280a46cdcbef051f9b844a1de34c81fae3a5a</code></div><div>文件：<code>prototypes/sidebar/react-preview/index.html</code></div><div>Git blob：<code>e2796f4d3eb63a5f4e82df2ecd12882f0ce1a48a</code></div><div>预期大小：1,554,675 字节</div></div>
+<p id="status" role="status" aria-live="polite">未获取原始文件。首次使用需要访问公开 GitHub API。</p>
+<button id="fetch" type="button">获取并校验原始 HTML</button>
+<button id="save" type="button" disabled>保存完整 React HTML</button>
+<p><small>下载后双击 HTML 即可离线打开。也可在本地地址末尾添加 <code>?tab=tools&amp;ui=showcase&amp;width=360&amp;theme=light</code> 调整展示入口。<strong>文件本身自包含脚本与 CSS；</strong>真实 Chrome 授权、安装、持久化和主机服务不连接。本工具在没有网络时无法首次获取文件。</small></p>
+</main>
+<script>
+(()=>{
+'use strict';
+const REPO='shopable-ai/opendesk-browser';
+const SHA='e2796f4d3eb63a5f4e82df2ecd12882f0ce1a48a';
+const SIZE=1554675;
+const FETCH_URL=`https://api.github.com/repos/${REPO}/git/blobs/${SHA}`;
+const FILENAME='opendesk-react-preview-73f280a.html';
+let verifiedBytes=null;
+const status=document.getElementById('status');
+const fetchBtn=document.getElementById('fetch');
+const saveBtn=document.getElementById('save');
+const setStatus=(message,error=false)=>{status.textContent=message;if(error)status.setAttribute('data-error','');else status.removeAttribute('data-error');};
+const hex=arr=>[...arr].map(b=>b.toString(16).padStart(2,'0')).join('');
+const gitSha1=async bytes=>{
+ if(!crypto?.subtle)throw Error('当前上下文不支持校验哈希；请使用最新版 Chrome 打开。');
+ const head=new TextEncoder().encode(`blob ${bytes.length}\0`);
+ const all=new Uint8Array(head.length+bytes.length);
+ all.set(head);all.set(bytes,head.length);
+ return hex(new Uint8Array(await crypto.subtle.digest('SHA-1',all)));
+};
+fetchBtn.addEventListener('click',async()=>{
+ fetchBtn.disabled=true;saveBtn.disabled=true;verifiedBytes=null;
+ setStatus('正在向 GitHub 读取固定 blob 并校验…');
+ try{
+  const response=await fetch(FETCH_URL,{headers:{'Accept':'application/vnd.github+json'},cache:'no-store'});
+  if(!response.ok)throw Error(`GitHub HTTP ${response.status}`);
+  const blob=await response.json();
+  if(blob.sha!==SHA||blob.encoding!=='base64'||typeof blob.content!=='string')throw Error('GitHub 返回的对象身份或编码不符合预期。');
+  const binary=atob(blob.content.replace(/\s+/g,''));
+  const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
+  if(bytes.length!==SIZE)throw Error(`字节数不符合预期：${bytes.length}`);
+  const actual=await gitSha1(bytes);
+  if(actual!==SHA)throw Error(`Git blob 校验失败：${actual}`);
+  verifiedBytes=bytes;saveBtn.disabled=false;
+  setStatus(`校验通过：${bytes.length.toLocaleString()} B；SHA-1 ${actual}。可保存真正的离线 React HTML。`);
+ }catch(error){setStatus(`无法完成原始文件获取：${String(error?.message||error)}。文件未被当成已验证产物。`,true)}
+ finally{fetchBtn.disabled=false}
+});
+saveBtn.addEventListener('click',()=>{
+ if(!verifiedBytes)return;
+ const url=URL.createObjectURL(new Blob([verifiedBytes],{type:'text/html;charset=utf-8'}));
+ const anchor=document.createElement('a');anchor.href=url;anchor.download=FILENAME;
+ document.body.append(anchor);anchor.click();anchor.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),60000);
+ setStatus('已发起原始 HTML 保存；请使用浏览器下载列表核实文件。');
+});
+})();
+</script>
+</body>
+</html>
