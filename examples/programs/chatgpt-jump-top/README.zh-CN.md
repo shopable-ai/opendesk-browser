@@ -1,14 +1,15 @@
 # AI 对话滚动导航 · AI Chat Scroll Navigation
 
-## R1.1 当前源码（2026-10-25；未完成正式安装验收）
+## R1.2.1 当前业务源码（2026-10-25；新身份未正式安装验收）
 
 - **独立 Page Program**：代码自带滚动导航；不再要求 Prompt Shortcuts 安装、启用或提供运行时。安装来源仍为 `examples/programs/chatgpt-jump-top/`，避免破坏现有路径引用。
-- **稳定身份**：保留旧 `opendesk.chatgpt-jump-top` Program ID。仓库存在旧正式安装包，但本轮无法核实每台用户设备的 Installed / Authority 或 ID 迁移能力，因此不擅自改成 `opendesk.ai-scroll-navigation`、不转移旧授权、不自动卸载旧程序。npm 项目名称仅用于源码发现，不能代表安装身份。
+- **新 Program 身份（源码）**：`src/main.js` 与 `package.json` 现一致为 `opendesk.ai-scroll-navigation`，项目版本 `0.4.0`。旧 `opendesk.chatgpt-jump-top` 不是同 ID 升级，原 `0.2.0` 正式包仅是历史安装制品。已查阅原 Page 安装合同，跨 ID 没有已证实的授权迁移；必须由用户在「扩展」审阅旧安装并明确停用/卸载，再经独立的网站权限审阅安装新 ID。**任何旧授权都不自动转移，新包仍待同源构建及核验。**
 - **按站点单独适配**：ChatGPT 沿用原长内容识别及共享回复操作组；DeepSeek 只在经过固定路径和操作栏绑定规则的对话中提供长回复操作；Gemini 仅尝试在确定对话滚动容器后提供整段对话顶部/底部导航，**不接管未验证的单条回复工具栏**。未识别结构安全隐藏。
 - **五项行为**：`regionTop`、`regionBottom` 为同一长内容两方向；`conversationTop`、`conversationBottom` 为整段对话；`floatingTop` 与 `conversationTop` 复用一枚顶部浮动按钮，不能创建第二枚。默认无需另加配置开关。
+- **新旧脚本共存防护**：旧冻结包具有 `[data-opendesk-ui-owner][data-od-id="opendesk.chatgpt-jump-top.lifecycle"]` 生命周期宿主，改名后的源码识别它及旧回复导航的活动 ShadowRoot，在存在旧活动导航时**主动退出**；同一新身份的多个代码实例采用活体 DOM owner 仲裁，并在点击时重检。保留旧 `data-opendesk-chatgpt-jump-top` 回复标记供既有 Mind Map 寻址，新 `data-opendesk-ai-scroll-navigation="reply"` 明确标识现代实例。仅承担页面级兼容，不改变旧安装注册/撤权/用户授权。
 - **权限**：Page `pageRules` 仅为 `chatgpt.com`、`chat.deepseek.com`、`gemini.google.com` 三个明确 Origin 的顶层 `USER_SCRIPT`。从旧版新增 Origin 属于扩权，必须走现有 Page Authority 与用户审阅；代码不会替安装器授予权限。
-- **真实交付状态**：本轮只是待验收源码。目录中仍存在历史 `chatgpt-jump-top.opendesk-page.json` **0.2.0 / revision 2 / ChatGPT-only**，不包含本轮 R1.1，不能作为新的多站独立安装完成证据。须用现有 `build:program`、`scripts/build-page-install-package.mjs`、项目校验器生成/验证新的正式包后，再做本机 Chrome 用户审阅、安装、停用、撤权、跨站和 Mind Map 共存的真实验证。未验证项均为 `NOT_TESTED`；整体发布 `BLOCKED`，不可虚构 `MULTI_SITE_VERIFIED`。
-- **扩展中心搜索**：安装条目按已安装包 `title` 等字段检索；新显示标题应通过下一版经验证正式包写入「AI 对话滚动导航」。旧包标题和关键词搜索仍为旧值，未取得新包安装证据前不能宣称搜索已修复。搜索元数据属于 Extension Center 独立 owner。
+- **真实交付状态**：新 ID 只是**已提交的业务源码**；当前环境没有用户 Mac 工作区，也不能运行项目校验器或 Node 单测。目录历史 `chatgpt-jump-top.opendesk-page.json` 仍为 **0.2.0 / revision 2 / ChatGPT-only / 旧 ID**，绝不视作 0.4.0 可安装包。需由原有 `build:program`、`scripts/build-page-install-package.mjs --title "AI 对话滚动导航"` 与完整哈希校验生成**不同的新正式包**，经过原有独立安装确认与三站权限审阅，核验停用、撤权、旧 ID 退出与 Mind Map 共存。新旧安装迁移状态 `MIGRATION_REQUIRED`，上述真实 Chrome 项目一律 `NOT_TESTED`；不得虚构新包 sourceHash、授权转移或 `MULTI_SITE_VERIFIED`。
+- **扩展中心搜索**：新包安装时的正式标题应明确使用「AI 对话滚动导航」。现有已安装 Page 的搜索读取 title、programId 和由 pageRules 映射的网站字符串；**npm description 不会自动成为已安装 Page 的搜索内容**。故在 Extension Center owner 修改投影前，「回顶」「长回复」等别名搜索仍有缺口。本轮不冒险重写另一 owner 的通用扩展列表。
 
 ## 历史：ChatGPT Jump Top 的原始单站证据
 
