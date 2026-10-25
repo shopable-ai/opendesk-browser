@@ -1,4 +1,7 @@
 import test from 'node:test';
+import {readFileSync} from 'node:fs';
+import {verifyManifest,SDK_AUTOMATIC_CONTENT_SCRIPTS,CHATGPT_FIXED_BRIDGE_CONTENT_SCRIPT}
+  from '../../scripts/verify-package.mjs';
 import assert from 'node:assert/strict';
 import {createChatGPTBridgeTriggerLedger,validChatGPTBridgeSource}
   from '../../src/native-agent/chatgpt-bridge-trigger-gate.js';
@@ -203,4 +206,21 @@ test('send transport ambiguity performs no second send or run',async()=>{
   const h=hostHarness({override:{sendThrows:true}});
   await assert.rejects(h.bridge.handle(h.message,h.sender),{code:'E_BRIDGE_SEND_UNKNOWN'});
   assert.equal(h.events.reserve,1);assert.equal(h.events.start,1);assert.equal(h.events.send,1);
+});
+
+test('root manifest retains two independent SDK scripts and one exact isolated ChatGPT bridge',()=>{
+  const manifest=JSON.parse(readFileSync(new URL('../../manifest.json',import.meta.url),'utf8'));
+  assert.equal(SDK_AUTOMATIC_CONTENT_SCRIPTS.length,2);
+  assert.deepEqual(manifest.content_scripts,
+    [CHATGPT_FIXED_BRIDGE_CONTENT_SCRIPT,...SDK_AUTOMATIC_CONTENT_SCRIPTS]);
+  assert.doesNotThrow(()=>verifyManifest(manifest,{source:true}));
+  const badPath=structuredClone(manifest);
+  badPath.content_scripts[0].js=['agents/page-relay.js'];
+  assert.throws(()=>verifyManifest(badPath,{source:true}),/Only the origin-limited/);
+  const badScope=structuredClone(manifest);
+  badScope.content_scripts[0].matches=['<all_urls>'];
+  assert.throws(()=>verifyManifest(badScope,{source:true}),/Only the origin-limited/);
+  const badWorld=structuredClone(manifest);
+  badWorld.content_scripts[0].world='MAIN';
+  assert.throws(()=>verifyManifest(badWorld,{source:true}),/Only the origin-limited/);
 });

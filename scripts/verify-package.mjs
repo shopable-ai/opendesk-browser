@@ -57,6 +57,12 @@ export const MANAGED_SITE_BLOCK_RESOURCES=Object.freeze([
 export const APPROVED_WEB_ACCESSIBLE_RESOURCES=Object.freeze([...SDK_MAIN_WAR,
   {resources:[...FOCUS_BLOCK_RESOURCES],matches:['http://*/*','https://*/*']},
   {resources:[...MANAGED_SITE_BLOCK_RESOURCES],matches:['http://*/*','https://*/*']}]);
+// Third fixed document script, pinned to the official ChatGPT origin and
+// isolated world; the SDK's existing TWO scripts and distinct worlds stay intact.
+export const CHATGPT_FIXED_BRIDGE_CONTENT_SCRIPT=Object.freeze({
+  matches:['https://chatgpt.com/*'],js:['agents/chatgpt-fixed-bridge.js'],
+  run_at:'document_idle',all_frames:false,world:'ISOLATED'
+});
 export const SDK_AUTOMATIC_CONTENT_SCRIPTS = Object.freeze([
   {matches:['http://*/*','https://*/*'],js:['agents/page-relay.js'],run_at:'document_start',all_frames:true,world:'ISOLATED'},
   {matches:['http://*/*','https://*/*'],js:['framework/sdk-main.js'],run_at:'document_start',all_frames:true,world:'MAIN'}
@@ -215,8 +221,8 @@ export function verifyManifest(manifest,{mode='production',source=false,edition=
   if (!same(manifest.options_ui, {page:'native-agent/settings.html',open_in_tab:true})) throw new Error('Unexpected Native Agent settings exposure');
   if (manifest.incognito !== 'not_allowed') throw new Error('Unexpected incognito policy');
   if (!same(manifest.web_accessible_resources, APPROVED_WEB_ACCESSIBLE_RESOURCES)) throw new Error('Unexpected web accessible resources');
-  if (!same(manifest.content_scripts, SDK_AUTOMATIC_CONTENT_SCRIPTS))
-    throw new Error('SDK auto-install must use the two approved fixed scripts and distinct worlds');
+  if (!same(manifest.content_scripts, [CHATGPT_FIXED_BRIDGE_CONTENT_SCRIPT, ...SDK_AUTOMATIC_CONTENT_SCRIPTS]))
+    throw new Error('Only the origin-limited isolated ChatGPT Bridge and the two unchanged SDK fixed scripts may auto-install');
   if (manifest.optional_host_permissions)
     throw new Error('Unapproved optional host or page exposure');
   const external=source?undefined:marketExternalConnectable(channel);
