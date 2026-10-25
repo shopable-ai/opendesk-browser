@@ -27,6 +27,8 @@ import {requestedToolId,requestedPreviewId,canonicalToolHostUrl} from './sidebar
 import {subscribePreviewSession} from './sidebar-tools/live-preview.js';
 import {createToolDevelopmentControls} from './sidebar-tools/development-controls.js';
 import {createNativeAgentHostAdapter} from '../native-agent/host-adapter.js';
+import {createChatGPTFixedBridgeHost} from '../native-agent/chatgpt-fixed-bridge-host.js';
+import {CHATGPT_BRIDGE_PROTOCOL} from '../native-agent/chatgpt-bridge-trigger-gate.js';
 import {SIDEPANEL_DOCUMENT_PATH} from '../tool-document-url.js';
 import {isToolSender} from '../environment.js';
 
@@ -134,6 +136,22 @@ const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEd
   onTabSelected:(view,options)=>tabMemory.record(view,options),
   reactNavigation,myView,developerView});
 extensionList.renderNavigation(pendingReactTab);
+// R1.2 is one business adapter on the existing trusted Client and exact RunHost.
+// Only the positively verified Side Panel in the source tab's window responds.
+const fixedPageChatBridge=createChatGPTFixedBridgeHost({api:chrome,client:foundationClient,
+  host:scriptEditor.host,currentPageTarget,
+  isVerifiedSidePanel:()=>verifiedSidePanel&&!shellClosed});
+const fixedPageChatBridgeListener=(message,sender,sendResponse)=>{
+  if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||message.kind!=='execute'||
+    !verifiedSidePanel||shellClosed||
+    sender?.tab?.windowId!==currentPageTarget.snapshot?.windowId)return false;
+  Promise.resolve().then(()=>fixedPageChatBridge.handle(message,sender)).then(
+    data=>sendResponse({ok:true,data}),
+    error=>sendResponse({ok:false,error:{code:error?.code||'E_BRIDGE_FAILURE',
+      message:error?.message||'受信任务调用未能完成，未知结果不会重放'}}));
+  return true;
+};
+chrome.runtime.onMessage.addListener(fixedPageChatBridgeListener);
 // Installed extensions retain their existing sandbox and SDK Hosts.
 let workflowView=null,promptConversation=null,bookmarkDisplayCache=null;
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench,foundationClient,localeController,toolLocaleService,view:toolView,
@@ -432,6 +450,7 @@ listen(window, 'pagehide', () => {
   livePreview?.dispose();
   toolDevelopmentControls?.dispose();
   disposeDevelopment?.();
+  chrome.runtime.onMessage.removeListener(fixedPageChatBridgeListener);
   chrome.runtime.onMessage.removeListener(draftImportListener);draftImportAttached=false;sidebarSurface=false;
   chrome.storage.onChanged.removeListener(onMenuLaunchChanged);
   delete myView.actions.catalogOpenSidebarClick;

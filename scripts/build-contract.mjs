@@ -25,6 +25,7 @@ export const PACKAGE_ENTRIES = Object.freeze({
   'agents/bootstrap': './src/agents/bootstrap.js',
   'agents/page-agent': './src/agents/page-agent.js',
   'agents/page-relay': './src/agents/page-relay.js',
+  'agents/chatgpt-fixed-bridge': './src/entrypoints/chatgpt-fixed-bridge.js',
   'framework/sdk-main': './src/framework/sdk/entry.js',
   'scripting/packaged/page-session': './src/scripting/packaged/page-session.js',
   'scripting/sandbox/sandbox': './src/scripting/sandbox/sandbox.js',
