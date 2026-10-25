@@ -19,9 +19,24 @@ export function createTrustedKnowledgeHost({conversation,readLibrary,assertIdent
     if(args?.etag&&(!prepared||prepared.etag!==args.etag||prepared.revision!==revision))
       throw error('E_KB_STALE','知识或授权已变化，请重新准备');
   },readLibrary:async()=>{const value=await readLibrary();read=value;return value;}});
+  const autoConsumer=createKnowledgeAnswerConsumer({model,conversation,
+    assertIdentity:args=>{
+      live();
+      if(args?.etag&&test?.approvalContext()?.etag!==args.etag)
+        throw error('E_KB_STALE','自动 AI 会话已失效或知识版本变化');
+    },
+    readLibrary:async()=>readLibrary()
+  });
   const test=api&&currentPageTarget?createLocalKnowledgeTestRuntime({
     api,currentPageTarget,model,readLibrary,
     assertLive:live,getProviderGeneration:()=>conversation.providerGeneration(),
+    callAI:async({question,scope,approvedKnowledgeTest,expectedEtag})=>{
+      const preparedAI=await autoConsumer.refresh();
+      if(preparedAI.etag!==expectedEtag)
+        throw error('E_KB_STALE','批准时的知识版本已经变化');
+      return autoConsumer.request({request:question,scope,approvedKnowledgeTest});
+    },
+    onStopAI:()=>{autoConsumer.invalidate();conversation.revokeKnowledgeTest();},
     onChange:next=>publish({test:next})
   }):null;
   if(test)publish({test:test.snapshot()});
@@ -65,6 +80,17 @@ export function createTrustedKnowledgeHost({conversation,readLibrary,assertIdent
       if(!test)throw error('E_KB_DEMO_HOST','当前没有本地测试文档适配');
       return test.start({event,autoSendFixed});
     },
+    approveLocalAI({event}={}){
+      if(!test)throw error('E_KB_DEMO_HOST','当前没有本地测试文档适配');
+      live();
+      const context=test.approvalContext();
+      // The Provider permission prompt starts synchronously in the real click.
+      const pending=conversation.beginKnowledgeTestApproval({event,...context});
+      return Promise.resolve(pending).then(grant=>{
+        live();test.approveAI(grant);
+        return {approved:true,recipient:conversation.recipient()};
+      });
+    },
     pauseLocalTest:()=>test?.pause(),resumeLocalTest:()=>test?.resume(),
     stopLocalTest:()=>test?.stop('用户停止本地测试'),
     sendToLocalPage:input=>{
@@ -102,7 +128,7 @@ export function createTrustedKnowledgeHost({conversation,readLibrary,assertIdent
       publish({prepared:null,result:null,error:'本轮已取消，迟到回答不会显示'});
       return consumer.cancel();},
     dispose(){if(disposed)return;disposed=true;revision++;round?.abort();
-      test?.dispose();consumer.dispose();conversation.dispose();
+      test?.dispose();autoConsumer.dispose();consumer.dispose();conversation.dispose();
       for(const unsubscribe of subscriptions)unsubscribe?.();listeners.clear();}
   });
 }
