@@ -59,9 +59,12 @@ export function createLocalKnowledgeTestRuntime({
      update(s,id,{status:'CONFIRMED',replyMessageId:receipt.messageId,message:'网页 DOM 已独立读回确认'});
      return receipt;
    }catch(error){
-     // Whether the click happened can be unknown, including a navigation immediately
-     // after the click. Keep a terminal outcome: NEVER automatically resend.
-     if(active(s))update(s,id,{status:'UNKNOWN',message:error?.code||'网页发送结果未知'});
+     // A preflight DOM rejection is known not to have clicked Send; transport or
+     // missing receipts remain UNKNOWN. Neither case ever retries automatically.
+     const notClicked=['E_KB_DEMO_DRAFT_BUSY','E_KB_DEMO_STALE','E_KB_DEMO_INPUT',
+       'E_KB_DEMO_SCOPE','E_KB_DEMO_DUPLICATE'].includes(error?.code);
+     if(active(s))update(s,id,{status:notClicked?'ERROR':'UNKNOWN',
+       message:(notClicked?'发送前被页面拒绝：':'网页发送结果未知：')+(error?.code||'unknown')});
      throw error;
    }
  }
@@ -151,10 +154,11 @@ export function createLocalKnowledgeTestRuntime({
    if(old?.timer)clearInterval(old.timer);
    onStopAI();
    void adapter.stop();
-   publish({mode:'idle',autoAI:false,message,
-     records:snapshot.records.map(row=>['RETRIEVING','GENERATING_AI','SENDING'].includes(row.status)
+   const records=snapshot.records.map(row=>['RETRIEVING','GENERATING_AI','SENDING'].includes(row.status)
        ?Object.freeze({...row,status:row.status==='SENDING'?'UNKNOWN':'STALE',message:'测试已停止，无法确认后续执行结果'})
-       :row)});
+       :row);
+   publish({mode:'idle',autoAI:false,message,records,
+     errors:records.filter(row=>['ERROR','UNKNOWN','STALE'].includes(row.status)).length});
  }
  return Object.freeze({
    snapshot:()=>snapshot,
@@ -162,10 +166,13 @@ export function createLocalKnowledgeTestRuntime({
      if(!event?.isTrusted)throw fail('E_USER_GESTURE','必须在可信侧栏点击批准本地测试');
      if(session)throw fail('E_KB_TEST_RUNNING','已经在监听该测试页');
      assertLive();
+     const ticket=serial;
      publish({mode:'connecting',message:'正在核对当前窗口和测试页文档…'});
      try{
        const initial=await adapter.start();assertLive();
+       if(ticket!==serial)throw fail('E_KB_TEST_STOPPED','测试在准备阶段已被停止');
        const read=await readLibrary();assertLive();
+       if(ticket!==serial)throw fail('E_KB_TEST_STOPPED','测试在知识读取阶段已被停止');
        const library=model.library(read.value??model.empty());
        const s={serial:++serial,threadId:initial.threadId,autoSendFixed:Boolean(autoSendFixed),
          etag:read.etag,approvedAI:null,
