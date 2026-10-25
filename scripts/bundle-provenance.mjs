@@ -90,6 +90,33 @@ function reviewedCompiledBookmarkReact(target,path,root){
   return hash;
 }
 
+// Reviewed fixed Knowledge workspace dependency chain. Only the existing
+// tool-shell may compile these exact repository bytes; package/installed files
+// and other fixed outputs gain no admission. Runtime official-package,
+// installation epoch, consent and exact local-document checks remain separate.
+// R1.5 review: adapter generations fence retired async document callbacks;
+// pre-dispatch errors become visible without replaying unknown sends.
+const compiledKnowledgeInputs=Object.freeze({
+  'examples/sidebar-tools/ai-knowledge-answers/src/model.js':'752b91ea8d98f7da10e9d8902e3629bef69df58c',
+  'examples/sidebar-tools/ai-knowledge-answers/trusted/host.js':'d01c666821b35ebbbdc113e8c805b106d3db9ba7',
+  'examples/sidebar-tools/ai-knowledge-answers/trusted/ai-request.js':'e7adb932efbcf9e2b8a7961804ef1e486fd5c854',
+  'examples/sidebar-tools/ai-knowledge-answers/trusted/local-test-runtime.js':'73870713cfead3a19c022c30bd274b4a3ee251b9',
+  'examples/sidebar-tools/ai-knowledge-answers/trusted/local-test-adapter.js':'fd56f20148aefe75cc2cc91187a831db0dbadcc1',
+  'examples/sidebar-tools/ai-knowledge-answers/trusted/Workspace.jsx':'602b3938a4e68ae164bfd259efab233c17f27a45',
+  'examples/sidebar-tools/ai-knowledge-answers/trusted/workspace.css':'5ce11eba0a8ad784478c2e3820d9d9771d934f5f'
+});
+function reviewedCompiledKnowledge(target,path,root){
+  if(target!=='ui/tool-shell.js'||!Object.hasOwn(compiledKnowledgeInputs,path))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)
+    throw Error('Trusted Knowledge source must not be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledKnowledgeInputs[path])
+    throw Error('Trusted Knowledge source changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
+
 // The same reviewed CSS source now travels in the existing fixed stylesheet.
 // Compile comments/whitespace only; do not change selectors or scan exceptions.
 export function trustedBookmarkStyle(root=process.cwd()){
@@ -359,6 +386,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
       reviewedCompiledAdblock(chunk.fileName,path,root)||
       reviewedCompiledPromptShortcuts(chunk.fileName,path,root)||
       reviewedCompiledBookmarkReact(chunk.fileName,path,root)||
+      reviewedCompiledKnowledge(chunk.fileName,path,root)||
       reviewedCompiledStayFocus(chunk.fileName,path,root)||
       reviewedCompiledAppOwnedBackground(chunk.fileName,path,root)||
       reviewedCompiledSharedMarkdown(chunk.fileName,path,root)||
