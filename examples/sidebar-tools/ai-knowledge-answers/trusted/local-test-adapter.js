@@ -114,9 +114,15 @@ export function createLocalKnowledgeDemoAdapter({api,currentPageTarget}={}){
       return {status:'CONFIRMED',messageId:receipt.messageId,threadId,replyTo:messageId};
     },
     async stop(){
-      if(!captured)return;
-      try{await invoke('detach');}catch{/* Navigation or revocation invalidates cleanup. */}
-      captured=null;
+      const owned=captured;captured=null;
+      if(!owned)return;
+      try{
+        // Cleanup is scoped to the retired exact document, never a replacement tab.
+        await api.scripting.executeScript({
+          target:{tabId:owned.tabId,documentIds:[owned.documentId]},
+          world:'ISOLATED',func:localKnowledgeDemoDOM,args:[{operation:'detach'}]
+        });
+      }catch{/* Navigation or revocation already removed the old fixture document. */}
     },
     drop(){captured=null;},
     get target(){return captured?{url:captured.url,documentId:captured.documentId}:null;}
