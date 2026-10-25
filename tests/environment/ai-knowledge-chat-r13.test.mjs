@@ -200,7 +200,7 @@ test('R1.3 unknown send outcome is terminal, cannot be called again without new 
 test('R1.3 real local page must not hide an AI implementation',()=>{
  const page=readFileSync(new URL('../../examples/tasks/ai-knowledge-chat-demo.js',import.meta.url),'utf8');
  assert.match(page,/MutationObserver/);
- assert.match(page,/data\.messageId/);
+ assert.match(page,/\.dataset\.messageId\s*=/);
  assert.match(page,/setInterval\(tick/);
  assert.match(page,/button\.addEventListener/);
  assert.doesNotMatch(page,/OpenDeskKnowledgeAnswersModel|createBusinessConversation|requestStructured/);
@@ -232,4 +232,141 @@ test('R1.3 send fence: two rapid confirmations cannot click the same reply twice
    for(const unblock of deferred)unblock({value:library,etag});
    rt.dispose();
  }
+});
+
+for(const resumeBeforeRead of [false,true]){
+ test(`R1.3 pause: pending fixed confirmation cannot send after pause${resumeBeforeRead?' and immediate resume':''}`,async()=>{
+  const {api,target,site}=lab();
+  let releaseRead,holdReads=false,pending;
+  const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+    readLibrary:()=>holdReads?new Promise(resolve=>{releaseRead=resolve;}):{value:library,etag},
+    assertLive:()=>{}});
+  const inbound=customer('几天内可以退款');
+  try{
+    await rt.start({event:{isTrusted:true}});
+    site.messages.push(inbound);
+    await until(()=>rt.snapshot().records[0]?.status==='ANSWERED_FIXED','pausable fixed answer');
+    holdReads=true;
+    pending=rt.confirm({event:{isTrusted:true},messageId:inbound.messageId});
+    const rejected=assert.rejects(pending,{code:'E_KB_TEST_PAUSED'});
+    assert.equal(typeof releaseRead,'function');
+    assert.equal(site.sendCalls,0);
+    rt.pause();
+    if(resumeBeforeRead)rt.resume();
+    holdReads=false;releaseRead({value:library,etag});
+    await rejected;
+    assert.equal(site.sendCalls,0,'pausing retires the old confirmation even after resume');
+    assert.equal(rt.snapshot().records[0].status,'ANSWERED_FIXED');
+    rt.resume();
+    const receipt=await rt.confirm({event:{isTrusted:true},messageId:inbound.messageId});
+    assert.equal(receipt.status,'CONFIRMED','a fresh trusted click can send after resume');
+    assert.equal(site.sendCalls,1,'only the fresh confirmation sends');
+  }finally{
+    holdReads=false;releaseRead?.({value:library,etag});
+    await pending?.catch(()=>{});rt.dispose();
+  }
+ });
+}
+
+test('R1.3 pause: automatic AI permission is revoked while fixed permission stays independent',async()=>{
+ const {api,target,site}=lab();
+ let aiCalls=0,stoppedAI=0;
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary:async()=>({value:library,etag}),assertLive:()=>{},
+   onStopAI:()=>{stoppedAI++;},getProviderGeneration:()=>4,
+   callAI:async()=>{aiCalls++;return {status:'REVIEW_REQUIRED',answer:'退款到账时长需要人工核查。',
+     sourceIds:['qa_demo_refund']};}});
+ try{
+   await rt.start({event:{isTrusted:true},autoSendFixed:true});
+   rt.approveAI({...rt.approvalContext(),providerGeneration:4,expiresAt:Date.now()+120000});
+   rt.pause();
+   assert.equal(rt.snapshot().autoAI,false,'pause clears the automatic AI permission shown to the user');
+   assert.equal(stoppedAI,1,'pause invokes existing consumer cancellation and grant revocation');
+   assert.equal(rt.snapshot().autoSendFixed,true,'fixed reply consent is a separate permission');
+   rt.resume();
+   site.messages.push(customer('退款需要几天'));
+   await until(()=>['RETRIEVED_ONLY','REVIEW_REQUIRED'].includes(rt.snapshot().records[0]?.status),
+     'post-resume non-exact question');
+   assert.equal(aiCalls,0,'resume must not reuse the old automatic AI grant');
+   assert.equal(rt.snapshot().records[0].status,'RETRIEVED_ONLY');
+   rt.approveAI({...rt.approvalContext(),providerGeneration:4,expiresAt:Date.now()+120000});
+   site.messages.push(customer('退款需要几天','','kb_msg_00000000-0000-4000-a000-000000000003'));
+   await until(()=>rt.snapshot().records[1]?.status==='REVIEW_REQUIRED','newly approved AI draft');
+   assert.equal(aiCalls,1);assert.equal(site.sendCalls,0,'new AI drafts still require human review');
+ }finally{rt.dispose();}
+});
+
+test('R1.3 pause: delayed retrieval cannot start AI using a new post-resume grant',async()=>{
+ const {api,target,site}=lab();
+ let releaseRead,holdReads=false,aiCalls=0;
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary:()=>holdReads?new Promise(resolve=>{releaseRead=resolve;}):{value:library,etag},
+   assertLive:()=>{},callAI:async()=>{aiCalls++;return {status:'REVIEW_REQUIRED',
+     answer:'退款到账时长需要人工核查。',sourceIds:['qa_demo_refund']};}});
+ try{
+   await rt.start({event:{isTrusted:true}});
+   rt.approveAI({...rt.approvalContext(),expiresAt:Date.now()+120000});
+   holdReads=true;site.messages.push(customer('退款需要几天'));
+   await until(()=>typeof releaseRead==='function','pending inbound knowledge read');
+   rt.pause();rt.resume();
+   rt.approveAI({...rt.approvalContext(),expiresAt:Date.now()+120000});
+   holdReads=false;releaseRead({value:library,etag});
+   await wait(80);
+   assert.equal(aiCalls,0,'a resumed grant does not revive pre-pause analysis');
+   assert.equal(rt.snapshot().records[0].status,'STALE');
+   assert.equal(site.sendCalls,0);
+ }finally{holdReads=false;releaseRead?.({value:library,etag});rt.dispose();}
+});
+
+test('R1.3 pause: an in-flight AI response is discarded after pause and resume',async()=>{
+ const {api,target,site}=lab();
+ let releaseAI;
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary:async()=>({value:library,etag}),assertLive:()=>{},
+   callAI:()=>new Promise(resolve=>{releaseAI=resolve;})});
+ try{
+   await rt.start({event:{isTrusted:true}});
+   rt.approveAI({...rt.approvalContext(),expiresAt:Date.now()+120000});
+   site.messages.push(customer('退款需要几天'));
+   await until(()=>typeof releaseAI==='function','in-flight AI request');
+   rt.pause();rt.resume();
+   releaseAI({status:'REVIEW_REQUIRED',answer:'退款到账时长需要人工核查。',sourceIds:['qa_demo_refund']});
+   await wait(80);
+   assert.equal(rt.snapshot().records[0].status,'STALE','a retired AI request cannot deliver a late draft');
+   assert.equal(rt.snapshot().records[0].answer,'');
+   assert.equal(site.sendCalls,0);
+ }finally{releaseAI?.({status:'INVALID_AI'});rt.dispose();}
+});
+
+test('R1.3 pause: a send already started still confirms its independent receipt',async()=>{
+ const {api,target,site}=lab();
+ const execute=api.scripting.executeScript;
+ let releaseReceipt,pending;
+ api.scripting.executeScript=async options=>{
+   const result=await execute(options);
+   if(options.args[0].operation==='send')
+     await new Promise(resolve=>{releaseReceipt=resolve;});
+   return result;
+ };
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary:async()=>({value:library,etag}),assertLive:()=>{}});
+ const inbound=customer('几天内可以退款');
+ try{
+   await rt.start({event:{isTrusted:true}});
+   site.messages.push(inbound);
+   await until(()=>rt.snapshot().records[0]?.status==='ANSWERED_FIXED','fixed answer before send');
+   pending=rt.confirm({event:{isTrusted:true},messageId:inbound.messageId});
+   await until(()=>typeof releaseReceipt==='function','send started before pause');
+   rt.pause();
+   assert.equal(site.sendCalls,1);assert.equal(rt.snapshot().records[0].status,'SENDING');
+   releaseReceipt();
+   const receipt=await pending;
+   assert.equal(receipt.status,'CONFIRMED');
+   assert.equal(rt.snapshot().records[0].status,'CONFIRMED');
+   assert.equal(rt.snapshot().mode,'paused');
+   assert.equal(site.sendCalls,1);
+   rt.resume();
+   await assert.rejects(rt.confirm({event:{isTrusted:true},messageId:inbound.messageId}),
+     {code:'E_KB_TEST_NO_ANSWER'});
+ }finally{releaseReceipt?.();await pending?.catch(()=>{});rt.dispose();}
 });

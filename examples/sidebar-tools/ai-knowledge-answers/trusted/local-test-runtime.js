@@ -22,6 +22,7 @@ export function createLocalKnowledgeTestRuntime({
    onChange?.(snapshot);
  };
  const active=s=>session===s&&serial===s.serial&&Date.now()<=s.expiresAt;
+ const running=(s,epoch)=>active(s)&&!s.paused&&s.pauseEpoch===epoch;
  function update(s,id,patch){
    if(!active(s))return;
    const records=snapshot.records.map(row=>row.messageId===id?Object.freeze({...row,...patch}):row);
@@ -30,6 +31,8 @@ export function createLocalKnowledgeTestRuntime({
  }
  async function send(s,id,{reviewApproved=false}={}){
    if(!active(s))throw fail('E_KB_TEST_STOPPED','测试会话已失效');
+   const epoch=s.pauseEpoch;
+   if(s.paused)throw fail('E_KB_TEST_PAUSED','监听已暂停');
    assertLive();
    if(s.sending.has(id))throw fail('E_KB_TEST_SEND_BUSY','该客户消息正在发送或核对，请勿重复确认');
    const record=snapshot.records.find(x=>x.messageId===id);
@@ -43,6 +46,7 @@ export function createLocalKnowledgeTestRuntime({
    try{
      const read=await readLibrary();assertLive();
      if(!active(s))throw fail('E_KB_TEST_STOPPED','测试会话已停止');
+     if(!running(s,epoch))throw fail('E_KB_TEST_PAUSED','暂停前的发送已取消，请恢复后重新确认');
      if(read.etag!==record.etag)throw fail('E_KB_STALE','知识版本已更新，旧答案不得发送');
      const library=model.library(read.value??model.empty());
      const sourceIds=record.sourceIds||[];
@@ -73,16 +77,17 @@ export function createLocalKnowledgeTestRuntime({
    }finally{s.sending.delete(id);}
  }
  async function analyze(s,message){
-   if(!active(s))return;
+   const epoch=s.pauseEpoch;
+   if(!running(s,epoch))return;
    update(s,message.messageId,{status:'RETRIEVING',message:'正在读取可信知识'});
    try{
      assertLive();
      const read=await readLibrary();assertLive();
-     if(!active(s))return;
+     if(!running(s,epoch))return;
      const library=model.library(read.value??model.empty());
      if(read.etag!==s.etag){stop('本轮知识版本已变化，需重新批准');return;}
      const result=model.lookup(library,{question:message.text,scope:message.scope});
-     if(!active(s))return;
+     if(!running(s,epoch))return;
      update(s,message.messageId,{
        status:result.status,sourceIds:result.sourceIds.slice(),answer:result.answer||'',
        etag:read.etag,providerGeneration:null,
@@ -90,14 +95,14 @@ export function createLocalKnowledgeTestRuntime({
          result.status==='RETRIEVED_ONLY'?'已有候选来源，需可信点击调用 AI 并人工审核':
          '没有确定依据，禁止发送'
      });
-     if(result.status==='RETRIEVED_ONLY'&&s.approvedAI&&typeof callAI==='function'&&!s.paused){
+     if(result.status==='RETRIEVED_ONLY'&&s.approvedAI&&typeof callAI==='function'&&running(s,epoch)){
        update(s,message.messageId,{status:'GENERATING_AI',message:'正在使用已批准的共享 AI 生成草稿'});
        try{
          const ai=await callAI({question:message.text,scope:message.scope,
            approvedKnowledgeTest:s.approvedAI,expectedEtag:s.etag});
-         if(!active(s))return;
+         if(!running(s,epoch))return;
          const check=await readLibrary();assertLive();
-         if(!active(s))return;
+         if(!running(s,epoch))return;
          if(check.etag!==s.etag)throw fail('E_KB_STALE','知识版本在 AI 处理期间变化');
          if(ai?.status==='REVIEW_REQUIRED'&&ai.answer&&ai.sourceIds?.length){
            update(s,message.messageId,{status:'REVIEW_REQUIRED',answer:ai.answer,
@@ -106,15 +111,15 @@ export function createLocalKnowledgeTestRuntime({
          }else update(s,message.messageId,{status:ai?.status||'INVALID_AI',answer:'',
            message:'AI 草稿未通过来源校验，禁止发送'});
        }catch(error){
-         if(active(s))update(s,message.messageId,{status:'ERROR',answer:'',
+         if(running(s,epoch))update(s,message.messageId,{status:'ERROR',answer:'',
            message:'AI 请求失败：'+String(error?.code||error?.message||error)});
        }
      }
-     if(result.status==='ANSWERED_FIXED'&&s.autoSendFixed&&!s.paused&&active(s)){
+     if(result.status==='ANSWERED_FIXED'&&s.autoSendFixed&&running(s,epoch)){
        try{await send(s,message.messageId);}catch{/* Terminal UNKNOWN/STALE, no retry. */}
      }
    }catch(error){
-     if(active(s))update(s,message.messageId,{status:'ERROR',message:String(error?.code||error?.message||error)});
+     if(running(s,epoch))update(s,message.messageId,{status:'ERROR',message:String(error?.code||error?.message||error)});
    }
  }
  async function drain(s){
@@ -129,11 +134,12 @@ export function createLocalKnowledgeTestRuntime({
  }
  async function poll(s){
    if(!active(s)||s.paused||s.polling)return;
+   const epoch=s.pauseEpoch;
    s.polling=true;
    try{
      assertLive();
      const page=await adapter.read();
-     if(!active(s))return;
+     if(!running(s,epoch))return;
      if(page.threadId!==s.threadId){
        stop('网站已切换会话；本轮测试停止，旧回复不得发送');return;
      }
@@ -150,7 +156,7 @@ export function createLocalKnowledgeTestRuntime({
      }
      void drain(s);
    }catch(error){
-     stop('监听中止：'+String(error?.code||error?.message||error));
+     if(running(s,epoch))stop('监听中止：'+String(error?.code||error?.message||error));
    }finally{s.polling=false;}
  }
  function stop(message='已停止'){
@@ -184,7 +190,7 @@ export function createLocalKnowledgeTestRuntime({
          expiresAt:Date.now()+DURATION_MS,
          seen:new Set(initial.messages.filter(x=>x.direction==='customer').map(x=>x.messageId)),
          sending:new Set(),
-         queue:[],paused:false,polling:false,draining:false,timer:null};
+         queue:[],paused:false,pauseEpoch:0,polling:false,draining:false,timer:null};
        session=s;
        publish({mode:'running',autoSendFixed:s.autoSendFixed,threadId:s.threadId,target:initial.target,
          records:[],observed:0,confirmed:0,errors:0,autoAI:false,
@@ -201,8 +207,15 @@ export function createLocalKnowledgeTestRuntime({
      }
    },
    pause(){
-     if(!session)return;
-     session.paused=true;publish({mode:'paused',message:'已暂停观察新消息和未开始的发送'});
+     const s=session;if(!s||s.paused)return;
+     s.paused=true;s.pauseEpoch++;s.approvedAI=null;
+     const records=snapshot.records.map(row=>['RETRIEVING','GENERATING_AI'].includes(row.status)
+       ?Object.freeze({...row,status:'STALE',answer:'',message:'已暂停，未完成的处理已失效'})
+       :row);
+     publish({mode:'paused',autoAI:false,records,
+       errors:records.filter(row=>['ERROR','UNKNOWN','STALE'].includes(row.status)).length,
+       message:'已暂停观察和未开始的发送；自动 AI 需重新批准'});
+     onStopAI();
    },
    resume(){
      if(!session||!session.paused)return;
