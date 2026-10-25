@@ -6,10 +6,13 @@ import {registerDefaultPreinstall,resumeDefaultPreinstall,DEFAULT_PREINSTALL_STO
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,TOOL_REVOCATION_EPOCHS_STORE,
   recordToolUninstall} from '../../src/ui/sidebar-tools/installation.js';
-import {READING_TOC_SITE_STORE} from '../../src/reading-toc/policy.js';
-import {CLIP_SITE_STORE} from '../../src/page-clip/policy.js';
+import {READING_TOC_SITE_STORE} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
+import {CLIP_SITE_STORE} from '../../examples/sidebar-tools/web-markdown-clipper/trusted/policy.js';
 import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
 import {officialFixtures,officialFixtureFetch} from '../helpers/official-tools.mjs';
+import {OFFICIAL_READING_TOC_RELEASE,matchesOfficialReadingToc}
+  from '../../src/sidebar-tools/official-reading-toc.js';
+import {sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 
 function browser(initial=[]){
   const storage=new Map(initial);
@@ -52,6 +55,10 @@ test('R4.8 trusted catalog policy is the only default selection; metadata-only b
   assert.equal(result.state,'complete');
   assert.deepEqual(f.storage.get(SIDEBAR_TOOL_STORE).map(a=>a.id),['reading-toc','quick-notes','cookie-editor']);
   assert.deepEqual(Object.keys(f.storage.get(MARKET_PROVENANCE_STORE)).sort(),['cookie-editor','quick-notes','reading-toc']);
+  const toc=f.storage.get(SIDEBAR_TOOL_STORE).find(tool=>tool.id==='reading-toc');
+  assert.equal(toc.version,OFFICIAL_READING_TOC_RELEASE.version);
+  assert.equal(matchesOfficialReadingToc(toc,f.storage.get(MARKET_PROVENANCE_STORE),
+    await sidebarToolPackageHash(toc)),true,'fresh preinstall must satisfy the current official identity gate');
   for(const key of [READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE])
     assert.equal(f.storage.has(key),false,'preinstall never grants a website');
   assert.equal(globalThis.__officialToolMustNotRun,undefined);
@@ -67,6 +74,26 @@ test('R4.8 old profile, existing choices and update events never trigger automat
   assert.equal((await registerDefaultPreinstall({...f.options,reason:'install'})).state,'skipped-existing');
   assert.deepEqual(f.storage.get(SIDEBAR_TOOL_STORE),[]);
   assert.equal((await resumeDefaultPreinstall(f.options)).state,'skipped-existing');
+});
+test('R4.8 a newer bundled Reading TOC never silently replaces an existing 1.0.9 installation',async()=>{
+  const fixtures=await officialFixtures();
+  // Existing user state is preserved regardless of whether first-install intent
+  // was registered before the package appeared (for example, another host).
+  const existing={...JSON.parse(fixtures.resources.get('official-tools/reading-toc/reading-toc.opendesk-tool.json')),
+    version:'1.0.9'};
+  const provenance={'reading-toc':{marketId:'opendesk/reading-toc',version:'1.0.9',
+    sha256:await sidebarToolPackageHash(existing)}};
+  for(const pending of [false,true]){
+    const f=browser();
+    if(pending)await registerDefaultPreinstall({...f.options,reason:'install'});
+    f.storage.set(SIDEBAR_TOOL_STORE,[existing]);
+    f.storage.set(MARKET_PROVENANCE_STORE,provenance);
+    assert.equal((await registerDefaultPreinstall({...f.options,reason:'update'})).state,'not-new-install');
+    if(!pending)assert.equal((await registerDefaultPreinstall({...f.options,reason:'install'})).state,'skipped-existing');
+    await resumeDefaultPreinstall(f.options);
+    assert.deepEqual(f.storage.get(SIDEBAR_TOOL_STORE).find(tool=>tool.id==='reading-toc'),existing);
+    assert.deepEqual(f.storage.get(MARKET_PROVENANCE_STORE)['reading-toc'],provenance['reading-toc']);
+  }
 });
 test('R4.8 concurrent install event and first boot commit each exact package only once',async()=>{
   const f=browser();

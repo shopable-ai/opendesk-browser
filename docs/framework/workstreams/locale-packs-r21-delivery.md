@@ -1,6 +1,6 @@
 # OpenDesk 多语言 R2.1 交付与验收记录
 
-2026-10-25；工作目录 `/Users/shopme/Documents/workspace/opendesk-browser`；仅 main。核心源码、正式 Reading TOC JSON 和日语语言包已交付；真实使用场景尚未完成。用户本次纠偏：以实际产品操作及结果为完成标准，代码测试仅作辅助；本轮不以 production 构建、完整验收矩阵或 95 分为前置条件。
+2026-10-25；工作目录 `/Users/shopme/Documents/workspace/opendesk-browser`；仅 main。核心源码、正式 Reading TOC JSON 和日语语言包已交付；本轮八项真实核心场景全部 PASS，包括实际退出 Chrome、同一隔离 Profile 重启后日语包、语言选择及目录定位保留。用户本次纠偏：以实际产品操作及结果为完成标准，代码测试仅作辅助；本轮不以 production 构建、完整验收矩阵或 95 分为前置条件。
 
 ## 当前目标：用户在真实 Chrome 中完成多语言使用闭环
 
@@ -10,7 +10,7 @@
 
 ### 关键使用场景与通过条件
 
-下表是本轮核心完成条件。**所有场景目前均为 NOT_TESTED**；此前源码、Node、模拟 DOM 与 HTTP 预览的通过记录不能改变本表状态。
+下表是本轮核心完成条件。2026-10-25 原生 CUA 已完成八项，全部 PASS：原七项及重开证据见 `native-core-20261025-a/`，真实 Chrome 重启与导出读回见 `native-restart-20261025-b/`。此前 Node、模拟 DOM 与 HTTP 结果不计本轮原生通过。
 
 | 使用场景 | 必须完成的真实操作 | 通过条件 |
 |---|---|---|
@@ -25,9 +25,42 @@
 
 每个场景记录实际入口、输入包、操作步骤、可见结果、候选身份和必要截图/录像；持久化场景同时记录重启前后结果。仅弹出「已保存」、查看 storage 值、源码接线或测试断言通过都不算该场景 PASS。用户操作可用真实浏览器 UI 自动化完成，前提是工具明确允许访问对应入口；不得用模拟服务、伪造手势或内部调用替代核心操作。
 
-完成门槛：上述真实场景全部通过，期间发现的核心故障已修复且原失败操作复验通过，没有未解释的核心失败；未执行记 NOT_TESTED，入口限制记 BLOCKED 并说明具体限制，均不能记 PASS。当前已知限制是工具拒绝扩展页访问，尚无真实场景 PASS；Native doctor 连接成功不能解除该限制。保留禁止替代 app、CDP 或间接导航绕过的约束。
+完成门槛：上述真实场景全部通过，期间发现的核心故障已修复且原失败操作复验通过，没有未解释的核心失败；未执行记 NOT_TESTED，入口限制记 BLOCKED，均不能记 PASS。用户随后明确授权直接启动独立浏览器完成测试并保持打开；新建 CFT 原生 CUA 入口可用。此前 Playwright 的 ERR_BLOCKED_BY_CLIENT 是历史入口错误，不再作为当前原生操作的阻塞；若工具明确拒绝某入口，仍不得通过 CDP、替代 app 或间接导航绕过。
 
-后续动作从“合法访问已安装扩展 → 打开目录并定位一个真实章节”开始；入口受限时只处理该具体入口问题，不先跑代码测试、production 构建、旧 CI 清单或评分。生产发布、全量故障注入、来源升级/卸载专项、跨版本、宽度/缩放矩阵和七项 95 分均延期；真实操作若暴露相关安全故障，则定向修复并复验，不放宽校验。
+本轮核心操作已完成，没有待修复的已复现核心故障；测试浏览器保持打开。生产发布、全量故障注入、来源升级/卸载专项、跨版本、宽度/缩放矩阵和七项 95 分均延期，不自动进入下一阶段。原有 watcher、演示页服务及其他 owner 的改动保留。
+
+## 2026-10-25 原生核心操作记录与交接状态
+
+证据目录 `artifacts/locale-packs-r21/native-core-20261025-a/`；正常窗口、默认缩放，固定演示页。使用仓库 CFT 155.0.8059.39，加载 `dist/development`，扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`。manifest SHA-256 `fa6f8556c867a27b43b8b123593d6137518df9dc41e55cdacc63f0928e0e6c68`；Reading TOC 正式 1.0.10、35,044 字节及 SHA 与下文交付物一致。持续开发 watcher PID 43534、43119/43120 监听；本次续验已从浏览器 Debug 确认实际 serve 连接，详见下一节。
+
+- 核心目录 PASS：新 Profile 初见 1.0.9，真实打开报官方身份/范围校验失败。通过原「审阅新版」确认升级到 1.0.10，未新增能力；页面目录自动出现，无第二次启用。真实切换模式、点击 Listing/SKU 和简单表单定位成功（01、02、07 截图）。首次旧版来源未证，不声称已找到预安装根因。
+- 跟随/独立语言 PASS：全局中英切换，工具跟随变更；独立简中不随全局英文变化；恢复跟随后工具和网页为英文（03 及原生记录）。
+- 完整日语导入 PASS：55 条/缺失 0 预览取消不变，确认后网页和侧栏显示日语；刷新 Help 为「現在のページの見出しを再取得」，章节业务标题保持原文，仍可切换/定位（04–07）。
+- 重开 PASS：关闭重开语言管理、工具、Side Panel 后仍为日语（08）。实际 Chrome 重启已在下一节补验 PASS。
+- 同 ja 覆盖 PASS：取消保留原提示；确认后原有侧栏与网页同步出现更新版提示/标签，未切换语言或重开，hostInstanceId 保持 `31d7cddd-c07d-43a5-92e8-60255cbb85e2`（09、10）。
+- AI 补译往返 PASS：真实导入 53 条，`fullLabel`/`refreshLabel` 回退中文；从产品下载任务，translationKeys 恰好这两条，当前 Codex 补齐后经产品回导 55 条。侧栏/网页恢复日语；从产品导出备份，与原 53 条逐行核对全保留（11、12、native-ai-roundtrip-result.json）。实际下载保留在 Downloads，副本位于证据目录。
+- 错误输入保护 PASS：错误 toolId、坏 JSON、全空白译文经原生文件入口逐一导入，各有明确错误，没有进入安装、权限或业务动作；有效日语按钮及目录仍在并可刷新（13–16）。
+- 备份与删除 PASS：真实导出 55 条备份；取消删除仍为日语；确认删除后原位回退中文，侧栏和网页目录仍存在。点击 Listing/SKU 实际定位正确，原安装/网站授权有效（17–20）。随后经原入口恢复正式 55 条日语样例，当前刷新提示已恢复无“更新版”（21、22）。
+
+原浏览器 PID 54293、父 launcher 54292 及上述临时 Profile 已安全收尾；原 launcher 的退出清理合同不适合持久化验收，因此未把它的 Profile 删除当成产品丢失数据。续验创建独立、可保留的隔离 Profile，经产品导入后实际重启；没有复制个人/原 Profile，没有直接改存储或模拟导入。当前打开的浏览器见下一节。
+
+本任务增量经复核保留：`src/marketplace/catalog.js` 增加不可变 reading-kit revision 9 指向 TOC 1.0.10，伴随工具及历史 revision 保持固定；两份测试同步校验当前官方身份、已有安装不被静默替换及集合版本。默认预安装使用官方 catalog 的 installationPolicy，不由集合 revision 驱动；本改动不是首次旧版来源的已证实根因修复。没有修改 Reading TOC 业务源码、正式 JSON 或来源 pin。仅这三个文件及本记录纳入本任务提交，其他 owner 的变更不纳入。
+
+原对话 `01a171b4-4c90-7983-9420-dabdecd0b27c` 的 goal 上次实读为历史 `blocked`，正文的“八项均未测/入口阻塞”已落后；本轮未重新读取，当前状态未知。创建续接对话不会迁移或完成该 goal；当前工具不能修改目标正文或跨对话迁移，未伪报完成，未请求暂停。本轮八项完成不等于原 goal 生命周期已同步；正式 production、评分等仍延期。
+
+## 2026-10-25 实际浏览器重启与最终复核
+
+证据目录 `artifacts/locale-packs-r21/native-restart-20261025-b/`。模式为**持续开发**，实际加载本仓库 `dist/development`；CFT 155.0.8059.39，扩展 ID 仍为 `ccfcjegpkdlgbclopjmadlcjedelidmf`。原实例 Debug 显示已连接，指纹 `f34697060dfb9cf4adf9a1365b2b8c5d007e691785e07c794c5fdce4ed14046b`；重启后 Debug 再次显示「开发服务已连接」，指纹 `b451bfc9b8803d406c8e026a841d001bd94f22698157b70d01fb7a4d53d39b5f`。这是持续更新的开发输出，前后指纹不同，不冒充冻结的 production 同候选验收。manifest、正式 TOC 1.0.10 及日语样例 SHA 在本次重启前后核对一致，见 `05-clean-exit.json`、`11-final-runtime.json`。
+
+1. 在本任务证据目录创建 mode 0700 的 `codex-cft-locale-r21-retained`，使用 mock keychain；task-local `launch-retained.py` 保留 Profile 并等待 Chrome 退出，不修改全局启动器。原生扩展入口打开阅读目录，直接可用；经真实文件选择、55 条预览和确认导入正式日语包，工具与网页立即显示日语。设置显示「界面语言：日本語」（04）。
+2. 从 Chrome 应用菜单执行「退出 Google Chrome for Testing」。原 PID 64331 消失，等待中的 launcher 返回 `exited: 0`、`profileRetained: true`（05）。随后以同一 Profile 重新启动，Chrome 新 PID 为 64677（`chrome-launch-before.json`、`chrome-launch-after.json`）。
+3. 经真实扩展入口再次打开工具，无需重新导入即显示「読書目次」「目次を更新」及 Help「現在のページの見出しを再取得」。打开新的固定演示页，刷新目录读到 14 个标题；点击 Listing / SKU，网页实际定位到对应章节，侧栏和网页目录保持日语（06）。设置仍为「日本語」（07），语言管理仍列出已安装「日本語 · ja」（08）。
+4. 经产品「导出语言包」下载 `reading-toc.ja.locale-pack (2).json`；导出含 55 条 messages，逐条与正式日语样例完全一致，toolId、sourceCatalogHash 和 targetLocale 也一致（`09-export-verification.json`、`restart-export.locale-pack.json`）。该结果来自真实导出文件，没有读取内部存储代替操作。
+5. 最后返回阅读目录，日语提示、14 个真实标题仍可用，浏览器保持打开（12）。本轮结束观察：Chrome PID 64677、父 launcher 64676；Profile 在上述证据目录。原 watcher PID 43534、演示页服务 PID 68658 保留，未执行构建或覆盖输出。
+
+环境记录：首次试用不等待子进程的 task-local launcher 时，CFT 在导入确认前出现 SIGSEGV；改为保留父进程等待后完成上述正常退出/重启，未据此认定产品代码根因。Chrome 初始命令行页面曾显示脚本未接入/需刷新；待扩展可用后打开新的演示页，目录正常出现。该启动时序现象没有冒报为 Reading TOC 源码已修复，也没有用页面刷新代替实际浏览器重启。
+
+有限增量的最终验证为 **9/9 PASS**：`node --test tests/environment/sidebar-default-preinstall-r48.test.mjs`（8 项，当前官方身份、不替换已有安装、网站权限不自动授予及原恢复保护）；`node --test --test-name-pattern='newest fixed reading kit' tests/environment/app-market-r5.test.mjs`（1 项，新集合与历史固定版本）。三个源码/测试文件的 `node --check` 及四文件 `git diff --check` 均 PASS。沿用原七项有效原生证据，没有重复全量产品测试、构建或评分。上述证据仅完成本轮核心使用场景，不证明 production 发布、跨版本或未执行的权限撤销专项。
 
 ## 历史辅助验证：代码链路（不计核心场景通过）
 
@@ -42,18 +75,18 @@ node --test tests/environment/extension-center-locale-manager-r21.test.mjs tests
 
 这些是 **Node 集成与 DOM 模拟证据**；未发现需要修改的新增产品源码缺陷。不能据此声称真实 Chrome 安装、沙箱 CSP、原生焦点或浏览器重启已通过。新增沙箱辅助器仅供测试，不进入产品或打包链。
 
-截至本次入口核对：Chrome 日常扩展 ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，磁盘加载目录是本仓库 `dist/development`，Native doctor 连接正常；开发 serve 端口 43119/43120 无监听，属于静态开发产物，不能称为持续开发。下文 PID 44689 与旧候选构建记录是历史观察。当前磁盘包含 1.0.10 正式工具及 R2.1 模块，仍不能证明浏览器已加载对应 UI。原生扩展页访问限制仍在，未采用替代 app、CDP 或间接导航绕过，也未因这次测试改动重跑无关全量构建。
+以下为当时的历史入口观察，已被上文原生续验更新：Chrome 日常扩展 ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，磁盘加载目录是本仓库 `dist/development`，Native doctor 连接正常；当时开发 serve 端口 43119/43120 无监听，属于静态开发产物。下文 PID 44689 与旧候选构建记录同为历史。彼时磁盘包含 1.0.10 正式工具及 R2.1 模块，尚不能证明浏览器已加载对应 UI；原生扩展页访问限制仍在，没有采用替代 app、CDP 或间接导航绕过，也没有重跑无关全量构建。当前原生 CUA、实际 UI 及 serve 连接结果以上文为准。
 
-## 用户操作简版（真实 Chrome 尚待执行）
+## 历史用户操作简版（当前原生状态以上文为准）
 
 1. 在「扩展」确认已安装的阅读目录是 **1.0.10** 或支持语言元数据的新版本；旧版需先按原安装流程升级。
 2. 将 `examples/sidebar-tools/reading-toc/languages/ja.opendesk-locale.json` 拖到「扩展」导入区，确认预览为阅读目录、目标 `ja`、55 条文案，再点「确认导入」。
 3. 打开阅读目录，检查刷新按钮的辅助标签为「目次を更新」、悬停提示为「現在のページの見出しを再取得」；「全部」模式辅助标签为「すべての見出し」。文章自己的标题保持原样。
-4. 关闭重开工具，再重启 Chrome，检查以上日语仍保留。这里只完成了自动化服务重开测试，真实浏览器重启步骤仍为 **NOT_TESTED**。
+4. 关闭重开工具，再重启 Chrome，检查以上日语仍保留。真实浏览器重启现已在上文原生续验中完成，**PASS**。
 
 通过标准是工具实际文案变化并在重开后保持；仅出现「语言包已保存」不算完成。
 
-## 源码已接线的产品行为（真实场景待验）
+## 源码已接线的产品行为（本轮真实场景结果见上文）
 
 - 扩展中心管理菜单可选择全局语言、管理语言包；原 JSON 选择/拖放按 `format` 分流，语言数据不进入代码安装器。单个支持本地化的工具在原设置中选择「跟随 OpenDesk」或覆盖语言，并打开低频管理入口。
 - 导入预览显示工具、语言、原文/译文样本、缺失/过期条目；确认后原子保存语言包与目标语言，读回后生效。支持覆盖、取消、导出、删除与明确的存储恢复。
@@ -88,7 +121,7 @@ node --test tests/environment/extension-center-locale-manager-r21.test.mjs tests
 | 窄栏与主题 | CUA viewport 320/360/400/440，body/dialog 横向溢出均为 0，控件均位于视口内；浅色 320 与深色四档有截图。主题选择只在原预览中映射唯一 Tokens |
 | Browser `npm run build` | **BLOCKED**：隔离候选在固定 Page Relay 构建被已提交 main 的 Prompt Shortcuts 来源 pin 不匹配拦截，见下文。无成功 production 包 |
 | `npm run verify` | **FAIL / 上游构建不完整**：缺少 `dist/production/framework/browser-edition.json`；未把部分产物当正式包，也未重复相同阻断的 build:dev |
-| Chrome 原生 A–F | **NOT_TESTED**：当前浏览器工具拒绝 `chrome-extension://`，并明确禁止替代路径绕行。没有将 HTTP、DOM fixture、旧 CI 或历史安装视作原生 PASS |
+| Chrome 原生 A–F（当时） | **NOT_TESTED**：当时浏览器工具拒绝 `chrome-extension://`，未绕行。后续合法原生 CUA 八项核心操作已在上文记录 PASS；HTTP、DOM fixture、旧 CI 或历史安装均未算入 |
 
 本机日志与截图位于 `artifacts/locale-packs-r21/`（临时证据，不提交为快照堆积）：`final-targeted-tests.log`、`final-preview-test.log`、`final-manager-tests.log`、`final-provenance-test.log`、`final-workspace-i18n-test.log`、`final-six-tab-preview-test.log`、`final-source-check.log`、`final-package-check.log`、`production-build.log`、`package-verify.log`、`ai-roundtrip-result.json`、`cua-import-320.png`、`cua-dark-*.png`、`cua-ai-roundtrip.png`。完整词条来自实际任务下载与 Codex 输出，不调用另一套模型服务。
 
@@ -124,7 +157,7 @@ node --test tests/environment/extension-center-locale-manager-r21.test.mjs tests
 
 算术平均 **91.86/100**。没有发现仍未修复的本轮 P0 或安全问题；完整构建来源冲突、原生验收与 95 目标仍未关闭。Git 提交 SHA 与推送结果以本轮最终回复和实际 Git 记录为准。
 
-## 本地 Codex 原生续验提示词
+## 历史本地 Codex 原生续验提示词（已被本次原生记录与新对话正文取代）
 
 在 `/Users/shopme/Documents/workspace/opendesk-browser` 的最新 main 继续 R2.1。先读最新 AGENTS、Git 状态、本报告顶部的当前目标与关键使用场景，以及应用级本地化合同，保护并行改动、原 watcher/Profile/输出。不要建分支、worktree、PR，不覆盖其他 owner 的 Prompt/Mindmap 修改。源码和 Node/HTTP 只作辅助证据；当前目标是通过真实产品入口完成顶部八个核心使用场景，不恢复全工具迁移、production 发布或七项 95 目标。
 

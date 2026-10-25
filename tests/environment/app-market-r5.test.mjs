@@ -236,10 +236,14 @@ test('R5 terminal settlement survives journal trimming and missing recovery resp
   await new Promise(resolve=>setImmediate(resolve));assert.equal(finished,false);assert.equal(k.values[MARKET_INTENTS_STORE].intents[0].settledAt,null);
   release();await holding;await closing;assert.equal(finished,true);
 });
-test('R5 newest fixed reading kit matches packaged releases while historical revisions stay pinned',async()=>{
+test('R5 newest fixed reading kit advances Reading TOC while companion and historical versions stay pinned',async()=>{
   const fixtures=await officialFixtures(),kits=OFFICIAL_COLLECTIONS.filter(row=>row.id==='reading-kit');
   const current=kits[0];
-  assert.equal(current.revision,8);
+  assert.equal(current.revision,9);
+  assert.deepEqual(kits.find(row=>row.revision===8).members,[
+    {id:'opendesk/reading-toc',version:'1.0.9'},
+    {id:'opendesk/web-markdown-clipper',version:'1.0.1'},
+    {id:'opendesk/quick-notes',version:'1.1.9'}]);
   assert.deepEqual(kits.find(row=>row.revision===7).members,[
     {id:'opendesk/reading-toc',version:'1.0.8'},
     {id:'opendesk/web-markdown-clipper',version:'1.0.1'},
@@ -248,10 +252,12 @@ test('R5 newest fixed reading kit matches packaged releases while historical rev
     {id:'opendesk/reading-toc',version:'1.0.7'},
     {id:'opendesk/web-markdown-clipper',version:'1.0.1'},
     {id:'opendesk/quick-notes',version:'1.1.9'}]);
-  for(const member of current.members){
-    const release=fixtures.catalog.apps.find(row=>row.id===member.id);
-    assert(release,member.id);assert.equal(member.version,release.version,member.id);
-  }
+  assert.deepEqual(current.members,[
+    {id:'opendesk/reading-toc',version:'1.0.10'},
+    {id:'opendesk/web-markdown-clipper',version:'1.0.1'},
+    {id:'opendesk/quick-notes',version:'1.1.9'}]);
+  const toc=fixtures.catalog.apps.find(row=>row.id==='opendesk/reading-toc');
+  assert.equal(current.members[0].version,toc.version);
   assert.deepEqual(kits.find(row=>row.revision===5).members,[
     {id:'opendesk/reading-toc',version:'1.0.4'},
     {id:'opendesk/web-markdown-clipper',version:'1.0.1'},
