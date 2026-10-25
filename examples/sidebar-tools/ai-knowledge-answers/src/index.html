@@ -1,65 +1,60 @@
 <main class="qa-app od-page" aria-label="AI 知识问答">
-  <header class="qa-header">
-    <h1 class="od-title">知识问答</h1>
-    <span class="od-note" id="qa-count">读取中…</span>
-    <button class="od-icon-button" id="qa-refresh" title="重新读取" aria-label="重新读取知识库" type="button">↻</button>
+  <header class="qa-top">
+    <nav class="qa-tabs" role="tablist" aria-label="工具功能">
+      <button id="qa-tab-ask" role="tab" type="button" aria-controls="qa-view-ask" aria-selected="true" tabindex="0">问答</button>
+      <button id="qa-tab-list" role="tab" type="button" aria-controls="qa-view-list" aria-selected="false" tabindex="-1">知识 <span id="qa-count">—</span></button>
+    </nav>
+    <button id="qa-refresh" class="od-icon-button qa-icon" type="button" aria-label="重新读取知识库" title="重新读取知识库"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L3 9m0-5v5h5M4 13a8 8 0 0 0 14 5L21 15m0 5v-5h-5"/></svg></button>
   </header>
-  <p id="qa-status" class="qa-status od-note" role="status" aria-live="polite" hidden></p>
-  <section class="qa-card" aria-label="知识查询">
-    <label class="od-field-label" for="qa-query">向知识库提问</label>
-    <textarea class="od-field" id="qa-query" maxlength="300" rows="2" placeholder="例如：退款期限是多久？"></textarea>
-    <div class="qa-row qa-query-actions">
-      <input class="od-field" id="qa-query-scope" maxlength="60" placeholder="适用条件（可选）" aria-label="查询适用条件">
-      <button class="od-button od-button--primary" id="qa-ask" type="button">查询</button>
-    </div>
-    <div class="qa-answer" id="qa-result" aria-live="polite" hidden>
-      <strong id="qa-result-kind"></strong>
+  <p id="qa-status" role="status" aria-live="polite" class="qa-status" hidden></p>
+  <section id="qa-view-ask" class="qa-view" role="tabpanel" aria-labelledby="qa-tab-ask">
+    <div class="qa-headline"><div><h2>测试知识回答</h2><p>输入问题，核对答案与知识来源</p></div><span class="qa-tag">本地知识</span></div>
+    <label class="qa-label" for="qa-query">客户问题</label>
+    <textarea id="qa-query" class="od-field" rows="3" maxlength="300" placeholder="例如：退款需要几天？"></textarea>
+    <details id="qa-query-options" class="qa-options"><summary>指定适用条件 <span>选填</span></summary><label class="qa-label" for="qa-query-scope">适用条件</label><input id="qa-query-scope" class="od-field" maxlength="60" placeholder="例如：A 方案"></details>
+    <button id="qa-ask" class="od-button od-button--primary qa-primary" type="button">查询知识</button>
+    <section id="qa-result" class="qa-result" aria-label="本次回答" aria-live="polite" hidden>
+      <div class="qa-result-head"><strong id="qa-result-kind"></strong><span id="qa-result-count"></span></div>
       <p id="qa-result-text"></p>
-      <ul id="qa-result-sources" aria-label="引用知识"></ul>
-    </div>
-    <p class="qa-help od-note">精确匹配使用固定答案；其他问题目前只展示检索候选，尚不代表 AI 生成。</p>
+      <div class="qa-source-title">知识来源</div><ul id="qa-result-sources"></ul>
+    </section>
+    <p class="qa-note">精确问题直接显示固定答案；其他问题只展示检索候选。真实 AI Provider 尚未接通，不会伪造 AI 回答。</p>
   </section>
-  <section class="qa-card" aria-label="维护知识">
-    <div class="qa-row qa-heading">
-      <h2 class="od-title">我的知识</h2>
-      <button id="qa-new" class="od-icon-button" title="新建知识" aria-label="新建知识" type="button">＋</button>
+  <section id="qa-view-list" class="qa-view" role="tabpanel" aria-labelledby="qa-tab-list" hidden>
+    <div class="qa-headline"><div><h2>知识条目</h2><p>搜索、查看及管理已保存的问答</p></div>
+      <div class="qa-actions">
+        <button id="qa-new" class="od-icon-button qa-icon" type="button" title="新建知识" aria-label="新建知识"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+        <button id="qa-manage-toggle" class="od-icon-button qa-icon" type="button" title="导入与导出" aria-label="导入与导出" aria-expanded="false" aria-controls="qa-manage"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button>
+      </div>
     </div>
-    <div id="qa-list" class="qa-list" aria-label="已保存的问答"></div>
-    <label class="od-field-label" for="qa-question">标准问题</label>
-    <input id="qa-question" class="od-field" maxlength="180" placeholder="例如：退款期限是多少">
-    <label class="od-field-label" for="qa-aliases">同义问题（每行一条）</label>
-    <textarea id="qa-aliases" class="od-field" rows="2" placeholder="例如：多久可以退款"></textarea>
-    <label class="od-field-label" for="qa-answer">标准答案</label>
-    <textarea id="qa-answer" class="od-field" rows="3" maxlength="1200" placeholder="只输入已核实的业务事实"></textarea>
-    <div class="qa-row qa-meta">
-      <div><label class="od-field-label" for="qa-scope">适用条件</label>
-      <input id="qa-scope" class="od-field" maxlength="60" placeholder="不填表示默认范围"></div>
-      <label class="qa-enabled"><input type="checkbox" id="qa-enabled" checked> 启用</label>
+    <div id="qa-manage" class="qa-manage" hidden>
+      <label class="qa-label" for="qa-file">导入 JSON / CSV</label>
+      <input id="qa-file" class="od-field" type="file" accept=".json,.csv,application/json,text/csv">
+      <div class="qa-manage-row"><select id="qa-mode" class="od-field" aria-label="导入策略"><option value="merge">合并，保留已有 ID</option><option value="replace">替换全部知识</option></select><button id="qa-import" class="od-button" type="button">预览导入</button></div>
+      <div class="qa-manage-row"><button id="qa-export-json" class="od-button" type="button">导出 JSON</button><button id="qa-export-csv" class="od-button" type="button">复制 CSV</button></div>
+      <p>导入会先预览变化，未经确认不会覆盖现有数据。</p>
     </div>
-    <div class="qa-row qa-editor-actions">
-      <button id="qa-delete" class="od-icon-button od-icon-button--danger" title="删除当前知识" aria-label="删除当前知识" type="button">✕</button>
-      <span class="od-note" id="qa-edit-state"></span>
-      <button id="qa-save" class="od-button od-button--primary" type="button">保存</button>
-    </div>
+    <label class="qa-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.7" cy="10.7" r="6.5"/><path d="m16 16 5 5"/></svg><input id="qa-search" type="search" maxlength="100" placeholder="搜索问题、答案、别名" aria-label="搜索知识"></label>
+    <div class="qa-filters" role="group" aria-label="知识状态筛选"><button type="button" data-qa-filter="all" aria-pressed="true">全部</button><button type="button" data-qa-filter="enabled" aria-pressed="false">已启用</button><button type="button" data-qa-filter="disabled" aria-pressed="false">已停用</button><span id="qa-filter-count" aria-live="polite"></span></div>
+    <div id="qa-list" class="qa-records" role="list" aria-label="知识列表"></div>
+    <div id="qa-list-empty" class="qa-empty" hidden><strong id="qa-empty-title">暂无知识</strong><p id="qa-empty-description">导入示例数据或新建一条标准问答。</p><button id="qa-empty-new" class="od-button" type="button">新建知识</button></div>
   </section>
-  <details class="qa-card qa-manage">
-    <summary>导入与导出</summary>
-    <label for="qa-file" class="od-field-label">导入 JSON / CSV</label>
-    <input id="qa-file" class="od-field" type="file" accept=".json,.csv,application/json,text/csv">
-    <div class="qa-row qa-import-actions">
-      <select class="od-field" id="qa-mode" aria-label="导入策略"><option value="merge">合并（保留相同 ID）</option>
-        <option value="replace">替换全部</option></select>
-      <button class="od-button" id="qa-import" type="button">预览导入</button>
+  <section id="qa-view-edit" class="qa-view qa-edit" aria-labelledby="qa-editor-title" hidden>
+    <div class="qa-editor-top">
+      <button id="qa-back" class="od-icon-button qa-icon" type="button" aria-label="返回知识列表" title="返回知识列表"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg></button>
+      <h2 id="qa-editor-title">新建知识</h2>
+      <button id="qa-delete" class="od-icon-button qa-icon qa-danger" type="button" aria-label="删除当前知识" title="删除当前知识" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16m-10-3h4M7 7l1 13h8l1-13M10 11v6m4-6v6"/></svg></button>
     </div>
-    <div class="qa-row qa-import-actions">
-      <button id="qa-export-json" class="od-button" type="button">下载 JSON</button>
-      <button id="qa-export-csv" class="od-button" type="button">复制 CSV</button>
-    </div>
-    <p class="qa-help od-note">单个知识库上限 8 KiB。CSV 复制到剪贴板，不声称已下载文件。</p>
-  </details>
-  <section id="qa-review" class="qa-review" role="alertdialog" aria-modal="true" aria-labelledby="qa-review-message" hidden>
-    <p id="qa-review-message"></p>
-    <div class="qa-row"><button class="od-button" id="qa-cancel" type="button">取消</button>
-      <button class="od-button od-button--primary" id="qa-accept" type="button">确认</button></div>
+    <form id="qa-editor" novalidate>
+      <label class="qa-label" for="qa-question">标准问题 <span>必填</span></label><input id="qa-question" class="od-field" maxlength="180" required placeholder="例如：多久可以退款">
+      <label class="qa-label" for="qa-answer">标准答案 <span>必填</span></label><textarea id="qa-answer" class="od-field qa-answer-field" rows="5" maxlength="1200" required placeholder="只填写已核实的业务事实"></textarea>
+      <details id="qa-editor-more" class="qa-more"><summary>更多选项 <span>同义问题 / 适用条件 / 启停</span></summary>
+        <label class="qa-label" for="qa-aliases">同义问题 <span>每行一条，最多 8 条</span></label><textarea id="qa-aliases" class="od-field" rows="3" placeholder="例如：退款要多久"></textarea>
+        <label class="qa-label" for="qa-scope">适用条件</label><input id="qa-scope" class="od-field" maxlength="60" placeholder="可留空">
+        <label class="qa-enabled" for="qa-enabled"><span>启用这条知识</span><input id="qa-enabled" type="checkbox" checked></label>
+      </details>
+      <div class="qa-save-row"><span id="qa-edit-state" role="status" aria-live="polite"></span><button id="qa-save" class="od-button od-button--primary" type="submit">保存知识</button></div>
+    </form>
   </section>
+  <section id="qa-review" class="qa-review" role="alertdialog" aria-modal="false" aria-labelledby="qa-review-message" hidden><p id="qa-review-message"></p><div><button id="qa-cancel" class="od-button" type="button">取消</button><button id="qa-accept" class="od-button od-button--primary" type="button">确认</button></div></section>
 </main>
