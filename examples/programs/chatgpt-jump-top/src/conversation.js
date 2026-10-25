@@ -9,12 +9,22 @@ const VIEWER_CLOSE = 'button[aria-label="Close viewer"],button[aria-label="å…³é—
 const SEARCH_TURN = '[data-content-search-unit-key]';
 const ASSISTANT_TURN = '[data-content-search-unit-key][data-chatgpt-search-unit-key],'
   + '[data-content-search-unit-key$=":assistant"]';
+// Preserve the legacy token for currently installed Mind Map / older Page versions.
 const OWN = 'data-opendesk-chatgpt-jump-top';
+const MODERN_OWN = 'data-opendesk-ai-scroll-navigation';
 const ANSWER_TOOLS = 'data-opendesk-chatgpt-answer-tools';
 const MINDMAP_VIEWER = '[data-opendesk-chatgpt-mindmap="viewer"]';
 const EXCLUDED = '[role="dialog"],[aria-modal="true"],[hidden],[inert],[aria-hidden="true"]';
 const GAP = 12;
 const sessions = new WeakMap(); // doc -> per-owner sessions (Program and trusted tool may coexist)
+
+// An installed pre-rename Page Program can remain live in an existing tab.
+// Its actual ShadowRoot (not a React-cloned inert marker) takes precedence.
+// Do not uninstall, touch its listeners, or infer permission migration.
+export function legacyNavigationPresent(doc) {
+  return [...doc.querySelectorAll(`[${OWN}]`)].some(node =>
+    node.isConnected && node.shadowRoot && !node.hasAttribute(MODERN_OWN));
+}
 
 function isWritingViewer(element, aside, win) {
   const section = element.closest('section');
@@ -419,6 +429,7 @@ export function unmountAnswerTool(host) {
 function newButton(doc, kind, directions, sessionKey) {
   const host = doc.createElement('span');
   host.setAttribute(OWN, sessionKey === 'default' ? 'host' : sessionKey);
+  host.setAttribute(MODERN_OWN, 'reply');
   host.style.cssText = 'display:inline-flex;align-items:center;flex:0 0 auto;vertical-align:middle;color:inherit;';
   const shadow = host.attachShadow({mode: 'open'});
   const style = doc.createElement('style');
@@ -480,6 +491,12 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
   function refresh() {
     pending = false;
     if (disposed) return;
+    // A still-active old install is the incumbent. Its buttons remain owned
+    // by the old script; this program yields without touching that owner.
+    if (legacyNavigationPresent(doc)) {
+      for (const header of [...mounted.keys()]) remove(header);
+      return;
+    }
     const resolved = resolveBindings(doc, win);
     for (const old of mounted.values()) {
       const root = old.answerRoot;
@@ -508,6 +525,15 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
       if (!bindings.some(binding => binding.header === header)) remove(header);
     }
     for (const binding of bindings) {
+      // Two distinct versions can share a document even when each has its
+      // own module-local WeakMap. The first connected live host wins; a
+      // second install cannot create a second effective reply navigator.
+      const incumbent = [...binding.header.querySelectorAll(`[${MODERN_OWN}="reply"]`)]
+        .find(node => node.isConnected && node.shadowRoot);
+      if (incumbent && incumbent !== mounted.get(binding.header)?.host) {
+        remove(binding.header);
+        continue;
+      }
       // React cloneNode copies the marker, not the ShadowRoot/listeners.
       // Clean only inert copies owned by this navigation session.
       for (const clone of binding.header.querySelectorAll(
@@ -531,7 +557,13 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
       const cleanups = item.controls.map(({button, direction})=>owner.on(button, 'click', event => {
         event.preventDefault();
         event.stopPropagation();
-        if (button.disabled) {schedule();return;}
+        const active = [...binding.header.querySelectorAll(`[${MODERN_OWN}="reply"]`)]
+          .find(node => node.isConnected && node.shadowRoot);
+        // The old Page can mount between scheduled refresh and a click.
+        // Revalidate the DOM owner before any scroll side effect.
+        if (button.disabled || legacyNavigationPresent(doc) || active !== item.host) {
+          schedule();return;
+        }
         const current = resolveBindings(doc, win).find(next => next.header === binding.header
           && next.anchor === binding.anchor
           && (next.answerRoot || next.target) === (binding.answerRoot || binding.target));

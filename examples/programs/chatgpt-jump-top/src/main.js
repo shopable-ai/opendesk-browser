@@ -3,9 +3,10 @@ import {installJumpToTop} from './conversation.js';
 import {findSiteBindings,siteForUrl} from './site-adapters.js';
 import {installFloatingNavigation} from './floating-navigation.js';
 
-// Program identity remains stable while old installed identities cannot be
-// migrated through a verified user-reviewed install path.
-export const PROGRAM_ID='opendesk.chatgpt-jump-top';
+// A new Program ID is a separately reviewed installation, not an in-place
+// permission transfer. The legacy package remains untouched until users
+// explicitly retire it via the existing Installed Page controls.
+export const PROGRAM_ID='opendesk.ai-scroll-navigation';
 const pageRules={
   matches:['https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*'],
   excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'
