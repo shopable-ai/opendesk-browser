@@ -26,6 +26,10 @@
       {
         "path": "assets/queue.css",
         "kind": "css"
+      },
+      {
+        "path": "assets/crown-premium.webp",
+        "kind": "image"
       }
     ]
   }

@@ -161,3 +161,10 @@
 - 原生 UI 操作全部通过 CUA；未使用 CDP、页面 eval、AppleScript、私有 ChatGPT 请求或网站消息存储。AX 离线断言只检查已保存的真实快照，不作为额外模拟浏览器通过。
 - 本机忽略证据目录 `artifacts/send-queue-r43-01a1732c/`：`r46j-a-streaming-bc-waiting{.png,-ax.txt}`、`r46j-b-streaming-c-waiting{.png,-ax.txt}`、`r46j-final{.png,-ax.txt}`、`r46j-timeline.json`（含 A/B/C 原文与观察时间）、`r46j-evidence-check.json`。三个快照证明同轮交接，最终离线统计 A/B/C user 各 1；`r46d-package-identity-check.json` 证明包、固定源码和当前全部模块/资源同源；`r46d-diagnostic-timeout{.png,-ax.txt}` 保留数量不符现场。
 - 本轮仅证明上述短会话核心链与原权限内升级。长对话限制仍存在，刷新恢复仍不支持；新版固定桥协作、真实 IME、特殊空白、卸载和 production 完整验收继续 `NOT_TESTED`，不因本轮通过而提升其状态。保留专属 CFT 和 launcher，避免临时 Profile 被清理。
+
+## R4.7 皇冠视觉资源切换（2026-10-26）
+
+- 用户纠偏：R4.6 虽改角度，却仍显示简化 SVG，并未使用原先生成的精美皇冠。R4.7 通过 Page Program 已有 `image` 资源声明加载本地 `assets/crown-premium.webp`（80×60 RGBA、4,046B），CSS `url("crown-premium.webp")` 在构建时受控改写为 data URL，零额外网络/权限/Host。
+- 独立业务：`src/view.js` 保留原蓝色入队按钮，仅将皇冠 SVG 换成 `pointer-events:none` 的装饰 span；桌面尺寸 38×29、-7°，触屏 44×33；未改队列引擎与网站交互。
+- `preview/index.html` 使用同一个真实 WebP 相对路径并提供角度/大小对比；单文件对话演示采用同一素材的内嵌 data URL，以保证不依赖仓库资源可打开。
+- 已验证：资源尺寸/格式与 `scripts/program-assets.mjs` 受控图片合同一致，WebP Git Blob SHA 匹配本地原始字节，预览 Chromium 离线运行与按钮入队模拟；正式程序打包、安装与真实 ChatGPT UI 仍 NOT_TESTED。原 Send Queue R4.3 引擎验收结论不升级。

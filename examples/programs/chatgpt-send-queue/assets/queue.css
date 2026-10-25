@@ -22,10 +22,9 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid #6984ff;outline-
 .sq-send{position:relative;display:inline-flex;align-items:center;justify-content:center;padding:0;margin:0;width:34px;height:34px;min-width:34px;border:0;border-radius:50%;background:linear-gradient(145deg,#617cff,#415cdd);color:white;box-shadow:0 2px 7px #4f67ee39;overflow:visible}
 .sq-send>svg{width:17px;height:17px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .sq-send:hover{filter:brightness(1.07)}
-.sq-crown{position:absolute;top:-16px;left:-5px;width:31px;height:27px;display:block;pointer-events:none;z-index:1;border:0;border-radius:0;background:transparent;box-shadow:none;transform:rotate(-10deg);transform-origin:75% 82%;filter:drop-shadow(0 1.5px 1px #704a2588)}
-.sq-crown svg{display:block;width:100%;height:100%;overflow:visible;fill:none;stroke:none}
+.sq-crown{position:absolute;top:-19px;left:-3px;width:38px;height:29px;display:block;pointer-events:none;z-index:1;border:0;border-radius:0;background:transparent url("crown-premium.webp") center / contain no-repeat;box-shadow:none;transform:rotate(-7deg);transform-origin:55% 80%;filter:drop-shadow(0 2px 1px #764d2255)}
 .sq-toast{position:absolute;right:0;bottom:44px;width:max-content;max-width:230px;padding:7px 10px;background:#273448;color:#fff;border-radius:8px;box-shadow:0 6px 20px #0003;font-size:12px;line-height:1.45;z-index:100;white-space:normal}
 [hidden]{display:none!important}
-@media(pointer:coarse){.sq-row{height:46px;min-height:46px}.sq-action{height:44px;width:40px}.sq-send{width:42px;height:42px}.sq-crown{top:-17px;left:-6px;width:36px;height:31px}}
+@media(pointer:coarse){.sq-row{height:46px;min-height:46px}.sq-action{height:44px;width:40px}.sq-send{width:42px;height:42px}.sq-crown{top:-21px;left:-3px;width:44px;height:33px}}
 @media(prefers-color-scheme:dark){.sq-panel{background:#262626;border-color:#4b4b4b;color:#eee}.sq-row:hover,.sq-row:focus-within{background:#333}.sq-row+.sq-row,.sq-more,.sq-note{border-color:#474747}.sq-text{color:#e4e4e7}.sq-action{color:#a5a5b0}.sq-more{background:#262626;color:#b3b9c9}.sq-note{background:#282d3d;color:#c1c8e8}}
 @media(prefers-reduced-motion:reduce){.sq-send{transition:none}}
