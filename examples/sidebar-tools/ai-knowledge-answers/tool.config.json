@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "ai-knowledge-answers",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "title": "AI 知识问答",
   "description": "本地知识编辑、固定回答与来源检索；官方发行通过共享 AI 生成需人工审阅的知识答案。",
   "capabilities": [

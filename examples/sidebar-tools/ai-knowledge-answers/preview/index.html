@@ -4,12 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI 知识问答 · 同源交互预览</title>
-<link rel="stylesheet" href="../src/style.css">
 <style>
 /* Preview-only visual shell. Real UI / model / controller are loaded from ../src/. */
-:root{--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--od-ink:#273348;--od-sub:#64748b;--od-paper:#fff;--od-bg:#f2f4f8;--od-muted:#f4f7fb;--od-line:#dbe3ed;--od-brand:#2668b5;--od-positive:#168568;--od-negative:#b42337;--od-focus:#377dcc}
 *{box-sizing:border-box}
-body{margin:0;color:#253146;background:var(--od-bg);font:13px/1.5 system-ui,-apple-system,"PingFang SC",sans-serif}
+body{margin:0;color:#253146;background:#f2f4f8;font:13px/1.5 system-ui,-apple-system,"PingFang SC",sans-serif}
 .preview-header{max-width:900px;margin:20px auto 10px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:0 16px}
 .preview-header h1{font-size:17px;margin:0}
 .preview-header p{margin:3px 0 0;color:#64748b;font-size:12px}
@@ -18,14 +16,11 @@ body{margin:0;color:#253146;background:var(--od-bg);font:13px/1.5 system-ui,-app
 .preview-buttons button[aria-pressed=true]{background:#e8f1ff;color:#235eaf;font-weight:650}
 .preview-notice{max-width:900px;margin:0 auto 12px;padding:8px 16px;color:#75571d;font-size:12px}
 .preview-stage{min-height:570px;display:flex;justify-content:center;align-items:flex-start;padding:18px 12px 42px;overflow-x:auto}
-.preview-panel{width:360px;max-width:100%;min-height:520px;background:#fff;border:1px solid #dbe3ed;border-radius:12px;box-shadow:0 8px 30px #1f35511c;overflow:hidden}
+.preview-panel{box-sizing:content-box;width:360px;max-width:100%;background:#fff;border:1px solid #dbe3ed;border-radius:12px;box-shadow:0 8px 30px #1f35511c;overflow:hidden}
+.preview-tool-frame{display:block;width:100%;height:640px;border:0}
 .preview-host-title{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#fafbfc;border-bottom:1px solid #e5eaf0}
 .preview-host-title strong{font-size:13px}.preview-host-title span{font-size:11px;color:#798699}
 .preview-host-title button{border:1px solid #dbe3ed;background:#fff;padding:6px;border-radius:7px;color:#64748b;cursor:pointer}
-.preview-panel .od-button{border:1px solid #dbe3ed;background:#fff;color:#34485f}
-.preview-panel .od-button--primary{background:#2868b5;color:#fff;border-color:#2868b5}
-.preview-panel .od-icon-button{border:1px solid #dbe3ed;background:#fff}
-.preview-panel .od-field{font:inherit}
 .preview-foot{max-width:900px;margin:0 auto;padding:0 16px 30px;color:#657286;font-size:12px}
 .preview-foot code{font:11px ui-monospace,monospace}
 .preview-error{max-width:560px;margin:30px auto;padding:12px;color:#9e3044;background:#fff4f4;border:1px solid #f3c2ca;border-radius:8px}
@@ -37,10 +32,6 @@ body{margin:0;color:#253146;background:var(--od-bg);font:13px/1.5 system-ui,-app
 .preview-trusted p{margin:8px 0}
 .preview-trusted button{border:1px solid #dbe3ed;border-radius:8px;background:#f4f7fb;padding:8px;color:#273348;cursor:pointer}
 .preview-trusted output{display:block;margin-top:8px;white-space:pre-wrap;overflow-wrap:anywhere}
-.preview-panel .od-button,.preview-panel .od-icon-button{min-height:34px;border-radius:8px}
-.preview-panel .od-button--quiet{background:transparent;border-color:transparent}
-.preview-panel .qa-record{padding:12px 10px}
-.preview-panel .od-field{border:1px solid #7f8da1;border-radius:8px;padding:8px 10px;min-height:36px}
 </style>
 </head>
 <body>
@@ -66,8 +57,8 @@ body{margin:0;color:#253146;background:var(--od-bg);font:13px/1.5 system-ui,-app
 <footer class="preview-foot">本页通过 HTTP 打开才可读取相对源码。运行示例：<code>python3 -m http.server 43112 --bind 127.0.0.1 --directory examples/sidebar-tools/ai-knowledge-answers</code>，随后打开 <code>http://127.0.0.1:43112/preview/</code>。</footer>
 <script>
 (async()=>{
-  const root=document.getElementById('preview-tool');
-  const fail=message=>{root.innerHTML='<p class="preview-error"></p>';root.querySelector('p').textContent=message;};
+  const container=document.getElementById('preview-tool');let root;
+  const fail=message=>{container.innerHTML='<p class="preview-error"></p>';container.querySelector('p').textContent=message;};
   const read=async path=>{
     const r=await fetch(path,{cache:'no-store'});
     if(!r.ok)throw new Error(path+' HTTP '+r.status);
@@ -81,10 +72,31 @@ body{margin:0;color:#253146;background:var(--od-bg);font:13px/1.5 system-ui,-app
     return [...new Uint8Array(hash)].map(x=>x.toString(16).padStart(2,'0')).join('');
   }
   try{
-    const [markup,seed]=await Promise.all([
+    const [markup,seed,sourceCss,release]=await Promise.all([
       read('../src/index.html').then(r=>r.text()),
-      read('../fixtures/sample-knowledge.json').then(r=>r.json())
+      read('../fixtures/sample-knowledge.json').then(r=>r.json()),
+      read('../src/style.css').then(r=>r.text()),
+      read('../ai-knowledge-answers.opendesk-tool.json').then(r=>r.json())
     ]);
+    // Reuse only the packer's approved public design prefix, never host CSS or
+    // packaged JS. The current layout is still loaded directly from src/.
+    const marker='/* @opendesk-shared-design */',layout=sourceCss.trimStart().slice(marker.length);
+    if(!sourceCss.trimStart().startsWith(marker)||
+       !release.css?.startsWith('/* opendesk.shared-design.v1 sha256=')||
+       !release.css.endsWith('\n'+layout))
+      throw Error('正式包的共享样式与源码不一致，请先按候选测试及晋升流程核对');
+    const frame=document.createElement('iframe');frame.id='preview-source-frame';
+    frame.className='preview-tool-frame';frame.title='AI 知识问答正式 UI 预览';
+    const loaded=new Promise(resolve=>frame.addEventListener('load',resolve,{once:true}));
+    frame.srcdoc='<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><div id="preview-source-root"></div></body></html>';
+    container.replaceChildren(frame);await loaded;
+    const doc=frame.contentDocument,style=doc.createElement('style');
+    style.textContent=release.css.slice(0,-layout.length);doc.head.append(style);
+    const link=doc.createElement('link');link.rel='stylesheet';
+    link.href=new URL('../src/style.css',location.href).href;
+    const styled=new Promise((resolve,reject)=>{link.onload=resolve;link.onerror=()=>reject(Error('正式样式加载失败'));});
+    doc.head.append(link);await styled;
+    root=doc.getElementById('preview-source-root');
     root.innerHTML=markup;
     const scenario=new URLSearchParams(location.search).get('seed')==='empty'?'empty':'sample';
     const seedSelect=document.getElementById('preview-seed');seedSelect.value=scenario;
@@ -96,7 +108,7 @@ body{margin:0;color:#253146;background:var(--od-bg);font:13px/1.5 system-ui,-app
     const consumeFault=()=>{const result=fault;fault='none';faultSelect.value='none';return result;};
     let saved=clone(scenario==='empty'?{version:1,items:[]}:seed);
     const previewStatus={dirty:false,busy:false};
-    window.OpenDeskTool={
+    frame.contentWindow.OpenDeskTool={
       root,
       setState:s=>Object.assign(previewStatus,s),
       request:async(operation,args={})=>{
@@ -128,19 +140,19 @@ body{margin:0;color:#253146;background:var(--od-bg);font:13px/1.5 system-ui,-app
       }
     };
     const script=async path=>new Promise((resolve,reject)=>{
-      const element=document.createElement('script');element.src=path;
+      const element=doc.createElement('script');element.src=new URL(path,location.href).href;
       element.onload=resolve;element.onerror=()=>reject(Error('脚本加载失败：'+path));
-      document.head.append(element);
+      doc.head.append(element);
     });
     await script('../src/model.js');
-    window.OpenDeskKnowledgeAnswersModel.library(saved);
+    const model=frame.contentWindow.OpenDeskKnowledgeAnswersModel;model.library(saved);
     await script('../src/main.js');
     document.getElementById('preview-ai').addEventListener('click',()=>{
       const out=document.getElementById('preview-ai-result'),question=root.querySelector('#qa-query')?.value?.trim()||'';
       if(!question){out.textContent='请先在问答页输入问题。';return;}
       try{
-        const found=window.OpenDeskKnowledgeAnswersModel.lookup(
-          window.OpenDeskKnowledgeAnswersModel.library(saved),
+        const found=model.lookup(
+          model.library(saved),
           {question,scope:root.querySelector('#qa-query-scope')?.value||''});
         out.textContent=found.sourceIds.length?
           '模拟 AI 草稿 · 待人工审阅。候选来源：'+found.sourceIds.join('、')+

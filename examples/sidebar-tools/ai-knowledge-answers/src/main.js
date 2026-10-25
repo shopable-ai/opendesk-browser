@@ -14,7 +14,14 @@ function notice(text='',error=false){
 function state(){
   const blocked=!ready||busy||uncertain||Boolean(review);
   setState?.({dirty,busy});
-  for(const id of [...edits,...actions])$(id).disabled=blocked;
+  const backdrop=$('qa-review-backdrop');
+  for(const child of backdrop.parentElement.children)if(child!==backdrop)child.inert=Boolean(review);
+  for(const id of edits){
+    const field=$(id),text=id!=='qa-enabled';
+    field.disabled=blocked&&!(text&&uncertain&&!busy&&!review);
+    if(text)field.readOnly=uncertain;
+  }
+  for(const id of actions)$(id).disabled=blocked;
   $('qa-danger').hidden=!selected;
   $('qa-delete').hidden=!selected;$('qa-delete').disabled=blocked||!selected;
   $('qa-ready-label').textContent=uncertain?'写入或读取待核对，请刷新':!ready?'正在读取知识库…':
@@ -30,6 +37,7 @@ function show(target,focus=true){
   view=target;
   $('qa-view-ask').hidden=view!=='ask';$('qa-view-list').hidden=view!=='list';
   $('qa-view-edit').hidden=view!=='edit';
+  $('qa-tab-list').setAttribute('aria-controls',view==='edit'?'qa-view-edit':'qa-view-list');
   for(const [id,k] of [['qa-tab-ask','ask'],['qa-tab-list','list']]){
     const tab=$(id),active=k===(view==='edit'?'list':view);
     tab.setAttribute('aria-selected',String(active));tab.tabIndex=active?0:-1;
@@ -38,9 +46,9 @@ function show(target,focus=true){
   state();
   if(focus)$(view==='ask'?'qa-query':view==='list'?'qa-search':'qa-question').focus({preventScroll:true});
 }
-function confirmAction(message,work,label='确认'){
+function confirmAction(message,work,label='确认',focus=root.ownerDocument.activeElement){
   if(review||busy)return;
-  review={work,focus:root.ownerDocument.activeElement};
+  review={work,focus};
   $('qa-review-message').textContent=message;$('qa-accept').textContent=label;
   $('qa-review-backdrop').hidden=false;$('qa-review').hidden=false;state();$('qa-cancel').focus();
 }
@@ -75,13 +83,13 @@ function guard(action,{recover=false}={}){
     '当前内容尚未保存。确定放弃本次编辑吗？',action,uncertain?'放弃并核对':'放弃修改');
   else action();
 }
-function navigate(target){if(target===view)return;guard(()=>{dirty=false;show(target);});}
+function navigate(target){if(target===view)return;guard(()=>{dirty=false;notice('');show(target);});}
 $('qa-tab-ask').addEventListener('click',()=>navigate('ask'));
 $('qa-tab-list').addEventListener('click',()=>navigate('list'));
 for(const id of ['qa-tab-ask','qa-tab-list'])$(id).addEventListener('keydown',e=>{
   if(!['ArrowLeft','ArrowRight'].includes(e.key))return;
   e.preventDefault();const other=$(id==='qa-tab-ask'?'qa-tab-list':'qa-tab-ask');
-  other.click();other.focus({preventScroll:true});
+  other.click();if(!review)other.focus({preventScroll:true});
 });
 $('qa-back').addEventListener('click',()=>navigate('list'));
 $('qa-manage-toggle').addEventListener('click',()=>{
@@ -89,6 +97,7 @@ $('qa-manage-toggle').addEventListener('click',()=>{
   $('qa-manage-toggle').setAttribute('aria-expanded',String(!panel.hidden));
 });
 function fill(row){
+  for(const id of edits){$(id).removeAttribute('aria-invalid');$(id).removeAttribute('aria-describedby');}
   $('qa-question').value=row?.question||'';$('qa-answer').value=row?.answer||'';
   $('qa-aliases').value=row?.aliases.join('\n')||'';$('qa-scope').value=row?.scope||'';
   $('qa-enabled').checked=row?.enabled??true;
@@ -121,6 +130,7 @@ function list(){
     const excerpt=root.ownerDocument.createElement('span');excerpt.className='qa-record-excerpt';
     excerpt.textContent=row.answer;
     const meta=root.ownerDocument.createElement('span');meta.className='qa-record-meta';
+    meta.id='qa-meta-'+row.id;button.setAttribute('aria-describedby',meta.id);
     const dot=root.ownerDocument.createElement('span');dot.className='qa-dot'+(row.enabled?'':' off');
     dot.setAttribute('aria-hidden','true');
     const summary=root.ownerDocument.createElement('span');
@@ -162,9 +172,12 @@ async function load({silent=false}={}){
     if(view==='edit')show('list',false);
     if(!silent)notice('已从本机知识库读取');else notice('');
   }catch(e){uncertain=true;notice('读取失败：'+String(e?.message||e)+'。请保留原数据并核对。',true);}
-  finally{busy=false;state();}
+  finally{
+    busy=false;state();
+    if(!silent)$(ready&&!uncertain?(view==='ask'?'qa-query':'qa-search'):'qa-refresh').focus({preventScroll:true});
+  }
 }
-$('qa-refresh').addEventListener('click',()=>guard(()=>void load(),{recover:true}));
+$('qa-refresh').addEventListener('click',()=>guard(()=>load(),{recover:true}));
 async function commit(next,{success='保存并读回成功',after}={}){
   if(!ready||busy||uncertain||review)return false;
   busy=true;state();
@@ -182,11 +195,22 @@ async function commit(next,{success='保存并读回成功',after}={}){
     notice('写入结果未确认（'+String(e?.code||'UNKNOWN')+'）：'+String(e?.message||e)+
       '。请保留当前内容，核对实际存储，不自动重复写入。',true);
     return false;
-  }finally{busy=false;state();}
+  }finally{
+    busy=false;state();
+    if(uncertain)$(view==='edit'?'qa-answer':'qa-refresh').focus({preventScroll:true});
+    else if(view==='list')$('qa-search').focus({preventScroll:true});
+  }
 }
 $('qa-editor').addEventListener('submit',e=>{
   e.preventDefault();
   if(!ready||busy||uncertain||review)return;
+  for(const [id,label] of [['qa-question','标准问题'],['qa-answer','标准答案']]){
+    const field=$(id);
+    if(!field.value.trim()){
+      field.setAttribute('aria-invalid','true');field.setAttribute('aria-describedby','qa-status');
+      notice('请填写'+label,true);field.focus({preventScroll:true});return;
+    }
+  }
   let row,next;
   try{
     row=m.row({id:selected||m.newId(),question:$('qa-question').value,answer:$('qa-answer').value,
@@ -211,9 +235,14 @@ $('qa-delete').addEventListener('click',()=>{
       selected=null;fill(null);show('list',false);}}),'删除');
 });
 for(const id of edits){
-  $(id).addEventListener('input',()=>{if(ready&&!busy&&!uncertain){dirty=true;state();}});
+  $(id).addEventListener('input',()=>{if(ready&&!busy&&!uncertain){
+    $(id).removeAttribute('aria-invalid');$(id).removeAttribute('aria-describedby');dirty=true;state();
+  }});
   $(id).addEventListener('change',()=>{if(ready&&!busy&&!uncertain){dirty=true;state();}});
 }
+for(const id of ['qa-query','qa-query-scope'])$(id).addEventListener('input',()=>{
+  $('qa-result').hidden=true;
+});
 $('qa-query').addEventListener('keydown',e=>{
   if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)&&!e.isComposing){
     e.preventDefault();if(!$('qa-ask').disabled)$('qa-ask').click();
@@ -259,14 +288,14 @@ $('qa-import').addEventListener('click',async()=>{
     const parsed=/\.csv$/iu.test(file.name)?m.parseCsv(content):m.parseJson(content);
     plan=m.merge(kb,parsed,$('qa-mode').value);
   }catch(e){notice('导入校验失败，原知识未修改：'+String(e?.message||e),true);}
-  finally{busy=false;state();}
+  finally{busy=false;state();$('qa-import').focus({preventScroll:true});}
   if(!plan)return;
   confirmAction('导入预览：'+file.name.slice(0,80)+
     '\n方式：'+(plan.mode==='replace'?'替换全部':'按 ID 合并')+
     '\n新增 '+plan.added+' 条，跳过重复 '+plan.conflicts+' 条，最终 '+plan.library.items.length+' 条。'+
     (plan.mode==='replace'?'\n现有知识将被替换。':''),()=>
       commit(plan.library,{success:'导入已保存并读回确认',after:()=>{
-        $('qa-manage').hidden=true;$('qa-manage-toggle').setAttribute('aria-expanded','false');}}),'确认导入');
+        $('qa-manage').hidden=true;$('qa-manage-toggle').setAttribute('aria-expanded','false');}}),'确认导入',$('qa-import'));
 });
 $('qa-export-json').addEventListener('click',async()=>{
   if(!ready||busy||uncertain)return;busy=true;state();
@@ -274,7 +303,7 @@ $('qa-export-json').addEventListener('click',async()=>{
     const r=await request('file.download',{filename:'ai-knowledge-answers.json',text:JSON.stringify(kb,null,2)});
     notice('已提交 JSON 下载（'+String(r?.downloadId??'无 ID')+'），请确认浏览器实际保存文件。');
   }catch(e){notice('导出失败：'+String(e?.message||e),true);}
-  finally{busy=false;state();}
+  finally{busy=false;state();$('qa-export-json').focus({preventScroll:true});}
 });
 $('qa-export-csv').addEventListener('click',async()=>{
   if(!ready||busy||uncertain)return;busy=true;state();
@@ -283,7 +312,7 @@ $('qa-export-csv').addEventListener('click',async()=>{
     if(r?.copied!==true)throw Error('没有收到复制回执');
     notice('CSV 已复制到剪贴板；未创建文件。');
   }catch(e){notice('复制 CSV 失败：'+String(e?.message||e),true);}
-  finally{busy=false;state();}
+  finally{busy=false;state();$('qa-export-csv').focus({preventScroll:true});}
 });
 show('ask',false);void load({silent:true});
 })();
