@@ -17,7 +17,7 @@ const kb=model.save(model.empty(),{
 const etagA='a'.repeat(64),etagB='b'.repeat(64);
 
 test('trusted RAG consumer must be bound to an identity checker',()=>{
-  assert.throws(()=>createKnowledgeAnswerConsumer({model,conversation:{request(){},cancel(){}},readLibrary(){}}),/可信/);
+  assert.throws(()=>createKnowledgeAnswerConsumer({model,conversation:{request(){},cancel(){}},readLibrary(){}}),/真实 Host/);
 });
 
 test('trusted RAG consumer must reject untrusted event and missing verified storage',async()=>{
