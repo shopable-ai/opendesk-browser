@@ -80,7 +80,19 @@ export function createControllerResultsView({host,view,resultDownloads,isDispose
     if (isDisposed()) return;
     const token = ++snapshotSequence;
     try {
-      const snapshot = await host.controller.snapshotControllerRun(runId ? {runId} : {});
+      let snapshot;
+      // Development updates may refuse a read before dispatch. Wait briefly
+      // for that fence without replaying any execution or changing its owner.
+      for(let attempt=0;;attempt++){
+        if(isDisposed() || token !== snapshotSequence)return;
+        try{
+          snapshot = await host.controller.snapshotControllerRun(runId ? {runId} : {});
+          break;
+        }catch(error){
+          if(error?.code !== 'E_DEV_RELOADING' || attempt >= 39)throw error;
+          await new Promise(resolve=>setTimeout(resolve,75));
+        }
+      }
       if (!isDisposed() && token === snapshotSequence){
         if(reveal)invariant(snapshot.run?.runId===runId,'E_RUN','原始运行记录不存在或身份已变化');
         showSnapshot(snapshot);

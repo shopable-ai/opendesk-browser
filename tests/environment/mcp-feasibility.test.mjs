@@ -20,7 +20,9 @@ async function fixture(t,options={}){
   const calls=[];let payload,starts=0;
   const state={enabled:true,connected:true,unknown:false,denied:false,target:{origin:new URL(options.url||TEST_URL).origin,url:options.url||TEST_URL,documentId:'doc-one',windowId:1,tabId:2,frameId:0}};
   const request=async(method,params,requestId)=>{
-    calls.push({method,params,requestId});await options.before?.(method,state);
+    calls.push({method,params,requestId});
+    const refusal=await options.before?.(method,state);
+    if(refusal)return {v:1,kind:'response',requestId,error:refusal};
     let result;
     if(!state.connected)throw Object.assign(new Error('private path secret'),{code:'E_NATIVE_NOT_READY'});
     if(method==='bridge.status')result={extensionId:config.extensionId,enabled:state.enabled,nativeConnected:true,hostRegistrations:['host-one']};
@@ -69,6 +71,38 @@ test('submit then durable result retains original task/run/Host without source o
   assert.equal(r.run.retirementState,'released');assert.doesNotMatch(JSON.stringify(r),/sourceUtf8|files|secret|projects|local-dev/);
   await f.endpoint.dispatch(name('probe'),{intentId:a.taskId});assert.equal(f.starts(),1);
   await assert.rejects(f.endpoint.dispatch(name('write_field'),{intentId:a.taskId,text:'x'}));
+});
+test('development hold re-reads only explicitly undispatched reads and preserves final target checks',async t=>{
+  const refused=new Set();
+  const f=await fixture(t,{before(method){
+    if(['bridge.status','target.current','run.get'].includes(method)&&!refused.has(method)){
+      refused.add(method);return {code:'E_DEV_RELOADING',outcome:'NOT_DISPATCHED'};
+    }
+  }});
+  const admission=await f.endpoint.dispatch(name('probe'),{intentId:'held-read'});
+  assert.equal(admission.runId,'run-one');
+  const result=await f.endpoint.dispatch(name('result'),{taskId:'held-read'});
+  assert.deepEqual(result.value,{title:'Test Lab'});
+  assert.equal(f.starts(),1);assert.equal(refused.size,3);
+
+  let targetReads=0;
+  const drift=await fixture(t,{before(method,state){
+    if(method==='target.current'&&++targetReads===1)return {code:'E_DEV_RELOADING',outcome:'NOT_DISPATCHED'};
+    if(method==='target.current')state.target.documentId='navigated';
+  }});
+  await assert.rejects(drift.endpoint.dispatch(name('probe'),{intentId:'held-drift'}),{code:'E_DOCUMENT_STALE'});
+  assert.equal(drift.starts(),0);
+});
+test('development hold never replays a run admission or an ambiguous read refusal',async t=>{
+  const write=await fixture(t,{allowWriteField:true,before(method){if(method==='run.start')return {code:'E_DEV_RELOADING',outcome:'NOT_DISPATCHED'};}});
+  await assert.rejects(write.endpoint.dispatch(name('write_field'),{intentId:'held-write',text:'once'}),{code:'E_DEV_RELOADING'});
+  await write.endpoint.dispatch(name('write_field'),{intentId:'held-write',text:'once'});
+  assert.equal(write.calls.filter(c=>c.method==='run.start').length,1);
+  for(const outcome of [undefined,'OUTCOME_UNKNOWN']){
+    const read=await fixture(t,{before(method){if(method==='bridge.status')return {code:'E_DEV_RELOADING',...(outcome?{outcome}: {})};}});
+    await assert.rejects(read.endpoint.dispatch(name('probe'),{intentId:'ambiguous'}),{code:'E_DEV_RELOADING'});
+    assert.equal(read.calls.filter(c=>c.method==='bridge.status').length,1);assert.equal(read.starts(),0);
+  }
 });
 test('target capture refuses wrong tab/document/URL and drift before final run payload',async t=>{
   for(const delta of [{tabId:3},{documentId:'next'},{url:TEST_URL+'?x'}, {frameId:1}]){

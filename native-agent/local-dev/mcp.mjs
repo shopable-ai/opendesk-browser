@@ -4,6 +4,7 @@
 import {pathToFileURL} from 'node:url';
 import path from 'node:path';
 import fs from 'node:fs';
+import {isDeepStrictEqual} from 'node:util';
 import {LocalDevSession} from './session.mjs';
 import {createLocalProjectProvider} from './provider.mjs';
 
@@ -31,7 +32,7 @@ function validateArgs(tool,args){
   }
 }
 export function serveMcp({input=process.stdin,output=process.stdout,session,tools=MCP_TOOLS,serverInfo={name:'opendesk-local-dev',version:'1.0.0'},instructions='Use only explicitly authorized project roots. Native/RunHost permissions remain authoritative. Unknown effects must never be automatically replayed.',dispatch}={}){
-  let buffer=Buffer.alloc(0),initialized=false,ready=false,closed=false,inflight=0;
+  let buffer=Buffer.alloc(0),initialized=false,initializationParams,ready=false,closed=false,inflight=0;
   const pending=new Set(),maxBytes=64*1024;
   const write=message=>{if(!closed)output.write(JSON.stringify(message)+'\n');};
   const rpcError=(id,code,message)=>write({jsonrpc:'2.0',id,error:{code,message}});
@@ -46,9 +47,11 @@ export function serveMcp({input=process.stdin,output=process.stdout,session,tool
     pending.add(id);inflight++;
     try{
       if(message.method==='initialize'){
-        if(initialized)return rpcError(id,-32600,'Already initialized');
         if(!object(message.params)||typeof message.params.protocolVersion!=='string'||!object(message.params.capabilities)||!object(message.params.clientInfo)||typeof message.params.clientInfo.name!=='string'||typeof message.params.clientInfo.version!=='string')return rpcError(id,-32602,'Invalid initialization parameters');
-        initialized=true;
+        if(initialized&&!isDeepStrictEqual(message.params,initializationParams))return rpcError(id,-32600,'Already initialized with different parameters');
+        // ChatGPT discovery initializes the same Tunnel stdio stream twice.
+        // A matching handshake is repeatable; never reset readiness or runs.
+        initialized=true;initializationParams=message.params;
         return write({jsonrpc:'2.0',id,result:{protocolVersion:'2025-11-25',capabilities:{tools:{}},serverInfo,instructions}});
       }
       if(message.method==='ping')return write({jsonrpc:'2.0',id,result:{}});

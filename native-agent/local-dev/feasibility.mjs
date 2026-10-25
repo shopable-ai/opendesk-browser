@@ -56,7 +56,8 @@ export async function createFeasibility({registrationId,extensionId,tabId,docume
   };
   async function status(){
     open();const s=await session.status({registrationId});open();
-    if(!s.connected||s.bridge?.nativeConnected!==true)fail('E_NATIVE_NOT_READY','Native connection unavailable');
+    if(!s.connected)fail(s.error?.code||'E_NATIVE_NOT_READY','Native connection unavailable');
+    if(s.bridge?.nativeConnected!==true)fail('E_NATIVE_NOT_READY','Native connection unavailable');
     if(s.bridge.enabled!==true||s.bridge.extensionId!==extensionId||!s.bridge.hostRegistrations?.includes(registrationId))fail('E_PERMISSION','Registration or extension is no longer authorized');
     if(s.targetError)fail(s.targetError.code||'E_DOCUMENT_STALE','Test target unavailable');
     checkTarget(s.target);return s.target;
@@ -74,7 +75,17 @@ export async function createFeasibility({registrationId,extensionId,tabId,docume
       if(params.sourceHash!==frozen.sourceHash||params.sourceBytes!==frozen.sourceBytes||params.source?.sourceUtf8!==frozen.sourceUtf8||sha256(params.source.sourceUtf8)!==frozen.sourceHash)fail('E_DEV_HASH','Final payload source differs');
     }
     open();let response;
-    try{response=await native(method,params,requestId);}
+    try{
+      // Development reload admission can be briefly held while hosts save.
+      // Only re-read after an explicit NOT_DISPATCHED refusal; never resend
+      // run.start or recover a transport/unknown outcome by replaying it.
+      const readOnly=['bridge.status','target.current','run.get','request.get'].includes(method);
+      for(let attempt=0;;attempt++){
+        response=await native(method,params,requestId);
+        if(!readOnly||response?.error?.code!=='E_DEV_RELOADING'||response.error.outcome!=='NOT_DISPATCHED'||attempt>=40)break;
+        await new Promise(resolve=>setTimeout(resolve,75));open();
+      }
+    }
     catch(error){
       // Once handed to Native, a transport throw cannot prove no browser effect.
       if(method==='run.start')throw Object.assign(new Error('Native admission outcome unknown'),{code:'E_EFFECT_UNKNOWN',outcome:'OUTCOME_UNKNOWN'});
