@@ -69,6 +69,22 @@ test('R2.3 shared provider settings use two native radio choices in a compact se
  assert.match(css,/\.od-shared-provider-form input\[type=checkbox\]\{/);
  assert.match(css,/@media\(pointer:coarse\)\{\.od-shared-provider-segment span\{min-height:44px\}\}/);
  assert.match(sheet,/providerSettings\.updateSettings\(patch\)/);
+ assert.match(sheet,/className="od-shared-provider-scroll"/);
+ assert.match(sheet,/className="od-shared-provider-actions"/);
+ assert.match(sheet,/className="od-shared-provider-input-action"/);
+ assert.match(sheet,/aria-label="清空接口地址"/);
+ assert.match(sheet,/keyVisible\?'text':'password'/);
+ assert.match(sheet,/setKeyVisible\(false\)/);
+ assert.match(sheet,/onSubmit=\{save\} autoComplete="off" noValidate/,
+  'HTTPS errors must be reported by trusted form validation, not silent browser blocking');
+ assert.doesNotMatch(sheet,/Codex 已就绪/,'do not invent Native connection readiness');
+ assert.match(css,/\.od-shared-provider-form \.od-shared-provider-segments\{width:100%;max-width:none/);
+ assert.match(css,/\.od-shared-provider-sheet>\.od-shared-provider-content\{display:flex;flex-direction:column/);
+ assert.match(css,/\.od-shared-provider-scroll\{display:flex;flex:1 1 auto;min-height:0/);
+ assert.match(css,/\.od-shared-provider-form \.od-shared-provider-actions\{display:flex;align-items:center/);
+ assert.match(css,/\.od-shared-provider-input-action input\.od-field\{flex:1 1 auto/);
+ assert.match(sheet,/onOpenNativeSettings\(\)/,'Native settings continue through existing trusted callback');
+
  assert.match(sheet,/savedSource\|\|inferredSource/,'unchanged configured protocol wins over a URL hint');
  assert.match(sheet,/selectedHttpsSource/);
  assert.match(sheet,/option value="custom_https"/);
