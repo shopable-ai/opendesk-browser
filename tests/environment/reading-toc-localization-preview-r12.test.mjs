@@ -87,6 +87,31 @@ test('R1.2 scenario and language controls are simulation only; do not widen unsu
   await assert.rejects(generatePreview({tool:'quick-notes',surface:'page-overlay'}),/no verified production preview adapter/);
 });
 
+test('R23 preview locale bridge delivers all three supported languages without accepting unrelated messages',async()=>{
+  let receive;
+  const parent={};
+  const document={getElementById:()=>({}),documentElement:{lang:'zh-CN'}};
+  const context=vm.createContext({parent,document,
+    window:{addEventListener:(type,handler)=>{if(type==='message')receive=handler;}}});
+  vm.runInContext(await readFile('scripts/preview/reading-toc-mock.js','utf8'),context);
+  const changes=[];
+  const unsubscribe=context.OpenDeskTool.onLocaleChange(locale=>changes.push(locale));
+  const send=(locale,source=parent)=>receive({source,data:{kind:'opendesk-toc-preview-locale',locale}});
+  send('ja',{});
+  send('fr');
+  assert.equal(context.OpenDeskTool.locale,'zh-CN');
+  for(const locale of ['ja','en','zh-CN']){
+    send(locale);
+    assert.equal(context.OpenDeskTool.locale,locale);
+    assert.equal(document.documentElement.lang,locale);
+    send(locale);
+  }
+  assert.deepEqual(changes,['ja','en','zh-CN']);
+  unsubscribe();
+  send('ja');
+  assert.equal(changes.length,3);
+});
+
 test('R1.2 preview and review sidecar write reproducibly outside source tree',async()=>{
   const dir=await mkdtemp(join(tmpdir(),'od-toc-l10n-'));
   try{

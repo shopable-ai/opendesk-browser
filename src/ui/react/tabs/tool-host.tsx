@@ -287,7 +287,7 @@ export function ToolHost({view}) {
 <label htmlFor="sidebar-tool-toc-language-select">
 <ToolLabel name="languageLabel"/>
 </label>
-<select id="sidebar-tool-toc-language-select" className="od-field" aria-label="界面语言"
+<select id="sidebar-tool-toc-language-select" className="od-field" aria-label={snapshot.labels.languageLabel}
   value={snapshot.fields['sidebar-tool-toc-language-select'].value} disabled={snapshot.fields['sidebar-tool-toc-language-select'].disabled}
   onChange={actions.language}>
 <option value="follow">{snapshot.labels.followLanguage}</option>

@@ -81,7 +81,7 @@
   window.addEventListener('message',event=>{
     if(event.source!==parent||!event.data||typeof event.data!=='object')return;
     if(event.data.kind==='opendesk-toc-preview-locale'){
-      if(!['zh-CN','en'].includes(event.data.locale))return;
+      if(!['zh-CN','en','ja'].includes(event.data.locale))return;
       if(event.data.locale===locale)return;
       locale=event.data.locale;document.documentElement.lang=locale;
       for(const callback of localeCallbacks)callback(locale);

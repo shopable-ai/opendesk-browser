@@ -86,7 +86,7 @@ function render(){
 }
 window.addEventListener('message',event=>{
  if(event.source!==parent||!event.data||typeof event.data!=='object')return;
- if(event.data.kind==='opendesk-toc-preview-locale'&&['zh-CN','en'].includes(event.data.locale)){
+ if(event.data.kind==='opendesk-toc-preview-locale'&&['zh-CN','en','ja'].includes(event.data.locale)){
    locale=event.data.locale;surface.setLocale(locale);
  }
  if(event.data.kind==='opendesk-toc-preview-scenario'&&

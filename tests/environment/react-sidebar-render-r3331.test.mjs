@@ -20,12 +20,15 @@ test('ToolHost local JSX factory preserves real import and bookmark permission f
   const title='书签 <script>unsafe()</script>';
   view.patch('sidebar-tool-title',{textContent:title,textSet:true});
   view.patch('sidebar-tool-import',{hidden:false});
+  view.patchLabels({languageLabel:'表示言語',followLanguage:'OpenDesk の既定言語に従う'});
   await Promise.resolve();
   const before=view.getSnapshot();
   const $=load(renderToStaticMarkup(React.createElement(ToolHost,{view})));
   assert.equal($('#sidebar-tool-title').text(),title);
   assert.equal($('#sidebar-tool-file').attr('type'),'file');
   assert.equal($('#sidebar-tool-bookmark-grant').get(0).tagName,'button');
+  assert.equal($('#sidebar-tool-toc-language-select').attr('aria-label'),'表示言語');
+  assert.equal($('#sidebar-tool-toc-language-select option[value="follow"]').text(),'OpenDesk の既定言語に従う');
   assert.equal($('script').length,0);
   assert.strictEqual(view.getSnapshot(),before,'rendering never dispatches an install or permission action');
 });

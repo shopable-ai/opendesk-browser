@@ -1,5 +1,11 @@
 # Reading TOC · 与正式源码同源的交互预览
 
+2026-10-25 R23：当前 `index.html`、`reading-toc-r12-overlay-preview.html` 与 `reading-toc-r12-interactive-preview.html` 由原生成器同步到工具包 **1.0.11**，可切换简中、English、日本語；两种展示面均已在本地 CFT 实际操作。可信浮层当前源码归 `examples/sidebar-tools/reading-toc/trusted/`。预览仍模拟 SDK、文章和权限，不能代替安装验收。
+
+`reading-toc-r23-design.html` 是可编辑设计模拟，原 Switch / 分段布局只保留为设计历史。用户后来将实施收窄为**多语言修复**，未将这份模拟的模式算法、布局或控件替换进产品。方案约束见根目录 `DESIGN.md`；详细操作、截图及独立审查保存在本机 [R23 记录](../../../../docs/framework/workstreams/locale-ux-r23.md) 与 `artifacts/reading-toc-ux-r23/`，按仓库规则不提交会话日志。
+
+R23 定向验证：预览源码/字节及三语消息适配 8/8、语言管理 48/48、两个相关 React 渲染检查通过；实际 CFT 已验证三语、跟随/独立、文档重开持久性和导入不切语言。独立证据审阅结论为“限定语言范围可收尾”，未计算完整六维分数。旧 Profile 升级、整个浏览器重启、production 与完整故障原生注入未测；并行移动语言入口后共享开发安全重载中断了补查，新的完整原生往返也未测。不宣称整体 95 分。
+
 本目录的 R1.2 同源预览由正式生成器构建，不单独开发第二份正式实现；`reading-toc-r17-ai-desktop-preview.html` 是 **R1.7.4 已批准的视觉基准**，其中演示数据及业务模拟仍不构成真实 AI / 会员能力。预览 HTML 通过仓库的唯一 `scripts/preview/build-preview.mjs` 从当前阅读目录的**可安装工具包**与可信网页 `src/reading-toc/view.js` 现场生成。现有公共预览模板和浅色 Side Panel 外壳保持原有实现。
 
 ```sh
