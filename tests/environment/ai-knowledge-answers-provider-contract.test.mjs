@@ -16,13 +16,17 @@ const kb=model.save(model.empty(),{
 });
 const etagA='a'.repeat(64),etagB='b'.repeat(64);
 
+test('trusted RAG consumer must be bound to an identity checker',()=>{
+  assert.throws(()=>createKnowledgeAnswerConsumer({model,conversation:{request(){},cancel(){}},readLibrary(){}}),/可信/);
+});
+
 test('trusted RAG consumer must reject untrusted event and missing verified storage',async()=>{
   const calls=[],provider={
     request:args=>{calls.push(args);return Promise.resolve({});},
     cancel:async()=>{}
   };
   const consumer=createKnowledgeAnswerConsumer({
-    model,conversation:provider,readLibrary:async()=>({value:kb,etag:etagA})
+    model,conversation:provider,assertIdentity:()=>{},readLibrary:async()=>({value:kb,etag:etagA})
   });
   assert.throws(()=>consumer.request({request:'退款需要多少天',event:{isTrusted:false}}),/可信/);
   assert.throws(()=>consumer.request({request:'退款需要多少天',event:{isTrusted:true}}),/先从可信/);
@@ -37,7 +41,7 @@ test('trusted RAG consumer must reject untrusted event and missing verified stor
 test('provider request starts synchronously with original trusted event; response is a reviewed draft (fake Provider contract only)',async()=>{
   const event={isTrusted:true},calls=[];let released=0,asserted=0;
   const consumer=createKnowledgeAnswerConsumer({
-    model,
+    model,assertIdentity:()=>{},
     conversation:{
       request:args=>{
         calls.push(args);
@@ -67,7 +71,7 @@ test('provider request starts synchronously with original trusted event; respons
 test('stale ETag after inference must discard the old answer and release grant',async()=>{
   let changed=false,released=0;
   const consumer=createKnowledgeAnswerConsumer({
-    model,
+    model,assertIdentity:()=>{},
     conversation:{
       request:()=>{changed=true;return Promise.resolve({
         proposal:{answer:'7 天内可以退款',sourceIds:[kb.items[0].id],needsHuman:false},
