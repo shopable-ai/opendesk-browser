@@ -1,0 +1,13 @@
+{
+  "id": "dev-hot-preview-p0",
+  "version": "0.1.0",
+  "title": "本地工具热更新",
+  "description": "最小 Sidebar Tool 源码热更新演示，仅用于开发预览，不请求浏览器权限。",
+  "capabilities": [],
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js"
+  },
+  "assets": []
+}

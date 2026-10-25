@@ -1,0 +1,24 @@
+.dev-hot-preview {
+  box-sizing: border-box;
+  max-width: 480px;
+  padding: 20px;
+  color: #1f2937;
+  background: #fff;
+  font: 14px/1.5 system-ui, -apple-system, sans-serif;
+}
+.dev-hot-preview h1 { margin: 0 0 12px; font-size: 19px; line-height: 1.35; }
+.dev-hot-preview__version { margin: 0 0 16px; color: #64748b; }
+.dev-hot-preview__button {
+  appearance: none;
+  border: 1px solid #1d4ed8;
+  border-radius: 10px;
+  padding: 9px 15px;
+  background: #2563eb;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.dev-hot-preview__button:hover { background: #1d4ed8; }
+.dev-hot-preview__button:focus-visible { outline: 2px solid #0f172a; outline-offset: 3px; }
+.dev-hot-preview__feedback { min-height: 22px; margin: 16px 0 0; color: #334155; }
