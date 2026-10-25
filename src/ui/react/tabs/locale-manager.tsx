@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {Button} from '../components/ui/button.tsx';
 import {UninstallDialog} from './tools.tsx';
-import './locale-manager.css';
 import {localeManagerLocale,localeManagerText} from '../../locale-manager-localization.js';
 import {LOCALE_PACK_MAX_BYTES} from '../../sidebar-tools/locale-packs.js';
 

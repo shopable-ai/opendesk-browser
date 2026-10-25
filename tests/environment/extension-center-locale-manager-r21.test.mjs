@@ -547,13 +547,13 @@ test('real locale controller unknown outcome stays blocked until explicit manage
   assert.equal(writes,1,'recovery reconciles the durable value, never saves again');
 });
 
-test('actual extension page and lazy locale manager compile with scoped CSS (no browser)',async()=>{
+test('actual extension page and lazy locale manager compile without an unreferenced CSS asset (no browser)',async()=>{
   const result=await build({stdin:{contents:"export {ExtensionCenterPage} from './src/ui/react/tabs/tools.tsx';",
     loader:'tsx',resolveDir:process.cwd()},bundle:true,write:false,outdir:'/virtual/locale-manager-compile-r21',
     platform:'browser',format:'esm',logLevel:'silent'});
   assert.ok(result.outputFiles.some(file=>file.path.endsWith('.js')));
-  const css=result.outputFiles.find(file=>file.path.endsWith('.css'))?.text;
-  assert.match(css,/\.od-locale-manager/);assert.match(css,/flex-wrap: wrap/);
+  assert.equal(result.outputFiles.some(file=>file.path.endsWith('.css')),false,
+    'locale styles are carried by the trusted React root, not a detached component asset');
 });
 
 // These are DOM-emulator interactions, not native Chrome evidence.

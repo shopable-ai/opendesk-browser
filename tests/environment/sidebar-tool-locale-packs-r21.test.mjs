@@ -93,7 +93,8 @@ test('custom > official > source; independent state, manual task export, upgrade
   const tool=await fixture(),env=host(tool),service=createToolLocaleService(env);await service.ready;
   assert.equal(service.getCatalog(tool,'fr').messages.hello,'Bonjour');
   let notices=0;const unsubscribe=service.subscribe(()=>notices++);
-  await service.install(pack(tool),tool);assert.equal(service.getToolLocale(tool.id),'fr');
+  await service.install(pack(tool),tool);assert.equal(service.getToolLocale(tool.id),null);
+  await service.setToolLocale(tool.id,'fr');
   const catalog=service.getCatalog(tool,'en');
   assert.deepEqual(catalog.messages,{hello:'Salut',count:'Nombre {count}',other:'Other'});
   assert.deepEqual(catalog.missing,['other']);assert.equal(service.getToolLocale(tool.id),'fr');
@@ -150,7 +151,8 @@ test('uninstall/registry races cannot write a removed tool; corrupt storage is n
 
 test('pure projection matches service, and same-language pack updates notify subscribers',async()=>{
   const tool=await fixture(),env=host(tool),service=createToolLocaleService(env);await service.ready;
-  await service.install(pack(tool),tool);assert.equal(service.getToolLocale(tool.id),'fr');
+  await service.install(pack(tool),tool);assert.equal(service.getToolLocale(tool.id),null);
+  await service.setToolLocale(tool.id,'fr');
   const key=toolLocaleStorageKey(tool.id);assert.equal(key,LOCALE_PACK_STORE+tool.id);
   assert.deepEqual(resolveToolLocaleState(tool,env.values[key],'en'),service.getCatalog(tool,'en'));
   const noticed=new Promise(resolve=>{const stop=service.subscribe(state=>{stop();resolve(state);});});
@@ -201,13 +203,21 @@ test('unknown write fences a mutation already queued on the same service',async(
 });
 
 
-test('install atomically persists pack and selected language; null restores global following',async()=>{
+test('install atomically persists resources without changing follow or independent language',async()=>{
   const tool=await fixture(),env=host(tool),service=createToolLocaleService(env);await service.ready;
   const writes=[],set=env.api.storage.local.set;
   env.api.storage.local.set=async value=>{writes.push(structuredClone(value));return set(value);};
   await service.install(pack(tool),tool);
   const key=toolLocaleStorageKey(tool.id);
-  assert.equal(writes.length,1);assert.deepEqual(writes[0][key],{locale:'fr',packs:{fr:pack(tool)}});
+  assert.equal(writes.length,1);assert.deepEqual(writes[0][key],{locale:null,packs:{fr:pack(tool)}});
+  assert.equal(service.getToolLocale(tool.id),null);
+  assert.equal(service.getCatalog(tool,'en').locale,'en');
+  assert.equal(service.getCatalog(tool,'fr').messages.hello,'Salut');
+  await service.setToolLocale(tool.id,'fr');
+  await service.install(pack(tool,'de'),tool);
+  assert.equal(writes.length,3);assert.deepEqual(writes[2][key],{
+    locale:'fr',packs:{fr:pack(tool),de:pack(tool,'de')}});
+  assert.equal(service.getToolLocale(tool.id),'fr');
   assert.equal(service.getCatalog(tool,'en').locale,'fr');
   await service.setToolLocale(tool.id,null);
   assert.equal(env.values[key].locale,null);assert.equal(service.getCatalog(tool,'en').locale,'en');
@@ -227,6 +237,8 @@ test('registry limit follows package constant and custom projection supports mor
   const fresh=host(localized),other=createToolLocaleService(fresh);await other.ready;
   await other.install(pack(localized,'zh-Hant-TW'),localized);
   assert.equal(other.getAvailableLocales(localized).length,13);
+  assert.equal(other.getCatalog(localized,'en').locale,'en');
+  await other.setToolLocale(localized.id,'zh-Hant-TW');
   assert.equal(other.getCatalog(localized,'en').messages.hello,'Salut');
   assert.equal(other.getCatalog(localized,'en').locale,'zh-Hant-TW');other.dispose();
 });

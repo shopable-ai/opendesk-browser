@@ -12,6 +12,7 @@ import {createPromptReconciliationAdapter} from '../conversation/prompt-controll
 import conversationDockCSS from './components/conversation-dock.css?raw';
 import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 import myAgentCSS from './tabs/my-agent.css?raw';
+import localeManagerCSS from './tabs/locale-manager.css?raw';
 
 const PROMPT_PHASE_LABELS=Object.freeze({
  thinking:'正在理解提示词操作…',observing:'正在查找并核对提示词…',
@@ -84,7 +85,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
     const extensionProps={rowsModel:model,menuKey,rowMenuModel,detailModel,uninstallModel,toolbarModel,feedbackModel,recoveryModel,statusModel,
       view:extensionView,onBack:onExtensionBack};
     flushSync(()=>root.render(<>
-      <style data-opendesk-trusted-react-css="">{bookmarkPilotLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS}</style>
+      <style data-opendesk-trusted-react-css="">{bookmarkPilotLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS+'\n'+localeManagerCSS}</style>
       <SidebarAppShell activeTab={navigationTab}
         debugEnabled={debugEnabled} debugModel={debugModel} debugActions={debugActions} development={development}
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
