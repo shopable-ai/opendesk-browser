@@ -1,6 +1,24 @@
-# AI 知识问答 · R1.2
+# AI 知识问答 · R1.3 本地模拟聊天测试（保留 R1.2 工具）
 
-独立 Sidebar Tool v2，ID `ai-knowledge-answers`，版本 `0.1.2`。复用原 Tool Host、存储、Shared AI Provider 和唯一 React root。网站读取、草稿填入及自动发送留到下一阶段。
+独立 Sidebar Tool v2，ID `ai-knowledge-answers`，版本 `0.1.2`。复用原 Tool Host、存储、Shared AI Provider 和唯一 React root。R1.3 已在可信环境接入**仅固定本地 HTTP 测试页**的 DOM 观察、定时消息处理、草稿发送与独立 DOM 回执；这些新操作尚未完成真实 Mac Chrome 验收。其他第三方网站仍不在本轮范围。
+
+## R1.3：从哪里开始测试（原生尚未验收）
+
+本地客服模拟网页源码：`examples/tasks/ai-knowledge-chat-demo.{html,js,css}`。
+只在确定端口空闲或服务是当前仓库版本时复用：
+
+```sh
+lsof -nP -iTCP:43111 -sTCP:LISTEN
+python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
+```
+
+在 Chrome 打开 `http://127.0.0.1:43111/ai-knowledge-chat-demo.html`；若 43111 已被占用，先核对既有服务，不杀进程或重启别的 Agent 的服务。可信适配器固定精确端口与路径，临时换端口不会自动变更适配器授权范围。
+
+先通过官方安装器取得已验证来源的 `ai-knowledge-answers` 安装身份，导入 `fixtures/sample-knowledge.json`（14 条虚构演示政策，非商家事实），在可信侧栏点击**批准并监听本地测试页**，然后在测试网页发送「几天内可以退款」。默认需手动确认发送固定答案；只有开始前单独批准的固定答案才允许自动发送。非精确问题如「退款需要几天」必须经过真实 Shared Provider 和人工审核才可发送；定时消息仅在页面制造客户 DOM，不直接调用模型。
+
+`fixtures/sample-knowledge.csv` 与 JSON 同值；`fixtures/answer-test-cases.json` 包含 52 个场景，37 个检索期可静态检验，15 个真实端到端阶段不得当作 PASS。默认 Side Panel 保持打开；暂停/停止可分别从网页和侧栏操作。来源、撤权、发送结果未知与会话切换的逐项验收步骤见 [R1.3 真实 DOM 测试记录](../../../docs/framework/workstreams/ai-knowledge-answers-r13-20261026.md)。连续点击同一发送确认的最小栅栏修复及证据见 [R1.3 并发回归](../../../docs/framework/workstreams/ai-knowledge-answers-r13-send-fence-20261026.md)。
+
+**已复核的是业务源码和隔离 V8 逻辑，不是完整本机 Chrome/Native Provider/真实网站回执。** 修改的可信宿主代码仍须通过原日常 watcher 编译，并在当前开发 Chrome 中真实验证；不要只导入旧 0.1.2 JSON 就推断最新可信代码已经运行。
 
 ## 当前范围
 
