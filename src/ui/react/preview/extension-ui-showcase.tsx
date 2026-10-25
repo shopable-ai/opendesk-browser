@@ -29,6 +29,8 @@ function Row({name,forId,children,hint}){
   </div>;
 }
 
+export function createExtensionUiShowcase(){return <ExtensionUiShowcase/>;}
+
 export default function ExtensionUiShowcase(){
   const [tab,setTab]=React.useState('controls');
   const [enabled,setEnabled]=React.useState(true);

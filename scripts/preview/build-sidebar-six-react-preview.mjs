@@ -50,8 +50,7 @@ const digest=entries=>sha(Buffer.concat(entries.flatMap(([path,bytes])=>[
 // Presentation adapters only. Production mountSidebarApp remains the sole DOM
 // owner, with the same explicit onNavigate contract as src/ui/tool-shell.js.
 const previewEntry=`
-import * as React from 'react';
-import ExtensionUiShowcase from ${JSON.stringify(join(root,'src/ui/react/preview/extension-ui-showcase.tsx'))};
+import {createExtensionUiShowcase} from ${JSON.stringify(join(root,'src/ui/react/preview/extension-ui-showcase.tsx'))};
 import {mountSidebarApp} from ${JSON.stringify(join(root,'src/ui/react/main.tsx'))};
 import {createDeveloperPreviewView} from ${JSON.stringify(join(root,'src/ui/react/preview/developer-preview.js'))};
 import {createMyWorkbenchView} from ${JSON.stringify(join(root,'src/ui/my-workbench-view.js'))};
@@ -168,7 +167,7 @@ const onNavigate=tab=>{
   app.renderNavigation(tab);return true;
 };
 app=mountSidebarApp(document,{debugEnabled:true,onNavigate,developerView,myView,toolView,providerSettings,
-  previewContents:showcaseMode?React.createElement(ExtensionUiShowcase):null});
+  previewContents:showcaseMode?createExtensionUiShowcase():null});
 app.connectMyAgent(myAgent);
 const clipper=createClipperPreview({view:toolView,stage:CLIPPER_STAGE_DOCUMENT,
   onUninstall:id=>{
