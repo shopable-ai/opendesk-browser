@@ -1,0 +1,59 @@
+/* Preview-only React consumer of canonical tokens and production UI primitives.
+ * No palette copies, CDN resources, custom Host or installation side effects. */
+.od-demo-gallery{display:flex;flex-direction:column;min-height:100%;background:var(--od-bg);color:var(--od-ink);font-size:var(--od-body-size);line-height:1.5}
+.od-demo-header{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-3);padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--od-line);background:var(--od-paper)}
+.od-demo-header strong{font-size:15px}
+.od-demo-header p{margin:3px 0 0;color:var(--od-sub);font-size:var(--od-note-size)}
+.od-demo-proof{border:1px solid var(--od-line);color:var(--od-sub);background:var(--od-muted);border-radius:var(--radius-pill);padding:3px 8px;font-size:10px;white-space:nowrap}
+.od-demo-tabs{display:flex;flex-wrap:nowrap;gap:var(--space-1);padding:var(--space-2) var(--space-3);background:var(--od-paper);border-bottom:1px solid var(--od-line);overflow-x:auto}
+.od-demo-tabs button{flex:1 0 auto;min-height:36px;padding:7px 9px;border:0;border-radius:var(--radius-control);background:transparent;color:var(--od-sub);cursor:pointer;font:inherit}
+.od-demo-tabs button[aria-selected=true]{background:var(--od-muted);color:var(--od-accent-ink);font-weight:650}
+.od-demo-tabs button:focus-visible{outline:2px solid var(--od-focus);outline-offset:-2px}
+.od-demo-body{flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,350px),1fr));align-content:start;align-items:start;gap:var(--space-3);padding:var(--space-3) var(--space-4);min-width:0}
+.od-demo-section{min-width:0;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface)}
+.od-demo-section>[data-slot=card-content]{display:grid;gap:var(--space-3);min-width:0;padding:var(--space-3)}
+.od-demo-section h3{font-size:var(--od-body-size);margin:0 0 var(--space-1)}
+.od-demo-actions{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2)}
+.od-demo-actions .od-button{min-height:34px;max-width:100%}
+.od-demo-actions .od-icon-button{min-height:34px}
+.od-demo-setting-row{display:flex;justify-content:space-between;align-items:center;gap:var(--space-2);min-height:36px}
+.od-demo-setting-row>span{font-weight:600}
+.od-demo-fieldset{display:grid;gap:var(--space-2);border:0;margin:0;padding:0;min-width:0}
+.od-demo-fieldset legend{font-size:var(--od-note-size);font-weight:600;margin:0 0 var(--space-1)}
+.od-demo-check{display:flex;align-items:center;gap:var(--space-2);min-height:30px;cursor:pointer}
+.od-demo-check-square{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;flex:none;border:1px solid var(--od-input-border);border-radius:5px;color:var(--od-on-brand)}
+.od-demo-check[data-selected] .od-demo-check-square{background:var(--od-brand);border-color:var(--od-brand)}
+.od-demo-check[data-focus-visible],.od-demo-radio-group [data-focus-visible],.od-demo-segmented [data-focus-visible]{outline:2px solid var(--od-focus);outline-offset:2px}
+.od-demo-radio-group{display:flex;flex-wrap:wrap;gap:var(--space-3)}
+.od-demo-radio-group .react-aria-Radio{display:flex;gap:var(--space-2);min-height:32px;align-items:center;cursor:pointer}
+.od-demo-radio-group .react-aria-Radio::before{content:'';display:block;width:16px;height:16px;border:2px solid var(--od-input-border);border-radius:50%;box-sizing:border-box}
+.od-demo-radio-group .react-aria-Radio[data-selected]::before{border:5px solid var(--od-brand)}
+.od-demo-segmented{display:inline-flex;flex-wrap:wrap;gap:2px;padding:3px;background:var(--od-muted);border:1px solid var(--od-line);border-radius:var(--radius-control)}
+.od-demo-segmented .react-aria-Radio{cursor:pointer;padding:6px 12px;border-radius:calc(var(--radius-control) - 2px);color:var(--od-sub)}
+.od-demo-segmented .react-aria-Radio[data-selected]{background:var(--od-paper);color:var(--od-accent-ink);box-shadow:0 0 0 1px var(--od-line)}
+.od-demo-form{display:grid;gap:var(--space-3);min-width:0}
+.od-demo-field-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:var(--space-2);align-items:start;min-width:0}
+.od-demo-field-row>.od-field-label{padding-top:8px;overflow-wrap:anywhere}
+.od-demo-field-value{display:grid;gap:var(--space-1);min-width:0}
+.od-demo-field-value :is(select,input,textarea).od-field{width:100%;min-width:0;min-height:36px;box-sizing:border-box;padding:7px 8px}
+.od-demo-field-value textarea.od-field{resize:vertical}
+.od-demo-form-actions{justify-content:flex-end}
+.od-demo-inline-status{padding:var(--space-2);border:1px solid var(--od-line);border-radius:var(--radius-control);overflow-wrap:anywhere}
+.od-demo-empty{padding:var(--space-4);text-align:center;border:1px dashed var(--od-line);border-radius:var(--radius-control);color:var(--od-sub)}
+.od-demo-feedback{position:sticky;bottom:0;border-top:1px solid var(--od-line);padding:var(--space-2) var(--space-4);background:var(--od-paper);font-size:var(--od-note-size);color:var(--od-sub);overflow-wrap:anywhere}
+.od-demo-floating{z-index:2300;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);padding:var(--space-1);box-shadow:0 10px 28px rgba(16,26,42,.14);min-width:150px}
+.od-demo-floating .react-aria-Menu{outline:0;display:grid;gap:2px}
+.od-demo-floating .react-aria-MenuItem{padding:7px 12px;cursor:pointer;border-radius:var(--radius-control);outline:0}
+.od-demo-floating .react-aria-MenuItem[data-focused]{background:var(--od-muted);color:var(--od-accent-ink)}
+.od-demo-popover-dialog{display:grid;gap:var(--space-2);padding:var(--space-2);outline:0}
+.od-demo-tooltip{z-index:2300;max-width:260px;padding:6px 9px;background:var(--od-ink);color:var(--od-paper);border-radius:var(--radius-control);font-size:var(--od-note-size)}
+.od-uninstall-overlay:has(.od-demo-drawer){align-items:stretch;justify-content:flex-end;padding:0}
+.od-uninstall-dialog.od-demo-drawer{height:100%;width:min(100%,500px);max-height:100%;margin:0;border-radius:var(--radius-surface) 0 0 var(--radius-surface);box-sizing:border-box}
+.od-demo-drawer .od-demo-field-row{display:grid}
+@media(max-width:560px){
+  .od-demo-header{padding:var(--space-3)}
+  .od-demo-body{padding:var(--space-2);grid-template-columns:minmax(0,1fr)}
+  .od-demo-field-row{grid-template-columns:minmax(0,1fr);gap:var(--space-1)}
+  .od-demo-field-row>.od-field-label{padding:0}
+  .od-demo-section>[data-slot=card-content]{padding:var(--space-3)}
+}

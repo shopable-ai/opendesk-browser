@@ -39,12 +39,16 @@ const mountedDocuments=new WeakSet();
 
 export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
   developerView=createDeveloperView(),myView=createMyWorkbenchView(),toolView=null,
-  providerSettings=null,openNativeSettings=null}={}){
+  providerSettings=null,openNativeSettings=null,previewContents=null}={}){
   const mount=doc.getElementById('opendesk-react-app');
   if(!mount||mount.childNodes.length||mountedDocuments.has(doc))throw new Error('E_REACT_APP_MOUNT');
   if(typeof onNavigate!=='function')throw new Error('E_REACT_APP_SHELL_NAVIGATION');
   const initialTab=doc.documentElement?.dataset?.opendeskTab||'tasks';
   const root=createRoot(mount);
+  // Only the offline signed preview document may add an extra portal to this same
+  // trusted React root. Production pages and installed tools cannot enter this path.
+  const previewPortal=doc.querySelector('meta[name="od-preview-proof"][content="UI_PREVIEW_ONLY"]')
+    ?doc.getElementById('od-preview-gallery'):null;
   mountedDocuments.add(doc);
   let disposed=false,navigationTab=initialTab,workflowController=null,myAgent=null,settingsOpen=false;
   let extensionView='list',onExtensionBack=()=>{},menuKey=null,detailModel=null,uninstallModel=null;
@@ -92,6 +96,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
         developerView={developerView} myView={myView} myAgent={myAgent} toolView={toolView} workflowController={workflowController}
         cloudModel={cloudPageModel.overview} cloudRequestsModel={cloudPageModel.requests}
         cloudSetupModel={cloudPageModel.setup} cloudPageModel={cloudPageModel}/>
+      {previewContents&&previewPortal&&createPortal(previewContents,previewPortal)}
       {promptPilot&&createPortal(
         <TrustedConversationWorkspace controller={promptPilot.controller}
           headerTarget={promptPilot.headerTarget}

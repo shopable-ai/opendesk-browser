@@ -20,6 +20,7 @@ const stylePaths=[
 const inputs=[
   'src/ui/sidepanel.html',...stylePaths,
   'src/ui/react/main.tsx','src/ui/react/app-shell.tsx',
+  'src/ui/react/preview/extension-ui-showcase.tsx','src/ui/react/preview/extension-ui-showcase.css',
   'src/ui/react/tabs/navigation.tsx','src/ui/react/tabs/browser-history.tsx',
   'src/ui/react/components/ui/button.tsx',
   'src/ui/react/tabs/tools.tsx','src/ui/react/tabs/tool-host.tsx',
@@ -49,6 +50,8 @@ const digest=entries=>sha(Buffer.concat(entries.flatMap(([path,bytes])=>[
 // Presentation adapters only. Production mountSidebarApp remains the sole DOM
 // owner, with the same explicit onNavigate contract as src/ui/tool-shell.js.
 const previewEntry=`
+import * as React from 'react';
+import ExtensionUiShowcase from ${JSON.stringify(join(root,'src/ui/react/preview/extension-ui-showcase.tsx'))};
 import {mountSidebarApp} from ${JSON.stringify(join(root,'src/ui/react/main.tsx'))};
 import {createDeveloperPreviewView} from ${JSON.stringify(join(root,'src/ui/react/preview/developer-preview.js'))};
 import {createMyWorkbenchView} from ${JSON.stringify(join(root,'src/ui/my-workbench-view.js'))};
@@ -67,6 +70,11 @@ document.documentElement.dataset.opendeskTab=names.includes(initial)?initial:'to
 // The standalone HTML must allocate a real viewport to the production flex root.
 // This changes the preview frame only; no installed Side Panel geometry is changed.
 const previewParams=new URLSearchParams(location.search);
+const showcaseMode=previewParams.get('ui')==='showcase';
+if(showcaseMode){
+ const originalRoot=document.getElementById('opendesk-react-app');
+ if(originalRoot){originalRoot.inert=true;originalRoot.setAttribute('aria-hidden','true');}
+}
 const themeInput=document.getElementById('od-sidebar-preview-theme');
 if(themeInput){
  const applyTheme=value=>{document.documentElement.dataset.opendeskPreviewTheme=value;themeInput.value=value;};
@@ -76,7 +84,7 @@ if(themeInput){
 const previewShell=document.getElementById('od-sidebar-preview-shell');
 const releaseSettingsViewport=bindPreviewSettingsViewport(document.getElementById('od-sidebar-preview-stage'));
 const previewWidth=Number(previewParams.get('width'));
-const widthChoices=[320,360,400,440,520];
+const widthChoices=[320,360,400,440,520,960];
 const selectedWidth=widthChoices.includes(previewWidth)?previewWidth:400;
 if(previewShell)previewShell.style.width='min(100%, '+selectedWidth+'px)';
 const widthInput=document.getElementById('od-sidebar-preview-width');
@@ -159,7 +167,8 @@ const onNavigate=tab=>{
   document.documentElement.dataset.opendeskTab=tab;
   app.renderNavigation(tab);return true;
 };
-app=mountSidebarApp(document,{debugEnabled:true,onNavigate,developerView,myView,toolView,providerSettings});
+app=mountSidebarApp(document,{debugEnabled:true,onNavigate,developerView,myView,toolView,providerSettings,
+  previewContents:showcaseMode?React.createElement(ExtensionUiShowcase):null});
 app.connectMyAgent(myAgent);
 const clipper=createClipperPreview({view:toolView,stage:CLIPPER_STAGE_DOCUMENT,
   onUninstall:id=>{
@@ -477,6 +486,9 @@ export async function generateSidebarSixReactPreview(){
           'overflow:hidden;background:var(--od-paper);border:1px solid var(--od-line);'+
           'border-radius:var(--radius-surface)}'+
         '#opendesk-react-app{flex:1 1 auto;min-height:0;height:100%;overflow:hidden}'+
+        '#od-preview-gallery{display:none}'+
+        '#od-preview-gallery:not(:empty){display:block;position:absolute;inset:0;overflow:auto;'+
+          'z-index:20;background:var(--od-bg)}'+
         'body>.workflow-sheet-overlay{inset:var(--od-preview-stage-top) auto auto var(--od-preview-stage-left);'+
           'width:var(--od-preview-stage-width);height:var(--od-preview-stage-height)}'+
         'body>.workflow-sheet-overlay .workflow-sheet-panel{max-height:min(72dvh,560px,100%)}'+
@@ -497,7 +509,7 @@ export async function generateSidebarSixReactPreview(){
           '<label>宽度 <select id="od-sidebar-preview-width" aria-label="预览宽度">'+
             '<option value="320">320</option><option value="360">360</option>'+
             '<option value="400" selected>400</option><option value="440">440</option>'+
-            '<option value="520">520</option></select></label>'+
+            '<option value="520">520</option><option value="960">960</option></select></label>'+
           '<label>主题 <select id="od-sidebar-preview-theme" aria-label="预览主题">'+
             '<option value="auto">跟随系统</option><option value="light">浅色</option>'+
             '<option value="dark">深色</option></select></label>'+
@@ -507,7 +519,7 @@ export async function generateSidebarSixReactPreview(){
           '正在加载正式 React 界面… 若持续只有此提示，请检查浏览器控制台。'+
         '</div>'+
         '<div id="od-sidebar-preview-error" class="od-sidebar-preview-error" role="alert" hidden></div>'+
-        appRoot+'</div>',
+        appRoot+'<div id="od-preview-gallery"></div></div>',
       '<p class="od-sidebar-preview-notice">UI_PREVIEW_ONLY · 仅用于界面审阅，'+
        '无真实安装、授权、模型推理或任务执行；含开发专用调试 Tab。</p></div>',
       '<script src="data:text/javascript;base64,'+executable.toString('base64')+'"></script>',

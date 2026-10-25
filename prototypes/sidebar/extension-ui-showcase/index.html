@@ -76,7 +76,7 @@ select{min-height:32px;border:1px solid var(--line);border-radius:8px;background
     <span id="scopeNote"><strong>真实组件 · 演示数据。</strong> 点击列表条目查看详情；管理操作仅改变预览内存。</span>
     <span><a id="direct" href="../react-preview/index.html?tab=tools&amp;width=400&amp;theme=light" target="_blank" rel="noopener">独立打开 React 预览</a> · <a href="../../../examples/sidebar-tools/prompt-shortcuts/preview/index.html" target="_blank" rel="noopener">Prompt Shortcuts 业务预览</a></span>
    </footer>
-   <p class="minor">* 960px 为外层审阅画布；现有 React 生成器内页最多支持 520px，960px 内页适配需增量生成后验收。此页面的场景切换会重置未保存的演示编辑状态。</p>
+   <p class="minor">960px 已传递给实际 React 内页；该宽度仍须经过 Chromium 与 Mac Chrome 视觉验收。切换场景会重置未保存的演示输入。</p>
   </main>
  </div>
 </div>
@@ -90,7 +90,7 @@ select{min-height:32px;border:1px solid var(--line);border-radius:8px;background
   settings:{title:'工具设置',tool:'prompt-shortcuts',hint:'点击工具顶部齿轮；查看唯一启停 Switch、网页快捷按钮、Chrome 右键设置和新标签页操作。',note:'Prompt Shortcuts 的此场景复用正式 React ToolHost；内存状态不代表已保存。'},
   permission:{title:'网站权限 / 撤权',tool:'bookmark-manager',hint:'点击右上角齿轮进入书签管理设置；试用授权、撤权及卸载确认。',note:'所有权限均为内存演示，没有向 Chrome 请求权限。'},
   language:{title:'多语言与语言包',tool:'',hint:'在扩展列表顶部打开「语言与翻译」；选择全局语言、扩展语言并预览语言包。',note:'直接使用现有 LocaleManager React 与 Reading TOC 语言示例，使用预览专用存储。'},
-  controls:{title:'共享组件与反馈',tool:'demo-generic',hint:'点击工具顶部设置体验 Switch / 按钮 / 确认；完整组件画廊尚待 React 同源扩展。',note:'此页不是独立组件库；Switch、按钮和错误状态继承现有 React ToolHost。'}
+  controls:{title:'共享组件与反馈',tool:'',hint:'基于正式 React Root 的 Portal 审阅选择、紧凑表单、组合输入、菜单、Popover、Drawer、Dialog 与恢复状态。',note:'所有操作仅修改预览内存；复用正式组件与 Design Tokens，不访问 Chrome Host。'}
  };
  const buttons=[...document.querySelectorAll('[data-scene]')];
  const frame=document.getElementById('realReact'),width=document.getElementById('width'),theme=document.getElementById('theme');
@@ -109,8 +109,9 @@ select{min-height:32px;border:1px solid var(--line);border-radius:8px;background
   document.documentElement.dataset.theme=theme.value==='dark'?'dark':'light';
   const outer=document.getElementById('frameOuter');
   outer.style.width=width.value+'px';document.getElementById('frameWidth').textContent=width.value+'px';
-  const q=new URLSearchParams({tab:'tools',width:width.value==='960'?'520':width.value,theme:theme.value});
+  const q=new URLSearchParams({tab:'tools',width:width.value,theme:theme.value});
   if(scene.tool)q.set('tool',scene.tool);
+  if(state.scene==='controls')q.set('ui','showcase');
   const url='../react-preview/index.html?'+q.toString();
   frame.setAttribute('src',url);
   document.getElementById('direct').setAttribute('href',url);

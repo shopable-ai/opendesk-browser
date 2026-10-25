@@ -19,7 +19,8 @@ test('R37 offline preview generates from the empty official root with working pr
   assert.equal($('#opendesk-react-app').contents().length,0,'React receives an empty root, never an SSR template');
   assert.equal($('#od-sidebar-preview-shell').length,1,'one standalone wrapper owns the preview geometry');
   assert.equal($('#od-sidebar-preview-stage').length,1,'one bounded visible sidepanel viewport');
-  assert.equal($('#od-sidebar-preview-width option').length,5,'320–520px review choices remain interactive');
+  assert.equal($('#od-sidebar-preview-width option').length,6,'320–960px review choices are real React viewport widths');
+  assert.equal($('#od-preview-gallery').length,1,'preview-only gallery portal shares the single React root');
   assert.equal($('#od-sidebar-preview-boot[role="status"]').length,1,
     'bootstrap failures must not show a blank page');
   assert.equal($('#od-sidebar-preview-error[role="alert"][hidden]').length,1,
@@ -44,6 +45,10 @@ test('R37 offline preview generates from the empty official root with working pr
   assert.match(compiled,/UI_PREVIEW_ONLY/);
   const paths=result.sourceInputs.map(input=>input.path);
   assert.ok(paths.includes('src/ui/react/main.tsx'));
+  assert.ok(paths.includes('src/ui/react/preview/extension-ui-showcase.tsx'),
+    'interactive component gallery must compile from tracked React source');
+  assert.ok(paths.includes('src/ui/react/preview/extension-ui-showcase.css'),
+    'gallery must reuse token CSS inside the single offline build');
   assert.ok(paths.includes('src/ui/react/app-shell.tsx'));
   assert.ok(paths.includes('src/ui/react/tabs/tools.tsx'));
   assert.ok(paths.includes('src/ui/extension-center.css'));
