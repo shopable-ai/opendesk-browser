@@ -19,7 +19,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     state.paused=true;state.reason=reason;emit();
   }
   function resume() {
-    if(state.inFlight?.phase==='unknown' || state.inFlight?.phase==='await-confirm' ||
+    if(state.phase==='unknown' || state.inFlight?.phase==='unknown' || state.inFlight?.phase==='await-confirm' ||
       state.inFlight?.phase==='await-stop')return false;
     const snap=site.inspect();
     if (!snap.ok || (state.route && state.route!==snap.route)) {pause('请返回原对话后再恢复');return false;}
@@ -38,7 +38,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     if(!item || (state.inFlight?.item===item && state.inFlight.phase!=='unknown'))return false;
     if(state.inFlight?.item===item){state.inFlight=null;state.phase='waiting';state.paused=true;}
     items.splice(items.indexOf(item),1);
-    if(!items.length){state.route=null;state.answerGate=null;}
+    if(!items.length && !state.answerGate)state.route=null;
     emit();return true;
   }
   function move(id,toIndex) {
@@ -58,21 +58,26 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
   function toggleExpanded(){state.expanded=!state.expanded;emit();}
   function requestNow(id) {
     const item=items.find(v=>v.id===id);
-    if(!item || state.inFlight || state.answerGate)return {ok:false};
+    if(!item || state.phase==='unknown' || state.inFlight || state.answerGate)return {ok:false};
     const snap=site.inspect();
     if(!snap.ok || snap.route!==state.route)return {ok:false,reason:'会话已变化'};
     if(snap.busy)return {ok:false,needsStopConfirmation:true};
     move(id,0);state.paused=false;state.reason='';idleSince=null;emit();return {ok:true};
   }
   function confirmForceStop(id) {
-    if(state.inFlight || state.answerGate || !items.some(v=>v.id===id))return false;
+    if(state.phase==='unknown' || state.inFlight || state.answerGate || !items.some(v=>v.id===id))return false;
     const snap=site.inspect();
     if(!snap.ok || snap.route!==state.route || !snap.busy || !snap.stopButton)return false;
     // A confirmed user gesture is required before this method is called.
-    if(!site.stop(snap)){markUnknown('停止动作结果未知，已暂停');return false;}
+    const item=items.find(v=>v.id===id);
+    const flight={item,phase:'await-stop',started:clock(),sawBusy:true};
+    state.inFlight=flight;
+    let stopped=false;
+    try{stopped=site.stop(snap);}catch{/* A throwing click may already have taken effect. */}
+    if(!stopped){markUnknown('停止动作结果未知，请核对原对话后删除该条');return false;}
+    state.inFlight=null;
     move(id,0);
-    const item=current();item.state='waiting';
-    state.inFlight={item,phase:'await-stop',started:clock(),sawBusy:true};
+    item.state='waiting';state.inFlight=flight;
     state.phase='waiting';state.forceId=id;state.paused=false;idleSince=null;emit();return true;
   }
   function failBeforeClick(item,why) {
@@ -81,6 +86,9 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     state.inFlight=null;idleSince=null;emit();
   }
   function startSubmit(snap,item) {
+    if(snap.rich || snap.draft!==''){
+      failBeforeClick(item,'原生草稿或附件非空，未准备待发内容');return;
+    }
     item.state='sending';state.phase='sending';
     state.inFlight={item,phase:'preparing',started:clock()};
     emit();
@@ -94,6 +102,11 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
   function tick() {
     if(!items.length && !state.answerGate)return;
     const snap=site.inspect(),t=clock();
+    // Lost page access cannot turn an already-clicked send into an unsent item.
+    if(state.inFlight?.phase==='await-confirm' &&
+      (!snap.ok || snap.route!==state.route) && t-state.inFlight.started>ACK_MS){
+      markUnknown('未能确认用户消息入站，禁止重复点击');return;
+    }
     if(!snap.ok){pause(snap.reason||'原生控件暂不可用');return;}
     if(state.route && snap.route!==state.route){pause('已切换对话，队列不会跨会话发送');return;}
     if(state.inFlight?.phase==='await-stop') {
@@ -111,6 +124,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
         failBeforeClick(flight.item,'网页发送按钮没有就绪，内容留在原生输入框');
         return;
       }
+      if(state.paused)return;
       let result;
       try{result=site.commit(flight.token);}
       catch{markUnknown('原生点击状态无法判定，请检查原对话');return;}
@@ -127,27 +141,29 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
       if(flight.before && site.confirm(flight.before,flight.item.text,snap)){
         flight.item.state='confirmed';state.lastConfirmed=flight.item.id;
         items.splice(items.indexOf(flight.item),1);state.inFlight=null;
-        state.phase='waiting';state.answerGate=items.length?{
-          assistantCount:flight.before.assistantCount,started:t,sawBusy:snap.busy}:null;
-        if(!items.length)state.route=null;
+        // Keep this gate even if the queue empties before the new answer appears.
+        state.phase='waiting';state.answerGate={
+          assistantCount:flight.before.assistantCount,started:t,sawBusy:snap.busy};
         idleSince=null;emit();return;
       }
       if(t-flight.started>ACK_MS){markUnknown('未能确认用户消息入站，禁止重复点击');}
       return;
     }
-    if(state.inFlight?.phase==='unknown')return;
+    if(state.phase==='unknown' || state.inFlight?.phase==='unknown')return;
     if(state.answerGate) {
       state.answerGate.sawBusy ||= snap.busy;
       if(snap.busy || !snap.idle || !snap.answerComplete ||
         snap.assistants.length<=state.answerGate.assistantCount){idleSince=null;return;}
       if(idleSince===null)idleSince=t;
       if(t-idleSince<IDLE_MS)return;
-      state.answerGate=null;idleSince=null;emit();
+      state.answerGate=null;idleSince=null;
+      if(!items.length)state.route=null;
+      emit();
     }
     if(state.paused || state.inFlight || !items.length)return;
-    if(snap.busy || !snap.idle || snap.rich || site.normal(snap.draft)) {
+    if(snap.busy || !snap.idle || snap.rich || snap.draft!=='') {
       idleSince=null;
-      const reason=snap.rich?'检测到附件，不覆盖原生输入框':site.normal(snap.draft)?'原生草稿非空，等待用户处理':'等待当前回复结束';
+      const reason=snap.rich?'检测到附件，不覆盖原生输入框':snap.draft!==''?'原生草稿非空，等待用户处理':'等待当前回复结束';
       if(reason!==lastSignature){lastSignature=reason;state.reason=reason;emit();}
       return;
     }

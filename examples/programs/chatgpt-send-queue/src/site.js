@@ -24,7 +24,7 @@ function role(button) {
 function one(nodes) { return nodes.length === 1 ? nodes[0] : null; }
 function editorText(editor) {
   return typeof editor?.value === 'string' ? editor.value :
-    (editor?.innerText ?? editor?.textContent ?? '').replace(/\n$/, '');
+    (editor?.innerText ?? editor?.textContent ?? '');
 }
 function routeFor(win) {
   if (win.location.origin !== URL_ORIGIN) return null;
@@ -33,7 +33,7 @@ function routeFor(win) {
 }
 function messageText(root) {
   const content = root.querySelector('[data-testid="message-content"],[data-message-content],.whitespace-pre-wrap') || root;
-  return normal(content.innerText ?? content.textContent);
+  return content.innerText ?? content.textContent ?? '';
 }
 function assistantCompleted(root) {
   if (!root) return false;
@@ -97,7 +97,7 @@ export function createChatGPTSite({doc = document, win = window} = {}) {
       const command = text ? 'insertText' : 'delete';
       if (!doc.execCommand(command,false,text || null)) return false;
     } else return false;
-    return normal(editorText(editor)) === normal(text);
+    return editorText(editor) === text;
   }
   function clearForQueue(snapshot) {
     if (!snapshot.ok || snapshot.rich || !normal(snapshot.draft)) return {ok:false,reason:'草稿为空或包含附件'};
@@ -107,7 +107,7 @@ export function createChatGPTSite({doc = document, win = window} = {}) {
   }
   function restore(text,expected) {
     const snapshot=inspect();
-    if (!snapshot.ok || snapshot.rich || (expected!==undefined && normal(snapshot.draft)!==normal(expected)))
+    if (!snapshot.ok || snapshot.rich || (expected!==undefined && snapshot.draft!==expected))
       return false;
     return setDraft(snapshot.editor,text);
   }
@@ -141,13 +141,13 @@ export function createChatGPTSite({doc = document, win = window} = {}) {
     const fresh=inspect();
     if(!initial?.ok || !fresh.ok || fresh.route!==initial.route ||
       fresh.form!==initial.form || fresh.editor!==initial.editor ||
-      !fresh.idle || fresh.rich || normal(fresh.draft))
+      !fresh.idle || fresh.rich || fresh.draft!=='')
       return {ok:false,reason:'会话、输入框或原生草稿已改变'};
     const before={users:fresh.users,assistantCount:fresh.assistants.length,route:fresh.route};
     if(!setDraft(fresh.editor,text))return {ok:false,reason:'网页编辑器未接收待发内容'};
     const filled=inspect();
     if(!filled.ok || filled.route!==before.route || filled.form!==fresh.form ||
-      filled.editor!==fresh.editor || normal(filled.draft)!==normal(text) || filled.rich)
+      filled.editor!==fresh.editor || filled.draft!==text || filled.rich)
       return {ok:false,reason:'填入内容后网页编辑器身份或草稿变化'};
     return {ok:true,token:{route:before.route,form:fresh.form,editor:fresh.editor,
       text,before}};
@@ -159,7 +159,7 @@ export function createChatGPTSite({doc = document, win = window} = {}) {
     const fresh=inspect();
     if(!fresh.ok || fresh.route!==token.route || fresh.form!==token.form ||
       fresh.editor!==token.editor || fresh.rich ||
-      normal(fresh.draft)!==normal(token.text) ||
+      fresh.draft!==token.text ||
       fresh.users.length!==token.before.users.length ||
       fresh.users.some((node,i)=>node!==token.before.users[i]))
       return {ok:false,stage:'before-click',reason:'准备发送期间原生编辑器、草稿或消息记录已变化'};
@@ -176,7 +176,7 @@ export function createChatGPTSite({doc = document, win = window} = {}) {
     if (!snapshot.ok || snapshot.route!==before.route) return false;
     if (snapshot.users.length !== before.users.length+1) return false;
     const newMessage=snapshot.users.at(-1);
-    return !before.users.includes(newMessage) && messageText(newMessage) === normal(text);
+    return !before.users.includes(newMessage) && messageText(newMessage) === text;
   }
   function stop(snapshot) {
     const fresh=inspect();

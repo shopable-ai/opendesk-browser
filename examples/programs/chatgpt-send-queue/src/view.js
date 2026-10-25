@@ -3,7 +3,7 @@ const ICON={send:'<path d="M12 19V5m-6 6 6-6 6 6"/>',
   now:'<path d="M12 19V5m-6 6 6-6 6 6M4 20h16"/>',
   edit:'<path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8.2 17.8l-4.2 1.2 1.2-4.2Z"/>',
   remove:'<path d="M18 6 6 18M6 6l12 12"/>',
-  pause:'<path d="M9 6v12M15 6v12"/>',play:'<path d="m8 5 11 7-11 7z"/>'};
+  play:'<path d="m8 5 11 7-11 7z"/>'};
 const CROWN='<path d="M3 6.5 7.1 10l3-5.7L13 10l4-3.5-1 8.5H4zM4.3 17h11.4"/>';
 function element(doc,tag,cls,text){
   const node=doc.createElement(tag);if(cls)node.className=cls;
@@ -47,7 +47,6 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
           case 'now':actions.sendNow(b.dataset.id);break;
           case 'edit':actions.edit(b.dataset.id);break;
           case 'remove':actions.remove(b.dataset.id);break;
-          case 'pause':actions.togglePause();break;
           case 'play':actions.togglePause();break;
           case 'more':engine.toggleExpanded();break;
         }
@@ -78,7 +77,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
       button.addStyle(css);
       blue=element(doc,'button','sq-send');
       blue.type='button';blue.setAttribute('aria-label','当前草稿加入发送队列');
-      blue.title='OpenDesk 队列 · 皇冠为模式装饰，非 ChatGPT 官方认证或 VIP';
+      blue.title='OpenDesk 队列 · Shift + 点击暂停/恢复 · 皇冠仅为装饰';
       const crown=element(doc,'span','sq-crown');
       crown.append(svg(doc,CROWN));blue.append(svg(doc,ICON.send),crown);
       button.content.append(blue);
@@ -103,7 +102,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
       list.host.style.setProperty('display','none','important');reset();
       return;
     }
-    const signature=JSON.stringify([state.paused,state.expanded,state.reason,
+    const signature=JSON.stringify([state.paused,state.expanded,state.reason,state.phase,state.inFlight?.phase,
       items.map(item=>[item.id,item.text,item.state])]);
     if(signature===lastSignature)return;
     lastSignature=signature;
@@ -118,11 +117,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
       row.setAttribute('role','listitem');row.dataset.idRow=item.id;row.tabIndex=0;
       row.draggable=item.state!=='sending'&&item.state!=='unknown';
       row.title='Alt + 上下方向键调整顺序';
-      if(i===0){
-        const leading=action(doc,state.paused?'play':'pause',
-          state.paused?'恢复队列':'暂停队列',item.id);
-        leading.classList.add('sq-leading');row.append(leading);
-      }else row.append(element(doc,'span','sq-index',String(i+1)));
+      row.append(element(doc,'span','sq-index',String(i+1)));
       const text=element(doc,'span','sq-text',item.text);text.title=item.text;row.append(text);
       const ops=element(doc,'div','sq-ops');
       for(const [key,label] of [['now','提前发送'],['edit','取回输入框编辑'],['remove','删除']]){
@@ -138,8 +133,13 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
       more.type='button';more.dataset.action='more';root.append(more);
     }
     if(state.paused||items.some(i=>i.state==='failed'||i.state==='unknown')){
-      const note=element(doc,'div','sq-note',state.reason||'队列已暂停');
-      note.setAttribute('role','status');root.append(note);
+      const note=element(doc,'div','sq-note');
+      note.setAttribute('role','status');
+      note.append(element(doc,'span','sq-note-text',state.reason||'队列已暂停'));
+      const uncertain=state.phase==='unknown'||items.some(item=>item.state==='unknown')||
+        ['unknown','await-confirm','await-stop'].includes(state.inFlight?.phase);
+      if(state.paused&&!uncertain)note.append(action(doc,'play','恢复队列'));
+      root.append(note);
     }
     if(activeRow){
       const row=[...root.querySelectorAll('[data-id-row]')]

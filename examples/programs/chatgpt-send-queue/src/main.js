@@ -85,7 +85,8 @@ export default async function main({assets}={}) {
     view=createQueueView({owner,createPageUI,assets,engine,actions});
     // Native Stop clicked by the user is not proof of normal answer completion.
     owner.on(document,'click',event=>{
-      if(forceClick||!engine.view().items.length)return;
+      const state=engine.view();
+      if(forceClick||(!state.items.length&&!state.answerGate))return;
       const snap=site.inspect();
       if(snap.ok&&snap.stopButton&&(event.target===snap.stopButton||
         snap.stopButton.contains(event.target)))engine.pause('官网回复被手动停止，队列已暂停');
