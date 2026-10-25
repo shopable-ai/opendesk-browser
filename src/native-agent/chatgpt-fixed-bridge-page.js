@@ -1,6 +1,6 @@
 import {createChatGPTBridgeSite} from './chatgpt-bridge-site.js';
 import {chatGPTConversationId,inspectChatGPTEditsOnPage} from './workspace-chatgpt.js';
-import {validateChatGPTTaskRequest,CHATGPT_TASK_REQUEST_PROTOCOL,FIXED_PAGE_TASK_ID} from './chatgpt-task-request.js';
+import {validateChatGPTTaskRequest,CHATGPT_TASK_REQUEST_PROTOCOL,FIXED_PAGE_TASK_ID,BAIDU_TASK_ID} from './chatgpt-task-request.js';
 import {CHATGPT_BRIDGE_PROTOCOL} from './chatgpt-bridge-trigger-gate.js';
 
 const fail=(code,message)=>Object.assign(new Error(message),{code});
@@ -147,18 +147,26 @@ export function isChatGPTBridgeContinuation(before,current,resultUser){
   return !(order&1)&&Boolean(order&4); // connected, subsequent assistant only
 }
 
-export function bridgePrompt(requestId){
-  const request={protocol:CHATGPT_TASK_REQUEST_PROTOCOL,kind:'opendesk.task.request',
-    version:1,requestId,taskId:FIXED_PAGE_TASK_ID,args:{}};
+// The user chooses the task and parameters; the model can only echo the exact
+// candidate. It cannot approve or change a scope minted by the trusted Worker.
+export function bridgePrompt(requestId,taskId=FIXED_PAGE_TASK_ID,args={}){
+  const request=validateChatGPTTaskRequest(JSON.stringify({
+    protocol:CHATGPT_TASK_REQUEST_PROTOCOL,kind:'opendesk.task.request',
+    version:1,requestId,taskId,args
+  }));
+  const goal=request.taskId===BAIDU_TASK_ID?
+    '用户目标：使用已安装的百度搜索 Task 搜索关键词“'+request.args.query+
+      '”，只提取真实百度页面中最多三条通过自然结果过滤的标题、摘要和链接。':
+    '用户目标：使用 OpenDesk 打开固定 Task 绑定的 httpbingo HTML 示例网页，读取标题与一段正文。';
   return [
     '请在当前官方 ChatGPT 对话中提出一个 OpenDesk 自动化任务候选。这不是你已注册的 MCP 工具，',
     '也不是任何模型或网页可以直接批准执行的权限；真正运行需要我点击 OpenDesk 执行，或由我单独批准一次自动触发。',
-    '用户目标：使用 OpenDesk 打开固定 Task 绑定的 httpbingo HTML 示例网页，读取标题与一段正文，',
+    goal,
     '待扩展把真实结果发送回这段原始对话后，再根据实际读取结果总结；不要提前虚构网页内容。',
     '现在只输出下面这一段唯一的 opendesk-request JSON 代码块，不要输出第二个请求、模拟执行结果、授权声称或其他代码块。',
     '不要改变任何字段、requestId、taskId 或 args。扩展会对这一轮回复与原对话身份进行严格核查。',
     '请将下面的 JSON 原样放在唯一的 opendesk-request 代码块中：',JSON.stringify(request)
-  ].join(''); // One plain paragraph avoids native markdown/link conversion.
+  ].join(''); // Keep exact JSON bytes intact in one plain paragraph.
 }
 
 // Fixed, first-party, isolated extension content script. No page-provided
@@ -173,23 +181,45 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   root.style.cssText='position:fixed;right:14px;top:72px;z-index:2147483645;max-width:min(330px,calc(100vw - 28px))';
   const shadow=root.attachShadow({mode:'closed'});
   const style=doc.createElement('style');
-  style.textContent=':host{all:initial}*{box-sizing:border-box}.panel{font:12px/1.4 system-ui,-apple-system,sans-serif;background:#fff;color:#263247;border:1px solid #d8dee8;border-radius:12px;box-shadow:0 4px 18px #0002;padding:8px;max-width:330px} .bar{display:flex;gap:5px;align-items:center;flex-wrap:wrap}button{font:inherit;background:#f7f9fb;border:1px solid #d3dbea;border-radius:7px;cursor:pointer;padding:5px 7px;color:inherit}button:focus-visible{outline:2px solid #2563eb}button:disabled{opacity:.45;cursor:default}.run{background:#1d4ed8;color:#fff;border-color:#1d4ed8}.status{margin-top:6px;overflow-wrap:anywhere;max-height:70px;overflow:auto;color:#526070}.error{color:#b42318}@media(prefers-color-scheme:dark){.panel{background:#20242c;color:#e7e9ef;border-color:#444b58}.status{color:#bec8d5}button{background:#303846;border-color:#526073;color:#e7e9ef}.run{background:#346deb;color:white}}';
+  style.textContent=':host{all:initial}*{box-sizing:border-box}.panel{font:12px/1.45 system-ui,-apple-system,sans-serif;background:#fff;color:#263247;border:1px solid #d8dee8;border-radius:12px;box-shadow:0 4px 18px #0002;padding:10px;max-width:330px}.heading{font-weight:650;font-size:13px;margin-bottom:8px}.fields{display:grid;gap:7px;margin-bottom:9px}.field{display:grid;gap:3px}.field span{font-size:11px;color:#526070}select,input{font:inherit;width:100%;min-width:0;padding:6px 8px;border:1px solid #cbd5e1;border-radius:7px;background:inherit;color:inherit}select:focus-visible,input:focus-visible,button:focus-visible{outline:2px solid #2563eb;outline-offset:1px}.bar{display:flex;gap:5px;align-items:center;flex-wrap:wrap}button{font:inherit;background:#f7f9fb;border:1px solid #d3dbea;border-radius:7px;cursor:pointer;padding:6px 8px;color:inherit}button:disabled,select:disabled,input:disabled{opacity:.55;cursor:default}.run{background:#1d4ed8;color:#fff;border-color:#1d4ed8}.status{margin-top:8px;overflow-wrap:anywhere;max-height:100px;overflow:auto;color:#526070}.error{color:#b42318}@media(prefers-color-scheme:dark){.panel{background:#20242c;color:#e7e9ef;border-color:#444b58}.status,.field span{color:#bec8d5}button{background:#303846;border-color:#526073;color:#e7e9ef}.run{background:#346deb;color:white}}';
   const panel=doc.createElement('div');panel.className='panel';
+  const heading=doc.createElement('div');heading.className='heading';
+  heading.textContent='OpenDesk · 浏览器任务';
+  const fields=doc.createElement('div');fields.className='fields';
+  const taskField=doc.createElement('label');taskField.className='field';
+  const taskCaption=doc.createElement('span');taskCaption.textContent='选择任务';
+  const taskSelect=doc.createElement('select');taskSelect.setAttribute('aria-label','选择浏览器任务');
+  const fixedOption=doc.createElement('option');fixedOption.value=FIXED_PAGE_TASK_ID;
+  fixedOption.textContent='读取固定示例网页';
+  const baiduOption=doc.createElement('option');baiduOption.value=BAIDU_TASK_ID;
+  baiduOption.textContent='百度搜索前三条';
+  taskSelect.append(fixedOption,baiduOption);taskSelect.value=FIXED_PAGE_TASK_ID;
+  taskField.append(taskCaption,taskSelect);
+  const queryField=doc.createElement('label');queryField.className='field';
+  const queryCaption=doc.createElement('span');queryCaption.textContent='百度搜索关键词';
+  const queryInput=doc.createElement('input');queryInput.type='text';queryInput.maxLength=120;
+  queryInput.value='OpenDesk Browser';queryInput.placeholder='输入搜索关键词';
+  queryInput.setAttribute('aria-label','百度搜索关键词');
+  queryField.append(queryCaption,queryInput);fields.append(taskField,queryField);
   const bar=doc.createElement('div');bar.className='bar';
   const prepareButton=doc.createElement('button');prepareButton.textContent='建立请求';
   const autoButton=doc.createElement('button');autoButton.textContent='批准本次自动执行';
   const runButton=doc.createElement('button');runButton.className='run';runButton.textContent='执行';
   const status=doc.createElement('div');status.className='status';status.setAttribute('role','status');
-  bar.append(prepareButton,autoButton,runButton);panel.append(bar,status);shadow.append(style,panel);
+  bar.append(prepareButton,autoButton,runButton);
+  panel.append(heading,fields,bar,status);shadow.append(style,panel);
   (doc.body||doc.documentElement).append(root);
   let pending=false,composition=false,closed=false;
   let state=null,composerClaim=null;
   const note=(text,error=false)=>{status.textContent=text;status.classList.toggle('error',error);};
   const update=()=>{
     const ready=!!state&&!state.attempted&&!state.deliveryStarted&&win.location.href===state.url;
-    prepareButton.disabled=pending||Boolean(state?.attempted);
+    prepareButton.disabled=pending;
     autoButton.disabled=pending||!ready||state.mode==='auto';
     runButton.disabled=pending||!ready||state.mode==='auto';
+    const editing=pending||Boolean(state&&!state.attempted);
+    taskSelect.disabled=editing;queryInput.disabled=editing;
+    queryField.hidden=taskSelect.value!==BAIDU_TASK_ID;
   };
   const validatePage=()=>{
     if(!chatGPTConversationId(win.location.href)||win.location.origin!=='https://chatgpt.com')
@@ -213,9 +243,9 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       !isUserTurn(siteSnapshot,state.requestId))
       throw fail('E_CHAT_PENDING','本轮请求尚无完整的官方 AI 回复');
     const request=validateChatGPTTaskRequest(page.blocks[0]);
-    if(request.requestId!==state.requestId||request.taskId!==FIXED_PAGE_TASK_ID||
-      Object.keys(request.args).length!==0)
-      throw fail('E_BRIDGE_CONTEXT','不是当前固定网页读取请求');
+    if(request.requestId!==state.requestId||request.taskId!==state.taskId||
+      JSON.stringify(request.args)!==JSON.stringify(state.args))
+      throw fail('E_BRIDGE_CONTEXT','模型给出的任务或关键词与本次用户选择不一致');
     if(state.approvedTurnKey&&state.approvedTurnKey!==page.turnKey)
       throw fail('E_BRIDGE_CONTEXT','批准对应的用户轮次已经改变');
     return {page,request};
@@ -229,16 +259,21 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       if(mode==='manual')await send({kind:'authorize',requestId:state.requestId,mode});
       if(state.mode==='auto'&&mode!=='auto')throw fail('E_BRIDGE_MODE','已批准自动执行，不可更改触发身份');
       state.attempted=true;state.mode=mode;
-      note('已提交受信执行。正在核验固定任务和独立网页结果…');
+      note('已提交受信执行。正在核验安装身份和真实网页结果…');
       update();
       // No local retry after a transport failure. The worker's durable trigger
       // fence and Controller command journal determine whether effects happened.
       const reply=await send({kind:'execute',requestId:state.requestId,mode,
         candidateText:page.blocks[0],sourceUrl:state.url,source:state.source,turnKey:page.turnKey,
         answerKey:page.answerKey});
-      note(reply?.sent&&reply?.aiReplyObserved?'真实结果已回传，官方 AI 已完成回复':
+      const baiduStatus=reply?.taskId===BAIDU_TASK_ID?
+        ('；百度结果：'+({success:'成功',no_results:'无自然搜索结果',
+          blocked:'访问受阻或验证码',dom_unavailable:'搜索区域不可用',
+          dom_changed:'页面结构未匹配'}[reply.taskStatus]||'状态未知')+
+          '（'+String(reply.resultCount??0)+' 条）'):'';
+      note((reply?.sent&&reply?.aiReplyObserved?'真实结果已回传，官方 AI 已完成回复':
         reply?.sent?'原会话已确认收到真实结果，官方 AI 回复仍待核查':
-        '任务已返回，但自动发送未获完整回执');
+        '任务已返回，但自动发送未获完整回执')+baiduStatus);
     }catch(error){
       note((error.code||'E_BRIDGE')+'：'+(error.message||'执行失败')+
         (state?.attempted?'；不会自动重放':''),
@@ -246,7 +281,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     }finally{pending=false;update();}
   };
   prepareButton.addEventListener('click',async event=>{
-    if(!event.isTrusted||pending||state?.attempted)return;
+    if(!event.isTrusted||pending)return;
     pending=true;update();
     try {
       validatePage();
@@ -255,16 +290,30 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       if(composition)throw fail('E_CHAT_IME','输入法仍在编辑，未覆盖');
       if(!snap.idle)throw fail('E_CHAT_PENDING','官网回复尚未确认完成，未覆盖');
       if(snap.rich||snap.draft!=='')throw fail('E_CHAT_DRAFT','官网有草稿或附件，未覆盖');
+      const taskId=taskSelect.value;
+      const args=taskId===BAIDU_TASK_ID?{query:String(queryInput.value||'').trim(),limit:3}:{};
+      // Refuse malformed queries before minting a one-use Worker nonce.
+      validateChatGPTTaskRequest(JSON.stringify({protocol:CHATGPT_TASK_REQUEST_PROTOCOL,
+        kind:'opendesk.task.request',version:1,
+        requestId:'00000000-0000-4000-8000-000000000000',taskId,args}));
       const url=win.location.href;
-      const prepared=await send({kind:'prepare'});
+      const prepared=await send({kind:'prepare',taskId,args});
+      if(taskSelect.value!==taskId||(taskId===BAIDU_TASK_ID&&String(queryInput.value||'').trim()!==args.query))
+        throw fail('E_BRIDGE_CONTEXT','准备期间任务或关键词已改变，请重新建立请求');
+      if(prepared.taskId!==undefined&&(prepared.taskId!==taskId||
+        JSON.stringify(prepared.args)!==JSON.stringify(args)))
+        throw fail('E_BRIDGE_CONTEXT','可信准备回执的任务和参数不匹配');
+      if(taskId===BAIDU_TASK_ID&&prepared.taskId!==BAIDU_TASK_ID)
+        throw fail('E_BRIDGE_CONTEXT','百度请求未获得可信 Worker 的任务参数绑定');
       if(win.location.href!==url||prepared.source?.url!==url)throw fail('E_CHAT_TARGET','准备期间切换了对话');
       if(composition)throw fail('E_CHAT_IME','准备期间输入法开始编辑，未回填');
-      const prompt=bridgePrompt(prepared.requestId);
+      const prompt=bridgePrompt(prepared.requestId,taskId,args);
       const inserted=prepareChatGPTBridgeDraft(site,prompt,snap);
       if(!inserted?.ok)throw fail('E_CHAT_FILL',inserted?.reason||'无法写入原生输入框');
-      state={requestId:prepared.requestId,url,source:prepared.source,expiresAt:prepared.expiresAt,
+      state={requestId:prepared.requestId,taskId,args,url,source:prepared.source,expiresAt:prepared.expiresAt,
         attempted:false,deliveryStarted:false,mode:null,approvedTurnKey:null};
-      note('请求已写入官网输入框；请先由你在官网发送。随后点击“执行”，或批准仅本次自动执行。');
+      note('已建立'+(taskId===BAIDU_TASK_ID?'百度搜索「'+args.query+'」':'固定网页读取')+
+        '请求；请在 ChatGPT 发送，再点击“执行”或批准本次自动执行。');
     }catch(error){note((error.code||'E_BRIDGE')+'：'+error.message,true);}
     finally{pending=false;update();}
   });
@@ -280,7 +329,8 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       if(!identity.ok||identity.turnKey==='no-user')throw fail('E_CHAT_TURN','无法确认本次用户轮次');
       await send({kind:'authorize',requestId:state.requestId,mode:'auto'});
       state.approvedTurnKey=identity.turnKey;state.mode='auto';
-      note('只批准当前固定 Task 与这一轮回复触发一次，不批准任何其他网站、任务或循环。');
+      note('只批准当前'+(state.taskId===BAIDU_TASK_ID?'百度搜索「'+state.args.query+'」':'固定网页读取')+
+        '与这一轮回复触发一次，不批准其他任务、参数或循环。');
     }catch(error){note((error.code||'E_BRIDGE_APPROVAL')+'：'+error.message,true);}
     finally{pending=false;update();}
   });
@@ -333,7 +383,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     const snap=site.inspect();
     if(!snap.ok||snap.busy||!snap.idle||snap.rich||snap.draft!=='')
       throw fail('E_CHAT_DRAFT','原会话有新草稿、附件或正在回复，未覆盖；结果需人工核对');
-    note('固定 Task 结果已核实。正在单次提交给原 ChatGPT 对话…');
+    note('真实 Task 结果已核实。正在单次提交给原 ChatGPT 对话…');
     composerClaim=claimChatGPTBridgeComposer({site,doc,win,snapshot:snap,text:message.text});
     let prepared;
     try{prepared=prepareChatGPTBridgeDraft(site,message.text,snap);}
@@ -397,7 +447,8 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     doc.removeEventListener('compositionstart',beginComposition,true);
     doc.removeEventListener('compositionend',endComposition,true);root.remove();};
   win.addEventListener('pagehide',dispose,{once:true});
-  note('OpenDesk 固定网页测试：先建立请求，官网发送后可执行或单次授权自动执行。');
+  taskSelect.addEventListener('change',update);
+  note('先选择任务并建立请求。官网发送请求后，可手动执行或批准一次自动执行。');
   update();
   return {dispose};
 }

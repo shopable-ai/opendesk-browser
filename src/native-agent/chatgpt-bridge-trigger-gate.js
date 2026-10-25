@@ -1,4 +1,6 @@
 import {chatGPTConversationId} from './workspace-chatgpt.js';
+import {validateChatGPTTaskRequest,CHATGPT_TASK_REQUEST_PROTOCOL,
+  FIXED_PAGE_TASK_ID} from './chatgpt-task-request.js';
 
 // This is a one-use *trigger fence*, not a Task permission issuer or a second
 // execution Authority. The installed Task, site grants and immutable revision
@@ -16,6 +18,20 @@ export function validChatGPTBridgeSource(value){
     typeof value.url==='string'&&value.url.length<=2048&&!!chatGPTConversationId(value.url);
 }
 const sameSource=(a,b)=>a?.tabId===b?.tabId&&a?.documentId===b?.documentId&&a?.url===b?.url;
+// A prepared nonce has one immutable user-selected task and parameter set.
+// Older R1.2 ledger entries with no scope are only eligible for the fixed task.
+function requestScope(requestId,taskId=FIXED_PAGE_TASK_ID,args={}){
+  const request=validateChatGPTTaskRequest(JSON.stringify({
+    protocol:CHATGPT_TASK_REQUEST_PROTOCOL,kind:'opendesk.task.request',
+    version:1,requestId,taskId,args
+  }));
+  return {taskId:request.taskId,args:{...request.args}};
+}
+function sameScope(row,requestId,taskId,args){
+  const desired=requestScope(requestId,taskId,args);
+  const stored=row.scope||{taskId:FIXED_PAGE_TASK_ID,args:{}};
+  return stored.taskId===desired.taskId&&JSON.stringify(stored.args)===JSON.stringify(desired.args);
+}
 const officialURL=value=>{
   try{const url=new URL(value);return url.origin==='https://chatgpt.com'&&!url.username&&!url.password;}catch{return false;}
 };
@@ -51,7 +67,7 @@ export function createChatGPTBridgeTriggerLedger({storage,clock=()=>Date.now(),
     if(typeof requestId!=='string'||!TOKEN.test(requestId))throw fail('E_BRIDGE_REQUEST','请求身份不合法');
   };
   return Object.freeze({
-    prepare(source){
+    prepare(source,{taskId=FIXED_PAGE_TASK_ID,args={}}={}){
       requireSource(source);
       return sequence(async()=>{
         const rows=await load(),now=clock();
@@ -62,11 +78,13 @@ export function createChatGPTBridgeTriggerLedger({storage,clock=()=>Date.now(),
         const requestId=generateId();
         requireRequestId(requestId);
         if(rows[requestId])throw fail('E_BRIDGE_REPLAY','随机请求身份出现冲突');
-        rows[requestId]={source:structuredClone(source),createdAt:now,
+        const scope=requestScope(requestId,taskId,args);
+        rows[requestId]={source:structuredClone(source),scope,createdAt:now,
           expiresAt:now+600000,status:'prepared'};
         prune(rows,now);
         await save(rows);
-        return {requestId,expiresAt:rows[requestId].expiresAt,source:structuredClone(source)};
+        return {requestId,expiresAt:rows[requestId].expiresAt,source:structuredClone(source),
+          taskId:scope.taskId,args:structuredClone(scope.args)};
       });
     },
     authorize({source,requestId,mode}){
@@ -82,7 +100,7 @@ export function createChatGPTBridgeTriggerLedger({storage,clock=()=>Date.now(),
         return {mode,requestId,expiresAt:row.approvalExpiresAt};
       });
     },
-    reserve({source,requestId,mode,turnKey,answerKey}){
+    reserve({source,requestId,mode,turnKey,answerKey,taskId=FIXED_PAGE_TASK_ID,args={}}){
       requireSource(source);requireRequestId(requestId);
       if(!['manual','auto'].includes(mode)||typeof turnKey!=='string'||!turnKey||
         typeof answerKey!=='string'||!answerKey||answerKey.length>2048||turnKey.length>128)
@@ -92,17 +110,20 @@ export function createChatGPTBridgeTriggerLedger({storage,clock=()=>Date.now(),
         if(!sameSource(row?.source,source)||row.status!=='approved'||row.mode!==mode||
           now>=row.approvalExpiresAt)
           throw fail('E_BRIDGE_REPLAY','没有当前轮次的一次性批准，或批准已消费／失效');
+        if(!sameScope(row,requestId,taskId,args))
+          throw fail('E_BRIDGE_CONTEXT','模型请求与用户建立的任务或搜索参数不一致');
         row.status='consumed';row.consumedAt=now;row.turnKey=turnKey;row.answerKey=answerKey;
         await save(rows);
         return {requestId,consumed:true,mode};
       });
     },
-    assertConsumed({source,requestId,mode,turnKey,answerKey}){
+    assertConsumed({source,requestId,mode,turnKey,answerKey,taskId=FIXED_PAGE_TASK_ID,args={}}){
       requireSource(source);requireRequestId(requestId);
       return sequence(async()=>{
         const row=(await load())[requestId];
         if(!sameSource(row?.source,source)||row.status!=='consumed'||row.mode!==mode||
-          row.turnKey!==turnKey||row.answerKey!==answerKey)
+          row.turnKey!==turnKey||row.answerKey!==answerKey||
+          !sameScope(row,requestId,taskId,args))
           throw fail('E_BRIDGE_REVOKED','本次已消费请求的来源批准已撤销或不匹配');
         return {allowed:true};
       });
@@ -191,7 +212,9 @@ export function installChatGPTBridgeTriggerGate({api=chrome,clock}={}){
         return data;
       }
       const source=await pageSource(sender);
-      if(message.kind==='prepare')return ledger.prepare(source);
+      if(message.kind==='prepare')return ledger.prepare(source,{
+        taskId:message.taskId??FIXED_PAGE_TASK_ID,args:message.args??{}
+      });
       return ledger.authorize({source,requestId:message.requestId,mode:message.mode});
     };
     Promise.resolve().then(process).then(data=>reply({ok:true,data}),

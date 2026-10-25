@@ -1,0 +1,52 @@
+name: AI Chat Bridge R2.0 — pinned Baidu + fixed Task contracts
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/native-agent/chatgpt-bridge-trigger-gate.js'
+      - 'src/native-agent/chatgpt-fixed-bridge-page.js'
+      - 'src/native-agent/chatgpt-fixed-bridge-host.js'
+      - 'src/native-agent/chatgpt-task-request.js'
+      - 'examples/tasks/baidu-search-top3.js'
+      - 'examples/tasks/baidu.search.top3.v1.opendesk-task.json'
+      - 'examples/tasks/page.read.fixed.v1.opendesk-task.json'
+      - 'tests/environment/chatgpt-*-bridge-*.test.mjs'
+      - 'tests/environment/chatgpt-fixed-page-r11.test.mjs'
+      - 'tests/environment/chatgpt-task-request-r1.test.mjs'
+      - 'tests/environment/baidu-search-top3-r1.test.mjs'
+      - '.github/workflows/chatgpt-baidu-bridge-r20.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: JS syntax check for trusted Bridge
+        run: |
+          node --check src/native-agent/chatgpt-bridge-trigger-gate.js
+          node --check src/native-agent/chatgpt-fixed-bridge-page.js
+          node --check src/native-agent/chatgpt-fixed-bridge-host.js
+      - name: Existing fixed and new Baidu business contracts (not native Chrome)
+        run: |
+          node --test \
+            tests/environment/chatgpt-task-request-r1.test.mjs \
+            tests/environment/chatgpt-fixed-page-r11.test.mjs \
+            tests/environment/baidu-search-top3-r1.test.mjs \
+            tests/environment/chatgpt-fixed-bridge-r12.test.mjs \
+            tests/environment/chatgpt-fixed-bridge-r13.test.mjs \
+            tests/environment/chatgpt-baidu-bridge-r20.test.mjs
+      - name: Production extension build (not native Chrome)
+        run: npm run build
