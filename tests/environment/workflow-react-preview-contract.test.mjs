@@ -57,6 +57,58 @@ for(const [name,path,ready]of [
  if(name==='Sidebar')url.search='?tab=workflow';
  await page.goto(url.href);
  await page.waitForFunction(({ready,name})=>document.documentElement.dataset[ready]===(name==='Workflow'?'true':'ready'),{ready,name});
+ // Regress the real bottom-row defect: Source must stay alongside the draft
+ // and Send, including when the draft grows, rather than reserve another row.
+ const input=page.locator('#workflow-ai-request'),send=page.locator('#workflow-ai-plan');
+ const checkComposer=async(actionSelector='#workflow-ai-plan')=>{
+  const boxes=await page.evaluate(actionSelector=>{
+   const box=selector=>{const r=document.querySelector(selector).getBoundingClientRect();
+    return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height};};
+   return {composer:box('.workflow-composer'),source:box('#workflow-provider-toggle'),
+    input:box('#workflow-ai-request'),send:box(actionSelector)};
+  },actionSelector);
+  assert.ok(boxes.input.right<=boxes.composer.right,'draft stays inside the composer');
+  assert.ok(boxes.source.right<=boxes.input.left,'Source sits before the input');
+  assert.ok(boxes.source.top>=boxes.input.top&&boxes.source.bottom<=boxes.input.bottom,
+   'Source shares the input row');
+  assert.ok(Math.abs(boxes.source.bottom-boxes.send.bottom)<=4,'Source aligns with Send');
+  assert.ok(boxes.composer.height<=boxes.input.height+12,'no independent bottom action row');
+ };
+ await checkComposer();assert.equal(await send.isDisabled(),true);
+ await input.fill('只检查布局，不发送');await checkComposer();
+ assert.equal(await send.isEnabled(),name==='Workflow',
+  'the six-tab preview keeps real execution disabled');
+ await input.fill(Array.from({length:10},(_,i)=>`第 ${i+1} 行布局检查`).join('\n'));
+ await checkComposer();assert.equal(await send.isVisible(),true);
+ await input.fill('');await checkComposer();
+ await page.locator('#workflow-provider-toggle').focus();await page.keyboard.press('Tab');
+ assert.equal(await input.evaluate(node=>node===document.activeElement),true,
+  'keyboard order follows the visible Source → input → Send row');
+ await page.keyboard.press('Shift+Tab');await page.keyboard.press('Enter');
+ assert.equal(await page.getByRole('menuitemradio').count(),2);
+ const menuBox=await page.locator('#workflow-source-menu').boundingBox();
+ const triggerBox=await page.locator('#workflow-provider-toggle').boundingBox();
+ assert.ok(menuBox.y+menuBox.height<=triggerBox.y,'source menu opens above the row');
+ assert.equal(await page.getByRole('menuitem',{name:'高级 AI 设置…',exact:true}).isVisible(),true);
+ await page.keyboard.press('End');
+ assert.equal(await page.getByRole('menuitem',{name:'高级 AI 设置…',exact:true})
+  .evaluate(node=>node===document.activeElement),true);
+ await page.keyboard.press('Escape');
+ assert.equal(await page.locator('#workflow-provider-toggle')
+  .evaluate(node=>node===document.activeElement),true);
+ if(name==='Workflow'){
+  await page.locator('#od-workflow-preview-scenario').selectOption('planning');
+  assert.equal(await page.getByRole('button',{name:'停止对话',exact:true}).isVisible(),true);
+  await checkComposer('#workflow-ai-cancel');
+  await page.locator('#od-workflow-preview-scenario').selectOption('empty');
+ }
+ await page.locator('#workflow-provider-toggle').click();
+ await page.getByRole('menuitemradio',{name:'HTTPS 模型',exact:true}).click();
+ await page.getByRole('dialog',{name:'AI 设置'}).waitFor();
+ await page.getByRole('button',{name:'取消',exact:true}).click();
+ await checkComposer();
+ assert.equal(await page.getByRole('alert').isVisible(),true,
+  'missing HTTPS configuration stays visible without displacing the input');
  const open=async()=>{
   await page.locator('#workflow-provider-toggle').click();
   await page.getByRole('menuitem',{name:'高级 AI 设置…',exact:true}).click();
@@ -329,8 +381,9 @@ test('Shared Workflow transcript preserves escaped speaker semantics and native 
   const conversation=await read('src/ui/react/components/conversation.tsx');
   assert.match(conversation,/transcriptTarget\?createPortal\(transcript,transcriptTarget\):null/);
   assert.match(conversation,/composerTarget\?createPortal\(composer,composerTarget\):null/);
-  assert.ok(css.includes('background:color-mix(in srgb,var(--od-positive) 13%,var(--od-paper))'));
-  assert.ok(css.includes('.workflow-chat-transcript{display:flex;flex-direction:column;gap:6px;min-width:0;max-height:none;overflow:visible}'));
+  const dockCss=await read('src/ui/react/components/conversation-dock.css');
+  assert.match(dockCss,/\.od-conversation-entry\[data-speaker="user"\]\{[^}]*background:var\(--od-conversation-user-bg\)/);
+  assert.match(css,/\.workflow-chat-transcript\{[^}]*max-height:none;overflow:visible\}/);
   assert.ok(!css.includes('max-height:210px'));
   assert.ok(css.includes('.workflow-composer:focus-within'));
   assert.ok(builder.includes('src/ui/react/components/conversation.tsx'));

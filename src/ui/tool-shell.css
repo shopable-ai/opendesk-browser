@@ -645,21 +645,18 @@
 .workflow-ai-step-preview li:before{content:counter(workflow-steps);position:absolute;left:0;top:9px;border-radius:var(--radius-control);width:21px;height:21px;display:grid;place-items:center;background:#eaf0fc;color:#4167b4;font-size:10px;font-weight:760}
 .workflow-ai-step-preview li strong{display:block;font-size:var(--od-body-size);font-weight:650}
 .workflow-ai-step-preview li span{display:block;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.55;margin-top:var(--space-1)}
-.workflow-composer{flex:none;min-width:0;background:var(--od-paper);border:0;padding:0;margin:var(--space-1) 0 var(--space-2)}
+.workflow-composer{display:flex;align-items:flex-end;gap:var(--space-1);flex:none;min-width:0;background:var(--od-paper);border:1px solid var(--od-input-border);border-radius:var(--radius-surface);padding:var(--space-1);margin:var(--space-1) 0 var(--space-2)}
 .workflow-composer:focus-within{outline:2px solid var(--od-focus);outline-offset:1px}
-/* Workflow now uses the shared Chat Frame inside its original sticky composer. */
-.workflow-composer-frame{min-width:0}
-.workflow-composer .od-conversation-composer{border:0;padding:0;min-height:48px}
-.workflow-composer:has(.od-conversation-composer):focus-within{outline:none}
-.workflow-composer-actions{display:flex;justify-content:flex-end;align-items:center;gap:var(--space-2);flex-wrap:nowrap}
+/* Source, draft and Send share one sticky composer; the source menu opens above
+ * this row without clipping. Runtime configuration still belongs to ToolShell. */
+.workflow-composer-frame{flex:1;min-width:0}
+.workflow-composer .od-conversation-composer{border:0;padding:0;min-height:44px}
+.workflow-composer-actions{display:flex;align-items:center;flex:none;gap:var(--space-1);padding-bottom:var(--space-1)}
 /* Send, stop and settings always keep the public 34px icon footprint, including first use. */
 .workflow-composer .workflow-send-button{flex:none}
 
-/* R2.3: one icon Source menu below the two-line shared composer. This is a
- * layout-only Portal-free control; runtime configuration belongs to ToolShell. */
-.workflow-composer-actions{justify-content:flex-start;min-height:34px}
 .workflow-source-picker{position:relative;min-width:0;display:flex;align-items:center}
-.workflow-source-menu{position:absolute;z-index:24;left:0;bottom:calc(100% + 8px);
+.workflow-source-menu,.workflow-source-notice{position:absolute;z-index:24;left:0;bottom:calc(100% + 8px);
  width:min(278px,calc(100vw - 26px));max-width:calc(100vw - 26px);
  padding:5px;display:grid;gap:2px;min-width:0;background:var(--od-paper);
  border:1px solid var(--od-line);border-radius:var(--radius-surface);
@@ -671,13 +668,11 @@
 .workflow-source-option[aria-checked="true"],.workflow-source-option:hover{background:var(--od-muted)}
 .workflow-source-option:focus-visible{outline:2px solid var(--od-focus);outline-offset:-2px}
 .workflow-source-menu-divider{height:1px;margin:3px 5px;background:var(--od-line)}
-.workflow-source-notice{font-size:var(--od-meta-size);line-height:1.5;margin:0 0 0 6px;
+.workflow-source-notice{font-size:var(--od-note-size);line-height:1.5;margin:0;padding:var(--space-2);
  color:var(--od-negative);overflow-wrap:anywhere;min-width:0}
-.workflow-composer:has(.workflow-source-menu){position:relative;z-index:3}
-@media(max-width:360px){.workflow-composer{padding:5px 6px}
- .workflow-source-menu{width:min(250px,calc(100vw - 24px))}}
-@media(pointer:coarse){.workflow-source-option{min-height:44px}
- .workflow-composer-actions{min-height:44px}}
+.workflow-composer:has(.workflow-source-menu,.workflow-source-notice){position:relative;z-index:3}
+@media(max-width:360px){.workflow-source-menu,.workflow-source-notice{width:min(250px,calc(100vw - 24px))}}
+@media(pointer:coarse){.workflow-source-option{min-height:44px}}
 
 #workflow-provider-settings:not([open]){display:none}
 #workflow-provider-settings>summary{display:none}
@@ -699,10 +694,8 @@
 .workflow-history-empty{margin:0;padding:14px 12px;border:1px dashed var(--od-line);border-radius:var(--radius-surface);font-size:12px;line-height:1.5;color:var(--od-sub);background:var(--od-paper)}
 .workflow-step-tools{display:flex;align-items:center;gap:var(--space-2);min-width:0}
 .workflow-step-tools .workflow-icon-button{width:34px;height:34px}
-.workflow-composer-actions #workflow-provider-toggle{width:34px;height:34px;flex:none}
 .workflow-source-react-host{display:flex;align-items:center;min-width:0;flex:1 1 auto;overflow:hidden}
 .workflow-source-name{display:block;min-width:0;max-width:100%;font-size:11.5px;font-weight:600;line-height:1.35;color:var(--od-sub);white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
-.workflow-composer-actions .workflow-send-button{margin-left:auto}
 .workflow-sheet-content,.workflow-sheet-content .workflow-provider,
 .workflow-sheet-content .workflow-provider>*{min-width:0;max-width:100%}
 .workflow-sheet-content .workflow-provider input:not([type=checkbox]),

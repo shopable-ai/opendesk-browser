@@ -55,8 +55,9 @@
 @media(pointer:coarse){.od-conversation-settings{width:44px;height:44px;right:48px;top:-4px}
  .od-conversation-frame-trigger{width:44px;min-width:44px;height:44px;min-height:44px}}
 /* Workflow reuses the same toolbar rhythm without changing its Source owner. */
-.workflow-composer-actions{gap:2px}
-.workflow-composer-actions #workflow-provider-toggle{width:30px;min-width:30px;height:30px;min-height:30px}
+.workflow-composer .od-conversation-input{border:0;border-radius:0;padding-left:var(--space-1);background:transparent}
+.workflow-composer .od-conversation-input:focus-visible{outline:none}
+.workflow-composer-actions #workflow-provider-toggle{width:34px;min-width:34px;height:34px;min-height:34px}
 .workflow-composer-actions #workflow-provider-toggle svg{width:17px;height:17px}
 @media(pointer:coarse){.workflow-composer-actions #workflow-provider-toggle{width:44px;min-width:44px;height:44px;min-height:44px}}
 

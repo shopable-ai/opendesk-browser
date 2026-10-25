@@ -459,7 +459,6 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
         </section>
       </div>
       <div className="workflow-composer">
-         <div className="workflow-composer-frame" ref={setComposerTarget}/>
          <div className="workflow-composer-actions">
            {sharedProviderSettings&&providerSettings?
              <WorkflowSourceMenu snapshot={settingsSnapshot} providerSettings={providerSettings}
@@ -469,6 +468,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
               <WorkflowSourceName value={model.sourceName||'本机 Codex'}/>
              </>}
          </div>
+         <div className="workflow-composer-frame" ref={setComposerTarget}/>
        </div>
        <div id="workflow-page-actions" className="workflow-actions od-toolbar" hidden={Boolean(model.awaitingReview)||(!model.hasSteps&&model.phase!=='running')}>
         {action('workflow-run','再次运行',{primary:true})}{action('workflow-save','保存工作流')}{action('workflow-stop','停止')}
