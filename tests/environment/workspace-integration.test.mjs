@@ -17,7 +17,7 @@ const event=()=>{const listeners=new Set();return {addListener:fn=>listeners.add
   emit(...args){for(const fn of listeners)fn(...args);},get size(){return listeners.size;}};};
 // Native file-service fixture only. The production controller has no document,
 // element, focus or virtual DOM adapter; consumers observe immutable snapshots.
-async function fixture(t,{noLease=false,knowledgeDraft=false,tree=false,invalidTree=false}={}){
+async function fixture(t,{noLease=false,knowledgeDraft=false,tree=false,invalidTree=false,previewTool='',previewSource='source-'+('a'.repeat(24)),toolSnapshot=false}={}){
   let state={connected:true,supported:true,sessionId:randomUUID(),devLeaseEpoch:1,maxContentBytes:32768};
   const row=id=>({workspaceId:id,sourceId:'source-'+(id===A?'a':'b').repeat(24),name:'同名目录',access:'read-write',
     accessReason:'temporary-cli',...(noLease?{}:{leaseEpoch:randomUUID()})});
@@ -29,7 +29,25 @@ async function fixture(t,{noLease=false,knowledgeDraft=false,tree=false,invalidT
     webNavigation:{getFrame:async()=>({...target}),onHistoryStateUpdated:navigation,onCommitted:committed},
     scripting:{executeScript:async()=>[{frameId:0,documentId:target.documentId,result:{ok:true,url:target.url,turnKey:'turn-component',answerKey:'answer-component'}}]},
     sidePanel:{setOptions:async value=>panels.push(value),open:async value=>panels.push(value)}};
-  const session={},created=new Map();
+  const session={},created=new Map(),previewTabs=[];
+  const previewIntent=randomUUID();
+  if(previewTool)session['opendesk.tool-workspace-preview.intent.v1:'+previewIntent]={sourceId:previewSource,toolId:previewTool==='auto'?null:previewTool,expiresAt:Date.now()+60000};
+  if(toolSnapshot){
+    for(const [workspace,id] of [[A,'live-tool'],[B,'second-tool']]){
+    const tool={format:'opendesk.sidebar-tool.v1',id,version:'1.0.0',title:'Real source transport',description:'Read only',capabilities:[],html:'<main>Source</main>',css:'',js:'void 0;'};
+    const raw=JSON.stringify(tool),sha256=hash(raw),prefix='opendesk-tool-preview/'+id,part=prefix+'/'+sha256+'/part-000.txt';
+    const manifest=JSON.stringify({format:'opendesk.tool-snapshot.v1',id:tool.id,version:tool.version,sha256,bytes:Buffer.byteLength(raw),sourceFingerprint:hash('source'),buildId:null,chunks:[{path:part,sha256,bytes:Buffer.byteLength(raw)}]});
+    const content={
+      'tool.config.json':JSON.stringify({id:tool.id}),[part]:Buffer.from(raw).toString('base64'),
+      [prefix+'/'+sha256+'/manifest-'+hash(manifest)+'.json']:manifest,
+      [prefix+'/latest.json']:JSON.stringify({format:'opendesk.tool-preview-latest.v1',id:tool.id,version:tool.version,sha256,manifestPath:prefix+'/'+sha256+'/manifest-'+hash(manifest)+'.json',manifestSha256:hash(manifest),buildId:null}),
+      [prefix+'/status.json']:JSON.stringify({format:'opendesk.tool-preview-status.v1',id:tool.id,state:'ready',sha256,updatedAt:Date.now(),message:''})};
+    for(const [path,text] of Object.entries(content))created.set(workspace+'\0'+path,text);
+    }
+    api.runtime.getURL=path=>'chrome-extension://'+'a'.repeat(32)+'/'+path;
+    api.tabs.create=async row=>{previewTabs.push(row);return {id:91};};
+    api.storage.session={get:async key=>({[key]:session[key]}),set:async values=>Object.assign(session,values),remove:async key=>{delete session[key];}};
+  }
   if(knowledgeDraft){
     const pkg=await officialToolFixture('knowledge-inbox');
     const markdown='# 来自收件箱\n\n待创建的内容';
@@ -94,7 +112,7 @@ async function fixture(t,{noLease=false,knowledgeDraft=false,tree=false,invalidT
       const chat=createWorkspaceChatEdit(options);
       return {...chat,saved(record,committed){savedCalls.push({record,committed});return chat.saved(record,committed);}};
     },
-    locationURL:'chrome-extension://'+'a'.repeat(32)+'/native-agent/workspace.html?workspaceId='+A,
+    locationURL:'chrome-extension://'+'a'.repeat(32)+'/native-agent/workspace.html?'+(previewTool?'sourceId='+previewSource+'&previewIntent='+previewIntent:'workspaceId='+A),
     lockManager:{request:async(_name,work)=>work()}});
   t.after(()=>controller.dispose());
   await controller.ready;
@@ -104,10 +122,40 @@ async function fixture(t,{noLease=false,knowledgeDraft=false,tree=false,invalidT
     do{await pause(2);if(!snapshot().busy)return;}while(Date.now()<deadline);
     throw Error('Workspace did not settle: '+snapshot().status.text);
   };
-  return {controller,snapshot,actions,files,calls,panels,navigation,committed,removed,messages,settle,session,created,faults,deferNext,chatContract,savedCalls,
+  return {controller,snapshot,actions,files,calls,panels,navigation,committed,removed,messages,settle,session,created,faults,deferNext,chatContract,savedCalls,previewTabs,
     get rows(){return rows;},set rows(value){rows=value;},get state(){return state;},set state(value){state=value;},
     mix(){mixSession=true;},select:id=>actions.selectWorkspace(id),edit:actions.setDraft,openFile:(path='README.md')=>actions.read(path)};
 }
+
+test('Develop preview intent opens only the exact authorized source and matching tool, without installation or writes',async t=>{
+  const h=await fixture(t,{toolSnapshot:true,previewTool:'live-tool'});
+  assert.equal(h.previewTabs.length,1);
+  assert.match(h.previewTabs[0].url,/sidepanel.html\?previewId=/);
+  assert.equal(h.calls.some(row=>['files.write','files.create'].includes(row.method)),false);
+  assert.equal(Object.values(h.session).find(row=>row.format==='opendesk.tool-preview-session.v1').sourceId,'source-'+('a'.repeat(24)));
+  await h.actions.refresh();assert.equal(h.previewTabs.length,1,'refresh does not reopen a preview');
+});
+test('Develop installed-tool mismatch refuses the handoff before loading a snapshot',async t=>{
+  const h=await fixture(t,{toolSnapshot:true,previewTool:'other-tool'});
+  assert.equal(h.previewTabs.length,0);
+  assert.match(h.snapshot().presentation.toolPreviewStatus.text,/ID.*不匹配/);
+  assert.equal(h.calls.some(row=>row.params.path?.endsWith('/latest.json')),false);
+});
+test('an unavailable requested preview source never falls back to a different authorized directory',async t=>{
+  const h=await fixture(t,{toolSnapshot:true,previewTool:'auto',previewSource:'source-'+('c'.repeat(24))});
+  assert.equal(h.previewTabs.length,0);
+  await h.select(B);await h.actions.refresh();assert.equal(h.previewTabs.length,0);
+  assert.equal(h.calls.some(row=>row.params.path==='tool.config.json'),false);
+});
+test('explicitly switching Workspace retires the prior installed-tool filter before opening the new tool',async t=>{
+  const h=await fixture(t,{toolSnapshot:true,previewTool:'live-tool'});
+  assert.equal(h.previewTabs.length,1);
+  await h.select(B);assert.equal(h.previewTabs.length,1,'switching alone cannot run UI');
+  await h.actions.previewTool({isTrusted:true});
+  assert.equal(h.previewTabs.length,2);
+  const next=Object.values(h.session).find(row=>row.format==='opendesk.tool-preview-session.v1');
+  assert.equal(next.sourceId,'source-'+('b'.repeat(24)));assert.equal(next.tool.id,'second-tool');
+});
 
 test('Workspace is DOM-free and publishes busy transitions without owning elements or focus',async t=>{
   const previous=Object.getOwnPropertyDescriptor(globalThis,'document');

@@ -12,6 +12,7 @@ __pycache__/
 
 # Native/HTML tool preview snapshots are immutable local stage evidence, not releases.
 .opendesk-preview/
+opendesk-tool-preview/
 
 # Generated Bookmark Manager acceptance screenshots and run reports stay local.
 /examples/sidebar-tools/bookmark-manager/preview/evidence/

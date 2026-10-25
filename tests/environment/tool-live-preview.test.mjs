@@ -4,6 +4,8 @@ import {createHash} from 'node:crypto';
 import {createToolLivePreview,validateToolWatchStatus} from '../../src/native-agent/tool-live-preview.js';
 import {previewStorageKey} from '../../src/native-agent/tool-snapshot.js';
 import {subscribePreviewSession,previewStatusKey} from '../../src/ui/sidebar-tools/live-preview.js';
+import {createSidebarToolsView} from '../../src/ui/sidebar-tools-view.js';
+import {TOOL_DEVELOPMENT_STORAGE_PORT} from '../../src/native-agent/tool-development-storage.js';
 const workspaceId='workspace-00000000-0000-4000-8000-000000000002';
 const sourceId='source-'+('b'.repeat(24));
 const toolId='live-test',previewId='00000000-0000-4000-8000-000000000001';
@@ -31,17 +33,18 @@ function fixture(){
     },
     async remove(k){const oldValue=stored.get(k);stored.delete(k);writes.push(['remove',k]);changed.emit({[k]:{oldValue}},'session');}
   }},tabs:{onRemoved:removed,async create(row){tabs.push(row);return {id:tabs.length+90};}}};
-  function publish(js='void 0;'){
+  function publish(js='void 0;',capabilities=[]){
     const tool={format:'opendesk.sidebar-tool.v1',id:toolId,version:'1.0.0',title:'Live',
-      description:'Read only',capabilities:[],html:'<main>Live</main>',css:'',js};
+      description:'Read only',capabilities,html:'<main>Live</main>',css:'',js};
     const bytes=Buffer.from(JSON.stringify(tool)),sha256=hash(bytes),prefix='opendesk-tool-preview/'+toolId;
     const path=prefix+'/'+sha256,part=path+'/part-000.txt';
     const manifest={format:'opendesk.tool-snapshot.v1',id:toolId,version:tool.version,sha256,
       bytes:bytes.length,sourceFingerprint:hash(js),buildId:null,chunks:[{path:part,sha256,bytes:bytes.length}]};
     const raw=JSON.stringify(manifest);
-    disk.set(part,bytes.toString('base64'));disk.set(path+'/manifest.json',raw);
+    const manifestPath=path+'/manifest-'+hash(raw)+'.json';
+    disk.set(part,bytes.toString('base64'));disk.set(manifestPath,raw);
     disk.set(prefix+'/latest.json',JSON.stringify({format:'opendesk.tool-preview-latest.v1',id:toolId,
-      version:tool.version,sha256,manifestPath:path+'/manifest.json',manifestSha256:hash(raw),buildId:null}));
+      version:tool.version,sha256,manifestPath,manifestSha256:hash(raw),buildId:null}));
     status('ready',sha256);
     return {tool,sha256,buildId:null};
   }
@@ -78,6 +81,9 @@ test('two snapshots update the same tab; error, stale and disconnect keep its la
   assert.equal(f.tabs.length,1);assert.equal(live.preview.tabId,opened.tabId);
   assert.equal(f.stored.get(storageKey).sha256,second.sha256);
   const third=f.publish('void 2;');
+  f.status('building',second.sha256);await live.check();
+  assert.match(messages.at(-1)[0],/正在编译/);
+  assert.equal(f.stored.get(storageKey).sha256,second.sha256);
   f.status('error',second.sha256,'syntax error');await live.check();
   assert.match(messages.at(-1)[0],/编译失败/);
   f.status('ready',third.sha256,'',new Date(f.now()-15001).toISOString());await live.check();
@@ -102,6 +108,41 @@ test('Native authority failures before start and after reading a changed snapsho
   f.publish('void 1;');failAt=checks+2;
   await live.check();assert.equal(f.stored.get(storageKey).sha256,old);
   assert.match(f.stored.get(previewStatusKey(opened.previewId)).text,/revoked after read/);
+});
+
+test('live owner revokes the old iframe before awaiting a changed snapshot, independently of UI mounting',async t=>{
+  const f=fixture(),entered=gate(),release=gate(),messages=[];
+  f.api.runtime.id='test';f.api.runtime.onConnect=event();
+  f.publish('void 0;',['storage.local']);let blockNew=false;
+  const live=f.live(t,{nativeAuthority:{devLeaseEpoch:1,sessionId:'native',leaseEpoch:'lease'},
+    lockManager:{request:(_name,work)=>work()},readText:async path=>{
+      if(blockNew&&path.endsWith('/latest.json')){entered.resolve();await release.promise;}
+      return f.disk.get(path);
+    }});
+  t.after(()=>release.resolve());
+  const opened=await live.start(),first=f.stored.get(previewStorageKey(opened.previewId));
+  const posted=event(),port={name:TOOL_DEVELOPMENT_STORAGE_PORT+opened.previewId,
+    sender:{id:'test',url:`chrome-extension://test/sidepanel.html?hostInstanceId=host-1&previewId=${opened.previewId}`,
+      tab:{id:opened.tabId,incognito:false},documentId:'document-1',frameId:0,documentLifecycle:'active'},
+    onMessage:event(),onDisconnect:event(),postMessage(message){messages.push(message);posted.emit(message);},disconnect(){this.onDisconnect.emit();}};
+  f.api.runtime.onConnect.emit(port);
+  const send=message=>new Promise((resolve,reject)=>{
+    const timer=setTimeout(()=>{posted.removeListener(listener);reject(new Error('owner result timed out'));},1000);
+    const listener=row=>{if(row.type==='result'&&row.requestId===message.requestId){
+      clearTimeout(timer);posted.removeListener(listener);resolve(row);
+    }};
+    posted.addListener(listener);port.onMessage.emit(message);
+  });
+  const instance='22222222-2222-4222-8222-222222222222';
+  assert.equal((await send({type:'approve',requestId:1,instance,sha256:first.sha256})).ok,true);
+  f.publish('void 1;',['storage.local']);blockNew=true;
+  const checking=live.check();await entered.promise;
+  assert.equal(messages.at(-1).type,'revoked','revoke precedes the pending Native snapshot read');
+  const response=await send({type:'storage',requestId:2,instance,sha256:first.sha256,operation:'storage.set',
+    payload:{key:'draft',value:'must not save',ifMatch:hash(Buffer.from('null'))}});
+  assert.equal(response.ok,false);assert.equal(response.error.code,'E_PREVIEW_GRANT');
+  assert.equal([...f.stored.keys()].some(name=>name.startsWith('opendesk.sidebar-tools.development-data.')),false);
+  release.resolve();await checking;
 });
 
 test('stop during asynchronous start drains the handoff before removing its record',async t=>{
@@ -180,6 +221,44 @@ test('subscriber reports lost heartbeat, retains dirty hint and never applies pe
   dirty=false;t.mock.timers.tick(1000);await flush();assert.equal(mounts.length,1);
 });
 
+test('subscriber invalidates before dirty deferral and restores only the explicit approval entry after same-SHA recovery',async t=>{
+  const f=fixture(),first=f.publish(),order=[],snapshots=[];let dirty=false;
+  await f.api.storage.session.set({[key]:f.session(first)});
+  const subscription=subscribePreviewSession({api:f.api,previewId,now:f.now,
+    mount:()=>{order.push('mount');},isDirty:()=>{order.push('dirty');return dirty;},
+    onInvalidate:()=>order.push('invalidate'),onSnapshot:value=>snapshots.push(value)});
+  t.after(()=>subscription.dispose());await subscription.ready;
+  assert.equal(snapshots.length,1);
+  await f.api.storage.session.set({[statusKey]:{text:'compile error',error:true,available:false}});await flush();
+  // Unchanged snapshots are deduplicated by the owner for up to 60 seconds.
+  // Its ready heartbeat alone must restore the explicit approval control.
+  await f.api.storage.session.set({[statusKey]:{text:'recovered',error:false,available:true}});await flush();
+  assert.equal(snapshots.length,2,'same successful SHA can be explicitly approved again');
+  assert.equal(order.filter(value=>value==='mount').length,1,'recovery never reruns code');
+  await f.api.storage.session.set({[key]:f.session(first)});await flush();
+  assert.equal(snapshots.length,2,'ordinary heartbeat does not reset approval UI');
+  order.length=0;dirty=true;
+  await f.api.storage.session.set({[key]:f.session(f.publish('void 1;'))});await flush();
+  assert.deepEqual(order,['invalidate','dirty']);
+  assert.equal(snapshots.length,2,'deferred snapshot cannot be approved before mount');
+});
+
+test('live owner ready heartbeat restores approval after an error even when the same snapshot write is deduplicated',async t=>{
+  const f=fixture(),first=f.publish('void 0;',['storage.local']),live=f.live(t),opened=await live.start();
+  const storageKey=previewStorageKey(opened.previewId),snapshots=[];let mounts=0;
+  const subscription=subscribePreviewSession({api:f.api,previewId:opened.previewId,now:f.now,
+    mount:()=>{mounts++;},onSnapshot:value=>snapshots.push(value)});
+  t.after(()=>subscription.dispose());await subscription.ready;
+  const publications=()=>f.writes.filter(row=>row[0]==='set'&&row[1]===storageKey).length;
+  const before=publications();assert.equal(snapshots.length,1);
+  f.status('error',first.sha256,'temporary error');await live.check();await flush();
+  assert.equal(f.stored.get(previewStatusKey(opened.previewId)).available,false);
+  f.status('ready',first.sha256);await live.check();await flush();
+  assert.equal(publications(),before,'recovery relies on the owner ready heartbeat');
+  assert.equal(f.stored.get(previewStatusKey(opened.previewId)).available,true);
+  assert.equal(snapshots.length,2);assert.equal(mounts,1);
+});
+
 test('disposing during the initial async storage read prevents a late mount and removes the listener',async()=>{
   const f=fixture();await f.api.storage.session.set({[key]:f.session(f.publish())});
   const entered=gate(),release=gate(),get=f.api.storage.session.get;let mounted=0;
@@ -211,3 +290,67 @@ test('stop during the initial Native read never reaches the tab handoff',async t
   await Promise.all([start,stop]);assert.equal(live.preview,null);
   assert.equal(f.tabs.length,0);assert.equal(f.stored.size,0);assert.equal(f.removed.size,0);
 });
+
+test('real view facade forwards subscriber mounts and dirty/saving guards across snapshots',async t=>{
+  t.mock.timers.enable({apis:['setInterval']});
+  const f=fixture(),view=createSidebarToolsView(),mounts=[],messages=[];
+  let toolDirty=false,toolSaving=false;
+  const facade=view.connect(()=>({ready:Promise.resolve(),dispose(){},
+    openReadOnlyPreview:tool=>{mounts.push(tool.js);},
+    isPreviewActive:()=>mounts.length>0,isPreviewEditing:()=>toolDirty||toolSaving}));
+  const detach=view.attachRuntime({frameRoot:{nodeType:1,ownerDocument:{}},
+    settingsControl:{nodeType:1,ownerDocument:{}}});
+  await facade.ready;
+  await f.api.storage.session.set({[key]:f.session(f.publish())});
+  const subscription=subscribePreviewSession({api:f.api,previewId,now:f.now,
+    mount:tool=>facade.openReadOnlyPreview(tool),isActive:()=>facade.isPreviewActive(),
+    isDirty:()=>facade.isPreviewEditing(),onStatus:(...args)=>messages.push(args)});
+  t.after(()=>{subscription.dispose();detach();view.dispose();});
+  await subscription.ready;
+  await f.api.storage.session.set({[key]:f.session(f.publish('void 1;'))});await flush();
+  assert.deepEqual(mounts,['void 0;','void 1;'],'second snapshot crosses the actual view facade');
+  for(const state of ['dirty','saving']){
+    toolDirty=state==='dirty';toolSaving=state==='saving';
+    const next=f.publish('void '+(state==='dirty'?2:3)+';');
+    const count=mounts.length;
+    await f.api.storage.session.set({[key]:f.session(next)});await flush();
+    await f.api.storage.session.set({[statusKey]:{text:'heartbeat',error:false}});await flush();
+    assert.equal(mounts.length,count,state+' must defer mounting');
+    assert.match(messages.at(-1)[0],/未保存/);
+    toolDirty=false;toolSaving=false;t.mock.timers.tick(1000);await flush();
+    assert.equal(mounts.length,count+1);
+    assert.equal(mounts.at(-1),next.tool.js);
+    assert.equal(messages.at(-1)[1],false);
+  }
+});
+
+for(const failure of ['false','throw']){
+  test('mount '+failure+' keeps the previous snapshot and its error survives heartbeat until successful retry',async t=>{
+    const f=fixture(),mounts=[],messages=[];let fail=false,attempts=0;
+    await f.api.storage.session.set({[key]:f.session(f.publish())});
+    const subscription=subscribePreviewSession({api:f.api,previewId,now:f.now,
+      mount:tool=>{
+        attempts++;
+        if(fail){if(failure==='false')return false;throw new Error('mount rejected');}
+        mounts.push(tool.js);
+      },onStatus:(...args)=>messages.push(args)});
+    t.after(()=>subscription.dispose());await subscription.ready;
+    fail=true;
+    const second=f.publish('void 1;');
+    await f.api.storage.session.set({[key]:f.session(second)});await flush();
+    assert.deepEqual(mounts,['void 0;']);assert.equal(attempts,2);
+    const failed=messages.at(-1);
+    assert.match(failed[0],/更新失败/);assert.equal(failed[1],true);
+    assert.match(failed[0],failure==='false'?/不能安全刷新/:/mount rejected/);
+    for(let i=0;i<2;i++){
+      await f.api.storage.session.set({[statusKey]:{text:'实时开发预览 · '+second.sha256.slice(0,12),error:false}});await flush();
+      assert.deepEqual(messages.at(-1),failed,'heartbeat cannot claim the failed mount succeeded');
+    }
+    fail=false;
+    await f.api.storage.session.set({[key]:f.session(second)});await flush();
+    assert.equal(attempts,3,'failed snapshot was not marked current and can be retried');
+    assert.deepEqual(mounts,['void 0;','void 1;']);assert.equal(messages.at(-1)[1],false);
+    await f.api.storage.session.set({[statusKey]:{text:'recovered heartbeat',error:false}});await flush();
+    assert.deepEqual(messages.at(-1),['recovered heartbeat',false],'successful mount clears the prior error');
+  });
+}

@@ -19,7 +19,7 @@ export async function watchSidebarTool(projectPath,{intervalMs=1000,signal,onEve
     throw new TypeError('watch interval must be between 50 and 60000 ms');
   const project=resolve(projectPath);
   const head=await readSidebarToolPreviewHead(project);
-  let lastFingerprint=null,lastBuildId=null,lastError=null,lastSha256=head.sha256;
+  let lastFingerprint=null,lastBuildId=null,lastError=null,building=false,lastSha256=head.sha256;
   try{
     while(!signal?.aborted){
       try{
@@ -36,17 +36,18 @@ export async function watchSidebarTool(projectPath,{intervalMs=1000,signal,onEve
             buildId:next.buildId,sha256:next.sha256,nativeLatest:next.nativeLatest,
             output:next.output});
         }
-        lastError=null;
+        lastError=null;building=false;
       }catch(error){
         if(signal?.aborted)break;
         const message=(error.code||'E_TOOL_WATCH')+' · '+String(error.message||error);
-        if(message!==lastError){lastError=message;onEvent({state:'BUILD_OR_PACKAGE_FAILED',message,
+        building=error.code==='E_TOOL_BUILDING';
+        if(message!==lastError){lastError=message;onEvent({state:building?'BUILDING':'BUILD_OR_PACKAGE_FAILED',message,
           previousPreviewRetained:!!lastSha256});}
       }
       if(signal?.aborted)break;
       // One bounded atomic heartbeat per polling cycle, including repeated errors.
       // Unchanged successful inputs do not invoke the packer again.
-      await publishSidebarToolStatus(project,{id:head.id,state:lastError?'error':'ready',
+      await publishSidebarToolStatus(project,{id:head.id,state:building?'building':lastError?'error':'ready',
         sha256:lastSha256,message:lastError||''});
       await sleep(intervalMs,signal);
     }

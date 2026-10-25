@@ -25,6 +25,7 @@ import {createUiLocaleController} from './app-localization.js';
 import {createToolLocaleService} from './sidebar-tools/locale-packs.js';
 import {requestedToolId,requestedPreviewId,canonicalToolHostUrl} from './sidebar-tools/navigation.js';
 import {subscribePreviewSession} from './sidebar-tools/live-preview.js';
+import {createToolDevelopmentControls} from './sidebar-tools/development-controls.js';
 import {createNativeAgentHostAdapter} from '../native-agent/host-adapter.js';
 import {SIDEPANEL_DOCUMENT_PATH} from '../tool-document-url.js';
 import {isToolSender} from '../environment.js';
@@ -78,7 +79,7 @@ const createCloudHosting=historyUI.createCloudHosting;
 if(!historyUI?.createTaskWorkbench||!historyUI?.createScheduledTaskWorkbench)
   throw new Error('E_TRUSTED_TASK_UI_MISSING');
 const {createTaskWorkbench,createScheduledTaskWorkbench}=historyUI;
-let trustedHistoryWorkbench=null,shellClosed=false,verifiedSidePanel=false,panelToolIntents=null,livePreview=null;
+let trustedHistoryWorkbench=null,shellClosed=false,verifiedSidePanel=false,panelToolIntents=null,livePreview=null,toolDevelopmentControls=null;
 // Do not construct or query the privileged History controller while Extensions
 // (or any ordinary tab) is active. Leaving Debug also clears private results.
 function syncTrustedHistory(view=pendingReactTab){
@@ -353,11 +354,13 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
     try{
       await sidebarTools.ready;
       if(shellClosed)return;
+      toolDevelopmentControls=createToolDevelopmentControls({api:chrome,view:toolView,tools:sidebarTools});
       livePreview=subscribePreviewSession({api:chrome,previewId,
         mount:tool=>sidebarTools.openReadOnlyPreview(tool),
+        onInvalidate:()=>toolDevelopmentControls.invalidate(),onSnapshot:value=>toolDevelopmentControls.snapshot(value),
         isActive:()=>sidebarTools.isPreviewActive(),isDirty:()=>sidebarTools.isPreviewEditing(),
         onStatus:(text,error)=>toolView.patch('sidebar-tool-readonly-banner',{
-          textContent:text+'。只读沙箱；业务写入和网页操作仍被禁止。',hidden:false,data:{state:error?'error':'readonly'}})});
+          textContent:text+'。沙箱隔离；存储调试需单独批准，网页和其他能力仍被禁止。',hidden:false,data:{state:error?'error':'readonly'}})});
       await livePreview.ready;
     }catch(error){
       if(shellClosed)return;
@@ -427,6 +430,7 @@ Object.defineProperty(globalThis, 'OpenDeskResourceDiagnostics', {value: Object.
 })});
 listen(window, 'pagehide', () => {
   livePreview?.dispose();
+  toolDevelopmentControls?.dispose();
   disposeDevelopment?.();
   chrome.runtime.onMessage.removeListener(draftImportListener);draftImportAttached=false;sidebarSurface=false;
   chrome.storage.onChanged.removeListener(onMenuLaunchChanged);

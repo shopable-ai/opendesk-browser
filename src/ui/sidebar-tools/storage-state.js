@@ -1,4 +1,4 @@
-// Confirm durable Chrome local writes instead of trusting a possibly lost acknowledgement.
+// Confirm Chrome storage writes instead of trusting a possibly lost acknowledgement.
 // Callers hold the existing per-tool/catalog lock; there is no cross-call transaction.
 export const storageError=(code,message,cause)=>Object.assign(new Error(message),{code,...(cause?{cause}:{})});
 export function stableStorageString(value){
@@ -18,16 +18,19 @@ export function unknownStorageOutcome(cause,scope='本地存储'){
 }
 // A rejected promise may occur after persistent mutation. Compare the complete
 // value read under the caller's lock before deciding whether the write failed.
-export async function writeVerifiedLocalValue(api,key,next,previous,scope='本地存储'){
+export async function writeVerifiedStorageValue(area,key,next,previous,scope='本地存储'){
   let failure=null;
-  try{await api.storage.local.set({[key]:next});}catch(error){failure=error;}
+  try{await area.set({[key]:next});}catch(error){failure=error;}
   let actual;
-  try{actual=(await api.storage.local.get(key))[key];}
+  try{actual=(await area.get(key))[key];}
   catch(error){throw unknownStorageOutcome(error,scope);}
   if(sameStorageValue(actual,next))return {confirmed:true,acknowledgementLost:Boolean(failure)};
   if(failure&&sameStorageValue(actual,previous))
     throw classifyStorageWriteError(failure,scope);
   throw unknownStorageOutcome(failure,scope);
+}
+export async function writeVerifiedLocalValue(api,key,next,previous,scope='本地存储'){
+  return writeVerifiedStorageValue(api.storage.local,key,next,previous,scope);
 }
 
 

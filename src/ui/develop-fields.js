@@ -56,6 +56,13 @@ export const DEVELOPER_FIELDS = {
     "title": "刷新已授权本地项目"
   },
   "local-project-status": {},
+  "local-project-tool": {
+    "options": [["独立本地项目", ""]],
+    "value": ""
+  },
+  "local-project-tool-bind": {"disabled": true},
+  "local-project-tool-pointer": {},
+  "local-project-preview": {"disabled": true},
   "local-install-review": {
     "hidden": true
   },

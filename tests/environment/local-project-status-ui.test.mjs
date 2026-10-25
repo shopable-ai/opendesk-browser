@@ -475,7 +475,7 @@ test('file-only catalog stays metadata-only and opens only through a trusted exp
   assert.match(f.find('local-project-select').options[1].label,/prompt-shortcuts · 文件工作区/);
   assert.equal(f.find('local-project-select').disabled,false);
   assert.equal(f.find('local-project-status').dataset.state,'entry-unavailable');
-  assert.match(f.find('local-project-status').textContent,/尚未发现可运行入口.*package.json/);
+  assert.match(f.find('local-project-status').textContent,/所选目录已连接.*实时开发预览.*不要求可运行源码 Provider/);
   assert.equal(f.find('local-project-connect').textContent,'打开文件工作区 ↗');
   assert.equal(f.view.connected(),false);
   assert.throws(()=>f.view.capture(),{code:'E_DEV_DISCONNECTED'});
@@ -497,7 +497,7 @@ test('workspace without sourceId opens by workspaceId and saved file selection r
   assert.equal(f.opened[0].url,'chrome-extension://test/native-agent/workspace.html?workspaceId='+file.workspaceId);
   assert.equal(f.view.connected(),false);
 });
-test('a directory without an executable binding keeps file opening auxiliary and reports the missing entry',async t=>{
+test('a directory without an executable binding allows file opening while Run stays unavailable',async t=>{
   const f=fixture(t,{files:[workspace]});await tick();
   assert.equal(f.view.selectionKind(),'file-workspace');
   assert.equal(f.view.canOpenWorkspace(),true);

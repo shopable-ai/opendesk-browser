@@ -7,6 +7,7 @@ import {sourceLabel,sourceName} from './source-label.js';
 import {validateRequestPath} from './workspace-chat-request.js';
 import {validateWorkspaceTreeListing,parentDirectoriesForFile,MAX_WORKSPACE_TREE_EXPANSIONS,MAX_WORKSPACE_TREE_REFRESH} from './workspace-file-tree.js';
 import {createToolLivePreview} from './tool-live-preview.js';
+import {consumeToolPreviewIntent} from '../ui/sidebar-tools/workspace-preview-intent.js';
 import {createKnowledgeWorkspaceHandoff} from '../knowledge/workspace-handoff.js';
 import {localizeLiteral,subscribeLocale,translate,formatFileSize,getLocale} from '../i18n/index.js';
 import {isDirtyWorkspaceDraft as dirty,sameWorkspaceAuthority as sameAuthority,
@@ -43,6 +44,9 @@ export function createWorkspaceController({api=globalThis.chrome,client,
   const query=new URL(locationURL).searchParams;
   const requested=workspacePattern.test(query.get('workspaceId')||'')?query.get('workspaceId'):'';
   let pendingSource=/^source-[a-f0-9]{24}$/.test(query.get('sourceId')||'')?query.get('sourceId'):'';
+  const previewSource=pendingSource;
+  const requestedPreviewIntent=query.get('previewIntent')||'';
+  let requestedToolPreview='',pendingToolPreview=!!previewSource&&!!requestedPreviewIntent;
   let current=null,workspaceId=requested,busy=false,connected=false,view='preview',previewTimer,closed=false,creationPending=null,chatEdit;
   let history=[],refreshGeneration=0,pendingRefresh=false,fileState={};
   let treeFolders=new Map(),treeIdentity='',treeRevision=0;
@@ -423,6 +427,15 @@ export function createWorkspaceController({api=globalThis.chrome,client,
       if(file)await openFile(file.path);
     }
     status(demo?'内存演示文件。':'本机已连接；文件工作区可用。保存或运行都需要明确操作。');
+    // The Develop action selects an already authorized exact source. A URL is
+    // only a read-only UI intent; Native authority and the config are checked
+    // again below, and no business action or installed grant is replayed.
+    if(pendingToolPreview&&authorityFor()?.sourceId===previewSource){
+      pendingToolPreview=false;
+      const intent=await consumeToolPreviewIntent({api,id:requestedPreviewIntent,sourceId:previewSource,lockManager});
+      requestedToolPreview=intent.toolId||'auto';
+      await previewSidebarTool();
+    }
   }
   async function previewSidebarTool(){
     if(demo||!connected||!workspaceAccess.has(workspaceId))
@@ -432,6 +445,8 @@ export function createWorkspaceController({api=globalThis.chrome,client,
     toolPreviewStatus('正在从已授权目录读取、验证完整构建快照…');
     try{
       if(liveToolPreview?.preview){
+        if(requestedToolPreview&&requestedToolPreview!=='auto'&&liveToolPreview.preview.toolId!==requestedToolPreview)
+          throw {code:'E_TOOL_PREVIEW_ID',message:'当前预览与所选扩展不匹配，请重新绑定源码。'};
         await api.tabs.update(liveToolPreview.preview.tabId,{active:true});return;
       }
       await assertAuthority(authority);
@@ -439,7 +454,10 @@ export function createWorkspaceController({api=globalThis.chrome,client,
       let config;try{config=JSON.parse(info.content);}
       catch{throw {code:'E_TOOL_SCHEMA',message:'tool.config.json 不是合法 JSON'};}
       const toolId=config?.id;
+      if(requestedToolPreview&&requestedToolPreview!=='auto'&&toolId!==requestedToolPreview)
+        throw {code:'E_TOOL_PREVIEW_ID',message:'所选源码的工具 ID 与已安装扩展不匹配；未打开预览，也未改变安装版。'};
       const preview=createToolLivePreview({api,toolId,workspaceId:ws,sourceId:authority.sourceId,
+        nativeAuthority:Object.freeze({...authority}),lockManager,
         assertCurrent:()=>assertAuthority(authority),onStatus:toolPreviewStatus,readText:async path=>{
         if(closed||workspaceId!==ws||!sameAuthority(authority,authorityFor()))
           throw {code:'E_FILES_SESSION',message:'读取期间目录身份或授权已经变化'};
@@ -601,7 +619,7 @@ export function createWorkspaceController({api=globalThis.chrome,client,
     if(!await leaveImportedDraft()||closed)return;
     await liveToolPreview?.stop();liveToolPreview=null;
     chatEdit.invalidate('已切换工作区，旧请求和提案已失效，原草稿保留。');
-    pendingSource='';workspaceId=selected;current=null;resetFileTree();renderPreview();
+    pendingToolPreview=false;requestedToolPreview='';pendingSource='';workspaceId=selected;current=null;resetFileTree();renderPreview();
     toolPreviewStatus('已切换工作区；请再次明确点击以读取该目录的工具构建。');
     if(!demo)api.storage?.local?.set({[HISTORY_KEY]:{workspaces:history,selection:workspaceId}}).catch(()=>{});
     if(connected&&workspaceAccess.has(workspaceId))await refreshFileTree();

@@ -10,6 +10,7 @@ description: Engineer Chrome MV3/WXT Background/Content/MAIN, SDK/Host/Authority
 此 Skill 属于**OpenDesk Browser Chrome 插件自身**的工程维护，和普通用户在「扩展」中创建/更新应用是**两个不同的操作主体**。管理员编辑 WXT/MV3/Host/SDK/固定 Content/Background 时复用现有开发流程 [Browser 持续开发与安全刷新](../../../docs/framework/extension-development-r131.zh-CN.md)：
 
 - 本地 `main`、`npm run dev`、稳定 `dist/development` 负责持续编译与安全刷新；已有 watcher 时复用，不重启第二个写入者。
+- Sidebar Tool 源码热开发沿用原 watch/stage、Native 来源校验与 sandbox 预览会话；平台只补已证实的发布/订阅/生命周期缺口，业务仍留工具目录。官方包 JSON/Catalog 数据变化不执行安装，也不应退役 Native 预览连接；可信 SW/SDK/Manifest 变化仍按现有安全栅栏刷新。真实 CSS+UI/JS 两次可见、坏构建保留与安装数据隔离须分别验证，不能把包 SHA 变化当画面 PASS。操作见[唯一工具开发文档](../../../docs/api/sidebar-tool-development.zh-CN.md#b-本地只读预览改得勤但暂不安装)。
 - 确需发布插件本体才独立执行 `npm run build`、包校验及隔离 Chrome 验收；不能把每次普通应用改动都升级为整包重建。
 - Chrome 的扩展 ID、Profile、Native `allowed_origins` 和用户授权由维护者核验；禁止以删除/重装日常 Chrome 扩展处理应用版本。
 - 受审第一方 `trusted/` 若进入 Browser 固定入口，静态代码变更必须走本体开发部署；`opendesk-sidebar-tool-package` 生成的 JSON 不包含这些特权代码。

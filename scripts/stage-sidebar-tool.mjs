@@ -29,7 +29,7 @@ export async function readSidebarToolPreviewHead(path){
 }
 export async function publishSidebarToolStatus(path,{id,state,sha256=null,message=''}){
   previewId(id);
-  if(!['ready','error','stopped'].includes(state)||
+  if(!['building','ready','error','stopped'].includes(state)||
     sha256!==null&&(typeof sha256!=='string'||!/^[a-f0-9]{64}$/.test(sha256)))
     fail('invalid Native preview status');
   const root=await realpath(path);
@@ -78,13 +78,16 @@ async function publishNativeSnapshot(root,pkg,bytes,sha256,sourceFingerprint,bui
   }
   const manifest={format:'opendesk.tool-snapshot.v1',id:pkg.id,version:pkg.version,
     sha256,bytes:bytes.length,sourceFingerprint,buildId,chunks};
-  const manifestPath=snapshot+'/manifest.json';
   const manifestBytes=Buffer.from(JSON.stringify(manifest)+'\n');
+  // Build receipts may change while the package bytes stay identical. Chunks
+  // belong to the package hash; each immutable manifest owns its metadata hash.
+  const manifestSha256=digest(manifestBytes);
+  const manifestPath=snapshot+'/manifest-'+manifestSha256+'.json';
   await stableWrite(join(root,manifestPath),manifestBytes);
   // Only this small pointer is mutable. Atomic rename publishes a fully written
   // immutable snapshot; an extension re-reads the pointer after all chunks.
   const latest={format:'opendesk.tool-preview-latest.v1',id:pkg.id,version:pkg.version,
-    sha256,manifestPath,manifestSha256:digest(manifestBytes),buildId};
+    sha256,manifestPath,manifestSha256,buildId};
   const pointer=join(root,directory,'latest.json');
   const temporary=join(root,directory,'.latest-'+process.pid+'-'+randomUUID()+'.tmp');
   try{

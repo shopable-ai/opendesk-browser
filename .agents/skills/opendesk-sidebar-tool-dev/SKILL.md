@@ -110,6 +110,8 @@ node scripts/stage-sidebar-tool.mjs examples/sidebar-tools/<id>
 # STAGED_NOT_INSTALLED，不授予网站、Cookie 或浏览器权限
 ```
 
+持续迭代复用 `node scripts/watch-sidebar-tool.mjs <真实项目目录>` 与原 Native Workspace 的「只读预览工具 ↗」：明确打开一次后，同一来源、同一工具的新完整快照自动重挂原沙箱，不重复安装/导入。按[唯一开发文档的本地只读预览章节](../../../docs/api/sidebar-tool-development.zh-CN.md#b-本地只读预览改得勤但暂不安装)执行“绑定真实来源→修改 CSS→构建→观察同一预览→修改 UI/JS→再次观察→错误保留旧画面→恢复”。状态 SHA 更新不能代替可见更新；正式包、安装身份和用户数据必须不变。关闭、撤销、断连与编译失败分别报告；只读存储 mock 不证明业务保存。React/Vue 先复用自身 `build:watch` 的完整构建回执，不另建编译器。
+
 React/Vue 可复用项目本身的已有预编译配置，源码创建和 UI 调试由本 Skill 负责；**正式 JSON 生成、项目目录预构建包、版本/原始字节核对及本地导入/离线发行**统一按 [`opendesk-sidebar-tool-package`](../opendesk-sidebar-tool-package/SKILL.md) 执行。源码/UI 调整本身不意味着已经安装、运行、获准读 Cookie 或完成 Chrome 原生测试。不重复定义 `--out`、Catalog、Host、SW 或市场上传协议。
 
 ## 必须始终保护的合同

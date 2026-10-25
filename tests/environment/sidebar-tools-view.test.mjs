@@ -26,7 +26,8 @@ const conversationModule = await compileComponent('../../src/ui/react/components
   'react':import.meta.resolve('react'),'react-dom':import.meta.resolve('react-dom'),
   './ui/button.tsx':buttonModule});
 const toolsModule = await compileComponent('../../src/ui/react/tabs/tools.tsx',{'react':import.meta.resolve('react'),
-  'react-dom':import.meta.resolve('react-dom'),'../components/ui/button.tsx':buttonModule});
+  'react-dom':import.meta.resolve('react-dom'),'../components/ui/button.tsx':buttonModule,
+  '../../locale-manager-localization.js':new URL('../../src/ui/locale-manager-localization.js',import.meta.url).href});
 const moduleSource = compiled.code.replace('"react"', JSON.stringify(import.meta.resolve('react')))
   .replace('"react-dom"',JSON.stringify(import.meta.resolve('react-dom')))
   .replace('"./tools.tsx"',JSON.stringify(toolsModule))
@@ -176,7 +177,7 @@ test('React layout supplies real runtime refs, preserves opaque children, dispat
   t.after(() => {globalThis.window = previous.window; globalThis.document = previous.document; globalThis.IS_REACT_ACT_ENVIRONMENT = previous.act;});
   const {createRoot} = await import('react-dom/client');
   const root = createRoot(document.getElementById('mount')), view = createSidebarToolsView();
-  let initialized = 0, disposed = 0;
+  let initialized = 0, disposed = 0, editing = false;
   const calls = [];
  const methods = ['openTool', 'openSettings', 'toggleEnabled', 'uninstallFromList', 'retryUninstallCleanup', 'openOfficialReview',
     'openImport', 'openReadOnlyPreview', 'openInTab', 'closeTool'];
@@ -193,10 +194,12 @@ test('React layout supplies real runtime refs, preserves opaque children, dispat
     return {ready: Promise.resolve(), setVisible: value => calls.push(['visible', value]),
       ...Object.fromEntries(methods.map(name => [name, (...args) => {calls.push([name, ...args]); return name;}])),
       isDirty: () => true, isPreviewActive: () => false, isPreviewDirty: () => true,
+      isPreviewEditing: () => editing,
       dispose() {disposed++; assert.equal(frame.isConnected, true); release(); frame.remove(); trusted.remove();}}
   });
   facade.setVisible(true);
   assert.equal(facade.isDirty(), false);
+  assert.equal(facade.isPreviewEditing(), false);
   assert.throws(() => facade.openTool('early'), /E_SIDEBAR_TOOL_RUNTIME_NOT_READY/);
   assert.throws(() => facade.uninstallFromList('early', {}, {isTrusted:true}), /E_SIDEBAR_TOOL_RUNTIME_NOT_READY/);
   await React.act(async () => {root.render(React.createElement(ToolHost, {view}));});
@@ -204,6 +207,9 @@ test('React layout supplies real runtime refs, preserves opaque children, dispat
   assert.equal(initialized, 1); assert.deepEqual(calls, [['visible', true]]);
   assert.equal(view.resourceSnapshot().subscriptions, 1);
   assert.equal(facade.isDirty(), true); assert.equal(facade.isPreviewActive(), false);
+  assert.equal(facade.isPreviewEditing(), false);
+  editing = true;
+  assert.equal(facade.isPreviewEditing(), true);
   for (const name of methods) assert.equal(facade[name]('alpha'), name);
   const baseline={id:'alpha',version:'0.3.8'},event={isTrusted:true};
   facade.uninstallFromList('alpha',baseline,event);
@@ -258,6 +264,7 @@ test('React layout supplies real runtime refs, preserves opaque children, dispat
   unbindLanguage();
   await React.act(async () => root.unmount());
   assert.equal(disposed, 1);
+  assert.equal(facade.isPreviewEditing(), false, 'disposed facade cannot report a live editor');
   assert.deepEqual(view.resourceSnapshot(), {subscriptions: 0, bindings: 0, runtime: false, controllers: 0, effects: 0});
   assert.ok(Object.values(view.runtime).every(node => node === null));
   facade.dispose(); view.dispose(); assert.equal(disposed, 1);

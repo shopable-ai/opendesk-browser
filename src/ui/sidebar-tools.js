@@ -239,6 +239,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const knowledgeOperation=operation=>KNOWLEDGE_OPERATIONS.includes(operation)||operation==='knowledge.editorState';
   let clipGrants={},clipSiteEpoch=0;
   let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, nativeUI=null, nativePending=false, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false;
+  let developmentStorage=null;
   let frameExportPort=null;
   let promptHost=null;
   let revocationEpochs={},frameRevocationEpoch=null,revocationReadEpoch=0;
@@ -905,6 +906,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     return response.data;
   }
   function destroyFrame() {
+    developmentStorage?.revoke();developmentStorage=null;
     if(promptHost){const previous=promptHost;promptHost=null;previous.dispose();}
     // Also retire a failed Prompt admission's installation-scoped Provider.
     trustedPromptPilot?.releaseConversation?.();
@@ -1351,7 +1353,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     return true;
   }
-  function mountTool(tool,{readOnly=false,launchGate=null,forceSandbox=false}={}) {
+  function mountTool(tool,{readOnly=false,launchGate=null,forceSandbox=false,developmentSession=null}={}) {
     // Native official admission can fall back to a new sandbox session.
     // Preserve only that same verified launch intent across the fallback.
     const carryOpen=forceSandbox&&instance!==null&&pendingAnalyticsOpen===instance;
@@ -1369,6 +1371,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     tocScope='site';destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;knowledgeDirty=false;
     frameRevocationEpoch=readOnly?null:(revocationEpochs[tool.id]??null);
     instance=crypto.randomUUID();
+    developmentStorage=readOnly?developmentSession:null;
     pendingAnalyticsOpen=carryOpen?instance:null;
     const token=instance;
     if(!forceSandbox&&!readOnly&&!launchGate&&tool.id===TIME_REVIEW_ID&&
@@ -1512,6 +1515,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         notice('工具页面发生导航，旧界面已关闭。',true);return;
       }
       initialized=true;
+      // A trusted explicit approval always starts a NEW iframe. Admission
+      // finishes before load dispatch and before the tool's first storage.get.
+      if(readOnly&&developmentSession){
+        try{await developmentSession.start(token);}
+        catch(error){
+          if(sameInstance(frame?.contentWindow,token))notice('隔离存储调试未启动：'+String(error.message||error),true);
+          return;
+        }
+        if(!sameInstance(frame?.contentWindow,token)){developmentSession.revoke();return;}
+      }
       // The native menu's one-shot ticket must bind to THIS instance before
       // any sandbox HTML/JS is dispatched; never retry launch.consume blindly.
       // The guard executes before the installed package/lifecycle recheck.
@@ -1654,13 +1667,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     reviewDroppedFiles(files);
     return true;
   }
-  function openReadOnlyPreview(value){
+  function openReadOnlyPreview(value,{developmentSession=null}={}){
     
     if(disposed||busy||!visible)throw new Error('预览页面已经关闭或不可用');
     const tool=validateSidebarToolPackage(value);
-    if(active&&!canLeave(()=>{if(visible&&!busy)mountTool(tool,{readOnly:true});}))return false;
+    if(active&&!canLeave(()=>{if(visible&&!busy)mountTool(tool,{readOnly:true,developmentSession});}))return false;
     // Installed-tool ID collisions NEVER inherit installed rights in a preview.
-    mountTool(tool,{readOnly:true});
+    mountTool(tool,{readOnly:true,developmentSession});
   }
   async function openInTab(id=active?.id) {
     if(disposed||busy||!visible)return;
@@ -1687,6 +1700,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(!readOnlyPreview)await assertSidebarToolEnabled(api,tool.id);
     assertSession(source,token);
     if(readOnlyPreview){
+      if(developmentStorage&&['storage.get','storage.set'].includes(operation)&&tool.capabilities.includes('storage.local'))
+        return developmentStorage.request(operation,payload,token);
       // Mock reads only. No Chrome storage or Native/Task invocation from code
       // under development, even when an installed tool shares this ID.
       if(operation==='storage.get'&&tool.capabilities.includes('storage.local')&&

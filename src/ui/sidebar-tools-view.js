@@ -175,7 +175,7 @@ export function createSidebarToolsView() {
           return record.controller[key](...args);
         };
       }
-      for (const key of ['isDirty', 'isPreviewActive', 'isPreviewDirty']) {
+      for (const key of ['isDirty', 'isPreviewActive', 'isPreviewDirty', 'isPreviewEditing']) {
         facade[key] = (...args) => !record.closed && !!record.controller?.[key](...args);
       }
       connection = record; initialize(); return Object.freeze(facade);

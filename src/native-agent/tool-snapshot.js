@@ -32,7 +32,7 @@ export async function readToolSnapshot({toolId,readText}){
   if(!exact(pointer,['format','id','version','sha256','manifestPath','manifestSha256','buildId'])||
     pointer.format!=='opendesk.tool-preview-latest.v1'||pointer.id!==toolId||
     !VERSION.test(pointer.version)||!SHA.test(pointer.sha256)||!SHA.test(pointer.manifestSha256)||
-    pointer.manifestPath!==prefix+'/'+pointer.sha256+'/manifest.json')fail('invalid latest pointer fields');
+    pointer.manifestPath!==prefix+'/'+pointer.sha256+'/manifest-'+pointer.manifestSha256+'.json')fail('invalid latest pointer fields');
   const rawManifest=await readText(pointer.manifestPath);
   if(typeof rawManifest!=='string'||utf8.encode(rawManifest).length>32768||
     await hash(utf8.encode(rawManifest))!==pointer.manifestSha256)fail('manifest content hash mismatch');

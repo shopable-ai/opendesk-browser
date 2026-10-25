@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,writeFile,readFile,rm,stat,readdir} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+import {createHash} from 'node:crypto';
 import {publishSidebarToolStatus,stageSidebarTool} from '../../scripts/stage-sidebar-tool.mjs';
 import {watchSidebarTool} from '../../scripts/watch-sidebar-tool.mjs';
 const statusPath=root=>join(root,'opendesk-tool-preview/watch-test/status.json');
@@ -135,4 +136,37 @@ test('a restarted watcher retains the previous successful SHA on build failure',
   assert.equal((await readStatus(f.root)).sha256,first.sha256);
   assert.equal((await readStatus(f.root)).state,'stopped');
   assert.equal(await readFile(join(f.root,first.nativeLatest),'utf8'),pointer);
+});
+
+test('compiled lifecycle reports building and error instead of ready, then accepts identical rebuilt bytes',async t=>{
+  const f=await fixture(),controller=new AbortController(),events=[];let run;
+  t.after(async()=>{controller.abort();await run;await rm(f.root,{recursive:true,force:true});});
+  await mkdir(join(f.root,'dist'));
+  const config=JSON.parse(await readFile(join(f.root,'tool.config.json'),'utf8'));
+  config.files.css='dist/tool.css';config.files.js='dist/tool.js';
+  await writeFile(join(f.root,'tool.config.json'),JSON.stringify(config));
+  const records={};
+  for(const name of ['css','js']){
+    const bytes=await readFile(join(f.root,f.files[name]));
+    await writeFile(join(f.root,config.files[name]),bytes);
+    records[config.files[name]]={bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
+  }
+  const receipt=(state,buildId)=>writeFile(join(f.root,'dist/build-ready.json'),JSON.stringify({
+    format:'opendesk.ui-build-ready.v1',state,buildId,files:state==='ready'?records:{},message:state==='error'?'Unexpected token in JSX':''}));
+  await receipt('ready','success-1');
+  run=watchSidebarTool(f.root,{intervalMs:50,signal:controller.signal,onEvent:e=>events.push(e)});
+  await until(()=>events.some(e=>e.state==='STAGED_NOT_INSTALLED'));
+  const first=events.find(e=>e.sha256),path=join(f.root,first.nativeLatest),oldPointer=await readFile(path,'utf8');
+  await receipt('building','attempt-2');
+  await until(async()=>(await readStatus(f.root)).state==='building');
+  assert.equal((await readStatus(f.root)).sha256,first.sha256);assert.equal(await readFile(path,'utf8'),oldPointer);
+  await receipt('error','attempt-2');
+  await until(async()=>(await readStatus(f.root)).state==='error');
+  assert.match((await readStatus(f.root)).message,/Unexpected token in JSX/);
+  assert.equal(await readFile(path,'utf8'),oldPointer);
+  await receipt('ready','success-3');
+  await until(()=>events.filter(e=>e.state==='STAGED_NOT_INSTALLED').length===2);
+  await until(async()=>(await readStatus(f.root)).state==='ready');
+  assert.equal(events.filter(e=>e.state==='STAGED_NOT_INSTALLED')[1].sha256,first.sha256);
+  assert.notEqual(await readFile(path,'utf8'),oldPointer,'same package uses a new immutable receipt manifest');
 });

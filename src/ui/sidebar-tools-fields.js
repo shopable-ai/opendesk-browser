@@ -412,6 +412,9 @@ export const SIDEBAR_TOOL_FIELDS = {
       "data-state": "readonly"
     }
   },
+  "sidebar-tool-development-approve": {"hidden":true,"textContent":"批准隔离存储调试","type":"button","className":"od-button"},
+  "sidebar-tool-development-stop": {"hidden":true,"textContent":"停止存储调试","type":"button","className":"od-button od-button--secondary"},
+  "sidebar-tool-development-status": {"hidden":true,"textContent":"","className":"sidebar-tool-status"},
   "sidebar-tool-cookie-permissions": {},
   "sidebar-tool-cookie-heading": {},
   "sidebar-tool-cookie-target": {},

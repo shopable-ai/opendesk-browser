@@ -116,6 +116,22 @@ test('SDK MAIN, relay and built-in manifest changes are extension updates, not C
     assert.equal(changes.page,false);
   }
 });
+test('official package data keeps the live Native preview while trusted or unknown bytes still require reload',async()=>{
+  const f=workerFixture();
+  try{
+    await f.connect();f.start();await until(()=>f.reads>1);
+    f.change('official-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json','snapshot-1');
+    f.change('official-tools/catalog.json','catalog-1');
+    await until(()=>f.messages.some(message=>message.type==='revision'&&message.revision===revision(3)));
+    assert.equal(f.reloads,0);assert.equal(f.messages.some(message=>message.type==='prepare'),false);
+    for(const file of ['official-tools/prompt-shortcuts/trusted.js',
+      'official-tools/prompt-shortcuts/other.opendesk-tool.json','libs/manifest.json','sw.js']){
+      assert.equal(developmentChanges({files:{}},{files:{[file]:'new'}}).extension,true,file);
+    }
+    f.change('sw.js','trusted-change');await until(()=>f.reloads===1);
+    assert.equal(f.messages.some(message=>message.type==='prepare'),true);
+  }finally{f.worker.dispose();}
+});
 test('newly connected tools receive the existing reason a development update is waiting',async()=>{
   const f=workerFixture();
   try{

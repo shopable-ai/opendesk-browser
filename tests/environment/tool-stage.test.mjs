@@ -6,6 +6,7 @@ import {join} from 'node:path';
 import {createHash} from 'node:crypto';
 import {stageSidebarTool} from '../../scripts/stage-sidebar-tool.mjs';
 import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
+import {readToolSnapshot} from '../../src/native-agent/tool-snapshot.js';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 async function fixture(compiled){
   const dir=await mkdtemp(join(tmpdir(),'opendesk-ui-stage-'));
@@ -19,14 +20,14 @@ async function fixture(compiled){
   await writeFile(join(dir,'tool.config.json'),JSON.stringify({
     id:'ui-test',version:'1.0.0',title:'Demo UI',
     description:'Source test',capabilities:[],files}));
-  const ready=async()=>{
+  const ready=async(buildId='build-1')=>{
     const records={};
     for(const name of [files.css,files.js]){
       const bytes=await readFile(join(dir,name));
       records[name]={bytes:bytes.length,sha256:sha(bytes)};
     }
     await writeFile(join(dir,'dist/build-ready.json'),
-      JSON.stringify({format:'opendesk.ui-build-ready.v1',buildId:'build-1',files:records}));
+      JSON.stringify({format:'opendesk.ui-build-ready.v1',buildId,files:records}));
   };
   return {dir,files,ready};
 }
@@ -66,6 +67,18 @@ test('invalid resource traversal is rejected before any file packaging',async t=
   meta.files.js='../outside.js';
   await writeFile(join(f.dir,'tool.config.json'),JSON.stringify(meta));
   await assert.rejects(stageSidebarTool(f.dir),/invalid project-relative file path/);
+});
+
+test('identical compiled output with a new receipt keeps immutable chunks and publishes a fresh manifest',async t=>{
+  const f=await fixture(true);t.after(()=>rm(f.dir,{recursive:true,force:true}));
+  await f.ready('build-first');const first=await stageSidebarTool(f.dir);
+  const oldManifest=await readFile(join(f.dir,first.nativeManifest),'utf8');
+  await f.ready('build-second');const next=await stageSidebarTool(f.dir);
+  assert.equal(next.sha256,first.sha256);
+  assert.notEqual(next.nativeManifest,first.nativeManifest);
+  assert.equal(await readFile(join(f.dir,first.nativeManifest),'utf8'),oldManifest);
+  const loaded=await readToolSnapshot({toolId:'ui-test',readText:path=>readFile(join(f.dir,path),'utf8')});
+  assert.equal(loaded.sha256,first.sha256);assert.equal(loaded.buildId,'build-second');
 });
 
 test('staging exposes only bounded, content-addressed text chunks readable by existing Go Native',async t=>{

@@ -5,7 +5,7 @@ import {DevelopField} from './develop-controls.tsx';
 export function DevelopLocalProject(){
   return (
         <DevelopField as="section" id="local-project-tools" className="local-project-tools" aria-label="本地项目连接">
-          <p id="local-project-intro" className="local-project-intro od-note">选择已授权项目后运行或安装；系统会核对最新源码与授权。</p>
+          <p id="local-project-intro" className="local-project-intro od-note">选择已连接的目录，打开文件或实时预览修改。</p>
           <div className="local-project-controls od-toolbar">
             <label htmlFor="local-project-select" className="visually-hidden">
               {"已授权本地项目"}
@@ -18,6 +18,14 @@ export function DevelopLocalProject(){
               </svg>
             </DevelopField>
           </div>
+          <label htmlFor="local-project-tool" className="od-field-label">关联已安装工具（可选）</label>
+          <DevelopField as="select" id="local-project-tool" className="od-field" aria-describedby="local-project-tool-pointer"/>
+          <div className="od-toolbar">
+            <DevelopField as="button" id="local-project-tool-bind" type="button" className="od-button od-button--secondary">保存源码关联</DevelopField>
+            <DevelopField as="button" id="local-project-preview" type="button" className="od-button od-button--secondary">实时开发预览 ↗</DevelopField>
+          </div>
+          <DevelopField as="p" id="local-project-tool-pointer" className="hint" role="status" aria-live="polite"/>
+          <p className="hint">关联只记住此工具要打开的目录，不证明它是正式安装包的源码，也不授予安装权限。</p>
           <DevelopField as="p" id="local-project-status" role="status" aria-live="polite">
           </DevelopField>
           <DevelopField as="button" id="script-save" type="button" className="od-button od-button--secondary">
@@ -87,6 +95,12 @@ export function DevelopLocalProject(){
                 </li>
                 <li>
                   {"已授权项目会自动出现、自动准备；多个项目可切换，再点击「运行本地项目」。"}
+                </li>
+                <li>
+                  Sidebar Tool 从 <code>examples/sidebar-tools/react-starter/README.md</code> 的现有示例开始；
+                  在项目目录运行 <code>npm run build:watch</code>，另一个终端运行
+                  <code>node ../../../scripts/watch-sidebar-tool.mjs "$PWD"</code>，再选择目录并点击「实时开发预览 ↗」。
+                  这些命令由开发者执行，此入口不会运行 npm 或安装工具。
                 </li>
               </ol>
               <p>

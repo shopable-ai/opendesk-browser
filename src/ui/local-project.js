@@ -1,10 +1,14 @@
 import {patchDeveloperField,developerOptions,appendDeveloperOptions,developerAttribute,developerAction,focusDeveloperField} from './develop-view.js';
 import {sha256Utf8} from '../scripting/user-scripts/page-program-package.js';
 import {sourceLabel,sourceName} from '../native-agent/source-label.js';
+import {SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,serializeSidebarToolPackage} from './sidebar-tools/package.js';
+import {openToolPreviewWorkspace} from './sidebar-tools/workspace-preview-intent.js';
 
 const KEY='opendesk.local-project.selection.v1';
 const HELP_URL='https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/local-projects.zh-CN.md';
 const failure=(code,message)=>Object.assign(new Error(message),{code});
+const validSource=id=>typeof id==='string'&&/^source-[a-f0-9]{24}$/.test(id);
+const validTool=id=>typeof id==='string'&&/^[a-z][a-z0-9-]{1,39}$/.test(id);
 export function createLocalProjectView({client,api,document:doc,view=null,onChange=()=>{},preparationDelayMs=450}){
   const find=id=>view?view.fields[id]:doc.getElementById(id),mode=find('local-project-mode'),select=find('local-project-select'),status=find('local-project-status');
   let disposed=false,generation=0,selectionGeneration=0,connected=false,nativeConnected=false,epoch=null,projects=[],workspaces=[],selection='',savedName='',savedSourceId='',last=null,checking=false,diagnostic='';
@@ -12,6 +16,51 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
   // Recovery pointers extend the existing selection preference. Authority still
   // lives exclusively in durable Run results and installed Page/Task catalogs.
   let lastVerifiedProof=null,lastInstalledRef=null,lastUnknownInstall=null;
+  let toolId='',toolPointers={},installedTools=[],toolChoices='',pointerMessage='',previewOpening=false,toolsLoading=true,toolsRead=0;
+  const previewSource=()=>{
+    const row=selected();
+    return validSource(row?.sourceId)&&workspaces.some(item=>item.sourceId===row.sourceId)?row.sourceId:null;
+  };
+  const canChoosePreview=()=>active()&&!disposed&&!checking&&nativeConnected&&!previewOpening&&!toolsLoading&&!!previewSource()&&
+    (!toolId||installedTools.some(item=>item.id===toolId));
+  const pointerStale=()=>{const pointer=toolPointers[previewSource()];return !!(toolId&&pointer?.toolId===toolId&&pointer.installedPackageHash!==installedTools.find(item=>item.id===toolId)?.installedPackageHash);};
+  const canPreview=()=>canChoosePreview()&&!pointerStale();
+  function renderTools(){
+    const field=find('local-project-tool');
+    const identity=JSON.stringify([installedTools,toolId]);
+    if(field&&identity!==toolChoices){
+      toolChoices=identity;
+      developerOptions(view,field,[{label:'独立本地项目',value:''},
+        ...installedTools.map(item=>({label:item.title+' · v'+item.version,value:item.id})),
+        ...(toolId&&!installedTools.some(item=>item.id===toolId)?[{label:'此前选择的工具（安装记录不可用）',value:toolId}]:[])]);
+      patchDeveloperField(view,field,{value:toolId});
+    }
+    if(field)patchDeveloperField(view,field,{disabled:!active()});
+    const source=previewSource(),bound=source&&toolPointers[source];
+    if(find('local-project-tool-bind'))patchDeveloperField(view,find('local-project-tool-bind'),{disabled:!canChoosePreview()});
+    if(find('local-project-preview'))patchDeveloperField(view,find('local-project-preview'),{disabled:!canPreview()});
+    if(find('local-project-tool-pointer'))patchDeveloperField(view,find('local-project-tool-pointer'),{textContent:
+      pointerStale()?'已安装工具包已更新，请点击「保存源码关联」重新确认目录。':pointerMessage||(bound?'已关联目录：'+sourceName(selected()?.name)+'。下次打开此工具时仍使用这个目录。':
+        savedSourceId&&!selected()?'原关联目录未连接，请重新连接该目录；不会改用其他目录。':
+        '选择目录和工具后，可保存源码关联，方便下次打开。')});
+  }
+  async function loadTools(){
+    const version=++toolsRead;toolsLoading=true;renderTools();
+    let metadata=[];
+    try{
+      const value=(await api.storage?.local?.get(SIDEBAR_TOOL_STORE))?.[SIDEBAR_TOOL_STORE];
+      const ids=new Set();
+      if(Array.isArray(value)&&value.length<=MAX_INSTALLED_TOOLS)metadata=(await Promise.all(value.map(async item=>{
+        try{
+          const serialized=serializeSidebarToolPackage(item);
+          if(ids.has(item.id))return null;ids.add(item.id);
+          return {id:item.id,title:item.title,version:item.version,installedPackageHash:await sha256Utf8(serialized)};
+        }catch{return null;}
+      }))).filter(Boolean);
+    }catch{/* Installation metadata is optional and never grants access. */}
+    if(disposed||version!==toolsRead)return;
+    installedTools=metadata;toolsLoading=false;renderTools();
+  }
   const sourceUnavailable='本机 OpenDesk 已连接，但可运行源码 Provider 尚未接入。已授权的单文件会自动恢复；目录项目可在原目录执行 opendesk browser dev . 或 opendesk-dev . 接入，无需重复 Native 配对。';
   const listeners=[];
   let pollTimer=null,pollBusy=false,preparationCheck=null,preparationAgain=false,preparationError=null,nativeUpdateError=null,workspaceCheck=null,catalogVersion=null;
@@ -43,6 +92,7 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
   };
   const listen=(node,event,callback)=>{listeners.push(developerAction(view,node,event,callback));};
   function render(message){
+    renderTools();
     const local=active(),row=selected(),preparation=row?.preparation,ready=readyForRun();
     const identity=JSON.stringify([local,checking,connected,nativeConnected,epoch,selection,row,workspaces.length,row?.fileOnly?programsFor(row).length:null,diagnostic,last,preparationError?.code,nativeUpdateError?.code,backgroundError,prepared,workspaceOpenError,message]);
     if(identity===rendered)return;
@@ -68,7 +118,7 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
       !row?'selection-needed':backgroundError||preparation?.state==='source-error'?'source-error':
       ready?'ready':'preparing'}});
     patchDeveloperField(view,status,{textContent:!local?'':checking?'正在检查本机连接…':message||(
-      row?.fileOnly?(workspaceOpenError?.bindingId===row.bindingId?workspaceOpenError.message:programsFor(row).length>1?'所选目录有多个运行入口；请选择具体程序后运行。':'所选目录已连接，尚未发现可运行入口。请核对该项目的 package.json 中 opendesk 入口及源码 Provider 连接；配置完成后由原目录 opendesk-dev . 接入。打开文件仅用于辅助编辑，不会运行代码。'):
+      row?.fileOnly?(workspaceOpenError?.bindingId===row.bindingId?workspaceOpenError.message:'所选目录已连接，可打开文件工作区或点击「实时开发预览 ↗」。预览不要求可运行源码 Provider，不会安装工具或运行 npm。'+(programsFor(row).length>1?'运行程序时请选择具体入口。':'')):
       !connected&&workspaces.length?'请选择已授权项目；等待该项目的运行入口与源码 Provider 就绪。':
       !connected?(nativeConnected?sourceUnavailable:'本地项目服务未连接；已授权的项目仍保留，恢复 Native 后自动检查。'):
       !projects.length?'暂无可运行的已授权项目。目录授权使用 opendesk browser dev .；单文件授权使用 opendesk browser project add。':
@@ -152,6 +202,12 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
     },Math.max(0,preparationDelayMs));
   }
   function choices(){
+    // A fresh Native lease can change workspaceId. Only the exact saved source
+    // may restore a missing selection; a same-name directory is never a match.
+    if(!selected()&&validSource(savedSourceId)){
+      const original=workspaces.find(row=>row.sourceId===savedSourceId);
+      if(original)selection=original.bindingId;
+    }
     // Choosing the only *already authorized* project is navigation, never an execution or new authorization.
     const workspace=workspaces.find(row=>row.bindingId===selection);
     const matches=workspace&&(!savedSourceId||!workspace.sourceId||savedSourceId===workspace.sourceId)?
@@ -183,7 +239,7 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
     try{
       if(strict&&!api.storage?.local?.set)throw failure('E_STORAGE_WRITE','本地安装恢复存储不可用');
       await api.storage?.local?.set({[KEY]:{bindingId:selection,name:savedName,sourceId:savedSourceId,
-        paramsText,localMode:active(),lastVerifiedProof,lastInstalledRef,lastUnknownInstall}});
+        paramsText,localMode:active(),lastVerifiedProof,lastInstalledRef,lastUnknownInstall,toolId,toolPointers}});
     }catch(error){if(strict)throw error;}
   }
   async function readWorkspaces(){
@@ -300,8 +356,48 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
     last={inputHash:value.inputHash,sourceHash:value.sourceHash,cacheHit:value.cacheHit,timings:value.timings};render();return value;
   }
   listen(mode,'change',()=>{generation++;selectionGeneration++;checking=false;connected=false;nativeConnected=false;epoch=null;projects=[];workspaces=[];last=null;diagnostic='';nativeUpdateError=null;workspaceOpenError=null;resetBackground();persist();render();if(active())void refresh();});
-  listen(select,'change',()=>{generation++;selectionGeneration++;checking=false;if(selection!==select.value)savedSourceId='';selection=select.value;last=null;nativeUpdateError=null;workspaceOpenError=null;diagnostic='';resetBackground();persist();syncPreparation();render();});
-  listen(find('local-project-refresh'),'click',()=>{resetBackground();void refresh();});
+  listen(select,'change',()=>{generation++;selectionGeneration++;checking=false;if(selection!==select.value)savedSourceId='';selection=select.value;toolId=toolPointers[selected()?.sourceId]?.toolId||'';pointerMessage='';last=null;nativeUpdateError=null;workspaceOpenError=null;diagnostic='';resetBackground();persist();syncPreparation();render();});
+  listen(find('local-project-refresh'),'click',()=>{resetBackground();void loadTools();void refresh();});
+  if(find('local-project-tool'))listen(find('local-project-tool'),'change',event=>{
+    if(!event?.isTrusted||disposed||!active())return;
+    const value=find('local-project-tool').value;
+    if(value&&!installedTools.some(item=>item.id===value))return;
+    generation++;selectionGeneration++;checking=false;toolId=value;pointerMessage='';workspaceOpenError=null;
+    const sources=Object.keys(toolPointers).filter(source=>toolPointers[source]?.toolId===toolId);
+    if(toolId&&sources.length&&!sources.includes(selected()?.sourceId)){
+      // Restore a unique explicit pointer, including an offline placeholder.
+      // Multiple source preferences require the user to choose a directory.
+      savedSourceId=sources.length===1?sources[0]:'';savedName='原关联目录';
+      selection=savedSourceId?'source-preference:'+savedSourceId:'select-source';
+      pointerMessage=savedSourceId?'将使用原关联目录；离线时请先重新连接，不会改用其他目录。':'此工具关联了多个目录，请选择要打开的目录。';
+      choices();
+    }
+    resetBackground();syncPreparation();persist();render();
+  });
+  if(find('local-project-tool-bind'))listen(find('local-project-tool-bind'),'click',event=>{
+    if(!event?.isTrusted||!canChoosePreview())return;
+    const source=previewSource(),previous=toolPointers;
+    if(!Object.hasOwn(toolPointers,source)&&Object.keys(toolPointers).length>=32){pointerMessage='已保存 32 个目录关联，请先取消不再使用的关联。';render();return;}
+    const next={...toolPointers};if(toolId)next[source]={toolId,installedPackageHash:installedTools.find(item=>item.id===toolId).installedPackageHash};else delete next[source];
+    toolPointers=next;pointerMessage='正在保存源码关联…';render();
+    void persist({strict:true}).then(()=>{
+      if(disposed||toolPointers!==next)return;
+      pointerMessage=next[source]?'源码关联已保存，下次将打开所选目录。':'已取消源码关联，可独立打开所选目录。';render();
+    }).catch(error=>{
+      if(disposed||toolPointers!==next)return;
+      toolPointers=previous;pointerMessage='源码关联未保存：'+errorText(error,'E_STORAGE_WRITE');render();
+    });
+  });
+  if(find('local-project-preview'))listen(find('local-project-preview'),'click',event=>{
+    if(!event?.isTrusted||!canPreview())return;
+    const sourceId=previewSource();
+    previewOpening=true;pointerMessage='';render();
+    // The trusted click hands off through the existing one-shot session intent.
+    // No existing Workspace is navigated, preserving its current source/draft.
+    void openToolPreviewWorkspace({api,sourceId,toolId:toolId||null})
+      .catch(error=>{if(!disposed)pointerMessage='未能打开实时开发预览：'+errorText(error,'E_WORKSPACE_OPEN');})
+      .finally(()=>{previewOpening=false;if(!disposed)render();});
+  });
   function openWorkspace(event){
     const row=selected(),version=generation;
     if(!event?.isTrusted||!canOpenWorkspace())return false;
@@ -351,9 +447,16 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
   });
   const unsubscribeConnection=client.subscribeConnection?.(state=>{if(state.connected&&!disposed&&active())void refreshPreparation(true);});
   const initial=selectionGeneration;
+  void loadTools();
+  const toolsChanged=(changes,area)=>{if(area==='local'&&Object.hasOwn(changes||{},SIDEBAR_TOOL_STORE))void loadTools();};
+  api.storage?.onChanged?.addListener(toolsChanged);
   api.storage?.local?.get(KEY).then(value=>{
     if(disposed||selectionGeneration!==initial)return;
-    const saved=value[KEY];if(saved&&typeof saved.bindingId==='string'){selection=saved.bindingId;savedName=sourceName(saved.name,'之前的项目');savedSourceId=typeof saved.sourceId==='string'?saved.sourceId:'';/* Restoring a UI preference does not authorize or execute. */if(saved.localMode===true)patchDeveloperField(view,mode,{checked:true});if(typeof saved.paramsText==='string'&&saved.paramsText.length<=32768)patchDeveloperField(view,find('local-project-params'),{value:saved.paramsText});
+    const saved=value[KEY];if(saved&&typeof saved.bindingId==='string'){selection=saved.bindingId;savedName=sourceName(saved.name,'之前的项目');savedSourceId=typeof saved.sourceId==='string'?saved.sourceId:'';
+      toolId=validTool(saved.toolId)?saved.toolId:'';
+      toolPointers=Object.fromEntries(Object.entries(saved.toolPointers&&typeof saved.toolPointers==='object'?saved.toolPointers:{})
+        .filter(([source,pointer])=>validSource(source)&&validTool(pointer?.toolId)&&/^[a-f0-9]{64}$/.test(pointer?.installedPackageHash||'')).slice(0,32));
+      /* Restoring a UI preference does not authorize or execute. */if(saved.localMode===true)patchDeveloperField(view,mode,{checked:true});if(typeof saved.paramsText==='string'&&saved.paramsText.length<=32768)patchDeveloperField(view,find('local-project-params'),{value:saved.paramsText});
       if(saved.lastVerifiedProof&&typeof saved.lastVerifiedProof==='object'&&!Array.isArray(saved.lastVerifiedProof))
         lastVerifiedProof=saved.lastVerifiedProof;
       if(saved.lastInstalledRef&&typeof saved.lastInstalledRef==='object'&&!Array.isArray(saved.lastInstalledRef))
@@ -411,6 +514,6 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
       lastInstalledRef=structuredClone(ref);persist();
     },
     capture,resolve,assertCaptured,assertReady,
-    dispose(){disposed=true;generation++;clearInterval(pollTimer);resetBackground();unsubscribe?.();unsubscribeConnection?.();for(const remove of listeners)remove();},
+    dispose(){disposed=true;generation++;clearInterval(pollTimer);resetBackground();unsubscribe?.();unsubscribeConnection?.();api.storage?.onChanged?.removeListener(toolsChanged);for(const remove of listeners)remove();},
     resourceSnapshot:()=>({subscriptions:listeners.length+Number(!!unsubscribe)+Number(!!unsubscribeConnection)})};
 }

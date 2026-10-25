@@ -33,8 +33,13 @@ export function developmentRunHostIdle(storage){
 
 export function developmentChanges(previous,next) {
   const changed=Object.keys(next.files).filter(file=>previous.files[file]!==next.files[file]);
+  // Catalog/package JSON is read on explicit installation or by the separate
+  // local preview handoff. Updating these bytes does not replace loaded code.
+  // Retiring the extension here would sever the Native source and live iframe.
+  const packageData=file=>file==='official-tools/catalog.json'||
+    /^official-tools\/([a-z][a-z0-9-]{1,39})\/\1\.opendesk-tool\.json$/.test(file);
   return {changed,css:changed.includes('ui/tool-shell.css'),page:changed.some(file=>[SIDEPANEL_DOCUMENT_PATH,'ui/tool-shell.js'].includes(file)),
-    extension:changed.some(file=>!['ui/tool-shell.css',SIDEPANEL_DOCUMENT_PATH,'ui/tool-shell.js'].includes(file))};
+    extension:changed.some(file=>!packageData(file)&&!['ui/tool-shell.css',SIDEPANEL_DOCUMENT_PATH,'ui/tool-shell.js'].includes(file))};
 }
 export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=globalThis.fetch,intervalMs=1000}={}) {
   const ports=new Map();let held=false,applied,restored=false,timer,checking=false,checkIdle,lastReason,nativePending=0,reloading=false;

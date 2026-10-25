@@ -215,12 +215,34 @@ node scripts/stage-sidebar-tool.mjs examples/sidebar-tools/<tool-id>
 # 也生成受信 Native 读取用的分块快照 / latest.json
 ```
 
-已连接相应本地 Workspace/Native 的情况下，用户仍须**明确点击「只读预览工具」**才能在受控 iframe 中预览。只读预览使用模拟读取，不允许真实存储写入、打开任务或控制网页，且**即使 ID 与已安装工具相同也不继承权限**。`STAGED_NOT_INSTALLED` 不代表“已经安装”或“已在页面自动运行”。
+已连接相应本地 Workspace/Native 的情况下，用户须明确点击 Workspace 的「只读预览工具」，或在现有「开发」Tab 选择本地项目后点击「实时开发预览 ↗」，才能在受控 iframe 中预览。后者通过短时、一次性的来源绑定意图交给原 Workspace，仍重新核对 Native 租约、目录配置与所选工具 ID。只读预览使用模拟读取，不允许真实存储写入、打开任务或控制网页，且**即使 ID 与已安装工具相同也不继承权限**。`STAGED_NOT_INSTALLED` 不代表“已经安装”或“已在页面自动运行”。
 
 ```sh
 # 前台监听有变化的、已完成的源码快照；不会自行执行 npm 或安装工具
 node scripts/watch-sidebar-tool.mjs examples/sidebar-tools/<tool-id>
 ```
+
+监听启动后，在已授权来源的 Native Workspace 中明确点击「只读预览工具 ↗」一次。后续保存真实源码，原 watcher 完成校验并发布不可变快照；Workspace 复核同一来源与租约，再向同一个预览会话发布新快照，原沙箱 iframe 安全重新挂载。无需重复导入 JSON、安装或升级。预览页显示成功摘要、编译失败、旧快照及连接中断；失败保留上次成功画面，有未保存编辑时推迟替换。停止 watcher、关闭 Workspace 或来源撤销后不再接收更新。
+
+AI 验证应直接修改当前业务项目：先保存一处真实 CSS 并观察同一预览，再保存 UI/JS 并观察第二次变化；故意制造一次可恢复的编译错误，核对旧画面与错误状态，随后恢复源码。必须记录实际预览身份及快照 SHA，不能用 stdout、Node PASS 或状态栏的新 SHA 代替真实画面。临时标记不晋升正式包。预览只执行受限 UI；保存源码不会重放网站、任务或正式存储操作。真实 SDK 业务调试需要单独的开发准入，不能关闭只读标志或继承同 ID 安装授权。
+
+2026-10-25 的 Prompt Shortcuts 已在日常 Chrome 的 `dist/development` 持续开发环境完成上述两次更新和坏构建保留验证；正式包 SHA 与安装版原有 5 条列表未改变。这只证明该 HTML/CSS/JS 案例，React/Vue、业务保存和 production 验收不得据此写成 Chrome PASS。`opendesk-tool-preview/` 与 `.opendesk-preview/` 都是本机临时产物。
+
+「开发」Tab 的本地项目入口也已在同一 Chrome 实测：恢复 Prompt Shortcuts 原目录，选择已安装工具，保存源码关联，再点击实时预览，原 Workspace 自动打开正确工具的只读预览。关联只记住所选目录和安装包摘要，不能证明该目录就是正式包的原始来源；包变化须再次确认，离线时不按名称替换目录。每次点击可以新开 Workspace；后续源码更新复用该 Workspace 拥有的同一预览。关闭 owner 后须重新明确打开。首次 React 项目继续使用下节的既有 starter；尚未增加浏览器内创建目录或自动执行 npm 的能力。
+
+#### 受限存储业务调试：源码已接入，真实 Chrome 链待验证
+
+只读预览默认仍返回模拟读取，不允许业务写入。带 `storage.local` 声明的当前快照新增可信按钮「批准隔离存储调试」：用户审阅工具、来源及 SHA 后点击，宿主重新挂载一个 iframe，先完成开发准入，再发送工具源码。该入口保持 `readOnly` 隔离，不借用同 ID 安装权限，也不开放 `files.*`。
+
+实现沿用原链：**原 sandbox → 原预览 Host 的两项白名单操作 → 精确绑定的 Workspace owner → 原 Native authority 逐请求核验 → 隔离 session 存储**。窄 `runtime.Port` 只连接该预览的真实 tab/document/host，既有 Native 会话和开发租约必须有效；不是第二套 Authority 或安装流程。
+
+- grant 只保留在 owner 内存，绑定准确 source/tool、snapshot SHA、真实 tab/document/host、新 iframe instance 与 Native 会话/租约，五分钟到期。previewId 仅是定位符，身份不采信动态代码自报。
+- 仅允许 `storage.get/set`；测试数据位于 `opendesk.sidebar-tools.development-data.v1:<sourceId>:<toolId>`，与正式 local 数据分离，不读取或导入正式数据，不记录正式工具分析事件。关闭重开须重新批准，仍可读取同一浏览器 session 的测试数据；session 数据不承诺跨浏览器重启保留。
+- 复用现有稳定 JSON 摘要、CAS/ETag、8 KiB 单项 / 32 KiB 总量 / 32 键上限及写后读回，显式传入 session area。写入必须带匹配 ETag；跨 owner 对同一数据身份使用同一个锁。
+- 接受新 SHA 前先撤销旧 grant，再处理未保存草稿和挂载；保存源码不会自动批准或重放业务操作。批准等待期间来源、SHA、owner 或代际改变则失败。构建错误或连接恢复只恢复明确批准入口，不恢复 grant。
+- 每次请求在数据身份锁内检查 grant、过期、owner 和 Native authority；异步核验后，在写入前同步复查代际。Stop、关闭、撤销、断连与过期拒绝未提交操作；已发出的写入不能承诺撤回，回执未知时重新批准后只读核对，禁止自动重放。被停止的 candidate 永久失效，迟到 iframe load 不能重新启动它。
+
+2026-10-25 验证状态：`SOURCE_WIRED`、`NODE_PASS`。未改动的 Prompt Shortcuts 实际业务源码在 Node DOM fixture 中经既有 Host 完成「你好 → 保存 → 列表 → 新实例重开」，另以真实 owner/client 模块的双向 Port fixture 验证准入、租约、隔离和撤权；同 ID 正式数据未读写。当前浏览器工具拒绝访问 `chrome-extension://` URL，因此新增入口尚未构建/加载并执行真实 Chrome 操作，业务链仍为 `NOT_TESTED`，不能沿用前述纯 UI 热更新的 Chrome PASS。下一条未验证操作是加载本次可信宿主源码后，在既有实时预览点击「批准隔离存储调试」，完成同一条保存重开链；不因此启动 production 验收或正式包升级。
 
 ### C. React / Vue / Tailwind：先编译，后共用打包器
 

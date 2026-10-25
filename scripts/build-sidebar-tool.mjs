@@ -40,6 +40,11 @@ export async function checkCompiledToolBuildReady(root,meta){
   if(![paths.css,paths.js].some(path=>typeof path==='string'&&path.startsWith('dist/')))
     return null;
   const ready=JSON.parse(await source(root,'dist/build-ready.json',20000));
+  if(ready?.state!==undefined&&ready.state!=='ready'){
+    if(ready.state==='building')throw Object.assign(new Error('E_TOOL_BUILD: UI compilation is in progress'),{code:'E_TOOL_BUILDING'});
+    if(ready.state==='error')throw Object.assign(new Error('E_TOOL_BUILD: UI compilation failed: '+String(ready.message||'Build failed').slice(0,500)),{code:'E_TOOL_BUILD_FAILED'});
+    fail('compiled UI build receipt state is invalid');
+  }
   const names=[paths.css,paths.js].sort();
   if(ready?.format!=='opendesk.ui-build-ready.v1'||
     typeof ready.buildId!=='string'||!ready.buildId||ready.buildId.length>100||

@@ -241,7 +241,10 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       const url=new URL(sender?.url),keys=[...url.searchParams.keys()];
       workspacePage=sender?.id===api.runtime.id&&url.protocol==='chrome-extension:'&&url.host===api.runtime.id&&
         url.pathname==='/native-agent/workspace.html'&&!url.hash&&
-        (keys.length===0||keys.length===1&&(
+        (keys.length===0||keys.length===2&&new Set(keys).size===2&&
+          keys.includes('sourceId')&&keys.includes('previewIntent')&&
+          /^source-[a-f0-9]{24}$/.test(url.searchParams.get('sourceId')||'')&&
+          /^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/.test(url.searchParams.get('previewIntent')||'')||keys.length===1&&(
           keys[0]==='workspaceId'&&
             /^workspace-[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(url.searchParams.get('workspaceId')||'')||
           keys[0]==='sourceId'&&/^source-[a-f0-9]{24}$/.test(url.searchParams.get('sourceId')||'')))&&

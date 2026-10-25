@@ -88,6 +88,10 @@ test('only the exact top-level extension workspace may request native files',asy
   assert.equal((await service.handleSettings({type:'files.state'},sender)).connected,false);
   const query='?workspaceId=workspace-00000000-0000-4000-8000-000000000001';
   assert.equal((await service.handleSettings({type:'files.state'},{...sender,url:sender.url+query})).connected,false);
+  const preview='?sourceId=source-'+('b'.repeat(24))+'&previewIntent=00000000-0000-4000-8000-000000000001';
+  assert.equal((await service.handleSettings({type:'files.state'},{...sender,url:sender.url+preview})).connected,false);
+  for(const suffix of [preview+'&extra=1',preview+'&sourceId=source-'+('b'.repeat(24)),preview.replace(/00000000-0000-4000-8000-000000000001/,'bad'),'?previewIntent=00000000-0000-4000-8000-000000000001'])
+    await assert.rejects(service.handleSettings({type:'files.state'},{...sender,url:sender.url+suffix}),e=>e.code==='E_OWNER');
   const sourceQuery='?sourceId=source-'+ 'a'.repeat(24);
   assert.equal((await service.handleSettings({type:'files.state'},{...sender,url:sender.url+sourceQuery})).connected,false);
   for(const bad of [{...sender,url:'https://chatgpt.com/'},{...sender,frameId:1},{...sender,id:'b'.repeat(32)},

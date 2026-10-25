@@ -1,8 +1,10 @@
 // Uses the existing Native files.read authority and immutable snapshot reader.
-// Polling publishes UI only; it never installs, executes npm or grants tool SDK rights.
+// Polling publishes UI only. Explicit storage admission stays in this exact
+// Workspace owner; it never installs, executes npm or grants installed rights.
 import {readToolSnapshot,NATIVE_TOOL_PREVIEW_ROOT,previewStorageKey} from './tool-snapshot.js';
 import {openPreviewSession,updatePreviewSession} from '../ui/sidebar-tools/preview-session.js';
 import {previewStatusKey} from '../ui/sidebar-tools/live-preview.js';
+import {createToolDevelopmentStorageOwner} from './tool-development-storage.js';
 
 export function validateToolWatchStatus(text,toolId,now=Date.now()){
   if(typeof text!=='string'||text.length>2000)throw new Error('构建状态无效');
@@ -10,15 +12,33 @@ export function validateToolWatchStatus(text,toolId,now=Date.now()){
   const updatedAt=typeof value?.updatedAt==='string'?Date.parse(value.updatedAt):value?.updatedAt;
   if(!value||Object.keys(value).sort().join(',')!=='format,id,message,sha256,state,updatedAt'||
     value.format!=='opendesk.tool-preview-status.v1'||value.id!==toolId||
-    !['ready','error','stopped'].includes(value.state)||
+    !['building','ready','error','stopped'].includes(value.state)||
     !(value.sha256===null||typeof value.sha256==='string'&&/^[a-f0-9]{64}$/.test(value.sha256))||
     typeof value.message!=='string'||value.message.length>500||
     !Number.isSafeInteger(updatedAt)||updatedAt<0||updatedAt>now+5000)
     throw new Error('构建状态身份或字段无效');
   return {...value,stale:now-updatedAt>15000};
 }
-export function createToolLivePreview({api,toolId,workspaceId,sourceId,readText,assertCurrent,onStatus=()=>{},now=Date.now,intervalMs=1500}){
+export function createToolLivePreview({api,toolId,workspaceId,sourceId,readText,assertCurrent,nativeAuthority=null,lockManager=globalThis.navigator?.locks,onStatus=()=>{},now=Date.now,intervalMs=1500}){
   let closed=false,opened=null,snapshot=null,timer=null,queued=Promise.resolve(),starting=null,stopping=null;
+  let developmentCurrent=null;
+  const development=createToolDevelopmentStorageOwner({api,lockManager,now,assertCurrent,
+    getCurrent:()=>closed?null:developmentCurrent,
+    verifySnapshot:async sha256=>{
+      const status=validateToolWatchStatus(await readText(NATIVE_TOOL_PREVIEW_ROOT+'/'+toolId+'/status.json'),toolId,now());
+      const latest=await readToolSnapshot({toolId,readText});
+      if(status.stale||status.state!=='ready'||status.sha256!==sha256||latest.sha256!==sha256){
+        invalidateDevelopment();throw new Error('构建或源码快照已变化，请重新批准');
+      }
+    }});
+  function invalidateDevelopment(){
+    if(developmentCurrent?.available)developmentCurrent={...developmentCurrent,available:false};
+    development.revoke('源码、构建或目录连接已变化，请重新批准');
+  }
+  function readyDevelopment(){
+    if(developmentCurrent?.available&&developmentCurrent.sha256===snapshot.sha256)return;
+    developmentCurrent={...opened,sourceId,tool:snapshot.tool,sha256:snapshot.sha256,available:true,nativeAuthority};
+  }
   const removedTabs=new Set();
   // Recheck at the existing handoff's commit boundary too: its async session
   // read may outlive the Native authority checked before calling update.
@@ -43,7 +63,8 @@ export function createToolLivePreview({api,toolId,workspaceId,sourceId,readText,
   const report=async(text,error=false)=>{
     if(closed)return;
     onStatus(text,error);
-    if(opened)await api.storage.session.set({[previewStatusKey(opened.previewId)]:{text,error,updatedAt:now()}});
+    if(opened)await api.storage.session.set({[previewStatusKey(opened.previewId)]:{
+      text,error,available:developmentCurrent?.available===true,updatedAt:now()}});
   };
   const check=()=>enqueue(async()=>{
     if(closed||!opened)return;
@@ -51,7 +72,11 @@ export function createToolLivePreview({api,toolId,workspaceId,sourceId,readText,
       await assertCurrent();if(closed)return;
       const status=validateToolWatchStatus(await readText(NATIVE_TOOL_PREVIEW_ROOT+'/'+toolId+'/status.json'),toolId,now());
       if(closed)return;
+      // Revoke BEFORE publishing or deferring a changed snapshot. UI dirty
+      // state and mount delays can never extend the old instance's grant.
+      if(status.stale||status.state!=='ready'||status.sha256!==snapshot.sha256)invalidateDevelopment();
       if(status.stale||status.state==='stopped')return await report('构建连接已停止 · 保留上次成功预览',true);
+      if(status.state==='building')return await report('正在编译 · 保留上次成功预览');
       if(status.state==='error')return await report('编译失败 · 保留上次成功预览：'+status.message,true);
       if(status.sha256!==snapshot.sha256){
         const next=await readToolSnapshot({toolId,readText});
@@ -64,8 +89,10 @@ export function createToolLivePreview({api,toolId,workspaceId,sourceId,readText,
         await assertCurrent();if(closed)return;
         await updatePreviewSession({api:previewApi,previewId:opened.previewId,workspaceId,sourceId,snapshot,now:now()});
       }
+      readyDevelopment();
       await report('实时开发预览 · '+snapshot.sha256.slice(0,12)+' · 未安装');
     }catch(error){
+      invalidateDevelopment();
       if(!closed)await report('开发连接或快照不可用 · 保留上次成功预览：'+String(error.message||error).slice(0,180),true);
     }
   });
@@ -75,7 +102,7 @@ export function createToolLivePreview({api,toolId,workspaceId,sourceId,readText,
   };
   function stop(){
     if(stopping)return stopping;
-    closed=true;clearTimeout(timer);api.tabs.onRemoved?.removeListener(removed);
+    closed=true;development.dispose();clearTimeout(timer);api.tabs.onRemoved?.removeListener(removed);
     stopping=queued.then(async()=>{
       if(!opened)return;
       const id=opened.previewId;opened=null;
