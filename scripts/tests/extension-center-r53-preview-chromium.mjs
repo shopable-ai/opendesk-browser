@@ -79,8 +79,11 @@ async function click(selector){
 }
 async function visit(query){
   await cdp('Page.navigate',{url:pathToFileURL(preview).href+query});
+  // The current production React preview has several installed examples, not
+  // the historical two-row fixture. Wait for the reviewed identities instead.
   await waitUntil('document.documentElement.dataset.previewBootScript==="ready" && '+
-    'document.querySelectorAll("#extension-center-list > li").length===2');
+    '!!document.querySelector(\'[data-extension-id="app:demo-reading"]\') && '+
+    '!!document.querySelector(\'[data-extension-id="page:demo-markup"]\')');
 }
 try{
   chrome=spawn(chromeBin,['--headless=new','--no-sandbox','--disable-gpu',
@@ -126,6 +129,13 @@ try{
   assert.equal(await evaluate('document.documentElement.dataset.opendeskTab'),'tools',
     'The standalone HTML file must open the complete Extensions tab by default');
   await visit('?tab=tools');
+  const initialInstalledCount=await evaluate('document.querySelectorAll("#extension-center-list > li").length');
+  assert.ok(initialInstalledCount>=2&&initialInstalledCount<=100,
+    'Source-bound preview must contain both reviewed installed identities');
+  const rowPresent=key=>evaluate('!!document.querySelector('+
+    JSON.stringify('[data-extension-id="'+key+'"]')+')');
+  assert.equal(await rowPresent('app:demo-reading'),true);
+  assert.equal(await rowPresent('page:demo-markup'),true);
   assert.equal(await evaluate('document.querySelector("#workbench-tools #trusted-history-panel")'),null,
     'History must not mount in Extensions');
   assert.equal(await evaluate('document.getElementById("extension-center-status").hidden'),true,
@@ -137,13 +147,15 @@ try{
       'client:document.documentElement.clientWidth,rows:document.querySelectorAll("#extension-center-list > li").length})');
     assert.ok(dimension.scroll<=dimension.client+2,
       'Horizontal overflow: '+JSON.stringify(dimension));
-    assert.equal(dimension.rows,2,'Installed preview rows must render');
+    assert.equal(dimension.rows,initialInstalledCount,'Installed preview rows must render');
     const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
     await writeFile(join(artifacts,'extensions.png'),Buffer.from(shot.data,'base64'));
   }
   // Real Chromium preview: initial hint moves to the last hovered row and remains on pointer exit.
   const pinned=()=>evaluate('document.querySelector("#extension-center-list .ec-row--action-visible")?.dataset.extensionId');
-  assert.equal(await pinned(),'app:demo-reading','first installed item shows the initial More affordance');
+  const firstInstalledKey=await evaluate('document.querySelector("#extension-center-list > li")?.dataset.extensionId');
+  assert.ok(firstInstalledKey,'Source-bound preview must have a first installed row');
+  assert.equal(await pinned(),firstInstalledKey,'first installed item shows the initial More affordance');
   const hoverRow=async key=>{
     const box=await evaluate('(()=>{const el=document.querySelector('+JSON.stringify('[data-extension-id="'+key+'"]')+
       ');const rect=el.getBoundingClientRect();return {x:rect.left+rect.width/2,y:rect.top+rect.height/2}})()');
@@ -207,15 +219,17 @@ try{
   }
   await click('.od-uninstall-dialog [data-uninstall-cancel]');
   await waitUntil('!document.querySelector(".od-uninstall-dialog")');
-  assert.equal(await evaluate('document.querySelectorAll("#extension-center-list > li").length'),2,
-    'Cancel must not remove any installed item');
+  assert.equal(await evaluate('document.querySelectorAll("#extension-center-list > li").length'),
+    initialInstalledCount,'Cancel must not remove any installed item');
   assert.equal(await evaluate('document.activeElement?.matches('+JSON.stringify(listMenu)+')'),true,
     'Cancelling restores focus to the reviewed row action');
   await chooseListUninstall('app:demo-reading');
   await click('.od-uninstall-dialog .od-uninstall-confirm');
-  await waitUntil('document.querySelectorAll("#extension-center-list > li").length===1');
-  assert.equal(await evaluate('document.querySelector("#extension-center-list > li").dataset.extensionId'),
-    'page:demo-markup','Only the reviewed App disappears from the in-memory preview');
+  await waitUntil('document.querySelectorAll("#extension-center-list > li").length==='+String(initialInstalledCount-1));
+  assert.equal(await rowPresent('app:demo-reading'),false,
+    'Only the reviewed App disappears from the in-memory preview');
+  assert.equal(await rowPresent('page:demo-markup'),true,
+    'Removing an App cannot also remove the Page example');
   assert.match(await evaluate('document.getElementById("extension-center-status").textContent'),
     /仅内存演示/,'Preview success cannot claim any real uninstall');
   await chooseListUninstall('page:demo-markup');
@@ -223,11 +237,13 @@ try{
   assert.match(await evaluate('document.querySelector(".od-uninstall-dialog h2").textContent'),
     /网页内容标注/,'Page modal identifies its own selected identity');
   await click('.od-uninstall-dialog [data-uninstall-cancel]');
-  assert.equal(await evaluate('document.querySelectorAll("#extension-center-list > li").length'),1,
-    'Page cancel is also no-op');
+  assert.equal(await evaluate('document.querySelectorAll("#extension-center-list > li").length'),
+    initialInstalledCount-1,'Page cancel is also no-op');
   await chooseListUninstall('page:demo-markup');
   await click('.od-uninstall-dialog .od-uninstall-confirm');
-  await waitUntil('document.querySelectorAll("#extension-center-list > li").length===0');
+  await waitUntil('document.querySelectorAll("#extension-center-list > li").length==='+String(initialInstalledCount-2));
+  assert.equal(await rowPresent('page:demo-markup'),false,
+    'Confirming Page removal affects only its reviewed identity');
   // A fresh isolated preview resets demo data before checking search and import.
   await visit('?tab=tools&reset=uninstall');
   await click('#extension-center-search');
@@ -243,13 +259,14 @@ try{
   await waitUntil('!document.getElementById("sidebar-tool-import").hidden');
   await waitUntil('document.activeElement?.id==="sidebar-tool-file"');
   // Layout-only DOM stress: 100 rows are NOT 100 installed records. The
-  // production React shell still owns the real two-row preview dataset.
+  // production React shell still owns its current preview dataset.
+  const clonedRows=100-initialInstalledCount;
   const countWithLongList=await evaluate(`(()=>{
     const list=document.getElementById('extension-center-list');
     const sample=list.querySelector('li');
     if(!sample)return 0;
     const fragment=document.createDocumentFragment();
-    for(let i=0;i<98;i++){
+    for(let i=0;i<${clonedRows};i++){
       const clone=sample.cloneNode(true);
       clone.dataset.extensionId='layout-only-'+i;
       clone.dataset.previewLayoutOnly='true';
@@ -297,9 +314,9 @@ try{
     const count=clones.length;
     clones.forEach(node=>node.remove());
     return count;
-  })()`),98,'Remove only the temporary layout rows before React filtering');
-  assert.equal(await evaluate('document.querySelectorAll("#extension-center-list > li").length'),2,
-    'The source-owned preview list must be restored after layout inspection');
+  })()`),clonedRows,'Remove only the temporary layout rows before React filtering');
+  assert.equal(await evaluate('document.querySelectorAll("#extension-center-list > li").length'),
+    initialInstalledCount,'The source-owned preview list must be restored after layout inspection');
   await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',
     windowsVirtualKeyCode:27,nativeVirtualKeyCode:27});
   await cdp('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',
