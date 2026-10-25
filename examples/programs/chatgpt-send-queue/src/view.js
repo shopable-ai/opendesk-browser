@@ -4,7 +4,33 @@ const ICON={send:'<path d="M12 19V5m-6 6 6-6 6 6"/>',
   edit:'<path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8.2 17.8l-4.2 1.2 1.2-4.2Z"/>',
   remove:'<path d="M18 6 6 18M6 6l12 12"/>',
   play:'<path d="m8 5 11 7-11 7z"/>'};
-const CROWN='<path d="M3 6.5 7.1 10l3-5.7L13 10l4-3.5-1 8.5H4zM4.3 17h11.4"/>';
+const CROWN=`<defs>
+  <linearGradient id="sq-gold" x1="0" y1="0" x2=".95" y2="1">
+    <stop offset="0" stop-color="#fffbdc"/><stop offset=".28" stop-color="#ffe185"/>
+    <stop offset=".6" stop-color="#f5ad2f"/><stop offset="1" stop-color="#be7214"/>
+  </linearGradient>
+  <linearGradient id="sq-band" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fff4b9"/><stop offset=".55" stop-color="#f6ba40"/>
+    <stop offset="1" stop-color="#b76d15"/>
+  </linearGradient>
+  <radialGradient id="sq-ruby"><stop offset="0" stop-color="#ffb7aa"/>
+    <stop offset=".45" stop-color="#f34b67"/><stop offset="1" stop-color="#a51e44"/>
+  </radialGradient>
+</defs>
+<path d="M3.6 16.8 2.6 6.5l5.45 3.95L12 3.2l3.95 7.25L21.4 6.5l-1 10.3Z"
+  fill="url(#sq-gold)" stroke="#ad6c19" stroke-width="1.15" stroke-linejoin="round"/>
+<path d="M4 16.5c5.7 1.15 10.3 1.15 16 0l-.2 3.1c-5.4 1.65-10.2 1.65-15.6 0Z"
+  fill="url(#sq-band)" stroke="#985711" stroke-width="1" stroke-linejoin="round"/>
+<path d="m4.25 9.7 3.5 2.75L12 5.25l4.25 7.2 3.5-2.75"
+  fill="none" stroke="#fff6ba" stroke-width="1" opacity=".85"/>
+<path d="M5.5 18.05q6.5 1.15 13 0" fill="none" stroke="#fff8d4" stroke-width=".75"/>
+<path d="m12 11.2 2.15 2.15L12 15.5l-2.15-2.15Z"
+  fill="url(#sq-ruby)" stroke="#a72b3b" stroke-width=".6"/>
+<circle cx="6.6" cy="16.1" r=".8" fill="#fff4cb"/>
+<circle cx="17.4" cy="16.1" r=".8" fill="#fff4cb"/>
+<circle cx="2.6" cy="6.5" r="1.05" fill="#ffeb98" stroke="#ae721c" stroke-width=".6"/>
+<circle cx="12" cy="3.2" r="1.1" fill="#fff3b4" stroke="#ae721c" stroke-width=".6"/>
+<circle cx="21.4" cy="6.5" r="1.05" fill="#ffeb98" stroke="#ae721c" stroke-width=".6"/>`;
 function element(doc,tag,cls,text){
   const node=doc.createElement(tag);if(cls)node.className=cls;
   if(text!==undefined)node.textContent=text;return node;
@@ -79,6 +105,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
       blue.type='button';blue.setAttribute('aria-label','当前草稿加入发送队列');
       blue.title='OpenDesk 队列 · Shift + 点击暂停/恢复 · 皇冠仅为装饰';
       const crown=element(doc,'span','sq-crown');
+      crown.setAttribute('aria-hidden','true');
       crown.append(svg(doc,CROWN));blue.append(svg(doc,ICON.send),crown);
       button.content.append(blue);
       toastNode=element(doc,'div','sq-toast');
@@ -172,7 +199,8 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
     if(!Number.isFinite(prior.width)||prior.width<200)return false;
     ensure();
     const size=doc.defaultView.matchMedia('(pointer:coarse)').matches?42:34;
-    inline(button.host,size);button.host.style.setProperty('display','inline-flex','important');
+    inline(button.host,size);button.host.style.setProperty('overflow','visible','important');
+    button.host.style.setProperty('display','inline-flex','important');
     button.host.style.setProperty('flex','0 0 '+size+'px','important');
     button.host.style.setProperty('margin-right','6px','important');
     if(button.host.nextSibling!==nativeButton)nativeButton.parentElement.insertBefore(button.host,nativeButton);
