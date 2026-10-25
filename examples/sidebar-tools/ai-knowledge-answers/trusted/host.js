@@ -96,6 +96,8 @@ export function createTrustedKnowledgeHost({conversation,readLibrary,assertIdent
         .finally(()=>{if(round===owned)round=null;publish({busy:false});});
     },
     invalidate,
+    clearPrepared(){revision++;prepared=null;selectedInbound=null;round?.abort();consumer.invalidate();
+      publish({prepared:null,result:null,error:''});},
     cancel(){revision++;prepared=null;selectedInbound=null;round?.abort();
       publish({prepared:null,result:null,error:'本轮已取消，迟到回答不会显示'});
       return consumer.cancel();},
