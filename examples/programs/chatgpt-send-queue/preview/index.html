@@ -1,0 +1,111 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OpenDesk Send Queue R4.5 · 皇冠叠戴交互预览</title><style>
+:root{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Segoe UI',sans-serif;color:#262a34;background:#f7f8fb}*{box-sizing:border-box}body{margin:0}button,textarea{font:inherit}button{cursor:pointer}button:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:2px solid #5f7aea;outline-offset:2px}header{max-width:780px;margin:0 auto;padding:25px 16px 15px;display:flex;justify-content:space-between;align-items:center;gap:12px}h1{font-size:16px;margin:0;letter-spacing:-.2px}small{font-size:11px;color:#788192}.flag{border:1px solid #e2e6ec;background:#fff;border-radius:20px;padding:6px 9px}main{max-width:780px;margin:0 auto;padding:12px 16px 55px}.text{font-size:14px;line-height:1.6;max-width:670px;margin:20px auto 32px;color:#414954}.unit{width:min(100%,640px);margin:0 auto}.queue{background:#fff;border:1px solid #e3e5ec;border-radius:19px 19px 0 0;overflow:hidden;margin:0;width:100%;padding:0}.queue[hidden]{display:none!important}.rows{max-height:216px;overflow:auto}.item{display:flex;align-items:center;gap:4px;height:35px;padding:0 5px 0 6px;border-bottom:1px solid #edeff3;min-width:0}.item:last-child{border-bottom:0}.item:focus-within,.item:hover{background:#f7f8fd}.num{flex:0 0 20px;text-align:center;font-size:11px;color:#9aa1ad}.label{min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px;color:#404759}.ops{display:flex;gap:0;flex:0 0 auto}.icon{background:transparent;border:0;color:#8a93a2;width:29px;height:30px;border-radius:7px;display:grid;place-items:center;padding:0}.icon:hover{background:#eef2ff;color:#425fd7}svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.more{border:0;border-top:1px solid #ebeef2;width:100%;padding:6px;background:#fff;color:#68728b;font-size:11px}.composer{border:1px solid #e1e4ea;border-radius:22px;background:#fff;width:100%;margin:0;min-height:114px;box-shadow:0 5px 25px #18213212}.unit:has(.queue:not([hidden])) .composer{border-top-left-radius:0;border-top-right-radius:0;border-top:0}.draft{display:block;width:100%;height:70px;resize:vertical;border:0;outline:none;background:transparent;padding:16px 17px 5px;font-size:14px;line-height:1.5;border-radius:22px}.footer{padding:0 10px 10px;display:flex;align-items:center;justify-content:space-between;gap:7px}.left{display:flex;gap:4px;align-items:center;color:#697080}.left button{border:0;background:none;color:inherit;border-radius:7px;padding:6px;font-size:12px}.send-group{margin-left:auto;display:flex;align-items:center;gap:7px}.native,.blue{width:34px;height:34px;min-width:34px;display:grid;place-items:center;border:0;border-radius:50%;color:#fff;padding:0}.native{background:#222}.blue{position:relative;background:linear-gradient(145deg,#6079f9,#425cdd);box-shadow:0 2px 7px #5268dc35}.blue>svg,.native>svg{stroke-width:2.5}.crown{position:absolute;top:-13px;left:-8px;width:28px;height:25px;display:block;pointer-events:none;z-index:1;border:0;border-radius:0;background:transparent;box-shadow:none;transform:rotate(-18deg);transform-origin:75% 82%;filter:drop-shadow(0 1.5px 1px #704a2588)}.crown svg{display:block;width:100%;height:100%;overflow:visible;fill:none;stroke:none}.blue{overflow:visible}@media(pointer:coarse){.crown{top:-14px;left:-8px;width:30px;height:27px}}.note{font-size:11px;color:#69748d;padding:5px 9px;background:#f4f6ff;border-top:1px solid #e8ebf2}.controls{width:min(100%,640px);margin:25px auto 0;display:flex;align-items:center;flex-wrap:wrap;gap:8px;border-top:1px solid #e5e8ed;padding-top:14px}.controls button,.controls select{border:1px solid #dfe3eb;background:white;border-radius:8px;padding:7px 9px;color:#4a5569;font-size:12px}.msg{font-size:12px;color:#66728a}.warn{font-size:11px;color:#8490a3;margin:16px auto 0;width:min(100%,640px);line-height:1.6}.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#26364f;color:white;padding:10px 14px;border-radius:9px;font-size:12px;box-shadow:0 8px 20px #0002;max-width:calc(100vw - 26px)}[hidden]{display:none!important}
+@media(max-width:450px){header{padding:18px 12px 10px}.text{margin-top:12px;font-size:13px}main{padding:8px 12px 36px}.left button:last-child{display:none}.icon{width:28px}.footer{padding-left:9px;padding-right:9px}.item{gap:3px}.label{font-size:12px}}@media(pointer:coarse){.item{height:46px}.icon{height:44px;width:39px}.num{flex-basis:30px}.native,.blue{width:42px;height:42px;min-width:42px}}
+</style></head><body><header><div><h1>OpenDesk · Send Queue R4.5</h1><small>皇冠斜戴 · 无徽章背景 · 原生按钮不变</small></div><small class="flag">离线交互演示 / 不连接 AI</small></header><main><p class="text">点击编辑图标，会把该条消息从队列取回到下方原生输入框，继续修改后可重新入列或自行发送。若原输入框已有草稿，会保留两者并提示先处理。<strong>仅交互模拟，不会真实发送。</strong></p><section class="unit" id="unit"><div id="queue" class="queue" hidden><div id="rows" class="rows" role="list" aria-label="发送队列"></div><button class="more" id="more" hidden type="button"></button><div class="note" id="note" hidden></div></div><section class="composer" id="composer"><textarea class="draft" id="draft" aria-label="官网输入框（模拟）" placeholder="向 ChatGPT 发送消息（模拟）"></textarea><div class="footer"><div class="left"><button type="button" aria-label="附件（模拟）">＋</button><button type="button">工具</button><button type="button">搜索</button></div><div class="send-group"><button type="button" id="blue" class="blue" aria-label="加入队列" title="OpenDesk 队列；皇冠非官方认证"><svg viewBox="0 0 24 24"><path d="M12 19V5m-6 6 6-6 6 6"/></svg><span class="crown" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><defs><linearGradient id="sq-gold" x1="0" y1="0" x2=".95" y2="1"><stop offset="0" stop-color="#fffbdc"/><stop offset=".28" stop-color="#ffe185"/><stop offset=".6" stop-color="#f5ad2f"/><stop offset="1" stop-color="#be7214"/></linearGradient><linearGradient id="sq-band" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff4b9"/><stop offset=".55" stop-color="#f6ba40"/><stop offset="1" stop-color="#b76d15"/></linearGradient><radialGradient id="sq-ruby"><stop offset="0" stop-color="#ffb7aa"/><stop offset=".45" stop-color="#f34b67"/><stop offset="1" stop-color="#a51e44"/></radialGradient></defs><path d="M3.6 16.8 2.6 6.5l5.45 3.95L12 3.2l3.95 7.25L21.4 6.5l-1 10.3Z" fill="url(#sq-gold)" stroke="#ad6c19" stroke-width="1.15" stroke-linejoin="round"/><path d="M4 16.5c5.7 1.15 10.3 1.15 16 0l-.2 3.1c-5.4 1.65-10.2 1.65-15.6 0Z" fill="url(#sq-band)" stroke="#985711" stroke-width="1" stroke-linejoin="round"/><path d="m4.25 9.7 3.5 2.75L12 5.25l4.25 7.2 3.5-2.75" fill="none" stroke="#fff6ba" stroke-width="1" opacity=".85"/><path d="M5.5 18.05q6.5 1.15 13 0" fill="none" stroke="#fff8d4" stroke-width=".75"/><path d="m12 11.2 2.15 2.15L12 15.5l-2.15-2.15Z" fill="url(#sq-ruby)" stroke="#a72b3b" stroke-width=".6"/><circle cx="6.6" cy="16.1" r=".8" fill="#fff4cb"/><circle cx="17.4" cy="16.1" r=".8" fill="#fff4cb"/><circle cx="2.6" cy="6.5" r="1.05" fill="#ffeb98" stroke="#ae721c" stroke-width=".6"/><circle cx="12" cy="3.2" r="1.1" fill="#fff3b4" stroke="#ae721c" stroke-width=".6"/><circle cx="21.4" cy="6.5" r="1.05" fill="#ffeb98" stroke="#ae721c" stroke-width=".6"/></svg></span></button><button type="button" id="native" class="native" aria-label="原生停止（模拟）"><svg viewBox="0 0 24 24" id="native-icon"><rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor" stroke="none"/></svg></button></div></div></section></section><div class="controls"><select id="width" aria-label="对照宽度"><option value="640">宽度：原生</option><option value="320">320 px</option><option value="360">360 px</option><option value="400">400 px</option><option value="440">440 px</option></select><button id="complete" type="button">模拟 AI 回复完成</button><button id="resume" type="button">暂停 / 恢复</button><button id="reset" type="button">重置</button><span class="msg" id="status">当前：模拟生成中</span></div><p class="warn">此独立 HTML 不包含正式 Send Queue Page Program，不拥有登录状态、网站 DOM 或 OpenDesk Authority。正式业务代码在 GitHub 项目 <code>examples/programs/chatgpt-send-queue/</code>。</p></main><div id="toast" class="toast" role="status" hidden></div>
+<script>(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const ICON={
+  now:'<path d="M12 19V5m-6 6 6-6 6 6M4 20h16"/>',
+  edit:'<path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8.2 17.8l-4.2 1.2 1.2-4.2Z"/>',
+  remove:'<path d="M18 6 6 18M6 6l12 12"/>',
+  pause:'<path d="M9 6v12M15 6v12"/>',
+  play:'<path d="m8 5 11 7-11 7z"/>'
+};
+const EXAMPLES=['检查上面的代码是否存在潜在问题','请给出对应的优化方案与测试建议'];
+let items=[],seq=0,busy=true,paused=false,expanded=false,stamp=0;
+function toast(text){
+ const t=$('toast'); t.textContent=text; t.hidden=false;
+ const version=++stamp;
+ setTimeout(()=>{if(version===stamp)t.hidden=true;},2400);
+}
+function icon(action,label,id){
+ const node=document.createElement('button');node.type='button';node.className='icon';
+ node.dataset.action=action;node.dataset.id=id;node.title=label;node.setAttribute('aria-label',label);
+ node.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true">'+ICON[action]+'</svg>';
+ return node;
+}
+function render(){
+ const rows=$('rows');const previousFocus=document.activeElement?.dataset?.id;
+ rows.replaceChildren();
+ $('queue').hidden=items.length===0;
+ const shown=expanded?items:items.slice(0,2);
+ shown.forEach((item,i)=>{
+  const row=document.createElement('div');row.className='item';row.dataset.id=item.id;
+  row.setAttribute('role','listitem');row.tabIndex=0;
+  row.title='Alt+↑/↓ 调整排序';
+  if(i===0)row.append(icon(paused?'play':'pause',paused?'恢复队列':'暂停队列',item.id));
+  else {const num=document.createElement('span');num.className='num';num.textContent=String(i+1);row.append(num);}
+  const text=document.createElement('span');text.className='label';text.textContent=item.text;text.title=item.text;
+  const actions=document.createElement('div');actions.className='ops';
+  actions.append(icon('now','提前发送',item.id),icon('edit','取回输入框编辑',item.id),icon('remove','删除',item.id));
+  row.append(text,actions);
+  row.addEventListener('keydown',event=>{
+   if(!event.altKey||!['ArrowUp','ArrowDown'].includes(event.key))return;
+   event.preventDefault();move(item.id,i+(event.key==='ArrowUp'?-1:1));
+  });
+  rows.append(row);
+ });
+ $('more').hidden=items.length<=2;
+ $('more').textContent=expanded?'收起队列':'展开其余 '+Math.max(0,items.length-2)+' 条';
+ $('note').hidden=!paused;$('note').textContent='模拟队列已暂停';
+ $('status').textContent='当前：'+(paused?'已暂停':busy?'模拟生成中':'模拟空闲')+' · '+items.length+' 条';
+ $('native').setAttribute('aria-label',busy?'原生停止（模拟）':'原生发送（模拟）');
+ $('native-icon').innerHTML=busy?'<rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor" stroke="none"/>':'<path d="M12 19V5m-6 6 6-6 6 6"/>';
+ if(previousFocus){const target=[...rows.querySelectorAll('button[data-id]')].find(el=>el.dataset.id===previousFocus);target?.focus({preventScroll:true});}
+}
+function move(id,to){
+ const from=items.findIndex(x=>x.id===id);
+ if(from<0||to<0||to>=items.length||from===to)return;
+ const [item]=items.splice(from,1);items.splice(to,0,item);render();
+}
+function reclaim(id){
+ const index=items.findIndex(item=>item.id===id);
+ if(index<0)return;
+ const draft=$('draft');
+ // A draft (including whitespace) belongs to the user and must never be overwritten.
+ if(draft.value.length){toast('输入框已有草稿，请先发送或加入队列');draft.focus();return;}
+ const message=items[index].text;
+ draft.value=message;
+ if(draft.value!==message){toast('取回未成功，队列保持不变');return;}
+ items.splice(index,1);render();
+ draft.focus();draft.setSelectionRange(message.length,message.length);
+ toast('已取回到输入框，不再排队');
+}
+function add(){
+ const draft=$('draft');const text=draft.value;
+ if(!text.trim()){toast('请先输入消息');draft.focus();return;}
+ if(text.length>8192){toast('单条消息超过 8192 字符');return;}
+ if(items.length>=20){toast('队列最多 20 条');return;}
+ items.push({id:'q'+(++seq),text});draft.value='';render();toast('已加入模拟队列');
+}
+$('blue').addEventListener('click',add);
+$('rows').addEventListener('click',event=>{
+ const button=event.target.closest('button[data-action]');if(!button)return;
+ const {action,id}=button.dataset;
+ if(action==='play'||action==='pause'){paused=!paused;render();return;}
+ const index=items.findIndex(item=>item.id===id);if(index<0)return;
+ if(action==='edit'){reclaim(id);return;}
+ if(action==='remove'){items.splice(index,1);render();toast('已从模拟队列删除');return;}
+ if(action==='now'){
+  if(busy&&!confirm('模拟停止当前回复并提前发送？离线页不会真正发送。'))return;
+  items.splice(index,1);busy=true;render();toast('仅模拟提前发送，未连接网站');
+ }
+});
+$('more').addEventListener('click',()=>{expanded=!expanded;render();});
+$('complete').addEventListener('click',()=>{busy=false;render();toast('仅模拟回复完成');});
+$('native').addEventListener('click',()=>{
+ if(busy){busy=false;paused=true;toast('模拟原生停止：队列已暂停');}
+ else if($('draft').value.trim()){$('draft').value='';busy=true;toast('模拟原生发送');}
+ render();
+});
+$('resume').addEventListener('click',()=>{paused=!paused;render();});
+$('reset').addEventListener('click',()=>{
+ items=EXAMPLES.map((text,i)=>({id:'q'+(i+1),text}));seq=EXAMPLES.length;
+ busy=true;paused=false;expanded=false;$('draft').value='';render();toast('已重置模拟');
+});
+$('width').addEventListener('change',event=>{
+ $('unit').style.maxWidth=event.target.value==='640'?'640px':event.target.value+'px';
+});
+items=EXAMPLES.map((text,i)=>({id:'q'+(i+1),text}));seq=EXAMPLES.length;render();
+})();</script></body></html>
