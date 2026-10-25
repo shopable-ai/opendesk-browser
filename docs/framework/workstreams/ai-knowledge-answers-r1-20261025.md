@@ -1,23 +1,47 @@
-# AI 知识问答 R1.1 · 实施与证据
+# AI 知识问答 R1.2 · 实施与证据
 
 更新：2026-10-26（Asia/Shanghai）。Owner：本对话；仅 main。原目标仍为知识维护 → Shared AI 有来源答案 → 后续授权网站回复。本轮不进入网站读取、草稿、自动发送或第二套队列。
+
+## 2026-10-26 续接 · PACKAGE_PASS / NATIVE_NOT_TESTED
+
+Owner：`01a173e2-8f28-77b1-a10d-0b09fd8b7989`。开始核对时 main 为 c32f39576，干净；已快进同步远端 24f5b8772。26bbc5c9f 的三个沙箱 UI 输入已变化，旧包证据不能覆盖它们。当前首条未完成用户操作仍是官方安装 → 保存重开 → 可信 Send；组件测试不是该原生链。
+
+直接诊断 `--check-project` 失败 `E_PREVIEW_DESIGN: private design token, color or remote stylesheet`，尚未走到旧包比较。最小修复范围为工具样式/共享组件类、过时 AI 提示、PATCH 版本及精确准入版本，增加本次编辑器操作与打包的定向回归，再经原候选/晋升合同交付。
+
+结果：R2 的问答／知识／编辑视图保持原结构，移除私有颜色回退与按钮外观覆盖，直接使用 canonical tokens、od-button/od-icon-button/od-field；查询提示指向官方实例上方的可信 AI 控件。工具版本和精确可信准入同步为 0.1.2，旧版本/改包/无官方 provenance 继续拒绝；不迁移或删除已有 library 数据，不增加权限。
+
+本轮实际运行：
+
+```sh
+node --test tests/environment/ai-knowledge-answers-r1.test.mjs tests/environment/ai-knowledge-answers-ui-r2.test.mjs tests/environment/ai-knowledge-answers-provider-contract.test.mjs tests/environment/ai-knowledge-answers-admission.test.mjs tests/environment/ai-knowledge-answers-host.test.mjs
+node --check examples/sidebar-tools/ai-knowledge-answers/src/main.js
+node --check src/ui/trusted-knowledge-admission.js
+```
+
+54/54 PASS，日志 `artifacts/sidebar-tools/ai-knowledge-answers/core-r12.log`。新增组件测试执行真实 main.js/model.js，内存 Host 保存 → 独立读回 → 重挂载 → 同义固定回答，核对保存时产生的知识 ID；非精确检索仅列候选，无依据返回 NO_MATCH。另测未保存返回取消、写入回执丢失后禁止第二次写入、主动重新读取后恢复。Provider/Host 集成仍为 fake transport；未重跑无变更的共享消费者整组或相同 backend 请求，复用下方原始证据。
+
+唯一正式包经原构建器 `--out` → 相关门禁 → `--promote-from` → `--check-project` 均成功：版本 **0.1.2**，**51,556 字节**，SHA-256 `cdee2f9bff2b22f0d6158497ebb889c83147462ed4b72cacf76f666a0cff08a4`。已有 watcher 自行生成的磁盘 Catalog/包也与此摘要一致；未由本轮另行写入 dist。Chrome 实际加载、serve 客户端连接和可信 bundle 生效仍未实读，不能从磁盘一致提升为原生 PASS。
+
+持续开发输出仍为 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development`，既有 writer PID 69819 存活；不启动第二 writer，不写其输出。Chrome 库存仅证明有对应 ID 的扩展标签页，不能证明加载路径、连接和安装；当前文档没有说明此前拒绝已解除，未再次访问受拒 URL，也不使用其他表面/CDP 绕过。Native 配对、其他工具和网站发送均不操作。新增 local-test-adapter 及 HTTP 原型保留，不用于替代原生闭环。
+
+期间快进同步 dd0125e89（新增独立 local-test-runtime 文件）；其网站操作不属本轮，未使用、未修改。候选写入与组件验证资源已 released；没有取得或占用 Chrome Profile，原 watcher 保持原 owner。当前仍停在官方安装这一首个未验证步骤，后续真实保存重开、可信 Send 和原生取消/撤权/断线/知识更新保护均 NOT_TESTED。移交记录中的原对话 goal 实读为 blocked，本轮未迁移或更改它，也未创建并列总 GOAL。
 
 ## 用户操作与状态
 
 | 操作 | 当前证据 |
 |---|---|
 | 固定/同义回答、相关问题检索、编辑启停删除、JSON/CSV | 定向领域测试 PASS；原生 UI 未实测 |
-| 保存、ETag 写后读回、关闭重开 | 原存储 Host 接线保留；真实 Chrome 保存/重开 NOT_TESTED |
+| 保存、ETag 写后读回、关闭重开 | 本轮编辑器组件（内存 Host）PASS；真实 Chrome 保存/重开 NOT_TESTED |
 | 准备并审阅知识、原始 Send 进入 Shared Provider | 已接线；实际共享组件 + fake transport 集成 PASS；Chrome 原始事件链 NOT_TESTED |
 | 非精确问题调用真实 Local Codex | 现有 Native browserai.Manager 的 backend 请求 PASS；完整 Shared runtime → Chrome 认证 Host 链 NOT_TESTED |
 | 来源 ID、人工审阅、旧答案失效 | 实答领域校验通过；身份/撤权/ETag/取消/换 Provider/断线定向测试 PASS；原生行为 NOT_TESTED |
-| 可安装候选 | 原打包器晋升及逐字节同源核对 PASS；实际导入/确认安装 NOT_TESTED |
+| 可安装候选 | 0.1.2 原打包器晋升及逐字节同源核对 PASS；实际导入/确认安装 NOT_TESTED |
 
 **首个 Chrome 原生 MVP 闭环尚未完成，未达到 95+ 实施质量。** 自动审批拒绝浏览器工具访问 chrome-extension:，允许协议仅 HTTP/HTTPS，并明确禁止通过 CDP、其他浏览器表面等绕过。属于验证工具限制，不是产品故障证据；未更换 Profile、扩展 ID 或 Native 配对。
 
-持续开发复用原 watcher PID 69819（上次观察，续接时重查），输出 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development`。磁盘已有本轮可信 bundle 与 0.1.1 官方 release；Chrome 实际加载路径、开发客户端连接和当前候选绑定未实读。未执行 production 构建、重装或停止其他会话服务。
+持续开发复用原 watcher PID 69819（本轮重查存活），输出 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development`。磁盘官方 release 已为上方 0.1.2；Chrome 实际加载路径、开发客户端连接和当前候选绑定未实读。未执行 production 构建、重装或停止其他会话服务。
 
-## 变更与所有权
+## R1.1 历史变更与所有权
 
 R1 已由此前提交实现模型、沙箱编辑器、固定问答/检索、JSON/CSV 和 ETag 保存适配；本轮直接复用。
 
@@ -69,7 +93,7 @@ OPENDESK_KB_EVIDENCE=/Users/shopme/Documents/workspace/opendesk-browser/artifact
 5. 完整官方 Catalog 检查 15/18 PASS，三个失败延期：Stay Focus 已提交旧包与新源码内容不一致、发行版本 1.0.10 与配置 3.0.0 不同、旧资源计数断言不含固定远端 descriptor。属于无关合同/测试漂移，不修改 Stay Focus、不放宽来源、不伪报全组 PASS。本工具实际源码与官方发行字节一致、optional 策略和可信准入由新增专项验证通过。日志 catalog-final.log。
 6. 原 build:sidebar-tool --out → 相关门禁 → --promote-from → --check-project 均 PASS。
 
-唯一正式可安装文件 `examples/sidebar-tools/ai-knowledge-answers/ai-knowledge-answers.opendesk-tool.json`，0.1.1，40,093 字节，SHA-256 `153ca03e6b7baccd66b0980017a63aa082f092562f716d223a4bd2f33cf7eaf9`。这是通过自动门禁、可手动安装的候选；不等于 production/Chrome 验收或线上发布。未修改原安装器。
+上轮正式文件 `examples/sidebar-tools/ai-knowledge-answers/ai-knowledge-answers.opendesk-tool.json` 为 0.1.1，40,093 字节，SHA-256 `153ca03e6b7baccd66b0980017a63aa082f092562f716d223a4bd2f33cf7eaf9`，本轮已由上方同源晋升的 0.1.2 替代。保留历史证据，不等于 production/Chrome 验收或线上发布。未修改原安装器。
 
 ## 独立复核与评分
 
@@ -91,4 +115,4 @@ OPENDESK_KB_EVIDENCE=/Users/shopme/Documents/workspace/opendesk-browser/artifact
 
 真实 Mac Chrome 中，通过扩展官方目录审阅并安装/更新本候选 → 新建测试知识并保存 → 关闭重开确认保留 → 同义固定回答 → 非精确问题准备并真实 Send → 核对 sourceIds/人工审阅及错误恢复。纯文件导入没有官方 provenance 时保持受限，不改写来源记录绕过。
 
-只有该链及受影响的原生取消、撤权、更新、断线验证完成才可宣告 MVP。原始 Codex goal 仍 active，未因交付候选伪报 complete。网站阶段还需站点许可、精确页面身份、读取/草稿/发送确认与未知结果保护的独立设计和实测；保留 answer/sourceIds/needsHuman/status、取消及会话身份合同，不复制队列。
+只有该链及受影响的原生取消、撤权、更新、断线验证完成才可宣告 MVP。原始 Codex goal 移交时实读为 blocked，本轮未改变，未因交付候选伪报 complete。网站阶段还需站点许可、精确页面身份、读取/草稿/发送确认与未知结果保护的独立设计和实测；保留 answer/sourceIds/needsHuman/status、取消及会话身份合同，不复制队列。

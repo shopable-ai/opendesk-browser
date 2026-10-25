@@ -1,6 +1,6 @@
-# AI 知识问答 · R1.1
+# AI 知识问答 · R1.2
 
-独立 Sidebar Tool v2，ID `ai-knowledge-answers`，版本 `0.1.1`。复用原 Tool Host、存储、Shared AI Provider 和唯一 React root。网站读取、草稿填入及自动发送留到下一阶段。
+独立 Sidebar Tool v2，ID `ai-knowledge-answers`，版本 `0.1.2`。复用原 Tool Host、存储、Shared AI Provider 和唯一 React root。网站读取、草稿填入及自动发送留到下一阶段。
 
 ## 当前范围
 
@@ -10,7 +10,7 @@
 - 模型只接收候选的 `id/question/answer/scope`，aliases 留在本机。发送及交付均核对安装身份，交付时回读 ETag。换 Provider、取消、Native 断线、相关权限撤销和知识更新会丢弃旧结果。
 - AI 必须引用本轮真实知识 ID；新增数字事实被拒绝。语义仍需人工证明，所有 AI 答案为 `REVIEW_REQUIRED / needsHuman=true`。
 
-定向 Node 与包验证已完成；真实 Local Codex backend 已返回有来源实答，并通过领域校验。**完整 Chrome 安装、保存后关闭重开、可信 Send 及原生错误恢复仍为 NOT_TESTED**，backend 成功不证明完整 UI 链。详见[现有工作记录](../../../docs/framework/workstreams/ai-knowledge-answers-r1-20261025.md)。
+本轮 54 项定向 Node 测试通过，包含实际编辑器脚本在内存存储下的新建、保存读回、重开、同义回答与未知写入保护；这属于组件证据。0.1.2 修复 R2 UI 的打包失败和过时 AI 提示，正式包已同源晋升。复用上轮真实 Local Codex backend 的有来源实答。**完整 Chrome 安装、保存后关闭重开、可信 Send 及原生错误恢复仍为 NOT_TESTED**。详见[现有工作记录](../../../docs/framework/workstreams/ai-knowledge-answers-r1-20261025.md)。
 
 ## 安装与首条待验证操作
 
@@ -18,13 +18,13 @@
 
 Browser 须包含本轮静态可信接线。日常开发复用 `dist/development` 已有 watcher；只导入 JSON 不会升级 Browser 的可信代码。
 
-1. 在「扩展」官方可发现列表选择「AI 知识问答」，核对 `0.1.1`、来源、能力与摘要，使用原确认安装/更新流程。安装后打开即可，无通用二次启用步骤。
+1. 在「扩展」官方可发现列表选择「AI 知识问答」，核对 `0.1.2`、来源、能力与摘要，使用原确认安装/更新流程。安装后打开即可，无通用二次启用步骤。保留原知识数据，不先卸载；可信 Browser 准入版本也须与新包一致。
 2. 仅从本地文件导入时，原安装器不会制造官方 provenance；知识管理继续可用，可信 AI 保持关闭。使用可信 AI 须通过同一安装器审阅准确官方发行，不能手写来源记录或借用其他工具身份。
 3. 新建明确标为测试数据的知识“退款期限是多少 → 7 天内可退款”，添加别名“多久可以退款”，保存；关闭重开并核对数据。
 4. 输入别名验证固定回答；输入“退款需要多少天？”准备候选，核对知识 ID、接收方与外发内容后发送。区分退款申请期限与处理/到账时长，不把测试数据当作企业政策。
 5. 核对来源与人工审阅标记，再验证取消、换 Provider、断线、撤权和知识更新后旧答案失效。
 
-本轮浏览器工具访问 `chrome-extension:` 被 URL 策略拒绝，未绕过策略。这些是待执行步骤，不是 PASS 记录。
+上轮自动审批拒绝浏览器工具访问 `chrome-extension:`，仅允许 HTTP/HTTPS，并禁止换表面/CDP 绕过。本轮仅核对能力文档与标签页库存，没有证据证明该限制已解除，未重试受拒入口。以上原生步骤仍待执行。
 
 ## CSV 与验证
 
@@ -33,7 +33,7 @@ CSV 表头 `id,question,aliases,answer,scope,enabled`，aliases 是 JSON 数组�
 在仓库根执行：
 
 ```sh
-node --test tests/environment/ai-knowledge-answers-r1.test.mjs tests/environment/ai-knowledge-answers-provider-contract.test.mjs tests/environment/ai-knowledge-answers-admission.test.mjs tests/environment/ai-knowledge-answers-host.test.mjs
+node --test tests/environment/ai-knowledge-answers-r1.test.mjs tests/environment/ai-knowledge-answers-ui-r2.test.mjs tests/environment/ai-knowledge-answers-provider-contract.test.mjs tests/environment/ai-knowledge-answers-admission.test.mjs tests/environment/ai-knowledge-answers-host.test.mjs
 npm run build:sidebar-tool -- examples/sidebar-tools/ai-knowledge-answers --out artifacts/sidebar-tools/ai-knowledge-answers/candidate.opendesk-tool.json
 # 定向测试及包校验通过后才晋升：
 node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-knowledge-answers --promote-from artifacts/sidebar-tools/ai-knowledge-answers/candidate.opendesk-tool.json

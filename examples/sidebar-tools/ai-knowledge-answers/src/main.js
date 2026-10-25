@@ -29,6 +29,7 @@ function show(target,focus=true){
   for(const [id,k] of [['qa-tab-ask','ask'],['qa-tab-list','list']]){
     const tab=$(id),active=k===(view==='edit'?'list':view);
     tab.setAttribute('aria-selected',String(active));tab.tabIndex=active?0:-1;
+    tab.classList.toggle('od-button--secondary',active);tab.classList.toggle('od-button--quiet',!active);
   }
   state();
   if(focus)$(view==='ask'?'qa-query':view==='list'?'qa-search':'qa-question').focus({preventScroll:true});
@@ -93,7 +94,7 @@ function list(){
   for(const row of rows){
     const outer=root.ownerDocument.createElement('div');outer.className='qa-record-row';
     outer.setAttribute('role','listitem');
-    const button=root.ownerDocument.createElement('button');button.className='qa-record';
+    const button=root.ownerDocument.createElement('button');button.className='od-button od-button--secondary qa-record';
     button.type='button';button.setAttribute('aria-label','编辑知识：'+row.question);
     const body=root.ownerDocument.createElement('span');body.className='qa-record-main';
     const title=root.ownerDocument.createElement('strong');title.className='qa-record-title';
@@ -123,7 +124,10 @@ function list(){
 $('qa-search').addEventListener('input',()=>{search=$('qa-search').value.trim().toLowerCase();list();});
 root.querySelectorAll('[data-qa-filter]').forEach(b=>b.addEventListener('click',()=>{
   filter=b.dataset.qaFilter;
-  root.querySelectorAll('[data-qa-filter]').forEach(el=>el.setAttribute('aria-pressed',String(el===b)));
+  root.querySelectorAll('[data-qa-filter]').forEach(el=>{
+    const active=el===b;el.setAttribute('aria-pressed',String(active));
+    el.classList.toggle('od-button--secondary',active);el.classList.toggle('od-button--quiet',!active);
+  });
   list();
 }));
 async function load(){
@@ -173,7 +177,10 @@ $('qa-editor').addEventListener('submit',e=>{
   }catch(error){notice('内容校验失败：'+String(error?.message||error),true);return;}
   void commit(next,{success:'知识已保存并读回确认',after:()=>{
     selected=null;fill(null);search='';filter='all';$('qa-search').value='';
-    root.querySelectorAll('[data-qa-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.qaFilter==='all')));
+    root.querySelectorAll('[data-qa-filter]').forEach(b=>{
+      const active=b.dataset.qaFilter==='all';b.setAttribute('aria-pressed',String(active));
+      b.classList.toggle('od-button--secondary',active);b.classList.toggle('od-button--quiet',!active);
+    });
     show('list',false);
   }});
 });
@@ -197,7 +204,7 @@ $('qa-ask').addEventListener('click',()=>{
       AMBIGUOUS:'资料冲突',NO_MATCH:'没有可信依据'})[r.status]||'人工核对';
     $('qa-result-count').textContent=r.sourceIds.length+' 条来源';
     $('qa-result-text').textContent=r.answer||(r.status==='RETRIEVED_ONLY'?
-      '找到了相关资料，但真实 AI Provider 尚未接通。本次没有生成正式答案。':
+      '找到了相关资料，本次仅展示检索结果。如上方显示可信 AI 问答，请在那里准备并审阅知识后发送。':
       '缺少确定的知识依据，请人工核对。');
     for(const id of r.sourceIds){
       const row=kb.items.find(x=>x.id===id),li=root.ownerDocument.createElement('li');

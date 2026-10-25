@@ -12,7 +12,7 @@ import {
 // Use the real schema and portable encoder, independent of parallel UI edits.
 function fixture(overrides={}){
  const tool=validateSidebarToolPackage({
-  format:'opendesk.sidebar-tool.v2',id:'ai-knowledge-answers',version:'0.1.1',
+  format:'opendesk.sidebar-tool.v2',id:'ai-knowledge-answers',version:TRUSTED_KNOWLEDGE_VERSION,
   title:'AI 知识问答',description:'本地知识问答',capabilities:['storage.local','user.export'],
   html:'<main>知识</main>',css:'',js:'void 0;',
   requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]},...overrides
@@ -46,7 +46,7 @@ test('actual knowledge source and optional official release share bytes; plain i
 
 test('exact official canonical package is admitted, including reordered storage keys',async()=>{
  assert.equal(TRUSTED_KNOWLEDGE_ID,id);
- assert.equal(TRUSTED_KNOWLEDGE_VERSION,'0.1.1');
+ assert.equal(TRUSTED_KNOWLEDGE_VERSION,'0.1.2');
  const args=fixture();
  assert.equal(await admitsTrustedKnowledge(args),true);
  assert.equal(await admitsTrustedKnowledge({...args,enableRecords:{[id]:true}}),true);
@@ -65,9 +65,10 @@ test('official identity, exact package path, version and storage capability are 
   ['different release tool',{...args,release:{...args.release,toolId:'another-tool'}}],
   ['different path',{...args,release:{...args.release,packagePath:'examples/sidebar-tools/'+id+'/'+id+'.opendesk-tool.json'}}],
   ['non-exact path',{...args,release:{...args.release,packagePath:args.release.packagePath+'?v=1'}}],
-  ['new official version',fixture({version:'0.1.2'})],
+  ['new official version',fixture({version:'0.1.3'})],
+  ['previous official version',fixture({version:'0.1.1'})],
   ['old official version',fixture({version:'0.1.0'})],
-  ['release version mismatch',{...args,release:{...args.release,version:'0.1.2'}}],
+  ['release version mismatch',{...args,release:{...args.release,version:'0.1.3'}}],
   ['missing storage.local',fixture({capabilities:['user.export']})]
  ]);
 });
@@ -111,7 +112,7 @@ test('absent, malformed or mismatched provenance fails closed',async()=>{
   ['array source map',{...args,provenance:[]}],
   ['inherited source',{...args,provenance:Object.create({[id]:source})}],
   ...[null,[],{}, {...source,extra:true},
-   {...source,marketId:'third-party/'+id},{...source,version:'0.1.2'},
+   {...source,marketId:'third-party/'+id},{...source,version:'0.1.3'},
    {...source,sha256:'f'.repeat(64)},{...source,sha256:source.sha256.toUpperCase()},
    {marketId:source.marketId,version:source.version}
   ].map((value,index)=>['invalid source '+index,{...args,provenance:{[id]:value}}]),
@@ -151,7 +152,7 @@ test('unrelated provenance updates preserve valid knowledge; own changes revoke 
  }
  for(const value of [undefined,null,[],{},
   {...source,sha256:fixture({js:'void 1;'}).release.sha256},
-  {...source,version:'0.1.2'},{...source,marketId:'third-party/'+id},
+  {...source,version:'0.1.3'},{...source,marketId:'third-party/'+id},
   {...source,extra:true}]){
   assert.equal(trustedKnowledgeProvenanceChanged({oldValue:{[id]:source},newValue:{[id]:value}}),true);
   assert.equal(trustedKnowledgeProvenanceChanged({oldValue:{[id]:value},newValue:{[id]:source}}),true);

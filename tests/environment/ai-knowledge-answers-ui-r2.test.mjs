@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {createHash,randomUUID} from 'node:crypto';
+import {runInNewContext} from 'node:vm';
+import {parseHTML} from 'linkedom';
+import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 const base=new URL('../../examples/sidebar-tools/ai-knowledge-answers/',import.meta.url);
 const read=path=>readFileSync(new URL(path,base),'utf8');
 test('R2 UI: source pages are separate and there is no ever-expanded CRUD column',()=>{
@@ -34,4 +38,72 @@ test('R2 UI: preview references actual source rather than duplicating business i
  const data=JSON.parse(read('fixtures/sample-knowledge.json'));
  assert.equal(data.version,1);assert.ok(data.items.length>=10&&data.items.length<=20);
  assert.ok(new TextEncoder().encode(JSON.stringify(data)).byteLength<=8192);
+});
+
+test('R2 UI: current source packs with canonical design and describes the trusted AI entry',async()=>{
+ const tool=await createSidebarToolPackage(new URL('.',base).pathname);
+ assert.match(tool.css,/^\/\* opendesk\.shared-design\.v1 sha256=/);
+ assert.doesNotMatch(tool.html+tool.js,/Provider 尚未接通/);
+ assert.match(tool.html,/可信.*AI 问答/);
+});
+
+// Component tests only: actual editor/model scripts with an in-memory storage
+// transport. This does not prove Chrome installation, persistence or Provider IO.
+const tick=()=>new Promise(resolve=>setImmediate(resolve));
+function mount(storage={value:null,requests:[],unknown:false}){
+ const {window}=parseHTML('<html><body>'+read('src/index.html')+'</body></html>');
+ const root=window.document.querySelector('main');
+ const etag=()=>createHash('sha256').update(JSON.stringify(storage.value)).digest('hex');
+ const context={TextEncoder,crypto:{randomUUID},AbortController,
+  OpenDeskTool:{root,setState(){},async request(method,args){
+   storage.requests.push({method,args:structuredClone(args)});
+   if(method==='storage.get')return {value:structuredClone(storage.value),etag:etag()};
+   assert.equal(method,'storage.set');assert.equal(args.ifMatch,etag());
+   storage.value=structuredClone(args.value);
+   if(storage.unknown)throw Object.assign(Error('receipt lost'),{code:'E_OUTCOME_UNKNOWN'});
+   return {saved:true};
+  }}};
+ runInNewContext(read('src/model.js'),context);
+ runInNewContext(read('src/main.js'),context);
+ const get=id=>root.querySelector('#'+id);
+ const click=id=>{assert.equal(Boolean(get(id).disabled),false,id+' must be usable');get(id).click();};
+ const input=(id,value)=>{get(id).value=value;get(id).dispatchEvent(new window.Event('input'));};
+ const save=()=>get('qa-editor').dispatchEvent(new window.Event('submit',{cancelable:true}));
+ return {storage,get,click,input,save,window};
+}
+test('R2 component: save/read-back, reopen and synonym lookup retain the actual generated knowledge ID',async()=>{
+ const ui=mount();await tick();
+ ui.click('qa-tab-list');ui.click('qa-new');
+ ui.input('qa-question','退款期限是多少');ui.input('qa-answer','7 天内可退款');
+ ui.input('qa-aliases','多久可以退款');ui.save();await tick();
+ assert.equal(ui.get('qa-view-list').hidden,false);
+ assert.match(ui.get('qa-list').textContent,/退款期限是多少/);
+ const id=ui.storage.value.items[0].id;assert.match(id,/^qa_/);
+ assert.deepEqual(ui.storage.requests.map(row=>row.method),['storage.get','storage.set','storage.get']);
+ const reopened=mount(ui.storage);await tick();
+ reopened.input('qa-query','多久可以退款');reopened.click('qa-ask');
+ assert.equal(reopened.get('qa-result-kind').textContent,'固定答案');
+ assert.equal(reopened.get('qa-result-text').textContent,'7 天内可退款');
+ assert.equal(reopened.get('qa-result-sources').querySelector('.qa-source-id').textContent,id);
+ reopened.input('qa-query','退款需要多少天？');reopened.click('qa-ask');
+ assert.equal(reopened.get('qa-result-kind').textContent,'检索到相关知识');
+ assert.match(reopened.get('qa-result-sources').textContent,new RegExp(id));
+ reopened.input('qa-query','飞船位置');reopened.click('qa-ask');
+ assert.equal(reopened.get('qa-result-kind').textContent,'没有可信依据');
+ assert.equal(reopened.get('qa-result-sources').children.length,0);
+});
+test('R2 component: dirty navigation can be cancelled; unknown save blocks a second write until read-back',async()=>{
+ const ui=mount();await tick();ui.click('qa-tab-list');ui.click('qa-new');
+ ui.input('qa-question','退款期限是多少');ui.input('qa-answer','7 天内可退款');
+ ui.click('qa-back');assert.equal(ui.get('qa-review').hidden,false);
+ ui.click('qa-cancel');assert.equal(ui.get('qa-view-edit').hidden,false);
+ assert.equal(ui.get('qa-question').value,'退款期限是多少');
+ ui.storage.unknown=true;ui.save();await tick();
+ assert.equal(ui.get('qa-save').disabled,true);ui.save();await tick();
+ assert.equal(ui.storage.requests.filter(row=>row.method==='storage.set').length,1);
+ ui.click('qa-refresh');ui.click('qa-accept');await tick();
+ assert.equal(ui.storage.requests.at(-1).method,'storage.get');
+ assert.equal(ui.get('qa-view-list').hidden,false);
+ assert.match(ui.get('qa-list').textContent,/退款期限是多少/);
+ assert.equal(ui.get('qa-save').disabled,false);
 });

@@ -1,8 +1,8 @@
 <main class="qa-app od-page" aria-label="AI 知识问答">
   <header class="qa-top">
     <nav class="qa-tabs" role="tablist" aria-label="工具功能">
-      <button id="qa-tab-ask" role="tab" type="button" aria-controls="qa-view-ask" aria-selected="true" tabindex="0">问答</button>
-      <button id="qa-tab-list" role="tab" type="button" aria-controls="qa-view-list" aria-selected="false" tabindex="-1">知识 <span id="qa-count">—</span></button>
+      <button id="qa-tab-ask" class="od-button od-button--secondary" role="tab" type="button" aria-controls="qa-view-ask" aria-selected="true" tabindex="0">问答</button>
+      <button id="qa-tab-list" class="od-button od-button--quiet" role="tab" type="button" aria-controls="qa-view-list" aria-selected="false" tabindex="-1">知识 <span id="qa-count">—</span></button>
     </nav>
     <button id="qa-refresh" class="od-icon-button qa-icon" type="button" aria-label="重新读取知识库" title="重新读取知识库"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L3 9m0-5v5h5M4 13a8 8 0 0 0 14 5L21 15m0 5v-5h-5"/></svg></button>
   </header>
@@ -18,7 +18,7 @@
       <p id="qa-result-text"></p>
       <div class="qa-source-title">知识来源</div><ul id="qa-result-sources"></ul>
     </section>
-    <p class="qa-note">精确问题直接显示固定答案；其他问题只展示检索候选。真实 AI Provider 尚未接通，不会伪造 AI 回答。</p>
+    <p class="qa-note">精确问题直接显示固定答案；其他问题在此仅检索知识。如上方显示可信 AI 问答，可准备并审阅知识后生成答案。AI 答案须人工核对。</p>
   </section>
   <section id="qa-view-list" class="qa-view" role="tabpanel" aria-labelledby="qa-tab-list" hidden>
     <div class="qa-headline"><div><h2>知识条目</h2><p>搜索、查看及管理已保存的问答</p></div>
@@ -34,8 +34,8 @@
       <div class="qa-manage-row"><button id="qa-export-json" class="od-button" type="button">导出 JSON</button><button id="qa-export-csv" class="od-button" type="button">复制 CSV</button></div>
       <p>导入会先预览变化，未经确认不会覆盖现有数据。</p>
     </div>
-    <label class="qa-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.7" cy="10.7" r="6.5"/><path d="m16 16 5 5"/></svg><input id="qa-search" type="search" maxlength="100" placeholder="搜索问题、答案、别名" aria-label="搜索知识"></label>
-    <div class="qa-filters" role="group" aria-label="知识状态筛选"><button type="button" data-qa-filter="all" aria-pressed="true">全部</button><button type="button" data-qa-filter="enabled" aria-pressed="false">已启用</button><button type="button" data-qa-filter="disabled" aria-pressed="false">已停用</button><span id="qa-filter-count" aria-live="polite"></span></div>
+    <label class="qa-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.7" cy="10.7" r="6.5"/><path d="m16 16 5 5"/></svg><input id="qa-search" class="od-field" type="search" maxlength="100" placeholder="搜索问题、答案、别名" aria-label="搜索知识"></label>
+    <div class="qa-filters" role="group" aria-label="知识状态筛选"><button class="od-button od-button--secondary" type="button" data-qa-filter="all" aria-pressed="true">全部</button><button class="od-button od-button--quiet" type="button" data-qa-filter="enabled" aria-pressed="false">已启用</button><button class="od-button od-button--quiet" type="button" data-qa-filter="disabled" aria-pressed="false">已停用</button><span id="qa-filter-count" aria-live="polite"></span></div>
     <div id="qa-list" class="qa-records" role="list" aria-label="知识列表"></div>
     <div id="qa-list-empty" class="qa-empty" hidden><strong id="qa-empty-title">暂无知识</strong><p id="qa-empty-description">导入示例数据或新建一条标准问答。</p><button id="qa-empty-new" class="od-button" type="button">新建知识</button></div>
   </section>
@@ -43,7 +43,7 @@
     <div class="qa-editor-top">
       <button id="qa-back" class="od-icon-button qa-icon" type="button" aria-label="返回知识列表" title="返回知识列表"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg></button>
       <h2 id="qa-editor-title">新建知识</h2>
-      <button id="qa-delete" class="od-icon-button qa-icon qa-danger" type="button" aria-label="删除当前知识" title="删除当前知识" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16m-10-3h4M7 7l1 13h8l1-13M10 11v6m4-6v6"/></svg></button>
+      <button id="qa-delete" class="od-icon-button od-icon-button--danger qa-icon" type="button" aria-label="删除当前知识" title="删除当前知识" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16m-10-3h4M7 7l1 13h8l1-13M10 11v6m4-6v6"/></svg></button>
     </div>
     <form id="qa-editor" novalidate>
       <label class="qa-label" for="qa-question">标准问题 <span>必填</span></label><input id="qa-question" class="od-field" maxlength="180" required placeholder="例如：多久可以退款">
