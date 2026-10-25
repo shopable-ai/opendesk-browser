@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>示例店铺 · 客服消息测试台</title>
+  <link rel="stylesheet" href="./ai-knowledge-chat-demo.css">
+  <script src="./ai-knowledge-chat-demo.js" defer></script>
+</head>
+<body>
+<div id="kb-demo-root" data-kb-demo="v1">
+  <header class="site-header">
+    <div class="brand"><span class="brand-icon" aria-hidden="true">✳</span><div>
+      <strong>示例店铺 <span class="tag">本地测试</span></strong><small>AI 知识问答 · 网页消息模拟器</small></div></div>
+    <span class="readiness" id="kb-demo-site-status">网页就绪 · 等待 OpenDesk 监听</span>
+  </header>
+  <div class="layout">
+    <aside class="control-panel" aria-label="测试控制台">
+      <div class="control-head"><h2>测试控制台</h2><p>只生成客户消息，不调用 AI 或自动产生客服答案。</p></div>
+      <div class="pane-section"><span class="pane-label">当前会话</span>
+        <div class="threads" role="group" aria-label="测试会话">
+          <button class="thread selected" type="button" data-kb-thread="thread_demo_01" aria-pressed="true"><span class="avatar">A</span><span>测试会话 A</span></button>
+          <button class="thread" type="button" data-kb-thread="thread_demo_02" aria-pressed="false"><span class="avatar secondary">B</span><span>测试会话 B</span></button>
+        </div>
+        <button type="button" class="text-button" id="kb-demo-reset">重置当前会话</button>
+      </div>
+      <div class="pane-section"><span class="pane-label">定时客户消息</span>
+        <label for="kb-demo-interval">消息间隔</label>
+        <select id="kb-demo-interval"><option value="3000">3 秒</option><option value="6000" selected>6 秒</option><option value="10000">10 秒</option></select>
+        <label for="kb-demo-limit">本轮消息条数</label>
+        <select id="kb-demo-limit"><option value="4">4 条</option><option value="8" selected>8 条</option><option value="12">12 条</option><option value="20">20 条</option></select>
+        <div class="timer-actions">
+          <button type="button" class="primary" id="kb-demo-start">开始</button>
+          <button type="button" id="kb-demo-pause" disabled>暂停</button>
+          <button type="button" id="kb-demo-stop" disabled>停止</button>
+        </div>
+        <p class="pane-hint" id="kb-demo-timer-state" role="status">尚未开始</p>
+        <div class="stats" aria-label="本轮统计"><div><b id="kb-demo-generated">0</b><small>客户消息</small></div><div><b id="kb-demo-received">0</b><small>客服回执</small></div><div><b id="kb-demo-errors">0</b><small>页面拒绝</small></div></div>
+      </div>
+      <details class="events"><summary>网页事件记录 <span id="kb-demo-event-count">0</span></summary>
+        <ol id="kb-demo-events" aria-label="网页事件日志"></ol>
+      </details>
+    </aside>
+    <main class="chat" aria-label="模拟客服会话">
+      <div class="chat-heading"><div class="agent-avatar">✳</div><div><h1>在线客服测试</h1><p id="kb-demo-thread-label">会话 A · 本地示例政策</p></div><span class="chat-online">在线测试</span></div>
+      <div class="notice"><span>i</span><p>本页面仅模拟客服网站 DOM。实际检索、AI 请求和授权结果请以 OpenDesk 可信侧边栏及真实回执为准。</p></div>
+      <div class="message-list" id="kb-demo-message-list" role="log" aria-live="polite" aria-label="客户与客服消息">
+        <div id="kb-demo-empty" class="empty-state"><div aria-hidden="true">◎</div><strong>准备测试客户问答</strong><p>输入一条客户消息，或在左侧启动有界定时模拟。</p></div>
+      </div>
+      <div class="composer-area">
+        <div class="quick-questions" aria-label="示例问题">
+          <button type="button" data-kb-quick="退款申请有时间限制吗">退款时间</button>
+          <button type="button" data-kb-quick="退款什么时候到账">到账时间</button>
+          <button type="button" data-kb-quick="客服几点上班">客服时间</button>
+          <button type="button" data-kb-quick="包裹物流为什么没更新">物流异常</button>
+        </div>
+        <form id="kb-demo-customer-form" class="composer">
+          <label class="sr-only" for="kb-demo-customer-input">客户问题</label>
+          <textarea id="kb-demo-customer-input" rows="2" maxlength="300" placeholder="输入客户问题，例如：退款需要几天？" required></textarea>
+          <select id="kb-demo-customer-scope" aria-label="适用产品范围"><option value="">通用</option><option value="标准款">标准款</option><option value="专业款">专业款</option></select>
+          <button type="submit" class="primary" id="kb-demo-customer-send">发送</button>
+        </form>
+      </div>
+      <details class="agent-gate" id="kb-demo-agent-gate">
+        <summary>客服草稿与发送测试接口 <span>供 OpenDesk 适配器使用</span></summary>
+        <div class="agent-controls">
+          <p>此区域是真实网页 DOM 表单。人工或扩展填入并点击后，只有通过会话、消息身份和去重验证才会出现客服回复。</p>
+          <label for="kb-demo-agent-draft">客服草稿</label>
+          <textarea id="kb-demo-agent-draft" rows="2" maxlength="3000" placeholder="需先选中一条客户消息，再输入回复"></textarea>
+          <div class="agent-row"><span id="kb-demo-agent-target">未选择客户消息</span>
+            <button type="button" id="kb-demo-agent-send">发送客服回复</button></div>
+          <p role="status" id="kb-demo-agent-status"></p>
+        </div>
+      </details>
+    </main>
+  </div>
+</div>
+</body>
+</html>
