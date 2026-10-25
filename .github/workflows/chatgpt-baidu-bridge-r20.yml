@@ -39,6 +39,7 @@ jobs:
           node --check src/native-agent/chatgpt-bridge-trigger-gate.js
           node --check src/native-agent/chatgpt-fixed-bridge-page.js
           node --check src/native-agent/chatgpt-fixed-bridge-host.js
+          node --check tests/environment/chatgpt-baidu-bridge-r20.test.mjs
       - name: Existing fixed and new Baidu business contracts (not native Chrome)
         run: |
           node --test \

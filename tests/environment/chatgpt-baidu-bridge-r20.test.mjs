@@ -44,7 +44,7 @@ test('one durable nonce is pinned to exactly one selected Task and search query'
   await assert.rejects(ledger.reserve({...context,taskId:'page.read.fixed',args:{}}),
     {code:'E_BRIDGE_CONTEXT'});
   await assert.rejects(ledger.reserve({...context,taskId:request.taskId,
-    args:{query:'not the user's query',limit:3}}),{code:'E_BRIDGE_CONTEXT'});
+    args:{query:"not the user's query",limit:3}}),{code:'E_BRIDGE_CONTEXT'});
   assert.equal((await ledger.reserve({...context,taskId:request.taskId,args})).consumed,true);
   const restarted=createChatGPTBridgeTriggerLedger({storage:backing,clock:()=>1001});
   assert.equal((await restarted.assertConsumed({...context,taskId:request.taskId,args})).allowed,true);
