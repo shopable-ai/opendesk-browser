@@ -55,3 +55,16 @@ test('refuses query mismatch and non-three limits before reading results',async(
  await assert.rejects(run([],{query:'other',limit:3}),{code:'E_TARGET'});
  await assert.rejects(run([],{query:'关键词',limit:2}),{code:'E_TASK_PARAMS'});
 });
+
+test('scans beyond duplicate and invalid candidates before choosing three unique URLs',async()=>{
+ const response=await run([row(1),row(1),row(2),row(3)]);
+ assert.equal(response.count,3);
+ assert.deepEqual(Array.from(response.results,x=>x.title),['标题 1','标题 2','标题 3']);
+});
+test('conservatively excludes unknown Baidu templates',async()=>{
+ const promoted=row(99),attr=promoted.getAttribute;
+ promoted.getAttribute=name=>name==='tpl'?'paid_unknown':attr(name);
+ const response=await run([promoted,row(1)]);
+ assert.equal(response.count,1);
+ assert.equal(response.results[0].title,'标题 1');
+});

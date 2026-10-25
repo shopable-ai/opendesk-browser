@@ -29,6 +29,9 @@ async function main() {
     const clean = text => String(text || '').replace(/\s+/g,' ').trim();
     const evidence = [];
     for (const node of nodes.slice(0,40)) {
+      // Prefer omissions to misclassifying unrecognized Baidu result modules as organic.
+      const tpl=node.getAttribute('tpl');
+      if (tpl !== null && tpl !== 'se_com_default') continue;
       const anchors = [...node.querySelectorAll('h3 a')].filter(visible);
       if (anchors.length !== 1) continue;
       const a=anchors[0], heading=a.closest('h3');
@@ -45,7 +48,8 @@ async function main() {
       if (!title || !summary || !href) continue; // Only verifiable, visible organic results.
       evidence.push({title:title.slice(0,320),summary:summary.slice(0,900),href,mu:direct||null,
         slot:node.getAttribute('id')||null,tpl:node.getAttribute('tpl')||null});
-      if (evidence.length >= 3) break;
+      // The Controller still validates URL schemes and duplicate links afterwards.
+      if (evidence.length >= 24) break;
     }
     return evidence;
   });
