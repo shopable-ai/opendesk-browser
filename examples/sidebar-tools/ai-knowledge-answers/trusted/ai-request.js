@@ -15,7 +15,7 @@ export const KNOWLEDGE_ANSWER_INSTRUCTIONS=[
 
 // Caller MUST provide pre-read, verified Host storage and the original trusted Send event.
 // For HTTPS Providers, permission.request must start synchronously in that event.
-export function createKnowledgeAnswerConsumer({model,conversation,readLibrary,assertIdentity=()=>{}}={}){
+export function createKnowledgeAnswerConsumer({model,conversation,readLibrary,assertIdentity}={}){
   if(typeof model?.library!=='function'||typeof model?.lookup!=='function'||
     typeof model?.answerWithAI!=='function'||typeof conversation?.request!=='function'||
     typeof conversation?.cancel!=='function'||typeof readLibrary!=='function'||
@@ -44,6 +44,9 @@ export function createKnowledgeAnswerConsumer({model,conversation,readLibrary,as
       throw fail('E_KB_QUESTION','问题或适用条件无效');
     if(!latest)throw fail('E_KB_NOT_READY','请先从可信 Host 读取知识库');
     const snapshot=latest,question=request.trim();
+    // Host must synchronously confirm that this approved snapshot and instance
+    // still match its latest storage/version/installation notification.
+    assertIdentity({stage:'send',etag:snapshot.etag});
     const lookup=model.lookup(snapshot.library,{question,scope});
     if(lookup.status==='ANSWERED_FIXED'||lookup.status==='NO_MATCH'||
        lookup.status==='AMBIGUOUS'){
@@ -82,6 +85,7 @@ export function createKnowledgeAnswerConsumer({model,conversation,readLibrary,as
     }).finally(()=>{busy=false;});
   }
   return Object.freeze({refresh,request,
+    invalidate(){latest=null;}, // Host calls on any tool-owned storage change.
     cancel:options=>conversation.cancel(options),
     dispose(){if(disposed)return;disposed=true;latest=null;void conversation.cancel().catch(()=>{});}
   });
