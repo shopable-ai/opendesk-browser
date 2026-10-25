@@ -242,6 +242,8 @@ export function ToolHost({view}) {
 <TrustedConversationHeaderSlot/>
 <div className="sidebar-tool-header-actions" role="group" aria-label="工具管理"
   data-management-ui="direct-actions-v1" hidden={!managementActionsVisible}>
+<ToolField as="button" type="button" id="sidebar-tool-language-manage" className="od-button od-button--secondary"
+  title="切换语言 / Language" aria-label="语言 / Language" hidden={true}>语言</ToolField>
 <ToolField as="button" type="button" id="sidebar-tool-settings-open" className="sidebar-tool-icon-action od-icon-button"
   title="工具设置" aria-label="工具设置" aria-controls="sidebar-tool-settings-view"
   aria-expanded="false" hidden={true} nodeRef={runtimeRefs.settingsControl}>
@@ -290,7 +292,7 @@ export function ToolHost({view}) {
 <select id="sidebar-tool-toc-language-select" className="od-field" aria-label="界面语言"
   value={snapshot.fields['sidebar-tool-toc-language-select'].value} disabled={snapshot.fields['sidebar-tool-toc-language-select'].disabled}
   onChange={actions.language}>
-<option value="follow">跟随 OpenDesk</option>
+<option value="follow">跟随 OpenDesk 默认语言</option>
 {(snapshot.fields['sidebar-tool-toc-language-select'].rows?.length?
  snapshot.fields['sidebar-tool-toc-language-select'].rows:
  [{id:'zh-CN',label:'简体中文'},{id:'en',label:'English'}]).map(row=>
@@ -298,9 +300,6 @@ export function ToolHost({view}) {
 
 </select>
 
-</ToolField>
-<ToolField as="button" type="button" id="sidebar-tool-language-manage" className="od-button od-button--secondary" hidden={true}>
-翻译与语言包…
 </ToolField>
 <ToolField as="div" id="sidebar-tool-prompt-web-row" className="sidebar-toc-settings-row sidebar-tool-prompt-native" hidden={true}>
 <span className="sidebar-tool-prompt-native-info">

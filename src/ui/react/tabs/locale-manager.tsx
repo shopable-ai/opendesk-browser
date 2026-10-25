@@ -5,6 +5,7 @@ import './locale-manager.css';
 import {LOCALE_PACK_MAX_BYTES} from '../../sidebar-tools/locale-packs.js';
 
 const languageNames={auto:'跟随浏览器',en:'English','zh-CN':'简体中文','zh-TW':'繁體中文',ja:'日本語'};
+const languageName=value=>languageNames[value]||value;
 const failureText=failure=>{
   const code=failure?.code||'';
   if(code.includes('OUTCOME_UNKNOWN'))return '保存结果未知。请重新核对存储后再操作；系统不会自动重放保存。';
@@ -34,6 +35,7 @@ export default function LocaleManager({model}){
   const tools=model.tools||[];
   const [toolId,setToolId]=React.useState(model.toolId||tools[0]?.id||'');
   const [target,setTarget]=React.useState('en');
+  const [maintenanceOpen,setMaintenanceOpen]=React.useState(Boolean(model.importPack));
   const [packs,setPacks]=React.useState([]);
   const [serviceStatus,setServiceStatus]=React.useState(service?.getState().status||'loading');
   const [preview,setPreview]=React.useState(null);
@@ -44,10 +46,26 @@ export default function LocaleManager({model}){
   const [preference,setPreference]=React.useState(localeController?.getPreference?.()||'auto');
   const [globalError,setGlobalError]=React.useState(()=>localeController?.getError?.()||null);
   const globalUnknown=globalError?.code==='E_UI_LOCALE_OUTCOME_UNKNOWN';
-  const importRef=React.useRef(null),previewRef=React.useRef(null),deleteRef=React.useRef(null);
+  const importRef=React.useRef(null),previewRef=React.useRef(null),deleteRef=React.useRef(null),maintenanceRef=React.useRef(null);
   const fileRef=React.useRef(null),alive=React.useRef(true),operation=React.useRef(false);
   const tool=tools.find(item=>item.id===toolId);
-  const ready=Boolean(service&&tool&&serviceStatus==='ready');
+  const globalLocale=localeController?.getLocale?.()||'zh-CN';
+  let available=[],toolPreference=null,catalog=null,localeReadError=null;
+  try{
+    if(tool&&service){
+      available=service.getAvailableLocales(tool);
+      toolPreference=service.getToolLocale(toolId);
+      catalog=service.getCatalog(tool,globalLocale);
+    }
+  }catch(failure){localeReadError=failure;available=[];toolPreference=null;catalog=null;}
+  const ready=Boolean(service&&tool&&serviceStatus==='ready'&&!localeReadError);
+  const requested=toolPreference||globalLocale;
+  const effective=catalog?.locale;
+  const missingLanguage=Boolean(effective&&effective!==requested);
+  const updateTargetForTool=()=>{
+    if(!preview&&!model.importPack)setTarget(effective||'en');
+  };
+  React.useEffect(updateTargetForTool,[toolId,serviceStatus]);
   const report=failure=>setError(failureText(failure));
   React.useEffect(()=>{alive.current=true;return ()=>{alive.current=false;};},[]);
   const syncGlobal=()=>{
@@ -59,10 +77,19 @@ export default function LocaleManager({model}){
   },[localeController]);
   const run=async action=>{
     if(operation.current)return;
+    const previousFocus=document.activeElement;
     operation.current=true;setBusy(true);setError('');setNotice('');
     try{await action();}catch(failure){if(alive.current)report(failure);}
     finally{operation.current=false;if(alive.current){setBusy(false);
-      setTimeout(()=>{if(alive.current&&!document.activeElement?.isConnected)returnToImport();},0);}}
+      setTimeout(()=>{
+        if(!alive.current)return;
+        const focused=document.activeElement;
+        if(!focused?.isConnected||focused?.getAttribute('role')==='dialog'){
+          if(previousFocus?.isConnected&&!previousFocus.disabled&&!previousFocus.closest('details:not([open])'))
+            previousFocus.focus({preventScroll:true});
+          else returnToImport();
+        }
+      },0);}}
   };
   const readPacks=(id,state=service.getState())=>Object.values(state.tools?.[id]?.packs||{});
   const reload=async id=>{
@@ -85,7 +112,7 @@ export default function LocaleManager({model}){
     if(service.getState().status!=='ready')await service.ready;
     const result=await service.preview(pack,selected);
     if(!alive.current)return;
-    setToolId(pack.toolId);setTarget(pack.targetLocale);
+    setToolId(pack.toolId);setTarget(pack.targetLocale);setMaintenanceOpen(true);
     setPreview({pack:result.pack,result,tool:selected});setPendingDelete(false);
   };
   // External imports use the same preview and confirmation as the file picker.
@@ -102,6 +129,13 @@ export default function LocaleManager({model}){
   });
   const selectTool=value=>{setToolId(value);setPreview(null);setPendingDelete(false);setNotice('');};
   const targetChanged=value=>{setTarget(value);setPendingDelete(false);};
+  const changeToolLanguage=value=>{if(!ready)return;void run(async()=>{
+    await service.setToolLocale(toolId,value==='follow'?null:value);
+    if(!alive.current)return;
+    const actual=service.getCatalog(tool,localeController?.getLocale?.()||'zh-CN')?.locale;
+    setNotice('已保存并立即应用：'+languageName(actual)+'。'+
+      (value==='follow'?'此工具跟随 OpenDesk 默认语言。':'仅更改此工具及其网页界面。'));
+  });};
   const exportData=(method,suffix)=>void run(async()=>{
     const value=method==='exportPack'?await service.exportPack(toolId,target):
       await service.exportTranslationTask(tool,target);
@@ -117,37 +151,72 @@ export default function LocaleManager({model}){
     if(preview)previewRef.current?.focus({preventScroll:true});
     else if(pendingDelete)deleteRef.current?.focus({preventScroll:true});
   },[preview,pendingDelete]);
-  const returnToImport=()=>importRef.current?.focus({preventScroll:true});
+  const returnToImport=()=>{
+    const button=importRef.current;
+    const target=!button||button.disabled||button.closest('details:not([open])')?maintenanceRef.current:button;
+    target?.focus({preventScroll:true});
+  };
   const importPreview=preview?.result;
   const overwrite=Boolean(preview&&packs.some(pack=>pack.targetLocale===preview.pack.targetLocale));
-  return <UninstallDialog open title="语言与翻译" busy={busy} onCancel={model.onClose}
+  return <UninstallDialog open title="语言 / Language" busy={busy} onCancel={model.onClose}
     cancelLabel="关闭语言与翻译" closeLabel="关闭语言与翻译"
-    returnFocusSelector={model.returnFocusSelector||"#extension-center-more"}>
+    returnFocusSelector={model.returnFocusSelector||"#extension-center-language-settings"}>
     <div className="od-locale-manager od-stack">
-      <label className="od-locale-field">默认界面语言
-        <select className="od-field" value={preference} disabled={busy||!localeController||globalUnknown}
+      <label className="od-locale-field" htmlFor="od-locale-global">OpenDesk 默认语言
+        <select id="od-locale-global" className="od-field" value={preference} aria-describedby="od-locale-global-hint"
+          disabled={busy||!localeController||globalUnknown}
           onChange={event=>{
             if(localeController?.getError?.()?.code==='E_UI_LOCALE_OUTCOME_UNKNOWN')return;
             const value=event.currentTarget.value;void run(async()=>{
             try{await localeController.setLocale(value);}finally{syncGlobal();}
-            setNotice('默认语言已保存。');
+            setNotice('默认语言已保存：'+languageName(localeController.getLocale())+'。跟随默认的工具会立即更新。');
           });}}>
           {Object.entries(languageNames).map(([value,label])=><option key={value} value={value}>{label}</option>)}
         </select>
       </label>
-      <label className="od-locale-field">已安装且支持翻译的应用
-        <select className="od-field" value={toolId} disabled={busy||!tools.length}
+      <p id="od-locale-global-hint">当前默认：{languageName(globalLocale)}。用于支持翻译的界面与选择“跟随”的工具；尚未翻译的文案保留原文。</p>
+      {model.toolId?<p>当前工具：{tool?.title||tool?.name||'应用已移除或不支持翻译'}</p>:
+      <label className="od-locale-field" htmlFor="od-locale-tool">选择工具
+        <select id="od-locale-tool" className="od-field" value={toolId} disabled={busy||!tools.length}
           onChange={event=>selectTool(event.currentTarget.value)}>
-          {!tools.length&&<option value="">暂无支持 localization 的应用</option>}
+          {!tools.length&&<option value="">暂无支持语言切换的工具</option>}
           {model.toolId&&!tool&&<option value={model.toolId}>应用已移除或不支持翻译</option>}
-          {tools.map(item=><option key={item.id} value={item.id}>{item.title||item.name||item.id} · {item.id}</option>)}
+          {tools.map(item=><option key={item.id} value={item.id}>{item.title||item.name||item.id}</option>)}
         </select>
-      </label>
+      </label>}
+      {tool&&<section className="od-locale-preview" aria-label="日常语言切换">
+        <label className="od-locale-field" htmlFor="od-locale-tool-language">此工具语言
+          <select id="od-locale-tool-language" className="od-field" value={localeReadError?'unreadable':toolPreference||'follow'}
+            aria-describedby="od-locale-tool-status od-locale-tool-hint" disabled={busy||!ready}
+            onChange={event=>changeToolLanguage(event.currentTarget.value)}>
+            {localeReadError&&<option value="unreadable">读取失败，请重新核对</option>}
+            <option value="follow">跟随 OpenDesk（{languageName(globalLocale)}）</option>
+            {toolPreference&&!available.includes(toolPreference)&&<option value={toolPreference}>
+              仅此工具：{languageName(toolPreference)}（缺少语言包）
+            </option>}
+            {available.map(locale=><option key={locale} value={locale}>仅此工具：{languageName(locale)}</option>)}
+          </select>
+        </label>
+        <p id="od-locale-tool-status" role="status">{ready&&effective?
+          '当前生效：'+languageName(effective)+' · '+(toolPreference?'仅此工具':'跟随 OpenDesk'):
+          localeReadError?'无法读取当前工具语言，请重新核对。':'正在读取工具语言…'}</p>
+        <p id="od-locale-tool-hint">选择后立即生效并自动保存。仅此工具的选择不影响其他工具；也会同步到它已获授权的网页界面，网页正文保持原样。</p>
+        {(missingLanguage||Boolean(catalog?.missing.length))&&<div className="od-locale-preview">
+          <p>{missingLanguage?'此工具暂未提供 '+languageName(requested)+'，当前使用 '+languageName(effective)+'。':
+            '有 '+catalog.missing.length+' 条文案尚未翻译，暂时显示原文。'}</p>
+          <Button disabled={busy||!ready} onClick={()=>{targetChanged(requested);setMaintenanceOpen(true);
+            setTimeout(()=>importRef.current?.focus(),0);}}>添加或补全此语言…</Button>
+        </div>}
+      </section>}
+      {busy&&<p role="status">正在处理，请稍候…</p>}
+      {error&&<p role="alert">{error}</p>}
+      {localeReadError&&<p role="alert" aria-label="工具语言读取错误">{failureText(localeReadError)}</p>}
+      {notice&&<p role="status">{notice}</p>}
       {!service&&<p role="status">语言包服务暂不可用，请稍后重试。</p>}
       {globalError&&<p role="alert" aria-label="默认语言存储错误">
         默认语言：{failureText(globalError)}
       </p>}
-      {(globalError||service&&(serviceStatus!=='ready'||error))&&<div className="od-locale-recovery">
+      {(globalError||service&&(serviceStatus!=='ready'||error||localeReadError))&&<div className="od-locale-recovery">
         <p role="status">{globalUnknown?'默认语言写入结果未知，已暂停写入；请重新核对存储，不会自动重放保存。':serviceStatus==='unknown'?'上次写入结果未知，请重新核对存储；不会自动重放导入。':serviceStatus==='ready'?'本次操作未完成。可修正问题后重试，或重新读取当前设置；重新读取不会执行保存或导入。':'语言存储状态需要核对；重新读取不会执行保存或导入。'}</p>
         <Button disabled={busy} onClick={()=>void run(async()=>{
           // Wait for both readbacks, even if one fails. Never replay a write.
@@ -161,11 +230,17 @@ export default function LocaleManager({model}){
           const remainingGlobalError=localeController?.getError?.();
           if(remainingGlobalError)failures.push(remainingGlobalError);
           if(failures.length)throw Error(failures.map(failure=>failure?.message||String(failure)).join('；'));
+          if(tool&&service){service.getAvailableLocales(tool);service.getToolLocale(toolId);service.getCatalog(tool,localeController?.getLocale?.()||'zh-CN');}
           setError('');setNotice('已重新核对存储，请审阅当前状态后继续。');
         })}>重新核对存储</Button>
       </div>}
-      <label className="od-locale-field">目标语言
-        <input type="text" className="od-field" value={target} list="od-locale-targets" disabled={busy||!ready}
+      <details className="od-disclosure od-disclosure--flat" open={maintenanceOpen}
+        onToggle={event=>setMaintenanceOpen(event.currentTarget.open)}>
+        <summary ref={maintenanceRef}>添加或管理语言包</summary>
+        <div className="od-locale-preview">
+      <p>日常切换只需使用上方选择框。需要添加语言、补译或备份时再使用这里；选择下面的语言不会切换界面。</p>
+      <label className="od-locale-field" htmlFor="od-locale-target">要翻译或管理的语言
+        <input id="od-locale-target" type="text" className="od-field" value={target} list="od-locale-targets" disabled={busy||!ready}
           placeholder="例如 en、ja、fr" onInput={event=>targetChanged(event.currentTarget.value)}/>
         <datalist id="od-locale-targets">{locales.map(locale=><option key={locale} value={locale}>{languageNames[locale]||locale}</option>)}</datalist>
       </label>
@@ -175,15 +250,20 @@ export default function LocaleManager({model}){
           aria-pressed={target===pack.targetLocale} disabled={busy}
           onClick={()=>targetChanged(pack.targetLocale)}>{languageNames[pack.targetLocale]||pack.targetLocale} · {pack.targetLocale}</Button>)}</div>
       </section>}
-      {tool&&<p>源语言：{tool.localization.sourceLocale} · 已导入语言包：{packs.length}</p>}
+      {tool&&<p>原文语言：{languageName(tool.localization.sourceLocale)} · 已添加语言包：{packs.length}。
+        {target===tool.localization.sourceLocale?'这是原文语言，无需补译。':''}</p>}
       <div className="od-locale-actions">
-        <Button ref={importRef} disabled={busy||!service} onClick={()=>fileRef.current?.click()}>导入语言包…</Button>
+        <Button ref={importRef} disabled={busy||!service||Boolean(localeReadError)} onClick={()=>fileRef.current?.click()}>导入语言包…</Button>
         <input ref={fileRef} type="file" accept=".json,application/json" aria-label="选择语言包文件"
-          disabled={busy||!service} hidden onChange={event=>{readFile(event.currentTarget.files);event.currentTarget.value='';}}/>
+          disabled={busy||!service||Boolean(localeReadError)} hidden onChange={event=>{readFile(event.currentTarget.files);event.currentTarget.value='';}}/>
         <Button disabled={busy||!ready||!installedPack} onClick={()=>exportData('exportPack','locale-pack')}>导出语言包</Button>
-        <Button disabled={busy||!ready||!target} onClick={()=>exportData('exportMissingTask','translation-task')}>导出缺失翻译 AI 任务</Button>
-        <Button variant="danger" disabled={busy||!ready||!installedPack} onClick={()=>setPendingDelete(true)}>删除语言包…</Button>
+        <Button disabled={busy||!ready||!target||target===tool?.localization.sourceLocale} onClick={()=>exportData('exportMissingTask','translation-task')}>导出缺失翻译 AI 任务</Button>
+        <Button variant="danger" disabled={busy||!ready||!installedPack}
+          onClick={()=>setPendingDelete({toolId,locale:target,title:tool?.title||toolId})}>删除语言包…</Button>
       </div>
+      <p>导入后会先预览，再由你确认；确认后应用到此工具。导出补译任务不会自动发送文案给 AI。</p>
+        </div>
+      </details>
       {preview&&<section className="od-locale-preview od-surface od-surface--padded" aria-label="语言包导入预览">
         <h3 ref={previewRef} tabIndex={-1}>导入预览</h3>
         <p>应用：{preview.pack.toolId} · 目标语言：{preview.pack.targetLocale}</p>
@@ -204,18 +284,15 @@ export default function LocaleManager({model}){
         </div>
       </section>}
       {pendingDelete&&<section className="od-locale-preview" aria-label="删除语言包确认">
-        <p>删除 {tool?.title||toolId} 的 {target} 导入语言包？内置翻译不会删除。</p>
+        <p>删除 {pendingDelete.title} 的 {pendingDelete.locale} 导入语言包？内置翻译不会删除。</p>
         <div className="od-locale-actions">
           <Button ref={deleteRef} disabled={busy} onClick={()=>{setPendingDelete(false);returnToImport();}}>取消删除</Button>
-          <Button variant="danger" disabled={busy} onClick={()=>void run(async()=>{
-            await service.remove(toolId,target);await reload(toolId);
+          <Button variant="danger" disabled={busy||!ready} onClick={()=>void run(async()=>{
+            await service.remove(pendingDelete.toolId,pendingDelete.locale);await reload(pendingDelete.toolId);
             setPendingDelete(false);setPreview(null);setNotice('语言包已删除。');
           })}>确认删除</Button>
         </div>
       </section>}
-      {busy&&<p role="status">正在处理，请稍候…</p>}
-      {error&&<p role="alert">{error}</p>}
-      {notice&&<p role="status">{notice}</p>}
       <div className="od-locale-actions"><Button disabled={busy} data-uninstall-cancel="true" onClick={model.onClose}>关闭</Button></div>
     </div>
   </UninstallDialog>;

@@ -72,7 +72,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(disposed)return false;
     closeMenu();closeRowMenu();
     languageManager={toolId:typeof toolId==='string'?toolId:null,importPack,session:++languageSession,
-      returnFocusSelector:toolId&&!importPack?'#sidebar-tool-language-manage':'#extension-center-more'};
+      returnFocusSelector:toolId&&!importPack?'#sidebar-tool-language-manage':'#extension-center-language-settings'};
     syncFilters();return true;
   }
   // Inspect every file before dispatch: language data never reaches a code installer,

@@ -4063,7 +4063,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const tool=active;
       const requested=tocLanguageSelect.value;
       patchToolField(view,tocLanguageSelect,{disabled:true});
-      void toolLocaleService.setToolLocale(tool.id,requested==='follow'?null:requested).catch(error=>{
+      void toolLocaleService.setToolLocale(tool.id,requested==='follow'?null:requested).then(()=>{
+        if(!disposed&&active===tool)notice('语言已保存并立即应用：'+
+          (languageNames[toolLocaleContext(tool).locale]||toolLocaleContext(tool).locale)+
+          (requested==='follow'?'（跟随 OpenDesk 默认语言）':'（仅此工具及其网页界面）'));
+      }).catch(error=>{
         notice(readingTocHostText(localeController?.getLocale?.()||'zh-CN','languageSaveError')+
           String(error?.message||error),true);
       }).finally(()=>{if(!disposed&&active===tool)render();});

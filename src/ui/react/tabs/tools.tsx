@@ -291,6 +291,8 @@ export function ExtensionToolbar({model}){
         autoComplete="off" value={current.query||''}
         onChange={event=>current.onSearch?.(event.currentTarget.value,event.nativeEvent)}/>
     </label>
+    <Button id="extension-center-language-settings" aria-label="语言 / Language"
+      title="切换语言 / Language" onClick={()=>current.onLanguageSettings?.()}>语言</Button>
     <IconButton id="extension-center-market" className="ec-icon" label="在新标签页打开应用市场"
       onClick={event=>current.onMarket?.(event.nativeEvent)}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16l-1.5-6h-13L4 10Zm2 0v10h12V10M10 20v-6h4v6"/></svg>
@@ -310,15 +312,6 @@ export function ExtensionToolbar({model}){
             <button key={value} type="button" data-ec-kind={value}
               aria-pressed={kind===value} onClick={event=>current.onKind?.(value,event.nativeEvent)}>{label}</button>)}
         </div></fieldset>
-        <fieldset className="ec-language"><legend>OpenDesk 界面语言</legend>
-          <label htmlFor="extension-center-language" className="visually-hidden">界面语言</label>
-          <select id="extension-center-language" aria-label="OpenDesk 界面语言"
-            value={current.language||'auto'}
-            onChange={event=>current.onLanguage?.(event.currentTarget.value,event.nativeEvent)}>
-            <option value="auto">跟随浏览器</option><option value="zh-CN">简体中文</option>
-            <option value="en">English</option><option value="zh-TW">繁體中文</option><option value="ja">日本語</option>
-          </select>
-        </fieldset>
         <fieldset><legend>显示范围</legend><div className="ec-filter-group">
           {[[ 'smart','已安装'],['available','可安装 / 更新']].map(([value,label])=>
             <button key={value} type="button" data-ec-scope={value}
@@ -327,8 +320,6 @@ export function ExtensionToolbar({model}){
         <button id="extension-center-reset" className="ec-menu-action" type="button"
           onClick={event=>current.onReset?.(event.nativeEvent)}>恢复默认筛选</button>
         <div className="ec-menu-separator">
-          <button id="extension-center-language-settings" className="ec-menu-action" type="button"
-            onClick={()=>current.onLanguageSettings?.()}>语言与翻译管理</button>
           <button id="extension-center-import" className="ec-menu-action" type="button"
             onClick={event=>current.onImport?.(event.nativeEvent)}>导入本地工具包或语言包</button>
           <button id="extension-center-reload" className="ec-menu-action" type="button"
