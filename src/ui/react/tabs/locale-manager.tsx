@@ -283,7 +283,7 @@ export default function LocaleManager({model}){
       <p className="od-locale-caption">{t('maintenanceHint')}</p>
       {error&&<p role="alert">{failureText(error,t)}</p>}
       {notice&&<p role="status">{t(notice.key,{language:languageName(notice.key==='packSaved'?effective:notice.language)})}</p>}
-      {serviceStatus==='unknown'&&<p role="alert">{t('packUnknown')}</p>
+      {serviceStatus==='unknown'&&<p role="alert">{t('packUnknown')}</p>}
       <label className="od-locale-field" htmlFor="od-locale-target">{t('targetLabel')}
         <span className="od-input-group">
           <span className="od-input-prefix" aria-hidden="true">BCP47</span>
