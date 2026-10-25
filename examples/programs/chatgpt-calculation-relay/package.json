@@ -1,0 +1,26 @@
+{
+  "name": "@opendesk-examples/chatgpt-calculation-relay",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "一次开发 Run 的 ChatGPT A→新对话 B 计算接力；真实官网验证尚未通过",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "opendesk.chatgpt-calculation-relay",
+    "runtimeKind": "controller",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "siteOrigins": ["https://chatgpt.com"],
+    "permissions": ["page.automation"],
+    "paramsSchema": {
+      "type": "object",
+      "properties": {
+        "addend": {"type": "integer", "title": "A 的第一个加数", "enum": [17, 19]},
+        "runId": {"type": "string", "title": "运行标识（可选）", "minLength": 8, "maxLength": 80},
+        "operation": {"type": "string", "title": "运行或只读对账", "enum": ["run", "status"]}
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  }
+}

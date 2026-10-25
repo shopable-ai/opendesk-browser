@@ -300,7 +300,7 @@ test('Prompt Shortcuts jump uses one reviewed source only in the Page Relay',asy
   const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,path)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
   assert.equal(make('agents/page-relay.js').modules[0].reviewedFirstPartyBlob,
-    'e9a342a409b60e1b5c162ef275cb1a8bb8b6ce3a');
+    'cca839ec6625da106376fb739f4462c44f39fa5b');
   for(const target of ['sw.js','ui/sidebar-tool-host.js','ui/tool-shell.js'])
     assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
   const root=await realpath(await mkdtemp(join(tmpdir(),'prompt-jump-pin-')));
@@ -311,18 +311,20 @@ test('Prompt Shortcuts jump uses one reviewed source only in the Page Relay',asy
   assert.throws(()=>make('agents/page-relay.js',root),/Trusted Prompt Shortcuts source changed/);
 });
 
-test('Prompt Shortcuts site bindings cannot enter other privileged outputs or drift',async ctx=>{
+test('removed Prompt Shortcuts site bindings cannot regain privileged output admission',async ctx=>{
   const path='examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js';
   const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,path)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
-  assert.match(make('agents/page-relay.js').modules[0].reviewedFirstPartyBlob,/^[a-f0-9]{40}$/);
-  for(const target of ['sw.js','ui/sidebar-tool-host.js','ui/tool-shell.js'])
+  const targets=['agents/page-relay.js','sw.js','ui/sidebar-tool-host.js','ui/tool-shell.js'];
+  for(const target of targets)
     assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
   const root=await realpath(await mkdtemp(join(tmpdir(),'prompt-site-pin-')));
   ctx.after(()=>rm(root,{recursive:true,force:true}));
   await mkdir(join(root,'examples/sidebar-tools/prompt-shortcuts/trusted'),{recursive:true});
-  await writeFile(join(root,path),(await readFile(resolve(path),'utf8'))+'\n// unreviewed edit\n');
-  assert.throws(()=>make('agents/page-relay.js',root),/Trusted Prompt Shortcuts source changed/);
+  await writeFile(join(root,path),'export const sites = [];\n');
+  for(const target of targets)
+    assert.throws(()=>make(target,root),/cannot enter a privileged fixed bundle/,
+      'recreating the removed path must not restore approval: '+target);
 });
 
 test('R1.3 pinned shared Markdown converter can only enter the existing Page Relay',async ctx=>{
@@ -392,4 +394,17 @@ test('shared visible-selection helper is pinned only into existing Page Relay',a
     assert.throws(()=>make(target),/Historical\/user\/vendor code cannot enter/);
   await writeFile(join(project,file),source+'\n// changed');
   assert.throws(()=>make('agents/page-relay.js'),/Shared Markdown source changed/);
+});
+
+// R1.3: trusted bridge DOM code needs no independent-program admission exception.
+test('fixed ChatGPT bridge uses src ownership without admitting independent queue code',()=>{
+  const target='agents/chatgpt-fixed-bridge.js';
+  const describe=path=>describeBundle({root,lock:{packages:{}},chunk:{fileName:target,
+    modules:{[root+'/'+path]:{renderedLength:1,originalLength:1}}}});
+  const row=describe('src/native-agent/chatgpt-bridge-site.js').modules[0];
+  assert.equal(row.path,'src/native-agent/chatgpt-bridge-site.js');
+  assert.equal(row.reviewedFirstPartyBlob,undefined);
+  for(const path of ['examples/programs/chatgpt-send-queue/src/site.js',
+    'examples/programs/chatgpt-send-queue/src/engine.js'])
+    assert.throws(()=>describe(path),/cannot enter a privileged fixed bundle/);
 });

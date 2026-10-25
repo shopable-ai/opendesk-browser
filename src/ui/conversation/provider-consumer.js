@@ -7,12 +7,13 @@ import {describeLocalCodex} from '../workflow/local-codex.js';
 import {promptInstructions,promptEditInstructions} from './prompt-actions.js';
 import {bookmarkInstructions} from './bookmark-instructions.js';
 import {taskInstructions} from './my-task-instructions.js';
+import {KNOWLEDGE_ANSWER_INSTRUCTIONS} from '../../../examples/sidebar-tools/ai-knowledge-answers/trusted/ai-request.js';
 
 const err=(code,message)=>Object.assign(new Error(message),{code});
 
 export function createBusinessConversation({api,providerRuntime:providers,hostInstanceId,
   consumerId='bookmark',instanceId=crypto.randomUUID(),installEpoch=null}={}) {
-    if(!['bookmark','prompt','tasks'].includes(consumerId))
+    if(!['bookmark','prompt','tasks','knowledge'].includes(consumerId))
       throw err('E_AI_SCOPE','未知 AI 消费者');
     const mainLease=providers.acquire({consumerId,instanceId,hostInstanceId,installEpoch});
     const editLease=consumerId==='prompt'?providers.acquire({consumerId:'prompt-edit',
@@ -230,7 +231,7 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
           if(!readiness.ready)throw err(readiness.state,readiness.message);
         }
         const result=await awaitActive(forScope(scope).requestStructured({
-          source:selected,request,context,instructions:scope==='tasks'?taskInstructions:
+          source:selected,request,context,instructions:scope==='knowledge'?KNOWLEDGE_ANSWER_INSTRUCTIONS:scope==='tasks'?taskInstructions:
             scope==='prompt'?promptInstructions:scope==='prompt-edit'?promptEditInstructions:bookmarkInstructions,
           scope,settings,
           signal:abortController.signal

@@ -16,6 +16,9 @@ export function validChatGPTBridgeSource(value){
     typeof value.url==='string'&&value.url.length<=2048&&!!chatGPTConversationId(value.url);
 }
 const sameSource=(a,b)=>a?.tabId===b?.tabId&&a?.documentId===b?.documentId&&a?.url===b?.url;
+const officialURL=value=>{
+  try{const url=new URL(value);return url.origin==='https://chatgpt.com'&&!url.username&&!url.password;}catch{return false;}
+};
 
 // Serial admission belongs to the one MV3 service worker; persist BEFORE ACK.
 // Worker restart loses no admitted/consumed decisions. An ACK lost after a
@@ -94,13 +97,23 @@ export function createChatGPTBridgeTriggerLedger({storage,clock=()=>Date.now(),
         return {requestId,consumed:true,mode};
       });
     },
+    assertConsumed({source,requestId,mode,turnKey,answerKey}){
+      requireSource(source);requireRequestId(requestId);
+      return sequence(async()=>{
+        const row=(await load())[requestId];
+        if(!sameSource(row?.source,source)||row.status!=='consumed'||row.mode!==mode||
+          row.turnKey!==turnKey||row.answerKey!==answerKey)
+          throw fail('E_BRIDGE_REVOKED','本次已消费请求的来源批准已撤销或不匹配');
+        return {allowed:true};
+      });
+    },
     revokeSource(tabId){
       if(!Number.isSafeInteger(tabId))return Promise.resolve();
       return sequence(async()=>{
         const rows=await load();
         let changed=false;
         for(const row of Object.values(rows))if(row.source?.tabId===tabId&&
-          ['prepared','approved'].includes(row.status)){row.status='revoked';changed=true;}
+          ['prepared','approved','consumed'].includes(row.status)){row.status='revoked';changed=true;}
         if(changed)await save(rows);
       });
     },
@@ -108,7 +121,7 @@ export function createChatGPTBridgeTriggerLedger({storage,clock=()=>Date.now(),
       return sequence(async()=>{
         const rows=await load();
         let changed=false;
-        for(const row of Object.values(rows))if(['prepared','approved'].includes(row.status)){
+        for(const row of Object.values(rows))if(['prepared','approved','consumed'].includes(row.status)){
           row.status='revoked';changed=true;
         }
         if(changed)await save(rows);
@@ -124,18 +137,28 @@ export function installChatGPTBridgeTriggerGate({api=chrome,clock}={}){
       !Number.isSafeInteger(sender?.tab?.id)||sender.tab.incognito||
       typeof sender.documentId!=='string'||typeof sender.url!=='string')
       throw fail('E_BRIDGE_SENDER','触发请求并非来自受信的主文档脚本');
-    const source={tabId:sender.tab.id,documentId:sender.documentId,url:sender.url};
-    if(!validChatGPTBridgeSource(source))throw fail('E_BRIDGE_SOURCE','不是合法的官方对话');
-    await assertSource(source);
+    if(!officialURL(sender.url))throw fail('E_BRIDGE_SOURCE','不是合法的官方来源');
+    // MessageSender retains its injection URL across same-document history.
+    // Freeze the browser-observed current URL, never the initial sender path.
+    return currentSource({tabId:sender.tab.id,documentId:sender.documentId});
+  };
+  const currentSource=async({tabId,documentId})=>{
+    const [frame,tab]=await Promise.all([
+      api.webNavigation.getFrame({tabId,frameId:0}),api.tabs.get(tabId)]);
+    if(frame?.documentId!==documentId||frame.documentLifecycle!=='active'||frame.errorOccurred)
+      throw fail('E_BRIDGE_SOURCE','原对话主文档身份或生命周期已变更');
+    if(tab?.id!==tabId||tab.url!==frame.url||tab.incognito||tab.pendingUrl)
+      throw fail('E_BRIDGE_SOURCE','原对话标签地址或窗口身份已变更');
+    const source={tabId,documentId,url:frame.url};
+    if(!validChatGPTBridgeSource(source)||!officialURL(source.url)||
+      !/^\/c\/[A-Za-z0-9-]+\/?$/.test(new URL(source.url).pathname))
+      throw fail('E_BRIDGE_SOURCE','不是合法的官方对话');
     return source;
   };
   const assertSource=async source=>{
     if(!validChatGPTBridgeSource(source))throw fail('E_BRIDGE_SOURCE','原会话来源不合法');
-    const [frame,tab]=await Promise.all([
-      api.webNavigation.getFrame({tabId:source.tabId,frameId:0}),api.tabs.get(source.tabId)]);
-    if(frame?.documentId!==source.documentId||frame.url!==source.url||
-      tab?.id!==source.tabId||tab.url!==source.url||tab.incognito)
-      throw fail('E_BRIDGE_SOURCE','原对话文档或标签已变更');
+    if(!sameSource(await currentSource(source),source))
+      throw fail('E_BRIDGE_SOURCE','浏览器文档地址与请求来源不一致');
   };
   const sidepanelSender=sender=>{
     try{
@@ -146,14 +169,26 @@ export function installChatGPTBridgeTriggerGate({api=chrome,clock}={}){
         !url.searchParams.has('previewId');
     }catch{return false;}
   };
+  let permissionEpoch=0;
+  const sourceEpochs=new Map();
+  const revokeTab=tabId=>{
+    if(sourceEpochs.has(tabId))sourceEpochs.set(tabId,sourceEpochs.get(tabId)+1);
+    void ledger.revokeSource(tabId).catch(()=>{});
+  };
   const listener=(message,sender,reply)=>{
     if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||
-      !['prepare','authorize','reserve'].includes(message.kind))return false;
+      !['prepare','authorize','reserve','check-consumed'].includes(message.kind))return false;
     const process=async()=>{
-      if(message.kind==='reserve'){
+      if(['reserve','check-consumed'].includes(message.kind)){
         if(!sidepanelSender(sender))throw fail('E_BRIDGE_SENDER','必须由现有可信侧边栏确认运行');
+        const tabId=message.source?.tabId;
+        if(!sourceEpochs.has(tabId))sourceEpochs.set(tabId,0);
+        const epoch=sourceEpochs.get(tabId),permissions=permissionEpoch;
         await assertSource(message.source);
-        return ledger.reserve(message);
+        const data=await (message.kind==='reserve'?ledger.reserve(message):ledger.assertConsumed(message));
+        if(epoch!==sourceEpochs.get(tabId)||permissions!==permissionEpoch)
+          throw fail('E_BRIDGE_REVOKED','核验期间来源批准已失效');
+        return data;
       }
       const source=await pageSource(sender);
       if(message.kind==='prepare')return ledger.prepare(source);
@@ -165,12 +200,12 @@ export function installChatGPTBridgeTriggerGate({api=chrome,clock}={}){
   };
   api.runtime.onMessage.addListener(listener);
   api.webNavigation.onCommitted.addListener(event=>{
-    if(event.frameId===0)void ledger.revokeSource(event.tabId).catch(()=>{});
+    if(event.frameId===0)revokeTab(event.tabId);
   });
   api.webNavigation.onHistoryStateUpdated?.addListener(event=>{
-    if(event.frameId===0)void ledger.revokeSource(event.tabId).catch(()=>{});
+    if(event.frameId===0)revokeTab(event.tabId);
   });
-  api.tabs.onRemoved.addListener(tabId=>void ledger.revokeSource(tabId).catch(()=>{}));
-  api.permissions.onRemoved.addListener(()=>void ledger.revokeApprovals().catch(()=>{}));
+  api.tabs.onRemoved.addListener(revokeTab);
+  api.permissions.onRemoved.addListener(()=>{permissionEpoch++;void ledger.revokeApprovals().catch(()=>{});});
   return ledger;
 }

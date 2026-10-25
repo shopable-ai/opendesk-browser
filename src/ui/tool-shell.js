@@ -142,10 +142,11 @@ const fixedPageChatBridge=createChatGPTFixedBridgeHost({api:chrome,client:founda
   host:scriptEditor.host,currentPageTarget,
   isVerifiedSidePanel:()=>verifiedSidePanel&&!shellClosed});
 const fixedPageChatBridgeListener=(message,sender,sendResponse)=>{
-  if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||message.kind!=='execute'||
+  if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||!['execute','check-delivery'].includes(message.kind)||
     !verifiedSidePanel||shellClosed||
     sender?.tab?.windowId!==currentPageTarget.snapshot?.windowId)return false;
-  Promise.resolve().then(()=>fixedPageChatBridge.handle(message,sender)).then(
+  Promise.resolve().then(()=>message.kind==='check-delivery'?
+    fixedPageChatBridge.checkDelivery(message,sender):fixedPageChatBridge.handle(message,sender)).then(
     data=>sendResponse({ok:true,data}),
     error=>sendResponse({ok:false,error:{code:error?.code||'E_BRIDGE_FAILURE',
       message:error?.message||'受信任务调用未能完成，未知结果不会重放'}}));
@@ -447,6 +448,7 @@ Object.defineProperty(globalThis, 'OpenDeskResourceDiagnostics', {value: Object.
     {subscriptions: listeners.length + developHostControls.resourceSnapshot().subscriptions + Number(draftImportAttached) + currentPageTarget.resourceSnapshot().subscriptions})
 })});
 listen(window, 'pagehide', () => {
+  fixedPageChatBridge.dispose();
   livePreview?.dispose();
   toolDevelopmentControls?.dispose();
   disposeDevelopment?.();

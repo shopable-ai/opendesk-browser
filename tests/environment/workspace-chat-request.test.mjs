@@ -131,7 +131,29 @@ function pageFixture(){
   const identity=()=>invoke(inspectChatGPTEditsOnPage,{expectedUrl:URL_CHAT,identityOnly:true});
   const fill=(operationId=randomUUID(),text='NATIVE RESULT')=>invoke(fillChatGPTComposerOnPage,
     {expectedUrl:URL_CHAT,operationId,text,expectedTurnKey:identity().turnKey});
-  return {state,doc,sandbox,api,target,invoke,addMessage,identity,fill,editor};
+  // Use the real CSS selector engine for observed website DOM, retaining node
+  // identity across reads and text mutations just as the serialized reader does.
+  const setMessagesHTML=html=>{
+    const $=load(html),nodes=new WeakMap(),query=doc.querySelectorAll;
+    const wrap=node=>{
+      if(!node)return null;
+      if(nodes.has(node))return nodes.get(node);
+      const value={
+        get parentElement(){return wrap($(node).parent()[0]);},
+        get textContent(){return $(node).text();},
+        getAttribute:key=>$(node).attr(key)??null,
+        matches:selector=>$(node).is(selector),
+        closest:selector=>wrap($(node).closest(selector)[0]),
+        querySelector:selector=>wrap($(node).find(selector)[0]),
+        querySelectorAll:selector=>$(node).find(selector).toArray().map(wrap)
+      };
+      nodes.set(node,value);return value;
+    };
+    doc.querySelectorAll=selector=>selector.includes('data-message-author-role')?
+      $(selector).toArray().map(wrap):query(selector);
+    return $;
+  };
+  return {state,doc,sandbox,api,target,invoke,addMessage,identity,fill,editor,setMessagesHTML};
 }
 
 test('only a marked unique complete assistant request after this user turn can be executed',()=>{
@@ -151,6 +173,85 @@ test('quoted request examples and user protocol blocks do not become assistant o
   const result=f.invoke(inspectChatGPTEditsOnPage,{expectedUrl:URL_CHAT,requestId:REQUEST,protocols:[REQUEST_PROTOCOL]});
   assert.equal(result.error.code,'E_CHAT_FORMAT');
 });
+// Confirmed Chrome 155 website attributes; no legacy role attribute exists.
+function modernRequestFixture({state='complete',userText,blocks}={}){
+  const f=pageFixture(),{request,prompt}=makeContext(),text=JSON.stringify(request);
+  const $=f.setMessagesHTML('<div data-talvt-turn-state="'+state+'">'+
+    '<div class="group/user-message" data-chatgpt-search-unit-key="fallback-turn-0:0:user" data-chatgpt-search-message-ids="uuid"></div>'+
+    '<div data-content-search-unit-key="fallback-turn-0:1:assistant" data-chatgpt-search-unit-key="fallback-turn-0:1:assistant"></div></div>');
+  const user=$('[data-chatgpt-search-unit-key$=":user"]'),assistant=$('[data-content-search-unit-key$=":assistant"]');
+  user.text(userText??prompt);
+  for(const block of blocks??[{text}]){
+    const code=$('<pre><code></code></pre>');
+    code.find('code').attr('class','language-'+(block.language||'opendesk-request')).text(block.text);
+    if(block.quoted)assistant.append($('<blockquote></blockquote>').append(code));
+    else if(block.file)assistant.append($('<div data-opendesk-file-data></div>').append(code));
+    else assistant.append(code);
+  }
+  const read=(options={})=>f.invoke(inspectChatGPTEditsOnPage,{expectedUrl:URL_CHAT,requestIds:[REQUEST],
+    requireUserEcho:true,protocols:[REQUEST_PROTOCOL,EDIT_PROTOCOL],...options});
+  return {f,$,user,assistant,request,text,read};
+}
+test('modern complete turn reads one request through the unchanged strict parser',()=>{
+  const {read,request,text}=modernRequestFixture();
+  const result=read();assert.equal(result.ok,true);assert.equal(result.assistantFragments,1);
+  assert.equal(result.blocks[0],text);assert.deepEqual(parseFileRequest(result.blocks[0],request),request);
+  assert.equal(result.answerKey,read().answerKey);
+});
+test('modern turn state refuses streaming despite complete request text and absent stop button',()=>{
+  for(const state of ['streaming','pending','']){
+    const {read}=modernRequestFixture({state});
+    assert.equal(read().error.code,'E_CHAT_STREAMING');
+    assert.equal(read({identityOnly:true,requireComplete:true}).error.code,'E_CHAT_STREAMING');
+    const identity=read({identityOnly:true});assert.equal(identity.answerComplete,false);assert.equal(identity.answerKey,null);
+  }
+});
+test('modern requests retain nonce echo, unique block, marker and strict context guards',()=>{
+  const {request}=makeContext(),text=JSON.stringify(request),old=JSON.stringify({...request,requestId:'old-request-12345678'});
+  for(const [options,code] of [
+    [{userText:'old question'},'E_CHAT_TURN'],
+    [{blocks:[{text:old}]},'E_REQUEST_CONTEXT'],
+    [{blocks:[{text:old},{text}]},'E_EDIT_AMBIGUOUS'],
+    [{blocks:[{text},{text}]},'E_EDIT_AMBIGUOUS'],
+    [{blocks:[{text,language:'json'}]},'E_CHAT_REQUEST_MARKER']
+  ])assert.equal(modernRequestFixture(options).read().error.code,code);
+  const stale=modernRequestFixture({blocks:[{text:JSON.stringify({...request,bindingId:'stale',note:REQUEST})}]});
+  expectCode(()=>parseFileRequest(stale.read().blocks[0],request),'E_REQUEST_FORMAT');
+  const wrongBinding=modernRequestFixture({blocks:[{text:JSON.stringify({...request,bindingId:'stale'})}]});
+  expectCode(()=>parseFileRequest(wrongBinding.read().blocks[0],request),'E_REQUEST_CONTEXT');
+});
+test('modern answer and user identities invalidate approval on reused text revisions or replaced nodes',()=>{
+  const {f,$,user,assistant,read}=modernRequestFixture();
+  const original=read();assistant.prepend('regenerated');
+  assert.notEqual(read().answerKey,original.answerKey);
+  const revised=read();assistant.replaceWith(assistant.clone());
+  assert.notEqual(read().answerKey,revised.answerKey);
+  const replaced=read();user.append(' edited question');
+  assert.notEqual(read().turnKey,replaced.turnKey);
+  $('[data-talvt-turn-state]').attr('data-talvt-turn-state','streaming');
+  assert.equal(read().error.code,'E_CHAT_STREAMING');
+  assert.equal(f.state.calls.length,0);
+});
+test('modern quoted, file-data and nested message requests cannot supply an operation',()=>{
+  const {request}=makeContext(),text=JSON.stringify(request);
+  for(const kind of ['quoted','file','modern assistant','modern user','legacy assistant']){
+    const fixture=modernRequestFixture({blocks:kind==='quoted'||kind==='file'?[{text,[kind]:true}]:[]});
+    const {assistant,read,$}=fixture;
+    if(kind.includes(' ')){
+      const attrs=kind==='modern assistant'?'data-content-search-unit-key="nested:assistant"':
+        kind==='modern user'?'data-chatgpt-search-unit-key="nested:user"':'data-message-author-role="assistant"';
+      const nested=$('<div '+attrs+'><pre><code class="language-opendesk-request"></code></pre></div>');
+      nested.find('code').text(text);assistant.append(nested);
+    }
+    assert.equal(read().error.code,'E_CHAT_FORMAT',kind);
+    // Ignored examples cannot create ambiguity alongside the real operation.
+    const code=$('<pre><code class="language-opendesk-request"></code></pre>');
+    code.find('code').text(text);assistant.append(code);
+    const result=read();assert.equal(result.ok,true,kind);assert.equal(result.assistantFragments,1);
+    assert.deepEqual(parseFileRequest(result.blocks[0],request),request);
+  }
+});
+
 test('turn and answer revisions change even when the website reuses DOM nodes',()=>{
   const f=pageFixture(),user=f.addMessage('user','first'),assistant=f.addMessage('assistant','first answer');
   const original=f.identity();user.text='edited question';assert.notEqual(f.identity().turnKey,original.turnKey);

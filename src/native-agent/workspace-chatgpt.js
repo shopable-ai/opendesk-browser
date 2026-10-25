@@ -21,10 +21,11 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
       if(style?.display==='none'||style?.visibility==='hidden'||style?.visibility==='collapse')return true;}
     return false;
   };
-  const messages=[...document.querySelectorAll('[data-message-author-role="user"],[data-message-author-role="assistant"]')]
-    .filter(node=>!hidden(node)&&!node.parentElement?.closest('[data-message-author-role]'));
+  const modernSelector='[data-chatgpt-search-unit-key$=":user"],[data-content-search-unit-key$=":assistant"]';
+  const messages=[...document.querySelectorAll('[data-message-author-role="user"],[data-message-author-role="assistant"],'+modernSelector)]
+    .filter(node=>!hidden(node)&&!node.parentElement?.closest('[data-message-author-role]')&&!node.parentElement?.closest(modernSelector));
   let lastUser=-1;
-  for(let index=0;index<messages.length;index++)if(messages[index].getAttribute('data-message-author-role')==='user')lastUser=index;
+  for(let index=0;index<messages.length;index++)if((messages[index].getAttribute('data-message-author-role')==='user'||messages[index].getAttribute('data-chatgpt-search-unit-key')?.endsWith(':user')))lastUser=index;
   const local=globalThis.__opendeskWorkspaceChatV1||(globalThis.__opendeskWorkspaceChatV1={turns:new WeakMap(),counter:0,fills:new Map()});
   const user=messages[lastUser];
   local.userTexts ||= new WeakMap();
@@ -35,7 +36,8 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
   const userText=user?.textContent||'';
   const stop=[...document.querySelectorAll('[data-testid="stop-button"],button[aria-label="Stop generating"],button[aria-label="停止生成"]')].some(node=>!hidden(node));
   const answer=lastUser<0?[]:messages.slice(lastUser+1);
-  const streaming=stop||answer.some(node=>node.matches('[data-is-streaming="true"],.result-streaming')||node.closest('[data-is-streaming="true"],.result-streaming')||node.querySelector('[data-is-streaming="true"],.result-streaming'));
+  const streaming=stop||answer.some(node=>{const turn=node.closest('[data-talvt-turn-state]');
+    return turn&&turn.getAttribute('data-talvt-turn-state')!=='complete';})||answer.some(node=>node.matches('[data-is-streaming="true"],.result-streaming')||node.closest('[data-is-streaming="true"],.result-streaming')||node.querySelector('[data-is-streaming="true"],.result-streaming'));
   // Keep both node identity and its observed text revision. Regenerating an
   // answer under the same user message must not preserve an approved proposal.
   let answerKey=null;
@@ -64,7 +66,9 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
   const blocks=[];let count=0,total=0,unmarkedRequest=false;
   for(const node of answer){
     for(const code of node.querySelectorAll('pre code')){
-      if(hidden(code)||code.closest('[data-message-author-role]')!==node||code.closest('blockquote,[data-opendesk-file-data]'))continue;
+      const legacyOwner=code.closest('[data-message-author-role]'),modernOwner=code.closest(modernSelector);
+      if(hidden(code)||(!legacyOwner&&!modernOwner)||(legacyOwner&&legacyOwner!==node)||(modernOwner&&modernOwner!==node)||
+        code.closest('blockquote,[data-opendesk-file-data]'))continue;
       if(++count>128)return error('E_CHAT_LIMIT','当前回答代码块过多。');
       const text=code.textContent||'';total+=text.length;
       if(total>400*1024)return error('E_CHAT_LIMIT','当前回答过长，未处理。');

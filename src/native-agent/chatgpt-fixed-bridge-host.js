@@ -10,11 +10,14 @@ const fail=(code,message)=>Object.assign(new Error(message),{code});
 const requireValue=(value,length=1024)=>typeof value==='string'&&value.length>0&&
   value.length<=length&&!/[\u0000-\u0008\u000e-\u001f]/u.test(value);
 const sameSource=(a,b)=>a?.tabId===b?.tabId&&a?.documentId===b?.documentId&&a?.url===b?.url;
+const officialURL=value=>{
+  try{const url=new URL(value);return url.origin==='https://chatgpt.com'&&!url.username&&!url.password;}catch{return false;}
+};
 const identityKeys=['version','manifestHash','generation','installationId'];
 
 export function verifyChatGPTFixedDurableResult(snapshot,runId,resolved){
   const run=snapshot?.run;
-  if(!run||run.runId!==runId||run.state!=='completed'||
+  if(!run||run.runId!==runId||run.state!=='completed'||run.retirementState!=='released'||
     run.sourceKind!=='saved'||run.scriptId!==resolved.scriptId||
     run.contentHash!==FIXED_TASK_SOURCE_HASH||run.revision?.scriptId!==resolved.scriptId||
     run.revision?.revision!==resolved.revision||
@@ -37,7 +40,7 @@ export function verifyChatGPTFixedDurableResult(snapshot,runId,resolved){
   }
   if(!value||Object.getPrototypeOf(value)!==Object.prototype||
     value.kind!=='page.read.fixed.result'||value.version!==1||
-    value.sourceUrl!==FIXED_PAGE_URL||!requireValue(value.title,200)||
+    value.sourceUrl!==FIXED_PAGE_URL||!(value.title===''||requireValue(value.title,200))||
     !requireValue(value.heading,200)||!requireValue(value.excerpt,800)||
     typeof value.observedAt!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d/.test(value.observedAt))
     throw fail('E_BRIDGE_RESULT','固定 Task 返回值与预期只读网页结构不一致');
@@ -55,8 +58,9 @@ export function formatChatGPTFixedResult(requestId,durable){
     JSON.stringify({protocol:'opendesk.task.result.v1',taskId:FIXED_PAGE_TASK_ID,
       requestId,runId:durable.runId,resultId:durable.resultId,
       revision:durable.revision,sourceHash:durable.sourceHash,
-      status:'completed',data:durable.value},null,2)
-  ].join('\n\n');
+      status:'completed',data:durable.value}).replaceAll('/', '\\/')
+      .replace(/ {2,}/g, spaces=>'\\u0020'.repeat(spaces.length))
+  ].join(' '); // Preserve JSON values without native links or indentation.
 }
 
 // A business adapter onto the existing pinned Task/Authority/RunHost, never
@@ -66,22 +70,30 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
   readReply=readChatGPTEdit,checkTarget=assertChatGPTTarget}={}){
   if(!client?.request||!client?.controller?.snapshotControllerRun||!host?.start)
     throw fail('E_BRIDGE_HOST','既有可信任务执行能力没有连接');
-  let busy=false;
+  let busy=false,delivery=null,authorityRevision=0,disposed=false;
+  const invalidate=()=>{authorityRevision++;};
+  const unsubscribeTasks=client.subscribeInstalledTasks?.(event=>{
+    if(!event?.taskId||event.taskId===FIXED_PAGE_TASK_ID)invalidate();
+  });
+  const unsubscribeConnection=client.subscribeConnection?.(state=>{if(!state.connected)invalidate();});
+  api.permissions?.onRemoved?.addListener(invalidate);
   const assertSource=async(source,sender)=>{
     if(!validChatGPTBridgeSource(source)||source.url.startsWith('https://chat.openai.com'))
       throw fail('E_BRIDGE_SOURCE','仅支持绑定 chatgpt.com 的单个正式原会话');
     if(sender){
       if(sender.id!==api.runtime.id||sender.frameId!==0||sender.tab?.incognito||
         sender.tab?.id!==source.tabId||sender.documentId!==source.documentId||
-        sender.url!==source.url||sender.tab?.url!==source.url)
+        !officialURL(sender.url)||sender.tab?.url!==source.url||sender.tab?.pendingUrl)
         throw fail('E_BRIDGE_SENDER','请求不是绑定的官方对话主文档');
       const windowId=currentPageTarget?.snapshot?.windowId;
       if(!Number.isSafeInteger(windowId)||sender.tab.windowId!==windowId)
         throw fail('E_BRIDGE_WINDOW','原会话与受信侧边栏窗口不一致');
     }
     await checkTarget(api,source);
-    const tab=await api.tabs.get(source.tabId);
-    if(tab?.id!==source.tabId||tab.incognito||tab.url!==source.url)
+    const [frame,tab]=await Promise.all([
+      api.webNavigation.getFrame({tabId:source.tabId,frameId:0}),api.tabs.get(source.tabId)]);
+    if(frame?.documentId!==source.documentId||frame.documentLifecycle!=='active'||frame.errorOccurred||frame.url!==source.url||
+      tab?.id!==source.tabId||tab.incognito||tab.pendingUrl||tab.url!==source.url)
       throw fail('E_BRIDGE_SOURCE','原会话标签或来源发生了变化');
     if(currentPageTarget?.snapshot?.windowId!==tab.windowId)
       throw fail('E_BRIDGE_WINDOW','原会话已不在原侧边栏窗口');
@@ -123,8 +135,34 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       throw fail('E_BRIDGE_REVISION','安装来源、授权代次或运行版本在核验期间发生变化');
     return installed;
   };
+  // Recheck the same Foundation installation and durable result at the actual
+  // send boundary. Waiting for a native button never extends a revoked grant.
+  const checkDelivery=async(message,sender)=>{
+    const active=delivery;
+    if(disposed||!isVerifiedSidePanel()||!busy||!active||active.authorityRevision!==authorityRevision||
+      message.requestId!==active.message.requestId||message.mode!==active.message.mode||
+      message.runId!==active.durable.runId||message.resultId!==active.durable.resultId)
+      throw fail('E_BRIDGE_DELIVERY','没有当前运行的结果交付身份');
+    await assertSource(active.source,sender);
+    await assertReply(active.source,active.message);
+    const installed=await resolve();
+    if([...identityKeys,'scriptId','revision','contentHash'].some(key=>installed[key]!==active.installed[key]))
+      throw fail('E_BRIDGE_REVISION','发送前安装版本或授权代次已改变');
+    const snapshot=await client.controller.snapshotControllerRun({runId:active.durable.runId});
+    const durable=verifyChatGPTFixedDurableResult(snapshot,active.durable.runId,installed);
+    if(durable.resultId!==active.durable.resultId)
+      throw fail('E_BRIDGE_RESULT','发送前持久结果身份改变');
+    const gate=await api.runtime.sendMessage({protocol:CHATGPT_BRIDGE_PROTOCOL,kind:'check-consumed',
+      source:active.source,requestId:active.message.requestId,mode:active.message.mode,
+      turnKey:active.message.turnKey,answerKey:active.message.answerKey});
+    if(gate?.ok!==true||gate.data?.allowed!==true)
+      throw fail('E_BRIDGE_REVOKED','原会话来源批准已撤销或核验结果未知');
+    if(disposed||delivery!==active||active.authorityRevision!==authorityRevision||!isVerifiedSidePanel())
+      throw fail('E_BRIDGE_DELIVERY','可信 Host 或任务授权在核验期间已改变');
+    return {allowed:true};
+  };
   async function handle(message,sender){
-    if(!isVerifiedSidePanel())throw fail('E_BRIDGE_HOST','请在同窗口真正的 OpenDesk Side Panel 中使用本功能');
+    if(disposed||!isVerifiedSidePanel())throw fail('E_BRIDGE_HOST','请在同窗口真正的 OpenDesk Side Panel 中使用本功能');
     if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||message.kind!=='execute'||
       !['manual','auto'].includes(message.mode)||typeof message.candidateText!=='string'||
       !requireValue(message.requestId,128)||!requireValue(message.turnKey,128)||
@@ -132,16 +170,16 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       (!validChatGPTBridgeSource(message.source)||!chatGPTConversationId(message.sourceUrl))||busy||host.currentRun)
       throw fail('E_BRIDGE_SCHEMA','请求身份不合法、已执行或已有任务占用唯一 RunHost');
     const source={tabId:sender?.tab?.id,documentId:sender?.documentId,url:message.sourceUrl};
-    if(!validChatGPTBridgeSource(source)||!sameSource(source,message.source)||
-      !sameSource(source,{tabId:sender?.tab?.id,
-      documentId:sender?.documentId,url:sender?.url}))
+    if(!validChatGPTBridgeSource(source)||!sameSource(source,message.source))
       throw fail('E_BRIDGE_SENDER','来源与运行请求不匹配');
     busy=true;
     let reserved=false,submitted=false;
     try{
       await assertSource(source,sender);
       const request=await assertReply(source,message);
+      const admittedRevision=authorityRevision;
       const installed=await resolve();
+      if(admittedRevision!==authorityRevision)throw fail('E_BRIDGE_REVOKED','安装核验期间授权已改变');
       await assertSource(source,sender);
       await assertReply(source,message);
       // This is the ONLY R1.2 one-shot trigger admission. It persists before
@@ -156,6 +194,10 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       // After reservation, never restart this operation for any failure.
       await assertSource(source,sender);
       await assertReply(source,message);
+      const admission=await api.runtime.sendMessage({protocol:CHATGPT_BRIDGE_PROTOCOL,kind:'check-consumed',
+        source,requestId:message.requestId,mode:message.mode,turnKey:message.turnKey,answerKey:message.answerKey});
+      if(admission?.ok!==true||admission.data?.allowed!==true||admittedRevision!==authorityRevision)
+        throw fail('E_BRIDGE_REVOKED','运行前本次来源或安装批准已经失效');
       const claim=await host.start({source:{kind:'saved',scriptId:installed.scriptId,
           revision:installed.revision,contentHash:installed.contentHash},
         params:{},target:{mode:'owned',url:FIXED_PAGE_URL},
@@ -165,7 +207,8 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       submitted=true;
       if(!claim?.runId||claim.duplicate)throw fail('E_BRIDGE_RUN_UNKNOWN','任务运行身份未知或已提交过；禁止重放');
       const terminal=await host.completion;
-      if(terminal?.runId!==claim.runId||terminal.state!=='completed'||terminal.pendingSettlement)
+      if(terminal?.runId!==claim.runId||terminal.state!=='completed'||terminal.pendingSettlement||
+        terminal.retirement?.state!=='released')
         throw fail('E_BRIDGE_RUN_UNKNOWN','执行尚无可交付的确定成功终态，禁止使用推测结果');
       const snapshot=await client.controller.snapshotControllerRun({runId:claim.runId});
       const durable=verifyChatGPTFixedDurableResult(snapshot,claim.runId,installed);
@@ -173,8 +216,8 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
         throw fail('E_BRIDGE_RESULT','完成回执与持久记录的结果身份不同');
       await assertSource(source,sender);
       await assertReply(source,message);
-      if(!await api.permissions.contains({origins:['https://chatgpt.com/*','https://httpbingo.org/*']}))
-        throw fail('E_BRIDGE_PERMISSION','发送前网站访问权限已撤销，结果不再交付');
+      delivery={source,message,installed,durable,authorityRevision:admittedRevision};
+      await checkDelivery({...message,runId:durable.runId,resultId:durable.resultId},sender);
       const text=formatChatGPTFixedResult(request.requestId,durable);
       let delivered;
       try{
@@ -199,7 +242,10 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
         if(!error.code)error.code='E_BRIDGE_OUTCOME_UNKNOWN';
       }
       throw error;
-    }finally{busy=false;}
+    }finally{delivery=null;busy=false;}
   }
-  return Object.freeze({handle});
+  return Object.freeze({handle,checkDelivery,dispose(){
+    disposed=true;invalidate();delivery=null;
+    unsubscribeTasks?.();unsubscribeConnection?.();api.permissions?.onRemoved?.removeListener(invalidate);
+  }});
 }

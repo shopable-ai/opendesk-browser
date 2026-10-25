@@ -21,18 +21,29 @@ export function createKnowledgeAnswerConsumer({model,conversation,readLibrary,as
     typeof conversation?.cancel!=='function'||typeof readLibrary!=='function'||
     typeof assertIdentity!=='function')
     throw fail('E_KB_HOST','知识消费者未连接真实 Host 或共享 AI');
-  let latest=null,disposed=false,busy=false;
+  let latest=null,disposed=false,busy=false,generation=0,active=null;
   const live=()=>{if(disposed)throw fail('E_TOOL_CHANGED','知识工具已关闭');assertIdentity();};
   const accept=read=>{
     if(!sha(read?.etag))throw fail('E_KB_STORAGE','知识库缺少可信 ETag');
-    return Object.freeze({etag:read.etag,library:model.library(read.value??model.empty())});
+    const library=model.library(read.value??model.empty());
+    for(const item of library.items){Object.freeze(item.aliases);Object.freeze(item);}
+    Object.freeze(library.items);Object.freeze(library);
+    return Object.freeze({etag:read.etag,library});
+  };
+  const cancel=options=>{
+    generation++;
+    active?.abort();
+    return conversation.cancel(options);
   };
   async function refresh(){
     live();
     if(busy)throw fail('E_KB_BUSY','当前 AI 问答尚未结束');
     // Never fall back to an empty KB on a failed Host read.
+    const revision=generation;
     const prepared=accept(await readLibrary());
-    live();latest=prepared;
+    live();
+    if(revision!==generation)throw fail('E_KB_STALE','知识库读取已失效，请重新读取');
+    latest=prepared;
     return {loaded:true,count:prepared.library.items.length,etag:prepared.etag};
   }
   function request({request,scope='',signal,event}={}){
@@ -43,6 +54,7 @@ export function createKnowledgeAnswerConsumer({model,conversation,readLibrary,as
        typeof scope!=='string'||scope.length>60)
       throw fail('E_KB_QUESTION','问题或适用条件无效');
     if(!latest)throw fail('E_KB_NOT_READY','请先从可信 Host 读取知识库');
+    if(signal?.aborted)throw fail('E_CANCELLED','AI 问答已取消');
     const snapshot=latest,question=request.trim();
     // Host must synchronously confirm that this approved snapshot and instance
     // still match its latest storage/version/installation notification.
@@ -61,32 +73,55 @@ export function createKnowledgeAnswerConsumer({model,conversation,readLibrary,as
     const context={scope,references:chosen};
     if(JSON.stringify(context).length>15000)throw fail('E_KB_LIMIT','引用知识超过本轮上下文上限');
     busy=true;
+    const revision=generation,controller=new AbortController();
+    active=controller;
+    const abort=()=>controller.abort();
+    signal?.addEventListener('abort',abort,{once:true});
+    const cleanup=()=>{
+      signal?.removeEventListener('abort',abort);
+      if(active===controller)active=null;
+      busy=false;
+    };
+    const assertCurrent=grant=>{
+      live();
+      if(controller.signal.aborted||signal?.aborted||grant?.signal?.aborted)
+        throw fail('E_CANCELLED','AI 问答已取消或授权已失效');
+      if(revision!==generation||latest!==snapshot)
+        throw fail('E_KB_STALE','知识库或问答会话已变化');
+      assertIdentity({stage:'delivery',etag:snapshot.etag});
+    };
     let pending;
     try{
-      pending=conversation.request({request:question,context,scope:'knowledge',signal,event});
-    }catch(error){busy=false;throw error;}
+      pending=conversation.request({request:question,context,scope:'knowledge',signal:controller.signal,event});
+    }catch(error){cleanup();throw error;}
     return Promise.resolve(pending).then(async result=>{
       const grant=result?.authorization;
       if(typeof grant?.assertWrite!=='function'||typeof grant?.release!=='function')
         throw fail('E_KB_AUTH','AI 消费者未返回有效授权');
       try{
-        live();await grant.assertWrite();live();
-        const current=accept(await readLibrary());live();
+        assertCurrent(grant);await grant.assertWrite();assertCurrent(grant);
+        const current=accept(await readLibrary());assertCurrent(grant);
         if(current.etag!==snapshot.etag)
           throw fail('E_KB_STALE','知识库在模型处理期间已变化，旧回答不得用于发送');
         const answer=await model.answerWithAI(snapshot.library,{question,scope},
           async()=>({proposal:result.proposal}));
-        live();
-        if(signal?.aborted)throw fail('E_CANCELLED','AI 问答已取消');
+        assertCurrent(grant);
+        const final=accept(await readLibrary());assertCurrent(grant);
+        if(final.etag!==snapshot.etag)
+          throw fail('E_KB_STALE','知识库在答案处理期间已变化，旧回答不得交付');
+        await grant.assertWrite();
+        // The synchronous Host identity/ETag check closes the last async window,
+        // including changes while the final grant assertion was pending.
+        assertCurrent(grant);
         return {...answer,question:answer.answer?
           answer.answer+'\n\n（AI 草稿，需人工核对；来源：'+answer.sourceIds.join('、')+'）':
           '缺少有效引用或依据，需要人工处理。',modelCalled:true};
       }finally{grant.release();}
-    }).finally(()=>{busy=false;});
+    }).finally(cleanup);
   }
   return Object.freeze({refresh,request,
-    invalidate(){latest=null;}, // Host calls on any tool-owned storage change.
-    cancel:options=>conversation.cancel(options),
-    dispose(){if(disposed)return;disposed=true;latest=null;void conversation.cancel().catch(()=>{});}
+    invalidate(){latest=null;void Promise.resolve(cancel()).catch(()=>{});},
+    cancel,
+    dispose(){if(disposed)return;disposed=true;latest=null;void Promise.resolve(cancel()).catch(()=>{});}
   });
 }

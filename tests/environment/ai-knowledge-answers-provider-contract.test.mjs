@@ -64,7 +64,7 @@ test('provider request starts synchronously with original trusted event; respons
   assert.equal(result.modelCalled,true);
   assert.equal(result.status,'REVIEW_REQUIRED');
   assert.equal(result.needsHuman,true);
-  assert.equal(released,1);assert.equal(asserted,1);
+  assert.equal(released,1);assert.equal(asserted,2);
   consumer.dispose();
 });
 
@@ -92,4 +92,130 @@ test('reference payload must be bounded and untrusted KB instructions cannot ove
   assert.match(KNOWLEDGE_ANSWER_INSTRUCTIONS,/未经信任的数据/);
   assert.match(KNOWLEDGE_ANSWER_INSTRUCTIONS,/禁止伪造引用/);
   assert.match(KNOWLEDGE_ANSWER_INSTRUCTIONS,/不可自动发送/);
+});
+
+// All lifecycle scenarios below use fake Provider/Host objects, never native inference.
+const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
+function fakeConsumer({answerWithAI=model.answerWithAI,onRead=()=>{},onAssert=()=>{}}={}){
+  let etag=etagA,reads=0,assertions=0,released=0,cancelled=0,identity=true,providerChanged=false;
+  const reply=deferred(),grantController=new AbortController(),calls=[];
+  const authorization={signal:grantController.signal,
+    assertWrite:async()=>{await onAssert(++assertions);
+      if(providerChanged)throw Object.assign(new Error('fake Provider changed'),{code:'E_TOOL_CHANGED'});
+      if(grantController.signal.aborted)
+      throw Object.assign(new Error('fake grant revoked'),{code:'E_MODEL_GRANT_REVOKED'});},
+    release:()=>{released++;}};
+  const consumer=createKnowledgeAnswerConsumer({
+    model:{...model,answerWithAI},
+    conversation:{request:args=>{calls.push(args);return reply.promise;},
+      cancel:async()=>{cancelled++;}},
+    assertIdentity:check=>{
+      if(!identity)throw Object.assign(new Error('fake disconnected identity'),{code:'E_TOOL_CHANGED'});
+      if(check?.etag&&check.etag!==etag)
+        throw Object.assign(new Error('fake Host ETag changed'),{code:'E_KB_STALE'});
+    },
+    readLibrary:async()=>{const value={value:kb,etag};await onRead(++reads);return value;}
+  });
+  return {consumer,calls,grantController,
+    changeKnowledge:()=>{etag=etagB;},disconnect:()=>{identity=false;},switchProvider:()=>{providerChanged=true;},
+    resolve:()=>reply.resolve({proposal:{answer:'7 天内可以退款',sourceIds:[kb.items[0].id],needsHuman:false},authorization}),
+    counts:()=>({released,cancelled})};
+}
+
+for(const action of ['invalidate','cancel','dispose','abort']){
+  test(`fake Provider: ${action} aborts the in-flight signal and rejects a late reply`,async()=>{
+    const fake=fakeConsumer(),external=new AbortController();
+    await fake.consumer.refresh();
+    const pending=fake.consumer.request({request:'退款需要多少天',event:{isTrusted:true},signal:external.signal});
+    const rejected=assert.rejects(pending,error=>['E_CANCELLED','E_TOOL_CHANGED'].includes(error.code));
+    if(action==='abort')external.abort();else await fake.consumer[action]();
+    assert.equal(fake.calls[0].signal.aborted,true);
+    fake.resolve();await rejected;
+    assert.equal(fake.counts().released,1);
+    if(action!=='abort')assert.equal(fake.counts().cancelled,1);
+  });
+}
+
+for(const action of ['knowledge','invalidate','cancel','disconnect','provider-switch','revocation']){
+  test(`fake Provider: ${action} during async answer processing prevents delivery`,async()=>{
+    const entered=deferred(),resume=deferred();
+    const fake=fakeConsumer({answerWithAI:async(...args)=>{
+      const answer=await model.answerWithAI(...args);entered.resolve();await resume.promise;return answer;
+    }});
+    await fake.consumer.refresh();
+    const pending=fake.consumer.request({request:'退款需要多少天',event:{isTrusted:true}});
+    const rejected=assert.rejects(pending,error=>
+      ['E_KB_STALE','E_CANCELLED','E_TOOL_CHANGED','E_MODEL_GRANT_REVOKED'].includes(error.code));
+    fake.resolve();await entered.promise;
+    if(action==='knowledge')fake.changeKnowledge();
+    else if(action==='disconnect')fake.disconnect();
+    else if(action==='provider-switch')fake.switchProvider();
+    else if(action==='revocation')fake.grantController.abort();
+    else await fake.consumer[action]();
+    resume.resolve();await rejected;
+    assert.equal(fake.counts().released,1);
+  });
+}
+
+for(const window of ['final-read','final-grant']){
+  for(const action of ['knowledge','revocation']){
+    test(`fake Provider: ${action} in ${window} async window cannot deliver`,async()=>{
+      const entered=deferred(),resume=deferred();
+      const pause=async()=>{entered.resolve();await resume.promise;};
+      const fake=fakeConsumer({
+        onRead:count=>window==='final-read'&&count===3?pause():undefined,
+        onAssert:count=>window==='final-grant'&&count===2?pause():undefined
+      });
+      await fake.consumer.refresh();
+      const pending=fake.consumer.request({request:'退款需要多少天',event:{isTrusted:true}});
+      const rejected=assert.rejects(pending,error=>
+        ['E_KB_STALE','E_CANCELLED','E_MODEL_GRANT_REVOKED'].includes(error.code));
+      fake.resolve();await entered.promise;
+      if(action==='knowledge')fake.changeKnowledge();else fake.grantController.abort();
+      resume.resolve();await rejected;
+      assert.equal(fake.counts().released,1);
+    });
+  }
+}
+
+test('fake Host: invalidation during preload cannot re-arm stale storage',async()=>{
+  const entered=deferred(),resume=deferred();
+  const fake=fakeConsumer({onRead:async()=>{entered.resolve();await resume.promise;}});
+  const loading=fake.consumer.refresh();
+  const rejected=assert.rejects(loading,{code:'E_KB_STALE'});
+  await entered.promise;fake.consumer.invalidate();resume.resolve();await rejected;
+  assert.throws(()=>fake.consumer.request({request:'退款需要多少天',event:{isTrusted:true}}),{code:'E_KB_NOT_READY'});
+  assert.equal(fake.calls.length,0);
+});
+
+test('fake Host: preloaded snapshot is deeply frozen before synchronous Send',async()=>{
+  let inspected=false;
+  const consumer=createKnowledgeAnswerConsumer({
+    model:{...model,lookup:(library,ask)=>{
+      inspected=true;
+      for(const value of [library,library.items,library.items[0],library.items[0].aliases])
+        assert.equal(Object.isFrozen(value),true);
+      return model.lookup(library,ask);
+    }},
+    conversation:{request:()=>{throw new Error('fake Send reached synchronously');},cancel:async()=>{}},
+    assertIdentity:()=>{},readLibrary:async()=>({value:kb,etag:etagA})
+  });
+  await consumer.refresh();
+  assert.throws(()=>consumer.request({request:'退款需要多少天',event:{isTrusted:true}}),/fake Send reached synchronously/);
+  assert.equal(inspected,true);
+});
+
+test('fake Provider: pre-aborted Send never starts inference and synchronous failure permits retry',async()=>{
+  const fake=fakeConsumer(),aborted=new AbortController();aborted.abort();
+  await fake.consumer.refresh();
+  assert.throws(()=>fake.consumer.request({request:'退款需要多少天',event:{isTrusted:true},signal:aborted.signal}),{code:'E_CANCELLED'});
+  assert.equal(fake.calls.length,0);
+  let attempts=0;
+  const consumer=createKnowledgeAnswerConsumer({model,assertIdentity:()=>{},
+    readLibrary:async()=>({value:kb,etag:etagA}),
+    conversation:{request:()=>{attempts++;throw new Error('fake synchronous failure');},cancel:async()=>{}}
+  });
+  await consumer.refresh();
+  for(let i=0;i<2;i++)assert.throws(()=>consumer.request({request:'退款需要多少天',event:{isTrusted:true}}),/fake synchronous failure/);
+  assert.equal(attempts,2);
 });

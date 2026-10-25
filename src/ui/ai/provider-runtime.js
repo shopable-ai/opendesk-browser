@@ -4,7 +4,7 @@ import {createWorkflowProviderFacade} from '../workflow/provider.js';
 
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const sources=new Set(['local_codex','cloud_responses','custom_https']);
-const consumers=new Set(['workflow','bookmark','prompt','prompt-edit','tasks']);
+const consumers=new Set(['workflow','bookmark','prompt','prompt-edit','tasks','knowledge']);
 const idle=()=>({sessionId:null,threadId:null,state:'IDLE',busy:false,resumable:false});
 const endpointOrigin=endpoint=>{
   try{const origin=new URL(endpoint).origin;return origin==='null'?null:origin;}

@@ -34,7 +34,7 @@ function renderList(){
   const box=$('qa-list');box.replaceChildren();
   for(const item of kb.items){
     const button=root.ownerDocument.createElement('button');
-    button.className='od-button od-button--secondary';
+    button.className='od-button '+(item.id===selected?'od-button--primary':'od-button--secondary');
     button.type='button';button.textContent=item.question;
     button.title=item.question;button.disabled=busy||Boolean(review);
     button.setAttribute('aria-pressed',String(item.id===selected));

@@ -3,6 +3,12 @@
   "sourceRepository": "https://github.com/shopable-ai/opendesk-browser",
   "tools": [
     {
+      "id": "ai-knowledge-answers",
+      "project": "examples/sidebar-tools/ai-knowledge-answers",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional"
+    },
+    {
       "id": "reading-toc",
       "project": "examples/sidebar-tools/reading-toc",
       "kind": "sidebar-tool",

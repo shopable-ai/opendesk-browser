@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {verifyManifest,SDK_AUTOMATIC_CONTENT_SCRIPTS,CHATGPT_FIXED_BRIDGE_CONTENT_SCRIPT}
   from '../../scripts/verify-package.mjs';
 import assert from 'node:assert/strict';
-import {createChatGPTBridgeTriggerLedger,validChatGPTBridgeSource}
+import {createChatGPTBridgeTriggerLedger,validChatGPTBridgeSource,installChatGPTBridgeTriggerGate}
   from '../../src/native-agent/chatgpt-bridge-trigger-gate.js';
 import {verifyChatGPTFixedDurableResult,formatChatGPTFixedResult,
   FIXED_TASK_SOURCE_HASH,FIXED_TASK_MANIFEST_HASH,FIXED_TASK_VERSION,
@@ -69,6 +69,120 @@ test('auto approval expires and permission removal revokes unconsumed approvals'
   await assert.rejects(a.reserve({source,requestId:idA,mode:'auto',turnKey:'x',answerKey:'y'}),
     {code:'E_BRIDGE_REPLAY'});
 });
+test('consumed source approval remains revoked across re-grant, navigation and Worker restart',async()=>{
+  for(const revoke of ['permission','source']){
+    const storage=fakeStorage(),a=ledger(storage,[idA]);
+    await a.prepare(source);await a.authorize({source,requestId:idA,mode:'manual'});
+    const context={source,requestId:idA,mode:'manual',turnKey:'turn-1',answerKey:'answer-1:0'};
+    await a.reserve(context);assert.equal((await a.assertConsumed(context)).allowed,true);
+    if(revoke==='permission')await a.revokeApprovals();else await a.revokeSource(source.tabId);
+    const restarted=ledger(storage,[]);
+    await assert.rejects(restarted.assertConsumed(context),{code:'E_BRIDGE_REVOKED'});
+    await assert.rejects(restarted.reserve(context),{code:'E_BRIDGE_REPLAY'});
+  }
+});
+
+test('navigation fences are scoped to the bound source while permission revocation remains global',async()=>{
+  for(const change of ['unrelated-navigation','source-navigation','permission']){
+    const events={};
+    const event=name=>({addListener(listener){events[name]=listener;}});
+    const frame=Promise.withResolvers();
+    const api={storage:{local:fakeStorage()},runtime:{id:'extid',getURL:()=> 'chrome-extension://extid/',
+      onMessage:event('message')},webNavigation:{getFrame:()=>frame.promise,
+      onCommitted:event('navigate'),onHistoryStateUpdated:event('history')},
+      tabs:{get:async()=>({id:source.tabId,url:source.url}),onRemoved:event('close')},
+      permissions:{onRemoved:event('permission')}};
+    const gate=installChatGPTBridgeTriggerGate({api});
+    const issued=await gate.prepare(source);
+    const context={source,requestId:issued.requestId,mode:'manual',turnKey:'turn',answerKey:'answer'};
+    await gate.authorize(context);await gate.reserve(context);
+    const reply=Promise.withResolvers();
+    assert.equal(events.message({protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'check-consumed',...context},
+      {id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=host'},reply.resolve),true);
+    await Promise.resolve(); // suspended inside the real source identity check
+    if(change==='permission')events.permission();
+    else events.navigate({tabId:change==='source-navigation'?source.tabId:999,frameId:0});
+    frame.resolve({documentId:source.documentId,url:source.url,documentLifecycle:'active'});
+    const response=await reply.promise;
+    assert.equal(response.ok,change==='unrelated-navigation',change);
+    if(response.ok)assert.equal(response.data.allowed,true);
+  }
+});
+function gateHarness(){
+  const events={},event=name=>({addListener(listener){events[name]=listener;}});
+  const frame={documentId:source.documentId,url:source.url,documentLifecycle:'active',errorOccurred:false};
+  const tab={id:source.tabId,url:source.url,windowId:2,incognito:false};
+  const sender={id:'extid',frameId:0,documentId:source.documentId,
+    documentLifecycle:'active',url:'https://chatgpt.com/c/initial-injection',tab:{...tab}};
+  const api={storage:{local:fakeStorage()},runtime:{id:'extid',getURL:()=> 'chrome-extension://extid/',onMessage:event('message')},
+    webNavigation:{getFrame:async()=>({...frame}),onCommitted:event('committed'),onHistoryStateUpdated:event('history')},
+    tabs:{get:async()=>({...tab}),onRemoved:event('close')},permissions:{onRemoved:event('permission')}};
+  installChatGPTBridgeTriggerGate({api});
+  const send=message=>new Promise(resolve=>{
+    assert.equal(events.message({protocol:'opendesk.chatgpt.bridge.r12.v1',...message},sender,resolve),true);
+  });
+  return {events,frame,tab,sender,send};
+}
+test('prepare freezes current browser source and authorize accepts the same document with an old injection URL',async()=>{
+  for(const initial of ['https://chatgpt.com/','https://chatgpt.com/c/initial-injection']){
+    const h=gateHarness();h.sender.url=initial;
+    const prepared=await h.send({kind:'prepare'});
+    assert.equal(prepared.ok,true);assert.deepEqual(prepared.data.source,source);
+    const approved=await h.send({kind:'authorize',requestId:prepared.data.requestId,mode:'manual'});
+    assert.equal(approved.ok,true);
+  }
+});
+test('prepare and authorize reject unsafe document, lifecycle, origin and current URL observations',async()=>{
+  const changes={
+    'foreign sender':h=>{h.sender.url='https://evil.example/c/test';},
+    'legacy origin':h=>{h.sender.url='https://chat.openai.com/c/test';},
+    'credential sender':h=>{h.sender.url='https://user:pass@chatgpt.com/c/test';},
+    'wrong sender id':h=>{h.sender.id='foreign';},
+    'subframe':h=>{h.sender.frameId=1;},
+    'new document':h=>{h.frame.documentId='replacement';},
+    'inactive':h=>{h.frame.documentLifecycle='cached';},
+    'missing lifecycle':h=>{delete h.frame.documentLifecycle;},
+    'frame error':h=>{h.frame.errorOccurred=true;},
+    'pending':h=>{h.tab.pendingUrl='https://chatgpt.com/c/next';},
+    'tab id':h=>{h.tab.id++;},
+    'incognito':h=>{h.tab.incognito=true;},
+    'frame/tab mismatch':h=>{h.tab.url='https://chatgpt.com/c/other';},
+    'foreign current':h=>{h.frame.url=h.tab.url='https://evil.example/c/test';},
+    'credential current':h=>{h.frame.url=h.tab.url='https://user:pass@chatgpt.com/c/test';},
+    'root current':h=>{h.frame.url=h.tab.url='https://chatgpt.com/';}
+  };
+  for(const [name,change] of Object.entries(changes))for(const kind of ['prepare','authorize']){
+    const h=gateHarness(),prepared=kind==='authorize'?await h.send({kind:'prepare'}):null;
+    change(h);
+    const response=await h.send({kind,requestId:prepared?.data.requestId,mode:'manual'});
+    assert.equal(response.ok,false,name+' '+kind);
+    assert.match(response.error.code,/^E_BRIDGE_(SOURCE|SENDER)$/);
+  }
+});
+test('authorize never rebinds an old request, and history revocation cannot revive approval on return',async()=>{
+  for(const approved of [false,true]){
+    const h=gateHarness(),prepared=await h.send({kind:'prepare'}),requestId=prepared.data.requestId;
+    const sidepanel=message=>new Promise(resolve=>h.events.message({protocol:'opendesk.chatgpt.bridge.r12.v1',...message},
+      {id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=host'},resolve));
+    const context={source,requestId,mode:'manual',turnKey:'turn',answerKey:'answer'};
+    if(approved){
+      assert.equal((await h.send({kind:'authorize',requestId,mode:'manual'})).ok,true);
+      assert.equal((await sidepanel({kind:'reserve',...context})).ok,true);
+      assert.equal((await sidepanel({kind:'check-consumed',...context})).ok,true);
+    }
+    h.frame.url=h.tab.url='https://chatgpt.com/c/new-route';
+    // Even without a history event, the old ledger source is an exact match.
+    assert.equal((await h.send({kind:'authorize',requestId,mode:'manual'})).error.code,'E_BRIDGE_APPROVAL');
+    h.events.history({tabId:source.tabId,frameId:0});
+    h.frame.url=h.tab.url=source.url;
+    assert.equal((await h.send({kind:'authorize',requestId,mode:'manual'})).error.code,'E_BRIDGE_APPROVAL');
+    const response=await sidepanel({kind:'check-consumed',...context});
+    assert.equal(response.ok,false);assert.equal(response.error.code,'E_BRIDGE_REVOKED');
+    // Only a fresh request on the observed current source can be approved.
+    const fresh=await h.send({kind:'prepare'});assert.notEqual(fresh.data.requestId,requestId);
+    assert.equal((await h.send({kind:'authorize',requestId:fresh.data.requestId,mode:'manual'})).ok,true);
+  }
+});
 const result={kind:'page.read.fixed.result',version:1,sourceUrl:'https://httpbingo.org/html',
   title:'Herman Melville - Moby-Dick',heading:'Herman Melville - Moby-Dick',
   excerpt:'Call me Ishmael.',observedAt:'2026-10-25T12:30:00.000Z'};
@@ -77,7 +191,7 @@ function fixture(){
   const revision={scriptId,revision:1,sourceHash:FIXED_TASK_SOURCE_HASH};
   return {runId,resolved:{scriptId,revision:1},
     snapshot:{
-      run:{runId,resultId,scriptId,state:'completed',sourceKind:'saved',
+      run:{runId,resultId,scriptId,state:'completed',retirementState:'released',sourceKind:'saved',
         contentHash:FIXED_TASK_SOURCE_HASH,revision},
       results:[{tag:'controller-result',runId,resultId,state:'completed',
         sourceKind:'saved',revision,outcome:{ok:true,valueWire:encodeValue(result)}}],
@@ -92,6 +206,7 @@ test('fixed durable result requires actual matching run, revision, resultId and 
   assert.match(formatChatGPTFixedResult(idA,durable),/未经信任/);
   const changed=[
     {...snapshot,run:{...snapshot.run,state:'paused_unknown'}},
+    {...snapshot,run:{...snapshot.run,retirementState:'fenced'}},
     {...snapshot,run:{...snapshot.run,contentHash:'0'.repeat(64)}},
     {...snapshot,run:{...snapshot.run,resultId:'changed'}},
     {...snapshot,results:[...snapshot.results,...snapshot.results]},
@@ -105,9 +220,36 @@ test('fixed request prompt preserves issued identity, empty args and no claimed 
   const prompt=bridgePrompt(idA);
   assert.ok(prompt.includes(idA));
   assert.ok(prompt.includes('page.read.fixed'));
-  assert.ok(prompt.includes('httpbingo.org/html'));
-  assert.ok(prompt.includes('"args": {}'));
+  assert.ok(prompt.includes('httpbingo HTML'));
+  assert.ok(prompt.includes('"args":{}'));
   assert.ok(prompt.includes('不是你已注册的 MCP 工具'));
+  assert.doesNotMatch(prompt, /\n|https?:\/\/| {2,}/);
+  assert.deepEqual(JSON.parse(prompt.slice(prompt.indexOf('{'))),{
+    protocol:'opendesk.task.request.v1',kind:'opendesk.task.request',
+    version:1,requestId:idA,taskId:'page.read.fixed',args:{}});
+});
+
+test('plain result paragraph round trips exact data while avoiding editor link and whitespace conversion',()=>{
+  const durable={runId:'run',resultId:'result',revision:1,sourceHash:'hash',
+    value:{...result,excerpt:'two  spaces\nhttps://example.com/a/b'}};
+  const text=formatChatGPTFixedResult(idA,durable);
+  assert.doesNotMatch(text,/\n|https?:\/\/| {2,}/);
+  const payload=JSON.parse(text.slice(text.indexOf('{')));
+  assert.deepEqual(payload.data,durable.value);
+  assert.equal(payload.requestId,idA);
+  assert.equal(payload.runId,durable.runId);
+  assert.equal(payload.resultId,durable.resultId);
+});
+
+test('a real fixed page with an empty head keeps an empty title without substituting its heading',()=>{
+  const {snapshot,resolved,runId}=fixture();
+  snapshot.results[0].outcome.valueWire=encodeValue({...result,title:''});
+  const durable=verifyChatGPTFixedDurableResult(snapshot,runId,resolved);
+  assert.equal(durable.value.title,'');assert.equal(durable.value.heading,result.heading);
+  for(const title of [null,undefined,200,{},'x'.repeat(201),'\u0000']){
+    snapshot.results[0].outcome.valueWire=encodeValue({...result,title});
+    assert.throws(()=>verifyChatGPTFixedDurableResult(snapshot,runId,resolved),{code:'E_BRIDGE_RESULT'});
+  }
 });
 
 function hostHarness({override={},readReply=null}={}){
@@ -127,8 +269,12 @@ function hostHarness({override={},readReply=null}={}){
   const resolved={...fx.resolved,taskId:installed.taskId,version:FIXED_TASK_VERSION,
     manifestHash:FIXED_TASK_MANIFEST_HASH,contentHash:FIXED_TASK_SOURCE_HASH,
     generation:installed.generation,installationId:installed.installationId,manifest};
-  const events={reserve:0,start:0,send:0};
+  const events={reserve:0,start:0,send:0,checks:0};
   const api={runtime:{id:'extid',async sendMessage(message){
+    if(message.kind==='check-consumed'){
+      events.checks++;
+      return {ok:true,data:{allowed:override.revoked!==true}};
+    }
     assert.equal(message.kind,'reserve');events.reserve++;
     return {ok:true,data:{consumed:true}};}},tabs:{
       async get(tabId){return {id:tabId,url:src.url,windowId:2,incognito:false};},
@@ -138,19 +284,24 @@ function hostHarness({override={},readReply=null}={}){
         if(override.sendThrows)throw new Error('lost receipt');
         return {ok:true,data:{sent:true,userObserved:true,aiReplyObserved:true}};
       }
-    },permissions:{async contains(){return override.grants!==false;}}};
+    },webNavigation:{async getFrame(){return {documentId:src.documentId,url:src.url,documentLifecycle:'active'};}},
+    permissions:{async contains(){return override.grants!==false;},onRemoved:{
+      addListener(listener){events.permissionRemoved=listener;},removeListener(){events.permissionRemoved=null;}}}};
   const client={request:async method=>{
       if(method==='listTaskCatalog')return override.catalog||catalog;
       if(method==='resolveInstalledTask')return override.resolved||resolved;
       throw new Error('Unexpected '+method);
-    },controller:{async snapshotControllerRun(){
+    },subscribeInstalledTasks(listener){events.installChanged=listener;return()=>{events.installChanged=null;};},
+    subscribeConnection(listener){events.connectionChanged=listener;return()=>{events.connectionChanged=null;};},
+    controller:{async snapshotControllerRun(){
+      override.onSnapshot?.();
       return override.snapshot||fx.snapshot;
     }}};
   const host={get currentRun(){return null;},
     async start(input){events.start++;events.lastStart=input;
       return {runId:fx.runId};},
     get completion(){return Promise.resolve(override.completion||{
-      runId:fx.runId,state:'completed',result:{resultId:fx.snapshot.run.resultId}});}};
+      runId:fx.runId,state:'completed',retirement:{state:'released'},result:{resultId:fx.snapshot.run.resultId}});}};
   const sender={id:'extid',frameId:0,url:src.url,documentId:src.documentId,
     tab:{id:src.tabId,windowId:2,incognito:false,url:src.url}};
   const message={protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'execute',
@@ -158,10 +309,11 @@ function hostHarness({override={},readReply=null}={}){
     turnKey:'turn-1',answerKey:'answer-1:0'};
   const bridge=createChatGPTFixedBridgeHost({api,client,host,
     currentPageTarget:{snapshot:{windowId:2}},
-    isVerifiedSidePanel:()=>true,checkTarget:async()=>{},
-    readReply:readReply||(async()=>({
-      turnKey:'turn-1',answerKey:'answer-1:0',blocks:[candidateText]}))});
-  return {bridge,events,sender,message,fx,api};
+    isVerifiedSidePanel:()=>true,
+    readReply:readReply||(async()=>{
+      await override.onReadReply?.();
+      return {turnKey:'turn-1',answerKey:'answer-1:0',blocks:[candidateText]};})});
+  return {bridge,events,sender,message,fx,api,installed,catalog,resolved};
 }
 test('trusted Side Panel uses one Foundation-owned target and one read-back verified chat send',async()=>{
   const h=hostHarness();
@@ -175,6 +327,38 @@ test('trusted Side Panel uses one Foundation-owned target and one read-back veri
   assert.equal(h.events.lastStart.target.url,'https://httpbingo.org/html');
   assert.equal(h.events.lastStart.requestId,idA);
   assert.equal(h.events.lastStart.expectedTaskGeneration,4);
+});
+test('Host accepts stale same-origin injection URL with exact current source and live target',async()=>{
+  const h=hostHarness();h.sender.url='https://chatgpt.com/c/old-injection';
+  assert.equal((await h.bridge.handle(h.message,h.sender)).sent,true);
+  assert.equal(h.events.start,1);assert.equal(h.events.send,1);
+});
+test('Host refuses unsafe sender or live document before reservation or execution',async()=>{
+  const changes={
+    'foreign sender':h=>{h.sender.url='https://evil.example/c/test';},
+    'credential sender':h=>{h.sender.url='https://user:pass@chatgpt.com/c/test';},
+    'legacy origin':h=>{h.sender.url='https://chat.openai.com/c/test';},
+    'wrong extension':h=>{h.sender.id='foreign';},
+    'subframe':h=>{h.sender.frameId=1;},
+    'sender document':h=>{h.sender.documentId='replacement';},
+    'sender tab URL':h=>{h.sender.tab.url='https://chatgpt.com/c/other';},
+    'sender pending':h=>{h.sender.tab.pendingUrl=source.url;},
+    'sender window':h=>{h.sender.tab.windowId=3;},
+    'source mismatch':h=>{h.message.source={...source,url:'https://chatgpt.com/c/other'};},
+    'new document':h=>{h.api.webNavigation.getFrame=async()=>({documentId:'replacement',url:source.url,documentLifecycle:'active'});},
+    'inactive':h=>{h.api.webNavigation.getFrame=async()=>({...source,documentLifecycle:'cached'});},
+    'missing lifecycle':h=>{h.api.webNavigation.getFrame=async()=>({...source});},
+    'frame error':h=>{h.api.webNavigation.getFrame=async()=>({...source,documentLifecycle:'active',errorOccurred:true});},
+    'frame/tab mismatch':h=>{h.api.webNavigation.getFrame=async()=>({...source,url:'https://chatgpt.com/c/other',documentLifecycle:'active'});},
+    'pending':h=>{h.api.tabs.get=async()=>({...h.sender.tab,pendingUrl:source.url});},
+    'incognito':h=>{h.api.tabs.get=async()=>({...h.sender.tab,incognito:true});},
+    'tab id':h=>{h.api.tabs.get=async()=>({...h.sender.tab,id:999});}
+  };
+  for(const [name,change] of Object.entries(changes)){
+    const h=hostHarness();change(h);
+    await assert.rejects(h.bridge.handle(h.message,h.sender),undefined,name);
+    assert.equal(h.events.reserve,0,name);assert.equal(h.events.start,0,name);assert.equal(h.events.send,0,name);
+  }
 });
 test('wrong document or re-generated assistant blocks admission without a run',async()=>{
   const bad=hostHarness();
@@ -206,6 +390,63 @@ test('send transport ambiguity performs no second send or run',async()=>{
   const h=hostHarness({override:{sendThrows:true}});
   await assert.rejects(h.bridge.handle(h.message,h.sender),{code:'E_BRIDGE_SEND_UNKNOWN'});
   assert.equal(h.events.reserve,1);assert.equal(h.events.start,1);assert.equal(h.events.send,1);
+});
+
+test('completed runs with unknown or pending retirement never reach the chat',async()=>{
+  for(const retirement of [undefined,{state:'fenced'},{state:'pending'}]){
+    const h=hostHarness({override:{completion:{runId:'run-123',state:'completed',retirement,
+      result:{resultId:'result-123'}}}});
+    await assert.rejects(h.bridge.handle(h.message,h.sender),{code:'E_BRIDGE_RUN_UNKNOWN'});
+    assert.equal(h.events.start,1);assert.equal(h.events.send,0);
+  }
+});
+
+test('final send boundary refuses revocation, changed installation, denied result and changed document',async()=>{
+  for(const change of ['permission','generation','disabled','uninstalled','result','document']){
+    const override={},h=hostHarness({override});
+    let clicks=0,checks=0;
+    h.api.tabs.sendMessage=async(_tabId,message)=>{
+      if(change==='permission')override.grants=false;
+      if(change==='generation')h.installed.generation++;
+      if(change==='disabled')h.installed.enabled=false;
+      if(change==='uninstalled')h.catalog.installed=[];
+      if(change==='result')override.snapshot={...h.fx.snapshot,resultDeliveryDenied:[h.fx.runId]};
+      const sender=change==='document'?{...h.sender,documentId:'changed-document'}:h.sender;
+      try{
+        checks++;
+        await h.bridge.checkDelivery({...message,kind:'check-delivery'},sender);
+        clicks++;
+        return {ok:true,data:{sent:true,userObserved:true}};
+      }catch(error){return {ok:false,error:{code:error.code,message:error.message}};}
+    };
+    await assert.rejects(h.bridge.handle(h.message,h.sender));
+    assert.equal(checks,1,change);assert.equal(clicks,0,change);
+    assert.equal(h.events.start,1,change);assert.equal(h.events.reserve,1,change);
+    await assert.rejects(h.bridge.checkDelivery({...h.message,runId:h.fx.runId,resultId:'result-123'},h.sender),
+      {code:'E_BRIDGE_DELIVERY'});
+  }
+});
+
+test('revocation during async final reply or durable reads cannot produce a delivery permit',async()=>{
+  for(const change of ['disabled-during-reply','install-event','permission-regrant','worker-restart']){
+    const override={},h=hostHarness({override});
+    let clicks=0;
+    h.api.tabs.sendMessage=async(_tab,message)=>{
+      if(change==='disabled-during-reply')override.onReadReply=()=>{h.installed.enabled=false;};
+      else override.onSnapshot=()=>{
+        if(change==='install-event')h.events.installChanged({taskId:'page.read.fixed'});
+        if(change==='permission-regrant'){h.events.permissionRemoved();override.grants=true;override.revoked=true;}
+        if(change==='worker-restart')h.events.connectionChanged({connected:false});
+      };
+      try{
+        await h.bridge.checkDelivery({...message,kind:'check-delivery'},h.sender);
+        clicks++;return {ok:true,data:{sent:true,userObserved:true}};
+      }catch(error){return {ok:false,error:{code:error.code,message:error.message}};}
+    };
+    await assert.rejects(h.bridge.handle(h.message,h.sender));
+    assert.equal(clicks,0,change);assert.equal(h.events.start,1,change);
+    h.bridge.dispose();assert.equal(h.events.installChanged,null);assert.equal(h.events.permissionRemoved,null);
+  }
 });
 
 test('root manifest retains two independent SDK scripts and one exact isolated ChatGPT bridge',()=>{

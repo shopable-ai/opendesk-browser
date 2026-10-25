@@ -138,12 +138,11 @@ const compiledPromptShortcutInputs=Object.freeze({
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'4c6f608a26e0d69278c18a0afda94b3c8ce8274c',
   // OD entry restored from ed7ceb65; first built-in rail button only, using already pinned SW gesture bridge.
   // No origin, permission, storage, navigation arrows, sender scope or injection surface changed.
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'cb7dcbd4733ba546c4b50790433f1b3cb4e3fd6f',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'96290d6c96b957bf530c37f67bb74ddbc4b8d6fb',
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js':'86e95bff786e52efb9089f97126542430f39a716',
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js':'b960044deb5e7d059c26d5d520f912c0b72c7b0e',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js':'7c10e8270c43be93229afbf0d3171455de628030',
   // Shared with the standalone diagnostic harness; never an installed package import.
-  'examples/programs/chatgpt-jump-top/src/conversation.js':'77139704bc9e918f97840a3a34756a07deb3a32c',
+  'examples/programs/chatgpt-jump-top/src/conversation.js':'cca839ec6625da106376fb739f4462c44f39fa5b',
   // The first-party OD gesture bridge is fixed SW code, never an installed package.
   'examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js':'5f0184b28abe5d8e03855f9c130d45faba807d1e'
 });
@@ -156,8 +155,7 @@ const promptJumpTargets=new Set(['agents/page-relay.js']);
 function reviewedCompiledPromptShortcuts(target,path,root){
   const targets=path==='examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js'?promptAssetContractTargets:
     path==='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js'?promptRailTargets:
-    (path==='examples/programs/chatgpt-jump-top/src/conversation.js'||
-      path==='examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js')?promptJumpTargets:promptFixedTargets;
+    path==='examples/programs/chatgpt-jump-top/src/conversation.js'?promptJumpTargets:promptFixedTargets;
   if(!targets.has(target)||!Object.hasOwn(compiledPromptShortcutInputs,path))return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)
@@ -302,9 +300,9 @@ const compiledReadingTocInputs=Object.freeze({
   'examples/sidebar-tools/reading-toc/trusted/model.js':'9a7320084caa2efa2acb40dcaf5c00e60659bc66',
   'examples/sidebar-tools/reading-toc/trusted/placement.js':'b29ddc6e66d0203fefccbcb98c071b046aaaa2c0',
   'examples/sidebar-tools/reading-toc/trusted/page.js':'4b95602c7f4bf2a41a7236b525c5555951702dfc',
-  'examples/sidebar-tools/reading-toc/trusted/view.js':'8a7d7d1b42871b6943c2794ea741359ca61b178b',
+  'examples/sidebar-tools/reading-toc/trusted/view.js':'e79fe3289544f09f13ebd5c26a382e70526be3f6',
   'examples/sidebar-tools/reading-toc/trusted/policy.js':'29bbc2fdebcec89c63484422298924baec08eba6',
-  'examples/sidebar-tools/reading-toc/trusted/locales.generated.js':'0484bd67fadb23a88c6a7164435d5bf90acd8295',
+  'examples/sidebar-tools/reading-toc/trusted/locales.generated.js':'ffdfc72c479bb16ef27e60eda26255b43870e4ae',
   'examples/sidebar-tools/reading-toc/trusted/existing-tabs.js':'f5d9882cd1de65ef2ed0115c4d002114575c1058'
 });
 function reviewedCompiledReadingToc(target,path,root){

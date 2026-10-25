@@ -102,7 +102,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
       list.host.style.setProperty('display','none','important');reset();
       return;
     }
-    const signature=JSON.stringify([state.paused,state.expanded,state.reason,state.phase,state.inFlight?.phase,
+    const signature=JSON.stringify([state.paused,state.expanded,state.reason,state.phase,state.inFlight?.phase,!!state.answerGate,
       items.map(item=>[item.id,item.text,item.state])]);
     if(signature===lastSignature)return;
     lastSignature=signature;
@@ -132,12 +132,22 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
       const more=element(doc,'button','sq-more',state.expanded?'收起队列':'展开其余 '+(items.length-2)+' 条');
       more.type='button';more.dataset.action='more';root.append(more);
     }
-    if(state.paused||items.some(i=>i.state==='failed'||i.state==='unknown')){
+    {
       const note=element(doc,'div','sq-note');
       note.setAttribute('role','status');
-      note.append(element(doc,'span','sq-note-text',state.reason||'队列已暂停'));
-      const uncertain=state.phase==='unknown'||items.some(item=>item.state==='unknown')||
-        ['unknown','await-confirm','await-stop'].includes(state.inFlight?.phase);
+      const unknown=state.phase==='unknown'||items.some(item=>item.state==='unknown')||
+        state.inFlight?.phase==='unknown';
+      const flight=state.inFlight?.phase;
+      const uncertain=unknown||['await-confirm','await-stop'].includes(flight);
+      // Describe the actual fence, without a countdown or inferring completion.
+      const status=unknown?'发送结果未知 · '+(state.reason||'请核对原对话，队列不会自动重试'):
+        flight==='await-confirm'?'正在发送 · 等待官网确认消息入站':
+        flight==='await-stop'?'等待停止结果 · 尚未发送下一条':
+        state.paused?'已暂停 · '+(state.reason||'等待用户恢复'):
+        flight?'正在准备发送 · 其余消息等待中':
+        state.answerGate?'等待中 · 等待上一条回复完成':
+        '等待中 · '+(state.reason||'等待网页就绪');
+      note.append(element(doc,'span','sq-note-text',status));
       if(state.paused&&!uncertain)note.append(action(doc,'play','恢复队列'));
       root.append(note);
     }
