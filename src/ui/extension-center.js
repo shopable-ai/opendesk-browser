@@ -296,8 +296,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
 
   function rowDescription(row){
     const reason=pendingKey===row.key?'处理中':row.cleanupPending?'卸载清理待恢复':
-      !row.installed?(row.kind==='page'&&row.release?.status==='blocked'?
-        '暂不可安装：'+row.release.blockedReason:'可安装 · 待授权'):row.stateKnown===false?'状态待核对':
+      !row.installed?(row.kind==='page'
+        ?(row.release?.status==='blocked'?'暂不可安装：'+row.release.blockedReason:'可安装 · 待授权')
+        :'可安装'):row.stateKnown===false?'状态待核对':
       row.kind==='page'&&row.record?.installed?.managedCleanup?.state==='unknown'?'受管界面清理待核对':
       row.kind==='page'&&row.record?.installed?.nativeState==='blocked'?'原生注册待恢复':
       row.kind==='page'&&row.record?.installed?.authorization?.status==='suspended'?'网站访问受限':
