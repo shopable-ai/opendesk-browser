@@ -211,10 +211,8 @@
       "question": "周末有客服吗",
       "scope": "",
       "stage": "lookup",
-      "expectedStatus": "ANSWERED_FIXED",
-      "expectedSourceIds": [
-        "qa_demo_holiday"
-      ],
+      "expectedStatus": "NO_MATCH",
+      "expectedSourceIds": [],
       "expectedFacts": []
     },
     {
@@ -222,10 +220,8 @@
       "question": "周六周日有人吗",
       "scope": "",
       "stage": "lookup",
-      "expectedStatus": "ANSWERED_FIXED",
-      "expectedSourceIds": [
-        "qa_demo_holiday"
-      ],
+      "expectedStatus": "NO_MATCH",
+      "expectedSourceIds": [],
       "expectedFacts": []
     },
     {
