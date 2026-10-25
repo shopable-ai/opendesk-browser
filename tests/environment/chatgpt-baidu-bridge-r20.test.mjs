@@ -53,7 +53,7 @@ test('one durable nonce is pinned to exactly one selected Task and search query'
   await assert.rejects(restarted.reserve({...context,taskId:request.taskId,args}),
     {code:'E_BRIDGE_REPLAY'});
 });
-test('ChatGPT page selects Baidu keyword and performs one approved automatic request without manual Run click',async()=>{
+test('ChatGPT page waits for the complete streamed candidate before one approved automatic request',async()=>{
   const nodes=[],listeners=new Map();
   const element=tag=>{
     const node={tag,style:{},classList:{toggle(){}},listeners:{},
@@ -97,8 +97,9 @@ test('ChatGPT page selects Baidu keyword and performs one approved automatic req
       }
       throw Error('Unexpected message '+message.kind);
     }}};
+  let responseText=candidateText.slice(0,-1);
   const page=initChatGPTFixedBridgePage({api,doc,win,site,readPage:opts=>({
-    ok:true,turnKey:'turn-1',answerKey:'answer-1:0',blocks:[candidateText]})});
+    ok:true,turnKey:'turn-1',answerKey:'answer-1:0',blocks:[responseText]})});
   const select=nodes.find(node=>node.tag==='select');
   const input=nodes.find(node=>node.tag==='input');
   const labels=nodes.filter(node=>node.tag==='label');
@@ -114,9 +115,23 @@ test('ChatGPT page selects Baidu keyword and performs one approved automatic req
   assert.match(promptTexts[0],/"taskId":"baidu.search.top3"/);
   assert.equal(select.disabled,true); // task/params cannot switch within a prepared request
   snap.users=[{textContent:id}];snap.draft=''; // the user sent the request on ChatGPT
+  snap.busy=true;snap.idle=false;snap.answerComplete=false;
   await buttons[1].listeners.click({isTrusted:true}); // approve just this user turn
   assert.equal(sends.filter(x=>x.kind==='authorize').length,1);
   assert.equal(typeof poll,'function');
+  poll();
+  assert.equal(sends.filter(x=>x.kind==='execute').length,0);
+  responseText=candidateText; // valid JSON alone is not a completed official response
+  poll();
+  assert.equal(sends.filter(x=>x.kind==='execute').length,0);
+  snap.busy=false;snap.idle=true;
+  poll();
+  assert.equal(sends.filter(x=>x.kind==='execute').length,0);
+  snap.answerComplete=true;
+  responseText=candidateText.slice(0,-1); // completion cannot authorize malformed JSON
+  poll();
+  assert.equal(sends.filter(x=>x.kind==='execute').length,0);
+  responseText=candidateText;
   poll();
   await issued.promise;
   // Finish the asynchronous host result path before calling the interval again.

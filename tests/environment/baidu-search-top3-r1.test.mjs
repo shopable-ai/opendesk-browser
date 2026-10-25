@@ -30,10 +30,16 @@ const row=(n,ad=false)=>{
     querySelector:s=>s.startsWith('.c-abstract')?summary:null,
     querySelectorAll:s=>s==='h3 a'?[a]:s==='span,a,em,small'&&ad?[label]:[]};
 };
-async function run(rows,params={query:'关键词',limit:3},body=''){
+async function run(rows,params={query:'关键词',limit:3},body='',{searchAreaAvailable=true}={}){
  const page={url:async()=> 'https://www.baidu.com/s?wd='+encodeURIComponent('关键词'),
-   locator:()=>({waitFor:async()=>{},innerText:async()=>body}),
-   $$eval:async (selector,fn)=>{assert.equal(selector,'#content_left .result.c-container');return fn(rows);}};
+   locator:selector=>({waitFor:async()=>{
+     assert.equal(selector,'#content_left');
+     if(!searchAreaAvailable)throw new Error('Search area did not become visible');
+   },innerText:async()=>body}),
+   $$eval:async (selector,fn)=>{
+     assert.ok(searchAreaAvailable,'Unavailable search area must not be extracted');
+     assert.equal(selector,'#content_left .result.c-container');return fn(rows);
+   }};
  const ctx={page,params,URL,Date,Error,Object,Promise,getComputedStyle:()=>({display:'block',visibility:'visible'})};
  vm.createContext(ctx);
  vm.runInContext(src+';globalThis.run=main;',ctx,{timeout:1000});
@@ -50,6 +56,21 @@ test('no invented results on partial or empty SERP',async()=>{
  assert.equal((await run([row(1)])).count,1);
  const none=await run([],undefined,'没有找到相关内容');
  assert.equal(none.count,0);assert.equal(none.status,'no_results');
+});
+test('fixed task classifies captcha and missing or changed search DOM without invented results',async()=>{
+ for(const [searchAreaAvailable,body,status] of [
+   [false,'请完成安全验证','blocked'],
+   [false,'搜索页面仍未就绪','dom_unavailable'],
+   [true,'请输入验证码','blocked'],
+   [true,'搜索页面使用了尚未识别的结果结构','dom_changed']
+ ]){
+   const result=await run(searchAreaAvailable?[]:[row(1)],undefined,body,{searchAreaAvailable});
+   assert.equal(result.status,status);
+   assert.equal(result.count,0);
+   assert.deepEqual(Array.from(result.results),[]);
+   assert.equal(result.query,'关键词');
+   assert.equal(result.sourceUrl,'https://www.baidu.com/s?wd='+encodeURIComponent('关键词'));
+ }
 });
 test('refuses query mismatch and non-three limits before reading results',async()=>{
  await assert.rejects(run([],{query:'other',limit:3}),{code:'E_TARGET'});

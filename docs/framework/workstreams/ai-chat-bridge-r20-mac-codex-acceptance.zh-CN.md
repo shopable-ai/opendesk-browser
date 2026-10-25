@@ -2,6 +2,27 @@
 
 **默认中文｜ORIGINAL GOAL FIRST｜LATEST MAIN｜LOCAL MAC REAL CHROME｜DELTA ONLY｜CROSS-CHAT DEDUP｜NO SECOND HOST｜NO FAKE PASS｜ONLY MAIN**
 
+## 本轮目标与关键测试条件（2026-10-26 续推）
+
+用户要求设置目标并继续推进，已在本对话创建原生 active goal；目标仍是本文的百度真实闭环，不另建并列产品目标。下一条未完成用户操作是：取得可安装的当前完整 production 候选后，核对真实 Task 安装身份，再执行场景 A。
+
+| 门槛 | 具体通过条件 | 当前证据 |
+| --- | --- | --- |
+| 完整构建 | 当前源码经原构建器与来源/包校验成功，记录包指纹和真实 Chrome 加载路径/ID；部分产物、旧包不能替代。 | Prompt Shortcuts 来源 pin 仍不匹配；新官方 Page 目录另有加载错误，见下。 |
+| 本机安装 | 百度 Task 的 Candidate、Verified、Available、Installed、Enabled 均由真实入口核对；固定版本、双哈希、安装代际及两站权限正确。 | `NOT_TESTED`。 |
+| A 手动闭环 | 官网用户发送后，完整匹配候选→点击执行→真实 owned 百度 tab→一个 Run/Result→released→原会话一条结果消息→AI 基于实际条数中文续答。 | `NOT_TESTED`。 |
+| B 自动闭环 | 新请求在 AI 生成期间批准；生成未完、JSON 不完整或身份不匹配时运行数为 0；完整匹配后不点击执行仍只运行、产生结果及回传各 1 次。 | 已补强组件流式时序测试并通过该用例；真实操作 `NOT_TESTED`。 |
+| C 异常 | Task 真实检测分支分别报告 `blocked`、`no_results`、`dom_unavailable`、`dom_changed`；不编造结果、不绕过验证码、不无限重试。 | 新增 Task 源码分支组件用例已通过；真实百度异常 `NOT_TESTED`。 |
+| D 保护 | 重复点击不重放；关键词/会话/安装/权限/结果身份变化时拒绝；保留草稿、附件和 IME；发送无确定回执记 UNKNOWN，只读查询原请求。 | 原组件证据保留；真实边界 `NOT_TESTED`。 |
+
+续推已保留本地 Tunnel owner 提交并合入远端 `9f6c8f592` 的官方 Page 目录变更。百度/Bridge 产品源码及固定包未改；只有本轮两个测试文件补强。执行指定六文件测试后，**26 条通过，1 个测试文件在加载阶段失败**：`chatgpt-fixed-bridge-r12.test.mjs` 间接导入 `scripts/verify-package.mjs`，其新顶层目录读取抛出 `E_PAGE_CATALOG`。这不是旧 48/48 仍全部通过，亦不是已证实的 Bridge 产品回归。
+
+直接原因是 `official-pages/sources.json` 三个 blocked 条目的 `packageFile` 省略了 `opendesk.` 前缀，而新 validator 要求 `programId + '.opendesk-page.json'`。目录加载错误与已有 Prompt Shortcuts pin 都属于原任务之外 owner 的输入；未擅自改写其源码、pin、发行状态或安装状态。原始失败日志在 `artifacts/ai-chat-bridge-r20-mac-20261026/continue/core-tests.log`。
+
+已准备但**尚未应用**的最小解阻补丁在 `artifacts/ai-chat-bridge-r20-mac-20261026/continue/proposed-unblock.patch`：仅更新一个已审阅源码 pin、将三条 blocked 目录候选文件名与现行合同对齐，不提升发行状态，不安装或运行程序。需取得本轮范围例外或由对应 owner 修复后才能应用；独立审阅、定向来源/目录验证及新候选构建仍分别记录，不冒称完成。
+
+当前不需要用户登录或发送官网请求；先解除构建/测试入口。之后只在真实页面到达对应步骤时请求必要的登录、安装/站点授权、官网发送或验证码人工处理，不让用户代跑普通诊断和测试。
+
 ## 2026-10-26 本机执行记录：构建阻断，真实闭环未验收
 
 **本轮结论：`BLOCKED_BY_UNRELATED_OWNER`。不能确认百度搜索已在真实 Mac Chrome 完成。** 安全快进到 `main@7e6ef79569f31aa836121d89d3f3f08c6e9372a4` 后，指定六文件测试本机 **48/48 PASS、0 FAIL、0 SKIP**（573 ms）；不重复开发既有接线。以下是当前实测结果，不能用文末操作计划代替。
