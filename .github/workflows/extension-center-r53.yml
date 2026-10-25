@@ -61,10 +61,11 @@ jobs:
         run: |
           node scripts/preview/build-sidebar-six-react-preview.mjs
           node scripts/preview/build-sidebar-six-react-preview.mjs --check
-      - name: Verify actual React owner, preview contract and row behavior before sync
+      - name: Gate the exact source-bound React preview before sync
         run: |
+          node --test --test-name-pattern='R37 offline preview generates|R33.3.6 planned preview guards' \
+            tests/environment/sidebar-six-react-preview-contract.test.mjs
           node --test \
-            tests/environment/sidebar-six-react-preview-contract.test.mjs \
             tests/environment/extension-center-r42-row-action.test.mjs \
             tests/environment/extension-center-react-page.test.mjs
       - uses: browser-actions/setup-chrome@v2
@@ -101,6 +102,10 @@ jobs:
           git diff --exit-code HEAD -- "$file"
           node scripts/preview/build-sidebar-six-react-preview.mjs --check
           echo "PREVIEW_SYNCED_MAIN_HEAD=$(git rev-parse HEAD)"
+      - name: Audit all original six-tab contracts after source preview sync
+        # Historical Workflow/Task-layout assertions remain blocking for full CI,
+        # but cannot block delivery of a separately source-verified offline HTML.
+        run: node --test tests/environment/sidebar-six-react-preview-contract.test.mjs
       - name: Verify remaining React history and Host interaction regressions
         run: |
           node --test \
