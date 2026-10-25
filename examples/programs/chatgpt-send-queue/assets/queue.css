@@ -20,11 +20,11 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid #6984ff;outline-
 .sq-note{display:flex;align-items:center;gap:4px;min-height:26px;border-top:1px solid #e6e9f4;padding:5px 9px;background:#f8f9ff;color:#535e83;font-size:11px;line-height:1.4;overflow-wrap:anywhere}
 .sq-note-text{flex:1;min-width:0}.sq-note .sq-action{flex:none}
 /* R4.8 CROWN-VISUAL-BEGIN */
-.sq-send{--sq-crown-w:30px;--sq-crown-h:23px;--sq-crown-x:2px;--sq-crown-y:-13px;--sq-crown-angle:-10deg;position:relative;display:inline-flex;align-items:center;justify-content:center;padding:0;margin:0;width:34px;height:34px;min-width:34px;border:0;border-radius:50%;background:linear-gradient(145deg,#617cff,#415cdd);color:white;box-shadow:0 2px 7px #4f67ee39;overflow:visible}
+.sq-send{--sq-crown-w:26px;--sq-crown-h:20px;--sq-crown-x:-2px;--sq-crown-y:-11px;--sq-crown-angle:-25deg;position:relative;display:inline-flex;align-items:center;justify-content:center;padding:0;margin:0;width:34px;height:34px;min-width:34px;border:0;border-radius:50%;background:linear-gradient(145deg,#617cff,#415cdd);color:white;box-shadow:0 2px 7px #4f67ee39;overflow:visible}
 .sq-send>svg{width:17px;height:17px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .sq-send:hover{filter:brightness(1.07)}
 .sq-crown{position:absolute;top:var(--sq-crown-y);left:var(--sq-crown-x);width:var(--sq-crown-w);height:var(--sq-crown-h);display:block;pointer-events:none;z-index:1;border:0;border-radius:0;background:transparent url("crown-premium.webp") center / contain no-repeat;box-shadow:none;transform:rotate(var(--sq-crown-angle));transform-origin:52% 79%;filter:drop-shadow(0 1px 1px #6935125a)}
-@media(pointer:coarse){.sq-send{--sq-crown-w:36px;--sq-crown-h:27px;--sq-crown-x:3px;--sq-crown-y:-16px;width:42px;height:42px}}
+@media(pointer:coarse){.sq-send{--sq-crown-w:31px;--sq-crown-h:23px;--sq-crown-x:-1px;--sq-crown-y:-14px;width:42px;height:42px}}
 /* R4.8 CROWN-VISUAL-END */
 .sq-toast{position:absolute;right:0;bottom:44px;width:max-content;max-width:230px;padding:7px 10px;background:#273448;color:#fff;border-radius:8px;box-shadow:0 6px 20px #0003;font-size:12px;line-height:1.45;z-index:100;white-space:normal}
 [hidden]{display:none!important}

@@ -112,7 +112,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
     const activeAction=active?.dataset.action;
     root.replaceChildren();
     const rows=element(doc,'div','sq-rows');rows.setAttribute('role','list');
-    const shown=state.expanded?items:items.slice(0,2);
+    const shown=state.expanded?items:items.slice(0,3);
     for(const [i,item] of shown.entries()){
       const row=element(doc,'div','sq-row'+(item.state==='unknown'?' sq-unknown':''));
       row.setAttribute('role','listitem');row.dataset.idRow=item.id;row.tabIndex=0;
@@ -129,9 +129,9 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
       row.append(ops);rows.append(row);
     }
     root.append(rows);
-    if(items.length>2){
-      const more=element(doc,'button','sq-more',state.expanded?'收起队列':'展开其余 '+(items.length-2)+' 条');
-      more.type='button';more.dataset.action='more';root.append(more);
+    if(items.length>3){
+      const more=element(doc,'button','sq-more',state.expanded?'收起队列':'展开其余 '+(items.length-3)+' 条');
+      more.type='button';more.dataset.action='more';more.setAttribute('aria-expanded',String(state.expanded));root.append(more);
     }
     {
       const note=element(doc,'div','sq-note');
