@@ -1,0 +1,53 @@
+{
+  "schema": "opendesk.official-pages.sources.v1",
+  "sourceRepository": "https://github.com/shopable-ai/opendesk-browser",
+  "programs": [
+    {
+      "programId": "opendesk.ai-scroll-navigation",
+      "project": "examples/programs/chatgpt-jump-top",
+      "packageFile": "ai-scroll-navigation.opendesk-page.json",
+      "version": "0.4.0",
+      "revision": 1,
+      "title": "AI 对话滚动导航",
+      "description": "ChatGPT、DeepSeek、Gemini 的长内容及对话导航。",
+      "sites": [
+        "https://chatgpt.com/*",
+        "https://chat.deepseek.com/*",
+        "https://gemini.google.com/*"
+      ],
+      "installationPolicy": "reviewed",
+      "publication": "blocked",
+      "blockedReason": "新身份正式 Page 包尚未经过同源构建及三站权限核验。"
+    },
+    {
+      "programId": "opendesk.ai-reply-mindmap",
+      "project": "examples/programs/chatgpt-mindmap",
+      "packageFile": "ai-reply-mindmap.opendesk-page.json",
+      "version": "0.2.7",
+      "revision": 1,
+      "title": "AI 回复思维导图",
+      "description": "ChatGPT 回复的 XMind 查看、定位、导出及主题。",
+      "sites": [
+        "https://chatgpt.com/*"
+      ],
+      "installationPolicy": "on-demand",
+      "publication": "blocked",
+      "blockedReason": "XMind 生产资源许可及新身份正式包尚未满足发行条件。"
+    },
+    {
+      "programId": "opendesk.ai-send-queue",
+      "project": "examples/programs/chatgpt-send-queue",
+      "packageFile": "ai-send-queue.opendesk-page.json",
+      "version": "0.1.2",
+      "revision": 1,
+      "title": "AI 消息发送队列",
+      "description": "ChatGPT 主动入队的 FIFO 顺序发送与未知结果保护。",
+      "sites": [
+        "https://chatgpt.com/*"
+      ],
+      "installationPolicy": "reviewed",
+      "publication": "blocked",
+      "blockedReason": "R4.8 业务 owner 尚未完成新身份交接与正式打包。"
+    }
+  ]
+}

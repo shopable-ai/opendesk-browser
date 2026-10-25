@@ -136,6 +136,14 @@ async function resourceBytes(api,fetcher,path,limit,{external=false}={}){
   for(const part of parts){bytes.set(part,offset);offset+=part.length;}
   return bytes;
 }
+// Reuse the official extension-origin, no-redirect, bounded byte reader for Page bundles.
+// This does not grant the Page installation or website permissions.
+export async function loadBundledOfficialResource(path,limit,{api=globalThis.chrome,fetcher=globalThis.fetch}={}){
+  if(typeof path!=='string'||!/^official-pages\/(?:catalog\.json|[a-z0-9.-]+\/[a-z0-9.-]+\.opendesk-page\.json)$/.test(path)||
+    !Number.isSafeInteger(limit)||limit<1||limit>64*1024*1024)
+    throw error('非法的内置 Page 资源路径或大小限制','E_PACKAGE_SOURCE');
+  return resourceBytes(api,fetcher,path,limit);
+}
 function json(bytes){
   try{return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));}
   catch{throw error('官方发行资源 JSON 或编码无效','E_PACKAGE_SCHEMA');}

@@ -8,6 +8,7 @@ import {RESOURCE_LIMITS,SIDEPANEL_DOCUMENT_PATH} from './build-contract.mjs';
 import {resolveBrowserEdition,compilerResourcesForEdition,BROWSER_EDITION_RECORD,editionRecordText} from './browser-editions-r245.mjs';
 import {compileWorkspaceStyle} from './build-workspace-style.mjs';
 import {buildOfficialTools} from './build-official-tools.mjs';
+import {buildOfficialPages} from './build-official-pages.mjs';
 import {resolveMarketChannel,MARKET_CHANNEL_PATH} from './market-channel.mjs';
 import {trustedToolShellStyle} from './bundle-provenance.mjs';
 
@@ -96,6 +97,7 @@ export async function preparePublic() {
   await writeFile(resolve(publicRoot,'ui/tool-shell.css'),trustedToolShellStyle());
   // Generate optional release assets once from trusted source projects.
   await buildOfficialTools(publicRoot);
+  await buildOfficialPages(publicRoot);
   // Compile static Workspace CSS after the public directory is cleared.
   await compileWorkspaceStyle(publicRoot);
   await mkdir(resolve(publicRoot,'licenses'),{recursive:true});
