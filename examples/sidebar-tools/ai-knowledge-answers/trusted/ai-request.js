@@ -56,10 +56,11 @@ export function createKnowledgeAnswerConsumer({model,conversation,readLibrary,as
     latest=prepared;
     return {loaded:true,count:prepared.library.items.length,etag:prepared.etag};
   }
-  function request({request,scope='',signal,event}={}){
+  function request({request,scope='',signal,event,approvedKnowledgeTest=null}={}){
     live();
     if(busy)throw fail('E_KB_BUSY','上一轮问答尚未完成');
-    if(event?.isTrusted!==true)throw fail('E_USER_GESTURE','需要可信 UI 中的真实发送点击');
+    if(event?.isTrusted!==true&&!approvedKnowledgeTest)
+      throw fail('E_USER_GESTURE','需要可信 UI 点击，或已批准的本地自动推理会话');
     if(typeof request!=='string'||!request.trim()||request.length>300||
        typeof scope!=='string'||scope.length>60)
       throw fail('E_KB_QUESTION','问题或适用条件无效');
@@ -102,7 +103,8 @@ export function createKnowledgeAnswerConsumer({model,conversation,readLibrary,as
     };
     let pending;
     try{
-      pending=conversation.request({request:question,context,scope:'knowledge',signal:controller.signal,event});
+      pending=conversation.request({request:question,context,scope:'knowledge',signal:controller.signal,
+        event,approvedKnowledgeTest,knowledgeEtag:snapshot.etag});
     }catch(error){cleanup();throw error;}
     return Promise.resolve(pending).then(async result=>{
       const grant=result?.authorization;
