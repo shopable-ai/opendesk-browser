@@ -42,7 +42,7 @@ Browser 须包含本轮静态可信接线。日常开发复用 `dist/development
 4. 输入别名验证固定回答；输入“退款需要多少天？”准备候选，核对知识 ID、接收方与外发内容后发送。区分退款申请期限与处理/到账时长，不把测试数据当作企业政策。
 5. 核对来源与人工审阅标记，再验证取消、换 Provider、断线、撤权和知识更新后旧答案失效。
 
-本轮读取现有 Mac Chrome 扩展工作区再次被浏览器自动审批拒绝：URL 策略仅允许 HTTP/HTTPS，不允许 `chrome-extension:`。已停止该入口，没有改用其他表面、CDP 或 Profile 绕过。以上原生步骤仍待执行。
+上一轮读取现有 Mac Chrome 扩展工作区被浏览器自动审批拒绝：URL 策略仅允许 HTTP/HTTPS，不允许 `chrome-extension:`。已停止该入口，没有改用其他表面、CDP 或 Profile 绕过。以上原生步骤仍待执行；本次改从「开发 → 本地项目」核对入口的结果见文末。
 
 ## CSV 与验证
 
@@ -114,3 +114,15 @@ HTTP 正式源码预览中，已完成「输入退款期限是多少 → 查询�
 | 异常恢复 | 96 | 冲突/未知写入停写、可复制输入、主动回读；坏 JSON 和导出失败恢复 |
 
 **最终综合平均：未计算。** 原生安装、保存后关闭重开、真实可信工作区与沙箱隔离缺少本轮证据，维持 BLOCKED / NOT_TESTED / NOT_SCORED；不能用预览评分补齐或宣称“全部 ≥95 的完整验收通过”。剩余可选覆盖包括写后读回不一致及连续恢复失败，并非已复现 UI 缺陷，不扩大本轮工程。
+
+### R2.1-LOCAL 续接：开发 → 本地项目入口复核（2026-10-26）
+
+在真实 Mac Chrome 侧栏打开「开发 → 使用本地项目」，当前网页为标准测试页 `http://127.0.0.1:43111/demo-form.html`。侧栏显示「Chrome Native：已连接；源码 Provider：未就绪」及 `E_DEV_PROVIDER_UNAVAILABLE`；可选项目仅有另一工具的离线目录，尚未显示本工具已连接的目录。「关联已安装工具」「保存源码关联」「实时开发预览 ↗」入口存在，后两项当前不可用。这是当前连接状态，不能据此判定 Sidebar Tool 不受本地项目支持，也没有将本工具改成 Controller/Page Program。
+
+已登记 CLI 的只读 `opendesk-dev --doctor --json` 返回 Native 认证成功、`browserReady: true`，且登记内容与安装目录相符；通用 `opendesk browser doctor` 则返回 `connected: false`。这两种诊断都不能替代侧栏中的源码 Provider 就绪证据，也未证明实际加载的扩展路径、构建指纹或 dev serve 连接。保留已有 `npm run dev` 与 `dist/development`，没有重启、复制或替换日常扩展。
+
+按[现行本地预览合同](../../../docs/api/sidebar-tool-development.zh-CN.md#b-本地只读预览改得勤但暂不安装)，「实时开发预览 ↗」将短时、一次性的来源绑定意图交给原 Workspace，仍需校验目录、Native 租约与工具 ID；它不等于直接运行或安装 Sidebar Tool。当前 CLI 连接命令会自动打开原 Workspace，本轮没有用它绕过上一轮 URL 策略限制。共享 Chrome 前台随后被并行任务切换，停止争用窗口；未修改其他工具的目录关联、启动新 Provider 或新增 Profile。本工具的来源关联、实时预览、隔离存储批准及原生保存重开链仍为 **NOT_TESTED**，不是已复现的 UI 缺陷。
+
+本轮另在 HTTP 同源预览重新执行「查询退款期限 → 编辑答案 → 保存并读回确认 → 返回问答 → 再次查询」，可见固定答案包含新增的「本轮界面保存核对。」并保留 `qa_demo_refund` 来源。此次运行使用模拟内存 Host，刷新仍会重置，不证明安装后持久化或真实 AI。未发现新 UI 缺陷；正式源码、预览源码及唯一 `0.1.4` 安装包均未改动，因此复用前述有效定向证据，没有重复构建、全组测试或评分。
+
+续接证据保存在忽略目录 `artifacts/sidebar-tools/ai-knowledge-answers/`：`r21-local-entry-20261026.json` 与 `r21-local-entry-core-20261026.png`。下一条未验证操作仍是通过现有本地项目链连接本工具的准确目录并确认来源身份；原生安装、关闭重开和真实可信 AI 分离未被 HTTP 结果补齐。
