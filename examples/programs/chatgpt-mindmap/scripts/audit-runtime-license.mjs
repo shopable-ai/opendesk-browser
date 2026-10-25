@@ -11,7 +11,9 @@ const project=fileURLToPath(new URL('../',import.meta.url));
 const provenanceBytes=await readFile(new URL('../tests/xmind-provenance.json',import.meta.url));
 const manifest=JSON.parse(provenanceBytes.toString('utf8'));
 const pkg=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8'));
-if(pkg.opendesk?.id!=='opendesk.chatgpt-mindmap'||
+// Preserve the historic evidence report format, but admit only the new exact
+// Program ID; the four-asset provenance and PRODUCTION_BLOCKED gates are unchanged.
+if(pkg.opendesk?.id!=='opendesk.ai-reply-mindmap'||
    manifest.assets?.length!==4||
    !manifest.distribution?.includes('PRODUCTION_BLOCKED'))
   throw new Error('E_XMIND_LICENSE_AUDIT_METADATA_DRIFT');

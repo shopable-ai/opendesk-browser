@@ -52,3 +52,11 @@ R1.2.2：`docs/framework/workstreams/ai-four-products-r122-web-20261026.md`；�
 **唯一下一项业务操作：** 获取 Send Queue 业务 owner 对本目录身份文件及正式包的明确交接后，仅将其从旧 ID 升级为独立 `opendesk.ai-send-queue`，保留 FIFO、unknown-effect 和所有用户草稿安全。其后才在 Mac 用可信 builder 构建新 Scroll/Mind Map/Send Queue Page JSON 与新 Prompt 包、核对哈希、站点和 Authority，执行最小定向 Node/真实安装验证。四产品业务源码尚未完全结束，R1.3-LOCAL 正式验收阶段不得提前启动。
 
 本记录 owner：R1.2.3 远端源码交付；状态 `SOURCE_DELIVERED / RELEASED`。没有浏览器、构建或后台任务资源占用。
+
+## 本轮关联 CI 故障归因（源补丁后留待新提交复核）
+
+- 本轮首个身份提交后的 CI `40220928660` job `121252128229` 在 `audit-runtime-license.mjs:17` 失败，实读错误 `E_XMIND_LICENSE_AUDIT_METADATA_DRIFT`；触发因子为审核入口仍只接受旧 `opendesk.chatgpt-mindmap` Program ID。按原 owner 文件最小修复：只把审核的**精确 ID guard**改为新身份，保留旧 license-audit 报告格式、四个原始资源 byte/hash/provenance 验证、`PRODUCTION_BLOCKED` 和 `--require-approved` 强制失败。**这不是 XMind 许可批准或安装准入。** 对应 `tests/xmind-license-audit.test.mjs` CLI 审计及强制不通过断言需要在新提交 CI 复核。
+- 同一 run 的 job `121252128351` 报 `Trusted Prompt Shortcuts source changed; review and re-pin before fixed build: examples/sidebar-tools/prompt-shortcuts/trusted/model.js`，与 R1.2.2 改动有关但归 Prompt/Fixed Bundle provenance owner，`OWNED_ELSEWHERE`，本轮**没有**擅自更新来源 pin。
+- 同一 run job `121252128388` 报 `E_PROJECT_FILE: assets/xmind-runtime.js` 缺失；属于按既有安全准备脚本生成固定资源/许可准入的阻塞，**未**通过空文件、CDN 或放宽项目校验修复。
+- 同版 `r3-package` 和 Sidebar P0 的 `task-workbench` 失败归平台/其他 UI owner，暂记 `UNRELATED_FAILURE`，不据此扩展改动范围。
+- 这些均是真实 GitHub CI job 日志，不是用户 Mac 本地 Node、真实 Chrome 或安装验收。新的 CI 若仍失败，按具体步骤重查，不复制旧报错冒充新包结果。
