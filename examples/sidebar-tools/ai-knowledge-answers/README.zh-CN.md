@@ -1,6 +1,6 @@
 # AI 知识问答 · R1.3 本地模拟聊天测试（保留 R1.2 工具）
 
-独立 Sidebar Tool v2，ID `ai-knowledge-answers`，版本 `0.1.2`。复用原 Tool Host、存储、Shared AI Provider 和唯一 React root。R1.3 已在可信环境接入**仅固定本地 HTTP 测试页**的 DOM 观察、定时消息处理、草稿发送与独立 DOM 回执；这些新操作尚未完成真实 Mac Chrome 验收。其他第三方网站仍不在本轮范围。
+独立 Sidebar Tool v2，ID `ai-knowledge-answers`，版本 `0.1.3`。复用原 Tool Host、存储、Shared AI Provider 和唯一 React root。R1.3 已在可信环境接入**仅固定本地 HTTP 测试页**的 DOM 观察、定时消息处理、草稿发送与独立 DOM 回执；这些新操作尚未完成真实 Mac Chrome 验收。其他第三方网站仍不在本轮范围。
 
 ## R1.3：从哪里开始测试（原生尚未验收）
 
@@ -36,7 +36,7 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 
 Browser 须包含本轮静态可信接线。日常开发复用 `dist/development` 已有 watcher；只导入 JSON 不会升级 Browser 的可信代码。
 
-1. 在「扩展」官方可发现列表选择「AI 知识问答」，核对 `0.1.2`、来源、能力与摘要，使用原确认安装/更新流程。安装后打开即可，无通用二次启用步骤。保留原知识数据，不先卸载；可信 Browser 准入版本也须与新包一致。
+1. 在「扩展」官方可发现列表选择「AI 知识问答」，核对 `0.1.3`、来源、能力与摘要，使用原确认安装/更新流程。安装后打开即可，无通用二次启用步骤。保留原知识数据，不先卸载；可信 Browser 准入版本也须与新包一致。
 2. 仅从本地文件导入时，原安装器不会制造官方 provenance；知识管理继续可用，可信 AI 保持关闭。使用可信 AI 须通过同一安装器审阅准确官方发行，不能手写来源记录或借用其他工具身份。
 3. 新建明确标为测试数据的知识“退款期限是多少 → 7 天内可退款”，添加别名“多久可以退款”，保存；关闭重开并核对数据。
 4. 输入别名验证固定回答；输入“退款需要多少天？”准备候选，核对知识 ID、接收方与外发内容后发送。区分退款申请期限与处理/到账时长，不把测试数据当作企业政策。
@@ -74,3 +74,9 @@ node --test tests/environment/ai-knowledge-answers-ui-r2.test.mjs
 ```
 
 若发现该端口被其他 Agent 占用，则复用原端口或选当前会话未占用的端口，不得终止他人的服务。R2 UI 对正式 Chrome 安装及独立 Provider 请求均维持 `NOT_TESTED`。
+
+## R2.1 · 核心 UI 交互与同源预览（2026-10-26）
+
+正式 HTML/CSS/JS 已设计为问答先行，知识加载条数及来源状态持续可见；长问题最多两行，删除入口在编辑页折叠危险区；取消、删除、导入预览进入侧栏可见的 Tab/Escape 确认层；Ctrl/⌘+Enter 快捷查询。
+
+`preview/index.html` 通过 HTTP 继续加载正式 `src/index.html`、`src/style.css`、`src/model.js` 和 `src/main.js`，支持空库/14 条与 Host 保存冲突、回执丢失、读取失败测试。预览的可信 AI 审阅只模拟状态，**不调用 Provider**，不表示原生 Chrome 验收。原知识数据结构、ETag 写后读回、权限及工具 ID 不变；正式包和可信版本准入同步到 0.1.3。旧版测试不能冒充新版验证。

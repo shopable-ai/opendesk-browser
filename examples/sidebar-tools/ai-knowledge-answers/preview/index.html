@@ -29,11 +29,23 @@ body{margin:0;color:#253146;background:var(--od-bg);font:13px/1.5 system-ui,-app
 .preview-foot{max-width:900px;margin:0 auto;padding:0 16px 30px;color:#657286;font-size:12px}
 .preview-foot code{font:11px ui-monospace,monospace}
 .preview-error{max-width:560px;margin:30px auto;padding:12px;color:#9e3044;background:#fff4f4;border:1px solid #f3c2ca;border-radius:8px}
+.preview-scenarios{max-width:900px;margin:0 auto 10px;padding:0 16px;display:flex;flex-wrap:wrap;gap:10px}
+.preview-scenarios label{display:flex;align-items:center;gap:6px;color:#53647e;font-size:12px}
+.preview-scenarios select{max-width:240px;border:1px solid #dbe3ed;border-radius:8px;padding:7px 8px;background:#fff;color:#273348}
+.preview-trusted{max-width:868px;margin:0 auto 10px;padding:9px 12px;border:1px solid #dbe3ed;border-radius:10px;background:#fff;color:#53647e}
+.preview-trusted summary{cursor:pointer;font-weight:650}
+.preview-trusted p{margin:8px 0}
+.preview-trusted button{border:1px solid #dbe3ed;border-radius:8px;background:#f4f7fb;padding:8px;color:#273348;cursor:pointer}
+.preview-trusted output{display:block;margin-top:8px;white-space:pre-wrap;overflow-wrap:anywhere}
+.preview-panel .od-button,.preview-panel .od-icon-button{min-height:34px;border-radius:8px}
+.preview-panel .od-button--quiet{background:transparent;border-color:transparent}
+.preview-panel .qa-record{padding:12px 10px}
+.preview-panel .od-field{border:1px solid #7f8da1;border-radius:8px;padding:8px 10px;min-height:36px}
 </style>
 </head>
 <body>
 <header class="preview-header">
-  <div><h1>AI 知识问答 · R2 界面交互</h1><p>同源预览：运行真实 HTML / CSS / model.js / main.js，Host 存储由本页模拟</p></div>
+  <div><h1>AI 知识问答 · R2.1 同源交互预览</h1><p>同源预览：运行真实 HTML / CSS / model.js / main.js，Host 存储由本页模拟</p></div>
   <div class="preview-buttons" role="group" aria-label="切换侧栏预览宽度">
     <button data-size="320" aria-pressed="false">320</button>
     <button data-size="360" aria-pressed="true">360</button>
@@ -42,7 +54,9 @@ body{margin:0;color:#253146;background:var(--od-bg);font:13px/1.5 system-ui,-app
     <button data-size="600" aria-pressed="false">600</button>
   </div>
 </header>
-<div class="preview-notice">仅模拟存储与文件导出。真实 Provider、安装授权和 Chrome 网站自动回复仍需独立验收。重新加载页面可恢复示例知识。</div>
+<div class="preview-notice">正式 HTML / CSS / model.js / main.js 同源运行；仅 Host 存储与导出为模拟。Provider 与网站发送不在本页执行。</div>
+<div class="preview-scenarios"><label>测试数据 <select id="preview-seed"><option value="sample">14 条示例</option><option value="empty">空知识库</option></select></label><label>下次读写异常 <select id="preview-fault"><option value="none">正常</option><option value="conflict">保存冲突</option><option value="unknown">回执丢失</option><option value="read">读取失败</option></select></label></div>
+<details class="preview-trusted"><summary>可信 AI 待审阅状态演示（仅模拟）</summary><p>独立于正式工具沙箱；不连接 Provider、不生成真实答案、不发送消息。</p><button id="preview-ai" type="button">演示 AI 草稿待审阅</button><output id="preview-ai-result" role="status" aria-live="polite"></output></details>
 <main class="preview-stage">
   <div class="preview-panel" id="preview-panel">
     <header class="preview-host-title"><strong>AI 知识问答</strong><span>OpenDesk · Sidebar Tool</span><button type="button" id="preview-reload" title="重置模拟数据">重置</button></header>
@@ -72,19 +86,32 @@ body{margin:0;color:#253146;background:var(--od-bg);font:13px/1.5 system-ui,-app
       read('../fixtures/sample-knowledge.json').then(r=>r.json())
     ]);
     root.innerHTML=markup;
-    let saved=clone(seed);
+    const scenario=new URLSearchParams(location.search).get('seed')==='empty'?'empty':'sample';
+    const seedSelect=document.getElementById('preview-seed');seedSelect.value=scenario;
+    seedSelect.addEventListener('change',()=>{
+      const url=new URL(location.href);url.searchParams.set('seed',seedSelect.value);location.assign(url.href);
+    });
+    const faultSelect=document.getElementById('preview-fault');let fault='none';
+    faultSelect.addEventListener('change',()=>{fault=faultSelect.value;});
+    const consumeFault=()=>{const result=fault;fault='none';faultSelect.value='none';return result;};
+    let saved=clone(scenario==='empty'?{version:1,items:[]}:seed);
     const previewStatus={dirty:false,busy:false};
     window.OpenDeskTool={
       root,
       setState:s=>Object.assign(previewStatus,s),
       request:async(operation,args={})=>{
         if(operation==='storage.get'){
+          if(fault==='read'){consumeFault();throw Object.assign(new Error('模拟读取失败'),{code:'E_PREVIEW_READ'});}
           return {value:clone(saved),etag:await fingerprint(saved)};
         }
         if(operation==='storage.set'){
+          const selected=consumeFault();
           const current=await fingerprint(saved);
-          if(args.ifMatch!==current)throw Object.assign(new Error('本次修改依据的 ETag 已过期'),{code:'E_STORAGE_CONFLICT'});
+          if(selected==='conflict'||args.ifMatch!==current)
+            throw Object.assign(new Error('模拟版本冲突'),{code:'E_STORAGE_CONFLICT'});
           saved=clone(args.value);
+          if(selected==='unknown')
+            throw Object.assign(new Error('模拟保存已生效但回执丢失，不应自动重复写入'),{code:'E_OUTCOME_UNKNOWN'});
           return {saved:true,etag:await fingerprint(saved)};
         }
         if(operation==='file.download'){
@@ -108,6 +135,19 @@ body{margin:0;color:#253146;background:var(--od-bg);font:13px/1.5 system-ui,-app
     await script('../src/model.js');
     window.OpenDeskKnowledgeAnswersModel.library(saved);
     await script('../src/main.js');
+    document.getElementById('preview-ai').addEventListener('click',()=>{
+      const out=document.getElementById('preview-ai-result'),question=root.querySelector('#qa-query')?.value?.trim()||'';
+      if(!question){out.textContent='请先在问答页输入问题。';return;}
+      try{
+        const found=window.OpenDeskKnowledgeAnswersModel.lookup(
+          window.OpenDeskKnowledgeAnswersModel.library(saved),
+          {question,scope:root.querySelector('#qa-query-scope')?.value||''});
+        out.textContent=found.sourceIds.length?
+          '模拟 AI 草稿 · 待人工审阅。候选来源：'+found.sourceIds.join('、')+
+          '。没有调用 Provider，也没有生成可信答案。':
+          '模拟 Provider 不可用 / 缺少依据 · 不允许自动回复。';
+      }catch(e){out.textContent='模拟准备失败：'+String(e.message||e);}
+    });
   }catch(error){
     fail('同源预览载入失败：'+String(error.message||error)+
       '。请使用本地 HTTP 服务打开，确认正式源码路径和 fixtures 文件存在。');

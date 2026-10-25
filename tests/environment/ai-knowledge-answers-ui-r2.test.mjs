@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {createHash,randomUUID} from 'node:crypto';
 import {runInNewContext} from 'node:vm';
 import {parseHTML} from 'linkedom';
-import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
+import {createSidebarToolPackage,encodeSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 const base=new URL('../../examples/sidebar-tools/ai-knowledge-answers/',import.meta.url);
 const read=path=>readFileSync(new URL(path,base),'utf8');
 test('R2 UI: source pages are separate and there is no ever-expanded CRUD column',()=>{
@@ -133,4 +133,33 @@ test('R2 component: dirty navigation can be cancelled; unknown save blocks a sec
  assert.equal(ui.get('qa-view-list').hidden,false);
  assert.match(ui.get('qa-list').textContent,/退款期限是多少/);
  assert.equal(ui.get('qa-save').disabled,false);
+});
+
+test('R2.1: answer-first, long names and source verdicts are in real source',()=>{
+ const html=read('src/index.html'),css=read('src/style.css'),js=read('src/main.js');
+ for(const id of ['qa-ready-label','qa-result-advice','qa-source-title','qa-danger','qa-review-backdrop'])
+  assert.match(html,new RegExp('id="'+id+'"'));
+ assert.match(js,/qa-ready-label/);assert.match(js,/qa-source-title/);
+ assert.match(js,/e\.ctrlKey\|\|e\.metaKey/);assert.match(css,/-webkit-line-clamp:2/);
+ assert.doesNotMatch(html,/aria-modal="false"/);
+});
+test('R2.1: visible confirmation preserves dirty input on cancel',async()=>{
+ const ui=mount();await tick();ui.click('qa-tab-list');ui.click('qa-new');
+ assert.equal(ui.get('qa-danger').hidden,true);
+ ui.input('qa-question','模拟客户提问');ui.input('qa-answer','已核实');
+ ui.click('qa-back');assert.equal(ui.get('qa-review-backdrop').hidden,false);
+ ui.click('qa-cancel');assert.equal(ui.get('qa-review-backdrop').hidden,true);
+ assert.equal(ui.get('qa-question').value,'模拟客户提问');
+ assert.match(read('src/main.js'),/e\.key==='Tab'/);
+});
+test('R2.1: preview stays source-linked and models Host failure separately from Provider',()=>{
+ const html=read('preview/index.html');
+ for(const value of ['../src/index.html','../src/style.css','../src/model.js','../src/main.js',
+  'preview-fault','preview-seed','E_OUTCOME_UNKNOWN','E_STORAGE_CONFLICT','preview-ai'])
+  assert.ok(html.includes(value),value);
+});
+test('R2.1: project release is exact canonical source build',async()=>{
+ const tool=await createSidebarToolPackage(new URL('.',base).pathname);
+ assert.equal(tool.version,'0.1.3');
+ assert.equal(read('ai-knowledge-answers.opendesk-tool.json'),encodeSidebarToolPackage(tool).toString('utf8'));
 });

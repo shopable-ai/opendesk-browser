@@ -145,3 +145,19 @@ OPENDESK_KB_EVIDENCE=/Users/shopme/Documents/workspace/opendesk-browser/artifact
 该并行记录当时 NOT_TESTED：真实原源码加载及完整 Node 测试退出码、Mac Chrome 安装/重开、IME、暗色无障碍、Shared AI Provider、真实网页发送。完整 Node 结果已由上方本轮日志补证，其他边界保留。
 
 R2 UI 不能代替自动问答闭环。并行实现的本地测试适配与可信控件已保留；网站真实触发和读回仍属延期阶段。本轮下一条未验证操作仍为官方安装 → 保存重开 → 可信 Send，不重做 R2 列表/编辑 UI。
+
+## R2.1 · UI 问题、增量修复与验证边界（2026-10-26）
+
+原始目标不变：用户先测试知识回答，列表与编辑互斥；可信 AI Provider 由独立 Shared Workspace 拥有。本轮只在已完成的 R2 三视图上修正 UX。
+
+| 问题 | 用户影响 | 真实源码变化 | 可验证标准 |
+| --- | --- | --- | --- |
+| 不显示载入状态 | 不知能否问答 | `src/index.html` / `src/main.js`：知识条数及待核对状态 | 空/14 条/错误不同文案 |
+| 单行长标题被截断 | 难辨认知识 | `src/style.css`：标题最多两行 | 320–440px 无横向滚动 |
+| 危险删除置于页面顶部 | 易误操作 | `src/index.html`：折叠危险区 | 仅编辑已有知识可删除，需确认 |
+| 文末确认区不可见，焦点可逃出 | 未保存保护不可靠 | `src/{index.html,style.css,main.js}`：固定确认层、Tab/Escape、取消回焦 | 取消不丢草稿、未知写入不重试 |
+| 答案来源和检索性质不明 | 误认为 AI 已回答 | `src/{index.html,main.js}`：类型提示及来源显示 | 固定/候选/冲突/无来源明确 |
+| 预览无错误场景 | 难检查异常恢复 | `preview/index.html`：一轮 Host 冲突/未知/读失败模拟 | 不把模拟当 Provider |
+| 新 UI 与可信准入版本冲突 | AI 入口被拒 | 唯一正式包/config/精确准入/定向测试 | 0.1.3 同源、非匹配来源拒绝 |
+
+本轮远端 GitHub 修改只能证明内容级检查；没有最新候选的本地 Node、HTTP 浏览器和 Mac Chrome 实验时，必须分别标 NOT_TESTED。旧 R1/R2 的 PASS 不得借用。并行 R1.3 local-test-runtime 与 Send Fence 保持原所有权。

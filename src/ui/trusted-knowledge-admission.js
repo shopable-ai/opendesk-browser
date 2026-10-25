@@ -5,7 +5,7 @@ import {sameSidebarToolPackage} from './sidebar-tools/installation.js';
 import {requireToolEnableRecords,requireToolRevocationEpochs} from './sidebar-tools/lifecycle.js';
 
 export const TRUSTED_KNOWLEDGE_ID='ai-knowledge-answers';
-export const TRUSTED_KNOWLEDGE_VERSION='0.1.2';
+export const TRUSTED_KNOWLEDGE_VERSION='0.1.3';
 const validHash=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 const own=value=>value&&typeof value==='object'&&!Array.isArray(value)&&
   Object.hasOwn(value,TRUSTED_KNOWLEDGE_ID)?value[TRUSTED_KNOWLEDGE_ID]:null;

@@ -15,7 +15,11 @@ function state(){
   const blocked=!ready||busy||uncertain||Boolean(review);
   setState?.({dirty,busy});
   for(const id of [...edits,...actions])$(id).disabled=blocked;
+  $('qa-danger').hidden=!selected;
   $('qa-delete').hidden=!selected;$('qa-delete').disabled=blocked||!selected;
+  $('qa-ready-label').textContent=uncertain?'写入或读取待核对，请刷新':!ready?'正在读取知识库…':
+    '已载入 '+kb.items.length+' 条知识 · 本地查询可用';
+  $('qa-ready-dot').classList.toggle('off',!ready||uncertain);
   $('qa-refresh').disabled=busy||Boolean(review);
   $('qa-manage-toggle').disabled=blocked;
   for(const button of $('qa-list').querySelectorAll('button'))button.disabled=blocked;
@@ -38,17 +42,27 @@ function confirmAction(message,work,label='确认'){
   if(review||busy)return;
   review={work,focus:root.ownerDocument.activeElement};
   $('qa-review-message').textContent=message;$('qa-accept').textContent=label;
-  $('qa-review').hidden=false;state();$('qa-cancel').focus();
+  $('qa-review-backdrop').hidden=false;$('qa-review').hidden=false;state();$('qa-cancel').focus();
 }
 function reviewDone(ok){
   if(!review)return;
-  const chosen=review;review=null;$('qa-review').hidden=true;state();
-  if(ok)void Promise.resolve().then(chosen.work).catch(e=>notice('操作失败：'+String(e?.message||e),true));
+  const chosen=review;review=null;$('qa-review').hidden=true;$('qa-review-backdrop').hidden=true;state();
+  if(ok)void Promise.resolve().then(chosen.work).then(()=>{
+    $(view==='edit'?'qa-question':view==='list'?'qa-search':'qa-query').focus({preventScroll:true});
+  }).catch(e=>notice('操作失败：'+String(e?.message||e),true));
   else (chosen.focus?.isConnected?chosen.focus:$('qa-tab-list')).focus({preventScroll:true});
 }
 $('qa-cancel').addEventListener('click',()=>reviewDone(false));
 $('qa-accept').addEventListener('click',()=>reviewDone(true));
-root.ownerDocument.addEventListener('keydown',e=>{if(e.key==='Escape'&&review){e.preventDefault();reviewDone(false);}});
+root.ownerDocument.addEventListener('keydown',e=>{
+  if(!review)return;
+  if(e.key==='Escape'){e.preventDefault();reviewDone(false);return;}
+  if(e.key==='Tab'){
+    e.preventDefault();const cancel=$('qa-cancel'),accept=$('qa-accept');
+    (e.shiftKey?(root.ownerDocument.activeElement===cancel?accept:cancel):
+      (root.ownerDocument.activeElement===accept?cancel:accept)).focus();
+  }
+});
 function guard(action,{recover=false}={}){
   if(busy||review)return;
   // An unresolved write may have taken effect. Navigation is not reconciliation.
@@ -200,6 +214,11 @@ for(const id of edits){
   $(id).addEventListener('input',()=>{if(ready&&!busy&&!uncertain){dirty=true;state();}});
   $(id).addEventListener('change',()=>{if(ready&&!busy&&!uncertain){dirty=true;state();}});
 }
+$('qa-query').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)&&!e.isComposing){
+    e.preventDefault();if(!$('qa-ask').disabled)$('qa-ask').click();
+  }
+});
 $('qa-ask').addEventListener('click',()=>{
   if(!ready||busy||uncertain)return;
   const sources=$('qa-result-sources');sources.replaceChildren();$('qa-result').hidden=true;
@@ -207,6 +226,15 @@ $('qa-ask').addEventListener('click',()=>{
     const r=m.lookup(kb,{question:$('qa-query').value,scope:$('qa-query-scope').value.trim()});
     $('qa-result-kind').textContent=({ANSWERED_FIXED:'固定答案',RETRIEVED_ONLY:'检索到相关知识',
       AMBIGUOUS:'资料冲突',NO_MATCH:'没有可信依据'})[r.status]||'人工核对';
+    $('qa-result').dataset.tone=r.status==='ANSWERED_FIXED'?'fixed':
+      r.status==='NO_MATCH'?'none':'review';
+    $('qa-result-advice').textContent=({
+      ANSWERED_FIXED:'来自已保存的标准答案，请核对是否符合当前业务条件。',
+      RETRIEVED_ONLY:'这是检索候选，不是 AI 生成答案；请在可信 AI 工作区审阅。',
+      AMBIGUOUS:'多个条目存在冲突，请人工检查，不应自动回复。',
+      NO_MATCH:'本地知识没有依据，请补充资料或转人工。'
+    })[r.status]||'请人工核对答案和来源。';
+    $('qa-source-title').hidden=r.sourceIds.length===0;
     $('qa-result-count').textContent=r.sourceIds.length+' 条来源';
     $('qa-result-text').textContent=r.answer||(r.status==='RETRIEVED_ONLY'?
       '找到了相关资料，本次仅展示检索结果。如上方显示可信 AI 问答，请在那里准备并审阅知识后发送。':
