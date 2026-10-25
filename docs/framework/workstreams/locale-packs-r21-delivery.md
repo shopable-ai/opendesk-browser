@@ -2,6 +2,30 @@
 
 2026-10-25；工作目录 `/Users/shopme/Documents/workspace/opendesk-browser`；仅 main。核心源码、正式 Reading TOC JSON 和日语语言包已交付；完整 Browser 构建、真实安装与原生闭环尚未完成，不能宣布总目标验收通过或七项均达到 95。
 
+## 本次续验：操作是否真正到达工具界面
+
+补齐两处自动化缺口，并执行以下定向命令，**32/32 PASS**：
+
+```sh
+node --test tests/environment/extension-center-locale-manager-r21.test.mjs tests/environment/sidebar-tool-locale-pilot-r21.test.mjs tests/environment/sidebar-tool-locale-packs-r21.test.mjs
+```
+
+- 真实 React 管理器选择文件、取消、确认 → 原语言服务经模拟 storage 适配器写入并读回 → 原 Tool Host 发送消息 → 原 Sandbox Bridge → 正式 Reading TOC 1.0.10 JS 更新 DOM。确认前不改文案；确认后显示日语；同为 ja 的覆盖也更新；空白译文不写入、不清空按钮；缺词和删除逐项回退。目录 iframe、业务标题节点、模拟滚动/焦点保持，只发生一次初始目录读取，没有附带网页跳转或业务/权限写入。
+- 正式 55 条日语样例先导入 53 条，仅导出两个缺失键，补齐回导后重新创建服务仍保留 55 条，另外 53 行文本字节不变。同语言更新触发订阅，安装记录、业务数据及正式包字节不变。
+
+这些是 **Node 集成与 DOM 模拟证据**；未发现需要修改的新增产品源码缺陷。不能据此声称真实 Chrome 安装、沙箱 CSP、原生焦点或浏览器重启已通过。新增沙箱辅助器仅供测试，不进入产品或打包链。
+
+截至本次入口核对：Chrome 日常扩展 ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，磁盘加载目录是本仓库 `dist/development`，Native doctor 连接正常；开发 serve 端口 43119/43120 无监听，属于静态开发产物，不能称为持续开发。下文 PID 44689 与旧候选构建记录是历史观察。当前磁盘包含 1.0.10 正式工具及 R2.1 模块，仍不能证明浏览器已加载对应 UI。原生扩展页访问限制仍在，未采用替代 app、CDP 或间接导航绕过，也未因这次测试改动重跑无关全量构建。
+
+## 用户操作简版（真实 Chrome 尚待执行）
+
+1. 在「扩展」确认已安装的阅读目录是 **1.0.10** 或支持语言元数据的新版本；旧版需先按原安装流程升级。
+2. 将 `examples/sidebar-tools/reading-toc/languages/ja.opendesk-locale.json` 拖到「扩展」导入区，确认预览为阅读目录、目标 `ja`、55 条文案，再点「确认导入」。
+3. 打开阅读目录，检查刷新按钮的辅助标签为「目次を更新」、悬停提示为「現在のページの見出しを再取得」；「全部」模式辅助标签为「すべての見出し」。文章自己的标题保持原样。
+4. 关闭重开工具，再重启 Chrome，检查以上日语仍保留。这里只完成了自动化服务重开测试，真实浏览器重启步骤仍为 **NOT_TESTED**。
+
+通过标准是工具实际文案变化并在重开后保持；仅出现「语言包已保存」不算完成。
+
 ## 已完成的产品行为
 
 - 扩展中心管理菜单可选择全局语言、管理语言包；原 JSON 选择/拖放按 `format` 分流，语言数据不进入代码安装器。单个支持本地化的工具在原设置中选择「跟随 OpenDesk」或覆盖语言，并打开低频管理入口。

@@ -9,6 +9,12 @@ import {createToolLocaleService,toolLocaleStorageKey} from '../../src/ui/sidebar
 import {createToolLocalization} from '../../src/ui/sidebar-tools/localization.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {createUiLocaleController} from '../../src/ui/app-localization.js';
+import {createSidebarTools} from '../../src/ui/sidebar-tools.js';
+import {createSidebarToolsView} from '../../src/ui/sidebar-tools-view.js';
+import {MARKET_PROVENANCE_STORE} from '../../src/ui/sidebar-tools/installation.js';
+import {OFFICIAL_READING_TOC_RELEASE} from '../../src/sidebar-tools/official-reading-toc.js';
+import {officialToolFixture} from '../helpers/official-tools.mjs';
+import {createSidebarToolSandboxDOM} from '../helpers/sidebar-tool-sandbox-dom.mjs';
 
 // Compile the production components, with CSS omitted only for the DOM emulator.
 const compile=async(path,replacements)=>{
@@ -42,6 +48,106 @@ async function setup(t){
   return {tool,saved,api,service,pack};
 }
 const buttonNamed=(doc,text)=>[...doc.querySelectorAll('button')].find(node=>node.textContent===text);
+
+test('confirmed Japanese import reaches the running official TOC through real manager, service, host and sandbox',async t=>{
+  const tool=await officialToolFixture('reading-toc');
+  const pack=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/reading-toc/languages/ja.opendesk-locale.json',import.meta.url),'utf8'));
+  const pin=OFFICIAL_READING_TOC_RELEASE;
+  const saved={[SIDEBAR_TOOL_STORE]:[tool],
+    [MARKET_PROVENANCE_STORE]:{[tool.id]:{marketId:pin.marketId,version:pin.version,sha256:pin.sha256}},
+    business:{readingPosition:42}};
+  const before=structuredClone(saved),writes=[],listeners=new Set();
+  const api={runtime:{getURL:path=>'chrome-extension://fixture/'+path,async sendMessage(){}},storage:{
+    onChanged:{addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn)},
+    local:{async get(keys){return Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(key=>[key,structuredClone(saved[key])]));},
+      async set(values){writes.push(Object.keys(values));Object.assign(saved,structuredClone(values));},
+      async remove(key){delete saved[key];}}}};
+  const lockManager={request:async(name,work)=>work()};
+  const service=createToolLocaleService({api,lockManager});await service.ready;t.after(()=>service.dispose());
+  const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{tools:[tool],toolId:tool.id,service,onClose(){}}}});
+  const bridge=await build({entryPoints:[new URL('../../src/sidebar-tools/bridge.js',import.meta.url).pathname],
+    bundle:true,write:false,format:'iife',globalName:'SandboxBridge',platform:'browser',define:{'import.meta.env.MODE':'"production"'}});
+  const sandbox=createSidebarToolSandboxDOM(t,{hostWindow:ui.window,bridgeCode:bridge.outputFiles[0].text});
+  const createElement=ui.doc.createElement.bind(ui.doc);
+  ui.doc.createElement=tag=>{
+    const node=createElement(tag);
+    if(tag==='iframe')Object.defineProperty(node,'contentWindow',{value:sandbox.transport});
+    return node;
+  };
+  const view=createSidebarToolsView(),frameRoot=ui.doc.createElement('div');
+  ui.doc.body.append(frameRoot);view.attachRuntime({frameRoot,settingsControl:ui.doc.createElement('button')});
+  const url='https://example.com/article',pageCalls=[];
+  api.tabs={async sendMessage(tabId,message,options){
+    pageCalls.push(message);assert.equal(tabId,7);assert.equal(message.expectedUrl,url);
+    assert.deepEqual(options,{frameId:0,documentId:'locale-document'});
+    return {ok:true,data:{items:[{id:'h-1',sourceId:'s-1',label:'业务标题保持原样',depth:0}],
+      sources:[{id:'s-1',label:'当前文章'}],activeId:'h-1'}};
+  }};
+  const target={snapshot:{status:'available',url},
+    capture:()=>({url,origin:'https://example.com',tabId:7,documentId:'locale-document'}),async revalidate(){return true;}};
+  const host=createSidebarTools({api,doc:ui.doc,view,toolLocaleService:service,lockManager,currentPageTarget:target,
+    fetcher:async()=>new Response('catalog intentionally offline',{status:503}),taskWorkbench:{}});
+  t.after(()=>{host.dispose();view.dispose();});
+  await host.ready;host.setVisible(true);host.openTool(tool.id);
+  const frame=frameRoot.firstElementChild;assert.ok(frame);await frame.onload();
+  const toc=sandbox.doc.getElementById('tool-root');
+  await settle(()=>toc.querySelector('.toc-link'));
+  assert.deepEqual(sandbox.errors,[]);
+  assert.equal(sandbox.sent.find(row=>row.kind==='load').tool.js,tool.js,'run exact installed package JS');
+  const heading=toc.querySelector('.toc-link'),scroll=toc.querySelector('.toc-scroll');
+  scroll.scrollTop=37;heading.focus();
+  const refresh=toc.querySelector('#toc-refresh'),source=tool.localization.messages['zh-CN'];
+  assert.equal(refresh.getAttribute('aria-label'),source.refreshLabel);
+  const picker=ui.doc.querySelector('input[type=file]');
+  async function choose(next){
+    Object.defineProperty(picker,'files',{configurable:true,value:[{size:JSON.stringify(next).length,text:async()=>JSON.stringify(next)}]});
+    picker.dispatch('change');
+    await settle(()=>Boolean(buttonNamed(ui.doc,'确认导入')||buttonNamed(ui.doc,'确认覆盖'))&&!picker.disabled);
+  }
+  async function confirm(label){
+    buttonNamed(ui.doc,label).dispatch('click');
+    await settle(()=>ui.doc.body.textContent.includes('语言包已保存。')&&!picker.disabled);
+  }
+  await choose(pack);
+  assert.equal(refresh.getAttribute('aria-label'),source.refreshLabel,'preview does not affect the running UI');
+  assert.equal(writes.length,0);
+  buttonNamed(ui.doc,'取消导入').dispatch('click');
+  assert.equal(writes.length,0);
+  await choose(pack);await confirm('确认导入');
+  await settle(()=>refresh.getAttribute('aria-label')===pack.messages.refreshLabel.text);
+  assert.equal(sandbox.doc.documentElement.lang,'ja');
+  assert.equal(toc.querySelector('.toc-panel').getAttribute('aria-label'),pack.messages.panelLabel.text);
+  const updated=structuredClone(pack);updated.messages.refreshLabel.text='目次を再読み込み';
+  await choose(updated);assert.equal(refresh.getAttribute('aria-label'),pack.messages.refreshLabel.text);
+  await confirm('确认覆盖');await settle(()=>refresh.getAttribute('aria-label')==='目次を再読み込み');
+  assert.equal(sandbox.doc.documentElement.lang,'ja','same language updates the live catalog');
+  const invalid=structuredClone(updated);invalid.messages.refreshLabel.text='\u3000\u00a0';
+  const writesBeforeInvalid=writes.length;
+  Object.defineProperty(picker,'files',{configurable:true,value:[{size:100,text:async()=>JSON.stringify(invalid)}]});
+  picker.dispatch('change');await settle(()=>ui.doc.querySelector('[role=alert]'));
+  assert.equal(refresh.getAttribute('aria-label'),'目次を再読み込み','invalid data cannot blank the running button');
+  assert.equal(writes.length,writesBeforeInvalid,'invalid import cannot overwrite the saved catalog');
+  const partial=structuredClone(updated);delete partial.messages.refreshLabel;
+  await choose(partial);await confirm('确认覆盖');
+  await settle(()=>refresh.getAttribute('aria-label')===source.refreshLabel);
+  assert.equal(toc.querySelector('.toc-panel').getAttribute('aria-label'),pack.messages.panelLabel.text,'only missing text falls back');
+  buttonNamed(ui.doc,'删除语言包…').dispatch('click');buttonNamed(ui.doc,'取消删除').dispatch('click');
+  assert.ok(service.exportPack(tool.id,'ja'));
+  buttonNamed(ui.doc,'删除语言包…').dispatch('click');buttonNamed(ui.doc,'确认删除').dispatch('click');
+  await settle(()=>ui.doc.body.textContent.includes('语言包已删除。'));
+  assert.equal(toc.querySelector('.toc-panel').getAttribute('aria-label'),source.panelLabel);
+  assert.equal(service.exportPack(tool.id,'ja'),null);
+  assert.equal(frameRoot.firstElementChild,frame,'locale actions never recreate the iframe');
+  assert.equal(toc.querySelector('.toc-link'),heading,'locale actions retain business DOM');
+  assert.equal(heading.textContent,'业务标题保持原样');assert.equal(scroll.scrollTop,37);
+  assert.equal(sandbox.doc.activeElement,heading,'emulated focus retains the business node');
+  assert.equal(pageCalls.length,1,'locale actions never request a new TOC snapshot or navigate');
+  assert.deepEqual(saved[SIDEBAR_TOOL_STORE],before[SIDEBAR_TOOL_STORE]);
+  assert.deepEqual(saved[MARKET_PROVENANCE_STORE],before[MARKET_PROVENANCE_STORE]);
+  assert.deepEqual(saved.business,before.business);
+  assert.ok(writes.every(keys=>keys.length===1&&keys[0]===toolLocaleStorageKey(tool.id)),'only locale storage may change');
+  assert.deepEqual(sandbox.errors,[]);
+});
 
 test('language preview, cancellation, confirmed import/overwrite/delete and shared global preference',async t=>{
   const f=await setup(t);
