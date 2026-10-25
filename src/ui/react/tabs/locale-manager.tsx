@@ -66,7 +66,7 @@ export default function LocaleManager({model}){
   const sourceTitle=tool?.localization?.messages?.[tool.localization.sourceLocale]?.title;
   const currentToolTitle=tool?.title===sourceTitle&&typeof catalog?.messages?.title==='string'?
     catalog.messages.title:tool?.title||tool?.name||t('removedTool');
-  const ready=Boolean(service&&tool&&serviceStatus==='ready'&&!localeReadError);
+  const ready=Boolean(service&&tool?.localization&&serviceStatus==='ready'&&!localeReadError);
   const requested=toolPreference||globalLocale;
   const effective=catalog?.locale;
   const missingLanguage=Boolean(effective&&effective!==requested);
@@ -144,17 +144,37 @@ export default function LocaleManager({model}){
     const actual=service.getCatalog(tool,localeController?.getLocale?.()||'zh-CN')?.locale;
     setNotice({key:value==='follow'?'toolSavedFollow':'toolSavedOnly',language:actual});
   });};
-  const exportData=(method,suffix)=>void run(async()=>{
-    const value=method==='exportPack'?await service.exportPack(toolId,target):
-      await service.exportTranslationTask(tool,target);
+  const exportData=(method,suffix,language=target)=>void run(async()=>{
+    const value=method==='exportPack'?await service.exportPack(toolId,language):
+      await service.exportTranslationTask(tool,language);
     if(!value)throw localError('noPack');
     if(!alive.current)return;
-    downloadLocaleData(value,toolId+'.'+target+'.'+suffix+'.json');
+    downloadLocaleData(value,toolId+'.'+language+'.'+suffix+'.json');
     setNotice({key:suffix==='translation-task'?'exportTaskDone':'exportDone'});
   });
   const installedPack=packs.find(pack=>pack.targetLocale===target);
   const locales=[...new Set(['en','zh-CN','zh-TW','ja',tool?.localization?.sourceLocale,
     ...Object.keys(tool?.localization?.messages||{}),...packs.map(pack=>pack.targetLocale)].filter(Boolean))];
+  // Only the verified service/catalog can claim translated and missing entries.
+  const sourceLocale=tool?.localization?.sourceLocale;
+  const totalEntries=Object.keys(tool?.localization?.messages?.[sourceLocale]||{}).length;
+  const resourceLanguages=[...new Set([...packs.map(pack=>pack.targetLocale),...available])];
+  const resourceRows=ready?resourceLanguages.map(language=>{
+    const pack=packs.find(item=>item.targetLocale===language);
+    let missing=totalEntries;
+    try{missing=language===sourceLocale?0:service.exportTranslationTask(tool,language).translationKeys.length;}
+    catch{/* Invalid/stale resources cannot be claimed complete. */}
+    let stale=false;
+    if(pack)try{const checked=service.preview(pack,tool);stale=!checked.hashMatches||checked.stale.length>0;}
+    catch{stale=true;}
+    return {language,pack,translated:totalEntries-missing,stale,
+      origin:language===sourceLocale?'sourceResource':pack?'importedPack':'builtinPack'};
+  }):[];
+  let targetMissing=null;
+  if(ready&&target&&target!==sourceLocale){
+    try{targetMissing=service.exportTranslationTask(tool,target).translationKeys.length;}
+    catch{/* The installed service owns BCP47/source validation. */}
+  }
   React.useLayoutEffect(()=>{
     if(preview)previewRef.current?.focus({preventScroll:true});
     else if(pendingDelete)deleteRef.current?.focus({preventScroll:true});
@@ -167,9 +187,18 @@ export default function LocaleManager({model}){
   const importPreview=preview?.result;
   const overwrite=Boolean(preview&&packs.some(pack=>pack.targetLocale===preview.pack.targetLocale));
   return <UninstallDialog open title={t('title')} busy={busy} busyLabel={t('busy')} onCancel={model.onClose}
+    onEscape={()=>{
+      if(!maintenanceOpen)return false;
+      if(preview){setPreview(null);returnToImport();return true;}
+      if(pendingDelete){setPendingDelete(false);returnToImport();return true;}
+      if(!busy)setMaintenanceOpen(false);
+      return true;
+    }}
+    panelClassName="od-locale-shell"
     cancelLabel={t('closeLabel')} closeLabel={t('closeLabel')}
     returnFocusSelector={model.returnFocusSelector||"#extension-center-language-settings"}>
     <div className="od-locale-manager od-stack">
+      <div className="od-locale-daily od-stack" inert={maintenanceOpen} aria-hidden={maintenanceOpen||undefined}>
       <label className="od-locale-field" htmlFor="od-locale-global">{t('globalLabel')}
         <select id="od-locale-global" className="od-field" value={preference} aria-describedby="od-locale-global-hint"
           disabled={busy||!localeController||globalUnknown}
@@ -193,7 +222,8 @@ export default function LocaleManager({model}){
           {tools.map(item=><option key={item.id} value={item.id}>{item.title||item.name||item.id}</option>)}
         </select>
       </label>}
-      {tool&&<section className="od-locale-preview" aria-label={t('daily')}>
+      {tool&&!tool.localization&&<p role="status">{t('noLocalization')}</p>}
+      {tool?.localization&&<section className="od-locale-preview" aria-label={t('daily')}>
         <label className="od-locale-field" htmlFor="od-locale-tool-language">{t('toolLanguage')}
           <select id="od-locale-tool-language" className="od-field" value={localeReadError?'unreadable':toolPreference||'follow'}
             aria-describedby="od-locale-tool-status od-locale-tool-hint" disabled={busy||!ready}
@@ -209,7 +239,7 @@ export default function LocaleManager({model}){
         <p id="od-locale-tool-status" role="status">{ready&&effective?
           t('effective',{language:languageName(effective),scope:t(toolPreference?'onlyTool':'follow')}):
           localeReadError?t('readError'):t('reading')}</p>
-        <p id="od-locale-tool-hint">{t('toolHint')}</p>
+        <p id="od-locale-tool-hint" className="od-locale-assistive">{t('toolHint')}</p>
         {(missingLanguage||Boolean(catalog?.missing.length))&&<div className="od-locale-preview">
           <p>{missingLanguage?t('missingLanguage',{requested:languageName(requested),effective:languageName(effective)}):
             t('missingText',{count:catalog.missing.length})}</p>
@@ -243,36 +273,57 @@ export default function LocaleManager({model}){
           setError('');setNotice({key:'rechecked'});
         })}>{t('recheck')}</Button>
       </div>}
-      <details className="od-disclosure od-disclosure--flat" open={maintenanceOpen}
+      </div>
+      <details className="od-locale-maintenance od-disclosure od-disclosure--flat" open={maintenanceOpen}
         onToggle={event=>setMaintenanceOpen(event.currentTarget.open)}>
-        <summary ref={maintenanceRef}>{t('maintenance')}</summary>
-        <div className="od-locale-preview">
-      <p>{t('maintenanceHint')}</p>
+        <summary ref={maintenanceRef} aria-label={maintenanceOpen?t('backToDaily'):t('maintenance')}>
+          {maintenanceOpen?t('backToDaily'):t('maintenance')}
+        </summary>
+        <div className="od-locale-sheet-body od-locale-preview">
+      <p className="od-locale-caption">{t('maintenanceHint')}</p>
+      {error&&<p role="alert">{failureText(error,t)}</p>}
+      {notice&&<p role="status">{t(notice.key,{language:languageName(notice.key==='packSaved'?effective:notice.language)})}</p>}
+      {serviceStatus==='unknown'&&<p role="alert">{t('packUnknown')}</p>
       <label className="od-locale-field" htmlFor="od-locale-target">{t('targetLabel')}
-        <input id="od-locale-target" type="text" className="od-field" value={target} list="od-locale-targets" disabled={busy||!ready}
-          placeholder={t('placeholder')} onInput={event=>targetChanged(event.currentTarget.value)}/>
+        <span className="od-input-group">
+          <span className="od-input-prefix" aria-hidden="true">BCP47</span>
+          <input id="od-locale-target" type="text" className="od-field" value={target} list="od-locale-targets" disabled={busy||!ready}
+            placeholder={t('placeholder')} onInput={event=>targetChanged(event.currentTarget.value)}/>
+          <button type="button" className="od-input-action" aria-label={t('clearTarget')} title={t('clearTarget')}
+            disabled={busy||!target} onClick={()=>targetChanged('')}>×</button>
+        </span>
         <datalist id="od-locale-targets">{locales.map(locale=><option key={locale} value={locale}>{languageName(locale)}</option>)}</datalist>
       </label>
-      {packs.length>0&&<section className="od-locale-preview" aria-label={t('installed')}>
+      {resourceRows.length>0&&<section className="od-locale-preview" aria-label={t('installed')}>
         <h3>{t('installed')}</h3>
-        <div className="od-locale-actions">{packs.map(pack=><Button key={pack.targetLocale}
-          aria-pressed={target===pack.targetLocale} disabled={busy}
-          onClick={()=>targetChanged(pack.targetLocale)}>{languageName(pack.targetLocale)} · {pack.targetLocale}</Button>)}</div>
+        <div className="od-locale-resources" role="list">{resourceRows.map(row=>
+          <div key={row.language} className="od-locale-resource" role="listitem">
+            <Button className="od-locale-resource-select" aria-pressed={target===row.language}
+              disabled={busy} onClick={()=>targetChanged(row.language)}>
+              <strong>{languageName(row.language)}</strong>
+              <small>{t(row.origin)}{row.stale?' · '+t('resourceStale'):''}</small>
+            </Button>
+            <span className="od-locale-resource-count" aria-label={t('translatedCount',{translated:row.translated,total:totalEntries})}>
+              {row.translated}/{totalEntries}
+            </span>
+            {row.pack&&<Button className="od-locale-resource-export" disabled={busy||!ready}
+              onClick={()=>exportData('exportPack','locale-pack',row.language)}>{t('export')}</Button>}
+          </div>)}</div>
       </section>}
-      {tool&&<p>{t('sourceInfo',{language:languageName(tool.localization.sourceLocale),count:packs.length})}
-        {target===tool.localization.sourceLocale?t('sourceOnly'):''}</p>}
+      {tool?.localization&&<p className="od-locale-caption">{t('sourceInfo',{language:languageName(sourceLocale),count:packs.length})}
+        {target===sourceLocale?t('sourceOnly'):''}</p>}
+      {targetMissing===0&&<p role="status">{t('translationsComplete')}</p>}
+      {target&&ready&&target!==sourceLocale&&targetMissing===null&&<p role="alert">{t('invalidTarget')}</p>}
       <div className="od-locale-actions">
         <Button ref={importRef} disabled={busy||!service||Boolean(localeReadError)} onClick={()=>fileRef.current?.click()}>{t('import')}</Button>
         <input ref={fileRef} type="file" accept=".json,application/json" aria-label={t('fileLabel')}
           disabled={busy||!service||Boolean(localeReadError)} hidden onChange={event=>{readFile(event.currentTarget.files);event.currentTarget.value='';}}/>
-        <Button disabled={busy||!ready||!installedPack} onClick={()=>exportData('exportPack','locale-pack')}>{t('export')}</Button>
-        <Button disabled={busy||!ready||!target||target===tool?.localization.sourceLocale} onClick={()=>exportData('exportMissingTask','translation-task')}>{t('exportTask')}</Button>
-        <Button variant="danger" disabled={busy||!ready||!installedPack}
-          onClick={()=>setPendingDelete({toolId,locale:target,title:tool?.title||toolId})}>{t('delete')}</Button>
+        {targetMissing>0&&<Button disabled={busy||!ready} onClick={()=>exportData('exportMissingTask','translation-task')}>{t('exportTask')}</Button>}
+        {installedPack&&<Button variant="danger" disabled={busy||!ready}
+          onClick={()=>setPendingDelete({toolId,locale:target,title:tool?.title||toolId})}>{t('delete')}</Button>}
       </div>
-      <p>{t('importHint')}</p>
+      <p className="od-locale-caption">{t('importHint')}</p>
         </div>
-      </details>
       {preview&&<section className="od-locale-preview od-surface od-surface--padded" aria-label={t('previewLabel')}>
         <h3 ref={previewRef} tabIndex={-1}>{t('preview')}</h3>
         <p>{t('previewInfo',{tool:preview.pack.toolId,locale:preview.pack.targetLocale})}</p>
@@ -302,7 +353,10 @@ export default function LocaleManager({model}){
           })}>{t('confirmDelete')}</Button>
         </div>
       </section>}
-      <div className="od-locale-actions"><Button disabled={busy} data-uninstall-cancel="true" onClick={model.onClose}>{t('close')}</Button></div>
+      </details>
+      <div className="od-locale-actions" hidden={maintenanceOpen}>
+        <Button disabled={busy} data-uninstall-cancel="true" onClick={model.onClose}>{t('close')}</Button>
+      </div>
     </div>
   </UninstallDialog>;
 }

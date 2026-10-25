@@ -67,11 +67,11 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore}){
 
 /** Shared confirmation shell; the trusted controller still owns uninstall. */
 export function UninstallDialog({open=false,title='卸载扩展？',busy=false,
-  onCancel,returnFocusSelector,description,identity,children,
+  onCancel,onEscape,returnFocusSelector,description,identity,children,panelClassName='',
   cancelLabel='取消卸载',closeLabel='关闭卸载确认',busyLabel='正在卸载，请稍候…'}) {
   const panelRef=React.useRef(null),titleId=React.useId(),descriptionId=React.useId();
-  const latest=React.useRef({busy,onCancel});
-  latest.current={busy,onCancel};
+  const latest=React.useRef({busy,onCancel,onEscape});
+  latest.current={busy,onCancel,onEscape};
   const cancel=event=>{
     if(!latest.current.busy)latest.current.onCancel?.(event.nativeEvent||event);
   };
@@ -101,20 +101,20 @@ export function UninstallDialog({open=false,title='卸载扩展？',busy=false,
       panel.setAttribute('aria-describedby',explanation.id);
     }
     const focusInside=()=>{
-      (panel.querySelector('[data-uninstall-cancel]:not([disabled])')||panel).focus({preventScroll:true});
+      (panel.querySelector('.od-locale-maintenance[open]>summary')||panel.querySelector('[data-uninstall-cancel]:not([disabled])')||panel).focus({preventScroll:true});
     };
     focusInside();
     const onFocusIn=event=>{if(!panel.contains(event.target))focusInside();};
     const onKeyDown=event=>{
       if(event.key==='Escape'){
         event.preventDefault();event.stopPropagation();
-        cancel(event);
+        if(latest.current.onEscape?.(event)!==true)cancel(event);
         return;
       }
       if(event.key!=='Tab')return;
       const focusable=[...panel.querySelectorAll(
-        'button:not([disabled]),[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')]
-        .filter(node=>!node.closest('[hidden]')&&node.getClientRects().length);
+        'button:not([disabled]),[href],summary,input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')]
+        .filter(node=>!node.closest('[hidden],[inert],[aria-hidden="true"]')&&node.getClientRects().length);
       const first=focusable[0],last=focusable.at(-1);
       if(!first){event.preventDefault();panel.focus({preventScroll:true});return;}
       if(event.shiftKey&&(doc.activeElement===first||!panel.contains(doc.activeElement))){
@@ -156,7 +156,7 @@ export function UninstallDialog({open=false,title='卸载扩展？',busy=false,
     <button type="button" className="od-uninstall-backdrop" tabIndex={-1}
       aria-label={cancelLabel} disabled={busy}
       onClick={cancel}/>
-    <section ref={panelRef} className="od-uninstall-dialog" tabIndex={-1}
+    <section ref={panelRef} className={["od-uninstall-dialog",panelClassName].filter(Boolean).join(" ")} tabIndex={-1}
       role="dialog" aria-modal="true" aria-labelledby={titleId}
       aria-describedby={description?descriptionId:undefined} aria-busy={busy}>
       <div className="od-uninstall-dialog-head">

@@ -118,3 +118,14 @@ details>section{margin-top:var(--space-3)}
   :root .sidebar-tool-icon-action:hover:not(:disabled){background:var(--od-muted)}
   :root #sidebar-tool-remove:hover:not(:disabled){background:var(--od-negative-bg);color:var(--od-negative)}
 }
+
+/* Shared compact input contract; action buttons remain real consumer actions. */
+.od-input-group{display:flex;align-items:stretch;min-width:0;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);overflow:hidden}
+.od-input-group:focus-within{outline:2px solid var(--od-focus);outline-offset:2px}
+.od-input-group .od-field{flex:1 1 auto;width:100%;min-width:0;border:0!important;border-radius:0!important;outline:0!important;background:transparent}
+.od-input-prefix,.od-input-suffix{display:flex;align-items:center;flex:none;padding:0 var(--space-2);font-size:var(--od-note-size);color:var(--od-sub);white-space:nowrap}
+.od-input-action{min-width:36px;min-height:36px;border:0;border-left:1px solid var(--od-line);background:transparent;color:var(--od-accent-ink);cursor:pointer;font:inherit}
+.od-input-action:hover:not(:disabled){background:var(--od-muted)}
+.od-input-action:disabled{opacity:.4;cursor:not-allowed}
+.od-input-action:focus-visible{outline:2px solid var(--od-focus);outline-offset:-3px}
+.od-input-group:has(.od-field:disabled){background:var(--od-muted)}
