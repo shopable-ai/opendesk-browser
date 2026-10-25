@@ -26,12 +26,13 @@ async function until(predicate,description,limitMs=4500){
 }
 
 function lab({failSend=false,changeThread=false}={}){
- const site={threadId:'thread_demo_01',messages:[],sendCalls:0,readCalls:0,failSend};
+ const site={threadId:'thread_demo_01',messages:[],sendCalls:0,readCalls:0,failSend,revalidateGate:null};
  const captured={status:'available',url,origin:'http://127.0.0.1:43111',
   tabId:77,windowId:1,frameId:0,documentId:activeDoc};
  const target={
   async refresh(){return captured;},capture(){return captured;},
   async revalidate(row){
+   await site.revalidateGate?.();
    if(row.documentId!==activeDoc||row.tabId!==77||row.url!==url)
     throw Object.assign(new Error('old document'),{code:'E_DOCUMENT_STALE'});
    return captured;
@@ -369,4 +370,78 @@ test('R1.3 pause: a send already started still confirms its independent receipt'
    await assert.rejects(rt.confirm({event:{isTrusted:true},messageId:inbound.messageId}),
      {code:'E_KB_TEST_NO_ANSWER'});
  }finally{releaseReceipt?.();await pending?.catch(()=>{});rt.dispose();}
+});
+
+test('R1.4 pause: pre-click revalidation cannot dispatch a new website send after pause',async()=>{
+ const {api,target,site}=lab();
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary:async()=>({value:library,etag}),assertLive:()=>{}});
+ const inbound=customer('几天内可以退款');
+ let releaseGate,pending;
+ try{
+   await rt.start({event:{isTrusted:true}});
+   site.messages.push(inbound);
+   await until(()=>rt.snapshot().records[0]?.status==='ANSWERED_FIXED','fixed result before delayed page dispatch');
+   let entered=false;
+   const gate=new Promise(resolve=>{releaseGate=resolve;});
+   site.revalidateGate=()=>{entered=true;return gate;};
+   pending=rt.confirm({event:{isTrusted:true},messageId:inbound.messageId});
+   await until(()=>entered,'document revalidation before a website click');
+   assert.equal(site.sendCalls,0);
+   rt.pause();
+   site.revalidateGate=null;releaseGate();
+   await assert.rejects(pending,{code:'E_KB_TEST_PAUSED'});
+   assert.equal(site.sendCalls,0,'the pending click must never be dispatched');
+   assert.equal(rt.snapshot().records[0].status,'ANSWERED_FIXED','pre-click pause is known not to have sent');
+   rt.resume();
+   const receipt=await rt.confirm({event:{isTrusted:true},messageId:inbound.messageId});
+   assert.equal(receipt.status,'CONFIRMED');
+   assert.equal(site.sendCalls,1,'only the newly approved send clicked');
+ }finally{
+   site.revalidateGate=null;releaseGate?.();
+   await pending?.catch(()=>{});rt.dispose();
+ }
+});
+
+test('R1.4 manual AI: attached draft must match original customer, session, ETag and candidate source',async()=>{
+ const {api,target,site}=lab();
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary:async()=>({value:library,etag}),assertLive:()=>{},getProviderGeneration:()=>2});
+ const inbound=customer('退款需要几天');
+ const proposal={status:'REVIEW_REQUIRED',answer:'演示规则：签收后 7 天内可以申请退款。',
+   sourceIds:['qa_demo_refund']};
+ try{
+   await rt.start({event:{isTrusted:true}});
+   site.messages.push(inbound);
+   await until(()=>rt.snapshot().records[0]?.status==='RETRIEVED_ONLY','candidate for manual AI');
+   const original=rt.select(inbound.messageId);
+   assert.throws(()=>rt.attach(inbound.messageId,proposal,'b'.repeat(64),original.testIdentity),
+     {code:'E_KB_TEST_ATTACH'},'different ETag cannot attach');
+   assert.throws(()=>rt.attach(inbound.messageId,{...proposal,sourceIds:['qa_forged']},etag,original.testIdentity),
+     {code:'E_KB_TEST_ATTACH'},'a fabricated candidate cannot attach');
+   assert.throws(()=>rt.attach(inbound.messageId,proposal,etag,
+     {...original.testIdentity,documentId:'old-document'}),{code:'E_KB_TEST_ATTACH'});
+   rt.pause();rt.resume();
+   assert.throws(()=>rt.attach(inbound.messageId,proposal,etag,original.testIdentity),
+     {code:'E_KB_TEST_ATTACH'},'a prior pause generation cannot attach an old manual result');
+   const fresh=rt.select(inbound.messageId);
+   rt.attach(inbound.messageId,proposal,etag,fresh.testIdentity);
+   assert.equal(rt.snapshot().records[0].status,'REVIEW_REQUIRED');
+   await assert.rejects(rt.confirm({event:{isTrusted:true},messageId:inbound.messageId}),
+     {code:'E_KB_REVIEW'});
+   assert.equal(site.sendCalls,0);
+   const receipt=await rt.confirm({event:{isTrusted:true},messageId:inbound.messageId,reviewApproved:true});
+   assert.equal(receipt.status,'CONFIRMED');
+   assert.equal(receipt.replyTo,inbound.messageId);
+   assert.equal(site.sendCalls,1);
+ }finally{rt.dispose();}
+});
+
+test('R1.4 trusted UI: full actual answer and the linked website receipt must be visible',()=>{
+ const workspace=readFileSync(new URL('../../examples/sidebar-tools/ai-knowledge-answers/trusted/Workspace.jsx',
+   import.meta.url),'utf8');
+ assert.match(workspace,/state\.result\.answer/,'show answer, not a field named question');
+ assert.doesNotMatch(workspace,/<p>\{state\.result\.question\}<\/p>/);
+ assert.match(workspace,/row\.replyMessageId/);
+ assert.match(workspace,/row\.sourceIds\.join/);
 });

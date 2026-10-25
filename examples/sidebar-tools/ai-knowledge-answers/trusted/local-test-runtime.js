@@ -36,7 +36,8 @@ export function createLocalKnowledgeTestRuntime({
    assertLive();
    if(s.sending.has(id))throw fail('E_KB_TEST_SEND_BUSY','该客户消息正在发送或核对，请勿重复确认');
    const record=snapshot.records.find(x=>x.messageId===id);
-   if(!record||!record.answer||!['ANSWERED_FIXED','REVIEW_REQUIRED'].includes(record.status))
+   if(!record||record.threadId!==s.threadId||!record.answer||
+      !['ANSWERED_FIXED','REVIEW_REQUIRED'].includes(record.status))
      throw fail('E_KB_TEST_NO_ANSWER','当前消息没有可发送的答案');
    if(record.status==='REVIEW_REQUIRED'&&!reviewApproved)
      throw fail('E_KB_REVIEW','AI 草稿必须由用户实际审阅并明确确认');
@@ -61,7 +62,12 @@ export function createLocalKnowledgeTestRuntime({
      update(s,id,{status:'SENDING',message:'已进入真实网页表单'});
      try{
        // Actual website form click + SECOND independent DOM read-back.
-       const receipt=await adapter.send({messageId:id,threadId:s.threadId,answer:record.answer});
+       const receipt=await adapter.send({messageId:id,threadId:s.threadId,answer:record.answer,
+         assertBeforeClick:()=>{
+           if(!active(s))throw fail('E_KB_TEST_STOPPED','当前客服会话已停止');
+           if(!running(s,epoch))throw fail('E_KB_TEST_PAUSED','暂停阻止了尚未发起的网页点击');
+           assertLive();
+         }});
        if(!active(s))return {status:'UNKNOWN'};
        update(s,id,{status:'CONFIRMED',replyMessageId:receipt.messageId,message:'网页 DOM 已独立读回确认'});
        return receipt;
@@ -70,8 +76,10 @@ export function createLocalKnowledgeTestRuntime({
        // missing receipts remain UNKNOWN. Neither case ever retries automatically.
        const notClicked=['E_KB_DEMO_DRAFT_BUSY','E_KB_DEMO_STALE','E_KB_DEMO_INPUT',
          'E_KB_DEMO_SCOPE','E_KB_DEMO_DUPLICATE'].includes(error?.code);
-       if(active(s))update(s,id,{status:notClicked?'ERROR':'UNKNOWN',
-         message:(notClicked?'发送前被页面拒绝：':'网页发送结果未知：')+(error?.code||'unknown')});
+       if(active(s))update(s,id,error?.code==='E_KB_TEST_PAUSED'
+         ?{status:record.status,message:'网页点击尚未开始便被暂停；恢复后需重新确认'}
+         :{status:notClicked?'ERROR':'UNKNOWN',
+           message:(notClicked?'发送前被页面拒绝：':'网页发送结果未知：')+(error?.code||'unknown')});
        throw error;
      }
    }finally{s.sending.delete(id);}
@@ -241,16 +249,28 @@ export function createLocalKnowledgeTestRuntime({
      publish({autoAI:true,message:'已批准在当前文档的测试期内调用共享 AI；生成结果仍需人工审核'});
    },
    select(messageId){
-     const record=snapshot.records.find(x=>x.messageId===messageId);
-     if(!session||!record||!active(session)||!['RETRIEVED_ONLY','ANSWERED_FIXED','REVIEW_REQUIRED'].includes(record.status))
-       throw fail('E_KB_TEST_SELECT','客户消息已失效或不支持回答');
-     return {question:record.question,scope:record.scope,messageId:record.messageId};
-   },
-   attach(messageId,result,etag){
      const s=session,record=snapshot.records.find(x=>x.messageId===messageId);
-     if(!s||!active(s)||!record||result?.status!=='REVIEW_REQUIRED'||!result.answer||
-        !Array.isArray(result.sourceIds)||!result.sourceIds.length)
-       throw fail('E_KB_TEST_ATTACH','AI 草稿身份或状态无效');
+     if(!s||!active(s)||s.paused||!record||record.threadId!==s.threadId||
+        record.status!=='RETRIEVED_ONLY')
+       throw fail('E_KB_TEST_SELECT','客户消息已失效、暂停或不能生成 AI 草稿');
+     const target=adapter.target;
+     if(!target||target.documentId!==snapshot.target?.documentId)
+       throw fail('E_KB_TEST_STALE','客服网页文档身份已失效');
+     return {question:record.question,scope:record.scope,messageId:record.messageId,
+       testIdentity:{serial:s.serial,pauseEpoch:s.pauseEpoch,threadId:s.threadId,
+         documentId:target.documentId}};
+   },
+   attach(messageId,result,etag,identity){
+     const s=session,record=snapshot.records.find(x=>x.messageId===messageId);
+     if(!s||!active(s)||s.paused||!record||record.threadId!==s.threadId||
+        record.status!=='RETRIEVED_ONLY'||record.etag!==etag||s.etag!==etag||
+        identity?.serial!==s.serial||identity?.pauseEpoch!==s.pauseEpoch||
+        identity?.threadId!==s.threadId||identity?.documentId!==snapshot.target?.documentId||
+        adapter.target?.documentId!==identity.documentId||
+        result?.status!=='REVIEW_REQUIRED'||typeof result.answer!=='string'||!result.answer.trim()||
+        !Array.isArray(result.sourceIds)||!result.sourceIds.length||
+        result.sourceIds.some(id=>!record.sourceIds.includes(id)))
+       throw fail('E_KB_TEST_ATTACH','AI 草稿客户、会话、知识来源或授权已失效');
      update(s,messageId,{status:'REVIEW_REQUIRED',answer:result.answer,
        sourceIds:result.sourceIds.slice(),etag,providerGeneration:getProviderGeneration(),
        message:'AI 草稿已生成，等待人工核对确认'});

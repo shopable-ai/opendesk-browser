@@ -49,7 +49,7 @@ export function createTrustedKnowledgeHost({conversation,readLibrary,assertIdent
     subscribeConnection(value=>{if(value.nativeConnected===false&&conversation.source().provider==='local_codex')
       invalidate('Native 连接已断开，旧回答已失效');}),
     conversation.subscribeAuthorizationChanges(()=>invalidate('模型权限发生变化，旧回答已失效'))];
-  async function prepare({question,scope='',inboundId=null}={}){
+  async function prepare({question,scope='',inboundId=null,testIdentity=null}={}){
       live();if(state.busy)throw error('E_KB_BUSY','当前问答尚未结束');
       const expected=revision;prepared=null;selectedInbound=null;
       publish({busy:true,prepared:null,result:null,error:''});
@@ -61,7 +61,7 @@ export function createTrustedKnowledgeHost({conversation,readLibrary,assertIdent
         const references=library.items.filter(item=>lookup.sourceIds.includes(item.id));
         const recipient=conversation.recipient();
         prepared=Object.freeze({question:question.trim(),scope,etag:receipt.etag,revision,
-          recipient,references,lookup,inboundId});
+          recipient,references,lookup,inboundId,testIdentity});
         selectedInbound=inboundId;
         publish({prepared});return prepared;
       }catch(cause){publish({error:cause.message});throw cause;}
@@ -74,7 +74,8 @@ export function createTrustedKnowledgeHost({conversation,readLibrary,assertIdent
     async prepareInbound(messageId){
       if(!test)throw error('E_KB_DEMO_HOST','当前没有本地测试文档适配');
       const item=test.select(messageId);
-      return prepare({...item,inboundId:messageId});
+      return prepare({question:item.question,scope:item.scope,
+         inboundId:messageId,testIdentity:item.testIdentity});
     },
     startLocalTest({event,autoSendFixed=false}={}){
       if(!test)throw error('E_KB_DEMO_HOST','当前没有本地测试文档适配');
@@ -106,8 +107,17 @@ export function createTrustedKnowledgeHost({conversation,readLibrary,assertIdent
         throw error('E_KB_STALE','请重新准备知识与接收方');
       if(current.lookup.status==='RETRIEVED_ONLY'&&!approved)
         throw error('E_KB_CONSENT','请审阅并同意向此 AI 发送列出的知识');
-      round=new AbortController();const owned=round,expected=revision;
       const inboundId=selectedInbound;
+      if(inboundId){
+        // Before the actual Provider request, verify the same customer,
+        // session generation, document, pause epoch and knowledge ETag.
+        const now=test?.select(inboundId),prior=current.testIdentity,identity=now?.testIdentity;
+        if(!prior||!identity||!Object.keys(prior).every(key=>prior[key]===identity[key])||
+           current.question!==now.question||current.scope!==now.scope||
+           current.etag!==test.approvalContext().etag)
+          throw error('E_KB_STALE','客户会话或知识已变化，请重新准备 AI 草稿');
+      }
+      round=new AbortController();const owned=round,expected=revision;
       let pending;
       try{pending=consumer.request({request:current.question,scope:current.scope,event,signal:owned.signal});}
       catch(cause){round=null;throw cause;}
@@ -116,7 +126,7 @@ export function createTrustedKnowledgeHost({conversation,readLibrary,assertIdent
         live();if(expected!==revision||owned.signal.aborted)
           throw error('E_KB_STALE','旧回答已失效');
         if(inboundId&&result.status==='REVIEW_REQUIRED'&&test)
-          test.attach(inboundId,result,current.etag);
+          test.attach(inboundId,result,current.etag,current.testIdentity);
         publish({result});return result;
       }).catch(cause=>{publish({result:null,error:cause.message});throw cause;})
         .finally(()=>{if(round===owned)round=null;publish({busy:false});});
