@@ -7,8 +7,11 @@ const CONTENT = 'pre,textarea,[contenteditable="true"],'
 const NATIVE_EDITOR = 'button[aria-label="Open editor"],button[aria-label="打开编辑器"]';
 const VIEWER_CLOSE = 'button[aria-label="Close viewer"],button[aria-label="关闭查看器"]';
 const SEARCH_TURN = '[data-content-search-unit-key]';
-const ASSISTANT_TURN = '[data-content-search-unit-key][data-chatgpt-search-unit-key]';
+const ASSISTANT_TURN = '[data-content-search-unit-key][data-chatgpt-search-unit-key],'
+  + '[data-content-search-unit-key$=":assistant"]';
 const OWN = 'data-opendesk-chatgpt-jump-top';
+const ANSWER_TOOLS = 'data-opendesk-chatgpt-answer-tools';
+const MINDMAP_VIEWER = '[data-opendesk-chatgpt-mindmap="viewer"]';
 const EXCLUDED = '[role="dialog"],[aria-modal="true"],[hidden],[inert],[aria-hidden="true"]';
 const GAP = 12;
 const sessions = new WeakMap(); // doc -> per-owner sessions (Program and trusted tool may coexist)
@@ -267,31 +270,55 @@ function messageActions(marker, copySelector, peerSelector, boundary, win) {
   return null;
 }
 
+function assistantActions(original, main, win) {
+  // Never associate an action bar across a second assistant reply.
+  for (let scope = original.parentElement; scope && scope !== main; scope = scope.parentElement) {
+    if (scope.querySelectorAll(ASSISTANT_TURN).length !== 1) break;
+    const markers = [...scope.querySelectorAll('button[aria-label="评价回复"]')]
+      .filter(button => !original.contains(button) && !button.closest('header'));
+    if (markers.length > 1) break;
+    if (markers.length === 1) return messageActions(markers[0], 'button[aria-label="复制"]',
+      'button[aria-label="重新生成回复"]', scope, win);
+  }
+  return null;
+}
+
 function messageBindings(main, doc, win) {
   const bindings = [];
-  for (const target of main.querySelectorAll(SEARCH_TURN)) {
-    if (!rendered(target, win) || !isLong(target, doc, win)) continue;
+  for (const original of main.querySelectorAll(SEARCH_TURN)) {
+    let target = original;
+    const assistant = original.matches(ASSISTANT_TURN);
+    if (!rendered(original, win)) continue;
+    if (assistant) {
+      const viewers = [...original.children].filter(node => node.matches(MINDMAP_VIEWER));
+      const contents = [...original.children].filter(node => node.tagName === 'DIV'
+        && !node.matches('[data-opendesk-chatgpt-mindmap]')
+        && node.querySelector('[data-d-component]'));
+      if (!viewers.length && contents.some(node => !rendered(node, win))) continue;
+      if (viewers.length) {
+        // DIL keeps the assistant root visible and conceals only its content
+        // DIV. The sole adjacent viewer replaces that exact content, not a
+        // user turn, nested writing block, or another reply.
+        if (viewers.length !== 1 || contents.length !== 1
+            || contents[0].nextElementSibling !== viewers[0]
+            || rendered(contents[0], win) || !rendered(viewers[0], win)
+            || viewers[0].querySelector(SEARCH_TURN)) continue;
+        target = viewers[0];
+      }
+    }
+    // The explicit replacement can be compact even for a long answer. Its
+    // own height must not retire the reply's navigation while mindmap is open.
+    if (target === original && !isLong(target, doc, win)) continue;
     let actions = null;
-    if (!target.matches(ASSISTANT_TURN)) {
+    if (!assistant) {
       const copies = [...target.querySelectorAll('button[aria-label="复制消息"]')];
       if (copies.length === 1) actions = messageActions(copies[0],
         'button[aria-label="复制消息"]', 'button[aria-label="编辑消息"]', target, win);
     } else {
-      // The response wrapper also contains the preceding user turn. Never
-      // cross a second response to associate its separate native action bar.
-      for (let scope = target.parentElement; scope && scope !== main; scope = scope.parentElement) {
-        if (scope.querySelectorAll(ASSISTANT_TURN).length !== 1) break;
-        const markers = [...scope.querySelectorAll('button[aria-label="评价回复"]')]
-          .filter(button => !target.contains(button) && !button.closest('header'));
-        if (markers.length > 1) break;
-        if (markers.length === 1) {
-          actions = messageActions(markers[0], 'button[aria-label="复制"]',
-            'button[aria-label="重新生成回复"]', scope, win);
-          break;
-        }
-      }
+      actions = assistantActions(original, main, win);
     }
-    if (actions) bindings.push({...actions, target, main, kind: 'region'});
+    if (actions) bindings.push({...actions, target, main, kind: 'region',
+      ...(assistant ? {answerRoot: original} : {})});
   }
   return bindings;
 }
@@ -349,6 +376,46 @@ export function findRegionBindings(doc, win) {
   }
   return bindings;
 }
+// Both reply navigation and mindmap own their live host; the shared group
+// owns layout only. Repeated mounts do not move an already correctly placed host.
+export function mountAnswerTool(bar, host) {
+  if (!bar?.isConnected || !host || host === bar || host.contains(bar)) return null;
+  const groups = [...bar.children].filter(node => node.hasAttribute(ANSWER_TOOLS));
+  if (groups.length > 1) return null; // Ambiguous shared ownership: leave peers untouched.
+  let group = groups[0];
+  if (!group) {
+    group = bar.ownerDocument.createElement('span');
+    group.setAttribute(ANSWER_TOOLS, '');
+    group.style.cssText = 'display:inline-flex;align-items:center;gap:2px;padding:2px;'
+      + 'border-radius:12px;background:color-mix(in srgb,currentColor 6%,transparent);'
+      + 'border:1px solid color-mix(in srgb,currentColor 10%,transparent);'
+      + 'margin-inline-start:auto;max-width:100%;flex-wrap:wrap;flex:0 0 auto;';
+  }
+  const previous = host.parentElement;
+  if (previous !== group) group.append(host);
+  if (previous !== group && previous?.hasAttribute(ANSWER_TOOLS) && !previous.childNodes.length)
+    previous.remove();
+  // Either tool may mount first. Keep navigation before the independent
+  // mindmap button without replacing either host or the shared background.
+  const mindmap = [...group.children].find(node =>
+    node.matches('[data-opendesk-chatgpt-mindmap="button"]'));
+  if (mindmap) {
+    const navigators = [...group.children].filter(node => node.hasAttribute(OWN));
+    for (const navigation of navigators) {
+      if ([...group.children].indexOf(navigation) > [...group.children].indexOf(mindmap))
+        mindmap.before(navigation);
+    }
+  }
+  // The native wrappers stay in their original order, before our final group.
+  if (bar.lastElementChild !== group) bar.append(group);
+  return group;
+}
+export function unmountAnswerTool(host) {
+  const group = host?.parentElement;
+  host?.remove();
+  if (group?.hasAttribute(ANSWER_TOOLS) && !group.childNodes.length) group.remove();
+}
+
 function newButton(doc, kind, directions, sessionKey) {
   const host = doc.createElement('span');
   host.setAttribute(OWN, sessionKey === 'default' ? 'host' : sessionKey);
@@ -360,6 +427,7 @@ function newButton(doc, kind, directions, sessionKey) {
     border-radius:10px;background:transparent;color:inherit;padding:0;
     font:inherit;line-height:1}
     button:hover{background:color-mix(in srgb,currentColor 9%,transparent)}
+    button:disabled{opacity:.45;cursor:default}
     button:focus-visible{outline:2px solid currentColor;outline-offset:2px}
     svg{width:20px;height:20px;display:block;fill:none;stroke:currentColor;
     stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}`;
@@ -368,8 +436,8 @@ function newButton(doc, kind, directions, sessionKey) {
     const button = doc.createElement('button');
     button.type = 'button';
     const label = kind === 'conversation'
-      ? (direction === 'top' ? '回到对话开头' : '跳到对话末尾')
-      : (direction === 'top' ? '回到此内容开头' : '跳到此内容末尾');
+      ? (direction === 'top' ? 'Back to start of this conversation' : 'Go to end of this conversation')
+      : (direction === 'top' ? 'Back to start of this content' : 'Go to end of this content');
     button.setAttribute('aria-label', label);
     button.title = label;
     button.dataset.scrollNavKey = kind === 'conversation'
@@ -406,13 +474,29 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
   function remove(header) {
     const item = mounted.get(header);
     item?.unlisten();
-    item?.host.remove();
+    unmountAnswerTool(item?.host);
     mounted.delete(header);
   }
   function refresh() {
     pending = false;
     if (disposed) return;
-    const bindings = resolveBindings(doc, win).map(binding => {
+    const resolved = resolveBindings(doc, win);
+    for (const old of mounted.values()) {
+      const root = old.answerRoot;
+      if (!root || resolved.some(binding => binding.header === old.header)
+          || !old.main.isConnected || !old.main.contains(root)
+          || findConversationMain(doc, win) !== old.main || !rendered(root, win)
+          || !root.matches(ASSISTANT_TURN)
+          || root.getAttribute('data-content-search-unit-key') !== old.answerKey) continue;
+      // Concealment and viewer insertion/removal can arrive in separate refreshes.
+      // Keep only an already proven reply/action relationship, with no scroll target.
+      const replacing = root.querySelector(MINDMAP_VIEWER) || [...root.children].some(node =>
+        node.tagName === 'DIV' && node.querySelector('[data-d-component]') && !rendered(node, win));
+      const actions = replacing && assistantActions(root, old.main, win);
+      if (actions?.header === old.header && actions.anchor === old.anchor)
+        resolved.push({...old, target: null});
+    }
+    const bindings = resolved.map(binding => {
       const options = binding.kind === 'conversation' ? conversationDirections : regionDirections;
       const programTop = sessionKey !== 'default' &&
         [...binding.header.querySelectorAll(`[${OWN}="host"]`)].some(host => host.isConnected);
@@ -424,24 +508,47 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
       if (!bindings.some(binding => binding.header === header)) remove(header);
     }
     for (const binding of bindings) {
+      // React cloneNode copies the marker, not the ShadowRoot/listeners.
+      // Clean only inert copies owned by this navigation session.
+      for (const clone of binding.header.querySelectorAll(
+        `[${OWN}="${sessionKey === 'default' ? 'host' : sessionKey}"]`)) {
+        if (!clone.shadowRoot) unmountAnswerTool(clone);
+      }
       const old = mounted.get(binding.header);
-      if (old?.host.isConnected && old.anchor === binding.anchor && old.target === binding.target
+      if (old?.host.isConnected && old.anchor === binding.anchor
+          && (old.answerRoot || old.target) === (binding.answerRoot || binding.target)
           && old.directions.join(',') === binding.directions.join(',') &&
-          old.host.nextElementSibling === binding.anchor) continue;
+          (binding.answerRoot
+            ? old.host.parentElement?.hasAttribute(ANSWER_TOOLS)
+              && old.host.parentElement.parentElement === binding.header
+            : old.host.nextElementSibling === binding.anchor)) {
+        if (binding.answerRoot) mountAnswerTool(binding.header, old.host);
+        for (const {button} of old.controls) button.disabled = !binding.target;
+        continue;
+      }
       remove(binding.header);
       const item = newButton(doc, binding.kind, binding.directions, sessionKey);
       const cleanups = item.controls.map(({button, direction})=>owner.on(button, 'click', event => {
         event.preventDefault();
         event.stopPropagation();
+        if (button.disabled) {schedule();return;}
         const current = resolveBindings(doc, win).find(next => next.header === binding.header
-          && next.anchor === binding.anchor && next.target === binding.target);
+          && next.anchor === binding.anchor
+          && (next.answerRoot || next.target) === (binding.answerRoot || binding.target));
         if (current) {
           if (direction === 'bottom') jumpRegionEnd(current, doc, win);
           else jumpRegionTop(current, doc, win);
-        } else schedule();
+        } else {
+          // A click can beat the debounced refresh during a mode transition.
+          for (const {button: control} of item.controls) control.disabled = true;
+          schedule();
+        }
       }));
-      binding.anchor.before(item.host);
-      mounted.set(binding.header, {...item, ...binding, unlisten:()=>cleanups.forEach(off=>off())});
+      if (binding.answerRoot) mountAnswerTool(binding.header, item.host);
+      else binding.anchor.before(item.host);
+      mounted.set(binding.header, {...item, ...binding,
+        answerKey: binding.answerRoot?.getAttribute('data-content-search-unit-key'),
+        unlisten:()=>cleanups.forEach(off=>off())});
     }
   }
   function schedule() {

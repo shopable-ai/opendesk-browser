@@ -280,7 +280,7 @@ test('first-party Clipper full-text notes store is pinned exclusively to the ori
 
 test('Prompt Shortcuts OD rail bridge requires its reviewed SW blob and fixed outputs',async ctx=>{
   const path='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
-  const pin='d8650195e9b43178caafa015edaf60649d994b2f';
+  const pin='5f0184b28abe5d8e03855f9c130d45faba807d1e';
   const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,path)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
   for(const target of ['sw.js','agents/page-relay.js'])

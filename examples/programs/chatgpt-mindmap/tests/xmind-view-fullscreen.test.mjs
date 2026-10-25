@@ -3,6 +3,31 @@ import assert from 'node:assert/strict';
 import {parseHTML} from 'linkedom';
 import {createAnswerView} from '../src/view.js';
 
+test('startup failure identifies create, ready or fit while retaining the original exception',async()=>{
+  for(const phase of ['create','ready','fit']){
+    const {document,window}=parseHTML('<html><body></body></html>');
+    const failure=new TypeError('renderer startup failed');
+    let destroyed=0;
+    const owner={on(target,type,listener){
+      target.addEventListener(type,listener);
+      return ()=>target.removeEventListener(type,listener);
+    }};
+    const view=createAnswerView({document,window,owner,css:'',
+      tree:{title:'Root',children:[]},nodeCount:1,
+      rendererFactory(){
+        if(phase==='create')throw failure;
+        return {get ready(){return phase==='ready'?Promise.reject(failure):Promise.resolve();},
+          async fit(){if(phase==='fit')throw failure;},async destroy(){destroyed++;}};
+      }});
+    document.body.append(view.host);
+    await assert.rejects(view.start(),error=>error===failure&&error.mindmapStage===`renderer.${phase}`);
+    assert.notEqual(view.host.dataset.ready,'true');
+    await view.destroy();
+    assert.equal(view.host.isConnected,false);
+    assert.equal(destroyed,phase==='create'?0:1);
+  }
+});
+
 // DOM call regression only; the parent's real Chromium probe verifies that
 // moveBefore actually retains the opaque iframe Document and MessagePort.
 async function setup({iframe=true,bodyMove=true,inlineMove=true,moveError,truncated=false}={}){

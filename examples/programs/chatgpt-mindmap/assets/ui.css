@@ -64,7 +64,6 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .odmm-canvas{min-height:160px;min-width:0;flex:1;position:relative;overflow:hidden;background:var(--mm-bg);
   font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC","WenQuanYi Micro Hei",sans-serif;
   touch-action:pan-x pan-y}
-.odmm-error{padding:4px 8px;font-size:12px;overflow-wrap:anywhere;color:#b63838}
 .odmm-loading{position:absolute;left:8px;bottom:8px;width:28px;height:28px;display:grid;place-items:center;
   color:var(--mm-muted);background:var(--mm-bg);border-radius:50%}
 .odmm-loading svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;

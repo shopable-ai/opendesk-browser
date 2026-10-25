@@ -568,14 +568,17 @@ try{
     'const rail=window.__railRoot.querySelector(".rail").getBoundingClientRect();'+
     'const dock=document.querySelector("[data-opendesk-prompts-floating]");'+
     'const rect=dock.getBoundingClientRect();'+
-    'return {below:rect.top>=rail.bottom+6&&rect.top<=rail.bottom+10,'+
-    'left:rect.left>=rail.left-1&&rect.left<=rail.right+1,'+
+    'const main=document.querySelector("main#main").getBoundingClientRect();'+
+    'return {bottomLeft:Math.abs(rect.bottom-(Math.min(innerHeight,main.bottom)-20))<=1,'+
+    'separated:rect.top-rail.bottom>=24,'+
+    'aligned:Math.abs((rect.left+rect.width/2)-(rail.left+rail.width/2))<=1,'+
+    'centered:Math.abs((rail.top+rail.bottom)/2-(Math.max(0,main.top)+Math.min(innerHeight,main.bottom))/2)<=1,'+
     'visible:getComputedStyle(dock).visibility==="visible"};})()');
-  assert.deepEqual(dockPlacement,{below:true,left:true,visible:true},
-    'dock must sit immediately beneath the injected shortcut rail');
-  assert.equal(await evaluate('document.querySelector("[data-opendesk-prompts-floating]")'+
-    '.closest("[data-opendesk-prompts]")===null'),true,
-    'whole-conversation dock must never become a child of the prompt rail');
+  assert.deepEqual(dockPlacement,{bottomLeft:true,separated:true,aligned:true,centered:true,visible:true},
+    'navigation belongs to the conversation bottom-left, separate from the centered shortcuts');
+  assert.equal(await evaluate('window.__railRoot.querySelector(".rail")'+
+    '.contains(window.__floatingRoot.host)'),false,
+    'whole-conversation navigation remains outside the scrollable prompt list');
   await shot('r1163-independent-conversation-nav');
   await clickJS('window.__floatingRoot.querySelectorAll(".stack button")[1]');
   await poll('(()=>{const m=document.querySelector("main#main");return '+

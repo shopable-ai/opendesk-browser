@@ -48,6 +48,11 @@ function element({tag = 'div', attributes = {}, parent = null, top = 100,
     style: {display: 'block', visibility: 'visible', overflowY, position,
       top: position === 'sticky' ? '0px' : 'auto'},
     calls: [],
+    get ownerDocument() {
+      return node.parentElement?.ownerDocument || node.document;
+    },
+    get childNodes() { return node.children; },
+    get lastElementChild() { return node.children.at(-1) || null; },
     get id() { return node.getAttribute('id') || ''; },
     get nextElementSibling() {
       const siblings = node.parentElement?.children || [];
@@ -55,6 +60,7 @@ function element({tag = 'div', attributes = {}, parent = null, top = 100,
     },
     getAttribute: name => attrs.get(name) ?? null,
     hasAttribute: name => attrs.has(name),
+    removeAttribute: name => attrs.delete(name),
     setAttribute: (name, value) => attrs.set(name, String(value)),
     matches(selector) {
       // The adapter uses simple tag/attribute selector lists, with no combinators.
@@ -62,12 +68,13 @@ function element({tag = 'div', attributes = {}, parent = null, top = 100,
         const simple = part.trim();
         const tagMatch = simple.match(/^[a-z][a-z0-9-]*/i);
         if (tagMatch && tagMatch[0].toUpperCase() !== node.tagName) return false;
-        const attributes = [...simple.matchAll(/\[([\w-]+)(?:(\^?=)"([^"]*)")?\]/g)];
+        const attributes = [...simple.matchAll(/\[([\w-]+)(?:([\^$]?=)"([^"]*)")?\]/g)];
         if (!tagMatch && !attributes.length) return false;
         return attributes.every(([, name, operator, value]) => {
           const actual = node.getAttribute(name);
           if (actual === null) return false;
-          return !operator || (operator === '^=' ? actual.startsWith(value) : actual === value);
+          return !operator || (operator === '^=' ? actual.startsWith(value)
+            : operator === '$=' ? actual.endsWith(value) : actual === value);
         });
       });
     },
@@ -90,7 +97,11 @@ function element({tag = 'div', attributes = {}, parent = null, top = 100,
           siblings.splice(siblings.indexOf(child), 1);
         }
         child.parentElement = node;
-        child.isConnected = node.isConnected;
+        const connect = item => {
+          item.isConnected = node.isConnected;
+          item.children.forEach(connect);
+        };
+        connect(child);
         node.children.push(child);
       }
     },
@@ -144,6 +155,7 @@ function environment({rootHeight = 3200, rootTop = 1200, rootLeft = 41} = {}) {
     querySelectorAll: selector => [
       ...(root.matches(selector) ? [root] : []), ...root.querySelectorAll(selector)
     ]};
+  root.document = doc;
   const view = {
     innerHeight: 900, innerWidth: 1200,
     getComputedStyle: node => node.style,
@@ -790,11 +802,12 @@ test('native assistant sibling footer targets assistant content instead of prece
   const bindings = conversation.findRegionBindings(doc, view);
   assert.deepEqual(bindings, [
     {header: userActions.toolbar, anchor: userActions.anchor, target: user, main, kind: 'region'},
-    {header: toolbar, anchor, target, main, kind: 'region'}
+    {header: toolbar, anchor, target, main, kind: 'region', answerRoot: target}
   ]);
   const session = conversation.installJumpToTop({doc, win: view, owner: observerOwner()});
   t.after(() => session.dispose());
-  assert.equal(toolbar.querySelector(jumpHostSelector)?.nextElementSibling, anchor);
+  assert.equal(toolbar.querySelector(jumpHostSelector)?.parentElement, toolbar.lastElementChild);
+  assert.ok(toolbar.lastElementChild.hasAttribute('data-opendesk-chatgpt-answer-tools'));
   assert.equal(conversation.jumpRegionTop(bindings[1], doc, view), true);
   assertScroll(main, 1388);
   assert.equal(target.getBoundingClientRect().top, main.getBoundingClientRect().top + 12);
@@ -938,3 +951,236 @@ for (const order of [['default', 'prompt-shortcuts'], ['prompt-shortcuts', 'defa
     assert.deepEqual(main.calls, []);assert.deepEqual(root.calls, []);
   });
 }
+
+const answerTools = '[data-opendesk-chatgpt-answer-tools]';
+const mindmapViewer = {'data-opendesk-chatgpt-mindmap': 'viewer'};
+
+function dilMindmapReply() {
+  const fixture = nativeMessages({assistant: true});
+  const original = fixture.target;
+  original.setAttribute('data-content-search-unit-key', 'turn:last:assistant');
+  original.removeAttribute('data-chatgpt-search-unit-key');
+  const content = element({parent: original, height: 1400});
+  element({parent: original, attributes: {'data-conversation-role': 'assistant'}});
+  element({parent: content, attributes: {'data-d-component': 'markdown'}});
+  // Unlike a hidden SEARCH_TURN, the real DIL root stays rendered but shrinks
+  // below the long-content threshold when its direct content DIV is concealed.
+  const originalRect = original.getBoundingClientRect;
+  original.getBoundingClientRect = () => {
+    const box = originalRect();
+    return content.style.display === 'none' ? {...box, height: 80, bottom: box.top + 80} : box;
+  };
+  function open() {
+    content.style.display = 'none';
+    content.setAttribute('aria-hidden', 'true');
+    original.scrollHeight = 80;
+    const viewer = element({tag: 'section', height: 250, contentTop: 0, attributes: mindmapViewer});
+    // insert after the content DIV, before the assistant semantic marker.
+    content.nextElementSibling.before(viewer);
+    return viewer;
+  }
+  function close(viewer) {
+    content.style.display = 'block';
+    content.setAttribute('aria-hidden', 'false');
+    original.scrollHeight = 1500;
+    viewer.remove();
+  }
+  return {...fixture, original, content, open, close};
+}
+
+test('DIL concealed content keeps exact reply navigation live in mindmap, restore and reopen', t => {
+  const f = dilMindmapReply();
+  const {doc, view, toolbar, original, content, main, root, buttons} = f;
+  const owner = observerOwner();
+  const session = conversation.installJumpToTop({doc, win: view, owner,
+    regionDirections: {top: true, bottom: true}});
+  t.after(() => session.dispose());
+  const host = toolbar.querySelector(jumpHostSelector);
+  const group = host.parentElement;
+  const [top, bottom] = host.shadowRoot.querySelectorAll('button');
+  assert.equal(top.title, 'Back to start of this content');
+  assert.equal(bottom.getAttribute('aria-label'), 'Go to end of this content');
+  assert.equal(group, toolbar.lastElementChild);
+  assert.deepEqual(toolbar.querySelectorAll('button'), buttons, 'native wrapper/button order unchanged');
+  const peer = element({tag: 'span', attributes: {'data-opendesk-chatgpt-mindmap': 'button'}});
+  conversation.mountAnswerTool(toolbar, peer);
+  for (let cycle = 0; cycle < 2; cycle++) {
+    const viewer = f.open();
+    owner.emit({type: 'attributes', target: content, attributeName: 'style'});
+    owner.flush();
+    const binding = conversation.findRegionBindings(doc, view).find(item => item.header === toolbar);
+    assert.equal(binding.answerRoot, original);
+    assert.equal(binding.target, viewer);
+    assert.equal(toolbar.querySelector(jumpHostSelector), host, 'mode changes keep one live host');
+    const before = main.calls.length;
+    owner.click(bottom);
+    assert.equal(main.calls.length, before + 1);
+    const box = viewer.getBoundingClientRect(), port = main.getBoundingClientRect();
+    assert.equal(box.bottom, port.top + main.clientHeight - 12, 'end of the same visible viewer');
+    owner.click(top);
+    assert.equal(viewer.getBoundingClientRect().top, main.getBoundingClientRect().top + 12);
+    for (let i = 0; i < 3; i++) {
+      owner.emit({type: 'childList', target: group, addedNodes: [peer], removedNodes: []});
+      owner.flush();session.refresh();
+    }
+    assert.equal(toolbar.querySelector(jumpHostSelector), host, 'peer observer delivery does not reparent');
+    assert.equal(toolbar.querySelectorAll(answerTools).length, 1);
+    assert.equal(toolbar.querySelectorAll(jumpHostSelector).length, 1);
+    f.close(viewer);
+    owner.emit({type: 'attributes', target: content, attributeName: 'style'});owner.flush();
+    assert.equal(toolbar.querySelector(jumpHostSelector), host);
+    assert.equal(conversation.findRegionBindings(doc, view).find(item => item.header === toolbar).target, original);
+    owner.click(bottom);
+    assert.equal(original.getBoundingClientRect().bottom, main.getBoundingClientRect().top + main.clientHeight - 12);
+    owner.click(top);
+    assert.equal(original.getBoundingClientRect().top, main.getBoundingClientRect().top + 12);
+  }
+  const clone = element({tag: 'span', parent: group,
+    attributes: {'data-opendesk-chatgpt-jump-top': 'host'}});
+  session.refresh();
+  assert.equal(clone.isConnected, false, 'remove own inert clone only');
+  assert.equal(peer.parentElement, group);
+  assert.equal(toolbar.querySelector(jumpHostSelector), host);
+  session.dispose();
+  assert.equal(peer.parentElement, group, 'navigation disposal preserves independent mindmap host');
+  assert.equal(toolbar.querySelectorAll(answerTools).length, 1);
+  conversation.unmountAnswerTool(peer);
+  assert.equal(toolbar.querySelectorAll(answerTools).length, 0);
+  assert.deepEqual(root.calls, []);
+});
+
+test('mindmap mapping rejects nonadjacent, nested, duplicate, visible-original and cross-reply viewers', () => {
+  for (const ambiguity of ['nonadjacent', 'nested', 'duplicate', 'visible-original', 'cross-reply', 'hidden-root']) {
+    const f = dilMindmapReply();
+    const viewer = f.open();
+    if (ambiguity === 'nonadjacent') viewer.before(element());
+    if (ambiguity === 'nested') f.content.append(viewer);
+    if (ambiguity === 'duplicate') element({tag: 'section', parent: f.original, attributes: mindmapViewer});
+    if (ambiguity === 'visible-original') {
+      f.content.style.display = 'block';f.content.setAttribute('aria-hidden', 'false');
+    }
+    if (ambiguity === 'cross-reply') f.user.append(viewer);
+    if (ambiguity === 'hidden-root') f.original.setAttribute('aria-hidden', 'true');
+    assert.equal(conversation.findRegionBindings(f.doc, f.view).some(item => item.header === f.toolbar), false,
+      ambiguity);
+  }
+});
+
+test('answer tool group mounts idempotently at right, moves own host and unmounts only empty groups', () => {
+  const {doc} = environment();
+  const bars = ['flex', 'inline-flex'].map(display => {
+    const bar = element({parent: doc.body});bar.style.display = display;
+    nativeMessageActions(bar, ['Copy', 'Retry']);
+    return bar;
+  });
+  const host = doc.createElement('span'), peer = doc.createElement('span');
+  const group = conversation.mountAnswerTool(bars[0], host);
+  conversation.mountAnswerTool(bars[0], peer);
+  assert.equal(group, bars[0].lastElementChild);
+  assert.match(group.style.cssText, /margin-inline-start:auto/);
+  assert.match(group.style.cssText, /border-radius:12px/);
+  assert.equal(conversation.mountAnswerTool(bars[0], host), group);
+  assert.deepEqual(group.children, [host, peer]);
+  const next = conversation.mountAnswerTool(bars[1], host);
+  assert.deepEqual(group.children, [peer]);
+  conversation.unmountAnswerTool(host);
+  assert.equal(next.isConnected, false);
+  assert.equal(peer.parentElement, group);
+  conversation.unmountAnswerTool(peer);
+  assert.equal(group.isConnected, false);
+});
+
+
+test('mindmap transition and uncertain mapping retain disabled controls and restore the same host', t => {
+  const f = dilMindmapReply();
+  const owner = observerOwner();
+  const session = conversation.installJumpToTop({doc: f.doc, win: f.view, owner,
+    regionDirections: {top: true, bottom: true}});
+  t.after(() => session.dispose());
+  const host = f.toolbar.querySelector(jumpHostSelector);
+  const group = host.parentElement;
+  const background = group.style.cssText;
+  const controls = host.shadowRoot.querySelectorAll('button');
+  const peer = element({tag: 'span', attributes: {'data-opendesk-chatgpt-mindmap': 'button'}});
+  conversation.mountAnswerTool(f.toolbar, peer);
+  const assertRetained = disabled => {
+    assert.equal(f.toolbar.querySelector(jumpHostSelector), host);
+    assert.equal(host.parentElement, group);
+    assert.equal(group.style.cssText, background);
+    assert.deepEqual(group.children, [host, peer]);
+    assert.equal(controls.length, 2);
+    for (const button of controls) assert.equal(Boolean(button.disabled), disabled);
+  };
+  const assertNoScroll = () => {
+    const before = [f.main.calls.length, f.root.calls.length, f.original.calls.length];
+    controls.forEach(button => owner.click(button));
+    assert.deepEqual([f.main.calls.length, f.root.calls.length, f.original.calls.length], before);
+  };
+  for (let cycle = 0; cycle < 2; cycle++) {
+    const viewer = f.open();
+    viewer.remove(); // concealment was delivered before viewer insertion
+    f.original.scrollHeight = 1500; // stale/other layout height cannot revive hidden original content
+    assertNoScroll(); // stale enabled controls must fail closed before refresh
+    assertRetained(true);
+    owner.emit({type: 'attributes', target: f.content, attributeName: 'style'});
+    owner.flush();
+    assertRetained(true);
+    assertNoScroll();
+    f.content.nextElementSibling.before(viewer);
+    session.refresh();
+    assertRetained(false);
+    for (const ambiguity of ['duplicate', 'hidden', 'nonadjacent']) {
+      let extra;
+      if (ambiguity === 'duplicate') extra = element({parent: f.original, attributes: mindmapViewer});
+      if (ambiguity === 'hidden') viewer.style.display = 'none';
+      if (ambiguity === 'nonadjacent') {extra = element();viewer.before(extra);}
+      assertNoScroll();
+      session.refresh();
+      assertRetained(true);
+      assertNoScroll();
+      extra?.remove();viewer.style.display = 'block';
+      session.refresh();
+      assertRetained(false);
+    }
+    viewer.remove(); // return also spans separate DOM deliveries
+    session.refresh();
+    assertRetained(true);
+    f.close(viewer);
+    owner.emit({type: 'attributes', target: f.content, attributeName: 'style'});
+    owner.flush();
+    assertRetained(false);
+    owner.click(controls[1]);
+    assert.equal(f.original.getBoundingClientRect().bottom,
+      f.main.getBoundingClientRect().top + f.main.clientHeight - 12);
+    owner.click(controls[0]);
+    assert.equal(f.original.getBoundingClientRect().top, f.main.getBoundingClientRect().top + 12);
+  }
+  // A replaced native action wrapper must not inherit the old reply's controls.
+  f.open();
+  f.anchor.remove();
+  session.refresh();
+  assert.equal(host.isConnected, false);
+  assertNoScroll();
+  assert.equal(peer.parentElement, group);
+});
+
+test('answer navigation precedes mindmap for either mount order and refresh repairs order without remount', t => {
+  for (const peerFirst of [true, false]) {
+    const f = dilMindmapReply();
+    const peer = element({tag: 'span', attributes: {'data-opendesk-chatgpt-mindmap': 'button'}});
+    if (peerFirst) conversation.mountAnswerTool(f.toolbar, peer);
+    const owner = observerOwner();
+    const session = conversation.installJumpToTop({doc: f.doc, win: f.view, owner,
+      regionDirections: {top: true, bottom: true}});
+    t.after(() => session.dispose());
+    if (!peerFirst) conversation.mountAnswerTool(f.toolbar, peer);
+    const host = f.toolbar.querySelector(jumpHostSelector), group = peer.parentElement;
+    assert.deepEqual(group.children, [host, peer]);
+    group.append(host); // a later peer/layout delivery changed order
+    f.toolbar.append(element()); // shared group also ceased to be last
+    session.refresh();
+    assert.equal(f.toolbar.querySelector(jumpHostSelector), host);
+    assert.equal(f.toolbar.lastElementChild, group);
+    assert.deepEqual(group.children, [host, peer]);
+  }
+});

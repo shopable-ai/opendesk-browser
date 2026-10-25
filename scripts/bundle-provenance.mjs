@@ -145,7 +145,7 @@ const compiledPromptShortcutInputs=Object.freeze({
   // Shared with the standalone diagnostic harness; never an installed package import.
   'examples/programs/chatgpt-jump-top/src/conversation.js':'77139704bc9e918f97840a3a34756a07deb3a32c',
   // The first-party OD gesture bridge is fixed SW code, never an installed package.
-  'examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js':'d8650195e9b43178caafa015edaf60649d994b2f'
+  'examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js':'5f0184b28abe5d8e03855f9c130d45faba807d1e'
 });
 const promptFixedTargets=new Set(['agents/page-relay.js','ui/sidebar-tool-host.js']);
 // Installer is shared by Marketplace. Allow only the byte-pinned asset identity

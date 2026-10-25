@@ -151,7 +151,7 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
     for(const fn of siteEvents)fn({[key]:{newValue:value}},'local');
   };
   const rail=()=>root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined)
-    ?.shadow?.children.find(item=>item.tagName==='nav');
+    ?.shadow?.querySelector('nav');
   // Only .item elements are prompt shortcuts; a separate first .brand opens the existing Side Panel.
   const buttons=()=>rail()?.children.filter(item=>item.className.includes('item')&&
     item.getAttribute('aria-label')?.startsWith('插入提示词：'))||[];
@@ -643,7 +643,7 @@ test('Prompt jump integration: installed initialization mounts one content arrow
     await settle();
     assert.equal(f.arrows().length,1,'installation alone activates the static adapter');
     assert.equal(f.arrowHosts()[0].nextElementSibling,f.content.anchor,'arrow belongs to native content toolbar');
-    assert.equal(f.arrows()[0].getAttribute('aria-label'),'回到此内容开头');
+    assert.equal(f.arrows()[0].getAttribute('aria-label'),'Back to start of this content');
     assert.equal(f.openPrompts().length,1,'existing prompt rail remains available');
     f.click(f.arrows()[0]);await settle();
     assert(f.scrolls.length>0,'live arrow invokes the real scroll algorithm');
@@ -2441,21 +2441,31 @@ test('Host probes real custom-site adapter for failures and fallback, then block
 
 const floatingHost=f=>f.doc.querySelector('[data-opendesk-prompts-floating]');
 
-test('R1.16.1 the conversation dock sits beneath the left rail and respects native controls',async()=>{
+test('Conversation navigation anchors bottom-left independently from the centered shortcuts and respects native controls',async()=>{
   const f=await jumpPage();
   try{
     await settle();
     const rail=f.rail();
-    rail.getBoundingClientRect=()=>regionRect(275,200,52,180);
-    f.events.get('scroll')?.();await settle();
+    rail.offsetWidth=52;rail.offsetHeight=180;
+    rail.getBoundingClientRect=()=>regionRect(268,300,52,180);
     const dock=floatingHost(f);assert(dock);
-    assert.equal(dock.style.left,'280px');
-    assert.equal(dock.style.top,'388px','8px beneath rail');
+    f.events.get('scroll')?.();await settle();
+    assert.equal(dock.parentNode,f.doc.documentElement,'separate fixed navigation');
+    const host=f.doc.querySelector('[data-opendesk-prompts]');
+    assert.equal(host.style.top,'390px','shortcuts remain centered in the visible conversation');
+    assert.equal(host.style.transform,'translateY(-50%)');
+    assert.equal(dock.style.left,'273px','navigation aligns with the shortcut column');
+    assert.equal(dock.style.top,'630px','navigation is 20px above the visible conversation bottom');
+    assert.equal(dock.style.visibility,'visible');
+
+    rail.getBoundingClientRect=()=>regionRect(268,250,52,280);
+    f.events.get('scroll')?.();await settle();
+    assert.equal(dock.style.top,'630px','shortcut height does not move navigation');
     assert.equal(dock.style.visibility,'visible');
 
     const native=f.element('button');
     native.setAttribute('aria-label','网站按钮');
-    native.getBoundingClientRect=()=>regionRect(318,408,24,20);
+    native.getBoundingClientRect=()=>regionRect(280,650,24,20);
     f.doc.body.append(native);
     f.mutate([{target:f.doc.body,addedNodes:[native]}]);await settle();
     assert.equal(floatingHost(f)?.style.visibility,'hidden',
@@ -2498,8 +2508,8 @@ test('R1.16.1 site/native mutations schedule layout, detached rail restores, rev
       {type:'attributes',attributeName:'class',target:native}]);
     assert(f.pendingTimers.size>0,'a mixed own/site batch still schedules layout');await settle();
     originalFloat.remove();
-    f.mutate([{target:f.doc.documentElement,removedNodes:[originalFloat]}]);
-    assert(f.pendingTimers.size>0,'removing the floating dock from the site root remains relevant');
+    f.events.get('scroll')?.();
+    assert(f.pendingTimers.size>0,'the next page layout restores detached navigation');
     await settle();assert.equal(floatingHost(f),originalFloat,'detached dock restores');
     const railHost=f.doc.querySelector('[data-opendesk-prompts]');
     railHost.remove();f.mutate([{target:f.doc.documentElement,removedNodes:[railHost]}]);

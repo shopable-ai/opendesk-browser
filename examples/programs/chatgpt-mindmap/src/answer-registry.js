@@ -1,6 +1,39 @@
 import {answerRootOf,discoverAnswers,inspectAnswer,isStreaming} from './chatgpt-adapter.js';
 import {extractAnswerTree} from './extract.js';
 import {createAnswerView} from './view.js';
+import {annotateMindmapError,describeMindmapError} from './diagnostics.js';
+
+// Small DOM convention shared with the independently installed navigation.
+// Keep this Page project self-contained; neither program owns the other's UI.
+const TOOLS='data-opendesk-chatgpt-answer-tools';
+function unmountAnswerTool(host){
+  const group=host.parentElement;host.remove();
+  if(group?.hasAttribute(TOOLS)&&!group.childNodes.length)group.remove();
+}
+function mountAnswerTool(bar,host){
+  if(!bar?.isConnected||!host||host===bar||host.contains(bar))return null;
+  // DIL nests the native actions and navigation inside the outer footer.
+  // Join that existing group without lifting it out of its native wrapper.
+  const nested=[...bar.querySelectorAll(`[${TOOLS}]`)].filter(node=>
+    node.parentElement!==bar&&node.querySelector('[data-opendesk-chatgpt-jump-top]'));
+  if(nested.length>1)return null;
+  const target=nested[0]?.parentElement||bar;
+  const groups=[...target.children].filter(node=>node.hasAttribute(TOOLS));
+  if(groups.length>1)return null;
+  let group=groups[0];
+  if(!group){
+    group=bar.ownerDocument.createElement('span');group.setAttribute(TOOLS,'');
+    group.style.cssText='display:inline-flex;align-items:center;gap:2px;padding:2px;border-radius:12px;'+
+      'background:color-mix(in srgb,currentColor 6%,transparent);'+
+      'border:1px solid color-mix(in srgb,currentColor 10%,transparent);'+
+      'margin-inline-start:auto;max-width:100%;flex-wrap:wrap;flex:0 0 auto;';
+  }
+  const previous=host.parentElement;
+  if(group.lastElementChild!==host)group.append(host);
+  if(previous!==group&&previous?.hasAttribute(TOOLS)&&!previous.childNodes.length)previous.remove();
+  if(target.lastElementChild!==group)target.append(group);
+  return group;
+}
 
 const MAX_ANSWERS=120,STABLE_MS=700;
 const make=(doc,tag,text)=>{
@@ -24,7 +57,7 @@ const saveViewerTheme=(win,mode)=>{
 function makeButton(doc,css,owner,handleClick){
   const host=make(doc,'span');
   host.setAttribute('data-opendesk-chatgpt-mindmap','button');
-  host.style.cssText='display:inline-flex;vertical-align:middle;max-width:100%;';
+  host.style.cssText='display:inline-flex;flex-wrap:wrap;align-items:center;vertical-align:middle;max-width:100%;';
   const shadow=host.attachShadow({mode:'open'});
   const style=make(doc,'style');style.textContent=css;
   const button=make(doc,'button');
@@ -45,10 +78,9 @@ function makeButton(doc,css,owner,handleClick){
   }
   button.append(glyph);
   const remove=owner.on(button,'click',handleClick);
-  const error=make(doc,'span');error.hidden=true;error.className='odmm-error';error.setAttribute('role','alert');
-  shadow.append(style,button,error);
-  return {host,button,error,destroy:()=>{
-    remove();host.remove();
+  shadow.append(style,button);
+  return {host,button,destroy:()=>{
+    remove();unmountAnswerTool(host);
   }};
 }
 
@@ -106,7 +138,8 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
     if(view&&view.host.getAttribute('data-dark')!==viewerTheme){
       view.host.setAttribute('data-dark',viewerTheme);
       const current=view,session=viewSession;
-      return view.setTheme(viewerTheme==='true').catch(error=>failed(error,current,session));
+      return view.setTheme(viewerTheme==='true').catch(error=>
+        failed(annotateMindmapError(error,'view.setTheme'),current,session));
     }
     return Promise.resolve();
   }
@@ -133,7 +166,7 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
     for(const candidate of next.querySelectorAll('[data-opendesk-chatgpt-mindmap="button"]')){
       if(candidate!==buttonRef.host)candidate.remove();
     }
-    if(buttonRef.host.parentNode!==next)next.append(buttonRef.host);
+    mountAnswerTool(next,buttonRef.host);
   }
   function restore(){
     if(!hidden)return;
@@ -157,13 +190,20 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
     content.style.setProperty('display','none','important');
     content.setAttribute('aria-hidden','true');
   }
-  function close({focus=false,restorePosition=focus}={}){
+  function close({focus=false,restorePosition=focus,reportFailure=true}={}){
     const anchor=openingAnchor;openingAnchor=null;
+    const session=viewSession,closingRevision=revision;
     coordinator.releaseFull(api);
     const previous=view;view=null;restore();syncButton();
     // Retire directly; restore the opener position after the old layout is gone.
     const retired=coordinator.retire(previous);
-    return retired.finally(()=>{
+    return retired.catch(async error=>{
+      // A user-initiated return can fail retirement after the answer is back.
+      // Record it only while this session still has no replacement viewer.
+      if(reportFailure&&previous&&!disposed&&viewSession===session&&revision===closingRevision&&!view)
+        await failed(annotateMindmapError(error,'view.destroy'),null,session);
+      throw error;
+    }).finally(()=>{
       if(disposed)return;
       if(focus&&buttonRef.host.isConnected)buttonRef.button.focus({preventScroll:true});
       if(restorePosition)restoreAnchor(anchor);
@@ -173,42 +213,48 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
     // A retired viewer can still reject a toolbar or renderer operation.
     // Its cleanup error is retained by retire(), never applied to a new view.
     if(disposed||view!==source||viewSession!==session)return;
-    await close();
-    if(disposed||viewSession!==session)return;
-    buttonRef.error.hidden=false;
-    buttonRef.error.textContent=error?.code==='E_FRAME_UNAVAILABLE'
-      ?'当前预览没有已授权的 XMind 固定资源入口，暂无法生成导图，原文已恢复。'
-      :error?.code==='E_FRAME_RESOURCE'||error?.code==='E_XMIND_RUNTIME_UNAVAILABLE'
-      ?'当前版本未包含 XMind 运行资源，暂无法生成导图，原文已恢复。'
-      :'XMind 打开失败，原文已恢复。';
-    buttonRef.button.title=String(error?.code||"E_XMIND_RENDER");
+    const record=coordinator.recordFailure(error,{instanceId,contentRevision:revision,viewSession:session});
+    // Restore immediately; preserve the primary error even if cleanup fails.
+    // Debug metadata belongs in the console, never in the reply action group.
+    const closing=close({reportFailure:false});
+    try{await closing;}
+    catch(cleanup){
+      record.cleanup=describeMindmapError(annotateMindmapError(cleanup,'view.destroy'));
+      coordinator.logFailure(record);
+    }
   }
   async function open(){
     if(disposed||!root.isConnected||!content.isConnected||!bar.isConnected)return;
     // Recover from late generation; do not take a snapshot during stream.
     if(isStreaming(root)||Date.now()-lastChange<STABLE_MS)return;
-    buttonRef.error.hidden=true;
     const focusViewer=buttonRef.button.matches(':focus-visible');
-    const result=extractAnswerTree(content);
-    if(!result.nodeCount)return;
     const session=++viewSession;
-    openingAnchor=captureAnchor();
-    const nextView=createView({document,window,owner,css,...result,
-      identity:Object.freeze({instanceId,revision}),
-      onError:error=>failed(error,nextView,session),
-      onOriginal:()=>close({focus:true}),
-      onRefresh:options=>refresh(options),
-      onFullscreen:()=>coordinator.setFull(coordinator.full===api?null:api),
-      onToggleTheme:()=>themePreference.toggle()});
+    let nextView=null,mounted=false,stage='answer.extract';
     try{
+      const result=extractAnswerTree(content);
+      if(!result.nodeCount)return;
+      openingAnchor=captureAnchor();stage='view.create';
+      nextView=createView({document,window,owner,css,...result,
+        identity:Object.freeze({instanceId,revision}),
+        onError:error=>failed(annotateMindmapError(error,'view.operation'),nextView,session),
+        onOriginal:()=>close({focus:true}),
+        onRefresh:options=>refresh(options),
+        onFullscreen:()=>coordinator.setFull(coordinator.full===api?null:api),
+        onToggleTheme:()=>themePreference.toggle()});
+      stage='view.mount';
       // The original content remains connected, immutable and restorable.
       if(content.contains(document.activeElement))buttonRef.button.focus({preventScroll:true});
       content.insertAdjacentElement('afterend',nextView.host);
-      view=nextView;viewRevision=revision;conceal();syncTheme();syncButton();
-      await nextView.start();
+      view=nextView;mounted=true;viewRevision=revision;conceal();syncTheme();syncButton();
+      stage='view.start';await nextView.start();
       if(focusViewer&&view===nextView)nextView.focusPrimary();
     }catch(error){
-      if(view===nextView)await failed(error,nextView,session);
+      error=annotateMindmapError(error,stage);
+      if(viewSession===session&&view===nextView)await failed(error,nextView,session);
+      else if(viewSession===session&&!view&&!mounted){
+        // A constructor/mount can throw before the viewer becomes current.
+        view=nextView;await failed(error,nextView,session);
+      }
       else await coordinator.retire(nextView);
     }
   }
@@ -267,7 +313,8 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
   return Object.freeze(api);
 }
 
-export function createAnswerRegistry({document,window,owner,css,createView=createAnswerView}){
+export function createAnswerRegistry({document,window,owner,css,createView=createAnswerView,
+  programRevision={version:'unknown',revision:null}}){
   const byRoot=new WeakMap(),controllers=new Set();
   let nextInstance=0;
   let disposed=false,pending=false,route=window.location.pathname+window.location.search;
@@ -291,7 +338,19 @@ export function createAnswerRegistry({document,window,owner,css,createView=creat
     pending.then(()=>retiring.delete(pending),error=>{retiring.delete(pending);cleanupErrors.push(error);});
     return pending;
   }
-  const coordinator={retire,releaseFull(current){if(full===current)full=null;},get full(){return full;},setFull(next){
+  const diagnostics=[];
+  function logFailure(record){
+    // Serialize now so later cleanup updates do not change an earlier console entry.
+    (window.console||console).error('[OpenDesk ChatGPT Mindmap]',JSON.stringify(record));
+  }
+  const coordinator={retire,logFailure,recordFailure(error,identity){
+    const record={time:new Date().toISOString(),
+      program:{id:'opendesk.chatgpt-mindmap',...programRevision},...identity,
+      error:describeMindmapError(error)};
+    diagnostics.push(record);if(diagnostics.length>8)diagnostics.shift();
+    logFailure(record);
+    return record;
+  },releaseFull(current){if(full===current)full=null;},get full(){return full;},setFull(next){
     if(full===next)return Promise.resolve();
     const old=full;full=null;
     const exiting=old?old.setFull(false).catch(error=>cleanupErrors.push(error)):
@@ -388,5 +447,6 @@ export function createAnswerRegistry({document,window,owner,css,createView=creat
     scan();
   }
   return Object.freeze({start,destroy,scan,get count(){return controllers.size;},
+    get diagnostics(){return JSON.parse(JSON.stringify(diagnostics));},
     get activeFullscreen(){return Boolean(full);},get lastScanned(){return lastScanned;}});
 }

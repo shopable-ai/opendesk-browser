@@ -116,7 +116,7 @@ test('R1.16 formal management, preview, authority and uninstall cleanup are sour
   assert.doesNotMatch(preview,/title='打开模拟侧边栏管理提示词'/);
 });
 
-test('R1.16.3 formal nav uses one lower-right dock while preserving switches and region toolbar',async()=>{
+test('Formal nav anchors bottom-left separately from shortcuts while preserving switches and region toolbar',async()=>{
   const [page,preview,html]=await Promise.all([
     readFile(ROOT+'/trusted/page.js','utf8'),readFile(ROOT+'/preview/index.html','utf8'),
     readFile(ROOT+'/src/index.html','utf8')
@@ -140,12 +140,14 @@ test('R1.16.3 formal nav uses one lower-right dock while preserving switches and
   assert.doesNotMatch(html,/data-scroll-nav=/);
   assert.doesNotMatch(preview,/data-scroll-nav-preview=/);
   assert.match(page,/regionDirections:\{top:navigationSettings\.regionTop,bottom:navigationSettings\.regionBottom\}/);
-  assert.match(page,/floatingHost\.style\.cssText='position:fixed;left:0;top:0/);
-  assert.match(page,/const positionFloating=\(\)=>/);
-  assert.match(page,/bounds\.left\+\(compact\?4:/);
+  assert.match(page,/doc.documentElement\?\.append\(floatingHost\)/);
+  assert.match(page,/const positionFloating=region=>/);
+  assert.match(page,/NAV_BOTTOM_INSET=20,NAV_RAIL_GAP=24/);
+  assert.match(page,/region.top\+region.height\)-NAV_BOTTOM_INSET-height/);
+  assert.doesNotMatch(page,/const dockHeight=railHeight\+reserved/);
   assert.doesNotMatch(page,/position:fixed;right:18px/);
   assert.match(preview,/class="page-rail-group" id="pageRailGroup"/);
-  assert.match(preview,/\.mock-conversation-nav\{position:static/);
+  assert.match(preview,/\.mock-conversation-nav\{position:absolute;left:17px;bottom:20px/);
   const mockRail=preview.slice(preview.indexOf(' function renderRail(){'),
     preview.indexOf(' function positionWebTip(){'));
   assert.doesNotMatch(mockRail,/conversationTop|conversationBottom|floatingTop/);

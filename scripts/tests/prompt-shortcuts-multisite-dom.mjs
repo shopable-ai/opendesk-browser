@@ -219,7 +219,7 @@ export async function run(doc = document, win = window) {
       const host = item.row.querySelector(OWN);
       assert(item.row.querySelectorAll(OWN).length === 1 && host?.nextElementSibling === item.anchor,
         'Entry must stay immediately beside its own native anchor');
-      assert(f.button(item)?.getAttribute('aria-label') === '回到此内容开头', 'Accessible content-top button missing');
+      assert(f.button(item)?.getAttribute('aria-label') === 'Back to start of this content', 'Accessible content-top button missing');
     }
   };
   const atContentStart = (f, item) => {

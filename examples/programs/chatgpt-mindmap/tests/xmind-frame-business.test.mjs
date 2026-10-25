@@ -126,7 +126,7 @@ test('wrong session/instance/revision, unknown ID, wrong command and malformed r
 test('command timeout removes its pending slot; late reply cannot mutate counts',async()=>{
   const h=manualPeer({timeoutMs:45});await h.api.ready;
   const next=h.next();const operation=h.api.fit();const request=await next;
-  await assert.rejects(operation,{code:'E_XMIND_FRAME_TIMEOUT'});
+  await assert.rejects(operation,{code:'E_XMIND_FRAME_TIMEOUT',mindmapStage:'frame.fit'});
   h.send({...request,kind:'reply',ok:true,nodeCount:500});await delay(10);
   assert.equal(h.api.nodeCount,8);await h.api.destroy();
 });
@@ -147,7 +147,7 @@ test('timeout waiting for destroy acknowledgement still removes test frame',asyn
         frameEnvelope(identity,{kind:'reply',id:data.id,command:'init',ok:true,nodeCount:1}));});
       return {port:port1,destroy(){removed++;peer.close();}};
     }});
-  await api.ready;await assert.rejects(api.destroy(),{code:'E_XMIND_FRAME_TIMEOUT'});
+  await api.ready;await assert.rejects(api.destroy(),{code:'E_XMIND_FRAME_TIMEOUT',mindmapStage:'frame.destroy'});
   assert.equal(removed,1);
 });
 
@@ -176,7 +176,7 @@ test('loader timeout retires a late resource and cannot enable commands',async()
   const gate=deferred();let removed=0;
   const api=createXmindFrameRenderer({window,canvas:{},tree,timeoutMs:25,
     identity:{instanceId:'A',revision:0},frameFactory:()=>gate.promise});
-  await assert.rejects(api.ready,{code:'E_XMIND_FRAME_TIMEOUT'});
+  await assert.rejects(api.ready,{code:'E_XMIND_FRAME_TIMEOUT',mindmapStage:'frame.create'});
   const {port1,port2}=new MessageChannel();
   gate.resolve({port:port1,destroy(){removed++;port2.close();}});
   await tick();await tick();assert.equal(removed,1);
@@ -271,7 +271,7 @@ test('invalid endpoint startup still calls synchronous frame cleanup exactly onc
   let removed=0;
   const api=createXmindFrameRenderer({window,canvas:{},tree,identity:{instanceId:'A',revision:0},
     frameFactory:()=>({port:{},destroy(){removed++;}})});
-  await assert.rejects(api.ready,{code:'E_XMIND_FRAME_PORT'});
+  await assert.rejects(api.ready,{code:'E_XMIND_FRAME_PORT',mindmapStage:'frame.connect'});
   await api.destroy();assert.equal(removed,1);
 });
 
@@ -332,7 +332,9 @@ test('late loader cleanup rejection is reported even after Stop has completed',a
   await assert.rejects(api.ready,{code:'E_XMIND_FRAME_DESTROYED'});
   const {port1,port2}=new MessageChannel();
   gate.resolve({port:port1,destroy(){port2.close();throw failure;}});
-  await tick();await tick();assert.deepEqual(reported,[failure]);
+  await tick();await tick();assert.equal(reported.length,1);
+  assert.equal(reported[0].message,failure.message);assert.equal(reported[0].code,failure.code);
+  assert.equal(reported[0].mindmapStage,'frame.destroy');
 });
 
 test('child messageerror observes cleanup rejection and retains it for explicit destroy',async()=>{
@@ -346,4 +348,111 @@ test('child messageerror observes cleanup rejection and retains it for explicit 
   await initialized;
   port2.dispatchEvent(new Event('messageerror'));await tick();
   await assert.rejects(child.destroy(),error=>error===failure);port1.close();
+});
+
+test('child init and fit preserve original name, message, code, stack and stage',async()=>{
+  for(const stage of ['init','fit']){
+    const failure=Object.assign(new TypeError(`${stage} editor failed`),{code:'E_EDITOR_DETAIL'});
+    failure.stack=`TypeError: ${stage} editor failed\n    at editor (xmind-adapter.js:123:4)`;
+    const h=harness({rendererFactory:()=>({
+      get ready(){return stage==='init'?Promise.reject(failure):Promise.resolve();},nodeCount:1,
+      fit(){throw failure;},destroy(){}})});
+    if(stage==='fit')await h.api.ready;
+    await assert.rejects(stage==='init'?h.api.ready:h.api.fit(),{
+      code:failure.code,name:failure.name,message:failure.message,stack:failure.stack,mindmapStage:`frame.${stage}`});
+    await h.api.destroy();
+  }
+});
+
+test('null child throws settle as an init or fit diagnostic rather than timing out',async()=>{
+  for(const stage of ['init','fit']){
+    const h=harness({rendererFactory:()=>{
+      if(stage==='init')throw null;
+      return {ready:Promise.resolve(),nodeCount:1,fit(){throw null;},destroy(){}};
+    }});
+    if(stage==='fit')await h.api.ready;
+    await assert.rejects(stage==='init'?h.api.ready:h.api.fit(),{
+      code:'E_XMIND_RENDER',mindmapStage:`frame.${stage}`,message:'Non-Error throw (null)'});
+    await h.api.destroy();
+  }
+});
+
+test('init rejection remains primary when retiring its resource also rejects',async()=>{
+  const primary=Object.assign(new TypeError('initialization failed'),{code:'E_PRIMARY_INIT'});
+  primary.stack='TypeError: initialization failed\n    at init (xmind-adapter.js:12:3)';
+  const cleanup=Object.assign(new Error('retirement failed'),{code:'E_SECONDARY_CLOSE'});
+  const h=harness({rendererFactory:()=>({get ready(){return Promise.reject(primary);},nodeCount:0,
+    destroy(){throw cleanup;}})});
+  await assert.rejects(h.api.ready,error=>{
+    assert.equal(error.code,'E_PRIMARY_INIT');assert.equal(error.name,'TypeError');
+    assert.equal(error.message,'initialization failed');assert.equal(error.stack,primary.stack);
+    assert.equal(error.mindmapStage,'frame.init');
+    assert.equal(error.cleanupErrors[0].code,'E_SECONDARY_CLOSE');
+    assert.equal(error.cleanupErrors[0].mindmapStage,'frame.destroy');return true;
+  });
+  await h.api.destroy();
+});
+
+test('destroy acknowledgement failure survives a second resource cleanup failure',async()=>{
+  const api=createXmindFrameRenderer({window,canvas:{},tree,timeoutMs:250,
+    identity:{instanceId:'A',revision:0},frameFactory:({identity})=>{
+      const {port1,port2}=new MessageChannel();
+      port2.on('message',data=>port2.postMessage(frameEnvelope(identity,{kind:'reply',id:data.id,
+        command:data.command,ok:data.command!=='destroy',nodeCount:1,
+        error:{code:'E_CHILD_CLOSE',name:'RangeError',message:'child close failed',stage:'frame.destroy'}})));
+      return {port:port1,destroy(){port2.close();throw new Error('parent close failed');}};
+    }});
+  await api.ready;
+  await assert.rejects(api.destroy(),error=>{
+    assert.equal(error.code,'E_CHILD_CLOSE');assert.equal(error.message,'child close failed');
+    assert.equal(error.cleanupErrors[0].message,'parent close failed');return true;
+  });
+});
+
+test('foreign and malformed diagnostic replies cannot reject a pending request',async()=>{
+  const h=manualPeer();await h.api.ready;
+  const next=h.next();let settled=false;
+  const operation=h.api.fit().finally(()=>{settled=true;});const request=await next;
+  const reply={...request,kind:'reply',ok:false,error:{code:'E_PEER',name:'TypeError',
+    message:'fit failed',stack:'at fit (frame.js:12:3)',stage:'frame.fit'}};
+  h.foreign(reply);
+  for(const mutation of [{sessionId:'foreign'},{instanceId:'other'},{revision:0},
+    {id:request.id+1},{command:'setTheme'},
+    {error:{...reply.error,stack:'x'.repeat(2401)}},{error:{...reply.error,message:{body:'private'}}}]){
+    h.send({...reply,...mutation});
+  }
+  await delay(20);assert.equal(settled,false);
+  h.send(reply);
+  await assert.rejects(operation,{code:'E_PEER',name:'TypeError',message:'fit failed',
+    stack:'at fit (frame.js:12:3)',mindmapStage:'frame.fit'});
+  await h.api.destroy();
+});
+
+test('init and setTheme timeouts retain the active command stage',async()=>{
+  const gate=deferred();
+  const init=harness({timeoutMs:30,rendererFactory:()=>({ready:gate.promise,nodeCount:0,destroy(){gate.resolve();}})});
+  await assert.rejects(init.api.ready,{code:'E_XMIND_FRAME_TIMEOUT',mindmapStage:'frame.init'});
+  await init.api.destroy();
+  const h=manualPeer({timeoutMs:30});await h.api.ready;
+  await assert.rejects(h.api.setTheme('dark'),{code:'E_XMIND_FRAME_TIMEOUT',mindmapStage:'frame.setTheme'});
+  await h.api.destroy();
+});
+
+test('child cleanup preserves the renderer failure if closing its port also throws',async()=>{
+  const {port1,port2}=new MessageChannel();
+  const identity={sessionId:'private',instanceId:'A',revision:0};
+  const failure=new TypeError('renderer close failed');
+  const child=serveXmindFrame({port:port2,identity,window,canvas:{},rendererFactory:()=>({
+    ready:Promise.resolve(),nodeCount:1,destroy(){throw failure;}})});
+  const initialized=new Promise(resolve=>port1.once('message',resolve));
+  port1.postMessage(frameEnvelope(identity,{kind:'request',id:1,command:'init',args:{tree,skinMode:'light'}}));
+  await initialized;
+  const close=port2.close.bind(port2);
+  port2.close=()=>{close();throw new Error('port close failed');};
+  try{
+    await assert.rejects(child.destroy(),error=>{
+      assert.equal(error,failure);assert.equal(error.mindmapStage,'frame.destroy');
+      assert.equal(error.cleanupErrors[0].message,'port close failed');return true;
+    });
+  }finally{port1.close();}
 });

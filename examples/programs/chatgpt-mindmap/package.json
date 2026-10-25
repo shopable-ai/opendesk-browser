@@ -1,6 +1,6 @@
 {
   "name": "@opendesk-examples/chatgpt-mindmap",
-  "version": "0.2.0",
+  "version": "0.2.7",
   "private": true,
   "type": "module",
   "description": "ChatGPT per-answer real XMind adapter; runtime admission BLOCKED (see README)",

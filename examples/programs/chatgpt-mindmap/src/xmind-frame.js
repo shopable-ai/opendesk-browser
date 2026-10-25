@@ -1,4 +1,5 @@
 import {MAX_XMIND_BYTES} from './export.js';
+import {annotateMindmapError,deserializeMindmapError,appendMindmapCleanup,describeMindmapError} from './diagnostics.js';
 import {bindFrameIdentity,matchesFrameIdentity,requireFramePort,frameEnvelope,frameError}
   from './xmind-frame-protocol.js';
 
@@ -12,12 +13,12 @@ export function requireXmindFrameFactory(factory){
 // and hands over a private port directly. Never discover a loader on the page.
 export function createXmindFrameRenderer({window,canvas,tree,skinMode='dark',identity,
   frameFactory,timeoutMs=10000}){
-  requireXmindFrameFactory(frameFactory);
-  if(!Number.isFinite(timeoutMs)||timeoutMs<=0)throw frameError('E_XMIND_FRAME_TIMEOUT');
+  try{requireXmindFrameFactory(frameFactory);}catch(error){throw annotateMindmapError(error,'frame.create');}
+  if(!Number.isFinite(timeoutMs)||timeoutMs<=0)throw annotateMindmapError(frameError('E_XMIND_FRAME_TIMEOUT'),'frame.create');
   const binding=bindFrameIdentity({...identity,sessionId:window.crypto.randomUUID()});
   const abort=new AbortController(),pending=new Map(),retired=new WeakSet();
   let resource=null,port=null,sequence=0,disposed=false,closing=null,nodeCount=0;
-  const destroyed=()=>frameError('E_XMIND_FRAME_DESTROYED');
+  const destroyed=()=>annotateMindmapError(frameError('E_XMIND_FRAME_DESTROYED'),'frame.destroy');
   function rejectPending(error){
     for(const item of pending.values()){clearTimeout(item.timer);item.reject(error);}
     pending.clear();
@@ -30,6 +31,7 @@ export function createXmindFrameRenderer({window,canvas,tree,skinMode='dark',ide
     if(!matchesFrameIdentity(data,binding)||data.kind!=='reply')return;
     const item=pending.get(data.id);
     if(!item||data.command!==item.command||typeof data.ok!=='boolean')return;
+    let failure;
     if(data.ok){
       if(data.command==='toggleAll'&&typeof data.value!=='boolean')return;
       if(data.command==='exportPng'&&(!data.value||
@@ -40,10 +42,14 @@ export function createXmindFrameRenderer({window,canvas,tree,skinMode='dark',ide
         !Number.isSafeInteger(data.value.size)||data.value.size<4||
         data.value.size>MAX_XMIND_BYTES||typeof data.value.arrayBuffer!=='function'))return;
       if(!Number.isSafeInteger(data.nodeCount)||data.nodeCount<0)return;
-    }else if(typeof data.error?.code!=='string')return;
+    }else{
+      failure=deserializeMindmapError(data.error);
+      if(!failure)return;
+      if(failure.mindmapStage==='unknown')failure.mindmapStage=`frame.${item.command}`;
+    }
     pending.delete(data.id);clearTimeout(item.timer);
     if(data.ok){nodeCount=data.nodeCount;item.resolve(data.value);}
-    else item.reject(frameError(data.error.code));
+    else item.reject(failure);
   }
   async function retire(value){
     if(!value||typeof value!=='object'||retired.has(value))return;
@@ -51,10 +57,16 @@ export function createXmindFrameRenderer({window,canvas,tree,skinMode='dark',ide
     value.port?.removeEventListener?.('message',receive);
     value.port?.removeEventListener?.('messageerror',broken);
     if(value===resource)port=null;
-    try{value.port?.close?.();}finally{await value.destroy?.();}
+    let failure;
+    try{value.port?.close?.();}catch(error){failure=annotateMindmapError(error,'frame.destroy');}
+    try{await value.destroy?.();}catch(error){
+      if(failure)throw appendMindmapCleanup(failure,error);
+      throw annotateMindmapError(error,'frame.destroy');
+    }
+    if(failure)throw failure;
   }
   function broken(){
-    rejectPending(frameError('E_XMIND_FRAME_CHANNEL'));
+    rejectPending(annotateMindmapError(frameError('E_XMIND_FRAME_CHANNEL'),'frame.connect'));
     destroy().catch(()=>{});
   }
   function request(command,args,teardown=false){
@@ -62,11 +74,11 @@ export function createXmindFrameRenderer({window,canvas,tree,skinMode='dark',ide
     return new Promise((resolve,reject)=>{
       const id=++sequence;
       const timer=setTimeout(()=>{
-        pending.delete(id);reject(frameError('E_XMIND_FRAME_TIMEOUT'));
+        pending.delete(id);reject(annotateMindmapError(frameError('E_XMIND_FRAME_TIMEOUT'),`frame.${command}`));
       },timeoutMs);
       pending.set(id,{command,resolve,reject,timer});
       try{port.postMessage(frameEnvelope(binding,{kind:'request',id,command,args}));}
-      catch(error){pending.delete(id);clearTimeout(timer);reject(error);}
+      catch(error){pending.delete(id);clearTimeout(timer);reject(annotateMindmapError(error,`frame.${command}`));}
     });
   }
   let cancelConnect;
@@ -74,30 +86,37 @@ export function createXmindFrameRenderer({window,canvas,tree,skinMode='dark',ide
   const loading=Promise.resolve().then(()=>{
     if(disposed)throw destroyed();
     return frameFactory({canvas,signal:abort.signal,identity:binding});
+  }).catch(error=>{
+    throw annotateMindmapError(error,'frame.create');
   });
   // If Stop/timeout wins a loader race, its late frame still belongs to us.
   loading.then(value=>{
     if(disposed&&value!==resource)retire(value).catch(error=>{
       // Stop may already have returned while an uncooperative loader was
       // pending. Its later cleanup failure must remain visible to the probe.
-      if(typeof window.reportError==='function')window.reportError(error);
-      else console.error('E_XMIND_LATE_FRAME_CLEANUP',error);
+      const diagnostic=describeMindmapError(error);
+      if(typeof window.reportError==='function')window.reportError(deserializeMindmapError(diagnostic));
+      else console.error('E_XMIND_LATE_FRAME_CLEANUP',diagnostic);
     });
   },()=>{});
   const ready=(async()=>{
-    const timer=setTimeout(()=>cancelConnect(frameError('E_XMIND_FRAME_TIMEOUT')),timeoutMs);
+    let stage='frame.create';
+    const timer=setTimeout(()=>cancelConnect(annotateMindmapError(frameError('E_XMIND_FRAME_TIMEOUT'),stage)),timeoutMs);
     try{
       resource=await Promise.race([loading,cancelled]);
       if(disposed)throw destroyed();
+      stage='frame.connect';
       if(typeof resource?.destroy!=='function')throw frameError('E_XMIND_FRAME_PORT');
       port=requireFramePort(resource.port);
       port.addEventListener('message',receive);port.addEventListener('messageerror',broken);port.start();
+      stage='frame.init';
       await request('init',{tree,skinMode});
-    }finally{clearTimeout(timer);}
+    }catch(error){throw annotateMindmapError(error,stage);}
+    finally{clearTimeout(timer);}
   })().catch(async error=>{
     if(!closing){
       disposed=true;abort.abort();rejectPending(error);
-      await retire(resource);
+      try{await retire(resource);}catch(cleanup){throw appendMindmapCleanup(error,cleanup);}
     }
     throw error;
   });
@@ -111,8 +130,15 @@ export function createXmindFrameRenderer({window,canvas,tree,skinMode='dark',ide
     if(closing)return closing;
     disposed=true;abort.abort();cancelConnect(destroyed());rejectPending(destroyed());
     closing=(async()=>{
+      let failure;
       try{if(port)await request('destroy',undefined,true);}
-      finally{rejectPending(destroyed());await retire(resource);}
+      catch(error){failure=annotateMindmapError(error,'frame.destroy');}
+      rejectPending(destroyed());
+      try{await retire(resource);}catch(cleanup){
+        if(failure)throw appendMindmapCleanup(failure,cleanup);
+        throw annotateMindmapError(cleanup,'frame.destroy');
+      }
+      if(failure)throw failure;
     })();
     return closing;
   }

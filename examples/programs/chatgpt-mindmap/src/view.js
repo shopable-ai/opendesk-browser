@@ -1,5 +1,6 @@
 import {createXmindRenderer} from './xmind-adapter.js';
 import {buildOutlineMarkdown,exportFileBase,verifyXmindZip,verifyPngBlob} from './export.js';
+import {annotateMindmapError} from './diagnostics.js';
 
 // All graphics are fixed, local path geometry; no runtime icon package or CDN.
 const ICONS={
@@ -122,7 +123,7 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
         item.disabled=true;item.setAttribute('aria-busy','true');
       });
       try{await run(id==='refresh'?{focus}:undefined);}
-      catch(error){await onError(error);}
+      catch(error){await onError(annotateMindmapError(error,`view.${id}`));}
       finally{
         if(!disposed){
           groupButtons.forEach(item=>{item.disabled=false;item.removeAttribute('aria-busy');});
@@ -362,17 +363,20 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     if(!status.hasAttribute('data-stale'))status.textContent='Loading mind map…';
     preferredSkin=host.getAttribute('data-dark')==='false'?'light':'dark';
     syncThemeButton();
-    renderer=rendererFactory({window,canvas,tree,skinMode:preferredSkin,identity});
-    await renderer.ready;
-    if(disposed)return;
-    await renderer.fit();
-    if(disposed)return;
-    renderButtons.forEach(button=>{button.disabled=false;});
-    loading.hidden=true;
-    if(!status.hasAttribute('data-stale'))status.textContent='';
-    host.dataset.ready='true';
-    host.dataset.layoutReady='inline';
-    if(!host.dataset.skinPending)host.dataset.skinReady=preferredSkin;
+    let stage='renderer.create';
+    try{
+      renderer=rendererFactory({window,canvas,tree,skinMode:preferredSkin,identity});
+      stage='renderer.ready';await renderer.ready;
+      if(disposed)return;
+      stage='renderer.fit';await renderer.fit();
+      if(disposed)return;
+      renderButtons.forEach(button=>{button.disabled=false;});
+      loading.hidden=true;
+      if(!status.hasAttribute('data-stale'))status.textContent='';
+      host.dataset.ready='true';
+      host.dataset.layoutReady='inline';
+      if(!host.dataset.skinPending)host.dataset.skinReady=preferredSkin;
+    }catch(error){throw annotateMindmapError(error,stage);}
   }
   async function setTheme(isDark){
     if(disposed)return;
@@ -382,7 +386,8 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     syncThemeButton();
     if(renderer){
       host.dataset.skinPending=next;
-      await renderer.setTheme(next);
+      try{await renderer.setTheme(next);}
+      catch(error){throw annotateMindmapError(error,'renderer.setTheme');}
       if(!disposed&&preferredSkin===next){
         host.dataset.skinReady=next;
         delete host.dataset.skinPending;

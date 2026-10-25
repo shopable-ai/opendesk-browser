@@ -79,7 +79,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .demo-reply-actions button:hover{filter:brightness(.96)}
 .demo-reply-actions button[hidden],.mock-conversation-nav[hidden],
 .mock-conversation-nav button[hidden]{display:none!important}
-.mock-conversation-nav{position:static;z-index:5;
+.mock-conversation-nav{position:absolute;left:17px;bottom:20px;z-index:5;
  display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
 .mock-conversation-nav button{pointer-events:auto;width:42px;height:42px;
  background:var(--ps-rail-bg);color:var(--ps-button-fg);border:1px solid var(--ps-rail-border);
@@ -90,7 +90,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 /* Mirrors approved R1.2 decision: 12 px from content area's LEFT EDGE, not the centered text column or composer. */
 .page-rail-group{position:absolute;left:12px;top:50%;transform:translateY(-50%);z-index:4;
- display:flex;flex-direction:column;align-items:center;gap:8px;max-height:calc(100% - 16px)}
+ display:flex;flex-direction:column;align-items:center;max-height:max(38px,calc(100% - 268px))}
 .page-rail{position:static;transform:none;z-index:4;display:flex;flex-direction:column;align-items:center;gap:5px;max-height:min(400px,calc(100dvh - 140px));overflow-y:auto;overflow-x:hidden;padding:6px;width:max-content;max-width:calc(100% - 24px);border:1px solid var(--ps-rail-border);background:var(--ps-rail-bg);box-shadow:var(--ps-rail-shadow);border-radius:17px;box-sizing:border-box;scrollbar-width:thin;overscroll-behavior:contain}
 .page-shortcut{flex:none;width:38px;height:38px;display:grid;place-items:center;border:1px solid transparent;background:var(--ps-button-bg);color:var(--ps-button-fg);border-radius:11px;font-size:13px;line-height:1.07;font-weight:700;box-sizing:border-box;user-select:none}
 .page-brand{display:grid;place-items:center;flex:none;width:38px;height:38px;padding:3px;
@@ -609,11 +609,11 @@ border:0;background:transparent;color:var(--od-sub)}
    <div class="message-area" id="messageArea">
     <div class="page-rail-group" id="pageRailGroup">
     <nav class="page-rail" id="pageRail" aria-label="模拟网页左侧提示词快捷按钮"></nav>
-    <nav class="mock-conversation-nav" id="mockConversationNav" aria-label="对话滚动导航" hidden>
-     <button id="mockConversationTop" type="button" aria-label="回到对话顶部" title="回到对话顶部"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17 11l-5-5-5 5m10 7-5-5-5 5"/></svg></button>
-     <button id="mockConversationBottom" type="button" aria-label="跳到对话底部" title="跳到对话底部"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 6l5 5 5-5M7 13l5 5 5-5"/></svg></button>
-    </nav>
     </div>
+    <nav class="mock-conversation-nav" id="mockConversationNav" aria-label="Conversation navigation" hidden>
+     <button id="mockConversationTop" type="button" aria-label="Back to start of this conversation" title="Back to start of this conversation"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17 11l-5-5-5 5m10 7-5-5-5 5"/></svg></button>
+     <button id="mockConversationBottom" type="button" aria-label="Go to end of this conversation" title="Go to end of this conversation"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 6l5 5 5-5M7 13l5 5 5-5"/></svg></button>
+    </nav>
     <div id="webTooltip" class="web-tip" hidden><strong id="tipTitle"></strong><small>完整提示词 · 仅模拟</small><pre id="tipBody"></pre></div>
     <div class="mock-menu" id="mockContextMenu" hidden><p>Chrome 原生右键菜单 · 模拟</p><button id="mockMenuAdd" type="button">＋ 添加为提示词快捷按钮</button></div>
     <div class="message-inner" id="demoTranscript"><h2>把常用提示词放在伸手可及的位置</h2>
@@ -622,9 +622,9 @@ border:0;background:transparent;color:var(--od-sub)}
      <p id="selectionSample">请在不改变原意的前提下润色以下文字，保留原有语气，并提出必要的结构优化建议。</p>
      <p>选中文字后，通过右键菜单快速添加为新快捷按钮。新建流程仍需要人工确认保存。</p>
      <article id="mockLongReply" class="demo-long-reply" aria-label="模拟 AI 长回复">
-       <div class="demo-reply-actions" role="group" aria-label="长回复导航">
-         <button id="demoReplyTop" type="button" aria-label="回到此内容开头" title="回到此内容开头"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 4h14M12 20V8m-6 6 6-6 6 6"/></svg></button>
-         <button id="demoReplyBottom" type="button" aria-label="跳到此内容末尾" title="跳到此内容末尾"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 20h14M12 4v12m-6-6 6 6 6-6"/></svg></button>
+       <div class="demo-reply-actions" role="group" aria-label="Content navigation">
+         <button id="demoReplyTop" type="button" aria-label="Back to start of this content" title="Back to start of this content"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 4h14M12 20V8m-6 6 6-6 6 6"/></svg></button>
+         <button id="demoReplyBottom" type="button" aria-label="Go to end of this content" title="Go to end of this content"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 20h14M12 4v12m-6-6 6 6 6-6"/></svg></button>
        </div>
        <strong>模拟长回复 · 滚动导航实验</strong>
        <div id="demoLongText"></div><div id="demoReplyEnd"></div>

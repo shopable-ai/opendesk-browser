@@ -165,7 +165,7 @@ test('reviewed prompt rail bridge is pinned for fixed Service Worker only, never
     chunk:{fileName,modules:{[resolve(root,path)]:info}}});
   const modulePath='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
   const trusted=bundle('sw.js',modulePath);
-  assert.equal(trusted.modules[0].reviewedFirstPartyBlob,'d8650195e9b43178caafa015edaf60649d994b2f');
+  assert.equal(trusted.modules[0].reviewedFirstPartyBlob,'5f0184b28abe5d8e03855f9c130d45faba807d1e');
   assert.throws(()=>bundle('sw.js','examples/sidebar-tools/prompt-shortcuts/trusted/page.js'),
     /Historical\/user\/vendor code cannot enter/);
   assert.throws(()=>bundle('scripting/user-scripts.js',modulePath),

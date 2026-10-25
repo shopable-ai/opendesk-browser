@@ -29,3 +29,23 @@ test('missing platform resource propagates and unsupported moves never create a 
   await assert.rejects(factory({canvas:{}}),{code:'E_XMIND_FRAME_MOVE_UNAVAILABLE'});assert.equal(calls,0);
   await assert.rejects(factory({canvas:{moveBefore(){}}}),{code:'E_FRAME_RESOURCE'});assert.equal(calls,1);
 });
+
+test('mount failure retains original details even when child retirement also fails',async()=>{
+  const failure=Object.assign(new TypeError('moveBefore failed'),{code:'E_MOUNT'});
+  const cleanup=Object.assign(new Error('cleanup failed'),{code:'E_CLOSE'});
+  const factory=createInstalledXmindFrameFactory({createFrame:async()=>({frame:{style:{}},port:{},
+    destroy(){throw cleanup;}})});
+  await assert.rejects(factory({canvas:{moveBefore(){throw failure;}}}),error=>{
+    assert.equal(error,failure);assert.equal(error.mindmapStage,'frame.mount');
+    assert.equal(error.cleanupErrors[0],cleanup);assert.equal(cleanup.mindmapStage,'frame.destroy');return true;
+  });
+});
+
+test('platform non-Error failure is annotated at create and null mount at mount',async()=>{
+  const factory=createInstalledXmindFrameFactory({createFrame(){throw null;}});
+  await assert.rejects(factory({canvas:{moveBefore(){}}}),{mindmapStage:'frame.create',message:'Non-Error throw (null)'});
+  let closed=0;
+  const mount=createInstalledXmindFrameFactory({createFrame:async()=>({frame:{},destroy(){closed++;}})});
+  await assert.rejects(mount({canvas:{moveBefore(){throw null;}}}),{mindmapStage:'frame.mount',message:'Non-Error throw (null)'});
+  assert.equal(closed,1);
+});

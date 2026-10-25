@@ -14,6 +14,7 @@ const SLOT='__openDeskPromptShortcutsPageV1';
 const CHAT_TURNS='[data-testid^="conversation-turn-"],[data-content-search-unit-key]';
 const DEEPSEEK_TURNS='.ds-message';
 const GEMINI_TURNS='user-query,model-response';
+const NAV_BOTTOM_INSET=20,NAV_RAIL_GAP=24;
 const STYLE=String.raw`
 :host{all:initial;position:fixed;z-index:2147483600;pointer-events:none;color-scheme:light;font:13px/1.4 system-ui,sans-serif;
  --od-rail-bg:#fff;--od-rail-border:#e9e9eb;--od-rail-shadow:0 6px 24px #18243b15;
@@ -24,9 +25,9 @@ const STYLE=String.raw`
  --od-pop-bg:#20242b;--od-pop-fg:#ebedf1;--od-pop-border:#373c45}
 :host([hidden]){display:none!important}
 button[hidden]{display:none!important}
-/* The built-in OD brand entry precedes real saved shortcuts. Independent
-   reply/viewport scrolling stays outside this prompt toolbar. */
-.rail{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:5px;
+/* Shortcuts stay centered on the left; conversation navigation has its own
+   bottom-left anchor. Reply navigation remains in the response toolbar. */
+.rail{pointer-events:auto;display:flex;flex:none;flex-direction:column;align-items:center;gap:5px;
  max-height:min(400px,calc(100dvh - 16px));overflow-y:auto;overflow-x:hidden;
  width:max-content;max-width:calc(100vw - 16px);padding:6px;border-radius:17px;
  background:var(--od-rail-bg);border:1px solid var(--od-rail-border);
@@ -337,8 +338,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       ...(showTop?[{direction:'top',key:topKey}]:[]),
       ...(showBottom?[{direction:'bottom',key:'conversationBottom'}]:[])
     ];
-    // Position the independent conversation dock underneath the real left rail,
-    // after its vertical or compact placement has been measured.
+    // Navigation is independent from the centered shortcut toolbar.
     if(!floatingHost){
       floatingHost=doc.createElement('nav');
       floatingHost.setAttribute('data-opendesk-prompts-floating','');
@@ -346,7 +346,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       floatingHost.style.cssText='position:fixed;left:0;top:0;z-index:2147483599;pointer-events:none;visibility:hidden;';
       const shadow=floatingHost.attachShadow({mode:'closed'});
       const style=doc.createElement('style');
-      style.textContent=`:host{all:initial;color-scheme:light}
+      style.textContent=`:host{all:initial;display:block;flex:none;pointer-events:none;color-scheme:light}
         :host(.dark){color-scheme:dark}
         .stack{display:flex;flex-direction:column;align-items:center;gap:6px}
         .stack.compact{flex-direction:row}
@@ -393,26 +393,28 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     floatingHost.classList.toggle('dark',!!darkTheme());
     if(!floatingHost.isConnected)doc.documentElement?.append(floatingHost);
   };
-  // A single independent navigation follows the actual prompt rail's rectangle.
-  // Native website controls have priority if they occupy this space.
-  const positionFloating=()=>{
+  // Anchor to the visible conversation's bottom-left, never the rail's bottom.
+  // Native website controls retain precedence over this optional navigation.
+  const positionFloating=region=>{
     if(!floatingHost||!floatingButtons||!rail||!host||host.hidden){
       if(floatingHost)floatingHost.style.visibility='hidden';
       return;
     }
     const bounds=rail.getBoundingClientRect(),compact=rail.classList.contains('horizontal');
     const count=floatingButtons.stack.children.length;
-    if(!count||!bounds.width||!bounds.height){
+    if(!count||!region||!bounds.width||!bounds.height){
       floatingHost.style.visibility='hidden';return;
     }
-    floatingButtons.stack.classList.toggle('compact',compact);
     const width=compact?count*42+(count-1)*6:42;
     const height=compact?42:count*42+(count-1)*6;
     const left=Math.round(Math.max(8,Math.min(win.innerWidth-width-8,
-      bounds.left+(compact?4:(bounds.width-width-42)/2))));
-    const railBottom=Number.isFinite(bounds.bottom)?bounds.bottom:bounds.top+bounds.height;
-    const top=Math.round(railBottom+8);
-    if(!Number.isFinite(top)||top+height>win.innerHeight-8||
+      compact?Math.max(region.left,region.safeLeft??region.left)+16:
+        bounds.left+(bounds.width-width)/2)));
+    const top=Math.round(Math.min(win.innerHeight,region.top+region.height)-NAV_BOTTOM_INSET-height);
+    const nearRail=bounds.left<left+width&&bounds.left+bounds.width>left&&
+      bounds.top<top+height+NAV_RAIL_GAP&&bounds.top+bounds.height+NAV_RAIL_GAP>top;
+    if(!Number.isFinite(top)||top<Math.max(8,region.top+8)||nearRail||
+       top+height>win.innerHeight-8||
        left+width>win.innerWidth-8){
       floatingHost.style.visibility='hidden';return;
     }
@@ -728,18 +730,19 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       left+verticalWidth+10<=targetRect.left&&targetRect.width>=200;
     rail.classList.toggle('horizontal',!vertical);
     rail.classList.toggle('narrow',rect.width<680);
+    floatingButtons?.stack.classList.toggle('compact',!vertical);
     const count=floatingButtons?.stack?.children?.length||0;
-    const reserved=count?(vertical?count*42+(count-1)*6+8:50):0;
-    rail.style.maxHeight=vertical?
-      Math.max(38,Math.min(400,win.innerHeight-16-reserved))+'px':'';
+    rail.style.maxHeight='';
     if(vertical){
       const visibleTop=Math.max(0,rect.top),visibleBottom=Math.min(win.innerHeight,rect.top+rect.height);
       // Center the visible scrollport, not its potentially longer scrollable content.
-      const railHeight=Math.min(rail.offsetHeight||rail.scrollHeight||222,
-        win.innerHeight-16-reserved);
       const center=(visibleTop+visibleBottom)/2;
-      const top=Math.max(8+railHeight/2,
-        Math.min(win.innerHeight-8-reserved-railHeight/2,center));
+      const railBottom=count?visibleBottom-NAV_BOTTOM_INSET-(count*42+(count-1)*6)-NAV_RAIL_GAP:
+        visibleBottom-8;
+      const maxHeight=Math.max(38,Math.min(400,visibleBottom-visibleTop-16,2*(railBottom-center)));
+      rail.style.maxHeight=maxHeight+'px';
+      const railHeight=Math.min(rail.offsetHeight||rail.scrollHeight||222,maxHeight);
+      const top=Math.max(visibleTop+8+railHeight/2,Math.min(railBottom-railHeight/2,center));
       host.style.left=Math.round(left)+'px';host.style.top=Math.round(top)+'px';
       host.style.transform='translateY(-50%)';host.hidden=false;
     }else{
@@ -747,11 +750,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       // Horizontal rail scrolls; its intrinsic width must never hide every button.
        const width=rail.offsetWidth||Math.min(win.innerWidth-16,250);
       const height=rail.offsetHeight||52;
-      let top=targetRect.top-height-18-reserved;
-      if(top<8&&floatingHost){
-        // The rail remains usable even on a too-short mobile viewport.
-        clearFloating();top=targetRect.top-height-18;
-      }
+      const top=targetRect.top-height-18;
       if(top<8||width>win.innerWidth-16){
         host.hidden=true;clearFloating();hideTip();return;
       }
@@ -759,7 +758,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       host.style.left=Math.round(alignedLeft)+'px';host.style.top=Math.round(top)+'px';
       host.style.transform='none';host.hidden=false;
     }
-    positionFloating();
+    positionFloating(rect);
     positionTip();
   };
   const schedule=()=>{if(!layoutTimer)layoutTimer=win.setTimeout(layout,120);};

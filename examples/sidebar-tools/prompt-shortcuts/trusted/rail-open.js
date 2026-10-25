@@ -18,13 +18,17 @@ export function handlePromptRailOpen({api=globalThis.chrome,message,sender,respo
   const answer=typeof respond==='function'?respond:()=>{};
   // Bind the request to an extension-owned, top-frame, non-incognito tab.
   // Untrusted websites cannot invoke this privileged browser operation.
+  // Chrome can retain the document's original sender.url after SPA navigation.
+  // Bind the click to the current tab URL and keep the document on that origin.
   if(sender?.id!==api?.runtime?.id||sender?.frameId!==0||
      sender?.documentLifecycle&&sender.documentLifecycle!=='active'||
      !Number.isSafeInteger(sender?.tab?.id)||sender.tab.id<0||
      !Number.isSafeInteger(sender?.tab?.windowId)||sender.tab.windowId<0||
     sender.tab.incognito||!validSiteUrl(sender.url)||
     !validSiteUrl(sender.tab.url)||!validSiteUrl(message.expectedUrl)||
-    sender.url!==sender.tab.url||sender.url!==message.expectedUrl){
+    sender.tab.url!==message.expectedUrl||
+    new URL(sender.url).origin!==new URL(sender.tab.url).origin||
+    sender.origin!==undefined&&sender.origin!==new URL(sender.url).origin){
     answer({ok:false,error:{code:'E_SENDER'}});return true;
   }
   if(typeof api?.sidePanel?.open!=='function'){

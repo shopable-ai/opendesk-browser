@@ -197,7 +197,7 @@ test('R1.4 provenance pins only audited trusted tool modules to exact fixed entr
   }
   for(const target of ['agents/page-relay.js','sw.js']){
     assert.equal(examined('trusted/rail-open.js',target).reviewedFirstPartyBlob,
-      'd8650195e9b43178caafa015edaf60649d994b2f');
+      '5f0184b28abe5d8e03855f9c130d45faba807d1e');
   }
   assert.throws(()=>examined('trusted/rail-open.js','ui/sidebar-tool-host.js'),
     /Historical\/user\/vendor code cannot enter/);

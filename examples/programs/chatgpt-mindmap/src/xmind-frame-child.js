@@ -1,4 +1,5 @@
 import {createXmindRenderer} from './xmind-adapter.js';
+import {annotateMindmapError,describeMindmapError,appendMindmapCleanup} from './diagnostics.js';
 import {MAX_XMIND_BYTES,verifyPngBlob} from './export.js';
 import {bindFrameIdentity,matchesFrameIdentity,requireFramePort,frameEnvelope,frameError,
   XMIND_FRAME_COMMANDS} from './xmind-frame-protocol.js';
@@ -15,7 +16,8 @@ export function serveXmindFrame({port,identity,window,canvas,
   function reply(data,ok,value,error){
     if(disposed&&data.command!=='destroy')return;
     port.postMessage(frameEnvelope(binding,{kind:'reply',id:data.id,command:data.command,
-      ok,value,nodeCount:renderer?.nodeCount||0,...(error?{error:{code:error.code||'E_XMIND_RENDER'}}:{})}));
+      ok,value,nodeCount:renderer?.nodeCount||0,...(!ok?{
+        error:describeMindmapError(annotateMindmapError(error,`frame.${data.command}`))}: {})}));
   }
   function validate(data){
     if(['exportXmind','exportPng'].includes(data.command)&&data.args!==undefined)throw frameError('E_XMIND_FRAME_ARGS');
@@ -73,8 +75,14 @@ export function serveXmindFrame({port,identity,window,canvas,
     // createXmindRenderer owns delayed initialization/SDK close. Do not wait
     // for the command queue before asking it to retire an in-flight mount.
     closing=(async()=>{
+      let failure;
       try{await renderer?.destroy();await operations;}
-      finally{if(closePort)port.close();}
+      catch(error){failure=annotateMindmapError(error,'frame.destroy');}
+      try{if(closePort)port.close();}catch(cleanup){
+        if(failure)throw appendMindmapCleanup(failure,cleanup);
+        throw annotateMindmapError(cleanup,'frame.destroy');
+      }
+      if(failure)throw failure;
     })();
     return closing;
   }

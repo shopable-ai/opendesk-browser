@@ -13,7 +13,7 @@ test('R2.15 fixed build admits exact reviewed rail code only in its two owners',
   const describe=(target,root=process.cwd(),input=path)=>describeBundle({root,
     chunk:{fileName:target,modules:{[resolve(root,input)]:{renderedLength:1,originalLength:1}}},lock:{packages:{}}});
   for(const target of ['sw.js','agents/page-relay.js'])
-    assert.equal(describe(target).modules[0].reviewedFirstPartyBlob,'d8650195e9b43178caafa015edaf60649d994b2f');
+    assert.equal(describe(target).modules[0].reviewedFirstPartyBlob,'5f0184b28abe5d8e03855f9c130d45faba807d1e');
   for(const target of ['ui/sidebar-tool-host.js','ui/tool-shell.js'])
     assert.throws(()=>describe(target),/cannot enter a privileged fixed bundle/);
   for(const name of ['model.js','policy.js','page.js'])
@@ -80,6 +80,36 @@ test('R2.15 genuine top-level ChatGPT sender opens existing Chrome panel synchro
   assert.deepEqual(r.received,[]);
   complete();await new Promise(resolve=>setImmediate(resolve));
   assert.deepEqual(r.received,[{ok:true,data:{opened:true}}]);
+});
+
+test('OD accepts a built-in SPA route while binding the click to the current tab URL',async()=>{
+  for(const [documentUrl,currentUrl] of [
+    ['https://chat.deepseek.com/','https://chat.deepseek.com/a/chat/s/01234567-89ab-cdef'],
+    ['https://chatgpt.com/','https://chatgpt.com/c/test'],
+    ['https://gemini.google.com/app','https://gemini.google.com/app/01234567']
+  ]){
+    const s=sender(),r=reply();let opened=0;
+    s.url=documentUrl;s.origin=new URL(documentUrl).origin;s.tab.url=currentUrl;
+    handlePromptRailOpen({api:{runtime:{id:'opendesk'},storage:{session:{set:async()=>{}}},
+      sidePanel:{open(){opened++;return Promise.resolve();}}},sender:s,
+      message:{...message(),expectedUrl:currentUrl},respond:r.respond});
+    assert.equal(opened,1,'same-document SPA route must retain the native gesture');
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(r.received[0]?.ok,true);
+  }
+});
+
+test('OD rejects cross-site, opaque-origin and stale SPA clicks before opening Chrome UI',()=>{
+  for(const mutate of [
+    s=>{s.url='https://gemini.google.com/app';s.origin='https://gemini.google.com';},
+    s=>{s.origin='null';},
+    s=>{s.tab.url='https://chatgpt.com/c/other';}
+  ]){
+    const s=sender(),r=reply();let opened=0;mutate(s);
+    handlePromptRailOpen({api:{runtime:{id:'opendesk'},storage:{session:{set:async()=>{}}},
+      sidePanel:{open(){opened++;}}},sender:s,message:message(),respond:r.respond});
+    assert.equal(opened,0);assert.equal(r.received[0]?.error?.code,'E_SENDER');
+  }
 });
 
 test('R2.15 rejection, missing sidePanel, and denied sender never claim success',async()=>{
