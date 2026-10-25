@@ -10,12 +10,13 @@ const validMessage=msg=>typeof msg?.messageId==='string'&&
 
 export function createLocalKnowledgeTestRuntime({
  api,currentPageTarget,model,readLibrary,assertLive,onChange,
- getProviderGeneration=()=>null
+ callAI=null,onStopAI=()=>{},getProviderGeneration=()=>null
 }={}){
  const adapter=createLocalKnowledgeDemoAdapter({api,currentPageTarget});
  let session=null,serial=0;
  let snapshot=Object.freeze({mode:'idle',autoSendFixed:false,threadId:'',
-   target:null,records:[],observed:0,confirmed:0,errors:0,message:'未连接本地测试页'});
+   target:null,records:[],observed:0,confirmed:0,errors:0,autoAI:false,
+   knowledgeCount:null,message:'未连接本地测试页'});
  const publish=patch=>{
    snapshot=Object.freeze({...snapshot,...patch});
    onChange?.(snapshot);
@@ -72,6 +73,7 @@ export function createLocalKnowledgeTestRuntime({
      const read=await readLibrary();assertLive();
      if(!active(s))return;
      const library=model.library(read.value??model.empty());
+     if(read.etag!==s.etag){stop('本轮知识版本已变化，需重新批准');return;}
      const result=model.lookup(library,{question:message.text,scope:message.scope});
      if(!active(s))return;
      update(s,message.messageId,{
@@ -81,6 +83,26 @@ export function createLocalKnowledgeTestRuntime({
          result.status==='RETRIEVED_ONLY'?'已有候选来源，需可信点击调用 AI 并人工审核':
          '没有确定依据，禁止发送'
      });
+     if(result.status==='RETRIEVED_ONLY'&&s.approvedAI&&typeof callAI==='function'&&!s.paused){
+       update(s,message.messageId,{status:'GENERATING_AI',message:'正在使用已批准的共享 AI 生成草稿'});
+       try{
+         const ai=await callAI({question:message.text,scope:message.scope,
+           approvedKnowledgeTest:s.approvedAI,expectedEtag:s.etag});
+         if(!active(s))return;
+         const check=await readLibrary();assertLive();
+         if(!active(s))return;
+         if(check.etag!==s.etag)throw fail('E_KB_STALE','知识版本在 AI 处理期间变化');
+         if(ai?.status==='REVIEW_REQUIRED'&&ai.answer&&ai.sourceIds?.length){
+           update(s,message.messageId,{status:'REVIEW_REQUIRED',answer:ai.answer,
+             sourceIds:ai.sourceIds.slice(),etag:s.etag,providerGeneration:getProviderGeneration(),
+             message:'真实 AI 草稿，需人工核对后才能发送'});
+         }else update(s,message.messageId,{status:ai?.status||'INVALID_AI',answer:'',
+           message:'AI 草稿未通过来源校验，禁止发送'});
+       }catch(error){
+         if(active(s))update(s,message.messageId,{status:'ERROR',answer:'',
+           message:'AI 请求失败：'+String(error?.code||error?.message||error)});
+       }
+     }
      if(result.status==='ANSWERED_FIXED'&&s.autoSendFixed&&!s.paused&&active(s)){
        try{await send(s,message.messageId);}catch{/* Terminal UNKNOWN/STALE, no retry. */}
      }
@@ -127,8 +149,12 @@ export function createLocalKnowledgeTestRuntime({
  function stop(message='已停止'){
    const old=session;session=null;serial++;
    if(old?.timer)clearInterval(old.timer);
+   onStopAI();
    void adapter.stop();
-   publish({mode:'idle',message});
+   publish({mode:'idle',autoAI:false,message,
+     records:snapshot.records.map(row=>['RETRIEVING','GENERATING_AI','SENDING'].includes(row.status)
+       ?Object.freeze({...row,status:row.status==='SENDING'?'UNKNOWN':'STALE',message:'测试已停止，无法确认后续执行结果'})
+       :row)});
  }
  return Object.freeze({
    snapshot:()=>snapshot,
@@ -139,13 +165,17 @@ export function createLocalKnowledgeTestRuntime({
      publish({mode:'connecting',message:'正在核对当前窗口和测试页文档…'});
      try{
        const initial=await adapter.start();assertLive();
+       const read=await readLibrary();assertLive();
+       const library=model.library(read.value??model.empty());
        const s={serial:++serial,threadId:initial.threadId,autoSendFixed:Boolean(autoSendFixed),
+         etag:read.etag,approvedAI:null,
          expiresAt:Date.now()+DURATION_MS,
          seen:new Set(initial.messages.filter(x=>x.direction==='customer').map(x=>x.messageId)),
          queue:[],paused:false,polling:false,draining:false,timer:null};
        session=s;
        publish({mode:'running',autoSendFixed:s.autoSendFixed,threadId:s.threadId,target:initial.target,
-         records:[],observed:0,confirmed:0,errors:0,
+         records:[],observed:0,confirmed:0,errors:0,autoAI:false,
+         knowledgeCount:library.items.length,
          message:'已批准：仅此文档，最长 10 分钟、最多 20 条'});
        s.timer=setInterval(()=>{
          if(!active(s)){stop('测试许可已到期');return;}
@@ -165,6 +195,22 @@ export function createLocalKnowledgeTestRuntime({
    },
    stop,
    // Preparing the exact inbound question still uses the existing trusted manual Send.
+   approvalContext(){
+     const s=session;if(!s||!active(s)||s.paused)throw fail('E_KB_TEST_STOPPED','监听未生效');
+     const target=adapter.target;
+     if(!target||target.documentId!==snapshot.target?.documentId)
+       throw fail('E_KB_TEST_STALE','测试文档身份已变化');
+     return {origin:'http://127.0.0.1:43111',documentId:target.documentId,etag:s.etag};
+   },
+   approveAI(grant){
+     const s=session;if(!s||!active(s)||s.paused)throw fail('E_KB_TEST_STOPPED','监听未生效');
+     const target=adapter.target;
+     if(!grant||grant.etag!==s.etag||grant.documentId!==target?.documentId||
+        grant.origin!=='http://127.0.0.1:43111'||Date.now()>grant.expiresAt)
+       throw fail('E_KB_TEST_CONSENT','测试 Provider 授权不匹配知识版本或网页文档');
+     s.approvedAI=grant;
+     publish({autoAI:true,message:'已批准在当前文档的测试期内调用共享 AI；生成结果仍需人工审核'});
+   },
    select(messageId){
      const record=snapshot.records.find(x=>x.messageId===messageId);
      if(!session||!record||!active(session)||!['RETRIEVED_ONLY','ANSWERED_FIXED','REVIEW_REQUIRED'].includes(record.status))
