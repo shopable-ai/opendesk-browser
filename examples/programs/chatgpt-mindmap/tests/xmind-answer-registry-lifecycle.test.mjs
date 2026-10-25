@@ -159,6 +159,27 @@ test('reply group reuses navigation and retires only its own mindmap host',async
   assert.equal(h.triggerHost.isConnected,false);
 });
 
+
+test('old and new installed Mind Map identities preserve the other live trigger',async()=>{
+  const h=setup(),group=h.triggerHost.parentElement,bar=group.parentElement;
+  const legacy=bar.ownerDocument.createElement('span');
+  legacy.setAttribute('data-opendesk-chatgpt-mindmap','button');
+  legacy.attachShadow({mode:'open'}).append(bar.ownerDocument.createElement('button'));
+  group.prepend(legacy);
+  h.registry.scan();
+  assert.equal(legacy.parentElement,group,'old Program retains its owned DOM');
+  assert.equal(legacy.shadowRoot.querySelector('button')!==null,true);
+  assert.equal(h.triggerHost.isConnected,false,'new Program yields while old instance is live');
+  assert.equal(bar.querySelectorAll('[data-opendesk-chatgpt-mindmap="button"]').length,1);
+  legacy.remove();
+  h.registry.scan();
+  assert.equal(h.triggerHost.isConnected,true,'new Program resumes only after old UI has left');
+  assert.equal(bar.querySelectorAll('[data-opendesk-chatgpt-mindmap="button"]').length,1);
+  await h.registry.destroy();
+  assert.equal(legacy.shadowRoot.querySelector('button')!==null,true,
+    'new instance retirement does not dispose foreign old Program state');
+});
+
 test('reply group returns to the end without reordering its peers or native actions',async()=>{
   const h=setup(),group=h.triggerHost.parentElement,bar=group.parentElement;
   const navigation=bar.ownerDocument.createElement('span');group.prepend(navigation);

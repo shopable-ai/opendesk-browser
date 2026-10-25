@@ -166,12 +166,16 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
   }
   function insertButton(next){
     if(!next?.isConnected)return;
-    // ChatGPT may clone a reply action bar containing our icon host.
-    // cloneNode(true) retains its marker but not the live ShadowRoot or
-    // controller. Drop only such inert copies before moving the real host.
-    for(const candidate of next.querySelectorAll('[data-opendesk-chatgpt-mindmap="button"]')){
-      if(candidate!==buttonRef.host)candidate.remove();
+    // Different old/new installed Program identities can temporarily coexist.
+    // Never remove a live foreign trigger: the other installation owns its DOM.
+    // An inert clone has no live ShadowRoot and can still be cleaned safely.
+    const peers=[...next.querySelectorAll('[data-opendesk-chatgpt-mindmap="button"]')]
+      .filter(candidate=>candidate!==buttonRef.host);
+    if(peers.some(candidate=>candidate.shadowRoot)){
+      if(buttonRef.host.isConnected)unmountAnswerTool(buttonRef.host);
+      return;
     }
+    for(const clone of peers)clone.remove();
     mountAnswerTool(next,buttonRef.host);
   }
   function restore(){
