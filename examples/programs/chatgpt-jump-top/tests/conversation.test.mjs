@@ -1236,3 +1236,22 @@ test('two module-local Scroll owners use the first live same-key reply host', t 
   assert.equal(session.isMounted(), true);
   assert.equal(toolbar.querySelectorAll('[data-opendesk-ai-scroll-navigation="reply"]').length, 1);
 });
+
+test('old installed Page lifecycle blocks a new navigator before an old reply button exists', t => {
+  const {doc, view, rows: [{toolbar}]} = controlledEditors();
+  const lifecycle = element({tag: 'div', parent: doc.documentElement,
+    attributes: {'data-opendesk-ui-owner': 'old-program',
+      'data-od-id': 'opendesk.chatgpt-jump-top.lifecycle'}});
+  assert.equal(conversation.legacyNavigationPresent(doc), true);
+  const owner = observerOwner();
+  const session = conversation.installJumpToTop({doc, win: view, owner});
+  t.after(() => owner.dispose());
+  assert.equal(session.isMounted(), false);
+  assert.equal(toolbar.querySelector('[data-opendesk-ai-scroll-navigation="reply"]'), null);
+  lifecycle.remove();
+  owner.emit({type: 'childList', target: doc.documentElement, addedNodes: [],
+    removedNodes: [lifecycle]});
+  owner.flush();
+  assert.equal(conversation.legacyNavigationPresent(doc), false);
+  assert.equal(session.isMounted(), true, 'resumes without transferring any old grant');
+});
