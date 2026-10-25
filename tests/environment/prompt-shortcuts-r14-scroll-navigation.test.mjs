@@ -8,37 +8,37 @@ import {findConversationNavigation,jumpConversationEdge,jumpRegionEnd} from
   '../../examples/programs/chatgpt-jump-top/src/conversation.js';
 
 const ROOT='examples/sidebar-tools/prompt-shortcuts';
-const flags=['regionTop','regionBottom','conversationTop','conversationBottom','floatingTop'];
-async function readModel(){
-  const code=await readFile(ROOT+'/trusted/model.js','utf8');
-  const context={URL,Intl,TextEncoder,crypto:webcrypto};
-  runInNewContext(code,context);
-  return context.OpenDeskPromptShortcutsModel;
-}
-test('R1.16 older library gets five enabled navigation switches without losing prompts',async()=>{
+test('R1.2.2 existing prompts and image references remain usable without navigation settings',async()=>{
   const model=await readModel();
-  const item=model.draft({body:'旧版提示词'},null,()=>'old_item_12345');
+  const item=model.draft({body:'旧版提示词',imageAssetId:'psa_0123456789abcdef0123456789abcdef'},
+    null,()=>'old_item_12345');
   const old={schema:1,items:[item],settings:{webButtons:true,imageSize:'compact'}};
   const next=model.load(old);
   assert.equal(next.items[0].body,item.body);
+  assert.equal(next.items[0].imageAssetId,item.imageAssetId);
   assert.equal(next.settings.webButtons,true);
   assert.equal(next.settings.imageSize,'compact');
-  for(const key of flags)assert.equal(next.settings.scrollNavigation[key],true,key);
+  assert.equal(Object.hasOwn(next.settings,'scrollNavigation'),false);
+  const saved=model.libraryForStorage(next);
+  assert.equal(saved.items[0].body,item.body);
+  assert.equal(saved.items[0].imageAssetId,item.imageAssetId);
+  assert.equal(Object.hasOwn(saved.settings,'scrollNavigation'),false);
 });
-test('R1.16 switches are independent, persisted and reject malformed input',async()=>{
-  const model=await readModel();
-  const old=model.defaults();
-  const next=model.load({...old,settings:{...old.settings,scrollNavigation:{
-    regionBottom:false,conversationTop:false
-  }}});
-  assert.equal(next.settings.scrollNavigation.regionBottom,false);
-  assert.equal(next.settings.scrollNavigation.conversationTop,false);
-  for(const key of flags.filter(key=>!['regionBottom','conversationTop'].includes(key)))
-    assert.equal(next.settings.scrollNavigation[key],true,key);
-  for(const value of [{regionTop:'false'},{unknown:true},[],null]){
-    assert.throws(()=>model.load({...old,settings:{...old.settings,scrollNavigation:value}}),
-      {code:'E_PROMPT_DATA'});
+test('R1.2.2 retired navigation overrides are ignored, never validated as active Prompt settings',async()=>{
+  const model=await readModel(),base=model.defaults();
+  const cases=[undefined,{regionTop:false,regionBottom:true,
+    conversationTop:false,conversationBottom:true,floatingTop:false},
+    {regionBottom:false}, {regionTop:'false'}, {unknown:true}, [],null];
+  for(const legacy of cases){
+    const old={...base,settings:{...base.settings,scrollNavigation:legacy}};
+    const loaded=model.load(old);
+    assert.equal(Object.hasOwn(loaded.settings,'scrollNavigation'),false);
+    const stored=model.libraryForStorage(old);
+    assert.equal(Object.hasOwn(stored.settings,'scrollNavigation'),false);
+    assert.equal(stored.settings.webButtons,true);
   }
+  assert.throws(()=>model.load({...base,settings:{...base.settings,webButtons:'true'}}),
+    {code:'E_PROMPT_DATA'},'current Prompt configuration remains validated');
 });
 function fixture(){
   const contains=function(node){
@@ -117,18 +117,20 @@ test('R1.1 Prompt Shortcuts has no runtime navigation owner',async()=>{
   assert.match(floating,/doc\.querySelector\(LEGACY\)/,
     'temporarily running old Prompt navigation wins during migration');
 });
-test('R1.1 old Prompt scroll flags survive reading and storage without running',async()=>{
+test('R1.2.2 legacy navigation data never reappears on a normal Prompt save',async()=>{
   const model=await readModel();
-  const old={...model.defaults(),settings:{...model.defaults().settings,
+  const item=model.draft({body:'兼容旧数据'},null,()=>'old_item_12346');
+  const old={schema:1,items:[item],settings:{webButtons:false,imageSize:'standard',
     scrollNavigation:{regionBottom:false,floatingTop:false}}};
-  const load=model.load(old);
-  assert.equal(load.settings.scrollNavigation.regionBottom,false);
-  assert.equal(load.settings.scrollNavigation.floatingTop,false);
-  const persisted=model.libraryForStorage(load);
+  const loaded=model.load(old);
+  assert.equal(loaded.items[0].body,item.body);
+  assert.equal(Object.hasOwn(loaded.settings,'scrollNavigation'),false);
+  const persisted=model.libraryForStorage(loaded);
   const restored=model.load(persisted);
-  assert.equal(restored.settings.scrollNavigation.regionBottom,false);
-  assert.equal(restored.settings.scrollNavigation.floatingTop,false);
-  assert.equal(restored.settings.webButtons,old.settings.webButtons);
+  assert.equal(restored.items[0].body,item.body);
+  assert.equal(restored.settings.webButtons,false);
+  assert.equal(restored.settings.imageSize,'standard');
+  assert.equal(Object.hasOwn(persisted.settings,'scrollNavigation'),false);
 });
 test('R1.1 site adapters are explicit, restricted and do not claim all reply toolbars',async()=>{
   const {siteForUrl,findSiteBindings}=await import(
