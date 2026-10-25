@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {createTrustedPromptHost,PROMPT_AI_RECOVERY_KEY} from '../../src/ui/conversation/prompt-host.js';
+import {createPromptReconciliationAdapter} from '../../src/ui/conversation/prompt-controller.js';
 import {SIDEBAR_TOOL_DATA_LIMITS,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 import {stableStorageString,writeVerifiedLocalValue} from '../../src/ui/sidebar-tools/storage-state.js';
 import '../../examples/sidebar-tools/prompt-shortcuts/trusted/model.js';
@@ -269,3 +270,56 @@ for(const phase of ['quota','conflict','notify','reconcile']){
     assert.equal(writes,phase==='notify'?2:1,'reconciliation must never replay a write');
   });
 }
+
+
+test('R2.4 Prompt adapter owns ETag challenge, shared Dock does not',async()=>{
+ const etag='c'.repeat(64),calls=[];
+ const adapter=createPromptReconciliationAdapter(async options=>{
+  calls.push(options);
+  return calls.length===1?{verified:false,status:'uncertain',currentEtag:etag,
+   message:'请核对原提示词列表'}:{verified:true,status:'acknowledged',
+   message:'已确认，不曾重放写入'};
+ });
+ const first=await adapter.reconcile();
+ assert.equal(first.verified,false);
+ assert.equal(first.nextActionLabel,'我已检查当前列表，解除阻止');
+ assert.deepEqual(calls,[{}]);
+ const second=await adapter.reconcile();
+ assert.equal(second.verified,true);
+ assert.deepEqual(calls,[{},{acknowledgeEtag:etag}]);
+ adapter.dispose();
+ await assert.rejects(adapter.reconcile(),{code:'E_TOOL_CHANGED'});
+ const dock=readFileSync(new URL('../../src/ui/react/components/conversation.tsx',import.meta.url),'utf8');
+ assert.doesNotMatch(dock,/unverifiedEtag|acknowledgeEtag|currentEtag/,
+  'shared Frame cannot own Prompt storage or recovery challenge');
+});
+
+test('R2.4 changed library invalidates old review and forces a fresh read',async()=>{
+ const first='a'.repeat(64),next='b'.repeat(64),calls=[];
+ const adapter=createPromptReconciliationAdapter(async options=>{
+  calls.push(options);
+  if(calls.length===1)return {verified:false,status:'uncertain',currentEtag:first};
+  if(calls.length===2)return {verified:false,status:'uncertain',currentEtag:next};
+  if(calls.length===3)return {verified:false,status:'uncertain',currentEtag:next};
+  return {verified:true,status:'acknowledged'};
+ });
+ await adapter.reconcile();
+ const stale=await adapter.reconcile();
+ assert.equal(stale.nextActionLabel,'重新读取提示词库并核对');
+ const reread=await adapter.reconcile();
+ assert.equal(reread.nextActionLabel,'我已检查当前列表，解除阻止');
+ assert.equal((await adapter.reconcile()).verified,true);
+ assert.deepEqual(calls,[{},{acknowledgeEtag:first},{},{acknowledgeEtag:next}]);
+ adapter.dispose();
+});
+
+test('R2.4 pending recovery cannot acknowledge from retired tool instance',async()=>{
+ let release;
+ const inFlight=new Promise(resolve=>{release=resolve;});
+ const adapter=createPromptReconciliationAdapter(()=>inFlight);
+ const pending=adapter.reconcile();
+ await assert.rejects(adapter.reconcile(),{code:'E_PROMPT_BUSY'});
+ adapter.dispose();
+ release({verified:false,status:'uncertain',currentEtag:'a'.repeat(64)});
+ await assert.rejects(pending,{code:'E_TOOL_CHANGED'});
+});

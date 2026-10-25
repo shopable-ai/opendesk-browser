@@ -125,13 +125,13 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
       const frozenConfig=providers.configuration(),selected=frozenConfig.source;
       const providerGeneration=frozenConfig.generation;
       if(!['local_codex','cloud_responses','custom_https'].includes(selected))
-        throw err('E_AI_CONFIG','请先进入工作流选择 AI 来源');
+        throw err('E_AI_CONFIG','请先在共享 AI 设置中选择 AI 来源');
       let permission=null,grantPattern=null,settings=frozenConfig.settings;
       if(selected!=='local_codex'){
         let url;try{url=new URL(settings.endpoint)}catch{}
         if(!url||url.protocol!=='https:'||url.username||url.password||url.hash||
            !settings.apiKey||!settings.model)
-          throw err('E_AI_CONFIG','请在工作流的 AI 设置中配置 HTTPS 接口、模型及本次 API Key');
+          throw err('E_AI_CONFIG','请在共享 AI 设置中配置 HTTPS 接口、模型及本次 API Key');
         grantPattern=permissionPattern(settings.endpoint);
         // Start inside the trusted Send gesture; no deferred permission prompt.
         permission=continuation?api.permissions.contains({origins:[grantPattern]}):

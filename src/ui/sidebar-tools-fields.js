@@ -267,6 +267,15 @@ export const SIDEBAR_TOOL_FIELDS = {
     "textContent": "",
     "className": "sidebar-toc-settings-hint"
   },
+  "sidebar-tool-enable-retry": {
+    "hidden": true,
+    "textContent": "重新读取",
+    "className": "od-button od-button--secondary",
+    "type": "button",
+    "attributes": {
+      "aria-label": "重新读取工具启停状态"
+    }
+  },
   "sidebar-tool-prompt-nav-advanced": {
     "hidden": true,
     "open": false,

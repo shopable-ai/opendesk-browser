@@ -208,6 +208,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const menuButton=view.fields["sidebar-tool-context-menu"];
   const settingsScopeButton=view.fields["sidebar-tool-settings-scope"];
   const enableButton=view.fields["sidebar-tool-enable"],enableHint=view.fields["sidebar-tool-enable-hint"];
+  const enableRetry=view.fields["sidebar-tool-enable-retry"];
   const promptNativeRow=view.fields["sidebar-tool-prompt-native-row"],promptNativeAction=view.fields["sidebar-tool-prompt-native-action"];
   const promptWebRow=view.fields["sidebar-tool-prompt-web-row"],promptWebAction=view.fields["sidebar-tool-prompt-web-action"];
   const promptNavAdvanced=view.fields["sidebar-tool-prompt-nav-advanced"],promptNavReset=view.fields["sidebar-tool-prompt-nav-reset"];
@@ -231,7 +232,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let menuStatusKey='',menuStatus=null,menuStatusPending=false,menuStatusRequest=0;
   let tocPageRules={},tocPageRulesEpoch=0,tocSettingsOpen=false,tocScope='site',lastTocSettingsRows='';
   const siteTogglePending=new Set();
-  let captureGrants={},enableRecords,enableReadEpoch=0,enableReadError=true;
+  let captureGrants={},enableRecords,enableReadEpoch=0,enableReadError=true,enableRecordsLoading=true;
   let promptWebButtons=null,promptWebPending=false,promptWebChanged=false;
   let promptNavigationSnapshot=null;
   let knowledgeWindowStart=0,knowledgeRequestCount=0;
@@ -456,7 +457,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const fullBookmarkHeading=view.fields['sidebar-tool-bookmark-heading'];
   patchToolField(view,fullBookmarkHeading,{textContent:'书签访问'});
   const fullBookmarkInfo=view.fields['sidebar-tool-bookmark-info'];patchToolField(view,fullBookmarkInfo,{className:'sidebar-toc-settings-hint'});
-  patchToolField(view,fullBookmarkInfo,{textContent:'允许管理浏览器书签'});
+  patchToolField(view,fullBookmarkInfo,{textContent:'',hidden:true});
   const fullBookmarkButton=view.fields['sidebar-tool-bookmark-grant'];
   patchToolField(view,fullBookmarkButton,{type:'button'});patchToolField(view,fullBookmarkButton,{className:'od-button'});
   const isFullBookmarkTool=tool=>tool?.capabilities?.includes('browser.bookmarks.full')===true;
@@ -522,18 +523,21 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view,cookieTarget,{hidden:firstUse,textContent:origin?
       '当前网站：'+origin+(allowed?' · 已授权':partial?' · 部分授权':' · 未授权'):
       '请选择普通 HTTP(S) 网页'});
-    patchToolField(view,cookieHelp,{textContent:!firstUse&&!officialPending?
-      (!origin?'请选择网站':allowed?'已授权 · 可撤销':'未授权 · 可申请访问'):officialPending?
-      '正在核验当前安装包及官方发行来源，请勿重复授权。':!origin?
+    const chromeMissing=allowed&&cookieChromeState?.granted===false;
+    const cookieHelpText=!firstUse&&!officialPending?
+      !origin?'请选择普通 HTTP/HTTPS 网站':partial?'授权不完整，请补全 Cookie 管理权限。':
+        chromeMissing?'Chrome 网站权限已撤销，请恢复访问。':
+          !cookieChromeState?'Chrome 权限状态尚未确认，请检查权限或重新打开设置。':''
+      :officialPending?'正在核验当前安装包及官方发行来源，请勿重复授权。':!origin?
       '请先打开普通 HTTP/HTTPS 网站，再管理 Cookie 授权。':
       (partial?'此前授权不完整。':'')+description+
       (tool.id!=='cookie-editor'&&tool.capabilities.includes('browser.cookies.values')?
         ' 敏感值读取仍由原有可信设置单独授权。':'')+
       (!allSites&&tool?.id==='cookie-editor'?
-        ' 当前安装包未通过官方全站授权核验，仅能授权明确选择的网站。':'')});
+        ' 当前安装包未通过官方全站授权核验，仅能授权明确选择的网站。':'');
+    patchToolField(view,cookieHelp,{hidden:!cookieHelpText,textContent:cookieHelpText});
     patchToolField(view,cookieFirstUse,{hidden:!origin,
       attributes:{'aria-busy':String(cookieGrantPending)}});
-    const chromeMissing=allowed&&cookieChromeState?.granted===false;
     patchToolField(view,cookieSiteToggle,{textContent:cookieGrantPending?'正在处理…':officialPending?
       '正在核验安装身份…':!firstUse?(chromeMissing?'恢复 Chrome 访问':allowed?'撤销授权':
         partial?'补全授权':'授权访问'):chromeMissing?'恢复 Chrome Cookie 网站访问':allowed?
@@ -1071,7 +1075,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const managed=Boolean(active&&!readOnlyPreview),id=active?.id,promptSettings=managed&&id===PROMPT_ID;
     if(managed&&id==='cookie-editor')prepareCookieAdmission(active);
     setToolFieldAttribute(view, settingsView, 'data-tool', managed?id:'');
-    const enabled=Boolean(managed&&!enableReadError&&sidebarToolEnabled(enableRecords,id));
+    const enabled=Boolean(managed&&!enableReadError&&!enableRecordsLoading&&sidebarToolEnabled(enableRecords,id));
     timePermissions?.render(active,readOnlyPreview,frameRoot?.dataset?.timeReviewNative==='true');
     focusPermissions?.render(active,readOnlyPreview,enabled);
     // Never revive the abandoned native controller for historical installs.
@@ -1151,7 +1155,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       // grant record cannot describe that effective state (and may be absent).
       const statusReady=Boolean(targetOrigin&&!menuStatusPending&&menuStatus);
       const contextActive=Boolean(statusReady&&menuStatus.siteEnabled===true);
-      patchToolField(view, promptNativeAction, {textContent: contextActive?'关闭右键快捷添加':'启用右键快捷添加'});
+      patchToolField(view, promptNativeAction, {textContent:''});
       setToolFieldAttribute(view, promptNativeAction, 'aria-pressed', String(contextActive));
       setToolFieldAttribute(view, promptNativeAction, 'role', 'switch');
       setToolFieldAttribute(view, promptNativeAction, 'aria-label', '选中文字快速添加');
@@ -1178,16 +1182,26 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view,fullBookmarkButton,{disabled:busy||!enabled||!isFullBookmarkTool(active)});
     setToolFieldAttribute(view,fullBookmarkButton,'aria-pressed',String(hasFullBookmarkConsent));
     patchToolField(view, removeButton, {hidden: readOnlyPreview});if(openTabButton)patchToolField(view, openTabButton, {hidden: readOnlyPreview});
+    // Never render an unknown or unread value as an ordinary OFF switch.
+    // Normal ON/OFF uses the switch alone; the hint is only for exceptional states.
+    const enableUnknown=enableReadError&&!enableRecordsLoading;
     if(enableButton){
-      patchToolField(view, enableButton, {textContent:'',disabled:busy||enableReadError||toolSaving||readOnlyPreview,
+      patchToolField(view, enableButton, {textContent:'',
+        hidden:!managed||enableReadError||enableRecordsLoading,
+        disabled:busy||toolSaving||readOnlyPreview,
         title:commonText(enabled?'toolDisable':'toolEnable')});
       setToolFieldAttribute(view, enableButton, 'role', 'switch');
       setToolFieldAttribute(view, enableButton, 'aria-label', commonText('toolEnable'));
       setToolFieldAttribute(view, enableButton, 'aria-checked', String(enabled));
       setToolFieldAttribute(view, enableButton, 'aria-pressed', null);
     }
-    if(enableHint)patchToolField(view, enableHint, {hidden:false,textContent:
-      commonText(enableReadError?'toolStatusError':enabled?'toolEnabled':'toolDisabled')});
+    if(enableRetry)patchToolField(view, enableRetry, {
+      hidden:!managed||!enableUnknown,disabled:busy||toolSaving||readOnlyPreview});
+    const enableStatus=enableRecordsLoading?'正在读取工具状态…':
+      enableUnknown?commonText('toolStatusError'):
+        busy||toolSaving?'正在处理…':'';
+    if(enableHint)patchToolField(view, enableHint, {
+      hidden:!enableStatus,textContent:enableStatus});
     if(launchButton){patchToolField(view, launchButton, {hidden: !managed||Boolean(frame||nativeUI||nativePending)});patchToolField(view, launchButton, {disabled: busy||!enabled});
       patchToolField(view, launchButton, {textContent: isToc?tocText(enabled?'launch':'launchDisabled'):enabled?'打开工具':'已停用，请在设置中启用'});}
     const url=currentPageTarget?.snapshot?.url,capability=siteCapability(active);
@@ -1212,7 +1226,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       'sidebar-tool-generic-site-advanced']){
       const field=view.fields[id];if(field)patchToolField(view,field,{hidden:!capabilityOnly});
     }
-    patchToolField(view, settingsHint, {hidden: !capabilityOnly});
     patchToolField(view, settingsScopeLabel, {textContent: isToc?tocText('siteAvailability'):'当前网站可用性'});
     patchToolField(view, settingsTarget, {textContent: capability?(origin||(isToc?tocText('selectPage'):'请选择适用网页')):'此工具不需要网站授权'});
     patchToolField(view, settingsScopeButton, {hidden: true});
@@ -1221,11 +1234,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         button===settingsAllow?'恢复当前网站':'停用当前网站',hidden:!capability,disabled:busy||sitePending||!origin});
       setToolFieldAttribute(view,button,'aria-pressed',String(Boolean(origin)&&chosen));
     }
-    patchToolField(view, settingsHint, {textContent: promptSettings?'默认在 chatgpt.com 使用网页快捷按钮，无需二次网站授权；点击只填写草稿，不会自动发送。':isToc?tocText('tocIntro')+
+    const siteHelp=isToc?tocText('tocIntro')+
       tocText(!origin?'unsupportedPage':grant?'siteAvailable':'siteDisabled'):
-      !capability?'工具能力以安装时的审阅为准。':!origin?'请切换到适用网页，设置仍可管理。':
-      grant?'安装时已批准基础能力，当前网站可直接使用。可在这里主动停用。':
-        '当前网站已停用，点击恢复即可使用。Chrome 网站访问仍须保持允许。'});
+      !capability?'':!origin?'请切换到适用网页。':
+        grant?'':'当前网站已停用；Chrome 网站访问仍须有效。';
+    patchToolField(view, settingsHint, {hidden:!capabilityOnly||!siteHelp,textContent:siteHelp});
     if(visibilitySection)patchToolField(view, visibilitySection, {hidden: !isToc});
     if(pageExceptionSection)patchToolField(view, pageExceptionSection, {hidden: !isToc});
     for(const [button,hidden] of [[settingsSiteVisibility,appearance.hiddenOnSite],[settingsPageVisibility,appearance.hiddenOnPage]]){
@@ -1233,6 +1246,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       setToolFieldAttribute(view,button,'aria-pressed',String(!hidden));
     }
     const origins=isToc?blockedTocOrigins(grants):capability?blockedInstalledOrigins(grants,id):[],denied=isToc?disabledTocPages(tocPageRules,id):[];
+    patchToolField(view,view.fields['sidebar-tool-generic-site-advanced'],{
+      hidden:!capabilityOnly||!(origins.length||denied.length)});
     if(settingsSitesTitle)patchToolField(view, settingsSitesTitle, {textContent: isToc?tocText('disabledSites'):'已停用的网站'});
     const identity=JSON.stringify([id,origins,denied,busy,sitePending,isToc?tocLocale:null]);
     if(identity===lastTocSettingsRows)return;lastTocSettingsRows=identity;
@@ -3088,10 +3103,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   async function loadEnableRecords(){
     const epoch=enableReadEpoch;
+    enableRecordsLoading=true;render();
     try{const saved=await api.storage.local.get(SIDEBAR_TOOL_ENABLE_STORE);
       if(disposed||epoch!==enableReadEpoch)return;
       enableRecords=saved[SIDEBAR_TOOL_ENABLE_STORE];requireToolEnableRecords(enableRecords);enableReadError=false;
-    }catch(error){if(epoch!==enableReadEpoch||disposed)return;enableReadError=true;throw error;}finally{render();}
+    }catch(error){if(epoch!==enableReadEpoch||disposed)return;enableReadError=true;throw error;}
+    finally{enableRecordsLoading=false;render();}
   }
   async function loadSites(){
     const epoch=siteEpoch;
@@ -3987,8 +4004,27 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     return apply();
   }
   if(enableButton)listen(enableButton,'click',event=>{
-    void toggleEnabled(active?.id,event).catch(error=>notice(
-      (error?.code||'E_TOOL')+'：'+String(error?.message||error).slice(0,240),true));
+    void toggleEnabled(active?.id,event).catch(error=>{
+      // A failed write may already have taken effect. Block another toggle
+      // until the trusted store is read back; never optimistically replay it.
+      enableReadError=true;
+      if(active&&!readOnlyPreview){
+        if(toolDirty||toolSaving||knowledgeDirty)
+          recoverableDrafts.set(active.id,frameDraft||'未收到可恢复的表单内容；工具已安全停止。');
+        destroyFrame();toolDirty=false;toolSaving=false;knowledgeDirty=false;tocSettingsOpen=true;
+      }
+      render();
+      notice('启停结果未确认，请重新读取状态后再操作。'+
+        (error?.code||'E_TOOL')+'：'+String(error?.message||error).slice(0,180),true);
+    });
+  });
+  if(enableRetry)listen(enableRetry,'click',event=>{
+    if(event?.isTrusted!==true||disposed||!visible||!active||readOnlyPreview||
+      busy||toolSaving||enableRecordsLoading||!enableReadError)return;
+    busy=true;render();
+    void loadEnableRecords().then(()=>notice(''),error=>notice(
+      '工具状态仍不可用：'+String(error?.message||error).slice(0,180),true))
+      .finally(()=>{busy=false;render();});
   });
   if(launchButton)listen(launchButton,'click',event=>{
     if(event?.isTrusted!==true)return;

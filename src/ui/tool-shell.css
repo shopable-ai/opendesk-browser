@@ -454,11 +454,13 @@
 .sidebar-tool-settings-heading-copy{min-width:0}
 .sidebar-tool-settings-heading-copy h2{margin:0;font-size:14px;font-weight:700;line-height:1.4;color:var(--od-ink)}
 .sidebar-tool-settings-heading-copy p{margin:3px 0 0;font-size:11px;line-height:1.5;color:var(--od-sub);overflow-wrap:anywhere}
-.sidebar-tool-bookmark-permissions,.sidebar-tool-management{
+.sidebar-tool-bookmark-permissions{
   display:grid;gap:10px;min-width:0;padding:12px;
   border:1px solid var(--od-line);border-radius:var(--radius-control);
   background:var(--od-paper)
 }
+/* Settings already owns the surface: do not nest a second app-management card. */
+.sidebar-tool-management{display:grid;gap:8px;min-width:0}
 .sidebar-tool-bookmark-intro{display:flex;align-items:flex-start;gap:10px;min-width:0}
 .sidebar-tool-bookmark-icon{display:grid;place-items:center;flex:0 0 30px;height:30px;border-radius:9px;background:var(--od-muted);color:var(--od-sub)}
 .sidebar-tool-bookmark-icon svg{width:17px;height:17px}
@@ -506,6 +508,9 @@
 #sidebar-tool-enable.od-tool-management-switch[aria-checked="true"]::before{background:var(--od-brand)}
 #sidebar-tool-enable.od-tool-management-switch[aria-checked="true"]::after{transform:translateX(16px)}
 #sidebar-tool-enable.od-tool-management-switch:disabled{opacity:.45;cursor:not-allowed}
+#sidebar-tool-enable.od-tool-management-switch[hidden],
+.sidebar-tool-management #sidebar-tool-enable-retry[hidden]{display:none!important}
+.sidebar-tool-management #sidebar-tool-enable-retry{flex:none;min-height:32px;padding:4px 9px;font-size:12px}
 #sidebar-tool-enable.od-tool-management-switch:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 .sidebar-tool-settings-product,.sidebar-tool-settings-permissions{display:grid;gap:10px;min-width:0}
 .sidebar-tool-settings-product:not(:has(> :not([hidden]))){display:none}
@@ -516,7 +521,7 @@
 }
 @media(max-width:360px){
  .sidebar-tool-settings-view{padding:10px}
- .sidebar-tool-bookmark-permissions,.sidebar-tool-management{padding:10px}
+ .sidebar-tool-bookmark-permissions{padding:10px}
 }
 
 .time-review-trusted-actions{display:flex;flex-wrap:wrap;gap:8px;min-width:0;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}

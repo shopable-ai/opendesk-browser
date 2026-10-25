@@ -8,6 +8,7 @@ import '../../../examples/sidebar-tools/bookmark-manager/src/model.js';
 import '../../../examples/sidebar-tools/bookmark-manager/src/service.js';
 import BookmarkReactApp from '../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx';
 import {TrustedConversationWorkspace} from './components/conversation.tsx';
+import {createPromptReconciliationAdapter} from '../conversation/prompt-controller.js';
 import conversationDockCSS from './components/conversation-dock.css?raw';
 import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 import myAgentCSS from './tabs/my-agent.css?raw';
@@ -168,11 +169,13 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
         id:'prompt-recovery-'+String(recovery.createdAt||0),speaker:'系统',
         message:'上次 AI 写入尚未核实。请使用下方「核对真实存储」按钮读取当前库；不要重试创建。'
       }]:[],needsReview:Boolean(recovery),refs:{matches:[],etag:null}};
+      const recoveryAdapter=typeof onReconcile==='function'?
+        createPromptReconciliationAdapter(onReconcile):null;
       const controller=Object.freeze({
         source:()=>conversation.source(),
         request:args=>conversation.request({...args,scope:'prompt'}),
         cancel:args=>conversation.cancel(args),
-        reconcile:typeof onReconcile==='function'?args=>onReconcile(args):null,
+        reconcile:recoveryAdapter?.reconcile??null,
         readSession:()=>structuredClone(session),
         saveSession:next=>{
           if(!next||typeof next!=='object')return;
@@ -192,18 +195,18 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
       promptPilot={container,headerTarget,controller,onRequest};
       container.dataset.opendeskReactOwner='prompt-conversation-portal';
       try{paint();}catch(error){
-        promptPilot=null;delete container.dataset.opendeskReactOwner;
+        promptPilot=null;recoveryAdapter?.dispose();delete container.dataset.opendeskReactOwner;
         try{paint();}catch{/* Keep the first trusted render failure. */}
         throw error;
       }
       const frameTarget=container.querySelector('.od-prompt-frame-target');
       if(!frameTarget){
-        promptPilot=null;delete container.dataset.opendeskReactOwner;paint();
+        promptPilot=null;recoveryAdapter?.dispose();delete container.dataset.opendeskReactOwner;paint();
         throw new Error('E_PROMPT_IFRAME_TARGET_MISSING');
       }
       let released=false;
       return {frameTarget,dispose(){
-        if(released)return;released=true;
+        if(released)return;released=true;recoveryAdapter?.dispose();
         if(promptPilot?.container===container){
           promptPilot=null;
           if(!disposed)paint();

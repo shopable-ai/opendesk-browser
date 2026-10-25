@@ -25,16 +25,15 @@ export function createClipperPreview({view,stage,doc=document,onUninstall=()=>{}
     const firstUse=cookie&&!memory.grant&&!settings;
     patch('bookmark-permissions',{hidden:!bookmark||!settings});
     patch('bookmark-heading',{textContent:'书签访问'});
-    patch('bookmark-info',{textContent:'允许管理浏览器书签'});
+    patch('bookmark-info',{hidden:true,textContent:''});
     patch('bookmark-grant',{textContent:memory.grant?'撤销授权':'授权访问',disabled:!memory.enabled,
       attributes:{'aria-pressed':String(memory.grant)}});
     patch('cookie-permissions',{hidden:!cookie||!(settings||firstUse),
       data:{mode:firstUse?'first-use':'settings',isCookieEditor:cookie}});
     patch('cookie-heading',{textContent:firstUse?'Cookie 访问授权':'Cookie 访问'});
     patch('cookie-target',{hidden:firstUse,textContent:'当前网站：example.invalid · '+(memory.grant?'已授权':'未授权')});
-    patch('cookie-help',{textContent:firstUse?
-      '本演示展示首次授权审阅：真实版本将说明网站范围与 Cookie 操作能力，并要求 Chrome 授权。':
-      memory.grant?'已授权 · 可撤销':'未授权 · 可申请访问'});
+    patch('cookie-help',{hidden:!firstUse,textContent:firstUse?
+      '本演示展示首次授权审阅：真实版本将说明网站范围与 Cookie 操作能力，并要求 Chrome 授权。':''});
     patch('cookie-first-use',{hidden:false});
     patch('cookie-site-toggle',{disabled:!memory.enabled,
       textContent:memory.grant?'撤销授权':firstUse?'允许管理网站 Cookie':'授权访问'});
@@ -54,12 +53,13 @@ export function createClipperPreview({view,stage,doc=document,onUninstall=()=>{}
       if(view.fields['sidebar-tool-'+field])patch(field,{hidden:true});
     patch('enable',{disabled:false,textContent:'',title:memory.enabled?'停用工具':'启用工具',
       attributes:{role:'switch','aria-label':'启用工具','aria-checked':String(memory.enabled),'aria-pressed':null}});
-    patch('enable-hint',{hidden:false,textContent:memory.enabled?'已启用':'已停用 · 数据保留'});
+    patch('enable-hint',{hidden:true,textContent:''});
+    patch('enable-retry',{hidden:true});
   }
   function paint(){
     const action=!scenario&&!settings&&actions[page];
     const title=currentTitle();
-    patch('title',{textContent:settings?'工具设置':scenario?title:pages[page]});
+    patch('title',{textContent:scenario?title:pages[page]});
     patch('primary-action',{hidden:!action,disabled:busy,data:{action:action?.[0]||''},
       title:action?.[1]||'',attributes:{'aria-label':action?.[1]||'当前页面操作'}});
     patch('secondary-action',{hidden:true});

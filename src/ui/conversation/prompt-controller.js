@@ -126,3 +126,40 @@ export function createPromptConversationRequest({
   }
  };
 }
+
+
+// Prompt-only UNKNOWN review handshake. The neutral React Dock must never
+// store a library ETag or manufacture a Host acknowledgement.
+export function createPromptReconciliationAdapter(reconcile){
+ if(typeof reconcile!=='function')throw fail('E_PROMPT_HOST','提示词恢复入口不可用');
+ let pendingEtag=null,disposed=false,busy=false;
+ return Object.freeze({
+  async reconcile(){
+   if(disposed)throw fail('E_TOOL_CHANGED','提示词实例已关闭');
+   if(busy)throw fail('E_PROMPT_BUSY','正在核对提示词存储，请勿重复提交');
+   busy=true;
+   // Acknowledgement can only come from a preceding explicit review click.
+   // Consume it before the Host call; failures never silently retry it.
+   const reviewedEtag=pendingEtag;
+   pendingEtag=null;
+   try{
+    const result=await reconcile(reviewedEtag?{acknowledgeEtag:reviewedEtag}:{});
+    if(disposed)throw fail('E_TOOL_CHANGED','提示词实例已关闭');
+    if(result?.verified===true)return result;
+    if(result?.status==='uncertain'&&/^[a-f0-9]{64}$/.test(result.currentEtag||'')){
+     if(reviewedEtag){
+      // A changed library invalidates the prior review and user decision.
+      return {...result,
+       message:(result.message||'提示词库版本已变化。')+
+        ' 上次人工核对已失效，请重新读取并检查当前列表。',
+       nextActionLabel:'重新读取提示词库并核对'};
+     }
+     pendingEtag=result.currentEtag;
+     return {...result,nextActionLabel:'我已检查当前列表，解除阻止'};
+    }
+    return result;
+   }finally{busy=false;}
+  },
+  dispose(){disposed=true;pendingEtag=null;}
+ });
+}

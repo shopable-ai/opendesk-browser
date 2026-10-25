@@ -311,10 +311,6 @@ export function ToolHost({view}) {
 <strong>
 {"网页快捷按钮"}
 </strong>
-<small>
-{"在已支持的网站显示快捷按钮"}
-</small>
-
 </span>
 <ToolField as="button" type="button" id="sidebar-tool-prompt-web-action" className="ps-host-switch" role="switch" aria-label="网页快捷按钮" aria-checked="true" disabled={true}>
 
@@ -333,10 +329,6 @@ export function ToolHost({view}) {
 <strong>
 {"选中文字快速添加"}
 </strong>
-<small>
-{"Chrome 原生右键，可选"}
-</small>
-
 </span>
 <ToolField as="button" id="sidebar-tool-prompt-native-action" type="button" aria-pressed="false" className="od-button od-button--secondary ps-host-switch">
 {"启用右键"}
@@ -442,7 +434,6 @@ export function ToolHost({view}) {
 {!cookieFirstUse&&<CookieSettings onRevoke={actions.revoke}/>}
 </section>
 <section className="sidebar-tool-management" aria-label="应用管理">
-<div className="sidebar-tool-section-caption"><ToolLabel name="appManagement"/></div>
 <div className="sidebar-toc-settings-row">
 <span className="sidebar-tool-prompt-enable-info">
 <ToolField as="strong" id="sidebar-tool-prompt-enable-label">
@@ -455,6 +446,8 @@ export function ToolHost({view}) {
 </span>
 <ToolField as="button" type="button" id="sidebar-tool-enable" className="od-tool-management-switch"
   role="switch" aria-label="启用工具" aria-checked="true"/>
+<ToolField as="button" type="button" id="sidebar-tool-enable-retry"
+  className="od-button od-button--secondary" hidden={true}>{"重新读取"}</ToolField>
 
 </div>
 <ToolField as="p" id="sidebar-tool-enable-hint" className="sidebar-toc-settings-hint" role="status">
@@ -554,6 +547,10 @@ function CookieSettings({onRevoke}) {
   </ToolField>;
 }
 function BookmarkSettings() {
+  // First full-bookmark consent exposes scope immediately; routine granted
+  // management keeps the same detail available without occupying the page.
+  const {snapshot}=React.useContext(ToolContext);
+  const firstUse=snapshot.fields['sidebar-tool-bookmark-grant'].attributes?.['aria-pressed']!=='true';
   return <ToolField as="section" id="sidebar-tool-bookmark-permissions"
     className="sidebar-tool-bookmark-permissions od-surface" aria-label="书签访问">
     <div className="sidebar-tool-bookmark-intro">
@@ -569,7 +566,7 @@ function BookmarkSettings() {
       </div>
     </div>
     <ToolField as="button" type="button" id="sidebar-tool-bookmark-grant" className="od-button"/>
-    <details className="od-disclosure od-disclosure--flat">
+    <details className="od-disclosure od-disclosure--flat" open={firstUse}>
       <summary>查看权限范围</summary>
       <p>可读取、编辑、移动和删除 Chrome 全部书签，包括其他工具创建的内容。删除文件夹仍须单独确认。授权可随时撤销。</p>
     </details>
