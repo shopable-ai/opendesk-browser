@@ -133,8 +133,9 @@ export function trustedToolShellStyle(root=process.cwd()){
 // and center using its painted height. No added permission, origin, action,
 // Host call, input write, storage access, or dynamic module.
 const compiledPromptShortcutInputs=Object.freeze({
-  // R4.3 independently reviewed: omit default navigation values only on persistence; quotas remain unchanged.
-  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'9b29be376a28be9aa2958913ea7dc758459bb171',
+  // Reviewed dffeec493 model-only delta: discard retired navigation settings;
+  // prompt/image handling, current settings and quotas remain unchanged.
+  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'730496110c2ebc316eb74e1c29ac66dc74d60561',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'4c6f608a26e0d69278c18a0afda94b3c8ce8274c',
   // OD entry restored from ed7ceb65; first built-in rail button only, using already pinned SW gesture bridge.
   // No origin, permission, storage, navigation arrows, sender scope or injection surface changed.

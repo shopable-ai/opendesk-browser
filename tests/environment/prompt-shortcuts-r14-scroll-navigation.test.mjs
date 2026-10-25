@@ -8,6 +8,11 @@ import {findConversationNavigation,jumpConversationEdge,jumpRegionEnd} from
   '../../examples/programs/chatgpt-jump-top/src/conversation.js';
 
 const ROOT='examples/sidebar-tools/prompt-shortcuts';
+async function readModel(){
+  const sandbox={URL,Intl,TextEncoder,crypto:webcrypto};
+  runInNewContext(await readFile(ROOT+'/trusted/model.js','utf8'),sandbox);
+  return sandbox.OpenDeskPromptShortcutsModel;
+}
 test('R1.2.2 existing prompts and image references remain usable without navigation settings',async()=>{
   const model=await readModel();
   const item=model.draft({body:'旧版提示词',imageAssetId:'psa_0123456789abcdef0123456789abcdef'},

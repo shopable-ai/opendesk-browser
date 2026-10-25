@@ -48,25 +48,27 @@ function sandboxCommit(initial,options){
   return {...context,storage:f,run:next=>context.commit(next),context};
 }
 
-test('1.1.15 full 8192 B library loads five defaults without adding persistent bytes',()=>{
+test('full 8192 B library loads without retired navigation expansion',()=>{
   const old=legacy(),loaded=model.load(old);
-  assert.equal(model.bytes(loaded),8318,'reproduces the upgrade expansion');
-  assert.deepEqual(loaded.settings.scrollNavigation,model.SCROLL_NAV_DEFAULTS);
+  assert.equal(model.bytes(loaded),8192);
+  assert.equal(Object.hasOwn(loaded.settings,'scrollNavigation'),false);
   assert.equal(model.libraryBytes(loaded),8192);
   assert.deepEqual(model.libraryForStorage(loaded),old);
-  assert.equal(model.bytes({scrollNavigation:model.SCROLL_NAV_DEFAULTS}),127,'generic bytes stays literal');
+  assert.equal(model.bytes({webButtons:true}),19,'generic bytes stays literal');
   assert.deepEqual(SIDEBAR_TOOL_DATA_LIMITS,{itemBytes:8192,totalBytes:32768,maxKeys:32});
 });
 
-test('storage conversion preserves every false override and image setting, without mutating runtime state',()=>{
-  const loaded=model.load(legacy(8000,{imageSize:'compact',scrollNavigation:{regionTop:false,floatingTop:true}}));
+test('storage conversion retires navigation overrides while preserving prompts and image settings',()=>{
+  const old=legacy(8000,{imageSize:'compact',scrollNavigation:{regionTop:false,floatingTop:true}});
+  const loaded=model.load(old);
   const before=clone(loaded),stored=model.libraryForStorage(loaded);
-  assert.deepEqual(stored.settings,{webButtons:true,imageSize:'compact',scrollNavigation:{regionTop:false}});
+  assert.deepEqual(stored.settings,{webButtons:true,imageSize:'compact'});
+  assert.deepEqual(stored.items,old.items);
   assert.deepEqual(model.load(stored),loaded);assert.deepEqual(loaded,before);
-  assert.throws(()=>model.libraryForStorage({...loaded,settings:{...loaded.settings,scrollNavigation:{regionTop:'false'}}}),{code:'E_PROMPT_DATA'});
+  assert.throws(()=>model.libraryForStorage({...loaded,settings:{...loaded.settings,imageSize:'invalid'}}),{code:'E_PROMPT_DATA'});
 });
 
-test('import preview measures the same sparse representation as persistence',()=>{
+test('import preview measures the same normalized representation as persistence',()=>{
   const old=legacy();
   const incoming=old.items.map(row=>({...row,id:'imported_capacity'}));
   const plan=model.backupPlan(old,incoming,'replace');
@@ -88,7 +90,7 @@ for(const fault of [null,'lost-ack','conflict','unreadable']){
       if(fault==='unreadable')await assert.rejects(f.run(next),/未确认/);
     }else{
       await f.run(next);
-      assert.equal(f.context.data.settings.scrollNavigation.regionTop,true);
+      assert.deepEqual(f.context.data.settings,{webButtons:true,imageSize:'large'});
       assert.equal(f.context.etag,hash(f.storage.value));
       assert.equal(f.storage.value.items[0].name,'B');
       assert.equal(Object.hasOwn(f.storage.value.settings,'scrollNavigation'),false);
@@ -98,13 +100,13 @@ for(const fault of [null,'lost-ack','conflict','unreadable']){
   });
 }
 
-test('full library refuses real new navigation bytes before writing or losing data',async()=>{
+test('full library refuses real new prompt bytes before writing or losing data',async()=>{
   const old=legacy(),f=sandboxCommit(old);
-  const next=model.load(old);next.settings.scrollNavigation.regionBottom=false;
+  const next=model.load(old);next.items[0].body+='a';
   assert(model.libraryBytes(next)>8192);
   await assert.rejects(f.run(next),{code:'E_TOOL_DATA_LIMIT'});
   assert.equal(f.storage.attempts,0);assert.deepEqual(f.storage.value,old);
-  const imported=old.items.map(row=>({...row}));
+  const imported=next.items.map(row=>({...row}));
   assert.equal(model.backupPlan(next,imported,'replace').overLimit,true);
 });
 
@@ -135,10 +137,10 @@ function trustedSettings(initial,extra={}){
     requireCompleteInstalledSidebarTools:value=>value,sidebarToolStorageKey:()=> 'namespace',writeVerifiedLocalValue,
     api:{storage:{local:{get:async key=>key==='registry'?{registry:[{id:'prompt-shortcuts'}]}:{namespace:clone(raw)},
       set:async row=>{writes++;raw=clone(row.namespace);}}}}};
-  runInNewContext(slice(host,'  async function readPromptWebButtons(){','  if(promptWebAction)listen'),context);
+  runInNewContext(slice(host,'  async function readPromptSettings(){','  if(promptWebAction)listen'),context);
   return {context,notices,get raw(){return raw;},get writes(){return writes;}};
 }
-test('trusted webButtons handler preserves image/nav and namespace data using the same representation',async()=>{
+test('trusted webButtons handler preserves prompts, images and namespace data while retiring navigation settings',async()=>{
   const initial=legacy(7900,{imageSize:'compact',scrollNavigation:{conversationTop:false}});
   const f=trustedSettings(initial),{context}=f;
   await context.changePromptWebButtons({isTrusted:true});
@@ -146,7 +148,9 @@ test('trusted webButtons handler preserves image/nav and namespace data using th
   assert.equal(writes,1);assert.equal(context.promptWebButtons,false);
   assert.deepEqual(raw.library,model.libraryForStorage({...initial,settings:{...initial.settings,webButtons:false}}));
   assert.deepEqual(raw.sites,{schema:1,rules:[]});
-  assert.equal(model.load(raw.library).settings.scrollNavigation.conversationTop,false);
+  assert.deepEqual(raw.library.items,initial.items);
+  assert.equal(model.load(raw.library).settings.imageSize,'compact');
+  assert.equal(Object.hasOwn(raw.library.settings,'scrollNavigation'),false);
   await context.changePromptWebButtons({isTrusted:false});assert.equal(f.writes,1);
 });
 

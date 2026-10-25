@@ -1,8 +1,9 @@
 // R1.4 source-level contract and package checks; NOT a native Chrome acceptance.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
-import {resolve} from 'node:path';
+import {readFile,mkdtemp,mkdir,writeFile,symlink,rm,realpath} from 'node:fs/promises';
+import {resolve,join,dirname} from 'node:path';
+import {tmpdir} from 'node:os';
 import {describeBundle} from '../../scripts/bundle-provenance.mjs';
 import {runInNewContext} from 'node:vm';
 import {webcrypto} from 'node:crypto';
@@ -179,7 +180,7 @@ test('R1.4 fixed controller only uses scoped selectors, native insertion and no 
 
 test('R1.4 provenance pins only audited trusted tool modules to exact fixed entry points',()=>{
   const fixtures=[
-    ['trusted/model.js','9b29be376a28be9aa2958913ea7dc758459bb171'],
+    ['trusted/model.js','730496110c2ebc316eb74e1c29ac66dc74d60561'],
     ['trusted/policy.js','4c6f608a26e0d69278c18a0afda94b3c8ce8274c'],
     // R4.3 independent review approved quota persistence and dock geometry/observer fixes.
     ['trusted/page.js','cb7dcbd4733ba546c4b50790433f1b3cb4e3fd6f'],
@@ -209,6 +210,25 @@ test('R1.4 provenance pins only audited trusted tool modules to exact fixed entr
   }
   assert.throws(()=>examined('src/main.js','agents/page-relay.js'),
     /Historical\/user\/vendor code cannot enter/);
+});
+
+test('R2.0 reviewed Prompt model permits only exact bytes at the two approved targets',async()=>{
+  const root=await realpath(await mkdtemp(join(tmpdir(),'opendesk-model-provenance-')));
+  const path=ROOT+'/trusted/model.js',file=resolve(root,path);
+  const source=await readFile(path);
+  const examined=target=>describeBundle({root,lock:{packages:{}},
+    chunk:{fileName:target,modules:{[file]:{renderedLength:1,originalLength:1}}}}).modules[0];
+  try{
+    await mkdir(dirname(file),{recursive:true});await writeFile(file,source);
+    for(const target of ['agents/page-relay.js','ui/sidebar-tool-host.js'])
+      assert.equal(examined(target).reviewedFirstPartyBlob,'730496110c2ebc316eb74e1c29ac66dc74d60561');
+    assert.throws(()=>examined('sw.js'),/Historical\/user\/vendor code cannot enter/);
+    await writeFile(file,Buffer.concat([source,Buffer.from('\n// unreviewed drift\n')]));
+    assert.throws(()=>examined('agents/page-relay.js'),/review and re-pin/);
+    const linked=join(root,'linked-model.js');await writeFile(linked,source);
+    await rm(file);await symlink(linked,file);
+    assert.throws(()=>examined('agents/page-relay.js'),/symlink|linked/i);
+  }finally{await rm(root,{recursive:true,force:true});}
 });
 
 test('R1.4 shared uninstall cleanup removes only this tool grant and data, not another tool',async()=>{
