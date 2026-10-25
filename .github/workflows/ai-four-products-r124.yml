@@ -1,0 +1,66 @@
+name: AI Four Products R1.2.4 official discovery and Page package gates
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ai-four-products-r124.yml'
+      - 'official-pages/**'
+      - 'official-tools/catalog.json'
+      - 'src/scripting/user-scripts/official-page-catalog.js'
+      - 'src/sidebar-tools/official-catalog.js'
+      - 'src/ui/extension-center.js'
+      - 'src/ui/extension-center-model.js'
+      - 'src/ui/sidebar-tools.js'
+      - 'scripts/build-official-pages.mjs'
+      - 'scripts/prepare-public.mjs'
+      - 'scripts/verify-package.mjs'
+      - 'tests/environment/official-page-catalog-r124.test.mjs'
+      - 'tests/environment/extension-center-official-pages-r124.test.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ai-four-products-r124-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Record exact commit and Node runtime
+        run: |
+          git rev-parse HEAD
+          node --version
+      - name: Install locked dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Parse changed runtime and release modules
+        run: |
+          node --check src/scripting/user-scripts/official-page-catalog.js
+          node --check src/ui/extension-center-model.js
+          node --check src/ui/extension-center.js
+          node --check src/ui/sidebar-tools.js
+          node --check scripts/build-official-pages.mjs
+          node --check scripts/prepare-public.mjs
+          node --check scripts/verify-package.mjs
+      - name: Validate trust, blocked discovery and old installation identity
+        run: |
+          node --test tests/environment/official-page-catalog-r124.test.mjs \
+            tests/environment/extension-center-official-pages-r124.test.mjs \
+            tests/environment/extension-center-r4.test.mjs \
+            tests/environment/official-tools-catalog-r45.test.mjs \
+            tests/environment/sidebar-default-preinstall-r48.test.mjs
+      - name: Generate noninstalling Page discovery bundle from pinned source
+        run: |
+          node scripts/build-official-pages.mjs --out "$RUNNER_TEMP/opendesk-official-pages-r124"
+          test -s "$RUNNER_TEMP/opendesk-official-pages-r124/official-pages/catalog.json"
+      - name: Explicitly keep native Chrome and Mac installation unverified
+        run: echo 'NODE_PACKAGE_CATALOG_ONLY; CHROME_PASS=NOT_TESTED'
