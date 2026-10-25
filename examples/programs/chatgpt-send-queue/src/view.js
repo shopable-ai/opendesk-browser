@@ -172,11 +172,13 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
         flight==='await-stop'?'等待停止结果 · 尚未发送下一条':
         state.paused?'已暂停 · '+(state.reason||'等待用户恢复'):
         flight?'正在准备发送 · 其余消息等待中':
-        state.answerGate?'等待中 · 等待上一条回复完成':
+        state.answerGate?'':
         '等待中 · '+(state.reason||'等待网页就绪');
-      note.append(element(doc,'span','sq-note-text',status));
-      if(state.paused&&!uncertain)note.append(action(doc,'play','恢复队列'));
-      root.append(note);
+      if(status){
+        note.append(element(doc,'span','sq-note-text',status));
+        if(state.paused&&!uncertain)note.append(action(doc,'play','恢复队列'));
+        root.append(note);
+      }
     }
     if(activeRow){
       const row=[...root.querySelectorAll('[data-id-row]')]
