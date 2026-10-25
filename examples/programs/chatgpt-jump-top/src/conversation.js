@@ -12,6 +12,7 @@ const ASSISTANT_TURN = '[data-content-search-unit-key][data-chatgpt-search-unit-
 // Preserve the legacy token for currently installed Mind Map / older Page versions.
 const OWN = 'data-opendesk-chatgpt-jump-top';
 const MODERN_OWN = 'data-opendesk-ai-scroll-navigation';
+const LEGACY_LIFECYCLE = '[data-opendesk-ui-owner][data-od-id="opendesk.chatgpt-jump-top.lifecycle"]';
 const ANSWER_TOOLS = 'data-opendesk-chatgpt-answer-tools';
 const MINDMAP_VIEWER = '[data-opendesk-chatgpt-mindmap="viewer"]';
 const EXCLUDED = '[role="dialog"],[aria-modal="true"],[hidden],[inert],[aria-hidden="true"]';
@@ -22,8 +23,11 @@ const sessions = new WeakMap(); // doc -> per-owner sessions (Program and truste
 // Its actual ShadowRoot (not a React-cloned inert marker) takes precedence.
 // Do not uninstall, touch its listeners, or infer permission migration.
 export function legacyNavigationPresent(doc) {
-  return [...doc.querySelectorAll(`[${OWN}]`)].some(node =>
-    node.isConnected && node.shadowRoot && !node.hasAttribute(MODERN_OWN));
+  // The frozen 0.2.0 Page always creates this hidden owner even before it
+  // finds a long reply. This avoids a short-conversation duplicate window.
+  return Boolean(doc.querySelector(LEGACY_LIFECYCLE)) ||
+    [...doc.querySelectorAll(`[${OWN}]`)].some(node =>
+      node.isConnected && node.shadowRoot && !node.hasAttribute(MODERN_OWN));
 }
 
 function isWritingViewer(element, aside, win) {
@@ -595,8 +599,9 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
     // Do not debounce its takeover or ignore it as our own DOM mutation.
     const peerChanged = records.some(record => record.type === 'childList' &&
       [...record.addedNodes, ...record.removedNodes].some(node =>
-        node.hasAttribute?.(OWN) && node.shadowRoot &&
-        ![...mounted.values()].some(item => item.host === node)));
+        (node.matches?.(LEGACY_LIFECYCLE)) ||
+        (node.hasAttribute?.(OWN) && node.shadowRoot &&
+          ![...mounted.values()].some(item => item.host === node))));
     if (peerChanged) { refresh(); return; }
     const relevant = records.some(record => {
       const target = record.target.nodeType === 1 ? record.target : record.target.parentElement;
