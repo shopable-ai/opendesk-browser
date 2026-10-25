@@ -83,6 +83,36 @@ test('R5.5 installed Page facts survive deleted/replaced candidates and never in
   assert.deepEqual(composeExtensionEntries({pages:[{programId:'draft',revision:9}]}),[]);
 });
 
+test('R1.2.2 four AI products can be searched by localized aliases without borrowing legacy identities',()=>{
+  const mkPage=id=>({programId:id,manifestHash:'verified-'+id,
+    title:'网页程序',revision:1,enabled:true,
+    pageRules:{matches:['https://chatgpt.com/*']}});
+  const ids=['opendesk.ai-scroll-navigation','opendesk.ai-reply-mindmap','opendesk.ai-send-queue'];
+  const rows=composeExtensionEntries({
+    installed:[{id:'prompt-shortcuts',title:'快捷工具',description:'',version:'1.1.19'}],
+    pages:ids.map(mkPage)
+  });
+  for(const [query,wanted] of [
+    ['提示词','prompt-shortcuts'],['回顶',ids[0]],['长回复',ids[0]],
+    ['Scroll',ids[0]],['XMind',ids[1]],['Mind Map',ids[1]],
+    ['队列',ids[2]],['Queue',ids[2]]
+  ]){
+    assert.deepEqual(filterExtensionEntries(rows,{query}).map(x=>x.id),[wanted],query);
+  }
+  assert.equal(rows.filter(x=>x.kind==='page').length,3);
+  assert.ok(rows.every(x=>x.installed===true),'search does not synthesize installed programs');
+  const old=composeExtensionEntries({pages:[
+    mkPage('opendesk.chatgpt-jump-top'),mkPage('opendesk.chatgpt-mindmap'),
+    mkPage('opendesk.chatgpt-send-queue')]});
+  assert.equal(old.some(x=>ids.includes(x.id)),false,'old ID cannot become new installation');
+  assert.deepEqual(filterExtensionEntries(old,{query:'XMind'}).map(x=>x.id),
+    ['opendesk.chatgpt-mindmap']);
+  assert.deepEqual(filterExtensionEntries(old,{query:'AI'}),[],
+    'legacy installations do not claim the new product search label');
+  assert.deepEqual(filterExtensionEntries(rows,{scope:'available'}),[],
+    'search aliases are not an installation catalog');
+});
+
 import {readFile} from 'node:fs/promises';
 
 test('R4 source retains one trusted installer, one combined list and high-zoom responsive actions',async()=>{
