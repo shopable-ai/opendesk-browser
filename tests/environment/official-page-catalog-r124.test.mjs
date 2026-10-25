@@ -2,9 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {
-  OFFICIAL_PAGE_SOURCE_PATH,OFFICIAL_PAGE_CATALOG_PATH,
   createOfficialPageResources,officialPageInputs,readOfficialPageSources
 } from '../../scripts/build-official-pages.mjs';
+import {OFFICIAL_PAGE_SOURCE_PATH,OFFICIAL_PAGE_CATALOG_PATH}
+  from '../../src/scripting/user-scripts/official-page-catalog.js';
 import {
   validateOfficialPageSources,validateOfficialPageReleases,loadOfficialPageCatalog,
   loadOfficialPagePackage

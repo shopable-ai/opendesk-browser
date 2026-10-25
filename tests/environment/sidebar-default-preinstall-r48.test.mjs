@@ -45,7 +45,7 @@ function browser(initial=[]){
 test('R4.8 trusted catalog policy is the only default selection; metadata-only boot executes no code or site grant',async()=>{
   const fixtures=await officialFixtures();
   assert.deepEqual(fixtures.catalog.apps.filter(a=>a.installationPolicy==='preinstalled').map(a=>a.toolId),
-    ['reading-toc','quick-notes','cookie-editor']);
+    ['reading-toc','quick-notes','cookie-editor','prompt-shortcuts']);
   const f=browser();
   assert.deepEqual(await registerDefaultPreinstall({...f.options,reason:'update'}),{state:'not-new-install'});
   assert.equal(f.storage.has(DEFAULT_PREINSTALL_STORE),false);
@@ -53,8 +53,8 @@ test('R4.8 trusted catalog policy is the only default selection; metadata-only b
   assert.equal(f.storage.has(SIDEBAR_TOOL_STORE),false,'marking intent does not install');
   const result=await resumeDefaultPreinstall(f.options);
   assert.equal(result.state,'complete');
-  assert.deepEqual(f.storage.get(SIDEBAR_TOOL_STORE).map(a=>a.id),['reading-toc','quick-notes','cookie-editor']);
-  assert.deepEqual(Object.keys(f.storage.get(MARKET_PROVENANCE_STORE)).sort(),['cookie-editor','quick-notes','reading-toc']);
+  assert.deepEqual(f.storage.get(SIDEBAR_TOOL_STORE).map(a=>a.id),['reading-toc','quick-notes','cookie-editor','prompt-shortcuts']);
+  assert.deepEqual(Object.keys(f.storage.get(MARKET_PROVENANCE_STORE)).sort(),['cookie-editor','prompt-shortcuts','quick-notes','reading-toc']);
   const toc=f.storage.get(SIDEBAR_TOOL_STORE).find(tool=>tool.id==='reading-toc');
   assert.equal(toc.version,OFFICIAL_READING_TOC_RELEASE.version);
   assert.equal(matchesOfficialReadingToc(toc,f.storage.get(MARKET_PROVENANCE_STORE),
@@ -100,8 +100,8 @@ test('R4.8 concurrent install event and first boot commit each exact package onl
   await Promise.all(Array.from({length:4},()=>registerDefaultPreinstall({...f.options,reason:'install'})));
   const results=await Promise.all([resumeDefaultPreinstall(f.options),resumeDefaultPreinstall(f.options)]);
   assert(results.every(r=>r.state==='complete'));
-  assert.equal(f.storage.get(SIDEBAR_TOOL_STORE).length,3);
-  assert.equal(f.writes.filter(a=>a.includes(SIDEBAR_TOOL_STORE)).length,3);
+  assert.equal(f.storage.get(SIDEBAR_TOOL_STORE).length,4);
+  assert.equal(f.writes.filter(a=>a.includes(SIDEBAR_TOOL_STORE)).length,4);
 });
 test('R4.8 unavailable second package leaves a pinned, recoverable partial first install',async()=>{
   const f=browser();
@@ -114,7 +114,7 @@ test('R4.8 unavailable second package leaves a pinned, recoverable partial first
   assert.deepEqual(f.storage.get(DEFAULT_PREINSTALL_STORE).completed,['reading-toc']);
   unavailable=false;
   assert.equal((await resumeDefaultPreinstall(f.options)).state,'complete');
-  assert.deepEqual(f.storage.get(SIDEBAR_TOOL_STORE).map(x=>x.id),['reading-toc','quick-notes','cookie-editor']);
+  assert.deepEqual(f.storage.get(SIDEBAR_TOOL_STORE).map(x=>x.id),['reading-toc','quick-notes','cookie-editor','prompt-shortcuts']);
 });
 test('R4.8 confirmed user uninstall is never restored after worker restart',async()=>{
   const f=browser();
