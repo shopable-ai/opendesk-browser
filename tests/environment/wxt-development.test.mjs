@@ -47,13 +47,13 @@ test('development reload fails closed when the retirement receipt is missing',as
   const storage=idleStorage();delete storage.rows.commandJournal['controller-retirement:retirement-1'];
   assert.equal(await developmentRunHostIdle(storage),false);
 });
-function workerFixture({missingDocumentId=false,storage}={}){
+function workerFixture({missingDocumentId=false,storage,retryDelayMs=0}={}){
   let update={protocol:'opendesk.development.v1',revision:revision(1),files:{'sw.js':'initial','ui/tool-shell.js':'initial','ui/tool-shell.css':'initial','agents/page-agent.js':'initial'}};
   const messages=[],contexts=[{contextType:'SIDE_PANEL',documentId:'document-1',documentUrl:'chrome-extension://extension/sidepanel.html?hostInstanceId=host-1',frameId:0,incognito:false}];
   let reloads=0,idle=true,reads=0;
   const saved={};const api={storage:{session:{get:async()=>structuredClone(saved),set:async value=>Object.assign(saved,structuredClone(value))}},runtime:{id:'extension',getURL:path=>'chrome-extension://extension/'+path,onConnect:event(),getContexts:async()=>contexts,reload:()=>reloads++}};
   const port={name:'opendesk.development.v1',sender:{id:'extension',url:contexts[0].documentUrl,...(!missingDocumentId&&{documentId:'document-1'})},onMessage:event(),onDisconnect:event(),disconnect(){this.onDisconnect.emit();},postMessage(message){messages.push(message);if(message.type==='prepare')this.onMessage.emit({type:'ready',token:message.token,ready:true});}};
-  const worker=createDevelopmentWorker(api,{intervalMs:10,fetch:async()=>{reads++;return {ok:true,json:async()=>structuredClone(update)};}});
+  const worker=createDevelopmentWorker(api,{intervalMs:10,retryDelayMs,fetch:async()=>{reads++;return {ok:true,json:async()=>structuredClone(update)};}});
   return {worker,api,port,messages,get reloads(){return reloads;},get reads(){return reads;},setIdle:value=>{idle=value;},connect:()=>api.runtime.onConnect.emit(port),start:()=>worker.start(()=>idle&&!worker.nativePending&&(!storage||worker.runHostIdle(storage))),change:(file,hash)=>{update={...update,revision:revision(Number(update.revision)+1),files:{...update.files,[file]:hash}};}};
 }
 test('retired unknown history passes the update flow only after receipt, Native and host fences release',async()=>{
@@ -257,5 +257,33 @@ test('a busy host immediately releases other hosts instead of freezing them for 
     assert.equal(f.worker.held,false,'a negative vote must release the admission fence promptly');
     assert.equal(f.messages.some(message=>message.type==='abort'),true,'the ready host must become interactive again');
     assert.equal(f.reloads,0,'a busy host must continue to veto reload');
+  }finally{f.worker.dispose();}
+});
+
+test('an unanswered preparation leaves an interactive retry gap and still requires fresh host and Native readiness',async()=>{
+  const f=workerFixture({retryDelayMs:200});
+  const context={...(await f.api.runtime.getContexts({}))[0],documentId:'document-2',documentUrl:'chrome-extension://extension/sidepanel.html?hostInstanceId=host-2'};
+  (await f.api.runtime.getContexts({})).push(context);
+  let ready=false;
+  const slow={name:f.port.name,sender:{id:'extension',url:context.documentUrl,documentId:context.documentId},
+    onMessage:event(),onDisconnect:event(),disconnect(){this.onDisconnect.emit();},
+    postMessage(message){if(message.type==='prepare'&&ready)this.onMessage.emit({type:'ready',token:message.token,ready:true});}};
+  try{
+    await f.connect();await f.api.runtime.onConnect.emit(slow);f.start();await until(()=>f.reads>1);
+    f.change('sw.js','pending');await until(()=>f.messages.some(message=>message.type==='abort'));
+    const first=f.messages.find(message=>message.type==='prepare');
+    assert.equal(f.worker.held,false);
+    await slow.onMessage.emit({type:'ready',token:first.token,ready:true});
+    await new Promise(resolve=>setTimeout(resolve,100));
+    assert.equal(f.messages.filter(message=>message.type==='prepare').length,1,'an aborted attempt must leave a usable gap');
+    assert.equal(f.worker.held,false);assert.equal(f.reloads,0);
+    assert.equal((await f.api.storage.session.get())['opendesk.development.applied.v1'].revision,revision(1));
+    const nativeDone=f.worker.nativeStarted();ready=true;
+    await new Promise(resolve=>setTimeout(resolve,150));
+    assert.equal(f.messages.filter(message=>message.type==='prepare').length,1,'Native requests must still veto a retry');
+    nativeDone();await until(()=>f.reloads===1);
+    const attempts=f.messages.filter(message=>message.type==='prepare');
+    assert.equal(attempts.length,2);assert.notEqual(attempts[1].token,first.token);
+    assert.equal((await f.api.storage.session.get())['opendesk.development.applied.v1'].revision,revision(2));
   }finally{f.worker.dispose();}
 });

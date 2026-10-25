@@ -41,8 +41,8 @@ export function developmentChanges(previous,next) {
   return {changed,css:changed.includes('ui/tool-shell.css'),page:changed.some(file=>[SIDEPANEL_DOCUMENT_PATH,'ui/tool-shell.js'].includes(file)),
     extension:changed.some(file=>!packageData(file)&&!['ui/tool-shell.css',SIDEPANEL_DOCUMENT_PATH,'ui/tool-shell.js'].includes(file))};
 }
-export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=globalThis.fetch,intervalMs=1000}={}) {
-  const ports=new Map();let held=false,applied,restored=false,timer,checking=false,checkIdle,lastReason,nativePending=0,reloading=false;
+export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=globalThis.fetch,intervalMs=1000,retryDelayMs=5000}={}) {
+  const ports=new Map();let held=false,applied,restored=false,timer,checking=false,checkIdle,lastReason,nativePending=0,reloading=false,retryAfter=0;
   async function remember(value){await api.storage.session.set({[baselineKey]:value});applied=value;}
   async function connect(port){
     if(port.name!==protocol)return;
@@ -69,7 +69,7 @@ export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=global
     return value;
   }
   async function tick(){
-    if(checking||reloading)return;checking=true;let token;
+    if(checking||reloading)return;checking=true;let token,preparedRevision;
     try {
       if(!restored){applied=(await api.storage.session.get(baselineKey))[baselineKey];restored=true;}
       const next=await readUpdate();if(lastReason===unavailable){lastReason=null;send('connected',{revision:applied?.revision ?? null});}
@@ -78,6 +78,7 @@ export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=global
       const changes=developmentChanges(applied,next);
       if(changes.css){send('css',{hash:next.files['ui/tool-shell.css']});await remember({...applied,files:{...applied.files,'ui/tool-shell.css':next.files['ui/tool-shell.css']}});}
       if(!changes.page&&!changes.extension){await remember(next);send('revision',{revision:next.revision});return;}
+      if(Date.now()<retryAfter)return;
       if(!await checkIdle()){waiting('源码已编译；任务、原生请求或未知结果仍未释放，自动刷新已延后。');return;}
       held=true;
       // Freeze new admissions, then re-read authority. Every live tool document
@@ -86,7 +87,7 @@ export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=global
       const contexts=await api.runtime.getContexts({});
       const tools=contexts.filter(context=>{try{return new URL(context.documentUrl).pathname===SIDEPANEL_DOCUMENT_PATHNAME;}catch{return false;}});
       if(tools.some(context=>!ports.has(context.documentId))){waiting('等待全部工具页连接开发服务；没有响应的宿主不会被自动关闭。');return;}
-      const rows=[...ports.values()];token=crypto.randomUUID();
+      const rows=[...ports.values()];token=crypto.randomUUID();preparedRevision=next.revision;
       for(const row of rows){row.ready=null;row.token=token;row.port.postMessage({type:'prepare',token});}
       // A negative vote is final for this attempt. Release ready documents
       // immediately instead of holding their UI until the missing-ACK timeout.
@@ -119,7 +120,19 @@ export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=global
       if(!retired)return;
       await remember(next);lastReason=null;
     }catch(error){waiting(unavailable);console.debug('[OpenDesk dev]',error);}
-    finally{if(!reloading){held=false;if(token)send('abort',{token});}checking=false;}
+    finally{
+      if(!reloading){
+        held=false;
+        if(token){
+          // A missing vote can consume more than one poll interval. Give released
+          // documents usable time before freezing them for another full attempt.
+          // The retry still obtains new votes and rechecks every idle fence.
+          if(applied?.revision!==preparedRevision)retryAfter=Date.now()+retryDelayMs;
+          send('abort',{token});
+        }
+      }
+      checking=false;
+    }
   }
   return {runHostIdle:developmentRunHostIdle,get held(){return held;},get nativePending(){return nativePending;},nativeStarted(){nativePending++;return ()=>nativePending--;},
     start(canReload){checkIdle=canReload;tick();timer=setInterval(tick,intervalMs);},
