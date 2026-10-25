@@ -24,7 +24,7 @@ export default function KnowledgeWorkspace({host,onOpenSettings}){
       if(promise?.catch)void promise.catch(cause=>setError(String(cause?.message||cause)));}
     catch(cause){setError(String(cause?.message||cause));}
   };
-  const reset=()=>{setApproved(false);setError('');host.invalidate('');};
+  const reset=()=>{setApproved(false);setError('');host.clearPrepared();};
   const prepareManual=()=>{
     setApproved(false);setError('');
     guard(()=>host.prepare({question,scope}));
@@ -42,7 +42,6 @@ export default function KnowledgeWorkspace({host,onOpenSettings}){
     setError('');
     guard(()=>host.sendToLocalPage({event:event.nativeEvent,messageId,reviewApproved}));
   };
-  const last=records.at(-1);
   return <div className="od-knowledge-workspace">
     <section className="od-knowledge-dashboard" aria-label="知识问答控制台">
       <div className="od-knowledge-title-row">
