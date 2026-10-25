@@ -197,12 +197,17 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
     catch {return {ok:false,stage:'after-click',reason:'原生发送点击结果未知'};}
     return {ok:true,before:token.before};
   }
-  function confirm(before,text,snapshot) {
-    if (!snapshot.ok || snapshot.route!==before.route) return false;
-    if (snapshot.users.length !== before.users.length+1) return false;
-    if (before.users.some((node,i)=>snapshot.users[i]!==node)) return false;
+  function confirmationIssue(before,text,snapshot) {
+    if (!snapshot.ok || snapshot.route!==before.route) return '原对话或输入框已不可确认';
+    if (snapshot.users.length !== before.users.length+1) return '用户消息数量与发送前记录不符';
+    if (before.users.some((node,i)=>snapshot.users[i]!==node)) return '历史用户消息节点已变化';
     const newMessage=snapshot.users.at(-1);
-    return !before.users.includes(newMessage) && messageText(newMessage) === text;
+    if(before.users.includes(newMessage))return '未找到唯一新增用户消息';
+    if(messageText(newMessage)!==text)return '新增用户消息正文与队列不完全一致';
+    return null;
+  }
+  function confirm(before,text,snapshot) {
+    return confirmationIssue(before,text,snapshot)===null;
   }
   function replyComplete(before,confirmedUser,snapshot) {
     if(!before?.assistants || !confirmedUser || !snapshot.ok ||
@@ -220,5 +225,5 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
       !fresh.busy || !fresh.stopButton || fresh.stopButton!==snapshot.stopButton) return false;
     try { fresh.stopButton.click(); return true; } catch { return false; }
   }
-  return Object.freeze({inspect,clearForQueue,restore,reclaimToComposer,prepare,commit,confirm,replyComplete,stop,normal});
+  return Object.freeze({inspect,clearForQueue,restore,reclaimToComposer,prepare,commit,confirm,confirmationIssue,replyComplete,stop,normal});
 }

@@ -146,7 +146,10 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
           before:flight.before,confirmedUser:snap.users.at(-1),started:t,sawBusy:snap.busy};
         idleSince=null;emit();return;
       }
-      if(t-flight.started>ACK_MS){markUnknown('未能确认用户消息入站，禁止重复点击');}
+      if(t-flight.started>ACK_MS){
+        const issue=site.confirmationIssue?.(flight.before,flight.item.text,snap);
+        markUnknown((issue?issue+'；':'')+'未能确认用户消息入站，禁止重复点击');
+      }
       return;
     }
     if(state.phase==='unknown' || state.inFlight?.phase==='unknown')return;

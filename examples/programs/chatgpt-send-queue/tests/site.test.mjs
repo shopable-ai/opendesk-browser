@@ -63,8 +63,10 @@ test('confirmation requires exact new message text, including surrounding whites
   const message={parentElement:null,querySelector:()=>null,innerText:'queued message'};
   state.users=[message];
   assert.equal(site.confirm(before,' queued message ',site.inspect()),false);
+  assert.equal(site.confirmationIssue(before,' queued message ',site.inspect()),'新增用户消息正文与队列不完全一致');
   assert.equal(site.confirm(before,'queued\u00a0message',site.inspect()),false);
   assert.equal(site.confirm(before,'queued message',site.inspect()),true);
+  assert.equal(site.confirmationIssue(before,'queued message',site.inspect()),null);
 });
 test('reclaim keeps its queue authorization when the composer read-back is lossy',()=>{
   const {site,state}=fixture();
@@ -112,6 +114,9 @@ test('confirmation rejects replaced historical user nodes',()=>{
   const before={route:site.inspect().route,users:[old]};
   state.users=[replacement,{parentElement:null,querySelector:()=>null,innerText:'queued'}];
   assert.equal(site.confirm(before,'queued',site.inspect()),false);
+  assert.equal(site.confirmationIssue(before,'queued',site.inspect()),'历史用户消息节点已变化');
+  state.users.shift();
+  assert.equal(site.confirmationIssue(before,'queued',site.inspect()),'用户消息数量与发送前记录不符');
 });
 
 test('reply completion is tied to the confirmed user and one subsequent assistant',()=>{

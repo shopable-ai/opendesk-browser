@@ -1,6 +1,6 @@
 # Send Queue R4 — 独立 Page Program 工作流
 
-> 当前结果见末节「R4.5 已安装实例可见发送演示」，安装及先前并发等待证据见 R4.4。开头及 R4.2/R4.3 的环境、延期和未测状态保留为历史观察，不代表当前结果。
+> 当前结果见末节「R4.6 同轮复杂 A→B→C 可见等待与确认诊断」。r3 的短会话链通过，长对话数量校验限制仍存在；安装及先前管理证据见 R4.4。前节环境、延期和未测状态均保留为对应候选的历史观察，不代表当前结果。
 
 - 日期：2026-10-25
 - 仓库：`shopable-ai/opendesk-browser`；**只写 `main`**
@@ -128,3 +128,36 @@
 - 只读核对 **AI Chat Bridge R1.3：修复失焦保护并继续 Mac 双模式验收**（`01a17383-fb91-7763-8d97-2413eb9b8368`）：owner 仍 `active/inProgress`，其最新进展为 102 项相关测试通过、新 production 构建完成，正在自己的专属环境继续官网请求、固定 Task 和结果回传。该进展不等于桥原生闭环或跨功能协作已经通过。
 - Send Queue 专属窗口仍加载 R4.4 所列的旧桥静态包；未在该实例建立新版候选与真实 Task/Authority 运行绑定，桥 owner 的候选及浏览器仍由其占用，未移交。本会话未发送协调消息、操作其浏览器、复制其活动输出或接管桥文件。
 - **新版桥 + 已安装队列协作为 `NOT_TESTED`**：仍需同一合法新版候选中的真实桥持有 composer、队列拒绝抢草稿，以及确认/撤权后的行为证据。当前队列演示 PASS 与该缺口分别记录，不把旧包当成新 marker 的原生证明。真实 IME、特殊空白、升级/卸载仍保留原 `NOT_TESTED`，本轮不扩大验收范围。
+
+## R4.6 同轮复杂 A→B→C 可见等待与确认诊断（2026-10-26）
+
+### 当前可查看的真实操作
+
+- 本轮复用专属 CFT、登录态、Profile 与安装身份，目标是复杂 A 生成时分别入列 B/C，看见明确等待，再观察同一轮完整交接。最终 `CORE_ABC_NATIVE_PASS / PAGE_UPDATED_WITH_LIMITATIONS`；不恢复旧全量验收或评分任务。
+- 最终会话 **Merge Sorted Lists**：`https://chatgpt.com/c/6ade29e7-5858-83ee-8ea3-94671ca77509`。根页先手动发送一条普通合并有序列表问题，只用于建立 `/c/<id>`；A/B/C 均通过已安装实例的蓝色按钮分别入列，没有人工点击原生发送代替队列。
+- A 为带 `SQ-J-A` 的流式 TSV 解析器复杂题，要求完整 Python 实现、12 项案例及状态/复杂度说明。A 已入站且原生 Stop 可见时，分别输入并点击蓝色按钮入列算术解析器题 B（`SQ-J-B`）与简短 C（`SQ-J-C. Reply only SQ-J-C-OK.`）。截图同时显示两条待发、明确「等待中 · 等待上一条回复完成」、原生 Stop 和空输入框。
+- 同一轮第二张截图显示 A 的复制/评价等完成操作已出现，B 已入站并开始 `SQ-J-B-START`，原生 Stop 仍可见；C 单独保留在队列并显示等待。A 的模型回复没有按要求输出 `SQ-J-A-END`，完成依据为网站完成状态和受控交接，不把题目完成度当发送状态。
+- 最终 B 的 `SQ-J-B-OK` 和完成操作出现在 C 用户消息前，C 回复 `SQ-J-C-OK`；三条 user 各一次，官网「回答已完成」，队列面板消失、原生草稿空、无 unknown。此轮未人工删除条目、暂停/恢复、停止回复或重发。窗口保留最终结果和 r3 安装详情，可直接查看。
+
+### 真实缺陷、修复与未解决限制
+
+- 原 r1 在 A 生成且 B/C 已排队时，没有正常等待说明；已保存 `r46-before-fix-a-streaming-bc-queued{.png,-ax.txt}`。最小修改 `src/view.js`：非空队列持续显示实际等待/准备/已点击待确认/暂停/unknown 状态，并把回复栅栏纳入渲染签名。无倒计时、不推测完成，不增加可绕过 unknown 的恢复按钮。
+- 原 r1 的 C、r2 较长会话 G 的 C 均实际收到回复但未通过入站确认。仅人工核对各自原对话回复后，通过已有 Delete→确认删除本轮测试条目，从未重新发送。`r46-before-fix-final` 实际为 unknown，`r46-before-fix-stream-visible` 已不是 A streaming；文件名不能作为通过证据。
+- 增加 `src/site.js` 的 `confirmationIssue`，沿用原确认顺序与条件；`src/engine.js` 仅在原确认超时后附具体原因，未放宽任何准入/发送/完成门禁。r3 在原较长会话的单条 D 中复现：实际收到 `SQ-R46D-OK`，但显示「用户消息数量与发送前记录不符；未能确认用户消息入站，禁止重复点击」。**数量不符已确认，具体是否由历史加载或 DOM 虚拟化引起未证明；长对话兼容限制未解决。** 原节点前缀、精确正文、唯一新增消息与对应助手身份继续严格校验。
+- r2 的 F 样本保存 A 生成时 B/C 同时等待和最终空队列，但漏拍 B 生成阶段；G 样本拍到 B 生成时 C 等待，C 却是在 A 完成后才点击入列，最终还进入 unknown。因此 F/G 不拼接成同轮全链通过。文件 `r46-fixed-c-processing` 保存的是 B 已完成、C 处理中，`r46g-c-still-draft` 保存 C 尚未点击入列。
+- r3 的 H/I 复杂请求被官网简短作答，没留下足够观察窗口；I 的 B 仅输入未入列，已清空，未发送 B/C。最终使用普通技术会话 J 完成上述同轮观察，不把短答归为队列故障，不声称所有尝试均通过。
+
+### 固定源码、安装和写入归属
+
+- 最新 Page：`opendesk.chatgpt-send-queue`，v`0.1.2`、r3；源码 49,006 bytes，SHA-256 `68a73289c820fade777168230b7a60272f2d629cb16f4fd13b52dabe5c1804d4`；packageHash `6e2442f650d1ff40c54c11c66690a8a67823b333edd9d5c8576e0e8d1718d744`。唯一正式包仍为工具目录内的 `opendesk.chatgpt-send-queue.opendesk-page.json`，由原构建器复用本次已安装、已运行的固定字节生成，与临时候选逐字节一致。
+- r2 为 v`0.1.1`，sourceHash `c4694f28e792cf61635e8c3520c0d4e8aa8683971706793356029001ec4f6e54`。r1→r2→r3 均走既有扩展详情更新入口、原生文件选择、身份/范围审阅和确认更新；未增加网站或权限。r3 新文档自动出现蓝色按钮。
+- 实读安装身份继续为 `9f71bb28-256b-41b6-b15e-faca432f2993`，Chrome 注册 `opendesk-page-boot-7f201979d9e5fec0753a135b6d3116fcb273b3da87af8f77`，`active/registered`，仅 `page.dom`、`https://chatgpt.com/*`、顶层 USER_SCRIPT；详情 SHA 与本次 r3 相同。
+- CFT 155.0.8059.39、原 PID 74622/Profile 与扩展 ID `jkoicpoppfpocgaokdofmbkhbbgpagbd` 保留；宿主仍加载 `artifacts/send-queue-r43-01a1732c/host-available`，无 dev serve 连接，是原静态核心验证候选，不是 production 或新版桥验收。本轮没有宿主构建、覆盖 `dist/development`、停止 watcher、重启浏览器或修改 Native 配对；日常 Chrome 未安装本程序。
+- 始终在 `main`。开始 HEAD `848b4862c4a71b5ed3dc3d2a2ab2d61322f1d481`，并行 owner 持续提交 main；其中 `e080939b4` 已包含本轮等待提示与 v0.1.1，随后 `1475758fc` / `b994ca95e` 提交了皇冠外观，本轮 r3 如实包含当前已提交外观，未覆盖它们。本轮剩余写入仅队列自身确认诊断/测试、版本、正式包、README 和本记录，其他业务 dirty 文件不纳入提交。
+
+### 最小验证与证据
+
+- 确认诊断触及真实发送确认与 unknown 分支，故执行受影响 `site` 13/13、`engine` 30/30，共 43/43；验证精确正文、历史节点变化、数量不符、暂停及未知结果禁止重试。源文件语法、项目声明、当前来源和打包身份检查通过；未运行无关全仓测试、宿主构建、宽度/缩放矩阵或评分。
+- 原生 UI 操作全部通过 CUA；未使用 CDP、页面 eval、AppleScript、私有 ChatGPT 请求或网站消息存储。AX 离线断言只检查已保存的真实快照，不作为额外模拟浏览器通过。
+- 本机忽略证据目录 `artifacts/send-queue-r43-01a1732c/`：`r46j-a-streaming-bc-waiting{.png,-ax.txt}`、`r46j-b-streaming-c-waiting{.png,-ax.txt}`、`r46j-final{.png,-ax.txt}`、`r46j-timeline.json`（含 A/B/C 原文与观察时间）、`r46j-evidence-check.json`。三个快照证明同轮交接，最终离线统计 A/B/C user 各 1；`r46d-package-identity-check.json` 证明包、固定源码和当前全部模块/资源同源；`r46d-diagnostic-timeout{.png,-ax.txt}` 保留数量不符现场。
+- 本轮仅证明上述短会话核心链与原权限内升级。长对话限制仍存在，刷新恢复仍不支持；新版固定桥协作、真实 IME、特殊空白、卸载和 production 完整验收继续 `NOT_TESTED`，不因本轮通过而提升其状态。保留专属 CFT 和 launcher，避免临时 Profile 被清理。
