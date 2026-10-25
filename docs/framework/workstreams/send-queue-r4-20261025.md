@@ -1,6 +1,6 @@
 # Send Queue R4 — 独立 Page Program 工作流
 
-> 当前结果见末节「R4.4 固定桥协作、真实发送与正式安装」。开头及 R4.2/R4.3 的环境、延期和未测状态保留为历史观察，不代表当前结果。
+> 当前结果见末节「R4.5 已安装实例可见发送演示」，安装及先前并发等待证据见 R4.4。开头及 R4.2/R4.3 的环境、延期和未测状态保留为历史观察，不代表当前结果。
 
 - 日期：2026-10-25
 - 仓库：`shopable-ai/opendesk-browser`；**只写 `main`**
@@ -105,3 +105,26 @@
 - 本机忽略证据目录仍为 `artifacts/send-queue-r43-01a1732c/`：`candidate-r44c-build.json`、`r44c-after-a3-ax.txt`、`r44c-installed{.png,-ax.txt}`、`r44c-installed-autorun-ax.txt`、`r44c-disabled-ax.txt`、`r44c-edit-{protected,reclaimed}-ax.txt`；A3 的 Stop+B3等待由原生 CUA 工具实际观察，文件 `after-a3` 保存的是后续 B3 完成状态，不把它冒充 streaming 截图。
 - 仍不支持刷新后恢复内存队列；本轮没有修改存储权限。新桥与队列共同发送/真实 IME/特殊空白/升级/卸载为 `NOT_TESTED`；尺寸/缩放矩阵和正式评分不在本轮。固定桥活跃实现及其 Native 双模式验证继续由桥 owner 负责，本轮不接管其文件或浏览器。
 - 已安装在本专属临时 Profile，日常 Chrome 未安装。保持 CFT 与 launcher 存活以保留登录态和安装；关闭会清理临时 Profile。核心发送、Page 安装和上述管理操作已完成，不再自动扩大到旧全量验收。
+
+## R4.5 已安装实例可见发送演示（2026-10-25）
+
+### 用户当前可查看的结果
+
+- 本次接续会话接收 Send Queue 程序、专属 CFT/Profile 和本记录的执行所有权。开始时 `main` 仍为 `d2c3db432b97f0ad3ad4876d9a42279d907aa48f`，本业务目录及记录干净；其他 owner 的桥、provenance、workspace 和 relay 改动全部保留。
+- 复用已加载的 **Send Queue Resume Test**：`https://chatgpt.com/c/6ade1b75-fccc-83e8-9eb6-61ca8b16eff5`，没有刷新旧对话、重新 Run 或重装。专属 CFT PID 74622 仍运行，加载路径仍为 `artifacts/send-queue-r43-01a1732c/host-available`、扩展 ID `jkoicpoppfpocgaokdofmbkhbbgpagbd`；本轮为静态核心验证候选，无 dev serve 连接，也不是 production 验收。
+- 原生扩展详情再次实读：安装身份 `9f71bb28-256b-41b6-b15e-faca432f2993`，r1、`page.dom`、`https://chatgpt.com/*`、Authority `active`、Chrome `registered`，固定源码 SHA-256 `08e7f0bcd98b8bcf78cfd32a62ea928460a3408806686aab4a484da4d916f367`。页面蓝色队列按钮已自动出现，初始草稿与队列为空。
+- 本轮 A 正文：`SQ-VISIBLE-A. Say SQ-VISIBLE-A-START, list integers 1 through 120 on separate lines, finish SQ-VISIBLE-A-END.`；B 正文：`SQ-VISIBLE-B. Reply only SQ-VISIBLE-B-OK.`。均只点击蓝色队列按钮入列，没有人工点击官网原生发送替代队列。
+- **已安装实例发送演示 PASS**：A、B 各出现一条完整 user 消息，A 的回复包含 `SQ-VISIBLE-A-START`、1–120 和 `SQ-VISIBLE-A-END`，随后 B 回复 `SQ-VISIBLE-B-OK`。最终官网明确「回答已完成」，队列面板已清空、无 unknown、原生草稿为空；无重发或自动重试。窗口已滚到底部，可同时看到 A 结束标记、B 消息及 B 回复，保留登录、安装和测试对话。
+
+### 本轮证据的准确边界
+
+- 原生驱动最初未前置窗口，粘贴/带 Shift 点击没有改变草稿或暂停状态。前置后使用原生 `typeText` 与普通按钮点击完成操作；没有据驱动行为修改产品。**本轮没有成功将 A/B 同时保持在暂停队列中**，不能写成“两条同时待发”的新证据。
+- 输入 B 草稿时实际观察到 A 已入站、官网仍有「停止」按钮；但 B 入列并保存截图时 A 已结束，截图显示 B 仍在队列而官网已回到「开始语音」。因此 `r45-visible-b-queued.png` 仅证明 A 完成后 B 尚待发送，**不证明 A 生成中 B 等待**。此前 R4.4 A3/B3 的原生 Stop + B 等待观察继续有效，本轮没有为补截图反复发送测试消息。
+- 本机忽略证据仍位于 `artifacts/send-queue-r43-01a1732c/`：`r45-visible-b-queued{.png,-ax.txt}`、`r45-visible-after-enqueue-ax.txt`、`r45-visible-final{.png,-ax.txt}`。最终完整 AX 中 A/B user 正文及各结束/回复标记均各一次，同时保留已安装身份与源码哈希。部分中间 AX 为工具返回的差异，不能冒充完整历史快照。
+- 源码、正式包及权限没有变化，继续复用 R4.4 的 43/43 定向测试和包身份校验；本轮只核对原生结果、离线 AX 消息计数及记录 diff，不重复产品构建或整组测试。
+
+### 新版固定桥协作状态
+
+- 只读核对 **AI Chat Bridge R1.3：修复失焦保护并继续 Mac 双模式验收**（`01a17383-fb91-7763-8d97-2413eb9b8368`）：owner 仍 `active/inProgress`，其最新进展为 102 项相关测试通过、新 production 构建完成，正在自己的专属环境继续官网请求、固定 Task 和结果回传。该进展不等于桥原生闭环或跨功能协作已经通过。
+- Send Queue 专属窗口仍加载 R4.4 所列的旧桥静态包；未在该实例建立新版候选与真实 Task/Authority 运行绑定，桥 owner 的候选及浏览器仍由其占用，未移交。本会话未发送协调消息、操作其浏览器、复制其活动输出或接管桥文件。
+- **新版桥 + 已安装队列协作为 `NOT_TESTED`**：仍需同一合法新版候选中的真实桥持有 composer、队列拒绝抢草稿，以及确认/撤权后的行为证据。当前队列演示 PASS 与该缺口分别记录，不把旧包当成新 marker 的原生证明。真实 IME、特殊空白、升级/卸载仍保留原 `NOT_TESTED`，本轮不扩大验收范围。
