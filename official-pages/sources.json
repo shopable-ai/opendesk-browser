@@ -17,7 +17,7 @@
       ],
       "installationPolicy": "reviewed",
       "publication": "blocked",
-      "blockedReason": "新身份正式 Page 包尚未经过同源构建及三站权限核验。"
+      "blockedReason": "新 ID 0.4.0/r1 包已通过原 Program/Page builder 与 CI 哈希校验；缺少实际 Chrome 安装、三站授权及注册读回，暂不开放安装。"
     },
     {
       "programId": "opendesk.ai-reply-mindmap",
