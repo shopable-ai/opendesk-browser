@@ -111,6 +111,32 @@ export function createChatGPTSite({doc = document, win = window} = {}) {
       return false;
     return setDraft(snapshot.editor,text);
   }
+  // Reclaim a queued message for editing in the actual website composer.
+  // The old draft must be EXACTLY empty, including whitespace-only drafts.
+  // A failed/ambiguous insertion never authorizes removing the queue item.
+  function reclaimToComposer(text,initial) {
+    const fresh=inspect();
+    if(!initial?.ok||!fresh.ok||!initial.route||
+      fresh.route!==initial.route||fresh.form!==initial.form||
+      fresh.editor!==initial.editor)return {ok:false,reason:'会话或官网输入框已变化'};
+    if(fresh.rich||initial.rich)return {ok:false,reason:'输入框包含附件，请先处理'};
+    if(fresh.draft!==''||initial.draft!=='')
+      return {ok:false,reason:'输入框已有草稿，请先发送或加入队列'};
+    let applied=false;
+    try{applied=setDraft(fresh.editor,text);}
+    catch{return {ok:false,reason:'原生输入框写入失败，队列仍保留',mayHaveWritten:true};}
+    const after=inspect();
+    if(!applied||!after.ok||after.route!==fresh.route||
+      after.form!==fresh.form||after.editor!==fresh.editor||
+      after.rich||after.draft!==text)
+      return {ok:false,reason:'原生输入框未能确认完整取回，队列仍保留',mayHaveWritten:true};
+    try{
+      if(typeof after.editor.setSelectionRange==='function')
+        after.editor.setSelectionRange(text.length,text.length);
+    }catch{/* Selection placement is not a data correctness gate. */}
+    after.editor.focus();
+    return {ok:true};
+  }
   function prepare(text,initial) {
     const fresh=inspect();
     if(!initial?.ok || !fresh.ok || fresh.route!==initial.route ||
@@ -158,5 +184,5 @@ export function createChatGPTSite({doc = document, win = window} = {}) {
       !fresh.busy || !fresh.stopButton || fresh.stopButton!==snapshot.stopButton) return false;
     try { fresh.stopButton.click(); return true; } catch { return false; }
   }
-  return Object.freeze({inspect,clearForQueue,restore,prepare,commit,confirm,stop,normal});
+  return Object.freeze({inspect,clearForQueue,restore,reclaimToComposer,prepare,commit,confirm,stop,normal});
 }

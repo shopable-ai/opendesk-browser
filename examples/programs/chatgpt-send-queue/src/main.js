@@ -23,13 +23,6 @@ export default async function main({assets}={}) {
         if(event?.shiftKey){actions.togglePause();return;}
         const snap=site.inspect(),state=engine.view();
         if(!snap.ok){notify(snap.reason);return;}
-        if(state.editing){
-          const text=snap.draft,saved=state.editingDraft;
-          if(!site.normal(text)){notify('队列消息不能为空');return;}
-          if(!site.restore(saved,text)){engine.pause('未能恢复原生草稿，编辑仍保留');return;}
-          if(!engine.finishEdit(text))engine.pause('保存队列编辑失败');
-          return;
-        }
         const selected=site.clearForQueue(snap);
         if(!selected.ok){notify(selected.reason);return;}
         if(!engine.enqueue(selected.text,snap.route)){
@@ -40,27 +33,37 @@ export default async function main({assets}={}) {
         engine.tick();
       },
       edit(id){
-        const state=engine.view(),item=state.items.find(x=>x.id===id),snap=site.inspect();
-        if(!item||!snap.ok||snap.route!==state.route)return;
-        if(state.editing===id){
-          if(!site.restore(state.editingDraft,snap.draft)){engine.pause('取消编辑时草稿无法恢复');return;}
-          engine.cancelEdit();return;
+        // No inline editor. Put this message back into ChatGPT's existing
+        // composer and cancel its queued-send authorization.
+        const state=engine.view(),item=state.items.find(x=>x.id===id);
+        if(!item || state.inFlight || ['unknown','sending','confirmed'].includes(item.state)){
+          notify('这条消息正在发送或结果未知，暂不能取回');return;
         }
-        if(state.editing||state.inFlight){notify('请先完成当前队列操作');return;}
-        if(!site.restore(item.text,snap.draft)){notify('原生输入框无法安全填入待编辑消息');return;}
-        engine.edit(id,snap.draft);
+        const snap=site.inspect();
+        if(!snap.ok||snap.route!==state.route){
+          notify('请返回原对话后再取回');return;
+        }
+        if(snap.rich||snap.draft!==''){
+          notify('输入框已有草稿或附件，请先发送或加入队列');
+          snap.editor?.focus();return;
+        }
+        const result=site.reclaimToComposer(item.text,snap);
+        if(!result.ok){
+          if(result.mayHaveWritten)engine.pause('取回状态未确认，已暂停以防重复发送');
+          notify(result.reason||'无法安全取回，请检查输入框');return;
+        }
+        // Only after the original composer read-back confirms the exact text,
+        // remove the item so it cannot later auto-send from the queue.
+        if(!engine.reclaim(id)){
+          engine.pause('队列状态已改变，请核对输入框与排队内容');
+          notify('消息已放入输入框，但队列状态不确定');return;
+        }
+        notify('已取回到输入框，取消排队');
       },
       remove(id){
         const state=engine.view();
         if(state.inFlight?.id===id&&state.inFlight.phase==='unknown'&&
           !window.confirm('发送结果可能已生效。请先检查原对话。确定仍要删除这条消息吗？'))return;
-        if(state.editing===id){
-          const snap=site.inspect();
-          if(!snap.ok||!site.restore(state.editingDraft,snap.draft)){
-            engine.pause('无法恢复编辑前的原生草稿');return;
-          }
-          engine.cancelEdit();
-        }
         engine.remove(id);
       },
       sendNow(id){

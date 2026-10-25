@@ -125,7 +125,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
       }else row.append(element(doc,'span','sq-index',String(i+1)));
       const text=element(doc,'span','sq-text',item.text);text.title=item.text;row.append(text);
       const ops=element(doc,'div','sq-ops');
-      for(const [key,label] of [['now','提前发送'],['edit','编辑'],['remove','删除']]){
+      for(const [key,label] of [['now','提前发送'],['edit','取回输入框编辑'],['remove','删除']]){
         const b=action(doc,key,label,item.id);
         if((item.state==='sending'||item.state==='unknown')&&key!=='remove')b.disabled=true;
         ops.append(b);

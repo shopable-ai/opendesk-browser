@@ -90,3 +90,36 @@ test('acknowledgement timeout never causes duplicate click',()=>{
   assert.equal(engine.view().paused,true);
   assert.equal(engine.view().items[0].state,'unknown');
 });
+
+test('edit reclaims just the selected queued item without sending it',()=>{
+  const {state,engine,step}=fixture();
+  assert.equal(engine.enqueue('message A',state.route),true);
+  assert.equal(engine.enqueue('message B',state.route),true);
+  assert.equal(engine.reclaim('q1'),true);
+  assert.deepEqual(engine.view().items.map(x=>x.text),['message B']);
+  assert.equal(engine.reclaim('q1'),false);
+  assert.equal(state.clicks,0,'reclaim must not invoke the website send button');
+  step(100);
+  assert.equal(state.clicks,0,'remaining queue stays waiting during assistant reply');
+});
+test('reclaim of the only item empties the queue without a hidden editor mode',()=>{
+  const {state,engine}=fixture();
+  engine.enqueue('only message',state.route);
+  assert.equal(engine.reclaim('q1'),true);
+  assert.deepEqual(engine.view().items,[]);
+  assert.equal(engine.view().route,null);
+  assert.equal(engine.view().editing,undefined);
+  assert.equal(state.clicks,0);
+});
+test('sending and unknown-outcome messages cannot be reclaimed as editable drafts',()=>{
+  const {state,engine,step}=fixture();
+  engine.enqueue('maybe sent',state.route);
+  step(100,{busy:false,complete:true});
+  step(1400);
+  assert.equal(engine.reclaim('q1'),false,'prepared/in-flight message must stay queued');
+  step(2100,{failClick:true});
+  assert.equal(engine.view().items[0].state,'unknown');
+  assert.equal(engine.reclaim('q1'),false,'potential duplicate must not be reclaimed');
+  assert.equal(engine.view().items[0].text,'maybe sent');
+  assert.equal(state.clicks,1);
+});

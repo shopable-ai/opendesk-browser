@@ -2,7 +2,7 @@
 const MAX_ITEMS=20, MAX_TEXT=8192, IDLE_MS=1100, ACK_MS=15000, STOP_MS=12000;
 export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
   const items=[];
-  const state={items,route:null,paused:false,reason:'',phase:'waiting',editing:null,editingDraft:null,
+  const state={items,route:null,paused:false,reason:'',phase:'waiting',
     expanded:false,inFlight:null,answerGate:null,lastConfirmed:null,forceId:null};
   let sequence=0, idleSince=null, lastSignature='';
   const emit=()=>change(view());
@@ -37,7 +37,6 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     const item=items.find(v=>v.id===id);
     if(!item || (state.inFlight?.item===item && state.inFlight.phase!=='unknown'))return false;
     if(state.inFlight?.item===item){state.inFlight=null;state.phase='waiting';state.paused=true;}
-    if(state.editing===id){state.editing=null;state.editingDraft=null;}
     items.splice(items.indexOf(item),1);
     if(!items.length){state.route=null;state.answerGate=null;}
     emit();return true;
@@ -47,27 +46,26 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     if(i<0||toIndex<0||toIndex>=items.length||state.inFlight?.item===items[i])return false;
     const [item]=items.splice(i,1);items.splice(toIndex,0,item);emit();return true;
   }
-  function edit(id,savedDraft) {
-    if(state.editing || state.inFlight || !items.some(v=>v.id===id))return false;
-    state.editing=id;state.editingDraft=savedDraft;emit();return true;
+  // 'Edit' means reclaiming one unsent item into the official composer.
+  // Removal is atomic from the queue's perspective and never a send request.
+  function reclaim(id) {
+    const item=items.find(v=>v.id===id);
+    if(!item || state.inFlight ||
+      item.state==='unknown' || item.state==='sending' ||
+      item.state==='confirmed')return false;
+    return remove(id);
   }
-  function finishEdit(text) {
-    const item=items.find(v=>v.id===state.editing);
-    if(!item||!site.normal(text)||text.length>MAX_TEXT)return false;
-    item.text=text;state.editing=null;state.editingDraft=null;emit();return true;
-  }
-  function cancelEdit() {state.editing=null;state.editingDraft=null;emit();}
   function toggleExpanded(){state.expanded=!state.expanded;emit();}
   function requestNow(id) {
     const item=items.find(v=>v.id===id);
-    if(!item || state.editing || state.inFlight || state.answerGate)return {ok:false};
+    if(!item || state.inFlight || state.answerGate)return {ok:false};
     const snap=site.inspect();
     if(!snap.ok || snap.route!==state.route)return {ok:false,reason:'会话已变化'};
     if(snap.busy)return {ok:false,needsStopConfirmation:true};
     move(id,0);state.paused=false;state.reason='';idleSince=null;emit();return {ok:true};
   }
   function confirmForceStop(id) {
-    if(state.inFlight || state.editing || state.answerGate || !items.some(v=>v.id===id))return false;
+    if(state.inFlight || state.answerGate || !items.some(v=>v.id===id))return false;
     const snap=site.inspect();
     if(!snap.ok || snap.route!==state.route || !snap.busy || !snap.stopButton)return false;
     // A confirmed user gesture is required before this method is called.
@@ -146,7 +144,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
       if(t-idleSince<IDLE_MS)return;
       state.answerGate=null;idleSince=null;emit();
     }
-    if(state.paused || state.editing || state.inFlight || !items.length)return;
+    if(state.paused || state.inFlight || !items.length)return;
     if(snap.busy || !snap.idle || snap.rich || site.normal(snap.draft)) {
       idleSince=null;
       const reason=snap.rich?'检测到附件，不覆盖原生输入框':site.normal(snap.draft)?'原生草稿非空，等待用户处理':'等待当前回复结束';
@@ -157,6 +155,6 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     if(t-idleSince<IDLE_MS)return;
     state.reason='';startSubmit(snap,current());
   }
-  return Object.freeze({view,enqueue,pause,resume,remove,move,edit,finishEdit,cancelEdit,
+  return Object.freeze({view,enqueue,pause,resume,remove,reclaim,move,
     toggleExpanded,requestNow,confirmForceStop,tick});
 }
