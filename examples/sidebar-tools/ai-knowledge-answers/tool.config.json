@@ -1,0 +1,26 @@
+{
+  "format": "opendesk.sidebar-tool.v2",
+  "id": "ai-knowledge-answers",
+  "version": "0.1.0",
+  "title": "AI 知识问答",
+  "description": "本地知识编辑、固定回答、轻量检索；真实 AI 与网页自动回复仍待可信接入。",
+  "capabilities": [
+    "storage.local",
+    "user.export"
+  ],
+  "requires": {
+    "browserSdk": "1.0.0"
+  },
+  "contributes": {
+    "contextMenus": []
+  },
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js",
+    "dependencies": [
+      "src/model.js"
+    ]
+  },
+  "assets": []
+}

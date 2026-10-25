@@ -1,0 +1,41 @@
+/* @opendesk-shared-design */
+.qa-app{width:100%;min-width:0;max-width:760px;margin-inline:auto;padding:var(--space-3)}
+.qa-app [hidden]{display:none!important}
+.qa-app h1,.qa-app h2{margin:0;font-size:15px}
+.qa-app button,.qa-app input,.qa-app select,.qa-app textarea{font:inherit}
+.qa-header,.qa-row{display:flex;align-items:center;gap:var(--space-2);min-width:0}
+.qa-header{margin:0 0 var(--space-3)}
+.qa-header h1{flex:1}
+.qa-header .od-note{white-space:nowrap}
+.qa-card{margin:0 0 var(--space-3);padding:var(--space-3);border:1px solid var(--od-line);border-radius:10px;min-width:0}
+.qa-card .od-field-label{display:block;margin:var(--space-2) 0 var(--space-1)}
+.qa-card>.od-field-label:first-child{margin-top:0}
+.qa-app .od-field{width:100%;min-width:0;max-width:100%}
+.qa-app textarea{resize:vertical}
+.qa-query-actions{margin-top:var(--space-2)}
+.qa-query-actions input{flex:1}
+.qa-query-actions button{flex:none}
+.qa-answer{padding:var(--space-2);margin:var(--space-2) 0;border:1px solid var(--od-line);border-radius:8px;overflow-wrap:anywhere}
+.qa-answer p{white-space:pre-wrap}
+.qa-answer ul{padding-left:20px;font-size:12px;overflow-wrap:anywhere}
+.qa-help{margin:var(--space-2) 0 0;line-height:1.5}
+.qa-status{border:1px solid var(--od-line);border-radius:7px;padding:var(--space-2);margin:0 0 var(--space-3);overflow-wrap:anywhere}
+.qa-status[data-error=true]{color:var(--od-negative)}
+.qa-heading{justify-content:space-between}
+.qa-list{display:flex;gap:var(--space-2);overflow-x:auto;padding:var(--space-2) 0}
+.qa-list button{flex:none;min-width:90px;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qa-list button[aria-pressed=true]{border-color:var(--od-focus);font-weight:700}
+.qa-meta{align-items:end;margin-top:var(--space-2)}
+.qa-meta>div{flex:1;min-width:0}
+.qa-enabled{display:flex;align-items:center;gap:var(--space-1);white-space:nowrap;min-height:34px;font-size:12px}
+.qa-editor-actions{justify-content:flex-end;margin-top:var(--space-2)}
+.qa-editor-actions #qa-delete{margin-right:auto}
+.qa-manage summary{font-weight:600;cursor:pointer}
+.qa-import-actions{flex-wrap:wrap;margin-top:var(--space-2)}
+.qa-import-actions select{flex:1 1 180px}
+.qa-import-actions button{flex:none}
+.qa-review{padding:var(--space-3);border:1px solid var(--od-line);border-radius:8px;background:var(--od-muted);margin-bottom:var(--space-3)}
+.qa-review p{white-space:pre-wrap;overflow-wrap:anywhere}
+.qa-review .qa-row{justify-content:flex-end}
+.qa-app :focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
+@media(max-width:350px){.qa-app{padding:var(--space-2)}.qa-card{padding:var(--space-2)}.qa-query-actions{flex-wrap:wrap}.qa-query-actions button{margin-left:auto}}
