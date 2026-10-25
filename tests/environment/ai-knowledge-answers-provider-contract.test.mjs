@@ -55,7 +55,7 @@ test('provider request starts synchronously with original trusted event; respons
   assert.equal(calls.length,1);
   assert.strictEqual(calls[0].event,event);
   assert.equal(calls[0].scope,'knowledge');
-  assert.deepEqual(calls[0].context.references.map(row=>row.id),[kb.items[0].id]);
+  assert.deepEqual(Array.from(calls[0].context.references,row=>row.id),[kb.items[0].id]);
   const result=await pending;
   assert.equal(result.modelCalled,true);
   assert.equal(result.status,'REVIEW_REQUIRED');
@@ -87,5 +87,5 @@ test('stale ETag after inference must discard the old answer and release grant',
 test('reference payload must be bounded and untrusted KB instructions cannot override system policy',()=>{
   assert.match(KNOWLEDGE_ANSWER_INSTRUCTIONS,/未经信任的数据/);
   assert.match(KNOWLEDGE_ANSWER_INSTRUCTIONS,/禁止伪造引用/);
-  assert.match(KNOWLEDGE_ANSWER_INSTRUCTIONS,/禁止.*自动发送/);
+  assert.match(KNOWLEDGE_ANSWER_INSTRUCTIONS,/不可自动发送/);
 });
