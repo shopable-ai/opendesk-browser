@@ -66,3 +66,50 @@ jobs:
           test -s "$RUNNER_TEMP/opendesk-official-pages-r124/official-pages/catalog.json"
       - name: Explicitly keep native Chrome and Mac installation unverified
         run: echo 'NODE_PACKAGE_CATALOG_ONLY; CHROME_PASS=NOT_TESTED'
+
+  scroll-candidate:
+    needs: contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Freeze Scroll candidate without installing it
+        run: |
+          node scripts/validate-program-project.mjs examples/programs/chatgpt-jump-top
+          node scripts/build-program-project.mjs examples/programs/chatgpt-jump-top --out "$RUNNER_TEMP/scroll-r124"
+          node scripts/build-page-install-package.mjs \
+            --input "$RUNNER_TEMP/scroll-r124/program.opendesk-draft.json" \
+            --out "$RUNNER_TEMP/scroll-r124/ai-scroll-navigation.opendesk-page.json" \
+            --revision 1 --title "AI 对话滚动导航"
+      - name: Validate immutable new identity and origin authorization
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          import {validatePageInstallPackage} from './src/scripting/user-scripts/page-install-package.js';
+          const file=process.env.RUNNER_TEMP+'/scroll-r124/ai-scroll-navigation.opendesk-page.json';
+          const bytes=await readFile(file),pkg=await validatePageInstallPackage(JSON.parse(bytes));
+          assert.equal(pkg.programId,'opendesk.ai-scroll-navigation');
+          assert.equal(pkg.version,'0.4.0');
+          assert.equal(pkg.revision,1);
+          assert.equal(pkg.title,'AI 对话滚动导航');
+          assert.deepEqual(pkg.pageRules.matches,[
+            'https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*'
+          ]);
+          assert.deepEqual(pkg.pageRules.excludeMatches,[]);
+          assert.equal(pkg.pageRules.world,'USER_SCRIPT');
+          assert.equal(pkg.pageRules.allFrames,false);
+          assert.equal(pkg.pageRules.runAt,'document_idle');
+          console.log('SCROLL_CANDIDATE_STATIC_VALIDATED',pkg.programId,pkg.version,pkg.sourceHash,pkg.packageHash,bytes.length);
+          const base64=bytes.toString('base64');
+          console.log('SCROLL_PACKAGE_B64_BEGIN');
+          for(let i=0;i<base64.length;i+=3500)console.log('SCROLL_PACKAGE_B64_CHUNK:'+base64.slice(i,i+3500));
+          console.log('SCROLL_PACKAGE_B64_END');
+          NODE
