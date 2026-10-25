@@ -205,3 +205,31 @@ test('R1.3 real local page must not hide an AI implementation',()=>{
  assert.match(page,/button\.addEventListener/);
  assert.doesNotMatch(page,/OpenDeskKnowledgeAnswersModel|createBusinessConversation|requestStructured/);
 });
+
+test('R1.3 send fence: two rapid confirmations cannot click the same reply twice while ETag read is pending',async()=>{
+ const {api,target,site}=lab();
+ const deferred=[];let holdReads=false;
+ const readLibrary=()=>holdReads?new Promise(resolve=>deferred.push(resolve)):{value:library,etag};
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary,assertLive:()=>{}});
+ const inbound=customer('几天内可以退款');
+ try{
+   await rt.start({event:{isTrusted:true}});
+   site.messages.push(inbound);
+   await until(()=>rt.snapshot().records[0]?.status==='ANSWERED_FIXED','send fence fixed lookup');
+   holdReads=true;
+   const first=rt.confirm({event:{isTrusted:true},messageId:inbound.messageId});
+   const duplicate=rt.confirm({event:{isTrusted:true},messageId:inbound.messageId});
+   await assert.rejects(duplicate,{code:'E_KB_TEST_SEND_BUSY'});
+   assert.equal(deferred.length,1,'the second click must not even start a storage read');
+   assert.equal(site.sendCalls,0,'no click before the original storage read resolves');
+   deferred.shift()({value:library,etag});
+   const receipt=await first;
+   assert.equal(receipt.status,'CONFIRMED');
+   assert.equal(site.sendCalls,1);
+   assert.equal(rt.snapshot().records[0].status,'CONFIRMED');
+ }finally{
+   for(const unblock of deferred)unblock({value:library,etag});
+   rt.dispose();
+ }
+});

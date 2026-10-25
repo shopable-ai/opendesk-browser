@@ -31,6 +31,7 @@ export function createLocalKnowledgeTestRuntime({
  async function send(s,id,{reviewApproved=false}={}){
    if(!active(s))throw fail('E_KB_TEST_STOPPED','测试会话已失效');
    assertLive();
+   if(s.sending.has(id))throw fail('E_KB_TEST_SEND_BUSY','该客户消息正在发送或核对，请勿重复确认');
    const record=snapshot.records.find(x=>x.messageId===id);
    if(!record||!record.answer||!['ANSWERED_FIXED','REVIEW_REQUIRED'].includes(record.status))
      throw fail('E_KB_TEST_NO_ANSWER','当前消息没有可发送的答案');
@@ -38,35 +39,38 @@ export function createLocalKnowledgeTestRuntime({
      throw fail('E_KB_REVIEW','AI 草稿必须由用户实际审阅并明确确认');
    if(record.providerGeneration!==null&&record.providerGeneration!==getProviderGeneration())
      throw fail('E_KB_STALE','模型设置已变化，旧 AI 草稿不得发送');
-   const read=await readLibrary();assertLive();
-   if(!active(s))throw fail('E_KB_TEST_STOPPED','测试会话已停止');
-   if(read.etag!==record.etag)throw fail('E_KB_STALE','知识版本已更新，旧答案不得发送');
-   const library=model.library(read.value??model.empty());
-   const sourceIds=record.sourceIds||[];
-   if(!sourceIds.length||sourceIds.some(id=>!library.items.some(x=>x.id===id&&x.enabled&&x.scope===record.scope)))
-     throw fail('E_KB_STALE','原知识来源不可用，旧回答不得发送');
-   if(record.status==='ANSWERED_FIXED'){
-     const current=model.lookup(library,{question:record.question,scope:record.scope});
-     if(current.status!=='ANSWERED_FIXED'||current.answer!==record.answer||
-       current.sourceIds.join('|')!==sourceIds.join('|'))
-       throw fail('E_KB_STALE','固定答案规则已变化');
-   }
-   update(s,id,{status:'SENDING',message:'已进入真实网页表单'});
+   s.sending.add(id);
    try{
-     // Actual website form click + SECOND independent DOM read-back.
-     const receipt=await adapter.send({messageId:id,threadId:s.threadId,answer:record.answer});
-     if(!active(s))return {status:'UNKNOWN'};
-     update(s,id,{status:'CONFIRMED',replyMessageId:receipt.messageId,message:'网页 DOM 已独立读回确认'});
-     return receipt;
-   }catch(error){
-     // A preflight DOM rejection is known not to have clicked Send; transport or
-     // missing receipts remain UNKNOWN. Neither case ever retries automatically.
-     const notClicked=['E_KB_DEMO_DRAFT_BUSY','E_KB_DEMO_STALE','E_KB_DEMO_INPUT',
-       'E_KB_DEMO_SCOPE','E_KB_DEMO_DUPLICATE'].includes(error?.code);
-     if(active(s))update(s,id,{status:notClicked?'ERROR':'UNKNOWN',
-       message:(notClicked?'发送前被页面拒绝：':'网页发送结果未知：')+(error?.code||'unknown')});
-     throw error;
-   }
+     const read=await readLibrary();assertLive();
+     if(!active(s))throw fail('E_KB_TEST_STOPPED','测试会话已停止');
+     if(read.etag!==record.etag)throw fail('E_KB_STALE','知识版本已更新，旧答案不得发送');
+     const library=model.library(read.value??model.empty());
+     const sourceIds=record.sourceIds||[];
+     if(!sourceIds.length||sourceIds.some(id=>!library.items.some(x=>x.id===id&&x.enabled&&x.scope===record.scope)))
+       throw fail('E_KB_STALE','原知识来源不可用，旧回答不得发送');
+     if(record.status==='ANSWERED_FIXED'){
+       const current=model.lookup(library,{question:record.question,scope:record.scope});
+       if(current.status!=='ANSWERED_FIXED'||current.answer!==record.answer||
+         current.sourceIds.join('|')!==sourceIds.join('|'))
+         throw fail('E_KB_STALE','固定答案规则已变化');
+     }
+     update(s,id,{status:'SENDING',message:'已进入真实网页表单'});
+     try{
+       // Actual website form click + SECOND independent DOM read-back.
+       const receipt=await adapter.send({messageId:id,threadId:s.threadId,answer:record.answer});
+       if(!active(s))return {status:'UNKNOWN'};
+       update(s,id,{status:'CONFIRMED',replyMessageId:receipt.messageId,message:'网页 DOM 已独立读回确认'});
+       return receipt;
+     }catch(error){
+       // A preflight DOM rejection is known not to have clicked Send; transport or
+       // missing receipts remain UNKNOWN. Neither case ever retries automatically.
+       const notClicked=['E_KB_DEMO_DRAFT_BUSY','E_KB_DEMO_STALE','E_KB_DEMO_INPUT',
+         'E_KB_DEMO_SCOPE','E_KB_DEMO_DUPLICATE'].includes(error?.code);
+       if(active(s))update(s,id,{status:notClicked?'ERROR':'UNKNOWN',
+         message:(notClicked?'发送前被页面拒绝：':'网页发送结果未知：')+(error?.code||'unknown')});
+       throw error;
+     }
+   }finally{s.sending.delete(id);}
  }
  async function analyze(s,message){
    if(!active(s))return;
@@ -179,6 +183,7 @@ export function createLocalKnowledgeTestRuntime({
          etag:read.etag,approvedAI:null,
          expiresAt:Date.now()+DURATION_MS,
          seen:new Set(initial.messages.filter(x=>x.direction==='customer').map(x=>x.messageId)),
+         sending:new Set(),
          queue:[],paused:false,polling:false,draining:false,timer:null};
        session=s;
        publish({mode:'running',autoSendFixed:s.autoSendFixed,threadId:s.threadId,target:initial.target,
