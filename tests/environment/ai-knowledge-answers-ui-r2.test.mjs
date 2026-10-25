@@ -30,7 +30,7 @@ test('R2 UI: lost-write recovery is an explicit read, not a tab-navigation claim
  assert.match(code,/if\(uncertain&&!recover\)/);
  assert.match(code,/guard\(\(\)=>void load\(\),\{recover:true\}\)/);
  assert.match(code,/load\(\{silent:true\}\)/);
- assert.match(code,/id===.qa-delete./);
+ assert.ok(code.includes("$('qa-delete').hidden"));
 });
 test('R2 UI: keyboard and confirmation controls exist without user-modal APIs',()=>{
  const html=read('src/index.html');
