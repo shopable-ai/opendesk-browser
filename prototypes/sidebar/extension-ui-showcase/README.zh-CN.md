@@ -1,4 +1,4 @@
-# OpenDesk Extension UI 参考入口（R2.3 → R2.4 → R2.5）
+# OpenDesk Extension UI 参考入口（R2.3 → R2.6）
 
 > **用途：设计与交互审阅；不代表正式安装、Host、Chrome 或 React 运行验收。** 此目录不是新 UI 框架、组件包或第二个 React Root。
 
@@ -6,6 +6,7 @@
 
 | 入口 | 角色 | 真实性 |
 | --- | --- | --- |
+| [R2.6 业务优先交互参考](./r26-business-layout-review.html) | 六类业务入口直接进入完整页面；参考 R2.4 的核心编辑/菜单/保护流程，收敛 R2.5 Group/Pattern 到折叠说明和真实源码逐行摘录；320/360/400/440/960px、深色、长文本与模拟写入故障 | **`CHAT_ADAPTER_NOT_SOURCE_HTML`**；GitHub `main` 已保存、内嵌 JS 语法解析 `PASS`；真实浏览器交互/视觉/焦点 `NOT_TESTED` |
 | [R2.5 Layout Pattern / Group 互动参考](./r25-layout-patterns.html) | 16 个布局模式、6 个真实业务映射、右侧源码摘录，支持 320/360/400/440/960px、主题、长文案与恢复状态 | **`CHAT_ADAPTER_NOT_SOURCE_HTML`**；源码已保存、JS 语法解析 PASS；真实浏览器交互 `NOT_TESTED` |
 | [正式 React 同源 Showcase 外壳](./index.html) | 装载现有 [React 离线预览产物](../react-preview/index.html)，作为真实源码对照 | `UI_PREVIEW_ONLY`；需先由既有构建流程生成/更新产物 |
 | [R2.4 业务导向交互预览](./r24-business-review.html) | 开发、扩展管理、Prompt Shortcuts、书签、Cookie、语言及输入细节；含独立子页/错误状态 | **`CHAT_ADAPTER_NOT_SOURCE_HTML`**，独立内存模拟，不是 React 构建 |
@@ -39,3 +40,11 @@ R2.5 新增参考成果：
 - 主业务参考：[开发](../../../src/ui/react/tabs/develop.tsx)、[扩展中心](../../../src/ui/react/tabs/tools.tsx)、[ToolHost](../../../src/ui/react/tabs/tool-host.tsx)、[语言管理](../../../src/ui/react/tabs/locale-manager.tsx)。
 - 独立扩展示例：[Prompt Shortcuts](../../../examples/sidebar-tools/prompt-shortcuts/)、[Bookmark Manager](../../../examples/sidebar-tools/bookmark-manager/)、[Cookie Editor](../../../examples/sidebar-tools/cookie-editor/)。
 - **不可把 `design-tokens.css` 当成允许注入独立 iframe / 网页的公共全局 stylesheet。** 沙箱工具只复用获批准的扩展样式契约或自身受限样式。
+
+## R2.6 优先使用与复用边界
+
+- **默认先打开 [R2.6 业务参考](./r26-business-layout-review.html)**：选择扩展管理、提示词、书签、Cookie、开发工作台或语言管理，直接点击完整操作流；可按需展开 Group 选型、源码原文摘录与六类 Group 速查。
+- R2.6 **沿用 R2.4 内存业务交互模型并精简外壳**；R2.5 的 16 Pattern、已存在索引与 Recipe 保留在下方，不新增第二套组件库。
+- 真实源码摘录包含来源路径和对应 blob SHA，但均标为 **SOURCE_EXCERPT_ONLY**；不能在不同执行世界直接复制组件并获得 Host/SDK/权限能力。HTML、React、Vue 复用须以原消费者和工具构建上下文为准。
+- R2.6 的业务页 **不是 React 编译构建或真实 Tool UI**，也没有安装、授权或持久化能力。已验证 HTML 文件与 JS 语法、静态结构；Chromium/Mac Chrome 下的视觉、键盘、宽度、焦点与真实业务保真度仍 **NOT_TESTED**。
+- 从 R2.5 迁移而来的 IME 输入会话保护、删除/撤权二次确认与结果未知人工读回，仍需要真实浏览器针对性回归；不把静态检查提升为操作验收。
