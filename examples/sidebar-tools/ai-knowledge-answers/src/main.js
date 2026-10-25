@@ -49,10 +49,15 @@ function reviewDone(ok){
 $('qa-cancel').addEventListener('click',()=>reviewDone(false));
 $('qa-accept').addEventListener('click',()=>reviewDone(true));
 root.ownerDocument.addEventListener('keydown',e=>{if(e.key==='Escape'&&review){e.preventDefault();reviewDone(false);}});
-function guard(action){
+function guard(action,{recover=false}={}){
   if(busy||review)return;
+  // An unresolved write may have taken effect. Navigation is not reconciliation.
+  if(uncertain&&!recover){
+    notice('写入结果尚未核对。请先复制重要输入，再点击右上角刷新并核对实际存储。',true);
+    return;
+  }
   if(dirty||uncertain)confirmAction(uncertain?
-    '写入结果尚未确认。请先复制重要输入。放弃输入并重新读取真实存储？':
+    '写入结果尚未确认。请先复制重要输入。放弃当前输入并重新读取真实存储？':
     '当前内容尚未保存。确定放弃本次编辑吗？',action,uncertain?'放弃并核对':'放弃修改');
   else action();
 }
@@ -130,7 +135,7 @@ root.querySelectorAll('[data-qa-filter]').forEach(b=>b.addEventListener('click',
   });
   list();
 }));
-async function load(){
+async function load({silent=false}={}){
   if(busy||review)return;
   busy=true;ready=false;state();
   try{
@@ -141,11 +146,11 @@ async function load(){
     ready=true;uncertain=false;dirty=false;selected=null;fill(null);list();
     $('qa-result').hidden=true;
     if(view==='edit')show('list',false);
-    notice('已从本机知识库读取');
+    if(!silent)notice('已从本机知识库读取');else notice('');
   }catch(e){uncertain=true;notice('读取失败：'+String(e?.message||e)+'。请保留原数据并核对。',true);}
   finally{busy=false;state();}
 }
-$('qa-refresh').addEventListener('click',()=>guard(()=>void load()));
+$('qa-refresh').addEventListener('click',()=>guard(()=>void load(),{recover:true}));
 async function commit(next,{success='保存并读回成功',after}={}){
   if(!ready||busy||uncertain||review)return false;
   busy=true;state();
@@ -252,5 +257,5 @@ $('qa-export-csv').addEventListener('click',async()=>{
   }catch(e){notice('复制 CSV 失败：'+String(e?.message||e),true);}
   finally{busy=false;state();}
 });
-show('ask',false);void load();
+show('ask',false);void load({silent:true});
 })();

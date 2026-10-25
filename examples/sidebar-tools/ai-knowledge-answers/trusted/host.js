@@ -2,13 +2,14 @@
 // exposed to the installed iframe. Storage still goes through its original Host.
 import '../src/model.js';
 import {createKnowledgeAnswerConsumer} from './ai-request.js';
+import {createLocalKnowledgeTestRuntime} from './local-test-runtime.js';
 const error=(code,message)=>Object.assign(new Error(message),{code});
 
 export function createTrustedKnowledgeHost({conversation,readLibrary,assertIdentity,
-  guardBlocked=()=>false,subscribeConnection=()=>()=>{}}){
+  api,currentPageTarget,guardBlocked=()=>false,subscribeConnection=()=>()=>{}}){
   const model=globalThis.OpenDeskKnowledgeAnswersModel,listeners=new Set();
-  let disposed=false,revision=0,read=null,prepared=null,round=null;
-  let state=Object.freeze({busy:false,prepared:null,result:null,error:''});
+  let disposed=false,revision=0,read=null,prepared=null,round=null,selectedInbound=null;
+  let state=Object.freeze({busy:false,prepared:null,result:null,error:'',test:null});
   const publish=patch=>{if(disposed)return;state=Object.freeze({...state,...patch});
     for(const listener of [...listeners])listener();};
   const live=()=>{if(disposed)throw error('E_TOOL_CHANGED','知识问答已关闭');
@@ -18,19 +19,25 @@ export function createTrustedKnowledgeHost({conversation,readLibrary,assertIdent
     if(args?.etag&&(!prepared||prepared.etag!==args.etag||prepared.revision!==revision))
       throw error('E_KB_STALE','知识或授权已变化，请重新准备');
   },readLibrary:async()=>{const value=await readLibrary();read=value;return value;}});
+  const test=api&&currentPageTarget?createLocalKnowledgeTestRuntime({
+    api,currentPageTarget,model,readLibrary,
+    assertLive:live,getProviderGeneration:()=>conversation.providerGeneration(),
+    onChange:next=>publish({test:next})
+  }):null;
+  if(test)publish({test:test.snapshot()});
   function invalidate(message='知识或 AI 授权已变化，请重新准备'){
-    revision++;prepared=null;round?.abort();consumer.invalidate();
+    revision++;prepared=null;selectedInbound=null;round?.abort();consumer.invalidate();
+    test?.stop('知识或 AI 授权已变化，请重新批准本地测试');
     publish({prepared:null,result:null,error:message});
   }
   const subscriptions=[conversation.subscribeProviderChanges(()=>invalidate('AI Provider 已切换，旧回答已失效')),
     subscribeConnection(value=>{if(value.nativeConnected===false&&conversation.source().provider==='local_codex')
       invalidate('Native 连接已断开，旧回答已失效');}),
     conversation.subscribeAuthorizationChanges(()=>invalidate('模型权限发生变化，旧回答已失效'))];
-  return Object.freeze({snapshot:()=>state,
-    subscribe(listener){listeners.add(listener);return ()=>listeners.delete(listener);},
-    async prepare({question,scope=''}){
+  async function prepare({question,scope='',inboundId=null}={}){
       live();if(state.busy)throw error('E_KB_BUSY','当前问答尚未结束');
-      const expected=revision;prepared=null;publish({busy:true,prepared:null,result:null,error:''});
+      const expected=revision;prepared=null;selectedInbound=null;
+      publish({busy:true,prepared:null,result:null,error:''});
       try{
         const receipt=await consumer.refresh();live();
         if(expected!==revision)throw error('E_KB_STALE','准备期间知识或授权已变化');
@@ -39,10 +46,30 @@ export function createTrustedKnowledgeHost({conversation,readLibrary,assertIdent
         const references=library.items.filter(item=>lookup.sourceIds.includes(item.id));
         const recipient=conversation.recipient();
         prepared=Object.freeze({question:question.trim(),scope,etag:receipt.etag,revision,
-          recipient,references,lookup});
+          recipient,references,lookup,inboundId});
+        selectedInbound=inboundId;
         publish({prepared});return prepared;
       }catch(cause){publish({error:cause.message});throw cause;}
       finally{publish({busy:false});}
+  }
+  return Object.freeze({snapshot:()=>state,
+    subscribe(listener){listeners.add(listener);return ()=>listeners.delete(listener);},
+    recipient:()=>conversation.recipient(),
+    prepare,
+    async prepareInbound(messageId){
+      if(!test)throw error('E_KB_DEMO_HOST','当前没有本地测试文档适配');
+      const item=test.select(messageId);
+      return prepare({...item,inboundId:messageId});
+    },
+    startLocalTest({event,autoSendFixed=false}={}){
+      if(!test)throw error('E_KB_DEMO_HOST','当前没有本地测试文档适配');
+      return test.start({event,autoSendFixed});
+    },
+    pauseLocalTest:()=>test?.pause(),resumeLocalTest:()=>test?.resume(),
+    stopLocalTest:()=>test?.stop('用户停止本地测试'),
+    sendToLocalPage:input=>{
+      if(!test)throw error('E_KB_DEMO_HOST','当前没有本地测试文档适配');
+      return test.confirm(input);
     },
     // Must be entered directly from the original trusted Send handler.
     send({event,approved=false}){
@@ -54,6 +81,7 @@ export function createTrustedKnowledgeHost({conversation,readLibrary,assertIdent
       if(current.lookup.status==='RETRIEVED_ONLY'&&!approved)
         throw error('E_KB_CONSENT','请审阅并同意向此 AI 发送列出的知识');
       round=new AbortController();const owned=round,expected=revision;
+      const inboundId=selectedInbound;
       let pending;
       try{pending=consumer.request({request:current.question,scope:current.scope,event,signal:owned.signal});}
       catch(cause){round=null;throw cause;}
@@ -61,15 +89,18 @@ export function createTrustedKnowledgeHost({conversation,readLibrary,assertIdent
       return Promise.resolve(pending).then(result=>{
         live();if(expected!==revision||owned.signal.aborted)
           throw error('E_KB_STALE','旧回答已失效');
+        if(inboundId&&result.status==='REVIEW_REQUIRED'&&test)
+          test.attach(inboundId,result,current.etag);
         publish({result});return result;
       }).catch(cause=>{publish({result:null,error:cause.message});throw cause;})
         .finally(()=>{if(round===owned)round=null;publish({busy:false});});
     },
     invalidate,
-    cancel(){revision++;prepared=null;round?.abort();
+    cancel(){revision++;prepared=null;selectedInbound=null;round?.abort();
       publish({prepared:null,result:null,error:'本轮已取消，迟到回答不会显示'});
       return consumer.cancel();},
     dispose(){if(disposed)return;disposed=true;revision++;round?.abort();
-      consumer.dispose();conversation.dispose();for(const unsubscribe of subscriptions)unsubscribe?.();listeners.clear();}
+      test?.dispose();consumer.dispose();conversation.dispose();
+      for(const unsubscribe of subscriptions)unsubscribe?.();listeners.clear();}
   });
 }

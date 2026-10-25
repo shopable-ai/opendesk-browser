@@ -18,13 +18,13 @@ node --check examples/sidebar-tools/ai-knowledge-answers/src/main.js
 node --check src/ui/trusted-knowledge-admission.js
 ```
 
-54/54 PASS，日志 `artifacts/sidebar-tools/ai-knowledge-answers/core-r12.log`。新增组件测试执行真实 main.js/model.js，内存 Host 保存 → 独立读回 → 重挂载 → 同义固定回答，核对保存时产生的知识 ID；非精确检索仅列候选，无依据返回 NO_MATCH。另测未保存返回取消、写入回执丢失后禁止第二次写入、主动重新读取后恢复。Provider/Host 集成仍为 fake transport；未重跑无变更的共享消费者整组或相同 backend 请求，复用下方原始证据。
+合并前 54/54 PASS，日志 `artifacts/sidebar-tools/ai-knowledge-answers/core-r12.log`；合并后增补保护测试，最终 **55/55 PASS**，日志 `artifacts/sidebar-tools/ai-knowledge-answers/core-r12-integrated.log`，摘要 `core-r12-integrated.json`。新增组件测试执行真实 main.js/model.js，内存 Host 保存 → 独立读回 → 重挂载 → 同义固定回答，核对保存时产生的知识 ID；非精确检索仅列候选，无依据返回 NO_MATCH。另测未保存返回取消、写入回执丢失后禁止第二次写入和导航、主动重新读取后恢复。并行本地测试模块接线存在时，普通手动问答、取消、失效和关闭均不触发网站 IO。Provider/Host 集成仍为 fake transport；未重跑无变更的共享消费者整组或相同 backend 请求，复用下方原始证据。
 
-唯一正式包经原构建器 `--out` → 相关门禁 → `--promote-from` → `--check-project` 均成功：版本 **0.1.2**，**51,556 字节**，SHA-256 `cdee2f9bff2b22f0d6158497ebb889c83147462ed4b72cacf76f666a0cff08a4`。已有 watcher 自行生成的磁盘 Catalog/包也与此摘要一致；未由本轮另行写入 dist。Chrome 实际加载、serve 客户端连接和可信 bundle 生效仍未实读，不能从磁盘一致提升为原生 PASS。
+唯一正式包按合并后源码经原构建器 `--out` → 相关门禁 → `--promote-from` → `--check-project` 均成功：版本 **0.1.2**，**51,906 字节**，SHA-256 `411a97befff3d26bb3b06fbc8a655a7b14f3bfb6baedc37d0b6100db2732ff41`。合并前 51,556 字节及 `cdee2f9b…cff08a4` 仅为历史证据，完整摘要保留在 `core-r12.json`，不再代表当前包。已有 watcher 自行生成的磁盘 Catalog/包已只读核对，版本、大小和摘要均一致；未由本轮另行写入 dist。Chrome 实际加载、serve 客户端连接和可信 bundle 生效仍未实读，不能从磁盘一致提升为原生 PASS。
 
 持续开发输出仍为 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development`，既有 writer PID 69819 存活；不启动第二 writer，不写其输出。Chrome 库存仅证明有对应 ID 的扩展标签页，不能证明加载路径、连接和安装；当前文档没有说明此前拒绝已解除，未再次访问受拒 URL，也不使用其他表面/CDP 绕过。Native 配对、其他工具和网站发送均不操作。新增 local-test-adapter 及 HTTP 原型保留，不用于替代原生闭环。
 
-期间快进同步 dd0125e89（新增独立 local-test-runtime 文件）；其网站操作不属本轮，未使用、未修改。候选写入与组件验证资源已 released；没有取得或占用 Chrome Profile，原 watcher 保持原 owner。当前仍停在官方安装这一首个未验证步骤，后续真实保存重开、可信 Send 和原生取消/撤权/断线/知识更新保护均 NOT_TESTED。移交记录中的原对话 goal 实读为 blocked，本轮未迁移或更改它，也未创建并列总 GOAL。
+期间快进同步 dd0125e89，推送前再合并远端 f2faa82ad：保留 0b51d45bd/d98c66aac 的本地测试 Host 接线及 f2faa82ad 的未知写入恢复、初始视图提示修复。其网站操作不属本轮，未启动、未执行；只验证新增依赖在手动问答路径保持 idle。候选写入与组件验证资源已 released；没有取得或占用 Chrome Profile，原 watcher 保持原 owner。当前仍停在官方安装这一首个未验证步骤，后续真实保存重开、可信 Send 和原生取消/撤权/断线/知识更新保护均 NOT_TESTED。移交记录中的原对话 goal 实读为 blocked，本轮未迁移或更改它，也未创建并列总 GOAL。
 
 ## 用户操作与状态
 

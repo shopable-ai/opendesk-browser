@@ -10,10 +10,10 @@ import {KNOWLEDGE_ANSWER_INSTRUCTIONS} from '../../examples/sidebar-tools/ai-kno
 const trusted={isTrusted:true},id='qa_test_refund01';
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
-function setup(t,{transport}={}){
+function setup(t,{transport,localTest=false}={}){
   let stored={version:1,items:[{id,question:'退款期限是多少',aliases:['多久可以退款'],
     answer:'7 天内可退款',scope:'',enabled:true}]},live=true,dirty=false;
-  let connection;const removals=new Set(),calls=[],permissions=[];
+  let connection;const removals=new Set(),calls=[],permissions=[],pageCalls=[];
   const runtime=createSharedAIProviderRuntime({hostInstanceId:'host-test',
     client:{requestWorkflowAI:async()=>assert.fail('fake HTTPS test must not call Native')},
     facadeFactory:()=>({generateStructured:async args=>{
@@ -27,12 +27,16 @@ function setup(t,{transport}={}){
     api:{permissions:{request:args=>{permissions.push(args);return Promise.resolve(true);},contains:async()=>true,
       onRemoved:{addListener:fn=>removals.add(fn),removeListener:fn=>removals.delete(fn)}}}});
   const readLibrary=async()=>({value:structuredClone(stored),etag:createHash('sha256').update(JSON.stringify(stored)).digest('hex')});
+  const pageCall=name=>{pageCalls.push(name);assert.fail('manual knowledge must not access the local test page');};
   const host=createTrustedKnowledgeHost({conversation,readLibrary,
+    ...(localTest?{api:{scripting:{executeScript:()=>pageCall('executeScript')}},
+      currentPageTarget:{capture:()=>pageCall('capture'),revalidate:()=>pageCall('revalidate'),
+        refresh:()=>pageCall('refresh')}}:{}),
     assertIdentity:()=>{if(!live)throw Object.assign(Error('installation revoked'),{code:'E_TOOL_CHANGED'});},
     guardBlocked:()=>dirty,
     subscribeConnection:fn=>{connection=fn;return ()=>{connection=null;};}});
   t.after(()=>{host.dispose();runtime.dispose();});
-  return {host,runtime,calls,permissions,readLibrary,
+  return {host,runtime,calls,permissions,pageCalls,readLibrary,
     disconnect:()=>connection({nativeConnected:false}),
     revoke:(grant={origins:['https://ai.example/*']})=>{for(const listener of [...removals])listener(grant);},
     invalidate:()=>{stored.items[0].answer='15 天内可退款';host.invalidate();},
@@ -63,6 +67,17 @@ test('fake integration: aliases and missing facts never send model requests',asy
   await h.host.prepare({question:'飞船位置'});
   assert.equal((await h.host.send({event:trusted})).status,'NO_MATCH');
   assert.equal(h.calls.length,0);assert.equal(h.permissions.length,0);
+});
+test('fake integration: available local test dependencies stay idle throughout manual question flow',async t=>{
+  const h=setup(t,{localTest:true});
+  assert.equal(h.host.snapshot().test.mode,'idle');
+  await h.host.prepare({question:'多久可以退款'});
+  assert.equal((await h.host.send({event:trusted})).status,'ANSWERED_FIXED');
+  await h.host.prepare({question:'退款需要多少天？'});
+  assert.equal((await h.host.send({event:trusted,approved:true})).status,'REVIEW_REQUIRED');
+  await h.host.cancel();h.invalidate();h.host.dispose();await tick();
+  assert.equal(h.calls.length,1);assert.deepEqual(h.pageCalls,[]);
+  assert.equal(h.host.snapshot().test.mode,'idle');
 });
 test('fake integration: install read authority and unsaved knowledge block preparation',async t=>{
   const h=setup(t);h.dirty();await assert.rejects(h.host.prepare({question:'退款'}),{code:'E_KB_UNSAVED'});

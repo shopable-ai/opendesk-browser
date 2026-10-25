@@ -73,6 +73,7 @@ function mount(storage={value:null,requests:[],unknown:false}){
 }
 test('R2 component: save/read-back, reopen and synonym lookup retain the actual generated knowledge ID',async()=>{
  const ui=mount();await tick();
+ assert.equal(ui.get('qa-status').textContent,'');
  ui.click('qa-tab-list');ui.click('qa-new');
  ui.input('qa-question','退款期限是多少');ui.input('qa-answer','7 天内可退款');
  ui.input('qa-aliases','多久可以退款');ui.save();await tick();
@@ -101,6 +102,13 @@ test('R2 component: dirty navigation can be cancelled; unknown save blocks a sec
  ui.storage.unknown=true;ui.save();await tick();
  assert.equal(ui.get('qa-save').disabled,true);ui.save();await tick();
  assert.equal(ui.storage.requests.filter(row=>row.method==='storage.set').length,1);
+ const requests=ui.storage.requests.length;
+ for(const button of ['qa-tab-ask','qa-back']){
+  ui.click(button);
+  assert.equal(ui.get('qa-view-edit').hidden,false);
+  assert.equal(ui.get('qa-review').hidden,true);
+ }
+ assert.equal(ui.storage.requests.length,requests);
  ui.click('qa-refresh');ui.click('qa-accept');await tick();
  assert.equal(ui.storage.requests.at(-1).method,'storage.get');
  assert.equal(ui.get('qa-view-list').hidden,false);
