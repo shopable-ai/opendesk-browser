@@ -45,9 +45,9 @@ export default function KnowledgeWorkspace({host,onOpenSettings}){
   return <div className="od-knowledge-workspace">
     <section className="od-knowledge-dashboard" aria-label="知识问答控制台">
       <div className="od-knowledge-title-row">
-        <div><h2>知识问答</h2><p>本地客服消息测试</p></div>
+        <div><h2>本地测试</h2><p>客户消息 · 知识回复 · 网页回执</p></div>
         <button className="od-icon-button" type="button" aria-label="共享 AI 设置"
-          title="共享 AI 设置" onClick={onOpenSettings}>⚙</button>
+          title="共享 AI 设置" onClick={onOpenSettings}><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15.4 21 16l-2 3.5-1.8-1A8 8 0 0 1 14 20l-.4 2h-3.2L10 20a8 8 0 0 1-3.2-1.5l-1.8 1L3 16l1.6-.6a8 8 0 0 1 0-3.5L3 11.2l2-3.5 1.8 1A8 8 0 0 1 10 7.2l.4-2h3.2l.4 2a8 8 0 0 1 3.2 1.5l1.8-1 2 3.5-1.6.7a8 8 0 0 1 0 3.5Z"/></svg></button>
       </div>
       <div className="od-knowledge-summary">
         <span className="od-knowledge-label">共享 AI</span>
