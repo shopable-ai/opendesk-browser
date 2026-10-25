@@ -143,7 +143,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
         items.splice(items.indexOf(flight.item),1);state.inFlight=null;
         // Keep this gate even if the queue empties before the new answer appears.
         state.phase='waiting';state.answerGate={
-          assistantCount:flight.before.assistantCount,started:t,sawBusy:snap.busy};
+          before:flight.before,confirmedUser:snap.users.at(-1),started:t,sawBusy:snap.busy};
         idleSince=null;emit();return;
       }
       if(t-flight.started>ACK_MS){markUnknown('未能确认用户消息入站，禁止重复点击');}
@@ -153,7 +153,8 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     if(state.answerGate) {
       state.answerGate.sawBusy ||= snap.busy;
       if(snap.busy || !snap.idle || !snap.answerComplete ||
-        snap.assistants.length<=state.answerGate.assistantCount){idleSince=null;return;}
+        typeof site.replyComplete!=='function' ||
+        site.replyComplete(state.answerGate.before,state.answerGate.confirmedUser,snap)!==true){idleSince=null;return;}
       if(idleSince===null)idleSince=t;
       if(t-idleSince<IDLE_MS)return;
       state.answerGate=null;idleSince=null;
@@ -161,9 +162,9 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
       emit();
     }
     if(state.paused || state.inFlight || !items.length)return;
-    if(snap.busy || !snap.idle || snap.rich || snap.draft!=='') {
+    if(snap.busy || !snap.idle || snap.rich || snap.composing || snap.draft!=='') {
       idleSince=null;
-      const reason=snap.rich?'检测到附件，不覆盖原生输入框':snap.draft!==''?'原生草稿非空，等待用户处理':'等待当前回复结束';
+      const reason=snap.rich?'检测到附件，不覆盖原生输入框':snap.composing?'等待输入法完成':snap.draft!==''?'原生草稿非空，等待用户处理':'等待当前回复结束';
       if(reason!==lastSignature){lastSignature=reason;state.reason=reason;emit();}
       return;
     }

@@ -5,18 +5,21 @@ import {createQueueEngine} from '../src/engine.js';
 function fixture() {
   const state={now:0,route:'c/12345678-1234-1234-1234-123456789abc',
     busy:true,complete:false,answers:1,users:0,ack:false,clicks:0,
-    prepareCount:0,failClick:false,failStop:false,stops:0,changed:false,draft:''};
+    prepareCount:0,replyAllowed:true,replyChecks:[],failClick:false,failStop:false,stops:0,changed:false,draft:''};
+  const userNodes=[],assistantNodes=[];
+  const nodes=(cache,count)=>Array.from({length:count},(_,i)=>cache[i]??={id:i});
   const site={
     normal:x=>String(x??'').trim(),
     inspect:()=>state.changed?{ok:false,reason:'目标网页已变化'}:{
       ok:true,route:state.route,busy:state.busy,idle:!state.busy,
       rich:false,draft:state.draft,stopButton:{},answerComplete:state.complete,
-      assistants:Array(state.answers).fill(null)},
+      users:nodes(userNodes,state.users),assistants:nodes(assistantNodes,state.answers)},
     prepare:(text,snapshot)=>{
       assert.equal(snapshot.route,state.route);
       state.prepareCount++;
       return {ok:true,token:{text,route:snapshot.route,before:{
-        route:snapshot.route,assistantCount:state.answers,users:Array(state.users).fill(null)
+        route:snapshot.route,assistantCount:state.answers,
+        users:snapshot.users,assistants:snapshot.assistants
       }}};
     },
     commit:token=>{
@@ -25,11 +28,18 @@ function fixture() {
       return {ok:true,before:token.before};
     },
     confirm:()=>state.ack,
+    replyComplete:(before,confirmedUser,snapshot)=>{
+      state.replyChecks.push({before,confirmedUser,snapshot});
+      return state.replyAllowed && snapshot.users.length===before.users.length+1 &&
+        snapshot.users.at(-1)===confirmedUser &&
+        snapshot.assistants.length===before.assistants.length+1 &&
+        snapshot.answerComplete && !snapshot.busy;
+    },
     stop:()=>{state.stops++;if(state.throwStop)throw new Error('stop result unknown');return !state.failStop;}
   };
   const engine=createQueueEngine({site,clock:()=>state.now});
   const step=(t,patch={})=>{Object.assign(state,patch);state.now=t;engine.tick();};
-  return {state,engine,step};
+  return {state,site,engine,step};
 }
 
 test('two queued messages require separate assistant completion gates and each message acknowledgement',()=>{
@@ -298,5 +308,90 @@ for(const throws of [false,true]) {
     step(2700);
     step(2800);
     assert.equal(state.clicks,1);
+  });
+}
+
+function confirmFirst(f) {
+  f.engine.enqueue('first',f.state.route);
+  f.engine.enqueue('second',f.state.route);
+  f.step(100,{busy:false,complete:true});
+  f.step(1400);
+  f.step(2100);
+  const before=f.engine.view().inFlight;
+  assert.equal(before.phase,'await-confirm');
+  const snapshot=f.site.inspect();
+  f.step(2200,{ack:true,users:f.state.users+1});
+  return snapshot;
+}
+
+test('another user turn cannot release the confirmed message reply gate',()=>{
+  const f=fixture();
+  confirmFirst(f);
+  f.step(2300,{ack:false,users:2,answers:2});
+  f.step(4000);
+  f.step(5300);
+  f.step(5400);
+  assert.ok(f.engine.view().answerGate,'unrelated completed reply must keep the gate');
+  assert.equal(f.state.prepareCount,1);
+  assert.equal(f.state.clicks,1);
+  assert.equal(f.engine.requestNow('q2').ok,false);
+});
+
+test('only this turn completion followed by stable idle releases the next send',()=>{
+  const f=fixture();
+  confirmFirst(f);
+  f.step(2300,{ack:false,answers:2,replyAllowed:false});
+  f.step(4000);
+  f.step(5300);
+  assert.ok(f.engine.view().answerGate);
+  assert.equal(f.state.prepareCount,1);
+  f.step(6000,{replyAllowed:true});
+  f.step(7000);
+  assert.ok(f.engine.view().answerGate,'completion still needs stable idle');
+  f.step(7100,{busy:true});
+  f.step(7200,{busy:false});
+  f.step(8200);
+  assert.ok(f.engine.view().answerGate,'busy must reset the idle timer');
+  f.step(8300);
+  assert.equal(f.engine.view().answerGate,null);
+  assert.equal(f.state.prepareCount,1,'next send retains its existing idle fence');
+  f.step(9400);
+  f.step(9500);
+  assert.equal(f.state.prepareCount,2);
+  assert.equal(f.state.clicks,2);
+});
+
+test('reply checks retain prepare baseline and the user node captured at acknowledgement',()=>{
+  const f=fixture();
+  f.state.users=1;
+  const baseline=confirmFirst(f);
+  const confirmedUser=f.site.inspect().users.at(-1);
+  f.step(2300,{ack:false,users:3,answers:2});
+  f.step(4000);
+  assert.equal(f.state.replyChecks.length,2);
+  for(const check of f.state.replyChecks) {
+    assert.deepEqual(check.before.users,baseline.users);
+    assert.deepEqual(check.before.assistants,baseline.assistants);
+    assert.equal(check.before.assistantCount,baseline.assistants.length);
+    assert.equal(check.before.route,baseline.route);
+    assert.equal(check.confirmedUser,confirmedUser);
+    assert.notEqual(check.confirmedUser,check.snapshot.users.at(-1),
+      'later user nodes must never replace the acknowledged identity');
+  }
+});
+
+for(const result of [undefined,false,'complete']) {
+  test(`reply verifier ${String(result)} cannot bypass the answer gate`,()=>{
+    const f=fixture();
+    confirmFirst(f);
+    if(result===undefined)delete f.site.replyComplete;
+    else f.site.replyComplete=()=>result;
+    f.step(2300,{ack:false,answers:2});
+    f.step(4000);
+    f.step(5300);
+    f.step(5400);
+    assert.ok(f.engine.view().answerGate);
+    assert.equal(f.state.prepareCount,1);
+    assert.equal(f.state.clicks,1);
   });
 }

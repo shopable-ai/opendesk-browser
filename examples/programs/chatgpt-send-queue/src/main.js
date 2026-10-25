@@ -13,7 +13,10 @@ export default async function main({assets}={}) {
   const owner=createPageUI({id:ID+'.lifecycle',assets,pageRules,baseStyles:false});
   owner.host.hidden=true;
   owner.host.style.setProperty('display','none','important');
-  const site=createChatGPTSite();
+  let composing=false;
+  const site=createChatGPTSite({isComposing:()=>composing});
+  owner.on(document,'compositionstart',()=>{composing=true;},true);
+  owner.on(document,'compositionend',()=>{composing=false;},true);
   let view=null,forceClick=false,engine;
   try{
     engine=createQueueEngine({site,change:()=>view?.render()});

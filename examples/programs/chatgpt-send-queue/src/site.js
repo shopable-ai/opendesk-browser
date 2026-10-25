@@ -1,7 +1,7 @@
 // Conservative, DOM-only ChatGPT adapter. All selectors require real-site acceptance.
 const URL_ORIGIN = 'https://chatgpt.com';
 const EDITOR = '#prompt-textarea,[data-testid="composer-input"],form [contenteditable="true"][role="textbox"],form textarea[data-testid]';
-const USER = '[data-message-author-role="user"],[data-message-role="user"]';
+const USER = '[data-message-author-role="user"],[data-message-role="user"],[data-content-search-unit-key$=":user"]';
 const ASSISTANT = '[data-message-author-role="assistant"],[data-message-role="assistant"],[data-content-search-unit-key$=":assistant"]';
 const SEND_LABEL = /^(send message|send prompt|send|发送消息|发送|送出)$/i;
 const STOP_LABEL = /^(stop generating|stop generation|stop responding|stop|停止生成|停止回复|停止)$/i;
@@ -23,8 +23,17 @@ function role(button) {
 }
 function one(nodes) { return nodes.length === 1 ? nodes[0] : null; }
 function editorText(editor) {
-  return typeof editor?.value === 'string' ? editor.value :
-    (editor?.innerText ?? editor?.textContent ?? '');
+  if(typeof editor?.value==='string')return editor.value;
+  // Rich editors render their one empty paragraph as a layout newline.
+  // Recognize only that empty document, never trim actual text or blank lines.
+  if(editor?.isContentEditable && editor.textContent===''){
+    const children=[...editor.childNodes||[]];
+    const paragraph=children.length===1&&children[0].nodeName==='P'?children[0]:null;
+    const leaves=paragraph?[...paragraph.childNodes]:children;
+    if((children.length===0 || paragraph) &&
+      (leaves.length===0 || (leaves.length===1&&leaves[0].nodeName==='BR')))return '';
+  }
+  return editor?.innerText ?? editor?.textContent ?? '';
 }
 function routeFor(win) {
   if (win.location.origin !== URL_ORIGIN) return null;
@@ -50,7 +59,7 @@ function streaming(root) {
     Boolean(root.matches('[data-is-streaming="true"],[aria-busy="true"],.result-streaming') ||
       root.querySelector('[data-is-streaming="true"],[aria-busy="true"],.result-streaming'));
 }
-export function createChatGPTSite({doc = document, win = window} = {}) {
+export function createChatGPTSite({doc = document, win = window, isComposing = () => false} = {}) {
   function inspect() {
     const route = routeFor(win);
     if (!route || win !== win.top) return {ok:false,reason:'只支持已打开的 ChatGPT 对话'};
@@ -61,6 +70,10 @@ export function createChatGPTSite({doc = document, win = window} = {}) {
     if (!editor) return {ok:false,route,reason:'原生输入框不存在或不唯一'};
     const form = editor.closest('form');
     if (!form || !form.isConnected) return {ok:false,route,reason:'原生输入表单无法确认'};
+    // Public DOM state can only veto our writes. Its absence grants no
+    // permission and never substitutes for the bridge's trusted Host checks.
+    if(form.hasAttribute('data-opendesk-composer-owner'))
+      return {ok:false,route,reason:'其他操作正在使用原生输入框，队列已暂停'};
     const nativeButtons = [...form.querySelectorAll('button')].filter(el => visible(el,win) && !el.closest('[data-opendesk-ui-owner]'));
     const stopButtons = nativeButtons.filter(el => role(el)==='stop');
     const sendButtons = nativeButtons.filter(el => role(el)==='send');
@@ -69,6 +82,7 @@ export function createChatGPTSite({doc = document, win = window} = {}) {
     const nearby=nativeButtons.filter(el=>el.matches(
       'button[data-testid="composer-speech-button"],button[data-testid="voice-mode-button"],' +
       'button[aria-label="Start voice mode"],button[aria-label="开始语音模式"],' +
+      'button[aria-label="Start voice"],button[aria-label="开始语音"],' +
       'button[aria-label="Dictate button"]'));
     const anchorButton=stopButton||sendButton||one(nearby);
     const users = [...doc.querySelectorAll(USER)].filter(el=>!el.parentElement?.closest(USER));
@@ -78,12 +92,23 @@ export function createChatGPTSite({doc = document, win = window} = {}) {
     const completed = !last || assistantCompleted(last);
     return {ok:true,route,form,editor,sendButton,stopButton,anchorButton,users,assistants,
       busy,idle:!busy && completed,answerComplete:assistantCompleted(last) && !streaming(last),
-      draft:editorText(editor),rich:!!editor.querySelector?.(RICH) || !!form.querySelector('[data-attachment-id],[data-file-id]')};
+      draft:editorText(editor),composing:isComposing(),
+      rich:!!editor.querySelector?.(RICH) || !!form.querySelector('[data-attachment-id],[data-file-id]')};
   }
-  function setDraft(editor,text) {
+  function setDraft(editor,text,initial) {
     if (!editor?.isConnected || editor.readOnly || editor.getAttribute('aria-disabled')==='true') return false;
     if (editor.querySelector?.(RICH)) return false;
+    const unchanged=()=>{
+      const fresh=inspect();
+      return initial?.ok && fresh.ok && fresh.route===initial.route &&
+        fresh.form===initial.form && fresh.editor===editor &&
+        fresh.draft===initial.draft && !fresh.rich && !fresh.composing;
+    };
+    if(!unchanged())return false;
     editor.focus();
+    // Focusing may synchronously restore a website draft or replace its
+    // composer. Check again before any destructive selection/write.
+    if(!unchanged())return false;
     if (typeof editor.value === 'string') {
       const proto = editor.tagName === 'TEXTAREA' ? win.HTMLTextAreaElement?.prototype : win.HTMLInputElement?.prototype;
       const setter = proto && Object.getOwnPropertyDescriptor(proto,'value')?.set;
@@ -100,16 +125,16 @@ export function createChatGPTSite({doc = document, win = window} = {}) {
     return editorText(editor) === text;
   }
   function clearForQueue(snapshot) {
-    if (!snapshot.ok || snapshot.rich || !normal(snapshot.draft)) return {ok:false,reason:'草稿为空或包含附件'};
+    if (!snapshot.ok || snapshot.rich || snapshot.composing || !normal(snapshot.draft)) return {ok:false,reason:'草稿为空、包含附件或输入法尚未完成'};
     const text=snapshot.draft;
-    if (!setDraft(snapshot.editor,'')) return {ok:false,reason:'无法可靠清空原生草稿'};
+    if (!setDraft(snapshot.editor,'',snapshot)) return {ok:false,reason:'无法可靠清空原生草稿'};
     return {ok:true,text};
   }
   function restore(text,expected) {
     const snapshot=inspect();
     if (!snapshot.ok || snapshot.rich || (expected!==undefined && snapshot.draft!==expected))
       return false;
-    return setDraft(snapshot.editor,text);
+    return setDraft(snapshot.editor,text,snapshot);
   }
   // Reclaim a queued message for editing in the actual website composer.
   // The old draft must be EXACTLY empty, including whitespace-only drafts.
@@ -123,7 +148,7 @@ export function createChatGPTSite({doc = document, win = window} = {}) {
     if(fresh.draft!==''||initial.draft!=='')
       return {ok:false,reason:'输入框已有草稿，请先发送或加入队列'};
     let applied=false;
-    try{applied=setDraft(fresh.editor,text);}
+    try{applied=setDraft(fresh.editor,text,fresh);}
     catch{return {ok:false,reason:'原生输入框写入失败，队列仍保留',mayHaveWritten:true};}
     const after=inspect();
     if(!applied||!after.ok||after.route!==fresh.route||
@@ -134,7 +159,6 @@ export function createChatGPTSite({doc = document, win = window} = {}) {
       if(typeof after.editor.setSelectionRange==='function')
         after.editor.setSelectionRange(text.length,text.length);
     }catch{/* Selection placement is not a data correctness gate. */}
-    after.editor.focus();
     return {ok:true};
   }
   function prepare(text,initial) {
@@ -143,8 +167,9 @@ export function createChatGPTSite({doc = document, win = window} = {}) {
       fresh.form!==initial.form || fresh.editor!==initial.editor ||
       !fresh.idle || fresh.rich || fresh.draft!=='')
       return {ok:false,reason:'会话、输入框或原生草稿已改变'};
-    const before={users:fresh.users,assistantCount:fresh.assistants.length,route:fresh.route};
-    if(!setDraft(fresh.editor,text))return {ok:false,reason:'网页编辑器未接收待发内容'};
+    const before={users:fresh.users,assistants:fresh.assistants,
+      assistantCount:fresh.assistants.length,route:fresh.route};
+    if(!setDraft(fresh.editor,text,fresh))return {ok:false,reason:'网页编辑器未接收待发内容'};
     const filled=inspect();
     if(!filled.ok || filled.route!==before.route || filled.form!==fresh.form ||
       filled.editor!==fresh.editor || filled.draft!==text || filled.rich)
@@ -158,7 +183,7 @@ export function createChatGPTSite({doc = document, win = window} = {}) {
     // a hard failure before any send; it is never repaired with a second click.
     const fresh=inspect();
     if(!fresh.ok || fresh.route!==token.route || fresh.form!==token.form ||
-      fresh.editor!==token.editor || fresh.rich ||
+      fresh.editor!==token.editor || fresh.rich || fresh.composing ||
       fresh.draft!==token.text ||
       fresh.users.length!==token.before.users.length ||
       fresh.users.some((node,i)=>node!==token.before.users[i]))
@@ -175,8 +200,19 @@ export function createChatGPTSite({doc = document, win = window} = {}) {
   function confirm(before,text,snapshot) {
     if (!snapshot.ok || snapshot.route!==before.route) return false;
     if (snapshot.users.length !== before.users.length+1) return false;
+    if (before.users.some((node,i)=>snapshot.users[i]!==node)) return false;
     const newMessage=snapshot.users.at(-1);
     return !before.users.includes(newMessage) && messageText(newMessage) === text;
+  }
+  function replyComplete(before,confirmedUser,snapshot) {
+    if(!before?.assistants || !confirmedUser || !snapshot.ok ||
+      snapshot.route!==before.route || snapshot.busy || !snapshot.idle || !snapshot.answerComplete ||
+      snapshot.users.length!==before.users.length+1 || snapshot.users.at(-1)!==confirmedUser ||
+      before.users.some((node,i)=>snapshot.users[i]!==node) ||
+      snapshot.assistants.length!==before.assistants.length+1 ||
+      before.assistants.some((node,i)=>snapshot.assistants[i]!==node))return false;
+    const order=confirmedUser.compareDocumentPosition(snapshot.assistants.at(-1));
+    return !(order&1) && Boolean(order&4);
   }
   function stop(snapshot) {
     const fresh=inspect();
@@ -184,5 +220,5 @@ export function createChatGPTSite({doc = document, win = window} = {}) {
       !fresh.busy || !fresh.stopButton || fresh.stopButton!==snapshot.stopButton) return false;
     try { fresh.stopButton.click(); return true; } catch { return false; }
   }
-  return Object.freeze({inspect,clearForQueue,restore,reclaimToComposer,prepare,commit,confirm,stop,normal});
+  return Object.freeze({inspect,clearForQueue,restore,reclaimToComposer,prepare,commit,confirm,replyComplete,stop,normal});
 }

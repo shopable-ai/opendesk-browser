@@ -1,5 +1,7 @@
 # Send Queue R4 — 独立 Page Program 工作流
 
+> 当前结果见末节「R4.4 固定桥协作、真实发送与正式安装」。开头及 R4.2/R4.3 的环境、延期和未测状态保留为历史观察，不代表当前结果。
+
 - 日期：2026-10-25
 - 仓库：`shopable-ai/opendesk-browser`；**只写 `main`**
 - owner：本 Send Queue 执行会话；其他并行 Agent 的原有 Page 程序、Prompt Shortcuts、Scroll Navigation、Mind Map、统一 UI 与宿主 `src/` 全都只读。
@@ -40,3 +42,66 @@
 - 本机忽略产物 `artifacts/send-queue-r43-01a17314/{validation,source-evidence}.json` 保存命令回执与逐文件 SHA。当前源码清单指纹 `e34cdc19971b2255c7f4ae51eaa7a2b727ae313f139e011023d14e67c61ec775`；它**不是**运行 revision.sourceHash，也不是安装 candidate SHA。运行 previewId/sourceHash/candidate 均无。
 - 官网 A→B、编辑取回单条/非首条、暂停安全实测、320/360/400/440px/桌面/200% 的 form+editor+queue 实测，以及正式安装/停用/恢复/升级/撤权/卸载全部 `NOT_TESTED（用户延期）`。初次入口 `BLOCKED` 不改写为源码或真实发送 PASS。七项专家维度 UX/前端架构/浏览器扩展安全/业务正确性/异常恢复/可维护性/反方审计均 `NOT_SCORED`，不计算综合分。
 - 唯一下一优先任务（浏览器阶段恢复时）：在可独占操作的原测试对话重新绑定并明确 Run 本地项目，记录实际 sourceHash、会话和消息 DOM 身份，完整验证一次真实 A→B；按首个实际失败做最小修复。其他正式验收继续排在核心链路之后。
+
+## R4.3 真实运行与安装续接（2026-10-25）
+
+- owner：Codex `01a1732c-8d9f-7a63-8359-d02d6ce2da8e`，接收前会话的 Send Queue 执行所有权；`IN_PROGRESS`。最新用户要求恢复真实 ChatGPT 核心测试并完成正式安装，上节“用户延期”仅是历史阶段。
+- 起始 `main`/`origin/main` 均为 `5ea7046eb3e2a40f72883af58cea69c657254130`；本业务四 JS/CSS 哈希未变，复用源码级 30 项证据，不先重复测试。保留其他 owner 的 `examples/sidebar-tools/reading-toc/trusted/policy.js`、`src/sidebar-tools/official-reading-toc.js` dirty 修改。
+- 写入范围仍仅 Send Queue 自有目录和本记录。资源：复用 PID 36366 的唯一 dev watcher，不启动第二 writer；本轮目录 CLI session 重新注册原工作区，Provider Epoch `7c7c6d89-bfa1-4a0d-b86b-67ca575a2a01`。
+- 环境：日常 Chrome、扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`、`dist/development`；实际 Sidebar 调试页显示“开发服务已连接”，已加载构建 revision `7f0192501fe80e73a1d41dce32a760e4ee4d6aa5c408f25b9751a12a1fd63bc7`。这是持续开发证据，不是 production。
+- 入口：旧测试标签受旧浏览器 session 归属限制；原测试 URL 实际为其他 UI 工作对话且初始加载停滞，不向其中发送。新建唯一专属测试标签 `560068363`（分组“Send Queue 验收”），移至独立窗口；首页及临时聊天都复用了其他任务非空草稿，未覆盖、未发送。浏览器独立 DOM 控制超时，已改为原生 AX 操作；曾观察另一任务切换前台窗口，操作前逐次核对目标。
+- 已从真实 Sidebar 选择 `chatgpt-send-queue · 页面脚本`，绑定 `local-v2-762752968e31c55886d45e12`，sourceHash `b991d6695877741df022b83d8a3a99de783ea37fbc140c76e2c1bb0f0ef70028`、inputHash `25ef998f016789845e44b381c6cd6b85cc385750a570677d9e69f8ce9fd1b654`。主动 Run 的真实 previewId 为 `0cac601d-0ce2-4024-89cc-2515030b7d40`，回执 `status:active / runtime:USER_SCRIPT / composer:not-detected / persistence:memory-only`；当时目标是临时聊天根路径，没有 `/c/<id>`，按当前网站适配不挂载按钮，不能当作发送 PASS。本机 `artifacts/send-queue-r43-01a1732c/preview{.png,-ax.txt}` 保存回执证据。
+- 只读打开既有“核查发送队列”对话后，官网报告无法加载该对话；未发送。随后 Provider 显示 `E_DEV_PROVIDER_UNAVAILABLE`，目录 CLI 当时仍运行，Native doctor 可达；原因未知，不归为 Send Queue 源码缺陷，不重放原 Preview。
+- 用户最新明确“新建专用测试对话，保留现有草稿”“创建新浏览器，并完成测试”。已使用独立 Chrome for Testing 155、新临时 Profile 和原 `dist/development`；未复制个人 Profile、Cookie 或凭据，未触碰其他浏览器进程。专用启动报告为 `artifacts/send-queue-r43-01a1732c/chrome-launch.json`，`check_instance.py` 返回 `managed-instance-ready`，浏览器 PID 74622，Profile `/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-fgphtr44`。此为持续开发实例，CFT 内 serve 连接及 Native 配对尚未核对，不是 production。
+- 用户进一步指定 `/Users/shopme/Documents/temp/cookie-gpt.json` 用于专用实例登录，并明确确认仅在此临时 Profile 授予 Cookie Editor 全站 Cookie 管理及 OpenDesk 用户脚本权限。已复用预装 Cookie Editor，无需另装第三方扩展；Chrome 扩展详情核对 ID 和加载路径仍与日常开发目录一致。Cookie 管理授权已完成，用户脚本开关尚未操作。
+- 登录入口实际结果：指定文件包含 30 条、均属 `chatgpt.com` 的 Cookie；通过原文件选择与导入流程写入。最初官网刷新后会话字节发生变化，为区分导入损坏与网站行为，再在不含登录脚本的同站 `robots.txt` 页面导入并导出比对，两段 session-token 的值与原文件逐字节一致。随后直接打开官网首页，仍跳至 `/auth/login?next=%2F`。因此是**当前凭据未取得网站登录态**，不推断已过期或 Cookie Editor 故障；不是 Send Queue 源码失败。Cookie 原值未输出、未写仓库；仅用于本机比对的私有临时导出已删除，用户原文件未改。本机不含凭据的结果为 `artifacts/send-queue-r43-01a1732c/cookie-login-check.json`。
+- 登录后续：用户明确“已经登录成功”，本轮已核对专用 CFT 的真实登录态。新建独立 `Send Queue Test` 对话 `https://chatgpt.com/c/6ade0943-84ec-83ee-a8fa-5a71ae5f1e56`，发送无敏感种子消息并实际收到 `SQ-READY`，官网显示回复完成；未触碰其他草稿。临时 Profile 的“允许运行用户脚本”已核对为 on。
+- 当前入口：独立 Profile 没有 Native/Provider，故按既有入口将本项目构建为固定普通 Page 草稿。仅执行 `build:program`，产物位于本轮 `candidate/`，sourceHash/buildHash 均为 `b991d6695877741df022b83d8a3a99de783ea37fbc140c76e2c1bb0f0ef70028`，与历史预览完全一致，仍 `BUILT_UNVERIFIED/installable:false`。真实 Run 返回 `E_BUILTIN_RESOURCE`；最小无副作用 Page 脚本同样失败，未到业务入场。原始 AX 为 `artifacts/send-queue-r43-01a1732c/page-entry-resource-blocker-ax.txt`。
+- 环境诊断：共享 `dist/development` 实际为空，现有 PID 36387 watcher 日志持续报 `Unapproved WXT entry: chatgpt-fixed-bridge`。当前主干已包含该 entry 的契约，但常驻进程仍失败；不改其他 owner 的源码或停止其服务。为继续用户明确要求的独立浏览器测试，从已提交 main `e4bcd1f397d06dd3170ee2f499429e864a8594d0` 创建本轮只读输入快照 `artifacts/send-queue-r43-01a1732c/host-snapshot`，复用原构建器，独立输出、锁端口 43238 和证据目录；不是 Git worktree，不包含其他未提交源码，不写共享 dist。此为 CFT 静态开发包，非生产验收。
+- 当前下一操作：恢复 CFT 的完整扩展资源，再主动运行同一固定源、确认蓝色按钮并执行真实 A→B。A→B、编辑、安全恢复和安装生命周期仍 `NOT_TESTED`；尺寸/缩放专项本轮不执行。
+
+## R4.4 固定桥协作、真实发送与正式安装（2026-10-25）
+
+### 当前可用操作
+
+- owner：Codex `01a17370-ee0a-76d0-89f3-d79563462faf`；本节接续前 owner 的专属 CFT、程序目录及唯一记录。当前阶段为核心开发验证和正式 Page 安装，非 production 全量验收。
+- `CORE_NATIVE_PASS / PAGE_INSTALLED`：同一专属 ChatGPT 对话内，A2/B2 各产生一条用户消息及对应 `SQ-A2-OK` / `SQ-B2-OK`；另将 A3/B3 同时入队，观察 A3 已入站、官网仍有“停止”按钮、B3 仍在队列，随后 A3 的 `SQ-A3-END` 与完成操作出现，B3 才入站并回复 `SQ-B3-OK`。无第二次原生发送点击、无自动重试。
+- 正式包经已有「扩展 → 导入 → 身份/站点审阅 → 确认安装」成功。详情显示 r1、`page.dom`、仅 `https://chatgpt.com/*`、顶层 USER_SCRIPT、Authority `active`、Chrome `registered`；安装后新文档无需开发 Run，蓝色按钮自动出现。
+- 实际点击“停用自动运行”后按钮从当前网页消失，Authority / Chrome 注册变为 `disabled`。恢复为 `active/registered` 后，在新文档建立专属测试对话，蓝色按钮再次自动出现。此为受影响的停用撤权与恢复证据，不冒充卸载验收。
+- 在已安装实例主动暂停队列，入列一条仅供编辑测试的消息，再输入 `SQ-PROTECTED-NATIVE-DRAFT`。点击取回被拒绝，原生草稿和队列条目均保留；清除本轮测试草稿后再次取回，完整正文进入原生输入框，队列条目移除，全程没有发送。已清空本轮测试文字并恢复队列，最终无待发条目、无未知发送、无原生测试草稿。
+
+### 冲突结论与所有权
+
+| 范围 | 证据与处理 | 当前证据等级 |
+| --- | --- | --- |
+| 编译与可信来源 | 原固定桥直接导入独立 Send Queue `src/site.js`，已复现固定 bundle 来源拒绝。经用户授权向桥 owner 发送一次协调消息；桥 owner 改为自身 `src/native-agent/chatgpt-bridge-site.js`，当前固定桥不再引用队列业务源码，未以通配放宽来源门禁。桥文件及 provenance 修改由该 owner 维护，本会话未覆盖。 | 原构建失败 + 当前源码解耦；新桥完整 Browser 构建/运行由其 owner 验证 |
+| 同一输入框 | 两个执行世界各有 JS 状态，却共享原生 DOM。队列写入现增加 focus 后再核对，避免官网聚焦恢复的草稿被覆盖；固定桥交付结果前设置公开 `data-opendesk-composer-owner`，队列见标记即拒绝操作。标记只会拒绝，不作为 Host 授权。 | 定向回归通过；新桥与队列的真实并发交付 `NOT_TESTED` |
+| 发送时序 | 原计数条件可把不对应当前已确认用户消息的助手节点当完成。现要求历史节点前缀未变、刚确认用户仍为唯一新增用户、唯一新增助手在其后、站点明确完成且无 Stop/忙碌，再经过稳定空闲栅栏。 | 定向回归 + 真实 A3/B3 等待链通过 |
+| 权限与消息路由 | 队列只经 USER_SCRIPT 操作 DOM，不调用可信桥 protocol/Chrome/Native。固定桥仍由固定 ISOLATED entry、真实 sender/Side Panel、原请求/会话/轮次及 Host 结果身份控制；没有新增 Host/Registry/Authority。DOM 标记可被网站更改，不能提升其权限。 | 源码核对；本会话未重新执行固定桥 Native 链 |
+| 草稿、IME 与正文 | 队列新增 composition 跟踪；准备、focus 后、提交前再次校验草稿/附件/输入法。正文仍逐字比较，仅把已观察的空文档 `<p><br></p>` 作为空，不 trim 真正空白。 | 定向回归；真实普通文字与编辑保护通过；真实 IME/特殊空白 `NOT_TESTED` |
+| 生命周期与 unknown | 队列继续由独立 createPageUI owner 管理；停用真实清理通过。桥 owner 保留未知结果的 composer 标记，不在 finally 自动解除；确认发送且原生草稿空、明确人工编辑或导航才按其合同处理。双方 unknown 不自动重放。 | 队列定向回归 + 实际停用/恢复；桥当前生命周期运行 `NOT_TESTED` |
+
+### 真实失败与最小修复
+
+1. 第一份候选清空输入后读到布局换行，提示“无法可靠清空原生草稿”，未发送。只将 `textContent === ''` 且严格为空 P/BR 的富文本文档归为空；实际空白段落、多段与正文换行不归空。同步加入官网当前“开始语音 / Start voice”空闲锚点。
+2. 第二份候选实际发送 A 并收到 `SQ-A-OK`，但队列未确认，随后停止受管预览，没有重复点击。通过开发 Page 入口只读检查本测试消息，证实当前用户节点已使用 `data-content-search-unit-key="…:user"`，旧 role 属性选择器匹配 0。只增加该已观察标记，保留唯一新增节点与完整正文校验，得到最终 r44c。
+3. 官网多次报告“无法加载历史记录 / 无法加载此 ChatGPT 对话”，种子消息也曾报告“消息流中的错误”。正常新建专属测试对话继续；不覆盖别人的草稿、不把加载失败归为队列源码、不自动重放失败种子。A2/B2 与 A3/B3 已在新对话真实完成。刷新旧对话的官网故障仍存在。
+4. 开发草稿文件选择器曾使 r44c 的“打开”禁用，改用现有直接编辑器粘贴同一冻结 `program.js` 并 Run。正式 `.opendesk-page.json` 导入文件选择正常，安装未绕过包验证或 Authority。
+
+### 固定候选与环境身份
+
+- Page：`opendesk.chatgpt-send-queue`，版本 `0.1.0`，revision `1`；源码 46,491 bytes，SHA-256 `08e7f0bcd98b8bcf78cfd32a62ea928460a3408806686aab4a484da4d916f367`。
+- 正式包：`examples/programs/chatgpt-send-queue/opendesk.chatgpt-send-queue.opendesk-page.json`；packageHash `59101b693689cdebe7f5ac0b5badb0592afebfa0dc7684892ffdc77d590b5a4e`。原打包器直接复用真实运行的固定字节，没有重新编译或扩大匹配范围。
+- 实际安装身份：`9f71bb28-256b-41b6-b15e-faca432f2993`；Chrome 注册 ID `opendesk-page-boot-7f201979d9e5fec0753a135b6d3116fcb273b3da87af8f77`；详情实读源码 SHA 与上述候选相同。
+- 浏览器为专属 CFT 155.0.8059.39，PID 74622，原临时 Profile 保留。共享 `dist/development` 为空/旧 watcher 失败，故只在本专属 CFT 加载已有有效 Browser 静态候选的 APFS 副本 `artifacts/send-queue-r43-01a1732c/host-available`，扩展 ID `jkoicpoppfpocgaokdofmbkhbbgpagbd`。原 ID `ccfcjegpkdlgbclopjmadlcjedelidmf` 只在此 Profile 停用；日常 Chrome、Native 配对和共享 watcher 均未改。
+- 该 Browser 包来自桥 owner 已有 build attempt `c01e4414-42bf-42be-b275-19dc7db3277f`，packageHash `f0c11683e90a8432b28d3d48a554842d7d5c0630b1b9dda173793f7a08e33473`，112 文件副本完整性校验通过。**该包早于本轮桥适配器解耦和 composer 标记，不能证明当前新桥协作已原生通过。** 它是本轮核心操作的静态候选，不是持续开发连接或 production 验收。
+- 发送测试对话为 `c/6ade191a…b656`；安装自动运行测试 `c/6ade1afd…4669`；恢复及编辑测试 `c/6ade1b75…eff5`。仅操作本会话无敏感测试消息，未触碰其他真实业务对话。
+
+### 验证、证据与剩余边界
+
+- 本轮仅修改队列 `src/{site,main,engine}.js`、`tests/{site,engine}.test.mjs`、README、上述正式包及本记录。原已实现 view/CSS 未改。并行桥、本地化、UI 和 relay 文件未纳入本会话提交。
+- 针对新安全分支及真实失败新增回归，最终 `engine` 30/30、`site` 13/13，共 43/43；语法和项目声明验证通过。新增覆盖 focus 后草稿恢复/编辑器更换、composer 占用、composition、精确新 user/assistant 身份与顺序、缺失完成校验时拒绝继续、严格空文档及真实空白保留。最后源码不变时不重复全组测试。
+- 独立只读 code-reviewer 对最终三个源码及对应测试未发现可行动 P1/P2，43/43 定向测试与五文件语法通过；保守拒绝历史节点替换不被误报为回归。正式包 schema、packageHash、源码字节及全部模块/资源 SHA 与当前源码逐项核对通过，回执 `r44c-package-identity-check.json`；本轮文件 `git diff --check` 通过。
+- 本机忽略证据目录仍为 `artifacts/send-queue-r43-01a1732c/`：`candidate-r44c-build.json`、`r44c-after-a3-ax.txt`、`r44c-installed{.png,-ax.txt}`、`r44c-installed-autorun-ax.txt`、`r44c-disabled-ax.txt`、`r44c-edit-{protected,reclaimed}-ax.txt`；A3 的 Stop+B3等待由原生 CUA 工具实际观察，文件 `after-a3` 保存的是后续 B3 完成状态，不把它冒充 streaming 截图。
+- 仍不支持刷新后恢复内存队列；本轮没有修改存储权限。新桥与队列共同发送/真实 IME/特殊空白/升级/卸载为 `NOT_TESTED`；尺寸/缩放矩阵和正式评分不在本轮。固定桥活跃实现及其 Native 双模式验证继续由桥 owner 负责，本轮不接管其文件或浏览器。
+- 已安装在本专属临时 Profile，日常 Chrome 未安装。保持 CFT 与 launcher 存活以保留登录态和安装；关闭会清理临时 Profile。核心发送、Page 安装和上述管理操作已完成，不再自动扩大到旧全量验收。
