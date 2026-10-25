@@ -49,7 +49,7 @@ export function SharedProviderSettingsSheet({
  const selectedHttpsSource=
    (protocolOverride?.endpoint===endpointValue?protocolOverride.source:null)||
    savedSource||inferredSource;
- const protocolError=selectedHttpsSource?httpsSourceConfigurationError(selectedHttpsSource,endpointValue):'';
+ const protocolError=httpsSourceConfigurationError(selectedHttpsSource||'custom_https',endpointValue);
  const save=event=>{
   event.preventDefault();
   if(!event.nativeEvent?.isTrusted||!providerSettings)return;
