@@ -1,0 +1,48 @@
+{
+  "format": "opendesk.task-package.v1",
+  "manifest": {
+    "format": "opendesk.task.v1",
+    "taskId": "baidu.search.top3",
+    "version": "1.0.0",
+    "title": "百度搜索：前三条自然网页结果",
+    "description": "在已授权的百度搜索页只读提取可确认的自然结果，过滤广告；固定 limit=3。需本机验证后才能安装。",
+    "author": "OpenDesk Browser",
+    "source": "local-developer",
+    "siteOrigins": [
+      "https://www.baidu.com"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "entryFormat": "async-main",
+    "program": {
+      "revision": 1,
+      "sourceHash": "70441a254c9779a728a81fe1b954ea912d403557841a49ffe598850dbc95a807"
+    },
+    "paramsSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "title": "搜索关键词",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "limit": {
+          "type": "integer",
+          "enum": [
+            3
+          ],
+          "default": 3
+        }
+      },
+      "required": [
+        "query",
+        "limit"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "manifestHash": "c9e9aca01a07bf9c1b8a4405ef5fa227b1b4fce938237381c5987c5b046af6a1",
+  "sourceUtf8": "// Fixed Controller Task: baidu.search.top3. Run only after an exact installed-task admission.\n// The trusted caller owns target navigation to https://www.baidu.com/s?wd=<query>.\nasync function main() {\n  const query = params?.query;\n  if (typeof query !== 'string' || !query.trim() || query.length > 120 || params?.limit !== 3 ||\n      Object.keys(params).some(key => !['query', 'limit'].includes(key))) {\n    throw Object.assign(new Error('Expected a nonempty query and limit=3'), {code:'E_TASK_PARAMS'});\n  }\n  const url = new URL(await page.url());\n  if (url.origin !== 'https://www.baidu.com' || url.pathname !== '/s' || url.searchParams.get('wd') !== query) {\n    throw Object.assign(new Error('Controller target is not the approved Baidu query'), {code:'E_TARGET'});\n  }\n  // Read-only page DOM. Never follow sponsored links or run code from search snippets.\n  try { await page.locator('#content_left').waitFor({state:'visible',timeout:15000}); }\n  catch {\n    const body = (await page.locator('body').innerText().catch(() => '')).slice(0,2000);\n    const blocked = /验证码|安全验证|请输入验证码|访问受限|异常流量|security verification|captcha/i.test(body);\n    return {kind:'baidu.search.top3.result',version:1,query,sourceUrl:url.href,\n      status:blocked?'blocked':'dom_unavailable',count:0,results:[],observedAt:new Date().toISOString()};\n  }\n  // Fixed verified program source, never AI-provided JavaScript. The callback executes\n  // in the page's admitted ISOLATED DOM scope through the existing Controller driver.\n  const rows = await page.$$eval('#content_left .result.c-container', nodes => {\n    const visible = node => {\n      if (!node || !node.isConnected || node.closest('[hidden],[aria-hidden=\"true\"],[inert]')) return false;\n      const css = getComputedStyle(node);\n      return css.display !== 'none' && css.visibility !== 'hidden';\n    };\n    const clean = text => String(text || '').replace(/\\s+/g,' ').trim();\n    const evidence = [];\n    for (const node of nodes.slice(0,40)) {\n      const anchors = [...node.querySelectorAll('h3 a')].filter(visible);\n      if (anchors.length !== 1) continue;\n      const a=anchors[0], heading=a.closest('h3');\n      if (!heading || !visible(heading) || !visible(node)) continue;\n      const tags=[...node.querySelectorAll('[data-tuiguang],[data-click*=\"tuiguang\"],.ec-tuiguang,.c-icon-bear-p,.c-icon-bear-ad')];\n      const adLabel=[...node.querySelectorAll('span,a,em,small')].slice(0,60)\n        .some(el=>visible(el) && /^(广告|推广|商业推广|赞助)$/u.test(clean(el.textContent)));\n      if (tags.length || adLabel || node.matches('[data-tuiguang],[data-ad],.ec-tuiguang')) continue;\n      const title=clean(a.innerText || a.textContent);\n      const abstract=node.querySelector('.c-abstract,[class*=\"content-right_\"],[class*=\"summary-gap_\"],.c-span-last');\n      const summary=abstract && visible(abstract) ? clean(abstract.innerText || abstract.textContent) : '';\n      const href=a.getAttribute('href');\n      const direct=node.getAttribute('mu');\n      if (!title || !summary || !href) continue; // Only verifiable, visible organic results.\n      evidence.push({title:title.slice(0,320),summary:summary.slice(0,900),href,mu:direct||null,\n        slot:node.getAttribute('id')||null,tpl:node.getAttribute('tpl')||null});\n      if (evidence.length >= 3) break;\n    }\n    return evidence;\n  });\n  const results=[];\n  for (const row of rows) {\n    let url;\n    try { url = new URL(row.href,'https://www.baidu.com'); } catch {continue;}\n    if (!['http:','https:'].includes(url.protocol) || url.username || url.password) continue;\n    if (results.some(old=>old.url===url.href)) continue;\n    let directUrl=null;\n    try {if(row.mu){const mu=new URL(row.mu);if(['http:','https:'].includes(mu.protocol)&&!mu.username&&!mu.password)directUrl=mu.href;}}catch{}\n    results.push({position:results.length+1,title:row.title,summary:row.summary,url:url.href,\n      ...(directUrl?{directUrl}:{}),evidence:{slot:row.slot,tpl:row.tpl}});\n    if(results.length===3)break;\n  }\n  const body=results.length ? '' : (await page.locator('body').innerText().catch(()=>'')).slice(0,2000);\n  const blocked=/验证码|安全验证|访问受限|异常流量|captcha/i.test(body);\n  const noResults=/没有找到|未找到相关|没有相关搜索结果|抱歉.*没有/i.test(body);\n  return {kind:'baidu.search.top3.result',version:1,query,sourceUrl:url.href,\n    status:results.length?'success':blocked?'blocked':noResults?'no_results':'dom_changed',\n    count:results.length,results,observedAt:new Date().toISOString()};\n}\n"
+}
