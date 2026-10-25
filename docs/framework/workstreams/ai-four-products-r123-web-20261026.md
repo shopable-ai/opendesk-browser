@@ -60,3 +60,9 @@ R1.2.2：`docs/framework/workstreams/ai-four-products-r122-web-20261026.md`；�
 - 同一 run job `121252128388` 报 `E_PROJECT_FILE: assets/xmind-runtime.js` 缺失；属于按既有安全准备脚本生成固定资源/许可准入的阻塞，**未**通过空文件、CDN 或放宽项目校验修复。
 - 同版 `r3-package` 和 Sidebar P0 的 `task-workbench` 失败归平台/其他 UI owner，暂记 `UNRELATED_FAILURE`，不据此扩展改动范围。
 - 这些均是真实 GitHub CI job 日志，不是用户 Mac 本地 Node、真实 Chrome 或安装验收。新的 CI 若仍失败，按具体步骤重查，不复制旧报错冒充新包结果。
+
+## 迁移期旧/新 Mind Map 同页 DOM 所有权保护
+
+静态源码路径发现：旧、新程序的通用按钮标记都保留 `data-opendesk-chatgpt-mindmap="button"`，原 `insertButton` 只凭标记移除其他按钮，会在旧安装仍活跃时误删它的真实 ShadowRoot 按钮，违反独立生命周期目标。最小补丁仅限 Mind Map `src/answer-registry.js` 的按钮协调：新实例看到其他**带真实 ShadowRoot 的活体按钮**时保守退出并只卸自己的按钮；只有 ChatGPT cloneNode 产生的无 ShadowRoot 惰性副本可以清理。旧按钮消失后下一次原扫描才重新挂载新按钮。已有 Scroll 导航不在此标记范围，不触碰其节点。
+
+新增 `xmind-answer-registry-lifecycle.test.mjs` 受控 DOM 场景覆盖旧按钮保持、新按钮让位、旧实例离开后恢复和本实例销毁只清理自身。该测试必须经真实 Node/linkedom 跑通；GitHub 补丁提交本身**不能**称 NODE_PASS，也不等于两个旧/新版本真实 Chrome 同页共存已通过。旧程序无来自本轮的源码更改，仍建议用户显式审阅旧安装的停用/卸载后再装新身份。
