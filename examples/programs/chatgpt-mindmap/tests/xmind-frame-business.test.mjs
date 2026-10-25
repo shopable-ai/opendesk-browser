@@ -80,7 +80,7 @@ test('production loader is absent: parent SDK globals cannot grant frame access'
 
 test('production entry satisfies the real builder validator and remains non-installable',async()=>{
   const project=await validateProgramProject(fileURLToPath(new URL('../',import.meta.url)));
-  assert.equal(project.id,'opendesk.chatgpt-mindmap');
+  assert.equal(project.id,'opendesk.ai-reply-mindmap');
   assert.equal(project.entry,'src/main.js');
   assert.equal(project.status,'AUTHORING_VALID_NOT_PACKAGED');
   assert.equal(project.installable,false);
