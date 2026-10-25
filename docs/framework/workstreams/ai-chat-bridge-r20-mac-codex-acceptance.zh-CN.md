@@ -2,79 +2,59 @@
 
 **默认中文｜ORIGINAL GOAL FIRST｜LATEST MAIN｜LOCAL MAC REAL CHROME｜DELTA ONLY｜CROSS-CHAT DEDUP｜NO SECOND HOST｜NO FAKE PASS｜ONLY MAIN**
 
-## 本轮目标与关键测试条件（2026-10-26 续推）
+## 本轮目标、关键条件与当前结果（2026-10-26 03:00 续推）
 
-用户要求设置目标并继续推进，已在本对话创建原生 active goal；目标仍是本文的百度真实闭环，不另建并列产品目标。下一条未完成用户操作是：取得可安装的当前完整 production 候选后，核对真实 Task 安装身份，再执行场景 A。
+用户要求设置目标并继续推进，已在本对话创建原生 active goal。目标仍是百度真实闭环；尚未达成，不以组件测试或本报告代替。下一条未完成用户操作是：取得当前完整 production 候选后，核对真实 Task 安装身份，再执行场景 A。
 
-| 门槛 | 具体通过条件 | 当前证据 |
+**当前结论：两处已授权阻塞均解除；完整构建又暴露知识问答模块的来源门禁，记 `BLOCKED_BY_UNRELATED_OWNER`。尚未启动本轮真实 Chrome，A/B/C/D 均未实测。**
+
+### 本轮已完成的最小工作
+
+- `d1c9cacfa25330ee4a82f2fd92f4dcc1b78ea810` 只补强既有两份百度/Bridge 测试：完整流式候选出现前不能自动执行；验证码、缺失/变化 DOM 不得虚构结果。已有业务接线、固定 Task JS/安装包均未改。
+- 官方 Page 目录最初导致六文件测试加载失败。原 owner 的 `ab2b895d0` 已修复文件名校验，随后重跑指定六文件 **49/49 PASS，0 FAIL，0 SKIP**。本轮没有应用旧提案中三条目录元数据修改，避免与 owner 重复开发；日志为 `artifacts/ai-chat-bridge-r20-mac-20261026/continue/core-tests-after-owner-fix.log`。
+- 用户明确授权“这两处最小修复及必要测试”后，`897641eac5b481099bafccb85eab3cc0f2527229` 仅同步一个已独立审阅的 Prompt model Git blob pin：`9b29be376a28be9aa2958913ea7dc758459bb171` → `730496110c2ebc316eb74e1c29ac66dc74d60561`，并更新说明和必要测试。原有业务源码未改，未重新打包/晋升 Prompt JSON，未改变安装/发行状态。
+- 审阅的是 `dffeec493` 已有 model 差量：移除退役的 Prompt 导航设置；提示词、图片引用、当前 `webButtons/imageSize` 及配额保留。旧导航偏好在下次正常保存时被丢弃，不承诺保留这五项历史偏好。精确字节、固定 target 和 symlink 拒绝门禁继续生效。
+- **19/19 必要来源/数据回归 PASS**：包括三项 R1.2.2 model 用例、真实生产函数的容量/CAS/丢 ACK/未知写入不重放、8 KiB/32 KiB 限制，以及同字节仅允许两个 Host target、漂移和软链接拒绝。先前失败的测试驱动也已最小修复（缺失 `readModel` helper、过时生产函数边界、macOS 临时目录 realpath）；没有为旧断言修改业务。其余 Prompt 全套用例没有扩大运行；旧综合 provenance fixture 中其他模块的历史期望值不在本轮修复范围。日志为 `continue/prompt-model-tests-after-harness-fix.log`。
+
+### 当前完整构建与真实阻塞
+
+- production / Standard **静态验收候选**在普通文件快照 `/private/tmp/opendesk-bridge-r20-authorized-okdvdaey` 构建；源 main 为 `100bba3cdfb4c4438b2e55fe2f854bc30cb4a182`。北京时间 **02:57:24–02:58:05**，exit code **1**，没有成功包指纹。该快照不是 Git worktree，没有 dev 连接；失败目录的 `dist/production` 不可安装。
+- 原 Prompt 门禁已解除；构建到 `[38/41] tool-shell` 后失败：`Historical/user/vendor code cannot enter a privileged fixed bundle: examples/sidebar-tools/ai-knowledge-answers/trusted/ai-request.js`。
+- `src/ui/tool-shell.js` 静态导入知识问答 trusted Host，后者引入 `ai-request.js`、model 及 local-test-runtime；来源门禁中没有对应知识问答审阅登记。当前首个拒绝文件 Git blob 为 `e7adb932efbcf9e2b8a7961804ef1e486fd5c854`。这不证明只加该文件的 pin 就能完整构建，也不归因于最近一个知识问答提交；原门禁曾掩盖这项现存缺口。
+- 此处超出用户本次“两处”例外，未增加新白名单、未修改知识问答业务、未应用通配来源豁免。需要该 owner 审阅实际静态输入与允许 target，并通过必要保护测试及完整构建；本报告不是该审阅。
+- 构建失败 receipt 记录 724 个来源输入；与工作区对照相关输入漂移为 **0**。唯一额外快照漂移是无关热预览 `status.json`，不在这 724 个构建输入中；不能据此反复重建。
+- 日常 watcher PID `91386`、锁 token `0832b303-1ac1-486a-9548-589b023346b5` 保留，未覆盖 `dist/development/.wxt/public`、未替换日常扩展。无分支、Worktree、PR 或强推。
+
+原始证据位于 `artifacts/ai-chat-bridge-r20-mac-20261026/continue/`：`authorized-snapshot.json`、`authorized-build-result.json`、`authorized-production-build.log`、`authorized-builds/build-production-latest.json` 及其失败诊断。`proposed-unblock.patch` 是授权前未应用的旧提案，目录部分已被 owner 修复取代，禁止直接套用整份旧补丁。此前 48/48 与 Prompt 构建失败记录保留在父证据目录，属于上次观察；不能覆盖本节新结论。
+
+### 六个必须逐项证明的条件
+
+| 门槛 | 通过条件 | 当前证据 |
 | --- | --- | --- |
-| 完整构建 | 当前源码经原构建器与来源/包校验成功，记录包指纹和真实 Chrome 加载路径/ID；部分产物、旧包不能替代。 | Prompt Shortcuts 来源 pin 仍不匹配；新官方 Page 目录另有加载错误，见下。 |
-| 本机安装 | 百度 Task 的 Candidate、Verified、Available、Installed、Enabled 均由真实入口核对；固定版本、双哈希、安装代际及两站权限正确。 | `NOT_TESTED`。 |
-| A 手动闭环 | 官网用户发送后，完整匹配候选→点击执行→真实 owned 百度 tab→一个 Run/Result→released→原会话一条结果消息→AI 基于实际条数中文续答。 | `NOT_TESTED`。 |
-| B 自动闭环 | 新请求在 AI 生成期间批准；生成未完、JSON 不完整或身份不匹配时运行数为 0；完整匹配后不点击执行仍只运行、产生结果及回传各 1 次。 | 已补强组件流式时序测试并通过该用例；真实操作 `NOT_TESTED`。 |
-| C 异常 | Task 真实检测分支分别报告 `blocked`、`no_results`、`dom_unavailable`、`dom_changed`；不编造结果、不绕过验证码、不无限重试。 | 新增 Task 源码分支组件用例已通过；真实百度异常 `NOT_TESTED`。 |
-| D 保护 | 重复点击不重放；关键词/会话/安装/权限/结果身份变化时拒绝；保留草稿、附件和 IME；发送无确定回执记 UNKNOWN，只读查询原请求。 | 原组件证据保留；真实边界 `NOT_TESTED`。 |
+| 完整构建 | 当前源码经原构建器、来源和包校验成功，随后记录 Chrome 实际路径/ID。 | **BLOCKED_BY_UNRELATED_OWNER**：知识问答静态来源门禁。 |
+| 本机安装 | 真实 Candidate、Verified、Available、Installed、Enabled、固定双哈希、安装代际与网站权限全部核对。 | **NOT_TESTED**，不能把磁盘 JSON 当成已安装。 |
+| A 手动闭环 | 官网用户发送→完整匹配候选→点击执行→真实 owned 百度 tab→Run/Result 各一→released→原会话一条回传→中文续答。 | **BLOCKED**；真实 **NOT_TESTED**。 |
+| B 自动闭环 | 新请求生成中批准；不完整时零运行；完整后不点击执行仍运行/结果/回传各一次。 | 组件时序通过；真实 **BLOCKED / NOT_TESTED**。 |
+| C 异常 | 验证码/无结果/缺失或变化 DOM 按实际报告，不伪造、不绕过、不无限重试。 | Task 源码分支组件通过；真实 **BLOCKED / NOT_TESTED**。 |
+| D 保护 | 不重放、不跨会话、不覆盖草稿；身份/撤权/停用不符拒绝；未知 ACK 标 UNKNOWN 并只读核对。 | 原组件保护保留；真实 **BLOCKED / NOT_TESTED**。 |
 
-续推已保留本地 Tunnel owner 提交并合入远端 `9f6c8f592` 的官方 Page 目录变更。百度/Bridge 产品源码及固定包未改；只有本轮两个测试文件补强。执行指定六文件测试后，**26 条通过，1 个测试文件在加载阶段失败**：`chatgpt-fixed-bridge-r12.test.mjs` 间接导入 `scripts/verify-package.mjs`，其新顶层目录读取抛出 `E_PAGE_CATALOG`。这不是旧 48/48 仍全部通过，亦不是已证实的 Bridge 产品回归。
+磁盘百度候选 `examples/tasks/baidu.search.top3.v1.opendesk-task.json` 与现有 JS 同源，固定版本 **1.0.0**，`sourceHash=1e2e3466b38d90c32513a7ce597fe6a283b986e61dd71f647241d8731ae80e45`、`manifestHash=e8abda7a51d234b1224dd626fbeeaa8ecc3ff63f2465c74433bef235dbf17bdf`。计划网站 `https://www.baidu.com`，参数 `{query:"OpenDesk Browser",limit:3}`。本机 Catalog 各阶段及 installationId/generation 均 **UNKNOWN / NOT_TESTED**，未直接写存储。
 
-直接原因是 `official-pages/sources.json` 三个 blocked 条目的 `packageFile` 省略了 `opendesk.` 前缀，而新 validator 要求 `programId + '.opendesk-page.json'`。目录加载错误与已有 Prompt Shortcuts pin 都属于原任务之外 owner 的输入；未擅自改写其源码、pin、发行状态或安装状态。原始失败日志在 `artifacts/ai-chat-bridge-r20-mac-20261026/continue/core-tests.log`。
+本轮主动发起真实 Bridge Run 和官网发送均为 **0 次**；没有取得真实 runId/resultId、实际搜索结果数量/来源 URL、释放状态、原会话回传次数或 AI 续答。未运行不表示“无结果”或 `no_results`；也未据此声称已查询原会话历史。
 
-已准备但**尚未应用**的最小解阻补丁在 `artifacts/ai-chat-bridge-r20-mac-20261026/continue/proposed-unblock.patch`：仅更新一个已审阅源码 pin、将三条 blocked 目录候选文件名与现行合同对齐，不提升发行状态，不安装或运行程序。需取得本轮范围例外或由对应 owner 修复后才能应用；独立审阅、定向来源/目录验证及新候选构建仍分别记录，不冒称完成。
+用户之后的按钮路径：同窗口 Side Panel 与官网 `/c/...` → 选「百度搜索前三条」→ 输入 `OpenDesk Browser` →「建立请求」→ 用户在官网发送。A 等完整候选后点「执行」；B 用新请求，在生成中点「批准本次自动执行」，不点「执行」。当前先由知识问答 owner 解除来源门禁，暂不需要用户登录、发送或人工代跑普通测试；进入真实步骤后才需要官网登录和发送配合。
 
-当前不需要用户登录或发送官网请求；先解除构建/测试入口。之后只在真实页面到达对应步骤时请求必要的登录、安装/站点授权、官网发送或验证码人工处理，不让用户代跑普通诊断和测试。
+### 六维评分（本轮证据评估，非通过率）
 
-## 2026-10-26 本机执行记录：构建阻断，真实闭环未验收
-
-**本轮结论：`BLOCKED_BY_UNRELATED_OWNER`。不能确认百度搜索已在真实 Mac Chrome 完成。** 安全快进到 `main@7e6ef79569f31aa836121d89d3f3f08c6e9372a4` 后，指定六文件测试本机 **48/48 PASS、0 FAIL、0 SKIP**（573 ms）；不重复开发既有接线。以下是当前实测结果，不能用文末操作计划代替。
-
-收尾时 main 已安全同步至 `95fe6200f`；并行差量为其他产品记录、Mind Map 审计/测试及 Send Queue 自身 UI。已复核本轮 Bridge/Task/测试和来源门禁相关输入未变，复用上述证据；不重做 Send Queue。
-
-### 构建与并行资源
-
-- 为保护既有 `npm run dev` owner PID `91386`、`dist/development` 和 `.wxt/public`，在普通文件快照 `/private/tmp/opendesk-bridge-r20-mac-mn2vvwlv` 中执行原 `npm run build`；没有创建分支、Git worktree 或 PR，没有停止服务或替换日常扩展。
-- 最终尝试为 **production / Standard 静态包**，北京时间 **02:26:56–02:27:16**，exit code **1**。失败目录的 `dist/production` 只是部分产物，不能安装或当作构建成功；该模式无 dev 连接。未进入 Chrome，实际已加载扩展 ID、路径与连接状态尚未核对。
-- 原始错误：`[opendesk-fixed-page-relay] Trusted Prompt Shortcuts source changed; review and re-pin before fixed build: examples/sidebar-tools/prompt-shortcuts/trusted/model.js`。
-- `scripts/bundle-provenance.mjs` 的审阅 Git blob 为 `9b29be376a28be9aa2958913ea7dc758459bb171`；实际为 `730496110c2ebc316eb74e1c29ac66dc74d60561`。本轮没有修改该业务或 pin。Bridge 三文件及该门禁/业务文件的快照字节与工作区一致。
-- 前两次尝试分别因快照的依赖软链接超出来源根目录、遗漏共享 `native-agent` 源码而失败；均属本轮快照环境问题。已通过复制现有依赖及共享源码解决，未下载/安装依赖、未修改产品来适配快照。仅第三次完整快照的上述来源错误用于判断产品构建阻塞。
-
-### P0 身份及 A/B/C/D
-
-磁盘候选包 `examples/tasks/baidu.search.top3.v1.opendesk-task.json` 存在且与 JS 同源，版本 **1.0.0**；已通过本轮定向测试核对：
-
-- `sourceHash = 1e2e3466b38d90c32513a7ce597fe6a283b986e61dd71f647241d8731ae80e45`
-- `manifestHash = e8abda7a51d234b1224dd626fbeeaa8ecc3ff63f2465c74433bef235dbf17bdf`
-- 网站仅 `https://www.baidu.com`，计划参数 `{query:"OpenDesk Browser",limit:3}`。
-
-**磁盘包存在不证明 Catalog Candidate。** 本机 Catalog 的 Candidate、Verified、Available、Installed、Enabled 均 `UNKNOWN / NOT_TESTED`，installationId/generation 未取得；没有直接写存储或伪造状态。依当前“构建可安装后才进入 Chrome”的门槛，未验证或安装 Task。
-
-| 场景 | 当前状态 | 本轮证据与缺口 |
-| --- | --- | --- |
-| A 手动搜索 | **BLOCKED**；真实操作 `NOT_TESTED` | 包、参数、自然结果过滤及 Host 组件测试通过；没有真实百度/Run/Result/官网回传。 |
-| B 一次自动执行 | **BLOCKED**；真实操作 `NOT_TESTED` | nonce、批准消费及页面组件测试通过；尚未验证真实“生成中批准→候选完整→自动执行”。 |
-| C 网站异常 | **BLOCKED**；真实操作 `NOT_TESTED` | mock 少量/空结果、未知模板与构造异常结果解码有证据；未证明真实验证码、DOM 缺失/变化检测。 |
-| D 安全边界 | **BLOCKED**；真实操作 `NOT_TESTED` | 组件测试覆盖身份、撤权、未知发送及草稿/附件/IME 等保护；真实 Chrome 生命周期及发送边界未验证。 |
-
-本轮未发起真实 Bridge Run 或官网结果发送：**runId/resultId 未生成，实际结果条数与来源 URL 未取得，资源释放状态 `NOT_TESTED`，原会话回传次数未验证，AI 中文续答 `NOT_TESTED`**。本轮主动执行/发送次数均为 **0**，不表示已查询原对话历史。计划 URL 为 `https://www.baidu.com/s?wd=OpenDesk%20Browser`，不能冒充实际观察 URL；未运行也不能记为 `no_results` 或“0 条搜索结果”。
-
-### 独立评分及下一步
-
-独立只读 verifier 根据当前源码、组件证据和真实验收缺口评分；不是产品正确率或完成百分比，没有真实运行的分项仍未验证。
-
-| 维度 | 分数 / 100 | 依据 |
+| 维度 | 分数 / 100 | 实际限制 |
 | --- | ---: | --- |
-| 目标完整性 | 50 | 主链已接线，最终真实门槛未证明。 |
-| 核心业务能力 | 40 | 组件可验证，真实百度及持久结果未知。 |
-| 架构复用 | 85 | 沿用 Catalog、Authority、Controller、RunHost。 |
-| 安全可靠性 | 65 | 组件保护有证据，原生故障边界未测。 |
-| 用户体验 | 45 | 按钮及草稿保护已实现，官网操作未测。 |
-| 测试与证据 | 55 | 本机 48/48；完整构建和原生链缺失。 |
-| **算术平均** | **56.7** | `(50 + 40 + 85 + 65 + 45 + 55) / 6`。 |
-
-本轮**没有产品源码修复**，仅记录本机阻塞与证据。已有百度接线、任务选择、单次批准及固定网页回归属于源码/Node 已验证业务；当前阻塞是本地构建来源门禁，尚无百度或 ChatGPT 外部网站故障证据。
-
-本机原始日志和身份记录位于 `artifacts/ai-chat-bridge-r20-mac-20261026/`：`production-build.log`、`production-build-clean.log`、`build-result.json`、`task-identity.json`、`relevant-inputs.json`、`snapshot.json`、`acceptance-summary.json`；临时产物不提交。该目录保留三次尝试及失败诊断。
-
-后续仅在 Prompt Shortcuts owner 审阅并同步可信源码/pin 后，核对相关输入，重做一次 production 构建，再从 **P0 本机真实验证和安装**继续 A/B/C/D；相关源码及测试未变则复用本轮 48/48，不重复旧固定页面实测。操作顺序仍为：同窗口 Side Panel + `/c/...` 正式对话 → 选「百度搜索前三条」→ 输入关键词 →「建立请求」→ 用户官网发送 → A 等完整候选点「执行」；B 使用新请求，在生成中点「批准本次自动执行」，不点「执行」。
+| 目标完整性 | 50 | 最终真实闭环未证明。 |
+| 核心业务能力 | 40 | 组件通过，真实百度运行未知。 |
+| 架构复用 | 85 | 沿用 Authority、Controller、RunHost、Catalog。 |
+| 安全可靠性 | 65 | 定向保护通过，真实生命周期未测；来源门禁正确拒绝。 |
+| 用户体验 | 45 | 按钮合同有证据，实际官网操作未测。 |
+| 测试与证据 | 60 | 六核心文件 49/49、必要门禁回归 19/19；完整构建和原生缺失。 |
+| **算术平均** | **57.5** | `(50+40+85+65+45+60)/6`。 |
 
 ## 原始最高产品目标（不得漂移）
 
