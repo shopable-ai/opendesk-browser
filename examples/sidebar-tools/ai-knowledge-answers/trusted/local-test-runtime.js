@@ -164,7 +164,8 @@ export function createLocalKnowledgeTestRuntime({
    snapshot:()=>snapshot,
    async start({event,autoSendFixed=false}={}){
      if(!event?.isTrusted)throw fail('E_USER_GESTURE','必须在可信侧栏点击批准本地测试');
-     if(session)throw fail('E_KB_TEST_RUNNING','已经在监听该测试页');
+     if(session||snapshot.mode==='connecting')
+       throw fail('E_KB_TEST_RUNNING','已经在连接或监听该测试页');
      assertLive();
      const ticket=serial;
      publish({mode:'connecting',message:'正在核对当前窗口和测试页文档…'});
@@ -189,7 +190,10 @@ export function createLocalKnowledgeTestRuntime({
          void poll(s);
        },850);
        return snapshot;
-     }catch(error){adapter.drop();publish({mode:'idle',message:String(error?.message||error)});throw error;}
+     }catch(error){
+       if(ticket===serial){adapter.drop();publish({mode:'idle',message:String(error?.message||error)});}
+       throw error;
+     }
    },
    pause(){
      if(!session)return;
