@@ -161,7 +161,7 @@ document.addEventListener('click',function(e){let nav=e.target.closest('[data-p]
  if(st.menu&&!e.target.closest('#popup')){st.menu=null;renderPopover()}});
 document.querySelector('#theme').addEventListener('click',()=>{st.theme=!st.theme;render()});document.querySelector('#long').addEventListener('click',()=>{st.long=!st.long;render()});document.querySelector('#outcome').addEventListener('change',e=>{st.outcome=e.target.value;setNote('已切换模拟结果为：'+(st.outcome==='ok'?'成功':st.outcome==='fail'?'写入失败':'结果未知')+'。');render()});
 document.addEventListener('input',function(e){const input=e.target.dataset?.input;if(!input)return;let value=e.target.value;if(Object.hasOwn(st.search,input)){st.search[input]=value;let start=e.target.selectionStart,end=e.target.selectionEnd;render();const next=document.querySelector('#search-'+input);next?.focus({preventScroll:true});try{next.setSelectionRange(start,end)}catch{}return}
- if(input==='promptbody'||input==='promptlabel'||input==='promptname'){if(!st.draft)st.draft={id:'',body:'',label:'',name:''};st.draft[input==='promptbody'?'body':input==='promptlabel'?'label':'name']=value;st.dirty=true;if(input==='promptbody'){let c=document.querySelector('#promptcount');if(c)c.textContent=new TextEncoder().encode(value).length+' / 8192 B';}return}
+ if(input==='promptbody'||input==='promptlabel'||input==='promptname'){if(!st.draft)st.draft={id:'',body:'',label:'',name:''};st.draft[input==='promptbody'?'body':input==='promptlabel'?'label':'name']=value;st.dirty=true;if(input==='promptbody'){const bytes=new TextEncoder().encode(value).length;let c=document.querySelector('#promptcount');if(c)c.textContent=bytes+' / 8192 B'+(!value.trim()?' · 请输入正文':bytes>8192?' · 超出限制':'');const saveButton=document.querySelector('[data-act="save:prompt"]');if(saveButton)saveButton.disabled=!value.trim()||bytes>8192||st.uncertain;e.target.setAttribute('aria-invalid',String(!value.trim()||bytes>8192));}return}
  if(input==='bmname'||input==='bmurl'){if(!st.draft)st.draft={...currentData()};st.draft[input==='bmname'?'title':'url']=value;st.dirty=true;return}
  if(input==='cookiename'||input==='cookiedomain'||input==='cookievalue'){if(!st.draft)st.draft={...currentData()};st.draft[input==='cookiename'?'name':input==='cookiedomain'?'domain':'value']=value;st.dirty=true;return}
  if(input==='code'){st.code=value;st.dirty=true;return}
@@ -170,6 +170,17 @@ document.addEventListener('input',function(e){const input=e.target.dataset?.inpu
 });
 document.addEventListener('change',function(e){if(e.target.id!=='importfile')return;let f=e.target.files?.[0];st.fileData=null;st.fileName=f?.name||'';if(!f){st.fileStatus='';render();return}if(f.size>2*1024*1024){st.fileStatus='文件超过演示解析限制（2 MiB）。';render();return}f.text().then(s=>{try{let d=JSON.parse(s);if(!d||typeof d!=='object'){throw Error('JSON root must be object or array')}st.fileData=d;st.fileStatus='已解析 JSON，但尚未经过正式安装包 Schema、来源或权限校验。';}catch{st.fileData=null;st.fileStatus='JSON 格式无效；不会继续确认。';}render();}).catch(()=>{st.fileStatus='文件无法读取。';render();});});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(st.modal){e.preventDefault();modalClose();return}if(st.menu){const trigger=st.menu.trigger;st.menu=null;renderPopover();document.querySelector('[data-act="'+trigger+'"]')?.focus({preventScroll:true});return}}if(e.key==='Tab'&&st.modal){const d=document.querySelector('.dialog');const els=[...d.querySelectorAll('button:not([disabled])')];if(e.shiftKey&&document.activeElement===els[0]){e.preventDefault();els[els.length-1].focus()}else if(!e.shiftKey&&document.activeElement===els[els.length-1]){e.preventDefault();els[0].focus()}}});
+// Keyboard navigation for the isolated HTML reference menu; the real trusted
+// ExtensionRowMenu owns its separate React keyboard and Portal behavior.
+document.addEventListener('keydown',function(e){if(!st.menu)return;
+ const menu=document.querySelector('#popup .floatmenu');
+ if(e.key==='Tab'){st.menu=null;renderPopover();return;}
+ if(!['ArrowDown','ArrowUp','Home','End'].includes(e.key)||!menu?.contains(document.activeElement))return;
+ const options=[...menu.querySelectorAll('[role="menuitem"]')];if(!options.length)return;
+ const index=options.indexOf(document.activeElement);
+ const next=e.key==='Home'?0:e.key==='End'?options.length-1:(index+(e.key==='ArrowDown'?1:-1)+options.length)%options.length;
+ e.preventDefault();options[next]?.focus({preventScroll:true});
+});
 selectPattern(0);
 })();
 </script>
