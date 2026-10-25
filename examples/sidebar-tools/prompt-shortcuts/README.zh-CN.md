@@ -1,10 +1,10 @@
 # AI 提示词快捷按钮 · Prompt Shortcuts
 
-## R1.1 功能所有权说明（2026-10-25）
+## R1.2.2 功能所有权说明（2026-10-26）
 
-**Prompt Shortcuts 只负责提示词**：保存、编辑、插入、快捷栏、OD 入口、图片及网站编辑器适配。可信页面 `trusted/page.js` 已移除滚动导航的 UI、长回复算法导入、按钮生命周期与回调。原五个 `scrollNavigation` 选项仍由 `trusted/model.js` 容错读取和保留旧设置数据，**但不再驱动网页滚动**；它们不再代表 Prompt Shortcuts 可单独提供导航。
+**Prompt Shortcuts 只负责提示词**：保存、编辑、插入、快捷栏、OD 入口、图片及网站编辑器适配。独立滚动导航已从可信网页运行时、React 工具设置、宿主管理和本工具 HTML 预览移除。旧库含有 `scrollNavigation` 的五个开关时，`trusted/model.js` 可安全读取并忽略该历史字段；新建和下一次正常保存都不会重新写入它，提示词正文、图片引用、顺序与网站规则仍按现有数据合同保存。打开旧库但不保存时，不主动改写存储。
 
-新的独立源项目为 [AI 对话滚动导航](../../programs/chatgpt-jump-top/README.zh-CN.md)，保留其历史 Program ID。没有安装独立 Page Program 时，Prompt Shortcuts 安装后不再出现导航按钮；导航的安装、停用和 Origin 扩权均遵守独立的 Page Authority，而不是复用提示词权限。上方历史的「Prompt 集成滚动」文字、预览中旧导航演示均仅为旧版证据，不能替代当前正式产品。**目前尚无新的已验证 Page 安装包/真实 Chrome 验收：NOT_TESTED。**
+独立源项目为 [AI 对话滚动导航](../../programs/chatgpt-jump-top/README.zh-CN.md)，**新源码 ID 为 `opendesk.ai-scroll-navigation`**。同目录旧 `chatgpt-jump-top.opendesk-page.json` 仍是旧 ID 历史正式制品，不能当作新包导入；新正式包还需使用原 Project Builder 构建并审阅来源和授权。未安装独立 Page Program 时，Prompt Shortcuts 不会提供导航按钮；导航安装、停用和 Origin 授权不复用 Prompt 权限。下方旧版演示和交付记录只是历史证据。**新包构建与当前安装版真实 Chrome 验收均未完成：NOT_TESTED。**
 
 当前 `tool.config.json` 源码版本为 1.1.19，仓库中唯一正式 `prompt-shortcuts.opendesk-tool.json` 仍为 1.1.18；本轮未重建或冒充已晋升的 Sidebar 正式包。可信页面属于宿主代码，不因重打 Sidebar JSON 就自动更新。
 
