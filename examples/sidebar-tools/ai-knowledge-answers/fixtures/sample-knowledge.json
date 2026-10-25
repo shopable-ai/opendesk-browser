@@ -1,0 +1,159 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "qa_refund_window",
+      "question": "退款申请有时间限制吗",
+      "aliases": [
+        "退款需要几天",
+        "几天内可以申请退款"
+      ],
+      "answer": "示例店铺未发货订单可以在付款后 7 天内提交退款申请；已发货订单须由人工核实。",
+      "scope": "",
+      "enabled": true
+    },
+    {
+      "id": "qa_refund_arrival",
+      "question": "退款到账需要多久",
+      "aliases": [
+        "退款什么时候到账",
+        "退钱多久能收到"
+      ],
+      "answer": "示例店铺审核通过的退款按原支付渠道返回，预计 3–5 个工作日到账；以支付机构为准。",
+      "scope": "",
+      "enabled": true
+    },
+    {
+      "id": "qa_payment_methods",
+      "question": "支持哪些付款方式",
+      "aliases": [
+        "怎么付款",
+        "可用什么支付方式"
+      ],
+      "answer": "示例店铺支持支付宝、微信支付和银行卡；不支持现金邮寄。",
+      "scope": "",
+      "enabled": true
+    },
+    {
+      "id": "qa_invoice_request",
+      "question": "怎样申请电子发票",
+      "aliases": [
+        "如何开发票",
+        "电子发票怎么开"
+      ],
+      "answer": "示例店铺在订单完成后可以申请电子发票；需正确发票抬头及税号，个人抬头无需税号。",
+      "scope": "",
+      "enabled": true
+    },
+    {
+      "id": "qa_shipping_time",
+      "question": "商品多久发货",
+      "aliases": [
+        "何时发货",
+        "多久能发出来"
+      ],
+      "answer": "示例店铺现货商品通常在付款后 2 个工作日内发货；预售以订单页预计日期为准。",
+      "scope": "",
+      "enabled": true
+    },
+    {
+      "id": "qa_shipping_track",
+      "question": "怎样查看物流信息",
+      "aliases": [
+        "哪里看快递",
+        "物流单号在哪"
+      ],
+      "answer": "示例店铺的订单详情页显示物流单号；物流更新可能延迟 24 小时。",
+      "scope": "",
+      "enabled": true
+    },
+    {
+      "id": "qa_service_hours",
+      "question": "客服工作时间是什么",
+      "aliases": [
+        "客服几点上班",
+        "客服几点下班"
+      ],
+      "answer": "示例店铺在线客服工作时间为北京时间周一至周五 09:00–18:00，法定节假日除外。",
+      "scope": "",
+      "enabled": true
+    },
+    {
+      "id": "qa_warranty_standard",
+      "question": "产品售后保修期多久",
+      "aliases": [
+        "标准款保修多长时间",
+        "标准款保修多久"
+      ],
+      "answer": "示例店铺标准款自签收起提供 12 个月有限保修；人为损坏不保修。",
+      "scope": "标准款",
+      "enabled": true
+    },
+    {
+      "id": "qa_warranty_pro",
+      "question": "专业款商品保修多久",
+      "aliases": [
+        "专业款保修多长时间",
+        "专业款售后多久"
+      ],
+      "answer": "示例店铺专业款自签收起提供 24 个月有限保修；人为损坏不保修。",
+      "scope": "专业款",
+      "enabled": true
+    },
+    {
+      "id": "qa_return_condition",
+      "question": "退货需要满足哪些条件",
+      "aliases": [
+        "什么情况能退货",
+        "退货要求是什么"
+      ],
+      "answer": "示例店铺只对未使用、配件齐全且原包装完整的商品受理常规退货申请；由售后审核。",
+      "scope": "",
+      "enabled": true
+    },
+    {
+      "id": "qa_change_address",
+      "question": "下单后可以修改收货地址吗",
+      "aliases": [
+        "怎么换地址",
+        "收货地址填错了"
+      ],
+      "answer": "示例店铺未发货订单可以联系人工申请修改地址；已发货后不承诺可以修改。",
+      "scope": "",
+      "enabled": true
+    },
+    {
+      "id": "qa_delivery_delay",
+      "question": "物流超过预计时间怎么办",
+      "aliases": [
+        "快递太慢怎么办",
+        "包裹迟迟未到"
+      ],
+      "answer": "示例店铺建议先检查物流；超过预计时间 2 个工作日没有更新时联系人工。",
+      "scope": "",
+      "enabled": true
+    },
+    {
+      "id": "qa_member_basic",
+      "question": "基础版和专业版有什么区别",
+      "aliases": [
+        "专业版多了什么",
+        "基础版专业版差别"
+      ],
+      "answer": "示例店铺基础版含标准功能；专业版额外提供批量导出；价格以销售页面为准。",
+      "scope": "",
+      "enabled": true
+    },
+    {
+      "id": "qa_human_escalation",
+      "question": "如何转人工客服",
+      "aliases": [
+        "我要人工",
+        "怎么找真人客服"
+      ],
+      "answer": "示例店铺可在客服工作时间从订单详情页“联系人工”入口提交请求。",
+      "scope": "",
+      "enabled": true
+    }
+  ]
+}
