@@ -1,9 +1,9 @@
 {
-  "name": "@opendesk-examples/chatgpt-jump-top",
-  "version": "0.2.0",
+  "name": "@opendesk-examples/ai-scroll-navigation",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
-  "description": "ChatGPT region jump-to-top with sticky-aware positioning",
+  "description": "AI 对话滚动导航：ChatGPT、DeepSeek 长回复定位，以及 ChatGPT、DeepSeek、Gemini 对话顶部/底部导航；仅在明确适配的页面启用。",
   "scripts": {
     "test": "node --test tests/*.test.mjs"
   },
@@ -14,7 +14,11 @@
     "sourceFormat": "esm",
     "entry": "src/main.js",
     "pageRules": {
-      "matches": ["https://chatgpt.com/*"],
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.deepseek.com/*",
+        "https://gemini.google.com/*"
+      ],
       "excludeMatches": [],
       "runAt": "document_idle",
       "allFrames": false,

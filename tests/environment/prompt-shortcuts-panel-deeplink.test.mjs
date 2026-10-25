@@ -141,10 +141,10 @@ test('Built-in prompt rail has one first OD management entry but no collapsers o
     'the restored brand uses the pre-existing user-gesture Side Panel bridge');
   assert.ok(!source.includes("compactExpanded"),'no collapse state');
   assert.ok(!source.includes("dataset.scrollConversation"),'no transcript up/down buttons in rail');
-  assert.ok(source.includes("floatingHost.setAttribute('data-opendesk-prompts-floating','')"),
-    'the independent bottom-right transcript dock remains outside the prompt rail');
-  assert.ok(source.includes('void navigationClick(direction,button.dataset.scrollNavKey,event)'),
-    'navigation uses the live arrow setting, never a hard-coded floatingTop action');
+  assert.ok(!source.includes('data-opendesk-prompts-floating'),
+    'Prompt does not create the independent conversation dock');
+  assert.ok(!source.includes('navigationClick('),
+    'conversation navigation is owned by the separately installed Page Program');
 });
 
 test('official native Side Panel controller reuses React ToolHost and does not navigate full-size tabs',async()=>{

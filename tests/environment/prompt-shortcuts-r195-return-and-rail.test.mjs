@@ -13,7 +13,7 @@ function between(source,start,end){
   return source.slice(from,to);
 }
 
-test('R1.16.3 prompt rail and lower-right conversation dock are separate',async()=>{
+test('R1.1 prompt rail no longer owns conversation dock',async()=>{
   const [page,preview,sidepanel]=await Promise.all([
     file('trusted/page.js'),file('preview/index.html'),file('src/index.html')]);
   assert.match(page,/background:var\(--od-rail-bg\);border:1px solid var\(--od-rail-border\);/);
@@ -29,9 +29,10 @@ test('R1.16.3 prompt rail and lower-right conversation dock are separate',async(
     'management list must not restore the removed navigation switches');
   assert.match(preview,/id="previewScrollAdvanced"/,
     'optional navigation recovery remains under preview tool settings only');
-  assert.match(page,/floatingHost=doc.createElement\('nav'\)/);
-  assert.match(page,/const showBottom=navigationSettings.conversationBottom/);
-  assert.match(page,/const topKey=navigationSettings.conversationTop\?'conversationTop':'floatingTop'/);
+  assert.doesNotMatch(page,/floatingHost|navigationSettings|installJumpToTop/,
+    'Prompt runtime does not mount or configure conversation navigation');
+  const floating=await readFile('examples/programs/chatgpt-jump-top/src/floating-navigation.js','utf8');
+  assert.match(floating,/data-opendesk-ai-scroll-navigation/);
   assert.match(preview,/id="mockConversationNav"/);
   assert.match(preview,/el\('mockConversationBottom'\)\.addEventListener\('click'/);
   assert.match(preview,/el\('demoReplyBottom'\)\.addEventListener\('click'/);
@@ -45,7 +46,7 @@ test('R2.17 prompt-only rail scrolls only for genuinely long libraries',async()=
   assert.match(preview,/max-height:min\(400px,calc\(100% - 16px\)\);overflow-y:auto;overflow-x:hidden;/);
   assert.doesNotMatch(page,/max-height:min\(248px/);
   assert.doesNotMatch(preview,/max-height:248px|max-height:min\(340px/);
-  assert.match(page,/railHeight=Math.min\(rail.offsetHeight\|\|rail.scrollHeight\|\|222,win.innerHeight-16\)/);
+  assert.match(page,/railHeight=Math.min\(rail.offsetHeight\|\|rail.scrollHeight\|\|222,maxHeight\)/);
   const verticalHeight=count=>count*38+(count-1)*5+2*6+2;
   assert.equal(verticalHeight(4),181,'one OD entry plus three prompts fit without scrolling');
   assert(verticalHeight(12)>400,'long saved lists retain bounded internal scrolling');

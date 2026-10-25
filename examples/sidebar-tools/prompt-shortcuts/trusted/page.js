@@ -5,16 +5,9 @@ import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnable
 import {PROMPT_ID,PROMPT_DATA_STORE,PROMPT_PICKER_PROTOCOL,supportedOrigin,allowedPromptSite,installedPromptTool} from './policy.js';
 import {PROMPT_RAIL_OPEN_PROTOCOL} from './rail-open.js';
 import {PROMPT_ASSET_STORE,imageAssetDataUrl} from './asset-contract.js';
-import {installJumpToTop,findConversationMain,findConversationNavigation,
-  jumpConversationEdge} from '../../../programs/chatgpt-jump-top/src/conversation.js';
-import {deepSeekConversation,findDeepSeekBindings} from './conversation-sites.js';
 const MODEL=globalThis.OpenDeskPromptShortcutsModel;
 const builtInPage=url=>Boolean(supportedOrigin(url)||MODEL.builtinSite(url));
 const SLOT='__openDeskPromptShortcutsPageV1';
-const CHAT_TURNS='[data-testid^="conversation-turn-"],[data-content-search-unit-key]';
-const DEEPSEEK_TURNS='.ds-message';
-const GEMINI_TURNS='user-query,model-response';
-const NAV_BOTTOM_INSET=20,NAV_RAIL_GAP=24;
 const STYLE=String.raw`
 :host{all:initial;position:fixed;z-index:2147483600;pointer-events:none;color-scheme:light;font:13px/1.4 system-ui,sans-serif;
  --od-rail-bg:#fff;--od-rail-border:#e9e9eb;--od-rail-shadow:0 6px 24px #18243b15;
@@ -25,8 +18,6 @@ const STYLE=String.raw`
  --od-pop-bg:#20242b;--od-pop-fg:#ebedf1;--od-pop-border:#373c45}
 :host([hidden]){display:none!important}
 button[hidden]{display:none!important}
-/* Shortcuts stay centered on the left; conversation navigation has its own
-   bottom-left anchor. Reply navigation remains in the response toolbar. */
 .rail{pointer-events:auto;display:flex;flex:none;flex-direction:column;align-items:center;gap:5px;
  max-height:min(400px,calc(100dvh - 16px));overflow-y:auto;overflow-x:hidden;
  width:max-content;max-width:calc(100vw - 16px);padding:6px;border-radius:17px;
@@ -95,90 +86,6 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   let locationTimer=0,retryTimer=0,readFailures=0;
   let composing=false,inserting=false,lastAttempt=0,lastAttemptId=null;
   let activeRule=null,picker=null;
-  let navigationSettings=MODEL.navigationSettings();
-  let floatingHost=null,floatingButtons=null;
-  let jump=null,jumpRoot=null,releaseJump=null;
-  const stopJump=()=>{
-    jump?.dispose();jump=null;jumpRoot=null;
-    releaseJump?.();releaseJump=null;
-    floatingHost?.remove();floatingHost=null;floatingButtons=null;
-  };
-  const syncJump=()=>{
-    const deepSeek=activeRule?.builtin==='deepseek'&&deepSeekConversation(win.location.href);
-    const gemini=activeRule?.builtin==='gemini';
-    if(!supportedOrigin(win.location.href)&&!deepSeek&&!gemini){stopJump();return;}
-    if(jump&&jumpRoot===doc.documentElement)return;
-    stopJump();
-    const root=doc.documentElement,token=epoch,url=win.location.href;
-    let alive=true;
-    const resources=new Set();
-    const current=()=>runtimeCurrent()&&alive&&!paused&&visible&&token===epoch&&
-      url===win.location.href&&root===doc.documentElement;
-    const track=cleanup=>{
-      resources.add(cleanup);
-      return ()=>{if(resources.delete(cleanup))cleanup();};
-    };
-    // Adapt the existing adapter's lifetime, not the USER_SCRIPT entry or its
-    // Authority. The scrolling algorithm remains one statically audited source.
-    const owner={
-      on(target,type,callback,options){
-        const wrapped=event=>{
-          if(!current())return;
-          if(type!=='click'){callback(event);return;}
-          event.preventDefault();event.stopPropagation();
-          if(event.isTrusted!==true)return;
-          // Capture before the asynchronous Host read; currentTarget is nulled after dispatch.
-          const setting=event.currentTarget?.dataset?.scrollNavKey;
-          void api.storage.local.get(KEYS).then(async values=>{
-            const permitted=await allowedPromptSite({
-              installed:values[SIDEBAR_TOOL_STORE],enabled:values[SIDEBAR_TOOL_ENABLE_STORE],
-              epochs:values[TOOL_REVOCATION_EPOCHS_STORE],url,
-              sites:supportedOrigin(url)?null:model.sitesLoad(values[PROMPT_DATA_STORE]?.sites)
-            });
-            if(!current())return;
-            const sameRule=Boolean(supportedOrigin(url))||
-              JSON.stringify(model.siteFor(values[PROMPT_DATA_STORE]?.sites,url))===
-                JSON.stringify(activeRule);
-            const settings=model.load(values[PROMPT_DATA_STORE]?.library).settings;
-            if(!permitted||!sameRule||!settings.webButtons||
-                (setting&&settings.scrollNavigation[setting]!==true)){
-              stopJump();return;
-            }
-            callback(event);
-          }).catch(()=>{if(current())stopJump();});
-        };
-        target.addEventListener(type,wrapped,options);
-        return track(()=>target.removeEventListener(type,wrapped,options));
-      },
-      observe(target,callback,options){
-        const observer=new win.MutationObserver(records=>{if(current())callback(records);});
-        observer.observe(target,options);track(()=>observer.disconnect());return observer;
-      },
-      setTimeout(callback,delay){
-        const cancel=()=>win.clearTimeout(timer);
-        const timer=win.setTimeout(()=>{resources.delete(cancel);if(current())callback();},delay);
-        track(cancel);return timer;
-      },
-      onDispose:track
-    };
-    releaseJump=()=>{
-      alive=false;
-      for(const cleanup of [...resources]){resources.delete(cleanup);cleanup();}
-    };
-    jumpRoot=root;
-    try{
-      // Gemini has no verified per-response toolbar binding; do not guess one.
-      jump=gemini?{dispose(){}}:installJumpToTop({doc,win,owner,
-        sessionKey:'prompt-shortcuts',
-        regionDirections:{top:navigationSettings.regionTop,bottom:navigationSettings.regionBottom},
-        conversationDirections:{top:false,bottom:false},
-        ...(deepSeek?{
-          regionSelector:activeRule.containerSelector,
-          resolveBindings:()=>checkedEditor()?findDeepSeekBindings(doc,win,siteContainer()):[]
-        }:{})
-      });
-    }catch(error){stopJump();throw error;}
-  };
   const PICK_BLOCK_EVENTS=['pointerdown','pointerup','pointercancel','mousedown','mouseup',
     'dblclick','auxclick','contextmenu','touchstart','touchend','touchcancel'];
   const removePickerGuides=entry=>{
@@ -205,7 +112,6 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     if(announcer)announcer.textContent='';
   };
   const stop=()=>{
-    stopJump();
     visible=false;items=[];activeRule=null;closePicker();clearFeedback();
     observer?.disconnect();observer=null;observedRoot=null;
     resizeObserver?.disconnect();resizeObserver=null;observedRegions.clear();
@@ -270,169 +176,6 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     // Never write into an editor outside the user's chosen button region.
     return container&&available(container)&&node&&container.contains?.(node)&&
       editorKind(node)?node:null;
-  };
-  // A fixed adapter may claim navigation only after both transcript endpoints
-  // resolve to the same real scrollport. Custom sites do not inherit this claim.
-  const conversationNavigation=()=>{
-    if(!visible||paused||disposed)return null;
-    const url=win.location.href;
-    let main=null,selector=null;
-    if(supportedOrigin(url)){
-      main=findConversationMain(doc,win);
-      selector=CHAT_TURNS;
-    }else if(activeRule?.builtin==='deepseek'&&deepSeekConversation(url)&&checkedEditor()){
-      main=siteContainer();selector=DEEPSEEK_TURNS;
-    }else if(activeRule?.builtin==='gemini'&&checkedEditor()){
-      main=siteContainer();selector=GEMINI_TURNS;
-    }
-    if(!main||!selector)return null;
-    const result=findConversationNavigation(main,selector,doc,win);
-    return result?{...result,selector}:null;
-  };
-  const navigationClick=async(direction,key,event)=>{
-    event?.preventDefault();event?.stopPropagation();
-    if(event?.isTrusted!==true||!runtimeCurrent()||paused||!visible||
-        navigationSettings[key]!==true)return;
-    const token=epoch,url=win.location.href;
-    try{
-      const values=await api.storage.local.get(KEYS);
-      const sites=supportedOrigin(url)?null:model.sitesLoad(values[PROMPT_DATA_STORE]?.sites);
-      const permitted=await allowedPromptSite({
-        installed:values[SIDEBAR_TOOL_STORE],enabled:values[SIDEBAR_TOOL_ENABLE_STORE],
-        epochs:values[TOOL_REVOCATION_EPOCHS_STORE],url,sites
-      });
-      if(!permitted||!runtimeCurrent()||paused||!visible||token!==epoch||url!==win.location.href||
-          (!supportedOrigin(url)&&JSON.stringify(model.siteFor(sites,url))!==JSON.stringify(activeRule)))
-        return;
-      const settings=model.load(values[PROMPT_DATA_STORE]?.library).settings;
-      if(!settings.webButtons||settings.scrollNavigation[key]!==true)return;
-      const context=conversationNavigation();
-      if(context)jumpConversationEdge(context.main,context.selector,direction,doc,win);
-    }catch{/* Stale or revoked grants fail closed; scrolling is never retried blindly. */}
-  };
-  const nativeTopVisible=()=>{
-    const re=/^(?:scroll to top|back to top|return to top|回到顶部|返回顶部|回到对话顶部|回到对话开头)$/i;
-    return [...doc.querySelectorAll('button[aria-label],button[title]')].some(button=>{
-      if(button.closest('[data-opendesk-prompts],[data-opendesk-prompts-floating]'))return false;
-      if(!re.test((button.getAttribute('aria-label')||button.getAttribute('title')||'').trim()))return false;
-      const r=button.getBoundingClientRect(),s=win.getComputedStyle(button);
-      return r.width>8&&r.height>8&&r.bottom>0&&r.top<win.innerHeight&&
-        s.display!=='none'&&s.visibility!=='hidden';
-    });
-  };
-  const clearFloating=()=>{
-    floatingHost?.remove();floatingHost=null;floatingButtons=null;
-  };
-  const updateFloating=context=>{
-    const scroller=context?.scroller;
-    if(!scroller){clearFloating();return;}
-    // Keep both historic settings: conversationTop is the persistent action,
-    // floatingTop remains a scroll-triggered fallback. Never draw duplicate tops.
-    const floatingReady=navigationSettings.floatingTop&&
-      scroller.scrollTop>Math.max(320,Math.min(win.innerHeight,scroller.clientHeight)*.65);
-    const showTop=(navigationSettings.conversationTop||floatingReady)&&!nativeTopVisible();
-    const showBottom=navigationSettings.conversationBottom;
-    if(!showTop&&!showBottom){clearFloating();return;}
-    const topKey=navigationSettings.conversationTop?'conversationTop':'floatingTop';
-    const directions=[
-      ...(showTop?[{direction:'top',key:topKey}]:[]),
-      ...(showBottom?[{direction:'bottom',key:'conversationBottom'}]:[])
-    ];
-    // Navigation is independent from the centered shortcut toolbar.
-    if(!floatingHost){
-      floatingHost=doc.createElement('nav');
-      floatingHost.setAttribute('data-opendesk-prompts-floating','');
-      floatingHost.setAttribute('aria-label','对话滚动导航');
-      floatingHost.style.cssText='position:fixed;left:0;top:0;z-index:2147483599;pointer-events:none;visibility:hidden;';
-      const shadow=floatingHost.attachShadow({mode:'closed'});
-      const style=doc.createElement('style');
-      style.textContent=`:host{all:initial;display:block;flex:none;pointer-events:none;color-scheme:light}
-        :host(.dark){color-scheme:dark}
-        .stack{display:flex;flex-direction:column;align-items:center;gap:6px}
-        .stack.compact{flex-direction:row}
-        button{pointer-events:auto;width:42px;height:42px;border:1px solid #b8c2d44d;
-        border-radius:14px;background:#ffffffed;color:#2b3b51;box-shadow:0 4px 18px #0002;
-        cursor:pointer;display:grid;place-items:center;padding:0}
-        :host(.dark) button{background:#303239ef;color:#f3f4f8;border-color:#ffffff30}
-        button:hover:not(:disabled){background:#e8eef8}
-        :host(.dark) button:hover:not(:disabled){background:#434a55}
-        button:disabled{opacity:.48;cursor:default}
-        button:focus-visible{outline:3px solid #4c82ff;outline-offset:2px}
-        svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;
-        stroke-linecap:round;stroke-linejoin:round}`;
-      const stack=doc.createElement('div');stack.className='stack';
-      const make=direction=>{
-        const button=doc.createElement('button');button.type='button';
-        const label=direction==='top'?'回到对话顶部':'跳到对话底部';
-        button.title=label;button.setAttribute('aria-label',label);
-        const svg=doc.createElementNS('http://www.w3.org/2000/svg','svg');
-        svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
-        const path=doc.createElementNS('http://www.w3.org/2000/svg','path');
-        path.setAttribute('d',direction==='top'
-          ?'M17 11l-5-5-5 5m10 7-5-5-5 5'
-          :'M7 6l5 5 5-5M7 13l5 5 5-5');
-        svg.append(path);button.append(svg);
-        button.addEventListener('click',event=>
-          void navigationClick(direction,button.dataset.scrollNavKey,event));
-        return button;
-      };
-      floatingButtons={stack,top:make('top'),bottom:make('bottom')};
-      shadow.append(style,stack);
-    }
-    const signature=directions.map(item=>item.direction).join(',');
-    if(floatingHost.dataset.controls!==signature){
-      floatingButtons.stack.replaceChildren(...directions.map(item=>floatingButtons[item.direction]));
-      floatingHost.dataset.controls=signature;
-    }
-    const maxScroll=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
-    for(const {direction,key} of directions){
-      const button=floatingButtons[direction];
-      button.dataset.scrollNavKey=key;
-      button.disabled=direction==='top'?scroller.scrollTop<=2:scroller.scrollTop>=maxScroll-2;
-    }
-    floatingHost.classList.toggle('dark',!!darkTheme());
-    if(!floatingHost.isConnected)doc.documentElement?.append(floatingHost);
-  };
-  // Anchor to the visible conversation's bottom-left, never the rail's bottom.
-  // Native website controls retain precedence over this optional navigation.
-  const positionFloating=region=>{
-    if(!floatingHost||!floatingButtons||!rail||!host||host.hidden){
-      if(floatingHost)floatingHost.style.visibility='hidden';
-      return;
-    }
-    const bounds=rail.getBoundingClientRect(),compact=rail.classList.contains('horizontal');
-    const count=floatingButtons.stack.children.length;
-    if(!count||!region||!bounds.width||!bounds.height){
-      floatingHost.style.visibility='hidden';return;
-    }
-    const width=compact?count*42+(count-1)*6:42;
-    const height=compact?42:count*42+(count-1)*6;
-    const left=Math.round(Math.max(8,Math.min(win.innerWidth-width-8,
-      compact?Math.max(region.left,region.safeLeft??region.left)+16:
-        bounds.left+(bounds.width-width)/2)));
-    const top=Math.round(Math.min(win.innerHeight,region.top+region.height)-NAV_BOTTOM_INSET-height);
-    const nearRail=bounds.left<left+width&&bounds.left+bounds.width>left&&
-      bounds.top<top+height+NAV_RAIL_GAP&&bounds.top+bounds.height+NAV_RAIL_GAP>top;
-    if(!Number.isFinite(top)||top<Math.max(8,region.top+8)||nearRail||
-       top+height>win.innerHeight-8||
-       left+width>win.innerWidth-8){
-      floatingHost.style.visibility='hidden';return;
-    }
-    const occupied=[...doc.querySelectorAll(
-      'button,[role="button"],input,textarea,[contenteditable="true"]'
-    )].some(node=>{
-      if(node.hidden||node.closest?.('[data-opendesk-prompts],[data-opendesk-prompts-floating]'))
-        return false;
-      const style=win.getComputedStyle(node);
-      if(style.display==='none'||style.visibility==='hidden')return false;
-      const r=node.getBoundingClientRect();
-      return r.width>0&&r.height>0&&r.left<left+width&&r.right>left&&
-        r.top<top+height&&r.bottom>top;
-    });
-    if(occupied){floatingHost.style.visibility='hidden';return;}
-    floatingHost.style.left=left+'px';
-    floatingHost.style.top=top+'px';
-    floatingHost.style.visibility='visible';
   };
   const pickerSelector=node=>{
     if(!node||node===doc.documentElement||node===doc.body)return null;
@@ -690,11 +433,8 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     layoutTimer=0;if(!host||!visible||paused||disposed)return;
     if(href!==win.location.href){void refresh();return;}
     observeRoot();
-    syncJump();
-    const conversation=conversationNavigation();
-    updateFloating(conversation);
     if(![...rail.children].some(button=>!button.hidden)){
-      host.hidden=true;clearFloating();return;
+      host.hidden=true;return;
     }
     for(const old of observedRegions){
       if(old.isConnected)continue;
@@ -702,7 +442,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     }
     const rect=mainRegion(),target=editor();
     if(!rect||(activeRule&&!checkedEditor())){
-      host.hidden=true;clearFloating();return;
+      host.hidden=true;return;
     }
     if(!host.isConnected){
       doc.documentElement?.append(host);
@@ -716,7 +456,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       width:Math.max(200,rect.width*0.6),height:48
     };
     if(targetRect.left>=win.innerWidth||targetRect.top>=win.innerHeight){
-      host.hidden=true;clearFloating();return;
+      host.hidden=true;return;
     }
     // Dock 8 CSS px inside the conversation region, beyond native navigation.
     // The editor only determines whether that gutter can safely fit the rail.
@@ -730,15 +470,12 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       left+verticalWidth+10<=targetRect.left&&targetRect.width>=200;
     rail.classList.toggle('horizontal',!vertical);
     rail.classList.toggle('narrow',rect.width<680);
-    floatingButtons?.stack.classList.toggle('compact',!vertical);
-    const count=floatingButtons?.stack?.children?.length||0;
     rail.style.maxHeight='';
     if(vertical){
       const visibleTop=Math.max(0,rect.top),visibleBottom=Math.min(win.innerHeight,rect.top+rect.height);
       // Center the visible scrollport, not its potentially longer scrollable content.
       const center=(visibleTop+visibleBottom)/2;
-      const railBottom=count?visibleBottom-NAV_BOTTOM_INSET-(count*42+(count-1)*6)-NAV_RAIL_GAP:
-        visibleBottom-8;
+      const railBottom=visibleBottom-8;
       const maxHeight=Math.max(38,Math.min(400,visibleBottom-visibleTop-16,2*(railBottom-center)));
       rail.style.maxHeight=maxHeight+'px';
       const railHeight=Math.min(rail.offsetHeight||rail.scrollHeight||222,maxHeight);
@@ -752,13 +489,12 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       const height=rail.offsetHeight||52;
       const top=targetRect.top-height-18;
       if(top<8||width>win.innerWidth-16){
-        host.hidden=true;clearFloating();hideTip();return;
+        host.hidden=true;hideTip();return;
       }
       const alignedLeft=Math.max(8,Math.min(targetRect.left,win.innerWidth-width-8));
       host.style.left=Math.round(alignedLeft)+'px';host.style.top=Math.round(top)+'px';
       host.style.transform='none';host.hidden=false;
     }
-    positionFloating(rect);
     positionTip();
   };
   const schedule=()=>{if(!layoutTimer)layoutTimer=win.setTimeout(layout,120);};
@@ -1059,7 +795,6 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   async function refresh(){
     if(!runtimeCurrent()||paused)return;
     closePicker();
-    stopJump();
     const token=++epoch,url=win.location.href;
     if(href!==url){
       clearFeedback();hideTip();
@@ -1089,12 +824,11 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       if(!resizeObserver&&win.ResizeObserver)resizeObserver=new win.ResizeObserver(schedule);
       imageAssets=values[PROMPT_ASSET_STORE]?.assets||{};
       items=rows;imageSize=library.settings.imageSize;
-      navigationSettings=library.settings.scrollNavigation;visible=true;render();
-      syncJump();
+      visible=true;render();
       if(!observer){
         observer=new win.MutationObserver(records=>{
-          if(records.every(record=>[host,floatingHost].some(owner=>owner&&
-            (record.target===owner||owner.contains(record.target)))))return;
+          if(records.every(record=>host&&
+            (record.target===host||host.contains(record.target))))return;
           schedule();
         });
       }

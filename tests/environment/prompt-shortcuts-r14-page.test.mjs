@@ -7,7 +7,6 @@ import {PROMPT_RAIL_OPEN_PROTOCOL} from '../../examples/sidebar-tools/prompt-sho
 import {PROMPT_ID,PROMPT_SITE_STORE,PROMPT_DATA_STORE,CHATGPT_ORIGIN,changePromptSiteGrant}
   from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
 import {installAnalyticsHost} from '../../src/analytics/host.js';
-import {findConversationMain,findConversationNavigation} from '../../examples/programs/chatgpt-jump-top/src/conversation.js';
 import {ANALYTICS_STATE_KEY,ANALYTICS_PROTOCOL,ANALYTICS_PAGE_SCOPE_CHECK,ANALYTICS_DISCLOSURE_VERSION} from '../../src/analytics/contract.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
@@ -570,303 +569,24 @@ async function jumpPage({installed=true,enabled=true,webButtons=true,url=CHATGPT
 }
 
 
-test('R1.16.3 real page controller: one independent dock, five switches, boundary, lifecycle',async()=>{
-  const f=await jumpPage();
-  const nav=()=>f.root.children.find(node=>
-    Object.hasOwn(node.attributes,'data-opendesk-prompts-floating'));
-  const buttons=()=>nav()?.shadow?.children.find(node=>node.className==='stack')?.children||[];
-  const labels=()=>buttons().map(button=>button.getAttribute('aria-label'));
-  const defaults={regionTop:true,regionBottom:true,conversationTop:true,
-    conversationBottom:true,floatingTop:true};
-  const setFlags=async changes=>{
-    f.change(PROMPT_DATA_STORE,{library:{...f.library,settings:{webButtons:true,
-      scrollNavigation:{...defaults,...changes}}}});
-    await settle();
-  };
-  try{
-    await settle();
-    assert.equal(f.rail().children.length,2,'OD and one prompt; no navigation in rail');
-    const main=findConversationMain(f.doc,f.win);
-    assert(main,'the test fixture has one rendered conversation main');
-    const scrollContext=findConversationNavigation(main,
-      '[data-testid^="conversation-turn-"],[data-content-search-unit-key]',f.doc,f.win);
-    assert.equal(scrollContext?.scroller,f.main,'conversation edges resolve to the same real scrollport');
-    assert.equal(nav()?.getAttribute('aria-label'),'对话滚动导航');
-    assert.deepEqual(labels(),['回到对话顶部','跳到对话底部']);
-    assert.equal(buttons()[0].dataset.scrollNavKey,'conversationTop',
-      'legacy floatingTop must not create a second top arrow');
-    f.click(buttons()[1]);await settle();
-    assert.equal(f.main.scrollTop,f.main.scrollHeight-f.main.clientHeight,
-      'bottom button scrolls the transcript, not the current AI reply');
-    f.events.get('scroll')?.();await settle();
-    assert.equal(buttons()[1].disabled,true,'bottom edge is disabled');
-    f.click(buttons()[0]);await settle();
-    assert.equal(f.main.scrollTop,0);
-    f.events.get('scroll')?.();await settle();
-    assert.equal(buttons()[0].disabled,true,'top edge is disabled');
-
-    await setFlags({conversationTop:false});
-    assert.deepEqual(labels(),['跳到对话底部'],
-      'historical floatingTop is threshold gated when conversationTop is off');
-    f.main.scrollTop=1200;f.events.get('scroll')?.();await settle();
-    assert.deepEqual(labels(),['回到对话顶部','跳到对话底部']);
-    assert.equal(buttons()[0].dataset.scrollNavKey,'floatingTop',
-      'legacy fallback only reuses the same physical button');
-
-    await setFlags({conversationTop:false,floatingTop:false});
-    assert.deepEqual(labels(),['跳到对话底部']);
-    await setFlags({conversationTop:false,floatingTop:false,conversationBottom:false});
-    assert.equal(nav(),undefined,'all conversation switches off removes the dock');
-    assert.equal(f.rail().children.length,2,'turning navigation off preserves brand and prompt');
-
-    await setFlags({});
-    assert.equal(buttons().length,2);
-    const native=f.element('button');
-    native.setAttribute('aria-label','返回顶部');
-    native.getBoundingClientRect=()=>regionRect(1150,600,44,44);
-    f.doc.body.append(native);
-    f.events.get('scroll')?.();await settle();
-    assert.deepEqual(labels(),['跳到对话底部'],
-      'a visible native top control suppresses only OpenDesk top, not bottom');
-    native.remove();f.events.get('scroll')?.();await settle();
-    assert.deepEqual(labels(),['回到对话顶部','跳到对话底部']);
-
-    f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});await settle();
-    assert.equal(nav(),undefined,'disable clears the independent dock');
-    assert.equal(f.rail(),undefined,'disable clears prompt rail');
-  }finally{f.controller.dispose();}
-});
-
-test('Prompt jump integration: installed initialization mounts one content arrow; refresh preserves insertion',async()=>{
+test('Prompt Shortcuts never creates reply arrows or a conversation dock',async()=>{
   const f=await jumpPage();
   try{
     await settle();
-    assert.equal(f.arrows().length,1,'installation alone activates the static adapter');
-    assert.equal(f.arrowHosts()[0].nextElementSibling,f.content.anchor,'arrow belongs to native content toolbar');
-    assert.equal(f.arrows()[0].getAttribute('aria-label'),'Back to start of this content');
-    assert.equal(f.openPrompts().length,1,'existing prompt rail remains available');
-    f.click(f.arrows()[0]);await settle();
-    assert(f.scrolls.length>0,'live arrow invokes the real scroll algorithm');
-    assert(f.scrolls.every(scroll=>Number.isFinite(scroll.top)&&scroll.behavior==='instant'));
-    assert.equal(f.calls.length,0,'jump never edits the draft');
-    const stale=f.arrows()[0];
-    await Promise.all([f.controller.refresh(),f.controller.refresh(),f.controller.refresh()]);await settle();
-    assert.equal(f.arrows().length,1,'repeated permission refresh never duplicates arrows');
-    const count=f.scrolls.length;f.click(stale);await settle();assert.equal(f.scrolls.length,count);
+    assert.equal(f.arrows().length,0,'scroll arrows belong only to the independent Page Program');
+    assert.equal(f.doc.querySelectorAll('[data-opendesk-prompts-floating]').length,0);
+    assert.equal(f.openPrompts().length,1,'existing prompt button remains');
     f.openPrompts()[0].emit('click',{isTrusted:true});await settle();
     assert.deepEqual(f.calls,[{command:'insertText',text:'\n'+f.row.body}]);
     assert.equal(f.editor.textContent,'已有草稿\n'+f.row.body);
-    assert.deepEqual(f.copied,[],'jump integration preserves confirmed native insertion');
-  }finally{f.controller.dispose();}
-  assert.equal(f.arrows().length,0);
-  assert.equal(f.events.size,0,'all window listeners are released');
-  assert(f.mutationObservers.every(observer=>!observer.target),'all observers are disconnected');
-});
-
-for(const gate of ['uninstalled','disabled','webButtons off','lookalike origin','custom site']){
-  test('Prompt jump integration: initial gate rejects '+gate,async()=>{
-    const options={uninstalled:{installed:false},disabled:{enabled:false},'webButtons off':{webButtons:false},
-      'lookalike origin':{url:'https://chatgpt.com.evil.example/c/mock'},
-      'custom site':{url:'https://example.org/compose',customSite:true}}[gate];
-    const f=await jumpPage(options);
-    try{
-      await settle();assert.equal(f.arrows().length,0);
-      if(gate==='custom site')assert.equal(f.openPrompts().length,1,'custom-site prompt rail does not grant ChatGPT scrolling');
-      await f.controller.refresh();await settle();assert.equal(f.arrows().length,0);
-      assert.deepEqual(f.scrolls,[]);
-    }finally{f.controller.dispose();}
-  });
-}
-
-for(const gate of ['disable','uninstall','webButtons']){
-  test('Prompt jump integration: '+gate+' cleans up and restore mounts a fresh arrow',async()=>{
-    const f=await jumpPage();
-    try{
-      await settle();assert.equal(f.arrows().length,1);
-      const stale=f.arrows()[0],host=f.arrowHosts()[0],observers=[...f.mutationObservers];
-      const [key,blocked,restored]={disable:[SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false},{}],
-        uninstall:[SIDEBAR_TOOL_STORE,[],[f.pkg]],
-        webButtons:[PROMPT_DATA_STORE,{library:{...f.library,settings:{webButtons:false}}},{library:f.library}]}[gate];
-      f.change(key,blocked);await settle();
-      assert.equal(f.arrows().length,0);assert.equal(host.isConnected,false);
-      assert.equal(f.openPrompts().length,0,'existing prompt controls share the same gate');
-      assert(observers.every(observer=>!observer.target),'revoked session releases its observers');
-      f.click(stale);await settle();assert.deepEqual(f.scrolls,[],'detached arrow cannot scroll');
-      f.change(key,restored);await settle();
-      assert.equal(f.arrows().length,1);assert.notEqual(f.arrows()[0],stale);
-      f.click(stale);await settle();assert.deepEqual(f.scrolls,[],'restoration cannot revive an old listener');
-      f.click(f.arrows()[0]);await settle();assert(f.scrolls.length>0,'fresh session works after restoration');
-    }finally{f.controller.dispose();}
-  });
-}
-
-test('Prompt jump integration: same-URL documentElement replacement restores only the current document arrow',async()=>{
-  const f=await jumpPage();
-  try{
-    await settle();assert.equal(f.arrows().length,1);
-    const stale=f.arrows()[0],oldRoot=f.doc.documentElement;
-    const root=f.element('html'),body=f.element('body'),content=f.conversation();
-    oldRoot.setConnected(false);root.append(body);body.append(f.main);
-    f.content.turn.remove();f.main.append(content.turn);
-    f.doc.documentElement=root;f.doc.body=body;root.setConnected(true);
-    f.intervals[0]();await settle();
-    assert.equal(f.arrows().length,1,'normal fallback detects root replacement without URL change');
-    assert.equal(f.arrowHosts()[0].nextElementSibling,content.anchor);
-    assert(!oldRoot.querySelector('[data-opendesk-chatgpt-jump-top]'),'old document host removed');
-    f.click(stale);await settle();assert.deepEqual(f.scrolls,[]);
-    f.intervals[0]();await settle();assert.equal(f.arrows().length,1);
-    f.click(f.arrows()[0]);await settle();assert(f.scrolls.length>0);
+    assert.deepEqual(f.scrolls,[],'prompt insertion cannot scroll conversation');
+    await f.controller.refresh();await settle();
+    assert.equal(f.arrows().length,0,'refresh must not revive old navigation');
+    assert.equal(f.openPrompts().length,1);
+    f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});await settle();
+    assert.equal(f.openPrompts().length,0,'prompt disable only removes prompt controls');
   }finally{f.controller.dispose();}
 });
-
-test('Prompt jump integration: SPA toolbar replacement and exact-origin exit invalidate stale arrows',async()=>{
-  const f=await jumpPage();
-  try{
-    await settle();assert.equal(f.arrows().length,1);
-    const stale=f.arrows()[0],content=f.conversation();
-    f.content.turn.remove();f.main.append(content.turn);
-    f.win.location.href=CHATGPT_ORIGIN+'/c/next';
-    f.click(stale);await settle();assert.deepEqual(f.scrolls,[],'URL changes invalidate clicks before navigation delivery');
-    f.events.get('popstate')?.();await settle();
-    assert.equal(f.arrows().length,1);assert.equal(f.arrowHosts()[0].nextElementSibling,content.anchor);
-    f.click(stale);await settle();assert.deepEqual(f.scrolls,[]);
-    const next=f.arrows()[0];
-    f.click(next);await settle();assert(f.scrolls.length>0);
-    const count=f.scrolls.length;
-    f.win.location.href='https://chatgpt.com.evil.example/c/next';
-    f.events.get('hashchange')?.();await settle();assert.equal(f.arrows().length,0);
-    f.click(next);await settle();assert.equal(f.scrolls.length,count);
-    f.win.location.href=CHATGPT_ORIGIN+'/c/returned';
-    f.events.get('popstate')?.();await settle();assert.equal(f.arrows().length,1);
-    f.click(next);await settle();assert.equal(f.scrolls.length,count);
-    f.click(f.arrows()[0]);await settle();assert(f.scrolls.length>count);
-  }finally{f.controller.dispose();}
-});
-
-function assertRuntimeDisposed(f){
-  assert.equal(f.openPrompts().length,0);
-  assert.equal(f.doc.querySelectorAll('[data-opendesk-prompts]').length,0);
-  assert.equal(f.arrows().length,0);
-  assert.equal(f.activeIntervals.size,0);
-  assert.equal(f.pendingTimers.size,0);
-  assert.equal(f.toastTimers.size,0);
-  assert.equal(f.events.size,0);
-  assert.equal(f.docEvents.size,0);
-  assert(f.mutationObservers.every(observer=>!observer.target));
-  assert.equal(f.win.__openDeskPromptShortcutsPageV1,undefined);
-}
-
-test('Prompt runtime lifetime: invalidation removes controls and stale callbacks cannot revive them',async()=>{
-  const f=await jumpPage();
-  try{
-    await settle();assert.equal(f.arrows().length,1);assert.equal(f.openPrompts().length,1);
-    const stale=f.arrows()[0],pageShow=f.events.get('pageshow'),storage=[...f.siteEvents][0];
-    f.mutate([{target:f.main,addedNodes:[f.content.turn]}]);
-    const callbacks=[...f.pendingTimers.values()];
-    assert(callbacks.length>0,'exercise cancellation of pending DOM work');
-    let reads=0;const get=f.api.storage.local.get;
-    f.api.storage.local.get=keys=>{reads++;return get(keys);};
-    f.api.runtime.id=undefined;
-    f.intervals[0]();assertRuntimeDisposed(f);
-    assert.equal(f.siteEvents.size,0);assert.equal(f.runtimeMessages.size,0);
-    assert.doesNotThrow(()=>{f.controller.dispose();f.controller.dispose();});
-    for(const callback of callbacks)callback();
-    f.click(stale);f.intervals[0]();pageShow({persisted:true});
-    storage({[PROMPT_DATA_STORE]:{}},'local');await f.controller.refresh();await settle();
-    assert.equal(reads,0);assert.deepEqual(f.scrolls,[]);assertRuntimeDisposed(f);
-    assert.equal(initPromptShortcuts({api:f.api,doc:f.doc,win:f.win}),null);
-  }finally{f.controller.dispose();}
-});
-
-test('Prompt runtime lifetime: throwing Chrome listener removals cannot interrupt DOM cleanup',async()=>{
-  const f=await jumpPage();
-  try{
-    await settle();let removals=0;
-    for(const source of [f.api.storage.onChanged,f.api.runtime.onMessage]){
-      source.removeListener=()=>{removals++;throw Error('Extension context invalidated');};
-    }
-    f.api.runtime.id=undefined;
-    // Exercise the jump callback guard before the 1100ms poll runs.
-    assert.doesNotThrow(()=>f.click(f.arrows()[0]));await settle();
-    assert.equal(removals,3);assert.deepEqual(f.scrolls,[]);assertRuntimeDisposed(f);
-    assert.doesNotThrow(()=>f.controller.dispose());
-    assert.equal(removals,3,'disposal remains idempotent after Chrome removal failures');
-  }finally{f.controller.dispose();}
-});
-
-test('Prompt jump integration: BFCache suspends the session and restores one fresh arrow',async()=>{
-  const f=await jumpPage();
-  try{
-    await settle();assert.equal(f.arrows().length,1);
-    const stale=f.arrows()[0];
-    f.events.get('pagehide')({persisted:true});await settle();
-    assert.equal(f.arrows().length,0);assert.equal(f.openPrompts().length,0);
-    f.click(stale);f.intervals[0]();await settle();assert.deepEqual(f.scrolls,[]);assert.equal(f.arrows().length,0);
-    f.events.get('pageshow')({persisted:true});await settle();
-    assert.equal(f.arrows().length,1);assert.equal(f.openPrompts().length,1);
-    f.click(stale);await settle();assert.deepEqual(f.scrolls,[]);
-    f.events.get('pageshow')({persisted:true});await settle();assert.equal(f.arrows().length,1);
-    f.click(f.arrows()[0]);await settle();assert(f.scrolls.length>0);
-  }finally{f.controller.dispose();}
-});
-
-test('Prompt jump integration: DOM replacement schedules one new binding and retires the old arrow',async()=>{
-  const f=await jumpPage();
-  try{
-    await settle();assert.equal(f.arrows().length,1);
-    const stale=f.arrows()[0],content=f.conversation();
-    f.content.turn.remove();f.main.append(content.turn);
-    f.mutate([{target:f.main,addedNodes:[content.turn],removedNodes:[f.content.turn]}]);
-    f.mutate([{target:f.main,addedNodes:[content.turn]}]);
-    await settle();
-    assert.equal(f.arrows().length,1,'observer/timer refreshes coalesce without duplicated controls');
-    assert.equal(f.arrowHosts()[0].nextElementSibling,content.anchor);
-    f.click(stale);await settle();assert.deepEqual(f.scrolls,[]);
-    f.click(f.arrows()[0]);await settle();assert(f.scrolls.length>0);
-  }finally{f.controller.dispose();}
-});
-
-for(const gate of ['disable','uninstall','webButtons']){
-  test('Prompt jump integration: trusted click rereads '+gate+' before storage notification',async()=>{
-    const f=await jumpPage();
-    try{
-      await settle();assert.equal(f.arrows().length,1);
-      const button=f.arrows()[0],get=f.api.storage.local.get;let reads=0;
-      f.api.storage.local.get=keys=>{reads++;return get(keys);};
-      button.emit('click',{isTrusted:false,preventDefault(){},stopPropagation(){}});
-      await settle();assert.equal(reads,0);assert.deepEqual(f.scrolls,[]);
-      const [key,blocked]={disable:[SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false}],
-        uninstall:[SIDEBAR_TOOL_STORE,[]],
-        webButtons:[PROMPT_DATA_STORE,{library:{...f.library,settings:{webButtons:false}}}]}[gate];
-      f.values.set(key,blocked); // Storage changed, but onChanged has not reached this document.
-      f.click(button);await settle();
-      assert.equal(reads,1,'trusted click rechecks current persisted authorization');
-      assert.deepEqual(f.scrolls,[]);assert.equal(f.arrows().length,0);
-    }finally{f.controller.dispose();}
-  });
-}
-
-for(const fence of ['refresh','url','root']){
-  test('Prompt jump integration: pending click cannot cross '+fence+' fence',async()=>{
-    const f=await jumpPage();let release;
-    try{
-      await settle();assert.equal(f.arrows().length,1);
-      const get=f.api.storage.local.get;
-      f.api.storage.local.get=keys=>{
-        f.api.storage.local.get=get;
-        return new Promise(resolve=>{release=()=>resolve(get(keys));});
-      };
-      f.click(f.arrows()[0]);assert.equal(typeof release,'function');
-      if(fence==='refresh')await f.controller.refresh();
-      if(fence==='url')f.win.location.href=CHATGPT_ORIGIN+'/c/changed-before-read';
-      if(fence==='root'){
-        const root=f.element('html');root.append(f.doc.body);f.doc.documentElement=root;
-      }
-      release();await settle();assert.deepEqual(f.scrolls,[],'stale asynchronous authorization cannot scroll');
-    }finally{release?.();f.controller.dispose();}
-  });
-}
-
 test('R1.5 IME composition prevents edit; corrupted line breaks never count as insertion success',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
   const model=globalThis.OpenDeskPromptShortcutsModel;
@@ -2439,90 +2159,20 @@ test('Host probes real custom-site adapter for failures and fallback, then block
     'disable lifecycle telemetry remains, but no page action crosses the revoked scope');
 });
 
-const floatingHost=f=>f.doc.querySelector('[data-opendesk-prompts-floating]');
 
-test('Conversation navigation anchors bottom-left independently from the centered shortcuts and respects native controls',async()=>{
+// The Prompt host may be replaced by React, but it must not resurrect the
+// independent scroll-navigation owner or remove a different Program's DOM.
+test('Prompt rail repairs its own DOM without introducing navigation ownership',async()=>{
   const f=await jumpPage();
   try{
     await settle();
-    const rail=f.rail();
-    rail.offsetWidth=52;rail.offsetHeight=180;
-    rail.getBoundingClientRect=()=>regionRect(268,300,52,180);
-    const dock=floatingHost(f);assert(dock);
-    f.events.get('scroll')?.();await settle();
-    assert.equal(dock.parentNode,f.doc.documentElement,'separate fixed navigation');
-    const host=f.doc.querySelector('[data-opendesk-prompts]');
-    assert.equal(host.style.top,'390px','shortcuts remain centered in the visible conversation');
-    assert.equal(host.style.transform,'translateY(-50%)');
-    assert.equal(dock.style.left,'273px','navigation aligns with the shortcut column');
-    assert.equal(dock.style.top,'630px','navigation is 20px above the visible conversation bottom');
-    assert.equal(dock.style.visibility,'visible');
-
-    rail.getBoundingClientRect=()=>regionRect(268,250,52,280);
-    f.events.get('scroll')?.();await settle();
-    assert.equal(dock.style.top,'630px','shortcut height does not move navigation');
-    assert.equal(dock.style.visibility,'visible');
-
-    const native=f.element('button');
-    native.setAttribute('aria-label','网站按钮');
-    native.getBoundingClientRect=()=>regionRect(280,650,24,20);
-    f.doc.body.append(native);
-    f.mutate([{target:f.doc.body,addedNodes:[native]}]);await settle();
-    assert.equal(floatingHost(f)?.style.visibility,'hidden',
-      'a native button touching the new dock has precedence');
-
-    native.hidden=true;
-    f.mutate([{type:'attributes',attributeName:'hidden',target:native}]);await settle();
-    assert.equal(floatingHost(f)?.style.visibility,'visible');
-  }finally{f.controller.dispose();}
-});
-
-for(const mutation of ['class','style','childList','subtree']){
-  test('R1.16.1 own floating '+mutation+' mutation does not schedule layout',async()=>{
-    const f=await jumpPage();
-    try{
-      await settle();const host=floatingHost(f);assert(host);
-      assert.equal(f.pendingTimers.size,0,'initial layout settled');
-      const child=f.element('span');host.append(child);
-      const record=mutation==='childList'
-        ?{target:host,addedNodes:[child]}
-        :{type:'attributes',attributeName:mutation==='subtree'?'class':mutation,
-          target:mutation==='subtree'?child:host};
-      f.mutate([record]);
-      assert.equal(f.pendingTimers.size,0,'owned floating DOM must not trigger another layout timer');
-    }finally{f.controller.dispose();}
-  });
-}
-
-test('R1.16.1 site/native mutations schedule layout, detached rail restores, revocation cleans floating resources',async()=>{
-  const f=await jumpPage();
-  try{
-    await settle();const originalFloat=floatingHost(f);assert(originalFloat);
-    const native=f.element('button');native.setAttribute('aria-label','站点控制');f.doc.body.append(native);
-    for(const target of [f.doc.documentElement,native]){
-      assert.equal(f.pendingTimers.size,0);
-      f.mutate([{type:'attributes',attributeName:'class',target}]);
-      assert(f.pendingTimers.size>0,'site/native changes must still schedule layout');await settle();
-    }
-    f.mutate([{type:'attributes',attributeName:'style',target:originalFloat},
-      {type:'attributes',attributeName:'class',target:native}]);
-    assert(f.pendingTimers.size>0,'a mixed own/site batch still schedules layout');await settle();
-    originalFloat.remove();
-    f.events.get('scroll')?.();
-    assert(f.pendingTimers.size>0,'the next page layout restores detached navigation');
-    await settle();assert.equal(floatingHost(f),originalFloat,'detached dock restores');
     const railHost=f.doc.querySelector('[data-opendesk-prompts]');
-    railHost.remove();f.mutate([{target:f.doc.documentElement,removedNodes:[railHost]}]);
-    assert(f.pendingTimers.size>0,'removing the owned rail from the site root is still relevant');
-    await settle();assert.equal(f.doc.querySelector('[data-opendesk-prompts]'),railHost);
-    const staleFloat=floatingHost(f),staleButton=staleFloat.shadow.querySelector('button');
-    f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});await settle();
-    assert.equal(floatingHost(f),null);assert.equal(staleFloat.isConnected,false);
-    assert.equal(f.rail(),undefined);assert.equal(f.arrows().length,0);
-    assert(f.mutationObservers.every(observer=>!observer.target),'revocation disconnects every observer');
-    assert.equal(f.pendingTimers.size,0,'revocation clears pending layout work');
-    f.click(staleButton);f.mutate([{type:'attributes',attributeName:'style',target:native}]);
-    await settle();assert.equal(floatingHost(f),null);assert.deepEqual(f.scrolls,[]);
-    assert.equal(f.pendingTimers.size,0,'stale callbacks cannot restart layout after revocation');
+    assert(railHost);
+    railHost.remove();
+    f.mutate([{target:f.doc.documentElement,removedNodes:[railHost]}]);
+    await settle();
+    assert.equal(f.doc.querySelector('[data-opendesk-prompts]'),railHost);
+    assert.equal(f.doc.querySelector('[data-opendesk-prompts-floating]'),null);
+    assert.equal(f.arrows().length,0);
   }finally{f.controller.dispose();}
 });

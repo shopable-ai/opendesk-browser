@@ -1,3 +1,17 @@
+# AI 对话滚动导航 · AI Chat Scroll Navigation
+
+## R1.1 当前源码（2026-10-25；未完成正式安装验收）
+
+- **独立 Page Program**：代码自带滚动导航；不再要求 Prompt Shortcuts 安装、启用或提供运行时。安装来源仍为 `examples/programs/chatgpt-jump-top/`，避免破坏现有路径引用。
+- **稳定身份**：保留旧 `opendesk.chatgpt-jump-top` Program ID。仓库存在旧正式安装包，但本轮无法核实每台用户设备的 Installed / Authority 或 ID 迁移能力，因此不擅自改成 `opendesk.ai-scroll-navigation`、不转移旧授权、不自动卸载旧程序。npm 项目名称仅用于源码发现，不能代表安装身份。
+- **按站点单独适配**：ChatGPT 沿用原长内容识别及共享回复操作组；DeepSeek 只在经过固定路径和操作栏绑定规则的对话中提供长回复操作；Gemini 仅尝试在确定对话滚动容器后提供整段对话顶部/底部导航，**不接管未验证的单条回复工具栏**。未识别结构安全隐藏。
+- **五项行为**：`regionTop`、`regionBottom` 为同一长内容两方向；`conversationTop`、`conversationBottom` 为整段对话；`floatingTop` 与 `conversationTop` 复用一枚顶部浮动按钮，不能创建第二枚。默认无需另加配置开关。
+- **权限**：Page `pageRules` 仅为 `chatgpt.com`、`chat.deepseek.com`、`gemini.google.com` 三个明确 Origin 的顶层 `USER_SCRIPT`。从旧版新增 Origin 属于扩权，必须走现有 Page Authority 与用户审阅；代码不会替安装器授予权限。
+- **真实交付状态**：本轮只是待验收源码。目录中仍存在历史 `chatgpt-jump-top.opendesk-page.json` **0.2.0 / revision 2 / ChatGPT-only**，不包含本轮 R1.1，不能作为新的多站独立安装完成证据。须用现有 `build:program`、`scripts/build-page-install-package.mjs`、项目校验器生成/验证新的正式包后，再做本机 Chrome 用户审阅、安装、停用、撤权、跨站和 Mind Map 共存的真实验证。未验证项均为 `NOT_TESTED`；整体发布 `BLOCKED`，不可虚构 `MULTI_SITE_VERIFIED`。
+- **扩展中心搜索**：安装条目按已安装包 `title` 等字段检索；新显示标题应通过下一版经验证正式包写入「AI 对话滚动导航」。旧包标题和关键词搜索仍为旧值，未取得新包安装证据前不能宣称搜索已修复。搜索元数据属于 Extension Center 独立 owner。
+
+## 历史：ChatGPT Jump Top 的原始单站证据
+
 # ChatGPT 长内容回顶 · OpenDesk Page 增强
 
 **日常产品入口已接入[提示词快捷按钮](../../sidebar-tools/prompt-shortcuts/README.zh-CN.md#chatgpt-长内容回到开头)**：安装并启用该工具、打开「网页按钮」后，由浏览器扩展固定适配器在进入或刷新 ChatGPT 时自动运行，无需另装或手动 Run 本项目。本目录继续保存唯一滚动算法、独立诊断入口及历史 Page 包；下文七次点击属于此前独立 USER_SCRIPT 开发证据，扩展自动运行的新增结果见[集成记录](../../sidebar-tools/prompt-shortcuts/evidence/chatgpt-jump-integration-20261020.json)。

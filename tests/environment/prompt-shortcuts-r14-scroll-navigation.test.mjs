@@ -98,89 +98,48 @@ test('R1.16 ambiguous or short conversation has no global controls',()=>{
   last.parentElement=foreign;
   assert.equal(findConversationNavigation(main,'[data-turn]',doc,win),null);
 });
-test('R1.16 formal management, preview, authority and uninstall cleanup are source-bound',async()=>{
-  const [html,js,page,preview]=await Promise.all([
-    readFile(ROOT+'/src/index.html','utf8'),readFile(ROOT+'/src/main.js','utf8'),
-    readFile(ROOT+'/trusted/page.js','utf8'),readFile(ROOT+'/preview/index.html','utf8')
-  ]);
-  assert.doesNotMatch(html,/ps-scroll-settings|data-scroll-nav=/);
-  assert.doesNotMatch(js,/ps-scroll-settings|changeScrollSetting/);
-  assert.doesNotMatch(preview,/previewScrollSettings|data-scroll-nav-preview=/);
-  assert.match(preview,/id="previewScrollAdvanced"/);
-  assert.match(preview,/id="previewScrollRestore"/);
-  assert.match(js,/await commit\(next\)/);
-  assert.match(page,/await allowedPromptSite\(/);
-  assert.match(page,/navigationSettings\.floatingTop/);
-  assert.match(page,/floatingHost\?\.remove\(\)/);
-  assert.doesNotMatch(page,/brand\.title='打开提示词快捷按钮'/);
-  assert.doesNotMatch(preview,/title='打开模拟侧边栏管理提示词'/);
-});
-
-test('Formal nav anchors bottom-left separately from shortcuts while preserving switches and region toolbar',async()=>{
-  const [page,preview,html]=await Promise.all([
-    readFile(ROOT+'/trusted/page.js','utf8'),readFile(ROOT+'/preview/index.html','utf8'),
-    readFile(ROOT+'/src/index.html','utf8')
-  ]);
-  const render=page.slice(page.indexOf('  function render(){'),page.indexOf('  async function refresh(){'));
-  assert.doesNotMatch(render,/data-scroll-conversation|nav-item|conversationTop|conversationBottom/,
-    'the injected prompt rail must contain saved prompt entries only');
-  assert.match(page,/floatingHost=doc.createElement\('nav'\)/);
-  assert.match(page,/floatingHost.setAttribute\('aria-label','对话滚动导航'\)/);
-  assert.match(page,/const showTop=\(navigationSettings.conversationTop\|\|floatingReady\)&&!nativeTopVisible\(\)/);
-  assert.match(page,/const showBottom=navigationSettings.conversationBottom/);
-  assert.match(page,/const topKey=navigationSettings.conversationTop\?'conversationTop':'floatingTop'/);
-  assert.match(page,/floatingButtons.stack.replaceChildren\(\.\.\.directions.map/);
-  assert.match(page,/navigationClick\(direction,button.dataset.scrollNavKey,event\)/);
-  assert.match(page,/button.disabled=direction==='top'\?/);
-  assert.match(page,/conversationDirections:\{top:false,bottom:false\}/);
-  assert.match(preview,/id="mockConversationNav" aria-label="对话滚动导航"/);
-  assert.match(preview,/id="demoReplyTop"/);
-  assert.match(preview,/id="demoReplyBottom"/);
-  assert.doesNotMatch(preview,/mockFloatingTop|page-shortcut nav-preview/);
-  assert.doesNotMatch(html,/data-scroll-nav=/);
-  assert.doesNotMatch(preview,/data-scroll-nav-preview=/);
-  assert.match(page,/regionDirections:\{top:navigationSettings\.regionTop,bottom:navigationSettings\.regionBottom\}/);
-  assert.match(page,/doc.documentElement\?\.append\(floatingHost\)/);
-  assert.match(page,/const positionFloating=region=>/);
-  assert.match(page,/NAV_BOTTOM_INSET=20,NAV_RAIL_GAP=24/);
-  assert.match(page,/region.top\+region.height\)-NAV_BOTTOM_INSET-height/);
-  assert.doesNotMatch(page,/const dockHeight=railHeight\+reserved/);
-  assert.doesNotMatch(page,/position:fixed;right:18px/);
-  assert.match(preview,/class="page-rail-group" id="pageRailGroup"/);
-  assert.match(preview,/\.mock-conversation-nav\{position:absolute;left:17px;bottom:20px/);
-  const mockRail=preview.slice(preview.indexOf(' function renderRail(){'),
-    preview.indexOf(' function positionWebTip(){'));
-  assert.doesNotMatch(mockRail,/conversationTop|conversationBottom|floatingTop/);
-});
-
-test('R1.17 default navigation stays silent in the manager and legacy opt-outs can be restored',async()=>{
-  const model=await readModel();
-  const before=model.load({...model.defaults(),settings:{...model.defaults().settings,
-    imageSize:'compact',scrollNavigation:{regionBottom:false,floatingTop:false}}});
-  assert.equal(before.settings.scrollNavigation.regionBottom,false);
-  const webOff=model.load({...before,settings:{...before.settings,webButtons:false}});
-  assert.equal(webOff.settings.imageSize,'compact');
-  assert.equal(webOff.settings.scrollNavigation.floatingTop,false);
-  const restored=model.load({...webOff,settings:{...webOff.settings,
-    scrollNavigation:model.navigationSettings()}});
-  assert.equal(restored.settings.webButtons,false);
-  assert.equal(restored.settings.imageSize,'compact');
-  for(const key of flags)assert.equal(restored.settings.scrollNavigation[key],true,key);
-  const [host,view,html,preview]=await Promise.all([
-    readFile('src/ui/sidebar-tools.js','utf8'),
-    readFile('src/ui/react/tabs/tool-host.tsx','utf8'),
+test('R1.1 Prompt Shortcuts has no runtime navigation owner',async()=>{
+  const [page,html,program,adapter,floating]=await Promise.all([
+    readFile(ROOT+'/trusted/page.js','utf8'),
     readFile(ROOT+'/src/index.html','utf8'),
-    readFile(ROOT+'/preview/index.html','utf8')
+    readFile('examples/programs/chatgpt-jump-top/src/main.js','utf8'),
+    readFile('examples/programs/chatgpt-jump-top/src/site-adapters.js','utf8'),
+    readFile('examples/programs/chatgpt-jump-top/src/floating-navigation.js','utf8')
   ]);
-  assert.doesNotMatch(html,/ps-scroll-settings|滚动导航.*默认开启/);
-  assert.match(host,/return \{\.\.\.previous,webButtons:!expected\}/);
-  assert.match(host,/return \{\.\.\.previous,scrollNavigation:model\.navigationSettings\(\)\}/);
-  assert.match(host,/writeVerifiedLocalValue\(api,namespace,next,raw,label\)/);
-  assert.match(host,/JSON\.stringify\(previous\.scrollNavigation\)!==expected/);
-  assert.match(host,/event\?\.isTrusted!==true/);
-  assert.match(host,/promptNavigationSnapshot&&/);
-  assert.match(view,/id="sidebar-tool-prompt-nav-advanced"/);
-  assert.match(view,/id="sidebar-tool-prompt-nav-reset"/);
-  assert.match(preview,/id="previewScrollAdvanced"/);
-  assert.match(preview,/id="previewScrollRestore"/);
+  assert.doesNotMatch(page,/installJumpToTop|syncJump|stopJump|jumpConversationEdge/);
+  assert.doesNotMatch(page,/floatingHost|floatingButtons|navigationSettings|data-opendesk-prompts-floating/);
+  assert.doesNotMatch(page,/conversation-sites\.js/);
+  assert.doesNotMatch(html,/ps-scroll-settings|data-scroll-nav=/);
+  assert.match(program,/installJumpToTop\(/);
+  assert.match(program,/installFloatingNavigation\(/);
+  assert.match(adapter,/findDeepSeekBindings/);
+  assert.match(floating,/data-opendesk-ai-scroll-navigation/);
+  assert.match(floating,/doc\.querySelector\(LEGACY\)/,
+    'temporarily running old Prompt navigation wins during migration');
+});
+test('R1.1 old Prompt scroll flags survive reading and storage without running',async()=>{
+  const model=await readModel();
+  const old={...model.defaults(),settings:{...model.defaults().settings,
+    scrollNavigation:{regionBottom:false,floatingTop:false}}};
+  const load=model.load(old);
+  assert.equal(load.settings.scrollNavigation.regionBottom,false);
+  assert.equal(load.settings.scrollNavigation.floatingTop,false);
+  const persisted=model.libraryForStorage(load);
+  const restored=model.load(persisted);
+  assert.equal(restored.settings.scrollNavigation.regionBottom,false);
+  assert.equal(restored.settings.scrollNavigation.floatingTop,false);
+  assert.equal(restored.settings.webButtons,old.settings.webButtons);
+});
+test('R1.1 site adapters are explicit, restricted and do not claim all reply toolbars',async()=>{
+  const {siteForUrl,findSiteBindings}=await import(
+    '../../examples/programs/chatgpt-jump-top/src/site-adapters.js');
+  assert.equal(siteForUrl('https://chatgpt.com/c/abc'),'chatgpt');
+  assert.equal(siteForUrl('https://chat.deepseek.com/a/chat/s/abcd-1234'),'deepseek');
+  assert.equal(siteForUrl('https://gemini.google.com/app/abcd'),'gemini');
+  for(const url of ['https://chatgpt.com.evil.test/c/abc',
+    'http://chatgpt.com/c/abc','https://claude.ai/chat/1',
+    'https://chat.deepseek.com/login','https://gemini.google.com/settings'])
+    assert.equal(siteForUrl(url),null,url);
+  assert.deepEqual(findSiteBindings({},{location:{href:'https://gemini.google.com/app/a'}}),[],
+    'unverified Gemini per-answer actions fail closed');
 });
