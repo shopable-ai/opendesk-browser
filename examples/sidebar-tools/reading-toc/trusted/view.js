@@ -83,7 +83,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   const make=(tag,cls)=>{const node=doc.createElement(tag);if(cls)node.className=cls;return node;};
   const panel=make('section','panel');panel.setAttribute('aria-label','网页目录');
   const head=make('div','head'),caption=make('strong','heading');
-  caption.textContent='CONTENTS';
+  caption.textContent=t('contents');
   const modes=make('div','modes');modes.hidden=false;modes.setAttribute('role','group');modes.setAttribute('aria-label','目录视图');
   const types=['top','focus','full','ai'],buttons=[];
   let mode='focus',modeExplicit=false,selected='',snapshot={items:[],sources:[],activeId:''},lastKey='';
@@ -135,9 +135,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   }
   function updateLanguage(){
     panel.setAttribute('aria-label',t('pageLabel'));
-    // Preserve the approved literal CONTENTS heading shared with the Side Panel.
-    // Accessible panel and control names remain localized.
-    caption.textContent='CONTENTS';
+    caption.textContent=t('contents');
     modes.setAttribute('aria-label',t('modesLabel'));
     buttons.forEach((button,index)=>{
       const key=['topLabel','focusLabel','fullLabel','aiLabel'][index];

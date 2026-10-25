@@ -281,7 +281,7 @@ export function ToolHost({view}) {
 
 </ToolField>
 <ToolField as="section" id="sidebar-tool-settings-view" className="sidebar-tool-settings-view od-surface" aria-label="工具设置" hidden={true}>
-<h2 className="sidebar-tool-settings-title">工具设置</h2>
+<h2 className="sidebar-tool-settings-title"><ToolLabel name="settingsTitle"/></h2>
 <section className="sidebar-tool-settings-product" aria-label="扩展设置">
 <ToolField as="button" type="button" id="sidebar-tool-adblock-product-settings"
   className="od-button od-button--secondary" hidden={true}>{"广告拦截设置"}</ToolField>
@@ -292,7 +292,7 @@ export function ToolHost({view}) {
 <select id="sidebar-tool-toc-language-select" className="od-field" aria-label="界面语言"
   value={snapshot.fields['sidebar-tool-toc-language-select'].value} disabled={snapshot.fields['sidebar-tool-toc-language-select'].disabled}
   onChange={actions.language}>
-<option value="follow">跟随 OpenDesk 默认语言</option>
+<option value="follow">{snapshot.labels.followLanguage}</option>
 {(snapshot.fields['sidebar-tool-toc-language-select'].rows?.length?
  snapshot.fields['sidebar-tool-toc-language-select'].rows:
  [{id:'zh-CN',label:'简体中文'},{id:'en',label:'English'}]).map(row=>
@@ -372,7 +372,7 @@ export function ToolHost({view}) {
     <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/>
     <circle cx="12" cy="12" r="3"/>
   </svg>
-  <span>悬浮目录</span>
+  <span><ToolLabel name="overlayName"/></span>
 </ToolField>
 <ToolField as="button" type="button" id="sidebar-tool-context-menu" className="sidebar-tool-icon-action od-icon-button"
   title="为当前网站启用右键菜单" aria-label="为当前网站启用右键菜单" aria-pressed="false" hidden={true}>
@@ -437,7 +437,7 @@ export function ToolHost({view}) {
 {!cookieFirstUse&&<CookieSettings onRevoke={actions.revoke}/>}
 </section>
 <section className="sidebar-tool-management" aria-label="应用管理">
-<div className="sidebar-tool-section-caption">应用管理</div>
+<div className="sidebar-tool-section-caption"><ToolLabel name="appManagement"/></div>
 <div className="sidebar-toc-settings-row">
 <span className="sidebar-tool-prompt-enable-info">
 <ToolField as="strong" id="sidebar-tool-prompt-enable-label">
@@ -457,7 +457,7 @@ export function ToolHost({view}) {
 </ToolField>
 <ToolField as="button" type="button" id="sidebar-tool-open-tab" className="od-button od-button--secondary sidebar-tool-settings-open-tab" title="在新标签页打开" aria-label="在新标签页打开当前工具">
 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"/></svg>
-{"在新标签页打开"}
+<ToolLabel name="openTabLabel"/>
 </ToolField>
 </section>
 

@@ -71,7 +71,7 @@ function paintStatus(){
 }
 function paintLanguage(){
  root.querySelector('.toc-panel').setAttribute('aria-label',t('panelLabel'));
- root.querySelector('.toc-title').textContent='CONTENTS';
+ root.querySelector('.toc-title').textContent=t('contents');
  root.querySelector('.toc-modes').setAttribute('aria-label',t('modesLabel'));
  root.querySelector('.toc-scroll').setAttribute('aria-label',t('navigationLabel'));
  source.setAttribute('aria-label',t('sourceLabel'));

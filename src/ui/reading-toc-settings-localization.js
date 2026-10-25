@@ -215,13 +215,48 @@ const rows=[
     "uninstallSuffix",
     "」及其本地数据",
     "” and its local data"
-  ]
+  ],
+  ['languageAction','语言','Language'],
+  ['followLanguage','跟随 OpenDesk 默认语言','Follow OpenDesk default'],
+  ['overlayName','悬浮目录','On-page TOC'],
+  ['appManagement','应用管理','App management'],
+  ['toolEnable','启用工具','Enable tool'],
+  ['toolDisable','停用工具','Disable tool'],
+  ['toolEnabled','已启用','Enabled'],
+  ['toolDisabled','已停用 · 数据保留','Disabled · data retained'],
+  ['toolStatusError','状态不可用 · 已暂停执行','Status unavailable · execution paused'],
+  ['openTabLabel','在新标签页打开','Open in a new tab'],
+  ['languageSaved','语言已保存并立即应用：','Language saved and applied: '],
+  ['languageFollowScope','（跟随 OpenDesk 默认语言）',' (follows OpenDesk default)'],
+  ['languageToolScope','（仅此工具及其网页界面）',' (only this tool and its on-page UI)']
 ];
 const zh=Object.freeze(Object.fromEntries(rows.map(([key,source])=>[key,source])));
 const en=Object.freeze(Object.fromEntries(rows.map(([key,,target])=>[key,target])));
-const messages=Object.freeze({'zh-CN':zh,en});
+const ja=Object.freeze({
+  settingsTitle:'ツール設定',languageLabel:'表示言語',languageSaveError:'言語を保存できませんでした：',
+  toggleHeading:'利用状態',overlayHeading:'フローティング目次の表示',websiteHeading:'このサイト',pageHeading:'このページのみ',
+  overlayHint:'サイトとツールが有効な場合に表示します。非表示はウェブページの目次のみに適用し、サイドパネルは利用できます。再表示するには両方の非表示設定を解除してください。',
+  advancedHeading:'無効なサイトと除外したページ',exceptionsHeading:'目次から除外したページ',siteGroup:'このサイトでの利用可否',
+  backAction:'ツール一覧に戻る',openTabAction:'現在のツールを新しいタブで開く',enable:'目次を再開',disable:'目次を無効にする',
+  enabledHint:'インストール後、通常のウェブページに目次を自動表示します。追加の有効化やサイトごとの承認は不要です。Chrome の制限や自分で無効にしたページは除きます。',
+  disabledHint:'無効です。ページの監視を停止しました。サイトと表示の設定は保持します。',enableError:'利用状態を読み込めないため、安全のため停止しています。',
+  launch:'サイドパネルの目次を表示',launchDisabled:'無効です。設定で有効にしてください',selectPage:'対応するウェブページを選択してください',
+  siteAvailability:'このサイトでの利用可否',siteEnable:'このサイトで再開',siteDisable:'このサイトで無効にする',
+  tocIntro:'インストール後、通常の HTTP(S) ページで目次を利用できます。ここではサイトの無効化、ページの除外と復元を管理します。サイトごとの承認は不要です。',
+  unsupportedPage:'このページでは目次を利用できません。',siteAvailable:'このサイトでは有効です。',siteDisabled:'このサイトでは無効です。',
+  eyeToolDisabled:'先に設定でツールを有効にしてください',eyeUnsupported:'通常の HTTP(S) ページに切り替えてください',
+  eyeSiteDisabled:'このサイトは無効です。設定で再開してください',eyePageExcluded:'このページは除外されています。設定で復元してください',
+  eyeHide:'このサイトのフローティング目次を非表示',eyeShow:'このサイトのフローティング目次を表示（現在のページも復元）',
+  restore:'復元',hide:'非表示',restoreVisibility:'再表示',disabledSites:'無効なサイト',noPages:'除外したページはありません',
+  noSites:'無効なサイトはありません。既定ではすべて有効です',readonly:'読み取り専用プレビュー',uninstallPrefix:'「',uninstallSuffix:'」とローカルデータを削除',
+  languageAction:'言語',followLanguage:'OpenDesk の既定言語に従う',overlayName:'フローティング目次',appManagement:'アプリ管理',
+  toolEnable:'ツールを有効にする',toolDisable:'ツールを無効にする',toolEnabled:'有効',toolDisabled:'無効 · データを保持',
+  toolStatusError:'状態を取得できません · 実行停止中',openTabLabel:'新しいタブで開く',languageSaved:'言語を保存し、適用しました：',
+  languageFollowScope:'（OpenDesk の既定言語に従う）',languageToolScope:'（このツールとウェブページの表示のみ）'
+});
+const messages=Object.freeze({'zh-CN':zh,en,ja});
 export const READING_TOC_HOST_KEYS=Object.freeze(Object.keys(zh));
 export function readingTocHostText(locale,key){
   if(!Object.hasOwn(zh,key))return '';
-  return messages[resolveUiLocale(locale,['zh-CN','en'],'zh-CN')][key]||zh[key];
+  return messages[resolveUiLocale(locale,Object.keys(messages),'zh-CN')][key]||zh[key];
 }

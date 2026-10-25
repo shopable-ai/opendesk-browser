@@ -3,7 +3,8 @@
 // Compiled projects are admitted ONLY after their completed build-ready receipt.
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {inspectSidebarToolProject,stageSidebarTool} from './stage-sidebar-tool.mjs';
+import {inspectSidebarToolProject,stageSidebarTool,readSidebarToolPreviewHead,
+  publishSidebarToolStatus} from './stage-sidebar-tool.mjs';
 
 function sleep(ms,signal){
   if(signal?.aborted)return Promise.resolve();
@@ -17,28 +18,40 @@ export async function watchSidebarTool(projectPath,{intervalMs=1000,signal,onEve
   if(!Number.isSafeInteger(intervalMs)||intervalMs<50||intervalMs>60000)
     throw new TypeError('watch interval must be between 50 and 60000 ms');
   const project=resolve(projectPath);
-  let lastFingerprint=null,lastBuildId=null,lastError=null,lastReport=null;
-  while(!signal?.aborted){
-    try{
-      const inputs=await inspectSidebarToolProject(project);
-      if(lastFingerprint!==inputs.fingerprint||lastBuildId!==inputs.buildId){
-        const next=await stageSidebarTool(project);
+  const head=await readSidebarToolPreviewHead(project);
+  let lastFingerprint=null,lastBuildId=null,lastError=null,lastSha256=head.sha256;
+  try{
+    while(!signal?.aborted){
+      try{
+        const inputs=await inspectSidebarToolProject(project);
+        if(inputs.id!==head.id)throw new Error('tool id changed while watching; restart the watcher');
+        if(lastFingerprint!==inputs.fingerprint||lastBuildId!==inputs.buildId){
+          const next=await stageSidebarTool(project,{signal});
+          lastSha256=next.sha256;
+          if(signal?.aborted)break;
+          lastFingerprint=next.sourceFingerprint;lastBuildId=next.buildId;
+          // Rebuilding the same source must never change the installed version.
+          // A new digest is a new explicit *preview snapshot*, not an installation.
+          onEvent({state:'STAGED_NOT_INSTALLED',id:next.id,version:next.version,
+            buildId:next.buildId,sha256:next.sha256,nativeLatest:next.nativeLatest,
+            output:next.output});
+        }
+        lastError=null;
+      }catch(error){
         if(signal?.aborted)break;
-        lastFingerprint=next.sourceFingerprint;lastBuildId=next.buildId;
-        // Rebuilding the same source must never change the installed version.
-        // A new digest is a new explicit *preview snapshot*, not an installation.
-        onEvent({state:'STAGED_NOT_INSTALLED',id:next.id,version:next.version,
-          buildId:next.buildId,sha256:next.sha256,nativeLatest:next.nativeLatest,
-          output:next.output});
+        const message=(error.code||'E_TOOL_WATCH')+' · '+String(error.message||error);
+        if(message!==lastError){lastError=message;onEvent({state:'BUILD_OR_PACKAGE_FAILED',message,
+          previousPreviewRetained:!!lastSha256});}
       }
-      lastError=null;
-    }catch(error){
       if(signal?.aborted)break;
-      const message=(error.code||'E_TOOL_WATCH')+' · '+String(error.message||error);
-      if(message!==lastError){lastError=message;onEvent({state:'BUILD_OR_PACKAGE_FAILED',message,
-        previousPreviewRetained:!!lastFingerprint});}
+      // One bounded atomic heartbeat per polling cycle, including repeated errors.
+      // Unchanged successful inputs do not invoke the packer again.
+      await publishSidebarToolStatus(project,{id:head.id,state:lastError?'error':'ready',
+        sha256:lastSha256,message:lastError||''});
+      await sleep(intervalMs,signal);
     }
-    await sleep(intervalMs,signal);
+  }finally{
+    await publishSidebarToolStatus(project,{id:head.id,state:'stopped',sha256:lastSha256});
   }
   return {stopped:true,lastFingerprint,lastBuildId};
 }

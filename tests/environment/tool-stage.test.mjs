@@ -89,3 +89,26 @@ test('staging exposes only bounded, content-addressed text chunks readable by ex
   }
   assert.equal(sha(Buffer.concat(output)),record.sha256);
 });
+
+test('syntax checking includes fixed scripts and never evaluates user JavaScript',async t=>{
+  const f=await fixture(false);t.after(()=>rm(f.dir,{recursive:true,force:true}));
+  const config=JSON.parse(await readFile(join(f.dir,'tool.config.json'),'utf8'));
+  Object.assign(config,{format:'opendesk.sidebar-tool.v2',requires:{browserSdk:'1.0.0'},
+    contributes:{contextMenus:[]}});
+  config.files.dependencies=['src/fixed.js'];
+  await writeFile(join(f.dir,'tool.config.json'),JSON.stringify(config));
+  await writeFile(join(f.dir,'src/fixed.js'),'throw new Error("fixed script must not execute");');
+  await writeFile(join(f.dir,f.files.js),'throw new Error("main must not execute");');
+  const first=await stageSidebarTool(f.dir);
+  const latest=await readFile(join(f.dir,first.nativeLatest),'utf8');
+  for(const file of ['src/fixed.js',f.files.js]){
+    const original=await readFile(join(f.dir,file),'utf8');
+    await writeFile(join(f.dir,file),'const broken = ;');
+    await assert.rejects(stageSidebarTool(f.dir),/invalid JavaScript/);
+    assert.equal(await readFile(join(f.dir,first.nativeLatest),'utf8'),latest);
+    await writeFile(join(f.dir,file),original);
+  }
+  const controller=new AbortController();controller.abort();
+  await assert.rejects(stageSidebarTool(f.dir,{signal:controller.signal}),{name:'AbortError'});
+  assert.equal(await readFile(join(f.dir,first.nativeLatest),'utf8'),latest);
+});

@@ -1,0 +1,60 @@
+// Trusted-page subscription only. Dynamic tool code stays in the existing
+// opaque-origin iframe and never receives the session record or disk authority.
+import {validatePreviewSession} from './preview-session.js';
+import {previewStorageKey} from '../../native-agent/tool-snapshot.js';
+
+export const previewStatusKey=id=>previewStorageKey(id)+':status';
+export function subscribePreviewSession({api,previewId,mount,isActive=()=>true,isDirty=()=>false,onStatus=()=>{},now=Date.now,intervalMs=1000}){
+  const key=previewStorageKey(previewId),statusKey=previewStatusKey(previewId);
+  let closed=false,current=null,queued=Promise.resolve(),lastSignal=now(),pending=null;
+  const dirtyMessage='新快照已就绪；当前预览有未保存内容，保留当前界面。结束编辑后自动更新。';
+  function status(text,error=false){if(!closed)onStatus(text,error);}
+  function accept(value){
+    if(closed)return;
+    const next=validatePreviewSession(value,previewId,now());
+    if(current&&(next.workspaceId!==current.workspaceId||next.sourceId!==current.sourceId||next.tool.id!==current.tool.id))
+      throw new Error('预览来源已变化，请重新明确打开');
+    if(current&&!isActive())return;
+    lastSignal=now();
+    if(current&&current.sha256===next.sha256&&current.buildId===next.buildId){current=next;pending=null;return;}
+    if(current&&isDirty()){
+      pending=next;status(dirtyMessage,true);return;
+    }
+    mount(next.tool);current=next;pending=null;
+    status('实时开发预览 · '+next.sha256.slice(0,12)+' · 未安装');
+  }
+  function enqueue(action){
+    queued=queued.then(()=>{if(!closed)return action();}).catch(error=>status('更新失败 · 保留上次成功预览：'+String(error.message||error).slice(0,180),true));
+    return queued;
+  }
+  function signal(value){
+    if(!value){pending=null;status('开发连接已停止 · 保留上次成功预览',true);return;}
+    if(typeof value.text==='string'&&value.text.length<=700){
+      lastSignal=now();
+      if(pending&&isDirty())status(dirtyMessage+(value.error===true?' '+value.text:''),true);
+      else status(value.text,value.error===true);
+    }
+  }
+  const changed=(changes,area)=>{
+    if(area!=='session')return;
+    enqueue(()=>{
+      if(changes[key]){if(changes[key].newValue)accept(changes[key].newValue);else signal(null);}
+      if(changes[statusKey])signal(changes[statusKey].newValue);
+    });
+  };
+  api.storage.onChanged.addListener(changed);
+  const ready=enqueue(async()=>{
+    const values=await api.storage.session.get([key,statusKey]);
+    if(closed)return;
+    accept(values[key]);if(values[statusKey])signal(values[statusKey]);
+  });
+  const timer=setInterval(()=>{
+    if(closed||!current||!isActive())return;
+    if(now()-lastSignal>15000)status((pending&&isDirty()?dirtyMessage+' ':'')+'开发连接中断 · 保留上次成功预览',true);
+    else if(pending&&!isDirty()){
+      const next=pending;
+      enqueue(()=>{if(pending===next&&!isDirty())accept(next);});
+    }
+  },intervalMs);
+  return Object.freeze({ready,dispose(){if(closed)return;closed=true;clearInterval(timer);api.storage.onChanged.removeListener(changed);}});
+}

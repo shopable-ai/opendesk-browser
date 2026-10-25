@@ -22,7 +22,7 @@ export function addReadingTocControls(html,{sidePanelHtml,overlayHtml,scenario,s
 <option value="page-overlay"${select(surface,'page-overlay')}>网页悬浮目录</option>
 </select></label>
 <label>应用界面语言<select id="od-toc-language">
-<option value="zh-CN" selected>简体中文</option><option value="en">English</option>
+<option value="zh-CN" selected>简体中文</option><option value="en">English</option><option value="ja">日本語</option>
 </select></label>
 <label>模拟页面状态<select id="od-toc-scenario">
 <option value="success"${select(scenario,'success')}>有章节</option>

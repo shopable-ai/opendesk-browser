@@ -1082,11 +1082,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const sitePending=siteTogglePending.has(id);
     const isToc=managed&&id===READING_TOC_TOOL_ID&&active.capabilities.includes(TOC_CAPABILITY);
     // Settings live in the trusted Host. Repaint text, never iframe content or permissions.
-    const tocLocale=isToc?localeController?.getLocale?.()||'zh-CN':'zh-CN';
+    const globalLocale=localeController?.getLocale?.()||'zh-CN';
+    const tocLocale=isToc?toolLocaleContext(active).locale:'zh-CN';
     const tocText=key=>readingTocHostText(tocLocale,key);
+    const commonText=key=>readingTocHostText(isToc?globalLocale:'zh-CN',key);
     const localized=managed&&!!active?.localization&&!!toolLocaleService;
     if(tocLanguageRow)patchToolField(view, tocLanguageRow, {hidden: !localized});
-    patchToolField(view,view.fields['sidebar-tool-language-manage'],{hidden:!localized,disabled:busy});
+    patchToolField(view,view.fields['sidebar-tool-language-manage'],{hidden:!localized,disabled:busy,
+      textContent:readingTocHostText(globalLocale,'languageAction'),title:readingTocHostText(globalLocale,'languageAction')});
+    setToolFieldAttribute(view,view.fields['sidebar-tool-language-manage'],'aria-label',readingTocHostText(globalLocale,'languageAction'));
     if(tocLanguageSelect){
       let choices=[];
       try{if(localized)choices=toolLocaleService.getAvailableLocales(active);}catch{/* Source remains usable. */}
@@ -1095,8 +1099,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       patchToolField(view, tocLanguageSelect, {disabled: busy||!localized});
       setToolFieldAttribute(view, tocLanguageSelect, 'aria-label', tocText('languageLabel'));
     }
-    view.patchLabels(Object.fromEntries(Object.entries(view.labels).map(([key])=>[key,tocText(key)])));
-    if(promptEnableLabel)patchToolField(view, promptEnableLabel, {textContent:'启用工具'});
+    const commonLabels=new Set(['toggleHeading','appManagement','openTabLabel']);
+    view.patchLabels(Object.fromEntries(Object.entries(view.labels).map(([key])=>[key,commonLabels.has(key)?commonText(key):tocText(key)])));
+    if(promptEnableLabel)patchToolField(view, promptEnableLabel, {textContent:isToc?commonText('toolEnable'):'启用工具'});
     if(promptEnableDescription)patchToolField(view, promptEnableDescription, {hidden:true});
     setToolFieldAttribute(view, settingsView, 'aria-label', id===ADBLOCK_ID?'工具管理':tocText('settingsTitle'));
     patchToolField(view, settingsButton, {title:tocText('settingsTitle')});
@@ -1105,7 +1110,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, backButton, {title: tocText('backAction')});
     setToolFieldAttribute(view, backButton, 'aria-label', backButton.title);
     if(openTabButton){
-      patchToolField(view, openTabButton, {title: tocText('openTabAction')});
+      patchToolField(view, openTabButton, {title: commonText('openTabAction')});
       setToolFieldAttribute(view, openTabButton, 'aria-label', openTabButton.title);
     }
     setToolFieldAttribute(view, view.fields['sidebar-tool-generic-site-binary'], 'aria-label',isToc?tocText('siteGroup'):'当前网站授权');
@@ -1173,14 +1178,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, removeButton, {hidden: readOnlyPreview});if(openTabButton)patchToolField(view, openTabButton, {hidden: readOnlyPreview});
     if(enableButton){
       patchToolField(view, enableButton, {textContent:'',disabled:busy||enableReadError||toolSaving||readOnlyPreview,
-        title:enabled?'停用工具':'启用工具'});
+        title:commonText(enabled?'toolDisable':'toolEnable')});
       setToolFieldAttribute(view, enableButton, 'role', 'switch');
-      setToolFieldAttribute(view, enableButton, 'aria-label', '启用工具');
+      setToolFieldAttribute(view, enableButton, 'aria-label', commonText('toolEnable'));
       setToolFieldAttribute(view, enableButton, 'aria-checked', String(enabled));
       setToolFieldAttribute(view, enableButton, 'aria-pressed', null);
     }
     if(enableHint)patchToolField(view, enableHint, {hidden:false,textContent:
-      enableReadError?'状态不可用 · 已暂停执行':enabled?'已启用':'已停用 · 数据保留'});
+      commonText(enableReadError?'toolStatusError':enabled?'toolEnabled':'toolDisabled')});
     if(launchButton){patchToolField(view, launchButton, {hidden: !managed||Boolean(frame||nativeUI||nativePending)});patchToolField(view, launchButton, {disabled: busy||!enabled});
       patchToolField(view, launchButton, {textContent: isToc?tocText(enabled?'launch':'launchDisabled'):enabled?'打开工具':'已停用，请在设置中启用'});}
     const url=currentPageTarget?.snapshot?.url,capability=siteCapability(active);
@@ -1275,8 +1280,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
 
     patchToolField(view, removeButton, {title: readOnlyPreview?'只读预览尚未安装，不能卸载':
       active?(trustedTocTitle?
-        readingTocHostText(currentTocLocale,'uninstallPrefix')+visibleTitle+
-        readingTocHostText(currentTocLocale,'uninstallSuffix'):
+        readingTocHostText(localeController?.getLocale?.()||'zh-CN','uninstallPrefix')+visibleTitle+
+        readingTocHostText(localeController?.getLocale?.()||'zh-CN','uninstallSuffix'):
         '卸载「'+active.title+'」及其本地数据'):'卸载工具'});
     setToolFieldAttribute(view, removeButton, 'aria-label', removeButton.title);
     patchToolField(view, removeButton, {disabled: !active || busy || readOnlyPreview});
@@ -4064,9 +4069,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const requested=tocLanguageSelect.value;
       patchToolField(view,tocLanguageSelect,{disabled:true});
       void toolLocaleService.setToolLocale(tool.id,requested==='follow'?null:requested).then(()=>{
-        if(!disposed&&active===tool)notice('语言已保存并立即应用：'+
+        if(!disposed&&active===tool)notice(readingTocHostText(toolLocaleContext(tool).locale,'languageSaved')+
           (languageNames[toolLocaleContext(tool).locale]||toolLocaleContext(tool).locale)+
-          (requested==='follow'?'（跟随 OpenDesk 默认语言）':'（仅此工具及其网页界面）'));
+          readingTocHostText(toolLocaleContext(tool).locale,requested==='follow'?'languageFollowScope':'languageToolScope'));
       }).catch(error=>{
         notice(readingTocHostText(localeController?.getLocale?.()||'zh-CN','languageSaveError')+
           String(error?.message||error),true);
@@ -4092,14 +4097,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   if(localeController?.subscribe){
     listeners.push(localeController.subscribe(locale=>{
       // Presentation-only: retain the live tool iframe, TOC snapshot, and website policy.
-      if(active?.id===READING_TOC_TOOL_ID)render();
+      if(active?.localization)render();
       if(frame&&active&&instance)frame.contentWindow?.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'locale-changed',instance,toolId:active.id,...toolLocaleContext(active)
       },'*');
     }));
   }
   render();
-  return Object.freeze({ready,openTool,openSettings,toggleEnabled,uninstallFromList,retryUninstallCleanup,openOfficialReview,openImport,openImportFiles,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
+  return Object.freeze({ready,openTool,openSettings,toggleEnabled,uninstallFromList,retryUninstallCleanup,openOfficialReview,openImport,openImportFiles,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,isPreviewEditing:()=>readOnlyPreview&&(toolDirty||toolSaving),openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     cookieImportGate.revoke();cookieWriteGate.revoke();cookieClearGate.revoke();cookieExportGate.revoke();cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;pageConsent?.dispose();
     timePermissions?.dispose();focusPermissions?.dispose();aiPermissions?.dispose();

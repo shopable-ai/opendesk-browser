@@ -229,7 +229,7 @@ export function createToolLocaleService({api=globalThis.chrome,lockManager=globa
     dispose(){closed=true;listeners.clear();api?.storage?.onChanged?.removeListener(onChange);},
     getToolLocale(id){return state.tools[toolId(id)]?.locale??null;},getCatalog,getAvailableLocales,
     preview:evaluateLocalePack,
-    install(input,tool){const pack=parseLocalePack(input,tool);return mutate(tool.id,tool,(row)=>({...row,locale:pack.targetLocale,packs:{...row.packs,[pack.targetLocale]:pack}}));},
+    install(input,tool){const pack=parseLocalePack(input,tool);return mutate(tool.id,tool,(row)=>({...row,packs:{...row.packs,[pack.targetLocale]:pack}}));},
     remove(id,language){locale(language);return mutate(id,null,row=>{delete row.packs[language];return row;});},
     exportPack(id,language){locale(language);return structuredClone(state.tools[toolId(id)]?.packs[language]??null);},
     setToolLocale(id,language){if(language!==null)locale(language);return mutate(id,null,row=>({...row,locale:language}));},

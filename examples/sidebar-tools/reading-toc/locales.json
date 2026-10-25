@@ -279,6 +279,228 @@
         "source": "尚无经过审核的广告素材；当前不加载外部广告。",
         "text": "No approved materials are available. No external ads are loaded."
       }
+    },
+    "ja": {
+      "title": {
+        "source": "阅读目录",
+        "text": "読書目次"
+      },
+      "description": {
+        "source": "在侧边栏或授权网页中查看章节并精准跳转。",
+        "text": "サイドバーやアクセスが許可されたウェブページで見出しを確認し、正確に移動します。"
+      },
+      "contents": {
+        "source": "阅读目录",
+        "text": "目次"
+      },
+      "panelLabel": {
+        "source": "阅读目录",
+        "text": "読書目次"
+      },
+      "pageLabel": {
+        "source": "网页目录",
+        "text": "ページの目次"
+      },
+      "modesLabel": {
+        "source": "目录视图",
+        "text": "目次表示"
+      },
+      "topLabel": {
+        "source": "主要章节（内容较少时自动补充子章节）",
+        "text": "主要な見出し（内容が少ない場合は小見出しも自動表示）"
+      },
+      "topTitle": {
+        "source": "主要章节",
+        "text": "主要な見出し"
+      },
+      "focusLabel": {
+        "source": "当前章节",
+        "text": "現在の見出し"
+      },
+      "fullLabel": {
+        "source": "完整目录",
+        "text": "すべての見出し"
+      },
+      "refreshLabel": {
+        "source": "刷新阅读目录",
+        "text": "目次を更新"
+      },
+      "refreshTitle": {
+        "source": "重新读取当前网页章节",
+        "text": "現在のページの見出しを再取得"
+      },
+      "sourceLabel": {
+        "source": "目录来源",
+        "text": "目次の取得元"
+      },
+      "navigationLabel": {
+        "source": "章节导航",
+        "text": "見出しへ移動"
+      },
+      "moreTitle": {
+        "source": "查看完整目录",
+        "text": "すべての見出しを表示"
+      },
+      "emptyLabel": {
+        "source": "当前网页暂无可识别的章节，将自动检查更新。",
+        "text": "このページには認識できる見出しがまだありません。更新を自動確認します。"
+      },
+      "pageEmpty": {
+        "source": "暂无章节",
+        "text": "見出しがありません"
+      },
+      "following": {
+        "source": "自动跟随 · {source}",
+        "text": "自動追従 · {source}"
+      },
+      "sourceCurrent": {
+        "source": "当前内容",
+        "text": "現在のコンテンツ"
+      },
+      "moreWithCount": {
+        "source": "还有 {count} 个章节 · 查看完整目录",
+        "text": "残り {count} 件の見出し · すべて表示"
+      },
+      "moreAria": {
+        "source": "尚有 {count} 个章节未显示，查看完整目录",
+        "text": "未表示の見出しが {count} 件あります。すべての見出しを表示"
+      },
+      "loading": {
+        "source": "正在读取当前网页目录…",
+        "text": "現在のページの目次を読み込み中…"
+      },
+      "invalidData": {
+        "source": "目录数据无效",
+        "text": "目次データが無効です"
+      },
+      "navigateChanged": {
+        "source": "章节已变化，请重新选择",
+        "text": "見出しが変更されました。もう一度選択してください"
+      },
+      "readFail": {
+        "source": "目录读取失败",
+        "text": "目次を読み込めませんでした"
+      },
+      "retry": {
+        "source": "目录读取失败，正在自动重试：{detail}",
+        "text": "目次を読み込めません。自動再試行中：{detail}"
+      },
+      "stale": {
+        "source": "暂时无法更新，显示上次目录（已暂停跳转）：{detail}",
+        "text": "更新できません。前回の目次を表示しています（移動は一時停止中）：{detail}"
+      },
+      "dragTitle": {
+        "source": "拖动目录；方向键调整位置，Shift 加速，Home 归位",
+        "text": "ドラッグで目次を移動。矢印キーで位置調整、Shift で加速、Home で元の位置に戻す"
+      },
+      "dragAria": {
+        "source": "拖动阅读目录；方向键移动，Home 归位",
+        "text": "目次を移動。矢印キーで移動、Home で元の位置に戻す"
+      },
+      "resetTitle": {
+        "source": "归位：恢复网页目录默认位置",
+        "text": "ページの目次を既定の位置に戻す"
+      },
+      "resetAria": {
+        "source": "将阅读目录归位",
+        "text": "目次を元の位置に戻す"
+      },
+      "aiLabel": {
+        "source": "AI 整理",
+        "text": "AI 整理"
+      },
+      "aiNavigationLabel": {
+        "source": "AI 整理目录",
+        "text": "AI が整理した目次"
+      },
+      "aiUnavailableFooter": {
+        "source": "AI 整理 · 暂未开放",
+        "text": "AI 整理 · 提供準備中"
+      },
+      "memberTitle": {
+        "source": "AI 整理",
+        "text": "AI 整理"
+      },
+      "memberTag": {
+        "source": "会员专属",
+        "text": "会員限定"
+      },
+      "memberDescription": {
+        "source": "为长文章生成可跳转的智能目录",
+        "text": "長い記事から移動可能なスマート目次を生成"
+      },
+      "memberUnavailableMeta": {
+        "source": "服务暂未开放",
+        "text": "サービスは提供準備中です"
+      },
+      "memberUnavailableDisclaimer": {
+        "source": "会员与支付服务尚未接入",
+        "text": "会員・決済サービスはまだ接続されていません"
+      },
+      "promoRecruit": {
+        "source": "合作招募",
+        "text": "パートナー募集"
+      },
+      "promoOfficial": {
+        "source": "官方推荐",
+        "text": "公式おすすめ"
+      },
+      "promoExternal": {
+        "source": "第三方广告",
+        "text": "第三者広告"
+      },
+      "recruitBrand": {
+        "source": "OpenDesk · 合作计划",
+        "text": "OpenDesk · パートナープログラム"
+      },
+      "recruitKind": {
+        "source": "合作招募",
+        "text": "パートナー募集"
+      },
+      "recruitTitle": {
+        "source": "广告位开放合作",
+        "text": "広告掲載パートナー募集"
+      },
+      "recruitDescription": {
+        "source": "欢迎阅读、效率和开发工具相关品牌合作",
+        "text": "読書・生産性・開発ツール関連ブランドの参加を歓迎します"
+      },
+      "officialBrand": {
+        "source": "OpenDesk · 阅读工具",
+        "text": "OpenDesk · 読書ツール"
+      },
+      "officialKind": {
+        "source": "官方推荐",
+        "text": "公式おすすめ"
+      },
+      "officialTitle": {
+        "source": "先体验完整目录",
+        "text": "すべての見出しを試す"
+      },
+      "officialDescription": {
+        "source": "免费查看当前网页的全部章节。",
+        "text": "現在のページのすべての見出しを無料で確認できます。"
+      },
+      "officialAction": {
+        "source": "打开完整目录",
+        "text": "すべての見出しを開く"
+      },
+      "externalBrand": {
+        "source": "第三方展示区域",
+        "text": "第三者の掲載エリア"
+      },
+      "externalKind": {
+        "source": "广告 · 待审核",
+        "text": "広告 · 審査待ち"
+      },
+      "externalTitle": {
+        "source": "广告展示位",
+        "text": "広告掲載枠"
+      },
+      "externalDescription": {
+        "source": "尚无经过审核的广告素材；当前不加载外部广告。",
+        "text": "審査済みの広告素材はありません。現在、外部広告は読み込まれません。"
+      }
     }
   }
 }

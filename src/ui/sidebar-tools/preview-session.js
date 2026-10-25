@@ -47,7 +47,7 @@ export async function updatePreviewSession({api,previewId,workspaceId,sourceId,s
   const tool=validateSidebarToolPackage(snapshot.tool);
   if(current.sourceId!==sourceId||current.workspaceId!==workspaceId||current.tool.id!==tool.id)
     fail('tool preview owner has changed; open a new explicit preview');
-  if(current.sha256===snapshot.sha256&&current.buildId===(snapshot.buildId??null))
+  if(current.sha256===snapshot.sha256&&current.buildId===(snapshot.buildId??null)&&now-current.createdAt<60000)
     return Object.freeze({updated:false,previewId});
   const next={format:PREVIEW_SESSION_FORMAT,previewId,tool,sha256:snapshot.sha256,
     createdAt:now,sourceId,workspaceId,buildId:snapshot.buildId??null};

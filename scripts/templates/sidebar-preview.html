@@ -19,10 +19,36 @@
     .preview-row>span{min-width:0;overflow-wrap:anywhere}
     .preview-actions{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2)}
     .preview-heading{display:grid;gap:var(--space-2)}
+    /* Reading design only: geometry, not component appearance. Article and
+       simulated device own separate scroll areas; no runtime CSS is copied. */
+    .preview-reading-shell:has(.preview-reading-workbench){max-width:1360px}
+    .preview-reading-workbench{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,390px);gap:var(--space-4);align-items:start}
+    .preview-reading-page,.preview-reading-device{min-width:0}
+    .preview-reading-stage{position:relative;min-height:680px;overflow:hidden}
+    .preview-reading-article{height:680px;overflow:auto;padding:var(--space-4);padding-inline-end:304px;overscroll-behavior:contain}
+    .preview-reading-chapter{min-height:240px;display:grid;align-content:start;gap:var(--space-3);scroll-margin-top:var(--space-4)}
+    .preview-reading-overlay{position:absolute;inset-block-start:var(--space-4);inset-inline-end:var(--space-4);width:272px;max-width:calc(100% - var(--space-4) * 2);max-height:calc(100% - var(--space-4) * 2);overflow:auto}
+    .preview-reading-overlay[data-dock="bottom-right"]{inset-block-start:auto;inset-block-end:var(--space-4)}
+    .preview-reading-overlay[data-dock="top-left"]{inset-inline-start:var(--space-4);inset-inline-end:auto}
+    .preview-reading-overlay[data-dock="bottom-left"]{inset-block-start:auto;inset-block-end:var(--space-4);inset-inline-start:var(--space-4);inset-inline-end:auto}
+    .preview-reading-handle{touch-action:none;cursor:move}
+    .preview-reading-device{min-height:680px;max-height:960px;overflow:auto;overscroll-behavior:contain}
+    .preview-reading-flow{display:grid;gap:var(--space-4);align-content:start}
+    .preview-reading-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);min-width:0;flex-wrap:wrap}
+    .preview-reading-row>span{flex:1;min-width:0}
+    .preview-reading-actions{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}
+    .preview-reading-modes{width:100%;flex-wrap:wrap}
+    .preview-reading-modes>button{flex:1;white-space:nowrap}
+    .preview-reading-list{display:grid;gap:var(--space-1)}
+    .preview-reading-list>button{justify-content:flex-start;text-align:start}
+    .preview-reading-list>button[data-depth="2"]{margin-inline-start:var(--space-3);max-width:calc(100% - var(--space-3))}
+    .preview-reading-diagnostics{grid-column:1/-1}
+    .preview-reading-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--space-3)}
+    @media(max-width:900px){.preview-reading-workbench{grid-template-columns:minmax(0,1fr)}.preview-reading-article{padding-inline-end:var(--space-4);padding-block-start:320px}.preview-reading-device{max-height:none}}
   </style>
 </head>
 <body>
-<main class="preview-shell">
+<main class="preview-shell preview-reading-shell">
   <aside class="od-alert" aria-label="预览范围">交互预览 · 模拟数据 · 未安装。保存与删除只改变本页内存；关闭后清空。</aside>
   <div id="preview-state" class="preview-controls" role="group" aria-label="模拟状态">
     <span class="od-note">模拟状态</span>

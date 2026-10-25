@@ -4,8 +4,8 @@
 export const MARKET_PROVENANCE_STORE='opendesk.market.provenance.v1';
 export const READING_TOC_CHROME_ACCESS_PROTOCOL='opendesk.reading-toc.chrome-access.v1';
 export const OFFICIAL_READING_TOC_RELEASE=Object.freeze({
-  id:'reading-toc',marketId:'opendesk/reading-toc',version:'1.0.10',
-  sha256:'8d6bf170c92f3093de34f1401f49897d9734f740a0deef87076666a548cc39f0'
+  id:'reading-toc',marketId:'opendesk/reading-toc',version:'1.0.11',
+  sha256:'dcf2bafe89556b4ab4c39733519037e5f7437669a869d0f0c7d6cf60daba2ed4'
 });
 export function matchesOfficialReadingToc(tool,provenance,hash){
   const pin=OFFICIAL_READING_TOC_RELEASE;

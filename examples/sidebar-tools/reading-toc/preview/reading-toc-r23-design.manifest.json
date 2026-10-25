@@ -1,0 +1,50 @@
+{
+  "format": "opendesk.ui-preview.v1",
+  "sourceHash": "50b5c5dee179bd9a6ec0671ea3a764ea8450f0d2afba3175e5b5d7e2ab2080a0",
+  "inputs": {
+    "src/ui/design-tokens.css": "dc9715b3c09fc168d751987e227082a44160551508414017ac3b79aba38e7962",
+    "src/ui/design-system.css": "294d1fade9848c08ef7c34139dc8331c725da2377109ca52ec6ddc2e11186bfc",
+    "scripts/templates/sidebar-preview.html": "0285bb62f00141632d8587ab9cd7981c22893bcdf6e93a05e982955f07e864a7",
+    "scripts/sidebar-preview-kit.mjs": "c26d8b3e4c292b9eeb523edef6a88f2a00f90f7e9ca86f11f96f40a445652978",
+    "src/ui/react/components/ui/sidebar-shared.css": "fdb9cd6e76093fff2fa31d940599fd1ba57c679f871468f6296cba9e4738204a"
+  },
+  "htmlHash": "b5bab26a3c79c327bbc849fc280ffa7f0c7d26ab8d9eac09a9b85ff46c02c024",
+  "evidence": "OFFLINE_DESIGN_PREVIEW",
+  "previewTheme": "light",
+  "nativeChrome": "NOT_TESTED",
+  "realAI": "NOT_TESTED",
+  "designSource": {
+    "path": "scripts/preview/build-reading-toc-design.mjs",
+    "sha256": "32c3fe52f9b7e248c0445077e871254148d152c4e72a6f86a6f4f861321acf39"
+  },
+  "brief": {
+    "path": "DESIGN.md",
+    "sha256": "c729d79335d466054c30288b99082901155e2d4c2c8369c0df7316abfa064879",
+    "rubric": "frozen six dimensions; each five items / 20 points"
+  },
+  "output": "examples/sidebar-tools/reading-toc/preview/reading-toc-r23-design.html",
+  "regenerate": "node scripts/preview/build-reading-toc-design.mjs",
+  "simulation": "IN_MEMORY_ONLY; NO_REAL_CHROME_SDK_NETWORK_OR_STORAGE",
+  "aiProductSources": {
+    "examples/sidebar-tools/reading-toc/locales.json": "11fab75ebf32fc1d37f9a11c1e867ddf4d81fa3d41f7008b77489fcceed59022",
+    "examples/sidebar-tools/reading-toc/languages/ja.opendesk-locale.json": "d538e82d6690fefd5c9b6d59ab161c748f0d8ff9b8d8311b75239be222d4d451",
+    "examples/sidebar-tools/reading-toc/src/main.js": "5dfe8827e71c935e9b1cb52e2b20acfae868307029547de096f9798e673b8657",
+    "examples/sidebar-tools/reading-toc/trusted/view.js": "89fb5ef266d30a196b8e989d30c048671991bf4251295e18205f6647989a81ad"
+  },
+  "aiBehavior": "Existing membership unavailable + partner cards; no model, checkout, generation, cancellation or invented output",
+  "framework": "Existing HTML Preview Kit; canonical React Aria Switch CSS slots, simulated behavior only",
+  "staticCheck": {
+    "ok": true,
+    "errors": [],
+    "sourceHash": "50b5c5dee179bd9a6ec0671ea3a764ea8450f0d2afba3175e5b5d7e2ab2080a0",
+    "htmlHash": "b5bab26a3c79c327bbc849fc280ffa7f0c7d26ab8d9eac09a9b85ff46c02c024",
+    "evidence": "STATIC_CONTRACT_ONLY",
+    "limitation": "静态合同 lint，不证明任意 JavaScript 安全、视觉通过、真实 AI 生成或原生功能"
+  },
+  "browserInteraction": "NOT_TESTED — user-owned",
+  "independentReview": "NOT_SCORED",
+  "sourceParity": "DESIGN_ONLY_NOT_PRODUCTION_SOURCE_BOUND",
+  "implementationScope": "LANGUAGE_ONLY: multilingual copy and scope propagation; no Switch replacement, layout rebuild or core TOC changes",
+  "coreBehavior": "ILLUSTRATIVE_ONLY: preserve existing production AI, indexing, mode semantics, navigation, scrolling, dragging and permission handlers; this simulator is not a replacement specification",
+  "widthZoomMatrix": "OUT_OF_SCOPE"
+}

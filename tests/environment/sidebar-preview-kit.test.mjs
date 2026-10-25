@@ -19,11 +19,40 @@ test('self-contained preview uses the exact current canonical CSS and passes con
     'canonical token source is embedded unchanged');
   assert.match($('#od-preview-tokens').text(), /:root\{color-scheme:light;/,
     'preview restores the original light palette even for dark-mode operating systems');
-  assert.equal($('#od-preview-components').text(), await readFile(join(root,'src/ui/design-system.css'),'utf8'));
+  assert.equal($('#od-preview-components').text(),
+    await readFile(join(root,'src/ui/design-system.css'),'utf8')+'\n'+
+    await readFile(join(root,'src/ui/react/components/ui/sidebar-shared.css'),'utf8'));
   assert.equal((await checkPreview(kit.html)).ok, true);
   assert.equal(kit.manifest.nativeChrome, 'NOT_TESTED');
   assert.equal(kit.manifest.realAI, 'NOT_TESTED');
-  assert.equal(Object.keys(kit.manifest.inputs).length, 4);
+  assert.equal(Object.keys(kit.manifest.inputs).length, 5);
+  assert.match($('#od-preview-components').text(), /\.od-shared-switch\[data-selected\]/);
+});
+
+test('shared Switch source is a hashed canonical input and cannot drift silently', async () => {
+  const temp = await mkdtemp(join(tmpdir(),'od-preview-switch-'));
+  try {
+    for (const path of Object.keys(kit.manifest.inputs)) {
+      await mkdir(dirname(join(temp,path)),{recursive:true});
+      await writeFile(join(temp,path),await readFile(join(root,path)));
+    }
+    const path = join(temp,'src/ui/react/components/ui/sidebar-shared.css');
+    await writeFile(path,(await readFile(path,'utf8'))+'\n/* changed canonical Switch */');
+    const result = await checkPreview(kit.html,{repoRoot:temp});
+    assert.equal(result.ok,false);
+    assert.ok(result.errors.some(error=>error.includes('过期')));
+    assert.ok(result.errors.some(error=>error.includes('od-preview-components')));
+  } finally { await rm(temp,{recursive:true,force:true}); }
+});
+
+test('reading design frame adds layout only, without replacing canonical components', () => {
+  const $ = load(kit.html);
+  const frame = $('#od-preview-frame').text();
+  const readingRules = frame.slice(frame.indexOf('/* Reading design only:'));
+  assert.match(readingRules,/\.preview-reading-overlay\{position:absolute/);
+  assert.match(readingRules,/\.preview-reading-article\{height:680px;overflow:auto/);
+  assert.doesNotMatch(readingRules,/(?:^|[;{])\s*(?:color|background|border|font|box-shadow|transition)[\w-]*\s*:/);
+  assert.doesNotMatch(readingRules,/(?:^|})\s*\.(?:od-|preview-(?!reading-))/);
 });
 
 test('titles are escaped once, including placeholder-looking input', async () => {

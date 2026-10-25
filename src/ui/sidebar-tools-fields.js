@@ -446,6 +446,11 @@ export const SIDEBAR_TOOL_FIELDS = {
 };
 
 export const SIDEBAR_TOOL_LABELS = {
+  "settingsTitle": "工具设置",
+  "followLanguage": "跟随 OpenDesk 默认语言",
+  "overlayName": "悬浮目录",
+  "appManagement": "应用管理",
+  "openTabLabel": "在新标签页打开",
   "languageLabel": "界面语言",
   "toggleHeading": "工具启停",
   "overlayHeading": "网页悬浮目录外观",

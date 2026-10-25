@@ -8,7 +8,7 @@ import {load} from 'cheerio';
 import {parse} from 'acorn';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const INPUTS = ['src/ui/design-tokens.css', 'src/ui/design-system.css', 'scripts/templates/sidebar-preview.html', 'scripts/sidebar-preview-kit.mjs'];
+const INPUTS = ['src/ui/design-tokens.css', 'src/ui/design-system.css', 'scripts/templates/sidebar-preview.html', 'scripts/sidebar-preview-kit.mjs', 'src/ui/react/components/ui/sidebar-shared.css'];
 const escapeHTML = text => String(text).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hash = text => createHash('sha256').update(text).digest('hex');
 const policies = `default-src 'none'; script-src 'nonce-opendesk-preview'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; frame-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'`;
@@ -25,7 +25,7 @@ export async function createPreviewKit({title = '我的工具', repoRoot = ROOT}
   if(!lightTokens||!lightTokens.includes('--od-brand:'))
     throw Error('E_PREVIEW_KIT_LIGHT: official light design tokens are unavailable');
   const values = {TITLE:escapeHTML(title), SOURCE:sourceHash, TOKENS:source[0],
-    COMPONENTS:source[1], LIGHT_OVERRIDE:':root{color-scheme:light;'+lightTokens+'}'};
+    COMPONENTS:source[1]+'\n'+source[4], LIGHT_OVERRIDE:':root{color-scheme:light;'+lightTokens+'}'};
   // Replace once; never interpret placeholder-looking user titles or CSS recursively.
   const html = source[2].replace(/\{\{(TITLE|SOURCE|TOKENS|COMPONENTS|LIGHT_OVERRIDE)\}\}/g, (_, key) => values[key]);
   const prompt = `请基于随附的 preview.html 设计「${title}」的 OpenDesk 扩展应用交互预览。先读取附件内容；若无法读取，请说明缺失，勿声称已遵守附件。仅有仓库路径不代表你已读到文件。\n\n` +

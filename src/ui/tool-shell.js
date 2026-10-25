@@ -24,8 +24,7 @@ import {ANALYTICS_PROTOCOL} from '../analytics/contract.js';
 import {createUiLocaleController} from './app-localization.js';
 import {createToolLocaleService} from './sidebar-tools/locale-packs.js';
 import {requestedToolId,requestedPreviewId,canonicalToolHostUrl} from './sidebar-tools/navigation.js';
-import {previewStorageKey} from '../native-agent/tool-snapshot.js';
-import {validatePreviewSession} from './sidebar-tools/preview-session.js';
+import {subscribePreviewSession} from './sidebar-tools/live-preview.js';
 import {createNativeAgentHostAdapter} from '../native-agent/host-adapter.js';
 import {SIDEPANEL_DOCUMENT_PATH} from '../tool-document-url.js';
 import {isToolSender} from '../environment.js';
@@ -79,7 +78,7 @@ const createCloudHosting=historyUI.createCloudHosting;
 if(!historyUI?.createTaskWorkbench||!historyUI?.createScheduledTaskWorkbench)
   throw new Error('E_TRUSTED_TASK_UI_MISSING');
 const {createTaskWorkbench,createScheduledTaskWorkbench}=historyUI;
-let trustedHistoryWorkbench=null,shellClosed=false,verifiedSidePanel=false,panelToolIntents=null;
+let trustedHistoryWorkbench=null,shellClosed=false,verifiedSidePanel=false,panelToolIntents=null,livePreview=null;
 // Do not construct or query the privileged History controller while Extensions
 // (or any ordinary tab) is active. Leaving Debug also clears private results.
 function syncTrustedHistory(view=pendingReactTab){
@@ -352,14 +351,14 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
   taskWorkbench.navigate('tools');
   if(previewId){
     try{
-      const key=previewStorageKey(previewId);
-      const row=(await chrome.storage.session.get(key))[key];
-      if(shellClosed)return;
-      const preview=validatePreviewSession(row,previewId);
       await sidebarTools.ready;
       if(shellClosed)return;
-      sidebarTools.openReadOnlyPreview(preview.tool);
-      await chrome.storage.session.remove(key);
+      livePreview=subscribePreviewSession({api:chrome,previewId,
+        mount:tool=>sidebarTools.openReadOnlyPreview(tool),
+        isActive:()=>sidebarTools.isPreviewActive(),isDirty:()=>sidebarTools.isPreviewEditing(),
+        onStatus:(text,error)=>toolView.patch('sidebar-tool-readonly-banner',{
+          textContent:text+'。只读沙箱；业务写入和网页操作仍被禁止。',hidden:false,data:{state:error?'error':'readonly'}})});
+      await livePreview.ready;
     }catch(error){
       if(shellClosed)return;
       toolView.patch('sidebar-tool-status',{
@@ -427,6 +426,7 @@ Object.defineProperty(globalThis, 'OpenDeskResourceDiagnostics', {value: Object.
     {subscriptions: listeners.length + developHostControls.resourceSnapshot().subscriptions + Number(draftImportAttached) + currentPageTarget.resourceSnapshot().subscriptions})
 })});
 listen(window, 'pagehide', () => {
+  livePreview?.dispose();
   disposeDevelopment?.();
   chrome.runtime.onMessage.removeListener(draftImportListener);draftImportAttached=false;sidebarSurface=false;
   chrome.storage.onChanged.removeListener(onMenuLaunchChanged);

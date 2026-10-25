@@ -373,7 +373,7 @@ test('R1.8.4 nine-section webpage overview renders directly; AI is fail-closed a
     const panel=f.host().shadow.children[0];
     const modes=panel.children[0].children[1].children;
     const caption=panel.children[0].children[0].children[0];
-    assert.equal(caption.textContent,'CONTENTS','webpage and Side Panel use the same approved heading');
+    assert.equal(caption.textContent,'阅读目录','visible heading uses the current language');
     const scroll=panel.children[1],list=scroll.children[0],ai=panel.children[2];
     view.render({adapter:'article',items,activeId:'h-2',
       sources:[{id:'s-1',label:'当前文章'}],
@@ -390,7 +390,7 @@ test('R1.8.4 nine-section webpage overview renders directly; AI is fail-closed a
     assert.equal(scroll.hidden,true);
     assert.equal(ai.querySelectorAll('button').length,0);
     view.setLocale('en');
-    assert.equal(caption.textContent,'CONTENTS','language switching preserves the approved visual heading');
+    assert.equal(caption.textContent,'CONTENTS','English uses the existing translated heading');
     assert.equal(ai.children[0].children[2].textContent,'Not yet available',
       'English member unavailability comes from reviewed source locales');
     assert.equal(ai.children[1].children[1].textContent,'Sponsorship space available');

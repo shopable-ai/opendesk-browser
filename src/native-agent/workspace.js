@@ -6,8 +6,7 @@ import {createWorkspaceChatEdit} from './workspace-chat-edit-ui.js';
 import {sourceLabel,sourceName} from './source-label.js';
 import {validateRequestPath} from './workspace-chat-request.js';
 import {validateWorkspaceTreeListing,parentDirectoriesForFile,MAX_WORKSPACE_TREE_EXPANSIONS,MAX_WORKSPACE_TREE_REFRESH} from './workspace-file-tree.js';
-import {readToolSnapshot} from './tool-snapshot.js';
-import {openPreviewSession} from '../ui/sidebar-tools/preview-session.js';
+import {createToolLivePreview} from './tool-live-preview.js';
 import {createKnowledgeWorkspaceHandoff} from '../knowledge/workspace-handoff.js';
 import {localizeLiteral,subscribeLocale,translate,formatFileSize,getLocale} from '../i18n/index.js';
 import {isDirtyWorkspaceDraft as dirty,sameWorkspaceAuthority as sameAuthority,
@@ -50,7 +49,7 @@ export function createWorkspaceController({api=globalThis.chrome,client,
   let resolveActionReview=null,actionReview=null,targetId='',saveAsPath='',previewURL='http://127.0.0.1:3000/';
   let previewHTML='',previewKind='',connectedPreviewURL='',toolStatus={text:'',error:false};
   let connectionLabel='',treeMessage='',knowledgeHandoff=null,stopKnowledge=null;
-  let pickerRows=[];
+  let pickerRows=[],liveToolPreview=null;
   const store=createWorkspaceStore();
   // Non-modal, in-page choice. Operations waiting for a decision keep their
   // native authority/identity and revalidate before committing any side effect.
@@ -194,6 +193,7 @@ export function createWorkspaceController({api=globalThis.chrome,client,
     }
   }
   function offline(message){
+    void liveToolPreview?.stop();liveToolPreview=null;
     connected=false;workspaceAccess.clear();workspaceRows.clear();fileState={};
     toolPreviewStatus('本地工具来源离线；不能读取新的构建快照。',true);
     chatEdit?.invalidate('本机连接或授权已失效，旧请求和提案已停用，草稿保留。');resetFileTree();
@@ -431,22 +431,22 @@ export function createWorkspaceController({api=globalThis.chrome,client,
     if(!authority?.sourceId)throw {code:'E_FILES_SESSION',message:'目录来源未经过 Native 核验。'};
     toolPreviewStatus('正在从已授权目录读取、验证完整构建快照…');
     try{
+      if(liveToolPreview?.preview){
+        await api.tabs.update(liveToolPreview.preview.tabId,{active:true});return;
+      }
       await assertAuthority(authority);
       const info=await readFile(ws,'tool.config.json',authority);
       let config;try{config=JSON.parse(info.content);}
       catch{throw {code:'E_TOOL_SCHEMA',message:'tool.config.json 不是合法 JSON'};}
       const toolId=config?.id;
-      const snapshot=await readToolSnapshot({toolId,readText:async path=>{
+      const preview=createToolLivePreview({api,toolId,workspaceId:ws,sourceId:authority.sourceId,
+        assertCurrent:()=>assertAuthority(authority),onStatus:toolPreviewStatus,readText:async path=>{
         if(closed||workspaceId!==ws||!sameAuthority(authority,authorityFor()))
           throw {code:'E_FILES_SESSION',message:'读取期间目录身份或授权已经变化'};
         return (await readFile(ws,path,authority)).content;
       }});
-      await assertAuthority(authority);
-      if(closed||workspaceId!==ws||!sameAuthority(authority,authorityFor()))
-        throw {code:'E_FILES_SESSION',message:'读取完成前来源已切换'};
-      await openPreviewSession({api,workspaceId:ws,sourceId:authority.sourceId,snapshot});
-      toolPreviewStatus('只读预览已打开：'+snapshot.tool.title+' · 构建 '+String(snapshot.buildId||snapshot.sha256.slice(0,12))+
-        '。此快照未安装，写入及自动化操作均被禁止。');
+      liveToolPreview=preview;
+      try{await preview.start();}catch(error){await preview.stop();if(liveToolPreview===preview)liveToolPreview=null;throw error;}
     }catch(error){
       toolPreviewStatus((error.code||'E_TOOL_PREVIEW')+' · '+String(error.message||error),true);
       throw error;
@@ -599,6 +599,7 @@ export function createWorkspaceController({api=globalThis.chrome,client,
   async function selectWorkspace(selected){
     if(pendingSource&&!workspaceAccess.has(selected))return;
     if(!await leaveImportedDraft()||closed)return;
+    await liveToolPreview?.stop();liveToolPreview=null;
     chatEdit.invalidate('已切换工作区，旧请求和提案已失效，原草稿保留。');
     pendingSource='';workspaceId=selected;current=null;resetFileTree();renderPreview();
     toolPreviewStatus('已切换工作区；请再次明确点击以读取该目录的工具构建。');
@@ -700,7 +701,7 @@ export function createWorkspaceController({api=globalThis.chrome,client,
   const stopLocale=subscribeLocale(()=>{if(closed)return;controls();if(lastStatus)status(lastStatus,lastStatusError);renderFileTree();});
   const unload=()=>{
     if(closed)return;
-    closed=true;stopLocale();stopKnowledge?.();finishActionReview(false);knowledgeHandoff?.dispose();chatEdit?.dispose();clearTimeout(previewTimer);
+    closed=true;void liveToolPreview?.stop();liveToolPreview=null;stopLocale();stopKnowledge?.();finishActionReview(false);knowledgeHandoff?.dispose();chatEdit?.dispose();clearTimeout(previewTimer);
     if(native){api.runtime.onMessage?.removeListener?.(onNativeChange);
       api.webNavigation.onHistoryStateUpdated?.removeListener?.(onNavigation);
       api.webNavigation.onCommitted?.removeListener?.(onNavigation);

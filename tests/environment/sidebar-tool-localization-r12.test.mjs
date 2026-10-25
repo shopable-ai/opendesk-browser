@@ -119,6 +119,8 @@ test('R1.3 trusted TOC settings change language without importing tool permissio
   assert.equal(readingTocHostText('zh-CN','siteDisable'),'停用当前网站');
   assert.equal(readingTocHostText('en-US','siteDisable'),'Disable on this website');
   assert.equal(readingTocHostText('en','noPages'),'No excluded pages');
+  assert.equal(readingTocHostText('ja','languageLabel'),'表示言語');
+  for(const key of READING_TOC_HOST_KEYS)assert(readingTocHostText('ja',key).trim(),key);
   assert.equal(readingTocHostText('fr','siteDisable'),'停用当前网站');
   assert.equal(readingTocHostText('en','unknown'),'');
   const [host,markup,react]=await Promise.all([
@@ -128,7 +130,8 @@ test('R1.3 trusted TOC settings change language without importing tool permissio
   ]);
   assert.match(host,/readingTocHostText/);
   assert.match(host,/isToc\?tocLocale:null/);
-  assert.match(host,/if\(active\?\.id===READING_TOC_TOOL_ID\)render\(\)/);
+  assert.match(host,/if\(active\?\.localization\)render\(\)/);
+  assert.match(host,/tocLocale=isToc\?toolLocaleContext\(active\)\.locale/,'TOC settings use effective tool language');
   assert.match(host,/view\.patchLabels\(/,'trusted Host must update locale state');
   assert.match(react,/snapshot\.labels\[name\]/,'React must consume trusted, localized labels');
   assert.match(react,/ToolLabel name="overlayHint"/);
@@ -217,10 +220,12 @@ test('R2.1 dynamic Japanese catalog replaces same-language text and removal fall
   const list=scroll.children[0],item=list.children[0];scroll.scrollTop=37;
   view.setLocale('ja',catalog);
   assert.equal(panel.attributes.get('aria-label'),pack.messages.pageLabel.text);
+  assert.equal(panel.children[0].children[0].children[0].textContent,pack.messages.contents.text,'visible title follows the tool language');
   assert.equal(f.host(),host);assert.equal(list.children[0],item);assert.equal(scroll.scrollTop,37);
   const changed=structuredClone(catalog);changed.messages.ja.pageLabel='更新した目次';
   view.setLocale('ja',changed);assert.equal(panel.attributes.get('aria-label'),'更新した目次');
-  view.setLocale('ja',null);assert.equal(panel.attributes.get('aria-label'),pkg.localization.messages['zh-CN'].pageLabel);
+  view.setLocale('ja',null);assert.equal(panel.attributes.get('aria-label'),pkg.localization.messages.ja.pageLabel,'removing a custom pack retains built-in Japanese');
+  view.setLocale('fr',null);assert.equal(panel.attributes.get('aria-label'),pkg.localization.messages['zh-CN'].pageLabel);
   assert.equal(f.host(),host);assert.equal(list.children[0],item);assert.equal(scroll.scrollTop,37);
   view.dispose();
  }finally{globalThis.CSSStyleSheet=prior;}

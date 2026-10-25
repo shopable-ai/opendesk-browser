@@ -4,10 +4,44 @@ import {createHash,randomUUID} from 'node:crypto';
 import {resolve,join,dirname,sep} from 'node:path';
 import {tmpdir} from 'node:os';
 import {pathToFileURL} from 'node:url';
+import {Script} from 'node:vm';
 import {buildSidebarTool,checkCompiledToolBuildReady} from './build-sidebar-tool.mjs';
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 const NATIVE_PREVIEW_ROOT='opendesk-tool-preview';
 const CHUNK_BYTES=16000; // base64 per file <= 21,336 ASCII bytes; Go Native cap: 32,768.
+function previewId(id){
+  if(typeof id!=='string'||!/^[a-z0-9-]{1,64}$/.test(id))fail('invalid Native preview id');
+  return id;
+}
+// Resolve identity independently of build readiness so even an initial failed
+// build can publish a status. A previous successful pointer survives restarts.
+export async function readSidebarToolPreviewHead(path){
+  const root=await realpath(path);
+  const config=JSON.parse(await ownedFile(root,'tool.config.json'));
+  const id=previewId(config.id);
+  let sha256=null;
+  try{
+    const latest=JSON.parse(await ownedFile(root,NATIVE_PREVIEW_ROOT+'/'+id+'/latest.json'));
+    if(latest.format==='opendesk.tool-preview-latest.v1'&&latest.id===id&&
+      /^[a-f0-9]{64}$/.test(latest.sha256))sha256=latest.sha256;
+  }catch{/* No readable successful snapshot yet. */}
+  return {id,sha256};
+}
+export async function publishSidebarToolStatus(path,{id,state,sha256=null,message=''}){
+  previewId(id);
+  if(!['ready','error','stopped'].includes(state)||
+    sha256!==null&&(typeof sha256!=='string'||!/^[a-f0-9]{64}$/.test(sha256)))
+    fail('invalid Native preview status');
+  const root=await realpath(path);
+  const directory=await safeDirectory(root,NATIVE_PREVIEW_ROOT+'/'+id);
+  const status={format:'opendesk.tool-preview-status.v1',id,state,sha256,
+    updatedAt:new Date().toISOString(),message:String(message).slice(0,500)};
+  const temporary=join(directory,'.status-'+process.pid+'-'+randomUUID()+'.tmp');
+  try{
+    await writeFile(temporary,JSON.stringify(status)+'\n',{flag:'wx',mode:0o600});
+    await rename(temporary,join(directory,'status.json'));
+  }finally{await rm(temporary,{force:true});}
+}
 async function safeDirectory(root,relative){
   const bits=relative.split('/');
   let current=root;
@@ -31,7 +65,7 @@ async function stableWrite(file,bytes){
   const info=await lstat(file);
   if(!info.isFile()||info.isSymbolicLink()||info.mode&0o022)fail('unsafe Native preview file');
 }
-async function publishNativeSnapshot(root,pkg,bytes,sha256,sourceFingerprint,buildId){
+async function publishNativeSnapshot(root,pkg,bytes,sha256,sourceFingerprint,buildId,signal){
   const directory=NATIVE_PREVIEW_ROOT+'/'+pkg.id;
   const snapshot=directory+'/'+sha256;
   await safeDirectory(root,snapshot);
@@ -55,6 +89,7 @@ async function publishNativeSnapshot(root,pkg,bytes,sha256,sourceFingerprint,bui
   const temporary=join(root,directory,'.latest-'+process.pid+'-'+randomUUID()+'.tmp');
   try{
     await writeFile(temporary,JSON.stringify(latest)+'\n',{flag:'wx',mode:0o600});
+    signal?.throwIfAborted();
     await rename(temporary,pointer);
   }finally{await rm(temporary,{force:true});}
   return {nativeLatest:directory+'/latest.json',nativeChunks:chunks.length,
@@ -104,14 +139,15 @@ async function declaredSnapshot(root){
     hashes.push(['dist/build-ready.json',bytes.length,digest(bytes)]);
   }
   const buildId=ready?.buildId||null;
-  return {fingerprint:digest(JSON.stringify(hashes)),buildId};
+  return {id:config.id,fingerprint:digest(JSON.stringify(hashes)),buildId};
 }
 export async function inspectSidebarToolProject(path){
   const root=await realpath(path);
   if(!(await stat(root)).isDirectory())fail('tool project must be a directory');
   return declaredSnapshot(root);
 }
-export async function stageSidebarTool(path){
+export async function stageSidebarTool(path,{signal}={}){
+  signal?.throwIfAborted();
   const root=await realpath(path);
   if(!(await stat(root)).isDirectory())fail('tool project must be a directory');
   const before=await declaredSnapshot(root);
@@ -123,6 +159,13 @@ export async function stageSidebarTool(path){
     if(before.fingerprint!==after.fingerprint)
       fail('tool sources changed during packaging; retry a complete build');
     const bytes=await readFile(candidate),sha256=digest(bytes);
+    const pkg=JSON.parse(bytes);
+    // Compile only: never evaluate user code, including fixed Classic scripts.
+    for(const script of [...(pkg.scripts||[]),{name:'main.js',code:pkg.js}]){
+      try{new Script(script.code,{filename:script.name});}
+      catch(error){fail('invalid JavaScript in '+script.name+': '+error.message);}
+    }
+    signal?.throwIfAborted();
     const output=join(root,'.opendesk-preview',result.id,sha256+'.opendesk-tool.json');
     await mkdir(dirname(output),{recursive:true});
     try{await writeFile(output,bytes,{flag:'wx'});}
@@ -131,7 +174,7 @@ export async function stageSidebarTool(path){
       const previous=await readFile(output);
       if(!previous.equals(bytes))fail('content-addressed snapshot was replaced or corrupted');
     }
-    const native=await publishNativeSnapshot(root,result,bytes,sha256,before.fingerprint,before.buildId);
+    const native=await publishNativeSnapshot(root,result,bytes,sha256,before.fingerprint,before.buildId,signal);
     return Object.freeze({status:'STAGED_NOT_INSTALLED',id:result.id,version:result.version,
       output,sha256,sourceFingerprint:before.fingerprint,buildId:before.buildId,
       ...native,validated:true,installed:false,previewAuthorized:false});

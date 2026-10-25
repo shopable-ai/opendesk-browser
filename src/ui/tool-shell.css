@@ -847,6 +847,10 @@
 .sidebar-toc-settings-hint{margin:4px 0 9px;line-height:1.5;color:#697a91}
 .sidebar-toc-settings-row{display:flex;justify-content:space-between;align-items:center;gap:7px;margin:7px 0;min-height:31px}
 .sidebar-toc-settings-row>span{min-width:0;flex:1}
+#sidebar-tool-settings-view[data-tool="reading-toc"] #sidebar-tool-toc-language{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-2)}
+#sidebar-tool-settings-view[data-tool="reading-toc"] #sidebar-tool-toc-language-select{width:100%;min-width:0}
+#sidebar-tool-settings-view[data-tool="reading-toc"] #sidebar-tool-visibility{width:100%;height:auto;white-space:normal}
+#sidebar-tool-settings-view[data-tool="reading-toc"] #sidebar-tool-visibility>span{min-width:0;overflow-wrap:break-word}
 .sidebar-toc-visibility-toggle{flex:none;min-height:34px;min-width:52px;padding:4px 9px;border:1px solid #d9e3f2;background:#fff;border-radius:var(--radius-control);font-size:11px;color:#536982;cursor:pointer}
 .sidebar-toc-visibility-toggle[aria-pressed=true]{border-color:#b9c9ef;background:#edf2ff;color:#3157b1;font-weight:700}
 .sidebar-toc-visibility-toggle:disabled{opacity:.5;cursor:not-allowed}

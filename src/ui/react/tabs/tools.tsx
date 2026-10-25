@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {createPortal} from 'react-dom';
 import {Button,IconButton} from '../components/ui/button.tsx';
+import {localeManagerText} from '../../locale-manager-localization.js';
 
 const LocaleManager=React.lazy(()=>import('./locale-manager.tsx'));
 
@@ -67,7 +68,7 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore}){
 /** Shared confirmation shell; the trusted controller still owns uninstall. */
 export function UninstallDialog({open=false,title='卸载扩展？',busy=false,
   onCancel,returnFocusSelector,description,identity,children,
-  cancelLabel='取消卸载',closeLabel='关闭卸载确认'}) {
+  cancelLabel='取消卸载',closeLabel='关闭卸载确认',busyLabel='正在卸载，请稍候…'}) {
   const panelRef=React.useRef(null),titleId=React.useId(),descriptionId=React.useId();
   const latest=React.useRef({busy,onCancel});
   latest.current={busy,onCancel};
@@ -170,7 +171,7 @@ export function UninstallDialog({open=false,title='卸载扩展？',busy=false,
       </p>}
       {description&&<p id={descriptionId}>{description}</p>}
       {children}
-      {busy&&<p role="status" aria-live="polite">正在卸载，请稍候…</p>}
+      {busy&&<p role="status" aria-live="polite">{busyLabel}</p>}
     </section>
   </div>;
   return typeof document==='undefined'?surface:createPortal(surface,document.body);
@@ -291,8 +292,8 @@ export function ExtensionToolbar({model}){
         autoComplete="off" value={current.query||''}
         onChange={event=>current.onSearch?.(event.currentTarget.value,event.nativeEvent)}/>
     </label>
-    <Button id="extension-center-language-settings" aria-label="语言 / Language"
-      title="切换语言 / Language" onClick={()=>current.onLanguageSettings?.()}>语言</Button>
+    <Button id="extension-center-language-settings" aria-label={current.languageActionLabel||'语言'}
+      title={current.languageActionLabel||'语言'} onClick={()=>current.onLanguageSettings?.()}>{current.languageActionLabel||'语言'}</Button>
     <IconButton id="extension-center-market" className="ec-icon" label="在新标签页打开应用市场"
       onClick={event=>current.onMarket?.(event.nativeEvent)}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16l-1.5-6h-13L4 10Zm2 0v10h12V10M10 20v-6h4v6"/></svg>
@@ -517,7 +518,7 @@ export function ExtensionCenterPage({
           {uninstallModel?.busy?'正在卸载…':'确认卸载'}</Button>
       </div>
     </UninstallDialog>
-    {toolbarModel?.localeManager&&<React.Suspense fallback={<p role="status">正在打开语言与翻译…</p>}>
+    {toolbarModel?.localeManager&&<React.Suspense fallback={<p role="status">{localeManagerText(toolbarModel.localeManager.localeController?.getLocale?.()||'zh-CN','busy')}</p>}>
       <LocaleManager key={toolbarModel.localeManager.session} model={toolbarModel.localeManager}/>
     </React.Suspense>}
     {rowMenuModel&&<ExtensionRowMenu model={rowMenuModel}/>}

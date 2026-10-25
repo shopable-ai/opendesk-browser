@@ -7,6 +7,7 @@ import {composeExtensionEntries,filterExtensionEntries,describeInstalledAppSourc
 import readingTocCatalog from '../../examples/sidebar-tools/reading-toc/trusted/locales.generated.js';
 import {OFFICIAL_READING_TOC_RELEASE} from '../sidebar-tools/official-reading-toc.js';
 import {uiMessage} from './app-localization.js';
+import {localeManagerText} from './locale-manager-localization.js';
 import {PROGRAM_DRAFT_INPUT_LIMIT} from './program-source.js';
 
 // One trusted presentation. All writes and launches delegate to the existing hosts.
@@ -104,6 +105,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     extensionList.renderToolbar({
       query:searchText,kind,scope,menuOpen:toolbarMenuOpen,
       language:localeController?.getPreference?.()||language(),
+      languageActionLabel:localeManagerText(language(),'languageAction'),
       onSearch(value){if(disposed)return;searchText=value;query=value.trim();draw();},
       onMarket(){if(!disposed)openMarket();},
       onToggleMenu(){if(disposed)return;closeRowMenu();toolbarMenuOpen=!toolbarMenuOpen;syncFilters();},
