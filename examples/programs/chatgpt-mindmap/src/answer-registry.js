@@ -45,10 +45,16 @@ const dark=doc=>doc.documentElement.classList.contains('dark')||
   doc.documentElement.getAttribute('data-theme')==='dark';
 // Only a non-sensitive theme choice is kept in ChatGPT's origin storage.
 // Restrictive/privacy contexts still support the toggle for this session.
-const VIEW_THEME_KEY='opendesk.chatgpt-mindmap.viewer-theme.v1';
+// The new Program owns its own preference; legacy data is read-only.
+// A theme fallback is not an installation, execution, or authority migration.
+const VIEW_THEME_KEY='opendesk.ai-reply-mindmap.viewer-theme.v1';
+const LEGACY_VIEW_THEME_KEY='opendesk.chatgpt-mindmap.viewer-theme.v1';
 const readViewerTheme=win=>{
-  try{return win.localStorage?.getItem(VIEW_THEME_KEY)==='light'?'light':'dark';}
-  catch{return 'dark';}
+  try{
+    const current=win.localStorage?.getItem(VIEW_THEME_KEY);
+    if(current==='light'||current==='dark')return current;
+    return win.localStorage?.getItem(LEGACY_VIEW_THEME_KEY)==='light'?'light':'dark';
+  }catch{return 'dark';}
 };
 const saveViewerTheme=(win,mode)=>{
   try{win.localStorage?.setItem(VIEW_THEME_KEY,mode);}catch{/* optional storage */}
@@ -345,7 +351,7 @@ export function createAnswerRegistry({document,window,owner,css,createView=creat
   }
   const coordinator={retire,logFailure,recordFailure(error,identity){
     const record={time:new Date().toISOString(),
-      program:{id:'opendesk.chatgpt-mindmap',...programRevision},...identity,
+      program:{id:'opendesk.ai-reply-mindmap',...programRevision},...identity,
       error:describeMindmapError(error)};
     diagnostics.push(record);if(diagnostics.length>8)diagnostics.shift();
     logFailure(record);

@@ -4,6 +4,8 @@ import {createAnswerView} from './view.js';
 import {createXmindFrameRenderer,requireXmindFrameFactory} from './xmind-frame.js';
 import {createInstalledXmindFrameFactory} from './xmind-installed-frame.js';
 
+const PROGRAM_ID='opendesk.ai-reply-mindmap';
+
 const pageRules={matches:['https://chatgpt.com/*'],excludeMatches:[],
   runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'};
 
@@ -18,7 +20,7 @@ return async function main({assets}={}) {
   // resource availability is enforced by the public Page UI call on conversion.
   if(frameFactory!==undefined)requireXmindFrameFactory(frameFactory);
   const owner=createPageUI({
-    id:'opendesk.chatgpt-mindmap.lifecycle',assets,pageRules,baseStyles:false
+    id:PROGRAM_ID+'.lifecycle',assets,pageRules,baseStyles:false
   });
   owner.host.hidden=true;
   owner.host.style.setProperty('display','none','important');
@@ -26,12 +28,12 @@ return async function main({assets}={}) {
     const installedFactory=frameFactory??createInstalledXmindFrameFactory(owner);
     const registry=createAnswerRegistry({document,window,owner,
       css:owner.getAsset('assets/ui.css'),
-      programRevision:{version:'0.2.7',revision:8},
+      programRevision:{version:'0.2.7',revision:1},
       createView:options=>createAnswerView({...options,
         rendererFactory:input=>createXmindFrameRenderer({...input,frameFactory:installedFactory})})});
     owner.onDispose(()=>registry.destroy());
     registry.start();
-    return {programId:'opendesk.chatgpt-mindmap',status:'active',
+    return {programId:PROGRAM_ID,status:'active',
       runtime:'USER_SCRIPT',answers:registry.count};
   } catch(error) {
     owner.destroy();

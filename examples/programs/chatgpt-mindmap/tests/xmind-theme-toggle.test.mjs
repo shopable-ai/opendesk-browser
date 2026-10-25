@@ -4,7 +4,8 @@ import {parseHTML} from 'linkedom';
 import {createAnswerView} from '../src/view.js';
 import {createAnswerRegistry} from '../src/answer-registry.js';
 
-const KEY='opendesk.chatgpt-mindmap.viewer-theme.v1';
+const KEY='opendesk.ai-reply-mindmap.viewer-theme.v1';
+const LEGACY_KEY='opendesk.chatgpt-mindmap.viewer-theme.v1';
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 // linkedom does not implement the browser-only :focus-visible pseudo-class.
 // Keep the production interaction unchanged, just model an unfocused opener.
@@ -155,5 +156,35 @@ test('cloned native action bar retains one live mind-map button rather than an i
     'Reconciliation removes the cloned icon and reinserts the live instance');
   assert.equal(copy.querySelector(selector),actual);
   assert.ok(actual.shadowRoot.querySelector('button'));
+  await registry.destroy();
+});
+ 
+test('new identity reads legacy Viewer Theme without rewriting old storage',async()=>{
+  const {document}=parseHTML('<html><body><article data-testid="conversation-turn-1">'+
+    '<div data-message-author-role="assistant" data-message-id="A">'+
+    '<div class="markdown"><h2>Answer</h2><p>Body</p></div></div>'+
+    '<div data-testid="message-actions"><button data-testid="copy-turn-action-button">Copy</button></div>'+
+    '</article></body></html>');
+  withPriorityStyles(document);
+  const values=new Map([[LEGACY_KEY,'light']]),views=[];
+  const window={location:{pathname:'/c/migrated-theme',search:''},
+    localStorage:{getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value)}};
+  const registry=createAnswerRegistry({document,window,owner,css:'',createView(options){
+    const view={host:document.createElement('section'),options,
+      async start(){},async destroy(){view.host.remove();},async setFull(){},
+      markStale(){},focusPrimary(){},focusFullscreen(){},async setTheme(){}};
+    views.push(view);return view;
+  }});
+  registry.start();
+  const host=document.querySelector('[data-opendesk-chatgpt-mindmap="button"]');
+  withoutFocusVisible(host.shadowRoot.querySelector('button'))
+    .dispatchEvent(new document.defaultView.Event('click'));
+  await flush();
+  assert.equal(views.length,1);
+  assert.equal(views[0].host.getAttribute('data-dark'),'false');
+  assert.equal(values.has(KEY),false,'legacy read never silently writes');
+  await views[0].options.onToggleTheme();
+  assert.equal(values.get(KEY),'dark','new choice belongs to new identity');
+  assert.equal(values.get(LEGACY_KEY),'light','old data remains untouched');
   await registry.destroy();
 });

@@ -1,16 +1,16 @@
 {
-  "name": "@opendesk-examples/chatgpt-mindmap",
+  "name": "@opendesk-examples/ai-reply-mindmap",
   "version": "0.2.7",
   "private": true,
   "type": "module",
-  "description": "ChatGPT per-answer real XMind adapter; runtime admission BLOCKED (see README)",
+  "description": "AI 回复思维导图：ChatGPT 单站的 XMind 阅读、定位与导出；正式资源与授权边界见 README",
   "author": "OpenDesk examples",
   "scripts": {
     "prepare:local": "node scripts/prepare-local-resources.mjs"
   },
   "opendesk": {
     "format": "opendesk.project.v1",
-    "id": "opendesk.chatgpt-mindmap",
+    "id": "opendesk.ai-reply-mindmap",
     "runtimeKind": "page-userscript",
     "sourceFormat": "esm",
     "entry": "src/main.js",

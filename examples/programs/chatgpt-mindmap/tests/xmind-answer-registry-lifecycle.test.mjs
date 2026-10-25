@@ -327,7 +327,7 @@ test('constructor and start failures retain their stage without hiding any origi
     assert.equal(node.hasAttribute('aria-hidden'),false);
     const record=h.registry.diagnostics[0];
     assert.equal(record.error.stage,stage);assert.equal(record.error.name,'TypeError');
-    assert.deepEqual(record.program,{id:'opendesk.chatgpt-mindmap',version:'0.2.2',revision:3});
+    assert.deepEqual(record.program,{id:'opendesk.ai-reply-mindmap',version:'0.2.2',revision:3});
     assert.ok(h.logs.length);
     assert.equal(h.logs.at(-1).record.error.stage,stage);
     await h.registry.destroy();

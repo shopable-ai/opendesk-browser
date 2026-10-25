@@ -1,4 +1,13 @@
-# ChatGPT 思维导图 · OpenDesk 网页增强
+# AI 回复思维导图 · OpenDesk 网页增强
+
+## R1.2.3 新身份源码交付（2026-10-26）
+
+- **新 Page Program ID：** `opendesk.ai-reply-mindmap`；源码版本仍为 `0.2.7`，新身份首次打包的目标修订为 **r1**。项目目录仍为 `examples/programs/chatgpt-mindmap/`，不因此改路径或扩大 `https://chatgpt.com/*` 授权。
+- 旧 `opendesk.chatgpt-mindmap` 是**另一个安装身份**。旧安装、Authority、Chrome 注册及其 `0.2.7/r8` 包**不会**自动改名、原位升级或迁权；须先人工审阅旧实例停用/卸载和清理，再独立审阅新 ID 安装和站点授权。双装未经原生验证，不声明自动去重。
+- Viewer Theme 写入 `opendesk.ai-reply-mindmap.viewer-theme.v1`。新键不存在时只读使用旧键 `opendesk.chatgpt-mindmap.viewer-theme.v1` 的 light 偏好（其他值默认 dark）；不拷贝/删除旧键或改变旧授权，用户在新程序主动切换时才写新键。旧键保留供恢复。
+- GitHub 业务源码迁移**不等于**可安装产物。仅经既有 `validate-program-project.mjs`、`build:program`、`build-page-install-package.mjs`，在固定新 ID 源码与原始站点范围上生成**不同文件名**的新 Page JSON，核对 `revision/sourceHash/packageHash` 并经安装审阅后才宣称可安装。此处未构建新包，真实 Mac/Chrome 迁移未验收。
+- 下文 `0.2.7/r8` 的截图、旧安装身份、哈希、历史阻塞和 PASS 均属于原 **旧 ID** 的特定候选，不作为新身份运行或安装成功的证据。
+
 
 ## 回复工具组与控制台诊断（2026-10-25，0.2.7 / r8）
 
