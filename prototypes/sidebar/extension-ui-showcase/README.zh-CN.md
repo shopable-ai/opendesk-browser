@@ -6,6 +6,7 @@
 
 | 入口 | 角色 | 真实性 |
 | --- | --- | --- |
+| [R2.5 Layout Pattern / Group 互动参考](./r25-layout-patterns.html) | 16 个布局模式、6 个真实业务映射、右侧源码摘录，支持 320/360/400/440/960px、主题、长文案与恢复状态 | **`CHAT_ADAPTER_NOT_SOURCE_HTML`**；源码已保存、JS 语法解析 PASS；真实浏览器交互 `NOT_TESTED` |
 | [正式 React 同源 Showcase 外壳](./index.html) | 装载现有 [React 离线预览产物](../react-preview/index.html)，作为真实源码对照 | `UI_PREVIEW_ONLY`；需先由既有构建流程生成/更新产物 |
 | [R2.4 业务导向交互预览](./r24-business-review.html) | 开发、扩展管理、Prompt Shortcuts、书签、Cookie、语言及输入细节；含独立子页/错误状态 | **`CHAT_ADAPTER_NOT_SOURCE_HTML`**，独立内存模拟，不是 React 构建 |
 | [R2.3 六场景聊天适配预览](./archive/r23-web-chat-adapter.html) | 历史控件行为、语言、资源、FormRow、菜单、状态对照 | **`CHAT_ADAPTER_NOT_SOURCE_HTML`**；保留用于比较，不推荐作为新 UI 基准 |
@@ -24,9 +25,12 @@
 
 R2.4 的业务布局已有价值；缺口是 **Group/Section/Form/Toolbar/List/Detail/Action/State 等可复用组合模式的有组织索引、真实源码示例和开发选型说明**。
 
-下一轮唯一增量入口：
-1. [布局与组件组合模式索引（含源码映射、任务树和验收）](../../../docs/framework/extension-ui-reference-patterns-r25.zh-CN.md)
-2. [R2.5-WEB 下一对话执行提示词](../../../docs/framework/prompts/goal-extension-ui-pattern-library-r25-web-20261026.zh-CN.md)
+R2.5 新增参考成果：
+1. [完整可点击 HTML（版本化，不覆盖 R2.4）](./r25-layout-patterns.html)
+2. [按业务找 Pattern / 真实源码索引](./r25-source-index.zh-CN.md)
+3. [16 Pattern、Group 选型与可复用源码 Recipe](../../../docs/framework/extension-ui-layout-recipes-r25.zh-CN.md)
+
+历史设计入口（保留供对照）：[R2.5 原设计矩阵](../../../docs/framework/extension-ui-reference-patterns-r25.zh-CN.md)、[前一轮 R2.5-WEB 执行提示词](../../../docs/framework/prompts/goal-extension-ui-pattern-library-r25-web-20261026.zh-CN.md)。正式 React/Chrome 验收及任何生产修复尚未执行。
 
 ### 源码真相和所有权
 
