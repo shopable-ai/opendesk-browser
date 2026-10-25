@@ -536,7 +536,7 @@ border:0;background:transparent;color:var(--od-sub)}
 .preview-detail-id small{font-size:11px;color:var(--od-sub)}
 .preview-detail-body{max-height:min(62dvh,560px);overflow:auto;min-height:110px;padding:12px;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font-size:13px;line-height:1.65;user-select:text}
 .preview-detail-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px}
-.preview-detail-actions .od-button{min-height:36px}
+.preview-detail-actions .od-button{min-width:0;min-height:36px;flex:1 1 auto;display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2)} .preview-detail-icon{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 @media(hover:none),(pointer:coarse){.prompt-actions{opacity:1;pointer-events:auto;transform:none}.preview-quick-copy{display:none}.prompt-actions .od-icon-action{width:40px;min-width:40px;height:40px;min-height:40px}}
 @media(prefers-reduced-motion:reduce){.prompt-actions{transition:none;transform:none}}
 </style>
@@ -697,9 +697,8 @@ border:0;background:transparent;color:var(--od-sub)}
         <div><strong id="detailName"></strong><small id="detailState"></small></div></div>
       <div id="detailBody" class="preview-detail-body od-surface" tabindex="0" role="region" aria-label="完整提示词正文"></div>
       <div class="preview-detail-actions">
-        <button id="detailBack" class="od-button od-button--secondary" type="button">返回列表</button>
-        <button id="detailEdit" class="od-button od-button--secondary" type="button">编辑</button>
-        <button id="detailCopy" class="od-button od-button--primary" type="button">复制全文</button>
+        <button id="detailEdit" class="od-button od-button--secondary" type="button"><svg class="preview-detail-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><span>编辑</span></button>
+        <button id="detailCopy" class="od-button od-button--primary" type="button"><svg class="preview-detail-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 8h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V8Z"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg><span>复制全文</span></button>
       </div>
    </section>
    <section id="formView" hidden aria-labelledby="hostToolTitle">
@@ -1543,7 +1542,6 @@ border:0;background:transparent;color:var(--od-sub)}
   openForm(null,{body:text});notice('已预填选中文字；只需确认正文即可保存，短标签和名称可留空自动生成。');}
  el('mockSelection').addEventListener('click',prepareSelection);el('mockMenuAdd').addEventListener('click',confirmSelection);
  el('addButton').addEventListener('click',()=>openForm());el('cancelForm').addEventListener('click',()=>requestBack('index'));
- el('detailBack').addEventListener('click',returnIndex);
  el('detailEdit').addEventListener('click',()=>{if(detailViewId)openForm(detailViewId)});
  el('detailCopy').addEventListener('click',()=>{const item=state.items.find(row=>row.id===detailViewId);if(item)void copyPrompt(item)});
  el('hostMore').addEventListener('click',()=>{
