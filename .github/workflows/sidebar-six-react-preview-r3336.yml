@@ -36,6 +36,9 @@ jobs:
       - name: Build from installed DOM, CSS and real React components
         id: build_preview
         run: node scripts/preview/build-sidebar-six-react-preview.mjs
+      - name: Check approved AI settings in Chromium (real React, no Host)
+        if: ${{ steps.build_preview.outcome == 'success' && !cancelled() }}
+        run: node scripts/tests/sidebar-six-react-preview-interaction.mjs --settings-only
       - name: Verify R33.3.14 schedule projections and existing UI
         run: |
           node --test tests/environment/schedule-plan-presentation-r33314.test.mjs \
