@@ -17,6 +17,7 @@ import {permissionPattern} from '../environment.js';
 import {scheduleSpecFromExpression} from '../platform/tasks/schedule-time.js';
 import {PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT,PROGRAM_DRAFT_INPUT_LIMIT} from './program-source.js';
 import {PAGE_INSTALL_FORMAT,validatePageInstallPackage} from '../scripting/user-scripts/page-install-package.js';
+import {loadOfficialPagePackage} from '../scripting/user-scripts/official-page-catalog.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled,assertSidebarToolEnabled} from './sidebar-tools/lifecycle.js';
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOOL_DATA_LIMITS,
@@ -1736,6 +1737,29 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   function openImportFiles(files){
     if(!openImport())return false;
     reviewDroppedFiles(files);
+    return true;
+  }
+  // Official Page discovery uses exactly the same review, Chrome permission
+  // confirmation and Page Authority import as a user-selected install file.
+  function openOfficialPageReview(release){
+    if(!release||release.status!=='available'||!openImport())return false;
+    const selection=++fileSelection;
+    resetReview();setFileError();notice('正在核验官方 Page 安装包…');
+    void (async()=>{
+      try{
+        const {pkg,release:checked}=await loadOfficialPagePackage(release,{api,fetcher});
+        if(disposed||selection!==fileSelection)return;
+        await reviewPagePackage(pkg,{name:'OpenDesk 内置发行：'+pkg.programId},selection);
+        if(disposed||selection!==fileSelection)return;
+        patchToolField(view,previewFile,{textContent:'OpenDesk 内置固定发行 · '+checked.programId+
+          ' · 包 SHA-256：'+checked.sha256+' · 源码 SHA-256：'+checked.sourceHash+
+          ' · Page packageHash：'+checked.packageHash});
+        notice('已核验官方来源。请检查网站范围，再明确点击确认安装。');
+      }catch(error){
+        if(disposed||selection!==fileSelection)return;
+        resetReview();setFileError((error?.code||'E_OFFICIAL_PAGE')+'：'+String(error?.message||error));
+      }
+    })();
     return true;
   }
   function openReadOnlyPreview(value,{developmentSession=null}={}){
@@ -4203,7 +4227,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }));
   }
   render();
-  return Object.freeze({ready,openTool,openSettings,toggleEnabled,uninstallFromList,retryUninstallCleanup,openOfficialReview,openImport,openImportFiles,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,isPreviewEditing:()=>readOnlyPreview&&(toolDirty||toolSaving),openInTab,closeTool,setVisible,dispose(){
+  return Object.freeze({ready,openTool,openSettings,toggleEnabled,uninstallFromList,retryUninstallCleanup,openOfficialReview,openOfficialPageReview,openImport,openImportFiles,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,isPreviewEditing:()=>readOnlyPreview&&(toolDirty||toolSaving),openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     cookieImportGate.revoke();cookieWriteGate.revoke();cookieClearGate.revoke();cookieExportGate.revoke();cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;pageConsent?.dispose();
     timePermissions?.dispose();focusPermissions?.dispose();aiPermissions?.dispose();

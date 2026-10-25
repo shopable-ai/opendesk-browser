@@ -69,11 +69,16 @@ export function createLocalKnowledgeDemoAdapter({api,currentPageTarget}={}){
      typeof currentPageTarget?.revalidate!=='function')
     throw fail('E_KB_DEMO_HOST','没有可用的原始 Chrome 文档绑定能力');
   let captured=null;
-  async function invoke(operation,payload={}){
+  async function invoke(operation,payload={},beforeDispatch=null){
     if(!captured)throw fail('E_KB_DEMO_STOPPED','尚未批准本地测试网页');
-    await currentPageTarget.revalidate(captured);
+    const bound=captured;
+    await currentPageTarget.revalidate(bound);
+    if(captured!==bound)throw fail('E_KB_DEMO_STOPPED','测试网页已停止或文档已替换');
     if(!isFixtureUrl(captured.url))throw fail('E_KB_DEMO_SCOPE','超出了固定本地测试网页');
     let received;
+    // After revalidation, check the latest pause state before Chrome dispatch.
+    // A click that already started cannot be revoked.
+    beforeDispatch?.();
     try{
       received=await api.scripting.executeScript({
         target:{tabId:captured.tabId,documentIds:[captured.documentId]},
@@ -103,8 +108,8 @@ export function createLocalKnowledgeDemoAdapter({api,currentPageTarget}={}){
     },
     read(){return invoke('read');},
     // Never retry after an unknown click result. A separate read confirms the same reply.
-    async send({messageId,threadId,answer}){
-      const receipt=await invoke('send',{replyTo:messageId,threadId,answer});
+    async send({messageId,threadId,answer,assertBeforeClick}){
+      const receipt=await invoke('send',{replyTo:messageId,threadId,answer},assertBeforeClick);
       const observed=await invoke('read');
       const matches=observed.messages.filter(row=>row.direction==='agent'&&
         row.threadId===threadId&&row.replyTo===messageId&&

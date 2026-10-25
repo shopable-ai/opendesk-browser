@@ -2,6 +2,7 @@ import {SIDEBAR_TOOL_STORE} from './sidebar-tools/package.js';
 import {requireCompleteInstalledSidebarTools,requirePendingToolCleanups,MARKET_PROVENANCE_STORE,TOOL_CLEANUP_STORE,sameSidebarToolPackage} from './sidebar-tools/installation.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from './sidebar-tools/lifecycle.js';
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
+import {loadOfficialPageCatalog} from '../scripting/user-scripts/official-page-catalog.js';
 import {installedPageEnableAction,setInstalledPageProgramEnabled} from './installed-page-tools.js';
 import {composeExtensionEntries,filterExtensionEntries,describeInstalledAppSource,resolveExtensionRowIntent,resolveExtensionPrimaryAction} from './extension-center-model.js';
 import readingTocCatalog from '../../examples/sidebar-tools/reading-toc/trusted/locales.generated.js';
@@ -17,11 +18,11 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const more=get('extension-center-more'),workspace=get('workspace-content');
   if(!extensionList||extensionList.owner!=='extension-list'||list?.dataset.opendeskReactOwner!=='extension-list')
     throw new Error('E_REACT_LIST_OWNERSHIP');
-  let disposed=false,sequence=0,officialSequence=0,busy=false,pendingKey=null,installed=[],pages=[],enabled={},official=[];
+  let disposed=false,sequence=0,officialSequence=0,pageOfficialSequence=0,busy=false,pendingKey=null,installed=[],pages=[],enabled={},official=[],officialPages=[];
   let appStatusKnown=false,pageStatusKnown=false,pendingCleanups=new Set();
   let toolbarMenuOpen=false,searchText='',languageManager=null,languageSession=0;
   let sources={};
-  let catalogError='',dataError='',statusOrigin='loading',hasLoaded=false,query='',kind='all',scope='smart',selectedKey=null,selectedInstalled=null;
+  let catalogError='',pageCatalogError='',dataError='',statusOrigin='loading',hasLoaded=false,query='',kind='all',scope='smart',selectedKey=null,selectedInstalled=null;
   let listScroll=0,focusKey=null,focusAction=null,detailFocusAction=null,selectedIdentity=null,uninstallReview=null,listUninstallReview=null;
   const language=()=>localeController?.getLocale?.()||'zh-CN';
   const readingTocOfficial=row=>row.kind==='app'&&row.id==='reading-toc'&&
@@ -46,6 +47,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   };
   const typeOf=row=>row.kind==='page'?'网页增强':'应用';
   const all=()=>composeExtensionEntries({installed,pages,official:appStatusKnown?official:[],
+    pageReleases:pageStatusKnown?officialPages:[],
     enabled,appStatusKnown,pageStatusKnown,cleanupPendingIds:[...pendingCleanups]});
   const find=key=>all().find(row=>row.key===key);
   const pageIdentity=row=>{
@@ -120,7 +122,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         tools:installed.filter(tool=>tool.localization),localeController,
         onClose(){languageManager=null;syncFilters();}}:null,
       onReload(){if(disposed)return;closeMenu();message('正在刷新扩展…','loading','loading');
-        void readOfficial();void refresh();},
+        void readOfficial();void readPageOfficial();void refresh();},
       onLanguage(value){if(disposed)return;void localeController?.setLocale(value).catch(error=>{
         message('语言保存失败：'+String(error?.message||error),'error');syncLanguage();
       });}
@@ -294,7 +296,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
 
   function rowDescription(row){
     const reason=pendingKey===row.key?'处理中':row.cleanupPending?'卸载清理待恢复':
-      !row.installed?'可安装':row.stateKnown===false?'状态待核对':
+      !row.installed?(row.kind==='page'&&row.release?.status==='blocked'?
+        '暂不可安装：'+row.release.blockedReason:'可安装 · 待授权'):row.stateKnown===false?'状态待核对':
       row.kind==='page'&&row.record?.installed?.managedCleanup?.state==='unknown'?'受管界面清理待核对':
       row.kind==='page'&&row.record?.installed?.nativeState==='blocked'?'原生注册待恢复':
       row.kind==='page'&&row.record?.installed?.authorization?.status==='suspended'?'网站访问受限':
@@ -364,6 +367,13 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     backIfNeeded();
     if(!sidebarTools.openOfficialReview(row.id))openMarket(row.release);
   }
+  function openPageReview(key){
+    const row=find(key);
+    if(!row||row.kind!=='page'||row.release?.status!=='available')return;
+    backIfNeeded();
+    if(sidebarTools.openOfficialPageReview?.(row.release)!==true)
+      message('网页增强安装审阅暂不可用；请核对未保存编辑或安装器状态。','error');
+  }
   // An installed, enabled, verified app may open; all other rows lead to details.
   function openRow(key){
     const row=find(key);if(disposed||!row||busy||pendingKey||(scope!=='available'&&!row.installed))return;
@@ -384,9 +394,11 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     selectedIdentity=row.kind==='app'?
       (row.installed?{kind:'app-installed',package:structuredClone(row.record)}:
         {kind:'app-release',version:row.version,sha256:row.release?.sha256}):
-      {kind:'page-installed',manifestHash:row.record?.manifestHash,
+      (row.installed?{kind:'page-installed',manifestHash:row.record?.manifestHash,
         revision:row.record?.installed?.revision,sourceHash:row.record?.installed?.sourceHash,
-        installationId:row.record?.installed?.authorization?.installationId??null};
+        installationId:row.record?.installed?.authorization?.installationId??null}:
+        {kind:'page-release',version:row.release?.version,revision:row.release?.revision,
+          sha256:row.release?.sha256??null,status:row.release?.status});
     focusKey=key;focusAction=returnAction;
     listScroll=workspace?.scrollTop||0;selectedKey=key;detailFocusAction=null;
     closeMenu();
@@ -411,11 +423,16 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
             !sameSidebarToolPackage(row.record,selectedIdentity.package)):
           (selectedIdentity?.kind!=='app-release'||row.version!==selectedIdentity.version||
             row.release?.sha256!==selectedIdentity.sha256)):
-        (selectedIdentity?.kind!=='page-installed'||
+        (row.installed?(selectedIdentity?.kind!=='page-installed'||
           row.record?.manifestHash!==selectedIdentity.manifestHash||
           row.record?.installed?.revision!==selectedIdentity.revision||
           row.record?.installed?.sourceHash!==selectedIdentity.sourceHash||
-          (row.record?.installed?.authorization?.installationId??null)!==selectedIdentity.installationId)
+          (row.record?.installed?.authorization?.installationId??null)!==selectedIdentity.installationId):
+          (selectedIdentity?.kind!=='page-release'||
+          row.release?.version!==selectedIdentity.version||
+          row.release?.revision!==selectedIdentity.revision||
+          (row.release?.sha256??null)!==selectedIdentity.sha256||
+          row.release?.status!==selectedIdentity.status))
     ));
     if(!row||row.installed!==selectedInstalled||identityChanged){
       back();
@@ -427,7 +444,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       message('网页增强的安装身份或授权代数已变化；原卸载确认已失效，请重新审阅。','error');
     }
     const pendingReview=uninstallReview?.key===row.key?uninstallReview:null;
-    const page=row.kind==='page'?row.record.installed:null;
+    const page=row.kind==='page'?row.record?.installed:null;
     const confirmation=pendingReview?{
       text:'卸载后将停止此网页增强自动运行，并从本机安装列表移除；不会自动删除网站自己的数据。',
       onConfirm:confirmPageUninstall,onCancel:cancelPageUninstall
@@ -442,9 +459,12 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         const current=find(row.key);
         // Page rows are fresh projections. Compare the pinned installation
         // identity, including its authorization generation, rather than wrappers.
-        if(disposed||busy||pendingKey||selectedIdentity!==identity||(row.kind==='page'
-          ?!samePageIdentity(current,pageIdentity(row))
-          :current?.record!==row.record||current?.release!==row.release))return;
+        if(disposed||busy||pendingKey||selectedIdentity!==identity||
+          (row.kind==='page'&&row.installed
+            ?!samePageIdentity(current,pageIdentity(row))
+            :row.kind==='page'
+              ?current?.installed!==false||current?.release!==row.release
+              :current?.record!==row.record||current?.release!==row.release))return;
         onClick(event);
       }});
       if(row.kind==='app'){
@@ -457,11 +477,15 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
             add('设置与权限','settings',()=>{backIfNeeded();sidebarTools.openSettings(row.id);});
           if(row.update&&row.release)add('审阅新版','update',()=>openReview(row.key));
         }
+      }else if(row.kind==='page'&&!row.installed){
+        if(row.release?.status==='available')add('审阅并安装','install',()=>openPageReview(row.key));
       }else if(row.installed&&!pendingReview){
         if(row.stateKnown!==false)
           add(installedPageEnableAction(row.record.installed).label,'toggle',
             event=>{void togglePage(row,event);});
-        add('更新 / 导入新版…','update',()=>{backIfNeeded();sidebarTools.openImport();});
+        if(row.update&&row.release?.status==='available')
+          add('审阅官方新版','update',()=>openPageReview(row.key));
+        else add('更新 / 导入新版…','update',()=>{backIfNeeded();sidebarTools.openImport();});
         add('卸载网页增强…','uninstall',event=>openUninstallReview(row,event));
         add('前往开发','develop',()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();});
       }
@@ -472,7 +496,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         installed:row.installed,cleanupPending:row.cleanupPending,
         version:row.version,source:sources[row.id]||null,
         usageText:row.kind==='app'&&row.installed?installedAppUsage(row):'',
-        sites:page?.pageRules?.matches||[],
+        sites:page?.pageRules?.matches||(row.kind==='page'?row.release?.sites:[])||[],
         suspended:page?.authorization?.status==='suspended',
         confirmation,
         pageInfo:page?{
@@ -492,7 +516,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         installationText:row.installed?
           ('本机已安装 · '+(row.stateKnown===false?'状态待核对':row.enabled?'已启用':'已停用')):
           (row.cleanupPending?'已从安装记录移除 · 卸载清理待恢复':
-            '官方目录中的固定发行候选 · 尚未安装')
+            row.kind==='page'&&row.release?.status==='blocked'?
+              '官方 Page 产品 · 尚未开放安装：'+row.release.blockedReason:
+              '官方目录中的固定发行候选 · 尚未安装，需审阅权限')
       });
       return;
     }
@@ -639,8 +665,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(dataError&&statusOrigin!=='action')
       message('读取失败，未核验的旧安装缓存已从列表撤下。'+dataError,'error','read');
     else if(statusOrigin==='read'||statusOrigin==='loading'||statusOrigin==='catalog')
-      message(catalogError?'官方目录暂不可用：'+catalogError:'',
-        catalogError?'error':'info',catalogError?'catalog':'read');
+      message(catalogError||pageCatalogError?'官方目录部分暂不可用：'+[catalogError,pageCatalogError].filter(Boolean).join('；'):'',
+        catalogError||pageCatalogError?'error':'info',catalogError||pageCatalogError?'catalog':'read');
     draw();if(selectedKey)renderDetail();
     return !dataError;
   }
@@ -659,6 +685,19 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       draw();if(selectedKey)renderDetail();
     }}
   }
+  async function readPageOfficial(){
+    const id=++pageOfficialSequence;
+    try{
+      const result=await loadOfficialPageCatalog({api});
+      if(disposed||id!==pageOfficialSequence)return;
+      officialPages=result.apps;pageCatalogError='';draw();if(selectedKey)renderDetail();
+    }catch(error){
+      if(disposed||id!==pageOfficialSequence)return;
+      officialPages=[];pageCatalogError=String(error?.message||error);
+      if(statusOrigin!=='action')message('官方 Page 目录不可用；不会提供未经核验的安装候选：'+pageCatalogError,'error','catalog');
+      draw();if(selectedKey)renderDetail();
+    }
+  }
   const syncLanguage=()=>{if(disposed)return;draw();if(selectedKey)renderDetail();};
   const stopLanguage=localeController?.subscribe?.(syncLanguage);
   void localeController?.ready?.then(syncLanguage);
@@ -676,8 +715,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   api.storage.onChanged?.addListener(storageChanged);
   const connChanged=client.subscribeConnection?.(state=>{if(state.connected)void refresh();});
   message('正在读取已安装扩展与授权状态…','loading','loading');draw();
-  void readOfficial();void refresh();
-  return {refresh,dispose(){if(disposed)return;disposed=true;sequence++;officialSequence++;
+  void readOfficial();void readPageOfficial();void refresh();
+  return {refresh,dispose(){if(disposed)return;disposed=true;sequence++;officialSequence++;pageOfficialSequence++;
     listUninstallReview=null;uninstallReview=null;closeRowMenu();
     doc.removeEventListener('opendesk-language-settings',languageSettingsRequested);
     doc.removeEventListener('opendesk:page-installation-changed',pageInstallationChanged);

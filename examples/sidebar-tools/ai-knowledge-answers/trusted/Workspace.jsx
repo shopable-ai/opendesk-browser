@@ -55,7 +55,7 @@ export default function KnowledgeWorkspace({host,onOpenSettings}){
         <span className="od-knowledge-label">已加载知识</span>
         <strong>{test?.knowledgeCount===null||test?.knowledgeCount===undefined?'连接后核对':test.knowledgeCount+' 条'}</strong>
         <span className="od-knowledge-label">测试网页</span>
-        <strong>{started?'监听中 · '+(test.threadId.endsWith('01')?'会话 A':'会话 B'):test?.mode==='connecting'?'正在连接':'未连接'}</strong>
+        <strong>{started?(paused?'已暂停 · ':'监听中 · ')+(test.threadId.endsWith('01')?'会话 A':'会话 B'):test?.mode==='connecting'?'正在连接':'未连接'}</strong>
       </div>
       {!started&&<div className="od-knowledge-start">
         <p className="od-note">先打开本地客服测试页，再明确批准当前文档的 10 分钟监听。只处理本地消息，不会监听其他网站。</p>
@@ -103,6 +103,8 @@ export default function KnowledgeWorkspace({host,onOpenSettings}){
           <p className="od-knowledge-meta">{row.scope?'适用 '+row.scope+' · ':''}{row.message}</p>
           {row.sourceIds?.length>0&&<p className="od-knowledge-sources">来源：{row.sourceIds.join('、')}</p>}
           {row.answer&&<p className="od-knowledge-answer">{row.answer}</p>}
+          {row.status==='CONFIRMED'&&row.replyMessageId&&
+            <p className="od-knowledge-meta">网页已确认：{row.replyMessageId} · 回复客户消息：{row.messageId}</p>}
           {started&&row.status==='RETRIEVED_ONLY'&&<button type="button" className="od-button"
             disabled={state.busy} onClick={()=>prepareInbound(row.messageId)}>使用共享 AI 生成草稿</button>}
           {started&&row.status==='ANSWERED_FIXED'&&<button type="button" className="od-button"
@@ -150,7 +152,7 @@ export default function KnowledgeWorkspace({host,onOpenSettings}){
       {(error||state.error)&&<p className="od-knowledge-error" role="alert">{error||state.error}</p>}
       {state.result&&<article className="od-knowledge-proposal" aria-label="知识回答" aria-live="polite">
         <strong>{state.result.modelCalled?'AI 草稿 · 严格人工审阅':'可信知识结果'}</strong>
-        <p>{state.result.question}</p>
+        <p className="od-knowledge-answer">{state.result.answer||'没有可交付的确定回答，请人工核查。'}</p>
         <p className="od-note">{labelStatus(state.result.status)} · 来源：{state.result.sourceIds.join('、')||'无'}</p>
       </article>}
     </section>
