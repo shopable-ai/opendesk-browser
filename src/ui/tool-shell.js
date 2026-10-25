@@ -162,7 +162,7 @@ const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbenc
       consumerId:'knowledge',instanceId:args.instanceId,installEpoch:args.installEpoch});
     let host,portal;
     try{
-      host=createTrustedKnowledgeHost({...args,conversation,
+      host=createTrustedKnowledgeHost({...args,conversation,api:chrome,currentPageTarget,
         subscribeConnection:foundationClient.subscribeWorkflowAI});
       portal=extensionList.mountKnowledgeWorkspace({container:args.container,host});
       return {...portal,invalidate:host.invalidate,
