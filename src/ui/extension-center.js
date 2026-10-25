@@ -444,7 +444,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       message('网页增强的安装身份或授权代数已变化；原卸载确认已失效，请重新审阅。','error');
     }
     const pendingReview=uninstallReview?.key===row.key?uninstallReview:null;
-    const page=row.kind==='page'?row.record.installed:null;
+    const page=row.kind==='page'?row.record?.installed:null;
     const confirmation=pendingReview?{
       text:'卸载后将停止此网页增强自动运行，并从本机安装列表移除；不会自动删除网站自己的数据。',
       onConfirm:confirmPageUninstall,onCancel:cancelPageUninstall
@@ -459,9 +459,12 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         const current=find(row.key);
         // Page rows are fresh projections. Compare the pinned installation
         // identity, including its authorization generation, rather than wrappers.
-        if(disposed||busy||pendingKey||selectedIdentity!==identity||(row.kind==='page'
-          ?!samePageIdentity(current,pageIdentity(row))
-          :current?.record!==row.record||current?.release!==row.release))return;
+        if(disposed||busy||pendingKey||selectedIdentity!==identity||
+          (row.kind==='page'&&row.installed
+            ?!samePageIdentity(current,pageIdentity(row))
+            :row.kind==='page'
+              ?current?.installed!==false||current?.release!==row.release
+              :current?.record!==row.record||current?.release!==row.release))return;
         onClick(event);
       }});
       if(row.kind==='app'){

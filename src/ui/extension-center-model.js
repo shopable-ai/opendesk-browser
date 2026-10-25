@@ -36,7 +36,7 @@ export function composeExtensionEntries({installed=[],pages=[],official=[],pageR
       (row?.installed&&(row.programId!==p.programId||row.manifestHash!==p.manifestHash)))continue;
     pageIds.add(p.programId);
     const release=pageReleaseById.get(p.programId)||null;
-    entries.push({key:'page:+p.programId,id:p.programId,kind:'page',title:p.title||p.programId,
+    entries.push({key:'page:'+p.programId,id:p.programId,kind:'page',title:p.title||p.programId,
       description:(p.pageRules?.matches||[]).join('、')||'已安装网页增强',version:p.revision,
       installed:true,enabled:pageStatusKnown?p.enabled===true:null,stateKnown:pageStatusKnown,
       release,update:Boolean(release?.status==='available'&&release.revision>p.revision),

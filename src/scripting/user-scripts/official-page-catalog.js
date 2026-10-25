@@ -9,11 +9,11 @@ export const OFFICIAL_PAGE_SOURCE_PATH='official-pages/sources.json';
 export const OFFICIAL_PAGE_CATALOG_PATH='official-pages/catalog.json';
 const scopes=Object.freeze({
   'opendesk.ai-scroll-navigation':Object.freeze({project:'examples/programs/chatgpt-jump-top',
-    sites:['https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*'],policy:'reviewed'}),
+    sites:['https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*'],policy:'reviewed',packageFile:'ai-scroll-navigation.opendesk-page.json'}),
   'opendesk.ai-reply-mindmap':Object.freeze({project:'examples/programs/chatgpt-mindmap',
-    sites:['https://chatgpt.com/*'],policy:'on-demand'}),
+    sites:['https://chatgpt.com/*'],policy:'on-demand',packageFile:'ai-reply-mindmap.opendesk-page.json'}),
   'opendesk.ai-send-queue':Object.freeze({project:'examples/programs/chatgpt-send-queue',
-    sites:['https://chatgpt.com/*'],policy:'reviewed'})
+    sites:['https://chatgpt.com/*'],policy:'reviewed',packageFile:'ai-send-queue.opendesk-page.json'})
 });
 const error=(code,message)=>Object.assign(new Error(message),{code});
 const exact=(value,keys)=>value!==null&&typeof value==='object'&&!Array.isArray(value)&&
@@ -41,7 +41,7 @@ function catalog(value,source){
       ['programId','kind','version','revision','title','description','sites','installationPolicy','status',
         ...(blocked?['blockedReason']:['packagePath','bytes','sha256','sourceHash','packageHash'])];
     if(!scope||seen.has(row.programId)||!exact(row,keys)||
-      (source&&(row.project!==scope.project||row.packageFile!==row.programId+'.opendesk-page.json'))||
+      (source&&(row.project!==scope.project||row.packageFile!==scope.packageFile))||
       (!source&&row.kind!=='page-program')||
       row.installationPolicy!==scope.policy||!same(row.sites,scope.sites)||
       !bounded(row.title)||!bounded(row.description)||
