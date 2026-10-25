@@ -131,7 +131,7 @@ function ConversationWorkspace({
  const [phase,setPhase]=React.useState('idle');
  const [error,setError]=React.useState('');
  const [needsReview,setNeedsReview]=React.useState(restored.needsReview===true);
- const [unverifiedEtag,setUnverifiedEtag]=React.useState(null);
+ const [reconcileActionLabel,setReconcileActionLabel]=React.useState('读取真实业务结果并核对');
  const [reconciling,setReconciling]=React.useState(false);
  const [height,setHeight]=React.useState(null);
  const [totalHeight,setTotalHeight]=React.useState(600);
@@ -208,14 +208,14 @@ function ConversationWorkspace({
   if(reconciling||busy||!needsReview||typeof controller?.reconcile!=='function')return;
   setReconciling(true);setError('');
   try{
-   const result=await controller.reconcile(unverifiedEtag?{acknowledgeEtag:unverifiedEtag}:{});
+   const result=await controller.reconcile();
    if(result?.verified!==true){
-    if(result?.status==='uncertain'&&/^[a-f0-9]{64}$/.test(result.currentEtag||''))
-      setUnverifiedEtag(result.currentEtag);
-    append('系统',result.message||'当前数据尚不能核实旧操作，请在原列表检查。');
+    setReconcileActionLabel(typeof result?.nextActionLabel==='string'?
+     result.nextActionLabel.slice(0,80):'读取真实业务结果并核对');
+    append('系统',result?.message||'当前业务结果尚不能核实，请在原页面检查。');
     return;
    }
-   setUnverifiedEtag(null);
+   setReconcileActionLabel('读取真实业务结果并核对');
    append('系统',result.message||'Host 真实存储已重新读取；旧操作没有自动重放。');
    refsRef.current=newRefs();setNeedsReview(false);
    persist({refs:refsRef.current,needsReview:false});
@@ -374,12 +374,12 @@ function ConversationWorkspace({
       {feedbackError&&<p className="od-conversation-error" role="alert">{feedbackError}</p>}
       {needsReview&&<>
        <p className="od-conversation-error" role="status">
-        上次写入结果不确定，不能直接重放。请先刷新并核对真实 Host 中的列表。
+        上次写入结果不确定，不能直接重放。请先刷新并核对原业务的真实数据。
        </p>
        {typeof controller?.reconcile==='function'&&<button type="button"
         className="od-conversation-reconcile" disabled={busy||reconciling}
         onClick={()=>void reconcileStorage()}>
-        {reconciling?'正在核对真实存储…':unverifiedEtag?'我已检查当前列表，解除阻止':'读取 Host 真实存储并核对'}
+        {reconciling?'正在核对真实结果…':reconcileActionLabel}
        </button>}
       </>}
      </div>}
