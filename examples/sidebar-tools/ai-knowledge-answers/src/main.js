@@ -166,10 +166,12 @@ $('qa-import').addEventListener('click',()=>{
     const file=$('qa-file').files?.[0];
     if(!file){status('请先选择 JSON 或 CSV 文件',true);return;}
     if(file.size>65536){status('导入文件超过 64 KiB，未读取',true);return;}
+    busy=true;state();
     try{
       const raw=await file.text();
       const parsed=/\.csv$/iu.test(file.name)?model.parseCsv(raw):model.parseJson(raw);
       const mode=$('qa-mode').value,plan=model.merge(kb,parsed,mode);
+      busy=false;state();
       confirmAction('请核对导入预览：\n文件 '+file.name.slice(0,80)+
         '\n方式 '+(mode==='replace'?'替换全部':'按 ID 合并')+
         '\n新增 '+plan.added+' 条；重复 '+plan.conflicts+' 条；最终 '+plan.library.items.length+' 条。'+
@@ -177,6 +179,7 @@ $('qa-import').addEventListener('click',()=>{
           return commit(plan.library,{after:()=>{selected=null;fill(null);},success:'导入已保存并读回确认'});
         },'确认导入');
     }catch(error){status('导入失败，未更改已有知识：'+String(error?.message||error),true);}
+    finally{busy=false;state();}
   });
 });
 $('qa-export-json').addEventListener('click',async()=>{
