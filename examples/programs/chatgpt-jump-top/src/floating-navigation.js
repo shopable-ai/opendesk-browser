@@ -1,7 +1,7 @@
 // One standalone conversation dock per installed Page Program.
 // The five navigation behaviors share two physical buttons (one top, one bottom).
 import {findSiteConversation} from './site-adapters.js';
-import {jumpConversationEdge} from './conversation.js';
+import {jumpConversationEdge,legacyNavigationPresent} from './conversation.js';
 
 const OWN='data-opendesk-ai-scroll-navigation';
 const sessions=new WeakMap();
@@ -34,6 +34,12 @@ export function installFloatingNavigation({doc,win,owner}) {
     event.preventDefault();
     event.stopPropagation();
     if (event.isTrusted!==true||!isCurrent()) return;
+    // A legacy Page may mount after our last refresh. Do not race it.
+    const active=[...doc.querySelectorAll(`[${OWN}="dock"]`)]
+      .find(node=>node.isConnected&&node.shadowRoot);
+    if (doc.querySelector(LEGACY)||legacyNavigationPresent(doc)||active!==host) {
+      schedule();return;
+    }
     // Invalidate stale buttons before navigation/React reconciliation finishes.
     const next=context();
     if (!next||next.main!==binding.main||next.scroller!==binding.scroller) return;
@@ -43,7 +49,7 @@ export function installFloatingNavigation({doc,win,owner}) {
   function prepare() {
     if (host) return;
     host=doc.createElement('nav');
-    host.setAttribute(OWN,'');
+    host.setAttribute(OWN,'dock');
     host.setAttribute('aria-label','AI 对话滚动导航');
     host.style.cssText='position:fixed;left:0;top:0;z-index:2147483599;pointer-events:none;visibility:hidden;';
     const shadow=host.attachShadow({mode:'open'});
@@ -88,7 +94,15 @@ export function installFloatingNavigation({doc,win,owner}) {
     const next=context();
     // Existing old trusted-page navigation wins during extension upgrade.
     // Once that owner is removed, its DOM mutation permits standalone mounting.
-    if (!next||doc.querySelector(LEGACY)) {
+    if (!next||doc.querySelector(LEGACY)||legacyNavigationPresent(doc)) {
+      host?.remove();binding=null;return;
+    }
+    // One visible dock across independently installed script instances, even
+    // when the modules do not share their in-memory WeakMap. Keep the first
+    // connected live ShadowRoot, never retire a peer's host.
+    const existing=[...doc.querySelectorAll(`[${OWN}="dock"]`)]
+      .find(node=>node.isConnected&&node.shadowRoot);
+    if (existing&&existing!==host) {
       host?.remove();binding=null;return;
     }
     prepare();
