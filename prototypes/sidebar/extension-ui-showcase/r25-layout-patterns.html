@@ -160,7 +160,7 @@ function clickAction(value,event){if(!value)return;let [cmd,sub,id]=value.split(
 document.addEventListener('click',function(e){let nav=e.target.closest('[data-p]');if(nav){selectPattern(Number(nav.dataset.p));return}let biz=e.target.closest('[data-business]');if(biz){st.outer='business';st.pattern=P.findIndex(x=>x[3]===biz.dataset.business);showScene(biz.dataset.business,{develop:'workbench',extensions:'list',prompts:'list',bookmarks:'list',cookies:'list',locale:'daily'}[biz.dataset.business]);return}let outer=e.target.closest('[data-outer]');if(outer){st.outer=outer.dataset.outer;render();return}let width=e.target.closest('[data-width]');if(width){st.width=Number(width.dataset.width);render();return}let act=e.target.closest('[data-act]');if(act){clickAction(act.dataset.act,e);return}let copy=e.target.closest('[data-copy]');if(copy){let s=document.querySelector('#snippet')?.textContent||'';if(navigator.clipboard?.writeText){navigator.clipboard.writeText(s).then(()=>{copy.textContent='已复制'}).catch(()=>{copy.textContent='请选中上方代码复制'})}else copy.textContent='请选中上方代码复制';return}
  if(st.menu&&!e.target.closest('#popup')){st.menu=null;renderPopover()}});
 document.querySelector('#theme').addEventListener('click',()=>{st.theme=!st.theme;render()});document.querySelector('#long').addEventListener('click',()=>{st.long=!st.long;render()});document.querySelector('#outcome').addEventListener('change',e=>{st.outcome=e.target.value;setNote('已切换模拟结果为：'+(st.outcome==='ok'?'成功':st.outcome==='fail'?'写入失败':'结果未知')+'。');render()});
-document.addEventListener('input',function(e){const input=e.target.dataset?.input;if(!input)return;let value=e.target.value;if(Object.hasOwn(st.search,input)){st.search[input]=value;let start=e.target.selectionStart,end=e.target.selectionEnd;render();const next=document.querySelector('#search-'+input);next?.focus({preventScroll:true});try{next.setSelectionRange(start,end)}catch{}return}
+document.addEventListener('input',function(e){const input=e.target.dataset?.input;if(!input)return;let value=e.target.value;if(Object.hasOwn(st.search,input)){st.search[input]=value;if(e.isComposing)return;let start=e.target.selectionStart,end=e.target.selectionEnd;render();const next=document.querySelector('#search-'+input);next?.focus({preventScroll:true});try{next.setSelectionRange(start,end)}catch{}return}
  if(input==='promptbody'||input==='promptlabel'||input==='promptname'){if(!st.draft)st.draft={id:'',body:'',label:'',name:''};st.draft[input==='promptbody'?'body':input==='promptlabel'?'label':'name']=value;st.dirty=true;if(input==='promptbody'){const bytes=new TextEncoder().encode(value).length;let c=document.querySelector('#promptcount');if(c)c.textContent=bytes+' / 8192 B'+(!value.trim()?' · 请输入正文':bytes>8192?' · 超出限制':'');const saveButton=document.querySelector('[data-act="save:prompt"]');if(saveButton)saveButton.disabled=!value.trim()||bytes>8192||st.uncertain;e.target.setAttribute('aria-invalid',String(!value.trim()||bytes>8192));}return}
  if(input==='bmname'||input==='bmurl'){if(!st.draft)st.draft={...currentData()};st.draft[input==='bmname'?'title':'url']=value;st.dirty=true;return}
  if(input==='cookiename'||input==='cookiedomain'||input==='cookievalue'){if(!st.draft)st.draft={...currentData()};st.draft[input==='cookiename'?'name':input==='cookiedomain'?'domain':'value']=value;st.dirty=true;return}
@@ -180,6 +180,14 @@ document.addEventListener('keydown',function(e){if(!st.menu)return;
  const index=options.indexOf(document.activeElement);
  const next=e.key==='Home'?0:e.key==='End'?options.length-1:(index+(e.key==='ArrowDown'?1:-1)+options.length)%options.length;
  e.preventDefault();options[next]?.focus({preventScroll:true});
+});
+// Preserve the Chinese/Japanese IME composition session in the search field.
+document.addEventListener('compositionend',function(e){const key=e.target.dataset?.input;
+ if(!key||!Object.hasOwn(st.search,key))return;
+ st.search[key]=e.target.value;
+ let pos=null;try{pos=e.target.selectionStart}catch{}
+ render();const next=document.querySelector('#search-'+key);next?.focus({preventScroll:true});
+ if(pos!=null)try{next?.setSelectionRange(pos,pos)}catch{}
 });
 selectPattern(0);
 })();
