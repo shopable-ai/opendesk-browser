@@ -154,6 +154,34 @@ try{
  report.checks.push('Switch toggles committed React state');
  await navigate(360,'dark');
  report.checks.push('dark theme source-bound token preview');
+ // Exercise the actual production LocaleManager inside the offline React root;
+ // its catalog and pack service are the existing preview-isolated adapter.
+ await cdp('Page.navigate',{url:pathToFileURL(preview).href+'?tab=tools&width=360&theme=light'});
+ await waitFor('document.documentElement.dataset.previewBootScript==="ready" && '+
+  '!!document.getElementById("extension-center-language-settings")');
+ await pointer('#extension-center-language-settings');
+ await waitFor('document.querySelectorAll("#od-locale-global option").length===5 && '+
+  '!!document.querySelector("#od-locale-tool-language")');
+ const languageState=await evalJs('(()=>({options:[...document.querySelectorAll("#od-locale-tool-language option")].map(x=>x.value),'+
+   'current:document.getElementById("od-locale-tool-language")?.value,preview:!!document.querySelector(".od-locale-manager")}))()');
+ assert.ok(languageState.preview,'Production LocaleManager never rendered');
+ assert.ok(languageState.options.includes('follow'),'Extension language must support following OpenDesk');
+ assert.ok(languageState.options.length>=2,'Demo tool must expose valid installed source locale');
+ report.checks.push('real LocaleManager renders global five-way and effective tool language Select');
+ await pointer('.od-locale-maintenance > summary');
+ await waitFor('document.querySelector(".od-locale-maintenance")?.open===true && '+
+   '!!document.querySelector("#od-locale-target")');
+ const advanced=await evalJs('(()=>({target:document.getElementById("od-locale-target")?.value,'+
+   'import:!!document.querySelector(".od-locale-maintenance input[type=file]"),'+
+   'languageRows:document.querySelectorAll(".od-locale-resource").length}))()');
+ assert.equal(advanced.import,true,'Advanced sheet must present a real file picker');
+ report.checks.push('real advanced language sheet and tool-target BCP47 field');
+ await key('Escape',27);
+ await waitFor('document.querySelector(".od-locale-maintenance")?.open===false');
+ report.checks.push('advanced sheet Escape returns to daily languages');
+ await key('Escape',27);
+ await waitFor('!document.querySelector(".od-locale-manager")');
+ report.checks.push('final Escape dismisses trusted Host dialog');
  assert.deepEqual(report.exceptions,[],'React runtime raised unexpected exceptions');
  report.result='PASS';
  await writeFile(join(artifactDir,'gallery-result.json'),JSON.stringify(report,null,2)+'\n');
