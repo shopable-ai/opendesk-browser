@@ -445,3 +445,78 @@ test('R1.4 trusted UI: full actual answer and the linked website receipt must be
  assert.match(workspace,/row\.replyMessageId/);
  assert.match(workspace,/row\.sourceIds\.join/);
 });
+
+test('R1.5 adapter: a retired start failure cannot clear the replacement document binding',async()=>{
+ const {api,target,site}=lab();
+ const execute=api.scripting.executeScript;
+ let releaseOld,first=true,pending;
+ api.scripting.executeScript=async options=>{
+   if(options.args[0].operation==='read'&&first){
+     first=false;
+     await new Promise(resolve=>{releaseOld=resolve;});
+     throw Error('retired read failed');
+   }
+   return execute(options);
+ };
+ const adapter=createLocalKnowledgeDemoAdapter({api,currentPageTarget:target});
+ try{
+   pending=adapter.start();
+   const rejected=assert.rejects(pending,{code:'E_KB_DEMO_INJECT'});
+   await until(()=>typeof releaseOld==='function','first pending document read');
+   await adapter.stop();
+   await adapter.start();
+   releaseOld();await rejected;
+   assert.equal(adapter.target?.documentId,activeDoc,'old cleanup must not retire the new start');
+   const current=await adapter.read();
+   assert.equal(current.threadId,'thread_demo_01');
+   assert.equal(site.sendCalls,0);
+ }finally{releaseOld?.();await pending?.catch(()=>{});await adapter.stop();}
+});
+
+test('R1.5 adapter: stop during target refresh cannot resurrect the retired binding',async()=>{
+ const {api,target,site}=lab();
+ let releaseRefresh,pending;
+ const refresh=target.refresh;
+ target.refresh=()=>new Promise(resolve=>{releaseRefresh=resolve;});
+ const adapter=createLocalKnowledgeDemoAdapter({api,currentPageTarget:target});
+ try{
+   pending=adapter.start();
+   const rejected=assert.rejects(pending,{code:'E_KB_DEMO_STOPPED'});
+   await adapter.stop();
+   target.refresh=refresh;releaseRefresh();await rejected;
+   assert.equal(adapter.target,null);
+   assert.equal(site.readCalls,0,'a retired start cannot even read the page');
+   await adapter.start();
+   assert.equal(adapter.target.documentId,activeDoc);
+ }finally{releaseRefresh?.();await pending?.catch(()=>{});await adapter.stop();}
+});
+
+for(const changedKnowledge of [false,true]){
+ test(`R1.5 fixed auto-send: ${changedKnowledge?'changed knowledge is stale':'failed pre-send read is visible'}`,async()=>{
+   const {api,target,site}=lab();
+   let reads=0;
+   const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+     readLibrary:async()=>{
+       reads++;
+       if(reads>=3){
+         if(changedKnowledge)return {value:library,etag:'b'.repeat(64)};
+         throw Object.assign(new Error('knowledge read unavailable'),{code:'E_KB_STORAGE_READ'});
+       }
+       return {value:library,etag};
+     },assertLive:()=>{}});
+   try{
+     await rt.start({event:{isTrusted:true},autoSendFixed:true});
+     site.messages.push(customer('几天内可以退款'));
+     await until(()=>reads>=3,'fixed auto-send final knowledge check');
+     await wait(40);
+     const row=rt.snapshot().records[0];
+     assert.equal(row.status,changedKnowledge?'STALE':'ERROR');
+     assert.match(row.message,changedKnowledge?/E_KB_STALE/:/E_KB_STORAGE_READ/);
+     assert.equal(rt.snapshot().errors,1);
+     assert.equal(site.sendCalls,0);
+     await wait(920);
+     assert.equal(reads,3,'failed auto-send is not retried');
+     assert.equal(site.sendCalls,0);
+   }finally{rt.dispose();}
+ });
+}

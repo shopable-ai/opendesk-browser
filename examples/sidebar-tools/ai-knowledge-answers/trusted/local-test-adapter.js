@@ -68,12 +68,12 @@ export function createLocalKnowledgeDemoAdapter({api,currentPageTarget}={}){
      typeof currentPageTarget?.capture!=='function'||
      typeof currentPageTarget?.revalidate!=='function')
     throw fail('E_KB_DEMO_HOST','没有可用的原始 Chrome 文档绑定能力');
-  let captured=null;
+  let captured=null,generation=0;
   async function invoke(operation,payload={},beforeDispatch=null){
     if(!captured)throw fail('E_KB_DEMO_STOPPED','尚未批准本地测试网页');
-    const bound=captured;
+    const bound=captured,revision=generation;
     await currentPageTarget.revalidate(bound);
-    if(captured!==bound)throw fail('E_KB_DEMO_STOPPED','测试网页已停止或文档已替换');
+    if(captured!==bound||generation!==revision)throw fail('E_KB_DEMO_STOPPED','测试网页已停止或文档已替换');
     if(!isFixtureUrl(captured.url))throw fail('E_KB_DEMO_SCOPE','超出了固定本地测试网页');
     let received;
     // After revalidation, check the latest pause state before Chrome dispatch.
@@ -86,17 +86,20 @@ export function createLocalKnowledgeDemoAdapter({api,currentPageTarget}={}){
       });
     }catch(error){throw fail('E_KB_DEMO_INJECT','无法访问已核准测试文档：'+String(error?.message||error));}
     if(!Array.isArray(received)||received.length!==1||
-       received[0].frameId!==0||received[0].documentId!==captured.documentId||
+       received[0].frameId!==0||received[0].documentId!==bound.documentId||
        !received[0].result||received[0].result.ok!==true)
       throw fail(received?.[0]?.result?.code||'E_KB_DEMO_IDENTITY',
         '测试文档身份、网页合同或操作回执未通过检查');
-    await currentPageTarget.revalidate(captured);
+    await currentPageTarget.revalidate(bound);
+    if(captured!==bound||generation!==revision)throw fail('E_KB_DEMO_STOPPED','测试网页已停止或文档已替换');
     return received[0].result;
   }
   return Object.freeze({
     async start(){
       if(captured)throw fail('E_KB_DEMO_RUNNING','本地测试已经在运行');
+      const revision=++generation;
       await currentPageTarget.refresh();
+      if(revision!==generation)throw fail('E_KB_DEMO_STOPPED','测试在文档准备阶段已停止');
       const target=currentPageTarget.capture();
       if(!isFixtureUrl(target.url)||target.frameId!==0)
         throw fail('E_KB_DEMO_SCOPE','请在当前窗口打开 127.0.0.1:43111 的指定客服测试页');
@@ -104,7 +107,7 @@ export function createLocalKnowledgeDemoAdapter({api,currentPageTarget}={}){
       try{const first=await invoke('read');return {
         target:{tabId:target.tabId,documentId:target.documentId,url:target.url},
         ...first
-      };}catch(error){captured=null;throw error;}
+      };}catch(error){if(revision===generation)captured=null;throw error;}
     },
     read(){return invoke('read');},
     // Never retry after an unknown click result. A separate read confirms the same reply.
@@ -119,7 +122,7 @@ export function createLocalKnowledgeDemoAdapter({api,currentPageTarget}={}){
       return {status:'CONFIRMED',messageId:receipt.messageId,threadId,replyTo:messageId};
     },
     async stop(){
-      const owned=captured;captured=null;
+      const owned=captured;captured=null;generation++;
       if(!owned)return;
       try{
         // Cleanup is scoped to the retired exact document, never a replacement tab.
@@ -129,7 +132,7 @@ export function createLocalKnowledgeDemoAdapter({api,currentPageTarget}={}){
         });
       }catch{/* Navigation or revocation already removed the old fixture document. */}
     },
-    drop(){captured=null;},
+    drop(){captured=null;generation++;},
     get target(){return captured?{url:captured.url,documentId:captured.documentId}:null;}
   });
 }

@@ -82,6 +82,13 @@ export function createLocalKnowledgeTestRuntime({
            message:(notClicked?'发送前被页面拒绝：':'网页发送结果未知：')+(error?.code||'unknown')});
        throw error;
      }
+   }catch(error){
+     // Failures before dispatch must be visible too. Preserve pause recovery and
+     // the terminal state already assigned to any dispatched/unknown operation.
+     if(running(s,epoch)&&snapshot.records.some(row=>row.messageId===id&&row.status===record.status))
+       update(s,id,{status:error?.code==='E_KB_STALE'?'STALE':'ERROR',
+         message:'发送前核对失败：'+String(error?.code||error?.message||error)});
+     throw error;
    }finally{s.sending.delete(id);}
  }
  async function analyze(s,message){

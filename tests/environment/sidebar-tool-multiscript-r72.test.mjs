@@ -8,7 +8,7 @@ import {createHash,webcrypto} from 'node:crypto';
 import {createContext,runInContext} from 'node:vm';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {SIDEBAR_TOOL_FORMAT_V2,SIDEBAR_TOOL_SHARED_UI_RUNTIME,validateSidebarToolPackage,serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
-import {initSidebarToolSandbox} from '../../src/sidebar-tools/bridge.js';
+import {initSidebarToolSandbox,sandboxToolMessages} from '../../src/sidebar-tools/bridge.js';
 
 const META={format:SIDEBAR_TOOL_FORMAT_V2,id:'multi-assets',version:'1.0.0',title:'Multiple SHA Assets',
  description:'Tool fixture with an ordered Classic dependency chain',capabilities:[],
@@ -81,7 +81,7 @@ function sandboxFixture(tool,{failAt=0,digestDelayMs=0,sharedScripts={}}={}){
      return webcrypto.subtle.digest(...args);
    }}}:webcrypto,
    requestAnimationFrame:()=>0,setTimeout,clearTimeout,console,
-   SIDEBAR_TOOL_PROTOCOL:'opendesk.sidebar-tool.bridge.v1',SIDEBAR_TOOL_SHARED_UI_RUNTIME,
+   SIDEBAR_TOOL_PROTOCOL:'opendesk.sidebar-tool.bridge.v1',SIDEBAR_TOOL_SHARED_UI_RUNTIME,sandboxToolMessages,
    createBrowserSdk:()=>({capabilities:{}})
  }));
  runInContext('('+initSidebarToolSandbox.toString()+')()',context);

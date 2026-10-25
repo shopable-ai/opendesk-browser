@@ -1,0 +1,347 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-10-25T19:32:22.337588+00:00",
+  "ownerThread": "01a17483-3413-72c1-b400-60ce7a2d6081",
+  "sourceBaseline": "8998da5c8ca8241cb4401a219d88e00cfbc9a3dd",
+  "originMainAtStart": "8998da5c8ca8241cb4401a219d88e00cfbc9a3dd",
+  "branch": "main",
+  "status": "BLOCKED",
+  "localAccepted": false,
+  "nativeE2EPass": false,
+  "webCoreReadyGranted": true,
+  "productionCandidateFrozen": false,
+  "tests": [
+    {
+      "name": "runtime-r14",
+      "command": [
+        "node",
+        "--test",
+        "tests/environment/ai-knowledge-chat-r13.test.mjs"
+      ],
+      "exitCode": 0,
+      "summary": [
+        "ℹ tests 20",
+        "ℹ pass 20",
+        "ℹ fail 0",
+        "ℹ skipped 0"
+      ],
+      "finishedAt": "2026-10-25T19:23:08.671363+00:00"
+    },
+    {
+      "name": "host-provider",
+      "command": [
+        "node",
+        "--test",
+        "tests/environment/ai-knowledge-answers-host.test.mjs",
+        "tests/environment/ai-knowledge-answers-provider-contract.test.mjs"
+      ],
+      "exitCode": 0,
+      "summary": [
+        "ℹ tests 34",
+        "ℹ pass 34",
+        "ℹ fail 0",
+        "ℹ skipped 0"
+      ],
+      "finishedAt": "2026-10-25T19:23:08.795721+00:00"
+    },
+    {
+      "name": "package-check",
+      "command": [
+        "node",
+        "scripts/build-sidebar-tool.mjs",
+        "examples/sidebar-tools/ai-knowledge-answers",
+        "--check-project"
+      ],
+      "exitCode": 0,
+      "summary": [],
+      "finishedAt": "2026-10-25T19:23:08.837878+00:00"
+    },
+    {
+      "name": "ci-fixture-green",
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/environment/sidebar-tool-multiscript-r72.test.mjs"
+      ],
+      "exitCode": 0,
+      "summary": [
+        "# tests 16",
+        "# pass 16",
+        "# fail 0",
+        "# skipped 0"
+      ],
+      "finishedAt": "2026-10-25T19:25:21.636534+00:00"
+    },
+    {
+      "name": "business-green",
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=R1.5",
+        "tests/environment/ai-knowledge-chat-r13.test.mjs"
+      ],
+      "exitCode": 0,
+      "summary": [
+        "# tests 4",
+        "# pass 4",
+        "# fail 0",
+        "# skipped 0"
+      ],
+      "finishedAt": "2026-10-25T19:29:58.381849+00:00"
+    },
+    {
+      "name": "runtime-final",
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/environment/ai-knowledge-chat-r13.test.mjs"
+      ],
+      "exitCode": 0,
+      "summary": [
+        "# tests 24",
+        "# pass 24",
+        "# fail 0",
+        "# skipped 0"
+      ],
+      "finishedAt": "2026-10-25T19:30:15.468652+00:00"
+    },
+    {
+      "name": "host-provider-final",
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/environment/ai-knowledge-answers-host.test.mjs",
+        "tests/environment/ai-knowledge-answers-provider-contract.test.mjs"
+      ],
+      "exitCode": 0,
+      "summary": [
+        "# tests 34",
+        "# pass 34",
+        "# fail 0",
+        "# skipped 0"
+      ],
+      "finishedAt": "2026-10-25T19:31:08.355489+00:00"
+    }
+  ],
+  "sharedFixtureBeforeRepair": {
+    "command": [
+      "node",
+      "--test",
+      "--test-reporter=tap",
+      "tests/environment/sidebar-tool-multiscript-r72.test.mjs"
+    ],
+    "exitCode": 1,
+    "summary": [
+      "# tests 16",
+      "# pass 1",
+      "# fail 15",
+      "# skipped 0"
+    ],
+    "classification": "VM fixture omitted real module-scope helper; no product bridge change"
+  },
+  "officialPackage": {
+    "status": "PROJECT_PACKAGE_MATCH",
+    "output": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/ai-knowledge-answers/ai-knowledge-answers.opendesk-tool.json",
+    "id": "ai-knowledge-answers",
+    "version": "0.1.4",
+    "bytes": 57349,
+    "sha256": "745660cab46fe0009d500a4a948b62fa0553cd2fb762803c95d37835c4044649",
+    "validated": true,
+    "installed": false
+  },
+  "developmentArtifacts": {
+    "observedAt": "2026-10-25T19:32:22.337588+00:00",
+    "developmentRevision": "97cee4b614276fea9611fc7e92fb064dcc1233beefd36bbec493403bfda18fd9",
+    "trustedSourceComparisons": [
+      {
+        "source": "examples/sidebar-tools/ai-knowledge-answers/trusted/ai-request.js",
+        "matchesCurrentSource": true
+      },
+      {
+        "source": "examples/sidebar-tools/ai-knowledge-answers/trusted/local-test-adapter.js",
+        "matchesCurrentSource": true
+      },
+      {
+        "source": "examples/sidebar-tools/ai-knowledge-answers/trusted/local-test-runtime.js",
+        "matchesCurrentSource": true
+      },
+      {
+        "source": "examples/sidebar-tools/ai-knowledge-answers/trusted/host.js",
+        "matchesCurrentSource": true
+      },
+      {
+        "source": "examples/sidebar-tools/ai-knowledge-answers/trusted/Workspace.jsx",
+        "matchesCurrentSource": true
+      }
+    ],
+    "compiledFiles": [
+      {
+        "path": "dist/development/ui/tool-shell.js",
+        "sha256": "ef6643294d15494d137059c60ba9852abe8f5142f06a85b789d087b636115b02",
+        "matchesDevelopmentManifest": true
+      },
+      {
+        "path": "dist/development/knowledge/knowledge-host.js",
+        "sha256": "d6daa1a2e4be80886d77f0bca703319cb9627516fcce5540dd0b7e903256b38a",
+        "matchesDevelopmentManifest": true
+      }
+    ],
+    "chromeLoadedPath": null,
+    "chromeExtensionId": null,
+    "chromeKnowledgeWorkspaceConnection": null,
+    "note": "Existing watcher output only, no manual build. Does not prove Chrome runs this code."
+  },
+  "sources": {
+    "examples/sidebar-tools/ai-knowledge-answers/trusted/Workspace.jsx": "4ebd4187c462be134c26fea1490c90fb667f9009a86ef1b77c34adbc5b845a7a",
+    "examples/sidebar-tools/ai-knowledge-answers/trusted/ai-request.js": "1c2976919b78a195e6dde963d43cc8c52e66e34a27471cfd388b6ced2fb60052",
+    "examples/sidebar-tools/ai-knowledge-answers/trusted/host.js": "d01807bd2688d2cfa79dcedbad2213357f1716fe93d309284ea0621ef8325125",
+    "examples/sidebar-tools/ai-knowledge-answers/trusted/local-test-adapter.js": "258b622c34a1e112e7faa57eea843eb4bf3a939627865b835ab76ecdddaf34d8",
+    "examples/sidebar-tools/ai-knowledge-answers/trusted/local-test-runtime.js": "43808e0b2c5d9f68528b78a49b89e3644c230eadacf4eaade1a20f17dd0e6ce0",
+    "examples/sidebar-tools/ai-knowledge-answers/trusted/workspace.css": "4a3caa154d3a4e943bcbdbe605faee521971747762f2ddee49331df291e91510",
+    "examples/sidebar-tools/ai-knowledge-answers/src/model.js": "2aed6eac167be95f893534baa73521b80c1064281238751152ef65ddb195c68f",
+    "tests/environment/ai-knowledge-chat-r13.test.mjs": "3b475aa2ac2476aba86b8df024d155080d2b394633d81b01b4fbfffbf497e789",
+    "tests/environment/ai-knowledge-answers-host.test.mjs": "311ec397568eabbd4f4993b1726e48a8a1b9f071258b818eb619e097b25c7ae3",
+    "tests/environment/ai-knowledge-answers-provider-contract.test.mjs": "330d78fb6ca76bd8125a80dd42ea4850eb8c41a48ba3add0bba052e9073c7d6f",
+    "src/ui/conversation/provider-consumer.js": "8e97183b08713380a4ec67db5d1ba34e80872043c35373e29114dd3289960cef",
+    "examples/sidebar-tools/ai-knowledge-answers/tool.config.json": "d25eef54b2f957d97cff9638a0a3c432d199032e25c308c09bb7dbe918a67934",
+    "examples/sidebar-tools/ai-knowledge-answers/ai-knowledge-answers.opendesk-tool.json": "745660cab46fe0009d500a4a948b62fa0553cd2fb762803c95d37835c4044649",
+    "tests/environment/sidebar-tool-multiscript-r72.test.mjs": "0970deb9adb0b03486e3a6d0528bbabb852754902aa4fbf3ea33d2b118e40290"
+  },
+  "native": {
+    "url": "http://127.0.0.1:43111/ai-knowledge-chat-demo.html",
+    "threadId": "thread_demo_01",
+    "messages": [
+      {
+        "direction": "customer",
+        "messageId": "kb_msg_5ae647f4-b563-41aa-a7ea-78aff59f497e",
+        "replyTo": null,
+        "text": "几天内可以退款",
+        "threadId": "thread_demo_01"
+      }
+    ],
+    "observerAttribute": null,
+    "agentReceiptCount": 0,
+    "priorDeniedAction": "cua.createBrowserTab('chrome','chrome://extensions/',{sessionName:'🧪 知识问答本地闭环'})",
+    "priorRejection": "Browser Use rejected this action due to browser security policy. Reason: The browser URL policy blocks this action. Browser use could not acquire authority to trigger network egress. The URL policy gate did not grant access. The requested URL protocol is not allowed. Allowed protocols: \"http:\", \"https:\". The agent must not attempt to achieve the same outcome via workaround, indirect execution, raw CDP or browser commands, alternate browser surfaces, or policy circumvention. Proceed only with a materially safer alternative that does not require this blocked browser action; if none exists, stop and request user input.",
+    "newForbiddenActionAttempted": false,
+    "alternateSurfaceUsed": false,
+    "realProviderRequest": null,
+    "timedMessagesStarted": false,
+    "chromeBundleVersion": "155.0.8059.85",
+    "extensionId": null,
+    "chromeLoadedPath": null,
+    "installedToolVersion": null
+  },
+  "scores": {
+    "originalBusinessGoal": 56,
+    "coreLogic": 86,
+    "sharedProviderAndReuse": 96,
+    "messageIdentityAndReliability": 80,
+    "knowledgeAndSources": 80,
+    "automationAuthorizationRecovery": 76,
+    "testabilityAndEvidence": 78,
+    "uiAndMaintenance": 84
+  },
+  "average": 79.5,
+  "scoringScope": "Engineering stage estimates with native evidence deductions, not independent expert certification",
+  "rawEvidence": {
+    "artifacts/ai-knowledge-answers-r15-local-20261026/runtime-r14.log": {
+      "sha256": "7b74c08da061d17bc60932dedd0e4c10a7e23ec44fc1e70a3b05a8214d272b2e",
+      "bytes": 2077
+    },
+    "artifacts/ai-knowledge-answers-r15-local-20261026/host-provider.log": {
+      "sha256": "8f5fdcc70e06ce04f2c0988304f1c5dd05295385f250774bf10ce851f25f65c6",
+      "bytes": 3338
+    },
+    "artifacts/ai-knowledge-answers-r15-local-20261026/package-check.log": {
+      "sha256": "d2b0bd0a965f7e08fb48083a4942ceb25ef3970e3d8506c3f2c8459e4428c87d",
+      "bytes": 385
+    },
+    "artifacts/ai-knowledge-answers-r15-local-20261026/ci-classification.tap": {
+      "sha256": "cfb9fbfd843e875d71a8fcfddaafabc843c141676b978aaccff57281e4deb9fd",
+      "bytes": 19057
+    },
+    "artifacts/ai-knowledge-answers-r15-local-20261026/ci-fixture-green.tap": {
+      "sha256": "0c18c376695dbc52d71894586b02d8b88b9a449e9a0069cdca6df22410348a89",
+      "bytes": 3631
+    },
+    "artifacts/ai-knowledge-answers-r15-local-20261026/demo-dom.json": {
+      "sha256": "c17dfcdc2a64f4f200e2075b11155cbbbcedd2a781f9d632393186856f2ee12f",
+      "bytes": 1281
+    },
+    "artifacts/ai-knowledge-answers-r15-local-20261026/demo-customer.png": {
+      "sha256": "f055e28b68625ea3c5c213d0a89be05de401ef811166e88934f727178654edc4",
+      "bytes": 63396
+    },
+    "artifacts/ai-knowledge-answers-r15-local-20261026/source-binding.json": {
+      "sha256": "eeda954e3532bb181e8b67213e323b6cec06d9b717c725fb597fd3f3a447f2c4",
+      "bytes": 2111
+    },
+    "artifacts/ai-knowledge-answers-r15-local-20261026/development-artifact-check.json": {
+      "sha256": "06675617ff5e5f60e9c073e8440fcc94d5bf5e3151bf9d66d595d315feb4588a",
+      "bytes": 1474
+    },
+    "artifacts/ai-knowledge-answers-r15-local-20261026/native-blocker.json": {
+      "sha256": "6e5cef63e99fee1e46eb9fd7c55aef9a9c815c3f820c0205f2645fa839d5b3d5",
+      "bytes": 2960
+    },
+    "artifacts/ai-knowledge-answers-r15-local-20261026/business-red.tap": {
+      "sha256": "cfbe95241dc1d94272436bd2e0f91c92612d7995c1940795e9a194c95e8a2cec",
+      "bytes": 3648
+    },
+    "artifacts/ai-knowledge-answers-r15-local-20261026/business-green.tap": {
+      "sha256": "4ac4b077879d769613fd7386796b991fe89f4b1e580c9c9f422d7930ff960ae7",
+      "bytes": 931
+    },
+    "artifacts/ai-knowledge-answers-r15-local-20261026/runtime-final.tap": {
+      "sha256": "2e94a105ced37e23ad02074ea1dafa5a3a65f5608dbb5c8ce0ddec4aee120c28",
+      "bytes": 5543
+    },
+    "artifacts/ai-knowledge-answers-r15-local-20261026/host-provider-final.tap": {
+      "sha256": "e8ffbaea3d4441bb3c857e18a1ffee685f716ff5b3d5d9ab4b23a5e02b668fea",
+      "bytes": 7792
+    }
+  },
+  "nextOperation": "Provide an authorized Chrome extension/official tool UI control surface, verify identity, import demo knowledge with data preservation, approve listening, then submit a NEW customer question; the runtime intentionally excludes messages predating approval.",
+  "unmodifiedParallelFile": "docs/framework/workstreams/ai-knowledge-answers-r132-local-20261026.md",
+  "fullRemoteAppCI": "NOT_TESTED",
+  "distinctFinalPassingTests": 74,
+  "businessRegressionsBeforeRepair": {
+    "command": [
+      "node",
+      "--test",
+      "--test-reporter=tap",
+      "--test-name-pattern=R1.5",
+      "tests/environment/ai-knowledge-chat-r13.test.mjs"
+    ],
+    "exitCode": 1,
+    "tests": 4,
+    "pass": 0,
+    "fail": 4
+  },
+  "productFixes": [
+    "Adapter generation ownership prevents retired start cleanup/resurrection from damaging new binding",
+    "Runtime reports failed pre-dispatch knowledge reads as ERROR and changed knowledge as STALE; never retries"
+  ],
+  "webCoreReadyScope": "Only current source and Node gates; not real browser business acceptance",
+  "review": {
+    "agent": "01a17485-ad27-7b00-b829-a36afa2141d6",
+    "role": "code-reviewer",
+    "scope": "Adapter/Runtime and four R1.5 regressions; read-only source review, no tests/browser",
+    "findingsBefore": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 2
+    },
+    "findingsAfter": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0
+    },
+    "conclusion": "Both P2 fixed in source; native evidence remains missing"
+  }
+}
