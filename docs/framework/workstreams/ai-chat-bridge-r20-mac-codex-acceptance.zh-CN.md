@@ -2,7 +2,45 @@
 
 **默认中文｜ORIGINAL GOAL FIRST｜LATEST MAIN｜LOCAL MAC REAL CHROME｜DELTA ONLY｜CROSS-CHAT DEDUP｜NO SECOND HOST｜NO FAKE PASS｜ONLY MAIN**
 
-## 本轮目标、关键条件与当前结果（2026-10-26 03:00 续推）
+## 当前续推结果（2026-10-26 03:43，取代下方 03:00 状态）
+
+**完整 production 候选已通过并在专属 CFT 中加载；百度真实闭环尚未完成。** 当前下一条用户操作是本轮 CFT 的「开发 → 本地项目」连接核对，不要求进入独立 `native-agent/workspace.html`。桌面控制工具目前误选其他 owner 的同名 CFT 实例，完整可执行路径不被接受，名称定位超时，截图不可用；未接管其他 Profile，真实本地项目按钮操作仍为 NOT_TESTED。已请求用户将本轮新窗口切到前台以继续定位。
+
+- main 修复提交 **`ffa28ce9e285d448e1fabb4265cfbfc2482c41af`** 已普通推送。仅修改 `scripts/bundle-provenance.mjs`，新增 `tests/environment/ai-knowledge-source-provenance.test.mjs`。七个知识问答输入只进入现有 `ui/tool-shell.js`，其余输出、额外文件、安装包、字节漂移和软链接继续拒绝。
+- 已复核并行 owner 的 `a1e0dab82`：adapter 增加原文档/代际保护；runtime 显示发送前错误，不重放 UNKNOWN。同步审阅后的 runtime blob `73870713cfead3a19c022c30bd274b4a3ee251b9` 与 adapter blob `fd56f20148aefe75cc2cc91187a831db0dbadcc1`，没有改写知识问答业务、权限、正式包或发行状态。
+- **45/45** 知识来源、准入、Host、本地会话保护测试通过，**4/4** 共享构建边界测试通过。六核心测试文件无漂移，Bridge/Task 相关源码未变，复用此前 **49/49** 证据；未为无关 main 更新重跑全组。旧 Prompt jump pin 综合用例未改，其历史失败不冒充本轮通过。
+- 完整 production / Standard 于北京时间 **03:38:26–03:39:12** 通过原构建器及包校验，114 项资产，固定构建图实际包含七个已审知识问答输入。普通文件快照为 `/private/tmp/opendesk-bridge-r20-reviewed-4jg8dutt`；独立守卫端口 55030；无 dev 连接。包指纹 **`6d2cf2358a44ca176279b1127fff3bd4a5d92059aac25099f3df97e8c6a94139`**，构建输入及根目录对照漂移均为 0。这取代旧失败快照的构建结论；不再安装旧部分产物。
+- 现有隔离 CFT launcher 启动真实 CFT **155.0.8059.39 / PID 62917**，Profile `/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-cft-rveg13yz`。其真实 `Secure Preferences` 记录该候选加载路径为上述快照 `dist/production`，扩展 ID **`lbgeeemomoheiblpdebgeofgjgjoakoh`**，未观察到 disable reasons。该加载记录不证明 Side Panel 或业务运行成功。
+- 默认 Native 仅授权日常 `ccfcjegpkdlgbclopjmadlcjedelidmf`。使用已有官方 `OPENDESK_NATIVE_INSTANCE=bridge-r20-01a1748f opendesk browser setup --extension-id lbgeeemomoheiblpdebgeofgjgjoakoh --browser cft --user-data-dir <本轮Profile>` 创建专属实例，只写其私有 Profile manifest 和独立 instance。读回 `allowed_origins` 精确匹配本轮 ID；doctor 为 **installed=true / connected=false**，尚无认证连接，不记 Native PASS。未修改或清理默认 Native。
+
+### 用户入口与固定 Task 身份
+
+源码确认「开发 → 本地项目」已具备连接、项目选择、参数、明确运行与保存入口；独立文件工作区只在需要文件操作时使用。**真实完整可用性 NOT_TESTED**。注意本地「保存为任务」生成 `local-<hash>` 身份，不能替代 `baidu.search.top3@1.0.0`。固定任务仍从「我的 → 添加任务 → 本地任务目录」导入原 JSON，核对同源码真实运行证明后，经验证 → 本地可用 → 审阅安装。没有直接写存储。
+
+G0 **PASS**；G1 仅加载路径/ID/专属 manifest 已核对，安装身份、代际、网站权限及 Native 认证连接 **NOT_TESTED**。
+
+| 场景 | 当前结论 | 缺失的真实证据 |
+| --- | --- | --- |
+| A 手动百度闭环 | BLOCKED / NOT_TESTED | Task 合法安装、官网请求、真实百度 Run/Result、released、唯一回传及中文续答 |
+| B 生成中批准自动执行 | BLOCKED / NOT_TESTED | 同候选真实时序及各一次运行、结果、回传 |
+| C 网站阻断与 DOM 变化 | BLOCKED / NOT_TESTED | 真实网站观察；组件结果不能提升为原生结果 |
+| D 身份、撤权、草稿与 UNKNOWN | BLOCKED / NOT_TESTED | 同候选真实操作；现有定向保护证据保留 |
+
+固定 `sourceHash=1e2e3466b38d90c32513a7ce597fe6a283b986e61dd71f647241d8731ae80e45`、`manifestHash=e8abda7a51d234b1224dd626fbeeaa8ecc3ff63f2465c74433bef235dbf17bdf`、关键词 `OpenDesk Browser`、limit 3 均不变。实际 Candidate/Verified/Available/Installed/Enabled、installationId/generation、runId/resultId、实际结果数量/URL、释放状态和原会话回传次数仍 **UNKNOWN / NOT_TESTED**。本轮主动 Bridge Run、官网发送均为 **0**，没有用未运行冒充 no_results。
+
+连接及固定安装完成后的按钮：正式 `/c/...` 与同窗口 Side Panel →「百度搜索前三条」→关键词 →「建立请求」→用户在官网发送。A 等完整候选后点「执行」；B 新请求生成中点「批准本次自动执行」，不点「执行」。`page.read.fixed@1.0.0` 的真实回归仍待执行。
+
+六维证据评分（满分各100，非正确率）：目标完整性 **50**、核心业务能力 **40**、架构复用 **85**、安全可靠性 **65**、用户体验 **45**、测试与证据 **75**；算术平均 **60.0**。仅构建及可追溯证据增加，不提升未测业务结论。
+
+### 证据与资源归属
+
+本轮证据目录 `artifacts/ai-chat-bridge-r20-mac-20261026/receiver/`：`knowledge-source-review.json`、`knowledge-targeted-tests.log`、`shared-boundary-tests.log`、`core-evidence-reuse.json`、`reviewed-snapshot.json`、`reviewed-build-result.json`、`reviewed-production-build.log`、`reviewed-builds/build-production.json`、`production-summary.json`、`chrome-launch.json`、`production-runtime-identity.json`、`status.json`。这些本机产物未批量提交。
+
+日常 watcher **PID 91386 / token 0832b303-1ac1-486a-9548-589b023346b5**、`dist/development` 和 `.wxt/public` 保留。其他 owner 的 `ai-knowledge-answers-r132-local-20261026.md` 未代提交。专属 CFT **PID 62917 / terminal session 25373** 与 Native instance `bridge-r20-01a1748f` 保留供继续本轮操作；原 launcher 负责其临时 Profile 生命周期，不终止其他 Chrome。无分支、Git worktree、PR 或强推。
+
+原对话 goal 的 blocked 仅为交接状态；本对话实读 `get_goal` 为 null，未迁移、暂停或完成旧 goal，也未改应用数据库。
+
+## 历史结果（2026-10-26 03:00，保留原失败与授权边界）
 
 用户要求设置目标并继续推进，已在本对话创建原生 active goal。目标仍是百度真实闭环；尚未达成，不以组件测试或本报告代替。下一条未完成用户操作是：取得当前完整 production 候选后，核对真实 Task 安装身份，再执行场景 A。
 
