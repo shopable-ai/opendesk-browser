@@ -109,7 +109,7 @@ export function fillChatGPTComposerOnPage({expectedUrl,text,operationId,expected
   if(!local||turnKey!==expectedTurnKey)return error('E_CHAT_TURN','对话已进入另一轮，未回填迟到结果。');
   const previous=local.fills.get(operationId);
   if(previous)return error('E_CHAT_REPLAY',previous==='filled'?'本结果已经回填过；不会重复插入或发送。':'上次回填结果未知，请先检查网页输入框。',previous==='filled'?'NOT_DISPATCHED':'OUTCOME_UNKNOWN');
-  const editors=[...document.querySelectorAll('#prompt-textarea,textarea[data-testid="prompt-textarea"]')].filter(n=>!hidden(n));
+  const editors=[...document.querySelectorAll('#prompt-textarea,textarea[data-testid="prompt-textarea"],form[data-chatgpt-composer] [data-composer-markdown][contenteditable="true"][role="textbox"]')].filter(n=>!hidden(n));
   if(editors.length!==1)return error('E_CHAT_COMPOSER','未找到唯一的 ChatGPT 输入框，结果已保留。');
   const editor=editors[0],textarea=editor.tagName==='TEXTAREA';
   if(!textarea&&editor.getAttribute('contenteditable')!=='true'||editor.disabled||editor.getAttribute('aria-disabled')==='true')
@@ -127,7 +127,7 @@ export function fillChatGPTComposerOnPage({expectedUrl,text,operationId,expected
     return error('E_CHAT_COMPOSER','无法可靠聚焦目标输入框，未输入。');
   // focus can synchronously restore a website's saved draft. Recheck AFTER
   // that event before the edit, and confirm this is still the live composer.
-  const focused=[...document.querySelectorAll('#prompt-textarea,textarea[data-testid="prompt-textarea"]')].filter(n=>!hidden(n));
+  const focused=[...document.querySelectorAll('#prompt-textarea,textarea[data-testid="prompt-textarea"],form[data-chatgpt-composer] [data-composer-markdown][contenteditable="true"][role="textbox"]')].filter(n=>!hidden(n));
   const currentUsers=[...document.querySelectorAll('[data-message-author-role="user"]')].filter(n=>!hidden(n)&&!n.parentElement?.closest('[data-message-author-role]'));
   if(focused.length!==1||focused[0]!==editor||editor.isConnected===false||editor.closest('form')!==form||
     (currentUsers.length?(local.userTexts.get(currentUsers.at(-1))===(currentUsers.at(-1).textContent||'')?local.turns.get(currentUsers.at(-1)):null):'no-user')!==expectedTurnKey||location.href!==expectedUrl)
@@ -145,7 +145,7 @@ export function fillChatGPTComposerOnPage({expectedUrl,text,operationId,expected
   local.fills.set(operationId,'unknown');
   let accepted=false;
   try{accepted=document.execCommand('insertText',false,text);}catch{}
-  const liveEditors=[...document.querySelectorAll('#prompt-textarea,textarea[data-testid="prompt-textarea"]')].filter(n=>!hidden(n));
+  const liveEditors=[...document.querySelectorAll('#prompt-textarea,textarea[data-testid="prompt-textarea"],form[data-chatgpt-composer] [data-composer-markdown][contenteditable="true"][role="textbox"]')].filter(n=>!hidden(n));
   if(liveEditors.length!==1||liveEditors[0]!==editor||editor.isConnected===false)
     return error('E_CHAT_FILL_UNKNOWN','编辑时输入框被替换，不能核对结果；请检查网页。','OUTCOME_UNKNOWN');
   const content=textarea?editor.value:editor.innerText;
@@ -173,7 +173,7 @@ export function verifyChatGPTComposerOnPage({expectedUrl,text,operationId,expect
   const local=globalThis.__opendeskWorkspaceChatV1;
   const users=[...document.querySelectorAll('[data-message-author-role="user"]')].filter(n=>!hidden(n)&&!n.parentElement?.closest('[data-message-author-role]'));
   if(local?.fills.get(operationId)!=='filled'||(users.length?(local.userTexts?.get(users.at(-1))===(users.at(-1).textContent||'')?local.turns.get(users.at(-1)):null):'no-user')!==expectedTurnKey)return error();
-  const editors=[...document.querySelectorAll('#prompt-textarea,textarea[data-testid="prompt-textarea"]')].filter(n=>!hidden(n));
+  const editors=[...document.querySelectorAll('#prompt-textarea,textarea[data-testid="prompt-textarea"],form[data-chatgpt-composer] [data-composer-markdown][contenteditable="true"][role="textbox"]')].filter(n=>!hidden(n));
   if(editors.length!==1||editors[0].isConnected===false)return error();
   const editor=editors[0],value=editor.tagName==='TEXTAREA'?editor.value:editor.innerText;
   if(value!==text&&value!==text+'\n'&&!(editor.tagName!=='TEXTAREA'&&editor.textContent===text))return error();

@@ -153,3 +153,44 @@ bindingId + runId/previewId 实际直接走 result，不额外验证 bindingId �
 工具名称和参数不变。`status.projects[].preparation`（Node Provider路径）与`diagnostics.preparation`显示准备状态、sourceRevision/sourceHash/artifactId、实际buildCount、cacheHits、监听延迟和timings。离线不保证准备状态有效；Go聚合列表目前未传递preparation。
 
 `run.source`另含sourceRevision/artifactId/timings；timings分validationMs/dependencyMs/webpackMs/checkMs/totalMs/buildCount/moduleCount，命中buildCount为0。`run.timings.nativeAdmissionMs`含Native及Host入场，不是纯传输或浏览器执行耗时。内部解析探针、源码与source map不返回MCP。实时错误不能用旧成功版本掩盖，未知效果仍只读恢复。参见[R23实测及限制](../framework/local-development-prebuild-r23.zh-CN.md)。
+
+## R1：面向 ChatGPT 的受控投影（开发候选）
+
+`native-agent/local-dev/feasibility.mjs` 复用上面的 stdio 包装、LocalDevSession、Native/Host 与 Controller RunHost，供正式 Tunnel 的最小可行性验证使用。它只公开下列工具，不把完整七个开发工具交给远端。当前源码、Node 检查与 Inspector 工具发现不等于真实浏览器或原 ChatGPT 对话已通过；正式 Tunnel 读写闭环仍为 `NOT_TESTED`。
+
+| 工具 | 远端参数 | 行为 |
+| --- | --- | --- |
+| `opendesk.feasibility.probe` | `intentId` | 运行固定 Controller，读取本机配置页面的标题；返回原 taskId 和入场身份 |
+| `opendesk.feasibility.result` | `taskId` | 查询本会话原任务与持久结果，不重新执行 |
+| `opendesk.feasibility.write_field` | `intentId`、`text` | 仅在本机启动时允许后出现；写入本机指定的唯一文本字段，并返回真实值和 `matched` |
+
+所有参数均严格拒绝未知字段。ID 为 `[A-Za-z0-9._:-]` 的 1–100 字符；text 最多 100 个 Unicode 码点，允许空串。URL、selector、源码、路径和 Host/document 身份都不是远端参数。
+
+本机负责人先取得**当前** Host registrationId、真实扩展 ID、tabId 和 documentId，再启动；下面的身份占位符必须替换，不能复用历史报告里的旧文档身份：
+
+```sh
+node native-agent/local-dev/feasibility.mjs \
+  --registration-id '<当前 Host registrationId>' \
+  --extension-id '<真实扩展 ID>' \
+  --tab-id '<当前 tabId 整数>' \
+  --document-id '<当前 documentId>' \
+  --url 'http://127.0.0.1:43111/demo-form.html' \
+  --selector '#name' \
+  --allow-write-field
+```
+
+省略 `--allow-write-field` 时仅公开两个只读工具。URL 默认是标准测试页，selector 默认 `#name`；本机可换成其他已授权开发页面与字段。URL 必须是精确、规范化且无用户名/密码的 HTTP(S) 地址；不做通配或跨导航追踪。selector 最多 512 字符，执行时必须唯一命中可见、可编辑的 text/search input 或 textarea；密码、文件、隐藏、禁用、只读及密码/验证码/支付自动填充字段均拒绝。更换配置或目标文档需明确建立新本机会话。
+
+固定 Controller 不按配置拼接源码。启动时冻结 policy，最终 `run.start` 再核对完整 params、policy、源码哈希及真实目标。回执的 `sourceHash` 标识 Controller，`policyVersion`/`policyDigest` 标识本机配置；`taskId` 等于本次 intentId，`runId` 是原 RunHost 身份。外层 `state` 表示入场状态，完成情况与资源释放读取 `run.state`/`run.retirementState`；不能把 ACK 当成功。
+
+写入使用原 Page evaluate 能力，设置字段后发 input/change，并确认同一字段仍合法后读回。它不主动提交表单、不自动恢复原值；网页事件处理器可能保存数据或产生其他副作用，因此写工具声明为非只读、非幂等。只对当前明确授权的开发对象启用；这不是事务或通用网页动作执行器。
+
+相同 intentId 在当前会话最多入场一次，参数不同则拒绝。结果未知、断连或丢 ACK 时只查询原 taskId；不自动换 ID 重做。进程重启不会接管旧 task 的会话归属，必须先核对原侧栏/RunHost 记录，不能把重启当重试。EOF 关闭本机投影，但不代表已发生的页面操作被撤销。撤权或目标漂移继续拒绝执行和结果交付。
+
+### “无需身份验证”与 Tunnel 运行身份
+
+ChatGPT 自定义 MCP 表单可以对本服务选择“无需身份验证”；stdio 投影不添加第二套服务登录。这项选择不会取消 [Secure MCP Tunnel](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) 的控制面认证。官方客户端仍需要具备 Tunnels Read + Use 的 runtime key，或已经配置的受支持工作负载身份。
+
+官方 tunnel-client v0.0.18 可先用 `init --sample sample_mcp_stdio_local --profile opendesk-r1 --tunnel-id '<已有 Tunnel ID>' --mcp-command '<上述完整 stdio 命令，采用绝对路径>'` 生成配置，再运行 `doctor --profile opendesk-r1 --explain` 和 `run --profile opendesk-r1`。未覆盖 profile 目录时，配置位于 `~/.config/tunnel-client/opendesk-r1.yaml`。init 可以只保存密钥引用，不证明连接已可用。
+
+密钥可由 `CONTROL_PLANE_API_KEY` 提供，或用 `--control-plane.api-key file:/本机安全密钥文件` 引用；生成 profile 时对应 `--control-plane-api-key-ref file:/本机安全密钥文件`。不要把密钥写入仓库、聊天或命令行字面值。官方未提供已证实的 `--env-file` 自动加载合同，`file:` 指纯密钥文件，不是 dotenv 文件。本轮只核查配置/变量存在性，未读取或创建密钥。

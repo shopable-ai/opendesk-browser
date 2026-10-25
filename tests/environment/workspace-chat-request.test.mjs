@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
+import {load} from 'cheerio';
 import {createHash,randomUUID} from 'node:crypto';
 import {createFileRequestContext,parseFileRequest,formatFileResult,REQUEST_PROTOCOL} from '../../src/native-agent/workspace-chat-request.js';
 import {createEditContext,parseEditProposal,validateEditProposal,EDIT_PROTOCOL} from '../../src/native-agent/workspace-ai-proposal.js';
@@ -169,6 +170,30 @@ for(const kind of ['DIV','TEXTAREA']){
     assert.equal(f.state.calls.length,1);
   });
 }
+test('current composer attributes work only in the dedicated form and preserve draft and uniqueness guards',async()=>{
+  for(const mode of ['empty','draft','ambiguous']){
+    const f=pageFixture();f.addMessage('user','question');
+    const markup='<div data-composer-markdown contenteditable="true" role="textbox" data-fixture="editor"></div>';
+    // Parse the observed website attributes with the existing CSS selector engine.
+    // An unrelated textbox outside the dedicated form must not be selected.
+    const $=load('<form data-chatgpt-composer>'+markup+(mode==='ambiguous'?markup.replace('editor','other'):'')+'</form>'+markup.replace('editor','outside'));
+    const extra=f.editor(),query=f.doc.querySelectorAll;
+    f.doc.querySelectorAll=selector=>selector.includes('#prompt-textarea')?
+      $(selector).toArray().map(node=>node.attribs['data-fixture']==='editor'?f.state.editor:extra):query(selector);
+    if(mode==='draft')f.state.editor.text='USER DRAFT';
+    const turnKey=f.identity().turnKey,operationId=randomUUID();
+    if(mode==='empty'){
+      const result=await fillChatGPTComposer(f.api,f.target,'actual result',{operationId,turnKey});
+      assert.equal(result.readBackVerified,true);assert.equal(result.sent,false);
+      assert.equal(f.state.calls.length,1);
+    }else{
+      const result=f.fill(operationId);
+      assert.equal(result.error.code,mode==='draft'?'E_CHAT_DRAFT':'E_CHAT_COMPOSER');
+      assert.equal(f.state.calls.length,0);
+      if(mode==='draft')assert.equal(f.state.editor.text,'USER DRAFT');
+    }
+  }
+});
 for(const mode of ['existing draft','focus restores draft','focus restores attachment','focus restores rich content','wrong selection','streaming','multiple composers']){
   test('composer refuses without editing: '+mode,()=>{
     const f=pageFixture();f.addMessage('user','question');

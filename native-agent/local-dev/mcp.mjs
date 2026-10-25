@@ -30,7 +30,7 @@ function validateArgs(tool,args){
     if(rule.enum&&!rule.enum.includes(value)||rule.type==='string'&&(typeof value!=='string'||!value)||rule.type==='object'&&!object(value)||rule.type==='integer'&&(!Number.isSafeInteger(value)||value<rule.minimum||value>rule.maximum))throw new Error('Invalid tool argument: '+key);
   }
 }
-export function serveMcp({input=process.stdin,output=process.stdout,session}={}){
+export function serveMcp({input=process.stdin,output=process.stdout,session,tools=MCP_TOOLS,serverInfo={name:'opendesk-local-dev',version:'1.0.0'},instructions='Use only explicitly authorized project roots. Native/RunHost permissions remain authoritative. Unknown effects must never be automatically replayed.',dispatch}={}){
   let buffer=Buffer.alloc(0),initialized=false,ready=false,closed=false,inflight=0;
   const pending=new Set(),maxBytes=64*1024;
   const write=message=>{if(!closed)output.write(JSON.stringify(message)+'\n');};
@@ -49,17 +49,17 @@ export function serveMcp({input=process.stdin,output=process.stdout,session}={})
         if(initialized)return rpcError(id,-32600,'Already initialized');
         if(!object(message.params)||typeof message.params.protocolVersion!=='string'||!object(message.params.capabilities)||!object(message.params.clientInfo)||typeof message.params.clientInfo.name!=='string'||typeof message.params.clientInfo.version!=='string')return rpcError(id,-32602,'Invalid initialization parameters');
         initialized=true;
-        return write({jsonrpc:'2.0',id,result:{protocolVersion:'2025-11-25',capabilities:{tools:{}},serverInfo:{name:'opendesk-local-dev',version:'1.0.0'},instructions:'Use only explicitly authorized project roots. Native/RunHost permissions remain authoritative. Unknown effects must never be automatically replayed.'}});
+        return write({jsonrpc:'2.0',id,result:{protocolVersion:'2025-11-25',capabilities:{tools:{}},serverInfo,instructions}});
       }
       if(message.method==='ping')return write({jsonrpc:'2.0',id,result:{}});
       if(!ready)return rpcError(id,-32002,'Initialize the MCP session first');
-      if(message.method==='tools/list')return write({jsonrpc:'2.0',id,result:{tools:MCP_TOOLS}});
+      if(message.method==='tools/list')return write({jsonrpc:'2.0',id,result:{tools}});
       if(message.method!=='tools/call')return rpcError(id,-32601,'Method not found');
-      const tool=MCP_TOOLS.find(row=>row.name===message.params?.name);
+      const tool=tools.find(row=>row.name===message.params?.name);
       if(!tool)return rpcError(id,-32602,'Unknown tool');
-      const args=message.params.arguments||{};
+      const args=dispatch?(message.params.arguments===undefined?{}:message.params.arguments):(message.params.arguments||{});
       let data,isError=false;
-      try{try{validateArgs(tool,args);}catch(error){error.code='E_SCHEMA';throw error;}data=await session[tool.name.split('.').pop()](args);}
+      try{try{if(!dispatch)validateArgs(tool,args);}catch(error){error.code='E_SCHEMA';throw error;}data=await (dispatch?dispatch(tool.name,args):session[tool.name.split('.').pop()](args));}
       catch(error){isError=true;data={error:{code:error.code||'E_DEV',message:error.message,phase:error.phase||'local-dev',...(error.location?{location:error.location}:{}),...(error.requestId?{requestId:error.requestId}:{}),...(error.admissionRequestId?{admissionRequestId:error.admissionRequestId}:{}),...(error.runId?{runId:error.runId}:{}),...(error.previewId?{previewId:error.previewId}:{}),outcome:error.outcome||(error.code==='E_EFFECT_UNKNOWN'?'OUTCOME_UNKNOWN':'NOT_DISPATCHED')}};}
       write({jsonrpc:'2.0',id,result:{content:[{type:'text',text:JSON.stringify(data)}],structuredContent:data,...(isError?{isError:true}:{})}});
     }finally{pending.delete(id);inflight--;}
