@@ -42,7 +42,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+concurrency:
+  group: prompt-shortcuts-formal-package-main
+  cancel-in-progress: true
 
 jobs:
   prompt-shortcuts-scope:
@@ -120,6 +123,39 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.preview-chrome.outputs.chrome-path }}
         run: node scripts/tests/prompt-shortcuts-r21-page-chromium.mjs artifacts/prompt-shortcuts-r21-page-chromium
+      - name: Synchronize the tested formal installer, never an unverified hand-built JSON
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts --check-project
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const config=JSON.parse(readFileSync('examples/sidebar-tools/prompt-shortcuts/tool.config.json','utf8'));
+          const pkg=JSON.parse(readFileSync('examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json','utf8'));
+          assert.equal(pkg.version,config.version);
+          assert.equal(pkg.id,'prompt-shortcuts');
+          assert.equal(pkg.html.includes('ps-detail-back'),false,'retired back action must not appear in installer HTML');
+          console.log('VERIFIED_PROMPT_SHORTCUTS_FORMAL_SYNC',pkg.version);
+          NODE
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          if [[ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]]; then
+            echo 'FORMAL_PACKAGE_SYNC_BLOCKED=MAIN_HEAD_ADVANCED'
+            exit 1
+          fi
+          if git diff --quiet -- "$file"; then
+            echo 'FORMAL_PACKAGE_ALREADY_SYNCED=true'
+            exit 0
+          fi
+          git add -- "$file"
+          git -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m 'chore(prompt-shortcuts): sync verified v2 formal installer [skip ci]'
+          git push origin HEAD:refs/heads/main
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" || exit 1
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts --check-project
       - uses: actions/upload-artifact@v4
         if: always()
         with:
