@@ -50,8 +50,15 @@ test('R1 伪造引用与模型新增金额、期限被拒绝或转人工；属�
   const drift=await m.answerWithAI(db,query,async()=>({
     proposal:{answer:'30 天内可退款',sourceIds:[db.items[0].id],needsHuman:false}
   }));
-  assert.equal(drift.status,'REVIEW_REQUIRED');
+  assert.equal(drift.status,'INVALID_AI');
+  assert.equal(drift.answer,'');
+  assert.equal(drift.reason,'NUMERIC_DRIFT');
   assert.equal(drift.needsHuman,true);
+  const valid=await m.answerWithAI(db,query,async()=>({
+    proposal:{answer:'7天内可退款',sourceIds:[db.items[0].id],needsHuman:false}
+  }));
+  assert.equal(valid.status,'REVIEW_REQUIRED');
+  assert.equal(valid.needsHuman,true);
 });
 
 test('R1 查不到候选不得调用模型',async()=>{

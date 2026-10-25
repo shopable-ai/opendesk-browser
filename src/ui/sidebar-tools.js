@@ -60,6 +60,8 @@ import {createTimeReviewPermissionControls} from '../../examples/sidebar-tools/t
 import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../../examples/sidebar-tools/time-review/trusted/trusted-admission.js';
 import {admitsTrustedBookmark,TRUSTED_BOOKMARK_ID,TRUSTED_BOOKMARK_VERSION,TRUSTED_BOOKMARK_COMPONENT_VERSION,
   trustedBookmarkProvenanceChanged} from './trusted-bookmark-admission.js';
+import {admitsTrustedKnowledge,TRUSTED_KNOWLEDGE_ID,TRUSTED_KNOWLEDGE_VERSION,
+  trustedKnowledgeProvenanceChanged} from './trusted-knowledge-admission.js';
 
 // Browser SDK maxRequestBytes is a UTF-8 JSON ARGUMENT budget, not the
 // whole sandbox postMessage. The host adds a bounded envelope separately.
@@ -119,7 +121,7 @@ export function createSidebarTools(options={}) {
 }
 
 function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.document,
-  currentPageTarget,taskWorkbench,foundationClient,localeController=null,toolLocaleService=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,trustedPromptPilot=null,view,trustedSettingsUI=view.trustedSettings}) {
+  currentPageTarget,taskWorkbench,foundationClient,localeController=null,toolLocaleService=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,trustedPromptPilot=null,trustedKnowledgePilot=null,view,trustedSettingsUI=view.trustedSettings}) {
   const languageNames={'zh-CN':'简体中文','zh-TW':'繁體中文',en:'English',ja:'日本語'};
   function toolLocaleContext(tool){
     const requested=localeController?.getLocale?.()||'zh-CN';
@@ -758,12 +760,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   // Browser SDK dispatcher; no postMessage or user package can forge it.
   const trustedBookmarkSource=Symbol('opendesk.trusted.bookmark');
   const trustedPromptSource=Symbol('opendesk.trusted.prompt');
+  const trustedKnowledgeSource=Symbol('opendesk.trusted.knowledge');
+  let knowledgeDataGeneration=0;
   const sameInstance=(source,token)=>!disposed&&active&&instance===token&&
     ((frame&&frame.contentWindow===source)||
      (source===trustedBookmarkSource&&active.id===TRUSTED_BOOKMARK_ID&&
       (nativePending||nativeUI?.kind==='bookmark'))||
      (source===trustedPromptSource&&active.id===PROMPT_ID&&
-      (nativePending||nativeUI?.kind==='prompt')));
+      (nativePending||nativeUI?.kind==='prompt'))||
+     (source===trustedKnowledgeSource&&active.id===TRUSTED_KNOWLEDGE_ID&&
+      (nativePending||nativeUI?.kind==='knowledge')));
   const toolById=id=>installed.find(row=>row.id===id);
   // A matching ID or user-supplied hash alone NEVER grants silent writes.
   // Bind to the installed, enabled, signed-off official release and epoch.
@@ -925,7 +931,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(frame){frame.onload=null;frame.remove();frame=null;}
     instance=null;requestCount=0;requestWindow=Date.now();lastHostHeight=null;
     frameRoot.replaceChildren();
-    if(frameRoot.dataset){delete frameRoot.dataset.timeReviewNative;delete frameRoot.dataset.bookmarkTrusted;delete frameRoot.dataset.promptAi;delete frameRoot.dataset.officialWorkspace;}
+    if(frameRoot.dataset){delete frameRoot.dataset.timeReviewNative;delete frameRoot.dataset.bookmarkTrusted;delete frameRoot.dataset.promptAi;delete frameRoot.dataset.knowledgeAi;delete frameRoot.dataset.officialWorkspace;}
   }
   // The only admission for privileged Time Review rendering. Built-in code
   // never consumes the installed package's html/css/js as executable input.
@@ -1021,6 +1027,18 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       installed:requireCompleteInstalledSidebarTools(saved[SIDEBAR_TOOL_STORE]),
       enableRecords:saved[SIDEBAR_TOOL_ENABLE_STORE],
       epochs:saved[TOOL_REVOCATION_EPOCHS_STORE],
+      provenance:saved[MARKET_PROVENANCE_STORE]});
+  }
+  async function admittedNativeKnowledge(tool,expectedEpoch){
+    if(trustedKnowledgePilot?.enabled!==true||typeof trustedKnowledgePilot.mount!=='function')return false;
+    if(!officialLoaded&&!officialError)await officialReady;
+    if(!officialLoaded||officialError)return false;
+    const release=officialReleases.find(row=>row.toolId===TRUSTED_KNOWLEDGE_ID&&row.version===TRUSTED_KNOWLEDGE_VERSION);
+    const saved=await api.storage.local.get([
+      SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,MARKET_PROVENANCE_STORE]);
+    return admitsTrustedKnowledge({tool,release,expectedEpoch,
+      installed:requireCompleteInstalledSidebarTools(saved[SIDEBAR_TOOL_STORE]),
+      enableRecords:saved[SIDEBAR_TOOL_ENABLE_STORE],epochs:saved[TOOL_REVOCATION_EPOCHS_STORE],
       provenance:saved[MARKET_PROVENANCE_STORE]});
   }
   function trustedBookmarkSDK(tool,token,epoch){
@@ -1456,6 +1474,46 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         if(disposed||active!==tool||instance!==token)return;
         destroyFrame();tocSettingsOpen=true;render();
         notice('书签官方身份校验失败：'+String(error?.message||error).slice(0,160),true);
+      });
+      return;
+    }
+    if(!forceSandbox&&!readOnly&&!launchGate&&tool.id===TRUSTED_KNOWLEDGE_ID&&
+       trustedKnowledgePilot?.enabled===true){
+      nativePending=true;render();notice('正在核验知识问答官方安装身份…');
+      void admittedNativeKnowledge(tool,frameRevocationEpoch).then(admitted=>{
+        if(disposed||active!==tool||instance!==token)return;
+        if(!admitted){mountTool(tool,{forceSandbox:true});
+          notice('官方来源核验未通过，已保留知识沙箱；未开放可信 AI。');return;}
+        try{
+          const epoch=frameRevocationEpoch;let cached=null;
+          const assertIdentity=args=>{
+            if(disposed||readOnlyPreview||active!==tool||instance!==token||
+               nativeUI?.kind!=='knowledge'||!frame?.contentWindow||
+               enableReadError||installedReadError||!sidebarToolEnabled(enableRecords,tool.id)||
+               (revocationEpochs[tool.id]??null)!==epoch||
+               !installed.some(row=>samePackage(row,tool)))
+              throw Object.assign(new Error('知识工具安装身份或读授权已失效'),{code:'E_TOOL_CHANGED'});
+            if(args?.etag&&(!cached||cached.etag!==args.etag||cached.generation!==knowledgeDataGeneration))
+              throw Object.assign(new Error('知识版本已变化，请重新准备'),{code:'E_KB_STALE'});
+          };
+          const portal=trustedKnowledgePilot.mount({container:frameRoot,instanceId:token,installEpoch:epoch,
+            assertIdentity,guardBlocked:()=>toolDirty||toolSaving||Boolean(pendingAction),
+            readLibrary:async()=>{
+              assertIdentity();const generation=knowledgeDataGeneration;
+              const value=await dispatch('storage.get',{key:'library',withEtag:true},tool,
+                trustedKnowledgeSource,token,epoch);
+              assertIdentity();
+              if(generation!==knowledgeDataGeneration)
+                throw Object.assign(new Error('读取期间知识已变化'),{code:'E_KB_STALE'});
+              cached={etag:value.etag,generation};return value;
+            }});
+          nativeUI={kind:'knowledge',...portal};nativePending=false;
+          frameRoot.dataset.knowledgeAi='true';frameRoot.dataset.officialWorkspace='true';
+          mountSandbox(portal.frameTarget);notice('');
+        }catch(error){destroyFrame();render();notice('知识 AI 启动失败：'+String(error.message),true);}
+      }).catch(error=>{
+        if(disposed||active!==tool||instance!==token)return;
+        destroyFrame();render();notice('知识官方身份核验失败：'+String(error.message),true);
       });
       return;
     }
@@ -2935,6 +2993,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   // Other Side Panels may update/uninstall a tool. Revoke the old iframe immediately.
   const onToolStorageChanged=(changes,area)=>{
     if(disposed||area!=='local')return;
+    if(active?.id===TRUSTED_KNOWLEDGE_ID&&
+       Object.hasOwn(changes||{},sidebarToolStorageKey(TRUSTED_KNOWLEDGE_ID))){
+      knowledgeDataGeneration++;nativeUI?.kind==='knowledge'&&nativeUI.invalidate();
+    }
     // SW may record a genuine install intent while the first-party UI is open.
     if(changes?.[DEFAULT_PREINSTALL_STORE]?.newValue?.state==='pending')
       void runDefaultPreinstall();
@@ -3024,6 +3086,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
            ?trustedBookmarkProvenanceChanged(changes[MARKET_PROVENANCE_STORE])
            :active?.id===PROMPT_ID
              ?trustedPromptProvenanceChanged(changes[MARKET_PROVENANCE_STORE])
+             :active?.id===TRUSTED_KNOWLEDGE_ID
+               ?trustedKnowledgeProvenanceChanged(changes[MARKET_PROVENANCE_STORE])
              :false)){
       // Only this admitted tool's own provenance revokes its React/native UI.
       destroyFrame();tocSettingsOpen=true;render();

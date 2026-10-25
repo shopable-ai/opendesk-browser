@@ -98,7 +98,8 @@ function lookup(lib,{question,scope=''}={}){
   return {status:candidates.length?'RETRIEVED_ONLY':'NO_MATCH',answer:'',
     sourceIds:candidates.map(x=>x.id),needsHuman:true,candidates};
 }
-const numerics=s=>String(s).match(/\d+(?:[.,]\d+)?(?:%|元|天|月|年|小时|分钟|GB|MB)?/gu)||[];
+const numerics=s=>String(s).replace(/(\d)\s+(%|元|天|月|年|小时|分钟|GB|MB)/gu,'$1$2')
+  .match(/\d+(?:[.,]\d+)?(?:%|元|天|月|年|小时|分钟|GB|MB)?/gu)||[];
 async function answerWithAI(lib,ask,generate){
   const found=lookup(lib,ask);
   if(found.status!=='RETRIEVED_ONLY'||typeof generate!=='function')return found;
@@ -115,11 +116,12 @@ async function answerWithAI(lib,ask,generate){
   const cited=records.filter(x=>proposal.sourceIds.includes(x.id));
   const facts=new Set(numerics(cited.map(x=>x.answer).join('\n')));
   const drift=numerics(proposal.answer).some(x=>!facts.has(x));
+  if(drift)return {...found,status:'INVALID_AI',answer:'',needsHuman:true,reason:'NUMERIC_DRIFT'};
   // R1 retrieval scores and numeric checks do not prove semantic entailment.
   // The model output remains a reviewable draft; never unlock web auto-send.
   return {status:'REVIEW_REQUIRED',
     answer:proposal.answer.trim(),sourceIds:proposal.sourceIds.slice(),
-    needsHuman:true,reason:drift?'NUMERIC_DRIFT':'SEMANTIC_UNVERIFIED',candidates:found.candidates};
+    needsHuman:true,reason:'SEMANTIC_UNVERIFIED',candidates:found.candidates};
 }
 function merge(lib,incoming,mode='merge'){
   const current=library(lib),next=library(incoming);

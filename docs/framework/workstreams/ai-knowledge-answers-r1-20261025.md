@@ -1,57 +1,94 @@
-# AI 知识问答与自动回复 R1 · 增量实施记录
+# AI 知识问答 R1.1 · 实施与证据
 
-日期：2026-10-25
-Owner：本对话（GitHub 直连，main 上增量写入）；本地 Codex 负责续接可信 AI 和原生闭环。
+更新：2026-10-26（Asia/Shanghai）。Owner：本对话；仅 main。原目标仍为知识维护 → Shared AI 有来源答案 → 后续授权网站回复。本轮不进入网站读取、草稿、自动发送或第二套队列。
 
-## 原始目标及真实操作
+## 用户操作与状态
 
-在 OpenDesk Browser 独立安装并运行一个简单知识问答工具：添加 10–20 条知识 → 保存并重新打开读回 → 固定问题直接得到来源明确的答案 → 相关问题由 Shared AI Provider 根据候选知识生成可审阅答案 → 后续扩展成经目标网站许可的回复。
+| 操作 | 当前证据 |
+|---|---|
+| 固定/同义回答、相关问题检索、编辑启停删除、JSON/CSV | 定向领域测试 PASS；原生 UI 未实测 |
+| 保存、ETag 写后读回、关闭重开 | 原存储 Host 接线保留；真实 Chrome 保存/重开 NOT_TESTED |
+| 准备并审阅知识、原始 Send 进入 Shared Provider | 已接线；实际共享组件 + fake transport 集成 PASS；Chrome 原始事件链 NOT_TESTED |
+| 非精确问题调用真实 Local Codex | 现有 Native browserai.Manager 的 backend 请求 PASS；完整 Shared runtime → Chrome 认证 Host 链 NOT_TESTED |
+| 来源 ID、人工审阅、旧答案失效 | 实答领域校验通过；身份/撤权/ETag/取消/换 Provider/断线定向测试 PASS；原生行为 NOT_TESTED |
+| 可安装候选 | 原打包器晋升及逐字节同源核对 PASS；实际导入/确认安装 NOT_TESTED |
 
-本轮在不能执行 Mac Chrome 真实验收的环境中先完成独立工具的业务模型、沙箱 UI / Host Storage 适配，以及安全的可信 AI 消费者适配器契约。不得将业务模型或假 Provider 单测升级为真实 RAG PASS。
+**首个 Chrome 原生 MVP 闭环尚未完成，未达到 95+ 实施质量。** 自动审批拒绝浏览器工具访问 chrome-extension:，允许协议仅 HTTP/HTTPS，并明确禁止通过 CDP、其他浏览器表面等绕过。属于验证工具限制，不是产品故障证据；未更换 Profile、扩展 ID 或 Native 配对。
 
-## 文件所有权
+持续开发复用原 watcher PID 69819（上次观察，续接时重查），输出 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development`。磁盘已有本轮可信 bundle 与 0.1.1 官方 release；Chrome 实际加载路径、开发客户端连接和当前候选绑定未实读。未执行 production 构建、重装或停止其他会话服务。
 
-本轮新增：
-- examples/sidebar-tools/ai-knowledge-answers/tool.config.json
-- examples/sidebar-tools/ai-knowledge-answers/src/model.js
-- examples/sidebar-tools/ai-knowledge-answers/src/index.html
-- examples/sidebar-tools/ai-knowledge-answers/src/main.js
-- examples/sidebar-tools/ai-knowledge-answers/src/style.css
-- examples/sidebar-tools/ai-knowledge-answers/trusted/ai-request.js
-- examples/sidebar-tools/ai-knowledge-answers/README.zh-CN.md
-- tests/environment/ai-knowledge-answers-r1.test.mjs
-- tests/environment/ai-knowledge-answers-provider-contract.test.mjs
-- 本文档
+## 变更与所有权
 
-本轮不修改已存在的 src/ui/ai/provider-runtime.js、src/ui/conversation/provider-consumer.js、src/ui/sidebar-tools.js、src/ui/tool-shell.js、src/ui/react/main.tsx、official-tools/catalog.json 等共享平台代码；这些改动涉及其他并行 Agent 与不同信任边界，应由续接 owner 在最新 main 审核之后以单一所有者增量完成。
+R1 已由此前提交实现模型、沙箱编辑器、固定问答/检索、JSON/CSV 和 ETag 保存适配；本轮直接复用。
 
-## 已经写入源码与独立检查
+- 工具 `src/{model.js,main.js,style.css}`：复用 canonical button；归一合法数字空白，新增数字事实拒绝交付，AI 语义仍要求人工复核。
+- `tool.config.json` 升为 0.1.1；`official-tools/catalog.json` 新增 optional 来源。权限仍仅 storage.local/user.export，不使用 ai.access。
+- `trusted/ai-request.js`：预读冻结知识；原事件同步进入 conversation.request；取消、身份、授权及双次 ETag 回读。只返回有限证据标识，不透传 key/grant。
+- `trusted/{host.js,Workspace.jsx,workspace.css}`：静态第一方知识业务适配、接收方/外发审阅、可信 Send、取消与结果展示；保留原管理 iframe。
+- `src/ui/trusted-knowledge-admission.js`：精确官方版本/路径/字节摘要、安装内容、provenance、启用和撤权代际。普通同名或纯文件导入不获得可信 AI。
+- `src/ui/{sidebar-tools.js,tool-shell.js,react/main.tsx}`：复用原 dispatcher、Shared runtime、真实 Native 状态通知及唯一 React root portal；不新建 Host/Provider/安装器。
+- `src/ui/ai/provider-runtime.js` 与 `src/ui/conversation/provider-consumer.js`：knowledge 消费者实际使用 KNOWLEDGE_ANSWER_INSTRUCTIONS；相关权限通知复用原 origin/nativeMessaging 过滤。
+- 四个 ai-knowledge-answers 专项覆盖领域、Provider 适配、官方准入及共享组件集成；official-tools-catalog-r45 测试仅同步新增工具名单/optional 预期。
 
-- 纯 JavaScript：固定问答、同义别名、限定范围、简单检索、来源验证、格式校验、JSON/CSV 导入与防公式注入导出。
-- 沙箱 UI：浏览、编辑、启停、删除及复核、导入预览/策略、JSON 下载请求、CSV 剪贴板复制。
-- 复用现有 storage.get({withEtag:true}) / storage.set({ifMatch})，写后再次读回；不能确认写入则阻止重复写入。
-- 对未知和非精确问题不伪造 AI 结果；模型改写一律返回 REVIEW_REQUIRED，不能据此自动发送。
-- 可信 AI 适配器只接受 Host 提供的会话、真实点击事件、ETag 和已核实数据；调用同一个 conversation.request；模型完成后复验版本与授权，但该适配器目前尚未连接正式 Host 和 React 工作区。
-- GitHub V8 快速自查：经典 JS 语法、固定/未知/候选问答、CSV 往返、模型漂移、原始 trusted click 透传及 ETag stale 处理。仅代表有限函数级自检。
+并行会话在 e080939b4 保存了部分本轮准备改动；最终以本对话交付 SHA 和实际文件为准，不重做或回退。ChatGPT bridge、Send Queue、Reading TOC 和 Native workspace 的并行改动保留，本对话不拥有它们、不重复浏览器操作。
 
-## 仍需单一 owner 完成
+## 真实 Provider 证据
 
-1. 使用现有官方包 admission 模式，审查 package SHA、安装代际、来源、启用和撤权。
-2. 现有 provider runtime 和 business consumer 只新增 knowledge 命名空间及静态专用 instructions；不存在向 iframe 发放通用 Provider 密钥/能力的路径。
-3. 接入唯一 React Root 的可信 Send 控件，保证 origin permission.request 在原始 isTrusted 用户手势下触发；预读/定版候选知识，明确用户对向 AI 发送这些数据的授权，发出前再次核验身份，返回后验证 ETag。
-4. 真实 Provider 请求 + sourceIds/needsHuman 的闭环，正式用户操作与错误恢复；不要借用 prompt-shortcuts 安装身份。
-5. 只在 Node 定向测试、包构建验证通过后晋升唯一正式包，按产品授权把新工具加入官方可发现 Catalog（或显式导入测试）。
-6. 目标网站读新消息、草稿、发送、回执和 unknown-outcome 的自动回复另设阶段，不提前触碰现有 Send Queue。
+调用既有 Native browserai.Manager / default factory；task-local Go overlay 追加测试，不修改 sibling opendesk 源码、不创建第二个 Host、不伪造 Chrome registration。CLI 观察版本 0.162.1；Native 实现固定使用既有 openai Provider。本机配置观察模型 openai/gpt-6.1-sol，**实际响应模型名未捕获**，配置值不是响应证明。未更改认证、模型或路由。
 
-## 结果级别与资源状态
+使用实际静态知识 instructions，输入明确测试数据：
 
-- SOURCE_WRITTEN：是。
-- QUICK_V8_SMOKE：已做有限检查；不是正式 Node test。
-- NODE_TEST：NOT_TESTED（本轮 GitHub 连接环境不提供仓库本地 Checkout/Node）。
-- BUILD/PACKAGE：NOT_TESTED；尚无已晋升的正式 .opendesk-tool.json 包。
-- PROVIDER_LIVE：NOT_TESTED（正式可信路径尚未接线）。
-- MAC_CHROME_NATIVE：NOT_TESTED。
-- REAL_SITE_AUTO_SEND：NOT_TESTED。
-- 本轮不占用 Mac Chrome Profile、dist/development、端口、Native 连接和共享工作目录资源。
+```json
+{"request":"退款需要多少天？","context":{"scope":"","references":[{"id":"qa_test_refund01","question":"退款期限是多少","answer":"7 天内可退款","scope":""}]},"testData":true}
+```
 
-严格遵守 main-only/no-force/no-PR/no-worktree；远端并行 HEAD 变化不等于本文件的原生验证。继续时只读核对最新 SHA、相关 owner、上述新增文件，避免不同对话重复实现；不要在未验证的状态下标记 95+ 完成交付。
+2026-10-25T16:03:25Z，终态 COMPLETED，inferenceVerified=true：
+
+```json
+{"answer":"资料仅说明“7 天内可退款”，未说明退款处理或到账需要多少天。","sourceIds":["qa_test_refund01"],"needsHuman":true}
+```
+
+关联 thread `01a173cd-3692-7a01-ac9a-0838235c9fab`，turn `01a173cd-3736-7d11-915b-63433487c25a`。实答回放原领域校验得到 REVIEW_REQUIRED / needsHuman=true / SEMANTIC_UNVERIFIED；回放不算新的 UI 推理。此前两次 backend 返回“7 天内可退款”、有效 ID、needsHuman=false，测试曾错误要求模型自行设 true；修正评估器，保留原响应事实，由应用强制审阅，没有放宽产品保护。
+
+原始证据在忽略目录 `artifacts/sidebar-tools/ai-knowledge-answers/`：live-provider.log、live-provider.json、live-input.json、live-answer-validation.json、native-overlay.json 与测试副本。Native 源码观察提交 e7e6dd5c1de9a3cb022958d3a360ef9f2b56dfac。日志不含密钥。安装的 `opendesk browser ai doctor --json` 返回 E_CAPABILITY，未因此更新二进制或接管连接。
+
+可复现命令（本机 overlay 存在时，在 sibling opendesk 根执行）：
+
+```sh
+OPENDESK_KB_EVIDENCE=/Users/shopme/Documents/workspace/opendesk-browser/artifacts/sidebar-tools/ai-knowledge-answers/live-provider.json /Users/shopme/.local/opt/go1.25.13-amd64/bin/go test -overlay /Users/shopme/Documents/workspace/opendesk-browser/artifacts/sidebar-tools/ai-knowledge-answers/native-overlay.json ./internal/browserai -run '^TestInstalledCodexKnowledgeAnswerR11$' -count=1 -v
+```
+
+本次 PASS，16.784 秒。续跑不反复发送已有有效证据的相同请求；先完成未验证的 Chrome 用户操作。
+
+## 自动门禁与安装包
+
+1. 用户指定的初始两个测试 14/14 PASS；随后按变更增加保护用例。
+2. 四个知识专项最终 48/48 PASS，命令见工具 README；日志 knowledge-final.log。
+3. 知识专项 + shared-ai-provider-runtime-r21、shared-ai-consumer-lifecycle-r211、sidebar-tools 最终一组 81/81 PASS，日志 targeted-final.log。Provider 集成使用 fake transport，不算真实 AI。
+4. 受影响 JS node --check、JSX/TSX esbuild 语法转换、git diff --check PASS；完整类型诊断、production 构建及全仓回归 NOT_TESTED。
+5. 完整官方 Catalog 检查 15/18 PASS，三个失败延期：Stay Focus 已提交旧包与新源码内容不一致、发行版本 1.0.10 与配置 3.0.0 不同、旧资源计数断言不含固定远端 descriptor。属于无关合同/测试漂移，不修改 Stay Focus、不放宽来源、不伪报全组 PASS。本工具实际源码与官方发行字节一致、optional 策略和可信准入由新增专项验证通过。日志 catalog-final.log。
+6. 原 build:sidebar-tool --out → 相关门禁 → --promote-from → --check-project 均 PASS。
+
+唯一正式可安装文件 `examples/sidebar-tools/ai-knowledge-answers/ai-knowledge-answers.opendesk-tool.json`，0.1.1，40,093 字节，SHA-256 `153ca03e6b7baccd66b0980017a63aa082f092562f716d223a4bd2f33cf7eaf9`。这是通过自动门禁、可手动安装的候选；不等于 production/Chrome 验收或线上发布。未修改原安装器。
+
+## 独立复核与评分
+
+独立原生子 agent 先提出 Native 断线接线、未展示 aliases 外发及无关权限撤销三项；最小修复后均复核关闭，未发现剩余 P0/P1/P2。复核者未独立重跑真实推理或 Chrome，结论 COMMENT，保留原生与类型诊断缺口。
+
+| 维度 | 分数/100 | 主要限制 |
+|---|---:|---|
+| 业务目标 | 88 | 完整原生操作链未验证 |
+| 技术可行性 | 91 | backend 实证，浏览器接线待实测 |
+| 架构复用 | 93 | 原 Provider/Host/存储/React root |
+| 开发成本 | 86 | 范围集中，仍有专属接线维护成本 |
+| 安全 | 88 | 保护已修正，原生撤权/断线未验证 |
+| 可测试性 | 87 | 定向证据充分，原生工具受阻 |
+| 扩展性 | 78 | 固定版本准入及小知识库容量限制 |
+
+算术平均 `(88+91+93+86+88+87+78)/7 = 87`，不宣称 ≥95。
+
+## 下一条操作与边界
+
+真实 Mac Chrome 中，通过扩展官方目录审阅并安装/更新本候选 → 新建测试知识并保存 → 关闭重开确认保留 → 同义固定回答 → 非精确问题准备并真实 Send → 核对 sourceIds/人工审阅及错误恢复。纯文件导入没有官方 provenance 时保持受限，不改写来源记录绕过。
+
+只有该链及受影响的原生取消、撤权、更新、断线验证完成才可宣告 MVP。原始 Codex goal 仍 active，未因交付候选伪报 complete。网站阶段还需站点许可、精确页面身份、读取/草稿/发送确认与未知结果保护的独立设计和实测；保留 answer/sourceIds/needsHuman/status、取消及会话身份合同，不复制队列。

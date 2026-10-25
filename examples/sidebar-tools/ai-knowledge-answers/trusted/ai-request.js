@@ -2,6 +2,16 @@
 // This file cannot be executed by an installed sandbox or manufacture model grants.
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const sha=value=>typeof value==='string'&&/^[a-f0-9]{64}$/u.test(value);
+// Copy evidence identifiers only; never forward transport metadata or authorization.
+const providerMetadata=result=>{
+  const metadata={};
+  for(const key of ['provider','threadId','sessionId','turnId']){
+    const value=key==='provider'?result.provider??result.metadata?.provider:result.metadata?.[key];
+    if(typeof value==='string'&&value.length>0&&value.length<=256&&!/[\u0000-\u001f\u007f]/u.test(value))
+      metadata[key]=value;
+  }
+  return metadata;
+};
 
 export const KNOWLEDGE_ANSWER_INSTRUCTIONS=[
   '你是一个仅根据显式提供知识片段回答问题的知识问答助手。',
@@ -68,7 +78,7 @@ export function createKnowledgeAnswerConsumer({model,conversation,readLibrary,as
     // The original trusted event is forwarded unchanged. The consumer starts
     // the Chrome Provider origin grant BEFORE this function's first await.
     const chosen=snapshot.library.items.filter(item=>lookup.sourceIds.includes(item.id))
-      .map(({id,question,aliases,answer,scope})=>({id,question,aliases,answer,scope}));
+      .map(({id,question,answer,scope})=>({id,question,answer,scope}));
     if(!chosen.length||chosen.length>3)throw fail('E_KB_REFERENCES','未获得受审的候选来源');
     const context={scope,references:chosen};
     if(JSON.stringify(context).length>15000)throw fail('E_KB_LIMIT','引用知识超过本轮上下文上限');
@@ -115,7 +125,7 @@ export function createKnowledgeAnswerConsumer({model,conversation,readLibrary,as
         assertCurrent(grant);
         return {...answer,question:answer.answer?
           answer.answer+'\n\n（AI 草稿，需人工核对；来源：'+answer.sourceIds.join('、')+'）':
-          '缺少有效引用或依据，需要人工处理。',modelCalled:true};
+          '缺少有效引用或依据，需要人工处理。',modelCalled:true,metadata:providerMetadata(result)};
       }finally{grant.release();}
     }).finally(cleanup);
   }

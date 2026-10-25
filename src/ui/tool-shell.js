@@ -10,6 +10,7 @@ import {createSidebarTabMemory} from './sidebar-tab-memory.js';
 import {createWorkflowView} from './workflow/workflow-view.js';
 import {createSharedAIProviderRuntime} from './ai/provider-runtime.js';
 import {createBusinessConversation} from './conversation/provider-consumer.js';
+import {createTrustedKnowledgeHost} from '../../examples/sidebar-tools/ai-knowledge-answers/trusted/host.js';
 import {createSidebarTools} from './sidebar-tools-loader.js';
 import {createPanelToolIntentReceiver} from './sidebar-tools/panel-tool-intent.js';
 import {createExtensionCenter} from './extension-center.js';
@@ -156,6 +157,18 @@ chrome.runtime.onMessage.addListener(fixedPageChatBridgeListener);
 // Installed extensions retain their existing sandbox and SDK Hosts.
 let workflowView=null,promptConversation=null,bookmarkDisplayCache=null;
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench,foundationClient,localeController,toolLocaleService,view:toolView,
+  trustedKnowledgePilot:{enabled:true,mount:args=>{
+    const conversation=createBusinessConversation({providerRuntime,api:chrome,hostInstanceId,
+      consumerId:'knowledge',instanceId:args.instanceId,installEpoch:args.installEpoch});
+    let host,portal;
+    try{
+      host=createTrustedKnowledgeHost({...args,conversation,
+        subscribeConnection:foundationClient.subscribeWorkflowAI});
+      portal=extensionList.mountKnowledgeWorkspace({container:args.container,host});
+      return {...portal,invalidate:host.invalidate,
+        dispose(){try{portal.dispose();}finally{host.dispose();}}};
+    }catch(error){host?.dispose();conversation.dispose();throw error;}
+  }},
   // Normal opens try the compiled React UI. The controller MUST still verify
   // the exact official installed package, catalog SHA, enabled state and
   // revocation epoch before mounting; other packages stay in opaque iframes.

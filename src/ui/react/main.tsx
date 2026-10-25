@@ -13,6 +13,8 @@ import conversationDockCSS from './components/conversation-dock.css?raw';
 import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 import myAgentCSS from './tabs/my-agent.css?raw';
 import localeManagerCSS from './tabs/locale-manager.css?raw';
+import KnowledgeWorkspace from '../../../examples/sidebar-tools/ai-knowledge-answers/trusted/Workspace.jsx';
+import knowledgeWorkspaceCSS from '../../../examples/sidebar-tools/ai-knowledge-answers/trusted/workspace.css?raw';
 
 const PROMPT_PHASE_LABELS=Object.freeze({
  thinking:'正在理解提示词操作…',observing:'正在查找并核对提示词…',
@@ -58,7 +60,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
   let feedbackModel={showEmpty:false,emptyText:'',countText:'正在读取扩展…'};
   let recoveryModel={ids:[],busy:false,onRetry:()=>{}};
   let statusModel={text:'',state:'info'},cloudPageModel={};
-  let rowMenuModel=null,bookmarkPilot=null,promptPilot=null;
+  let rowMenuModel=null,bookmarkPilot=null,promptPilot=null,knowledgePilot=null;
   let debugModel={},debugActions={},development=null;
   let browserHistoryModel=null,browserHistoryActions=null;
   const ownedNodes=[];
@@ -85,7 +87,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
     const extensionProps={rowsModel:model,menuKey,rowMenuModel,detailModel,uninstallModel,toolbarModel,feedbackModel,recoveryModel,statusModel,
       view:extensionView,onBack:onExtensionBack};
     flushSync(()=>root.render(<>
-      <style data-opendesk-trusted-react-css="">{bookmarkPilotLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS+'\n'+localeManagerCSS}</style>
+      <style data-opendesk-trusted-react-css="">{bookmarkPilotLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS+'\n'+localeManagerCSS+'\n'+knowledgeWorkspaceCSS}</style>
       <SidebarAppShell activeTab={navigationTab}
         debugEnabled={debugEnabled} debugModel={debugModel} debugActions={debugActions} development={development}
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
@@ -98,6 +100,8 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
         cloudModel={cloudPageModel.overview} cloudRequestsModel={cloudPageModel.requests}
         cloudSetupModel={cloudPageModel.setup} cloudPageModel={cloudPageModel}/>
       {previewContents&&previewPortal&&createPortal(previewContents,previewPortal)}
+      {knowledgePilot&&createPortal(<KnowledgeWorkspace host={knowledgePilot.host}
+        onOpenSettings={openSharedProviderSettings}/>,knowledgePilot.container)}
       {promptPilot&&createPortal(
         <TrustedConversationWorkspace controller={promptPilot.controller}
           headerTarget={promptPilot.headerTarget}
@@ -160,6 +164,22 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
       onExtensionBack=handler;paint();},
     renderView(view){if(disposed||!['list','detail'].includes(view))throw new Error('E_REACT_EXTENSION_VIEW');
       extensionView=view;paint();},
+    mountKnowledgeWorkspace({container,host}={}){
+      if(disposed||knowledgePilot||!container||container.ownerDocument!==doc||
+        container.childNodes.length||container.dataset.opendeskReactOwner||typeof host?.send!=='function')
+        throw new Error('E_KNOWLEDGE_REACT_OWNER');
+      knowledgePilot={container,host};container.dataset.opendeskReactOwner='knowledge-workspace';
+      try{
+        paint();
+        const frameTarget=container.querySelector('.od-knowledge-frame-target');
+        if(!frameTarget)throw new Error('E_KNOWLEDGE_FRAME_TARGET');
+        return {frameTarget,dispose(){
+          if(knowledgePilot?.container!==container)return;
+          knowledgePilot=null;delete container.dataset.opendeskReactOwner;if(!disposed)paint();
+        }};
+      }catch(error){knowledgePilot=null;delete container.dataset.opendeskReactOwner;
+        if(!disposed)paint();throw error;}
+    },
     mountPromptConversation({container,conversation,onRequest,onReconcile,recovery=null}={}){
       if(disposed||promptPilot||!container||container.ownerDocument!==doc||
         container.childNodes.length||container.dataset.opendeskReactOwner||

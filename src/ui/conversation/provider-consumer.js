@@ -18,6 +18,7 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
     const mainLease=providers.acquire({consumerId,instanceId,hostInstanceId,installEpoch});
     const editLease=consumerId==='prompt'?providers.acquire({consumerId:'prompt-edit',
       instanceId:instanceId+':edit',hostInstanceId,installEpoch}):null;
+    const authorizationListeners=new Set();
     let consumerDisposed=false,bookmarkConversationBusy=false,
       bookmarkConversationActive=null,bookmarkConversationGrantEpoch=0;
     function forScope(scope){return scope==='prompt-edit'?editLease:mainLease;}
@@ -28,6 +29,8 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
       // Revocation retires private Native history even between turns, and
       // includes prompt edit's separate lease. Regrant starts fresh context.
       mainLease.invalidate();editLease?.invalidate();
+      if(reason?.code==='E_MODEL_GRANT_REVOKED')
+        for(const listener of [...authorizationListeners])listener(reason);
     }
     // Revoke this consumer's authorization and retained context only when the
     // removed grant covers its Provider; unrelated websites are unaffected.
@@ -101,6 +104,9 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
         model:source==='local_codex'?'本机 Codex':settings.model});
     },
     subscribeProviderChanges:listener=>providers.subscribeSettings?.(listener)??(()=>{}),
+    subscribeAuthorizationChanges(listener){
+      authorizationListeners.add(listener);return ()=>authorizationListeners.delete(listener);
+    },
     source(){const selected=providers.configuration().source;return {
       provider:selected,label:selected==='local_codex'?'Codex':
         selected==='cloud_responses'?'Responses':'HTTPS'};},
@@ -298,6 +304,7 @@ export function createBusinessConversation({api,providerRuntime:providers,hostIn
       invalidateBookmarkConversation(err('E_TOOL_CHANGED','AI 消费者实例已关闭'));
       api.permissions.onRemoved?.removeListener(consumerPermissionRemoved);
       unsubscribeProviderSettings?.();
+      authorizationListeners.clear();
       // No install-scoped references or in-flight responses survive disposal.
       businessRefs=emptyRefs();conversationSession.dispose();
       editLease?.dispose();mainLease.dispose();

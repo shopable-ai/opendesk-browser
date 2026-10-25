@@ -1,35 +1,43 @@
-# AI 知识问答 · R1 轻量检索原型及 MVP 增量
+# AI 知识问答 · R1.1
 
-ID：ai-knowledge-answers。源码归属：examples/sidebar-tools/ai-knowledge-answers/。独立 Sidebar Tool v2，基于原有 OpenDesk Tool Host，不创建第二套运行时。
+独立 Sidebar Tool v2，ID `ai-knowledge-answers`，版本 `0.1.1`。复用原 Tool Host、存储、Shared AI Provider 和唯一 React root。网站读取、草稿填入及自动发送留到下一阶段。
 
-## 已写入源码
+## 当前范围
 
-- L1 固定问答与同义问题；精确适用条件；编辑、启停、删除。
-- L2 中文二元字、普通单词分词及轻量 BM25 检索；返回可核实的知识 ID。
-- JSON / CSV 读入和导入预览、按 ID 合并或替换；JSON 请求下载、CSV 复制剪贴板。
-- 安全存储：唯一 library 键，原 storage.get({withEtag:true})、storage.set({ifMatch})、写后再次读取核验。失败或结果未知时停写，防止自动重放。
-- 10–20 条小型知识可先运行；存储上限是单个键 8192 字节，实际最长条数取决于内容。
-- 对非精确问题明确标记 RETRIEVED_ONLY、needsHuman=true。未知事实不生成答案。
+- 原 HTML/CSS/JS 知识管理界面保持沙箱：固定问答、同义问题、限定范围、轻量检索、编辑、启停、删除、JSON/CSV。
+- 复用 `storage.get({withEtag:true})` / `storage.set({ifMatch})` 与写后读回；结果未知时停写。单键上限仍为 8192 字节。
+- 官方来源核验通过的安装实例，在原沙箱上方显示静态编译的可信 AI 控件。准备知识后审阅接收方及实际外发字段，再由真实 Send 点击同步进入原 Provider 授权路径。iframe 不持有 API Key、Native client 或 Provider lease。
+- 模型只接收候选的 `id/question/answer/scope`，aliases 留在本机。发送及交付均核对安装身份，交付时回读 ETag。换 Provider、取消、Native 断线、相关权限撤销和知识更新会丢弃旧结果。
+- AI 必须引用本轮真实知识 ID；新增数字事实被拒绝。语义仍需人工证明，所有 AI 答案为 `REVIEW_REQUIRED / needsHuman=true`。
 
-## 明确尚未完成
+定向 Node 与包验证已完成；真实 Local Codex backend 已返回有来源实答，并通过领域校验。**完整 Chrome 安装、保存后关闭重开、可信 Send 及原生错误恢复仍为 NOT_TESTED**，backend 成功不证明完整 UI 链。详见[现有工作记录](../../../docs/framework/workstreams/ai-knowledge-answers-r1-20261025.md)。
 
-- 真实 Shared AI Provider 消费者接入和外部模型请求。model.answerWithAI 是纯领域校验接口，并未赋予 sandbox 调用 Provider 的权限。模拟 generator 的源码测试不能证明真实 AI 连接。
-- Mac Chrome 的安装、保存、重开、原生权限、AI 推理和网站自动发送。
-- 正式 JSON 包构建、验证、晋升和 Catalog 发布。
+## 安装与首条待验证操作
 
-原因：当前通用 Sidebar Tool 的公开权限只有 storage.local、user.export 等；ai.access 是 AI VIP Share 专用代理控制权限，不是 AI 生成。Knowledge Inbox 的 knowledge.store 也不能借给本工具。共享 Provider 需要经第一方可信 Host / Trusted Consumer 单独批准，绑定真实用户手势、安装身份、权限撤销和原存储 ETag。须先验证既有 createBusinessConversation 和 Provider lease，不能添加沙箱专用秘密接口。
+唯一正式文件是本目录 `ai-knowledge-answers.opendesk-tool.json`，不是 `tool.config.json`。已由原打包器晋升，仍是待真实 Chrome 验收的可安装候选。
 
-## CSV 格式与边界
+Browser 须包含本轮静态可信接线。日常开发复用 `dist/development` 已有 watcher；只导入 JSON 不会升级 Browser 的可信代码。
 
-CSV 表头顺序：id,question,aliases,answer,scope,enabled。aliases 字段是 JSON 数组；换行和双引号遵守 quoted CSV。为防止表格公式注入，CSV 导出给以 =、+、-、@ 等开头的内容添加单引号，因此 CSV 对此类值可能不是无损往返；无损备份优先 JSON。原 user.export 的 file.download 只支持 .json/.md/.txt，因此 CSV 目前只能复制剪贴板。
+1. 在「扩展」官方可发现列表选择「AI 知识问答」，核对 `0.1.1`、来源、能力与摘要，使用原确认安装/更新流程。安装后打开即可，无通用二次启用步骤。
+2. 仅从本地文件导入时，原安装器不会制造官方 provenance；知识管理继续可用，可信 AI 保持关闭。使用可信 AI 须通过同一安装器审阅准确官方发行，不能手写来源记录或借用其他工具身份。
+3. 新建明确标为测试数据的知识“退款期限是多少 → 7 天内可退款”，添加别名“多久可以退款”，保存；关闭重开并核对数据。
+4. 输入别名验证固定回答；输入“退款需要多少天？”准备候选，核对知识 ID、接收方与外发内容后发送。区分退款申请期限与处理/到账时长，不把测试数据当作企业政策。
+5. 核对来源与人工审阅标记，再验证取消、换 Provider、断线、撤权和知识更新后旧答案失效。
 
-## 继续验证
+本轮浏览器工具访问 `chrome-extension:` 被 URL 策略拒绝，未绕过策略。这些是待执行步骤，不是 PASS 记录。
 
-在本机仓库最新 main 上运行（不要在独立 branch 或 worktree）：
+## CSV 与验证
 
-    node --test tests/environment/ai-knowledge-answers-r1.test.mjs
-    npm run build:sidebar-tool -- examples/sidebar-tools/ai-knowledge-answers
+CSV 表头 `id,question,aliases,answer,scope,enabled`，aliases 是 JSON 数组。公式前缀添加单引号，CSV 对此类值不是无损往返；备份优先 JSON。原下载能力仅支持 `.json/.md/.txt`，CSV 当前复制到剪贴板。
 
-先核对真实打包器 CLI 输出、目录、Node 测试结果和包身份，再决定是否晋升正式安装包，禁止用 preview/mock 代替 Mac Chrome。真实 Chrome 必须实际使用空资料 → 新增 → 保存 → 关闭重开 → 重复 ID 导入拒绝覆盖 → 删除确认 → 并发冲突 → 未知回答转人工。AI 与网页阶段独立验收，不得由此阶段通过推导为成功。
+在仓库根执行：
 
-正式包尚未创建；此项目不改变已安装工具的身份/数据，也不接管 Knowledge Inbox。
+```sh
+node --test tests/environment/ai-knowledge-answers-r1.test.mjs tests/environment/ai-knowledge-answers-provider-contract.test.mjs tests/environment/ai-knowledge-answers-admission.test.mjs tests/environment/ai-knowledge-answers-host.test.mjs
+npm run build:sidebar-tool -- examples/sidebar-tools/ai-knowledge-answers --out artifacts/sidebar-tools/ai-knowledge-answers/candidate.opendesk-tool.json
+# 定向测试及包校验通过后才晋升：
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-knowledge-answers --promote-from artifacts/sidebar-tools/ai-knowledge-answers/candidate.opendesk-tool.json
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-knowledge-answers --check-project
+```
+
+Provider 契约及 Host 集成测试使用明确标注的 fake transport，只证明接线与保护；真实推理证据单独记录。晋升不代表已安装、线上上架或 production 验收。

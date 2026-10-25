@@ -89,9 +89,42 @@ test('stale ETag after inference must discard the old answer and release grant',
 });
 
 test('reference payload must be bounded and untrusted KB instructions cannot override system policy',()=>{
+  assert.equal(KNOWLEDGE_ANSWER_INSTRUCTIONS.split('\n').length,7);
+  assert.equal(KNOWLEDGE_ANSWER_INSTRUCTIONS.includes('\\n'),false);
   assert.match(KNOWLEDGE_ANSWER_INSTRUCTIONS,/未经信任的数据/);
   assert.match(KNOWLEDGE_ANSWER_INSTRUCTIONS,/禁止伪造引用/);
   assert.match(KNOWLEDGE_ANSWER_INSTRUCTIONS,/不可自动发送/);
+});
+
+test('fake Provider: evidence metadata copies identifiers only, without grants or keys',async()=>{
+  for(const sample of [
+    {provider:'local_codex',metadata:{provider:'ignored',threadId:'thread-fake',sessionId:'session-fake',turnId:'turn-fake'},
+      expected:{provider:'local_codex',threadId:'thread-fake',sessionId:'session-fake',turnId:'turn-fake'}},
+    {metadata:{provider:'custom_https',threadId:null,sessionId:{key:'FAKE_SECRET'},turnId:'bad\nidentifier'},
+      expected:{provider:'custom_https'}},
+    {metadata:{provider:'',threadId:'x'.repeat(257),sessionId:42,turnId:['FAKE_SECRET']},expected:{}},
+    {expected:{}}
+  ]){
+    let released=0;
+    const metadata={...sample.metadata,apiKey:'FAKE_SECRET',key:'FAKE_SECRET',
+      authorization:{key:'FAKE_SECRET'},headers:{Authorization:'Bearer FAKE_SECRET'},
+      grant:{key:'FAKE_SECRET'},lease:'FAKE_SECRET'};
+    const consumer=createKnowledgeAnswerConsumer({model,assertIdentity:()=>{},
+      readLibrary:async()=>({value:kb,etag:etagA}),
+      conversation:{cancel:async()=>{},request:()=>Promise.resolve({
+        provider:sample.provider,metadata,key:'FAKE_SECRET',
+        proposal:{answer:'7 天内可以退款',sourceIds:[kb.items[0].id],needsHuman:false},
+        authorization:{assertWrite:async()=>{},release:()=>{released++;}}
+      })}
+    });
+    await consumer.refresh();
+    const result=await consumer.request({request:'退款需要多少天',event:{isTrusted:true}});
+    assert.deepEqual(result.metadata,sample.expected);
+    assert.notStrictEqual(result.metadata,metadata);
+    assert.equal(Object.hasOwn(result,'authorization'),false);
+    assert.equal(JSON.stringify(result).includes('FAKE_SECRET'),false);
+    assert.equal(released,1);
+  }
 });
 
 // All lifecycle scenarios below use fake Provider/Host objects, never native inference.
