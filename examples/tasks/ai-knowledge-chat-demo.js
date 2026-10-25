@@ -9,20 +9,19 @@
   const $=id=>document.getElementById(id);
   const threads=new Map([['thread_demo_01',[]],['thread_demo_02',[]]]);
   const scenarios=[
-    {text:'退款申请有时间限制吗',scope:''},
-    {text:'退款什么时候到账',scope:''},
-    {text:'客服几点上班',scope:''},
-    {text:'包裹物流为什么没更新',scope:''},
-    {text:'专业款售后多久',scope:'专业款'},
-    {text:'个人开发票需要税号吗',scope:''},
-    {text:'我要人工',scope:''},
-    {text:'我能驾驶飞船去月球吗',scope:''},
-    {text:'收货地址填错了',scope:''},
-    {text:'基础版专业版差别',scope:''},
-    {text:'不退款可以强制给我退吗',scope:''},
-    {text:'物流单号在哪',scope:''}
-  ];
-  let active='thread_demo_01',sequence=0,received=0,errors=0,eventCount=0;
+    {text:'几天内可以退款',scope:''},
+    {text:'退款需要几天',scope:''},
+    {text:'客服上班时间',scope:''},
+    {text:'周末有客服吗',scope:''},
+    {text:'订单通常几天发货',scope:''},
+    {text:'数字商品不退款吗',scope:''},
+    {text:'A 方案支持几名成员',scope:'A 方案'},
+    {text:'B 方案支持几名成员',scope:'B 方案'},
+    {text:'快递到哪里了',scope:''},
+    {text:'我想修改地址但已经发货',scope:''},
+    {text:'优惠券能叠加吗',scope:''},
+    {text:'我能驾驶飞船去月球吗',scope:''}
+  ];  let active='thread_demo_01',sequence=0,received=0,errors=0,eventCount=0;
   let timer=null,timerMode='idle',budget=0,generated=0,scenarioIndex=0;
   const now=()=>new Date().toISOString();
   const uid=()=>crypto.randomUUID();
