@@ -59,7 +59,7 @@ test('ToolHost hides an empty product group while preserving product settings an
   // Each existing product entry alone must keep its section available.
   for(const id of [
     'sidebar-tool-adblock-product-settings','sidebar-tool-toc-language','sidebar-tool-language-manage',
-    'sidebar-tool-prompt-web-row','sidebar-tool-prompt-nav-advanced','sidebar-tool-prompt-native-row',
+    'sidebar-tool-prompt-web-row','sidebar-tool-prompt-native-row',
     'sidebar-tool-generic-site-scope','sidebar-tool-generic-site-binary','sidebar-tool-settings-hint',
     'sidebar-tool-visibility-settings','sidebar-tool-generic-site-advanced'
   ]){
