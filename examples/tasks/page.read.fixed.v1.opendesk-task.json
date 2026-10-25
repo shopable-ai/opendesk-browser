@@ -1,0 +1,31 @@
+{
+  "format": "opendesk.task-package.v1",
+  "manifest": {
+    "format": "opendesk.task.v1",
+    "taskId": "page.read.fixed",
+    "version": "1.0.0",
+    "title": "只读网页：固定示例内容",
+    "description": "仅在 https://httpbingo.org/html 读取标题、H1 和正文片段；不可点击、提交或跟随网页链接。",
+    "author": "OpenDesk Browser",
+    "source": "local-developer",
+    "siteOrigins": [
+      "https://httpbingo.org"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "entryFormat": "async-main",
+    "program": {
+      "revision": 1,
+      "sourceHash": "c2684b24d3e6ef9b0319703661d8d7b53014df60533608bcd697361cc70a99f4"
+    },
+    "paramsSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "manifestHash": "14261d871732d67c97a8fa4e398ec8d2852e025d0ff4ff02e08546ac530de505",
+  "sourceUtf8": "// Fixed, read-only Controller Task. The trusted caller must bind an approved\n// installation and open https://httpbingo.org/html in an independent target.\nasync function main() {\n  const url = new URL(await page.url());\n  if (url.origin !== 'https://httpbingo.org' || url.pathname !== '/html' ||\n      url.search || url.hash || url.username || url.password) {\n    throw Object.assign(new Error('Controller target is not the fixed read-only page'), {code:'E_TARGET'});\n  }\n  const title = String(await page.title() || '').trim();\n  const heading = String(await page.locator('h1').textContent() || '').replace(/\\s+/gu,' ').trim();\n  const excerpt = String(await page.locator('body').innerText() || '').replace(/\\s+/gu,' ').trim().slice(0,800);\n  if (!heading || !excerpt) {\n    throw Object.assign(new Error('Fixed page content unavailable'), {code:'E_PAGE_CONTENT'});\n  }\n  return {kind:'page.read.fixed.result',version:1,sourceUrl:url.href,\n    title:title.slice(0,200),heading:heading.slice(0,200),excerpt,\n    observedAt:new Date().toISOString()};\n}\n"
+}
