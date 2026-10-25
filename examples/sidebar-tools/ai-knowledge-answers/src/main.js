@@ -16,6 +16,8 @@ function state(){
   setState?.({dirty,busy});
   for(const id of editable)$(id).disabled=!ready||busy||uncertain||Boolean(review);
   $('qa-delete').disabled=!ready||busy||uncertain||Boolean(review)||!selected;
+  for(const button of $('qa-list').querySelectorAll('button'))
+    button.disabled=!ready||busy||uncertain||Boolean(review);
   $('qa-refresh').disabled=busy||Boolean(review);
   $('qa-count').textContent=ready?kb.items.length+' 条 · '+model.size(kb)+' / 8192 B':'未就绪';
   $('qa-edit-state').textContent=uncertain?'写入待核对':dirty?'未保存':'';

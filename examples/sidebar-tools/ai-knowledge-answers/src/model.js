@@ -115,9 +115,11 @@ async function answerWithAI(lib,ask,generate){
   const cited=records.filter(x=>proposal.sourceIds.includes(x.id));
   const facts=new Set(numerics(cited.map(x=>x.answer).join('\n')));
   const drift=numerics(proposal.answer).some(x=>!facts.has(x));
-  return {status:drift||proposal.needsHuman?'REVIEW_REQUIRED':'ANSWERED_AI',
+  // R1 retrieval scores and numeric checks do not prove semantic entailment.
+  // The model output remains a reviewable draft; never unlock web auto-send.
+  return {status:'REVIEW_REQUIRED',
     answer:proposal.answer.trim(),sourceIds:proposal.sourceIds.slice(),
-    needsHuman:drift||proposal.needsHuman,candidates:found.candidates};
+    needsHuman:true,reason:drift?'NUMERIC_DRIFT':'SEMANTIC_UNVERIFIED',candidates:found.candidates};
 }
 function merge(lib,incoming,mode='merge'){
   const current=library(lib),next=library(incoming);
