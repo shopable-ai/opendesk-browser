@@ -51,6 +51,17 @@ export function composeExtensionEntries({installed=[],pages=[],official=[],enabl
   }
   return entries.sort((a,b)=>a.title.localeCompare(b.title,'zh-CN')||a.key.localeCompare(b.key));
 }
+// Search-only aliases: exact IDs, never installation identity or Authority.
+// A legacy installation keeps its own ID, title, enablement and record.
+const EXTENSION_SEARCH_ALIASES=Object.freeze({
+  'prompt-shortcuts':'AI 提示词 快捷按钮 Prompt Shortcuts',
+  'opendesk.ai-scroll-navigation':'AI 对话 滚动 导航 回顶 长回复 Scroll Navigation',
+  'opendesk.ai-reply-mindmap':'AI 回复 思维导图 Mind Map XMind',
+  'opendesk.ai-send-queue':'AI 消息 发送 队列 Send Queue',
+  'opendesk.chatgpt-jump-top':'旧版 ChatGPT 滚动导航 回顶',
+  'opendesk.chatgpt-mindmap':'旧版 ChatGPT 思维导图 XMind',
+  'opendesk.chatgpt-send-queue':'旧版 ChatGPT 消息发送队列 Queue'
+});
 // Presentation-only decision. No installed Page UI / candidate-preview entry is verified yet.
 // Null is intentional: rows without a real high-frequency action lead to details.
 export function resolveExtensionPrimaryAction(row){
@@ -67,5 +78,5 @@ export function filterExtensionEntries(entries,{query='',kind='all',scope='smart
   // escalates into Catalog discovery; uninstalled releases require an explicit scope.
   return entries.filter(row=>(kind==='all'||row.kind===kind)&&
     (scope==='available'?(!row.installed||row.update===true):row.installed===true)&&
-    (!needle||[row.title,row.description,row.id,String(row.version)].some(s=>lower(s).includes(needle))));
+    (!needle||[row.title,row.description,row.id,String(row.version),EXTENSION_SEARCH_ALIASES[row.id]].some(s=>lower(s).includes(needle))));
 }
