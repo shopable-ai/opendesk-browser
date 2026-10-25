@@ -166,3 +166,13 @@ Escape源码改变后才用原生成器更新HTML，`maintenance-preview-generat
 本次只提交上述Escape源码、对应测试、同源HTML与本文四文件；并行Bridge/Send Queue的所有dirty保留。无新增依赖、组件、Host、SDK、权限或安装器。六项正式评分和平均继续 `NOT_SCORED`：已有局部Mac及Chromium证据，缺少当前最终候选完整原生闭环和正式升级。下一条本轮操作为新Escape候选的Chromium分层关闭复验，随后需可独占的原生UI完成生产语言导入/重开与真实升级；当前包来源稳定仍依赖Bridge/Prompt原owner。
 
 独立 reviewer Singer 对最终四文件差异给出 COMMENT：无必须修改项，支持最小修复；三处断言修正未削弱安全保护，新增回归覆盖延迟 toggle 与分层 Escape。reviewer 未自行执行测试，修复后 Chromium 仍 NOT_TESTED。完整结论保存 `maintenance-independent-review.json`。Git 事务仅含本轮四文件，提交后释放；不包含并行 dirty。
+
+### 已推送新候选：快速 Escape 已取得真实 Chromium PASS
+
+最小修复提交 `af9ecc31ee4ab6349b96d68fb70930043983c168`；推送前远端新增的 Knowledge Answers 七文件与本轮、并行 dirty 无交集，按 main 规则安全合并为 `1bf0012973d75472ff516125a6c22dae682078af` 后正常推送，原有 dirty 文件哈希保留。`maintenance-delivery-receipt.json` 记录事务。后续再次核对104项 React 输入零漂移，HTML SHA仍 `512dd47…`。
+
+本次正常推送自动触发的 [R5.3 run40205348709 / job121204971147](https://github.com/shopable-ai/opendesk-browser/actions/runs/40205348709/job/121204971147) 已完成：正式来源三步通过；Chrome156.0.8078.47/Linux 对该精确HTML的11项实际交互全部PASS，包括高级管理首次Escape返回日常层、下一次Escape关闭Host；320/360/400/440/960浅色与360深色全部无横向溢出。R5.3真实指针列表卸载/搜索/过滤/详情/历史/导入层也PASS。此项取代上文“新HTML Chromium未测”的观察；未手动重跑CI或另开浏览器绕过预览限制。
+
+该job整体仍FAIL：原六Tab合同7项中3项失败，仍为旧定时入口层级、Workflow连接控件、双示例按钮断言，交原所有者按正式信息架构维护；不恢复过时UI。后续包构建和安装步骤SKIPPED。原始日志 `latest-ci/maintenance-r53-job-121204971147.log`，精确分级收据 `latest-ci/maintenance-result.json`。并行六Tab新run40205348697读取时两个job仍在运行，已见Core Node/React runner/production build及schedule projection失败，未冒称最终结果或接管。
+
+当前唯一下一条关键操作改为：原生验收owner取得可独占的CFT窗口和来源稳定候选后，先完成“导入预览→取消/确认→关闭重开”语言闭环，继而按原正式流程验证安装升级和数据保留。Mac新Escape、正式JSON升级、安装态HTML/React/Vue兼容及六项评分仍NOT_TESTED/NOT_SCORED；Bridge与Prompt来源/版本晋升继续归原owner。没有剩余本轮已复现但未修复的React源码故障，R2.3正式核心目标仍未完成。
