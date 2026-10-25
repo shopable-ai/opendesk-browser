@@ -53,7 +53,12 @@ async function waitUntil(expression){
     try{if(await evaluate(expression))return;}catch{}
     await pause(100);
   }
-  throw Error('Condition failed: '+expression+'; '+exceptions.join('; '));
+  let detail='';
+  try{detail=JSON.stringify(await evaluate('({boot:document.documentElement.dataset.previewBootScript,'+
+    'error:document.documentElement.dataset.previewBootError,root:!!document.getElementById("opendesk-react-app"),'+
+    'rowCount:document.querySelectorAll("#extension-center-list > li").length,'+
+    'body:document.body?.textContent?.slice(0,480)})'));}catch(error){detail=String(error);}
+  throw Error('Condition failed: '+expression+'; diagnostic='+detail+'; '+exceptions.join('; '));
 }
 async function click(selector){
   // Reveal CSS hover actions using real pointer motion before the hit test.
