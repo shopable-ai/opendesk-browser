@@ -18,6 +18,7 @@ on:
       - 'src/ui/workflow/workflow-view.js'
       - 'src/ui/tool-shell.js'
       - 'tests/environment/shared-ai-conversation-r22.test.mjs'
+      - 'tests/environment/shared-ai-conversation-r23.test.mjs'
       - 'tests/environment/shared-ai-provider-runtime-r21.test.mjs'
       - 'tests/environment/shared-ai-session-core-r221.test.mjs'
       - 'tests/environment/shared-ai-*-r211.test.mjs'
@@ -38,6 +39,8 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci
+      - name: Approved shared AI settings form and protocol contracts
+        run: node --test tests/environment/shared-ai-conversation-r23.test.mjs
       - name: Shared Provider, My Task, Bookmark, Prompt and Workflow targeted contracts
         run: |
           node --test \

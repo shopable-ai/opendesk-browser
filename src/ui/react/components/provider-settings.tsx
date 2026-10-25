@@ -26,15 +26,16 @@ export function SharedProviderSettingsSheet({
  const [endpoint,setEndpoint]=React.useState(snapshot.endpoint);
  const [model,setModel]=React.useState(snapshot.model);
  const [keyDraft,setKeyDraft]=React.useState('');
+ const [keyVisible,setKeyVisible]=React.useState(false);
  const [clearKey,setClearKey]=React.useState(false);
  const [error,setError]=React.useState('');
  React.useEffect(()=>{
   if(open){
    setMode(snapshot.source==='local_codex'?'local_codex':'https');
    setEndpoint(snapshot.endpoint);setModel(snapshot.model);setProtocolOverride(null);
-   setKeyDraft('');setClearKey(false);setError('');
+   setKeyDraft('');setKeyVisible(false);setClearKey(false);setError('');
   }else{
-   setKeyDraft('');setClearKey(false);
+   setKeyDraft('');setKeyVisible(false);setClearKey(false);
   }
  },[open,snapshot.generation]);
  const external=mode==='https';
@@ -48,7 +49,7 @@ export function SharedProviderSettingsSheet({
  const selectedHttpsSource=
    (protocolOverride?.endpoint===endpointValue?protocolOverride.source:null)||
    savedSource||inferredSource;
- const protocolError=selectedHttpsSource?httpsSourceConfigurationError(selectedHttpsSource,endpointValue):'';
+ const protocolError=httpsSourceConfigurationError(selectedHttpsSource||'custom_https',endpointValue);
  const save=event=>{
   event.preventDefault();
   if(!event.nativeEvent?.isTrusted||!providerSettings)return;
@@ -97,82 +98,127 @@ export function SharedProviderSettingsSheet({
  if(!open||!doc?.body)return null;
  return createPortal(<div className="workflow-sheet-overlay">
   <div className="workflow-sheet-backdrop" aria-hidden="true" onClick={()=>onClose?.()}/>
-  <section className="workflow-sheet-panel" role="dialog" aria-modal="true"
+  <section className="workflow-sheet-panel od-shared-provider-sheet" role="dialog" aria-modal="true"
    aria-labelledby="workflow-sheet-title" ref={panel} tabIndex={-1}>
-   <div className="workflow-sheet-heading od-toolbar"><h3 id="workflow-sheet-title">AI 设置</h3>
+   <div className="workflow-sheet-heading od-toolbar">
+    <h3 id="workflow-sheet-title">AI 设置</h3>
     <IconButton label="关闭 AI 设置" onClick={()=>onClose?.()}>
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
       strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
     </IconButton>
    </div>
-   <div className="workflow-sheet-content">
+   <div className="workflow-sheet-content od-shared-provider-content">
     {!providerSettings?children:
-     <form className="od-shared-provider-form" onSubmit={save} autoComplete="off">
-      <div className="od-shared-provider-source">
-       <span id="od-ai-provider-source-label" className="od-shared-provider-source-label">AI 来源</span>
+     <form className="od-shared-provider-form" onSubmit={save} autoComplete="off" noValidate>
+      <div className="od-shared-provider-scroll">
+       <span id="od-ai-provider-source-label" className="od-conversation-sr">AI 来源</span>
        <div className="od-shared-provider-segments" role="radiogroup"
         aria-labelledby="od-ai-provider-source-label">
         <label className="od-shared-provider-segment">
          <input type="radio" name="od-ai-provider-source" value="local_codex"
-          checked={mode==='local_codex'} onChange={()=>setMode('local_codex')}/>
+          checked={mode==='local_codex'} onChange={()=>{setMode('local_codex');setKeyVisible(false);setError('');}}/>
          <span>本机 Codex</span>
         </label>
         <label className="od-shared-provider-segment">
          <input type="radio" name="od-ai-provider-source" value="https"
-          checked={mode==='https'} onChange={()=>setMode('https')}/>
+          checked={mode==='https'} onChange={()=>{setMode('https');setError('');}}/>
          <span>HTTPS 模型</span>
         </label>
        </div>
-      </div>
-      {external?<div className="od-shared-provider-fields">
-       <label htmlFor="od-ai-provider-endpoint">HTTPS 接口</label>
-       <input className="od-field" id="od-ai-provider-endpoint" type="url" required
-        value={endpoint} onChange={event=>setEndpoint(event.currentTarget.value)}
-        autoComplete="off" spellCheck={false}/>
-       {inferredSource&&
-        <p className="workflow-minor-note">{savedSource&&savedSource!==inferredSource?'保留当前配置的协议：':'根据接口路径识别：'}
-         {selectedHttpsSource==='cloud_responses'?'Responses':'Chat Completions'}</p>}
-       {(!inferredSource||protocolError)&&
-        <>
-         <p className="workflow-minor-note">{protocolError||'无法根据接口路径识别协议，请在高级配置中明确选择。'}</p>
-         <details className="od-disclosure od-disclosure--flat od-shared-provider-protocol">
+       {external?<div className="od-shared-provider-remote">
+        <div className="od-shared-provider-field">
+         <label htmlFor="od-ai-provider-endpoint">接口地址</label>
+         <div className="od-shared-provider-input-action">
+          <input className="od-field" id="od-ai-provider-endpoint" type="url"
+           value={endpoint} maxLength={2048} placeholder="https://.../v1/chat/completions"
+           onChange={event=>{setEndpoint(event.currentTarget.value);setProtocolOverride(null);setError('');}}
+           autoComplete="off" spellCheck={false}/>
+          {endpointValue&&<button type="button" aria-label="清空接口地址" title="清空接口地址"
+           onClick={event=>{
+            setEndpoint('');setProtocolOverride(null);setError('');
+            doc?.getElementById('od-ai-provider-endpoint')?.focus();
+           }}>
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+            strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </button>}
+         </div>
+        </div>
+        {inferredSource&&!protocolError&&
+         <p className="od-shared-provider-protocol-note" role="status">
+          {savedSource&&savedSource!==inferredSource?'保留当前配置的协议：':'根据接口路径自动识别：'}
+          {selectedHttpsSource==='cloud_responses'?'Responses':'Chat Completions'}
+         </p>}
+        {(!inferredSource||protocolError)&&<>
+         <p className="od-shared-provider-protocol-note" role="status">
+          {protocolError||'无法识别接口协议，请在高级配置中指定'}
+         </p>
+         <details className="od-shared-provider-protocol">
           <summary>高级配置 · HTTPS 协议</summary>
           <label htmlFor="od-ai-provider-protocol">接口协议</label>
           <select className="od-field" id="od-ai-provider-protocol"
            value={selectedHttpsSource||''}
-           onChange={event=>setProtocolOverride({endpoint:endpointValue,source:event.currentTarget.value})}>
+           onChange={event=>{
+            setProtocolOverride({endpoint:endpointValue,source:event.currentTarget.value});
+            setError('');
+           }}>
            <option value="">请选择协议</option>
            <option value="custom_https">Chat Completions</option>
            <option value="cloud_responses">Responses</option>
           </select>
          </details>
         </>}
-       <label htmlFor="od-ai-provider-model">模型 ID</label>
-       <input className="od-field" id="od-ai-provider-model" required
-        value={model} onChange={event=>setModel(event.currentTarget.value)}
-        autoComplete="off" spellCheck={false}/>
-       <label htmlFor="od-ai-provider-key">API Key（仅当前会话，不保存）</label>
-       <input className="od-field" id="od-ai-provider-key" type="password"
-        value={keyDraft} onChange={event=>setKeyDraft(event.currentTarget.value)}
-        autoComplete="new-password" spellCheck={false}
-        placeholder={snapshot.hasApiKey?'已配置，留空则保留':'请输入 API Key'}/>
-       {snapshot.hasApiKey&&<label className="od-shared-provider-clear-key">
-        <input type="checkbox" checked={clearKey} onChange={event=>setClearKey(event.currentTarget.checked)}/>
-        清除现有会话密钥
-       </label>}
-      </div>:<div className="od-shared-provider-fields">
-       <p className="workflow-minor-note">使用本机 Codex 连接及当前授权；网页摘要授权仍由原业务机制处理。</p>
-       {onOpenNativeSettings&&<button type="button" className="od-button od-button--secondary"
+        <div className="od-shared-provider-field">
+         <label htmlFor="od-ai-provider-model">模型 ID</label>
+         <input className="od-field" id="od-ai-provider-model" maxLength={120}
+          value={model} onChange={event=>{setModel(event.currentTarget.value);setError('');}}
+          autoComplete="off" spellCheck={false} placeholder="model-id"/>
+        </div>
+        <div className="od-shared-provider-field">
+         <label htmlFor="od-ai-provider-key">API Key（仅当前会话）</label>
+         <div className="od-shared-provider-input-action">
+          <input className="od-field" id="od-ai-provider-key" type={keyVisible?'text':'password'}
+           value={keyDraft} onChange={event=>{
+            setKeyDraft(event.currentTarget.value);if(event.currentTarget.value)setClearKey(false);
+            setError('');
+           }}
+           autoComplete="new-password" spellCheck={false}
+           placeholder={snapshot.hasApiKey?'已配置，留空则保留':'请输入 API Key'}/>
+          <button type="button" aria-label={keyVisible?'隐藏 API Key':'显示 API Key'}
+           title={keyVisible?'隐藏 API Key':'显示 API Key'} aria-pressed={keyVisible}
+           onClick={()=>setKeyVisible(value=>!value)}>
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+            strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/>
+            <circle cx="12" cy="12" r="2.7"/>
+            {keyVisible&&<path d="M3 3l18 18"/>}
+           </svg>
+          </button>
+         </div>
+        </div>
+        {snapshot.hasApiKey&&<label className="od-shared-provider-clear-key">
+         <input type="checkbox" checked={clearKey} onChange={event=>{
+          setClearKey(event.currentTarget.checked);if(event.currentTarget.checked)setKeyDraft('');
+         }}/>
+         清除现有会话密钥
+        </label>}
+       </div>:<div className="od-shared-provider-local-card">
+        <div className="od-shared-provider-native-state">
+         <strong>本机 Codex</strong><small>连接状态请在本机设置查看</small>
+        </div>
+        {onOpenNativeSettings&&<button type="button" className="od-button od-button--secondary"
          onClick={event=>{
           if(!event.nativeEvent?.isTrusted)return;
           try {
            void Promise.resolve(onOpenNativeSettings()).catch(ex=>setError(
             '无法打开本机连接设置：'+String(ex?.message||ex)));
           }catch(ex){setError('无法打开本机连接设置：'+String(ex?.message||ex));}
-         }}>本机连接设置 ↗</button>}
-      </div>}
-      <p className="workflow-minor-note">Provider 配置对各 AI 入口共享；切换后已有推理会安全失效，不自动重放业务操作。原 Chrome/Native 权限不因此扩大。</p>
-      {error&&<p className="od-conversation-error" role="alert">{error}</p>}
+         }}>本机连接设置</button>}
+       </div>}
+       <p className="od-shared-provider-permission-note">
+        网页摘要仍需按本轮授权；切换 AI 来源不会扩大 Chrome 或本机权限，也不会自动重放业务操作。
+       </p>
+       {error&&<p className="od-conversation-error" role="alert">{error}</p>}
+      </div>
       <div className="od-shared-provider-actions">
        <button type="button" className="od-button od-button--secondary" onClick={()=>onClose?.()}>取消</button>
        <button type="submit" className="od-button od-button--primary">保存 AI 设置</button>

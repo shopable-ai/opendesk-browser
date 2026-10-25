@@ -176,6 +176,77 @@ try{
     assert.equal(await evaluate('document.querySelectorAll("#opendesk-react-app").length'),1);
     await selectedTab('tools','tab-tools');
   });
+  await step('approved AI sheet: 320px layout, protocol guard, secret and Cancel/Save',async()=>{
+    const url=pathToFileURL(html);
+    url.searchParams.set('tab','workflow');
+    url.searchParams.set('ai-settings','1');
+    url.searchParams.set('width','320');
+    await cdp('Page.navigate',{url:url.href});
+    await until('document.documentElement.dataset.previewBootScript==="ready"');
+    await until('!!document.querySelector(".workflow-sheet-overlay .od-shared-provider-segments")');
+    assert.equal(await evaluate('document.documentElement.dataset.previewProof'),'UI_PREVIEW_ONLY');
+    assert.deepEqual(await evaluate('[...document.querySelectorAll(".od-shared-provider-segments input[type=radio]")].map(n=>n.value)'),
+      ['local_codex','https']);
+    const layout=await evaluate(`(()=>{
+      const sheet=document.querySelector('.od-shared-provider-sheet'),
+        rail=document.querySelector('.od-shared-provider-segments'),
+        actions=document.querySelector('.od-shared-provider-actions');
+      const s=sheet.getBoundingClientRect(),r=rail.getBoundingClientRect(),a=actions.getBoundingClientRect();
+      return {sheetWidth:s.width,railWidth:r.width,footerInside:a.bottom<=s.bottom+1,
+        footerHeight:a.height,scrollOwner:!!document.querySelector('.od-shared-provider-scroll')};
+    })()`);
+    assert.ok(layout.railWidth>=layout.sheetWidth-46,'two-option rail should fill approved sheet content width');
+    assert.equal(layout.footerInside,true,'Save and Cancel must stay inside the 320px sheet');
+    assert.ok(layout.footerHeight>=36&&layout.scrollOwner,'body scroll and fixed footer exist');
+    await click('.od-shared-provider-segment:last-child span');
+    await until('!!document.getElementById("od-ai-provider-endpoint")');
+    await fill('#od-ai-provider-endpoint','https://api.example.test/custom/endpoint');
+    await fill('#od-ai-provider-model','preview-model');
+    await click('.od-shared-provider-actions button[type=submit]');
+    await until('!!document.querySelector(".od-shared-provider-scroll [role=alert]")');
+    assert.match(await evaluate('document.querySelector(".od-shared-provider-scroll [role=alert]").textContent'),
+      /接口路径无法识别协议/);
+    await click('button[aria-label="清空接口地址"]');
+    assert.equal(await evaluate('document.getElementById("od-ai-provider-endpoint").value'),'');
+    await fill('#od-ai-provider-endpoint','https://api.openai.com/v1/responses');
+    assert.match(await evaluate('document.querySelector(".od-shared-provider-protocol-note").textContent'),
+      /Responses/);
+    await fill('#od-ai-provider-key','temporary-preview-key');
+    await click('button[aria-label="显示 API Key"]');
+    assert.equal(await evaluate('document.getElementById("od-ai-provider-key").type'),'text');
+    await click('button[aria-label="隐藏 API Key"]');
+    assert.equal(await evaluate('document.getElementById("od-ai-provider-key").type'),'password');
+    await evaluate('document.querySelector(".od-shared-provider-scroll").scrollTop=9999');
+    assert.equal(await evaluate('(()=>{const a=document.querySelector(".od-shared-provider-actions").getBoundingClientRect(),s=document.querySelector(".od-shared-provider-sheet").getBoundingClientRect();return a.bottom<=s.bottom+1&&a.height>=36})()'),true);
+    await screenshot('workflow-approved-r239-bottom-sheet-320');
+    await click('.od-shared-provider-actions button[type=submit]');
+    await until('!document.querySelector(".workflow-sheet-overlay")');
+    await click('#workflow-provider-toggle');
+    await until('!!document.getElementById("workflow-source-menu")');
+    await click('#workflow-source-menu [role=menuitem]');
+    await until('!!document.querySelector(".od-shared-provider-segments")');
+    assert.equal(await evaluate('document.querySelector(".od-shared-provider-segment:last-child input").checked'),true);
+    assert.equal(await evaluate('document.getElementById("od-ai-provider-endpoint").value'),
+      'https://api.openai.com/v1/responses');
+    assert.equal(await evaluate('document.getElementById("od-ai-provider-model").value'),'preview-model');
+    assert.equal(await evaluate('document.getElementById("od-ai-provider-key").value'),'',
+      'API key must never be rehydrated into the UI draft');
+    assert.match(await evaluate('document.getElementById("od-ai-provider-key").placeholder'),/已配置/);
+    await fill('#od-ai-provider-endpoint','https://api.openai.com/v1/chat/completions');
+    await click('.od-shared-provider-actions button[type=button]');
+    await until('!document.querySelector(".workflow-sheet-overlay")');
+    await click('#workflow-provider-toggle');
+    await until('!!document.getElementById("workflow-source-menu")');
+    await click('#workflow-source-menu [role=menuitem]');
+    await until('!!document.getElementById("od-ai-provider-endpoint")');
+    assert.equal(await evaluate('document.getElementById("od-ai-provider-endpoint").value'),
+      'https://api.openai.com/v1/responses','Cancel must discard unsaved endpoint edits');
+    await screenshot('workflow-approved-r239-saved-reopen');
+    await cdp('Page.navigate',{url:pathToFileURL(html).href});
+    await until('document.documentElement.dataset.previewBootScript==="ready"');
+    await selectedTab('tools','tab-tools');
+  });
+  if(!process.argv.includes('--settings-only')){
   await step('six Tab pointer navigation and keyboard roving focus',async()=>{
     const tabs=[['tasks','tab-my-tasks'],['tools','tab-tools'],['workflow','tab-workflow'],
       ['develop','tab-develop'],['cloud','tab-cloud'],['debug','tab-debug']];
@@ -374,23 +445,7 @@ try{
     assert.match(await evaluate('document.getElementById("trusted-history-status").textContent'),/不读取浏览器历史/);
     await screenshot('debug-history-read-only');
   });
-  await step('source-bound AI settings deep link retains approved segmented layout',async()=>{
-    const url=pathToFileURL(html);
-    url.searchParams.set('tab','workflow');
-    url.searchParams.set('ai-settings','1');
-    await cdp('Page.navigate',{url:url.href});
-    await until('document.documentElement.dataset.previewBootScript==="ready"');
-    await until('!!document.querySelector(".workflow-sheet-overlay .od-shared-provider-segments")');
-    assert.equal(await evaluate('document.documentElement.dataset.previewProof'),'UI_PREVIEW_ONLY');
-    assert.deepEqual(await evaluate('[...document.querySelectorAll(".od-shared-provider-segments input[type=radio]")].map(n=>n.value)'),
-      ['local_codex','https'],'one native two-way selector; not three protocol-level choices');
-    assert.equal(await evaluate('document.querySelectorAll(".workflow-sheet-panel").length'),1);
-    assert.equal(await evaluate('document.querySelectorAll(".od-shared-provider-segments").length'),1);
-    await click('.od-shared-provider-segment:last-child span');
-    await until('!!document.getElementById("od-ai-provider-endpoint")');
-    assert.equal(await evaluate('document.getElementById("od-ai-provider-source-label").textContent'),'AI 来源');
-    await screenshot('workflow-real-shared-ai-settings');
-  });
+  }
   assert.deepEqual(exceptions,[],'Browser errors');report.status='PASS';
 }catch(error){
   report.status='FAIL';report.phase=phase;report.error=error.stack||String(error);

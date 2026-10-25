@@ -480,6 +480,7 @@ export async function generateSidebarSixReactPreview(){
         'body>.workflow-sheet-overlay{inset:var(--od-preview-stage-top) auto auto var(--od-preview-stage-left);'+
           'width:var(--od-preview-stage-width);height:var(--od-preview-stage-height)}'+
         'body>.workflow-sheet-overlay .workflow-sheet-panel{max-height:min(72dvh,560px,100%)}'+
+        'body>.workflow-sheet-overlay .od-shared-provider-sheet{max-height:calc(100% - 58px)}'+
         '.od-sidebar-preview-notice{margin:9px 0 0;color:var(--od-sub);font:11px/1.5 sans-serif}'+
         '.od-sidebar-preview-boot,.od-sidebar-preview-error{position:absolute;z-index:25;'+
           'inset:48px 8px auto;padding:12px;border-radius:8px;'+

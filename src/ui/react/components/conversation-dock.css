@@ -104,3 +104,37 @@
 @media(max-width:360px){.od-shared-provider-form{gap:8px}
  .od-shared-provider-source{gap:6px}.od-shared-provider-segments{min-width:180px}}
 @media(pointer:coarse){.od-shared-provider-segment span{min-height:44px}}
+
+/* R23.9 accepted provider sheet geometry (shared React presentation only). */
+.od-shared-provider-sheet{max-height:calc(100% - 58px);border-radius:18px 18px 0 0}
+.od-shared-provider-sheet>.od-shared-provider-content{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow:hidden;padding:0}
+.od-shared-provider-form{display:flex;flex:1 1 auto;min-height:0;min-width:0;flex-direction:column;overflow:hidden;gap:0}
+.od-shared-provider-scroll{display:flex;flex:1 1 auto;min-height:0;flex-direction:column;gap:12px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:16px 19px 23px}
+.od-shared-provider-form .od-shared-provider-segments{width:100%;max-width:none;min-width:0;flex:none;border-radius:11px}
+.od-shared-provider-form .od-shared-provider-segment span{min-height:36px;padding:8px 11px;font-size:12px}
+.od-shared-provider-local-card{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:55px;padding:9px 12px;border:1px solid var(--od-line);border-radius:11px;background:var(--od-muted)}
+.od-shared-provider-native-state{display:flex;flex-direction:column;gap:4px;min-width:0}
+.od-shared-provider-native-state strong{font-size:12px;line-height:1.4}
+.od-shared-provider-native-state small{font-size:11px;line-height:1.4;color:var(--od-sub)}
+.od-shared-provider-local-card .od-button{flex:none;max-width:45%;min-height:36px;padding:7px 10px;font-size:11px;white-space:normal}
+.od-shared-provider-remote{display:grid;gap:12px;min-width:0}
+.od-shared-provider-field{display:grid;gap:6px;min-width:0}
+.od-shared-provider-field>label{font-size:11.5px;font-weight:650;margin:0;line-height:1.4}
+.od-shared-provider-field>.od-field{min-width:0;width:100%;min-height:40px}
+.od-shared-provider-input-action{display:flex;align-items:center;min-height:40px;min-width:0;border:1px solid var(--od-line);border-radius:9px;background:var(--od-paper)}
+.od-shared-provider-input-action:focus-within{outline:2px solid var(--od-focus);outline-offset:1px}
+.od-shared-provider-input-action input.od-field{flex:1 1 auto;width:100%;min-width:0;min-height:38px;margin:0;padding:8px 10px;border:0;border-radius:9px;outline:0;box-shadow:none;background:transparent;color:var(--od-ink)}
+.od-shared-provider-input-action button{display:grid;place-items:center;flex:none;width:38px;height:38px;min-width:38px;min-height:38px;margin:0;padding:0;border:0;border-radius:8px;background:transparent;color:var(--od-sub)}
+.od-shared-provider-input-action button:hover{background:var(--od-muted);color:var(--od-ink)}
+.od-shared-provider-input-action svg{width:16px;height:16px}
+.od-shared-provider-protocol-note{margin:-6px 0 0;font-size:10.5px;line-height:1.5;color:var(--od-sub)}
+.od-shared-provider-protocol{min-width:0;padding:0;margin:0;border:0}
+.od-shared-provider-protocol summary{cursor:pointer;font-size:11px;line-height:1.5;color:var(--od-sub);padding:3px 0}
+.od-shared-provider-protocol label{display:block;margin:8px 0 4px}
+.od-shared-provider-protocol select{width:100%;min-width:0;max-width:100%}
+.od-shared-provider-permission-note{margin:0;color:var(--od-sub);font-size:10.5px;line-height:1.5}
+.od-shared-provider-clear-key{color:var(--od-sub);font-size:11px}
+.od-shared-provider-form .od-conversation-error{padding:5px 0;overflow-wrap:anywhere}
+.od-shared-provider-form .od-shared-provider-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex:none;min-height:56px;margin:0;padding:10px 14px;border-top:1px solid var(--od-line);background:var(--od-paper)}
+.od-shared-provider-actions .od-button{flex:none;min-height:36px;padding:7px 13px;font-size:11.5px;font-weight:650}
+@media(max-width:360px){.od-shared-provider-scroll{padding:14px 15px 19px}.od-shared-provider-form .od-shared-provider-segment span{padding:8px 3px;font-size:11.5px}.od-shared-provider-actions{padding:9px 11px}}
