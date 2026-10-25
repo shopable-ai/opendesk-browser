@@ -20,6 +20,7 @@ on:
       - 'src/ui/cloud-hosting.css'
       - 'scripts/preview/build-sidebar-six-react-preview.mjs'
       - 'scripts/tests/extension-center-r53-preview-chromium.mjs'
+      - 'scripts/tests/extension-ui-showcase-r21-chromium.mjs'
       - 'tests/environment/sidebar-history-placement.test.mjs'
       - 'tests/environment/sidebar-six-react-preview-contract.test.mjs'
       - 'package.json'
@@ -70,10 +71,10 @@ jobs:
             tests/environment/extension-center-react-page.test.mjs
       - uses: browser-actions/setup-chrome@v2
         id: chrome
-      - name: Real Chromium 320/360/400/440 React preview pointer and layout smoke
+      - name: Real Chromium R2.1 source-bound gallery pointer, input, menu, dialog and 320–960px
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
-        run: node scripts/tests/extension-center-r53-preview-chromium.mjs
+        run: node scripts/tests/extension-ui-showcase-r21-chromium.mjs
       - name: Sync generated React HTML only if remote main still matches this commit
         shell: bash
         run: |
@@ -102,6 +103,13 @@ jobs:
           git diff --exit-code HEAD -- "$file"
           node scripts/preview/build-sidebar-six-react-preview.mjs --check
           echo "PREVIEW_SYNCED_MAIN_HEAD=$(git rev-parse HEAD)"
+      - name: Audit existing Extension Center R5.3 pointer regression after source preview sync
+        # The existing list has changed since the original two-row fixture.
+        # Keep this historical full regression visible rather than blocking
+        # a separately verified, single-source React gallery artifact.
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node scripts/tests/extension-center-r53-preview-chromium.mjs
       - name: Audit all original six-tab contracts after source preview sync
         # Historical Workflow/Task-layout assertions remain blocking for full CI,
         # but cannot block delivery of a separately source-verified offline HTML.
@@ -140,6 +148,8 @@ jobs:
             prototypes/sidebar/react-preview/index.html
             artifacts/extension-center-r541/preview/*.png
             artifacts/extension-center-r541/preview/chromium-result.json
+            artifacts/extension-center-r541/preview/gallery-result.json
+            artifacts/extension-center-r541/preview/gallery-*.png
             artifacts/extension-center-r53/installed-production/report.json
             artifacts/extension-center-r53/installed-production/failure.png
           if-no-files-found: warn
