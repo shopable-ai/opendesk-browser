@@ -213,7 +213,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const enableRetry=view.fields["sidebar-tool-enable-retry"];
   const promptNativeRow=view.fields["sidebar-tool-prompt-native-row"],promptNativeAction=view.fields["sidebar-tool-prompt-native-action"];
   const promptWebRow=view.fields["sidebar-tool-prompt-web-row"],promptWebAction=view.fields["sidebar-tool-prompt-web-action"];
-  const promptNavAdvanced=view.fields["sidebar-tool-prompt-nav-advanced"],promptNavReset=view.fields["sidebar-tool-prompt-nav-reset"];
   const promptEnableLabel=view.fields["sidebar-tool-prompt-enable-label"],promptEnableDescription=view.fields["sidebar-tool-prompt-enable-description"];
   const launchButton=view.fields["sidebar-tool-launch"],eyeButton=view.fields["sidebar-tool-visibility"];
   const visibilitySection=view.fields["sidebar-tool-visibility-settings"];
@@ -236,7 +235,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const siteTogglePending=new Set();
   let captureGrants={},enableRecords,enableReadEpoch=0,enableReadError=true,enableRecordsLoading=true;
   let promptWebButtons=null,promptWebPending=false,promptWebChanged=false;
-  let promptNavigationSnapshot=null;
   let knowledgeWindowStart=0,knowledgeRequestCount=0;
   let knowledgeDirty=false;
   const knowledgeOperation=operation=>KNOWLEDGE_OPERATIONS.includes(operation)||operation==='knowledge.editorState';
@@ -1163,9 +1161,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, settingsView, {hidden: !show});
     if(promptNativeRow)patchToolField(view, promptNativeRow, {hidden: !(show&&promptSettings)});
     if(promptWebRow)patchToolField(view, promptWebRow, {hidden: !(show&&promptSettings)});
-    if(promptNavAdvanced)patchToolField(view,promptNavAdvanced,{hidden: !(show&&promptSettings&&promptNavigationSnapshot&&
-      Object.values(promptNavigationSnapshot).some(value=>value===false))});
-    if(promptNavReset)patchToolField(view,promptNavReset,{disabled: busy||sitePending||!enabled||promptWebPending||promptWebButtons===null});
     if(promptWebAction){setToolFieldAttribute(view, promptWebAction, 'aria-checked', String(promptWebButtons===true));
       patchToolField(view, promptWebAction, {disabled: !promptSettings||busy||sitePending||!enabled||promptWebPending||promptWebButtons===null});
       patchToolField(view, promptWebAction, {title: promptWebButtons===null?'读取网页按钮设置中':'在已支持的网站显示快捷按钮'});}
@@ -3895,12 +3890,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   function applyPromptSettings(settings){
     promptWebButtons=settings.webButtons;
-    promptNavigationSnapshot={...settings.scrollNavigation};
   }
   const promptSettingsConflict=()=>Object.assign(
     new Error('设置已在其他窗口修改，请重新核对'),{code:'E_STORAGE_CONFLICT'});
-  // Use the one verified Host storage path for both website visibility and
-  // legacy navigation recovery; never reconstruct settings from one field.
+  // Use the existing verified Host storage path for Prompt website visibility.
+  // Keep optimistic readback and preserve unrelated prompts and assets.
   async function writePromptSettings(tool,change,label){
     return locked('tool:'+PROMPT_ID,async()=>{
       const registry=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
@@ -3942,35 +3936,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         const observed=await readPromptSettings();
         if(observed.webButtons!==expected)promptWebChanged=true;
         applyPromptSettings(observed);
-      }}catch{promptWebButtons=null;promptNavigationSnapshot=null;promptWebChanged=true;}
-    }finally{promptWebPending=false;render();}
-  }
-  async function restorePromptNavigation(event){
-    if(event?.isTrusted!==true||promptWebPending||!promptNavigationSnapshot||
-       !Object.values(promptNavigationSnapshot).some(value=>value===false)||
-       busy||readOnlyPreview||active?.id!==PROMPT_ID||enableReadError||
-       !sidebarToolEnabled(enableRecords,PROMPT_ID))return;
-    const tool=active,expected=JSON.stringify(promptNavigationSnapshot);
-    promptWebPending=true;render();
-    try{
-      const next=await writePromptSettings(tool,(previous,model)=>{
-        if(JSON.stringify(previous.scrollNavigation)!==expected)throw promptSettingsConflict();
-        return {...previous,scrollNavigation:model.navigationSettings()};
-      },'提示词滚动导航设置');
-      if(disposed||!active||!samePackage(active,tool))return;
-      applyPromptSettings(next);promptWebChanged=true;
-      notice('滚动导航已恢复默认开启，提示词和图片设置均已保留。');
-    }catch(error){
-      notice((error?.code||'E_STORAGE')+'：'+(error?.message||error),true);
-      try{if(!disposed&&active&&samePackage(active,tool)){
-        applyPromptSettings(await readPromptSettings());promptWebChanged=true;
-      }}catch{promptWebButtons=null;promptNavigationSnapshot=null;promptWebChanged=true;}
+      }}catch{promptWebButtons=null;promptWebChanged=true;}
     }finally{promptWebPending=false;render();}
   }
   if(promptWebAction)listen(promptWebAction,'click',event=>void changePromptWebButtons(event));
-  if(promptNavReset)listen(promptNavReset,'click',event=>void restorePromptNavigation(event));
   function refreshPromptSettings(tool){
-    promptWebButtons=null;promptNavigationSnapshot=null;promptWebChanged=false;
+    promptWebButtons=null;promptWebChanged=false;
     promptWebPending=true;render();
     void readPromptSettings().then(settings=>{
       if(disposed||!active||!samePackage(active,tool)||!tocSettingsOpen)return;
