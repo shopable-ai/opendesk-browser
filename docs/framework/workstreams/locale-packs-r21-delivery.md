@@ -1,8 +1,35 @@
 # OpenDesk 多语言 R2.1 交付与验收记录
 
-2026-10-25；工作目录 `/Users/shopme/Documents/workspace/opendesk-browser`；仅 main。核心源码、正式 Reading TOC JSON 和日语语言包已交付；完整 Browser 构建、真实安装与原生闭环尚未完成，不能宣布总目标验收通过或七项均达到 95。
+2026-10-25；工作目录 `/Users/shopme/Documents/workspace/opendesk-browser`；仅 main。核心源码、正式 Reading TOC JSON 和日语语言包已交付；真实使用场景尚未完成。用户本次纠偏：以实际产品操作及结果为完成标准，代码测试仅作辅助；本轮不以 production 构建、完整验收矩阵或 95 分为前置条件。
 
-## 本次续验：操作是否真正到达工具界面
+## 当前目标：用户在真实 Chrome 中完成多语言使用闭环
+
+在真实 Mac Chrome 已安装的 OpenDesk「扩展」入口，以官方 Reading TOC 为试点，完成语言选择、语言包导入、即时生效、重开及浏览器重启保留、同语言覆盖、缺词补译回导、删除恢复和错误输入保护。操作中发现真实故障则修对应最小逻辑，回到失败操作复验；不以新增单元测试或文档替代操作完成。
+
+测试对象须是支持 R2.1 的宿主和已安装 Reading TOC 1.0.10 或后续有效版本。先记录实际加载目录、扩展 ID、安装版本、运行模式/serve 连接及候选指纹；仅在旧版确实阻断入口时按原审阅流程升级。正常窗口、默认缩放，使用固定演示页 `http://127.0.0.1:43111/demo-form.html`。日常目录仍为 `dist/development`；保护现有 Profile、watcher、其他会话和未提交改动。
+
+### 关键使用场景与通过条件
+
+下表是本轮核心完成条件。**所有场景目前均为 NOT_TESTED**；此前源码、Node、模拟 DOM 与 HTTP 预览的通过记录不能改变本表状态。
+
+| 使用场景 | 必须完成的真实操作 | 通过条件 |
+|---|---|---|
+| 打开并使用阅读目录 | 从「扩展」打开已安装阅读目录，在演示页切换目录模式并点击一个章节 | 目录能读取真实页面、切换模式、定位正确章节；建立随后验证语言变更不破坏功能的基线 |
+| 全局语言与工具选择 | 工具设为「跟随 OpenDesk」，切换中文/英文；随后为工具选择独立语言，再改变全局语言，最后恢复跟随 | 跟随时实际控件随全局语言变化；独立选择时保持工具语言；恢复跟随后重新采用全局选择，无需重装或通用启用步骤 |
+| 导入完整日语包 | 从扩展中心文件选择或拖放导入日语样例，查看 55 条预览；先取消，再重新导入并确认 | 取消不改变原界面；确认后正在打开的工具显示日语提示和辅助标签，已获网站访问授权的网页悬浮目录也同步更新。刷新提示为「現在のページの見出しを再取得」。随后切换模式、点击章节仍可用，正文/章节标题、当前位置与滚动不受翻译影响 |
+| 重开与重启后保留 | 关闭重开语言管理、工具和 Side Panel；安全退出并重启本轮验收用 Chrome，再打开同一工具与演示页 | 日语包和语言选择仍存在，实际目录继续显示日语且章节定位可用；不能用刷新 HTTP 页面或重新创建服务代替浏览器重启。不得强停其他 owner 的浏览器会话 |
+| 同为日语的覆盖更新 | 导入目标仍为 ja、但一条可见提示已修改的包；先取消覆盖，再确认覆盖 | 取消保留旧提示；确认后同一打开的目录立即出现新提示，沙箱和已授权网页目录一致，不要求切换语言、重新打开或重装工具 |
+| 缺两条与 AI 补译往返 | 通过产品导入仅含 53 条的日语包，观察缺词；在产品导出缺失翻译任务，交由当前 Codex 补两条，回导返回的完整包并确认 | 两条缺失文案逐项回退原文；导出的 translationKeys 恰好两条；回导后两条显示日语，另外 53 条保留；任务与语言包均通过真实导出/导入入口，不用测试代码调用服务代替 |
+| 删除并恢复原文 | 从语言管理导出备份，先取消删除，再确认删除日语包 | 取消仍显示原日语；确认后工具和已授权网页目录回退可用内置/源文案，工具仍能定位章节，业务状态、原安装及网站授权保留 |
+| 错误导入保护 | 在已有有效语言包时，从同一产品入口导入错误工具 ID/坏 JSON，以及空白译文包 | 显示可理解的错误；不替换有效包、不清空正在显示的按钮，也不触发代码安装、业务动作或额外授权 |
+
+每个场景记录实际入口、输入包、操作步骤、可见结果、候选身份和必要截图/录像；持久化场景同时记录重启前后结果。仅弹出「已保存」、查看 storage 值、源码接线或测试断言通过都不算该场景 PASS。用户操作可用真实浏览器 UI 自动化完成，前提是工具明确允许访问对应入口；不得用模拟服务、伪造手势或内部调用替代核心操作。
+
+完成门槛：上述真实场景全部通过，期间发现的核心故障已修复且原失败操作复验通过，没有未解释的核心失败；未执行记 NOT_TESTED，入口限制记 BLOCKED 并说明具体限制，均不能记 PASS。当前已知限制是工具拒绝扩展页访问，尚无真实场景 PASS；Native doctor 连接成功不能解除该限制。保留禁止替代 app、CDP 或间接导航绕过的约束。
+
+后续动作从“合法访问已安装扩展 → 打开目录并定位一个真实章节”开始；入口受限时只处理该具体入口问题，不先跑代码测试、production 构建、旧 CI 清单或评分。生产发布、全量故障注入、来源升级/卸载专项、跨版本、宽度/缩放矩阵和七项 95 分均延期；真实操作若暴露相关安全故障，则定向修复并复验，不放宽校验。
+
+## 历史辅助验证：代码链路（不计核心场景通过）
 
 补齐两处自动化缺口，并执行以下定向命令，**32/32 PASS**：
 
@@ -26,7 +53,7 @@ node --test tests/environment/extension-center-locale-manager-r21.test.mjs tests
 
 通过标准是工具实际文案变化并在重开后保持；仅出现「语言包已保存」不算完成。
 
-## 已完成的产品行为
+## 源码已接线的产品行为（真实场景待验）
 
 - 扩展中心管理菜单可选择全局语言、管理语言包；原 JSON 选择/拖放按 `format` 分流，语言数据不进入代码安装器。单个支持本地化的工具在原设置中选择「跟随 OpenDesk」或覆盖语言，并打开低频管理入口。
 - 导入预览显示工具、语言、原文/译文样本、缺失/过期条目；确认后原子保存语言包与目标语言，读回后生效。支持覆盖、取消、导出、删除与明确的存储恢复。
@@ -46,7 +73,7 @@ node --test tests/environment/extension-center-locale-manager-r21.test.mjs tests
 - Bridge/试点：`src/sidebar-tools/bridge.js`、Reading TOC 的 `src/main.js`、`trusted/page.js/view.js`、官方包 pin 与固定源码 pin。
 - 同源预览：`prototypes/sidebar/react-preview/index.html`，由原六 Tab 生成器生成，实际 React 管理组件与实际数据服务；独立预览存储。其所有保存和读回均为 `HTTP_REACT_PREVIEW_ONLY`，没有安装扩展、权限或模型服务。原三个 Reading TOC 预览也由原生成器刷新。
 
-## 已执行验证
+## 历史辅助验证与未完成项
 
 | 证据 | 结果与边界 |
 |---|---|
@@ -65,9 +92,9 @@ node --test tests/environment/extension-center-locale-manager-r21.test.mjs tests
 
 本机日志与截图位于 `artifacts/locale-packs-r21/`（临时证据，不提交为快照堆积）：`final-targeted-tests.log`、`final-preview-test.log`、`final-manager-tests.log`、`final-provenance-test.log`、`final-workspace-i18n-test.log`、`final-six-tab-preview-test.log`、`final-source-check.log`、`final-package-check.log`、`production-build.log`、`package-verify.log`、`ai-roundtrip-result.json`、`cua-import-320.png`、`cua-dark-*.png`、`cua-ai-roundtrip.png`。完整词条来自实际任务下载与 Codex 输出，不调用另一套模型服务。
 
-## 当前构建阻断与环境保护
+## 历史构建阻断与环境保护
 
-持续开发服务仍属于原 owner PID 44689，日常输出 `dist/development`；本轮没有停止它或覆盖其输出。正式候选在 `artifacts/locale-packs-r21/build-snapshot/` 和独立 guard port 43128 构建；依赖为本机依赖的物理克隆，未安装新依赖。候选取已提交 main `6382c54a5e335ce6a6860ec3eb1a5cb54ca4ee8d` 加本轮增量，排除其他未提交业务变更。
+以下为上次构建时的历史观察，开始操作时重查；它们不自动成为当前核心场景的前置条件。持续开发服务当时属于原 owner PID 44689，日常输出 `dist/development`；当时没有停止它或覆盖其输出。正式候选在 `artifacts/locale-packs-r21/build-snapshot/` 和独立 guard port 43128 构建；依赖为本机依赖的物理克隆，未安装新依赖。候选取已提交 main `6382c54a5e335ce6a6860ec3eb1a5cb54ca4ee8d` 加当轮增量，排除其他未提交业务变更。
 
 读取该已提交 HEAD 即可独立复现：`examples/sidebar-tools/prompt-shortcuts/trusted/page.js` 的 Git blob 为 `02f32ad444df89d5cf4b7dbfbd0eee76228cafc8`，`scripts/bundle-provenance.mjs` 中的允许值为 `cb7dcbd4733ba546c4b50790433f1b3cb4e3fd6f`。工作区同模块还有并行未提交修改，不能由语言任务任意覆盖或重签。该 blocker 不来自语言资源；保留门禁，等待所属 owner 完成来源审查与同步后，才重新冻结当前 main 候选并构建。两个 Reading TOC 固定源码 pin 已按本轮源码及定向安全回归同步，只提交该 hunk，保留并行 Prompt pin hunk。
 
@@ -81,7 +108,7 @@ node --test tests/environment/extension-center-locale-manager-r21.test.mjs tests
 
 补充证据：`blank-label-before.log` 为修复前失败回归，`blank-label-after.log` 为语言包/metadata/试点/管理器 37/37 PASS（含实际组件 CSS 编译）；`blank-label-final-source-check.log` 为最终 `npm run check` PASS（1140 文件）。CUA 在同源 HTTP 页面实际选择无效包，显示空白文案与原文回退提示、已导入包仍为 0，没有进入安装预览；截图 `cua-blank-label-rejected.png`。这些补充证据仍不提升为原生 A–F 或完整 Browser 构建通过。正式 Reading TOC 1.0.10 JSON 与日语样例字节未改，原晋升证据继续有效。
 
-## 独立开发阶段评分
+## 历史独立开发阶段评分（不作当前完成门槛）
 
 三个独立 native subagent 按各自负责的证据分别评分；没有按目标倒填 95。评分形成时尚无完整构建与原生证据，后续 HTTP 验证不自动改为发布分数。
 
@@ -99,12 +126,12 @@ node --test tests/environment/extension-center-locale-manager-r21.test.mjs tests
 
 ## 本地 Codex 原生续验提示词
 
-在 `/Users/shopme/Documents/workspace/opendesk-browser` 的最新 main 继续 R2.1。先读最新 AGENTS、Git 状态、本报告及应用级本地化合同，保护并行改动、原 watcher/Profile/输出。不要建分支、worktree、PR，不覆盖其他 owner 的 Prompt/Mindmap 修改。源码和 Node/HTTP 已完成，不重复研究架构，不恢复全工具迁移；七项 95 与原生尚未通过。
+在 `/Users/shopme/Documents/workspace/opendesk-browser` 的最新 main 继续 R2.1。先读最新 AGENTS、Git 状态、本报告顶部的当前目标与关键使用场景，以及应用级本地化合同，保护并行改动、原 watcher/Profile/输出。不要建分支、worktree、PR，不覆盖其他 owner 的 Prompt/Mindmap 修改。源码和 Node/HTTP 只作辅助证据；当前目标是通过真实产品入口完成顶部八个核心使用场景，不恢复全工具迁移、production 发布或七项 95 目标。
 
-下一步先核对上述 Prompt 来源 blocker 是否已由所属 owner 修复。未修复则只记录，不盲目重建或重签；若确有该模块修复授权，独立审查实际源码后按原来源合同修复，并保留证据。解除后在独立冻结快照、独立 guard/output 中执行一次 production build；成功才继续静态 development 与 verify，不能覆盖 `dist/development` watcher。
+下一步先核对当前工具是否允许合法访问已安装扩展；允许时记录实际候选、路径、ID、版本和 serve 状态，然后打开阅读目录并定位一个真实章节。只修该操作的具体阻塞；旧 Prompt 来源 pin 或 production 构建若不阻断当前入口，就记录并延期，不重签、不先构建、不覆盖 `dist/development`。日常迭代按原持续开发合同复用已有 watcher，模式切换前先确认输出 owner。
 
 只有当前工具确实允许访问已安装扩展时，执行真实 Mac Chrome：核对加载路径、ID、开发 serve 连接与本候选指纹；通过原安装审阅升级 Reading TOC 到 1.0.10（原身份 `reading-toc`、能力 `page.toc`）。已有 `localization` 元数据才支持语言包，旧 1.0.9 不能误判。访问正常演示网页；必要时按项目固定 43111 页面启动流程。先运行最短核心链：扩展中心拖入 `examples/sidebar-tools/reading-toc/languages/ja.opendesk-locale.json` → 预览 55 条 → 确认 → 工具实际显示日语 → 关闭重开仍为日语。
 
-再完成本轮 A–F：缺两条回退原文；同 ID 升级源文案时保留未变译文、失效改变项；错误 ID/坏 JSON/恶意内容/占位符/重复导入反馈；存储失败和未知结果不重放且可显式恢复；导出后移除只恢复文案、保留业务数据/授权；导出两条缺失任务给 Codex/已有 AI，回导完整包确认，原有其余译文保持。检查沙箱和已授权网页目录均更新，同语言替换也更新，焦点/滚动不丢失；未授权网页不得因翻译而获得权限。确认卸载仅使用可丢弃试点，先导出翻译并保留原业务数据证据。
+继续按顶部八个使用场景依次操作并记录结果，覆盖工具/网页目录、全局与独立语言、重开与浏览器重启、同 ja 覆盖、真实 AI 任务导出/回导、删除与错误输入保护。每发现失败先区分产品故障、驱动错误与环境限制，再最小修复并重做失败操作；不以增加单元测试或重复 HTTP 预览替代。
 
-修真实缺陷时只改对应业务/公共边界并复验失败场景；不放宽来源、权限、撤权、CSP、身份或占位符检查。原生入口若被工具安全策略拒绝则停止该入口，不通过 CDP、替代 app 或间接导航绕行。记录当前候选、A–F 每一步结果/截图、未验证项，再由独立评估者重新评分，仍不得无证据宣称 95。
+修真实缺陷时只改对应业务/公共边界并复验失败场景；不放宽来源、权限、撤权、CSP、身份或占位符检查。原生入口若被工具安全策略拒绝则停止该入口，不通过 CDP、替代 app 或间接导航绕行。记录当前候选、每个场景的操作结果/截图和未验证项；八个核心场景未全部通过，不宣称当前目标完成。评分及正式发布仍为延期事项。
