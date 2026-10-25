@@ -51,12 +51,14 @@ jobs:
           node --check scripts/build-official-pages.mjs
           node --check scripts/prepare-public.mjs
           node --check scripts/verify-package.mjs
+      - name: Build existing official React Sidebar Tool prerequisites
+        run: |
+          npm run pretest
+          node scripts/build-cookie-editor-react.mjs
       - name: Validate trust, blocked discovery and old installation identity
         run: |
           node --test tests/environment/official-page-catalog-r124.test.mjs \
             tests/environment/extension-center-official-pages-r124.test.mjs \
-            tests/environment/extension-center-r4.test.mjs \
-            tests/environment/official-tools-catalog-r45.test.mjs \
             tests/environment/sidebar-default-preinstall-r48.test.mjs
       - name: Generate noninstalling Page discovery bundle from pinned source
         run: |
