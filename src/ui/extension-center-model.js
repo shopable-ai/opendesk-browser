@@ -15,7 +15,7 @@ const newer=(a,b)=>{
   for(let i=0;i<3;i++){if(aa[i]!==bb[i])return aa[i]>bb[i];}
   return false;
 };
-export function composeExtensionEntries({installed=[],pages=[],official=[],enabled={},appStatusKnown=true,pageStatusKnown=true,cleanupPendingIds=[]}={}){
+export function composeExtensionEntries({installed=[],pages=[],official=[],pageReleases=[],enabled={},appStatusKnown=true,pageStatusKnown=true,cleanupPendingIds=[]}={}){
   const entries=[],releases=new Map(official.map(row=>[row.toolId,row])),ids=new Set();
   const pendingCleanups=new Set(cleanupPendingIds);
   for(const tool of installed){
@@ -27,7 +27,7 @@ export function composeExtensionEntries({installed=[],pages=[],official=[],enabl
       enabled:appStatusKnown?enabled[tool.id]!==false:null,stateKnown:appStatusKnown,
       release,update:!!release&&newer(release.version,tool.version),record:tool});
   }
-  const pageIds=new Set();
+  const pageIds=new Set(),pageReleaseById=new Map(pageReleases.map(row=>[row.programId,row]));
   // "pages" is the Authority's installed collection, not the development
   // Catalog. Keep a small compatibility normalization for existing callers.
   for(const row of pages){
@@ -35,11 +35,20 @@ export function composeExtensionEntries({installed=[],pages=[],official=[],enabl
     if(!p?.programId||!p.manifestHash||pageIds.has(p.programId)||
       (row?.installed&&(row.programId!==p.programId||row.manifestHash!==p.manifestHash)))continue;
     pageIds.add(p.programId);
-    entries.push({key:'page:'+p.programId,id:p.programId,kind:'page',title:p.title||p.programId,
+    const release=pageReleaseById.get(p.programId)||null;
+    entries.push({key:'page:+p.programId,id:p.programId,kind:'page',title:p.title||p.programId,
       description:(p.pageRules?.matches||[]).join('、')||'已安装网页增强',version:p.revision,
       installed:true,enabled:pageStatusKnown?p.enabled===true:null,stateKnown:pageStatusKnown,
-      release:null,update:false,
+      release,update:Boolean(release?.status==='available'&&release.revision>p.revision),
       record:{programId:p.programId,manifestHash:p.manifestHash,installed:p}});
+  }
+  // Bundled Page candidates never become installed entries without an Authority record.
+  for(const release of pageReleases){
+    if(!release?.programId||pageIds.has(release.programId))continue;
+    pageIds.add(release.programId);
+    entries.push({key:'page:'+release.programId,id:release.programId,kind:'page',title:release.title,
+      description:release.description,version:release.version+' · r'+release.revision,
+      installed:false,enabled:false,stateKnown:true,release,update:false,record:null});
   }
   for(const release of official){
     if(!release?.toolId||ids.has(release.toolId))continue;
