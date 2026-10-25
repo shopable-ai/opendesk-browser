@@ -72,10 +72,12 @@ test('R1.4 original bookmark workspace and search never disappear with chat',asy
  const toolHost=await read('src/ui/react/tabs/tool-host.tsx');
  assert.equal((toolHost.match(/<TrustedConversationHeaderSlot\/>/g)||[]).length,1,
   'ToolHost retains exactly one trusted Chat entry');
- assert.match(toolHost,/<TrustedConversationHeaderSlot\/>\s*<div className="sidebar-tool-header-more"/,
-  'trusted Chat entry stays in the ToolHost toolbar beside the existing more menu');
- assert.match(toolHost,/<div id="sidebar-tool-more-menu"[\s\S]*?<ToolField as="button" type="button" id="sidebar-tool-remove"/,
-  'uninstall stays in the ToolHost overflow menu');
+ assert.match(toolHost,/<TrustedConversationHeaderSlot\/>\s*<div className="sidebar-tool-header-actions"/,
+  'trusted Chat entry stays in the ToolHost toolbar beside direct tool-management actions');
+ assert.match(toolHost,/<div className="sidebar-tool-header-actions"[\s\S]*?<ToolField as="button" type="button" id="sidebar-tool-settings-open"[\s\S]*?<ToolField as="button" type="button" id="sidebar-tool-remove"/,
+  'settings and uninstall remain direct ToolHost actions, not duplicated inside Chat');
+ assert.doesNotMatch(toolHost,/id="sidebar-tool-more-menu"/,
+  'legacy management overflow menu is intentionally removed');
  assert.match(await read('src/ui/react/components/conversation.tsx'),/createPortal\(/);
  assert.match(css,/\.od-conversation-business\{min-height:0;min-width:0;flex:1/);
  assert.match(css,/\.od-conversation-dock\{[^\n]*flex:none/);
