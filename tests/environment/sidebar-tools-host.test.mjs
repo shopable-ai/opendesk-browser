@@ -156,7 +156,7 @@ test('R1.6 generic tool settings has a single titled return without remounting',
  const f=await hostFixture(t),original=f.frame;
  assert.equal(f.elements['sidebar-tool-back'].title,'返回扩展列表');
  f.emit(f.elements['sidebar-tool-settings-open'],'click');
- assert.equal(f.elements['sidebar-tool-title'].textContent,'工具设置');
+ assert.equal(f.elements['sidebar-tool-title'].textContent,sample.title);
  assert.equal(f.elements['sidebar-tool-back'].title,'返回上一页');
  assert.equal(f.runtime.frameRoot.children[0],original,'settings retains the same tool instance');
  f.emit(f.elements['sidebar-tool-back'],'click');
@@ -190,6 +190,175 @@ test('R26 remote disable retains a bounded inert draft while destroying the sand
   assert.equal(f.elements['sidebar-tool-retired-draft-text'].value,'标题\n尚未保存的正文');
   f.emit(f.elements['sidebar-tool-retired-draft-dismiss'],'click');
   assert.equal(f.elements['sidebar-tool-retired-draft'].hidden,true);
+});
+
+test('R-FINAL T2 unreadable enable state retries real storage without writes or launch',async t=>{
+  let unreadable=true,reads=0,writes=0;
+  const store=new Map([[SIDEBAR_TOOL_STORE,[sample]],[SIDEBAR_TOOL_ENABLE_STORE,{[sample.id]:false}]]);
+  const f=await hostFixture(t,{store,startTool:false,getHook:async key=>{
+    if(key===SIDEBAR_TOOL_ENABLE_STORE){reads++;if(unreadable)throw Error('enable read unavailable');}
+  },setHook:async()=>{writes++;}});
+  f.host.openSettings(sample.id);
+  const button=f.elements['sidebar-tool-enable'],retry=f.elements['sidebar-tool-enable-retry'];
+  assert.equal(button.hidden,true,'unknown must not be presented as ordinary OFF');
+  assert.equal(retry.hidden,false);
+  assert.match(f.elements['sidebar-tool-enable-hint'].textContent,/状态|读取/);
+  const before=reads;
+  f.emit(retry,'click',{isTrusted:false});await pause();
+  assert.equal(reads,before,'synthetic retry cannot access storage');
+  f.emit(retry,'click',{isTrusted:true});
+  await settle(()=>reads>before&&!retry.disabled);
+  assert.equal(button.hidden,true,'failed retry remains unknown');
+  unreadable=false;
+  f.emit(retry,'click',{isTrusted:true});
+  await settle(()=>!button.hidden&&!button.disabled);
+  assert.equal(button.attributes['aria-checked'],'false','readback shows the persisted OFF value');
+  assert.equal(retry.hidden,true);
+  assert.equal(writes,0,'recovery is read-only');
+  assert.equal(f.runtime.frameRoot.children.length,0);
+});
+
+for(const persisted of [false,true])test('R-FINAL T2 unknown stop never replays; persisted='+persisted,async t=>{
+  const f=await hostFixture(t),local=f.api.storage.local;
+  const originalGet=local.get.bind(local),originalSet=local.set.bind(local);
+  let uncertain=false,writes=0;
+  local.set=async rows=>{
+    if(!Object.hasOwn(rows,SIDEBAR_TOOL_ENABLE_STORE))return originalSet(rows);
+    writes++;uncertain=true;
+    if(persisted)await originalSet(rows);
+    throw Error('stop acknowledgement lost');
+  };
+  local.get=async key=>{
+    if(key===SIDEBAR_TOOL_ENABLE_STORE&&uncertain)throw Error('stop readback unavailable');
+    return originalGet(key);
+  };
+  f.emit(f.elements['sidebar-tool-enable'],'click',{isTrusted:true});
+  await settle(()=>!f.elements['sidebar-tool-enable-retry'].hidden);
+  assert.equal(f.elements['sidebar-tool-enable'].hidden,true);
+  assert.equal(f.runtime.frameRoot.children.length,0,'unknown stop retires the live sandbox');
+  assert.match(f.elements['sidebar-tool-status'].textContent,/未确认/);
+  f.emit(f.elements['sidebar-tool-enable'],'click',{isTrusted:true});
+  assert.equal(await f.host.toggleEnabled(sample.id,{isTrusted:true}),false);
+  f.ask('storage.set',{key:'late',value:'must not persist'});await pause();
+  assert.equal(writes,1,'unknown result cannot automatically replay STOP or invert it');
+  assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false,'retired iframe cannot write');
+  uncertain=false;
+  f.emit(f.elements['sidebar-tool-enable-retry'],'click',{isTrusted:true});
+  await settle(()=>!f.elements['sidebar-tool-enable'].hidden&&!f.elements['sidebar-tool-enable'].disabled);
+  assert.equal(f.elements['sidebar-tool-enable'].attributes['aria-checked'],String(!persisted));
+  assert.equal(writes,1,'successful reread does not retry the mutation');
+  assert.equal(f.runtime.frameRoot.children.length,0,'recovered ON also requires explicit Open');
+});
+
+test('R-FINAL T2 lost write acknowledgement succeeds only after matching persisted readback',async t=>{
+  const f=await hostFixture(t),local=f.api.storage.local;
+  const originalSet=local.set.bind(local),originalGet=local.get.bind(local);
+  let writes=0,readbacks=0;
+  local.set=async rows=>{
+    await originalSet(rows);
+    if(Object.hasOwn(rows,SIDEBAR_TOOL_ENABLE_STORE)){writes++;throw Error('ack lost after commit');}
+  };
+  local.get=async key=>{
+    if(key===SIDEBAR_TOOL_ENABLE_STORE&&writes)readbacks++;
+    return originalGet(key);
+  };
+  assert.equal(await f.host.toggleEnabled(sample.id,{isTrusted:true}),true);
+  assert.equal(writes,1);
+  assert.ok(readbacks>=2,'transaction verification and host refresh both read persistent storage');
+  assert.equal(f.store.get(SIDEBAR_TOOL_ENABLE_STORE)[sample.id],false);
+  assert.equal(f.elements['sidebar-tool-enable'].attributes['aria-checked'],'false');
+  assert.equal(f.elements['sidebar-tool-enable-retry'].hidden,true);
+  assert.equal(f.runtime.frameRoot.children.length,0);
+});
+
+test('R-FINAL T2 acknowledged but unpersisted stop remains unknown',async t=>{
+  const f=await hostFixture(t),originalSet=f.api.storage.local.set.bind(f.api.storage.local);
+  let writes=0;
+  f.api.storage.local.set=async rows=>{
+    if(Object.hasOwn(rows,SIDEBAR_TOOL_ENABLE_STORE)){writes++;return;}
+    return originalSet(rows);
+  };
+  f.emit(f.elements['sidebar-tool-enable'],'click',{isTrusted:true});
+  await settle(()=>!f.elements['sidebar-tool-enable-retry'].hidden);
+  assert.equal(writes,1);
+  assert.equal(f.store.has(SIDEBAR_TOOL_ENABLE_STORE),false,'successful set promise is not durable evidence');
+  assert.equal(f.elements['sidebar-tool-enable'].hidden,true);
+  assert.equal(f.runtime.frameRoot.children.length,0);
+  f.emit(f.elements['sidebar-tool-enable-retry'],'click',{isTrusted:true});
+  await settle(()=>!f.elements['sidebar-tool-enable'].hidden&&!f.elements['sidebar-tool-enable'].disabled);
+  assert.equal(f.elements['sidebar-tool-enable'].attributes['aria-checked'],'true');
+  assert.equal(writes,1,'read-only reconciliation cannot replay the dropped write');
+});
+
+test('R-FINAL T2 consecutive clicks serialize stop and durable restore never revives old iframe',async t=>{
+  const gate=deferred(),entered=deferred();let writes=0;
+  t.after(()=>gate.resolve());
+  const key=sidebarToolStorageKey(sample.id),privateData={note:'retain across lifecycle'};
+  const store=new Map([[SIDEBAR_TOOL_STORE,[sample]],[key,privateData]]);
+  const f=await hostFixture(t,{store,setHook:async rows=>{
+    if(Object.hasOwn(rows,SIDEBAR_TOOL_ENABLE_STORE)){writes++;entered.resolve();await gate.promise;}
+  }});
+  f.emit(f.elements['sidebar-tool-enable'],'click',{isTrusted:true});
+  await entered.promise;
+  f.emit(f.elements['sidebar-tool-enable'],'click',{isTrusted:true});
+  assert.equal(await f.host.toggleEnabled(sample.id,{isTrusted:true}),false);
+  assert.equal(writes,1,'pending STOP cannot turn a second click into resume');
+  gate.resolve();
+  await settle(()=>!f.elements['sidebar-tool-enable'].disabled);
+  assert.equal(store.get(SIDEBAR_TOOL_ENABLE_STORE)[sample.id],false);
+  assert.equal(f.runtime.frameRoot.children.length,0);
+  f.ask('storage.set',{key:'note',value:'late old frame'});await pause();
+  assert.deepEqual(store.get(key),privateData);
+  f.host.dispose();
+  const reopened=await hostFixture(t,{store,startTool:false});
+  reopened.host.openTool(sample.id);
+  assert.equal(reopened.runtime.frameRoot.children.length,0,'persisted STOP survives host recreation');
+  assert.equal(reopened.elements['sidebar-tool-enable'].attributes['aria-checked'],'false');
+  assert.equal(await reopened.host.toggleEnabled(sample.id,{isTrusted:true}),true);
+  assert.equal(reopened.runtime.frameRoot.children.length,0,'resume cannot remount a retired iframe');
+  reopened.emit(reopened.elements['sidebar-tool-launch'],'click',{isTrusted:true});
+  await settle(()=>reopened.runtime.frameRoot.children.length===1);
+  assert.notEqual(reopened.runtime.frameRoot.children[0],f.frame);
+  assert.deepEqual(store.get(key),privateData);
+});
+
+test('R-FINAL T2 stale initial enable receipt cannot overwrite a newer stop event',async t=>{
+  const gate=deferred(),entered=deferred();let hold=true,writes=0;
+  t.after(()=>gate.resolve());
+  const f=await hostFixture(t,{startTool:false,awaitReady:false,snapshotBeforeGet:true,
+    getHook:async key=>{
+      if(key===SIDEBAR_TOOL_ENABLE_STORE&&hold){hold=false;entered.resolve();await gate.promise;}
+    },setHook:async()=>{writes++;}});
+  await entered.promise;
+  f.store.set(SIDEBAR_TOOL_ENABLE_STORE,{[sample.id]:false});
+  f.changeStorage({[SIDEBAR_TOOL_ENABLE_STORE]:{newValue:{[sample.id]:false}}});
+  assert.equal(await f.host.toggleEnabled(sample.id,{isTrusted:true}),false,
+    'a valid storage event cannot bypass the pending initial read guard');
+  assert.equal(writes,0,'public toggle must not mutate while initial enable state is loading');
+  gate.resolve();await f.host.ready;
+  f.host.openTool(sample.id);
+  assert.equal(f.elements['sidebar-tool-enable'].attributes['aria-checked'],'false');
+  assert.equal(f.runtime.frameRoot.children.length,0,'stale legacy-default ON cannot reopen the sandbox');
+});
+
+test('R-FINAL T2 row action failure quarantines the same host state as settings failure',async t=>{
+  const f=await hostFixture(t),local=f.api.storage.local,originalGet=local.get.bind(local);
+  let uncertain=false,writes=0;
+  local.set=async rows=>{
+    if(Object.hasOwn(rows,SIDEBAR_TOOL_ENABLE_STORE)){writes++;uncertain=true;throw Error('lost row action acknowledgement');}
+  };
+  local.get=async key=>{
+    if(key===SIDEBAR_TOOL_ENABLE_STORE&&uncertain)throw Error('row action readback unavailable');
+    return originalGet(key);
+  };
+  // The public overflow action may reject or return false, but must retire
+  // execution and require reread exactly as the settings click handler does.
+  await f.host.toggleEnabled(sample.id,{isTrusted:true}).catch(()=>false);
+  assert.equal(f.runtime.frameRoot.children.length,0,'unknown row STOP must retire the live iframe');
+  assert.equal(f.elements['sidebar-tool-enable'].hidden,true,'unknown row result must not keep showing ON');
+  assert.equal(f.elements['sidebar-tool-enable-retry'].hidden,false);
+  assert.equal(await f.host.toggleEnabled(sample.id,{isTrusted:true}),false);
+  assert.equal(writes,1,'another entry point cannot replay the unknown row action');
 });
 
 test('R26 eye restores intersecting site/page appearance without mutating grants',async t=>{
@@ -2649,22 +2818,80 @@ function cookieHostReceipt(tool,store,calls){
     const old=saved[tool.id]||{version:tool.version,packageHash:await sidebarToolPackageHash(tool),
       installEpoch:null,cookieSites:{}};
     if(request.scope==='all-http-sites'){
-      const grant={storeId:'0',grantEpoch:'r537-'+calls.length,valueConsent:false,
-        read:request.enabled,values:false,write:request.enabled,
-        observe:request.enabled,clear:request.enabled};
+      const grant={storeId:'0',grantEpoch:'r537-'+calls.length,
+        valueConsent:request.enabled&&tool.capabilities.includes('browser.cookies.values'),
+        ...Object.fromEntries(['read','values','write','observe','clear'].map(cap=>
+          [cap,request.enabled&&tool.capabilities.includes('browser.cookies.'+cap)]))};
       saved[tool.id]={...old,cookieAllSites:grant};
     }else{
       const site=request.origin,oldSite=old.cookieSites?.[site]||{};
       const next=request.cookieCapability==='all'
-        ?{...oldSite,read:false,values:false,write:false,observe:false,clear:false}
-        :{...oldSite,[request.cookieCapability]:request.enabled};
+        ?{...oldSite,valueConsent:request.enabled&&tool.capabilities.includes('browser.cookies.values'),
+          ...Object.fromEntries(['read','values','write','observe','clear'].map(cap=>
+            [cap,request.enabled&&tool.capabilities.includes('browser.cookies.'+cap)]))}
+        :{...oldSite,[request.cookieCapability]:request.enabled,
+          ...(request.cookieCapability==='values'?{valueConsent:request.enabled}:{})};
       saved[tool.id]={...old,cookieSites:{...old.cookieSites,[site]:{
-        ...next,storeId:'0',grantEpoch:'r537-'+calls.length}}};
+        ...next,storeId:'0',partitionKey:{topLevelSite:request.document?.origin||site},
+        grantEpoch:'r537-'+calls.length}}};
     }
     store.set(BROWSER_MENU_GRANTS_STORE,saved);
     return {ok:true,data:{enabled:request.enabled}};
   };
 }
+for(const scenario of ['official-ungranted','site-ungranted','separate-values','official-partial','official-granted'])
+test('R-FINAL T2 Cookie direct settings consent disclosure '+scenario,async t=>{
+  const official=await officialToolFixture('cookie-editor'),target=cookieTestTarget();
+  const extraValues=scenario==='separate-values';
+  const allSites=scenario.startsWith('official-');
+  const tool=extraValues?{...official,id:'cookie-consent-test',capabilities:[
+    'browser.cookies.read','browser.cookies.write','browser.cookies.values'
+  ]}:allSites?official:{...official,js:official.js+'\nvoid 0;'};
+  const complete={storeId:'0',grantEpoch:'r-final-consent',read:true,values:true,
+    valueConsent:true,write:true,observe:true,clear:true};
+  const grant=scenario==='official-granted'?complete:scenario==='official-partial'?
+    {...complete,values:false,valueConsent:false,write:false,observe:false,clear:false}:null;
+  const store=allSites?await verifiedCookieStore(tool,grant):new Map([[SIDEBAR_TOOL_STORE,[tool]]]);
+  const before=structuredClone([...store]);let requests=0,writes=0;
+  const f=await hostFixture(t,{tool,store,target,startTool:false,
+    chromePermissions:{async contains(){return true;},async request(){requests++;return true;}},
+    setHook:async()=>{writes++;}});
+  assert.equal(f.host.openSettings(tool.id),true);
+  const fields=f.elements,help=fields['sidebar-tool-cookie-help'],button=fields['sidebar-tool-cookie-site-toggle'];
+  await settle(()=>!button.disabled);
+  assert.equal(fields['sidebar-tool-cookie-permissions'].hidden,false);
+  assert.equal(fields['sidebar-tool-settings-view'].hidden,false);
+  assert.equal(f.runtime.frameRoot.children.length,0,'direct management must not execute the package');
+  if(scenario==='official-granted'){
+    assert.equal(help.hidden,true,'complete grant keeps settings compact');
+    assert.equal(button.textContent,'撤销授权');
+    assert.match(fields['sidebar-tool-cookie-target'].textContent,/已授权/);
+  }else{
+    assert.equal(help.hidden,false,'ungranted or partial consent must remain visible in direct settings');
+    assert.ok(help.textContent.includes(allSites?'所有普通 HTTP/HTTPS 网站':target.capture().origin),
+      'explain the actual all-site or exact-site scope before consent');
+    assert.ok(help.textContent.includes('读取 Cookie 元数据'));
+    assert.ok(help.textContent.includes('新建、编辑及删除'));
+    if(!extraValues){
+      for(const label of ['查看 Cookie 值','短时观察变化','清理当前主机'])
+        assert.ok(help.textContent.includes(label),'disclose requested capability: '+label);
+    }else{
+      assert.match(help.textContent,/敏感值.*单独授权/,'values are a separate decision for a generic Cookie tool');
+      assert.equal(fields['sidebar-tool-cookie-values-toggle'].hidden,true,
+        'values cannot be granted before the base website decision');
+    }
+    if(!allSites)assert.equal(help.textContent.includes('允许管理所有普通 HTTP/HTTPS 网站'),false,
+      'unverified or generic packages cannot advertise all-site consent');
+    if(scenario==='official-partial'){
+      assert.match(help.textContent,/不完整|补全/);
+      assert.match(button.textContent,/补全/,'partial metadata cannot be mistaken for complete consent');
+    }
+  }
+  assert.equal(requests,0,'opening settings cannot request Chrome access');
+  assert.equal(writes,0,'consent disclosure must not mint any grant');
+  assert.deepEqual([...store],before);
+});
+
 function cookieTestLocation(t){
   const old=globalThis.location;
   globalThis.location={href:'chrome-extension://test/sidepanel.html?hostInstanceId='+
@@ -2770,10 +2997,10 @@ test('R5.38 forged clear size or revoked site grant never falls through to a dup
   assert.equal(f.elements['sidebar-tool-action-review'].hidden,true);
 });
 
-test('R5.37 development Cookie package grants current site after Chrome permission, never all sites or values',async t=>{
+test('R5.37 development Cookie package grants declared capabilities for current site, never all sites',async t=>{
   cookieTestLocation(t);
   const official=await officialToolFixture('cookie-editor');
-  const tool={...official,js:official.js+'\\nvoid 0;'},target=cookieTestTarget(),origin=target.capture().origin;
+  const tool={...official,js:official.js+'\nvoid 0;'},target=cookieTestTarget(),origin=target.capture().origin;
   const store=new Map([[SIDEBAR_TOOL_STORE,[tool]]]);
   const chrome=cookieChromeFixture(),hostCalls=[];
   const f=await hostFixture(t,{tool,store,target,chromePermissions:chrome.permissions,
@@ -2786,16 +3013,18 @@ test('R5.37 development Cookie package grants current site after Chrome permissi
   await settle(()=>f.elements['sidebar-tool-frame'].hidden===false);
   assert.equal(chrome.requests.length,1,'missing Chrome website permission is requested in the click');
   assert.deepEqual(chrome.requests[0],{origins:['https://cookie-r537.example/*']});
-  assert.equal(hostCalls.length,4,'ordinary read/write/observe/clear share one explicit site decision');
-  assert.ok(hostCalls.every(call=>call.scope===undefined&&call.cookieCapability!=='values'),
-    'neither all-site nor sensitive values can be upgraded by a same-ID development package');
-  assert.equal(store.get(BROWSER_MENU_GRANTS_STORE)[tool.id].cookieSites[origin].values,undefined);
+  assert.equal(hostCalls.length,1,'Cookie Editor complete consent is one exact-site decision');
+  assert.equal(hostCalls[0].scope,undefined,'unverified bytes cannot acquire all-site consent');
+  assert.equal(hostCalls[0].cookieCapability,'all');
+  const saved=store.get(BROWSER_MENU_GRANTS_STORE)[tool.id];
+  assert.equal(saved.cookieAllSites,undefined);
+  assert.equal(saved.cookieSites[origin].valueConsent,true);
+  assert.equal(saved.cookieSites[origin].partitionKey.topLevelSite,origin);
+  for(const cap of ['read','values','write','observe','clear'])
+    assert.equal(saved.cookieSites[origin][cap],true,'explicit complete consent includes '+cap);
   assert.equal(f.host.openSettings(tool.id),true);
-  await settle(()=>!f.elements['sidebar-tool-cookie-values-toggle'].hidden&&
-    !f.elements['sidebar-tool-cookie-values-toggle'].disabled);
-  f.emit(f.elements['sidebar-tool-cookie-values-toggle'],'click',{isTrusted:true});
-  await settle(()=>store.get(BROWSER_MENU_GRANTS_STORE)?.[tool.id]?.cookieSites?.[origin]?.values===true);
-  assert.equal(hostCalls.at(-1).cookieCapability,'values','sensitive values require their own trusted click');
+  assert.equal(f.elements['sidebar-tool-cookie-values-toggle'].hidden,true,
+    'Cookie Editor has one complete consent rather than a duplicate values action');
 });
 
 test('R5.37 verified official Cookie Editor requests missing Chrome all-site access and resumes UI',async t=>{
@@ -2814,7 +3043,9 @@ test('R5.37 verified official Cookie Editor requests missing Chrome all-site acc
   assert.deepEqual(chrome.requests[0],{origins:['http://*/*','https://*/*']});
   assert.equal(hostCalls.length,1);
   assert.equal(hostCalls[0].scope,'all-http-sites');
-  assert.equal(store.get(BROWSER_MENU_GRANTS_STORE)[tool.id].cookieAllSites.values,false);
+  const grant=store.get(BROWSER_MENU_GRANTS_STORE)[tool.id].cookieAllSites;
+  assert.equal(grant.values,true,'declared values are included in explicit complete consent');
+  assert.equal(grant.valueConsent,true,'values require the persisted consent receipt');
 });
 
 test('R5.37 denied Chrome permission retains first-use and never creates a false Host grant',async t=>{
@@ -2836,7 +3067,8 @@ test('R5.37 denied Chrome permission retains first-use and never creates a false
 
 test('R5.25 Cookie Editor settings keeps one live sandbox through ten returns and unsaved edits',async t=>{
   const tool=await officialToolFixture('cookie-editor');
-  const baseGrant={storeId:'0',grantEpoch:'r525-fixture',read:true,write:true,observe:true,clear:true};
+  const baseGrant={storeId:'0',grantEpoch:'r525-fixture',read:true,values:true,valueConsent:true,
+    write:true,observe:true,clear:true};
   const store=await verifiedCookieStore(tool,baseGrant);
   const f=await hostFixture(t,{tool,store}),original=f.frame;
   assert.ok(original,'installed Cookie Editor mounts its official iframe');
@@ -2863,7 +3095,8 @@ test('R5.25 Cookie Editor settings keeps one live sandbox through ten returns an
 test('R5.25 Extension Center direct settings returns to an available Cookie Editor workspace',async t=>{
   const tool=await officialToolFixture('cookie-editor');
   const store=await verifiedCookieStore(tool,
-    {storeId:'0',grantEpoch:'r525-fixture',read:true,write:true,observe:true,clear:true});
+    {storeId:'0',grantEpoch:'r525-fixture',read:true,values:true,valueConsent:true,
+      write:true,observe:true,clear:true});
   const f=await hostFixture(t,{tool,store,startTool:false});
   assert.equal(f.runtime.frameRoot.children.length,0);
   assert.equal(f.host.openSettings(tool.id),true);
@@ -2882,9 +3115,39 @@ test('R5.25 Extension Center direct settings returns to an available Cookie Edit
   assert.equal(f.runtime.frameRoot.children.length,0);
 });
 
+test('R-FINAL T2 disabled official Cookie direct settings retains all-site consent without actions',async t=>{
+  const tool=await officialToolFixture('cookie-editor'),target=cookieTestTarget();
+  const grant={storeId:'0',grantEpoch:'disabled-official-consent',read:true,values:true,
+    valueConsent:true,write:true,observe:true,clear:true};
+  const store=await verifiedCookieStore(tool,grant,[[SIDEBAR_TOOL_ENABLE_STORE,{[tool.id]:false}]]);
+  const before=structuredClone([...store]),operations=[];let writes=0,permissionRequests=0;
+  const f=await hostFixture(t,{tool,store,target,startTool:false,
+    setHook:async()=>{writes++;},
+    chromePermissions:{async contains(){return true;},async request(){permissionRequests++;return true;}},
+    hostReply:async message=>{operations.push(message);}});
+  assert.equal(f.host.openSettings(tool.id),true);
+  const fields=f.elements,button=fields['sidebar-tool-cookie-site-toggle'];
+  await settle(()=>button.textContent==='撤销授权');
+  assert.equal(fields['sidebar-tool-cookie-permissions'].hidden,false);
+  assert.equal(fields['sidebar-tool-settings-view'].hidden,false);
+  assert.match(fields['sidebar-tool-cookie-target'].textContent,/已授权/,
+    'preserved all-site consent remains recognized when official app is disabled');
+  assert.equal(button.attributes['data-enabled'],'true');
+  assert.equal(button.disabled,true,'recognizing consent cannot allow grant or revoke while stopped');
+  assert.equal(fields['sidebar-tool-cookie-values-toggle'].hidden,true,'no duplicate consent action');
+  assert.equal(fields['sidebar-tool-cookie-help'].hidden,true,'no false unverified or ungranted warning');
+  assert.equal(fields['sidebar-tool-enable'].attributes['aria-checked'],'false');
+  assert.equal(f.runtime.frameRoot.children.length,0);
+  assert.equal(permissionRequests,0);
+  assert.equal(operations.length,0,'direct settings must not send grant, revoke or Cookie operations');
+  assert.equal(writes,0);
+  assert.deepEqual([...store],before,'all-site receipt must be preserved byte-for-byte');
+});
+
 test('R5.26 disabled Cookie Editor direct settings can re-enable without auto-mount or data loss',async t=>{
   const tool=await officialToolFixture('cookie-editor');
-  const baseGrant={storeId:'0',grantEpoch:'r526-fixture',read:true,write:true,observe:true,clear:true};
+  const baseGrant={storeId:'0',grantEpoch:'r526-fixture',read:true,values:true,valueConsent:true,
+    write:true,observe:true,clear:true};
   const key=sidebarToolStorageKey(tool.id),userData={draft:'retain-on-enable'};
   const store=await verifiedCookieStore(tool,baseGrant,[
     [SIDEBAR_TOOL_ENABLE_STORE,{[tool.id]:false}],[key,userData]
@@ -2915,17 +3178,19 @@ test('R5.26 disabled Cookie Editor direct settings can re-enable without auto-mo
   await settle(()=>!f.elements['sidebar-tool-frame'].hidden);
 });
 
-test('R5.25 Cookie grant revocation hides the prior iframe instead of exposing stale metadata',async t=>{
+test('R5.25 Cookie grant revocation destroys the prior iframe instead of exposing stale metadata',async t=>{
   const tool=await officialToolFixture('cookie-editor');
   const saved={version:tool.version,installEpoch:null,
-    cookieAllSites:{storeId:'0',grantEpoch:'r525-fixture',read:true,write:true,observe:true,clear:true}};
+    cookieAllSites:{storeId:'0',grantEpoch:'r525-fixture',read:true,values:true,valueConsent:true,
+      write:true,observe:true,clear:true}};
   const store=await verifiedCookieStore(tool,saved.cookieAllSites);
   const f=await hostFixture(t,{tool,store}),frame=f.frame;
   await settle(()=>!f.elements['sidebar-tool-frame'].hidden);
-  const revoked={...saved,cookieAllSites:null};
+  const revoked={...store.get(BROWSER_MENU_GRANTS_STORE)[tool.id],cookieAllSites:null};
   f.store.set(BROWSER_MENU_GRANTS_STORE,{[tool.id]:revoked});
   f.changeStorage({[BROWSER_MENU_GRANTS_STORE]:{newValue:{[tool.id]:revoked}}});
   assert.equal(f.elements['sidebar-tool-frame'].hidden,true,'revoked grants conceal the live Cookie tree');
   assert.equal(f.elements['sidebar-tool-cookie-permissions'].hidden,false);
-  assert.equal(f.runtime.frameRoot.children[0],frame,'navigation still retains the correct installed instance');
+  assert.equal(f.runtime.frameRoot.children.length,0,'revocation must destroy the old execution instance');
+  assert.equal(frame.onload,null,'retired iframe cannot load again');
 });

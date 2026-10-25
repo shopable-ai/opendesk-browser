@@ -32,8 +32,8 @@ export function createClipperPreview({view,stage,doc=document,onUninstall=()=>{}
       data:{mode:firstUse?'first-use':'settings',isCookieEditor:cookie}});
     patch('cookie-heading',{textContent:firstUse?'Cookie 访问授权':'Cookie 访问'});
     patch('cookie-target',{hidden:firstUse,textContent:'当前网站：example.invalid · '+(memory.grant?'已授权':'未授权')});
-    patch('cookie-help',{hidden:!firstUse,textContent:firstUse?
-      '本演示展示首次授权审阅：真实版本将说明网站范围与 Cookie 操作能力，并要求 Chrome 授权。':''});
+    patch('cookie-help',{hidden:memory.grant,textContent:!memory.grant?
+      '仅预览：允许管理所有普通 HTTP/HTTPS 网站的 Cookie，包括读取 Cookie 元数据、查看 Cookie 值、新建、编辑及删除、短时观察变化、清理当前主机。全站授权适用于所有普通 HTTP/HTTPS 网站；单站授权仅适用于明确选择的网站。真实授权仍需通过 Chrome 及原有权限审阅。':''});
     patch('cookie-first-use',{hidden:false});
     patch('cookie-site-toggle',{disabled:!memory.enabled,
       textContent:memory.grant?'撤销授权':firstUse?'允许管理网站 Cookie':'授权访问'});

@@ -16,6 +16,8 @@ export function ToolHost({view}) {
   const secondaryAction = snapshot.fields['sidebar-tool-secondary-action']?.data?.action || '';
   const managementActionsVisible=['sidebar-tool-settings-open','sidebar-tool-remove']
     .some(id=>snapshot.fields[id]?.hidden===false);
+  const siteShortcutsVisible=['sidebar-tool-visibility','sidebar-tool-context-menu']
+    .some(id=>snapshot.fields[id]?.hidden===false);
   // Tool enable/disable is only reachable from trusted Settings, not header actions.
   const cookieFirstUse=snapshot.fields['sidebar-tool-cookie-permissions']?.data?.mode==='first-use';
   const permissionVisible=snapshot.fields['sidebar-tool-bookmark-permissions']?.hidden===false||
@@ -362,7 +364,7 @@ export function ToolHost({view}) {
 <ToolField as="p" id="sidebar-tool-settings-hint" className="sidebar-toc-settings-hint" role="status">
 
 </ToolField>
-<div className="sidebar-tool-site-shortcuts" role="group" aria-label="网页增强操作">
+<div className="sidebar-tool-site-shortcuts" role="group" aria-label="网页增强操作" hidden={!siteShortcutsVisible}>
 <ToolField as="button" type="button" id="sidebar-tool-visibility" className="sidebar-tool-icon-action od-icon-button"
   title="显示或隐藏此网站的悬浮目录" aria-label="显示或隐藏此网站的悬浮目录" aria-pressed="true" hidden={true}>
   <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8">

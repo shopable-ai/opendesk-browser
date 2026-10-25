@@ -411,7 +411,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     cookieAdmissionState=null;cookieAdmissionHash=null;
     void (async()=>{
       const hash=await sidebarToolPackageHash(tool);
-      const admitted=Boolean(release&&await admittedOfficialCookieImport(tool,epoch));
+      // Settings describe retained grants even while the tool is stopped.
+      // Executing Cookie operations still requires the default enabled check.
+      const admitted=Boolean(release&&await admittedOfficialCookieImport(tool,epoch,{requireEnabled:false}));
       if(disposed||ticket!==cookieAdmissionTicket)return;
       cookieAdmissionHash=hash;cookieAdmissionState=admitted;render();
     })().catch(()=>{
@@ -514,7 +516,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const allowed=allSites?globalAllowed:siteAllowed;
     const granted=requested.filter(([cap])=>record?.[cap]===true);
     const partial=Boolean(record?.storeId&&record.grantEpoch&&granted.length&&!allowed);
-    const scope=allSites?'所有普通 HTTP/HTTPS 网站':'当前网站 '+origin;
+    const scope=allSites?'所有普通 HTTP/HTTPS 网站':origin?'当前网站 '+origin:'明确选择的网站';
     const description='允许管理'+scope+'的 Cookie，包括'+requested.map(([,label])=>label).join('、')+
       '。授权可随时撤销。';
     patchToolField(view,cookieHeading,{textContent:firstUse?
@@ -524,13 +526,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       '当前网站：'+origin+(allowed?' · 已授权':partial?' · 部分授权':' · 未授权'):
       '请选择普通 HTTP(S) 网页'});
     const chromeMissing=allowed&&cookieChromeState?.granted===false;
-    const cookieHelpText=!firstUse&&!officialPending?
+    const cookieHelpText=allowed&&!officialPending?
       !origin?'请选择普通 HTTP/HTTPS 网站':partial?'授权不完整，请补全 Cookie 管理权限。':
         chromeMissing?'Chrome 网站权限已撤销，请恢复访问。':
           !cookieChromeState?'Chrome 权限状态尚未确认，请检查权限或重新打开设置。':''
-      :officialPending?'正在核验当前安装包及官方发行来源，请勿重复授权。':!origin?
-      '请先打开普通 HTTP/HTTPS 网站，再管理 Cookie 授权。':
+      :officialPending?'正在核验当前安装包及官方发行来源，请勿重复授权。':
+      (!origin?'请先打开普通 HTTP/HTTPS 网站，再管理 Cookie 授权。':'')+
       (partial?'此前授权不完整。':'')+description+
+      '全站授权适用于所有普通 HTTP/HTTPS 网站；单站授权仅适用于明确选择的网站。'+
       (tool.id!=='cookie-editor'&&tool.capabilities.includes('browser.cookies.values')?
         ' 敏感值读取仍由原有可信设置单独授权。':'')+
       (!allSites&&tool?.id==='cookie-editor'?
@@ -764,7 +767,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const toolById=id=>installed.find(row=>row.id===id);
   // A matching ID or user-supplied hash alone NEVER grants silent writes.
   // Bind to the installed, enabled, signed-off official release and epoch.
-  async function admittedOfficialCookieImport(tool,expectedEpoch){
+  async function admittedOfficialCookieImport(tool,expectedEpoch,{requireEnabled=true}={}){
     if(tool?.id!=='cookie-editor'||!tool.capabilities?.includes('browser.cookies.write'))
       return false;
     const release=officialReleases.find(row=>row.toolId==='cookie-editor');
@@ -776,7 +779,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const grant=state[MARKET_PROVENANCE_STORE]?.[tool.id];
     const enabled=sidebarToolEnabled(state[SIDEBAR_TOOL_ENABLE_STORE],tool.id);
     const epoch=state[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null;
-    return installed&&enabled&&epoch===expectedEpoch&&
+    return installed&&(!requireEnabled||enabled)&&epoch===expectedEpoch&&
       grant?.marketId===release.id&&grant?.version===release.version&&
       grant?.sha256===release.sha256&&await matchesOfficialRelease(release,tool);
   }
@@ -3969,7 +3972,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   // The Extension Center overflow and this settings button share one guarded lifecycle.
   // Never expose the raw storage mutation to a presentation caller.
   async function toggleEnabled(id,event){
-    if(!event?.isTrusted||disposed||busy||!visible||enableReadError||toolSaving)return false;
+    if(!event?.isTrusted||disposed||busy||!visible||enableReadError||enableRecordsLoading||toolSaving)return false;
     const tool=toolById(id);
     if(!tool||readOnlyPreview&&active?.id===id){
       notice('工具不可用，请刷新扩展列表。',true);return false;
@@ -3979,7 +3982,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const apply=async()=>{
       // The user might confirm discarding a draft after a newer install, update
       // or state change. Lock down all original assumptions before the mutation.
-      if(disposed||busy||toolSaving||!visible||enableReadError||
+      if(disposed||busy||toolSaving||!visible||enableReadError||enableRecordsLoading||
         !samePackage(toolById(id),tool)||active?.id!==activeId||
         (activeId===id&&instance!==session)||
         sidebarToolEnabled(enableRecords,id)!==wasEnabled){
@@ -3997,6 +4000,18 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           '阅读目录已恢复；符合条件的网页会自动显示目录。':
           '应用已恢复使用；可按需打开界面。'):'已停用；数据和授权保留');
         return true;
+      }catch(error){
+        // Every entry point, including the Extension Center row action, must
+        // quarantine an uncertain write before allowing another mutation.
+        enableReadError=true;
+        if(active&&!readOnlyPreview){
+          if(toolDirty||toolSaving||knowledgeDirty)
+            recoverableDrafts.set(active.id,frameDraft||'未收到可恢复的表单内容；工具已安全停止。');
+          destroyFrame();toolDirty=false;toolSaving=false;knowledgeDirty=false;tocSettingsOpen=true;
+        }
+        notice('启停结果未确认，请重新读取状态后再操作。'+
+          (error?.code||'E_TOOL')+'：'+String(error?.message||error).slice(0,180),true);
+        return false;
       }finally{busy=false;render();}
     };
     // Changing another tool never discards the current tool's unsaved draft.
@@ -4004,19 +4019,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     return apply();
   }
   if(enableButton)listen(enableButton,'click',event=>{
-    void toggleEnabled(active?.id,event).catch(error=>{
-      // A failed write may already have taken effect. Block another toggle
-      // until the trusted store is read back; never optimistically replay it.
-      enableReadError=true;
-      if(active&&!readOnlyPreview){
-        if(toolDirty||toolSaving||knowledgeDirty)
-          recoverableDrafts.set(active.id,frameDraft||'未收到可恢复的表单内容；工具已安全停止。');
-        destroyFrame();toolDirty=false;toolSaving=false;knowledgeDirty=false;tocSettingsOpen=true;
-      }
-      render();
-      notice('启停结果未确认，请重新读取状态后再操作。'+
-        (error?.code||'E_TOOL')+'：'+String(error?.message||error).slice(0,180),true);
-    });
+    void toggleEnabled(active?.id,event);
   });
   if(enableRetry)listen(enableRetry,'click',event=>{
     if(event?.isTrusted!==true||disposed||!visible||!active||readOnlyPreview||

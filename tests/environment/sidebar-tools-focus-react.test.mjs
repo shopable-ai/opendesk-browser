@@ -42,6 +42,7 @@ describe('IR02 tool return focus after the actual React visibility commit',{
       import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE} from './src/ui/sidebar-tools/package.js';
       (${fixture.toString()})().catch(error=>{window.fixtureError=String(error.stack);});`,
       resolveDir:new URL('../../',import.meta.url).pathname,loader:'tsx'},bundle:true,write:false,
+      outfile:'focus-return-fixture.js',
       format:'esm',platform:'browser',target:'es2022',logLevel:'silent',plugins:[{name:'raw-css',setup(builder){
         builder.onResolve({filter:/\.css\?raw$/},args=>({path:path.resolve(args.resolveDir,args.path)}));
         builder.onLoad({filter:/\.css\?raw$/},async args=>({contents:await readFile(args.path.slice(0,-4),'utf8'),loader:'text'}));
@@ -53,7 +54,7 @@ describe('IR02 tool return focus after the actual React visibility commit',{
       res.setHeader('Content-Type',script?'text/javascript':style?'text/css':catalog?'application/json':'text/html');
       // Chrome's manifest sandbox supplies the opaque origin in production.
       if(req.url.includes('sandbox.html'))res.setHeader('Content-Security-Policy','sandbox allow-scripts');
-      res.end(script?bundled.outputFiles[0].text:style?css:catalog?JSON.stringify({schema:'opendesk.official-tools.releases.v1',
+      res.end(script?bundled.outputFiles.find(file=>file.path.endsWith('.js')).text:style?css+bundled.outputFiles.filter(file=>file.path.endsWith('.css')).map(file=>file.text).join('\n'):catalog?JSON.stringify({schema:'opendesk.official-tools.releases.v1',
         sourceRepository:'https://github.com/shopable-ai/opendesk-browser',apps:[]}):req.url.includes('sandbox.html')?
         '<!doctype html><script>addEventListener("message",event=>{if(event.data.kind==="load")window.toolInit=event.data;if(event.data.requestId==="dirty-observed")window.dirtyAck=true;});</script><main>Sandbox fixture</main>':
         '<!doctype html><html lang="zh-CN" data-opendesk-tab="tools"><head><link rel="stylesheet" href="/style.css"></head><body><div id="opendesk-react-app"></div><script type="module" src="/app.js"></script></body></html>');
