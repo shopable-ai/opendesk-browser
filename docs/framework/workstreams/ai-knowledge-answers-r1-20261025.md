@@ -18,13 +18,13 @@ node --check examples/sidebar-tools/ai-knowledge-answers/src/main.js
 node --check src/ui/trusted-knowledge-admission.js
 ```
 
-合并前 54/54 PASS，日志 `artifacts/sidebar-tools/ai-knowledge-answers/core-r12.log`；合并后增补保护测试，最终 **55/55 PASS**，日志 `artifacts/sidebar-tools/ai-knowledge-answers/core-r12-integrated.log`，摘要 `core-r12-integrated.json`。新增组件测试执行真实 main.js/model.js，内存 Host 保存 → 独立读回 → 重挂载 → 同义固定回答，核对保存时产生的知识 ID；非精确检索仅列候选，无依据返回 NO_MATCH。另测未保存返回取消、写入回执丢失后禁止第二次写入和导航、主动重新读取后恢复。并行本地测试模块接线存在时，普通手动问答、取消、失效和关闭均不触发网站 IO。Provider/Host 集成仍为 fake transport；未重跑无变更的共享消费者整组或相同 backend 请求，复用下方原始证据。
+合并前 54/54 PASS，日志 `artifacts/sidebar-tools/ai-knowledge-answers/core-r12.log`；第一次合并后 55/55 PASS，保留 `core-r12-integrated.log/json`。合入远端 306a8dcfd 后最终 **58/58 PASS**，日志 `artifacts/sidebar-tools/ai-knowledge-answers/core-r12-delivery.log`，摘要 `core-r12-delivery.json`；新增可信 Workspace JSX 转换检查通过，未构建整个扩展或执行网站功能。新增组件测试执行真实 main.js/model.js，内存 Host 保存 → 独立读回 → 重挂载 → 同义固定回答，核对保存时产生的知识 ID；非精确检索仅列候选，无依据返回 NO_MATCH。另测未保存返回取消、写入回执丢失后禁止第二次写入和导航、主动重新读取后恢复，以及修改问题清除准备后迟到回答失效。并行本地测试模块接线存在时，普通手动问答、取消、失效和关闭均不触发网站 IO。Provider/Host 集成仍为 fake transport；未重跑无变更的共享消费者整组或相同 backend 请求，复用下方原始证据。
 
 唯一正式包按合并后源码经原构建器 `--out` → 相关门禁 → `--promote-from` → `--check-project` 均成功：版本 **0.1.2**，**51,906 字节**，SHA-256 `411a97befff3d26bb3b06fbc8a655a7b14f3bfb6baedc37d0b6100db2732ff41`。合并前 51,556 字节及 `cdee2f9b…cff08a4` 仅为历史证据，完整摘要保留在 `core-r12.json`，不再代表当前包。已有 watcher 自行生成的磁盘 Catalog/包已只读核对，版本、大小和摘要均一致；未由本轮另行写入 dist。Chrome 实际加载、serve 客户端连接和可信 bundle 生效仍未实读，不能从磁盘一致提升为原生 PASS。
 
 持续开发输出仍为 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development`，既有 writer PID 69819 存活；不启动第二 writer，不写其输出。Chrome 库存仅证明有对应 ID 的扩展标签页，不能证明加载路径、连接和安装；当前文档没有说明此前拒绝已解除，未再次访问受拒 URL，也不使用其他表面/CDP 绕过。Native 配对、其他工具和网站发送均不操作。新增 local-test-adapter 及 HTTP 原型保留，不用于替代原生闭环。
 
-期间快进同步 dd0125e89，推送前再合并远端 f2faa82ad：保留 0b51d45bd/d98c66aac 的本地测试 Host 接线及 f2faa82ad 的未知写入恢复、初始视图提示修复。其网站操作不属本轮，未启动、未执行；只验证新增依赖在手动问答路径保持 idle。候选写入与组件验证资源已 released；没有取得或占用 Chrome Profile，原 watcher 保持原 owner。当前仍停在官方安装这一首个未验证步骤，后续真实保存重开、可信 Send 和原生取消/撤权/断线/知识更新保护均 NOT_TESTED。移交记录中的原对话 goal 实读为 blocked，本轮未迁移或更改它，也未创建并列总 GOAL。
+期间快进同步 dd0125e89，推送前依次合并远端 f2faa82ad、306a8dcfd：保留本地测试 Host 接线、未知写入恢复、初始视图提示修复，以及后续可信 Workspace/CSS、clearPrepared 和并行 UI 测试、参考原型与工作记录。仅文档历史 goal 描述冲突，保留本轮实读状态，并将旧 UI 证据标为历史观察。其网站操作不属本轮，未启动、未执行；只验证新增依赖在手动问答路径保持 idle。候选写入与组件验证资源已 released；没有取得或占用 Chrome Profile，原 watcher 保持原 owner。当前仍停在官方安装这一首个未验证步骤，后续真实保存重开、可信 Send 和原生取消/撤权/断线/知识更新保护均 NOT_TESTED。移交记录中的原对话 goal 实读为 blocked，本轮未迁移或更改它，也未创建并列总 GOAL。
 
 ## 用户操作与状态
 
@@ -116,3 +116,32 @@ OPENDESK_KB_EVIDENCE=/Users/shopme/Documents/workspace/opendesk-browser/artifact
 真实 Mac Chrome 中，通过扩展官方目录审阅并安装/更新本候选 → 新建测试知识并保存 → 关闭重开确认保留 → 同义固定回答 → 非精确问题准备并真实 Send → 核对 sourceIds/人工审阅及错误恢复。纯文件导入没有官方 provenance 时保持受限，不改写来源记录绕过。
 
 只有该链及受影响的原生取消、撤权、更新、断线验证完成才可宣告 MVP。原始 Codex goal 移交时实读为 blocked，本轮未改变，未因交付候选伪报 complete。网站阶段还需站点许可、精确页面身份、读取/草稿/发送确认与未知结果保护的独立设计和实测；保留 answer/sourceIds/needsHuman/status、取消及会话身份合同，不复制队列。
+
+
+## R2 UI 并行工作记录（2026-10-26）— 问答优先、知识列表/编辑互斥
+
+以下为并行 UI 工作的原观察；当前完整 Node 结果、包身份和未验证操作以上方续接记录为准，不恢复已延期的网站操作或宽度专项。
+
+本轮保留原产品目标：AI 依据真实知识回答，未来在获批准的站点自动回复。用户指出 R1 的查询、横向芯片、编辑大表单在同一侧栏纵向堆叠。参考 cool-admin-vue 的搜索工具栏/列表/upsert 信息架构，不引入 Vue、PC 表格、侧边抽屉或第二套 Host。
+
+本轮修改的业务文件：
+- examples/sidebar-tools/ai-knowledge-answers/src/index.html
+- examples/sidebar-tools/ai-knowledge-answers/src/style.css
+- examples/sidebar-tools/ai-knowledge-answers/src/main.js
+
+分别建立：
+- 默认「问答」：仅问题、可选范围、回答状态及来源。
+- 「知识」：搜索、启停筛选、纵向摘要、点击条目进入编辑、导入导出次级入口。
+- 「新建/编辑」：问题/答案优先，其余折叠；保存读回、返回未保存保护、删除确认。
+- UNKNOWN 写入只能由显式刷新重新核对，不能通过切换视图清除或冒充核对。
+
+新增：
+- examples/sidebar-tools/ai-knowledge-answers/fixtures/sample-knowledge.json（14 条演示规则、每库低于 8 KiB）
+- examples/sidebar-tools/ai-knowledge-answers/preview/index.html（经 HTTP 加载原正式 HTML/CSS/model/main，唯独模拟 Host Storage）
+- tests/environment/ai-knowledge-answers-ui-r2.test.mjs（源码结构、调用和权限静态合同）
+
+本轮事实级证据：V8 解析通过；48 个 DOM ID 无重复，业务代码引用均存在；测试知识经真实模型校验，固定问答与未知问题可区分。单文件聊天内独立 UX 演示在当前环境 Chromium 完成问答、搜索、模拟保存、未保存离开确认和 320/360/400/440 宽度无演示内容横向溢出。该独立 UX 演示不是 source-linked preview 的真实 Chrome 执行，更不是 Mac Chrome 正式安装测试。
+
+该并行记录当时 NOT_TESTED：真实原源码加载及完整 Node 测试退出码、Mac Chrome 安装/重开、IME、暗色无障碍、Shared AI Provider、真实网页发送。完整 Node 结果已由上方本轮日志补证，其他边界保留。
+
+R2 UI 不能代替自动问答闭环。并行实现的本地测试适配与可信控件已保留；网站真实触发和读回仍属延期阶段。本轮下一条未验证操作仍为官方安装 → 保存重开 → 可信 Send，不重做 R2 列表/编辑 UI。

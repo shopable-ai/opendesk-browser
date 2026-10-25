@@ -29,6 +29,25 @@ test('R2 UI: host storage, model, permission restrictions remain unchanged',()=>
  assert.match(css,/@opendesk-shared-design/);
  assert.match(css,/min-width:0/);
 });
+test('R2 UI: lost-write recovery is an explicit read, not a tab-navigation claim',()=>{
+ const code=read('src/main.js');
+ assert.match(code,/if\(uncertain&&!recover\)/);
+ assert.match(code,/guard\(\(\)=>void load\(\),\{recover:true\}\)/);
+ assert.match(code,/load\(\{silent:true\}\)/);
+ assert.ok(code.includes("$('qa-delete').hidden"));
+});
+test('R2 UI: keyboard and confirmation controls exist without user-modal APIs',()=>{
+ const html=read('src/index.html');
+ assert.match(html,/role="tablist"/);
+ assert.match(html,/aria-selected="true"/);
+ assert.match(html,/aria-controls="qa-view-list"/);
+ assert.match(html,/aria-label="返回知识列表"/);
+ assert.match(html,/aria-labelledby="qa-review-message"/);
+ const code=read('src/main.js');
+ assert.match(code,/Escape/);
+ assert.match(code,/ArrowLeft/);
+ assert.doesNotMatch(code,/window\.alert|window\.confirm|window\.prompt/);
+});
 test('R2 UI: preview references actual source rather than duplicating business implementation',()=>{
  const preview=read('preview/index.html');
  for(const name of ['../src/index.html','../src/style.css','../src/main.js','../src/model.js'])

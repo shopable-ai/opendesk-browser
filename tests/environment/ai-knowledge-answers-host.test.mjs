@@ -73,6 +73,7 @@ test('fake integration: available local test dependencies stay idle throughout m
   assert.equal(h.host.snapshot().test.mode,'idle');
   await h.host.prepare({question:'多久可以退款'});
   assert.equal((await h.host.send({event:trusted})).status,'ANSWERED_FIXED');
+  h.host.clearPrepared();assert.equal(h.host.snapshot().prepared,null);
   await h.host.prepare({question:'退款需要多少天？'});
   assert.equal((await h.host.send({event:trusted,approved:true})).status,'REVIEW_REQUIRED');
   await h.host.cancel();h.invalidate();h.host.dispose();await tick();
@@ -84,13 +85,14 @@ test('fake integration: install read authority and unsaved knowledge block prepa
   const other=setup(t);other.disable();
   await assert.rejects(other.host.prepare({question:'退款'}),{code:'E_TOOL_CHANGED'});
 });
-for(const trigger of ['invalidate','revoke','provider','cancel'])test(`fake integration: ${trigger} drops late answer and requires fresh preparation`,async t=>{
+for(const trigger of ['invalidate','revoke','provider','cancel','clearPrepared'])test(`fake integration: ${trigger} drops late answer and requires fresh preparation`,async t=>{
   const wait=deferred(),h=setup(t,{transport:()=>wait.promise});
   await h.host.prepare({question:'退款需要多少天'});
   const pending=h.host.send({event:trusted,approved:true}),rejected=assert.rejects(pending);
   await tick();
   if(trigger==='provider')h.runtime.updateSettings({model:'changed'});
-  else if(trigger==='cancel')await h.host.cancel();else h[trigger]();
+  else if(trigger==='cancel')await h.host.cancel();
+  else if(trigger==='clearPrepared')h.host.clearPrepared();else h[trigger]();
   wait.resolve({proposal:{answer:'7天内可退款',sourceIds:[id],needsHuman:false}});
   await rejected;
   assert.equal(h.host.snapshot().result,null);assert.equal(h.host.snapshot().prepared,null);
