@@ -48,6 +48,7 @@ export function createClipperPreview({view,stage,doc=document,onUninstall=()=>{}
     patch('prompt-enable-label',{textContent:'启用工具'});
     patch('prompt-enable-description',{hidden:true});
     patch('toc-language',{hidden:true});
+    patch('settings-hint',{hidden:true,textContent:''});
     for(const field of ['generic-site-scope','generic-site-binary','generic-site-advanced',
       'visibility-settings','page-exceptions','visibility','context-menu','retired-draft'])
       if(view.fields['sidebar-tool-'+field])patch(field,{hidden:true});

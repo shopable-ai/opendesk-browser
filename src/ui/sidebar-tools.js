@@ -3979,6 +3979,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     const wasEnabled=sidebarToolEnabled(enableRecords,id),enabled=!wasEnabled;
     const session=instance,activeId=active?.id;
+    const restoreEnableFocus=event.target?.id===enableButton?.key;
     const apply=async()=>{
       // The user might confirm discarding a draft after a newer install, update
       // or state change. Lock down all original assumptions before the mutation.
@@ -4012,7 +4013,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         notice('启停结果未确认，请重新读取状态后再操作。'+
           (error?.code||'E_TOOL')+'：'+String(error?.message||error).slice(0,180),true);
         return false;
-      }finally{busy=false;render();}
+      }finally{
+        busy=false;render();
+        if(restoreEnableFocus&&!disposed&&visible&&active?.id===id&&tocSettingsOpen)
+          requestToolFieldEffect(view,enableReadError?enableRetry:enableButton,'focus',{preventScroll:true});
+      }
     };
     // Changing another tool never discards the current tool's unsaved draft.
     if(active?.id===id&&!canLeave(apply))return false;
@@ -4024,10 +4029,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   if(enableRetry)listen(enableRetry,'click',event=>{
     if(event?.isTrusted!==true||disposed||!visible||!active||readOnlyPreview||
       busy||toolSaving||enableRecordsLoading||!enableReadError)return;
+    const activeId=active.id;
     busy=true;render();
     void loadEnableRecords().then(()=>notice(''),error=>notice(
       '工具状态仍不可用：'+String(error?.message||error).slice(0,180),true))
-      .finally(()=>{busy=false;render();});
+      .finally(()=>{
+        busy=false;render();
+        if(!disposed&&visible&&active?.id===activeId&&tocSettingsOpen)
+          requestToolFieldEffect(view,enableReadError?enableRetry:enableButton,'focus',{preventScroll:true});
+      });
   });
   if(launchButton)listen(launchButton,'click',event=>{
     if(event?.isTrusted!==true)return;
