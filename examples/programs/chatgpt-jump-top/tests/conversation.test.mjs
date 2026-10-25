@@ -1184,3 +1184,55 @@ test('answer navigation precedes mindmap for either mount order and refresh repa
     assert.deepEqual(group.children, [host, peer]);
   }
 });
+
+
+test('new Scroll reply host keeps old Mind Map marker and yields immediately to old installed Page', t => {
+  const {doc, view, main, toolbar} = nativeMessages({assistant: true});
+  const owner = observerOwner();
+  const session = conversation.installJumpToTop({doc, win: view, owner,
+    regionDirections: {top: true, bottom: true}});
+  t.after(() => owner.dispose());
+  const modern = toolbar.querySelector('[data-opendesk-ai-scroll-navigation="reply"]');
+  assert.ok(modern?.isConnected);
+  assert.equal(modern.getAttribute('data-opendesk-chatgpt-jump-top'), 'host',
+    'older installed Mind Map can still recognize its independent peer');
+  assert.equal(conversation.legacyNavigationPresent(doc), false);
+  const button = modern.shadowRoot.querySelector('button');
+  const legacy = element({tag: 'span', parent: toolbar,
+    attributes: {'data-opendesk-chatgpt-jump-top': 'host'}});
+  legacy.attachShadow({mode: 'open'});
+  assert.equal(conversation.legacyNavigationPresent(doc), true);
+  const moves = main.calls.length;
+  owner.click(button);
+  assert.equal(main.calls.length, moves, 'old installed navigator fences a stale new click');
+  owner.emit({type: 'childList', target: toolbar, addedNodes: [legacy], removedNodes: []});
+  assert.equal(modern.isConnected, false, 'new program withdraws without removing old peer');
+  assert.equal(legacy.isConnected, true);
+  legacy.remove();
+  owner.emit({type: 'childList', target: toolbar, addedNodes: [], removedNodes: [legacy]});
+  owner.flush();
+  assert.equal(conversation.legacyNavigationPresent(doc), false);
+  assert.equal(toolbar.querySelectorAll('[data-opendesk-ai-scroll-navigation="reply"]').length, 1);
+  assert.equal(session.isMounted(), true, 'new navigator resumes only after old peer is gone');
+});
+
+test('two module-local Scroll owners use the first live same-key reply host', t => {
+  const {doc, view, rows: [{toolbar}]} = controlledEditors();
+  const incumbent = element({tag: 'span', parent: toolbar,
+    attributes: {'data-opendesk-chatgpt-jump-top': 'host',
+      'data-opendesk-ai-scroll-navigation': 'reply'}});
+  incumbent.attachShadow({mode: 'open'});
+  const owner = observerOwner();
+  const session = conversation.installJumpToTop({doc, win: view, owner,
+    regionDirections: {top: true, bottom: true}});
+  t.after(() => owner.dispose());
+  assert.equal(conversation.legacyNavigationPresent(doc), false);
+  assert.equal(toolbar.querySelectorAll('[data-opendesk-ai-scroll-navigation="reply"]').length, 1,
+    'second owner does not insert another live action bar');
+  assert.equal(session.isMounted(), false);
+  incumbent.remove();
+  owner.emit({type: 'childList', target: toolbar, addedNodes: [], removedNodes: [incumbent]});
+  owner.flush();
+  assert.equal(session.isMounted(), true);
+  assert.equal(toolbar.querySelectorAll('[data-opendesk-ai-scroll-navigation="reply"]').length, 1);
+});
