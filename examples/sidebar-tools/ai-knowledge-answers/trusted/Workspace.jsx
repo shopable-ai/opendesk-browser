@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 const labelStatus=status=>({
-  OBSERVED:'消息已接收',RETRIEVING:'正在检索',ANSWERED_FIXED:'固定回答',RETRIEVED_ONLY:'待 AI 生成',
+  OBSERVED:'消息已接收',RETRIEVING:'正在检索',GENERATING_AI:'AI 生成中',ANSWERED_FIXED:'固定回答',RETRIEVED_ONLY:'待 AI 生成',
   REVIEW_REQUIRED:'AI 草稿待审核',NO_MATCH:'无匹配知识',AMBIGUOUS:'来源冲突',
   INVALID_AI:'AI 来源无效',SENDING:'网页发送中',CONFIRMED:'DOM 已确认',
   ERROR:'处理失败',UNKNOWN:'结果未知',STALE:'已失效'
@@ -72,6 +72,15 @@ export default function KnowledgeWorkspace({host,onOpenSettings}){
           <div><strong>{test.confirmed}</strong><span>网页确认回复</span></div>
           <div><strong>{test.errors}</strong><span>异常 / 未知</span></div>
         </div>
+        {!test.autoAI&&<div className="od-knowledge-auto-ai">
+          <p className="od-note">额外批准后，定时到达的非精确问题可调用 <strong>{recipient.model||recipient.provider}</strong> 生成草稿。
+            只发送本轮命中的知识片段，最多 20 条、10 分钟；AI 草稿仍不自动发送。</p>
+          <button type="button" className="od-button" disabled={paused||state.busy}
+            onClick={event=>{setError('');guard(()=>host.approveLocalAI({event:event.nativeEvent}));}}>
+            批准本地自动 AI 草稿生成
+          </button>
+        </div>}
+        {test.autoAI&&<p className="od-note">已批准自动 AI 生成（仍需人工审核）。</p>}
         <div className="od-knowledge-actions">
           {running?<button type="button" className="od-button" onClick={()=>host.pauseLocalTest()}>暂停</button>:
             <button type="button" className="od-button" onClick={()=>host.resumeLocalTest()}>继续</button>}
