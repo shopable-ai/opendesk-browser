@@ -7,7 +7,7 @@ import {readFile} from 'node:fs/promises';
 // An isolated browser fixture: actual production controller + React page,
 // service doubles only. Never touches the product watcher or installed Chrome.
 const modulePath=process.env.OPENDESK_PLAYWRIGHT_MODULE;
-async function fixture(){
+async function fixture({withImportHost=false}={}){
   const state={rowsModel:{rows:[]},toolbarModel:null,detailModel:null,uninstallModel:null,
     recoveryModel:null,feedbackModel:null,statusModel:null,view:'list',menuKey:null};
   const root=createRoot(document.getElementById('root'));
@@ -37,6 +37,28 @@ async function fixture(){
   const store={[SIDEBAR_TOOL_STORE]:[app],[SIDEBAR_TOOL_ENABLE_STORE]:{[app.id]:true}};
   const changes=new Set(),connections=new Set(),calls=[];
   let lastNativeEvent;
+  const importView=withImportHost?createSidebarToolsView():null;
+  const importRoot=importView?createRoot(document.getElementById('tool-root')):null;
+  if(importView){
+    importView.patch('sidebar-tool-import',{hidden:true});
+    // Exercise the actual React ToolHost and ExtensionCenter Controller together.
+    // Real parsing and install receipt authority are separately covered by Host tests.
+    importView.bind('sidebar-tool-import-close','click',()=>{
+      calls.push({action:'import-close'});
+      importView.patch('sidebar-tool-preview',{hidden:true});
+      importView.patch('sidebar-tool-file',{value:''});
+      importView.patch('sidebar-tool-import',{hidden:true});
+    });
+    importView.bind('sidebar-tool-file','change',event=>{
+      calls.push({action:'file-picked',
+        names:Array.from(event?.target?.files||[]).map(file=>file.name)});
+    });
+    importView.bind('sidebar-tool-file','cancel',()=>{
+      calls.push({action:'file-cancel'});
+      importView.patch('sidebar-tool-preview',{hidden:true});
+    });
+    flushSync(()=>importRoot.render(React.createElement(ToolHost,{view:importView})));
+  }
   const eventCall=(action,id,event)=>{lastNativeEvent=event;calls.push({action,id,native:event instanceof MouseEvent,
     trusted:event?.isTrusted,gesture:navigator.userActivation.isActive});};
   let corrupt=false,ackOnly=false,holdToggle=false,finishToggle,pageInstalled=true;
@@ -66,7 +88,11 @@ async function fixture(){
       return {enabled:args.enabled};
     }};
   const sidebarTools={openTool:id=>{calls.push({action:'open',id});return true;},
-    openSettings:id=>calls.push({action:'settings',id}),openImport:()=>calls.push({action:'import'}),
+    openSettings:id=>calls.push({action:'settings',id}),openImport:()=>{
+      calls.push({action:'import'});
+      if(importView)importView.patch('sidebar-tool-import',{hidden:false});
+      return true;
+    },
     openImportFiles:files=>{calls.push({action:'drop',names:Array.from(files).map(file=>file.name)});return true;},
     openOfficialReview:()=>false,
     uninstallFromList(id,baseline,event){
@@ -90,25 +116,27 @@ async function fixture(){
     pageInstalled:()=>pageInstalled,nativeEvent:()=>lastNativeEvent,
     setCorrupt:value=>{corrupt=value;},setAckOnly:value=>{ackOnly=value;},
     hold:()=>{holdToggle=true;},release:()=>finishToggle(),
-    dispose(){controller.dispose();root.unmount();},
+    dispose(){controller.dispose();importRoot?.unmount();root.unmount();},
     cleanup(id='quick-notes'){store[SIDEBAR_TOOL_STORE]=[];store[TOOL_CLEANUP_STORE]={
       [id]:{version:app.version,createdAt:1}};},
   };
   await controller.refresh();
 }
 
-async function browserFixture(t){
-  const css=(await Promise.all(['design-tokens.css','design-system.css','extension-center.css']
+async function browserFixture(t,{withImportHost=false}={}){
+  const css=(await Promise.all(['design-tokens.css','design-system.css','extension-center.css','tool-shell.css']
     .map(name=>readFile(new URL('../../src/ui/'+name,import.meta.url),'utf8')))).join('\n');
   const {chromium}=await import(modulePath);
   const bundled=await build({stdin:{contents:`import React from 'react';
     import {createRoot} from 'react-dom/client';import {flushSync} from 'react-dom';
     import {ExtensionCenterPage} from './src/ui/react/tabs/tools.tsx';
+    import {ToolHost} from './src/ui/react/tabs/tool-host.tsx';
+    import {createSidebarToolsView} from './src/ui/sidebar-tools-view.js';
     import {createExtensionCenter} from './src/ui/extension-center.js';
     import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE} from './src/ui/sidebar-tools/package.js';
     import {SIDEBAR_TOOL_ENABLE_STORE} from './src/ui/sidebar-tools/lifecycle.js';
     import {TOOL_CLEANUP_STORE} from './src/ui/sidebar-tools/installation.js';
-    (${fixture.toString()})();`,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,
+    (${fixture.toString()})(${JSON.stringify({withImportHost})});`,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,
     format:'esm',platform:'browser',target:'es2022',logLevel:'silent'});
   const server=createServer((req,res)=>{
     res.setHeader('Content-Type',req.url==='/app.js'?'text/javascript':req.url==='/style.css'?'text/css':req.url.includes('catalog.json')?'application/json':'text/html');
@@ -116,7 +144,7 @@ async function browserFixture(t){
       JSON.stringify({schema:'opendesk.official-tools.releases.v1',sourceRepository:'https://github.com/shopable-ai/opendesk-browser',
         apps:[{id:'opendesk/quick-notes',toolId:'quick-notes',kind:'sidebar-tool',installationPolicy:'optional',version:'1.0.0',
           packageTitle:'快速笔记',description:'记录内容',capabilities:['storage.local'],packagePath:'official-tools/quick-notes/quick-notes.opendesk-tool.json',bytes:100,sha256:'c'.repeat(64)}]}):
-      '<!doctype html><html><head><link rel="stylesheet" href="/style.css"></head><body><div id="workspace-content"><div id="root"></div></div><script type="module" src="/app.js"></script></body></html>');
+      '<!doctype html><html><head><link rel="stylesheet" href="/style.css"></head><body><div id="workspace-content"><div id="opendesk-react-app"><div id="root"></div></div><div id="tool-root"></div></div><script type="module" src="/app.js"></script></body></html>');
   });
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   t.after(()=>{server.closeAllConnections();return new Promise(resolve=>server.close(resolve));});
@@ -394,3 +422,52 @@ test('Extension tab accepts a native file drag and forwards only files to its tr
     'non-file text drags must not trigger the importer');
 });
 
+
+
+test('R5.7 real ExtensionCenter Controller + React ToolHost preserve ImportSheet-first flow',options,async t=>{
+  const page=await browserFixture(t,{withImportHost:true});
+  let fileChooserCount=0;
+  page.on('filechooser',()=>fileChooserCount++);
+  await page.locator('#extension-center-more').click();
+  assert.equal(await page.locator('#extension-center-import').innerText(),'导入扩展…');
+  await page.locator('#extension-center-import').click();
+  const sheet=page.locator('#sidebar-tool-import[role="dialog"]');
+  await sheet.waitFor({state:'visible'});
+  assert.equal(await sheet.count(),1,'the existing Host owns one dialog');
+  assert.equal(await sheet.getAttribute('aria-modal'),'true');
+  assert.equal(await page.locator('#sidebar-tool-import-heading').innerText(),'导入扩展');
+  assert.equal(await page.locator('#extension-center-menu').isVisible(),false);
+  assert.equal(await sheet.locator('#sidebar-tool-file').count(),1);
+  assert.equal(await page.locator('#sidebar-tool-preview').isVisible(),false);
+  assert.equal(fileChooserCount,0,'menu click must not launch the native picker');
+  await page.waitForFunction(()=>document.activeElement?.id==='sidebar-tool-file');
+  assert.deepEqual(await page.evaluate(()=>fixture.calls.filter(x=>x.action==='import')),
+    [{action:'import'}]);
+
+  await sheet.locator('#sidebar-tool-file').setInputFiles({
+    name:'demo.opendesk-tool.json',mimeType:'application/json',
+    buffer:Buffer.from('{"format":"fixture-not-an-installation"}')
+  });
+  await page.waitForFunction(()=>fixture.calls.some(x=>x.action==='file-picked'));
+  assert.deepEqual(await page.evaluate(()=>fixture.calls.filter(x=>x.action==='file-picked')),
+    [{action:'file-picked',names:['demo.opendesk-tool.json']}]);
+  assert.equal(await page.evaluate(()=>fixture.calls.some(x=>x.action==='install')),false,
+    'no installer may report success from a file selection alone');
+  await sheet.locator('#sidebar-tool-file').focus();
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(()=>
+    document.getElementById('sidebar-tool-import').contains(document.activeElement)),true,
+    'Tab stays inside the dialog');
+  await page.keyboard.press('Escape');
+  await sheet.waitFor({state:'hidden'});
+  await page.waitForFunction(()=>document.activeElement?.id==='extension-center-more');
+  await page.locator('#extension-center-more').click();
+  await page.locator('#extension-center-import').click();
+  await sheet.waitFor({state:'visible'});
+  assert.equal(await page.locator('#sidebar-tool-import').count(),1,
+    'reopening does not mount a second ImportSheet');
+  assert.equal(fileChooserCount,0);
+  await page.locator('#sidebar-tool-import-close').click();
+  await sheet.waitFor({state:'hidden'});
+  await page.waitForFunction(()=>document.activeElement?.id==='extension-center-more');
+});
