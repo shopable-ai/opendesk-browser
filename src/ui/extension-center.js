@@ -394,6 +394,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       message:pageDiscovery.message||'',busy:Boolean(pageDiscovery.busy),
       onReview:reviewDiscoveredPage,onRetry:detectPageInstall,onDismiss(){
         discoveryGeneration++;pageDiscovery=null;renderPageDiscovery();
+        // Return keyboard focus to the persistent contextual action after close.
+        get('extension-center-discover')?.focus({preventScroll:true});
       }
     }:null);
   }
