@@ -55,7 +55,7 @@
 .cookie-editor-react .toolbar-actions{display:flex;gap:var(--space-1);align-items:center}
 .cookie-editor-react .action-separator{width:1px;height:20px;background:var(--od-line);margin:0 var(--space-1)}
 .cookie-editor-react .cookie-react-icon{flex:none}
-.cookie-editor-react .searchbar{display:flex;align-items:center;gap:var(--space-2);padding:0 var(--space-3) var(--space-2)}
+.cookie-editor-react .searchbar{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3) 0}
 .cookie-editor-react .searchbox{min-width:0;flex:1;display:flex;align-items:center;gap:var(--space-2);min-height:36px;padding-inline:var(--space-2);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper)}
 .cookie-editor-react .searchbox:focus-within{outline:2px solid var(--od-brand);outline-offset:1px}
 .cookie-editor-react .cookie-search-symbol{display:grid;place-items:center;flex:none;color:var(--od-sub)}
@@ -313,3 +313,49 @@
   flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
 }
 .cookie-editor-react .row-text small{font-size:var(--od-note-size)}
+
+
+/* R2.3 React account/market areas use the same official design tokens. */
+.cookie-editor-react .cookie-product-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;padding:3px;margin-bottom:var(--space-2);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-muted)}
+.cookie-editor-react .cookie-product-tabs>button{min-width:0;min-height:34px;border:0;border-radius:var(--radius-control);background:transparent;color:var(--od-sub);font-weight:600;padding:4px 8px}
+.cookie-editor-react .cookie-product-tabs>button.is-current{background:var(--od-paper);color:var(--od-ink);box-shadow:0 1px 3px #00000015}
+.cookie-editor-react .cookie-account-page{position:relative;min-width:0;max-height:calc(100dvh - 80px);overflow-y:auto;overflow-x:clip}
+.cookie-editor-react .cookie-account-header{min-height:46px;display:flex;align-items:center;gap:var(--space-2);justify-content:space-between;padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--od-line)}
+.cookie-editor-react .cookie-account-header h2{flex:1;margin:0;font-size:15px;line-height:1.4}
+.cookie-editor-react .cookie-account-actions{display:flex;align-items:center;gap:var(--space-2);min-width:0}
+.cookie-editor-react .cookie-account-count{color:var(--od-sub);font-weight:400}
+.cookie-editor-react .cookie-account-content{display:grid;gap:var(--space-3);min-width:0;padding:var(--space-3)}
+.cookie-editor-react .cookie-account-content h3{margin:var(--space-2) 0 0;font-size:13px}
+.cookie-editor-react .cookie-account-setting{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0}
+.cookie-editor-react .cookie-account-setting>span{display:grid;gap:2px;min-width:0}
+.cookie-editor-react .cookie-account-setting small{font-size:var(--od-meta-size);color:var(--od-sub);overflow-wrap:anywhere}
+.cookie-editor-react .cookie-account-setting input[type=checkbox]{flex:none;width:16px;height:16px;accent-color:var(--od-brand)}
+.cookie-editor-react .cookie-account-notice{margin:0;padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-muted);color:var(--od-sub);font-size:var(--od-note-size);overflow-wrap:anywhere}
+.cookie-editor-react .cookie-account-empty{margin:0;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.6}
+.cookie-editor-react .cookie-account-card{display:flex;align-items:center;gap:var(--space-2);min-width:0;padding:var(--space-2) 0;border-bottom:1px solid var(--od-line)}
+.cookie-editor-react .cookie-account-avatar{flex:none;display:grid;place-items:center;width:33px;height:33px;border-radius:10px;background:var(--od-muted);color:var(--od-brand);font-weight:700}
+.cookie-editor-react .cookie-account-card-text{display:grid;gap:2px;min-width:0;flex:1}
+.cookie-editor-react .cookie-account-card-text strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cookie-editor-react .cookie-account-card-text small{color:var(--od-sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cookie-editor-react .cookie-account-menu-anchor{position:relative;flex:none}
+.cookie-editor-react .cookie-account-menu{position:absolute;z-index:40;right:0;top:calc(100% + 4px);width:190px;max-width:calc(100vw - 26px);display:grid;padding:4px;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);box-shadow:0 6px 22px #00000024}
+.cookie-editor-react .cookie-account-menu.is-up{top:auto;bottom:calc(100% + 4px)}
+.cookie-editor-react .cookie-account-menu>button{min-height:35px;text-align:left;border:0;background:transparent;color:var(--od-ink);padding:6px 9px;border-radius:var(--radius-control)}
+.cookie-editor-react .cookie-account-menu>button:hover:not(:disabled),.cookie-editor-react .cookie-account-menu>button:focus-visible{background:var(--od-muted)}
+.cookie-editor-react .cookie-account-menu>button:disabled{color:var(--od-sub)}
+.cookie-editor-react .cookie-account-link{display:grid;gap:var(--space-1);min-width:0}
+.cookie-editor-react .cookie-account-link code{display:block;min-width:0;overflow-wrap:anywhere;padding:var(--space-2);background:var(--od-muted);border-radius:var(--radius-control);font-size:11px}
+.cookie-editor-react .cookie-account-link button{justify-self:start}
+.cookie-editor-react .cookie-account-verify{display:flex;gap:var(--space-2);min-width:0}
+.cookie-editor-react .cookie-account-verify input{flex:1;min-width:0}
+.cookie-editor-react .cookie-account-feedback{margin:0;color:var(--od-sub);overflow-wrap:anywhere}
+.cookie-editor-react .cookie-market-status{font-size:var(--od-meta-size);color:var(--od-sub)}
+.cookie-editor-react .cookie-market-outline{display:grid;gap:var(--space-2);padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface)}
+.cookie-editor-react .cookie-market-outline span{font-size:var(--od-note-size);color:var(--od-sub)}
+@media(max-width:350px){
+  .cookie-editor-react .cookie-account-header{flex-wrap:wrap}
+  .cookie-editor-react .cookie-account-actions{margin-left:auto}
+  .cookie-editor-react .cookie-account-verify{flex-wrap:wrap}
+  .cookie-editor-react .cookie-account-verify button{margin-left:auto}
+  .cookie-editor-react .cookie-account-card{flex-wrap:wrap}
+}
