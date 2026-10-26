@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {initChatGPTFixedBridgePage} from '../../src/native-agent/chatgpt-fixed-bridge-page.js';
+import {createChatGPTBridgeSite} from '../../src/native-agent/chatgpt-bridge-site.js';
 
 const id='33333333-3333-4333-8333-333333333333';
 const source={tabId:9,documentId:'document-cancel',url:'https://chatgpt.com/c/search-session-12345678'};
@@ -21,13 +22,14 @@ function harness(overrides={}){
   const doc={getElementById:()=>null,createElement:element,body:element('body'),
     addEventListener(type,fn){if(!events.has(type))events.set(type,new Set());events.get(type).add(fn);},
     removeEventListener:(type,fn)=>events.get(type)?.delete(fn)};
+  const messageNode=textContent=>({textContent,ownerDocument:doc,isConnected:true,querySelector:()=>null});
   let poll,onMessage,currentRequestId=id;
   const win={location:{href:source.url,origin:'https://chatgpt.com'},
     setInterval(fn){poll=fn;return 1;},clearInterval(){},addEventListener(){},removeEventListener(){}};
   win.top=win;
   const editor={ownerDocument:doc,focus(){doc.activeElement=editor;}};
   const snap={ok:true,route:'c/search-session-12345678',editor,form:element('form'),idle:true,
-    busy:false,answerComplete:true,draft:'',rich:false,users:[],assistants:[{}]};
+    busy:false,answerComplete:true,draft:'',rich:false,users:[],assistants:[messageNode('candidate')]};
   const writes=[],commits=[];
   const site={inspect:()=>({...snap}),prepare(text){writes.push(text);snap.draft=text;
     return {ok:true,token:{before:{}}};},commit(token){commits.push(token);return {ok:true};},confirm:()=>true};
@@ -52,14 +54,14 @@ function harness(overrides={}){
   const buttons=nodes.filter(x=>x.tag==='button');
   const status=nodes.find(x=>x.className==='status');
   const click=i=>{assert.ok(buttons[i],`button ${i} exists`);return buttons[i].listeners.click({isTrusted:true});};
-  const prepare=async()=>{await click(0);snap.users=[...snap.users,{textContent:currentRequestId}];snap.draft='';};
+  const prepare=async()=>{await click(0);snap.users=[...snap.users,messageNode(currentRequestId)];snap.draft='';};
   const deliver=(fields={})=>new Promise(resolve=>{
     assert.equal(onMessage({protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'deliver',requestId:currentRequestId,
       sourceUrl:source.url,mode:'manual',turnKey:'turn-1',answerKey:'answer-1:0',
       runId:'run-1',resultId:'result-1',text:'real result',...fields},
     {id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=owner'},resolve),true);
   });
-  return {page,api,sends,buttons,status,snap,site,win,writes,commits,click,prepare,deliver,poll:()=>poll()};
+  return {page,api,sends,buttons,status,snap,site,win,writes,commits,click,prepare,deliver,messageNode,poll:()=>poll()};
 }
 
 test('missing Host receipt gives same-window guidance and never replays an attempted execute',async()=>{
@@ -228,22 +230,27 @@ test('preparing a replacement request disables cancellation of the old request',
 });
 
 
-test('confirmed manual delivery releases the composer for a different approved auto request exactly once',async t=>{
+for(const evictHistory of [false,true])test(`confirmed manual delivery releases the composer for a different approved auto request exactly once (history eviction=${evictHistory})`,async t=>{
   t.mock.timers.enable({apis:['setTimeout']});
   const nextId='44444444-4444-4444-8444-444444444444';
   const deliveries=[],overrides={};const h=harness(overrides);
   t.after(()=>h.page.dispose());
+  if(evictHistory){
+    h.snap.users=[h.messageNode('old user')];
+    h.snap.assistants=[h.messageNode('old assistant'),...h.snap.assistants];
+  }
   // Model only site observations; the page listener runs the real deliver path.
   h.site.prepare=(text,before)=>{h.writes.push(text);h.snap.draft=text;
-    return {ok:true,token:{before}};};
+    return {ok:true,token:{before:{...before,userTexts:before.users.map(node=>node.textContent)}}};};
   h.site.commit=token=>{
-    h.commits.push(token);const text=h.snap.draft,answer={};
-    const user={textContent:text,compareDocumentPosition:node=>node===answer?4:1};
+    h.commits.push(token);const text=h.snap.draft,answer=h.messageNode('新的中文续答');
+    const user={...h.messageNode(text),compareDocumentPosition:node=>node===answer?4:1};
     h.snap.draft='';h.snap.users=[...h.snap.users,user];
-    h.snap.assistants=[...h.snap.assistants,answer];return {ok:true};
+    h.snap.assistants=[...h.snap.assistants,answer];
+    if(evictHistory){h.snap.users=h.snap.users.slice(-2);h.snap.assistants=h.snap.assistants.slice(-2);}
+    return {ok:true};
   };
-  h.site.confirm=(before,text,current)=>current.users.length===before.users.length+1&&
-    current.users.at(-1)?.textContent===text;
+  h.site.confirm=createChatGPTBridgeSite({doc:h.snap.editor.ownerDocument,win:h.win}).confirm;
   overrides.execute=async message=>{
     const reply=await h.deliver({requestId:message.requestId,mode:message.mode,
       runId:'run-'+message.requestId,resultId:'result-'+message.requestId});
@@ -253,11 +260,13 @@ test('confirmed manual delivery releases the composer for a different approved a
     t.mock.timers.tick(ms);await flush();}};
   await h.prepare();h.click(2);await finish();
   assert.deepEqual(deliveries,[{ok:true,data:{sent:true,userObserved:true,aiReplyObserved:true}}]);
+  assert.match(h.status.textContent,/真实结果已回传，官方 AI 已完成回复/);
   assert.equal(h.snap.form.hasAttribute('data-opendesk-composer-owner'),false);
   overrides.prepare=()=>({requestId:nextId,source});
   await h.prepare();await h.click(1);h.poll();await finish();
   assert.equal(deliveries.length,2);
   assert.deepEqual(deliveries[1],deliveries[0]);
+  assert.match(h.status.textContent,/真实结果已回传，官方 AI 已完成回复/);
   assert.deepEqual(h.sends.filter(x=>x.kind==='execute').map(x=>[x.requestId,x.mode]),
     [[id,'manual'],[nextId,'auto']]);
   assert.equal(h.commits.length,2);

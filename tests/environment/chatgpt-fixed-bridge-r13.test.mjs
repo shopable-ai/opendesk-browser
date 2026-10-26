@@ -112,10 +112,12 @@ test('bridge focuses before insertion and preserves a draft or attachment restor
 });
 
 test('AI continuation belongs to exactly the confirmed result user turn and one later assistant',()=>{
-  const priorUser={},priorAnswer={},answer={};
-  const user={compareDocumentPosition:node=>node===answer?4:1};
-  const before={users:[priorUser],assistants:[priorAnswer]};
-  const current={ok:true,busy:false,answerComplete:true,users:[priorUser,user],assistants:[priorAnswer,answer]};
+  const doc={},editor={ownerDocument:doc},route='c/test-12345678';
+  const node=()=>({ownerDocument:doc,isConnected:true});
+  const priorUser=node(),priorAnswer=node(),answer=node();
+  const user={...node(),compareDocumentPosition:node=>node===answer?4:1};
+  const before={editor,route,users:[priorUser],assistants:[priorAnswer]};
+  const current={...before,ok:true,busy:false,answerComplete:true,users:[priorUser,user],assistants:[priorAnswer,answer]};
   assert.equal(isChatGPTBridgeContinuation(before,current,user),true);
   for(const changed of [
     {...current,users:[priorUser,user,{}]},
@@ -127,4 +129,62 @@ test('AI continuation belongs to exactly the confirmed result user turn and one 
     {...current,assistants:[priorAnswer,{}]}
   ])assert.equal(isChatGPTBridgeContinuation(before,changed,user),false);
   assert.equal(isChatGPTBridgeContinuation(before,current,{}),false);
+});
+
+function continuationHistory(){
+  const doc={},editor={ownerDocument:doc},route='c/test-12345678';
+  const node=textContent=>({ownerDocument:doc,isConnected:true,textContent});
+  const users=[node('old user'),node('recent user'),node('current request')];
+  const assistants=[node('old reply'),node('recent reply'),node('current candidate')];
+  const answer=node('根据本次真实网页结果，页面主标题为《白鲸》。');
+  const resultUser={...node('current durable result'),compareDocumentPosition:other=>other===answer?4:1};
+  const before={editor,route,users,assistants};
+  const current={...before,ok:true,busy:false,answerComplete:true,
+    users:[...users,resultUser],assistants:[...assistants,answer]};
+  return {before,current,resultUser,answer,node};
+}
+
+test('AI continuation permits only old history prefix eviction with retained request and candidate anchors',()=>{
+  const {before,current,resultUser}=continuationHistory();
+  // User and assistant lists need not evict the same number of old nodes.
+  for(let usersOffset=0;usersOffset<before.users.length;usersOffset++){
+    for(let assistantsOffset=0;assistantsOffset<before.assistants.length;assistantsOffset++){
+      assert.equal(isChatGPTBridgeContinuation(before,{...current,
+        users:current.users.slice(usersOffset),assistants:current.assistants.slice(assistantsOffset)},resultUser),true,
+      `completed Chinese reply after prefix eviction: users=${usersOffset}, assistants=${assistantsOffset}`);
+    }
+  }
+});
+
+test('AI continuation after history eviction rejects gaps, remounts, old replies and identity changes',()=>{
+  const {before,current,resultUser,answer,node}=continuationHistory();
+  const kept={...current,users:current.users.slice(1),assistants:current.assistants.slice(1)};
+  for(const changed of [
+    {...kept,ok:false},{...kept,busy:true},{...kept,answerComplete:false},
+    {...kept,route:'c/other-12345678'},
+    {...kept,editor:{ownerDocument:{}}},
+    {...kept,users:[resultUser]},
+    {...kept,users:[before.users[0],before.users[2],resultUser]},
+    {...kept,users:[before.users[1],node('current request'),resultUser]},
+    {...kept,users:[...kept.users,node('extra user turn')]},
+    {...kept,users:[before.users[1],before.users[2],node('current durable result')]},
+    {...kept,assistants:[answer]},
+    {...kept,assistants:[before.assistants[0],before.assistants[2],answer]},
+    {...kept,assistants:[before.assistants[1],node('current candidate'),answer]},
+    {...kept,assistants:before.assistants.slice(1)},
+    {...kept,assistants:[...kept.assistants,node('extra answer')]}
+  ])assert.equal(isChatGPTBridgeContinuation(before,changed,resultUser),false);
+  for(const anchor of [resultUser,answer,before.users.at(-1),before.assistants.at(-1)]){
+    anchor.isConnected=false;
+    assert.equal(isChatGPTBridgeContinuation(before,kept,resultUser),false,'detached anchor');
+    anchor.isConnected=true;anchor.ownerDocument={};
+    assert.equal(isChatGPTBridgeContinuation(before,kept,resultUser),false,'different document');
+    anchor.ownerDocument=before.editor.ownerDocument;
+  }
+  // Even if an old assistant node is moved after the result, it is not new.
+  resultUser.compareDocumentPosition=()=>4;
+  assert.equal(isChatGPTBridgeContinuation(before,{...kept,
+    assistants:[...before.assistants.slice(1),before.assistants[0]]},resultUser),false);
+  resultUser.compareDocumentPosition=()=>2; // new assistant precedes the result
+  assert.equal(isChatGPTBridgeContinuation(before,kept,resultUser),false);
 });

@@ -495,7 +495,7 @@
 .sidebar-tool-site-shortcuts:not(:has(> button:not([hidden]))){display:none}
 .sidebar-tool-site-shortcuts>.sidebar-tool-icon-action{
   display:flex;align-items:center;justify-content:flex-start;gap:8px;min-width:0;
-  min-height:36px;padding:7px 9px;background:var(--od-paper);
+  width:100%;height:auto;min-height:36px;padding:7px 9px;background:var(--od-paper);
   color:var(--od-ink);border:1px solid var(--od-line);border-radius:var(--radius-control);
   font-size:12px;text-align:left
 }

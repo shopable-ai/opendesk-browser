@@ -8,7 +8,6 @@ import {composeExtensionEntries,filterExtensionEntries,describeInstalledAppSourc
 import readingTocCatalog from '../../examples/sidebar-tools/reading-toc/trusted/locales.generated.js';
 import {OFFICIAL_READING_TOC_RELEASE} from '../sidebar-tools/official-reading-toc.js';
 import {uiMessage} from './app-localization.js';
-import {localeManagerText} from './locale-manager-localization.js';
 import {PROGRAM_DRAFT_INPUT_LIMIT} from './program-source.js';
 import {loadMarketChannel} from '../marketplace/external.js';
 import {discoverCurrentPageMarketInstall} from '../marketplace/discovery.js';
@@ -78,7 +77,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(disposed)return false;
     closeMenu();closeRowMenu();
     languageManager={toolId:typeof toolId==='string'?toolId:null,importPack,session:++languageSession,
-      returnFocusSelector:toolId&&!importPack?'#sidebar-tool-language-manage':'#extension-center-language-settings'};
+      returnFocusSelector:toolId&&!importPack?'#sidebar-tool-language-manage':'#extension-center-search'};
     syncFilters();return true;
   }
   // Inspect every file before dispatch: language data never reaches a code installer,
@@ -110,7 +109,6 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     extensionList.renderToolbar({
       query:searchText,kind,scope,menuOpen:toolbarMenuOpen,
       language:localeController?.getPreference?.()||language(),
-      languageActionLabel:localeManagerText(language(),'languageAction'),
       onSearch(value){if(disposed)return;searchText=value;query=value.trim();draw();},
       onMarket(){if(!disposed)openMarket();},
       onDiscover(event){if(!disposed)void detectPageInstall(event);},
@@ -133,7 +131,6 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         }
       },
       onImportFiles:importFiles,
-      onLanguageSettings(){openLanguageSettings();},
       localeManager:languageManager?{...languageManager,service:toolLocaleService,
         tools:installed.filter(tool=>tool.localization),localeController,
         onClose(){languageManager=null;syncFilters();}}:null,

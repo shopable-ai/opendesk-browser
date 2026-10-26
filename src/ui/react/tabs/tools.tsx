@@ -292,8 +292,6 @@ export function ExtensionToolbar({model}){
         autoComplete="off" value={current.query||''}
         onChange={event=>current.onSearch?.(event.currentTarget.value,event.nativeEvent)}/>
     </label>
-    <Button id="extension-center-language-settings" aria-label={current.languageActionLabel||'语言'}
-      title={current.languageActionLabel||'语言'} onClick={()=>current.onLanguageSettings?.()}>{current.languageActionLabel||'语言'}</Button>
     <IconButton id="extension-center-market" className="ec-icon" label="在新标签页打开应用市场"
       onClick={event=>current.onMarket?.(event.nativeEvent)}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16l-1.5-6h-13L4 10Zm2 0v10h12V10M10 20v-6h4v6"/></svg>

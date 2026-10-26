@@ -827,9 +827,7 @@ test('R5.7 menu opens trusted import Host, never the global picker or language m
   const more=f.nodes['extension-center-more'],picker=f.nodes['extension-center-file'];
   let pickerClicks=0;
   picker.click=()=>{pickerClicks++;};
-  const language=f.nodes['extension-center-language-settings'];
-  assert.ok(language&&!f.nodes['extension-center-menu'].contains(language),
-    'language management remains separate from extension import');
+  assert.equal(f.doc.getElementById('extension-center-language-settings'),null);
   more.dispatch('click');
   const importAction=f.nodes['extension-center-import'];
   assert.equal(importAction.textContent,'导入扩展…');

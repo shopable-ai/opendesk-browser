@@ -140,11 +140,22 @@ export function claimChatGPTBridgeComposer({site,doc,win,snapshot,text}){
 }
 
 export function isChatGPTBridgeContinuation(before,current,resultUser){
+  // Match the retained history suffix, as site.confirm does for delivery.
+  // Keep the latest request/candidate anchors; a reused old reply is not new.
+  const appendedAfterSuffix=(prior,nodes)=>{
+    if(!prior.length||nodes.length<2)return false;
+    const offset=prior.indexOf(nodes[0]);
+    return offset>=0&&nodes.length===prior.length-offset+1&&
+      prior.slice(offset).every((node,index)=>nodes[index]===node)&&
+      !prior.includes(nodes.at(-1));
+  };
+  const doc=before.editor?.ownerDocument;
   if(!current?.ok||current.busy||!current.answerComplete||
-    current.users.length!==before.users.length+1||current.users.at(-1)!==resultUser||
-    before.users.some((node,index)=>current.users[index]!==node)||
-    current.assistants.length!==before.assistants.length+1||
-    before.assistants.some((node,index)=>current.assistants[index]!==node))return false;
+    current.route!==before.route||!doc||current.editor?.ownerDocument!==doc||
+    current.users.at(-1)!==resultUser||
+    !appendedAfterSuffix(before.users,current.users)||
+    !appendedAfterSuffix(before.assistants,current.assistants)||
+    [...current.users,...current.assistants].some(node=>!node.isConnected||node.ownerDocument!==doc))return false;
   const order=resultUser.compareDocumentPosition(current.assistants.at(-1));
   return !(order&1)&&Boolean(order&4); // connected, subsequent assistant only
 }

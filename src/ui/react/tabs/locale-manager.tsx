@@ -195,7 +195,7 @@ export default function LocaleManager({model}){
     }}
     panelClassName="od-locale-shell"
     cancelLabel={t('closeLabel')} closeLabel={t('closeLabel')}
-    returnFocusSelector={model.returnFocusSelector||"#extension-center-language-settings"}>
+    returnFocusSelector={model.returnFocusSelector||"#extension-center-search"}>
     <div className="od-locale-manager od-stack">
       <div className="od-locale-daily od-stack" inert={maintenanceOpen} aria-hidden={maintenanceOpen||undefined}>
       <label className="od-locale-field" htmlFor="od-locale-global">{t('globalLabel')}

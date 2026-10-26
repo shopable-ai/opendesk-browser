@@ -15,7 +15,8 @@ const compile=async(path,replacements={})=>{
 const button=await compile('../../src/ui/react/components/ui/button.tsx',{'react':import.meta.resolve('react')});
 export const {ExtensionCenterPage,UninstallDialog}=await import(await compile('../../src/ui/react/tabs/tools.tsx',{
   'react':import.meta.resolve('react'),'react-dom':import.meta.resolve('react-dom'),
-  '../components/ui/button.tsx':button
+  '../components/ui/button.tsx':button,
+  '../../locale-manager-localization.js':new URL('../../src/ui/locale-manager-localization.js',import.meta.url).href
 }));
 const initial=parseHTML('<html><body></body></html>');
 const original={window:globalThis.window,document:globalThis.document};

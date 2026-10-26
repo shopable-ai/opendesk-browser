@@ -75,14 +75,11 @@ const selectValue=(select,value)=>{
   Object.defineProperty(select,'value',{configurable:true,value,writable:true});select.dispatch('change');
 };
 
-test('daily language entry is visible outside More and invokes the shared manager',t=>{
-  let opens=0;
-  const ui=createExtensionCenterDOM(t,{props:{toolbarModel:{languageActionLabel:msg('zh-CN','languageAction'),onLanguageSettings(){opens++;}}}});
-  const opener=ui.doc.getElementById('extension-center-language-settings');
-  assert.ok(opener);assert.equal(opener.closest('#extension-center-menu'),null);
-  assert.equal(opener.closest('[hidden]'),null);
-  assert.equal(opener.getAttribute('aria-label'),'语言');
-  opener.dispatch('click');assert.equal(opens,1);
+test('extension search toolbar omits the language button and retains market and filter actions',t=>{
+  const ui=createExtensionCenterDOM(t);
+  assert.equal(ui.doc.getElementById('extension-center-language-settings'),null);
+  assert.deepEqual([...ui.doc.querySelector('.ec-toolbar').children].map(node=>node.id||node.className),
+    ['ec-search','extension-center-market','extension-center-menu-wrap']);
 });
 
 test('daily tool choices save their scope, follow the default only when requested, and retain focus',async t=>{

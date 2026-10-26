@@ -2,6 +2,44 @@
 
 **默认中文｜ORIGINAL GOAL FIRST｜LATEST MAIN｜LOCAL MAC REAL CHROME｜DELTA ONLY｜CROSS-CHAT DEDUP｜NO SECOND HOST｜NO FAKE PASS｜ONLY MAIN**
 
+## 新候选真实 Chrome 复测（IN_PROGRESS，用户要求重新测试）
+
+用户反馈上一轮交付未清楚区分已修复与未完成，现补新候选的一条实际正常链路。Owner 沿用 `01a17828-4be1-7740-8498-0aada57a686c`，只写本记录与独立证据，不重复源码巡检/组件测试，不提交推送。当前 `main` 的五个本轮文件及七个并行 UI 文件未提交修改均保留。
+
+Chrome 原生 AX 实读扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`、开发服务已连接、实际 revision `4a43efd6848fed5959e6362a0872d5fbbaacc0e96e137f4214a11ae7bb5318b1`，与磁盘 marker 一致。沿用 PID `79949` / `127.0.0.1:43119` / `dist/development` 唯一 watcher。旧固定测试页的多行中文草稿保留；不开启或回放旧请求，不 reload 草稿页。改在新建官网测试页载入已编译脚本，先建立正式会话，再通过现有浮层发起新的固定网页请求，生成中批准一次自动执行，零执行点击；核对唯一 Run/Result、released、一次回传及新中文回复和完成提示。若未实际观察历史前缀移除，继续只保留组件证据，不制造长历史。
+
+证据目录 `artifacts/ai-chat-bridge-r20-mac-20261026/native-retest-01a17828/`；开始时间 2026-10-26T21:07:49.202030+08:00。当前 Chrome 原生界面可用，未收到其他会话的资源占用拒绝；本轮只操作新测试页及当前侧栏的只读诊断/查询，不碰其他页面输入内容。
+
+## 续答提示可靠性完善（2026-10-26 20:36，北京时间，开发收尾）
+
+**最新结论：已证实并修复“历史前缀移除后 AI 完成提示漏判”的组件缺口；本轮定向回归 41/41 PASS，现有 watcher 已编译当前源码。该异常分支真实 Chrome NOT_TESTED；没有将旧页面的正常完成态提升为新候选原生证据。** 本节覆盖下文 19:43 对“AI 续答检测仍要求完整历史”的旧源码描述；原四场景和旧 FAIL/UNKNOWN 事实保留。
+
+Owner：`01a17828-4be1-7740-8498-0aada57a686c`。仅在 `main` 编辑以下五个文件，未提交、未推送；未创建分支、worktree、PR 或新目标：
+
+- `src/native-agent/chatgpt-fixed-bridge-page.js`：仅修改 `isChatGPTBridgeContinuation`。用户和 assistant 历史可分别移除最旧连续前缀，必须保留原请求/候选节点、唯一原结果用户节点及其后一个从未出现在旧快照中的新 assistant。仍要求原 route/document、节点连接、回复完成且非生成中；拒绝中间缺口、重建/移出文档、旧回复搬到结果后方、额外用户轮次和额外 assistant。
+- `tests/environment/chatgpt-fixed-bridge-r13.test.mjs`：先红后绿的历史前缀场景；覆盖两类历史各 0–2 条移除组合，以及生成中、旧回复、换会话/文档、失去锚点、节点重建/断开等拒绝。
+- `tests/environment/chatgpt-bridge-cancel-page-r21.test.mjs`：真实 page deliver 调用配合生产 `site.confirm`，在完整/缩短历史下分别完成手动→新请求单次自动；均确认 UI“真实结果已回传，官方 AI 已完成回复”，两请求各只一次发送，旧交付不能重放。模拟消息补充真实节点的 document/connected 属性。
+- `examples/tasks/README.zh-CN.md`：解释“已收到结果、等待 AI”与“AI 已完成”的区别；提示未确认时先核对官网结果和续答，不因提示超时重跑或补发。
+- 本工作记录：维护本轮归属、候选、验证和未测项。
+
+Site/Host/Gate/Controller 源码及任务包均未改；前三个共享输入哈希与上一轮身份记录完全一致。没有新增 Host、队列、状态机、安装/授权入口或权限。原四场景只复用其原候选、原时间和真实身份，不重新运行，不提升为本次改动的同候选原生 PASS。当前并行 UI owner 的七个未提交文件均保留。
+
+### 诊断、验证及失败分类
+
+| 层级 | 结果和直接证据 |
+| --- | --- |
+| 缺陷复现 | **FAIL（修复前）**：仅移除最旧一条 assistant（users=0 / assistants=1），保留相同请求、结果用户及新完成中文回复，旧检测返回 false。组件复现，不声称原生触发。`prefix-before-fix.log` 保留。 |
+| 组件 / 交付调用 | **PASS**：`node --test tests/environment/chatgpt-fixed-bridge-r13.test.mjs tests/environment/chatgpt-bridge-site-r13.test.mjs tests/environment/chatgpt-bridge-cancel-page-r21.test.mjs`，41 PASS / 0 FAIL / 0 SKIP；含发送前身份/草稿/附件/IME、未知点击不重放、缺 Host 提示、取消/迟到交付和准入否定保护。与历史测试重叠，不累加旧分母。 |
+| 首次扩展测试失败 | 40/41 时只有新增交付模拟失败：模拟器自己的 confirm 仍要求完整历史。更换为生产 `site.confirm`，补齐其正常捕获的 userTexts 后通过；未改生产发送校验适配错误断言。保留 `targeted-regression.log`，最终日志另存。 |
+| 语法 / diff / 审查 | **PASS**：修改的 page 和两份测试 `node --check`，本轮文件 `git diff --check`；独立 native code-reviewer 未发现 actionable 问题，只读审查、不操作 Chrome。 |
+| 持续开发编译 | **PASS（限定增量产物）**：沿用 PID `79949` / `node scripts/dev.mjs` / `127.0.0.1:43119`，输出 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development`。磁盘 revision `4a43efd6848fed5959e6362a0872d5fbbaacc0e96e137f4214a11ae7bb5318b1`；Bridge 文件与 marker SHA 均为 `1649f8fc1384b1b9212628d7d4dfc736ffe471704453e09de42ed953c65a04e2`，source map 内 page 内容逐字匹配当前源码。未另起 writer、全量 build 或替换加载目录。 |
+| Chrome 观察 | **PASS（原完成态只读观察）**：保留固定成功会话 `/c/6adf35c3-a164-83ee-bbcb-33f591d971c9` 的原生 AX 显示《白鲸》中文续答及“真实结果已回传，官方 AI 已完成回复”。同页有 `PS-CORE-20261022-TEXT` 中文多行草稿，侧栏位于“网页剪藏 / 设置”；仅观察，未点击、清空、发送、重载或接管设置操作。没有发现需要新增 UI 修复的状态矛盾。 |
+| 当前候选原生 / 安装 | **NOT_TESTED**：当前 Chrome 已应用 revision/开发连接未通过 UI 重读；不能据磁盘声明旧页面已注入。新源码的正常 Run 和历史移除异常均未在 Chrome 新运行；纯完成检测修复用生产交付调用定向验证，不为此制造长历史或影响现有草稿。官网新请求、新 Run、结果新发送均为 0。Task 原安装沿用旧事实；本轮未升级/重装，内部 installationId/generation 仍 **UNKNOWN**。 |
+
+原始证据目录：`artifacts/ai-chat-bridge-r20-mac-20261026/continuation-01a17828/`；包括 `prefix-before-fix.log`、`prefix-after-fix.log`、`targeted-regression.log`（首次模拟器失败）、`delivery-after-harness-fix.log`、`targeted-regression-final.log`、`source-build-identity.json` 和 `review.json`。源码 page SHA 为 `ebbd12a958cdfc5ecc3a4503ca346d3720e1f587bb9034702e38ccbf9034b0f2`；其他详细输入见 JSON。不覆盖旧原始证据，不批量提交 artifacts。
+
+**收尾与剩余限制**：本轮开发范围已完成，无新增 BLOCKED。现有 Chrome 草稿、页面、侧栏和 watcher 保留；未取得资源独占声明，也没有 UI 写入占用。后续正常使用仍是同窗口侧栏→已有官方会话→选任务→建立并官网发送→完整后执行或批准一次自动→观察唯一结果与新回复；旧网页仅在无进行中请求且保护草稿后使用正常刷新取得新脚本。移除当前请求/候选锚点或回复晚于观察窗口时仍保守标“官方 AI 回复仍待核查”，绝不自动重发。旧 UNKNOWN/旧 FAIL 原样保留；本轮 `get_goal` 实读为 null，未修改旧 complete 目标。production/正式验收、评分、全矩阵、宽度缩放、压力/变异/大规模故障注入继续延期。
+
 ## 当前核心链路续推（2026-10-26 17:00 起，北京时间）
 
 ### 最新结论：四个正常场景真实闭环完成（19:43 收尾）
