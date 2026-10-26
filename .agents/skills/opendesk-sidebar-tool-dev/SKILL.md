@@ -83,7 +83,7 @@ Stay Focus 安装提交前，静态 Side Panel 适配器的 `focus.probe` 对当
 
 独立工具页不堆静态描述：依照 [R28 多功能区 Tab 契约](../../../docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md)，头部默认只有返回、当前标题和必要操作；文件夹/列表等集合“＋ 新建”放在所属区域标题右侧，条目管理入口必须能在窄屏/键盘下找到。真正的授权/错误等动态提示放到状态区，不借口信息完整性常驻重复描述。
 
-**子视图标题同步（R2）**：真实页面从列表进入详情/编辑后，应让用户知道“哪一个应用的哪一个页面”，但不在原头部叠加 Nav/面包屑。宿主可信设置统一显示「应用名 / 设置」，不由每个工具复制设置页首；已验真官方沙箱需要时使用现有有界 `OpenDeskTool.setNavigation({page,title,canBack,...})` 报告业务页，原业务继续处理 `back`、未保存和保存锁。普通第三方与未验真同 ID 包自行保留内部导航，不把自报 title 注入可信 Header。Bookmark Manager 可信 React 的详情预览仍是局部弹层，而新建/编辑 Sheet 已通过实际业务回调与原 `requestCloseSheet()` 草稿确认成为可返回的子视图；只有真正处理了 Host Back 的页面才允许「书签管理 / 编辑书签」。修改真实业务代码后同步此 Skill、工具 README 与[Sidebar Tool 共享标题合同](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)，并只做受影响的页面/返回测试；纯 Browser Host 修复不必重打无变化的 JSON 包。
+**子视图标题同步（R2.2）**：业务通过原有受约束的 `OpenDeskTool.setNavigation({page,title,canBack,...})` 继续上报**完整**业务页名（例如「提示词详情」「编辑书签」）；已验真宿主的共享 Header **只显示当前短名称**（「详情」「编辑」；可信设置「设置」；根页仍为工具名）。完整工具/业务路径在可信 `title` / `aria-label` 中，不在沙箱里删业务含义，也不创建面包屑、第二条 Header 或父子 flex 拉伸留白。普通第三方或未验真的同 ID 包保留自己的内部导航，不能控制可信标题。书签 React 的新建/编辑 Sheet 有真实 `requestCloseSheet()` 和脏草稿 Back，允许显示短标题；详情 PreviewPane、菜单仍非子路由。权限、保存锁和返回操作不由标题字符串决定。详见[共享导航合同](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)；纯 Browser Host 修复不必重打未改动的 JSON 包。
 
 ## 与编译、发行和未来市场 Skill 的明确分工
 

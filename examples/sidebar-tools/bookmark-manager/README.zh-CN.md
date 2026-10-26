@@ -1,5 +1,9 @@
 # Bookmark Manager · 正式 React 与 Classic 兼容工具
 
+## R2.2 共享 Header 当前页短标题（2026-10-26，现行覆盖历史 R2.1）
+
+共享 Browser Host 正式代码修正了双 flex span 将「书签管理 / 设置」拉出大段空白的问题。**当前可见**：根页「书签管理」、可信设置「设置」、新建书签/文件夹 Sheet「新建」、编辑书签/文件夹 Sheet「编辑」；完整「书签管理 / 编辑书签」等原业务标题保留在悬浮提示与 ARIA。可信设置内部冗余「工具设置」H2 已去除，原返回、草稿确认、保存中拦截不变。此变更只涉及 Browser Host，**没有修改书签 React 业务源码、0.3.12 JSON 包或权限**；需要在 Chrome 更新包含新 Host 的 Browser 才生效。下文 R2.1「父/子同时可见」及 R2 设置全路径均属历史描述，而非现行规范。本次真实 Mac 安装效果尚未验证：`NOT_TESTED`。
+
 ## 0.3.12 安装包同步（2026-10-26）
 
 当前源码样式已领先于 `0.3.11` 正式 JSON；通过既有 `app:update` 流程升至 **0.3.12**，候选测试后晋升目录内唯一正式包，并同步既有 React 准入版本锁。权限保持 `browser.bookmarks.full`、`currentPage.read`，包 SHA-256 为 `06972e1420b0c43d8d0474fb91540bd5a405b96599861dabfb741587ee458383`。包及 React 来源定向检查共 13 项通过，`--check-project` 确认同源；现有开发 watcher 已同步 `dist/development` 官方市场资源，包字节一致，未另启构建或替换 Profile。
