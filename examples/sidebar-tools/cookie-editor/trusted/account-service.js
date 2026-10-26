@@ -7,7 +7,8 @@ import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnable
   from '../../../../src/ui/sidebar-tools/lifecycle.js';
 import {MARKET_PROVENANCE_STORE} from '../../../../src/ui/sidebar-tools/installation.js';
 import {BROWSER_MENU_GRANTS_STORE} from '../../../../src/framework/sdk/browser-contract.js';
-import {loadOfficialCatalog,matchesOfficialRelease} from '../../../../src/sidebar-tools/official-catalog.js';
+import {OFFICIAL_CATALOG_PATH,validateOfficialReleaseCatalog,matchesOfficialRelease}
+  from '../../../../src/sidebar-tools/official-catalog.js';
 import {isSidebarToolHostSender} from '../../../../src/sidebar-tools/sender.js';
 import {createCookieService} from '../../../../src/platform/chrome/cookies.js';
 import {inspectAccountSwitchUrl} from '../app/domain/account-switch-url.js';
@@ -118,7 +119,13 @@ export function createCookieAccountService({api=globalThis.chrome,now=Date.now}=
     const epoch=state[TOOL_REVOCATION_EPOCHS_STORE]?.[ID]??null;
     if(message&&(message.packageHash!==hash||message.installEpoch!==epoch))
       throw fail('E_TOOL_CHANGED');
-    const catalog=await loadOfficialCatalog({api});
+    // Pin to the bundled reviewed catalog. Network-based Stay Focus updates
+    // must not block or mutate Cookie Editor's authorization decisions.
+    const releaseResponse=await fetch(api.runtime.getURL(OFFICIAL_CATALOG_PATH),{
+      cache:'no-store',credentials:'omit',redirect:'error'
+    });
+    if(!releaseResponse.ok)throw fail('E_TOOL_CHANGED');
+    const catalog=validateOfficialReleaseCatalog(await releaseResponse.json());
     const release=catalog.apps.find(entry=>entry.toolId===ID);
     const grant=state[MARKET_PROVENANCE_STORE]?.[ID];
     if(!release||release.version!==tool.version||grant?.marketId!==release.id||
@@ -355,20 +362,37 @@ export function createCookieAccountService({api=globalThis.chrome,now=Date.now}=
       const frame=await api.webNavigation.getFrame({tabId:event.tabId,frameId:0});
       const document={tabId:event.tabId,documentId:frame?.documentId,url:event.url};
       await validateDocument(document,origin,true);
-      const seen=(await api.storage.session.get(SEEN_KEY))[SEEN_KEY]||{};
-      const key=String(event.tabId),prior=seen[key];
-      if(prior?.url===url.href&&prior.alias===account.alias&&
-         prior.version===account.version&&prior.expiresAt>now())return;
       await exclusive(async()=>{
-        // Reconcile fresh authority, unlocked key, and revisions before effect.
+        // Record an expiring, trusted, per-tab in-flight fence BEFORE any
+        // native Cookie effect or reload. Worker restarts and fragment events
+        // must not automatically replay an effect with uncertain outcome.
+        const state=(await api.storage.session.get(SEEN_KEY))[SEEN_KEY]||{};
+        const id=String(event.tabId),prior=state[id];
+        if(prior?.url===url.href&&prior.alias===account.alias&&
+           prior.version===account.version&&prior.expiresAt>now())return;
         const current=await vault.read();
         if(current.revision!==data.revision)throw fail('E_VAULT_CONFLICT');
         const latest=await installed();
-        await runSwitch(account,latest,document,{automatic:true,refresh:current.settings.autoRefresh});
-        const state=(await api.storage.session.get(SEEN_KEY))[SEEN_KEY]||{};
-        state[key]={url:url.href,alias:account.alias,version:account.version,
-          expiresAt:now()+300000};
+        const priorFence={url:url.href,alias:account.alias,version:account.version,
+          expiresAt:now()+600000,phase:'in_flight'};
+        state[id]=priorFence;
         await api.storage.session.set({[SEEN_KEY]:state});
+        const verified=(await api.storage.session.get(SEEN_KEY))[SEEN_KEY]?.[id];
+        if(!same(verified,priorFence))throw fail('E_OUTCOME_UNKNOWN');
+        try{
+          await runSwitch(account,latest,document,{
+            automatic:true,refresh:current.settings.autoRefresh
+          });
+          const next=(await api.storage.session.get(SEEN_KEY))[SEEN_KEY]||{};
+          // Never overwrite a newer manual/automation fence for this tab.
+          if(same(next[id],priorFence)){
+            next[id]={...priorFence,phase:'applied'};
+            await api.storage.session.set({[SEEN_KEY]:next});
+          }
+        }catch{
+          // Keep the original in-flight fence: no background auto-retry.
+          throw fail('E_OUTCOME_UNKNOWN');
+        }
       });
     }catch{/* Never retry, navigate, log account names or expose Cookie bytes. */}
   }
