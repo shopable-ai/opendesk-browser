@@ -170,6 +170,20 @@ test('R3.2 fixture customer receives a single reviewed DOM reply; no automatic m
      {code:'E_KB_TEST_NO_ANSWER'});
  }finally{rt.dispose();}
 });
+test('R3.2 polite prefix retains one exact fixed answer and one guarded send',async()=>{
+ const {site,api,target}=fakePage();
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary:async()=>({value:lib,etag}),assertLive:()=>{}});
+ try{
+   await rt.start({event:{isTrusted:true},autoSendFixed:true});
+   site.messages.push(customer('请问退款期限是多少？'));
+   await until(()=>rt.snapshot().records[0]?.status==='CONFIRMED','polite fixed send');
+   const row=rt.snapshot().records[0];
+   assert.equal(row.status,'CONFIRMED');
+   assert.deepEqual(row.sourceIds,['qa_demo_refund']);
+   assert.equal(site.sendCalls,1);
+ }finally{rt.dispose();}
+});
 test('R3.2 greeting never calls AI or auto-sends; trusted review is required',async()=>{
  const {site,api,target}=fakePage();let aiCalls=0;
  const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
@@ -184,6 +198,58 @@ test('R3.2 greeting never calls AI or auto-sends; trusted review is required',as
    const receipt=await rt.confirm({event:{isTrusted:true},messageId:id,reviewApproved:true});
    assert.equal(receipt.status,'CONFIRMED');assert.equal(site.sendCalls,1);
    assert.equal(site.messages[1].text,GREETING_REPLY);
+ }finally{rt.dispose();}
+});
+test('R3.2 two semantic questions use bounded per-question AI and one human-reviewed reply',async()=>{
+ const {site,api,target}=fakePage();const calls=[];
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary:async()=>({value:lib,etag}),assertLive:()=>{},
+   getProviderGeneration:()=>9,
+   callAI:async({question})=>{
+     calls.push(question);
+     if(question.includes('发票'))return {status:'REVIEW_REQUIRED',
+       answer:'演示规则：订单完成后可在订单详情申请电子发票。',
+       sourceIds:['qa_demo_invoice']};
+     return {status:'REVIEW_REQUIRED',
+       answer:'演示规则：发货后可在订单详情查看物流单号和进度。',
+       sourceIds:['qa_demo_tracking']};
+   }});
+ try{
+   await rt.start({event:{isTrusted:true},autoSendFixed:true});
+   rt.approveAI({...rt.approvalContext(),expiresAt:Date.now()+120000});
+   site.messages.push(customer('如何申请电子发票？我能在哪看物流？'));
+   await until(()=>rt.snapshot().records[0]?.status==='MULTI_REVIEW_REQUIRED',
+     'two AI-grounded separate question drafts');
+   const row=rt.snapshot().records[0];
+   assert.deepEqual(calls,['如何申请电子发票','我能在哪看物流']);
+   assert.deepEqual(row.parts.map(p=>p.sourceIds),[['qa_demo_invoice'],['qa_demo_tracking']]);
+   assert.equal(row.answeredCount,2);
+   assert.equal(row.reviewCount,0);
+   assert.equal(site.sendCalls,0);
+   assert.match(row.answer,/发票/);assert.match(row.answer,/物流/);
+   await assert.rejects(rt.confirm({event:{isTrusted:true},messageId:id}),
+     {code:'E_KB_REVIEW'});
+   await rt.confirm({event:{isTrusted:true},messageId:id,reviewApproved:true});
+   assert.equal(site.sendCalls,1,'both AI drafts must share a single webpage reply');
+ }finally{rt.dispose();}
+});
+test('R3.2 cross-topic AI citations cannot be attached to another question',async()=>{
+ const {site,api,target}=fakePage();let aiCalls=0;
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary:async()=>({value:lib,etag}),assertLive:()=>{},
+   callAI:async()=>{aiCalls++;return {status:'REVIEW_REQUIRED',
+     answer:'编造的错误政策',sourceIds:['qa_demo_payment']};}});
+ try{
+   await rt.start({event:{isTrusted:true}});
+   rt.approveAI({...rt.approvalContext(),expiresAt:Date.now()+120000});
+   site.messages.push(customer('如何申请电子发票？我能在哪看物流？'));
+   await until(()=>aiCalls===2&&rt.snapshot().records[0]?.status==='PARTIAL_REVIEW_REQUIRED',
+     'both invalid citations checked');
+   assert.equal(aiCalls,2);
+   const row=rt.snapshot().records[0];
+   assert.equal(row.answer,'');
+   assert.deepEqual(row.sourceIds,[]);
+   assert.equal(site.sendCalls,0);
  }finally{rt.dispose();}
 });
 test('R3.2 real-time order has no sendable response even if fixed auto permit enabled',async()=>{

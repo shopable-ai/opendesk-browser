@@ -3476,8 +3476,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       patchToolField(view, updatePanel, {hidden: false});
       patchToolField(view, updateVersions, {textContent: '当前 v'+previous.version+' → 新 v'+candidate.version});
       patchToolField(view, updateImpact, {textContent:'更新将替换现有代码；原有应用数据保留。'});
-      patchToolField(view, updateCapabilities, {textContent: '新增能力：'+(added.map(readableCapability).join('、')||'无')+
-        '；移除能力：'+(removed.map(readableCapability).join('、')||'无')});
+      patchToolField(view, updateCapabilities, {textContent: [
+        ...(added.length?['新增能力：'+added.map(readableCapability).join('、')]:[]),
+        ...(removed.length?['移除能力：'+removed.map(readableCapability).join('、')]:[])
+      ].join('；')});
       const policyReview=describeSidebarToolBackgroundPolicyChange(previous.backgroundPolicy,candidate.backgroundPolicy);
       patchToolField(view, permissionSummary, {textContent: added.length
         ?'新增 '+added.length+' 项权限 · 请核对'
@@ -3523,7 +3525,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, previewCapabilities, {textContent: '读取和修改以下网站的网页内容：'+pkg.pageRules.matches.join('、')+
       (pkg.pageRules.excludeMatches.length?'；排除：'+pkg.pageRules.excludeMatches.join('、'):'')+
       '。仅在顶层网页运行，不获得侧栏或 Native 权限。'});
-    patchToolField(view, previewFile, {textContent: '身份：'+pkg.programId+'；文件：'+(file.name||'本地 JSON')});
+    patchToolField(view, previewFile, {textContent: '身份：'+pkg.programId+'；文件：'+(file.name||'本地 JSON')+
+      '；安装包 SHA-256：'+pkg.packageHash+'；源码 SHA-256：'+pkg.sourceHash});
     patchToolField(view, previewSource, {textContent:'本地安装包 · 请确认文件来源可信'});
     patchToolField(view, technicalDetails, {open:false});
     if(installed){
@@ -3536,6 +3539,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const added=after.filter(site=>!before.includes(site));
       const removed=before.filter(site=>!after.includes(site));
       const previousConfig=installed.pageRules||{};
+      const previouslyExcluded=Array.isArray(previousConfig.excludeMatches)?previousConfig.excludeMatches:[];
+      const newlyExcluded=pkg.pageRules.excludeMatches;
+      const excludedAdded=newlyExcluded.filter(site=>!previouslyExcluded.includes(site));
+      const excludedRemoved=previouslyExcluded.filter(site=>!newlyExcluded.includes(site));
       const changedConfig=JSON.stringify({
         excludeMatches:previousConfig.excludeMatches||[],runAt:previousConfig.runAt,
         allFrames:previousConfig.allFrames,world:previousConfig.world
@@ -3552,10 +3559,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       patchToolField(view, updateVersions, {textContent:
         '当前 '+(installed.version?'v'+installed.version:'版本未记录')+' · r'+installed.revision+
         ' → 新 v'+pkg.version+' · r'+pkg.revision});
-      patchToolField(view, updateCapabilities, {textContent:
-        '新增网站范围：'+(added.join('、')||'无')+'；移除网站范围：'+(removed.join('、')||'无')});
+      patchToolField(view, updateCapabilities, {textContent: [
+        ...(added.length?['新增网站范围：'+added.join('、')]:[]),
+        ...(removed.length?['移除网站范围：'+removed.join('、')]:[]),
+        ...(excludedAdded.length?['新增排除网站：'+excludedAdded.join('、')]:[]),
+        ...(excludedRemoved.length?['移除排除网站：'+excludedRemoved.join('、')]:[]),
+        ...(changedConfig&&!excludedAdded.length&&!excludedRemoved.length?['网页运行配置发生变化']:[])
+      ].join('；')});
       const warnings=[...(pkg.revision<installed.revision?['安装包修订号低于当前安装']:[]),
-        ...(changedConfig?['网页运行配置发生变化']:[]),
+        ...(changedConfig?['网页运行配置发生变化'+
+          (excludedRemoved.length?'（排除网站减少，实际运行范围可能扩大）':'')]:[]),
         ...(added.length?['新增网站范围需要核对权限']:[])];
       patchToolField(view, updateWarning, {textContent:warnings.join('；'),
         hidden:!warnings.length});
@@ -3670,6 +3683,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // Preserve the browser's selected filename; clearing .value here lies to the user.
     resetReview();setFileError();notice('');
     if(!file)return;
+    patchToolField(view, pageInstallStatus, {textContent:'正在核验安装包…',hidden:false});
+    setToolFieldAttribute(view, pageInstallStatus, 'data-state', 'reviewing');
     try{
       if(file.size>PROGRAM_DRAFT_INPUT_LIMIT)throw new Error('文件超过程序草稿包大小上限');
       const text=await file.text();
@@ -3689,6 +3704,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }catch(error){
       if(disposed||selection!==fileSelection)return;
       setFileError(error instanceof SyntaxError?'文件不是有效的扩展安装包 JSON':String(error?.message||error));
+    }finally{
+      if(!disposed&&selection===fileSelection&&pageInstallStatus.attributes['data-state']==='reviewing'){
+        patchToolField(view, pageInstallStatus, {textContent:'',hidden:true});
+        setToolFieldAttribute(view, pageInstallStatus, 'data-state', null);
+      }
     }
   }
   async function install() {
