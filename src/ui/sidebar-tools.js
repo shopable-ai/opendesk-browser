@@ -3617,9 +3617,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, previewTitle, {textContent: pkg.title});
     patchToolField(view, previewVersion, {textContent: 'v'+pkg.version+' · r'+pkg.revision});
     patchToolField(view, previewDescription, {textContent: '网页增强 · 安装后在批准的网站自动运行。'});
-    patchToolField(view, previewCapabilities, {textContent: '读取和修改以下网站的网页内容：'+pkg.pageRules.matches.join('、')+
+    patchToolField(view, previewCapabilities, {textContent: 'Chrome 网站访问授权范围：'+
+      pageHostPermissionOrigins(pkg.pageRules.matches).join('、')+
+      '；脚本实际执行的路径范围：'+pkg.pageRules.matches.join('、')+
       (pkg.pageRules.excludeMatches.length?'；排除：'+pkg.pageRules.excludeMatches.join('、'):'')+
-      '。仅在顶层网页运行，不获得侧栏或 Native 权限。'});
+      '。Chrome 权限可能覆盖整个 Origin；脚本仅在已审阅路径及顶层文档运行，不获得侧栏或 Native 权限。'});
     patchToolField(view, previewFile, {textContent: '身份：'+pkg.programId+'；文件：'+(file.name||'本地 JSON')+
       '；安装包 SHA-256：'+pkg.packageHash+'；源码 SHA-256：'+pkg.sourceHash});
     patchToolField(view, previewSource, {textContent:'本地安装包 · 请确认文件来源可信'});
