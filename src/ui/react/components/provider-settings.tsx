@@ -65,16 +65,18 @@ function NativeConnectionCard({nativeConnection,onOpenNativeSettings,doc}){
    setError('本机连接未完成：'+String(ex?.message||ex));
   }finally{setBusy(false);}
  };
+ const lastSeen=Number.isSafeInteger(status?.lastConnectedAt)&&status.lastConnectedAt>0
+  ?new Date(status.lastConnectedAt).toLocaleString('zh-CN',{dateStyle:'short',timeStyle:'short'}):null;
  const title=!nativeConnection?.readStatus?'状态不可用':loading?'正在检测':
   !status?'无法确认':!status.enabled?'未启用':status.nativeConnected?'已连接':
   status.requiresReload?'需要重载':status.connecting?'正在连接':'已启用 · 当前离线';
  const hint=!nativeConnection?.readStatus?'请打开本机设置检查连接。':
   !status?'无法读取真实连接状态；没有自动重新授权。':
-  !status.enabled?'启用时才会申请本机连接权限。':
+  !status.enabled?(lastSeen?'上次成功连接：'+lastSeen+'。目前连接已关闭。':'启用时才会申请本机连接权限。'):
   status.nativeConnected?'OpenDesk 已在线；Codex 能力在发送时再次核验。':
   status.requiresReload?'浏览器需要重新加载扩展，开关已保持启用。':
   status.connecting?'正在等待 OpenDesk 握手，请勿重复设置。':
-  '已保存启用设置，但当前未连接；请检查本机程序是否运行。';
+  (lastSeen?'上次成功连接：'+lastSeen+'。当前离线，':'已保存启用设置，但当前未连接，')+'请检查本机程序是否运行。';
  return <div className="od-shared-provider-local-card">
   <div className="od-shared-provider-local-main">
    <div className="od-shared-provider-native-state">
