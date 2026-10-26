@@ -36,7 +36,7 @@ test('tool packer rejects traversal, symlink escape, oversized assets and duplic
     await config({...meta,assets:['huge.png','huge.png']});await assert.rejects(buildSidebarTool(temp),/invalid asset list/);
   }finally{await rm(temp,{recursive:true,force:true});await rm(outside,{recursive:true,force:true});}
 });
-test('native tool directory packs JS/CSS/HTML and a local image into a portable JSON',async()=>{
+test('native tool directory packs JS/CSS/HTML into a portable JSON',async()=>{
   const temp=await mkdtemp(join(tmpdir(),'opendesk-tool-test-'));
   try{
     const path=join(temp,'test.opendesk-tool.json');
@@ -45,10 +45,31 @@ test('native tool directory packs JS/CSS/HTML and a local image into a portable 
     assert.equal(report.installed,false);
     const parsed=validateSidebarToolPackage(JSON.parse(await readFile(path,'utf8')));
     assert.equal(parsed.id,'quick-notes');
-    assert.ok(parsed.html.includes('data:image/png;base64,'));
     assert.ok(parsed.js.includes('OpenDeskTool'));
     assert.ok(!parsed.html.includes('{{asset:'));
     assert.deepEqual(parsed.capabilities,['storage.local','currentPage.read','tasks.open']);
+  }finally{await rm(temp,{recursive:true,force:true});}
+});
+test('tool packer embeds a declared local image in HTML and CSS',async()=>{
+  const temp=await mkdtemp(join(tmpdir(),'opendesk-tool-image-'));
+  try{
+    const image=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j0ioAAAAASUVORK5CYII=','base64');
+    const config={id:'image-test',version:'1.0.0',title:'图片打包测试',description:'本地图片内嵌',capabilities:[],
+      files:{html:'index.html',css:'style.css',js:'main.js'},assets:['mark.png']};
+    await Promise.all([
+      writeFile(join(temp,'tool.config.json'),JSON.stringify(config)),
+      writeFile(join(temp,'index.html'),'<img src="{{asset:mark.png}}" alt="测试">'),
+      writeFile(join(temp,'style.css'),'.mark{background-image:url("{{asset:mark.png}}")}'),
+      writeFile(join(temp,'main.js'),'void 0;'),
+      writeFile(join(temp,'mark.png'),image)
+    ]);
+    const output=join(temp,'candidate.json');
+    await buildSidebarTool(temp,{out:output});
+    const parsed=validateSidebarToolPackage(JSON.parse(await readFile(output,'utf8')));
+    const uri='data:image/png;base64,'+image.toString('base64');
+    assert.ok(parsed.html.includes(uri));
+    assert.ok(parsed.css.includes(uri));
+    assert.ok(!JSON.stringify(parsed).includes('{{asset:'));
   }finally{await rm(temp,{recursive:true,force:true});}
 });
 test('portable Sidebar Tool builds to candidate first and only explicit verified promotion updates one project JSON',async()=>{
