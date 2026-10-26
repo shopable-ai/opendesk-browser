@@ -31,6 +31,8 @@ test('production CSS and exact selected C WebP match the standalone preview byte
  assert.equal(find('<style id="program-css">\n','</style>'),inlineCss);
 });
 test('preview is offline and retains main queue interactions without A/B switches',()=>{
+ assert.match(html,/SEND QUEUE · 交互预览/);
+ assert.doesNotMatch(html,/R5\.2 · SELECTED C/);
  assert.doesNotMatch(html,/<(?:script|link)\b[^>]+(?:src|href)\s*=\s*["'](?:https?:|\.\.?\/)/i);
  assert.doesNotMatch(html,/url\(["']?\.\.?\//);
  for(const id of ['blue','native','draft','more','reset','angle','scale','offsetX','offsetY','sizes','widths','themes','finish','toggle-pause','sample-add','detail-send','restore-style'])
