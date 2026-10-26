@@ -13,6 +13,8 @@ import {toolLocaleStorageKey} from './locale-packs.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL} from '../../platform/protocol.js';
 import {TIME_REVIEW_KEY} from '../../../examples/sidebar-tools/time-review/trusted/model.js';
 import {PROMPT_ASSET_STORE} from '../../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js';
+import {COOKIE_ACCOUNT_VAULT_KEY,COOKIE_ACCOUNT_SESSION_KEY,COOKIE_ACCOUNT_SEEN_KEY}
+  from '../../../examples/sidebar-tools/cookie-editor/trusted/account-contract.js';
 import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../../examples/sidebar-tools/stay-focus/trusted/lifecycle.js';
 import {stopAdblockForTool,cleanupUninstalledAdblock,prepareReviewedAdblockUpdate} from '../../../examples/sidebar-tools/adblock/trusted/lifecycle.js';
 import {ADBLOCK_STORE} from '../../../examples/sidebar-tools/adblock/trusted/policy.js';
@@ -221,6 +223,16 @@ export async function cleanupUninstalledToolLocked(api,id){
     await removeVerifiedKey(api,sidebarToolStorageKey(id));
     await removeVerifiedKey(api,toolLocaleStorageKey(id));
     if(id==='prompt-shortcuts')await removeVerifiedKey(api,PROMPT_ASSET_STORE);
+    if(id==='cookie-editor'){
+      // Explicit uninstall retires the encrypted account vault AND the live
+      // session key/fence, with verified removal under the existing durable
+      // uninstall journal. Ordinary upgrades retain the vault unchanged.
+      await removeVerifiedKey(api,COOKIE_ACCOUNT_VAULT_KEY);
+      await removeVerifiedStorageKey(api.storage.session,COOKIE_ACCOUNT_SESSION_KEY,
+        '卸载 Cookie 账号加密会话');
+      await removeVerifiedStorageKey(api.storage.session,COOKIE_ACCOUNT_SEEN_KEY,
+        '卸载 Cookie 自动切换状态');
+    }
     // Delete private bookmark ownership IDs but do not silently remove user bookmarks.
     await removeVerifiedKey(api,BOOKMARK_OWNED_STORE_PREFIX+id);
     if(id==='time-review')await removeVerifiedKey(api,TIME_REVIEW_KEY);
