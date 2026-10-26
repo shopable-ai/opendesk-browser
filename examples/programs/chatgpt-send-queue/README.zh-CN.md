@@ -1,10 +1,18 @@
 # OpenDesk Send Queue · ChatGPT 网页增强
 
-Program ID: `opendesk.chatgpt-send-queue` · `page-userscript` · `USER_SCRIPT` · 范围仅 `https://chatgpt.com/*` · 版本 `0.1.2`、r4。
+Program ID: `opendesk.ai-send-queue` · `page-userscript` · `USER_SCRIPT` · 范围仅 `https://chatgpt.com/*` · 版本 `0.1.2`、r1。
+
+## 新身份与旧安装并存（2026-10-26）
+
+`opendesk.ai-send-queue` 0.1.2/r1 是独立安装身份，须通过原 Page 安装入口单独审阅。旧正式包 `opendesk.chatgpt-send-queue.opendesk-page.json`（旧身份 0.1.2/r4）保留只读，不迁移旧安装、授权或内存队列。业务模块、样式、资源与网站范围沿用原实现。
+
+新旧身份原本可分别挂载生命周期并驱动发送。新入口发现旧活动生命周期标记时返回 `status: skipped` / `reason: legacy-active`，不创建队列或 UI；若旧生命周期稍后出现，新实例在下一次轮询或用户操作前只销毁自己的资源，不调用旧清理、不清空、不复制或接管旧队列。标记只用于保守阻止运行，不授予权限。局部视图 ID 保留原样，不代表安装身份或授权迁移；退出后不自动重启。请先人工处理旧队列，再通过原安装管理入口停用旧安装，在新文档使用单独获批的新安装。此保护不证明任意旧版本或不同执行世界的原生并存安全。
+
+本轮 5 项身份/生命周期定向 Node 测试、入口语法、项目校验、原打包器格式/哈希与候选同源检查通过。新包 `sourceHash: 01cad4e3f16f843aea6fe722c7989b4860ea11412a3f5cb6d22c4c714bcd31f1`，`packageHash: 0cc2ab295f0141b53f2351215122f05632d07f7d1dd565de55c58d81311d8441`。仅验证新身份、旧生命周期避让、包格式及哈希；不重跑 FIFO 全套，不操作浏览器。离线候选输出位于 `artifacts/ai-four-products-r126-content-20261026/queue-candidate/`，使用原 `npm run build:program` 与 `scripts/build-page-install-package.mjs`。原生安装、自动运行、发送、站点并存及撤权均为 `NOT_TESTED`。
 
 ## 目标与真实功能边界
 
-这是独立 Page Program。**不是** Prompt Shortcuts、OpenDesk 自身 `src/ui/react/components/conversation.tsx`、Chrome 独立扩展或 ChatGPT API 客户端。正式包为本目录的 `opendesk.chatgpt-send-queue.opendesk-page.json`，通过 OpenDesk「扩展 → 导入」审阅身份、版本及网站范围后安装，归「网页增强」。2026-10-25 已在专属 Mac CFT 完成核心发送与正式 Page 安装；证据范围见文末。
+这是独立 Page Program。**不是** Prompt Shortcuts、OpenDesk 自身 `src/ui/react/components/conversation.tsx`、Chrome 独立扩展或 ChatGPT API 客户端。新独立正式包为本目录的 `ai-send-queue.opendesk-page.json`，通过 OpenDesk「扩展 → 导入」审阅身份、版本及网站范围后安装，归「网页增强」。新身份未在 Chrome 安装或运行，原生证据为 `NOT_TESTED`；文末旧身份的历史证据不适用于新包。
 
 S01：官网正在回复时，用户继续输入并点击蓝色队列按钮两次；原生草稿分别进入同一对话的内存队列。等待网站显示回复完成、原生发送控件变为安全可用、输入框无他人草稿后，先填入消息，下一轮重新核对网页与按钮，再**只点击一次**；准确找到一个新增用户消息节点才能认定确认。下一条要等待新的助手回复节点明确结束后继续。队列不通过私有网络端点、cookie、模拟官方 API 或后台配额发送。
 
@@ -47,6 +55,8 @@ node scripts/validate-program-project.mjs examples/programs/chatgpt-send-queue
 本地多文件接入：`opendesk browser dev "$PWD/examples/programs/chatgpt-send-queue"`，从「开发」明确在有授权的 ChatGPT 页面执行；项目的 `main()` 返回 `programId/status/runtime/persistence`，只是求值结果，不等于完成发送。冻结候选时才执行 `npm run build:program -- examples/programs/chatgpt-send-queue`，导入/验证/安装沿当前 `opendesk-program-publish` Skill，不添加第二安装器。
 
 人工验收时，使用无敏感内容语句，仅在专属测试对话尝试；记录浏览器/扩展身份、程序 SHA、实际消息与回复完成信号、原生发送与停止状态及截图。切勿把 Node 模拟、R3 HTML 模拟视为真实成功。
+
+旧身份历史记录（不证明新身份 PASS）
 
 Status (2026-10-26, R4.7 UI-only): 源码与正式 Page 安装包 r4 已同步去除正常回复等待时的冗余提示和空状态行；正式包固定源码 SHA-256 `2773494e95d343d2002022683921523c2be9b72b5720e4eb14023ad3ab789020`，仅变更展示条件，未修改发送引擎。r4 尚未在真实 Mac Chrome 安装或运行本地 Node 测试，标记 `NOT_TESTED`；以下为 r3 历史验收证据，不可自动视为 r4 PASS。
 

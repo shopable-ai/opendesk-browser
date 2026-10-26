@@ -9,7 +9,7 @@
   },
   "opendesk": {
     "format": "opendesk.project.v1",
-    "id": "opendesk.chatgpt-send-queue",
+    "id": "opendesk.ai-send-queue",
     "runtimeKind": "page-userscript",
     "sourceFormat": "esm",
     "entry": "src/main.js",

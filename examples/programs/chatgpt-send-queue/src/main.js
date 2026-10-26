@@ -3,16 +3,25 @@ import {createChatGPTSite} from './site.js';
 import {createQueueEngine} from './engine.js';
 import {createQueueView} from './view.js';
 
-const ID='opendesk.chatgpt-send-queue';
+const ID='opendesk.ai-send-queue';
+// A separate installation must never take over the legacy in-memory queue.
+const LEGACY_LIFECYCLE='[data-opendesk-ui-owner][data-od-id="opendesk.chatgpt-send-queue.lifecycle"]';
 const pageRules={matches:['https://chatgpt.com/*'],excludeMatches:[],
   runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'};
 
 export default async function main({assets}={}) {
   if(window!==window.top||window.location.origin!=='https://chatgpt.com')
     return {programId:ID,status:'skipped'};
+  if(document.querySelector(LEGACY_LIFECYCLE))
+    return {programId:ID,status:'skipped',reason:'legacy-active'};
   const owner=createPageUI({id:ID+'.lifecycle',assets,pageRules,baseStyles:false});
   owner.host.hidden=true;
   owner.host.style.setProperty('display','none','important');
+  function retireForLegacy(){
+    if(!document.querySelector(LEGACY_LIFECYCLE))return false;
+    owner.destroy();
+    return true;
+  }
   let composing=false;
   const site=createChatGPTSite({isComposing:()=>composing});
   owner.on(document,'compositionstart',()=>{composing=true;},true);
@@ -85,7 +94,9 @@ export default async function main({assets}={}) {
         }else engine.pause('用户主动暂停队列');
       }
     };
-    view=createQueueView({owner,createPageUI,assets,engine,actions});
+    view=createQueueView({owner,createPageUI,assets,engine,
+      actions:Object.fromEntries(Object.entries(actions).map(([name,action])=>
+        [name,(...args)=>{if(owner.active()&&!retireForLegacy())return action(...args);}] ))});
     // Native Stop clicked by the user is not proof of normal answer completion.
     owner.on(document,'click',event=>{
       const state=engine.view();
@@ -100,7 +111,7 @@ export default async function main({assets}={}) {
     });
     // Reconcile only every 650ms; no timer infers completion from idle text.
     owner.setInterval(()=>{
-      if(!owner.active())return;
+      if(!owner.active()||retireForLegacy())return;
       const snap=site.inspect();
       if(snap.ok){view.place(snap);view.render();}
       else view.hide();

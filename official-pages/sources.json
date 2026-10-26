@@ -47,7 +47,7 @@
       ],
       "installationPolicy": "reviewed",
       "publication": "blocked",
-      "blockedReason": "Send Queue 源码仍为旧 Program ID（0.1.2）；新 ID 须由业务 owner 交接并生成独立正式包，旧安装和授权不会自动迁移。"
+      "blockedReason": "新 ID 0.1.2/r1 已有独立正式包及身份、旧生命周期避让的定向 Node 证据；仍缺新身份真实 Chrome 安装与核心操作证据，旧安装和授权不会自动迁移。"
     }
   ]
 }

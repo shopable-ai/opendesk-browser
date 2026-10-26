@@ -122,3 +122,17 @@ BLOCKED/REMAINING：Scroll 缺三站真实长对话导航证据，仍 BLOCKED_CO
 - Prompt 当前正式包为 1.1.20，SHA256 `e93e1bde0a9fb7953fafbba1f1a71266890706f412f47f6209389c7b4afbf5ef`，与其 README 对应；1.1.19 原生升级和卸载证据只保留原候选边界，不提升为 1.1.20 安装 PASS。Scroll 原包仍为 0.4.0/r1，sourceHash/packageHash 与上文相同。
 - Mind Map 许可仍 `redistributionApproved=false`；Queue 源码和正式包仍为旧 ID，未收到新 owner 交接。两项只读保留阻塞，不重做业务或迁移数据。
 - 验证仅核对 JSON 说明变更、文档包链接、原包身份/摘要及既有生命周期证据。无运行时代码变化，不重跑测试、构建、打包或浏览器操作；不占用日常 Chrome/Native、watcher、dist/development、旧 Profile 或冻结输出。
+
+## 继续后三款：真实内容增量（2026-10-26，IN_PROGRESS）
+
+用户最新要求继续 Scroll、Mind Map、Send Queue，并明确授权需要登录时通过 Cookie Editor 使用指定 ChatGPT Cookie 文件。仅补当前可执行的核心操作；不重复已通过生命周期，不恢复完整验收矩阵。Cookie 内容不得写入日志、证据或仓库，不发送聊天消息。
+
+本次接收 owner 负责 Scroll 实际导航及必要的账号导入，使用新的专属临时 Profile、`artifacts/ai-four-products-r126-content-20261026/` 输出和原有 launcher；旧冻结包只读复用，不重建、不占用日常 Chrome/Native/watcher。只读子 agent Turing 核对 Mind Map 许可和 Queue 身份、现有证据及 owner 边界，不编辑或操作浏览器。确认旧 Queue owner 链已收尾后，由本对话接收新身份拆分，executor Erdos 仅写 Queue 项目指定文件；两个子 agent 均已完成并关闭。
+
+### 本轮可核实的准备结果与当前停点
+
+- **Scroll：**原正式 0.4.0/r1 未改字节。新临时 Profile 的原生导入页显示新 ID、ChatGPT/DeepSeek/Gemini 三站及顶层网页范围。确认后真实返回 `E_PAGE_INSTALL_PENDING`，原因是该 Profile 的 Chrome「允许运行用户脚本」为 off；没有自动重试、改写安装记录或以旧证据宣称本轮运行通过。新的真实长对话导航仍 `NOT_TESTED`。
+- **Queue：**源码和项目身份改为 `opendesk.ai-send-queue`，0.1.2/r1，新增 `ai-send-queue.opendesk-page.json`。新入口在启动、轮询及用户操作前避让旧活动生命周期，仅清理自身资源；不迁移旧授权或旧内存队列。旧正式 JSON、engine/site/view/CSS/资源与本轮前 HEAD 字节一致。5 项身份/生命周期定向 Node 测试、语法、项目验证、原构建/打包器及候选同源检查通过。`sourceHash=01cad4e3f16f843aea6fe722c7989b4860ea11412a3f5cb6d22c4c714bcd31f1`，`packageHash=0cc2ab295f0141b53f2351215122f05632d07f7d1dd565de55c58d81311d8441`。原生导入审阅已显示新 ID、r1 和 ChatGPT 单站范围，尚未确认安装；发送、并存及撤权仍 `NOT_TESTED`。官方清单仅纠正陈旧阻塞说明，publication 保持 blocked。
+- **Mind Map：**沿用 README 已有本机验证路径，原 `prepare:local` 生成固定资源 4,088,995 bytes，SHA256 `62c195b8c7e0cd81de0f24df58c4dacb44a123cd2696e6b0bcd3483579f0197f`，与既有资源相同；原 builder 和 Page packager 生成新 ID 0.2.7/r1 本机临时候选。`sourceHash=c8156358dfe0009876cc39fdd61a814201619b4f1b9d5cf6f53753af56efa8b8`，`packageHash=e2db52f59181d25622626a92f96261edaee5daf8fc15f1d52f0b9f2aaf68ca28`。包格式、哈希、编译源码字节及当前全部输入 SHA 通过核对，输出仅在 `mindmap-local-candidate/`，旁附 `local-validation.json` 标明 LOCAL_VALIDATION_ONLY/distributable=false。未生成项目正式 JSON、未改许可或开放官方发布，新 ID 原生核心开关仍 `NOT_TESTED`。旧 ID r8 的真实开关证据保留。
+- **环境：**实际复用 `ai-four-products-r125-native-fix/frozen-source/dist/production`，静态 production 候选，扩展 ID `mbjianpjmiafflgmlkkpdpdhbhedjkbd`，没有 dev serve 连接。首次 CFT155 在系统文件选择器操作中 SIGTRAP 退出，launcher 已清理其临时 Profile；这是环境失败，不登记为程序故障。随后只在本轮 artifacts 内克隆已安装的官方 CFT156.0.8078.4，使用独立 bundle ID 和 launcher，PID 75835、Profile `codex-cft-lw_zujhn`（上次观察，续接须重查）。其他实例未操作。
+- **账号与权限停点：**Cookie Editor 当前要求管理所有 HTTP/HTTPS 网站 Cookie，超出指定 ChatGPT 文件的单站范围；Chrome 用户脚本开关也仍关闭。已按电脑操作工具策略提交一项合并确认，等待用户选择；未点击这两项授权，未导入账号或发送消息。指定 Cookie 文件内容未进入日志、证据或仓库。下一步仅在对应授权到达后打开允许的开关、经原 Cookie Editor 导入，再用已有真实回复测试 Scroll 和本机 Mind Map；Queue 仅核对安装与空队列 UI，不发送测试消息。
