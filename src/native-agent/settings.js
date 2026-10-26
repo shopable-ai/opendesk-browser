@@ -18,7 +18,7 @@ export function initNativeAgentSettings({api=globalThis.chrome,document:doc=glob
     feedback.textContent=value||'';
     feedback.hidden=!value;
   };
-  const controls=busy=>{toggle.disabled=refresh.disabled=busy;};
+  const controls=pending=>{toggle.disabled=pending||!lastState;refresh.disabled=pending;};
   doc.getElementById('workspace-open')?.addEventListener('click',()=>api.tabs.create({
     url:api.runtime.getURL('native-agent/workspace.html')
   }));
@@ -27,7 +27,7 @@ export function initNativeAgentSettings({api=globalThis.chrome,document:doc=glob
     if (!response?.ok) throw response?.error || {code:'E_EFFECT_UNKNOWN',message:'未收到设置回执'};
     return response.data;
   }
-  let settleTimer,connectingPolls=0,lastState=null,busy=false;
+  let settleTimer,connectingPolls=0,lastState=null,busy=false,statusEpoch=0;
   const renderState=state=>{
     toggle.checked=Boolean(state.enabled);
     const lastSeen=Number.isSafeInteger(state.lastConnectedAt)&&state.lastConnectedAt>0
@@ -77,7 +77,9 @@ export function initNativeAgentSettings({api=globalThis.chrome,document:doc=glob
   globalThis.addEventListener?.('pagehide',unsubscribeLocale,{once:true});
   async function update() {
     clearTimeout(settleTimer);settleTimer=null;
+    const epoch=++statusEpoch;
     const state=await request('status');
+    if(epoch!==statusEpoch)return;
     if(typeof state?.enabled!=='boolean'||typeof state.nativeConnected!=='boolean')
       throw {code:'E_NATIVE_STATUS',message:'连接状态回执无效'};
     lastState=state;
@@ -100,6 +102,8 @@ export function initNativeAgentSettings({api=globalThis.chrome,document:doc=glob
     if(wantEnabled===lastState.enabled)return;
     const restoreFocus=recoverControlFocus(doc);
     // This call MUST precede the first await / Promise callback.
+    statusEpoch++;
+    clearTimeout(settleTimer);
     const permission=wantEnabled?api.permissions.request({permissions:['nativeMessaging']}):null;
     busy=true;controls(true);restoreFocus.disabled();showFeedback('');
     (async()=>{
@@ -107,8 +111,11 @@ export function initNativeAgentSettings({api=globalThis.chrome,document:doc=glob
         throw {code:'E_PERMISSION_REQUIRED',message:'未授予浏览器本机通信权限，原设置保持不变'};
       await request(wantEnabled?'enable':'disable');
       connectingPolls=0;await update();
-    })().catch(error=>{
-      toggle.checked=Boolean(lastState?.enabled);
+    })().catch(async error=>{
+      // A lost/unknown enable acknowledgement must never be treated as a
+      // confirmed rollback. Read back the one existing settings authority.
+      try{await update();}catch(readError){fail(readError);}
+      if(lastState)toggle.checked=Boolean(lastState.enabled);
       showFeedback((error?.code||'E_NATIVE_CONFIG')+'：'+(error?.message||error));
     }).finally(()=>{
       busy=false;controls(false);restoreFocus.restore();
