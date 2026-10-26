@@ -85,6 +85,7 @@ export function describeManagedAiPage(page,installedPrograms=[]){
   const enabled=page.enabled===true;
   const authorization=page.authorization?.status;
   const native=page.nativeState;
+  const sitesKnown=Array.isArray(page.pageRules?.matches)&&page.pageRules.matches.length>0;
   const cleanupUnknown=page.managedCleanup?.state==='unknown';
   const error=Boolean(page.error);
   let state='pending',status='运行条件待核对';
@@ -93,7 +94,7 @@ export function describeManagedAiPage(page,installedPrograms=[]){
     if(authorization==='disabled'&&native==='disabled'&&!cleanupUnknown&&!error){
       state='off';status='已停用 · 原生注销已确认';
     }else status='已停用 · 原生清理待核对';
-  }else if(authorization==='active'&&native==='registered'&&!cleanupUnknown&&!error){
+  }else if(sitesKnown&&authorization==='active'&&native==='registered'&&!cleanupUnknown&&!error){
     state='ready';status='自动运行条件已就绪';
   }else if(authorization==='suspended'){
     state='restricted';status='网站访问权限已暂停';

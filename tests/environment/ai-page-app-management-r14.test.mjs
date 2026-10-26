@@ -86,6 +86,8 @@ test('R1.4 legacy Page installations remain individually visible without inherit
 });
 
 test('R1.4 absent native registration cannot be labelled as a running page',()=>{
+  const noSite=describeManagedAiPage(installed(undefined,{pageRules:{matches:[]}}));
+  assert.equal(noSite.state,'pending','no approved site cannot be labelled ready');
   const pending=describeManagedAiPage(installed(undefined,{nativeState:'unregistered'}));
   assert.equal(pending.state,'pending');
   assert.match(pending.status,/待核对/);
