@@ -47,7 +47,40 @@ const checkSheetBounds=async(sheet,width,height,stage)=>{
  return settled;
 };
 try{
- await page.goto(pathToFileURL(join(here,'index.html')).href,{waitUntil:'load'});await ready();
+ await page.goto(pathToFileURL(join(here,'index.html')).href,{waitUntil:'load'});
+ await test('R2.6 defaults to three fictional accounts and product-owned share/market views',async()=>{
+  const accountTab=page.getByRole('tab',{name:'账号',exact:true});
+  await accountTab.waitFor();
+  assert.equal(await accountTab.getAttribute('aria-selected'),'true');
+  await page.locator('.cookie-account-card').first().waitFor();
+  assert.equal(await page.locator('.cookie-account-card').count(),3);
+  assert.equal(await page.locator('.cookie-account-current').count(),1);
+  assert.equal(await page.locator('.site-hostname').count(),1);
+  await page.screenshot({path:join(output,'380-r26-accounts-light.png'),fullPage:true});
+  await button('更多操作：个人账号').click();
+  await page.getByRole('menuitem',{name:'分享配置'}).click();
+  await page.getByRole('region',{name:'分享配置'}).waitFor();
+  await page.getByLabel('匿名邀请').check();
+  await page.getByRole('button',{name:'模拟生成邀请'}).click();
+  await page.getByText('https://example.invalid/invite/demo-only').waitFor();
+  await page.getByRole('button',{name:'模拟过期'}).click();
+  await page.getByText(/模拟邀请已过期/).waitFor();
+  await page.screenshot({path:join(output,'380-r26-share-light.png'),fullPage:true});
+  await button('返回账号').click();
+  await page.getByRole('tab',{name:'市场',exact:true}).click();
+  const cards=page.locator('.cookie-market-resource');
+  assert.equal(await cards.count(),3);
+  await page.screenshot({path:join(output,'380-r26-market-light.png'),fullPage:true});
+  await page.getByRole('searchbox',{name:'搜索市场资源'}).fill('委托');
+  assert.equal(await cards.count(),1);
+  await page.getByRole('button',{name:'查看详情'}).click();
+  await page.getByRole('button',{name:'模拟申请'}).click();
+  await page.getByText(/只更新页面状态/).waitFor();
+  await button('返回市场').click();
+  await scene('ready');
+  await ready();
+  await lab.locator('summary').click();
+ });
  await test('fixed React 19 + Shared UI, one actual App and 380px frame',async()=>{
   assert.equal(await page.title(),'Cookie Editor R5.23 · 自适应侧边栏交互预览');
   assert.deepEqual(await page.evaluate(()=>({react:OpenDeskPageReact.version,button:typeof OpenDeskSidebarUI.Button,chrome:typeof chrome?.cookies})),{react:'19.2.0',button:'function',chrome:'undefined'});
@@ -563,7 +596,7 @@ try{
   await clear.click();assert.equal(await valueInput().inputValue(),'');assert.equal(await button('保存').isEnabled(),true);
  });
  assert.deepEqual(errors,[]);assert.deepEqual(network,[]);
- const receipt={status:'PASS',htmlSha256:sha(html),chromium:browser.version(),viewport:{width:380,height:880},tests:pass,errors,network,screenshots:['380-light.png','380-dark.png','380-editing.png'],gaps:['Real Chrome Cookie SDK/permissions/install not exercised','Prebuilt fixed Shared UI resource reused; no host build','Real browser zoom and signed installed package out of scope']};
+ const receipt={status:'PASS',htmlSha256:sha(html),chromium:browser.version(),viewport:{width:380,height:880},tests:pass,errors,network,screenshots:['380-r26-accounts-light.png','380-r26-share-light.png','380-r26-market-light.png','380-light.png','380-dark.png','380-editing.png'],gaps:['Real Chrome Cookie SDK/permissions/install not exercised','Prebuilt fixed Shared UI resource reused; no host build','Real browser zoom and signed installed package out of scope']};
  await writeFile(join(output,'chromium-results.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({status:'PASS',tests:pass.length,htmlSha256:receipt.htmlSha256,output}));
 }catch(error){
  await page.screenshot({path:join(output,'failure.png'),fullPage:true}).catch(()=>{});
