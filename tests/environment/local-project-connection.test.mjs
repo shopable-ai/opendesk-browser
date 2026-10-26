@@ -125,10 +125,11 @@ function providerFixture(session){
   return {socket,provider};
 }
 test('MCP provider uses the same resolver and transmits only execution inputs',async t=>{
-  const calls=[];const source={bindingId:'local-a',projectId:'a',runtimeKind:'controller',entryFormat:'async-main',sourceUtf8:'return 1',sourceHash:'h',sourceBytes:8,inputHash:'i',siteOrigins:['https://example.test'],files:[{path:'private'}],sourceMapUtf8:'private-map',path:'/private/root'};
+  const calls=[];const source={bindingId:'local-a',projectId:'a',runtimeKind:'controller',entryFormat:'async-main',sourceUtf8:'return 1',sourceHash:'h',sourceBytes:8,inputHash:'i',siteOrigins:['https://example.test'],permissions:['page.automation','storage.persistent'],deadlineMs:120000,files:[{path:'private'}],sourceMapUtf8:'private-map',path:'/private/root'};
   const f=providerFixture({resolver:{list:()=>[{bindingId:'local-a',name:'A'}]},resolve:async bindingId=>{calls.push(bindingId);return source;}});t.after(()=>f.provider.close());
   f.socket.feed({v:1,kind:'dev.request',providerEpoch:'epoch-a',requestId:'one',method:'project.resolve',params:{bindingId:'local-a'}});await tick();
   const response=f.socket.sent.at(-1);assert.equal(response.kind,'dev.response');assert.deepEqual(calls,['local-a']);assert.equal(response.result.sourceUtf8,'return 1');
+  assert.deepEqual(response.result.permissions,source.permissions);assert.equal(response.result.deadlineMs,120000);
   for(const key of ['files','sourceMapUtf8','path'])assert.equal(Object.hasOwn(response.result,key),false);
   f.socket.feed({v:1,kind:'dev.request',providerEpoch:'epoch-a',requestId:'two',method:'project.resolve',params:{path:'/etc/passwd'}});
   assert.equal(f.socket.destroyed,true);assert.equal(calls.length,1);

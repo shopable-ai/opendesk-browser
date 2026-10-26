@@ -3,6 +3,8 @@ import {MARKET_INTENT_PROTOCOL,MARKET_INTENTS_STORE,MARKET_INTENT_TTL,MARKET_INT
 import {MARKET_OPERATIONS_STORE} from '../ui/sidebar-tools/installation.js';
 import {MARKET_BATCH_STORE,marketBatchUnresolved,readMarketBatch} from './batch.js';
 import {sameStorageValue} from '../ui/sidebar-tools/storage-state.js';
+import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash} from '../ui/sidebar-tools/package.js';
+import {requireCompleteInstalledSidebarTools,MARKET_PROVENANCE_STORE} from '../ui/sidebar-tools/installation.js';
 
 // Chrome serializes its browser-owned DocumentId (UnguessableToken) as 32 hex
 // characters. It is distinct from our request/review UUIDs and contextId UUIDs.
@@ -72,9 +74,25 @@ export function createMarketHandoff({api=globalThis.chrome,channel,lockManager=g
     if(state.requests.length>=120||state.requests.filter(row=>row.origin===origin).length>=60)
       throw marketError('E_RATE_LIMIT','请求过于频繁，请一分钟后重试。');
     state.requests.push({origin,at:time});
-    let intent=request.action==='OPEN_INSTALL_REVIEW'?state.intents.find(row=>row.intentId===request.intentId):null;
+    let intent=request.action!=='PROBE'?state.intents.find(row=>row.intentId===request.intentId):null;
     if(intent&&(intent.origin!==origin||JSON.stringify(validateMarketSubject(intent.subject))!==JSON.stringify(request.subject)))
       throw marketError('E_INTENT_CONFLICT','同一请求标识不能改为另一个应用或版本。');
+    if(request.action==='GET_INSTALL_STATUS'){
+      if(!intent)throw marketError('E_INTENT_EXPIRED','此安装请求不存在或已过期，请查看本机应用。');
+      await persist(state);
+      const local=await api.storage.local.get([SIDEBAR_TOOL_STORE,MARKET_PROVENANCE_STORE]);
+      const op=operations[intent.operationId],subject=intent.subject;
+      const tool=subject.kind==='app'?requireCompleteInstalledSidebarTools(local[SIDEBAR_TOOL_STORE]).find(row=>row.id===subject.marketId.split('/')[1]):null;
+      const provenance=tool&&local[MARKET_PROVENANCE_STORE]?.[tool.id];
+      let installation='review';
+      if((!op||op.state==='succeeded'&&op.marketId===subject.marketId&&op.version===subject.version&&provenance?.sha256===op.sha256)&&
+        tool?.version===subject.version&&provenance?.marketId===subject.marketId&&provenance.version===tool.version&&
+        /^[a-f0-9]{64}$/.test(provenance.sha256)&&await sidebarToolPackageHash(tool)===provenance.sha256)installation='installed';
+      else if(op?.state==='failed')installation='failed';
+      else if(intent.consumedAt!==null||op)installation='unknown';
+      else if(intent.tabId!==null&&!(await api.tabs.query({})).some(tab=>tab.id===intent.tabId))installation='cancelled';
+      return {ok:true,protocol:MARKET_INTENT_PROTOCOL,status:'INSTALL_STATUS',intentId:request.intentId,installation};
+    }
     if(request.action==='OPEN_INSTALL_REVIEW'&&!intent){
       if(state.intents.some(row=>JSON.stringify(validateMarketSubject(row.subject))===JSON.stringify(request.subject)&&
         marketIntentUnresolved(row,operations,batch)))
@@ -89,12 +107,15 @@ export function createMarketHandoff({api=globalThis.chrome,channel,lockManager=g
     }
     await persist(state);
     if(request.action==='PROBE')return {ok:true,protocol:MARKET_INTENT_PROTOCOL,status:'CONNECTED'};
-    const url=marketReviewURL(api,intent.reviewId);
+    const url=marketReviewURL(api,intent.reviewId,intent.subject);
     const tabs=await api.tabs.query({});
     let tab=tabs.find(item=>!item.incognito&&(item.url===url||item.pendingUrl===url));
     try{
       if(tab){await api.tabs.update(tab.id,{active:true});await api.windows.update(tab.windowId,{focused:true});}
-      else tab=await api.tabs.create({url,active:true});
+      else if(intent.subject.kind==='app'){
+        const popup=await api.windows.create({url,type:'popup',width:560,height:700,focused:true});
+        tab=popup.tabs?.find(item=>item.url===url||item.pendingUrl===url)||popup.tabs?.[0];
+      }else tab=await api.tabs.create({url,active:true});
       if(!Number.isSafeInteger(tab?.id))throw Error('Missing created tab identity');
       intent.tabId=tab.id;intent.phase='opened';await persist(state);
     }catch{throw marketError('E_HANDOFF_UNKNOWN','审阅交接结果待核对。请查看已打开的 OpenDesk 标签页，或用同一请求重试连接。');}

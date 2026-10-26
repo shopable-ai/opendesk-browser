@@ -10,7 +10,7 @@ export const AGENT_LAST_CONNECTED_AT_KEY = 'opendesk.native-agent.lastConnectedA
 export const AGENT_MAX_BYTES = 60 * 1024;
 export const AGENT_MAX_LEDGER = 256;
 export const AGENT_MUTATIONS = Object.freeze(['script.save', 'run.start', 'run.stop', 'page.preview', 'page.dispose']);
-export const AGENT_METHODS = Object.freeze(['bridge.status', 'target.current', 'script.save', 'run.start', 'run.get', 'run.stop', 'page.preview', 'page.get', 'page.dispose', 'request.get']);
+export const AGENT_METHODS = Object.freeze(['bridge.status', 'target.current','task.list', 'script.save', 'run.start', 'run.get', 'run.stop', 'page.preview', 'page.get', 'page.dispose', 'request.get']);
 
 export class AgentBridgeError extends Error {
   constructor(code, message = code, outcome = 'NOT_DISPATCHED') {

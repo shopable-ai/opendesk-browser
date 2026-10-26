@@ -476,3 +476,16 @@ test('Stop rejects mixed execution selectors before any Native request',async()=
  await assert.rejects(()=>session.stop({runId:'r',previewId:'p'}),{code:'E_SCHEMA'});
  await assert.rejects(()=>session.stop({}),{code:'E_SCHEMA'});assert.equal(requests,0);session.close();
 });
+
+
+test('Controller resolver propagates explicit storage permission and bounded deadline through cache',async t=>{
+  const p=project(t),legacy=await p.resolver.resolve(p.binding.bindingId);
+  assert.deepEqual(legacy.permissions,['page.automation']);assert.equal(legacy.deadlineMs,undefined);
+  p.pkg.opendesk.permissions.push('storage.persistent');p.pkg.opendesk.deadlineMs=120000;
+  p.put('package.json',JSON.stringify(p.pkg));
+  const current=await p.resolver.resolve(p.binding.bindingId);
+  assert.deepEqual(current.permissions,p.pkg.opendesk.permissions);assert.equal(current.deadlineMs,120000);
+  assert.notEqual(current.inputHash,legacy.inputHash);
+  const cached=await p.resolver.resolve(p.binding.bindingId);
+  assert.equal(cached.cacheHit,true);assert.deepEqual(cached.permissions,current.permissions);assert.equal(cached.deadlineMs,120000);
+});

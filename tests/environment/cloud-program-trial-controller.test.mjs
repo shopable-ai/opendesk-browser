@@ -3,6 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {createTaskPackage} from '../../src/platform/tasks/contract.js';
 import {createCloudHosting} from '../../src/ui/cloud-hosting.js';
 
 const pkg=JSON.parse(await readFile(new URL(
@@ -10,12 +11,12 @@ const pkg=JSON.parse(await readFile(new URL(
 const deliveryId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
   runId='11111111-1111-4111-8111-111111111111',
   resultId='22222222-2222-4222-8222-222222222222',
-  origin=pkg.manifest.siteOrigins[0],
-  pin={deliveryId,taskId:pkg.manifest.taskId,version:pkg.manifest.version,
+  origin=pkg.manifest.siteOrigins[0];
+const flush=()=>new Promise(resolve=>setImmediate(resolve));
+async function fixture(t,programPackage=pkg){
+  const pkg=programPackage,pin={deliveryId,taskId:pkg.manifest.taskId,version:pkg.manifest.version,
     title:pkg.manifest.title,manifestHash:pkg.manifestHash,
     sourceHash:pkg.manifest.program.sourceHash,siteOrigins:pkg.manifest.siteOrigins};
-const flush=()=>new Promise(resolve=>setImmediate(resolve));
-async function fixture(t){
   let taskStage='candidate';
   const calls=[],actual={origin,url:origin+'/demo-form.html',status:'available',
     tabId:11,windowId:9,frameId:0,documentId:'test-document'};
@@ -124,4 +125,18 @@ test('Wrong site and malformed parameters reject before starting a Controller',a
   await f.model().programs.onTrial(deliveryId,'[]',{isTrusted:true});
   assert.equal(f.calls.some(([method])=>method==='host.start'),false);
   assert.match(f.model().pairing.status,/E_PARAMS|参数格式/);
+});
+
+
+test('frozen cloud draft trial honors reviewed 120s deadline and defaults to 30s',async t=>{
+  for(const deadlineMs of [undefined,120000]){
+    const candidate=deadlineMs===undefined?pkg:await createTaskPackage({...pkg.manifest,deadlineMs},pkg.sourceUtf8);
+    const f=await fixture(t,candidate);
+    await f.model().programs.onRefresh();await f.model().programs.onReview(deliveryId);
+    const before=Date.now();await f.model().programs.onTrial(deliveryId,'{}',{isTrusted:true});const after=Date.now();
+    const starts=f.calls.filter(([method])=>method==='host.start');assert.equal(starts.length,1);
+    const request=starts[0][1],duration=deadlineMs??30000;
+    assert(request.deadlineAt>=before+duration&&request.deadlineAt<=after+duration);
+    assert.deepEqual(request.source,{kind:'draft',sourceUtf8:candidate.sourceUtf8});
+  }
 });

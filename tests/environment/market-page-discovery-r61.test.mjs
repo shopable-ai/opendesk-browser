@@ -6,7 +6,7 @@ import {runInNewContext} from 'node:vm';
 import {randomUUID} from 'node:crypto';
 import {validateDeclaredMarketInstall,discoverCurrentPageMarketInstall,
   captureDeclaredMarketLinks,OPENDESK_INSTALL_REL} from '../../src/marketplace/discovery.js';
-import {layout,home} from '../../src/market-site/templates.mjs';
+import {layout,home,helpPage} from '../../src/market-site/templates.mjs';
 
 const origin='http://127.0.0.1:43132';
 const channel={enabled:true,origin,mode:'development'};
@@ -202,7 +202,9 @@ test('R6.2 website discovery is available-only and absent from the global extens
 function marketListingClient(){
   const clientScript=null;
   const nodes=new Map(),sent=[],storage=new Map(),buttons=[],timers=new Map();
-  let timerId=0,clock=Date.now();
+  let timerId=0,clock=Date.now(),fetchCount=0;
+  let configuredChannel={schema:'opendesk.market.channel.v1',protocol:'opendesk.market.intent.v1',
+    origin,extensionId:'a'.repeat(32),enabled:true,mode:'development'};
   const node=()=>({textContent:'',disabled:false,hidden:false,dataset:{},listeners:{},
     addEventListener(type,fn){this.listeners[type]=fn;}});
   for(const selector of ['#connection-state','#connect-button','#open-review','#handoff-state',
@@ -221,17 +223,56 @@ function marketListingClient(){
   const context={
     document:{querySelector:sel=>nodes.get(sel)||null,
       querySelectorAll:sel=>sel==='[data-open-review]'?buttons:[]},
-    chrome,fetch:async()=>({ok:true,json:async()=>({
-      schema:'opendesk.market.channel.v1',protocol:'opendesk.market.intent.v1',
-      origin,extensionId:'a'.repeat(32),enabled:true
-    })}),
+    chrome,fetch:async()=>{fetchCount++;return {ok:true,json:async()=>({...configuredChannel})};},
     location:{origin},crypto:{randomUUID},
     sessionStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)},
     setTimeout(fn){const id=++timerId;timers.set(id,fn);return id;},
     clearTimeout(id){timers.delete(id);},JSON,Date:{now:()=>clock},URL
   };
-  return {nodes,sent,first,second,context,advance:(millis)=>{clock+=millis;}};
+  return {nodes,sent,first,second,context,advance:(millis)=>{clock+=millis;},
+    setChannel:changes=>{configuredChannel={...configuredChannel,...changes};},get fetchCount(){return fetchCount;}};
 }
+
+test('R6.2 reconnect refreshes the configured receiver without replaying installation',async()=>{
+  const script=await readFile('src/market-site/client.js','utf8'),h=marketListingClient();
+  const tick=()=>new Promise(resolve=>setImmediate(resolve));
+  runInNewContext(script,h.context,{filename:'src/market-site/client.js'});await tick();
+  h.context.chrome.runtime.lastError={message:'Could not establish connection. Receiving end does not exist.'};
+  h.sent[0].callback();delete h.context.chrome.runtime.lastError;await tick();
+  assert.match(h.nodes.get('#connection-state').textContent,/其他测试副本/);
+  assert.match(h.nodes.get('#handoff-code').textContent,new RegExp('E_NO_RECEIVER.*'+ 'a'.repeat(32)));
+  assert.equal(h.nodes.get('#handoff-details').hidden,false);
+  h.setChannel({extensionId:'b'.repeat(32)});
+  const reconnect=h.nodes.get('#connect-button').listeners.click();await tick();
+  assert.equal(h.fetchCount,2,'reconnect must fetch fresh configuration');
+  assert.equal(h.sent[1].extensionId,'b'.repeat(32),'use only the newly configured receiver');
+  assert.deepEqual(h.sent.map(row=>row.message.action),['PROBE','PROBE'],'never replay installation');
+  h.sent[1].callback({ok:true,protocol:'opendesk.market.intent.v1',status:'CONNECTED'});await reconnect;
+  assert.match(h.nodes.get('#connection-state').textContent,/已连接 OpenDesk/);
+});
+
+test('R6.2 a disabled refreshed channel cannot fall back to a cached receiver for installation',async()=>{
+  const script=await readFile('src/market-site/client.js','utf8'),h=marketListingClient();
+  const tick=()=>new Promise(resolve=>setImmediate(resolve));
+  runInNewContext(script,h.context,{filename:'src/market-site/client.js'});await tick();
+  h.sent[0].callback({ok:true,protocol:'opendesk.market.intent.v1',status:'CONNECTED'});await tick();
+  h.setChannel({enabled:false});
+  await h.nodes.get('#connect-button').listeners.click();
+  assert.match(h.nodes.get('#connection-state').textContent,/尚未启用安装交接/);
+  await h.first.button.listeners.click();
+  assert.equal(h.sent.length,1,'no message reaches the stale receiver');
+  assert.match(h.first.state.textContent,/尚未启用安装交接/);
+});
+
+test('R6.2 installation help starts on HTTP and explains the automatic trusted confirmation',()=>{
+  const html=helpPage({...channel,extensionId:'a'.repeat(32)});
+  assert.match(html,/从本网站打开应用详情/);
+  assert.match(html,/网页会打开扩展的可信安装小窗/);
+  assert.match(html,/无需手动输入/);
+  assert.match(html,/本市场指定的扩展 ID/);
+  assert(html.includes('a'.repeat(32)));
+  assert.match(html,/安装成功以真实本机记录为准/);
+});
 
 test('R6.1 multiple cards use distinct fixed intents; double-click has one in-flight request and retry is idempotent',async()=>{
   const script=await readFile('src/market-site/client.js','utf8');
@@ -265,20 +306,22 @@ test('R6.1 multiple cards use distinct fixed intents; double-click has one in-fl
 
   const retry=h.first.button.listeners.click();await tick();
   opens=h.sent.filter(row=>row.message.action==='OPEN_INSTALL_REVIEW');
-  assert.equal(opens.length,3);
-  assert.equal(opens[2].message.intentId,opens[0].message.intentId);
-  assert.equal(Object.keys(opens[2].message).sort().join(','),'action,intentId,protocol,subject');
-  opens[2].callback({ok:true,protocol:'opendesk.market.intent.v1',status:'REVIEW_OPENED',
-    intentId:opens[2].message.intentId});
+  assert.equal(opens.length,2,'status checks never reopen or resubmit installation');
+  const check=h.sent.at(-1);
+  assert.equal(check.message.action,'GET_INSTALL_STATUS');
+  assert.equal(check.message.intentId,opens[0].message.intentId);
+  check.callback({ok:true,protocol:'opendesk.market.intent.v1',status:'INSTALL_STATUS',
+    intentId:check.message.intentId,installation:'unknown'});
   await retry;
+  assert.match(h.first.state.textContent,/结果待核对/);
   // R5's durable handoff expires at 30 minutes. An open homepage must
   // not indefinitely replay an expired intent from its in-memory cache.
   h.advance(31*60*1000);
   const renewed=h.first.button.listeners.click();await tick();
   opens=h.sent.filter(row=>row.message.action==='OPEN_INSTALL_REVIEW');
-  assert.equal(opens.length,4);
-  assert.notEqual(opens[3].message.intentId,opens[0].message.intentId);
-  opens[3].callback({ok:true,protocol:'opendesk.market.intent.v1',status:'REVIEW_OPENED',
-    intentId:opens[3].message.intentId});
+  assert.equal(opens.length,3);
+  assert.notEqual(opens[2].message.intentId,opens[0].message.intentId);
+  opens[2].callback({ok:true,protocol:'opendesk.market.intent.v1',status:'REVIEW_OPENED',
+    intentId:opens[2].message.intentId});
   await renewed;
 });

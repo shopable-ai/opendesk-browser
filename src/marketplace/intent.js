@@ -26,7 +26,7 @@ export function validateMarketMessage(value){
   // Check fields before serialization so oversized extraneous data is not copied.
   if(value?.protocol!==MARKET_INTENT_PROTOCOL)throw marketError('E_PROTOCOL','此网站与 OpenDesk 安装协议不兼容，请更新后重试。');
   if(value.action==='PROBE'&&fields(value,['protocol','action']))return {protocol:MARKET_INTENT_PROTOCOL,action:'PROBE'};
-  if(value.action!=='OPEN_INSTALL_REVIEW'||!fields(value,['protocol','action','intentId','subject'])||
+  if(!['OPEN_INSTALL_REVIEW','GET_INSTALL_STATUS'].includes(value.action)||!fields(value,['protocol','action','intentId','subject'])||
     typeof value.intentId!=='string'||!UUID.test(value.intentId))
     throw marketError('E_INTENT_FIELDS','安装请求包含不支持的操作或字段。');
   return {protocol:MARKET_INTENT_PROTOCOL,action:value.action,intentId:value.intentId,
@@ -35,7 +35,7 @@ export function validateMarketMessage(value){
 export const marketSubjectRoute=subject=>subject.kind==='app'?
   '#/apps/'+subject.marketId+'/versions/'+subject.version:
   '#/collections/'+subject.collectionId+'/revisions/'+subject.revision;
-export const marketReviewURL=(api,reviewId)=>api.runtime.getURL('ui/marketplace.html')+'?intent='+reviewId;
+export const marketReviewURL=(api,reviewId,subject)=>api.runtime.getURL(subject?.kind==='app'?'ui/market-install.html':'ui/marketplace.html')+'?intent='+reviewId;
 export function readMarketIntentStore(value){
   if(value===undefined)return {schema:'opendesk.market.intents.v1',intents:[],requests:[]};
   if(!fields(value,['schema','intents','requests'])||value.schema!==MARKET_INTENTS_STORE||

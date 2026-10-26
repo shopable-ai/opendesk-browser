@@ -241,8 +241,9 @@ function harness({disabled=false,available=true,permission=true,
     }},
     tabs:{async get(tabId){return {id:tabId,url:source.url,windowId:2,incognito:false};},
       async sendMessage(tabId,message,opt){
-        events.send++;
         assert.equal(tabId,source.tabId);assert.equal(opt.documentId,source.documentId);
+        if(message.kind==='progress')return {ok:true,data:{observed:true}};
+        events.send++;
         events.delivered=message.text;
         onSend();if(sendReply)return sendReply;
         if(sendThrows)throw new Error('ambiguous native send');

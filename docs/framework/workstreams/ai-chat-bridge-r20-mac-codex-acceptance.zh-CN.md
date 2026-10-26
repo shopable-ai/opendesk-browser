@@ -2,13 +2,41 @@
 
 **默认中文｜ORIGINAL GOAL FIRST｜LATEST MAIN｜LOCAL MAC REAL CHROME｜DELTA ONLY｜CROSS-CHAT DEDUP｜NO SECOND HOST｜NO FAKE PASS｜ONLY MAIN**
 
-## 新候选真实 Chrome 复测（IN_PROGRESS，用户要求重新测试）
+## 新候选真实 Chrome 复测（2026-10-26 21:12–21:19，北京时间，正常自动链路 PASS）
 
-用户反馈上一轮交付未清楚区分已修复与未完成，现补新候选的一条实际正常链路。Owner 沿用 `01a17828-4be1-7740-8498-0aada57a686c`，只写本记录与独立证据，不重复源码巡检/组件测试，不提交推送。当前 `main` 的五个本轮文件及七个并行 UI 文件未提交修改均保留。
+**当前完成情况：最新 Bridge 的固定网页单次自动流程已重新在真实 Chrome 跑通。** 实际操作为官网发送请求→生成中批准一次→自动执行固定 Task→真实持久结果回传原对话一次→新中文续答→浮层确认“真实结果已回传，官方 AI 已完成回复”。随后按本次精确 runId 查询到“已完成 · 资源已释放”。本节更新下文 20:36 时“新候选正常 Run 未测”的历史状态；历史前缀移除异常仍仅有组件证据，不能标原生 PASS。
 
-Chrome 原生 AX 实读扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`、开发服务已连接、实际 revision `4a43efd6848fed5959e6362a0872d5fbbaacc0e96e137f4214a11ae7bb5318b1`，与磁盘 marker 一致。沿用 PID `79949` / `127.0.0.1:43119` / `dist/development` 唯一 watcher。旧固定测试页的多行中文草稿保留；不开启或回放旧请求，不 reload 草稿页。改在新建官网测试页载入已编译脚本，先建立正式会话，再通过现有浮层发起新的固定网页请求，生成中批准一次自动执行，零执行点击；核对唯一 Run/Result、released、一次回传及新中文回复和完成提示。若未实际观察历史前缀移除，继续只保留组件证据，不制造长历史。
+Owner 沿用 `01a17828-4be1-7740-8498-0aada57a686c`。本次用户反馈触发真实正常流程复测，只新增证据和本记录，未修改产品源码、重跑已有效的组件测试、另起 build/watcher 或提交推送。期间其他 owner 将此前五个本轮文件及并行 UI 工作保存到 `main` 提交 `dc0eed171`；收尾实读 page/两份测试内容与本轮已测版本一致，不能继续将这些文件描述为未提交，也不冒称由本对话提交。其他 owner 当前未提交文件保留。
 
-证据目录 `artifacts/ai-chat-bridge-r20-mac-20261026/native-retest-01a17828/`；开始时间 2026-10-26T21:07:49.202030+08:00。当前 Chrome 原生界面可用，未收到其他会话的资源占用拒绝；本轮只操作新测试页及当前侧栏的只读诊断/查询，不碰其他页面输入内容。
+### 本次实际通过与未覆盖
+
+| 用户操作 / 条件 | 本次结果 |
+| --- | --- |
+| 新会话发起固定网页请求 | **PASS**：新测试 tab `560068548`，官网会话 `https://chatgpt.com/c/6adf5185-3424-83ec-9b04-4d8709f229c7`。先发一句测试问候建立会话，再点击现有浮层建立请求、官网发送。 |
+| 单次自动 | **PASS**：候选生成中点击一次“批准本次自动执行”，未点击“执行”。观察一个新 Run、一个持久结果和一条对应结果用户消息；这是本次可见操作/查询证据，不声称数据库全量去重审计。 |
+| 真实网页数据 | **PASS**：目标 `https://httpbingo.org/html`；真实 title 为空，heading 为 `Herman Melville - Moby-Dick`，excerpt 是 Perth 铁匠段落；没有填造标题或预置结果。 |
+| 原会话回传及续答完成提示 | **PASS**：结果消息的 requestId/runId/resultId 对应本次请求，随后官网完成中文总结；浮层显示“真实结果已回传，官方 AI 已完成回复”。 |
+| 持久状态与资源释放 | **PASS**：侧栏按下表精确 runId 查询，实读“已完成 · 资源已释放”、相同 Task revision/sourceHash 和固定目标；未猜最近历史。 |
+| 草稿保护 | **PASS（本次操作保护）**：旧成功页未重载、未改草稿。新首页自动恢复的既有 178 字符测试草稿先逐字备份，临时停放后在另一首页原文恢复，读回一致、未发送；不把该保护操作当全部草稿/IME 异常实测。 |
+| 历史最旧消息被移出 DOM | **NOT_TESTED（原生异常）**：本次未观察到；下文先红后绿及 41/41 定向组件证据仍有效。 |
+| 手动、百度、取消和撤权 | **本次未重测**：手动/百度正常链路沿用 19:43 的原候选实测；取消/撤权等负例保留组件层级和历史 UNKNOWN，不倒填到新候选。 |
+| production / 正式验收 | **延期**：本次持续开发核心复测不包含正式包、评分、全矩阵、宽度缩放或压力测试。 |
+
+| 本次身份 | 实读值 |
+| --- | --- |
+| requestId | `9670a05c-10f1-46d6-9f88-4a8d5c57738b` |
+| runId | `f5ae64c7-061d-4c3a-a167-f71c4b3ff565` |
+| resultId | `ba7028ee-ec29-4830-8561-0f175ff8e192` |
+| Task | `page.read.fixed@1.0.0`，r1 |
+| sourceHash | `c2684b24d3e6ef9b0319703661d8d7b53014df60533608bcd697361cc70a99f4` |
+
+### 环境、证据和收尾
+
+运行模式为**持续开发**，实际目录 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development`。开始时 Chrome 原生“调试→本地开发服务”实读扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`、开发服务已连接及 revision `4a43efd6848fed5959e6362a0872d5fbbaacc0e96e137f4214a11ae7bb5318b1`，与磁盘 marker 一致；沿用 PID `79949` / `127.0.0.1:43119` 唯一 watcher，新官网文档在此后创建。page SHA `ebbd12a958cdfc5ecc3a4503ca346d3720e1f587bb9034702e38ccbf9034b0f2`、Bridge SHA `1649f8fc1384b1b9212628d7d4dfc736ffe471704453e09de42ed953c65a04e2` 与前轮已测版本一致。收尾并行更新令磁盘总 revision 变为 `ba36f8491c66c6fc58504ef5298799b431a8e484c84b69996ee2c19b67aa959a`，但该 Bridge 字节未变；不把新总指纹倒填为本次页面注入身份，也不因无关并行更新重跑。
+
+证据目录 `artifacts/ai-chat-bridge-r20-mac-20261026/native-retest-01a17828/`，起始记录 `2026-10-26T21:07:49.202030+08:00`。`request-prepared.ax.txt`（21:12）、`request-sent-generating.ax.txt`、`auto-complete.ax.txt`（21:14）、`exact-run-query.ax.txt`（21:15）、`home-draft-restored.ax.txt`（21:19）保存操作和读回。`visible-success.png` 同屏展示中文续答、浮层完成提示及本次运行目标/身份；`final-native-state.ax.txt` 含精确释放状态，`status.json` 记录结构化结果，`source-build-identity.json` 区分起始 UI 与收尾磁盘指纹。AX 长 JSON 会截短，不冒称已完整导出结果。
+
+准备时在新 tab 直接载入旧百度官网会话遇到“无法加载此 ChatGPT 对话”，保留 `direct-load-unavailable.ax.txt`；随后用官网正常“新聊天”创建独立测试会话完成本次流程，未复用或回放旧 UNKNOWN。旧固定成功页、其他原草稿页和服务保留；没有新代码失败或待恢复草稿。当前修复的开发范围已完成，原生异常与正式验收边界如上。
 
 ## 续答提示可靠性完善（2026-10-26 20:36，北京时间，开发收尾）
 

@@ -756,3 +756,28 @@ test('R2.3 deep history offset skips old generations without allocating the full
   assert(f.db.scanRanges.some(row=>row.offset>=300&&row.limit<=21),
     'the native deep-page path must offset-seek without cloning 900 Fire values');
 });
+
+
+test('scheduled host bounds default 30s and reviewed 120s Task deadlines by the Fire deadline',async()=>{
+  for(const [deadlineMs,fireMs,expected]of[[undefined,600000,30000],[120000,600000,120000],
+    [undefined,5000,5000],[120000,5000,5000]]){
+    const now=1791819300000,definition={taskId:'demo.form',version:'1.0.0',manifestHash:'a'.repeat(64),
+      sourceHash:'b'.repeat(64),installationId:'approved-install',taskGeneration:7,
+      targetUrl:'https://example.com/form',openIfMissing:true,params:{}};
+    const fire={fireId:'sched:deadline-test',deadlineAt:now+fireMs,definition},starts=[];
+    const client={ready:new Promise(()=>{}),request:async method=>{
+      if(method==='listDueSchedules')return {fires:[fire]};
+      if(method==='resolveInstalledTask')return {version:definition.version,manifestHash:definition.manifestHash,
+        contentHash:definition.sourceHash,installationId:definition.installationId,generation:definition.taskGeneration,
+        scriptId:'task:demo.form:1.0.0',revision:1,manifest:deadlineMs===undefined?{}:{deadlineMs}};
+      throw Error('Unexpected '+method);
+    }};
+    const host={executionPending:false,completion:Promise.resolve({state:'completed'}),start:async request=>{
+      starts.push(request);return {runId:'deadline-run'};
+    }};
+    const scheduled=createScheduledTaskHost({client,host,clock:()=>now,pollMs:600000,
+      api:{permissions:{contains:async()=>true},tabs:{query:async()=>[]}}});
+    try{await scheduled.poll();assert.equal(starts.length,1);assert.equal(starts[0].deadlineAt,now+expected);}
+    finally{scheduled.dispose();}
+  }
+});

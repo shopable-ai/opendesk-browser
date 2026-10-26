@@ -1,4 +1,5 @@
 import {OFFICIAL_COLLECTIONS,officialMarketApps,getOfficialCollection} from './catalog.js';
+import {initMarketInstall} from './install.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool} from '../sidebar-tools/official-catalog.js';
 import {validateSidebarToolPackage, SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_DATA_PREFIX,MAX_INSTALLED_TOOLS} from '../ui/sidebar-tools/package.js';
 import {readSidebarStorageUsage} from '../ui/sidebar-tools/storage-usage.js';
@@ -84,6 +85,7 @@ export function strictTransfer(value,releases=[]) {
 }
 export function initMarketplace({api=globalThis.chrome,root=globalThis.document?.getElementById('market-root'),
   lockManager=globalThis.navigator?.locks}={}){
+  if(globalThis.location?.pathname==='/ui/market-install.html')return initMarketInstall({api,root,lockManager});
   if(!api?.runtime?.getURL||!root)throw fail('请在已安装的 OpenDesk 扩展内使用应用市场');
   let matchGeneration=0,localReadGeneration=0,disposed=false;
   const reviewId=new URLSearchParams(location.search||'').get('intent');

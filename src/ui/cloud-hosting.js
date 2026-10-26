@@ -436,7 +436,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     const claim=await host.start({source:{kind:'draft',sourceUtf8:pkg.sourceUtf8},
       params,target:{mode:'borrowed',tabId:captured.tabId,frameId:captured.frameId,
         documentId:captured.documentId,expectedUrl:captured.url,
-        expectedWindowId:captured.windowId},networkOrigins:[],deadlineAt:Date.now()+30000});
+        expectedWindowId:captured.windowId},networkOrigins:[],deadlineAt:Date.now()+(manifest.deadlineMs??30000)});
     trial.runId=claim.runId;trialActiveId=claim.runId;trial.state='running';
     trial.message='正在运行固定源码；若关闭 Side Panel，可能中断，请查看原始 Run';
     publish();

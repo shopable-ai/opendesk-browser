@@ -68,12 +68,12 @@ function apiWithGrants(mode='granted'){
   }}};
 }
 
-function serviceFixture({storage=memoryStorage(),grantMode='granted',onCurrentHost=async()=>{}}={}){
+function serviceFixture({storage=memoryStorage(),grantMode='granted',onCurrentHost=async()=>{},resolvedTask=task}={}){
   const api=apiWithGrants(grantMode),emitted=[];
   const service=createCloudService({storage,api,clock:{now:()=>fixedNow},
     assertHost:async()=>host,
     currentHost:async(tx,h,sender)=>onCurrentHost(tx,h,sender),
-    resolveTask:async()=>task,
+    resolveTask:async()=>resolvedTask,
     emitToHost:async(registrationId,message)=>{emitted.push({registrationId,message});}
   });
   return {service,storage,api,emitted,sender:{id:'sender'}};
@@ -524,5 +524,20 @@ test('Browser rejects forged modern Provider binding before pairing or WebSocket
       assert.equal(posts.some(([path])=>path==='capabilities'),false);
       assert.equal(posts.some(([path])=>path==='auth'),true);
     }finally{connection.stop();}
+  }
+});
+
+
+test('cloudResolve bounds reviewed Task deadlines by the original 60s ceiling and assignment lease',async()=>{
+  for(const [deadlineMs,leaseMs,expected]of[[undefined,90000,30000],[120000,90000,60000],
+    [1000,90000,1000],[undefined,5000,5000],[120000,5000,5000]]){
+    const resolvedTask={...task,manifest:{...task.manifest,...(deadlineMs===undefined?{}:{deadlineMs})}};
+    const {service,storage,sender}=serviceFixture({resolvedTask});
+    const executorId='deadline-executor',grantId='deadline-grant',requestId='cloud:deadline-assignment';
+    await storage.put(KV,{providerId:'deadline-provider',executorId,namespace,grantId,enabled:true},CONFIG);
+    await storage.put(KV,{tag:'cloud-request-v1',requestId,namespace,grantId,state:'waiting',task:resolvedTask,
+      params:{},assignment:{executorId,leaseUntil:fixedNow+leaseMs,target:{mode:'owned',url:pkg.manifest.siteOrigins[0]+'/'}}},PREFIX+requestId);
+    const resolved=await service.cloudResolve({requestId},sender);
+    assert.equal(resolved.deadlineAt,fixedNow+expected);
   }
 });

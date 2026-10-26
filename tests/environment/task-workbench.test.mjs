@@ -24,7 +24,7 @@ after(()=>{
     activeHandles:process._getActiveHandles?.().map(handle=>handle.constructor?.name)??[]
   }));
 });
-const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStorage}={})=>{
+const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStorage,deadlineMs}={})=>{
   const nodes=new Map();
   const doc={documentElement:{dataset:{}},activeElement:null,querySelector:()=>null};
   const get=id=>{
@@ -37,7 +37,7 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
   doc.getElementById=get;
   const programId='task:demo.form:1.0.0',hash='a'.repeat(64),manifestHash='b'.repeat(64);
   const manifest={title:'表单任务',description:'输入表单',author:'OpenDesk',source:'local',siteOrigins:['https://a.example'],
-    permissions:['page.automation'],program:{sourceHash:hash},paramsSchema:{type:'object',
+    permissions:['page.automation'],...(deadlineMs===undefined?{}:{deadlineMs}),program:{sourceHash:hash},paramsSchema:{type:'object',
       properties:{name:{type:'string',title:'姓名',minLength:1,maxLength:30,default:'Alice'}},required:['name'],additionalProperties:false}};
   const row={taskId:'demo.form',version:'1.0.0',manifest,manifestHash,stage:'available',installed:installedInitially,enabled:true};
   const installed={taskId:row.taskId,version:row.version,scriptId:programId,manifestHash,enabled:true,
@@ -126,6 +126,18 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
   };
   return {ui,developerView,myView:workbench.myView,field,action,get,doc,page,host,client,view,starts,permissions,stops,catalogOpens,draftMessages,importedDrafts,api,catalogState,click};
 };
+
+test('manual installed Run uses the reviewed duration and keeps the legacy 30 second default',async t=>{
+  for(const deadlineMs of [undefined,120000]){
+    const f=make({deadlineMs});t.after(()=>f.ui.dispose());await tick();await tick();
+    const before=Date.now();f.action('taskRunClick');await tick();await tick();
+    assert.equal(f.starts.length,1);
+    assert.ok(f.starts[0].deadlineAt>=before+(deadlineMs??30000));
+    assert.ok(f.starts[0].deadlineAt<=Date.now()+(deadlineMs??30000));
+    f.host.complete({ok:true});await tick();await tick();
+    f.ui.dispose();
+  }
+});
 
 test('ordinary Task Run returns immediately while the agent receives its exact completion',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();

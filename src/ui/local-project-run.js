@@ -106,7 +106,7 @@ export function createLocalProjectRun({api,host,view,currentPageTarget,localProj
       const claim=await localAdapter.handle({method:page?'page.preview':'run.start',requestId:crypto.randomUUID(),params:{
         sourceHash:source.sourceHash,sourceBytes:source.sourceBytes,target,
           ...(page?{sourceUtf8:source.sourceUtf8,entryFormat:source.entryFormat,bindingId:source.bindingId,...(source.managedUI?{managedUI:true}:{}),...(source.pageRules?{pageRules:source.pageRules}:{})}:
-          {source:{kind:'draft',sourceUtf8:source.sourceUtf8},params,deadlineMs:30000})}},
+          {source:{kind:'draft',sourceUtf8:source.sourceUtf8},params,deadlineMs:source.deadlineMs??30000})}},
         {beforeStart:()=>{
           if(isDisposed())throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭，本次未运行'};
           localProject.assertCaptured(binding);

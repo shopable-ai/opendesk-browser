@@ -389,6 +389,7 @@ export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget
         (planned.installedVersion?' · 更新 '+planned.installedVersion+' → ':' · 安装 ')+planned.version+
         (planned.installedVersion?'\n原网站范围：'+planned.installedSiteOrigins.join('、'):'')+
         '\n适用网站：'+planned.siteOrigins.join('、')+
+        (planned.kind==='controller'?'\n权限：'+(planned.permissions??['page.automation']).join('、')+'\n最长运行：'+(planned.deadlineMs??30000)/1000+' 秒':'')+
         '\n源码 SHA-256：'+planned.sourceHash+'\n输入版本：'+planned.inputHash});
       patchDeveloperField(view,warning,{textContent:(planned.scopeChanged?'网站/权限范围与旧版不同，必须审阅后重新确认。\n':'')+(planned.needsReexecution
         ?'确认安装会在当前文档再次执行相同的冻结 Page 程序以完成正式验证，可能再次产生网页效果；验证成功后才安装。'

@@ -21,6 +21,7 @@ export function assertLocalInstallTitle(title){
 export const sourceContract=source=>JSON.stringify([
   source?.projectId??null,source?.runtimeKind??null,source?.entryFormat??null,
   source?.siteOrigins??null,source?.pageRules??null,source?.paramsSchema??null,
+  source?.permissions??['page.automation'],source?.deadlineMs??30000,
   source?.managedUI??null,source?.artifactId??null,
   source?.importSourceUrl??null,source?.lockId??null
 ]);
@@ -86,6 +87,8 @@ export async function prepareLocalProjectInstallation({client,source,binding,pro
     installedCandidate?.manifest?.program?.sourceHash===source.sourceHash;
   const scopeMatches=page?JSON.stringify(previous?.pageRules)===JSON.stringify(rules):
     JSON.stringify(installedCandidate?.manifest?.siteOrigins)===JSON.stringify(sites)&&
+    JSON.stringify(installedCandidate?.manifest?.permissions??['page.automation'])===JSON.stringify(source.permissions??['page.automation'])&&
+    (installedCandidate?.manifest?.deadlineMs??30000)===(source.deadlineMs??30000)&&
     JSON.stringify(installedCandidate?.manifest?.paramsSchema)===
       JSON.stringify(source.paramsSchema||emptyParams());
   const pageInputsMatch=!page||(installedCandidate?.entryFormat===source.entryFormat&&
@@ -99,9 +102,10 @@ export async function prepareLocalProjectInstallation({client,source,binding,pro
     bindingId:binding.bindingId,providerEpoch:binding.providerEpoch,projectSourceId:project?.sourceId||'',
     sourceContract:sourceContract(source),targetContract:targetContract(target),
     siteOrigins:Object.freeze(sites),pageRules:rules,runId:runId||null,
+    permissions:Object.freeze([...(source.permissions??['page.automation'])]),deadlineMs:source.deadlineMs??30000,
     installedSiteOrigins:Object.freeze(installedSites),
     scopeChanged:!!previous&&(page?JSON.stringify(previous.pageRules)!==JSON.stringify(rules):
-      JSON.stringify(installedSites)!==JSON.stringify(sites)),
+      JSON.stringify(installedSites)!==JSON.stringify(sites)||!scopeMatches),
     defaultTitle:(previous?.title||installedCandidate?.manifest?.title||project?.name||source.projectId||'我的本地工具').slice(0,100),
     installedVersion:previous?.revision??previous?.version??null,
     installedHash:previous?.manifestHash??null,
@@ -173,7 +177,8 @@ export async function commitLocalProjectInstallation({client,review,source,targe
   if(!review.siteOrigins.includes(origin))throw fail('E_DEV_ORIGIN','本次网页超出已批准的任务范围');
   const manifest={format:'opendesk.task.v1',taskId:review.id,version,
     title,description:'本地项目验证后安装的自动化任务',author:'local-developer',
-    source:'local-project',siteOrigins:[origin],permissions:['page.automation'],
+    source:'local-project',siteOrigins:[origin],permissions:[...(source.permissions??['page.automation'])],
+    ...(source.deadlineMs!==undefined?{deadlineMs:source.deadlineMs}:{}),
     entryFormat:'async-main',program:{revision:1,sourceHash:review.sourceHash},
     paramsSchema:source.paramsSchema||emptyParams()};
   const pkg=await createTaskPackage(manifest,source.sourceUtf8);

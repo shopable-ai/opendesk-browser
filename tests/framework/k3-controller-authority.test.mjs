@@ -223,7 +223,7 @@ async function fixture() {
 
 // Build the proof through the real component Authority and immutable package
 // pipeline. The browser callbacks above are doubles, not native acceptance.
-async function installedTaskFixture(){
+async function installedTaskFixture({permissions=['page.automation']}={}){
   const f=await fixture(),source='async function main(){return await page.title();}';
   const revision=await f.commit(source),proof=await f.start(revision);
   const operation=(run,kind,method,args=[])=>({requestId:crypto.randomUUID(),identity:run.identity,
@@ -232,7 +232,7 @@ async function installedTaskFixture(){
   await f.finish(proof);await f.authority.retireControllerTarget({runId:proof.runId},f.sender);
   const manifest={format:TASK_MANIFEST_FORMAT,taskId:'authorization.demo',version:'1.0.0',title:'Authorization fixture',
     description:'Program authorization component regression',author:'OpenDesk',source:'fixture',siteOrigins:['https://a.example'],
-    permissions:['page.automation'],entryFormat:'async-main',program:{revision:1,sourceHash:await digestUtf8(source)},
+    permissions,entryFormat:'async-main',program:{revision:1,sourceHash:await digestUtf8(source)},
     paramsSchema:{type:'object',properties:{no:{type:'boolean',title:'No'},zero:{type:'number',title:'Zero'}},required:[],additionalProperties:false}};
   async function installPackage(input,expected){
     const pkg=await createTaskPackage(input,source),base={taskId:input.taskId,version:input.version};
@@ -2676,4 +2676,81 @@ test('R20.1 dispatched owned creation with a lost tab receipt keeps the original
   assert.deepEqual((await f.rows('commandJournal')).find(row=>row.tag==='controller-target-create'&&row.runId===runId),intent);
   assert.equal((await f.rows('commandJournal')).some(row=>row.tag==='controller-retirement'&&row.runId===runId),false);
   assert.deepEqual(f.calls.slice(beforeRetire),[],'Retirement cannot close or replay an unacknowledged target');
+});
+
+
+test('installed Task AppStorage is explicit, isolated from drafts and other Tasks, and retained across versions',async()=>{
+  const f=await installedTaskFixture({permissions:['page.automation','storage.persistent']});
+  const close=async run=>{await f.finish(run);await f.authority.retireControllerTarget({runId:run.runId},f.sender);};
+  const call=(run,method,args={})=>f.authority.controllerOperation({envelope:f.operation(run,'service',method,[args])},f.sender);
+  const read=async run=>(await call(run,'APPSTORAGE_GETITEM',{key:'journal'})).value;
+  const draft=await f.start(await f.commit(undefined,1));
+  await call(draft,'APPSTORAGE_SETITEM',{key:'journal',value:'legacy-draft'});await close(draft);
+  let run=await f.startTask();
+  assert.deepEqual(await read(run),controlEncode(null));
+  const envelope=f.operation(run,'service','APPSTORAGE_SETITEM',[{key:'journal',value:'task-a'}]);
+  const write=await f.authority.controllerOperation({envelope},f.sender);
+  assert.deepEqual(await f.authority.controllerOperation({envelope},f.sender),write);
+  assert.deepEqual(await read(run),controlEncode('task-a'));
+  for(const [method,args]of[
+    ['CHROME_LOCAL_GET',{key:'journal'}],['CHROME_LOCAL_SET',{values:{journal:'bad'}}],
+    ['APPLOCAL_GETITEM',{key:'journal'}],['AXIOS_GET',{url:'https://a.example/private'}]
+  ])await assert.rejects(call(run,method,args),code('E_CAPABILITY'));
+  for(const [method,args]of[['cookies',[]],['setCookie',[{name:'sid',value:'blocked'}]],
+    ['deleteCookie',['sid']],['uploadFromUrl',['https://a.example/file']]])
+    await assert.rejects(f.authority.controllerOperation({envelope:f.operation(run,'browser',method,args)},f.sender),code('E_CAPABILITY'));
+  await close(run);
+  const b=await f.installPackage({...f.manifest,taskId:'authorization.other'});
+  run=await f.startTask(b);assert.deepEqual(await read(run),controlEncode(null));
+  await call(run,'APPSTORAGE_SETITEM',{key:'journal',value:'task-b'});
+  await call(run,'APPSTORAGE_REMOVEITEM',{key:'journal'});assert.deepEqual(await read(run),controlEncode(null));
+  await call(run,'APPSTORAGE_SETITEM',{key:'journal',value:'task-b'});
+  await call(run,'APPSTORAGE_CLEAR');assert.deepEqual(await read(run),controlEncode(null));await close(run);
+  const upgraded=await f.installPackage({...f.manifest,version:'1.1.0'},f.resolved);
+  run=await f.startTask(upgraded);assert.deepEqual(await read(run),controlEncode('task-a'));await close(run);
+  const nextDraft=await f.start(await f.commit(undefined,2));
+  assert.deepEqual(await read(nextDraft),controlEncode('legacy-draft'));await close(nextDraft);
+  assert.equal((await f.rows('frameworkKV')).filter(row=>row.key==='journal').length,2);
+});
+
+test('Task AppStorage rejects every operation and durable replay after Stop, task disable or site revocation',async()=>{
+  for(const fence of ['stop','disable','site']){
+    const f=await installedTaskFixture({permissions:['page.automation','storage.persistent']}),run=await f.startTask();
+    const envelope=f.operation(run,'service','APPSTORAGE_SETITEM',[{key:'journal',value:'committed'}]);
+    await f.authority.controllerOperation({envelope},f.sender);
+    if(fence==='stop')await f.authority.stopControllerRun({runId:run.runId,requestId:crypto.randomUUID()},f.sender);
+    else if(fence==='disable')await f.authority.setInstalledTaskEnabled({...f.installClaim(f.resolved),enabled:false},f.sender);
+    else f.setAllowed(false);
+    await assert.rejects(f.authority.controllerOperation({envelope},f.sender));
+    for(const [method,args]of[
+      ['APPSTORAGE_GETITEM',{key:'journal'}],['APPSTORAGE_SETITEM',{key:'journal',value:'denied'}],
+      ['APPSTORAGE_REMOVEITEM',{key:'journal'}],['APPSTORAGE_CLEAR',{}]
+    ])await assert.rejects(f.authority.controllerOperation({envelope:f.operation(run,'service',method,[args])},f.sender));
+    const rows=(await f.rows('frameworkKV')).filter(row=>row.key==='journal');
+    assert.equal(rows.length,1);assert.equal(decodeValue(rows[0].valueWire),'committed');
+  }
+});
+
+
+test('installed Task admission enforces reviewed deadline before slot writes while drafts retain 120s',async()=>{
+  const f=await installedTaskFixture(),time=Date.now();f.clock.now=()=>time;
+  const reject=async(row,deadlineMs)=>{
+    const writes=f.storage.writes.length,calls=f.calls.length,runs=await f.rows('runs');
+    await assert.rejects(f.startTask(row,{deadlineAt:time+deadlineMs}),code('E_TIMEOUT'));
+    assert.equal(f.storage.writes.length,writes,'oversized deadline must fail before run, pin, schedule or slot writes');
+    assert.equal(f.calls.length,calls,'oversized deadline cannot dispatch native effects');
+    assert.deepEqual(await f.rows('runs'),runs);
+  };
+  const close=async run=>{await f.finish(run);await f.authority.retireControllerTarget({runId:run.runId},f.sender);};
+  await reject(f.resolved,30001);await reject(f.resolved,120000);
+  let run=await f.startTask(f.resolved,{deadlineAt:time+30000});await close(run);
+  const short=await f.installPackage({...f.manifest,version:'1.1.0',deadlineMs:1000},f.resolved);
+  await reject(short,1001);await reject(short,120000);
+  run=await f.startTask(short,{deadlineAt:time+1000});await close(run);
+  const long=await f.installPackage({...f.manifest,version:'1.2.0',deadlineMs:120000},short);
+  run=await f.startTask(long,{deadlineAt:time+120000});await close(run);
+  run=await f.authority.startControllerRun({requestId:crypto.randomUUID(),source:{kind:'draft',sourceUtf8:'return true;'},
+    paramsWire:encodeValue({}),target:{mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top'},deadlineAt:time+120000},f.sender);
+  assert.equal((await f.rows('runs')).find(row=>row.runId===run.runId).deadlineAt,time+120000);
+  await close(run);
 });

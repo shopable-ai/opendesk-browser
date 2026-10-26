@@ -201,3 +201,54 @@ Host、Authority、权限、存储或正式工具包。
 production 全生命周期驱动调整仍未实际重跑；全13应用、真实30分钟 TTL、个人日常
 Profile、正式 HTTPS 发布通道、高级竞态及完整评分继续延期。
 `PUBLIC_RELEASE_BLOCKED` / `NOT_SCORED` 不变。当前核心完善已收尾，停止本轮测试。
+
+## 2026-10-26 HTTP 手动安装入口与测试窗口配对
+
+本轮目标：从 `http://127.0.0.1:43132/apps/opendesk/web-markdown-clipper/`
+发起一次真实网页剪藏 v1.2.9 安装，网页按钮自动交接到唯一可信扩展确认页，确认后
+读取实际安装结果。用户无需手动输入 `chrome-extension://`；该地址只是扩展审阅页的
+内部位置。网页回执仍只表示审阅页已打开，不冒充安装成功，不另建网页安装器。
+
+### 已复现原因与环境边界
+
+- 用户报错页属于 CFT154 `test-chatgpt-profile`，其已装扩展真实 ID 为
+  `ajjjgoapcaonglplhlnlfofmlemdakhk`，位于 Send Queue 独立源码快照。
+  HTTP 市场的目标 ID 则是 `ccfcjegpkdlgbclopjmadlcjedelidmf`，二者不同。
+  该旧测试包 `marketplace/channel.json` 又保留了第三个构建 ID
+  `enjolfckminhfloidmjogjdiohdlbkfm`，不能仅改网页目标便宣称该包配对成功。
+- 正常开发窗口为已加载本仓库 `dist/development` 的 CFT155.0.8059.39，
+  实际扩展 ID 与市场目标均为 `ccfcjegpkdlgbclopjmadlcjedelidmf`。
+  只复用现有开发产物与 watcher，没有重建、复制或重装 Chrome 插件。
+  市场 PROBE 可用不等于额外验证过 WXT serve 客户端的热更新连接。
+- 收到 Send Queue 协调消息后，已释放其 CFT154 Profile 的 UI 操作；保留
+  PID54791、Profile、扩展路径和快照，不修改它的安装状态或输出。
+  此后停止所有 CFT UI 操作，避免同 App 的 AX 索引并发失效；未回信或操纵其他对话。
+
+### 实际修复与关键测试条件
+
+1. **HTTP 是入口**：安装帮助明确网页按钮 → 自动打开可信确认页 → 确认安装 → 打开使用，
+   不要求用户粘贴扩展 URL；本地帮助显示市场目标 ID，说明独立窗口/个人资料的区别。
+2. **可定位连接失败**：原有 `E_NO_RECEIVER` 改为说明本窗口未连接市场指定的扩展，
+   连接技术信息包含目标 ID；初始连接失败也能看到技术信息，而非只在点击安装后显示。
+3. **重新连接真正刷新配置**：重新读取 `/channel.json`，仅发 `PROBE`，不会自动重放
+   安装请求；单次发送绑定其已验证配置。关闭的新通道不得回退到缓存旧 ID 发起安装。
+4. **真实安装结果**：保持原 Sender/Origin/Document/扩展身份验证与可信安装确认链，
+   不自动扫描其他扩展 ID，不放宽来源，不把网页交接回执变成“已安装”。
+
+### 本轮最小证据
+
+- CFT155 已从上述 HTTP 详情页点击「在 OpenDesk 中审阅安装」，自动打开
+  原可信审阅页；核对网页剪藏 v1.2.9 后确认，实际界面显示
+  **「已核对本机安装：v1.2.9。安装不会自动运行。」** 与 **「打开使用」**。
+  reviewId 为 `751b740a-0a0a-4a31-abea-ce6d23590f64`。
+  此观察发生于连接文案/重连改动之前；安装链本身没有改动。
+- 新增连接恢复、关闭通道拒绝旧缓存、HTTP 入口帮助三项测试，加原有固定请求/重复点击
+  定向测试，共 4/4 PASS；三个受影响 JS/MJS 语法检查通过。未运行全仓测试。
+- 仅重启本对话自有 HTTP 市场服务，使修改后的 client/help 可供刷新访问；
+  新 siteBuildId 为 `308056d7b0e836df6ef92a7133ed99390f52282d8292c5dde9cdff3dfe4d3c84`。
+  HTTP 详情页、帮助页、通道和客户端均返回 200，服务中的客户端与源码逐字节相同，
+  SHA256 为 `67e76b6a4bfb8faec3f4fb8b1a5744003d602a9e1d40c52a1fb9548bad58a1d0`。
+  服务保留在 `127.0.0.1:43132` 供手动使用，日常 watcher PID79949 保留。
+- 本机记录：`artifacts/app-market-r62/http-manual-install/receipt.json`。
+  新提示/重连为组件与 HTTP 验证；协调释放后未再做浏览器 UI 复验，不能写成新 UI 原生 PASS。
+  正文采集、额外网站授权、全应用、全仓与 production 验收均未执行，不扩张为本轮目标。

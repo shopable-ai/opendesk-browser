@@ -5,6 +5,9 @@ import {pathToFileURL} from 'node:url';
 import {createHash,randomUUID} from 'node:crypto';
 import {OFFICIAL_COLLECTIONS,officialMarketApps} from '../src/marketplace/catalog.js';
 import {createOfficialToolResources,officialToolInputs} from './build-official-tools.mjs';
+import {createSidebarToolPackage,encodeSidebarToolPackage} from './build-sidebar-tool.mjs';
+import {officialPackagePath} from '../src/sidebar-tools/official-catalog.js';
+import {compareToolVersions} from '../src/ui/sidebar-tools/installation.js';
 import {resolveMarketChannel,marketOrigin} from './market-channel.mjs';
 import {loadMarketSnapshots,mergeMarketReleases} from './market-release-snapshots.mjs';
 import {marketScreenshots} from '../src/market-site/media.mjs';
@@ -25,7 +28,7 @@ async function inputIdentity(){
   const paths=[...await officialToolInputs()];
   for(const dir of ['src/market-site','official-tools/releases'])paths.push(...(await filesAt(dir)).map(p=>dir+'/'+p));
   paths.push('src/ui/design-tokens.css','src/marketplace/catalog.js','src/marketplace/channel-config.json',
-    'scripts/build-market-site.mjs','scripts/market-channel.mjs','scripts/market-release-snapshots.mjs','scripts/build-official-tools.mjs','package-lock.json');
+    'scripts/build-market-site.mjs','scripts/build-sidebar-tool.mjs','scripts/market-channel.mjs','scripts/market-release-snapshots.mjs','scripts/build-official-tools.mjs','package-lock.json');
   return Promise.all([...new Set(paths)].sort().map(async path=>{const bytes=await readFile(path);return {path,bytes:bytes.length,sha256:hash(bytes)};}));
 }
 export const MARKET_HEADERS={
@@ -33,7 +36,21 @@ export const MARKET_HEADERS={
   'X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY',
   'Permissions-Policy':'camera=(), microphone=(), geolocation=()'
 };
-export async function buildMarketSite({env=process.env}={}){
+const releaseKey=row=>row.id+'@'+row.version;
+const releaseBase=row=>'/releases/'+row.id+'/'+row.version+'/';
+async function projectPackages(projects){
+  if(!Array.isArray(projects)||projects.length>64||projects.some(p=>typeof p!=='string'||!p.trim()))
+    throw Error('Market projects must be an array of at most 64 project directories');
+  const result=[];
+  for(const project of [...new Set(projects.map(p=>resolve(p)))].sort()){
+    const tool=await createSidebarToolPackage(project),bytes=encodeSidebarToolPackage(tool);
+    result.push({project,bytes,row:{id:'opendesk/'+tool.id,toolId:tool.id,kind:'sidebar-tool',installationPolicy:'optional',
+      version:tool.version,packageTitle:tool.title,description:tool.description,capabilities:tool.capabilities,
+      packagePath:officialPackagePath(tool.id),bytes:bytes.length,sha256:hash(bytes)}});
+  }
+  return result;
+}
+export async function buildMarketSite({env=process.env,projects=[]}={}){
   const mode=env.OPENDESK_MARKET_BUILD_MODE||'development';
   const channel=resolveMarketChannel({mode,env});
   // Legacy deployment metadata never opens installation trust by itself.
@@ -43,15 +60,30 @@ export async function buildMarketSite({env=process.env}={}){
   const dest=resolve(env.OPENDESK_MARKET_SITE_OUTPUT||'dist/app-market-public'),repo=resolve('.');
   if(dest===repo||['src','scripts','official-tools','.git','dist/production','dist/development'].some(p=>dest===resolve(p)||dest.startsWith(resolve(p)+'/')))
     throw Error('Market output may not replace source or extension packages');
-  const before=await inputIdentity(),official=await createOfficialToolResources();
-  const archived=mergeMarketReleases(await loadMarketSnapshots(),official.catalog,OFFICIAL_COLLECTIONS);
+  const before=await inputIdentity(),official=await createOfficialToolResources(),external=await projectPackages(projects);
+  if(external.some(({project})=>dest===project||dest.startsWith(project+'/')||project.startsWith(dest+'/')))
+    throw Error('Market output may not replace or contain a project input');
+  // Reuse the fixed-release conflict and metadata validator for every supplied
+  // version, including multiple versions of the same independent project.
+  const snapshots=await loadMarketSnapshots();
+  for(const {project,row} of external)snapshots.push({schema:'opendesk.market.release-snapshot.v1',
+    source:{kind:'official-builder',identity:'sha256:'+hash(project)},
+    catalog:{...official.catalog,apps:[row]},collections:[]});
+  const archived=mergeMarketReleases(snapshots,official.catalog,OFFICIAL_COLLECTIONS);
+  const packages=new Map(official.catalog.apps.map(row=>[releaseKey(row),official.resources.get(row.packagePath)]));
+  for(const {row,bytes} of external)packages.set(releaseKey(row),bytes);
+  const latest=new Map(official.catalog.apps.map(row=>[row.id,row]));
+  for(const {row} of external){
+    const prior=latest.get(row.id);
+    if(!prior||compareToolVersions(row.version,prior.version)>0)latest.set(row.id,row);
+  }
   const media=await marketScreenshots({index:JSON.parse(await readFile('src/market-site/media-index.json','utf8')),
     releases:archived.releases,readScreenshot:filename=>readFile('src/market-site/media/'+filename)});
   const expectedMedia=media.map(row=>'src/market-site/media/'+row.filename).sort();
   if(JSON.stringify(before.filter(row=>row.path.startsWith('src/market-site/media/')).map(row=>row.path).sort())!==JSON.stringify(expectedMedia))
     throw Error('Every screenshot must have exactly one reviewed provenance entry');
-  const current=officialMarketApps(official.catalog),releases=archived.releases.map(row=>{
-    const app=officialMarketApps({apps:[row]})[0];
+  const current=officialMarketApps({apps:[...latest.values()]}).map(row=>({...row,downloadable:true})),releases=archived.releases.map(row=>{
+    const app={...officialMarketApps({apps:[row]})[0],downloadable:packages.has(releaseKey(row))};
     return current.some(r=>r.id===row.id&&r.version===row.version)?app:{...app,summary:row.description};
   });
   const stage=dest+'.building-'+randomUUID(),outputFiles=[];
@@ -69,8 +101,20 @@ export async function buildMarketSite({env=process.env}={}){
   try{
     for(const [input,path] of [['src/market-site/market.css','market.css'],['src/market-site/client.js','client.js'],['src/ui/design-tokens.css','design-tokens.css']])await write(path,await readFile(input));
     await write('channel.json',JSON.stringify(channel,null,2)+'\n');
+    const downloads=[];
+    for(const row of archived.releases){
+      const bytes=packages.get(releaseKey(row));
+      if(!bytes)continue; // Metadata-only snapshots never acquire invented bytes.
+      if(bytes.length!==row.bytes||hash(bytes)!==row.sha256)throw Error('Market package identity mismatch: '+releaseKey(row));
+      const base=releaseBase(row),descriptor={schema:'opendesk.market.release.v1',marketId:row.id,
+        version:row.version,bytes:row.bytes,sha256:row.sha256,packagePath:base+'package.opendesk-tool.json'};
+      await write(base.slice(1)+'descriptor.json',JSON.stringify(descriptor,null,2)+'\n');
+      await write(descriptor.packagePath.slice(1),bytes);
+      downloads.push(descriptor);
+    }
     await write('catalog.json',JSON.stringify({format:'opendesk.market.public.v1',releases:archived.releases,
-      recommended:official.catalog.apps.map(({id,version})=>({id,version})),collections:archived.collections},null,2)+'\n');
+      downloads,unavailableReleases:releases.filter(row=>!row.downloadable).map(({id,version})=>({id,version})),
+      recommended:[...latest.values()].map(({id,version})=>({id,version})),collections:archived.collections},null,2)+'\n');
     for(const file of media)await write('media/'+file.filename,file.bytes);
     await page('/','官方应用','发现 OpenDesk 官方应用，查看用途、运行位置与固定版本，在可信扩展页面审阅安装。',home(current));
     for(const app of releases){
@@ -106,10 +150,13 @@ export async function buildMarketSite({env=process.env}={}){
     await write('robots.txt','User-agent: *\n'+(mode==='development'?'Disallow: /\n':'Allow: /\n')+(origin?'Sitemap: '+origin+'/sitemap.xml\n':''));
     await write('sitemap.xml','<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+(origin?routes.filter(p=>!p.startsWith('/install/')).map(p=>'<url><loc>'+escapeHTML(origin+p)+'</loc></url>').join(''):'')+'</urlset>\n');
     const after=await inputIdentity();if(JSON.stringify(before)!==JSON.stringify(after))throw Error('Market inputs changed during build');
+    const projectInputs=rows=>rows.map(({project,row})=>({path:project,bytes:row.bytes,sha256:row.sha256}));
+    if(JSON.stringify(projectInputs(external))!==JSON.stringify(projectInputs(await projectPackages(projects))))
+      throw Error('Market project packages changed during build');
     const manifest={schema:'opendesk.market.build.v1',mode,channel,origin,apps:current.length,archivedReleases:releases.length,unresolvedReleaseReferences:[...unresolved.values()],
-      externalInstall:channel.enabled?'CONFIGURED':'NOT_CONFIGURED',routes,sourceInputs:before,
+      externalInstall:channel.enabled?'CONFIGURED':'NOT_CONFIGURED',routes,sourceInputs:before,projectPackages:projectInputs(external),
       screenshots:media.map(({bytes,...row})=>row),
-      sourceFingerprint:hash(JSON.stringify(before)),catalogSha256:hash(JSON.stringify(official.catalog)),
+      sourceFingerprint:hash(JSON.stringify({sourceInputs:before,projectPackages:projectInputs(external)})),catalogSha256:hash(JSON.stringify(official.catalog)),
       files:outputFiles.sort((a,b)=>a.path.localeCompare(b.path))};
     manifest.buildId=hash(JSON.stringify(manifest));
     await writeFile(resolve(stage,'site-build.json'),JSON.stringify(manifest,null,2)+'\n');
@@ -129,4 +176,6 @@ export async function buildMarketSite({env=process.env}={}){
       extensionId:channel.extensionId,externalInstall:manifest.externalInstall};
   }catch(error){await rm(stage,{recursive:true,force:true});throw error;}
 }
-if(import.meta.url===pathToFileURL(process.argv[1]||'').href)console.log(JSON.stringify(await buildMarketSite()));
+if(import.meta.url===pathToFileURL(process.argv[1]||'').href)console.log(JSON.stringify(await buildMarketSite({
+  projects:JSON.parse(process.env.OPENDESK_MARKET_PROJECTS||'[]')
+})));

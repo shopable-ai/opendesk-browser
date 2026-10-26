@@ -287,7 +287,8 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
     const context = trustedContext(sourceContext), input = clone(args);
     // Wire encoding already sorts object keys and enforces the value budget.
     // Do not feed its tag nesting through the legacy JSON depth-12 canonicalizer.
-    const requestDigest = await digestUtf8(JSON.stringify([method, encodeValue(input)]));
+    const requestDigest = await digestUtf8(JSON.stringify([method, encodeValue(input),
+      ...(context.taskId!==undefined?[context.taskId]:[])]));
     await authorize(context);
     const result = await service.transaction(sdkStores, 'readwrite', async tx => {
       await authorize(context, tx);
@@ -300,7 +301,13 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
         return result;
       }
       invariant(['admitted', 'pending', 'prepared', 'dispatched'].includes(op.state), 'E_OWNER', 'Storage operation not admitted');
-      const area = method.startsWith('APPSTORAGE_') ? 'app-storage' : 'chrome-local';
+      // A trusted Controller context supplies the stable installed Task ID.
+      // Versions share this area; legacy developer/page records stay untouched.
+      if(context.taskId!==undefined)invariant(context.lifecycle==='controller' &&
+        typeof context.taskId==='string' && /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,59}$/.test(context.taskId) &&
+        method.startsWith('APPSTORAGE_'),'E_CAPABILITY','Invalid Task storage scope');
+      const area = method.startsWith('APPSTORAGE_')
+        ? (context.taskId===undefined?'app-storage':`task-app-storage:${context.taskId}`) : 'chrome-local';
       const read = key => tx.get('frameworkKV', kvKey(context.namespace, area, key));
       const put = (key, value) => tx.put('frameworkKV', {tag: 'framework-kv', namespace: context.namespace,
         area: area, key, valueWire: encodeValue(value)}, kvKey(context.namespace, area, key));

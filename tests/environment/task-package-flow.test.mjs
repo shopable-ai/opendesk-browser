@@ -322,3 +322,22 @@ test('R23.37 real Task Service versioned-intent import -> Verify -> Available ->
   await assert.rejects(f.send('importTaskPackage',{package:rehashed}),
     errorCode('E_REQUEST_CONFLICT'),'published exact version cannot be overwritten');
 });
+
+
+test('Task optional storage and bounded deadline are closed and covered by manifestHash',async()=>{
+  const original=await example();
+  for(const deadlineMs of [1000,30000,120000]){
+    const pkg=await createTaskPackage({...original.manifest,permissions:['page.automation','storage.persistent'],deadlineMs},source);
+    assert.equal((await verifyTaskPackage(pkg)).manifest.deadlineMs,deadlineMs);
+    assert.notEqual(pkg.manifestHash,original.manifestHash);
+    const {deadlineMs:ignored,...withoutDeadline}=pkg.manifest;
+    await assert.rejects(verifyTaskPackage({...pkg,manifest:withoutDeadline}),{code:'E_HASH'});
+    await assert.rejects(verifyTaskPackage({...pkg,manifest:{...pkg.manifest,permissions:['page.automation']}}),{code:'E_HASH'});
+  }
+  for(const deadlineMs of [0,999,120001,1.5,'30000',null])
+    await assert.rejects(createTaskPackage({...original.manifest,deadlineMs},source),{code:'E_SCHEMA'});
+  for(const permissions of [[],['storage.persistent'],['page.automation','page.automation'],
+    ['page.automation','network'],['page.automation','storage.session'],['page.automation','cookies'],
+    ['page.automation','storage.persistent','network']])
+    await assert.rejects(createTaskPackage({...original.manifest,permissions},source),{code:'E_PERMISSION'});
+});

@@ -6,23 +6,29 @@ const action=$('#open-review'),status=$('#handoff-state');
 let channel,active=false,probeGeneration=0;
 const intentIds=new Map();
 function problem(code,message){return Object.assign(new Error(message),{code});}
-function send(message){
+function noReceiver(target){
+  return Object.assign(problem('E_NO_RECEIVER',target?.mode==='development'?
+    '无法连接 OpenDesk。当前窗口未连接本地市场指定的开发扩展；已安装其他测试副本也不能连接。请查看「安装帮助」核对窗口与扩展 ID。':
+    '无法连接 OpenDesk。请在同一个 Chrome 个人资料中核对扩展已启用，并查看「安装帮助」。'),{extensionId:target?.extensionId});
+}
+function send(message,target=channel){
   return new Promise((resolve,reject)=>{
-    if(!globalThis.chrome?.runtime?.sendMessage)return reject(problem('E_NO_RECEIVER','无法连接 OpenDesk。请检查扩展并查看安装帮助。'));
+    if(!globalThis.chrome?.runtime?.sendMessage)return reject(noReceiver(target));
     const timer=setTimeout(()=>reject(problem('E_CONNECT_TIMEOUT','无法连接 OpenDesk：等待响应超时。请查看已有审阅页或重试连接。')),5000);
-    try{chrome.runtime.sendMessage(channel.extensionId,message,response=>{
+    try{chrome.runtime.sendMessage(target.extensionId,message,response=>{
       clearTimeout(timer);
-      if(chrome.runtime.lastError)return reject(problem('E_NO_RECEIVER','无法连接 OpenDesk。请核对扩展已启用，以及此网站的通道配置。'));
+      if(chrome.runtime.lastError)return reject(noReceiver(target));
       if(response?.protocol!==protocol)return reject(problem('E_PROTOCOL','OpenDesk 安装协议不兼容，请更新扩展。'));
       if(!response.ok)return reject(problem(response.error?.code||'E_HANDOFF',String(response.error?.message||'无法完成交接。').slice(0,400)));
-      if(message.action==='PROBE'?response.status!=='CONNECTED':response.status!=='REVIEW_OPENED'||response.intentId!==message.intentId)
+      if(message.action==='PROBE'?response.status!=='CONNECTED':response.status!==(message.action==='GET_INSTALL_STATUS'?'INSTALL_STATUS':'REVIEW_OPENED')||response.intentId!==message.intentId)
         return reject(problem('E_RESPONSE','无法核对交接回执，请查看已有审阅页。'));
       resolve(response);
-    });}catch{clearTimeout(timer);reject(problem('E_NO_RECEIVER','无法连接 OpenDesk，请重试或查看安装帮助。'));}
+    });}catch{clearTimeout(timer);reject(noReceiver(target));}
   });
 }
-async function configuration(){
-  if(channel)return channel;
+async function configuration(refresh=false){
+  if(channel&&!refresh)return channel;
+  channel=undefined;
   let value;
   try{
     const response=await fetch('/channel.json',{cache:'no-store',credentials:'omit'});
@@ -38,28 +44,46 @@ async function configuration(){
 }
 function showError(error,target=status){
   if(target){target.hidden=false;target.textContent=error.message||'无法打开安装审阅。';target.dataset.state='error';}
-  if($('#handoff-details')){$('#handoff-details').hidden=false;$('#handoff-code').textContent=error.code||'E_CONNECT';}
+  if($('#handoff-details')){
+    $('#handoff-details').hidden=false;
+    const extensionId=error.extensionId||channel?.extensionId;
+    $('#handoff-code').textContent=(error.code||'E_CONNECT')+(extensionId?' · 市场目标扩展 ID：'+extensionId:'');
+  }
 }
-async function connect(){
+async function connect(refresh=false){
   const generation=++probeGeneration;
   connectButton.disabled=true;connection.textContent='正在连接 OpenDesk…';
-  try{await configuration();await send({protocol,action:'PROBE'});if(generation===probeGeneration)connection.textContent='已连接 OpenDesk · 安装在扩展内确认';}
-  catch(error){if(generation===probeGeneration){connection.textContent=error.message.startsWith('无法连接 OpenDesk')?
-    error.message:'无法连接 OpenDesk · '+error.message;}}
+  try{
+    const target=await configuration(refresh);await send({protocol,action:'PROBE'},target);
+    if(generation===probeGeneration){connection.textContent='已连接 OpenDesk · 在安装小窗确认';connection.dataset.state='success';}
+  }catch(error){if(generation===probeGeneration)showError(error,connection);}
   finally{if(generation===probeGeneration)connectButton.disabled=false;}
 }
-connectButton?.addEventListener('click',connect);
+connectButton?.addEventListener('click',()=>connect(true));
 // A market listing may contain multiple fixed releases. Each subject gets one
 // retryable intent ID; reusing an ID for another card is forbidden by R5.
 const reviewButtons=[...document.querySelectorAll('[data-open-review]')];
 if(action&&!reviewButtons.includes(action))reviewButtons.push(action);
+const pendingReviews=new Map();
+async function checkInstallation(button,localStatus){
+  const pending=pendingReviews.get(button);if(!pending)return;
+  const result=await send({protocol,action:'GET_INSTALL_STATUS',intentId:pending.id,subject:pending.subject},pending.target);
+  const labels={installed:'已核对本机安装，回到安装小窗选择「打开使用」。',review:'请在安装小窗核对并确认。',
+    cancelled:'安装窗口已关闭，未提交安装。',failed:'安装失败，请在安装窗口查看原因。',unknown:'安装结果待核对，请在原安装窗口恢复核对；不会自动重装。'};
+  if(!Object.hasOwn(labels,result.installation))throw problem('E_RESPONSE','无法核对安装状态。');
+  if(localStatus){localStatus.textContent=labels[result.installation];localStatus.dataset.state=result.installation==='installed'?'success':'pending';}
+  button.textContent=['cancelled','failed'].includes(result.installation)?'重新审阅安装':result.installation==='installed'?'已安装 · 查看确认窗口':'核对安装结果';
+  if(['cancelled','failed'].includes(result.installation))pendingReviews.delete(button);
+}
 for(const button of reviewButtons)button.addEventListener('click',async()=>{
   if(active)return;
   active=true;button.disabled=true;
   const localStatus=button.closest?.('.app-card')?.querySelector?.('[data-handoff-state]')||status;
   if(localStatus){localStatus.hidden=false;localStatus.textContent='正在打开扩展可信审阅页…';localStatus.dataset.state='pending';}
   try{
-    await configuration();
+    if(pendingReviews.get(button)?.expiresAt<=Date.now())pendingReviews.delete(button);
+    if(pendingReviews.has(button)){await checkInstallation(button,localStatus);return;}
+    const target=await configuration();
     const subject=JSON.parse(button.dataset.subject);
     const key='opendesk.market.intent:'+JSON.stringify(subject);
     const now=Date.now();
@@ -77,14 +101,22 @@ for(const button of reviewButtons)button.addEventListener('click',async()=>{
       intentIds.set(key,intent);
       if(!saved)try{sessionStorage.setItem(key,JSON.stringify(intent));}catch{/* Preserve memory until expiry. */}
     }
-    await send({protocol,action:'OPEN_INSTALL_REVIEW',intentId:intent.id,subject});
+    await send({protocol,action:'OPEN_INSTALL_REVIEW',intentId:intent.id,subject},target);
     probeGeneration++;connectButton.disabled=false;
     connection.textContent='已连接 OpenDesk';
-    if(localStatus){localStatus.textContent='已打开扩展审阅页。请在该页确认；交接完成不表示已安装。';localStatus.dataset.state='success';}
-    button.textContent='返回扩展审阅页';
+    if(subject.kind==='app')pendingReviews.set(button,{id:intent.id,expiresAt:intent.expiresAt,subject,target});
+    if(localStatus){localStatus.textContent=subject.kind==='app'?'安装小窗已打开，请核对并确认；交接完成不表示已安装。':'已打开套装审阅页；交接完成不表示已安装。';localStatus.dataset.state='pending';}
+    button.textContent=subject.kind==='app'?'核对安装结果':'返回套装审阅页';
     if($('#handoff-details'))$('#handoff-details').hidden=true;
   }catch(error){showError(error,localStatus);}
   finally{active=false;button.disabled=false;}
+});
+// Returning to the website only reads status, never replays an installation.
+globalThis.addEventListener?.('focus',()=>{
+  for(const button of pendingReviews.keys()){
+    const localStatus=button.closest?.('.app-card')?.querySelector?.('[data-handoff-state]')||status;
+    void checkInstallation(button,localStatus).catch(error=>showError(error,localStatus));
+  }
 });
 const search=$('#app-search'),cards=[...document.querySelectorAll('.app-card')];let selected='全部';
 function filter(){

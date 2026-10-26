@@ -403,9 +403,11 @@ function hostHarness({override={},readReply=null}={}){
     assert.equal(message.kind,'reserve');events.reserve++;
     return {ok:true,data:{consumed:true}};}},tabs:{
       async get(tabId){return {id:tabId,url:src.url,windowId:2,incognito:false};},
-      async sendMessage(tabId,message,opt){events.send++;
+      async sendMessage(tabId,message,opt){
         assert.equal(tabId,src.tabId);
         assert.equal(opt.documentId,src.documentId);
+        if(message.kind==='progress')return {ok:true,data:{observed:true}};
+        events.send++;
         if(override.sendThrows)throw new Error('lost receipt');
         return {ok:true,data:{sent:true,userObserved:true,aiReplyObserved:true}};
       }
@@ -531,6 +533,7 @@ test('final send boundary refuses revocation, changed installation, denied resul
     const override={},h=hostHarness({override});
     let clicks=0,checks=0;
     h.api.tabs.sendMessage=async(_tabId,message)=>{
+      if(message.kind==='progress')return {ok:true,data:{observed:true}};
       if(change==='permission')override.grants=false;
       if(change==='generation')h.installed.generation++;
       if(change==='disabled')h.installed.enabled=false;
@@ -557,6 +560,7 @@ test('revocation during async final reply or durable reads cannot produce a deli
     const override={},h=hostHarness({override});
     let clicks=0;
     h.api.tabs.sendMessage=async(_tab,message)=>{
+      if(message.kind==='progress')return {ok:true,data:{observed:true}};
       if(change==='disabled-during-reply')override.onReadReply=()=>{h.installed.enabled=false;};
       else override.onSnapshot=()=>{
         if(change==='install-event')h.events.installChanged({taskId:'page.read.fixed'});

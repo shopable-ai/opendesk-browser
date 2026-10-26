@@ -563,7 +563,7 @@ export function createManagedSiteBudgetService({
     if(sender?.id!==api.runtime.id||!sender.tab||
        !Number.isInteger(sender.tab.id)||sender.tab.incognito||sender.frameId!==0||
        !sender.documentId||sender.documentLifecycle&&sender.documentLifecycle!=='active'||
-       url.origin!==market.origin||url.pathname!==market.pathname)
+       url.origin!==market.origin||![market.pathname,'/ui/market-install.html'].includes(url.pathname))
       fail('E_TOOL_SENDER','后台兼容检查仅限可信应用商店');
     const context=await api.runtime.getContexts({contextTypes:['TAB'],
       documentUrls:[sender.url],tabIds:[sender.tab.id]});

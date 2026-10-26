@@ -273,7 +273,9 @@ export class LocalDevResolver{
     await verifyInputs();
     const result=immutable({bindingId,projectId:project.id,runtimeKind:project.runtimeKind,managedUI:helpers.has(UI),entry:project.entry,entryFormat:binding.entryFormat,sourceUtf8,sourceHash:sha256(sourceUtf8),sourceBytes,inputHash,sourceRevision:inputHash,artifactId:sha256(inputHash+sha256(sourceUtf8)),validationHash,sourceMapUtf8,files,probes:cacheHit?cached.probes:npm.probes(),cacheHit:!!cacheHit,capturedAt:new Date().toISOString(),
       timings:Object.freeze({validationMs,dependencyMs,webpackMs,checkMs:performance.now()-started-validationMs-dependencyMs-webpackMs,totalMs:performance.now()-started,buildCount,moduleCount:cacheHit?cached.timings.moduleCount:moduleCount}),
-      siteOrigins:project.siteOrigins||[binding.siteOrigin].filter(Boolean),...(project.pageRules?{pageRules:project.pageRules}:{}),...(project.paramsSchema?{paramsSchema:project.paramsSchema}:{})});
+      siteOrigins:project.siteOrigins||[binding.siteOrigin].filter(Boolean),
+      ...(project.runtimeKind==='controller'?{permissions:project.permissions||['page.automation']}:{}),
+      ...(project.deadlineMs!==undefined?{deadlineMs:project.deadlineMs}:{}),...(project.pageRules?{pageRules:project.pageRules}:{}),...(project.paramsSchema?{paramsSchema:project.paramsSchema}:{})});
     frozenValidators.set(result,()=>verifyInputs(false));
     this.identities.set(bindingId,identityKey);this.cache.set(bindingId,result);this.failures.delete(bindingId);this.preparation.published(bindingId,result);return result;
   }

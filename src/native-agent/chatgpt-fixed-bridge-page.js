@@ -1,6 +1,6 @@
 import {createChatGPTBridgeSite} from './chatgpt-bridge-site.js';
 import {chatGPTConversationId,inspectChatGPTEditsOnPage} from './workspace-chatgpt.js';
-import {validateChatGPTTaskRequest,CHATGPT_TASK_REQUEST_PROTOCOL,FIXED_PAGE_TASK_ID,BAIDU_TASK_ID} from './chatgpt-task-request.js';
+import {validateChatGPTTaskRequest,CHATGPT_TASK_REQUEST_PROTOCOL,FIXED_PAGE_TASK_ID,BAIDU_TASK_ID,FIXED_PAGE_URL,baiduSearchTarget} from './chatgpt-task-request.js';
 import {CHATGPT_BRIDGE_PROTOCOL} from './chatgpt-bridge-trigger-gate.js';
 
 const fail=(code,message)=>Object.assign(new Error(message),{code});
@@ -9,6 +9,9 @@ const PROBE_INTERVAL_MS=850;
 const MAX_DELIVERY_BYTES=8192;
 const CONVERSATION_HELP='当前页面尚未建立会话。请先在 ChatGPT 发送一条消息并等待回复，或从左侧选择一个已有对话，再建立浏览器任务请求。';
 const REQUEST_HELP='请保持同一窗口的 OpenDesk 侧栏打开。先选择任务并建立请求。官网发送请求后，可手动执行或批准一次自动执行。';
+const INSTALLED_CHOICE='__installed__';
+const sameRequestScope=(a,b)=>a.taskId===b.taskId&&JSON.stringify(a.args)===JSON.stringify(b.args)&&
+  a.targetUrl===b.targetUrl&&JSON.stringify(a.installation)===JSON.stringify(b.installation);
 const isUserTurn=(snapshot,id)=>snapshot.ok&&snapshot.users.at(-1)?.textContent?.includes(id);
 
 // Focus may synchronously restore a website draft. Inspect after focusing and
@@ -162,12 +165,13 @@ export function isChatGPTBridgeContinuation(before,current,resultUser){
 
 // The user chooses the task and parameters; the model can only echo the exact
 // candidate. It cannot approve or change a scope minted by the trusted Worker.
-export function bridgePrompt(requestId,taskId=FIXED_PAGE_TASK_ID,args={}){
+export function bridgePrompt(requestId,taskId=FIXED_PAGE_TASK_ID,args={},selection={}){
   const request=validateChatGPTTaskRequest(JSON.stringify({
     protocol:CHATGPT_TASK_REQUEST_PROTOCOL,kind:'opendesk.task.request',
-    version:1,requestId,taskId,args
+    version:1,requestId,taskId,args,...selection
   }));
-  const goal=request.taskId===BAIDU_TASK_ID?
+  const goal=request.installation?
+    '用户目标：调用已安装脚本“'+request.taskId+'”的已选版本，目标网址和参数以如下 JSON 为准。浏览器动作由该脚本决定。':request.taskId===BAIDU_TASK_ID?
     '用户目标：使用已安装的百度搜索 Task 搜索关键词“'+request.args.query+
       '”，只提取真实百度页面中最多三条通过自然结果过滤的标题、摘要和链接。':
     '用户目标：使用 OpenDesk 打开固定 Task 绑定的 httpbingo HTML 示例网页，读取标题与一段正文。';
@@ -177,8 +181,9 @@ export function bridgePrompt(requestId,taskId=FIXED_PAGE_TASK_ID,args={}){
     goal,
     '待扩展把真实结果发送回这段原始对话后，再根据实际读取结果总结；不要提前虚构网页内容。',
     '现在只输出下面这一段唯一的 opendesk-request JSON 代码块，不要输出第二个请求、模拟执行结果、授权声称或其他代码块。',
-    '不要改变任何字段、requestId、taskId 或 args。扩展会对这一轮回复与原对话身份进行严格核查。',
-    '请将下面的 JSON 原样放在唯一的 opendesk-request 代码块中：',JSON.stringify(request)
+    '不要改变任何字段、requestId、taskId、args、目标或安装版本。扩展会对这一轮回复与原对话身份进行严格核查。',
+    '请保留 JSON 字符串转义，不要把网址转换为 Markdown 链接。',
+    '请将下面的 JSON 原样放在唯一的 opendesk-request 代码块中：',JSON.stringify(request).replaceAll('/', '\\/')
   ].join(''); // Keep exact JSON bytes intact in one plain paragraph.
 }
 
@@ -194,38 +199,69 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   root.style.cssText='position:fixed;right:14px;top:72px;z-index:2147483645;max-width:min(330px,calc(100vw - 28px))';
   const shadow=root.attachShadow({mode:'closed'});
   const style=doc.createElement('style');
-  style.textContent=':host{all:initial}*{box-sizing:border-box}.panel{font:12px/1.45 system-ui,-apple-system,sans-serif;background:#fff;color:#263247;border:1px solid #d8dee8;border-radius:12px;box-shadow:0 4px 18px #0002;padding:10px;max-width:330px}.heading{font-weight:650;font-size:13px;margin-bottom:8px}.fields{display:grid;gap:7px;margin-bottom:9px}.field{display:grid;gap:3px}.field[hidden]{display:none}.field span{font-size:11px;color:#526070}select,input{font:inherit;width:100%;min-width:0;padding:6px 8px;border:1px solid #cbd5e1;border-radius:7px;background:inherit;color:inherit}select:focus-visible,input:focus-visible,button:focus-visible{outline:2px solid #2563eb;outline-offset:1px}.bar{display:flex;gap:5px;align-items:center;flex-wrap:wrap}button{font:inherit;background:#f7f9fb;border:1px solid #d3dbea;border-radius:7px;cursor:pointer;padding:6px 8px;color:inherit}button:disabled,select:disabled,input:disabled{opacity:.55;cursor:default}.run{background:#1d4ed8;color:#fff;border-color:#1d4ed8}.status{margin-top:8px;overflow-wrap:anywhere;max-height:100px;overflow:auto;color:#526070}.error{color:#b42318}@media(prefers-color-scheme:dark){.panel{background:#20242c;color:#e7e9ef;border-color:#444b58}.status,.field span{color:#bec8d5}button{background:#303846;border-color:#526073;color:#e7e9ef}.run{background:#346deb;color:white}}';
+  // Isolated page UI maps the canonical token values; never inject host CSS.
+  style.textContent=':host{all:initial}*{box-sizing:border-box}.panel{font:12px/1.45 system-ui,-apple-system,sans-serif;background:#fff;color:#1b2c49;border:1px solid #e1e8f1;border-radius:12px;box-shadow:0 4px 16px #0002;padding:12px;max-width:330px;max-height:calc(100vh - 96px);overflow:auto}.heading{font-weight:650;font-size:13px;margin-bottom:8px}.fields{display:grid;gap:8px;margin-bottom:8px}.field{display:grid;gap:4px}.field[hidden]{display:none}.field span,.hint,.status,.selection{color:#53647e}.hint,.selection{margin:8px 0;overflow-wrap:anywhere;white-space:pre-wrap}select,input,textarea{font:inherit;width:100%;min-width:0;min-height:36px;padding:8px;border:1px solid #7f8da1;border-radius:8px;background:inherit;color:inherit}textarea{resize:vertical;min-height:64px}select:focus-visible,input:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid #365eda;outline-offset:2px}.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}button{font:inherit;min-height:36px;background:#f5f7fb;border:1px solid #7f8da1;border-radius:8px;cursor:pointer;padding:8px;color:inherit}button:disabled,select:disabled,input:disabled,textarea:disabled{opacity:.55;cursor:default}.run{background:#365eda;color:#fff;border-color:#365eda}.status{margin-top:8px;overflow-wrap:anywhere;white-space:pre-wrap}.error{color:#ae3d4b}details{margin-top:8px}summary{cursor:pointer}pre{font:11px/1.45 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:120px;overflow:auto}@media(prefers-color-scheme:dark){.panel{background:#151c28;color:#e9eef7;border-color:#374457}.status,.field span,.hint,.selection{color:#b3c1d3}button{background:#222d3e;border-color:#6d809b;color:#e9eef7}select,input,textarea{border-color:#6d809b}.run{background:#3566ba;color:white}.error{color:#ff9ea6}}';
   const panel=doc.createElement('div');panel.className='panel';
   const heading=doc.createElement('div');heading.className='heading';
   heading.textContent='OpenDesk · 浏览器任务';
   const fields=doc.createElement('div');fields.className='fields';
   const taskField=doc.createElement('label');taskField.className='field';
-  const taskCaption=doc.createElement('span');taskCaption.textContent='选择任务';
+  const taskCaption=doc.createElement('span');taskCaption.textContent='选择已安装脚本';
   const taskSelect=doc.createElement('select');taskSelect.setAttribute('aria-label','选择浏览器任务');
   const fixedOption=doc.createElement('option');fixedOption.value=FIXED_PAGE_TASK_ID;
-  fixedOption.textContent='读取固定示例网页';
+  fixedOption.textContent='读取示例网页 · page.read.fixed';
   const baiduOption=doc.createElement('option');baiduOption.value=BAIDU_TASK_ID;
-  baiduOption.textContent='百度搜索前三条';
-  taskSelect.append(fixedOption,baiduOption);taskSelect.value=FIXED_PAGE_TASK_ID;
+  baiduOption.textContent='百度搜索前三条 · baidu.search.top3';
+  const installedOption=doc.createElement('option');installedOption.value=INSTALLED_CHOICE;
+  installedOption.textContent='从已安装脚本中选择…';
+  taskSelect.append(fixedOption,baiduOption,installedOption);taskSelect.value=FIXED_PAGE_TASK_ID;
   taskField.append(taskCaption,taskSelect);
   const queryField=doc.createElement('label');queryField.className='field';
   const queryCaption=doc.createElement('span');queryCaption.textContent='百度搜索关键词';
   const queryInput=doc.createElement('input');queryInput.type='text';queryInput.maxLength=120;
   queryInput.value='OpenDesk Browser';queryInput.placeholder='输入搜索关键词';
   queryInput.setAttribute('aria-label','百度搜索关键词');
-  queryField.append(queryCaption,queryInput);fields.append(taskField,queryField);
+  queryField.append(queryCaption,queryInput);
+  const targetField=doc.createElement('label');targetField.className='field';
+  const targetCaption=doc.createElement('span');targetCaption.textContent='打开的目标网址';
+  const targetInput=doc.createElement('input');targetInput.type='url';targetInput.maxLength=2048;
+  targetInput.setAttribute('aria-label','打开的目标网址');targetInput.placeholder='填写脚本要操作的完整网址';
+  targetField.append(targetCaption,targetInput);
+  const argsField=doc.createElement('label');argsField.className='field';
+  const argsCaption=doc.createElement('span');argsCaption.textContent='脚本参数（JSON）';
+  const argsInput=doc.createElement('textarea');argsInput.value='{}';argsInput.maxLength=2048;
+  argsInput.setAttribute('aria-label','脚本参数 JSON');
+  const argsHelp=doc.createElement('span');
+  argsField.append(argsCaption,argsInput,argsHelp);fields.append(taskField,queryField,targetField,argsField);
+  const selection=doc.createElement('div');selection.className='selection';
+  const hint=doc.createElement('div');hint.className='hint';
+  hint.textContent='由 OpenDesk 自动化脚本操作浏览器，结果发送到当前聊天。请先核对脚本、网址和参数。';
   const bar=doc.createElement('div');bar.className='bar';
   const prepareButton=doc.createElement('button');prepareButton.textContent='建立请求';
   const autoButton=doc.createElement('button');autoButton.textContent='批准本次自动执行';
   const runButton=doc.createElement('button');runButton.className='run';runButton.textContent='执行';
   const cancelButton=doc.createElement('button');cancelButton.textContent='停止/取消';
   const status=doc.createElement('div');status.className='status';status.setAttribute('role','status');
+  const details=doc.createElement('details');
+  const summary=doc.createElement('summary');summary.textContent='执行详情';
+  const identity=doc.createElement('pre');details.append(summary,identity);
   bar.append(prepareButton,autoButton,runButton,cancelButton);
-  panel.append(heading,fields,bar,status);shadow.append(style,panel);
+  panel.append(heading,hint,fields,selection,bar,status,details);shadow.append(style,panel);
   (doc.body||doc.documentElement).append(root);
   let pending=false,preparing=false,cancelPending=false,deliveryPending=false,composition=false,closed=false;
   let state=null,composerClaim=null; // latest claim for navigation cleanup only
-  let conversationReady=null;
+  let conversationReady=null,loadingTasks=false;
+  const installedTasks=new Map(),installedOptions=[];
+  const selectedTask=()=>installedTasks.get(taskSelect.value);
+  const taskLabel=owner=>owner?.taskId||selectedTask()?.taskId||taskSelect.value;
+  const targetLabel=owner=>owner?.targetUrl||(owner?.taskId===BAIDU_TASK_ID?
+    baiduSearchTarget({protocol:CHATGPT_TASK_REQUEST_PROTOCOL,kind:'opendesk.task.request',version:1,
+      requestId:owner.requestId,taskId:owner.taskId,args:owner.args}):FIXED_PAGE_URL);
+  const showIdentity=()=>{identity.textContent=state?[
+    'requestId: '+state.requestId,
+    ...(state.installation?['scriptId: '+state.installation.scriptId,'revision: '+state.installation.revision]:[]),
+    ...(state.runId?['runId: '+state.runId]:[]),...(state.resultId?['resultId: '+state.resultId]:[])
+  ].join('\n'):'';details.hidden=!state;};
   const note=(text,error=false)=>{status.textContent=text;status.classList.toggle('error',error);};
   const update=()=>{
     const hasConversation=win.location.origin==='https://chatgpt.com'&&Boolean(chatGPTConversationId(win.location.href));
@@ -235,13 +271,22 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     }
     const busy=pending||cancelPending||deliveryPending;
     const ready=!!state&&!state.cancelled&&!state.attempted&&!state.deliveryStarted&&win.location.href===state.url;
-    prepareButton.disabled=busy||!hasConversation;
+    prepareButton.disabled=busy||loadingTasks||!hasConversation||taskSelect.value===INSTALLED_CHOICE;
     autoButton.disabled=busy||!ready||state.mode==='auto';
     runButton.disabled=busy||!ready||state.mode==='auto';
     cancelButton.disabled=preparing||!state||state.cancelled||state.sendSubmitted||state.settled;
     const editing=busy||Boolean(state&&!state.attempted);
-    taskSelect.disabled=editing;queryInput.disabled=editing;
+    taskSelect.disabled=editing||loadingTasks;queryInput.disabled=editing;
+    targetInput.disabled=editing;argsInput.disabled=editing;
     queryField.hidden=taskSelect.value!==BAIDU_TASK_ID;
+    targetField.hidden=!selectedTask();argsField.hidden=!selectedTask();
+    if(!state||state.attempted){
+      const task=selectedTask();
+      selection.textContent=task?'将调用：'+task.taskId+' @ '+task.version+'\n'+(task.description||'浏览器动作由已安装脚本决定。'):
+        taskSelect.value===INSTALLED_CHOICE?'正在读取已安装脚本…':
+        '将调用：'+taskSelect.value+'\n'+(taskSelect.value===BAIDU_TASK_ID?'打开百度，读取最多三条自然结果。':'打开 '+FIXED_PAGE_URL+'，读取标题和正文。');
+    }
+    showIdentity();
   };
   const assertActive=owner=>{
     if(owner!==state||owner.cancelled)throw fail('E_BRIDGE_CANCELLED','本次请求已取消，禁止继续执行或回传');
@@ -268,8 +313,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       !isUserTurn(siteSnapshot,state.requestId))
       throw fail('E_CHAT_PENDING','本轮请求尚无完整的官方 AI 回复');
     const request=validateChatGPTTaskRequest(page.blocks[0]);
-    if(request.requestId!==state.requestId||request.taskId!==state.taskId||
-      JSON.stringify(request.args)!==JSON.stringify(state.args))
+    if(request.requestId!==state.requestId||!sameRequestScope(request,state))
       throw fail('E_BRIDGE_CONTEXT','模型给出的任务或关键词与本次用户选择不一致');
     if(state.approvedTurnKey&&state.approvedTurnKey!==page.turnKey)
       throw fail('E_BRIDGE_CONTEXT','批准对应的用户轮次已经改变');
@@ -288,7 +332,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       }
       if(state.mode==='auto'&&mode!=='auto')throw fail('E_BRIDGE_MODE','已批准自动执行，不可更改触发身份');
       state.attempted=true;state.mode=mode;
-      note('已提交受信执行。正在核验安装身份和真实网页结果…');
+      note('已识别 '+taskLabel(state)+'，参数 '+JSON.stringify(state.args)+'。\n正在核验安装版本；尚未确认开始运行。');
       update();
       // No local retry after a transport failure. The worker's durable trigger
       // fence and Controller command journal determine whether effects happened.
@@ -297,7 +341,8 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
         answerKey:page.answerKey});
       assertActive(owner);
       state.settled=true;
-      const baiduStatus=reply?.taskId===BAIDU_TASK_ID?
+      state.runId=reply?.runId||state.runId;state.resultId=reply?.resultId;
+      const baiduStatus=reply?.taskId===BAIDU_TASK_ID&&reply.taskStatus?
         ('；百度结果：'+({success:'成功',no_results:'无自然搜索结果',
           blocked:'访问受阻或验证码',dom_unavailable:'搜索区域不可用',
           dom_changed:'页面结构未匹配'}[reply.taskStatus]||'状态未知')+
@@ -322,30 +367,46 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       if(composition)throw fail('E_CHAT_IME','输入法仍在编辑，未覆盖');
       if(!snap.idle)throw fail('E_CHAT_PENDING','官网回复尚未确认完成，未覆盖');
       if(snap.rich||snap.draft!=='')throw fail('E_CHAT_DRAFT','官网有草稿或附件，未覆盖');
-      const taskId=taskSelect.value;
-      const args=taskId===BAIDU_TASK_ID?{query:String(queryInput.value||'').trim(),limit:3}:{};
+      const selected=selectedTask(),choice=taskSelect.value;
+      if(choice===INSTALLED_CHOICE)throw fail('E_BRIDGE_REQUEST','请先选择一个已安装脚本');
+      const taskId=selected?.taskId||choice;
+      let args=taskId===BAIDU_TASK_ID&&!selected?{query:String(queryInput.value||'').trim(),limit:3}:{};
+      let scope={};
+      if(selected){
+        const inputArgs=argsInput.value;
+        try{args=JSON.parse(inputArgs);}catch{throw fail('E_BRIDGE_FORMAT','脚本参数必须是完整 JSON 对象');}
+        const targetUrl=targetInput.value.trim();
+        const checked=await send({kind:'prepare-task',taskId,args,targetUrl,installation:selected.installation});
+        if(taskSelect.value!==choice||argsInput.value!==inputArgs||targetInput.value.trim()!==targetUrl)
+          throw fail('E_BRIDGE_CONTEXT','核验期间脚本、参数或网址发生变化');
+        if(checked.taskId!==taskId||checked.targetUrl!==targetUrl||
+          JSON.stringify(checked.installation)!==JSON.stringify(selected.installation))
+          throw fail('E_BRIDGE_CONTEXT','可信宿主返回的安装版本或目标不匹配');
+        args=checked.args;scope={targetUrl:checked.targetUrl,installation:checked.installation};
+      }
       // Refuse malformed queries before minting a one-use Worker nonce.
       validateChatGPTTaskRequest(JSON.stringify({protocol:CHATGPT_TASK_REQUEST_PROTOCOL,
         kind:'opendesk.task.request',version:1,
-        requestId:'00000000-0000-4000-8000-000000000000',taskId,args}));
+        requestId:'00000000-0000-4000-8000-000000000000',taskId,args,...scope}));
       const url=win.location.href;
-      const prepared=await send({kind:'prepare',taskId,args});
-      if(taskSelect.value!==taskId||(taskId===BAIDU_TASK_ID&&String(queryInput.value||'').trim()!==args.query))
+      const prepared=await send({kind:'prepare',taskId,args,...scope});
+      if(taskSelect.value!==choice||(!selected&&taskId===BAIDU_TASK_ID&&String(queryInput.value||'').trim()!==args.query))
         throw fail('E_BRIDGE_CONTEXT','准备期间任务或关键词已改变，请重新建立请求');
-      if(prepared.taskId!==undefined&&(prepared.taskId!==taskId||
-        JSON.stringify(prepared.args)!==JSON.stringify(args)))
+      if(prepared.taskId!==undefined&&!sameRequestScope(prepared,{taskId,args,...scope}))
         throw fail('E_BRIDGE_CONTEXT','可信准备回执的任务和参数不匹配');
+      if(selected&&!sameRequestScope(prepared,{taskId,args,...scope}))
+        throw fail('E_BRIDGE_CONTEXT','已安装脚本未获得完整的一次性版本和目标绑定');
       if(taskId===BAIDU_TASK_ID&&prepared.taskId!==BAIDU_TASK_ID)
         throw fail('E_BRIDGE_CONTEXT','百度请求未获得可信 Worker 的任务参数绑定');
       if(win.location.href!==url||prepared.source?.url!==url)throw fail('E_CHAT_TARGET','准备期间切换了对话');
       if(composition)throw fail('E_CHAT_IME','准备期间输入法开始编辑，未回填');
-      const prompt=bridgePrompt(prepared.requestId,taskId,args);
+      const prompt=bridgePrompt(prepared.requestId,taskId,args,scope);
       const inserted=prepareChatGPTBridgeDraft(site,prompt,snap);
       if(!inserted?.ok)throw fail('E_CHAT_FILL',inserted?.reason||'无法写入原生输入框');
-      state={requestId:prepared.requestId,taskId,args,url,source:prepared.source,expiresAt:prepared.expiresAt,
+      state={requestId:prepared.requestId,taskId,args,...scope,url,source:prepared.source,expiresAt:prepared.expiresAt,
         attempted:false,cancelled:false,sendSubmitted:false,settled:false,deliveryStarted:false,mode:null,approvedTurnKey:null};
-      note('已建立'+(taskId===BAIDU_TASK_ID?'百度搜索「'+args.query+'」':'固定网页读取')+
-        '请求；请在 ChatGPT 发送，再点击“执行”或批准本次自动执行。');
+      selection.textContent='本次脚本：'+taskId+'\n目标：'+targetLabel(state)+'\n参数：'+JSON.stringify(args);
+      note('已建立请求，尚未执行。\n请先在 ChatGPT 发送，待识别到任务标记后点击“执行”，或批准本次自动执行。');
     }catch(error){note((error.code||'E_BRIDGE')+'：'+error.message,true);}
     finally{pending=false;preparing=false;update();}
   });
@@ -363,8 +424,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       await send({kind:'authorize',requestId:state.requestId,mode:'auto'});
       assertActive(owner);
       state.approvedTurnKey=identity.turnKey;state.mode='auto';
-      note('只批准当前'+(state.taskId===BAIDU_TASK_ID?'百度搜索「'+state.args.query+'」':'固定网页读取')+
-        '与这一轮回复触发一次，不批准其他任务、参数或循环。');
+      note('已批准 '+taskLabel(state)+' 本次自动执行，尚未运行。\n正在等待本轮 AI 完整返回任务标记；匹配后只运行一次，结果回到当前聊天。');
     }catch(error){if(owner.cancelled)return;note((error.code||'E_BRIDGE_APPROVAL')+'：'+error.message,true);}
     finally{pending=false;update();}
   });
@@ -408,9 +468,23 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       state.attempted=true;note('原对话已切换；旧授权失效，禁止回传。',true);update();
       return;
     }
-    if(state?.mode!=='auto'||state.cancelled||state.attempted||pending||autoPollBusy)return;
+    if(!state||state.cancelled||state.attempted||pending||autoPollBusy)return;
+    if(state.expiresAt&&Date.now()>=state.expiresAt){
+      state.attempted=true;note('本次请求已过期，未触发运行。请重新建立请求。',true);update();return;
+    }
     autoPollBusy=true;
-    try{observe();void execute('auto');}catch{/* Waiting for one complete answer; no execution. */}
+    try{
+      observe();
+      if(state.mode==='auto')void execute('auto');
+      else if(!state.candidateSeen){
+        state.candidateSeen=true;
+        note('已识别任务标记：'+taskLabel(state)+'\n参数：'+JSON.stringify(state.args)+'\n尚未运行。点击“执行”将操作浏览器，并把返回值发送到当前聊天。');
+      }
+    }catch(error){
+      if(['E_BRIDGE_CONTEXT','E_BRIDGE_SCHEMA','E_BRIDGE_FORMAT','E_BRIDGE_LIMIT'].includes(error.code))
+        note('候选无法执行：'+error.code+'：'+error.message+'；未执行。',true);
+      // Incomplete streaming output cannot trigger execution.
+    }
     finally{autoPollBusy=false;}
   },PROBE_INTERVAL_MS);
   const beginComposition=()=>{composition=true;},endComposition=()=>{composition=false;};
@@ -503,13 +577,34 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     }finally{deliveryPending=false;update();}
   };
   const onMessage=(message,sender,reply)=>{
-    if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||message.kind!=='deliver')return false;
+    if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||!['deliver','progress'].includes(message.kind))return false;
     if(sender?.id!==api.runtime.id||sender?.tab)return false;
     try{
       const url=new URL(sender.url),origin=new URL(api.runtime.getURL('/')).origin;
       if(url.origin!==origin||url.pathname!=='/sidepanel.html'||
         !url.searchParams.has('hostInstanceId')||['scheduledRunner','toolId','previewId'].some(key=>url.searchParams.has(key)))return false;
     }catch{return false;}
+    if(message.kind==='progress'){
+      const owner=state;
+      if(!owner||owner.cancelled||!owner.attempted||owner.settled||owner.deliveryStarted||
+        message.requestId!==owner.requestId||message.sourceUrl!==owner.url||win.location.href!==owner.url||
+        message.mode!==owner.mode||message.taskId!==owner.taskId)return false;
+      const stages=['validating','starting','running','result-ready'],rank=stages.indexOf(message.stage);
+      if(rank<0||rank<(owner.progressRank??-1))return false;
+      if(owner.installation&&(message.scriptId!==owner.installation.scriptId||
+        message.revision!==owner.installation.revision||message.targetUrl!==owner.targetUrl))return false;
+      if(message.runId&&owner.runId&&owner.runId!==message.runId)return false;
+      owner.progressRank=rank;
+      if(typeof message.runId==='string')owner.runId=message.runId;
+      const progress={validating:'正在核验已安装脚本、参数和网站权限。',
+        starting:'版本核验通过，正在申请自动化运行；尚未确认开始。',
+        running:'自动化已开始：打开目标网页并执行脚本。',
+        'result-ready':'脚本已完成，持久结果已核实；正在准备回传当前聊天。'};
+      note(progress[message.stage]+'\n脚本：'+owner.taskId+
+        (message.scriptId?'（'+message.scriptId+' · r'+message.revision+'）':'')+
+        '\n目标：'+targetLabel(owner));
+      showIdentity();reply({ok:true,data:{observed:true}});return false;
+    }
     const owner=state;
     Promise.resolve().then(()=>deliver(message)).then(data=>reply({ok:true,data}),
       error=>{if(!owner?.cancelled&&owner===state)note((error.code||'E_BRIDGE_DELIVERY')+'：'+(error.message||'回传未确认'),true);
@@ -523,7 +618,43 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     doc.removeEventListener('compositionstart',beginComposition,true);
     doc.removeEventListener('compositionend',endComposition,true);root.remove();};
   win.addEventListener('pagehide',dispose,{once:true});
-  taskSelect.addEventListener('change',update);
+  taskSelect.addEventListener('change',async()=>{
+    if(pending||cancelPending||deliveryPending||loadingTasks)return;
+    if(taskSelect.value===INSTALLED_CHOICE){
+      loadingTasks=true;update();
+      try{
+        const catalog=await send({kind:'list-tasks'});
+        if(!Array.isArray(catalog?.tasks))throw fail('E_BRIDGE_INSTALL','未能读取已安装脚本');
+        // Refresh future selections, never mutate an already prepared request.
+        for(const option of installedOptions)option.remove();
+        installedOptions.length=0;installedTasks.clear();
+        for(const task of catalog.tasks){
+          const key='installed:'+task.taskId;
+          installedTasks.set(key,task);
+          const option=doc.createElement('option');option.value=key;
+          option.textContent=(task.name||task.taskId)+' · '+task.taskId+' @ '+task.version;
+          taskSelect.append(option);installedOptions.push(option);
+        }
+        const unavailable=(catalog.unavailable||[]).map(row=>row.taskId+'：'+row.reason).join('\n');
+        if(!catalog.tasks.length)throw fail('E_BRIDGE_INSTALL','没有可运行的已安装脚本。'+
+          (unavailable?'\n'+unavailable:'请先在“我的”安装任务；主动停用的任务需恢复。'));
+        taskSelect.value='installed:'+catalog.tasks[0].taskId;
+        note('已读取已安装脚本。请核对脚本，填写准确的目标网址和参数，再建立请求。'+
+          (unavailable?'\n以下安装当前不可用：\n'+unavailable:''));
+      }catch(error){taskSelect.value=FIXED_PAGE_TASK_ID;note((error.code||'E_BRIDGE_INSTALL')+'：'+error.message,true);}
+      finally{loadingTasks=false;}
+    }
+    const task=selectedTask();
+    if(task){
+      targetInput.value='';argsInput.value=JSON.stringify(Object.fromEntries(
+        Object.entries(task.paramsSchema?.properties||{}).filter(([,spec])=>'default' in spec).map(([key,spec])=>[key,spec.default])
+      ));
+      argsHelp.textContent='允许网站：'+(task.siteOrigins||[]).join('、')+
+        '；参数：'+(Object.entries(task.paramsSchema?.properties||{}).map(([key,spec])=>
+          key+' ('+spec.type+(task.paramsSchema.required?.includes(key)?'，必填':'')+')').join('、')||'无');
+    }
+    update();
+  });
   update();
   return {dispose};
 }

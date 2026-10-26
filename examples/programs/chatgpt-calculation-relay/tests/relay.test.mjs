@@ -4,6 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {runCalculationRelay, ACTIVE_KEY, journalKey, parseReply} from '../src/relay.js';
+import {validateJournal, validateRelayResult} from '../src/contract.js';
 import {createStorageFacades} from '../../../../src/framework/sdk/storage.js';
 import {buildProgramProjectInMemory} from '../../../../scripts/build-program-project.mjs';
 import {controllerProgramBody} from '../../../../src/scripting/sandbox/worker-runtime.js';
@@ -22,14 +23,18 @@ function harness(options = {}) {
     writes.push([args.key, JSON.parse(args.value)]);
   }).AppStorage;
   let doc = 'doc-A', route = 'c/conversation-a', messages = structuredClone(options.history ?? []), draft = options.draft ?? '', step;
-  let clock = 0;
+  let clock = 0, transientReads = options.transientReads ?? 0;
   const site = {
     async bind() {return doc;},
     async read() {
       if (options.readLost && actions.includes('click-A')) throw new Error('E_PORT_DISCONNECTED');
+      if (options.readLostB && actions.includes('click-B')) throw new Error('E_PORT_DISCONNECTED');
+      if (actions.includes('click-A') && (options.siteUnavailable || transientReads-- > 0))
+        throw new Error('E_RELAY_SITE: 路由或编辑器尚未就绪');
       return {ok:true, documentId:doc, route, url:'https://chatgpt.com/' + (route ?? ''),
-        messages:structuredClone(messages), draft, rich:false, idle:true, sendReady:true, busy:false};
+        messages:structuredClone(messages), draft, rich:!!options.rich, idle:!options.busy, sendReady:true, busy:!!options.busy};
     },
+    async inspect() {return {bodyHasRun:true, matches:[]};},
     async fill(value) {step = structuredClone(value); draft = value.prompt; actions.push('fill-' + (doc === 'doc-A' ? 'A' : 'B'));},
     async send(value) {
       const which = doc === 'doc-A' ? 'A' : 'B';
@@ -40,8 +45,8 @@ function harness(options = {}) {
       if (options.lostClick) throw new Error('E_CLICK_ACK_LOST');
       if (options.noUser) {draft = ''; return;}
       route = which === 'A' ? 'c/conversation-a' : 'c/conversation-b';
-      const match = value.prompt.match(/计算：(\d+) \+ 25|上一任务结果 (\d+) × 3/);
-      const numeric = which === 'A' ? Number(match[1]) + 25 : Number(match[2]) * 3;
+      const match = value.prompt.match(/计算：(-?\d+) \+ (-?\d+)|上一任务结果 (-?\d+) × (-?\d+)/);
+      const numeric = which === 'A' ? Number(match[1]) + Number(match[2]) : Number(match[3]) * Number(match[4]);
       messages.push({key:'user:' + which, role:'user', text:value.prompt});
       const raw = JSON.stringify({runId:options.wrongRun ? 'other-run' : 'relay-test-0001', step:which, value:numeric});
       messages.push({key:'assistant:' + which, role:'assistant', text:raw,
@@ -95,6 +100,67 @@ test('lost click ACK is durable unknown and repeated Run/status cannot click aga
   assert.equal((await h.run({operation:'status'})).steps.A.state, 'unknown');
   await assert.rejects(h.run({runId:'relay-different-id'}), /E_RELAY_PENDING/);
   assert.deepEqual(h.actions, ['fill-A','click-A']);
+});
+
+test('temporary post-click site absence is polled without another fill or click', async () => {
+  const h = harness({transientReads:2});
+  assert.equal((await h.run()).status, 'completed');
+  assert.deepEqual(h.actions, ['fill-A','click-A','navigate','fill-B','click-B']);
+});
+
+test('persistent post-click site absence stops unknown without replay', async () => {
+  const h = harness({siteUnavailable:true});
+  await assert.rejects(h.run(), /E_RELAY_UNKNOWN/);
+  assert.equal((await h.run()).readOnly, true);
+  assert.deepEqual(h.actions, ['fill-A','click-A']);
+});
+
+test('explicit reconciliation binds original A evidence and only sends the not-started B', async () => {
+  const options = {readLost:true}, h = harness(options);
+  await assert.rejects(h.run(), /E_RELAY_UNKNOWN/);
+  options.readLost=false;
+  assert.equal((await h.run({operation:'reconcile'})).status, 'completed');
+  assert.deepEqual(h.actions, ['fill-A','click-A','navigate','fill-B','click-B']);
+  assert.equal((await h.run({operation:'status'})).steps.B.result.value, 126);
+});
+
+test('reconciliation without the original user turn cannot send A or B', async () => {
+  const h = harness({noUser:true});
+  await assert.rejects(h.run(), /E_RELAY_UNKNOWN/);
+  await assert.rejects(h.run({operation:'reconcile'}), /E_RELAY_UNKNOWN/);
+  assert.deepEqual(h.actions, ['fill-A','click-A']);
+});
+
+test('explicit B reconciliation reuses saved A and never navigates or clicks again', async () => {
+  const options = {readLostB:true}, h = harness(options);
+  await assert.rejects(h.run(), /E_RELAY_UNKNOWN/);
+  options.readLostB=false;
+  assert.equal((await h.run({operation:'reconcile'})).status, 'completed');
+  assert.deepEqual(h.actions, ['fill-A','click-A','navigate','fill-B','click-B']);
+});
+
+test('inspect observes original unknown evidence without any storage or website mutation', async () => {
+  const options = {readLost:true}, h = harness(options);
+  await assert.rejects(h.run(), /E_RELAY_UNKNOWN/);
+  options.readLost=false;
+  const before = [...h.data], actions = [...h.actions];
+  const result = await h.run({operation:'inspect'});
+  assert.equal(result.readOnly, true);
+  assert.equal(result.observation.messages[0].key, 'user:A');
+  assert.deepEqual([...h.data], before);
+  assert.deepEqual(h.actions, actions);
+});
+
+test('reconciliation cannot bypass a replaced document or changed original prompt', async () => {
+  for (const mutation of ['documentId','prompt']) {
+    const options = {readLost:true}, h = harness(options);
+    await assert.rejects(h.run(), /E_RELAY_UNKNOWN/);
+    options.readLost=false;
+    const key = journalKey('relay-test-0001'), state = JSON.parse(h.data.get(key));
+    state.steps.A[mutation]='changed'; h.data.set(key,JSON.stringify(state));
+    await assert.rejects(h.run({operation:'reconcile'}), /E_RELAY_(UNKNOWN|RECONCILE|STORAGE)/);
+    assert.deepEqual(h.actions, ['fill-A','click-A']);
+  }
 });
 
 for (const flag of ['readLost','noUser','wrongRun','streaming','extraUser','badReadback']) {
@@ -167,4 +233,189 @@ test('existing project compiler and Worker body load the zero-argument entry wit
   const result = await body({}, {operation:'status'}, undefined, h.store);
   assert.equal(result.status, 'not_found');
   assert.equal(vm.runInContext('typeof globalThis.page', scope), 'undefined');
+});
+
+for (const input of [
+  {addend:-120, secondAddend:45, multiplier:-7},
+  {addend:0, secondAddend:0, multiplier:0},
+  {addend:1000000, secondAddend:1000000, multiplier:1000000},
+  {addend:-1000000, secondAddend:-1000000, multiplier:1000000}
+]) {
+  test(`general bounded integers ${JSON.stringify(input)} use stored dynamic A`, async () => {
+    const h = harness(), result = await h.run(input);
+    assert.equal(result.steps.A.result.value, input.addend + input.secondAddend);
+    assert.equal(result.steps.B.result.value, (input.addend + input.secondAddend) * input.multiplier);
+    for (const key of Object.keys(input)) assert.equal(result[key], input[key]);
+    assert.equal((await h.run(input)).readOnly,true);
+  });
+}
+
+for (const name of ['addend','secondAddend','multiplier']) {
+  for (const value of [null,1.5,'17',1000001,-1000001,NaN,Infinity,Number.MAX_SAFE_INTEGER]) {
+    test(`invalid ${name}=${String(value)} fails before storage or website writes`, async () => {
+      const h=harness();
+      await assert.rejects(h.run({[name]:value}), /E_RELAY_PARAMS/);
+      assert.deepEqual(h.actions,[]); assert.equal(h.writes.length,0);
+    });
+  }
+  test(`same runId cannot change ${name}, including explicit reconciliation`, async () => {
+    const options={readLost:true}, h=harness(options);
+    await assert.rejects(h.run(), /E_RELAY_UNKNOWN/);
+    options.readLost=false;
+    const before=[...h.data], actions=[...h.actions];
+    const value={addend:18,secondAddend:26,multiplier:4}[name];
+    await assert.rejects(h.run({[name]:value}), /E_RELAY_PARAMS/);
+    await assert.rejects(h.run({operation:'reconcile',[name]:value}), /E_RELAY_RECONCILE/);
+    assert.deepEqual([...h.data],before); assert.deepEqual(h.actions,actions);
+  });
+}
+
+for (const step of ['A','B']) {
+  test(`legacy addend-only unknown ${step} keeps its fence and reconciles without replay`, async () => {
+    const options=step === 'A' ? {readLost:true} : {readLostB:true}, h=harness(options);
+    await assert.rejects(h.run(), /E_RELAY_UNKNOWN/);
+    const key=journalKey('relay-test-0001'), old=JSON.parse(h.data.get(key));
+    delete old.secondAddend; delete old.multiplier;
+    h.data.set(key,JSON.stringify(old));
+    const before=[...h.data], actions=[...h.actions];
+    assert.equal((await h.run()).readOnly,true);
+    assert.equal((await h.run({operation:'status'})).status,'unknown');
+    await assert.rejects(h.run({runId:'relay-next-run'}),/E_RELAY_PENDING/);
+    assert.deepEqual([...h.data],before); assert.deepEqual(h.actions,actions);
+    options.readLost=false; options.readLostB=false;
+    const result=await h.run({operation:'reconcile'});
+    assert.equal(result.format,'opendesk.chatgpt-calculation-relay.v1');
+    assert.equal(result.steps.B.result.value,126);
+    assert.deepEqual(h.actions,['fill-A','click-A','navigate','fill-B','click-B']);
+  });
+}
+
+test('legacy completed addend-only record remains byte-for-byte unchanged on Run/status', async () => {
+  const h=harness(); await h.run({addend:19});
+  const key=journalKey('relay-test-0001'), old=JSON.parse(h.data.get(key));
+  delete old.secondAddend; delete old.multiplier; h.data.set(key,JSON.stringify(old));
+  const before=[...h.data], actions=[...h.actions];
+  assert.equal((await h.run({addend:19})).steps.B.result.value,132);
+  assert.equal((await h.run({operation:'status'})).status,'completed');
+  assert.deepEqual([...h.data],before); assert.deepEqual(h.actions,actions);
+});
+
+for (const flag of ['rich','busy']) test(`existing ${flag} blocks claiming storage or website mutation`, async () => {
+  const h=harness({[flag]:true});
+  await assert.rejects(h.run(),/E_RELAY_DRAFT/);
+  assert.deepEqual(h.actions,[]); assert.equal(h.writes.length,0);
+});
+
+
+test('all real v1 write-ahead snapshots remain valid without normalization, including legacy records', async () => {
+  for (const options of [{},{lostClick:true},{readLost:true},{sameDocument:true},{bDraft:'keep'},
+    {wrongRun:true},{streaming:true},{readLostB:true},{total:2}]) {
+    const h=harness(options);
+    try {await h.run();} catch (error) {assert.match(error.message,/E_RELAY_UNKNOWN/);}
+    for (const [key,record] of h.writes.filter(([key]) => key !== ACTIVE_KEY)) {
+      const before=JSON.stringify(record);
+      assert.equal(validateJournal(record,record.runId),record,key);
+      assert.equal(JSON.stringify(record),before);
+      const legacy=structuredClone(record); delete legacy.secondAddend; delete legacy.multiplier;
+      assert.equal(validateJournal(legacy,legacy.runId),legacy);
+    }
+  }
+});
+
+const corruptions = {
+  status:r => {r.status='success';},
+  stepState:r => {r.steps.A.state='done';},
+  falseCompletion:r => {r.steps.B.state='waiting_reply'; delete r.steps.B.result;},
+  input:r => {r.secondAddend=26;},
+  raw:r => {r.steps.A.result.raw='{"runId":"relay-test-0001","step":"A","value":41}';},
+  rawRun:r => {r.steps.A.result.raw=r.steps.A.result.raw.replace('relay-test-0001','different-run');},
+  value:r => {r.steps.B.result.value=127;},
+  missingRaw:r => {delete r.steps.B.result.raw;},
+  resultStep:r => {r.steps.A.result.step='B';},
+  resultRun:r => {r.steps.B.result.runId='different-run';},
+  document:r => {r.steps.A.result.documentId='other-document';},
+  userDocument:r => {r.steps.A.user.documentId='other-document';},
+  userMessage:r => {r.steps.A.result.userMessageId='user:other';},
+  assistantMessage:r => {r.steps.A.result.assistantMessageId='user:other';},
+  missingAssistant:r => {delete r.steps.A.result.assistantMessageId;},
+  completion:r => {r.steps.A.result.completionSignal='invented';},
+  url:r => {r.steps.A.result.url='https://example.com/c/conversation-a';},
+  route:r => {r.steps.A.result.conversation='c/another-conversation';},
+  handoff:r => {r.handoff.toDocumentId='other-document';},
+  missingHandoff:r => {delete r.handoff;},
+  sameConversation:r => {
+    r.steps.B.user.route=r.steps.A.user.route; r.steps.B.user.url=r.steps.A.user.url;
+    r.steps.B.result.conversation=r.steps.A.result.conversation; r.steps.B.result.url=r.steps.A.result.url;
+  }
+};
+for (const [name,mutate] of Object.entries(corruptions)) {
+  test(`tampered journal ${name} is rejected by status, Run and active-record release without mutations`, async () => {
+    const h=harness(); await h.run();
+    const key=journalKey('relay-test-0001'), record=JSON.parse(h.data.get(key));
+    mutate(record); h.data.set(key,JSON.stringify(record));
+    const before=[...h.data], actions=[...h.actions];
+    await assert.rejects(h.run({operation:'status'}),/E_RELAY_STORAGE/);
+    await assert.rejects(h.run(),/E_RELAY_STORAGE/);
+    await assert.rejects(h.run({runId:'relay-next-run'}),/E_RELAY_(STORAGE|PENDING)/);
+    assert.deepEqual([...h.data],before); assert.deepEqual(h.actions,actions);
+  });
+}
+
+test('final business return requires a completed journal and the exact journal key', async () => {
+  const h=harness(), result=await h.run();
+  assert.equal(validateRelayResult(result,result.runId),result);
+  for (const change of [r => {r.status='running';},r => {r.journalKey='other';},r => {delete r.steps.A.result;}]) {
+    const invalid=structuredClone(result); change(invalid);
+    assert.throws(() => validateRelayResult(invalid,result.runId),/E_RELAY_STORAGE/);
+  }
+});
+
+test('non-object stored values cannot erase an existing journal or active fence', async () => {
+  for (const raw of ['false','0','null','[]','"text"']) {
+    for (const key of [ACTIVE_KEY,journalKey('relay-test-0001')]) {
+      const h=harness(); h.data.set(key,raw);
+      await assert.rejects(h.run(),/E_RELAY_STORAGE/);
+      assert.deepEqual(h.actions,[]); assert.deepEqual(h.writes,[]);
+      assert.equal(h.data.get(key),raw);
+    }
+  }
+});
+
+
+test('unknown snapshots may retain a validated completed reply after a persistence failure', async () => {
+  const h=harness(); await h.run();
+  for (const id of ['A','B']) {
+    const snapshot=structuredClone(h.writes.find(([key,r]) => key !== ACTIVE_KEY &&
+      r.steps[id].state === 'completed' && (id !== 'A' || !r.handoff))[1]);
+    snapshot.status='unknown'; snapshot.steps[id].state='unknown';
+    snapshot.error={step:id,code:'E_RELAY_READBACK',message:'lost final persistence acknowledgement'};
+    const before=JSON.stringify(snapshot);
+    assert.equal(validateJournal(snapshot,snapshot.runId),snapshot);
+    assert.equal(JSON.stringify(snapshot),before);
+  }
+});
+
+
+test('status and repeated Run describe the last persistent record, never current Worker liveness', async () => {
+  const source=harness(); await source.run();
+  const interrupted=harness({lostClick:true});
+  await assert.rejects(interrupted.run(),/E_RELAY_UNKNOWN/);
+  const snapshots=[...source.writes, ...interrupted.writes].filter(([key]) => key !== ACTIVE_KEY);
+  assert(snapshots.some(([,r]) => r.status === 'running' && r.steps.A.state === 'sending'));
+  for (const [key,record] of snapshots) {
+    const h=harness();
+    h.data.set(ACTIVE_KEY,JSON.stringify({runId:record.runId,key}));
+    h.data.set(key,JSON.stringify(record));
+    const before=[...h.data];
+    for (const operation of ['status','run']) {
+      const result=await h.run({operation});
+      assert.equal(result.status,record.status);
+      assert.deepEqual(result.steps,record.steps);
+      assert.equal(result.readOnly,true);
+      assert.equal(result.statusSource,'persistent-journal');
+      assert.equal(result.needsReconciliation,record.status !== 'completed');
+    }
+    assert.deepEqual([...h.data],before);
+    assert.deepEqual(h.actions,[]); assert.deepEqual(h.writes,[]);
+  }
 });

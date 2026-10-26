@@ -478,6 +478,7 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
       ...(sourceMapFile?{sourceMapFile}:{}),
       ...(project.runtimeKind==='page-userscript'?{pageRules:project.pageRules}:
         {siteOrigins:project.siteOrigins,permissions:project.permissions,
+        ...(project.deadlineMs!==undefined?{deadlineMs:project.deadlineMs}:{}),
           ...(project.siteOrigins[0]==='<all_urls>'?{}:{candidateFile:'program.opendesk-task.json'})}),
       note:'Fixed build bytes only. Not Chrome verified, Available, Installed or automatically permitted.'
     };
@@ -493,6 +494,7 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
         source:'local-esm-build',
         siteOrigins:project.siteOrigins,
         permissions:project.permissions,
+        ...(project.deadlineMs!==undefined?{deadlineMs:project.deadlineMs}:{}),
         entryFormat:'async-main',
         program:{revision:1,sourceHash:hash},
         paramsSchema:project.paramsSchema

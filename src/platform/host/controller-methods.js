@@ -432,6 +432,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     }));
   }
   async function prepareControllerRun(request, sender, assertCandidate) {
+    const admissionStartedAt=now();
     // A single admission API supports exact saved revisions and immutable draft
     // snapshots. The original top-level saved request remains compatible.
     fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt','networkOrigins','expectedTaskGeneration','expectedTaskInstallationId','cloudRequestId','scheduledFireId','expectedScheduleOwner'],
@@ -492,6 +493,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         scriptId:saved.scriptId,contentHash:saved.contentHash,
         origin:selectedOrigin || observed.allowedOrigin,params:runParams,migrate:true,builtinIdentity:environment,
         expectedGeneration:request.expectedTaskGeneration,expectedInstallationId:request.expectedTaskInstallationId}):null;
+      if(installedTask)invariant(request.deadlineAt<=admissionStartedAt+
+        (installedTask.candidate.package.manifest.deadlineMs??30000),CONTROLLER_TIMEOUT_ERROR,
+        'Installed Task deadline exceeds its reviewed manifest limit');
       const scheduledFire=request.scheduledFireId?
         await scheduled.admit(transaction,request.scheduledFireId,{...request,expectedScheduleOwner,paramsDecoded:runParams},
           selectedOrigin||observed.allowedOrigin,now()):null;
@@ -594,11 +598,16 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     }
     invariant(operation.kind!=='browser-sdk','E_CAPABILITY','Browser app operations require an installed app-service');
     if(!run.installedTaskAuthorization)return;
-    // Task v1 declares only page.automation. It must not inherit the developer
-    // Controller's host storage, HTTP, Cookie or native service authority.
-    invariant(operation.kind!=='service'&&!(operation.kind==='browser'&&
+    // Only the installed, hash-covered grant can authorize Task AppStorage.
+    if(operation.kind==='service'){
+      invariant(run.installedTaskAuthorization.authorization?.scope?.capabilities?.includes('storage.persistent') &&
+        ['APPSTORAGE_GETITEM','APPSTORAGE_SETITEM','APPSTORAGE_REMOVEITEM','APPSTORAGE_CLEAR'].includes(operation.method),
+        'E_CAPABILITY','此安装任务未声明对应的持久存储能力');
+      return;
+    }
+    invariant(!(operation.kind==='browser'&&
       ['cookies','setCookie','deleteCookie','uploadFromUrl'].includes(operation.method)),
-      'E_CAPABILITY','此安装任务未声明宿主网络、存储或 Cookie 能力；当前 Task v1 仅支持网页自动化');
+      'E_CAPABILITY','此安装任务未声明宿主网络或 Cookie 能力');
   }
   async function controllerOperation(request, sender) {
     fields(request, ['envelope'], ['envelope']);
@@ -765,6 +774,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       };
       async function executeService() {
         const context = {lifecycle:'controller',namespace:run.namespace,principal:run.principal,grantIncarnation:run.registrationId,
+          ...(run.installedTaskAuthorization?{taskId:run.installedTaskAuthorization.taskId}:{}),
           browserSessionIncarnation:session,runId:run.runId,opId:key,requestId:envelope.requestId,resultId:`${key}:result`,
           opKey:key,method:envelope.operation.method,requestDigest,deadlineAt:run.deadlineAt,signal:abort.signal,
           authorize:details=>authorizeOperation(envelope,details),

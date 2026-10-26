@@ -130,6 +130,16 @@ async function settle(predicate){
   for(let i=0;i<100&&!predicate();i++)await tick();
   assert.ok(predicate(),'asynchronous UI operation did not settle');
 }
+test('Controller installation review shows declared storage and bounded duration',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  f.source.permissions=['page.automation','storage.persistent'];f.source.deadlineMs=120000;
+  f.ui.succeeded({source:f.source,binding:f.binding,target:f.target,runId:'verified-run-id'});
+  await f.ui.prepare();
+  assert.match(f.get('local-install-summary').textContent,/权限：page\.automation、storage\.persistent/);
+  assert.match(f.get('local-install-summary').textContent,/最长运行：120 秒/);
+  assert.equal(f.installs,0);
+});
+
 test('an older passive proof cannot close a new explicit installation review',async t=>{
   let entered=false,release;
   const f=await fixture({readControllerRun:()=>{entered=true;return new Promise(resolve=>{release=resolve;});}});

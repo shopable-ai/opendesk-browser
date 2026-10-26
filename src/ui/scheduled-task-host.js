@@ -85,7 +85,7 @@ export function createScheduledTaskHost({client,host,api=globalThis.chrome,clock
     try{
       started=await host.start({source:{kind:'saved',scriptId:resolved.scriptId,
         revision:resolved.revision,contentHash:resolved.contentHash},
-        params:definition.params,target,deadlineAt:Math.min(fire.deadlineAt,clock()+600000),
+        params:definition.params,target,deadlineAt:Math.min(fire.deadlineAt,clock()+(resolved.manifest?.deadlineMs??30000)),
         requestId:fire.fireId,scheduledFireId:fire.fireId,
         ...(definition.owner?{expectedScheduleOwner:definition.owner}:{}),
         expectedTaskGeneration:definition.taskGeneration,

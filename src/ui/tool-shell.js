@@ -169,10 +169,11 @@ const fixedPageChatBridge=createChatGPTFixedBridgeHost({api:chrome,client:founda
   host:scriptEditor.host,currentPageTarget,
   isVerifiedSidePanel:()=>verifiedSidePanel&&!shellClosed});
 const fixedPageChatBridgeListener=(message,sender,sendResponse)=>{
-  if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||!['execute','cancel','check-delivery'].includes(message.kind)||
+  if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||!['execute','cancel','check-delivery','list-tasks','prepare-task'].includes(message.kind)||
     !verifiedSidePanel||shellClosed||
     sender?.tab?.windowId!==currentPageTarget.snapshot?.windowId)return false;
-  Promise.resolve().then(()=>message.kind==='check-delivery'?
+  Promise.resolve().then(()=>message.kind==='list-tasks'?fixedPageChatBridge.listTasks(message,sender):
+    message.kind==='prepare-task'?fixedPageChatBridge.prepareTask(message,sender):message.kind==='check-delivery'?
     fixedPageChatBridge.checkDelivery(message,sender):message.kind==='cancel'?
     fixedPageChatBridge.cancel(message,sender):fixedPageChatBridge.handle(message,sender)).then(
     data=>sendResponse({ok:true,data}),

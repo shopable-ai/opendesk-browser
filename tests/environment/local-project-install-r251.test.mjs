@@ -40,9 +40,10 @@ const makeSource=async(kind='controller')=>{
     inputHash:'c'.repeat(64),sourceBytes:new TextEncoder().encode(sourceUtf8).length,
     siteOrigins:['https://sample.example']};
 };
-for(const siteScope of ['exact','all-sites'])test(`Controller packages retain confirmed bytes and reuse Task v1 verification/installation (${siteScope})`,async()=>{
+for(const siteScope of ['exact','all-sites','storage'])test(`Controller packages retain confirmed bytes and reuse Task v1 verification/installation (${siteScope})`,async()=>{
   const source=await makeSource();const calls=[],catalog={catalog:[],installed:[]};
   if(siteScope==='all-sites')source.siteOrigins=['<all_urls>'];
+  if(siteScope==='storage'){source.permissions=['page.automation','storage.persistent'];source.deadlineMs=120000;}
   let manifest;
   const client={request:async(method,payload)=>{
     calls.push(method);
@@ -79,6 +80,8 @@ for(const siteScope of ['exact','all-sites'])test(`Controller packages retain co
   assert.equal(result.version,'1.0.0');
   assert.equal(manifest.program.sourceHash,source.sourceHash);
   assert.equal(manifest.source,'local-project');
+  assert.deepEqual(manifest.permissions,source.permissions??['page.automation']);
+  assert.equal(manifest.deadlineMs,source.deadlineMs);
   assert.deepEqual(manifest.siteOrigins,['https://sample.example'],'local all-sites scope never expands the installed Task');
   assert.ok(calls.indexOf('verifyTaskCandidate')<calls.indexOf('installTask'));
   assert.equal(calls.includes('run.start'),false,'installation never dispatches another Controller run');
@@ -266,4 +269,25 @@ test('read-only unknown receipt reconciliation refuses wrong Task version, sourc
   review.installedHash=installed.manifestHash;
   assert.equal((await readLocalInstallOutcome({client,review,version:'1.0.2'})).state,'baseline-unchanged');
   assert.deepEqual(calls,['listTaskCatalog','listTaskCatalog','listTaskCatalog','listTaskCatalog']);
+});
+
+
+test('Task install review binds permission and deadline changes and recognizes legacy 30s default',async()=>{
+  const source=await makeSource(),state={catalog:[],installed:[]};
+  const client={request:async()=>structuredClone(state)};
+  const prepare=()=>prepareLocalProjectInstallation({client,source,binding,project,target,runId:'run-storage'});
+  const first=await prepare();
+  assert.deepEqual(first.permissions,['page.automation']);assert.equal(first.deadlineMs,30000);
+  state.catalog=[{taskId:first.id,version:'1.0.0',manifestHash:'d'.repeat(64),manifest:{
+    program:{sourceHash:source.sourceHash},siteOrigins:first.siteOrigins,paramsSchema:{type:'object',properties:{},required:[],additionalProperties:false}}}];
+  state.installed=[{taskId:first.id,version:'1.0.0',manifestHash:'d'.repeat(64)}];
+  assert.equal((await prepare()).alreadyInstalled,true);
+  source.deadlineMs=30000;assert.equal((await prepare()).alreadyInstalled,true);
+  source.deadlineMs=120000;const deadline=await prepare();
+  assert.equal(deadline.alreadyInstalled,false);assert.equal(deadline.scopeChanged,true);
+  assert.throws(()=>assertLocalInstallVersion(first,source,binding),{code:'E_DEV_CONFLICT'});
+  source.permissions=['page.automation','storage.persistent'];const storage=await prepare();
+  assert.deepEqual(storage.permissions,source.permissions);assert.equal(storage.deadlineMs,120000);
+  assert.throws(()=>assertLocalInstallVersion(deadline,source,binding),{code:'E_DEV_CONFLICT'});
+  assert.equal(storage.alreadyInstalled,false);assert.equal(storage.scopeChanged,true);
 });

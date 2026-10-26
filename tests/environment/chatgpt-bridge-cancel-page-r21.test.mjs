@@ -13,9 +13,11 @@ function harness(overrides={}){
   const nodes=[],events=new Map(),sends=[];
   const element=tag=>{
     const attrs=new Map();
-    const node={tag,style:{},classList:{toggle(){}},listeners:{},
+    const node={tag,style:{},classList:{toggle(){}},listeners:{},children:[],
       setAttribute(k,v){attrs.set(k,v);},getAttribute:k=>attrs.get(k),hasAttribute:k=>attrs.has(k),
-      removeAttribute(k){attrs.delete(k);},append(){},remove(){},
+      removeAttribute(k){attrs.delete(k);},
+      append(...children){for(const child of children){this.children.push(child);child.parent=this;}},
+      remove(){if(this.parent)this.parent.children=this.parent.children.filter(child=>child!==this);},
       attachShadow:()=>element('shadow'),addEventListener(type,fn){this.listeners[type]=fn;}};
     nodes.push(node);return node;
   };
@@ -23,7 +25,7 @@ function harness(overrides={}){
     addEventListener(type,fn){if(!events.has(type))events.set(type,new Set());events.get(type).add(fn);},
     removeEventListener:(type,fn)=>events.get(type)?.delete(fn)};
   const messageNode=textContent=>({textContent,ownerDocument:doc,isConnected:true,querySelector:()=>null});
-  let poll,onMessage,currentRequestId=id;
+  let poll,onMessage,currentRequestId=id,currentScope={taskId:'page.read.fixed',args:{}};
   const win={location:{href:source.url,origin:'https://chatgpt.com'},
     setInterval(fn){poll=fn;return 1;},clearInterval(){},addEventListener(){},removeEventListener(){}};
   win.top=win;
@@ -37,6 +39,8 @@ function harness(overrides={}){
     onMessage:{addListener(fn){onMessage=fn;},removeListener(){}},
     async sendMessage(message){
       sends.push(message);
+      if(message.kind==='prepare')currentScope=Object.fromEntries(
+        ['taskId','args','targetUrl','installation'].filter(key=>message[key]!==undefined).map(key=>[key,message[key]]));
       if(overrides[message.kind]){
         const data=await overrides[message.kind](message);
         if(message.kind==='prepare')currentRequestId=data.requestId;
@@ -50,7 +54,7 @@ function harness(overrides={}){
       return {ok:true,data:{}};
     }}};
   const page=initChatGPTFixedBridgePage({api,doc,win,site,readPage:()=>({ok:true,
-    turnKey:'turn-1',answerKey:'answer-1:0',blocks:[JSON.stringify({...JSON.parse(candidate),requestId:currentRequestId})]})});
+    turnKey:'turn-1',answerKey:'answer-1:0',blocks:[JSON.stringify({...JSON.parse(candidate),...currentScope,requestId:currentRequestId})]})});
   const buttons=nodes.filter(x=>x.tag==='button');
   const status=nodes.find(x=>x.className==='status');
   const click=i=>{assert.ok(buttons[i],`button ${i} exists`);return buttons[i].listeners.click({isTrusted:true});};
@@ -61,8 +65,102 @@ function harness(overrides={}){
       runId:'run-1',resultId:'result-1',text:'real result',...fields},
     {id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=owner'},resolve),true);
   });
-  return {page,api,sends,buttons,status,snap,site,win,writes,commits,click,prepare,deliver,messageNode,poll:()=>poll()};
+  return {page,api,sends,nodes,buttons,status,snap,site,win,writes,commits,click,prepare,deliver,messageNode,poll:()=>poll(),
+    receive:(message,sender,reply=()=>{})=>onMessage(message,sender,reply)};
 }
+
+const installation={version:'1.0.0',manifestHash:'a'.repeat(64),scriptId:'task:custom.read:1.0.0',
+  revision:1,contentHash:'b'.repeat(64),installationId:'installed-custom',generation:1};
+const customTask={taskId:'custom.read',name:'读取文章',version:'1.0.0',description:'读取指定文章',
+  siteOrigins:['https://example.com'],paramsSchema:{type:'object',additionalProperties:false,
+    properties:{length:{type:'integer',default:200}},required:[]},installation};
+const selectCustom=async h=>{
+  const select=h.nodes.find(node=>node.tag==='select');select.value='__installed__';
+  await select.listeners.change();
+  const target=h.nodes.find(node=>node.type==='url');target.value='https://example.com/article';
+  return {select,target,args:h.nodes.find(node=>node.tag==='textarea')};
+};
+
+test('installed script selection binds explicit target, normalized parameters and installation into the chat request',async()=>{
+  const h=harness({'list-tasks':()=>({tasks:[customTask]}),
+    'prepare-task':message=>({taskId:message.taskId,targetUrl:message.targetUrl,args:{length:200},installation}),
+    prepare:message=>({requestId:id,source,taskId:message.taskId,args:message.args,
+      targetUrl:message.targetUrl,installation:message.installation})});
+  await selectCustom(h);await h.prepare();
+  const prepared=h.sends.find(row=>row.kind==='prepare');
+  assert.equal(prepared.taskId,'custom.read');assert.equal(prepared.targetUrl,'https://example.com/article');
+  assert.deepEqual(prepared.args,{length:200});assert.deepEqual(prepared.installation,installation);
+  assert.match(h.writes[0],/custom.read/);assert.ok(h.writes[0].includes('https:\\/\\/example.com\\/article'));
+  const request=JSON.parse(h.writes[0].slice(h.writes[0].indexOf('{"protocol"')));
+  assert.equal(request.targetUrl,'https://example.com/article');
+  assert.equal(h.sends.filter(row=>row.kind==='execute').length,0);
+  await h.click(1);assert.match(h.status.textContent,/尚未运行/);
+  h.snap.answerComplete=false;h.poll();await flush();
+  assert.equal(h.sends.filter(row=>row.kind==='execute').length,0);
+  h.snap.answerComplete=true;h.poll();await flush();h.poll();await flush();
+  assert.equal(h.sends.filter(row=>row.kind==='execute').length,1);h.page.dispose();
+});
+
+test('changed target during installed-script preflight never mints a nonce or writes a draft',async()=>{
+  const checking=Promise.withResolvers();
+  const h=harness({'list-tasks':()=>({tasks:[customTask]}),'prepare-task':()=>checking.promise});
+  const {target}=await selectCustom(h);const prepare=h.click(0);await flush();
+  target.value='https://example.com/changed';
+  checking.resolve({taskId:'custom.read',targetUrl:'https://example.com/article',args:{length:200},installation});
+  await prepare;
+  assert.equal(h.sends.filter(row=>row.kind==='prepare').length,0);assert.equal(h.writes.length,0);
+  assert.match(h.status.textContent,/发生变化/);h.page.dispose();
+});
+
+test('refreshing installed scripts uses the current version, schema and installation and removes unavailable selections',async()=>{
+  const otherTask={...customTask,taskId:'removed.task',name:'已移除的脚本'};
+  let tasks=[customTask,otherTask];
+  const h=harness({'list-tasks':()=>({tasks}),
+    'prepare-task':message=>({...message,args:message.args}),
+    prepare:message=>({requestId:id,source,...message})});
+  const {select}=await selectCustom(h);await h.prepare();
+  assert.equal(h.writes.length,1,h.status.textContent);
+  await h.click(2);await flush();
+  assert.ok(h.sends.some(row=>row.kind==='execute'),h.status.textContent);
+  const executed=JSON.parse(h.sends.find(row=>row.kind==='execute').candidateText);
+  assert.deepEqual(executed.installation,installation);
+  const currentInstallation={...installation,version:'1.1.0',scriptId:'task:custom.read:1.1.0',
+    manifestHash:'c'.repeat(64),contentHash:'d'.repeat(64),generation:2};
+  tasks=[{...customTask,version:'1.1.0',name:'新版文章脚本',installation:currentInstallation,
+    paramsSchema:{...customTask.paramsSchema,properties:{length:{type:'integer',default:400}}}}];
+  await selectCustom(h);
+  assert.equal(select.children.filter(node=>node.value==='installed:custom.read').length,1);
+  assert.equal(select.children.some(node=>node.value==='installed:removed.task'),false);
+  assert.match(select.children.find(node=>node.value==='installed:custom.read').textContent,/新版文章脚本.*1\.1\.0/);
+  assert.equal(h.nodes.find(node=>node.tag==='textarea').value,'{"length":400}');
+  // Directory replacement must not rewrite the fixed scope of the first run.
+  assert.deepEqual(executed.installation,installation);
+  await h.prepare();
+  const checked=h.sends.filter(row=>row.kind==='prepare-task').at(-1);
+  assert.deepEqual(checked.installation,currentInstallation);assert.deepEqual(checked.args,{length:400});
+  const prepared=h.sends.filter(row=>row.kind==='prepare').at(-1);
+  assert.deepEqual(prepared.installation,currentInstallation);h.page.dispose();
+});
+
+test('visible progress accepts only the current trusted Host and cannot claim execution before admission',async()=>{
+  const execution=Promise.withResolvers(),h=harness({execute:()=>execution.promise});
+  await h.prepare();await h.click(1);
+  const approved=h.status.textContent;assert.match(approved,/尚未运行/);
+  const progress={protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'progress',requestId:id,sourceUrl:source.url,
+    mode:'auto',stage:'running',taskId:'page.read.fixed',scriptId:'task:page.read.fixed:1.0.0',
+    revision:1,targetUrl:'https://httpbingo.org/html',runId:'run-real'};
+  const sender={id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=owner'};
+  h.receive(progress,sender);assert.equal(h.status.textContent,approved);
+  h.poll();await flush();
+  const before=h.status.textContent;
+  h.receive(progress,{...sender,tab:{id:9}});assert.equal(h.status.textContent,before);
+  h.receive({...progress,requestId:'other-request'},sender);assert.equal(h.status.textContent,before);
+  h.receive(progress,sender);assert.match(h.status.textContent,/自动化已开始/);
+  h.receive({...progress,stage:'validating'},sender);assert.match(h.status.textContent,/自动化已开始/);
+  await h.click(3);const cancelled=h.status.textContent;
+  h.receive(progress,sender);assert.equal(h.status.textContent,cancelled);
+  execution.resolve({sent:true,aiReplyObserved:true});await flush();h.page.dispose();
+});
 
 test('missing Host receipt gives same-window guidance and never replays an attempted execute',async()=>{
   const h=harness();

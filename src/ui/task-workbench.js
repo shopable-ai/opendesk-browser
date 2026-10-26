@@ -219,7 +219,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const formatCandidate=row=>{
     if(!row)return '尚无候选任务';
     const manifest=row.manifest;
-    return `${manifest.title} · v${row.version}\n${manifest.description}\n作者：${manifest.author} · 来源：${manifest.source}\n适用：${manifest.siteOrigins.join(', ')}\n权限：${manifest.permissions.join(', ')}\n状态：${states[row.stage] || row.stage}${row.verifiedAt?' · 有本机运行验证记录':''}`;
+    return `${manifest.title} · v${row.version}\n${manifest.description}\n作者：${manifest.author} · 来源：${manifest.source}\n适用：${manifest.siteOrigins.join(', ')}\n权限：${manifest.permissions.join(', ')}\n最长运行：${(manifest.deadlineMs??30000)/1000} 秒\n状态：${states[row.stage] || row.stage}${row.verifiedAt?' · 有本机运行验证记录':''}`;
   };
   function renderForm(row) {
     const key=identity(row);
@@ -638,7 +638,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
           contentHash:resolved.contentHash},params,expectedTaskGeneration:chosen.generation??null,expectedTaskInstallationId:chosen.installationId??null,
         target:{mode:'borrowed',tabId:captured.tabId,frameId:0,documentId:captured.documentId,
           expectedUrl:captured.url,expectedWindowId:captured.windowId},
-        deadlineAt:Date.now()+30000});
+        deadlineAt:Date.now()+(resolved.manifest.deadlineMs??30000)});
       activeRunId=claim.runId;agentStartSubmitted=false;
       if(agentIntent&&agentStopRequested){
         // Stop can arrive while the RunHost admission RPC has been sent but

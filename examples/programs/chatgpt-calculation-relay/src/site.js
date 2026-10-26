@@ -18,7 +18,30 @@ export function chatgptDOM(action, input = {}) {
   if (editors.length !== 1) return fail('原生编辑器不存在或不唯一');
   const editor = editors[0], form = editor.closest('form');
   if (!form || !form.isConnected) return fail('无法确认原生表单');
-  const draft = typeof editor.value === 'string' ? editor.value : (editor.innerText ?? editor.textContent ?? '');
+  if (action === 'inspect') {
+    const walker = doc.createTreeWalker(doc.body, 4), matches = [];
+    for (let node; (node = walker.nextNode()) && matches.length < 3;) {
+      if (!node.textContent.includes(input.runId)) continue;
+      const ancestors = [];
+      for (let el = node.parentElement, i = 0; el && i < 14; el = el.parentElement, i++)
+        ancestors.push({tag:el.tagName, attributes:Object.fromEntries([...el.attributes].map(a => [a.name,a.value])),
+          actions:i >= 7 ? [...el.querySelectorAll('button')].slice(0,8).map(b => ({testId:b.getAttribute('data-testid'), label:b.getAttribute('aria-label')})) : undefined});
+      matches.push({text:node.textContent.slice(0,600), ancestors});
+    }
+    return {ok:true, route, url:win.location.href, matches, bodyHasRun:doc.body.textContent.includes(input.runId)};
+  }
+  const readDraft = () => {
+    if (typeof editor.value === 'string') return editor.value;
+    const paragraph = editor.firstElementChild, br = paragraph?.firstElementChild;
+    // The official empty placeholder renders innerText="\n" after Delete.
+    // Normalize only its observed empty structure, never trim a user's draft.
+    if (editor.childNodes.length === 1 && paragraph?.tagName === 'P' &&
+        paragraph.getAttribute('data-empty-paragraph') === 'true' && paragraph.textContent === '' &&
+        paragraph.childNodes.length === 1 && br?.tagName === 'BR' &&
+        br.classList.contains('ProseMirror-trailingBreak')) return '';
+    return editor.innerText ?? editor.textContent ?? '';
+  };
+  const draft = readDraft();
   const rich = !!form.querySelector('[data-attachment-id],[data-file-id]') ||
     !!editor.querySelector('img,video,canvas,iframe,[data-attachment-id],[data-file-id]');
   const buttons = [...form.querySelectorAll('button')].filter(visible);
@@ -27,14 +50,22 @@ export function chatgptDOM(action, input = {}) {
   const sends = buttons.filter(el => /^(send-button|composer-send-button|composer-submit-button)$/.test(el.getAttribute('data-testid') || '') ||
     /^(send message|send prompt|send|发送消息|发送|送出)$/i.test(el.getAttribute('aria-label') || ''));
   if (stops.length > 1 || sends.length > 1) return fail('发送或停止按钮存在歧义');
-  const selector = '[data-message-author-role="user"],[data-message-author-role="assistant"],[data-message-role="user"],[data-message-role="assistant"]';
+  const selector = '[data-message-author-role="user"],[data-message-author-role="assistant"],[data-message-role="user"],[data-message-role="assistant"],[data-chatgpt-search-unit-key][data-chatgpt-search-message-ids]';
   const nodes = [...doc.querySelectorAll(selector)].filter(el => !el.parentElement?.closest(selector));
   if (nodes.length > 160) return fail('测试对话历史过长，请使用专用短对话');
   const baseline = new Set(input.baseline || []);
   const messages = nodes.map(el => {
-    const role = el.getAttribute('data-message-author-role') || el.getAttribute('data-message-role');
-    const turn = el.closest('article,[data-testid^="conversation-turn-"],[data-turn-id]') || el;
-    const id = el.getAttribute('data-message-id') || el.id || turn.getAttribute('data-turn-id') || turn.getAttribute('data-testid') || turn.id;
+    const unit = el.getAttribute('data-chatgpt-search-unit-key');
+    const unitRole = unit?.match(/:(user|assistant)$/)?.[1];
+    const role = el.getAttribute('data-message-author-role') || el.getAttribute('data-message-role') || unitRole;
+    const turn = el.closest('article,[data-testid^="conversation-turn-"],[data-turn-id],[data-turn-key]') || el;
+    // Current official UI repeats the assistant ID in this attribute. Accept
+    // that one identity, but never turn multiple distinct IDs into one message.
+    const unitIds = [...new Set((el.getAttribute('data-chatgpt-search-message-ids') || '').split(/\s+/).filter(Boolean))];
+    const unitValid = unitRole && unitIds.length === 1 && !!el.querySelector(unitRole === 'user' ?
+      '[data-user-message-bubble="true"]' : '[data-markdown-text-style="assistant-message"]');
+    const id = unit ? (unitValid ? unitIds[0] : null) :
+      el.getAttribute('data-message-id') || el.id || turn.getAttribute('data-turn-id') || turn.getAttribute('data-testid') || turn.id;
     const key = id ? role + ':' + id : null;
     const stateNode = el.closest('[data-talvt-turn-state]') || turn;
     const turnState = stateNode.getAttribute('data-talvt-turn-state');
@@ -44,7 +75,7 @@ export function chatgptDOM(action, input = {}) {
     const complete = role === 'assistant' && !streaming &&
       (turnState === 'complete' || !!turn.querySelector('[data-testid="copy-turn-action-button"],[data-assistant-message-actions]'));
     // History contributes identity only; read text solely for this new turn.
-    const content = el.querySelector('[data-testid="message-content"],[data-message-content],.whitespace-pre-wrap,.markdown') || el;
+    const content = el.querySelector('[data-testid="message-content"],[data-message-content],.whitespace-pre-wrap,.markdown,[data-markdown-text-style="assistant-message"]') || el;
     return {key, role, complete, streaming:!!streaming,
       text:input.baseline && !baseline.has(key) ? (content.innerText ?? content.textContent ?? '') : null};
   });
@@ -71,7 +102,7 @@ export function chatgptDOM(action, input = {}) {
       range.selectNodeContents(editor); selection.removeAllRanges(); selection.addRange(range);
       if (!doc.execCommand('insertText', false, input.text)) return fail('官网未接收输入，未点击发送');
     }
-    const actual = typeof editor.value === 'string' ? editor.value : (editor.innerText ?? editor.textContent ?? '');
+    const actual = readDraft();
     if (!editor.isConnected || actual !== input.text) return fail('输入读回不一致，未点击发送');
     // A replaced React editor/form cannot inherit the right to click.
     editor[tokenKey] = {nonce:input.nonce, form, text:input.text, route, keys:input.keys};
@@ -104,6 +135,7 @@ export function createChatGPTControllerSite(page) {
       if (!snapshot.ok) throw new Error('E_RELAY_SITE: ' + snapshot.reason);
       return {...snapshot, documentId};
     },
+    async inspect(runId) {return page.evaluate(chatgptDOM, 'inspect', {runId});},
     async fill(step) {
       const receipt = await page.evaluate(chatgptDOM, 'fill', {
         route:step.startRoute, keys:step.baseline, text:step.prompt, nonce:step.nonce});

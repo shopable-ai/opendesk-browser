@@ -1,4 +1,5 @@
 import {AgentBridgeError, agentObject, agentCanonical, agentProjectBinding, agentTargetFromSnapshot, agentSameTarget} from './protocol.js';
+import {taskScriptId, validateTaskManifest} from '../platform/tasks/contract.js';
 import {permissionPattern} from '../environment.js';
 import {sha256Utf8} from '../scripting/user-scripts/page-program-package.js';
 import {validatePageProgramRules} from '../scripting/user-scripts/page-program-contract.js';
@@ -30,6 +31,22 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
     if (method === 'target.current') {
       const target = await freshTarget();
       return {registrationId:client.registration.registrationId,target};
+    }
+    if (method === 'task.list') {
+      const {installed, catalog} = await client.request('listTaskCatalog', {});
+      return {tasks:installed.map(row => {
+        const candidate = catalog.find(item => item.taskId === row.taskId && item.version === row.version &&
+          item.manifestHash === row.manifestHash);
+        if (!candidate) throw new AgentBridgeError('E_REVISION', 'Installed Task catalog identity is unavailable');
+        const manifest = validateTaskManifest(candidate.manifest);
+        if (manifest.taskId !== row.taskId || manifest.version !== row.version)
+          throw new AgentBridgeError('E_REVISION');
+        // Explicit projection: neither immutable source nor verification/run results leave this route.
+        return {taskId:row.taskId,version:row.version,sourceHash:manifest.program.sourceHash,
+          manifestHash:row.manifestHash,permissions:[...manifest.permissions],siteOrigins:[...manifest.siteOrigins],
+          deadlineMs:manifest.deadlineMs ?? 30000,enabled:row.enabled,
+          generation:row.generation,installationId:row.installationId};
+      })};
     }
     if (method === 'script.save') {
       if (!/^[a-zA-Z0-9._:-]{1,128}$/.test(params.scriptId || '') ||
@@ -113,7 +130,7 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
       // Native callbacks MUST NOT call permissions.request. Users grant hosts in Chrome UI.
       if (!await api.permissions.contains({origins:[permissionPattern(current.url)]}))
         throw new AgentBridgeError('E_PERMISSION_REQUIRED', 'Grant this website in the Sidebar first');
-      let source;
+      let source, taskIdentity, reviewedDeadline = 120000;
       if (params.source.kind === 'draft' && typeof params.source.sourceUtf8 === 'string' && params.source.sourceUtf8.trim()) {
         source = {kind:'draft',sourceUtf8:params.source.sourceUtf8};
         if((params.sourceHash!==undefined||params.sourceBytes!==undefined) && (params.sourceHash!==await sha256Utf8(source.sourceUtf8)||
@@ -125,13 +142,34 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
           /^[a-f0-9]{64}$/.test(params.source.contentHash || '')) {
         if(params.sourceHash!==undefined||params.sourceBytes!==undefined)throw new AgentBridgeError('E_SCHEMA','Saved runs use their pinned contentHash');
         source = {kind:'saved',scriptId:params.source.scriptId,revision:params.source.revision,contentHash:params.source.contentHash};
-      } else throw new AgentBridgeError('E_SCHEMA', 'Specify frozen draft source or saved revision/hash');
-      const deadlineMs = params.deadlineMs === undefined ? 30000 : params.deadlineMs;
-      if (!Number.isSafeInteger(deadlineMs) || deadlineMs < 1000 || deadlineMs > 120000)
-        throw new AgentBridgeError('E_SCHEMA', 'deadlineMs must be 1000..120000');
+      } else if (params.source.kind === 'installed-task') {
+        const pin = params.source;
+        if (Object.keys(pin).some(key => !['kind','taskId','version','sourceHash'].includes(key)) ||
+          typeof pin.taskId !== 'string' || typeof pin.version !== 'string' ||
+          !/^[a-f0-9]{64}$/.test(pin.sourceHash || '') ||
+          params.sourceHash !== undefined || params.sourceBytes !== undefined)
+          throw new AgentBridgeError('E_SCHEMA', 'Installed Task requires taskId, version and sourceHash pins');
+        const scriptId = taskScriptId(pin.taskId, pin.version);
+        const task = await client.request('resolveInstalledTask', {taskId:pin.taskId});
+        const manifest = validateTaskManifest(task.manifest);
+        if (task.taskId !== pin.taskId || task.version !== pin.version || task.scriptId !== scriptId ||
+          manifest.taskId !== pin.taskId || manifest.version !== pin.version ||
+          manifest.program.sourceHash !== pin.sourceHash || task.contentHash !== pin.sourceHash ||
+          !Number.isSafeInteger(task.revision) || task.revision < 1 ||
+          !(task.generation === null && task.installationId === null ||
+            Number.isSafeInteger(task.generation) && task.generation > 0 &&
+            typeof task.installationId === 'string' && /^[a-f0-9-]{36}$/.test(task.installationId)))
+          throw new AgentBridgeError('E_REVISION', 'Installed Task no longer matches the requested pins');
+        source = {kind:'saved',scriptId,revision:task.revision,contentHash:task.contentHash};
+        taskIdentity = {expectedTaskGeneration:task.generation,expectedTaskInstallationId:task.installationId};
+        reviewedDeadline = manifest.deadlineMs ?? 30000;
+      } else throw new AgentBridgeError('E_SCHEMA', 'Specify frozen draft, saved revision/hash or installed-task pins');
+      const deadlineMs = params.deadlineMs === undefined ? (taskIdentity ? reviewedDeadline : 30000) : params.deadlineMs;
+      if (!Number.isSafeInteger(deadlineMs) || deadlineMs < 1000 || deadlineMs > 120000 || deadlineMs > reviewedDeadline)
+        throw new AgentBridgeError('E_SCHEMA', 'deadlineMs must be 1000..120000 and within the reviewed Task limit');
       await currentPageTarget.revalidate({...current,status:'available'});
       admit();
-      const claim = await host.start({source,params:params.params,
+      const claim = await host.start({source,...taskIdentity,params:params.params,
         target:{mode:'borrowed',tabId:current.tabId,frameId:0,documentId:current.documentId,
           expectedUrl:current.url,expectedWindowId:current.windowId},
         deadlineAt:Date.now()+deadlineMs,requestId:request.requestId});

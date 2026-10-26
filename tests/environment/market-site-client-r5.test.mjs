@@ -27,11 +27,11 @@ test('R5 client never lets a late probe overwrite a successful handoff or claim 
   const action=h.act();await tick();const open=h.sent.find(row=>row.message.action==='OPEN_INSTALL_REVIEW');
   h.answer(open,{ok:true,protocol,status:'REVIEW_OPENED',intentId:open.message.intentId});await action;
   h.answer(auto,undefined,'late receiver failure');await tick();
-  assert.equal(h.nodes.get('#handoff-state').dataset.state,'success');
+  assert.equal(h.nodes.get('#handoff-state').dataset.state,'pending');
   assert.match(h.nodes.get('#handoff-state').textContent,/不表示已安装/);
   assert.equal(h.nodes.get('#connect-button').disabled,false);
-  const again=h.act();await tick();const second=h.sent.at(-1);assert.equal(second.message.intentId,open.message.intentId);
-  h.answer(second,{ok:true,protocol,status:'REVIEW_OPENED',intentId:second.message.intentId});await again;
+  const again=h.act();await tick();const second=h.sent.at(-1);assert.equal(second.message.intentId,open.message.intentId);assert.equal(second.message.action,'GET_INSTALL_STATUS');
+  h.answer(second,{ok:true,protocol,status:'INSTALL_STATUS',intentId:second.message.intentId,installation:'unknown'});await again;
   assert.equal(Object.keys(second.message).sort().join(','),'action,intentId,protocol,subject');
 });
 test('R5 client timeout and missing receiver say unable to connect, without guessing installation state',async()=>{
@@ -41,7 +41,7 @@ test('R5 client timeout and missing receiver say unable to connect, without gues
   assert(!h.nodes.get('#handoff-state').textContent.includes('未安装'));
   const absent=client({receiver:false});await tick();await absent.act();
   assert.match(absent.nodes.get('#handoff-state').textContent,/无法连接 OpenDesk/);
-  assert.equal(absent.nodes.get('#handoff-code').textContent,'E_NO_RECEIVER');
+  assert.match(absent.nodes.get('#handoff-code').textContent,/^E_NO_RECEIVER/);
 });
 test('R5 client rejects incompatible and malformed replies instead of showing false success',async()=>{
   for(const response of [{ok:true,protocol:'unknown.v0',status:'REVIEW_OPENED'},

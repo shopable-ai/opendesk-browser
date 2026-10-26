@@ -134,7 +134,7 @@ export function checkTaskIntent(intent, schema) {
 export function validateTaskManifest(manifest) {
   const required=['format','taskId','version','title','description','author','source','siteOrigins',
     'permissions','entryFormat','program','paramsSchema'];
-  object(manifest,[...required,'intent'],required);
+  object(manifest,[...required,'intent','deadlineMs'],required);
   invariant(manifest.format===TASK_MANIFEST_FORMAT && ID.test(manifest.taskId) &&
     VERSION.test(manifest.version) && manifest.version.length<=24,'E_SCHEMA','Unsupported task version');
   for(const key of ['title','author','source']) label(manifest[key],key==='title'?100:160);
@@ -148,8 +148,12 @@ export function validateTaskManifest(manifest) {
       url.origin===origin && !url.username && !url.password && !url.hash && !url.search &&
       !['*','null'].includes(origin),'E_PERMISSION','Only one precise HTTP(S) origin is allowed');
   }
-  invariant(Array.isArray(manifest.permissions) && manifest.permissions.length===1 &&
-    manifest.permissions[0]==='page.automation','E_PERMISSION','Task v1 only supports explicitly authorized page automation');
+  invariant(Array.isArray(manifest.permissions) && manifest.permissions.length>=1 && manifest.permissions.length<=2 &&
+    manifest.permissions[0]==='page.automation' &&
+    (manifest.permissions.length===1 || manifest.permissions[1]==='storage.persistent'),
+    'E_PERMISSION','Task v1 supports page.automation and optional storage.persistent only');
+  invariant(manifest.deadlineMs===undefined || Number.isSafeInteger(manifest.deadlineMs) &&
+    manifest.deadlineMs>=1000 && manifest.deadlineMs<=120000,'E_SCHEMA','Invalid Task deadlineMs');
   invariant(manifest.entryFormat==='async-main','E_SCHEMA','Task entry must be async main()');
   object(manifest.program,['revision','sourceHash']);
   invariant(Number.isSafeInteger(manifest.program.revision) && manifest.program.revision>0 &&

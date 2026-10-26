@@ -80,6 +80,7 @@ const HTML_REFERENCES = Object.freeze({
   'ui/cloud-control.html': ['design-tokens.css', 'design-system.css', 'cloud-control-console.css', 'cloud-console.js'],
   'cloud-control/runner.html': ['cloud-runner.js'],
   'ui/marketplace.html': ['design-tokens.css', 'marketplace.css', 'marketplace.js'],
+  'ui/market-install.html': ['design-tokens.css', 'marketplace.css', 'marketplace.js'],
   'native-agent/settings.html': ['../ui/design-tokens.css', 'settings.css', 'settings.js'],
   'native-agent/workspace.html': ['workspace.css','settings.js'],
   'ui/target-bootstrap.html': ['../agents/bootstrap.js'],

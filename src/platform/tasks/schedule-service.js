@@ -166,7 +166,7 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
     let source;
     try{source=new URL(sender?.url);}catch{invariant(false,'E_OWNER','Installer URL is invalid');}
     const market=new URL(api.runtime.getURL('ui/marketplace.html'));
-    const marketplace=source?.protocol===market.protocol&&source.host===market.host&&source.pathname===market.pathname;
+    const marketplace=source?.protocol===market.protocol&&source.host===market.host&&[market.pathname,'/ui/market-install.html'].includes(source.pathname);
     if(!marketplace){
       sender=await resolveToolSender(api,sender);
       invariant(isToolSender(api,sender)&&sender.url!==api.runtime.getURL(CLOUD_RUNNER_DOCUMENT_PATH),

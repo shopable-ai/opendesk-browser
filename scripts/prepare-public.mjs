@@ -22,6 +22,7 @@ export const STATIC_RESOURCES=Object.freeze({
   'src/cloud-control/runner.html':'cloud-control/runner.html',
   'src/ui/cloud-control-console.css':'ui/cloud-control-console.css',
   'src/marketplace/marketplace.html':'ui/marketplace.html',
+  'src/marketplace/market-install.html':'ui/market-install.html',
   'src/marketplace/marketplace.css':'ui/marketplace.css',
   'src/ui/design-tokens.css':'ui/design-tokens.css',
   'docs/contracts/licenses/shared-ui-third-party-notices.txt':'licenses/shared-ui-third-party-notices.txt',
