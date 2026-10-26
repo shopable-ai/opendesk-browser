@@ -2,7 +2,7 @@ import {AGENT_CONFIG_PROTOCOL} from './protocol.js';
 import {initAnalyticsConsentControls} from '../analytics/consent-ui.js';
 import {createDevelopmentPairingRequest} from './pairing.js';
 import {recoverControlFocus} from './control-focus.js';
-import {initTrustedPageLocale,subscribeLocale,translate} from '../i18n/index.js';
+import {initTrustedPageLocale,subscribeLocale,translate,getLocale} from '../i18n/index.js';
 export function initNativeAgentSettings({api=globalThis.chrome,document:doc=globalThis.document,navigate=url=>globalThis.location.assign(url)}={}) {
   initTrustedPageLocale({api,doc,page:'settings'});
   initAnalyticsConsentControls({api,doc});
@@ -31,26 +31,25 @@ export function initNativeAgentSettings({api=globalThis.chrome,document:doc=glob
   const renderState=state=>{
     toggle.checked=Boolean(state.enabled);
     const lastSeen=Number.isSafeInteger(state.lastConnectedAt)&&state.lastConnectedAt>0
-      ?new Date(state.lastConnectedAt).toLocaleString('zh-CN',{dateStyle:'short',timeStyle:'short'}):null;
+      ?new Date(state.lastConnectedAt).toLocaleString(getLocale(),{dateStyle:'short',timeStyle:'short'}):null;
     let heading,description,connection='offline';
     if(!state.enabled){
-      heading='未启用';
-      description=lastSeen?'此前成功连接：'+lastSeen+'；目前已关闭。':'本机连接已关闭；需要时开启即可。';
+      heading=translate('settings.statusOff');
+      description=lastSeen?translate('settings.captionPastOff',{time:lastSeen}):translate('settings.captionOff');
     }else if(state.nativeConnected){
-      heading='已连接';
-      description='OpenDesk 本机通信在线，无需重复配对；Codex 能力仍需使用时核验。';
+      heading=translate('settings.connected');
+      description=translate('settings.captionOnline');
       connection='online';
     }else if(state.requiresReload){
-      heading='需要重载扩展';
-      description='本机连接已启用，但当前 Chrome API 未就绪；请重新加载扩展。';
+      heading=translate('settings.statusReload');
+      description=translate('settings.captionReload');
     }else if(state.connecting){
-      heading='正在连接';
-      description='已保留连接设置，正在等待 OpenDesk 响应，无需重复授权。';
+      heading=translate('settings.statusConnecting');
+      description=translate('settings.captionConnecting');
       connection='connecting';
     }else{
-      heading='已启用 · 当前离线';
-      description=(lastSeen?'上次成功连接：'+lastSeen+'。':'连接设置仍在。')+
-        '请确认 OpenDesk 已运行，或点击重新检测。';
+      heading=translate('settings.statusOffline');
+      description=(lastSeen?translate('settings.captionPastOffline',{time:lastSeen}):'')+' '+translate('settings.captionOffline');
     }
     status.textContent=heading;
     caption.textContent=description;
@@ -62,14 +61,14 @@ export function initNativeAgentSettings({api=globalThis.chrome,document:doc=glob
           state.connecting?translate('settings.trying'):translate('settings.notConnected')}),
       translate('settings.hostCount',{count:state.hostCount}),
       translate('settings.extensionId',{id:state.extensionId}),
-      ...(lastSeen?['上次成功连接：'+lastSeen]:[])
+      ...(lastSeen?[translate('settings.diagnosticLastSeen',{time:lastSeen})]:[])
     ].join('\n');
     if(!busy)toggle.disabled=false;
   };
   const fail=error=>{
     lastState=null;toggle.disabled=true;
-    status.textContent='连接状态未知';
-    caption.textContent='当前未取得可靠状态，请点击重新检测。';
+    status.textContent=translate('settings.statusUnknown');
+    caption.textContent=translate('settings.captionUnknown');
     connectionCard.dataset.connection='unknown';
     showFeedback((error?.code||'E_NATIVE_NOT_READY')+'：'+(error?.message||error));
   };
@@ -81,7 +80,7 @@ export function initNativeAgentSettings({api=globalThis.chrome,document:doc=glob
     const state=await request('status');
     if(epoch!==statusEpoch)return;
     if(typeof state?.enabled!=='boolean'||typeof state.nativeConnected!=='boolean')
-      throw {code:'E_NATIVE_STATUS',message:'连接状态回执无效'};
+      throw {code:'E_NATIVE_STATUS',message:translate('settings.invalidStatus')};
     lastState=state;
     renderState(state);
     showFeedback('');
@@ -108,7 +107,7 @@ export function initNativeAgentSettings({api=globalThis.chrome,document:doc=glob
     busy=true;controls(true);restoreFocus.disabled();showFeedback('');
     (async()=>{
       if(wantEnabled&&!await permission)
-        throw {code:'E_PERMISSION_REQUIRED',message:'未授予浏览器本机通信权限，原设置保持不变'};
+        throw {code:'E_PERMISSION_REQUIRED',message:translate('settings.permissionRequired')};
       await request(wantEnabled?'enable':'disable');
       connectingPolls=0;await update();
     })().catch(async error=>{
