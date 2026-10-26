@@ -23,6 +23,8 @@
     "tests/environment/cookie-editor-import-intent.test.mjs",
     "tests/environment/cookie-editor-write-intent.test.mjs",
     "tests/environment/cookie-editor-clear-intent.test.mjs",
-    "tests/environment/cookie-editor-cross-site-import.test.mjs"
+    "tests/environment/cookie-editor-cross-site-import.test.mjs",
+    "tests/environment/cookie-editor-account-vault.test.mjs",
+    "tests/environment/cookie-editor-account-switch-url.test.mjs"
   ]
 }
