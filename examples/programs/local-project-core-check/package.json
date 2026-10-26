@@ -1,0 +1,22 @@
+{
+  "name": "@opendesk-examples/local-project-core-check",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "本地项目核心测试：只读标题、保存后明确运行与停止",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "sample.local-project-core-check",
+    "runtimeKind": "controller",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "siteOrigins": ["http://127.0.0.1:43111"],
+    "permissions": ["page.automation"],
+    "paramsSchema": {
+      "type": "object",
+      "properties": {"waitMs": {"type": "integer", "title": "只读等待毫秒", "minimum": 0, "maximum": 10000}},
+      "required": [],
+      "additionalProperties": false
+    }
+  }
+}
