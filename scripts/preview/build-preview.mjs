@@ -42,7 +42,9 @@ export async function generatePreview({
   // Fail closed: injected-page/standalone need their own real production mounting adapter.
   if(surface!=='side-panel'&&!(tool==='reading-toc'&&surface==='page-overlay'))
     fail('surface '+surface+' has no verified production preview adapter');
-  if(!['quick-notes','bookmark-manager','adblock','reading-toc'].includes(tool))fail('mock SDK adapter is not implemented for '+tool);
+  if(!['quick-notes','bookmark-manager','adblock','reading-toc',
+    'markdown-workbench','web-markdown-clipper','knowledge-inbox','ai-knowledge-answers'].includes(tool))
+    fail('mock SDK adapter is not implemented for '+tool);
   if(!PREVIEW_SCENARIOS.includes(scenario)&&!(tool==='reading-toc'&&scenario==='chatgpt-multi'))fail('unsupported scenario');
   if(!['light','dark'].includes(theme))fail('unsupported theme');
   if(tool==='reading-toc'&&theme!=='light')fail('Reading TOC preview shell is light only');
@@ -50,8 +52,15 @@ export async function generatePreview({
     !Number.isInteger(height)||height<320||height>2400)fail('invalid CSS viewport');
   const project=join(repoRoot,'examples/sidebar-tools',tool);
   const pkg=await createSidebarToolPackage(project);
-  if(tool!=='reading-toc'&&tool!=='adblock'&&!pkg.css.startsWith('/* opendesk.shared-design.v1 sha256='))
+  // Respect each existing production CSS contract: some older official tools use
+  // canonical shared tokens or a legacy scoped stylesheet; do not silently reskin.
+  if(!['reading-toc','adblock','knowledge-inbox','web-markdown-clipper'].includes(tool)&&
+    !pkg.css.startsWith('/* opendesk.shared-design.v1 sha256='))
     fail('official design CSS is missing from the validated tool package');
+  if(tool==='web-markdown-clipper'&&!pkg.css.startsWith('/* opendesk.shared-tokens.v1 sha256='))
+    fail('clipper is not compiled from the canonical shared tokens');
+  if(tool==='knowledge-inbox'&&(!pkg.css.includes('.ki{')||/@import\\b|url\\s*\\(\\s*['"]?\\s*(?:https?:|\\/\\/)/i.test(pkg.css)))
+    fail('knowledge-inbox legacy scoped CSS source contract has changed');
   let mock,operations;
   if(tool==='quick-notes'){
     const invoked=[...pkg.js.matchAll(/\brequest\s*\(\s*['"]([^'"]+)['"]/g)].map(match=>match[1]);
@@ -74,6 +83,34 @@ export async function generatePreview({
       fail('AdBlock preview requires the compiled production React/Host contract');
     mock=await readFile(new URL('./adblock-mock.js',import.meta.url));
     operations=PREVIEW_ADBLOCK_OPERATIONS;
+  }else if(tool==='markdown-workbench'){
+    if(!pkg.js.includes("OpenDeskSDK.browser.downloads.text")||
+       !pkg.html.includes('id="mdw-source"'))fail('Markdown editor bundle no longer matches the SDK mock');
+    mock=await readFile(new URL('./markdown-workbench-mock.js',import.meta.url));
+    operations=['browser.clipboard.writeText','browser.downloads.text'];
+  }else if(tool==='web-markdown-clipper'){
+    if(!pkg.js.includes('OpenDeskClipNotes')||!pkg.js.includes('currentPage.info'))
+      fail('clipper bundle no longer matches its existing preview adapter');
+    // Reuse its well-tested existing standalone SDK simulation, but keep internal
+    // navigation buttons: this canonical Host shell has no clipper navigation bridge.
+    const original=await readFile(new URL('../../examples/sidebar-tools/web-markdown-clipper/preview/mock-host.js',import.meta.url),'utf8');
+    const bridge="  setNavigation({page}={}){post('navigation-state',{page});},";
+    if(!original.includes(bridge))fail('existing clipper mock navigation contract changed');
+    mock=Buffer.from(original.replace(bridge,'  // In-tool navigation remains active in this shell.'));
+    operations=['currentPage.info','clipNotes.list','clipNotes.get','clipNotes.save','clipNotes.edit',
+      'clipNotes.remove','clipNotes.backup','browser.clipboard.writeText','browser.downloads.text'];
+  }else if(tool==='knowledge-inbox'){
+    if(!pkg.js.includes("request('knowledge.list'")||!pkg.js.includes("request('knowledge.create'"))
+      fail('inbox bundle no longer matches SDK boundary');
+    mock=await readFile(new URL('./knowledge-inbox-mock.js',import.meta.url));
+    operations=['knowledge.editorState','knowledge.list','knowledge.get','knowledge.create',
+      'knowledge.update','knowledge.remove','knowledge.download','knowledge.workspace',
+      'knowledge.openSource','knowledge.backup','browser.clipboard.writeText'];
+  }else if(tool==='ai-knowledge-answers'){
+    if(!pkg.js.includes("request('storage.get'")||!pkg.js.includes('OpenDeskKnowledgeAnswersModel'))
+      fail('knowledge answers bundle no longer matches SDK/model boundary');
+    mock=await readFile(new URL('./ai-knowledge-answers-mock.js',import.meta.url));
+    operations=['storage.get','storage.set','file.download','clipboard.writeText'];
   }else{
     if(!pkg.js.includes('BookmarkR2Model')||!pkg.js.includes('BookmarkR2Service')||
        !pkg.js.includes('OpenDeskSDK'))
@@ -315,7 +352,7 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).hr
     ['--theme','theme'],['--width','width'],['--height','height'],['--out','out']]);
   try {
     for(let i=0;i<args.length;i+=2){
-      if(!opts.has(args[i])||i+1>=args.length)fail('usage: --tool quick-notes|bookmark-manager|adblock|reading-toc --surface side-panel --scenario success --theme light --width 360 [--height 760] [--out file]');
+      if(!opts.has(args[i])||i+1>=args.length)fail('usage: --tool <supported tool ID> --surface side-panel --scenario success --theme light --width 360 [--height 760] [--out file]');
       const key=opts.get(args[i]);
       parsed[key]=['width','height'].includes(key)?Number(args[i+1]):args[i+1];
     }
