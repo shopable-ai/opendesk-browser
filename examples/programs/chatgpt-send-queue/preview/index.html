@@ -6,7 +6,9 @@
 .sq-panel,.sq-send,.sq-toast{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Segoe UI",sans-serif}
 .sq-panel button,.sq-send{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 button:focus-visible,[tabindex]:focus-visible{outline:2px solid #6984ff;outline-offset:1px}
-.sq-panel{width:100%;min-width:0;margin:0;padding:0;border:1px solid #e3e5ea;border-radius:18px 18px 0 0;background:#fff;color:#303747;overflow:hidden}
+/* The measured native top tangent span owns docking width and corner geometry.
+   Only our Shadow DOM panel is styled; the website keeps its original radii. */
+.sq-panel{width:100%;min-width:0;margin:0;padding:0;border:1px solid #e3e5ea;border-radius:var(--sq-surface-radius,12px 12px 0 0);background:#fff;color:#303747;overflow:hidden}
 .sq-rows{display:flex;flex-direction:column;gap:0;max-height:224px;overflow-y:auto;scrollbar-width:thin}
 .sq-row{box-sizing:border-box;display:flex;align-items:center;gap:4px;min-width:0;height:35px;min-height:35px;margin:0;padding:0 5px 0 6px;background:transparent}
 .sq-row+.sq-row{border-top:1px solid #eceef3}

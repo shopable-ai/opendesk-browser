@@ -25,12 +25,59 @@ function inline(host,width){
   for(const [p,v] of Object.entries(props))
     host.style.setProperty(p.replace(/[A-Z]/g,c=>'-'+c.toLowerCase()),v,'important');
 }
+function visibleRect(node,win){
+  if(!node?.isConnected)return null;
+  const style=win.getComputedStyle(node),rect=node.getBoundingClientRect();
+  if(style.display==='none'||style.visibility==='hidden'||style.visibility==='collapse'||
+    Number(style.opacity)===0||![rect.left,rect.top,rect.width,rect.height].every(Number.isFinite)||
+    rect.width<=0||rect.height<=0)return null;
+  return rect;
+}
+function composerSurface(editor,nativeButton,form,win){
+  // site.inspect() exposes editor, not composer. Transparent layout wrappers
+  // and rounded editor-only shells are not the shared visible input surface.
+  const input=visibleRect(editor,win),button=visibleRect(nativeButton,win);
+  if(!input||!button||!form.contains(editor))return null;
+  const encloses=(outer,inner)=>inner.left>=outer.left-1&&inner.right<=outer.right+1&&
+    inner.top>=outer.top-1&&inner.bottom<=outer.bottom+1;
+  for(let node=editor.parentElement;node;node=node.parentElement){
+    const rect=visibleRect(node,win),style=win.getComputedStyle(node);
+    if(!rect){
+      if(style.display==='contents'&&node!==form)continue;
+      return null;
+    }
+    if(node.contains(nativeButton)&&encloses(rect,input)&&encloses(rect,button)){
+      const length=(value,extent)=>value.endsWith('%')?parseFloat(value)*extent/100:parseFloat(value)||0;
+      const corners=['TopLeft','TopRight','BottomRight','BottomLeft'].map(corner=>{
+        const parts=style['border'+corner+'Radius'].trim().split(/\s+/);
+        return [length(parts[0],rect.width),length(parts[1]||parts[0],rect.height)];
+      });
+      // CSS scales all radii together when adjacent corners exceed an edge.
+      const [tl,tr,br,bl]=corners;
+      const scale=Math.min(1,rect.width/(tl[0]+tr[0]||1),rect.width/(bl[0]+br[0]||1),
+        rect.height/(tl[1]+bl[1]||1),rect.height/(tr[1]+br[1]||1));
+      const painted=(style.backgroundColor!=='transparent'&&
+        !/^(?:rgba\([^)]*,\s*0\)|rgb\([^)]*\/\s*0\))$/.test(style.backgroundColor))||
+        style.backgroundImage!=='none'||style.boxShadow!=='none'||
+        ['Top','Right','Bottom','Left'].some(side=>parseFloat(style['border'+side+'Width'])>0&&
+          !['none','hidden'].includes(style['border'+side+'Style']));
+      if(painted&&tl.every(n=>n>0)&&tr.every(n=>n>0)){
+        const left=tl[0]*scale,right=tr[0]*scale,width=rect.width-left-right;
+        if(width>0)return {node,rect,left:rect.left+left,width,
+          radius:`${left}px ${right}px 0 0 / ${tl[1]*scale}px ${tr[1]*scale}px 0 0`};
+      }
+    }
+    if(node===form)break;
+  }
+  return null;
+}
 export function createQueueView({owner,createPageUI,assets,engine,actions}){
   const doc=owner.content.ownerDocument,css=owner.getAsset('assets/queue.css');
   let list=null,button=null,root=null,blue=null,toastNode=null,toastToken=0;
-  let native=null,restore=null,lastSignature='',recoveryText=null,recoveryReason='';
+  let lastSignature='',recoveryText=null,recoveryReason='';
   function reset(){
-    restore?.();restore=null;native=null;
+    for(const prop of ['margin-left','margin-bottom'])list?.host.style.removeProperty(prop);
+    root?.style.removeProperty('--sq-surface-radius');
   }
   function ensure(){
     if(list && !list.active()){list.destroy();list=null;lastSignature='';}
@@ -169,7 +216,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
       row.append(element(doc,'span','sq-index',String(i+1)));
       const text=element(doc,'span','sq-text',item.text);text.title=item.text;row.append(text);
       const ops=element(doc,'div','sq-ops');
-      for(const [key,label] of [['now','提前发送'],['edit','取回输入框编辑'],['remove','删除']]){
+      for(const [key,label] of [['now','强制发送'],['edit','取回输入框编辑'],['remove','删除']]){
         const b=action(doc,key,label,item.id);
         if((item.state==='sending'||item.state==='unknown')&&key!=='remove')b.disabled=true;
         ops.append(b);
@@ -224,52 +271,62 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
     reset();
   }
   function place(snap){
-    if(!snap?.ok||!snap.form?.isConnected)return false;
+    const fail=reason=>{hide();if(reason)engine.wait(reason);return false;};
+    if(!snap?.ok||!snap.form?.isConnected)return fail();
     const nativeButton=snap.stopButton||snap.sendButton||snap.anchorButton;
-    if(!nativeButton||!snap.form.contains(nativeButton)||!nativeButton.parentElement)return false;
-    const form=snap.form,prior=form.getBoundingClientRect();
-    if(!Number.isFinite(prior.width)||prior.width<200)return false;
+    if(!nativeButton||!snap.form.contains(nativeButton)||!nativeButton.parentElement)return fail();
+    const form=snap.form,win=doc.defaultView,prior=form.getBoundingClientRect();
+    const size=win.matchMedia('(pointer:coarse)').matches?42:34;
+    const surface=composerSurface(snap.editor,nativeButton,form,win);
+    if(!surface)return fail();
+    const input=snap.editor.getBoundingClientRect();
+    const controls=[...form.querySelectorAll('button')].map(node=>[node,visibleRect(node,win)])
+      .filter(([,rect])=>rect);
+    const overlaps=(a,b)=>a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;
+    const safe=()=>{
+      const current=visibleRect(snap.editor,win),own=blue.getBoundingClientRect();
+      return form.getBoundingClientRect().width>=prior.width-1&&current&&
+      // Single-line composers share their row with the action controls. The
+      // added button may consume its own width and gap, but no more space.
+      current.width>=Math.min(input.width,Math.max(120,input.width-size-6))-1&&
+      current.height>=input.height-1&&!overlaps(own,current)&&
+      controls.every(([node,before])=>{
+        const after=visibleRect(node,win);
+        return after&&after.width>=before.width-1&&after.height>=before.height-1&&
+          !overlaps(own,after);
+      });
+    };
     ensure();
-    const size=doc.defaultView.matchMedia('(pointer:coarse)').matches?42:34;
     inline(button.host,size);button.host.style.setProperty('overflow','visible','important');
     blue.hidden=false;toastNode.style.removeProperty('bottom');
     button.host.style.setProperty('display','inline-flex','important');
     button.host.style.setProperty('flex','0 0 '+size+'px','important');
     button.host.style.setProperty('margin-right','6px','important');
     if(button.host.nextSibling!==nativeButton)nativeButton.parentElement.insertBefore(button.host,nativeButton);
-    if(form.getBoundingClientRect().width<prior.width-1){
-      doc.body.append(button.host);button.host.style.setProperty('display','none','important');
-      engine.wait('等待安全显示队列按钮，避免缩窄原生输入框');return false;
-    }
+    if(!safe())return fail('等待安全显示队列按钮，避免缩窄原生输入框或遮挡原生按钮');
     const state=engine.view();
     if(!state.items.length){list.host.style.setProperty('display','none','important');reset();return true;}
-    const parent=form.parentElement;if(!parent||parent.closest('[contenteditable]'))return false;
-    inline(list.host,form.getBoundingClientRect().width);
+    const parent=form.parentElement;if(!parent||parent.closest('[contenteditable]'))return fail();
+    reset();
+    inline(list.host,surface.width);
     list.host.style.setProperty('display','block','important');
     if(list.host.nextSibling!==form)parent.insertBefore(list.host,form);
-    const updated=form.getBoundingClientRect();
-    if(updated.width<prior.width-1){
-      doc.body.append(list.host);list.host.style.setProperty('display','none','important');
-      engine.wait('等待安全显示队列，避免改变原生输入宽度');return false;
-    }
-    const parentRect=parent.getBoundingClientRect(), offset=updated.left-parentRect.left;
-    if(Number.isFinite(offset)&&Math.abs(offset)<600)
-      list.host.style.setProperty('margin-left',Math.max(0,offset)+'px','important');
-    const gap=updated.top-list.host.getBoundingClientRect().bottom;
-    if(Number.isFinite(gap)&&Math.abs(gap)<80){
-      const prev=Number.parseFloat(list.host.style.marginBottom)||0;
-      if(Math.abs(gap)>.5)list.host.style.setProperty('margin-bottom',(prev-gap)+'px','important');
-    }
-    if(native!==form){
-      reset();native=form;
-      const originals=['border-top-left-radius','border-top-right-radius'].map(prop=>
-        [prop,form.style.getPropertyValue(prop),form.style.getPropertyPriority(prop)]);
-      restore=()=>{for(const [prop,value,priority] of originals){
-        if(value)form.style.setProperty(prop,value,priority);else form.style.removeProperty(prop);
-      }};
-    }
-    form.style.setProperty('border-top-left-radius','0','important');
-    form.style.setProperty('border-top-right-radius','0','important');
+    // Dock to the top tangent span, leaving the website's rounded shoulders
+    // untouched. Measure again after flow insertion; no parent-width guesses.
+    const updated=composerSurface(snap.editor,nativeButton,form,win);
+    if(!updated||updated.node!==surface.node||!safe())
+      return fail('等待安全显示队列，避免改变原生输入宽度');
+    inline(list.host,updated.width);
+    root.style.setProperty('--sq-surface-radius',updated.radius);
+    const offset=updated.left-list.host.getBoundingClientRect().left;
+    list.host.style.setProperty('margin-left',offset+'px','important');
+    const gap=updated.rect.top-list.host.getBoundingClientRect().bottom;
+    list.host.style.setProperty('margin-bottom',-gap+'px','important');
+    const finalSurface=composerSurface(snap.editor,nativeButton,form,win);
+    const placed=list.host.getBoundingClientRect();
+    if(!finalSurface||!safe()||Math.abs(placed.left-finalSurface.left)>1||
+      Math.abs(placed.bottom-finalSurface.rect.top)>1)
+      return fail('等待安全显示队列，避免覆盖原生输入区');
     return true;
   }
   function destroy(){reset();recoveryText=null;list?.destroy();button?.destroy();list=null;button=null;}

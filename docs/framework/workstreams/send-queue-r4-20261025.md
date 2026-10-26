@@ -284,3 +284,29 @@
 
 - 核心 ABC 为同一已安装候选、不间断自动交接，不能用本轮结果提升 production 或任意长对话保证。后续若继续上述草稿/编辑/删除复测，应先与用户确认窗口已交回，并重新读取现场；不得清空用户手测队列或重复发送 D。相关 Node 保护证据不替代本轮尚未完成的原生操作。
 - UI 锁已释放（`native_ui_owner: null`），专属浏览器、Profile、用户草稿/队列和现有服务保留；独立 reviewer 已收尾。用户手测窗口由用户控制，本对话不继续轮询或输入。正式包与源码在 main 做范围提交，不推送，不包含并行 owner 文件。
+
+## R5.11 · 输入框衔接、强制发送与 Enter 回退（2026-10-27）
+
+- `CORE_NATIVE_PASS / PAGE_UPDATED_WITH_LIMITATIONS`，最终 `0.1.9/r8`，owner `01a17980-4fcc-78c3-bbf3-88d017f6756a`。阶段仅当前核心开发与必要验证；main，不分支/worktree/PR，不推送。项目为独立 Page USER_SCRIPT，沿原 document / @opendesk/ui / Authority / 安装链；框架源码只读。
+- 用户已明确交回专用窗口。只读复核 CFT154 PID54791/launcher54789、原 Profile、扩展 `ajjjgoapcaonglplhlnlfofmlemdakhk` 及原静态 Developer 路径仍在，无 dev serve 连接；UI 锁由本 owner 持有。首轮现场无待发队列、无草稿，未清理用户测试条目或重发 D。r6 安装详情 sourceHash、installationId、registrationId 和 page.dom/ChatGPT 单站范围与 R5.10 一致。
+- 当前范围：按可见圆角输入表面几何放置队列，不再覆盖官网圆角；一次明确“强制发送”动作完成停止与后续只发送一次；官网无法正常发送且已有队列时，普通 Enter 复用按钮入队路径，保留正常发送、换行与 IME。对应回复、草稿、取回编辑、删除与 unknown 保护定向回归。真实升级后再记录本候选结果，不借 r6 的 ABC 或旧测试作新包 PASS。
+- 证据根 `artifacts/send-queue-r7-01a17980/core/`。production、全生命周期、跨刷新恢复、全量 IME/空白/桥并发、宽度×缩放和评分继续延期。
+
+- 源码：`view.js` 从 editor 向上查找同时包含原生控制区的可见、有绘制背景/边框/阴影的圆角表面，使用其顶部切线宽度、位置和半径；不再改写官网圆角。插入前后核对外壳与原生按钮尺寸、编辑区和点击区域。初次 r7（0.1.8）实测空闲单行输入的蓝色按钮隐藏；这是过严的编辑区宽度检查，修复允许按钮自身宽度与 6px 间隙的行内占位，超额缩窄和原生按钮重叠仍拒绝。新冻结 r8，不覆盖 r7 字节。`engine.js` 明确点击后先登记 await-stop，再单次点原生 Stop，等待原会话、同一已确认用户轮次的真实回复完成与稳定可发；不以停止点击当作完成。`main.js` 原 managed capture listener 实现普通 Enter 回退，复用原入队/恢复路径并保留 IME；`site.js` 停止前重新确认 editor、完整空草稿、附件、输入法及原生按钮身份。
+- 最终本项目固定产物在 `artifacts/send-queue-r8-01a17980/candidate/`，sourceHash `f60d3e029cc8cabdebe083bd4cd0d3610ab1c34080fdff40436abfe6f2418396`，packageHash `f2cbea3929fff99cf3d7a52b089195da02e411b8f0ca717be39c9afe2f36b07d`，源码 92,802 bytes。原打包器从同一草稿同步本目录当前 ID 唯一正式包，与实际安装候选逐字节一致，四个源码和两个资源匹配构建收据，完整异步校验 PASS（`r8-package-validation.json`）。legacy 包、皇冠资源和宿主源码未改；目录仅本条目更新，公开发行仍 blocked。
+- r6→r7→r8 均经原“更新 / 导入新版”审阅。r8 v0.1.9、完整源码/包哈希及网站范围未变化读回；安装详情 r8、active/registered，原 installationId `9bf2f0d6-9b5b-4d72-a372-23bbce9aecfc`、registrationId `opendesk-page-boot-e736f023860568cd7be4f76373b4882840d0f3928e1ca8e3` 不变，仅 page.dom / ChatGPT 单站范围。见 `r8-upgrade-review-ax.txt`、`r8-installed-ax.txt`。宿主仍为 `artifacts/send-queue-r56-mac-final-01a17882/source-snapshot/dist/development-developer` 静态 Developer，无 dev serve；本轮没有重建、替换或重启宿主。Program 构建器的 production 压缩标志不代表 production 宿主验收。
+
+| 本轮真实操作 | 结果 | 原始证据（均在上述 core 证据根） |
+| --- | --- | --- |
+| r8 首次空闲单行输入 | 蓝色按钮可见，原生语音按钮完整；有队列时按官网圆角上沿衔接 | `r8-idle-ax.txt`、PNG；`r8-enter-fallback.png` |
+| A 已由队列发送且正在输出时，一次点 B 强制发送 | 先出现“等待停止结果 · 尚未发送下一条”，原生 Stop 消失；随后 B user 一次入站、回复准确 `SQ-R8-CORE-B-OK`，无第二次确认、无 unknown | `r8-a-active-ax.txt`、`r8-force-click-ax.txt`/PNG、`r8-force-result-ax.txt`/PNG |
+| 官网可发送时 Enter | r7 思考期间官网提供 enabled Send，保留其原生提交 C 的行为；r8 空队列时 Enter 正常提交自有 C/G | `r7-enter-fallback-ax.txt`/PNG（该文件名为测试意图，实际为原生发送保留）；r8 后续 history |
+| 官网无法发送且已有队列时 Enter | r8 G 正在输出、输入 J 后只有 Stop 无 Send；Enter 只将 J 入队一次，草稿清空，显示“官网当前无法发送，草稿已加入发送队列”，J 未成为 user 消息 | `r8-enter-before-ax.txt`、`r8-enter-fallback-ax.txt`/PNG |
+| 有自有 F 草稿时，点 D 取回/强制发送 | 原草稿和 D/E 均保留，分别提示不覆盖/先处理草稿，未停止当前回复 | `r8-draft-protection-ax.txt`/PNG |
+| 删除 E | E 消失，D 与 F 原草稿不变；清空 F 后 D 自动单次发送并回复 D-OK | `r8-delete-ax.txt`；`r8-final-ax.txt` |
+| 取回 H 后编辑与 Shift+Enter | H 从队列移除，原输入框准确读回；显示“已取回到输入框，取消排队”；原生可继续修改、换行，无额外发送 | `r8-reclaim-success-ax.txt`/PNG、`r8-edited-draft-ax.txt` |
+| 收尾 | 只清理自有 H/J 待发项，停止自有 G 测试输出；最终无队列、无草稿、原生语音入口恢复，原用户历史保留 | `r8-final-ax.txt`/PNG、`r8-native-result.json` |
+
+- 取回 D 的第一次自动化点击因控件重建未实际命中，不能算产品失败或 PASS；清空 F 后 D 按原队列授权自动发送。随后在仍忙碌的 G 中用新 H 和最新控件索引完成取回验证。原始失败记录 `r8-reclaim-ax.txt` 保留，正式取回证据使用 `r8-reclaim-success-*`。中途 UI 工具要求重新读取窗口时，先读回现场再继续；未发现非本任务的新草稿/队列，未清空用户内容。
+- 最终定向 Node 153/153 PASS，覆盖强制停止后的对应轮次、单次副作用、草稿/附件/输入法、unknown 超时与身份保护，Enter 回退/正常发送/IME/修饰键、布局几何与原生热区；`r8-targeted.tap`。项目格式校验、预览 CSS/WebP 同源检查和最终包校验通过。独立只读 reviewer 对 engine/site/main 与相关测试未发现重要问题，另跑过两个真实模块离线集成；这不是完整正式审计或评分。
+- UI 锁已释放，`native_ui_owner: null`；原 CFT/Profile、原安装、既有服务保留。本轮无 production、全生命周期、真实 IME/特殊空白、桥并发、宽度×缩放或独立评分证据，均不提升为 PASS；内存队列跨刷新恢复仍不支持。只提交本任务文件到 main，不推送。

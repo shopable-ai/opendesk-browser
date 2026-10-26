@@ -23,10 +23,11 @@ function fixture() {
   const replaceEditor=(text='')=>{const next=new Textarea();next.current=text;activeEditor.isConnected=false;activeEditor=next;return next;};
   const send={isConnected:true,disabled:false,
     closest:()=>null,getClientRects:()=>[{}],
-    getAttribute:name=>name==='data-testid'?'send-button':null,
+    getAttribute:name=>name==='data-testid'?(state.stopping?'stop-button':'send-button'):
+      name==='aria-disabled'&&state.ariaDisabled?'true':null,
     matches:()=>false,click:()=>{state.clicks++;state.onSend?.();}};
   const form={isConnected:true,hasAttribute:()=>!!state.occupied,
-    querySelectorAll:()=>[send],querySelector:()=>null};
+    querySelectorAll:()=>[send],querySelector:()=>state.rich?{}:null};
   const win={location:{origin:'https://chatgpt.com',pathname:'/c/12345678'},
     getComputedStyle:()=>({display:'block',visibility:'visible'}),
     HTMLTextAreaElement:Textarea,InputEvent:class {}};
@@ -35,8 +36,32 @@ function fixture() {
     selector.includes('user')&&selector.includes('assistant')?(state.history||[...state.users,...state.assistants]):
     selector.startsWith('[data-message-author-role="user"]')?state.users:state.assistants};
   const site=createChatGPTSite({doc,win,isComposing:()=>!!state.composing});
-  return {site,state,editor,replaceEditor,send};
+  return {site,state,editor,replaceEditor,send,win};
 }
+
+test('native stop clicks once but does not imply that generation has stopped',()=>{
+  const {site,state}=fixture();state.stopping=true;
+  assert.equal(site.stop(site.inspect()),true);assert.equal(state.clicks,1);
+  assert.equal(site.inspect().busy,true,'the engine must still observe the stop transition');
+});
+
+test('stop revalidates the empty draft, editor, composition, attachments and native control',()=>{
+  for(const mode of ['draft','composition','rich','replacement','route','occupied','disabled','aria-disabled','button replaced']){
+    const {site,state,editor,replaceEditor,send,win}=fixture();state.stopping=true;
+    const before=site.inspect();
+    if(mode==='draft')editor.current='keep my draft';
+    if(mode==='composition')state.composing=true;
+    if(mode==='rich')state.rich=true;
+    if(mode==='replacement')replaceEditor();
+    if(mode==='route')win.location.pathname='/c/87654321';
+    if(mode==='occupied')state.occupied=true;
+    if(mode==='disabled')send.disabled=true;
+    if(mode==='aria-disabled')state.ariaDisabled=true;
+    if(mode==='button replaced')before.stopButton={};
+    assert.equal(site.stop(before),false,mode);assert.equal(state.clicks,0,mode);
+    if(mode==='draft')assert.equal(editor.value,'keep my draft');
+  }
+});
 
 test('prepare preserves whitespace-only native drafts without writing or clicking',()=>{
   const {site,editor,state}=fixture();

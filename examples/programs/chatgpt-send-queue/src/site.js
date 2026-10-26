@@ -259,7 +259,10 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
   function stop(snapshot) {
     const fresh=inspect();
     if (!fresh.ok || fresh.route!==snapshot.route || fresh.form!==snapshot.form ||
-      !fresh.busy || !fresh.stopButton || fresh.stopButton!==snapshot.stopButton) return false;
+      fresh.editor!==snapshot.editor || fresh.rich || fresh.composing ||
+      snapshot.draft!=='' || fresh.draft!=='' ||
+      !fresh.busy || !fresh.stopButton || fresh.stopButton!==snapshot.stopButton ||
+      fresh.stopButton.disabled || fresh.stopButton.getAttribute('aria-disabled')==='true') return false;
     try { fresh.stopButton.click(); return true; } catch { return false; }
   }
   return Object.freeze({inspect,clearForQueue,restore,reclaimToComposer,prepare,commit,confirm,confirmationIssue,replyComplete,stop,normal});

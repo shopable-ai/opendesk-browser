@@ -22,10 +22,10 @@ export default async function main({assets}={}) {
     owner.destroy();
     return true;
   }
-  let composing=false;
+  let composing=false,compositionEndedAt=-Infinity;
   const site=createChatGPTSite({isComposing:()=>composing});
   owner.on(document,'compositionstart',()=>{composing=true;},true);
-  owner.on(document,'compositionend',()=>{composing=false;},true);
+  owner.on(document,'compositionend',()=>{composing=false;compositionEndedAt=Date.now();},true);
   let view=null,engine;
   try{
     engine=createQueueEngine({site,change:()=>view?.render()});
@@ -55,7 +55,7 @@ export default async function main({assets}={}) {
           }else notify('队列状态变化，原生草稿已恢复');
           return;
         }
-        poll();
+        poll();return true;
       },
       edit(id){
         // No inline editor. Put this message back into ChatGPT's existing
@@ -92,17 +92,39 @@ export default async function main({assets}={}) {
         engine.remove(id);
       },
       sendNow(id){
+        if(view?.hasRecovery()){
+          notify('请先复制未入队的原草稿，再强制发送');return;
+        }
         const result=engine.requestNow(id);
-        if(result.needsStopConfirmation){
-          const approved=window.confirm('确定停止当前 ChatGPT 回复并提前发送？\n仅在原生停止确认后发送；未知结果不会重试。');
-          if(!approved)return;
-          if(!engine.confirmForceStop(id))notify('原生停止动作未获确认');
-        } else if(!result.ok)notify(result.reason||'当前状态不能提前发送');
+        if(!result.ok)notify(result.reason||'当前状态不能强制发送');
       }
     };
     view=createQueueView({owner,createPageUI,assets,engine,
       actions:Object.fromEntries(Object.entries(actions).map(([name,action])=>
         [name,(...args)=>{if(owner.active()&&!retireForLegacy())return action(...args);}] ))});
+    // One managed capture listener follows React editor replacements. Intercept
+    // only a plain Enter that the visible native controls prove cannot send.
+    owner.on(document,'keydown',event=>{
+      if(event.key!=='Enter'||event.shiftKey||event.altKey||event.ctrlKey||event.metaKey||
+        event.defaultPrevented||event.isComposing||event.keyCode===229||composing||
+        Date.now()-compositionEndedAt<100||!owner.active()||retireForLegacy())return;
+      const state=engine.view();
+      if(!state.items.length)return;
+      const snap=site.inspect(),target=event.composedPath?.()[0]||event.target;
+      if(!snap.ok||snap.route!==state.route||!snap.editor||
+        (target!==snap.editor&&!snap.editor.contains?.(target))||!snap.draft)return;
+      const send=snap.sendButton;
+      const disabled=!!send&&(send.disabled||send.getAttribute('aria-disabled')==='true');
+      // An enabled official send always keeps its normal keyboard behavior,
+      // including sites that permit native sending during a response.
+      if((send&&!disabled)||(!snap.busy&&!disabled))return;
+      event.preventDefault();event.stopImmediatePropagation();
+      if(event.repeat)return;
+      if(state.phase==='unknown'||state.inFlight||state.items.some(item=>item.state==='unknown')){
+        notify('当前发送尚未确认，请先核对原对话；草稿已保留');return;
+      }
+      if(actions.enqueue())notify('官网当前无法发送，草稿已加入发送队列');
+    },true);
     owner.on(window,'beforeunload',event=>{
       if(!engine.view().items.length&&!view?.hasRecovery())return;
       event.preventDefault();event.returnValue='';

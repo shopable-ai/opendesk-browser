@@ -77,27 +77,33 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
   function toggleExpanded(){state.expanded=!state.expanded;emit();}
   function requestNow(id) {
     const item=items.find(v=>v.id===id);
-    if(!item || state.phase==='unknown' || state.inFlight || state.answerGate)return {ok:false};
+    if(!item || state.phase==='unknown' || state.inFlight)return {ok:false};
     const snap=site.inspect();
     if(!snap.ok || snap.route!==state.route)return {ok:false,reason:'会话已变化'};
-    if(snap.busy)return {ok:false,needsStopConfirmation:true};
+    if(snap.rich || snap.composing || snap.draft!=='')return {ok:false,reason:'请先处理原生草稿、附件或输入法'};
+    // This call is itself the explicit user action; do not require another click.
+    if(snap.busy)return {ok:beginForceStop(item,snap)};
+    if(state.answerGate)return {ok:false};
     move(id,0);state.reason='';idleSince=null;emit();return {ok:true};
   }
   function confirmForceStop(id) {
-    if(state.phase==='unknown' || state.inFlight || state.answerGate || !items.some(v=>v.id===id))return false;
+    if(state.phase==='unknown' || state.inFlight || !items.some(v=>v.id===id))return false;
     const snap=site.inspect();
-    if(!snap.ok || snap.route!==state.route || !snap.busy || !snap.stopButton)return false;
-    // A confirmed user gesture is required before this method is called.
-    const item=items.find(v=>v.id===id);
+    if(!snap.ok || snap.route!==state.route || snap.rich || snap.composing || snap.draft!=='')return false;
+    return beginForceStop(items.find(v=>v.id===id),snap);
+  }
+  function beginForceStop(item,snap) {
+    if(!snap.busy || !snap.stopButton)return false;
+    if(state.answerGate && snap.users.at(-1)!==state.answerGate.confirmedUser)return false;
     const flight={item,phase:'await-stop',started:clock(),sawBusy:true};
     state.inFlight=flight;
     let stopped=false;
     try{stopped=site.stop(snap);}catch{/* A throwing click may already have taken effect. */}
-    if(!stopped){markUnknown('停止动作结果未知，请核对原对话后删除该条');return false;}
-    state.inFlight=null;
-    move(id,0);
-    item.state='waiting';state.inFlight=flight;
-    state.phase='waiting';state.forceId=id;state.reason='';idleSince=null;emit();return true;
+    if(stopped!==true){markUnknown('停止动作结果未知，请核对原对话后删除该条');return false;}
+    // Keep the flight installed while reordering, including during change callbacks.
+    items.splice(items.indexOf(item),1);items.unshift(item);
+    item.state='waiting';
+    state.phase='waiting';state.forceId=item.id;state.reason='';idleSince=null;emit();return true;
   }
   function failBeforeClick(item,why) {
     item.state='queued';state.phase='waiting';
@@ -105,8 +111,8 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     state.inFlight=null;idleSince=null;emit();
   }
   function startSubmit(snap,item) {
-    if(snap.rich || snap.draft!==''){
-      failBeforeClick(item,'原生草稿或附件非空，未准备待发内容');return;
+    if(snap.busy || !snap.idle || snap.rich || snap.composing || snap.draft!==''){
+      failBeforeClick(item,'原生草稿、附件、输入法或回复状态不允许准备待发内容');return;
     }
     item.state='sending';state.phase='sending';
     state.inFlight={item,phase:'preparing',started:clock(),before:{
@@ -148,9 +154,18 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     if(state.inFlight?.phase==='await-stop') {
       if(!canSubmit){idleSince=null;return;}
       if(snap.busy||!snap.idle){idleSince=null;return;}
+      // Stopping does not waive the exact-turn/history proof for our prior send.
+      // In particular, an older completed answer cannot release this flight.
+      if(state.answerGate && (!snap.answerComplete ||
+        typeof site.replyComplete!=='function' ||
+        site.replyComplete(state.answerGate.before,state.answerGate.confirmedUser,snap)!==true)){
+        idleSince=null;return;
+      }
+      if(snap.rich || snap.composing || snap.draft!==''){idleSince=null;return;}
       if(idleSince===null)idleSince=t;
       if(t-idleSince<IDLE_MS)return;
       const item=state.inFlight.item;state.inFlight=null;state.forceId=null;
+      state.answerGate=null;
       startSubmit(snap,item);return;
     }
     if(state.inFlight?.phase==='await-native-ready') {

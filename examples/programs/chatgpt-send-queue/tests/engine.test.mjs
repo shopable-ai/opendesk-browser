@@ -12,8 +12,9 @@ function fixture() {
   const site={
     normal:x=>String(x??'').trim(),
     inspect:()=>state.changed?{ok:false,reason:'目标网页已变化'}:{
-      ok:true,route:state.route,busy:state.busy,idle:!state.busy,
-      rich:false,draft:state.draft,stopButton:{},answerComplete:state.complete,
+      ok:true,route:state.route,busy:state.busy,idle:state.idle??!state.busy,
+      rich:!!state.rich,composing:!!state.composing,draft:state.draft,
+      stopButton:state.noStop?null:{},answerComplete:state.complete,
       users:nodes(userNodes,state.users),assistants:nodes(assistantNodes,state.answers)},
     prepare:(text,snapshot)=>{
       assert.equal(snapshot.route,state.route);
@@ -21,7 +22,7 @@ function fixture() {
       state.preparedTexts.push(text);
       return {ok:true,token:{text,route:snapshot.route,before:{
         route:snapshot.route,assistantCount:state.answers,
-        users:snapshot.users,assistants:snapshot.assistants
+        users:snapshot.users,assistants:snapshot.assistants,history:snapshot.history
       }}};
     },
     commit:token=>{
@@ -294,6 +295,176 @@ function confirmFirst(f) {
   const snapshot=f.site.inspect();
   f.step(2200,{ack:true,users:f.state.users+1});
   return snapshot;
+}
+
+test('requestNow stops the queued prior reply and sends the selected nonhead item exactly once',()=>{
+  const f=fixture(),{state,engine,step}=f;
+  confirmFirst(f);
+  engine.enqueue('selected',state.route);
+  step(2300,{ack:false,busy:true,complete:false,answers:2});
+  const gate=engine.view().answerGate;
+  assert.deepEqual(engine.requestNow('q3'),{ok:true});
+  assert.equal(state.stops,1);
+  assert.deepEqual(engine.view().inFlight,{id:'q3',phase:'await-stop'});
+  assert.equal(engine.view().answerGate,gate,'stop alone must not clear the old gate');
+  assert.deepEqual(engine.view().items.map(item=>item.id),['q3','q2']);
+  assert.equal(engine.requestNow('q2').ok,false);
+  step(3500,{complete:true});
+  assert.equal(state.prepareCount,1,'completed marker while busy cannot release stop');
+  step(3600,{busy:false});step(4600);
+  assert.equal(state.prepareCount,1);
+  step(4700,{busy:true});step(4800,{busy:false});step(5800);
+  assert.equal(state.prepareCount,1,'busy resets the real idle observation');
+  step(5900);
+  assert.equal(state.prepareCount,2);
+  assert.equal(engine.view().answerGate,null);
+  assert.equal(engine.view().inFlight.phase,'await-native-ready');
+  assert.equal(engine.requestNow('q3').ok,false);
+  step(6000);
+  assert.equal(engine.view().inFlight.phase,'await-confirm');
+  assert.equal(engine.requestNow('q2').ok,false);
+  step(6100,{ack:true,users:2});
+  assert.equal(engine.view().lastConfirmed,'q3');
+  step(6200,{ack:false});step(7500);step(9000);
+  assert.deepEqual(state.committedTexts,['first','selected']);
+  assert.equal(state.stops,1);
+  assert.ok(engine.view().answerGate,'stopped reply completion cannot release the newly sent turn');
+});
+
+for(const patch of [{draft:' '},{rich:true},{composing:true},{route:'c/elsewhere'},
+  {changed:true},{noStop:true},{users:2}]) {
+  test(`requestNow cannot stop through an unsafe snapshot ${JSON.stringify(patch)}`,()=>{
+    const f=fixture();confirmFirst(f);
+    f.step(2300,{ack:false,busy:true,complete:false,answers:2,...patch});
+    const before=f.engine.view();
+    assert.equal(f.engine.requestNow('q2').ok,false);
+    assert.deepEqual(f.engine.view(),before);
+    assert.deepEqual([f.state.stops,f.state.prepareCount,f.state.clicks],[0,1,1]);
+  });
+}
+
+for(const field of ['draft','rich','composing']) {
+  test(`idle requestNow preflight rejects ${field} without reordering or sending`,()=>{
+    const {state,engine}=fixture();
+    engine.enqueue('first',state.route);engine.enqueue('selected',state.route);
+    Object.assign(state,{busy:false,complete:true,[field]:field==='draft'?' ':true});
+    const before=engine.view();
+    assert.equal(engine.requestNow('q2').ok,false);
+    assert.deepEqual(engine.view(),before);
+    assert.deepEqual([state.stops,state.prepareCount,state.clicks],[0,0,0]);
+  });
+
+  test(`force-stop waits for ${field} protection to clear and observes fresh idle`,()=>{
+    const f=fixture();confirmFirst(f);
+    f.step(2300,{ack:false,busy:true,complete:false,answers:2});
+    assert.equal(f.engine.requestNow('q2').ok,true);
+    f.step(2400,{busy:false,complete:true,[field]:field==='draft'?' ':true});
+    f.step(4000);
+    assert.equal(f.state.prepareCount,1);
+    assert.equal(f.engine.view().inFlight.phase,'await-stop');
+    f.step(4100,{[field]:field==='draft'?'':false});f.step(5100);
+    assert.equal(f.state.prepareCount,1);
+    f.step(5200);f.step(5300);
+    assert.deepEqual(f.state.committedTexts,['first','second']);
+  });
+}
+
+for(const blocked of ['old answer','wrong turn','verifier missing','not idle','submission unavailable']) {
+  test(`force-stop cannot pass ${blocked} and times out unknown`,()=>{
+    const f=fixture();confirmFirst(f);
+    f.step(2300,{ack:false,busy:true,complete:false});
+    assert.equal(f.engine.requestNow('q2').ok,true);
+    if(blocked==='verifier missing')delete f.site.replyComplete;
+    const patch={busy:false,complete:true,answers:blocked==='old answer'?1:2};
+    if(blocked==='wrong turn')patch.users=2;
+    if(blocked==='not idle')patch.idle=false;
+    const options={canSubmit:blocked!=='submission unavailable'};
+    f.step(2400,patch,options);f.step(4000,{},options);
+    assert.equal(f.state.prepareCount,1);
+    assert.ok(f.engine.view().answerGate);
+    f.step(14301,{},options);
+    assert.equal(f.engine.view().phase,'unknown');
+    assert.equal(f.engine.requestNow('q2').ok,false);
+    assert.equal(f.engine.confirmForceStop('q2'),false);
+    f.step(16000,{users:1,answers:2,idle:true});
+    assert.deepEqual([f.state.prepareCount,f.state.clicks,f.state.stops],[1,1,1]);
+  });
+}
+
+for(const throws of [false,true]) {
+  test(`requestNow stop ${throws?'throw':'false'} locks the selected item unknown`,()=>{
+    const f=fixture();confirmFirst(f);
+    f.step(2300,{ack:false,busy:true,complete:false,answers:2,failStop:true,throwStop:throws});
+    assert.equal(f.engine.requestNow('q2').ok,false);
+    assert.deepEqual(f.engine.view().inFlight,{id:'q2',phase:'unknown'});
+    f.step(2400,{busy:false,complete:true});f.step(4000);
+    assert.equal(f.engine.requestNow('q2').ok,false);
+    assert.deepEqual([f.state.prepareCount,f.state.clicks,f.state.stops],[1,1,1]);
+  });
+}
+
+test('requestNow also stops a busy external reply without a second confirmation',()=>{
+  const {state,engine,step}=fixture();
+  engine.enqueue('selected',state.route);
+  assert.deepEqual(engine.requestNow('q1'),{ok:true});
+  step(100,{busy:false,complete:true});step(1200);step(1300);
+  assert.deepEqual([state.stops,state.prepareCount,state.clicks],[1,1,1]);
+});
+
+test('requestNow cannot interrupt synchronous preparing or replace its chosen flight',()=>{
+  const f=fixture();
+  f.engine.enqueue('first',f.state.route);f.engine.enqueue('second',f.state.route);
+  f.site.prepare=(...args)=>{
+    assert.equal(f.engine.view().inFlight.phase,'preparing');
+    assert.equal(f.engine.requestNow('q2').ok,false);
+    return f.defaults.prepare(...args);
+  };
+  f.step(100,{busy:false,complete:true});f.step(1200);f.step(1300);
+  assert.equal(f.engine.requestNow('q2').ok,false);
+  assert.deepEqual(f.state.committedTexts,['first']);
+  assert.equal(f.state.stops,0);
+});
+
+for(const historyChange of ['detached prefix','connected prefix missing','tail replaced','all anchors lost']) {
+  test(`force-stop retains real r6 reply identity checks (${historyChange})`,()=>{
+    const f=fixture();
+    const u0={isConnected:true},a0={isConnected:true},u1={isConnected:true},a1={isConnected:true};
+    const confirmed={isConnected:true,compareDocumentPosition:()=>4},reply={isConnected:true};
+    let users=[u0,u1],assistants=[a0,a1],history=[u0,a0,u1,a1];
+    const inspect=f.site.inspect;
+    f.site.inspect=()=>({...inspect(),users,assistants,history});
+    // Use the production verifier, including exact nodes, order and detached-prefix rules.
+    f.site.replyComplete=createChatGPTSite({doc:{},win:{}}).replyComplete;
+    f.engine.enqueue('first',f.state.route);f.engine.enqueue('second',f.state.route);
+    f.step(100,{busy:false,complete:true});f.step(1200);f.step(1300);
+    users=[u0,u1,confirmed];history=[u0,a0,u1,a1,confirmed];
+    f.step(1400,{ack:true});
+    assistants=[a0,a1,reply];history=[...history,reply];
+    f.step(1500,{ack:false,busy:true,complete:false});
+    assert.equal(f.engine.requestNow('q2').ok,true);
+    if(historyChange==='detached prefix'){
+      u0.isConnected=false;a0.isConnected=false;
+      users=[u1,confirmed];assistants=[a1,reply];history=[u1,a1,confirmed,reply];
+    }else if(historyChange==='connected prefix missing'){
+      users=[u1,confirmed];assistants=[a1,reply];history=[u1,a1,confirmed,reply];
+    }else if(historyChange==='tail replaced'){
+      const replacement={isConnected:true};
+      users=[u0,replacement,confirmed];history=[u0,a0,replacement,a1,confirmed,reply];
+    }else{
+      for(const node of [u0,a0,u1,a1])node.isConnected=false;
+      users=[confirmed];assistants=[reply];history=[confirmed,reply];
+    }
+    f.step(1600,{busy:false,complete:true});f.step(2700);f.step(2800);
+    if(historyChange==='detached prefix'){
+      assert.deepEqual(f.state.committedTexts,['first','second']);
+      assert.equal(f.engine.view().inFlight.phase,'await-confirm');
+    }else{
+      assert.deepEqual(f.state.committedTexts,['first']);
+      assert.equal(f.engine.view().inFlight.phase,'await-stop');
+      f.step(13501);
+      assert.equal(f.engine.view().phase,'unknown');
+    }
+  });
 }
 
 test('another user turn cannot release the confirmed message reply gate',()=>{
