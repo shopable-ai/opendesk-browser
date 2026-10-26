@@ -6,19 +6,16 @@
       <button type="button" id="mdw-copy" class="od-icon-button" title="复制 Markdown 原文" aria-label="复制 Markdown 原文"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg></button>
     </div>
     <button type="button" id="mdw-download" class="od-button" title="请求浏览器下载 Markdown 文件">下载 .md</button>
-    <details class="mdw-menu od-disclosure od-disclosure--flat">
-      <summary aria-label="更多文件操作">更多</summary>
-      <div class="mdw-menu-actions"><button type="button" id="mdw-clear" class="od-button od-button--danger" title="清空全部内容">清空编辑区</button></div>
-    </details>
-  </header>
-  <div id="mdw-inline-review" class="mdw-inline-review" role="group" aria-label="内容替换确认" hidden>
-    <p id="mdw-review-text"></p>
-    <div class="mdw-inline-review-actions od-toolbar">
-      <button type="button" id="mdw-review-cancel" class="od-button od-button--secondary">取消</button>
-      <button type="button" id="mdw-review-confirm" class="od-button od-button--danger">继续操作</button>
+    <button type="button" id="mdw-clear" class="od-icon-button mdw-clear" title="清空编辑区" aria-label="清空编辑区" aria-haspopup="dialog" aria-controls="mdw-inline-review" aria-expanded="false" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m-9 0 1 13h10l1-13M10 11v5m4-5v5"/></svg></button>
+    <div id="mdw-inline-review" class="mdw-inline-review" role="dialog" aria-modal="false" aria-labelledby="mdw-review-text" hidden>
+      <p id="mdw-review-text"></p>
+      <div class="mdw-inline-review-actions od-toolbar">
+        <button type="button" id="mdw-review-cancel" class="od-button od-button--secondary">取消</button>
+        <button type="button" id="mdw-review-confirm" class="od-button od-button--danger">继续操作</button>
+      </div>
     </div>
-  </div>
-  <div class="mdw-modes" role="group" aria-label="编辑视图">
+  </header>
+  <div class="mdw-modes od-segmented" role="group" aria-label="编辑视图">
     <button type="button" class="od-button od-button--secondary" data-mode="edit" aria-pressed="true">编辑</button>
     <button type="button" class="od-button od-button--quiet" data-mode="preview" aria-pressed="false">预览</button>
     <button type="button" class="od-button od-button--quiet" data-mode="split" aria-pressed="false">分栏</button>
@@ -33,6 +30,5 @@
       <div class="mdw-preview" id="mdw-preview" role="document" aria-label="Markdown 安全预览"></div>
     </section>
   </div>
-  <p class="mdw-status" id="mdw-status" role="status" aria-live="polite">仅当前会话编辑；离开前请下载文件。</p>
-  <span class="mdw-save-state" id="mdw-state" aria-live="polite">尚未下载</span>
+  <p class="mdw-status" id="mdw-status" role="status" aria-live="polite">内容仅在当前会话，离开前请下载 .md 文件。</p>
 </main>
