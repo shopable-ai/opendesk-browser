@@ -88,12 +88,42 @@ jobs:
             echo 'No package delta to commit'
             exit 0
           fi
-          git fetch origin main
-          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
-            echo '::error::main advanced during build; preserve concurrent changes, do not publish stale package'
-            exit 1
-          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          original_head="$(git rev-parse HEAD)"
           git commit -m 'build(ai-scroll): publish verified 0.4.2/r3 install package'
-          git push origin HEAD:refs/heads/main
+          # The runner owns only its unpublished package commit. A busy main
+          # is safe to follow iff all build inputs and the two output files are
+          # byte-identical to the source revision used to produce this package.
+          for attempt in 1 2 3; do
+            git fetch origin main
+            latest="$(git rev-parse origin/main)"
+            if git merge-base --is-ancestor HEAD "$latest"; then
+              echo 'Verified package commit already reached main'
+              exit 0
+            fi
+            if [ "$original_head" != "$latest" ]; then
+              if ! git merge-base --is-ancestor "$original_head" "$latest"; then
+                echo '::error::main history diverged; refusing package push'
+                exit 1
+              fi
+              if ! git diff --quiet "$original_head" "$latest" -- \
+                examples/programs/chatgpt-jump-top/src \
+                examples/programs/chatgpt-jump-top/package.json \
+                examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json \
+                official-pages/sources.json \
+                scripts/build-program-project.mjs scripts/build-page-install-package.mjs \
+                src/scripting/user-scripts; then
+                echo '::error::package sources or destination changed on main; requires new build'
+                exit 1
+              fi
+              git rebase --onto "$latest" "$original_head"
+              original_head="$latest"
+            fi
+            if git push origin HEAD:refs/heads/main; then
+              exit 0
+            fi
+            echo "::warning::package push attempt $attempt failed; refreshing main without force"
+          done
+          echo '::error::package push failed after safe attempts'
+          exit 1
