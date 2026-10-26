@@ -329,6 +329,19 @@ for(const cancel of ['sidebar-tool-import-close','picker-cancel','empty-change',
   gate.resolve(JSON.stringify(draft));await tick();await tick();unchanged(f);
 });
 
+test('file review shows progress and clears it after the selected package is verified',async t=>{
+  const f=await fixture(t),gate=deferred();
+  f.select(app,{name:'pending.opendesk-tool.json',text:()=>gate.promise});
+  assert.equal(f.get('page-install-import-status').hidden,false);
+  assert.equal(f.get('page-install-import-status').attributes['data-state'],'reviewing');
+  assert.equal(f.get('sidebar-tool-install').disabled,true);
+  gate.resolve(JSON.stringify(app));
+  await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  await settle(()=>f.get('page-install-import-status').hidden);
+  assert.equal(f.get('page-install-import-status').attributes['data-state'],null);
+  assert.equal(f.get('sidebar-tool-install').disabled,false);
+});
+
 test('a newer App selection survives older Page success or malformed JSON receipts',async t=>{
   const draft=await pageDraft(),f=await fixture(t),first=deferred(),second=deferred();
   f.select(draft,{text:()=>first.promise});f.select('{invalid',{text:()=>second.promise});
