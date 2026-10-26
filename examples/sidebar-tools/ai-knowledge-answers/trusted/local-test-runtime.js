@@ -73,7 +73,12 @@ export function createLocalKnowledgeTestRuntime({
          throw fail('E_KB_STALE','合成草稿已经失效');
      }
      if(record.status==='ANSWERED_FIXED'){
-       const current=model.lookup(library,{question:record.question,scope:record.scope});
+       // The planner strips harmless polite prefixes ("请问") before exact
+       // lookup. Revalidate that same verified single intent, not the raw
+       // customer sentence, while keeping the original DOM message ID.
+       if(replanned.hasGreeting||replanned.parts.length!==1)
+         throw fail('E_KB_STALE','原固定问答拆分发生变化');
+       const current=model.lookup(library,{question:replanned.parts[0].question,scope:record.scope});
        if(current.status!=='ANSWERED_FIXED'||current.answer!==record.answer||
          current.sourceIds.join('|')!==sourceIds.join('|'))
          throw fail('E_KB_STALE','固定答案规则已变化');
