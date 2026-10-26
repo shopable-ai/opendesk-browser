@@ -11,8 +11,8 @@ import {JQUERY_371,loadPackagedJquery} from './packaged-dependencies.js';
 import {loadBuiltinPageSource,loadPackagedOptionalPageLibraries} from '../../libs/loader.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 import {pageInstallScope,pageInstallScopeDelta,pageHostPermissionOrigins,assertPageInstallAuthorization,pageInstallAffectedByRemoval} from './page-install-authorization.js';
-import {buildScrollSiteUpgradePackage} from './scroll-site-upgrade.js';
-import {SCROLL_CONFIG_PROGRAM_ID,SCROLL_CONFIG_MIN_REVISION,SCROLL_CONFIG_EMPTY,normalizeScrollConfig} from './scroll-config-contract.js';
+import {buildScrollSiteUpgradePackage,scrollSiteRevision} from './scroll-site-upgrade.js';
+import {SCROLL_CONFIG_PROGRAM_ID,SCROLL_CONFIG_MIN_REVISION,SCROLL_CONFIG_EMPTY,normalizeScrollConfig,scrollSiteInstallMatches,scrollProgramUrlMatches} from './scroll-config-contract.js';
 import {pageProgramUrlMatches} from './page-program-rules.js';
 import {PAGE_FRAME_ACTION} from './page-frame-runtime.js';
 // Reuse exact literals within the fixed privileged bundle budget.
@@ -36,6 +36,36 @@ const fields=(value,allowed,required=allowed)=>invariant(value&&typeof value==='
 const identityFields=['builtinIdentity','candidateId','namespace','manifestHash','runtimeKind','entryFormat','programId','revision',
   'sourceHash','dependencyLockId','dependencyManifestDigest','approvedPageRules'];
 const equal=(a,b)=>canonical(a)===canonical(b);
+function installedURLMatches(row,href){
+  return row.programId===SCROLL_CONFIG_PROGRAM_ID?scrollProgramUrlMatches(row.pageRules,href):
+    pageProgramUrlMatches(row.pageRules,href);
+}
+// Prove the entire segment prefix, including query URLs and descendants.
+// Unsupported glob shapes are deliberately not treated as authorization proof.
+function scrollConfigScopeCovered(rules,site){
+  let required;try{required=scrollSiteInstallMatches(site.origin,site.pathScope);}catch{return false;}
+  const path=pattern=>/^(https?|\*):\/\/([^/]+)(\/.*)$/.exec(pattern);
+  const onOrigin=pattern=>{
+    const m=path(pattern);
+    return m&&pageProgramUrlMatches({...rules,matches:[m[1]+'://'+m[2]+'/*'],excludeMatches:[]},site.origin+'/');
+  };
+  const prefix=value=>value.split('*')[0];
+  return required.every(target=>{
+    const wanted=path(target)[3];
+    return rules.matches.some(pattern=>{
+      const m=path(pattern);
+      if(!m||m[1]==='*'||m[2].includes('*')||!onOrigin(pattern)||
+        new URL(m[1]+'://'+m[2]).origin!==site.origin)return false;
+      const allowed=m[3];
+      return allowed===wanted||allowed.endsWith('*')&&allowed.indexOf('*')===allowed.length-1&&
+        prefix(wanted).startsWith(prefix(allowed));
+    })&&!rules.excludeMatches.some(pattern=>{
+      if(!onOrigin(pattern))return false;
+      const excluded=prefix(path(pattern)[3]),wantedPrefix=prefix(wanted);
+      return excluded.startsWith(wantedPrefix)||wantedPrefix.startsWith(excluded);
+    });
+  });
+}
 function identity(candidate){
   const m=candidate.manifest;
   return {builtinIdentity:candidate.builtinIdentity,candidateId:candidate.candidateId,namespace:candidate.namespace,manifestHash:candidate.manifestHash,
@@ -160,14 +190,17 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       'E_PAGE_INSTALLATION','安装记录不属于此固定版本');
     if(!legacy)assertPageInstallAuthorization(row);
     const {compiled}=await registration(candidate,resolution,proof);
+    return {candidate,resolution,marker:'__opendesk_page_boot_'+row.token,script:await nativeDescriptor(row,compiled)};
+  }
+  async function nativeDescriptor(row,rules){
     const nativeId=PREFIX+(await digest([namespace,row.programId])).slice(0,48);
     invariant(row.nativeId===nativeId,'E_PAGE_INSTALLATION','安装的原生注册身份已改变');
     const marker='__opendesk_page_boot_'+row.token;
     const message={protocol:PAGE_BOOT_PROTOCOL,nativeId,token:row.token};
-    return {candidate,resolution,marker,script:{id:nativeId,matches:compiled.matches,excludeMatches:compiled.excludeMatches,
-      runAt:compiled.runAt,allFrames:false,world:'USER_SCRIPT',worldId:PAGE_BOOT_WORLD,
+    return {id:nativeId,matches:rules.matches,excludeMatches:rules.excludeMatches,
+      runAt:rules.runAt,allFrames:false,world:'USER_SCRIPT',worldId:PAGE_BOOT_WORLD,
       js:[{code:'const '+marker+' = '+JSON.stringify(row.token)+';\n'+
-        'chrome.runtime.sendMessage('+JSON.stringify(message)+').catch(error=>console.error("[OpenDesk Page bootstrap]",error));'}]}};
+        'chrome.runtime.sendMessage('+JSON.stringify(message)+').catch(error=>console.error("[OpenDesk Page bootstrap]",error));'}]};
   }
   async function importPageInstallPackage(request,sender){
     fields(request,['package','expectedInstalledManifestHash','expectedGeneration']);
@@ -313,7 +346,29 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
         await tx.put(PAGE_STORE,row,installKey);
       });
       await reconcileOne(row);
-      return publicInstall(await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId))));
+      const confirmed=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId)));
+      if(previous&&(confirmed?.error||!['registered','disabled'].includes(confirmed?.nativeState))){
+        // Retain the previous immutable version and config on upgrade failure.
+        // Rotate the failed generation before restoring only its old bootstrap;
+        // no program source or unknown execution is replayed. A failed native
+        // rollback remains explicitly blocked under the original installation.
+        const failure=confirmed?.error??{code:PAGE_UNKNOWN_ERROR,message:'新安装的原生注册未确认'};
+        const rollback={...previous,token:crypto.randomUUID().replaceAll('-',''),nativeState:'pending',error:null,
+          authorization:{...previous.authorization,generation:(confirmed?.authorization?.generation??row.authorization.generation)+1}};
+        // Internal compensation is independent of the review Host lifetime.
+        // Only the unchanged failed grant may be restored, never a revoked one.
+        const restored=await storage.transaction([PAGE_STORE],PAGE_WRITE,async tx=>{
+          const installKey=key(INSTALL_KEY_KIND,namespace,row.programId),current=await tx.get(PAGE_STORE,installKey);
+          if(current?.token!==row.token||current.manifestHash!==row.manifestHash||
+            current.authorization?.installationId!==row.authorization.installationId||
+            current.authorization?.generation!==row.authorization.generation||
+            current.authorization?.status!==row.authorization.status||permissionEpoch(row)!==epoch)return false;
+          await tx.put(PAGE_STORE,rollback,installKey);return true;
+        });
+        if(restored)await reconcileOne(rollback);
+        throw new FoundationError(failure.code,failure.message);
+      }
+      return publicInstall(confirmed);
     });
   }
   async function setInstalledPageEnabled(request,sender){
@@ -332,7 +387,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
         invariant(!previous?.managedCleanup||previous.managedCleanup.state==='retired',
           'E_PAGE_CLEANUP_PENDING','旧安装受管界面清理待确认，不能直接恢复执行');
         await descriptor(previous);
-        invariant(await api.permissions.contains({origins:previous.pageRules.matches}),PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
+        invariant(await api.permissions.contains({origins:pageHostPermissionOrigins(previous.pageRules.matches)}),PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
       }
       await scoped(sender,PAGE_WRITE,async tx=>{
         const installKey=key(INSTALL_KEY_KIND,namespace,request.programId),old=await tx.get(PAGE_STORE,installKey);
@@ -578,13 +633,16 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     invariant(registered.length===1&&nativeEqual(registered[0],desired.script),
       'E_PAGE_AUTHORIZATION','尚未确认 Chrome 原生注册内容');
     const {candidate}=await material(row.programId,row.revision);
-    const rows=await scoped(sender,'readonly',tx=>tx.all(PAGE_STORE));
-    const revisions=rows.filter(item=>item?.tag==='page-candidate-v1'&&
-      item.namespace===namespace&&item.manifest?.programId===SCROLL_CONFIG_PROGRAM_ID)
-      .map(item=>item.manifest.revision);
-    const revision=1+Math.max(row.revision,...revisions);
+    const revision=await scrollSiteRevision(row.manifestHash,[...row.pageRules.matches,
+      ...scrollSiteInstallMatches(request.origin,request.pathScope)]);
     const pkg=await buildScrollSiteUpgradePackage({installed:row,candidate,
       origin:request.origin,pathScope:request.pathScope,revision});
+    const rows=await scoped(sender,'readonly',tx=>tx.all(PAGE_STORE));
+    const occupied=rows.find(item=>item?.tag==='page-candidate-v1'&&item.namespace===namespace&&
+      item.manifest?.programId===row.programId&&item.manifest.revision===revision);
+    invariant(!occupied||(occupied.sourceUtf8===pkg.sourceUtf8&&
+      canonical(occupied.manifest.pageRules)===canonical(pkg.pageRules)),
+      PAGE_REVISION_ERROR,'网站候选修订身份冲突；保留原安装，请重新核对');
     const fresh=await scoped(sender,'readonly',tx=>tx.get(PAGE_STORE,
       key(INSTALL_KEY_KIND,namespace,SCROLL_CONFIG_PROGRAM_ID)));
     invariant(fresh?.token===row.token&&fresh.manifestHash===row.manifestHash&&
@@ -597,19 +655,22 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     fields(request,[]);
     // Observe Chrome outside the transaction; then read current Host/install
     // authority so a concurrent disable cannot be replaced by an old snapshot.
-    let registered=new Set(),nativeError;
-    try{registered=new Set((await readNativeUserScripts(api)).map(row=>row.id));}
+    let registered=new Map(),nativeError;
+    try{registered=new Map((await readNativeUserScripts(api)).map(row=>[row.id,row]));}
     catch(error){nativeError={code:error.code,message:error.message};}
     return scoped(sender,'readonly',async tx=>{
-      const rows=await tx.all(PAGE_STORE),installed=rows.filter(r=>r?.tag===PAGE_INSTALL_TAG&&r.namespace===namespace).map(row=>{
+      const rows=await tx.all(PAGE_STORE),installed=await Promise.all(rows.filter(r=>r?.tag===PAGE_INSTALL_TAG&&r.namespace===namespace).map(async row=>{
         // Readback only downgrades the public projection, never restores a
         // blocked grant or repairs registrations, source, locks or stored state.
         if(row.nativeState!=='registered')return row;
         if(!row.enabled)return {...row,nativeState:'disabled',error:null};
-        const error=nativeError??(!registered.has(row.nativeId)
-          ?{code:'E_PAGE_INSTALLATION',message:'原生注册不存在，请主动核对安装状态'}:null);
+        let error=nativeError;
+        if(!error)try{
+          invariant(nativeEqual(registered.get(row.nativeId),await nativeDescriptor(row,row.pageRules)),
+            'E_PAGE_INSTALLATION','原生注册内容不一致，请主动核对安装状态');
+        }catch(cause){error={code:cause.code,message:cause.message};}
         return error?{...row,nativeState:'blocked',error}:row;
-      });
+      }));
       const catalog=rows.filter(r=>r?.tag==='page-candidate-v1'&&r.namespace===namespace).map(row=>{
         const proof=rows.find(p=>p?.tag==='page-verification-v1'&&p.namespace===namespace&&p.candidateId===row.candidateId&&p.manifestHash===row.manifestHash);
         return {candidateId:row.candidateId,programId:row.manifest.programId,revision:row.manifest.revision,
@@ -627,10 +688,17 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     invariant(message.protocol===PAGE_BOOT_PROTOCOL&&sender?.id===api.runtime.id&&sender.frameId===0&&
       typeof sender.documentId==='string'&&Number.isSafeInteger(sender.tab?.id)&&!sender.tab.incognito,
       'E_OWNER','仅真实顶层 USER_SCRIPT 引导消息可触发安装脚本');
-    const row=await read(async tx=>(await tx.all(PAGE_STORE)).find(r=>r?.tag===PAGE_INSTALL_TAG&&
+    const lookup=()=>read(async tx=>(await tx.all(PAGE_STORE)).find(r=>r?.tag===PAGE_INSTALL_TAG&&
       r.namespace===namespace&&r.nativeId===message.nativeId&&r.token===message.token&&r.enabled));
+    let row=await lookup();
+    // Only an active pending registration may wait for its installation.
+    // Disable/revocation must reject immediately, even during slow unregister.
+    if(row?.nativeState==='pending'&&active(row)){
+      await mutations;
+      row=await lookup();
+    }
     invariant(row,PAGE_PERMISSION_ERROR,'页面脚本未安装、已停用或引导身份已过期');
-    invariant(active(row),PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
+    invariant(active(row)&&row.nativeState==='registered'&&!row.error,PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
     const epoch=permissionEpoch(row),dependencyEpoch=removals.length;
     await requireSiteGrant(row);
     const desired=await descriptor(row),native=await nativeAPI();
@@ -641,7 +709,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       tab.url===frame.url&&sender.url===frame.url&&!tab.pendingUrl&&!tab.incognito,'E_DOCUMENT_STALE','自动执行文档已经改变');
     httpUrl(frame.url);
     // A pushState URL can change while the native document bootstrap marker survives.
-    invariant(pageProgramUrlMatches(row.pageRules,frame.url),PAGE_PERMISSION_ERROR,
+    invariant(installedURLMatches(row,frame.url),PAGE_PERMISSION_ERROR,
       '当前网页 URL 已离开安装范围或进入排除路径');
     const registered=await native.getScripts({ids:[row.nativeId]});
     invariant(registered.length===1&&nativeEqual(registered[0],desired.script),PAGE_PERMISSION_ERROR,'此安装的原生引导已经改变');
@@ -840,7 +908,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
         (!frame.documentLifecycle||frame.documentLifecycle==='active')&&
         tab?.url===frame.url&&!tab.pendingUrl&&!tab.incognito&&
         new URL(sender.url).origin===new URL(frame.url).origin&&
-        pageProgramUrlMatches(row.pageRules,frame.url),'E_DOCUMENT_STALE','网页已离开批准范围');
+        installedURLMatches(row,frame.url),'E_DOCUMENT_STALE','网页已离开批准范围');
       const registered=await (await nativeAPI()).getScripts({ids:[row.nativeId]});
       invariant(registered.length===1&&nativeEqual(registered[0],desired.script),
         'E_PAGE_AUTHORIZATION','原生安装注册内容已经改变');
@@ -855,16 +923,20 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       const value=normalizeScrollConfig(message.value);
       // Config is merely CSS data. A saved rule cannot enlarge frozen pageRules,
       // create an installation, change a grant or revive a disabled Program.
-      for(const site of value.sites){
-        invariant(pageProgramUrlMatches(row.pageRules,site.origin+site.pathScope),
-          'E_PAGE_AUTHORIZATION','该网站未获安装或升级审阅授权');
-      }
       const saved=await storage.transaction([PAGE_STORE],PAGE_WRITE,async tx=>{
         const current=await tx.get(PAGE_STORE,installKey);
         invariant(current?.token===row.token&&current.manifestHash===row.manifestHash&&
           current.authorization?.generation===row.authorization.generation&&active(current)&&
           permissionEpoch(row)===epoch,'E_PAGE_AUTHORIZATION','配置提交前安装权限已改变');
         const old=await tx.get(PAGE_STORE,configKey);
+        for(const site of value.sites){
+          // A scope contraction keeps dormant user data. Carrying it unchanged
+          // or deleting it grants nothing; editing or adding it still requires
+          // the current immutable installation scope.
+          invariant(scrollConfigScopeCovered(row.pageRules,site)||
+            old?.value.sites.some(previous=>equal(previous,site)),
+            'E_PAGE_AUTHORIZATION','该网站未获安装或升级审阅授权');
+        }
         if(old&&equal(old.value,value))return snapshot(old); // idempotent retry
         invariant((old?.etag??'0')===message.etag,'E_CONFIG_CONFLICT',
           '网站规则已被其他窗口修改；请重新读取后合并，草稿仍保留');

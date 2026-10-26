@@ -10,10 +10,13 @@ import {assertUserScriptExecutable} from '../src/scripting/user-scripts/dependen
 import {resolvePageProgramRules} from '../src/scripting/user-scripts/page-program-rules.js';
 import {digest,invariant} from '../src/platform/protocol.js';
 import {PAGE_INSTALL_FORMAT,validatePageInstallPackage} from '../src/scripting/user-scripts/page-install-package.js';
+import {SCROLL_CONFIG_PROGRAM_ID,SCROLL_SITE_REVISION_BASE} from '../src/scripting/user-scripts/scroll-config-contract.js';
 
 export async function buildPageInstallPackage(draft,{revision,title}={}){
   draft=await validateProgramDraft(draft);
   invariant(draft.runtimeKind==='page-userscript','E_PAGE_KIND','仅支持 Page 编译草稿');
+  invariant(draft.project.id!==SCROLL_CONFIG_PROGRAM_ID||revision<SCROLL_SITE_REVISION_BASE,
+    'E_REVISION','官方导航冻结不得占用本地网站候选的修订区间');
   // Reuse the frozen compiler output byte for byte, including trailing LF and frames.
   const sourceUtf8=draft.sourceUtf8,entryFormat=inferPageEntryFormat(sourceUtf8);
   parse(sourceUtf8,{ecmaVersion:'latest',sourceType:'script'});

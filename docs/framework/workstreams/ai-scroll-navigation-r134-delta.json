@@ -1,0 +1,749 @@
+{
+  "taskId": "R1.3.4-REAL-DELTA-VERIFY-20261027",
+  "observedAt": "2026-10-26T17:05:18.475176+00:00",
+  "baseHead": "2cdc4387d98545bb1539c6222d83384f88506719",
+  "lastKnownRemote": "049d274e6f5a4e197a4c5e1366711dbba5f418f3",
+  "publication": "blocked",
+  "ci": {
+    "runId": 40351121223,
+    "status": "queued",
+    "headSha": "1c6fc80aaecc5254f1644d33655242498a1997c5"
+  },
+  "items": [
+    {
+      "taskId": "R134-01",
+      "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
+      "path": ".github/workflows/ai-scroll-navigation-r131.yml",
+      "existingCommit": "a184ee4bb4980a3db040a9c2bc9a339e1c58b5db",
+      "currentBlobSha": "5af350976a6225c89b10d10bc36eadbdb06c1b48",
+      "observedWorktreeBlobSha": "bfdbaab0e12f0c40842fef0072a064d54d766ced",
+      "historicalTestInputSha": null,
+      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "status": "ALREADY_DONE",
+      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "parallelOwner": "R134 leader",
+      "nextAction": "按门禁实证补验，不重做已通过功能",
+      "testedWorktreeBlobSha": "5af350976a6225c89b10d10bc36eadbdb06c1b48",
+      "nodeEvidence": "verification.node"
+    },
+    {
+      "taskId": "R134-02",
+      "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
+      "path": "examples/programs/chatgpt-jump-top/package.json",
+      "existingCommit": "e75abfc29c2c8fa4a6b1daabff15b174db1ab792",
+      "currentBlobSha": "790cf3ed7380733a15981dbaf53412f541351cf3",
+      "observedWorktreeBlobSha": "2fbeb7d90df6038663b3e9fcab4781c7f8f08551",
+      "historicalTestInputSha": null,
+      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "status": "ALREADY_DONE",
+      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "parallelOwner": "R134 leader",
+      "nextAction": "按门禁实证补验，不重做已通过功能",
+      "testedWorktreeBlobSha": "790cf3ed7380733a15981dbaf53412f541351cf3",
+      "nodeEvidence": "verification.node"
+    },
+    {
+      "taskId": "R134-03",
+      "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
+      "path": "examples/programs/chatgpt-jump-top/src/conversation.js",
+      "existingCommit": "ebd450a4bff79902c2eec5067dd5cb11ae87f635",
+      "currentBlobSha": "9961b0c072a953c4a05677826f4bc535cfa3d198",
+      "observedWorktreeBlobSha": "1f6926a94d0ea324100e9c48c411c0ea475bb674",
+      "historicalTestInputSha": null,
+      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "status": "ALREADY_DONE",
+      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "parallelOwner": "R134 leader",
+      "nextAction": "按门禁实证补验，不重做已通过功能",
+      "testedWorktreeBlobSha": "9961b0c072a953c4a05677826f4bc535cfa3d198",
+      "nodeEvidence": "verification.node"
+    },
+    {
+      "taskId": "R134-04",
+      "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
+      "path": "examples/programs/chatgpt-jump-top/src/site-adapters.js",
+      "existingCommit": "03f7cda72c5c2f19855ca4562e79a2407547ea70",
+      "currentBlobSha": "958ed081e671616e111116326f62520c9e16e345",
+      "observedWorktreeBlobSha": "958ed081e671616e111116326f62520c9e16e345",
+      "historicalTestInputSha": null,
+      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "status": "ALREADY_DONE",
+      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "parallelOwner": "R134 leader",
+      "nextAction": "按门禁实证补验，不重做已通过功能",
+      "testedWorktreeBlobSha": "958ed081e671616e111116326f62520c9e16e345",
+      "nodeEvidence": "verification.node"
+    },
+    {
+      "taskId": "R134-05",
+      "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
+      "path": "examples/programs/chatgpt-jump-top/src/floating-navigation.js",
+      "existingCommit": "e75abfc29c2c8fa4a6b1daabff15b174db1ab792",
+      "currentBlobSha": "b103d724642070b38e75946cb63ec89ae17c2551",
+      "observedWorktreeBlobSha": "b103d724642070b38e75946cb63ec89ae17c2551",
+      "historicalTestInputSha": null,
+      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "status": "ALREADY_DONE",
+      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "parallelOwner": "R134 leader",
+      "nextAction": "按门禁实证补验，不重做已通过功能",
+      "testedWorktreeBlobSha": "b103d724642070b38e75946cb63ec89ae17c2551",
+      "nodeEvidence": "verification.node"
+    },
+    {
+      "taskId": "R134-06",
+      "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
+      "path": "examples/programs/chatgpt-jump-top/src/main.js",
+      "existingCommit": "e75abfc29c2c8fa4a6b1daabff15b174db1ab792",
+      "currentBlobSha": "8aa1bf22f1f5339748414ab3da1f2d6ba7ebe399",
+      "observedWorktreeBlobSha": "8aa1bf22f1f5339748414ab3da1f2d6ba7ebe399",
+      "historicalTestInputSha": null,
+      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "status": "ALREADY_DONE",
+      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "parallelOwner": "R134 leader",
+      "nextAction": "按门禁实证补验，不重做已通过功能",
+      "testedWorktreeBlobSha": "8aa1bf22f1f5339748414ab3da1f2d6ba7ebe399",
+      "nodeEvidence": "verification.node"
+    },
+    {
+      "taskId": "R134-07",
+      "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
+      "path": "examples/programs/chatgpt-jump-top/src/site-configuration.js",
+      "existingCommit": "e75abfc29c2c8fa4a6b1daabff15b174db1ab792",
+      "currentBlobSha": "7ebcde07c77a0e5aca672a3ba7451e8c2a312a90",
+      "observedWorktreeBlobSha": "65544678061e883d42b8d38a57a6d8ffd3430a64",
+      "historicalTestInputSha": null,
+      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "status": "ALREADY_DONE",
+      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "parallelOwner": "R134 leader",
+      "nextAction": "按门禁实证补验，不重做已通过功能",
+      "testedWorktreeBlobSha": "7ebcde07c77a0e5aca672a3ba7451e8c2a312a90",
+      "nodeEvidence": "verification.node"
+    },
+    {
+      "taskId": "R134-08",
+      "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
+      "path": "examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json",
+      "existingCommit": "40df7100cd8ea4331d509adc1f14092015ac77fa",
+      "currentBlobSha": "51a9bdb087e306d311f0750f38a65b8b51edb692",
+      "observedWorktreeBlobSha": "589a75e0ed527427950345c658b688ce90ea8fee",
+      "historicalTestInputSha": null,
+      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "status": "ALREADY_DONE",
+      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "parallelOwner": "R134 leader",
+      "nextAction": "按门禁实证补验，不重做已通过功能",
+      "testedWorktreeBlobSha": "51a9bdb087e306d311f0750f38a65b8b51edb692",
+      "nodeEvidence": "verification.node"
+    },
+    {
+      "taskId": "R134-09",
+      "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
+      "path": "official-pages/sources.json",
+      "existingCommit": "98e7fcc5e934813a8f9a5ec4185a85c7953c6236",
+      "currentBlobSha": "b59a50811e0190891d2271cb528263f51edc9bf2",
+      "observedWorktreeBlobSha": "78e32f5dd0f5ce141d583fe856867093c997f4be",
+      "historicalTestInputSha": null,
+      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "status": "ALREADY_DONE",
+      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "parallelOwner": "R134 leader",
+      "nextAction": "按门禁实证补验，不重做已通过功能",
+      "testedWorktreeBlobSha": "234badcabc56c2ddb527247dd981530d4689bea2",
+      "nodeEvidence": "verification.node"
+    },
+    {
+      "taskId": "R134-10",
+      "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
+      "path": "src/scripting/user-scripts/scroll-site-upgrade.js",
+      "existingCommit": "1c6fc80aaecc5254f1644d33655242498a1997c5",
+      "currentBlobSha": "04616b72b0a1d2e72f07bcf6e39f2cde330e16a5",
+      "observedWorktreeBlobSha": "012b9bd835e10e602eba9072a29e1706b6346f49",
+      "historicalTestInputSha": null,
+      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "status": "ALREADY_DONE",
+      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "parallelOwner": "R134 leader",
+      "nextAction": "按门禁实证补验，不重做已通过功能",
+      "testedWorktreeBlobSha": "04616b72b0a1d2e72f07bcf6e39f2cde330e16a5",
+      "nodeEvidence": "verification.node"
+    },
+    {
+      "taskId": "R134-11",
+      "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
+      "path": "src/scripting/user-scripts/scroll-config-contract.js",
+      "existingCommit": "1c6fc80aaecc5254f1644d33655242498a1997c5",
+      "currentBlobSha": "5712d5fa4bb4ba29dcd1d83bd47145ee7225ad26",
+      "observedWorktreeBlobSha": "3bcbc04da88aa33029f59a80cb056b539b3d6217",
+      "historicalTestInputSha": null,
+      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "status": "ALREADY_DONE",
+      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "parallelOwner": "R134 leader",
+      "nextAction": "按门禁实证补验，不重做已通过功能",
+      "testedWorktreeBlobSha": "5712d5fa4bb4ba29dcd1d83bd47145ee7225ad26",
+      "nodeEvidence": "verification.node"
+    },
+    {
+      "taskId": "R134-12",
+      "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
+      "path": "src/scripting/user-scripts/page-install-authorization.js",
+      "existingCommit": "1c6fc80aaecc5254f1644d33655242498a1997c5",
+      "currentBlobSha": "533e06a52afc0e01412cac31044060eb0e7bea14",
+      "observedWorktreeBlobSha": "533e06a52afc0e01412cac31044060eb0e7bea14",
+      "historicalTestInputSha": null,
+      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "status": "ALREADY_DONE",
+      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "parallelOwner": "R134 leader",
+      "nextAction": "按门禁实证补验，不重做已通过功能",
+      "testedWorktreeBlobSha": "533e06a52afc0e01412cac31044060eb0e7bea14",
+      "nodeEvidence": "verification.node"
+    },
+    {
+      "taskId": "R134-13",
+      "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
+      "path": "src/scripting/user-scripts/installed-programs.js",
+      "existingCommit": "d30e82233c1897cb01d33938225cbbe865203e63",
+      "currentBlobSha": "f30498005985875b0c59e739c755071e7306ece5",
+      "observedWorktreeBlobSha": "a30bb445b8c304f943c494f65e8f368c49b44e3f",
+      "historicalTestInputSha": null,
+      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "status": "ALREADY_DONE",
+      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "parallelOwner": "R134 leader",
+      "nextAction": "按门禁实证补验，不重做已通过功能",
+      "testedWorktreeBlobSha": "f30498005985875b0c59e739c755071e7306ece5",
+      "nodeEvidence": "verification.node"
+    },
+    {
+      "taskId": "R134-14",
+      "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
+      "path": "src/platform/host/broker.js",
+      "existingCommit": "d30e82233c1897cb01d33938225cbbe865203e63",
+      "currentBlobSha": "473104217d1d5ff4895fe0bd6e42fbde2139f527",
+      "observedWorktreeBlobSha": "473104217d1d5ff4895fe0bd6e42fbde2139f527",
+      "historicalTestInputSha": null,
+      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "status": "ALREADY_DONE",
+      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "parallelOwner": "R134 leader",
+      "nextAction": "按门禁实证补验，不重做已通过功能",
+      "testedWorktreeBlobSha": "473104217d1d5ff4895fe0bd6e42fbde2139f527",
+      "nodeEvidence": "verification.node"
+    },
+    {
+      "taskId": "R134-15",
+      "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
+      "path": "src/ui/extension-center.js",
+      "existingCommit": "9315994a6679bae7cf2b6119bf479a84f94f0deb",
+      "currentBlobSha": "8e6beedfc0eb2b5f833b5af7f9d91cbce4c07286",
+      "observedWorktreeBlobSha": "16599238948c99fdcb5a04dfa44c05ce637504a9",
+      "historicalTestInputSha": null,
+      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "status": "ALREADY_DONE",
+      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "parallelOwner": "R134 leader",
+      "nextAction": "按门禁实证补验，不重做已通过功能",
+      "testedWorktreeBlobSha": "5e5225bdfa2fcb7a86dee050fd183dc871167454",
+      "nodeEvidence": "verification.node"
+    },
+    {
+      "taskId": "R134-16",
+      "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
+      "path": "src/ui/react/tabs/tools.tsx",
+      "existingCommit": "9315994a6679bae7cf2b6119bf479a84f94f0deb",
+      "currentBlobSha": "ca325d276ba83cc5beb430c224a37747f01b5921",
+      "observedWorktreeBlobSha": "f21738659661b86862ea5a692bc2da1f9acfff72",
+      "historicalTestInputSha": null,
+      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "status": "ALREADY_DONE",
+      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "parallelOwner": "R134 leader",
+      "nextAction": "按门禁实证补验，不重做已通过功能",
+      "testedWorktreeBlobSha": "ca325d276ba83cc5beb430c224a37747f01b5921",
+      "nodeEvidence": "verification.node"
+    },
+    {
+      "taskId": "R134-17",
+      "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
+      "path": "src/ui/sidebar-tools.js",
+      "existingCommit": "049d274e6f5a4e197a4c5e1366711dbba5f418f3",
+      "currentBlobSha": "3732714118e852c853cdb367fac442d7f4d2f832",
+      "observedWorktreeBlobSha": "1af8b78f99882e882843bfa7ca6c37c9bdf52dc8",
+      "historicalTestInputSha": null,
+      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "status": "ALREADY_DONE",
+      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "parallelOwner": "R134 leader",
+      "nextAction": "按门禁实证补验，不重做已通过功能",
+      "testedWorktreeBlobSha": "3732714118e852c853cdb367fac442d7f4d2f832",
+      "nodeEvidence": "verification.node"
+    },
+    {
+      "taskId": "R134-18",
+      "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
+      "path": "tests/environment/ai-scroll-site-upgrade-r133.test.mjs",
+      "existingCommit": "1c6fc80aaecc5254f1644d33655242498a1997c5",
+      "currentBlobSha": "33772a20c348b7808cbc33469c8678890476ee25",
+      "observedWorktreeBlobSha": "7d211eabcf920612802818653553a5efffd3eb76",
+      "historicalTestInputSha": null,
+      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "status": "ALREADY_DONE",
+      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "parallelOwner": "R134 leader",
+      "nextAction": "按门禁实证补验，不重做已通过功能",
+      "testedWorktreeBlobSha": "33772a20c348b7808cbc33469c8678890476ee25",
+      "nodeEvidence": "verification.node"
+    },
+    {
+      "taskId": "R134-19",
+      "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
+      "path": "tests/environment/page-installed-programs.test.mjs",
+      "existingCommit": "749c3f465f79d2a25c12f5392274776b9d968e47",
+      "currentBlobSha": "1d15d561e4c1f085e4f5e2d77abca2a36825c587",
+      "observedWorktreeBlobSha": "30d68a3b0869e9cacd1f5163a6cf2a6e8d543d8b",
+      "historicalTestInputSha": null,
+      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "status": "ALREADY_DONE",
+      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "parallelOwner": "R134 leader",
+      "nextAction": "按门禁实证补验，不重做已通过功能",
+      "testedWorktreeBlobSha": "1d15d561e4c1f085e4f5e2d77abca2a36825c587",
+      "nodeEvidence": "verification.node"
+    }
+  ],
+  "native": "NOT_TESTED",
+  "updatedAt": "2026-10-26T17:12:25.500983+00:00",
+  "latestObservedRemote": "73f6949766a52615c7925996c8ae13bb1743ce37",
+  "packageBinding": {
+    "programId": "opendesk.ai-scroll-navigation",
+    "version": "0.4.4",
+    "revision": 5,
+    "sourceHash": "e6e6786f2d95454b7063148cce2db0b11b18b0fe9168def07fb4308ab51c1d33",
+    "packageHash": "9eeb01342c6205411be16a3f6411722c0fd55cf8f4d825efbfa6365446ac7abe",
+    "pageRules": {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.deepseek.com/*",
+        "https://gemini.google.com/*"
+      ],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    },
+    "publication": "blocked",
+    "chromeNative": "NOT_TESTED for final r5",
+    "macNative": "NOT_TESTED for final r5"
+  },
+  "verification": {
+    "node": {
+      "status": "ALREADY_DONE",
+      "result": "NODE_PASS",
+      "tests": 392,
+      "fail": 0,
+      "evidence": [
+        {
+          "file": "artifacts/ai-scroll-r134/node-r5-snapshot.tap",
+          "sha256": "769e5214a8223b5e81d2f3bd0db2170727d15fb3a080229dff24a0606f5b3852",
+          "tests": 381,
+          "pass": 346,
+          "fail": 35,
+          "classification": "34 workflow assertions used old workflow omitted from snapshot; one entire 12-test view fixture failed at module import; corrected below. Original failure retained."
+        },
+        {
+          "file": "artifacts/ai-scroll-r134/node-r5-fixture-correction.tap",
+          "sha256": "1571b70eaf97009afd6ae1d13098a767af9f615231e56d91986b935768453099",
+          "tests": 51,
+          "pass": 51,
+          "fail": 0,
+          "classification": "39 release workflow tests plus 12 Switch-aware view tests. Unique total 381 - 1 failed module + 12 recovered module cases = 392."
+        },
+        {
+          "file": "artifacts/ai-scroll-r134/host-fixes-applied.tap",
+          "sha256": "1bb6a72646429ade78e2d07107004c4674043c95f92361154539a71635d22b02",
+          "tests": 100,
+          "pass": 100,
+          "fail": 0,
+          "classification": "Same patched Host inputs verified in actual main worktree. Subset, not added to unique total."
+        }
+      ],
+      "scope": "All program tests and affected environment tests; service/DOM doubles are component tests, never Native."
+    },
+    "programBuild": {
+      "status": "ALREADY_DONE",
+      "result": "BUILD_PASS",
+      "builder": "scripts/build-program-project.mjs + scripts/build-page-install-package.mjs",
+      "sourceHash": "e6e6786f2d95454b7063148cce2db0b11b18b0fe9168def07fb4308ab51c1d33",
+      "packageHash": "9eeb01342c6205411be16a3f6411722c0fd55cf8f4d825efbfa6365446ac7abe",
+      "sourceBytes": 59451,
+      "draft": "artifacts/ai-scroll-r134/program-r5/program.opendesk-draft.json",
+      "validation": "artifacts/ai-scroll-r134/project-validation-r5.log"
+    },
+    "browserBuild": {
+      "status": "ALREADY_DONE",
+      "result": "BUILD_PASS",
+      "mode": "production",
+      "packageHash": "fb386f20b4d27d831b78321489ca4a73b32910687936e75decb8e4d90e16dd02",
+      "snapshotBase": "14da26be54e1b64e045869f7c5b5e68e38d46eea",
+      "evidenceLocal": "artifacts/ai-scroll-r134/extension-build-r5",
+      "log": "artifacts/ai-scroll-r134/extension-build-r5.log",
+      "dailyOutputTouched": false
+    },
+    "chromeNative": {
+      "status": "NOT_TESTED",
+      "historicalPartial": "native-01 r4 real Mac CFT original install/custom-port registration/config/save/refresh/edges; invalid as final r5 PASS"
+    },
+    "macNative": {
+      "status": "NOT_TESTED",
+      "historicalPartial": "native-01 r4 real Mac CFT original install/custom-port registration/config/save/refresh/edges; invalid as final r5 PASS"
+    },
+    "ci": {
+      "status": "NEEDS_TEST",
+      "runs": [
+        {
+          "id": 40351930453,
+          "head": "a184ee4bb4980a3db040a9c2bc9a339e1c58b5db",
+          "observedStatus": "queued",
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40351930453"
+        }
+      ]
+    },
+    "reactBrowser": {
+      "status": "ALREADY_DONE",
+      "result": "12/12 headless actual React fixture PASS",
+      "log": "artifacts/ai-scroll-r134/react-browser-r5.tap",
+      "scope": "Actual root stylesheet inputs, trusted Chrome input; Host service doubles, not installed native extension."
+    }
+  },
+  "concurrentMain": [
+    {
+      "commit": "36f3593fa",
+      "status": "ALREADY_DONE",
+      "meaning": "书签CSS；继承，不重做"
+    },
+    {
+      "commit": "2cdc4387d",
+      "status": "ALREADY_DONE",
+      "meaning": "Cookie行校验；继承"
+    },
+    {
+      "commit": "a5a354cc9",
+      "status": "ALREADY_DONE",
+      "meaning": "Cookie事务保护；继承"
+    },
+    {
+      "commit": "05808f079",
+      "status": "ALREADY_DONE",
+      "meaning": "Cookie workflow版本说明；继承"
+    },
+    {
+      "commit": "5f89bdd0f",
+      "status": "ALREADY_DONE",
+      "meaning": "Cookie未知副作用保护；当前main增量，待安全FF"
+    },
+    {
+      "commit": "41282032f",
+      "status": "ALREADY_DONE",
+      "meaning": "设计引用文档；待安全FF"
+    },
+    {
+      "commit": "883058080",
+      "status": "ALREADY_DONE",
+      "meaning": "独立AI Page管理界面；待安全FF且保留"
+    },
+    {
+      "commit": "73f6949766a52615c7925996c8ae13bb1743ce37",
+      "status": "ALREADY_DONE",
+      "meaning": "Cookie UI canonical button changes, safe fast-forward; unrelated source not retested or edited."
+    }
+  ],
+  "safety": {
+    "dailyExtension": "dist/development; existing watcher PID21250 owned by other chat; untouched",
+    "publication": "blocked",
+    "newBranchWorktreePR": false,
+    "mockNativePass": false,
+    "dormantConfig": "Scope contraction may carry unchanged prior rules or delete them, cannot edit/add unauthorized rules. Returning official package contracts scope; new scope needs original review again."
+  },
+  "workingBaseHead": "73f6949766a52615c7925996c8ae13bb1743ce37",
+  "deferred": [
+    "三站真实登录内容与共存",
+    "最终r5完整安装/拒绝/撤权/升级恢复原生矩阵",
+    "320/360/400/440px、浅深色、200%与键盘焦点的完整实测",
+    "相关远程CI成功读回",
+    "独立评分全部>=95与官方发布门禁"
+  ],
+  "parallelProtection": {
+    "dailyWatcher": "PIDs 21250/21230, port43119; never stopped",
+    "dailyExtension": "ccfcjegpkdlgbclopjmadlcjedelidmf dist/development; never replaced",
+    "foregroundFreeze": "Honored repeated native-owner freeze requests; foreground native r5 deferred until window released/elapsed",
+    "overlappingFiles": {
+      "src/ui/extension-center.js": "Stage only frozen R134 delta; preserve subsequent R1.5 readback/focus work unstaged",
+      "tests/environment/extension-center-react-page.test.mjs": "Stage 12-test frozen R134 fixture; preserve later 4 R1.5 cases unstaged",
+      "scripts/bundle-provenance.mjs": "继承工作区已有 Bookmark CSS 17f3420 精确来源 pin（CSS-only），并连同本轮 Cookie source pins 提交；实际 production build 使用同一字节，未改 Bookmark 业务。",
+      "src/scripting/user-scripts/installed-programs.js": "R1.5 owner concurrently added installationId toggle checks; stage only built/tested R134 blob from snapshot, preserve R1.5 hunk unstaged with its UI contract.",
+      "official-pages/sources.json": "仅提交AI Scroll行，发送队列0.1.6/r5的并行清单增量保留unstaged；production snapshot包含当时完整工作区清单，非全HEAD包身份宣称。",
+      "tests/environment/page-installed-programs.test.mjs": "暂存R134快照100项的测试字节；并行R1.5 installationId迁移和新用例保留工作区，不覆盖、不混入本提交。",
+      "tests/environment/page-install-package.test.mjs": "暂存R134已验证pending语义修正，R1.5请求字段迁移留工作区。"
+    }
+  },
+  "independentReviews": [
+    {
+      "file": "artifacts/ai-scroll-r134/review-final-security.json",
+      "verdict": "COMMENT",
+      "findings": [],
+      "dimensions": [
+        {
+          "dimension": "产品安装架构",
+          "score": 90,
+          "out_of": 100,
+          "deductions": {
+            "missing_complete_r5_native": 8,
+            "missing_remote_ci_proof": 2
+          },
+          "reason": "复用唯一安装器、不可变候选与精确 CAS；失败补偿保留错误。缺 r5 实际安装/升级/恢复全链及同候选远端 CI 证明。"
+        },
+        {
+          "dimension": "权限安全",
+          "score": 91,
+          "out_of": 100,
+          "deductions": {
+            "missing_complete_r5_native": 7,
+            "missing_remote_ci_proof": 2
+          },
+          "reason": "精确 origin/端口、完整 prefix、descriptor 与撤权 epoch 有源码和组件反例覆盖；缺 r5 原生授权撤销/跨端口阻断、同候选 CI 证明。"
+        },
+        {
+          "dimension": "USER_SCRIPT生命周期",
+          "score": 88,
+          "out_of": 100,
+          "deductions": {
+            "missing_complete_r5_native": 10,
+            "missing_remote_ci_proof": 2
+          },
+          "reason": "pending 引导、token/generation、同文档去重及 outcome-unknown 路径有支持；真实 Chrome 注册时序、重启、撤权与回滚后的文档资源生命周期缺 r5 全链证据。"
+        },
+        {
+          "dimension": "配置迁移升级",
+          "score": 89,
+          "out_of": 100,
+          "deductions": {
+            "missing_complete_r5_native_migration": 9,
+            "missing_remote_ci_proof": 2
+          },
+          "reason": "配置原键保留、dormant 不扩权、etag 防覆盖，动态/官方修订域隔离；缺真实 r5 旧安装→动态→官方收缩→再次编辑迁移和同候选 CI 证明。"
+        }
+      ]
+    },
+    {
+      "file": "artifacts/ai-scroll-r134/review-final-ui-release.json",
+      "verdict": "COMMENT",
+      "findings": [],
+      "dimensions": [
+        {
+          "id": "visual_selector_site_adaptation",
+          "name": "视觉选择器与网站适配",
+          "score": 89,
+          "out_of": 100,
+          "supported": [
+            "main.js:3 的显式导入恢复无自定义配置时的 built-in 分支。",
+            "site-configuration.js:268-285 通过 hit content 解析最近滚动容器；不把任意 BODY 作为默认目标。",
+            "site-configuration.js:34-56 和 conversation.js:240-242 核对全部消息所属 scrollport；中间消息跨容器时拒绝。",
+            "点击重新解析 DOM/URL、确认上下双向测试，保存前重验目标身份；原生日志之外的 DOM 测试明确不冒充真实输入。"
+          ],
+          "references": [
+            {
+              "file": "examples/programs/chatgpt-jump-top/src/main.js",
+              "line": 3
+            },
+            {
+              "file": "examples/programs/chatgpt-jump-top/src/site-configuration.js",
+              "line": 29
+            },
+            {
+              "file": "examples/programs/chatgpt-jump-top/src/site-configuration.js",
+              "line": 62
+            },
+            {
+              "file": "examples/programs/chatgpt-jump-top/src/site-configuration.js",
+              "line": 268
+            },
+            {
+              "file": "examples/programs/chatgpt-jump-top/src/conversation.js",
+              "line": 240
+            }
+          ],
+          "deductions": [
+            {
+              "points": 7,
+              "reason": "缺同一 r5 安装身份下 ChatGPT/DeepSeek/Gemini 及新增授权站点的真实选择、测试、保存和刷新证据；native-01 为 r4，不计入。"
+            },
+            {
+              "points": 4,
+              "reason": "document root、nested scrollport、混合容器选择目前由模拟布局/事件夹具证明；缺 r5 真实网站布局与 SPA 重绘后的同候选操作证据。"
+            }
+          ]
+        },
+        {
+          "id": "ui_accessibility",
+          "name": "UI 与无障碍",
+          "score": 94,
+          "out_of": 100,
+          "supported": [
+            "可信根实际引入 sidebar-shared.css；Switch 有尺寸、选中态、focus-visible 和 reduced-motion 样式，未创建第二组件样式系统。",
+            "网站适配含原生 label、dialog、live status、可见 focus、Escape 和关闭返回焦点；启用规则 checkbox 有明确关联标签。",
+            "已有 react-browser-r5.tap 12/12 PASS 覆盖可信鼠标、Space、焦点、菜单、确认和回执；测试读取真实根 CSS 输入，未私加遗漏样式。",
+            "新增网站准备结果离开详情后不打开过期审阅；disabled/unknown/error 安装状态拒绝扩权准备。",
+            "R134 暂存索引中的 extension-center.js 与 extension-center-react-page.test.mjs 逐字节等于 r5 构建 snapshot；并行 R1.5 工作区增量及其 16 skipped 不属于本提交。"
+          ],
+          "references": [
+            {
+              "file": "src/ui/react/main.tsx",
+              "line": 12
+            },
+            {
+              "file": "src/ui/react/main.tsx",
+              "line": 92
+            },
+            {
+              "file": "src/ui/react/components/ui/sidebar-shared.css",
+              "line": 6
+            },
+            {
+              "file": "examples/programs/chatgpt-jump-top/src/site-configuration.js",
+              "line": 121
+            },
+            {
+              "file": "examples/programs/chatgpt-jump-top/src/site-configuration.js",
+              "line": 305
+            },
+            {
+              "file": "src/ui/extension-center.js",
+              "line": 528
+            },
+            {
+              "file": "tests/environment/extension-center-react-page.test.mjs",
+              "line": 134
+            }
+          ],
+          "deductions": [
+            {
+              "points": 4,
+              "reason": "缺同一 r5 原生安装下网站适配表单的完整键盘及辅助技术操作证据；不凭 aria 属性宣称实际无障碍通过。"
+            },
+            {
+              "points": 2,
+              "reason": "浏览器夹具通过实际 CSS 输入与组件/controller 验证，仍不等同整套 production React root 与真实 Side Panel 中的集成操作。"
+            }
+          ]
+        },
+        {
+          "id": "performance_reliability",
+          "name": "性能与可靠性",
+          "score": 88,
+          "out_of": 100,
+          "supported": [
+            "配置读取 singleflight；operationEpoch 防止过期生命周期回写；CAS/unknown 后仅主动重新读取，不自动重放 mutation。",
+            "双向滚动保留横轴；失联、DOM 替换、URL 变化和混合 scrollport 拒绝执行。",
+            "一次选择后的延迟 click 被消费，修饰键不提前释放；owner dispose 释放临时捕获。",
+            "主导航已有 120ms 合并刷新；本轮增加所有 turns 的容器一致性验证，未加入持续轮询。",
+            "安装 UI 比较 durable list、installationId、generation，并用 recorded 而非单次 Host 回执显示成功。"
+          ],
+          "references": [
+            {
+              "file": "examples/programs/chatgpt-jump-top/src/site-configuration.js",
+              "line": 172
+            },
+            {
+              "file": "examples/programs/chatgpt-jump-top/src/site-configuration.js",
+              "line": 214
+            },
+            {
+              "file": "examples/programs/chatgpt-jump-top/src/site-configuration.js",
+              "line": 239
+            },
+            {
+              "file": "examples/programs/chatgpt-jump-top/src/conversation.js",
+              "line": 611
+            },
+            {
+              "file": "src/ui/sidebar-tools.js",
+              "line": 3722
+            }
+          ],
+          "deductions": [
+            {
+              "points": 6,
+              "reason": "无 r5 长对话/流式 DOM 更新下的交互延迟、布局开销实测；新增逐消息祖先检查的实际耗时未知。仅作证据扣分，不推测性能故障。"
+            },
+            {
+              "points": 4,
+              "reason": "事件捕获、持有指针、SPA/生命周期释放有夹具覆盖，缺 r5 真实安装与网站事件环境中的对应观察。"
+            },
+            {
+              "points": 2,
+              "reason": "unknown write / receipt 通过模拟丢失响应验证，缺同候选真实 Native 失联恢复证据；不将模拟通过提升为 Native PASS。"
+            }
+          ]
+        },
+        {
+          "id": "tests_build_formal_delivery",
+          "name": "测试、构建与正式交付",
+          "score": 91,
+          "out_of": 100,
+          "supported": [
+            "release-r5-final.tap 39 PASS 执行真实 workflow shell + 本地 Git 夹具：并发 main、其他目录条目、push 竞争、同 revision 不同字节、回滚及保留 Revision 区间。",
+            "校正夹具日志 51 PASS；读取到旧 snapshot 的失败不作为当前产品缺陷。",
+            "extension-build-r5.log 明确为真实 production WXT 构建 PASS，非伪造构建输出。",
+            "r5 Page 正式包、candidate-r5 与既有 program-r5/program.js 同源；本次重新通过现有 package validator，sourceHash/packageHash 有效。",
+            "workflow 保留 publication=blocked 和 chromeNative/macNative NOT_TESTED；没有把 Node/Builder/浏览器组件夹具称为正式验收。",
+            "R134 暂存索引中的 extension-center.js 与 extension-center-react-page.test.mjs 逐字节等于 r5 构建 snapshot；并行 R1.5 工作区增量及其 16 skipped 不属于本提交。"
+          ],
+          "references": [
+            {
+              "file": ".github/workflows/ai-scroll-navigation-r131.yml",
+              "line": 39
+            },
+            {
+              "file": ".github/workflows/ai-scroll-navigation-r131.yml",
+              "line": 69
+            },
+            {
+              "file": ".github/workflows/ai-scroll-navigation-r131.yml",
+              "line": 91
+            },
+            {
+              "file": ".github/workflows/ai-scroll-navigation-r131.yml",
+              "line": 125
+            },
+            {
+              "file": ".github/workflows/ai-scroll-navigation-r131.yml",
+              "line": 158
+            },
+            {
+              "file": "tests/environment/ai-scroll-release-r134.test.mjs",
+              "line": 154
+            },
+            {
+              "file": "tests/environment/ai-scroll-build-support.mjs",
+              "line": 7
+            }
+          ],
+          "deductions": [
+            {
+              "points": 6,
+              "reason": "r5 原生安装、三站完整实际操作、权限/重启等正式交付证据缺失；官方仍 blocked，r4 native-01 不能代替。"
+            },
+            {
+              "points": 3,
+              "reason": "本轮无可用 lsp_diagnostics/ast_grep_search 工具；12 项 JS 语法检查通过，但 TSX 类型安全和全部修改文件 LSP 诊断未证明。"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,7 +1,11 @@
 // Typed, inert data for one installed Page Program. This grants no website access.
+import {pageProgramUrlMatches} from './page-program-rules.js';
 export const SCROLL_CONFIG_PROGRAM_ID='opendesk.ai-scroll-navigation';
 export const SCROLL_CONFIG_MIN_REVISION=3;
 export const SCROLL_CONFIG_VERSION=1;
+// Official freezes use the lower range. Locally reviewed scope variants use
+// this disjoint range; revision is an immutable key, not upgrade precedence.
+export const SCROLL_SITE_REVISION_BASE=1000000000;
 export const SCROLL_CONFIG_EMPTY=Object.freeze({version:1,sites:[]});
 const error=(code,message)=>Object.assign(new Error(message),{code});
 const requireValue=(ok,code,message)=>{if(!ok)throw error(code,message);};
@@ -66,14 +70,28 @@ export function scrollConfigForUrl(input,href){
   return matches[0]||null;
 }
 
+// Unlike Chrome's coarse grant, every reviewed Scroll Origin is exact.
+// Legacy default-site patterns mean the default port, while scope variants
+// explicitly encode their port in the immutable native pattern.
+export function scrollProgramUrlMatches(rules,href){
+  let url;try{url=new URL(href);}catch{return false;}
+  return rules.matches.some(pattern=>{
+    const match=/^(https?):\/\/([^/]+)\//.exec(pattern);
+    if(!match||match[2].includes('*'))return false;
+    return new URL(match[1]+'://'+match[2]).origin===url.origin&&
+      pageProgramUrlMatches({...rules,matches:[pattern]},href);
+  });
+}
+
 /** Exact site Origin + segment-boundary path prefix. No wildcard Origin,
  * script grant, arbitrary JS or CSS-powered widening is possible here.
  */
 export function scrollSiteInstallMatches(origin,scope='/'){
-  const site=urlOrigin(origin),path=pathScope(scope);
-  requireValue(!new URL(site).hostname.includes('*'),'E_CONFIG_SCOPE','必须使用无通配符的精确网站 Origin');
-  requireValue(!new URL(site).port,'E_CONFIG_SCOPE','按端口独立授权尚未支持；请输入无自定义端口的 Origin');
-  requireValue(!/[*?#\\u0000-\u001f\u007f]/.test(path)&&
+  const normalized=urlOrigin(origin),path=pathScope(scope),url=new URL(normalized);
+  requireValue(!url.hostname.includes('*'),'E_CONFIG_SCOPE','必须使用无通配符的精确网站 Origin');
+  const site=url.protocol+'//'+url.hostname+':'+(url.port||(url.protocol==='https:'?'443':'80'));
+  requireValue(!/[*?#\\\u0000-\u001f\u007f]/.test(path)&&
+    !/%(?:2e|2f|5c|25)/i.test(path)&&
     new URL(site+path).pathname===path,'E_CONFIG_SCOPE','网站路径不能包含通配符或隐式跳转');
   if(path==='/')return [site+'/*'];
   return [site+path,site+path+'?*',site+(path.endsWith('/')?path+'*':path+'/*')];

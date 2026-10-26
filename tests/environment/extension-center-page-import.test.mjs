@@ -149,7 +149,8 @@ test('Page install reviews permissions and calls the existing Authority only aft
   f.doc.documentElement.dataset.opendeskTab='tools';f.select(pkg,{name:'local.opendesk-page.json'});
   await settle(()=>!f.get('sidebar-tool-preview').hidden);
   assert.equal(calls,0);unchangedAuthoring(f);
-  assert.match(f.get('sidebar-tool-preview-capabilities').textContent,/读取和修改.*https:\/\/example.com\/\*/);
+  assert.match(f.get('sidebar-tool-preview-capabilities').textContent,
+    /Chrome 网站访问授权范围：https:\/\/example.com\/\*；脚本实际执行的路径范围：https:\/\/example.com\/\*/);
   f.event('sidebar-tool-install','click',{trusted:true});
   await settle(()=>f.get('sidebar-tool-import').hidden);
   assert.equal(calls,1);

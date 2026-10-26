@@ -498,7 +498,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   function openDetail(key,returnAction='main'){
     const row=find(key);if(disposed||!row||(scope!=='available'&&!row.installed))return;
     closeRowMenu();
-    selectedInstalled=row.installed;uninstallReview=null;
+    selectedInstalled=row.installed;uninstallReview=null;siteUpgradeError='';
     // A detail belongs to one reviewed package/revision, not merely a reusable ID.
     // Enable/disable and Page authorization may change without replacing that identity.
     selectedIdentity=row.kind==='app'?
@@ -527,9 +527,12 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   // approval and cannot be bypassed by adding CSS selection data.
   async function reviewScrollSite(values,event,baseline){
     if(event?.isTrusted!==true||disposed||busy||pendingKey||
-      !samePageIdentity(find(baseline?.key),baseline))return;
+      selectedKey!==baseline?.key||!samePageIdentity(find(baseline?.key),baseline))return;
     const row=find(baseline.key),install=row?.record?.installed;
-    if(row?.id!==SCROLL_CONFIG_PROGRAM_ID||!install)return;
+    if(row?.id!==SCROLL_CONFIG_PROGRAM_ID||!install||row.stateKnown===false||
+      install.enabled!==true||install.authorization?.status!=='active'||
+      install.nativeState!=='registered'||install.error)return;
+    const detailIdentity=selectedIdentity;
     busy=true;siteUpgradeError='';renderDetail();
     try{
       const pkg=await client.request('prepareScrollSitePackage',{
@@ -539,9 +542,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         expectedInstalledManifestHash:install.manifestHash,
         expectedGeneration:install.authorization?.generation
       });
-      if(disposed||!samePageIdentity(find(baseline.key),baseline))
+      if(disposed||selectedKey!==baseline.key||selectedIdentity!==detailIdentity)return;
+      if(!samePageIdentity(find(baseline.key),baseline))
         throw Object.assign(new Error('授权或安装身份已改变；请重新进入设置'),{code:'E_REVISION'});
-      if(pkg?.programId!==SCROLL_CONFIG_PROGRAM_ID||pkg.revision<=install.revision)
+      if(pkg?.programId!==SCROLL_CONFIG_PROGRAM_ID||!Number.isSafeInteger(pkg.revision)||pkg.revision===install.revision)
         throw Object.assign(new Error('可信宿主未返回新的固定安装候选'),{code:'E_SITE_REVIEW'});
       backIfNeeded();
       if(sidebarTools.openPagePackageReview?.(pkg,values.origin.trim())!==true)
@@ -662,7 +666,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           onSubmit:(value,event)=>void reviewScrollSite(value,event,pageIdentity(row)),
           busy:Boolean(busy||pendingKey),error:siteUpgradeError,
           disabledReason:!page?.enabled?'程序已停用；请先主动恢复启用':
-            page?.authorization?.status!=='active'||page?.nativeState!=='registered'?
+            page?.authorization?.status!=='active'||page?.nativeState!=='registered'||page?.error?
               '原生注册或网站授权尚未恢复，不能申请扩权':null
         }:null,
         suspended:page?.authorization?.status==='suspended',

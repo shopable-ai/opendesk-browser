@@ -9,6 +9,7 @@ import '../../../examples/sidebar-tools/bookmark-manager/src/service.js';
 import BookmarkReactApp from '../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx';
 import {TrustedConversationWorkspace} from './components/conversation.tsx';
 import {createPromptReconciliationAdapter} from '../conversation/prompt-controller.js';
+import sharedUiCSS from './components/ui/sidebar-shared.css?raw';
 import conversationDockCSS from './components/conversation-dock.css?raw';
 import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 import myAgentCSS from './tabs/my-agent.css?raw';
@@ -88,7 +89,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
     const extensionProps={rowsModel:model,menuKey,rowMenuModel,detailModel,uninstallModel,toolbarModel,feedbackModel,recoveryModel,statusModel,discoveryModel,
       view:extensionView,onBack:onExtensionBack};
     flushSync(()=>root.render(<>
-      <style data-opendesk-trusted-react-css="">{bookmarkPilotLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS+'\n'+localeManagerCSS+'\n'+knowledgeWorkspaceCSS}</style>
+      <style data-opendesk-trusted-react-css="">{sharedUiCSS+'\n'+bookmarkPilotLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS+'\n'+localeManagerCSS+'\n'+knowledgeWorkspaceCSS}</style>
       <SidebarAppShell activeTab={navigationTab}
         debugEnabled={debugEnabled} debugModel={debugModel} debugActions={debugActions} development={development}
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}

@@ -1354,3 +1354,11 @@ test('recognized transcript retains disabled controls without any scroll range',
   assert.deepEqual(main.calls,[]);
   assert.deepEqual(root.calls,[]);
 });
+
+test('conversation rejects a transcript whose middle turn uses another scroll container', () => {
+  const {doc,view,main}=region();
+  const inner=element({parent:main,overflowY:'auto',scrollHeight:1500,height:300});
+  element({parent:inner,attributes:{'data-testid':'conversation-turn-2'}});
+  element({parent:main,attributes:{'data-testid':'conversation-turn-3'}});
+  assert.ok(conversation.findConversationNavigation(main,'[data-testid^="conversation-turn-"]',doc,view)===null);
+});

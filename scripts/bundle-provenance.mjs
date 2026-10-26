@@ -59,13 +59,46 @@ function reviewedCompiledAdblock(target,path,root){
   return hash;
 }
 
+// R134 Cookie account source review against 883058080: fixed SW imports the
+// service, encrypted vault and pure root-fragment URL parser. The service keeps
+// official package/hash/epoch, trusted Sender, site/Cookie permission and exact
+// Document/Store/Partition checks; b57da4f also fences DIFFERENT automatic
+// intents while a tab's native write outcome is unresolved. Never approve the
+// older service bytes. No installed package code or new permission is admitted.
+// Only the pure RPC/storage-key contract reaches the enumerated shared
+// installer/Host closures for account messages and verified uninstall cleanup.
+const compiledCookieAccountInputs=Object.freeze({
+  'examples/sidebar-tools/cookie-editor/trusted/account-contract.js':'7e9256f6702a159d4a5840a548b2c8380bafd8df',
+  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'b57da4f8aef6920dd74393187dcf89bac769d6be',
+  'examples/sidebar-tools/cookie-editor/trusted/account-vault.js':'6684942c6382801bd7e79b343091b897ef868737',
+  'examples/sidebar-tools/cookie-editor/app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
+});
+const cookieAccountContractTargets=new Set([
+  'sw.js','ui/tool-shell.js','ui/stay-focus-controls.js',
+  'ui/sidebar-tool-host.js','ui/marketplace.js','marketplace/market-host.js',
+  'knowledge/knowledge-host.js','platform/context-menus.js','sidebar-tools/preinstall-intent.js'
+]);
+function reviewedCompiledCookieAccounts(target,path,root){
+  if(!Object.hasOwn(compiledCookieAccountInputs,path))return null;
+  if(path==='examples/sidebar-tools/cookie-editor/trusted/account-contract.js'
+    ?!cookieAccountContractTargets.has(target):target!=='sw.js')return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)
+    throw Error('Trusted Cookie account source must not be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledCookieAccountInputs[path])
+    throw Error('Trusted Cookie account source changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
+
 // R1.8 source review: Service now checks local cancellation before SDK writes
 // and preserves writeIssued evidence; App enforces trusted authorization,
 // prevents async AI reveals from hijacking newer user navigation, and shows a
 // readback-only locate action. CSS adds only that locate notice. Exact Git
 // blob locks stay fail-closed; any subsequent change requires re-review.
-// R3.2 follow-up: reviewed style.css f7be8f4 adds only narrow coarse-pointer
-// (<=240px / 200% zoom) horizontal toolbar scrolling; no new business JS.
+// R3.2 follow-up: reviewed style.css 17f3420 wraps the existing narrow
+// coarse-pointer toolbar actions while preserving 44px targets; CSS only.
 // R2.2 title review: App reuses the existing editor navigation label for its
 // accessible region name; no package, capability, write or admission changes.
 // The Bookmark Manager trusted React pilot compiles exactly five
@@ -79,7 +112,7 @@ const compiledBookmarkReactInputs=Object.freeze({
   'examples/sidebar-tools/bookmark-manager/src/service.js':'d072ace5379d0d4c8f8cda8d8d172cb60122576e',
   'examples/sidebar-tools/bookmark-manager/src/react/App.jsx':'30ad858a4007ec4bbc89307f85cb1b47691f71d0',
   'examples/sidebar-tools/bookmark-manager/src/react/navigation.js':'7fc81215374c240e6eaae7e9e802872d94d5a53d',
-  'examples/sidebar-tools/bookmark-manager/src/react/style.css':'f7be8f43c22dab3dccdbb85585aa03f31ca6d941'
+  'examples/sidebar-tools/bookmark-manager/src/react/style.css':'17f342059b2ab8ed4e12529bf547c9646522097b'
 });
 function reviewedCompiledBookmarkReact(target,path,root){
   if(target!=='ui/tool-shell.js'||!Object.hasOwn(compiledBookmarkReactInputs,path))return null;
@@ -395,6 +428,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
     assertLibraryModuleBoundary(chunk.fileName,path);
     const reviewedSource=reviewedCompiledTimeReview(chunk.fileName,path,root)||
       reviewedCompiledAdblock(chunk.fileName,path,root)||
+      reviewedCompiledCookieAccounts(chunk.fileName,path,root)||
       reviewedCompiledPromptShortcuts(chunk.fileName,path,root)||
       reviewedCompiledBookmarkReact(chunk.fileName,path,root)||
       reviewedCompiledKnowledge(chunk.fileName,path,root)||

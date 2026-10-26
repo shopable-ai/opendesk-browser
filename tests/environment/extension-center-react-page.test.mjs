@@ -132,8 +132,18 @@ async function fixture({withImportHost=false,pageId='reader'}={}){
 }
 
 async function browserFixture(t,{withImportHost=false,pageId='reader'}={}){
-  const css=(await Promise.all(['design-tokens.css','design-system.css','extension-center.css','tool-shell.css']
-    .map(name=>readFile(new URL('../../src/ui/'+name,import.meta.url),'utf8')))).join('\n');
+  // Follow the actual trusted root's CSS inputs. Manually adding a missing
+  // component sheet here would conceal a production wiring defect.
+  const rootURL=new URL('../../src/ui/react/main.tsx',import.meta.url);
+  const rootSource=await readFile(rootURL,'utf8');
+  const styleExpression=rootSource.match(/<style\b[^>]*>\{([^}]+)\}<\/style>/)?.[1]||'';
+  const rootStyles=[...rootSource.matchAll(/import (\w+) from '([^']+\.css)\?raw';/g)]
+    .filter(([,binding])=>styleExpression.includes(binding))
+    .map(([, ,path])=>new URL(path,rootURL));
+  const css=(await Promise.all([
+    ...['design-tokens.css','design-system.css','extension-center.css','tool-shell.css']
+      .map(name=>new URL('../../src/ui/'+name,import.meta.url)),...rootStyles]
+    .map(url=>readFile(url,'utf8')))).join('\n');
   const {chromium}=await import(modulePath);
   const bundled=await build({stdin:{contents:`import React from 'react';
     import {createRoot} from 'react-dom/client';import {flushSync} from 'react-dom';
@@ -169,10 +179,18 @@ async function browserFixture(t,{withImportHost=false,pageId='reader'}={}){
   t.after(()=>assert.deepEqual(errors,[]));return page;
 }
 const options={skip:modulePath?false:'NOT_TESTED: set OPENDESK_PLAYWRIGHT_MODULE to an existing Playwright installation'};
-// A desktop action intentionally has no pointer target until its row is active.
+// Only the last hovered/focused row exposes a desktop pointer target.
 async function clickRowMore(button){
-  await button.locator('..').locator('..').hover();
+  const row=button.locator('..').locator('..');
+  await row.locator('[data-extension-action="main"]').hover({position:{x:12,y:12}});
+  // Focus also reactivates the row when the pointer has not moved since Tab.
+  await button.focus();
   await button.click();
+}
+// React Aria renders the pointer target as a label around a visually hidden
+// native checkbox. Keep normal hit-testing and read checked state from the input.
+async function clickSwitch(control){
+  await control.locator('xpath=ancestor::label[@data-slot="switch"]').click();
 }
 async function chooseListUninstall(page,key){
   await clickRowMore(page.locator('[data-extension-key="'+key+'"][data-extension-action="more"]'));
@@ -412,7 +430,7 @@ test('Extension tab accepts a native file drag and forwards only files to its tr
     target.dispatchEvent(new DragEvent('dragenter',{bubbles:true,cancelable:true,dataTransfer:data}));
   });
   assert.equal(await page.locator('.ec-file-drop-overlay').count(),1);
-  assert.match(await page.locator('.ec-file-drop-overlay').innerText(),/安装前仍需核对/);
+  assert.match(await page.locator('.ec-file-drop-overlay').innerText(),/代码安装包仍需审阅版本与权限/);
   await page.evaluate(()=>{
     const {target,data}=window.dragFixture;
     target.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:data}));
@@ -495,7 +513,7 @@ for(const [programId,name] of [
     await page.locator('[data-extension-key="page:'+programId+'"][data-extension-action="main"]').click();
     const control=page.getByRole('switch',{name:'启用「'+name+'」'});
     await control.waitFor();
-    assert.equal(await control.getAttribute('aria-checked'),'true');
+    assert.equal(await control.isChecked(),true);
     assert.equal(await page.locator('#extension-center-detail [data-ec-detail-action="toggle"]').count(),1);
     assert.equal(await page.locator('#extension-center-detail button[data-ec-detail-action="toggle"]').count(),0,
       'the master Switch replaces rather than duplicates the old toggle action');
@@ -505,16 +523,16 @@ for(const [programId,name] of [
     assert.equal(await page.evaluate(()=>fixture.calls.filter(c=>c.action==='page-toggle').length),before,
       'programmatic click must not pass the trusted UI/Authority guard');
     await page.evaluate(()=>fixture.controller.refresh());
-    await control.click();
+    await clickSwitch(control);
     await page.waitForFunction(()=>fixture.page.installed.enabled===false&&
       fixture.state.detailModel?.busy===false);
-    assert.equal(await control.getAttribute('aria-checked'),'false');
+    assert.equal(await control.isChecked(),false);
     assert.match(await page.locator('.ec-page-state').innerText(),/原生注销已确认/);
     assert.equal(await page.evaluate(()=>fixture.calls.find(c=>c.action==='page-toggle').args.expectedGeneration),5);
     await control.focus();await page.keyboard.press('Space');
     await page.waitForFunction(()=>fixture.page.installed.enabled===true&&
       fixture.state.detailModel?.busy===false);
-    assert.equal(await control.getAttribute('aria-checked'),'true');
+    assert.equal(await control.isChecked(),true);
     assert.equal(await page.evaluate(()=>fixture.calls.filter(c=>c.action==='page-toggle').length),2);
     assert.equal(await control.evaluate(node=>document.activeElement===node),true);
     await page.setViewportSize({width:320,height:720});
@@ -532,9 +550,9 @@ test('R1.4 master Switch never displays a Host acknowledgment as saved state',op
   await page.locator('[data-extension-key="page:opendesk.ai-scroll-navigation"][data-extension-action="main"]').click();
   const control=page.getByRole('switch',{name:'启用「AI 对话滚动导航」'});
   await page.evaluate(()=>fixture.setAckOnly(true));
-  await control.click();
+  await clickSwitch(control);
   await page.waitForFunction(()=>fixture.state.statusModel?.text.includes('读回确认'));
-  assert.equal(await control.getAttribute('aria-checked'),'true');
+  assert.equal(await control.isChecked(),true);
   assert.equal(await page.evaluate(()=>fixture.page.installed.enabled),true);
   assert.equal(await page.evaluate(()=>fixture.state.statusModel.state),'error');
 });

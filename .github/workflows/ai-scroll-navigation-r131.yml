@@ -3,17 +3,16 @@ on:
   push:
     branches: [main]
     paths:
-      - 'examples/programs/chatgpt-jump-top/src/**'
-      - 'examples/programs/chatgpt-jump-top/tests/**'
-      - 'examples/programs/chatgpt-jump-top/package.json'
-      - 'tests/environment/chatgpt-jump-top.test.mjs'
-      - 'tests/environment/ai-scroll-config-r132.test.mjs'
-      - 'tests/environment/ai-scroll-site-upgrade-r133.test.mjs'
-      - 'src/scripting/user-scripts/scroll-config-contract.js'
-      - 'src/scripting/user-scripts/scroll-site-upgrade.js'
-      - 'src/scripting/user-scripts/page-install-authorization.js'
-      - 'src/scripting/user-scripts/installed-programs.js'
-      - 'src/scripting/user-scripts/preview.js'
+      # Conservative compiler / Host / Broker / React / Installer input closure.
+      - 'examples/programs/chatgpt-jump-top/**'
+      - 'src/**'
+      - 'scripts/**'
+      - 'schemas/**'
+      - 'native-agent/local-dev/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'official-pages/sources.json'
       - '.github/workflows/ai-scroll-navigation-r131.yml'
   workflow_dispatch:
 permissions:
@@ -30,6 +29,8 @@ jobs:
         with:
           persist-credentials: true
           fetch-depth: 0
+      - name: Freeze tested input revision
+        run: echo "AI_SCROLL_INPUT_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -38,13 +39,13 @@ jobs:
       - name: Affected Node and Page Authority regressions
         run: |
           set -euo pipefail
-          node --test tests/environment/chatgpt-jump-top.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/extension-center-page-import.test.mjs tests/environment/ai-scroll-config-r132.test.mjs tests/environment/ai-scroll-site-upgrade-r133.test.mjs
+          node --test tests/environment/chatgpt-jump-top.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/extension-center-page-import.test.mjs tests/environment/ai-scroll-config-r132.test.mjs tests/environment/ai-scroll-site-upgrade-r133.test.mjs tests/environment/ai-scroll-release-r134.test.mjs tests/environment/page-program-library.test.mjs tests/environment/page-install-package.test.mjs tests/environment/sidebar-tools-view.test.mjs tests/environment/ai-scroll-install-ui-r134.test.mjs tests/environment/ai-scroll-site-detail-ui-r134.test.mjs examples/programs/chatgpt-jump-top/tests/*.test.mjs
           node scripts/validate-program-project.mjs examples/programs/chatgpt-jump-top
       - name: Reuse production Program Builder and Page Installer
         run: |
           set -euo pipefail
           node scripts/build-program-project.mjs examples/programs/chatgpt-jump-top --out "$RUNNER_TEMP/ai-scroll-nav-build"
-          node scripts/build-page-install-package.mjs --input "$RUNNER_TEMP/ai-scroll-nav-build/program.opendesk-draft.json" --out examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json --revision 3 --title "AI 对话滚动导航"
+          node scripts/build-page-install-package.mjs --input "$RUNNER_TEMP/ai-scroll-nav-build/program.opendesk-draft.json" --out examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json --revision 5 --title "AI 对话滚动导航"
       - name: Verify byte identity, revision, scope and blocked release
         run: |
           set -euo pipefail
@@ -52,6 +53,7 @@ jobs:
           import assert from 'node:assert/strict';
           import {readFile,writeFile} from 'node:fs/promises';
           import {join} from 'node:path';
+          import {execFileSync} from 'node:child_process';
           import {validatePageInstallPackage} from './src/scripting/user-scripts/page-install-package.js';
           const root='examples/programs/chatgpt-jump-top';
           const [current,old,source,manifest]=await Promise.all([
@@ -62,8 +64,18 @@ jobs:
           ]);
           const value=await validatePageInstallPackage(JSON.parse(current));
           assert.equal(value.programId,'opendesk.ai-scroll-navigation');
-          assert.equal(value.version,'0.4.2');
-          assert.equal(value.revision,3);
+          assert.equal(value.version,'0.4.4');
+          assert.equal(value.revision,5);
+          const frozenBytes=execFileSync('git',['show',`${process.env.AI_SCROLL_INPUT_HEAD}:${root}/ai-scroll-navigation.opendesk-page.json`]);
+          const frozen=JSON.parse(frozenBytes);
+          assert.equal(frozen.programId,value.programId,'frozen package identity changed');
+          assert.ok(Number.isSafeInteger(frozen.revision)&&frozen.revision>0&&frozen.revision<1_000_000_000,
+            'frozen package uses invalid or dynamic reserved revision');
+          assert.ok(value.revision>=frozen.revision,'official package revision rollback');
+          if(value.revision===frozen.revision)assert.ok(
+            frozenBytes.equals(await readFile(join(root,'ai-scroll-navigation.opendesk-page.json'))),
+            'same programId/revision requires identical raw package bytes');
+          assert.ok(Number.isSafeInteger(value.revision)&&value.revision<1_000_000_000);
           assert.equal(value.sourceUtf8,source);
           assert.deepEqual(value.pageRules.matches,[
             'https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*']);
@@ -72,60 +84,123 @@ jobs:
           const entry=publication.programs.find(row=>row.programId===value.programId);
           assert.ok(entry&&entry.publication==='blocked');
           assert.ok((entry.version==='0.4.1'&&entry.revision===2)||
+            (entry.version==='0.4.2'&&entry.revision===3)||
             (entry.version===value.version&&entry.revision===value.revision));
           entry.version=value.version;
           entry.revision=value.revision;
-          entry.blockedReason='0.4.2/r3 已完成受安装授权约束的网站配置源码与正式构建；自定义站点扩权安装及新包真实 Chrome/Mac、三站操作仍缺证据，官方目录继续阻断发行。';
+          entry.blockedReason='0.4.4/r5 已完成受安装授权约束的网站配置源码与正式构建；自定义站点扩权安装及新包真实 Chrome/Mac、三站操作仍缺证据，官方目录继续阻断发行。';
           await writeFile('official-pages/sources.json',JSON.stringify(publication,null,2)+'\n');
-          console.log(JSON.stringify({programId:value.programId,version:value.version,
+          const record={programId:value.programId,version:value.version,
             revision:value.revision,sourceHash:value.sourceHash,packageHash:value.packageHash,
-            publication:entry.publication,chromeNative:'NOT_TESTED',macNative:'NOT_TESTED'}));
+            publication:entry.publication,chromeNative:'NOT_TESTED',macNative:'NOT_TESTED'};
+          await writeFile(join(process.env.RUNNER_TEMP,'ai-scroll-release-record.json'),JSON.stringify(record,null,2)+'\n');
+          console.log(JSON.stringify(record));
           NODE
       - name: Commit verified package with normal fast-forward push
         run: |
           set -euo pipefail
-          git add -- examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json official-pages/sources.json
-          git diff --cached --check
-          if git diff --cached --quiet; then
-            echo 'No package delta to commit'
-            exit 0
+          original_head="$AI_SCROLL_INPUT_HEAD"
+          if [ "$(git rev-parse HEAD)" != "$original_head" ]; then
+            echo '::error::checkout changed since input freeze'
+            exit 1
           fi
+          outputs=(examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json official-pages/sources.json)
+          # Match the trigger closure; outputs are checked separately below.
+          inputs=(examples/programs/chatgpt-jump-top src scripts schemas native-agent/local-dev tests
+            package.json package-lock.json .github/workflows/ai-scroll-navigation-r131.yml
+            ':(exclude)examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json')
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          original_head="$(git rev-parse HEAD)"
-          git commit -m 'build(ai-scroll): publish verified 0.4.2/r3 install package'
-          # The runner owns only its unpublished package commit. A busy main
-          # is safe to follow iff all build inputs and the two output files are
-          # byte-identical to the source revision used to produce this package.
+          # Build a two-file commit directly on the latest main tree. A private
+          # index avoids rebasing shared catalog JSON or staging unrelated files.
+          export GIT_INDEX_FILE="$RUNNER_TEMP/ai-scroll-release.index"
           for attempt in 1 2 3; do
             git fetch origin main
             latest="$(git rev-parse origin/main)"
-            if git merge-base --is-ancestor HEAD "$latest"; then
-              echo 'Verified package commit already reached main'
+            git read-tree "$latest"
+            if ! git merge-base --is-ancestor "$original_head" "$latest"; then
+              echo '::error::main history diverged; refusing package push'
+              exit 1
+            fi
+            if ! git diff --quiet "$original_head" "$latest" -- "${inputs[@]}"; then
+              echo '::error::tested package inputs changed on main; requires new build'
+              exit 1
+            fi
+            AI_SCROLL_LATEST="$latest" node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile,writeFile} from 'node:fs/promises';
+          import {execFileSync} from 'node:child_process';
+          import {join} from 'node:path';
+          const path='official-pages/sources.json',id='opendesk.ai-scroll-navigation';
+          const at=ref=>JSON.parse(execFileSync('git',['show',`${ref}:${path}`],{encoding:'utf8'}));
+          const base=at(process.env.AI_SCROLL_INPUT_HEAD),latest=at(process.env.AI_SCROLL_LATEST);
+          const desired=JSON.parse(await readFile(path,'utf8'));
+          const one=value=>{const rows=value.programs.filter(row=>row.programId===id);
+            assert.equal(rows.length,1);return rows[0];};
+          const entry=one(desired),remote=one(latest);
+          const {programs:baseRows,...baseMeta}=base;
+          const {programs:remoteRows,...remoteMeta}=latest;
+          assert.deepEqual(remoteMeta,baseMeta,'catalog metadata changed');
+          assert.ok(JSON.stringify(remote)===JSON.stringify(one(base))||
+            JSON.stringify(remote)===JSON.stringify(entry),'AI Scroll catalog entry changed');
+          const packagePath='examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json';
+          const packageBytes=await readFile(packagePath),pkg=JSON.parse(packageBytes);
+          assert.equal(pkg.programId,id);
+          assert.equal(pkg.revision,5);
+          const frozenBytes=execFileSync('git',['show',`${process.env.AI_SCROLL_INPUT_HEAD}:${packagePath}`]);
+          const frozen=JSON.parse(frozenBytes);
+          assert.equal(frozen.programId,pkg.programId,'frozen package identity changed');
+          assert.ok(Number.isSafeInteger(frozen.revision)&&frozen.revision>0&&frozen.revision<1_000_000_000,
+            'frozen package uses invalid or dynamic reserved revision');
+          assert.ok(pkg.revision>=frozen.revision,'official package revision rollback');
+          if(pkg.revision===frozen.revision)assert.ok(frozenBytes.equals(packageBytes),
+            'same programId/revision requires identical raw package bytes');
+          const record=JSON.parse(await readFile(join(process.env.RUNNER_TEMP,'ai-scroll-release-record.json'),'utf8'));
+          for(const key of ['programId','version','revision','sourceHash','packageHash'])
+            assert.equal(record[key],pkg[key],`release record ${key} mismatch`);
+          for(const key of ['programId','version','revision'])assert.equal(entry[key],record[key]);
+          assert.equal(entry.publication,'blocked');
+          assert.equal(record.publication,entry.publication);
+          assert.ok(Number.isSafeInteger(record.revision)&&record.revision<1_000_000_000);
+          latest.programs=remoteRows.map(row=>row.programId===id?entry:row);
+          await writeFile(path,JSON.stringify(latest,null,2)+'\n');
+          NODE
+            if git diff --quiet "$latest" -- "${outputs[@]}"; then
+              echo 'Verified package bytes already on main; no duplicate commit'
               exit 0
             fi
-            if [ "$original_head" != "$latest" ]; then
-              if ! git merge-base --is-ancestor "$original_head" "$latest"; then
-                echo '::error::main history diverged; refusing package push'
-                exit 1
-              fi
-              if ! git diff --quiet "$original_head" "$latest" -- \
-                examples/programs/chatgpt-jump-top/src \
-                examples/programs/chatgpt-jump-top/package.json \
-                examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json \
-                official-pages/sources.json \
-                scripts/build-program-project.mjs scripts/build-page-install-package.mjs \
-                src/scripting/user-scripts; then
-                echo '::error::package sources or destination changed on main; requires new build'
-                exit 1
-              fi
-              git rebase --onto "$latest" "$original_head"
-              original_head="$latest"
+            package="${outputs[0]}"
+            if ! git diff --quiet "$original_head" "$latest" -- "$package" &&
+               ! git diff --quiet "$latest" -- "$package"; then
+              echo '::error::package destination changed on main; refusing overwrite'
+              exit 1
             fi
-            if git push origin HEAD:refs/heads/main; then
+            for output in "${outputs[@]}"; do
+              blob="$(git hash-object -w -- "$output")"
+              git update-index --add --cacheinfo "100644,$blob,$output"
+            done
+            git diff --cached --check "$latest"
+            tree="$(git write-tree)"
+            package_commit="$(git commit-tree "$tree" -p "$latest" \
+              -m 'Keep AI Scroll 0.4.4/r5 install bytes aligned with verified inputs' \
+              -m 'Constraint: Official publication remains blocked pending native evidence.
+          Confidence: high
+          Scope-risk: narrow
+          Tested: Affected Node tests, Program Builder and Page package byte validation
+          Not-tested: Chrome and Mac native installation')"
+            if git push origin "$package_commit:refs/heads/main"; then
               exit 0
             fi
             echo "::warning::package push attempt $attempt failed; refreshing main without force"
           done
           echo '::error::package push failed after safe attempts'
           exit 1
+      - name: Preserve verified package and matching release record
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-scroll-navigation-0.4.4-r5
+          path: |
+            examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json
+            official-pages/sources.json
+            ${{ runner.temp }}/ai-scroll-release-record.json
+          if-no-files-found: error

@@ -178,7 +178,7 @@ test('native unknown readback is queryable and re-import never replays registrat
   const pkg=await packageFor(),unknown=await f.import(pkg);
   assert.equal(unknown.nativeState,'blocked');assert.equal(unknown.error.code,'E_EFFECT_UNKNOWN');
   const snapshot=structuredClone(f.rows()),registers=f.registers;
-  assert.deepEqual(await f.import(pkg,unknown),unknown);
+  await assert.rejects(f.import(pkg,unknown),{code:'E_PAGE_INSTALL_PENDING'});
   assert.deepEqual(f.rows(),snapshot);assert.equal(f.registers,registers);
   assert.equal((await f.service.listPagePrograms({},{id:'test'})).installed[0].error.code,'E_EFFECT_UNKNOWN');
 });

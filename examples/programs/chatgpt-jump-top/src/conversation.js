@@ -238,7 +238,7 @@ export function findConversationNavigation(main, turnSelector, doc, win) {
   if (!turns.length) return null;
   const first = turns[0], last = turns.at(-1);
   const scroller = findConversationScroller(first, doc, win);
-  if (!scroller || findConversationScroller(last, doc, win) !== scroller)
+  if (!scroller || turns.some(turn => findConversationScroller(turn, doc, win) !== scroller))
     return null;
   // Do not accept a scrollport inside a single message, code editor, or aside.
   if (scroller !== doc.scrollingElement && scroller !== doc.documentElement &&

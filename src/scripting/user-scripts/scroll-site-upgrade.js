@@ -2,8 +2,13 @@
 // The original Page Package validator and Installer remain the only authority.
 import {canonical,digest,digestUtf8,invariant} from '../../platform/protocol.js';
 import {PAGE_INSTALL_FORMAT,validatePageInstallPackage} from './page-install-package.js';
-import {pageProgramUrlMatches} from './page-program-rules.js';
-import {SCROLL_CONFIG_PROGRAM_ID,SCROLL_CONFIG_MIN_REVISION,scrollSiteInstallMatches} from './scroll-config-contract.js';
+import {SCROLL_CONFIG_PROGRAM_ID,SCROLL_CONFIG_MIN_REVISION,SCROLL_SITE_REVISION_BASE,scrollSiteInstallMatches,scrollProgramUrlMatches} from './scroll-config-contract.js';
+
+export async function scrollSiteRevision(manifestHash,matches){
+  const hash=await digest({manifestHash,matches:[...new Set(matches)]});
+  return SCROLL_SITE_REVISION_BASE+Number.parseInt(hash.slice(0,12),16)%
+    (2147483648-SCROLL_SITE_REVISION_BASE);
+}
 
 export async function buildScrollSiteUpgradePackage({installed,candidate,origin,pathScope,revision}){
   invariant(installed?.programId===SCROLL_CONFIG_PROGRAM_ID&&
@@ -17,12 +22,14 @@ export async function buildScrollSiteUpgradePackage({installed,candidate,origin,
   invariant(installed.enabled===true&&installed.nativeState==='registered'&&
     installed.authorization?.status==='active'&&!installed.error,
     'E_PAGE_AUTHORIZATION','停用、待确认、撤权和异常的安装均不可通过新增网站恢复');
-  invariant(Number.isSafeInteger(revision)&&revision>installed.revision&&revision<=2147483647,
-    'E_REVISION','增量网站权限必须创建新修订版本');
   const proposed=scrollSiteInstallMatches(origin,pathScope),current=installed.pageRules;
-  invariant(!pageProgramUrlMatches(current,origin+pathScope),
+  invariant(!scrollProgramUrlMatches(current,origin+pathScope),
     'E_SITE_ALREADY_ALLOWED','当前范围已有授权；请在目标网站直接配置滚动区域');
-  invariant(current.matches.length+proposed.length<=128,'E_PAGE_MATCH','原生匹配规则数量超限');
+  const matches=[...new Set([...current.matches,...proposed])];
+  const expectedRevision=await scrollSiteRevision(candidate.manifestHash,matches);
+  invariant(revision===expectedRevision&&revision!==installed.revision,
+    'E_REVISION','网站候选必须使用可信宿主派生的独立修订身份');
+  invariant(matches.length<=128,'E_PAGE_MATCH','原生匹配规则数量超限');
   invariant(!current.matches.includes('<all_urls>')&&
     !current.matches.some(p=>/^(https?|\*):\/\/\*\//.test(p)),
     'E_PAGE_SCOPE','不能从全网安装派生自定义网站权限');
@@ -45,7 +52,6 @@ export async function buildScrollSiteUpgradePackage({installed,candidate,origin,
   const baseVersion=versionMatch[1].split('+')[0];
   invariant(/^\d+\.\d+\.\d+$/.test(baseVersion),'E_PAGE_SOURCE','无法识别正式版本');
   const nextVersion=baseVersion+'+site.r'+revision;
-  const matches=[...current.matches,...proposed];
   const before=existing.map(match=>'// @match '+match).join('\n')+'\n';
   invariant(header.includes(before)&&header.indexOf(before)===header.lastIndexOf(before),
     'E_PAGE_METADATA_RULES','原始 @match 元数据不连续或有重复');

@@ -1,6 +1,6 @@
 import {createPageUI} from '@opendesk/ui';
 import {installJumpToTop} from './conversation.js';
-import {findSiteBindings,siteForUrl} from './site-adapters.js';
+import {findSiteBindings,findSiteConversation,siteForUrl} from './site-adapters.js';
 import {installFloatingNavigation} from './floating-navigation.js';
 import {installVisualSiteConfiguration,resolveConfiguredConversation} from './site-configuration.js';
 

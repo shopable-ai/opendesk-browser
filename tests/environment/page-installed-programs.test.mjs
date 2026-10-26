@@ -1,3 +1,4 @@
+import {realScrollPackage} from './ai-scroll-build-support.mjs';
 import {loadFakeBuiltin,fakeBuiltinSource} from './builtin-support.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -123,6 +124,23 @@ function fixture(){
   return f;
 }
 const fails=(work,code)=>assert.rejects(work,error=>error.code===code);
+
+test('R134 document_idle bootstrap waits for the registration mutation and runs exactly once',async()=>{
+  const f=fixture(),register=f.api.userScripts.register;let boot;
+  f.api.userScripts.register=async scripts=>{
+    await register(scripts);
+    boot=f.service.handleBoot(f.message(),f.sender);
+    // Chrome delivers messages independently; register never awaits a reply.
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(f.sourceCalls,0);
+  };
+  const installed=await f.install();
+  assert.equal(installed.ready,true);
+  await boot;
+  assert.equal(f.sourceCalls,1);
+  await fails(()=>f.service.handleBoot(f.message(),f.sender),'E_REQUEST_CONFLICT');
+  assert.equal(f.sourceCalls,1);
+});
 
 for(const scenario of ['registered','unavailable','missing','unrelated registration','disabled','disabled unavailable'])
 test('R343 list readback is live and read-only: '+scenario,async()=>{
@@ -911,9 +929,9 @@ test('R1.12 manual Page refuses an invalid document or installation grant withou
 
 
 // R1.3.2: Program-specific trusted selector storage on the ORIGINAL Page broker.
-async function scrollConfigFixture(){
+async function scrollConfigFixture(options={}){
   const f=fixture(),programId='opendesk.ai-scroll-navigation',revision=3;
-  const candidate=await f.prepare('document-idle',{programId,revision});
+  const candidate=await f.prepare('document-idle',{programId,revision,...options});
   const installed=await f.service.installPageProgram({programId,revision,
     manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
   const executionKey='R132-config-document',receiptNonce=crypto.randomUUID();
@@ -956,6 +974,27 @@ test('R132 config cannot edit unapproved sites or impersonate another execution'
   await fails(()=>f.service.handleBoot({...message,sourceUtf8:'evil'},f.sender),'E_SCHEMA');
   assert.deepEqual(await f.service.handleBoot(message,f.sender),{etag:'0',value:{version:1,sites:[]}});
 });
+test('R134 dormant rules survive scope contraction but cannot be edited without current authorization',async()=>{
+  const {f,message,site}=await scrollConfigFixture();
+  const dormant={...site,origin:'https://unapproved.test'};
+  // Persisted user data from a formerly approved wider installation.
+  const configKey='page-config:'+canonical(['tool:test',message.programId]);
+  await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',{
+    tag:'page-config-v1',namespace:'tool:test',programId:message.programId,
+    etag:'wider-scope',value:{version:1,sites:[dormant]}
+  },configKey));
+  const read=await f.service.handleBoot(message,f.sender);
+  const saved=await f.service.handleBoot({...message,operation:'write',etag:read.etag,
+    value:{version:1,sites:[dormant,site]}},f.sender);
+  assert.deepEqual(saved.value.sites,[dormant,site]);
+  await fails(()=>f.service.handleBoot({...message,operation:'write',etag:saved.etag,
+    value:{version:1,sites:[{...dormant,mainSelector:'#changed'},site]}},f.sender),'E_PAGE_AUTHORIZATION');
+  const deleted=await f.service.handleBoot({...message,operation:'write',etag:saved.etag,
+    value:{version:1,sites:[site]}},f.sender);
+  assert.deepEqual(deleted.value.sites,[site]);
+  await fails(()=>f.service.handleBoot({...message,operation:'write',etag:deleted.etag,
+    value:{version:1,sites:[dormant,site]}},f.sender),'E_PAGE_AUTHORIZATION');
+});
 test('R132 disabling or revoking original install instantly fences saved config access',async()=>{
   const {f,message,installed}=await scrollConfigFixture();
   await f.service.setInstalledPageEnabled({programId:message.programId,
@@ -965,40 +1004,179 @@ test('R132 disabling or revoking original install instantly fences saved config 
 });
 
 test('R133 custom Origin candidate remains read-only, requires exact installed identity, and never revives a disabled Page',async()=>{
-  const f=fixture(),programId='opendesk.ai-scroll-navigation',revision=3;
-  const source=[
-    '// ==UserScript==','// @name Navigation reviewed scope',
-    '// @version 0.4.2','// @match https://example.com/*',
-    '// @noframes','// @run-at document-idle','// ==/UserScript==',
-    '// __openDeskScrollConfig','async function main(){return 3;}'
-  ].join(String.fromCharCode(10))+String.fromCharCode(10);
-  const candidate=await f.prepare('document-idle',{programId,revision,
-    site:'https://example.com/*',sourceUtf8:source});
-  const installed=await f.service.installPageProgram({programId,revision,
-    manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
+  const f=fixture(),base=await realScrollPackage(),{programId,revision}=base;
+  const installed=await f.service.importPageInstallPackage({package:base,
+    expectedInstalledManifestHash:null,expectedGeneration:null},{});
   const request={programId,origin:'https://custom.example.org',pathScope:'/chat',
     expectedInstalledManifestHash:installed.manifestHash,
     expectedGeneration:installed.authorization.generation};
   const initialWrites=f.writes.length,initialRegister=f.registerCalls;
   const pkg=await f.service.prepareScrollSitePackage(request,{});
   assert.equal(pkg.programId,programId);
-  assert.equal(pkg.revision,revision+1);
-  assert.equal(pkg.version,'0.4.2+site.r4');
+  assert.ok(pkg.revision>=1000000000);
+  assert.equal(pkg.version,base.version+'+site.r'+pkg.revision);
   assert.deepEqual(pkg.pageRules.matches,[
-    'https://example.com/*','https://custom.example.org/chat',
-    'https://custom.example.org/chat?*','https://custom.example.org/chat/*'
+    ...base.pageRules.matches,'https://custom.example.org:443/chat',
+    'https://custom.example.org:443/chat?*','https://custom.example.org:443/chat/*'
   ]);
   assert.equal(f.writes.length,initialWrites,'preparing review cannot write installation');
   assert.equal(f.registerCalls,initialRegister,'preparing review cannot register USER_SCRIPT');
   assert.equal(f.permissionRequests.length,0,'preparing review cannot request Chrome permissions');
-  assert.equal(f.installation(programId).revision,3,'only original Installer can authorize new revision');
+  assert.equal(f.installation(programId).revision,revision,'only original Installer can authorize new revision');
   await fails(()=>f.service.prepareScrollSitePackage({...request,expectedGeneration:0},{}),'E_REVISION');
-  await fails(()=>f.service.prepareScrollSitePackage({...request,origin:'https://example.com'},{}),
+  await fails(()=>f.service.prepareScrollSitePackage({...request,origin:'https://chatgpt.com'},{}),
     'E_SITE_ALREADY_ALLOWED');
   f.granted=false;
   await fails(()=>f.service.prepareScrollSitePackage(request,{}),'E_PERMISSION');
   f.granted=true;
   await f.service.setInstalledPageEnabled({programId,manifestHash:installed.manifestHash,
     expectedGeneration:installed.authorization.generation,enabled:false},{});
-  await fails(()=>f.service.prepareScrollSitePackage(request,{}),'E_PAGE_AUTHORIZATION');
+  await fails(()=>f.service.prepareScrollSitePackage(request,{}),'E_REVISION');
+  await fails(()=>f.service.prepareScrollSitePackage({...request,
+    expectedGeneration:f.installation(programId).authorization.generation},{}),'E_PAGE_AUTHORIZATION');
+});
+
+async function realScrollSiteFixture(){
+  const f=fixture(),base=await realScrollPackage();
+  const installed=await f.service.importPageInstallPackage({package:base,
+    expectedInstalledManifestHash:null,expectedGeneration:null},{});
+  const request={programId:base.programId,origin:'https://custom.example.org',pathScope:'/chat',
+    expectedInstalledManifestHash:installed.manifestHash,expectedGeneration:installed.authorization.generation};
+  const pkg=await f.service.prepareScrollSitePackage(request,{});
+  return {f,base,installed,request,pkg};
+}
+test('R134 real built package scope review is stable and never occupies the official revision',async()=>{
+  const {f,base,installed,request,pkg}=await realScrollSiteFixture();
+  assert.deepEqual(await f.service.prepareScrollSitePackage(request,{}),pkg);
+  assert.notEqual(pkg.revision,base.revision);
+  assert.notEqual(pkg.sourceHash,base.sourceHash);
+  const expanded=await f.service.importPageInstallPackage({package:pkg,
+    expectedInstalledManifestHash:installed.manifestHash,expectedGeneration:installed.authorization.generation},{});
+  assert.equal(expanded.ready,true);
+  assert.deepEqual(expanded.pageRules,pkg.pageRules);
+  const another=await f.service.prepareScrollSitePackage({...request,origin:'https://second.example.org',
+    expectedInstalledManifestHash:expanded.manifestHash,expectedGeneration:expanded.authorization.generation},{});
+  assert.notEqual(another.revision,pkg.revision);
+  assert.ok(another.pageRules.matches.includes('https://custom.example.org:443/chat'));
+  // Official immutable r4 is still free and usable after a locally reviewed variant.
+  const official=await f.service.importPageInstallPackage({package:base,
+    expectedInstalledManifestHash:expanded.manifestHash,expectedGeneration:expanded.authorization.generation},{});
+  assert.equal(official.revision,base.revision);
+  assert.equal(official.sourceHash,base.sourceHash);
+  assert.equal(official.ready,true);
+  await fails(()=>f.service.importPageInstallPackage({package:another,
+    expectedInstalledManifestHash:expanded.manifestHash,expectedGeneration:expanded.authorization.generation},{}),'E_REVISION');
+});
+test('R134 denied new origin leaves the original real package and native registration untouched',async()=>{
+  const {f,installed,pkg}=await realScrollSiteFixture(),original=structuredClone(f.native);
+  f.api.permissions.contains=async({origins})=>!origins.includes('https://custom.example.org/*');
+  await fails(()=>f.service.importPageInstallPackage({package:pkg,
+    expectedInstalledManifestHash:installed.manifestHash,expectedGeneration:installed.authorization.generation},{}),'E_PERMISSION');
+  assert.equal(f.installation(installed.programId).manifestHash,installed.manifestHash);
+  assert.deepEqual(f.native,original);
+  assert.equal(f.executeCalls,0);
+});
+test('R134 immutable scope candidate collision fails without changing the previous installation',async()=>{
+  const {f,base,installed,request,pkg}=await realScrollSiteFixture();
+  await f.dependencies.importPageCandidate({programId:base.programId,revision:pkg.revision,
+    entryFormat:base.entryFormat,sourceUtf8:base.sourceUtf8,lockId:null,importSourceUrl:null,pageRules:base.pageRules},{});
+  await fails(()=>f.service.prepareScrollSitePackage(request,{}),'E_REVISION');
+  await fails(()=>f.service.importPageInstallPackage({package:pkg,
+    expectedInstalledManifestHash:installed.manifestHash,expectedGeneration:installed.authorization.generation},{}),'E_REQUEST_CONFLICT');
+  assert.equal(f.installation(base.programId).manifestHash,installed.manifestHash);
+  assert.equal(f.installation(base.programId).ready,undefined);
+  assert.equal(f.installation(base.programId).nativeState,'registered');
+});
+for(const failure of ['throw','mismatched readback'])
+test('R134 failed native scope upgrade retains and verifies the old immutable install: '+failure,async()=>{
+  const {f,installed,pkg}=await realScrollSiteFixture();
+  const register=f.api.userScripts.register;let first=true;
+  f.api.userScripts.register=async scripts=>{
+    if(first){first=false;if(failure==='throw')throw Error('native registration failure');
+      return register(scripts.map(row=>({...row,matches:['https://wrong.example/*']})));}
+    return register(scripts);
+  };
+  await fails(()=>f.service.importPageInstallPackage({package:pkg,
+    expectedInstalledManifestHash:installed.manifestHash,expectedGeneration:installed.authorization.generation},{}),'E_EFFECT_UNKNOWN');
+  const restored=f.installation(installed.programId);
+  assert.equal(restored.manifestHash,installed.manifestHash);
+  assert.equal(restored.authorization.installationId,installed.authorization.installationId);
+  assert.ok(restored.authorization.generation>installed.authorization.generation);
+  assert.equal(restored.nativeState,'registered');
+  assert.deepEqual(f.native.get(restored.nativeId).matches,installed.pageRules.matches);
+  assert.equal(f.executeCalls,0,'restoring a bootstrap must never replay program source');
+});
+
+test('R134 coarse Chrome host grants cannot execute Scroll source on an unreviewed port',async()=>{
+  const {f,base}=await realScrollSiteFixture();
+  const url='https://chatgpt.com:444/c/test';
+  f.target.expectedUrl=url;f.sender.url=url;
+  await fails(()=>f.service.handleBoot(f.message(base.programId),f.sender),'E_PERMISSION');
+  assert.equal(f.executeCalls,0);
+});
+
+// Four reproduced Host regressions; no real Chrome or source replay.
+for(const revokedInstall of [false,true])
+test('R134 failed upgrade compensates after review Host revocation, without reviving a revoked install: '+revokedInstall,async()=>{
+  const {f,installed,pkg}=await realScrollSiteFixture();
+  const register=f.api.userScripts.register;let first=true,revocation;
+  f.api.userScripts.register=async scripts=>{
+    if(!first)return register(scripts);
+    first=false;
+    await f.storage.transaction(['commandJournal'],'readwrite',async tx=>{
+      const host=await tx.get('commandJournal','host:host');
+      await tx.put('commandJournal',{...host,revoked:true},'host:host');
+    });
+    if(revokedInstall){
+      f.granted=false;
+      // Synchronous removal epoch fences compensation before queued revocation.
+      revocation=f.service.revokePermissions({origins:['https://chatgpt.com/*']});
+    }
+    throw Error('native registration failure');
+  };
+  await fails(()=>f.service.importPageInstallPackage({package:pkg,
+    expectedInstalledManifestHash:installed.manifestHash,expectedGeneration:installed.authorization.generation},{}),'E_EFFECT_UNKNOWN');
+  if(revocation)await revocation;
+  const after=f.installation(installed.programId);
+  if(revokedInstall){
+    assert.equal(after.authorization.status,'suspended');
+    assert.equal(after.nativeState,'blocked');assert.equal(f.native.size,0);
+  }else{
+    assert.equal(after.manifestHash,installed.manifestHash);
+    assert.equal(after.authorization.installationId,installed.authorization.installationId);
+    assert.ok(after.authorization.generation>installed.authorization.generation);
+    assert.equal(after.nativeState,'registered');
+    assert.deepEqual(f.native.get(after.nativeId).matches,installed.pageRules.matches);
+  }
+  assert.equal(f.executeCalls,0);assert.equal(f.sourceCalls,0);
+});
+
+for(const scope of ['exact','excluded descendant','covered prefix','disjoint exclusion'])
+test('R134 config requires the complete prefix to be covered: '+scope,async()=>{
+  const match=scope==='exact'?'https://example.com/demo':'https://example.com/*';
+  const exclude=scope==='excluded descendant'?'https://example.com/demo/private/*':
+    scope==='disjoint exclusion'?'https://example.com/other/*':null;
+  const sourceUtf8='// ==UserScript==\n// @match '+match+'\n'+
+    (exclude?'// @exclude-match '+exclude+'\n':'')+
+    '// @noframes\n// @run-at document-idle\n// ==/UserScript==\nasync function main(){return 42;}';
+  const {f,message,site}=await scrollConfigFixture({sourceUtf8});
+  const write=()=>f.service.handleBoot({...message,operation:'write',etag:'0',value:{version:1,sites:[site]}},f.sender);
+  if(scope==='exact'||scope==='excluded descendant'){
+    await fails(write,'E_PAGE_AUTHORIZATION');
+    assert.deepEqual(await f.service.handleBoot(message,f.sender),{etag:'0',value:{version:1,sites:[]}});
+  }else assert.deepEqual((await write()).value.sites,[site]);
+});
+
+for(const field of ['matches','excludeMatches','runAt','allFrames','world','worldId','js'])
+test('R134 list blocks same-id registration drift without reconciliation: '+field,async()=>{
+  const f=fixture(),installed=await f.install(),native=f.native.get(installed.nativeId);
+  native[field]={matches:['https://wrong.example/*'],excludeMatches:['https://example.com/private/*'],
+    runAt:'document_start',allFrames:true,world:'MAIN',worldId:'wrong',js:[{code:'changed'}]}[field];
+  const before={db:f.snapshot(),native:structuredClone(f.native),writes:f.writes.length,
+    register:f.registerCalls,unregister:f.unregisterCalls,execute:f.executeCalls};
+  const result=await f.service.listPagePrograms({},{}),row=result.installed[0];
+  assert.equal(row.nativeState,'blocked');assert.equal(row.ready,false);
+  assert.equal(row.error.code,'E_PAGE_INSTALLATION');assert.deepEqual(result.catalog[0].installed,row);
+  assert.deepEqual({db:f.snapshot(),native:f.native,writes:f.writes.length,
+    register:f.registerCalls,unregister:f.unregisterCalls,execute:f.executeCalls},before);
 });

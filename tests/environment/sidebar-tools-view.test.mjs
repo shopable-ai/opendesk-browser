@@ -22,11 +22,14 @@ const compileComponent = async (path, replacements) => {
     (text,[from,to])=>text.replaceAll(JSON.stringify(from),JSON.stringify(to)),code)).toString('base64');
 };
 const buttonModule = await compileComponent('../../src/ui/react/components/ui/button.tsx',{'react':import.meta.resolve('react')});
+const switchModule = await compileComponent('../../src/ui/react/components/ui/switch.tsx',{
+  'react':import.meta.resolve('react'),'react-aria-components':import.meta.resolve('react-aria-components')});
 const conversationModule = await compileComponent('../../src/ui/react/components/conversation.tsx',{
   'react':import.meta.resolve('react'),'react-dom':import.meta.resolve('react-dom'),
   './ui/button.tsx':buttonModule});
 const toolsModule = await compileComponent('../../src/ui/react/tabs/tools.tsx',{'react':import.meta.resolve('react'),
   'react-dom':import.meta.resolve('react-dom'),'../components/ui/button.tsx':buttonModule,
+  '../components/ui/switch.tsx':switchModule,
   '../../locale-manager-localization.js':new URL('../../src/ui/locale-manager-localization.js',import.meta.url).href});
 const moduleSource = compiled.code.replace('"react"', JSON.stringify(import.meta.resolve('react')))
   .replace('"react-dom"',JSON.stringify(import.meta.resolve('react-dom')))
@@ -128,7 +131,7 @@ test('SSR contains import, execution display and trusted reviews, with one owner
 });
 
 
-test('real React header uses one text node with complete accessible context',()=>{
+test('real React header uses plain escaped text with complete accessible context',()=>{
   const view=createSidebarToolsView();
   view.patch('sidebar-tool-display',{hidden:false});
   for(const [visible,context] of [
@@ -146,7 +149,7 @@ test('real React header uses one text node with complete accessible context',()=
     assert.equal(document.querySelectorAll('#sidebar-tool-title').length,1);
     assert.equal(node.textContent,visible);
     assert.equal(node.children.length,0,'do not nest title path elements');
-    assert.equal(node.childNodes.length,1,'render a single text node');
+    assert.ok([...node.childNodes].every(child=>child.nodeType===3),'only escaped text, including parser-split entities');
     assert.equal(node.getAttribute('aria-label'),context);
     assert.equal(node.getAttribute('title'),context+' · v0.3.12');
     assert.equal(node.querySelector('img'),null,'untrusted heading is escaped text');
@@ -206,7 +209,7 @@ test('React layout supplies real runtime refs, preserves opaque children, dispat
   const root = createRoot(document.getElementById('mount')), view = createSidebarToolsView();
   let initialized = 0, disposed = 0, editing = false;
   const calls = [];
- const methods = ['openTool', 'openSettings', 'toggleEnabled', 'uninstallFromList', 'retryUninstallCleanup', 'openOfficialReview',
+ const methods = ['openTool', 'openSettings', 'toggleEnabled', 'uninstallFromList', 'retryUninstallCleanup', 'openOfficialReview', 'openOfficialPageReview', 'openPagePackageReview',
     'openImport', 'openReadOnlyPreview', 'openInTab', 'closeTool'];
   const facade = view.connect(() => {
     initialized++;

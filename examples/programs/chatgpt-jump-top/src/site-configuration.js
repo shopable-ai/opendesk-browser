@@ -1,3 +1,5 @@
+import {findConversationScroller} from './conversation.js';
+
 // Per-installation visual site adapter. All persistence flows through the
 // authenticated Installed Page USER_SCRIPT broker; this module grants nothing.
 const OWN='data-opendesk-ai-scroll-navigation';
@@ -47,16 +49,23 @@ export function resolveConfiguredConversation(rule,doc,win){
     turns=[...main.children].filter(n=>shown(n,win));
   }
   const first=turns[0]||main,last=turns.at(-1)||main;
-  if(!scroller.contains(first)||!scroller.contains(last))return null;
+  if(![...(turns.length?turns:[main])].every(node=>scroller.contains(node)&&
+      findConversationScroller(node,doc,win,{includeSelf:true})===scroller))return null;
   const anchor=rule.anchorSelector?sole(doc,rule.anchorSelector,win):null;
   if(rule.anchorSelector&&!anchor)return null;
-  return {custom:true,site:'custom',main,scroller,first,last,anchor,selector:rule.messageSelector||''};
+  return {custom:true,site:'custom',main,scroller,first,last,anchor,selector:rule.messageSelector||'',
+    rule:{...rule},href:win.location.href};
+}
+function sameTargets(a,b){
+  return Boolean(a&&b&&['main','scroller','first','last','anchor'].every(key=>a[key]===b[key]));
 }
 export function scrollConfiguredEdge(binding,direction,doc,win){
   if(!binding?.custom||!['top','bottom'].includes(direction))return false;
   // Resolve everything again at the moment of the click. Never trust a stale
   // element that React or a SPA has detached/replaced since the last frame.
-  const {main,scroller,first,last}=binding;
+  const fresh=resolveConfiguredConversation(binding.rule,doc,win);
+  if(binding.href!==win.location.href||!sameTargets(binding,fresh))return false;
+  const {main,scroller,first,last}=fresh;
   if(!main?.isConnected||!scroller?.isConnected||!first?.isConnected||!last?.isConnected||
       !scroller.contains(first)||!scroller.contains(last))return false;
   const max=scroller.scrollHeight-scroller.clientHeight;
@@ -120,7 +129,7 @@ label{display:grid;gap:5px;margin:10px 0;font-weight:600}input[type=text]{width:
 <div class="actions"><button id="pick-scroll">选择滚动容器</button></div>
 <label>消息节点（可选）<input type="text" id="messages" placeholder="例如：article.message" autocomplete="off"></label>
 <label>按钮锚点（可选）<input type="text" id="anchor" placeholder="不填则自动定位" autocomplete="off"></label>
-<div class="check"><input type="checkbox" id="enabled" checked><span>启用此规则</span></div>
+<label class="check"><input type="checkbox" id="enabled" checked><span>启用此规则</span></label>
 <div class="actions"><button id="test-top">测试顶部</button><button id="test-bottom">测试底部</button></div>
 <div class="actions"><button class="primary" id="save">保存规则</button><button id="reset">删除本站规则</button><button id="reload">重新读取</button></div>
 <div class="status" id="status" role="status" aria-live="polite"></div>
@@ -128,6 +137,7 @@ label{display:grid;gap:5px;margin:10px 0;font-weight:600}input[type=text]{width:
 <div class="pick" id="pick" hidden><div class="outline" id="outline"></div></div>`;
 export function installVisualSiteConfiguration({doc,win,owner,api,onChange}){
   let current={version:1,sites:[]},etag='0',busy=false,closed=false,loaded=false,testing={top:false,bottom:false},selecting=null,resetArmed=false;
+  let operationEpoch=0,readFlight=null,readRequired=false;
   const host=doc.createElement('div');
   host.setAttribute(OWN,'settings');
   host.style.cssText='position:fixed;z-index:2147483604;pointer-events:none';
@@ -157,51 +167,77 @@ export function installVisualSiteConfiguration({doc,win,owner,api,onChange}){
     el('anchor').value=r?.anchorSelector||'';
     el('enabled').checked=r?.enabled??true;invalidate();
   };
-  const lock=()=>{for(const id of ['save','reset','reload','test-top','test-bottom','pick-main','pick-scroll'])
+  const lock=()=>{for(const id of [...fields,'save','reset','reload','test-top','test-bottom','pick-main','pick-scroll'])
     el(id).disabled=busy;};
-  async function read({repaint=true}={}){
-    if(!api){say('当前安装没有配置能力。请通过原扩展中心审阅升级。',true);return;}
-    busy=true;lock();
-    try{
-      const reply=await api.read();
-      if(!reply||reply.value?.version!==1||!Array.isArray(reply.value.sites)||
-          typeof reply.etag!=='string')throw Error('可信配置读回格式错误');
-      if(closed)return;
-      current=reply.value;etag=reply.etag;loaded=true;
-      if(repaint)fill();
-      say('已从可信 Host 读取 · '+current.sites.length+' 条规则');
-      onChange?.();
-    }catch(e){say('读取失败：'+(e.code||e.message)+'。未修改已有规则。',true);}
-    finally{busy=false;lock();}
+  function read({repaint=true}={}){
+    if(readFlight)return readFlight;
+    if(closed||busy)return Promise.resolve();
+    if(!api){say('当前安装没有配置能力。请通过原扩展中心审阅升级。',true);return Promise.resolve();}
+    const epoch=++operationEpoch;
+    busy=true;loaded=false;lock();
+    readFlight=Promise.resolve().then(async()=>{
+      try{
+        const reply=await api.read();
+        if(closed||epoch!==operationEpoch)return;
+        if(!reply||reply.value?.version!==1||!Array.isArray(reply.value.sites)||
+            typeof reply.etag!=='string')throw Error('可信配置读回格式错误');
+        current=reply.value;etag=reply.etag;loaded=true;readRequired=false;
+        if(repaint)fill();
+        say('已从可信 Host 读取 · '+current.sites.length+' 条规则');
+        onChange?.();
+      }catch(e){
+        if(!closed&&epoch===operationEpoch)say('读取失败：'+(e.code||e.message)+'。未修改已有规则。',true);
+      }finally{
+        if(epoch===operationEpoch){readFlight=null;busy=false;if(!closed)lock();}
+      }
+    });
+    return readFlight;
   }
   async function save(remove=false){
     if(busy||!loaded)return;
     const rule=draft();
-    if(!remove&&(!testing.top||!testing.bottom)){say('保存前请分别测试顶部和底部。',true);return;}
+    const existing=current.sites.find(item=>item.origin===rule.origin&&item.pathScope===rule.pathScope);
+    const disablingExisting=!rule.enabled&&existing&&
+      ['mainSelector','scrollSelector','messageSelector','anchorSelector'].every(key=>existing[key]===rule[key]);
+    if(!remove&&!disablingExisting&&(!testing.top||!testing.bottom)){say('保存前请分别测试顶部和底部。',true);return;}
+    if(!remove&&!disablingExisting){
+      const binding=resolveConfiguredConversation({...rule,enabled:true},doc,win);
+      if(!['top','bottom'].every(edge=>testing[edge].href===win.location.href&&
+          testing[edge].draft===JSON.stringify(rule)&&sameTargets(testing[edge].binding,binding))){
+        invalidate();say('页面或目标已变化，请重新测试顶部和底部。',true);return;
+      }
+    }
     const candidate={version:1,sites:current.sites.filter(r=>
       !(r.origin===rule.origin&&r.pathScope===rule.pathScope))};
     if(!remove)candidate.sites.push(rule);
-    busy=true;lock();
+    const epoch=++operationEpoch;
+    busy=true;loaded=false;readRequired=true;lock();
+    // A lost write/confirmation may already have persisted. Require an explicit
+    // read before another attempt rather than replaying an unknown effect.
     try{
       const reply=await api.write(candidate,etag);
-      if(reply?.etag===undefined)throw Error('写入回执不完整');
+      if(closed||epoch!==operationEpoch)return;
+      if(typeof reply?.etag!=='string'||JSON.stringify(reply.value)!==JSON.stringify(candidate))
+        throw Object.assign(Error('写入回执不完整'),{code:'E_CONFIG_UNKNOWN'});
       const confirmed=await api.read();
+      if(closed||epoch!==operationEpoch)return;
       if(confirmed?.etag!==reply.etag||JSON.stringify(confirmed.value)!==JSON.stringify(reply.value))
         throw Object.assign(Error('保存后的真实读回不一致；请重新读取核对'),{code:'E_CONFIG_UNKNOWN'});
       if(closed)return;
-      current=confirmed.value;etag=confirmed.etag;loaded=true;
+      current=confirmed.value;etag=confirmed.etag;loaded=true;readRequired=false;
       fill();say(remove?'已删除本站规则并确认持久化。':'已保存并从可信 Host 确认，刷新后仍可恢复。');
       onChange?.();
-    }catch(e){say('未确认保存：'+(e.code||e.message)+
-      '。当前草稿保留；冲突请先核对另一窗口的改动。',true);}
-    finally{busy=false;lock();}
+    }catch(e){if(!closed&&epoch===operationEpoch)say('未确认保存：'+(e.code||e.message)+
+      '。当前草稿保留；请先重新读取核对，再决定是否保存。',true);}
+    finally{if(epoch===operationEpoch){busy=false;if(!closed)lock();}}
   }
   const statusScope=()=>{
     el('scope').textContent='当前网站：'+win.location.origin+
       '。规则仅在原安装批准的网站执行；其他网站必须先经过扩权升级审阅。';
   };
-  let guide=null,block=null,move=null,keys=null;
+  let guide=null,block=null,move=null,keys=null,releaseClick=null;
   function stopPick({consumeClick=false}={}){
+    releaseClick?.();
     if(!selecting)return;
     for(const event of ['pointerdown','click','contextmenu'])doc.removeEventListener(event,block,true);
     doc.removeEventListener('pointermove',move,true);
@@ -210,10 +246,23 @@ export function installVisualSiteConfiguration({doc,win,owner,api,onChange}){
     // The pointerdown that selected a DOM node can still produce a click.
     // Consume it so a website button/link never activates while picking.
     if(consumeClick){
-      const eat=event=>{event.preventDefault();event.stopImmediatePropagation();
-        doc.removeEventListener('click',eat,true);};
+      const eat=event=>{event.preventDefault();event.stopImmediatePropagation();releaseClick?.();};
+      releaseClick=()=>{
+        doc.removeEventListener('click',eat,true);
+        doc.removeEventListener('pointerdown',release,true);
+        doc.removeEventListener('keydown',releaseKey,true);
+        releaseClick=null;
+      };
+      const release=()=>releaseClick?.();
+      const releaseKey=event=>{
+        if(['Shift','Control','Alt','Meta','AltGraph','CapsLock','NumLock','ScrollLock'].includes(event.key))return;
+        release();
+      };
       doc.addEventListener('click',eat,true);
-      owner.setTimeout(()=>doc.removeEventListener('click',eat,true),350);
+      // A held pointer may release after an arbitrary delay. Keep capture
+      // until its click, a new intentional gesture, or lifecycle disposal.
+      doc.addEventListener('pointerdown',release,true);
+      doc.addEventListener('keydown',releaseKey,true);
     }
   }
   function beginPick(field){
@@ -225,7 +274,15 @@ export function installVisualSiteConfiguration({doc,win,owner,api,onChange}){
       if(!node||!allowedNode(node,win))return null;
       if(field==='scroller'){
         const main=sole(doc,el('main').value,win);
-        if(!main||(!node.contains(main)&&!main.contains(node)))return null;
+        if(!main||!allowedNode(main,win)||(!node.contains(main)&&!main.contains(node)))return null;
+        const scroller=findConversationScroller(node,doc,win,{includeSelf:true});
+        // Roots are valid only when the browser identifies the real document
+        // scrollport. Never turn an arbitrary body into a fallback selection.
+        if(!scroller||(scroller!==doc.scrollingElement&&!allowedNode(scroller,win)))return null;
+        const selector=safeUniqueSelector(doc,scroller);
+        if(!selector)return null;
+        const binding=resolveConfiguredConversation({...draft(),enabled:true,scrollSelector:selector},doc,win);
+        return binding?.scroller===scroller?scroller:null;
       }
       return node;
     };
@@ -254,14 +311,14 @@ export function installVisualSiteConfiguration({doc,win,owner,api,onChange}){
   function testEdge(direction){
     if(busy)return;
     const binding=resolveConfiguredConversation({...draft(),enabled:true},doc,win);
-    if(!binding){say('当前选择器无法唯一匹配真实对话区域与滚动容器。',true);return;}
+    if(!binding){invalidate();say('当前选择器无法唯一匹配真实对话区域与滚动容器。',true);return;}
     const valid=scrollConfiguredEdge(binding,direction,doc,win);
-    if(!valid){say('滚动未确认或当前没有有效滚动距离；不得保存未经测试的规则。',true);return;}
-    testing[direction]=true;say((direction==='top'?'顶部':'底部')+'已执行并确认滚动位置。'+
+    if(!valid){invalidate();say('滚动未确认或当前没有有效滚动距离；不得保存未经测试的规则。',true);return;}
+    testing[direction]={binding,href:win.location.href,draft:JSON.stringify(draft())};say((direction==='top'?'顶部':'底部')+'已执行并确认滚动位置。'+
       (testing.top&&testing.bottom?' 可以保存。':' 请继续测试另一个方向。'));
   }
   owner.on(el('launch'),'click',event=>{if(event.isTrusted!==true)return;
-    statusScope();el('panel').hidden=false;el('close').focus();if(!loaded)void read();});
+    statusScope();el('panel').hidden=false;el('close').focus();if(!loaded&&!readRequired)void read();});
   owner.on(el('close'),'click',event=>{if(!event.isTrusted)return;stopPick();el('panel').hidden=true;el('launch').focus();});
   for(const id of fields)owner.on(el(id),'input',invalidate);
   owner.on(el('pick-main'),'click',e=>{if(e.isTrusted)beginPick('main');});
@@ -276,7 +333,7 @@ export function installVisualSiteConfiguration({doc,win,owner,api,onChange}){
   owner.on(el('reload'),'click',e=>{if(e.isTrusted&&!busy)void read();});
   owner.on(doc,'keydown',event=>{if(event.key==='Escape'&&!selecting&&!el('panel').hidden){
     el('panel').hidden=true;el('launch').focus();}});
-  owner.onDispose(()=>{closed=true;stopPick();host.remove();});
+  owner.onDispose(()=>{closed=true;++operationEpoch;stopPick();host.remove();});
   if(!closed)doc.documentElement?.append(host);
   void read();
   return Object.freeze({activeRule,read});

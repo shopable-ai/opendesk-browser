@@ -3726,10 +3726,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
          recorded.manifestHash!==result?.manifestHash||
          recorded.authorization?.installationId!==result?.authorization?.installationId||
          recorded.nativeState!==result?.nativeState||recorded.enabled!==result?.enabled||
-         recorded.authorization?.status!==result?.authorization?.status)
+         recorded.authorization?.status!==result?.authorization?.status||
+         recorded.authorization?.generation!==result?.authorization?.generation)
         throw Object.assign(new Error('安装回执尚未从已安装列表读回；请核对状态，系统不会自动重试。'),
           {code:'E_PAGE_INSTALL_READBACK'});
-      showPageInstallReceipt(pkg,result);
+      showPageInstallReceipt(pkg,recorded);
       setImportOpen(false);
       notice((installed?'已更新':'已安装')+'网页增强「'+pkg.title+'」v'+pkg.version+
         (recorded.enabled?'；打开或刷新目标网页即可使用。':'；原有停用状态已保留。'));
