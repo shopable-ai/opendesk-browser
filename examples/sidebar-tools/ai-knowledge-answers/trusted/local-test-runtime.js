@@ -1,4 +1,5 @@
 import {createLocalKnowledgeDemoAdapter} from './local-test-adapter.js';
+import {planCustomerMessage,composeCustomerReply,MAX_AI_INTENTS} from './multi-intent.js';
 
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const LIMIT=20;
@@ -37,10 +38,11 @@ export function createLocalKnowledgeTestRuntime({
    if(s.sending.has(id))throw fail('E_KB_TEST_SEND_BUSY','该客户消息正在发送或核对，请勿重复确认');
    const record=snapshot.records.find(x=>x.messageId===id);
    if(!record||record.threadId!==s.threadId||!record.answer||
-      !['ANSWERED_FIXED','REVIEW_REQUIRED'].includes(record.status))
+      !['ANSWERED_FIXED','REVIEW_REQUIRED','GREETING_ONLY',
+         'COMPOSITE_REVIEW_REQUIRED','MULTI_REVIEW_REQUIRED','PARTIAL_REVIEW_REQUIRED'].includes(record.status))
      throw fail('E_KB_TEST_NO_ANSWER','当前消息没有可发送的答案');
-   if(record.status==='REVIEW_REQUIRED'&&!reviewApproved)
-     throw fail('E_KB_REVIEW','AI 草稿必须由用户实际审阅并明确确认');
+   if(record.status!=='ANSWERED_FIXED'&&!reviewApproved)
+     throw fail('E_KB_REVIEW','问候、多问题或 AI 草稿必须先人工核对并明确确认');
    if(record.providerGeneration!==null&&record.providerGeneration!==getProviderGeneration())
      throw fail('E_KB_STALE','模型设置已变化，旧 AI 草稿不得发送');
    s.sending.add(id);
@@ -51,8 +53,25 @@ export function createLocalKnowledgeTestRuntime({
      if(read.etag!==record.etag)throw fail('E_KB_STALE','知识版本已更新，旧答案不得发送');
      const library=model.library(read.value??model.empty());
      const sourceIds=record.sourceIds||[];
-     if(!sourceIds.length||sourceIds.some(id=>!library.items.some(x=>x.id===id&&x.enabled&&x.scope===record.scope)))
+     if((!sourceIds.length&&record.status!=='GREETING_ONLY')||sourceIds.some(id=>
+         !library.items.some(x=>x.id===id&&x.enabled&&x.scope===record.scope)))
        throw fail('E_KB_STALE','原知识来源不可用，旧回答不得发送');
+     // Never trust a previously planned question after the library is reread.
+     const replanned=planCustomerMessage(model,library,{question:record.question,scope:record.scope});
+     const signature=parts=>JSON.stringify(parts.map(p=>[p.question,p.status,p.sourceIds,p.candidateSourceIds]));
+     if(signature(replanned.parts)!==signature(record.baselineParts||[]))
+       throw fail('E_KB_STALE','逐题问题或知识归属已变化，请重新分析');
+     if(record.status==='GREETING_ONLY'&&
+        (replanned.status!=='GREETING_ONLY'||replanned.answer!==record.answer))
+       throw fail('E_KB_STALE','问候模板已变化，请重新确认');
+     if(['MULTI_REVIEW_REQUIRED','PARTIAL_REVIEW_REQUIRED','COMPOSITE_REVIEW_REQUIRED'].includes(record.status)){
+       if(!record.parts?.length||record.parts.some(p=>
+         p.status==='REVIEW_REQUIRED'&&(!p.sourceIds.length||
+           p.sourceIds.some(id=>!p.candidateSourceIds.includes(id)))))
+         throw fail('E_KB_STALE','AI 来源与原子问题不匹配');
+       if(!record.hasAI&&(replanned.answer!==record.answer||replanned.status!==record.status))
+         throw fail('E_KB_STALE','合成草稿已经失效');
+     }
      if(record.status==='ANSWERED_FIXED'){
        const current=model.lookup(library,{question:record.question,scope:record.scope});
        if(current.status!=='ANSWERED_FIXED'||current.answer!==record.answer||
@@ -213,7 +232,8 @@ export function createLocalKnowledgeTestRuntime({
        s.queue.push(msg);
        const record=Object.freeze({messageId:msg.messageId,threadId:msg.threadId,
          question:msg.text,scope:msg.scope,status:'OBSERVED',message:'真实 DOM 新消息',
-         sourceIds:[],answer:'',etag:null,providerGeneration:null,replyMessageId:null});
+         sourceIds:[],answer:'',parts:[],baselineParts:[],answeredCount:0,reviewCount:0,
+         hasAI:false,etag:null,providerGeneration:null,replyMessageId:null});
        publish({observed:snapshot.observed+1,records:[...snapshot.records,record]});
      }
      void drain(s);
