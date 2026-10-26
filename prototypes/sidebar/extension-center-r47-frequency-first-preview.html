@@ -78,7 +78,7 @@
                   </div></fieldset>
                   <button id="preview-reset" class="ec-menu-action" type="button">恢复默认筛选</button>
                   <div class="ec-menu-separator">
-                    <button id="preview-import" class="ec-menu-action" type="button">导入本地工具包</button>
+                    <button id="preview-import" class="ec-menu-action" type="button">导入扩展…</button>
                     <button id="preview-reload" class="ec-menu-action" type="button">刷新扩展</button>
                   </div>
                 </div>
@@ -503,11 +503,16 @@ function renderReview(key){
    button.setAttribute('aria-pressed',String(button.dataset.installScenario===key));
  });
 }
+function prepareReview(key){
+ renderReview(key==='import'?'update':key);
+ // The menu entry starts an unreviewed sheet; scenario buttons remain previews.
+ if(key==='import')invalidateDemoFileReview();
+}
 function openReview(key='update'){
- if(!overlay.hidden){renderReview(key);return;}
+ if(!overlay.hidden){prepareReview(key);return;}
  reviewReturnFocus=document.activeElement;reviewWasInert=demoRoot.inert;
  closeMenu(false);closeGlobalMenu();
- renderReview(key);overlay.hidden=false;demoRoot.inert=true;
+ prepareReview(key);overlay.hidden=false;demoRoot.inert=true;
  document.body.style.overflow='hidden';
  $('sidebar-tool-import-close').focus({preventScroll:true});
 }
@@ -517,7 +522,7 @@ function closeReview(){
  const target=reviewReturnFocus?.isConnected?reviewReturnFocus:$('preview-more');
  target?.focus?.({preventScroll:true});
 }
-$('preview-import').addEventListener('click',()=>openReview('update'));
+$('preview-import').addEventListener('click',()=>openReview('import'));
 $('sidebar-tool-import-close').addEventListener('click',closeReview);
 $('demo-install-backdrop').addEventListener('click',closeReview);
 document.querySelectorAll('[data-install-scenario]').forEach(button=>{

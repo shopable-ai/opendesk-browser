@@ -24,3 +24,14 @@
 - **文件审阅**：文件读取及核验期间显示「正在核验安装包…」；原有 `fileSelection` 代次机制继续令旧文件结果失效。HTML 演示文件选择／拖入时立即撤销旧模拟确认，绝不将任意新文件模拟为已审阅。
 - **唯一预览入口**：`prototypes/sidebar/extension-center-r47-frequency-first-preview.html`，继续加载正式样式。只演示交互，不解析／验证实际包、不产生真实安装回执、不能作为安装 PASS 证据。
 - **回归断言**：对 Tool 更新无变化摘要、Page 两种已验证哈希、Page 排除网站缩小增加针对性断言。无项目依赖或无原生 Chrome 的环境，Node 测试、真实安装与响应式／键盘端到端验收必须标 `NOT_TESTED`。
+
+
+## R5.7 导入扩展入口恢复（2026-10-26）
+
+- **原始目标**：扩展中心「更多 → 导入扩展…」应先打开既有 React ImportSheet，再主动选/拖入 Tool / Page 包，审阅并确认安装；语言包从既有语言设置管理。
+- **P0 根因**：正式 `extension-center.js` 菜单直接点击隐藏的 `#extension-center-file`，跳过 `sidebarTools.openImport()`。正式 React 文案把工具包和语言包错误合并。
+- **源码增量**：点击菜单先关闭更多菜单、把焦点放在可见触发按钮，再同步调用原 `sidebarTools.openImport()`；Host 返回 false 或抛异常时提供明确反馈。菜单显示「导入扩展…」。不修改任何可信 Installer、权限与 Page Authority 规则。
+- **语言隔离**：原 `#extension-center-language-settings` 与 LocaleManager 继续处理语言包；现有全局拖入分类与 `#extension-center-file` 的代码路径暂保留，避免误删兼容路径，但隐藏输入不再是扩展菜单入口。
+- **交互预览**：复用 `prototypes/sidebar/extension-center-r47-frequency-first-preview.html`；「导入扩展…」先显示无批准状态的空白文件选择弹窗，预设的更新/新增权限/网页增强审阅继续通过独立场景按钮触发。
+- **测试**：增加 ExtensionCenter 实际 Controller 与 React 扩展列表 DOM 的入口/失败回执断言；React ToolHost 同屏集成及 Native Chrome 使用另一个定向测试验收。此段记录不主张运行过 Node/Playwright/Chrome。
+- **证据边界**：GitHub 主分支直接编辑，未获得本机 Mac Chrome 现场验收；未运行的 Node / Playwright / 原生 Chrome 测试严格为 `NOT_TESTED`。

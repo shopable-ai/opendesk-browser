@@ -324,7 +324,7 @@ export function ExtensionToolbar({model}){
           <button id="extension-center-discover" className="ec-menu-action" type="button"
              onClick={event=>current.onDiscover?.(event.nativeEvent)}>检测当前网页可安装应用</button>
            <button id="extension-center-import" className="ec-menu-action" type="button"
-            onClick={event=>current.onImport?.(event.nativeEvent)}>导入本地工具包或语言包</button>
+            onClick={event=>current.onImport?.(event.nativeEvent)}>导入扩展…</button>
           <button id="extension-center-reload" className="ec-menu-action" type="button"
             onClick={event=>current.onReload?.(event.nativeEvent)}>刷新扩展</button>
         </div>

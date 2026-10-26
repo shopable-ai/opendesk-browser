@@ -820,3 +820,31 @@ test('R5.0 official catalog stale responses and failures must be rejected by sou
   assert.match(center,/return \{refresh,dispose\(\)\{if\(disposed\)return;disposed=true;sequence\+\+;officialSequence\+\+;\s*listUninstallReview=null;uninstallReview=null;closeRowMenu\(\)/,
     'dispose invalidates both asynchronous sequences and pending reviews before closing the menu');
 });
+
+
+test('R5.7 menu opens trusted import Host, never the global picker or language manager',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  const more=f.nodes['extension-center-more'],picker=f.nodes['extension-center-file'];
+  let pickerClicks=0;
+  picker.click=()=>{pickerClicks++;};
+  const language=f.nodes['extension-center-language-settings'];
+  assert.ok(language&&!f.nodes['extension-center-menu'].contains(language),
+    'language management remains separate from extension import');
+  more.dispatch('click');
+  const importAction=f.nodes['extension-center-import'];
+  assert.equal(importAction.textContent,'导入扩展…');
+  importAction.dispatch('click');
+  assert.deepEqual(f.invocations.filter(row=>row[0]==='import'),[['import']]);
+  assert.equal(pickerClicks,0,'menu action must not open the obsolete hidden file picker');
+  assert.equal(f.nodes['extension-center-menu'].hidden,true);
+  assert.equal(f.doc.activeElement,more,'visible menu trigger is the modal focus return target');
+  f.sidebarTools.openImport=()=>false;
+  more.dispatch('click');f.nodes['extension-center-import'].dispatch('click');
+  assert.match(f.nodes['extension-center-status'].textContent,/无法打开导入扩展弹窗/);
+  assert.equal(f.nodes['extension-center-status'].dataset.state,'error');
+  assert.equal(pickerClicks,0);
+  f.sidebarTools.openImport=()=>{throw Error('Host unavailable');};
+  more.dispatch('click');f.nodes['extension-center-import'].dispatch('click');
+  assert.match(f.nodes['extension-center-status'].textContent,/Host unavailable/);
+  assert.equal(pickerClicks,0);
+});

@@ -119,7 +119,19 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       onKind(value){if(disposed)return;kind=value;draw();},
       onScope(value){if(disposed)return;scope=value;draw();},
       onReset(){if(disposed)return;kind='all';scope='smart';draw();},
-      onImport(){if(disposed)return;closeMenu();get('extension-center-file')?.click();},
+      onImport(){
+        if(disposed)return;
+        // Close the menu, keeping its visible trigger as ToolHost's focus return target.
+        // Only the existing trusted Host may open ImportSheet or review install bytes.
+        closeMenu();closeRowMenu();
+        if(more?.isConnected&&!more.closest?.('[hidden]'))more.focus({preventScroll:true});
+        try{
+          if(sidebarTools.openImport?.()!==true)
+            message('当前无法打开导入扩展弹窗；请完成正在进行的操作后重试。','error');
+        }catch(error){
+          message('无法打开导入扩展弹窗：'+String(error?.message||error),'error');
+        }
+      },
       onImportFiles:importFiles,
       onLanguageSettings(){openLanguageSettings();},
       localeManager:languageManager?{...languageManager,service:toolLocaleService,
