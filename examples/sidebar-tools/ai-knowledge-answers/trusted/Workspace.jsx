@@ -61,7 +61,7 @@ export default function KnowledgeWorkspace({host,onOpenSettings}){
   return <div className="od-knowledge-workspace">
     <section className="od-knowledge-dashboard" aria-label="知识问答控制台">
       <div className="od-knowledge-title-row">
-        <div><h2>AI 客服</h2><p>客户消息与回复审核</p></div>
+        <div><h2>客服会话</h2><p>客户消息与回复审核</p></div>
         <button className="od-icon-button" type="button" aria-label="AI 设置"
           title="AI 设置" onClick={onOpenSettings}><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15.4 21 16l-2 3.5-1.8-1A8 8 0 0 1 14 20l-.4 2h-3.2L10 20a8 8 0 0 1-3.2-1.5l-1.8 1L3 16l1.6-.6a8 8 0 0 1 0-3.5L3 11.2l2-3.5 1.8 1A8 8 0 0 1 10 7.2l.4-2h3.2l.4 2a8 8 0 0 1 3.2 1.5l1.8-1 2 3.5-1.6.7a8 8 0 0 1 0 3.5Z"/></svg></button>
       </div>
