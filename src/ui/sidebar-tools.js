@@ -3437,6 +3437,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   async function reviewCandidate(candidate,sourceLabel,release=null,selection=fileSelection){
     requireToolRuntime(candidate);
+    // A local file may contain the exact bundled official release. Its file
+    // name/ID cannot establish provenance; reuse the catalog's byte/hash check
+    // and the existing official install revalidation instead.
+    if(!release){
+      const official=officialReleases.find(row=>row.toolId===candidate.id&&row.version===candidate.version);
+      if(official&&await matchesOfficialRelease(official,candidate)){
+        release=official;sourceLabel+=' · 来源：已核对内置官方发行';
+      }
+    }
     const previous=toolById(candidate.id);
     const [candidateHash,previousHash]=await Promise.all([
       sidebarToolPackageHash(candidate),previous?sidebarToolPackageHash(previous):null,
@@ -3712,7 +3721,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         market:release?{marketId:release.id,sha256:release.sha256,operationId}:null,
         // Only the exact verified official release explicitly reviewed by the
         // user may replace a different local provenance (no modal, no autopush).
-        approveSourceChange:()=>Boolean(release&&pendingRelease===release&&samePackage(candidate,pending)),
+        approveSourceChange:()=>{
+          if(release&&pendingRelease===release&&samePackage(candidate,pending))return true;
+          throw Object.assign(new Error('此文件未匹配当前官方发行，不能替换已安装的官方应用。请从官方应用入口更新，或选择与官方发行一致的安装包；原应用和数据保留。'),
+            {code:'E_PUBLISHER_CONFLICT'});
+        },
         approveUpdate:(previous,next)=>{
           const added=addedCapabilities(next,previous);
           const change=versionOrder(next.version,previous.version);

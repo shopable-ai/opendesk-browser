@@ -1,4 +1,4 @@
-import {cp,readFile,writeFile,rename,mkdir} from 'node:fs/promises';
+import {cp,readFile,writeFile,rename,mkdir,realpath,rm,lstat} from 'node:fs/promises';
 import {trustedToolShellStyle} from './bundle-provenance.mjs';
 import {resolve,dirname,relative} from 'node:path';
 import {createHash} from 'node:crypto';
@@ -109,11 +109,20 @@ export function configureDevelopment(wxt,server) {
   if(sessions.has(server))return;
   // Native WXT watches Rollup moduleIds and serializes incremental entry builds.
   // Replace only reload requests: the default client cannot inspect RunHost.
+  // server:started precedes internalBuild's outDir removal and public copy.
+  // Wait for that existing build, never write resources into its empty window.
+  let initialOutput=server.currentOutput,removeReadyHook,rejectReady;
+  const ready=initialOutput?Promise.resolve():new Promise((resolveReady,reject)=>{
+    rejectReady=reject;
+    removeReadyHook=wxt.hooks.hook('build:done',(_wxt,output)=>{
+      initialOutput=output;resolveReady();
+    });
+  });
   let publishing=Promise.resolve(),publicationGuard=()=>Promise.resolve();
-  const publish=()=>{const output=server.currentOutput;publishing=publishing.then(async()=>{await publicationGuard();return publishDevelopment(wxt,output);}).catch(error=>wxt.logger.error(error));return publishing;};
+  const publish=()=>{publishing=publishing.then(async()=>{await ready;await publicationGuard();return publishDevelopment(wxt,server.currentOutput||initialOutput);}).catch(error=>wxt.logger.error(error));return publishing;};
   server.reloadExtension=publish;server.reloadPage=publish;server.reloadContentScript=publish;
   const builder=wxt.builder,build=builder.build,importEntries=builder.importEntrypoints;
-  const guardedBuild=async(...args)=>{await publishing;return build.apply(builder,args);};
+  const guardedBuild=async(...args)=>{if(server.currentOutput)await publishing;return build.apply(builder,args);};
   builder.build=guardedBuild;
   const guardedImport=async(...args)=>{
     try{return await importEntries.apply(builder,args);}
@@ -131,6 +140,14 @@ export function configureDevelopment(wxt,server) {
   const officialRoot=resolve(wxt.config.root,'official-tools');
   const toolRoot=resolve(wxt.config.root,'examples/sidebar-tools');
   let officialGeneration=0,catalogDirty=false,changeId=0;
+  // Keep validated ownership across partial writer failures: its catalog rename
+  // precedes stale-package removal, so disk alone cannot recover the old set.
+  let officialOwned,ownershipError;
+  const ownershipReady=ready.then(async()=>{
+    const catalog=validateOfficialReleaseCatalog(JSON.parse(
+      await readFile(resolve(wxt.config.outDir,OFFICIAL_CATALOG_PATH),'utf8')));
+    officialOwned=new Set([OFFICIAL_CATALOG_PATH,...catalog.apps.map(row=>row.packagePath)]);
+  }).catch(error=>{ownershipError=error;});
   const officialChanges=new Set(),copyErrors=new Map(),sourceVersions=new Map();
   let copying=Promise.resolve(),accepting=true;
   const sync=(event,file)=>{
@@ -184,17 +201,53 @@ export function configureDevelopment(wxt,server) {
         // compiled dist bytes are declared. Still publish the new package.
         if(!catalogDirty&&!adblockSourceChanged&&!stayFocusSourceChanged&&!cookieReactBuilt&&
           !changes.some(path=>inputs.includes(path)))return;
-        const generated=await buildOfficialTools(wxt.config.publicDir,{root:wxt.config.root});
-        copyErrors.delete(errorKey);
-        if(catalogDirty){
-          // WXT restart does not rerun scripts/dev.mjs's initial preparePublic.
-          // Regenerate first, then refresh its asset inventory through the
-          // existing restart queue. Do not await stop/drain inside this queue.
-          catalogDirty=false;void server.restart();return;
+        await ready;await ownershipReady;
+        let previous;
+        try{previous=validateOfficialReleaseCatalog(JSON.parse(
+          await readFile(resolve(wxt.config.outDir,OFFICIAL_CATALOG_PATH),'utf8')));}
+        catch(error){
+          if(error.code!=='ENOENT')throw error;
+          if(!officialOwned)throw ownershipError||error;
         }
+        const owned=new Set([...(officialOwned||[]),OFFICIAL_CATALOG_PATH,
+          ...(previous?.apps||[]).map(row=>row.packagePath)]);
+        // Retain the baseline even if generation/copy/cleanup fails below.
+        officialOwned=owned;
+        const generated=await buildOfficialTools(wxt.config.publicDir,{root:wxt.config.root});
+        for(const path of generated.resources.keys())owned.add(path);
         // Copy complete packages first and catalog last, using the same queue
         // that gates revision publication. Never expose a failed half-build.
         await writeOfficialToolResources(generated,wxt.config.outDir);
+        // A previous failed cleanup may already have replaced either catalog.
+        // Retry only validated owned paths, with the writer's symlink guard.
+        for(const directory of [wxt.config.publicDir,wxt.config.outDir]){
+          const root=await realpath(directory);
+          for(const path of owned){
+            if(generated.resources.has(path))continue;
+            const target=resolve(root,path);
+            let parent;
+            try{parent=await realpath(dirname(target));}
+            catch(error){
+              if(error.code!=='ENOENT')throw error;
+              // An absent parent is already clean. A dangling symlink also
+              // yields ENOENT, so check ancestors before treating it as absent.
+              for(let path=dirname(target);path!==root;path=dirname(path)){
+                try{if((await lstat(path)).isSymbolicLink())throw new Error('stale output directory is a symlink');}
+                catch(error){if(error.code!=='ENOENT')throw error;}
+              }
+              continue;
+            }
+            if(parent!==dirname(target))throw new Error('stale output directory is a symlink');
+            await rm(target,{force:true});
+          }
+        }
+        // Preserve WXT metadata and every nonofficial asset, including sandbox.
+        const output=server.currentOutput||initialOutput;
+        const existing=new Map(output.publicAssets.map(asset=>[asset.fileName,asset]));
+        output.publicAssets=[...output.publicAssets.filter(asset=>!owned.has(asset.fileName)),
+          ...[...generated.resources.keys()].map(fileName=>existing.get(fileName)||{type:'asset',fileName})];
+        officialOwned=new Set(generated.resources.keys());
+        catalogDirty=false;copyErrors.delete(errorKey);
         void publish();
         return;
       }
@@ -227,7 +280,7 @@ export function configureDevelopment(wxt,server) {
   // WXT's asynchronous file reloader is installed after server:started.
   // Keep its rejected metadata/build queue from escaping EventEmitter.
   server[restartKey]?.protectWatcher();
-  const session={publication:()=>publishing,stopCopies:()=>{accepting=false;watcher.off('all',sync);},drain:async()=>{await copying;checkCopyErrors();await publishing;},restore:()=>{if(builder.build===guardedBuild)builder.build=build;if(builder.importEntrypoints===guardedImport)builder.importEntrypoints=importEntries;}};
+  const session={publication:()=>publishing,stopCopies:()=>{accepting=false;watcher.off('all',sync);if(!initialOutput)rejectReady(new Error('Development stopped before initial output was ready'));},drain:async()=>{await copying;checkCopyErrors();await publishing;},restore:()=>{removeReadyHook?.();if(builder.build===guardedBuild)builder.build=build;if(builder.importEntrypoints===guardedImport)builder.importEntrypoints=importEntries;}};
   sessions.set(server,session);server[sessionKey]=session;
 }
 export async function closeDevelopment(wxt,server) {

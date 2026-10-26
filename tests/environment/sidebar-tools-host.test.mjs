@@ -72,6 +72,43 @@ test('R26 stopped details remain manageable and enabling waits for an explicit O
   await settle(()=>f.elements['sidebar-tool-frame'].children.length===1);
 });
 
+test('updating Prompt Shortcuts preserves other app frames, requests and stored data',async t=>{
+  const candidate=await officialToolFixture('prompt-shortcuts');
+  const previous={...candidate,version:'1.1.19',css:candidate.css+'\n/* old release */'};
+  const other={...sample,id:'notes-other',title:'另一个独立应用'};
+  const notes={notes:'keep original notes'},otherData={notes:'keep other notes'};
+  const store=new Map([[SIDEBAR_TOOL_STORE,[previous,sample,other]],
+    [sidebarToolStorageKey(sample.id),notes],[sidebarToolStorageKey(other.id),otherData],
+    [TOOL_REVOCATION_EPOCHS_STORE,{[sample.id]:'notes-epoch',[other.id]:'other-epoch'}]]);
+  const f=await hostFixture(t,{store});
+  const originalFrame=f.frame,token=f.loaded.instance;
+  const originalSet=f.api.storage.local.set;
+  f.api.storage.local.set=async values=>{
+    const changes=Object.fromEntries(Object.entries(values).map(([key,newValue])=>
+      [key,{oldValue:structuredClone(store.get(key)),newValue:structuredClone(newValue)}]));
+    await originalSet(values);f.changeStorage(changes);
+  };
+  const result=await installReviewedSidebarTool({api:f.api,lockManager:sharedLocks(),
+    candidate,baseline:previous,reviewApproved:true});
+  assert.equal(result.state,'installed');
+  assert.equal(f.runtime.frameRoot.firstElementChild,originalFrame);
+  assert.equal(originalFrame.isConnected,true,'another installation cannot detach the live iframe');
+  assert.equal(originalFrame.contentWindow.sent.filter(row=>row.kind==='load').length,1);
+  assert.equal(f.loaded.instance,token);
+  f.ask('storage.get',{key:'notes'},'after-other-update');
+  await settle(()=>originalFrame.contentWindow.sent.some(row=>row.requestId==='after-other-update'));
+  const reply=originalFrame.contentWindow.sent.find(row=>row.requestId==='after-other-update');
+  assert.equal(reply.ok,true);assert.equal(reply.result.value,notes.notes);
+  assert.deepEqual(store.get(sidebarToolStorageKey(sample.id)),notes);
+  assert.deepEqual(store.get(sidebarToolStorageKey(other.id)),otherData);
+  assert.equal(store.get(TOOL_REVOCATION_EPOCHS_STORE)[sample.id],'notes-epoch');
+  assert.equal(store.get(TOOL_REVOCATION_EPOCHS_STORE)[other.id],'other-epoch');
+  f.host.closeTool();f.host.openTool(other.id);
+  const nextFrame=f.runtime.frameRoot.firstElementChild;await nextFrame.onload();
+  assert.equal(nextFrame.isConnected,true,'other installed apps can still open');
+  assert.equal(nextFrame.contentWindow.sent[0].tool.id,other.id);
+});
+
 test('same-title installed tools keep distinct iframe identities without granting trust',async t=>{
   const lookalike={...sample,id:'same-title-local'};
   const store=new Map([[SIDEBAR_TOOL_STORE,[sample,lookalike]]]);
@@ -936,6 +973,74 @@ test('R5.3 local review identifies normalized candidate/current hashes and cance
   f.emit(f.elements['sidebar-tool-import-close'],'click');
   assert.equal(f.elements['sidebar-tool-preview'].hidden,true);
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),before);
+});
+
+test('local official import updates the reviewed release and preserves app data',async t=>{
+  const candidate=await officialToolFixture('bookmark-manager');
+  const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===candidate.id);
+  const previous={...candidate,version:'0.3.11',js:'void 0;'};
+  const data={note:'keep local data'},dataKey=sidebarToolStorageKey(candidate.id);
+  const f=await hostFixture(t,{startTool:false,store:new Map([
+    [SIDEBAR_TOOL_STORE,[previous]],[dataKey,data],
+    [TOOL_REVOCATION_EPOCHS_STORE,{[candidate.id]:'old-install'}],
+    [MARKET_PROVENANCE_STORE,{[candidate.id]:{marketId:release.id,
+      version:previous.version,sha256:await sidebarToolPackageHash(previous)}}]
+  ])});
+  f.host.openImport();
+  const text=JSON.stringify(Object.fromEntries(Object.entries(candidate).reverse()),null,2);
+  f.selectFile({name:'bookmark-manager.opendesk-tool.json',size:Buffer.byteLength(text),text:async()=>text});
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+  assert.match(f.elements['sidebar-tool-preview-file'].textContent,/已核对内置官方发行/);
+  assert.equal(f.store.get(SIDEBAR_TOOL_STORE)[0].version,previous.version,'review cannot install');
+  f.emit(f.elements['sidebar-tool-install'],'click');
+  await settle(()=>f.elements['sidebar-tool-import'].hidden);
+  assert.equal(f.store.get(SIDEBAR_TOOL_STORE)[0].version,candidate.version);
+  assert.deepEqual(f.store.get(dataKey),data);
+  assert.deepEqual(f.store.get(MARKET_PROVENANCE_STORE)[candidate.id],{
+    marketId:release.id,version:release.version,sha256:release.sha256
+  });
+  assert.notEqual(f.store.get(TOOL_REVOCATION_EPOCHS_STORE)[candidate.id],'old-install');
+  assert.equal(f.runtime.frameRoot.children.length,0,'installation cannot run the app');
+});
+
+test('unverified local replacement reports the source conflict and preserves the official install',async t=>{
+  const previous=await officialToolFixture('bookmark-manager');
+  const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===previous.id);
+  const candidate={...previous,version:'0.3.13',js:previous.js+'\nvoid 0;'};
+  const provenance={[previous.id]:{marketId:release.id,version:release.version,sha256:release.sha256}};
+  const f=await hostFixture(t,{startTool:false,store:new Map([
+    [SIDEBAR_TOOL_STORE,[previous]],[MARKET_PROVENANCE_STORE,provenance]
+  ])});
+  f.host.openImport();
+  const text=JSON.stringify(candidate);
+  f.selectFile({name:'bookmark-manager.opendesk-tool.json',size:Buffer.byteLength(text),text:async()=>text});
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+  assert.doesNotMatch(f.elements['sidebar-tool-preview-file'].textContent,/已核对内置官方发行/);
+  f.emit(f.elements['sidebar-tool-install'],'click');
+  await settle(()=>!f.elements['sidebar-tool-file-error'].hidden);
+  assert.match(f.elements['sidebar-tool-file-error'].textContent,/E_PUBLISHER_CONFLICT.*官方/);
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[previous]);
+  assert.deepEqual(f.store.get(MARKET_PROVENANCE_STORE),provenance);
+});
+
+test('local official import rechecks packaged bytes before updating',async t=>{
+  const candidate=await officialToolFixture('bookmark-manager');
+  const previous={...candidate,version:'0.3.11',js:'void 0;'};
+  let tamper=false;
+  const f=await hostFixture(t,{startTool:false,store:new Map([[SIDEBAR_TOOL_STORE,[previous]]]),
+    fetcher:async(url,options)=>tamper&&url.endsWith('/bookmark-manager.opendesk-tool.json')
+      ?{ok:true,url,arrayBuffer:async()=>new TextEncoder().encode('{}').buffer}
+      :officialFixtureFetch(url,options)});
+  f.host.openImport();
+  const text=JSON.stringify(candidate);
+  f.selectFile({name:'bookmark-manager.opendesk-tool.json',size:Buffer.byteLength(text),text:async()=>text});
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+  tamper=true;
+  f.emit(f.elements['sidebar-tool-install'],'click');
+  await settle(()=>!f.elements['sidebar-tool-file-error'].hidden);
+  assert.match(f.elements['sidebar-tool-file-error'].textContent,/E_PACKAGE_INTEGRITY/);
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[previous]);
+  assert.equal(f.store.has(MARKET_PROVENANCE_STORE),false);
 });
 
 test('R5.3 cancelled or superseded hash calculation cannot revive an old review',async t=>{

@@ -121,3 +121,5 @@ npm run verify
 ## 官方可选工具资源（R4.5）
 
 `official-tools/catalog.json` 登记可信项目，正式与开发构建从 `examples/sidebar-tools/<id>/` 的声明输入生成 `.wxt/public/official-tools/...` 和最终 `dist/{production,development}/official-tools/...`。`npm run dev` 监听这些输入并沿用原发布队列，失败不发布新就绪标记；Catalog 结构变更先生成资源再刷新 WXT 的资产清单。生成不安装、不执行工具，也不改变网站许可；旧安装更新仍须审核。详见 [官方 Catalog API](../api/official-tools-catalog.zh-CN.md)。
+
+官方目录的数据修改及工具增删只刷新其自有资源清单，沿原子写入队列发布，不触发 WXT 重启或清空 `dist/development`。所有工具共用的 `sidebar-tools/sandbox.html` 保持可用；纯目录/JSON 更新也不重载现有工具页。源码、构建配置或可信运行时代码的更新仍按上文安全刷新合同处理。本规则修复了目录变化可能造成共享沙箱短暂缺失的开发环境问题，不代表已经复现并确认每一次 Chrome 文件丢失报错。

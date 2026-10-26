@@ -1,12 +1,20 @@
 # AI 提示词快捷按钮 · Prompt Shortcuts
 
+## 详情按钮与共享沙箱更新修复（2026-10-26）
+
+唯一正式包现为 **1.1.20**，ID、权限与存储格式保持原样。详情中的「编辑」「复制全文」补齐 18×18px SVG 尺寸和描边约束，避免无固有尺寸的 SVG 撑大文字按钮；详情进入、编辑、复制全文和返回焦点已通过隔离 Chromium 的真实 HTML/JS 回归（复制边界使用模拟实现）。
+
+Browser 开发服务同时修复官方目录变更触发 WXT 重启、清空加载目录的缺陷：目录内容和工具增删沿原有原子资源写入与发布队列更新，不触碰所有工具共用的 `sidebar-tools/sandbox.html`。首次输出尚未就绪时等待原构建；目录已替换但旧包清理失败时保留资源归属，修复阻塞后可继续更新。定向回归覆盖资源清单、失败阻断与恢复，以及更新本工具时其他应用 iframe、数据和存储请求保持有效。该缺陷与 Chrome「该文件可能已被移至别处、修改或删除」相符，但未取得故障现场请求记录，不能认定为历史故障的唯一原因。
+
+本次正式 JSON 已通过原候选、测试、晋升与同源检查，SHA-256：`e93e1bde0a9fb7953fafbba1f1a71266890706f412f47f6209389c7b4afbf5ef`。固定 Browser 开发服务修复属于插件源码，不能由导入 JSON 替换；已运行进程是否加载该修复、真实 Chrome 的 1.1.20 安装与故障复验均为 **NOT_TESTED**。不先卸载应用，不重放写入，不以重装 Chrome 扩展替代应用更新。
+
 ## R1.2.2 功能所有权说明（2026-10-26）
 
 **Prompt Shortcuts 只负责提示词**：保存、编辑、插入、快捷栏、OD 入口、图片及网站编辑器适配。独立滚动导航已从可信网页运行时、React 工具设置、宿主管理和本工具 HTML 预览移除。旧库含有 `scrollNavigation` 的五个开关时，`trusted/model.js` 可安全读取并忽略该历史字段；新建和下一次正常保存都不会重新写入它，提示词正文、图片引用、顺序与网站规则仍按现有数据合同保存。打开旧库但不保存时，不主动改写存储。
 
 独立源项目为 [AI 对话滚动导航](../../programs/chatgpt-jump-top/README.zh-CN.md)，**新源码 ID 为 `opendesk.ai-scroll-navigation`**。同目录旧 `chatgpt-jump-top.opendesk-page.json` 仍是旧 ID 历史正式制品，不能当作新包导入；新正式包还需使用原 Project Builder 构建并审阅来源和授权。未安装独立 Page Program 时，Prompt Shortcuts 不会提供导航按钮；导航安装、停用和 Origin 授权不复用 Prompt 权限。下方旧版演示和交付记录只是历史证据。**新包构建与当前安装版真实 Chrome 验收均未完成：NOT_TESTED。**
 
-当前 `tool.config.json` 源码版本为 1.1.19，仓库中唯一正式 `prompt-shortcuts.opendesk-tool.json` 仍为 1.1.18；本轮未重建或冒充已晋升的 Sidebar 正式包。可信页面属于宿主代码，不因重打 Sidebar JSON 就自动更新。
+该阶段最初的 `tool.config.json` 源码版本为 1.1.19，正式包当时仍为 1.1.18；此历史状态已由上方 1.1.20 交付记录取代。可信页面属于宿主代码，不因重打 Sidebar JSON 就自动更新。
 
 ## 历史：旧版 Prompt Shortcuts 交付记录
 

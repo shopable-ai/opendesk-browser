@@ -12,7 +12,7 @@ async function fixture(edition,name){
   const outDir=join(root,'dist','development');
   await mkdir(join(outDir,'framework'),{recursive:true});
   const source=JSON.parse(await readFile('manifest.json','utf8'));
-  const manifest={...source,name};
+  const manifest={...source,name,action:{...source.action,default_title:'打开 '+name}};
   const external=marketExternalConnectable(resolveMarketChannel({mode:'development'}));
   if(external)manifest.externally_connectable=external;
   else delete manifest.externally_connectable;

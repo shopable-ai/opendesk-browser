@@ -21,6 +21,9 @@ const lastOfficial=JSON.parse(execFileSync('git',['show',
 const released118=JSON.parse(execFileSync('git',['show',
   '25edc1c1c:examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json'],
   {cwd:new URL('../..',import.meta.url),encoding:'utf8'}));
+const released119=JSON.parse(execFileSync('git',['show',
+  'e6752699d:examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json'],
+  {cwd:new URL('../..',import.meta.url),encoding:'utf8'}));
 const candidate=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
 const id='prompt-shortcuts';
 function releaseFor(tool){
@@ -31,14 +34,14 @@ function releaseFor(tool){
 }
 const currentRelease=releaseFor(candidate),previousRelease=releaseFor(previous),
   intermediateRelease=releaseFor(intermediate),lastOfficialRelease=releaseFor(lastOfficial),
-  release118=releaseFor(released118);
+  release118=releaseFor(released118),release119=releaseFor(released119);
 const provenanceFor=release=>({[id]:{marketId:release.id,version:release.version,sha256:release.sha256}});
 function argsFor(tool,release=currentRelease){
   return {tool,release,installed:[tool],provenance:provenanceFor(releaseFor(tool)),
     enableRecords:{[id]:true},epochs:{[id]:'installed-generation'},expectedEpoch:'installed-generation'};
 }
 
-test('exact reviewed releases through 1.1.18 survive the 1.1.19 source catalog',async()=>{
+test('exact reviewed releases through 1.1.19 survive the 1.1.20 source catalog',async()=>{
   assert.equal(previous.version,'1.1.15');
   assert.equal(previousRelease.bytes,136199);
   assert.equal(previousRelease.sha256,'4085c155d2d8dbac7b55cc5dcaea24229a3fb1d6cfb69431dad2ae5c0eb33ce0');
@@ -51,7 +54,12 @@ test('exact reviewed releases through 1.1.18 survive the 1.1.19 source catalog',
   assert.equal(released118.version,'1.1.18');
   assert.equal(release118.bytes,144295);
   assert.equal(release118.sha256,'7158d16bff8143bef8a6a4ebac54b0fecbf6dba364025ed192c27e397ed0d116');
+  assert.equal(released119.version,'1.1.19');
+  assert.equal(release119.bytes,143608);
+  assert.equal(release119.sha256,'a041ded61a10f4c2b0b78918e77207f9723e8aa1388f5943302737fe23f97474');
   assert.equal(candidate.version,TRUSTED_PROMPT_VERSION);
+  assert.equal(await admitsTrustedPrompt(argsFor(released119)),true);
+  assert.equal(await admitsTrustedPrompt(argsFor(released119,release119)),true);
   assert.equal(await admitsTrustedPrompt(argsFor(released118)),true);
   assert.equal(await admitsTrustedPrompt(argsFor(released118,release118)),true);
   assert.equal(await admitsTrustedPrompt(argsFor(lastOfficial)),true);
@@ -63,7 +71,7 @@ test('exact reviewed releases through 1.1.18 survive the 1.1.19 source catalog',
   assert.equal(await admitsTrustedPrompt(argsFor(candidate)),true);
 });
 
-for(const tool of [previous,intermediate,lastOfficial,released118,candidate])test(tool.version+' admission retains source, installation and revocation guards',async()=>{
+for(const tool of [previous,intermediate,lastOfficial,released118,released119,candidate])test(tool.version+' admission retains source, installation and revocation guards',async()=>{
   const valid=argsFor(tool);
   const rejected=[
     ['manual import', {provenance:{}}],
@@ -87,14 +95,14 @@ for(const tool of [previous,intermediate,lastOfficial,released118,candidate])tes
     assert.equal(await admitsTrustedPrompt({...valid,...overrides}),false,reason);
   const changed={...tool,js:tool.js+'\nvoid 0;'};
   assert.equal(await admitsTrustedPrompt({...valid,tool:changed,installed:[changed]}),false,'same-version changed bytes');
-  for(const version of ['1.1.14','1.1.20']){
+  for(const version of ['1.1.14','9.9.9']){
     const changed={...tool,version};
     assert.equal(await admitsTrustedPrompt(argsFor(changed)),false,'unreviewed version '+version);
   }
 });
 
 test('legacy digest cannot be replaced by a self-consistent forged release and provenance',async()=>{
-  for(const tool of [previous,intermediate,lastOfficial,released118]){
+  for(const tool of [previous,intermediate,lastOfficial,released118,released119]){
     const forged={...tool,js:tool.js+'\nvoid 0;'};
     assert.equal(await admitsTrustedPrompt(argsFor(forged,releaseFor(forged))),false);
   }
@@ -102,7 +110,7 @@ test('legacy digest cannot be replaced by a self-consistent forged release and p
 });
 
 test('all admitted versions retain provenance invalidation on upgrade, tampering and removal',()=>{
-  for(const release of [previousRelease,intermediateRelease,lastOfficialRelease,release118,currentRelease]){
+  for(const release of [previousRelease,intermediateRelease,lastOfficialRelease,release118,release119,currentRelease]){
     const value=provenanceFor(release);
     assert.equal(trustedPromptProvenanceChanged({oldValue:value,newValue:{...value,other:{}}}),false);
     assert.equal(trustedPromptProvenanceChanged({oldValue:value,newValue:{}}),true);
