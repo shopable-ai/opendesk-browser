@@ -57,6 +57,22 @@ try{
   assert.equal(await page.locator('.cookie-account-current').count(),1);
   assert.equal(await page.locator('.site-hostname').count(),1);
   await page.screenshot({path:join(output,'380-r26-accounts-light.png'),fullPage:true});
+  await openLab();
+  for(const width of [320,360,380,400,440]){
+   await page.setViewportSize({width,height:880});
+   await page.getByTestId('width').selectOption(String(width));
+   await page.locator('.cookie-account-card').first().waitFor();
+   assert.equal(Math.round((await page.locator('.cookie-app').boundingBox()).width),width);
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,
+    'R2.6 account external overflow at '+width+'px');
+   await page.screenshot({path:join(output,width+'-r26-accounts-light.png'),fullPage:true});
+  }
+  await page.setViewportSize({width:380,height:880});
+  await page.getByTestId('width').selectOption('380');
+  await button('深色').click();
+  await lab.locator('summary').click();
+  await page.screenshot({path:join(output,'380-r26-accounts-dark.png'),fullPage:true});
+  await openLab();await button('浅色').click();await lab.locator('summary').click();
   await button('更多操作：个人账号').click();
   await page.getByRole('menuitem',{name:'分享配置'}).click();
   await page.getByRole('region',{name:'分享配置'}).waitFor();
@@ -71,6 +87,18 @@ try{
   const cards=page.locator('.cookie-market-resource');
   assert.equal(await cards.count(),3);
   await page.screenshot({path:join(output,'380-r26-market-light.png'),fullPage:true});
+  await openLab();
+  for(const width of [320,360,380,400,440]){
+   await page.setViewportSize({width,height:880});
+   await page.getByTestId('width').selectOption(String(width));
+   assert.equal(Math.round((await page.locator('.cookie-app').boundingBox()).width),width);
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,
+    'R2.6 market external overflow at '+width+'px');
+   await page.screenshot({path:join(output,width+'-r26-market-light.png'),fullPage:true});
+  }
+  await page.setViewportSize({width:380,height:880});
+  await page.getByTestId('width').selectOption('380');
+  await lab.locator('summary').click();
   await page.getByRole('searchbox',{name:'搜索市场资源'}).fill('委托');
   assert.equal(await cards.count(),1);
   await page.getByRole('button',{name:'查看详情'}).click();
@@ -596,7 +624,7 @@ try{
   await clear.click();assert.equal(await valueInput().inputValue(),'');assert.equal(await button('保存').isEnabled(),true);
  });
  assert.deepEqual(errors,[]);assert.deepEqual(network,[]);
- const receipt={status:'PASS',htmlSha256:sha(html),chromium:browser.version(),viewport:{width:380,height:880},tests:pass,errors,network,screenshots:['380-r26-accounts-light.png','380-r26-share-light.png','380-r26-market-light.png','380-light.png','380-dark.png','380-editing.png'],gaps:['Real Chrome Cookie SDK/permissions/install not exercised','Prebuilt fixed Shared UI resource reused; no host build','Real browser zoom and signed installed package out of scope']};
+ const receipt={status:'PASS',htmlSha256:sha(html),chromium:browser.version(),viewport:{width:380,height:880},tests:pass,errors,network,screenshots:['380-r26-accounts-light.png','380-r26-accounts-dark.png','380-r26-share-light.png','380-r26-market-light.png',...([320,360,380,400,440].flatMap(width=>[width+'-r26-accounts-light.png',width+'-r26-market-light.png'])),'380-light.png','380-dark.png','380-editing.png'],gaps:['Real Chrome Cookie SDK/permissions/install not exercised','Prebuilt fixed Shared UI resource reused; no host build','Real browser zoom and signed installed package out of scope']};
  await writeFile(join(output,'chromium-results.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({status:'PASS',tests:pass.length,htmlSha256:receipt.htmlSha256,output}));
 }catch(error){
  await page.screenshot({path:join(output,'failure.png'),fullPage:true}).catch(()=>{});
