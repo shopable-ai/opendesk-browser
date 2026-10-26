@@ -94,9 +94,13 @@ test('R1.0 clipper canonical preview scenarios use the existing real SDK mock wi
  ]){
   const preview=await generatePreview({tool:'web-markdown-clipper',scenario,width:320});
   // Only the SDK simulator is executed here, not the tool UI or a real Chrome Host.
-  const match=preview.frameHtml.match(/<script src="data:text\\/javascript;base64,([^"]+)"\\><\\/script>/);
-  assert.ok(match,'the canonical iframe contains an isolated SDK mock');
-  const mock=Buffer.from(match[1],'base64').toString('utf8');
+  const marker='<script src="data:text/javascript;base64,';
+  const start=preview.frameHtml.indexOf(marker);
+  assert.ok(start>=0,'the canonical iframe contains an isolated SDK mock');
+  const tail=preview.frameHtml.slice(start+marker.length);
+  const end=tail.indexOf('"');
+  assert.ok(end>0,'mock source is a valid data URL');
+  const mock=Buffer.from(tail.slice(0,end),'base64').toString('utf8');
   assert.doesNotMatch(mock,/sessionStorage\\.(?:getItem|setItem)/,
     'canonical offline preview must not inherit previous preview session state');
   const sandbox={
