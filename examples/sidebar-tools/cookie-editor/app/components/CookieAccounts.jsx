@@ -287,6 +287,7 @@ export function CookieAccounts({
       {accounts.length>0&&<input className="od-field cookie-account-search"
         type="search" placeholder="搜索账号" aria-label="搜索账号"
         value={query} onChange={event=>setQuery(event.target.value)}/>}
+      {filtered.length>0&&<div className="cookie-account-list" aria-label="已保存账号">
       {filtered.map(item=><article key={item.alias} className={'cookie-account-card'+(item.alias===currentAlias?' is-current':'')}>
         <span className="cookie-account-avatar" aria-hidden="true">
           {String(item.displayName||'?').slice(0,1)}
@@ -325,6 +326,7 @@ export function CookieAccounts({
           </div>}
         </div>
       </article>)}
+      </div>}
       {!filtered.length&&<p className="cookie-account-empty">
         {accounts.length?'没有匹配的账号。':
           '尚无账号快照。解锁后可保存当前网站的 Cookie 账号。'}
