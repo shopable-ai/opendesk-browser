@@ -104,6 +104,7 @@ jobs:
           node --check examples/sidebar-tools/cookie-editor/scripts/stage-react-candidate.mjs
           node --test \
             tests/environment/cookie-editor-react-domain.test.mjs \
+            tests/environment/cookie-editor-react-expiration.test.mjs \
             tests/environment/cookie-editor-react-controller.test.mjs \
             tests/environment/cookie-editor-react-source.test.mjs \
             tests/environment/cookie-editor-r524-grant.test.mjs \
