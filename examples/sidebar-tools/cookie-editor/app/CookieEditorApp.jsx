@@ -9,7 +9,8 @@ import CookieImport from './components/CookieImport.jsx';
 import CookieExport from './components/CookieExport.jsx';
 import CookiePermissions from './components/CookiePermissions.jsx';
 import CookieOfflineWorkspace from './components/CookieOfflineWorkspace.jsx';
-import {CookieAccounts,CookieAccountMarket} from './components/CookieAccounts.jsx';
+import {CookieAccounts} from './components/CookieAccounts.jsx';
+import {CookieAccountMarket} from './components/CookieAccountExperiences.jsx';
 
 // The only transport is Controller -> Adapter -> public OpenDeskSDK.browser.
 // Host permission, value grant and native receipts are never replaced in React.
@@ -594,7 +595,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         onAllowAlias={(item,enabled)=>accountAction('allowAlias',{
           alias:item.alias,accountVersion:item.version,enabled},'自动切换白名单已更新。')}
         onCopyLink={copyAccountLink}/>}
-      {section==='market'&&<CookieAccountMarket/>}
+      {section==='market'&&<CookieAccountMarket previewOnly={previewMode}/>}
     </>}
     {mode==='browser'&&snapshot.phase==='ready'&&snapshot.message&&
       ['error','warning'].includes(snapshot.messageType)&&
