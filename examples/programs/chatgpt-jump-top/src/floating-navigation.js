@@ -9,17 +9,23 @@ const LEGACY='[data-opendesk-prompts-floating]';
 const GAP=6;
 const SIZE=42;
 const INSET=20;
-// A leftover Prompt host is only an incumbent when it still has a visible
-// control. An inert marker alone must not hide this standalone navigation.
-function legacyFloatingPresent(doc,win) {
-  return [...doc.querySelectorAll(LEGACY)].some(node=>{
-    if(!node.isConnected||node.closest?.('[hidden],[inert],[aria-hidden="true"]'))return false;
-    const control=node.shadowRoot?.querySelector('button')||node.querySelector?.('button');
-    if(!control)return false;
-    const rect=node.getBoundingClientRect(),style=win.getComputedStyle(node);
-    return rect.width>1&&rect.height>1&&style.display!=='none'&&
-      style.visibility!=='hidden';
+// Only a genuinely rendered global control owns this surface. Hidden old
+// hosts may remain in the DOM during upgrades and must not reserve buttons.
+function renderedControl(node,win) {
+  if(!node?.isConnected||node.closest?.('[hidden],[inert],[aria-hidden="true"]'))return false;
+  const control=node.shadowRoot?.querySelector('button')||node.querySelector?.('button');
+  if(!control)return false;
+  return [node,control].every(target=>{
+    const rect=target.getBoundingClientRect?.(),style=win.getComputedStyle(target);
+    return rect&&rect.width>1&&rect.height>1&&style&&
+      style.display!=='none'&&!['hidden','collapse'].includes(style.visibility);
   });
+}
+export function legacyFloatingPresent(doc,win) {
+  return [...doc.querySelectorAll(LEGACY)].some(node=>renderedControl(node,win));
+}
+export function liveDock(node,win) {
+  return node?.getAttribute?.(OWN)==='dock'&&renderedControl(node,win);
 }
 const between=(value,min,max)=>Math.max(min,Math.min(max,value));
 
@@ -36,7 +42,7 @@ export function installFloatingNavigation({doc,win,owner}) {
     if (event.isTrusted!==true||!isCurrent()) return;
     // A legacy Page may mount after our last refresh. Do not race it.
     const active=[...doc.querySelectorAll(`[${OWN}="dock"]`)]
-      .find(node=>node.isConnected&&node.shadowRoot?.querySelector('button'));
+      .find(node=>liveDock(node,win));
     if (legacyFloatingPresent(doc,win)||active!==host) {
       schedule();return;
     }
@@ -103,7 +109,7 @@ export function installFloatingNavigation({doc,win,owner}) {
     // when the modules do not share their in-memory WeakMap. Keep the first
     // connected live ShadowRoot, never retire a peer's host.
     const existing=[...doc.querySelectorAll(`[${OWN}="dock"]`)]
-      .find(node=>node.isConnected&&node.shadowRoot?.querySelector('button'));
+      .find(node=>liveDock(node,win));
     if (existing&&existing!==host) {
       host?.remove();binding=null;return;
     }

@@ -23,10 +23,20 @@ const sessions = new WeakMap(); // doc -> per-owner sessions (Program and truste
 // legacy ShadowRoot containing a real navigation button. Inert DOM markers,
 // empty hosts and React clones must not permanently suppress new Scroll UI.
 // This arbitration never transfers, disables or deletes the old installation.
-export function legacyNavigationPresent(doc) {
-  return [...doc.querySelectorAll(`[${OWN}]`)].some(node =>
-    node.isConnected && !node.hasAttribute(MODERN_OWN) &&
-    Boolean(node.shadowRoot?.querySelector('button')));
+// A hidden legacy ShadowRoot is not an active navigator, even when its DOM
+// marker/button survives a previous installation or a stopped lifecycle.
+export function legacyNavigationPresent(doc,win=doc.defaultView) {
+  return [...doc.querySelectorAll(`[${OWN}]`)].some(node => {
+    if(!node.isConnected||node.hasAttribute(MODERN_OWN)||node.closest?.(EXCLUDED))return false;
+    const button=node.shadowRoot?.querySelector('button');
+    if(!button)return false;
+    return [node,button].every(target=>{
+      const rect=target.getBoundingClientRect?.();
+      const style=win?.getComputedStyle?.(target)||target.style;
+      return rect&&rect.width>1&&rect.height>1&&style&&
+        style.display!=='none'&&!['hidden','collapse'].includes(style.visibility);
+    });
+  });
 }
 
 function isWritingViewer(element, aside, win) {

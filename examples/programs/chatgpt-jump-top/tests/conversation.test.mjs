@@ -1267,6 +1267,29 @@ test('inert old lifecycle cannot hide new navigation; a real old button still wi
   lifecycle.remove();
 });
 
+test('R1.3.1 hidden old reply controls do not retain navigation ownership', () => {
+  const {doc,toolbar}=nativeMessages({assistant:true});
+  const old=element({tag:'span',parent:toolbar,
+    attributes:{'data-opendesk-chatgpt-jump-top':'host'}});
+  old.attachShadow({mode:'open'});
+  const button=element({tag:'button',parent:old.shadowRoot});
+  assert.equal(conversation.legacyNavigationPresent(doc),true);
+  old.style.display='none';
+  assert.equal(conversation.legacyNavigationPresent(doc),false);
+  old.style.display='block';
+  old.setAttribute('hidden','');
+  assert.equal(conversation.legacyNavigationPresent(doc),false);
+  old.removeAttribute('hidden');
+  old.setAttribute('aria-hidden','true');
+  assert.equal(conversation.legacyNavigationPresent(doc),false);
+  old.removeAttribute('aria-hidden');
+  button.style.visibility='hidden';
+  assert.equal(conversation.legacyNavigationPresent(doc),false);
+  button.style.visibility='visible';
+  old.getBoundingClientRect=()=>({width:0,height:0});
+  assert.equal(conversation.legacyNavigationPresent(doc),false);
+});
+
 test('conversation edge controls accept short real overflow but reject unrelated scrollports', () => {
   const {doc, view, main, target} = nativeMessages();
   main.scrollHeight = main.clientHeight + 40;

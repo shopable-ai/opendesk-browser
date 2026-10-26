@@ -1,0 +1,94 @@
+name: AI Scroll Navigation — production package
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/programs/chatgpt-jump-top/src/**'
+      - 'examples/programs/chatgpt-jump-top/tests/**'
+      - 'examples/programs/chatgpt-jump-top/package.json'
+      - 'tests/environment/chatgpt-jump-top.test.mjs'
+      - '.github/workflows/ai-scroll-navigation-r131.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: ai-scroll-navigation-package-main
+  cancel-in-progress: false
+jobs:
+  build-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Affected Node and Page Authority regressions
+        run: |
+          set -euo pipefail
+          node --test tests/environment/chatgpt-jump-top.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/extension-center-page-import.test.mjs
+          node scripts/validate-program-project.mjs examples/programs/chatgpt-jump-top
+      - name: Reuse production Program Builder and Page Installer
+        run: |
+          set -euo pipefail
+          node scripts/build-program-project.mjs examples/programs/chatgpt-jump-top --out "$RUNNER_TEMP/ai-scroll-nav-build"
+          node scripts/build-page-install-package.mjs --input "$RUNNER_TEMP/ai-scroll-nav-build/program.opendesk-draft.json" --out examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json --revision 2 --title "AI 对话滚动导航"
+      - name: Verify byte identity, revision, scope and blocked release
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile,writeFile} from 'node:fs/promises';
+          import {join} from 'node:path';
+          import {validatePageInstallPackage} from './src/scripting/user-scripts/page-install-package.js';
+          const root='examples/programs/chatgpt-jump-top';
+          const [current,old,source,manifest]=await Promise.all([
+            readFile(join(root,'ai-scroll-navigation.opendesk-page.json'),'utf8'),
+            readFile(join(root,'chatgpt-jump-top.opendesk-page.json'),'utf8'),
+            readFile(join(process.env.RUNNER_TEMP,'ai-scroll-nav-build','program.js'),'utf8'),
+            readFile('official-pages/sources.json','utf8')
+          ]);
+          const value=await validatePageInstallPackage(JSON.parse(current));
+          assert.equal(value.programId,'opendesk.ai-scroll-navigation');
+          assert.equal(value.version,'0.4.1');
+          assert.equal(value.revision,2);
+          assert.equal(value.sourceUtf8,source);
+          assert.deepEqual(value.pageRules.matches,[
+            'https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*']);
+          assert.equal(JSON.parse(old).programId,'opendesk.chatgpt-jump-top');
+          const publication=JSON.parse(manifest);
+          const entry=publication.programs.find(row=>row.programId===value.programId);
+          assert.ok(entry&&entry.publication==='blocked');
+          assert.ok((entry.version==='0.4.0'&&entry.revision===1)||
+            (entry.version===value.version&&entry.revision===value.revision));
+          entry.version=value.version;
+          entry.revision=value.revision;
+          entry.blockedReason='0.4.1/r2 已通过正式构建和定向 Node 校验，但仍缺新包真实 Chrome/Mac 安装及 ChatGPT、DeepSeek、Gemini 三站长对话操作证据；官方目录继续阻断发行。';
+          await writeFile('official-pages/sources.json',JSON.stringify(publication,null,2)+'\n');
+          console.log(JSON.stringify({programId:value.programId,version:value.version,
+            revision:value.revision,sourceHash:value.sourceHash,packageHash:value.packageHash,
+            publication:entry.publication,chromeNative:'NOT_TESTED',macNative:'NOT_TESTED'}));
+          NODE
+      - name: Commit verified package with normal fast-forward push
+        run: |
+          set -euo pipefail
+          git add -- examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json official-pages/sources.json
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo 'No package delta to commit'
+            exit 0
+          fi
+          git fetch origin main
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+            echo '::error::main advanced during build; preserve concurrent changes, do not publish stale package'
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'build(ai-scroll): refresh verified 0.4.1/r2 install package'
+          git push origin HEAD:refs/heads/main

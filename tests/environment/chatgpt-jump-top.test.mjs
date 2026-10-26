@@ -4,6 +4,7 @@ import '../../examples/programs/chatgpt-jump-top/tests/conversation.test.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {legacyFloatingPresent,liveDock} from '../../examples/programs/chatgpt-jump-top/src/floating-navigation.js';
 
 test('AI Chat Scroll Navigation Page manifest uses only explicit top-frame site rules', async () => {
   const p = JSON.parse(await readFile(
@@ -32,4 +33,26 @@ test('R1.3 Dock source always includes both keys and capture-scroll boundary upd
   assert.match(dock,/legacyFloatingPresent\(doc,win\)/);
   assert.match(dock,/const chosen=candidates\.find/);
   assert.match(conversation,/node\.shadowRoot\?\.querySelector\('button'\)/);
+});
+
+test('R1.3.1 hidden global dock does not reserve standalone navigation', () => {
+  const rect=()=>({width:42,height:42,top:30,left:30,right:72,bottom:72});
+  const button={style:{display:'grid',visibility:'visible'},getBoundingClientRect:rect};
+  const host={isConnected:true,style:{display:'block',visibility:'visible'},
+    getBoundingClientRect:rect,closest:()=>null,getAttribute:name=>
+      name==='data-opendesk-ai-scroll-navigation'?'dock':null,
+    shadowRoot:{querySelector:()=>button}};
+  const win={getComputedStyle:node=>node.style};
+  const doc={querySelectorAll:()=>[host]};
+  assert.equal(legacyFloatingPresent(doc,win),true);
+  assert.equal(liveDock(host,win),true);
+  button.style.display='none';
+  assert.equal(legacyFloatingPresent(doc,win),false);
+  assert.equal(liveDock(host,win),false);
+  button.style.display='grid';host.style.visibility='hidden';
+  assert.equal(legacyFloatingPresent(doc,win),false);
+  assert.equal(liveDock(host,win),false);
+  host.style.visibility='visible';host.closest=()=>host;
+  assert.equal(legacyFloatingPresent(doc,win),false);
+  assert.equal(liveDock(host,win),false);
 });
