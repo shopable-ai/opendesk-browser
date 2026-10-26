@@ -69,6 +69,20 @@ function validateRows(rows,host,storeId,partition){
   });
   return checked.sort((a,b)=>cookieId(a).localeCompare(cookieId(b)));
 }
+// Pure, deterministic operation plan. Every input row has already passed
+// exact host, Store and Partition checks; this never touches native Cookies.
+export function planAccountCookieEffects(current,expected){
+  if(!Array.isArray(current)||!Array.isArray(expected)||
+     current.length>MAX_COOKIES||expected.length>MAX_COOKIES)
+    throw fail('E_ACCOUNT_LIMIT');
+  const old=new Map(current.map(row=>[cookieId(row),row]));
+  const next=new Map(expected.map(row=>[cookieId(row),row]));
+  return [
+    ...current.filter(row=>!next.has(cookieId(row))).map(row=>({kind:'remove',row})),
+    ...expected.filter(row=>!same(old.get(cookieId(row)),row))
+      .map(row=>({kind:'set',row}))
+  ];
+}
 function meta(account){
   const {alias,origin,displayName,version,allowAuto}=account;
   return {alias,origin,displayName,version,allowAuto,siteLabel:new URL(origin).hostname,
@@ -217,13 +231,7 @@ export function createCookieAccountService({api=globalThis.chrome,now=Date.now}=
   async function effect(context,desired){
     const current=await cookiesFor(context);
     const expected=validateRows(desired,context.host,context.storeId,context.partition);
-    const old=new Map(current.map(row=>[cookieId(row),row]));
-    const next=new Map(expected.map(row=>[cookieId(row),row]));
-    const steps=[
-      ...current.filter(row=>!next.has(cookieId(row))).map(row=>({kind:'remove',row})),
-      ...expected.filter(row=>!same(old.get(cookieId(row)),row))
-        .map(row=>({kind:'set',row}))
-    ];
+    const steps=planAccountCookieEffects(current,expected);
     if(steps.length>MAX_COOKIES*2)throw fail('E_ACCOUNT_LIMIT');
     const driverContext={approved:true,origin:context.origin,grant:context.grant,
       document:context.document,automatic:context.automatic,write:true};
