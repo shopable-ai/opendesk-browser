@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,
   COOKIE_ACCOUNT_VAULT_KEY,COOKIE_ACCOUNT_SESSION_KEY,COOKIE_ACCOUNT_SEEN_KEY}
   from '../../examples/sidebar-tools/cookie-editor/trusted/account-contract.js';
-import {planAccountCookieEffects}
+import {planAccountCookieEffects,validateAccountCookieRow}
   from '../../examples/sidebar-tools/cookie-editor/trusted/account-service.js';
 import {readFile} from 'node:fs/promises';
 
@@ -56,4 +56,39 @@ test('one private Host protocol has no raw Cookie or key RPC',async()=>{
   assert.match(worker,/installCookieAccountService/);
   assert.doesNotMatch(app,/accounts=\{\[\]\}|vaultReady=\{false\}|switchReady=\{false\}/);
   assert.doesNotMatch(app,/chrome\.cookies|localStorage|sessionStorage/);
+});
+
+test('trusted validator accepts ordinary Cookie names and URL Paths',()=>{
+  for(const name of ['session_id','csrftoken','locale','id2']){
+    for(const path of ['/','/account','/orders','/profile/settings']){
+      const row=original({name,path});
+      assert.deepEqual(validateAccountCookieRow(row,'example.com','0'),row);
+    }
+  }
+});
+
+test('trusted validator rejects Cookie-name separators, whitespace and controls',()=>{
+  for(const name of ['bad name','bad\tname','bad\rname','bad\nname',
+    'bad;name','bad=name','bad\0name','bad\x7fname']){
+    assert.throws(()=>validateAccountCookieRow(original({name}),
+      'example.com','0'),{code:'E_ACCOUNT_COOKIE_SCOPE'});
+  }
+});
+
+test('trusted validator rejects invalid Paths, changes of scope and prefixes',()=>{
+  for(const path of ['orders','/bad;path','/bad\r','/bad\n','/bad\t',
+    '/bad\0','/bad\x7f','/bad\\separator']){
+    assert.throws(()=>validateAccountCookieRow(original({path}),
+      'example.com','0'),{code:'E_ACCOUNT_COOKIE_SCOPE'});
+  }
+  for(const row of [
+    original({domain:'evil.example'}),
+    original({storeId:'1'}),
+    original({partitionKey:{topLevelSite:'https://elsewhere.example'}}),
+    original({name:'__Secure-auth',secure:false}),
+    original({name:'__Host-auth',path:'/account'}),
+    original({sameSite:'no_restriction',secure:false}),
+    original({session:false,expirationDate:1})
+  ])assert.throws(()=>validateAccountCookieRow(row,'example.com','0'),
+    {code:'E_ACCOUNT_COOKIE_SCOPE'});
 });

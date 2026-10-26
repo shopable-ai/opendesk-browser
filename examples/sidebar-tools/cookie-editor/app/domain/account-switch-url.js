@@ -36,7 +36,8 @@ export function createAccountSwitchUrl(siteUrl, alias, {
   aliasOf(alias);
   if (expectedOrigin && url.origin !== originOf(expectedOrigin))
     throw failure('E_SITE_MISMATCH');
-  if (url.hash || url.search) throw failure('E_ROUTE_CONFLICT');
+  if (url.pathname !== '/' || url.hash || url.search)
+    throw failure('E_ROUTE_CONFLICT');
   url.hash = ACCOUNT_SWITCH_KEY + '=' + alias;
   return url.href;
 }
@@ -55,7 +56,7 @@ export function inspectAccountSwitchUrl(value, {
   const raw = url.hash.slice(('#' + ACCOUNT_SWITCH_KEY + '=').length);
   try { aliasOf(raw); }
   catch { return {status: 'invalid', code: 'E_ALIAS_INVALID'}; }
-  if (url.hash !== '#' + ACCOUNT_SWITCH_KEY + '=' + raw || url.search)
+  if (url.pathname !== '/' || url.hash !== '#' + ACCOUNT_SWITCH_KEY + '=' + raw || url.search)
     return {status: 'invalid', code: 'E_ROUTE_CONFLICT'};
   if (!expectedOrigin) return {status: 'blocked', code: 'E_SITE_NOT_APPROVED'};
   let origin;

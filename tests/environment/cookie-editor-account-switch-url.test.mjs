@@ -12,10 +12,10 @@ const approved={
 const thrown=fn=>{try{fn();return null;}catch(error){return error.code;}};
 
 test('one canonical URL is generated and parsed',()=>{
-  const link=createAccountSwitchUrl(origin+'/account','work_02',{
+  const link=createAccountSwitchUrl(origin+'/','work_02',{
     expectedOrigin:origin,approvedFragment:true
   });
-  assert.equal(link,origin+'/account#od-account=work_02');
+  assert.equal(link,origin+'/#od-account=work_02');
   assert.deepEqual(inspectAccountSwitchUrl(link,approved),{
     status:'eligible',alias:'work_02',origin
   });
@@ -69,4 +69,12 @@ test('no site grant or cross-origin link fails closed',()=>{
   assert.equal(thrown(()=>createAccountSwitchUrl(origin+'/','work_02',{
     expectedOrigin:'https://example.net',approvedFragment:true
   })),'E_SITE_MISMATCH');
+});
+
+test('generated and inspected auto-switch URLs both reject non-root paths',()=>{
+  assert.equal(thrown(()=>createAccountSwitchUrl(origin+'/account','work_02',{
+    expectedOrigin:origin,approvedFragment:true
+  })),'E_ROUTE_CONFLICT');
+  assert.equal(inspectAccountSwitchUrl(origin+'/account#od-account=work_02',approved).code,
+    'E_ROUTE_CONFLICT');
 });

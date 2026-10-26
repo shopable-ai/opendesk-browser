@@ -40,10 +40,10 @@ function within(host,row){
 }
 function safeRow(row,host,storeId,partition){
   if(!object(row)||!within(host,row)||typeof row.name!=='string'||
-    !row.name||row.name.length>256||/[;=\\s\\x00-\\x1f\\x7f]/.test(row.name)||
+    !row.name||row.name.length>256||/[;=\s\x00-\x1f\x7f]/.test(row.name)||
     typeof row.value!=='string'||new TextEncoder().encode(row.value).length>4096||
     typeof row.path!=='string'||!row.path.startsWith('/')||row.path.length>512||
-    /[\\r\\n;]/.test(row.path)||
+    /[\x00-\x1f\x7f;]/.test(row.path)||
     typeof row.hostOnly!=='boolean'||typeof row.secure!=='boolean'||
     typeof row.httpOnly!=='boolean'||typeof row.session!=='boolean'||
     row.storeId!==storeId||!['lax','strict','no_restriction','unspecified'].includes(row.sameSite)||
@@ -65,6 +65,8 @@ function safeRow(row,host,storeId,partition){
     ...(row.partitionKey?{partitionKey:row.partitionKey}:{})
   };
 }
+// Test the exact trusted validator, without exposing Cookie values via RPC.
+export {safeRow as validateAccountCookieRow};
 function validateRows(rows,host,storeId,partition){
   if(!Array.isArray(rows)||rows.length>MAX_COOKIES)throw fail('E_ACCOUNT_LIMIT');
   const found=new Set();
