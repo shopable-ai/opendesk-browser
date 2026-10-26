@@ -3,6 +3,7 @@ import {AGENT_VERSION,AGENT_HOST,AGENT_LEDGER_KEY,AGENT_ENABLED_KEY,AGENT_MAX_LE
 import {createLocalProjectService} from './local-project-service.js';
 import {createWorkflowAIService} from './workflow-ai-service.js';
 import {createFileWorkspaceService} from './file-workspace-service.js';
+import {SIDEPANEL_DOCUMENT_PATH,toolDocumentIdentity} from '../tool-document-url.js';
 
 // Durable admission fence for optional external callers, NOT a second executor.
 export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Map(),development}={}) {
@@ -260,8 +261,16 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       if(msg?.type==='files.request')return files.request(msg.method,msg.params,{sessionId:msg.expectedSessionId});
       throw new AgentBridgeError('E_CAPABILITY');
     }
-    if(sender?.id!==api.runtime.id||sender?.url!==api.runtime.getURL('native-agent/settings.html')||
-      typeof sender.documentId!=='string')throw new AgentBridgeError('E_OWNER');
+    // The trusted Side Panel may read and manage the same Native connection.
+    // Its exact packaged URL and top-level document identity are required;
+    // installed sandbox tools, content scripts and foreign frames cannot use it.
+    const trustedDocument=sender?.id===api.runtime.id&&
+      typeof sender.documentId==='string'&&sender.documentId.length>0&&
+      (sender.frameId===undefined||sender.frameId===0);
+    const optionsSender=trustedDocument&&sender.url===api.runtime.getURL('native-agent/settings.html');
+    const panelSender=trustedDocument&&Boolean(toolDocumentIdentity(
+      api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH),sender.url));
+    if(!optionsSender&&!panelSender)throw new AgentBridgeError('E_OWNER');
     await initial;
     if(msg?.type==='status') {
       // A trusted Options read is also a bounded, read-only discovery trigger:
