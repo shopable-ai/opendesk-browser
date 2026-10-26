@@ -28,7 +28,12 @@ function topicTerms(question){
 function sourceCandidates(library,question,scope,found){
   if(found.status==='ANSWERED_FIXED'||found.status==='AMBIGUOUS')return found;
   const terms=topicTerms(question);if(!terms.length)return {...found,status:'NO_MATCH',sourceIds:[]};
-  const scored=library.items.filter(x=>x.enabled&&x.scope===scope).map(x=>{
+  // The original Shared AI consumer independently calls model.lookup().
+  // Candidate IDs here must be a SUBSET of that same lookup. Expanding to a
+  // new ID would send a different reference set to the Provider and could
+  // make a generated answer fail source validation after disclosure.
+  const allowed=new Set(found.sourceIds);
+  const scored=library.items.filter(x=>x.enabled&&x.scope===scope&&allowed.has(x.id)).map(x=>{
     const head=[x.question,...x.aliases].join(' ');
     const hits=terms.filter(t=>head.includes(t)).length;
     const timeQuestion=/何时|什么时候|多久|几天|多少天|几点|多长时间/u.test(question);
