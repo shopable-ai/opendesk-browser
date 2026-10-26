@@ -261,6 +261,34 @@ export function ExtensionDetail({model,container}){
       <p>排除网站：{model.pageInfo?.excluded?.join('、')||'无'}</p>
       <p>授权能力：{model.pageInfo?.capabilities?.join('、')||'未记录'}</p>
       <p>网络来源：{model.pageInfo?.networkOrigins?.join('、')||'未记录'}</p>
+      {model.siteUpgrade&&<form className="ec-site-upgrade" aria-label="添加自定义 AI 网站"
+        onSubmit={event=>{
+          event.preventDefault();
+          const fields=event.currentTarget.elements;
+          model.siteUpgrade.onSubmit?.({
+            origin:fields.namedItem('origin')?.value||'',
+            pathScope:fields.namedItem('pathScope')?.value||'/'
+          },event.nativeEvent);
+        }}>
+        <h4>添加自定义 AI 网站</h4>
+        <p>创建待审阅的固定网站范围，再由原安装器确认 Chrome 权限。保存选择器不能代替授权。</p>
+        <label>网站 Origin
+          <input name="origin" type="url" required maxLength={256}
+            placeholder="https://example.com" autoComplete="off"
+            disabled={Boolean(model.siteUpgrade.disabledReason||model.siteUpgrade.busy)}/>
+        </label>
+        <label>运行路径前缀
+          <input name="pathScope" type="text" defaultValue="/" required maxLength={512}
+            autoComplete="off"
+            disabled={Boolean(model.siteUpgrade.disabledReason||model.siteUpgrade.busy)}/>
+        </label>
+        <p>Chrome 网站权限可能覆盖完整域名；UserScript 执行路径仍受本次审阅范围约束。</p>
+        {model.siteUpgrade.disabledReason&&<p role="status">{model.siteUpgrade.disabledReason}</p>}
+        {model.siteUpgrade.error&&<p role="alert">{model.siteUpgrade.error}</p>}
+        <Button type="submit" disabled={Boolean(model.siteUpgrade.disabledReason||model.siteUpgrade.busy)}>
+          {model.siteUpgrade.busy?'正在准备候选…':'审阅新增网站权限'}
+        </Button>
+      </form>}
     </section>}
     {model.kind==='page'&&<section className="ec-detail-card">
       <h3>Chrome 注册与数据</h3>

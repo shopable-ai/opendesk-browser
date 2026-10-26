@@ -1,4 +1,5 @@
 import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
+import {pageHostPermissionOrigins} from '../scripting/user-scripts/page-install-authorization.js';
 
 // Reuse the existing Page Authority restore operation for a suspended grant.
 // A suspended but enabled installation needs enabled:true, not another disable.
@@ -18,7 +19,7 @@ export async function setInstalledPageProgramEnabled({api,client,row}){
   if(!installed||installed.manifestHash!==row.manifestHash)
     throw Object.assign(new Error('已安装网页程序身份已变化，请刷新列表'),{code:'E_PAGE_CHANGED'});
   const action=installedPageEnableAction(installed);
-  if(action.enabled)await requireChromePermissions({api,request:{origins:installed.pageRules.matches}});
+  if(action.enabled)await requireChromePermissions({api,request:{origins:pageHostPermissionOrigins(installed.pageRules.matches)}});
   const result=await client.request('setInstalledPageEnabled',{
     programId:row.programId,manifestHash:installed.manifestHash,enabled:action.enabled,
     expectedGeneration:installed.authorization?.generation??null});

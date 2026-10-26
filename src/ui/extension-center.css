@@ -218,3 +218,14 @@
 @media(max-width:400px){.ec-discovery{align-items:stretch;flex-direction:column}
   .ec-discovery-actions{justify-content:flex-end;flex-wrap:wrap}}
 @media(pointer:coarse){.ec-discovery-actions button{min-height:44px;min-width:44px}}
+
+/* The existing Extension Detail hosts custom-site review. Installer consent
+ * remains exclusively in the existing trusted ImportSheet. */
+.ec-site-upgrade{display:grid;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--od-line,#d6dde5)}
+.ec-site-upgrade h4,.ec-site-upgrade p{margin:0}
+.ec-site-upgrade label{display:grid;gap:5px;min-width:0;font-weight:600}
+.ec-site-upgrade input{width:100%;min-width:0;min-height:38px;border:1px solid var(--od-line,#d6dde5);
+ border-radius:9px;padding:8px 10px;background:var(--od-bg,#fff);color:var(--od-fg,#18212e);font:inherit}
+.ec-site-upgrade input:focus-visible{outline:2px solid var(--od-primary,#315fd5);outline-offset:2px}
+.ec-site-upgrade [role="alert"]{color:#aa3030;overflow-wrap:anywhere}
+.ec-site-upgrade button{justify-self:start;max-width:100%}

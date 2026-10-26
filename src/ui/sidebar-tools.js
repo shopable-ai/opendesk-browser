@@ -17,6 +17,7 @@ import {permissionPattern} from '../environment.js';
 import {scheduleSpecFromExpression} from '../platform/tasks/schedule-time.js';
 import {PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT,PROGRAM_DRAFT_INPUT_LIMIT} from './program-source.js';
 import {PAGE_INSTALL_FORMAT,validatePageInstallPackage} from '../scripting/user-scripts/page-install-package.js';
+import {pageHostPermissionOrigins} from '../scripting/user-scripts/page-install-authorization.js';
 import {loadOfficialPagePackage} from '../scripting/user-scripts/official-page-catalog.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled,assertSidebarToolEnabled} from './sidebar-tools/lifecycle.js';
@@ -1793,6 +1794,25 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   // Official Page discovery uses exactly the same review, Chrome permission
   // confirmation and Page Authority import as a user-selected install file.
+  // Review-only materialization from the original trusted Page broker.
+  // The existing ImportSheet exclusively owns user Chrome consent and install.
+  function openPagePackageReview(pkg,origin){
+    if(!pkg||pkg.programId!=='opendesk.ai-scroll-navigation'||!openImport())return false;
+    const selection=++fileSelection;
+    resetReview();setFileError();notice('正在校验自定义网站安装候选…');
+    void (async()=>{
+      try{
+        await reviewPagePackage(pkg,{name:'可信宿主派生：'+origin},selection);
+        if(disposed||selection!==fileSelection)return;
+        patchToolField(view,previewSource,{textContent:'已安装导航版本派生 · 新网站尚未获安装权限'});
+        notice('请核对新增网站、浏览器网站权限、固定源码及包哈希，再点击确认更新。');
+      }catch(error){
+        if(disposed||selection!==fileSelection)return;
+        resetReview();setFileError((error?.code||'E_SITE_REVIEW')+'：'+String(error?.message||error));
+      }
+    })();
+    return true;
+  }
   function openOfficialPageReview(release){
     if(!release||release.status!=='available'||!openImport())return false;
     const selection=++fileSelection;
@@ -3587,7 +3607,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(disposed||selection!==fileSelection)return;
     if(!foundationClient?.request||!pageConsent)throw new Error('网页增强安装服务未连接，请重新打开 OpenDesk。');
     const [response,access]=await Promise.all([
-      foundationClient.request('listPagePrograms',{}),pageConsent.prepare({origins:pkg.pageRules.matches})
+      foundationClient.request('listPagePrograms',{}),pageConsent.prepare({origins:pageHostPermissionOrigins(pkg.pageRules.matches)})
     ]);
     if(disposed||selection!==fileSelection)return;
     if(!Array.isArray(response?.catalog)||!Array.isArray(response?.installed)||!access)
@@ -3682,7 +3702,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(!pendingPage||busy||disposed||installButton.disabled)return;
     const reviewed=pendingPage,selection=fileSelection,{pkg,installed}=reviewed;
     // Request missing Chrome permissions synchronously from the real Install click.
-    const permission=pageConsent.confirm(event,{origins:pkg.pageRules.matches});
+    const permission=pageConsent.confirm(event,{origins:pageHostPermissionOrigins(pkg.pageRules.matches)});
     busy=true;patchToolField(view, installButton, {disabled: true});patchToolField(view, fileInput, {disabled: true});patchToolField(view, importClose, {disabled: true});
     patchToolField(view, pageInstallStatus, {textContent: '正在安装并核对注册状态…'});patchToolField(view, pageInstallStatus, {hidden: false});
     setToolFieldAttribute(view, pageInstallStatus, 'data-state', 'pending');
@@ -4402,7 +4422,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }));
   }
   render();
-  return Object.freeze({ready,openTool,openSettings,toggleEnabled,uninstallFromList,retryUninstallCleanup,openOfficialReview,openOfficialPageReview,openImport,openImportFiles,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,isPreviewEditing:()=>readOnlyPreview&&(toolDirty||toolSaving),openInTab,closeTool,setVisible,dispose(){
+  return Object.freeze({ready,openTool,openSettings,toggleEnabled,uninstallFromList,retryUninstallCleanup,openOfficialReview,openOfficialPageReview,openPagePackageReview,openImport,openImportFiles,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,isPreviewEditing:()=>readOnlyPreview&&(toolDirty||toolSaving),openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     cookieImportGate.revoke();cookieWriteGate.revoke();cookieClearGate.revoke();cookieExportGate.revoke();cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;pageConsent?.dispose();
     timePermissions?.dispose();focusPermissions?.dispose();aiPermissions?.dispose();

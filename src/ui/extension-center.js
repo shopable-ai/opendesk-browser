@@ -11,6 +11,7 @@ import {uiMessage} from './app-localization.js';
 import {PROGRAM_DRAFT_INPUT_LIMIT} from './program-source.js';
 import {loadMarketChannel} from '../marketplace/external.js';
 import {discoverCurrentPageMarketInstall} from '../marketplace/discovery.js';
+import {SCROLL_CONFIG_PROGRAM_ID} from '../scripting/user-scripts/scroll-config-contract.js';
 
 // One trusted presentation. All writes and launches delegate to the existing hosts.
 export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench,currentPageTarget,localeController=null,toolLocaleService=null,extensionList=null}){
@@ -25,6 +26,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   let sources={};
   let catalogError='',pageCatalogError='',dataError='',statusOrigin='loading',hasLoaded=false,query='',kind='all',scope='smart',selectedKey=null,selectedInstalled=null;
   let listScroll=0,focusKey=null,focusAction=null,detailFocusAction=null,selectedIdentity=null,uninstallReview=null,listUninstallReview=null;
+  let siteUpgradeError='';
   let pageDiscovery=null,discoveryGeneration=0;
   let marketDiscoveryAvailable=false,discoveryChannelGeneration=0;
   const language=()=>localeController?.getLocale?.()||'zh-CN';
@@ -521,6 +523,40 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     workspace?.scrollTo?.({top:listScroll});
     if(!restoreRowFocus(focusKey,focusAction))search.focus({preventScroll:true});
   }
+  // UI requests may create only a draft package. The original Installer owns
+  // approval and cannot be bypassed by adding CSS selection data.
+  async function reviewScrollSite(values,event,baseline){
+    if(event?.isTrusted!==true||disposed||busy||pendingKey||
+      !samePageIdentity(find(baseline?.key),baseline))return;
+    const row=find(baseline.key),install=row?.record?.installed;
+    if(row?.id!==SCROLL_CONFIG_PROGRAM_ID||!install)return;
+    busy=true;siteUpgradeError='';renderDetail();
+    try{
+      const pkg=await client.request('prepareScrollSitePackage',{
+        programId:SCROLL_CONFIG_PROGRAM_ID,
+        origin:values.origin.trim(),
+        pathScope:values.pathScope.trim()||'/',
+        expectedInstalledManifestHash:install.manifestHash,
+        expectedGeneration:install.authorization?.generation
+      });
+      if(disposed||!samePageIdentity(find(baseline.key),baseline))
+        throw Object.assign(new Error('授权或安装身份已改变；请重新进入设置'),{code:'E_REVISION'});
+      if(pkg?.programId!==SCROLL_CONFIG_PROGRAM_ID||pkg.revision<=install.revision)
+        throw Object.assign(new Error('可信宿主未返回新的固定安装候选'),{code:'E_SITE_REVIEW'});
+      backIfNeeded();
+      if(sidebarTools.openPagePackageReview?.(pkg,values.origin.trim())!==true)
+        throw Object.assign(new Error('原 Page Installer 审阅入口当前不可用'),{code:'E_SITE_REVIEW'});
+    }catch(error){
+      if(!disposed){
+        const description=(error?.code||'E_SITE_REVIEW')+'：'+String(error?.message||error);
+        if(selectedKey){siteUpgradeError=description;renderDetail();}
+        else message(description,'error');
+      }
+    }finally{
+      busy=false;
+      if(!disposed){if(selectedKey)renderDetail();else draw();}
+    }
+  }
   function renderDetail(){
     if(disposed)return;
     const row=find(selectedKey);
@@ -605,6 +641,13 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         version:row.version,source:sources[row.id]||null,
         usageText:row.kind==='app'&&row.installed?installedAppUsage(row):'',
         sites:page?.pageRules?.matches||(row.kind==='page'?row.release?.sites:[])||[],
+        siteUpgrade:row.kind==='page'&&row.installed&&row.id===SCROLL_CONFIG_PROGRAM_ID?{
+          onSubmit:(value,event)=>void reviewScrollSite(value,event,pageIdentity(row)),
+          busy:Boolean(busy||pendingKey),error:siteUpgradeError,
+          disabledReason:!page?.enabled?'程序已停用；请先主动恢复启用':
+            page?.authorization?.status!=='active'||page?.nativeState!=='registered'?
+              '原生注册或网站授权尚未恢复，不能申请扩权':null
+        }:null,
         suspended:page?.authorization?.status==='suspended',
         confirmation,
         pageInfo:page?{

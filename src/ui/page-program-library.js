@@ -1,5 +1,6 @@
 import {patchDeveloperField,developerOptions,appendDeveloperOptions,developerAttribute,developerAction,focusDeveloperField} from './develop-view.js';
 import {createChromePermissionConsent,requireChromePermissions} from '../platform/chrome/permission-gate.js';
+import {pageHostPermissionOrigins} from '../scripting/user-scripts/page-install-authorization.js';
 
 // Existing Sidebar subpanel; Chrome observations are ephemeral, and program
 // authorization stays in the original Installed Page / Authority records.
@@ -11,7 +12,7 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
   const listeners=[];let rows=[],busy=false,disposed=false,sequence=0,accessSequence=0,candidateAccess=null,installedAccess=null;
   const identity=row=>row.programId+':'+row.revision;
   const chosen=()=>rows.find(row=>identity(row)===select.value);
-  const requestFor=row=>({origins:row.pageRules.matches});
+  const requestFor=row=>({origins:pageHostPermissionOrigins(row.pageRules.matches)});
   const showError=error=>{if(!disposed)patchDeveloperField(view,status,{textContent:(error.code||'E_PAGE_INSTALLATION')+'：'+(error.message||error)});};
   const consent=createChromePermissionConsent({api,onChange(){
     candidateAccess=installedAccess=null;render();void refresh().catch(showError);
