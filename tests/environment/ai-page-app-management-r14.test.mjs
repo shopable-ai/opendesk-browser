@@ -94,4 +94,9 @@ test('R1.4 absent native registration cannot be labelled as a running page',()=>
   const blocked=describeManagedAiPage(installed(undefined,{nativeState:'blocked'}));
   assert.equal(blocked.canRestore,true);
   assert.equal(blocked.state,'restricted');
+  assert.equal(pending.canRestore,true,
+    'an enabled page with missing registration must offer explicit trusted recovery');
+  assert.equal(describeManagedAiPage(installed(undefined,{
+    authorization:{status:'needs-confirmation'},nativeState:'blocked'})).canRestore,false,
+    'new consent requirements cannot be silently passed by Restore');
 });

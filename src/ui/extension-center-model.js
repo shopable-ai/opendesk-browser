@@ -110,7 +110,8 @@ export function describeManagedAiPage(page,installedPrograms=[]){
     note:'显示的是本机授权和 Chrome 注册读回，并非对当前网页已实际运行的证明。',
     legacyProgramId:legacyInstalled?legacyProgramId:null,
     canRestore:enabledKnown&&enabled&&!cleanupUnknown&&
-      (authorization==='suspended'||native==='blocked')
+      (authorization==='suspended'||
+        (authorization==='active'&&(native!=='registered'||error)))
   };
 }
 
