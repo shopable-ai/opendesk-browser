@@ -27,7 +27,7 @@ import {describeSidebarToolBackgroundPolicyChange} from './sidebar-tools/backgro
 import {toolPageHref} from './sidebar-tools/navigation.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';
 import {normalizeToolNavigation} from '../sidebar-tools/navigation-state.js';
-import {formatSidebarToolTitle,formatSidebarToolTitleContext} from './sidebar-tools/title-path.js';
+import {formatSidebarToolHeading} from './sidebar-tools/title-path.js';
 import {createCookieImportIntentGate} from './sidebar-tools/cookie-import-intent.js';
 import {createCookieWriteIntentGate} from './sidebar-tools/cookie-write-intent.js';
 import {createCookieClearIntentGate} from './sidebar-tools/cookie-clear-intent.js';
@@ -1318,8 +1318,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const labelOptions={...titleOptions,
       readOnlyLabel:readOnlyPreview?(trustedTocTitle?
         readingTocHostText(currentTocLocale,'readonly'):'只读预览'):''};
-    const resolvedTitle=formatSidebarToolTitle(labelOptions);
-    const fullTitle=formatSidebarToolTitleContext(labelOptions);
+    const {visible:resolvedTitle,context:fullTitle}=formatSidebarToolHeading(labelOptions);
     // One short visible title; the complete context remains in accessibility
     // and hover, not as a flex-spaced breadcrumb occupying the toolbar.
     patchToolField(view,title,{textContent:resolvedTitle,

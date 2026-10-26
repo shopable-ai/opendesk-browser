@@ -54,11 +54,11 @@ description: Improve OpenDesk Browser five-tab UI (我的/扩展/工作流/开�
 
 遇到「书签管理 / 设置」中间巨大空白，或「提示词快捷按钮 / 提示词详情」重复时，先查[现行 Sidebar Tool 导航合同](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)，直接修共享正式业务页头，不另建 Nav、模拟 HTML 或第二套组件。**可见标题只保留当前层级**：工具根页「书签管理」，可信设置「设置」，书签编辑「编辑」，提示词详情「详情」，新建「新建」。完整应用/业务路径与实际版本放 `title`，完整上下文写入 `aria-label`；不使用两个 flex span 拉开父子文字。未知页名不可通过宽泛正则裁剪，确有溢出才使用 CSS 单次省略号。
 
-职责：`src/ui/sidebar-tools/title-path.js` 处理纯显示映射，`src/ui/sidebar-tools.js` 由已安装元数据、真实业务导航及可信设置取得上下文，`src/ui/react/tabs/tool-host.tsx` 只显示唯一标题并保留原返回操作，`src/ui/tool-shell.css` 仅处理可用宽度和按钮热区。设置区域保留 `aria-label`，移除重复「工具设置」H2。书签 React 的真实编辑 Sheet 可 Back 且继续脏草稿守卫；详情 PreviewPane、Dialog、菜单不可伪装路由。沙箱 `setNavigation` 必须沿原包字节、安装代际、实例和来源约束；显示缩写不改变权限、业务状态或 SDK。纯宿主改动无需重打未改动的书签及提示词 JSON 包。
+职责：`src/ui/sidebar-tools/title-path.js` 一次返回 `{visible,context}` 两个字符串（特殊页名必须用 `Object.hasOwn` 核对映射，不能从原型继承），`src/ui/sidebar-tools.js` 由已安装元数据、真实业务导航及可信设置取得上下文，`src/ui/react/tabs/tool-host.tsx` 只渲染一个标题文本节点，不使用 `renderText` 子元素分支，并保留原返回操作，`src/ui/tool-shell.css` 仅处理可用宽度和按钮热区。设置区域保留 `aria-label`，移除重复「工具设置」H2。书签 React 的真实编辑 Sheet 可 Back 且继续脏草稿守卫；详情 PreviewPane、Dialog、菜单不可伪装路由。沙箱 `setNavigation` 必须沿原包字节、安装代际、实例和来源约束；显示缩写不改变权限、业务状态或 SDK。纯宿主改动无需重打未改动的书签及提示词 JSON 包。
 
 同步唯一产品/架构规范、相关工具 README 与定向回归，覆盖根页、设置、详情、新建/编辑、未知长标题、ARIA 完整路径、原 Back 安全边界和按钮空间。源码/CI 通过不等于本机已安装 Chrome 通过，未测标 `NOT_TESTED`。
 
-R2.2 生命周期检查：标题接收、呈现与动作发送都绑定当前完整包、安装代际及实例；撤销后清除旧导航，保留草稿不等于保留宿主控制权。重复打开同一有效可信 UI 不重建实例；延迟初始化/恢复失败不得销毁新工作区。书签编辑区 ARIA 复用同一业务页名。复用[本轮证据与缺口](../../../docs/framework/workstreams/sidebar-tool-title-r22-local-20261026.md)，按最新用户阶段只做受改动影响的增量验证，不重复矩阵或补跑来凑分。
+R2.2 生命周期检查：标题接收、呈现与动作发送都绑定当前完整包、安装代际及实例；撤销后清除旧导航，保留草稿不等于保留宿主控制权。重复打开同一有效可信 UI 不重建实例；延迟初始化/恢复失败不得销毁新工作区。书签编辑区 ARIA 复用同一业务页名。优先复用 `tests/environment/sidebar-tool-header-title-r2.test.mjs` 的纯字符串与静态契约、`sidebar-tools-view.test.mjs` 的真实 React SSR，以及 `sidebar-tool-hierarchical-back-r12.test.mjs` 的返回保护；没有可核查的同版本原生 Mac 证据时标 `NATIVE_NOT_TESTED`，不补跑无关矩阵凑分。
 
 ## 共享 AI 设置与 Native Options 的两层交互（2026-10-26）
 

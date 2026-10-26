@@ -11,6 +11,7 @@ on:
       - 'scripts/tests/bookmark-manager-r26-preview-chrome.mjs'
       - 'scripts/tests/adblock-preview-chrome.mjs'
       - 'scripts/tests/sidebar-preview-runtime-chrome.mjs'
+      - 'scripts/tests/four-tools-source-preview-chrome.mjs'
       - 'scripts/templates/sidebar-tool-preview-shell.html'
       - 'scripts/templates/sidebar-preview.html'
       - 'scripts/sidebar-preview-kit.mjs'
@@ -144,3 +145,68 @@ jobs:
           name: bookmark-manager-source-bound-preview
           path: artifacts/previews/bookmark-manager/*.html
           if-no-files-found: error
+
+  # Independent of the unrelated quick-notes/adblock global preview lock.
+  # Uses the SAME canonical build-preview.mjs and bundled production tool UI.
+  four-tools-delivery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install canonical preview dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Generate exact four-tool HTML and Markdown responsive variants
+        run: |
+          set -euo pipefail
+          for tool in markdown-workbench web-markdown-clipper knowledge-inbox ai-knowledge-answers; do
+            node scripts/preview/build-preview.mjs --tool "$tool" --surface side-panel --scenario success --theme light --width 360
+          done
+          for width in 320 400 440; do
+            node scripts/preview/build-preview.mjs --tool markdown-workbench --surface side-panel --scenario success --theme light --width "$width"
+          done
+          for width in 320 360 400 440; do
+            node scripts/preview/build-preview.mjs --tool markdown-workbench --surface side-panel --scenario success --theme dark --width "$width"
+          done
+      - name: Check four source-bound preview contracts
+        run: |
+          node --check scripts/tests/four-tools-source-preview-chrome.mjs
+          node --test tests/environment/four-tools-ux-r1.test.mjs
+      - name: Audit package freshness separately from source HTML
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          echo '### R1.2 package source matching (diagnostic, not promotion)' >> "$GITHUB_STEP_SUMMARY"
+          for tool in markdown-workbench web-markdown-clipper knowledge-inbox ai-knowledge-answers; do
+            node scripts/build-sidebar-tool.mjs "examples/sidebar-tools/$tool" --check-project > /tmp/four-tool-package-check.log 2>&1
+            rc=$?
+            if [ "$rc" -eq 0 ]; then
+              echo "- $tool: PACKAGE_MATCH" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "- $tool: PACKAGE_STALE_OR_MISSING (not promoted, not installed)" >> "$GITHUB_STEP_SUMMARY"
+              cat /tmp/four-tool-package-check.log
+            fi
+          done
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome-four-tools
+      - name: Drive actual packaged UI in headless Chrome (SDK mock only)
+        env:
+          CHROME_BIN: ${{ steps.chrome-four-tools.outputs.chrome-path }}
+        run: node scripts/tests/four-tools-source-preview-chrome.mjs artifacts/preview-chrome/four-tools-r12
+      - name: Upload generated HTML, context and Chrome evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: four-tools-source-bound-r12
+          path: |
+            artifacts/previews/markdown-workbench/
+            artifacts/previews/web-markdown-clipper/
+            artifacts/previews/knowledge-inbox/
+            artifacts/previews/ai-knowledge-answers/
+            artifacts/preview-chrome/four-tools-r12/
+          if-no-files-found: warn

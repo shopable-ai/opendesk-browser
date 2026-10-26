@@ -72,6 +72,9 @@ const publicInstall=row=>row?{programId:row.programId,revision:row.revision,mani
   sourceHash:row.sourceHash,pageRules:row.pageRules,enabled:row.enabled,nativeId:row.nativeId,nativeState:row.nativeState,
   authorization:row.authorization?structuredClone(row.authorization):null,
   ...(row.managedCleanup?{managedCleanup:structuredClone(row.managedCleanup)}:{}),
+  // This is persisted installation readiness, not a receipt of page execution.
+  ready:row.enabled===true&&row.nativeState==='registered'&&
+    row.authorization?.status==='active'&&!row.error,
   error:row.error,lastExecution:row.lastExecution?publicExecution(row.lastExecution):null}:null;
 function publicExecution(row){const {installationToken,...receipt}=row;return receipt;}
 
@@ -261,11 +264,16 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
         PAGE_REVISION_ERROR,'安装授权在确认期间改变；请刷新后核对');
       if(previous?.authorization)assertPageInstallAuthorization(previous);
       if(previous?.manifestHash===candidate.manifestHash){
-        if(previous.nativeState==='registered'){
-          let registered;
-          registered=await readNativeUserScripts(api,{ids:[previous.nativeId]});
-          invariant(registered.length===1&&registered[0]?.id===previous.nativeId,
-            'E_PAGE_INSTALLATION','原生注册不存在，请主动核对安装状态');
+        // Reimport does not create a second grant, but an old registered flag
+        // cannot attest that Chrome still has the approved source and scope.
+        if(previous.enabled){
+          invariant(active(previous)&&previous.nativeState==='registered'&&!previous.error,
+            'E_PAGE_INSTALL_PENDING','原安装尚未就绪；请通过原安装入口恢复访问');
+          await requireSiteGrant(previous);
+          const expected=await descriptor(previous);
+          const registered=await readNativeUserScripts(api,{ids:[previous.nativeId]});
+          invariant(registered.length===1&&nativeEqual(registered[0],expected.script),
+            'E_PAGE_INSTALLATION','原生注册身份、来源或网站范围不一致；请恢复原安装');
         }
         await scoped(sender,'readonly',async tx=>{
           const current=await tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,request.programId));
@@ -290,6 +298,11 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       const epoch=permissionEpoch(row);
       const desired=await descriptor(row);
       invariant(await api.permissions.contains({origins:desired.script.matches}),PAGE_PERMISSION_ERROR,'安装的网站范围尚未获得授权');
+      // Chrome's User Scripts opt-in is a prerequisite, never a second
+      // OpenDesk approval after "install success". Do not persist a new
+      // active row until its native API is accessible. Disabled updates keep
+      // their intentional disabled lifecycle and make no runtime promise.
+      if(row.enabled)await nativeAPI();
       await scoped(sender,PAGE_WRITE,async tx=>{
         const installKey=key(INSTALL_KEY_KIND,namespace,row.programId),old=await tx.get(PAGE_STORE,installKey);
         invariant((old?.manifestHash??null)===request.expectedInstalledManifestHash&&old?.token===previous?.token,

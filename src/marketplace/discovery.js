@@ -35,20 +35,25 @@ export function validateDeclaredMarketInstall(href,pageUrl,channel,releases){
 // never page text, cookies, scripts or network requests.
 export function captureDeclaredMarketLinks(){
   const links=[];
-  for(const node of document.querySelectorAll('link[rel][href]')){
+  // An incomplete rel declaration still counts. Otherwise a second link
+  // without href would be silently ignored instead of rejected as ambiguous.
+  for(const node of document.querySelectorAll('link[rel]')){
     if(!node.relList?.contains('opendesk-install'))continue;
     links.push(node.getAttribute('href'));
     if(links.length>=3)break;
   }
   return {documentUrl:location.href,links};
 }
-export async function discoverCurrentPageMarketInstall({api,currentPageTarget,channel,releases}){
+export async function discoverCurrentPageMarketInstall({api,currentPageTarget,channel,releases,target:initialTarget=null}){
   if(!api?.scripting?.executeScript||!currentPageTarget?.capture||!currentPageTarget?.revalidate)
     throw fail('E_DISCOVERY_UNAVAILABLE','当前扩展无法读取活动网页的安装声明。');
   if(channel?.enabled!==true)
     throw fail('E_CHANNEL_DISABLED','当前 OpenDesk 尚未启用受信任网页安装通道。');
-  await currentPageTarget.ready;
-  const target=currentPageTarget.capture();
+  if(!initialTarget)await currentPageTarget.ready;
+  const target=initialTarget||currentPageTarget.capture();
+  // Caller may freeze the document at the actual click, before loading the
+  // channel/catalog. Fail instead of silently discovering a later active tab.
+  if(initialTarget)await currentPageTarget.revalidate(target);
   let executions;
   try{
     executions=await api.scripting.executeScript({

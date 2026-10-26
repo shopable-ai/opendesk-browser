@@ -109,7 +109,8 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
         expectedGeneration:row.installed?.authorization?.generation??null});
       if(result.enabled===false&&result.nativeState==='disabled'&&!result.error)
         return '已更新固定版本，保持停用。恢复后进入匹配网页自动运行；当前网页不会自动重放。';
-      if(result.nativeState!=='registered')throw result.error||new Error('原生注册尚未确认');
+      if(result.nativeState!=='registered'||result.authorization?.status!=='active'||result.error)
+        throw result.error||new Error('安装未确认网站授权和原生自动运行状态');
       return '已安装并授权；以后进入匹配网页自动运行。当前网页不会自动重放。';
     })();
   });

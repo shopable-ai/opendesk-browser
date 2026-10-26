@@ -395,3 +395,17 @@ for(const result of [undefined,false,'complete']) {
     assert.equal(f.state.clicks,1);
   });
 }
+
+test('preflight rejects full, oversized and mismatched queues without mutating state',()=>{
+  const {engine,state}=fixture();
+  const initial=engine.view();
+  assert.equal(engine.checkEnqueue(' ',state.route).ok,false);
+  assert.equal(engine.checkEnqueue('x'.repeat(8193),state.route).ok,false);
+  assert.equal(engine.checkEnqueue('valid','c/wrong-route').ok,true);
+  assert.deepEqual(engine.view(),initial);
+  assert.equal(engine.enqueue('first',state.route),true);
+  assert.equal(engine.checkEnqueue('another','c/wrong-route').ok,false);
+  for(let i=1;i<20;i++)assert.equal(engine.enqueue('item '+i,state.route),true);
+  assert.equal(engine.checkEnqueue('overflow',state.route).ok,false);
+  assert.equal(engine.view().items.length,20);
+});

@@ -4,23 +4,23 @@
 
 ## 一、开发用户路径
 
-1. 按现有 R5 开发通道构建扩展与网站，以真正生成的 `dist/app-market-public/catalog.json` 核对 Markdown 工作台发行版本和包摘要（源码 `examples/sidebar-tools/markdown-workbench/tool.config.json` 当前写有 `1.0.5`，但实际以本次构建的发行目录为准）。
+1. 按现有 R5 开发通道构建扩展与网站，以真正生成的 `dist/app-market-public/catalog.json` 核对 Markdown 工作台发行版本和包摘要（核查时 `examples/sidebar-tools/markdown-workbench/tool.config.json` 与正式 JSON 包已升级至 `1.0.6`；实际仍以本次构建的官方发行 Catalog、真实摘要为准，不能固定使用这份文档中的旧快照）。
 2. 打开 `http://127.0.0.1:43132/`，首页真实官方卡片有「安装到 OpenDesk」按钮。点击后，网页以已有 `opendesk.market.intent.v1` 的 `OPEN_INSTALL_REVIEW` 请求固定 `marketId + version`。
 3. OpenDesk 在已有后台路径校验受控 origin、tab/document/sender；在 `ui/marketplace.html?intent=...` 打开可信审阅。**网页“已打开审阅”不表示安装成功**。
 4. 用户在扩展可信页核对固定发行和所需能力、确认安装。**真正安装仍由 `installReviewedSidebarTool` 和原有 Installed Authority 负责**；然后从「扩展」中心看到已安装工具，打开 Markdown 工作台编辑/预览，复制或下载。
-5. 取消审阅或连接失败时不会偷偷安装；重复点击保留同一固定应用的交接身份，不创建第二套 installer。
+5. 取消审阅或连接失败时不会偷偷安装；重复点击在 30 分钟有效期内保留同一固定应用的交接身份；超过 TTL 的长期开启页面会生成新请求 ID，未决原事务仍由 R5 恢复机制保护，不创建第二套 installer。
 
 ## 二、唯一网页发现声明 v1
 
 发现合同：`opendesk.market.discovery.v1`。当前只支持顶层 HTML 的**一条** link 声明：
 
 ```html
-<link rel="opendesk-install" href="http://127.0.0.1:43132/install/opendesk/markdown-workbench/versions/1.0.5/">
+<link rel="opendesk-install" href="http://127.0.0.1:43132/install/opendesk/markdown-workbench/versions/1.0.6/">
 ```
 
 这是开发通道示例 URL，部署时必须替换为**当前正式构建通道中实际允许的 HTTPS Origin 和固定发行版本**；即使声明存在，仍以扩展内完整官方发行 Catalog 核验为准。普通网页本身不会获得 OpenDesk 外部消息特权。
 
-用户在普通网页保持顶层活动标签，打开 OpenDesk 侧边栏「扩展」→ 更多 →「检测当前网页可安装应用」；扩展在**用户主动点击时**使用现有 `currentPageTarget.capture/revalidate` 锁定所属窗口活动 tab/document，通过 `chrome.scripting.executeScript` 的 `ISOLATED` 世界只读 `link` 的 `rel`/`href`。若唯一声明指向**当前通道配置允许的**固定官方 Sidebar App 发行，则展示应用和版本，点击「打开可信审阅」进入扩展自己的固定版本详情，再由用户选择审阅安装。发现时没有安装、下载或授权。
+主路径是应用网页上的「安装到 OpenDesk」按钮；以下仅是手动辅助发现：当可信网页安装通道启用时，用户在普通网页保持顶层活动标签，打开 OpenDesk 侧边栏「扩展」→ 更多 → 选择显示范围「可安装 / 更新」，再在列表上方的「从当前网页安装」区域点击「检查网页安装入口」。在「已安装」列表、网页增强类型筛选或未配置受信任安装通道时不显示此入口；没有声明时显示普通说明，不视为权限或安全错误。扩展在**用户主动点击时**使用现有 `currentPageTarget.capture/revalidate` 锁定所属窗口活动 tab/document，通过 `chrome.scripting.executeScript` 的 `ISOLATED` 世界只读 `link` 的 `rel`/`href`。**点击时即冻结文档身份（不等到异步加载 Catalog 才决定目标）；进入可信页前再次检查 DOM 声明、固定发行和文档身份**。若唯一声明指向**当前通道配置允许的**固定官方 Sidebar App 发行，则展示应用和版本，点击「查看应用详情」进入扩展自己的固定版本详情，再由用户选择审阅安装。发现时没有安装、下载或授权。
 
 声明不支持 Page Program 自动转换、第三方任意包、脚本源、参数批准、安装清单读取、后台全站扫描、系统 URI handler。生产通道不完整时明确拒绝启用；开发 HTTP 仅受控 Loopback Origin（含端口）。
 
@@ -35,6 +35,7 @@
 ## 四、验证与证据
 
 - 组件：`node --test tests/environment/market-page-discovery-r61.test.mjs tests/environment/market-site-client-r5.test.mjs tests/environment/app-market-r5.test.mjs`
+- R6.2 菜单与上下文回归：上述 `market-page-discovery-r61.test.mjs` 同时检查发现动作已从全局菜单移除，并受「可安装 / 更新」、应用类型和可信通道开关约束；没有声明时用中性空状态。
 - 真正的构建：`npm run build:dev`、`npm run build:market-site`、`npm run check`。
 - 已有端到端：`.github/workflows/app-market-r3.yml` 的真实 HTTP 网站 + 扩展内审阅 + 真实安装 + Markdown 工具验证；已在原 `tests/helpers/app-market-r5-native.mjs` 增加**首页按钮首次安装路径**，不重新建设浏览器测试。
 - 交互 HTML：公网页面由 `scripts/build-market-site.mjs` 直接从 `src/market-site/templates.mjs` 和 `src/market-site/client.js` 生成 `dist/app-market-public/index.html`。扩展中心 React 页面仍由既有预览 `scripts/preview/build-sidebar-six-react-preview.mjs` 和现有源码驱动，不存在新的假交互 HTML。

@@ -544,7 +544,7 @@ function BookmarkSettings() {
   </ToolField>;
 }
 
-function ToolField({as:Tag='div', id, children, renderText, nodeRef, ...props}) {
+function ToolField({as:Tag='div', id, children, nodeRef, ...props}) {
   const {view, snapshot, refs} = React.useContext(ToolContext), state = snapshot.fields[id];
   if (!state) throw new Error('E_SIDEBAR_TOOL_FIELD: ' + id);
   const ref = React.useCallback(node => {if (node) refs.current.set(id, node); else refs.current.delete(id); nodeRef?.(node);}, [refs, id, nodeRef]);
@@ -554,7 +554,7 @@ function ToolField({as:Tag='div', id, children, renderText, nodeRef, ...props}) 
   if (Tag === 'button') {attrs.disabled = state.disabled; attrs.type = props.type || 'button'; attrs.onClick = event => view.dispatch(id, 'click', event.nativeEvent);}
   if (Tag === 'details') {attrs.open = state.open; attrs.onToggle = event => {if (event.currentTarget.open !== view.fields[id].open) view.patch(id, {open:event.currentTarget.open});};}
   const content=state.textSet ? state.textContent : children ?? state.textContent;
-  return <Tag {...attrs}>{renderText?renderText(content,state):content}</Tag>;
+  return <Tag {...attrs}>{content}</Tag>;
 }
 
 function ToolGrantRows({id, rows, emptyLabel, disabled, onRevoke, className, rowClassName='sidebar-tool-site-entry'}) {

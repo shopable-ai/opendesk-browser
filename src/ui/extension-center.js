@@ -26,6 +26,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   let catalogError='',pageCatalogError='',dataError='',statusOrigin='loading',hasLoaded=false,query='',kind='all',scope='smart',selectedKey=null,selectedInstalled=null;
   let listScroll=0,focusKey=null,focusAction=null,detailFocusAction=null,selectedIdentity=null,uninstallReview=null,listUninstallReview=null;
   let pageDiscovery=null,discoveryGeneration=0;
+  let marketDiscoveryAvailable=false,discoveryChannelGeneration=0;
   const language=()=>localeController?.getLocale?.()||'zh-CN';
   const readingTocOfficial=row=>row.kind==='app'&&row.id==='reading-toc'&&
     row.title===readingTocCatalog.messages['zh-CN'].title&&
@@ -47,7 +48,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(row.enabled===false)return '阅读目录已被主动停用；可在设置中恢复。';
     return '阅读目录安装后会在符合条件的网页自动显示；无需再次启用或逐站授权。“打开”仅查看侧边栏目录。';
   };
-  const typeOf=row=>row.kind==='page'?'网页增强':'应用';
+  // "Application" is a product identity; Page/Sidebar is the run mode.
+  // This changes presentation only, never installed IDs or Authority records.
+  const typeOf=row=>row.kind==='page'?'应用 · 网页增强':'应用 · 侧边栏';
   const all=()=>composeExtensionEntries({installed,pages,official:appStatusKnown?official:[],
     pageReleases:pageStatusKnown?officialPages:[],
     enabled,appStatusKnown,pageStatusKnown,cleanupPendingIds:[...pendingCleanups]});
@@ -107,7 +110,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   }
   function syncFilters(){
     extensionList.renderToolbar({
-      query:searchText,kind,scope,menuOpen:toolbarMenuOpen,
+      query:searchText,kind,scope,menuOpen:toolbarMenuOpen,marketDiscoveryAvailable,
       language:localeController?.getPreference?.()||language(),
       onSearch(value){if(disposed)return;searchText=value;query=value.trim();draw();},
       onMarket(){if(!disposed)openMarket();},
@@ -135,7 +138,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         tools:installed.filter(tool=>tool.localization),localeController,
         onClose(){languageManager=null;syncFilters();}}:null,
       onReload(){if(disposed)return;closeMenu();message('正在刷新扩展…','loading','loading');
-        void readOfficial();void readPageOfficial();void refresh();},
+        void readDiscoveryChannel();void readOfficial();void readPageOfficial();void refresh();},
       onLanguage(value){if(disposed)return;void localeController?.setLocale(value).catch(error=>{
         message('语言保存失败：'+String(error?.message||error),'error');syncLanguage();
       });}
@@ -369,6 +372,19 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         search.focus({preventScroll:true});
     }
   }
+  async function readDiscoveryChannel(){
+    const generation=++discoveryChannelGeneration;
+    try{
+      const channel=await loadMarketChannel(api);
+      if(disposed||generation!==discoveryChannelGeneration)return;
+      marketDiscoveryAvailable=channel?.enabled===true;
+    }catch{
+      if(disposed||generation!==discoveryChannelGeneration)return;
+      // A missing or untrusted release channel is not a usable install entry.
+      marketDiscoveryAvailable=false;
+    }
+    syncFilters();
+  }
   function renderPageDiscovery(){
     if(disposed)return;
     extensionList.renderDiscovery?.(pageDiscovery?{
@@ -377,39 +393,65 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       message:pageDiscovery.message||'',busy:Boolean(pageDiscovery.busy),
       onReview:reviewDiscoveredPage,onRetry:detectPageInstall,onDismiss(){
         discoveryGeneration++;pageDiscovery=null;renderPageDiscovery();
+        // Return keyboard focus to the persistent contextual action after close.
+        get('extension-center-discover')?.focus({preventScroll:true});
       }
     }:null);
   }
   async function detectPageInstall(event){
-    if(disposed||busy||pendingKey||event?.isTrusted!==true)return;
+    if(disposed||busy||pendingKey||pageDiscovery?.busy||
+      pageDiscovery?.state==='loading'||event?.isTrusted!==true)return;
     closeMenu();
     const generation=++discoveryGeneration;
-    pageDiscovery={state:'loading',message:'正在核对当前网页的安装声明…'};renderPageDiscovery();
+    // Capture synchronously at the actual user action, not after slow
+    // catalog/channel fetches that could observe a different active tab.
+    let target;
+    try{target=currentPageTarget.capture();}
+    catch(error){
+      pageDiscovery={state:'error',message:(error?.code||'E_DISCOVERY_TARGET')+'：'+
+        String(error?.message||'当前网页尚未准备好，请重新检测。')};
+      renderPageDiscovery();return;
+    }
+    pageDiscovery={state:'loading',target,message:'正在核对当前网页的安装声明…'};renderPageDiscovery();
     try{
       const [channel,catalog]=await Promise.all([loadMarketChannel(api),loadOfficialCatalog({api})]);
+      if(disposed||generation!==discoveryGeneration)return;
       const found=await discoverCurrentPageMarketInstall({
-        api,currentPageTarget,channel,releases:catalog.apps
+        api,currentPageTarget,channel,releases:catalog.apps,target
       });
       if(disposed||generation!==discoveryGeneration)return;
       pageDiscovery={...found,state:'found',
         message:'已匹配当前扩展内的官方固定发行。安装仍需在可信页面审阅确认。'};
     }catch(error){
       if(disposed||generation!==discoveryGeneration)return;
-      pageDiscovery={state:'error',message:(error?.code||'E_DISCOVERY')+'：'+
-        String(error?.message||'无法核验当前网页安装声明。')};
+      // Preserve the captured document on every result (including empty/error).
+      // The existing target subscription clears stale results after navigation.
+      pageDiscovery=error?.code==='E_DISCOVERY_MISSING'
+        ?{state:'empty',target,message:'此网页没有声明可安装的 OpenDesk 官方应用。你仍可从应用市场安装。'}
+        :{state:'error',target,message:(error?.code||'E_DISCOVERY')+'：'+
+          String(error?.message||'无法核验当前网页安装声明。')};
     }
     renderPageDiscovery();
   }
   async function reviewDiscoveredPage(event){
     const selected=pageDiscovery;
     if(event?.isTrusted!==true||disposed||busy||pendingKey||selected?.state!=='found'||selected.busy)return;
+    const generation=discoveryGeneration;
     pageDiscovery={...selected,busy:true};renderPageDiscovery();
     try{
       await currentPageTarget.revalidate(selected.target);
-      const {apps}=await loadOfficialCatalog({api});
-      if(!apps.some(row=>row.id===selected.subject.marketId&&row.version===selected.subject.version&&
-        row.sha256===selected.release.sha256))
-        throw Object.assign(new Error('已验证发行版本发生变化，请重新检测当前网页。'),{code:'E_DISCOVERY_RELEASE'});
+      const [channel,{apps}]=await Promise.all([
+        loadMarketChannel(api),loadOfficialCatalog({api})
+      ]);
+      const fresh=await discoverCurrentPageMarketInstall({
+        api,currentPageTarget,channel,releases:apps,target:selected.target
+      });
+      if(fresh.href!==selected.href||fresh.release.sha256!==selected.release.sha256)
+        throw Object.assign(new Error('当前网页的安装声明或官方发行已变化，请重新检测。'),{code:'E_DISCOVERY_CHANGED'});
+      // Channel, page DOM and release bytes are all rechecked on the trusted
+      // review gesture. Stale discoveries cannot open a different app.
+      await currentPageTarget.revalidate(selected.target);
+      if(disposed||generation!==discoveryGeneration||pageDiscovery?.subject!==selected.subject)return;
       // No untrusted URL reaches Chrome or the Installer. Existing trusted catalog owns review.
       await api.tabs.create({url:api.runtime.getURL('ui/marketplace.html')+
         '#/apps/'+selected.subject.marketId+'/versions/'+selected.subject.version});
@@ -580,7 +622,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         appDataText:row.kind==='app'&&row.installed?
           '应用存储用量：未知（没有可信的单应用 Chrome 存储统计）。':'',
         installationText:row.installed?
-          ('本机已安装 · '+(row.stateKnown===false?'状态待核对':row.enabled?'已启用':'已停用')):
+          ('本机已安装 · '+(row.stateKnown===false?'状态待核对':
+            row.kind==='page'&&row.enabled&&
+              (page?.nativeState!=='registered'||page?.authorization?.status!=='active'||page?.error)
+              ?'自动运行未就绪':row.enabled?'已启用':'已停用')):
           (row.cleanupPending?'已从安装记录移除 · 卸载清理待恢复':
             row.kind==='page'&&row.release?.status==='blocked'?
               '官方 Page 产品 · 尚未开放安装：'+row.release.blockedReason:
@@ -788,8 +833,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   api.storage.onChanged?.addListener(storageChanged);
   const connChanged=client.subscribeConnection?.(state=>{if(state.connected)void refresh();});
   message('正在读取已安装扩展与授权状态…','loading','loading');draw();
-  void readOfficial();void readPageOfficial();void refresh();
-  return {refresh,dispose(){if(disposed)return;disposed=true;sequence++;officialSequence++;pageOfficialSequence++;discoveryGeneration++;
+  void readDiscoveryChannel();void readOfficial();void readPageOfficial();void refresh();
+  return {refresh,dispose(){if(disposed)return;disposed=true;sequence++;officialSequence++;pageOfficialSequence++;discoveryGeneration++;discoveryChannelGeneration++;
     listUninstallReview=null;uninstallReview=null;closeRowMenu();
     doc.removeEventListener('opendesk-language-settings',languageSettingsRequested);
     doc.removeEventListener('opendesk:page-installation-changed',pageInstallationChanged);

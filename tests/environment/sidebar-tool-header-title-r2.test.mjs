@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {
-  formatSidebarToolTitle,formatSidebarToolTitleContext,sidebarToolTitleParts
+  formatSidebarToolHeading,formatSidebarToolTitle,formatSidebarToolTitleContext,sidebarToolTitleParts
 } from '../../src/ui/sidebar-tools/title-path.js';
 
 const read=p=>readFile(new URL('../../'+p,import.meta.url),'utf8');
@@ -27,11 +27,19 @@ test('root names and concise child actions keep complete semantic context',()=>{
       '编辑 · 只读预览','书签管理 / 编辑书签 · 只读预览']
   ];
   for(const [options,visible,context] of cases){
+    assert.deepEqual(formatSidebarToolHeading(options),{visible,context});
     assert.equal(formatSidebarToolTitle(options),visible);
     assert.equal(formatSidebarToolTitleContext(options),context);
   }
   assert.equal(formatSidebarToolTitle({toolTitle:'  '}),'');
   assert.equal(formatSidebarToolTitleContext({toolTitle:'  '}),'');
+  assert.deepEqual(formatSidebarToolHeading({toolTitle:null,pageTitle:'编辑书签'}),
+    {visible:'',context:''});
+  for(const pageTitle of ['toString','constructor','__proto__','valueOf','hasOwnProperty']){
+    assert.deepEqual(formatSidebarToolHeading({toolTitle:'扩展',pageTitle}),
+      {visible:pageTitle,context:'扩展 / '+pageTitle},
+      'unknown page names must never resolve inherited dictionary members');
+  }
 });
 
 test('long or unknown titles do not get arbitrarily truncated before CSS overflow',()=>{
@@ -55,8 +63,9 @@ test('Host uses trusted navigation and one accessible heading, not a nested path
     read('src/ui/react/tabs/tool-host.tsx'),
     read('examples/sidebar-tools/prompt-shortcuts/src/main.js')
   ]);
-  assert.ok(host.includes('formatSidebarToolTitle(labelOptions)'));
-  assert.ok(host.includes('formatSidebarToolTitleContext(labelOptions)'));
+  assert.ok(host.includes('const {visible:resolvedTitle,context:fullTitle}=formatSidebarToolHeading(labelOptions)'));
+  assert.ok(!host.includes('formatSidebarToolTitleContext(labelOptions)'),
+    'a render must not normalize the same heading twice');
   assert.ok(host.includes("attributes:{'aria-label':fullTitle}"));
   assert.ok(host.includes("title:active?fullTitle+' · v'+active.version"));
   assert.ok(host.includes('isSettings:tocSettingsOpen'));
@@ -73,6 +82,8 @@ test('Host uses trusted navigation and one accessible heading, not a nested path
   assert.equal((react.match(/id="sidebar-tool-back"/g)||[]).length,1);
   assert.match(react,/id="sidebar-tool-title" className="od-page-title"[\s\S]*?role="heading" aria-level=\{2\}\/>/);
   assert.doesNotMatch(react,/sidebar-tool-title-parent|sidebar-tool-title-divider|sidebar-tool-title-current/);
+  assert.doesNotMatch(react,/renderText/,
+    'generic React fields no longer need a second rendering path for titles');
   assert.doesNotMatch(react,/className="sidebar-tool-settings-title"/);
   assert.match(react,/id="sidebar-tool-settings-view"[\s\S]*?aria-label="工具设置"/);
   assert.match(prompt,/detail:'提示词详情'/,
@@ -83,6 +94,8 @@ test('short header uses remaining width and retains fixed action targets',async(
   const css=await read('src/ui/tool-shell.css');
   assert.match(css,/#sidebar-tool-title\{flex:1 1 0;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\}/);
   assert.doesNotMatch(css,/\.sidebar-tool-title-parent|\.sidebar-tool-title-current|@container tool-title/);
+  assert.doesNotMatch(css,/\.sidebar-tool-view-head strong\{/,
+    'the single heading has the only text truncation owner');
   assert.match(css,/@media\(max-width:240px\)\{\s*#sidebar-tool-title\{flex:1 1 calc/);
   assert.match(css,/\.sidebar-tool-header-actions\{display:flex/);
   assert.match(css,/@media\(pointer:coarse\)\{[\s\S]*?flex-basis:44px/);

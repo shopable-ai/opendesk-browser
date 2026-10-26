@@ -29,7 +29,7 @@ function inline(host,width){
 export function createQueueView({owner,createPageUI,assets,engine,actions}){
   const doc=owner.content.ownerDocument,css=owner.getAsset('assets/queue.css');
   let list=null,button=null,root=null,blue=null,toastNode=null,toastToken=0;
-  let native=null,restore=null,lastSignature='';
+  let native=null,restore=null,lastSignature='',recoveryText=null,recoveryReason='';
   function reset(){
     restore?.();restore=null;native=null;
   }
@@ -87,10 +87,60 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
       button.content.append(toastNode);
       button.host.style.setProperty('display','none','important');
       button.on(blue,'click',actions.enqueue);
+      // Recovery content is transient and never auto-enqueued or auto-sent.
+      // Clipboard access happens only after an explicit user gesture.
+      button.on(toastNode,'click',async event=>{
+        const target=event.target.closest?.('button[data-recovery]');
+        if(!target||recoveryText===null)return;
+        event.stopPropagation();
+        if(target.dataset.recovery==='done'){
+          recoveryText=null;recoveryReason='';
+          toast('请核对原生草稿，再手动恢复发送队列');return;
+        }
+        if(target.dataset.recovery!=='copy')return;
+        const original=recoveryText;
+        try{
+          const clipboard=doc.defaultView.navigator?.clipboard;
+          if(!clipboard?.writeText)throw Error('clipboard unavailable');
+          await clipboard.writeText(original);
+          if(recoveryText!==original)return;
+          recoveryText=null;recoveryReason='';
+          toast('原草稿已复制，请粘贴检查后再恢复队列');
+        }catch{
+          if(recoveryText!==original)return;
+          const manual=element(doc,'textarea','sq-recovery-text');
+          manual.readOnly=true;manual.value=original;
+          manual.setAttribute('aria-label','未入列原草稿，请手动复制');
+          manual.style.width='100%';manual.style.minHeight='76px';
+          manual.style.boxSizing='border-box';manual.style.resize='vertical';
+          const done=element(doc,'button','sq-more','我已复制');
+          done.type='button';done.dataset.recovery='done';
+          toastNode.replaceChildren(
+            element(doc,'div','sq-recovery-label','浏览器拒绝复制，请手动选中并复制原文'),manual,done);
+          manual.focus();manual.select();
+        }
+      });
+      if(recoveryText!==null)showRecovery();
     }
   }
+  function showRecovery(){
+    if(recoveryText===null||!toastNode)return;
+    const copy=element(doc,'button','sq-more','复制未入列原草稿');
+    copy.type='button';copy.dataset.recovery='copy';
+    copy.setAttribute('aria-label','复制未入列的原始草稿');
+    toastToken++;
+    toastNode.replaceChildren(element(doc,'div','sq-recovery-label',
+      recoveryReason||'原生草稿未入队，请先备份原文'),copy);
+    toastNode.hidden=false;
+  }
+  function hasRecovery(){return recoveryText!==null;}
+  function offerRecovery(text,reason){
+    if(recoveryText!==null||typeof text!=='string'||!text)return false;
+    ensure();recoveryText=text;recoveryReason=reason;
+    showRecovery();return true;
+  }
   function toast(message){
-    if(!toastNode)return;
+    if(!toastNode||recoveryText!==null)return;
     toastNode.textContent=message;toastNode.hidden=false;
     const id=++toastToken;
     owner.setTimeout(()=>{if(id===toastToken&&toastNode)toastNode.hidden=true;},3000);
@@ -164,7 +214,18 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
   }
   function hide(){
     if(list)list.host.style.setProperty('display','none','important');
-    if(button)button.host.style.setProperty('display','none','important');
+    if(button){
+      if(recoveryText!==null){
+        // Keep recovery accessible if React replaces or removes the composer.
+        if(doc.body&&button.host.parentElement!==doc.body)doc.body.append(button.host);
+        button.host.style.setProperty('position','fixed','important');
+        button.host.style.setProperty('right','18px','important');
+        button.host.style.setProperty('bottom','18px','important');
+        button.host.style.setProperty('z-index','2147483646','important');
+        button.host.style.setProperty('display','inline-flex','important');
+        blue.hidden=true;toastNode.style.setProperty('bottom','0','important');
+      }else button.host.style.setProperty('display','none','important');
+    }
     reset();
   }
   function place(snap){
@@ -176,6 +237,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
     ensure();
     const size=doc.defaultView.matchMedia('(pointer:coarse)').matches?42:34;
     inline(button.host,size);button.host.style.setProperty('overflow','visible','important');
+    blue.hidden=false;toastNode.style.removeProperty('bottom');
     button.host.style.setProperty('display','inline-flex','important');
     button.host.style.setProperty('flex','0 0 '+size+'px','important');
     button.host.style.setProperty('margin-right','6px','important');
@@ -215,7 +277,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
     form.style.setProperty('border-top-right-radius','0','important');
     return true;
   }
-  function destroy(){reset();list?.destroy();button?.destroy();list=null;button=null;}
+  function destroy(){reset();recoveryText=null;list?.destroy();button?.destroy();list=null;button=null;}
   owner.onDispose(destroy);
-  return Object.freeze({place,render,hide,toast,destroy});
+  return Object.freeze({place,render,hide,toast,offerRecovery,hasRecovery,destroy});
 }

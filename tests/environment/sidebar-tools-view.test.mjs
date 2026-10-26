@@ -128,6 +128,33 @@ test('SSR contains import, execution display and trusted reviews, with one owner
 });
 
 
+test('real React header uses one text node with complete accessible context',()=>{
+  const view=createSidebarToolsView();
+  view.patch('sidebar-tool-display',{hidden:false});
+  for(const [visible,context] of [
+    ['书签管理','书签管理'],
+    ['设置','书签管理 / 设置'],
+    ['编辑','书签管理 / 编辑书签'],
+    ['详情','提示词快捷按钮 / 提示词详情'],
+    ['<img src=x onerror=alert(1)>','扩展 / <img src=x onerror=alert(1)>']
+  ]){
+    view.patch('sidebar-tool-title',{textContent:visible,
+      attributes:{'aria-label':context},title:context+' · v0.3.12'});
+    const {document}=parseHTML(renderToStaticMarkup(React.createElement(ToolHost,{view})));
+    const node=document.getElementById('sidebar-tool-title');
+    assert.ok(node);
+    assert.equal(document.querySelectorAll('#sidebar-tool-title').length,1);
+    assert.equal(node.textContent,visible);
+    assert.equal(node.children.length,0,'do not nest title path elements');
+    assert.equal(node.childNodes.length,1,'render a single text node');
+    assert.equal(node.getAttribute('aria-label'),context);
+    assert.equal(node.getAttribute('title'),context+' · v0.3.12');
+    assert.equal(node.querySelector('img'),null,'untrusted heading is escaped text');
+    assert.equal(document.querySelector('.sidebar-tool-settings-title'),null);
+  }
+  view.dispose();
+});
+
 test('all capability types share exactly one trusted lifecycle switch and direct header management', () => {
   for (const [kind,bookmark,cookie] of [
     ['bookmark-manager',true,false],['cookie-editor',false,true],

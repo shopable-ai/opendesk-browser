@@ -1,5 +1,5 @@
-// Presentation labels only: neither the visible title nor its context grants Back or Host authority.
-// Keep business navigation titles untouched for the owning tool and screen-reader context.
+// Display only. A shortened title never grants navigation or Host authority.
+// The owning tool keeps its full page label and existing Back/dirty-state policy.
 const COMPACT_PAGE_LABELS=Object.freeze({
   '提示词详情':'详情',
   '摘录详情':'详情',
@@ -15,31 +15,38 @@ const COMPACT_PAGE_LABELS=Object.freeze({
 });
 
 function resolveTitle({toolTitle='',pageTitle='',isSettings=false,isHome=false}={}){
-  if(typeof toolTitle!=='string'||!toolTitle.trim())return {tool:'',page:'',fullPage:''};
-  const tool=toolTitle.trim();
+  const tool=typeof toolTitle==='string'?toolTitle.trim():'';
+  if(!tool)return {tool:'',page:'',fullPage:''};
   let fullPage=isSettings?'设置':isHome?'':typeof pageTitle==='string'?pageTitle.trim():'';
   if(fullPage.startsWith(tool+' / '))fullPage=fullPage.slice(tool.length+3);
   if(fullPage===tool||fullPage==='首页')fullPage='';
-  const leaf=fullPage.split(' / ').at(-1);
-  return {tool,page:COMPACT_PAGE_LABELS[leaf]||leaf,fullPage};
+  const leaf=fullPage.split(' / ').at(-1)||'';
+  // Admitted page labels may be "constructor" or "__proto__". Only own
+  // dictionary entries are replacements; unknown names remain strings.
+  const page=Object.hasOwn(COMPACT_PAGE_LABELS,leaf)?COMPACT_PAGE_LABELS[leaf]:leaf;
+  return {tool,page,fullPage};
 }
 
+// Normalize once, then supply the visible and accessible strings to one node.
+export function formatSidebarToolHeading(options={}){
+  const {tool,page,fullPage}=resolveTitle(options);
+  if(!tool)return {visible:'',context:''};
+  const readOnly=typeof options.readOnlyLabel==='string'?options.readOnlyLabel.trim():'';
+  const suffix=readOnly?` · ${readOnly}`:'';
+  return {
+    visible:`${page||tool}${suffix}`,
+    context:`${tool}${fullPage?' / '+fullPage:''}${suffix}`
+  };
+}
+
+// Existing internal helpers remain compatible. Host calls the combined formatter.
 export function sidebarToolTitleParts(options={}){
   const {tool,page}=resolveTitle(options);
   return {tool,page};
 }
-
-function appendReadOnly(text,readOnlyLabel){
-  return typeof readOnlyLabel==='string'&&readOnlyLabel.trim()?
-    `${text} · ${readOnlyLabel.trim()}`:text;
-}
-
 export function formatSidebarToolTitle(options={}){
-  const {tool,page}=resolveTitle(options);
-  return tool?appendReadOnly(page||tool,options.readOnlyLabel):'';
+  return formatSidebarToolHeading(options).visible;
 }
-
 export function formatSidebarToolTitleContext(options={}){
-  const {tool,fullPage}=resolveTitle(options);
-  return tool?appendReadOnly(fullPage?`${tool} / ${fullPage}`:tool,options.readOnlyLabel):'';
+  return formatSidebarToolHeading(options).context;
 }

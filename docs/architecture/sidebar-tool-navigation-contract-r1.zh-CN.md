@@ -16,7 +16,7 @@
 | 提示词新建/编辑 | `新建` / `编辑` | 保留原完整业务路径 |
 | 无准入的旧版/第三方工具 | 工具原名称 | 工具自己负责内部导航 |
 
-- **唯一展示 owner**：`src/ui/sidebar-tools/title-path.js` 仅将已准入业务页名投影为可见短名，`src/ui/sidebar-tools.js` 仍从可信设置、活动业务导航和安装元数据取状态；`src/ui/react/tabs/tool-host.tsx` 仅渲染单段文本，`src/ui/tool-shell.css` 处理剩余空间及真正溢出时的省略。禁止父名和页名各自 flex 占宽、可见面包屑或第二条 Header。完整路径在 `title` 与 `aria-label` 中保留，悬浮提示还包含实际版本。
+- **唯一展示 owner**：`src/ui/sidebar-tools/title-path.js` 的 `formatSidebarToolHeading` 一次纯字符串计算返回 `{visible,context}`；已知词汇映射使用 `Object.hasOwn`，以免把 `constructor` / `toString` 等未知页名误判成继承属性。`src/ui/sidebar-tools.js` 仍从可信设置、活动业务导航和安装元数据取状态；`src/ui/react/tabs/tool-host.tsx` 仅渲染单段文本，`src/ui/tool-shell.css` 处理剩余空间及真正溢出时的省略。禁止父名和页名各自 flex 占宽、可见面包屑或第二条 Header。完整路径在 `title` 与 `aria-label` 中保留，悬浮提示还包含实际版本。
 - **不粗暴删任意业务名称**：仅固定已知短语如「提示词详情」「摘录详情」「新建/编辑书签」「新建/编辑文件夹」「新建/编辑提示词」映射为简洁动作名；未知标题保持原文，确实空间不足才 CSS 省略。收到合法完整路径时，可见标题只取末级，悬浮和辅助技术仍可还原。业务 `setNavigation` 保留原有意义的标题与状态。
 - **可信设置去重**：Header 已显示「设置」时，设置区域不再额外渲染「工具设置」H2，仍保留语义 `aria-label`。根页显示工具名；可信设置优先于编辑/详情，关闭设置恢复原子页；导航根状态 `home/index` 不追加「首页/列表」。
 - **R2.2 实例生命周期**：导航的收取、呈现和动作发送均核对当前完整包及安装代际；收到代际撤销后立即清除导航提示。保留可复制草稿的旧沙箱也不能继续控制宿主页首或发送导航动作。同包、同代际、未处于设置的活动可信 UI 重复打开时复用原实例；异步初始化/恢复的失败只清理其捕获的旧 Host，核对 tool/instance 后才可改变共享工作区。书签编辑区域的无障碍名称与同一业务导航标题一致。
