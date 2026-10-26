@@ -18,12 +18,12 @@ a{color:var(--od-accent-ink);overflow-wrap:anywhere}a:hover{text-decoration:none
 [hidden]{display:none!important}
 h1,h2,h3,p{margin:0}h1{font-size:17px;line-height:1.4}h2{font-size:15px}h3{font-size:13px}
 small,.muted{color:var(--od-sub);font-size:12px}
-.wrapper{max-width:1440px;margin:auto;padding:16px}
+.wrapper{width:100%;min-width:0;max-width:1440px;margin:auto;padding:16px}
 .head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
 .eyebrow{font-size:11px;font-weight:700;letter-spacing:.07em;color:var(--od-sub)}
-.head p{color:var(--od-sub);margin-top:4px;font-size:12px}
-.proof{border:1px solid var(--od-line);padding:5px 9px;border-radius:999px;font-size:11px;color:var(--od-sub);background:var(--od-paper);white-space:nowrap}
-.layout{display:grid;grid-template-columns:218px minmax(0,1fr);gap:16px;align-items:start}
+.head p{color:var(--od-sub);margin-top:4px;font-size:12px;overflow-wrap:anywhere}.head>div{min-width:0;flex:1 1 250px}
+.proof{border:1px solid var(--od-line);padding:5px 9px;border-radius:999px;font-size:11px;color:var(--od-sub);background:var(--od-paper);max-width:100%;overflow-wrap:anywhere}
+.layout{display:grid;grid-template-columns:218px minmax(0,1fr);gap:16px;align-items:start;min-width:0}
 .side{position:sticky;top:12px;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:8px;display:grid;gap:3px}
 .nav{display:flex;width:100%;align-items:center;gap:9px;text-align:left;padding:10px;border:0;border-radius:var(--radius-control);color:var(--od-ink);background:transparent;min-height:40px}
 .nav:hover{background:var(--od-muted)}.nav[aria-selected=true]{background:var(--od-muted);font-weight:700;color:var(--od-accent-ink)}
@@ -49,8 +49,8 @@ small,.muted{color:var(--od-sub);font-size:12px}
 .bar label{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--od-sub)}
 select,input[type=search]{min-height:34px;border:1px solid var(--od-input-border);background:var(--od-paper);color:var(--od-ink);border-radius:var(--radius-control);padding:5px 8px;min-width:0}
 .bar select{width:auto}
-.frame-box{border:1px solid var(--od-line);background:var(--od-muted);border-radius:var(--radius-surface);padding:12px;overflow:auto;min-height:560px}
-.frame{display:block;flex:none;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);width:360px;height:770px;margin:0 auto;max-width:none}
+.frame-box{border:1px solid var(--od-line);background:var(--od-muted);border-radius:var(--radius-surface);padding:12px;min-width:0;overflow-x:clip}
+.frame{display:block;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);width:360px;max-width:100%;min-width:0;height:770px;margin:0 auto}
 .full-frame{display:block;width:100%;min-height:780px;height:calc(100vh - 230px);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper)}
 .note{border-left:3px solid var(--od-brand);padding:8px 12px;background:var(--od-muted);font-size:12px;border-radius:0 8px 8px 0}
 .source-table{width:100%;border-collapse:collapse;text-align:left;font-size:12px}
@@ -66,7 +66,8 @@ select,input[type=search]{min-height:34px;border:1px solid var(--od-input-border
 .action{border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);padding:7px 10px;min-height:34px}
 .action:hover{background:var(--od-muted)}
 .foot{font-size:11px;color:var(--od-sub);margin-top:16px;padding-top:10px;border-top:1px solid var(--od-line)}
-@media(max-width:740px){.wrapper{padding:10px}.layout{display:block}.side{position:static;display:flex;overflow:auto;margin-bottom:12px;gap:4px;scrollbar-width:thin}.nav{white-space:nowrap;width:auto;flex:none;padding:8px}.aside-foot{display:none}.full-frame{height:730px}.source-table th,.source-table td{padding:8px 4px}.source-table td:nth-child(3){max-width:170px}}
+.mobile-nav{display:none;min-width:0}.mobile-nav label{display:block;font-size:var(--od-note-size);font-weight:650;margin-bottom:5px}.mobile-nav select{display:block;width:100%;max-width:100%}.frame-status{font-size:var(--od-meta-size);color:var(--od-sub);line-height:1.55;overflow-wrap:anywhere}
+@media(max-width:740px){.wrapper{padding:10px}.layout{display:block}.side{display:none}.mobile-nav{display:block;margin-bottom:12px}.full-frame{height:730px}.source-table th,.source-table td{padding:8px 4px}.source-table td:nth-child(3){max-width:170px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
 
 /* Reference-only catalog layout: all colors, density and radii from canonical tokens. */
@@ -91,16 +92,19 @@ select,input[type=search]{min-height:34px;border:1px solid var(--od-input-border
   </header>
   <div class="layout">
     <nav class="side" role="tablist" aria-label="规范图谱入口" id="atlas-tabs" aria-orientation="vertical">
-      <button type="button" class="nav" data-tab="foundation" role="tab" id="tab-foundation" aria-selected="true" aria-controls="pane-foundation" tabindex="0"><span class="num">01</span>Foundation</button>
-      <button type="button" class="nav" data-tab="components" role="tab" id="tab-components" aria-selected="false" aria-controls="pane-components" tabindex="-1"><span class="num">02</span>Components</button>
+      <button type="button" class="nav" data-tab="foundation" role="tab" id="tab-foundation" aria-selected="false" aria-controls="pane-foundation" tabindex="-1"><span class="num">01</span>Foundation</button>
+      <button type="button" class="nav" data-tab="components" role="tab" id="tab-components" aria-selected="true" aria-controls="pane-components" tabindex="0"><span class="num">02</span>Components</button>
       <button type="button" class="nav" data-tab="patterns" role="tab" id="tab-patterns" aria-selected="false" aria-controls="pane-patterns" tabindex="-1"><span class="num">03</span>Patterns</button>
       <button type="button" class="nav" data-tab="business" role="tab" id="tab-business" aria-selected="false" aria-controls="pane-business" tabindex="-1"><span class="num">04</span>Business</button>
       <button type="button" class="nav" data-tab="guide" role="tab" id="tab-guide" aria-selected="false" aria-controls="pane-guide" tabindex="-1"><span class="num">05</span>Developer / AI Guide</button>
       <button type="button" class="nav" data-tab="source" role="tab" id="tab-source" aria-selected="false" aria-controls="pane-source" tabindex="-1"><span class="num">06</span>Source &amp; Proof</button>
       <p class="aside-foot">开发前先选执行环境与页面模式，再选最少的现有组件。参考页不取得 Host 权限。</p>
     </nav>
+    <div class="mobile-nav"><label for="mobile-tab-select">规范章节</label><select id="mobile-tab-select" aria-label="选择设计参考章节">
+      <option value="foundation">Foundation · 基础规范</option><option value="components" selected>Components · 真实组件</option><option value="patterns">Patterns · 布局</option><option value="business">Business · 业务范例</option><option value="guide">Developer / AI Guide</option><option value="source">Source &amp; Proof</option>
+    </select></div>
     <main class="content">
-      <section class="panel" id="pane-foundation" role="tabpanel" aria-labelledby="tab-foundation">
+      <section class="panel" id="pane-foundation" role="tabpanel" aria-labelledby="tab-foundation" hidden>
         <div class="panel-head"><div><h2>Foundation · 唯一设计基础</h2><p>先定视觉，再选布局与组件；语义色、间距与圆角实时引用 <code>src/ui/design-tokens.css</code>。</p></div><a class="action" href="../../../docs/framework/extension-ui-reference-patterns-r25.zh-CN.md">阅读设计契约</a></div>
         <div class="grid" aria-label="规范使用顺序">
           <div class="card"><h3>01 · 识别执行环境</h3><p>可信 React、HTML/React/Vue 沙箱 Tool、Page Program 的 CSS 与权限边界不同；先确定类型。</p></div>
@@ -131,8 +135,19 @@ select,input[type=search]{min-height:34px;border:1px solid var(--od-input-border
         <div class="note">源码：<a target="_blank" rel="noopener noreferrer" href="https://github.com/shopable-ai/opendesk-browser/blob/main/src/ui/design-tokens.css">design-tokens.css</a> · <a target="_blank" rel="noopener noreferrer" href="https://github.com/shopable-ai/opendesk-browser/blob/main/src/ui/design-system.css">design-system.css</a>。独立 Tool iframe 不可直接继承宿主私有 stylesheet。</div>
       </section>
 
-      <section class="panel" id="pane-components" role="tabpanel" aria-labelledby="tab-components" hidden>
+      <section class="panel" id="pane-components" role="tabpanel" aria-labelledby="tab-components">
         <div class="panel-head"><div><h2>Components · 搜索组件与正确来源</h2><p>优先真实共享组件、正式 CSS 原语与 React Aria；Bookmark Tree 仅作业务参考，不是全局设计基准。</p></div></div>
+        <div class="bar card"><div class="actions">
+          <label>宽度 <select id="component-width" aria-label="React 组件预览宽度"><option>320</option><option selected>360</option><option>400</option><option>440</option><option>960</option></select></label>
+          <label>主题 <select id="component-theme" aria-label="React 组件预览主题"><option value="light">浅色</option><option value="dark">深色</option></select></label>
+          <button type="button" class="action" id="reload-react">重新装载 React</button><a class="action" id="open-react" target="_blank" rel="noopener noreferrer" href="../react-preview/index.html?tab=tools&amp;ui=showcase&amp;width=360&amp;theme=light">独立打开完整视口</a>
+        </div><span class="muted">状态仅影响本地预览；不访问 Host</span></div>
+        <div class="frame-box" id="react-frame-box">
+          <iframe id="real-react" class="frame" loading="eager" title="现有构建产物 · React Extension UI Showcase（内存交互）" src="../react-preview/index.html?tab=tools&amp;ui=showcase&amp;width=360&amp;theme=light"></iframe>
+        </div>
+        <p id="react-fit-status" class="frame-status" role="status" aria-live="polite">请求 360px；实际宽度以容器为准，完整宽度可独立打开。</p>
+        <p id="react-runtime-status" class="frame-status" role="status" aria-live="polite">React 渲染状态待检查；文件存在不等于运行通过。</p>
+        <div class="note"><strong>源码级真实 ≠ 原生验收。</strong> 该 iframe 为编译的 React Preview，不是安装中的工具，也不证明真实存储/权限/撤权。编译输入及产物哈希由原构建脚本负责。</div>
         <div class="card">
           <div class="bar">
             <label for="component-search"><strong>查找组件 / 使用场景</strong></label>
@@ -155,15 +170,6 @@ select,input[type=search]{min-height:34px;border:1px solid var(--od-input-border
           <span class="chip">Menu / Popover / Dialog / Radio / Checkbox · React Aria 演示</span>
           <span class="chip">Tree / Import / Permission / Locale · 业务实例</span>
         </div></div>
-        <div class="bar card"><div class="actions">
-          <label>宽度 <select id="component-width" aria-label="React 组件预览宽度"><option>320</option><option selected>360</option><option>400</option><option>440</option><option>960</option></select></label>
-          <label>主题 <select id="component-theme" aria-label="React 组件预览主题"><option value="light">浅色</option><option value="dark">深色</option></select></label>
-          <button type="button" class="action" id="reload-react">重新装载 React</button>
-        </div><span class="muted">状态仅影响本地预览；不访问 Host</span></div>
-        <div class="frame-box" id="react-frame-box">
-          <iframe id="real-react" class="frame" loading="lazy" title="真实 React Extension UI Showcase" src="../react-preview/index.html?tab=tools&amp;ui=showcase&amp;width=360&amp;theme=light"></iframe>
-        </div>
-        <div class="note"><strong>源码级真实 ≠ 原生验收。</strong> 该 iframe 为编译的 React Preview，不是安装中的工具，也不证明真实存储/权限/撤权。编译输入及产物哈希由原构建脚本负责。</div>
         <details class="archived-example"><summary>业务专项参考：P05 / P06 Bookmark Tree（历史构建，非设计规范 P0）</summary><div class="archive-body">
         <div class="card" id="p05-real-bookmark">
           <div class="bar"><div><h3>P05 · Bookmark Manager React Tree（历史业务参考）</h3><p>只用于验证业务级 Tree / Inspector；不作为通用 UI 规范 P0</p></div>
@@ -363,6 +369,8 @@ input{width:100%;min-width:0;min-height:36px;border-radius:8px}
 (function(){
   'use strict';
   const nav=Array.from(document.querySelectorAll('.nav[data-tab]'));
+  const mobileTab=document.getElementById('mobile-tab-select');
+  mobileTab.addEventListener('change',function(){activate(mobileTab.value,false)});
   const names=nav.map(function(x){return x.dataset.tab});
   function activate(name,focus){
     nav.forEach(function(btn){
@@ -372,6 +380,7 @@ input{width:100%;min-width:0;min-height:36px;border-radius:8px}
       document.getElementById('pane-'+btn.dataset.tab).hidden=!yes;
       if(yes&&focus)btn.focus();
     });
+    mobileTab.value=name;
   }
   nav.forEach(function(btn){btn.addEventListener('click',function(){activate(btn.dataset.tab,false)})});
   document.getElementById('atlas-tabs').addEventListener('keydown',function(e){
@@ -387,12 +396,41 @@ input{width:100%;min-width:0;min-height:36px;border-radius:8px}
   const frame=document.getElementById('real-react');
   const width=document.getElementById('component-width');
   const theme=document.getElementById('component-theme');
+  const fit=document.getElementById('react-fit-status');
+  const runtime=document.getElementById('react-runtime-status');
+  const full=document.getElementById('open-react');
+  function renderFrameFit(){
+    const actual=Math.round(frame.getBoundingClientRect().width);
+    const expected=Number(width.value);
+    fit.textContent='请求 '+expected+'px · 实际 '+actual+'px'+(actual<expected?'（容器不足，预览自适应；请独立打开核对完整宽度）':'（实际宽度）');
+  }
   function applyReact(){
     frame.style.width=width.value+'px';
-    frame.src='../react-preview/index.html?'+new URLSearchParams({tab:'tools',ui:'showcase',width:width.value,theme:theme.value}).toString();
+    const target='../react-preview/index.html?'+new URLSearchParams({tab:'tools',ui:'showcase',width:width.value,theme:theme.value}).toString();
+    full.href=target;
+    runtime.textContent='React 构建产物载入中；尚未验证成功。';
+    frame.src=target;
+    requestAnimationFrame(renderFrameFit);
   }
+  frame.addEventListener('load',function(){
+    // A same-origin DOM probe distinguishes an empty/404 iframe from mounted React.
+    // It is NOT a Chrome/Host/permission acceptance result.
+    setTimeout(function(){
+      try{
+        const doc=frame.contentDocument;
+        runtime.textContent=doc?.querySelector('.od-demo-gallery')
+          ? '检测到 React Showcase DOM（仅本页呈现检查，非正式产品验收）'
+          : '未检测到 React Showcase DOM；请检查构建产物，并独立打开。';
+      }catch{
+        runtime.textContent='无法读取 iframe（来源隔离）；请通过仓库 HTTP 预览或独立打开检查。';
+      }
+      renderFrameFit();
+    },300);
+  });
   width.addEventListener('change',applyReact);theme.addEventListener('change',applyReact);
+  window.addEventListener('resize',renderFrameFit);
   document.getElementById('reload-react').addEventListener('click',applyReact);
+  requestAnimationFrame(renderFrameFit);
   const query=document.getElementById('source-search');
   const rows=Array.from(document.querySelectorAll('#source-rows tr'));
   function filter(){
