@@ -1,0 +1,32 @@
+{
+  "name": "@opendesk-examples/chatgpt-voice-cleanup",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "ChatGPT 官方对话辅助式文字整理悬浮 Page Program；不宣称自动模型调用",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  },
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "opendesk.chatgpt-voice-cleanup",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "pageRules": {
+      "matches": [
+        "https://chatgpt.com/*"
+      ],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    },
+    "assets": [
+      {
+        "path": "assets/panel.css",
+        "kind": "css"
+      }
+    ]
+  }
+}
