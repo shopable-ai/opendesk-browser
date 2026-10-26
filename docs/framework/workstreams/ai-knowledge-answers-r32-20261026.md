@@ -28,6 +28,7 @@
 | 文件 | 变化及实际安全约束 |
 | --- | --- |
 | `examples/sidebar-tools/ai-knowledge-answers/trusted/multi-intent.js` | 新建有界多问题业务路由，纯知识函数；源 ID 独立、RAG 候选限于旧 `model.lookup`、陌生订单动作交人工、含糊退款时长澄清；问候模板无 AI |
+| `examples/sidebar-tools/ai-knowledge-answers/trusted/host.js`、`trusted/ai-request.js` | 在**原**可信 Host/Shared AI Consumer 增加可选逐题来源允许列表，准备页列出的来源与实际外发引用一致；不在原模型召回列表中的 ID 在 Provider 请求前拒绝，不新建 Provider 或 Host |
 | `examples/sidebar-tools/ai-knowledge-answers/trusted/local-test-runtime.js` | 原 R1.3 监听接入路由；每条消息保留子题、原始来源和基线。复用旧 10 分钟/20 消息许可、自动单题固定答案和原 `send`/`reconcileUnknown`。多问题、问候、AI 一律原点击人工审核及 ETag/来源/线程核对 |
 | `examples/sidebar-tools/ai-knowledge-answers/trusted/Workspace.jsx`、`workspace.css` | 不再以「本地测试」作为业务标题；改显示「客服会话」、监听和客户消息、逐题答案、单条草稿；底层来源、回执、统计折叠。响应式宽度规则已写，真实截图仍需 Browser |
 | `examples/sidebar-tools/ai-knowledge-answers/preview/index.html` | 保留既有真实 `src/` HTML/CSS/JS/model 载入；开发工具（宽度、seed、故障）移到产品容器之外并折叠；纯业务检查直接 import 新路由；删除旧假的 AI 草稿演示 |
@@ -36,7 +37,7 @@
 | `examples/sidebar-tools/ai-knowledge-answers/README.zh-CN.md` | 记录永久路径、HTTP 启动命令、来源权限边界、样例、正确证据级别与 Mac Codex 下一步 |
 | 本记录 | owner、差量、可复核证据、延期项与质量审计 |
 
-**明确未修改**：原 `trusted/host.js`、`trusted/ai-request.js`、`src/` 沙箱业务与唯一 0.1.5 `*.opendesk-tool.json`、共享 Provider、Framework/SDK、安装器及第三方网页 Adapter。因未修改沙箱发行输入，不得凭可信宿主源码变化升级工具 JSON；原沙箱历史「测试知识回答」标题仍是 R3.2 的剩余 UI 差量，不声称全面去测试化。
+**明确未修改**：`src/` 沙箱业务与唯一 0.1.5 `*.opendesk-tool.json`、共享 Provider、Framework/SDK、安装器及第三方网页 Adapter。因未修改沙箱发行输入，不得凭可信宿主源码变化升级工具 JSON；原沙箱历史「测试知识回答」标题仍是 R3.2 的剩余 UI 差量，不声称全面去测试化。
 
 ### 执行证据（准确等级）
 
@@ -62,3 +63,8 @@
 3. 实际 43112 预览点击/截图 320/360/400/440，验证来源从 `src/` 加载、无测试场景按钮进产品容器；直接打开 43111 页面并从真实可信 UI 审批监听、混合消息逐题草稿/不自动发送/人工一次发/唯一 DOM 回执；问候无 AI、歧义拒绝、暂停、UNKNOWN 禁重发、撤权 ETag。
 4. 真实 Provider 单独测试候选知识的语义偏移/数字保护、正常人工送达；未批准第三方网页不访问、不测试、不声称 PASS。
 5. 如果需清理沙箱「测试知识回答」字样，先由其发行 owner 按原 packer 的 candidate → test → promote → check-project 路径同步 0.1.5 版本策略和唯一正式包；不得只更新 src 或手工改包。
+
+
+**R3.2 后续安全审计（增量）**：检查到原 Host/Consumer 仍可能在单问题初筛时把已被新主题过滤拒绝的其他候选知识发送给 Provider。已最小扩展原 `createKnowledgeAnswerConsumer.request({sourceIdAllowlist})` 和可信 Host 的 `prepare`/`prepareInbound`/`send` 与 Runtime `callAI` 接线，**不改变无 allowlist 的既有调用**，对手工入站草稿和已授权逐题自动草稿均校验 allowlist 是原模型候选的子集，并保持来源 ETag/客户 ID/授权代次关联。本轮 Node 定向测试额外包含“非法来源在 Provider 调用前拒绝、合法唯一来源只发送该知识”的行为案例。
+
+**R3.2 更广覆盖**：混合两条纯语义问题（原知识中发票 + 物流）的自动 AI 草稿在本机已授权时，最多两次在原 Consumer 请求不同的引用，最后仅合成**一条需人工核对**的回复，无条件自动发送次数为零。该段已在原 Runtime 的隔离 V8 替身 Adapter 中实际运行；有明确 `MULTI_REVIEW_REQUIRED`、引用 `qa_demo_invoice` / `qa_demo_tracking`、两次逐题请求与一次人工批准后发送的测试观察。独立真实 Provider 结果仍 `NOT_TESTED`。
