@@ -24,7 +24,7 @@ function NativeConnectionCard({nativeConnection,onOpenNativeSettings,doc}){
   const ticket=++generation.current;
   try{
    const next=await nativeConnection.readStatus();
-   if(ticket===generation.current){setStatus(next);setLoading(false);}
+   if(ticket===generation.current){setStatus(next);setLoading(false);setError('');}
    return next;
   }catch(ex){
    if(ticket===generation.current){
@@ -92,7 +92,7 @@ function NativeConnectionCard({nativeConnection,onOpenNativeSettings,doc}){
   <div className="od-shared-provider-local-footer">
    {nativeConnection?.readStatus&&
     <button type="button" className="od-button od-button--secondary"
-     disabled={busy||loading} onClick={()=>{polls.current=0;setError('');void refresh();}}>
+     disabled={busy} onClick={()=>{polls.current=0;setError('');void refresh();}}>
      重新检测
     </button>}
    {onOpenNativeSettings&&
