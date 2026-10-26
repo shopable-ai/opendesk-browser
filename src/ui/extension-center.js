@@ -423,9 +423,11 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         message:'已匹配当前扩展内的官方固定发行。安装仍需在可信页面审阅确认。'};
     }catch(error){
       if(disposed||generation!==discoveryGeneration)return;
+      // Preserve the captured document on every result (including empty/error).
+      // The existing target subscription clears stale results after navigation.
       pageDiscovery=error?.code==='E_DISCOVERY_MISSING'
-        ?{state:'empty',message:'此网页没有声明可安装的 OpenDesk 官方应用。你仍可从应用市场安装。'}
-        :{state:'error',message:(error?.code||'E_DISCOVERY')+'：'+
+        ?{state:'empty',target,message:'此网页没有声明可安装的 OpenDesk 官方应用。你仍可从应用市场安装。'}
+        :{state:'error',target,message:(error?.code||'E_DISCOVERY')+'：'+
           String(error?.message||'无法核验当前网页安装声明。')};
     }
     renderPageDiscovery();
