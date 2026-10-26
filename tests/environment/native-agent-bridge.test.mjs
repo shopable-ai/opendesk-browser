@@ -63,6 +63,18 @@ test('trusted Side Panel shows and changes the same Native connection without re
  assert.equal(f.requests.length,0,'status and switch never dispatch user tasks');
 });
 
+test('saved successful handshake history survives restart but is never live connectivity',async t=>{
+ const f=mock({enabled:false});t.after(()=>f.service.dispose());
+ const previous=Date.UTC(2026,9,25,12,0);
+ f.stored[AGENT_LAST_CONNECTED_AT_KEY]=previous;
+ await f.service.ready;
+ const snapshot=await f.service.handleSettings({type:'status'},settingsSender(f));
+ assert.equal(snapshot.lastConnectedAt,previous);
+ assert.equal(snapshot.enabled,false);
+ assert.equal(snapshot.nativeConnected,false);
+ assert.equal(f.native(),undefined,'historical success must never connect when disabled');
+});
+
 test('Native Side Panel route fails closed for forged URLs, frames and permissions',async t=>{
  const f=mock({enabled:false,granted:false});t.after(()=>f.service.dispose());await f.service.ready;
  const trusted={id:f.api.runtime.id,url:f.api.runtime.getURL('sidepanel.html'),
