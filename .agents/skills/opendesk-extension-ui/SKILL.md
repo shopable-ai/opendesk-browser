@@ -54,7 +54,7 @@ description: Improve OpenDesk Browser five-tab UI (我的/扩展/工作流/开�
 
 遇到“打开子页面/设置后上方标题仍不变”等任务，先核对[现有 Sidebar Tool 导航合同](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)与真实页面 owner，而不是新建 Nav。**优先只修改共享标题投影**：根页「书签管理」，可信设置「书签管理 / 设置」，已验真的业务子页「扩展名称 / 当前页」；一行标题与唯一返回按钮即可。不能由标题暗示不存在的返回层级；默认 Sheet、弹窗、菜单保留自己的标题与关闭事件。**例外**：书签管理正式可信 React 的新建/编辑 Sheet 已接入真实业务 Back 与未保存保护，因此成为可返回的当前子视图；单纯详情预览和菜单仍不是。完整历史不出现在页首。
 
-可信设置标题由 `src/ui/sidebar-tools.js` + `src/ui/sidebar-tools/title-path.js` 统一处理；已签发官方沙箱的导航提示只能通过现有受安装身份、实例、来源约束的 `setNavigation`，普通/旧版沙箱继续自带业务标题。返回由业务逻辑处理，草稿与保存锁仍有效；不能为了纯视觉修复扩大权限、修改 JSON 包或加入另一套 Host。**修复后同步变更扩展 README、产品/架构 MD、相关开发 Skill 与定向回归测试**；是否在原生 Chrome 实际通过需单独报告。
+标题必须只占左右固定图标按钮之间的剩余宽度（`flex:1 1 0;min-width:0`），不以长字符串压缩右侧按钮；拆分父应用名和当前子页名，优先保留当前子页，父名使用 CSS 省略号，极窄标题宽度下可仅显示子页；完整文字在 React 文字状态、ARIA 和 `title` 中保留，200% 缩放可让原操作行换行。可信设置标题由 `src/ui/sidebar-tools.js` + `src/ui/sidebar-tools/title-path.js` 统一处理；已签发官方沙箱的导航提示只能通过现有受安装身份、实例、来源约束的 `setNavigation`，普通/旧版沙箱继续自带业务标题。返回由业务逻辑处理，草稿与保存锁仍有效；不能为了纯视觉修复扩大权限、修改 JSON 包或加入另一套 Host。**修复后同步变更扩展 README、产品/架构 MD、相关开发 Skill 与定向回归测试**；是否在原生 Chrome 实际通过需单独报告。
 
 ## 共享 AI 设置与 Native Options 的两层交互（2026-10-26）
 

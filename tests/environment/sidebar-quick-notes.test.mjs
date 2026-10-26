@@ -9,6 +9,47 @@ const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const etag=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};};
 
+test('Quick Notes source separates index/editor and uses collapsed current-page context',()=>{
+  const html=readFileSync(new URL('../../examples/sidebar-tools/quick-notes/src/index.html',import.meta.url),'utf8');
+  const css=readFileSync(new URL('../../examples/sidebar-tools/quick-notes/src/style.css',import.meta.url),'utf8');
+  for(const id of ['notes-list-view','notes-edit-view','back-to-notes','note-list','note-text','page-summary','refresh-page'])
+    assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(html,/<details class="page-context/);
+  assert.match(html,/<details class="task-shortcut/);
+  assert.match(css,/\.note-list\{display:grid/);
+  assert.doesNotMatch(html,/class="notes-mark"|class="note-chip"/);
+});
+
+test('Quick Notes safe list/edit/dirty-close/save/delete workflow',async()=>{
+  const app=launch();await app.flush();
+  assert.equal(app.nodes['notes-list-view'].hidden,false);
+  assert.equal(app.nodes['notes-edit-view'].hidden,true);
+  assert.equal(app.nodes['note-empty'].hidden,false);
+  app.nodes['add-note'].emit('click');
+  assert.equal(app.nodes['notes-list-view'].hidden,true);
+  assert.equal(app.nodes['notes-edit-view'].hidden,false);
+  assert.equal(app.nodes['editor-title'].textContent,'新建笔记');
+  app.nodes['note-text'].value='正式笔记\n第二行摘要';
+  app.nodes['note-text'].emit('input');
+  assert.equal(app.nodes['editor-unsaved'].hidden,false);
+  app.nodes['back-to-notes'].emit('click');
+  assert.equal(app.nodes['note-confirm'].hidden,false);
+  app.nodes['note-confirm-cancel'].emit('click');
+  assert.equal(app.nodes['note-text'].value,'正式笔记\n第二行摘要');
+  app.nodes['save-note'].emit('click');await app.flush();
+  assert.equal(app.data.notes[0].text,'正式笔记\n第二行摘要');
+  app.nodes['back-to-notes'].emit('click');
+  assert.equal(app.nodes['notes-list-view'].hidden,false);
+  assert.equal(app.nodes['note-list'].children.length,1);
+  assert.equal(app.nodes['note-list'].children[0].children[0].children[1].textContent,'第二行摘要');
+  app.nodes['note-list'].children[0].emit('click');
+  assert.equal(app.nodes['editor-title'].textContent,'编辑笔记');
+  app.nodes['delete-note'].emit('click');
+  app.nodes['note-confirm-accept'].emit('click');await app.flush();
+  assert.equal(app.nodes['notes-list-view'].hidden,false);
+  assert.deepEqual(Array.from(app.data.notes),[]);
+});
+
 test('Cmd+S saves after focus moves from the editor to another tool control',async()=>{
   const app=launch();await tick();await tick();
   app.nodes['note-text'].value='关联选项后的中文笔记';
@@ -44,9 +85,11 @@ function launch({stored={},shared,page={status:'unavailable',message:'受限网�
   failLegacyCleanup=false,getGate,setGate,confirm=()=>true}={}) {
   const data=shared||structuredClone(stored);
   const ids=['page-summary','page-url','refresh-page','note-count','note-list','note-text','add-note','delete-note','save-note',
-    'attach-page','note-attachment','note-status','task-name','open-task','note-confirm','note-confirm-message','note-confirm-cancel','note-confirm-accept'];
+    'attach-page','note-attachment','note-status','task-name','open-task','note-confirm','note-confirm-message','note-confirm-cancel','note-confirm-accept','notes-list-view','notes-edit-view','editor-title','editor-unsaved','note-empty','back-to-notes'];
   const nodes=Object.fromEntries(ids.map(id=>[id,new Element()]));
   nodes['note-confirm'].hidden=true;
+  nodes['notes-edit-view'].hidden=true;
+  nodes['note-empty'].hidden=true;
   const document={createElement:()=>new Element()};
   const root=new Element();root.ownerDocument=document;
   root.querySelector=selector=>nodes[selector.slice(1)];

@@ -9,7 +9,7 @@ import {resolve,join} from 'node:path';
 import {tmpdir} from 'node:os';
 
 const widths=[160,180,210,220,221,300,320,360,420,520,760,1100];
-const states=['empty','long','expanded','confirm'];
+const states=['empty','long','expanded','confirm','index'];
 const sourceRoot=resolve(process.env.OPENDESK_SOURCE_ROOT||'.');
 const output=resolve(process.argv[2]||'artifacts/quick-notes-layout-visual');
 const toolRoot=join(sourceRoot,'examples/sidebar-tools/quick-notes');
@@ -63,13 +63,22 @@ async function connect(){
 }
 function setFixtureState(state){
   const el=id=>document.getElementById(id);
+  el('notes-list-view').hidden=state!=='index';
+  el('notes-edit-view').hidden=state==='index';
+  el('note-empty').hidden=true;
+  document.querySelector('.page-context').open=state==='expanded';
   el('page-summary').textContent=state==='empty'?'离线笔记：仍可编辑保存':'目标网页：这是一个很长很长的中文网页标题，用来测试窄屏布局和完整文字换行。';
   el('page-url').hidden=state==='empty';
   el('page-url').textContent='https://www.example.com/path/long/long/中文内容/very-long-unbroken-path-name-for-overflow-regression';
   const list=el('note-list');list.replaceChildren();
   if(state!=='empty')for(const name of ['第一条网页笔记：标题非常长，用来验证多条标签的局部滚动','第二条笔记｜长中文标题','第三条笔记']){
-    const button=document.createElement('button');button.type='button';button.className='od-button od-button--secondary note-chip';button.textContent=name;
-    list.append(button);
+    const button=document.createElement('button');button.type='button';button.className='od-button od-button--secondary note-row';
+    const body=document.createElement('span');body.className='note-row-body';
+    const title=document.createElement('span');title.className='note-row-title';title.textContent=name;
+    const preview=document.createElement('span');preview.className='note-row-preview';preview.textContent='预览摘要，用来核对长文字的截断和行高';
+    body.append(title,preview);
+    const cue=document.createElement('span');cue.className='note-row-chevron';cue.textContent='›';
+    button.append(body,cue);list.append(button);
   }
   el('note-text').value='含长段中文的已保存笔记内容与换行：'.repeat(24);
   el('attach-page').checked=state!=='empty';
@@ -91,7 +100,7 @@ function measure(){
     text:box('#note-text'),actions:box('.editor-actions'),attach:box('.page-attach'),
     delete:box('#delete-note'),save:box('#save-note'),details:box('.task-shortcut'),
     noteList:box('#note-list'),noteAttachment:box('#note-attachment'),status:box('#note-status'),
-    confirmation:box('#note-confirm'),confirmButtons:[...document.querySelectorAll('#note-confirm .confirm-actions button')].map(x=>{const r=x.getBoundingClientRect();return {x:r.x,right:r.right,y:r.y,width:r.width,height:r.height};}),buttons:[...document.querySelectorAll('.icon-button')].map(x=>{
+    confirmation:box('#note-confirm'),confirmButtons:[...document.querySelectorAll('#note-confirm .confirm-actions button')].map(x=>{const r=x.getBoundingClientRect();return {x:r.x,right:r.right,y:r.y,width:r.width,height:r.height};}),buttons:[...document.querySelectorAll('.icon-button')].filter(x=>x.getClientRects().length>0).map(x=>{
       const r=x.getBoundingClientRect();return {id:x.id,width:r.width,height:r.height};
     })
   };
@@ -100,6 +109,12 @@ function validate(width,state,m){
   const eq=(a,b,label,tol=1)=>assert.ok(Math.abs(a-b)<=tol,label+' '+width+'/'+state+': '+a+' vs '+b);
   assert.equal(m.viewport,width,'Viewport mismatch');
   assert.ok(m.scrollWidth<=width+1,'Whole-page horizontal overflow at '+width+'/'+state+': '+m.scrollWidth);
+  if(state==='index'){
+    eq(m.app.x+12,m.noteList.x,'List left aligned with container');
+    assert.ok(m.noteList.width>0,'Visible notes list');
+    for(const b of m.buttons){eq(b.width,34,b.id+' visible icon width');eq(b.height,34,b.id+' visible icon height');}
+    return;
+  }
   eq(m.app.x+12,m.text.x,'Editor left aligned with container');
   eq(m.summary.x,m.text.x,'Page summary aligned with editor');
   eq(m.text.x,m.details.x,'Advanced details aligned with editor');
@@ -155,7 +170,7 @@ try{
       const value=await evaluate('('+measure.toString()+')()');
       validate(width,state,value);
       samples.push({width,state,...value});
-      if([160,320,420,1100].includes(width)&&['long','expanded'].includes(state)){
+      if([160,320,420,1100].includes(width)&&['long','expanded','index'].includes(state)){
         const picture=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,fromSurface:true});
         await writeFile(join(output,'quick-notes-'+state+'-'+width+'.png'),Buffer.from(picture.data,'base64'));
       }

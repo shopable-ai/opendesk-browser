@@ -75,7 +75,7 @@ function reviewedCompiledAdblock(target,path,root){
 const compiledBookmarkReactInputs=Object.freeze({
   'examples/sidebar-tools/bookmark-manager/src/model.js':'34cc7a737869ca502b4bcbbb47d2437d1b6b2bd5',
   'examples/sidebar-tools/bookmark-manager/src/service.js':'d072ace5379d0d4c8f8cda8d8d172cb60122576e',
-  'examples/sidebar-tools/bookmark-manager/src/react/App.jsx':'aef3bf55f6a0ffe97d970caf911493652e497378',
+  'examples/sidebar-tools/bookmark-manager/src/react/App.jsx':'12ef543da152ed8477decec694c351b4bca6b44f',
   'examples/sidebar-tools/bookmark-manager/src/react/navigation.js':'7fc81215374c240e6eaae7e9e802872d94d5a53d',
   'examples/sidebar-tools/bookmark-manager/src/react/style.css':'f7be8f43c22dab3dccdbb85585aa03f31ca6d941'
 });

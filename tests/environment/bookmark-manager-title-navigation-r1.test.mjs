@@ -27,8 +27,10 @@ test('trusted Bookmark App reports editor state and routes shared Back to existi
   ]);
   assert.match(app,/navigation:bookmarkEditorNavigation\(draft\)/);
   assert.match(app,/back:draft\?\(\)=>requestCloseSheet\(\):null/);
-  assert.match(app,/function requestCloseSheet\(\)\{if\(busy\)return/);
-  assert.match(app,/if\(dirtyDraft\(draft\)\|\|uncertain\)\{setConfirmDiscard\(true\);return\}/);
+  assert.match(app,/function requestCloseSheet\(\)\{/);
+  assert.match(app,/if\(busyRef\.current\)return;/);
+  assert.match(app,/if\(dirtyDraft\(draftRef\.current\)\|\|uncertainRef\.current\)/);
+  assert.match(app,/function setDraft\(value\)\{fillEpoch\.current\+\+;draftRef\.current=value;/);
   assert.match(host,/nativeUI\?\.kind==='bookmark'&&bookmarkNavigation\?\.canBack&&bookmarkNavigationBack/);
   assert.match(host,/if\(toolSaving\)\{notice\('书签正在保存/);
   assert.match(host,/bookmarkNavigationBack\(\);return;/);

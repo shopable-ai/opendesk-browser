@@ -112,6 +112,27 @@ test('R3.2 cautious split deduplicates questions, does not split comma condition
  const r=plan('退款期限是多少？何时发货？可以安装吗？发票怎么开？价格多少？');
  assert.equal(r.status,'OVER_LIMIT');assert.equal(r.answer,'');
 });
+test('R3.2 implicit multi-topic or mixed refund stages require clarification',()=>{
+ for(const message of [
+   '退款期限是多少，何时发货',
+   '退款期限和审核时长都是多少',
+   '如果签收后退款，发货流程还能继续吗'
+ ]){
+   const result=plan(message);
+   assert.equal(result.status,'CLARIFICATION_REQUIRED',message);
+   assert.equal(result.answer,'',message);
+   assert.deepEqual(result.sourceIds,[],message);
+ }
+});
+test('R3.2 semantic candidates never expand beyond original Provider model.lookup IDs',()=>{
+ for(const question of ['退款期限需要几天','什么时候发货','订单物流进度多长时间']){
+   const result=plan(question);
+   const original=model.lookup(lib,{question});
+   const allowed=new Set(original.sourceIds);
+   for(const id of result.sourceIds)assert.ok(allowed.has(id),question+' '+id);
+   assert.deepEqual(result.parts.flatMap(x=>x.sourceIds),[]);
+ }
+});
 test('R3.2 original aliases and semantic candidates remain distinct',()=>{
  assert.equal(plan('几天内可以退款').status,'ANSWERED_FIXED');
  const r=plan('退款期限需要几天');
