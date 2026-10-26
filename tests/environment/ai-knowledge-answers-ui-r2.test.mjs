@@ -117,7 +117,7 @@ function mount(storage={value:null,requests:[],unknown:false},{beforeWrite,befor
  };
  return {storage,get,click,input,save,press,focusCalls,window};
 }
-test('R2 component: save/read-back, reopen and synonym lookup retain the actual generated knowledge ID',async()=>{
+test('R2 component: save/read-back retains the stored ID without exposing technical IDs in answer sources',async()=>{
  const ui=mount();await tick();
  assert.equal(ui.get('qa-save').type,'button');
  assert.equal(ui.get('qa-save').closest('form'),null,'opaque sandbox does not allow native form submission');
@@ -133,10 +133,15 @@ test('R2 component: save/read-back, reopen and synonym lookup retain the actual 
  reopened.input('qa-query','多久可以退款');reopened.click('qa-ask');
  assert.equal(reopened.get('qa-result-kind').textContent,'固定答案');
  assert.equal(reopened.get('qa-result-text').textContent,'7 天内可退款');
- assert.equal(reopened.get('qa-result-sources').querySelector('.qa-source-id').textContent,id);
+ assert.equal(reopened.get('qa-result-sources').querySelector('.qa-source-id'),null,
+  'internal storage IDs must not be shown to users');
+ assert.match(reopened.get('qa-result-sources').textContent,/退款期限是多少/);
+ assert.doesNotMatch(reopened.get('qa-result-sources').textContent,new RegExp(id));
  reopened.input('qa-query','退款需要多少天？');reopened.click('qa-ask');
  assert.equal(reopened.get('qa-result-kind').textContent,'检索到相关知识');
- assert.match(reopened.get('qa-result-sources').textContent,new RegExp(id));
+ assert.match(reopened.get('qa-result-sources').textContent,/退款期限是多少/,
+  'retrieval citations should display question names instead of storage IDs');
+ assert.doesNotMatch(reopened.get('qa-result-sources').textContent,new RegExp(id));
  reopened.input('qa-query','飞船位置');reopened.click('qa-ask');
  assert.equal(reopened.get('qa-result-kind').textContent,'没有可信依据');
  assert.equal(reopened.get('qa-result-sources').children.length,0);
