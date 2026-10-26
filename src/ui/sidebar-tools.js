@@ -782,6 +782,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
      (source===trustedKnowledgeSource&&active.id===TRUSTED_KNOWLEDGE_ID&&
       (nativePending||nativeUI?.kind==='knowledge')));
   const toolById=id=>installed.find(row=>row.id===id);
+  const hasCurrentNavigation=()=>navigationAllowed&&!readOnlyPreview&&active&&
+    frameRevocationEpoch===(revocationEpochs[active.id]??null)&&
+    samePackage(active,toolById(active.id));
   // A matching ID or user-supplied hash alone NEVER grants silent writes.
   // Bind to the installed, enabled, signed-off official release and epoch.
   async function admittedOfficialCookieImport(tool,expectedEpoch,{requireEnabled=true}={}){
@@ -1301,8 +1304,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const currentTocLocale=toolLocaleContext(active).locale;
     const visibleTitle=trustedTocTitle?
       uiMessage(toolLocaleContext(active).localization||readingTocCatalog,currentTocLocale,'title'):active?.title;
-    const clipNavigation=navigationAllowed&&active?.id==='web-markdown-clipper'&&!!frame&&clipPage!==null;
-    const navigation=navigationAllowed&&frame&&toolNavigation?toolNavigation:null;
+    const clipNavigation=hasCurrentNavigation()&&active?.id==='web-markdown-clipper'&&!!frame&&clipPage!==null;
+    const navigation=hasCurrentNavigation()&&frame&&toolNavigation?toolNavigation:null;
     const nativeBookmarkNavigation=active?.id===TRUSTED_BOOKMARK_ID&&
       nativeUI?.kind==='bookmark'?bookmarkNavigation:null;
     // Display only. Trusted Settings overrides an admitted editor/sandbox page.
@@ -1564,6 +1567,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           notice('官方身份核验未通过，已保留受限 iframe，未开放可信 AI。');
           return;
         }
+        let host=null;
         try{
           const epoch=frameRevocationEpoch;
           const assertIdentity=async()=>{
@@ -1579,7 +1583,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
                !installed.some(row=>row.id===tool.id&&samePackage(row,tool)))
               throw Object.assign(new Error('官方安装状态已变化，请重新打开工具'),{code:'E_TOOL_CHANGED'});
           };
-          const host=createTrustedPromptHost({
+          host=createTrustedPromptHost({
             api,tool,token,epoch,lockManager,model:globalThis.OpenDeskPromptShortcutsModel,
             conversation:trustedPromptPilot.conversation({
               instanceId:token,installEpoch:frameRevocationEpoch==null?null:String(frameRevocationEpoch)}),assertIdentity,
@@ -1602,6 +1606,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           mountSandbox(portal.frameTarget);
           notice('');
         }catch(error){
+          // Recovery may reject after switching tools or revoking this instance.
+          // Retire only its local Host before touching the current shared UI.
+          host?.dispose();
+          if(disposed||active!==tool||instance!==token)return;
           destroyFrame();tocSettingsOpen=true;render();
           notice('可信提示词 AI 接线失败：'+String(error?.message||error).slice(0,180),true);
         }
@@ -1715,9 +1723,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     cancelRemovalReview();
     if(disposed||busy||!visible)return;
     if(installedReadError){notice('安装记录读取失败，请刷新核对后再打开应用。',true);return;}
-    // An OD rail click on the already-open app must not remount its iframe,
+    // An OD rail click on the already-open app must not remount its live UI,
     // discard its draft or introduce a redundant leave-confirmation dialog.
-    if(!launchGate&&active?.id===id&&!readOnlyPreview&&!tocSettingsOpen&&frame?.isConnected)
+    if(!launchGate&&active?.id===id&&!readOnlyPreview&&!tocSettingsOpen&&
+       samePackage(active,toolById(id))&&frameRevocationEpoch===(revocationEpochs[id]??null)&&
+       (frame?.isConnected||nativeUI))
       return instance;
     if(launchGate&&active&&(toolSaving||toolDirty||isDirty())){
       notice('当前工具有未保存内容，请先保存或关闭，再重新从右键菜单启动。',true);return;
@@ -2966,10 +2976,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       return;
     }
     if(message.kind==='navigation-state'){
-      if(navigationAllowed&&active?.id==='web-markdown-clipper'&&!readOnlyPreview&&
+      if(!hasCurrentNavigation())return;
+      if(active?.id==='web-markdown-clipper'&&
          Object.hasOwn(clipNavigationTitles,message.page)){
         clipPage=message.page;render();
-      }else if(navigationAllowed&&!readOnlyPreview){
+      }else{
         const next=normalizeToolNavigation(message.state);
         if(next){toolNavigation=next;render();}
       }
@@ -3131,10 +3142,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       revocationReadEpoch++;
       revocationEpochs=changes[TOOL_REVOCATION_EPOCHS_STORE]?.newValue||{};
       if(active&&!readOnlyPreview&&frameRevocationEpoch!==(revocationEpochs[active.id]??null)){
+        navigationAllowed=false;toolNavigation=null;clipPage=null;
         if(nativeUI||nativePending){
           destroyFrame();tocSettingsOpen=true;render();
           notice('可信工具安装代际已撤销；请重新打开已核验工具。',true);
-        }else notice('当前工具实例已撤销；草稿仍在当前页面，请复制后重新打开。',true);
+        }else{
+          render();
+          notice('当前工具实例已撤销；草稿仍在当前页面，请复制后重新打开。',true);
+        }
       }
     }
     if(Object.hasOwn(changes||{},MARKET_PROVENANCE_STORE)&&(nativeUI||nativePending)&&
@@ -3888,14 +3903,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     void action(install)();
   });
   const requestClipNavigation=action=>{
-    if(!navigationAllowed||!frame?.contentWindow||!instance||active?.id!=='web-markdown-clipper'||!clipPage)return false;
+    if(!hasCurrentNavigation()||!frame?.contentWindow||!instance||active?.id!=='web-markdown-clipper'||!clipPage)return false;
     if(toolSaving){notice('摘录正在保存，请完成后再操作。',true);return true;}
     frame.contentWindow.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,
       kind:'navigation-action',instance,toolId:active.id,action},'*');
     return true;
   };
   const requestBusinessNavigation=action=>{
-    if(!navigationAllowed||!toolNavigation||!frame?.contentWindow||!instance)return false;
+    if(!hasCurrentNavigation()||!toolNavigation||!frame?.contentWindow||!instance)return false;
     if(action==='back'&&!toolNavigation.canBack||
        action==='primary'&&!toolNavigation.primary||
        action==='secondary'&&!toolNavigation.secondary)return false;

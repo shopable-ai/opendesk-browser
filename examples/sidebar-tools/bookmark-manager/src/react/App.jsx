@@ -131,7 +131,7 @@ function FolderPicker({tree,value,onChange,onClose,currentId,disabled=false}){
 }
 function Inspector({tree,node,draft,setDraft,onSave,onCancel,onOpenPicker,pickerOpen,setPickerOpen,busy,uncertain,error}){
  const clickableHref=node&&!isFolder(node)?safeBookmarkHref(node.url):null;
- return <section className={'bm-inspector'+(draft?' is-editing':'')+(!node&&!draft?' is-empty':'')} aria-label={draft?'编辑书签':'书签详情'} data-testid="bookmark-inspector">
+ return <section className={'bm-inspector'+(draft?' is-editing':'')+(!node&&!draft?' is-empty':'')} aria-label={draft?bookmarkEditorNavigation(draft).title:'书签详情'} data-testid="bookmark-inspector">
   <span id="bm-inspector-id" className="bm-sr-only">{node?.id||''}</span>
   {draft?<form className="bm-editor" onSubmit={e=>e.preventDefault()} onKeyDown={e=>{if(e.key==="Enter"&&!e.nativeEvent.isComposing&&["bm-edit-name","bm-edit-url"].includes(e.target.id)){e.preventDefault();onSave(e)}}} data-testid="bookmark-editor">
    <div className="bm-field"><label htmlFor="bm-edit-name">名称</label><input id="bm-edit-name" autoFocus disabled={busy} maxLength={256} required value={draft.title} onChange={e=>setDraft({...draft,title:e.target.value})}/></div>

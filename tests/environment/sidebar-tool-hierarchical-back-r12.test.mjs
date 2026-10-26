@@ -26,11 +26,13 @@ test('sandbox navigation uses existing instance-gated channel, not DOM or histor
 test('shared header is admitted by exact official release, including Clipper legacy pages',async()=>{
  const host=await src('src/ui/sidebar-tools.js'),bridge=await src('src/sidebar-tools/bridge.js');
  assert.ok(host.includes('approvedNavigation=Boolean(release&&await matchesOfficialRelease(release,tool))'));
- assert.ok(host.includes("const clipNavigation=navigationAllowed&&active?.id==='web-markdown-clipper'"));
- assert.ok(host.includes("if(navigationAllowed&&active?.id==='web-markdown-clipper'&&!readOnlyPreview&&"));
- assert.ok(host.includes("if(!navigationAllowed||!frame?.contentWindow||!instance||active?.id!=='web-markdown-clipper'"));
+ assert.match(host,/const hasCurrentNavigation=\(\)=>navigationAllowed&&!readOnlyPreview&&active&&\s*frameRevocationEpoch===\(revocationEpochs\[active.id\]\?\?null\)&&\s*samePackage\(active,toolById\(active.id\)\)/);
+ assert.ok(host.includes("const clipNavigation=hasCurrentNavigation()&&active?.id==='web-markdown-clipper'"));
+ assert.match(host,/if\(message.kind==='navigation-state'\)\{\s*if\(!hasCurrentNavigation\(\)\)return;/);
+ assert.ok(host.includes("if(!hasCurrentNavigation()||!frame?.contentWindow||!instance||active?.id!=='web-markdown-clipper'"));
+ assert.ok(host.includes('if(!hasCurrentNavigation()||!toolNavigation||!frame?.contentWindow||!instance)return false;'));
  assert.ok(bridge.includes('navigationAllowed=message.navigationAllowed===true'));
- assert.ok(bridge.includes("navigationAllowed&&['back','primary'].includes(message.action)"));
+ assert.match(bridge,/navigationAllowed&&\(\['back','primary'\]\.includes\(message.action\)\|\|\s*\(message.action==='secondary'&&currentNavigation\?\.secondary\)\)/);
  assert.ok(bridge.includes('if(disposed||!navigationAllowed)return false;'));
  assert.ok(bridge.includes('...(navigationAllowed?{setNavigation}:{})'));
  assert.ok(!bridge.includes("toolId==='web-markdown-clipper'||navigationAllowed"),'a same-ID manual install never earns shared navigation');

@@ -153,9 +153,15 @@ export function createChatGPTBridgeSite({doc = document, win = window} = {}) {
   }
   function confirm(before,text,snapshot) {
     if (!snapshot.ok || snapshot.route!==before.route) return false;
-    if (snapshot.users.length !== before.users.length+1 ||
-      before.users.some((node,i)=>snapshot.users[i]!==node ||
-        messageText(node)!==before.userTexts[i])) return false;
+    // ChatGPT may evict the oldest rendered turns after sending. Require an
+    // unchanged contiguous suffix ending at the same current user node, plus
+    // exactly one new result. Never accept remounted/replaced current turns,
+    // internal gaps, additional user messages or a missing request anchor.
+    if (!before.users.length || snapshot.users.length<2) return false;
+    const offset=before.users.indexOf(snapshot.users[0]);
+    if (offset<0 || snapshot.users.length!==before.users.length-offset+1 ||
+      before.users.slice(offset).some((node,i)=>snapshot.users[i]!==node ||
+        messageText(node)!==before.userTexts[offset+i])) return false;
     const newMessage=snapshot.users.at(-1);
     return !before.users.includes(newMessage) && messageText(newMessage) === text;
   }

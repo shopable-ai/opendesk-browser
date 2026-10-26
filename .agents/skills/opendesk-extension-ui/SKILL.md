@@ -56,6 +56,8 @@ description: Improve OpenDesk Browser five-tab UI (我的/扩展/工作流/开�
 
 标题必须只占左右固定图标按钮之间的剩余宽度（`flex:1 1 0;min-width:0`），不以长字符串压缩右侧按钮；拆分父应用名和当前子页名，优先保留当前子页，父名使用 CSS 省略号，极窄标题宽度下可仅显示子页；完整文字在 React 文字状态、ARIA 和 `title` 中保留，200% 缩放可让原操作行换行。可信设置标题由 `src/ui/sidebar-tools.js` + `src/ui/sidebar-tools/title-path.js` 统一处理；已签发官方沙箱的导航提示只能通过现有受安装身份、实例、来源约束的 `setNavigation`，普通/旧版沙箱继续自带业务标题。返回由业务逻辑处理，草稿与保存锁仍有效；不能为了纯视觉修复扩大权限、修改 JSON 包或加入另一套 Host。**修复后同步变更扩展 README、产品/架构 MD、相关开发 Skill 与定向回归测试**；是否在原生 Chrome 实际通过需单独报告。
 
+R2.2 生命周期检查：标题接收、呈现与动作发送都绑定当前完整包、安装代际及实例；撤销后清除旧导航，保留草稿不等于保留宿主控制权。重复打开同一有效可信 UI 不重建实例；延迟初始化/恢复失败不得销毁新工作区。书签编辑区 ARIA 复用同一业务页名。复用[本轮证据与缺口](../../../docs/framework/workstreams/sidebar-tool-title-r22-local-20261026.md)，按最新用户阶段只做受改动影响的增量验证，不重复矩阵或补跑来凑分。
+
 ## 共享 AI 设置与 Native Options 的两层交互（2026-10-26）
 
 多个第一方 AI 对话框的设置入口统一复用 `src/ui/react/components/provider-settings.tsx` 和既有 Provider Runtime；**默认在同一个 Sheet 内展示 AI 来源、本机连接 Switch、实际在线状态、上次成功连接记录及重新检测**，不得每次都要求跳转到 `src/native-agent/settings.html`。只有首次安装/开发配对、目录工作区、困难诊断和长隐私披露等低频操作才进入独立 Options 页；不因此加第三个 Nav 或重复保存按钮。用户切换 AI 来源仍由现有「保存 AI 设置」生效，本机 Switch 则独立且即时提交，并明确告知两者保存语义不同。

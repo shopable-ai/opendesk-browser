@@ -160,19 +160,19 @@ test('R1.7 exact official Prompt Shortcuts forwards Header New/Back without remo
   assert.equal(f.elements['sidebar-tool-back'].title,'返回扩展列表');
   verifyAction('sidebar-tool-primary-action','primary');
   send({page:'create',title:'新建提示词',canBack:true});
-  assert.equal(f.elements['sidebar-tool-title'].textContent,'新建提示词');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,official.title+' / 新建提示词');
   assert.equal(f.elements['sidebar-tool-back'].title,'返回上一级');
   assert.equal(f.elements['sidebar-tool-primary-action'].hidden,true);
   verifyAction('sidebar-tool-back','back');
   send({page:'edit',title:'编辑提示词',canBack:true});
-  assert.equal(f.elements['sidebar-tool-title'].textContent,'编辑提示词');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,official.title+' / 编辑提示词');
   verifyAction('sidebar-tool-back','back');
   f.emit(f.elements['sidebar-tool-settings-open'],'click');
-  assert.equal(f.elements['sidebar-tool-title'].textContent,official.title);
+  assert.equal(f.elements['sidebar-tool-title'].textContent,official.title+' / 设置');
   assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
   f.emit(f.elements['sidebar-tool-back'],'click');
   assert.equal(f.runtime.frameRoot.children[0],f.frame);
-  assert.equal(f.elements['sidebar-tool-title'].textContent,'编辑提示词');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,official.title+' / 编辑提示词');
 });
 
 test('R1.7 same-ID manually altered Prompt Shortcuts cannot claim official Header actions',async t=>{
@@ -194,13 +194,121 @@ test('R1.6 generic tool settings has a single titled return without remounting',
  const f=await hostFixture(t),original=f.frame;
  assert.equal(f.elements['sidebar-tool-back'].title,'返回扩展列表');
  f.emit(f.elements['sidebar-tool-settings-open'],'click');
- assert.equal(f.elements['sidebar-tool-title'].textContent,sample.title);
+ assert.equal(f.elements['sidebar-tool-title'].textContent,sample.title+' / 设置');
  assert.equal(f.elements['sidebar-tool-back'].title,'返回上一页');
  assert.equal(f.runtime.frameRoot.children[0],original,'settings retains the same tool instance');
  f.emit(f.elements['sidebar-tool-back'],'click');
  assert.equal(f.elements['sidebar-tool-title'].textContent,sample.title);
  assert.equal(f.elements['sidebar-tool-back'].title,'返回扩展列表');
  assert.equal(f.runtime.frameRoot.children[0],original,'returning from settings does not recreate iframe');
+});
+
+for(const id of ['web-markdown-clipper','prompt-shortcuts'])test('R2.2 revoked '+id+' retains drafts but loses trusted navigation',async t=>{
+  const tool=await officialToolFixture(id),epoch='navigation-install-a';
+  const f=await hostFixture(t,{tool,store:new Map([[SIDEBAR_TOOL_STORE,[tool]],
+    [TOOL_REVOCATION_EPOCHS_STORE,{[id]:epoch}]])});
+  assert.equal(f.loaded.navigationAllowed,true);
+  const send=(kind,extra={})=>f.win.emit('message',{origin:'null',source:f.frame.contentWindow,
+    data:{protocol:f.loaded.protocol,toolId:id,instance:f.loaded.instance,kind,...extra}});
+  const navigate=()=>send('navigation-state',id==='web-markdown-clipper'?{page:'edit'}:
+    {state:{page:'edit',title:'编辑提示词',canBack:true,primary:'save',secondary:'more'}});
+  navigate();send('draft',{text:'可复制的未保存草稿'});send('edit-state',{dirty:true,busy:false});
+  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title+' / '+
+    (id==='web-markdown-clipper'?'编辑摘录':'编辑提示词'));
+  assert.equal(f.host.openTool(id),f.loaded.instance,'same package and epoch reuse the sandbox draft');
+  assert.equal(f.runtime.frameRoot.children[0],f.frame);
+  const epochs={[id]:'navigation-install-b'};
+  f.store.set(TOOL_REVOCATION_EPOCHS_STORE,epochs);
+  f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{newValue:epochs}});
+  assert.equal(f.frame.isConnected,true,'revocation preserves the page for copying');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title,'old subpage projection clears immediately');
+  assert.equal(f.elements['sidebar-tool-primary-action'].hidden,true);
+  assert.equal(f.elements['sidebar-tool-secondary-action'].hidden,true);
+  navigate();
+  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title,'old epoch cannot reassert navigation');
+  const actions=()=>f.frame.contentWindow.sent.filter(row=>row.kind==='navigation-action').length;
+  const before=actions();
+  for(const field of ['sidebar-tool-primary-action','sidebar-tool-secondary-action'])
+    f.emit(f.elements[field],'click');
+  assert.equal(actions(),before,'revoked page actions stay blocked even when not saving');
+  send('edit-state',{dirty:true,busy:true});
+  f.emit(f.elements['sidebar-tool-back'],'click');
+  assert.equal(actions(),before,'old epoch receives no trusted Back or page actions');
+  assert.equal(f.frame.isConnected,true,'Back preserves a draft while a save is pending');
+  send('edit-state',{dirty:true,busy:false});
+  if(id==='web-markdown-clipper'){
+    f.emit(f.elements['sidebar-tool-back'],'click');
+    assert.equal(f.elements['sidebar-tool-action-review'].hidden,false,'Back retains unsaved draft protection');
+    f.emit(f.elements['sidebar-tool-action-cancel'],'click');
+  }
+  f.ask('storage.set',{key:'note',value:'stale'},'revoked-write');
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='revoked-write'));
+  assert.equal(f.frame.contentWindow.sent.find(row=>row.requestId==='revoked-write').ok,false);
+  assert.equal(f.store.has(sidebarToolStorageKey(id)),false,'navigation fix never restores SDK write authority');
+  const reopened=f.host.openTool(id);
+  if(id==='web-markdown-clipper'){
+    assert.equal(f.elements['sidebar-tool-action-review'].hidden,false,'new epoch cannot take the reuse shortcut');
+    assert.equal(f.frame.isConnected,true);
+    f.emit(f.elements['sidebar-tool-action-cancel'],'click');
+  }else{
+    assert.notEqual(reopened,f.loaded.instance,'new epoch follows the existing Prompt relaunch behavior');
+    assert.equal(f.frame.isConnected,false);
+  }
+  send('edit-state',{dirty:false,busy:false});
+  assert.equal(f.host.closeTool(),true);
+  assert.equal(f.frame.isConnected,false);
+  navigate();
+  assert.equal(f.elements['sidebar-tool-display'].hidden,true,'closed instances cannot restore navigation');
+  assert.equal(actions(),before);
+});
+
+test('R2.2 admitted native Bookmark reuses its current page and keeps settings and epoch boundaries',async t=>{
+  const tool=await officialToolFixture('bookmark-manager');
+  const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
+  const epoch='native-navigation-a',mounts=[];let disposals=0;
+  const f=await hostFixture(t,{tool,startTool:false,store:new Map([
+    [SIDEBAR_TOOL_STORE,[tool]],[TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:epoch}],
+    [MARKET_PROVENANCE_STORE,{[tool.id]:{marketId:release.id,version:release.version,sha256:release.sha256}}]
+  ]),trustedBookmarkPilot:{enabled:true,componentVersion:TRUSTED_BOOKMARK_COMPONENT_VERSION,
+    mount(options){mounts.push(options);return ()=>{disposals++;};}}});
+  const token=f.host.openTool(tool.id);
+  await settle(()=>mounts.length===1&&f.runtime.frameRoot.dataset.bookmarkTrusted==='true');
+  if(!f.elements['sidebar-tool-settings-view'].hidden)f.emit(f.elements['sidebar-tool-back'],'click');
+  let backs=0;
+  const state={navigation:{page:'edit',title:'编辑书签',canBack:true},back:()=>{backs++;},
+    dirty:true,saving:false,draft:'native draft'};
+  mounts[0].onStateChange(state);
+  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title+' / 编辑书签');
+  assert.equal(f.host.openTool(tool.id),token);
+  assert.equal(mounts.length,1);assert.equal(disposals,0);
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,true,'reopening current native app does not leave its draft');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title+' / 编辑书签');
+  f.emit(f.elements['sidebar-tool-back'],'click');
+  assert.equal(backs,1,'the retained page still owns Back');
+  mounts[0].onStateChange({...state,dirty:false});
+  f.emit(f.elements['sidebar-tool-settings-open'],'click');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title+' / 设置');
+  f.emit(f.elements['sidebar-tool-back'],'click');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title+' / 编辑书签');
+  assert.equal(mounts.length,1);assert.equal(disposals,0,'settings return preserves the native owner');
+  // Opening from settings retains the existing explicit relaunch behavior.
+  f.emit(f.elements['sidebar-tool-settings-open'],'click');
+  f.host.openTool(tool.id);
+  await settle(()=>mounts.length===2&&f.runtime.frameRoot.dataset.bookmarkTrusted==='true');
+  assert.equal(disposals,1);
+  const epochs={[tool.id]:'native-navigation-b'};
+  f.store.set(TOOL_REVOCATION_EPOCHS_STORE,epochs);
+  f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{newValue:epochs}});
+  assert.equal(disposals,2,'epoch change retires trusted native UI');
+  mounts[0].onStateChange(state);
+  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title+' / 设置','stale callback cannot restore a subpage');
+  const fresh=f.host.openTool(tool.id);
+  await settle(()=>mounts.length===3&&f.runtime.frameRoot.dataset.bookmarkTrusted==='true');
+  assert.notEqual(fresh,token);
+  assert.equal(mounts[2].installEpoch,epochs[tool.id]);
+  assert.equal(f.host.closeTool(),true);assert.equal(disposals,3);
+  mounts[2].onStateChange(state);
+  assert.equal(f.elements['sidebar-tool-display'].hidden,true,'close retires native navigation callbacks');
 });
 
 test('R26 cross-panel disable destroys old frames and resume does not revive them',async t=>{
@@ -795,6 +903,69 @@ test('R1.3 exact official Prompt admits one trusted React Dock and one sandbox i
   assert.equal(typeof mounts[0].onRequest,'function');
   assert.equal(typeof mounts[0].onReconcile,'function');
 });
+for(const reopenAfterEpoch of [false,true])test('R2.2 stale Prompt recovery rejection preserves '+
+  (reopenAfterEpoch?'quick-notes draft opened after epoch revocation':'switched quick-notes draft'),async t=>{
+  const tool=await officialToolFixture('prompt-shortcuts');
+  const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
+  const recoveryKey='opendesk.prompt-ai-recovery.v1';
+  const store=new Map([[SIDEBAR_TOOL_STORE,[tool,sample]],
+    [TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:'recovery-a'}],
+    [MARKET_PROVENANCE_STORE,{[tool.id]:{marketId:release.id,version:release.version,sha256:release.sha256}}]]);
+  let rejectRecovery,reads=0,mounts=0,releases=0;
+  const pilot={enabled:true,
+    conversation:()=>({request:async()=>{},cancel:async()=>{}}),
+    releaseConversation(){releases++;},
+    mount({container}){
+      mounts++;
+      const frameTarget=container.ownerDocument.createElement('div');container.append(frameTarget);
+      return {frameTarget,dispose(){frameTarget.remove();}};
+    }};
+  const f=await hostFixture(t,{tool,store,startTool:false,trustedPromptPilot:pilot,
+    getHook:key=>{
+      if(key===recoveryKey&&++reads===1)return new Promise((resolve,reject)=>{rejectRecovery=reject;});
+    }});
+  const oldToken=f.host.openTool(tool.id);
+  await settle(()=>typeof rejectRecovery==='function');
+  if(reopenAfterEpoch){
+    const epochs={[tool.id]:'recovery-b'};store.set(TOOL_REVOCATION_EPOCHS_STORE,epochs);
+    f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{newValue:epochs}});
+  }
+  const nextTool=sample;
+  const token=f.host.openTool(nextTool.id);
+  assert.notEqual(token,oldToken);
+  const frame=f.runtime.frameRoot.querySelector('iframe');
+  assert.ok(frame);await frame.onload();
+  const loaded=frame.contentWindow.sent[0];
+  assert.equal(loaded.tool.id,nextTool.id);assert.equal(loaded.instance,token);
+  // Model the sandbox's live editor memory, independent of persisted storage.
+  const {document:page}=parseHTML('<html><body><textarea></textarea></body></html>');
+  frame.contentWindow.document=page;
+  const editor=page.querySelector('textarea');editor.value='未保存的新实例草稿';
+  const send=(kind,extra)=>f.win.emit('message',{origin:'null',source:frame.contentWindow,
+    data:{protocol:loaded.protocol,toolId:nextTool.id,instance:token,kind,...extra}});
+  send('draft',{text:editor.value});send('edit-state',{dirty:true,busy:false});
+  const title=f.elements['sidebar-tool-title'].textContent;
+  const settingsHidden=f.elements['sidebar-tool-settings-view'].hidden;
+  const releasesBefore=releases;
+  rejectRecovery(new Error('old recovery read rejected'));
+  // Drain the recovery lock, its async admission callback and both catch paths.
+  await pause();await pause();
+  assert.equal(frame.isConnected,true,'old error must not destroy the new frame');
+  assert.equal(f.runtime.frameRoot.querySelector('iframe'),frame);
+  assert.equal(frame.contentWindow.document.querySelector('textarea'),editor);
+  assert.equal(editor.value,'未保存的新实例草稿');
+  assert.equal(f.host.openTool(nextTool.id),token,'new instance remains reusable');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,title);
+  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,settingsHidden);
+  assert.equal(releases,releasesBefore,'old cleanup cannot release the current Provider');
+  assert.equal(store.has(sidebarToolStorageKey(nextTool.id)),false,'draft is still only in memory');
+  assert.equal(mounts,0,'failed old admission never mounts a trusted portal');
+  assert.equal(f.host.closeTool(),false,'new notes retain their unsaved draft guard');
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,false);
+  f.emit(f.elements['sidebar-tool-action-cancel'],'click');
+  assert.equal(frame.isConnected,true);
+});
+
 test('R1.16.1 committed official 1.1.15 mounts trusted AI against the 1.1.16 catalog and revokes on epoch change',async t=>{
   const tool=JSON.parse(execFileSync('git',['show',
     '4a67583db:examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json'],
@@ -1600,7 +1771,7 @@ test('R4.7 settings live next to retained TOC iframe; appearance remains separat
   assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
   assert.equal(f.elements['sidebar-tool-frame'].hidden,true);
   assert.equal(f.elements['sidebar-tool-frame'].children[0],iframe,'the sandbox is retained, not reloaded');
-  assert.equal(f.elements['sidebar-tool-title'].textContent,'工具设置');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,toc.title+' / 设置');
   const pagePrefs=changeReadingTocVisibility({},toc.id,url,'page',true);
   f.changeStorage({[READING_TOC_VISIBILITY_STORE]:{newValue:pagePrefs}});
   assert.equal(f.elements['sidebar-tool-settings-page-visibility'].textContent,'恢复显示');

@@ -26,6 +26,7 @@ test('trusted Bookmark App reports editor state and routes shared Back to existi
     read('src/ui/sidebar-tools.js'),read('src/ui/react/main.tsx')
   ]);
   assert.match(app,/navigation:bookmarkEditorNavigation\(draft\)/);
+  assert.match(app,/aria-label=\{draft\?bookmarkEditorNavigation\(draft\)\.title:'书签详情'\}/);
   assert.match(app,/back:draft\?\(\)=>requestCloseSheet\(\):null/);
   assert.match(app,/function requestCloseSheet\(\)\{/);
   assert.match(app,/if\(busyRef\.current\)return;/);

@@ -4,6 +4,78 @@
 
 ## 当前核心链路续推（2026-10-26 17:00 起，北京时间）
 
+### 最新结论：四个正常场景真实闭环完成（19:43 收尾）
+
+本对话 `01a1776b-bcaf-7971-83b5-e58caffd808e` 的独立原生目标已设置，无 token 预算。以下是本轮最新核心结论，覆盖本节后面的早期 active、FAIL、UNKNOWN、待恢复及待重测描述；旧尝试保留原状态，不改写为成功。原生工具 `update_goal` 已返回 **complete**；累计用时 9382 秒（约 2 小时 36 分），无预算上限。结构化生命周期及证据见证据目录 `status.json`。
+
+**`page.read.fixed@1.0.0` 和 `baidu.search.top3@1.0.0` 各一次手动、一次单次自动均 PASS。** 每个正常场景有意建立独立 requestId，在官方对话发送，经唯一完整匹配候选进入现有 Host，取得本次持久结果，按原 runId 查询 completed/released，原对话出现同一结果用户消息一次，随后有新中文 AI 续答。自动场景均在官网仍生成候选时批准一次，之后没有点击执行。百度两次实际返回 `success/count=3`，并非用程序 completed 代替搜索成功。
+
+| 正常场景 | 北京时间 | requestId | runId | resultId | 结果 / 释放 / 回传 / 续答 |
+| --- | --- | --- | --- | --- | --- |
+| 固定页手动 **PASS** | 17:44–17:48 | `ddd3951f-ea4c-42d0-997d-170598c58f90` | `048f0c02-40a0-4e07-8538-685871b08b5f` | `f4a60d2e-bb4a-4b06-8db9-2bbf675f0a5b` | 真实 httpbingo；completed/released；1 条结果；中文续答 |
+| 固定页单次自动 **PASS** | 19:13–19:15 | `05e2eb79-dc6b-4634-8625-0a537a2ae979` | `dd1592ef-e560-4eb4-b922-ac6904a05d93` | `16cf74d2-56a5-4d36-9191-3eab2fda1de3` | 真实 httpbingo；completed/released；程序确认 1 条结果并确认 AI 完成 |
+| 百度手动 **PASS** | 18:58–19:01 | `99195b3c-b828-480f-9de9-98d2c89eebd8` | `4daf0439-bab1-434d-a7d7-5e4195f5da58` | `817b3333-3a1c-42a3-a117-41be02a1a4fb` | success，3 条自然结果；completed/released；1 条确认结果；实际中文续答完整可见 |
+| 百度单次自动 **PASS** | 19:02–19:04 | `15303f19-976b-4a4b-b639-a40f701497b3` | `00c2fa97-98a8-48ef-b40b-43d93a26e602` | `79f0c729-4cee-407a-ae89-28d46f842f4d` | success，3 条自然结果；completed/released；程序确认 1 条结果及 AI 完成 |
+
+固定页真实 `title` 为空字符串，`heading` 为 `Herman Melville - Moby-Dick`，正文节选 800 字符；没有填造标题。百度仅访问 `https://www.baidu.com/s?wd=OpenDesk%20Browser` 搜索页，读取当前 `www_index` 自然结果 1–3 的标题、摘要、原始百度链接，不点击结果链接。手动本次观察时间 `2026-10-26T10:58:44.972Z`，实际标题包括《我最喜欢的浏览器没了，我找到了四种方式「复活」它》《免费指纹浏览器该怎么选？常见工具与试用方案介绍》《普通人的电脑也能远程运行应用？PiDesktop 0.6.4 带来新变化》；自动本次时间 `11:02:09.521Z`，实际为 OpenDesk、openDesk/OpenProject、OpenProject 13.1 三条。两次当前排名不同，均保留真实原始数据，不替换成预置答案。百度手动曾在中文回复尚未被程序标记完成时读取 `aiReplyObserved=false`；其后实际完整中文续答由 AX/截图证实，不篡改这个历史标志。
+
+19:31–19:34 另用新 requestId `45a4d9d4-071e-450d-bfcc-e9d4a266c2d8` 完成固定自动正常复测，run `6c2ff779-2680-4efd-8006-477b79c88dc3` / result `90e36e96-87ff-4d2a-a922-e27ff0991951`，同样 completed/released、一次回传、中文续答；不是 UNKNOWN 重试。此轮旧历史标记仍可见，**未原生触发历史前缀移除**，该异常分支只有定向组件证据。
+
+#### A–H 关键条件的最新证据层级
+
+| 条件 | 本轮结论及边界 |
+| --- | --- |
+| A 页面与引导 | 已有会话建立请求真实 PASS；首页实读“先发送一条消息或选择已有对话”且建立按钮禁用。换会话/document/轮次旧请求及批准失效由组件覆盖，不冒充原生异常测试。 |
+| B 请求与批准 | 四个新请求均先官网发送，自动两次均生成中批准、零执行点击。完整前零运行、错误任务/关键词/旧回复/模型自授权拒绝是组件证据及正常时序观察；未放宽匹配。 |
+| C 固定网页 | 本次真实网页标题/正文、精确 Run/Result 和释放 PASS；未用旧内容代替。 |
+| D 百度 | 手动/自动均真实 success、3 条自然结果 PASS。广告/未知模块过滤及验证码、访问阻断、区域缺失、DOM 变化、无结果分类由定向组件覆盖；本轮未原生遇到这些异常，不标原生 PASS。 |
+| E 手动与自动 | 四场景各独立 requestId、每请求观察一个 Run、一个持久结果、一条回传。自动批准后未点执行。重复点击/渲染去重是组件证据；原生未观察到追加运行或发送。 |
+| F 生命周期与取消 | 四个原 runId 均只读查询到精确身份及 completed/released，另核查旧已知 UNKNOWN Run 的释放。取消隔离/迟到结果拒绝由组件覆盖；旧取消 ACK UNKNOWN 保留，绝不将 ACK 当 released。 |
+| G 原会话回传 | 每条真实结果用户消息与新中文续答均在对应原 tab/对话观察，面板回传确认有证据。来源/安装/权限失效、草稿/附件/IME 拒绝由组件覆盖，未对使用中授权撤权。两份实际草稿均已恢复且未发送。 |
+| H 未知结果 | 旧 UNKNOWN 不重跑、不补发；仅查询已知原 runId。无可靠 Run 映射的请求保持 UNKNOWN，没有猜最近历史。 |
+
+#### 本轮最小修复、安装与候选身份
+
+- **E_CHAT_TARGET**：真实首页缺少会话 ID 时明确原因和下一步，禁用建立请求；进入已有会话才恢复。没有放宽来源或会话身份校验。该修复及先红后绿回归已由并行 owner 纳入 main。
+- **百度误拒**：持久参数对象键顺序变化造成同一合法参数被拒，双方统一经原严格请求解析器规范化后比较；改关键词/任务/未知字段等仍拒绝。先红后绿回归后，原生百度手动和自动均通过。此修复也已由并行 owner 纳入 main。
+- **宿主未打开的引导**：实际发现网页浮层单独存在时，Side Panel Host 可能未响应。页面与说明明确要求同窗口 OpenDesk 侧栏保持打开；缺失回执仍记 UNKNOWN、禁止重放，没有新增第二 Host 或私自重试。
+- **发送确认**：旧固定自动曾在可见 AX 历史缩短后报交付 UNKNOWN。不能直接读到当时 DOM 因果，因此保留该次 UNKNOWN。针对可复现组件缺口，确认允许仅移除最旧历史前缀，但仍必须保留相同当前用户节点和文本、连续历史后缀、同一会话及唯一精确新增结果；拒绝当前节点重建、缺锚点、中间缺口、额外消息或结果不同。发送前完整身份/编辑框检查和单次点击不变。新增回归先红后绿，随后新固定自动原生正常链路 PASS。AI 续答检测仍保守要求完整历史前缀；真的前缀移除时可能不显示程序 AI 完成，需要按实际回复观察，不能因此重发。
+
+两个 Task 的实际安装均经既有「我的→添加任务→浏览任务目录」导入→原 Authority 真实验证→本地可用→版本/网站安装审阅；目录实读已安装，实际 Run Authority 准入及查询显示 `task:<taskId>:1.0.0 · r1 · <sourceHash>`，无存储造假、无再次启用、无静默升级。
+
+| Task 安装身份 | sourceHash | manifestHash |
+| --- | --- | --- |
+| `page.read.fixed@1.0.0`，r1，已安装且真实准入 | `c2684b24d3e6ef9b0319703661d8d7b53014df60533608bcd697361cc70a99f4` | `14261d871732d67c97a8fa4e398ec8d2852e025d0ff4ff02e08546ac530de505` |
+| `baidu.search.top3@1.0.0`，r1，已安装且真实准入 | `586fbf0f2d16a9bd00f17dd1b5e0b94171e799a53fe2d0d6edf9b86db0121cd3` | `6be4d039d123c89b51fba945d5997724de5948c3b839c1d2afa0b2dcfccd49ed` |
+
+内部 `installationId/generation` 未通过现有目录、运行身份 UI 或授权查询暴露，仍记 **UNKNOWN**；上表是本轮可核实的实际安装身份，不伪造内部 UUID，不读取私有数据库。Task 源码和包均未改写。
+
+当前为**持续开发**：Chrome 扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，实际加载 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development`。原 watcher 退出后本轮经原输出锁启动 `npm run dev`，现有 watcher 保留运行；启动时实际 Quick Notes 外观/未用 asset 声明阻塞曾作最小修复并定向 3/3 PASS，已由其他 owner 集成，未发布它的正式包。本轮没有另起 writer 或停止其他服务。19:35–19:36 Chrome「调试→本地开发服务」实读 **开发服务已连接**，revision `d1c312360204e29d113d47a2bedab2f33fbe0484fddc33a17e0a86bd825619de`，与磁盘 marker 一致；Bridge `a25c42baf98433b70478d640750a27e590aa00ab39b1d473c4ad2b22b0b22fae`、SW `1da3cbcc25b3db1a5dd2853ffc8935619795f0a21de879ff4f41194a9d2c030b` 的实际文件均匹配声明。Native doctor 的 extensionId/allowed_origins 配对证据沿用本轮已核查结果。连接指纹不单独证明所有旧网页已重新注入；首页新文档引导、百度新请求和新固定自动均另有真实操作证据。
+
+最后源码身份记录于 `final-source-build-identity.json`：当时 main HEAD `d01f35dc0b5afcbbe05a2b4031d83ce2cbc8de52`，page SHA `2a05c8eba07c26501e07a174e6405a15d9c0d8a6ef12de3f654274011a048037`，host `369c584f7e600360ff456d35685c0f3ff0dfe986f330a6af6930e6e806e2e9ac`，gate `1fca11aa1d54f988343c66fc1560ecf9533876e4bab8709edc5fb7300920f62f`，site `5f9da98585e26e764221ec6f1df040de9d0b6d0f38fe5b2e013e9b483b60e3ad`。四个场景在修复过程中完成，不能把收尾指纹倒填成每个旧文档的 JS 注入哈希。Task 固定源码身份始终如上表。
+
+#### 验证与证据索引
+
+本轮 Gate/百度相关定向测试曾 **35/35 PASS**；宿主缺失回执引导及发送确认改动后，site/page/fixed 三份受影响测试 **38/38 PASS**，两次存在覆盖重叠，不相加当独立测试总数。page/site 语法和 `git diff --check` 通过；独立 code-reviewer 未发现 actionable 问题，注明 AI 完成检测仍保守。没有因历史清单重跑全量测试或 production 构建。
+
+证据根：`artifacts/ai-chat-bridge-r20-mac-20261026/core-01a1776b/`。
+
+- 固定手动：`fixed-manual-ax.txt`、`fixed-manual.png`、`fixed-manual-final-query-ax.txt`。
+- 固定自动：`fixed-auto-final-sent-generating-ax.txt`、`fixed-auto-final-approved-generating-ax.txt`、`fixed-auto-final-progress-ax.txt`、`fixed-auto-final-result-ax.txt`、`fixed-auto-final-query-ax.txt`。
+- 百度手动：`baidu-manual-new-candidate-ax.txt`、`baidu-manual-result-sent-ax.txt`、`baidu-auto-result-sent-ax.txt` 中的完整前轮中文回复、`baidu-manual-success.png`、`baidu-manual-final-query-ax.txt`。
+- 百度自动：`baidu-auto-sent-generating-ax.txt`、`baidu-auto-approved-generating-ax.txt`、`baidu-auto-result-sent-ax.txt`、`baidu-auto-query-ax.txt`、`baidu-auto-final-query-ax.txt`。
+- 首页/收尾：`homepage-guidance-ax.txt`、`final-chrome-dev-connection-ax.txt`、`final-source-build-identity.json`、`fixed-auto-history-query-ax.txt`、`final-core-success.png`、`status.json`。原生 AX 文本可能截短长 JSON，保留的 request/run/result 身份与精确持久查询互证，不宣称截短内容就是完整导出。
+
+两个草稿均已实际恢复且未发送：“你好”在原测试会话 tab `560068516`，长多行中文/emoji 草稿在项目页 tab `560068541`；证据 `original-draft-restored-ax.txt`、`project-draft-restored-ax.txt`，备份状态均 restored=true。保留固定成功页 `560068538`、百度成功页 `560068531` 及两份草稿页，旧用户 tab `560068366` 未接管。
+
+旧尝试 `ea345ddf…`、`f9407c39…` 仍为交付确认 UNKNOWN，均未重发；已知原 Run 仅查询释放。百度 `0721f29e…` 的旧参数误拒仍 FAIL，取消回执 UNKNOWN；`35a6cc85…` 宿主缺失回执仍 UNKNOWN，无可靠 Run 映射，不猜最近记录。后来四场景用有意新请求验证修复，不覆盖旧事实。官网对话直接重开失败和浏览器 DOM 驱动超时属本轮环境/驱动观察，使用正常可用的官方 SPA 对话及原生 AX 完成，没有绕过工具拒绝。
+
+普通用户操作见 `examples/tasks/README.zh-CN.md` 的 ChatGPT 章节：同窗口侧栏打开→选择已有官方对话→选任务→建立请求→官网发送→完整后手动执行，或发送后批准一次自动→等待结果与中文续答。当前没有阻止四条正常链路的未解问题；内部 UUID 未暴露、原生未触发的异常及保守 AI 完成提示按上述边界保留。production/正式发布验收、95+ 评分、全矩阵、宽度缩放、长压/变异/故障注入仍延期。
+
+本轮仅在 main 工作，无分支/worktree/PR、无 commit/pull/rebase/push；本轮新增 page/site、两个回归与 README/本记录留待后续保存，其他 owner 的 Sidebar/打包/导航/书签管理/产品记录修改均保留。既有服务与日常加载路径不切换。
+
+### 17:00–18:26 过程记录（历史快照，以下“当前/下一条”不再代表最新状态）
+
 本节以本对话 `01a1776b-bcaf-7971-83b5-e58caffd808e` 的实读为准，覆盖下方历史阶段。`get_goal=null` 后已创建独立原生目标，状态 **active**，无 token 预算；未变更其他对话目标。目标为 `page.read.fixed`、`baidu.search.top3` 各一次手动和单次批准自动执行，直至同一持久结果 released、仅回传原对话一次且官方 AI 中文续答。production、评分、全量矩阵、宽度缩放及模型路由均延期。
 
 18:26 后的新进展：只读确认原 watcher PID 36575 已退出且无替代 dev writer，故通过仓库原 43120 输出锁运行 `npm run dev`，没有停止任何其他服务。首次启动真实失败于 Quick Notes 的 layout-only CSS 重绘按钮；移除重复外观后，打包又明确报告已移除 logo 的遗留 `assets/mark.png` 声明。仅删除该未引用声明（图片文件保留），未修改打包器/设计门禁或已安装包。相关源码/列表编辑流程及真实创建包检查 **3/3 PASS**。随后原命令成功启动，唯一 writer 的 43119 服务 RUNNING，发布 revision `a27b5bfa27a51cfb17a582ddfcd7d396454ca3f5e22908018098baf495c26798`；SW/Bridge 文件哈希与标记一致。尚须从 Chrome 确认新 SW/文档生效，不能仅据磁盘声明百度修复已原生通过。本次环境变化中断此前 blocked 连续计数；目标保持 active。用户测试草稿仍备份待安全恢复。

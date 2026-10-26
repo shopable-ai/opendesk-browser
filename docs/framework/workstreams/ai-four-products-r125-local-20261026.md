@@ -136,3 +136,13 @@ BLOCKED/REMAINING：Scroll 缺三站真实长对话导航证据，仍 BLOCKED_CO
 - **Mind Map：**沿用 README 已有本机验证路径，原 `prepare:local` 生成固定资源 4,088,995 bytes，SHA256 `62c195b8c7e0cd81de0f24df58c4dacb44a123cd2696e6b0bcd3483579f0197f`，与既有资源相同；原 builder 和 Page packager 生成新 ID 0.2.7/r1 本机临时候选。`sourceHash=c8156358dfe0009876cc39fdd61a814201619b4f1b9d5cf6f53753af56efa8b8`，`packageHash=e2db52f59181d25622626a92f96261edaee5daf8fc15f1d52f0b9f2aaf68ca28`。包格式、哈希、编译源码字节及当前全部输入 SHA 通过核对，输出仅在 `mindmap-local-candidate/`，旁附 `local-validation.json` 标明 LOCAL_VALIDATION_ONLY/distributable=false。未生成项目正式 JSON、未改许可或开放官方发布，新 ID 原生核心开关仍 `NOT_TESTED`。旧 ID r8 的真实开关证据保留。
 - **环境：**实际复用 `ai-four-products-r125-native-fix/frozen-source/dist/production`，静态 production 候选，扩展 ID `mbjianpjmiafflgmlkkpdpdhbhedjkbd`，没有 dev serve 连接。首次 CFT155 在系统文件选择器操作中 SIGTRAP 退出，launcher 已清理其临时 Profile；这是环境失败，不登记为程序故障。随后只在本轮 artifacts 内克隆已安装的官方 CFT156.0.8078.4，使用独立 bundle ID 和 launcher，PID 75835、Profile `codex-cft-lw_zujhn`（上次观察，续接须重查）。其他实例未操作。
 - **账号与权限停点：**Cookie Editor 当前要求管理所有 HTTP/HTTPS 网站 Cookie，超出指定 ChatGPT 文件的单站范围；Chrome 用户脚本开关也仍关闭。已按电脑操作工具策略提交一项合并确认，等待用户选择；未点击这两项授权，未导入账号或发送消息。指定 Cookie 文件内容未进入日志、证据或仓库。下一步仅在对应授权到达后打开允许的开关、经原 Cookie Editor 导入，再用已有真实回复测试 Scroll 和本机 Mind Map；Queue 仅核对安装与空队列 UI，不发送测试消息。
+
+
+### 新接收对话：账号已登录，CFT156 开发者模式授权待决（2026-10-26）
+
+- 接收原 Profile `codex-cft-lw_zujhn`，`check_instance.py` 实读 PID 75835、ready=true；准确应用路径及 bundle ID 与交接一致。同一静态 production 冻结 Browser 路径、扩展 ID 和三个 Page 包的 programId/version/revision/sourceHash/packageHash 均核对一致；未重建 Browser、未改源码或候选。main 从 d4762f200 正常快进到 7930c282a，Queue 的 2c0d88c97 已在 main 历史中。新的其他 owner 脏文件保留，不纳入本次写入。
+- 按已有明确确认，在同一 Profile 的 Chrome 扩展详情把「允许运行用户脚本」切到 on，后续再次核对仍 on；Cookie Editor 全站授权界面已完成。系统选择器能选中指定账号 JSON，但「自定义文件」和「所有文件」均未使打开可用，改用 Cookie Editor 原粘贴导入入口读取同一用户文件，没有改写文件、Cookie DB 或 Chrome 配置。刷新 ChatGPT 后真实显示个人资料菜单，账号登录已确认；未发送消息、未操作会话草稿。
+- 隐私异常如实记录：一次 AX 输出过滤未覆盖多行 JSON，导致 Cookie 预览进入本对话私有工具输出；已停止输出预览，改为严格控件行白名单。值与私人正文未写入仓库或本机证据；原账号文件保留。
+- Scroll 原包导入审阅识别「此版本已经安装」，确认核对返回原 r1 blocked / `E_PAGE_INSTALL_PENDING`，提示打开用户脚本开关，与 Chrome on 状态冲突。为刷新现有运行状态，安全重载同一临时扩展；CFT156 随后显示该未打包扩展已停用，明确要求开启「开发者模式」。这是当前环境阻塞，不是已复现的 Scroll/Mind Map/Queue 业务缺陷；未修改产品适配环境。
+- 新的开发者模式设置不在先前两项授权内，已按 CUA 策略单独询问，仅限同一临时 Profile；当前待用户回复，未打开、未绕过。Profile 暂留用于继续获批操作，当前 ownership 仍在本对话；测试结束时须正常退出并核对 launcher 清理。
+- 脱敏观测：`artifacts/ai-four-products-r126-content-20261026/core-observations.json`。三个新身份的本轮核心内容操作仍 NOT_TESTED。Mind Map 本机候选仍 LOCAL_VALIDATION_ONLY/distributable=false、许可 BLOCKED；Queue 不发送消息；三站发行与完整矩阵、评分仍延期。

@@ -8,7 +8,7 @@ const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const PROBE_INTERVAL_MS=850;
 const MAX_DELIVERY_BYTES=8192;
 const CONVERSATION_HELP='当前页面尚未建立会话。请先在 ChatGPT 发送一条消息并等待回复，或从左侧选择一个已有对话，再建立浏览器任务请求。';
-const REQUEST_HELP='先选择任务并建立请求。官网发送请求后，可手动执行或批准一次自动执行。';
+const REQUEST_HELP='请保持同一窗口的 OpenDesk 侧栏打开。先选择任务并建立请求。官网发送请求后，可手动执行或批准一次自动执行。';
 const isUserTurn=(snapshot,id)=>snapshot.ok&&snapshot.users.at(-1)?.textContent?.includes(id);
 
 // Focus may synchronously restore a website draft. Inspect after focusing and
@@ -243,7 +243,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   const send=async message=>{
     const reply=await api.runtime.sendMessage({protocol:CHATGPT_BRIDGE_PROTOCOL,...message});
     if(reply?.ok!==true)throw fail(reply?.error?.code||'E_BRIDGE_TRANSPORT',
-      reply?.error?.message||'可信 Host 未响应');
+      reply?.error?.message||'可信任务宿主未响应，请确认同一窗口的 OpenDesk 侧栏保持打开；本次回执为 UNKNOWN，请按原请求核查');
     return reply.data;
   };
   const observe=()=>{

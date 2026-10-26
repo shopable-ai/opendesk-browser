@@ -1,5 +1,11 @@
 # Bookmark Manager · 正式 React 与 Classic 兼容工具
 
+## R2.2 本地增量验证（2026-10-26）
+
+隔离 Mac Chrome for Testing 中已验证：真实编辑 → 改名未保存 → 顶部返回确认 → 继续编辑 → 设置 → 返回原编辑及输入；新建书签/文件夹、详情和菜单的标题层级、显式放弃、正常保存、Authority 撤销及卸载后的两个旧 Host 清场也有原生记录。新建/编辑区域的可访问名称复用 `bookmarkEditorNavigation(draft).title`，与宿主当前页一致。
+
+本轮修复共享 Host 的旧代际导航失效、重复打开可信 UI 保留实例，以及旧异步恢复失败误清理新工作区；保留原草稿与写入保护。沿用 main 已有 **0.3.12** 包，未重打 JSON、升级版本或操作日常 Profile。指定长标题矩阵包含源码绑定 Chromium/原生回放；原生保存中、未知回执及在途写入撤权未覆盖。用户已要求仅增量检查，不继续扩展验收。证据等级、失败项与独立评分见[R2.2 记录](../../../docs/framework/workstreams/sidebar-tool-title-r22-local-20261026.md)，不宣称八维全部 ≥95；下文保留各历史阶段原结论。
+
 ## 0.3.12 安装包同步（2026-10-26）
 
 当前源码样式已领先于 `0.3.11` 正式 JSON；通过既有 `app:update` 流程升至 **0.3.12**，候选测试后晋升目录内唯一正式包，并同步既有 React 准入版本锁。权限保持 `browser.bookmarks.full`、`currentPage.read`，包 SHA-256 为 `06972e1420b0c43d8d0474fb91540bd5a405b96599861dabfb741587ee458383`。包及 React 来源定向检查共 13 项通过，`--check-project` 确认同源；现有开发 watcher 已同步 `dist/development` 官方市场资源，包字节一致，未另启构建或替换 Profile。

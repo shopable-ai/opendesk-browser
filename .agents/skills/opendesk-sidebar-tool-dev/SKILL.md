@@ -85,6 +85,8 @@ Stay Focus 安装提交前，静态 Side Panel 适配器的 `focus.probe` 对当
 
 **子视图标题同步（R2）**：真实页面从列表进入详情/编辑后，应让用户知道“哪一个应用的哪一个页面”，但不在原头部叠加 Nav/面包屑。宿主可信设置统一显示「应用名 / 设置」，不由每个工具复制设置页首；已验真官方沙箱需要时使用现有有界 `OpenDeskTool.setNavigation({page,title,canBack,...})` 报告业务页，原业务继续处理 `back`、未保存和保存锁。普通第三方与未验真同 ID 包自行保留内部导航，不把自报 title 注入可信 Header。Bookmark Manager 可信 React 的详情预览仍是局部弹层，而新建/编辑 Sheet 已通过实际业务回调与原 `requestCloseSheet()` 草稿确认成为可返回的子视图；只有真正处理了 Host Back 的页面才允许「书签管理 / 编辑书签」。修改真实业务代码后同步此 Skill、工具 README 与[Sidebar Tool 共享标题合同](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)，并只做受影响的页面/返回测试；纯 Browser Host 修复不必重打无变化的 JSON 包。
 
+R2.2 增量约束：新建/编辑表单的区域 ARIA 名称复用已有业务导航标题；不要另写一套状态映射。旧实例收到撤权后即使保留可复制草稿，也不能再更新可信标题或接收宿主导航动作；延迟恢复回调须绑定原实例。书签本轮已执行记录见[R2.2 本地证据](../../../docs/framework/workstreams/sidebar-tool-title-r22-local-20261026.md)。只复验当前变更影响的操作；不重复已通过矩阵，不为静态可信 React/Host 修复重打未变化的 JSON。
+
 ## 与编译、发行和未来市场 Skill 的明确分工
 
 - **本 Skill 主责**：HTML/CSS/JS、React/Vue 组件的功能实现、用户界面、源码正确性、隔离预览和开发侧功能测试。修改 `examples/sidebar-tools/<id>/src/`、`tool.config.json` 等真实业务源码。

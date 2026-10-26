@@ -66,6 +66,8 @@ function reviewedCompiledAdblock(target,path,root){
 // blob locks stay fail-closed; any subsequent change requires re-review.
 // R3.2 follow-up: reviewed style.css f7be8f4 adds only narrow coarse-pointer
 // (<=240px / 200% zoom) horizontal toolbar scrolling; no new business JS.
+// R2.2 title review: App reuses the existing editor navigation label for its
+// accessible region name; no package, capability, write or admission changes.
 // The Bookmark Manager trusted React pilot compiles exactly five
 // reviewed first-party files into the EXISTING ui/tool-shell.js. They are
 // author-controlled static imports, not installed or user-supplied package
@@ -75,7 +77,7 @@ function reviewedCompiledAdblock(target,path,root){
 const compiledBookmarkReactInputs=Object.freeze({
   'examples/sidebar-tools/bookmark-manager/src/model.js':'34cc7a737869ca502b4bcbbb47d2437d1b6b2bd5',
   'examples/sidebar-tools/bookmark-manager/src/service.js':'d072ace5379d0d4c8f8cda8d8d172cb60122576e',
-  'examples/sidebar-tools/bookmark-manager/src/react/App.jsx':'12ef543da152ed8477decec694c351b4bca6b44f',
+  'examples/sidebar-tools/bookmark-manager/src/react/App.jsx':'30ad858a4007ec4bbc89307f85cb1b47691f71d0',
   'examples/sidebar-tools/bookmark-manager/src/react/navigation.js':'7fc81215374c240e6eaae7e9e802872d94d5a53d',
   'examples/sidebar-tools/bookmark-manager/src/react/style.css':'f7be8f43c22dab3dccdbb85585aa03f31ca6d941'
 });

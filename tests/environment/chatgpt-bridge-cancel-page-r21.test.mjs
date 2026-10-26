@@ -59,8 +59,24 @@ function harness(overrides={}){
       runId:'run-1',resultId:'result-1',text:'real result',...fields},
     {id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=owner'},resolve),true);
   });
-  return {page,sends,buttons,status,snap,site,win,writes,commits,click,prepare,deliver,poll:()=>poll()};
+  return {page,api,sends,buttons,status,snap,site,win,writes,commits,click,prepare,deliver,poll:()=>poll()};
 }
+
+test('missing Host receipt gives same-window guidance and never replays an attempted execute',async()=>{
+  const h=harness();
+  const send=h.api.runtime.sendMessage;
+  h.api.runtime.sendMessage=async message=>{
+    const reply=await send(message);
+    return message.kind==='execute'?undefined:reply;
+  };
+  await h.prepare();await h.click(2);await flush();
+  assert.match(h.status.textContent,/UNKNOWN/);
+  assert.match(h.status.textContent,/同一窗口的 OpenDesk 侧栏保持打开/);
+  assert.match(h.status.textContent,/不会自动重放/);
+  await h.click(2);h.poll();await flush();
+  assert.equal(h.sends.filter(x=>x.kind==='execute').length,1);
+  assert.equal(h.commits.length,0);h.page.dispose();
+});
 
 test('homepage explains how to establish a conversation and never mints a request',async()=>{
   const h=harness();h.win.location.href='https://chatgpt.com/';h.poll();

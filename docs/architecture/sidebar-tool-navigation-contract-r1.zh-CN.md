@@ -15,6 +15,7 @@
 
 - **单一展示 owner**：`src/ui/sidebar-tools.js` 从现有 `tocSettingsOpen`、经过可信准入的业务 `navigation-state` 和安装元数据生成 `sidebar-tool-title`；仅抽出纯文本助手 `src/ui/sidebar-tools/title-path.js`。不新增 Nav、面包屑条、Router 或历史栈。完整文字与版本可从标题悬浮提示看到；小屏继续沿用既有截断布局，不压缩操作点击区域。
 - **状态优先级**：可信设置高于业务子页显示；退出设置恢复此前有效业务标题；根页不追加「/ 首页」；工具自行上报完整路径时不重复前缀。视觉提示不能自动赋予一个子页面 Back 权限；业务动作 owner 不变。
+- **R2.2 实例生命周期**：导航的收取、呈现和动作发送均核对当前完整包及安装代际；收到代际撤销后立即清除导航提示。保留可复制草稿的旧沙箱也不能继续控制宿主页首或发送导航动作。同包、同代际、未处于设置的活动可信 UI 重复打开时复用原实例；异步初始化/恢复的失败只清理其捕获的旧 Host，核对 tool/instance 后才可改变共享工作区。书签编辑区域的无障碍名称与同一业务导航标题一致。
 - **信任边界**：只有与官方登记完整包字节一致、当前安装代际、iframe 实例和来源核对通过的沙箱才可用 `OpenDeskTool.setNavigation` 更新 Host 页名。手工同 ID、过期实例、未验真工具继续使用自己的 UI；绝不从任意 iframe 文本构造可信页头或修改权限。
 - **真正可返回的业务视图**：书签管理可信 React 的新建/编辑 Sheet 在 R2.1 已注册静态业务 `bookmarkEditorNavigation` 与原生关闭回调 `requestCloseSheet()`，因此可以显示「书签管理 / 新建书签」「书签管理 / 编辑书签」。全局返回首先进入原草稿未保存/写入未知确认，不直接退出扩展；进入可信设置暂时覆盖标题，返回恢复编辑状态。仅选择书签生成的详情 PreviewPane、菜单、文件夹选择与确认 Dialog 仍不产生新宿主路由。
 - **发行边界**：R2.1 同时修改 Browser 共享 Host、静态可信 React 业务 `App.jsx` / `navigation.js` 以及 `scripts/bundle-provenance.mjs` 受审源码锁；`bookmark-manager` 正式 JSON、配置版本、能力和业务 SDK 均不变。要在已安装浏览器看到变化，需要构建并更新/重载包含新 Host 与可信 React 的 Browser。真实 Mac Chrome 未执行前标记 `NATIVE_NOT_TESTED`。
@@ -24,7 +25,11 @@
 
 顶部固定唯一 `←` 按钮：根页面回扩展列表，工具内子页面逐级返回；右侧按上下文保留最多必要操作，低频新标签页入口归入可信设置。最近摘录是网页剪藏首页内容，不是中间独立层级。设置由原页面进入时保留原页面实例，返回后恢复；未保存草稿先走原有安全保护。任何扩展未经显式适配，不擅自删掉自己的导航 UI。
 
-## 单一 owner 与消息边界
+R2.2 本地证据与验证缺口见[增量记录](../framework/workstreams/sidebar-tool-title-r22-local-20261026.md)。原生已安装业务操作、源码绑定布局夹具和 Node 安全测试分别记录，不能互相替代；用户最新要求只保留增量检查，不自动扩展完整验收。
+
+## R1.2 历史试点的 owner 与消息边界
+
+本节记录当时仅剪藏的试点，不是现行官方工具白名单或动作全集；现行有界导航以原 Bridge 的 `normalizeToolNavigation`、宿主准入和上方 R2/R2.2 为准。
 
 - 业务 owner：`examples/sidebar-tools/web-markdown-clipper/src/notes.js`，负责 `home → library → reader → edit`、从 `recent → reader` 直返首页、编辑来源、搜索/筛选/滚动以及保存/取消。不得使用 `window.history.back()`。
 - 可信呈现 owner：现有 `ToolHost` / `src/ui/sidebar-tools.js`，只绘制标题、左返回及当前上下文图标，根页面仍使用原关闭/生命周期。不得复制一套浏览历史。

@@ -142,6 +142,27 @@ test('confirm requires exact historical user node and text prefix plus exactly o
   prior.innerText='prior';f.state.users.push(message('extra'));
   assert.equal(f.site.confirm(prepared.token.before,'result',f.site.inspect()),false);
 });
+test('confirm permits eviction only of an old history prefix while retaining the exact current turn',()=>{
+  const f=fixture();f.state.users.push(message('older'),message('current request'));
+  const prepared=f.site.prepare('result',f.site.inspect());
+  assert.equal(f.site.commit(prepared.token).ok,true);
+  const prior=prepared.token.before.users,result=message('result');
+  f.state.users=[prior[1],prior[2],result];
+  assert.equal(f.site.confirm(prepared.token.before,'result',f.site.inspect()),true);
+  f.state.users=[prior[2],result];
+  assert.equal(f.site.confirm(prepared.token.before,'result',f.site.inspect()),true);
+  for(const users of [[result],[message('current request'),result],
+    [prior[0],prior[2],result],[prior[2],result,message('result')],
+    [prior[2],message('extra'),result],[prior[2],message('wrong result')]]){
+    f.state.users=users;
+    assert.equal(f.site.confirm(prepared.token.before,'result',f.site.inspect()),false);
+  }
+  f.state.users=[prior[2],result];prior[2].innerText='edited current request';
+  assert.equal(f.site.confirm(prepared.token.before,'result',f.site.inspect()),false);
+  prior[2].innerText='current request';f.win.location.pathname='/c/other-session';
+  assert.equal(f.site.confirm(prepared.token.before,'result',f.site.inspect()),false);
+  assert.equal(f.state.clicks,1,'confirmation never retries sending');
+});
 test('deny-only claim survives unknown outcomes, empty scripted changes and synthetic input',async()=>{
   const f=fixture();
   const claim=claimChatGPTBridgeComposer({...f,snapshot:f.site.inspect(),text:'result'});
