@@ -1,5 +1,8 @@
 // R1.3 targeted Node proof: real model + fixture, FAKE Chrome API / FAKE model replies.
 // These tests NEVER claim a real Provider call, installed Chrome permission, or native DOM receipt.
+// R3.2 safety migration: non-exact RAG regression inputs now explicitly ask for the
+// refund application deadline. Bare '退款需要几天' is ambiguous (refund vs. review vs.
+// payout) and is separately tested as CLARIFICATION_REQUIRED in R3.2.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -157,7 +160,7 @@ test('R1.3 AI: local preapproved RAG creates a review draft, never silently send
    await rt.start({event:{isTrusted:true},autoSendFixed:true});
    const context=rt.approvalContext();
    rt.approveAI({...context,providerGeneration:4,expiresAt:Date.now()+120000});
-   site.messages.push(customer('退款需要几天'));
+   site.messages.push(customer('退款期限需要几天'));
    await until(()=>rt.snapshot().records[0]?.status==='REVIEW_REQUIRED','review draft');
    assert.equal(aiCalls,1);assert.equal(site.sendCalls,0);
    const row=rt.snapshot().records[0];
@@ -285,13 +288,13 @@ test('R1.3 pause: automatic AI permission is revoked while fixed permission stay
    assert.equal(stoppedAI,1,'pause invokes existing consumer cancellation and grant revocation');
    assert.equal(rt.snapshot().autoSendFixed,true,'fixed reply consent is a separate permission');
    rt.resume();
-   site.messages.push(customer('退款需要几天'));
+   site.messages.push(customer('退款期限需要几天'));
    await until(()=>['RETRIEVED_ONLY','REVIEW_REQUIRED'].includes(rt.snapshot().records[0]?.status),
      'post-resume non-exact question');
    assert.equal(aiCalls,0,'resume must not reuse the old automatic AI grant');
    assert.equal(rt.snapshot().records[0].status,'RETRIEVED_ONLY');
    rt.approveAI({...rt.approvalContext(),providerGeneration:4,expiresAt:Date.now()+120000});
-   site.messages.push(customer('退款需要几天','','kb_msg_00000000-0000-4000-a000-000000000003'));
+   site.messages.push(customer('退款期限需要几天','','kb_msg_00000000-0000-4000-a000-000000000003'));
    await until(()=>rt.snapshot().records[1]?.status==='REVIEW_REQUIRED','newly approved AI draft');
    assert.equal(aiCalls,1);assert.equal(site.sendCalls,0,'new AI drafts still require human review');
  }finally{rt.dispose();}
@@ -307,7 +310,7 @@ test('R1.3 pause: delayed retrieval cannot start AI using a new post-resume gran
  try{
    await rt.start({event:{isTrusted:true}});
    rt.approveAI({...rt.approvalContext(),expiresAt:Date.now()+120000});
-   holdReads=true;site.messages.push(customer('退款需要几天'));
+   holdReads=true;site.messages.push(customer('退款期限需要几天'));
    await until(()=>typeof releaseRead==='function','pending inbound knowledge read');
    rt.pause();rt.resume();
    rt.approveAI({...rt.approvalContext(),expiresAt:Date.now()+120000});
@@ -328,7 +331,7 @@ test('R1.3 pause: an in-flight AI response is discarded after pause and resume',
  try{
    await rt.start({event:{isTrusted:true}});
    rt.approveAI({...rt.approvalContext(),expiresAt:Date.now()+120000});
-   site.messages.push(customer('退款需要几天'));
+   site.messages.push(customer('退款期限需要几天'));
    await until(()=>typeof releaseAI==='function','in-flight AI request');
    rt.pause();rt.resume();
    releaseAI({status:'REVIEW_REQUIRED',answer:'退款到账时长需要人工核查。',sourceIds:['qa_demo_refund']});
@@ -407,7 +410,7 @@ test('R1.4 manual AI: attached draft must match original customer, session, ETag
  const {api,target,site}=lab();
  const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
    readLibrary:async()=>({value:library,etag}),assertLive:()=>{},getProviderGeneration:()=>2});
- const inbound=customer('退款需要几天');
+ const inbound=customer('退款期限需要几天');
  const proposal={status:'REVIEW_REQUIRED',answer:'演示规则：签收后 7 天内可以申请退款。',
    sourceIds:['qa_demo_refund']};
  try{
