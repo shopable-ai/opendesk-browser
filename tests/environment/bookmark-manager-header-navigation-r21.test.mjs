@@ -54,7 +54,7 @@ test('trusted settings retains precedence and original package remains unchanged
   ]);
   assert.match(host,/isSettings:tocSettingsOpen/);
   assert.match(host,/if\(tocSettingsOpen\)\{closePromptSettings\(\)/);
-  assert.match(host,/if\(active\.id===TRUSTED_BOOKMARK_ID&&nativeUI\?\.kind==='bookmark'\)/);
+  assert.match(host,/if\(active\?\.id===TRUSTED_BOOKMARK_ID&&nativeUI\?\.kind==='bookmark'\)/);
   assert.equal(JSON.parse(meta).version,'0.3.11');
   assert.equal(JSON.parse(pkg).version,'0.3.11');
 });
