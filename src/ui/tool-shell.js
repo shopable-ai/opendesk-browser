@@ -260,7 +260,7 @@ workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptE
   openDeveloper:sourceUtf8=>taskWorkbench.receiveDraft(sourceUtf8),
   openCatalog:()=>taskWorkbench.navigate('catalog')});
 extensionList.connectWorkflowPage(workflowView);
-const extensionCenter=createExtensionCenter({api:chrome,client:foundationClient,doc:document,sidebarTools,taskWorkbench,localeController,toolLocaleService,extensionList});
+const extensionCenter=createExtensionCenter({api:chrome,client:foundationClient,doc:document,sidebarTools,taskWorkbench,currentPageTarget,localeController,toolLocaleService,extensionList});
 const scheduleStatus=message=>{
   for(const id of ['schedule-host-status','schedule-runner-host-status']){
     myView.setText(id,message);
