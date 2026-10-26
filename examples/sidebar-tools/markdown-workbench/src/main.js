@@ -3,12 +3,11 @@
 const {root,request}=globalThis.OpenDeskTool,q=id=>root.querySelector('#'+id);
 const editor=q('mdw-source'),rendered=q('mdw-preview'),pane=q('mdw-panes');
 const message=q('mdw-status'),state=q('mdw-state'),file=q('mdw-file');
-// Only verified official instances yield their duplicate page title to ToolHost.
-if(globalThis.OpenDeskTool.setNavigation?.({page:'home',title:'Markdown 工作台',canBack:false})===true)
-  root.querySelector('.mdw')?.classList.add('mdw-host-nav');
+// ToolHost owns the application title. Preserve the existing optional navigation contract.
+globalThis.OpenDeskTool.setNavigation?.({page:'home',title:'Markdown 工作台',canBack:false});
 const review=q('mdw-inline-review'),reviewText=q('mdw-review-text');
 const reviewConfirm=q('mdw-review-confirm'),reviewCancel=q('mdw-review-cancel');
-const buttons=[...root.querySelectorAll('[data-mode]')],MARK=String.fromCharCode(96);
+const buttons=[...root.querySelectorAll('.mdw-modes button[data-mode]')],MARK=String.fromCharCode(96);
 let dirty=false,timer=0,filename='markdown.md',importSerial=0,reviewAction=null;
 // Remember only explicit end-of-document reading, never a pixel/height ratio.
 let followEnd=false,editorWidth=editor.clientWidth,editorHeight=editor.clientHeight;
@@ -38,7 +37,7 @@ const node=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefi
 const bytes=text=>new TextEncoder().encode(text).length;
 const status=(text,error=false)=>{message.textContent=text;message.dataset.error=String(error);};
 const cancelReview=()=>{reviewAction=null;review.hidden=true;};
-const markDirty=()=>{releaseEnd();cancelReview();importSerial++;dirty=true;state.textContent='未保存的修改';};
+const markDirty=()=>{releaseEnd();cancelReview();importSerial++;dirty=true;state.textContent='尚未下载的修改';};
 function reviewDiscard(message,action){
  cancelReview();reviewAction=action;reviewText.textContent=message;review.hidden=false;
  reviewConfirm.focus({preventScroll:true});
@@ -128,7 +127,11 @@ const refresh=()=>{timer=0;preview(editor.value);};
 editor.addEventListener('input',()=>{markDirty();clearTimeout(timer);timer=setTimeout(refresh,100);});
 buttons.forEach(b=>b.addEventListener('click',()=>{
  releaseEnd();
- pane.dataset.mode=b.dataset.mode;buttons.forEach(x=>x.setAttribute('aria-pressed',String(x===b)));refresh();
+ pane.dataset.mode=b.dataset.mode;buttons.forEach(x=>{
+  const active=x===b;x.setAttribute('aria-pressed',String(active));
+  x.classList.toggle('od-button--secondary',active);
+  x.classList.toggle('od-button--quiet',!active);
+ });refresh();
 }));
 q('mdw-import').addEventListener('click',()=>{cancelReview();file.click();});
 async function importMarkdown(chosen){
@@ -158,7 +161,10 @@ q('mdw-download').addEventListener('click',async()=>{
  if(!editor.value){status('没有可下载的内容',true);return;}
  try{
   await globalThis.OpenDeskSDK.browser.downloads.text({text:editor.value,filename});
-  dirty=false;state.textContent='已发起下载';status('已向浏览器发起 Markdown 下载，请在下载记录中核对结果。');
+  // A browser download request is not proof that a durable file exists.
+  // Retain discard protection until the user decides to replace the draft.
+  state.textContent='下载已发起 · 请核对文件';
+  status('已发起 Markdown 下载；请在下载记录中确认文件已保存。');
  }catch(e){status('下载失败：'+String(e.message||e),true);}
 });
 q('mdw-clear').addEventListener('click',()=>{
