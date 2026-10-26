@@ -170,6 +170,20 @@ test('R3.2 fixture customer receives a single reviewed DOM reply; no automatic m
      {code:'E_KB_TEST_NO_ANSWER'});
  }finally{rt.dispose();}
 });
+test('R3.2 polite prefix retains one exact fixed answer and one guarded send',async()=>{
+ const {site,api,target}=fakePage();
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary:async()=>({value:lib,etag}),assertLive:()=>{}});
+ try{
+   await rt.start({event:{isTrusted:true},autoSendFixed:true});
+   site.messages.push(customer('请问退款期限是多少？'));
+   await until(()=>rt.snapshot().records[0]?.status==='CONFIRMED','polite fixed send');
+   const row=rt.snapshot().records[0];
+   assert.equal(row.status,'CONFIRMED');
+   assert.deepEqual(row.sourceIds,['qa_demo_refund']);
+   assert.equal(site.sendCalls,1);
+ }finally{rt.dispose();}
+});
 test('R3.2 greeting never calls AI or auto-sends; trusted review is required',async()=>{
  const {site,api,target}=fakePage();let aiCalls=0;
  const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
