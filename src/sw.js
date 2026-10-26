@@ -9,6 +9,7 @@ import {installStayFocusService} from '../examples/sidebar-tools/stay-focus/trus
 import {installManagedSiteBudgetService} from './platform/chrome/browser-managed-site-budget.js';
 import {installAdblockService} from '../examples/sidebar-tools/adblock/trusted/service.js';
 import {installAiAccessService} from '../examples/sidebar-tools/ai-vip-share/trusted/service.js';
+import {installCookieAccountService} from '../examples/sidebar-tools/cookie-editor/trusted/account-service.js';
 import {reconcileManagedProxy,MANAGED_PROXY_ALARM} from './platform/chrome/browser-managed-proxy.js';
 import {createCloudRunnerLifecycle} from './cloud-control/runner-lifecycle.js';
 import {handlePromptRailOpen} from '../examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
@@ -40,6 +41,7 @@ try{installManagedSiteBudgetService({api:chrome});}catch(e){console.warn('E_SITE
 try{installStayFocusService({api:chrome});}catch(e){console.warn('E_STAY_FOCUS_HOST_LOAD',e);}
 try{installAdblockService({api:chrome});}catch(e){console.warn('E_ADBLOCK_HOST_LOAD',e);}
 try{installAiAccessService({api:chrome});}catch(e){console.warn('E_AI_ACCESS_HOST_LOAD',e);}
+try{installCookieAccountService({api:chrome});}catch(e){console.warn('E_COOKIE_ACCOUNT_HOST_LOAD',e?.code||'E_ACCOUNT');}
 const recoverManagedProxy=()=>void reconcileManagedProxy(chrome).catch(error=>
   console.warn('E_MANAGED_PROXY_RECOVER',error?.code||'E_PROXY'));
 chrome.runtime.onStartup?.addListener(recoverManagedProxy);
