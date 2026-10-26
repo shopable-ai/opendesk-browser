@@ -145,7 +145,7 @@ export function ToolHost({view}) {
 <ToolFileInput value={snapshot.fields['sidebar-tool-file'].value} disabled={snapshot.fields['sidebar-tool-file'].disabled}
   onChoose={actions.chooseFile} onCancel={actions.cancelFile}/>
 <ToolField as="p" id="sidebar-tool-file-error" className="sidebar-tool-file-error" role="alert" hidden={true}/>
-{!reviewing && <p className="sidebar-tool-import-hint">支持应用包与网页增强包（JSON）</p>}
+{!reviewing && <p className="sidebar-tool-import-hint">也可将 .opendesk-tool.json 或 .opendesk-page.json 拖入此窗口。</p>}
 <ToolField as="div" id="sidebar-tool-preview" className="sidebar-tool-preview" hidden={true}>
 <div className="sidebar-tool-preview-heading">
 <ToolField as="strong" id="sidebar-tool-preview-title"/>
