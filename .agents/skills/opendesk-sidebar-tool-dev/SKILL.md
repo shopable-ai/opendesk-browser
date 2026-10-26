@@ -83,7 +83,7 @@ Stay Focus 安装提交前，静态 Side Panel 适配器的 `focus.probe` 对当
 
 独立工具页不堆静态描述：依照 [R28 多功能区 Tab 契约](../../../docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md)，头部默认只有返回、当前标题和必要操作；文件夹/列表等集合“＋ 新建”放在所属区域标题右侧，条目管理入口必须能在窄屏/键盘下找到。真正的授权/错误等动态提示放到状态区，不借口信息完整性常驻重复描述。
 
-**子视图标题同步（R2）**：真实页面从列表进入详情/编辑后，应让用户知道“哪一个应用的哪一个页面”，但不在原头部叠加 Nav/面包屑。宿主可信设置统一显示「应用名 / 设置」，不由每个工具复制设置页首；已验真官方沙箱需要时使用现有有界 `OpenDeskTool.setNavigation({page,title,canBack,...})` 报告业务页，原业务继续处理 `back`、未保存和保存锁。普通第三方与未验真同 ID 包自行保留内部导航，不把自报 title 注入可信 Header。Bookmark Manager 的详情预览与编辑 Sheet 是局部弹层，保留自身标题/关闭，不制造假的全局返回层级。修改真实业务代码后同步此 Skill、工具 README 与[Sidebar Tool 共享标题合同](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)，并只做受影响的页面/返回测试；纯 Browser Host 修复不必重打无变化的 JSON 包。
+**子视图标题同步（R2）**：真实页面从列表进入详情/编辑后，应让用户知道“哪一个应用的哪一个页面”，但不在原头部叠加 Nav/面包屑。宿主可信设置统一显示「应用名 / 设置」，不由每个工具复制设置页首；已验真官方沙箱需要时使用现有有界 `OpenDeskTool.setNavigation({page,title,canBack,...})` 报告业务页，原业务继续处理 `back`、未保存和保存锁。普通第三方与未验真同 ID 包自行保留内部导航，不把自报 title 注入可信 Header。Bookmark Manager 可信 React 的详情预览仍是局部弹层，而新建/编辑 Sheet 已通过实际业务回调与原 `requestCloseSheet()` 草稿确认成为可返回的子视图；只有真正处理了 Host Back 的页面才允许「书签管理 / 编辑书签」。修改真实业务代码后同步此 Skill、工具 README 与[Sidebar Tool 共享标题合同](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)，并只做受影响的页面/返回测试；纯 Browser Host 修复不必重打无变化的 JSON 包。
 
 ## 与编译、发行和未来市场 Skill 的明确分工
 
