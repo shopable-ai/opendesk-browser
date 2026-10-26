@@ -202,3 +202,19 @@
 .od-uninstall-dialog button:focus-visible,.od-uninstall-dialog:focus-visible{
   outline:2px solid var(--od-focus);outline-offset:2px}
 @media(max-height:320px){.od-uninstall-dialog{padding:12px;gap:8px}}
+
+/* R6.1 manual-only, document-bound discovery; existing trusted Host owns installs. */
+.ec-discovery{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;
+  margin-bottom:var(--space-3);padding:10px 12px;border:1px solid var(--od-line);
+  border-radius:var(--radius-control);background:var(--od-paper)}
+.ec-discovery-copy{min-width:0;display:grid;gap:3px;font-size:12px;color:var(--od-ink)}
+.ec-discovery-copy strong{font-size:13px;overflow-wrap:anywhere}
+.ec-discovery-copy p{margin:0;color:var(--od-sub);line-height:1.45;overflow-wrap:anywhere}
+.ec-discovery-copy p[data-state="error"]{color:var(--od-negative)}
+.ec-discovery-origin{font-size:11px;color:var(--od-sub);overflow-wrap:anywhere}
+.ec-discovery-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.ec-discovery-actions button{min-height:36px;font-size:12px;padding:5px 8px}
+.ec-discovery-actions .od-icon-button{min-width:36px}
+@media(max-width:400px){.ec-discovery{align-items:stretch;flex-direction:column}
+  .ec-discovery-actions{justify-content:flex-end;flex-wrap:wrap}}
+@media(pointer:coarse){.ec-discovery-actions button{min-height:44px;min-width:44px}}
