@@ -1,23 +1,12 @@
 import * as React from 'react';
 import {Button} from '@opendesk/ui';
 import {CookieFormField,CookieValueField,CookieAdvancedFields,CookieIcon,CookieIconButton} from './CookieEditorView.jsx';
+import {localExpirationText,parseLocalExpiration} from '../domain/cookie-expiration.js';
 
 // Cookie Value is deliberately an uncontrolled DOM input. React state, props,
 // app snapshots and diagnostics never receive the sensitive value.
-const pad=n=>String(n).padStart(2,'0');
-const toLocal=seconds=>{
-  if(!Number.isFinite(seconds))return '';
-  const d=new Date(seconds*1000);
-  if(Number.isNaN(d.getTime()))return '';
-  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+
-    'T'+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
-};
-const fromLocal=input=>{
-  if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/.test(input||''))return NaN;
-  const ms=new Date(input).getTime();
-  const seconds=Math.floor(ms/1000);
-  return Number.isFinite(ms)&&toLocal(seconds).slice(0,input.length)===input?seconds:NaN;
-};
+// Expiration converts from the user's local wall time to Unix seconds only
+// after rejecting DST gaps and overlapping local times. Never infer a date.
 export default function CookieInlineEditor({row=null,target,disabled=false,
   readValue,onSave,onCancel,onDelete,onDirty}){
   const valueRef=React.useRef(null),nameRef=React.useRef(null);
@@ -39,14 +28,16 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
     secure:row?.secure??target?.origin?.startsWith('https:'),
     httpOnly:row?.httpOnly===true,sameSite:row?.sameSite||'lax',
     session:row?.session!==false,
-    expiration:toLocal(row?.expirationDate),
+    expiration:localExpirationText(row?.expirationDate),
     storeId:row?.storeId,partitionKey:row?.partitionKey
   }));
   const edited=!!row;
   const initial=React.useRef(draft);
-  const comparable=input=>JSON.stringify({...input,
-    expiration:input.session?null:Number.isFinite(fromLocal(input.expiration))
-      ?fromLocal(input.expiration):input.expiration});
+  const comparable=input=>{
+    const parsed=input.session?null:parseLocalExpiration(input.expiration);
+    return JSON.stringify({...input,expiration:input.session?null:
+      parsed.status==='valid'?parsed.seconds:input.expiration});
+  };
   const isDirty=()=>comparable(draft)!==comparable(initial.current)||
     (edited?valueEdited:newValueDirty);
   const dirty=isDirty();
@@ -137,9 +128,24 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
       setMessage('请输入 Cookie 名称。');nameRef.current?.focus();return;
     }
     setMessage('');
-    const expiry=draft.session?undefined:fromLocal(draft.expiration);
+    // Existing Chrome timestamps may contain fractional Unix seconds. When
+    // the expiration field is unchanged, preserve that exact native value.
+    const unchangedExpiry=edited&&row.session===false&&!draft.session&&
+      Number.isFinite(row.expirationDate)&&
+      draft.expiration===localExpirationText(row.expirationDate);
+    const parsed=draft.session?null:parseLocalExpiration(draft.expiration);
+    if(!draft.session&&!unchangedExpiry&&parsed.status!=='valid'){
+      const explanation={
+        ambiguous:'这段本地时间因夏令时切换重复出现，请选择其他时刻。',
+        nonexistent:'这段本地时间不存在（可能因夏令时跳变），请重新选择。',
+        invalid:'请输入有效的过期时间（设备本地时间）。'
+      };
+      setMessage(explanation[parsed.status]||explanation.invalid);return;
+    }
+    const expiry=draft.session?undefined:unchangedExpiry
+      ?row.expirationDate:parsed.seconds;
     if(!draft.session&&(!Number.isFinite(expiry)||expiry<=Date.now()/1000)){
-      setMessage('请填写未来的有效过期时间。');return;
+      setMessage('过期时间必须晚于现在，请选择将来的时间。');return;
     }
     onSave({...draft,expirationDate:expiry,
       value:valueRef.current?.value||''},{
