@@ -4,6 +4,12 @@
 
 「阅读目录」是 OpenDesk Browser 内**可安装的 Side Panel 工具**，不是第二个 Chrome 扩展。UI 包继续使用 `opendesk.sidebar-tool.v1`；导入的经典 JS 只在 opaque sandbox 中运行，网页内容索引/滚动/浮动 TOC 则由扩展内置可信 Content Script 执行。
 
+## 未上线阶段的运行校验（2026-10-26）
+
+按用户当前要求，阅读目录暂不以固定发行版本、SHA-256 或官方来源记录作为读取章节的前置条件。旧版本、本地开发版本及缺少来源记录的已安装目录可直接使用，不再因此要求重新安装。此策略由 `trusted/policy.js` 的 `READING_TOC_RELEASE_IDENTITY_REQUIRED=false` 统一控制网页浮层、侧栏读取和既有标签页接入；以后确有发行需求再评估开启。
+
+仍要求唯一有效的已安装 `reading-toc`、`page.toc` 能力、未主动停用、允许的 HTTP(S) 网站/页面及 Chrome 实际访问许可。第三方目录仍按原网站授权执行；安装器的官方 ID 保留规则和沙箱边界不变。已安装包的自定义翻译仍走原精确来源校验，失败时回退扩展内置文案，不阻止章节读取。
+
 ## 最快使用
 
 1. 安装/加载 OpenDesk Browser 正式构建，打开一篇普通 HTTP(S) 文章。

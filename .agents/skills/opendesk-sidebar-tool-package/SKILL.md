@@ -32,7 +32,7 @@ npm run app:update -- reading-toc
 
 1. 先读 [AGENTS.md](../../../AGENTS.md)、[测试复用指南](../../../docs/framework/testing-guide.md)、[统一工具开发规范](../../../docs/api/sidebar-tool-development.zh-CN.md) 和 [工具包 API](../../../docs/api/sidebar-tools.zh-CN.md)，核对当前 `main`、并行写入、现有 watcher、输出目录及 Chrome Profile；不要覆盖别的工作流的构建或证据。
 2. **唯一打包器**：`scripts/build-sidebar-tool.mjs` 的 `createSidebarToolPackage`、`encodeSidebarToolPackage` 和 `buildSidebarTool`，以及 `src/ui/sidebar-tools/package.js` 的 `validateSidebarToolPackage`、`serializeSidebarToolPackage`。禁止新建每工具 Wrapper、第二个包格式、专用 Installer 或用手写 JSON 绕过 Schema。
-3. 官方离线发行继续使用 `official-tools/catalog.json` 与 `scripts/build-official-tools.mjs`，以 [官方 Catalog 合同](../../../docs/api/official-tools-catalog.zh-CN.md) 为准，`version/capabilities` 取自工具自身 `tool.config.json`，不在 Catalog 复制版本。
+3. 官方离线发行继续使用 `official-tools/catalog.json` 与 `scripts/build-official-tools.mjs`，以 [官方 Catalog 合同](../../../docs/api/official-tools-catalog.zh-CN.md) 为准；声明 `packageFile` 的工具从已晋升正式包取得版本、能力与内容，其他工具从自身配置和源码派生，不在 Catalog 复制版本。不能将开发共享 CSS 的变化重新打成同版本官方发行。
 4. 首先检查工具项目的 `tool.config.json`、`src/index.html`、`src/style.css`、`src/main.js`（如有 `files.dependencies` 也检查）。`tool.config.json` 是输入，`<id>.opendesk-tool.json` 才是可导入文件；后者不是 Chrome Manifest，也不是第二份可以手工编辑的源码。
 5. 正式发布时审核源码/版本/许可证/权限差异。Cookie 等敏感数据和密钥不能出现在构建输入、提交文件、日志或交付包中。
 
@@ -82,6 +82,8 @@ git diff -- examples/sidebar-tools/<id>/
 **唯一打包器实现这些门禁**：`--out` 构建单一目标文件；**禁止**直接 `--out examples/sidebar-tools/<id>/<id>.opendesk-tool.json` 绕过晋升；不带参数的默认构建只产生忽略目录下的临时 artifacts，不再自动覆盖任何项目根正式文件。`--promote-from` 要求正常候选文件、唯一正确文件名与匹配当前源码的规范原始字节；旧候选、损坏、符号链接、目录多份正式包时拒绝，原文件不被提前覆盖；成功时原子更新/如完全一致则不改。`--check-project` 做正式包同源审计，缺失/过期/多份拒绝。失败时保留最后一次可用的包，不能先删除再生成，也不得伪称晋升即安装。
 
 **测试先于正式包并不等于真实 Chrome 验收已过**：Node/安全来源/规范包成功代表可提交并手动安装的候选（`PACKAGE_PASS`）；独立 Mac Chrome 实测未获得时标为 `INSTALLED_CHROME_NOT_TESTED` 等，不得凭提交包宣布 95+。需要用户真实安装/授权/更新的动作仍使用唯一 Side Panel 安装链；对已经公开给用户的工具，源码/发行字节改变应遵守正式版本升级和同 ID 数据迁移策略，不将同版本不同内容静默升级。
+
+`--promote-from` 对不同字节强制要求高于旧正式包的版本，拒绝同版本替换和降级；旧包损坏或身份不符时也拒绝并保留原文件。完全相同的包允许重复检查。普通无扩权变化使用已有 `app:update` 自动 PATCH 流程，不手工改写正式 JSON 绕过版本门禁。
 
 对于 HTML/CSS/JS 工具直接执行流程①；React/Vue 项目先按本项目固定依赖生成 IIFE + CSS，并确认 `dist/build-ready.json` 与本次源码一致再执行①。现有 `scripts/stage-sidebar-tool.mjs` 提供只读预览快照，**不作为正式安装包的持久副本**。无本地真实 Chrome/用户安装条件时，可在静态/Node gate 通过后晋升供手动安装，但必须清楚写明未实测的项。
 

@@ -2790,13 +2790,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         if(tool.id===READING_TOC_TOOL_ID){
           const saved=await api.storage.local.get([SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,MARKET_PROVENANCE_STORE]);
           const verified=await verifyOfficialReadingToc(saved[SIDEBAR_TOOL_STORE],saved[MARKET_PROVENANCE_STORE]);
-          // Only a verified official installation may reveal the user's
-          // intentional site stop. Never grant page access on this path.
+          // The shared reader policy owns prelaunch admission and site stops.
+          // Never request or expand Chrome access on this path.
           if(verified&&!tocSiteAllowed(sites,tool.id,target.url))
             throw new Error('当前网站已停用，请在工具设置中恢复');
           if(!tocGrantAllowed(saved[SIDEBAR_TOOL_STORE],sites,tool.id,target.url,
             saved[SIDEBAR_TOOL_ENABLE_STORE],verified))
-            throw new Error('官方阅读目录的安装身份或访问范围未通过校验，请通过官方目录重新安装');
+            throw new Error('阅读目录未安装、已停用或安装数据无效，请检查扩展设置');
         }
         if(!readingTocPageAllowed(pages,tool.id,target.url))throw new Error('当前页面已设置为不可用');
         if(!target.origin||!tocSiteAllowed(sites,tool.id,target.url))

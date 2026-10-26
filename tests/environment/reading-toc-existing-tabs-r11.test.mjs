@@ -36,16 +36,23 @@ test('R1.1 trusted repair checks package identity, invokes only built-in code an
  assert.equal(chromeSitePattern('chrome://settings'),null);
  assert.equal(chromeSitePattern('https://example.com:443/a'),'https://example.com/*');
 });
-test('R1.1 spoofed ID, missing provenance or invalid hash never trigger repair',async()=>{
+test('prelaunch existing-tab repair accepts older/local readers without release provenance',async()=>{
  const tool=await officialToolFixture(pin.id);
  for(const pkg of [{...tool,version:'1.0.7'},{...tool,js:tool.js+'\nspoof()'}]){
    const f=fixture(pkg);
+   assert.equal((await repairReadingTocOpenTabs({api:f.api})).injected,3);
+   for(const call of f.called)assert.deepEqual(call.files,[READING_TOC_REPAIR_SCRIPT]);
+ }
+ const missing=fixture(tool,false);
+ assert.equal((await repairReadingTocOpenTabs({api:missing.api})).injected,3);
+});
+test('prelaunch existing-tab repair still rejects absent, malformed and duplicate installations',async()=>{
+ const tool=await officialToolFixture(pin.id);
+ for(const installed of [[],[{...tool,capabilities:[]}],[tool,tool],[{...tool,id:'other-toc'}]]){
+   const f=fixture(tool,false);f.state.set(SIDEBAR_TOOL_STORE,installed);
    assert.equal((await repairReadingTocOpenTabs({api:f.api})).state,'not-official');
    assert.equal(f.called.length,0);
  }
- const missing=fixture(tool,false);
- assert.equal((await repairReadingTocOpenTabs({api:missing.api})).state,'not-official');
- assert.equal(missing.called.length,0);
 });
 test('R1.1 repaired tabs honor user disable, per-site stop and Chrome access refusal',async()=>{
  const tool=await officialToolFixture(pin.id);

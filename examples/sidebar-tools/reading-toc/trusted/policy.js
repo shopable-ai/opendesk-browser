@@ -11,6 +11,10 @@ export const READING_TOC_PLACEMENT_PREFIX='opendesk.sidebar-tools.toc-placement.
 export const READING_TOC_TOOL_ID='reading-toc';
 export const READING_TOC_PROTOCOL='opendesk.reading-toc.v1';
 export const TOC_CAPABILITY='page.toc';
+// Prelaunch (2026-10-26): installed readers must keep working across local
+// releases without a pinned version, digest or marketplace provenance record.
+// Installation, capabilities, site/page stops and Chrome access still apply.
+export const READING_TOC_RELEASE_IDENTITY_REQUIRED=false;
 
 
 export function readingTocPlacementKey(url) {
@@ -29,15 +33,19 @@ export function admittedTocTool(rows,id) {
   return null;
 }
 
-// Only trusted extension code may compute this flag from the stored bytes and
-// verified provenance. A page message, ID or capability can never supply it.
-export async function verifyOfficialReadingToc(installed,provenance) {
+// Computed only by trusted extension code, never supplied by a page message.
+// Exact release checks remain available for package-supplied presentation data
+// and a future release policy; they do not gate prelaunch heading access.
+export async function verifyOfficialReadingToc(installed,provenance,
+  requireReleaseIdentity=READING_TOC_RELEASE_IDENTITY_REQUIRED) {
   // Ambiguous duplicate owners cannot acquire the reserved built-in grant,
   // even if one of the colliding packages happens to have correct bytes.
   if(!Array.isArray(installed)||
      installed.filter(row=>row?.id===OFFICIAL_READING_TOC_RELEASE.id).length!==1)return false;
   const tool=admittedTocTool(installed,OFFICIAL_READING_TOC_RELEASE.id);
-  const release=tool&&OFFICIAL_READING_TOC_RELEASES.find(pin=>
+  if(!tool)return false;
+  if(!requireReleaseIdentity)return true;
+  const release=OFFICIAL_READING_TOC_RELEASES.find(pin=>
     matchesOfficialReadingToc(tool,provenance,pin.sha256));
   if(!release)return false;
   try {return matchesOfficialReadingToc(tool,provenance,await sidebarToolPackageHash(tool));}

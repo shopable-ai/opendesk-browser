@@ -47,11 +47,11 @@ test('R4.8 authored catalog includes default Cookie Editor and optional AI VIP S
     assert.equal(Object.hasOwn(row,'version'),false);assert.equal(Object.hasOwn(row,'capabilities'),false);
     await assert.rejects(access('src/sidebar-tools/'+row.id+'.opendesk-tool.json'),
       error=>error.code==='ENOENT','runtime sources contain no generated package copies');
-    // A tested project may retain its single promoted import package. The
-    // official producer still builds from source, never from this copy.
+    // Promoted releases keep their reviewed identity while development
+    // sources may advance. Other entries still build from current source.
     const portable=await readFile(row.project+'/'+row.id+'.opendesk-tool.json','utf8')
       .catch(error=>{if(error.code==='ENOENT'&&row.id!=='cookie-editor')return null;throw error;});
-    if(portable!==null)
+    if(portable!==null&&!row.packageFile)
       assert.deepEqual(JSON.parse(portable),await createSidebarToolPackage(row.project));
   }
   assert(!source.tools.some(row=>/starter/.test(row.id)));
@@ -112,19 +112,49 @@ test('R4.8 first-install intent uses fixed classic WXT resource without bundling
 });
 test('R4.5 exact bytes, versions and capabilities are reproducible from the existing packer',async t=>{
   const a=await officialFixtures(),b=await createOfficialToolResources();
+  const source=await readOfficialSources();
   const out=await mkdtemp(join(tmpdir(),'r45-packer-'));t.after(()=>rm(out,{recursive:true,force:true}));
   assert.deepEqual([...a.resources.keys()],[...b.resources.keys()]);
   for(const release of a.catalog.apps){
     const bytes=a.resources.get(release.packagePath);
     assert.deepEqual(bytes,b.resources.get(release.packagePath));
     assert.equal(bytes.length,release.bytes);assert.equal(hash(bytes),release.sha256);
-    const config=JSON.parse(await readFile('examples/sidebar-tools/'+release.toolId+'/tool.config.json','utf8'));
+    const row=source.tools.find(row=>row.id===release.toolId);
+    const config=JSON.parse(await readFile(row.project+'/'+(row.packageFile||'tool.config.json'),'utf8'));
     assert.equal(release.version,config.version);assert.deepEqual(release.capabilities,config.capabilities);
-    const report=await buildSidebarTool('examples/sidebar-tools/'+release.toolId,{out:join(out,release.toolId+'.json')});
-    assert.equal(report.bytes,bytes.length);
-    assert.deepEqual(await readFile(report.output),bytes,'individual import and official distribution share exact bytes');
+    if(row.packageFile){
+      assert.deepEqual(await readFile(row.project+'/'+row.packageFile),bytes,
+        'promoted import and official distribution share exact bytes');
+    }else{
+      const report=await buildSidebarTool(row.project,{out:join(out,release.toolId+'.json')});
+      assert.equal(report.bytes,bytes.length);
+      assert.deepEqual(await readFile(report.output),bytes,'individual import and official distribution share exact bytes');
+    }
   }
   assert.deepEqual(a.resources.get(OFFICIAL_CATALOG_PATH),b.resources.get(OFFICIAL_CATALOG_PATH));
+});
+test('Cookie Editor keeps promoted release identity when development CSS or config changes',async t=>{
+  const row=(await readOfficialSources()).tools.find(row=>row.id==='cookie-editor');
+  assert.equal(row.packageFile,'cookie-editor.opendesk-tool.json');
+  const bytes=await readFile(row.project+'/'+row.packageFile);
+  const f=await fixture(t);
+  f.catalog.tools=[row];await f.save();
+  await f.write(row.project+'/'+row.packageFile,bytes);
+  const first=await createOfficialToolResources({root:f.root});
+  assert.deepEqual(first.resources.get(officialPackagePath(row.id)),bytes);
+  assert.equal(first.catalog.apps[0].sha256,hash(bytes));
+  assert.deepEqual(first.sourceInputs.map(input=>input.path).sort(),
+    [OFFICIAL_CATALOG_PATH,row.project+'/'+row.packageFile].sort());
+  await f.write(row.project+'/dist/tool.css','/* rebuilt development CSS */');
+  await f.write(row.project+'/tool.config.json','{"version":"999.0.0"}');
+  const next=await createOfficialToolResources({root:f.root});
+  assert.deepEqual(next.catalog,first.catalog);
+  assert.deepEqual(next.resources.get(officialPackagePath(row.id)),bytes);
+  assert.deepEqual(next.sourceInputs,first.sourceInputs);
+  await rm(join(f.root,row.project,row.packageFile));
+  await symlink(join(f.root,'examples/sidebar-tools/first-tool/src/main.js'),
+    join(f.root,row.project,row.packageFile));
+  await assert.rejects(createOfficialToolResources({root:f.root}),/symlink/);
 });
 test('R4.5 adding a source catalog entry supplies release and marketplace without new UI mappings',async t=>{
   const f=await fixture(t),result=await createOfficialToolResources({root:f.root});

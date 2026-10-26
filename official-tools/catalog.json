@@ -67,7 +67,8 @@
       "id": "cookie-editor",
       "project": "examples/sidebar-tools/cookie-editor",
       "kind": "sidebar-tool",
-      "installationPolicy": "preinstalled"
+      "installationPolicy": "preinstalled",
+      "packageFile": "cookie-editor.opendesk-tool.json"
     },
     {
       "id": "bookmark-manager",

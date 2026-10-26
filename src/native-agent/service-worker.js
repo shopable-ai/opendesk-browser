@@ -4,10 +4,12 @@ import {createLocalProjectService} from './local-project-service.js';
 import {createWorkflowAIService} from './workflow-ai-service.js';
 import {createFileWorkspaceService} from './file-workspace-service.js';
 import {SIDEPANEL_DOCUMENT_PATH,toolDocumentIdentity} from '../tool-document-url.js';
+import {resolveToolSender} from '../environment.js';
 
 // Durable admission fence for optional external callers, NOT a second executor.
 export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Map(),development}={}) {
   let enabled=false,port=null,ready=false,disposed=false,generation=0,settingsGeneration=0,workflowAiVersion=0,lastConnectedAt=null;
+  let connectionAttempt=Promise.resolve(),settleConnection=()=>{};
   const pending=new Map(),store=api.storage.local;
   const workflowAI=createWorkflowAIService({api,hostPorts,
     connection:()=>({enabled,ready,port,generation,workflowAiVersion}),
@@ -124,6 +126,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     if(!ready||port!==source||generation!==epoch)throw new AgentBridgeError('E_NATIVE_NOT_READY');
   }
   function invalidateConnection() {
+    settleConnection();
     generation++;
     const old=port;port=null;ready=false;workflowAiVersion=0;
     projects.disconnected();workflowAI.disconnected();
@@ -191,6 +194,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     if(disposed||!enabled||port)return;
     let connected;
     try{connected=api.runtime.connectNative(AGENT_HOST);}catch{return;}
+    connectionAttempt=new Promise(resolve=>{settleConnection=resolve;});
     port=connected;generation++;
     connected.onMessage.addListener(msg=>{
       if(port!==connected)return;
@@ -206,6 +210,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
          // Confirm the transport handshake before recording any connection history.
          lastConnectedAt=Date.now();
          void store.set({[AGENT_LAST_CONNECTED_AT_KEY]:lastConnectedAt}).catch(()=>{});
+         settleConnection();
         }catch{connected.disconnect();}
         workflowAI.publish();
       }else if(ready&&workflowAI.receive(msg)){ /* isolated workflow AI protocol */ }
@@ -246,6 +251,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     enabled=true;connect();workflowAI.publish();
   }
   async function handleSettings(msg,sender) {
+    const receivedSettingsGeneration=settingsGeneration;
     // Only navigation via an opaque workspaceId is allowed. This is not an authorization token.
     let workspacePage=false;
     try{
@@ -274,8 +280,17 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     // The trusted Side Panel may read and manage the same Native connection.
     // Its exact packaged URL and top-level document identity are required;
     // installed sandbox tools, content scripts and foreign frames cannot use it.
+    const panelRoute=toolDocumentIdentity(api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH),sender?.url);
+    if(panelRoute&&!panelRoute.hasLocator&&sender?.documentId===undefined){
+      // Chrome omits documentId/frameId for real Side Panel messages. Reuse
+      // the unique native SIDE_PANEL context proof, never a caller payload.
+      try{sender=await resolveToolSender(api,sender);}
+      catch{throw new AgentBridgeError('E_OWNER');}
+    }
     const trustedDocument=sender?.id===api.runtime.id&&
       typeof sender.documentId==='string'&&sender.documentId.length>0&&
+      !sender.incognito&&!sender.tab?.incognito&&
+      (!sender.documentLifecycle||sender.documentLifecycle==='active')&&
       (sender.frameId===undefined||sender.frameId===0);
     const optionsSender=trustedDocument&&sender.url===api.runtime.getURL('native-agent/settings.html');
     const panelIdentity=trustedDocument?toolDocumentIdentity(
@@ -289,11 +304,19 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       // OpenDesk may have been installed AFTER the extension was enabled.
       // Never request permissions here or issue script/RunHost mutations.
       if(enabled&&!port)connect();
+      // connectNative returns a Port before Chrome reports an absent Host.
+      // Let that attempt settle before presenting a fresh connecting snapshot.
+      if(port&&!ready){
+        let timer;
+        await Promise.race([connectionAttempt,new Promise(resolve=>{timer=setTimeout(resolve,250);})]);
+        clearTimeout(timer);
+      }
       return {enabled,nativeConnected:ready,connecting:enabled&&!!port&&!ready,hostCount:live().length,
         extensionId:api.runtime.id,bridgeVersion:AGENT_VERSION,lastConnectedAt,
         requiresReload:enabled&&!ready&&typeof api.runtime.connectNative!=='function'};
     }
     if(msg?.type==='enable') {
+      if(receivedSettingsGeneration!==settingsGeneration)throw new AgentBridgeError('E_PERMISSION');
       const intent=++settingsGeneration;
       const granted=await api.permissions.contains({permissions:['nativeMessaging']});
       if(disposed||intent!==settingsGeneration)throw new AgentBridgeError('E_PERMISSION');

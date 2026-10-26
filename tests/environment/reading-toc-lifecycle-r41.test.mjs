@@ -23,7 +23,7 @@ const tool={format:'opendesk.sidebar-tool.v1',id:'test-toc',version:'1.0.0',
   title:'目录测试',description:'Trusted controller test',capabilities:['page.toc'],
   html:'<main>目录</main>',css:'',js:'void 0;'};
 
-test('installing reading-toc on an existing HTTP document activates without an enable click or site grant',async()=>{
+test('prelaunch older reading-toc activates without provenance, an enable click or site grant',async()=>{
   const f=pageFixture(),prior=globalThis.MutationObserver,id='reading-toc';
   f.state.set(SIDEBAR_TOOL_STORE,[]);
   f.state.delete(READING_TOC_SITE_STORE);
@@ -34,10 +34,7 @@ test('installing reading-toc on an existing HTTP document activates without an e
   const controller=initReadingToc({api:f.api,doc:f.doc,win:f.win});
   try{
     await tick();await tick();assert.equal(f.Observer.active,0,'uninstalled tool never indexes');
-    const installed=[await officialToolFixture(id)];
-    f.state.set(MARKET_PROVENANCE_STORE,{[id]:{
-      marketId:OFFICIAL_READING_TOC_RELEASE.marketId,version:OFFICIAL_READING_TOC_RELEASE.version,
-      sha256:OFFICIAL_READING_TOC_RELEASE.sha256}});
+    const installed=[{...await officialToolFixture(id),version:'1.0.7'}];
     f.state.set(SIDEBAR_TOOL_STORE,installed);
     f.changes.send({[SIDEBAR_TOOL_STORE]:{newValue:installed}},'local');
     await waitForObservers(f);

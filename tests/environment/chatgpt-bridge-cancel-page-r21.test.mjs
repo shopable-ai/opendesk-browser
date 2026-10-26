@@ -59,8 +59,29 @@ function harness(overrides={}){
       runId:'run-1',resultId:'result-1',text:'real result',...fields},
     {id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=owner'},resolve),true);
   });
-  return {page,sends,buttons,status,snap,site,writes,commits,click,prepare,deliver,poll:()=>poll()};
+  return {page,sends,buttons,status,snap,site,win,writes,commits,click,prepare,deliver,poll:()=>poll()};
 }
+
+test('homepage explains how to establish a conversation and never mints a request',async()=>{
+  const h=harness();h.win.location.href='https://chatgpt.com/';h.poll();
+  assert.equal(h.buttons[0].disabled,true);
+  assert.match(h.status.textContent,/先在 ChatGPT 发送一条消息/);
+  assert.match(h.status.textContent,/选择一个已有对话/);
+  await h.click(0);
+  assert.equal(h.sends.length,0);assert.equal(h.writes.length,0);
+  assert.match(h.status.textContent,/尚未建立会话/);h.page.dispose();
+});
+
+test('SPA conversation creation enables prepare and leaving it restores guidance without writing',()=>{
+  const h=harness();h.win.location.href='https://chatgpt.com/';h.poll();
+  h.win.location.href=source.url;h.poll();
+  assert.equal(h.buttons[0].disabled,false);
+  assert.match(h.status.textContent,/先选择任务并建立请求/);
+  h.win.location.href='https://chatgpt.com/plugins';h.poll();
+  assert.equal(h.buttons[0].disabled,true);
+  assert.match(h.status.textContent,/尚未建立会话/);
+  assert.equal(h.sends.length,0);assert.equal(h.writes.length,0);h.page.dispose();
+});
 
 test('approved complete candidate cancelled before polling never executes or edits the draft',async()=>{
   const h=harness();await h.prepare();await h.click(1);

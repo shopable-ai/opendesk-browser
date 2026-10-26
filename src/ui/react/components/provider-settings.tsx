@@ -86,7 +86,8 @@ function NativeConnectionCard({nativeConnection,onOpenNativeSettings,doc}){
    </div>
    {nativeConnection?.setEnabled&&
     <Switch aria-label="启用 OpenDesk 本机连接" isSelected={Boolean(status?.enabled)}
-     isDisabled={busy||loading||!status} onChange={value=>{void change(value);}}/>}
+     isDisabled={loading||!status} isReadOnly={busy} aria-busy={busy}
+     onChange={value=>{void change(value);}}/>}
   </div>
   <p className="od-shared-provider-native-hint">{hint}</p>
   <div className="od-shared-provider-local-footer">

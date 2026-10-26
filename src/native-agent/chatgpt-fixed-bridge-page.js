@@ -7,6 +7,8 @@ const fail=(code,message)=>Object.assign(new Error(message),{code});
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const PROBE_INTERVAL_MS=850;
 const MAX_DELIVERY_BYTES=8192;
+const CONVERSATION_HELP='当前页面尚未建立会话。请先在 ChatGPT 发送一条消息并等待回复，或从左侧选择一个已有对话，再建立浏览器任务请求。';
+const REQUEST_HELP='先选择任务并建立请求。官网发送请求后，可手动执行或批准一次自动执行。';
 const isUserTurn=(snapshot,id)=>snapshot.ok&&snapshot.users.at(-1)?.textContent?.includes(id);
 
 // Focus may synchronously restore a website draft. Inspect after focusing and
@@ -212,11 +214,17 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   (doc.body||doc.documentElement).append(root);
   let pending=false,preparing=false,cancelPending=false,deliveryPending=false,composition=false,closed=false;
   let state=null,composerClaim=null; // latest claim for navigation cleanup only
+  let conversationReady=null;
   const note=(text,error=false)=>{status.textContent=text;status.classList.toggle('error',error);};
   const update=()=>{
+    const hasConversation=win.location.origin==='https://chatgpt.com'&&Boolean(chatGPTConversationId(win.location.href));
+    if(!state&&conversationReady!==hasConversation){
+      conversationReady=hasConversation;
+      note(hasConversation?REQUEST_HELP:CONVERSATION_HELP);
+    }
     const busy=pending||cancelPending||deliveryPending;
     const ready=!!state&&!state.cancelled&&!state.attempted&&!state.deliveryStarted&&win.location.href===state.url;
-    prepareButton.disabled=busy;
+    prepareButton.disabled=busy||!hasConversation;
     autoButton.disabled=busy||!ready||state.mode==='auto';
     runButton.disabled=busy||!ready||state.mode==='auto';
     cancelButton.disabled=preparing||!state||state.cancelled||state.sendSubmitted||state.settled;
@@ -229,7 +237,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   };
   const validatePage=()=>{
     if(!chatGPTConversationId(win.location.href)||win.location.origin!=='https://chatgpt.com')
-      throw fail('E_CHAT_TARGET','请在已打开的 ChatGPT 正式对话中操作');
+      throw fail('E_CHAT_TARGET',CONVERSATION_HELP);
     if(state&&state.url!==win.location.href)throw fail('E_CHAT_TARGET','会话已更换，请重新建立请求');
   };
   const send=async message=>{
@@ -383,6 +391,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   let autoPollBusy=false;
   const poll=win.setInterval(()=>{
     if(closed)return;
+    if(!state)update(); // ChatGPT creates the first /c/... route without reloading.
     composerClaim?.navigation();
     if(state&&!state.cancelled&&win.location.href!==state.url){
       state.attempted=true;note('原对话已切换；旧授权失效，禁止回传。',true);update();
@@ -504,7 +513,6 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     doc.removeEventListener('compositionend',endComposition,true);root.remove();};
   win.addEventListener('pagehide',dispose,{once:true});
   taskSelect.addEventListener('change',update);
-  note('先选择任务并建立请求。官网发送请求后，可手动执行或批准一次自动执行。');
   update();
   return {dispose};
 }

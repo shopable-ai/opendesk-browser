@@ -167,8 +167,10 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
   }
   async function readLocale(stored,verifiedOfficial){
     const next=resolveGlobalUiLocale(stored[UI_LOCALE_STORE]);
-    // Never inspect metadata or language packs before exact official identity admission.
-    if(!verifiedOfficial)return {locale:next,catalog:null};
+    // Package-provided translations still require exact release admission.
+    // Older/local readers use built-in copy without blocking heading access.
+    if(!verifiedOfficial||!await verifyOfficialReadingToc(stored[SIDEBAR_TOOL_STORE],
+      stored[MARKET_PROVENANCE_STORE],true))return {locale:next,catalog:null};
     const tool=stored[SIDEBAR_TOOL_STORE].find(row=>row.id===READING_TOC_TOOL_ID);
     try{
       const raw=(await api.storage.local.get(localeKey))[localeKey];

@@ -9,8 +9,8 @@ async function waitForObserved(predicate){
   while(!predicate()&&Date.now()<deadline)await new Promise(resolve=>setTimeout(resolve,5));
   assert.ok(predicate(),'expected asynchronous bridge outcome within one second');
 }
-function mock({enabled=true,granted=true}={}){
-  const stored={[AGENT_ENABLED_KEY]:enabled}, requests=[],responses=[],projectMessages=[];
+function mock({enabled=true,granted=true,lastConnectedAt=null}={}){
+  const stored={[AGENT_ENABLED_KEY]:enabled,[AGENT_LAST_CONNECTED_AT_KEY]:lastConnectedAt}, requests=[],responses=[],projectMessages=[];
   let native;
   const event=()=>{const listeners=new Set();return {
     addListener:l=>listeners.add(l),removeListener:l=>listeners.delete(l),fire:(...args)=>{for(const l of listeners)l(...args);}
@@ -64,15 +64,45 @@ test('trusted Side Panel shows and changes the same Native connection without re
 });
 
 test('saved successful handshake history survives restart but is never live connectivity',async t=>{
- const f=mock({enabled:false});t.after(()=>f.service.dispose());
  const previous=Date.UTC(2026,9,25,12,0);
- f.stored[AGENT_LAST_CONNECTED_AT_KEY]=previous;
+ const f=mock({enabled:false,lastConnectedAt:previous});t.after(()=>f.service.dispose());
  await f.service.ready;
  const snapshot=await f.service.handleSettings({type:'status'},settingsSender(f));
  assert.equal(snapshot.lastConnectedAt,previous);
  assert.equal(snapshot.enabled,false);
  assert.equal(snapshot.nativeConnected,false);
  assert.equal(f.native(),undefined,'historical success must never connect when disabled');
+});
+
+test('real Side Panel sender without documentId uses the existing unique native context proof',async t=>{
+ const f=mock({enabled:false});t.after(()=>f.service.dispose());await f.service.ready;
+ const sender={id:f.api.runtime.id,
+   url:f.api.runtime.getURL('sidepanel.html?hostInstanceId=real-panel'),
+   origin:'chrome-extension://'+f.api.runtime.id};
+ const context={contextType:'SIDE_PANEL',documentUrl:sender.url,
+   documentId:'native-panel-document',frameId:0,incognito:false};
+ const queries=[];
+ f.api.runtime.getContexts=async filter=>{queries.push(filter);return [context];};
+ assert.equal((await f.service.handleSettings({type:'status'},sender)).enabled,false);
+ await f.service.handleSettings({type:'enable'},sender);
+ assert.equal((await f.service.handleSettings({type:'status'},sender)).enabled,true);
+ await f.service.handleSettings({type:'disable'},sender);
+ assert.equal(f.stored[AGENT_ENABLED_KEY],false);
+ assert.ok(queries.every(filter=>JSON.stringify(filter)===JSON.stringify({
+   contextTypes:['SIDE_PANEL'],documentUrls:[sender.url]})));
+ assert.equal(sender.documentId,undefined,'do not mutate Chrome sender metadata');
+ assert.equal(f.requests.length,0,'settings cannot submit tasks');
+ for(const contexts of [[],[context,context],
+   [{...context,contextType:'TAB'}],[{...context,documentUrl:sender.url+'x'}],
+   [{...context,frameId:1}],[{...context,incognito:true}],
+   [{...context,documentId:''}]]){
+   f.api.runtime.getContexts=async()=>contexts;
+   for(const type of ['status','enable','disable'])
+     await assert.rejects(()=>f.service.handleSettings({type},sender),{code:'E_OWNER'});
+ }
+ f.api.runtime.getContexts=undefined;
+ await assert.rejects(()=>f.service.handleSettings({type:'enable'},sender),{code:'E_OWNER'});
+ assert.equal(f.stored[AGENT_ENABLED_KEY],false);
 });
 
 test('Native Side Panel route fails closed for forged URLs, frames and permissions',async t=>{
@@ -83,19 +113,37 @@ test('Native Side Panel route fails closed for forged URLs, frames and permissio
    {...trusted,id:'foreign-extension'},
    {...trusted,documentId:''},
    {...trusted,frameId:1},
+   {...trusted,incognito:true},
+   {...trusted,tab:{id:1,incognito:true}},
+   {...trusted,documentLifecycle:'prerender'},
    {...trusted,url:f.api.runtime.getURL('sidepanel.html#forged')},
    {...trusted,url:f.api.runtime.getURL('sidepanel.html?admin=true')},
    {...trusted,url:f.api.runtime.getURL('sidepanel.html?hostInstanceId=runner&scheduledRunner=1')},
-   {...trusted,url:f.api.runtime.getURL('native-agent/workspace.html')},
    {...trusted,url:'https://example.com/sidepanel.html'}
  ]){
    for(const type of ['status','enable','disable'])
      await assert.rejects(()=>f.service.handleSettings({type},sender),{code:'E_OWNER'});
  }
+ for(const type of ['status','enable','disable'])
+   await assert.rejects(()=>f.service.handleSettings({type},
+     {...trusted,url:f.api.runtime.getURL('native-agent/workspace.html')}),{code:'E_CAPABILITY'});
  await assert.rejects(()=>f.service.handleSettings({type:'enable'},trusted),
    {code:'E_PERMISSION_REQUIRED'});
  assert.equal(f.stored[AGENT_ENABLED_KEY],false);
  assert.equal(f.native(),undefined);
+});
+for(const boundary of ['disable','permission-removed'])test(`pending Side Panel context proof cannot override newer ${boundary}`,async t=>{
+ const f=mock({enabled:false});t.after(()=>f.service.dispose());await f.service.ready;
+ const sender={id:f.api.runtime.id,url:f.api.runtime.getURL('sidepanel.html?hostInstanceId=waiting-panel')};
+ const pending=deferred();
+ f.api.runtime.getContexts=()=>pending.promise;
+ const attempt=f.service.handleSettings({type:'enable'},sender);
+ if(boundary==='disable')await f.service.handleSettings({type:'disable'},settingsSender(f));
+ else {f.api.permissions.onRemoved.fire({permissions:['nativeMessaging']});await drain();}
+ pending.resolve([{contextType:'SIDE_PANEL',documentUrl:sender.url,documentId:'panel-document',frameId:0,incognito:false}]);
+ await assert.rejects(()=>attempt,{code:'E_PERMISSION'});
+ assert.equal(f.stored[AGENT_ENABLED_KEY],false);
+ assert.equal(f.native(),undefined,'stale authorization proof must not reconnect');
 });
 test('R16 welcome echoes AI version only after the Native Host advertises version 1',async t=>{
   for(const advertised of [undefined,0,1,2,'1',true,null])await t.test(String(advertised),async t=>{
@@ -162,6 +210,27 @@ test('Options status does not silently grant Native or connect while disabled',a
   const state=await f.service.handleSettings({type:'status'},settingsSender(f));
   assert.equal(state.enabled,false);assert.equal(state.nativeConnected,false);
   assert.equal(state.connecting,false);assert.equal(f.native(),undefined);
+});
+test('an absent Host settles to offline instead of a fresh connecting snapshot on every status read',async t=>{
+  const f=mock();t.after(()=>f.service.dispose());await f.service.ready;
+  f.native().onDisconnect.fire();
+  const connect=f.api.runtime.connectNative;
+  let attempts=0;
+  f.api.runtime.connectNative=()=>{
+    attempts++;
+    const port=connect();
+    queueMicrotask(()=>port.onDisconnect.fire());
+    return port;
+  };
+  for(let i=0;i<3;i++){
+    const state=await f.service.handleSettings({type:'status'},settingsSender(f));
+    assert.equal(state.enabled,true);
+    assert.equal(state.nativeConnected,false);
+    assert.equal(state.connecting,false,'confirmed absence must reach the offline UI');
+    assert.equal(state.lastConnectedAt,null);
+  }
+  assert.equal(attempts,3,'each explicit read may discover a newly installed Host');
+  assert.equal(f.requests.length,0,'connection discovery never submits tasks');
 });
 test('approved permission with stale Chrome API binding reports reload without interrupting hosts',async t=>{
   const f=mock({enabled:false});t.after(()=>f.service.dispose());await f.service.ready;

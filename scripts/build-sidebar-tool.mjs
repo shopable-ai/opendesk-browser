@@ -9,6 +9,7 @@ import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,se
 import {compileSharedToolCss} from './preview/shared-tool-design.mjs';
 import {createToolLocalization} from '../src/ui/sidebar-tools/localization.js';
 import {compileToolLocaleCatalog} from '../src/ui/app-localization.js';
+import {compareToolVersions} from '../src/ui/sidebar-tools/installation.js';
 const fail=(message)=>{throw new Error('E_TOOL_BUILD: '+message);};
 function rel(value) {
   if(typeof value!=='string'||value.length>180||!value||
@@ -205,9 +206,18 @@ export async function promoteSidebarToolPackage(projectPath,{from}={}){
   if(!bytes.equals(expected))
     fail('candidate is stale or not the same canonical package as current source; rebuild and rerun tests');
   const {root,output,exists}=await projectPackageDestination(projectPath,pkg.id);
-  if(exists&&(await readFile(output)).equals(bytes))
+  const previous=exists?await readFile(output):null;
+  if(previous?.equals(bytes))
     return Object.freeze({status:'PROJECT_PACKAGE_MATCH',output,id:pkg.id,version:pkg.version,
       bytes:bytes.length,sha256:packageDigest(bytes),unchanged:true,validated:true,installed:false});
+  if(previous){
+    let released;
+    try{released=validateSidebarToolPackage(JSON.parse(previous.toString('utf8')));}
+    catch{fail('previous project package is invalid; preserve it and resolve its release identity before promotion');}
+    if(released.id!==pkg.id)fail('previous project package identity differs from current source');
+    if(compareToolVersions(pkg.version,released.version)<=0)
+      fail('changed release bytes require a newer version than '+released.version+'; bump the version, rebuild and rerun tests');
+  }
   // Check the source again immediately before the atomic replacement. Never
   // clear an existing approved package when source or candidate validation fails.
   const latest=encodeSidebarToolPackage(await createSidebarToolPackage(projectPath));
@@ -222,6 +232,8 @@ export async function promoteSidebarToolPackage(projectPath,{from}={}){
       throw error;
     });
     if(current&&!current.isFile())fail('project distributable must be a regular file: '+output);
+    if(Boolean(current)!==exists||(current&&!(await readFile(output)).equals(previous)))
+      fail('project package changed during promotion; preserve the newer release and retry from its source');
     await rename(temp,output);
   }finally{
     await unlink(temp).catch(error=>{if(error?.code!=='ENOENT')throw error;});

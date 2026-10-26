@@ -5,7 +5,7 @@ import {parseHTML} from 'linkedom';
 import {mkdtemp,readFile,rm,writeFile,symlink,realpath} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {validateSidebarToolPackage,sidebarToolStorageKey,SIDEBAR_TOOL_FORMAT} from '../../src/ui/sidebar-tools/package.js';
+import {validateSidebarToolPackage,sidebarToolStorageKey,SIDEBAR_TOOL_FORMAT,serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {buildSidebarTool,promoteSidebarToolPackage,checkSidebarToolProjectPackage} from '../../scripts/build-sidebar-tool.mjs';
 const example={format:SIDEBAR_TOOL_FORMAT,id:'notes-test',version:'1.0.0',title:'我的笔记',
   description:'demo',capabilities:['storage.local'],html:'<main><p>hello</p></main>',css:'.x{color:blue}',js:'void 0;'};
@@ -89,6 +89,9 @@ test('portable Sidebar Tool builds to candidate first and only explicit verified
     assert.equal(await readFile(projectBundle,'utf8'),'LAST_KNOWN_GOOD',
       'an old candidate cannot overwrite the previous project package');
     await buildSidebarTool(dir,{out:candidate});
+    await assert.rejects(promoteSidebarToolPackage(dir,{from:candidate}),/previous project package/);
+    assert.equal(await readFile(projectBundle,'utf8'),'LAST_KNOWN_GOOD');
+    await writeFile(projectBundle,serializeSidebarToolPackage({...example,id,version:'0.9.0'}));
     const promoted=await promoteSidebarToolPackage(dir,{from:candidate});
     assert.equal(promoted.status,'PROJECT_PACKAGE_PROMOTED');
     assert.equal(promoted.output,await realpath(projectBundle));
@@ -108,6 +111,34 @@ test('portable Sidebar Tool builds to candidate first and only explicit verified
     await rm(dir,{recursive:true,force:true});
     await rm(artifactDir,{recursive:true,force:true});
   }
+});
+test('promotion rejects same-version changed bytes and downgrade while retaining the approved release',async t=>{
+  const dir=await mkdtemp(join(tmpdir(),'opendesk-tool-version-'));
+  t.after(()=>rm(dir,{recursive:true,force:true}));
+  const config={id:'version-check',version:'1.0.0',title:'版本检查',description:'固定发行身份',
+    capabilities:[],files:{html:'index.html',css:'style.css',js:'main.js'},assets:[]};
+  const save=()=>writeFile(join(dir,'tool.config.json'),JSON.stringify(config));
+  await save();
+  await writeFile(join(dir,'index.html'),'<main>Test</main>');
+  await writeFile(join(dir,'style.css'),'');
+  await writeFile(join(dir,'main.js'),'void 0;');
+  const candidate=join(dir,'temporary','candidate.json');
+  await buildSidebarTool(dir,{out:candidate});
+  const first=await promoteSidebarToolPackage(dir,{from:candidate});
+  const previous=await readFile(first.output);
+  assert.equal((await promoteSidebarToolPackage(dir,{from:candidate})).unchanged,true);
+  await writeFile(join(dir,'style.css'),'main{color:navy}');
+  for(const version of ['1.0.0','0.9.9']){
+    config.version=version;await save();await buildSidebarTool(dir,{out:candidate});
+    await assert.rejects(promoteSidebarToolPackage(dir,{from:candidate}),/newer version/);
+    assert.deepEqual(await readFile(first.output),previous,'failed promotion keeps the approved bytes');
+  }
+  config.version='1.0.1';await save();await buildSidebarTool(dir,{out:candidate});
+  assert.equal((await promoteSidebarToolPackage(dir,{from:candidate})).version,'1.0.1');
+  assert.deepEqual(await readFile(first.output),await readFile(candidate));
+  await writeFile(first.output,'invalid previous release');
+  await assert.rejects(promoteSidebarToolPackage(dir,{from:candidate}),/previous project package/);
+  assert.equal(await readFile(first.output,'utf8'),'invalid previous release');
 });
 test('new sandbox uses isolated Chrome MV3 resource and a narrow host message protocol',async()=>{
   const [manifest,runner,host,toolHtml,buildContract,verify,taskHost]=await Promise.all([

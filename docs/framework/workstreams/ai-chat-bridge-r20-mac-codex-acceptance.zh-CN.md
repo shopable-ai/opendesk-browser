@@ -2,6 +2,37 @@
 
 **默认中文｜ORIGINAL GOAL FIRST｜LATEST MAIN｜LOCAL MAC REAL CHROME｜DELTA ONLY｜CROSS-CHAT DEDUP｜NO SECOND HOST｜NO FAKE PASS｜ONLY MAIN**
 
+## 当前核心链路续推（2026-10-26 17:00 起，北京时间）
+
+本节以本对话 `01a1776b-bcaf-7971-83b5-e58caffd808e` 的实读为准，覆盖下方历史阶段。`get_goal=null` 后已创建独立原生目标，状态 **active**，无 token 预算；未变更其他对话目标。目标为 `page.read.fixed`、`baidu.search.top3` 各一次手动和单次批准自动执行，直至同一持久结果 released、仅回传原对话一次且官方 AI 中文续答。production、评分、全量矩阵、宽度缩放及模型路由均延期。
+
+关键条件及当前状态：
+
+| 条件 | 通过标准 | 本轮状态 |
+| --- | --- | --- |
+| A 页面/引导 | 已有会话可建立请求；首页可操作引导；换会话/document/轮次使旧批准失效 | 首页错误已真实复现；最小引导修复与组件测试通过，当前 Chrome 更新待核对 |
+| B 请求/批准 | 官网先发送；唯一完整 taskId/args/requestId 匹配；不完整/旧回复/改参/模型自授权零运行 | 定向组件证据通过；原生待测 |
+| C 固定页 | 本次真实 httpbingo 标题/正文、Run/Result | 同源码开发草稿真实 completed/released；Bridge 场景尚未执行，resultId 待读回 |
+| D 百度 | 真实搜索最多三条自然结果；广告/未知模块排除；阻断/缺失/变化/无结果如实分类 | 本轮 NOT_TESTED，旧本地项目结果仅历史证据 |
+| E 手动/自动 | 两任务四个新 requestId；每请求最多一个 Run/Result/回传；自动批准后不点执行 | NOT_TESTED |
+| F 取消/释放 | 精确本请求 Stop；终态与 released 独立证明；迟到结果不交付 | 定向组件证据通过，原生 NOT_TESTED |
+| G 原会话 | 原 tab/document/会话/轮次唯一真实用户结果及后续中文 AI；保护草稿/附件/IME和授权 | 定向组件证据通过，原生 NOT_TESTED |
+| H UNKNOWN | 原身份只读恢复；不猜最近记录、不盲重跑或补发 | 定向组件证据通过，原生异常未触发 |
+
+四正常场景（开始状态，后续按实测更新）：固定页手动、固定页自动、百度手动、百度自动均 **NOT_TESTED**；taskVersion/源码与安装身份、requestId/runId/resultId、实际结果、released、回传次数及续答须逐次记录，不复用历史 ID。
+
+已观察：本轮独立页首页 `https://chatgpt.com/` 点击「建立请求」真实得到 `E_CHAT_TARGET`，未执行任何任务。Chrome DOM 驱动建页超时但实际已创建；确认后通过原生 UI 操作自己的页，没有接管被其他会话占用的旧页。首页输入框为空后发送一条明确测试消息，实际收到“测试会话已建立”，URL 为 `https://chatgpt.com/c/6adf169e-56e8-83ee-bdf1-b497007fa18b`。独立新窗口重新打开该 URL 则官网显示“无法加载此 ChatGPT 对话”，点一次“再试一次”仍失败；这是当前环境/官网载入问题，尚无 Bridge Run，不作为任务运行失败或空结果。
+
+Chrome 扩展详情实读：已启用 `ccfcjegpkdlgbclopjmadlcjedelidmf`、版本 0.1.0，加载本仓库 `dist/development`，网站访问为“在所有网站上”、用户脚本开关 on。既有 watcher 锁 PID 36575、启动 2026-10-26T08:14:30.811Z；「调试 → 本地开发服务」实读“开发服务已连接 · 构建指纹 f567b329d9b5；保存源码后自动安全更新”，同页扩展 ID 一致，完整 revision 为 `f567b329d9b59357c2a534be0f527d46efe8700d800ee79de50403c377512322`，相关 Bridge 产物哈希 `f45016920cda1f40d5fc0b988d1456f77d8566936504ee4f3dee7f0f79ece95e`。这是当时开发服务证据，不能证明此前打开的 ChatGPT 文档已加载新脚本。未启动第二个 watcher、未覆盖产物、未重载/重装扩展。
+
+安装前置：从「我的」实读原有三项其他任务，未看到本轮两个固定任务；保留原任务。经产品文件选择器导入 `page.read.fixed.v1.opendesk-task.json` 后，目录显示 `page.read.fixed@1.0.0` **待验证**，未自动授信。随后在本轮独立窗口打开真实 `https://httpbingo.org/html`，直接编辑空白 Controller 草稿，使用固定包完全相同源码并点击运行。实际终态“已完成 · 资源已释放”，`runId=a970ea68-60fc-470b-aabd-59989de58223`，SHA-256 `c2684b24d3e6ef9b0319703661d8d7b53014df60533608bcd697361cc70a99f4`；返回正文以 `Herman Melville - Moby-Dick Availing himself...` 开始。`resultId` 尚未读回，不能自行补齐。这是验证草稿运行，**不是** ChatGPT 手动场景，也不是已安装证据。目录验证、Available、安装审阅及四条 Bridge 场景继续待办。
+
+当前环境阻塞：Chrome 标签页接口多次读取/绑定超时；原生 UI 可读取与操作，但其他操作持续切换前台，工具多次拒绝后续点击并要求重查。已停止争抢前台，等待窗口可稳定操作；未将驱动/资源竞争判为 Bridge 产品故障。原测试会话仍仅有建立会话的消息及中文回复，没有浏览器任务请求或结果发送。已知固定 Run 只读核对原身份，不因中断重跑。
+
+最小修复只改 Bridge 首页文案和准备按钮可用状态，保留会话校验；SPA 从首页建立 `/c/...` 后恢复提示与按钮，离开正式会话禁用。新增两项测试先红后绿。语法检查及页面/百度/取消相关三文件 **34/34 PASS**；这是组件证据，不代表四条原生链路已通过。
+
+资源与并行保护：仅 main（开始实读 ahead 5 / behind 36，缓存引用），不 pull/rebase/分支/worktree/PR。其他 owner 的 Prompt、Reading TOC、打包器和 watcher 修改保留。本轮专用 Chrome 窗口用于目录/连接核查，原测试 tab `560068505` 保留；其他 owner 的侧栏和旧测试 tab `560068504` 未接管。
+
 ## 本轮分段方案（2026-10-26，按首轮独立评审修订）
 
 本轮目标是完成「目标网页证据 → 验证源码 → 固定任务 → 正常触发 → 原会话回传」。继续在 `main` 和日常 `dist/development` 开发，复用 PID 76837/76857 的 watcher，不进入历史 production 验收。下面的方案质量评分与实际运行状态分别记录；本节优先于下方历史阶段。

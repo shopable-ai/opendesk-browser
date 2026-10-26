@@ -168,7 +168,8 @@ test('R1.7 exact official Prompt Shortcuts forwards Header New/Back without remo
   assert.equal(f.elements['sidebar-tool-title'].textContent,'编辑提示词');
   verifyAction('sidebar-tool-back','back');
   f.emit(f.elements['sidebar-tool-settings-open'],'click');
-  assert.equal(f.elements['sidebar-tool-title'].textContent,'工具设置');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,official.title);
+  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
   f.emit(f.elements['sidebar-tool-back'],'click');
   assert.equal(f.runtime.frameRoot.children[0],f.frame);
   assert.equal(f.elements['sidebar-tool-title'].textContent,'编辑提示词');
@@ -420,18 +421,14 @@ test('stopped website disables the eye while restore settings remain available',
   f.emit(f.elements['sidebar-tool-settings-open'],'click');assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
 });
 
-test('built-in host reads default sites and blocks stopped sites before sending page messages',async t=>{
-  const toc=await officialToolFixture('reading-toc'),url='https://new-site.example/article';
+test('prelaunch host reads older readers without provenance and still blocks stopped sites',async t=>{
+  const toc={...await officialToolFixture('reading-toc'),version:'1.0.7'},url='https://new-site.example/article';
   const target={snapshot:{status:'available',url},
     capture:()=>({url,origin:'https://new-site.example',tabId:7,documentId:'doc-default'}),
     async revalidate(){return true;}};
-  // A default all-sites grant exists only for the byte-pinned official installation.
-  // The previous test fixture omitted provenance and correctly failed closed.
-  const pin=OFFICIAL_READING_TOC_RELEASE;
-  assert.equal(toc.version,pin.version);
+  // Reproduce a legacy/local installation without a release provenance record.
   const f=await hostFixture(t,{tool:toc,target,store:new Map([
-    [SIDEBAR_TOOL_STORE,[toc]],
-    [MARKET_PROVENANCE_STORE,{[toc.id]:{marketId:pin.marketId,version:pin.version,sha256:pin.sha256}}]
+    [SIDEBAR_TOOL_STORE,[toc]]
   ])});
   let reads=0;
   f.api.tabs={async sendMessage(tabId,message,options){
@@ -447,14 +444,13 @@ test('built-in host reads default sites and blocks stopped sites before sending 
   f.ask('toc.navigate',{id:'h-1',sourceId:'s-1'},'2');await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='2'));
   assert.equal(f.frame.contentWindow.sent.at(-1).ok,false);assert.equal(reads,1);
   assert.match(f.frame.contentWindow.sent.at(-1).error.message,/停用/);
-  // Site restored, but lost/forged official provenance must still fail closed.
+  // Restoring the site resumes reads without reinstalling the tool.
   f.store.delete(READING_TOC_SITE_STORE);
   f.store.delete(MARKET_PROVENANCE_STORE);
   f.ask('toc.snapshot',{},'3');
   await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='3'));
-  assert.equal(f.frame.contentWindow.sent.at(-1).ok,false);
-  assert.match(f.frame.contentWindow.sent.at(-1).error.message,/身份/);
-  assert.equal(reads,1,'no page read after official provenance is removed');
+  assert.equal(f.frame.contentWindow.sent.at(-1).ok,true);
+  assert.equal(reads,2);
 });
 
 test('R26 corrupted enable records preserve bytes and refuse execution or changes',async t=>{
@@ -2408,6 +2404,8 @@ test('R5.30.3 official export reuses one real click and still requires exact Hos
   const origin='https://example.org';
   const target={snapshot:{status:'available',url:origin+'/'}};
   let pauseAdmission=false;const entered=deferred(),resume=deferred();
+  // Current installation consent must be complete before its iframe is shown.
+  // This test exports fixture text and never reads sensitive Cookie values.
   const f=await hostFixture(t,{tool,target,getHook:async key=>{
     if(pauseAdmission&&Array.isArray(key)&&key.includes(MARKET_PROVENANCE_STORE)){
       pauseAdmission=false;entered.resolve();await resume.promise;
@@ -2416,7 +2414,7 @@ test('R5.30.3 official export reuses one real click and still requires exact Hos
     [SIDEBAR_TOOL_STORE,[tool]],
     [BROWSER_MENU_GRANTS_STORE,{[tool.id]:{version:tool.version,installEpoch:null,
       packageHash:await sidebarToolPackageHash(tool),cookieAllSites:{storeId:'0',read:true,write:true,
-        observe:true,clear:true,values:false,valueConsent:false,grantEpoch:'grant-1'}}}],
+        observe:true,clear:true,values:true,valueConsent:true,grantEpoch:'grant-1'}}}],
     [MARKET_PROVENANCE_STORE,{[tool.id]:{marketId:release.id,version:release.version,sha256:release.sha256}}]
   ])});
   await settle(()=>!f.elements['sidebar-tool-frame'].hidden);

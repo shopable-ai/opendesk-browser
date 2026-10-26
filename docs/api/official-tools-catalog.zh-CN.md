@@ -17,7 +17,7 @@
 
 当前随扩展发行的八个官方工具是 `reading-toc`、`web-markdown-clipper`、`quick-notes`、`markdown-workbench`、`knowledge-inbox`、`time-review`、`stay-focus`、`cookie-editor`。Catalog 登记的 `examples/sidebar-tools/<id>` 是正式发行源码入口；目录名称不表示其只是演示，也不授予特权。React/Vue starter 继续作为本地开发示例，不因位于 examples 目录就参与官方发行。新增候选只需符合现有包合同、提供可信项目并登记 Catalog；市场展示文案可选，缺省使用真实包标题和描述。
 
-旧源码目录与示例根目录中的官方生成 JSON 已移除。不要把生成包放回 `src/sidebar-tools/`、`examples/` 或文档目录，不再维护需要人工同步的副本。
+不在 `src/sidebar-tools/` 或文档目录保存生成包。已交付工具在自身项目根保留唯一 `<id>.opendesk-tool.json`，按候选验证后显式晋升；它不是每次开发编译都覆盖的临时输出。
 
 ## 2. 源码 Catalog 与生成清单
 
@@ -29,6 +29,7 @@
 | `project` | 固定为 `examples/sidebar-tools/<id>`，不能是 URL、绝对路径或逃逸路径 |
 | `kind` | 当前只接受 `sidebar-tool` |
 | `installationPolicy` | `preinstalled`：仅在明确的新安装事件中可信宿主自动初始化；`optional`：用户在发现/市场中审阅后安装 |
+| `packageFile` | 可选，项目内已验证并晋升的正式 JSON 文件名；发行内容与身份取自该包，开发源码与临时 CSS 不替换它 |
 
 `sourceRepository` 固定为本官方仓库 `https://github.com/shopable-ai/opendesk-browser`。源码 Catalog 不重复记录版本和能力，不包含用户安装、网站权限、运行实例、Cookie、密钥或本机目录。未知字段、重复 ID、不支持的策略、非受信来源和符号链接输入会使官方构建失败。`preinstalled` 仅在扩展自带可信源码和固定 SHA-256 发行资源中有意义，远端或本地导入的 JSON 不能获取该特权。
 
@@ -36,7 +37,7 @@
 
 - `id`：`opendesk/<toolId>`，供市场识别来源。
 - `toolId`、`kind`、`installationPolicy`：固定身份和已有运行类型。
-- `version`、`packageTitle`、`description`、`capabilities`：来自实际 `tool.config.json` 和打包内容。
+- `version`、`packageTitle`、`description`、`capabilities`：来自实际包；未指定 `packageFile` 时由 `tool.config.json` 和源码打包派生。
 - `packagePath`：`official-tools/<toolId>/<toolId>.opendesk-tool.json`。
 - `bytes`、`sha256`：最终文件原始 UTF-8 字节的长度和 SHA-256。
 
@@ -45,6 +46,10 @@
 ## 3. 确定性构建与持续开发
 
 `scripts/build-official-tools.mjs` 读取可信登记，检查项目与声明输入，复用 `createSidebarToolPackage`、`validateSidebarToolPackage` 和规范化编码生成每个包。构建验证经典 JavaScript 语法、包身份、能力、UTF-8 字节预算与嵌入图片。输出没有时间戳、机器绝对路径或随机内容；临时落盘文件名不会进入产物。
+
+Cookie Editor 与 Stay Focus 使用已有 `packageFile` 路径，发行时验证并编码唯一正式 JSON，输入指纹只跟踪该包。Cookie Editor 的可信操作核验安装包与发行摘要；不能将开发时重新生成的共享 CSS 作为同版本的新发行，否则合法安装会被拒绝且没有较新版本可供更新。后续工具变更仍经原候选测试、版本升级与显式晋升，不自动更新已安装工具或授予新权限。
+
+唯一打包器的 `--promote-from` 对已有正式包执行版本门禁：相同字节允许幂等检查；不同字节必须使用更高版本。同版本替换、降级、旧包损坏或身份不符均拒绝并保留旧文件。已有 `app:update` 流程继续为无扩权的内容变化先提升 PATCH，再测试和晋升。
 
 全部包通过验证后才发布资源；包先写、Catalog 后写。源文件前后指纹不同则失败。`verify-package.mjs` 从同一可信源码重新生成并逐字节比较，保留既有封闭资源清单和体积预算；即使有人同时改了生成包与生成清单的摘要，也不能据此通过正式包验证。
 

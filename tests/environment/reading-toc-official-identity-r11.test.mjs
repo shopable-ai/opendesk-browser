@@ -7,7 +7,7 @@ import {createOfficialToolResources} from '../../scripts/build-official-tools.mj
 import {officialToolFixture} from '../helpers/official-tools.mjs';
 import {OFFICIAL_READING_TOC_RELEASE,matchesOfficialReadingToc,MARKET_PROVENANCE_STORE}
   from '../../src/sidebar-tools/official-reading-toc.js';
-import {tocGrantAllowed,verifyOfficialReadingToc,changeTocSiteAllowed,changeTocPageAllowed,
+import {tocGrantAllowed,verifyOfficialReadingToc as verifyInstalledReadingToc,changeTocSiteAllowed,changeTocPageAllowed,
   readingTocPageAllowed} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
 import {serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {installReviewedSidebarTool} from '../../src/ui/sidebar-tools/installation.js';
@@ -15,6 +15,8 @@ import {installReviewedSidebarTool} from '../../src/ui/sidebar-tools/installatio
 const pin=OFFICIAL_READING_TOC_RELEASE;
 const official=()=>({[pin.id]:{marketId:pin.marketId,sha256:pin.sha256,version:pin.version}});
 const url='https://example.com/articles';
+// Retain strict-release coverage for the deferred release gate and locale data.
+const verifyOfficialReadingToc=(installed,provenance)=>verifyInstalledReadingToc(installed,provenance,true);
 
 // Immutable official release, independent of the currently promoted package.
 const historical=JSON.parse(execFileSync('git',['show',
@@ -24,7 +26,7 @@ const historicalHash='8d6bf170c92f3093de34f1401f49897d9734f740a0deef87076666a548
 const historicalSource=()=>({[pin.id]:{
   marketId:pin.marketId,version:'1.0.10',sha256:historicalHash}});
 
-test('historical official 1.0.10 retains exact identity without overriding disable or site/page denial',async()=>{
+test('strict release policy retains historical 1.0.10 without overriding disable or site/page denial',async()=>{
   const bytes=serializeSidebarToolPackage(historical);
   assert.equal(historical.version,'1.0.10');
   assert.equal(Buffer.byteLength(bytes),35044);
@@ -38,7 +40,7 @@ test('historical official 1.0.10 retains exact identity without overriding disab
   assert.equal(await verifyOfficialReadingToc([],historicalSource()),false,'uninstalled');
 });
 
-test('historical official identity rejects altered bytes, forged releases, provenance and duplicate owners',async()=>{
+test('strict release policy rejects altered historical bytes, forged releases, provenance and duplicate owners',async()=>{
   const source=historicalSource(),record=source[pin.id];
   for(const [reason,provenance] of [
     ['missing provenance',{}],
@@ -78,7 +80,7 @@ test('R1.1 committed package pin equals the real official release builder',async
   assert.match(MARKET_PROVENANCE_STORE,/provenance/);
 });
 
-test('R1.1 only authenticated installed bytes AND provenance enable the official default',async()=>{
+test('strict release policy requires authenticated installed bytes AND provenance',async()=>{
   const tool=await officialToolFixture(pin.id),installed=[tool];
   assert.equal(await verifyOfficialReadingToc(installed,official()),true);
   assert.equal(tocGrantAllowed(installed,{},pin.id,url,{},await verifyOfficialReadingToc(installed,official())),true);
