@@ -46,7 +46,7 @@
       <button id="qa-back" class="od-icon-button qa-icon" type="button" aria-label="返回知识列表" title="返回知识列表"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg></button>
       <h2 id="qa-editor-title">新建知识</h2>
     </div>
-    <form id="qa-editor" novalidate>
+    <div id="qa-editor" role="group" aria-labelledby="qa-editor-title">
       <label class="qa-label" for="qa-question">标准问题 <span>必填</span></label><input id="qa-question" class="od-field" maxlength="180" required placeholder="例如：多久可以退款">
       <label class="qa-label" for="qa-answer">标准答案 <span>必填</span></label><textarea id="qa-answer" class="od-field qa-answer-field" rows="5" maxlength="1200" required placeholder="只填写已核实的业务事实"></textarea>
       <details id="qa-editor-more" class="qa-more"><summary>更多选项 <span>同义问题 / 适用条件 / 启停</span></summary>
@@ -54,8 +54,8 @@
         <label class="qa-label" for="qa-scope">适用条件</label><input id="qa-scope" class="od-field" maxlength="60" placeholder="可留空">
         <label class="qa-enabled" for="qa-enabled"><span>启用这条知识</span><input id="qa-enabled" type="checkbox" checked></label>
       </details>
-      <div class="qa-save-row"><span id="qa-edit-state" role="status" aria-live="polite"></span><button id="qa-save" class="od-button od-button--primary" type="submit">保存知识</button></div>
-    </form>
+      <div class="qa-save-row"><span id="qa-edit-state" role="status" aria-live="polite"></span><button id="qa-save" class="od-button od-button--primary" type="button">保存知识</button></div>
+    </div>
     <details id="qa-danger" class="qa-danger" hidden><summary>危险操作</summary><p>删除后不可直接恢复，建议先导出备份。</p><button id="qa-delete" class="od-button od-button--secondary" type="button" hidden>删除此条知识</button></details>
   </section>
   <div id="qa-review-backdrop" class="qa-review-backdrop" hidden><section id="qa-review" class="qa-review" role="alertdialog" aria-modal="true" aria-labelledby="qa-review-title" aria-describedby="qa-review-message" tabindex="-1" hidden><h2 id="qa-review-title">确认操作</h2><p id="qa-review-message"></p><div class="qa-review-actions"><button id="qa-cancel" class="od-button od-button--secondary" type="button">取消</button><button id="qa-accept" class="od-button od-button--primary" type="button">确认</button></div></section></div>

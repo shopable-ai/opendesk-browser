@@ -201,8 +201,8 @@ async function commit(next,{success='保存并读回成功',after}={}){
     else if(view==='list')$('qa-search').focus({preventScroll:true});
   }
 }
-$('qa-editor').addEventListener('submit',e=>{
-  e.preventDefault();
+// Sandboxed tools cannot submit HTML forms; save only through the SDK.
+$('qa-save').addEventListener('click',()=>{
   if(!ready||busy||uncertain||review)return;
   for(const [id,label] of [['qa-question','标准问题'],['qa-answer','标准答案']]){
     const field=$(id);

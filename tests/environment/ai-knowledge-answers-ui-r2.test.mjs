@@ -108,7 +108,9 @@ function mount(storage={value:null,requests:[],unknown:false},{beforeWrite,befor
  const get=id=>root.querySelector('#'+id);
  const click=id=>{assert.equal(Boolean(get(id).disabled),false,id+' must be usable');get(id).click();};
  const input=(id,value)=>{get(id).value=value;get(id).dispatchEvent(new window.Event('input'));};
- const save=()=>get('qa-editor').dispatchEvent(new window.Event('submit',{cancelable:true}));
+ // Activate the real save control. A synthetic submit bypasses Chrome's
+ // sandbox allow-forms restriction and previously concealed the native failure.
+ const save=()=>get('qa-save').click();
  const press=(id,key)=>{
   const event=new window.Event('keydown',{bubbles:true,cancelable:true});
   event.key=key;get(id).dispatchEvent(event);
@@ -117,6 +119,8 @@ function mount(storage={value:null,requests:[],unknown:false},{beforeWrite,befor
 }
 test('R2 component: save/read-back, reopen and synonym lookup retain the actual generated knowledge ID',async()=>{
  const ui=mount();await tick();
+ assert.equal(ui.get('qa-save').type,'button');
+ assert.equal(ui.get('qa-save').closest('form'),null,'opaque sandbox does not allow native form submission');
  assert.equal(ui.get('qa-status').textContent,'');
  ui.click('qa-tab-list');ui.click('qa-new');
  ui.input('qa-question','退款期限是多少');ui.input('qa-answer','7 天内可退款');
@@ -447,7 +451,7 @@ test('R2.1: preview stays source-linked and models Host failure separately from 
 });
 test('R2.1: project release is exact canonical source build',async()=>{
  const tool=await createSidebarToolPackage(new URL('.',base).pathname);
- assert.equal(tool.version,'0.1.4');
+ assert.equal(tool.version,'0.1.5');
  const candidate=process.env.OPENDESK_KNOWLEDGE_CANDIDATE;
  if(candidate!==undefined)assert.ok(isAbsolute(candidate),'OPENDESK_KNOWLEDGE_CANDIDATE must be an absolute path');
  const packagePath=candidate??new URL('ai-knowledge-answers.opendesk-tool.json',base);

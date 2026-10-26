@@ -1,6 +1,6 @@
 # AI 知识问答 · R2.1 UI 与 R1.3 本地模拟聊天测试
 
-独立 Sidebar Tool v2，ID `ai-knowledge-answers`，版本 `0.1.4`。复用原 Tool Host、存储、Shared AI Provider 和唯一 React root。R1.3 已在可信环境接入**仅固定本地 HTTP 测试页**的 DOM 观察、定时消息处理、草稿发送与独立 DOM 回执；这些新操作尚未完成真实 Mac Chrome 验收。其他第三方网站仍不在本轮范围。
+独立 Sidebar Tool v2，ID `ai-knowledge-answers`，版本 `0.1.5`。复用原 Tool Host、存储、Shared AI Provider 和唯一 React root。R2.1 的安装、保存、编辑、侧栏关闭重开及固定来源回答已在独立 Mac Chrome for Testing 完成核心验证，见文末；R1.3 的 DOM 观察、定时消息处理、草稿发送与独立 DOM 回执仍按对应工作流记录，其他第三方网站不在本轮范围。
 
 ## R1.3：从哪里开始测试（原生尚未验收）
 
@@ -28,15 +28,15 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 - 模型只接收候选的 `id/question/answer/scope`，aliases 留在本机。发送及交付均核对安装身份，交付时回读 ETag。换 Provider、取消、Native 断线、相关权限撤销和知识更新会丢弃旧结果。
 - AI 必须引用本轮真实知识 ID；新增数字事实被拒绝。语义仍需人工证明，所有 AI 答案为 `REVIEW_REQUIRED / needsHuman=true`。
 
-R1.2 历史记录为 58 项定向 Node 测试通过，包含实际编辑器脚本在内存存储下的新建、保存读回、重开、同义回答与未知写入保护；这属于组件证据。已保留并行提交的未知写入恢复和本地测试接线，并验证普通手动问答不会自动读取网站，问题修改后迟到回答失效。0.1.2 修复 R2 UI 的打包失败和过时 AI 提示。旧记录中的真实 Local Codex backend 有来源实答不代表当前包已获原生验收。**完整 Chrome 安装、保存后关闭重开、可信 Send 及原生错误恢复仍为 NOT_TESTED**。详见[现有工作记录](../../../docs/framework/workstreams/ai-knowledge-answers-r1-20261025.md)，本轮结果见文末 R2.1-LOCAL。
+R1.2 历史记录为 58 项定向 Node 测试通过，包含实际编辑器脚本在内存存储下的新建、保存读回、重开、同义回答与未知写入保护；这属于组件证据。已保留并行提交的未知写入恢复和本地测试接线，并验证普通手动问答不会自动读取网站，问题修改后迟到回答失效。0.1.2 修复 R2 UI 的打包失败和过时 AI 提示。旧记录中的真实 Local Codex backend 有来源实答不代表当前包已获原生验收。**0.1.5 已完成下述 CFT 安装、保存及侧栏关闭重开核心链；可信 Send 和原生异常恢复仍为 NOT_TESTED**。历史详见[现有工作记录](../../../docs/framework/workstreams/ai-knowledge-answers-r1-20261025.md)，最新核心结果见文末 0.1.5 原生记录。
 
-## 安装与首条待验证操作
+## 安装与操作入口
 
-唯一正式文件是本目录 `ai-knowledge-answers.opendesk-tool.json`，不是 `tool.config.json`。已由原打包器晋升，仍是待真实 Chrome 验收的可安装候选。
+唯一正式文件是本目录 `ai-knowledge-answers.opendesk-tool.json`，不是 `tool.config.json`。已由原打包器晋升；0.1.5 的 CFT 核心验证见文末，完整正式验收未执行。
 
 Browser 须包含本轮静态可信接线。日常开发复用 `dist/development` 已有 watcher；只导入 JSON 不会升级 Browser 的可信代码。
 
-1. 在「扩展」官方可发现列表选择「AI 知识问答」，核对 `0.1.4`、来源、能力与摘要，使用原确认安装/更新流程。安装后打开即可，无通用二次启用步骤。保留原知识数据，不先卸载；可信 Browser 准入版本也须与新包一致。旧开发输出未必包含本轮发行，不能凭源码版本推断 Chrome 已安装。
+1. 在「扩展」官方可发现列表选择「AI 知识问答」，核对 `0.1.5`、来源、能力与摘要，使用原确认安装/更新流程。安装后打开即可，无通用二次启用步骤。保留原知识数据，不先卸载；可信 Browser 准入版本也须与新包一致。旧开发输出未必包含本轮发行，不能凭源码版本推断 Chrome 已安装。
 2. 仅从本地文件导入时，原安装器不会制造官方 provenance；知识管理继续可用，可信 AI 保持关闭。使用可信 AI 须通过同一安装器审阅准确官方发行，不能手写来源记录或借用其他工具身份。
 3. 新建明确标为测试数据的知识“退款期限是多少 → 7 天内可退款”，添加别名“多久可以退款”，保存；关闭重开并核对数据。
 4. 输入别名验证固定回答；输入“退款需要多少天？”准备候选，核对知识 ID、接收方与外发内容后发送。区分退款申请期限与处理/到账时长，不把测试数据当作企业政策。
@@ -126,3 +126,20 @@ HTTP 正式源码预览中，已完成「输入退款期限是多少 → 查询�
 本轮另在 HTTP 同源预览重新执行「查询退款期限 → 编辑答案 → 保存并读回确认 → 返回问答 → 再次查询」，可见固定答案包含新增的「本轮界面保存核对。」并保留 `qa_demo_refund` 来源。此次运行使用模拟内存 Host，刷新仍会重置，不证明安装后持久化或真实 AI。未发现新 UI 缺陷；正式源码、预览源码及唯一 `0.1.4` 安装包均未改动，因此复用前述有效定向证据，没有重复构建、全组测试或评分。
 
 续接证据保存在忽略目录 `artifacts/sidebar-tools/ai-knowledge-answers/`：`r21-local-entry-20261026.json` 与 `r21-local-entry-core-20261026.png`。下一条未验证操作仍是通过现有本地项目链连接本工具的准确目录并确认来源身份；原生安装、关闭重开和真实可信 AI 分离未被 HTTP 结果补齐。
+
+
+### R2.1 原生核心链与保存修复（2026-10-26，0.1.5）
+
+用户授权新建独立 Chrome for Testing 后，在 Mac CFT `154.0.8037.92` 的全新临时 Profile，通过真实工具栏和原安装器安装 0.1.4。实际复现：点击或按 Enter 激活「保存知识」无响应，仍显示未保存修改；DevTools 明确报告沙箱未提供 `allow-forms`，阻止了 HTML 表单提交。此前组件测试直接派发 `submit`，HTTP 预览也没有同样的沙箱限制，未覆盖这条原生故障。
+
+0.1.5 将工具自身编辑区改为带标题的 group，普通按钮 click 调用原 `commit`；Tab 到保存按钮后按 Enter 仍可保存。未放宽沙箱、CSP、权限或未知写入保护。可信 Browser 仅同步固定准入版本至 0.1.5，仍要求准确官方来源、包摘要、安装身份及撤权代际。组件测试改为激活实际按钮：修复前核心保存用例失败，修复后 UI、未知/冲突写入保护、官方准入和原打包/沙箱合同共 **51/51 PASS**。
+
+候选经原打包器构建、定向测试、`--promote-from`、`--check-project` 后晋升唯一正式 JSON：**0.1.5，57,435 字节，SHA-256 `e65e942b7715c0801e93f784a7923f4f0a814a076f39aeb31a89a3e6ebb4bc36`**。已有 watcher 自动同步官方资源，未启动第二个构建器或复制扩展。真实测试 Profile 的扩展详情确认加载 `dist/development`、ID `ccfcjegpkdlgbclopjmadlcjedelidmf`；「调试 → 本地开发服务」显示开发服务已连接，revision `6cdc509d878958bdaccbe7b18c59c4f8f32af9b6f19d10ea3d96328960acfe6f`。Chrome 的开发者模式在重载时阻止扩展继续运行，开启该测试 Profile 的开发者模式后恢复；日常 Chrome 与其他任务服务未操作。
+
+通过官方「审阅新版 → 确认更新」完成同 ID 0.1.4 → 0.1.5，无新增/移除能力，审阅显示的原始及规范 SHA 与正式包一致。原 0.1.4 空库没有已保存记录，因此此次升级不证明已有内容的跨版本迁移。
+
+真实已完成操作：新建唯一虚构测试知识 → 点击保存并独立读回 → 查询蓝色通行卡固定答案及来源 → 编辑为绿色通行卡 → Tab/Enter 保存并读回 → 返回扩展列表、关闭侧栏 → 重新打开同一安装实例 → 已载入 1 条知识 → 查询仍返回绿色通行卡答案及同一来源 `qa_cde066a739cc4e16a6592094f4b66aa3`。重开后的 hostInstanceId 已变化，所见不是未关闭的旧编辑器。可信 AI 控件与独立沙箱同时可见，但没有批准网站监听、自动发送或调用 Provider。
+
+本轮为 **CORE_NATIVE_PASS（持续开发候选）**；上述具体安装、保存、编辑及侧栏关闭重开不再是 NOT_TESTED。真实 AI/Native Provider、本地客服消息链、整浏览器进程重启及 production 正式验收仍 **NOT_TESTED**，不替代其他工作流记录或整体评分。没有执行宽度/缩放矩阵。
+
+原始证据保存在忽略目录 `artifacts/sidebar-tools/ai-knowledge-answers/r21-cft154-core-20261026/`：`result.json` 含身份、各步骤和原始文件 SHA，`04-sandbox-form-error.*`、`07-update-review.*`、`08-save-readback.*`、`09-fixed-answer.*`、`10-edit-save-keyboard.txt`、`11-closed.txt`、`12-reopened-loaded.txt`、`13-reopened-answer.*`、`14-dev-connection.txt` 和 `05-node-gates.tap`。启动记录为同级 `r21-cft154-launch-20261026.json`。历史预览分数和 0.1.4 阻塞记录保留，不提升为本次完整验收。
