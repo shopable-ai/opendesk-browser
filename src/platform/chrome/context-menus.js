@@ -1130,6 +1130,12 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(allSites&&packageHash!==hash)throw failure('E_TOOL_CHANGED');
         if(allSites&&enabled&&!await admittedOfficialCookie(tool))
           throw failure('E_OWNER','All-site Cookie consent requires the exact official release');
+        // A custom package claiming the official tool ID cannot invoke the
+        // trusted one-click site grant to enable every Cookie capability.
+        // Keep explicit, single-capability consent for non-official tools.
+        if(siteCapability==='all'&&enabled&&!allSites&&tool.id==='cookie-editor'&&
+          !await admittedOfficialCookie(tool))
+          throw failure('E_SCHEMA','Complete site Cookie consent requires the exact official release');
         if(siteCapability==='all'
           ?!tool.capabilities.some(name=>name.startsWith('browser.cookies.'))||
             enabled&&!allSites&&tool.id!=='cookie-editor'

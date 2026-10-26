@@ -31,7 +31,8 @@ test('R5.12 removes obsolete privileged Cookie pilot, preserving the independent
   assert.doesNotMatch(main,/CookieTrustedPilot|cookiePilotHost|cookiePilotScopedCSS|mountCookieEditorPilot/);
   assert.doesNotMatch(shell,/cookieReactPilot|admitsTrustedCookieEditor|TRUSTED_COOKIE_EDITOR_VERSION/);
   assert.match(independent,/export function CookieEditorView/);
-  assert.match(app,/import \{CookieEditorView,CookieIconButton\} from '\.\/components\/CookieEditorView\.jsx'/);
+  assert.match(app,/import \{CookieEditorView,CookieIconButton,CookieSiteBar\} from '\.\/components\/CookieEditorView\.jsx'/);
+  assert.match(independent,/export function CookieSiteBar\b/);
   assert.match(app,/createCookieController/);
   assert.match(preview,/import CookieEditorApp from '\.\.\/\.\.\/\.\.\/app\/CookieEditorApp\.jsx'/);
   assert.match(preview,/<CookieEditorApp\b/);
