@@ -72,6 +72,25 @@ test('R6.1 scans only the captured top-level Chrome document, revalidates it and
   assert(!/sendMessage|storage|fetch\(/.test(h.injected.func.toString()));
 });
 
+test('R6.1 can receive identity pinned at the actual click before asynchronous Catalog loading',async()=>{
+  const h=harness(),pinned=h.target.capture();
+  // A second capture after loading the Catalog must never select a new tab.
+  h.target.capture=()=>{throw new Error('Late capture is forbidden');};
+  const row=await discoverCurrentPageMarketInstall({
+    api:h.api,currentPageTarget:h.target,channel,releases:[release],target:pinned
+  });
+  assert.equal(row.target,pinned);
+  assert.equal(h.validated,2,'revalidate once before reading DOM and once after');
+  assert.deepEqual(h.injected.target,{tabId:3,documentIds:['1234abcd']});
+});
+test('R6.1 a pinned document changed during Catalog loading cannot be read',async()=>{
+  const h=harness({change:true}),pinned=h.target.capture();
+  await assert.rejects(discoverCurrentPageMarketInstall({
+    api:h.api,currentPageTarget:h.target,channel,releases:[release],target:pinned
+  }),{code:'E_DOCUMENT_STALE'});
+  assert.equal(h.injected,null,'no page injection occurs after stale pre-check');
+});
+
 test('R6.1 rejects missing, duplicate, changed, failed and non-top-document discovery',async()=>{
   const cases=[
     [{links:[]},'E_DISCOVERY_MISSING'],
